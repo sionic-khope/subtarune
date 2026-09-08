@@ -4,7 +4,7 @@
 // 시트가 없으면 src/data/art.js PALETTES[palette] 의 문자 도트로 대체.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
-  hyungsub:  { name: '형섭', voice: 'hyungsub', palette: 'hero' },   // 기본 주인공
+  hyungsub:  { name: '형섭', voice: 'narrator', palette: 'hero', self: true },   // 주인공 = 나 자신: 대사는 이름/초상화 없이 나레이션처럼
   gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard' },
   ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat' },
   junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant' },   // 돼지. 웃음소리 sfx: laugh_junhee

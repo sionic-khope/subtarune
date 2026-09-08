@@ -14,14 +14,30 @@ export const CHAR_SCALE = 1;     // 캐릭터 추가 배율
 
 // ── 타일맵 ───────────────────────────────────────────────────
 export class TileMap {
-  constructor(def) {
+  constructor(def, image = null) {
     this.def = def;
-    this.rows = def.rows;
-    this.h = this.rows.length;
-    this.w = Math.max(...this.rows.map((r) => r.length));
-    this.pxW = this.w * TILE;
-    this.pxH = this.h * TILE;
+    this.image = image;                // 이미지 배경 맵 (def.image) — 실제 게임 배경 그림 + 사각형 충돌
+    if (image) {
+      this.scale = def.imageScale ?? 1;
+      this.pxW = Math.round(image.width * this.scale);
+      this.pxH = Math.round(image.height * this.scale);
+      this.rows = []; this.w = 0; this.h = 0;
+    } else {
+      this.rows = def.rows;
+      this.h = this.rows.length;
+      this.w = Math.max(...this.rows.map((r) => r.length));
+      this.pxW = this.w * TILE;
+      this.pxH = this.h * TILE;
+    }
     this.canvas = null;
+  }
+
+  /** 이미지 맵: walkable 사각형 안 + solids 사각형 밖 이어야 걸을 수 있다 */
+  _imageSolid(x, y, w, h) {
+    const inside = (px, py) => this.def.walkable.some((r) => px >= r[0] && py >= r[1] && px < r[0] + r[2] && py < r[1] + r[3]);
+    const corners = [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]];
+    if (!corners.every(([px, py]) => inside(px, py))) return true;
+    return (this.def.solids || []).some((r) => x < r[0] + r[2] && x + w > r[0] && y < r[1] + r[3] && y + h > r[1]);
   }
 
   tileAt(tx, ty) {
@@ -31,6 +47,7 @@ export class TileMap {
 
   /** 픽셀 사각형이 막힌 타일과 겹치는지 */
   solidRect(x, y, w, h) {
+    if (this.image) return this._imageSolid(x, y, w, h);
     const x0 = Math.floor(x / TILE), y0 = Math.floor(y / TILE);
     const x1 = Math.floor((x + w - 1) / TILE), y1 = Math.floor((y + h - 1) / TILE);
     for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) if (this.tileAt(tx, ty).solid) return true;
@@ -41,6 +58,7 @@ export class TileMap {
   bake() {
     const c = makeCanvas(this.pxW, this.pxH);
     const ctx = c.getContext('2d');
+    if (this.image) { ctx.drawImage(this.image, 0, 0, this.pxW, this.pxH); this.canvas = c; return; }
     const rng = mulberry32(this.def.seed ?? 1);
     for (let ty = 0; ty < this.h; ty++) {
       for (let tx = 0; tx < this.w; tx++) {
@@ -175,6 +193,14 @@ export class Character extends Entity {
     const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
     const sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x);
     const sy = Math.round(this.y + this.h - dh - cam.y);
+    if (this.pose === 'lying') {           // 침대에 누움: 정면 스프라이트를 90도 눕힘 (머리가 위쪽)
+      ctx.save();
+      ctx.translate(Math.round(this.x + this.w / 2 - cam.x), Math.round(this.y + this.h / 2 - cam.y));
+      ctx.rotate(-Math.PI / 2);
+      ctx.drawImage(this.sprite.down[0], -Math.round(dw / 2), -Math.round(dh / 2) - 6, dw, dh);
+      ctx.restore();
+      return;
+    }
     // 발밑 그림자
     ctx.fillStyle = 'rgba(0,0,0,0.28)';
     ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3);

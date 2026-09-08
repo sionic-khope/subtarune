@@ -5,6 +5,7 @@
 import { FONT } from './font.js';
 import { drawHeart, makeCanvas } from '../core/gfx.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
+import { BUILD } from '../main.js';
 
 const GLYPHS = {
   s: [
@@ -119,7 +120,9 @@ export function bakeLogo(word = 'subtArune') {
   return c;
 }
 
-const ZOOM_DURATION = 2.1;   // 로고가 박히는 시각(초) = assets/audio/intro.mp3 의 첫 '쾅'(2.1s). 곡 바꾸면 여기만
+const PRE_DELAY = 0.8;       // 아무 키 → (띠링, 검은 화면) → 이 시간 뒤 곡+확대 시작
+const ZOOM_DURATION = 2.4;   // 확대 시작 후 로고가 박히는 시각(초) = intro.mp3 의 최대 히트(2.4s). 곡 바꾸면 여기만
+const PROMPT_DELAY = 3.0;    // 박힌 뒤 'C 를 눌러 시작' 이 뜨기까지
 
 export class TitleScreen {
   constructor(game) {
@@ -135,10 +138,14 @@ export class TitleScreen {
   enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; }
 
   _startIntro() {
-    this.phase = 'zoom';
+    this.phase = 'pre';
     this.time = 0;
     this.game.sound.sfx('chime');            // 띠링
-    this.game.sound.playIntro(ZOOM_DURATION); // 확대와 동시에 시작 → 2.1초에 쾅
+  }
+  _startZoom() {
+    this.phase = 'zoom';
+    this.time = 0;
+    this.game.sound.playIntro(ZOOM_DURATION); // 확대와 동시에 곡 시작 → ZOOM_DURATION 에 쾅
   }
 
   _lock() {
@@ -148,7 +155,7 @@ export class TitleScreen {
     this.shakeAmp = 4;
     this.game.sound.thud();
     // 인트로 곡은 그대로 이어지다가 타이틀 루프로 넘어간다
-    setTimeout(() => { this.game.sound.stopIntro(1.5); this.game.sound.playBgm('title', { volume: 0.5, fadeIn: 1.5 }); }, 2500);
+    setTimeout(() => { this.game.sound.stopIntro(1.5); this.game.sound.playBgm('title', { volume: 0.35, fadeIn: 1.5 }); }, 2500);   // 시작브금 (-30%)
   }
 
   update(dt, input) {
@@ -158,6 +165,10 @@ export class TitleScreen {
 
     if (this.phase === 'wait') {
       if (Object.keys(input.pressed).length) this._startIntro();
+      return;
+    }
+    if (this.phase === 'pre') {
+      if (this.time >= PRE_DELAY) this._startZoom();
       return;
     }
     if (this.phase === 'zoom') {
@@ -173,7 +184,7 @@ export class TitleScreen {
       this.game.fadeTo(1, 0.3, () => { this.game.changeMap('test', 'start', true); this.game.state = 'field'; this.game.fadeTo(0, 0.3); });
       return;
     }
-    if (this.time > 0.5 && input.just('confirm')) {
+    if (this.time > PROMPT_DELAY && input.just('confirm')) {
       this.leaving = true;
       this.flash = 0.12;
       this.game.sound.sfx('confirm');
@@ -194,10 +205,12 @@ export class TitleScreen {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
 
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#33334a'; ctx.fillText('build ' + BUILD, 6, SCREEN_H - 20);
     if (this.phase === 'wait') {
       if ((this.time % 1.2) < 0.8) this._drawText(ctx, '아무 키나 누르세요', SCREEN_H * 0.5 - 6, '#8a8aa0');
       return;
     }
+    if (this.phase === 'pre') return;        // 검은 화면
 
     // 로고: 확대(ease-out) + 흔들림(진폭은 시간에 따라 커졌다가 박히며 감쇠)
     let scale = 1, shake = 0, alpha = 1;
@@ -219,7 +232,7 @@ export class TitleScreen {
     ctx.drawImage(this.logo, lx, ly, w, h);
     ctx.globalAlpha = 1;
 
-    if (this.phase === 'locked' && this.time > 0.6) {
+    if (this.phase === 'locked' && this.time > PROMPT_DELAY) {
       const period = this.leaving ? 0.08 : 0.9;
       const on = this.leaving ? Math.floor(this.time / period) % 2 === 0 : (this.time % period) < period * 0.6;
       if (on) this._drawText(ctx, 'C 를 눌러 시작', SCREEN_H * 0.7);

@@ -156,7 +156,8 @@ export class TextBox {
     this.revealed = this._pageTokens().length;
     if (this.page === this.pages.length - 1 && this.choice) {
       this.state = 'choice';
-      this.sound.sfx('menu');
+      this.choiceTimer = this.choice.delay ?? 0;     // 선택지가 뜨기까지 지연
+      if (!this.choiceTimer) this.sound.sfx('menu');
     } else {
       this.state = 'waiting';
     }
@@ -202,6 +203,7 @@ export class TextBox {
     }
 
     if (this.state === 'choice') {
+      if (this.choiceTimer > 0) { this.choiceTimer -= dt; if (this.choiceTimer <= 0) this.sound.sfx('menu'); return; }
       const n = this.choice.options.length;
       if (input.just('up') || input.just('left')) { this.choiceIndex = (this.choiceIndex + n - 1) % n; this.sound.sfx('menu'); }
       if (input.just('down') || input.just('right')) { this.choiceIndex = (this.choiceIndex + 1) % n; this.sound.sfx('menu'); }
@@ -269,7 +271,7 @@ export class TextBox {
     }
 
     // 선택지
-    if (this.state === 'choice') {
+    if (this.state === 'choice' && this.choiceTimer <= 0) {
       const opts = this.choice.options;
       const usedLines = lines.length;
       const startY = r.y + 8 + usedLines * LINE_H;
@@ -318,7 +320,7 @@ TextBox.prototype.drawNarration = function (ctx) {
     ctx.fillRect(ax, ay, 5, 1); ctx.fillRect(ax + 1, ay + 1, 3, 1); ctx.fillRect(ax + 2, ay + 2, 1, 1);
   }
   // 선택지: 텍스트 아래 가운데 정렬, 하트 커서
-  if (this.state === 'choice') {
+  if (this.state === 'choice' && this.choiceTimer <= 0) {
     const opts = this.choice.options;
     opts.forEach((o, i) => {
       const w = ctx.measureText(o.label).width;

@@ -12,8 +12,10 @@
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fade: 1 }   assets/audio/bgm/<name>.mp3
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
+//  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
+//  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
 //  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기
-//  { async: 노드 }                            기다리지 않고 다음으로
+//  { async: 노드 | [노드...] }                 기다리지 않고 다음으로 (배열이면 배경에서 순차 실행)
 // ─────────────────────────────────────────────────────────────
 import { TILE } from '../world/tiles.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
@@ -82,6 +84,17 @@ function cameraPan(game, node) {
   };
 }
 
+function sequence(game, nodes) {
+  let i = 0, cur = null;
+  return { update(dt, input) {
+    while (true) {
+      if (!cur) { if (i >= nodes.length) return true; cur = makeWaiter(game, nodes[i++]) || { update: () => true }; }
+      if (!cur.update(dt, input)) return false;
+      cur = null;
+    }
+  } };
+}
+
 function parallel(game, nodes) {
   const ws = nodes.map((n) => makeWaiter(game, n)).filter(Boolean);
   return { update(dt, input) { let all = true; for (const w of ws) if (!w.done) { if (w.update(dt, input)) w.done = true; else all = false; } return all; } };
@@ -116,7 +129,9 @@ export function makeWaiter(game, node) {
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
   if (node.map) { game.changeMap(node.map, node.spawn, true); return done; }
   if (node.spawn) { game.spawn(node.spawn); return done; }
+  if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }
+  if (node.pose) { const e = findEntity(game, node.pose); if (e) { e.pose = node.to === 'lying' ? 'lying' : null; e.moving = false; e.frame = 0; } return done; }
   if (node.parallel) return parallel(game, node.parallel);
-  if (node.async) { const w = makeWaiter(game, node.async); if (w) game.background.push(w); return done; }
+  if (node.async) { const w = Array.isArray(node.async) ? sequence(game, node.async) : makeWaiter(game, node.async); if (w) game.background.push(w); return done; }
   return null;
 }

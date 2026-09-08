@@ -30,7 +30,7 @@ src/ui/dialogue.js    TextBox(타자기·태그·페이지·초상화·선택지
 src/world/tiles.js    타일 레지스트리 (registerTile)
 src/world/world.js    TileMap / Camera / Entity 종류 (registerEntity)
 src/data/art.js       도트 아트 원본 + 팔레트 (여길 고치면 그림이 바뀜)
-src/data/maps.js      맵(문자열 그리드) + 엔티티 배치
+src/data/maps.js      맵: 이미지 맵(실제 배경 PNG + 사각형 충돌) / 타일 맵(문자열 그리드)
 src/data/scripts.js   대사 스크립트 (한글)
 src/data/locale/ko.js 시스템 UI 문자열
 assets/               PNG를 넣으면 자동 교체 (아래 규격)
@@ -58,7 +58,7 @@ baker: [
 **스크립트 노드**: `text` / `choice` / `label` / `goto` / `if:(flags)=>bool, goto` / `set:{}` / `action:(game)=>{}` / `end`
 **화자 음색**: `src/core/audio.js` `VOICES` 에 프리셋 추가 (freq/wave/dur/jitter)
 
-**새 맵**: `MAPS.xxx = { rows:[...], spawns:{}, entities:[ { type:'door', to:'village', spawn:'start' } ] }`
+**새 맵**: 이미지 맵 `MAPS.xxx = { image:'assets/maps/xxx.png', walkable:[[x,y,w,h]], solids:[[...]], spawns:{}, entities:[] }` 또는 타일 맵 `{ rows:[...] }`
 **새 타일**: `registerTile('X', { name, solid, art | draw })`   **새 엔티티 종류**: `class Foo extends Entity` + `registerEntity('foo', Foo)`
 
 ## 그림 교체 (그대로 덮어쓰기)
@@ -79,7 +79,7 @@ baker: [
 
 ## 테스트룸
 
-`http://localhost:8000/?map=test` (또는 마을 오른쪽 위 문). 팻말 4개(안내/텍스트 효과/선택지/**플레이어 스프라이트 교체**), 상자, 형섭·경섭·빠맨 NPC, 러그 밟으면 컷신 데모.
+`http://localhost:8000/?map=test` (또는 타이틀에서 **T**). 팻말 4개(안내/텍스트 효과/선택지/**플레이어 스프라이트 교체**), 상자, 형섭·경섭·빠맨 NPC, 러그 밟으면 컷신 데모.
 `?map=<맵>&spawn=<스폰>&sprite=<캐릭터>` 로 타이틀·오프닝 건너뛰고 바로 진입.
 
 ## 캐릭터 시트 변환

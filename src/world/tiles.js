@@ -112,6 +112,6 @@ registerTile('T', { name: 'tree', solid: true, art: TILE_ART.tree, drawOver: ','
 registerTile('D', { name: 'door', solid: false, art: TILE_ART.door });
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
-registerTile('B', { name: 'bed', solid: true, art: TILE_ART.bed, drawOver: '.' });
+registerTile('B', { name: 'bed', solid: false, art: TILE_ART.bed, drawOver: '.' });   // 침대 위로 올라갈 수 있음(눕기 연출)
 registerTile('K', { name: 'desk', solid: true, art: TILE_ART.desk, drawOver: '.' });
 registerTile('W', { name: 'window', solid: true, art: TILE_ART.window });

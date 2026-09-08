@@ -66,12 +66,13 @@ export function silhouette(src, color) {
 }
 
 /** 이미지 로드 시도. 없으면 null (에러로 죽지 않는다) */
+export const ASSET_VERSION = Date.now();   // 개발 중 브라우저 캐시 무효화
 export function loadImageOptional(src) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = src;
+    img.src = src + '?v=' + ASSET_VERSION;
   });
 }
 

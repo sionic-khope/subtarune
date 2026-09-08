@@ -109,6 +109,9 @@ export class Sound {
     const buf = this.voiceBuf[voiceName];
     if (buf && this.ctx && !this.muted) {
       const t = this.ctx.currentTime;
+      // 단선(모노): 이전 글자 소리가 아직 울리고 있으면 끊는다 → 겹쳐서 웅웅거리지 않음
+      const prev = this._lastBlip;
+      if (prev && prev.voice === voiceName) { try { prev.gain.gain.cancelScheduledValues(t); prev.gain.gain.setValueAtTime(prev.gain.gain.value, t); prev.gain.gain.linearRampToValueAtTime(0.0001, t + 0.008); prev.src.stop(t + 0.01); } catch {} }
       const src = this.ctx.createBufferSource();
       src.buffer = buf;
       src.playbackRate.value = (v.rate ?? 1) * (1 + (Math.random() * 2 - 1) * 0.03);   // 톤다운 + 미세 변화
@@ -118,6 +121,7 @@ export class Sound {
       g.gain.exponentialRampToValueAtTime(0.0001, t + Math.min(buf.duration, v.dur ?? 0.1) + 0.02);   // 0.1초로 자름
       src.connect(g); g.connect(this.master);
       src.start(t); src.stop(t + Math.min(buf.duration, (v.dur ?? 0.1) + 0.05));
+      this._lastBlip = { voice: voiceName, src, gain: g };
       return;
     }
     this.tone(v);

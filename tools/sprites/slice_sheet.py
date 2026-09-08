@@ -46,8 +46,10 @@ def key_cell(cell):
                            cell[2:14, -14:-2].reshape(-1, 3), cell[-14:-2, -14:-2].reshape(-1, 3)])
     bg = np.median(edge, 0)
     d = np.abs(cell - bg).sum(2)
-    alpha = np.clip((d - 35) / 40.0, 0, 1)      # 35~75 사이 부드럽게
-    rgba = np.dstack([cell, (alpha * 255)]).astype('uint8')
+    alpha = (d > 55).astype(float)               # 하드 누끼: 보라 배경은 완전 제거, 캐릭터 색은 손대지 않음
+    rgb = cell.copy()
+    rgb[alpha == 0] = 0                           # 투명 픽셀 색을 0으로 → 축소 시 보라가 섞이지 않음
+    rgba = np.dstack([rgb, (alpha * 255)]).astype('uint8')
     return Image.fromarray(rgba, 'RGBA')
 
 
@@ -76,7 +78,7 @@ def process_cell(cell_rgb, FW, FH, scale):
     crop = char_crop(cell_rgb)
     if crop is None: return Image.new('RGBA', (FW, FH))
     w = max(1, round(crop.width * scale)); h = max(1, round(crop.height * scale))
-    small = crop.resize((w, h), Image.LANCZOS)          # 색 양자화 없이 그대로 (누끼만)
+    small = crop.resize((w, h), Image.BOX)              # 정확히 1/N 평균. 색 양자화 없음 (누끼만)
     a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
     frame = Image.new('RGBA', (FW, FH))
     frame.paste(small, ((FW - w) // 2, FH - h), small)
@@ -91,7 +93,7 @@ def make_portrait(cell_rgb, size=96, head_ratio=0.56):
     head = crop.crop((0, 0, crop.width, int(crop.height * head_ratio)))
     scale = min(size / head.width, (size - 2) / head.height)
     w, h = max(1, round(head.width * scale)), max(1, round(head.height * scale))
-    small = head.resize((w, h), Image.LANCZOS)
+    small = head.resize((w, h), Image.BOX)
     a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
     out = Image.new('RGBA', (size, size))
     out.paste(small, ((size - w) // 2, size - h - 1), small)
@@ -115,7 +117,7 @@ def main():
                 x0, x1 = cols[ci * 4 + f]; y0, y1 = rows[ri]
                 crops[(ri, f)] = char_crop(im[y0:y1, x0:x1])
         cell_h = rows[0][1] - rows[0][0]
-        scale = CELL_TARGET_H / cell_h
+        scale = 1.0 / max(1, round(cell_h / CELL_TARGET_H))   # 정수 분의 1 (기준 시트 = 1/2) → BOX 는 정확한 픽셀 평균
         max_h = max(round(c.height * scale) for c in crops.values() if c is not None)
         max_w = max(round(c.width * scale) for c in crops.values() if c is not None)
         FW = max(MIN_FW, max_w + 2 + (max_w % 2))

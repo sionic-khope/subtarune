@@ -41,13 +41,16 @@ class Game {
     this.time = 0;
     this.menu = { index: 0, sub: null };
     this.shake = null;            // { time, amp }
+    this.caption = null;          // { text, time, duration } 지역 이름 표시
     this.background = [];         // async 컷신 waiter
   }
 
   async load() {
     // 폰트, 스프라이트 오버라이드(assets/sprites/<name>.png), 타일 오버라이드
     try { await document.fonts.load(FONT); } catch {}
+    this.mapImages = {};
     await Promise.all([
+      ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
       this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'battle_start', 'battle_end', 'laugh_junhee']),
@@ -71,7 +74,7 @@ class Game {
       this.changeMap(q.get('map'), q.get('spawn') || 'start', true);
       this.state = 'field';
     } else {
-      this.changeMap('village', 'start', true);
+      this.changeMap('room', 'bed', true);
     }
   }
 
@@ -110,7 +113,7 @@ class Game {
     const go = () => {
       const def = MAPS[mapId];
       this.mapId = mapId;
-      this.map = new TileMap(def);
+      this.map = new TileMap(def, this.mapImages?.[mapId] || null);
       this.map.bake();
       this.entities = def.entities.map((e) => createEntity({ ...e }, this)).filter(Boolean);
       const spawn = def.spawns[spawnId] || def.spawns.start;
@@ -178,6 +181,7 @@ class Game {
       return;
     }
     if (this.shake) { this.shake.time -= dt; if (this.shake.time <= 0) this.shake = null; }
+    if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.dialogue.running) {
@@ -257,6 +261,7 @@ class Game {
     }
 
     this.textbox.draw(ctx);
+    if (this.caption) this.drawCaption(ctx);
     if (this.state === 'menu') this.drawMenu(ctx);
 
     if (this.fade.alpha > 0) {
@@ -298,6 +303,17 @@ class Game {
     }
   }
 
+  /** 지역 이름 캡션: 페이드 인 → 유지 → 페이드 아웃 (언더테일 지역명처럼) */
+  drawCaption(ctx) {
+    const c = this.caption, k = c.time / c.duration;
+    const a = k < 0.2 ? k / 0.2 : k > 0.75 ? (1 - k) / 0.25 : 1;
+    ctx.globalAlpha = Math.max(0, Math.min(1, a));
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#000'; ctx.fillText(c.text, SCREEN_W / 2 + 1, 41);
+    ctx.fillStyle = '#fff'; ctx.fillText(c.text, SCREEN_W / 2, 40);
+    ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+  }
+
   drawDebug(ctx, cam) {
     ctx.strokeStyle = 'rgba(255,0,0,0.8)';
     for (const e of this.entities) ctx.strokeRect(e.x - cam.x + 0.5, e.y - cam.y + 0.5, e.w, e.h);
@@ -309,6 +325,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
+export const BUILD = '2026-09-08.8';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

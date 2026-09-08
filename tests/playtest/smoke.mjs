@@ -10,7 +10,7 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 760 } });
 const logs = [];
 page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
-await page.goto('http://127.0.0.1:8765/index.html');
+await page.goto('http://127.0.0.1:8765/index.html?map=test');
 await page.waitForTimeout(1500);
 const shot = async (n) => page.screenshot({ path: `${S}/${n}.png` });
 await shot('01_boot');
