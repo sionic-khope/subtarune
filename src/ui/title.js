@@ -155,7 +155,7 @@ export class TitleScreen {
     this.shakeAmp = 4;
     this.game.sound.thud();
     // 인트로 곡은 그대로 이어지다가 타이틀 루프로 넘어간다
-    setTimeout(() => { this.game.sound.stopIntro(1.5); this.game.sound.playBgm('title', { volume: 0.35, fadeIn: 1.5 }); }, 2500);   // 시작브금 (-30%)
+    setTimeout(() => { this.game.sound.stopIntro(1.5); this.game.sound.playBgm('title', { volume: 0.25, fadeIn: 1.5 }); }, 2500);   // 시작브금
   }
 
   update(dt, input) {

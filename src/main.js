@@ -192,7 +192,7 @@ class Game {
     if (Input.just('debug')) this.debug = !this.debug;
     if (Input.just('title') && this.state !== 'title' && !this.transitioning) { this.toTitle(); return; }
     this.textbox.charDelay = TEXT_SPEEDS[this.settings.textSpeed].delay;
-    this.sound.muted = !this.settings.sound;
+    if (this.sound.muted !== !this.settings.sound) { this.sound.muted = !this.settings.sound; if (this.sound.bgm) this.sound._ramp(this.sound.bgm, this.sound.muted ? 0 : (this.sound.bgmVolume ?? 0.35), 0.2); }
 
     // 페이드
     if (this.fade.target !== undefined) {
@@ -288,6 +288,7 @@ class Game {
 
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
+    if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
     if (this.state === 'menu') this.drawMenu(ctx);
 
     if (this.fade.alpha > 0) {
@@ -347,11 +348,12 @@ class Game {
     const p = this.player;
     ctx.fillText(`${this.mapId} (${Math.round(p.x)},${Math.round(p.y)}) ${p.facing} fps:${Math.round(1 / this.dt)}`, 4, SCREEN_H - 14);
     ctx.fillText('flags: ' + JSON.stringify(this.flags), 4, SCREEN_H - 28);
+    ctx.fillText(this.sound.info, 4, SCREEN_H - 42);
   }
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.2';
+export const BUILD = '2026-09-09.3';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

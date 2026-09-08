@@ -8,7 +8,7 @@ const N = (text, extra = {}) => ({ style: 'narration', voice: 'narrator', speed:
 export const opening = Object.assign([
   // 타이틀의 검은 화면(fade 1)을 유지한 채 브금 시작 → 첫 나레이션 직전에 걷음 (맵이 깜빡 보이는 것 방지)
   { curtain: 'black' },                              // 나레이션 동안 맵은 절대 안 보임
-  { bgm: 'opening', volume: 0.55 },
+  { bgm: 'opening', volume: 0.35 },
   { wait: 1.2 },
   { fade: 'in', duration: 0 },
 
@@ -37,7 +37,7 @@ export const opening = Object.assign([
   { map: 'room', spawn: 'bed' },
   { pose: 'player', to: 'lying' },
   { wait: 1.6 },
-  { bgm: 'room', volume: 0.45 },                     // 방 브금 (mANXrxS5SPg)
+  { bgm: 'room', volume: 0.3 },                     // 방 브금 (mANXrxS5SPg)
   { curtain: null },
   { fade: 'in', duration: 2.0 },                     // 흰색이 걷히며 방이 드러남
   { caption: '평화롭던 우이동', duration: 3.4 },     // 지역 이름 떴다 사라짐

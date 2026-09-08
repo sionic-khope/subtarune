@@ -3,8 +3,8 @@
   "image": "assets/maps/room.png",
   "walkable": [
     [
-      4,
-      126,
+      1,
+      122,
       472,
       196
     ],
@@ -60,10 +60,10 @@
   "entities": [
     {
       "type": "sign",
-      "x": 4,
-      "y": 258,
+      "x": -1,
+      "y": 263,
       "w": 96,
-      "h": 66,
+      "h": 55,
       "script": "room_computer"
     },
     {
