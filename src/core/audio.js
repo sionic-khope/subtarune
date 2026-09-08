@@ -8,11 +8,11 @@ export const VOICES = {
   low:     { freq: 210, wave: 'sawtooth', dur: 0.10, jitter: 14, gain: 0.208, cutoff: 1200, glide: -60 },
   cat:     { freq: 880, wave: 'triangle', dur: 0.10, jitter: 90, gain: 0.256, cutoff: 4000 },
   robot:   { freq: 300, wave: 'square',   dur: 0.10, jitter: 0,  gain: 0.224, cutoff: 900 },
-  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.8 },   // 파일: 언더테일 기본 텍스트음 snd_txt1
+  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9 },   // 파일: 언더테일 원본 snd_txt1 그대로
   // ── 캐릭터별 ──
   hyungsub: { freq: 560, wave: 'square',   dur: 0.10, jitter: 40, gain: 0.24, cutoff: 2800 },              // 밝고 또렷
-  gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9 },   // 파일: 영상 첫 소리의 어택 0.15s, 빠맨과 같은 톤다운(0.9)
-  ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.288, cutoff: 3600, glide: 60, bell: true, rate: 0.9 }, // '띠링'을 톤다운한 종소리
+  gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9, cut: true },   // 파일: 영상 첫 소리의 어택 0.15s, 빠맨과 같은 톤다운(0.9)
+  ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.288, cutoff: 3600, glide: 60, bell: true, rate: 0.9, cut: true }, // '띠링'을 톤다운한 종소리
   junhee:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90 },   // 돼지: 콧소리 꿀꿀
 };
 
@@ -119,14 +119,15 @@ export class Sound {
       if (prev && prev.voice === voiceName) { try { prev.gain.gain.cancelScheduledValues(t); prev.gain.gain.setValueAtTime(prev.gain.gain.value, t); prev.gain.gain.linearRampToValueAtTime(0.0001, t + 0.008); prev.src.stop(t + 0.01); } catch {} }
       const src = this.ctx.createBufferSource();
       src.buffer = buf;
-      src.playbackRate.value = (v.rate ?? 1) * (1 + (Math.random() * 2 - 1) * 0.03);   // 톤다운 + 미세 변화
+      src.playbackRate.value = v.rate ?? 1;                       // 원본 그대로 (톤다운은 rate)
       const g = this.ctx.createGain();
       const lvl = v.level ?? 0.9;   // 파일 블립 크기
+      const len = v.cut ? Math.min(buf.duration, v.dur ?? 0.1) : buf.duration;   // cut:true 일 때만 자름
       g.gain.setValueAtTime(lvl, t);
-      g.gain.setValueAtTime(lvl, t + Math.min(buf.duration, v.dur ?? 0.1) - 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.min(buf.duration, v.dur ?? 0.1) + 0.02);   // 0.1초로 자름
+      g.gain.setValueAtTime(lvl, t + Math.max(0.005, len - 0.015));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
       src.connect(g); g.connect(this.master);
-      src.start(t); src.stop(t + Math.min(buf.duration, (v.dur ?? 0.1) + 0.05));
+      src.start(t); src.stop(t + len + 0.01);
       this._lastBlip = { voice: voiceName, src, gain: g };
       return;
     }

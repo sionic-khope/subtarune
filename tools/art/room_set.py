@@ -36,6 +36,13 @@ def tile_wall_base():
     c.hline(0, 21, T, shade(WALL_D, 0.9))
     return c
 
+def tile_wall_edge():
+    """측면/하단 벽의 윗면(탑다운): 어두운 띠 + 밝은 모서리"""
+    c = Canvas(T, T); c.rect(0, 0, T, T, BASE_D)
+    c.rect(0, 0, T, 2, BASE_L); c.rect(0, 2, T, 2, BASE)
+    for y in range(8, T, 8): c.hline(0, y, T, shade(BASE_D, 0.85))
+    return c
+
 def tile_floor(variant=0):
     c = Canvas(T, T); c.rect(0, 0, T, T, FLOOR)
     # 장판: 가로 널 결 (연한 선) + 이음새(진한 선) + 미세 점
@@ -146,7 +153,7 @@ def prop_poster():
 def main():
     out_t, out_p = 'assets/tiles', 'assets/props'
     os.makedirs(out_t, exist_ok=True); os.makedirs(out_p, exist_ok=True)
-    tiles = {'wallpaper': tile_wall(), 'wallpaper_base': tile_wall_base(), 'floor_vinyl': tile_floor(0), 'floor_vinyl2': tile_floor(1)}
+    tiles = {'wallpaper': tile_wall(), 'wallpaper_base': tile_wall_base(), 'wall_edge': tile_wall_edge(), 'floor_vinyl': tile_floor(0), 'floor_vinyl2': tile_floor(1)}
     props = {'rug': prop_rug(), 'bed': prop_bed(), 'desk_pc': prop_desk_pc(), 'shelf': prop_shelf(), 'door': prop_door(), 'window': prop_window(), 'poster': prop_poster()}
     for n, c in tiles.items(): c.save(f'{out_t}/{n}.png')
     for n, c in props.items(): c.save(f'{out_p}/{n}.png')

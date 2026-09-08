@@ -17,9 +17,9 @@ import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 
 const TEXT_SPEEDS = [
-  { key: 'speed_slow', delay: 0.08 },
-  { key: 'speed_normal', delay: 0.045 },
-  { key: 'speed_fast', delay: 0.02 },
+  { key: 'speed_slow', delay: 0.06 },
+  { key: 'speed_normal', delay: 0.033 },   // 언더테일 기본(1글자/2프레임)
+  { key: 'speed_fast', delay: 0.016 },
 ];
 
 class Game {
@@ -284,7 +284,8 @@ class Game {
     this.map.draw(ctx, cam);
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
-    const key = (e) => (e.y + e.h) + (e.pose === 'lying' ? 10000 : 0);
+    const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
+    const key = (e) => (e.y + e.h) + (e.pose === 'lying' || onProp(e) ? 10000 : 0);
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
 
@@ -355,7 +356,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.6';
+export const BUILD = '2026-09-09.8';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

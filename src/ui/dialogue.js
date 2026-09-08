@@ -358,7 +358,6 @@ export class ScriptRunner {
     this.labels = {};
     this.wait = null;
     script.forEach((n, i) => { if (n.label) this.labels[n.label] = i; });
-    if (!script.silent) this.game.sound.sfx('open');
     this._step();
   }
 
@@ -373,7 +372,6 @@ export class ScriptRunner {
     this.script = null;
     this.wait = null;
     this.box.close();
-    if (!silent) this.game.sound.sfx('close');
     if (this.onEnd) this.onEnd();
   }
 

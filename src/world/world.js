@@ -327,14 +327,18 @@ export class Door extends Entity {
 
 /** 보이지 않는 트리거 영역 (컷신 시작 등) */
 export class Trigger extends Entity {
-  constructor(def, game) { super({ solid: false, ...def }, game); this.fired = false; }
+  constructor(def, game) { super({ solid: false, ...def }, game); this.fired = false; this.inside = false; this.touched = false; }
   onEnter() {
+    this.touched = true;                       // 이번 프레임에 겹쳐 있음
+    if (this.inside) return;                   // 밟고 있는 동안은 재발동 안 함 (나갔다 들어와야 함)
+    this.inside = true;
     if (this.fired || this.game.dialogue.running) return;
     if (this.def.once && this.game.flags[this.def.flag]) return;
     this.fired = true;
     if (this.def.flag) this.game.flags[this.def.flag] = true;
     this.game.runScript(this.def.script, () => { if (!this.def.once) this.fired = false; });
   }
+  update() { if (!this.touched) this.inside = false; this.touched = false; }
   draw() {}
 }
 

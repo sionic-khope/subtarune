@@ -119,5 +119,6 @@ registerTile('W', { name: 'window', solid: true, art: TILE_ART.window });
 const flat = (col) => (ctx) => { ctx.fillStyle = col; ctx.fillRect(0, 0, ART_PX, ART_PX); };
 registerTile('p', { name: 'wallpaper', solid: true, draw: flat('#e9d8a6') });
 registerTile('q', { name: 'wallpaper_base', solid: true, draw: flat('#8a5a3c') });
+registerTile('e', { name: 'wall_edge', solid: true, draw: flat('#6b4229') });   // 측면/하단 벽
 registerTile('f', { name: 'floor_vinyl', solid: false, draw: flat('#c9a26a') });
 registerTile('g', { name: 'floor_vinyl2', solid: false, draw: flat('#c9a26a') });

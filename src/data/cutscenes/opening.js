@@ -45,7 +45,7 @@ export const opening = Object.assign([
   { text: '* …{w=0.6} …{w=0.6} 아 맞다 ㅅㅂ', voice: 'narrator' },
   { text: '* 방송 켜야지{w=0.3} 아 8시 35분이네{w=0.3} 후딱 켜야겠다.', voice: 'narrator' },
   { pose: 'player', to: 'stand' },
-  { move: 'player', px: [300, 190] },                // 침대 왼쪽으로 내려옴
+  { move: 'player', px: [332, 190] },                // 침대 왼쪽으로 내려옴
   { face: 'player', dir: 'left' },
   { text: '* (컴퓨터가 있는 곳으로 가야 할 거 같다)', voice: 'narrator' },
   { set: { opening_seen: true } },

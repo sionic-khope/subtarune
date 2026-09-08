@@ -3,24 +3,26 @@
   "name": "우이동",
   "bgm": "room",
   "rows": [
-    "pppppppppppppp",
-    "pppppppppppppp",
-    "qqqqqqqqqqqqqq",
-    "fgfgfgfgfgfgfg",
-    "gfgfgfgfgfgfgf",
-    "fgfgfgfgfgfgfg",
-    "gfgfgfgfgfgfgf",
-    "fgfgfgfgfgfgfg",
-    "gfgfgfgfgfgfgf",
-    "fgfgfgfgfgfgfg"
+    "epppppppppppppe",
+    "epppppppppppppe",
+    "eqqqqqqqqqqqqqe",
+    "egfgfgfgfgfgfge",
+    "efgfgfgfgfgfgfe",
+    "egfgfgfgfgfgfge",
+    "efgfgfgfgfgfgfe",
+    "egfgfgfgfgfgfge",
+    "efgfgfgfgfgfgfe",
+    "egfgfgfgfgfgfge",
+    "efgfgfgfgfgfgfe",
+    "eeeeeeeeeeeeeee"
   ],
   "spawns": {
     "bed": {
-      "x": 356,
+      "x": 388,
       "y": 134
     },
     "door": {
-      "x": 106,
+      "x": 138,
       "y": 100
     }
   },
@@ -28,14 +30,14 @@
     {
       "type": "prop",
       "image": "assets/props/window.png",
-      "x": 200,
+      "x": 232,
       "y": 12,
       "solid": false
     },
     {
       "type": "prop",
       "image": "assets/props/poster.png",
-      "x": 300,
+      "x": 332,
       "y": 20,
       "solid": false,
       "script": "room_poster"
@@ -43,13 +45,13 @@
     {
       "type": "prop",
       "image": "assets/props/door.png",
-      "x": 100,
+      "x": 132,
       "y": 44,
       "solid": false
     },
     {
       "type": "trigger",
-      "x": 104,
+      "x": 136,
       "y": 96,
       "w": 32,
       "h": 10,
@@ -59,38 +61,38 @@
     {
       "type": "prop",
       "image": "assets/props/shelf.png",
-      "x": 330,
+      "x": 362,
       "y": 44,
       "solid": false
     },
     {
       "type": "prop",
       "image": "assets/props/bed.png",
-      "x": 336,
+      "x": 368,
       "y": 100,
       "solid": true,
       "w": 64,
       "h": 80,
       "script": "room_bed",
-      "ix": 334,
+      "ix": 366,
       "iy": 84
     },
     {
       "type": "prop",
       "image": "assets/props/desk_pc.png",
-      "x": 24,
+      "x": 56,
       "y": 100,
       "solid": true,
       "w": 64,
       "h": 32,
       "script": "room_computer",
-      "ix": 22,
+      "ix": 54,
       "iy": 70
     },
     {
       "type": "prop",
       "image": "assets/props/rug.png",
-      "x": 160,
+      "x": 192,
       "y": 150,
       "solid": false
     }
