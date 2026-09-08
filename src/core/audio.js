@@ -11,7 +11,7 @@ export const VOICES = {
   narrator:{ freq: 440, wave: 'sine',     dur: 0.10, jitter: 10, gain: 0.13, cutoff: 2000, rate: 1.0 },   // 이름 없는 '* ~가 있다' 대사
   // ── 캐릭터별 ──
   hyungsub: { freq: 560, wave: 'square',   dur: 0.10, jitter: 40, gain: 0.15, cutoff: 2800 },              // 밝고 또렷
-  gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.10, jitter: 12, gain: 0.17, cutoff: 1600, glide: -20, rate: 0.88 },  // 낮고 차분 (파일이면 톤다운)
+  gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.17, cutoff: 1600, glide: -20, rate: 0.9 },   // 파일: 영상 첫 소리의 어택 0.15s, 빠맨과 같은 톤다운(0.9)
   ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.18, cutoff: 3600, glide: 60, bell: true, rate: 0.9 }, // '띠링'을 톤다운한 종소리
   junhee:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.14, cutoff: 900,  glide: 90 },   // 돼지: 콧소리 꿀꿀
 };
