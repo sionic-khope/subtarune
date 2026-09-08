@@ -318,7 +318,7 @@ export class Door extends Entity {
   constructor(def, game) { super({ solid: false, w: TILE, h: TILE * 0.375, ...def }, game); this.cooldown = 0; }
   update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
   onEnter(player) {
-    if (this.cooldown > 0 || this.game.transitioning) return;
+    if (this.cooldown > 0 || this.game.transitioning || this.game.dialogue.running) return;
     if (!this.def.to) return;
     this.game.sound.sfx('door');
     this.game.changeMap(this.def.to, this.def.spawn);
@@ -326,19 +326,30 @@ export class Door extends Entity {
 }
 
 /** 보이지 않는 트리거 영역 (컷신 시작 등) */
+/**
+ * 보이지 않는 트리거 영역.
+ * 규칙: (1) 들어가는 순간(edge) 한 번만 발동 — 밟고 있는 동안 반복 금지, 나갔다 들어와야 재발동
+ *       (2) 대사/컷신 중·맵 전환 중엔 발동 안 함, 끝난 뒤 COOLDOWN 동안도 안 함
+ *       (3) once 면 flag 로 영구 1회
+ * 겹침은 트리거가 매 프레임 직접 계산한다 (플레이어 업데이트가 멈춘 대사 중에도 '안에 있음' 상태가 유지되도록)
+ */
 export class Trigger extends Entity {
-  constructor(def, game) { super({ solid: false, ...def }, game); this.fired = false; this.inside = false; this.touched = false; }
-  onEnter() {
-    this.touched = true;                       // 이번 프레임에 겹쳐 있음
-    if (this.inside) return;                   // 밟고 있는 동안은 재발동 안 함 (나갔다 들어와야 함)
-    this.inside = true;
-    if (this.fired || this.game.dialogue.running) return;
+  static COOLDOWN = 0.35;
+  constructor(def, game) { super({ solid: false, ...def }, game); this.inside = false; this.cooldown = 0; this.running = false; }
+  onEnter() {}
+  update(dt) {
+    const p = this.game.player;
+    const over = !!p && p.overlaps(this.rect);
+    if (this.cooldown > 0) this.cooldown -= dt;
+    const entering = over && !this.inside;
+    this.inside = over;
+    if (!entering || this.running || this.cooldown > 0) return;
+    if (this.game.dialogue.running || this.game.transitioning) return;
     if (this.def.once && this.game.flags[this.def.flag]) return;
-    this.fired = true;
     if (this.def.flag) this.game.flags[this.def.flag] = true;
-    this.game.runScript(this.def.script, () => { if (!this.def.once) this.fired = false; });
+    this.running = true;
+    this.game.runScript(this.def.script, () => { this.running = false; this.cooldown = Trigger.COOLDOWN; });
   }
-  update() { if (!this.touched) this.inside = false; this.touched = false; }
   draw() {}
 }
 

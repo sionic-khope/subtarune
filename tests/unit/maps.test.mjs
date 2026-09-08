@@ -20,3 +20,35 @@ for (const id of index.maps) {
     });
   }
 }
+
+// ── 상호작용 무결성: 문 핑퐁 / 스폰 위치 / 트리거 겹침 ──
+const maps = Object.fromEntries(index.maps.map((id) => [id, JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'))]));
+const rectOf = (e) => [e.x, e.y, e.w ?? 24, e.h ?? 24];
+const hit = (a, b) => a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1];
+const PLAYER = [24, 16];   // 플레이어 히트박스 (TILE*0.75, TILE*0.5)
+for (const [id, m] of Object.entries(maps)) {
+  const ents = m.entities || [];
+  test(`${id}: 문의 목적지 스폰이 존재하고, 도착 즉시 다른 문을 밟지 않는다(핑퐁 방지)`, () => {
+    for (const d of ents.filter((e) => e.type === 'door')) {
+      const target = maps[d.to];
+      assert.ok(target, `문 → 없는 맵 ${d.to}`);
+      const sp = target.spawns?.[d.spawn];
+      assert.ok(sp, `문 → ${d.to} 에 스폰 ${d.spawn} 없음`);
+      const pr = [sp.x, sp.y, ...PLAYER];
+      for (const d2 of (target.entities || []).filter((e) => e.type === 'door' || e.type === 'trigger')) assert.ok(!hit(pr, rectOf(d2)), `${d.to}.${d.spawn} 이 문/트리거 위에 있음 → 도착하자마자 발동`);
+    }
+  });
+  test(`${id}: 스폰이 막힘/소품/트리거 안에 없다`, () => {
+    for (const [name, sp] of Object.entries(m.spawns || {})) {
+      if (name === 'bed') continue;   // 침대 위 눕기 연출은 예외
+      const pr = [sp.x, sp.y, ...PLAYER];
+      for (const z of ents.filter((e) => e.type === 'trigger' || e.type === 'door')) assert.ok(!hit(pr, rectOf(z)), `스폰 ${name} 이 트리거/문 위`);
+      for (const r of (m.solids || [])) assert.ok(!hit(pr, r), `스폰 ${name} 이 막힘 안`);
+      for (const e of ents.filter((e) => e.type === 'prop' && e.solid !== false && e.w !== undefined)) assert.ok(!hit(pr, rectOf(e)), `스폰 ${name} 이 소품 ${e.image} 안`);
+    }
+  });
+  test(`${id}: 트리거/문끼리 겹치지 않는다`, () => {
+    const zones = ents.filter((e) => e.type === 'trigger' || e.type === 'door');
+    for (let i = 0; i < zones.length; i++) for (let j = i + 1; j < zones.length; j++) assert.ok(!hit(rectOf(zones[i]), rectOf(zones[j])), `영역 겹침: ${zones[i].script || zones[i].to} / ${zones[j].script || zones[j].to}`);
+  });
+}
