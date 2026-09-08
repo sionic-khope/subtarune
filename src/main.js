@@ -34,7 +34,7 @@ class Game {
     this.inventory = [];
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu
-    this.fade = { alpha: 0, dir: 0, cb: null };
+    this.fade = { alpha: 0, dir: 0, cb: null, color: '0,0,0' };
     this.transitioning = false;
     this.debug = false;
     this.spriteOverrides = {};
@@ -127,7 +127,8 @@ class Game {
     this.fadeTo(1, 0.25, () => { go(); this.fadeTo(0, 0.25, () => { this.transitioning = false; }); });
   }
 
-  fadeTo(target, duration, cb) {
+  fadeTo(target, duration, cb, color) {
+    if (color) this.fade.color = color === 'white' ? '255,255,255' : '0,0,0';
     if (duration <= 0) { this.fade.alpha = target; this.fade.target = undefined; if (cb) cb(); return; }
     Object.assign(this.fade, { target, speed: 1 / duration, cb });
   }
@@ -229,12 +230,12 @@ class Game {
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (this.state === 'title') {
       this.title.draw(ctx);
-      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(0,0,0,${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
     if (this.textbox.fullscreen) {
       this.textbox.draw(ctx);
-      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(0,0,0,${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
     const cam = { x: Math.round(this.camera.x), y: Math.round(this.camera.y) };
@@ -259,7 +260,7 @@ class Game {
     if (this.state === 'menu') this.drawMenu(ctx);
 
     if (this.fade.alpha > 0) {
-      ctx.fillStyle = `rgba(0,0,0,${this.fade.alpha})`;
+      ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`;
       ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     }
     if (this.debug) this.drawDebug(ctx, cam);
@@ -315,7 +316,7 @@ window.game = game;   // 콘솔 디버깅용
 function resize() {
   // 0.5 단위 CSS 배율 (레티나에선 0.5 도 정수 픽셀). 최소 2 = 640x480
   const raw = Math.min(innerWidth / SCREEN_W, (innerHeight - 24) / SCREEN_H);
-  const s = Math.max(2, Math.floor(raw * 2) / 2);
+  const s = Math.max(1, Math.floor(raw * 2) / 2);
   canvas.style.width = SCREEN_W * s + 'px';
   canvas.style.height = SCREEN_H * s + 'px';
 }

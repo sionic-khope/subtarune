@@ -123,6 +123,33 @@ export class Sound {
     this.tone(v);
   }
 
+  /** BGM: assets/audio/bgm/<name>.mp3 루프 재생. 같은 곡이면 유지 */
+  playBgm(name, { loop = true, volume = 0.6, fadeIn = 0.5 } = {}) {
+    if (this.bgm && this.bgmName === name) return;
+    this.stopBgm(0.4);
+    if (!name) return;
+    const a = new Audio(`assets/audio/bgm/${name}.mp3`);
+    a.loop = loop; a.volume = 0;
+    a.play().catch(() => {});
+    this.bgm = a; this.bgmName = name;
+    this._ramp(a, volume, fadeIn);
+  }
+  stopBgm(fade = 0.8) {
+    const a = this.bgm; if (!a) return;
+    this.bgm = null; this.bgmName = null;
+    this._ramp(a, 0, fade, () => { a.pause(); a.src = ''; });
+  }
+  _ramp(a, to, sec, done) {
+    const from = a.volume, t0 = performance.now();
+    if (sec <= 0) { a.volume = to; if (done) done(); return; }
+    const step = () => {
+      const k = Math.min(1, (performance.now() - t0) / (sec * 1000));
+      a.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+      if (k < 1) requestAnimationFrame(step); else if (done) done();
+    };
+    step();
+  }
+
   /** 인트로: assets/audio/intro.(mp3|ogg) 가 있으면 재생, 없으면 합성 스웰 */
   playIntro(duration = 2.6) {
     const tryFile = (src) => new Promise((resolve) => {
@@ -137,7 +164,7 @@ export class Sound {
       return false;
     });
   }
-  stopIntro() { if (this.introAudio) { this.introAudio.pause(); this.introAudio = null; } }
+  stopIntro(fade = 0) { const a = this.introAudio; if (!a) return; this.introAudio = null; if (fade) this._ramp(a, 0, fade, () => a.pause()); else a.pause(); }
 
   /** 합성 인트로: 저음 스웰(필터 열림) + 배음 + 마지막 쾅 */
   synthIntro(duration) {

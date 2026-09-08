@@ -10,7 +10,7 @@ const N = (text, extra = {}) => ({ style: 'narration', voice: 'none', speed: 0.6
 export const myScene = Object.assign([
   // 1) 셋업 — 카메라/엔티티 배치
   { camera: [10, 6], duration: 1.2 },
-  { spawn: { type: 'npc', id: 'guest', sprite: 'guard', x: 12 * 16 + 2, y: 3 * 16 + 8, facing: 'down' } },
+  { spawn: { type: 'npc', id: 'guest', sprite: 'guard', x: 12 * 32 + 4, y: 3 * 32 + 16, facing: 'down' } },
 
   // 2) 연출 — 이동/대사 섞기. parallel 로 동시 동작
   { parallel: [

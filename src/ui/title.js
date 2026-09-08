@@ -90,7 +90,7 @@ const GLYPHS = {
   ],
 };
 
-const BLOCK = 4;      // 블록 1칸 = 4px (9글자 = 248px)
+const BLOCK = 6;      // 블록 1칸 = 6px (9글자 = 372px / 화면 480)
 const GAP = 1;        // 글자 사이 블록 수
 
 /** 로고를 오프스크린 캔버스로 굽는다 (한 번만) */
@@ -119,7 +119,7 @@ export function bakeLogo(word = 'subtArune') {
   return c;
 }
 
-const ZOOM_DURATION = 2.6;   // 로고 확대 시간(초) — 인트로 사운드 길이와 맞춤
+const ZOOM_DURATION = 2.1;   // 로고가 박히는 시각(초) = assets/audio/intro.mp3 의 첫 '쾅'(2.1s). 곡 바꾸면 여기만
 
 export class TitleScreen {
   constructor(game) {
@@ -138,7 +138,7 @@ export class TitleScreen {
     this.phase = 'zoom';
     this.time = 0;
     this.game.sound.sfx('chime');            // 띠링
-    setTimeout(() => this.game.sound.playIntro(ZOOM_DURATION), 250);
+    this.game.sound.playIntro(ZOOM_DURATION); // 확대와 동시에 시작 → 2.1초에 쾅
   }
 
   _lock() {
@@ -146,8 +146,9 @@ export class TitleScreen {
     this.time = 0;
     this.flash = 0.18;
     this.shakeAmp = 4;
-    this.game.sound.stopIntro();
     this.game.sound.thud();
+    // 인트로 곡은 그대로 이어지다가 타이틀 루프로 넘어간다
+    setTimeout(() => { this.game.sound.stopIntro(1.5); this.game.sound.playBgm('title', { volume: 0.5, fadeIn: 1.5 }); }, 2500);
   }
 
   update(dt, input) {
@@ -165,10 +166,19 @@ export class TitleScreen {
     }
     // locked
     if (this.leaving) return;
+    if (input.just('test')) {                 // T: 테스트룸 바로 가기
+      this.leaving = true;
+      this.game.sound.stopIntro(0.3); this.game.sound.stopBgm(0.3);
+      this.game.flags.opening_seen = true;
+      this.game.fadeTo(1, 0.3, () => { this.game.changeMap('test', 'start', true); this.game.state = 'field'; this.game.fadeTo(0, 0.3); });
+      return;
+    }
     if (this.time > 0.5 && input.just('confirm')) {
       this.leaving = true;
       this.flash = 0.12;
       this.game.sound.sfx('confirm');
+      this.game.sound.stopIntro(0.5);
+      this.game.sound.stopBgm(0.6);
       this.game.fadeTo(1, 0.6, () => this.game.startGame());
     }
   }
@@ -213,6 +223,7 @@ export class TitleScreen {
       const period = this.leaving ? 0.08 : 0.9;
       const on = this.leaving ? Math.floor(this.time / period) % 2 === 0 : (this.time % period) < period * 0.6;
       if (on) this._drawText(ctx, 'C 를 눌러 시작', SCREEN_H * 0.7);
+      this._drawText(ctx, 'T: 테스트룸', SCREEN_H - 20, '#55556b');
     }
     if (this.flash > 0) {
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, this.flash) / 0.18 * 0.6})`;

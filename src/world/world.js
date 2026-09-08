@@ -7,8 +7,8 @@ import { TILE, getTile, tileCanvas } from './tiles.js';
 import { TORSO, LEGS, WALK_CYCLE, PALETTES } from '../data/art.js';
 import { CHARACTERS } from '../data/characters.js';
 
-export const SCREEN_W = 320;
-export const SCREEN_H = 240;
+export const SCREEN_W = 480;
+export const SCREEN_H = 360;
 export const RENDER_SCALE = 2;   // 물리 해상도 배율 (640x480). 2x 시트가 1:1 로 찍힌다
 export const CHAR_SCALE = 1;     // 캐릭터 추가 배율
 
@@ -46,12 +46,13 @@ export class TileMap {
       for (let tx = 0; tx < this.w; tx++) {
         const def = this.tileAt(tx, ty);
         const variant = Math.floor(rng() * 16);
+        // 타일 아트(16px)를 TILE 크기로 정수배 확대
         if (def.drawOver) {
           // 주변(왼쪽→오른쪽→위→아래)의 걸을 수 있는 타일을 바닥으로, 없으면 기본 drawOver
           const nb = [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dx, dy]) => this.tileAt(tx + dx, ty + dy)).find((t) => !t.solid && !t.drawOver);
-          ctx.drawImage(tileCanvas(nb || getTile(def.drawOver), variant), tx * TILE, ty * TILE);
+          ctx.drawImage(tileCanvas(nb || getTile(def.drawOver), variant), tx * TILE, ty * TILE, TILE, TILE);
         }
-        ctx.drawImage(tileCanvas(def, variant), tx * TILE, ty * TILE);
+        ctx.drawImage(tileCanvas(def, variant), tx * TILE, ty * TILE, TILE, TILE);
       }
     }
     this.canvas = c;
@@ -128,7 +129,7 @@ export class Entity {
     this.def = def;
     this.id = def.id ?? null;
     this.x = def.x; this.y = def.y;
-    this.w = def.w ?? 12; this.h = def.h ?? 8;     // 충돌 박스(발 밑)
+    this.w = def.w ?? TILE * 0.75; this.h = def.h ?? TILE * 0.5;     // 충돌 박스(발 밑)
     this.solid = def.solid ?? true;
     this.facing = def.facing ?? 'down';
     this.visible = true;
@@ -154,7 +155,7 @@ export class Character extends Entity {
     this.frame = 0;
     this.animTime = 0;
     this.moving = false;
-    this.speed = def.speed ?? 60;
+    this.speed = def.speed ?? TILE * 3.8;
   }
   animate(dt, fps = 8) {
     if (!this.moving) { this.frame = 0; this.animTime = 0; return; }
@@ -176,7 +177,7 @@ export class Character extends Entity {
     const sy = Math.round(this.y + this.h - dh - cam.y);
     // 발밑 그림자
     ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 1, Math.round(dw * 0.5), 2);
+    ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3);
     ctx.drawImage(img, sx, sy, dw, dh);
   }
   draw(ctx, cam) { if (this.visible) this.drawSprite(ctx, cam); }
@@ -196,7 +197,7 @@ const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 
 export class Player extends Character {
   constructor(def, game) {
-    super({ w: 12, h: 8, speed: 62, ...def }, game);
+    super({ speed: TILE * 3.9, ...def }, game);
     this.runMul = 1.75;
     this.lastMove = 0;
   }
@@ -222,7 +223,7 @@ export class Player extends Character {
   /** 바라보는 방향 앞의 상호작용 대상 */
   probe() {
     const [dx, dy] = DIRS[this.facing];
-    const r = { x: this.x + dx * 10, y: this.y + dy * 10, w: this.w, h: this.h };
+    const r = { x: this.x + dx * TILE * 0.6, y: this.y + dy * TILE * 0.6, w: this.w, h: this.h };
     return this.game.entities.find((e) => e !== this && !e.dead && e.overlaps(r) && e.interact !== Entity.prototype.interact);
   }
 }
@@ -232,7 +233,7 @@ export class NPC extends Character {
   constructor(def, game) {
     super(def, game);
     this.home = { x: def.x, y: def.y };
-    this.wander = def.wander ?? 0;        // 픽셀 반경 (0이면 제자리)
+    this.wander = (def.wander ?? 0) * TILE / 16;   // 반경(16px 단위로 적음, 0이면 제자리)
     this.wanderTimer = 1 + Math.random() * 2;
     this.dir = { x: 0, y: 0 };
     this.baseFacing = this.facing;
@@ -251,9 +252,10 @@ export class NPC extends Character {
       }
       this.moving = this.dir.x !== 0 || this.dir.y !== 0;
       if (this.moving) {
-        const nx = this.x + this.dir.x * 30 * dt, ny = this.y + this.dir.y * 30 * dt;
+        const sp = TILE * 1.9;
+        const nx = this.x + this.dir.x * sp * dt, ny = this.y + this.dir.y * sp * dt;
         if (Math.abs(nx - this.home.x) > this.wander || Math.abs(ny - this.home.y) > this.wander) { this.dir = { x: 0, y: 0 }; this.moving = false; }
-        else { this.moveBy(this.dir.x * 30 * dt, this.dir.y * 30 * dt); }
+        else { this.moveBy(this.dir.x * sp * dt, this.dir.y * sp * dt); }
       }
     }
     this.animate(dt, 6);
@@ -287,7 +289,7 @@ export class Chest extends Entity {
 
 /** 문/워프: 밟으면 다른 맵으로 */
 export class Door extends Entity {
-  constructor(def, game) { super({ solid: false, w: 16, h: 6, ...def }, game); this.cooldown = 0; }
+  constructor(def, game) { super({ solid: false, w: TILE, h: TILE * 0.375, ...def }, game); this.cooldown = 0; }
   update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
   onEnter(player) {
     if (this.cooldown > 0 || this.game.transitioning) return;

@@ -1,44 +1,37 @@
 // ─────────────────────────────────────────────────────────────
-// 오프닝 컷신. 타이틀에서 C → 여기 → 반지하 방에서 플레이 시작.
-// 컷신 작성법: .claude/skills/cutscene/SKILL.md  /  템플릿: src/data/cutscenes/_template.js
+// 오프닝 (시작 스토리). 타이틀에서 C → 검은 화면 나레이션 → 하얗게 → 인게임(반지하).
+// BGM: assets/audio/bgm/opening.mp3 (나레이션 내내), 하얘질 때 페이드아웃.
+// 작성법: .claude/skills/cutscene/SKILL.md
 // ─────────────────────────────────────────────────────────────
-const N = (text, extra = {}) => ({ style: 'narration', voice: 'none', speed: 0.6, text, ...extra });
+const N = (text, extra = {}) => ({ style: 'narration', voice: 'narrator', speed: 0.7, text, ...extra });
 
 export const opening = Object.assign([
-  { fade: 'in', duration: 0 },                       // 타이틀의 검은 화면을 그대로 이어받음
-  { wait: 0.8 },
+  { fade: 'in', duration: 0 },
+  { bgm: 'opening', volume: 0.55 },
+  { wait: 1.2 },
 
-  N('20XX년.'),
-  N('평화로운 우이동,{w=0.5}{n}한 반지하에서...'),
-  N('{s=0.7}...{/s}{w=0.6}'),
-  N('아무 일도 일어나지 않을 것 같은{w=0.4}{n}그런 날이었다.'),
+  N('20XX년{w=0.4} 평화롭던 우이동{w=0.4} 어느날'),
+  N('그저..{w=0.6} 다른 날들과 딱히 다를일 없을 것 같았던'),
+  N('아주 평범하고도{w=0.3} 평범한 날이었다.'),
+  N('그런날일수록{w=0.4} 뭐랄까{w=0.5} 묘한 감정이'),
+  N('알 수 없는 불안감과{w=0.4} 조여오는 위가.'),
+  N('{s=0.8}강하게 느껴지는것같았다.{/s}'),
+  {
+    ...N('당신은 누구인가요?'),
+    choice: { options: [{ label: '요플래', goto: 'named' }] },   // 선택지 하나
+  },
+  { label: 'named' },
+  { set: { player_name: '요플래' } },
+  N('{s=0.35}…{/s}{w=0.9}{s=0.35}…{/s}{w=0.9}{s=0.35}…{/s}{w=0.6}'),
+  N('환영합니다{w=0.3} {c=yellow}요플래{/c} 님'),
+  N('그럼..{w=0.7} 당신의 이야기를 들어볼까요'),
+  N('{s=0.22}아 제 이 름 은 . .{/s}{w=1.2}', { auto: 0.4 }),   // 천천히 → 자동으로 하얘짐
 
-  { fade: 'out', duration: 0 },
+  { bgm: null, fade: 2.2 },
+  { fade: 'white', duration: 2.4 },
   { map: 'room', spawn: 'bed' },
-  { face: 'player', dir: 'right' },
+  { face: 'player', dir: 'down' },
   { wait: 0.6 },
   { fade: 'in', duration: 1.6 },
-  { wait: 0.8 },
-
-  { text: '* ......', voice: 'narrator' },
-  { text: '* 눈을 떴다.{w=0.5} 오늘도.', voice: 'narrator' },
-  { move: 'player', by: [0, 16] },
-  { wait: 0.4 },
-  { face: 'player', dir: 'down' },
-  { text: '* 창밖에서 발소리가 들린다.', voice: 'narrator' },
-  { shake: 0.25, amp: 2 },
-  { sfx: 'door' },
-  { spawn: { type: 'npc', id: 'opening_cat', sprite: 'cat', x: 6 * 16 + 2, y: 7 * 16 + 4, facing: 'up', script: 'cat' } },
-  { move: 'opening_cat', to: [6, 5] },
-  { move: 'opening_cat', to: [3, 3], run: true },
-  { face: 'player', dir: 'toward:opening_cat' },
-  { face: 'opening_cat', dir: 'toward:player' },
-  { wait: 0.5 },
-  { speaker: '???', portrait: 'cat', voice: 'cat', text: '* 야옹.' },
-  { speaker: '???', portrait: 'cat', voice: 'cat', text: '* {wave}야아옹.{/wave}' },
-  { text: '* 문이 잠겨 있었을 텐데.', voice: 'narrator' },
-  { text: '* 고양이가 문 쪽을 바라본다.{w=0.4} {c=yellow}따라오라는 뜻{/c} 같다.', voice: 'narrator' },
-  { move: 'opening_cat', to: [6, 6] },
-  { face: 'opening_cat', dir: 'down' },
   { set: { opening_seen: true } },
-], { silent: true });   // 컷신은 대화창 열림/닫힘 효과음 없이
+], { silent: true });

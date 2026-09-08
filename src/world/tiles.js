@@ -6,7 +6,8 @@
 import { artToCanvas, makeCanvas, mulberry32, loadImageOptional } from '../core/gfx.js';
 import { TILE_ART } from '../data/art.js';
 
-export const TILE = 16;
+export const TILE = 32;        // 월드 타일 크기(논리 px)
+export const ART_PX = 16;      // 타일 도트 아트 원본 크기 (TILE 로 정수배 확대)
 
 const registry = new Map();
 const cache = new Map();     // name → canvas[] (variants)
@@ -29,7 +30,7 @@ export function tileCanvas(def, variant = 0) {
       } else if (def.art) {
         list.push(artToCanvas(def.art.art, def.art.palette));
       } else {
-        const c = makeCanvas(TILE, TILE);
+        const c = makeCanvas(ART_PX, ART_PX);
         def.draw(c.getContext('2d'), mulberry32(def.name.length * 7919 + v * 104729));
         list.push(c);
       }
@@ -49,15 +50,15 @@ export async function loadTileOverrides() {
 
 // ── 프로시저럴 타일 그리기 도우미 ─────────────────────────────
 function fillNoise(ctx, base, specks, rng, count) {
-  ctx.fillStyle = base; ctx.fillRect(0, 0, TILE, TILE);
+  ctx.fillStyle = base; ctx.fillRect(0, 0, ART_PX, ART_PX);
   for (let i = 0; i < count; i++) {
     ctx.fillStyle = specks[Math.floor(rng() * specks.length)];
-    ctx.fillRect(Math.floor(rng() * TILE), Math.floor(rng() * TILE), 1 + Math.floor(rng() * 2), 1);
+    ctx.fillRect(Math.floor(rng() * ART_PX), Math.floor(rng() * ART_PX), 1 + Math.floor(rng() * 2), 1);
   }
 }
 
 // ── 기본 타일 ────────────────────────────────────────────────
-registerTile(' ', { name: 'void', solid: true, draw: (ctx) => { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, TILE, TILE); } });
+registerTile(' ', { name: 'void', solid: true, draw: (ctx) => { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 
 registerTile(',', {
   name: 'grass', solid: false, variants: 4,
@@ -90,17 +91,17 @@ registerTile('~', {
 registerTile('.', {
   name: 'floor', solid: false, variants: 2,
   draw: (ctx, rng) => {
-    ctx.fillStyle = '#5a4a5c'; ctx.fillRect(0, 0, TILE, TILE);
+    ctx.fillStyle = '#5a4a5c'; ctx.fillRect(0, 0, ART_PX, ART_PX);
     ctx.fillStyle = '#4e404f';
-    for (let y = 0; y < TILE; y += 8) for (let x = ((y / 8) % 2) * 8; x < TILE; x += 16) ctx.fillRect(x, y, 8, 8);
+    for (let y = 0; y < ART_PX; y += 8) for (let x = ((y / 8) % 2) * 8; x < ART_PX; x += 16) ctx.fillRect(x, y, 8, 8);
     ctx.fillStyle = '#6b596c';
-    for (let i = 0; i < 4; i++) ctx.fillRect(Math.floor(rng() * TILE), Math.floor(rng() * TILE), 1, 1);
+    for (let i = 0; i < 4; i++) ctx.fillRect(Math.floor(rng() * ART_PX), Math.floor(rng() * ART_PX), 1, 1);
   },
 });
 registerTile('=', {
   name: 'rug', solid: false,
   draw: (ctx) => {
-    ctx.fillStyle = '#7a2b3a'; ctx.fillRect(0, 0, TILE, TILE);
+    ctx.fillStyle = '#7a2b3a'; ctx.fillRect(0, 0, ART_PX, ART_PX);
     ctx.fillStyle = '#a03a4c'; ctx.fillRect(2, 2, 12, 12);
     ctx.fillStyle = '#c9a15a'; ctx.fillRect(4, 4, 8, 8);
     ctx.fillStyle = '#a03a4c'; ctx.fillRect(6, 6, 4, 4);

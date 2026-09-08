@@ -141,8 +141,8 @@ export class TextBox {
   get fullscreen() { return this.isOpen && this.style === 'narration'; }
 
   layoutRect() {
-    if (this.style === 'narration') return { x: 30, y: 60, w: 260, h: 120 };
-    return { x: 8, y: 162, w: 304, h: 72 };
+    if (this.style === 'narration') return { x: 40, y: 60, w: SCREEN_W - 80, h: 120 };
+    return { x: 12, y: SCREEN_H - 84, w: SCREEN_W - 24, h: 76 };
   }
   textWidth() {
     const r = this.layoutRect();
@@ -316,6 +316,17 @@ TextBox.prototype.drawNarration = function (ctx) {
     const ax = SCREEN_W / 2 - 2, ay = y0 + totalH + 10;
     ctx.fillStyle = '#fff';
     ctx.fillRect(ax, ay, 5, 1); ctx.fillRect(ax + 1, ay + 1, 3, 1); ctx.fillRect(ax + 2, ay + 2, 1, 1);
+  }
+  // 선택지: 텍스트 아래 가운데 정렬, 하트 커서
+  if (this.state === 'choice') {
+    const opts = this.choice.options;
+    opts.forEach((o, i) => {
+      const w = ctx.measureText(o.label).width;
+      const x = Math.round((SCREEN_W - w) / 2), y = y0 + totalH + LH + i * LH;
+      ctx.fillStyle = i === this.choiceIndex ? '#ffe066' : '#fff';
+      ctx.fillText(o.label, x, y);
+      if (i === this.choiceIndex) drawHeart(ctx, x - 14, y + Math.round(LH / 2) - 4);
+    });
   }
 };
 

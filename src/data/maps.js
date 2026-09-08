@@ -2,8 +2,9 @@
 // 맵 데이터. rows 의 글자 = 타일(src/world/tiles.js 레지스트리).
 // 엔티티 좌표는 픽셀 단위 (타일 16px). spawns 는 문/워프 도착 지점.
 // ─────────────────────────────────────────────────────────────
-const T = 16;
-const at = (tx, ty) => ({ x: tx * T + 2, y: ty * T + 8 });   // 타일 좌표 → 발밑 히트박스 위치
+import { TILE as T } from '../world/tiles.js';
+const at = (tx, ty) => ({ x: tx * T + T * 0.125, y: ty * T + T * 0.5 });   // 타일 좌표 → 발밑 히트박스 위치
+const box = (n = 0.75) => ({ w: T * n, h: T * n });                        // 상호작용 박스
 
 export const MAPS = {
   // 오프닝: 우이동 반지하
@@ -26,7 +27,7 @@ export const MAPS = {
       door: at(6, 6),
     },
     entities: [
-      { type: 'door', ...at(6, 7), y: 7 * T + 10, to: 'village', spawn: 'start' },
+      { type: 'door', ...at(6, 7), y: 7 * T + T * 0.6, to: 'village', spawn: 'start' },
     ],
   },
 
@@ -54,19 +55,19 @@ export const MAPS = {
     ],
     spawns: { start: at(11, 12) },
     entities: [
-      { type: 'door', ...at(11, 14), y: 14 * T + 10, to: 'village', spawn: 'fromTest' },
+      { type: 'door', ...at(11, 14), y: 14 * T + T * 0.6, to: 'village', spawn: 'fromTest' },
       // 팻말들 (왼→오): 안내 / 텍스트 효과 / 선택지 / 캐릭터 교체
-      { type: 'sign', ...at(3, 3),  w: 12, h: 12, script: 'test_help' },
-      { type: 'sign', ...at(11, 3), w: 12, h: 12, script: 'test_effects' },
-      { type: 'sign', ...at(15, 3), w: 12, h: 12, script: 'test_choice' },
-      { type: 'sign', ...at(19, 3), w: 12, h: 12, script: 'test_switch' },
-      { type: 'chest', ...at(7, 3), w: 12, h: 12, flag: 'chest_test', script: 'chest_house' },
+      { type: 'sign', ...at(3, 3),  ...box(), script: 'test_help' },
+      { type: 'sign', ...at(11, 3), ...box(), script: 'test_effects' },
+      { type: 'sign', ...at(15, 3), ...box(), script: 'test_choice' },
+      { type: 'sign', ...at(19, 3), ...box(), script: 'test_switch' },
+      { type: 'chest', ...at(7, 3), ...box(), flag: 'chest_test', script: 'chest_house' },
       // 새 캐릭터 3인
       { type: 'npc', id: 'hyungsub',  sprite: 'hyungsub',  ...at(6, 7),  facing: 'down', wander: 20, script: 'test_hyungsub' },
       { type: 'npc', id: 'gyeongsub', sprite: 'gyeongsub', ...at(11, 9), facing: 'down', wander: 0,  script: 'test_gyeongsub' },
       { type: 'npc', id: 'ppaman',    sprite: 'ppaman',    ...at(16, 7), facing: 'down', wander: 20, script: 'test_ppaman' },
       // 컷신 트리거 (러그 위) — 카메라/이동/parallel/shake 데모
-      { type: 'trigger', ...at(11, 6), w: 28, h: 8, once: false, script: 'test_cutscene' },
+      { type: 'trigger', ...at(11, 6), w: T * 1.75, h: T * 0.5, once: false, script: 'test_cutscene' },
     ],
   },
 
@@ -101,14 +102,14 @@ export const MAPS = {
       fromTest: at(26, 5),
     },
     entities: [
-      { type: 'door', ...at(11, 3), y: 3 * T + 4, to: 'house', spawn: 'entrance' },
-      { type: 'door', ...at(26, 3), y: 3 * T + 4, to: 'test', spawn: 'start' },
-      { type: 'sign', ...at(24, 5), w: 12, h: 12, script: 'sign_test' },
-      { type: 'sign', ...at(18, 6), w: 12, h: 12, script: 'sign_village' },
+      { type: 'door', ...at(11, 3), y: 3 * T + T * 0.25, to: 'house', spawn: 'entrance' },
+      { type: 'door', ...at(26, 3), y: 3 * T + T * 0.25, to: 'test', spawn: 'start' },
+      { type: 'sign', ...at(24, 5), ...box(), script: 'sign_test' },
+      { type: 'sign', ...at(18, 6), ...box(), script: 'sign_village' },
       { type: 'npc', id: 'merchant', sprite: 'merchant', ...at(14, 7), facing: 'down', wander: 24, script: (f) => (f.chest_house ? 'merchant_after' : 'merchant') },
       { type: 'npc', id: 'cat', sprite: 'cat', ...at(23, 12), facing: 'left', script: 'cat' },
       { type: 'npc', id: 'guard', sprite: 'guard', ...at(4, 16), facing: 'right', script: 'guard' },
-      { type: 'trigger', ...at(11, 8), w: 12, h: 8, once: true, flag: 'intro_seen', script: 'intro' },
+      { type: 'trigger', ...at(11, 8), w: T * 0.75, h: T * 0.5, once: true, flag: 'intro_seen', script: 'intro' },
     ],
   },
 
@@ -132,8 +133,8 @@ export const MAPS = {
       entrance: at(7, 8),
     },
     entities: [
-      { type: 'door', ...at(7, 9), y: 9 * T + 10, to: 'village', spawn: 'fromHouse' },
-      { type: 'chest', ...at(3, 2), w: 12, h: 12, flag: 'chest_house', script: 'chest_house' },
+      { type: 'door', ...at(7, 9), y: 9 * T + T * 0.6, to: 'village', spawn: 'fromHouse' },
+      { type: 'chest', ...at(3, 2), ...box(), flag: 'chest_house', script: 'chest_house' },
       { type: 'npc', id: 'ghost', sprite: 'ghost', ...at(11, 5), facing: 'left', script: (f) => (f.ghost_talked ? 'ghost_again' : 'ghost') },
     ],
   },

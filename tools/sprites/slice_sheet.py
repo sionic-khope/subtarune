@@ -12,7 +12,7 @@ from PIL import Image
 import numpy as np
 
 # 시트는 '2x 해상도'로 저장한다 (게임은 논리 320x240 을 2배로 렌더). 원본 셀을 DOWN 분의 1로 축소해 그대로 쓴다.
-CELL_TARGET_H = 66       # 시트 '셀' 높이를 이 값(2x px)에 맞춘다 → 기준 시트(셀 199px)는 정확히 1/3. 다른 시트도 같은 비율로 정규화
+CELL_TARGET_H = 100      # 시트 '셀' 높이를 이 값(2x px)에 맞춘다 → 기준 시트(셀 199px)는 정확히 1/2 (원본 누끼 그대로). 다른 시트도 같은 비율
 MIN_FW = 32              # 프레임 최소 폭(2x 기준, 짝수)
 PALETTE_COLORS = 16
 ROW_MAP = {'down': 0, 'left': 1, 'right': 2, 'up': 3}   # 입력 행
@@ -76,12 +76,8 @@ def process_cell(cell_rgb, FW, FH, scale):
     crop = char_crop(cell_rgb)
     if crop is None: return Image.new('RGBA', (FW, FH))
     w = max(1, round(crop.width * scale)); h = max(1, round(crop.height * scale))
-    small = crop.resize((w, h), Image.BOX)
-    # 팔레트: 원본 캐릭터 픽셀만으로 양자화
-    opaque = crop.convert('RGBA')
-    bgfill = Image.new('RGBA', opaque.size, (0, 0, 0, 255)); bgfill.alpha_composite(opaque)
-    pal_img = bgfill.convert('RGB').quantize(PALETTE_COLORS, method=Image.Quantize.MEDIANCUT)
-    small = quantize_to_palette(small, pal_img)
+    small = crop.resize((w, h), Image.LANCZOS)          # 색 양자화 없이 그대로 (누끼만)
+    a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
     frame = Image.new('RGBA', (FW, FH))
     frame.paste(small, ((FW - w) // 2, FH - h), small)
     return frame
@@ -95,10 +91,8 @@ def make_portrait(cell_rgb, size=96, head_ratio=0.56):
     head = crop.crop((0, 0, crop.width, int(crop.height * head_ratio)))
     scale = min(size / head.width, (size - 2) / head.height)
     w, h = max(1, round(head.width * scale)), max(1, round(head.height * scale))
-    small = head.resize((w, h), Image.BOX)
-    bgfill = Image.new('RGBA', crop.size, (0, 0, 0, 255)); bgfill.alpha_composite(crop)
-    pal_img = bgfill.convert('RGB').quantize(PALETTE_COLORS, method=Image.Quantize.MEDIANCUT)
-    small = quantize_to_palette(small, pal_img, PALETTE_COLORS)
+    small = head.resize((w, h), Image.LANCZOS)
+    a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
     out = Image.new('RGBA', (size, size))
     out.paste(small, ((size - w) // 2, size - h - 1), small)
     return out

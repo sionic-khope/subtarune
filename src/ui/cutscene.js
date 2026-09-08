@@ -7,15 +7,16 @@
 //                                             걸어서 이동(충돌 무시). to=타일, px=픽셀, by=상대 픽셀
 //  { face: id, dir: 'up'|'down'|'left'|'right' | 'toward:'+id }
 //  { camera: [tx,ty] | 'player' | id, duration?: 1 }   카메라 팬 / 다시 따라가기
-//  { fade: 'in'|'out', duration?: 0.5 }
+//  { fade: 'in'|'out'|'white', duration?: 0.5 }     white = 하얗게. 'in' 은 현재 색에서 걷힘
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
-//  { sfx: 'chime' }  { sound: 'thud' }
+//  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fade: 1 }   assets/audio/bgm/<name>.mp3
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기
 //  { async: 노드 }                            기다리지 않고 다음으로
 // ─────────────────────────────────────────────────────────────
 import { TILE } from '../world/tiles.js';
+import { SCREEN_W, SCREEN_H } from '../world/world.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -32,11 +33,11 @@ function mover(game, node) {
   const e = findEntity(game, node.move);
   if (!e) return done;
   let tx, ty;
-  if (node.to) { tx = node.to[0] * TILE + 2; ty = node.to[1] * TILE + 8; }
+  if (node.to) { tx = node.to[0] * TILE + TILE * 0.125; ty = node.to[1] * TILE + TILE * 0.5; }
   else if (node.px) { [tx, ty] = node.px; }
-  else if (node.by) { tx = e.x + node.by[0]; ty = e.y + node.by[1]; }
+  else if (node.by) { tx = e.x + node.by[0] * TILE / 16; ty = e.y + node.by[1] * TILE / 16; }   // by 는 16px 단위
   else return done;
-  const speed = node.speed ?? (node.run ? 110 : 60);
+  const speed = (node.speed ?? (node.run ? 110 : 60)) * TILE / 16;
   return {
     update(dt) {
       const dx = tx - e.x, dy = ty - e.y;
@@ -66,9 +67,9 @@ function cameraPan(game, node) {
   const dur = node.duration ?? 1;
   const sx = cam.x, sy = cam.y;
   const map = game.map;
-  const clampX = (v) => map.pxW < 320 ? (map.pxW - 320) / 2 : Math.max(0, Math.min(map.pxW - 320, v));
-  const clampY = (v) => map.pxH < 240 ? (map.pxH - 240) / 2 : Math.max(0, Math.min(map.pxH - 240, v));
-  const ex = clampX(tx * TILE - 160 + 8), ey = clampY(ty * TILE - 120 + 8);
+  const clampX = (v) => map.pxW < SCREEN_W ? (map.pxW - SCREEN_W) / 2 : Math.max(0, Math.min(map.pxW - SCREEN_W, v));
+  const clampY = (v) => map.pxH < SCREEN_H ? (map.pxH - SCREEN_H) / 2 : Math.max(0, Math.min(map.pxH - SCREEN_H, v));
+  const ex = clampX(tx * TILE - SCREEN_W / 2 + TILE / 2), ey = clampY(ty * TILE - SCREEN_H / 2 + TILE / 2);
   let t = 0;
   cam.locked = true;
   return {
@@ -101,11 +102,13 @@ export function makeWaiter(game, node) {
   if (node.camera !== undefined) return cameraPan(game, node);
   if (node.fade) {
     let finished = false;
-    game.fadeTo(node.fade === 'out' ? 1 : 0, node.duration ?? 0.5, () => { finished = true; });
+    const toColor = node.fade === 'white' ? 'white' : node.fade === 'out' ? 'black' : undefined;
+    game.fadeTo(node.fade === 'in' ? 0 : 1, node.duration ?? 0.5, () => { finished = true; }, toColor);
     if ((node.duration ?? 0.5) === 0) return done;
     return { update: () => finished };
   }
   if (node.shake !== undefined) { game.shake = { time: node.shake, amp: node.amp ?? 3 }; return timer(node.shake); }
+  if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fade ?? 0.8); return done; }
   if (node.sfx) { game.sound.sfx(node.sfx); return done; }
   if (node.sound) { game.sound[node.sound]?.(); return done; }
   if (node.show) { const e = findEntity(game, node.show); if (e) e.visible = true; return done; }
