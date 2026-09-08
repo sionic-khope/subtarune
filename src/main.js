@@ -50,7 +50,18 @@ class Game {
     // 폰트, 스프라이트 오버라이드(assets/sprites/<name>.png), 타일 오버라이드
     try { await document.fonts.load(FONT); } catch {}
     this.mapImages = {};
+    this.propImages = {};
+    // 에디터가 저장한 JSON 맵(assets/maps/*.json) 을 코드 맵 위에 덮어씀
+    try {
+      const idx = await (await fetch('assets/maps/index.json?v=' + Date.now())).json();
+      await Promise.all((idx.maps || []).map(async (id) => {
+        try { MAPS[id] = await (await fetch(`assets/maps/${id}.json?v=` + Date.now())).json(); } catch (e) { console.warn('[map] 로드 실패', id, e); }
+      }));
+    } catch {}
+    const propSrcs = new Set();
+    for (const m of Object.values(MAPS)) for (const e of (m.entities || [])) if (e.type === 'prop' && e.image) propSrcs.add(e.image);
     await Promise.all([
+      ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
       ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
@@ -140,6 +151,7 @@ class Game {
       this.camera.map = this.map;
       this.camera.target = this.player;
       this.camera.snap();
+      if (def.bgm && !this.dialogue.running) this.sound.playBgm(def.bgm, { volume: 0.45 });
     };
     if (instant) { go(); return; }
     this.transitioning = true;
@@ -339,7 +351,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.1';
+export const BUILD = '2026-09-09.2';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

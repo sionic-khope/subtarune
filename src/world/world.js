@@ -319,6 +319,7 @@ export class Door extends Entity {
   update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
   onEnter(player) {
     if (this.cooldown > 0 || this.game.transitioning) return;
+    if (!this.def.to) return;
     this.game.sound.sfx('door');
     this.game.changeMap(this.def.to, this.def.spawn);
   }
@@ -337,7 +338,30 @@ export class Trigger extends Entity {
   draw() {}
 }
 
+/** 소품: 라이브러리 이미지 하나를 월드에 배치. y-정렬로 그려지고, solid 면 막힘, script 있으면 상호작용 */
+export class Prop extends Entity {
+  constructor(def, game) {
+    super({ solid: def.solid ?? true, ...def }, game);
+    this.image = game.propImages[def.image] || null;
+    this.scale = def.scale ?? 1;
+    const iw = this.image ? Math.round(this.image.width * this.scale) : 32;
+    const ih = this.image ? Math.round(this.image.height * this.scale) : 32;
+    this.iw = iw; this.ih = ih;
+    // 히트박스: 지정 없으면 이미지 아래쪽 40%
+    if (def.w === undefined) { this.w = iw; this.h = Math.max(4, Math.round(ih * 0.4)); this.x = def.x; this.y = def.y + ih - this.h; }
+  }
+  get drawX() { return this.def.w === undefined ? this.x : this.def.x; }
+  get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : this.def.y; }
+  interact() { if (!this.def.script) return false; this.game.runScript(this.def.script); return true; }
+  draw(ctx, cam) {
+    if (!this.visible) return;
+    if (this.image) ctx.drawImage(this.image, Math.round(this.drawX - cam.x), Math.round(this.drawY - cam.y), this.iw, this.ih);
+    else { ctx.fillStyle = 'rgba(255,0,255,0.5)'; ctx.fillRect(Math.round(this.x - cam.x), Math.round(this.y - cam.y), this.w, this.h); }
+  }
+}
+
 registerEntity('player', Player);
+registerEntity('prop', Prop);
 registerEntity('npc', NPC);
 registerEntity('sign', Sign);
 registerEntity('chest', Chest);

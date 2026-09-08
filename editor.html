@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SUBTARUNE 맵 에디터</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #14141c; color: #ddd; font: 13px/1.5 'NeoDunggeunmo', monospace; overflow: hidden; }
+  #app { display: grid; grid-template-columns: 250px 1fr 300px; grid-template-rows: 40px 1fr; height: 100%; }
+  header { grid-column: 1 / 4; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: #1e1e2a; border-bottom: 1px solid #333; }
+  header b { color: #ffe066; margin-right: 8px; }
+  button, select, input { font: inherit; background: #2a2a3a; color: #eee; border: 1px solid #444; padding: 4px 8px; border-radius: 3px; }
+  button:hover { background: #3a3a4e; cursor: pointer; }
+  button.on { background: #ffe066; color: #000; }
+  aside { background: #1a1a24; overflow: auto; padding: 8px; border-right: 1px solid #333; }
+  #right { border-left: 1px solid #333; border-right: none; }
+  h3 { font-size: 12px; color: #9a9ab5; margin: 8px 0 4px; text-transform: uppercase; }
+  #maps div, #lib div.item { padding: 3px 6px; cursor: pointer; border-radius: 3px; }
+  #maps div:hover, #lib div.item:hover { background: #2a2a3a; }
+  #maps div.on { background: #33334a; color: #ffe066; }
+  #stage { position: relative; overflow: auto; background: #000; }
+  #view { position: absolute; left: 0; top: 0; image-rendering: pixelated; cursor: crosshair; }
+  #tools { display: flex; flex-wrap: wrap; gap: 4px; }
+  #tools button { flex: 1 1 45%; }
+  #props label { display: block; margin: 4px 0; color: #9a9ab5; }
+  #props input, #props select { width: 100%; }
+  #lib { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 45vh; overflow: auto; }
+  #lib .item { text-align: center; font-size: 10px; word-break: break-all; }
+  #lib img { max-width: 100%; max-height: 64px; image-rendering: pixelated; background: #333; display: block; margin: 0 auto 2px; }
+  #status { margin-left: auto; color: #8a8aa0; }
+  .hint { color: #66667a; font-size: 11px; }
+  #crop { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; z-index: 10; overflow: auto; }
+  #crop.on { display: block; }
+  #cropbar { position: sticky; top: 0; background: #1e1e2a; padding: 8px; display: flex; gap: 8px; align-items: center; z-index: 1; }
+  #cropcv { image-rendering: pixelated; cursor: crosshair; display: block; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <b>SUBTARUNE 맵 에디터</b>
+    <button id="btnNew">+ 새 맵 (배경 자르기)</button>
+    <button id="btnSave">저장 (⌘S)</button>
+    <button id="btnPlay">▶ 플레이</button>
+    <label>줌 <select id="zoom"><option>1</option><option selected>2</option><option>3</option></select></label>
+    <label><input type="checkbox" id="showGrid" checked> 격자 32</label>
+    <span id="status">준비</span>
+  </header>
+  <aside id="left">
+    <h3>맵</h3>
+    <div id="maps"></div>
+    <h3>도구</h3>
+    <div id="tools">
+      <button data-tool="select" class="on">선택/이동 (V)</button>
+      <button data-tool="walk">걷는 영역 (W)</button>
+      <button data-tool="solid">막힘 (S)</button>
+      <button data-tool="trigger">트리거 (T)</button>
+      <button data-tool="sign">상호작용 (I)</button>
+      <button data-tool="spawn">스폰 (P)</button>
+      <button data-tool="npc">NPC (N)</button>
+      <button data-tool="prop">소품 (B)</button>
+    </div>
+    <p class="hint">드래그로 사각형 · Delete 삭제 · ⌘Z 되돌리기 · 소품은 오른쪽 라이브러리에서 고른 뒤 클릭해 배치</p>
+    <h3>맵 설정</h3>
+    <div id="mapProps"></div>
+  </aside>
+  <div id="stage"><canvas id="view"></canvas></div>
+  <aside id="right">
+    <h3>선택 항목</h3>
+    <div id="props"><span class="hint">아무것도 선택 안 됨</span></div>
+    <h3>스프라이트 라이브러리</h3>
+    <input id="libSearch" placeholder="검색: door, bed, tree, kris, susie ..." style="width:100%">
+    <div class="hint" id="libCount"></div>
+    <div id="lib"></div>
+  </aside>
+</div>
+<div id="crop">
+  <div id="cropbar">
+    <b>배경 자르기</b>
+    <select id="cropSrc"></select>
+    <label>배율 나누기 <input id="cropDiv" value="1" size="4" title="1440x1080 스크린샷이면 2.25, 1280x960이면 2"></label>
+    <label>맵 id <input id="cropId" placeholder="예: hallway" size="12"></label>
+    <label>이름 <input id="cropName" placeholder="예: 복도" size="10"></label>
+    <button id="cropOk">잘라서 새 맵 만들기</button>
+    <button id="cropCancel">취소</button>
+    <span class="hint">이미지 위에서 드래그해 영역을 정하세요 (전체면 드래그 없이 바로 만들기)</span>
+  </div>
+  <canvas id="cropcv"></canvas>
+</div>
+<script type="module" src="src/editor/editor.js"></script>
+</body>
+</html>

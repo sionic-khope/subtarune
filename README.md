@@ -113,3 +113,14 @@ node tests/playtest/smoke.mjs                            # 헤드리스 자동 �
 - **콘텐츠 추가는 코드 수정 없이**: 캐릭터=시트 변환+`characters.js` 한 줄, 컷신=`cutscenes/*.js`, 사운드=`assets/audio/sfx/<name>.mp3`
 - **커밋 전 체크**: `node --test 'tests/unit/*.test.mjs'` + `node tests/playtest/smoke.mjs` 통과, 콘솔 warn 0
 - 생성물(`assets/sprites`, `assets/portraits`)은 커밋한다. 원본 AI 시트는 `assets/source/` 에 두고 도구로 재생성.
+
+## 맵 에디터 (델타룬 에셋으로 맵 그리기)
+
+```bash
+./dev.sh            # http://localhost:8000/editor.html
+```
+- **라이브러리**: `assets/library/deltarune/sprites/` 델타룬 캐릭터·오브젝트 스프라이트 1963장(ch1~4, UTDRSpriteWeb), `assets/library/deltarune/maps/` 실제 지역 맵/스크린샷 34장(Hometown 전체 지도, 학교, 토리엘 집 1·2층, 홀리데이 저택, 교회, 노엘 방 …).
+- **새 맵**: "+ 새 맵" → 라이브러리 지역 이미지에서 드래그로 잘라 배경으로 (1440×1080 스크린샷은 배율 2.25로 자동 축소 → 게임 원본 크기).
+- **도구**: 걷는 영역(W) / 막힘(S) / 트리거(T, `to`+`spawn` 넣으면 문) / 상호작용(I, 스크립트 이름) / 스폰(P) / NPC(N) / 소품(B, 라이브러리에서 고른 스프라이트 배치, y-정렬·막힘·상호작용).
+- **저장(⌘S)** → `assets/maps/<id>.json` (+`index.json`). 게임이 시작할 때 JSON 맵을 코드 맵보다 우선 로드. **▶ 플레이** 로 바로 확인.
+- 대사는 여전히 `src/data/scripts.js` — 상호작용/트리거의 `script` 에 그 키를 적는다.
