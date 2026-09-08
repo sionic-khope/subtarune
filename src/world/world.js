@@ -350,8 +350,8 @@ export class Prop extends Entity {
     // 히트박스: 지정 없으면 이미지 아래쪽 40%
     if (def.w === undefined) { this.w = iw; this.h = Math.max(4, Math.round(ih * 0.4)); this.x = def.x; this.y = def.y + ih - this.h; }
   }
-  get drawX() { return this.def.w === undefined ? this.x : this.def.x; }
-  get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : this.def.y; }
+  get drawX() { return this.def.w === undefined ? this.x : (this.def.ix ?? this.def.x); }
+  get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : (this.def.iy ?? this.def.y); }
   interact() { if (!this.def.script) return false; this.game.runScript(this.def.script); return true; }
   draw(ctx, cam) {
     if (!this.visible) return;

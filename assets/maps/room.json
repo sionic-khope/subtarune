@@ -1,113 +1,98 @@
 {
+  "id": "room",
   "name": "우이동",
-  "image": "assets/maps/room.png",
-  "walkable": [
-    [
-      1,
-      122,
-      472,
-      196
-    ],
-    [
-      210,
-      300,
-      80,
-      92
-    ]
-  ],
-  "solids": [
-    [
-      102,
-      96,
-      96,
-      62
-    ],
-    [
-      292,
-      96,
-      96,
-      62
-    ],
-    [
-      382,
-      96,
-      96,
-      140
-    ],
-    [
-      4,
-      258,
-      96,
-      66
-    ],
-    [
-      396,
-      256,
-      74,
-      66
-    ]
+  "bgm": "room",
+  "rows": [
+    "pppppppppppppp",
+    "pppppppppppppp",
+    "qqqqqqqqqqqqqq",
+    "fgfgfgfgfgfgfg",
+    "gfgfgfgfgfgfgf",
+    "fgfgfgfgfgfgfg",
+    "gfgfgfgfgfgfgf",
+    "fgfgfgfgfgfgfg",
+    "gfgfgfgfgfgfgf",
+    "fgfgfgfgfgfgfg"
   ],
   "spawns": {
     "bed": {
-      "x": 419,
-      "y": 160
+      "x": 356,
+      "y": 134
     },
     "door": {
-      "x": 238,
-      "y": 300
+      "x": 106,
+      "y": 100
     }
   },
   "entities": [
     {
-      "type": "sign",
-      "x": -1,
-      "y": 263,
-      "w": 96,
-      "h": 55,
-      "script": "room_computer"
+      "type": "prop",
+      "image": "assets/props/window.png",
+      "x": 200,
+      "y": 12,
+      "solid": false
     },
     {
-      "type": "sign",
-      "x": 382,
-      "y": 96,
-      "w": 96,
-      "h": 140,
-      "script": "room_bed"
+      "type": "prop",
+      "image": "assets/props/poster.png",
+      "x": 300,
+      "y": 20,
+      "solid": false,
+      "script": "room_poster"
     },
     {
-      "type": "sign",
-      "x": 102,
-      "y": 96,
-      "w": 96,
-      "h": 62,
-      "script": "room_desk"
-    },
-    {
-      "type": "sign",
-      "x": 292,
-      "y": 96,
-      "w": 96,
-      "h": 62,
-      "script": "room_desk2"
-    },
-    {
-      "type": "sign",
-      "x": 396,
-      "y": 256,
-      "w": 74,
-      "h": 66,
-      "script": "room_wagon"
+      "type": "prop",
+      "image": "assets/props/door.png",
+      "x": 100,
+      "y": 44,
+      "solid": false
     },
     {
       "type": "trigger",
-      "x": 210,
-      "y": 372,
-      "w": 80,
-      "h": 16,
+      "x": 104,
+      "y": 96,
+      "w": 32,
+      "h": 10,
       "once": false,
       "script": "room_door"
+    },
+    {
+      "type": "prop",
+      "image": "assets/props/shelf.png",
+      "x": 330,
+      "y": 44,
+      "solid": false
+    },
+    {
+      "type": "prop",
+      "image": "assets/props/bed.png",
+      "x": 336,
+      "y": 100,
+      "solid": true,
+      "w": 64,
+      "h": 80,
+      "script": "room_bed",
+      "ix": 334,
+      "iy": 84
+    },
+    {
+      "type": "prop",
+      "image": "assets/props/desk_pc.png",
+      "x": 24,
+      "y": 100,
+      "solid": true,
+      "w": 64,
+      "h": 32,
+      "script": "room_computer",
+      "ix": 22,
+      "iy": 70
+    },
+    {
+      "type": "prop",
+      "image": "assets/props/rug.png",
+      "x": 160,
+      "y": 150,
+      "solid": false
     }
-  ],
-  "id": "room",
-  "bgm": "room"
+  ]
 }

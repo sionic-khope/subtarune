@@ -8,7 +8,7 @@ export const VOICES = {
   low:     { freq: 210, wave: 'sawtooth', dur: 0.10, jitter: 14, gain: 0.208, cutoff: 1200, glide: -60 },
   cat:     { freq: 880, wave: 'triangle', dur: 0.10, jitter: 90, gain: 0.256, cutoff: 4000 },
   robot:   { freq: 300, wave: 'square',   dur: 0.10, jitter: 0,  gain: 0.224, cutoff: 900 },
-  narrator:{ freq: 440, wave: 'sine',     dur: 0.10, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0 },   // 이름 없는 '* ~가 있다' 대사
+  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.8 },   // 파일: 언더테일 기본 텍스트음 snd_txt1
   // ── 캐릭터별 ──
   hyungsub: { freq: 560, wave: 'square',   dur: 0.10, jitter: 40, gain: 0.24, cutoff: 2800 },              // 밝고 또렷
   gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9 },   // 파일: 영상 첫 소리의 어택 0.15s, 빠맨과 같은 톤다운(0.9)

@@ -1,0 +1,113 @@
+{
+  "name": "(참고) 델타룬 원본 방",
+  "image": "assets/maps/room.png",
+  "walkable": [
+    [
+      1,
+      122,
+      472,
+      196
+    ],
+    [
+      210,
+      300,
+      80,
+      92
+    ]
+  ],
+  "solids": [
+    [
+      102,
+      96,
+      96,
+      62
+    ],
+    [
+      292,
+      96,
+      96,
+      62
+    ],
+    [
+      382,
+      96,
+      96,
+      140
+    ],
+    [
+      4,
+      258,
+      96,
+      66
+    ],
+    [
+      396,
+      256,
+      74,
+      66
+    ]
+  ],
+  "spawns": {
+    "bed": {
+      "x": 419,
+      "y": 160
+    },
+    "door": {
+      "x": 238,
+      "y": 300
+    }
+  },
+  "entities": [
+    {
+      "type": "sign",
+      "x": -1,
+      "y": 263,
+      "w": 96,
+      "h": 55,
+      "script": "room_computer"
+    },
+    {
+      "type": "sign",
+      "x": 382,
+      "y": 96,
+      "w": 96,
+      "h": 140,
+      "script": "room_bed"
+    },
+    {
+      "type": "sign",
+      "x": 102,
+      "y": 96,
+      "w": 96,
+      "h": 62,
+      "script": "room_desk"
+    },
+    {
+      "type": "sign",
+      "x": 292,
+      "y": 96,
+      "w": 96,
+      "h": 62,
+      "script": "room_desk2"
+    },
+    {
+      "type": "sign",
+      "x": 396,
+      "y": 256,
+      "w": 74,
+      "h": 66,
+      "script": "room_wagon"
+    },
+    {
+      "type": "trigger",
+      "x": 210,
+      "y": 372,
+      "w": 80,
+      "h": 16,
+      "once": false,
+      "script": "room_door"
+    }
+  ],
+  "id": "room_ref",
+  "bgm": "room"
+}

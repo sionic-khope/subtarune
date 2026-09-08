@@ -115,3 +115,9 @@ registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '
 registerTile('B', { name: 'bed', solid: false, art: TILE_ART.bed, drawOver: '.' });   // 침대 위로 올라갈 수 있음(눕기 연출)
 registerTile('K', { name: 'desk', solid: true, art: TILE_ART.desk, drawOver: '.' });
 registerTile('W', { name: 'window', solid: true, art: TILE_ART.window });
+// ── 직접 그린 32px 세트 (assets/tiles/<name>.png 가 본체. 없으면 단색 폴백) ──
+const flat = (col) => (ctx) => { ctx.fillStyle = col; ctx.fillRect(0, 0, ART_PX, ART_PX); };
+registerTile('p', { name: 'wallpaper', solid: true, draw: flat('#e9d8a6') });
+registerTile('q', { name: 'wallpaper_base', solid: true, draw: flat('#8a5a3c') });
+registerTile('f', { name: 'floor_vinyl', solid: false, draw: flat('#c9a26a') });
+registerTile('g', { name: 'floor_vinyl2', solid: false, draw: flat('#c9a26a') });

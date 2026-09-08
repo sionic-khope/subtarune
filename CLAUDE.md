@@ -15,6 +15,10 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 > **Note**: Godot/Unity/Unreal 전용 에이전트(`*-specialist`)는 이 프로젝트에서 사용하지 않는다.
 > 웹 코드 리뷰는 `lead-programmer` / `ui-programmer` / `gameplay-programmer` 가 담당한다.
 
+## 세션 시작 시 (필수)
+1. `docs/STATE.md` 를 읽는다 — 현재 상태, 파일 위치, 사용자가 확정한 규칙, 다음 할 일.
+2. 맵은 `/map`, 그림은 `/art`, 컷신은 `/cutscene` 스킬로. 작업 끝나면 `docs/STATE.md` 갱신 + 커밋/푸시(`sionic-khope/subtarune`) + `./dev.sh` 재기동.
+
 ## Game Concept (요약)
 
 델타룬 느낌의 탑다운 도트 **스토리 어드벤처**. 레벨업/노가다 없음. 스토리 → 중간중간 미니게임 + 선택지 상호작용.

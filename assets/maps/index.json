@@ -1,5 +1,6 @@
 {
   "maps": [
-    "room"
+    "room",
+    "room_ref"
   ]
 }

@@ -37,7 +37,7 @@ export const SCRIPTS = {
     { set: { vaseline: true } },
     { label: 'end' },
   ],
-  room_desk: [{ text: '* 책상.{w=0.3} 뭔가 어질러져 있다.', voice: 'narrator' }],
+  room_poster: [{ text: '* 방송 포스터다.{w=0.3} 내 얼굴이 크게 박혀 있다.', voice: 'narrator' }],
   room_desk2: [{ text: '* 램프가 있는 책상.{w=0.3} 켜져 있다.', voice: 'narrator' }],
   room_wagon: [{ text: '* 수레에 잡동사니가 실려 있다.', voice: 'narrator' }],
   room_door: [

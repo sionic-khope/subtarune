@@ -235,10 +235,10 @@ export class TextBox {
     }
 
     // 초상화
-    let tx = r.x + 10;
+    let tx = r.x + 18;
     if (this.portrait) {
-      ctx.drawImage(this.portrait, r.x + 8, r.y + 12, 48, 48);
-      tx = r.x + 64;
+      ctx.drawImage(this.portrait, r.x + 14, r.y + 22, 48, 48);
+      tx = r.x + 74;
     }
 
     // 본문
@@ -249,7 +249,7 @@ export class TextBox {
     outer:
     for (let li = 0; li < lines.length; li++) {
       let x = tx;
-      const y = r.y + 8 + li * LINE_H;
+      const y = r.y + 18 + li * LINE_H;
       for (const t of lines[li]) {
         if (idx >= this.revealed) break outer;
         idx++;
@@ -274,7 +274,7 @@ export class TextBox {
     if (this.state === 'choice' && this.choiceTimer <= 0) {
       const opts = this.choice.options;
       const usedLines = lines.length;
-      const startY = r.y + 8 + usedLines * LINE_H;
+      const startY = r.y + 18 + usedLines * LINE_H;
       const cols = opts.length <= 2 ? opts.length : 2;
       const colW = Math.floor((r.w - (tx - r.x) - 10) / cols);
       opts.forEach((o, i) => {
