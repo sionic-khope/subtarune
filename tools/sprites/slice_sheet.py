@@ -46,7 +46,11 @@ def key_cell(cell):
                            cell[2:14, -14:-2].reshape(-1, 3), cell[-14:-2, -14:-2].reshape(-1, 3)])
     bg = np.median(edge, 0)
     d = np.abs(cell - bg).sum(2)
-    alpha = (d > 55).astype(float)               # 하드 누끼: 보라 배경은 완전 제거, 캐릭터 색은 손대지 않음
+    alpha = (d > 90)                              # 하드 누끼 (보라 배경 + 흐린 헤일로 제거)
+    # 1px 침식: 외곽선 바깥의 보라빛 번짐 픽셀을 떼어낸다
+    er = alpha.copy()
+    er[1:, :] &= alpha[:-1, :]; er[:-1, :] &= alpha[1:, :]; er[:, 1:] &= alpha[:, :-1]; er[:, :-1] &= alpha[:, 1:]
+    alpha = er.astype(float)
     rgb = cell.copy()
     rgb[alpha == 0] = 0                           # 투명 픽셀 색을 0으로 → 축소 시 보라가 섞이지 않음
     rgba = np.dstack([rgb, (alpha * 255)]).astype('uint8')

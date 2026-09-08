@@ -79,6 +79,21 @@ class Game {
     }
   }
 
+  /** ESC: 메인(타이틀)으로 */
+  toTitle() {
+    this.transitioning = true;
+    this.sound.stopBgm(0.4); this.sound.stopIntro(0.2);
+    this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
+    this.background = []; this.curtain = null; this.caption = null; this.shake = null;
+    this.fadeTo(1, 0.4, () => {
+      this.flags = {}; this.inventory = [];
+      this.changeMap('room', 'bed', true);
+      this.state = 'title'; this.title.enter();
+      this.transitioning = false;
+      this.fadeTo(0, 0.3);
+    }, 'black');
+  }
+
   setPlayerSprite(name) {
     this.playerSprite = name;
     this.player.setSprite(name);
@@ -163,6 +178,7 @@ class Game {
     this.time += dt;
     Input.poll();
     if (Input.just('debug')) this.debug = !this.debug;
+    if (Input.just('title') && this.state !== 'title' && !this.transitioning) { this.toTitle(); return; }
     this.textbox.charDelay = TEXT_SPEEDS[this.settings.textSpeed].delay;
     this.sound.muted = !this.settings.sound;
 
@@ -323,14 +339,14 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-08.11';
+export const BUILD = '2026-09-08.13';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
 
 function resize() {
   // 0.5 단위 CSS 배율 (레티나에선 0.5 도 정수 픽셀). 최소 2 = 640x480
-  const raw = Math.min(innerWidth / SCREEN_W, (innerHeight - 24) / SCREEN_H);
+  const raw = Math.min(innerWidth / SCREEN_W, innerHeight / SCREEN_H);
   const s = Math.max(1, Math.floor(raw * 2) / 2);
   canvas.style.width = SCREEN_W * s + 'px';
   canvas.style.height = SCREEN_H * s + 'px';

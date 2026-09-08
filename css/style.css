@@ -22,9 +22,3 @@ html, body {
 }
 
 
-#help {
-  position: fixed; left: 0; right: 0; bottom: 6px;
-  text-align: center; font-size: 11px; color: #55556b;
-  pointer-events: none; user-select: none;
-}
-#help b { color: #9a9ab5; }
