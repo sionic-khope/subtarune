@@ -1,0 +1,30 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #0b0b10;
+  overflow: hidden;
+  font-family: 'NeoDunggeunmo', 'Galmuri11', 'DungGeunMo', monospace;
+  color: #cfcfdd;
+  -webkit-font-smoothing: none;
+}
+
+#stage {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#screen {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #000;
+  /* 크기는 JS가 정수배로 맞춘다 */
+}
+
+
+#help {
+  position: fixed; left: 0; right: 0; bottom: 6px;
+  text-align: center; font-size: 11px; color: #55556b;
+  pointer-events: none; user-select: none;
+}
+#help b { color: #9a9ab5; }
