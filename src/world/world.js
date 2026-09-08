@@ -9,7 +9,8 @@ import { CHARACTERS } from '../data/characters.js';
 
 export const SCREEN_W = 320;
 export const SCREEN_H = 240;
-export const CHAR_SCALE = 1.3;   // 캐릭터 스프라이트 배율 (1.5 / 2.0 이면 도트가 완전히 균일)
+export const RENDER_SCALE = 2;   // 물리 해상도 배율 (640x480). 2x 시트가 1:1 로 찍힌다
+export const CHAR_SCALE = 1;     // 캐릭터 추가 배율
 
 // ── 타일맵 ───────────────────────────────────────────────────
 export class TileMap {
@@ -85,11 +86,11 @@ const spriteCache = new Map();
 export function characterSprite(paletteName, override = null) {
   const key = paletteName;
   if (spriteCache.has(key)) return spriteCache.get(key);
-  const set = { down: [], up: [], left: [], right: [], fw: 16, fh: 16 };
+  const set = { down: [], up: [], left: [], right: [], fw: 16, fh: 16, px: 1 };   // px: 시트 해상도 배율
   if (override) {
     // assets/sprites/<name>.png : 4열(프레임) x 4행(down, up, left, right). 프레임 = 폭/4 x 높이/4
     const fw = Math.floor(override.width / 4), fh = Math.floor(override.height / 4);
-    set.fw = fw; set.fh = fh;
+    set.fw = fw; set.fh = fh; set.px = RENDER_SCALE;   // assets/sprites 시트는 2x 해상도
     const rows = ['down', 'up', 'left', 'right'];
     rows.forEach((dir, r) => {
       for (let f = 0; f < 4; f++) {
@@ -170,7 +171,7 @@ export class Character extends Entity {
   }
   drawSprite(ctx, cam) {
     const img = this.sprite[this.facing][this.frame];
-    const dw = Math.round(this.sprite.fw * CHAR_SCALE), dh = Math.round(this.sprite.fh * CHAR_SCALE);
+    const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
     const sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x);
     const sy = Math.round(this.y + this.h - dh - cam.y);
     // 발밑 그림자

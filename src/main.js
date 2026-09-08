@@ -8,7 +8,7 @@ import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional } from '
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
 import { TitleScreen } from './ui/title.js';
-import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE } from './world/world.js';
+import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
@@ -25,6 +25,8 @@ const TEXT_SPEEDS = [
 class Game {
   constructor(canvas) {
     this.canvas = canvas;
+    canvas.width = SCREEN_W * RENDER_SCALE;
+    canvas.height = SCREEN_H * RENDER_SCALE;
     this.ctx = canvas.getContext('2d');
     this.ctx.imageSmoothingEnabled = false;
     this.sound = new Sound();
@@ -220,6 +222,9 @@ class Game {
 
   draw() {
     const ctx = this.ctx;
+    // 논리 좌표 320x240 → 물리 640x480. 고해상 스프라이트(2x 시트)는 1:1 로 찍힌다
+    ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+    ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (this.state === 'title') {
@@ -308,7 +313,9 @@ const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
 
 function resize() {
-  const s = Math.max(1, Math.min(Math.floor(innerWidth / SCREEN_W), Math.floor((innerHeight - 24) / SCREEN_H)));
+  // 0.5 단위 CSS 배율 (레티나에선 0.5 도 정수 픽셀). 최소 2 = 640x480
+  const raw = Math.min(innerWidth / SCREEN_W, (innerHeight - 24) / SCREEN_H);
+  const s = Math.max(2, Math.floor(raw * 2) / 2);
   canvas.style.width = SCREEN_W * s + 'px';
   canvas.style.height = SCREEN_H * s + 'px';
 }

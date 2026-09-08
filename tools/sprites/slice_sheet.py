@@ -2,8 +2,8 @@
 """AI 생성 캐릭터 시트(보라 배경, 4행x4열/캐릭터) → 게임용 스프라이트 시트 변환.
 
 입력 시트 레이아웃(캐릭터당 4열): 행0=정면(down) 행1=왼쪽(left) 행2=오른쪽(right) 행3=뒷모습(up)
-출력: assets/sprites/<id>.png  = 4열(걷기 프레임) x 4행 [down, up, left, right], 프레임 FW x FH
-      assets/portraits/<id>.png = 48x48 초상화 (정면 0번 프레임의 머리 부분, 원본 해상도에서 축소)
+출력: assets/sprites/<id>.png  = 4열(걷기 프레임) x 4행 [down, up, left, right]. 2x 해상도(원본 1/3)
+      assets/portraits/<id>.png = 96x96(2x) 초상화 (정면 0번 프레임의 머리 부분, 원본 그대로에 가깝게)
 사용: python3 tools/sprites/slice_sheet.py sheet.png hyungsub gyeongsub ppaman
 필요: pip install pillow numpy
 """
@@ -11,12 +11,12 @@ import sys
 from PIL import Image
 import numpy as np
 
-FH = 28                  # 출력 프레임 높이
-TARGET_H = 26            # 캐릭터 높이(px) — 2px 머리 여유
-MIN_FW = 16              # 프레임 최소 폭. 넓은 캐릭터는 자동으로 넓어진다(짝수)
+# 시트는 '2x 해상도'로 저장한다 (게임은 논리 320x240 을 2배로 렌더). 원본 셀을 DOWN 분의 1로 축소해 그대로 쓴다.
+CELL_TARGET_H = 66       # 시트 '셀' 높이를 이 값(2x px)에 맞춘다 → 기준 시트(셀 199px)는 정확히 1/3. 다른 시트도 같은 비율로 정규화
+MIN_FW = 32              # 프레임 최소 폭(2x 기준, 짝수)
+PALETTE_COLORS = 16
 ROW_MAP = {'down': 0, 'left': 1, 'right': 2, 'up': 3}   # 입력 행
 OUT_ROWS = ['down', 'up', 'left', 'right']                # 출력 행 (엔진 규격)
-PALETTE_COLORS = 10
 
 
 def runs(v, thr=0.3):
@@ -72,7 +72,7 @@ def char_crop(cell_rgb):
     return rgba.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
 
 
-def process_cell(cell_rgb, FW, scale):
+def process_cell(cell_rgb, FW, FH, scale):
     crop = char_crop(cell_rgb)
     if crop is None: return Image.new('RGBA', (FW, FH))
     w = max(1, round(crop.width * scale)); h = max(1, round(crop.height * scale))
@@ -87,7 +87,7 @@ def process_cell(cell_rgb, FW, scale):
     return frame
 
 
-def make_portrait(cell_rgb, size=48, head_ratio=0.56):
+def make_portrait(cell_rgb, size=96, head_ratio=0.56):
     rgba = key_cell(cell_rgb)
     a = np.array(rgba)[..., 3]
     ys, xs = np.where(a > 127)
@@ -97,8 +97,8 @@ def make_portrait(cell_rgb, size=48, head_ratio=0.56):
     w, h = max(1, round(head.width * scale)), max(1, round(head.height * scale))
     small = head.resize((w, h), Image.BOX)
     bgfill = Image.new('RGBA', crop.size, (0, 0, 0, 255)); bgfill.alpha_composite(crop)
-    pal_img = bgfill.convert('RGB').quantize(PALETTE_COLORS + 4, method=Image.Quantize.MEDIANCUT)
-    small = quantize_to_palette(small, pal_img, PALETTE_COLORS + 4)
+    pal_img = bgfill.convert('RGB').quantize(PALETTE_COLORS, method=Image.Quantize.MEDIANCUT)
+    small = quantize_to_palette(small, pal_img, PALETTE_COLORS)
     out = Image.new('RGBA', (size, size))
     out.paste(small, ((size - w) // 2, size - h - 1), small)
     return out
@@ -120,16 +120,18 @@ def main():
             for f in range(4):
                 x0, x1 = cols[ci * 4 + f]; y0, y1 = rows[ri]
                 crops[(ri, f)] = char_crop(im[y0:y1, x0:x1])
-        max_h = max(c.height for c in crops.values() if c is not None)
-        scale = TARGET_H / max_h
+        cell_h = rows[0][1] - rows[0][0]
+        scale = CELL_TARGET_H / cell_h
+        max_h = max(round(c.height * scale) for c in crops.values() if c is not None)
         max_w = max(round(c.width * scale) for c in crops.values() if c is not None)
         FW = max(MIN_FW, max_w + 2 + (max_w % 2))
+        FH = max_h + 2 + (max_h % 2)
         sheet = Image.new('RGBA', (FW * 4, FH * 4))
         for oi, dirname in enumerate(OUT_ROWS):
             ri = ROW_MAP[dirname]
             for f in range(4):
                 x0, x1 = cols[ci * 4 + f]; y0, y1 = rows[ri]
-                frame = process_cell(im[y0:y1, x0:x1], FW, scale)
+                frame = process_cell(im[y0:y1, x0:x1], FW, FH, scale)
                 sheet.paste(frame, (f * FW, oi * FH))
         out = f'assets/sprites/{cid}.png'
         sheet.save(out)
