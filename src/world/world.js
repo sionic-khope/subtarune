@@ -10,7 +10,7 @@ import { CHARACTERS } from '../data/characters.js';
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
 export const RENDER_SCALE = 2;   // 물리 해상도 배율 (640x480). 2x 시트가 1:1 로 찍힌다
-export const CHAR_SCALE = 1;     // 캐릭터 추가 배율
+export const CHAR_SCALE = 1.3;   // 캐릭터 추가 배율 (+30%)
 
 // ── 타일맵 ───────────────────────────────────────────────────
 export class TileMap {
@@ -223,8 +223,8 @@ const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 
 export class Player extends Character {
   constructor(def, game) {
-    super({ speed: TILE * 3.9, ...def }, game);
-    this.runMul = 1.75;
+    super({ speed: TILE * 3.9 * 1.75, ...def }, game);
+    this.slowMul = 1 / 1.75;              // X/Shift 를 누르면 천천히 (기본이 달리기)
     this.lastMove = 0;
   }
   update(dt, input) {
@@ -233,13 +233,13 @@ export class Player extends Character {
     if (this.moving) {
       if (a.x) this.facing = a.x > 0 ? 'right' : 'left';
       if (a.y && !a.x) this.facing = a.y > 0 ? 'down' : 'up';
-      const run = input.down('cancel') ? this.runMul : 1;
+      const run = input.down('cancel') ? this.slowMul : 1;
       const len = Math.hypot(a.x, a.y);
       const step = this.speed * run * dt;
       // 소수점 누적 이동 (도트 튐 방지: 렌더 시 round)
       this.moveBy((a.x / len) * step, (a.y / len) * step);
     }
-    this.animate(dt, input.down('cancel') ? 14 : 8);
+    this.animate(dt, input.down('cancel') ? 8 : 12);
 
     // 밟는 트리거
     for (const e of this.game.entities) {

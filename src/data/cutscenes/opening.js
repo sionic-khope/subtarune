@@ -7,6 +7,7 @@ const N = (text, extra = {}) => ({ style: 'narration', voice: 'narrator', speed:
 
 export const opening = Object.assign([
   // 타이틀의 검은 화면(fade 1)을 유지한 채 브금 시작 → 첫 나레이션 직전에 걷음 (맵이 깜빡 보이는 것 방지)
+  { curtain: 'black' },                              // 나레이션 동안 맵은 절대 안 보임
   { bgm: 'opening', volume: 0.55 },
   { wait: 1.2 },
   { fade: 'in', duration: 0 },
@@ -28,13 +29,16 @@ export const opening = Object.assign([
   N('그럼..{w=0.7} 당신의 이야기를 들어볼까요'),
   // 마지막 줄: "내 이름은 ㄱ.." 이 다 나온 직후부터 흰색이 서서히 덮어온다 (텍스트 ≈ 3.2초, 흰색은 2.6초 뒤 시작해 3초간)
   { async: [{ wait: 2.6 }, { sfx: 'white' }, { fade: 'white', duration: 3.0 }] },
-  { bgm: null, fade: 5.0 },
+  { bgm: null, fadeOut: 5.0 },
   N('{s=0.3}내 이름은 {w=0.7}ㄱ{w=0.7}.{w=0.7}.{/s}{w=2.0}', { auto: 0.1 }),
+  { fade: 'white', duration: 0 },                    // 텍스트가 끝나는 순간 흰색 100%
+  { curtain: 'white' },
   { wait: 0.6 },
   { map: 'room', spawn: 'bed' },
   { pose: 'player', to: 'lying' },
   { wait: 1.6 },
   { bgm: 'room', volume: 0.45 },                     // 방 브금 (mANXrxS5SPg)
+  { curtain: null },
   { fade: 'in', duration: 2.0 },                     // 흰색이 걷히며 방이 드러남
   { caption: '평화롭던 우이동', duration: 3.4 },     // 지역 이름 떴다 사라짐
   { wait: 2.6 },

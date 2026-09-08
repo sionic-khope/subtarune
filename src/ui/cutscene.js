@@ -9,11 +9,12 @@
 //  { camera: [tx,ty] | 'player' | id, duration?: 1 }   카메라 팬 / 다시 따라가기
 //  { fade: 'in'|'out'|'white', duration?: 0.5 }     white = 하얗게. 'in' 은 현재 색에서 걷힘
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
-//  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fade: 1 }   assets/audio/bgm/<name>.mp3
+//  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
 //  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
+//  { curtain: 'black'|'white'|null }            맵을 완전히 가리는 막 (타이밍과 무관하게 새는 것 방지)
 //  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기
 //  { async: 노드 | [노드...] }                 기다리지 않고 다음으로 (배열이면 배경에서 순차 실행)
 // ─────────────────────────────────────────────────────────────
@@ -113,6 +114,7 @@ export function makeWaiter(game, node) {
     return done;
   }
   if (node.camera !== undefined) return cameraPan(game, node);
+  if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
   if (node.fade) {
     let finished = false;
     const toColor = node.fade === 'white' ? 'white' : node.fade === 'out' ? 'black' : undefined;
@@ -121,7 +123,6 @@ export function makeWaiter(game, node) {
     return { update: () => finished };
   }
   if (node.shake !== undefined) { game.shake = { time: node.shake, amp: node.amp ?? 3 }; return timer(node.shake); }
-  if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fade ?? 0.8); return done; }
   if (node.sfx) { game.sound.sfx(node.sfx); return done; }
   if (node.sound) { game.sound[node.sound]?.(); return done; }
   if (node.show) { const e = findEntity(game, node.show); if (e) e.visible = true; return done; }
@@ -129,6 +130,7 @@ export function makeWaiter(game, node) {
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
   if (node.map) { game.changeMap(node.map, node.spawn, true); return done; }
   if (node.spawn) { game.spawn(node.spawn); return done; }
+  if ('curtain' in node) { game.curtain = node.curtain; return done; }
   if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }
   if (node.pose) { const e = findEntity(game, node.pose); if (e) { e.pose = node.to === 'lying' ? 'lying' : null; e.moving = false; e.frame = 0; } return done; }
   if (node.parallel) return parallel(game, node.parallel);

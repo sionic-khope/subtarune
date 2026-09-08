@@ -42,6 +42,7 @@ class Game {
     this.menu = { index: 0, sub: null };
     this.shake = null;            // { time, amp }
     this.caption = null;          // { text, time, duration } 지역 이름 표시
+    this.curtain = null;          // 'black'|'white': 맵 위를 완전히 덮는 막 (컷신용)
     this.background = [];         // async 컷신 waiter
   }
 
@@ -237,6 +238,13 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
+    if (this.curtain && !this.textbox.fullscreen) {
+      ctx.fillStyle = this.curtain === 'white' ? '#fff' : '#000';
+      ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      this.textbox.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
     if (this.textbox.fullscreen) {
       this.textbox.draw(ctx);
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
@@ -249,16 +257,6 @@ class Game {
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
     const sorted = [...this.entities].sort((a, b) => (a.y + a.h) - (b.y + b.h));
     for (const e of sorted) e.draw(ctx, cam);
-
-    // 상호작용 가능 표시 (말풍선 점)
-    if (!this.dialogue.running && this.state === 'field') {
-      const t = this.player.probe();
-      if (t && Math.floor(this.time * 4) % 2 === 0) {
-        const x = Math.round(t.cx - cam.x), y = Math.round(t.y - 6 - 16 * CHAR_SCALE - cam.y);
-        ctx.fillStyle = '#fff'; ctx.fillRect(x - 3, y, 6, 4); ctx.fillRect(x - 1, y + 4, 2, 1);
-        ctx.fillStyle = '#000'; ctx.fillRect(x - 2, y + 1, 1, 1); ctx.fillRect(x, y + 1, 1, 1); ctx.fillRect(x + 2, y + 1, 1, 1);
-      }
-    }
 
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
@@ -325,7 +323,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-08.8';
+export const BUILD = '2026-09-08.11';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

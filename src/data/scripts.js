@@ -24,7 +24,7 @@ export const SCRIPTS = {
   ],
   room_bed: [
     { text: '* 내 침대다.{w=0.3} 위에 선반이 있다.', voice: 'narrator',
-      choice: { options: [{ label: '이불', goto: 'blanket' }, { label: '선반', goto: 'shelf' }, { label: '그만', goto: 'end' }], cancel: 2 } },
+      choice: { options: [{ label: '이불', goto: 'blanket' }, { label: '선반', goto: 'shelf' }] } },
     { label: 'blanket' },
     { text: '* 이불을 어질러 놔야 혹시나 누가 정리하라고 돈을 쏠 거 같다.', voice: 'narrator' },
     { end: true },
@@ -37,7 +37,6 @@ export const SCRIPTS = {
     { set: { vaseline: true } },
     { label: 'end' },
   ],
-  room_bed_other: [{ text: '* 비어 있는 침대다.', voice: 'narrator' }],
   room_desk: [{ text: '* 책상.{w=0.3} 뭔가 어질러져 있다.', voice: 'narrator' }],
   room_desk2: [{ text: '* 램프가 있는 책상.{w=0.3} 켜져 있다.', voice: 'narrator' }],
   room_wagon: [{ text: '* 수레에 잡동사니가 실려 있다.', voice: 'narrator' }],

@@ -12,7 +12,7 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { FONT, F } from './font.js';
 export { FONT };
 const LINE_H = F.lineH;
-const MAX_LINES = 3;
+const MAX_LINES = 4;
 
 const COLORS = {
   red: '#ff4a5a', yellow: '#ffe066', blue: '#69a9ff', green: '#7ee29a',
@@ -142,7 +142,7 @@ export class TextBox {
 
   layoutRect() {
     if (this.style === 'narration') return { x: 40, y: 60, w: SCREEN_W - 80, h: 120 };
-    return { x: 12, y: SCREEN_H - 84, w: SCREEN_W - 24, h: 76 };
+    return { x: 12, y: SCREEN_H - 112, w: SCREEN_W - 24, h: 104 };
   }
   textWidth() {
     const r = this.layoutRect();

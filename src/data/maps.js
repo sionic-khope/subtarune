@@ -16,8 +16,8 @@ export const MAPS = {
     image: 'assets/maps/room.png',
     // 바닥: 벽 아래(y 96)부터 y 322, 복도 x 210~290 y 322~392
     walkable: [[4, 96, 472, 226], [210, 300, 80, 92]],
-    // 가구 (왼쪽 침대 / 왼쪽 책상 / 오른쪽 책상 / 오른쪽 침대(형섭) / 컴퓨터 / 수레)
-    solids: [[4, 96, 96, 140], [102, 96, 96, 62], [292, 96, 96, 62], [382, 96, 96, 140], [4, 258, 96, 66], [396, 256, 74, 66]],
+    // 가구 (왼쪽 책상 / 오른쪽 책상 / 침대(형섭) / 컴퓨터 / 수레)
+    solids: [[102, 96, 96, 62], [292, 96, 96, 62], [382, 96, 96, 140], [4, 258, 96, 66], [396, 256, 74, 66]],
     spawns: {
       bed: { x: 419, y: 160 },       // 오른쪽 침대 위 (누운 채 시작)
       door: { x: 238, y: 300 },
@@ -25,7 +25,6 @@ export const MAPS = {
     entities: [
       { type: 'sign', ...rect(4, 258, 96, 66), script: 'room_computer' },          // 컴퓨터
       { type: 'sign', ...rect(382, 96, 96, 140), script: 'room_bed' },             // 형섭 침대 (+ 위 선반)
-      { type: 'sign', ...rect(4, 96, 96, 140), script: 'room_bed_other' },         // 왼쪽 침대
       { type: 'sign', ...rect(102, 96, 96, 62), script: 'room_desk' },             // 책상
       { type: 'sign', ...rect(292, 96, 96, 62), script: 'room_desk2' },
       { type: 'sign', ...rect(396, 256, 74, 66), script: 'room_wagon' },
