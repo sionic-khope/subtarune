@@ -391,7 +391,65 @@ export class Prop extends Entity {
   }
 }
 
+/**
+ * 뗏목(재사용 기믹): 물 위 발판. 옆에 서서 C → 정해진 경로(route)를 따라 일직선으로 이동, 끝에서 내린다. 반대편에서 타면 되돌아온다.
+ *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:114, flag?:'raft1' }
+ *   x,y 와 route 는 이미지 좌상단(월드). 상태: flags[flag] = 지금 있는 route 인덱스(0=시작) → 맵을 다시 들어와도 그 자리.
+ *   타는 동안 game.ride 가 서서 플레이어 입력·트리거가 멈춘다(main.js). 도착하면 진행 방향으로 플레이어를 밀어 내린다.
+ */
+export class Raft extends Prop {
+  constructor(def, game) {
+    const w = def.w ?? 56, h = def.h ?? 40;
+    super({ solid: true, w, h, ix: def.x, iy: def.y, ...def }, game);
+    this.route = [[def.x, def.y], ...(def.route || [])];
+    this.speed = def.speed ?? 114;
+    this.at = Math.min(this.route.length - 1, game.flags[this.flagKey] ?? 0);
+    this.setPos(this.route[this.at]);
+    this.riding = false; this.target = 0;
+  }
+  get flagKey() { return this.def.flag || `raft_${this.id || 'raft'}`; }
+  setPos([x, y]) { this.x = x; this.y = y; this.def.ix = x; this.def.iy = y; }
+  canInteract() { return true; }
+  interact(player) {
+    if (this.riding || this.game.ride) return true;
+    this.riding = true; this.game.ride = this;
+    this.target = this.at === 0 ? this.route.length - 1 : 0;
+    this.rider = player; player.moving = false;
+    const [tx] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : player.facing;
+    this._carry(); this.game.sound.sfx('door');
+    return true;
+  }
+  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.5 - p.h / 2); }
+  update(dt) {
+    if (!this.riding) return;
+    const [tx, ty] = this.route[this.target];
+    const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy), step = this.speed * dt;
+    if (dist <= step) {
+      this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
+      this.riding = false; this.game.ride = null;
+      this._disembark(dx, dy);
+      this.game.autosave?.();
+      return;
+    }
+    this.x += (dx / dist) * step; this.y += (dy / dist) * step; this.def.ix = this.x; this.def.iy = this.y;
+    this._carry();
+    this.rider.moving = true; this.rider.animate?.(dt, 4);
+  }
+  /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
+  _disembark(dx, dy) {
+    const p = this.rider; const map = this.game.map;
+    const dirs = Math.abs(dx) > Math.abs(dy) ? [[Math.sign(dx), 0], [0, 1], [0, -1]] : [[0, Math.sign(dy) || 1], [1, 0], [-1, 0]];
+    for (const [ux, uy] of dirs) {
+      for (let k = 1; k <= 24; k++) {
+        const nx = p.x + ux * 4 * k, ny = p.y + uy * 4 * k;
+        if (!map.solidRect(nx, ny, p.w, p.h) && !this.overlaps({ x: nx, y: ny, w: p.w, h: p.h })) { p.x = nx; p.y = ny; p.moving = false; p.frame = 0; return; }
+      }
+    }
+  }
+}
+
 registerEntity('player', Player);
+registerEntity('raft', Raft);
 registerEntity('prop', Prop);
 registerEntity('npc', NPC);
 registerEntity('sign', Sign);

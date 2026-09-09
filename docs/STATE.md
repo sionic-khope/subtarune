@@ -47,7 +47,9 @@
 - 티비: 3D 서랍 씬에서 보라색 컴퓨터 코드 획득(아래 '3D 씬'). 코드를 얻은 뒤 컴퓨터는 "(코드는 챙겼다.)" — **꽂는 이벤트는 브리핑 대기**.
 - 코드 챙긴 뒤 컴퓨터: **방송 컷신** `pc_stream`(철컥 → 방송 세팅 → 채팅창 100명 왜 늦었냐/엄준식 → 사과·일요일 약속 → 극락·ㅋㅋㅋ 도배 → 오류창 "보라색 코드에서 에러" [해결하기] → 딸깍 → 정적·물음표 → 소용돌이 → 흰색 → `void` 맵에 추락, stage `void_fallen`). 콘티 `design/narrative/cutscenes/pc_stream.md`.
 - `void` 맵(30×12, `tools/art/void_set.py`): 검은 허공 위 보라색 땅·꽃, 왼쪽 착지 꽃밭 → 오른쪽 길 → 끝에 **거대한 검은 문**(`big_door.png`, `void_door` 임시 한 줄). 언더테일 초반 유적 입구 구도. **여기서부턴 브금 없이 잔잔한 바람 소리**(`bgm/wind.mp3`, 합성 32s 루프, 0.28).
-- 다음(사용자 브리핑 대기): 검은 문 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+- `void` 대문 → **`void2`(보라맵2)**: 왼쪽 문으로 들어와 아래 보라 길(막다른길), 위쪽 착지 → **파란 물길 + 뗏목**(C 로 타면 오른쪽으로 ~4초 일직선, 반대편 착지에 내림, 다시 타면 되돌아옴) → 길 끝 거대한 검은 문(`void_door` 임시 한 줄, 다음 방 브리핑 대기).
+- 검은 화면 목소리: 흰색 뒤 검은 화면에서 정체불명 목소리(`mystery`, snd_txt2 톤다운) 8줄("... 일어.. 일어나.." … "절대...ㄹ..") → 보라맵.
+- 다음(사용자 브리핑 대기): 보라맵2 문 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
 - **스토리 브리핑 형식**: 사용자는 `[트리거]` + `이름: 대사 (인터랙션 # 연출)` 로 준다 → `.claude/skills/cutscene/SKILL.md` 의 변환표대로 되묻지 않고 노드로 옮긴다. 선택지 연출 옵션 `delay/stagger/locked/auto/cursor:false` 는 `src/ui/dialogue.js` TextBox 가 지원(테스트룸 `test_choice_slow`, `test_choice_locked`).
 
 ## 상태 시스템 (2026-09-09 설계 — "코드 얻었는데 컴퓨터가 초기 대사" 같은 순서 꼬임 방지)
@@ -57,6 +59,10 @@
 - **개발용 바로가기**도 단계를 거친다: `?map=living` → 그 맵의 `stage` 까지 backfill, `?stage=cord_found` → 그 단계의 맵/스폰으로. 타이틀 T(테스트룸)도 같음. → 바로가기로 들어가도 대사가 꼬이지 않는다.
 - **자동 저장/이어하기**: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때 `localStorage('subtarune.save.v1')` 에 저장(단계·플래그·인벤토리·맵·좌표·설정). 타이틀: 세이브 있으면 `C 이어하기 / X 처음부터(두 번)`. 새 게임은 세이브 삭제. Esc→타이틀은 저장을 지우지 않는다.
 - 검증: `tests/unit/story.test.mjs`(backfill·비회귀), `maps.test.mjs`(맵 stage 선언·STAGES 맵/스폰 존재), `tests/playtest/story.mjs`(바로가기 backfill → 컴퓨터 대사, cord_found 이후 컴퓨터/문/티비, 자동 저장→새로고침→이어하기, 처음부터). F1 디버그에 `stage:` 표시.
+
+## 재사용 기믹
+- **뗏목** `src/world/world.js Raft` (`type:'raft'`): `{ type:'raft', id, image:'assets/props/raft.png', x,y, route:[[x,y],…], speed:114 }`. 옆에서 C → route 를 따라 일직선 이동(타는 동안 `game.ride` 가 서서 입력·트리거 정지), 도착하면 진행 방향으로 밀어 내림, 반대편에서 타면 되돌아옴. 위치는 `flags.raft_<id>`(route 인덱스)로 유지 → 맵을 나갔다 와도 그 자리. 물 타일 `o/O`(water_blue, 막힘). 새 맵에 그대로 복사해 route 만 바꾸면 됨. 검증 `tests/playtest/raft.mjs`.
+- **QA 바로가기**: `src/core/story.js QA_POINTS` — URL `?qa=<id>` 또는 **타이틀에서 Q** → 목록(↑↓ C). 지점: `opening`(방), `living`(거실 진입), `tv`(티비 앞), `pc_stream`(코드 획득 직후 컴퓨터 앞, C 로 방송), `void`(보라맵1), `raft`(보라맵2 뗏목 앞). 그 지점까지 스토리 단계가 자동으로 채워진다. 새 이벤트를 만들면 "직전 지점"을 한 줄 추가. 스폰에 `facing` 을 주면 그 방향으로 서서 시작.
 
 ## 방송 연출 UI (컷신 노드)
 - `{ chat:'open' }` → 오른쪽 트위치식 채팅창(`src/ui/chat.js`, 물리 해상도 16px 폰트, 대화창 위까지). 모드 `late/spam/idle/question/silence/panic` 별 메시지 풀·속도. `{ chat:'close' }`. 닉 100명(`NICKS`, 필수 11명 포함). 쥰희는 "우욱 우욱 우욱 이거 빤스아니여" 한 줄만 도배(`JUNHEE_LINE`).
@@ -85,5 +91,5 @@
 
 2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.
 
-`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
+`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `raft.mjs`(뗏목·QA) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
 UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).

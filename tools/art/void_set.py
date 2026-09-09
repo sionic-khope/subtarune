@@ -84,5 +84,40 @@ def main():
     pv.image().resize((W * 3, H * 3), Image.NEAREST).save(sys.argv[1] if len(sys.argv) > 1 else 'void_preview.png')
     print('tiles', list(tiles))
 
+
+# ── 보라맵2: 파란 물길 + 뗏목 ─────────────────────────────────────
+WATER = hexc('#2f4fa8'); WATER_D = hexc('#243f8c'); WATER_L = hexc('#4d74d6'); WATER_LL = hexc('#8fb0ff')
+RAFT = hexc('#8a6238'); RAFT_D = hexc('#5f4224'); RAFT_L = hexc('#a97c4a'); ROPE = hexc('#c9b58a')
+
+def tile_water(variant=0):
+    c = Canvas(T, T); c.rect(0, 0, T, T, WATER)
+    for y in (5, 13, 21, 29) if variant == 0 else (1, 9, 17, 25):
+        for x in range(0, T, 8):
+            c.hline(x + (y // 8) % 3, y, 4, WATER_L)
+    for (x, y) in ([(3, 9), (18, 3), (26, 24), (11, 27)] if variant == 0 else [(7, 20), (22, 12), (14, 6), (29, 30)]):
+        c.hline(x, y, 3, WATER_LL); c.px(x + 1, y + 1, WATER_D)
+    for (x, y) in [(20, 16), (5, 30), (28, 8)]: c.hline(x, y, 5, WATER_D)
+    return c
+
+def prop_raft():
+    """뗏목 56x40: 통나무 6개 + 밧줄, 물 위에 떠 있음"""
+    w, h = 56, 40; c = Canvas(w, h)
+    for i in range(6):
+        y = 3 + i * 6
+        c.rrect_outlined(2, y, w - 4, 7, RAFT, OUT, 2); c.hline(4, y + 1, w - 8, RAFT_L); c.hline(4, y + 5, w - 8, RAFT_D)
+    for x in (10, w - 14):
+        c.rect(x, 1, 4, h - 3, ROPE); c.outline(x - 1, 0, 6, h - 1, OUT)
+        for y in range(3, h - 3, 6): c.px(x + 1, y, RAFT_D)
+    c.dither(2, h - 3, w - 4, 3, WATER_D, 2)
+    return c
+
+_main = main
+def main():
+    _main()
+    out = 'assets/tiles'
+    tile_water(0).save(f'{out}/water_blue.png'); tile_water(1).save(f'{out}/water_blue2.png')
+    prop_raft().save('assets/props/raft.png')
+    print('water/raft ok')
+
 if __name__ == '__main__':
     main()

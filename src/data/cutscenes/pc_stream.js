@@ -6,6 +6,7 @@
 //       → 흰색 → 검은 배경·보라 땅·꽃 위에 쓰러진 채 도착 (stage void_fallen).
 // ─────────────────────────────────────────────────────────────
 const H = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });   // 형섭 = 나레이션 스타일
+const M = (text, extra = {}) => ({ style: 'narration', voice: 'mystery', speed: 0.55, text, ...extra });   // 검은 화면 가운데, 정체불명 목소리, 천천히
 
 export const pc_stream = Object.assign([
   { sfx: 'plug' },
@@ -44,11 +45,25 @@ export const pc_stream = Object.assign([
   { fade: 'white', duration: 0.9 },                       // 하얀 클로즈업 쉬이익
   { curtain: 'white' },
   { chat: 'close' }, { vortex: null },
+  { wait: 1.0 },
+  { fade: 'out', duration: 1.4 },                         // 흰색 → 검은 화면
+  { curtain: 'black' }, { fade: 'in', duration: 0 },
+  { wait: 1.2 },
+  // 검은 화면의 목소리 (사용자 브리핑 2026-09-09, 텍스트 그대로). 화자 미지정 → 정체불명 목소리(mystery) 하나로
+  M('...{w=0.7} 일어..{w=0.8} 일어나..'),
+  M('이제 너 차례야'),
+  M('야 일어나라고 ...'),
+  M('...{w=0.6}가재맨?'),
+  M('응{w=0.4} 잘 알았어'),
+  M('이제 너의 시간이니까'),
+  M('그리고 한가지만 더...'),
+  M('절대...{w=0.7}ㄹ..{w=0.5}', { auto: 0.3 }),           // 말이 끊기고 보라맵으로
   { map: 'void', spawn: 'fall' },
   { pose: 'player', to: 'lying' },
   { stage: 'void_fallen' },
-  { wait: 1.2 },
+  { fade: 'out', duration: 0 },
   { curtain: null },
+  { wait: 0.6 },
   { bgm: 'wind', volume: 0.28 },                          // 여기서부턴 브금 없이 잔잔한 바람 소리 (void.json bgm 도 wind)
   { fade: 'in', duration: 2.4 },
   { wait: 2.0 },

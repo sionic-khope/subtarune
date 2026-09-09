@@ -7,6 +7,7 @@ import { drawHeart, makeCanvas } from '../core/gfx.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { BUILD } from '../main.js';
 import L from '../data/locale/ko.js';
+import { QA_POINTS } from '../core/story.js';
 
 const GLYPHS = {
   s: [
@@ -136,7 +137,7 @@ export class TitleScreen {
     this.shakeAmp = 0;
   }
 
-  enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; }
+  enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; this.qa = null; }
 
   _leave(go) {
     this.leaving = true; this.flash = 0.12;
@@ -190,6 +191,14 @@ export class TitleScreen {
       this.game.fadeTo(1, 0.3, () => { this.game.devJump({ map: 'test', spawn: 'start' }); this.game.fadeTo(0, 0.3); });
       return;
     }
+    if (this.qa) {                                                 // QA 바로가기 목록
+      if (input.just('up')) { this.qa.i = (this.qa.i + QA_POINTS.length - 1) % QA_POINTS.length; this.game.sound.sfx('menu'); }
+      if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_POINTS.length; this.game.sound.sfx('menu'); }
+      if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
+      if (input.just('confirm')) { const pt = QA_POINTS[this.qa.i]; this._leave(() => { this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
+      return;
+    }
+    if (input.just('qa')) { this.qa = { i: 0 }; this.game.sound.sfx('menu'); return; }
     if (this.time <= PROMPT_DELAY) return;
     const hasSave = this.game.hasSave();
     if (input.just('confirm')) {                                   // C: 세이브 있으면 이어하기, 없으면 새 게임
@@ -245,7 +254,18 @@ export class TitleScreen {
       const hasSave = this.game.hasSave();
       if (on) this._drawText(ctx, hasSave ? (this.confirmNew > 0 ? L.title_confirm_new : L.title_continue) : L.title_start, SCREEN_H * 0.7);
       if (hasSave && this.confirmNew <= 0) this._drawText(ctx, L.title_new, SCREEN_H * 0.7 + 22, '#8a8aa0');
-      this._drawText(ctx, 'T: 테스트룸', SCREEN_H - 20, '#55556b');
+      this._drawText(ctx, 'T: 테스트룸   Q: QA 지점', SCREEN_H - 20, '#55556b');
+    }
+    if (this.qa) {                                                  // QA 목록 오버레이
+      ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(40, 40, SCREEN_W - 80, SCREEN_H - 80);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(41, 41, SCREEN_W - 82, SCREEN_H - 82);
+      ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffe066'; ctx.fillText('QA 바로가기  (C 이동 / X 닫기)', 60, 52);
+      QA_POINTS.forEach((pt, i) => {
+        const y = 82 + i * 22; const on = i === this.qa.i;
+        ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(`${pt.id}  —  ${pt.desc}`, 80, y);
+        if (on) drawHeart(ctx, 64, y + 5);
+      });
     }
     if (this.flash > 0) {
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, this.flash) / 0.18 * 0.6})`;

@@ -46,3 +46,16 @@ export class Story {
   load(data) { this.index = 0; if (data?.stage) this.advance(data.stage); }
   reset() { this.index = 0; }
 }
+
+/**
+ * QA 바로가기 지점 (URL ?qa=<id> 또는 타이틀에서 Q). 그 지점까지의 스토리 단계를 채우고 맵/스폰으로 보낸다.
+ * 새 이벤트를 만들면 "그 이벤트 직전" 지점을 한 줄 추가한다.
+ */
+export const QA_POINTS = [
+  { id: 'opening',   desc: '오프닝 끝, 방',                 stage: 'opening_seen',   map: 'room',   spawn: 'up' },
+  { id: 'living',    desc: '거실 첫 진입',               stage: 'pc_checked',     map: 'living', spawn: 'from_hall' },
+  { id: 'tv',        desc: '거실 티비 앞 (C→3D)',             stage: 'living_entered', map: 'living', spawn: 'tv' },
+  { id: 'pc_stream', desc: '코드 획득 후 컴퓨터 앞 (C→방송)', stage: 'cord_found',     map: 'room',   spawn: 'pc' },
+  { id: 'void',      desc: '보라맵1 도착',                          stage: 'void_fallen',    map: 'void',   spawn: 'fall' },
+  { id: 'raft',      desc: '보라맵2, 뗏목 앞',                      stage: 'void_fallen',    map: 'void2',  spawn: 'dock' },
+];

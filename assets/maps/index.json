@@ -3,6 +3,7 @@
     "room",
     "corridor",
     "living",
-    "void"
+    "void",
+    "void2"
   ]
 }

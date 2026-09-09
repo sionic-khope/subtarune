@@ -54,6 +54,9 @@ model: opus
    - **벽에 거는 소품**(포스터·창문·시계·달력·액자)에 대사를 붙이려면 히트박스를 벽 밑단에: `"x":그림x,"y":86,"w":그림폭,"h":10,"ix":그림x,"iy":그림y,"solid":false,"script":...` (바닥이 y=96 에서 시작할 때. 복도처럼 바닥이 y=224 면 y:214). 그림 위치 그대로 두면 절대 안 닿는다.
    - 새 소품에 대사를 붙였으면 `tests/playtest/furniture.mjs` 의 CASES 에 (이름, 서는 x, y, 방향, 기대 키워드) 한 줄 추가.
    - 측면 출입구(복도 끝처럼 옆으로 나가는 곳): 벽 타일 위에 `doorway_left/right.png` 소품 + 그 앞 바닥 세로 띠에 `door` 영역(`w:16,h:104`). 도착 스폰은 띠에서 24px 이상 떨어뜨린다.
+   - **뗏목/탈것**: `{ "type":"raft","id":"raft1","image":"assets/props/raft.png","x":128,"y":108,"route":[[584,108]],"speed":114 }` — x,y·route 는 이미지 좌상단, 물 타일(`o/O`) 위. 타는 자리(착지)는 뗏목 옆 1타일 안(프로브 0.6타일). 위치는 `flags.raft_<id>` 로 유지.
+   - 맵 가장자리 출입구: 문 영역은 **플레이어가 실제로 닿는 칸 안**에 둔다(가장자리 타일이 막힘이면 플레이어 x 최소 32, 최대 폭-56). 스폰은 그 영역과 24px 이상 떨어뜨린다.
+   - 새 맵/이벤트마다 `src/core/story.js QA_POINTS` 에 바로가기(직전 지점)를 추가하고 스폰에 `facing` 을 준다.
 4. `assets/maps/index.json` 의 `maps` 에 id 추가. 이어지는 맵의 `door` 에 `to/spawn` 연결.
 5. 대사 키는 `src/data/scripts.js` 에 추가.
 6. 검증: `node --test 'tests/unit/*.test.mjs'`(크기·벽·문 핑퐁·스폰·영역 겹침·스크립트 키·이미지 존재) → `tests/playtest/house.mjs` 에 새 구간을 이어 붙여 헤드리스로 동선·상호작용·재진입을 확인하고, 스크린샷 **네 모서리**를 본다.
