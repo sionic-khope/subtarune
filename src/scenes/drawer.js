@@ -211,65 +211,70 @@ function buildContents(drawer, inner, mats) {
   const items = [];
   const y0 = -inner.ih / 2 + 0.012;                   // 서랍 바닥 윗면(로컬)
   const std = (opt) => new THREE.MeshStandardMaterial(opt);
+  const halfW = inner.w / 2 - 0.02, halfD = inner.d / 2 - 0.02;
   const add = (mesh, x, z, y, rotY = rand(-0.6, 0.6), name = 'item') => {
     mesh.position.set(x, y, z); mesh.rotation.y = rotY; mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = name;
     mesh.userData.baseY = y; drawer.add(mesh); items.push(mesh); return mesh;
   };
-  const halfW = inner.w / 2 - 0.02, halfD = inner.d / 2 - 0.02;
-
-  // ── 보라색 컴퓨터 코드(맨 밑, 느슨하게 감긴 전원선 + 플러그) ──
+  // ── 보라색 코드(맨 밑, 느슨하게 감긴 전원선 + 플러그) ──
   const cord = new THREE.Group(); cord.name = 'cord';
-  const pts = []; const cx = rand(-0.05, 0.05), cz = rand(-0.03, 0.03);
-  for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2 * 2.3; const r = 0.075 + Math.sin(i * 1.7) * 0.014; pts.push(new THREE.Vector3(cx + Math.cos(a) * r * 1.25, 0.006 + (i % 7) * 0.0012, cz + Math.sin(a) * r * 0.8)); }
+  // 작고(지름 ~8cm) 서랍 어디든 랜덤하게 놓여, 위에 잡동사니가 두 겹으로 덮인다 — 찾는 재미
+  const pts = []; const cx = rand(-halfW * 0.7, halfW * 0.7), cz = rand(-halfD * 0.6, halfD * 0.6);
+  for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2 * 2.6; const r = 0.036 + Math.sin(i * 1.7) * 0.008; pts.push(new THREE.Vector3(cx + Math.cos(a) * r * 1.2, 0.004 + (i % 7) * 0.0008, cz + Math.sin(a) * r * 0.85)); }
   const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.6);
-  const cordMat = std({ color: C.cord, roughness: 0.55, metalness: 0.05, emissive: C.cordD, emissiveIntensity: 0.12 });
-  const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 240, 0.0055, 10, false), cordMat); tube.castShadow = true; tube.receiveShadow = true; cord.add(tube);
+  const cordMat = std({ color: C.cord, roughness: 0.55, metalness: 0.05, emissive: C.cordD, emissiveIntensity: 0.1 });
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 240, 0.0034, 10, false), cordMat); tube.castShadow = true; tube.receiveShadow = true; cord.add(tube);
   const end = pts[pts.length - 1];
-  const plug = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 0.045), std({ color: C.plug, roughness: 0.6 })); plug.position.copy(end).add(new THREE.Vector3(0.02, 0.006, 0)); plug.castShadow = true; cord.add(plug);
-  for (const dz of [-0.007, 0.007]) { const prong = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 0.02, 8), std({ color: 0xd9d9df, metalness: 0.9, roughness: 0.3 })); prong.rotation.z = Math.PI / 2; prong.position.copy(plug.position).add(new THREE.Vector3(0.025, 0, dz)); cord.add(prong); }
+  const plug = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.026), std({ color: C.plug, roughness: 0.6 })); plug.position.copy(end).add(new THREE.Vector3(0.012, 0.004, 0)); plug.castShadow = true; cord.add(plug);
+  for (const dz of [-0.004, 0.004]) { const prong = new THREE.Mesh(new THREE.CylinderGeometry(0.0015, 0.0015, 0.012, 8), std({ color: 0xd9d9df, metalness: 0.9, roughness: 0.3 })); prong.rotation.z = Math.PI / 2; prong.position.copy(plug.position).add(new THREE.Vector3(0.015, 0, dz)); cord.add(prong); }
   cord.position.set(0, y0, 0); cord.userData.baseY = y0;
   drawer.add(cord);
   cord.traverse((o) => { if (o.isMesh) o.name = 'cord'; });
 
   // ── 덮는 층: 걸레·영수증·DVD 케이스 (코드 위) ──
   const bend = (geo, amp) => { const p = geo.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 40) * amp + Math.cos(p.getY(i) * 30) * amp * 0.6); geo.computeVertexNormals(); return geo; };
-  const cloth = new THREE.Mesh(bend(new THREE.PlaneGeometry(0.19, 0.15, 12, 10), 0.004), std({ color: 0xbfd3e0, roughness: 1, side: THREE.DoubleSide }));
-  cloth.rotation.x = -Math.PI / 2; add(cloth, cx + rand(-0.02, 0.02), cz + rand(-0.02, 0.02), y0 + 0.012, rand(-0.4, 0.4), 'cloth'); cloth.rotation.z = rand(-0.4, 0.4);
-  for (let i = 0; i < 3; i++) {
-    const paper = new THREE.Mesh(bend(new THREE.PlaneGeometry(0.075, 0.16, 6, 10), 0.003), std({ map: mats.paper[i % 2], roughness: 1, side: THREE.DoubleSide }));
-    paper.rotation.x = -Math.PI / 2; add(paper, cx + rand(-0.12, 0.12), cz + rand(-0.06, 0.06), y0 + 0.02 + i * 0.002, 0, 'paper'); paper.rotation.z = rand(-1.2, 1.2);
+  const clamp = (v, lim) => Math.max(-lim, Math.min(lim, v));
+  for (let i = 0; i < 2; i++) {   // 걸레·손수건 두 장이 코드를 바로 덮는다
+    const cloth = new THREE.Mesh(bend(new THREE.PlaneGeometry(0.17, 0.14, 12, 10), 0.004), std({ color: i ? 0xd9c9b0 : 0xbfd3e0, roughness: 1, side: THREE.DoubleSide }));
+    cloth.rotation.x = -Math.PI / 2; add(cloth, clamp(cx + rand(-0.03, 0.03), halfW), clamp(cz + rand(-0.025, 0.025), halfD), y0 + 0.01 + i * 0.004, 0, 'cloth'); cloth.rotation.z = rand(-0.7, 0.7);
   }
+  for (let i = 0; i < 5; i++) {
+    const paper = new THREE.Mesh(bend(new THREE.PlaneGeometry(0.075, 0.16, 6, 10), 0.003), std({ map: mats.paper[i % 2], roughness: 1, side: THREE.DoubleSide }));
+    paper.rotation.x = -Math.PI / 2; add(paper, clamp(cx + rand(-0.09, 0.09), halfW), clamp(cz + rand(-0.06, 0.06), halfD), y0 + 0.02 + i * 0.0015, 0, 'paper'); paper.rotation.z = rand(-1.2, 1.2);
+  }
+  const notebook = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.012, 0.2), [std({ color: 0x2f4a6e }), std({ color: 0x2f4a6e }), std({ color: 0x3b5b86, roughness: 0.7 }), std({ color: 0x2f4a6e }), std({ color: 0xeeeeea }), std({ color: 0x2f4a6e })]);
+  add(notebook, clamp(cx + rand(-0.04, 0.04), halfW), clamp(cz + rand(-0.03, 0.03), halfD), y0 + 0.03, rand(-0.4, 0.4), 'notebook');
   for (let i = 0; i < 2; i++) {
     const dvd = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.014, 0.19), [std({ color: 0x1a1a1f }), std({ color: 0x1a1a1f }), std({ map: mats.label[i], roughness: 0.4 }), std({ color: 0x1a1a1f }), std({ color: 0x1a1a1f }), std({ color: 0x1a1a1f })]);
-    add(dvd, cx + (i ? 0.09 : -0.1) + rand(-0.02, 0.02), cz + rand(-0.03, 0.03), y0 + 0.024, rand(-0.5, 0.5), 'dvd');
+    add(dvd, clamp(cx + (i ? 0.08 : -0.08) + rand(-0.02, 0.02), halfW), clamp(cz + rand(-0.04, 0.04), halfD), y0 + 0.036, rand(-0.5, 0.5), 'dvd');
   }
   // ── 잡동사니 층 ──
   const remote = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.018, 0.165), [std({ color: 0x2c2c33 }), std({ color: 0x2c2c33 }), std({ map: mats.remote, roughness: 0.6 }), std({ color: 0x2c2c33 }), std({ color: 0x2c2c33 }), std({ color: 0x2c2c33 })]);
-  add(remote, rand(-halfW * 0.7, halfW * 0.7), rand(-halfD * 0.6, halfD * 0.6), y0 + 0.04, rand(-1.4, 1.4), 'remote');
+  add(remote, clamp(cx + rand(-0.08, 0.08), halfW * 0.8), clamp(cz + rand(-0.06, 0.06), halfD * 0.8), y0 + 0.052, rand(-1.4, 1.4), 'remote');
   for (let i = 0; i < 3; i++) {
     const bat = new THREE.Group();
     const bodyM = new THREE.Mesh(new THREE.CylinderGeometry(0.0072, 0.0072, 0.05, 16), std({ color: i ? 0x2a2a30 : 0x6a1f1f, roughness: 0.4, metalness: 0.3 })); bat.add(bodyM);
     const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.0074, 0.0074, 0.012, 16), std({ color: 0xc9a13a, metalness: 0.8, roughness: 0.3 })); cap.position.y = 0.02; bat.add(cap);
     bat.rotation.z = Math.PI / 2; bat.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.name = 'battery'; } });
-    add(bat, rand(-halfW, halfW), rand(-halfD, halfD), y0 + 0.036, rand(-1.5, 1.5), 'battery');
+    add(bat, rand(-halfW, halfW), rand(-halfD, halfD), y0 + 0.046, rand(-1.5, 1.5), 'battery');
   }
   const cd = new THREE.Mesh(new THREE.RingGeometry(0.0075, 0.06, 48), std({ color: 0xdfe6ee, metalness: 0.95, roughness: 0.15, side: THREE.DoubleSide }));
-  cd.rotation.x = -Math.PI / 2; add(cd, rand(-halfW * 0.8, halfW * 0.8), rand(-halfD * 0.7, halfD * 0.7), y0 + 0.034, 0, 'cd');
-  for (let i = 0; i < 4; i++) { const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.0115, 0.0115, 0.0018, 24), std({ color: i % 2 ? 0xd4af37 : 0xb8b8c0, metalness: 0.9, roughness: 0.25 })); add(coin, rand(-halfW, halfW), rand(-halfD, halfD), y0 + 0.034, rand(0, 3), 'coin'); }
+  cd.rotation.x = -Math.PI / 2; add(cd, clamp(cx + rand(-0.07, 0.07), halfW * 0.8), clamp(cz + rand(-0.05, 0.05), halfD * 0.7), y0 + 0.045, 0, 'cd');
+  for (let i = 0; i < 4; i++) { const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.0115, 0.0115, 0.0018, 24), std({ color: i % 2 ? 0xd4af37 : 0xb8b8c0, metalness: 0.9, roughness: 0.25 })); add(coin, rand(-halfW, halfW), rand(-halfD, halfD), y0 + 0.044, rand(0, 3), 'coin'); }
   const flash = new THREE.Group();
   const fbody = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.017, 0.12, 20), std({ color: 0x8a8f99, metalness: 0.7, roughness: 0.35 })); flash.add(fbody);
   const fhead = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.017, 0.03, 20), std({ color: 0x2a2a30, roughness: 0.5 })); fhead.position.y = 0.07; flash.add(fhead);
   const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.004, 20), std({ color: 0xfff3c0, emissive: 0x332200, roughness: 0.2 })); lens.position.y = 0.086; flash.add(lens);
   flash.rotation.z = Math.PI / 2; flash.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.name = 'flashlight'; } });
-  add(flash, rand(-halfW * 0.6, halfW * 0.6), rand(-halfD * 0.7, halfD * 0.7), y0 + 0.052, rand(-0.8, 0.8), 'flashlight');
-  for (let i = 0; i < 2; i++) { const band = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.0022, 8, 40), std({ color: 0xc9a67a, roughness: 0.9 })); band.rotation.x = Math.PI / 2; add(band, rand(-halfW, halfW), rand(-halfD, halfD), y0 + 0.036, 0, 'band'); }
-  const tape = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.013, 12, 40), std({ color: 0xe0d2b8, roughness: 0.8 })); tape.rotation.x = Math.PI / 2; add(tape, rand(-halfW * 0.8, halfW * 0.8), rand(-halfD * 0.7, halfD * 0.7), y0 + 0.046, 0, 'tape');
-  const phone = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.012, 0.1), std({ color: 0x1e1e26, roughness: 0.35, metalness: 0.2 })); add(phone, rand(-halfW * 0.8, halfW * 0.8), rand(-halfD * 0.7, halfD * 0.7), y0 + 0.04, rand(-1, 1), 'phone');
+  add(flash, rand(-halfW * 0.6, halfW * 0.6), rand(-halfD * 0.7, halfD * 0.7), y0 + 0.062, rand(-0.8, 0.8), 'flashlight');
+  for (let i = 0; i < 2; i++) { const band = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.0022, 8, 40), std({ color: 0xc9a67a, roughness: 0.9 })); band.rotation.x = Math.PI / 2; add(band, rand(-halfW, halfW), rand(-halfD, halfD), y0 + 0.046, 0, 'band'); }
+  const tape = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.013, 12, 40), std({ color: 0xe0d2b8, roughness: 0.8 })); tape.rotation.x = Math.PI / 2; add(tape, rand(-halfW * 0.8, halfW * 0.8), rand(-halfD * 0.7, halfD * 0.7), y0 + 0.056, 0, 'tape');
+  const phone = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.012, 0.1), std({ color: 0x1e1e26, roughness: 0.35, metalness: 0.2 })); add(phone, clamp(cx + rand(-0.06, 0.06), halfW * 0.8), clamp(cz + rand(-0.05, 0.05), halfD * 0.7), y0 + 0.05, rand(-1, 1), 'phone');
   // 검은 케이블 뭉치 (미끼)
-  const bpts = []; const bx = rand(-halfW * 0.5, halfW * 0.5), bz = rand(-halfD * 0.5, halfD * 0.5);
+  const bpts = []; const bx = clamp(cx + rand(-0.05, 0.05), halfW * 0.5), bz = clamp(cz + rand(-0.04, 0.04), halfD * 0.5);
   for (let i = 0; i <= 30; i++) { const a = (i / 30) * Math.PI * 2 * 1.8; bpts.push(new THREE.Vector3(bx + Math.cos(a) * 0.05, 0.004 + (i % 5) * 0.001, bz + Math.sin(a * 1.3) * 0.035)); }
   const black = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bpts), 160, 0.004, 8, false), std({ color: 0x111114, roughness: 0.6 }));
-  add(black, 0, 0, y0 + 0.04, 0, 'cable');
+  add(black, 0, 0, y0 + 0.05, 0, 'cable');
   return { items, cord };
 }
 

@@ -110,6 +110,7 @@ class Game {
     this.sound.stopBgm(0.4); this.sound.stopIntro(0.2);
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
+    this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.fadeTo(1, 0.4, () => {
       this.flags = {}; this.inventory = [];
       this.changeMap('room', 'bed', true);
@@ -216,7 +217,7 @@ class Game {
     this.time += dt;
     Input.poll();
     if (Input.just('debug')) this.debug = !this.debug;
-    if (Input.just('title') && this.state !== 'title' && !this.transitioning && !this.scene3d) { this.toTitle(); return; }
+    if (Input.just('title') && this.state !== 'title' && !this.transitioning && !this.scene3d && !this.zoom.tween) { this.toTitle(); return; }
     this.textbox.charDelay = TEXT_SPEEDS[this.settings.textSpeed].delay;
     if (this.sound.muted !== !this.settings.sound) { this.sound.muted = !this.settings.sound; if (this.sound.bgm) this.sound._ramp(this.sound.bgm, this.sound.muted ? 0 : (this.sound.bgmVolume ?? 0.35), 0.2); }
 
@@ -397,11 +398,13 @@ class Game {
     ctx.fillText(`${this.mapId} (${Math.round(p.x)},${Math.round(p.y)}) ${p.facing} fps:${Math.round(1 / this.dt)}`, 4, SCREEN_H - 14);
     ctx.fillText('flags: ' + JSON.stringify(this.flags), 4, SCREEN_H - 28);
     ctx.fillText(this.sound.info, 4, SCREEN_H - 42);
+    const d = this.dialogue, node = d.script?.[d.i - 1];
+    ctx.fillText(`script: running=${d.running} i=${d.i} wait=${d.wait ? 'y' : 'n'} node=${node ? Object.keys(node).slice(0, 3).join(',') : '-'} curtain=${this.curtain} fade=${this.fade.alpha.toFixed(2)} zoom=${this.zoom.s.toFixed(2)} scene3d=${this.scene3d}`, 4, SCREEN_H - 56);
   }
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.19';
+export const BUILD = '2026-09-09.20';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

@@ -80,7 +80,7 @@ check('back to 2D with cord_found', !s.scene3d && s.flags.cord_found === true, J
 check('획득 dialogue', s.text.includes('획득했다'), s.text);
 await page.screenshot({ path: `${S}/d3_07_after.png` });
 await finishDialogue(); s = await st();
-check('inventory has cord', s.inv.includes('컴퓨터 코드'), JSON.stringify(s.inv));
+check('inventory has cord', s.inv.includes('보라색 코드 ?'), JSON.stringify(s.inv));
 check('zoom restored (2)', s.zoom === 1, 'zoom=' + s.zoom);
 // 다시 TV → "코드는 챙겼다"
 await page.keyboard.press('KeyC'); await page.waitForTimeout(400); s = await st(); check('tv after found', s.text.includes('챙겼다'), s.text);
