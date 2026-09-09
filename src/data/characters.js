@@ -6,10 +6,10 @@
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
   hyungsub:  { name: '형섭', voice: 'narrator', palette: 'hero', self: true,
-    walkFrameOrder: { left: [0, 1, 3, 2], right: [0, 1, 3, 2] } },
-  gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard' },
-  ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', portraitThreshold: 0.3 },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
-  junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6 },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
+    sideWalk: { feetY: 74, splitX: 26, stride: 2 } },
+  gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard', sideWalk: { feetY: 78, splitX: 27, stride: 2 } },
+  ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', portraitThreshold: 0.3, sideWalk: { feetY: 74, splitX: 27, stride: 2 } },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
+  junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6, sideWalk: { feetY: 74, splitX: 46, stride: 2 } },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },
   cat:       { name: '???',  voice: 'cat',     palette: 'cat' },
   guard:     { name: '경비병', voice: 'robot', palette: 'guard' },

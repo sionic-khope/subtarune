@@ -31,7 +31,7 @@
 - **형섭 그림에는 입이 없음**: 2026-09-09 사용자가 직접 픽셀 수정을 승인해 옆모습에 남은 입선 261픽셀만 피부로 복원했다. 원본 수정 범위는 `assets/source/hyungsub-mouth-retouch.json`. 코·안경·턱·경섭의 입은 유지. 입이 남은 이전 생성 초안을 재사용하지 않는다.
 - **대화창 초상화는 언더테일처럼 흰/검 2톤 도트**(2026-09-09 확정). 컬러 `assets/portraits/*.png` 를 런타임에 `gfx.monoPortrait` 가 변환(96→48 축소, 어두운 픽셀=검정, 실루엣 가장자리는 흰 선). 캐릭터별 문턱은 `src/data/characters.js portraitThreshold`(빠맨 0.3, 쥰희 0.6, 기본 0.38). 새 캐릭터 초상화가 뭉개지면 이 값만 조정.
 - 캐릭터 배율 `CHAR_SCALE=1.43`(world.js, 2026-09-09 +10%). 기본 이동 = 달리기, X/Shift = 천천히. C 확인, X 취소, Esc 타이틀, V 메뉴, T(타이틀) 테스트룸, F1 디버그(오디오 상태 포함).
-- 걷기 보정: 방향별 4프레임을 공통 영역/같은 샘플링 격자로 추출해 머리 흔들림을 막고, 4px 테두리 절삭으로 잘렸던 신발 끝을 보존한다. 형섭 좌우 재생만 `walkFrameOrder: [0,1,3,2]`. `Character.animPhase`로 속도 전환 시 보행 위상을 유지하며, Player/NPC는 충돌 후 실제 이동한 경우만 걷는다. 기존 이동 속도와 `CHAR_SCALE`은 변경하지 않았다.
+- 걷기 보정: 방향별 4프레임을 공통 영역/같은 샘플링 격자로 추출하고 신발 끝을 보존한다. **옆걷기는 전 캐릭터 3포즈**(2026-09-09 사용자 요청): 기본→발 A→기본→발 B. 상체·머리·팔은 고정하고 발 위치만 바꾼다. PNG는 각 옆방향 첫 프레임 + `characters.js sideWalk` 설정으로 최초 로드 시 조합, 대체 도트는 기존 TORSO+LEGS 방식. PNG·초상화·정면/뒷면 모션은 유지. 이전 형섭 전용 `walkFrameOrder`는 폐기. `Character.animPhase`, 이동 속도, 충돌 시 정지, `CHAR_SCALE`은 유지한다.
 - 대화창 4줄·여백 넉넉히. 말풍선/하단 가이드 UI 없음. 대화창 열림/닫힘 효과음 없음(언더테일 동일). 나레이션 = 언더테일 원본 `snd_txt1` 원본 길이 그대로, 글자 33ms, 블립 최소 간격 0.06s(2026-09-09 '겹쳐 들린다' 피드백 → `VOICES.narrator.minGap`).
 - 트리거/문 무결성 규칙은 `.claude/skills/map/SKILL.md` 체크리스트 + `tests/unit/maps.test.mjs` 가 강제(재진입 1회, 쿨다운, 문 핑퐁, 스폰 위치, 영역 겹침).
 - 컷신 중 맵이 새면 안 됨 → `{curtain:'black'|'white'|null}` 로 막는다. `{bgm:null, fadeOut:n}` (fade 아님).
@@ -70,6 +70,8 @@
 - 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 체크). 맵 JSON `stage` 필드는 위 '상태 시스템' 참고.
 
 ## 검증 방법
+3포즈 옆걷기: `node tests/playtest/side-walk.mjs`는 등록된 8명 모두 좌/우 3종 이미지·기본 포즈 재사용·상체 픽셀 동일·정면/뒷면 불변·4박자 재생과 정지를 실제 브라우저에서 검사한다. 두 브라우저 테스트는 `BASE_URL`로 서버 주소, `SHOT_DIR`로 캡처 폴더를 지정할 수 있다. 보폭/발 영역을 조정할 때는 모든 옆방향의 발 연결·잘림을 다시 눈으로 확인한다.
+
 입·걷기 보정: `tests/sprites/test_hyungsub_mouth.py`는 입선 영역의 피부 복원을, `test_slice_sheet.py`는 가장자리 보존과 실제 시트 머리 기준점 정렬을 검사한다. `tests/unit/animation.test.mjs`와 `sprite-order.test.mjs`는 속도 전환·벽 충돌·프레임 순서를 검사한다. `sprites.mjs`는 현재 48×48 흑백 초상화에 맞춰 PNG 응답을 기다리고, 4명 모두 이동/속도 전환/벽에서 멈춤/대화창을 확인한다.
 
 스프라이트: `uv run --with pillow --with numpy --with pytest pytest tests/sprites -q` (배경·외곽선·원본 색·프레임 계약 회귀). `node tests/playtest/sprites.mjs` (서버 8765, 형섭·경섭·빠맨·쥰희 4방향×4프레임, 대화창 인물 연결, PNG 로딩). 원본 3인 시트 왼쪽부터 `hyungsub/gyeongsub/ppaman`, 돼지 별도 시트는 `junhee`다. 재추출 명령은 README의 '캐릭터 시트 재추출' 참고.

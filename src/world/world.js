@@ -112,10 +112,26 @@ export function characterSprite(paletteName, override = null) {
     set.fw = fw; set.fh = fh; set.px = RENDER_SCALE;   // assets/sprites 시트는 2x 해상도
     const rows = ['down', 'up', 'left', 'right'];
     rows.forEach((dir, r) => {
-      const order = CHARACTERS[paletteName]?.walkFrameOrder?.[dir] || [0, 1, 2, 3];
+      const sideWalk = CHARACTERS[paletteName]?.sideWalk;
+      if (sideWalk && (dir === 'left' || dir === 'right')) {
+        const { feetY, splitX, stride } = sideWalk;
+        const sourceY = r * fh;
+        const neutral = makeCanvas(fw, fh);
+        neutral.getContext('2d').drawImage(override, 0, sourceY, fw, fh, 0, 0, fw, fh);
+        const step = (leftOffset, rightOffset) => {
+          const c = makeCanvas(fw, fh);
+          const ctx = c.getContext('2d');
+          ctx.drawImage(override, 0, sourceY, fw, feetY, 0, 0, fw, feetY);
+          ctx.drawImage(override, 0, sourceY + feetY, splitX, fh - feetY, leftOffset, feetY, splitX, fh - feetY);
+          ctx.drawImage(override, splitX, sourceY + feetY, fw - splitX, fh - feetY, splitX + rightOffset, feetY, fw - splitX, fh - feetY);
+          return c;
+        };
+        set[dir].push(neutral, step(-stride, stride), neutral, step(stride, -stride));
+        return;
+      }
       for (let f = 0; f < 4; f++) {
         const c = makeCanvas(fw, fh);
-        c.getContext('2d').drawImage(override, order[f] * fw, r * fh, fw, fh, 0, 0, fw, fh);
+        c.getContext('2d').drawImage(override, f * fw, r * fh, fw, fh, 0, 0, fw, fh);
         set[dir].push(c);
       }
     });

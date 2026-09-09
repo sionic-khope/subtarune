@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const output = process.env.SHOT_DIR || new URL('./shots/sprites/', import.meta.url).pathname;
+const baseURL = process.env.BASE_URL || 'http://127.0.0.1:8765';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
@@ -19,7 +20,7 @@ page.on('response', (response) => {
 try {
   for (const id of ['hyungsub', 'gyeongsub', 'ppaman', 'junhee']) {
     const portraitLoaded = page.waitForResponse((response) => response.url().includes(`/assets/portraits/${id}.png`) && response.ok());
-    await page.goto(`http://127.0.0.1:8765/?map=test&sprite=${id}`);
+    await page.goto(`${baseURL}/?map=test&sprite=${id}`);
     await portraitLoaded;
     await page.waitForFunction((name) => window.game?.state === 'field' && game.portraits[name]?.width === 48, id);
     const sheet = await page.evaluate((name) => {
@@ -49,8 +50,8 @@ try {
       await page.screenshot({ path: `${output}/${id}-${direction}.png` });
       await page.keyboard.up(key);
       await page.keyboard.up('Shift');
-      assert.equal(frames.size, 4, `${id}: ${direction} must cycle all four frames`);
-      results.push(`PASS ${id} ${direction}: loaded PNG, four moving frames`);
+      assert.equal(frames.size, 4, `${id}: ${direction} must cycle all four timing slots`);
+      results.push(`PASS ${id} ${direction}: loaded PNG, four moving timing slots`);
     }
     await page.evaluate(() => { game.player.x = 32; game.player.y = 260; game.camera.snap(); });
     await page.keyboard.down('ArrowLeft');
@@ -84,7 +85,7 @@ try {
   }
   for (const width of [375, 768]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('http://127.0.0.1:8765/?map=test&sprite=hyungsub');
+    await page.goto(`${baseURL}/?map=test&sprite=hyungsub`);
     await page.waitForFunction(() => window.game?.state === 'field');
     await page.screenshot({ path: `${output}/viewport-${width}.png` });
   }
