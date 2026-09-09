@@ -36,7 +36,7 @@ model: opus
 | `[맵 X 들어가면]` | 맵 JSON `enter:{script,flag}` |
 | `[소품/NPC 와 상호작용]` | 소품 `script` / NPC `script` |
 | `[특정 위치 지나가면]` | `trigger` (once+flag) |
-| `[플래그 있을 때만]` | 스크립트 첫 줄 `{ if:(f)=>!f.x, goto:'skip' }` |
+| `[플래그/단계 이후에만]` | 스크립트 첫 줄 `{ if:(f)=>!f.x, goto:'skip' }` (단계 id 도 플래그로 본다) |
 | `형섭: …` | `{ text:'* …', voice:'narrator' }` (이름·초상화 없음) |
 | `경섭/빠맨/쥰희: …` | `{ speaker, portrait, voice, text:'* …' }` |
 | `나레이션: …` | `{ text:'* …', voice:'narrator' }` — 형섭과 같은 표시. 검은 화면이면 `style:'narration'` |
@@ -59,7 +59,7 @@ model: opus
 | `{ text, speaker?, portrait?, voice? }` | 대화창. `voice:'none'` 무음. `speed:0.6` 느리게. `auto:1.5` 1.5초 뒤 자동 진행 |
 | `{ style:'narration', text }` | **검은 화면 중앙 텍스트** (언더테일 오프닝). 보통 `voice:'none', speed:0.6` |
 | `{ text, choice:{ options:[{label, goto, set?}], cancel?, delay?, stagger?, locked?, auto?, cursor? } }` | 선택지. `cancel`=X 눌렀을 때 인덱스. `delay:1.6` 뜨기까지 지연. `stagger:0.6` 항목이 하나씩 천천히 드러남(다 뜰 때까지 입력 무시). `locked:true` 커서는 움직여도 고를 수 없음. `auto:1.2` 다 뜬 뒤 1.2초 후 **고르지 않고** 다음 노드로(대사가 끊고 들어오는 연출). `cursor:false` 하트 없음 |
-| `{ label }` `{ goto }` `{ if:(flags)=>bool, goto }` `{ set:{} }` `{ action:(game)=>{} }` `{ end:true }` | 흐름 제어 |
+| `{ label }` `{ goto }` `{ if:(flags, story)=>bool, goto }` `{ set:{} }` `{ stage:'id' }` `{ action:(game)=>{} }` `{ end:true }` | 흐름 제어. **스토리 비트 도달은 `{stage:'id'}`**(`src/core/story.js STAGES` 에 먼저 추가) — 앞 단계 플래그가 자동으로 채워진다. `set` 은 순서와 무관한 side flag 에만 |
 
 텍스트 태그: `{s=2}` 속도 `{/s}` `{w=0.5}` 멈춤 `{c=red}…{/c}` `{shake}…{/shake}` `{wave}…{/wave}` `{n}` 줄바꿈
 
@@ -83,6 +83,6 @@ model: opus
 ## 연출 규칙 (완성도)
 - 비트 사이에 `wait 0.3~0.8` 을 넣어 숨을 쉬게 한다. 대사 직후 바로 이동시키지 않는다.
 - 나레이션은 한 노드에 2줄 이내. `{w}` 로 리듬. 마지막 줄 뒤 `{w=0.6}` 여운.
-- 컷신 끝에는 반드시: 카메라 복귀(`camera:'player'`), 임시 엔티티 `remove`, `set:{<name>_seen:true}`.
+- 컷신 끝에는 반드시: 카메라 복귀(`camera:'player'`), 임시 엔티티 `remove`, 스토리 비트면 `{stage:'<id>'}`(아니면 `set:{<name>_seen:true}`).
 - 컷신 중 플레이어 입력은 자동으로 막힌다. 스킵은 C(타이핑 즉시 표시)만 — 통째 스킵은 넣지 않는다.
 - 새 캐릭터는 `src/data/art.js` `PALETTES` 에 팔레트만 추가하면 스프라이트·초상화가 생긴다. 음색은 `src/core/audio.js` `VOICES`.

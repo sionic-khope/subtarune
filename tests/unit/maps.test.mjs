@@ -71,3 +71,16 @@ for (const [id, m] of Object.entries(maps)) {
     }
   });
 }
+
+// ── 스토리 단계: 스토리 맵은 stage 를 선언하고, 그 id 는 STAGES 에 있어야 한다 (개발용 ?map= 이 단계를 채우는 근거) ──
+const { STAGES } = await import('../../src/core/story.js');
+const STAGE_IDS = new Set(STAGES.map((s) => s.id));
+for (const [id, m] of Object.entries(maps)) {
+  test(`${id}: stage 선언이 STAGES 에 존재`, () => {
+    assert.ok(m.stage, `${id}: stage 없음 (스토리 맵은 최소 도달 단계를 선언)`);
+    assert.ok(STAGE_IDS.has(m.stage), `${id}: 모르는 stage '${m.stage}'`);
+  });
+}
+test('STAGES 의 map/spawn 이 실제로 존재', () => {
+  for (const st of STAGES) { const m = maps[st.map]; assert.ok(m, `${st.id}: 맵 ${st.map} 없음`); assert.ok(m.spawns?.[st.spawn], `${st.id}: 스폰 ${st.map}.${st.spawn} 없음`); }
+});

@@ -30,5 +30,5 @@ export const myScene = Object.assign([
   { label: 'end' },
   { camera: 'player' },
   { remove: 'guest' },
-  { set: { my_scene_seen: true } },
+  { set: { my_scene_seen: true } },   // 스토리 비트면 대신 { stage: 'id' } (src/core/story.js STAGES 에 추가)
 ], { silent: true });

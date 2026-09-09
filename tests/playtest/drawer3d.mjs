@@ -74,7 +74,7 @@ for (const p of pts) { if (p.x < 2 || p.y < 2 || p.x > 998 || p.y > 778) continu
 check('cord clicked → acquire', clicked);
 await page.waitForTimeout(700); await page.screenshot({ path: `${S}/d3_06_acquire.png` });
 const t0 = Date.now(); while (Date.now() - t0 < 6000 && await page.evaluate(() => !!game.scene3d)) await page.waitForTimeout(150);
-await page.waitForTimeout(900);
+{ const t1 = Date.now(); while (Date.now() - t1 < 4000 && !(await page.evaluate(() => (game.textbox.node?.text || '').includes('획득했다')))) await page.waitForTimeout(150); }   // 줌아웃(0.7s)+페이드 뒤 대사
 s = await st();
 check('back to 2D with cord_found', !s.scene3d && s.flags.cord_found === true, JSON.stringify({ f: s.flags.cord_found, z: s.zoom }));
 check('획득 dialogue', s.text.includes('획득했다'), s.text);

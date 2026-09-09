@@ -6,6 +6,7 @@ import { FONT } from './font.js';
 import { drawHeart, makeCanvas } from '../core/gfx.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { BUILD } from '../main.js';
+import L from '../data/locale/ko.js';
 
 const GLYPHS = {
   s: [
@@ -135,7 +136,13 @@ export class TitleScreen {
     this.shakeAmp = 0;
   }
 
-  enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; }
+  enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; }
+
+  _leave(go) {
+    this.leaving = true; this.flash = 0.12;
+    this.game.sound.sfx('confirm'); this.game.sound.stopIntro(0.5); this.game.sound.stopBgm(0.6);
+    this.game.fadeTo(1, 0.6, go);
+  }
 
   _startIntro() {
     this.phase = 'pre';
@@ -180,18 +187,18 @@ export class TitleScreen {
     if (input.just('test')) {                 // T: 테스트룸 바로 가기
       this.leaving = true;
       this.game.sound.stopIntro(0.3); this.game.sound.stopBgm(0.3);
-      this.game.flags.opening_seen = true;
-      this.game.fadeTo(1, 0.3, () => { this.game.changeMap('test', 'start', true); this.game.state = 'field'; this.game.fadeTo(0, 0.3); });
+      this.game.fadeTo(1, 0.3, () => { this.game.devJump({ map: 'test', spawn: 'start' }); this.game.fadeTo(0, 0.3); });
       return;
     }
-    if (this.time > PROMPT_DELAY && input.just('confirm')) {
-      this.leaving = true;
-      this.flash = 0.12;
-      this.game.sound.sfx('confirm');
-      this.game.sound.stopIntro(0.5);
-      this.game.sound.stopBgm(0.6);
-      this.game.fadeTo(1, 0.6, () => this.game.startGame());
+    if (this.time <= PROMPT_DELAY) return;
+    const hasSave = this.game.hasSave();
+    if (input.just('confirm')) {                                   // C: 세이브 있으면 이어하기, 없으면 새 게임
+      this._leave(() => (hasSave ? this.game.continueGame() : this.game.startGame()));
+    } else if (hasSave && input.just('cancel')) {                  // X: 처음부터 (두 번 눌러 확인)
+      if (this.confirmNew > 0) this._leave(() => this.game.startGame());
+      else { this.confirmNew = 3.0; this.game.sound.sfx('menu'); }
     }
+    if (this.confirmNew > 0) this.confirmNew -= dt;
   }
 
   _drawText(ctx, text, y, color = '#fff') {
@@ -235,7 +242,9 @@ export class TitleScreen {
     if (this.phase === 'locked' && this.time > PROMPT_DELAY) {
       const period = this.leaving ? 0.08 : 0.9;
       const on = this.leaving ? Math.floor(this.time / period) % 2 === 0 : (this.time % period) < period * 0.6;
-      if (on) this._drawText(ctx, 'C 를 눌러 시작', SCREEN_H * 0.7);
+      const hasSave = this.game.hasSave();
+      if (on) this._drawText(ctx, hasSave ? (this.confirmNew > 0 ? L.title_confirm_new : L.title_continue) : L.title_start, SCREEN_H * 0.7);
+      if (hasSave && this.confirmNew <= 0) this._drawText(ctx, L.title_new, SCREEN_H * 0.7 + 22, '#8a8aa0');
       this._drawText(ctx, 'T: 테스트룸', SCREEN_H - 20, '#55556b');
     }
     if (this.flash > 0) {

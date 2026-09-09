@@ -46,6 +46,14 @@
 - 다음(사용자 브리핑 대기): 코드 꽂기 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
 - **스토리 브리핑 형식**: 사용자는 `[트리거]` + `이름: 대사 (인터랙션 # 연출)` 로 준다 → `.claude/skills/cutscene/SKILL.md` 의 변환표대로 되묻지 않고 노드로 옮긴다. 선택지 연출 옵션 `delay/stagger/locked/auto/cursor:false` 는 `src/ui/dialogue.js` TextBox 가 지원(테스트룸 `test_choice_slow`, `test_choice_locked`).
 
+## 상태 시스템 (2026-09-09 설계 — "코드 얻었는데 컴퓨터가 초기 대사" 같은 순서 꼬임 방지)
+- **스토리 단계** `src/core/story.js STAGES`: `start → opening_seen → pc_checked → living_entered → cord_found → (다음 비트)`. 순서대로만 나아가고, 뒤 단계에 도달하면 **앞 단계 플래그가 전부 자동으로 선다**(backfill). 되돌아가지 않는다. 단계 id = `flags` 키라서 문/소품/스크립트는 `flags` 만 본다.
+- **상태를 바꾸는 통로는 `game.setFlag(key)` 하나**: 스크립트 `{ stage:'id' }`(스토리 비트) / `{ set:{…} }`(side flag: `tart_eaten`, `vaseline`, `fridge_checked` 처럼 순서와 무관한 것), 트리거 `flag`, 맵 `enter.flag`, `scene3d flag`, 상자 `flag`. `flags[x]=true` 직접 쓰기 금지. 조건은 `game.has(key)` / 스크립트 `if:(f, story)=>…`.
+- **새 스토리 비트 추가 절차**: `STAGES` 에 한 줄(id·설명·그 시점 맵/스폰) → 도달하는 스크립트에 `{ stage:'id' }` → 그 단계 이후 대사가 달라지는 소품은 `{ if:(f)=>f.id, goto:… }` 분기. 맵 JSON 에는 `"stage"`(그 맵에 있으려면 최소 도달 단계)를 적는다.
+- **개발용 바로가기**도 단계를 거친다: `?map=living` → 그 맵의 `stage` 까지 backfill, `?stage=cord_found` → 그 단계의 맵/스폰으로. 타이틀 T(테스트룸)도 같음. → 바로가기로 들어가도 대사가 꼬이지 않는다.
+- **자동 저장/이어하기**: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때 `localStorage('subtarune.save.v1')` 에 저장(단계·플래그·인벤토리·맵·좌표·설정). 타이틀: 세이브 있으면 `C 이어하기 / X 처음부터(두 번)`. 새 게임은 세이브 삭제. Esc→타이틀은 저장을 지우지 않는다.
+- 검증: `tests/unit/story.test.mjs`(backfill·비회귀), `maps.test.mjs`(맵 stage 선언·STAGES 맵/스폰 존재), `tests/playtest/story.mjs`(바로가기 backfill → 컴퓨터 대사, cord_found 이후 컴퓨터/문/티비, 자동 저장→새로고침→이어하기, 처음부터). F1 디버그에 `stage:` 표시.
+
 ## 3D 씬 (WebGL 오버레이)
 - **티비 서랍 씬** `src/scenes/drawer.js`: 티비 C → "빈 코드를 뒤져봐야겠다." → 2D 가 티비로 줌인(`{zoom:2.8, at:'tv'}`) → WebGL 오버레이가 크로스페이드로 덮음 → TV 지직 화면 정면 → 서랍이 스르륵 열리며 카메라가 내려가 고정 → **마우스**로 물건 드래그해 치우고 **보라색 코드** 클릭 → 코드가 화면으로 떠오르며 "획득했다!" → 페이드 아웃 → 2D 줌아웃 → "* 컴퓨터 코드를 획득했다!" (`flags.cord_found`, 인벤토리 '컴퓨터 코드'). X/Esc 로 취소하면 "(나중에 다시 뒤지자.)".
 - three.js r170 을 `assets/lib/three.module.js` 로 동봉(MIT, `three.LICENSE`). 모델·텍스처는 전부 코드로 생성(벽지·마루·나무결·영수증·리모컨 텍스처는 캔버스로 그림). 팔레트는 `tools/art` 세트와 동일.
@@ -57,7 +65,7 @@
 - 맵 JSON: `bgm`, `dim`(0~1, 어두움 오버레이 — 대화창은 안 어두워짐), `enter:{script, flag}`(도착 페이드 인 직후 1회 스크립트. flag 있으면 영구 1회, 대사 중이면 건너뜀).
 - 엔티티: `door` 는 `requires:'플래그'` + `lockedScript` 로 잠금(트리거와 같은 진입 1회 규칙). 소품 `unless:'플래그'`(플래그 서면 안 나옴, 예: 먹은 에그타르트) / `requires:'플래그'`(서야 나옴). 스크립트에서 `{remove:'id'}` 로 즉시 제거.
 - 장식 소품(러그·방석, script 없음)은 C 프로브 대상이 아니다(`canInteract`). 바닥에 깔리는 소품은 히트박스를 윗변 2px(`w,h:2`)로 줘서 y정렬상 항상 뒤에 그린다.
-- 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 19개 체크).
+- 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 체크). 맵 JSON `stage` 필드는 위 '상태 시스템' 참고.
 
 ## 검증 방법
 스프라이트: `uv run --with pillow --with numpy --with pytest pytest tests/sprites -q` (배경·외곽선·원본 색·프레임 계약 회귀). `node tests/playtest/sprites.mjs` (서버 8765, 형섭·경섭·빠맨·쥰희 4방향×4프레임, 대화창 인물 연결, PNG 로딩). 원본 3인 시트 왼쪽부터 `hyungsub/gyeongsub/ppaman`, 돼지 별도 시트는 `junhee`다. 재추출 명령은 README의 '캐릭터 시트 재추출' 참고.

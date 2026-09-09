@@ -2,6 +2,7 @@
   "id": "corridor",
   "name": "복도",
   "bgm": "room",
+  "stage": "pc_checked",
   "dim": 0.1,
   "rows": [
     "eeeeee          ",

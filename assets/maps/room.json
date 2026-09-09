@@ -2,6 +2,7 @@
   "id": "room",
   "name": "우이동",
   "bgm": "room",
+  "stage": "opening_seen",
   "rows": [
     "epppppppppppppe",
     "epppppppppppppe",
@@ -24,6 +25,10 @@
     "door": {
       "x": 138,
       "y": 120
+    },
+    "up": {
+      "x": 332,
+      "y": 190
     }
   },
   "entities": [

@@ -13,4 +13,8 @@ export default {
   on: '켬', off: '끔',
   speed_slow: '느림', speed_normal: '보통', speed_fast: '빠름',
   no_items: '* 가진 게 없다.',
+  title_start: 'C 를 눌러 시작',
+  title_continue: 'C 이어하기',
+  title_new: 'X 처음부터',
+  title_confirm_new: '정말 처음부터? 한 번 더 X',
 };

@@ -48,5 +48,5 @@ export const opening = Object.assign([
   { move: 'player', px: [332, 190] },                // 침대 왼쪽으로 내려옴
   { face: 'player', dir: 'left' },
   { text: '* (컴퓨터가 있는 곳으로 가야 할 거 같다)', voice: 'narrator' },
-  { set: { opening_seen: true } },
+  { stage: 'opening_seen' },
 ], { silent: true });

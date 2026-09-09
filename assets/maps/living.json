@@ -2,6 +2,7 @@
   "id": "living",
   "name": "거실",
   "bgm": "room",
+  "stage": "pc_checked",
   "dim": 0.22,
   "enter": {
     "script": "living_enter",

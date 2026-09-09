@@ -411,15 +411,16 @@ export class ScriptRunner {
       const node = this.script[this.i++];
       if (node.label) continue;
       if (node.end) { this._finish(); return; }
-      if (node.set) { Object.assign(this.game.flags, node.set); continue; }
+      if (node.set) { for (const [k, v] of Object.entries(node.set)) this.game.setFlag(k, v); continue; }
+      if (node.stage) { this.game.setFlag(node.stage); continue; }            // 스토리 단계 도달 (앞 단계 자동 채움)
       if (node.action) { node.action(this.game); continue; }
-      if (node.if) { if (node.if(this.game.flags)) { this._jump(node.goto); return; } continue; }
+      if (node.if) { if (node.if(this.game.flags, this.game.story)) { this._jump(node.goto); return; } continue; }
       if (node.goto) { this._jump(node.goto); return; }
       if (node.text !== undefined) {
         this.box.show(node, this.game.ctx, (choice) => {
           if (choice !== null && node.choice) {
             const opt = node.choice.options[choice];
-            if (opt && opt.set) Object.assign(this.game.flags, opt.set);
+            if (opt && opt.set) for (const [k, v] of Object.entries(opt.set)) this.game.setFlag(k, v);
             if (opt && opt.goto) { this._jump(opt.goto); return; }
           }
           this._step();

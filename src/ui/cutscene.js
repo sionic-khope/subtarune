@@ -150,7 +150,7 @@ export function makeWaiter(game, node) {
     import(`../scenes/${node.scene3d}.js`)
       .then((m) => m.run(game, node))
       .catch((e) => { console.warn('[scene3d] 실패 → 건너뜀', e); return { found: true, fallback: true }; })
-      .then((res) => { game.scene3d = null; if (node.flag && res?.found) game.flags[node.flag] = true; game.flags[`${node.scene3d}_result`] = res?.found ? 'found' : 'cancel'; finished = true; });
+      .then((res) => { game.scene3d = null; if (node.flag && res?.found) game.setFlag(node.flag); game.flags[`${node.scene3d}_result`] = res?.found ? 'found' : 'cancel'; finished = true; });
     return { update: () => finished };
   }
   if (node.parallel) return parallel(game, node.parallel);

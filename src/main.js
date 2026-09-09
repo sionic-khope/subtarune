@@ -15,6 +15,7 @@ import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
+import { Story, STAGES } from './core/story.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -31,6 +32,7 @@ class Game {
     this.ctx.imageSmoothingEnabled = false;
     this.sound = new Sound();
     this.flags = {};
+    this.story = new Story(this.flags);   // 스토리 단계(src/core/story.js). 단계 id = flags 키
     this.inventory = [];
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu
@@ -94,14 +96,51 @@ class Game {
     this.playerSprite = 'hyungsub';   // 기본 주인공 = 형섭 (기존 파란 후드 문자 도트는 사용 안 함)
     // 개발용: ?map=test&spawn=start 로 타이틀/오프닝 건너뛰고 바로 진입
     const q = new URLSearchParams(location.search);
-    if (q.get('map') && MAPS[q.get('map')]) {
-      this.flags.opening_seen = true;
+    if ((q.get('map') && MAPS[q.get('map')]) || (q.get('stage') && Story.isStage(q.get('stage')))) {
       if (q.get('sprite')) this.playerSprite = q.get('sprite');
-      this.changeMap(q.get('map'), q.get('spawn') || 'start', true);
-      this.state = 'field';
+      this.devJump({ map: q.get('map'), spawn: q.get('spawn'), stage: q.get('stage') });   // 단계 backfill 포함
     } else {
       this.changeMap('room', 'bed', true);
     }
+  }
+
+  // ── 상태 시스템 ─────────────────────────────────────────
+  /** 플래그를 세운다. 스토리 단계 id 면 단계를 올리며 앞 단계도 채운다(story.js). 상태 변경은 전부 여기로. */
+  setFlag(key, value = true) {
+    if (value === true && Story.isStage(key)) { if (this.story.advance(key)) this.autosave(); return; }
+    this.flags[key] = value;
+  }
+  /** 플래그/단계 확인 (단계 플래그는 backfill 돼 있으므로 flags 만 보면 된다) */
+  has(key) { return !!this.flags[key]; }
+  static SAVE_KEY = 'subtarune.save.v1';
+  hasSave() { try { return !!localStorage.getItem(Game.SAVE_KEY); } catch { return false; } }
+  /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때(필드에서만) */
+  autosave() {
+    if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test') return;
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
+  }
+  clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
+  /** 타이틀에서 '이어하기' */
+  continueGame() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
+    if (!d || !MAPS[d.map]) { this.startGame(); return; }
+    this.flags = {}; this.story = new Story(this.flags); this.story.load(d.story);
+    Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
+    this.inventory = [...(d.inventory || [])]; this.settings = { ...this.settings, ...(d.settings || {}) };
+    this.playerSprite = d.sprite || 'hyungsub';
+    this.state = 'field';
+    this.changeMap(d.map, null, true);
+    if (typeof d.x === 'number') { this.player.x = d.x; this.player.y = d.y; this.player.facing = d.facing || 'down'; this.camera.snap(); }
+    this.fadeTo(0, 0.5);
+  }
+  /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
+  devJump({ map, spawn, stage }) {
+    if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
+    if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
+    if (!this.has('opening_seen')) this.story.advance('opening_seen');
+    this.changeMap(map, spawn || 'start', true);
+    this.state = 'field';
   }
 
   /** ESC: 메인(타이틀)으로 */
@@ -112,7 +151,7 @@ class Game {
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.fadeTo(1, 0.4, () => {
-      this.flags = {}; this.inventory = [];
+      this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
       this.changeMap('room', 'bed', true);
       this.state = 'title'; this.title.enter();
       this.transitioning = false;
@@ -160,9 +199,9 @@ class Game {
       this.map.bake();
       // 엔티티 조건: unless:'플래그' (플래그가 서면 안 나옴, 예: 먹은 에그타르트) / requires:'플래그' (서야 나옴)
       this.entities = def.entities
-        .filter((e) => !(e.unless && this.flags[e.unless]) && !(e.requires && e.type !== 'door' && !this.flags[e.requires]))
+        .filter((e) => !(e.unless && this.has(e.unless)) && !(e.requires && e.type !== 'door' && !this.has(e.requires)))
         .map((e) => createEntity({ ...e }, this)).filter(Boolean);
-      const spawn = def.spawns[spawnId] || def.spawns.start;
+      const spawn = def.spawns[spawnId] || def.spawns.start || Object.values(def.spawns)[0];   // 이어하기(위치는 세이브가 덮어씀) 대비
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: this.player?.facing ?? 'down' }, this);
       this.entities.push(this.player);
       // 문 위에서 스폰될 때 바로 되돌아가지 않도록 쿨다운
@@ -176,13 +215,13 @@ class Game {
     const enter = () => {
       const en = MAPS[mapId].enter;
       if (!en || !en.script || this.dialogue.running) return;
-      if (en.flag && this.flags[en.flag]) return;
-      if (en.flag) this.flags[en.flag] = true;
+      if (en.flag && this.has(en.flag)) return;
+      if (en.flag) this.setFlag(en.flag);
       this.runScript(en.script);
     };
     if (instant) { go(); enter(); return; }
     this.transitioning = true;
-    this.fadeTo(1, 0.25, () => { go(); this.fadeTo(0, 0.25, () => { this.transitioning = false; enter(); }); });
+    this.fadeTo(1, 0.25, () => { go(); this.fadeTo(0, 0.25, () => { this.transitioning = false; this.autosave(); enter(); }); });
   }
 
   fadeTo(target, duration, cb, color) {
@@ -191,10 +230,13 @@ class Game {
     Object.assign(this.fade, { target, speed: 1 / duration, cb });
   }
 
-  /** 타이틀에서 C: 오프닝 컷신이 있으면 먼저 재생 */
+  /** 타이틀에서 새 게임: 세이브 삭제 → 오프닝 컷신 */
   startGame() {
+    this.clearSave();
+    this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
+    this.changeMap('room', 'bed', true);
     this.state = 'field';
-    if (!this.flags.opening_seen && SCRIPTS.opening) this.runScript('opening');
+    if (SCRIPTS.opening) this.runScript('opening');
     else this.fadeTo(0, 0.5);
   }
 
@@ -209,7 +251,7 @@ class Game {
     const script = SCRIPTS[key];
     if (!script) { console.warn('[script] 없음:', key); return; }
     this.player.moving = false;
-    this.dialogue.start(script, onEnd);
+    this.dialogue.start(script, () => { if (onEnd) onEnd(); this.autosave(); });
   }
 
   // ── 루프 ────────────────────────────────────────────────
@@ -396,7 +438,7 @@ class Game {
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#0f0';
     const p = this.player;
     ctx.fillText(`${this.mapId} (${Math.round(p.x)},${Math.round(p.y)}) ${p.facing} fps:${Math.round(1 / this.dt)}`, 4, SCREEN_H - 14);
-    ctx.fillText('flags: ' + JSON.stringify(this.flags), 4, SCREEN_H - 28);
+    ctx.fillText(`stage: ${this.story.stage}  flags: ` + JSON.stringify(this.flags), 4, SCREEN_H - 28);
     ctx.fillText(this.sound.info, 4, SCREEN_H - 42);
     const d = this.dialogue, node = d.script?.[d.i - 1];
     ctx.fillText(`script: running=${d.running} i=${d.i} wait=${d.wait ? 'y' : 'n'} node=${node ? Object.keys(node).slice(0, 3).join(',') : '-'} curtain=${this.curtain} fade=${this.fade.alpha.toFixed(2)} zoom=${this.zoom.s.toFixed(2)} scene3d=${this.scene3d}`, 4, SCREEN_H - 56);
@@ -404,7 +446,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.20';
+export const BUILD = '2026-09-09.21';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

@@ -308,8 +308,8 @@ export class Sign extends Entity {
 export class Chest extends Entity {
   interact() {
     const f = this.def.flag;
-    if (this.game.flags[f]) { this.game.runScript(this.def.emptyScript || '_chest_empty'); return true; }
-    this.game.flags[f] = true;
+    if (this.game.has(f)) { this.game.runScript(this.def.emptyScript || '_chest_empty'); return true; }
+    this.game.setFlag(f);
     this.game.sound.sfx('item');
     this.game.runScript(this.def.script);
     return true;
@@ -335,8 +335,8 @@ export class Trigger extends Entity {
     this.inside = over;
     if (!entering || this.running || this.cooldown > 0) return;
     if (this.game.dialogue.running || this.game.transitioning) return;
-    if (this.def.once && this.game.flags[this.def.flag]) return;
-    if (this.def.flag) this.game.flags[this.def.flag] = true;
+    if (this.def.once && this.game.has(this.def.flag)) return;
+    if (this.def.flag) this.game.setFlag(this.def.flag);
     this.running = true;
     this.fire(() => { this.running = false; this.cooldown = Trigger.COOLDOWN; });
   }
@@ -353,7 +353,7 @@ export class Trigger extends Entity {
 export class Door extends Trigger {
   constructor(def, game) { super({ w: TILE, h: TILE * 0.375, ...def }, game); }
   fire(done) {
-    if (this.def.requires && !this.game.flags[this.def.requires]) {
+    if (this.def.requires && !this.game.has(this.def.requires)) {
       if (this.def.lockedScript) this.game.runScript(this.def.lockedScript, done); else done();
       return;
     }
