@@ -42,6 +42,7 @@
 - 거실 `living`(26×13, 살짝 어두움 `dim:0.22`, 부엌 오른쪽): 진입 컷신 `living_enter` 1회(엄마 없음 → 코드 찾자 → 배고파 → 밥상), 밥상(에그타르트 예/아니오 → 먹으면 접시만 남음, `tart_eaten`), 냉장고(후추·사골곰탕 → 기분 안좋아짐), 티비("빈 코드를 뒤져봐야겠다." — 다음 이벤트 대기), 왼쪽 출입구 → 복도. 그 외 전부 대사 있음: 소파·화분·장식장·싱크대(밥솥)·가스레인지(사골곰탕 냄비)·창문·시계(8시 40분)·달력. 러그/방석/상부장/문틀은 장식.
 - **벽에 붙는 소품 규칙**: 포스터·창문·시계·달력·액자처럼 벽에 걸린 것은 히트박스를 **벽 밑단(y 86~96, h 10)** 에 두고 그림은 `ix/iy` 로 위에 그린다. 안 그러면 플레이어가 벽 앞(y 96)에서 C 를 눌러도 프로브(0.6타일 앞)가 닿지 않는다. `tests/playtest/furniture.mjs` 가 전 소품 도달성을 검사.
 - 다음(사용자 브리핑 대기): 티비 이벤트, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+- **스토리 브리핑 형식**: 사용자는 `[트리거]` + `이름: 대사 (인터랙션 # 연출)` 로 준다 → `.claude/skills/cutscene/SKILL.md` 의 변환표대로 되묻지 않고 노드로 옮긴다. 선택지 연출 옵션 `delay/stagger/locked/auto/cursor:false` 는 `src/ui/dialogue.js` TextBox 가 지원(테스트룸 `test_choice_slow`, `test_choice_locked`).
 
 ## 맵 데이터 옵션 (엔진이 지원하는 것)
 - 맵 JSON: `bgm`, `dim`(0~1, 어두움 오버레이 — 대화창은 안 어두워짐), `enter:{script, flag}`(도착 페이드 인 직후 1회 스크립트. flag 있으면 영구 1회, 대사 중이면 건너뜀).
@@ -54,5 +55,5 @@
 
 2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.
 
-`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
+`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
 UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).

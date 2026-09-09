@@ -61,6 +61,8 @@ export const MAPS = {
       { type: 'sign', ...at(11, 3), ...box(), script: 'test_effects' },
       { type: 'sign', ...at(15, 3), ...box(), script: 'test_choice' },
       { type: 'sign', ...at(19, 3), ...box(), script: 'test_switch' },
+      { type: 'sign', ...at(15, 5), ...box(), script: 'test_choice_slow' },     // 선택지 하나씩 천천히
+      { type: 'sign', ...at(19, 5), ...box(), script: 'test_choice_locked' },   // 고를 수 없는 선택지 → 대사가 끊음
       { type: 'chest', ...at(7, 3), ...box(), flag: 'chest_test', script: 'chest_test' },
       { type: 'sign', ...at(6, 7), ...box(), script: 'test_hyungsub' },   // 거울(형섭은 플레이어 본인)
       { type: 'npc', id: 'gyeongsub', sprite: 'gyeongsub', ...at(11, 9), facing: 'down', wander: 0,  script: 'test_gyeongsub' },

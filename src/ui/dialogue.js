@@ -115,6 +115,9 @@ export class TextBox {
     this.portrait = node.portrait ? this.portraits[node.portrait] : null;
     this.choice = node.choice || null;
     this.choiceIndex = 0;
+    this.choiceShown = 0;                      // 지금까지 드러난 선택지 개수 (stagger 연출)
+    this.staggerTimer = 0;
+    this.choiceAutoTimer = null;               // choice.auto: 다 드러난 뒤 n초 후 고르지 않고 자동 진행
     this.style = node.style || 'box';          // 'box' | 'narration'(검은 화면 중앙 텍스트)
     this.autoDelay = node.speed ? this.charDelay / node.speed : null;
     this.auto = node.auto ?? null;             // 초: 다 나온 뒤 자동으로 넘어감
@@ -157,7 +160,7 @@ export class TextBox {
     if (this.page === this.pages.length - 1 && this.choice) {
       this.state = 'choice';
       this.choiceTimer = this.choice.delay ?? 0;     // 선택지가 뜨기까지 지연
-      if (!this.choiceTimer) this.sound.sfx('menu');
+      if (!this.choiceTimer) this._openChoice();
     } else {
       this.state = 'waiting';
     }
@@ -203,13 +206,37 @@ export class TextBox {
     }
 
     if (this.state === 'choice') {
-      if (this.choiceTimer > 0) { this.choiceTimer -= dt; if (this.choiceTimer <= 0) this.sound.sfx('menu'); return; }
+      if (this.choiceTimer > 0) { this.choiceTimer -= dt; if (this.choiceTimer <= 0) this._openChoice(); return; }
       const n = this.choice.options.length;
-      if (input.just('up') || input.just('left')) { this.choiceIndex = (this.choiceIndex + n - 1) % n; this.sound.sfx('menu'); }
-      if (input.just('down') || input.just('right')) { this.choiceIndex = (this.choiceIndex + 1) % n; this.sound.sfx('menu'); }
+      if (this.choiceShown < n) {                    // stagger: 하나씩 천천히 드러남 (다 뜰 때까지 입력 없음)
+        this.staggerTimer -= dt;
+        if (this.staggerTimer <= 0) {
+          this.choiceShown++; this.staggerTimer = this.choice.stagger; this.sound.sfx('menu');
+          if (this.choiceShown >= n && this.choice.auto !== undefined) this.choiceAutoTimer = this.choice.auto;
+        }
+        return;
+      }
+      if (this.choiceAutoTimer !== null) {            // auto: 고르지 못한 채 다음 노드로 (대사가 끊고 들어오는 연출)
+        this.choiceAutoTimer -= dt;
+        if (this.choiceAutoTimer <= 0) { this._done(null); return; }
+      }
+      if (this.choice.cursor !== false) {
+        if (input.just('up') || input.just('left')) { this.choiceIndex = (this.choiceIndex + n - 1) % n; this.sound.sfx('menu'); }
+        if (input.just('down') || input.just('right')) { this.choiceIndex = (this.choiceIndex + 1) % n; this.sound.sfx('menu'); }
+      }
+      if (this.choice.locked) return;                // locked: 커서는 움직여도 확정/취소 불가
       if (input.just('confirm')) { this.sound.sfx('confirm'); this._done(this.choiceIndex); }
       else if (input.just('cancel') && this.choice.cancel !== undefined) { this.sound.sfx('cancel'); this._done(this.choice.cancel); }
     }
+  }
+
+  /** 선택지 창이 열리는 순간: stagger 면 첫 항목만, 아니면 전부 */
+  _openChoice() {
+    const n = this.choice.options.length;
+    this.choiceShown = this.choice.stagger ? 1 : n;
+    this.staggerTimer = this.choice.stagger ?? 0;
+    this.choiceAutoTimer = this.choiceShown >= n && this.choice.auto !== undefined ? this.choice.auto : null;
+    this.sound.sfx('menu');
   }
 
   _done(choiceIndex) {
@@ -272,7 +299,8 @@ export class TextBox {
 
     // 선택지
     if (this.state === 'choice' && this.choiceTimer <= 0) {
-      const opts = this.choice.options;
+      const opts = this.choice.options.slice(0, this.choiceShown);
+      const cursor = this.choice.cursor !== false;
       const usedLines = lines.length;
       const startY = r.y + 18 + usedLines * LINE_H;
       const cols = opts.length <= 2 ? opts.length : 2;
@@ -280,9 +308,9 @@ export class TextBox {
       opts.forEach((o, i) => {
         const cx = tx + 12 + (i % cols) * colW;
         const cy = startY + Math.floor(i / cols) * LINE_H;
-        ctx.fillStyle = i === this.choiceIndex ? '#ffe066' : '#fff';
+        ctx.fillStyle = cursor && i === this.choiceIndex ? '#ffe066' : '#fff';
         ctx.fillText(o.label, cx, cy);
-        if (i === this.choiceIndex) drawHeart(ctx, cx - 11, cy + 3);
+        if (cursor && i === this.choiceIndex) drawHeart(ctx, cx - 11, cy + 3);
       });
     }
   }
@@ -321,13 +349,14 @@ TextBox.prototype.drawNarration = function (ctx) {
   }
   // 선택지: 텍스트 아래 가운데 정렬, 하트 커서
   if (this.state === 'choice' && this.choiceTimer <= 0) {
-    const opts = this.choice.options;
+    const opts = this.choice.options.slice(0, this.choiceShown);
+    const cursor = this.choice.cursor !== false;
     opts.forEach((o, i) => {
       const w = ctx.measureText(o.label).width;
       const x = Math.round((SCREEN_W - w) / 2), y = y0 + totalH + LH + i * LH;
-      ctx.fillStyle = i === this.choiceIndex ? '#ffe066' : '#fff';
+      ctx.fillStyle = cursor && i === this.choiceIndex ? '#ffe066' : '#fff';
       ctx.fillText(o.label, x, y);
-      if (i === this.choiceIndex) drawHeart(ctx, x - 14, y + Math.round(LH / 2) - 4);
+      if (cursor && i === this.choiceIndex) drawHeart(ctx, x - 14, y + Math.round(LH / 2) - 4);
     });
   }
 };
@@ -335,7 +364,8 @@ TextBox.prototype.drawNarration = function (ctx) {
 /**
  * 스크립트 러너. 노드 배열을 순서대로 재생한다.
  *  { text, speaker, portrait, voice }
- *  { text, choice:{ options:[{label, goto}], cancel } }
+ *  { text, choice:{ options:[{label, goto}], cancel, delay, stagger, locked, auto, cursor:false } }
+ *      delay: 뜨기까지 초 / stagger: 항목이 하나씩 드러나는 간격 / locked: 고를 수 없음 / auto: 다 뜬 뒤 n초 후 자동 진행(고르지 않음) / cursor:false 하트 없음
  *  { label:'name' }  { goto:'name' }  { end:true }
  *  { if:(flags)=>bool, goto:'name' }   { set:{flag:value} }
  *  { action:(game)=>void }

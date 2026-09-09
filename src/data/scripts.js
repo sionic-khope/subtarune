@@ -124,6 +124,24 @@ export const SCRIPTS = {
     { label: 'three' }, { text: '* 셋을 골랐다.', voice: 'narrator' }, { end: true },
     { label: 'cancel' }, { text: '* (X 로 취소했다.)', voice: 'narrator' },
   ],
+  // 선택지 연출 테스트: 하나씩 천천히 드러남
+  test_choice_slow: [
+    {
+      text: '* 셋 중 하나만 고를 수 있다.', voice: 'narrator',
+      choice: { options: [{ label: '하나', goto: 'one' }, { label: '둘', goto: 'two' }, { label: '셋', goto: 'three' }], delay: 0.6, stagger: 0.7 },
+    },
+    { label: 'one' },   { text: '* 하나를 골랐다.', voice: 'narrator' }, { end: true },
+    { label: 'two' },   { text: '* 둘을 골랐다.', voice: 'narrator' }, { end: true },
+    { label: 'three' }, { text: '* 셋을 골랐다.', voice: 'narrator' },
+  ],
+  // 선택지 연출 테스트: 뜨긴 하는데 고를 수 없고, 대사가 끊고 들어온다
+  test_choice_locked: [
+    {
+      text: '* 뭘 먹을까?', voice: 'narrator',
+      choice: { options: [{ label: '에그타르트' }, { label: '사골곰탕' }, { label: '후추' }], delay: 0.5, stagger: 0.5, locked: true, auto: 1.2 },
+    },
+    { text: '* 아니야!{w=0.3} 고를 수 없어{w=0.3} 다 하자.', voice: 'narrator' },
+  ],
   test_switch: [
     {
       text: '* 플레이어 스프라이트를 바꾼다.', voice: 'narrator',
