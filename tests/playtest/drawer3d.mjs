@@ -35,7 +35,7 @@ check('webgl available', await page.evaluate(() => { const c = document.createEl
 
 // ── (1) 취소 경로 ──
 await startTv();
-await page.waitForTimeout(500); let s = await st(); check('zooming in', s.zoom > 1.2, 'zoom=' + s.zoom);
+let s; { const tz = Date.now(); do { await page.waitForTimeout(120); s = await st(); } while (Date.now() - tz < 4000 && s.zoom < 1.2); } check('zooming in', s.zoom > 1.2, 'zoom=' + s.zoom);
 await page.screenshot({ path: `${S}/d3_01_zoom.png` });
 check('scene intro', await waitPhase('intro', 6000));
 await page.waitForTimeout(600); await page.screenshot({ path: `${S}/d3_02_tv.png` });
