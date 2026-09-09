@@ -103,8 +103,8 @@ export const SCRIPTS = {
     { text: '* 반지하라{w=0.3} 창밖에 반밖에 안 보인다.', voice: 'narrator' },
   ],
   living_clock: [
-    { text: '* 벽시계다.{w=0.3} 8시 40분.', voice: 'narrator' },
-    { text: '* 방송 늦었다 ㅅㅂ', voice: 'narrator' },
+    { text: '* 벽시계다.{w=0.3} 8시 35분.', voice: 'narrator' },
+    { text: '* 후딱 하자.', voice: 'narrator' },
   ],
   living_calendar: [
     { text: '* 달력이다.{w=0.3} 이번 달은 아무 표시도 없다.', voice: 'narrator' },
