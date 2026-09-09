@@ -417,7 +417,7 @@ export class Raft extends Prop {
     this.target = this.at === 0 ? this.route.length - 1 : 0;
     this.rider = player; player.moving = false;
     const [tx, ty] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up';
-    this._carry(); this.game.sound.sfx('splash'); this.splashT = 1.1;
+    this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
     return true;
   }
   _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.5 - p.h / 2); }
@@ -428,7 +428,7 @@ export class Raft extends Prop {
     if (dist <= step) {
       this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.riding = false; this.game.ride = null;
-      this.game.sound.sfx('splash', { volume: 0.7 });
+      this.game.sound.sfx('splash', { volume: 0.5 });
       this._disembark(dx, dy);
       this.game.autosave?.();
       return;
@@ -437,7 +437,7 @@ export class Raft extends Prop {
     this._carry();
     this.rider.moving = true; this.rider.animate?.(dt, 4);
     this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (1.1s 마다, 작게·피치 조금씩 다르게)
-    if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.45, rate: 0.9 + Math.random() * 0.25 }); }
+    if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 }); }
   }
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
   _disembark(dx, dy) {
