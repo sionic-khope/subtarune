@@ -41,8 +41,8 @@
       "y": 430
     },
     "door_back": {
-      "x": 76,
-      "y": 430,
+      "x": 1060,
+      "y": 420,
       "facing": "left"
     }
   },
@@ -189,14 +189,14 @@
       "sortY": 0
     },
     {
-      "type": "sign",
-      "id": "door_zone",
+      "type": "door",
       "x": 1108,
       "y": 352,
       "w": 12,
       "h": 192,
-      "solid": false,
-      "script": "void_door"
+      "to": "void4",
+      "spawn": "from_void3",
+      "sfx": false
     }
   ]
 }

@@ -52,7 +52,8 @@
 - 검은 화면 목소리: 흰색 뒤 검은 화면에서 정체불명 목소리(`mystery`, snd_txt2 톤다운) 8줄("... 일어.. 일어나.." … "절대...ㄹ..") → 보라맵.
 - `void2` 뗏목 앞 표지판(사용자 텍스트): "앞으로만 가는 땟목이다." / "아 물론! 뒤로도 갈수있다." / "반대편에서 탄다면~ 껄껄." 오른쪽 문 → **`void3`**.
 - **`void3` 뗏목 퍼즐**(36×24): 입구 A → 뗏목 → 교차로 B(위·오른쪽·아래 뗏목 셋) → 아래 D·오른쪽 G 는 막다른길(표지판 "막다른 길이다 / 내려온 땟목을 다시 타면 돌아간다", "여기도 아니다 / 위를 봐라 껄껄껄") → **위 C → 오른쪽 F → 아래 E → 거대한 검은 문**(`void_door` 임시). 표지판 대사는 내가 지음(껄껄 톤).
-- 다음(사용자 브리핑 대기): 보라맵3 문 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+- **`void4` 긴 뗏목 길**(112×14, 뗏목 ~18초): 배경에 멀리서 지글지글 끓는 보라 불(`backdrop:'purple_fire'`). 물 한가운데 낮은 기둥 위에 **억빠맨(빠맨 스프라이트)**이 정면 보고 서 있음 → 지나쳐 도착하면 컷신 `void4_arrive`(카메라 억빠맨 클로즈업: "어 ㅅㅂ" / "형 구해줘요 ㅅㅂ 저 여기 갇혔어요." / "저기 저기 뭔가 다리를 내리는 레버가 있는거같아요" → 레버 클로즈업 → 주인공 복귀 → "* 오케이"). 도착지: 자물쇠 잠긴 큰 문("자물쇠로 잠겨 있다"), 계단 위 발판의 **레버** → `void4_lever`: 다리가 드르르르륵 떨어지며 쿵!(rumble·thud·흔들림) → 다리 타일 연결(`tileSwaps.bridge_down`, 플래그 `bridge_down`) → 다리로 억빠맨까지 걸어가 말 걸면 "안녕하세요형"(여기까지, 브리핑 대기).
+- 다음(사용자 브리핑 대기): 억빠맨 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
 - **스토리 브리핑 형식**: 사용자는 `[트리거]` + `이름: 대사 (인터랙션 # 연출)` 로 준다 → `.claude/skills/cutscene/SKILL.md` 의 변환표대로 되묻지 않고 노드로 옮긴다. 선택지 연출 옵션 `delay/stagger/locked/auto/cursor:false` 는 `src/ui/dialogue.js` TextBox 가 지원(테스트룸 `test_choice_slow`, `test_choice_locked`).
 
 ## 상태 시스템 (2026-09-09 설계 — "코드 얻었는데 컴퓨터가 초기 대사" 같은 순서 꼬임 방지)
@@ -64,8 +65,15 @@
 - 검증: `tests/unit/story.test.mjs`(backfill·비회귀), `maps.test.mjs`(맵 stage 선언·STAGES 맵/스폰 존재), `tests/playtest/story.mjs`(바로가기 backfill → 컴퓨터 대사, cord_found 이후 컴퓨터/문/티비, 자동 저장→새로고침→이어하기, 처음부터). F1 디버그에 `stage:` 표시.
 
 ## 재사용 기믹
-- **뗏목** `src/world/world.js Raft` (`type:'raft'`): `{ type:'raft', id, image:'assets/props/raft.png', x,y, route:[[x,y],…], speed:114 }`. 옆에서 C → route 를 따라 일직선 이동(타는 동안 `game.ride` 가 서서 입력·트리거 정지), 도착하면 진행 방향으로 밀어 내림, 반대편에서 타면 되돌아옴. 위치는 `flags.raft_<id>`(route 인덱스)로 유지 → 맵을 나갔다 와도 그 자리. 속도 기본 171px/s(2026-09-09 +50%). 소리: 탈 때·0.55s 마다·내릴 때 `splash`(합성 첨벙). 물 타일 `o/O`(그냥 파란색, 막힘). 새 맵에 그대로 복사해 route 만 바꾸면 됨. 퍼즐 예시 `void3`(교차로 + 막다른길 2개). 검증 `tests/playtest/raft.mjs`, `void3.mjs`.
+- **뗏목** `src/world/world.js Raft` (`type:'raft'`): `{ type:'raft', id, image:'assets/props/raft.png', x,y, route:[[x,y],…], speed:114 }`. 옆에서 C → route 를 따라 일직선 이동(타는 동안 `game.ride` 가 서서 입력·트리거 정지), 도착하면 진행 방향으로 밀어 내림, 반대편에서 타면 되돌아옴. 위치는 `flags.raft_<id>`(route 인덱스)로 유지 → 맵을 나갔다 와도 그 자리. 속도 기본 171px/s(2026-09-09 +50%). 소리: 탈 때·1.1s 마다·내릴 때 `splash`(합성 첨벙, 2026-09-10 더 물소리답게). 물 타일 `o/O`(완전 단색 파랑, 막힘). 뗏목 도트는 최소(외곽선+한 색+선 3개) — 델타룬식, 요청 없는 소품은 디테일 넣지 않는다. 새 맵에 그대로 복사해 route 만 바꾸면 됨. 퍼즐 예시 `void3`(교차로 + 막다른길 2개). 검증 `tests/playtest/raft.mjs`, `void3.mjs`.
 - **QA 바로가기**: `src/core/story.js QA_POINTS` — URL `?qa=<id>` 또는 **타이틀에서 Q** → 목록(↑↓ C). 지점: `opening`(방), `living`(거실 진입), `tv`(티비 앞), `pc_stream`(코드 획득 직후 컴퓨터 앞, C 로 방송), `void`(보라맵1), `raft`(보라맵2 뗏목 앞), `void3`(보라맵3 퍼즐 입구). 그 지점까지 스토리 단계가 자동으로 채워진다. 새 이벤트를 만들면 "직전 지점"을 한 줄 추가. 스폰에 `facing` 을 주면 그 방향으로 서서 시작.
+
+## 맵 연출 옵션 (2026-09-10 추가)
+- `backdrop:'purple_fire'` — 허공 타일(' ')이 투명해지고 그 뒤에 멀리서 끓는 보라 불(화면 좌표, 카메라 1/4 패럴랙스)이 그려진다(`main.js drawBackdrop`). 다른 배경이 필요하면 이름을 추가.
+- `tileSwaps: { <플래그>: { rows: { "<행>": "<새 행>" } } }` — 플래그가 서 있으면 로드 때 그 행으로 교체(다리 내려옴 등). 컷신에서 즉시 적용은 `{ tiles:'<플래그>' }` + `{ set:{<플래그>:true} }`. 행 길이는 원본과 같아야 함(유닛 테스트가 검사).
+- `preload: [이미지…]` — 컷신에서 `{spawn}` 할 소품 이미지는 여기 적어야 로드된다(맵 엔티티가 아니라서).
+- QA 지점에 `flags:{…}` 를 주면 그 side flag 도 켜진 채 시작(`void4_end`).
+- 타일 `b`(다리, 걸을 수 있음) `s`(계단). 소품 `pillar/padlock/lever_off/lever_on/bridge_span49`.
 
 ## 방송 연출 UI (컷신 노드)
 - `{ chat:'open' }` → 오른쪽 트위치식 채팅창(`src/ui/chat.js`, 물리 해상도 16px 폰트, 대화창 위까지). 모드 `late/spam/idle/question/silence/panic` 별 메시지 풀·속도. `{ chat:'close' }`. 닉 100명(`NICKS`, 필수 11명 포함). 쥰희는 "우욱 우욱 우욱 이거 빤스아니여" 한 줄만 도배(`JUNHEE_LINE`).
@@ -94,5 +102,5 @@
 
 2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.
 
-`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `raft.mjs`(뗏목·QA) · `void3.mjs`(뗏목 퍼즐·첨벙·무음 문·검은 페이드) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
+`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `raft.mjs`(뗏목·QA) · `void3.mjs`(뗏목 퍼즐·첨벙·무음 문·검은 페이드) · `void4.mjs`(긴 뗏목·억빠맨 컷신·레버 다리·재로드 유지) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
 UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).

@@ -79,13 +79,13 @@ class Game {
       }));
     } catch {}
     const propSrcs = new Set();
-    for (const m of Object.values(MAPS)) for (const e of (m.entities || [])) if (e.image) propSrcs.add(e.image);   // prop·raft 등 이미지 있는 엔티티 전부
+    for (const m of Object.values(MAPS)) { for (const e of (m.entities || [])) if (e.image) propSrcs.add(e.image); for (const src of (m.preload || [])) propSrcs.add(src); }   // 엔티티 이미지 + 컷신에서 spawn 할 이미지(preload)
     await Promise.all([
       ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
       ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(`assets/sprites/${name}.png`);
         if (img) this.spriteOverrides[name] = img;
@@ -144,12 +144,41 @@ class Game {
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
-  devJump({ map, spawn, stage }) {
+  devJump({ map, spawn, stage, flags }) {
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
+    if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
     this.changeMap(map, spawn || 'start', true);
     this.state = 'field';
+  }
+
+  /** 맵 JSON `tileSwaps: { <플래그>: { rows: { "<행>": "<새 행 문자열>" } } }` 를 적용하고 다시 굽는다 (레버로 다리 내려오기 등) */
+  applyTiles(key, bake = true) {
+    const sw = MAPS[this.mapId]?.tileSwaps?.[key];
+    if (!sw) { console.warn('[tiles] 없는 tileSwaps', key); return; }
+    for (const [row, str] of Object.entries(sw.rows || {})) this.map.rows[+row] = str;
+    if (bake) this.map.bake();
+  }
+
+  /** 맵 JSON `backdrop:'purple_fire'` — 허공 너머 멀리서 지글지글 끓는 보라색 불 (화면 좌표, 카메라 x 의 1/4 만큼 흐름) */
+  drawBackdrop(ctx, cam) {
+    const t = this.time, px = cam.x * 0.25;
+    const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H); g.addColorStop(0, '#0c0416'); g.addColorStop(0.28, '#2a1048'); g.addColorStop(0.42, '#120620'); g.addColorStop(0.6, '#000');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    const baseY = 118;
+    for (let x = -6; x < SCREEN_W + 6; x += 6) {
+      const wx = x + px;
+      const h = 20 + 14 * Math.sin(wx * 0.05 + t * 2.1) * Math.sin(wx * 0.013 - t * 0.7) + 8 * Math.sin(wx * 0.21 + t * 5.3) + 5 * Math.sin(wx * 0.9 + t * 11);
+      ctx.fillStyle = 'rgba(98,44,170,0.6)'; ctx.fillRect(x, Math.round(baseY - h), 6, Math.round(h) + 30);
+      const h2 = h * 0.5 + 5 * Math.sin(wx * 0.33 + t * 7.7);
+      ctx.fillStyle = 'rgba(190,130,255,0.55)'; ctx.fillRect(x + 1, Math.round(baseY - h2), 4, Math.round(h2) + 8);
+    }
+    ctx.fillStyle = 'rgba(150,90,230,0.25)'; ctx.fillRect(0, baseY + 2, SCREEN_W, 14);   // 불빛 번짐
+    for (let i = 0; i < 36; i++) {                                                       // 불티
+      const life = (t * 22 + i * 53) % 110, sx = ((i * 137 + t * 9 * (1 + (i % 3))) % (SCREEN_W + 20)) - 10, sy = baseY - life;
+      ctx.fillStyle = `rgba(235,205,255,${(1 - life / 110) * 0.8})`; ctx.fillRect(Math.round(sx), Math.round(sy), 2, 2);
+    }
   }
 
   /** ESC: 메인(타이틀)으로 */
@@ -205,7 +234,8 @@ class Game {
     const go = () => {
       const def = MAPS[mapId];
       this.mapId = mapId;
-      this.map = new TileMap(def, this.mapImages?.[mapId] || null);
+      this.map = new TileMap({ ...def, rows: def.rows ? [...def.rows] : def.rows }, this.mapImages?.[mapId] || null);   // rows 는 복사 (tileSwaps 가 원본을 안 건드리게)
+      for (const key of Object.keys(def.tileSwaps || {})) if (this.has(key)) this.applyTiles(key, false);   // 플래그가 선 타일 교체는 처음부터 적용
       this.map.bake();
       // 엔티티 조건: unless:'플래그' (플래그가 서면 안 나옴, 예: 먹은 에그타르트) / requires:'플래그' (서야 나옴)
       this.entities = def.entities
@@ -369,6 +399,7 @@ class Game {
     }
     const cam = { x: Math.round(this.camera.x), y: Math.round(this.camera.y) };
     if (this.shake) { cam.x += Math.round((Math.random() * 2 - 1) * this.shake.amp); cam.y += Math.round((Math.random() * 2 - 1) * this.shake.amp); }
+    if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
 
     // 2D 줌: 월드(맵·엔티티·어두움)만 확대, UI 는 그대로
     ctx.save();
@@ -464,7 +495,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.3';
+export const BUILD = '2026-09-10.4';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

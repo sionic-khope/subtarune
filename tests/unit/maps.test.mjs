@@ -84,3 +84,13 @@ for (const [id, m] of Object.entries(maps)) {
 test('STAGES 의 map/spawn 이 실제로 존재', () => {
   for (const st of STAGES) { const m = maps[st.map]; assert.ok(m, `${st.id}: 맵 ${st.map} 없음`); assert.ok(m.spawns?.[st.spawn], `${st.id}: 스폰 ${st.map}.${st.spawn} 없음`); }
 });
+
+// ── QA 바로가기 지점의 맵/스폰 존재 ──
+const { QA_POINTS } = await import('../../src/core/story.js');
+test('QA_POINTS 의 map/spawn 이 실제로 존재', () => {
+  for (const q of QA_POINTS) { const m = maps[q.map]; assert.ok(m, `${q.id}: 맵 ${q.map} 없음`); assert.ok(m.spawns?.[q.spawn], `${q.id}: 스폰 ${q.map}.${q.spawn} 없음`); }
+});
+// ── tileSwaps 행 길이는 원본 행과 같아야 한다 ──
+for (const [id, m] of Object.entries(maps)) if (m.tileSwaps) test(`${id}: tileSwaps 행 길이 일치`, () => {
+  for (const sw of Object.values(m.tileSwaps)) for (const [r, str] of Object.entries(sw.rows || {})) assert.equal(str.length, m.rows[+r].length, `${id} tileSwaps 행 ${r}`);
+});

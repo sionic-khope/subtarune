@@ -50,6 +50,8 @@ model: opus
 | `# 채팅창이 뜨고 시청자들이 …` | `{chat:'open'}` + 모드. 새 분위기면 `POOL` 에 모드 추가 |
 | `# 오류창/시스템 메시지 (버튼)` | `{dialog:{…}}` → 대사 → `{dialog:'press'}` → `{dialog:null}` |
 | `# 화면에 소용돌이/이펙트가 커짐` | `{vortex:{at,size,grow}}` 를 대사 사이에 단계적으로 |
+| `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |
+| `# 다리/문이 내려오며 쿵` | `{spawn: 떨어질 소품(preload 필요)}` `{sfx:'rumble'}` `{move:id, px, speed}` `{sfx:'thud'}` `{shake}` `{tiles}` `{remove}` (예 `void4_lever`) |
 | `# 3D 로 전환해서 마우스로 …` | `{zoom:2.8, at:'<소품 id>'}` → `{scene3d:'<씬>', flag}` → `{zoom:1}` (씬은 `src/scenes/drawer.js` 골격 복사) |
 텍스트는 그대로 쓰고 띄어쓰기만 손본다. 없는 대사를 지어내지 않는다. 애매한 연출은 가장 가까운 언더테일 연출로 하고 결과 보고에 "이렇게 해석했다" 한 줄을 적는다(되묻지 않음).
 검증은 항상: 문법 import → 헤드리스 재생(스크린샷) → `tests/playtest/` 에 케이스 추가.
@@ -83,6 +85,7 @@ model: opus
 | `{ chat:'open'\|'late'\|'spam'\|'idle'\|'question'\|'silence'\|'panic'\|'close' }` | 방송 채팅창(오른쪽, 100명). 모드별 메시지 풀은 `src/ui/chat.js POOL` |
 | `{ dialog:{title,text,button} }` `{ dialog:'press' }` `{ dialog:null }` | 윈도우식 오류창. press 는 0.35s 기다림 |
 | `{ vortex:{ at:'pc'\|[x,y], size, grow } }` `{ vortex:{size,grow} }` `{ vortex:null }` | 소용돌이(월드). 기다리지 않으므로 대사와 겹쳐 키운다 |
+| `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |
 

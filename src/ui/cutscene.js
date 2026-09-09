@@ -13,6 +13,7 @@
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { zoom: s, at: id|[x,y], offset?, duration? }  2D 월드 줌 (UI 제외)
 //  { scene3d: 'drawer', flag? }  src/scenes/<name>.js 의 run(game,node) → {found} 을 기다림
+//  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -176,6 +177,7 @@ export function makeWaiter(game, node) {
     }
     return done;
   }
+  if (node.tiles) { game.applyTiles(node.tiles); return done; }   // { tiles:'bridge_down' } 맵 tileSwaps 적용 + 다시 굽기
   if (node.parallel) return parallel(game, node.parallel);
   if ('async' in node) {
     if (!node.async) { game.background = []; return done; }               // { async:null } 남은 배경 동작 취소

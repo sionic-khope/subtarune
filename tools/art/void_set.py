@@ -90,19 +90,16 @@ WATER = hexc('#2f4fa8'); WATER_D = hexc('#243f8c'); WATER_L = hexc('#4d74d6'); W
 RAFT = hexc('#8a6238'); RAFT_D = hexc('#5f4224'); RAFT_L = hexc('#a97c4a'); ROPE = hexc('#c9b58a')
 
 def tile_water(variant=0):
-    """물: 그냥 파란색 (흰 하이라이트 없음). 아주 옅은 어두운 잔물결만"""
+    """물: 그냥 파란색 한 색 (디테일 없음 — 사용자 요구)"""
     c = Canvas(T, T); c.rect(0, 0, T, T, WATER)
-    for (x, y) in ([(4, 6), (18, 14), (9, 24), (25, 29)] if variant == 0 else [(13, 3), (27, 11), (6, 19), (20, 27)]):
-        c.hline(x, y, 5, WATER_D)
     return c
 
 def prop_raft():
-    """뗏목 56x40: 통나무 4개, 단순한 2톤 (보라 세트의 평면 느낌에 맞춤)"""
+    """뗏목 56x40: 델타룬식 최소 도트 — 외곽선 + 한 색 + 통나무 경계선 3개"""
     w, h = 56, 40; c = Canvas(w, h)
-    for i in range(4):
-        y = 2 + i * 9
-        c.rrect_outlined(2, y, w - 4, 10, RAFT, OUT, 2); c.hline(4, y + 1, w - 8, RAFT_L); c.hline(4, y + 8, w - 8, RAFT_D)
-    for x in (12, w - 15): c.rect(x, 1, 3, h - 3, ROPE); c.vline(x + 3, 1, h - 3, OUT)
+    c.rrect_outlined(0, 0, w, h, RAFT, OUT, 2)
+    for y in (10, 20, 30): c.hline(2, y, w - 4, RAFT_D)
+    c.hline(2, 1, w - 4, RAFT_L)
     return c
 
 def prop_signpost():
@@ -115,12 +112,66 @@ def prop_signpost():
     c.px(2, 12, OUT); c.px(w - 3, 12, OUT)
     return c
 
+def prop_pillar():
+    """물 위 한 블럭 기둥 32x56 (낮음): 윗면 보라 땅 + 어두운 돌 몸통, 아래는 물에 잠김"""
+    w, h = 32, 56; c = Canvas(w, h)
+    c.rect(2, 8, w - 4, h - 8, CLIFF); c.outline(1, 7, w - 2, h - 7, OUT)
+    for y in (18, 30, 42): c.hline(3, y, w - 6, CLIFF_L)
+    c.rrect_outlined(0, 0, w, 12, G, OUT, 2); c.hline(2, 2, w - 4, G_L)
+    c.dither(2, h - 8, w - 4, 8, WATER, 2)
+    return c
+
+def prop_padlock():
+    w, h = 18, 24; c = Canvas(w, h)
+    GOLD = hexc('#d9b24a'); GOLD_D = hexc('#a8842e'); GOLD_L = hexc('#f0d27a')
+    c.outline(4, 0, 10, 12, OUT); c.outline(5, 1, 8, 10, GOLD_D); c.rect(7, 3, 4, 8, None) if False else None
+    c.rrect_outlined(0, 9, w, 15, GOLD, OUT, 3); c.hline(2, 11, w - 4, GOLD_L); c.rect(2, 20, w - 4, 2, GOLD_D)
+    c.rect(8, 14, 2, 5, OUT); c.px(7, 14, OUT); c.px(10, 14, OUT)
+    return c
+
+def prop_lever(on=False):
+    """레버 24x32: 받침 + 손잡이(off: 왼쪽 기울, on: 오른쪽 기울)"""
+    w, h = 24, 32; c = Canvas(w, h)
+    BASE = hexc('#3a1a58'); BASE_L = hexc('#4f2a78'); STICK = hexc('#c9b58a'); KNOB = hexc('#e04040')
+    c.rrect_outlined(2, 22, w - 4, 10, BASE, OUT, 2); c.hline(4, 24, w - 8, BASE_L)
+    c.rect(10, 18, 4, 5, BASE_L); c.outline(9, 17, 6, 7, OUT)
+    pts = [(12 - i // 2, 20 - i) for i in range(14)] if not on else [(12 + i // 2, 20 - i) for i in range(14)]
+    for (x, y) in pts: c.px(x, y, OUT); c.px(x + 1, y, STICK); c.px(x + 2, y, OUT)
+    kx, ky = pts[-1]
+    c.rrect_outlined(kx - 2, ky - 4, 6, 6, KNOB, OUT, 2)
+    return c
+
+def tile_bridge():
+    """다리 32x32: 물 위에 걸친 어두운 널판 + 양옆 난간 없음(단순)"""
+    c = Canvas(T, T); c.rect(0, 0, T, T, RAFT)
+    for x in (0, 8, 16, 24): c.vline(x, 0, T, RAFT_D)
+    c.hline(0, 0, T, RAFT_L); c.hline(0, T - 1, T, OUT); c.hline(0, 1, T, OUT)
+    return c
+
+def tile_stairs():
+    """계단 32x32: 위로 올라가는 단 4개"""
+    c = Canvas(T, T); c.rect(0, 0, T, T, G)
+    for i in range(4):
+        y = i * 8
+        c.rect(0, y, T, 8, G_L if i % 2 == 0 else G); c.hline(0, y, T, OUT); c.hline(0, y + 1, T, G_LL)
+    c.vline(0, 0, T, OUT); c.vline(T - 1, 0, T, OUT)
+    return c
+
+def bridge_span(tiles):
+    c = Canvas(tiles * T, T); t = tile_bridge()
+    for i in range(tiles): c.blit(t, i * T, 0)
+    return c
+
 _main = main
 def main():
     _main()
     out = 'assets/tiles'
     tile_water(0).save(f'{out}/water_blue.png'); tile_water(1).save(f'{out}/water_blue2.png')
     prop_raft().save('assets/props/raft.png'); prop_signpost().save('assets/props/signpost.png')
+    prop_pillar().save('assets/props/pillar.png'); prop_padlock().save('assets/props/padlock.png')
+    prop_lever(False).save('assets/props/lever_off.png'); prop_lever(True).save('assets/props/lever_on.png')
+    tile_bridge().save(f'{out}/bridge_purple.png'); tile_stairs().save(f'{out}/stairs_purple.png')
+    bridge_span(49).save('assets/props/bridge_span49.png')
     print('water/raft ok')
 
 if __name__ == '__main__':
