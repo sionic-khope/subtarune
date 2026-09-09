@@ -8,8 +8,10 @@
 필요: pip install pillow numpy
 """
 import sys
+from collections import deque
 from PIL import Image
 import numpy as np
+import numpy.typing as npt
 
 # 시트는 '2x 해상도'로 저장한다 (게임은 논리 320x240 을 2배로 렌더). 원본 셀을 DOWN 분의 1로 축소해 그대로 쓴다.
 CELL_TARGET_H = 100      # 시트 '셀' 높이를 이 값(2x px)에 맞춘다 → 기준 시트(셀 199px)는 정확히 1/2 (원본 누끼 그대로). 다른 시트도 같은 비율
@@ -39,18 +41,30 @@ def detect_grid(im):
 EDGE_TRIM = 4            # 셀 테두리 잔선 제거(px)
 
 
-def key_cell(cell):
-    """셀 배경(보라) 제거 → RGBA (테두리 EDGE_TRIM px 는 잘라낸다)"""
+def key_cell(cell: npt.NDArray[np.int64]) -> Image.Image:
+    """가장자리에 연결된 배경만 제거하고 내부 색과 외곽선은 보존한다."""
     cell = cell[EDGE_TRIM:-EDGE_TRIM, EDGE_TRIM:-EDGE_TRIM]
     edge = np.concatenate([cell[2:14, 2:14].reshape(-1, 3), cell[-14:-2, 2:14].reshape(-1, 3),
                            cell[2:14, -14:-2].reshape(-1, 3), cell[-14:-2, -14:-2].reshape(-1, 3)])
     bg = np.median(edge, 0)
     d = np.abs(cell - bg).sum(2)
-    alpha = (d > 90)                              # 하드 누끼 (보라 배경 + 흐린 헤일로 제거)
-    # 1px 침식: 외곽선 바깥의 보라빛 번짐 픽셀을 떼어낸다
-    er = alpha.copy()
-    er[1:, :] &= alpha[:-1, :]; er[:-1, :] &= alpha[1:, :]; er[:, 1:] &= alpha[:, :-1]; er[:, :-1] &= alpha[:, 1:]
-    alpha = er.astype(float)
+    purple_fringe = (cell[..., 0] > cell[..., 1] + 20) & (cell[..., 2] > cell[..., 0] + 20) & (d <= 240)
+    background = (d <= 90) | purple_fringe
+    height, width = background.shape
+    alpha = np.ones((height, width), dtype=np.bool_)
+    pending: deque[tuple[int, int]] = deque()
+    border = [(y, x) for y in range(height) for x in (0, width - 1)]
+    border += [(y, x) for x in range(width) for y in (0, height - 1)]
+    for y, x in border:
+        if background[y, x] and alpha[y, x]:
+            alpha[y, x] = False
+            pending.append((y, x))
+    while pending:
+        y, x = pending.popleft()
+        for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+            if 0 <= ny < height and 0 <= nx < width and background[ny, nx] and alpha[ny, nx]:
+                alpha[ny, nx] = False
+                pending.append((ny, nx))
     rgb = cell.copy()
     rgb[alpha == 0] = 0                           # 투명 픽셀 색을 0으로 → 축소 시 보라가 섞이지 않음
     rgba = np.dstack([rgb, (alpha * 255)]).astype('uint8')
@@ -75,14 +89,14 @@ def char_crop(cell_rgb):
     a = np.array(rgba)[..., 3]
     ys, xs = np.where(a > 127)
     if len(xs) == 0: return None
-    return rgba.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+    return rgba.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
 
 
 def process_cell(cell_rgb, FW, FH, scale):
     crop = char_crop(cell_rgb)
     if crop is None: return Image.new('RGBA', (FW, FH))
     w = max(1, round(crop.width * scale)); h = max(1, round(crop.height * scale))
-    small = crop.resize((w, h), Image.BOX)              # 정확히 1/N 평균. 색 양자화 없음 (누끼만)
+    small = crop.resize((w, h), Image.Resampling.NEAREST)  # 원본 도트 색을 평균내지 않는다
     a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
     frame = Image.new('RGBA', (FW, FH))
     frame.paste(small, ((FW - w) // 2, FH - h), small)
@@ -93,11 +107,11 @@ def make_portrait(cell_rgb, size=96, head_ratio=0.56):
     rgba = key_cell(cell_rgb)
     a = np.array(rgba)[..., 3]
     ys, xs = np.where(a > 127)
-    crop = rgba.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+    crop = rgba.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
     head = crop.crop((0, 0, crop.width, int(crop.height * head_ratio)))
     scale = min(size / head.width, (size - 2) / head.height)
     w, h = max(1, round(head.width * scale)), max(1, round(head.height * scale))
-    small = head.resize((w, h), Image.BOX)
+    small = head.resize((w, h), Image.Resampling.NEAREST)
     a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
     out = Image.new('RGBA', (size, size))
     out.paste(small, ((size - w) // 2, size - h - 1), small)
@@ -121,7 +135,7 @@ def main():
                 x0, x1 = cols[ci * 4 + f]; y0, y1 = rows[ri]
                 crops[(ri, f)] = char_crop(im[y0:y1, x0:x1])
         cell_h = rows[0][1] - rows[0][0]
-        scale = 1.0 / max(1, round(cell_h / CELL_TARGET_H))   # 정수 분의 1 (기준 시트 = 1/2) → BOX 는 정확한 픽셀 평균
+        scale = 1.0 / max(1, round(cell_h / CELL_TARGET_H))   # 기존 엔진용 크기를 유지하며 최근접 변환
         max_h = max(round(c.height * scale) for c in crops.values() if c is not None)
         max_w = max(round(c.width * scale) for c in crops.values() if c is not None)
         FW = max(MIN_FW, max_w + 2 + (max_w % 2))

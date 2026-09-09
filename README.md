@@ -65,9 +65,9 @@ baker: [
 
 | 파일 | 규격 |
 |---|---|
-| `assets/sprites/hero.png` (npc는 `sprite:` 이름) | 64×64: 4열 [idle, stepA, idle, stepB] × 4행 [down, up, left, right], 셀 16×16 |
+| `assets/sprites/<id>.png` (주인공 `hyungsub`, NPC는 `sprite:` 이름) | 4열 걷기 프레임 × 4행 [down, up, left, right]. 셀 크기는 PNG 폭/4 × 높이/4, 게임용 2x 해상도이며 캐릭터마다 다름 |
 | `assets/tiles/<타일 name>.png` | 16×16 (`grass`, `wall`, `tree`, `door`…) |
-| `assets/portraits/<이름>.png` | 48×48 |
+| `assets/portraits/<이름>.png` | 생성 파일 96×96, 게임 대화창에서 48×48로 표시 |
 
 파일이 없으면 `src/data/art.js` 의 문자 도트아트를 씀 (콘솔의 404는 이 탐색 때문 — 정상).
 
@@ -113,6 +113,19 @@ node tests/playtest/smoke.mjs                            # 헤드리스 자동 �
 - **콘텐츠 추가는 코드 수정 없이**: 캐릭터=시트 변환+`characters.js` 한 줄, 컷신=`cutscenes/*.js`, 사운드=`assets/audio/sfx/<name>.mp3`
 - **커밋 전 체크**: `node --test 'tests/unit/*.test.mjs'` + `node tests/playtest/smoke.mjs` 통과, 콘솔 warn 0
 - 생성물(`assets/sprites`, `assets/portraits`)은 커밋한다. 원본 AI 시트는 `assets/source/` 에 두고 도구로 재생성.
+
+### 캐릭터 시트 재추출
+
+원본 3인 시트의 왼쪽→오른쪽은 **형섭(`hyungsub`) · 경섭(`gyeongsub`) · 빠맨(`ppaman`)**이다. 분홍 돼지는 게임에서 **쥰희(`junhee`)**를 사용한다. 원본 행 순서(정면/왼쪽/오른쪽/뒤)는 변환기가 엔진 순서(정면/뒤/왼쪽/오른쪽)로 재배열한다. 완성 PNG를 다시 변환기에 넣지 않는다.
+
+```bash
+python3 tools/sprites/slice_sheet.py assets/source/sheet_hyungsub_gyeongsub_ppaman.png hyungsub gyeongsub ppaman
+python3 tools/sprites/slice_sheet.py assets/source/sheet_junhee.png junhee
+uv run --with pillow --with numpy --with pytest pytest tests/sprites -q
+node tests/playtest/sprites.mjs  # 서버 8765, playwright-core 필요. SHOT_DIR로 캡처 위치 지정
+```
+
+배경은 셀 가장자리에 연결된 배경색만 투명화한다. 외곽선 침식·색 평균·팔레트 양자화를 하지 않는다. 원본 파일은 보존하고, 기존 엔진용 크기 변환에는 최근접 픽셀만 사용한다. 초상화도 같은 정면 프레임에서 추출하며 형섭의 대사는 기존처럼 초상화 없는 나레이션이다.
 
 ## 맵 에디터 (델타룬 에셋으로 맵 그리기)
 

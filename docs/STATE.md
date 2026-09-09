@@ -14,7 +14,7 @@
 | 맵(방·거실…) | `assets/maps/<id>.json` (+`index.json`) | 에디터(`/editor.html`)나 JSON 직접 편집. 타일맵(`rows`) 또는 이미지맵(`image`+`walkable/solids`). 소품은 `entities` 의 `type:'prop'` |
 | 타일 그림 | `assets/tiles/<name>.png` 32×32 | `tools/art/room_set.py` 로 생성(직접 그린 픽셀아트). 새 타일은 `src/world/tiles.js` 에 `registerTile` 한 줄 |
 | 가구/소품 그림 | `assets/props/*.png` | `tools/art/room_set.py`(방) / `tools/art/living_set.py`(복도·거실·부엌) 의 `prop_*` 함수. 실행은 `/usr/bin/python3`(PIL 있음) |
-| 캐릭터 스프라이트 | `assets/sprites/<id>.png` (4열×4행, 2x) | 사용자가 준 AI 시트를 `tools/sprites/slice_sheet.py` 로 1/2 누끼 변환. **축소·양자화 금지** |
+| 캐릭터 스프라이트 | `assets/sprites/<id>.png` (4열×4행, 2x) | `tools/sprites/slice_sheet.py` 로 원본에서 재추출. 가장자리 연결 배경만 제거, 기존 엔진용 배율은 최근접 변환. **추가 축소·색 평균·양자화 금지** |
 | 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트. 형섭은 `self`(이름·초상화 없음) |
 | 대사 | `src/data/scripts.js` | 키 = 상호작용/트리거의 `script`. 태그 `{w=} {s=} {c=} {shake} {wave}` |
 | 컷신 | `src/data/cutscenes/*.js` | `/cutscene` 스킬. 노드 레퍼런스 `src/ui/cutscene.js` 상단 |
@@ -25,7 +25,7 @@
 | 델타룬 에셋 라이브러리 | `assets/library/deltarune/{sprites,maps}` | 참고·소품용. **배경/타일은 직접 그린 것을 쓴다**(사용자 요구) |
 
 ## 지금까지 확정된 규칙 (사용자 피드백)
-- 에셋은 **그대로**: 스프라이트 축소/색 양자화 금지, 합성 목소리는 싫어함 → 유튜브/게임 원본 소리 사용.
+- 에셋은 **그대로**: 원본 시트를 보존하고 게임용 추출 이후 추가 축소/색 양자화를 하지 않는다. 추출 시에도 외곽선 침식·색 평균 금지. 합성 목소리는 싫어함 → 유튜브/게임 원본 소리 사용.
 - 델타룬 이미지를 통째로 가져오지 말고 **같은 퀄리티로 직접 그린** 타일/소품으로 맵 구성 (`tools/art/`).
 - 형섭 대사는 나레이션처럼(이름·초상화 없음, narrator 목소리).
 - 기본 이동 = 달리기, X/Shift = 천천히. C 확인, X 취소, Esc 타이틀, V 메뉴, T(타이틀) 테스트룸, F1 디버그(오디오 상태 포함).
@@ -50,5 +50,9 @@
 - 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 19개 체크).
 
 ## 검증 방법
+스프라이트: `uv run --with pillow --with numpy --with pytest pytest tests/sprites -q` (배경·외곽선·원본 색·프레임 계약 회귀). `node tests/playtest/sprites.mjs` (서버 8765, 형섭·경섭·빠맨·쥰희 4방향×4프레임, 대화창 인물 연결, PNG 로딩). 원본 3인 시트 왼쪽부터 `hyungsub/gyeongsub/ppaman`, 돼지 별도 시트는 `junhee`다. 재추출 명령은 README의 '캐릭터 시트 재추출' 참고.
+
+2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.
+
 `node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
 UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).
