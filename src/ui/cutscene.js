@@ -11,6 +11,8 @@
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
+//  { zoom: s, at: id|[x,y], offset?, duration? }  2D 월드 줌 (UI 제외)
+//  { scene3d: 'drawer', flag? }  src/scenes/<name>.js 의 run(game,node) → {found} 을 기다림
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
 //  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
@@ -133,6 +135,24 @@ export function makeWaiter(game, node) {
   if ('curtain' in node) { game.curtain = node.curtain; return done; }
   if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }
   if (node.pose) { const e = findEntity(game, node.pose); if (e) { e.pose = node.to === 'lying' ? 'lying' : null; e.moving = false; e.frame = 0; } return done; }
+  if (node.zoom !== undefined) {                       // { zoom:2.8, at:'tv'|[x,y], offset:[dx,dy], duration:0.8 } / { zoom:1 }
+    let focus = null;
+    if (Array.isArray(node.at)) focus = node.at;
+    else if (node.at) { const e = findEntity(game, node.at); if (e) focus = [(e.drawX ?? e.x) + (e.iw ?? e.w) / 2, (e.drawY ?? e.y) + (e.ih ?? e.h) / 2]; }
+    if (focus && node.offset) focus = [focus[0] + node.offset[0], focus[1] + node.offset[1]];
+    let finished = false;
+    game.zoomTo(node.zoom, focus || undefined, node.duration ?? 0.8, () => { finished = true; });
+    return { update: () => finished };
+  }
+  if (node.scene3d) {                                  // { scene3d:'drawer', flag:'cord_found' } — WebGL 오버레이 씬, 끝나면 result.found 를 flag 에
+    let finished = false;
+    game.scene3d = node.scene3d;
+    import(`../scenes/${node.scene3d}.js`)
+      .then((m) => m.run(game, node))
+      .catch((e) => { console.warn('[scene3d] 실패 → 건너뜀', e); return { found: true, fallback: true }; })
+      .then((res) => { game.scene3d = null; if (node.flag && res?.found) game.flags[node.flag] = true; game.flags[`${node.scene3d}_result`] = res?.found ? 'found' : 'cancel'; finished = true; });
+    return { update: () => finished };
+  }
   if (node.parallel) return parallel(game, node.parallel);
   if (node.async) { const w = Array.isArray(node.async) ? sequence(game, node.async) : makeWaiter(game, node.async); if (w) game.background.push(w); return done; }
   return null;

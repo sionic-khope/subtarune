@@ -44,6 +44,20 @@ class Game {
     this.caption = null;          // { text, time, duration } 지역 이름 표시
     this.curtain = null;          // 'black'|'white': 맵 위를 완전히 덮는 막 (컷신용)
     this.background = [];         // async 컷신 waiter
+    this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 2D 월드 줌 (TV 로 빨려 들어가는 전환 등). UI 는 안 줌됨
+    this.scene3d = null;          // 3D 오버레이 씬(src/scenes/*) 실행 중이면 true — Esc 등 게임 입력 무시
+  }
+
+  /**
+   * 월드를 (fx,fy) 월드 좌표 쪽으로 s 배 줌. s=1 이면 원래대로. duration 초 동안 easeInOut.
+   * 줌 중심은 s 가 커질수록 화면 중앙으로 이동해서 1→s→1 이 튐 없이 이어진다.
+   */
+  zoomTo(s, [fx, fy] = [this.zoom.fx, this.zoom.fy], duration = 0.8, cb = null) {
+    const z = this.zoom;
+    z.fx = fx; z.fy = fy;
+    z.smax = s > 1 ? s : Math.max(z.smax, z.s);
+    if (duration <= 0) { z.s = s; z.tween = null; if (cb) cb(); return; }
+    z.tween = { from: z.s, to: s, t: 0, dur: duration, cb };
   }
 
   async load() {
@@ -202,7 +216,7 @@ class Game {
     this.time += dt;
     Input.poll();
     if (Input.just('debug')) this.debug = !this.debug;
-    if (Input.just('title') && this.state !== 'title' && !this.transitioning) { this.toTitle(); return; }
+    if (Input.just('title') && this.state !== 'title' && !this.transitioning && !this.scene3d) { this.toTitle(); return; }
     this.textbox.charDelay = TEXT_SPEEDS[this.settings.textSpeed].delay;
     if (this.sound.muted !== !this.settings.sound) { this.sound.muted = !this.settings.sound; if (this.sound.bgm) this.sound._ramp(this.sound.bgm, this.sound.muted ? 0 : (this.sound.bgmVolume ?? 0.35), 0.2); }
 
@@ -222,6 +236,12 @@ class Game {
       return;
     }
     if (this.shake) { this.shake.time -= dt; if (this.shake.time <= 0) this.shake = null; }
+    if (this.zoom.tween) {
+      const tw = this.zoom.tween; tw.t = Math.min(tw.dur, tw.t + dt);
+      const k = tw.t / tw.dur, e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;   // easeInOutCubic
+      this.zoom.s = tw.from + (tw.to - tw.from) * e;
+      if (tw.t >= tw.dur) { this.zoom.s = tw.to; this.zoom.tween = null; if (tw.cb) tw.cb(); }
+    }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
@@ -293,6 +313,15 @@ class Game {
     const cam = { x: Math.round(this.camera.x), y: Math.round(this.camera.y) };
     if (this.shake) { cam.x += Math.round((Math.random() * 2 - 1) * this.shake.amp); cam.y += Math.round((Math.random() * 2 - 1) * this.shake.amp); }
 
+    // 2D 줌: 월드(맵·엔티티·어두움)만 확대, UI 는 그대로
+    ctx.save();
+    const z = this.zoom;
+    if (z.s > 1.0001) {
+      const Fx = z.fx - cam.x, Fy = z.fy - cam.y;                       // 줌 초점(화면 좌표)
+      const k = z.smax > 1 ? Math.min(1, (z.s - 1) / (z.smax - 1)) : 1; // 0(원래) → 1(최대 줌): 초점이 화면 중앙으로
+      const Cx = Fx + (SCREEN_W / 2 - Fx) * k, Cy = Fy + (SCREEN_H / 2 - Fy) * k;
+      ctx.translate(Cx, Cy); ctx.scale(z.s, z.s); ctx.translate(-Fx, -Fy);
+    }
     this.map.draw(ctx, cam);
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
@@ -302,7 +331,8 @@ class Game {
     for (const e of sorted) e.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
     const dim = MAPS[this.mapId]?.dim;
-    if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+    if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
+    ctx.restore();
 
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
@@ -371,7 +401,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.17';
+export const BUILD = '2026-09-09.19';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

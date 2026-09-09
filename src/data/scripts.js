@@ -21,7 +21,11 @@ export const SCRIPTS = {
     { set: { pc_checked: true } },
     { end: true },
     { label: 'again' },
+    { if: (f) => f.cord_found, goto: 'have' },
     { text: '* (코드가 없다.{w=0.3} 엄마한테 가야 된다.)', voice: 'narrator' },
+    { end: true },
+    { label: 'have' },
+    { text: '* (코드는 챙겼다.)', voice: 'narrator' },   // 다음 이벤트(꽂기) 브리핑 대기
   ],
   room_bed: [
     { text: '* 내 침대다.{w=0.3} 위에 선반이 있다.', voice: 'narrator',
@@ -77,8 +81,22 @@ export const SCRIPTS = {
     { text: '* 기분이 안좋아졌다.', voice: 'narrator' },
     { set: { fridge_checked: true } },
   ],
+  // 티비: 서랍 3D 씬에서 보라색 코드를 찾는다 (src/scenes/drawer.js). 2D 줌인 → 3D 크로스페이드 → 획득 → 줌아웃
   living_tv: [
+    { if: (f) => f.cord_found, goto: 'done' },
     { text: '* 빈 코드를 뒤져봐야겠다.', voice: 'narrator' },
+    { zoom: 2.8, at: 'tv', offset: [0, -10], duration: 0.9 },
+    { scene3d: 'drawer', flag: 'cord_found' },
+    { zoom: 1, duration: 0.7 },
+    { if: (f) => !f.cord_found, goto: 'later' },
+    { text: '* {c=yellow}컴퓨터 코드{/c}를 획득했다!', voice: 'narrator' },
+    { action: (g) => { if (!g.inventory.includes('컴퓨터 코드')) g.inventory.push('컴퓨터 코드'); } },
+    { end: true },
+    { label: 'later' },
+    { text: '* (나중에 다시 뒤지자.)', voice: 'narrator' },
+    { end: true },
+    { label: 'done' },
+    { text: '* 코드는 챙겼다.', voice: 'narrator' },
   ],
   living_sofa: [
     { text: '* 소파다.{w=0.3} 쿠션 사이에 리모컨이 껴 있다.', voice: 'narrator' },

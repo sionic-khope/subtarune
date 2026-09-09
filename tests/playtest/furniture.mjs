@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
-const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
@@ -45,6 +45,10 @@ for (const [map, cases] of Object.entries(CASES)) {
     if (name === 'sofa' || name === 'poster' || name === 'shovel') await page.screenshot({ path: `${S}/furn_${map}_${name}.png` });
     const texts = await finishDialogue();
     check(`${map}/${name}`, texts.length >= 1 && texts.some((t) => t.includes(kw)), texts.join(' | ') || '(대사 없음)');
+    if (name === 'tv') {   // 티비는 3D 서랍 씬으로 이어진다 → 취소하고 다음 소품으로
+      const t0 = Date.now(); while (Date.now() - t0 < 10000 && (await page.evaluate(() => window.__drawer3d?.phase)) !== 'play') await page.waitForTimeout(150);
+      await page.keyboard.press('KeyX'); await page.waitForTimeout(1800); await finishDialogue();
+    }
   }
 }
 // 방: 러그가 없어야 한다

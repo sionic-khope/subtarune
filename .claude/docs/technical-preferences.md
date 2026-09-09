@@ -56,7 +56,8 @@
 
 <!-- Add approved third-party dependencies here -->
 - Galmuri11 (Korean pixel font, via jsDelivr CSS, falls back to system font offline)
-- No runtime JS dependencies
+- three.js r170 (vendored at `assets/lib/three.module.js`, MIT) — only for `src/scenes/*` WebGL overlay scenes (e.g. TV drawer). Lazy-loaded via dynamic import; the 2D game never depends on it.
+- No other runtime JS dependencies
 
 ## Architecture Decisions Log
 

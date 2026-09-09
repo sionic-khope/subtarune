@@ -3,14 +3,14 @@
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
-const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const logs = []; let fails = 0;
 page.on('console', (m) => { if (!/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
 const shot = (n) => page.screenshot({ path: `${S}/house_${n}.png` });
-const st = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, box: game.textbox.state, flags: { ...game.flags }, p: [Math.round(game.player.x), Math.round(game.player.y)], tr: game.transitioning }));
+const st = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, box: game.textbox.state, flags: { ...game.flags }, p: [Math.round(game.player.x), Math.round(game.player.y)], tr: game.transitioning, scene3d: game.scene3d }));
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
 // 대사를 C 로 끝까지 넘김 (선택지는 pick 번째를 고름)
 const finishDialogue = async (pick = 0, max = 30) => {
@@ -74,10 +74,16 @@ await page.evaluate(() => { game.player.x = 750; game.player.y = 124; game.playe
 await page.keyboard.press('KeyC'); await page.waitForTimeout(400); await shot('08_fridge');
 texts = await finishDialogue();
 check('fridge 4 lines', texts.length === 4 && texts[3].includes('기분이'), texts.join(' | '));
-// 6) 티비
+// 6) 티비: 첫 대사 → 2D 줌인 → 3D 서랍 씬(여기선 X 로 취소; 씬 자체는 drawer3d.mjs 가 검증)
 await page.evaluate(() => { game.player.x = 146; game.player.y = 122; game.player.facing = 'up'; game.camera.snap(); }); await page.waitForTimeout(200);
-await page.keyboard.press('KeyC'); texts = await finishDialogue();
-check('tv line', texts.length === 1 && texts[0].includes('코드'), texts.join(' | '));
+await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
+const tvText = await page.evaluate(() => game.textbox.node?.text || '');
+check('tv line', tvText.includes('코드'), tvText);
+await page.keyboard.press('KeyC'); await page.waitForTimeout(200); await page.keyboard.press('KeyC');
+{ const t0 = Date.now(); while (Date.now() - t0 < 10000 && (await page.evaluate(() => window.__drawer3d?.phase)) !== 'play') await page.waitForTimeout(150); }
+check('tv → 3D scene reached play', (await page.evaluate(() => window.__drawer3d?.phase)) === 'play');
+await page.keyboard.press('KeyX'); await page.waitForTimeout(1800); texts = await finishDialogue();
+check('tv scene cancelled → 나중에', !(await st()).scene3d && texts.some((t) => t.includes('나중에')), texts.join(' | '));
 // 7) 러그/방석 위에서 밥상 상호작용 (장식 소품이 probe 를 가로채면 안 됨)
 await page.evaluate(() => { game.player.x = 384; game.player.y = 296; game.player.facing = 'up'; game.camera.snap(); }); await page.waitForTimeout(200);
 await page.keyboard.press('KeyC'); texts = await finishDialogue();

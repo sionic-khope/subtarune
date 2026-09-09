@@ -98,7 +98,8 @@
       "ix": 120,
       "iy": 52,
       "solid": true,
-      "script": "living_tv"
+      "script": "living_tv",
+      "id": "tv"
     },
     {
       "type": "prop",
