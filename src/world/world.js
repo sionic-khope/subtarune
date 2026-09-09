@@ -10,7 +10,7 @@ import { CHARACTERS } from '../data/characters.js';
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
 export const RENDER_SCALE = 2;   // 물리 해상도 배율 (640x480). 2x 시트가 1:1 로 찍힌다
-export const CHAR_SCALE = 1.3;   // 캐릭터 추가 배율 (+30%)
+export const CHAR_SCALE = 1.43;  // 캐릭터 추가 배율 (+30% → 2026-09-09 사용자 요청으로 +10% 더 = 1.43)
 
 // ── 타일맵 ───────────────────────────────────────────────────
 export class TileMap {
