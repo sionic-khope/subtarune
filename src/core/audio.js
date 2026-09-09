@@ -11,7 +11,7 @@ export const VOICES = {
   narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9, minGap: 0, poly: true },   // 파일: 언더테일 원본 snd_txt1. 언더테일처럼 글자마다(33ms) 울리고 앞 소리를 끊지 않는다(poly) — 2026-09-09 '목소리 바뀌었다' 피드백으로 복구
   mystery: { freq: 300, wave: 'sine',     dur: 0.14, jitter: 6,  gain: 0.2,   cutoff: 1500, rate: 0.8, level: 1.2, cut: true, minGap: 0.07 },   // 파일: 언더테일 snd_txt2 앞 0.32s(원본은 뒤가 무음) 톤다운 — 검은 화면의 정체불명 목소리. 긴 클립이라 mono cut
   // ── 캐릭터별 ──
-  hyungsub: { freq: 560, wave: 'square',   dur: 0.14, jitter: 40, gain: 0.24, cutoff: 2800, rate: 1.0, level: 0.9, cut: true, minGap: 0.07 },   // 파일: 가재맨 '넌 나가라'(gKmv51EG5co) 11.36s 의 '넌' 0.26s — 어택 0.14s 만 (mono cut). 인트로 맵 형섭 대사
+  hyungsub: { freq: 560, wave: 'square',   dur: 0.14, jitter: 40, gain: 0.24, cutoff: 2800, rate: 0.92, level: 0.72, cut: true, minGap: 0.07 },   // 2026-09-10 살짝 톤다운(0.92)·소리 살짝 줄임(0.9→0.72)   // 파일: 가재맨 '넌 나가라'(gKmv51EG5co) 11.36s 의 '넌' 0.26s — 어택 0.14s 만 (mono cut). 인트로 맵 형섭 대사
   gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9, cut: true, minGap: 0.07, level: 1.0 },   // 파일: 영상 첫 소리의 어택(앞 무음 62ms 잘라냄) 0.15s, 빠맨과 같은 톤다운(0.9)
   ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.288, cutoff: 3600, glide: 60, bell: true, rate: 0.9, cut: true, minGap: 0.08 }, // '띠링'을 톤다운한 종소리
   junhee:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90 },   // 돼지: 콧소리 꿀꿀
