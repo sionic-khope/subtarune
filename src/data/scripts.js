@@ -64,8 +64,7 @@ export const SCRIPTS = {
     { text: '* 내려온 땟목을 다시 타면 돌아간다.{w=0.4} 껄껄.', voice: 'narrator' },
   ],
   void3_sign_g: [
-    { text: '* 여기도 아니다.', voice: 'narrator' },
-    { text: '* 위를 봐라.{w=0.5} 껄껄껄.', voice: 'narrator' },
+    { text: '* 오 이걸 찾았노{w=0.4} ㅊㅋㅊㅋ', voice: 'narrator' },   // 사용자 지정 (2026-09-10)
   ],
   room_bed: [
     { text: '* 내 침대다.{w=0.3} 위에 선반이 있다.', voice: 'narrator',

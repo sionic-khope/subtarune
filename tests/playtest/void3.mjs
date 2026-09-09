@@ -47,7 +47,7 @@ t = await readSign(470, 700, 'up'); check('sign D', t.includes('막다른'), t);
 await page.screenshot({ path: `${S}/void3_02_deadend.png` });
 r = await ride(440, 660, 'up', 'raft3 D→B (back)'); check('back on B', r.s.p[1] < 548 && r.s.p[1] > 320, JSON.stringify(r.s.p));
 r = await ride(484, 430, 'right', 'raft6 B→G'); check('arrive G (dead end)', r.s.p[0] >= 768, JSON.stringify(r.s.p));
-t = await readSign(844, 420, 'up'); check('sign G', t.includes('여기도'), t);
+t = await readSign(844, 420, 'up'); check('sign G', t.includes('찾았노'), t);
 r = await ride(770, 430, 'left', 'raft6 G→B (back)'); check('back on B (2)', r.s.p[0] < 512 && r.s.p[0] >= 384, JSON.stringify(r.s.p));
 r = await ride(440, 330, 'up', 'raft2 B→C'); check('arrive C', r.s.p[1] < 128, JSON.stringify(r.s.p));
 await page.screenshot({ path: `${S}/void3_03_top.png` });
