@@ -114,10 +114,22 @@ export function characterSprite(paletteName, override = null) {
     rows.forEach((dir, r) => {
       const sideWalk = CHARACTERS[paletteName]?.sideWalk;
       if (sideWalk && (dir === 'left' || dir === 'right')) {
-        const { feetY, splitX, stride } = sideWalk;
         const sourceY = r * fh;
         const neutral = makeCanvas(fw, fh);
         neutral.getContext('2d').drawImage(override, 0, sourceY, fw, fh, 0, 0, fw, fh);
+        if (sideWalk.legFrames) {
+          const { legY, legFrames } = sideWalk;
+          const step = (legFrame) => {
+            const c = makeCanvas(fw, fh);
+            const ctx = c.getContext('2d');
+            ctx.drawImage(override, 0, sourceY, fw, legY, 0, 0, fw, legY);
+            ctx.drawImage(override, legFrame * fw, sourceY + legY, fw, fh - legY, 0, legY, fw, fh - legY);
+            return c;
+          };
+          set[dir].push(neutral, step(legFrames[0]), neutral, step(legFrames[1]));
+          return;
+        }
+        const { feetY, splitX, stride } = sideWalk;
         const step = (leftOffset, rightOffset) => {
           const c = makeCanvas(fw, fh);
           const ctx = c.getContext('2d');

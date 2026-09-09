@@ -18,7 +18,7 @@ try {
     const poses = await page.evaluate(async (name) => {
       const { CHARACTERS } = await import('/src/data/characters.js');
       const sprite = game.player.sprite;
-      const feetY = CHARACTERS[name].sideWalk?.feetY ?? 11;
+      const seamY = CHARACTERS[name].sideWalk?.legY ?? CHARACTERS[name].sideWalk?.feetY ?? 11;
       const bytes = (canvas, height = canvas.height) => Array.from(canvas.getContext('2d').getImageData(0, 0, canvas.width, height).data).join(',');
       const strip = document.createElement('canvas');
       strip.width = sprite.fw * 4;
@@ -32,7 +32,7 @@ try {
           count: frames.length,
           unique: new Set(frames.map((frame) => bytes(frame))).size,
           neutralRepeated: bytes(frames[0]) === bytes(frames[2]),
-          upperIdentical: new Set(frames.map((frame) => bytes(frame, feetY))).size === 1,
+          upperIdentical: new Set(frames.map((frame) => bytes(frame, seamY))).size === 1,
         };
       });
       const unchanged = ['down', 'up'].every((direction, row) => sprite[direction].every((frame, column) => {
