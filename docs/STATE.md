@@ -18,7 +18,7 @@
 | 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트. 형섭은 `self`(이름·초상화 없음) |
 | 대사 | `src/data/scripts.js` | 키 = 상호작용/트리거의 `script`. 태그 `{w=} {s=} {c=} {shake} {wave}` |
 | 컷신 | `src/data/cutscenes/*.js` | `/cutscene` 스킬. 노드 레퍼런스 `src/ui/cutscene.js` 상단 |
-| 목소리 블립 | `assets/audio/voices/<voice>.mp3` (0.1~0.2s 한 조각) | `src/core/audio.js VOICES` 의 `rate`(톤) / `level`(크기) |
+| 목소리 블립 | `assets/audio/voices/<voice>.mp3` (0.1~0.2s 한 조각) | `src/core/audio.js VOICES` 의 `rate`(톤) / `level`(크기) / `minGap`(블립 최소 간격, 초. 나레이션 0.06 = 33ms 글자 속도에서 두 글자에 한 번 → 겹침 없이 '톡, 톡'. 더 촘촘히 = 0.04, 더 띄엄 = 0.08) |
 | 효과음 | `assets/audio/sfx/<name>.mp3` | 파일 있으면 파일, 없으면 합성. 로드 목록은 `src/main.js loadSfxFiles([...])` — **새 이름은 여기 추가** |
 | BGM | `assets/audio/bgm/<name>.mp3` | 맵 JSON `bgm`, 컷신 `{bgm:'x'}` |
 | 오디오 출처 | `design/audio/references.md` | 유튜브 링크·경로·상태 |
@@ -29,7 +29,7 @@
 - 델타룬 이미지를 통째로 가져오지 말고 **같은 퀄리티로 직접 그린** 타일/소품으로 맵 구성 (`tools/art/`).
 - 형섭 대사는 나레이션처럼(이름·초상화 없음, narrator 목소리).
 - 캐릭터 배율 `CHAR_SCALE=1.43`(world.js, 2026-09-09 +10%). 기본 이동 = 달리기, X/Shift = 천천히. C 확인, X 취소, Esc 타이틀, V 메뉴, T(타이틀) 테스트룸, F1 디버그(오디오 상태 포함).
-- 대화창 4줄·여백 넉넉히. 말풍선/하단 가이드 UI 없음. 대화창 열림/닫힘 효과음 없음(언더테일 동일). 나레이션 = 언더테일 원본 `snd_txt1` 원본 길이 그대로, 글자 33ms.
+- 대화창 4줄·여백 넉넉히. 말풍선/하단 가이드 UI 없음. 대화창 열림/닫힘 효과음 없음(언더테일 동일). 나레이션 = 언더테일 원본 `snd_txt1` 원본 길이 그대로, 글자 33ms, 블립 최소 간격 0.06s(2026-09-09 '겹쳐 들린다' 피드백 → `VOICES.narrator.minGap`).
 - 트리거/문 무결성 규칙은 `.claude/skills/map/SKILL.md` 체크리스트 + `tests/unit/maps.test.mjs` 가 강제(재진입 1회, 쿨다운, 문 핑퐁, 스폰 위치, 영역 겹침).
 - 컷신 중 맵이 새면 안 됨 → `{curtain:'black'|'white'|null}` 로 막는다. `{bgm:null, fadeOut:n}` (fade 아님).
 - **UI 표현 규칙(재발 금지)**: 맵은 화면(480×360) 이상 크기 + 타일맵은 사방 벽으로 닫는다(검은 띠·뚫림 금지, `tests/unit/maps.test.mjs` 가 검사). 플레이어가 소품 히트박스에 겹쳐 있으면(침대 위 등) 항상 소품 앞에 그린다. 컷신 포즈 전환 직후 캐릭터가 가려지면 안 된다. 스크린샷으로 **네 모서리와 상태 전환 순간**을 확인한 뒤 완료라고 한다.

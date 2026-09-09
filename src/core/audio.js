@@ -8,15 +8,17 @@ export const VOICES = {
   low:     { freq: 210, wave: 'sawtooth', dur: 0.10, jitter: 14, gain: 0.208, cutoff: 1200, glide: -60 },
   cat:     { freq: 880, wave: 'triangle', dur: 0.10, jitter: 90, gain: 0.256, cutoff: 4000 },
   robot:   { freq: 300, wave: 'square',   dur: 0.10, jitter: 0,  gain: 0.224, cutoff: 900 },
-  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9 },   // 파일: 언더테일 원본 snd_txt1 그대로
+  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9, minGap: 0.06 },   // 파일: 언더테일 원본 snd_txt1 그대로. minGap: 블립 최소 간격(겹침 방지)
   // ── 캐릭터별 ──
   hyungsub: { freq: 560, wave: 'square',   dur: 0.10, jitter: 40, gain: 0.24, cutoff: 2800 },              // 밝고 또렷
-  gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9, cut: true },   // 파일: 영상 첫 소리의 어택 0.15s, 빠맨과 같은 톤다운(0.9)
-  ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.288, cutoff: 3600, glide: 60, bell: true, rate: 0.9, cut: true }, // '띠링'을 톤다운한 종소리
+  gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9, cut: true, minGap: 0.08 },   // 파일: 영상 첫 소리의 어택 0.15s, 빠맨과 같은 톤다운(0.9)
+  ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.288, cutoff: 3600, glide: 60, bell: true, rate: 0.9, cut: true, minGap: 0.08 }, // '띠링'을 톤다운한 종소리
   junhee:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90 },   // 돼지: 콧소리 꿀꿀
 };
 
 export class Sound {
+  /** 블립 최소 간격(초). 33ms 글자 속도에서 0.06 이면 두 글자에 한 번 → 언더테일처럼 살짝 띄어 들린다 */
+  static MIN_GAP = 0.06;
   constructor() {
     this.ctx = null;
     this.master = null;
@@ -108,9 +110,15 @@ export class Sound {
 
   // 대사 한 글자 사운드 — 파일(assets/audio/voices/<voice>.mp3)이 있으면 샘플, 없으면 합성
   blip(voiceName) {
-    this._lastVoice = voiceName + '@' + (this.ctx ? this.ctx.currentTime.toFixed(1) : '-');
     if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
     const v = VOICES[voiceName] || VOICES.default;
+    // 최소 간격(minGap): 글자가 33ms 마다 나와도 블립은 이보다 촘촘히 울리지 않는다 → 겹쳐서 웅웅거리지 않고 '톡, 톡' 이 분리됨
+    const now = performance.now() / 1000;   // 벽시계 기준(AudioContext 가 suspended 여도 흐른다)
+    const gap = v.minGap ?? Sound.MIN_GAP;
+    const last = this._lastBlipAt?.[voiceName] ?? -1;
+    if (now - last < gap) return;
+    (this._lastBlipAt ||= {})[voiceName] = now;
+    this._lastVoice = voiceName + '@' + now.toFixed(1);
     const buf = this.voiceBuf[voiceName];
     if (buf && this.ctx && !this.muted) {
       const t = this.ctx.currentTime;
