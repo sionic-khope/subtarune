@@ -41,7 +41,9 @@ await page.keyboard.press('KeyX'); await page.waitForTimeout(3600);
 for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(500); if ((await page.evaluate(() => game.state)) !== 'title') break; }
 await page.waitForTimeout(900); s = await st();
 check('continue restores stage/map/flags', s.state === 'field' && s.map === 'void' && s.stage === 'void_fallen' && s.flags.pc_checked === true && !s.running, JSON.stringify({ state: s.state, map: s.map, stage: s.stage, running: s.running }));
-t = await firstLine(904, 168, 'right'); check('gameplay works after continue (big door line)', t.includes('검은 문'), t);
+await page.evaluate(() => { game.player.x = 880; game.player.y = 190; game.player.facing = 'right'; game.camera.snap(); }); await page.waitForTimeout(700);
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(900);
+s = await st(); check('gameplay works after continue (void big door → void2)', s.map === 'void2', s.map);
 
 // 4) 타이틀에서 X 두 번 → 처음부터: 세이브 삭제, 오프닝 시작, 플래그 초기화
 await page.goto('http://127.0.0.1:8000/index.html'); await page.waitForTimeout(1200);

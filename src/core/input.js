@@ -10,6 +10,7 @@ const KEYMAP = {
   F1: 'debug',
   KeyV: 'menu', Tab: 'menu',
   KeyT: 'test',
+  KeyQ: 'qa',       // 타이틀: QA 바로가기 목록
 };
 
 // 게임패드(표준 매핑): A/B 위치는 델타룬처럼 A=확인, B=취소

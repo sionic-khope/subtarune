@@ -37,7 +37,7 @@ model: opus
 | `[소품/NPC 와 상호작용]` | 소품 `script` / NPC `script` |
 | `[특정 위치 지나가면]` | `trigger` (once+flag) |
 | `[플래그/단계 이후에만]` | 스크립트 첫 줄 `{ if:(f)=>!f.x, goto:'skip' }` (단계 id 도 플래그로 본다) |
-| `형섭: …` | `{ text:'* …', voice:'narrator' }` (이름·초상화 없음) |
+| `형섭: …` | **인트로 맵(void_fallen 전)**: `HS('* …')`(scripts.js export — 이름·초상화·가재맨 톤). 단, 사물 설명·괄호 생각·의성어는 `{ text:'* …', voice:'narrator' }`. **보라맵부터**: 전부 narrator(자아 바뀜, HS 금지) |
 | `경섭/빠맨/쥰희: …` | `{ speaker, portrait, voice, text:'* …' }` |
 | `나레이션: …` | `{ text:'* …', voice:'narrator' }` — 형섭과 같은 표시. 검은 화면이면 `style:'narration'` |
 | `(선택지 예/아니오)` | `choice:{ options:[…], cancel:1 }` |

@@ -84,5 +84,44 @@ def main():
     pv.image().resize((W * 3, H * 3), Image.NEAREST).save(sys.argv[1] if len(sys.argv) > 1 else 'void_preview.png')
     print('tiles', list(tiles))
 
+
+# ── 보라맵2: 파란 물길 + 뗏목 ─────────────────────────────────────
+WATER = hexc('#2f4fa8'); WATER_D = hexc('#243f8c'); WATER_L = hexc('#4d74d6'); WATER_LL = hexc('#8fb0ff')
+RAFT = hexc('#8a6238'); RAFT_D = hexc('#5f4224'); RAFT_L = hexc('#a97c4a'); ROPE = hexc('#c9b58a')
+
+def tile_water(variant=0):
+    """물: 그냥 파란색 (흰 하이라이트 없음). 아주 옅은 어두운 잔물결만"""
+    c = Canvas(T, T); c.rect(0, 0, T, T, WATER)
+    for (x, y) in ([(4, 6), (18, 14), (9, 24), (25, 29)] if variant == 0 else [(13, 3), (27, 11), (6, 19), (20, 27)]):
+        c.hline(x, y, 5, WATER_D)
+    return c
+
+def prop_raft():
+    """뗏목 56x40: 통나무 4개, 단순한 2톤 (보라 세트의 평면 느낌에 맞춤)"""
+    w, h = 56, 40; c = Canvas(w, h)
+    for i in range(4):
+        y = 2 + i * 9
+        c.rrect_outlined(2, y, w - 4, 10, RAFT, OUT, 2); c.hline(4, y + 1, w - 8, RAFT_L); c.hline(4, y + 8, w - 8, RAFT_D)
+    for x in (12, w - 15): c.rect(x, 1, 3, h - 3, ROPE); c.vline(x + 3, 1, h - 3, OUT)
+    return c
+
+def prop_signpost():
+    """표지판 26x30: 어두운 보라 나무 기둥 + 판자"""
+    w, h = 26, 30; c = Canvas(w, h)
+    POST = hexc('#4a2a6a'); POST_L = hexc('#6a3f92'); BOARD = hexc('#5e3a86'); BOARD_L = hexc('#7d54ad')
+    c.rect(11, 14, 4, 16, POST); c.outline(10, 13, 6, 17, OUT); c.vline(12, 15, 13, POST_L)
+    c.rrect_outlined(0, 0, w, 15, BOARD, OUT, 2); c.hline(2, 2, w - 4, BOARD_L)
+    for (x, y, ln) in [(4, 5, 12), (4, 9, 16)]: c.hline(x, y, ln, hexc('#e6d3ff'))
+    c.px(2, 12, OUT); c.px(w - 3, 12, OUT)
+    return c
+
+_main = main
+def main():
+    _main()
+    out = 'assets/tiles'
+    tile_water(0).save(f'{out}/water_blue.png'); tile_water(1).save(f'{out}/water_blue2.png')
+    prop_raft().save('assets/props/raft.png'); prop_signpost().save('assets/props/signpost.png')
+    print('water/raft ok')
+
 if __name__ == '__main__':
     main()

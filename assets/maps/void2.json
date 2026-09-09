@@ -1,0 +1,113 @@
+{
+  "id": "void2",
+  "name": "???",
+  "bgm": "wind",
+  "stage": "void_fallen",
+  "dim": 0,
+  "rows": [
+    "                          ",
+    "                          ",
+    "                          ",
+    " xXxOoOoOoOoOoOoOoOoXxX   ",
+    " XzXoOoOoOoOoOoOoOoOxXx   ",
+    " xXx                XxX   ",
+    " zxXxXxXxX          xzx   ",
+    " xXxXxXzXx          XxX   ",
+    " yyyyyyyyy          yyy   ",
+    "                          ",
+    "                          ",
+    "                          "
+  ],
+  "spawns": {
+    "from_void": {
+      "x": 60,
+      "y": 200,
+      "facing": "right"
+    },
+    "dock": {
+      "x": 100,
+      "y": 112,
+      "facing": "right"
+    },
+    "start": {
+      "x": 60,
+      "y": 200
+    },
+    "dock_back": {
+      "x": 680,
+      "y": 140,
+      "facing": "left"
+    }
+  },
+  "entities": [
+    {
+      "type": "prop",
+      "id": "door_left",
+      "image": "assets/props/big_door.png",
+      "x": -60,
+      "y": 60,
+      "w": 8,
+      "h": 8,
+      "ix": -60,
+      "iy": 100,
+      "solid": false,
+      "sortY": 0
+    },
+    {
+      "type": "door",
+      "x": 32,
+      "y": 192,
+      "w": 12,
+      "h": 64,
+      "to": "void",
+      "spawn": "door_back",
+      "sfx": false
+    },
+    {
+      "type": "raft",
+      "id": "raft1",
+      "image": "assets/props/raft.png",
+      "x": 128,
+      "y": 108,
+      "route": [
+        [
+          584,
+          108
+        ]
+      ],
+      "speed": 171
+    },
+    {
+      "type": "prop",
+      "id": "big_door",
+      "image": "assets/props/big_door.png",
+      "x": 700,
+      "y": 60,
+      "w": 112,
+      "h": 8,
+      "ix": 700,
+      "iy": 72,
+      "solid": false,
+      "sortY": 0
+    },
+    {
+      "type": "prop",
+      "id": "sign_raft",
+      "image": "assets/props/signpost.png",
+      "x": 44,
+      "y": 100,
+      "solid": true,
+      "script": "void2_sign"
+    },
+    {
+      "type": "door",
+      "x": 732,
+      "y": 96,
+      "w": 12,
+      "h": 160,
+      "to": "void3",
+      "spawn": "from_void2",
+      "sfx": false
+    }
+  ]
+}

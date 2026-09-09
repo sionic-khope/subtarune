@@ -26,6 +26,11 @@
     "start": {
       "x": 132,
       "y": 168
+    },
+    "door_back": {
+      "x": 880,
+      "y": 190,
+      "facing": "left"
     }
   },
   "entities": [
@@ -33,15 +38,24 @@
       "type": "prop",
       "id": "big_door",
       "image": "assets/props/big_door.png",
-      "x": 936,
-      "y": 100,
-      "w": 24,
-      "h": 140,
+      "x": 848,
+      "y": 60,
+      "w": 112,
+      "h": 8,
       "ix": 848,
       "iy": 72,
       "solid": false,
-      "sortY": 0,
-      "script": "void_door"
+      "sortY": 0
+    },
+    {
+      "type": "door",
+      "x": 912,
+      "y": 128,
+      "w": 16,
+      "h": 128,
+      "to": "void2",
+      "spawn": "from_void",
+      "sfx": false
     }
   ]
 }

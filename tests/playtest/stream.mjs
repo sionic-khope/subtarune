@@ -34,6 +34,7 @@ while (Date.now() - t0 < 120000) {
   if (s.mode === 'panic') { seen.chatPanic = s.posted; }
   if (s.vortex) { seen.vortexMax = Math.max(seen.vortexMax, s.vr); if (s.vr > 60 && s.vr < 200) await shot('04_vortex_small'); if (s.vr > 300) await shot('05_vortex_big'); }
   if (s.curtain === 'white') seen.curtainWhite = true;
+  if (s.curtain === 'black' && s.running && s.box !== 'closed' && s.text.includes('일어나')) { seen.blackVoice = true; await shot('05b_black_voice'); }
   if (s.map === 'void' && s.pose === 'lying' && s.fade < 0.5) await shot('06_void_lying');
   if (!s.running && s.map === 'void') break;
   if (s.box === 'waiting' || s.box === 'choice') await page.keyboard.press('KeyC');
@@ -50,19 +51,19 @@ check('silence: bgm off + ? spam', seen.chatSilence > 0 && seen.bgmOff, JSON.str
 check('panic mode', seen.chatPanic > 0);
 check('vortex grew large', seen.vortexMax >= 300, String(seen.vortexMax));
 check('white curtain transition', seen.curtainWhite);
+check('black-screen voice lines before void', !!seen.blackVoice);
 check('ends in void map, stage void_fallen', s.map === 'void' && s.stage === 'void_fallen' && !s.running, JSON.stringify({ map: s.map, stage: s.stage, running: s.running }));
 check('chat/dialog/vortex cleaned up', !s.chat && !s.dialog && !s.vortex);
 await page.screenshot({ path: `${S}/stream_07_void_end.png` });
 // 오른쪽으로 걸어가 거대한 문까지
 await page.keyboard.down('ArrowRight'); await page.waitForTimeout(3600); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(300);
-s = await page.evaluate(() => ({ x: Math.round(game.player.x), y: Math.round(game.player.y) }));
-check('walked right toward the door', s.x > 700, JSON.stringify(s));
+await page.waitForTimeout(900);
+s = await page.evaluate(() => ({ map: game.mapId, x: Math.round(game.player.x) }));
+check('walked right into the big door → void2', s.map === 'void2', JSON.stringify(s));
 await page.screenshot({ path: `${S}/stream_08_door.png` });
-await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
-check('big door line', (await page.evaluate(() => game.textbox.node?.text || '')).includes('검은 문'));
 // 저장 확인: void 단계
 const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('subtarune.save.v1') || 'null'));
-check('autosaved at void', saved?.story?.stage === 'void_fallen' && saved.map === 'void', JSON.stringify(saved && { stage: saved.story?.stage, map: saved.map }));
+check('autosaved at void stage', saved?.story?.stage === 'void_fallen' && ['void', 'void2'].includes(saved.map), JSON.stringify(saved && { stage: saved.story?.stage, map: saved.map }));
 await browser.close();
 logs.push(`fails=${fails}`);
 console.log(logs.join('\n'));

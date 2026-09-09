@@ -15,7 +15,7 @@
 | 타일 그림 | `assets/tiles/<name>.png` 32×32 | `tools/art/room_set.py` 로 생성(직접 그린 픽셀아트). 새 타일은 `src/world/tiles.js` 에 `registerTile` 한 줄 |
 | 가구/소품 그림 | `assets/props/*.png` | `tools/art/room_set.py`(방) / `tools/art/living_set.py`(복도·거실·부엌) 의 `prop_*` 함수. 실행은 `/usr/bin/python3`(PIL 있음) |
 | 캐릭터 스프라이트 | `assets/sprites/<id>.png` (4열×4행, 2x) | `tools/sprites/slice_sheet.py` 로 원본에서 재추출. 가장자리 연결 배경만 제거, 기존 엔진용 배율은 최근접 변환. **추가 축소·색 평균·양자화 금지** |
-| 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트/`portraitThreshold`(초상화 흰검 변환 문턱). 형섭은 `self`(이름·초상화 없음) |
+| 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트/`portraitThreshold`(초상화 흰검 변환 문턱). 형섭 대사는 `HS()` 규칙(위 '형섭 대사 구분') |
 | 대사 | `src/data/scripts.js` | 키 = 상호작용/트리거의 `script`. 태그 `{w=} {s=} {c=} {shake} {wave}` |
 | 컷신 | `src/data/cutscenes/*.js` | `/cutscene` 스킬. 노드 레퍼런스 `src/ui/cutscene.js` 상단 |
 | 목소리 블립 | `assets/audio/voices/<voice>.mp3` (0.1~0.2s 한 조각, **앞 무음 없이** — 경섭 클립은 무음 62ms 때문에 안 들렸었음) | `src/core/audio.js VOICES` 의 `rate`(톤) / `level`(크기) / `minGap`(블립 최소 간격, 초; 긴 클립용) / `poly`(앞 소리를 끊지 않음 — 나레이션 원본 방식) |
@@ -27,13 +27,14 @@
 ## 지금까지 확정된 규칙 (사용자 피드백)
 - 에셋은 **그대로**: 원본 시트를 보존하고 게임용 추출 이후 추가 축소/색 양자화를 하지 않는다. 추출 시에도 외곽선 침식·색 평균 금지. 합성 목소리는 싫어함 → 유튜브/게임 원본 소리 사용.
 - 델타룬 이미지를 통째로 가져오지 말고 **같은 퀄리티로 직접 그린** 타일/소품으로 맵 구성 (`tools/art/`).
-- 형섭 대사는 나레이션처럼(이름·초상화 없음, narrator 목소리).
+- **형섭 대사 구분(2026-09-10 확정)**: 인트로 맵(방·복도·거실, `void_fallen` 전)에서 형섭이 **입으로 말하는 줄**은 `HS()`(`src/data/scripts.js` export) → 이름 '형섭' + 흰검 초상화 + **가재맨 '넌' 톤 목소리**(`voices/hyungsub.mp3`). 사물 설명("창문이다")·괄호 속 생각·상태("기분이 안좋아졌다")·의성어("철컥..")는 narrator 그대로. **보라맵부터는 자아가 바뀐 컨셉** → 형섭 대사도 이름·초상화 없이 narrator(HS 금지). 브리핑의 `형섭:` 줄은 이 규칙으로 변환.
 - **형섭 그림에는 입이 없음**: 2026-09-09 사용자가 직접 픽셀 수정을 승인해 옆모습에 남은 입선 261픽셀만 피부로 복원했다. 원본 수정 범위는 `assets/source/hyungsub-mouth-retouch.json`. 코·안경·턱·경섭의 입은 유지. 입이 남은 이전 생성 초안을 재사용하지 않는다.
 - **대화창 초상화는 언더테일처럼 흰/검 2톤 도트**(2026-09-09 확정). 컬러 `assets/portraits/*.png` 를 런타임에 `gfx.monoPortrait` 가 변환(96→48 축소, 어두운 픽셀=검정, 실루엣 가장자리는 흰 선). 캐릭터별 문턱은 `src/data/characters.js portraitThreshold`(빠맨 0.3, 쥰희 0.6, 기본 0.38). 새 캐릭터 초상화가 뭉개지면 이 값만 조정.
 - 캐릭터 배율 `CHAR_SCALE=1.43`(world.js, 2026-09-09 +10%). 기본 이동 = 달리기, X/Shift = 천천히. C 확인, X 취소, Esc 타이틀, V 메뉴, T(타이틀) 테스트룸, F1 디버그(오디오 상태 포함).
 - 걷기 보정: 방향별 4프레임을 공통 영역/같은 샘플링 격자로 추출하고 신발 끝을 보존한다. **옆걷기는 전 캐릭터 3포즈**(2026-09-09 사용자 요청): 기본→발 A→기본→발 B. 상체·머리·팔은 고정하고 발 위치만 바꾼다. PNG는 각 옆방향 첫 프레임 + `characters.js sideWalk` 설정으로 최초 로드 시 조합, 대체 도트는 기존 TORSO+LEGS 방식. PNG·초상화·정면/뒷면 모션은 유지. 이전 형섭 전용 `walkFrameOrder`는 폐기. `Character.animPhase`, 이동 속도, 충돌 시 정지, `CHAR_SCALE`은 유지한다.
 - 대화창 4줄·여백 넉넉히. 말풍선/하단 가이드 UI 없음. 대화창 열림/닫힘 효과음 없음(언더테일 동일). 나레이션 = 언더테일 원본 `snd_txt1`, **글자마다(33ms) 울리고 앞 소리를 끊지 않음**(`poly:true, minGap:0` — 언더테일과 동일. 2026-09-09 '두 글자에 한 번' 으로 바꿨다가 '목소리 바뀌었다' 피드백으로 복구). 긴 클립인 경섭·빠맨만 mono cut + minGap 0.07~0.08.
 - 트리거/문 무결성 규칙은 `.claude/skills/map/SKILL.md` 체크리스트 + `tests/unit/maps.test.mjs` 가 강제(재진입 1회, 쿨다운, 문 핑퐁, 스폰 위치, 영역 겹침).
+- 문 전환 페이드는 **항상 검은색**(직전 컷신이 흰 페이드를 썼어도 — 2026-09-09 '눈 아프다'). 보라맵 문은 소리 없음(`door` 엔티티 `sfx:false`).
 - 컷신 중 맵이 새면 안 됨 → `{curtain:'black'|'white'|null}` 로 막는다. `{bgm:null, fadeOut:n}` (fade 아님).
 - **UI 표현 규칙(재발 금지)**: 맵은 화면(480×360) 이상 크기 + 타일맵은 사방 벽으로 닫는다(검은 띠·뚫림 금지, `tests/unit/maps.test.mjs` 가 검사). 플레이어가 소품 히트박스에 겹쳐 있으면(침대 위 등) 항상 소품 앞에 그린다. 컷신 포즈 전환 직후 캐릭터가 가려지면 안 된다. 스크린샷으로 **네 모서리와 상태 전환 순간**을 확인한 뒤 완료라고 한다.
 - OMC 하네스 유지: `.claude/settings.json` 에 statusLine/hooks 넣지 않는다.
@@ -47,7 +48,11 @@
 - 티비: 3D 서랍 씬에서 보라색 컴퓨터 코드 획득(아래 '3D 씬'). 코드를 얻은 뒤 컴퓨터는 "(코드는 챙겼다.)" — **꽂는 이벤트는 브리핑 대기**.
 - 코드 챙긴 뒤 컴퓨터: **방송 컷신** `pc_stream`(철컥 → 방송 세팅 → 채팅창 100명 왜 늦었냐/엄준식 → 사과·일요일 약속 → 극락·ㅋㅋㅋ 도배 → 오류창 "보라색 코드에서 에러" [해결하기] → 딸깍 → 정적·물음표 → 소용돌이 → 흰색 → `void` 맵에 추락, stage `void_fallen`). 콘티 `design/narrative/cutscenes/pc_stream.md`.
 - `void` 맵(30×12, `tools/art/void_set.py`): 검은 허공 위 보라색 땅·꽃, 왼쪽 착지 꽃밭 → 오른쪽 길 → 끝에 **거대한 검은 문**(`big_door.png`, `void_door` 임시 한 줄). 언더테일 초반 유적 입구 구도. **여기서부턴 브금 없이 잔잔한 바람 소리**(`bgm/wind.mp3`, 합성 32s 루프, 0.28).
-- 다음(사용자 브리핑 대기): 검은 문 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+- `void` 대문 → **`void2`(보라맵2)**: 왼쪽 문으로 들어와 아래 보라 길(막다른길), 위쪽 착지 → **파란 물길 + 뗏목**(C 로 타면 오른쪽으로 ~4초 일직선, 반대편 착지에 내림, 다시 타면 되돌아옴) → 길 끝 거대한 검은 문(`void_door` 임시 한 줄, 다음 방 브리핑 대기).
+- 검은 화면 목소리: 흰색 뒤 검은 화면에서 정체불명 목소리(`mystery`, snd_txt2 톤다운) 8줄("... 일어.. 일어나.." … "절대...ㄹ..") → 보라맵.
+- `void2` 뗏목 앞 표지판(사용자 텍스트): "앞으로만 가는 땟목이다." / "아 물론! 뒤로도 갈수있다." / "반대편에서 탄다면~ 껄껄." 오른쪽 문 → **`void3`**.
+- **`void3` 뗏목 퍼즐**(36×24): 입구 A → 뗏목 → 교차로 B(위·오른쪽·아래 뗏목 셋) → 아래 D·오른쪽 G 는 막다른길(표지판 "막다른 길이다 / 내려온 땟목을 다시 타면 돌아간다", "여기도 아니다 / 위를 봐라 껄껄껄") → **위 C → 오른쪽 F → 아래 E → 거대한 검은 문**(`void_door` 임시). 표지판 대사는 내가 지음(껄껄 톤).
+- 다음(사용자 브리핑 대기): 보라맵3 문 이후, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
 - **스토리 브리핑 형식**: 사용자는 `[트리거]` + `이름: 대사 (인터랙션 # 연출)` 로 준다 → `.claude/skills/cutscene/SKILL.md` 의 변환표대로 되묻지 않고 노드로 옮긴다. 선택지 연출 옵션 `delay/stagger/locked/auto/cursor:false` 는 `src/ui/dialogue.js` TextBox 가 지원(테스트룸 `test_choice_slow`, `test_choice_locked`).
 
 ## 상태 시스템 (2026-09-09 설계 — "코드 얻었는데 컴퓨터가 초기 대사" 같은 순서 꼬임 방지)
@@ -57,6 +62,10 @@
 - **개발용 바로가기**도 단계를 거친다: `?map=living` → 그 맵의 `stage` 까지 backfill, `?stage=cord_found` → 그 단계의 맵/스폰으로. 타이틀 T(테스트룸)도 같음. → 바로가기로 들어가도 대사가 꼬이지 않는다.
 - **자동 저장/이어하기**: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때 `localStorage('subtarune.save.v1')` 에 저장(단계·플래그·인벤토리·맵·좌표·설정). 타이틀: 세이브 있으면 `C 이어하기 / X 처음부터(두 번)`. 새 게임은 세이브 삭제. Esc→타이틀은 저장을 지우지 않는다.
 - 검증: `tests/unit/story.test.mjs`(backfill·비회귀), `maps.test.mjs`(맵 stage 선언·STAGES 맵/스폰 존재), `tests/playtest/story.mjs`(바로가기 backfill → 컴퓨터 대사, cord_found 이후 컴퓨터/문/티비, 자동 저장→새로고침→이어하기, 처음부터). F1 디버그에 `stage:` 표시.
+
+## 재사용 기믹
+- **뗏목** `src/world/world.js Raft` (`type:'raft'`): `{ type:'raft', id, image:'assets/props/raft.png', x,y, route:[[x,y],…], speed:114 }`. 옆에서 C → route 를 따라 일직선 이동(타는 동안 `game.ride` 가 서서 입력·트리거 정지), 도착하면 진행 방향으로 밀어 내림, 반대편에서 타면 되돌아옴. 위치는 `flags.raft_<id>`(route 인덱스)로 유지 → 맵을 나갔다 와도 그 자리. 속도 기본 171px/s(2026-09-09 +50%). 소리: 탈 때·0.55s 마다·내릴 때 `splash`(합성 첨벙). 물 타일 `o/O`(그냥 파란색, 막힘). 새 맵에 그대로 복사해 route 만 바꾸면 됨. 퍼즐 예시 `void3`(교차로 + 막다른길 2개). 검증 `tests/playtest/raft.mjs`, `void3.mjs`.
+- **QA 바로가기**: `src/core/story.js QA_POINTS` — URL `?qa=<id>` 또는 **타이틀에서 Q** → 목록(↑↓ C). 지점: `opening`(방), `living`(거실 진입), `tv`(티비 앞), `pc_stream`(코드 획득 직후 컴퓨터 앞, C 로 방송), `void`(보라맵1), `raft`(보라맵2 뗏목 앞), `void3`(보라맵3 퍼즐 입구). 그 지점까지 스토리 단계가 자동으로 채워진다. 새 이벤트를 만들면 "직전 지점"을 한 줄 추가. 스폰에 `facing` 을 주면 그 방향으로 서서 시작.
 
 ## 방송 연출 UI (컷신 노드)
 - `{ chat:'open' }` → 오른쪽 트위치식 채팅창(`src/ui/chat.js`, 물리 해상도 16px 폰트, 대화창 위까지). 모드 `late/spam/idle/question/silence/panic` 별 메시지 풀·속도. `{ chat:'close' }`. 닉 100명(`NICKS`, 필수 11명 포함). 쥰희는 "우욱 우욱 우욱 이거 빤스아니여" 한 줄만 도배(`JUNHEE_LINE`).
@@ -87,5 +96,5 @@
 
 2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.
 
-`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
+`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `raft.mjs`(뗏목·QA) · `void3.mjs`(뗏목 퍼즐·첨벙·무음 문·검은 페이드) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
 UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).

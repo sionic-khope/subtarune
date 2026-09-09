@@ -18,3 +18,6 @@ BGM `assets/audio/bgm/opening.mp3` (XEdoMoV4D6k) 나레이션 내내, 하얘질 
 
 ## 끝난 뒤 상태
 - `flags.opening_seen`, `flags.player_name='요플래'`, 맵 `room`(침대 옆). 문 밟으면 마을.
+
+## 형섭 대사 표기 (2026-09-10)
+형섭이 말하는 줄은 `HS()`(이름·초상화·가재맨 톤), 사물 설명·괄호 생각·의성어·상태는 narrator. 보라맵(void)부터는 전부 narrator(자아 바뀜).
