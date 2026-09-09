@@ -117,3 +117,50 @@ export function drawHeart(ctx, x, y, color = '#ff2b4a') {
     }
   }
 }
+
+/**
+ * 언더테일식 초상화: 흰/검 2톤 도트.
+ * - 밝기 문턱(threshold) 미만이면 검정. 캐릭터마다 다르다(파란 곰은 낮게, 분홍 돼지는 높게) → characters.js 에서 지정.
+ * - `scale` 배로 축소(2x 시트 → 대화창 1:1). 블록 안에 어두운 픽셀이 하나라도 있으면 검정 → 1px 선이 안 사라진다.
+ * - 실루엣 가장자리는 항상 흰 선 — 검은 대화창 위에서 머리 같은 검은 영역이 배경에 묻히지 않게.
+ * @param {HTMLImageElement|HTMLCanvasElement} img 컬러 초상화
+ * @param {{ scale?: number, threshold?: number }} opt
+ */
+export function monoPortrait(img, { scale = 1, threshold = null } = {}) {
+  const sw = img.width, sh = img.height;
+  const src = makeCanvas(sw, sh);
+  const sctx = src.getContext('2d');
+  sctx.imageSmoothingEnabled = false;
+  sctx.drawImage(img, 0, 0);
+  const sd = sctx.getImageData(0, 0, sw, sh).data;
+  const lum = new Float32Array(sw * sh), op = new Uint8Array(sw * sh);
+  for (let i = 0; i < sw * sh; i++) {
+    if (sd[i * 4 + 3] < 128) continue;
+    op[i] = 1;
+    lum[i] = (0.299 * sd[i * 4] + 0.587 * sd[i * 4 + 1] + 0.114 * sd[i * 4 + 2]) / 255;
+  }
+  const th = threshold ?? 0.38;   // 캐릭터별 값은 src/data/characters.js portraitThreshold (파란 곰 0.3, 분홍 돼지 0.6)
+  const w = Math.floor(sw / scale), h = Math.floor(sh / scale);
+  const mask = new Uint8Array(w * h), dark = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let anyOp = 0, anyDark = 0;
+    for (let yy = 0; yy < scale; yy++) for (let xx = 0; xx < scale; xx++) {
+      const i = (y * scale + yy) * sw + (x * scale + xx);
+      if (!op[i]) continue; anyOp = 1; if (lum[i] < th) anyDark = 1;
+    }
+    mask[y * w + x] = anyOp; dark[y * w + x] = anyDark;
+  }
+  const c = makeCanvas(w, h);
+  const ctx = c.getContext('2d');
+  const id = ctx.createImageData(w, h), d = id.data;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x;
+    if (!mask[i]) continue;
+    const edge = x === 0 || y === 0 || x === w - 1 || y === h - 1 || !mask[i - 1] || !mask[i + 1] || !mask[i - w] || !mask[i + w];
+    const white = !dark[i] || edge;
+    d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = white ? 255 : 0;
+    d[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(id, 0, 0);
+  return c;
+}

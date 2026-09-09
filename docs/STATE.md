@@ -15,10 +15,10 @@
 | 타일 그림 | `assets/tiles/<name>.png` 32×32 | `tools/art/room_set.py` 로 생성(직접 그린 픽셀아트). 새 타일은 `src/world/tiles.js` 에 `registerTile` 한 줄 |
 | 가구/소품 그림 | `assets/props/*.png` | `tools/art/room_set.py`(방) / `tools/art/living_set.py`(복도·거실·부엌) 의 `prop_*` 함수. 실행은 `/usr/bin/python3`(PIL 있음) |
 | 캐릭터 스프라이트 | `assets/sprites/<id>.png` (4열×4행, 2x) | `tools/sprites/slice_sheet.py` 로 원본에서 재추출. 가장자리 연결 배경만 제거, 기존 엔진용 배율은 최근접 변환. **추가 축소·색 평균·양자화 금지** |
-| 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트. 형섭은 `self`(이름·초상화 없음) |
+| 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트/`portraitThreshold`(초상화 흰검 변환 문턱). 형섭은 `self`(이름·초상화 없음) |
 | 대사 | `src/data/scripts.js` | 키 = 상호작용/트리거의 `script`. 태그 `{w=} {s=} {c=} {shake} {wave}` |
 | 컷신 | `src/data/cutscenes/*.js` | `/cutscene` 스킬. 노드 레퍼런스 `src/ui/cutscene.js` 상단 |
-| 목소리 블립 | `assets/audio/voices/<voice>.mp3` (0.1~0.2s 한 조각) | `src/core/audio.js VOICES` 의 `rate`(톤) / `level`(크기) / `minGap`(블립 최소 간격, 초. 나레이션 0.06 = 33ms 글자 속도에서 두 글자에 한 번 → 겹침 없이 '톡, 톡'. 더 촘촘히 = 0.04, 더 띄엄 = 0.08) |
+| 목소리 블립 | `assets/audio/voices/<voice>.mp3` (0.1~0.2s 한 조각, **앞 무음 없이** — 경섭 클립은 무음 62ms 때문에 안 들렸었음) | `src/core/audio.js VOICES` 의 `rate`(톤) / `level`(크기) / `minGap`(블립 최소 간격, 초. 나레이션 0.06 = 33ms 글자 속도에서 두 글자에 한 번 → 겹침 없이 '톡, 톡'. 더 촘촘히 = 0.04, 더 띄엄 = 0.08) |
 | 효과음 | `assets/audio/sfx/<name>.mp3` | 파일 있으면 파일, 없으면 합성. 로드 목록은 `src/main.js loadSfxFiles([...])` — **새 이름은 여기 추가** |
 | BGM | `assets/audio/bgm/<name>.mp3` | 맵 JSON `bgm`, 컷신 `{bgm:'x'}` |
 | 오디오 출처 | `design/audio/references.md` | 유튜브 링크·경로·상태 |
@@ -28,6 +28,7 @@
 - 에셋은 **그대로**: 원본 시트를 보존하고 게임용 추출 이후 추가 축소/색 양자화를 하지 않는다. 추출 시에도 외곽선 침식·색 평균 금지. 합성 목소리는 싫어함 → 유튜브/게임 원본 소리 사용.
 - 델타룬 이미지를 통째로 가져오지 말고 **같은 퀄리티로 직접 그린** 타일/소품으로 맵 구성 (`tools/art/`).
 - 형섭 대사는 나레이션처럼(이름·초상화 없음, narrator 목소리).
+- **대화창 초상화는 언더테일처럼 흰/검 2톤 도트**(2026-09-09 확정). 컬러 `assets/portraits/*.png` 를 런타임에 `gfx.monoPortrait` 가 변환(96→48 축소, 어두운 픽셀=검정, 실루엣 가장자리는 흰 선). 캐릭터별 문턱은 `src/data/characters.js portraitThreshold`(빠맨 0.3, 쥰희 0.6, 기본 0.38). 새 캐릭터 초상화가 뭉개지면 이 값만 조정.
 - 캐릭터 배율 `CHAR_SCALE=1.43`(world.js, 2026-09-09 +10%). 기본 이동 = 달리기, X/Shift = 천천히. C 확인, X 취소, Esc 타이틀, V 메뉴, T(타이틀) 테스트룸, F1 디버그(오디오 상태 포함).
 - 대화창 4줄·여백 넉넉히. 말풍선/하단 가이드 UI 없음. 대화창 열림/닫힘 효과음 없음(언더테일 동일). 나레이션 = 언더테일 원본 `snd_txt1` 원본 길이 그대로, 글자 33ms, 블립 최소 간격 0.06s(2026-09-09 '겹쳐 들린다' 피드백 → `VOICES.narrator.minGap`).
 - 트리거/문 무결성 규칙은 `.claude/skills/map/SKILL.md` 체크리스트 + `tests/unit/maps.test.mjs` 가 강제(재진입 1회, 쿨다운, 문 핑퐁, 스폰 위치, 영역 겹침).

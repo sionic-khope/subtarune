@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { Input } from './core/input.js';
 import { Sound, VOICES } from './core/audio.js';
-import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional } from './core/gfx.js';
+import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait } from './core/gfx.js';
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
 import { TitleScreen } from './ui/title.js';
@@ -129,8 +129,9 @@ class Game {
         const face = artToCanvas([...TORSO.down.slice(0, 7), ...Array(9).fill('................')], pal);
         ctx.drawImage(face, 3, 0, 10, 8, 0, 4, 48, 40);
       }
-      out[name] = c;
-      loadImageOptional(`assets/portraits/${name}.png`).then((img) => { if (img) out[name] = img; });
+      // 대화창 초상화는 언더테일처럼 흰/검 2톤 도트로 (사용자 확정 2026-09-09)
+      out[name] = monoPortrait(c);
+      loadImageOptional(`assets/portraits/${name}.png`).then((img) => { if (img) out[name] = monoPortrait(img, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold }); });   // 96px 시트 → 48px 대화창 1:1
     }
     return out;
   }
@@ -370,7 +371,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.15';
+export const BUILD = '2026-09-09.16';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

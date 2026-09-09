@@ -2,12 +2,13 @@
 // 캐릭터 레지스트리. 스프라이트 시트(assets/sprites/<id>.png) · 표시 이름 · 음색.
 // 시트 규격: 4열(걷기 프레임) x 4행 [down, up, left, right]. 프레임 크기는 이미지에서 자동(폭/4, 높이/4).
 // 시트가 없으면 src/data/art.js PALETTES[palette] 의 문자 도트로 대체.
+// portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
   hyungsub:  { name: '형섭', voice: 'narrator', palette: 'hero', self: true },   // 주인공 = 나 자신: 대사는 이름/초상화 없이 나레이션처럼
   gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard' },
-  ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat' },
-  junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant' },   // 돼지. 웃음소리 sfx: laugh_junhee
+  ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', portraitThreshold: 0.3 },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
+  junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6 },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },
   cat:       { name: '???',  voice: 'cat',     palette: 'cat' },
   guard:     { name: '경비병', voice: 'robot', palette: 'guard' },
