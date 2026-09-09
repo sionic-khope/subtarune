@@ -27,12 +27,11 @@ s = await st();
 check('ride ends ~4s, raft at route end, flag saved', !s.ride && s.raft[0] === 584 && s.raft[2] === 1 && s.flag === 1, JSON.stringify({ raft: s.raft, flag: s.flag, ms: rideMs }));
 check('player disembarked onto right landing', s.p[0] >= 640, JSON.stringify(s.p));
 await page.screenshot({ path: `${S}/raft_03_arrived.png` });
-// 문까지 걸어가서 C
-await hold('ArrowRight', 1500); await page.waitForTimeout(200);
-await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
-s = await st(); check('door at the end reachable (placeholder line)', s.text.includes('검은 문'), JSON.stringify({ p: s.p, text: s.text }));
-await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
+// 오른쪽 끝 문 → void3 (무음·검은 페이드) → 되돌아오기
+await hold('ArrowRight', 1500); await page.waitForTimeout(900);
+s = await st(); check('void2 right door → void3', s.map === 'void3', s.map);
 await page.screenshot({ path: `${S}/raft_04_door.png` });
+await page.evaluate(() => game.changeMap('void2', 'dock_back', true)); await page.waitForTimeout(300);
 // 되돌아 타기: 착지 왼쪽 끝에서 왼쪽 보고 C
 await page.evaluate(() => { game.player.x = 644; game.player.y = 120; game.player.facing = 'left'; game.camera.snap(); }); await page.waitForTimeout(150);
 await page.keyboard.press('KeyC'); await page.waitForTimeout(300);

@@ -54,7 +54,8 @@
       "w": 16,
       "h": 128,
       "to": "void2",
-      "spawn": "from_void"
+      "spawn": "from_void",
+      "sfx": false
     }
   ]
 }

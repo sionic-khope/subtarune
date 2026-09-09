@@ -47,7 +47,8 @@ model: opus
    - 소품 `w/h` 를 주면 그게 히트박스이고 그림 위치는 `ix/iy`. 안 주면 그림 아래 40% 가 히트박스.
    - 타일 1칸 = 32 논리px. 벽 2줄(`p`/`P`) + 걸레받이 1줄(`q`/`Q`) + 바닥(방 `f/g`, 거실 마루 `h/i`, 부엌 `k/l`). 측면·하단 벽 `e`. 벽 바깥은 공백(검정) — ㄱ자 맵처럼 벽 너머가 보이면 검정이 정상.
    - 맵 옵션: `stage:'pc_checked'`(**필수** — 이 맵에 있으려면 최소 도달해야 하는 스토리 단계, `src/core/story.js`; `?map=` 바로가기가 이걸로 앞 단계를 채운다), `dim:0.22`(살짝 어두운 공간), `enter:{script,flag}`(도착 직후 1회 컷신 — 트리거 대신 이걸 쓴다. 스폰 위 트리거는 금지).
-   - 잠긴 문: `{type:'door', to, spawn, requires:'pc_checked', lockedScript:'room_door'}` — 플래그 없으면 대사만(1회), 있으면 이동.
+   - 잠긴 문: `{type:'door', to, spawn, requires:'pc_checked', lockedScript:'room_door'}` — 플래그 없으면 대사만(1회), 있으면 이동. 소리 없는 문(보라맵): `"sfx": false`. 전환 페이드는 엔진이 항상 검정.
+   - 표지판: `{ "type":"prop","image":"assets/props/signpost.png","x","y","solid":true,"script":"…" }` (보라 세트). 방 세트용 표지판이 필요하면 `/art` 로 하나 더.
    - 조건 소품: `unless:'tart_eaten'`(플래그 서면 사라짐) / `requires:'x'`. 즉시 없애려면 스크립트에 `{remove:'id'}` + `id`.
    - 벽처럼 **항상 뒤에** 그려야 하는 큰 소품(거대한 문)은 `"sortY":0` 을 주고, 히트박스는 플레이어가 닿는 쪽(길 끝 세로 띠)에 둔다.
    - 바닥에 깔리는 장식(러그·방석)은 `"w":128,"h":2` 처럼 **윗변 2px 히트박스** + `solid:false` → y정렬에서 항상 뒤. script 없는 소품은 C 프로브에 안 잡힌다.

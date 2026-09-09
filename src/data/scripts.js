@@ -7,6 +7,14 @@ import { opening } from './cutscenes/opening.js';
 import { living_enter } from './cutscenes/living_enter.js';
 import { pc_stream } from './cutscenes/pc_stream.js';
 
+/**
+ * 형섭 대사 vs 나레이션 (2026-09-10 확정)
+ *  - HS(): 형섭이 "입으로 말하는" 줄 — 인트로 맵(방·복도·거실, void_fallen 전)에서만 이름 '형섭' + 흰검 초상화 + 가재맨 톤 목소리.
+ *  - narrator: 사물 설명("창문이다"), 괄호 속 생각("(엄마한테 가야 된다)"), 상태("기분이 안좋아졌다"), 의성어("철컥..").
+ *  - 보라맵(void_fallen)부터는 자아가 바뀐 컨셉 → 형섭 대사도 이름·초상화 없이 나레이션처럼(narrator). HS() 를 쓰지 않는다.
+ */
+export const HS = (text, extra = {}) => ({ speaker: '형섭', portrait: 'hyungsub', voice: 'hyungsub', text, ...extra });
+
 export const SCRIPTS = {
   opening,
 
@@ -16,9 +24,9 @@ export const SCRIPTS = {
   room_computer: [
     { if: (f) => f.cord_found, goto: 'stream' },     // 코드를 챙긴 뒤: 꽂고 방송 시작 (컷신)
     { if: (f) => f.pc_checked, goto: 'again' },
-    { text: '* ???{w=0.4} 어 뭐야', voice: 'narrator' },
-    { text: '* ㅅㅂ 코드 어디 갔어{w=0.3} 컴퓨터가 안 켜지는데', voice: 'narrator' },
-    { text: '* 아 엄마가 뭐 청소하다가 빼셨나', voice: 'narrator' },
+    HS('* ???{w=0.4} 어 뭐야'),
+    HS('* ㅅㅂ 코드 어디 갔어{w=0.3} 컴퓨터가 안 켜지는데'),
+    HS('* 아 엄마가 뭐 청소하다가 빼셨나'),
     { text: '* (청소ㄴ…{w=0.5} 아니 엄마한테 가야 될 것 같다.)', voice: 'narrator' },
     { stage: 'pc_checked' },
     { end: true },
@@ -30,6 +38,25 @@ export const SCRIPTS = {
   ],
   void_door: [
     { text: '* 거대한 검은 문이다.', voice: 'narrator' },   // 다음 비트 브리핑 대기 (임시 한 줄)
+  ],
+  // 보라맵2 뗏목 표지판 (사용자 지정 텍스트 그대로)
+  void2_sign: [
+    { text: '* 앞으로만 가는 땟목이다.', voice: 'narrator' },
+    { text: '* 아 물론!{w=0.4} 뒤로도 갈수있다.', voice: 'narrator' },
+    { text: '* 반대편에서 탄다면~{w=0.5} 껄껄.', voice: 'narrator' },
+  ],
+  // 보라맵3 뗏목 퍼즐 표지판
+  void3_sign_a: [
+    { text: '* 땟목이 갈리는 곳이다.', voice: 'narrator' },
+    { text: '* 문으로 가는 길은 하나뿐.{w=0.4} 껄껄.', voice: 'narrator' },
+  ],
+  void3_sign_d: [
+    { text: '* 막다른 길이다.', voice: 'narrator' },
+    { text: '* 내려온 땟목을 다시 타면 돌아간다.{w=0.4} 껄껄.', voice: 'narrator' },
+  ],
+  void3_sign_g: [
+    { text: '* 여기도 아니다.', voice: 'narrator' },
+    { text: '* 위를 봐라.{w=0.5} 껄껄껄.', voice: 'narrator' },
   ],
   room_bed: [
     { text: '* 내 침대다.{w=0.3} 위에 선반이 있다.', voice: 'narrator',
@@ -79,27 +106,27 @@ export const SCRIPTS = {
     { text: '* 빈 접시만 남았다.', voice: 'narrator' },
   ],
   living_fridge: [
-    { text: '* 음{w=0.4} 냉장고에 뭐 없나..', voice: 'narrator' },
-    { text: '* 후추?{w=0.5} 이건 왜 있지 ㅅㅂ', voice: 'narrator' },
-    { text: '* 아 진짜 씨발{w=0.3} 왠지 어제 사골곰탕 먹는데 아프더라{w=0.3} 아오', voice: 'narrator' },
+    HS('* 음{w=0.4} 냉장고에 뭐 없나..'),
+    HS('* 후추?{w=0.5} 이건 왜 있지 ㅅㅂ'),
+    HS('* 아 진짜 씨발{w=0.3} 왠지 어제 사골곰탕 먹는데 아프더라{w=0.3} 아오'),
     { text: '* 기분이 안좋아졌다.', voice: 'narrator' },
     { set: { fridge_checked: true } },
   ],
   // 티비: 서랍 3D 씬에서 보라색 코드를 찾는다 (src/scenes/drawer.js). 2D 줌인 → 3D 크로스페이드 → 획득 → 줌아웃
   living_tv: [
     { if: (f) => f.cord_found, goto: 'done' },
-    { text: '* 빈 코드를 뒤져봐야겠다.', voice: 'narrator' },
+    HS('* 빈 코드를 뒤져봐야겠다.'),
     { zoom: 2.8, at: 'tv', offset: [0, -10], duration: 0.9 },
     { scene3d: 'drawer', flag: 'cord_found' },
     { zoom: 1, duration: 0.7 },
     { if: (f) => !f.cord_found, goto: 'later' },
     { text: '* {c=yellow}보라색 코드 ?{/c}를 획득했다!', voice: 'narrator' },
     // 획득 직후 형섭 독백 (사용자 브리핑 2026-09-09, 띄어쓰기만 조정)
-    { text: '* 코드 색깔이 왤캐 이상하지?{w=0.4} 뭐 상관 없나', voice: 'narrator' },
-    { text: '* 아 지각이네 ㅅㅂ{w=0.3} 걍 뭐 대충 위 아팠다고 하지 뭐', voice: 'narrator' },
-    { text: '* 개돼지들 대강 비위 맞춰주고 미안하다고 하다가', voice: 'narrator' },
-    { text: '* 근첩 한 명 잡아서 고로시하면 거기로 다 여론몰이 될꺼니까{w=0.4} 뭐 상관없나', voice: 'narrator' },
-    { text: '* ㅋㅋ{w=0.3} 일단 방송하러 가자.', voice: 'narrator' },
+    HS('* 코드 색깔이 왤캐 이상하지?{w=0.4} 뭐 상관 없나'),
+    HS('* 아 지각이네 ㅅㅂ{w=0.3} 걍 뭐 대충 위 아팠다고 하지 뭐'),
+    HS('* 개돼지들 대강 비위 맞춰주고 미안하다고 하다가'),
+    HS('* 근첩 한 명 잡아서 고로시하면 거기로 다 여론몰이 될꺼니까{w=0.4} 뭐 상관없나'),
+    HS('* ㅋㅋ{w=0.3} 일단 방송하러 가자.'),
     { text: '* 보라색 코드를 주머니에 넣었다.', voice: 'narrator' },
     { action: (g) => { if (!g.inventory.includes('보라색 코드 ?')) g.inventory.push('보라색 코드 ?'); } },
     { end: true },

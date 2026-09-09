@@ -58,4 +58,5 @@ export const QA_POINTS = [
   { id: 'pc_stream', desc: '코드 획득 후 컴퓨터 앞 (C→방송)', stage: 'cord_found',     map: 'room',   spawn: 'pc' },
   { id: 'void',      desc: '보라맵1 도착',                          stage: 'void_fallen',    map: 'void',   spawn: 'fall' },
   { id: 'raft',      desc: '보라맵2, 뗏목 앞',                      stage: 'void_fallen',    map: 'void2',  spawn: 'dock' },
+  { id: 'void3',     desc: '보라맵3 뗏목 퍼즐 입구',                  stage: 'void_fallen',    map: 'void3',  spawn: 'from_void2' },
 ];

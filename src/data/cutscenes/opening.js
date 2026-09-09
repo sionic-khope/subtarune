@@ -4,6 +4,7 @@
 // 작성법: .claude/skills/cutscene/SKILL.md
 // ─────────────────────────────────────────────────────────────
 const N = (text, extra = {}) => ({ style: 'narration', voice: 'narrator', speed: 0.7, text, ...extra });
+const HS = (text, extra = {}) => ({ speaker: '형섭', portrait: 'hyungsub', voice: 'hyungsub', text, ...extra });   // 형섭이 말하는 줄 (인트로 맵)
 
 export const opening = Object.assign([
   // 타이틀의 검은 화면(fade 1)을 유지한 채 브금 시작 → 첫 나레이션 직전에 걷음 (맵이 깜빡 보이는 것 방지)
@@ -43,8 +44,8 @@ export const opening = Object.assign([
   { fade: 'in', duration: 2.0 },                     // 흰색이 걷히며 방이 드러남
   { caption: '평화롭던 우이동', duration: 3.4 },     // 지역 이름 떴다 사라짐
   { wait: 2.6 },
-  { text: '* …{w=0.6} …{w=0.6} 아 맞다 ㅅㅂ', voice: 'narrator' },
-  { text: '* 방송 켜야지{w=0.3} 아 8시 35분이네{w=0.3} 후딱 켜야겠다.', voice: 'narrator' },
+  HS('* …{w=0.6} …{w=0.6} 아 맞다 ㅅㅂ'),
+  HS('* 방송 켜야지{w=0.3} 아 8시 35분이네{w=0.3} 후딱 켜야겠다.'),
   { pose: 'player', to: 'stand' },
   { move: 'player', px: [332, 190] },                // 침대 왼쪽으로 내려옴
   { face: 'player', dir: 'left' },

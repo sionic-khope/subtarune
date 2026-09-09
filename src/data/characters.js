@@ -5,7 +5,7 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
-  hyungsub:  { name: '형섭', voice: 'narrator', palette: 'hero', self: true,
+  hyungsub:  { name: '형섭', voice: 'hyungsub', palette: 'hero', self: true,   // 인트로 맵: 말하는 줄은 HS()(이름·초상화·가재맨 톤 목소리). 보라맵부터는 나레이션처럼(자아 바뀜)
     walkFrameOrder: { left: [0, 1, 3, 2], right: [0, 1, 3, 2] } },
   gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard' },
   ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', portraitThreshold: 0.3 },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게

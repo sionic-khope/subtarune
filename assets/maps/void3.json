@@ -1,0 +1,202 @@
+{
+  "id": "void3",
+  "name": "???",
+  "bgm": "wind",
+  "stage": "void_fallen",
+  "dim": 0,
+  "rows": [
+    "                                    ",
+    "            XxXxOoOoOoOoOoOoXxXx    ",
+    "            xzxXoOoOoOoOoOoOxXxX    ",
+    "            XxXx            Xxzx    ",
+    "            yOoy            xXxX    ",
+    "             oO             yoOy    ",
+    "             Oo              Oo     ",
+    "             oO              oO     ",
+    "             Oo              Oo     ",
+    "             oO              oO     ",
+    "            xXxX             Oo     ",
+    "            XxXx            XxXxXxX ",
+    " XxXx       xXzX        xXxXxXxXxzx ",
+    " xzxXoOoOoOoXxXxOoOoOoOoXzXxXxXxXxX ",
+    " XxXxOoOoOoOxXxXoOoOoOoOxXxXxXxXxXx ",
+    " xXzX       XxXx        XxXxXzXxXxX ",
+    " yyyy       zXxX        yyyyxXxXxXx ",
+    "            yoOy            yyyyyyy ",
+    "             Oo                     ",
+    "             oO                     ",
+    "             Oo                     ",
+    "            XxXx                    ",
+    "            xXxz                    ",
+    "            yyyy                    "
+  ],
+  "spawns": {
+    "from_void2": {
+      "x": 60,
+      "y": 430,
+      "facing": "right"
+    },
+    "start": {
+      "x": 60,
+      "y": 430
+    },
+    "door_back": {
+      "x": 76,
+      "y": 430,
+      "facing": "left"
+    }
+  },
+  "entities": [
+    {
+      "type": "prop",
+      "id": "door_left",
+      "image": "assets/props/big_door.png",
+      "x": -60,
+      "y": 60,
+      "w": 8,
+      "h": 8,
+      "ix": -60,
+      "iy": 330,
+      "solid": false,
+      "sortY": 0
+    },
+    {
+      "type": "door",
+      "x": 32,
+      "y": 416,
+      "w": 12,
+      "h": 64,
+      "to": "void2",
+      "spawn": "dock_back",
+      "sfx": false
+    },
+    {
+      "type": "prop",
+      "id": "sign_a",
+      "image": "assets/props/signpost.png",
+      "x": 96,
+      "y": 392,
+      "solid": true,
+      "script": "void3_sign_a"
+    },
+    {
+      "type": "raft",
+      "id": "raft3_1",
+      "image": "assets/props/raft.png",
+      "x": 164,
+      "y": 428,
+      "route": [
+        [
+          324,
+          428
+        ]
+      ]
+    },
+    {
+      "type": "raft",
+      "id": "raft3_2",
+      "image": "assets/props/raft.png",
+      "x": 420,
+      "y": 276,
+      "route": [
+        [
+          420,
+          132
+        ]
+      ]
+    },
+    {
+      "type": "raft",
+      "id": "raft3_3",
+      "image": "assets/props/raft.png",
+      "x": 420,
+      "y": 548,
+      "route": [
+        [
+          420,
+          628
+        ]
+      ]
+    },
+    {
+      "type": "raft",
+      "id": "raft3_6",
+      "image": "assets/props/raft.png",
+      "x": 516,
+      "y": 428,
+      "route": [
+        [
+          708,
+          428
+        ]
+      ]
+    },
+    {
+      "type": "raft",
+      "id": "raft3_4",
+      "image": "assets/props/raft.png",
+      "x": 516,
+      "y": 44,
+      "route": [
+        [
+          836,
+          44
+        ]
+      ]
+    },
+    {
+      "type": "raft",
+      "id": "raft3_5",
+      "image": "assets/props/raft.png",
+      "x": 932,
+      "y": 164,
+      "route": [
+        [
+          932,
+          308
+        ]
+      ]
+    },
+    {
+      "type": "prop",
+      "id": "sign_d",
+      "image": "assets/props/signpost.png",
+      "x": 470,
+      "y": 676,
+      "solid": true,
+      "script": "void3_sign_d"
+    },
+    {
+      "type": "prop",
+      "id": "sign_g",
+      "image": "assets/props/signpost.png",
+      "x": 836,
+      "y": 392,
+      "solid": true,
+      "script": "void3_sign_g"
+    },
+    {
+      "type": "prop",
+      "id": "big_door",
+      "image": "assets/props/big_door.png",
+      "x": 1000,
+      "y": 300,
+      "w": 8,
+      "h": 8,
+      "ix": 1000,
+      "iy": 328,
+      "solid": false,
+      "sortY": 0
+    },
+    {
+      "type": "sign",
+      "id": "door_zone",
+      "x": 1108,
+      "y": 352,
+      "w": 12,
+      "h": 192,
+      "solid": false,
+      "script": "void_door"
+    }
+  ]
+}

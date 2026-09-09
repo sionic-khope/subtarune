@@ -351,7 +351,7 @@ export class Trigger extends Entity {
 
 /**
  * 문/워프: 밟으면 다른 맵으로. 트리거와 같은 진입 규칙(edge 1회 + 쿨다운 + 대사 중 무시).
- *   { type:'door', x,y,w?,h?, to:'맵', spawn:'스폰', requires?:'플래그', lockedScript?:'스크립트' }
+ *   { type:'door', x,y,w?,h?, to:'맵', spawn:'스폰', requires?:'플래그', lockedScript?:'스크립트', sfx?:false|'이름' }
  *   requires 플래그가 없으면 lockedScript 대사만 띄우고 이동하지 않는다 (같은 자리에 서 있어도 반복 안 됨).
  */
 export class Door extends Trigger {
@@ -362,7 +362,7 @@ export class Door extends Trigger {
       return;
     }
     if (!this.def.to) { done(); return; }
-    this.game.sound.sfx('door');
+    if (this.def.sfx !== false) this.game.sound.sfx(this.def.sfx || 'door');   // sfx:false 면 소리 없음(보라맵 문), sfx:'이름' 으로 바꿀 수도
     this.game.changeMap(this.def.to, this.def.spawn);
     done();
   }
@@ -393,7 +393,7 @@ export class Prop extends Entity {
 
 /**
  * 뗏목(재사용 기믹): 물 위 발판. 옆에 서서 C → 정해진 경로(route)를 따라 일직선으로 이동, 끝에서 내린다. 반대편에서 타면 되돌아온다.
- *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:114, flag?:'raft1' }
+ *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:171, flag?:'raft1' }
  *   x,y 와 route 는 이미지 좌상단(월드). 상태: flags[flag] = 지금 있는 route 인덱스(0=시작) → 맵을 다시 들어와도 그 자리.
  *   타는 동안 game.ride 가 서서 플레이어 입력·트리거가 멈춘다(main.js). 도착하면 진행 방향으로 플레이어를 밀어 내린다.
  */
@@ -402,7 +402,7 @@ export class Raft extends Prop {
     const w = def.w ?? 56, h = def.h ?? 40;
     super({ solid: true, w, h, ix: def.x, iy: def.y, ...def }, game);
     this.route = [[def.x, def.y], ...(def.route || [])];
-    this.speed = def.speed ?? 114;
+    this.speed = def.speed ?? 171;   // 2026-09-09 +50%
     this.at = Math.min(this.route.length - 1, game.flags[this.flagKey] ?? 0);
     this.setPos(this.route[this.at]);
     this.riding = false; this.target = 0;
@@ -415,8 +415,8 @@ export class Raft extends Prop {
     this.riding = true; this.game.ride = this;
     this.target = this.at === 0 ? this.route.length - 1 : 0;
     this.rider = player; player.moving = false;
-    const [tx] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : player.facing;
-    this._carry(); this.game.sound.sfx('door');
+    const [tx, ty] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up';
+    this._carry(); this.game.sound.sfx('splash'); this.splashT = 0.55;
     return true;
   }
   _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.5 - p.h / 2); }
@@ -427,6 +427,7 @@ export class Raft extends Prop {
     if (dist <= step) {
       this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.riding = false; this.game.ride = null;
+      this.game.sound.sfx('splash', { volume: 0.7 });
       this._disembark(dx, dy);
       this.game.autosave?.();
       return;
@@ -434,6 +435,8 @@ export class Raft extends Prop {
     this.x += (dx / dist) * step; this.y += (dy / dist) * step; this.def.ix = this.x; this.def.iy = this.y;
     this._carry();
     this.rider.moving = true; this.rider.animate?.(dt, 4);
+    this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (0.55s 마다, 작게·피치 조금씩 다르게)
+    if (this.splashT <= 0) { this.splashT = 0.55; this.game.sound.sfx('splash', { volume: 0.45, rate: 0.9 + Math.random() * 0.25 }); }
   }
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
   _disembark(dx, dy) {
