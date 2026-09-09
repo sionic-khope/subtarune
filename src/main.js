@@ -109,7 +109,7 @@ class Game {
       if (q.get('sprite')) this.playerSprite = q.get('sprite');
       this.devJump({ map: q.get('map'), spawn: q.get('spawn'), stage: q.get('stage') });   // 단계 backfill 포함
     } else {
-      this.changeMap('room', 'bed', true);
+      this.changeMap('room', 'bed', true, { bgm: false });   // 부팅 시 타이틀 뒤에 준비만 — 방 브금이 타이틀/시작 순간에 새지 않게
     }
   }
 
@@ -219,7 +219,7 @@ class Game {
       this.camera.map = this.map;
       this.camera.target = this.player;
       this.camera.snap();
-      if (bgm && def.bgm && !this.dialogue.running) this.sound.playBgm(def.bgm, { volume: 0.45 });   // bgm:false = 타이틀/새 게임 준비용 맵 교체(브금 안 틈)
+      if (bgm && def.bgm && !this.dialogue.running && this.state !== 'title') this.sound.playBgm(def.bgm, { volume: 0.45 });   // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
     };
     // 맵 JSON `enter: { script, flag? }` — 도착(페이드 인 끝) 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회
     const enter = () => {
@@ -464,7 +464,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.1';
+export const BUILD = '2026-09-10.2';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
