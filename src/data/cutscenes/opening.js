@@ -31,6 +31,7 @@ export const opening = Object.assign([
   { async: [{ wait: 2.6 }, { sfx: 'white' }, { fade: 'white', duration: 3.0 }] },
   { bgm: null, fadeOut: 5.0 },
   N('{s=0.3}내 이름은 {w=0.7}ㄱ{w=0.7}.{w=0.7}.{/s}{w=2.0}', { auto: 0.1 }),
+  { async: null },                                   // C 연타로 빨리 넘겼을 때 아직 안 시작된 배경 흰 페이드를 취소 (뒤늦게 발동해 방 진입 페이드를 덮어 멈추던 버그)
   { fade: 'white', duration: 0 },                    // 텍스트가 끝나는 순간 흰색 100%
   { curtain: 'white' },
   { wait: 0.6 },

@@ -232,6 +232,7 @@ class Game {
   }
 
   fadeTo(target, duration, cb, color) {
+    if (this.fade.cb) { const old = this.fade.cb; this.fade.cb = null; this.fade.target = undefined; old(); }   // 덮어쓰인 페이드의 waiter 를 풀어준다 → 컷신이 영원히 멈추지 않음
     if (color) this.fade.color = color === 'white' ? '255,255,255' : '0,0,0';
     if (duration <= 0) { this.fade.alpha = target; this.fade.target = undefined; if (cb) cb(); return; }
     Object.assign(this.fade, { target, speed: 1 / duration, cb });
@@ -458,7 +459,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.24';
+export const BUILD = '2026-09-09.26';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

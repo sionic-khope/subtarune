@@ -177,6 +177,9 @@ export function makeWaiter(game, node) {
     return done;
   }
   if (node.parallel) return parallel(game, node.parallel);
-  if (node.async) { const w = Array.isArray(node.async) ? sequence(game, node.async) : makeWaiter(game, node.async); if (w) game.background.push(w); return done; }
+  if ('async' in node) {
+    if (!node.async) { game.background = []; return done; }               // { async:null } 남은 배경 동작 취소
+    const w = Array.isArray(node.async) ? sequence(game, node.async) : makeWaiter(game, node.async); if (w) game.background.push(w); return done;
+  }
   return null;
 }

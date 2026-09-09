@@ -8,7 +8,7 @@ export const VOICES = {
   low:     { freq: 210, wave: 'sawtooth', dur: 0.10, jitter: 14, gain: 0.208, cutoff: 1200, glide: -60 },
   cat:     { freq: 880, wave: 'triangle', dur: 0.10, jitter: 90, gain: 0.256, cutoff: 4000 },
   robot:   { freq: 300, wave: 'square',   dur: 0.10, jitter: 0,  gain: 0.224, cutoff: 900 },
-  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9, minGap: 0.06 },   // 파일: 언더테일 원본 snd_txt1 그대로. minGap: 블립 최소 간격(겹침 방지)
+  narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9, minGap: 0, poly: true },   // 파일: 언더테일 원본 snd_txt1. 언더테일처럼 글자마다(33ms) 울리고 앞 소리를 끊지 않는다(poly) — 2026-09-09 '목소리 바뀌었다' 피드백으로 복구
   // ── 캐릭터별 ──
   hyungsub: { freq: 560, wave: 'square',   dur: 0.10, jitter: 40, gain: 0.24, cutoff: 2800 },              // 밝고 또렷
   gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9, cut: true, minGap: 0.07, level: 1.0 },   // 파일: 영상 첫 소리의 어택(앞 무음 62ms 잘라냄) 0.15s, 빠맨과 같은 톤다운(0.9)
@@ -122,9 +122,9 @@ export class Sound {
     const buf = this.voiceBuf[voiceName];
     if (buf && this.ctx && !this.muted) {
       const t = this.ctx.currentTime;
-      // 단선(모노): 이전 글자 소리가 아직 울리고 있으면 끊는다 → 겹쳐서 웅웅거리지 않음
+      // 단선(모노): 이전 글자 소리가 아직 울리고 있으면 끊는다 → 긴 클립(경섭·빠맨)이 웅웅거리지 않음. poly 목소리는 끊지 않는다(언더테일 원본 방식)
       const prev = this._lastBlip;
-      if (prev && prev.voice === voiceName) { try { prev.gain.gain.cancelScheduledValues(t); prev.gain.gain.setValueAtTime(prev.gain.gain.value, t); prev.gain.gain.linearRampToValueAtTime(0.0001, t + 0.008); prev.src.stop(t + 0.01); } catch {} }
+      if (!v.poly && prev && prev.voice === voiceName) { try { prev.gain.gain.cancelScheduledValues(t); prev.gain.gain.setValueAtTime(prev.gain.gain.value, t); prev.gain.gain.linearRampToValueAtTime(0.0001, t + 0.008); prev.src.stop(t + 0.01); } catch {} }
       const src = this.ctx.createBufferSource();
       src.buffer = buf;
       src.playbackRate.value = v.rate ?? 1;                       // 원본 그대로 (톤다운은 rate)
