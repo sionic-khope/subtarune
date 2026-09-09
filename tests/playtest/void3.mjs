@@ -46,17 +46,22 @@ r = await ride(440, 520, 'down', 'raft3 B→D'); check('arrive D (dead end)', r.
 t = await readSign(470, 700, 'up'); check('sign D', t.includes('막다른'), t);
 await page.screenshot({ path: `${S}/void3_02_deadend.png` });
 r = await ride(440, 660, 'up', 'raft3 D→B (back)'); check('back on B', r.s.p[1] < 548 && r.s.p[1] > 320, JSON.stringify(r.s.p));
-r = await ride(484, 430, 'right', 'raft6 B→G'); check('arrive G (dead end)', r.s.p[0] >= 768, JSON.stringify(r.s.p));
-t = await readSign(844, 420, 'up'); check('sign G', t.includes('찾았노'), t);
+r = await ride(484, 430, 'right', 'raft6 B→G'); check('arrive G', r.s.p[0] >= 768, JSON.stringify(r.s.p));
+t = await readSign(844, 452, 'up'); check('sign G', t.includes('찾았노'), t);
+// G 오른쪽 끝 = 화면 끝까지 이어진 땅 → 문 없이 void4 로
+await stand(1000, 440, 'right'); await page.screenshot({ path: `${S}/void3_04_exit.png` });
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1200); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(900);
+s = await st(); check('G right edge → void4 (no door)', s.map === 'void4', JSON.stringify({ map: s.map, p: s.p }));
+await page.evaluate(() => game.changeMap('void3', 'door_back', true)); await page.waitForTimeout(300);
+s = await st(); check('back from void4 lands on G', s.map === 'void3' && s.p[0] === 1060 && s.p[1] === 440, JSON.stringify(s.p));
+// 위 경로는 막다른길: G→B→C→F→E(표지판)
 r = await ride(770, 430, 'left', 'raft6 G→B (back)'); check('back on B (2)', r.s.p[0] < 512 && r.s.p[0] >= 384, JSON.stringify(r.s.p));
 r = await ride(440, 330, 'up', 'raft2 B→C'); check('arrive C', r.s.p[1] < 128, JSON.stringify(r.s.p));
 await page.screenshot({ path: `${S}/void3_03_top.png` });
 r = await ride(484, 60, 'right', 'raft4 C→F'); check('arrive F', r.s.p[0] >= 896, JSON.stringify(r.s.p));
-r = await ride(940, 144, 'down', 'raft5 F→E'); check('arrive E', r.s.p[1] >= 352, JSON.stringify(r.s.p));
-await stand(1000, 420, 'right'); await page.screenshot({ path: `${S}/void3_04_exit.png` });
-await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1200); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(900);
-s = await st(); check('exit door → void4', s.map === 'void4', JSON.stringify({ map: s.map, p: s.p }));
-await page.evaluate(() => game.changeMap('void3', 'door_back', true)); await page.waitForTimeout(300);
+r = await ride(940, 144, 'down', 'raft5 F→E'); check('arrive E (dead end)', r.s.p[1] >= 320 && r.s.p[1] < 384, JSON.stringify(r.s.p));
+t = await readSign(1048, 352, 'up'); check('sign E dead end', t.includes('막다른'), t);
+await page.evaluate(() => game.changeMap('void3', 'from_void2', true)); await page.waitForTimeout(300);
 // 뒤로: void3 왼쪽 문 → void2 오른쪽 착지 (핑퐁 없음)
 await stand(76, 430, 'left'); await page.waitForTimeout(700); await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(600); await page.keyboard.up('ArrowLeft'); await page.waitForTimeout(900);
 s = await st(); check('void3 left door → void2 dock_back', s.map === 'void2' && s.p[0] > 600, JSON.stringify({ map: s.map, p: s.p }));

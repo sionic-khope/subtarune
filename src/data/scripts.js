@@ -57,7 +57,10 @@ export const SCRIPTS = {
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [
     { text: '* 땟목이 갈리는 곳이다.', voice: 'narrator' },
-    { text: '* 문으로 가는 길은 하나뿐.{w=0.4} 껄껄.', voice: 'narrator' },
+    { text: '* 나가는 길은 하나뿐.{w=0.4} 껄껄.', voice: 'narrator' },
+  ],
+  void3_sign_e: [
+    { text: '* 막다른 길이다.{w=0.4} 껄껄.', voice: 'narrator' },   // 위 경로(C→F→E) 끝
   ],
   void3_sign_d: [
     { text: '* 막다른 길이다.', voice: 'narrator' },

@@ -72,6 +72,40 @@ def prop_big_door():
     c.rect(8, h - 6, w - 16, 6, hexc('#4a2578')); c.hline(8, h - 6, w - 16, hexc('#5e2f98'))
     return c
 
+def prop_big_door_closed():
+    """잠긴 큰 문 112x144: 같은 아치 프레임 + 어두운 보라 나무 문짝(세로 널·가운데 이음새·쇠띠 2개). 자물쇠는 별도 소품"""
+    c = prop_big_door()
+    w, h = c.w, c.h
+    DOOR = hexc('#2b1a3f'); DOOR_L = hexc('#3a2554'); DOOR_D = hexc('#1c1029'); IRON = hexc('#5a5a66'); IRON_D = hexc('#3a3a44')
+    import math
+    for y in range(12, h):
+        for x in range(w):
+            dx, dy = x - w // 2, y - 56
+            inner = (y >= 56 and 12 <= x < w - 12) or (dx * dx + dy * dy <= 44 * 44)
+            if inner: c.px(x, y, DOOR)
+    for x in range(20, w - 12, 12):
+        for y in range(12, h):
+            dx, dy = x - w // 2, y - 56
+            if (y >= 56 and 12 <= x < w - 12) or (dx * dx + dy * dy <= 44 * 44): c.px(x, y, DOOR_D)
+    for y in range(12, h):
+        dx, dy = 0, y - 56
+        if y >= 56 or dy * dy <= 44 * 44: c.px(w // 2, y, DOOR_D); c.px(w // 2 - 1, y, DOOR_L)
+    for by in (70, 112):
+        c.rect(14, by, w - 28, 5, IRON); c.hline(14, by, w - 28, hexc('#7a7a88')); c.hline(14, by + 4, w - 28, IRON_D)
+        for x in range(18, w - 16, 10): c.px(x, by + 2, IRON_D)
+    return c
+
+def prop_door_small():
+    """작은 잠긴 문 40x56 (보라맵 큰 아치문은 보라맵1 전용 — 재사용 금지). 어두운 문짝 + 프레임, 자물쇠는 별도 소품"""
+    w, h = 40, 56; c = Canvas(w, h)
+    FR = hexc('#3a1a58'); FR_L = hexc('#4f2a78'); DOOR = hexc('#2b1a3f'); DOOR_D = hexc('#1c1029'); DOOR_L = hexc('#3a2554')
+    c.rrect_outlined(0, 0, w, h, FR, OUT, 6); c.rect(2, 2, w - 4, 3, FR_L)
+    c.rrect(5, 6, w - 10, h - 8, DOOR, 4)
+    for x in (13, 21, 29): c.vline(x, 8, h - 12, DOOR_D)
+    c.vline(w // 2, 8, h - 12, DOOR_L)
+    c.hline(5, h - 3, w - 10, OUT)
+    return c
+
 def main():
     out = 'assets/tiles'; os.makedirs(out, exist_ok=True)
     tiles = {'ground_purple': tile_ground(0), 'ground_purple2': tile_ground(1), 'flower_purple': tile_flower(), 'cliff_purple': tile_cliff()}
@@ -171,7 +205,7 @@ def main():
     prop_pillar().save('assets/props/pillar.png'); prop_padlock().save('assets/props/padlock.png')
     prop_lever(False).save('assets/props/lever_off.png'); prop_lever(True).save('assets/props/lever_on.png')
     tile_bridge().save(f'{out}/bridge_purple.png'); tile_stairs().save(f'{out}/stairs_purple.png')
-    bridge_span(49).save('assets/props/bridge_span49.png')
+    bridge_span(31).save('assets/props/bridge_span31.png'); prop_door_small().save('assets/props/door_small.png')
     print('water/raft ok')
 
 if __name__ == '__main__':

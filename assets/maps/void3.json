@@ -15,14 +15,14 @@
     "             oO              oO     ",
     "             Oo              Oo     ",
     "             oO              oO     ",
-    "            xXxX             Oo     ",
-    "            XxXx            XxXxXxX ",
-    " XxXx       xXzX        xXxXxXxXxzx ",
-    " xzxXoOoOoOoXxXxOoOoOoOoXzXxXxXxXxX ",
-    " XxXxOoOoOoOxXxXoOoOoOoOxXxXxXxXxXx ",
-    " xXzX       XxXx        XxXxXzXxXxX ",
-    " yyyy       zXxX        yyyyxXxXxXx ",
-    "            yoOy            yyyyyyy ",
+    "            xXxX            xXxXxXx ",
+    "            XxXx            XxXxXzX ",
+    " XxXx       xXzX            yyyyyyy ",
+    " xzxXoOoOoOoXxXxOoOoOoOoXxXxXxXxXxX ",
+    " XxXxOoOoOoOxXxXoOoOoOoOxXzXxXxXxXx ",
+    " xXzX       XxXx        XxXxXxXzXxX ",
+    " yyyy       zXxX        yyyyyyyyyyy ",
+    "            yoOy                    ",
     "             Oo                     ",
     "             oO                     ",
     "             Oo                     ",
@@ -42,24 +42,11 @@
     },
     "door_back": {
       "x": 1060,
-      "y": 420,
+      "y": 440,
       "facing": "left"
     }
   },
   "entities": [
-    {
-      "type": "prop",
-      "id": "door_left",
-      "image": "assets/props/big_door.png",
-      "x": -60,
-      "y": 60,
-      "w": 8,
-      "h": 8,
-      "ix": -60,
-      "iy": 330,
-      "solid": false,
-      "sortY": 0
-    },
     {
       "type": "door",
       "x": 32,
@@ -153,7 +140,7 @@
       "route": [
         [
           932,
-          308
+          276
         ]
       ]
     },
@@ -171,29 +158,25 @@
       "id": "sign_g",
       "image": "assets/props/signpost.png",
       "x": 836,
-      "y": 392,
+      "y": 424,
       "solid": true,
       "script": "void3_sign_g"
     },
     {
       "type": "prop",
-      "id": "big_door",
-      "image": "assets/props/big_door.png",
-      "x": 1000,
-      "y": 300,
-      "w": 8,
-      "h": 8,
-      "ix": 1000,
-      "iy": 328,
-      "solid": false,
-      "sortY": 0
+      "id": "sign_e",
+      "image": "assets/props/signpost.png",
+      "x": 1040,
+      "y": 330,
+      "solid": true,
+      "script": "void3_sign_e"
     },
     {
       "type": "door",
       "x": 1108,
-      "y": 352,
+      "y": 416,
       "w": 12,
-      "h": 192,
+      "h": 96,
       "to": "void4",
       "spawn": "from_void3",
       "sfx": false

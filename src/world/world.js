@@ -420,7 +420,7 @@ export class Raft extends Prop {
     this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
     return true;
   }
-  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.5 - p.h / 2); }
+  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.68 - p.h); }   // 발이 뗏목 아래쪽에 닿게 → 위에 서 있는 느낌 (그리기 순서는 main.js 가 항상 위로)
   update(dt) {
     if (!this.riding) return;
     const [tx, ty] = this.route[this.target];

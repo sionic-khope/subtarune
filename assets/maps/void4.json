@@ -6,71 +6,60 @@
   "dim": 0,
   "backdrop": "purple_fire",
   "rows": [
-    "                                                                                                                ",
-    "                                                                                                         xXxXxX ",
-    "                                                                                                         XxzxXx ",
-    "                                                                                                         yyysyy ",
-    "                                                                                                            s   ",
-    " xXxX                                                                                                    xXxXxX ",
-    " XzXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxzx ",
-    " xXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
-    " XxXx                                                                                                    XzXxXx ",
-    " xXzX                                                                                                    xXxXxX ",
-    " yyyy                                                                                                    yyyyyy ",
-    "                                                                                                                ",
-    "                                                                                                                ",
-    "                                                                                                                "
+    "                                                                            ",
+    "                                                                    XxXxXxX ",
+    "                                                                    xzxXxXx ",
+    "                                                                    yyysyyy ",
+    "                                                                       s    ",
+    "                                                                       s    ",
+    "                                                                       s    ",
+    " xXxX                                                                xXxXxX ",
+    " XzXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+    " xXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXzX ",
+    " XxXx                                                                XzXxXx ",
+    " xXzX                                                                xXxXxX ",
+    " yyyy                                                                yyyyyy ",
+    "                                                                            ",
+    "                                                                            ",
+    "                                                                            "
   ],
   "tileSwaps": {
     "bridge_down": {
       "rows": {
-        "5": " xXxX                                                   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbxXxXxX "
+        "7": " xXxX                                 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbxXxXxX "
       }
     }
   },
   "preload": [
-    "assets/props/bridge_span49.png",
+    "assets/props/bridge_span31.png",
     "assets/props/lever_on.png"
   ],
   "spawns": {
     "from_void3": {
       "x": 60,
-      "y": 210,
+      "y": 274,
       "facing": "right"
     },
     "start": {
       "x": 60,
-      "y": 210
+      "y": 274
     },
     "landing": {
-      "x": 3400,
-      "y": 230,
+      "x": 2300,
+      "y": 300,
       "facing": "up"
     },
     "door_back": {
-      "x": 3400,
-      "y": 230,
+      "x": 2300,
+      "y": 300,
       "facing": "left"
     }
   },
   "entities": [
     {
-      "type": "prop",
-      "id": "door_left",
-      "image": "assets/props/big_door.png",
-      "x": -60,
-      "y": 60,
-      "w": 8,
-      "h": 8,
-      "ix": -60,
-      "iy": 110,
-      "solid": false,
-      "sortY": 0
-    },
-    {
       "type": "door",
       "x": 32,
-      "y": 192,
+      "y": 256,
       "w": 12,
       "h": 64,
       "to": "void3",
@@ -82,11 +71,11 @@
       "id": "raft4",
       "image": "assets/props/raft.png",
       "x": 164,
-      "y": 204,
+      "y": 268,
       "route": [
         [
-          3300,
-          204
+          2148,
+          268
         ]
       ]
     },
@@ -94,12 +83,12 @@
       "type": "prop",
       "id": "pillar",
       "image": "assets/props/pillar.png",
-      "x": 1760,
-      "y": 190,
+      "x": 1184,
+      "y": 254,
       "w": 32,
       "h": 8,
-      "ix": 1760,
-      "iy": 144,
+      "ix": 1184,
+      "iy": 208,
       "solid": false,
       "sortY": 0
     },
@@ -107,16 +96,16 @@
       "type": "npc",
       "id": "ppaman",
       "sprite": "ppaman",
-      "x": 1764,
-      "y": 168,
+      "x": 1188,
+      "y": 232,
       "facing": "down",
       "wander": 0,
       "script": "void4_ppaman"
     },
     {
       "type": "trigger",
-      "x": 3360,
-      "y": 160,
+      "x": 2208,
+      "y": 224,
       "w": 24,
       "h": 160,
       "once": true,
@@ -124,36 +113,10 @@
       "script": "void4_arrive"
     },
     {
-      "type": "prop",
-      "id": "big_door",
-      "image": "assets/props/big_door.png",
-      "x": 3400,
-      "y": 100,
-      "w": 8,
-      "h": 8,
-      "ix": 3420,
-      "iy": 136,
-      "solid": false,
-      "sortY": 0
-    },
-    {
-      "type": "prop",
-      "id": "padlock",
-      "image": "assets/props/padlock.png",
-      "x": 3400,
-      "y": 110,
-      "w": 8,
-      "h": 8,
-      "ix": 3467,
-      "iy": 226,
-      "solid": false,
-      "sortY": 1
-    },
-    {
       "type": "sign",
       "id": "door_zone",
-      "x": 3540,
-      "y": 160,
+      "x": 2388,
+      "y": 224,
       "w": 12,
       "h": 160,
       "solid": false,
@@ -163,11 +126,11 @@
       "type": "prop",
       "id": "lever_off",
       "image": "assets/props/lever_off.png",
-      "x": 3492,
+      "x": 2212,
       "y": 52,
       "w": 24,
       "h": 8,
-      "ix": 3492,
+      "ix": 2212,
       "iy": 28,
       "solid": true,
       "script": "void4_lever",
@@ -177,15 +140,41 @@
       "type": "prop",
       "id": "lever_on",
       "image": "assets/props/lever_on.png",
-      "x": 3492,
+      "x": 2212,
       "y": 52,
       "w": 24,
       "h": 8,
-      "ix": 3492,
+      "ix": 2212,
       "iy": 28,
       "solid": true,
       "script": "void4_lever",
       "requires": "bridge_down"
+    },
+    {
+      "type": "prop",
+      "id": "door_small",
+      "image": "assets/props/door_small.png",
+      "x": 2300,
+      "y": 150,
+      "w": 8,
+      "h": 8,
+      "ix": 2354,
+      "iy": 184,
+      "solid": false,
+      "sortY": 0
+    },
+    {
+      "type": "prop",
+      "id": "padlock",
+      "image": "assets/props/padlock.png",
+      "x": 2300,
+      "y": 160,
+      "w": 8,
+      "h": 8,
+      "ix": 2365,
+      "iy": 212,
+      "solid": false,
+      "sortY": 1
     }
   ]
 }
