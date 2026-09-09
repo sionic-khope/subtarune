@@ -40,8 +40,11 @@ export const SCRIPTS = {
   ],
   room_poster: [{ text: '* 방송 포스터다.{w=0.3} 내 얼굴이 크게 박혀 있다.', voice: 'narrator' }],
   room_window: [
-    { text: '* 반지하 창문이다.{w=0.3} 밖은 벌써 어둡다.', voice: 'narrator' },
+    { text: '* 반지하 창문이다.{w=0.3} 창밖에 반밖에 안 보인다.', voice: 'narrator' },
     { text: '* 지나가는 사람 발만 보인다.', voice: 'narrator' },
+  ],
+  corridor_shovel: [
+    { text: '* 삽이다.{w=0.3} 집 밖으로 나갈 때 써야 한다.', voice: 'narrator' },
   ],
   corridor_frame: [
     { text: '* 어릴 때 사진이다.{w=0.4} 그때도 이 얼굴이었네.', voice: 'narrator' },
@@ -97,7 +100,7 @@ export const SCRIPTS = {
     { text: '* ...{w=0.5}안 먹는다.', voice: 'narrator' },
   ],
   living_window: [
-    { text: '* 창밖으로 골목이 보인다.{w=0.3} 가로등이 깜빡거린다.', voice: 'narrator' },
+    { text: '* 반지하라{w=0.3} 창밖에 반밖에 안 보인다.', voice: 'narrator' },
   ],
   living_clock: [
     { text: '* 벽시계다.{w=0.3} 8시 40분.', voice: 'narrator' },

@@ -228,6 +228,25 @@ def prop_side_cabinet():
     c.px(45, 0, hexc('#e06b5a')); c.px(44, 1, hexc('#e06b5a')); c.px(46, 1, hexc('#e06b5a'))
     return shadow(c, 0, h - 6, w, 6)
 
+def prop_shovel():
+    """벽에 기대 둔 삽 24x64: 나무 자루(살짝 기울음) + D자 손잡이 + 쇠 날"""
+    w, h = 24, 64; c = Canvas(w, h)
+    HANDLE = hexc('#b0793f'); HANDLE_D = hexc('#7e5426'); HANDLE_L = hexc('#d09a58')
+    # 자루: 위(x=15) → 아래(x=9) 로 기울어진 3px 막대
+    for y in range(8, 46):
+        x = 15 - (y - 8) * 6 // 38
+        c.px(x - 1, y, OUT); c.px(x, y, HANDLE); c.px(x + 1, y, HANDLE_L); c.px(x + 2, y, OUT)
+    for y in range(12, 44, 9): c.px(15 - (y - 8) * 6 // 38, y, HANDLE_D)
+    # D자 손잡이
+    c.rrect_outlined(11, 0, 10, 10, HANDLE, OUT, 3); c.rect(14, 3, 4, 4, None); c.rect(14, 3, 4, 4, (0, 0, 0)); c.a[3:7, 14:18] = 0
+    c.outline(13, 2, 6, 6, OUT)
+    # 날: 목(소켓) + 넓은 삽날
+    c.rect(7, 44, 6, 5, STEEL_D); c.outline(6, 43, 8, 7, OUT)
+    c.rrect_outlined(2, 48, 16, 15, STEEL, OUT, 3); c.rect(4, 50, 12, 3, STEEL_L)
+    c.rect(4, 58, 12, 3, STEEL_D); c.hline(3, 62, 14, OUT)
+    c.dither(4, 54, 12, 4, STEEL_D, 2)
+    return shadow(c, 0, h - 4, 20, 4)
+
 def prop_frame():
     """복도 액자 28x22"""
     w, h = 28, 22; c = Canvas(w, h)
@@ -243,7 +262,7 @@ def main():
     props = {'doorway_left': prop_doorway_side(), 'doorway_right': prop_doorway_side(flip=True), 'tv': prop_tv(), 'sofa': prop_sofa(),
              'table_low': prop_table_low(), 'tart': prop_tart(), 'cushion': prop_cushion(), 'fridge': prop_fridge(),
              'counter_sink': prop_counter_sink(), 'stove': prop_stove(), 'cabinet_upper': prop_cabinet_upper(), 'plant': prop_plant(),
-             'clock': prop_clock(), 'calendar': prop_calendar(), 'rug_living': prop_rug_living(), 'side_cabinet': prop_side_cabinet(), 'frame': prop_frame()}
+             'clock': prop_clock(), 'calendar': prop_calendar(), 'rug_living': prop_rug_living(), 'side_cabinet': prop_side_cabinet(), 'frame': prop_frame(), 'shovel': prop_shovel()}
     for n, c in tiles.items(): c.save(f'{out_t}/{n}.png')
     for n, c in props.items(): c.save(f'{out_p}/{n}.png')
     # 미리보기: 거실 26x13 조립 (부엌은 오른쪽 8칸)

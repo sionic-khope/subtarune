@@ -23,13 +23,13 @@ const finishDialogue = async (max = 20) => {
 };
 const CASES = {
   room: [
-    ['poster', 336, 96, 'up', '포스터'], ['window', 244, 96, 'up', '창문'],
+    ['poster', 336, 96, 'up', '포스터'], ['window', 244, 96, 'up', '반밖에'],
   ],
   corridor: [
-    ['frame', 300, 224, 'up', '사진'],
+    ['frame', 300, 224, 'up', '사진'], ['shovel', 404, 224, 'up', '삽'],
   ],
   living: [
-    ['window', 430, 96, 'up', '골목'], ['clock', 306, 96, 'up', '시계'], ['calendar', 534, 96, 'up', '달력'],
+    ['window', 430, 96, 'up', '반밖에'], ['clock', 306, 96, 'up', '시계'], ['calendar', 534, 96, 'up', '달력'],
     ['sofa', 150, 252, 'up', '소파'], ['plant', 48, 132, 'up', '화분'], ['cabinet', 260, 120, 'up', '장식장'],
     ['sink', 600, 124, 'up', '싱크대'], ['stove', 690, 124, 'up', '곰탕'], ['tv', 146, 122, 'up', '코드'], ['fridge', 750, 124, 'up', '냉장고'],
   ],
@@ -42,7 +42,7 @@ for (const [map, cases] of Object.entries(CASES)) {
     await page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.camera.snap(); }, [x, y, facing]);
     await page.waitForTimeout(120);
     await page.keyboard.press('KeyC'); await page.waitForTimeout(350);
-    if (name === 'sofa' || name === 'poster') await page.screenshot({ path: `${S}/furn_${map}_${name}.png` });
+    if (name === 'sofa' || name === 'poster' || name === 'shovel') await page.screenshot({ path: `${S}/furn_${map}_${name}.png` });
     const texts = await finishDialogue();
     check(`${map}/${name}`, texts.length >= 1 && texts.some((t) => t.includes(kw)), texts.join(' | ') || '(대사 없음)');
   }
