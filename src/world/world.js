@@ -112,9 +112,10 @@ export function characterSprite(paletteName, override = null) {
     set.fw = fw; set.fh = fh; set.px = RENDER_SCALE;   // assets/sprites 시트는 2x 해상도
     const rows = ['down', 'up', 'left', 'right'];
     rows.forEach((dir, r) => {
+      const order = CHARACTERS[paletteName]?.walkFrameOrder?.[dir] || [0, 1, 2, 3];
       for (let f = 0; f < 4; f++) {
         const c = makeCanvas(fw, fh);
-        c.getContext('2d').drawImage(override, f * fw, r * fh, fw, fh, 0, 0, fw, fh);
+        c.getContext('2d').drawImage(override, order[f] * fw, r * fh, fw, fh, 0, 0, fw, fh);
         set[dir].push(c);
       }
     });
@@ -173,14 +174,14 @@ export class Character extends Entity {
     super(def, game);
     this.sprite = characterSprite(def.sprite || 'hero', game.spriteOverrides[def.sprite]);
     this.frame = 0;
-    this.animTime = 0;
+    this.animPhase = 0;
     this.moving = false;
     this.speed = def.speed ?? TILE * 3.8;
   }
   animate(dt, fps = 8) {
-    if (!this.moving) { this.frame = 0; this.animTime = 0; return; }
-    this.animTime += dt;
-    this.frame = Math.floor(this.animTime * fps) % 4;
+    if (!this.moving) { this.frame = 0; this.animPhase = 0; return; }
+    this.animPhase += dt * fps;
+    this.frame = Math.floor(this.animPhase) % 4;
   }
   /** 축별 이동 + 타일/엔티티 충돌 */
   moveBy(dx, dy) {
@@ -230,9 +231,9 @@ export class Player extends Character {
     this.lastMove = 0;
   }
   update(dt, input) {
+    const startX = this.x, startY = this.y;
     const a = input.axis();
-    this.moving = a.x !== 0 || a.y !== 0;
-    if (this.moving) {
+    if (a.x !== 0 || a.y !== 0) {
       if (a.x) this.facing = a.x > 0 ? 'right' : 'left';
       if (a.y && !a.x) this.facing = a.y > 0 ? 'down' : 'up';
       const run = input.down('cancel') ? this.slowMul : 1;
@@ -241,6 +242,7 @@ export class Player extends Character {
       // 소수점 누적 이동 (도트 튐 방지: 렌더 시 round)
       this.moveBy((a.x / len) * step, (a.y / len) * step);
     }
+    this.moving = this.x !== startX || this.y !== startY;
     this.animate(dt, input.down('cancel') ? 8 : 12);
 
     // 밟는 트리거
@@ -269,6 +271,7 @@ export class NPC extends Character {
   }
   update(dt) {
     if (this.game.dialogue.running) { this.moving = false; this.animate(dt); return; }
+    const startX = this.x, startY = this.y;
     if (this.wander > 0) {
       this.wanderTimer -= dt;
       if (this.wanderTimer <= 0) {
@@ -287,6 +290,7 @@ export class NPC extends Character {
         else { this.moveBy(this.dir.x * sp * dt, this.dir.y * sp * dt); }
       }
     }
+    this.moving = this.x !== startX || this.y !== startY;
     this.animate(dt, 6);
   }
   interact(player) {

@@ -18,8 +18,10 @@ page.on('response', (response) => {
 });
 try {
   for (const id of ['hyungsub', 'gyeongsub', 'ppaman', 'junhee']) {
+    const portraitLoaded = page.waitForResponse((response) => response.url().includes(`/assets/portraits/${id}.png`) && response.ok());
     await page.goto(`http://127.0.0.1:8765/?map=test&sprite=${id}`);
-    await page.waitForFunction((name) => window.game?.state === 'field' && game.portraits[name]?.naturalWidth === 96, id);
+    await portraitLoaded;
+    await page.waitForFunction((name) => window.game?.state === 'field' && game.portraits[name]?.width === 48, id);
     const sheet = await page.evaluate((name) => {
       const image = game.spriteOverrides[name];
       return { loaded: !!image, width: image?.width, height: image?.height, px: game.player.sprite.px };
@@ -29,7 +31,11 @@ try {
     assert.equal(sheet.height % 4, 0);
     assert.equal(sheet.px, 2);
     for (const [direction, key] of [['down', 'ArrowDown'], ['up', 'ArrowUp'], ['left', 'ArrowLeft'], ['right', 'ArrowRight']]) {
-      await page.evaluate(() => { game.player.x = 240; game.player.y = 260; game.camera.snap(); });
+      await page.evaluate((dir) => {
+        game.player.x = 432;
+        game.player.y = dir === 'left' || dir === 'right' ? 400 : 260;
+        game.camera.snap();
+      }, direction);
       await page.keyboard.down('Shift');
       await page.keyboard.down(key);
       const frames = new Set();
@@ -46,6 +52,27 @@ try {
       assert.equal(frames.size, 4, `${id}: ${direction} must cycle all four frames`);
       results.push(`PASS ${id} ${direction}: loaded PNG, four moving frames`);
     }
+    await page.evaluate(() => { game.player.x = 32; game.player.y = 260; game.camera.snap(); });
+    await page.keyboard.down('ArrowLeft');
+    await page.waitForTimeout(200);
+    const blocked = await page.evaluate(() => ({ x: game.player.x, moving: game.player.moving, frame: game.player.frame }));
+    await page.keyboard.up('ArrowLeft');
+    assert.deepEqual(blocked, { x: 32, moving: false, frame: 0 }, `${id}: wall contact must stop feet`);
+    await page.screenshot({ path: `${output}/${id}-wall-idle.png` });
+    results.push(`PASS ${id} wall: idle without displacement`);
+    await page.evaluate(() => { game.player.x = 432; game.player.y = 400; game.camera.snap(); });
+    await page.keyboard.down('ArrowRight');
+    await page.waitForTimeout(100);
+    const runPhase = await page.evaluate(() => game.player.animPhase);
+    await page.keyboard.down('Shift');
+    await page.waitForTimeout(100);
+    const walkPhase = await page.evaluate(() => game.player.animPhase);
+    await page.keyboard.up('Shift');
+    await page.waitForTimeout(100);
+    const resumedPhase = await page.evaluate(() => game.player.animPhase);
+    await page.keyboard.up('ArrowRight');
+    assert.ok(walkPhase > runPhase && resumedPhase > walkPhase, `${id}: run/walk phase progresses continuously`);
+    results.push(`PASS ${id} run/walk switching: continuous animation phase`);
     await page.evaluate((name) => game.runScript(`test_${name}`), id);
     await page.waitForFunction(() => game.textbox.state === 'typing' || game.textbox.state === 'waiting');
     await page.keyboard.press('KeyC');

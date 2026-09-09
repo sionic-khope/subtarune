@@ -28,8 +28,10 @@
 - 에셋은 **그대로**: 원본 시트를 보존하고 게임용 추출 이후 추가 축소/색 양자화를 하지 않는다. 추출 시에도 외곽선 침식·색 평균 금지. 합성 목소리는 싫어함 → 유튜브/게임 원본 소리 사용.
 - 델타룬 이미지를 통째로 가져오지 말고 **같은 퀄리티로 직접 그린** 타일/소품으로 맵 구성 (`tools/art/`).
 - 형섭 대사는 나레이션처럼(이름·초상화 없음, narrator 목소리).
+- **형섭 그림에는 입이 없음**: 2026-09-09 사용자가 직접 픽셀 수정을 승인해 옆모습에 남은 입선 261픽셀만 피부로 복원했다. 원본 수정 범위는 `assets/source/hyungsub-mouth-retouch.json`. 코·안경·턱·경섭의 입은 유지. 입이 남은 이전 생성 초안을 재사용하지 않는다.
 - **대화창 초상화는 언더테일처럼 흰/검 2톤 도트**(2026-09-09 확정). 컬러 `assets/portraits/*.png` 를 런타임에 `gfx.monoPortrait` 가 변환(96→48 축소, 어두운 픽셀=검정, 실루엣 가장자리는 흰 선). 캐릭터별 문턱은 `src/data/characters.js portraitThreshold`(빠맨 0.3, 쥰희 0.6, 기본 0.38). 새 캐릭터 초상화가 뭉개지면 이 값만 조정.
 - 캐릭터 배율 `CHAR_SCALE=1.43`(world.js, 2026-09-09 +10%). 기본 이동 = 달리기, X/Shift = 천천히. C 확인, X 취소, Esc 타이틀, V 메뉴, T(타이틀) 테스트룸, F1 디버그(오디오 상태 포함).
+- 걷기 보정: 방향별 4프레임을 공통 영역/같은 샘플링 격자로 추출해 머리 흔들림을 막고, 4px 테두리 절삭으로 잘렸던 신발 끝을 보존한다. 형섭 좌우 재생만 `walkFrameOrder: [0,1,3,2]`. `Character.animPhase`로 속도 전환 시 보행 위상을 유지하며, Player/NPC는 충돌 후 실제 이동한 경우만 걷는다. 기존 이동 속도와 `CHAR_SCALE`은 변경하지 않았다.
 - 대화창 4줄·여백 넉넉히. 말풍선/하단 가이드 UI 없음. 대화창 열림/닫힘 효과음 없음(언더테일 동일). 나레이션 = 언더테일 원본 `snd_txt1` 원본 길이 그대로, 글자 33ms, 블립 최소 간격 0.06s(2026-09-09 '겹쳐 들린다' 피드백 → `VOICES.narrator.minGap`).
 - 트리거/문 무결성 규칙은 `.claude/skills/map/SKILL.md` 체크리스트 + `tests/unit/maps.test.mjs` 가 강제(재진입 1회, 쿨다운, 문 핑퐁, 스폰 위치, 영역 겹침).
 - 컷신 중 맵이 새면 안 됨 → `{curtain:'black'|'white'|null}` 로 막는다. `{bgm:null, fadeOut:n}` (fade 아님).
@@ -68,6 +70,8 @@
 - 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 체크). 맵 JSON `stage` 필드는 위 '상태 시스템' 참고.
 
 ## 검증 방법
+입·걷기 보정: `tests/sprites/test_hyungsub_mouth.py`는 입선 영역의 피부 복원을, `test_slice_sheet.py`는 가장자리 보존과 실제 시트 머리 기준점 정렬을 검사한다. `tests/unit/animation.test.mjs`와 `sprite-order.test.mjs`는 속도 전환·벽 충돌·프레임 순서를 검사한다. `sprites.mjs`는 현재 48×48 흑백 초상화에 맞춰 PNG 응답을 기다리고, 4명 모두 이동/속도 전환/벽에서 멈춤/대화창을 확인한다.
+
 스프라이트: `uv run --with pillow --with numpy --with pytest pytest tests/sprites -q` (배경·외곽선·원본 색·프레임 계약 회귀). `node tests/playtest/sprites.mjs` (서버 8765, 형섭·경섭·빠맨·쥰희 4방향×4프레임, 대화창 인물 연결, PNG 로딩). 원본 3인 시트 왼쪽부터 `hyungsub/gyeongsub/ppaman`, 돼지 별도 시트는 `junhee`다. 재추출 명령은 README의 '캐릭터 시트 재추출' 참고.
 
 2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.

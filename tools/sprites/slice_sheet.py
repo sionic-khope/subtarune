@@ -38,17 +38,13 @@ def detect_grid(im):
     return cols, rows
 
 
-EDGE_TRIM = 4            # 셀 테두리 잔선 제거(px)
-
-
 def key_cell(cell: npt.NDArray[np.int64]) -> Image.Image:
     """가장자리에 연결된 배경만 제거하고 내부 색과 외곽선은 보존한다."""
-    cell = cell[EDGE_TRIM:-EDGE_TRIM, EDGE_TRIM:-EDGE_TRIM]
     edge = np.concatenate([cell[2:14, 2:14].reshape(-1, 3), cell[-14:-2, 2:14].reshape(-1, 3),
                            cell[2:14, -14:-2].reshape(-1, 3), cell[-14:-2, -14:-2].reshape(-1, 3)])
     bg = np.median(edge, 0)
     d = np.abs(cell - bg).sum(2)
-    purple_fringe = (cell[..., 0] > cell[..., 1] + 20) & (cell[..., 2] > cell[..., 0] + 20) & (d <= 240)
+    purple_fringe = (cell[..., 0] > cell[..., 1] + 20) & (cell[..., 2] > cell[..., 0] + 10) & (d <= 240)
     background = (d <= 90) | purple_fringe
     height, width = background.shape
     alpha = np.ones((height, width), dtype=np.bool_)
@@ -84,22 +80,26 @@ def quantize_to_palette(img, palette_img, n=None):
     return Image.fromarray(out, 'RGBA')
 
 
-def char_crop(cell_rgb):
-    rgba = key_cell(cell_rgb)
-    a = np.array(rgba)[..., 3]
-    ys, xs = np.where(a > 127)
-    if len(xs) == 0: return None
-    return rgba.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
+def align_frames(frames: list[Image.Image], downsample: int) -> list[Image.Image]:
+    """방향별 공통 영역을 정수 축소 격자에 맞춰 잘라 프레임 기준점을 보존한다."""
+    bounds = [box for frame in frames if (box := frame.getbbox()) is not None]
+    if not bounds:
+        return [Image.new('RGBA', (downsample, downsample)) for _ in frames]
+    left = min(box[0] for box in bounds) // downsample * downsample
+    top = min(box[1] for box in bounds) // downsample * downsample
+    right = (max(box[2] for box in bounds) + downsample - 1) // downsample * downsample
+    bottom = (max(box[3] for box in bounds) + downsample - 1) // downsample * downsample
+    return [frame.crop((left, top, right, bottom)) for frame in frames]
 
 
-def process_cell(cell_rgb, FW, FH, scale):
-    crop = char_crop(cell_rgb)
-    if crop is None: return Image.new('RGBA', (FW, FH))
+def process_cell(crop: Image.Image, frame_size: tuple[int, int], scale: float) -> Image.Image:
+    """공통 영역에서 자른 RGBA 프레임을 같은 격자로 축소하고 하단 중앙에 놓는다."""
+    fw, fh = frame_size
     w = max(1, round(crop.width * scale)); h = max(1, round(crop.height * scale))
     small = crop.resize((w, h), Image.Resampling.NEAREST)  # 원본 도트 색을 평균내지 않는다
     a = np.array(small); a[..., 3] = np.where(a[..., 3] > 127, 255, 0); small = Image.fromarray(a, 'RGBA')
-    frame = Image.new('RGBA', (FW, FH))
-    frame.paste(small, ((FW - w) // 2, FH - h), small)
+    frame = Image.new('RGBA', frame_size)
+    frame.paste(small, ((fw - w) // 2, fh - h), small)
     return frame
 
 
@@ -118,7 +118,7 @@ def make_portrait(cell_rgb, size=96, head_ratio=0.56):
     return out
 
 
-def main():
+def main() -> None:
     src, ids = sys.argv[1], sys.argv[2:]
     img = Image.open(src).convert('RGB')
     im = np.array(img).astype(int)
@@ -128,24 +128,26 @@ def main():
     print(f'grid: {len(cols)} cols x {len(rows)} rows')
     import os; os.makedirs('assets/sprites', exist_ok=True); os.makedirs('assets/portraits', exist_ok=True)
     for ci, cid in enumerate(ids):
-        # 캐릭터 전체 16셀의 최대 높이 기준으로 스케일 하나를 정한다 (프레임끼리 크기 튐 방지)
-        crops = {}
+        cell_h = rows[0][1] - rows[0][0]
+        downsample = max(1, round(cell_h / CELL_TARGET_H))
+        scale = 1.0 / downsample
+        # 방향별 네 프레임은 같은 원본 영역과 축소 격자를 쓰고, 출력 크기는 16셀 전체에 맞춘다.
+        crops: dict[int, list[Image.Image]] = {}
         for ri in range(4):
+            frames: list[Image.Image] = []
             for f in range(4):
                 x0, x1 = cols[ci * 4 + f]; y0, y1 = rows[ri]
-                crops[(ri, f)] = char_crop(im[y0:y1, x0:x1])
-        cell_h = rows[0][1] - rows[0][0]
-        scale = 1.0 / max(1, round(cell_h / CELL_TARGET_H))   # 기존 엔진용 크기를 유지하며 최근접 변환
-        max_h = max(round(c.height * scale) for c in crops.values() if c is not None)
-        max_w = max(round(c.width * scale) for c in crops.values() if c is not None)
+                frames.append(key_cell(im[y0:y1, x0:x1]))
+            crops[ri] = align_frames(frames, downsample)
+        max_h = max(round(c.height * scale) for row in crops.values() for c in row)
+        max_w = max(round(c.width * scale) for row in crops.values() for c in row)
         FW = max(MIN_FW, max_w + 2 + (max_w % 2))
         FH = max_h + 2 + (max_h % 2)
         sheet = Image.new('RGBA', (FW * 4, FH * 4))
         for oi, dirname in enumerate(OUT_ROWS):
             ri = ROW_MAP[dirname]
             for f in range(4):
-                x0, x1 = cols[ci * 4 + f]; y0, y1 = rows[ri]
-                frame = process_cell(im[y0:y1, x0:x1], FW, FH, scale)
+                frame = process_cell(crops[ri][f], (FW, FH), scale)
                 sheet.paste(frame, (f * FW, oi * FH))
         out = f'assets/sprites/{cid}.png'
         sheet.save(out)
