@@ -2,6 +2,7 @@
   "maps": [
     "room",
     "corridor",
-    "living"
+    "living",
+    "void"
   ]
 }

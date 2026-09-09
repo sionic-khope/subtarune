@@ -13,6 +13,7 @@
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { zoom: s, at: id|[x,y], offset?, duration? }  2D 월드 줌 (UI 제외)
 //  { scene3d: 'drawer', flag? }  src/scenes/<name>.js 의 run(game,node) → {found} 을 기다림
+//  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
 //  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
@@ -152,6 +153,28 @@ export function makeWaiter(game, node) {
       .catch((e) => { console.warn('[scene3d] 실패 → 건너뜀', e); return { found: true, fallback: true }; })
       .then((res) => { game.scene3d = null; if (node.flag && res?.found) game.setFlag(node.flag); game.flags[`${node.scene3d}_result`] = res?.found ? 'found' : 'cancel'; finished = true; });
     return { update: () => finished };
+  }
+  if ('chat' in node) {                                // { chat:'open'|'close'|'late'|'spam'|'idle'|'question'|'silence'|'panic' }
+    if (node.chat === 'open') game.chat.start({ viewers: node.viewers ?? 100 });
+    else if (node.chat === 'close' || node.chat === null) game.chat.stop();
+    else game.chat.setMode(node.chat);
+    return done;
+  }
+  if ('dialog' in node) {                              // { dialog:{title,text,button} } { dialog:'press' } { dialog:null }
+    if (node.dialog === 'press') { game.sysdialog.press(); return timer(0.35); }
+    if (node.dialog) game.sysdialog.show(node.dialog); else game.sysdialog.hide();
+    return done;
+  }
+  if ('vortex' in node) {                              // { vortex:{ at:'pc'|[x,y], size, grow } } { vortex:null } — 기다리지 않음
+    if (!node.vortex) { game.vortex.stop(); return done; }
+    if (game.vortex.active && !node.vortex.at) game.vortex.grow(node.vortex);
+    else {
+      let x = 0, y = 0;
+      if (Array.isArray(node.vortex.at)) [x, y] = node.vortex.at;
+      else { const e = findEntity(game, node.vortex.at); if (e) { x = (e.drawX ?? e.x) + (e.iw ?? e.w) / 2; y = (e.drawY ?? e.y) + (e.ih ?? e.h) * 0.35; } }
+      game.vortex.start({ x, y, size: node.vortex.size, grow: node.vortex.grow });
+    }
+    return done;
   }
   if (node.parallel) return parallel(game, node.parallel);
   if (node.async) { const w = Array.isArray(node.async) ? sequence(game, node.async) : makeWaiter(game, node.async); if (w) game.background.push(w); return done; }

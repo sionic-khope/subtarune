@@ -129,3 +129,8 @@ registerTile('h', { name: 'floor_plank', solid: false, draw: flat('#b98c5e') });
 registerTile('i', { name: 'floor_plank2', solid: false, draw: flat('#b98c5e') });
 registerTile('k', { name: 'floor_kitchen', solid: false, draw: flat('#d8d2c4') });
 registerTile('l', { name: 'floor_kitchen2', solid: false, draw: flat('#d8d2c4') });
+// 허공의 보라색 땅 (tools/art/void_set.py)
+registerTile('x', { name: 'ground_purple', solid: false, draw: flat('#4a2578') });
+registerTile('X', { name: 'ground_purple2', solid: false, draw: flat('#4a2578') });
+registerTile('z', { name: 'flower_purple', solid: false, draw: flat('#4a2578') });
+registerTile('y', { name: 'cliff_purple', solid: true, draw: flat('#2a1240') });

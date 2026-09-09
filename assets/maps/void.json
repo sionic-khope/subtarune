@@ -1,0 +1,47 @@
+{
+  "id": "void",
+  "name": "???",
+  "bgm": "wind",
+  "stage": "void_fallen",
+  "dim": 0,
+  "rows": [
+    "                              ",
+    "                              ",
+    "                              ",
+    "  xXxXxX                      ",
+    " xXzXxzxX            xXxXxXxX ",
+    " XzXxXzXxXxXzXxXxXxXxXxzxXxXx ",
+    " xXxXzXxXxXxXxXxXzXxXxXxXxXxX ",
+    " XzXzXxzxyyyyyyyyyyyyXxXxXzXx ",
+    " yXxXxXxy            yyyyyyyy ",
+    "  yyyyyy                      ",
+    "                              ",
+    "                              "
+  ],
+  "spawns": {
+    "fall": {
+      "x": 132,
+      "y": 168
+    },
+    "start": {
+      "x": 132,
+      "y": 168
+    }
+  },
+  "entities": [
+    {
+      "type": "prop",
+      "id": "big_door",
+      "image": "assets/props/big_door.png",
+      "x": 936,
+      "y": 100,
+      "w": 24,
+      "h": 140,
+      "ix": 848,
+      "iy": 110,
+      "solid": false,
+      "sortY": 0,
+      "script": "void_door"
+    }
+  ]
+}

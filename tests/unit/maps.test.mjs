@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const SCREEN_W = 480, SCREEN_H = 360, TILE = 32;
-const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ']);
+const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y']);
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 for (const id of index.maps) {
   const m = JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));

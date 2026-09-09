@@ -17,6 +17,7 @@ export const STAGES = [
   { id: 'pc_checked',     desc: '컴퓨터 확인: 코드 없음 → 방문 열림',        map: 'room',   spawn: 'door' },
   { id: 'living_entered', desc: '거실 첫 진입 컷신(엄마 없음)',              map: 'living', spawn: 'from_hall' },
   { id: 'cord_found',     desc: '티비 서랍에서 보라색 코드 ? 획득',           map: 'living', spawn: 'from_hall' },
+  { id: 'void_fallen',    desc: '방송 중 코드 에러 → 소용돌이 → 보라색 땅에 추락', map: 'void',   spawn: 'fall' },
   // 다음 비트는 사용자 브리핑 후 여기에 추가 (예: cord_plugged)
 ];
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));

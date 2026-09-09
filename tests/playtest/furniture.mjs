@@ -48,6 +48,7 @@ for (const [map, cases] of Object.entries(CASES)) {
     if (name === 'tv') {   // 티비는 3D 서랍 씬으로 이어진다 → 취소하고 다음 소품으로
       const t0 = Date.now(); while (Date.now() - t0 < 10000 && (await page.evaluate(() => window.__drawer3d?.phase)) !== 'play') await page.waitForTimeout(150);
       await page.keyboard.press('KeyX'); await page.waitForTimeout(1800); await finishDialogue();
+      const t1 = Date.now(); while (Date.now() - t1 < 6000 && await page.evaluate(() => game.dialogue.running || game.zoom.s !== 1 || game.scene3d)) await page.waitForTimeout(150);   // 줌아웃·대사 완전히 끝날 때까지
     }
   }
 }

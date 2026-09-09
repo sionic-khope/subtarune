@@ -103,7 +103,8 @@
       "h": 32,
       "script": "room_computer",
       "ix": 54,
-      "iy": 70
+      "iy": 70,
+      "id": "pc"
     }
   ]
 }

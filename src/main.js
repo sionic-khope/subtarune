@@ -8,6 +8,9 @@ import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPor
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
 import { TitleScreen } from './ui/title.js';
+import { StreamChat } from './ui/chat.js';
+import { SysDialog } from './ui/sysdialog.js';
+import { Vortex } from './ui/vortex.js';
 import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
@@ -81,7 +84,7 @@ class Game {
       ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(`assets/sprites/${name}.png`);
         if (img) this.spriteOverrides[name] = img;
@@ -93,6 +96,9 @@ class Game {
     this.textbox = new TextBox(this.sound, this.portraits);
     this.dialogue = new ScriptRunner(this.textbox, this);
     this.camera = new Camera();
+    this.chat = new StreamChat();        // 방송 채팅창 오버레이 (컷신 {chat})
+    this.sysdialog = new SysDialog();    // 시스템 오류창 (컷신 {dialog})
+    this.vortex = new Vortex();          // 소용돌이 이펙트 (컷신 {vortex})
     this.playerSprite = 'hyungsub';   // 기본 주인공 = 형섭 (기존 파란 후드 문자 도트는 사용 안 함)
     // 개발용: ?map=test&spawn=start 로 타이틀/오프닝 건너뛰고 바로 진입
     const q = new URLSearchParams(location.search);
@@ -150,6 +156,7 @@ class Game {
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
+    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop();
     this.fadeTo(1, 0.4, () => {
       this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
       this.changeMap('room', 'bed', true);
@@ -286,6 +293,7 @@ class Game {
       if (tw.t >= tw.dur) { this.zoom.s = tw.to; this.zoom.tween = null; if (tw.cb) tw.cb(); }
     }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
+    this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt);
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.dialogue.running) {
@@ -369,13 +377,17 @@ class Game {
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
     const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
-    const key = (e) => (e.y + e.h) + (e.pose === 'lying' || onProp(e) ? 10000 : 0);
+    const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) ? 10000 : 0);   // sortY: 벽처럼 항상 뒤에 그릴 소품(거대한 문)
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
+    this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
     const dim = MAPS[this.mapId]?.dim;
     if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
     ctx.restore();
+    // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
+    if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
+    this.sysdialog.draw(ctx);
 
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
@@ -446,7 +458,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.21';
+export const BUILD = '2026-09-09.23';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

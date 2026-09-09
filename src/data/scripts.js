@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 import { opening } from './cutscenes/opening.js';
 import { living_enter } from './cutscenes/living_enter.js';
+import { pc_stream } from './cutscenes/pc_stream.js';
 
 export const SCRIPTS = {
   opening,
@@ -13,6 +14,7 @@ export const SCRIPTS = {
 
   // ── 형섭의 방 (우이동) ──────────────────────────────────
   room_computer: [
+    { if: (f) => f.cord_found, goto: 'stream' },     // 코드를 챙긴 뒤: 꽂고 방송 시작 (컷신)
     { if: (f) => f.pc_checked, goto: 'again' },
     { text: '* ???{w=0.4} 어 뭐야', voice: 'narrator' },
     { text: '* ㅅㅂ 코드 어디 갔어{w=0.3} 컴퓨터가 안 켜지는데', voice: 'narrator' },
@@ -21,11 +23,13 @@ export const SCRIPTS = {
     { stage: 'pc_checked' },
     { end: true },
     { label: 'again' },
-    { if: (f) => f.cord_found, goto: 'have' },
     { text: '* (코드가 없다.{w=0.3} 엄마한테 가야 된다.)', voice: 'narrator' },
     { end: true },
-    { label: 'have' },
-    { text: '* (코드는 챙겼다.)', voice: 'narrator' },   // 다음 이벤트(꽂기) 브리핑 대기
+    { label: 'stream' },
+    ...pc_stream,
+  ],
+  void_door: [
+    { text: '* 거대한 검은 문이다.', voice: 'narrator' },   // 다음 비트 브리핑 대기 (임시 한 줄)
   ],
   room_bed: [
     { text: '* 내 침대다.{w=0.3} 위에 선반이 있다.', voice: 'narrator',
