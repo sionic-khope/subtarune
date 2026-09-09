@@ -41,19 +41,6 @@
   },
   "entities": [
     {
-      "type": "prop",
-      "id": "door_left",
-      "image": "assets/props/big_door.png",
-      "x": -60,
-      "y": 60,
-      "w": 8,
-      "h": 8,
-      "ix": -60,
-      "iy": 100,
-      "solid": false,
-      "sortY": 0
-    },
-    {
       "type": "door",
       "x": 32,
       "y": 192,
@@ -76,19 +63,6 @@
         ]
       ],
       "speed": 171
-    },
-    {
-      "type": "prop",
-      "id": "big_door",
-      "image": "assets/props/big_door.png",
-      "x": 700,
-      "y": 60,
-      "w": 112,
-      "h": 8,
-      "ix": 700,
-      "iy": 72,
-      "solid": false,
-      "sortY": 0
     },
     {
       "type": "prop",

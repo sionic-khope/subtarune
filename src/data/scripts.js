@@ -6,6 +6,7 @@
 import { opening } from './cutscenes/opening.js';
 import { living_enter } from './cutscenes/living_enter.js';
 import { pc_stream } from './cutscenes/pc_stream.js';
+import { void4_arrive, void4_lever } from './cutscenes/void4.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -45,18 +46,28 @@ export const SCRIPTS = {
     { text: '* 아 물론!{w=0.4} 뒤로도 갈수있다.', voice: 'narrator' },
     { text: '* 반대편에서 탄다면~{w=0.5} 껄껄.', voice: 'narrator' },
   ],
+  // 보라맵4: 긴 뗏목 길 · 억빠맨 · 레버 다리
+  void4_arrive, void4_lever,
+  void4_ppaman: [
+    { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 안녕하세요형' },   // 일단 여기까지 (사용자 지정)
+  ],
+  void4_door_locked: [
+    { text: '* 자물쇠로 잠겨 있다.', voice: 'narrator' },
+  ],
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [
     { text: '* 땟목이 갈리는 곳이다.', voice: 'narrator' },
-    { text: '* 문으로 가는 길은 하나뿐.{w=0.4} 껄껄.', voice: 'narrator' },
+    { text: '* 나가는 길은 하나뿐.{w=0.4} 껄껄.', voice: 'narrator' },
+  ],
+  void3_sign_e: [
+    { text: '* 막다른 길이다.{w=0.4} 껄껄.', voice: 'narrator' },   // 위 경로(C→F→E) 끝
   ],
   void3_sign_d: [
     { text: '* 막다른 길이다.', voice: 'narrator' },
     { text: '* 내려온 땟목을 다시 타면 돌아간다.{w=0.4} 껄껄.', voice: 'narrator' },
   ],
   void3_sign_g: [
-    { text: '* 여기도 아니다.', voice: 'narrator' },
-    { text: '* 위를 봐라.{w=0.5} 껄껄껄.', voice: 'narrator' },
+    { text: '* 오 이걸 찾았노{w=0.4} ㅊㅋㅊㅋ', voice: 'narrator' },   // 사용자 지정 (2026-09-10)
   ],
   room_bed: [
     { text: '* 내 침대다.{w=0.3} 위에 선반이 있다.', voice: 'narrator',

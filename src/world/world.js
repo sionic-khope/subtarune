@@ -64,6 +64,7 @@ export class TileMap {
       for (let tx = 0; tx < this.w; tx++) {
         const def = this.tileAt(tx, ty);
         const variant = Math.floor(rng() * 16);
+        if (def.name === 'void') continue;                 // 허공은 투명 — 맵 배경(backdrop)이 비친다. 바탕은 어차피 검정
         // 타일 아트(16px)를 TILE 크기로 정수배 확대
         if (def.drawOver) {
           // 주변(왼쪽→오른쪽→위→아래)의 걸을 수 있는 타일을 바닥으로, 없으면 기본 drawOver
@@ -444,10 +445,10 @@ export class Raft extends Prop {
     this.target = this.at === 0 ? this.route.length - 1 : 0;
     this.rider = player; player.moving = false;
     const [tx, ty] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up';
-    this._carry(); this.game.sound.sfx('splash'); this.splashT = 0.55;
+    this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
     return true;
   }
-  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.5 - p.h / 2); }
+  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.68 - p.h); }   // 발이 뗏목 아래쪽에 닿게 → 위에 서 있는 느낌 (그리기 순서는 main.js 가 항상 위로)
   update(dt) {
     if (!this.riding) return;
     const [tx, ty] = this.route[this.target];
@@ -455,7 +456,7 @@ export class Raft extends Prop {
     if (dist <= step) {
       this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.riding = false; this.game.ride = null;
-      this.game.sound.sfx('splash', { volume: 0.7 });
+      this.game.sound.sfx('splash', { volume: 0.5 });
       this._disembark(dx, dy);
       this.game.autosave?.();
       return;
@@ -463,8 +464,8 @@ export class Raft extends Prop {
     this.x += (dx / dist) * step; this.y += (dy / dist) * step; this.def.ix = this.x; this.def.iy = this.y;
     this._carry();
     this.rider.moving = true; this.rider.animate?.(dt, 4);
-    this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (0.55s 마다, 작게·피치 조금씩 다르게)
-    if (this.splashT <= 0) { this.splashT = 0.55; this.game.sound.sfx('splash', { volume: 0.45, rate: 0.9 + Math.random() * 0.25 }); }
+    this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (1.1s 마다, 작게·피치 조금씩 다르게)
+    if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 }); }
   }
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
   _disembark(dx, dy) {

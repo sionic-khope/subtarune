@@ -136,3 +136,5 @@ registerTile('z', { name: 'flower_purple', solid: false, draw: flat('#4a2578') }
 registerTile('y', { name: 'cliff_purple', solid: true, draw: flat('#2a1240') });
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });
+registerTile('b', { name: 'bridge_purple', solid: false, draw: flat('#8a6238') });   // 레버로 내려오는 다리 (tileSwaps 로 ' ' → 'b')
+registerTile('s', { name: 'stairs_purple', solid: false, draw: flat('#5e2f98') });   // 위 발판으로 오르는 계단

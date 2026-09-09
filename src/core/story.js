@@ -59,4 +59,6 @@ export const QA_POINTS = [
   { id: 'void',      desc: '보라맵1 도착',                          stage: 'void_fallen',    map: 'void',   spawn: 'fall' },
   { id: 'raft',      desc: '보라맵2, 뗏목 앞',                      stage: 'void_fallen',    map: 'void2',  spawn: 'dock' },
   { id: 'void3',     desc: '보라맵3 뗏목 퍼즐 입구',                  stage: 'void_fallen',    map: 'void3',  spawn: 'from_void2' },
+  { id: 'void4',     desc: '보라맵4 긴 뗏목 입구',                    stage: 'void_fallen',    map: 'void4',  spawn: 'from_void3' },
+  { id: 'void4_end', desc: '보라맵4 도착지(레버)',                    stage: 'void_fallen',    map: 'void4',  spawn: 'landing', flags: { void4_arrived: true } },
 ];
