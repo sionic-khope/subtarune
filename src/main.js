@@ -162,7 +162,7 @@ class Game {
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null;
     this.fadeTo(1, 0.4, () => {
       this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
-      this.changeMap('room', 'bed', true);
+      this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
       this.state = 'title'; this.title.enter();
       this.transitioning = false;
       this.fadeTo(0, 0.3);
@@ -201,7 +201,7 @@ class Game {
   }
 
   // ── 맵 전환 ─────────────────────────────────────────────
-  changeMap(mapId, spawnId, instant = false) {
+  changeMap(mapId, spawnId, instant = false, { bgm = true } = {}) {
     const go = () => {
       const def = MAPS[mapId];
       this.mapId = mapId;
@@ -219,7 +219,7 @@ class Game {
       this.camera.map = this.map;
       this.camera.target = this.player;
       this.camera.snap();
-      if (def.bgm && !this.dialogue.running) this.sound.playBgm(def.bgm, { volume: 0.45 });
+      if (bgm && def.bgm && !this.dialogue.running) this.sound.playBgm(def.bgm, { volume: 0.45 });   // bgm:false = 타이틀/새 게임 준비용 맵 교체(브금 안 틈)
     };
     // 맵 JSON `enter: { script, flag? }` — 도착(페이드 인 끝) 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회
     const enter = () => {
@@ -245,7 +245,7 @@ class Game {
   startGame() {
     this.clearSave();
     this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
-    this.changeMap('room', 'bed', true);
+    this.changeMap('room', 'bed', true, { bgm: false });   // 방 브금은 오프닝 컷신이 흰색 뒤에 직접 튼다
     this.state = 'field';
     if (SCRIPTS.opening) this.runScript('opening');
     else this.fadeTo(0, 0.5);
@@ -464,7 +464,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.30';
+export const BUILD = '2026-09-09.31';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
