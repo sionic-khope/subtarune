@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { Input } from './core/input.js';
 import { Sound, VOICES } from './core/audio.js';
-import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait } from './core/gfx.js';
+import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait, pixelDisplayScale } from './core/gfx.js';
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
 import { TitleScreen } from './ui/title.js';
@@ -464,17 +464,15 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.3';
+export const BUILD = '2026-09-10.4';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
 
 function resize() {
-  // 0.5 단위 CSS 배율 (레티나에선 0.5 도 정수 픽셀). 최소 2 = 640x480
-  const raw = Math.min(innerWidth / SCREEN_W, innerHeight / SCREEN_H);
-  const s = Math.max(1, Math.floor(raw * 2) / 2);
-  canvas.style.width = SCREEN_W * s + 'px';
-  canvas.style.height = SCREEN_H * s + 'px';
+  const s = pixelDisplayScale(canvas.width, canvas.height, innerWidth, innerHeight, devicePixelRatio);
+  canvas.style.width = canvas.width * s + 'px';
+  canvas.style.height = canvas.height * s + 'px';
 }
 addEventListener('resize', resize);
 resize();

@@ -11,6 +11,17 @@ export function mulberry32(seed) {
   };
 }
 
+/**
+ * 캔버스 픽셀을 디스플레이 정수 픽셀로 표시하되 작은 화면에서는 전체를 맞춘다.
+ * 순수 계산이므로 공유 상태가 없다. 입력은 양수 픽셀 크기와 브라우저 DPR.
+ * @example pixelDisplayScale(960, 720, 1280, 960, 2) === 1
+ */
+export function pixelDisplayScale(width, height, viewportWidth, viewportHeight, dpr) {
+  const fit = Math.min(viewportWidth / width, viewportHeight / height);
+  const physicalScale = Math.floor(fit * dpr);
+  return physicalScale >= 1 ? physicalScale / dpr : fit;
+}
+
 export function makeCanvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
