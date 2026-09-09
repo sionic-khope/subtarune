@@ -1,0 +1,49 @@
+{
+  "id": "living",
+  "name": "거실",
+  "bgm": "room",
+  "dim": 0.22,
+  "enter": { "script": "living_enter", "flag": "living_entered" },
+  "rows": [
+    "ePPPPPPPPPPPPPPPPPPPPPPPPe",
+    "ePPPPPPPPPPPPPPPPPPPPPPPPe",
+    "eQQQQQQQQQQQQQQQQQQQQQQQQe",
+    "ehihihihihihihihiklklklkle",
+    "eihihihihihihihihlklklklke",
+    "ehihihihihihihihiklklklkle",
+    "eihihihihihihihihlklklklke",
+    "ehihihihihihihihiklklklkle",
+    "eihihihihihihihihlklklklke",
+    "ehihihihihihihihiklklklkle",
+    "eihihihihihihihihlklklklke",
+    "ehihihihihihihihiklklklkle",
+    "eeeeeeeeeeeeeeeeeeeeeeeeee"
+  ],
+  "spawns": {
+    "from_hall": { "x": 64, "y": 218 }
+  },
+  "entities": [
+    { "type": "prop", "image": "assets/props/doorway_left.png", "x": 0, "y": 176, "solid": false },
+    { "type": "door", "x": 32, "y": 186, "w": 14, "h": 80, "to": "corridor", "spawn": "from_living" },
+
+    { "type": "prop", "image": "assets/props/cabinet_upper.png", "x": 572, "y": 6, "solid": false },
+    { "type": "prop", "image": "assets/props/window.png", "x": 420, "y": 12, "solid": false },
+    { "type": "prop", "image": "assets/props/clock.png", "x": 300, "y": 22, "solid": false },
+    { "type": "prop", "image": "assets/props/calendar.png", "x": 530, "y": 20, "solid": false },
+
+    { "type": "prop", "image": "assets/props/tv.png", "x": 122, "y": 96, "w": 72, "h": 22, "ix": 120, "iy": 52, "solid": true, "script": "living_tv" },
+    { "type": "prop", "image": "assets/props/side_cabinet.png", "x": 242, "y": 96, "w": 64, "h": 20, "ix": 240, "iy": 60, "solid": true },
+    { "type": "prop", "image": "assets/props/plant.png", "x": 46, "y": 110, "w": 24, "h": 18, "ix": 40, "iy": 74, "solid": true },
+    { "type": "prop", "image": "assets/props/counter_sink.png", "x": 574, "y": 96, "w": 96, "h": 24, "ix": 572, "iy": 60, "solid": true },
+    { "type": "prop", "image": "assets/props/stove.png", "x": 678, "y": 96, "w": 48, "h": 24, "ix": 676, "iy": 60, "solid": true },
+    { "type": "prop", "image": "assets/props/fridge.png", "x": 738, "y": 96, "w": 48, "h": 24, "ix": 736, "iy": 36, "solid": true, "script": "living_fridge" },
+
+    { "type": "prop", "image": "assets/props/rug_living.png", "x": 330, "y": 210, "w": 128, "h": 2, "ix": 330, "iy": 210, "solid": false },
+    { "type": "prop", "image": "assets/props/cushion.png", "x": 344, "y": 250, "w": 26, "h": 2, "ix": 344, "iy": 250, "solid": false },
+    { "type": "prop", "image": "assets/props/cushion.png", "x": 420, "y": 250, "w": 26, "h": 2, "ix": 420, "iy": 250, "solid": false },
+    { "type": "prop", "image": "assets/props/cushion.png", "x": 382, "y": 282, "w": 26, "h": 2, "ix": 382, "iy": 282, "solid": false },
+    { "type": "prop", "image": "assets/props/sofa.png", "x": 112, "y": 222, "w": 96, "h": 26, "ix": 110, "iy": 200, "solid": true },
+    { "type": "prop", "image": "assets/props/table_low.png", "x": 356, "y": 232, "w": 80, "h": 46, "ix": 354, "iy": 226, "solid": true, "script": "living_table" },
+    { "type": "prop", "id": "tart", "image": "assets/props/tart.png", "x": 382, "y": 277, "w": 24, "h": 2, "ix": 382, "iy": 236, "solid": false, "unless": "tart_eaten" }
+  ]
+}

@@ -13,7 +13,7 @@
 |---|---|---|
 | 맵(방·거실…) | `assets/maps/<id>.json` (+`index.json`) | 에디터(`/editor.html`)나 JSON 직접 편집. 타일맵(`rows`) 또는 이미지맵(`image`+`walkable/solids`). 소품은 `entities` 의 `type:'prop'` |
 | 타일 그림 | `assets/tiles/<name>.png` 32×32 | `tools/art/room_set.py` 로 생성(직접 그린 픽셀아트). 새 타일은 `src/world/tiles.js` 에 `registerTile` 한 줄 |
-| 가구/소품 그림 | `assets/props/*.png` | `tools/art/room_set.py` 의 `prop_*` 함수 (painter 프리미티브로 그림) |
+| 가구/소품 그림 | `assets/props/*.png` | `tools/art/room_set.py`(방) / `tools/art/living_set.py`(복도·거실·부엌) 의 `prop_*` 함수. 실행은 `/usr/bin/python3`(PIL 있음) |
 | 캐릭터 스프라이트 | `assets/sprites/<id>.png` (4열×4행, 2x) | 사용자가 준 AI 시트를 `tools/sprites/slice_sheet.py` 로 1/2 누끼 변환. **축소·양자화 금지** |
 | 캐릭터 정의 | `src/data/characters.js` | 이름/목소리/팔레트. 형섭은 `self`(이름·초상화 없음) |
 | 대사 | `src/data/scripts.js` | 키 = 상호작용/트리거의 `script`. 태그 `{w=} {s=} {c=} {shake} {wave}` |
@@ -37,8 +37,17 @@
 
 ## 스토리 진행 상태
 - 오프닝(나레이션 11줄 → 요플래 선택 → 흰색 → 우이동 캡션 → 침대에서 일어남) 완료.
-- 방 상호작용: 컴퓨터(코드 없음→엄마), 침대(이불/선반→바세린), 포스터, 문(컴퓨터 전엔 막힘). 
-- 다음: 거실(엄마) 맵을 `tools/art` 세트로 확장해서 그리기, 문 연결, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+- 방 상호작용: 컴퓨터(코드 없음→엄마), 침대(이불/선반→바세린), 포스터, 문(컴퓨터 전엔 잠김 `requires:'pc_checked'`).
+- 복도 `corridor`(ㄱ자: 방문에서 내려와 오른쪽 끝 출입구 → 거실). 액자 하나(장식).
+- 거실 `living`(26×13, 살짝 어두움 `dim:0.22`, 부엌 오른쪽): 진입 컷신 `living_enter` 1회(엄마 없음 → 코드 찾자 → 배고파 → 밥상), 밥상(에그타르트 예/아니오 → 먹으면 접시만 남음, `tart_eaten`), 냉장고(후추·사골곰탕 → 기분 안좋아짐), 티비("빈 코드를 뒤져봐야겠다." — 다음 이벤트 대기), 왼쪽 출입구 → 복도.
+- 다음(사용자 브리핑 대기): 티비 이벤트, 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+
+## 맵 데이터 옵션 (엔진이 지원하는 것)
+- 맵 JSON: `bgm`, `dim`(0~1, 어두움 오버레이 — 대화창은 안 어두워짐), `enter:{script, flag}`(도착 페이드 인 직후 1회 스크립트. flag 있으면 영구 1회, 대사 중이면 건너뜀).
+- 엔티티: `door` 는 `requires:'플래그'` + `lockedScript` 로 잠금(트리거와 같은 진입 1회 규칙). 소품 `unless:'플래그'`(플래그 서면 안 나옴, 예: 먹은 에그타르트) / `requires:'플래그'`(서야 나옴). 스크립트에서 `{remove:'id'}` 로 즉시 제거.
+- 장식 소품(러그·방석, script 없음)은 C 프로브 대상이 아니다(`canInteract`). 바닥에 깔리는 소품은 히트박스를 윗변 2px(`w,h:2`)로 줘서 y정렬상 항상 뒤에 그린다.
+- 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 19개 체크).
 
 ## 검증 방법
-`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/smoke.mjs` · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE).
+`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
+UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).

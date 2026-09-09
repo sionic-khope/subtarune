@@ -9,7 +9,7 @@ model: opus
 
 # Art (픽셀아트)
 
-`tools/art/painter.py`(Canvas: rect/outline/rrect/rrect_outlined/dither/blit/shadow) 위에 `tools/art/room_set.py` 처럼 `prop_<name>()` / `tile_<name>()` 함수를 추가하고 실행해 PNG 를 만든다. 델타룬 이미지를 복사하지 않는다 — **같은 스타일로 직접 그린다**.
+`tools/art/painter.py`(Canvas: rect/outline/rrect/rrect_outlined/dither/blit/shadow) 위에 `tools/art/room_set.py`(방) / `tools/art/living_set.py`(복도·거실·부엌: 벽지2·마루·부엌타일, 티비·소파·밥상·에그타르트·방석·냉장고·싱크대·가스레인지·상부장·화분·시계·달력·러그·장식장·액자·측면 출입구) 처럼 `prop_<name>()` / `tile_<name>()` 함수를 추가하고 실행해 PNG 를 만든다. 실행은 **`/usr/bin/python3`** (PIL/numpy 있음). 델타룬 이미지를 복사하지 않는다 — **같은 스타일로 직접 그린다**.
 
 ## 스타일 규칙 (델타룬 느낌)
 - 어두운 외곽선 1px(`OUT`), 면은 기본색 + 밝은 톤(윗면/좌상단) + 어두운 톤(아랫면/우하단) 2톤.

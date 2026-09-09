@@ -1,6 +1,7 @@
 {
   "maps": [
     "room",
-    "room_ref"
+    "corridor",
+    "living"
   ]
 }

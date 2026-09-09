@@ -20,8 +20,9 @@ model: opus
    애매하면 AskUserQuestion 으로 한 번만 묻는다.
 2. `src/data/cutscenes/_template.js` 를 복사해 `src/data/cutscenes/<name>.js` 작성. `Object.assign([...], { silent: true })` 유지.
 3. `src/data/scripts.js` 에 `import` + `SCRIPTS.<name>` 등록.
-4. 트리거 배치 (`src/data/maps.js`): `{ type:'trigger', ...at(tx,ty), w, h, once:true, flag:'<name>_seen', script:'<name>' }`
+4. 트리거 배치 (`assets/maps/<id>.json`): `{ type:'trigger', x,y,w,h, once:true, flag:'<name>_seen', script:'<name>' }`
    또는 NPC `script:'<name>'` / 오프닝은 `game.startGame()` 이 `SCRIPTS.opening` 을 자동 재생.
+   **맵에 들어가자마자** 시작하는 컷신은 맵 JSON `enter:{ script:'<name>', flag:'<name>_seen' }` (예: `living.json`) — 스폰 위에 트리거를 놓지 않는다.
 5. **검증** — `node --input-type=module -e "import('./src/data/scripts.js')"` 로 문법 확인 →
    `tests/playtest/cutscene.mjs <name>` 로 헤드리스 재생(스크린샷 + 콘솔 warn 0개 확인). 스크린샷을 보고 연출 타이밍을 조정한다.
 6. `design/narrative/cutscenes/<name>.md` 에 콘티(비트 목록 + 플래그) 1페이지 기록.

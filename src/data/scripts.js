@@ -4,6 +4,7 @@
 // voice: src/core/audio.js VOICES 키. portrait: main.js 의 portraits 키.
 // ─────────────────────────────────────────────────────────────
 import { opening } from './cutscenes/opening.js';
+import { living_enter } from './cutscenes/living_enter.js';
 
 export const SCRIPTS = {
   opening,
@@ -38,14 +39,36 @@ export const SCRIPTS = {
     { label: 'end' },
   ],
   room_poster: [{ text: '* 방송 포스터다.{w=0.3} 내 얼굴이 크게 박혀 있다.', voice: 'narrator' }],
-  room_desk2: [{ text: '* 램프가 있는 책상.{w=0.3} 켜져 있다.', voice: 'narrator' }],
-  room_wagon: [{ text: '* 수레에 잡동사니가 실려 있다.', voice: 'narrator' }],
+  // 방문: 컴퓨터 확인 전엔 잠김 (room.json door 의 requires:'pc_checked' + lockedScript). 확인 후엔 복도로 이동
   room_door: [
-    { if: (f) => f.pc_checked, goto: 'go' },
     { text: '* (방송이 먼저다.{w=0.3} 컴퓨터부터 켜자.)', voice: 'narrator' },
+  ],
+
+  // ── 거실/부엌 ──────────────────────────────────────────
+  living_enter,
+  living_table: [
+    { if: (f) => f.tart_eaten, goto: 'empty' },
+    { text: '* 에그타르트가 있다.', voice: 'narrator' },
+    { text: '* 먹을까?', voice: 'narrator', choice: { options: [{ label: '예', goto: 'eat' }, { label: '아니오', goto: 'no' }], cancel: 1 } },
+    { label: 'eat' },
+    { remove: 'tart' },
+    { set: { tart_eaten: true } },
+    { text: '* 살짝 눅눅하고 차갑지만 맛은 있었다.', voice: 'narrator' },
     { end: true },
-    { label: 'go' },
-    { text: '* (엄마한테 가자.){w=0.5}{n}* (다음 구역은 아직 준비 중이다.)', voice: 'narrator' },
+    { label: 'no' },
+    { end: true },
+    { label: 'empty' },
+    { text: '* 빈 접시만 남았다.', voice: 'narrator' },
+  ],
+  living_fridge: [
+    { text: '* 음{w=0.4} 냉장고에 뭐 없나..', voice: 'narrator' },
+    { text: '* 후추?{w=0.5} 이건 왜 있지 ㅅㅂ', voice: 'narrator' },
+    { text: '* 아 진짜 씨발{w=0.3} 왠지 어제 사골곰탕 먹는데 아프더라{w=0.3} 아오', voice: 'narrator' },
+    { text: '* 기분이 안좋아졌다.', voice: 'narrator' },
+    { set: { fridge_checked: true } },
+  ],
+  living_tv: [
+    { text: '* 빈 코드를 뒤져봐야겠다.', voice: 'narrator' },
   ],
   chest_test: [
     { text: '* 상자를 열었다.{w=0.3} {c=yellow}낡은 열쇠{/c}를 손에 넣었다!', voice: 'narrator' },

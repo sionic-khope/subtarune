@@ -142,7 +142,10 @@ class Game {
       this.mapId = mapId;
       this.map = new TileMap(def, this.mapImages?.[mapId] || null);
       this.map.bake();
-      this.entities = def.entities.map((e) => createEntity({ ...e }, this)).filter(Boolean);
+      // 엔티티 조건: unless:'플래그' (플래그가 서면 안 나옴, 예: 먹은 에그타르트) / requires:'플래그' (서야 나옴)
+      this.entities = def.entities
+        .filter((e) => !(e.unless && this.flags[e.unless]) && !(e.requires && e.type !== 'door' && !this.flags[e.requires]))
+        .map((e) => createEntity({ ...e }, this)).filter(Boolean);
       const spawn = def.spawns[spawnId] || def.spawns.start;
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: this.player?.facing ?? 'down' }, this);
       this.entities.push(this.player);
@@ -153,9 +156,17 @@ class Game {
       this.camera.snap();
       if (def.bgm && !this.dialogue.running) this.sound.playBgm(def.bgm, { volume: 0.45 });
     };
-    if (instant) { go(); return; }
+    // 맵 JSON `enter: { script, flag? }` — 도착(페이드 인 끝) 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회
+    const enter = () => {
+      const en = MAPS[mapId].enter;
+      if (!en || !en.script || this.dialogue.running) return;
+      if (en.flag && this.flags[en.flag]) return;
+      if (en.flag) this.flags[en.flag] = true;
+      this.runScript(en.script);
+    };
+    if (instant) { go(); enter(); return; }
     this.transitioning = true;
-    this.fadeTo(1, 0.25, () => { go(); this.fadeTo(0, 0.25, () => { this.transitioning = false; }); });
+    this.fadeTo(1, 0.25, () => { go(); this.fadeTo(0, 0.25, () => { this.transitioning = false; enter(); }); });
   }
 
   fadeTo(target, duration, cb, color) {
@@ -288,6 +299,9 @@ class Game {
     const key = (e) => (e.y + e.h) + (e.pose === 'lying' || onProp(e) ? 10000 : 0);
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
+    // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
+    const dim = MAPS[this.mapId]?.dim;
+    if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
 
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
@@ -356,7 +370,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-09.9';
+export const BUILD = '2026-09-09.10';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

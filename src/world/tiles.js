@@ -122,3 +122,10 @@ registerTile('q', { name: 'wallpaper_base', solid: true, draw: flat('#8a5a3c') }
 registerTile('e', { name: 'wall_edge', solid: true, draw: flat('#6b4229') });   // 측면/하단 벽
 registerTile('f', { name: 'floor_vinyl', solid: false, draw: flat('#c9a26a') });
 registerTile('g', { name: 'floor_vinyl2', solid: false, draw: flat('#c9a26a') });
+// 거실/부엌 세트 (tools/art/living_set.py)
+registerTile('P', { name: 'wallpaper2', solid: true, draw: flat('#e6d6c4') });
+registerTile('Q', { name: 'wallpaper2_base', solid: true, draw: flat('#8a5a3c') });
+registerTile('h', { name: 'floor_plank', solid: false, draw: flat('#b98c5e') });
+registerTile('i', { name: 'floor_plank2', solid: false, draw: flat('#b98c5e') });
+registerTile('k', { name: 'floor_kitchen', solid: false, draw: flat('#d8d2c4') });
+registerTile('l', { name: 'floor_kitchen2', solid: false, draw: flat('#d8d2c4') });

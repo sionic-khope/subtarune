@@ -45,8 +45,13 @@ model: opus
      ] }
    ```
    - 소품 `w/h` 를 주면 그게 히트박스이고 그림 위치는 `ix/iy`. 안 주면 그림 아래 40% 가 히트박스.
-   - 타일 1칸 = 32 논리px. 벽 2줄(`p`) + 걸레받이 1줄(`q`) + 바닥(`f`/`g` 교차).
+   - 타일 1칸 = 32 논리px. 벽 2줄(`p`/`P`) + 걸레받이 1줄(`q`/`Q`) + 바닥(방 `f/g`, 거실 마루 `h/i`, 부엌 `k/l`). 측면·하단 벽 `e`. 벽 바깥은 공백(검정) — ㄱ자 맵처럼 벽 너머가 보이면 검정이 정상.
+   - 맵 옵션: `dim:0.22`(살짝 어두운 공간), `enter:{script,flag}`(도착 직후 1회 컷신 — 트리거 대신 이걸 쓴다. 스폰 위 트리거는 금지).
+   - 잠긴 문: `{type:'door', to, spawn, requires:'pc_checked', lockedScript:'room_door'}` — 플래그 없으면 대사만(1회), 있으면 이동.
+   - 조건 소품: `unless:'tart_eaten'`(플래그 서면 사라짐) / `requires:'x'`. 즉시 없애려면 스크립트에 `{remove:'id'}` + `id`.
+   - 바닥에 깔리는 장식(러그·방석)은 `"w":128,"h":2` 처럼 **윗변 2px 히트박스** + `solid:false` → y정렬에서 항상 뒤. script 없는 소품은 C 프로브에 안 잡힌다.
+   - 측면 출입구(복도 끝처럼 옆으로 나가는 곳): 벽 타일 위에 `doorway_left/right.png` 소품 + 그 앞 바닥 세로 띠에 `door` 영역(`w:16,h:104`). 도착 스폰은 띠에서 24px 이상 떨어뜨린다.
 4. `assets/maps/index.json` 의 `maps` 에 id 추가. 이어지는 맵의 `door` 에 `to/spawn` 연결.
 5. 대사 키는 `src/data/scripts.js` 에 추가.
-6. 검증: `?map=<id>&spawn=<스폰>` 으로 헤드리스 스크린샷(`tests/playtest/` 스크립트 참고) → 소품 겹침·y정렬·막힘 확인. 문 통과 테스트.
+6. 검증: `node --test 'tests/unit/*.test.mjs'`(크기·벽·문 핑퐁·스폰·영역 겹침·스크립트 키·이미지 존재) → `tests/playtest/house.mjs` 에 새 구간을 이어 붙여 헤드리스로 동선·상호작용·재진입을 확인하고, 스크린샷 **네 모서리**를 본다.
 7. `docs/STATE.md` 의 스토리 진행 상태 갱신.

@@ -161,6 +161,8 @@ export class Entity {
   draw() {}
   /** 플레이어가 C를 눌렀을 때. 처리했으면 true */
   interact() { return false; }
+  /** probe 후보인가 (interact 를 덮어쓴 엔티티). 소품은 script 유무로 판단 */
+  canInteract() { return this.interact !== Entity.prototype.interact; }
   /** 플레이어가 위로 걸어 들어왔을 때 (solid=false 인 것만) */
   onEnter() {}
 }
@@ -250,7 +252,8 @@ export class Player extends Character {
   probe() {
     const [dx, dy] = DIRS[this.facing];
     const r = { x: this.x + dx * TILE * 0.6, y: this.y + dy * TILE * 0.6, w: this.w, h: this.h };
-    return this.game.entities.find((e) => e !== this && !e.dead && e.overlaps(r) && e.interact !== Entity.prototype.interact);
+    // 장식 소품(러그·방석 등, script 없음)은 건너뛴다 — 안 그러면 그 위에 서서 밥상을 못 누른다
+    return this.game.entities.find((e) => e !== this && !e.dead && e.canInteract() && e.overlaps(r));
   }
 }
 
@@ -313,19 +316,6 @@ export class Chest extends Entity {
   }
 }
 
-/** 문/워프: 밟으면 다른 맵으로 */
-export class Door extends Entity {
-  constructor(def, game) { super({ solid: false, w: TILE, h: TILE * 0.375, ...def }, game); this.cooldown = 0; }
-  update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
-  onEnter(player) {
-    if (this.cooldown > 0 || this.game.transitioning || this.game.dialogue.running) return;
-    if (!this.def.to) return;
-    this.game.sound.sfx('door');
-    this.game.changeMap(this.def.to, this.def.spawn);
-  }
-}
-
-/** 보이지 않는 트리거 영역 (컷신 시작 등) */
 /**
  * 보이지 않는 트리거 영역.
  * 규칙: (1) 들어가는 순간(edge) 한 번만 발동 — 밟고 있는 동안 반복 금지, 나갔다 들어와야 재발동
@@ -348,9 +338,30 @@ export class Trigger extends Entity {
     if (this.def.once && this.game.flags[this.def.flag]) return;
     if (this.def.flag) this.game.flags[this.def.flag] = true;
     this.running = true;
-    this.game.runScript(this.def.script, () => { this.running = false; this.cooldown = Trigger.COOLDOWN; });
+    this.fire(() => { this.running = false; this.cooldown = Trigger.COOLDOWN; });
   }
+  /** 진입 시 실제 동작. 끝나면 done() 호출 (서브클래스가 덮어씀) */
+  fire(done) { this.game.runScript(this.def.script, done); }
   draw() {}
+}
+
+/**
+ * 문/워프: 밟으면 다른 맵으로. 트리거와 같은 진입 규칙(edge 1회 + 쿨다운 + 대사 중 무시).
+ *   { type:'door', x,y,w?,h?, to:'맵', spawn:'스폰', requires?:'플래그', lockedScript?:'스크립트' }
+ *   requires 플래그가 없으면 lockedScript 대사만 띄우고 이동하지 않는다 (같은 자리에 서 있어도 반복 안 됨).
+ */
+export class Door extends Trigger {
+  constructor(def, game) { super({ w: TILE, h: TILE * 0.375, ...def }, game); }
+  fire(done) {
+    if (this.def.requires && !this.game.flags[this.def.requires]) {
+      if (this.def.lockedScript) this.game.runScript(this.def.lockedScript, done); else done();
+      return;
+    }
+    if (!this.def.to) { done(); return; }
+    this.game.sound.sfx('door');
+    this.game.changeMap(this.def.to, this.def.spawn);
+    done();
+  }
 }
 
 /** 소품: 라이브러리 이미지 하나를 월드에 배치. y-정렬로 그려지고, solid 면 막힘, script 있으면 상호작용 */
@@ -368,6 +379,7 @@ export class Prop extends Entity {
   get drawX() { return this.def.w === undefined ? this.x : (this.def.ix ?? this.def.x); }
   get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : (this.def.iy ?? this.def.y); }
   interact() { if (!this.def.script) return false; this.game.runScript(this.def.script); return true; }
+  canInteract() { return !!this.def.script; }
   draw(ctx, cam) {
     if (!this.visible) return;
     if (this.image) ctx.drawImage(this.image, Math.round(this.drawX - cam.x), Math.round(this.drawY - cam.y), this.iw, this.ih);

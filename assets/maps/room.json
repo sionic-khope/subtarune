@@ -50,13 +50,15 @@
       "solid": false
     },
     {
-      "type": "trigger",
+      "type": "door",
       "x": 136,
       "y": 96,
       "w": 32,
       "h": 10,
-      "once": false,
-      "script": "room_door"
+      "to": "corridor",
+      "spawn": "from_room",
+      "requires": "pc_checked",
+      "lockedScript": "room_door"
     },
     {
       "type": "prop",

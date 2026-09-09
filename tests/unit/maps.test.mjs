@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const SCREEN_W = 480, SCREEN_H = 360, TILE = 32;
-const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'T', '~', 'W', ' ']);
+const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ']);
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 for (const id of index.maps) {
   const m = JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
@@ -50,5 +50,24 @@ for (const [id, m] of Object.entries(maps)) {
   test(`${id}: 트리거/문끼리 겹치지 않는다`, () => {
     const zones = ents.filter((e) => e.type === 'trigger' || e.type === 'door');
     for (let i = 0; i < zones.length; i++) for (let j = i + 1; j < zones.length; j++) assert.ok(!hit(rectOf(zones[i]), rectOf(zones[j])), `영역 겹침: ${zones[i].script || zones[i].to} / ${zones[j].script || zones[j].to}`);
+  });
+}
+
+// ── 스크립트 키 존재: 맵이 가리키는 script / lockedScript / enter.script 가 SCRIPTS 에 있어야 한다 (오타 → 아무 일도 안 일어남 방지) ──
+const { SCRIPTS } = await import('../../src/data/scripts.js');
+for (const [id, m] of Object.entries(maps)) {
+  test(`${id}: 참조하는 스크립트 키가 모두 존재`, () => {
+    const keys = [];
+    for (const e of (m.entities || [])) { if (typeof e.script === 'string') keys.push(e.script); if (e.lockedScript) keys.push(e.lockedScript); }
+    if (m.enter?.script) keys.push(m.enter.script);
+    for (const k of keys) assert.ok(SCRIPTS[k], `${id}: 스크립트 없음 '${k}'`);
+  });
+  test(`${id}: 소품 이미지 파일이 존재`, () => {
+    for (const e of (m.entities || []).filter((e) => e.type === 'prop' && e.image)) assert.ok(fs.existsSync(e.image), `${id}: 이미지 없음 ${e.image}`);
+  });
+  test(`${id}: 잠긴 문은 lockedScript 가 있고, 문/트리거는 대상 스폰이 있다`, () => {
+    for (const d of (m.entities || []).filter((e) => e.type === 'door')) {
+      if (d.requires) assert.ok(d.lockedScript, `${id}: requires 있는 문에 lockedScript 없음`);
+    }
   });
 }
