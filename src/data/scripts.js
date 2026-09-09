@@ -39,6 +39,13 @@ export const SCRIPTS = {
     { label: 'end' },
   ],
   room_poster: [{ text: '* 방송 포스터다.{w=0.3} 내 얼굴이 크게 박혀 있다.', voice: 'narrator' }],
+  room_window: [
+    { text: '* 반지하 창문이다.{w=0.3} 밖은 벌써 어둡다.', voice: 'narrator' },
+    { text: '* 지나가는 사람 발만 보인다.', voice: 'narrator' },
+  ],
+  corridor_frame: [
+    { text: '* 어릴 때 사진이다.{w=0.4} 그때도 이 얼굴이었네.', voice: 'narrator' },
+  ],
   // 방문: 컴퓨터 확인 전엔 잠김 (room.json door 의 requires:'pc_checked' + lockedScript). 확인 후엔 복도로 이동
   room_door: [
     { text: '* (방송이 먼저다.{w=0.3} 컴퓨터부터 켜자.)', voice: 'narrator' },
@@ -69,6 +76,35 @@ export const SCRIPTS = {
   ],
   living_tv: [
     { text: '* 빈 코드를 뒤져봐야겠다.', voice: 'narrator' },
+  ],
+  living_sofa: [
+    { text: '* 소파다.{w=0.3} 쿠션 사이에 리모컨이 껴 있다.', voice: 'narrator' },
+    { text: '* 앉으면 방송 늦는다.{w=0.3} 참자.', voice: 'narrator' },
+  ],
+  living_plant: [
+    { text: '* 화분이다.{w=0.4} 언제 물 줬는지 모르겠다.', voice: 'narrator' },
+  ],
+  living_cabinet: [
+    { text: '* 장식장이다.{w=0.3} 액자 속에서 내가 웃고 있다.', voice: 'narrator' },
+    { text: '* 화병 꽃은 시들었다.', voice: 'narrator' },
+  ],
+  living_sink: [
+    { text: '* 싱크대다.{w=0.3} 설거지가 쌓여 있다.', voice: 'narrator' },
+    { text: '* 밥솥은 비어 있다.{w=0.5} ...{w=0.3}아 배고파', voice: 'narrator' },
+  ],
+  living_stove: [
+    { text: '* 냄비에 어제 그 사골곰탕이 남아 있다.', voice: 'narrator' },
+    { text: '* ...{w=0.5}안 먹는다.', voice: 'narrator' },
+  ],
+  living_window: [
+    { text: '* 창밖으로 골목이 보인다.{w=0.3} 가로등이 깜빡거린다.', voice: 'narrator' },
+  ],
+  living_clock: [
+    { text: '* 벽시계다.{w=0.3} 8시 40분.', voice: 'narrator' },
+    { text: '* 방송 늦었다 ㅅㅂ', voice: 'narrator' },
+  ],
+  living_calendar: [
+    { text: '* 달력이다.{w=0.3} 이번 달은 아무 표시도 없다.', voice: 'narrator' },
   ],
   chest_test: [
     { text: '* 상자를 열었다.{w=0.3} {c=yellow}낡은 열쇠{/c}를 손에 넣었다!', voice: 'narrator' },

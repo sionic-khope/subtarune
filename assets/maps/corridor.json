@@ -18,14 +18,59 @@
     "eeeeeeeeeeeeeeee"
   ],
   "spawns": {
-    "from_room": { "x": 84, "y": 150 },
-    "from_living": { "x": 430, "y": 280 }
+    "from_room": {
+      "x": 84,
+      "y": 150
+    },
+    "from_living": {
+      "x": 430,
+      "y": 280
+    }
   },
   "entities": [
-    { "type": "prop", "image": "assets/props/door.png", "x": 76, "y": 76, "solid": false },
-    { "type": "door", "x": 80, "y": 128, "w": 32, "h": 10, "to": "room", "spawn": "door" },
-    { "type": "prop", "image": "assets/props/frame.png", "x": 296, "y": 150, "solid": false },
-    { "type": "prop", "image": "assets/props/doorway_right.png", "x": 476, "y": 238, "solid": false },
-    { "type": "door", "x": 464, "y": 232, "w": 16, "h": 104, "to": "living", "spawn": "from_hall" }
+    {
+      "type": "prop",
+      "image": "assets/props/door.png",
+      "x": 76,
+      "y": 76,
+      "solid": false
+    },
+    {
+      "type": "door",
+      "x": 80,
+      "y": 128,
+      "w": 32,
+      "h": 10,
+      "to": "room",
+      "spawn": "door"
+    },
+    {
+      "type": "prop",
+      "image": "assets/props/frame.png",
+      "x": 296,
+      "y": 214,
+      "solid": false,
+      "w": 28,
+      "h": 10,
+      "ix": 296,
+      "iy": 150,
+      "script": "corridor_frame"
+    },
+    {
+      "type": "prop",
+      "image": "assets/props/doorway_right.png",
+      "x": 476,
+      "y": 238,
+      "solid": false
+    },
+    {
+      "type": "door",
+      "x": 464,
+      "y": 232,
+      "w": 16,
+      "h": 104,
+      "to": "living",
+      "spawn": "from_hall"
+    }
   ]
 }

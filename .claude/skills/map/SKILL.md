@@ -50,6 +50,8 @@ model: opus
    - 잠긴 문: `{type:'door', to, spawn, requires:'pc_checked', lockedScript:'room_door'}` — 플래그 없으면 대사만(1회), 있으면 이동.
    - 조건 소품: `unless:'tart_eaten'`(플래그 서면 사라짐) / `requires:'x'`. 즉시 없애려면 스크립트에 `{remove:'id'}` + `id`.
    - 바닥에 깔리는 장식(러그·방석)은 `"w":128,"h":2` 처럼 **윗변 2px 히트박스** + `solid:false` → y정렬에서 항상 뒤. script 없는 소품은 C 프로브에 안 잡힌다.
+   - **벽에 거는 소품**(포스터·창문·시계·달력·액자)에 대사를 붙이려면 히트박스를 벽 밑단에: `"x":그림x,"y":86,"w":그림폭,"h":10,"ix":그림x,"iy":그림y,"solid":false,"script":...` (바닥이 y=96 에서 시작할 때. 복도처럼 바닥이 y=224 면 y:214). 그림 위치 그대로 두면 절대 안 닿는다.
+   - 새 소품에 대사를 붙였으면 `tests/playtest/furniture.mjs` 의 CASES 에 (이름, 서는 x, y, 방향, 기대 키워드) 한 줄 추가.
    - 측면 출입구(복도 끝처럼 옆으로 나가는 곳): 벽 타일 위에 `doorway_left/right.png` 소품 + 그 앞 바닥 세로 띠에 `door` 영역(`w:16,h:104`). 도착 스폰은 띠에서 24px 이상 떨어뜨린다.
 4. `assets/maps/index.json` 의 `maps` 에 id 추가. 이어지는 맵의 `door` 에 `to/spawn` 연결.
 5. 대사 키는 `src/data/scripts.js` 에 추가.

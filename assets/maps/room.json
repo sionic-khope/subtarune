@@ -31,16 +31,25 @@
       "type": "prop",
       "image": "assets/props/window.png",
       "x": 232,
-      "y": 12,
-      "solid": false
+      "y": 86,
+      "solid": false,
+      "w": 48,
+      "h": 10,
+      "ix": 232,
+      "iy": 12,
+      "script": "room_window"
     },
     {
       "type": "prop",
       "image": "assets/props/poster.png",
       "x": 332,
-      "y": 20,
+      "y": 86,
       "solid": false,
-      "script": "room_poster"
+      "script": "room_poster",
+      "w": 24,
+      "h": 10,
+      "ix": 332,
+      "iy": 20
     },
     {
       "type": "prop",
@@ -90,13 +99,6 @@
       "script": "room_computer",
       "ix": 54,
       "iy": 70
-    },
-    {
-      "type": "prop",
-      "image": "assets/props/rug.png",
-      "x": 192,
-      "y": 150,
-      "solid": false
     }
   ]
 }
