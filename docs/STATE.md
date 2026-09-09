@@ -59,7 +59,7 @@
 - 검증: `tests/unit/story.test.mjs`(backfill·비회귀), `maps.test.mjs`(맵 stage 선언·STAGES 맵/스폰 존재), `tests/playtest/story.mjs`(바로가기 backfill → 컴퓨터 대사, cord_found 이후 컴퓨터/문/티비, 자동 저장→새로고침→이어하기, 처음부터). F1 디버그에 `stage:` 표시.
 
 ## 방송 연출 UI (컷신 노드)
-- `{ chat:'open' }` → 오른쪽 트위치식 채팅창(`src/ui/chat.js`, 물리 해상도 16px 폰트, 대화창 위까지). 모드 `late/spam/idle/question/silence/panic` 별 메시지 풀·속도. `{ chat:'close' }`. 닉 100명(`NICKS`, 필수 11명 포함).
+- `{ chat:'open' }` → 오른쪽 트위치식 채팅창(`src/ui/chat.js`, 물리 해상도 16px 폰트, 대화창 위까지). 모드 `late/spam/idle/question/silence/panic` 별 메시지 풀·속도. `{ chat:'close' }`. 닉 100명(`NICKS`, 필수 11명 포함). 쥰희는 "우욱 우욱 우욱 이거 빤스아니여" 한 줄만 도배(`JUNHEE_LINE`).
 - `{ dialog:{title,text,button} }` → 윈도우98식 오류창(`src/ui/sysdialog.js`), `{ dialog:'press' }` 버튼 눌림(0.35s), `{ dialog:null }`.
 - `{ vortex:{ at:'pc'|[x,y], size, grow } }` → 컴퓨터에서 커지는 소용돌이(`src/ui/vortex.js`, 월드 좌표, 기다리지 않음 — 대사와 동시에 자람), `{ vortex:{size,grow} }` 로 더 키움, `{ vortex:null }`.
 - 효과음 파일 추가: `error`(snd_error) `plug`(snd_locker, 철컥) `click`(snd_select, 딸깍) `whoosh`(합성 노이즈, 쉬이익).

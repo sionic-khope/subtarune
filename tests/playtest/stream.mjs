@@ -19,11 +19,12 @@ await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
 check('nick list has required names', await page.evaluate(() => { const need = ['야코혁', 'oneq123', '억빠맨', '축복맨', '다이아캣', '나쁘고오만하게살기', '장아문', '쥰희', '박용준', '따뜻한비데', '영상클립']; return need.every((n) => game.chat.nicks.includes(n)) && game.chat.nicks.length === 100; }));
 
 // 대사를 넘기며 이벤트 기록
-const seen = { chatLate: 0, chatSpam: 0, chatQuestion: 0, chatSilence: 0, chatPanic: 0, dialog: false, pressed: false, bgmOff: false, vortexMax: 0, curtainWhite: false, shots: new Set() };
+const seen = { jun: 0, junBad: 0, chatLate: 0, chatSpam: 0, chatQuestion: 0, chatSilence: 0, chatPanic: 0, dialog: false, pressed: false, bgmOff: false, vortexMax: 0, curtainWhite: false, shots: new Set() };
 const shot = async (n) => { if (!seen.shots.has(n)) { seen.shots.add(n); await page.screenshot({ path: `${S}/stream_${n}.png` }); } };
 let s; const t0 = Date.now();
 while (Date.now() - t0 < 120000) {
   s = await snap();
+  if (s.chat) { const j = await page.evaluate(() => { const L = '우욱 우욱 우욱 이거 빤스아니여'; const ms = game.chat.msgs.filter((m) => m.nick === '쥰희'); return { n: ms.length, bad: ms.filter((m) => m.text !== L).length }; }); seen.jun = Math.max(seen.jun, j.n); seen.junBad += j.bad; }
   if (s.chat && s.mode === 'late' && s.msgs > 5) { seen.chatLate = Math.max(seen.chatLate, s.msgs); await shot('01_chat_late'); }
   if (s.mode === 'spam' && s.msgs > 10) { seen.chatSpam = s.posted; await shot('02_chat_spam'); }
   if (s.mode === 'question') seen.chatQuestion = s.posted;
@@ -40,6 +41,7 @@ while (Date.now() - t0 < 120000) {
 }
 s = await snap();
 check('chat late mode streamed', seen.chatLate > 5, String(seen.chatLate));
+check('쥰희 only spams her line', seen.jun >= 2 && seen.junBad === 0, JSON.stringify({ n: seen.jun, bad: seen.junBad }));
 check('chat spam mode', seen.chatSpam > 0);
 check('chat question mode', seen.chatQuestion > 0);
 check('error dialog shown', seen.dialog);
