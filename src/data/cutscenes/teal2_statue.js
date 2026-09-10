@@ -29,8 +29,8 @@ export const teal2_statue_wall = [
   N('* ...{w=0.7} 다른 방법을 찾아봐야겠다.'),
   { set: { statue_hit: true } },
   { regroup: true },
-  { camera: [36, 5], duration: 1.1 }, { wait: 0.8 },                            // 위로 가는 길을 비춰 유도
-  { camera: [37, 21], duration: 0.9 }, { camera: 'player' },
+  { camera: [21, 6], duration: 1.3 }, { wait: 0.8 },                            // 광장 위 길을 비춰 유도
+  { camera: [37, 21], duration: 1.0 }, { camera: 'player' },
   { end: true },
   { label: 'again' },
   N('* 나무 동상이다.{w=0.3} 아주 단단하다.'),

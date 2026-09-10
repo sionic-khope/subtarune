@@ -810,15 +810,15 @@ registerEntity('rockfall', Rockfall);
 export class Spitter extends Entity {
   constructor(def, game) {
     const img = game.propImages[def.image] || null;
-    super({ solid: true, w: 20, h: 10, ...def }, game);
-    this.image = img; this.fw = img ? Math.floor(img.width / 2) : 28; this.fh = img ? img.height : 30;
+    super({ solid: false, w: 16, h: 8, ...def }, game);
+    this.image = img; this.fw = img ? Math.floor(img.width / 2) : 20; this.fh = img ? img.height : 48;
     this.period = def.period ?? 2.6; this.range = def.range ?? 300;
     this.t = def.offset ?? 0; this.open = 0; this.puffs = []; this.shots = 0;
   }
   canInteract() { return false; }
   update(dt) {
     const p = this.game.player; if (!p) return;
-    const cx = this.x + this.w / 2, cy = this.y + this.h - this.fh * 0.5;               // 입 = 몸통 가운데
+    const cx = this.x + this.w / 2, cy = this.y + this.h - this.fh + 9;                 // 입 = 줄기 꼭대기 솜털
     const px = p.x + p.w / 2, py = p.y + p.h / 2;
     this.t += dt;
     if (this.t >= this.period && Math.hypot(px - cx, py - cy) <= this.range && !this.game.dialogue.running) {
@@ -834,7 +834,7 @@ export class Spitter extends Entity {
     const dx = Math.round(this.x + this.w / 2 - this.fw / 2 - cam.x), dy = Math.round(this.y + this.h - this.fh - cam.y);
     if (this.image) ctx.drawImage(this.image, this.open > 0 ? this.fw : 0, 0, this.fw, this.fh, dx, dy, this.fw, this.fh);
     else { ctx.fillStyle = '#2c9a8f'; ctx.fillRect(dx, dy, this.fw, this.fh); }
-    for (const q of this.puffs) { const k = 1 - q.age / q.life; ctx.fillStyle = `rgba(255,255,255,${(0.95 * k).toFixed(2)})`; const sz = k > 0.5 ? 2 : 1; ctx.fillRect(Math.round(q.x - cam.x), Math.round(q.y - cam.y), sz, sz); }
+    for (const q of this.puffs) { const k = 1 - q.age / q.life; ctx.fillStyle = `rgba(255,255,255,${(0.95 * k).toFixed(2)})`; const r = k > 0.4 ? 3 : 2; ctx.beginPath(); ctx.arc(Math.round(q.x - cam.x), Math.round(q.y - cam.y), r, 0, Math.PI * 2); ctx.fill(); }   // 꽃가루 동그라미(사용자: 좀 크게)
   }
 }
 registerEntity('spitter', Spitter);

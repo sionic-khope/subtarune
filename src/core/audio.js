@@ -36,20 +36,29 @@ export class Sound {
       const buf = (await grab(`assets/audio/voices/${n}.mp3`)) || (await grab(`assets/audio/voices/${n}.ogg`));
       if (buf) this.voiceRaw[n] = buf;
     }));
+    if (this.ctx) this._decodeVoices();   // 오버레이 클릭(unlock)이 파일보다 먼저였으면 여기서 디코드 — "목소리 유실" 재발 방지 (2026-09-10)
   }
+  /** 받아 둔 음성 파일을 AudioContext 로 디코드. 몇 번을 불러도 안전(이미 된 건 건너뜀, 동시 호출은 한 번만) */
   async _decodeVoices() {
-    for (const [n, raw] of Object.entries(this.voiceRaw)) {
-      if (this.voiceBuf[n]) continue;
-      try { this.voiceBuf[n] = await this.ctx.decodeAudioData(raw.slice(0)); } catch (e) { console.warn('[audio] 음성 디코드 실패', n, e); }
-    }
+    if (!this.ctx || this._decoding) return;
+    this._decoding = true;
+    try {
+      for (const [n, raw] of Object.entries(this.voiceRaw)) {
+        if (this.voiceBuf[n]) continue;
+        try { this.voiceBuf[n] = await this.ctx.decodeAudioData(raw.slice(0)); } catch (e) { console.warn('[audio] 음성 디코드 실패', n, e); }
+      }
+    } finally { this._decoding = false; }
+    const missing = Object.keys(this.voiceRaw).filter((n) => !this.voiceBuf[n]);
+    if (missing.length) console.warn('[audio] 아직 디코드 안 된 음성:', missing.join(','));
   }
 
   /** assets/audio/sfx/<name>.(mp3|ogg) 가 있으면 등록. 없는 건 조용히 합성 유지 */
   async loadSfxFiles(names) {
     const probe = (src) => new Promise((resolve) => {
       const a = new Audio(); a.preload = 'auto';
-      a.oncanplaythrough = () => resolve(a);
-      a.onerror = () => resolve(null);
+      const tm = setTimeout(() => resolve(null), 8000);   // 이벤트가 안 오는 파일 하나가 부팅 전체를 멈추지 않게 (2026-09-10)
+      a.oncanplaythrough = () => { clearTimeout(tm); resolve(a); };
+      a.onerror = () => { clearTimeout(tm); resolve(null); };
       a.src = src;
     });
     await Promise.all(names.map(async (n) => {
@@ -121,6 +130,7 @@ export class Sound {
     (this._lastBlipAt ||= {})[voiceName] = now;
     this._lastVoice = voiceName + '@' + now.toFixed(1);
     const buf = this.voiceBuf[voiceName];
+    if (!buf && this.ctx && this.voiceRaw[voiceName]) this._decodeVoices();   // 파일은 있는데 아직 디코드 전 → 지금 디코드(다음 글자부터 진짜 목소리). 합성음으로 영구히 떨어지지 않는다
     if (buf && this.ctx && !this.muted) {
       const t = this.ctx.currentTime;
       // 단선(모노): 이전 글자 소리가 아직 울리고 있으면 끊는다 → 긴 클립(경섭·빠맨)이 웅웅거리지 않음. poly 목소리는 끊지 않는다(언더테일 원본 방식)

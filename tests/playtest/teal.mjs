@@ -45,13 +45,13 @@ await page.goto('http://127.0.0.1:8000/index.html?qa=teal1'); await ready(); awa
 let s = await st();
 const d1 = await mapdef('teal1');
 check('qa=teal1: teal forest, party of 2, Weird Birds, teal_bush backdrop', s.map === 'teal1' && s.f.length === 2 && s.bgm === 'weird_birds' && d1.backdrop === 'teal_bush', JSON.stringify({ map: s.map, f: s.f.length, bgm: s.bgm, bd: d1.backdrop }));
-{ const rows = d1.rows; const t = { teal: rows.some((r) => /[tu]/.test(r)), grass: rows.some((r) => r.includes('g')), cliff: rows.some((r) => r.includes('v')), purple: rows.some((r) => /[xXy]/.test(r)) };
+{ const rows = d1.rows; const t = { teal: rows.some((r) => /[tu]/.test(r)), grass: rows.some((r) => r.includes('w')), cliff: rows.some((r) => r.includes('v')), purple: rows.some((r) => /[xXy]/.test(r)) };
   check('teal1 tiles: teal ground/grass/cliff, no purple', t.teal && t.grass && t.cliff && !t.purple, JSON.stringify(t)); }
 await page.screenshot({ path: `${S}/teal_01_road.png` });
 // 꽃가루 풀 3마리: 균등 배치, 가까이 가면 뿜고, 맞아도 아무 일 없음
 { const sp = await page.evaluate(() => game.entities.filter((e) => e.def?.type === 'spitter').map((e) => ({ id: e.id, x: e.x, y: e.y })));
   const W = d1.rows[0].length * 32; const xs = sp.map((e) => e.x).sort((a, b) => a - b);
-  check('teal1: 3 spitters evenly spaced on the road\'s top row', sp.length === 3 && xs.every((x, i) => Math.abs(x - (W * (i + 1) / 4)) < 80) && sp.every((e) => e.y >= 4 * 32 && e.y < 5 * 32), JSON.stringify(sp));
+  check('teal1: 3 spitters evenly spaced just above the road (outside it, in the dark)', sp.length === 3 && xs.every((x, i) => Math.abs(x - (W * (i + 1) / 4)) < 80) && sp.every((e) => e.y < 4 * 32 && e.y + 8 <= 4 * 32), JSON.stringify(sp));
   await stand(xs[0] - 90, 6 * 32 + 8, 'right'); const p0 = await st(); const hurt0 = await page.evaluate(() => game.hurt || 0);
   let puffs = 0, shots = 0; const t0 = Date.now(); while (Date.now() - t0 < 4500) { await page.waitForTimeout(150); const q = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'spitter1'); return { puffs: e.puffs.length, shots: e.shots }; }); puffs = Math.max(puffs, q.puffs); shots = q.shots; if (shots >= 1 && puffs >= 6) { await page.screenshot({ path: `${S}/teal_01b_pollen.png` }).catch(() => {}); break; } }
   const p1 = await st(); check('spitter1 fires white pollen toward the player; player unaffected (no hurt, no move)', shots >= 1 && puffs >= 6 && p1.p[0] === p0.p[0] && p1.p[1] === p0.p[1] && (await page.evaluate(() => game.hurt || 0)) === hurt0, JSON.stringify({ shots, puffs, p0: p0.p, p1: p1.p })); }
@@ -75,7 +75,7 @@ await page.screenshot({ path: `${S}/teal_02_wall.png` });
   const between = o.slice(li('* 부숴버리면'), li('* 아 존나'));
   check('ppaman charges the statue: ran up close (x near the wall), hopped, thud shake', between.some((x) => x.ppx !== null && x.ppx > wallX - 70) && between.some((x) => x.hop > 3) && between.some((x) => x.shake), JSON.stringify({ maxPpx: Math.max(...between.map((x) => x.ppx ?? -1)), hop: between.some((x) => x.hop > 3), shake: between.some((x) => x.shake) }));
   check('ppaman sweats before "아 존나 아프다"', o.slice(li('* 부숴버리면'), li('* 아 존나') + 2).some((x) => x.emote === 'sweat'), '');
-  check('camera shows the upward path after the narration (cam.y drops near the top) then returns', o.slice(li('* ... 다른')).some((x) => x.camY < 120) && (await st()).cam.onPlayer, JSON.stringify({ minCamY: Math.min(...o.slice(Math.max(0, li('* ... 다른'))).map((x) => x.camY)) }));
+  check('camera shows the upward path (above the plaza) after the narration then returns', o.slice(li('* ... 다른')).some((x) => x.camY < 120) && (await st()).cam.onPlayer, JSON.stringify({ minCamY: Math.min(...o.slice(Math.max(0, li('* ... 다른'))).map((x) => x.camY)) }));
   s = await st(); check('flag statue_hit, followers regrouped near the player', s.flags.statue_hit === true && s.f.every((x) => x.vis && Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ p: s.p, f: s.f })); }
 { await stand(wallX - 36, 21 * 32 + 8, 'right'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); const r = await drain(8000);
   check('statue wall again: 아주 단단하다 / 저건 다신 안 건드릴래요', r.lines.some((l) => l.includes('아주 단단하다')) && r.lines.some((l) => l.includes('다신 안 건드릴래요')), JSON.stringify(r.lines)); }
@@ -90,17 +90,20 @@ await page.screenshot({ path: `${S}/teal_02_wall.png` });
   check('tree event: 얼굴 같지 않아요 → 두드려 볼게요 → 똑똑 → ...똑똑 → ! → 안에서 두드린 거 → 바람 소리 → 저 여기 있을게요 → 확실히 두 번 두드렸다', ['얼굴 같지 않아요', '두드려 볼게요', '똑똑', '안에서 두드린', '바람 소리', '저 여기 있을게요', '확실히 두 번'].every((k) => r.lines.some((l) => l.includes(k))) && bang && ranBack, JSON.stringify({ lines: r.lines, bang, ranBack }));
   s = await st(); check('tree event: flag + followers regrouped', s.flags.tree_knocked === true && s.f.every((x) => Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ f: s.f, p: s.p }));
   const L2 = await talk(tr.x + tr.w / 2 - 12, tr.y + tr.h + 6, 'up'); check('tree again: 저건 다신 안 두드릴래요', L2.some((l) => l.includes('다신 안 두드릴래요')), JSON.stringify(L2));
-  const bn = await page.evaluate(() => ['banana1', 'banana2'].map((id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: e.x, y: e.y, w: e.w, h: e.h } : null; }));
-  check('two bananas placed in the plaza', bn.every(Boolean), JSON.stringify(bn));
+  const bn = await page.evaluate(() => ['banana1'].map((id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: e.x, y: e.y, w: e.w, h: e.h } : null; }));
+  check('one banana placed in the upper plaza; no second banana', bn.every(Boolean) && bn[0].y < 15 * 32 && !(await page.evaluate(() => game.entities.some((e) => e.id === 'banana2'))), JSON.stringify(bn));
   const L3 = await talk(bn[0].x + bn[0].w / 2 - 12, bn[0].y + bn[0].h + 4, 'up', [0]);
   s = await st(); const b1 = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana1'); return !e || e.dead; });
   check('banana1: 형섭이형 바나나 드세요 → [먹는다] → 포타슘, banana gone + flag', L3.some((l) => l.includes('바나나 드세요')) && L3.some((l) => l.includes('포타슘')) && b1 && s.flags.banana1_eaten === true, JSON.stringify(L3));
-  const L4 = await talk(bn[1].x + bn[1].w / 2 - 12, bn[1].y + bn[1].h + 4, 'up', [1]);
-  const b2 = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana2'); return !!e && !e.dead; });
-  check('banana2: [안먹는다] → 몸상하세요, banana stays', L4.some((l) => l.includes('몸상하세요')) && !L4.some((l) => l.includes('포타슘')) && b2, JSON.stringify(L4));
+  // 안먹는다 분기: 플래그·바나나를 되돌려 같은 바나나로 확인
+  await page.evaluate(() => { delete game.flags.banana1_eaten; game.spawn({ type: 'prop', id: 'banana1', image: 'assets/props/banana.png', x: 25 * 32 + 2, y: 13 * 32 + 14, w: 28, h: 10, ix: 25 * 32 + 2, iy: 13 * 32 + 4, solid: false, script: 'teal2_banana1' }); });
+  const L4 = await talk(bn[0].x + bn[0].w / 2 - 12, bn[0].y + bn[0].h + 4, 'up', [1]);
+  const b2 = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana1'); return !!e && !e.dead; });
+  check('banana: [안먹는다] → 몸상하세요, banana stays', L4.some((l) => l.includes('몸상하세요')) && !L4.some((l) => l.includes('포타슘')) && b2, JSON.stringify(L4));
   await page.screenshot({ path: `${S}/teal_06_plaza.png` }); }
 // 위로 가는 길 → teal3 → 되돌아오기
-await stand(36 * 32 + 4, 4 * 32, 'up'); await page.screenshot({ path: `${S}/teal_04_up.png` }); await hold('ArrowUp', 1200); await page.waitForTimeout(900); s = await st();
+{ const up = meta.upCols; check('up path starts from the top of the central plaza (cols 20~22), not beside the statue wall', up[0] === 20 && up[1] === 22 && (await page.evaluate(() => !game.map.solidRect(21 * 32 + 4, 8 * 32, 24, 16))), JSON.stringify(up)); }
+await stand(21 * 32 + 4, 4 * 32, 'up'); await page.screenshot({ path: `${S}/teal_04_up.png` }); await hold('ArrowUp', 1200); await page.waitForTimeout(900); s = await st();
 check('up path → teal3 placeholder, party intact, bgm hopes', s.map === 'teal3' && s.f.length === 2 && s.bgm === 'hopes', JSON.stringify({ map: s.map, f: s.f.length, bgm: s.bgm }));
 await hold('ArrowDown', 1200); await page.waitForTimeout(900); s = await st();
 check('back down → teal2 from_top', s.map === 'teal2' && s.p[1] < 200, JSON.stringify({ map: s.map, p: s.p }));

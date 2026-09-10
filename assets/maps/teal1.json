@@ -10,11 +10,11 @@
   "                                                                ",
   "                                                                ",
   "                                                                ",
-  " utututugutututututgtututututugutututututgtututututugututututut ",
-  " tututututgtututututugutututututgtututututugutututututgtutututu ",
-  " gtututututugutututututgtututututugutututututgtututututugututut ",
-  " tugutututututgtututututugutututututgtututututugutututututgtutu ",
-  " ututgtututututugutututututgtututututugutututututgtututututugut ",
+  " utututuwutututututwtututututuwutututututwtututututuwututututut ",
+  " tututututwtututututuwutututututwtututututuwutututututwtutututu ",
+  " wtututututuwutututututwtututututuwutututututwtututututuwututut ",
+  " tuwutututututwtututututuwutututututwtututututuwutututututwtutu ",
+  " ututwtututututuwutututututwtututututuwutututututwtututututuwut ",
   " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ",
   "                                                                ",
   "                                                                "
@@ -61,37 +61,40 @@
    "type": "spitter",
    "id": "spitter1",
    "image": "assets/props/spitter.png",
-   "x": 486,
-   "y": 130,
-   "w": 20,
-   "h": 10,
+   "x": 488,
+   "y": 120,
+   "w": 16,
+   "h": 8,
+   "solid": false,
    "period": 2.6,
    "offset": 0.0,
-   "range": 300
+   "range": 320
   },
   {
    "type": "spitter",
    "id": "spitter2",
    "image": "assets/props/spitter.png",
-   "x": 982,
-   "y": 130,
-   "w": 20,
-   "h": 10,
+   "x": 984,
+   "y": 120,
+   "w": 16,
+   "h": 8,
+   "solid": false,
    "period": 2.6,
    "offset": 0.9,
-   "range": 300
+   "range": 320
   },
   {
    "type": "spitter",
    "id": "spitter3",
    "image": "assets/props/spitter.png",
-   "x": 1478,
-   "y": 130,
-   "w": 20,
-   "h": 10,
+   "x": 1480,
+   "y": 120,
+   "w": 16,
+   "h": 8,
+   "solid": false,
    "period": 2.6,
    "offset": 1.8,
-   "range": 300
+   "range": 320
   }
  ]
 }

@@ -8,11 +8,11 @@ teal3(위, 다음 브리핑) / teal_east(막힌 오른쪽 너머) 는 빈 착지
 """
 import io, json, sys
 from itertools import cycle
-def g(r, c, grass=False): return 'g' if grass else ('t' if (r + c) % 2 == 0 else 'u')
+def g(r, c, grass=False): return 'w' if grass else ('t' if (r + c) % 2 == 0 else 'u')
 def cliffs(rows, W, H):
     for r in range(1, H):
         for c in range(W):
-            if rows[r][c] == ' ' and rows[r - 1][c] in 'tug': rows[r][c] = 'v'
+            if rows[r][c] == ' ' and rows[r - 1][c] in 'tuw': rows[r][c] = 'v'
 def grass_at(r, c): return (r * 7 + c * 13) % 11 == 0     # 잔풀 땅을 드문드문
 STATUES = cycle(f'assets/props/statue_junhee_{pose}.png' for pose in
                 ('arms_crossed', 'laugh', 'gesture', 'arms_raised', 'thinking', 'look_back'))
@@ -33,15 +33,15 @@ m1 = {'id': 'teal1', 'name': '청록숲', 'bgm': 'weird_birds', 'stage': 'void_f
       'entities': [
           {'type': 'door', 'x': 32, 'y': 4 * 32, 'w': 8, 'h': 160, 'to': 'void11', 'spawn': 'landing', 'sfx': False},
           {'type': 'door', 'x': (W - 1) * 32 - 8, 'y': 4 * 32, 'w': 8, 'h': 160, 'to': 'teal2', 'spawn': 'from_left', 'sfx': False},
-      ] + [   # 꽃가루 뿜는 풀 3마리: 길 위쪽 가장자리(4행)에 균등 배치, 뿜는 타이밍은 서로 어긋나게
-          {'type': 'spitter', 'id': f'spitter{i + 1}', 'image': 'assets/props/spitter.png', 'x': (W - 2) * 32 * (i + 1) // 4 - 10, 'y': 4 * 32 + 2, 'w': 20, 'h': 10, 'period': 2.6, 'offset': i * 0.9, 'range': 300}
+      ] + [   # 꽃가루 뿜는 풀 3마리: 길 바깥 위쪽(허공, 길 윗변에 뿌리) 균등 배치 — 길에 포함되지 않음(사용자), 뿜는 타이밍은 서로 어긋나게
+          {'type': 'spitter', 'id': f'spitter{i + 1}', 'image': 'assets/props/spitter.png', 'x': (W - 2) * 32 * (i + 1) // 4 - 8, 'y': 4 * 32 - 8, 'w': 16, 'h': 8, 'solid': False, 'period': 2.6, 'offset': i * 0.9, 'range': 320}
           for i in range(3)
       ]}
 
 # ── teal2 ──
 W, H = 44, 26
 R0, R1 = 19, 23                 # 가로 길 5행
-UPC0, UPC1 = 35, 37             # 위로 가는 길 3열 (동상 벽 바로 왼쪽)
+UPC0, UPC1 = 20, 22             # 위로 가는 길 3열 — 가운데 광장 위쪽 한가운데서 위로 (사용자: 막힌 오른쪽 길 옆이 아니라 광장 위)
 WALLC = 39                      # 동상 벽 열 = 오른쪽 출구(42열)보다 3칸 왼쪽
 rows = [[' '] * W for _ in range(H)]
 PC0, PC1, PR0 = 13, 28, 12      # 가운데 광장(열 13~28, 행 12~광장 아래 = 길)
@@ -49,29 +49,30 @@ for r in range(R0, R1 + 1):
     for c in range(1, W - 1): rows[r][c] = g(r, c, grass_at(r, c))
 for r in range(PR0, R0):
     for c in range(PC0, PC1 + 1): rows[r][c] = g(r, c, grass_at(r, c))
-for r in range(1, R0):
+for r in range(1, PR0):
     for c in range(UPC0, UPC1 + 1): rows[r][c] = g(r, c, grass_at(r, c))
 cliffs(rows, W, H)
-TX, TY = 21 * 32 - 120, (PR0 + 3) * 32 + 14 - 252     # 이벤트 나무: 광장 위쪽 가운데, 밑동 바닥 y = 15행+14
+TS = 0.5                                              # 이벤트 나무는 거대 나무의 반절 크기(imageScale)
+TW, TH = int(240 * TS), int(264 * TS)
+TX, TY = 16 * 32 - TW // 2, (PR0 + 3) * 32 + 14 - int(252 * TS)   # 광장 왼쪽 위(16열), 밑동 바닥 y = 15행+14 — 위 길(20~22열)을 막지 않게
 ents = [
     {'type': 'door', 'x': 32, 'y': R0 * 32, 'w': 8, 'h': 160, 'to': 'teal1', 'spawn': 'landing', 'sfx': False},
-    {'type': 'door', 'x': UPC0 * 32, 'y': 32, 'w': 96, 'h': 8, 'to': 'teal3', 'spawn': 'from_bottom', 'sfx': False},
+    {'type': 'door', 'x': UPC0 * 32, 'y': 32, 'w': 96, 'h': 8, 'to': 'teal3', 'spawn': 'from_bottom', 'sfx': False},   # 광장 위 길 끝(맵 위쪽)
     {'type': 'door', 'x': (W - 1) * 32 - 8, 'y': R0 * 32, 'w': 8, 'h': 160, 'to': 'teal_east', 'spawn': 'from_left', 'sfx': False},
 ]
 for i in range(5):   # 동상 벽: 가로 길 5행을 두 열로 엇갈리게(겹쳐 보이지 않게) 세로로 막는다 — 홀수 번째는 한 칸 오른쪽
     col = WALLC + (i % 2)
     ents.append(statue(f'statue_w{i + 1}', col * 32 - 6, (R0 + i) * 32 - 28, 'teal2_statue_wall', wall=True))
-for j, (c, r) in enumerate([(5, R0), (10, R0), (31, R0), (PC0, PR0), (PC1, PR0), (UPC0, 6), (UPC1, 12), (UPC1, 3)]):   # 깔려 있는 동상들(길 가장자리·광장 위 모서리·위 길 옆)
+for j, (c, r) in enumerate([(5, R0), (10, R0), (31, R0), (PC0, PR0), (PC1, PR0), (UPC0, 6), (UPC1, 9), (UPC1, 3)]):   # 깔려 있는 동상들(길 가장자리·광장 위 모서리·위 길 옆)
     ents.append(statue(f'statue_d{j + 1}', c * 32 - 6, r * 32 - 30, 'teal2_statue_look'))
 ents += [
-    {'type': 'prop', 'id': 'tree', 'image': 'assets/props/tree_teal.png', 'x': TX + 88, 'y': TY + 252 - 12, 'w': 64, 'h': 14, 'ix': TX, 'iy': TY, 'solid': True, 'script': 'teal2_tree'},   # 이벤트 나무(똑똑)
-    {'type': 'prop', 'id': 'banana1', 'image': 'assets/props/banana.png', 'x': 16 * 32 + 6, 'y': 18 * 32 + 12, 'w': 22, 'h': 10, 'ix': 16 * 32 + 6, 'iy': 18 * 32 + 8, 'solid': False, 'script': 'teal2_banana1', 'unless': 'banana1_eaten'},
-    {'type': 'prop', 'id': 'banana2', 'image': 'assets/props/banana.png', 'x': 26 * 32 + 6, 'y': 16 * 32 + 12, 'w': 22, 'h': 10, 'ix': 26 * 32 + 6, 'iy': 16 * 32 + 8, 'solid': False, 'script': 'teal2_banana2', 'unless': 'banana2_eaten'},
+    {'type': 'prop', 'id': 'tree', 'image': 'assets/props/tree_teal.png', 'imageScale': TS, 'x': TX + int(88 * TS), 'y': TY + int(252 * TS) - 10, 'w': int(64 * TS), 'h': 10, 'ix': TX, 'iy': TY, 'solid': True, 'script': 'teal2_tree'},   # 이벤트 나무(똑똑), 반절 크기
+    {'type': 'prop', 'id': 'banana1', 'image': 'assets/props/banana.png', 'x': 25 * 32 + 2, 'y': 13 * 32 + 14, 'w': 28, 'h': 10, 'ix': 25 * 32 + 2, 'iy': 13 * 32 + 4, 'solid': False, 'script': 'teal2_banana1', 'unless': 'banana1_eaten'},   # 바나나 1개, 광장 상단
 ]
 m2 = {'id': 'teal2', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush',
       'rows': [''.join(r) for r in rows],
       'spawns': {'from_left': {'x': 60, 'y': 21 * 32 + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 21 * 32 + 8, 'facing': 'right'},
-                 'from_top': {'x': 36 * 32 + 4, 'y': 2 * 32 + 16, 'facing': 'down'}, 'landing_east': {'x': (W - 3) * 32, 'y': 21 * 32 + 8, 'facing': 'left'}},
+                 'from_top': {'x': 21 * 32 + 4, 'y': 2 * 32 + 16, 'facing': 'down'}, 'landing_east': {'x': (W - 3) * 32, 'y': 21 * 32 + 8, 'facing': 'left'}},
       'meta': {'wallCol': WALLC, 'upCols': [UPC0, UPC1], 'roadRows': [R0, R1], 'plaza': [PC0, PC1, PR0, R1]},
       'entities': ents}
 

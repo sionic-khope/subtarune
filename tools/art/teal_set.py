@@ -47,41 +47,43 @@ def outline_silhouette(c, col=OUT):
     for (x, y) in todo: c.px(x, y, col)
 
 def prop_banana():
-    """바나나 24x14: 아래로 볼록한 초승달(포물선 중심선 + 두께), 위쪽 밝은 줄, 아래 그늘, 양 끝 갈색 꼭지"""
+    """바나나 32x20: 두 원 사이의 초승달(아래로 볼록), 위쪽 하이라이트·아래 그늘, 양 끝 갈색 꼭지, 검은 테두리"""
     import math
-    Y = hexc('#f2d13a'); YL = hexc('#fff3a8'); YD = hexc('#c9a52a'); B = hexc('#5a3a1a')
-    c = Canvas(24, 14)
-    def mid(x): return 3.5 + 7.0 * (1 - ((x - 11.5) / 9.5) ** 2)      # 가운데가 아래로 처진 곡선
-    for x in range(2, 22):
-        m = mid(x); half = 2.6 - 1.4 * abs(x - 11.5) / 9.5           # 끝으로 갈수록 얇게
-        for y in range(14):
-            d = y - m
-            if abs(d) <= half:
-                c.px(x, y, YL if d < -half + 0.9 else (YD if d > half - 0.9 else Y))
+    Y = hexc('#f4cf3c'); YL = hexc('#fff2a6'); YD = hexc('#c9a027'); YDD = hexc('#9a7a1a'); B = hexc('#5a3a1a'); GR = hexc('#8aa64a')
+    c = Canvas(32, 20)
+    ocx, ocy, orad = 16.0, -3.0, 20.0      # 바깥 원(아래 가장자리)
+    icx, icy, irad = 16.0, -8.0, 19.5      # 안쪽 원(위 가장자리)
+    for y in range(20):
+        for x in range(32):
+            do = math.hypot(x + 0.5 - ocx, y + 0.5 - ocy); di = math.hypot(x + 0.5 - icx, y + 0.5 - icy)
+            if do <= orad and di >= irad and 2 <= x <= 29:
+                t = (do - irad) / max(0.01, orad - irad + (irad - di))   # 0 위쪽 → 1 아래쪽
+                col = YL if (di - irad) < 1.2 else (YDD if (orad - do) < 1.0 else (YD if (orad - do) < 2.6 else Y))
+                c.px(x, y, col)
     outline_silhouette(c)
-    c.rect(1, 3, 2, 3, B); c.rect(21, 3, 2, 3, B); c.px(1, 2, OUT); c.px(22, 2, OUT)
+    c.rect(1, 3, 3, 3, B); c.rect(28, 3, 3, 3, B); c.px(2, 6, GR); c.px(29, 6, GR)   # 꼭지
     return c
 
 def prop_spitter():
-    """꽃가루 뿜는 풀 2프레임(각 28x30, 가로로 이어 붙임): 둥근 청록 몸통·점 무늬·점 눈, 평소 입 / 뿜는 입(동그랗게 벌림 + 흰 꽃가루)"""
-    D = hexc('#155a55'); M = hexc('#1f7d75'); L = hexc('#2c9a8f'); S = hexc('#0c3532'); W = hexc('#ffffff')
-    c = Canvas(56, 30)
+    """꽃가루 뿜는 풀 2프레임(각 20x48, 가로로 이어 붙임): 얼굴 없는 길쭉한 흰 줄기 + 꼭대기 솜털, 뿜는 프레임은 솜털이 커지고 꽃가루가 흩어진다. 전부 흰색 계열."""
+    W = hexc('#f6f6f6'); WS = hexc('#c9d3d3'); O = hexc('#0a1f1e')
+    c = Canvas(40, 48)
     for f in range(2):
-        ox = f * 28
-        for y in range(30):                                            # 몸통: 타원(둥근 덩어리)
-            for x in range(28):
-                if ((x - 13.5) / 11.5) ** 2 + ((y - 13.5) / 10.5) ** 2 <= 1: c.px(ox + x, y, M)
-        for y in range(30):
-            for x in range(28):
-                if c.a[y, ox + x, 3] == 0 and any(0 <= x + dx < 28 and 0 <= y + dy < 30 and c.a[y + dy, ox + x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.px(ox + x, y, OUT)
-        c.rrect(ox + 6, 7, 8, 6, L, 3); c.px(ox + 19, 9, L); c.px(ox + 20, 9, L); c.px(ox + 9, 18, L); c.px(ox + 18, 17, L)   # 무늬
-        c.rect(ox + 9, 11, 2, 2, OUT); c.rect(ox + 17, 11, 2, 2, OUT)   # 눈
-        if f == 0: c.hline(ox + 12, 17, 5, S)                           # 다문 입
-        else:
-            c.rrect_outlined(ox + 10, 15, 8, 6, S, OUT, 3)              # 벌린 입
-            for (x, y) in ((ox + 8, 12), (ox + 20, 13), (ox + 13, 9), (ox + 6, 17), (ox + 22, 18)): c.px(x, y, W)   # 꽃가루
-        c.rect(ox + 12, 24, 4, 4, D); c.outline(ox + 12, 24, 4, 4, OUT)   # 줄기
-        c.rrect_outlined(ox + 4, 26, 8, 4, L, OUT, 2); c.rrect_outlined(ox + 16, 26, 8, 4, L, OUT, 2)   # 잎
+        ox = f * 20
+        for y in range(12, 47):                                        # 줄기(살짝 휨)
+            x = ox + 9 + int(round(1.5 * __import__('math').sin((y - 12) / 35 * 3.14)))
+            c.px(x, y, W); c.px(x + 1, y, W); c.px(x + 2, y, WS)
+        c.hline(ox + 4, 40, 6, W); c.px(ox + 3, 39, W); c.px(ox + 4, 39, W)          # 잎 2장
+        c.hline(ox + 11, 33, 6, W); c.px(ox + 16, 32, W); c.px(ox + 17, 32, W)
+        r = 5 if f == 0 else 6                                         # 꼭대기 솜털
+        for y in range(48):
+            for x in range(20):
+                if (x - 10) ** 2 + (y - 9) ** 2 <= r * r: c.px(ox + x, y, W if x < 12 else WS)
+        if f == 1:
+            for (x, y) in ((2, 3), (17, 2), (1, 12), (18, 14), (9, 0), (15, 17)): c.px(ox + x, y, W)
+        for y in range(48):                                            # 검정 테두리(검은 허공 위에서도 보이게)
+            for x in range(20):
+                if c.a[y, ox + x, 3] == 0 and any(0 <= x + dx < 20 and 0 <= y + dy < 48 and c.a[y + dy, ox + x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.px(ox + x, y, O)
     return c
 
 def prop_statue():

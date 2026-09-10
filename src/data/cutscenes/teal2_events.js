@@ -52,5 +52,4 @@ const banana = (id) => [
   { label: 'alone' },
   N('* 바나나다.'),
 ];
-export const teal2_banana1 = banana('banana1');
-export const teal2_banana2 = banana('banana2');
+export const teal2_banana1 = banana('banana1');   // 바나나는 하나만(사용자 2026-09-10)

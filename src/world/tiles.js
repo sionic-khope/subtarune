@@ -135,10 +135,10 @@ registerTile('X', { name: 'ground_purple2', solid: false, draw: flat('#4a2578') 
 registerTile('z', { name: 'flower_purple', solid: false, draw: flat('#4a2578') });
 registerTile('Z', { name: 'ground_purple_solid', solid: true, draw: flat('#4a2578') });   // 땅처럼 보이지만 막힘 — 맵 가장자리 밖으로 이어지는 길(컷신 NPC 가 걸어 나가는 바닥, void10 출구). 맵 규칙 '사방 막힘' 을 지키면서 공중부양을 막는다 (2026-09-10)
 registerTile('y', { name: 'cliff_purple', solid: true, draw: flat('#2a1240') });
-// 청록숲 (tools/art/teal_set.py, 2026-09-10): 검은 배경 + 청록 땅. t/u 땅 체커, g 잔풀 땅, v 절벽면(막힘)
+// 청록숲 (tools/art/teal_set.py, 2026-09-10): 검은 배경 + 청록 땅. t/u 땅 체커, w 잔풀 땅, v 절벽면(막힘)
 registerTile('t', { name: 'ground_teal', solid: false, draw: flat('#1f6b66') });
 registerTile('u', { name: 'ground_teal2', solid: false, draw: flat('#1f6b66') });
-registerTile('g', { name: 'grass_teal', solid: false, draw: flat('#1f6b66') });
+registerTile('w', { name: 'grass_teal', solid: false, draw: flat('#1f6b66') });   // ('g' 는 방 바닥 floor_vinyl2 — 2026-09-10 잘못 덮어썼다가 되돌림)
 registerTile('v', { name: 'cliff_teal', solid: true, draw: flat('#0f3a38') });
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });
