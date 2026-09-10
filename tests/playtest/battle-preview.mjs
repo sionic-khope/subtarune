@@ -39,7 +39,7 @@ await page.keyboard.press('KeyC');
 await page.waitForFunction(() => window.game?.state === 'battle-preview');
 await page.waitForFunction(() => window.game?.battlePreview.loading === false);
 
-assert.equal(battleRequests.length, 3, 'opening preview must lazily request three battle atlases');
+assert.equal(battleRequests.length, 6, 'opening preview must lazily request three battle and three run atlases');
 assert.deepEqual(
   await page.evaluate(() => game.battlePreview.actors.map((actor) => ({ id: actor.id, ready: !!actor.frames, error: actor.error }))),
   [
@@ -81,6 +81,10 @@ await page.keyboard.press('ArrowRight');
 await page.waitForFunction(() => game.battlePreview.selected === 1);
 assert.equal(await page.evaluate(() => game.battlePreview.selected), 1);
 await page.keyboard.press('KeyC');
+await page.waitForFunction(() => game.battlePreview.actors[1].mode === 'approach');
+await page.keyboard.press('ArrowRight');
+assert.equal(await page.evaluate(() => game.battlePreview.selected), 1, 'busy selection must stay locked');
+await page.screenshot({ path: `${outputDir}/02-approach.png` });
 await page.waitForFunction(() => game.battlePreview.actors[1].mode === 'attack');
 await page.waitForTimeout(70);
 const firstAttackTime = await page.evaluate(() => game.battlePreview.actors[1].elapsed);
@@ -94,8 +98,11 @@ assert.equal(secondAttack.mode, 'attack');
 assert.ok(secondAttack.elapsed > firstAttackTime, 'confirm during attack must not restart elapsed time');
 await page.screenshot({ path: `${outputDir}/02-attack.png` });
 
-await page.waitForTimeout(850);
+await page.waitForFunction(() => game.battlePreview.actors[1].mode === 'return');
+await page.screenshot({ path: `${outputDir}/03-return.png` });
+await page.waitForFunction(() => game.battlePreview.actors[1].mode === 'idle');
 assert.equal(await page.evaluate(() => game.battlePreview.actors[1].mode), 'idle');
+assert.deepEqual(await page.evaluate(() => game.battlePreview.actors[1].action.position), [150, 230]);
 await page.screenshot({ path: `${outputDir}/03-returned-idle.png` });
 
 await page.keyboard.press('KeyX');

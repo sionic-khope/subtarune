@@ -1,4 +1,5 @@
 import { FONT } from './font.js';
+import { BattleAction } from './battle-action.js';
 
 function assertFrames(frames) {
   if (!Array.isArray(frames) || frames.length === 0) throw new TypeError('frame list must not be empty');
@@ -101,50 +102,53 @@ export function makeTransparentFrame(image, definition, colorKey, createCanvas) 
 }
 
 class BattleActor {
-  constructor(id, definition, anchor) {
+  constructor(id, definition, anchor, target) {
     this.id = id;
     this.definition = definition;
     this.anchor = anchor;
     this.frames = null;
     this.error = false;
-    this.mode = 'idle';
-    this.elapsed = 0;
+    this.action = new BattleAction(anchor, target, definition.attack.reduce((sum, frame) => sum + frame.duration, 0));
   }
 
+  get mode() { return this.action.mode; }
+  get elapsed() { return this.action.elapsed; }
+
   reset() {
-    this.mode = 'idle';
-    this.elapsed = 0;
+    this.action.reset();
   }
 
   attack() {
-    if (!this.frames || this.error || this.mode === 'attack') return false;
-    this.mode = 'attack';
-    this.elapsed = 0;
-    return true;
+    if (!this.frames || this.error) return false;
+    return this.action.start();
   }
 
   update(dt) {
     if (!this.frames) return;
-    this.elapsed += dt;
-    if (this.mode === 'attack' && playbackFrameAt(this.frames.attack, this.elapsed, false).ended) this.reset();
+    this.action.update(dt);
   }
 
   draw(ctx) {
     if (!this.frames) return;
-    const sequence = this.frames[this.mode];
-    const { index } = playbackFrameAt(sequence, this.elapsed, this.mode === 'idle');
+    const running = this.mode === 'approach' || this.mode === 'return';
+    const sequence = this.frames[running ? 'run' : this.mode];
+    const { index } = playbackFrameAt(sequence, this.elapsed, this.mode !== 'attack');
     const frame = sequence[index];
     const [pivotX, pivotY] = frame.pivot;
-    const scale = this.definition.scale;
+    const scale = running ? this.definition.run.scale : this.definition.scale;
     const width = frame.image.width * scale;
     const height = frame.image.height * scale;
+    ctx.save();
+    ctx.translate(Math.round(this.action.position[0]), Math.round(this.action.position[1]));
+    if (this.mode === 'return') ctx.scale(-1, 1);
     ctx.drawImage(
       frame.image,
-      Math.round(this.anchor[0] - pivotX * scale),
-      Math.round(this.anchor[1] - pivotY * scale),
+      Math.round(-pivotX * scale),
+      Math.round(-pivotY * scale),
       Math.round(width),
       Math.round(height),
     );
+    ctx.restore();
   }
 }
 
@@ -163,7 +167,7 @@ export class BattlePreview {
     this.onClose = onClose;
     this.imageLoader = imageLoader;
     this.createCanvas = createCanvas;
-    this.actors = preview.ids.map((id, index) => new BattleActor(id, sprites[id], preview.anchors[index]));
+    this.actors = preview.ids.map((id, index) => new BattleActor(id, sprites[id], preview.anchors[index], preview.attackAnchor));
     this.selected = 0;
     this.active = false;
     this.loading = false;
@@ -190,7 +194,10 @@ export class BattlePreview {
     this.loading = true;
     await Promise.all(this.actors.map(async (actor) => {
       try {
-        const image = await this.imageLoader(actor.definition.src);
+        const [image, runImage] = await Promise.all([
+          this.imageLoader(actor.definition.src),
+          this.imageLoader(actor.definition.run.src),
+        ]);
         const prepare = (definition) => makeTransparentFrame(
           image,
           definition,
@@ -200,6 +207,9 @@ export class BattlePreview {
         actor.frames = {
           idle: actor.definition.idle.map(prepare),
           attack: actor.definition.attack.map(prepare),
+          run: actor.definition.run.frames.map((definition) => makeTransparentFrame(
+            runImage, definition, this.preview.colorKey, this.createCanvas,
+          )),
         };
       } catch (error) {
         actor.error = true;
@@ -212,10 +222,13 @@ export class BattlePreview {
   /** 기존 Input 액션으로 선택·공격·필드 복귀를 처리한다. */
   update(dt, input) {
     if (!this.active) return;
-    if (input.just('cancel')) { this.onClose(); return; }
-    if (input.just('left')) this.selected = (this.selected + this.actors.length - 1) % this.actors.length;
-    if (input.just('right')) this.selected = (this.selected + 1) % this.actors.length;
-    if (input.just('confirm')) this.actors[this.selected].attack();
+    if (input.just('cancel')) { this.close(); this.onClose(); return; }
+    const busy = this.actors.some((actor) => actor.mode !== 'idle');
+    if (!busy) {
+      if (input.just('left')) this.selected = (this.selected + this.actors.length - 1) % this.actors.length;
+      if (input.just('right')) this.selected = (this.selected + 1) % this.actors.length;
+      if (input.just('confirm')) this.actors[this.selected].attack();
+    }
     for (const actor of this.actors) actor.update(dt);
   }
 
@@ -229,7 +242,18 @@ export class BattlePreview {
     ctx.fillStyle = '#fff';
     ctx.fillText(this.strings.battle_preview_title, width / 2, 16);
 
-    for (const actor of this.actors) actor.draw(ctx);
+    const [targetX, targetY] = this.preview.target;
+    ctx.strokeStyle = '#b2b2c8';
+    ctx.strokeRect(targetX - 14, targetY - 70, 28, 70);
+    ctx.beginPath();
+    ctx.moveTo(targetX - 20, targetY - 35);
+    ctx.lineTo(targetX + 20, targetY - 35);
+    ctx.moveTo(targetX, targetY - 76);
+    ctx.lineTo(targetX, targetY + 5);
+    ctx.stroke();
+    ctx.fillText(this.strings.battle_preview_target, targetX, targetY + 20);
+    for (const actor of this.actors.filter((actor) => actor.mode === 'idle')) actor.draw(ctx);
+    for (const actor of this.actors.filter((actor) => actor.mode !== 'idle')) actor.draw(ctx);
     this.actors.forEach((actor, index) => {
       const selected = index === this.selected;
       ctx.fillStyle = selected ? '#ffe066' : '#cfcfdd';
@@ -244,9 +268,7 @@ export class BattlePreview {
     const selectedActor = this.actors[this.selected];
     const status = selectedActor.error
       ? this.strings.battle_preview_unavailable
-      : selectedActor.mode === 'attack'
-        ? this.strings.battle_preview_attack
-        : this.strings.battle_preview_idle;
+      : this.strings[`battle_preview_${selectedActor.mode}`];
     ctx.fillStyle = '#cfcfdd';
     ctx.fillText(this.loading ? this.strings.battle_preview_loading : status, width / 2, height - 58);
     ctx.fillStyle = '#fff';

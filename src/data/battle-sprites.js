@@ -1,9 +1,15 @@
 const frame = (rect, pivot, duration, exclude = []) => ({ rect, pivot, duration, exclude });
 const idle = (pivot) => [0, 1, 2, 3].map((column) => frame([column * 384, 0, 384, 512], pivot, 0.25));
+const run = (id, scale, pivots) => ({
+  src: `assets/battle/${id}-run.png`,
+  scale,
+  frames: pivots.map((pivot, index) => frame([(index % 2) * 768, Math.floor(index / 2) * 512, 768, 512], pivot, 0.10)),
+});
 
 export const BATTLE_SPRITES = {
   hyungsub: {
     src: 'assets/battle/hyungsub.png', scale: 0.25,
+    run: run('hyungsub', 0.225, [[404, 500], [259, 502], [399, 439], [268, 437]]),
     idle: idle([156, 490]),
     attack: [
       frame([0, 512, 352, 512], [166, 458], 0.16),
@@ -14,6 +20,7 @@ export const BATTLE_SPRITES = {
   },
   gyeongsub: {
     src: 'assets/battle/gyeongsub.png', scale: 0.25,
+    run: run('gyeongsub', 0.230, [[340, 475], [249, 475], [343, 424], [255, 425]]),
     idle: idle([149, 466]),
     attack: [
       frame([0, 512, 352, 512], [165, 433], 0.24),
@@ -24,6 +31,7 @@ export const BATTLE_SPRITES = {
   },
   ppaman: {
     src: 'assets/battle/ppaman.png', scale: 0.25,
+    run: run('ppaman', 0.211, [[402, 487], [295, 479], [405, 406], [289, 406]]),
     idle: idle([174, 466]),
     attack: [
       frame([0, 512, 360, 512], [170, 433], 0.20),
@@ -36,6 +44,8 @@ export const BATTLE_SPRITES = {
 
 export const BATTLE_PREVIEW = {
   ids: ['hyungsub', 'gyeongsub', 'ppaman'],
-  anchors: [[80, 230], [220, 230], [360, 230]],
+  anchors: [[60, 230], [150, 230], [240, 230]],
+  attackAnchor: [335, 230],
+  target: [425, 230],
   colorKey: { rMin: 220, gMax: 40, bMin: 220 },
 };
