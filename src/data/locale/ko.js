@@ -20,4 +20,15 @@ export default {
   title_continue: 'C 이어하기',
   title_new: 'X 처음부터',
   title_confirm_new: '정말 처음부터? 한 번 더 X',
+  battle_preview_title: '전투 모션 미리보기',
+  battle_preview_help: '← → 선택 · C 공격 · X 돌아가기',
+  battle_preview_loading: '전투 스프라이트를 불러오는 중...',
+  battle_preview_unavailable: '불러오기 실패',
+  battle_preview_idle: '대기',
+  battle_preview_attack: '공격',
+  battle_preview_names: {
+    hyungsub: '형섭',
+    gyeongsub: '경섭',
+    ppaman: '빠맨',
+  },
 };
