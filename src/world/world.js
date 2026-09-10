@@ -508,10 +508,11 @@ export class Prop extends Entity {
   canInteract() { return !!this.def.script; }
   draw(ctx, cam) {
     if (!this.visible) return;
-    if (this.image && this.spin) {                    // 날아가며 회전(컷신 {hop spin})
-      const cx = this.drawX - cam.x + this.iw / 2, cy = this.drawY - cam.y - (this.hopY || 0) + this.ih / 2;
+    const fx = this.flyX || 0, fy = this.flyY || 0;    // 컷신 {hop}/{fling} 로 밀려난 그림 위치(히트박스 지정 소품은 def.ix 를 따르므로 따로)
+    if (this.image && this.spin) {                    // 날아가며 회전(컷신 {hop spin}/{fling})
+      const cx = this.drawX + fx - cam.x + this.iw / 2, cy = this.drawY + fy - cam.y - (this.hopY || 0) + this.ih / 2;
       ctx.save(); ctx.translate(Math.round(cx), Math.round(cy)); ctx.rotate(this.spin); ctx.drawImage(this.image, -Math.round(this.iw / 2), -Math.round(this.ih / 2), this.iw, this.ih); ctx.restore();
-    } else if (this.image) ctx.drawImage(this.image, Math.round(this.drawX - cam.x), Math.round(this.drawY - cam.y) - Math.round(this.hopY || 0), this.iw, this.ih);   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
+    } else if (this.image) ctx.drawImage(this.image, Math.round(this.drawX + fx - cam.x), Math.round(this.drawY + fy - cam.y) - Math.round(this.hopY || 0), this.iw, this.ih);   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
     else { ctx.fillStyle = 'rgba(255,0,255,0.5)'; ctx.fillRect(Math.round(this.x - cam.x), Math.round(this.y - cam.y), this.w, this.h); }
   }
 }

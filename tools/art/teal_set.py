@@ -190,4 +190,8 @@ if __name__ == '__main__':
     prop_peel().save('assets/props/banana_peel.png'); prop_black_flower().save('assets/props/black_flower.png')
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
+    from pathlib import Path
+    from shutil import copyfile
+    for name in ('banana', 'tree_teal', 'tree_forest', 'banana_peel', 'black_flower', 'button_teal', 'bush_teal'):
+        copyfile(Path(__file__).resolve().parents[2] / 'assets/source/teal-props-v1/runtime' / f'{name}.png', f'assets/props/{name}.png')
     print('teal set ok (+banana, tree_teal)')

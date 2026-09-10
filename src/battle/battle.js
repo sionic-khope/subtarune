@@ -20,8 +20,8 @@ import L from '../data/locale/ko.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', 'gyeongsub', 'ppaman'];   // 위→아래 (브리핑 순서)
-const PARTY_X = 84, PARTY_YS = { 1: [172], 2: [118, 218], 3: [84, 162, 240] };   // 세로 간격 78px — 셋이 패널(y 268) 위에 다 들어온다 (2026-09-10 사용자)
-const ENEMY_X = 396, ENEMY_YS = { 1: [186], 2: [124, 244], 3: [96, 186, 276] };
+const PARTY_X = 84, PARTY_YS = { 1: [150], 2: [100, 200], 3: [70, 145, 220] };   // 세로 간격 75px — 셋이 패널(y 246) 위에 다 들어온다 (2026-09-10 사용자, HP 띠를 맨 아래로 빼면서 위로)
+const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244] };
 const ACTOR_SCALE = 0.66;            // 미리보기(0.25) 대비 (사용자 요청으로 10% 확대)
 const APPROACH_SPEED = 820, RETURN_SPEED = 700;   // px/s — "생각보다 빠르게"
 const ATTACK_SPEEDUP = 1.35;         // 공격 모션 재생 배속
@@ -118,7 +118,7 @@ export class Battle {
       case 'item-target': return this.updateItemTarget(input);
       case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.5 && (input.just('confirm') || this.t > 1.8)) { this.state = this.after || 'menu'; this.t = 0; } return;
       case 'act': return this.updateAct(dt);
-      case 'enemy-text': if (this.typed && this.t > 0.9) this.beginBullets(); return;
+      case 'enemy-text': if (this.t > 0.35) this.beginBullets(); return;
       case 'bullets': return this.updateBullets(dt, input);
       case 'board-close': if (this.t > 0.3) this.beginMenu(); return;
       case 'win': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.6 && input.just('confirm')) this.finish(true); return;
@@ -129,7 +129,8 @@ export class Battle {
   beginMenu() {
     this.state = 'menu'; this.t = 0; this.plans = []; this.memberIdx = 0; this.menuIdx = 0;
     while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
-    this.setText('');
+    const live = this.living(); const e = live[Math.floor(this.rnd() * Math.max(1, live.length))]; const idle = e?.def.lines?.idle || [];
+    this.setText(idle.length ? idle[Math.floor(this.rnd() * idle.length)] : '');   // 잡담 문구는 행동 선택 화면([공격하기][아이템])과 같은 패널에 공존 (사용자 2026-09-10)
   }
   updateMenu(input) {
     if (this.memberIdx >= this.members.length) { this.beginAct(); return; }
@@ -208,11 +209,7 @@ export class Battle {
   }
 
   // ── 적 턴 ──
-  beginEnemyTurn() {
-    const e = this.living()[Math.floor(this.rnd() * this.living().length)];
-    const idle = e.def.lines?.idle || []; this.setText(idle.length ? idle[Math.floor(this.rnd() * idle.length)] : '');
-    this.state = 'enemy-text'; this.t = 0;
-  }
+  beginEnemyTurn() { this.state = 'enemy-text'; this.t = 0; this.setText(''); }   // 짧은 쉼 뒤 탄막 (잡담 문구는 행동 선택 때 이미 보여 줬다)
   beginBullets() {
     this.patterns = this.living().map((e) => { const cfgs = e.def.patterns || [{ type: 'rain' }]; const c = cfgs[e.patternIdx++ % cfgs.length]; return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6 }; });
     const bw = Math.max(...this.living().map((e) => e.def.board?.[0] || 200)), bh = Math.max(...this.living().map((e) => e.def.board?.[1] || 150));
@@ -241,7 +238,7 @@ export class Battle {
     m.hp = Math.max(0, m.hp - dmg); m.popup = { t: 0, text: String(dmg) };
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
     if (m.hp <= 0) { m.down = true; }
-    if (!this.alive().length) { this.bullets = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 84, 240, 310); this.setText(L.battle_lose); }
+    if (!this.alive().length) { this.bullets = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(L.battle_lose); }
   }
   retry() {
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; }
@@ -264,9 +261,10 @@ export class Battle {
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
     for (const m of idle) this.drawMember(ctx, m);
     for (const m of busy) this.drawMember(ctx, m);
-    if (this.state === 'bullets' || this.state === 'board-close') { this.board.draw(ctx); if (this.state === 'bullets') { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } this.drawHpStrip(ctx); }
+    if (this.state === 'bullets' || this.state === 'board-close') { this.board.draw(ctx); if (this.state === 'bullets') { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
     else this.drawPanel(ctx);
     if (this.state === 'lose') this.drawTextBox(ctx);
+    this.drawHpStrip(ctx);                                          // HP 띠는 어느 상태에서나 맨 아래 (사용자: '체력바를 아예 아래로 빼')
   }
   drawMember(ctx, m) {
     if (!m.frames) return;
@@ -313,14 +311,23 @@ export class Battle {
     ctx.restore();
   }
   hpColor(m) { return CHARACTERS[m.id]?.hpColor || '#ffd23b'; }
-  /** 회피 중: 화면 아래 캐릭터별 색 HP 띠 (탄막 상자 아래) */
+  /** 화면 맨 아래 HP 띠(델타룬식, 사용자 참고 이미지 2026-09-10): 얼굴 · 이름 · HP · 색 바(바 위에 숫자). 현재 차례는 노란 이름, 정한 행동은 얼굴 귀퉁이 아이콘. 회피 중에도 그대로 */
   drawHpStrip(ctx) {
-    const n = this.members.length, cw = Math.floor(440 / n);
+    const n = this.members.length, cw = Math.floor(440 / n), y = 322;
+    const picking = ['menu', 'target', 'item', 'item-target'].includes(this.state);
+    const small = FONT.replace(/^\d+px/, '12px');
     this.members.forEach((m, i) => {
-      const x = 20 + i * cw, y = 318;
-      ctx.fillStyle = m.down ? '#777' : '#fff'; ctx.textAlign = 'left'; ctx.fillText(m.name, x + 12, y);
-      ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 12, y + 20, cw - 24, 7); ctx.fillStyle = m.down ? '#555' : this.hpColor(m); ctx.fillRect(x + 12, y + 20, Math.round((cw - 24) * m.hp / m.maxHp), 7);
-      ctx.fillStyle = '#fff'; ctx.fillText(`${m.hp}/${m.maxHp}`, x + 12 + cw - 24 - 70, y);
+      const x = 20 + i * cw, active = picking && i === this.memberIdx;
+      const face = this.game.portraits?.[m.id];
+      if (face) { ctx.save(); if (m.down) ctx.globalAlpha = 0.4; ctx.drawImage(face, x + 4, y + 2, 26, 26); ctx.restore(); }
+      const planned = this.plans.find((pl) => pl.member === m); if (planned) this.drawIcon(ctx, planned.type === 'fight' ? 'sword' : 'bread', x + 20, y + 18);
+      ctx.font = FONT; ctx.textAlign = 'left'; ctx.fillStyle = m.down ? '#777' : active ? '#ffe066' : '#fff'; ctx.fillText(m.name, x + 34, y + 6);
+      const nameW = Math.ceil(ctx.measureText(m.name).width);
+      const bx = x + 34 + nameW + 24, bw = Math.min(96, x + cw - 6 - bx);
+      ctx.font = small; ctx.fillStyle = '#fff'; ctx.fillText('HP', bx - 19, y + 15);
+      ctx.fillStyle = '#7a1b1b'; ctx.fillRect(bx, y + 16, bw, 9); ctx.fillStyle = m.down ? '#555' : this.hpColor(m); ctx.fillRect(bx, y + 16, Math.round(bw * m.hp / m.maxHp), 9);   // 캐릭터별 색(하늘/빨강/연보라)
+      ctx.textAlign = 'right'; ctx.fillStyle = m.down ? '#aaa' : '#fff'; ctx.fillText(`${m.hp}/ ${m.maxHp}`, bx + bw, y + 3);
+      ctx.textAlign = 'left'; ctx.font = FONT;
     });
   }
   /** 12x12 픽셀 아이콘: sword(빨간 검) / bread(초록 빵) — 델타룬 카드의 행동 표시 */
@@ -336,52 +343,59 @@ export class Battle {
   }
   box(ctx, x, y, w, h) { ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3); }
   heart(ctx, x, y) { ctx.fillStyle = '#ff0000'; ctx.fillRect(x, y + 1, 2, 2); ctx.fillRect(x + 3, y + 1, 2, 2); ctx.fillRect(x - 1, y + 3, 7, 2); ctx.fillRect(x, y + 5, 5, 1); ctx.fillRect(x + 1, y + 6, 3, 1); ctx.fillRect(x + 2, y + 7, 1, 1); }
+  /** 위쪽 상자(y 246~318): 나레이션·전투 안 대사 (화자 이름표·초상화). 긴 줄은 상자 폭에서 접는다(튜토리얼 대사 깨짐 방지) */
   drawTextBox(ctx) {
-    this.box(ctx, 20, 268, 440, 84); ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
+    this.box(ctx, 20, 246, 440, 72); ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
     let tx = 36;
     if (this.speaker) {                                            // 화자 이름표 + 초상화 (전투 안 대사)
-      const w = 16 + this.speaker.length * 16; this.box(ctx, 24, 246, w, 26); ctx.fillStyle = '#fff'; ctx.fillText(this.speaker, 32, 250);
-      const face = this.portrait && this.game.portraits?.[this.portrait]; if (face) { ctx.drawImage(face, 30, 284, 48, 48); tx = 90; }
+      const w = 16 + this.speaker.length * 16; this.box(ctx, 24, 224, w, 26); ctx.fillStyle = '#fff'; ctx.fillText(this.speaker, 32, 228);
+      const face = this.portrait && this.game.portraits?.[this.portrait]; if (face) { ctx.drawImage(face, 30, 258, 48, 48); tx = 90; }
     }
-    this.text.slice(0, this.shown).split('\n').forEach((line, i) => ctx.fillText(line, tx, 282 + i * LH));
+    ctx.fillStyle = '#fff';
+    this.wrapText(ctx, this.text.slice(0, this.shown), 440 - (tx - 20) - 14).slice(0, 3).forEach((line, i) => ctx.fillText(line, tx, 254 + i * LH));
   }
+  /** 단어 단위 줄바꿈(현재 폰트 기준) — '\n' 은 그대로 줄을 나눈다 */
+  wrapText(ctx, text, maxW) {
+    const lines = [];
+    for (const para of text.split('\n')) {
+      let cur = '';
+      for (const word of para.split(' ')) { const t = cur ? cur + ' ' + word : word; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = word; } else cur = t; }
+      lines.push(cur);
+    }
+    return lines;
+  }
+  /** 행동 선택 패널(y 246~318): 위 두 줄 = 잡담 문구("억빠맨이 CS 막타를 노리고 있는 듯 하다.."), 아랫줄 = 현재 멤버 이름 + [공격하기] [아이템] — 한 화면에 공존.
+   *  적/아이템/대상 고르기도 같은 줄에 '공격하기 ◀ 이름 ▶' 식으로(새 창 없음). HP 는 맨 아래 띠(drawHpStrip) */
   drawPanel(ctx) {
-    if (['intro', 'win', 'lose', 'text', 'enemy-text', 'act', 'load'].includes(this.state)) { this.drawTextBox(ctx); return; }
-    // 멤버 카드(델타룬식): 이름 · HP 바 · 현재 멤버 카드 안에 [공격하기] [아이템] 상자 버튼. 적 선택도 같은 패널 안(새 창 없음)
-    const n = this.members.length, cw = Math.floor(440 / n);
-    this.box(ctx, 20, 268, 440, 84);
-    this.members.forEach((m, i) => {
-      const x = 20 + i * cw, active = i === this.memberIdx && (this.state === 'menu' || this.state === 'target' || this.state === 'item' || this.state === 'item-target');
-      if (active) { ctx.fillStyle = '#1a1a2a'; ctx.fillRect(x + 4, 272, cw - 8, 76); }
-      ctx.fillStyle = m.down ? '#777' : active ? '#ffe066' : '#fff'; ctx.textAlign = 'left'; ctx.fillText(m.name, x + 12, 276);
-      ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 12, 296, cw - 24, 7); ctx.fillStyle = m.down ? '#555' : this.hpColor(m); ctx.fillRect(x + 12, 296, Math.round((cw - 24) * m.hp / m.maxHp), 7);   // 캐릭터별 색
-      ctx.fillStyle = '#fff'; ctx.fillText(`${L.battle_hp} ${m.hp}/${m.maxHp}${m.down ? ' ' + L.battle_down : ''}`, x + 12, 306);
-      const planned = this.plans.find((pl) => pl.member === m);
-      if (planned && !active) this.drawIcon(ctx, planned.type === 'fight' ? 'sword' : 'bread', x + 12, 326);   // 정한 행동: 아이콘(빨간 검 / 초록 빵)
-      if (active && this.state === 'menu') {                     // 상자 버튼 두 개
-        [L.battle_fight, L.battle_item].forEach((label, k) => { const bx = x + 6 + (k ? 82 : 0), by = 326, bw = k ? 56 : 78, bh = 20; const sel = this.menuIdx === k;
-          ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-          ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.textAlign = 'center'; ctx.fillText(label, bx + bw / 2 + (sel ? 5 : 0), by + 2); ctx.textAlign = 'left'; if (sel) this.heart(ctx, bx + 3, by + 6); });
-      }
-      if (active && this.state === 'target') {                   // 적 선택: 카드 안에 "◀ 이름 ▶" 한 줄 (← → 로 고름), 적 위에는 화살표+HP
-        const list = this.living(), e = list[this.targetIdx]; const many = list.length > 1;
-        ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`${many ? '◀ ' : ''}${e ? e.name : ''}${many ? ' ▶' : ''}`, x + cw / 2, 328); ctx.textAlign = 'left';
-      }
-      if (active && this.state === 'item') {                     // 아이템: 카드 안에 '◀ 이름 ▶'
-        const items = plainItems(this.game.inventory); const many = items.length > 1;
-        ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`${many ? '◀ ' : ''}${items[this.itemIdx] || ''}${many ? ' ▶' : ''}`, x + cw / 2, 328); ctx.textAlign = 'left';
-      }
-      if (active && this.state === 'item-target') {              // 대상: '◀ 이름 ▶' (누구에게)
-        const t = this.members[this.itemTargetIdx]; ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`◀ ${t ? t.name : ''} ▶`, x + cw / 2, 328); ctx.textAlign = 'left';
-      }
-    });
+    if (['intro', 'win', 'lose', 'text', 'enemy-text', 'act', 'load', 'ending'].includes(this.state)) { this.drawTextBox(ctx); return; }
+    this.box(ctx, 20, 246, 440, 72); ctx.textAlign = 'left'; ctx.fillStyle = '#fff';
+    if (this.text) this.wrapText(ctx, this.text.slice(0, this.shown), 408).slice(0, 2).forEach((line, i) => ctx.fillText(line, 36, 252 + i * 16));
+    const m = this.members[this.memberIdx]; if (!m) return;
+    const by = 292;
+    ctx.fillStyle = '#ffe066'; ctx.fillText(m.name, 36, by + 2);                                  // 누구 차례인지
+    const bx0 = 36 + Math.ceil(ctx.measureText(m.name).width) + 16;
+    const pick = (label, value, many) => {                                                        // '라벨 ♥ ◀ 값 ▶'
+      ctx.fillStyle = '#9a9ab0'; ctx.fillText(label, bx0, by + 2);
+      const sx = bx0 + Math.ceil(ctx.measureText(label).width) + 18; this.heart(ctx, sx - 13, by + 6);
+      ctx.fillStyle = '#ffe066'; ctx.fillText(`${many ? '◀ ' : ''}${value}${many ? ' ▶' : ''}`, sx, by + 2);
+    };
+    if (this.state === 'menu') {                                                                  // 상자 버튼 두 개
+      [L.battle_fight, L.battle_item].forEach((label, k) => { const bx = bx0 + (k ? 84 : 0), bw = k ? 56 : 78, bh = 20; const sel = this.menuIdx === k;
+        ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+        ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.textAlign = 'center'; ctx.fillText(label, bx + bw / 2 + (sel ? 5 : 0), by + 2); ctx.textAlign = 'left'; if (sel) this.heart(ctx, bx + 3, by + 6); });
+    } else if (this.state === 'target') {
+      const list = this.living(), e = list[this.targetIdx]; pick(L.battle_fight, e ? e.name : '', list.length > 1);
+    } else if (this.state === 'item') {
+      const items = plainItems(this.game.inventory); pick(L.battle_item, items[this.itemIdx] || '', items.length > 1);
+    } else if (this.state === 'item-target') {
+      const t = this.members[this.itemTargetIdx]; pick(`${this.itemName || ''} →`, t ? t.name : '', true);
+    }
     if (this.state === 'item-target') {                           // 대상 멤버 위에 화살표
       const t = this.members[this.itemTargetIdx]; if (t) { const ax = t.home[0], ay = t.home[1] - 92; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill(); }
     }
     if (this.state === 'target') {                                // 고르는 적 위에 화살표 + HP 바 (화면 위쪽, 창 없음)
-      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = Math.max(6, e.y - 112); ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();   // 화살표 → 그 아래 HP 바·%
+      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = Math.max(6, e.y - 112); ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#7a1b1b'; ctx.fillRect(ax - 24, ay + 13, 48, 6); ctx.fillStyle = '#4cd964'; ctx.fillRect(ax - 24, ay + 13, Math.round(48 * e.hp / e.maxHp), 6); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, ax + 44, ay + 7); ctx.textAlign = 'left'; }
     }
-    if (this.text && this.state === 'menu') { ctx.fillStyle = '#cfcfdd'; ctx.textAlign = 'center'; ctx.fillText(this.text.split('\n')[0], 240, 246); ctx.textAlign = 'left'; }
   }
 }

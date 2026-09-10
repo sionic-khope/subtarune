@@ -57,7 +57,7 @@ const r = await drain(90000, async (q) => {
   return { text: q.text.slice(0, 12), bgm: q.bgm, p: q.p, pf: q.pf, pp: q.pp, gs: q.gs, cs1: q.cs1, cs2: q.cs2, zoom: q.zoom, shake: q.shake };
 });
 const L = r.lines, o = r.obs; const li = (t) => o.findIndex((x) => x.text.startsWith(t));
-const ORDER = ['억빠맨|* 뭔가 많이 들어있네요', '경섭|* 응 그렇네', '억빠맨|* 응? 이게 무슨소리죠', '경섭|* ???', '억빠맨|* 앗 ... ... 엥 CS?', '경섭|* 허허 저게 뭐냐 근데 뭔가 꼭... 우리를', '억빠맨|* 아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼네봐요 !!!', '억빠맨|* 오 온다!'];
+const ORDER = ['억빠맨|* 뭔가 많이 들어있네요', '경섭|* 응 그렇네', '억빠맨|* 응? 이게 무슨소리죠', '경섭|* ???', '억빠맨|* 앗 ... ... 엥 CS?', '경섭|* 허허 저게 뭐냐 근데 뭔가 꼭... 우리를', '억빠맨|* 아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼내봐요 !!!', '억빠맨|* 오 온다!'];
 const idx = ORDER.map((k) => L.indexOf(k));
 check('toolbox scene: 8 lines in briefing order', idx.every((i) => i >= 0) && idx.every((v, i) => i === 0 || v > idx[i - 1]), JSON.stringify(ORDER.filter((k, i) => idx[i] < 0)) + ' got=' + JSON.stringify(L));
 { const a = o[li('* 뭔가 많이')];

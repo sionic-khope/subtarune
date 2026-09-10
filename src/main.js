@@ -328,7 +328,7 @@ class Game {
       { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
       { battle: { enemies: e.def.enemies || ['cs_red'], bgm: e.def.bgm || 'rude_buster', bg: e.def.bg || MAPS[this.mapId]?.battleBg, flag } },
       { bgm: null }, { zoom: 1 },
-      { action: (g) => { if (g.lastBattle?.win) e.dead = true; g.encountering = false; } },
+      { action: (g) => { if (g.lastBattle?.win) e.dead = true; g.encountering = false; g.resumeMapBgm(); } },   // 맵 브금 복귀 (전투 뒤 브금 사라지던 버그 2026-09-10)
       { fade: 'in', duration: 0.5 },
       { regroup: true },
     ]);
@@ -342,6 +342,8 @@ class Game {
     this.fadeTo(0, 0.45);                 // 진입 섬광(흰색)을 걷어 낸다 — 전투 화면이 보여야 한다 (2026-09-10 스크린샷으로 발견: 섬광이 전투 내내 덮고 있었음)
     return this.battle;
   }
+  /** 전투 뒤 맵 브금 복귀 — 표준 조우(startEncounter) 전용. 컷신 전투(튜토리얼)는 컷신이 알아서 (사용자 2026-09-10: 튜토리얼은 꺼져도 되지만 그 뒤 맵부턴 별도 요청 없으면 돌아와야 함) */
+  resumeMapBgm() { const def = MAPS[this.mapId]; if (!def) return; const gated = def.bgmFlag && !this.has(def.bgmFlag); if (def.bgm && !gated) this.sound.playBgm(def.bgm, { volume: 0.45 }); }
   endBattle(result) {
     this.lastBattle = result; this.battle = null; this.shake = null;
     if (result?.win && this.battleFlag) this.setFlag(this.battleFlag);
@@ -781,7 +783,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.41';
+export const BUILD = '2026-09-10.42';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

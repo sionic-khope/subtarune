@@ -4,7 +4,7 @@
 //   빠맨 "뭔가 많이 들어있네요" / 경섭 "응 그렇네" / 빠맨 "응? 이게 무슨소리죠" / 경섭 "???"
 //   → 오른쪽 풀숲에서 미니언(레드/블루 CS, PR #7 정면 정지 스프라이트) 두 마리가 튀어나옴
 //   빠맨 "앗 ... ... 엥 CS?" / 경섭 "허허 저게 뭐냐 근데 뭔가 꼭... 우리를" → CS 점프 연출 → 세 사람 한 칸 뒤로 물러나 오른쪽(CS)을 바라봄
-//   빠맨 "아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼네봐요 !!!"
+//   빠맨 "아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼내봐요 !!!"
 //   → 빠맨이 상자에서 꺼내(효과음) 형섭·경섭 앞으로 달려가 하나씩 건네는 시늉(효과음·바라보기)
 //   빠맨 "오 온다!" → 전투 시작 연출(공식 징글·줌·검은 소용돌이) → 전투 → 미니언 파들파들 → "응 ? 뭐 뭐지" → 점프 → 길 따라 내려가 청록숲2 동상 벽을 펑펑 → 주인공 화면 → "... 어찌저찌 된거같다." / "전투를 할 수 있게 되었다!"
 // ─────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export const teal3_toolbox = [
   ] },
   { face: 'player', dir: 'right' }, { face: 'ppaman', dir: 'right' }, { face: 'gyeongsub', dir: 'right' },
   { emote: 'ppaman', kind: 'sweat', duration: 2.0, hold: 0.2 },
-  P('* 아 안되겠다{w=0.3} 싸 싸워야할거같은데요?{w=0.4} ㅈ ㅈ됐다.{w=0.4} 빨리 이 상자에서 아무거나 꺼네봐요 !!!'),
+  P('* 아 안되겠다{w=0.3} 싸 싸워야할거같은데요?{w=0.4} ㅈ ㅈ됐다.{w=0.4} 빨리 이 상자에서 아무거나 꺼내봐요 !!!'),
   { move: 'ppaman', rel: 'toolbox', at: 'bottom', by: [0, 6], run: true, speed: 170 },   // 빠르게 상자 앞에서
   { face: 'ppaman', dir: 'up' }, { sfx: 'item' }, { wait: 0.3 },
   { move: 'ppaman', rel: 'player', at: 'left', by: [-8, 0], run: true, speed: 170 },      // 형섭에게 (주는 시늉)
@@ -100,15 +100,15 @@ export const teal3_toolbox = [
   { parallel: [{ move: 'cs1', px: [20 * 32 + 8, 20 * 32 + 8], run: true, speed: 260 }, { move: 'cs2', px: [21 * 32 + 20, 21 * 32 + 8], run: true, speed: 260 }] },   // 위 길을 따라 아래로
   { parallel: [{ move: 'cs1', px: [37 * 32 + 8, 20 * 32 + 8], run: true, speed: 300 }, { move: 'cs2', px: [37 * 32 + 20, 21 * 32 + 8], run: true, speed: 300 }] },   // 오른쪽 길로 달려 동상 벽 바로 앞까지
   { async: [{ parallel: [{ move: 'cs1', px: [45 * 32, 20 * 32 + 8], run: true, speed: 320 }, { move: 'cs2', px: [45 * 32, 21 * 32 + 8], run: true, speed: 320 }] }, { remove: 'cs1' }, { remove: 'cs2' }] },   // 멈추지 않고 쓱 지나간다(맵 밖으로)
-  { wait: 0.12 },
-  // 펑! 다섯이 한꺼번에 사방으로 빙글빙글 날아간다
-  { sfx: 'pop' }, { shake: 0.6, amp: 7 },
+  { wait: 0.26 },                                     // 미니언이 동상 열(x 1248~1280)을 통과하는 순간(320px/s) — 지나가자마자 펑 (사용자 2026-09-10)
+  // 펑! 다섯이 한꺼번에 사방으로 튀어나가 빙글빙글 돌며 화면 밖으로 (fling: 속도+중력, 이전 hop 은 히트박스 소품의 가로 이동이 그림에 안 보였음)
+  { sfx: 'pop' }, { shake: 0.5, amp: 9 },
   { async: [{ wait: 0.08 }, { sfx: 'pop' }, { wait: 0.1 }, { sfx: 'pop' }] },
-  { async: [{ hop: 'statue_w1', by: [110, -260], height: 150, duration: 0.75, spin: 2.5, keep: true, sfx: false }, { remove: 'statue_w1' }] },
-  { async: [{ hop: 'statue_w2', by: [220, -170], height: 120, duration: 0.7, spin: -3, keep: true, sfx: false }, { remove: 'statue_w2' }] },
-  { async: [{ hop: 'statue_w3', by: [40, -320], height: 170, duration: 0.8, spin: 3.5, keep: true, sfx: false }, { remove: 'statue_w3' }] },
-  { async: [{ hop: 'statue_w4', by: [250, -60], height: 100, duration: 0.65, spin: -2, keep: true, sfx: false }, { remove: 'statue_w4' }] },
-  { async: [{ hop: 'statue_w5', by: [170, -240], height: 140, duration: 0.75, spin: 4, keep: true, sfx: false }, { remove: 'statue_w5' }] },
+  { async: [{ fling: 'statue_w1', vx: 150, vup: 860, spin: 13 }] },
+  { async: [{ wait: 0.03 }, { fling: 'statue_w2', vx: 360, vup: 680, spin: -15 }] },
+  { async: [{ wait: 0.01 }, { fling: 'statue_w3', vx: -90, vup: 940, spin: 16 }] },
+  { async: [{ wait: 0.05 }, { fling: 'statue_w4', vx: 440, vup: 520, spin: -11 }] },
+  { async: [{ wait: 0.02 }, { fling: 'statue_w5', vx: 240, vup: 760, spin: 14 }] },
   { set: { statues_cleared: true } },
   { wait: 1.1 },
   { wait: 0.4 },

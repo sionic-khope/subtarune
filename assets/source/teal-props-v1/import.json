@@ -1,0 +1,262 @@
+{
+  "resampling": "NEAREST",
+  "paletteQuantization": false,
+  "background": "magenta chromakey",
+  "imports": [
+    {
+      "prop": {
+        "name": "banana",
+        "canvas": [
+          32,
+          20
+        ],
+        "envelope": [
+          1,
+          3,
+          31,
+          18
+        ],
+        "centers": [
+          788,
+          16
+        ],
+        "purple_seed": null
+      },
+      "source_bounds": [
+        288,
+        280,
+        1288,
+        723
+      ],
+      "scale": 0.03,
+      "placement": [
+        1,
+        5
+      ],
+      "resized": [
+        30,
+        13
+      ],
+      "sha256": "f3acb9efe81438abf3f6f948c2aa771691a3d1798fca663eb4f54e027bcaa6ef"
+    },
+    {
+      "prop": {
+        "name": "tree_teal",
+        "canvas": [
+          240,
+          264
+        ],
+        "envelope": [
+          0,
+          0,
+          240,
+          255
+        ],
+        "centers": [
+          600,
+          120
+        ],
+        "purple_seed": null
+      },
+      "source_bounds": [
+        12,
+        5,
+        1185,
+        1302
+      ],
+      "scale": 0.19660755589822668,
+      "placement": [
+        4,
+        0
+      ],
+      "resized": [
+        231,
+        255
+      ],
+      "sha256": "6cd11d36d9a3381703c02e19b2a48de9009ee7dd51ee86868b3158e30dd27738"
+    },
+    {
+      "prop": {
+        "name": "tree_forest",
+        "canvas": [
+          56,
+          84
+        ],
+        "envelope": [
+          3,
+          8,
+          54,
+          84
+        ],
+        "centers": [
+          504,
+          28
+        ],
+        "purple_seed": null
+      },
+      "source_bounds": [
+        168,
+        246,
+        845,
+        1343
+      ],
+      "scale": 0.06927985414767548,
+      "placement": [
+        5,
+        8
+      ],
+      "resized": [
+        47,
+        76
+      ],
+      "sha256": "a2ef373480e3497d0a27f9223baa35443c013d0d24139930af3ea816bfbd4dbf"
+    },
+    {
+      "prop": {
+        "name": "banana_peel",
+        "canvas": [
+          26,
+          14
+        ],
+        "envelope": [
+          1,
+          1,
+          23,
+          14
+        ],
+        "centers": [
+          858,
+          12
+        ],
+        "purple_seed": null
+      },
+      "source_bounds": [
+        310,
+        250,
+        1405,
+        695
+      ],
+      "scale": 0.020072992700729927,
+      "placement": [
+        1,
+        5
+      ],
+      "resized": [
+        22,
+        9
+      ],
+      "sha256": "63e692065081292b9b94d9e5c193e3317d8165aaf8e443fb97d238e9d1255a22"
+    },
+    {
+      "prop": {
+        "name": "black_flower",
+        "canvas": [
+          28,
+          36
+        ],
+        "envelope": [
+          3,
+          0,
+          25,
+          36
+        ],
+        "centers": [
+          556,
+          14
+        ],
+        "purple_seed": [
+          556,
+          467
+        ]
+      },
+      "source_bounds": [
+        263,
+        150,
+        858,
+        1275
+      ],
+      "scale": 0.032,
+      "placement": [
+        5,
+        0
+      ],
+      "resized": [
+        19,
+        36
+      ],
+      "sha256": "abb4c7beb0e168d23126b59d1a893b4a3cc0f9fd939b512a726eb121badca2fd"
+    },
+    {
+      "prop": {
+        "name": "button_teal",
+        "canvas": [
+          26,
+          22
+        ],
+        "envelope": [
+          0,
+          3,
+          26,
+          22
+        ],
+        "centers": [
+          681.5,
+          13
+        ],
+        "purple_seed": null
+      },
+      "source_bounds": [
+        327,
+        342,
+        1036,
+        802
+      ],
+      "scale": 0.036671368124118475,
+      "placement": [
+        0,
+        5
+      ],
+      "resized": [
+        26,
+        17
+      ],
+      "sha256": "d3d02d9bf700489e6d1bc9c870bb0b76c64bddef1bbb234e30d5fe157bf02f1b"
+    },
+    {
+      "prop": {
+        "name": "bush_teal",
+        "canvas": [
+          56,
+          40
+        ],
+        "envelope": [
+          0,
+          4,
+          56,
+          40
+        ],
+        "centers": [
+          744,
+          28
+        ],
+        "purple_seed": null
+      },
+      "source_bounds": [
+        194,
+        239,
+        1295,
+        835
+      ],
+      "scale": 0.050816696914700546,
+      "placement": [
+        0,
+        10
+      ],
+      "resized": [
+        56,
+        30
+      ],
+      "sha256": "56b83d291ed7402ac5c3447b2767df0a962bc7e70bb7e4b46e8d3ea7c257b086"
+    }
+  ]
+}

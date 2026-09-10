@@ -121,7 +121,7 @@
   {
    "type": "prop",
    "id": "button2",
-   "image": "assets/props/button.png",
+   "image": "assets/props/button_teal.png",
    "x": 387,
    "y": 262,
    "solid": true,

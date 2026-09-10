@@ -143,7 +143,7 @@ ents4 = [
     {'type': 'prop', 'id': 'peel', 'image': 'assets/props/banana_peel.png', 'x': 8 * 32 + 3, 'y': 5 * 32 + 14, 'w': 26, 'h': 8, 'ix': 8 * 32 + 3, 'iy': 5 * 32 + 8, 'solid': False, 'sortY': 0},
     {'type': 'trigger', 'id': 'peel_trig', 'x': 8 * 32 + 3, 'y': 5 * 32 + 6, 'w': 26, 'h': 20, 'script': 'teal4_peel'},
     # 2) 수상한 버튼 2: 주머니 안
-    {'type': 'prop', 'id': 'button2', 'image': 'assets/props/button.png', 'x': 12 * 32 + 3, 'y': 8 * 32 + 6, 'solid': True, 'script': 'teal4_button'},
+    {'type': 'prop', 'id': 'button2', 'image': 'assets/props/button_teal.png', 'x': 12 * 32 + 3, 'y': 8 * 32 + 6, 'solid': True, 'script': 'teal4_button'},
     # 3) 검은 꽃: 세로 길 왼쪽 주머니, 숲 나무로 둘러싸 음지
     {'type': 'prop', 'id': 'black_flower', 'image': 'assets/props/black_flower.png', 'x': 20 * 32 + 2, 'y': 20 * 32 + 20, 'w': 24, 'h': 10, 'ix': 20 * 32, 'iy': 20 * 32 + 30 - 36, 'solid': True, 'script': 'teal4_flower'},
     # 걸어다니는 CS 둘 (세로 길·아래 길). 잡으면 <맵>_<id>_defeated 로 영구 제거
