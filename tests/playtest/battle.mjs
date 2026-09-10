@@ -4,6 +4,7 @@ import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
+for (const f of fs.readdirSync(S)) if (f.startsWith('battle_')) fs.unlinkSync(`${S}/${f}`);   // 옛 스크린샷이 남아 새 상태를 가리지 않게
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const logs = []; let fails = 0;
