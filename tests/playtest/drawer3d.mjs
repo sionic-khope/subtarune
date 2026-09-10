@@ -63,14 +63,19 @@ for (let pass = 0; pass < 2; pass++) for (let i = 0; i < n; i++) {
 await page.waitForTimeout(300); await page.screenshot({ path: `${S}/d3_05_cleared.png` });
 const moved = await page.evaluate(() => window.__drawer3d.items.filter((it) => Math.abs(it.position.x) > 0.15).length);
 check('items dragged aside', moved >= n * 0.5, `${moved}/${n}`);
-// 코드 튜브 위의 점들을 화면에 투영해 클릭
-const pts = await page.evaluate(() => {
-  const d = window.__drawer3d; const tube = d.cord.children[0]; const pos = tube.geometry.attributes.position; const out = [];
-  for (let i = 0; i < pos.count; i += Math.floor(pos.count / 24)) { const v = new (tube.position.constructor)(pos.getX(i), pos.getY(i), pos.getZ(i)); tube.localToWorld(v); v.project(d.camera); const r = document.getElementById('scene3d').getBoundingClientRect(); out.push({ x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }); }
-  return out;
+// 코드 튜브 위의 점들을 화면에 투영해 클릭 (코드가 작고 위치가 무작위라 표본 80개 + 주변 2px 재시도 — 2026-09-10 불안정 수정)
+const bbox = await page.evaluate(() => {   // 코드(튜브+플러그) 모든 꼭짓점을 투영한 화면 바운딩 박스 — 코드가 작고 위치가 무작위라 점 표본 대신 상자를 촘촘히 훑는다
+  const d = window.__drawer3d; const rect = document.getElementById('scene3d').getBoundingClientRect(); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; let V = null;
+  d.cord.traverse((o) => { if (!o.isMesh || !o.geometry?.attributes?.position) return; const pos = o.geometry.attributes.position; V = V || o.position.constructor;
+    for (let i = 0; i < pos.count; i += Math.max(1, Math.floor(pos.count / 200))) { const v = new V(pos.getX(i), pos.getY(i), pos.getZ(i)); o.localToWorld(v); v.project(d.camera); const x = rect.left + (v.x + 1) / 2 * rect.width, y = rect.top + (1 - v.y) / 2 * rect.height; x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } });
+  return { x0, y0, x1, y1 };
 });
 let clicked = false;
-for (const p of pts) { if (p.x < 2 || p.y < 2 || p.x > 998 || p.y > 778) continue; await page.mouse.click(p.x, p.y); await page.waitForTimeout(80); if ((await page.evaluate(() => window.__drawer3d?.phase)) === 'acquire') { clicked = true; break; } }
+outer: for (let y = bbox.y0; y <= bbox.y1 + 1; y += 3) for (let x = bbox.x0; x <= bbox.x1 + 1; x += 3) {
+  if (x < 2 || y < 2 || x > 998 || y > 778) continue;
+  await page.mouse.click(x, y); await page.waitForTimeout(40);
+  if ((await page.evaluate(() => window.__drawer3d?.phase)) === 'acquire') { clicked = true; break outer; }
+}
 check('cord clicked → acquire', clicked);
 await page.waitForTimeout(700); await page.screenshot({ path: `${S}/d3_06_acquire.png` });
 const t0 = Date.now(); while (Date.now() - t0 < 6000 && await page.evaluate(() => !!game.scene3d)) await page.waitForTimeout(150);

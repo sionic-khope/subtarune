@@ -137,6 +137,38 @@ export class TitleScreen {
     this.shakeAmp = 0;
   }
 
+  static QA_ROWS = 8;      // 한 번에 보이는 줄 수 (22px × 8 = 176px, 상자 안)
+  /** QA 목록: 커서가 창 밖으로 나가면 창(top)을 민다 — 목록이 길어져도 상자 밖으로 안 나간다 (2026-09-10 '밑이 뚫린다') */
+  _qaScroll() {
+    const q = this.qa, n = QA_POINTS.length, R = TitleScreen.QA_ROWS;
+    if (q.i < q.top) q.top = q.i;
+    if (q.i >= q.top + R) q.top = q.i - R + 1;
+    q.top = Math.max(0, Math.min(q.top, Math.max(0, n - R)));
+  }
+  _drawQa(ctx) {
+    const q = this.qa, n = QA_POINTS.length, R = TitleScreen.QA_ROWS, ROW = 22;
+    const bx = 40, by = 40, bw = SCREEN_W - 80, bh = SCREEN_H - 80, listY = 82;
+    ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffe066'; ctx.fillText('QA 바로가기', bx + 20, 52);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#8a8aa0'; ctx.fillText(`${q.i + 1} / ${n}`, bx + bw - 20, 52); ctx.textAlign = 'left';
+    ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 16, 72, bw - 32, 1);                    // 제목 아래 구분선
+    ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, listY - 4, bw - 4, R * ROW + 4); ctx.clip();   // 목록은 창 안에서만
+    for (let k = 0; k < R; k++) {
+      const i = q.top + k; if (i >= n) break;
+      const pt = QA_POINTS[i], y = listY + k * ROW, on = i === q.i;
+      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(`${pt.id}  —  ${pt.desc}`, bx + 40, y);
+      if (on) drawHeart(ctx, bx + 24, y + 5);
+    }
+    ctx.restore();
+    const tri = (x, y, up) => { ctx.beginPath(); if (up) { ctx.moveTo(x - 4, y + 4); ctx.lineTo(x + 4, y + 4); ctx.lineTo(x, y - 1); } else { ctx.moveTo(x - 4, y - 1); ctx.lineTo(x + 4, y - 1); ctx.lineTo(x, y + 4); } ctx.closePath(); ctx.fill(); };
+    ctx.fillStyle = '#fff';
+    if (q.top > 0) tri(bx + bw - 24, listY - 8, true);                                     // 위에 더 있음
+    if (q.top + R < n) tri(bx + bw - 24, listY + R * ROW + 4, false);                      // 아래에 더 있음
+    ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 16, by + bh - 30, bw - 32, 1);              // 안내 위 구분선
+    ctx.fillStyle = '#8a8aa0'; ctx.fillText('위아래: 고르기   C: 이동   X: 닫기', bx + 20, by + bh - 24);
+  }
   enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; this.qa = null; }
 
   _leave(go) {
@@ -192,13 +224,13 @@ export class TitleScreen {
       return;
     }
     if (this.qa) {                                                 // QA 바로가기 목록
-      if (input.just('up')) { this.qa.i = (this.qa.i + QA_POINTS.length - 1) % QA_POINTS.length; this.game.sound.sfx('menu'); }
-      if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_POINTS.length; this.game.sound.sfx('menu'); }
+      if (input.just('up')) { this.qa.i = (this.qa.i + QA_POINTS.length - 1) % QA_POINTS.length; this._qaScroll(); this.game.sound.sfx('menu'); }
+      if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_POINTS.length; this._qaScroll(); this.game.sound.sfx('menu'); }
       if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
       if (input.just('confirm')) { const pt = QA_POINTS[this.qa.i]; this._leave(() => { this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
       return;
     }
-    if (input.just('qa')) { this.qa = { i: 0 }; this.game.sound.sfx('menu'); return; }
+    if (input.just('qa')) { this.qa = { i: 0, top: 0 }; this.game.sound.sfx('menu'); return; }
     if (this.time <= PROMPT_DELAY) return;
     const hasSave = this.game.hasSave();
     if (input.just('confirm')) {                                   // C: 세이브 있으면 이어하기, 없으면 새 게임
@@ -256,17 +288,7 @@ export class TitleScreen {
       if (hasSave && this.confirmNew <= 0) this._drawText(ctx, L.title_new, SCREEN_H * 0.7 + 22, '#8a8aa0');
       this._drawText(ctx, 'T: 테스트룸   Q: QA 지점', SCREEN_H - 20, '#55556b');
     }
-    if (this.qa) {                                                  // QA 목록 오버레이
-      ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(40, 40, SCREEN_W - 80, SCREEN_H - 80);
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(41, 41, SCREEN_W - 82, SCREEN_H - 82);
-      ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-      ctx.fillStyle = '#ffe066'; ctx.fillText('QA 바로가기  (C 이동 / X 닫기)', 60, 52);
-      QA_POINTS.forEach((pt, i) => {
-        const y = 82 + i * 22; const on = i === this.qa.i;
-        ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(`${pt.id}  —  ${pt.desc}`, 80, y);
-        if (on) drawHeart(ctx, 64, y + 5);
-      });
-    }
+    if (this.qa) this._drawQa(ctx);                                 // QA 목록 오버레이 (상자 안 스크롤 창)
     if (this.flash > 0) {
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, this.flash) / 0.18 * 0.6})`;
       ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);

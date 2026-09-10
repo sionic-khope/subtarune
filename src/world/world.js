@@ -510,6 +510,7 @@ export class Raft extends Prop {
     if (force ? !(this.riding && !this.jumping) : !this.canJump()) return false;
     this.jumping = true; this.jumpT = 0; this.jumpY = 0; this.moving = true; this.blocked = null;
     this.game.sound.sfx('jump', { volume: 0.7 });
+    if (this.hasSwimmer) { this.game.emitDropletsAt(this.swimmer.x + this.swimmer.w / 2, this.swimmer.y + this.swimmer.h, 10); this.swimmer.hop = 0; }   // 이륙 물튀김 + 웅크렸다 뛰는 연출
     return true;
   }
   _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.68 - p.h) - Math.round(this.jumpY); }   // 발이 뗏목 아래쪽에 닿게 → 위에 서 있는 느낌 (그리기 순서는 main.js 가 항상 위로). 점프 중엔 같이 뜬다
@@ -517,7 +518,7 @@ export class Raft extends Prop {
     if (!this.riding) return;
     if (this.jumping) {
       this.jumpT += dt;
-      if (this.jumpT >= this.jumpDur) { this.jumping = false; this.jumpT = 0; this.jumpY = 0; }
+      if (this.jumpT >= this.jumpDur) { this.jumping = false; this.jumpT = 0; this.jumpY = 0; this.game.emitDropletsAt(this.x + this.w / 2, this.y + this.h * 0.7, 8); }   // 착지 물튀김(소리 없음)
       else this.jumpY = this.jumpH * Math.sin(Math.PI * this.jumpT / this.jumpDur);
     }
     if (!this.moving) { this._carry(); this.rider.moving = false; this.rider.frame = 0; return; }
@@ -525,7 +526,8 @@ export class Raft extends Prop {
     const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy), step = this.speed * dt;
     if (dist <= step) {
       this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
-      this.riding = false; this.moving = false; this.jumping = false; this.jumpY = 0; this.game.ride = null;
+      this.jumping = false; this.jumpY = 0; this._carry();                 // 공중에서 도착해도 먼저 뗏목 위로 내려놓고(점프 높이 0) 하차 자리를 찾는다 (2026-09-10 '도착할 때쯤 점프하면 맵 밖에 갇힘')
+      this.riding = false; this.moving = false; this.game.ride = null;
       this.game.sound.sfx('splash', { volume: 0.5 });
       this._disembark(dx, dy);
       this._landSwimmer();
@@ -565,14 +567,24 @@ export class Raft extends Prop {
         if (!map.solidRect(nx, ny, p.w, p.h) && !this.overlaps({ x: nx, y: ny, w: p.w, h: p.h })) { p.x = nx; p.y = ny; p.moving = false; p.frame = 0; return; }
       }
     }
+    // 못 찾으면(이상 위치) 뗏목 주변 6타일 안에서 가장 가까운 빈 자리로 — 어떤 경우에도 막힌 칸에 남기지 않는다
+    let best = null;
+    for (let ty = -6; ty <= 6; ty++) for (let tx = -6; tx <= 6; tx++) {
+      const nx = Math.round(this.x + this.w / 2 - p.w / 2) + tx * TILE, ny = Math.round(this.y + this.h * 0.68 - p.h) + ty * TILE;
+      if (map.solidRect(nx, ny, p.w, p.h) || this.overlaps({ x: nx, y: ny, w: p.w, h: p.h })) continue;
+      const d = Math.hypot(tx - Math.sign(dx) * 2, ty);
+      if (!best || d < best.d) best = { nx, ny, d };
+    }
+    if (best) { p.x = best.nx; p.y = best.ny; p.moving = false; p.frame = 0; }
   }
-  /** 헤엄치던 동료가 뭍에 올라온다: Swimmer 제거, 동료를 주인공 앞(진행 방향)에 마주 보게 세운다 */
+  /** 헤엄치던 동료가 뭍에 올라온다: Swimmer 제거, 주인공은 조금 더 뭍 안쪽으로, 동료는 물가 쪽(주인공 뒤)에서 마주 본다 (2026-09-10 위치 반전 요청) */
   _landSwimmer() {
     if (!this.def.swim) return;
     if (this.swimmer) { this.swimmer.dead = true; this.swimmer = null; }
     const f = this.game.entities.find((e) => e.def?.type === 'follower' && e.id === this.def.swim); if (!f) return;
-    const p = this.rider, ahead = this.dirFacing === 'left' ? -1 : 1;
-    f.visible = true; f.x = p.x + ahead * (p.w + 18); f.y = p.y; f.facing = ahead > 0 ? 'left' : 'right'; f.moving = false; f.frame = 0; p.facing = ahead > 0 ? 'right' : 'left'; p.trail = [];
+    const p = this.rider, ahead = this.dirFacing === 'left' ? -1 : 1, map = this.game.map;
+    const px = p.x + ahead * 40; if (!map.solidRect(px, p.y, p.w, p.h)) p.x = px;
+    f.visible = true; f.x = p.x - ahead * (f.w + 18); f.y = p.y; f.facing = ahead > 0 ? 'right' : 'left'; f.moving = false; f.frame = 0; p.facing = ahead > 0 ? 'left' : 'right'; p.trail = [];
   }
   draw(ctx, cam) {
     if (!this.visible) return;
@@ -587,7 +599,7 @@ export class Raft extends Prop {
  *   { type:'swimmer', id:'ppaman_swim', sprite:'ppaman', raft:'raft8' }
  */
 export class Swimmer extends Character {
-  constructor(def, game) { super({ solid: false, w: 24, h: 12, ...def }, game); this.raftId = def.raft; this.t = 0; this.lift = 0; }
+  constructor(def, game) { super({ solid: false, w: 24, h: 12, ...def }, game); this.raftId = def.raft; this.t = 0; this.lift = 0; this.hop = null; }
   canInteract() { return false; }
   get raft() { return this.game.entities.find((e) => e.id === this.raftId && !e.dead); }
   update(dt) {
@@ -595,13 +607,19 @@ export class Swimmer extends Character {
     this.x = r.dirFacing === 'left' ? r.x + r.w + 2 : r.x - this.w - 2;   // 진행 방향 반대쪽 = 뒤
     this.y = Math.round(r.y + r.h * 0.55) - this.h;                       // 물결선 = 뗏목 중간
     this.facing = r.dirFacing; this.lift = r.jumpY; this.moving = false; this.frame = 0;
+    if (this.hop !== null) { this.hop += dt; if (this.hop > 0.35) this.hop = null; }
   }
   draw(ctx, cam) {
     if (!this.visible) return;
     const img = this.sprite[this.facing][0];
     const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
     const water = this.y + this.h, sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x), wy = Math.round(water - cam.y);
-    if (this.lift > 0) { ctx.drawImage(img, sx, Math.round(water - dh + 12 - this.lift - cam.y), dw, dh); return; }   // 점프: 뒤에서 들고 같이 뜬다(몸 전체)
+    if (this.lift > 0 || this.hop !== null) {                                            // 점프: 뒤에서 들고 같이 뜬다(몸 전체). 처음 0.35s 는 웅크렸다(0.8) 쭉 늘어나(1.15) 돌아오는 미세 연출
+      const k = this.hop ?? 1, sy = k < 0.1 ? 0.8 + (k / 0.1) * 0.35 : k < 0.35 ? 1.15 - ((k - 0.1) / 0.25) * 0.15 : 1;
+      const foot = Math.round(water + 12 - this.lift - cam.y);
+      ctx.save(); ctx.translate(sx + dw / 2, foot); ctx.scale(1, sy); ctx.drawImage(img, -dw / 2, -dh, dw, dh); ctx.restore();
+      return;
+    }
     const bob = Math.round(Math.sin(this.t * 4) * 1.5), headH = Math.round(dh * 0.42);
     const sy = wy - headH + bob;
     ctx.save(); ctx.beginPath(); ctx.rect(sx - 2, sy, dw + 4, wy - sy); ctx.clip(); ctx.drawImage(img, sx, sy, dw, dh); ctx.restore();   // 물결선 아래는 안 보임

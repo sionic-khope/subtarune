@@ -8,7 +8,8 @@ const KEYMAP = {
   KeyX: 'cancel', ShiftLeft: 'cancel', ShiftRight: 'cancel',
   Escape: 'title',
   F1: 'debug',
-  KeyV: 'menu', Tab: 'menu',
+  KeyV: 'menu',
+  Tab: 'escape',    // 비상탈출(끼었을 때 맵 입구로) — 2026-09-10
   KeyT: 'test',
   KeyQ: 'qa',       // 타이틀: QA 바로가기 목록
 };

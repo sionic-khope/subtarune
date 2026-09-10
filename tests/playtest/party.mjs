@@ -26,7 +26,10 @@ const untilChoice = async (max = 60) => {
   }
   return { texts, choice: false };
 };
-const pick = async (idx) => { for (let k = 0; k < idx; k++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(70); } await page.keyboard.press('KeyC'); await page.waitForTimeout(250); };
+const pick = async (idx) => {   // 선택지는 2열 격자(3개 = 2+1): ↓ 로 줄, → 로 칸 (2026-09-10 격자 이동)
+  for (let k = 0; k < Math.floor(idx / 2); k++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(70); }
+  for (let k = 0; k < idx % 2; k++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(70); }
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(250); };
 
 await page.goto('http://127.0.0.1:8000/index.html?qa=ppaman'); await page.waitForTimeout(1000);
 let s = await st(); check('qa=ppaman: next to pillar, bridge down, npc present', s.map === 'void4' && s.flags.bridge_down && s.npc && s.party.length === 0, JSON.stringify({ p: s.p, npc: s.npc }));

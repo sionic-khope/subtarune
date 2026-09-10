@@ -304,7 +304,7 @@ class Game {
   changeMap(mapId, spawnId, instant = false, { bgm = true } = {}) {
     const go = () => {
       const def = MAPS[mapId];
-      this.mapId = mapId;
+      this.mapId = mapId; this.entrySpawn = spawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
       this.map = new TileMap({ ...def, rows: def.rows ? [...def.rows] : def.rows }, this.mapImages?.[mapId] || null);   // rows 는 복사 (tileSwaps 가 원본을 안 건드리게)
       for (const key of Object.keys(def.tileSwaps || {})) if (this.has(key)) this.applyTiles(key, false);   // 플래그가 선 타일 교체는 처음부터 적용
       this.map.bake();
@@ -410,6 +410,8 @@ class Game {
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
+    if (this.state === 'field' && !this.dialogue.running && !this.transitioning && Input.just('escape')) { this.state = 'escape'; this.escape = { sel: 0 }; this.sound.sfx('open'); return; }   // Tab: 비상탈출 창
+    if (this.state === 'escape') { this.updateEscape(); return; }
     if (this.dialogue.running) {
       this.dialogue.update(dt, Input);
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
@@ -431,6 +433,45 @@ class Game {
     this.camera.follow(this.dialogue.running ? 0.05 : 0.18);
   }
 
+  /** Tab 비상탈출 창: [탈출 / 취소]. 탈출 = 탈것·피격·안내 창 정리 후 이 맵의 입구 스폰으로 다시 들어온다(엔티티 재생성, 동료 재정렬). 끼임 대처용 (2026-09-10) */
+  updateEscape() {
+    const e = this.escape;
+    if (Input.just('up') || Input.just('down')) { e.sel = 1 - e.sel; this.sound.sfx('menu'); }
+    if (Input.just('cancel') || Input.just('escape') || (Input.just('confirm') && e.sel === 1)) { this.state = 'field'; this.sound.sfx('close'); return; }
+    if (Input.just('confirm')) this.doEscape();
+  }
+  /**
+   * 비상탈출 실행 — 설계(2026-09-10, 사용자 요청 "스토리 상태는 유지, 맵 진행을 막는 것만 롤백"):
+   *   1) 스토리 플래그(컷신 본 것·아이템·동료·문 열림·레버·다리)는 그대로 — 되돌리면 소프트락(레버는 이미 뽑았는데 다리가 올라가는 등).
+   *   2) 플레이어가 다시 할 수 있는 **맵 장치**만 입구 기준으로 되돌린다: 뗏목은 입구 스폰에 가까운 쪽 끝으로(`flags.raft_<id>`), 그래야 입구에서 다시 탈 수 있다.
+   *   3) 탈것·피격·안내 창·입자 같은 순간 상태를 비우고 이 맵을 입구 스폰으로 **다시 진입**(엔티티 재생성, 동료 재정렬, 1회 컷신은 플래그로 안 반복).
+   *   = 던전 방을 나갔다 들어오면 방만 초기화되고 진행은 남는 관례(방 리셋/탈출 로프). 새 맵 장치를 만들면 여기 '되돌릴 목록'에 넣을지 판단한다.
+   */
+  doEscape() {
+    this.state = 'field'; this.sound.sfx('close');
+    const r = this.ride;
+    if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
+    this.player.knock = null; this.prompt = null; this.fx = [];
+    const spawnId = this.entrySpawn || 'start', def = MAPS[this.mapId], sp = def?.spawns?.[spawnId] || def?.spawns?.start || { x: this.player.x, y: this.player.y };
+    for (const e of def?.entities || []) {                        // 뗏목: 입구에 가까운 끝으로 (route 0 또는 마지막)
+      if (e.type !== 'raft') continue;
+      const pts = [[e.x, e.y], ...(e.route || [])], last = pts.length - 1;
+      const d0 = Math.hypot(pts[0][0] - sp.x, pts[0][1] - sp.y), d1 = Math.hypot(pts[last][0] - sp.x, pts[last][1] - sp.y);
+      this.flags[e.flag || `raft_${e.id || 'raft'}`] = d1 < d0 ? last : 0;
+    }
+    this.changeMap(this.mapId, spawnId);
+  }
+  drawEscape(ctx) {
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    const LH = F.lineH, w = 300, h = LH * 4 + 28, x = Math.round((SCREEN_W - w) / 2), y = Math.round((SCREEN_H - h) / 2);
+    drawBox(ctx, x, y, w, h);
+    ctx.fillStyle = '#ffe066'; ctx.fillText(L.escape_title, x + 16, y + 10);
+    ctx.fillStyle = '#8a8aa0'; ctx.fillText(L.escape_desc, x + 16, y + 10 + LH);
+    [L.escape_go, L.escape_cancel].forEach((label, i) => {
+      const yy = y + 14 + LH * (2 + i); ctx.fillStyle = this.escape.sel === i ? '#ffe066' : '#fff'; ctx.fillText(label, x + 40, yy);
+      if (this.escape.sel === i) drawHeart(ctx, x + 26, yy + Math.round(F.size / 2) - 3);
+    });
+  }
   updateMenu() {
     const m = this.menu;
     const N = 4;   // 아이템 / 파티 / 설정 / 닫기
@@ -521,6 +562,7 @@ class Game {
     if (this.prompt) this.drawPrompt(ctx);
     if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
     if (this.state === 'menu') this.drawMenu(ctx);
+    if (this.state === 'escape') this.drawEscape(ctx);
 
     if (this.fade.alpha > 0) {
       ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`;
@@ -580,8 +622,9 @@ class Game {
 
   /** 지역 이름 캡션: 페이드 인 → 유지 → 페이드 아웃 (언더테일 지역명처럼) */
   /** 캐릭터 주위로 파란 물방울 n개 (강아지 물 털기 등) — 컷신 {shakeOff} 가 매 프레임 조금씩 부른다 */
-  emitDroplets(e, n = 2, color = '#5b8cff') {
-    const cx = e.x + e.w / 2, cy = e.y + e.h - 18;
+  emitDroplets(e, n = 2, color = '#5b8cff') { this.emitDropletsAt(e.x + e.w / 2, e.y + e.h - 18, n, color); }
+  /** 한 점에서 파란 물방울 n개 (점프 이륙·착지 물튀김 등) */
+  emitDropletsAt(cx, cy, n = 6, color = '#5b8cff') {
     for (let i = 0; i < n; i++) this.fx.push({ x: cx + (Math.random() - 0.5) * 18, y: cy + (Math.random() - 0.5) * 20, vx: (Math.random() - 0.5) * 190, vy: -70 - Math.random() * 90, t: 0.4 + Math.random() * 0.25, color });
   }
   /** 작은 안내 창(언더테일식 검은 상자·흰 테두리), 화면 위쪽 가운데. 텍스트로 넘길 수 없고 C 로만 닫힌다 */
@@ -616,7 +659,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.18';
+export const BUILD = '2026-09-10.21';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

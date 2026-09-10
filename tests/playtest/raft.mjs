@@ -63,6 +63,14 @@ await page.keyboard.press('KeyX'); await page.waitForTimeout(3400);
 await page.keyboard.press('KeyQ'); await page.waitForTimeout(300);
 check('title Q opens QA list', await page.evaluate(() => !!game.title.qa));
 await page.screenshot({ path: `${S}/raft_05_qa_menu.png` });
+{ const qa = () => page.evaluate(() => ({ i: game.title.qa.i, top: game.title.qa.top, n: 16 }));
+  for (let i = 0; i < 12; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60); }
+  let q = await qa(); check('QA list scrolls inside the box (cursor 12 → window top 5, 8 rows)', q.i === 12 && q.top === 5, JSON.stringify(q));
+  await page.screenshot({ path: `${S}/raft_05b_qa_scrolled.png` });
+  for (let i = 0; i < 13; i++) { await page.keyboard.press('ArrowUp'); await page.waitForTimeout(60); }
+  q = await qa(); check('QA list wraps to the last item, window shows the tail', q.i === 15 && q.top === 8, JSON.stringify(q));
+  await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); q = await qa(); check('wrap to first item resets window top', q.i === 0 && q.top === 0, JSON.stringify(q));
+}
 for (let i = 0; i < 3; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(100); }   // pc_stream
 await page.keyboard.press('KeyC'); await page.waitForTimeout(1500);
 s = await st(); check('QA menu jump works', s.map === 'room' && s.stage === 'cord_found' && s.facing === 'up', JSON.stringify({ map: s.map, stage: s.stage }));

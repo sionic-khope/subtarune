@@ -6,18 +6,18 @@
  "dim": 0,
  "backdrop": "purple_fire",
  "rows": [
-  "                                                                      ",
-  "                                                                      ",
-  "                                                                      ",
-  "                                                                      ",
-  "                                                                      ",
-  " xXxXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
-  " XxXxXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
-  " xXxXxX                                                        xXxXxX ",
-  " XxXxXx                                                        XxXxXx ",
-  " yyyyyy                                                        yyyyyy ",
-  "                                                                      ",
-  "                                                                      "
+  "                                                                                                           ",
+  "                                                                                                           ",
+  "                                                                                                           ",
+  "                                                                                                           ",
+  "                                                                                                           ",
+  " xXxXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+  " XxXxXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
+  " xXxXxX                                                                                             XxXxXx ",
+  " XxXxXx                                                                                             xXxXxX ",
+  " yyyyyy                                                                                             yyyyyy ",
+  "                                                                                                           ",
+  "                                                                                                           "
  ],
  "spawns": {
   "from_left": {
@@ -35,7 +35,7 @@
    "facing": "right"
   },
   "landing": {
-   "x": 2056,
+   "x": 3240,
    "y": 184,
    "facing": "left"
   }
@@ -59,7 +59,7 @@
    "y": 172,
    "route": [
     [
-     1952,
+     3136,
      172
     ]
    ],
@@ -88,11 +88,11 @@
    "type": "prop",
    "id": "wall2",
    "image": "assets/props/water_wall.png",
-   "x": 1132,
+   "x": 1420,
    "y": 176,
    "w": 28,
    "h": 36,
-   "ix": 1132,
+   "ix": 1420,
    "iy": 160,
    "solid": true,
    "obstacle": true
@@ -101,11 +101,11 @@
    "type": "prop",
    "id": "wall3",
    "image": "assets/props/water_wall.png",
-   "x": 1356,
+   "x": 1932,
    "y": 176,
    "w": 28,
    "h": 36,
-   "ix": 1356,
+   "ix": 1932,
    "iy": 160,
    "solid": true,
    "obstacle": true
@@ -114,11 +114,11 @@
    "type": "prop",
    "id": "wall4",
    "image": "assets/props/water_wall.png",
-   "x": 1580,
+   "x": 2444,
    "y": 176,
    "w": 28,
    "h": 36,
-   "ix": 1580,
+   "ix": 2444,
    "iy": 160,
    "solid": true,
    "obstacle": true
@@ -127,11 +127,11 @@
    "type": "prop",
    "id": "wall5",
    "image": "assets/props/water_wall.png",
-   "x": 1804,
+   "x": 2956,
    "y": 176,
    "w": 28,
    "h": 36,
-   "ix": 1804,
+   "ix": 2956,
    "iy": 160,
    "solid": true,
    "obstacle": true

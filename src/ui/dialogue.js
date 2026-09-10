@@ -57,8 +57,8 @@ export function parseText(text) {
   return tokens;
 }
 
-/** 토큰을 줄바꿈해서 페이지(줄 배열)로 나눈다 */
-function layout(ctx, tokens, maxWidth) {
+/** 토큰을 줄바꿈해서 페이지(줄 배열)로 나눈다. 단어 단위(한글 포함), 한 단어가 한 줄보다 길 때만 글자 단위. 어느 줄도 maxWidth 를 넘지 않는다 */
+export function layout(ctx, tokens, maxWidth) {
   ctx.font = FONT;
   const lines = [];
   let line = [], width = 0;
@@ -69,10 +69,10 @@ function layout(ctx, tokens, maxWidth) {
     if (t.ch === '\n') { push(); continue; }
     if (t.ch === '') { line.push(t); continue; }
     let w = ctx.measureText(t.ch).width;
-    // 영단어는 단어 단위로 유지: 공백 뒤 단어 폭을 미리 재본다
+    // 단어 단위 줄바꿈(한글 포함): 공백 뒤 단어 폭을 미리 재서 안 들어가면 줄을 바꾼다. 한 단어가 한 줄보다 길 때만 글자 단위로 끊긴다 (2026-09-10 '대사 깨짐')
     if (t.ch === ' ' && line.length) {
       let j = i + 1, ww = 0;
-      while (j < tokens.length && tokens[j].ch && tokens[j].ch !== ' ' && tokens[j].ch !== '\n' && /[A-Za-z0-9]/.test(tokens[j].ch)) {
+      while (j < tokens.length && tokens[j].ch && tokens[j].ch !== ' ' && tokens[j].ch !== '\n') {
         ww += ctx.measureText(tokens[j].ch).width; j++;
       }
       if (width + w + ww > maxWidth) { push(); continue; }
@@ -90,6 +90,20 @@ function layout(ctx, tokens, maxWidth) {
   const pages = [];
   for (let i = 0; i < lines.length; i += MAX_LINES) pages.push(lines.slice(i, i + MAX_LINES));
   return pages.length ? pages : [[[]]];
+}
+
+/** 선택지 커서 이동(그리기와 같은 격자: 옵션 ≤2 면 한 줄, 아니면 2열). ←→ 줄 안 순환, ↑↓ 줄 사이 순환(열 유지, 짧은 줄이면 마지막 칸). 한 줄뿐이면 ↑↓ 는 ←→ 처럼 */
+export function choiceMove(i, n, dir) {
+  if (n <= 1) return 0;
+  const cols = n <= 2 ? n : 2, rows = Math.ceil(n / cols);
+  let row = Math.floor(i / cols), col = i % cols;
+  const rowLen = (r) => Math.min(cols, n - r * cols);
+  if (rows === 1 && (dir === 'up' || dir === 'down')) dir = dir === 'up' ? 'left' : 'right';
+  if (dir === 'left') col = (col + rowLen(row) - 1) % rowLen(row);
+  else if (dir === 'right') col = (col + 1) % rowLen(row);
+  else if (dir === 'up') { row = (row + rows - 1) % rows; col = Math.min(col, rowLen(row) - 1); }
+  else if (dir === 'down') { row = (row + 1) % rows; col = Math.min(col, rowLen(row) - 1); }
+  return row * cols + col;
 }
 
 export class TextBox {
@@ -147,10 +161,11 @@ export class TextBox {
     if (this.style === 'narration') return { x: 40, y: 60, w: SCREEN_W - 80, h: 120 };
     return { x: 12, y: SCREEN_H - 112, w: SCREEN_W - 24, h: 104 };
   }
+  /** 글이 들어갈 폭 = 상자 폭 − 글 시작 오프셋(18 / 초상화 74) − 오른쪽 여백 18. 테두리에 글자가 걸리면 안 된다 */
   textWidth() {
     const r = this.layoutRect();
-    if (this.style === 'narration') return r.w;
-    return r.w - 16 - (this.portrait ? 56 : 0);
+    if (this.style === 'narration') return r.w - 36;
+    return r.w - (this.portrait ? 74 : 18) - 18;
   }
 
   _pageTokens() { return this.pages[this.page].flat(); }
@@ -220,9 +235,9 @@ export class TextBox {
         this.choiceAutoTimer -= dt;
         if (this.choiceAutoTimer <= 0) { this._done(null); return; }
       }
-      if (this.choice.cursor !== false) {
-        if (input.just('up') || input.just('left')) { this.choiceIndex = (this.choiceIndex + n - 1) % n; this.sound.sfx('menu'); }
-        if (input.just('down') || input.just('right')) { this.choiceIndex = (this.choiceIndex + 1) % n; this.sound.sfx('menu'); }
+      if (this.choice.cursor !== false) {                                    // 격자 이동(2열): ←→ 는 같은 줄 안에서, ↑↓ 는 줄 사이. 한 줄뿐이면 ↑↓ 도 옆으로 (2026-09-10 '한쪽으로만 간다' 지적)
+        const dir = input.just('left') ? 'left' : input.just('right') ? 'right' : input.just('up') ? 'up' : input.just('down') ? 'down' : null;
+        if (dir) { const next = choiceMove(this.choiceIndex, n, dir); if (next !== this.choiceIndex) { this.choiceIndex = next; this.sound.sfx('menu'); } }
       }
       if (this.choice.locked) return;                // locked: 커서는 움직여도 확정/취소 불가
       if (input.just('confirm')) { this.sound.sfx('confirm'); this._done(this.choiceIndex); }
