@@ -21,7 +21,7 @@ import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
-import { Story, STAGES, QA_POINTS } from './core/story.js';
+import { Story, STAGES, QA_POINTS, partyFromFlags } from './core/story.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
@@ -146,35 +146,48 @@ class Game {
   has(key) { return !!this.flags[key]; }
   static SAVE_KEY = 'subtarune.save.v1';
   hasSave() { try { return !!localStorage.getItem(Game.SAVE_KEY); } catch { return false; } }
-  /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때(필드에서만) */
+  /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때·QA 바로가기 직후(필드에서만). 컷신이 도는 동안은 저장하지 않는다(숨긴 주인공·임시 맵 위치가 세이브에 남지 않게, 2026-09-10) */
   autosave() {
-    if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test') return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, map: this.mapId, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
-  /** 타이틀에서 '이어하기' */
+  /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
+  resetState() {
+    this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0;
+    this.battle = null; this.lastBattle = null; this.battleFlag = null; this.encountering = false; this.ride = null;
+  }
+  /** 타이틀에서 '이어하기': 세이브를 통째로 복원 → 맵 → 위치 → 동료를 주인공 뒤에 다시 세움 → 그 뒤에야 도착 스크립트(플래그 안 섰으면 처음부터 다시) */
   continueGame() {
     let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
     if (!d || !MAPS[d.map]) { this.startGame(); return; }
-    this.flags = {}; this.story = new Story(this.flags); this.story.load(d.story);
+    this.resetState(); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
-    this.inventory = [...(d.inventory || [])]; this.party = [...(d.party || [])]; this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
+    this.inventory = (d.inventory || []).filter((n) => typeof n === 'string');
+    this.party = (d.party || []).filter((id) => !!CHARACTERS[id]);
+    this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
-    this.changeMap(d.map, null, true);
-    if (typeof d.x === 'number') { this.player.x = d.x; this.player.y = d.y; this.player.facing = d.facing || 'down'; this.camera.snap(); }
+    this.changeMap(d.map, d.spawn || null, true, { enter: false });
+    if (typeof d.x === 'number') { this.player.x = d.x; this.player.y = d.y; this.player.facing = d.facing || 'down'; }
+    this.spawnParty(); this.camera.snap();             // 동료는 저장된 위치의 주인공 뒤에 (스폰 지점에 남겨 두면 화면 밖 → "형섭만 나옴")
+    this.runMapEnter();
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
-  devJump({ map, spawn, stage, flags, party }) {
+  devJump({ map, spawn, stage, flags, party, inventory, money }) {
+    this.resetState();                               // 이전 세이브·이전 QA 지점 상태를 버리고 깨끗이 (섞이면 동료/플래그가 어긋난다)
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
     if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
-    if (party) this.party = [...party];             // QA 지점의 동료 구성
+    this.party = party ? [...party] : partyFromFlags(this.flags);   // QA 지점의 동료 구성 — 없으면 가입 플래그에서 유도
+    if (inventory) this.inventory = [...inventory]; if (money) this.money = money;
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
     this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)
-    this.changeMap(map, spawn || 'start', true);
+    this.changeMap(map, spawn || 'start', true, { enter: false });
+    this.autosave();                                 // 바로가기 직후 '이어하기' 도 이 지점을 연다 (도착 스크립트 전이라 플래그가 안 서 있고, 이어하기 때 스크립트가 처음부터 돈다)
+    this.runMapEnter();
   }
 
   /** 낙석 등에 맞음: 붉은 섬광 + 흔들림 + 소리, 레인 왼쪽으로 밀려남(체력 없음 — 진행만 되돌림), 잠깐 무적. 동료는 뒤로 재정렬 */
@@ -283,7 +296,7 @@ class Game {
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true; this.fx = []; this.prompt = null;
     this.fadeTo(1, 0.4, () => {
-      this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = [];
+      this.resetState();
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
       this.state = 'title'; this.title.enter();
       this.transitioning = false;
@@ -385,7 +398,7 @@ class Game {
   }
 
   // ── 맵 전환 ─────────────────────────────────────────────
-  changeMap(mapId, spawnId, instant = false, { bgm = true } = {}) {
+  changeMap(mapId, spawnId, instant = false, { bgm = true, enter: runEnter = true } = {}) {   // enter:false — 도착 스크립트는 호출자가 runMapEnter() 로 (이어하기·QA: 위치·동료·세이브를 먼저)
     const go = () => {
       const def = MAPS[mapId];
       this.mapId = mapId; this.entrySpawn = spawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
@@ -411,20 +424,21 @@ class Game {
         else if (gated || def.bgm === null) this.sound.stopBgm(0.4);                // 컷신 전엔 조용히
       }
     };
-    // 맵 JSON `enter: { script, flag? }` — 도착(페이드 인 끝) 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회
-    const enter = () => {
-      const en = MAPS[mapId].enter;
-      if (!en || !en.script || this.dialogue.running) return;
-      if (en.flag && this.has(en.flag)) return;
-      if (en.flag) this.setFlag(en.flag);
-      this.runScript(en.script);
-    };
+    const enter = () => { if (runEnter) this.runMapEnter(mapId); };
     if (instant) { go(); enter(); return; }
     this.transitioning = true;
     const early = !!MAPS[mapId].enter?.early;   // enter.early: 검은 화면이 걷히기 전에 시작 — 첫 노드로 카메라를 옮겨 두면 플레이어가 잠깐도 안 보인다(void11)
     this.fadeTo(1, 0.25, () => { go(); if (early) enter(); this.fadeTo(0, 0.25, () => { this.transitioning = false; this.autosave(); if (!early) enter(); }, 'black'); }, 'black');   // 문 전환은 항상 검은색 (직전 컷신이 흰 페이드를 썼어도)
   }
 
+  /** 맵 JSON `enter: { script, flag?, early? }` — 도착 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회(스크립트 시작 때 섬 — 세이브는 컷신 중엔 안 되므로, 중간에 끄면 이어하기 때 처음부터) */
+  runMapEnter(mapId = this.mapId) {
+    const en = MAPS[mapId]?.enter;
+    if (!en || !en.script || this.dialogue.running) return;
+    if (en.flag && this.has(en.flag)) return;
+    if (en.flag) this.setFlag(en.flag);
+    this.runScript(en.script);
+  }
   fadeTo(target, duration, cb, color) {
     if (this.fade.cb) { const old = this.fade.cb; this.fade.cb = null; this.fade.target = undefined; old(); }   // 덮어쓰인 페이드의 waiter 를 풀어준다 → 컷신이 영원히 멈추지 않음
     if (color) this.fade.color = color === 'white' ? '255,255,255' : '0,0,0';
@@ -435,7 +449,7 @@ class Game {
   /** 타이틀에서 새 게임: 세이브 삭제 → 오프닝 컷신 */
   startGame() {
     this.clearSave();
-    this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = [];
+    this.resetState();
     this.changeMap('room', 'bed', true, { bgm: false });   // 방 브금은 오프닝 컷신이 흰색 뒤에 직접 튼다
     this.state = 'field';
     if (SCRIPTS.opening) this.runScript('opening');
@@ -783,7 +797,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.43';
+export const BUILD = '2026-09-10.44';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

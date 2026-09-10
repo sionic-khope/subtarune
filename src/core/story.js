@@ -47,6 +47,10 @@ export class Story {
   reset() { this.index = 0; }
 }
 
+/** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
+export const PARTY_FLAGS = [['ppaman_joined', 'ppaman'], ['void11_done', 'gyeongsub']];
+export const partyFromFlags = (flags) => PARTY_FLAGS.filter(([f]) => flags?.[f]).map(([, id]) => id);
+
 /**
  * QA 바로가기 지점 (URL ?qa=<id> 또는 타이틀에서 Q). 그 지점까지의 스토리 단계를 채우고 맵/스폰으로 보낸다.
  * 새 이벤트를 만들면 "그 이벤트 직전" 지점을 한 줄 추가한다.
