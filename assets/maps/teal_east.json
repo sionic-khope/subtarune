@@ -1,33 +1,38 @@
 {
- "id": "void12",
- "name": "???",
- "bgm": null,
+ "id": "teal_east",
+ "name": "청록숲",
+ "bgm": "hopes",
  "stage": "void_fallen",
  "dim": 0,
- "backdrop": "purple_fire",
+ "backdrop": "teal_bush",
  "rows": [
   "                ",
   "                ",
   "                ",
   "                ",
-  " XxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxX ",
-  " XxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxX ",
-  " yyyyyyyyyyyyyy ",
+  " ututututututut ",
+  " tututututututu ",
+  " ututututututut ",
+  " tututututututu ",
+  " vvvvvvvvvvvvvv ",
   "                ",
   "                ",
   "                "
  ],
  "spawns": {
+  "from_bottom": {
+   "x": 260,
+   "y": 208,
+   "facing": "up"
+  },
   "from_left": {
    "x": 60,
-   "y": 184,
+   "y": 200,
    "facing": "right"
   },
   "start": {
    "x": 60,
-   "y": 184
+   "y": 200
   }
  },
  "entities": [
@@ -35,10 +40,10 @@
    "type": "door",
    "x": 32,
    "y": 128,
-   "w": 12,
+   "w": 8,
    "h": 128,
-   "to": "void11",
-   "spawn": "landing",
+   "to": "teal2",
+   "spawn": "landing_east",
    "sfx": false
   }
  ]

@@ -1,0 +1,270 @@
+{
+ "id": "teal2",
+ "name": "청록숲",
+ "bgm": "hopes",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "teal_bush",
+ "rows": [
+  "                                            ",
+  "                                   gut      ",
+  "                                   utg      ",
+  "                                   tut      ",
+  "                                   utu      ",
+  "                                   tut      ",
+  "                                   utu      ",
+  "                                   tgt      ",
+  "                                   utu      ",
+  "                                   tut      ",
+  "                                   utu      ",
+  "                                   tut      ",
+  "                                   gtu      ",
+  "                                   tug      ",
+  "                                   utu      ",
+  "                                   tut      ",
+  "                                   utu      ",
+  "                                   tut      ",
+  "                                   ugu      ",
+  " tutugutututututgtututututugutututututgtutu ",
+  " utututgtututututugutututututgtututututugut ",
+  " tutututugutututututgtututututugutututututg ",
+  " utututututgtututututugutututututgtutututut ",
+  " tgtututututugutututututgtututututugutututu ",
+  " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ",
+  "                                            "
+ ],
+ "spawns": {
+  "from_left": {
+   "x": 60,
+   "y": 680,
+   "facing": "right"
+  },
+  "start": {
+   "x": 60,
+   "y": 680,
+   "facing": "right"
+  },
+  "from_top": {
+   "x": 1156,
+   "y": 80,
+   "facing": "down"
+  },
+  "landing_east": {
+   "x": 1312,
+   "y": 680,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "wallCol": 39,
+  "upCols": [
+   35,
+   37
+  ],
+  "roadRows": [
+   19,
+   23
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 608,
+   "w": 8,
+   "h": 160,
+   "to": "teal1",
+   "spawn": "landing",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 1120,
+   "y": 32,
+   "w": 96,
+   "h": 8,
+   "to": "teal3",
+   "spawn": "from_bottom",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 1368,
+   "y": 608,
+   "w": 8,
+   "h": 160,
+   "to": "teal_east",
+   "spawn": "from_left",
+   "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "statue_w1",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1248,
+   "y": 608,
+   "w": 32,
+   "h": 32,
+   "ix": 1242,
+   "iy": 580,
+   "solid": true,
+   "script": "teal2_statue_wall"
+  },
+  {
+   "type": "prop",
+   "id": "statue_w2",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1280,
+   "y": 640,
+   "w": 32,
+   "h": 32,
+   "ix": 1274,
+   "iy": 612,
+   "solid": true,
+   "script": "teal2_statue_wall"
+  },
+  {
+   "type": "prop",
+   "id": "statue_w3",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1248,
+   "y": 672,
+   "w": 32,
+   "h": 32,
+   "ix": 1242,
+   "iy": 644,
+   "solid": true,
+   "script": "teal2_statue_wall"
+  },
+  {
+   "type": "prop",
+   "id": "statue_w4",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1280,
+   "y": 704,
+   "w": 32,
+   "h": 32,
+   "ix": 1274,
+   "iy": 676,
+   "solid": true,
+   "script": "teal2_statue_wall"
+  },
+  {
+   "type": "prop",
+   "id": "statue_w5",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1248,
+   "y": 736,
+   "w": 32,
+   "h": 32,
+   "ix": 1242,
+   "iy": 708,
+   "solid": true,
+   "script": "teal2_statue_wall"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d1",
+   "image": "assets/props/statue_junhee.png",
+   "x": 160,
+   "y": 624,
+   "w": 32,
+   "h": 14,
+   "ix": 154,
+   "iy": 578,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d2",
+   "image": "assets/props/statue_junhee.png",
+   "x": 352,
+   "y": 624,
+   "w": 32,
+   "h": 14,
+   "ix": 346,
+   "iy": 578,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d3",
+   "image": "assets/props/statue_junhee.png",
+   "x": 576,
+   "y": 624,
+   "w": 32,
+   "h": 14,
+   "ix": 570,
+   "iy": 578,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d4",
+   "image": "assets/props/statue_junhee.png",
+   "x": 800,
+   "y": 624,
+   "w": 32,
+   "h": 14,
+   "ix": 794,
+   "iy": 578,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d5",
+   "image": "assets/props/statue_junhee.png",
+   "x": 992,
+   "y": 624,
+   "w": 32,
+   "h": 14,
+   "ix": 986,
+   "iy": 578,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d6",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1120,
+   "y": 208,
+   "w": 32,
+   "h": 14,
+   "ix": 1114,
+   "iy": 162,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d7",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1184,
+   "y": 400,
+   "w": 32,
+   "h": 14,
+   "ix": 1178,
+   "iy": 354,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "statue_d8",
+   "image": "assets/props/statue_junhee.png",
+   "x": 1184,
+   "y": 112,
+   "w": 32,
+   "h": 14,
+   "ix": 1178,
+   "iy": 66,
+   "solid": true,
+   "script": "teal2_statue_look"
+  }
+ ]
+}

@@ -233,6 +233,39 @@ class Game {
     }
   }
 
+  /**
+   * 맵 JSON `backdrop:'teal_bush'` — 청록숲: 검은 어둠 속에 멀리 겹겹이 서 있는 수풀 실루엣 (사용자 2026-09-10 "뭔가 애매하게 보이는 수풀 같은 배경을 디테일하게").
+   * 3겹(멀수록 어둡고 느리게 흐름: 카메라 x 의 0.12/0.22/0.38), 둥근 덤불 덩어리 + 가는 줄기 + 잎 점, 아주 느린 흔들림. 위치는 인덱스 해시로 고정.
+   */
+  drawBackdropTeal(ctx, cam) {
+    const t = this.time;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H); g.addColorStop(0, '#000'); g.addColorStop(0.55, '#03110f'); g.addColorStop(1, '#000');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    const hash = (i, k) => { const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); };
+    const layers = [
+      { par: 0.12, col: '#071c1a', rim: '#0b2926', leaf: '#0e3330', base: 168, n: 16, r: [34, 60], sway: 0.9 },
+      { par: 0.22, col: '#0b2a27', rim: '#123b37', leaf: '#184944', base: 196, n: 14, r: [26, 46], sway: 1.3 },
+      { par: 0.38, col: '#103b37', rim: '#1a5450', leaf: '#22665f', base: 230, n: 12, r: [18, 34], sway: 1.8 },
+    ];
+    for (let li = 0; li < layers.length; li++) {
+      const L = layers[li], span = 640, off = ((cam.x * L.par) % span + span) % span;
+      for (let i = 0; i < L.n * 2; i++) {
+        const bx = ((i * (span / L.n)) + hash(i, li) * 40 - off + span) % (span + 80) - 40;
+        const r = L.r[0] + hash(i + 7, li) * (L.r[1] - L.r[0]);
+        const sw = Math.sin(t * 0.35 * L.sway + i) * 1.5;
+        const by = L.base - hash(i + 3, li) * 30;
+        const blob = (dy, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(bx + sw, by + dy, r, 0, Math.PI * 2); ctx.arc(bx + sw - r * 0.6, by + dy + r * 0.35, r * 0.7, 0, Math.PI * 2); ctx.arc(bx + sw + r * 0.6, by + dy + r * 0.3, r * 0.75, 0, Math.PI * 2); ctx.fill(); };
+        blob(0, L.rim); blob(3, L.col);                                                                    // 위쪽 3px 만 밝게 남는 잎 테두리
+        ctx.fillStyle = L.col; ctx.fillRect(Math.round(bx + sw - r), Math.round(by), Math.round(r * 2), SCREEN_H);   // 덤불 아래는 어둠으로 이어짐
+        ctx.fillStyle = L.leaf;                                                                            // 잎 점(디테일) — 위쪽에 많이
+        for (let k = 0; k < 14; k++) { const a = hash(i * 13 + k, li + 5) * Math.PI * 2, d = hash(i * 17 + k, li + 9) * r * 0.95; const lx = bx + sw + Math.cos(a) * d, ly = by + Math.sin(a) * d * 0.8; if (ly < by + r * 0.4) ctx.fillRect(Math.round(lx), Math.round(ly), 2, 1); }
+        if (hash(i + 11, li) > 0.55) { ctx.fillStyle = '#020b0a'; ctx.fillRect(Math.round(bx + sw), Math.round(by - r * 0.2), 1, Math.round(r * 1.6)); }   // 가는 줄기
+      }
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);   // 발밑 어둠
+  }
+
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
     this.transitioning = true;
@@ -529,6 +562,7 @@ class Game {
     const cam = { x: Math.round(this.camera.x), y: Math.round(this.camera.y) };
     if (this.shake) { cam.x += Math.round((Math.random() * 2 - 1) * this.shake.amp); cam.y += Math.round((Math.random() * 2 - 1) * this.shake.amp); }
     if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
+    else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
 
     // 2D 줌: 월드(맵·엔티티·어두움)만 확대, UI 는 그대로
     ctx.save();
@@ -661,7 +695,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.29';
+export const BUILD = '2026-09-10.30';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

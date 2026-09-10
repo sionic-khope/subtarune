@@ -20,20 +20,15 @@ ents = [
     {'type': 'npc', 'id': 'gyeongsub', 'sprite': 'gyeongsub', 'x': 806, 'y': GY, 'facing': 'right', 'wander': 0, 'unless': 'void11_intro'},
     {'type': 'npc', 'id': 'junhee', 'sprite': 'junhee', 'x': 892, 'y': GY, 'facing': 'left', 'wander': 0, 'unless': 'void11_intro'},
     {'type': 'door', 'x': 32, 'y': 96, 'w': 8, 'h': 320, 'to': 'void10', 'spawn': 'goal', 'sfx': False},
-    {'type': 'door', 'x': (W - 1) * 32 - 8, 'y': 96, 'w': 8, 'h': 320, 'to': 'void12', 'spawn': 'from_left', 'sfx': False},
+    {'type': 'door', 'x': (W - 1) * 32 - 8, 'y': 96, 'w': 8, 'h': 320, 'to': 'teal1', 'spawn': 'from_left', 'sfx': False},   # 청록숲 1
 ]
 m = {'id': 'void11', 'name': '???', 'bgm': None, 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'purple_fire',
      'enter': {'script': 'void11_intro', 'flag': 'void11_intro'},
      'rows': rows,
      'spawns': {'start': {'x': 340, 'y': GY + 6, 'facing': 'right'}, 'from_left': {'x': 60, 'y': GY + 6, 'facing': 'right'}, 'landing': {'x': 1330, 'y': GY + 6, 'facing': 'left'}},
      'entities': ents}
-m12 = {'id': 'void12', 'name': '???', 'bgm': None, 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'purple_fire',
-       'rows': [' ' * 16] * 4 + [' ' + ''.join(g(r, c) for c in range(1, 15)) + ' ' for r in range(4, 8)] + [' ' + 'y' * 14 + ' '] + [' ' * 16] * 3,
-       'spawns': {'from_left': {'x': 60, 'y': 184, 'facing': 'right'}, 'start': {'x': 60, 'y': 184}},
-       'entities': [{'type': 'door', 'x': 32, 'y': 128, 'w': 12, 'h': 128, 'to': 'void11', 'spawn': 'landing', 'sfx': False}]}
 if '--check' in sys.argv:
-    ok = json.loads(io.open('assets/maps/void11.json', encoding='utf-8').read()) == m and json.loads(io.open('assets/maps/void12.json', encoding='utf-8').read()) == m12
-    print('void11/12', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)
+    ok = json.loads(io.open('assets/maps/void11.json', encoding='utf-8').read()) == m
+    print('void11', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)
 io.open('assets/maps/void11.json', 'w', encoding='utf-8').write(json.dumps(m, ensure_ascii=False, indent=1))
-io.open('assets/maps/void12.json', 'w', encoding='utf-8').write(json.dumps(m12, ensure_ascii=False, indent=1))
-print('wrote void11 (44x16) + void12 placeholder')
+print('wrote void11 (44x16)')

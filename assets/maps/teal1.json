@@ -1,0 +1,61 @@
+{
+ "id": "teal1",
+ "name": "청록숲",
+ "bgm": "weird_birds",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "teal_bush",
+ "rows": [
+  "                                                                ",
+  "                                                                ",
+  "                                                                ",
+  "                                                                ",
+  " utututugutututututgtututututugutututututgtututututugututututut ",
+  " tututututgtututututugutututututgtututututugutututututgtutututu ",
+  " gtututututugutututututgtututututugutututututgtututututugututut ",
+  " tugutututututgtututututugutututututgtututututugutututututgtutu ",
+  " ututgtututututugutututututgtututututugutututututgtututututugut ",
+  " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ",
+  "                                                                ",
+  "                                                                "
+ ],
+ "spawns": {
+  "from_left": {
+   "x": 60,
+   "y": 200,
+   "facing": "right"
+  },
+  "start": {
+   "x": 60,
+   "y": 200,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 1952,
+   "y": 200,
+   "facing": "left"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 128,
+   "w": 8,
+   "h": 160,
+   "to": "void11",
+   "spawn": "landing",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 2008,
+   "y": 128,
+   "w": 8,
+   "h": 160,
+   "to": "teal2",
+   "spawn": "from_left",
+   "sfx": false
+  }
+ ]
+}

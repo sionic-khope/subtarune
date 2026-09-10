@@ -107,7 +107,7 @@
    "y": 96,
    "w": 8,
    "h": 320,
-   "to": "void12",
+   "to": "teal1",
    "spawn": "from_left",
    "sfx": false
   }

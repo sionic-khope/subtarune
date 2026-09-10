@@ -70,9 +70,9 @@ await page.screenshot({ path: `${S}/void11_05_party.png` });
   check('tree C: 나무다 베인 흔적이 있다 → 빠맨 "형 이 나무 캐셨어요?" → 경섭 "응? 허허 아니 ?" → 빠맨 "흠.. 네"', ['|* 나무다 베인 흔적이 있다.', '억빠맨|* 형 이 나무 캐셨어요?', '경섭|* 응? 허허 아니 ?', '억빠맨|* 흠.. 네'].every((k) => t.lines.includes(k)), JSON.stringify(t.lines)); }
 // 오른쪽 출구 → void12 (동료 둘 다 보임)
 await stand(1330, 336, 'right'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(900); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(900);
-s = await st(); check('right edge → void12 placeholder with both followers, still silent', s.map === 'void12' && s.f.length === 2 && s.f.every((x) => x.vis) && s.bgm === null, JSON.stringify({ map: s.map, f: s.f, bgm: s.bgm }));
+s = await st(); check('right edge → teal1 (청록숲) with both followers; teal1 has its own bgm', s.map === 'teal1' && s.f.length === 2 && s.f.every((x) => x.vis) && s.bgm === 'weird_birds', JSON.stringify({ map: s.map, f: s.f, bgm: s.bgm }));
 // 되돌아오기: 컷신 없음, NPC·통나무 없음, 브금 유지 (bgmFlag), 나무 밑동은 막힘
-await stand(60, 184, 'left'); await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(800); await page.keyboard.up('ArrowLeft'); await page.waitForTimeout(900);
+await stand(60, 6 * 32 + 8, 'left'); await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(800); await page.keyboard.up('ArrowLeft'); await page.waitForTimeout(900);
 s = await st(); check('back to void11: no cutscene, no NPCs/logs, silent', s.map === 'void11' && !s.running && !s.junhee && !s.gyeongsub && !s.logs && s.bgm === null && s.f.length === 2, JSON.stringify({ map: s.map, running: s.running, j: s.junhee, g: s.gyeongsub, logs: s.logs, bgm: s.bgm }));
 { const t = await page.evaluate(() => { const tr = game.entities.find((e) => e.id === 'tree'); return { solid: tr.solid, w: tr.w, h: tr.h, iw: tr.iw, ih: tr.ih }; }); check('tree prop: trunk hitbox solid, big image', t.solid && t.w === 64 && t.iw === 240 && t.ih === 264, JSON.stringify(t)); }
 await stand(560, 336, 'right'); await page.waitForTimeout(200); await page.screenshot({ path: `${S}/void11_06_tree.png` });
