@@ -56,6 +56,42 @@
    "to": "teal2",
    "spawn": "from_left",
    "sfx": false
+  },
+  {
+   "type": "spitter",
+   "id": "spitter1",
+   "image": "assets/props/spitter.png",
+   "x": 486,
+   "y": 130,
+   "w": 20,
+   "h": 10,
+   "period": 2.6,
+   "offset": 0.0,
+   "range": 300
+  },
+  {
+   "type": "spitter",
+   "id": "spitter2",
+   "image": "assets/props/spitter.png",
+   "x": 982,
+   "y": 130,
+   "w": 20,
+   "h": 10,
+   "period": 2.6,
+   "offset": 0.9,
+   "range": 300
+  },
+  {
+   "type": "spitter",
+   "id": "spitter3",
+   "image": "assets/props/spitter.png",
+   "x": 1478,
+   "y": 130,
+   "w": 20,
+   "h": 10,
+   "period": 2.6,
+   "offset": 1.8,
+   "range": 300
   }
  ]
 }

@@ -15,6 +15,7 @@ import { void9_button, void9_quiz, void9_puddle, void9_chest } from './cutscenes
 import { void10_intro, void10_sign1, void10_sign2, void10_sign3, void10_sign4, void10_sign5 } from './cutscenes/void10_maze.js';
 import { void11_intro, void11_tree_look } from './cutscenes/void11_tree.js';
 import { teal2_statue_look, teal2_statue_wall } from './cutscenes/teal2_statue.js';
+import { teal2_tree, teal2_banana1, teal2_banana2 } from './cutscenes/teal2_events.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -63,6 +64,7 @@ export const SCRIPTS = {
   void10_intro, void10_sign1, void10_sign2, void10_sign3, void10_sign4, void10_sign5,   // 보라맵10 미로: 포탈 컷신 + 표지판 5 (src/data/cutscenes/void10_maze.js)
   void11_intro, void11_tree_look,   // 보라맵11 거대 나무: 쥰희·경섭 컷신 → 경섭 합류, 나무 조사 (src/data/cutscenes/void11_tree.js)
   teal2_statue_look, teal2_statue_wall,   // 청록숲2 나무 동상: 조사 / 길 막은 동상(빠맨 공격 시도) (src/data/cutscenes/teal2_statue.js)
+  teal2_tree, teal2_banana1, teal2_banana2,   // 청록숲2 광장: 똑똑 나무 / 바나나 포타슘 (src/data/cutscenes/teal2_events.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [

@@ -801,6 +801,43 @@ export class Rockfall extends Entity {
 
 registerEntity('follower', Follower);
 registerEntity('rockfall', Rockfall);
+
+/**
+ * 꽃가루 뿜는 풀 (청록숲1, 사용자 2026-09-10: "하얀 꽃가루 쏘는 애 세 마리 균등 배치, 맞아도 아무 상관 없음").
+ *   { type:'spitter', id, image, x, y, w?:20, h?:10, period?:2.6, offset?:0, range?:300 }
+ *   주인공이 range 안에 있으면 period 마다 주인공 쪽으로 흰 꽃가루 9알을 뿜는다(맞아도 아무 일 없음 — 순수 연출). 그림은 2프레임 가로 이어 붙임(평소 / 뿜는 중 0.35초).
+ */
+export class Spitter extends Entity {
+  constructor(def, game) {
+    const img = game.propImages[def.image] || null;
+    super({ solid: true, w: 20, h: 10, ...def }, game);
+    this.image = img; this.fw = img ? Math.floor(img.width / 2) : 28; this.fh = img ? img.height : 30;
+    this.period = def.period ?? 2.6; this.range = def.range ?? 300;
+    this.t = def.offset ?? 0; this.open = 0; this.puffs = []; this.shots = 0;
+  }
+  canInteract() { return false; }
+  update(dt) {
+    const p = this.game.player; if (!p) return;
+    const cx = this.x + this.w / 2, cy = this.y + this.h - this.fh * 0.5;               // 입 = 몸통 가운데
+    const px = p.x + p.w / 2, py = p.y + p.h / 2;
+    this.t += dt;
+    if (this.t >= this.period && Math.hypot(px - cx, py - cy) <= this.range && !this.game.dialogue.running) {
+      this.t = 0; this.open = 0.35; this.shots++;
+      const ang = Math.atan2(py - cy, px - cx);
+      for (let i = 0; i < 9; i++) { const a = ang + (Math.random() - 0.5) * 0.5, sp = 70 + Math.random() * 60; this.puffs.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1.6 + Math.random() * 0.5, age: 0, ph: Math.random() * 6.28 }); }
+    }
+    if (this.open > 0) this.open -= dt;
+    for (const q of this.puffs) { q.age += dt; q.x += q.vx * dt; q.y += (q.vy + Math.sin(q.age * 5 + q.ph) * 14) * dt; q.vx *= 0.995; }
+    this.puffs = this.puffs.filter((q) => q.age < q.life);
+  }
+  draw(ctx, cam) {
+    const dx = Math.round(this.x + this.w / 2 - this.fw / 2 - cam.x), dy = Math.round(this.y + this.h - this.fh - cam.y);
+    if (this.image) ctx.drawImage(this.image, this.open > 0 ? this.fw : 0, 0, this.fw, this.fh, dx, dy, this.fw, this.fh);
+    else { ctx.fillStyle = '#2c9a8f'; ctx.fillRect(dx, dy, this.fw, this.fh); }
+    for (const q of this.puffs) { const k = 1 - q.age / q.life; ctx.fillStyle = `rgba(255,255,255,${(0.95 * k).toFixed(2)})`; const sz = k > 0.5 ? 2 : 1; ctx.fillRect(Math.round(q.x - cam.x), Math.round(q.y - cam.y), sz, sz); }
+  }
+}
+registerEntity('spitter', Spitter);
 registerEntity('raft', Raft);
 registerEntity('swimmer', Swimmer);
 registerEntity('prop', Prop);

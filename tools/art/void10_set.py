@@ -31,11 +31,12 @@ def prop_portal():
     for (x, y) in ((3, 8), (36, 12), (2, 44), (37, 46), (19, 1), (20, 58)): c.px(x, y, P[3])   # 주변 반짝임
     return c
 
-def prop_tree_big():
+def prop_tree_big(trunk=None, leaves=None):
+    """거대 나무 240x264. trunk/leaves 팔레트를 주면 다른 색(청록숲 tree_teal)"""
     W, H = 240, 264
     c = Canvas(W, H)
-    T = [hexc('#2a1830'), hexc('#48294a'), hexc('#6a4266'), hexc('#8d5f86')]          # 줄기 어둠→밝음
-    L = [hexc('#1c144d'), hexc('#2d2172'), hexc('#4536a0'), hexc('#6b5ccc'), hexc('#a89bf2')]   # 잎 어둠→밝음, 반짝
+    T = [hexc(x) for x in (trunk or ('#2a1830', '#48294a', '#6a4266', '#8d5f86'))]          # 줄기 어둠→밝음
+    L = [hexc(x) for x in (leaves or ('#1c144d', '#2d2172', '#4536a0', '#6b5ccc', '#a89bf2'))]   # 잎 어둠→밝음, 반짝
     cx, top, base = 120, 128, 252
     def half(y):
         k = (y - top) / (base - top); hw = 17 + 10 * k

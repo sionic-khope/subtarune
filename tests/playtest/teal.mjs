@@ -27,6 +27,18 @@ const drain = async (maxMs, probe) => {
   }
   return { lines: out, obs };
 };
+const talk = async (x, y, f, picks = []) => {   // C → 대사 넘김, 선택지는 picks 순서로 (n: 아래 floor(n/2), 오른쪽 n%2)
+  await stand(x, y, f); await page.waitForTimeout(250); await page.keyboard.press('KeyC');
+  const out = []; let idle = 0, pi = 0;
+  for (let i = 0; i < 150; i++) {
+    await page.waitForTimeout(120); const s = await st();
+    if (!s.running) { if (++idle > 3) break; continue; } idle = 0;
+    const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, '');
+    if (s.box === 'choice') { if (!out.includes(k)) out.push(k); const n = picks[pi++] ?? 0; for (let j = 0; j < Math.floor(n / 2); j++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } for (let j = 0; j < n % 2; j++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
+    else if (s.box === 'waiting' || s.box === 'typing') { if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); }
+  }
+  return out;
+};
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); await page.waitForTimeout(150); };
 
 await page.goto('http://127.0.0.1:8000/index.html?qa=teal1'); await ready(); await page.waitForTimeout(700);
@@ -36,6 +48,13 @@ check('qa=teal1: teal forest, party of 2, Weird Birds, teal_bush backdrop', s.ma
 { const rows = d1.rows; const t = { teal: rows.some((r) => /[tu]/.test(r)), grass: rows.some((r) => r.includes('g')), cliff: rows.some((r) => r.includes('v')), purple: rows.some((r) => /[xXy]/.test(r)) };
   check('teal1 tiles: teal ground/grass/cliff, no purple', t.teal && t.grass && t.cliff && !t.purple, JSON.stringify(t)); }
 await page.screenshot({ path: `${S}/teal_01_road.png` });
+// 꽃가루 풀 3마리: 균등 배치, 가까이 가면 뿜고, 맞아도 아무 일 없음
+{ const sp = await page.evaluate(() => game.entities.filter((e) => e.def?.type === 'spitter').map((e) => ({ id: e.id, x: e.x, y: e.y })));
+  const W = d1.rows[0].length * 32; const xs = sp.map((e) => e.x).sort((a, b) => a - b);
+  check('teal1: 3 spitters evenly spaced on the road\'s top row', sp.length === 3 && xs.every((x, i) => Math.abs(x - (W * (i + 1) / 4)) < 80) && sp.every((e) => e.y >= 4 * 32 && e.y < 5 * 32), JSON.stringify(sp));
+  await stand(xs[0] - 90, 6 * 32 + 8, 'right'); const p0 = await st(); const hurt0 = await page.evaluate(() => game.hurt || 0);
+  let puffs = 0, shots = 0; const t0 = Date.now(); while (Date.now() - t0 < 4500) { await page.waitForTimeout(150); const q = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'spitter1'); return { puffs: e.puffs.length, shots: e.shots }; }); puffs = Math.max(puffs, q.puffs); shots = q.shots; if (shots >= 1 && puffs >= 6) { await page.screenshot({ path: `${S}/teal_01b_pollen.png` }).catch(() => {}); break; } }
+  const p1 = await st(); check('spitter1 fires white pollen toward the player; player unaffected (no hurt, no move)', shots >= 1 && puffs >= 6 && p1.p[0] === p0.p[0] && p1.p[1] === p0.p[1] && (await page.evaluate(() => game.hurt || 0)) === hurt0, JSON.stringify({ shots, puffs, p0: p0.p, p1: p1.p })); }
 // 오른쪽 끝 → teal2
 await stand(62 * 32 - 60, 6 * 32 + 8, 'right'); await hold('ArrowRight', 900); await page.waitForTimeout(900); s = await st();
 check('right edge → teal2, bgm Field of Hopes and Dreams', s.map === 'teal2' && s.bgm === 'hopes' && s.f.length === 2, JSON.stringify({ map: s.map, bgm: s.bgm, f: s.f.length }));
@@ -63,6 +82,23 @@ await page.screenshot({ path: `${S}/teal_02_wall.png` });
 { const d = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'statue_d3'); return { x: e.x, y: e.y, w: e.w, h: e.h }; });
   await stand(d.x + d.w / 2 - 12, d.y + d.h + 6, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); const r = await drain(6000);
   check('decorative statue: 나무 동상이다', r.lines.some((l) => l.includes('나무 동상이다')), JSON.stringify(r.lines)); }
+// 광장: 똑똑 나무 + 바나나
+{ const pz = meta.plaza; check('teal2: center plaza is open ground (cols 13~28, rows 12~23)', !!pz && (await page.evaluate(([c, r]) => !game.map.solidRect(c * 32 + 4, r * 32 + 8, 24, 16), [20, 14])) && (await page.evaluate(([c, r]) => !game.map.solidRect(c * 32 + 4, r * 32 + 8, 24, 16), [14, 17])), JSON.stringify(pz));
+  const tr = await page.evaluate(() => { const t = game.entities.find((e) => e.id === 'tree'); return { x: t.x, y: t.y, w: t.w, h: t.h }; });
+  await stand(tr.x + tr.w / 2 - 12, tr.y + tr.h + 6, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');
+  let bang = false, ranBack = false; const r = await drain(30000, async (q) => { if (q.pp?.emote === '!') { bang = true; await page.screenshot({ path: `${S}/teal_05_tree.png` }).catch(() => {}); } if (q.text.includes('저 여기 있을게요') && q.pp && q.pp.x < q.p[0]) ranBack = true; return null; });
+  check('tree event: 얼굴 같지 않아요 → 두드려 볼게요 → 똑똑 → ...똑똑 → ! → 안에서 두드린 거 → 바람 소리 → 저 여기 있을게요 → 확실히 두 번 두드렸다', ['얼굴 같지 않아요', '두드려 볼게요', '똑똑', '안에서 두드린', '바람 소리', '저 여기 있을게요', '확실히 두 번'].every((k) => r.lines.some((l) => l.includes(k))) && bang && ranBack, JSON.stringify({ lines: r.lines, bang, ranBack }));
+  s = await st(); check('tree event: flag + followers regrouped', s.flags.tree_knocked === true && s.f.every((x) => Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ f: s.f, p: s.p }));
+  const L2 = await talk(tr.x + tr.w / 2 - 12, tr.y + tr.h + 6, 'up'); check('tree again: 저건 다신 안 두드릴래요', L2.some((l) => l.includes('다신 안 두드릴래요')), JSON.stringify(L2));
+  const bn = await page.evaluate(() => ['banana1', 'banana2'].map((id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: e.x, y: e.y, w: e.w, h: e.h } : null; }));
+  check('two bananas placed in the plaza', bn.every(Boolean), JSON.stringify(bn));
+  const L3 = await talk(bn[0].x + bn[0].w / 2 - 12, bn[0].y + bn[0].h + 4, 'up', [0]);
+  s = await st(); const b1 = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana1'); return !e || e.dead; });
+  check('banana1: 형섭이형 바나나 드세요 → [먹는다] → 포타슘, banana gone + flag', L3.some((l) => l.includes('바나나 드세요')) && L3.some((l) => l.includes('포타슘')) && b1 && s.flags.banana1_eaten === true, JSON.stringify(L3));
+  const L4 = await talk(bn[1].x + bn[1].w / 2 - 12, bn[1].y + bn[1].h + 4, 'up', [1]);
+  const b2 = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana2'); return !!e && !e.dead; });
+  check('banana2: [안먹는다] → 몸상하세요, banana stays', L4.some((l) => l.includes('몸상하세요')) && !L4.some((l) => l.includes('포타슘')) && b2, JSON.stringify(L4));
+  await page.screenshot({ path: `${S}/teal_06_plaza.png` }); }
 // 위로 가는 길 → teal3 → 되돌아오기
 await stand(36 * 32 + 4, 4 * 32, 'up'); await page.screenshot({ path: `${S}/teal_04_up.png` }); await hold('ArrowUp', 1200); await page.waitForTimeout(900); s = await st();
 check('up path → teal3 placeholder, party intact, bgm hopes', s.map === 'teal3' && s.f.length === 2 && s.bgm === 'hopes', JSON.stringify({ map: s.map, f: s.f.length, bgm: s.bgm }));
