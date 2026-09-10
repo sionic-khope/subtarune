@@ -84,8 +84,8 @@
    "type": "prop",
    "id": "flowers",
    "image": "assets/props/flowers_purple.png",
-   "x": 832,
-   "y": 158,
+   "x": 960,
+   "y": 150,
    "solid": true,
    "script": "rock_flowers"
   },

@@ -114,10 +114,11 @@ const crossMap = async (mapId, expectLanes, exitDir, nextMap) => {
   s = await st(); check(`${mapId}: crossed all lanes without being hit`, s.p[0] > s.rocks[expectLanes - 1].x + 10 && !s.invuln, JSON.stringify(s.p));
   // 꼬리 길 이벤트 (낙석 없는 구간)
   if (mapId === 'void5') {
-    let L = await talk(796, 168, 'right', [0]);   // 꽃: 왼쪽에서 다가가 C(소품이 스프라이트에 안 가리게) — 냄새를 맡게 시킨다
+    let L = await talk(924, 168, 'right', [0]);   // 꽃: 왼쪽에서 다가가 C(소품이 스프라이트에 안 가리게) — 냄새를 맡게 시킨다
     check('void5 flowers: 꽃들이다 → 네 왜요? → [냄새] → 아 넵 → 킁킁 → .... → 냄새 존나 구려요 → ㅋㅋ 갈길', ['꽃들이다', '네 왜요?', '아 넵', '킁킁', '....', '냄새 존나 구려요', 'ㅋㅋ 갈길 가야겠다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
-    s = await st(); check('void5 flowers: follower regrouped after sniffing', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70 && s.flags.flowers_sniffed, JSON.stringify({ p: s.p, f: s.f }));
-    L = await talk(796, 168, 'right', [1]);
+    s = await st(); check('void5 flowers: player stepped back left while ppaman sniffed', s.p[0] < 924 - 20, JSON.stringify(s.p));
+    check('void5 flowers: follower regrouped after sniffing', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70 && s.flags.flowers_sniffed, JSON.stringify({ p: s.p, f: s.f }));
+    L = await talk(924, 168, 'right', [1]);
     check('void5 flowers again: 저 이제 안 맡을 거예요', L.some((l) => l.includes('안 맡을')), JSON.stringify(L));
   }
   if (mapId === 'void6') {

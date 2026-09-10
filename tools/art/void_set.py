@@ -276,16 +276,19 @@ def main():
     print('water_wall ok')
 
 def prop_flowers():
-    """꽃 무더기 96x26 (낙석 맵 냄새 이벤트): 보라 꽃 7송이가 3타일 폭으로 — 억빠맨이 가운데 들어가도 양옆 꽃이 보인다. 배경 없음. 2026-09-10"""
-    c = Canvas(96, 26)
-    def flower(cx, cy, r):
-        c.vline(cx, cy + r + 1, 26 - (cy + r + 1), STEM)
-        for (dx, dy) in [(0, -r), (r, 0), (0, r), (-r, 0)]: c.rrect_outlined(cx + dx - 2, cy + dy - 2, 5, 5, PETAL, OUT, 2)
-        if r >= 4:
-            for (dx, dy) in [(3, -3), (-3, -3), (3, 3), (-3, 3)]: c.rrect_outlined(cx + dx - 2, cy + dy - 2, 5, 5, PETAL, OUT, 2)
-        c.rrect(cx - 2, cy - 2, 5, 5, CORE, 2); c.px(cx, cy, PETAL_L)
-    for (x, y, r) in [(8, 12, 4), (22, 7, 4), (36, 14, 3), (50, 9, 4), (63, 15, 3), (76, 8, 4), (89, 13, 3)]: flower(x, y, r)
-    for (x, y) in [(2, 22), (3, 21), (43, 23), (58, 22), (93, 23)]: c.px(x, y, STEM)
+    """꽃 무더기 112x34 (낙석 맵 냄새 이벤트): 큰 꽃 3 + 중간 3 + 작은 2, 두 톤 꽃잎·밝은 심 — 눌러보고 싶게. 억빠맨이 가운데 들어가도 양옆이 보인다. 2026-09-10"""
+    c = Canvas(112, 34)
+    def flower(cx, cy, r, big=False):
+        c.vline(cx, cy + r + 1, 34 - (cy + r + 1), STEM); c.px(cx + 1, cy + r + 4, STEM); c.px(cx + 2, cy + r + 3, STEM)
+        pts = [(0, -r), (r, 0), (0, r), (-r, 0)] + ([(int(r * .7), -int(r * .7)), (-int(r * .7), -int(r * .7)), (int(r * .7), int(r * .7)), (-int(r * .7), int(r * .7))] if r >= 4 else [])
+        pw = 7 if big else 5
+        for (dx, dy) in pts: c.rrect_outlined(cx + dx - pw // 2, cy + dy - pw // 2, pw, pw, PETAL, OUT, 3 if big else 2)
+        for (dx, dy) in pts[:4]: c.px(cx + dx - (1 if dx >= 0 else -1), cy + dy - (1 if dy >= 0 else -1), PETAL_L)   # 꽃잎 하이라이트
+        cw = 7 if big else 5
+        c.rrect_outlined(cx - cw // 2, cy - cw // 2, cw, cw, CORE, OUT, 2); c.px(cx, cy, PETAL_L)
+        if big: c.px(cx - 1, cy - 1, hexc('#ffe9a8'))
+    for (x, y, r, big) in [(12, 16, 5, False), (30, 11, 7, True), (48, 18, 4, False), (64, 9, 7, True), (80, 17, 5, False), (97, 11, 7, True), (104, 22, 3, False), (6, 25, 3, False)]: flower(x, y, r, big)
+    for (x, y) in [(2, 30), (3, 29), (55, 31), (74, 30), (109, 31)]: c.px(x, y, STEM)
     return c
 
 _main4 = main

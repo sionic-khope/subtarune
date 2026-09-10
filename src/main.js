@@ -410,16 +410,15 @@ class Game {
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
-    if (this.state === 'field' && !this.dialogue.running && !this.transitioning && Input.just('escape')) { this.state = 'escape'; this.escape = { sel: 0 }; this.sound.sfx('open'); return; }   // Tab: 비상탈출 창
-    if (this.state === 'escape') { this.updateEscape(); return; }
     if (this.dialogue.running) {
       this.dialogue.update(dt, Input);
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
+    } else if (this.state === 'menu') {                       // 메뉴(타는 중에 열린 것 포함): 열린 동안 월드는 멈춤
+      this.updateMenu();
     } else if (this.ride) {                                   // 뗏목 등 탈것에 실려 가는 중: 입력·트리거 정지 (C = 점프, 되는 뗏목만 — Raft.canJump)
       if (Input.just('confirm') && this.ride.jump) this.ride.jump();
+      if (Input.just('menu')) { this.state = 'menu'; this.menu = { index: 0, sub: null }; this.sound.sfx('open'); return; }   // 타는 중에도 메뉴(비상탈출) — 열린 동안 뗏목은 멈춤
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
-    } else if (this.state === 'menu') {
-      this.updateMenu();
     } else if (!this.transitioning) {
       if (Input.just('confirm')) {
         const target = this.player.probe();
@@ -433,22 +432,15 @@ class Game {
     this.camera.follow(this.dialogue.running ? 0.05 : 0.18);
   }
 
-  /** Tab 비상탈출 창: [탈출 / 취소]. 탈출 = 탈것·피격·안내 창 정리 후 이 맵의 입구 스폰으로 다시 들어온다(엔티티 재생성, 동료 재정렬). 끼임 대처용 (2026-09-10) */
-  updateEscape() {
-    const e = this.escape;
-    if (Input.just('up') || Input.just('down')) { e.sel = 1 - e.sel; this.sound.sfx('menu'); }
-    if (Input.just('cancel') || Input.just('escape') || (Input.just('confirm') && e.sel === 1)) { this.state = 'field'; this.sound.sfx('close'); return; }
-    if (Input.just('confirm')) this.doEscape();
-  }
   /**
-   * 비상탈출 실행 — 설계(2026-09-10, 사용자 요청 "스토리 상태는 유지, 맵 진행을 막는 것만 롤백"):
+   * 비상탈출 실행(메뉴 '비상탈출' → 탈출) — 설계(2026-09-10, 사용자 요청 "스토리 상태는 유지, 맵 진행을 막는 것만 롤백"):
    *   1) 스토리 플래그(컷신 본 것·아이템·동료·문 열림·레버·다리)는 그대로 — 되돌리면 소프트락(레버는 이미 뽑았는데 다리가 올라가는 등).
    *   2) 플레이어가 다시 할 수 있는 **맵 장치**만 입구 기준으로 되돌린다: 뗏목은 입구 스폰에 가까운 쪽 끝으로(`flags.raft_<id>`), 그래야 입구에서 다시 탈 수 있다.
    *   3) 탈것·피격·안내 창·입자 같은 순간 상태를 비우고 이 맵을 입구 스폰으로 **다시 진입**(엔티티 재생성, 동료 재정렬, 1회 컷신은 플래그로 안 반복).
    *   = 던전 방을 나갔다 들어오면 방만 초기화되고 진행은 남는 관례(방 리셋/탈출 로프). 새 맵 장치를 만들면 여기 '되돌릴 목록'에 넣을지 판단한다.
    */
   doEscape() {
-    this.state = 'field'; this.sound.sfx('close');
+    this.state = 'field'; this.menu = null; this.sound.sfx('close');
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
     this.player.knock = null; this.prompt = null; this.fx = [];
@@ -461,28 +453,32 @@ class Game {
     }
     this.changeMap(this.mapId, spawnId);
   }
-  drawEscape(ctx) {
+  /** 메뉴 '비상탈출' 패널(오른쪽): 설명 한 줄 + [탈출 / 취소]. 끼었을 때 쓰는 항목 — Tab/V 메뉴 안의 한 칸 (2026-09-10) */
+  drawEscape(ctx, x, y) {
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    const LH = F.lineH, w = 300, h = LH * 4 + 28, x = Math.round((SCREEN_W - w) / 2), y = Math.round((SCREEN_H - h) / 2);
-    drawBox(ctx, x, y, w, h);
-    ctx.fillStyle = '#ffe066'; ctx.fillText(L.escape_title, x + 16, y + 10);
-    ctx.fillStyle = '#8a8aa0'; ctx.fillText(L.escape_desc, x + 16, y + 10 + LH);
+    const LH = F.lineH, m = this.menu;
+    drawBox(ctx, x, y, 300, LH * 3 + 20);
+    ctx.fillStyle = '#8a8aa0'; ctx.fillText(L.escape_desc, x + 10, y + 8);
     [L.escape_go, L.escape_cancel].forEach((label, i) => {
-      const yy = y + 14 + LH * (2 + i); ctx.fillStyle = this.escape.sel === i ? '#ffe066' : '#fff'; ctx.fillText(label, x + 40, yy);
-      if (this.escape.sel === i) drawHeart(ctx, x + 26, yy + Math.round(F.size / 2) - 3);
+      const yy = y + 12 + LH * (1 + i); ctx.fillStyle = m.subIndex === i ? '#ffe066' : '#fff'; ctx.fillText(label, x + 30, yy);
+      if (m.subIndex === i) drawHeart(ctx, x + 17, yy + Math.round(F.size / 2) - 3);
     });
   }
   updateMenu() {
     const m = this.menu;
-    const N = 4;   // 아이템 / 파티 / 설정 / 닫기
+    const N = 5;   // 아이템 / 파티 / 비상탈출 / 설정 / 닫기
     if (m.sub === null) {
       if (Input.just('up')) { m.index = (m.index + N - 1) % N; this.sound.sfx('menu'); }
       if (Input.just('down')) { m.index = (m.index + 1) % N; this.sound.sfx('menu'); }
-      if (Input.just('cancel') || (Input.just('confirm') && m.index === 3)) { this.state = 'field'; this.sound.sfx('close'); return; }
+      if (Input.just('cancel') || (Input.just('confirm') && m.index === 4)) { this.state = 'field'; this.sound.sfx('close'); return; }
       if (Input.just('confirm')) { m.sub = m.index; m.subIndex = 0; this.sound.sfx('confirm'); }
     } else if (m.sub === 0 || m.sub === 1) {          // 아이템 / 파티: 보기만
       if (Input.just('cancel') || Input.just('confirm')) { m.sub = null; this.sound.sfx('cancel'); }
-    } else if (m.sub === 2) {                          // 설정
+    } else if (m.sub === 2) {                          // 비상탈출: [탈출 / 취소] — 끼었을 때. 스토리 유지, 뗏목만 입구 쪽으로, 입구 재진입 (doEscape)
+      if (Input.just('up') || Input.just('down')) { m.subIndex = 1 - m.subIndex; this.sound.sfx('menu'); }
+      if (Input.just('cancel') || (Input.just('confirm') && m.subIndex === 1)) { m.sub = null; this.sound.sfx('cancel'); return; }
+      if (Input.just('confirm')) { this.doEscape(); return; }
+    } else if (m.sub === 3) {                          // 설정
       if (Input.just('up')) { m.subIndex = (m.subIndex + 1) % 2; this.sound.sfx('menu'); }
       if (Input.just('down')) { m.subIndex = (m.subIndex + 1) % 2; this.sound.sfx('menu'); }
       if (Input.just('left') || Input.just('right') || Input.just('confirm')) {
@@ -562,7 +558,6 @@ class Game {
     if (this.prompt) this.drawPrompt(ctx);
     if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
     if (this.state === 'menu') this.drawMenu(ctx);
-    if (this.state === 'escape') this.drawEscape(ctx);
 
     if (this.fade.alpha > 0) {
       ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`;
@@ -575,8 +570,8 @@ class Game {
     const m = this.menu;
     ctx.font = FONT; ctx.textBaseline = 'top';
     const LH = F.lineH;
-    drawBox(ctx, 8, 8, 100, LH * 4 + 16);
-    const items = [L.menu_items, L.menu_party, L.menu_settings, L.menu_close];
+    drawBox(ctx, 8, 8, 100, LH * 5 + 16);
+    const items = [L.menu_items, L.menu_party, L.menu_escape, L.menu_settings, L.menu_close];
     items.forEach((label, i) => {
       ctx.fillStyle = m.sub === null && i === m.index ? '#ffe066' : '#fff';
       ctx.fillText(label, 30, 16 + i * LH);
@@ -589,7 +584,8 @@ class Game {
       this.inventory.forEach((it, i) => ctx.fillText('* ' + it, 124, 16 + i * LH));
     }
     if (m.sub === 1) this.drawParty(ctx, 116, 8);
-    if (m.sub === 2) {
+    if (m.sub === 2) this.drawEscape(ctx, 116, 8);
+    if (m.sub === 3) {
       drawBox(ctx, 116, 8, 196, LH * 2 + 16);
       const rows = [
         [L.setting_text_speed, L[TEXT_SPEEDS[this.settings.textSpeed].key]],
@@ -659,7 +655,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.22';
+export const BUILD = '2026-09-10.24';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

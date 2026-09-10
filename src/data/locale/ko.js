@@ -11,6 +11,7 @@ export default {
   party_desc_leader: '빨리 나가고 싶다.', party_desc_member: '형을 따라간다.',
   menu_settings: '설정',
   menu_close: '닫기',
+  menu_escape: '비상탈출',
   escape_title: '비상탈출',
   escape_desc: '끼었을 때 쓰시오. 이 맵 입구로 돌아간다.',
   escape_go: '탈출',

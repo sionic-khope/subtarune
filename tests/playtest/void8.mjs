@@ -81,15 +81,20 @@ check('lines: 네? 수영할 수 있었으면 / ... ... ... / 아 맞넹 ㅋㅋ'
 s = await st(); check('void8_done, cutscene over, flags intro/arrived', s.flags.void8_done && !s.running && s.flags.void8_intro && s.flags.void8_arrived, JSON.stringify(s.flags));
 await page.screenshot({ path: `${S}/void8_06_end.png` });
 // ── 7) Tab 비상탈출: 창 → 탈출 → 이 맵 입구(dock 스폰)로, 동료 뒤에, 뗏목은 끝에 그대로 ──
+const openEscape = async () => { await page.keyboard.press('Tab'); await page.waitForTimeout(250); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(100); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(100); await page.keyboard.press('KeyC'); await page.waitForTimeout(250); };
 await page.keyboard.press('Tab'); await page.waitForTimeout(250);
-check('Tab opens the escape window', await page.evaluate(() => game.state === 'escape'));
+check('Tab opens the menu (not the escape directly)', await page.evaluate(() => game.state === 'menu' && game.menu.sub === null));
+await page.keyboard.press('KeyX'); await page.waitForTimeout(200);
+await openEscape();
+check('menu → 3rd item 비상탈출 → panel [탈출/취소]', await page.evaluate(() => game.state === 'menu' && game.menu.sub === 2 && game.menu.subIndex === 0));
 await page.screenshot({ path: `${S}/void8_07_escape.png` });
-await page.keyboard.press('KeyX'); await page.waitForTimeout(200); check('X closes it', await page.evaluate(() => game.state === 'field'));
-await page.keyboard.press('Tab'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
+await page.keyboard.press('KeyX'); await page.waitForTimeout(200); check('X returns to the menu list', await page.evaluate(() => game.state === 'menu' && game.menu.sub === null));
+await page.keyboard.press('KeyX'); await page.waitForTimeout(200); check('X again closes the menu', await page.evaluate(() => game.state === 'field'));
+await openEscape(); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
 check('escape → back at the map entrance with party, no swimmer, and the raft is pulled back to the entry side (story flags kept)', s.map === 'void8' && Math.abs(s.p[0] - 190) < 8 && s.f?.vis && !s.sw && !s.ride && s.raft.x === 224 && s.flags.void8_done && s.flags.void8_intro, JSON.stringify({ p: s.p, f: s.f, raft: s.raft }));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(700); s = await st();
 check('after escape the raft is rideable again from the entrance (no intro replay, swimmer auto)', s.ride && s.raft.moving && !s.running && !!s.sw, JSON.stringify({ ride: s.ride, raft: s.raft, sw: s.sw, running: s.running }));
-await page.keyboard.press('Tab'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
+await openEscape(); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
 check('escape mid-ride: back at entrance, raft back at start, follower visible', !s.ride && Math.abs(s.p[0] - 190) < 8 && s.raft.x === 224 && s.f?.vis && !s.sw, JSON.stringify({ p: s.p, raft: s.raft, f: s.f }));
 // 재로드: 뗏목은 끝에, 동료는 뒤에, 컷신 안 반복
 await page.goto('http://127.0.0.1:8000/index.html'); await ready(); for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(400); if ((await page.evaluate(() => game.state)) !== 'title') break; } await page.waitForTimeout(500); s = await st();   // 타이틀 → 이어하기(자동저장)
