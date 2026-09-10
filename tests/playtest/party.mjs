@@ -10,7 +10,7 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
-const st = () => page.evaluate(() => { const f = game.entities.find((e) => e.def?.type === 'follower'); const n = game.entities.find((e) => e.def?.type === 'npc' && e.id === 'ppaman' && !e.dead); return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', auto: game.textbox.node?.auto ?? null, party: [...game.party], flags: { ...game.flags }, p: [Math.round(game.player.x), Math.round(game.player.y)], pf: game.player.facing, f: f ? [Math.round(f.x), Math.round(f.y), f.facing, f.moving] : null, npc: !!n, state: game.state, ride: !!game.ride }; });
+const st = () => page.evaluate(() => { const f = game.entities.find((e) => e.def?.type === 'follower'); const n = game.entities.find((e) => e.def?.type === 'npc' && e.id === 'ppaman' && !e.dead); return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', auto: game.textbox.node?.auto ?? null, party: [...game.party], flags: { ...game.flags }, p: [Math.round(game.player.x), Math.round(game.player.y)], pf: game.player.facing, f: f ? [Math.round(f.x), Math.round(f.y), f.facing, f.moving, f.frame] : null, npc: !!n, state: game.state, ride: !!game.ride }; });
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.camera.snap(); }, [x, y, f]);
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
 // 선택지가 뜰 때까지 대사를 넘기며 본문을 모은다
@@ -92,6 +92,7 @@ await page.evaluate(() => game.changeMap('void4', 'from_void3', true)); await pa
 check('after map change follower regroups behind', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 40, JSON.stringify({ p: s.p, f: s.f }));
 await stand(132, 274, 'right'); await page.waitForTimeout(100); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
 check('follower rides along on the raft', s.ride && s.f && Math.abs(s.f[0] - s.p[0]) < 12 && Math.abs(s.f[1] - s.p[1]) < 8, JSON.stringify({ p: s.p, f: s.f }));
+check('follower stands still on the raft (no walk animation)', s.f && s.f[3] === false && s.f[4] === 0, JSON.stringify(s.f));
 await page.screenshot({ path: `${S}/party_06_raft.png` });
 // QA party 지점
 await page.goto('http://127.0.0.1:8000/index.html?qa=party'); await page.waitForTimeout(900); s = await st();
