@@ -62,5 +62,9 @@ export const QA_POINTS = [
   { id: 'void4',     desc: '보라맵4 긴 뗏목 입구',                    stage: 'void_fallen',    map: 'void4',  spawn: 'from_void3' },
   { id: 'void4_end', desc: '보라맵4 도착지(레버)',                    stage: 'void_fallen',    map: 'void4',  spawn: 'landing', flags: { void4_arrived: true } },
   { id: 'ppaman',    desc: '억빠맨 앞 (다리 내려옴, C→대화)',           stage: 'void_fallen',    map: 'void4',  spawn: 'pillar', flags: { void4_arrived: true, bridge_down: true } },
+  { id: 'key',       desc: '억빠맨 동료, 잠긴 문 앞 (→레버 열쇠)',   stage: 'void_fallen',    map: 'void4',  spawn: 'landing', flags: { void4_arrived: true, bridge_down: true, ppaman_greeted: true, ppaman_joined: true }, party: ['ppaman'] },
+  { id: 'rock1',     desc: '낙석 맵1 (3개)',                        stage: 'void_fallen',    map: 'void5',  spawn: 'from_void4', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true }, party: ['ppaman'] },
+  { id: 'rock2',     desc: '낙석 맵2 (6개)',                        stage: 'void_fallen',    map: 'void6',  spawn: 'from_top', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true }, party: ['ppaman'] },
+  { id: 'rock3',     desc: '낙석 맵3 (9개)',                        stage: 'void_fallen',    map: 'void7',  spawn: 'from_top', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true }, party: ['ppaman'] },
   { id: 'party',     desc: '억빠맨 동료 상태로 보라맵4',                stage: 'void_fallen',    map: 'void4',  spawn: 'pillar', flags: { void4_arrived: true, bridge_down: true, ppaman_greeted: true, ppaman_joined: true }, party: ['ppaman'] },
 ];

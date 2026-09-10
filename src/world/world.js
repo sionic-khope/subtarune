@@ -510,6 +510,7 @@ export class Follower extends Character {
   }
   update(dt) {
     const p = this.game.player; if (!p) return;
+    if (this.game.dialogue.running) return;          // 컷신 중엔 컷신(move)이 움직인다 — 발자국 추종과 싸우지 않게
     if (this.game.ride) { this.x = p.x - 6 * this.slot; this.y = p.y - 2 * this.slot; this.facing = p.facing; this.moving = p.moving; this.animate(dt, 4); return; }
     const trail = p.trail || [];
     // 발자국을 뒤에서부터 gap 만큼 거슬러 올라간 지점이 목표
@@ -534,7 +535,62 @@ export class Follower extends Character {
 }
 
 registerEntity('player', Player);
+/**
+ * 낙석 레인(재사용): 정해진 x 에서 일정한 리듬으로 바위가 떨어진다. 떨어지기 전엔 세로 빛기둥(스포트라이트)이 그 자리를 비춘다.
+ *   { type:'rockfall', image:'assets/props/rock.png', x:<레인 중심>, ground:<착지 y(중심)>, hitH:96, period:2.0, offset:0, warn:0.7, fall:0.2, rest:0.4 }
+ *   주기: idle → warn(빛기둥) → fall(낙하) → rest(바닥에 놓임) → idle. 착지 순간·rest 동안 플레이어가 겹치면 game.hurtPlayer(레인 왼쪽으로 밀림).
+ *   대사/탈것 중엔 맞지 않는다. 빛기둥은 어두움(dim) 위에 그려진다(drawOverlay).
+ */
+export class Rockfall extends Entity {
+  constructor(def, game) {
+    const w = def.w ?? 28, h = def.hitH ?? 96;               // 히트 영역은 빛기둥 폭 × 길 전체 높이(3줄) — 어느 줄로 지나가도 맞는다
+    super({ solid: false, ...def, x: def.x - w / 2, y: def.ground - h / 2, w, h }, game);
+    this.lx = def.x; this.gy = def.ground; this.top = def.top ?? -40;
+    this.period = def.period ?? 2.0; this.offset = def.offset ?? 0; this.warn = def.warn ?? 0.7; this.fall = def.fall ?? 0.2; this.rest = def.rest ?? 0.4;
+    this.image = game.propImages[def.image] || null;
+    this.t = this.offset; this.phase = 'idle'; this.k = 0; this.hitDone = false;
+  }
+  canInteract() { return false; }
+  update(dt) {
+    this.t = (this.t + dt) % this.period;
+    const t = this.t, w = this.warn, f = this.fall, r = this.rest;
+    let phase = 'idle', k = 0;
+    if (t < w) { phase = 'warn'; k = t / w; }
+    else if (t < w + f) { phase = 'fall'; k = (t - w) / f; }
+    else if (t < w + f + r) { phase = 'rest'; k = (t - w - f) / r; }
+    if (phase === 'rest' && this.phase !== 'rest') { this.hitDone = false; this.game.sound.sfx('thud', { volume: 0.35, rate: 1.4 }); }
+    this.phase = phase; this.k = k;
+    const p = this.game.player;
+    if (phase === 'rest' && !this.hitDone && k < 0.6 && p && !this.game.dialogue.running && !this.game.ride && p.overlaps(this.rect)) { this.hitDone = true; this.game.hurtPlayer(this); }
+  }
+  /** 바위 (y 정렬 대상). idle 땐 안 보임 */
+  draw(ctx, cam) {
+    if (this.phase === 'idle' || this.phase === 'warn') return;
+    const rw = this.image ? this.image.width : 28, rh = this.image ? this.image.height : 24;
+    const y = this.phase === 'fall' ? this.top + (this.gy - this.top) * (this.k * this.k) : this.gy;
+    const x = Math.round(this.lx - rw / 2 - cam.x), yy = Math.round(y - rh + 6 - cam.y);
+    if (this.phase === 'fall') { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(this.lx - cam.x), Math.round(this.gy + 4 - cam.y), 6 + 8 * this.k, 3 + 3 * this.k, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (this.phase === 'rest' && this.k > 0.75) ctx.globalAlpha = 1 - (this.k - 0.75) / 0.25;
+    if (this.image) ctx.drawImage(this.image, x, yy); else { ctx.fillStyle = '#6b5a80'; ctx.fillRect(x, yy, rw, rh); }
+    ctx.globalAlpha = 1;
+  }
+  /** 빛기둥·착지 섬광 (어두움 위에) */
+  drawOverlay(ctx, cam) {
+    const x = Math.round(this.lx - cam.x), gy = Math.round(this.gy - cam.y);
+    if (this.phase === 'warn' || this.phase === 'fall') {
+      const a = this.phase === 'warn' ? 0.12 + 0.38 * this.k : 0.55;
+      const g = ctx.createLinearGradient(0, 0, 0, gy + 12);
+      g.addColorStop(0, `rgba(235,215,255,${a * 0.35})`); g.addColorStop(1, `rgba(235,215,255,${a})`);
+      ctx.fillStyle = g; ctx.fillRect(x - 16, 0, 32, gy + 12);
+      ctx.fillStyle = `rgba(255,255,255,${a * 0.5})`; ctx.fillRect(x - 3, 0, 6, gy + 12);
+      ctx.fillStyle = `rgba(235,215,255,${a})`; ctx.beginPath(); ctx.ellipse(x, gy + 4, 18, 6, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    if (this.phase === 'rest' && this.k < 0.25) { ctx.fillStyle = `rgba(255,255,255,${(0.25 - this.k) * 2})`; ctx.beginPath(); ctx.ellipse(x, gy + 4, 22 + this.k * 40, 7 + this.k * 10, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+}
+
 registerEntity('follower', Follower);
+registerEntity('rockfall', Rockfall);
 registerEntity('raft', Raft);
 registerEntity('prop', Prop);
 registerEntity('npc', NPC);

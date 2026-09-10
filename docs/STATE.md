@@ -58,7 +58,9 @@
 - `void2` 뗏목 앞 표지판(사용자 텍스트): "앞으로만 가는 땟목이다." / "아 물론! 뒤로도 갈수있다." / "반대편에서 탄다면~ 껄껄." 오른쪽 문 → **`void3`**.
 - **`void3` 뗏목 퍼즐**(36×24): 입구 A(표지판 "땟목이 갈리는 곳이다 / 나가는 길은 하나뿐 껄껄") → 뗏목 → 교차로 B(위·오른쪽·아래 뗏목 셋) → **정답은 오른쪽 G**(표지판 "오 이걸 찾았노 ㅊㅋㅊㅋ"(사용자 지정), 땅이 화면 오른쪽 끝까지 이어져 그대로 `void4`). 아래 D("막다른 길이다 / 내려온 땟목을 다시 타면 돌아간다 껄껄")와 위 경로 C→F→E("막다른 길이다 껄껄")는 막다른길. 표지판 대사는 사용자 지정 하나 빼고 내가 지음.
 - **`void4` 긴 뗏목 길**(76×16, 뗏목 ~12초 — 억빠맨 앞뒤 6초씩): 배경에 멀리서 지글지글 끓는 보라 불(`backdrop:'purple_fire'`). 물 한가운데 낮은 기둥 위에 **억빠맨(빠맨 스프라이트)**이 정면 보고 서 있음 → 지나쳐 도착하면 컷신 `void4_arrive`(카메라 억빠맨 클로즈업: "어 ㅅㅂ" / "형 구해줘요 ㅅㅂ 저 여기 갇혔어요." / "저기 저기 뭔가 다리를 내리는 레버가 있는거같아요" → 레버 클로즈업 → 주인공 복귀. "오케이" 는 사용자 요청으로 뺌). 도착지: 오른쪽에 **작은 잠긴 문**(`door_small.png` 문짝 위에 자물쇠, "자물쇠로 잠겨 있다"), 문 바로 옆 **4칸 계단** → 높은 발판의 **레버** → `void4_lever`: 다리가 드르르르륵 떨어지며 쿵!(rumble·thud·흔들림) → 다리 타일 연결(`tileSwaps.bridge_down`, 플래그 `bridge_down`) → 다리로 억빠맨까지 걸어가 말 걸면 **억빠맨 대화**(`src/data/cutscenes/void4_ppaman.js`): "안녕하세요 형. 구해주셔서 감사해요" → 선택지 [여긴 어디 / 왜 여기 / 물어볼건 없다]. 1: 방송 보다가… 의성어 20개가 0.16s 씩 스치는 개그 → 형섭 머리 위 `...` 말풍선 → "했어요." → (나레이션) "... ㅂㅅ새끼같다" → "어쨋든 그래요 형." / 2: 보라색 땅·다른 사람들·빨리 나가고 싶다 / 1·2 뒤엔 "더 물어보실거 있으세요?" 로 반복 / 3: "동행해도 괜찮을까요?" → "빨리 나가는걸 목표로 하죠" → **[억빠맨이 동료가 되었다]**(`ppaman_joined`, NPC 사라지고 뒤따라 걷기). 가입 후 말 걸기 불가(동료는 프로브 대상 아님).
-- 다음(사용자 브리핑 대기): 억빠맨 동료 이후(경섭 합류 예정 — 파티 시스템은 준비됨), 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
+- **잠긴 문 → 레버 열쇠**(`src/data/cutscenes/void4_key.js`, door 의 `lockedScript`): 동료 가입 후 문에 닿으면 억빠맨 "어라 문이 잠겨있네요" / "흠.. 아까 레버에 뭐 없으셨어요?" → 억빠맨이 앞장서 계단을 올라 레버로, 주인공이 뒤따름 → "음음 이 레버를" → (나레이션) "억빠맨은 레버를 뽑아버렸다"(레버 사라짐) → "이걸 열쇠로 쓰면 되지않을까요?" → "열쇠?를 얻었다."(인벤토리, `lever_taken`). 다시 문에 닿으면 "철컥! 문이 열렸다." → "ㅎㅎ" → `void5`(자물쇠 사라짐, `door_open`, 이후 문은 그냥 통과). **여기서부터 브금 Scarlet Forest**(`bgm/scarlet.mp3`).
+- **낙석 맵 3개** `void5`(3개) → 오른쪽 끝에서 아래로 → `void6`(6개) → 아래로 → `void7`(9개) → 오른쪽 끝 뚫림 → `void8`(빈 착지, 다음 브리핑 대기). 살짝 어두움(`dim:0.3`) + 보라 불 배경. 낙석은 캐릭터 폭(28px), 3타일 간격, 2초 주기로 왼→오 리듬(3개씩 한 박자). 떨어지기 전 0.7초 동안 **세로 빛기둥**이 그 자리를 비춘다 → 낙하 → 착지(작은 쿵) → 0.4초 놓였다 사라짐. 맞으면 붉은 섬광·흔들림·레인 왼쪽으로 밀림(체력 없음), 0.9초 무적.
+- 다음(사용자 브리핑 대기): void8 이후(경섭 합류 예정 — 파티 시스템은 준비됨), 엄마 NPC(스프라이트 필요), 미니게임 프레임워크(타이밍 버튼).
 - **스토리 브리핑 형식**: 사용자는 `[트리거]` + `이름: 대사 (인터랙션 # 연출)` 로 준다 → `.claude/skills/cutscene/SKILL.md` 의 변환표대로 되묻지 않고 노드로 옮긴다. 선택지 연출 옵션 `delay/stagger/locked/auto/cursor:false` 는 `src/ui/dialogue.js` TextBox 가 지원(테스트룸 `test_choice_slow`, `test_choice_locked`).
 
 ## 상태 시스템 (2026-09-09 설계 — "코드 얻었는데 컴퓨터가 초기 대사" 같은 순서 꼬임 방지)
@@ -71,7 +73,13 @@
 
 ## 재사용 기믹
 - **뗏목** `src/world/world.js Raft` (`type:'raft'`): `{ type:'raft', id, image:'assets/props/raft.png', x,y, route:[[x,y],…], speed:114 }`. 옆에서 C → route 를 따라 일직선 이동(타는 동안 `game.ride` 가 서서 입력·트리거 정지), 도착하면 진행 방향으로 밀어 내림, 반대편에서 타면 되돌아옴. 위치는 `flags.raft_<id>`(route 인덱스)로 유지 → 맵을 나갔다 와도 그 자리. 속도 기본 171px/s(2026-09-09 +50%). 소리: 탈 때·1.1s 마다·내릴 때 `splash`(합성 첨벙, 2026-09-10 더 물소리답게). 물 타일 `o/O`(완전 단색 파랑, 막힘). 뗏목 도트는 최소(외곽선+한 색+선 3개) — 델타룬식, 요청 없는 소품은 디테일 넣지 않는다. 새 맵에 그대로 복사해 route 만 바꾸면 됨. 퍼즐 예시 `void3`(교차로 + 막다른길 2개). 검증 `tests/playtest/raft.mjs`, `void3.mjs`.
-- **QA 바로가기**: `src/core/story.js QA_POINTS` — URL `?qa=<id>` 또는 **타이틀에서 Q** → 목록(↑↓ C). 지점: `opening`(방), `living`(거실 진입), `tv`(티비 앞), `pc_stream`(코드 획득 직후 컴퓨터 앞, C 로 방송), `void`(보라맵1), `raft`(보라맵2 뗏목 앞), `void3`(보라맵3 퍼즐 입구). 그 지점까지 스토리 단계가 자동으로 채워진다. 새 이벤트를 만들면 "직전 지점"을 한 줄 추가. 스폰에 `facing` 을 주면 그 방향으로 서서 시작.
+- **QA 바로가기**: `src/core/story.js QA_POINTS` — URL `?qa=<id>` 또는 **타이틀에서 Q** → 목록(↑↓ C). 지점: `opening`(방), `living`(거실 진입), `tv`(티비 앞), `pc_stream`(코드 획득 직후 컴퓨터 앞, C 로 방송), `void`(보라맵1), `raft`(보라맵2 뗏목 앞), `void3`(보라맵3 퍼즐 입구), `void4`/`void4_end`, `ppaman`(억빠맨 앞), `party`(동료 상태), `key`(잠긴 문 앞), `rock1/2/3`(낙석 맵). 그 지점까지 스토리 단계가 자동으로 채워진다. 새 이벤트를 만들면 "직전 지점"을 한 줄 추가. 스폰에 `facing` 을 주면 그 방향으로 서서 시작.
+
+## 낙석 기믹 (재사용, 2026-09-10)
+- `src/world/world.js Rockfall` (`type:'rockfall'`): `{ "type":"rockfall","image":"assets/props/rock.png","x":<레인 중심 x>,"ground":<착지 y>,"period":2.0,"offset":0,"warn":0.7,"fall":0.2,"rest":0.4 }`. 주기: idle → warn(빛기둥, `drawOverlay` 로 어두움 위에) → fall → rest(착지, 이때 겹치면 `game.hurtPlayer`) → idle. 대사/탈것 중엔 안 맞음.
+- 패턴은 `offset` 으로: 3개는 0/0.67/1.33(순차), 6개·9개는 같은 offset 을 3개씩 공유(2·3개가 한 박자). 다른 리듬이 필요하면 `period/offset` 만 바꾼다.
+- `game.hurtPlayer(src)`: 붉은 섬광(`hurt`) + 흔들림 + thud + 레인 왼쪽으로 이동 + 무적 0.9s + 동료 재정렬. HP 개념 없음(스토리 게임) — 필요해지면 여기서 확장.
+- 맵 만들 때: 가로 길(3줄) 위에 레인을 3타일 간격, 입구는 왼쪽 가장자리 또는 위(세로 길), 출구는 오른쪽 끝에서 아래(세로 길 끝 `door` 띠) 또는 오른쪽 가장자리. `tests/playtest/rockfall.mjs` 가 3맵 통과·피격·문 열쇠를 검사.
 
 ## 파티(동료) 시스템 (2026-09-10)
 - `game.party = ['ppaman', …]`(캐릭터 id 순서). 저장/이어하기에 포함. 새 게임·타이틀에서 초기화. QA 지점 `party:[…]` 로 구성 가능(`?qa=party`).
@@ -118,5 +126,5 @@
 
 2026-09-09 재추출 검증: 스프라이트 회귀 8개·기존 유닛 32개 통과, 실제 브라우저에서 4명 이동/대화창 확인. 구형 `smoke.mjs`는 현재 없는 `merchant` 스크립트와 `house` 맵을 참조해 런타임 오류가 난다(스프라이트 변경과 무관한 기존 테스트 문제). 스프라이트 확인은 `sprites.mjs`, 집 동선은 `house.mjs` 사용.
 
-`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `raft.mjs`(뗏목·QA) · `void3.mjs`(뗏목 퍼즐·첨벙·무음 문·검은 페이드) · `void4.mjs`(긴 뗏목·억빠맨 컷신·레버 다리·재로드 유지) · `party.mjs`(억빠맨 대화·동료 시스템) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
+`node --test 'tests/unit/*.test.mjs'` · `node tests/playtest/house.mjs`(집 동선) · `furniture.mjs`(소품 도달성) · `choice.mjs`(선택지 연출) · `drawer3d.mjs`(티비 3D 서랍) · `story.mjs`(상태) · `stream.mjs`(방송 컷신) · `raft.mjs`(뗏목·QA) · `void3.mjs`(뗏목 퍼즐·첨벙·무음 문·검은 페이드) · `void4.mjs`(긴 뗏목·억빠맨 컷신·레버 다리·재로드 유지) · `party.mjs`(억빠맨 대화·동료 시스템) · `rockfall.mjs`(레버 열쇠·철컥 문·낙석 3맵) · `node tests/playtest/cutscene.mjs opening` (스크린샷 `tests/playtest/shots/`). 헤드리스 크로미움: `~/Library/Caches/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell` (CHROME_EXE). `playwright-core` 는 프로젝트에 없음 — 세션 스크래치 `pw/node_modules` 가 있는 폴더에 스크립트를 복사해 실행(`SHOT_DIR` 로 스크린샷 위치 지정).
 UI 확인: 스크린샷 **네 모서리 + 전환 순간**을 보고 끝낸다(ㄱ자 맵의 벽 바깥 검은 영역은 델타룬과 같은 정상 표현, 바닥 아래로 검은 띠가 보이면 버그).

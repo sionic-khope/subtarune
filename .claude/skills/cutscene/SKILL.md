@@ -54,6 +54,8 @@ model: opus
 | `# 같은 대사 여러 개가 ㅈㄴ 빠르게 넘어감` | `P('* …', { auto: 0.16, speed: 3 })` 를 배열로 (예 `void4_ppaman.js` BOOM) |
 | `# 질문 골라서 답 듣고 '더 물어볼거?' 반복` | 선택지 → 각 답 끝에 `{goto:'more'}` → `more` 라벨의 선택지(같은 옵션) → 종료 옵션만 빠져나감 (예 `void4_ppaman.js`) |
 | `# X가 동료가 되었다` | 나레이션 줄 + `{ join:'id' }` + `{ set:{id_joined:true} }`, 맵 NPC 에 `unless:'id_joined'` |
+| `# X가 앞장서고 주인공이 따라감` | `{move:'<동료id>', px, run}` 먼저, 이어서 `{parallel:[{move:'<동료id>'…},{move:'player', px:<동료의 이전 지점>}]}` 를 구간마다 반복, 끝에 `{regroup:true}` (예 `void4_key.js`) |
+| `# 문에 상호작용하면(잠김/열림 분기)` | `door` 엔티티 `requires:'door_open', lockedScript:'…'` — 스크립트가 분기(잠김 대사 / 열쇠 얻기 / 열림 → `{fade}{map}{bgm}{fade}`) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |
 | `# 다리/문이 내려오며 쿵` | `{spawn: 떨어질 소품(preload 필요)}` `{sfx:'rumble'}` `{move:id, px, speed}` `{sfx:'thud'}` `{shake}` `{tiles}` `{remove}` (예 `void4_lever`) |
 | `# 3D 로 전환해서 마우스로 …` | `{zoom:2.8, at:'<소품 id>'}` → `{scene3d:'<씬>', flag}` → `{zoom:1}` (씬은 `src/scenes/drawer.js` 골격 복사) |

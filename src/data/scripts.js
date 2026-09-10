@@ -8,6 +8,7 @@ import { living_enter } from './cutscenes/living_enter.js';
 import { pc_stream } from './cutscenes/pc_stream.js';
 import { void4_arrive, void4_lever } from './cutscenes/void4.js';
 import { void4_ppaman_talk } from './cutscenes/void4_ppaman.js';
+import { void4_door } from './cutscenes/void4_key.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -50,9 +51,7 @@ export const SCRIPTS = {
   // 보라맵4: 긴 뗏목 길 · 억빠맨 · 레버 다리
   void4_arrive, void4_lever,
   void4_ppaman: void4_ppaman_talk,   // 인사 → 질문 루프 → 동행 (src/data/cutscenes/void4_ppaman.js)
-  void4_door_locked: [
-    { text: '* 자물쇠로 잠겨 있다.', voice: 'narrator' },
-  ],
+  void4_door,                        // 잠긴 문 → 레버 열쇠 → 철컥 (src/data/cutscenes/void4_key.js)
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [
     { text: '* 땟목이 갈리는 곳이다.', voice: 'narrator' },

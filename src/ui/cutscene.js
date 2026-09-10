@@ -53,6 +53,7 @@ function mover(game, node) {
       const dist = Math.hypot(dx, dy);
       if (dist < 0.5) {
         e.x = tx; e.y = ty; e.moving = false; e.animate?.(dt);
+        if (e === game.player) e.trail = [];   // 동료가 옛 발자국으로 되돌아가지 않게
         return true;
       }
       const step = Math.min(dist, speed * dt);

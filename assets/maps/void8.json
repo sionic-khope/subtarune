@@ -1,0 +1,45 @@
+{
+  "id": "void8",
+  "name": "???",
+  "bgm": "scarlet",
+  "stage": "void_fallen",
+  "dim": 0.2,
+  "backdrop": "purple_fire",
+  "rows": [
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    " XxXxXxXxXxXxXx ",
+    " xXxXxXxXxXxXxX ",
+    " XxXxXxXxXxXxXx ",
+    " xXxXxXxXxXxXxX ",
+    " yyyyyyyyyyyyyy ",
+    "                ",
+    "                ",
+    "                "
+  ],
+  "spawns": {
+    "from_left": {
+      "x": 60,
+      "y": 184,
+      "facing": "right"
+    },
+    "start": {
+      "x": 60,
+      "y": 184
+    }
+  },
+  "entities": [
+    {
+      "type": "door",
+      "x": 32,
+      "y": 128,
+      "w": 12,
+      "h": 128,
+      "to": "void7",
+      "spawn": "door_back",
+      "sfx": false
+    }
+  ]
+}
