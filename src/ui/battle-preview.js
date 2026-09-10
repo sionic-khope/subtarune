@@ -86,7 +86,8 @@ export function clearExteriorChroma(data, width, height, colorKey) {
   return tail;
 }
 
-function makeTransparentFrame(image, definition, colorKey, createCanvas) {
+/** 원본 해상도를 유지한 채 한 프레임의 외부 마젠타만 제거한다. */
+export function makeTransparentFrame(image, definition, colorKey, createCanvas) {
   const [sx, sy, width, height] = definition.rect;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });

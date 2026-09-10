@@ -221,6 +221,15 @@ export class Character extends Entity {
     if (dy) { const ny = this.y + dy; if (!blocked(this.x, ny)) this.y = ny; }
   }
   drawSprite(ctx, cam) {
+    if (this.motion) {
+      const frame = this.motion.frames[this.motion.index];
+      const scale = this.motion.scale * CHAR_SCALE;
+      const anchorX = this.x + this.w / 2 - cam.x, anchorY = this.y + this.h - cam.y;
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
+      ctx.drawImage(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
+      return;
+    }
     const img = this.sprite[this.facing][this.frame];
     const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
     const jx = this.jitter && this.jitter.t > 0 ? (Math.floor(this.jitter.t * 18) % 2 ? this.jitter.amp : -this.jitter.amp) : 0;   // 타다다닥(강아지 물 털듯) — main.js 가 t 를 줄인다
