@@ -39,6 +39,51 @@ def tile_cliff():
     c.rect(0, 28, T, 4, (0, 0, 0))
     return c
 
+def outline_silhouette(c, col=OUT):
+    todo = []
+    for y in range(c.h):
+        for x in range(c.w):
+            if c.a[y, x, 3] == 0 and any(0 <= x + dx < c.w and 0 <= y + dy < c.h and c.a[y + dy, x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): todo.append((x, y))
+    for (x, y) in todo: c.px(x, y, col)
+
+def prop_banana():
+    """바나나 24x14: 아래로 볼록한 초승달(포물선 중심선 + 두께), 위쪽 밝은 줄, 아래 그늘, 양 끝 갈색 꼭지"""
+    import math
+    Y = hexc('#f2d13a'); YL = hexc('#fff3a8'); YD = hexc('#c9a52a'); B = hexc('#5a3a1a')
+    c = Canvas(24, 14)
+    def mid(x): return 3.5 + 7.0 * (1 - ((x - 11.5) / 9.5) ** 2)      # 가운데가 아래로 처진 곡선
+    for x in range(2, 22):
+        m = mid(x); half = 2.6 - 1.4 * abs(x - 11.5) / 9.5           # 끝으로 갈수록 얇게
+        for y in range(14):
+            d = y - m
+            if abs(d) <= half:
+                c.px(x, y, YL if d < -half + 0.9 else (YD if d > half - 0.9 else Y))
+    outline_silhouette(c)
+    c.rect(1, 3, 2, 3, B); c.rect(21, 3, 2, 3, B); c.px(1, 2, OUT); c.px(22, 2, OUT)
+    return c
+
+def prop_spitter():
+    """꽃가루 뿜는 풀 2프레임(각 28x30, 가로로 이어 붙임): 둥근 청록 몸통·점 무늬·점 눈, 평소 입 / 뿜는 입(동그랗게 벌림 + 흰 꽃가루)"""
+    D = hexc('#155a55'); M = hexc('#1f7d75'); L = hexc('#2c9a8f'); S = hexc('#0c3532'); W = hexc('#ffffff')
+    c = Canvas(56, 30)
+    for f in range(2):
+        ox = f * 28
+        for y in range(30):                                            # 몸통: 타원(둥근 덩어리)
+            for x in range(28):
+                if ((x - 13.5) / 11.5) ** 2 + ((y - 13.5) / 10.5) ** 2 <= 1: c.px(ox + x, y, M)
+        for y in range(30):
+            for x in range(28):
+                if c.a[y, ox + x, 3] == 0 and any(0 <= x + dx < 28 and 0 <= y + dy < 30 and c.a[y + dy, ox + x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.px(ox + x, y, OUT)
+        c.rrect(ox + 6, 7, 8, 6, L, 3); c.px(ox + 19, 9, L); c.px(ox + 20, 9, L); c.px(ox + 9, 18, L); c.px(ox + 18, 17, L)   # 무늬
+        c.rect(ox + 9, 11, 2, 2, OUT); c.rect(ox + 17, 11, 2, 2, OUT)   # 눈
+        if f == 0: c.hline(ox + 12, 17, 5, S)                           # 다문 입
+        else:
+            c.rrect_outlined(ox + 10, 15, 8, 6, S, OUT, 3)              # 벌린 입
+            for (x, y) in ((ox + 8, 12), (ox + 20, 13), (ox + 13, 9), (ox + 6, 17), (ox + 22, 18)): c.px(x, y, W)   # 꽃가루
+        c.rect(ox + 12, 24, 4, 4, D); c.outline(ox + 12, 24, 4, 4, OUT)   # 줄기
+        c.rrect_outlined(ox + 4, 26, 8, 4, L, OUT, 2); c.rrect_outlined(ox + 16, 26, 8, 4, L, OUT, 2)   # 잎
+    return c
+
 def prop_statue():
     """쥰희를 닮은 나무 동상 44x60: 돌 받침(아래 12px) + 나무 조각(둥근 머리·세모 귀·큰 코·땅딸막한 몸), 나뭇결·금."""
     W0 = [hexc('#3a2314'), hexc('#5a3a22'), hexc('#7a4f2e'), hexc('#a0703f')]   # 어둠→밝음
@@ -68,5 +113,7 @@ def prop_statue():
 
 if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
-    prop_statue().save('assets/props/statue_junhee.png')
-    print('teal set ok')
+    prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
+    from void10_set import prop_tree_big
+    prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
+    print('teal set ok (+banana, tree_teal)')
