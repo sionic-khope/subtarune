@@ -16,7 +16,7 @@
 //  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
-//  { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { emote:id, kind:'!'|'sweat', duration?, hold? } 머리 위 느낌표/식은땀   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
+//  { hop:..., spin?:2, keep?:true } 소품도 날린다(빙글 회전, 끼임 보정 생략)   { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { emote:id, kind:'!'|'sweat', duration?, hold? } 머리 위 느낌표/식은땀   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -245,7 +245,7 @@ export function makeWaiter(game, node) {
     const e = findEntity(game, node.hop); if (!e) return done;
     const [dx, dy] = node.by || [0, 0], h = node.height ?? 24, dur = node.duration ?? 0.5, x0 = e.x, y0 = e.y; let t = 0;
     if (node.sfx !== false) game.sound.sfx(node.sfx || 'jump', { volume: 0.7 });
-    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); e.x = Math.round(x0 + dx * k); e.y = Math.round(y0 + dy * k); e.hopY = h * Math.sin(Math.PI * k); e.moving = false; e.frame = 0; if (k >= 1) { e.hopY = 0; [e.x, e.y] = freeSpot(game, e, e.x, e.y); return true; } return false; } };
+    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); e.x = Math.round(x0 + dx * k); e.y = Math.round(y0 + dy * k); e.hopY = h * Math.sin(Math.PI * k); if (node.spin) e.spin = node.spin * Math.PI * 2 * k; e.moving = false; e.frame = 0; if (k >= 1) { e.hopY = 0; if (!node.keep) [e.x, e.y] = freeSpot(game, e, e.x, e.y); return true; } return false; } };   // spin: 바퀴 수(소품 회전), keep: 도착 보정 없음(날아가 사라질 때)
   }
   if (node.regroup) { for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); return done; }   // 동료를 주인공 뒤로 재정렬   // { tiles:'bridge_down' } 맵 tileSwaps 적용 + 다시 굽기
   if (node.parallel) return parallel(game, node.parallel);

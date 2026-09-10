@@ -24,6 +24,7 @@ import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS } from './core/story.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
+import { ITEMS, plainItems, keyItems } from './data/items.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -98,7 +99,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || `assets/sprites/${name}.png`);   // still: 정지 1장 캐릭터(미니언 등)
         if (img) this.spriteOverrides[name] = img;
@@ -300,6 +301,18 @@ class Game {
     this.player.moving = false;
     this.state = 'battle-preview';
     void this.battlePreview.open();
+    return true;
+  }
+
+  /** 현재 HP (전투 밖): partyHp 에 없으면 최대 */
+  hpOf(id) { const max = CHARACTERS[id]?.hp ?? 100; return Math.max(0, Math.min(max, this.partyHp[id] ?? max)); }
+  /** 메뉴에서 힐템 사용: 인벤토리에서 빼고 partyHp 회복 (2026-09-10) */
+  useItemOn(name, id) {
+    const def = ITEMS[name]; if (!def?.heal) return false;
+    const i = this.inventory.indexOf(name); if (i < 0) return false;
+    this.inventory.splice(i, 1);
+    const max = CHARACTERS[id]?.hp ?? 100; this.partyHp[id] = Math.min(max, this.hpOf(id) + def.heal);
+    this.sound.sfx('heal'); this.autosave();
     return true;
   }
 
@@ -530,7 +543,21 @@ class Game {
       if (Input.just('down')) { m.index = (m.index + 1) % N; this.sound.sfx('menu'); }
       if (Input.just('cancel') || (Input.just('confirm') && m.index === 4)) { this.state = 'field'; this.sound.sfx('close'); return; }
       if (Input.just('confirm')) { m.sub = m.index; m.subIndex = 0; this.sound.sfx('confirm'); }
-    } else if (m.sub === 0 || m.sub === 1) {          // 아이템 / 파티: 보기만
+    } else if (m.sub === 0) {                          // 아이템: 그냥 아이템(힐템)은 골라서 쓴다 → 대상 멤버 선택 (2026-09-10)
+      const plain = plainItems(this.inventory);
+      if (m.pick !== undefined && m.pick !== null) {   // 대상 고르는 중
+        const members = [this.playerSprite || 'hyungsub', ...this.party];
+        if (Input.just('left') || Input.just('up')) { m.pick = (m.pick + members.length - 1) % members.length; this.sound.sfx('menu'); }
+        if (Input.just('right') || Input.just('down')) { m.pick = (m.pick + 1) % members.length; this.sound.sfx('menu'); }
+        if (Input.just('cancel')) { m.pick = null; this.sound.sfx('cancel'); return; }
+        if (Input.just('confirm')) { this.useItemOn(plain[m.subIndex], members[m.pick]); m.pick = null; if (m.subIndex >= plainItems(this.inventory).length) m.subIndex = Math.max(0, plainItems(this.inventory).length - 1); return; }
+        return;
+      }
+      if (Input.just('up')) { m.subIndex = (m.subIndex + Math.max(1, plain.length) - 1) % Math.max(1, plain.length); this.sound.sfx('menu'); }
+      if (Input.just('down')) { m.subIndex = (m.subIndex + 1) % Math.max(1, plain.length); this.sound.sfx('menu'); }
+      if (Input.just('cancel')) { m.sub = null; this.sound.sfx('cancel'); return; }
+      if (Input.just('confirm')) { if (plain.length && ITEMS[plain[m.subIndex]]?.heal) { m.pick = 0; this.sound.sfx('confirm'); } else this.sound.sfx('cancel'); }
+    } else if (m.sub === 1) {                          // 파티: 보기만
       if (Input.just('cancel') || Input.just('confirm')) { m.sub = null; this.sound.sfx('cancel'); }
     } else if (m.sub === 2) {                          // 비상탈출: [탈출 / 취소] — 끼었을 때. 스토리 유지, 뗏목만 입구 쪽으로, 입구 재진입 (doEscape)
       if (Input.just('up') || Input.just('down')) { m.subIndex = 1 - m.subIndex; this.sound.sfx('menu'); }
@@ -642,11 +669,24 @@ class Game {
       ctx.fillText(label, 30, 16 + i * LH);
       if (m.sub === null && i === m.index) drawHeart(ctx, 17, 16 + Math.round(F.size / 2) - 3 + i * LH);
     });
-    if (m.sub === 0) {
-      drawBox(ctx, 116, 8, 190, LH * 3 + 16);
-      ctx.fillStyle = '#fff';
-      if (!this.inventory.length) ctx.fillText(L.no_items, 124, 16);
-      this.inventory.forEach((it, i) => ctx.fillText('* ' + it, 124, 16 + i * LH));
+    if (m.sub === 0) {                                  // 아이템: [그냥 아이템] 골라 쓰기 / [중요 아이템] 보기
+      const plain = plainItems(this.inventory), keys = keyItems(this.inventory);
+      const rows = 2 + Math.max(1, plain.length) + 1 + Math.max(1, keys.length);
+      drawBox(ctx, 116, 8, 200, LH * rows + 16);
+      let y = 16; ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_plain_items, 124, y); y += LH;
+      if (!plain.length) { ctx.fillStyle = '#777'; ctx.fillText(L.menu_no_plain, 138, y); y += LH; }
+      plain.forEach((it, i) => { const sel = i === m.subIndex; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(it + (ITEMS[it]?.heal ? `  (+${ITEMS[it].heal})` : ''), 138, y); if (sel) drawHeart(ctx, 125, y + Math.round(F.size / 2) - 3); y += LH; });
+      y += 4; ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_key_items, 124, y); y += LH;
+      if (!keys.length) { ctx.fillStyle = '#777'; ctx.fillText(L.menu_no_key, 138, y); y += LH; }
+      keys.forEach((it) => { ctx.fillStyle = '#cfcfdd'; ctx.fillText('* ' + it, 138, y); y += LH; });
+      if (m.pick !== undefined && m.pick !== null) {   // 대상 선택창: 멤버 이름 + 색 HP 바
+        const members = [this.playerSprite || 'hyungsub', ...this.party]; const bx = 116, by = 8 + LH * rows + 24;
+        drawBox(ctx, bx, by, 200, LH * (members.length + 1) + 16);
+        ctx.fillStyle = '#fff'; ctx.fillText(L.menu_use_on, bx + 8, by + 8);
+        members.forEach((id, i) => { const ch = CHARACTERS[id] || {}; const ry = by + 8 + LH * (i + 1); const sel = i === m.pick; const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
+          ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(name, bx + 22, ry); if (sel) drawHeart(ctx, bx + 9, ry + Math.round(F.size / 2) - 3);
+          const max = ch.hp ?? 100, hp = this.hpOf(id); ctx.fillStyle = '#3a2020'; ctx.fillRect(bx + 96, ry + 5, 60, 7); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(bx + 96, ry + 5, Math.round(60 * hp / max), 7); ctx.fillStyle = '#fff'; ctx.fillText(`${hp}`, bx + 162, ry); });
+      }
     }
     if (m.sub === 1) this.drawParty(ctx, 116, 8);
     if (m.sub === 2) this.drawEscape(ctx, 116, 8);
@@ -668,7 +708,7 @@ class Game {
   /** 파티 상태창: 리더(요플래/형섭) + 동료들 — 흰검 초상화, 표시 이름, 역할, 한 줄 상태 (전투 없음 → HP 대신 상태) */
   drawParty(ctx, x, y) {
     const LH = F.lineH, members = [this.playerSprite || 'hyungsub', ...this.party];
-    const rowH = 58, w = 236, h = rowH * members.length + 14;
+    const rowH = 64, w = 250, h = rowH * members.length + 14;
     drawBox(ctx, x, y, w, h);
     ctx.font = FONT; ctx.textBaseline = 'top';
     members.forEach((id, i) => {
@@ -678,6 +718,8 @@ class Game {
       ctx.fillStyle = '#ffe066'; ctx.fillText(name, x + 68, ry + 3);
       ctx.fillStyle = '#fff'; ctx.fillText(i === 0 ? L.party_leader : L.party_member, x + 68, ry + 3 + LH);
       ctx.fillStyle = '#9a9ab0'; ctx.fillText(ch.partyDesc || (i === 0 ? L.party_desc_leader : L.party_desc_member), x + 68, ry + 3 + LH * 2);
+      const max = ch.hp ?? 100, hp = this.hpOf(id);                                   // 색 HP 바 (전투와 같은 색)
+      ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 68, ry + 3 + LH * 3 - 2, 100, 6); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(x + 68, ry + 3 + LH * 3 - 2, Math.round(100 * hp / max), 6); ctx.fillStyle = '#fff'; ctx.fillText(`HP ${hp}/${max}`, x + 174, ry + 3 + LH * 3 - 8);
     });
   }
 
@@ -720,7 +762,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.39';
+export const BUILD = '2026-09-10.40';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

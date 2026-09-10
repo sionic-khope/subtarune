@@ -85,27 +85,38 @@ export class Battle {
   // ── 유틸 ──
   alive() { return this.members.filter((m) => !m.down); }
   living() { return this.enemies.filter((e) => !e.dead); }
-  setText(t) { this.text = stripTags(t); this.textT = 0; }
+  setText(t) { this.text = stripTags(t); this.textT = 0; this.shown = 0; }
+  get typed() { return this.shown >= this.text.length; }
+  /** 전투 문구 타자: 22ms 마다 한 글자, 글자마다 나레이션 블립(띠리리링) */
+  typeText(dt) {
+    if (this.shown >= this.text.length) return;
+    this.textT += dt; const n = Math.min(this.text.length, Math.floor(this.textT / 0.022));
+    for (let i = this.shown; i < n; i++) if (this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip('narrator');
+    this.shown = n;
+  }
   sfx(n) { this.game.sound.sfx(n); }
 
   // ── 진행 ──
   update(dt, input) {
     this.t += dt;
     for (const m of this.members) { if (m.action) m.action.update(dt); if (m.popup) { m.popup.t += dt; if (m.popup.t > 0.9) m.popup = null; } if (m.pose !== undefined && m.pose !== null) { m.pose += dt; const T = BATTLE_SPRITES[m.id].attack.reduce((a, f) => a + f.duration, 0); if (m.pose > T) m.pose = null; } }
-    for (const e of this.enemies) { if (e.shake > 0) e.shake -= dt; if (e.blink > 0) e.blink -= dt; if (e.dying > 0) { e.dying -= dt; if (e.dying <= 0) { e.dead = true; } } if (e.popup) { e.popup.t += dt; if (e.popup.t > 0.9) e.popup = null; } }
-    this.board.update(dt);
+    this.enemies.forEach((e, i) => { if (e.shake > 0) e.shake -= dt; if (e.blink > 0) e.blink -= dt; if (e.dying > 0) { e.dying -= dt; if (e.dying <= 0) { e.dead = true; } } if (e.popup) { e.popup.t += dt; if (e.popup.t > 0.9) e.popup = null; }
+      const idle = e.def.idle || { swayX: 7, swayY: 2, period: 2.8 }; const ph = this.t * Math.PI * 2 / (idle.period || 2.8) + i * 1.9;   // 기본 모션: 좌우로 천천히(사용자: 정적인 느낌 없애기), 살짝 위아래
+      e.ox = Math.sin(ph) * (idle.swayX ?? 7); e.oy = -Math.abs(Math.sin(ph * 2)) * (idle.swayY ?? 2); });
+    this.board.update(dt); this.typeText(dt);
     switch (this.state) {
       case 'load': return;
-      case 'intro': if (this.t > 0.6 && (input.just('confirm') || this.t > 2.2)) this.beginMenu(); return;
+      case 'intro': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.6 && (input.just('confirm') || this.t > 2.4)) this.beginMenu(); return;
       case 'menu': return this.updateMenu(input);
       case 'target': return this.updateTarget(input);
       case 'item': return this.updateItem(input);
-      case 'text': if (this.t > 0.5 && (input.just('confirm') || this.t > 1.6)) { this.state = this.after || 'menu'; this.t = 0; } return;
+      case 'item-target': return this.updateItemTarget(input);
+      case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.5 && (input.just('confirm') || this.t > 1.8)) { this.state = this.after || 'menu'; this.t = 0; } return;
       case 'act': return this.updateAct(dt);
-      case 'enemy-text': if (this.t > 0.9) this.beginBullets(); return;
+      case 'enemy-text': if (this.typed && this.t > 0.9) this.beginBullets(); return;
       case 'bullets': return this.updateBullets(dt, input);
       case 'board-close': if (this.t > 0.3) this.beginMenu(); return;
-      case 'win': if (this.t > 0.6 && input.just('confirm')) this.finish(true); return;
+      case 'win': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.6 && input.just('confirm')) this.finish(true); return;
       case 'ending': return;
       case 'lose': if (this.t > 0.8 && input.just('confirm')) this.retry(); return;
     }
@@ -140,7 +151,16 @@ export class Battle {
     if (input.just('up')) { this.itemIdx = (this.itemIdx + items.length - 1) % items.length; this.sfx('menu'); }
     if (input.just('down')) { this.itemIdx = (this.itemIdx + 1) % items.length; this.sfx('menu'); }
     if (input.just('cancel')) { this.sfx('cancel'); this.state = 'menu'; return; }
-    if (input.just('confirm')) { this.sfx('confirm'); const name = items[this.itemIdx]; this.plans.push({ member: this.members[this.memberIdx], type: 'item', name }); this.nextMember(); }
+    if (input.just('confirm')) { this.sfx('confirm'); this.itemName = items[this.itemIdx]; this.state = 'item-target'; this.itemTargetIdx = this.memberIdx; this.t = 0; }
+  }
+  /** 아이템 대상: 살아 있는 멤버 중 ← → 로 고른다 */
+  updateItemTarget(input) {
+    const n = this.members.length;
+    const step = (d) => { let i = this.itemTargetIdx; for (let k = 0; k < n; k++) { i = (i + d + n) % n; if (!this.members[i].down) break; } this.itemTargetIdx = i; this.sfx('menu'); };
+    if (input.just('left') || input.just('up')) step(-1);
+    if (input.just('right') || input.just('down')) step(1);
+    if (input.just('cancel')) { this.sfx('cancel'); this.state = 'item'; return; }
+    if (input.just('confirm')) { this.sfx('confirm'); this.plans.push({ member: this.members[this.memberIdx], type: 'item', name: this.itemName, target: this.members[this.itemTargetIdx] }); this.nextMember(); }
   }
   nextMember() {
     this.memberIdx++; while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
@@ -164,7 +184,7 @@ export class Battle {
     }
     const plan = this.plans[this.actIdx++];
     if (plan.member.down) return;
-    if (plan.type === 'item') { this.useItem(plan.member, plan.name); this.actWait = 0.5; return; }
+    if (plan.type === 'item') { this.useItem(plan.target || plan.member, plan.name, plan.member); this.actWait = 0.6; return; }
     let target = plan.target; if (target.dead || target.dying > 0) target = this.living()[0]; if (!target) return;
     plan.target = target;
     const def = BATTLE_SPRITES[plan.member.id]; const attackT = def.attack.reduce((s, f) => s + f.duration, 0);
@@ -176,10 +196,10 @@ export class Battle {
     this.sfx('hit'); this.sfx('damage');                        // 델타룬 공식: 베기(snd_laz) + 타격(snd_damage)
     if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
   }
-  useItem(m, name) {
+  useItem(m, name, by = m) {
     const def = ITEMS[name] || {}; const i = this.game.inventory.indexOf(name); if (i >= 0) this.game.inventory.splice(i, 1);
-    if (def.heal) { m.hp = Math.min(m.maxHp, m.hp + def.heal); m.popup = { t: 0, text: '+' + def.heal, heal: true }; }
-    this.sfx('item'); this.setText(`* ${m.name} 이(가) ${name} 을(를) 썼다.`);
+    if (def.heal) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + def.heal); if (m.down && m.hp > 0) m.down = false; m.popup = { t: 0, text: '+' + (m.hp - before), heal: true }; }
+    this.sfx('heal'); this.setText(`* ${by.name} 이(가) ${m.name} 에게 ${name} 을(를) 썼다.`);
   }
 
   // ── 적 턴 ──
@@ -233,12 +253,13 @@ export class Battle {
   // ── 그리기 ──
   draw(ctx) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    if (this.cfg.bg === 'teal') this.drawTealBg(ctx);
     ctx.font = FONT; ctx.textBaseline = 'top';
     for (const e of this.enemies) this.drawEnemy(ctx, e);
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
     for (const m of idle) this.drawMember(ctx, m);
     for (const m of busy) this.drawMember(ctx, m);
-    if (this.state === 'bullets' || this.state === 'board-close') { this.board.draw(ctx); if (this.state === 'bullets') { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
+    if (this.state === 'bullets' || this.state === 'board-close') { this.board.draw(ctx); if (this.state === 'bullets') { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } this.drawHpStrip(ctx); }
     else this.drawPanel(ctx);
     if (this.state === 'lose') this.drawTextBox(ctx);
   }
@@ -259,17 +280,17 @@ export class Battle {
   }
   drawEnemy(ctx, e) {
     if (e.dead) return;
-    const sh = e.def.sheet; const sx = e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0;
+    const sh = e.def.sheet; const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(e.ox || 0), sy = Math.round(e.oy || 0);
     if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, e.x, e.y - 60, e.popup.text, e.popup.t, '#fff'); return; }
     ctx.save(); if (e.dying > 0) ctx.globalAlpha = Math.max(0, e.dying / 0.5);
     if (e.img && sh) {
       const fw = Math.floor(e.img.width / sh.cols), fh = Math.floor(e.img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
       const s = e.def.scale ?? 1, dw = Math.round(fw / 2 * s), dh = Math.round(fh / 2 * s);
-      ctx.drawImage(e.img, col * fw, sh.row * fh, fw, fh, Math.round(e.x - dw / 2 + sx), Math.round(e.y - dh), dw, dh);
+      ctx.drawImage(e.img, col * fw, sh.row * fh, fw, fh, Math.round(e.x - dw / 2 + sx), Math.round(e.y - dh + sy), dw, dh);
     } else if (e.img) {                                          // 단일 PNG: 발 pivot 을 (e.x, e.y) 에 놓는다 (PR #7 가이드: 64×64, pivot 32,60 → 아래 4px 여백)
       const s = e.def.scale ?? 1, dw = Math.round(e.img.width * s), dh = Math.round(e.img.height * s); const [pvx, pvy] = e.def.pivot || [e.img.width / 2, e.img.height];
-      ctx.drawImage(e.img, Math.round(e.x - pvx * s + sx), Math.round(e.y - pvy * s), dw, dh);
-    } else { ctx.fillStyle = '#7a8'; ctx.fillRect(e.x - 20 + sx, e.y - 44, 40, 44); }
+      ctx.drawImage(e.img, Math.round(e.x - pvx * s + sx), Math.round(e.y - pvy * s + sy), dw, dh);
+    } else { ctx.fillStyle = '#7a8'; ctx.fillRect(e.x - 20 + sx, e.y - 44 + sy, 40, 44); }
     ctx.restore();
     if (e.popup) this.drawPopup(ctx, e.x, e.y - 60, e.popup.text, e.popup.t, '#fff');
   }
@@ -277,11 +298,42 @@ export class Battle {
     ctx.save(); ctx.globalAlpha = t < 0.6 ? 1 : Math.max(0, 1 - (t - 0.6) / 0.3); ctx.fillStyle = col; ctx.textAlign = 'center';
     ctx.fillText(text, Math.round(x), Math.round(y - Math.min(14, t * 40))); ctx.restore(); ctx.textAlign = 'left';
   }
+  /** 청록숲 전투 배경: 화면 위쪽에 아주 옅은 청록 잎 구름 (사용자: '진짜 살짝만') */
+  drawTealBg(ctx) {
+    ctx.save(); ctx.globalAlpha = 0.16;
+    const blobs = [[30, 8, 58], [120, -6, 70], [220, 10, 62], [330, -4, 74], [430, 12, 60], [70, 40, 34], [280, 44, 38], [400, 46, 30]];
+    for (const [x, y, r] of blobs) { ctx.fillStyle = '#1c6e66'; ctx.beginPath(); ctx.arc(x + Math.sin(this.t * 0.3 + x) * 2, y, r, 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 0.1; ctx.fillStyle = '#2c9a8f';
+    for (const [x, y, r] of blobs) { ctx.beginPath(); ctx.arc(x + 10, y - 8, r * 0.55, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+  hpColor(m) { return CHARACTERS[m.id]?.hpColor || '#ffd23b'; }
+  /** 회피 중: 화면 아래 캐릭터별 색 HP 띠 (탄막 상자 아래) */
+  drawHpStrip(ctx) {
+    const n = this.members.length, cw = Math.floor(440 / n);
+    this.members.forEach((m, i) => {
+      const x = 20 + i * cw, y = 318;
+      ctx.fillStyle = m.down ? '#777' : '#fff'; ctx.textAlign = 'left'; ctx.fillText(m.name, x + 12, y);
+      ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 12, y + 20, cw - 24, 7); ctx.fillStyle = m.down ? '#555' : this.hpColor(m); ctx.fillRect(x + 12, y + 20, Math.round((cw - 24) * m.hp / m.maxHp), 7);
+      ctx.fillStyle = '#fff'; ctx.fillText(`${m.hp}/${m.maxHp}`, x + 12 + cw - 24 - 70, y);
+    });
+  }
+  /** 12x12 픽셀 아이콘: sword(빨간 검) / bread(초록 빵) — 델타룬 카드의 행동 표시 */
+  drawIcon(ctx, kind, x, y) {
+    const P = (px, py, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + px, y + py, w, h); };
+    if (kind === 'sword') {
+      for (let i = 0; i < 7; i++) { P(9 - i, 1 + i, 2, 1, '#ff4b4b'); P(10 - i, 1 + i, 1, 1, '#ffb3b3'); }   // 날(빨강, 하이라이트)
+      P(1, 8, 4, 1, '#c9a52a'); P(3, 9, 2, 1, '#c9a52a'); P(2, 10, 2, 2, '#7a4f2e'); P(0, 9, 2, 2, '#7a4f2e');   // 날밑·손잡이
+    } else {
+      P(2, 4, 8, 6, '#4cd964'); P(3, 3, 6, 1, '#4cd964'); P(1, 5, 1, 4, '#4cd964'); P(10, 5, 1, 4, '#4cd964');   // 빵 덩어리(초록)
+      P(3, 3, 6, 1, '#8dffa8'); P(4, 5, 2, 1, '#2f8f44'); P(7, 6, 2, 1, '#2f8f44'); P(2, 10, 8, 1, '#2f8f44');   // 윤기·칼집
+    }
+  }
   box(ctx, x, y, w, h) { ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3); }
   heart(ctx, x, y) { ctx.fillStyle = '#ff0000'; ctx.fillRect(x, y + 1, 2, 2); ctx.fillRect(x + 3, y + 1, 2, 2); ctx.fillRect(x - 1, y + 3, 7, 2); ctx.fillRect(x, y + 5, 5, 1); ctx.fillRect(x + 1, y + 6, 3, 1); ctx.fillRect(x + 2, y + 7, 1, 1); }
   drawTextBox(ctx) {
     this.box(ctx, 20, 268, 440, 84); ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
-    this.text.split('\n').forEach((line, i) => ctx.fillText(line, 36, 282 + i * LH));
+    this.text.slice(0, this.shown).split('\n').forEach((line, i) => ctx.fillText(line, 36, 282 + i * LH));
   }
   drawPanel(ctx) {
     if (['intro', 'win', 'lose', 'text', 'enemy-text', 'act', 'load'].includes(this.state)) { this.drawTextBox(ctx); return; }
@@ -289,13 +341,13 @@ export class Battle {
     const n = this.members.length, cw = Math.floor(440 / n);
     this.box(ctx, 20, 268, 440, 84);
     this.members.forEach((m, i) => {
-      const x = 20 + i * cw, active = i === this.memberIdx && (this.state === 'menu' || this.state === 'target' || this.state === 'item');
+      const x = 20 + i * cw, active = i === this.memberIdx && (this.state === 'menu' || this.state === 'target' || this.state === 'item' || this.state === 'item-target');
       if (active) { ctx.fillStyle = '#1a1a2a'; ctx.fillRect(x + 4, 272, cw - 8, 76); }
       ctx.fillStyle = m.down ? '#777' : active ? '#ffe066' : '#fff'; ctx.textAlign = 'left'; ctx.fillText(m.name, x + 12, 276);
-      ctx.fillStyle = '#7a1b1b'; ctx.fillRect(x + 12, 296, cw - 24, 7); ctx.fillStyle = m.down ? '#555' : '#ffd23b'; ctx.fillRect(x + 12, 296, Math.round((cw - 24) * m.hp / m.maxHp), 7);
+      ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 12, 296, cw - 24, 7); ctx.fillStyle = m.down ? '#555' : this.hpColor(m); ctx.fillRect(x + 12, 296, Math.round((cw - 24) * m.hp / m.maxHp), 7);   // 캐릭터별 색
       ctx.fillStyle = '#fff'; ctx.fillText(`${L.battle_hp} ${m.hp}/${m.maxHp}${m.down ? ' ' + L.battle_down : ''}`, x + 12, 306);
       const planned = this.plans.find((pl) => pl.member === m);
-      if (planned && !active) { ctx.fillStyle = '#9fd3ff'; ctx.fillText(planned.type === 'fight' ? `${L.battle_fight} → ${planned.target.name}` : `${L.battle_item} ${planned.name}`, x + 12, 328); }
+      if (planned && !active) this.drawIcon(ctx, planned.type === 'fight' ? 'sword' : 'bread', x + 12, 326);   // 정한 행동: 아이콘(빨간 검 / 초록 빵)
       if (active && this.state === 'menu') {                     // 상자 버튼 두 개
         [L.battle_fight, L.battle_item].forEach((label, k) => { const bx = x + 6 + (k ? 82 : 0), by = 326, bw = k ? 56 : 78, bh = 20; const sel = this.menuIdx === k;
           ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
@@ -305,11 +357,17 @@ export class Battle {
         const list = this.living(), e = list[this.targetIdx]; const many = list.length > 1;
         ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`${many ? '◀ ' : ''}${e ? e.name : ''}${many ? ' ▶' : ''}`, x + cw / 2, 328); ctx.textAlign = 'left';
       }
-      if (active && this.state === 'item') {
-        const items = plainItems(this.game.inventory); ctx.fillStyle = '#cfcfdd'; ctx.fillText(L.battle_item, x + 12, 326);
-        items.slice(0, 3).forEach((name, k) => { const bx = x + 12 + k * 60; const sel = k === this.itemIdx; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(name, bx + (sel ? 12 : 0), 336); if (sel) this.heart(ctx, bx, 340); });
+      if (active && this.state === 'item') {                     // 아이템: 카드 안에 '◀ 이름 ▶'
+        const items = plainItems(this.game.inventory); const many = items.length > 1;
+        ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`${many ? '◀ ' : ''}${items[this.itemIdx] || ''}${many ? ' ▶' : ''}`, x + cw / 2, 328); ctx.textAlign = 'left';
+      }
+      if (active && this.state === 'item-target') {              // 대상: '◀ 이름 ▶' (누구에게)
+        const t = this.members[this.itemTargetIdx]; ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`◀ ${t ? t.name : ''} ▶`, x + cw / 2, 328); ctx.textAlign = 'left';
       }
     });
+    if (this.state === 'item-target') {                           // 대상 멤버 위에 화살표
+      const t = this.members[this.itemTargetIdx]; if (t) { const ax = t.home[0], ay = t.home[1] - 92; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill(); }
+    }
     if (this.state === 'target') {                                // 고르는 적 위에 화살표 + HP 바 (화면 위쪽, 창 없음)
       const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = Math.max(6, e.y - 112); ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();   // 화살표 → 그 아래 HP 바·%
         ctx.fillStyle = '#7a1b1b'; ctx.fillRect(ax - 24, ay + 13, 48, 6); ctx.fillStyle = '#4cd964'; ctx.fillRect(ax - 24, ay + 13, Math.round(48 * e.hp / e.maxHp), 6); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, ax + 44, ay + 7); ctx.textAlign = 'left'; }

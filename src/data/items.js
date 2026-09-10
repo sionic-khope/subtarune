@@ -6,7 +6,8 @@
 export const ITEMS = {
   '열쇠?': { kind: 'key', desc: '억빠맨이 뽑아 온 레버. 열쇠로 쓴다.' },
   '먼지':  { kind: 'key', desc: '상자 안에 있던 먼지.' },
-  // 예) '바나나': { kind: 'plain', heal: 20, desc: '포타슘.' }
+  '바나나': { kind: 'plain', heal: 30, desc: '포타슘. HP 30 회복.' },   // 첫 힐템 (2026-09-10) — 전투 뒤 상자에서 2개
 };
 export const itemKind = (name) => ITEMS[name]?.kind || 'key';
 export const plainItems = (inventory) => inventory.filter((n) => itemKind(n) === 'plain');
+export const keyItems = (inventory) => inventory.filter((n) => itemKind(n) !== 'plain');

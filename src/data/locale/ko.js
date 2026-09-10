@@ -25,6 +25,7 @@ export default {
   title_continue: 'C 이어하기',
   title_new: 'X 처음부터',
   title_confirm_new: '정말 처음부터? 한 번 더 X',
+  menu_plain_items: '그냥 아이템', menu_key_items: '중요 아이템', menu_use_on: '누구에게?', menu_no_plain: '(없음)', menu_no_key: '(없음)',
   battle_fight: '공격하기', battle_item: '아이템', battle_no_items: '* 쓸 수 있는 아이템이 없다.', battle_target: '* 누구를 공격할까?',
   battle_win: '* 이겼다!', battle_lose: '* 모두 쓰러졌다...{w=0.6} 다시 일어난다.', battle_hp: 'HP', battle_down: '쓰러짐',
   battle_preview_title: '전투 모션 미리보기',

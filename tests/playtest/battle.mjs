@@ -29,15 +29,19 @@ check('battle entry: sucked into a black vortex (vortex seen, fade color black) 
 check('battle bgm starts immediately when the battle object appears (no load delay)', started && started.bgm === 'rude_buster', started?.bgm);
 await page.evaluate(() => { game.battle.rnd = () => 0.5; });   // 결정적: 탄막이 소울(가운데)을 정확히 노린다
 let b = await until(async () => { const q = await bt(); return q && q.state === 'intro' && q.members.every((m) => m.loaded) && q.enemies.every((e) => e.loaded) ? q : null; }, 15000);
+{ const ty = []; for (let i = 0; i < 6; i++) { ty.push(await page.evaluate(() => [game.battle.shown, game.battle.text.length])); await page.waitForTimeout(60); }
+  check('battle text types out char by char (shown grows over time, not instant)', ty.some((t) => t[0] > 0 && t[0] < t[1]) && ty[ty.length - 1][0] > ty[0][0], JSON.stringify(ty)); }
 check('battle loaded: party hyungsub/gyeongsub/ppaman top→bottom on the left (HP 100/120/90), 2 CS on the right (HP 6 each)', !!b && b.members.map((m) => m.id).join() === 'hyungsub,gyeongsub,ppaman' && b.members.map((m) => m.max).join() === '100,120,90' && b.members.every((m, i) => i === 0 || m.home[1] > b.members[i - 1].home[1]) && b.members.every((m) => m.home[0] < 160) && b.enemies.length === 2 && b.enemies.every((e) => e.hp === 6 && e.x > 320), JSON.stringify({ m: b?.members.map((m) => [m.id, m.max, m.home]), e: b?.enemies.map((e) => [e.hp, e.x, e.y]) }));
 let s = await st(); check('battle bgm Rude Buster', s.bgm === 'rude_buster', s.bgm);
 { const lay = await page.evaluate(() => ({ ys: game.battle.members.map((m) => m.home[1]), poses: game.battle.members.map((m) => m.pose), soulR: game.battle.soul.r }));
   check('party fits above the panel (feet y ≤ 240, spacing ~78px) and does the attack pose at intro', lay.ys.every((y) => y <= 240 && y >= 80) && lay.ys[1] - lay.ys[0] <= 80 && lay.poses.some((p) => p !== null && p !== undefined), JSON.stringify(lay));
-  check('soul heart is Deltarune-sized (r ≥ 6)', lay.soulR >= 6, 'r=' + lay.soulR); }
+  check('soul heart is Deltarune-sized (r ≥ 6)', lay.soulR >= 6, 'r=' + lay.soulR);
+  const sway = []; for (let i = 0; i < 8; i++) { sway.push(await page.evaluate(() => Math.round(game.battle.enemies[0].ox || 0))); await page.waitForTimeout(150); }
+  check('enemies idle-sway slowly left/right (offset changes over time, amplitude ≥ 5px)', Math.max(...sway) - Math.min(...sway) >= 5, JSON.stringify(sway)); }
 { const en = await page.evaluate(() => game.battle.enemies.map((e) => ({ id: e.id, name: e.name, img: e.img?.src?.split('/').slice(-2).join('/'), w: e.img?.width, h: e.img?.height })));
   check('enemies are red/blue CS drawn from PR #7 battle-left PNGs (64×64, image not sheet)', en.length === 2 && en[0].id === 'cs_red' && en[1].id === 'cs_blue' && en.every((e) => /cs-(red|blue)-battle-left\.png$/.test(e.img || '') && e.w === 64 && e.h === 64), JSON.stringify(en)); }
 await page.screenshot({ path: `${S}/battle_01_intro.png` });
-await page.waitForTimeout(700); await page.keyboard.press('KeyC');
+await until(async () => page.evaluate(() => game.battle && game.battle.shown >= game.battle.text.length && game.battle.t > 0.65), 6000); await page.keyboard.press('KeyC');   // 문구가 다 찍힌 뒤 C (타자 중 C 는 즉시 완성)
 b = await until(async () => { const q = await bt(); return q && q.state === 'menu' ? q : null; }, 4000);
 check('after intro: menu for member 0 (형섭) with [공격하기][아이템]', !!b && b.memberIdx === 0 && b.menuIdx === 0, JSON.stringify({ state: b?.state, m: b?.memberIdx }));
 await page.screenshot({ path: `${S}/battle_02_menu.png` });
@@ -46,7 +50,7 @@ await page.screenshot({ path: `${S}/battle_02_menu.png` });
 // 아이템: 지금은 없음
 await page.keyboard.press('ArrowRight'); await page.waitForTimeout(120); await page.keyboard.press('KeyC'); await page.waitForTimeout(150);
 b = await bt(); check('[아이템] with nothing usable → "쓸 수 있는 아이템이 없다" text, back to menu', !!b && b.state === 'text' && b.text.includes('아이템이 없다'), JSON.stringify({ state: b?.state, text: b?.text }));
-await page.waitForTimeout(600); await page.keyboard.press('KeyC'); await page.waitForTimeout(200);
+await until(async () => page.evaluate(() => game.battle && game.battle.shown >= game.battle.text.length && game.battle.t > 0.55), 4000); await page.keyboard.press('KeyC'); await page.waitForTimeout(200);
 b = await bt(); check('back in menu', !!b && b.state === 'menu', b?.state);
 await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(100);
 // X 뒤로가기: 적 선택 중 X → 메뉴, 다음 멤버 메뉴에서 X → 앞 멤버 선택 취소
@@ -74,8 +78,19 @@ b = await bt();
 check('bullets were emitted (≥ 5) and standing still got hit at least once → a member lost HP (enemy damage 8)', maxBullets >= 5 && !!hitObs && b.members.some((m, i) => m.hp < hpBefore[i]) && b.members.every((m, i) => (hpBefore[i] - m.hp) % 8 === 0), JSON.stringify({ maxBullets, hits: b?.soul.hits, hp: b?.members.map((m) => m.hp) }));
 b = await until(async () => { const q = await bt(); return q && q.state === 'menu' ? q : null; }, 8000);
 check('board closes and the menu comes back for round 2', !!b && b.memberIdx === 0, b?.state);
+// 아이템(힐템) 사용: 바나나 1개를 넣고 경섭(HP 깎아 둠)에게 쓴다 → 형섭 카드에서 [아이템] → ◀바나나▶ → 대상 ◀경섭▶ → 계획 → 행동 때 회복
+{ await page.evaluate(() => { game.inventory.push('바나나'); game.battle.members[1].hp = 50; });
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(120); await page.keyboard.press('KeyC'); await page.waitForTimeout(150); let q = await bt();
+  check('[아이템] with a banana → item picker in the card', q.state === 'item', q.state);
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(150); q = await bt(); check('pick banana → target picker (누구에게)', q.state === 'item-target', q.state);
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(120); await page.keyboard.press('KeyC'); await page.waitForTimeout(150); q = await bt();
+  check('target 경섭 chosen → plan made, next member', q.plans === 1 && q.memberIdx === 1, JSON.stringify({ plans: q.plans, m: q.memberIdx }));
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.keyboard.press('KeyC'); await page.waitForTimeout(150);
+  const healed = await until(async () => { const q = await bt(); return q && q.members[1].hp === 80 ? q : null; }, 8000);
+  check('act: banana heals 경섭 50 → 80 and is consumed', !!healed && (await page.evaluate(() => game.inventory.filter((n) => n === '바나나').length)) === 0, JSON.stringify({ hp: healed?.members?.[1]?.hp }));
+  await until(async () => { const q = await bt(); return q && (q.state === 'menu' || q.state === 'win') ? q : null; }, 20000); }
 // 이길 때까지 라운드 반복 (방향키로 피하기: 위아래 왔다갔다)
-let rounds = 1; let won = null;
+let rounds = 2; let won = null;
 while (rounds < 8) {
   await pickAll(); rounds++;
   const r = await until(async () => { const q = await bt(); if (!q) return 'gone'; if (q.state === 'win') return q; if (q.state === 'bullets') { await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(120); await page.keyboard.up('ArrowLeft'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(120); await page.keyboard.up('ArrowRight'); } if (q.state === 'lose') { await page.waitForTimeout(900); await page.keyboard.press('KeyC'); } return null; }, 20000, 80);

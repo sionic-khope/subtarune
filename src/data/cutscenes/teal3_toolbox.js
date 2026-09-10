@@ -66,7 +66,7 @@ export const teal3_toolbox = [
   { fade: 'out', duration: 0.25 },
   { wait: 0.15 },
   { vortex: null },
-  { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won' } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster
+  { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won', bg: 'teal' } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster, 배경 청록 잎 구름
   // ── 전투 뒤 (사용자 브리핑 2026-09-10): 미니언 둘이 파들파들 떨다가 → 빠맨 "응 ? 뭐 뭐지" → 점프 → 길 따라 아래로 → 청록숲2 오른쪽 길의 나무 동상들을 펑펑 날려버림 → 주인공 화면 → 나레이션 ──
   { bgm: null, fadeOut: 0.6 },
   { set: { teal3_battle_pending: true } },
@@ -83,31 +83,28 @@ export const teal3_toolbox = [
   { parallel: [{ move: 'cs1', px: [17 * 32 - 20, 29 * 32 + 20], run: true, speed: 220 }, { move: 'cs2', px: [17 * 32 + 12, 29 * 32 + 24], run: true, speed: 220 }] },   // 길 따라 아래로(맵 밖으로)
   { remove: 'cs1' }, { remove: 'cs2' },
   { fade: 'out', duration: 0.3 },
-  // 청록숲2 로 (주인공은 숨긴 채 위 길 꼭대기에), 카메라는 동상 벽
+  // 청록숲2 로 (주인공은 숨긴 채 위 길 꼭대기에) — 미니언이 위 길 꼭대기부터 달려 내려와 오른쪽으로 쓱 지나가는 순간 동상 다섯이 한꺼번에 펑 (사용자 2026-09-10)
   { map: 'teal2', spawn: 'from_top' },
   { hide: 'player' }, { hide: 'ppaman' }, { hide: 'gyeongsub' },
-  { spawn: { type: 'npc', id: 'cs1', sprite: 'cs_red', x: 36 * 32, y: 20 * 32 + 8, facing: 'down', wander: 0, solid: false } },
-  { spawn: { type: 'npc', id: 'cs2', sprite: 'cs_blue', x: 36 * 32 + 28, y: 21 * 32 + 8, facing: 'down', wander: 0, solid: false } },
-  { camera: [37, 21], duration: 0.01 },
+  { spawn: { type: 'npc', id: 'cs1', sprite: 'cs_red', x: 20 * 32 + 8, y: 1 * 32 + 8, facing: 'down', wander: 0, solid: false } },
+  { spawn: { type: 'npc', id: 'cs2', sprite: 'cs_blue', x: 21 * 32 + 20, y: 1 * 32 + 20, facing: 'down', wander: 0, solid: false } },
+  { camera: 'cs1' },
   { fade: 'in', duration: 0.35 },
-  { wait: 0.3 },
-  { parallel: [{ move: 'cs1', px: [38 * 32 - 30, 20 * 32 + 8], run: true, speed: 220 }, { move: 'cs2', px: [38 * 32 - 30, 22 * 32 + 8], run: true, speed: 220 }] },   // 동상 벽 앞으로
-  // 펑펑: 동상 다섯이 차례로 역동적으로 날아가 사라진다
-  { hop: 'cs1', by: [14, 0], height: 10, duration: 0.15, sfx: false }, { sfx: 'pop' }, { shake: 0.25, amp: 4 },
-  { async: [{ hop: 'statue_w1', by: [110, -160], height: 90, duration: 0.55, sfx: false }, { remove: 'statue_w1' }] },
-  { hop: 'cs2', by: [14, 0], height: 10, duration: 0.15, sfx: false }, { sfx: 'pop' }, { shake: 0.25, amp: 4 },
-  { async: [{ hop: 'statue_w2', by: [140, -120], height: 110, duration: 0.55, sfx: false }, { remove: 'statue_w2' }] },
+  { wait: 0.2 },
+  { parallel: [{ move: 'cs1', px: [20 * 32 + 8, 20 * 32 + 8], run: true, speed: 260 }, { move: 'cs2', px: [21 * 32 + 20, 21 * 32 + 8], run: true, speed: 260 }] },   // 위 길을 따라 아래로
+  { parallel: [{ move: 'cs1', px: [37 * 32 + 8, 20 * 32 + 8], run: true, speed: 300 }, { move: 'cs2', px: [37 * 32 + 20, 21 * 32 + 8], run: true, speed: 300 }] },   // 오른쪽 길로 달려 동상 벽 바로 앞까지
+  { async: [{ parallel: [{ move: 'cs1', px: [45 * 32, 20 * 32 + 8], run: true, speed: 320 }, { move: 'cs2', px: [45 * 32, 21 * 32 + 8], run: true, speed: 320 }] }, { remove: 'cs1' }, { remove: 'cs2' }] },   // 멈추지 않고 쓱 지나간다(맵 밖으로)
   { wait: 0.12 },
-  { hop: 'cs1', by: [0, 0], height: 12, duration: 0.15, sfx: false }, { sfx: 'pop' }, { sfx: 'pop' }, { shake: 0.35, amp: 5 },
-  { async: [{ hop: 'statue_w3', by: [90, -200], height: 130, duration: 0.6, sfx: false }, { remove: 'statue_w3' }] },
-  { async: [{ hop: 'statue_w4', by: [160, -90], height: 100, duration: 0.5, sfx: false }, { remove: 'statue_w4' }] },
-  { wait: 0.15 },
-  { hop: 'cs2', by: [0, 0], height: 12, duration: 0.15, sfx: false }, { sfx: 'pop' }, { shake: 0.3, amp: 4 },
-  { async: [{ hop: 'statue_w5', by: [130, -170], height: 120, duration: 0.6, sfx: false }, { remove: 'statue_w5' }] },
+  // 펑! 다섯이 한꺼번에 사방으로 빙글빙글 날아간다
+  { sfx: 'pop' }, { shake: 0.6, amp: 7 },
+  { async: [{ wait: 0.08 }, { sfx: 'pop' }, { wait: 0.1 }, { sfx: 'pop' }] },
+  { async: [{ hop: 'statue_w1', by: [110, -260], height: 150, duration: 0.75, spin: 2.5, keep: true, sfx: false }, { remove: 'statue_w1' }] },
+  { async: [{ hop: 'statue_w2', by: [220, -170], height: 120, duration: 0.7, spin: -3, keep: true, sfx: false }, { remove: 'statue_w2' }] },
+  { async: [{ hop: 'statue_w3', by: [40, -320], height: 170, duration: 0.8, spin: 3.5, keep: true, sfx: false }, { remove: 'statue_w3' }] },
+  { async: [{ hop: 'statue_w4', by: [250, -60], height: 100, duration: 0.65, spin: -2, keep: true, sfx: false }, { remove: 'statue_w4' }] },
+  { async: [{ hop: 'statue_w5', by: [170, -240], height: 140, duration: 0.75, spin: 4, keep: true, sfx: false }, { remove: 'statue_w5' }] },
   { set: { statues_cleared: true } },
-  { wait: 0.7 },
-  { parallel: [{ move: 'cs1', px: [44 * 32, 20 * 32 + 8], run: true, speed: 240 }, { move: 'cs2', px: [44 * 32, 22 * 32 + 8], run: true, speed: 240 }] },   // 뚫린 오른쪽 길로 사라진다
-  { remove: 'cs1' }, { remove: 'cs2' },
+  { wait: 1.1 },
   { wait: 0.4 },
   { fade: 'out', duration: 0.35 },
   // 주인공 화면으로
@@ -116,6 +113,8 @@ export const teal3_toolbox = [
   { fade: 'in', duration: 0.5 },
   N('* ...{w=0.7} 어찌저찌 된거같다.'),
   N('* {c=yellow}전투를 할 수 있게 되었다!{/c}'),
+  { sfx: 'item' }, { action: (g) => { g.inventory.push('바나나', '바나나'); } },
+  N('* 상자 안에 있던 {c=yellow}바나나{/c} 2개를 챙겼다.'),   // 첫 힐템 (내가 넣음 — 위치는 바꿔도 됨)
   { end: true },
   { label: 'again' },
   N('* 공구상자다.{w=0.4} 뭔가 많이 들어 있다.'),

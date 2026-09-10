@@ -82,6 +82,20 @@ check('after the battle: flags set (won + pending), CS removed, zoom back, camer
 { await stand(bx + 4, by + 24, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); const r2 = await drain(6000);
   check('toolbox again: 공구상자다. 뭔가 많이 들어 있다.', r2.lines.some((l) => l.includes('뭔가 많이 들어 있다')), JSON.stringify(r2.lines)); }
 await page.screenshot({ path: `${S}/teal3_06_after.png` });
+// 메뉴에서 힐템: 전투 뒤 바나나 2개 → V → 아이템 → 바나나 → 대상 경섭(HP 깎아 둠) → 회복·소모, 파티 HP 바 색
+{ const inv = await page.evaluate(() => game.inventory.filter((n) => n === '바나나').length); check('after the scene: 2 bananas in the inventory', inv === 2, 'bananas=' + inv);
+  await page.evaluate(() => { game.partyHp.gyeongsub = 40; });
+  await page.keyboard.press('KeyV'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); await page.waitForTimeout(200);   // 아이템
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(200);   // 바나나 → 대상
+  let mm = await page.evaluate(() => ({ state: game.state, sub: game.menu.sub, pick: game.menu.pick })); check('menu: item → target picker opened', mm.state === 'menu' && mm.sub === 0 && mm.pick === 0, JSON.stringify(mm));
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(120); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(120);   // 요플래 → 억빠맨 → 경섭
+  mm = await page.evaluate(() => ({ pick: game.menu.pick, party: game.party })); const gsIdx = 1 + mm.party.indexOf('gyeongsub');
+  for (let i = mm.pick; i !== gsIdx; i = (i + 1) % (mm.party.length + 1)) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(120); }
+  await page.screenshot({ path: `${S}/teal3_08_menu_item.png` });
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(250);
+  const res = await page.evaluate(() => ({ hp: game.partyHp.gyeongsub, bananas: game.inventory.filter((n) => n === '바나나').length }));
+  check('menu heal: 경섭 40 → 70, one banana consumed', res.hp === 70 && res.bananas === 1, JSON.stringify(res));
+  await page.keyboard.press('KeyX'); await page.waitForTimeout(150); await page.keyboard.press('KeyX'); await page.waitForTimeout(200); }
 // 청록숲2 로 내려가면 동상 벽이 없고 오른쪽 길이 뚫려 teal_east 까지 간다
 await stand(17 * 32 + 4, 27 * 32 + 8, 'down'); await page.keyboard.down('ArrowDown'); await page.waitForTimeout(1300); await page.keyboard.up('ArrowDown'); await page.waitForTimeout(900); s = await st();
 { const q = await page.evaluate(() => ({ map: game.mapId, statues: game.entities.filter((e) => /^statue_w\d$/.test(e.id) && !e.dead).length })); check('teal2 after clearing: no statue wall', q.map === 'teal2' && q.statues === 0, JSON.stringify(q));
