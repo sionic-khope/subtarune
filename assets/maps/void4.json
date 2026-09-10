@@ -53,6 +53,11 @@
       "x": 2300,
       "y": 300,
       "facing": "left"
+    },
+    "pillar": {
+      "x": 1220,
+      "y": 232,
+      "facing": "left"
     }
   },
   "entities": [
@@ -100,7 +105,8 @@
       "y": 232,
       "facing": "down",
       "wander": 0,
-      "script": "void4_ppaman"
+      "script": "void4_ppaman",
+      "unless": "ppaman_joined"
     },
     {
       "type": "trigger",

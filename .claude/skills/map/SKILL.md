@@ -58,6 +58,7 @@ model: opus
    - **보라맵(void) 계열**: 큰 아치문 `big_door.png` 은 보라맵1 출구에만. 이후 맵은 땅을 화면 가장자리까지 이어 붙이고 그 끝에 `door` 영역만(문 그림 없음) → 나가는 방향이 한눈에 보인다. 잠긴 문이 필요하면 작은 `door_small.png` + `padlock.png`. 뗏목 탄 플레이어는 엔진이 항상 위에 그린다.
    - **뗏목/탈것**: `{ "type":"raft","id":"raft1","image":"assets/props/raft.png","x":128,"y":108,"route":[[584,108]],"speed":114 }` — x,y·route 는 이미지 좌상단, 물 타일(`o/O`) 위. 타는 자리(착지)는 뗏목 옆 1타일 안(프로브 0.6타일). 위치는 `flags.raft_<id>` 로 유지.
    - 맵 가장자리 출입구: 문 영역은 **플레이어가 실제로 닿는 칸 안**에 둔다(가장자리 타일이 막힘이면 플레이어 x 최소 32, 최대 폭-56). 스폰은 그 영역과 24px 이상 떨어뜨린다.
+   - 동료가 될 NPC: `{ type:'npc', id:'<캐릭터id>', sprite:'<캐릭터id>', unless:'<id>_joined', script:'…' }` — id 가 캐릭터 id 와 같아야 `{join}` 이 NPC 를 치운다. 동료는 벽·소품과 충돌하지 않으니 통로 폭은 신경 안 써도 됨.
    - 새 맵/이벤트마다 `src/core/story.js QA_POINTS` 에 바로가기(직전 지점)를 추가하고 스폰에 `facing` 을 준다. 이벤트 뒤 상태로 바로 가야 하면 `flags:{…}`.
    - 맵 옵션 `backdrop`(원경), `tileSwaps`(플래그로 행 교체), `preload`(컷신 spawn 이미지) — `docs/STATE.md` '맵 연출 옵션'. **도트 밀도**: 요청 없는 소품은 델타룬식 최소 디테일(외곽선+한두 색).
 4. `assets/maps/index.json` 의 `maps` 에 id 추가. 이어지는 맵의 `door` 에 `to/spawn` 연결.
