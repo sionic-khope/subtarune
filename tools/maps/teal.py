@@ -7,16 +7,19 @@ teal3(위, 다음 브리핑) / teal_east(막힌 오른쪽 너머) 는 빈 착지
 실행: /usr/bin/python3 tools/maps/teal.py  (--check)
 """
 import io, json, sys
+from itertools import cycle
 def g(r, c, grass=False): return 'g' if grass else ('t' if (r + c) % 2 == 0 else 'u')
 def cliffs(rows, W, H):
     for r in range(1, H):
         for c in range(W):
             if rows[r][c] == ' ' and rows[r - 1][c] in 'tug': rows[r][c] = 'v'
 def grass_at(r, c): return (r * 7 + c * 13) % 11 == 0     # 잔풀 땅을 드문드문
-STATUE = 'assets/props/statue_junhee.png'
+STATUES = cycle(f'assets/props/statue_junhee_{pose}.png' for pose in
+                ('arms_crossed', 'laugh', 'gesture', 'arms_raised', 'thinking', 'look_back'))
 def statue(id_, x, y, script, wall=False):   # 그림 44×60. 히트박스 = 받침(32×14); 벽 동상은 타일 전체(32×32) 로 빈틈 없이 막는다
-    if wall: return {'type': 'prop', 'id': id_, 'image': STATUE, 'x': x + 6, 'y': y + 28, 'w': 32, 'h': 32, 'ix': x, 'iy': y, 'solid': True, 'script': script}
-    return {'type': 'prop', 'id': id_, 'image': STATUE, 'x': x + 6, 'y': y + 46, 'w': 32, 'h': 14, 'ix': x, 'iy': y, 'solid': True, 'script': script}
+    image = next(STATUES)
+    if wall: return {'type': 'prop', 'id': id_, 'image': image, 'x': x + 6, 'y': y + 28, 'w': 32, 'h': 32, 'ix': x, 'iy': y, 'solid': True, 'script': script}
+    return {'type': 'prop', 'id': id_, 'image': image, 'x': x + 6, 'y': y + 46, 'w': 32, 'h': 14, 'ix': x, 'iy': y, 'solid': True, 'script': script}
 
 # ── teal1 ──
 W, H = 64, 12

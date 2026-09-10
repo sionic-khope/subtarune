@@ -1,0 +1,152 @@
+{
+  "source": "statues.png",
+  "grid": [
+    3,
+    2
+  ],
+  "outputSize": [
+    44,
+    60
+  ],
+  "scale": "1/9",
+  "resampling": "NEAREST",
+  "paletteQuantization": false,
+  "anchor": {
+    "plinthCenterX": 22,
+    "plinthBottomY": 60
+  },
+  "frames": [
+    {
+      "pose": "arms_crossed",
+      "sourceCell": [
+        0,
+        0,
+        418,
+        627
+      ],
+      "sourceBounds": [
+        33,
+        94,
+        384,
+        582
+      ],
+      "cropInCell": [
+        11,
+        42,
+        407,
+        582
+      ],
+      "image": "assets/props/statue_junhee_arms_crossed.png"
+    },
+    {
+      "pose": "laugh",
+      "sourceCell": [
+        418,
+        0,
+        418,
+        627
+      ],
+      "sourceBounds": [
+        32,
+        94,
+        381,
+        582
+      ],
+      "cropInCell": [
+        11,
+        42,
+        407,
+        582
+      ],
+      "image": "assets/props/statue_junhee_laugh.png"
+    },
+    {
+      "pose": "gesture",
+      "sourceCell": [
+        836,
+        0,
+        418,
+        627
+      ],
+      "sourceBounds": [
+        33,
+        94,
+        393,
+        582
+      ],
+      "cropInCell": [
+        11,
+        42,
+        407,
+        582
+      ],
+      "image": "assets/props/statue_junhee_gesture.png"
+    },
+    {
+      "pose": "arms_raised",
+      "sourceCell": [
+        0,
+        627,
+        418,
+        627
+      ],
+      "sourceBounds": [
+        31,
+        35,
+        385,
+        533
+      ],
+      "cropInCell": [
+        11,
+        -7,
+        407,
+        533
+      ],
+      "image": "assets/props/statue_junhee_arms_raised.png"
+    },
+    {
+      "pose": "thinking",
+      "sourceCell": [
+        418,
+        627,
+        418,
+        627
+      ],
+      "sourceBounds": [
+        37,
+        35,
+        372,
+        533
+      ],
+      "cropInCell": [
+        11,
+        -7,
+        407,
+        533
+      ],
+      "image": "assets/props/statue_junhee_thinking.png"
+    },
+    {
+      "pose": "look_back",
+      "sourceCell": [
+        836,
+        627,
+        418,
+        627
+      ],
+      "sourceBounds": [
+        56,
+        35,
+        354,
+        533
+      ],
+      "cropInCell": [
+        11,
+        -7,
+        407,
+        533
+      ],
+      "image": "assets/props/statue_junhee_look_back.png"
+    }
+  ]
+}
