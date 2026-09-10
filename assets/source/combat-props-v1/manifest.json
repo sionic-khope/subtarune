@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "status": "asset-handoff-not-wired",
+  "pathBase": "repository-root",
+  "generator": "built-in image_gen",
+  "processing": "Magenta removal, residual magenta cleanup, NEAREST resize; no palette quantization. Runtime PNGs are finalized exports; raw PNGs are source references, not drop-in replacements.",
+  "assets": [
+    {
+      "id": "cs-red-front",
+      "image": "assets/enemies/cs-red-front.png",
+      "role": "field",
+      "facing": "front",
+      "size": [
+        48,
+        48
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        44
+      ],
+      "source": "assets/source/combat-props-v1/red-field-front-raw.png"
+    },
+    {
+      "id": "cs-blue-front",
+      "image": "assets/enemies/cs-blue-front.png",
+      "role": "field",
+      "facing": "front",
+      "size": [
+        48,
+        48
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        44
+      ],
+      "source": "assets/source/combat-props-v1/blue-field-front-raw.png"
+    },
+    {
+      "id": "cs-red-battle-left",
+      "image": "assets/enemies/cs-red-battle-left.png",
+      "role": "battle",
+      "facing": "left",
+      "size": [
+        64,
+        64
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        60
+      ],
+      "source": "assets/source/combat-props-v1/red-battle-left-raw.png"
+    },
+    {
+      "id": "cs-blue-battle-left",
+      "image": "assets/enemies/cs-blue-battle-left.png",
+      "role": "battle",
+      "facing": "left",
+      "size": [
+        64,
+        64
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        60
+      ],
+      "source": "assets/source/combat-props-v1/blue-battle-left-raw.png"
+    },
+    {
+      "id": "weapon-box-open",
+      "image": "assets/props/weapon_box_open.png",
+      "role": "prop",
+      "facing": "front",
+      "size": [
+        64,
+        64
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        60
+      ],
+      "source": "assets/source/combat-props-v1/weapon-box-raw.png"
+    }
+  ]
+}
