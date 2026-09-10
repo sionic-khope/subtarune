@@ -56,3 +56,9 @@
 - 맵 생성기를 다시 실행해도 선택한 파일 경로와 배치가 유지된다.
 
 이 PR에서는 파일·규격·문서 링크와 기존 전투 모션 유닛 테스트만 확인한다. 위 게임 연결 시나리오는 후속 적용 작업의 완료 기준이지 이미 끝났다는 보고가 아니다.
+
+## 연결 완료 (2026-09-10, main)
+- **필드 미니언**: 엔진에 정지 1장 캐릭터 계약 추가 — `characters.js` 의 `still: '<png>'` (예 `cs_red`/`cs_blue`). `characterSprite` 가 4방향·4프레임을 같은 그림으로 채우고 원본 해상도(px 1)로 그린다(48×48 → 화면 69px). 4분할 안 함. `teal3_toolbox.js` 의 `cs1`=레드, `cs2`=블루, 정면.
+- **전투 적**: `enemies.js` `cs_red`/`cs_blue` — `image` 단일 PNG + `pivot [32,60]` + `scale 1.4`. `battle.js drawEnemy` 가 발 pivot 을 기준점에 놓는다(반전 없음). 컷신 `battle.enemies: ['cs_red','cs_blue']`.
+- **무기 상자**: `tools/maps/teal.py` teal3 의 `toolbox`(id 유지) → `weapon_box_open.png`, 히트박스 밑동 40×14, 그림 `ix/iy` 를 pivot 에 맞춤(그림 밑변 = 히트박스 밑변 + 4). 유닛 `props.test.mjs` 정합 검사 통과.
+- 옛 임시 시트 `assets/sprites/cs.png`·`tools/art/cs_sheet.py` 삭제. 검증: `tests/playtest/teal3.mjs`(정면 1장·상자 그림) · `battle.mjs`(64×64 PNG·id).

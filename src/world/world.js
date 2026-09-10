@@ -107,6 +107,13 @@ export function characterSprite(paletteName, override = null) {
   const key = paletteName;
   if (spriteCache.has(key)) return spriteCache.get(key);
   const set = { down: [], up: [], left: [], right: [], fw: 16, fh: 16, px: 1 };   // px: 시트 해상도 배율
+  if (override && CHARACTERS[paletteName]?.still) {
+    // 정지 프레임 1장(assets/enemies/*-front.png 등, PR #7 가이드): 4방향·4프레임 모두 같은 그림, 원본 해상도(px 1) 그대로 — 4분할하지 않는다
+    set.fw = override.width; set.fh = override.height; set.px = 1;
+    for (const dir of ['down', 'up', 'left', 'right']) set[dir] = [override, override, override, override];
+    spriteCache.set(key, set);
+    return set;
+  }
   if (override) {
     // assets/sprites/<name>.png : 4열(프레임) x 4행(down, up, left, right). 프레임 = 폭/4 x 높이/4
     const fw = Math.floor(override.width / 4), fh = Math.floor(override.height / 4);

@@ -29,6 +29,8 @@ await page.evaluate(() => { game.battle.rnd = () => 0.5; });   // 결정적: 탄
 let b = await until(async () => { const q = await bt(); return q && q.state === 'intro' && q.members.every((m) => m.loaded) && q.enemies.every((e) => e.loaded) ? q : null; }, 15000);
 check('battle loaded: party hyungsub/gyeongsub/ppaman top→bottom on the left (HP 100/120/90), 2 CS on the right (HP 6 each)', !!b && b.members.map((m) => m.id).join() === 'hyungsub,gyeongsub,ppaman' && b.members.map((m) => m.max).join() === '100,120,90' && b.members.every((m, i) => i === 0 || m.home[1] > b.members[i - 1].home[1]) && b.members.every((m) => m.home[0] < 160) && b.enemies.length === 2 && b.enemies.every((e) => e.hp === 6 && e.x > 320), JSON.stringify({ m: b?.members.map((m) => [m.id, m.max, m.home]), e: b?.enemies.map((e) => [e.hp, e.x, e.y]) }));
 let s = await st(); check('battle bgm Rude Buster', s.bgm === 'rude_buster', s.bgm);
+{ const en = await page.evaluate(() => game.battle.enemies.map((e) => ({ id: e.id, name: e.name, img: e.img?.src?.split('/').slice(-2).join('/'), w: e.img?.width, h: e.img?.height })));
+  check('enemies are red/blue CS drawn from PR #7 battle-left PNGs (64×64, image not sheet)', en.length === 2 && en[0].id === 'cs_red' && en[1].id === 'cs_blue' && en.every((e) => /cs-(red|blue)-battle-left\.png$/.test(e.img || '') && e.w === 64 && e.h === 64), JSON.stringify(en)); }
 await page.screenshot({ path: `${S}/battle_01_intro.png` });
 await page.waitForTimeout(700); await page.keyboard.press('KeyC');
 b = await until(async () => { const q = await bt(); return q && q.state === 'menu' ? q : null; }, 4000);

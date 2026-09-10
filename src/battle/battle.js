@@ -264,9 +264,9 @@ export class Battle {
       const fw = Math.floor(e.img.width / sh.cols), fh = Math.floor(e.img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
       const s = e.def.scale ?? 1, dw = Math.round(fw / 2 * s), dh = Math.round(fh / 2 * s);
       ctx.drawImage(e.img, col * fw, sh.row * fh, fw, fh, Math.round(e.x - dw / 2 + sx), Math.round(e.y - dh), dw, dh);
-    } else if (e.img) {
-      const s = e.def.scale ?? 1, dw = Math.round(e.img.width * s), dh = Math.round(e.img.height * s);
-      ctx.drawImage(e.img, Math.round(e.x - dw / 2 + sx), Math.round(e.y - dh), dw, dh);
+    } else if (e.img) {                                          // 단일 PNG: 발 pivot 을 (e.x, e.y) 에 놓는다 (PR #7 가이드: 64×64, pivot 32,60 → 아래 4px 여백)
+      const s = e.def.scale ?? 1, dw = Math.round(e.img.width * s), dh = Math.round(e.img.height * s); const [pvx, pvy] = e.def.pivot || [e.img.width / 2, e.img.height];
+      ctx.drawImage(e.img, Math.round(e.x - pvx * s + sx), Math.round(e.y - pvy * s), dw, dh);
     } else { ctx.fillStyle = '#7a8'; ctx.fillRect(e.x - 20 + sx, e.y - 44, 40, 44); }
     ctx.restore();
     if (e.popup) this.drawPopup(ctx, e.x, e.y - 60, e.popup.text, e.popup.t, '#fff');

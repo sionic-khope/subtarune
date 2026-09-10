@@ -2,7 +2,7 @@
 // 청록숲 3 공구상자 (사용자 브리핑 2026-09-10, 대사 그대로)
 //   상자에 C → 브금 꺼짐 → 세 사람이 상자를 기준으로 흩어져 상자를 바라봄
 //   빠맨 "뭔가 많이 들어있네요" / 경섭 "응 그렇네" / 빠맨 "응? 이게 무슨소리죠" / 경섭 "???"
-//   → 오른쪽 풀숲에서 미니언(CS) 두 마리가 튀어나옴(스프라이트는 임시, 사용자가 나중에 입힘)
+//   → 오른쪽 풀숲에서 미니언(레드/블루 CS, PR #7 정면 정지 스프라이트) 두 마리가 튀어나옴
 //   빠맨 "앗 ... ... 엥 CS?" / 경섭 "허허 저게 뭐냐 근데 뭔가 꼭... 우리를" → CS 점프 연출 → 세 사람 한 칸 뒤로 물러나 오른쪽(CS)을 바라봄
 //   빠맨 "아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼네봐요 !!!"
 //   → 빠맨이 상자에서 꺼내(효과음) 형섭·경섭 앞으로 달려가 하나씩 건네는 시늉(효과음·바라보기)
@@ -11,7 +11,7 @@
 const N = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
-const CS = (id, x, y) => ({ type: 'npc', id, sprite: 'cs', x, y, facing: 'left', wander: 0, solid: true });
+const CS = (id, x, y, sprite) => ({ type: 'npc', id, sprite, x, y, facing: 'down', wander: 0, solid: true });   // 필드 미니언은 정면 정지 1장(PR #7) — facing 무관
 
 export const teal3_toolbox = [
   { if: (f) => f.teal3_battle_pending, goto: 'again' },
@@ -29,8 +29,9 @@ export const teal3_toolbox = [
   { sfx: 'rumble' },                                              // 풀숲 쪽에서 나는 소리
   P('* 응?{w=0.4} 이게 무슨소리죠'),
   G('* ???'),
+  { camera: [21, 14], duration: 0.6 },                            // 상자와 오른쪽 풀숲이 한 화면에 — 튀어나오는 게 보여야 한다 (스크린샷으로 발견)
   { face: 'ppaman', dir: 'right' }, { face: 'gyeongsub', dir: 'right' }, { face: 'player', dir: 'right' },
-  { spawn: CS('cs1', 850, 436) }, { spawn: CS('cs2', 850, 500) },  // 오른쪽 풀숲 안에서
+  { spawn: CS('cs1', 850, 436, 'cs_red') }, { spawn: CS('cs2', 850, 500, 'cs_blue') },  // 오른쪽 풀숲 안에서 (레드·블루)
   { sfx: 'whoosh' },
   { parallel: [{ hop: 'cs1', by: [-70, 6], height: 34, duration: 0.5, sfx: false }, { hop: 'cs2', by: [-64, -4], height: 30, duration: 0.55, sfx: false }] },   // 갑자기 튀어나온다
   { emote: 'ppaman', kind: '!', duration: 1.0, hold: 0.5 },
@@ -62,12 +63,13 @@ export const teal3_toolbox = [
   { zoom: 1.9, at: 'center', duration: 0.55 },
   { fade: 'white', duration: 0.3 },
   { wait: 0.35 },
-  { battle: { enemies: ['cs', 'cs'], bgm: 'rude_buster', flag: 'teal3_cs_won' } },   // CS 두 마리, 각 HP 6. 일반 전투 브금 Rude Buster
+  { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won' } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster
   { bgm: null, fadeOut: 0.6 },
   { set: { teal3_battle_pending: true } },
   { remove: 'cs1' }, { remove: 'cs2' },
   { zoom: 1 },
   { regroup: true },
+  { camera: 'player' },
   { fade: 'in', duration: 0.5 },
   N('* CS 를 물리쳤다.'),
   { end: true },

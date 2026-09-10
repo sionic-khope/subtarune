@@ -13,7 +13,7 @@ const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${n
 const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 15000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player))) return; await page.waitForTimeout(100); } };
 const st = () => page.evaluate(() => { const ent = (id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: Math.round(e.x), y: Math.round(e.y), facing: e.facing, hopY: Math.round(e.hopY || 0), emote: e.emote?.kind || null, dead: !!e.dead } : null; };
   return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), p: [Math.round(game.player.x), Math.round(game.player.y)], pf: game.player.facing,
-    pp: ent('ppaman'), gs: ent('gyeongsub'), cs1: ent('cs1'), cs2: ent('cs2'), bgm: game.sound.bgmName || null, zoom: +(game.zoom?.s ?? 1).toFixed(2), shake: !!game.shake, flags: { ...game.flags }, f: game.entities.filter((e) => e.def?.type === 'follower').map((x) => ({ id: x.id, x: Math.round(x.x), y: Math.round(x.y), vis: x.visible })) }; });
+    pp: ent('ppaman'), gs: ent('gyeongsub'), cs1: ent('cs1'), cs2: ent('cs2'), cam: Math.round(game.camera.x), bgm: game.sound.bgmName || null, zoom: +(game.zoom?.s ?? 1).toFixed(2), shake: !!game.shake, flags: { ...game.flags }, f: game.entities.filter((e) => e.def?.type === 'follower').map((x) => ({ id: x.id, x: Math.round(x.x), y: Math.round(x.y), vis: x.visible })) }; });
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.player.trail = []; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); }, [x, y, f]);
 const drain = async (maxMs, probe) => {
   const out = []; const obs = []; const t0 = Date.now(); let idle = 0;
@@ -41,10 +41,11 @@ await page.screenshot({ path: `${S}/teal3_01_clearing.png` });
 // 공구상자 C
 const [bx, by] = meta.box;
 await stand(bx + 4, by + 24, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');
-const shots = { spread: false, pop: false, jump: false, back: false, flash: false };
+const shots = { spread: false, pop: false, jump: false, back: false, flash: false }; let spr = null;
 const r = await drain(90000, async (q) => {
   if (q.text.startsWith('* 뭔가 많이') && !shots.spread) { shots.spread = true; await page.screenshot({ path: `${S}/teal3_02_spread.png` }).catch(() => {}); }
-  if (q.cs1 && q.cs1.hopY > 6 && !shots.pop) { shots.pop = true; await page.screenshot({ path: `${S}/teal3_03_pop.png` }).catch(() => {}); }
+  if (q.cs1 && !spr) spr = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'cs1'); const f = game.entities.find((x) => x.id === 'cs2'); const info = (e) => e ? { fw: e.sprite.fw, fh: e.sprite.fh, px: e.sprite.px, same: e.sprite.down[0] === e.sprite.left[1], sprite: e.def.sprite } : null; return { cs1: info(e), cs2: info(f), box: game.entities.find((x) => x.id === 'toolbox')?.def.image }; });
+  if (q.cs1 && q.cs1.hopY > 6 && !shots.pop) { shots.pop = true; shots.popOnScreen = q.cs1.x - q.cam > 0 && q.cs1.x - q.cam < 470 && q.p[0] - q.cam > 0; await page.screenshot({ path: `${S}/teal3_03_pop.png` }).catch(() => {}); }
   if (q.text.startsWith('* 아 안되겠다') && !shots.back) { shots.back = true; await page.screenshot({ path: `${S}/teal3_04_back.png` }).catch(() => {}); }
   if (q.zoom > 1.3 && !shots.flash) { shots.flash = true; await page.screenshot({ path: `${S}/teal3_05_battle.png` }).catch(() => {}); }
   // 전투가 뜨면 바로 승리 처리 (전투 검증은 battle.mjs)
@@ -62,6 +63,8 @@ check('toolbox scene: 8 lines in briefing order', idx.every((i) => i >= 0) && id
   const q1 = li('* ???'), q2 = li('* 앗');
   check('CS minions appear from the right bushes after "???" and hop out (hopY > 6, moved left)', o.slice(q1, q2 + 1).some((x) => x.cs1 && x.cs1.hopY > 6) && o[q2] && o[q2].cs1 && o[q2].cs1.x < 850 && o[q2].cs2 && o[q2].cs2.x < 850 && !o[q1 - 1]?.cs1, JSON.stringify({ atQ: o[q2]?.cs1, before: o[q1 - 1]?.cs1 }));
   const j0 = li('* 허허 저게'), j1 = li('* 아 안되겠다');
+  check('field CS use PR #7 still images (48×48, not split), red/blue; weapon box image on the chest', !!spr && !!spr.cs1 && spr.cs1.fw === 48 && spr.cs1.fh === 48 && spr.cs1.px === 1 && spr.cs1.same && spr.cs1.sprite === 'cs_red' && spr.cs2?.sprite === 'cs_blue' && spr.box === 'assets/props/weapon_box_open.png', JSON.stringify(spr));
+  check('CS pop out is on screen (camera moved so both the party and the bushes are visible)', shots.pop && shots.popOnScreen === true, JSON.stringify({ pop: shots.pop, onScreen: shots.popOnScreen }));
   check('CS jump staging between "허허 저게 뭐냐" and "아 안되겠다"', o.slice(j0, j1).filter((x) => x.cs1 && x.cs1.hopY > 6).length >= 2, '');
   const b = o[j1];
   check('all three stepped back one tile (x −32) and face right', b && b.p[0] === a.p[0] - 32 && b.pp.x === a.pp.x - 32 && b.gs.x === a.gs.x - 32 && b.pf === 'right' && b.pp.facing === 'right' && b.gs.facing === 'right', JSON.stringify({ a: [a?.p, a?.pp?.x, a?.gs?.x], b: [b?.p, b?.pp?.x, b?.gs?.x, b?.pf, b?.pp?.facing, b?.gs?.facing] }));
@@ -71,7 +74,7 @@ check('toolbox scene: 8 lines in briefing order', idx.every((i) => i >= 0) && id
   const k = li('* 오 온다');
   check('battle start: zoom-in + shake after "오 온다!"', o.slice(k).some((x) => x.zoom > 1.3) && o.slice(k).some((x) => x.shake), JSON.stringify({ maxZoom: Math.max(...o.slice(Math.max(0, k)).map((x) => x.zoom)) })); }
 s = await st();
-check('after the battle: flags set (won + pending), CS removed, zoom back, followers regrouped, controllable', s.flags.teal3_battle_pending === true && s.flags.teal3_cs_won === true && (!s.cs1 || s.cs1.dead) && (!s.cs2 || s.cs2.dead) && s.zoom === 1 && !s.running && s.f.every((x) => x.vis && Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ flags: s.flags.teal3_battle_pending, cs1: s.cs1, zoom: s.zoom, f: s.f, p: s.p }));
+check('after the battle: flags set (won + pending), CS removed, zoom back, camera on player, followers regrouped, controllable', s.flags.teal3_battle_pending === true && s.flags.teal3_cs_won === true && (await page.evaluate(() => game.camera.target === game.player && !game.camera.locked)) && (!s.cs1 || s.cs1.dead) && (!s.cs2 || s.cs2.dead) && s.zoom === 1 && !s.running && s.f.every((x) => x.vis && Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ flags: s.flags.teal3_battle_pending, cs1: s.cs1, zoom: s.zoom, f: s.f, p: s.p }));
 { await stand(bx + 4, by + 24, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); const r2 = await drain(6000);
   check('toolbox again: 공구상자다. 뭔가 많이 들어 있다.', r2.lines.some((l) => l.includes('뭔가 많이 들어 있다')), JSON.stringify(r2.lines)); }
 await page.screenshot({ path: `${S}/teal3_06_after.png` });

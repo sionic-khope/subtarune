@@ -3,7 +3,7 @@
 teal1: 오른쪽으로 쭉 가는 길 (64×12), 청록 땅·검은 수풀 배경, 브금 Weird Birds.   void11 오른쪽 출구 → teal1 → teal2
 teal2: 오른쪽 길이 쥰희 닮은 나무 동상 벽(출구보다 3칸 왼쪽)으로 막혀 있고, 그 바로 왼쪽에서 위로 가는 길이 시작(44×26). 동상들이 여기저기 깔려 있다. 브금 Field of Hopes and Dreams.
        가운데는 넓은 광장(13~28열·12~23행, 사용자 "가운데 중앙은 좀 더 넓게") — 이벤트 나무(`tree_teal.png`, 똑똑 연출) + 바나나 2개(포타슘 이벤트).
-teal3: 아래에서 위로 오르는 길 → 울창한 숲 공터(숲 나무 여러 그루·낙엽·오른쪽 풀숲) → 가운데 공구상자(컷신: CS 미니언 등장 → 전투 시작 연출). teal_east(막힌 오른쪽 너머) 는 빈 착지.
+teal3: 아래에서 위로 오르는 길 → 울창한 숲 공터(숲 나무 여러 그루·낙엽·오른쪽 풀숲) → 가운데 무기 상자(컷신: CS 미니언 등장 → 전투). teal_east(막힌 오른쪽 너머) 는 빈 착지.
 실행: /usr/bin/python3 tools/maps/teal.py  (--check)
 """
 import io, json, sys
@@ -103,7 +103,8 @@ def bush(id_, x, y):    # 풀숲 56×40, 아래 절반 막힘
     return {'type': 'prop', 'id': id_, 'image': 'assets/props/bush_teal.png', 'x': x + 4, 'y': y + 22, 'w': 48, 'h': 18, 'ix': x, 'iy': y, 'solid': True}
 ents3 = [
     {'type': 'door', 'x': UP0 * 32, 'y': (H3 - 1) * 32 - 8, 'w': 96, 'h': 8, 'to': 'teal2', 'spawn': 'from_top', 'sfx': False},
-    {'type': 'prop', 'id': 'toolbox', 'image': 'assets/props/toolbox.png', 'x': BOX_X, 'y': BOX_Y, 'w': 32, 'h': 16, 'ix': BOX_X - 2, 'iy': BOX_Y + 16 - 26, 'solid': True, 'script': 'teal3_toolbox'},
+    # 무기 상자(PR #7 weapon_box_open.png 64×64, 발 pivot 32,60): 밑동 40×14 만 막힘, 그림 밑변 = 히트박스 밑변 + 4. id 는 컷신 호환으로 'toolbox' 유지
+    {'type': 'prop', 'id': 'toolbox', 'image': 'assets/props/weapon_box_open.png', 'x': BOX_X - 4, 'y': BOX_Y + 2, 'w': 40, 'h': 14, 'ix': BOX_X + 16 - 32, 'iy': BOX_Y + 16 - 60, 'solid': True, 'script': 'teal3_toolbox'},
 ]
 # 숲 나무: 공터 위쪽 두 줄(빽빽이), 양옆 세로줄, 아래 모서리
 tx = [(c, 6, 240) for c in range(CL0 - 1, CL1 + 1, 2)] + [(c, 7, 262) for c in range(CL0, CL1 + 1, 3)]
