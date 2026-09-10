@@ -54,6 +54,7 @@ class Game {
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 2D 월드 줌 (TV 로 빨려 들어가는 전환 등). UI 는 안 줌됨
     this.scene3d = null;          // 3D 오버레이 씬(src/scenes/*) 실행 중이면 true — Esc 등 게임 입력 무시
     this.ride = null;             // 타고 있는 탈것(Raft 등) — 있으면 플레이어 입력 정지
+    this.hurt = 0; this.invuln = 0;   // 낙석 등에 맞았을 때 붉은 섬광 / 무적 시간
   }
 
   /**
@@ -153,8 +154,19 @@ class Game {
     if (party) this.party = [...party];             // QA 지점의 동료 구성
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
+    this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)
     this.changeMap(map, spawn || 'start', true);
-    this.state = 'field';
+  }
+
+  /** 낙석 등에 맞음: 붉은 섬광 + 흔들림 + 소리, 레인 왼쪽으로 밀려남(체력 없음 — 진행만 되돌림), 잠깐 무적. 동료는 뒤로 재정렬 */
+  hurtPlayer(src) {
+    if (this.invuln > 0) return;
+    this.invuln = 0.9; this.hurt = 0.32;
+    this.sound.sfx('thud', { volume: 0.8 }); this.shake = { time: 0.25, amp: 3 };
+    const p = this.player, nx = Math.round(src.x - p.w - 14);
+    if (!this.map.solidRect(nx, p.y, p.w, p.h)) p.x = nx;
+    p.trail = [];
+    for (const e of this.entities) if (e.def?.type === 'follower') e.snapBehind();
   }
 
   // ── 파티(동료) ──────────────────────────────────────────
@@ -354,6 +366,8 @@ class Game {
     }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
     this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt);
+    if (this.hurt > 0) this.hurt -= dt;
+    if (this.invuln > 0) this.invuln -= dt;
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.dialogue.running) {
@@ -448,7 +462,9 @@ class Game {
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
     const dim = MAPS[this.mapId]?.dim;
     if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
+    for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
     ctx.restore();
+    if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
     if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
     this.sysdialog.draw(ctx);
@@ -539,7 +555,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.11';
+export const BUILD = '2026-09-10.13';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

@@ -208,5 +208,23 @@ def main():
     bridge_span(31).save('assets/props/bridge_span31.png'); prop_door_small().save('assets/props/door_small.png')
     print('water/raft ok')
 
+
+# ── 낙석 ─────────────────────────────────────────────────────────
+def prop_rock():
+    """낙석 28x24: 보라빛 회색 바위, 외곽선 + 2톤 (캐릭터 폭 정도)"""
+    w, h = 28, 24; c = Canvas(w, h)
+    RK = hexc('#6b5a80'); RK_L = hexc('#8a78a3'); RK_D = hexc('#4a3d5c')
+    c.rrect_outlined(0, 3, w, h - 3, RK, OUT, 5)
+    c.rrect(6, 0, 16, 8, RK, 3); c.outline(6, 0, 16, 2, OUT); c.px(5, 1, OUT); c.px(22, 1, OUT)
+    c.hline(8, 3, 12, RK_L); c.hline(3, 7, 8, RK_L); c.px(20, 8, RK_L)
+    c.rect(4, h - 6, w - 8, 3, RK_D); c.px(9, 12, RK_D); c.px(18, 15, RK_D); c.px(14, 9, RK_D)
+    return c
+
+_main2 = main
+def main():
+    _main2()
+    prop_rock().save('assets/props/rock.png')
+    print('rock ok')
+
 if __name__ == '__main__':
     main()

@@ -119,16 +119,6 @@
       "script": "void4_arrive"
     },
     {
-      "type": "sign",
-      "id": "door_zone",
-      "x": 2388,
-      "y": 224,
-      "w": 12,
-      "h": 160,
-      "solid": false,
-      "script": "void4_door_locked"
-    },
-    {
       "type": "prop",
       "id": "lever_off",
       "image": "assets/props/lever_off.png",
@@ -154,7 +144,8 @@
       "iy": 28,
       "solid": true,
       "script": "void4_lever",
-      "requires": "bridge_down"
+      "requires": "bridge_down",
+      "unless": "lever_taken"
     },
     {
       "type": "prop",
@@ -180,7 +171,21 @@
       "ix": 2365,
       "iy": 212,
       "solid": false,
-      "sortY": 1
+      "sortY": 1,
+      "unless": "door_open"
+    },
+    {
+      "type": "door",
+      "id": "door_zone",
+      "x": 2388,
+      "y": 224,
+      "w": 12,
+      "h": 160,
+      "to": "void5",
+      "spawn": "from_void4",
+      "requires": "door_open",
+      "lockedScript": "void4_door",
+      "sfx": false
     }
   ]
 }
