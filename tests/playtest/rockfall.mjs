@@ -25,7 +25,7 @@ const talk = async (x, y, f, picks = []) => {   // 소품 앞에 서서 C → �
     await page.waitForTimeout(150); const s = await st();
     if (!s.running) { if (++idle > 3) break; continue; } idle = 0;
     if (s.box === 'choice') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); const n = picks[pi++] ?? 0; for (let k = 0; k < n; k++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
-    else if (s.box === 'waiting') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); }
+    else if (s.box === 'waiting') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); if (s.text.includes('킁킁')) await page.screenshot({ path: `${S}/rock_07_flowers.png` }); await page.keyboard.press('KeyC'); }
     else if (s.box === 'typing') await page.keyboard.press('KeyC');
   }
   return out;
@@ -114,15 +114,14 @@ const crossMap = async (mapId, expectLanes, exitDir, nextMap) => {
   s = await st(); check(`${mapId}: crossed all lanes without being hit`, s.p[0] > s.rocks[expectLanes - 1].x + 10 && !s.invuln, JSON.stringify(s.p));
   // 꼬리 길 이벤트 (낙석 없는 구간)
   if (mapId === 'void5') {
-    let L = await talk(840, 186, 'up', [0]);   // 꽃: 냄새를 맡게 시킨다
+    let L = await talk(796, 168, 'right', [0]);   // 꽃: 왼쪽에서 다가가 C(소품이 스프라이트에 안 가리게) — 냄새를 맡게 시킨다
     check('void5 flowers: 꽃들이다 → 네 왜요? → [냄새] → 아 넵 → 킁킁 → .... → 냄새 존나 구려요 → ㅋㅋ 갈길', ['꽃들이다', '네 왜요?', '아 넵', '킁킁', '....', '냄새 존나 구려요', 'ㅋㅋ 갈길 가야겠다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
-    await page.screenshot({ path: `${S}/rock_07_flowers.png` });
     s = await st(); check('void5 flowers: follower regrouped after sniffing', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70 && s.flags.flowers_sniffed, JSON.stringify({ p: s.p, f: s.f }));
-    L = await talk(840, 186, 'up', [1]);
+    L = await talk(796, 168, 'right', [1]);
     check('void5 flowers again: 저 이제 안 맡을 거예요', L.some((l) => l.includes('안 맡을')), JSON.stringify(L));
   }
   if (mapId === 'void6') {
-    const L = await talk(1420, 186, 'up');
+    const L = await talk(1384, 170, 'right');
     check('void6 sign: 표지판이다 → 낙석 주의 → 지금 알려주면 → 맞는 말이다', ['표지판이다', '낙석 주의', '지금 알려주면', '맞는 말이다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
   }
   if (mapId === 'void7') {

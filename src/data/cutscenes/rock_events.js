@@ -14,7 +14,7 @@ export const rock_flowers = [
   P('* 네{w=0.3} 왜요?', { choice: { options: [{ label: '냄새를 맡게 시킨다', goto: 'sniff' }, { label: '그냥 간다', goto: 'go' }], cancel: 1 } }),
   { label: 'sniff' },
   P('* 아 넵.'),
-  { move: 'ppaman', px: [842, 178] },          // 꽃들로 들어간다
+  { move: 'ppaman', px: [842, 174] },          // 꽃들로 들어간다(꽃 무더기 안, y정렬로 꽃 위에 선다)
   { face: 'ppaman', dir: 'up' }, { wait: 0.5 },
   P('* 킁킁'),
   { wait: 0.4 },
