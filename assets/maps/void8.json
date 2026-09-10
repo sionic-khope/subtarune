@@ -135,6 +135,16 @@
    "iy": 160,
    "solid": true,
    "obstacle": true
+  },
+  {
+   "type": "door",
+   "x": 3380,
+   "y": 160,
+   "w": 12,
+   "h": 128,
+   "to": "void9",
+   "spawn": "from_left",
+   "sfx": false
   }
  ]
 }

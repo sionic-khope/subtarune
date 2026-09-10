@@ -67,8 +67,8 @@ await page.screenshot({ path: `${S}/raft_05_qa_menu.png` });
   for (let i = 0; i < 12; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60); }
   let q = await qa(); check('QA list scrolls inside the box (cursor 12 → window top 5, 8 rows)', q.i === 12 && q.top === 5, JSON.stringify(q));
   await page.screenshot({ path: `${S}/raft_05b_qa_scrolled.png` });
-  for (let i = 0; i < 13; i++) { await page.keyboard.press('ArrowUp'); await page.waitForTimeout(60); }
-  q = await qa(); check('QA list wraps to the last item, window shows the tail', q.i === 15 && q.top === 8, JSON.stringify(q));
+  { const n = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.length); for (let i = 0; i < 13; i++) { await page.keyboard.press('ArrowUp'); await page.waitForTimeout(60); } }   // 12 에서 13번 ↑ → -1 → 마지막 항목(n-1)
+  { const n = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.length); q = await qa(); check('QA list wraps to the last item, window shows the tail', q.i === n - 1 && q.top === n - 8, JSON.stringify({ ...q, n })); }
   await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); q = await qa(); check('wrap to first item resets window top', q.i === 0 && q.top === 0, JSON.stringify(q));
 }
 for (let i = 0; i < 3; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(100); }   // pc_stream

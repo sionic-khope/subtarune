@@ -296,3 +296,51 @@ def main():
     _main4()
     prop_flowers().save('assets/props/flowers_purple.png')
     print('flowers ok')
+
+def prop_water_wall_h():
+    """세로 물길용 넓은 벽 68x40 (보라맵9). 2026-09-10"""
+    A = hexc('#3b2a55'); L = hexc('#54407a'); D = hexc('#2a1c40'); H = hexc('#7a63a8')
+    w, h = 68, 40; c = Canvas(w, h)
+    c.rect(0, 0, w, h, OUT); c.rect(1, 1, w - 2, h - 2, A); c.rect(1, 1, w - 2, 3, L); c.hline(2, 1, w - 4, H)
+    c.rect(1, h - 6, w - 2, 5, D); c.vline(1, 4, h - 10, L)
+    for i in range(4): c.px(20 + i, 14 + i, D)
+    for i in range(3): c.px(48 + i, 22 + i, D)
+    return c
+
+def prop_button():
+    """수상한 버튼 26x22: 회색 받침 + 빨간 돔 (보라맵9 이벤트). 2026-09-10"""
+    G = hexc('#5a5a70'); GL = hexc('#8a8aa0'); GD = hexc('#3a3a4c'); R = hexc('#e03a3a'); RL = hexc('#ff8a8a')
+    c = Canvas(26, 22)
+    c.rrect_outlined(0, 10, 26, 12, G, OUT, 2); c.hline(2, 11, 22, GL); c.rect(2, 18, 22, 2, GD)
+    c.rrect_outlined(6, 3, 14, 10, R, OUT, 4); c.px(9, 5, RL); c.px(10, 5, RL); c.px(9, 6, RL)
+    return c
+
+def prop_puddle():
+    """물웅덩이 52x22: 파란 타원, 어두운 테두리, 하이라이트 한 줄 (보라맵9 이벤트). 2026-09-10"""
+    B = hexc('#2f4fa8'); BL = hexc('#4a6fd0'); BD = hexc('#22377a')
+    c = Canvas(52, 22)
+    for y in range(22):
+        t = (y - 10.5) / 10.5; half = int(25 * (1 - t * t) ** 0.5)
+        if half <= 0: continue
+        c.hline(26 - half, y, half * 2, B)
+    for y in range(22):
+        t = (y - 10.5) / 10.5; half = int(25 * (1 - t * t) ** 0.5)
+        if half <= 0: continue
+        c.px(26 - half, y, BD); c.px(26 + half - 1, y, BD)
+    c.hline(14, 6, 10, BL); c.px(30, 8, BL); c.px(31, 8, BL)
+    return c
+
+def prop_chest_small():
+    """작은 상자 28x22: 나무 + 금색 자물쇠 (보라맵9 이벤트). 2026-09-10"""
+    W = hexc('#7a4a2a'); WL = hexc('#a06a3a'); WD = hexc('#4e2e18'); M = hexc('#d9b23a')
+    c = Canvas(28, 22)
+    c.rrect_outlined(0, 6, 28, 16, W, OUT, 2); c.rrect_outlined(0, 0, 28, 10, WL, OUT, 3)
+    c.hline(1, 9, 26, WD); c.rect(11, 8, 6, 6, M); c.outline(11, 8, 6, 6, OUT); c.px(13, 10, WD)
+    return c
+
+_main5 = main
+def main():
+    _main5()
+    prop_water_wall_h().save('assets/props/water_wall_h.png'); prop_button().save('assets/props/button.png')
+    prop_puddle().save('assets/props/puddle.png'); prop_chest_small().save('assets/props/chest_small.png')
+    print('void9 props ok')

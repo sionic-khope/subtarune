@@ -1,0 +1,401 @@
+{
+ "id": "void9",
+ "name": "???",
+ "bgm": "scarlet",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "purple_fire",
+ "rows": [
+  "                                                ",
+  "                                                ",
+  "                                                ",
+  " xXxXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
+  " XxXxXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+  " xXxXxX                                  xXxXxX ",
+  " XxXxXx                                  XxXxXx ",
+  " yyyyyy                                  yyoOyy ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  "                                           oO   ",
+  "                                           Oo   ",
+  " xXxXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
+  " XxXxXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+  " xXxXxX                                  xXxXxX ",
+  " XxXxXx                                  XxXxXx ",
+  " yyoOyy                                  yyyyyy ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  "   oO                                           ",
+  "   Oo                                           ",
+  " xXxXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
+  " XxXxXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+  " xXxXxX                                  xXxXxX ",
+  " XxXxXx                                  XxXxXx ",
+  " yyyyyy                                  yyyyyy "
+ ],
+ "spawns": {
+  "from_left": {
+   "x": 60,
+   "y": 120,
+   "facing": "right"
+  },
+  "start": {
+   "x": 60,
+   "y": 120
+  },
+  "dock": {
+   "x": 190,
+   "y": 120,
+   "facing": "right"
+  },
+  "dockB": {
+   "x": 1396,
+   "y": 196,
+   "facing": "down"
+  },
+  "dockC": {
+   "x": 1316,
+   "y": 890,
+   "facing": "left"
+  },
+  "dockD": {
+   "x": 116,
+   "y": 964,
+   "facing": "down"
+  },
+  "dockE": {
+   "x": 190,
+   "y": 1528,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 1420,
+   "y": 1530,
+   "facing": "left"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 96,
+   "w": 12,
+   "h": 128,
+   "to": "void8",
+   "spawn": "landing",
+   "sfx": false
+  },
+  {
+   "type": "raft",
+   "id": "raft9a",
+   "image": "assets/props/raft.png",
+   "x": 224,
+   "y": 108,
+   "route": [
+    [
+     1248,
+     108
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": "ppaman"
+  },
+  {
+   "type": "prop",
+   "id": "w1",
+   "image": "assets/props/water_wall.png",
+   "x": 560,
+   "y": 112,
+   "w": 28,
+   "h": 36,
+   "ix": 560,
+   "iy": 96,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "w2",
+   "image": "assets/props/water_wall.png",
+   "x": 880,
+   "y": 112,
+   "w": 28,
+   "h": 36,
+   "ix": 880,
+   "iy": 96,
+   "solid": true,
+   "obstacle": true,
+   "oscillate": {
+    "dx": 64,
+    "period": 3.2
+   }
+  },
+  {
+   "type": "prop",
+   "id": "button",
+   "image": "assets/props/button.png",
+   "x": 1340,
+   "y": 118,
+   "solid": true,
+   "script": "void9_button"
+  },
+  {
+   "type": "raft",
+   "id": "raft9b",
+   "image": "assets/props/raft.png",
+   "x": 1380,
+   "y": 224,
+   "route": [
+    [
+     1380,
+     816
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": "ppaman"
+  },
+  {
+   "type": "prop",
+   "id": "w3",
+   "image": "assets/props/water_wall_h.png",
+   "x": 1376,
+   "y": 520,
+   "w": 64,
+   "h": 28,
+   "ix": 1374,
+   "iy": 512,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "w4",
+   "image": "assets/props/water_wall_h.png",
+   "x": 1376,
+   "y": 720,
+   "w": 64,
+   "h": 28,
+   "ix": 1374,
+   "iy": 712,
+   "solid": true,
+   "obstacle": true,
+   "oscillate": {
+    "dy": 56,
+    "period": 3.6
+   }
+  },
+  {
+   "type": "prop",
+   "id": "sign_quiz",
+   "image": "assets/props/signpost.png",
+   "x": 1460,
+   "y": 880,
+   "solid": true,
+   "script": "void9_quiz"
+  },
+  {
+   "type": "raft",
+   "id": "raft9c",
+   "image": "assets/props/raft.png",
+   "x": 1248,
+   "y": 876,
+   "route": [
+    [
+     224,
+     876
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": "ppaman"
+  },
+  {
+   "type": "prop",
+   "id": "w5",
+   "image": "assets/props/water_wall.png",
+   "x": 900,
+   "y": 880,
+   "w": 28,
+   "h": 36,
+   "ix": 900,
+   "iy": 864,
+   "solid": true,
+   "obstacle": true,
+   "oscillate": {
+    "dy": 60,
+    "period": 3.0
+   }
+  },
+  {
+   "type": "prop",
+   "id": "w6",
+   "image": "assets/props/water_wall.png",
+   "x": 560,
+   "y": 880,
+   "w": 28,
+   "h": 36,
+   "ix": 560,
+   "iy": 864,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "puddle",
+   "image": "assets/props/puddle.png",
+   "x": 120,
+   "y": 944,
+   "w": 52,
+   "h": 12,
+   "ix": 120,
+   "iy": 940,
+   "solid": false,
+   "sortY": 0,
+   "script": "void9_puddle"
+  },
+  {
+   "type": "raft",
+   "id": "raft9d",
+   "image": "assets/props/raft.png",
+   "x": 100,
+   "y": 992,
+   "route": [
+    [
+     100,
+     1456
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": "ppaman"
+  },
+  {
+   "type": "prop",
+   "id": "w7",
+   "image": "assets/props/water_wall_h.png",
+   "x": 96,
+   "y": 1250,
+   "w": 64,
+   "h": 28,
+   "ix": 94,
+   "iy": 1242,
+   "solid": true,
+   "obstacle": true,
+   "oscillate": {
+    "dy": 48,
+    "period": 2.8
+   }
+  },
+  {
+   "type": "prop",
+   "id": "chest",
+   "image": "assets/props/chest_small.png",
+   "x": 150,
+   "y": 1580,
+   "solid": true,
+   "script": "void9_chest"
+  },
+  {
+   "type": "raft",
+   "id": "raft9e",
+   "image": "assets/props/raft.png",
+   "x": 224,
+   "y": 1516,
+   "route": [
+    [
+     1248,
+     1516
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": "ppaman"
+  },
+  {
+   "type": "prop",
+   "id": "w8",
+   "image": "assets/props/water_wall.png",
+   "x": 560,
+   "y": 1520,
+   "w": 28,
+   "h": 36,
+   "ix": 560,
+   "iy": 1504,
+   "solid": true,
+   "obstacle": true,
+   "oscillate": {
+    "dx": 80,
+    "period": 3.4
+   }
+  },
+  {
+   "type": "prop",
+   "id": "w9",
+   "image": "assets/props/water_wall.png",
+   "x": 900,
+   "y": 1520,
+   "w": 28,
+   "h": 36,
+   "ix": 900,
+   "iy": 1504,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "w10",
+   "image": "assets/props/water_wall.png",
+   "x": 1100,
+   "y": 1520,
+   "w": 28,
+   "h": 36,
+   "ix": 1100,
+   "iy": 1504,
+   "solid": true,
+   "obstacle": true,
+   "oscillate": {
+    "dy": 60,
+    "period": 2.6,
+    "phase": 0.5
+   }
+  },
+  {
+   "type": "door",
+   "x": 1492,
+   "y": 1504,
+   "w": 12,
+   "h": 128,
+   "to": "void10",
+   "spawn": "from_left",
+   "sfx": false
+  }
+ ]
+}

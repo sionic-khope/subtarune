@@ -16,7 +16,7 @@
 //  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
-//  { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
+//  { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -213,6 +213,12 @@ export function makeWaiter(game, node) {
     const e = findEntity(game, node.shakeOff); if (!e) return done;
     e.jitter = { t: node.duration ?? 0.9, amp: node.amp ?? 2 }; let acc = 0;
     return { update: (dt) => { acc += dt; while (acc > 0.03) { acc -= 0.03; game.emitDroplets(e, 2); } return !e.jitter; } };
+  }
+  if (node.hop) {                                      // { hop:id, by:[dx,dy], height?:24, duration?:0.5, sfx?:'jump'|false } 캐릭터가 포물선으로 뛴다(재사용 점프 연출)
+    const e = findEntity(game, node.hop); if (!e) return done;
+    const [dx, dy] = node.by || [0, 0], h = node.height ?? 24, dur = node.duration ?? 0.5, x0 = e.x, y0 = e.y; let t = 0;
+    if (node.sfx !== false) game.sound.sfx(node.sfx || 'jump', { volume: 0.7 });
+    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); e.x = Math.round(x0 + dx * k); e.y = Math.round(y0 + dy * k); e.hopY = h * Math.sin(Math.PI * k); e.moving = false; e.frame = 0; if (k >= 1) { e.hopY = 0; return true; } return false; } };
   }
   if (node.regroup) { for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); return done; }   // 동료를 주인공 뒤로 재정렬   // { tiles:'bridge_down' } 맵 tileSwaps 적용 + 다시 굽기
   if (node.parallel) return parallel(game, node.parallel);

@@ -59,6 +59,7 @@ model: opus
 | `# 뗏목에 타면 출발 안 하고 연출 시작` | 뗏목 `onBoard:'스크립트'` → 컷신 안에서 `{raft:id, go:true}` 로 출발, `{raft:id, until:'stop'}` 로 벽/도착까지 대기, `{raft:id, jump:true}` 로 점프 (예 `void8.js`) |
 | `# c를 눌러보자 (가이드 창)` | `{ prompt:'C를 눌러보자' }` — C 로만 닫힘 |
 | `# 몸 털면서 물 털리는 이펙트` | `{ shakeOff:'ppaman', duration:0.9 }` — 타다다닥 + 파란 점, 스프라이트 안 만듦 |
+| `# X가 건너뛴다 / 점프한다` | `{ hop:'id', by:[dx,dy], height:30, duration:0.55 }` (jump.mp3 자동, 포물선) |
 | `# 점프 (사운드)` | `{ sfx:'jump' }` (델타룬 점프음, 공용) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |
 | `# 다리/문이 내려오며 쿵` | `{spawn: 떨어질 소품(preload 필요)}` `{sfx:'rumble'}` `{move:id, px, speed}` `{sfx:'thud'}` `{shake}` `{tiles}` `{remove}` (예 `void4_lever`) |
@@ -99,6 +100,7 @@ model: opus
 | `{ bubble:'player'\|id, dots?:3, gap?:0.4, hold?:0.5 }` | 머리 위 `...` 말풍선(36×22, 4px 둥근 점이 하나씩). 끝나면 다음 노드 |
 | `{ raft:id, go:true \| jump:true \| until:'stop' }` | 뗏목 출발/점프/멈출 때까지 |
 | `{ prompt:text }` | C 로만 닫히는 안내 창 |
+| `{ hop:id, by, height?, duration? }` | 캐릭터 포물선 점프 |
 | `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |
 | `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |

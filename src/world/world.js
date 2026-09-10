@@ -234,7 +234,7 @@ export class Character extends Entity {
     const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
     const jx = this.jitter && this.jitter.t > 0 ? (Math.floor(this.jitter.t * 18) % 2 ? this.jitter.amp : -this.jitter.amp) : 0;   // 타다다닥(강아지 물 털듯) — main.js 가 t 를 줄인다
     const sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x) + jx;
-    const sy = Math.round(this.y + this.h - dh - cam.y);
+    const sy = Math.round(this.y + this.h - dh - cam.y) - Math.round(this.hopY || 0);   // hopY: 컷신 {hop} 점프 연출
     if (this.pose === 'lying') {           // 침대에 누움: 정면 스프라이트를 90도 눕힘 (머리가 위쪽)
       ctx.save();
       ctx.translate(Math.round(this.x + this.w / 2 - cam.x), Math.round(this.y + this.h / 2 - cam.y));
@@ -443,6 +443,14 @@ export class Prop extends Entity {
     // 히트박스: 지정 없으면 이미지 아래쪽 40%
     if (def.w === undefined) { this.w = iw; this.h = Math.max(4, Math.round(ih * 0.4)); this.x = def.x; this.y = def.y + ih - this.h; }
   }
+  /** 움직이는 소품: def.oscillate = { dx?, dy?, period, phase? } — 기준 위치에서 사인파로 왕복(움직이는 벽 등). 히트박스와 그림이 같이 움직인다 */
+  update(dt) {
+    const o = this.def.oscillate; if (!o) return;
+    if (this.base === undefined) { this.base = { x: this.x, y: this.y, ix: this.def.ix ?? this.x, iy: this.def.iy ?? this.y }; this.osT = 0; }
+    this.osT += dt; const k = Math.sin((this.osT / (o.period || 3) + (o.phase || 0)) * Math.PI * 2);
+    const ox = Math.round((o.dx || 0) * k), oy = Math.round((o.dy || 0) * k);
+    this.x = this.base.x + ox; this.y = this.base.y + oy; this.def.ix = this.base.ix + ox; this.def.iy = this.base.iy + oy;
+  }
   get drawX() { return this.def.w === undefined ? this.x : (this.def.ix ?? this.def.x); }
   get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : (this.def.iy ?? this.def.y); }
   interact() { if (!this.def.script) return false; this.game.runScript(this.def.script); return true; }
@@ -463,7 +471,7 @@ export class Prop extends Entity {
  *     jump?:true, jumpH?:64, jumpDur?:1.0 }        // C 점프(2블럭). **swim 동료가 뒤에 있을 때만** 된다 — 그 전 뗏목은 C 눌러도 안 됨 (2026-09-10 사용자 규칙)
  *   x,y 와 route 는 이미지 좌상단(월드). 상태: flags[flag] = 지금 있는 route 인덱스(0=시작) → 맵을 다시 들어와도 그 자리.
  *   타는 동안 game.ride 가 서서 플레이어 입력·트리거가 멈춘다(main.js). 탑승자(와 동료)는 걷지 않고 정지 프레임으로 서 있는다. 도착하면 진행 방향으로 플레이어를 밀어 내린다.
- *   장애물: `obstacle:true` 소품(물 위 벽)에 공중이 아닐 때 닿으면 쿵(thud·흔들림) 하고 벽 앞에 멈춘다 → C 점프로 넘는다(멈춘 채 점프해도 넘어감). 가로 경로 전용.
+ *   장애물: `obstacle:true` 소품(물 위 벽)에 공중이 아닐 때 닿으면 쿵(thud·흔들림) 하고 벽 앞에 멈춘다 → C 점프로 넘는다(멈춘 채 점프해도 넘어감). 가로·세로 경로 모두. 움직이는 벽은 소품 `oscillate`.
  */
 export class Raft extends Prop {
   constructor(def, game) {
@@ -543,7 +551,8 @@ export class Raft extends Prop {
     if (low) {
       const wall = this.game.entities.find((e) => e.def?.obstacle && !e.dead && e.overlaps({ x: nx, y: ny, w: this.w, h: this.h }));
       if (wall) {
-        this.setPos([Math.round(dx >= 0 ? wall.x - this.w - 2 : wall.x + wall.w + 2), this.y]);
+        if (Math.abs(dx) >= Math.abs(dy)) this.setPos([Math.round(dx >= 0 ? wall.x - this.w - 2 : wall.x + wall.w + 2), this.y]);   // 가로 경로
+        else this.setPos([this.x, Math.round(dy >= 0 ? wall.y - this.h - 2 : wall.y + wall.h + 2)]);                         // 세로 경로
         this.moving = false; this.blocked = wall; this.jumping = false; this.jumpY = 0; this.hits++;
         this._carry(); this.game.sound.sfx('thud', { volume: 0.8 }); this.game.shake = { time: 0.25, amp: 3 };
         return;
@@ -604,8 +613,9 @@ export class Swimmer extends Character {
   get raft() { return this.game.entities.find((e) => e.id === this.raftId && !e.dead); }
   update(dt) {
     this.t += dt; const r = this.raft; if (!r) return;
-    this.x = r.dirFacing === 'left' ? r.x + r.w + 2 : r.x - this.w - 2;   // 진행 방향 반대쪽 = 뒤
-    this.y = Math.round(r.y + r.h * 0.55) - this.h;                       // 물결선 = 뗏목 중간
+    const d = r.dirFacing;                                               // 진행 방향 반대쪽 = 뒤
+    if (d === 'down' || d === 'up') { this.x = Math.round(r.x + r.w / 2 - this.w / 2); this.y = d === 'down' ? r.y - this.h - 46 : r.y + r.h + 14; }   // 세로: 주인공 머리(뗏목 위 -21px)와 안 겹치게 뒤(위)로 충분히 띄운다
+    else { this.x = d === 'left' ? r.x + r.w + 2 : r.x - this.w - 2; this.y = Math.round(r.y + r.h * 0.55) - this.h; }   // 물결선 = 뗏목 중간
     this.facing = r.dirFacing; this.lift = r.jumpY; this.moving = false; this.frame = 0;
     if (this.hop !== null) { this.hop += dt; if (this.hop > 0.35) this.hop = null; }
   }

@@ -11,6 +11,7 @@ import { void4_ppaman_talk } from './cutscenes/void4_ppaman.js';
 import { void4_door } from './cutscenes/void4_key.js';
 import { void8_board, void8_arrive } from './cutscenes/void8.js';
 import { rock_flowers, rock_sign, rock_boulder } from './cutscenes/rock_events.js';
+import { void9_button, void9_quiz, void9_puddle, void9_chest } from './cutscenes/void9_events.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -55,6 +56,7 @@ export const SCRIPTS = {
   void4_ppaman: void4_ppaman_talk,   // 인사 → 질문 루프 → 동행 (src/data/cutscenes/void4_ppaman.js)
   void4_door,                        // 잠긴 문 → 레버 열쇠 → 철컥 (src/data/cutscenes/void4_key.js)
   void8_board, void8_arrive,         // 점프 뗏목: 억빠맨 수영 → 벽 쿵 → C 점프 / 도착 물 털기 (src/data/cutscenes/void8.js)
+  void9_button, void9_quiz, void9_puddle, void9_chest,   // 보라맵9 뱀길 체크포인트 이벤트 4종 (src/data/cutscenes/void9_events.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [

@@ -67,5 +67,6 @@ export const QA_POINTS = [
   { id: 'rock2',     desc: '낙석 맵2 (6개)',                        stage: 'void_fallen',    map: 'void6',  spawn: 'from_top', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true }, party: ['ppaman'] },
   { id: 'rock3',     desc: '낙석 맵3 (9개)',                        stage: 'void_fallen',    map: 'void7',  spawn: 'from_top', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true }, party: ['ppaman'] },
   { id: 'raft8',     desc: '보라맵8 점프 뗏목(억빠맨 수영)',          stage: 'void_fallen',    map: 'void8',  spawn: 'dock', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true }, party: ['ppaman'] },
+  { id: 'void9',     desc: '보라맵9 뱀길(점프 뗏목 5개·움직이는 벽)',    stage: 'void_fallen',    map: 'void9',  spawn: 'dock', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true, void8_intro: true, void8_arrived: true, void8_done: true }, party: ['ppaman'] },
   { id: 'party',     desc: '억빠맨 동료 상태로 보라맵4',                stage: 'void_fallen',    map: 'void4',  spawn: 'pillar', flags: { void4_arrived: true, bridge_down: true, ppaman_greeted: true, ppaman_joined: true }, party: ['ppaman'] },
 ];
