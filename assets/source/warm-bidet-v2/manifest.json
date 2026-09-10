@@ -1,0 +1,981 @@
+{
+  "name": "따듯한비데",
+  "version": 2,
+  "status": "asset-handoff-only",
+  "coordinates": "pixels; rect=[x,y,width,height]; bounds=[left,top,right,bottom) relative to source cell; pivot relative to frame top-left",
+  "processing": "slice_sheet.key_cell; shared crop; 4px padding; explicit enclosed-background seed flood fill; scale=1; no recoloring, quantization, redraw or resampling",
+  "source_sha256": {
+    "battle-idle-prompt.txt": "619a2b7251fda3e57c6ab7cf74544c77991c1559ac2c798cb103776850fcbb09",
+    "battle-idle-sheet.png": "227818d4f027c390da2f94eb55097816c13369ff592c3269d2064d01b039d394",
+    "battle-shaft-fix-prompt.txt": "93533951b8e7cd21878fdb437f6477a1b3a152660e8852aa7300b32111c669ec",
+    "reference.png": "00ed4612d9d23c00f0f300229d1e97249133a35059c01d4febfff143ffb0c51a",
+    "walk-prompt.txt": "7deaa57fbd54a46bd46e5c22621072ac904112bf24f30337759bbc64be2766e4",
+    "walk-sheet.png": "377f3354dffaa48a728f57b6ba9be8a5ff2884a99200f1c1978335416802b192"
+  },
+  "actions": [
+    {
+      "action": "walk",
+      "source": "walk-sheet.png",
+      "source_size": [
+        1122,
+        1402
+      ],
+      "atlas": "assets/sprites/warm-bidet-v2/warm-bidet-walk.png",
+      "atlas_grid": [
+        4,
+        4
+      ],
+      "cell_size": [
+        240,
+        312
+      ],
+      "shared_crop_in_source_cell": [
+        12,
+        5,
+        244,
+        309
+      ],
+      "row_order": [
+        "down",
+        "left",
+        "right",
+        "up"
+      ],
+      "frames": [
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-0.png",
+          "direction": "down",
+          "source_rect": [
+            25,
+            58,
+            259,
+            311
+          ],
+          "opaque_bounds_in_source_cell": [
+            12,
+            16,
+            231,
+            307
+          ],
+          "source_pivot": [
+            136,
+            307
+          ],
+          "pivot": [
+            128,
+            306
+          ],
+          "atlas_rect": [
+            0,
+            0,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-1.png",
+          "direction": "down",
+          "source_rect": [
+            298,
+            58,
+            256,
+            311
+          ],
+          "opaque_bounds_in_source_cell": [
+            14,
+            16,
+            235,
+            307
+          ],
+          "source_pivot": [
+            136,
+            307
+          ],
+          "pivot": [
+            128,
+            306
+          ],
+          "atlas_rect": [
+            240,
+            0,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-2.png",
+          "direction": "down",
+          "source_rect": [
+            570,
+            58,
+            258,
+            311
+          ],
+          "opaque_bounds_in_source_cell": [
+            15,
+            16,
+            235,
+            307
+          ],
+          "source_pivot": [
+            136,
+            307
+          ],
+          "pivot": [
+            128,
+            306
+          ],
+          "atlas_rect": [
+            480,
+            0,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-3.png",
+          "direction": "down",
+          "source_rect": [
+            844,
+            58,
+            256,
+            311
+          ],
+          "opaque_bounds_in_source_cell": [
+            14,
+            16,
+            229,
+            307
+          ],
+          "source_pivot": [
+            136,
+            307
+          ],
+          "pivot": [
+            128,
+            306
+          ],
+          "atlas_rect": [
+            720,
+            0,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-4.png",
+          "direction": "left",
+          "source_rect": [
+            25,
+            382,
+            259,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            20,
+            6,
+            224,
+            301
+          ],
+          "source_pivot": [
+            148,
+            301
+          ],
+          "pivot": [
+            140,
+            300
+          ],
+          "atlas_rect": [
+            0,
+            312,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-5.png",
+          "direction": "left",
+          "source_rect": [
+            298,
+            382,
+            256,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            17,
+            6,
+            218,
+            301
+          ],
+          "source_pivot": [
+            148,
+            301
+          ],
+          "pivot": [
+            140,
+            300
+          ],
+          "atlas_rect": [
+            240,
+            312,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-6.png",
+          "direction": "left",
+          "source_rect": [
+            570,
+            382,
+            258,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            19,
+            6,
+            222,
+            301
+          ],
+          "source_pivot": [
+            148,
+            301
+          ],
+          "pivot": [
+            140,
+            300
+          ],
+          "atlas_rect": [
+            480,
+            312,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-7.png",
+          "direction": "left",
+          "source_rect": [
+            844,
+            382,
+            256,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            19,
+            7,
+            224,
+            301
+          ],
+          "source_pivot": [
+            148,
+            301
+          ],
+          "pivot": [
+            140,
+            300
+          ],
+          "atlas_rect": [
+            720,
+            312,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-8.png",
+          "direction": "right",
+          "source_rect": [
+            25,
+            702,
+            259,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            34,
+            6,
+            240,
+            300
+          ],
+          "source_pivot": [
+            114,
+            301
+          ],
+          "pivot": [
+            106,
+            300
+          ],
+          "atlas_rect": [
+            0,
+            624,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-9.png",
+          "direction": "right",
+          "source_rect": [
+            298,
+            702,
+            256,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            35,
+            6,
+            239,
+            301
+          ],
+          "source_pivot": [
+            114,
+            301
+          ],
+          "pivot": [
+            106,
+            300
+          ],
+          "atlas_rect": [
+            240,
+            624,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-10.png",
+          "direction": "right",
+          "source_rect": [
+            570,
+            702,
+            258,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            35,
+            6,
+            241,
+            301
+          ],
+          "source_pivot": [
+            114,
+            301
+          ],
+          "pivot": [
+            106,
+            300
+          ],
+          "atlas_rect": [
+            480,
+            624,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-11.png",
+          "direction": "right",
+          "source_rect": [
+            844,
+            702,
+            256,
+            306
+          ],
+          "opaque_bounds_in_source_cell": [
+            34,
+            6,
+            240,
+            301
+          ],
+          "source_pivot": [
+            114,
+            301
+          ],
+          "pivot": [
+            106,
+            300
+          ],
+          "atlas_rect": [
+            720,
+            624,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-12.png",
+          "direction": "up",
+          "source_rect": [
+            25,
+            1022,
+            259,
+            317
+          ],
+          "opaque_bounds_in_source_cell": [
+            22,
+            5,
+            244,
+            309
+          ],
+          "source_pivot": [
+            114,
+            309
+          ],
+          "pivot": [
+            106,
+            308
+          ],
+          "atlas_rect": [
+            0,
+            936,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-13.png",
+          "direction": "up",
+          "source_rect": [
+            298,
+            1022,
+            256,
+            317
+          ],
+          "opaque_bounds_in_source_cell": [
+            22,
+            5,
+            241,
+            309
+          ],
+          "source_pivot": [
+            114,
+            309
+          ],
+          "pivot": [
+            106,
+            308
+          ],
+          "atlas_rect": [
+            240,
+            936,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-14.png",
+          "direction": "up",
+          "source_rect": [
+            570,
+            1022,
+            258,
+            317
+          ],
+          "opaque_bounds_in_source_cell": [
+            21,
+            5,
+            240,
+            309
+          ],
+          "source_pivot": [
+            114,
+            309
+          ],
+          "pivot": [
+            106,
+            308
+          ],
+          "atlas_rect": [
+            480,
+            936,
+            240,
+            312
+          ]
+        },
+        {
+          "path": "assets/sprites/warm-bidet-v2/warm-bidet-walk-15.png",
+          "direction": "up",
+          "source_rect": [
+            844,
+            1022,
+            256,
+            317
+          ],
+          "opaque_bounds_in_source_cell": [
+            22,
+            5,
+            239,
+            309
+          ],
+          "source_pivot": [
+            114,
+            309
+          ],
+          "pivot": [
+            106,
+            308
+          ],
+          "atlas_rect": [
+            720,
+            936,
+            240,
+            312
+          ]
+        }
+      ],
+      "suggested_duration_seconds": 0.14,
+      "timing_status": "suggestion; not gameplay-verified",
+      "background_seeds_in_output_frame": [
+        [
+          [
+            40,
+            40
+          ],
+          [
+            56,
+            48
+          ],
+          [
+            58,
+            96
+          ],
+          [
+            60,
+            105
+          ],
+          [
+            174,
+            185
+          ],
+          [
+            87,
+            186
+          ],
+          [
+            89,
+            229
+          ],
+          [
+            89,
+            236
+          ]
+        ],
+        [
+          [
+            43,
+            42
+          ],
+          [
+            55,
+            48
+          ],
+          [
+            61,
+            97
+          ],
+          [
+            177,
+            185
+          ],
+          [
+            92,
+            193
+          ]
+        ],
+        [
+          [
+            42,
+            39
+          ],
+          [
+            56,
+            50
+          ],
+          [
+            63,
+            95
+          ],
+          [
+            176,
+            186
+          ],
+          [
+            90,
+            189
+          ]
+        ],
+        [
+          [
+            42,
+            41
+          ],
+          [
+            51,
+            48
+          ],
+          [
+            59,
+            93
+          ],
+          [
+            173,
+            181
+          ],
+          [
+            89,
+            188
+          ],
+          [
+            132,
+            266
+          ]
+        ],
+        [
+          [
+            52,
+            36
+          ],
+          [
+            71,
+            42
+          ],
+          [
+            71,
+            88
+          ],
+          [
+            110,
+            189
+          ]
+        ],
+        [
+          [
+            59,
+            42
+          ],
+          [
+            68,
+            90
+          ],
+          [
+            106,
+            190
+          ]
+        ],
+        [
+          [
+            66,
+            43
+          ],
+          [
+            67,
+            89
+          ],
+          [
+            102,
+            195
+          ]
+        ],
+        [
+          [
+            65,
+            40
+          ],
+          [
+            69,
+            88
+          ],
+          [
+            101,
+            196
+          ]
+        ],
+        [
+          [
+            174,
+            87
+          ],
+          [
+            139,
+            189
+          ]
+        ],
+        [
+          [
+            177,
+            38
+          ],
+          [
+            171,
+            89
+          ],
+          [
+            137,
+            190
+          ]
+        ],
+        [
+          [
+            183,
+            40
+          ],
+          [
+            138,
+            192
+          ]
+        ],
+        [
+          [
+            178,
+            39
+          ],
+          [
+            136,
+            189
+          ]
+        ],
+        [
+          [
+            177,
+            42
+          ],
+          [
+            181,
+            103
+          ],
+          [
+            150,
+            190
+          ]
+        ],
+        [
+          [
+            177,
+            42
+          ],
+          [
+            178,
+            101
+          ],
+          [
+            65,
+            178
+          ],
+          [
+            145,
+            233
+          ]
+        ],
+        [
+          [
+            182,
+            35
+          ],
+          [
+            173,
+            81
+          ],
+          [
+            182,
+            99
+          ]
+        ],
+        [
+          [
+            177,
+            102
+          ],
+          [
+            62,
+            181
+          ],
+          [
+            144,
+            233
+          ]
+        ]
+      ],
+      "background_alpha_removed_pixels": [
+        262,
+        265,
+        241,
+        267,
+        332,
+        284,
+        299,
+        253,
+        202,
+        238,
+        196,
+        177,
+        371,
+        419,
+        321,
+        312
+      ]
+    },
+    {
+      "action": "idle",
+      "source": "battle-idle-sheet.png",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "atlas": "assets/battle/warm-bidet-idle.png",
+      "atlas_grid": [
+        2,
+        2
+      ],
+      "cell_size": [
+        470,
+        528
+      ],
+      "shared_crop_in_source_cell": [
+        65,
+        15,
+        527,
+        535
+      ],
+      "row_order": [
+        "right",
+        "right"
+      ],
+      "frames": [
+        {
+          "path": "assets/battle/warm-bidet-idle-0.png",
+          "direction": "right",
+          "source_rect": [
+            60,
+            84,
+            555,
+            551
+          ],
+          "opaque_bounds_in_source_cell": [
+            69,
+            16,
+            527,
+            535
+          ],
+          "source_pivot": [
+            230,
+            535
+          ],
+          "pivot": [
+            169,
+            524
+          ],
+          "atlas_rect": [
+            0,
+            0,
+            470,
+            528
+          ]
+        },
+        {
+          "path": "assets/battle/warm-bidet-idle-1.png",
+          "direction": "right",
+          "source_rect": [
+            639,
+            84,
+            555,
+            551
+          ],
+          "opaque_bounds_in_source_cell": [
+            65,
+            16,
+            524,
+            535
+          ],
+          "source_pivot": [
+            226,
+            535
+          ],
+          "pivot": [
+            165,
+            524
+          ],
+          "atlas_rect": [
+            470,
+            0,
+            470,
+            528
+          ]
+        },
+        {
+          "path": "assets/battle/warm-bidet-idle-2.png",
+          "direction": "right",
+          "source_rect": [
+            60,
+            659,
+            555,
+            537
+          ],
+          "opaque_bounds_in_source_cell": [
+            69,
+            15,
+            527,
+            533
+          ],
+          "source_pivot": [
+            230,
+            533
+          ],
+          "pivot": [
+            169,
+            522
+          ],
+          "atlas_rect": [
+            0,
+            528,
+            470,
+            528
+          ]
+        },
+        {
+          "path": "assets/battle/warm-bidet-idle-3.png",
+          "direction": "right",
+          "source_rect": [
+            639,
+            659,
+            555,
+            537
+          ],
+          "opaque_bounds_in_source_cell": [
+            65,
+            15,
+            524,
+            533
+          ],
+          "source_pivot": [
+            226,
+            533
+          ],
+          "pivot": [
+            165,
+            522
+          ],
+          "atlas_rect": [
+            470,
+            528,
+            470,
+            528
+          ]
+        }
+      ],
+      "suggested_duration_seconds": 0.25,
+      "timing_status": "suggestion; not gameplay-verified",
+      "background_seeds_in_output_frame": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "background_alpha_removed_pixels": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
