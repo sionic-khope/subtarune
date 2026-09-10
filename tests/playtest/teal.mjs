@@ -34,7 +34,7 @@ const talk = async (x, y, f, picks = []) => {   // C → 대사 넘김, 선택�
     await page.waitForTimeout(120); const s = await st();
     if (!s.running) { if (++idle > 3) break; continue; } idle = 0;
     const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, '');
-    if (s.box === 'choice') { if (!out.includes(k)) out.push(k); const n = picks[pi++] ?? 0; for (let j = 0; j < Math.floor(n / 2); j++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } for (let j = 0; j < n % 2; j++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
+    if (s.box === 'choice') { if (!out.includes(k)) out.push(k); await page.waitForTimeout(500); const n = picks[pi++] ?? 0; for (let j = 0; j < Math.floor(n / 2); j++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } for (let j = 0; j < n % 2; j++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
     else if (s.box === 'waiting' || s.box === 'typing') { if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); }
   }
   return out;
@@ -92,6 +92,14 @@ await page.screenshot({ path: `${S}/teal_02_wall.png` });
   const L2 = await talk(tr.x + tr.w / 2 - 12, tr.y + tr.h + 6, 'up'); check('tree again: 저건 다신 안 두드릴래요', L2.some((l) => l.includes('다신 안 두드릴래요')), JSON.stringify(L2));
   const bn = await page.evaluate(() => ['banana1'].map((id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: e.x, y: e.y, w: e.w, h: e.h } : null; }));
   check('one banana placed in the upper plaza; no second banana', bn.every(Boolean) && bn[0].y < 15 * 32 && !(await page.evaluate(() => game.entities.some((e) => e.id === 'banana2'))), JSON.stringify(bn));
+  { await stand(bn[0].x + bn[0].w / 2 - 12, bn[0].y + bn[0].h + 4, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');   // 선택지 잠금: 뜨자마자 C 연타해도 안 넘어간다 (사용자 2026-09-10)
+    let sawChoice = false; const t0 = Date.now(); while (Date.now() - t0 < 6000) { await page.waitForTimeout(40); const q = await st(); if (!q.running) break; if (q.box === 'choice') { sawChoice = true; break; } if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); }
+    await page.keyboard.press('KeyC'); await page.waitForTimeout(60); await page.keyboard.press('KeyC'); await page.waitForTimeout(120);
+    const q = await st(); check('choice lock: mashing C right as the choice appears does not confirm it', sawChoice && q.box === 'choice' && q.running, JSON.stringify({ sawChoice, box: q.box }));
+    await page.waitForTimeout(500); await page.keyboard.press('KeyC');   // 잠금 뒤 [먹는다]
+    const rest = await drain(6000); check('choice lock: after the lock, C confirms [먹는다] → 포타슘', rest.lines.some((l) => l.includes('포타슘')), JSON.stringify(rest.lines)); }
+  { const gone = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana1'); return !e || e.dead; }); check('banana1 gone after eating + flag', gone && (await st()).flags.banana1_eaten === true, ''); }
+  await page.evaluate(() => { delete game.flags.banana1_eaten; game.spawn({ type: 'prop', id: 'banana1', image: 'assets/props/banana.png', x: 25 * 32 + 2, y: 13 * 32 + 14, w: 28, h: 10, ix: 25 * 32 + 2, iy: 13 * 32 + 4, solid: false, script: 'teal2_banana1' }); });
   const L3 = await talk(bn[0].x + bn[0].w / 2 - 12, bn[0].y + bn[0].h + 4, 'up', [0]);
   s = await st(); const b1 = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'banana1'); return !e || e.dead; });
   check('banana1: 형섭이형 바나나 드세요 → [먹는다] → 포타슘, banana gone + flag', L3.some((l) => l.includes('바나나 드세요')) && L3.some((l) => l.includes('포타슘')) && b1 && s.flags.banana1_eaten === true, JSON.stringify(L3));

@@ -20,6 +20,7 @@ await page.keyboard.press('KeyC'); await page.waitForTimeout(150); s = await st(
 await page.waitForTimeout(600); s = await st(); check('slow: 둘째 항목', s.shown === 2, 'shown=' + s.shown);
 await page.waitForTimeout(700); s = await st(); check('slow: 셋째 항목', s.shown === 3, 'shown=' + s.shown);
 await page.screenshot({ path: `${S}/choice_slow.png` });
+await page.waitForTimeout(500);   // 마지막 항목이 뜬 뒤 확정 잠금(0.4s)
 await page.keyboard.press('ArrowRight'); await page.waitForTimeout(100); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);   // 2열 격자: 둘째는 오른쪽
 s = await st(); check('slow: 둘 선택 → 둘을 골랐다', s.text.includes('둘을 골랐다'), s.text);
 // 격자 이동: 셋째(아랫줄)는 ↓, 거기서 ↑ 는 첫째, → 는 제자리

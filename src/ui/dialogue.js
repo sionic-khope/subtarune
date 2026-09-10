@@ -106,6 +106,9 @@ export function choiceMove(i, n, dir) {
   return row * cols + col;
 }
 
+/** 선택지 확정 잠금(초): 선택지가 다 뜬 뒤 이 시간 동안 C/X 가 안 먹는다 — 모든 선택지 공통 (2026-09-10 사용자 요청) */
+export const CHOICE_LOCK = 0.4;
+
 export class TextBox {
   constructor(sound, portraits) {
     this.sound = sound;
@@ -227,7 +230,7 @@ export class TextBox {
         this.staggerTimer -= dt;
         if (this.staggerTimer <= 0) {
           this.choiceShown++; this.staggerTimer = this.choice.stagger; this.sound.sfx('menu');
-          if (this.choiceShown >= n && this.choice.auto !== undefined) this.choiceAutoTimer = this.choice.auto;
+          if (this.choiceShown >= n) { this.choiceLock = CHOICE_LOCK; if (this.choice.auto !== undefined) this.choiceAutoTimer = this.choice.auto; }
         }
         return;
       }
@@ -240,6 +243,7 @@ export class TextBox {
         if (dir) { const next = choiceMove(this.choiceIndex, n, dir); if (next !== this.choiceIndex) { this.choiceIndex = next; this.sound.sfx('menu'); } }
       }
       if (this.choice.locked) return;                // locked: 커서는 움직여도 확정/취소 불가
+      if (this.choiceLock > 0) { this.choiceLock -= dt; return; }   // 확정 잠금: 대사 넘기던 연타가 첫 항목을 찍지 않게 (커서는 움직임)
       if (input.just('confirm')) { this.sound.sfx('confirm'); this._done(this.choiceIndex); }
       else if (input.just('cancel') && this.choice.cancel !== undefined) { this.sound.sfx('cancel'); this._done(this.choice.cancel); }
     }
@@ -250,6 +254,7 @@ export class TextBox {
     const n = this.choice.options.length;
     this.choiceShown = this.choice.stagger ? 1 : n;
     this.staggerTimer = this.choice.stagger ?? 0;
+    this.choiceLock = this.choiceShown >= n ? CHOICE_LOCK : 0;   // 공통 규칙: 다 뜬 뒤 잠깐은 확정 불가 (2026-09-10 '연타로 바로 넘겨버림')
     this.choiceAutoTimer = this.choiceShown >= n && this.choice.auto !== undefined ? this.choice.auto : null;
     this.sound.sfx('menu');
   }

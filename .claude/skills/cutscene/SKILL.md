@@ -64,6 +64,7 @@ model: opus
 | `# (웃음)` (쥰희) | `{ motion:'junhee', name:'laugh', sfx:'laugh_junhee' }` |
 | `# 도착하자마자 다른 곳에서 연출 (플레이어 안 보이게)` | 맵 `enter:{script, flag, early:true}` + 첫 노드 `{ camera:[tx,ty], duration:0.01 }` |
 | `# 브금 꺼졌다가 X 대사에 브금` | 맵 `bgm:'x', bgmFlag:'<enter flag>'` + 대사 직전 `{ bgm:'x' }` |
+| `# 선택지` | `{ choice:{ options:[{label, goto}], cancel } }` — 엔진이 다 뜬 뒤 0.4초 확정 잠금을 건다(연타 방지, 따로 delay 불필요). 테스트는 선택지 감지 후 500ms 기다렸다 조작 |
 | `# X가 건너뛴다 / 점프한다` | `{ hop:'id', by:[dx,dy], height:30, duration:0.55 }` (jump.mp3 자동, 포물선) |
 | `# 점프 (사운드)` | `{ sfx:'jump' }` (델타룬 점프음, 공용) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |

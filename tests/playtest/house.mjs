@@ -19,7 +19,7 @@ const finishDialogue = async (pick = 0, max = 30) => {
     await page.waitForTimeout(250);
     const s = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, text: game.textbox.node?.text || '' }));
     if (!s.running) break;
-    if (s.box === 'choice') { for (let k = 0; k < pick; k++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); continue; }
+    if (s.box === 'choice') { await page.waitForTimeout(500); for (let k = 0; k < pick; k++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); continue; }   // 선택지 확정 잠금(0.4s) 뒤에 조작
     if (s.box === 'waiting') { if (!texts.includes(s.text)) texts.push(s.text); await page.keyboard.press('KeyC'); }
     else await page.keyboard.press('KeyC');   // 타이핑 중이면 즉시 표시
   }

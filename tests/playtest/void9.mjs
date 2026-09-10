@@ -19,7 +19,7 @@ const talk = async (x, y, f, picks = []) => {
   for (let i = 0; i < 150; i++) {
     await page.waitForTimeout(150); const s = await st();
     if (!s.running) { if (++idle > 3) break; continue; } idle = 0;
-    if (s.box === 'choice') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); const n = picks[pi++] ?? 0; for (let j = 0; j < Math.floor(n / 2); j++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } for (let j = 0; j < n % 2; j++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
+    if (s.box === 'choice') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); await page.waitForTimeout(500); const n = picks[pi++] ?? 0; for (let j = 0; j < Math.floor(n / 2); j++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); } for (let j = 0; j < n % 2; j++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
     else if (s.box === 'waiting') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); }
     else if (s.box === 'typing') await page.keyboard.press('KeyC');
   }

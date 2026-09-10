@@ -66,7 +66,7 @@ for i in range(5):   # 동상 벽: 가로 길 5행을 두 열로 엇갈리게(�
 for j, (c, r) in enumerate([(5, R0), (10, R0), (31, R0), (PC0, PR0), (PC1, PR0), (UPC0, 6), (UPC1, 9), (UPC1, 3)]):   # 깔려 있는 동상들(길 가장자리·광장 위 모서리·위 길 옆)
     ents.append(statue(f'statue_d{j + 1}', c * 32 - 6, r * 32 - 30, 'teal2_statue_look'))
 ents += [
-    {'type': 'prop', 'id': 'tree', 'image': 'assets/props/tree_teal.png', 'imageScale': TS, 'x': TX + int(88 * TS), 'y': TY + int(252 * TS) - 10, 'w': int(64 * TS), 'h': 10, 'ix': TX, 'iy': TY, 'solid': True, 'script': 'teal2_tree'},   # 이벤트 나무(똑똑), 반절 크기
+    {'type': 'prop', 'id': 'tree', 'image': 'assets/props/tree_teal.png', 'scale': TS, 'x': TX + int(88 * TS), 'y': TY + int(252 * TS) - 44, 'w': int(64 * TS), 'h': 44, 'ix': TX, 'iy': TY, 'solid': True, 'script': 'teal2_tree'},   # 이벤트 나무(똑똑), 반절 크기 — Prop 의 크기 키는 `scale`(imageScale 아님, 2026-09-10 뚫림·상호작용 불가 원인)
     {'type': 'prop', 'id': 'banana1', 'image': 'assets/props/banana.png', 'x': 25 * 32 + 2, 'y': 13 * 32 + 14, 'w': 28, 'h': 10, 'ix': 25 * 32 + 2, 'iy': 13 * 32 + 4, 'solid': False, 'script': 'teal2_banana1', 'unless': 'banana1_eaten'},   # 바나나 1개, 광장 상단
 ]
 m2 = {'id': 'teal2', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush',
