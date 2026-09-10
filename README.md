@@ -130,6 +130,8 @@ node tests/playtest/smoke.mjs                            # 헤드리스 자동 �
 
 현재 형섭·경섭·빠맨의 걷기 이미지는 **2026-09-10 재생성한 walk-v3**다. 각 4방향×4열 원본과 프롬프트, 프레임 크기 및 연결 높이는 `assets/source/walk-v3/manifest.json`을 따른다. 현재 버전을 재추출하려면 아래 명령을 사용한다. `--sprites-only`는 기존 대화창 초상화를 덮어쓰지 않는다.
 
+경섭은 기본 이동 정면 4프레임의 눈매를 편안하게 완화했다. 생성 수정안의 눈 주변만 기존 원본에 반영했으며, 옆·뒷모습과 걷는 자세·초상화·전투 이미지는 유지한다.
+
 ```bash
 uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/hyungsub.png hyungsub
 uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/gyeongsub.png gyeongsub
