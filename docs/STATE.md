@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-10
 
+**정글 몬스터 에셋 전달 (2026-09-11)**: [정글 몬스터 전달 가이드](handoffs/jungle-enemies-assets.md). 칼날부리·두꺼비·늑대 각각 정면 필드 48×48(pivot 24,44), 왼쪽 전투 64×64(pivot 32,60)의 투명 정지 PNG를 `assets/enemies/jungle-*.png`로 제공한다. 원본 6장·프롬프트·규격은 `assets/source/jungle-enemies-v1/`, 재추출은 `tools/sprites/import_jungle_enemies.py`. 애니메이션·적 등록·능력치·맵/전투 연결은 포함하지 않는 별도 에셋 전달이다.
+
 **전투 이미지 연결 작업**: [미니언·무기 상자 전달 가이드](handoffs/combat-assets.md). `assets/enemies/`의 정면/왼쪽 전투 정지 PNG4장과 `assets/props/weapon_box_open.png`를 추가했다. 원본·프롬프트·규격은 `assets/source/combat-props-v1/`. 아직 런타임·맵에는 연결하지 않았으며, 다른 세션의 전투 개발 변경사항은 이 에셋 PR에 포함하지 않는다.
 
 ## 한 줄 요약
