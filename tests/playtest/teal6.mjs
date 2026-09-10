@@ -49,9 +49,9 @@ const pump = async (ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms)
 const ward = await page.evaluate(() => { const w = game.entities.find((e) => e.id === 'ward'); return { x: w.x, y: w.y, cols: w.anim?.cols, iw: w.iw }; });
 check('ward prop present with a 2-frame blink strip', ward.cols === 2 && ward.iw === 20, JSON.stringify(ward));
 await stand(ward.x + 2, ward.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
-const wantW = ['억빠맨|* 어 이거 와드네요.', '경섭|* 핑크 아니고 토템이네. 아깝다', '억빠맨|* 형 정글 아니잖아요', '경섭|* 야 박기나 해', '|* 시야가 확보되었다!', '경섭|* 새 늑대 두꺼비. 풀캠이네', '경섭|* 당연히 늑대. 골드 효율.', '경섭|* 잠깐 두꺼비가 60원?', '억빠맨|* 형 눈이 왜 그래요'];
+const wantW = ['억빠맨|* 어 이거 와드네요.', '경섭|* 오 그렇네 정글와드 지렸구', '억빠맨|* 형 정글 아니잖아요', '경섭|* 야 박기나 해', '|* 시야가 확보되었다!', '경섭|* 칼날부리 늑대 두꺼비. 풀캠이네'];
 const inOrder = (want, got) => { let i = 0; for (const g of got) if (g === want[i]) i++; return i === want.length; };
-check('ward: lines in order, camera toured far away from the player (≥ 400px) and 경섭 "!" emote, flag set', inOrder(wantW, lines) && camFar >= 400 && emoteSeen && (await st()).flags.includes('teal6_ward_done'), JSON.stringify({ lines, camFar, emoteSeen }));
+check('ward: lines in order (no gold talk), camera toured far away from the player (≥ 400px), flag set', inOrder(wantW, lines) && camFar >= 400 && !lines.some((l) => /골드|60원/.test(l)) && (await st()).flags.includes('teal6_ward_done'), JSON.stringify({ lines, camFar }));
 await page.screenshot({ path: `${S}/teal6_04_ward.png` });
 // 이벤트 2 파란 돌: 경섭이 핥는다 → 전원 HP 회복, 두 번째는 짧게 회복만
 await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub = 40; game.partyHp.ppaman = 20; });
