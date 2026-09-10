@@ -9,7 +9,7 @@
 //   컷신: { battle:{ enemies:['cs','cs'], bgm:'rude_buster', flag?:'..._won' } } — 끝날 때까지 기다리고 game.lastBattle = { win }.
 // ─────────────────────────────────────────────────────────────
 import { FONT } from '../ui/font.js';
-import { CHARACTERS } from '../data/characters.js';
+import { CHARACTERS, PARTY_ORDER as WALK_ORDER } from '../data/characters.js';
 import { ENEMIES } from '../data/enemies.js';
 import { BATTLE_SPRITES, BATTLE_PREVIEW } from '../data/battle-sprites.js';
 import { loadActorFrames, playbackFrameAt } from '../ui/battle-preview.js';
@@ -19,7 +19,7 @@ import { ITEMS, plainItems } from '../data/items.js';
 import L from '../data/locale/ko.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
-const PARTY_ORDER = ['hyungsub', 'gyeongsub', 'ppaman'];   // 위→아래 (브리핑 순서)
+const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
 const PARTY_X = 84, PARTY_YS = { 1: [150], 2: [100, 200], 3: [70, 145, 220] };   // 세로 간격 75px — 셋이 패널(y 246) 위에 다 들어온다 (2026-09-10 사용자, HP 띠를 맨 아래로 빼면서 위로)
 const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244] };
 const ACTOR_SCALE = 0.66;            // 미리보기(0.25) 대비 (사용자 요청으로 10% 확대)
@@ -27,6 +27,10 @@ const APPROACH_SPEED = 820, RETURN_SPEED = 700;   // px/s — "생각보다 빠�
 const ATTACK_SPEEDUP = 1.35;         // 공격 모션 재생 배속
 const BETWEEN_ACTS = 0.08;           // 멤버 사이 딜레이(초) — "빠르게빠르게"
 const HIT_AT = 0.14;                 // 공격 모션 시작 뒤 이 시점에 데미지·효과음
+const PREP_OPEN = 0.3;               // 적 턴: 탄막 상자가 패널 자리에서 펼쳐지는 시간(초) — 그 뒤 소울이 보이고 움직일 수 있다
+const PREP_HOLD = 0.9;               // 말풍선이 다 뜬 뒤 탄막까지 준비 시간(초) (사용자: "펼쳐지고 대사 나오고 준비할 딜레이")
+const BUBBLE_CPS = 0.03;             // 말풍선 타자 속도(초/글자)
+const SMALL = FONT.replace(/^\d+px/, '12px');   // 말풍선·HP 숫자용 작은 글씨
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 
 /** 빠른 접근/복귀용: BattleAction 의 이동 시간을 속도 기준으로 다시 잡는다 */
@@ -65,7 +69,7 @@ export class Battle {
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
     this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random;
     this.result = null; this.pressed = false;
-    if (cfg.bgm) game.sound.playBgm(cfg.bgm, { volume: 0.5, fadeIn: 0.15 });   // 전환 즉시(로딩 기다리지 않음 — 딜레이 지적)
+    if (cfg.bgm) game.sound.playBgm(cfg.bgm, { volume: 0.5, fadeIn: 0.08 });   // 전환 즉시 — 진입 연출이 preloadBgm 해 두므로 첫 소리까지 공백 없음
     this.load();
   }
 
@@ -118,7 +122,7 @@ export class Battle {
       case 'item-target': return this.updateItemTarget(input);
       case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.5 && (input.just('confirm') || this.t > 1.8)) { this.state = this.after || 'menu'; this.t = 0; } return;
       case 'act': return this.updateAct(dt);
-      case 'enemy-text': if (this.t > 0.35) this.beginBullets(); return;
+      case 'enemy-prep': return this.updatePrep(dt, input);
       case 'bullets': return this.updateBullets(dt, input);
       case 'board-close': if (this.t > 0.3) this.beginMenu(); return;
       case 'win': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.6 && input.just('confirm')) this.finish(true); return;
@@ -152,10 +156,11 @@ export class Battle {
     if (input.just('cancel')) { this.sfx('cancel'); this.state = 'menu'; return; }
     if (input.just('confirm')) { this.sfx('confirm'); this.plans.push({ member: this.members[this.memberIdx], type: 'fight', target: list[this.targetIdx] }); this.nextMember(); }
   }
+  /** 아이템: 2열 격자(델타룬 ITEM) — ↑↓ 한 칸, ←→ 열 이동 */
   updateItem(input) {
     const items = plainItems(this.game.inventory); if (!items.length) { this.state = 'menu'; return; }
-    if (input.just('up')) { this.itemIdx = (this.itemIdx + items.length - 1) % items.length; this.sfx('menu'); }
-    if (input.just('down')) { this.itemIdx = (this.itemIdx + 1) % items.length; this.sfx('menu'); }
+    const move = (d) => { const i = this.itemIdx + d; if (i < 0 || i >= items.length) return; this.itemIdx = i; this.sfx('menu'); };
+    if (input.just('up')) move(-1); if (input.just('down')) move(1); if (input.just('left')) move(-3); if (input.just('right')) move(3);
     if (input.just('cancel')) { this.sfx('cancel'); this.state = 'menu'; return; }
     if (input.just('confirm')) { this.sfx('confirm'); this.itemName = items[this.itemIdx]; this.state = 'item-target'; this.itemTargetIdx = this.memberIdx; this.t = 0; }
   }
@@ -209,11 +214,27 @@ export class Battle {
   }
 
   // ── 적 턴 ──
-  beginEnemyTurn() { this.state = 'enemy-text'; this.t = 0; this.setText(''); }   // 짧은 쉼 뒤 탄막 (잡담 문구는 행동 선택 때 이미 보여 줬다)
+  boardSize() { const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
+  /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
+  beginEnemyTurn() {
+    const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)]; const lines = e.def.lines?.speak || [];
+    this.bubble = { enemy: e, text: lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...', shown: 0, t: 0, voice: e.def.voice || 'narrator' };
+    this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
+    const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
+    this.soul.center({ x: 240 - bw / 2, y: 214 - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
+    this.state = 'enemy-prep'; this.t = 0; this.setText('');
+  }
+  updatePrep(dt, input) {
+    const b = this.bubble;
+    if (b) { b.t += dt; const n = Math.min(b.text.length, Math.floor(b.t / BUBBLE_CPS)); for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ') this.game.sound.blip(b.voice); b.shown = n; if (n >= b.text.length && b.doneAt === undefined) b.doneAt = this.t; }
+    if (this.t > PREP_OPEN) this.soul.update(dt, input, this.board);                          // 준비 시간 동안 소울을 미리 움직일 수 있다
+    if ((!b || b.doneAt !== undefined) && this.t > PREP_OPEN && this.t - (b?.doneAt ?? 0) > PREP_HOLD) this.beginBullets();
+  }
   beginBullets() {
     this.patterns = this.living().map((e) => { const cfgs = e.def.patterns || [{ type: 'rain' }]; const c = cfgs[e.patternIdx++ % cfgs.length]; return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6 }; });
-    const bw = Math.max(...this.living().map((e) => e.def.board?.[0] || 200)), bh = Math.max(...this.living().map((e) => e.def.board?.[1] || 150));
-    this.board.setTarget(bw, bh, 240, 214); this.board.snap(); this.soul.center(this.board); this.soul.invuln = 0; this.bullets = [];
+    const [bw, bh] = this.boardSize();
+    this.board.setTarget(bw, bh, 240, 214); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
+    this.bubble = null;                                        // 말풍선은 탄막이 시작되면 사라진다(델타룬) — 상자 위를 가려 탄막을 숨기지 않게
     this.state = 'bullets'; this.t = 0; this.setText('');
   }
   updateBullets(dt, input) {
@@ -230,7 +251,7 @@ export class Battle {
       if (this.soul.invuln <= 0 && b.hits(this.soul)) this.hurtParty(b.dmg);
     }
     this.bullets = this.bullets.filter((b) => !b.out(this.board));
-    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.bullets = []; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 84, 240, 310); }
+    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
   }
   hurtParty(dmg) {
     const alive = this.alive(); if (!alive.length) return;
@@ -238,9 +259,10 @@ export class Battle {
     m.hp = Math.max(0, m.hp - dmg); m.popup = { t: 0, text: String(dmg) };
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
     if (m.hp <= 0) { m.down = true; }
-    if (!this.alive().length) { this.bullets = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(L.battle_lose); }
+    if (!this.alive().length) { this.bullets = []; this.bubble = null; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(L.battle_lose); }
   }
   retry() {
+    this.bubble = null;
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; }
     for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; }
     this.setText(this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n')); this.state = 'intro'; this.t = 0;
@@ -261,9 +283,10 @@ export class Battle {
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
     for (const m of idle) this.drawMember(ctx, m);
     for (const m of busy) this.drawMember(ctx, m);
-    if (this.state === 'bullets' || this.state === 'board-close') { this.board.draw(ctx); if (this.state === 'bullets') { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
+    if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.board.draw(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
     else this.drawPanel(ctx);
     if (this.state === 'lose') this.drawTextBox(ctx);
+    if (this.bubble) this.drawBubble(ctx);                          // 적 말풍선(준비 단계)
     this.drawHpStrip(ctx);                                          // HP 띠는 어느 상태에서나 맨 아래 (사용자: '체력바를 아예 아래로 빼')
   }
   drawMember(ctx, m) {
@@ -274,7 +297,8 @@ export class Battle {
     const { index } = playbackFrameAt(seq, posing ? m.pose : act && mode !== 'idle' ? act.elapsed * (mode === 'attack' ? ATTACK_SPEEDUP : 1) : this.t, mode !== 'attack');
     const fr = seq[index]; const def = BATTLE_SPRITES[m.id];
     const scale = (running ? def.run.scale : def.scale) * ACTOR_SCALE;
-    const [px, py] = act ? act.position : m.home;
+    const picking = ['menu', 'target', 'item', 'item-target'].includes(this.state) && m === this.members[this.memberIdx];
+    const [px0, py] = act ? act.position : m.home; const px = px0 + (!act && picking ? 10 : 0);   // 차례인 멤버는 한 발 앞으로(델타룬)
     ctx.save(); ctx.translate(Math.round(px), Math.round(py)); if (mode === 'return') ctx.scale(-1, 1);
     if (m.down) ctx.globalAlpha = 0.35;
     ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
@@ -364,38 +388,52 @@ export class Battle {
     }
     return lines;
   }
-  /** 행동 선택 패널(y 246~318): 위 두 줄 = 잡담 문구("억빠맨이 CS 막타를 노리고 있는 듯 하다.."), 아랫줄 = 현재 멤버 이름 + [공격하기] [아이템] — 한 화면에 공존.
-   *  적/아이템/대상 고르기도 같은 줄에 '공격하기 ◀ 이름 ▶' 식으로(새 창 없음). HP 는 맨 아래 띠(drawHpStrip) */
+  /** 적 말풍선(델타룬 전투 참고): 적 왼쪽에 큰 흰 풍선 + 적 쪽 꼬리, 검은 작은 글씨를 한 글자씩 */
+  drawBubble(ctx) {
+    const b = this.bubble, e = b.enemy; if (!e || e.dead) return;
+    ctx.save(); ctx.font = SMALL; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    const w = 172, pad = 10, lh = 14; const lines = this.wrapText(ctx, b.text, w - pad * 2);
+    const h = Math.max(50, lines.length * lh + pad * 2);
+    const x = Math.round(e.x - 66 - w), cy = Math.max(6 + h / 2, Math.round(e.y - 62)), y = Math.round(cy - h / 2);
+    ctx.fillStyle = '#fff'; this.roundRect(ctx, x, y, w, h, 9); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + w - 2, cy - 10); ctx.lineTo(x + w + 18, cy + 1); ctx.lineTo(x + w - 2, cy + 8); ctx.closePath(); ctx.fill();   // 꼬리(적 쪽)
+    ctx.fillStyle = '#000'; let left = b.shown;
+    lines.forEach((line, i) => { if (left <= 0) return; ctx.fillText(line.slice(0, left), x + pad, y + pad + i * lh); left -= line.length + 1; });
+    ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top';
+  }
+  roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); }
+  hpBar(ctx, x, y, w, hp, max, col, bg) { ctx.fillStyle = bg; ctx.fillRect(x, y, w, 9); ctx.fillStyle = col; ctx.fillRect(x, y, Math.round(w * hp / max), 9); }
+  /** 행동 선택 패널(y 246~318, 델타룬 전투 참고):
+   *  menu   — 위 두 줄 잡담 문구 + 아랫줄 현재 멤버 이름과 [공격하기][아이템] 상자 버튼(글자보다 넓게)
+   *  target — 적 목록(하트 커서 ↑↓, 이름·HP 바·숫자)  item — 2열 격자  item-target — 멤버 목록(색 HP 바). HP 띠는 맨 아래(drawHpStrip) */
   drawPanel(ctx) {
-    if (['intro', 'win', 'lose', 'text', 'enemy-text', 'act', 'load', 'ending'].includes(this.state)) { this.drawTextBox(ctx); return; }
+    if (['intro', 'win', 'lose', 'text', 'act', 'load', 'ending'].includes(this.state)) { this.drawTextBox(ctx); return; }
     this.box(ctx, 20, 246, 440, 72); ctx.textAlign = 'left'; ctx.fillStyle = '#fff';
-    if (this.text) this.wrapText(ctx, this.text.slice(0, this.shown), 408).slice(0, 2).forEach((line, i) => ctx.fillText(line, 36, 252 + i * 16));
     const m = this.members[this.memberIdx]; if (!m) return;
-    const by = 292;
-    ctx.fillStyle = '#ffe066'; ctx.fillText(m.name, 36, by + 2);                                  // 누구 차례인지
-    const bx0 = 36 + Math.ceil(ctx.measureText(m.name).width) + 16;
-    const pick = (label, value, many) => {                                                        // '라벨 ♥ ◀ 값 ▶'
-      ctx.fillStyle = '#9a9ab0'; ctx.fillText(label, bx0, by + 2);
-      const sx = bx0 + Math.ceil(ctx.measureText(label).width) + 18; this.heart(ctx, sx - 13, by + 6);
-      ctx.fillStyle = '#ffe066'; ctx.fillText(`${many ? '◀ ' : ''}${value}${many ? ' ▶' : ''}`, sx, by + 2);
-    };
-    if (this.state === 'menu') {                                                                  // 상자 버튼 두 개
-      [L.battle_fight, L.battle_item].forEach((label, k) => { const bx = bx0 + (k ? 84 : 0), bw = k ? 56 : 78, bh = 20; const sel = this.menuIdx === k;
+    const row = (i) => 254 + i * 18;
+    if (this.state === 'menu') {
+      if (this.text) this.wrapText(ctx, this.text.slice(0, this.shown), 408).slice(0, 2).forEach((line, i) => ctx.fillText(line, 36, 252 + i * 16));   // 잡담 문구
+      const by = 292; ctx.fillStyle = '#ffe066'; ctx.fillText(m.name, 36, by + 2);                    // 누구 차례인지
+      let bx = 36 + Math.ceil(ctx.measureText(m.name).width) + 16;
+      [L.battle_fight, L.battle_item].forEach((label, k) => { const bw = Math.ceil(ctx.measureText(label).width) + 30, bh = 20; const sel = this.menuIdx === k;   // 상자 = 하트 자리 + 글자 + 여백
         ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-        ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.textAlign = 'center'; ctx.fillText(label, bx + bw / 2 + (sel ? 5 : 0), by + 2); ctx.textAlign = 'left'; if (sel) this.heart(ctx, bx + 3, by + 6); });
-    } else if (this.state === 'target') {
-      const list = this.living(), e = list[this.targetIdx]; pick(L.battle_fight, e ? e.name : '', list.length > 1);
-    } else if (this.state === 'item') {
-      const items = plainItems(this.game.inventory); pick(L.battle_item, items[this.itemIdx] || '', items.length > 1);
-    } else if (this.state === 'item-target') {
-      const t = this.members[this.itemTargetIdx]; pick(`${this.itemName || ''} →`, t ? t.name : '', true);
+        ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + 18, by + 2); if (sel) this.heart(ctx, bx + 6, by + 6); bx += bw + 8; });
+    } else if (this.state === 'target') {                          // 델타룬 FIGHT: 적 목록 + HP 바, 하트 커서
+      this.living().forEach((e, i) => { const y = row(i), sel = i === this.targetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, 54, y);
+        this.hpBar(ctx, 250, y + 4, 90, e.hp, e.maxHp, '#4cd964', '#7a1b1b'); ctx.fillStyle = '#fff'; ctx.fillText(`${e.hp}/${e.maxHp}`, 350, y); });
+    } else if (this.state === 'item') {                            // 델타룬 ITEM: 2열 격자
+      const items = plainItems(this.game.inventory), page = Math.floor(this.itemIdx / 6) * 6;
+      items.slice(page, page + 6).forEach((it, k) => { const i = page + k, x = 36 + Math.floor(k / 3) * 212, y = row(k % 3), sel = i === this.itemIdx; if (sel) this.heart(ctx, x + 2, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(it + (ITEMS[it]?.heal ? ` (+${ITEMS[it].heal})` : ''), x + 18, y); });
+    } else if (this.state === 'item-target') {                     // 누구에게: 멤버 목록 + 색 HP 바
+      this.members.forEach((t, i) => { const y = row(i), sel = i === this.itemTargetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = t.down ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(t.name, 54, y);
+        this.hpBar(ctx, 250, y + 4, 90, t.hp, t.maxHp, this.hpColor(t), '#3a2020'); ctx.fillStyle = '#fff'; ctx.fillText(`${t.hp}/${t.maxHp}`, 350, y); });
+      ctx.fillStyle = '#9a9ab0'; ctx.textAlign = 'right'; ctx.fillText(this.itemName || '', 444, 254); ctx.textAlign = 'left';
     }
     if (this.state === 'item-target') {                           // 대상 멤버 위에 화살표
       const t = this.members[this.itemTargetIdx]; if (t) { const ax = t.home[0], ay = t.home[1] - 92; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill(); }
     }
-    if (this.state === 'target') {                                // 고르는 적 위에 화살표 + HP 바 (화면 위쪽, 창 없음)
-      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = Math.max(6, e.y - 112); ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#7a1b1b'; ctx.fillRect(ax - 24, ay + 13, 48, 6); ctx.fillStyle = '#4cd964'; ctx.fillRect(ax - 24, ay + 13, Math.round(48 * e.hp / e.maxHp), 6); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, ax + 44, ay + 7); ctx.textAlign = 'left'; }
+    if (this.state === 'target') {                                // 고르는 적 위에 화살표 (HP 는 목록에)
+      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = Math.max(6, e.y - 112); ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill(); }
     }
   }
 }

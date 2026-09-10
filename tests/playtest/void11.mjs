@@ -61,7 +61,7 @@ check('"그것" is yellow in the raw text', r.raw.some((t) => t.includes('{c=yel
   check('player walked to gyeongsub (x > 600) by the meeting line', meetI >= 0 && o[meetI].p > 600, JSON.stringify({ p: o[meetI]?.p })); }
 s = await st();
 check('"경섭이 동료가 되었다" is yellow', r.raw.some((t) => t.includes('{c=yellow}경섭이 동료가 되었다.{/c}')), '');
-check('경섭 joined: party [ppaman, gyeongsub], two followers visible, NPC gone, flag void11_done', JSON.stringify(s.party) === '["ppaman","gyeongsub"]' && s.f.length === 2 && s.f.every((x) => x.vis) && (!s.gyeongsub || s.gyeongsub.dead) && s.flags.void11_done === true, JSON.stringify({ party: s.party, f: s.f, g: s.gyeongsub }));
+check('경섭 joined: party [gyeongsub, ppaman] (walk order 형섭→경섭→빠맨), two followers visible, NPC gone, flag void11_done', JSON.stringify(s.party) === '["gyeongsub","ppaman"]' && s.f.length === 2 && s.f.every((x) => x.vis) && (!s.gyeongsub || s.gyeongsub.dead) && s.flags.void11_done === true, JSON.stringify({ party: s.party, f: s.f, g: s.gyeongsub }));
 check('after the scene: camera follows the player, bgm turned off after joining', s.cam.onPlayer && !s.cam.locked && s.bgm === null, JSON.stringify({ cam: s.cam, bgm: s.bgm }));
 await page.screenshot({ path: `${S}/void11_05_party.png` });
 // 나무 조사: 밑동 아래에서 위로 C

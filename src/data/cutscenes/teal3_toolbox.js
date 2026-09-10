@@ -59,6 +59,7 @@ export const teal3_toolbox = [
   { parallel: [{ hop: 'cs1', by: [-24, 0], height: 18, duration: 0.35, sfx: false }, { hop: 'cs2', by: [-24, 0], height: 18, duration: 0.35, sfx: false }] },   // 다가온다
   P('* 오{w=0.3} 온다!'),
   // ── 전투 시작 연출: 델타룬 공식 전투 시작음 + 화면 가운데로 클로즈업 + 검은 소용돌이에 빨려 들어감 → 전투 화면 (사용자: 흰 섬광 대신 검게) ──
+  { action: (g) => g.sound.preloadBgm('rude_buster') },   // 전투 브금 미리 로드(진입 공백 없음)
   { sfx: 'battle_start' }, { shake: 0.45, amp: 3 },
   { vortex: { at: 'center', size: 40, grow: 0.9 } },
   { zoom: 1.9, at: 'center', duration: 0.55 },

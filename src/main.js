@@ -22,6 +22,7 @@ import { SCRIPTS } from './data/scripts.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS, partyFromFlags } from './core/story.js';
+import { normalizeParty } from './core/party.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
@@ -165,7 +166,7 @@ class Game {
     this.resetState(); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
     this.inventory = (d.inventory || []).filter((n) => typeof n === 'string');
-    this.party = (d.party || []).filter((id) => !!CHARACTERS[id]);
+    this.party = normalizeParty(d.party);            // 어떤 조합이든 걷는 순서(경섭 → 빠맨)로
     this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
@@ -180,7 +181,7 @@ class Game {
     this.resetState();                               // 이전 세이브·이전 QA 지점 상태를 버리고 깨끗이 (섞이면 동료/플래그가 어긋난다)
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
     if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
-    this.party = party ? [...party] : partyFromFlags(this.flags);   // QA 지점의 동료 구성 — 없으면 가입 플래그에서 유도
+    this.party = normalizeParty(party || partyFromFlags(this.flags));   // QA 지점의 동료 구성 — 없으면 가입 플래그에서 유도, 순서는 걷는 순서
     if (inventory) this.inventory = [...inventory]; if (money) this.money = money;
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
@@ -216,13 +217,13 @@ class Game {
   /** 동료 가입: 맵의 같은 id NPC 를 제거하고 뒤에 붙인다. 이미 있으면 무시 */
   joinParty(id) {
     if (this.party.includes(id)) return false;
-    this.party.push(id);
+    this.party = normalizeParty([...this.party, id]);   // 가입 순서와 무관하게 걷는 순서(형섭 → 경섭 → 빠맨)
     for (const e of this.entities) if (e.def?.type === 'npc' && e.id === id) e.dead = true;
     this.spawnParty();
     this.autosave();
     return true;
   }
-  leaveParty(id) { this.party = this.party.filter((x) => x !== id); this.spawnParty(); }
+  leaveParty(id) { this.party = normalizeParty(this.party.filter((x) => x !== id)); this.spawnParty(); this.autosave(); }
 
   /** 맵 JSON `tileSwaps: { <플래그>: { rows: { "<행>": "<새 행 문자열>" } } }` 를 적용하고 다시 굽는다 (레버로 다리 내려오기 등) */
   applyTiles(key, bake = true) {
@@ -336,7 +337,8 @@ class Game {
     this.encountering = true; this.player.moving = false;
     const flag = `${this.mapId}_${e.id}_defeated`;
     this.runScript([
-      { sfx: 'battle_start' }, { shake: 0.45, amp: 3 },
+      { action: (g) => g.sound.preloadBgm(e.def.bgm || 'rude_buster') },   // 전투 브금 미리 로드 → 전투 화면과 동시에 소리 (공백 없음)
+      { sfx: 'battle_start' }, { bgm: null, fadeOut: 0.2 }, { shake: 0.45, amp: 3 },   // 델타룬처럼 조우 순간 필드 브금은 끊고 징글만
       { vortex: { at: 'center', size: 40, grow: 0.9 } }, { zoom: 1.9, at: 'center', duration: 0.55 }, { vortex: { size: 900, grow: 0.5 } },
       { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
       { battle: { enemies: e.def.enemies || ['cs_red'], bgm: e.def.bgm || 'rude_buster', bg: e.def.bg || MAPS[this.mapId]?.battleBg, flag } },
@@ -797,7 +799,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.44';
+export const BUILD = '2026-09-10.46';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

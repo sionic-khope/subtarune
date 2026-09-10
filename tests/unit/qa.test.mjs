@@ -20,8 +20,8 @@ test('test_qa_points_ids_unique_and_stage_known', () => {
   }
   assert.equal(STAGES[0].id, 'start');
 });
-test('test_party_from_flags_orders_ppaman_before_gyeongsub', () => {
+test('test_party_from_flags_walk_order_gyeongsub_then_ppaman', () => {
   assert.deepEqual(partyFromFlags({}), []);
   assert.deepEqual(partyFromFlags({ ppaman_joined: true }), ['ppaman']);
-  assert.deepEqual(partyFromFlags({ void11_done: true, ppaman_joined: true }), ['ppaman', 'gyeongsub']);
+  assert.deepEqual(partyFromFlags({ void11_done: true, ppaman_joined: true }), ['gyeongsub', 'ppaman']);
 });

@@ -154,12 +154,19 @@ export class Sound {
   }
 
   /** BGM: assets/audio/bgm/<name>.mp3 루프 재생. 같은 곡이면 유지 */
+  /** 브금 미리 로드 — 전환(전투 진입 등) 직전에 부르면 playBgm 이 이 엘리먼트를 바로 틀어 첫 소리까지의 공백이 없다 (2026-09-10 사용자 "전투 들어갈 때 0.5초 끊기고 전환") */
+  preloadBgm(name) {
+    if (!name) return; this._preBgm = this._preBgm || {};
+    if (this._preBgm[name]) return;
+    const a = new Audio(`assets/audio/bgm/${name}.mp3`); a.preload = 'auto'; a.load(); this._preBgm[name] = a;
+  }
   playBgm(name, { loop = true, volume = 0.35, fadeIn = 0.5 } = {}) {
     volume = Math.min(volume, 0.4);
     if (this.bgm && this.bgmName === name) return;
     this.stopBgm(0.4);
     if (!name) return;
-    const a = new Audio(`assets/audio/bgm/${name}.mp3`);
+    const pre = this._preBgm?.[name]; if (pre) delete this._preBgm[name];
+    const a = pre || new Audio(`assets/audio/bgm/${name}.mp3`);
     a.loop = loop; a.volume = 0;
     a.play().catch(() => {});
     this.bgm = a; this.bgmName = name; this.bgmVolume = volume;

@@ -56,7 +56,7 @@ await until(async () => page.evaluate(() => game.battle && game.battle.shown >= 
 b = await bt(); check('back in menu', !!b && b.state === 'menu', b?.state);
 await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(100);
 // X 뒤로가기: 적 선택 중 X → 메뉴, 다음 멤버 메뉴에서 X → 앞 멤버 선택 취소
-await page.keyboard.press('KeyC'); await page.waitForTimeout(150); b = await bt(); check('[공격하기] → target picker inside the panel (no popup state)', !!b && b.state === 'target', b?.state);
+await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.screenshot({ path: `${S}/battle_02b_target.png` }); b = await bt(); check('[공격하기] → target picker inside the panel (no popup state)', !!b && b.state === 'target', b?.state);
 await page.keyboard.press('KeyX'); await page.waitForTimeout(150); b = await bt(); check('X in target picker → back to the same member menu', !!b && b.state === 'menu' && b.memberIdx === 0, JSON.stringify({ s: b?.state, m: b?.memberIdx }));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.keyboard.press('KeyC'); await page.waitForTimeout(150); b = await bt(); check('member 0 planned → member 1 menu', !!b && b.state === 'menu' && b.memberIdx === 1 && b.plans === 1, JSON.stringify({ s: b?.state, m: b?.memberIdx, plans: b?.plans }));
 await page.keyboard.press('KeyX'); await page.waitForTimeout(150); b = await bt(); check('X in member 1 menu → back to member 0 with the plan undone', !!b && b.memberIdx === 0 && b.plans === 0, JSON.stringify({ m: b?.memberIdx, plans: b?.plans }));
@@ -65,14 +65,18 @@ const pickAll = async () => { for (let i = 0; i < 3; i++) { await page.keyboard.
 await pickAll();
 b = await bt(); check('three plans made → act phase begins', !!b && (b.state === 'act' || b.plans === 3), JSON.stringify({ state: b?.state, plans: b?.plans }));
 // 행동 관찰: 각 멤버가 빠르게 다가가 때리고 돌아온다
+await page.evaluate(() => { window.__prep = null; const b = game.battle; const orig = b.beginBullets.bind(b); b.beginBullets = () => { window.__prep = { text: b.bubble?.text, enemy: b.bubble?.enemy?.name, prepT: b.t, board: [Math.round(b.board.w), Math.round(b.board.h)] }; orig(); }; });   // 적 턴 준비 기록
 const seen = { approach: new Set(), attack: new Set(), far: new Set() }; let t0 = Date.now(); let hpStart = b.enemies[0].hp;
 let stateAfter = null;
-while (Date.now() - t0 < 12000) { const q = await bt(); if (!q) break; for (const m of q.members) { if (m.mode === 'approach') seen.approach.add(m.id); if (m.mode === 'attack') { seen.attack.add(m.id); if (!fs.existsSync(`${S}/battle_03_attack.png`)) await page.screenshot({ path: `${S}/battle_03_attack.png` }).catch(() => {}); } if (m.px > m.home[0] + 150) seen.far.add(m.id); } if (q.state === 'enemy-text' || q.state === 'bullets') { stateAfter = q; break; } await page.waitForTimeout(25); }
+while (Date.now() - t0 < 12000) { const q = await bt(); if (!q) break; for (const m of q.members) { if (m.mode === 'approach') seen.approach.add(m.id); if (m.mode === 'attack') { seen.attack.add(m.id); if (!fs.existsSync(`${S}/battle_03_attack.png`)) await page.screenshot({ path: `${S}/battle_03_attack.png` }).catch(() => {}); } if (m.px > m.home[0] + 150) seen.far.add(m.id); } if (q.state === 'enemy-prep' || q.state === 'bullets') { stateAfter = q; break; } await page.waitForTimeout(25); }
 check('each member approached, attacked, and got far right (fast run)', seen.attack.size === 3 && seen.far.size === 3, JSON.stringify({ approach: [...seen.approach], attack: [...seen.attack], far: [...seen.far] }));
 check('act phase took < 6s for 3 attacks (fast pacing)', stateAfter && (Date.now() - t0) < 6000, `${Date.now() - t0}ms`);
 check('first enemy took 3 damage (1 per hit)', stateAfter && stateAfter.enemies[0].hp === hpStart - 3, JSON.stringify(stateAfter?.enemies));
 // 적 턴: 상자·소울·탄막, 가만히 있으면 맞는다
-b = await until(async () => { const q = await bt(); return q && q.state === 'bullets' ? q : null; }, 5000);
+await until(async () => { const q = await page.evaluate(() => { const b = game.battle; return b ? { state: b.state, t: b.t } : null; }); if (q && q.state === 'enemy-prep' && q.t > 1.0) { await page.screenshot({ path: `${S}/battle_03b_prep.png` }); return true; } return !q || q.state === 'bullets'; }, 8000);
+b = await until(async () => { const q = await bt(); return q && q.state === 'bullets' ? q : null; }, 8000);
+const prep = await page.evaluate(() => window.__prep);
+check('enemy turn: board opened + Deltarune-style speech bubble by an enemy, and ≥ 1.1s of prep time before the first bullet', !!prep && typeof prep.text === 'string' && prep.text.length > 0 && !!prep.enemy && prep.prepT >= 1.1 && prep.board[0] >= 190, JSON.stringify(prep));
 check('enemy turn: bullet board opens with the soul inside', !!b && b.board.w >= 150 && b.soul.x > 100 && b.soul.x < 380, JSON.stringify({ board: b?.board, soul: b?.soul }));
 let maxBullets = 0, hpBefore = b ? b.members.map((m) => m.hp) : []; t0 = Date.now(); let hitObs = null;
 while (Date.now() - t0 < 9000) { const q = await bt(); if (!q) break; maxBullets = Math.max(maxBullets, q.bullets); if (q.bullets > 3 && !fs.existsSync(`${S}/battle_04_bullets.png`)) await page.screenshot({ path: `${S}/battle_04_bullets.png` }).catch(() => {}); if (q.soul.hits > 0 && !hitObs) hitObs = q; if (q.state !== 'bullets') break; await page.waitForTimeout(40); }

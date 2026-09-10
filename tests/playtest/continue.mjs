@@ -29,7 +29,7 @@ const titleLocked = async () => {
 // 1) QA 청록숲3: 동료 둘 + 즉시 세이브
 await page.goto(`${BASE}?qa=teal3`); await ready(); await unlock(); await page.waitForTimeout(400);
 let q = await st();
-check('?qa=teal3: party [ppaman, gyeongsub], two followers near the player', q.map === 'teal3' && q.party.join() === 'ppaman,gyeongsub' && q.followers.length === 2 && q.followers.every((f) => f.d <= 96), JSON.stringify({ map: q.map, party: q.party, fol: q.followers }));
+check('?qa=teal3: party [gyeongsub, ppaman] (walk order), two followers near the player', q.map === 'teal3' && q.party.join() === 'gyeongsub,ppaman' && q.followers.length === 2 && q.followers.every((f) => f.d <= 96), JSON.stringify({ map: q.map, party: q.party, fol: q.followers }));
 check('QA jump saved immediately (map teal3, party 2, spawn from_bottom)', !!q.save && q.save.map === 'teal3' && (q.save.party || []).length === 2 && q.save.spawn === 'from_bottom', JSON.stringify(q.save));
 
 // 2) 타이틀 → 이어하기
@@ -37,7 +37,7 @@ await page.goto(BASE); await ready(); await unlock();
 await titleLocked();
 await page.keyboard.press('KeyC');
 q = await until(async () => { const s = await st(); return s.state === 'field' && s.map === 'teal3' && !s.running ? s : null; }, 8000);
-check('continue → teal3 with both followers standing next to the player (not left at the map spawn)', !!q && q.party.join() === 'ppaman,gyeongsub' && q.followers.length === 2 && q.followers.every((f) => f.d <= 96) && q.flags.ppaman && q.flags.gs && q.stage === 'void_fallen', JSON.stringify(q && { party: q.party, fol: q.followers, flags: q.flags, stage: q.stage }));
+check('continue → teal3 with both followers standing next to the player (not left at the map spawn)', !!q && q.party.join() === 'gyeongsub,ppaman' && q.followers.length === 2 && q.followers.every((f) => f.d <= 96) && q.flags.ppaman && q.flags.gs && q.stage === 'void_fallen', JSON.stringify(q && { party: q.party, fol: q.followers, flags: q.flags, stage: q.stage }));
 await page.screenshot({ path: `${S}/continue_01_teal3.png` });
 
 // 3) 같은 세션에서 Esc → 타이틀 Q → 'void'(동료 없음): 상태가 섞이지 않는다

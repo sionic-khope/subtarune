@@ -18,3 +18,6 @@ export const CHARACTERS = {
   guard:     { name: '경비병', voice: 'robot', palette: 'guard' },
   ghost:     { name: '유령', voice: 'narrator', palette: 'ghost' },
 };
+
+/** 동료 걷는 순서(주인공 형섭 바로 뒤부터): 경섭 → 빠맨. 가입 순서와 무관하게 이 순서 (사용자 2026-09-10). 전투 세로 순서도 같다(형섭·경섭·빠맨) */
+export const PARTY_ORDER = ['gyeongsub', 'ppaman'];
