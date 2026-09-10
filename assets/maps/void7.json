@@ -6,20 +6,20 @@
  "dim": 0.3,
  "backdrop": "purple_fire",
  "rows": [
-  "                                                            ",
-  " xXx                                                        ",
-  " XxX                                                        ",
-  " xXx                                                        ",
-  " XxX                                                        ",
-  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
-  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
-  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy ",
-  "                                                            ",
-  "                                                            ",
-  "                                                            ",
-  "                                                            ",
-  "                                                            "
+  "                                                                    ",
+  " xXx                                                                ",
+  " XxX                                                                ",
+  " xXx                                                                ",
+  " XxX                                                                ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy ",
+  "                                                                    ",
+  "                                                                    ",
+  "                                                                    ",
+  "                                                                    ",
+  "                                                                    "
  ],
  "spawns": {
   "from_top": {
@@ -32,7 +32,7 @@
    "y": 58
   },
   "door_back": {
-   "x": 1824,
+   "x": 2080,
    "y": 200,
    "facing": "left"
   }
@@ -148,8 +148,17 @@
    "rest": 0.45
   },
   {
+   "type": "prop",
+   "id": "boulder",
+   "image": "assets/props/rock.png",
+   "x": 1888,
+   "y": 196,
+   "solid": true,
+   "script": "rock_boulder"
+  },
+  {
    "type": "door",
-   "x": 1876,
+   "x": 2132,
    "y": 160,
    "w": 12,
    "h": 96,

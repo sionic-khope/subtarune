@@ -6,19 +6,19 @@
  "dim": 0.3,
  "backdrop": "purple_fire",
  "rows": [
-  "                              ",
-  "                              ",
-  "                              ",
-  "                              ",
-  "                              ",
-  " xXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
-  " XxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
-  " yyyyyyyyyyyyyyyyyyyyyyyyyxXx ",
-  "                          XxX ",
-  "                          xXx ",
-  "                          XxX ",
-  "                          yyy "
+  "                                      ",
+  "                                      ",
+  "                                      ",
+  "                                      ",
+  "                                      ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxXx ",
+  "                                  XxX ",
+  "                                  xXx ",
+  "                                  XxX ",
+  "                                  yyy "
  ],
  "spawns": {
   "from_void4": {
@@ -31,7 +31,7 @@
    "y": 200
   },
   "door_back": {
-   "x": 864,
+   "x": 1120,
    "y": 352,
    "facing": "up"
   }
@@ -81,8 +81,17 @@
    "rest": 0.45
   },
   {
-   "type": "door",
+   "type": "prop",
+   "id": "flowers",
+   "image": "assets/props/flowers_purple.png",
    "x": 832,
+   "y": 150,
+   "solid": true,
+   "script": "rock_flowers"
+  },
+  {
+   "type": "door",
+   "x": 1088,
    "y": 372,
    "w": 96,
    "h": 12,

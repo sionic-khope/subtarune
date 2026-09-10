@@ -18,6 +18,18 @@ const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; gam
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
 const doorC = async () => { await stand(2360, 236, 'up'); await page.waitForTimeout(500); await page.keyboard.press('KeyC'); };   // 작은 문 아래에서 위를 보고 C
 const hookSfx = () => page.evaluate(() => { window.__sfx = []; const o = game.sound.sfx.bind(game.sound); game.sound.sfx = (n, opt) => { window.__sfx.push(n); return o(n, opt); }; });
+const talk = async (x, y, f, picks = []) => {   // 소품 앞에 서서 C → 대사 수집(선택지는 picks 순서대로 → 로 이동 후 C)
+  await stand(x, y, f); await page.waitForTimeout(300); await page.keyboard.press('KeyC');
+  const out = []; let idle = 0, pi = 0;
+  for (let i = 0; i < 120; i++) {
+    await page.waitForTimeout(150); const s = await st();
+    if (!s.running) { if (++idle > 3) break; continue; } idle = 0;
+    if (s.box === 'choice') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); const n = picks[pi++] ?? 0; for (let k = 0; k < n; k++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(80); } await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
+    else if (s.box === 'waiting') { const k = (s.speaker || '') + '|' + s.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); }
+    else if (s.box === 'typing') await page.keyboard.press('KeyC');
+  }
+  return out;
+};
 const collect = async (max = 80) => {   // 대사를 넘기며 (speaker|text) 를 모은다. 컷신 이동 중엔 기다림
   const out = []; let idle = 0;
   for (let i = 0; i < max; i++) {
@@ -100,6 +112,27 @@ const crossMap = async (mapId, expectLanes, exitDir, nextMap) => {
   }
   if (i_shot(mapId)) await page.screenshot({ path: `${S}/rock_05_${mapId}.png` });
   s = await st(); check(`${mapId}: crossed all lanes without being hit`, s.p[0] > s.rocks[expectLanes - 1].x + 10 && !s.invuln, JSON.stringify(s.p));
+  // 꼬리 길 이벤트 (낙석 없는 구간)
+  if (mapId === 'void5') {
+    let L = await talk(840, 186, 'up', [0]);   // 꽃: 냄새를 맡게 시킨다
+    check('void5 flowers: 꽃들이다 → 네 왜요? → [냄새] → 아 넵 → 킁킁 → .... → 냄새 존나 구려요 → ㅋㅋ 갈길', ['꽃들이다', '네 왜요?', '아 넵', '킁킁', '....', '냄새 존나 구려요', 'ㅋㅋ 갈길 가야겠다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
+    await page.screenshot({ path: `${S}/rock_07_flowers.png` });
+    s = await st(); check('void5 flowers: follower regrouped after sniffing', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70 && s.flags.flowers_sniffed, JSON.stringify({ p: s.p, f: s.f }));
+    L = await talk(840, 186, 'up', [1]);
+    check('void5 flowers again: 저 이제 안 맡을 거예요', L.some((l) => l.includes('안 맡을')), JSON.stringify(L));
+  }
+  if (mapId === 'void6') {
+    const L = await talk(1420, 186, 'up');
+    check('void6 sign: 표지판이다 → 낙석 주의 → 지금 알려주면 → 맞는 말이다', ['표지판이다', '낙석 주의', '지금 알려주면', '맞는 말이다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
+  }
+  if (mapId === 'void7') {
+    let L = await talk(1850, 214, 'right', [0]);   // 말린다
+    check('void7 boulder: 떨어진 바위다 → 차볼게요 → [말린다] → 아 넵 → 현명했다', ['떨어진 바위', '차볼게요', '아 넵', '현명했다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
+    L = await talk(1850, 214, 'right', [1]);       // 내버려 둔다
+    check('void7 boulder kick: 얍! → 아 ㅅㅂ 발 → ㅂㅅ같다 → 갈길', ['얍!', 'ㅅㅂ', 'ㅂㅅ같다', '갈길 가야겠다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
+    s = await st(); check('void7 boulder: follower regrouped, flag', s.flags.boulder_kicked && s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70, JSON.stringify({ p: s.p, f: s.f }));
+    L = await talk(1850, 214, 'right'); check('void7 boulder again: 다신 안 차요', L.some((l) => l.includes('다신 안')), JSON.stringify(L));
+  }
   // 출구
   if (exitDir === 'down') { await stand((await page.evaluate(() => game.map.pxW)) - 3 * 32 + 4, 176 - 8, 'down'); await hold('ArrowDown', 1600); }
   else { await stand((await page.evaluate(() => game.map.pxW)) - 4 * 32, 176 - 8, 'right'); await hold('ArrowRight', 900); }

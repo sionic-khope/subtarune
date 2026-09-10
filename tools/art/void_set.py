@@ -274,3 +274,22 @@ def main():
     _main3()
     prop_water_wall().save('assets/props/water_wall.png')
     print('water_wall ok')
+
+def prop_flowers():
+    """꽃 무더기 44x26 (낙석 맵 냄새 이벤트): 보라 꽃 3송이, 배경 없음. 2026-09-10"""
+    c = Canvas(44, 26)
+    def flower(cx, cy, r):
+        c.vline(cx, cy + r + 1, 26 - (cy + r + 1), STEM)
+        for (dx, dy) in [(0, -r), (r, 0), (0, r), (-r, 0)]: c.rrect_outlined(cx + dx - 2, cy + dy - 2, 5, 5, PETAL, OUT, 2)
+        if r >= 4:
+            for (dx, dy) in [(3, -3), (-3, -3), (3, 3), (-3, 3)]: c.rrect_outlined(cx + dx - 2, cy + dy - 2, 5, 5, PETAL, OUT, 2)
+        c.rrect(cx - 2, cy - 2, 5, 5, CORE, 2); c.px(cx, cy, PETAL_L)
+    flower(10, 12, 4); flower(24, 8, 4); flower(36, 14, 3)
+    c.px(2, 22, STEM); c.px(3, 21, STEM); c.px(41, 23, STEM)
+    return c
+
+_main4 = main
+def main():
+    _main4()
+    prop_flowers().save('assets/props/flowers_purple.png')
+    print('flowers ok')

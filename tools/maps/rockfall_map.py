@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """낙석 맵 생성기 (재사용). 보라 길 3줄 + 낙석 레인 n개 + 출입구를 규칙대로 뽑는다.
-규칙(2026-09-10 사용자 확정): 입구에서 8타일 뒤 첫 레인, 레인 간격 5타일, 마지막 레인 뒤 6타일, 길은 3줄, dim 0.3, 소리 없음.
+규칙(2026-09-10 사용자 확정): 입구에서 8타일 뒤 첫 레인, 레인 간격 5타일, 마지막 레인 뒤 낙석 없는 길(--tail, 현재 14타일: 이벤트 소품 자리), 길은 3줄, dim 0.3, 소리 없음.
 
 실행 예:
   /usr/bin/python3 tools/maps/rockfall_map.py void9 --rocks 6 --entry top --exit down \
       --prev void8 --prev-spawn door_back --next void10 --next-spawn from_top
 그 뒤 assets/maps/index.json 에 id 추가 + src/core/story.js QA_POINTS 한 줄 + 이전 맵 door 의 to/spawn 연결.
-현재 void5/6/7 은 이 스크립트로 만든 것과 동일하다 (`--check` 로 확인).
+현재 void5/6/7 은 tools/maps/rockfall_maps.sh 의 명령으로 만든 것과 동일하다 (`--check` 로 확인).
 """
 import argparse, io, json, sys
 
@@ -19,15 +19,16 @@ ROCK = {'image': 'assets/props/rock.png', 'period': 2.0, 'warn': 0.8, 'fall': 0.
 def ground(r, c): return 'x' if (r + c) % 2 == 0 else 'X'
 
 
-def build(mid, n, entry, exit_kind, prev, prev_spawn, nxt, nxt_spawn):
+def build(mid, n, entry, exit_kind, prev, prev_spawn, nxt, nxt_spawn, tail=TAIL, props=None):
+    TAIL_ = tail
     first = 1 + (3 if entry == 'top' else 0) + RUN
     lanes = [first + SP * i for i in range(n)]
     last = lanes[-1]
     if exit_kind == 'down':
-        W = last + TAIL + 1 + 3 + 1
+        W = last + TAIL_ + 1 + 3 + 1
         H = 13 if entry == 'left' else 14
     else:
-        W = last + TAIL + 1 + 1; H = 14
+        W = last + TAIL_ + 1 + 1; H = 14
     rows = [[' '] * W for _ in range(H)]
     for r in PATH_ROWS:
         for c in range(1, W - 1): rows[r][c] = ground(r, c)
@@ -46,6 +47,7 @@ def build(mid, n, entry, exit_kind, prev, prev_spawn, nxt, nxt_spawn):
     else: ents.append({'type': 'door', 'x': 32, 'y': 32, 'w': 96, 'h': 10, 'to': prev, 'spawn': prev_spawn, 'sfx': False})
     for i, col in enumerate(lanes):
         ents.append({'type': 'rockfall', 'image': ROCK['image'], 'x': col * 32 + 16, 'ground': GROUND, 'period': ROCK['period'], 'offset': round((i % 3) * 0.667, 3), 'warn': ROCK['warn'], 'fall': ROCK['fall'], 'rest': ROCK['rest']})
+    for e in (props or []): ents.append(e)              # 이벤트 소품(꽃·표지판·바위 등) — 꼬리(낙석 없는 길)에 둔다
     if exit_kind == 'down':
         ents.append({'type': 'door', 'x': (W - 4) * 32, 'y': (H - 1) * 32 - 12, 'w': 96, 'h': 12, 'to': nxt, 'spawn': nxt_spawn, 'sfx': False})
         back = {'x': (W - 4) * 32 + 32, 'y': (H - 2) * 32, 'facing': 'up'}
@@ -63,9 +65,11 @@ def main():
     ap.add_argument('--entry', choices=['left', 'top'], default='top'); ap.add_argument('--exit', choices=['down', 'right'], default='down')
     ap.add_argument('--prev', required=True); ap.add_argument('--prev-spawn', default='door_back')
     ap.add_argument('--next', required=True); ap.add_argument('--next-spawn', default='from_top')
+    ap.add_argument('--tail', type=int, default=TAIL, help='마지막 레인 뒤 낙석 없는 길(타일). 이벤트 소품을 두려면 14 이상')
+    ap.add_argument('--props', default=None, help='엔티티 JSON 배열(문자열) — 이벤트 소품')
     ap.add_argument('--check', action='store_true', help='쓰지 않고 기존 파일과 같은지만 본다')
     a = ap.parse_args()
-    m = build(a.id, a.rocks, a.entry, a.exit, a.prev, a.prev_spawn, a.next, a.next_spawn)
+    m = build(a.id, a.rocks, a.entry, a.exit, a.prev, a.prev_spawn, a.next, a.next_spawn, tail=a.tail, props=json.loads(a.props) if a.props else None)
     path = 'assets/maps/%s.json' % a.id
     if a.check:
         cur = json.loads(io.open(path, encoding='utf-8').read())

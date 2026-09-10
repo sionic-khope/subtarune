@@ -6,20 +6,20 @@
  "dim": 0.3,
  "backdrop": "purple_fire",
  "rows": [
-  "                                                ",
-  " xXx                                            ",
-  " XxX                                            ",
-  " xXx                                            ",
-  " XxX                                            ",
-  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
-  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
-  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxXx ",
-  "                                            XxX ",
-  "                                            xXx ",
-  "                                            XxX ",
-  "                                            xXx ",
-  "                                            yyy "
+  "                                                        ",
+  " xXx                                                    ",
+  " XxX                                                    ",
+  " xXx                                                    ",
+  " XxX                                                    ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxXx ",
+  "                                                    XxX ",
+  "                                                    xXx ",
+  "                                                    XxX ",
+  "                                                    xXx ",
+  "                                                    yyy "
  ],
  "spawns": {
   "from_top": {
@@ -32,7 +32,7 @@
    "y": 58
   },
   "door_back": {
-   "x": 1440,
+   "x": 1696,
    "y": 384,
    "facing": "up"
   }
@@ -115,8 +115,17 @@
    "rest": 0.45
   },
   {
+   "type": "prop",
+   "id": "sign_rock",
+   "image": "assets/props/signpost.png",
+   "x": 1416,
+   "y": 148,
+   "solid": true,
+   "script": "rock_sign"
+  },
+  {
    "type": "door",
-   "x": 1408,
+   "x": 1664,
    "y": 404,
    "w": 96,
    "h": 12,
