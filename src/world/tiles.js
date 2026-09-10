@@ -133,6 +133,7 @@ registerTile('l', { name: 'floor_kitchen2', solid: false, draw: flat('#d8d2c4') 
 registerTile('x', { name: 'ground_purple', solid: false, draw: flat('#4a2578') });
 registerTile('X', { name: 'ground_purple2', solid: false, draw: flat('#4a2578') });
 registerTile('z', { name: 'flower_purple', solid: false, draw: flat('#4a2578') });
+registerTile('Z', { name: 'ground_purple_solid', solid: true, draw: flat('#4a2578') });   // 땅처럼 보이지만 막힘 — 맵 가장자리 밖으로 이어지는 길(컷신 NPC 가 걸어 나가는 바닥, void10 출구). 맵 규칙 '사방 막힘' 을 지키면서 공중부양을 막는다 (2026-09-10)
 registerTile('y', { name: 'cliff_purple', solid: true, draw: flat('#2a1240') });
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });

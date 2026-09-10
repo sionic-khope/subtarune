@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """보라맵10 미로 생성기 (사용자 브리핑 2026-09-10: "보라색 땅 미로, 대각선 아래가 목표, 걷기만, 중간중간 표지판 5개").
 셀 15×11(통로 2타일·벽 1타일 = 46×34 타일), 되돌아가기(recursive backtracker) 미로 — **직진 2셀 이상이면 꺾는 쪽 우선**(사용자: "미로 치고는 길이 그대로 이어져 있다").
-시드는 정답 길이 30~45셀, 정답 길의 최대 직진 3셀 이하가 되는 것을 고른다.
+시드는 **정답이 꼬인** 것을 고른다(사용자 "오른쪽으로 쭉 가다 내려가면 도착이라 쉽다 → 더 꼬아서 어렵게"): 정답 55~75셀, 최대 직진 3셀, 왼쪽으로 8칸·위로 6칸 이상 되돌아감, 맨 윗줄·맨 오른쪽 열은 5셀 이하, 가운데 구역(3~11열·2~8행)을 12셀 이상 지남.
 표지판 5개는 정답 길 옆(그래프 거리 ≤2) 막다른 셀에, 진행 순서대로 1→5 (5번 "나갈 수 없어" 가 출구에 가장 가깝다).
 출구 = 오른쪽 아래 셀이 맵 오른쪽 가장자리까지 열려 있고 가장자리를 밟으면 void11 (포탈 그림 없음 — 사용자: "진짜 포탈 UI 를 만들라는 건 아니었다"). 컷신의 쥰희·경섭은 가장자리 밖으로 걸어 나가 사라진다. NPC 는 `unless: void10_intro`.
 실행: /usr/bin/python3 tools/maps/void10.py  (--check 는 기존과 동일한지만)
@@ -10,6 +10,7 @@ import io, json, sys, random
 from collections import deque
 CW, CH = 15, 11
 W, H = CW * 3 + 1, CH * 3 + 1
+EXT = 4                                   # 출구 오른쪽으로 이어지는 바닥(막힌 땅 'Z') — 쥰희·경섭이 화면 밖으로 걸어 나갈 때 공중부양처럼 보이지 않게 (사용자 2026-09-10)
 START, GOAL = (0, 0), (CW - 1, CH - 1)
 
 def gen(seed):
@@ -25,6 +26,14 @@ def gen(seed):
         n, nd = rnd.choice(pool)
         seen.add(n); adj[(c, r)].add(n); adj[n].add((c, r)); stack.append((n, nd, run + 1 if nd == d else 1))
     return adj
+
+def winding_ok(path):
+    """정답이 가장자리를 타지 않고 한가운데를 여러 번 오가는가"""
+    if not (55 <= len(path) <= 75) or max_straight(path) > 3: return False
+    left = sum(1 for a, b in zip(path, path[1:]) if b[0] < a[0]); up = sum(1 for a, b in zip(path, path[1:]) if b[1] < a[1])
+    if left < 8 or up < 6: return False
+    if sum(1 for c in path if c[1] == 0) > 5 or sum(1 for c in path if c[0] == CW - 1) > 5: return False
+    return sum(1 for c in path if 3 <= c[0] <= 11 and 2 <= c[1] <= 8) >= 12
 
 def max_straight(path):
     best = run = 1
@@ -47,7 +56,7 @@ while True:
     path = [GOAL]
     while path[-1] != START: path.append(prev[path[-1]])
     path.reverse()
-    if 30 <= len(path) <= 45 and max_straight(path) <= 3:
+    if winding_ok(path):
         onpath = {cell: i for i, cell in enumerate(path)}
         dead = [cell for cell, ns in adj.items() if len(ns) == 1 and cell not in (START, GOAL)]
         cands = []
@@ -67,7 +76,7 @@ while True:
     seed += 1
 signs = [d for _, d in picks]
 
-rows = [[' '] * W for _ in range(H)]
+rows = [[' '] * (W + EXT) for _ in range(H)]
 def g(r, c): return 'x' if (r + c) % 2 == 0 else 'X'
 for (c, r), ns in adj.items():
     for tr in (1 + 3 * r, 2 + 3 * r):
@@ -80,7 +89,11 @@ for (c, r), ns in adj.items():
 for r in range(1, H):
     for c in range(W):
         if rows[r][c] == ' ' and rows[r - 1][c] != ' ': rows[r][c] = 'y'   # 땅 아래 절벽면
-rows = [''.join(r) for r in rows] + [' ' * W] * 4   # 아래 여백 4행: 출구 컷신 때 카메라가 더 내려가 두 사람이 대화창 위에 보인다
+_gr = CH - 1
+for r in (1 + 3 * _gr, 2 + 3 * _gr):
+    for c in range(W - 1, W + EXT): rows[r][c] = 'Z'                        # 출구 셀 → 맵 오른쪽 끝까지 땅처럼 보이는 막힌 길
+for c in range(W - 1, W + EXT): rows[3 + 3 * _gr][c] = 'y'
+rows = [''.join(r) for r in rows] + [' ' * (W + EXT)] * 4   # 아래 여백 4행: 출구 컷신 때 카메라가 더 내려가 두 사람이 대화창 위에 보인다
 
 def tile_px(tc, tr): return (tc * 32 + 4, tr * 32 + 16)
 SIGN_SCRIPTS = ['void10_sign1', 'void10_sign2', 'void10_sign3', 'void10_sign4', 'void10_sign5']
@@ -108,10 +121,10 @@ m = {'id': 'void10', 'name': '???', 'bgm': 'scarlet', 'stage': 'void_fallen', 'd
      'rows': rows,
      'spawns': {'from_left': {'x': sx + 8, 'y': sy, 'facing': 'right'}, 'start': {'x': sx + 8, 'y': sy, 'facing': 'right'},
                 'goal': {'x': EDGE - 44, 'y': R1 * 32 + 8, 'facing': 'left'}},
-     'meta': {'seed': seed, 'pathCells': len(path), 'signs': [list(x) for x in signs], 'startTile': [1, 1], 'goalTile': [W - 2, R0], 'exitX': EDGE},
+     'meta': {'seed': seed, 'pathCells': len(path), 'signs': [list(x) for x in signs], 'startTile': [1, 1], 'goalTile': [W + EXT - 2, R0], 'exitX': (W + EXT) * 32},
      'entities': ents}
 path_ = 'assets/maps/void10.json'
 if '--check' in sys.argv:
     cur = json.loads(io.open(path_, encoding='utf-8').read()); print('void10', 'same' if cur == m else 'DIFFERENT'); sys.exit(0 if cur == m else 1)
 io.open(path_, 'w', encoding='utf-8').write(json.dumps(m, ensure_ascii=False, indent=1))
-print('wrote', path_, W, 'x', H + 4, 'seed', seed, 'path', len(path), 'cells; signs', signs)
+print('wrote', path_, W + EXT, 'x', H + 4, 'seed', seed, 'path', len(path), 'cells; signs', signs)

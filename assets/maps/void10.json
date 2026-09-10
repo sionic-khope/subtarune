@@ -10,44 +10,44 @@
   "flag": "void10_intro"
  },
  "rows": [
-  "                                              ",
-  " xXxXxXxX XxXxXxXx xXxXx xXxXxXxXxXx xXxXx xX ",
-  " XxXxXxXx xXxXxXxX XxXxX XxXxXxXxXxX XxXxX Xx ",
-  " yyyyyyxX yyyxXyXx xXyXx yyyXxyyyyXx xXyXx xX ",
-  " XxXxXyXxXxXxXxyxXxXxyxXxXxXxXyXxyxXxXxyxXxXx ",
-  " xXxXxyxXxXxXxXyXxXxXyXxXxXxXxyxXyXxXxXyXxXxX ",
-  " XxyyyyyyyyyyyyyyyyyyyyyyyyyyyyXxyyyyyyyyyyXx ",
-  " xXyXxXxXxXxXxXyXxXxXxXxXxXxXxyxXxXxyxXxXxyxX ",
-  " XxyxXxXxXxXxXxyxXxXxXxXxXxXxXyXxXxXyXxXxXyXx ",
-  " xXyXxyxXyyyyxXyyyyxXyXxyyyyXxyxXyXxyxXyyyyxX ",
-  " XxXxXyXxyxXxXxXxXyXxyxXxXxyxXxXxyxXxXxyxXxXx ",
-  " xXxXxyxXyXxXxXxXxyxXyXxXxXyXxXxXyXxXxXyXxXxX ",
-  " XxyyyyXxyyyyyyyxXyyyyyyyXxyyyyyyyxXyyyyxXyyy ",
-  " xXxXxyxXxXxyxXxXxyxXxXxXxXyXxyxXxXxyxXxXxyxX ",
-  " XxXxXyXxXxXyXxXxXyXxXxXxXxyxXyXxXxXyXxXxXyXx ",
-  " yyyXxyyyyXxyyyyXxyxXyyyyyyyXxyxXyyyyxXyyyyxX ",
-  " XxXxXyXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXyXx ",
-  " xXxXxyxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxyxX ",
-  " XxyyyyXxyyyyXxyyyyyyyxXyXxyxXyyyyxXyyyyxXyXx ",
-  " xXxXxXxXyXxyxXxXxyxXxXxyxXyXxyxXxXxXxXyXxXxX ",
-  " XxXxXxXxyxXyXxXxXyXxXxXyXxyxXyXxXxXxXxyxXxXx ",
-  " yyyyyyxXyXxyyyyXxyxXyyyyxXyXxyxXyyyyyyyyyyxX ",
-  " XxXxXxXxyxXxXxyxXxXxyxXxXxyxXxXxXxXyXxXxXxXx ",
-  " xXxXxXxXyXxXxXyXxXxXyXxXxXyXxXxXxXxyxXxXxXxX ",
-  " XxyyyyyyyxXyXxyyyyyyyxXyyyyyyyyyyxXyXxyyyyyy ",
-  " xXxXxyxXxXxyxXxXxXxXyXxXxXyXxXxXyXxyxXxXxyxX ",
-  " XxXxXyXxXxXyXxXxXxXxyxXxXxyxXxXxyxXyXxXxXyXx ",
-  " yyyXxyyyyyyyyyyXxyxXyyyyxXyXxyxXyyyyyyyXxyxX ",
-  " XxyxXyXxXxXyXxXxXyXxXxXyXxXxXyXxXxXxXxyxXxXx ",
-  " xXyXxyxXxXxyxXxXxyxXxXxyxXxXxyxXxXxXxXyXxXxX ",
-  " XxyxXyXxyxXyXxyyyyyyyxXyyyyyyyyyyyyyXxyyyyXx ",
-  " xXxXxXxXyXxXxXyXxXxXxXxXxXxXxXxXxXxyxXxXxXxX ",
-  " XxXxXxXxyxXxXxyxXxXxXxXxXxXxXxXxXxXyXxXxXxXx ",
-  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy ",
-  "                                              ",
-  "                                              ",
-  "                                              ",
-  "                                              "
+  "                                                  ",
+  " xX XxXxXxXx xXxXxXxXxXxXxXxXxXxXxXxXxXxXx xX     ",
+  " Xx xXxXxXxX XxXxXxXxXxXxXxXxXxXxXxXxXxXxX Xx     ",
+  " xX yyyxXyXx yyyyyyyyyyyyxXyyyyyyyyyyxXyXx xX     ",
+  " XxXxXxXxyxXxXxyxXxXxXxXyXxyxXxXxyxXxXxyxXxXx     ",
+  " xXxXxXxXyXxXxXyXxXxXxXxyxXyXxXxXyXxXxXyXxXxX     ",
+  " yyyyyyyyyyyyXxyxXyyyyxXyyyyxXyXxyxXyyyyyyyXx     ",
+  " xXxXxyxXxXxyxXxXxyxXyXxyxXxXxyxXxXxyxXyXxXxX     ",
+  " XxXxXyXxXxXyXxXxXyXxyxXyXxXxXyXxXxXyXxyxXxXx     ",
+  " xXyXxyxXyXxyyyyyyyxXyXxyxXyyyyyyyyyyxXyXxyyy     ",
+  " XxyxXxXxyxXxXxXxXyXxXxXyXxXxXyXxXxXxXxyxXyXx     ",
+  " xXyXxXxXyXxXxXxXxyxXxXxyxXxXxyxXxXxXxXyXxyxX     ",
+  " XxyyyyyyyyyyXxyyyyXxyyyyXxyxXyyyyxXyyyyxXyXx     ",
+  " xXxXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXxXxyxX     ",
+  " XxXxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxXxXyXx     ",
+  " yyyXxyxXyyyyyyyXxyyyyXxyxXyyyyxXyXxyyyyyyyxX     ",
+  " XxyxXyXxXxXxXxyxXyXxXxXyXxyxXxXxyxXyXxXxXyXx     ",
+  " xXyXxyxXxXxXxXyXxyxXxXxyxXyXxXxXyXxyxXxXxyxX     ",
+  " XxyxXyXxyxXyyyyxXyXxyyyyyyyxXyyyyxXyXxyxXyXx     ",
+  " xXxXxyxXyXxXxXyXxXxXyXxXxXxXxyxXxXxXxXyXxXxX     ",
+  " XxXxXyXxyxXxXxyxXxXxyxXxXxXxXyXxXxXxXxyxXxXx     ",
+  " xXyyyyyyyyyyxXyyyyyyyyyyxXyyyyyyyyyyyyyyyyyy     ",
+  " XxXxXyXxXxXxXxyxXxXxXxXyXxyxXxXxyxXxXxyxXxXx     ",
+  " xXxXxyxXxXxXxXyXxXxXxXxyxXyXxXxXyXxXxXyXxXxX     ",
+  " yyyxXyXxyyyyXxyyyyXxyxXyXxyxXyXxyxXyXxyxXyXx     ",
+  " xXxXxyxXyXxyxXxXxyxXyXxyxXxXxyxXxXxyxXxXxyxX     ",
+  " XxXxXyXxyxXyXxXxXyXxyxXyXxXxXyXxXxXyXxXxXyXx     ",
+  " xXyyyyxXyXxyyyyXxyxXyXxyyyyXxyyyyyyyyyyyyyxX     ",
+  " XxXxXxXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXxXx     ",
+  " xXxXxXxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxXxX     ",
+  " yyyyyyyyyxXyXxyyyyyyyyyyXxyyyyXxyxXyXxyyyyXx     ",
+  " xXxXxXxXxXxyxXxXxXxXxXxXxXxXxXxXyXxXxXyXxXxXZZZZZ",
+  " XxXxXxXxXxXyXxXxXxXxXxXxXxXxXxXxyxXxXxyxXxXxZZZZZ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+  "                                                  ",
+  "                                                  ",
+  "                                                  ",
+  "                                                  "
  ],
  "spawns": {
   "from_left": {
@@ -67,28 +67,28 @@
   }
  },
  "meta": {
-  "seed": 96580,
-  "pathCells": 41,
+  "seed": 1702,
+  "pathCells": 71,
   "signs": [
    [
-    3,
+    1,
     0
    ],
    [
-    8,
-    0
+    6,
+    2
    ],
    [
-    14,
-    0
+    0,
+    5
    ],
    [
-    14,
-    4
+    5,
+    7
    ],
    [
-    14,
-    8
+    13,
+    10
    ]
   ],
   "startTile": [
@@ -96,17 +96,17 @@
    1
   ],
   "goalTile": [
-   44,
+   48,
    31
   ],
-  "exitX": 1440
+  "exitX": 1600
  },
  "entities": [
   {
    "type": "prop",
    "id": "sign1",
    "image": "assets/props/signpost.png",
-   "x": 323,
+   "x": 131,
    "y": 34,
    "solid": true,
    "script": "void10_sign1"
@@ -115,8 +115,8 @@
    "type": "prop",
    "id": "sign2",
    "image": "assets/props/signpost.png",
-   "x": 803,
-   "y": 34,
+   "x": 643,
+   "y": 226,
    "solid": true,
    "script": "void10_sign2"
   },
@@ -124,8 +124,8 @@
    "type": "prop",
    "id": "sign3",
    "image": "assets/props/signpost.png",
-   "x": 1411,
-   "y": 34,
+   "x": 67,
+   "y": 514,
    "solid": true,
    "script": "void10_sign3"
   },
@@ -133,8 +133,8 @@
    "type": "prop",
    "id": "sign4",
    "image": "assets/props/signpost.png",
-   "x": 1411,
-   "y": 418,
+   "x": 515,
+   "y": 706,
    "solid": true,
    "script": "void10_sign4"
   },
@@ -142,8 +142,8 @@
    "type": "prop",
    "id": "sign5",
    "image": "assets/props/signpost.png",
-   "x": 1411,
-   "y": 802,
+   "x": 1283,
+   "y": 994,
    "solid": true,
    "script": "void10_sign5"
   },

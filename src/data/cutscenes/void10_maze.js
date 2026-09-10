@@ -10,7 +10,7 @@ const N = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });
 const J = (text, extra = {}) => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text, ...extra });
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const meta = () => MAPS.void10?.meta || { startTile: [1, 1], goalTile: [45, 31], exitX: 1472 };
-const OFF = () => meta().exitX + 40;   // 걸을 수 있는 끝 너머(가장자리 열) — 화면 오른쪽 끝으로 나가며 사라진다
+const OFF = () => meta().exitX + 44;   // 맵(=화면) 오른쪽 끝 너머 — 이어진 바닥('Z') 위로 걸어 화면 밖으로 나간 뒤 사라진다
 
 export const void10_intro = [
   { wait: 0.2 },
