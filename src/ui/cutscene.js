@@ -16,6 +16,7 @@
 //  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
+//  { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -188,6 +189,22 @@ export function makeWaiter(game, node) {
   }
   if (node.join) { game.joinParty(node.join); return done; }          // { join:'ppaman' } 동료 가입(맵의 같은 id NPC 는 사라짐)
   if (node.leave) { game.leaveParty(node.leave); return done; }
+  if (node.raft) {                                     // { raft:id, go:true } 출발 / { raft:id, jump:true } 점프(컷신용 강제) / { raft:id, until:'stop' } 멈출 때까지(벽에 쿵·도착)
+    const r = findEntity(game, node.raft); if (!r) return done;
+    if (node.go) { r.depart(); return done; }
+    if (node.jump) { r.jump(true); return done; }
+    if (node.until === 'stop') return { update: () => !r.moving };
+    return done;
+  }
+  if (node.prompt) {                                   // { prompt:'C를 눌러보자' } 작은 안내 창 — C 를 누를 때까지(텍스트 넘김 아님)
+    game.textbox.close(); game.prompt = { text: node.prompt, t: 0 };
+    return { update: (dt, input) => { if (!game.prompt) return true; game.prompt.t += dt; if (input.just('confirm')) { game.prompt = null; return true; } return false; } };
+  }
+  if (node.shakeOff) {                                 // { shakeOff:id, duration:0.9 } 강아지 물 털듯 타다다닥 흔들림 + 파란 물방울 (새 스프라이트 없음)
+    const e = findEntity(game, node.shakeOff); if (!e) return done;
+    e.jitter = { t: node.duration ?? 0.9, amp: node.amp ?? 2 }; let acc = 0;
+    return { update: (dt) => { acc += dt; while (acc > 0.03) { acc -= 0.03; game.emitDroplets(e, 2); } return !e.jitter; } };
+  }
   if (node.regroup) { for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); return done; }   // 동료를 주인공 뒤로 재정렬   // { tiles:'bridge_down' } 맵 tileSwaps 적용 + 다시 굽기
   if (node.parallel) return parallel(game, node.parallel);
   if ('async' in node) {

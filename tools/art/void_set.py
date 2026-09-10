@@ -257,3 +257,20 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+def prop_water_wall():
+    """물 위 벽 28x52 (보라맵8 뗏목 점프 장애물): 몸만한 돌 판, 최소 디테일. 2026-09-10"""
+    A = hexc('#3b2a55'); L = hexc('#54407a'); D = hexc('#2a1c40'); H = hexc('#7a63a8')
+    w, h = 28, 52; c = Canvas(w, h)
+    c.rect(0, 0, w, h, OUT); c.rect(1, 1, w - 2, h - 2, A)
+    c.rect(1, 1, w - 2, 3, L); c.hline(2, 1, w - 4, H)
+    c.rect(w - 6, 4, 5, h - 5, D); c.vline(1, 4, h - 5, L)
+    for i in range(4): c.px(6 + i, 14 + i, D)
+    for i in range(3): c.px(11 + i, 30 + i, D)
+    return c
+
+_main3 = main
+def main():
+    _main3()
+    prop_water_wall().save('assets/props/water_wall.png')
+    print('water_wall ok')

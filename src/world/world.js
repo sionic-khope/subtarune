@@ -223,7 +223,8 @@ export class Character extends Entity {
   drawSprite(ctx, cam) {
     const img = this.sprite[this.facing][this.frame];
     const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
-    const sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x);
+    const jx = this.jitter && this.jitter.t > 0 ? (Math.floor(this.jitter.t * 18) % 2 ? this.jitter.amp : -this.jitter.amp) : 0;   // 타다다닥(강아지 물 털듯) — main.js 가 t 를 줄인다
+    const sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x) + jx;
     const sy = Math.round(this.y + this.h - dh - cam.y);
     if (this.pose === 'lying') {           // 침대에 누움: 정면 스프라이트를 90도 눕힘 (머리가 위쪽)
       ctx.save();
@@ -446,9 +447,14 @@ export class Prop extends Entity {
 
 /**
  * 뗏목(재사용 기믹): 물 위 발판. 옆에 서서 C → 정해진 경로(route)를 따라 일직선으로 이동, 끝에서 내린다. 반대편에서 타면 되돌아온다.
- *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:171, flag?:'raft1' }
+ *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:171, flag?:'raft1',
+ *     onBoard?:'스크립트', onBoardFlag?:'플래그',   // 처음 탈 때 출발하지 않고 컷신부터 (컷신이 { raft:id, go:true } 로 출발시킨다)
+ *     onArrive?:'스크립트', onArriveFlag?:'플래그', // 도착 직후 1회 컷신
+ *     swim?:'ppaman',                              // 이 동료는 타지 않고 뗏목 뒤에서 얼굴만 내밀고 헤엄친다(Swimmer). 도착하면 뭍에 올라와 다시 동료
+ *     jump?:true, jumpH?:64, jumpDur?:1.0 }        // C 점프(2블럭). **swim 동료가 뒤에 있을 때만** 된다 — 그 전 뗏목은 C 눌러도 안 됨 (2026-09-10 사용자 규칙)
  *   x,y 와 route 는 이미지 좌상단(월드). 상태: flags[flag] = 지금 있는 route 인덱스(0=시작) → 맵을 다시 들어와도 그 자리.
  *   타는 동안 game.ride 가 서서 플레이어 입력·트리거가 멈춘다(main.js). 탑승자(와 동료)는 걷지 않고 정지 프레임으로 서 있는다. 도착하면 진행 방향으로 플레이어를 밀어 내린다.
+ *   장애물: `obstacle:true` 소품(물 위 벽)에 공중이 아닐 때 닿으면 쿵(thud·흔들림) 하고 벽 앞에 멈춘다 → C 점프로 넘는다(멈춘 채 점프해도 넘어감). 가로 경로 전용.
  */
 export class Raft extends Prop {
   constructor(def, game) {
@@ -458,38 +464,87 @@ export class Raft extends Prop {
     this.speed = def.speed ?? 171;   // 2026-09-09 +50%
     this.at = Math.min(this.route.length - 1, game.flags[this.flagKey] ?? 0);
     this.setPos(this.route[this.at]);
-    this.riding = false; this.target = 0;
+    this.riding = false; this.moving = false; this.target = 0; this.blocked = null; this.hits = 0;
+    this.jumping = false; this.jumpT = 0; this.jumpY = 0; this.jumpDur = def.jumpDur ?? 1.0; this.jumpH = def.jumpH ?? 64;
+    this.swimmer = null; this.dirFacing = 'right';
   }
   get flagKey() { return this.def.flag || `raft_${this.id || 'raft'}`; }
   setPos([x, y]) { this.x = x; this.y = y; this.def.ix = x; this.def.iy = y; }
   canInteract() { return true; }
   interact(player) {
     if (this.riding || this.game.ride) return true;
-    this.riding = true; this.game.ride = this;
-    this.target = this.at === 0 ? this.route.length - 1 : 0;
-    this.rider = player; player.moving = false;
-    const [tx, ty] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up';
-    this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
+    this.board(player);
+    const bf = this.def.onBoardFlag || `${this.id}_boarded`;
+    if (this.def.onBoard && !this.game.has(bf)) { this.game.setFlag(bf); this.game.runScript(this.def.onBoard); return true; }   // 출발은 컷신이
+    this.depart();
     return true;
   }
-  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.68 - p.h); }   // 발이 뗏목 아래쪽에 닿게 → 위에 서 있는 느낌 (그리기 순서는 main.js 가 항상 위로)
+  /** 올라타기만 (출발 안 함) */
+  board(player) {
+    this.riding = true; this.game.ride = this; this.rider = player; player.moving = false; player.frame = 0;
+    this.target = this.at === 0 ? this.route.length - 1 : 0;
+    const [tx, ty] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up'; this.dirFacing = player.facing;
+    this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
+  }
+  /** 출발 (swim 동료가 있으면 숨기고 뒤에서 헤엄치게) */
+  depart() { if (!this.riding) return; this.moving = true; this.blocked = null; this.ensureSwimmer(); }
+  ensureSwimmer() {
+    const id = this.def.swim; if (!id || !this.game.party?.includes(id)) return;
+    const f = this.game.entities.find((e) => e.def?.type === 'follower' && e.id === id); if (f) f.visible = false;
+    if (!this.hasSwimmer) this.swimmer = this.game.spawn({ type: 'swimmer', id: `${id}_swim`, sprite: id, raft: this.id, x: this.x - 26, y: this.y, facing: this.dirFacing });
+  }
+  get hasSwimmer() { return !!(this.swimmer && !this.swimmer.dead); }
+  /** C 점프 가능? — jump 옵션 + 뒤에서 헤엄치는 동료 + 공중 아님 + 대사 아님 */
+  canJump() { return this.riding && !!this.def.jump && this.hasSwimmer && !this.jumping && !this.game.dialogue.running; }
+  /** 점프: 2블럭 높이 사인 궤적, 그동안 계속 전진(멈춰 있었어도 다시 간다). force 는 컷신용 */
+  jump(force = false) {
+    if (force ? !(this.riding && !this.jumping) : !this.canJump()) return false;
+    this.jumping = true; this.jumpT = 0; this.jumpY = 0; this.moving = true; this.blocked = null;
+    this.game.sound.sfx('jump', { volume: 0.7 });
+    return true;
+  }
+  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.68 - p.h) - Math.round(this.jumpY); }   // 발이 뗏목 아래쪽에 닿게 → 위에 서 있는 느낌 (그리기 순서는 main.js 가 항상 위로). 점프 중엔 같이 뜬다
   update(dt) {
     if (!this.riding) return;
+    if (this.jumping) {
+      this.jumpT += dt;
+      if (this.jumpT >= this.jumpDur) { this.jumping = false; this.jumpT = 0; this.jumpY = 0; }
+      else this.jumpY = this.jumpH * Math.sin(Math.PI * this.jumpT / this.jumpDur);
+    }
+    if (!this.moving) { this._carry(); this.rider.moving = false; this.rider.frame = 0; return; }
     const [tx, ty] = this.route[this.target];
     const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy), step = this.speed * dt;
     if (dist <= step) {
       this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
-      this.riding = false; this.game.ride = null;
+      this.riding = false; this.moving = false; this.jumping = false; this.jumpY = 0; this.game.ride = null;
       this.game.sound.sfx('splash', { volume: 0.5 });
       this._disembark(dx, dy);
+      this._landSwimmer();
+      const af = this.def.onArriveFlag || `${this.id}_arrived`;
+      const runArrive = this.def.onArrive && !this.game.has(af);
+      if (runArrive) this.game.setFlag(af);
       this.game.autosave?.();
+      if (runArrive) this.game.runScript(this.def.onArrive);
       return;
     }
-    this.x += (dx / dist) * step; this.y += (dy / dist) * step; this.def.ix = this.x; this.def.iy = this.y;
+    const nx = this.x + (dx / dist) * step, ny = this.y + (dy / dist) * step;
+    const low = !this.jumping || (this.jumpT > this.jumpDur * 0.5 && this.jumpY < 16);   // 이륙(상승)은 벽 바로 앞에서도 넘어간다. 착지 구간에 벽이면 쿵
+    if (low) {
+      const wall = this.game.entities.find((e) => e.def?.obstacle && !e.dead && e.overlaps({ x: nx, y: ny, w: this.w, h: this.h }));
+      if (wall) {
+        this.setPos([Math.round(dx >= 0 ? wall.x - this.w - 2 : wall.x + wall.w + 2), this.y]);
+        this.moving = false; this.blocked = wall; this.jumping = false; this.jumpY = 0; this.hits++;
+        this._carry(); this.game.sound.sfx('thud', { volume: 0.8 }); this.game.shake = { time: 0.25, amp: 3 };
+        return;
+      }
+    }
+    this.x = nx; this.y = ny; this.def.ix = this.x; this.def.iy = this.y;
     this._carry();
     this.rider.moving = false; this.rider.frame = 0; this.rider.animPhase = 0;   // 실려 가는 동안 가만히 서 있는다(걷기 애니 금지, 2026-09-10)
-    this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (1.1s 마다, 작게·피치 조금씩 다르게)
-    if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 }); }
+    if (!this.jumping) {
+      this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (1.1s 마다, 작게·피치 조금씩 다르게)
+      if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 }); }
+    }
   }
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
   _disembark(dx, dy) {
@@ -501,6 +556,47 @@ export class Raft extends Prop {
         if (!map.solidRect(nx, ny, p.w, p.h) && !this.overlaps({ x: nx, y: ny, w: p.w, h: p.h })) { p.x = nx; p.y = ny; p.moving = false; p.frame = 0; return; }
       }
     }
+  }
+  /** 헤엄치던 동료가 뭍에 올라온다: Swimmer 제거, 동료를 주인공 앞(진행 방향)에 마주 보게 세운다 */
+  _landSwimmer() {
+    if (!this.def.swim) return;
+    if (this.swimmer) { this.swimmer.dead = true; this.swimmer = null; }
+    const f = this.game.entities.find((e) => e.def?.type === 'follower' && e.id === this.def.swim); if (!f) return;
+    const p = this.rider, ahead = this.dirFacing === 'left' ? -1 : 1;
+    f.visible = true; f.x = p.x + ahead * (p.w + 18); f.y = p.y; f.facing = ahead > 0 ? 'left' : 'right'; f.moving = false; f.frame = 0; p.facing = ahead > 0 ? 'right' : 'left'; p.trail = [];
+  }
+  draw(ctx, cam) {
+    if (!this.visible) return;
+    const x = Math.round(this.drawX - cam.x), y = Math.round(this.drawY - cam.y);
+    if (this.jumpY > 0) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x + this.iw / 2, y + this.ih * 0.7, this.iw * 0.45, 5, 0, 0, Math.PI * 2); ctx.fill(); }   // 물 위 그림자
+    if (this.image) ctx.drawImage(this.image, x, y - Math.round(this.jumpY), this.iw, this.ih);
+  }
+}
+
+/**
+ * 헤엄치는 동료(뗏목 뒤에서 얼굴만): Raft 가 swim 옵션으로 만들고 도착 때 치운다. 점프 중엔 몸 전체가 뗏목을 들고 같이 뜬다.
+ *   { type:'swimmer', id:'ppaman_swim', sprite:'ppaman', raft:'raft8' }
+ */
+export class Swimmer extends Character {
+  constructor(def, game) { super({ solid: false, w: 24, h: 12, ...def }, game); this.raftId = def.raft; this.t = 0; this.lift = 0; }
+  canInteract() { return false; }
+  get raft() { return this.game.entities.find((e) => e.id === this.raftId && !e.dead); }
+  update(dt) {
+    this.t += dt; const r = this.raft; if (!r) return;
+    this.x = r.dirFacing === 'left' ? r.x + r.w + 2 : r.x - this.w - 2;   // 진행 방향 반대쪽 = 뒤
+    this.y = Math.round(r.y + r.h * 0.55) - this.h;                       // 물결선 = 뗏목 중간
+    this.facing = r.dirFacing; this.lift = r.jumpY; this.moving = false; this.frame = 0;
+  }
+  draw(ctx, cam) {
+    if (!this.visible) return;
+    const img = this.sprite[this.facing][0];
+    const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
+    const water = this.y + this.h, sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x), wy = Math.round(water - cam.y);
+    if (this.lift > 0) { ctx.drawImage(img, sx, Math.round(water - dh + 12 - this.lift - cam.y), dw, dh); return; }   // 점프: 뒤에서 들고 같이 뜬다(몸 전체)
+    const bob = Math.round(Math.sin(this.t * 4) * 1.5), headH = Math.round(dh * 0.42);
+    const sy = wy - headH + bob;
+    ctx.save(); ctx.beginPath(); ctx.rect(sx - 2, sy, dw + 4, wy - sy); ctx.clip(); ctx.drawImage(img, sx, sy, dw, dh); ctx.restore();   // 물결선 아래는 안 보임
+    ctx.strokeStyle = 'rgba(20,40,120,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(sx + dw / 2, wy + 0.5, dw / 2 + 2, 3, 0, 0, Math.PI * 2); ctx.stroke();
   }
 }
 
@@ -532,7 +628,10 @@ export class Follower extends Character {
       if (k.t <= 0) this.knock = null; this.moving = false; this.animate(dt); return;
     }
     if (this.game.dialogue.running) return;          // 컷신 중엔 컷신(move)이 움직인다 — 발자국 추종과 싸우지 않게
-    if (this.game.ride) { this.x = p.x - 18 * this.slot; this.y = p.y - 3 * this.slot; this.facing = p.facing; this.moving = false; this.frame = 0; this.animPhase = 0; return; }   // 탈것 위에선 동료도 가만히, 주인공 옆(겹치지 않게)
+    if (this.game.ride) {
+      if (this.game.ride.def?.swim) { this.moving = false; this.frame = 0; return; }   // 헤엄치는 뗏목(swim): 타지 않는다(Raft 가 숨기고 Swimmer 로 바꾼다)
+      this.x = p.x - 18 * this.slot; this.y = p.y - 3 * this.slot; this.facing = p.facing; this.moving = false; this.frame = 0; this.animPhase = 0; return;   // 탈것 위에선 동료도 가만히, 주인공 옆(겹치지 않게)
+    }
     const trail = p.trail || [];
     // 발자국을 뒤에서부터 gap 만큼 거슬러 올라간 지점이 목표
     let acc = 0, target = null, prev = { x: p.x, y: p.y };
@@ -617,6 +716,7 @@ export class Rockfall extends Entity {
 registerEntity('follower', Follower);
 registerEntity('rockfall', Rockfall);
 registerEntity('raft', Raft);
+registerEntity('swimmer', Swimmer);
 registerEntity('prop', Prop);
 registerEntity('npc', NPC);
 registerEntity('sign', Sign);

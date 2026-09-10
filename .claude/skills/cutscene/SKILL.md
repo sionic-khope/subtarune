@@ -56,6 +56,10 @@ model: opus
 | `# X가 동료가 되었다` | 나레이션 줄 + `{ join:'id' }` + `{ set:{id_joined:true} }`, 맵 NPC 에 `unless:'id_joined'` |
 | `# X가 앞장서고 주인공이 따라감` | `{move:'<동료id>', px, run}` 먼저, 이어서 `{parallel:[{move:'<동료id>'…},{move:'player', px:<동료의 이전 지점>}]}` 를 구간마다 반복, 끝에 `{regroup:true}` (예 `void4_key.js`) |
 | `# 문에 상호작용하면(잠김/열림 분기)` | `door` 엔티티 `requires:'door_open', lockedScript:'…'` — 스크립트가 분기(잠김 대사 / 열쇠 얻기 / 열림 → `{fade}{map}{bgm}{fade}`) |
+| `# 뗏목에 타면 출발 안 하고 연출 시작` | 뗏목 `onBoard:'스크립트'` → 컷신 안에서 `{raft:id, go:true}` 로 출발, `{raft:id, until:'stop'}` 로 벽/도착까지 대기, `{raft:id, jump:true}` 로 점프 (예 `void8.js`) |
+| `# c를 눌러보자 (가이드 창)` | `{ prompt:'C를 눌러보자' }` — C 로만 닫힘 |
+| `# 몸 털면서 물 털리는 이펙트` | `{ shakeOff:'ppaman', duration:0.9 }` — 타다다닥 + 파란 점, 스프라이트 안 만듦 |
+| `# 점프 (사운드)` | `{ sfx:'jump' }` (델타룬 점프음, 공용) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |
 | `# 다리/문이 내려오며 쿵` | `{spawn: 떨어질 소품(preload 필요)}` `{sfx:'rumble'}` `{move:id, px, speed}` `{sfx:'thud'}` `{shake}` `{tiles}` `{remove}` (예 `void4_lever`) |
 | `# 3D 로 전환해서 마우스로 …` | `{zoom:2.8, at:'<소품 id>'}` → `{scene3d:'<씬>', flag}` → `{zoom:1}` (씬은 `src/scenes/drawer.js` 골격 복사) |
@@ -93,6 +97,9 @@ model: opus
 | `{ vortex:{ at:'pc'\|[x,y], size, grow } }` `{ vortex:{size,grow} }` `{ vortex:null }` | 소용돌이(월드). 기다리지 않으므로 대사와 겹쳐 키운다 |
 | `{ join:'ppaman' }` `{ leave:'id' }` `{ regroup:true }` | 동료 가입/이탈/주인공 뒤 재정렬 (파티 시스템, STATE.md 참고) |
 | `{ bubble:'player'\|id, dots?:3, gap?:0.4, hold?:0.5 }` | 머리 위 `...` 말풍선(36×22, 4px 둥근 점이 하나씩). 끝나면 다음 노드 |
+| `{ raft:id, go:true \| jump:true \| until:'stop' }` | 뗏목 출발/점프/멈출 때까지 |
+| `{ prompt:text }` | C 로만 닫히는 안내 창 |
+| `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |
 | `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |

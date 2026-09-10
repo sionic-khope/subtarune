@@ -9,6 +9,7 @@ import { pc_stream } from './cutscenes/pc_stream.js';
 import { void4_arrive, void4_lever } from './cutscenes/void4.js';
 import { void4_ppaman_talk } from './cutscenes/void4_ppaman.js';
 import { void4_door } from './cutscenes/void4_key.js';
+import { void8_board, void8_arrive } from './cutscenes/void8.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -52,6 +53,7 @@ export const SCRIPTS = {
   void4_arrive, void4_lever,
   void4_ppaman: void4_ppaman_talk,   // 인사 → 질문 루프 → 동행 (src/data/cutscenes/void4_ppaman.js)
   void4_door,                        // 잠긴 문 → 레버 열쇠 → 철컥 (src/data/cutscenes/void4_key.js)
+  void8_board, void8_arrive,         // 점프 뗏목: 억빠맨 수영 → 벽 쿵 → C 점프 / 도착 물 털기 (src/data/cutscenes/void8.js)
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [
     { text: '* 땟목이 갈리는 곳이다.', voice: 'narrator' },

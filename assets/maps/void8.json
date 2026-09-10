@@ -1,45 +1,140 @@
 {
-  "id": "void8",
-  "name": "???",
-  "bgm": "scarlet",
-  "stage": "void_fallen",
-  "dim": 0.2,
-  "backdrop": "purple_fire",
-  "rows": [
-    "                ",
-    "                ",
-    "                ",
-    "                ",
-    " XxXxXxXxXxXxXx ",
-    " xXxXxXxXxXxXxX ",
-    " XxXxXxXxXxXxXx ",
-    " xXxXxXxXxXxXxX ",
-    " yyyyyyyyyyyyyy ",
-    "                ",
-    "                ",
-    "                "
-  ],
-  "spawns": {
-    "from_left": {
-      "x": 60,
-      "y": 184,
-      "facing": "right"
-    },
-    "start": {
-      "x": 60,
-      "y": 184
-    }
+ "id": "void8",
+ "name": "???",
+ "bgm": "scarlet",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "purple_fire",
+ "rows": [
+  "                                                                      ",
+  "                                                                      ",
+  "                                                                      ",
+  "                                                                      ",
+  "                                                                      ",
+  " xXxXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXxX ",
+  " XxXxXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+  " xXxXxX                                                        xXxXxX ",
+  " XxXxXx                                                        XxXxXx ",
+  " yyyyyy                                                        yyyyyy ",
+  "                                                                      ",
+  "                                                                      "
+ ],
+ "spawns": {
+  "from_left": {
+   "x": 60,
+   "y": 184,
+   "facing": "right"
   },
-  "entities": [
-    {
-      "type": "door",
-      "x": 32,
-      "y": 128,
-      "w": 12,
-      "h": 128,
-      "to": "void7",
-      "spawn": "door_back",
-      "sfx": false
-    }
-  ]
+  "start": {
+   "x": 60,
+   "y": 184
+  },
+  "dock": {
+   "x": 190,
+   "y": 184,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 2056,
+   "y": 184,
+   "facing": "left"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 160,
+   "w": 12,
+   "h": 128,
+   "to": "void7",
+   "spawn": "door_back",
+   "sfx": false
+  },
+  {
+   "type": "raft",
+   "id": "raft8",
+   "image": "assets/props/raft.png",
+   "x": 224,
+   "y": 172,
+   "route": [
+    [
+     1952,
+     172
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": "ppaman",
+   "onBoard": "void8_board",
+   "onBoardFlag": "void8_intro",
+   "onArrive": "void8_arrive",
+   "onArriveFlag": "void8_arrived"
+  },
+  {
+   "type": "prop",
+   "id": "wall1",
+   "image": "assets/props/water_wall.png",
+   "x": 908,
+   "y": 176,
+   "w": 28,
+   "h": 36,
+   "ix": 908,
+   "iy": 160,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "wall2",
+   "image": "assets/props/water_wall.png",
+   "x": 1132,
+   "y": 176,
+   "w": 28,
+   "h": 36,
+   "ix": 1132,
+   "iy": 160,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "wall3",
+   "image": "assets/props/water_wall.png",
+   "x": 1356,
+   "y": 176,
+   "w": 28,
+   "h": 36,
+   "ix": 1356,
+   "iy": 160,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "wall4",
+   "image": "assets/props/water_wall.png",
+   "x": 1580,
+   "y": 176,
+   "w": 28,
+   "h": 36,
+   "ix": 1580,
+   "iy": 160,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "wall5",
+   "image": "assets/props/water_wall.png",
+   "x": 1804,
+   "y": 176,
+   "w": 28,
+   "h": 36,
+   "ix": 1804,
+   "iy": 160,
+   "solid": true,
+   "obstacle": true
+  }
+ ]
 }

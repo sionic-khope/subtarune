@@ -57,6 +57,8 @@ class Game {
     this.scene3d = null;          // 3D 오버레이 씬(src/scenes/*) 실행 중이면 true — Esc 등 게임 입력 무시
     this.ride = null;             // 타고 있는 탈것(Raft 등) — 있으면 플레이어 입력 정지
     this.hurt = 0; this.invuln = 0;   // 낙석 등에 맞았을 때 붉은 섬광 / 무적 시간
+    this.fx = [];                 // 작은 입자(물방울 등) { x,y,vx,vy,t,color }
+    this.prompt = null;           // { text, t } 작은 안내 창 (컷신 {prompt}) — C 로만 닫힘
   }
 
   /**
@@ -90,7 +92,7 @@ class Game {
       ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(`assets/sprites/${name}.png`);
         if (img) this.spriteOverrides[name] = img;
@@ -237,7 +239,7 @@ class Game {
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
-    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true;
+    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true; this.fx = []; this.prompt = null;
     this.fadeTo(1, 0.4, () => {
       this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = [];
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
@@ -401,12 +403,15 @@ class Game {
     this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt);
     if (this.hurt > 0) this.hurt -= dt;
     if (this.invuln > 0) this.invuln -= dt;
+    for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }
+    if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.dialogue.running) {
       this.dialogue.update(dt, Input);
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
-    } else if (this.ride) {                                   // 뗏목 등 탈것에 실려 가는 중: 입력·트리거 정지
+    } else if (this.ride) {                                   // 뗏목 등 탈것에 실려 가는 중: 입력·트리거 정지 (C = 점프, 되는 뗏목만 — Raft.canJump)
+      if (Input.just('confirm') && this.ride.jump) this.ride.jump();
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
     } else if (this.state === 'menu') {
       this.updateMenu();
@@ -418,8 +423,8 @@ class Game {
         this.state = 'menu'; this.menu = { index: 0, sub: null }; this.sound.sfx('open');
       }
       for (const e of this.entities) e.update(dt, Input);
-      this.entities = this.entities.filter((e) => !e.dead);
     }
+    this.entities = this.entities.filter((e) => !e.dead);   // 컷신·탈것 중에 죽은 것(Swimmer 등)도 그 프레임에 치운다 (2026-09-10: 대사 중엔 안 치워져 헤엄 머리가 남던 버그)
     this.camera.follow(this.dialogue.running ? 0.05 : 0.18);
   }
 
@@ -495,6 +500,7 @@ class Game {
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
+    for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
@@ -509,6 +515,7 @@ class Game {
 
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
+    if (this.prompt) this.drawPrompt(ctx);
     if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
     if (this.state === 'menu') this.drawMenu(ctx);
 
@@ -569,6 +576,19 @@ class Game {
   }
 
   /** 지역 이름 캡션: 페이드 인 → 유지 → 페이드 아웃 (언더테일 지역명처럼) */
+  /** 캐릭터 주위로 파란 물방울 n개 (강아지 물 털기 등) — 컷신 {shakeOff} 가 매 프레임 조금씩 부른다 */
+  emitDroplets(e, n = 2, color = '#5b8cff') {
+    const cx = e.x + e.w / 2, cy = e.y + e.h - 18;
+    for (let i = 0; i < n; i++) this.fx.push({ x: cx + (Math.random() - 0.5) * 18, y: cy + (Math.random() - 0.5) * 20, vx: (Math.random() - 0.5) * 190, vy: -70 - Math.random() * 90, t: 0.4 + Math.random() * 0.25, color });
+  }
+  /** 작은 안내 창(언더테일식 검은 상자·흰 테두리), 화면 위쪽 가운데. 텍스트로 넘길 수 없고 C 로만 닫힌다 */
+  drawPrompt(ctx) {
+    const p = this.prompt; ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    const tw = Math.ceil(ctx.measureText(p.text).width), w = tw + 28, h = 28, x = Math.round((SCREEN_W - w) / 2), y = 54;
+    ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4); ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = 0.75 + 0.25 * Math.sin(p.t * 6); ctx.fillStyle = '#fff'; ctx.fillText(p.text, x + 14, y + 7); ctx.globalAlpha = 1;
+  }
+
   drawCaption(ctx) {
     const c = this.caption, k = c.time / c.duration;
     const a = k < 0.2 ? k / 0.2 : k > 0.75 ? (1 - k) / 0.25 : 1;
@@ -593,7 +613,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.17';
+export const BUILD = '2026-09-10.18';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
