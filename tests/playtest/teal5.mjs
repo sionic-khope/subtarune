@@ -28,7 +28,7 @@ check('?qa=teal5: map teal5, party [gyeongsub, ppaman] both followers visible, r
 const meta = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal5.meta);
 
 // 선착장으로 걸어가 C (뗏목 10px 앞)
-await page.evaluate(() => { game.player.x = 294; game.player.y = 200; game.player.facing = 'right'; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); });
+await page.evaluate(async () => { const d = (await import('/src/data/maps.js')).MAPS.teal5.spawns.dock; game.player.x = d.x; game.player.y = d.y; game.player.facing = 'right'; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); });
 await page.waitForTimeout(200); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
 q = await st(); check('C at the dock → boarded, onBoard cutscene running', q.riding && q.running && q.flags.boarded, JSON.stringify({ riding: q.riding, running: q.running }));
 
@@ -73,10 +73,11 @@ while (Date.now() - t0 < 90000) {
   if (s.sweeps >= 1) skipBig2 = false;
   await page.waitForTimeout(40);
 }
-const want2 = ['억빠맨|* 어 형 잠깐만요!!', '억빠맨|* 형 이건 도무지 저 혼자서 못넘을거같아요', '경섭|* 흠 ... ... ...', '억빠맨|* 아니요', '경섭|* ...', '억빠맨|* 뭔데요?', '경섭|* 너가 c를 눌러 점프할때 나랑 협동을 하면 더 높게 올라갈 수 있을거같아.', '억빠맨|* ...음.. 해볼수밖에 없겠네요', '억빠맨|* 지금 c를 눌러야해요!', '경섭|* 형섭아 지금 한번 더 눌러', '|* 2단 점프를 할 수 있게 되었다!'];
+const want2 = ['억빠맨|* 어 형 잠깐만요!!', '억빠맨|* 형 이건 도무지 저 혼자서 못넘을거같아요', '경섭|* 흠 ... ... ...', '억빠맨|* 아니요', '경섭|* ...', '억빠맨|* 뭔데요?', '경섭|* 너가 c를 눌러 점프할때 나랑 협동을 하면 더 높게 올라갈 수 있을거같아.', '억빠맨|* ...음.. 해볼수밖에 없겠네요', '억빠맨|* 지금 c를 눌러야해요!', '경섭|* 형섭아 지금 한번 더 눌러', '|* 2단 점프를 할 수 있게 되었다!'];   // 노란 문구는 넘고 나서
 check('waterfall scene: lines in briefing order (믿어볼수있겠.. is cut instantly), tutorial held the raft twice (before C, and mid-air at the apex)', inOrder(want2, lines2) && holds >= 2, JSON.stringify({ lines2, holds }));
 check('double_jump flag set during the tutorial; first big waterfall crossed without a sweep', tutorialDone && (sweptAt === null || sweptAt > 1600), JSON.stringify({ dj: tutorialDone, sweptAt }));
 check('touching the 2nd big waterfall without the double jump → swept back to checkpoint 1400, then auto-resumed and crossed with C + C', sweptAt !== null && sweptAt >= 1650 && !!landed && landed.sweeps === 1, JSON.stringify({ sweptAt, sweeps: landed?.sweeps }));
+check('raft climbed three steps: ended one level higher per waterfall (y 390 → 198)', !!landed && landed.ry === meta.levels[3], JSON.stringify({ ry: landed?.ry, levels: meta.levels }));
 check('arrived at the far bank: player on land right of the water, both followers visible behind AND on land (not hidden behind the raft)', !!landed && landed.p[0] >= 2816 && landed.fol.length === 2 && landed.fol.every((f) => f.vis && f.x < landed.p[0] && f.x >= 2812), JSON.stringify(landed && { p: landed.p, fol: landed.fol, rx: landed.rx }));
 await page.screenshot({ path: `${S}/teal5_06_land.png` });
 

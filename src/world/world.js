@@ -560,8 +560,8 @@ export class Raft extends Prop {
   /** 올라타기만 (출발 안 함) */
   board(player) {
     this.riding = true; this.game.ride = this; this.rider = player; player.moving = false; player.frame = 0;
-    this.target = this.at === 0 ? this.route.length - 1 : 0;
-    const [tx, ty] = this.route[this.target]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up'; this.dirFacing = player.facing;
+    this.dir = this.at === 0 ? 1 : -1; this.target = this.at + this.dir;   // 경유점을 차례로(계단식 폭포: 폭포마다 물길이 한 단 위로 — 경유점 사이는 멈추지 않는다)
+    const [tx, ty] = this.route[this.route.length - 1 - (this.dir > 0 ? 0 : this.route.length - 1)]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up'; this.dirFacing = player.facing;
     this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
   }
   /** 출발 (swim 동료가 있으면 숨기고 뒤/아래에서 헤엄치게) */
@@ -589,15 +589,17 @@ export class Raft extends Prop {
   /** 2단 점프(협동): 지금 높이를 바닥으로 포물선 하나 더 — 정점 +jumpH2. 이단폭포(clear 72) 는 이걸로만 넘는다 */
   doubleJump() {
     this.doubled = true; this.jumpBase = this.jumpY; this.jumpT2 = 0; this.hold = false; this.moving = true;
+    const pusher = this.swimmers.find((sw) => !sw.dead && sw.id === 'gyeongsub_swim') || this.swimmers.filter((sw) => !sw.dead).at(-1); if (pusher) pusher.push = 0;   // 경섭이 아래에서 받쳐 올린다 (사용자 2026-09-10)
     this.game.sound.sfx('jump', { volume: 0.75, rate: 1.25 });
     for (const sw of this.swimmers) if (!sw.dead) { this.game.emitDropletsAt(sw.x + sw.w / 2, sw.y + sw.h, 8); sw.hop = 0; }
     return true;
   }
   /** 이단폭포에 닿음: 쿵 + 물보라 + 흔들림 → 마지막 체크포인트(def.checkpoints 중 뒤쪽 가장 가까운 것)까지 빠르게 쓸려 내려간 뒤 0.9s 쉬고 자동 재출발 */
   sweepBack(wall) {
-    const cps = this.def.checkpoints || [this.route[0][0]]; const behind = cps.filter((x) => x <= this.x - 60); const toX = behind.length ? Math.max(...behind) : this.route[0][0];
+    const cps = (this.def.checkpoints || [this.route[0][0]]).map((c) => (typeof c === 'number' ? { x: c, y: this.y } : c));   // {x,y} — 폭포마다 물길 높이가 다르다
+    const behind = cps.filter((c) => c.x <= this.x - 60); const cp = behind.length ? behind.reduce((a, b) => (b.x > a.x ? b : a)) : cps[0];
     this.jumping = false; this.doubled = false; this.jumpY = 0; this.moving = false; this.blocked = wall; this.hold = false; this.sweeps++;
-    this.sweeping = { toX, dropT: 0 };
+    this.sweeping = { toX: cp.x, toY: cp.y, dropT: 0 };
     this.game.sound.sfx('thud', { volume: 0.8 }); this.game.sound.sfx('splash', { volume: 0.8, rate: 0.8 }); this.game.shake = { time: 0.4, amp: 5 };
     this.game.emitDropletsAt(this.x + this.w / 2, this.y + this.h * 0.7, 16);
   }
@@ -605,9 +607,13 @@ export class Raft extends Prop {
   update(dt) {
     if (!this.riding) return;
     if (this.sweeping) {                                                        // 쓸려 내려가는 중(520px/s, 물보라)
-      const sw = this.sweeping, dir = Math.sign(sw.toX - this.x) || -1, step = 520 * dt;
-      if (Math.abs(sw.toX - this.x) <= step) { this.setPos([sw.toX, this.y]); this.sweeping = null; this.resumeT = 0.9; this.game.sound.sfx('splash', { volume: 0.4 }); }
-      else { this.setPos([this.x + dir * step, this.y]); sw.dropT -= dt; if (sw.dropT <= 0) { sw.dropT = 0.1; this.game.emitDropletsAt(this.x + this.w / 2 - dir * 20, this.y + this.h * 0.7, 4); } }
+      const sw = this.sweeping, ddx = sw.toX - this.x, ddy = sw.toY - this.y, dd = Math.hypot(ddx, ddy), step = 520 * dt;
+      if (dd <= step) {                                                          // 체크포인트 도착 → 그 지점 다음 경유점을 향해 다시 출발
+        this.setPos([sw.toX, sw.toY]); this.sweeping = null; this.resumeT = 0.9; this.game.sound.sfx('splash', { volume: 0.4 });
+        const end = this.dir > 0 ? this.route.length - 1 : 0; let t = this.at + this.dir;
+        while (t !== end && ((this.dir > 0 && this.route[t][0] <= sw.toX) || (this.dir < 0 && this.route[t][0] >= sw.toX))) t += this.dir;
+        this.target = t;
+      } else { this.setPos([this.x + (ddx / dd) * step, this.y + (ddy / dd) * step]); sw.dropT -= dt; if (sw.dropT <= 0) { sw.dropT = 0.1; this.game.emitDropletsAt(this.x + this.w / 2 - Math.sign(ddx) * 20, this.y + this.h * 0.7, 4); } }
       this._carry(); this.rider.moving = false; this.rider.frame = 0; return;
     }
     if (this.resumeT > 0) { this.resumeT -= dt; this._carry(); this.rider.moving = false; this.rider.frame = 0; if (this.resumeT <= 0) { this.moving = true; this.blocked = null; } return; }   // 체크포인트에서 숨 고르고 자동 재출발
@@ -634,7 +640,10 @@ export class Raft extends Prop {
     const [tx, ty] = this.route[this.target];
     const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy), step = this.speed * dt;
     if (dist <= step) {
-      this.setPos([tx, ty]); this.at = this.target; this.game.flags[this.flagKey] = this.at;
+      this.setPos([tx, ty]);
+      const end = this.dir > 0 ? this.route.length - 1 : 0;
+      if (this.target !== end) { this.target += this.dir; this._carry(); return; }   // 중간 경유점: 멈추지 않고 다음 점으로
+      this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.jumping = false; this.jumpY = 0; this._carry();                 // 공중에서 도착해도 먼저 뗏목 위로 내려놓고(점프 높이 0) 하차 자리를 찾는다 (2026-09-10 '도착할 때쯤 점프하면 맵 밖에 갇힘')
       this.riding = false; this.moving = false; this.game.ride = null;
       this.game.sound.sfx('splash', { volume: 0.5 });
@@ -718,16 +727,19 @@ export class Raft extends Prop {
  *   { type:'swimmer', id:'ppaman_swim', sprite:'ppaman', raft:'raft8' }
  */
 export class Swimmer extends Character {
-  constructor(def, game) { super({ solid: false, w: 24, h: 12, ...def }, game); this.raftId = def.raft; this.slot = def.slot ?? 0; this.t = 0; this.lift = 0; this.hop = null; }
+  constructor(def, game) { super({ solid: false, w: 24, h: 12, ...def }, game); this.raftId = def.raft; this.slot = def.slot ?? 0; this.t = 0; this.lift = 0; this.hop = null; this.push = null; }
   canInteract() { return false; }
   get raft() { return this.game.entities.find((e) => e.id === this.raftId && !e.dead); }
   update(dt) {
     this.t += dt; const r = this.raft; if (!r) return;
     const d = r.dirFacing;                                               // 진행 방향 반대쪽 = 뒤
-    if (r.def.swimAt === 'below') { this.x = Math.round(r.x + 2 + this.slot * 30); this.y = Math.round(r.y + r.h + 6); }   // 뗏목 바로 아래에 나란히(청록숲5: 억빠맨·경섭) — 뒤에 붙지 않는다
+    if (this.push !== null) { this.push += dt; if (!r.jumping) this.push = null; }
+    if (this.push !== null) { this.x = Math.round(r.x + r.w / 2 - this.w / 2); this.y = Math.round(r.y + r.h + 6); }   // 2단 점프: 뗏목 바로 아래 가운데서 받쳐 올린다
+    else if (r.def.swimAt === 'below') { this.x = Math.round(r.x + 2 + this.slot * 30); this.y = Math.round(r.y + r.h + 6); }   // 뗏목 바로 아래에 나란히(청록숲5: 억빠맨·경섭) — 뒤에 붙지 않는다
     else if (d === 'down' || d === 'up') { this.x = Math.round(r.x + r.w / 2 - this.w / 2); this.y = d === 'down' ? r.y - this.h - 46 : r.y + r.h + 14; }   // 세로: 주인공 머리(뗏목 위 -21px)와 안 겹치게 뒤(위)로 충분히 띄운다
     else { this.x = d === 'left' ? r.x + r.w + 2 : r.x - this.w - 2; this.y = Math.round(r.y + r.h * 0.55) - this.h; }   // 물결선 = 뗏목 중간
     this.facing = r.dirFacing; this.lift = r.jumpY; this.moving = false; this.frame = 0;
+    this.def.sortY = (r.jumpY > 0 || this.hop !== null || this.push !== null) ? r.y - 1 : undefined;   // 들려 있는 동안은 뗏목보다 뒤에 그린다(뗏목을 받쳐 든 모습)
     if (this.hop !== null) { this.hop += dt; if (this.hop > 0.35) this.hop = null; }
   }
   draw(ctx, cam) {
@@ -735,9 +747,10 @@ export class Swimmer extends Character {
     const img = this.sprite[this.facing][0];
     const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
     const water = this.y + this.h, sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x), wy = Math.round(water - cam.y);
-    if (this.lift > 0 || this.hop !== null) {                                            // 점프: 뒤에서 들고 같이 뜬다(몸 전체). 처음 0.35s 는 웅크렸다(0.8) 쭉 늘어나(1.15) 돌아오는 미세 연출
-      const k = this.hop ?? 1, sy = k < 0.1 ? 0.8 + (k / 0.1) * 0.35 : k < 0.35 ? 1.15 - ((k - 0.1) / 0.25) * 0.15 : 1;
-      const foot = Math.round(water + 12 - this.lift - cam.y);
+    if (this.lift > 0 || this.hop !== null || this.push !== null) {                       // 점프: 뒤/아래에서 들고 같이 뜬다(몸 전체). 처음 0.35s 는 웅크렸다(0.8) 쭉 늘어나(1.15) 돌아오는 미세 연출. 2단 점프의 받침꾼은 더 길게 늘어나(1.3) 밀어 올린다
+      const k = this.hop ?? 1, base = k < 0.1 ? 0.8 + (k / 0.1) * 0.35 : k < 0.35 ? 1.15 - ((k - 0.1) / 0.25) * 0.15 : 1;
+      const sy = this.push !== null ? Math.max(base, 1.3 - Math.min(0.3, this.push * 0.4)) : base;
+      const foot = Math.round(water + 12 - this.lift - cam.y) + (this.push !== null ? 10 : 0);
       ctx.save(); ctx.translate(sx + dw / 2, foot); ctx.scale(1, sy); ctx.drawImage(img, -dw / 2, -dh, dw, dh); ctx.restore();
       if (this.emote) drawEmote(ctx, this.emote, sx + Math.round(dw / 2), foot - dh - 2);
       return;

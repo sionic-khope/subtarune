@@ -184,29 +184,29 @@ def prop_statue():
     return c
 
 def prop_waterfall(tiers=2):
-    """물길을 가로막는 폭포(탑다운): 1단 24x104 / 2단(이단폭포) 40x104. 물길(3줄=96px)보다 위아래 4px 크게. 흰 물줄기·물보라, 단 사이엔 어두운 턱.
-    2단은 뗏목 한 번 점프로 못 넘는다(clear 72) — 협동 2단 점프. 닿으면 쓸려 내려간다."""
-    W_ = 24 if tiers == 1 else 40
-    c = Canvas(W_, 104)
-    BASE = hexc('#2f4fa8'); DEEP = hexc('#1d3d73'); LIGHT = hexc('#8fc3ff'); WHITE = hexc('#e8f6ff'); FOAM = hexc('#ffffff'); LEDGE = hexc('#0e2450')
-    c.rect(0, 0, W_, 104, BASE)
-    band = W_ // tiers
-    for t in range(tiers):
-        x0 = t * band
-        c.rect(x0, 0, band, 104, hexc('#4b78d6'))                           # 떨어지는 물면(밝은 파랑)
-        for i in range(band):                                                 # 세로 물줄기(흰/연파랑 번갈아, 살짝 흔들림)
-            col = WHITE if i % 4 == 1 else LIGHT if i % 4 == 3 else None
+    """이단폭포(계단식) 40x168: 위 단 물길에서 아래 단 물길로 두 번 떨어지는 낙차(32px 턱 2개) + 아래엔 물보라가 퍼지는 아래 단 물(96px).
+    뗏목 한 번 점프로 못 넘고(clear 72) 협동 2단 점프로 올라간다. 닿으면 쓸려 내려간다. (tiers=1 은 안 씀 — 한 칸 벽은 기존 water_wall)"""
+    W_, H_ = 40, 64 + 96 + 8
+    c = Canvas(W_, H_)
+    BASE = hexc('#2f4fa8'); DEEP = hexc('#1d3d73'); FACE = hexc('#4b78d6'); LIGHT = hexc('#8fc3ff'); WHITE = hexc('#e8f6ff'); FOAM = hexc('#ffffff'); LEDGE = hexc('#0e2450')
+    c.rect(0, 0, W_, H_, BASE)
+    c.rect(0, 0, W_, 4, DEEP); c.hline(0, 3, W_, LIGHT)                      # 위 단 물가(어두운 가장자리 + 하이라이트)
+    for t in range(2):                                                        # 낙차 2단
+        y0 = 4 + t * 32
+        c.rect(0, y0, W_, 32, FACE)
+        for i in range(W_):
+            col = WHITE if i % 5 == 1 else LIGHT if i % 5 == 3 else None
             if col is None: continue
-            for y in range(2, 102):
-                if (y + i * 3) % 7 < 4: c.px(x0 + i, y, col)
-        for y in range(0, 104, 9):                                            # 물보라 점
-            for i in range(0, band, 5): c.px(x0 + (i + y // 9) % band, (y + 3) % 104, FOAM)
-        c.vline(x0, 0, 104, LEDGE)                                            # 단 왼쪽 턱(어두운 선)
-        c.vline(x0 + 1, 0, 104, DEEP)
-    c.vline(W_ - 1, 0, 104, DEEP)
-    for y in range(0, 104, 2): c.px(0, y, hexc('#061a19'))                   # 왼쪽 가장자리 거품/그림자
-    for y in range(0, 104, 3):                                                # 아래위 물길 밖으로 나온 4px 는 물보라
-        for x in range(0, W_, 2): c.px(x, (y * 7) % 4, FOAM); c.px((x + 1) % W_, 100 + (y * 5) % 4, FOAM)
+            for y in range(y0, y0 + 30):
+                if (y + i * 3) % 6 < 4: c.px(i, y, col)
+        c.hline(0, y0 + 30, W_, LEDGE); c.hline(0, y0 + 31, W_, DEEP)       # 턱
+        for i in range(0, W_, 3): c.px(i + (t % 2), y0 + 29, FOAM)           # 턱 위 거품
+    yb = 4 + 64
+    for y in range(yb, H_):                                                   # 아래 단 물: 떨어진 물이 퍼지는 물보라(아래로 갈수록 성김)
+        step = 3 + (y - yb) // 12
+        for x in range((y * 7) % step, W_, step):
+            if (x * 13 + y * 7) % 5 < (3 if y < yb + 24 else 1): c.px(x, y, FOAM if (x + y) % 2 else LIGHT)
+    c.vline(0, 0, H_, DEEP); c.vline(W_ - 1, 0, H_, DEEP)
     return c
 
 if __name__ == '__main__':
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
     tile_leaves().save('assets/tiles/leaves_teal.png'); prop_tree_forest().save('assets/props/tree_forest.png'); prop_bush().save('assets/props/bush_teal.png'); prop_toolbox().save('assets/props/toolbox.png')
     prop_peel().save('assets/props/banana_peel.png'); prop_black_flower().save('assets/props/black_flower.png')
-    prop_waterfall(1).save('assets/props/waterfall1.png'); prop_waterfall(2).save('assets/props/waterfall2.png')   # 청록숲5 물길(1단·이단폭포)
+    prop_waterfall().save('assets/props/waterfall2.png')   # 청록숲5 이단폭포(계단식)
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     from pathlib import Path

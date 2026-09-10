@@ -32,6 +32,8 @@ const PREP_HOLD = 0.9;               // 말풍선이 다 뜬 뒤 탄막까지 �
 const BUBBLE_CPS = 0.03;             // 말풍선 타자 속도(초/글자)
 const SMALL = FONT.replace(/^\d+px/, '12px');   // 말풍선·HP 숫자용 작은 글씨
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
+const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
+const cached = (map, key, make) => { if (!map.has(key)) map.set(key, make()); return map.get(key); };
 
 /** 빠른 접근/복귀용: BattleAction 의 이동 시간을 속도 기준으로 다시 잡는다 */
 class FastAction extends BattleAction {
@@ -69,15 +71,18 @@ export class Battle {
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
     this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random;
     this.result = null; this.pressed = false;
-    if (cfg.bgm) game.sound.playBgm(cfg.bgm, { volume: 0.5, fadeIn: 0.08 });   // 전환 즉시 — 진입 연출이 preloadBgm 해 두므로 첫 소리까지 공백 없음
-    this.load();
+    this.load();                                                       // 브금·페이드인은 load() 가 에셋을 다 준비한 뒤 — 검은 화면/로딩 정지 아래에서 첫 소절이 지나가지 않게 (사용자 2026-09-10 '초반이 패스당한 느낌')
   }
 
   async load() {
-    await Promise.all([
-      ...this.members.map(async (m) => { m.frames = await loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey); }),
-      ...this.enemies.map(async (e) => { e.img = await this.loadEnemyImage(e.def); }),
-    ]);
+    try {
+      await Promise.all([
+        ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); }),
+        ...this.enemies.map(async (e) => { e.img = await cached(IMAGE_CACHE, e.def.image || e.def.sheet?.src, () => this.loadEnemyImage(e.def)); }),
+      ]);
+    } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
+    if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: 0.05 });   // 화면이 열리는 바로 그 순간 첫 소절부터 (preloadBgm 로 공백 없음)
+    this.game.fadeTo(0, 0.12);                                                                  // 검은 화면은 델타룬처럼 거의 바로 걷는다
     this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
     // 인트로 문구 목록: cfg.intro(전투 안 대사 — 튜토리얼 기믹 등, 문자열 또는 {speaker, portrait, voice, text}) 없으면 적의 appear 줄
     this.introLines = (this.cfg.intro && this.cfg.intro.length) ? [...this.cfg.intro] : [this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`];

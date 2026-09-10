@@ -353,8 +353,7 @@ class Game {
   startBattle(cfg) {
     if (this.battle) return this.battle;
     this.player.moving = false; this.textbox.close?.();
-    this.battle = new Battle(this, cfg);
-    this.fadeTo(0, 0.45);                 // 진입 섬광(흰색)을 걷어 낸다 — 전투 화면이 보여야 한다 (2026-09-10 스크린샷으로 발견: 섬광이 전투 내내 덮고 있었음)
+    this.battle = new Battle(this, cfg);   // 에셋이 준비되면 Battle.load() 가 브금을 틀고 검은 화면을 걷는다(0.12s) — 0.45s 페이드 + 로딩 정지 동안 루드버스터 첫 0.6초가 지나가던 문제 (사용자 2026-09-10 '초반이 패스당한 느낌')
     return this.battle;
   }
   /** 전투 뒤 맵 브금 복귀 — 표준 조우(startEncounter) 전용. 컷신 전투(튜토리얼)는 컷신이 알아서 (사용자 2026-09-10: 튜토리얼은 꺼져도 되지만 그 뒤 맵부턴 별도 요청 없으면 돌아와야 함) */
@@ -799,7 +798,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.47';
+export const BUILD = '2026-09-10.48';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

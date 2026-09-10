@@ -11,13 +11,19 @@
   "                                                                                                                        ",
   "                                                                                                                        ",
   "                                                                                                                        ",
-  " utututuwu                                                                              tutututuwutututututwtututututuw ",
-  " tututututOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoutututututwtututututuwututututu ",
-  " wtutututuoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOtwtututututuwutututututwtututut ",
-  " tuwutututOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoutuwutututututwtututututuwututu ",
-  " ututwtutu                                                                              tututwtututututuwutututututwtut ",
-  " vvvvvvvvv                                                                              vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ",
   "                                                                                                                        ",
+  "                                                                                        utututututwtututututuwututututu ",
+  "                                                                       OoOoOoOoOoOoOoOoOtwtututututuwutututututwtututut ",
+  "                                                                       oOoOoOoOoOoOoOoOoutuwutututututwtututututuwututu ",
+  "                                                       OoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOtututwtututututuwutututututwtut ",
+  "                                                       oOoOoOoOoOoOoOoOvvvvvvvvvvvvvvvvvutututuwutututututwtututututuwu ",
+  "                                        oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo                 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ",
+  " tutututut                              OoOoOoOoOoOoOoOvvvvvvvvvvvvvvvv                                                 ",
+  " uwutututuoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo                                                                 ",
+  " tutwtututOoOoOoOoOoOoOoOoOoOoOoOoOoOoOovvvvvvvvvvvvvvv                                                                 ",
+  " ututuwutuoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO                                                                                ",
+  " tutututwtvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv                                                                                ",
+  " vvvvvvvvv                                                                                                              ",
   "                                                                                                                        ",
   "                                                                                                                        ",
   "                                                                                                                        "
@@ -25,22 +31,22 @@
  "spawns": {
   "from_left": {
    "x": 60,
-   "y": 200,
+   "y": 424,
    "facing": "right"
   },
   "start": {
    "x": 60,
-   "y": 200,
+   "y": 424,
    "facing": "right"
   },
   "dock": {
    "x": 294,
-   "y": 200,
+   "y": 424,
    "facing": "right"
   },
   "landing": {
    "x": 3712,
-   "y": 200,
+   "y": 232,
    "facing": "left"
   }
  },
@@ -48,25 +54,43 @@
   "raftStart": 328,
   "raftEnd": 2752,
   "stop": 1100,
-  "holdAt": 1124,
+  "holdAt": 1116,
   "checkpoints": [
-   328,
-   1100,
-   1400,
-   1900
+   {
+    "x": 328,
+    "y": 390
+   },
+   {
+    "x": 1100,
+    "y": 390
+   },
+   {
+    "x": 1400,
+    "y": 326
+   },
+   {
+    "x": 1900,
+    "y": 262
+   }
   ],
   "waterfalls": [
-   740,
    1250,
    1750,
    2250
+  ],
+  "wall": 740,
+  "levels": [
+   390,
+   326,
+   262,
+   198
   ]
  },
  "entities": [
   {
    "type": "door",
    "x": 32,
-   "y": 128,
+   "y": 352,
    "w": 8,
    "h": 160,
    "to": "teal_east",
@@ -76,7 +100,7 @@
   {
    "type": "door",
    "x": 3800,
-   "y": 128,
+   "y": 160,
    "w": 8,
    "h": 160,
    "to": "teal6",
@@ -88,11 +112,35 @@
    "id": "raft5",
    "image": "assets/props/raft.png",
    "x": 328,
-   "y": 166,
+   "y": 390,
    "route": [
     [
+     1242,
+     390
+    ],
+    [
+     1298,
+     326
+    ],
+    [
+     1742,
+     326
+    ],
+    [
+     1798,
+     262
+    ],
+    [
+     2242,
+     262
+    ],
+    [
+     2298,
+     198
+    ],
+    [
      2752,
-     166
+     198
     ]
    ],
    "speed": 171,
@@ -111,22 +159,34 @@
     }
    ],
    "checkpoints": [
-    328,
-    1100,
-    1400,
-    1900
+    {
+     "x": 328,
+     "y": 390
+    },
+    {
+     "x": 1100,
+     "y": 390
+    },
+    {
+     "x": 1400,
+     "y": 326
+    },
+    {
+     "x": 1900,
+     "y": 262
+    }
    ]
   },
   {
    "type": "prop",
-   "id": "fall_small",
-   "image": "assets/props/waterfall1.png",
+   "id": "wall_small",
+   "image": "assets/props/water_wall.png",
    "x": 740,
-   "y": 160,
-   "w": 24,
-   "h": 96,
+   "y": 392,
+   "w": 28,
+   "h": 36,
    "ix": 740,
-   "iy": 156,
+   "iy": 376,
    "solid": true,
    "obstacle": true
   },
@@ -135,11 +195,12 @@
    "id": "fall_big1",
    "image": "assets/props/waterfall2.png",
    "x": 1250,
-   "y": 160,
+   "y": 320,
    "w": 40,
-   "h": 96,
+   "h": 160,
    "ix": 1250,
-   "iy": 156,
+   "iy": 316,
+   "sortY": 320,
    "solid": true,
    "obstacle": true,
    "clear": 72,
@@ -150,11 +211,12 @@
    "id": "fall_big2",
    "image": "assets/props/waterfall2.png",
    "x": 1750,
-   "y": 160,
+   "y": 256,
    "w": 40,
-   "h": 96,
+   "h": 160,
    "ix": 1750,
-   "iy": 156,
+   "iy": 252,
+   "sortY": 256,
    "solid": true,
    "obstacle": true,
    "clear": 72,
@@ -165,11 +227,12 @@
    "id": "fall_big3",
    "image": "assets/props/waterfall2.png",
    "x": 2250,
-   "y": 160,
+   "y": 192,
    "w": 40,
-   "h": 96,
+   "h": 160,
    "ix": 2250,
-   "iy": 156,
+   "iy": 188,
+   "sortY": 192,
    "solid": true,
    "obstacle": true,
    "clear": 72,

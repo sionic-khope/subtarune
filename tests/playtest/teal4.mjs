@@ -28,6 +28,7 @@ const talk = async (x, y, f) => { await stand(x, y, f); await page.waitForTimeou
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); await page.waitForTimeout(150); };
 
 await page.goto('http://127.0.0.1:8000/index.html?qa=teal4'); await ready(); await page.waitForTimeout(500);
+await page.evaluate(() => { const s = game.sound; window.__stopLog = []; const o = s.stopBgm.bind(s); s.stopBgm = (f) => { window.__stopLog.push([s.bgmName, f, (new Error().stack || '').split('\n').slice(2, 4).join(' | ').replace(/https?:\/\/[^/]+/g, '')]); return o(f); }; const op = s.playBgm.bind(s); s.playBgm = (n, o2) => { window.__stopLog.push(['play', n]); return op(n, o2); }; });   // 브금 정지/재생 추적(전투 진입 전 필드 브금이 왜 비는지)
 let s = await st();
 check('qa=teal4: teal_east map, party of 2, two walking CS present', s.map === 'teal_east' && s.f === 2 && s.walkers.length === 2, JSON.stringify({ map: s.map, f: s.f, w: s.walkers }));
 const rows = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal_east.rows);
@@ -57,13 +58,14 @@ await page.screenshot({ path: `${S}/teal4_01_start.png` });
   await page.screenshot({ path: `${S}/teal4_04_flower.png` }); }
 // 4) 걸어다니는 CS 에 닿으면 전투 → (승리 처리) → 30원, 제거, 플래그
 { const w = (await st()).walkers.find((x) => x.id === 'walker1'); const money0 = (await st()).money;
-  await stand(w.x - 40, w.y, 'right'); await page.waitForTimeout(150);
   await page.evaluate(() => { window.__bgmT = {}; const s = game.sound; const op = s.playBgm.bind(s); s.playBgm = (n, o) => { if (n === 'rude_buster') window.__bgmT.fieldBgmAtBattle = s.bgmName === undefined ? 'undefined' : s.bgmName; op(n, o); if (n === 'rude_buster') { const t0 = performance.now(); const a = s.bgm; const tick = () => { if (a && !a.paused && a.currentTime > 0) window.__bgmT.delay = Math.round(performance.now() - t0); else if (performance.now() - t0 < 5000) requestAnimationFrame(tick); }; tick(); } };
-    const ost = s.stopBgm.bind(s); s.stopBgm = (f) => { if (s.bgmName === 'hopes' && !game.battle) window.__bgmT.fieldStoppedBeforeBattle = true; return ost(f); }; });
+    window.__bgmT.bgmAtHook = s.bgmName; window.__bgmT.stops = []; const ost = s.stopBgm.bind(s); s.stopBgm = (f) => { window.__bgmT.stops.push([s.bgmName, !!game.battle, f]); if (s.bgmName === 'hopes' && !game.battle) window.__bgmT.fieldStoppedBeforeBattle = true; return ost(f); }; });
+  await stand(w.x - 40, w.y, 'right'); await page.waitForTimeout(150);
   const started = await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 8000) { const q = await st(); if (q.battle) return q; if (!q.running) await hold('ArrowRight', 120); else if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); await page.waitForTimeout(60); } return null; })();
   check('touching a walking CS → standard encounter → battle starts', !!started, '');
   await page.waitForTimeout(600);
   const bt = await page.evaluate(() => window.__bgmT);
+  logs.push('bgm trace: ' + JSON.stringify(await page.evaluate(() => window.__stopLog)));
   check('battle entry: field BGM cut with the jingle (Deltarune-like), battle BGM audible within 250ms of the battle screen (no 0.5s gap)', !!bt && bt.fieldStoppedBeforeBattle === true && bt.fieldBgmAtBattle === null && typeof bt.delay === 'number' && bt.delay <= 250, JSON.stringify(bt));
   // 승리 처리(전투 자체는 battle.mjs) → 표준 승리 문구 '전투에서 승리했다! 30원을 얻었다.'
   await page.evaluate(() => { const t0 = Date.now(); const tick = () => { const b = game.battle; if (!b) return; if (b.state === 'menu' || b.state === 'intro') { if (b.state === 'intro') { b.shown = b.text.length; } } if (Date.now() - t0 > 20000) return; }; tick(); });
