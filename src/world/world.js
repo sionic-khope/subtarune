@@ -508,7 +508,7 @@ export class Prop extends Entity {
   canInteract() { return !!this.def.script; }
   draw(ctx, cam) {
     if (!this.visible) return;
-    if (this.image) ctx.drawImage(this.image, Math.round(this.drawX - cam.x), Math.round(this.drawY - cam.y), this.iw, this.ih);
+    if (this.image) ctx.drawImage(this.image, Math.round(this.drawX - cam.x), Math.round(this.drawY - cam.y) - Math.round(this.hopY || 0), this.iw, this.ih);   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
     else { ctx.fillStyle = 'rgba(255,0,255,0.5)'; ctx.fillRect(Math.round(this.x - cam.x), Math.round(this.y - cam.y), this.w, this.h); }
   }
 }

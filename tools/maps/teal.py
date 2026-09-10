@@ -62,7 +62,8 @@ ents = [
 ]
 for i in range(5):   # 동상 벽: 가로 길 5행을 두 열로 엇갈리게(겹쳐 보이지 않게) 세로로 막는다 — 홀수 번째는 한 칸 오른쪽
     col = WALLC + (i % 2)
-    ents.append(statue(f'statue_w{i + 1}', col * 32 - 6, (R0 + i) * 32 - 28, 'teal2_statue_wall', wall=True))
+    st = statue(f'statue_w{i + 1}', col * 32 - 6, (R0 + i) * 32 - 28, 'teal2_statue_wall', wall=True); st['unless'] = 'statues_cleared'   # 전투 뒤 미니언이 펑펑 날려버리면 사라진다
+    ents.append(st)
 for j, (c, r) in enumerate([(5, R0), (10, R0), (31, R0), (PC0, PR0), (PC1, PR0), (UPC0, 6), (UPC1, 9), (UPC1, 3)]):   # 깔려 있는 동상들(길 가장자리·광장 위 모서리·위 길 옆)
     ents.append(statue(f'statue_d{j + 1}', c * 32 - 6, r * 32 - 30, 'teal2_statue_look'))
 ents += [

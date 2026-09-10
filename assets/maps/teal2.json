@@ -114,7 +114,8 @@
    "ix": 1242,
    "iy": 580,
    "solid": true,
-   "script": "teal2_statue_wall"
+   "script": "teal2_statue_wall",
+   "unless": "statues_cleared"
   },
   {
    "type": "prop",
@@ -127,7 +128,8 @@
    "ix": 1274,
    "iy": 612,
    "solid": true,
-   "script": "teal2_statue_wall"
+   "script": "teal2_statue_wall",
+   "unless": "statues_cleared"
   },
   {
    "type": "prop",
@@ -140,7 +142,8 @@
    "ix": 1242,
    "iy": 644,
    "solid": true,
-   "script": "teal2_statue_wall"
+   "script": "teal2_statue_wall",
+   "unless": "statues_cleared"
   },
   {
    "type": "prop",
@@ -153,7 +156,8 @@
    "ix": 1274,
    "iy": 676,
    "solid": true,
-   "script": "teal2_statue_wall"
+   "script": "teal2_statue_wall",
+   "unless": "statues_cleared"
   },
   {
    "type": "prop",
@@ -166,7 +170,8 @@
    "ix": 1242,
    "iy": 708,
    "solid": true,
-   "script": "teal2_statue_wall"
+   "script": "teal2_statue_wall",
+   "unless": "statues_cleared"
   },
   {
    "type": "prop",

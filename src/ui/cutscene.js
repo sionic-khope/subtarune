@@ -16,7 +16,7 @@
 //  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
-//  { emote:id, kind:'!'|'sweat', duration?, hold? } 머리 위 느낌표/식은땀   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
+//  { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { emote:id, kind:'!'|'sweat', duration?, hold? } 머리 위 느낌표/식은땀   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -230,6 +230,11 @@ export function makeWaiter(game, node) {
   if (node.prompt) {                                   // { prompt:'C를 눌러보자' } 작은 안내 창 — C 를 누를 때까지(텍스트 넘김 아님)
     game.textbox.close(); game.prompt = { text: node.prompt, t: 0 };
     return { update: (dt, input) => { if (!game.prompt) return true; game.prompt.t += dt; if (input.just('confirm')) { game.prompt = null; return true; } return false; } };
+  }
+  if (node.tremble) {                                  // { tremble:id|[ids], duration:1.2, amp?:1 } 부들부들 떨기(흔들림만, 물방울 없음) — 기다리지 않음
+    const ids = Array.isArray(node.tremble) ? node.tremble : [node.tremble];
+    for (const id of ids) { const e = findEntity(game, id); if (e) e.jitter = { t: node.duration ?? 1.2, amp: node.amp ?? 1 }; }
+    return done;
   }
   if (node.shakeOff) {                                 // { shakeOff:id, duration:0.9 } 강아지 물 털듯 타다다닥 흔들림 + 파란 물방울 (새 스프라이트 없음)
     const e = findEntity(game, node.shakeOff); if (!e) return done;

@@ -301,9 +301,9 @@ export class Battle {
           ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
           ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.textAlign = 'center'; ctx.fillText(label, bx + bw / 2 + (sel ? 5 : 0), by + 2); ctx.textAlign = 'left'; if (sel) this.heart(ctx, bx + 3, by + 6); });
       }
-      if (active && this.state === 'target') {                   // 적 선택: 카드 안에 이름·HP% (← → 로 고름)
-        const list = this.living(); ctx.fillStyle = '#cfcfdd'; ctx.fillText(L.battle_target, x + 12, 326);
-        list.forEach((e, k) => { const bx = x + 12 + k * Math.floor((cw - 24) / Math.max(1, list.length)); const sel = k === this.targetIdx; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, bx + (sel ? 12 : 0), 340 - 4); if (sel) this.heart(ctx, bx, 340); });
+      if (active && this.state === 'target') {                   // 적 선택: 카드 안에 "◀ 이름 ▶" 한 줄 (← → 로 고름), 적 위에는 화살표+HP
+        const list = this.living(), e = list[this.targetIdx]; const many = list.length > 1;
+        ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(`${many ? '◀ ' : ''}${e ? e.name : ''}${many ? ' ▶' : ''}`, x + cw / 2, 328); ctx.textAlign = 'left';
       }
       if (active && this.state === 'item') {
         const items = plainItems(this.game.inventory); ctx.fillStyle = '#cfcfdd'; ctx.fillText(L.battle_item, x + 12, 326);
@@ -311,8 +311,8 @@ export class Battle {
       }
     });
     if (this.state === 'target') {                                // 고르는 적 위에 화살표 + HP 바 (화면 위쪽, 창 없음)
-      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = e.y - 100; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#7a1b1b'; ctx.fillRect(ax - 24, ay - 12, 48, 6); ctx.fillStyle = '#4cd964'; ctx.fillRect(ax - 24, ay - 12, Math.round(48 * e.hp / e.maxHp), 6); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, ax, ay - 32); ctx.textAlign = 'left'; }
+      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = Math.max(6, e.y - 112); ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();   // 화살표 → 그 아래 HP 바·%
+        ctx.fillStyle = '#7a1b1b'; ctx.fillRect(ax - 24, ay + 13, 48, 6); ctx.fillStyle = '#4cd964'; ctx.fillRect(ax - 24, ay + 13, Math.round(48 * e.hp / e.maxHp), 6); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, ax + 44, ay + 7); ctx.textAlign = 'left'; }
     }
     if (this.text && this.state === 'menu') { ctx.fillStyle = '#cfcfdd'; ctx.textAlign = 'center'; ctx.fillText(this.text.split('\n')[0], 240, 246); ctx.textAlign = 'left'; }
   }

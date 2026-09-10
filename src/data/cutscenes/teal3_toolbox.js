@@ -6,7 +6,7 @@
 //   빠맨 "앗 ... ... 엥 CS?" / 경섭 "허허 저게 뭐냐 근데 뭔가 꼭... 우리를" → CS 점프 연출 → 세 사람 한 칸 뒤로 물러나 오른쪽(CS)을 바라봄
 //   빠맨 "아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼네봐요 !!!"
 //   → 빠맨이 상자에서 꺼내(효과음) 형섭·경섭 앞으로 달려가 하나씩 건네는 시늉(효과음·바라보기)
-//   빠맨 "오 온다!" → 전투 시작 연출(battle_start·줌·흔들림·흰 섬광). 인게임 전투는 다음 브리핑 — 지금은 섬광 뒤 자리표시(flag teal3_battle_pending).
+//   빠맨 "오 온다!" → 전투 시작 연출(공식 징글·줌·검은 소용돌이) → 전투 → 미니언 파들파들 → "응 ? 뭐 뭐지" → 점프 → 길 따라 내려가 청록숲2 동상 벽을 펑펑 → 주인공 화면 → "... 어찌저찌 된거같다." / "전투를 할 수 있게 되었다!"
 // ─────────────────────────────────────────────────────────────
 const N = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
@@ -67,14 +67,55 @@ export const teal3_toolbox = [
   { wait: 0.15 },
   { vortex: null },
   { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won' } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster
+  // ── 전투 뒤 (사용자 브리핑 2026-09-10): 미니언 둘이 파들파들 떨다가 → 빠맨 "응 ? 뭐 뭐지" → 점프 → 길 따라 아래로 → 청록숲2 오른쪽 길의 나무 동상들을 펑펑 날려버림 → 주인공 화면 → 나레이션 ──
   { bgm: null, fadeOut: 0.6 },
   { set: { teal3_battle_pending: true } },
-  { remove: 'cs1' }, { remove: 'cs2' },
-  { zoom: 1 },
+  { zoom: 1 }, { camera: [21, 14], duration: 0.01 },
   { regroup: true },
+  { fade: 'in', duration: 0.5 },
+  { tremble: ['cs1', 'cs2'], duration: 2.6, amp: 1 },
+  { wait: 0.9 },
+  P('* 응 ?{w=0.4} 뭐 뭐지'),
+  { parallel: [{ hop: 'cs1', by: [0, 0], height: 26, duration: 0.4 }, { hop: 'cs2', by: [0, 0], height: 26, duration: 0.4, sfx: false }] },
+  { wait: 0.1 },
+  { parallel: [{ move: 'cs1', px: [17 * 32 - 20, 21 * 32 + 8], run: true, speed: 200 }, { move: 'cs2', px: [17 * 32 + 12, 21 * 32 + 12], run: true, speed: 200 }] },   // 길 어귀로
+  { camera: 'cs1' },
+  { parallel: [{ move: 'cs1', px: [17 * 32 - 20, 29 * 32 + 20], run: true, speed: 220 }, { move: 'cs2', px: [17 * 32 + 12, 29 * 32 + 24], run: true, speed: 220 }] },   // 길 따라 아래로(맵 밖으로)
+  { remove: 'cs1' }, { remove: 'cs2' },
+  { fade: 'out', duration: 0.3 },
+  // 청록숲2 로 (주인공은 숨긴 채 위 길 꼭대기에), 카메라는 동상 벽
+  { map: 'teal2', spawn: 'from_top' },
+  { hide: 'player' }, { hide: 'ppaman' }, { hide: 'gyeongsub' },
+  { spawn: { type: 'npc', id: 'cs1', sprite: 'cs_red', x: 36 * 32, y: 20 * 32 + 8, facing: 'down', wander: 0, solid: false } },
+  { spawn: { type: 'npc', id: 'cs2', sprite: 'cs_blue', x: 36 * 32 + 28, y: 21 * 32 + 8, facing: 'down', wander: 0, solid: false } },
+  { camera: [37, 21], duration: 0.01 },
+  { fade: 'in', duration: 0.35 },
+  { wait: 0.3 },
+  { parallel: [{ move: 'cs1', px: [38 * 32 - 30, 20 * 32 + 8], run: true, speed: 220 }, { move: 'cs2', px: [38 * 32 - 30, 22 * 32 + 8], run: true, speed: 220 }] },   // 동상 벽 앞으로
+  // 펑펑: 동상 다섯이 차례로 역동적으로 날아가 사라진다
+  { hop: 'cs1', by: [14, 0], height: 10, duration: 0.15, sfx: false }, { sfx: 'pop' }, { shake: 0.25, amp: 4 },
+  { async: [{ hop: 'statue_w1', by: [110, -160], height: 90, duration: 0.55, sfx: false }, { remove: 'statue_w1' }] },
+  { hop: 'cs2', by: [14, 0], height: 10, duration: 0.15, sfx: false }, { sfx: 'pop' }, { shake: 0.25, amp: 4 },
+  { async: [{ hop: 'statue_w2', by: [140, -120], height: 110, duration: 0.55, sfx: false }, { remove: 'statue_w2' }] },
+  { wait: 0.12 },
+  { hop: 'cs1', by: [0, 0], height: 12, duration: 0.15, sfx: false }, { sfx: 'pop' }, { sfx: 'pop' }, { shake: 0.35, amp: 5 },
+  { async: [{ hop: 'statue_w3', by: [90, -200], height: 130, duration: 0.6, sfx: false }, { remove: 'statue_w3' }] },
+  { async: [{ hop: 'statue_w4', by: [160, -90], height: 100, duration: 0.5, sfx: false }, { remove: 'statue_w4' }] },
+  { wait: 0.15 },
+  { hop: 'cs2', by: [0, 0], height: 12, duration: 0.15, sfx: false }, { sfx: 'pop' }, { shake: 0.3, amp: 4 },
+  { async: [{ hop: 'statue_w5', by: [130, -170], height: 120, duration: 0.6, sfx: false }, { remove: 'statue_w5' }] },
+  { set: { statues_cleared: true } },
+  { wait: 0.7 },
+  { parallel: [{ move: 'cs1', px: [44 * 32, 20 * 32 + 8], run: true, speed: 240 }, { move: 'cs2', px: [44 * 32, 22 * 32 + 8], run: true, speed: 240 }] },   // 뚫린 오른쪽 길로 사라진다
+  { remove: 'cs1' }, { remove: 'cs2' },
+  { wait: 0.4 },
+  { fade: 'out', duration: 0.35 },
+  // 주인공 화면으로
+  { map: 'teal3', spawn: 'box' },
   { camera: 'player' },
   { fade: 'in', duration: 0.5 },
-  N('* CS 를 물리쳤다.'),
+  N('* ...{w=0.7} 어찌저찌 된거같다.'),
+  N('* {c=yellow}전투를 할 수 있게 되었다!{/c}'),
   { end: true },
   { label: 'again' },
   N('* 공구상자다.{w=0.4} 뭔가 많이 들어 있다.'),
