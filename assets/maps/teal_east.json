@@ -5,35 +5,75 @@
  "stage": "void_fallen",
  "dim": 0,
  "backdrop": "teal_bush",
+ "battleBg": "teal",
  "rows": [
-  "                ",
-  "                ",
-  "                ",
-  "                ",
-  " ututututututut ",
-  " tututututututu ",
-  " ututututututut ",
-  " tututututututu ",
-  " vvvvvvvvvvvvvv ",
-  "                ",
-  "                ",
-  "                "
+  "                                            ",
+  "                                            ",
+  "                                            ",
+  "                                            ",
+  " utututuwutututututwtututut                 ",
+  " tututututwtututututuwututu                 ",
+  " wtututututuwutututututwtut                 ",
+  " vvvvvvvvvututwvvvvvvvvvuwu                 ",
+  "          tutut         tut                 ",
+  "          ututu         utu                 ",
+  "          vvvvv         tut                 ",
+  "                        utu                 ",
+  "                        wut                 ",
+  "                        utw                 ",
+  "                        tut                 ",
+  "                        utu                 ",
+  "                        tut                 ",
+  "                        utu                 ",
+  "                   utututwt                 ",
+  "                   tutututu                 ",
+  "                   utututut                 ",
+  "                   twtututu                 ",
+  "                   utuwutut                 ",
+  "                   vvvvvwtu                 ",
+  "                        tuw                 ",
+  "                        utu                 ",
+  "                        tut                 ",
+  "                        utu                 ",
+  "                        tut                 ",
+  "                        uwu                 ",
+  "                        tut                 ",
+  "                        utu                 ",
+  "                        tut                 ",
+  "                        ututututuwututututu ",
+  "                        wutututututwtututut ",
+  "                        utwtututututuwututu ",
+  "                        vvvvvvvvvvvvvvvvvvv ",
+  "                                            ",
+  "                                            ",
+  "                                            "
  ],
  "spawns": {
-  "from_bottom": {
-   "x": 260,
-   "y": 208,
-   "facing": "up"
-  },
   "from_left": {
    "x": 60,
-   "y": 200,
+   "y": 168,
    "facing": "right"
   },
   "start": {
    "x": 60,
-   "y": 200
+   "y": 168,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 1312,
+   "y": 1096,
+   "facing": "left"
   }
+ },
+ "meta": {
+  "road": [
+   4,
+   6,
+   24,
+   26,
+   33,
+   35
+  ]
  },
  "entities": [
   {
@@ -41,10 +81,190 @@
    "x": 32,
    "y": 128,
    "w": 8,
-   "h": 128,
+   "h": 96,
    "to": "teal2",
    "spawn": "landing_east",
    "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 1368,
+   "y": 1056,
+   "w": 8,
+   "h": 96,
+   "to": "teal5",
+   "spawn": "from_left",
+   "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "peel",
+   "image": "assets/props/banana_peel.png",
+   "x": 259,
+   "y": 174,
+   "w": 26,
+   "h": 8,
+   "ix": 259,
+   "iy": 168,
+   "solid": false,
+   "sortY": 0
+  },
+  {
+   "type": "trigger",
+   "id": "peel_trig",
+   "x": 259,
+   "y": 166,
+   "w": 26,
+   "h": 20,
+   "script": "teal4_peel"
+  },
+  {
+   "type": "prop",
+   "id": "button2",
+   "image": "assets/props/button.png",
+   "x": 387,
+   "y": 262,
+   "solid": true,
+   "script": "teal4_button"
+  },
+  {
+   "type": "prop",
+   "id": "black_flower",
+   "image": "assets/props/black_flower.png",
+   "x": 642,
+   "y": 660,
+   "w": 24,
+   "h": 10,
+   "ix": 640,
+   "iy": 634,
+   "solid": true,
+   "script": "teal4_flower"
+  },
+  {
+   "type": "enemy",
+   "id": "walker1",
+   "sprite": "cs_red",
+   "x": 800,
+   "y": 448,
+   "facing": "down",
+   "wander": 40,
+   "enemies": [
+    "cs_red"
+   ],
+   "unless": "teal_east_walker1_defeated"
+  },
+  {
+   "type": "enemy",
+   "id": "walker2",
+   "sprite": "cs_blue",
+   "x": 1056,
+   "y": 1088,
+   "facing": "left",
+   "wander": 40,
+   "enemies": [
+    "cs_blue"
+   ],
+   "unless": "teal_east_walker2_defeated"
+  },
+  {
+   "type": "prop",
+   "id": "etree1",
+   "image": "assets/props/tree_forest.png",
+   "x": 580,
+   "y": 576,
+   "w": 24,
+   "h": 12,
+   "ix": 564,
+   "iy": 504,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "etree2",
+   "image": "assets/props/tree_forest.png",
+   "x": 740,
+   "y": 544,
+   "w": 24,
+   "h": 12,
+   "ix": 724,
+   "iy": 472,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "etree3",
+   "image": "assets/props/tree_forest.png",
+   "x": 580,
+   "y": 768,
+   "w": 24,
+   "h": 12,
+   "ix": 564,
+   "iy": 696,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "etree4",
+   "image": "assets/props/tree_forest.png",
+   "x": 740,
+   "y": 800,
+   "w": 24,
+   "h": 12,
+   "ix": 724,
+   "iy": 728,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "estatue1",
+   "image": "assets/props/statue_junhee_laugh.png",
+   "x": 96,
+   "y": 144,
+   "w": 32,
+   "h": 14,
+   "ix": 90,
+   "iy": 98,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "estatue2",
+   "image": "assets/props/statue_junhee_gesture.png",
+   "x": 512,
+   "y": 144,
+   "w": 32,
+   "h": 14,
+   "ix": 506,
+   "iy": 98,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "estatue3",
+   "image": "assets/props/statue_junhee_arms_raised.png",
+   "x": 960,
+   "y": 1072,
+   "w": 32,
+   "h": 14,
+   "ix": 954,
+   "iy": 1026,
+   "solid": true,
+   "script": "teal2_statue_look"
+  },
+  {
+   "type": "prop",
+   "id": "estatue4",
+   "image": "assets/props/statue_junhee_thinking.png",
+   "x": 1216,
+   "y": 1072,
+   "w": 32,
+   "h": 14,
+   "ix": 1210,
+   "iy": 1026,
+   "solid": true,
+   "script": "teal2_statue_look"
   }
  ]
 }

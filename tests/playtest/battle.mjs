@@ -41,8 +41,9 @@ let s = await st(); check('battle bgm Rude Buster', s.bgm === 'rude_buster', s.b
 { const en = await page.evaluate(() => game.battle.enemies.map((e) => ({ id: e.id, name: e.name, img: e.img?.src?.split('/').slice(-2).join('/'), w: e.img?.width, h: e.img?.height })));
   check('enemies are red/blue CS drawn from PR #7 battle-left PNGs (64×64, image not sheet)', en.length === 2 && en[0].id === 'cs_red' && en[1].id === 'cs_blue' && en.every((e) => /cs-(red|blue)-battle-left\.png$/.test(e.img || '') && e.w === 64 && e.h === 64), JSON.stringify(en)); }
 await page.screenshot({ path: `${S}/battle_01_intro.png` });
-await until(async () => page.evaluate(() => game.battle && game.battle.shown >= game.battle.text.length && game.battle.t > 0.65), 6000); await page.keyboard.press('KeyC');   // 문구가 다 찍힌 뒤 C (타자 중 C 는 즉시 완성)
-b = await until(async () => { const q = await bt(); return q && q.state === 'menu' ? q : null; }, 4000);
+const introSeen = [];
+b = await until(async () => { const q = await page.evaluate(() => { const b = game.battle; return b ? { state: b.state, text: b.text, speaker: b.speaker, typed: b.typed, t: b.t } : null; }); if (!q) return null; if (q.state === 'intro') { if (!introSeen.includes(q.text)) introSeen.push((q.speaker ? q.speaker + '|' : '') + q.text); if (q.typed && q.t > 0.65) await page.keyboard.press('KeyC'); return null; } return q.state === 'menu' ? await bt() : null; }, 20000, 90);
+check('first-battle tutorial: 상황 문구 → 억빠맨 4줄 (in-battle dialogue with speaker) → menu', introSeen.some((l) => l.includes('CS 랑 전투가 시작되었다') && l.includes('떨고 있는 것 같다')) && ['아 형 전투는 처음이시죠', '공격하기랑 아이템 밖에없는데', '굳이 설명안해도', '조져 시발새끼들'].every((k) => introSeen.some((l) => l.startsWith('억빠맨|') && l.includes(k))), JSON.stringify(introSeen));
 check('after intro: menu for member 0 (형섭) with [공격하기][아이템]', !!b && b.memberIdx === 0 && b.menuIdx === 0, JSON.stringify({ state: b?.state, m: b?.memberIdx }));
 await page.screenshot({ path: `${S}/battle_02_menu.png` });
 { const px = await page.evaluate(() => { const c = document.querySelector('canvas'); const ctx = c.getContext('2d'); const d = ctx.getImageData(0, 0, c.width, c.height).data; let white = 0, dark = 0, mid = 0, n = 0; for (let i = 0; i < d.length; i += 4 * 97) { const l = (d[i] + d[i + 1] + d[i + 2]) / 3; n++; if (l > 245) white++; else if (l < 12) dark++; else mid++; } return { white: white / n, dark: dark / n, mid: mid / n, fade: game.fade.alpha }; });
@@ -99,6 +100,7 @@ while (rounds < 8) {
   if (q && q.state === 'win') { won = q; break; }
 }
 check('all enemies defeated → win state within a few rounds', !!won && won.enemies.every((e) => e.dead || e.hp === 0), JSON.stringify({ rounds, enemies: won?.enemies }));
+check('standard victory text: 전투에서 승리했다! 60원을 얻었다 (30 × 2 minions), money added', !!won && won.text.includes('전투에서 승리했다') && won.text.includes('60원을 얻었다') && (await page.evaluate(() => game.money)) >= 60, JSON.stringify({ text: won?.text, money: await page.evaluate(() => game.money) }));
 await page.screenshot({ path: `${S}/battle_05_win.png` });
 await page.waitForTimeout(800); await page.keyboard.press('KeyC');
 const ended = await until(async () => { const s = await st(); if (s.box === 'waiting' || s.box === 'typing') await page.keyboard.press('KeyC'); return !s.battle && !s.running ? s : null; }, 20000, 100);

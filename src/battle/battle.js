@@ -75,7 +75,9 @@ export class Battle {
       ...this.enemies.map(async (e) => { e.img = await this.loadEnemyImage(e.def); }),
     ]);
     this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
-    this.setText(this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`);
+    // 인트로 문구 목록: cfg.intro(전투 안 대사 — 튜토리얼 기믹 등, 문자열 또는 {speaker, portrait, voice, text}) 없으면 적의 appear 줄
+    this.introLines = (this.cfg.intro && this.cfg.intro.length) ? [...this.cfg.intro] : [this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`];
+    this.showLine(this.introLines.shift());
     this.state = 'intro'; this.t = 0;
   }
   loadEnemyImage(def) {
@@ -85,13 +87,15 @@ export class Battle {
   // ── 유틸 ──
   alive() { return this.members.filter((m) => !m.down); }
   living() { return this.enemies.filter((e) => !e.dead); }
-  setText(t) { this.text = stripTags(t); this.textT = 0; this.shown = 0; }
+  setText(t) { this.text = stripTags(t); this.textT = 0; this.shown = 0; this.speaker = null; this.portrait = null; this.voice = 'narrator'; }
+  /** 대사 한 줄: 문자열이면 나레이션, 객체면 화자 이름·초상화·목소리 */
+  showLine(l) { if (typeof l === 'string') { this.setText(l); return; } this.setText(l.text); this.speaker = l.speaker || null; this.portrait = l.portrait || null; this.voice = l.voice || 'narrator'; }
   get typed() { return this.shown >= this.text.length; }
   /** 전투 문구 타자: 22ms 마다 한 글자, 글자마다 나레이션 블립(띠리리링) */
   typeText(dt) {
     if (this.shown >= this.text.length) return;
     this.textT += dt; const n = Math.min(this.text.length, Math.floor(this.textT / 0.022));
-    for (let i = this.shown; i < n; i++) if (this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip('narrator');
+    for (let i = this.shown; i < n; i++) if (this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip(this.voice || 'narrator');
     this.shown = n;
   }
   sfx(n) { this.game.sound.sfx(n); }
@@ -106,7 +110,8 @@ export class Battle {
     this.board.update(dt); this.typeText(dt);
     switch (this.state) {
       case 'load': return;
-      case 'intro': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.6 && (input.just('confirm') || this.t > 2.4)) this.beginMenu(); return;
+      case 'intro': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; }
+        if (this.typed && this.t > 0.6 && (input.just('confirm') || (this.t > 2.4 && !this.speaker))) { if (this.introLines.length) { this.showLine(this.introLines.shift()); this.t = 0.5; } else this.beginMenu(); } return;
       case 'menu': return this.updateMenu(input);
       case 'target': return this.updateTarget(input);
       case 'item': return this.updateItem(input);
@@ -179,7 +184,7 @@ export class Battle {
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
-      if (!this.living().length) { this.state = 'win'; this.t = 0; this.setText(L.battle_win); this.game.sound.stopBgm(0.3); this.sfx('won'); return; }
+      if (!this.living().length) { const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0); this.game.money = (this.game.money || 0) + gain; this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain)); this.game.sound.stopBgm(0.3); this.sfx('won'); return; }   // 표준 승리 문구: '전투에서 승리했다! n원을 얻었다.' + 델타룬 snd_won
       this.beginEnemyTurn(); return;
     }
     const plan = this.plans[this.actIdx++];
@@ -333,7 +338,12 @@ export class Battle {
   heart(ctx, x, y) { ctx.fillStyle = '#ff0000'; ctx.fillRect(x, y + 1, 2, 2); ctx.fillRect(x + 3, y + 1, 2, 2); ctx.fillRect(x - 1, y + 3, 7, 2); ctx.fillRect(x, y + 5, 5, 1); ctx.fillRect(x + 1, y + 6, 3, 1); ctx.fillRect(x + 2, y + 7, 1, 1); }
   drawTextBox(ctx) {
     this.box(ctx, 20, 268, 440, 84); ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
-    this.text.slice(0, this.shown).split('\n').forEach((line, i) => ctx.fillText(line, 36, 282 + i * LH));
+    let tx = 36;
+    if (this.speaker) {                                            // 화자 이름표 + 초상화 (전투 안 대사)
+      const w = 16 + this.speaker.length * 16; this.box(ctx, 24, 246, w, 26); ctx.fillStyle = '#fff'; ctx.fillText(this.speaker, 32, 250);
+      const face = this.portrait && this.game.portraits?.[this.portrait]; if (face) { ctx.drawImage(face, 30, 284, 48, 48); tx = 90; }
+    }
+    this.text.slice(0, this.shown).split('\n').forEach((line, i) => ctx.fillText(line, tx, 282 + i * LH));
   }
   drawPanel(ctx) {
     if (['intro', 'win', 'lose', 'text', 'enemy-text', 'act', 'load'].includes(this.state)) { this.drawTextBox(ctx); return; }

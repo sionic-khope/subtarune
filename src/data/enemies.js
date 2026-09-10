@@ -7,6 +7,7 @@
 //   damage      탄에 맞았을 때 우리 쪽이 잃는 HP
 //   patterns    적 턴에 쓰는 탄막 (src/battle/bullets.js PATTERNS 의 키 + 옵션). 여러 개면 턴마다 돌아가며.
 //   board       탄막 상자 크기 [w,h] (없으면 기본 200x150)
+//   money       잡으면 얻는 돈(원). 없으면 30
 //   idle        기본 모션 { swayX, swayY, period } — 좌우로 천천히 흔들리며 살짝 위아래 (없으면 7px / 2px / 2.8초)
 //   lines       { appear, idle[], die }  전투 문구 (나레이션 '* ' 포함, 적 턴 직전엔 idle 중 하나 — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
@@ -14,7 +15,7 @@ export const ENEMIES = {
   // PR #7 전투 이미지(64×64, 이미 왼쪽을 봄, 발 pivot 32,60) — docs/handoffs/combat-assets.md. 색상별 능력치 차이는 아직 없음(브리핑: CS 각 HP 6)
   cs_red: {
     name: '레드 CS', hp: 6,
-    image: 'assets/enemies/cs-red-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, idle: { swayX: 8, swayY: 2, period: 2.6 },
+    image: 'assets/enemies/cs-red-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 30, idle: { swayX: 8, swayY: 2, period: 2.6 },
     patterns: [
       { type: 'rain', duration: 4.2, rate: 0.16, speed: 95, r: 4 },
       { type: 'aimed', duration: 4.0, every: 0.55, speed: 120, r: 5 },
@@ -24,7 +25,7 @@ export const ENEMIES = {
   },
   cs_blue: {
     name: '블루 CS', hp: 6,
-    image: 'assets/enemies/cs-blue-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, idle: { swayX: 8, swayY: 2, period: 3.1 },
+    image: 'assets/enemies/cs-blue-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 30, idle: { swayX: 8, swayY: 2, period: 3.1 },
     patterns: [
       { type: 'aimed', duration: 4.0, every: 0.55, speed: 120, r: 5 },
       { type: 'bounce', duration: 4.5, count: 2, speed: 100, r: 7 },

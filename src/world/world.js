@@ -852,6 +852,28 @@ registerEntity('raft', Raft);
 registerEntity('swimmer', Swimmer);
 registerEntity('prop', Prop);
 registerEntity('npc', NPC);
+
+/**
+ * 필드 적 (2026-09-10 돈 시스템): NPC 처럼 돌아다니다(wander) 주인공이 가까우면 천천히 다가오고, 닿으면 표준 전투 진입(game.startEncounter).
+ *   { type:'enemy', id, sprite:'cs_red', x, y, wander:24, enemies:['cs_red'], money?, chase?:110, speed?:38 }
+ *   승리하면 사라지고 `<맵>_<id>_defeated` 플래그로 영구 제거(맵 JSON 엔티티에 unless 를 같이 두면 됨).
+ */
+export class Enemy extends NPC {
+  constructor(def, game) { super({ wander: 24, ...def }, game); this.chase = def.chase ?? 150; this.chaseSpeed = (def.speed ?? 42) * TILE / 16; this.cool = 0; }   // 150px 안이면 쫓아온다(84px/s — 주인공 120 이라 피할 수 있다, 사용자)
+  canInteract() { return false; }
+  update(dt) {
+    const g = this.game, p = g.player; if (!p) return;
+    if (this.cool > 0) this.cool -= dt;
+    if (g.dialogue.running || g.battle || g.transitioning) { this.moving = false; return; }
+    const dx = p.x - this.x, dy = p.y - this.y, d = Math.hypot(dx, dy);
+    if (d < this.chase) {                                        // 다가온다
+      const sp = this.chaseSpeed; this.moveBy(dx / d * sp * dt, dy / d * sp * dt);
+      this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); this.moving = true; this.animate?.(dt, 6);
+    } else super.update(dt);
+    if (this.cool <= 0 && this.overlaps({ x: p.x - 4, y: p.y - 4, w: p.w + 8, h: p.h + 8 })) { this.cool = 2; g.startEncounter(this); }
+  }
+}
+registerEntity('enemy', Enemy);
 registerEntity('sign', Sign);
 registerEntity('chest', Chest);
 registerEntity('door', Door);

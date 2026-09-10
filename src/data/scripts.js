@@ -17,6 +17,7 @@ import { void11_intro, void11_tree_look } from './cutscenes/void11_tree.js';
 import { teal2_statue_look, teal2_statue_wall } from './cutscenes/teal2_statue.js';
 import { teal2_tree, teal2_banana1 } from './cutscenes/teal2_events.js';
 import { teal3_toolbox } from './cutscenes/teal3_toolbox.js';
+import { teal4_peel, teal4_button, teal4_flower } from './cutscenes/teal4_events.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -66,7 +67,8 @@ export const SCRIPTS = {
   void11_intro, void11_tree_look,   // 보라맵11 거대 나무: 쥰희·경섭 컷신 → 경섭 합류, 나무 조사 (src/data/cutscenes/void11_tree.js)
   teal2_statue_look, teal2_statue_wall,   // 청록숲2 나무 동상: 조사 / 길 막은 동상(빠맨 공격 시도) (src/data/cutscenes/teal2_statue.js)
   teal2_tree, teal2_banana1,   // 청록숲2 광장: 똑똑 나무 / 바나나 포타슘
-  teal3_toolbox,   // 청록숲3 공구상자 → CS 미니언 등장 → 전투 시작 연출 (src/data/cutscenes/teal3_toolbox.js) (src/data/cutscenes/teal2_events.js)
+  teal3_toolbox,   // 청록숲3 공구상자 → CS 미니언 등장 → 전투 시작 연출 (src/data/cutscenes/teal3_toolbox.js)
+  teal4_peel, teal4_button, teal4_flower,   // 청록숲4: 바나나 껍질·수상한 버튼2·검은 꽃 (src/data/cutscenes/teal4_events.js) (src/data/cutscenes/teal2_events.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [

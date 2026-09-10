@@ -119,8 +119,47 @@ m3 = {'id': 'teal3', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen'
       'spawns': {'from_bottom': {'x': 17 * 32 + 4, 'y': (H3 - 3) * 32 + 8, 'facing': 'up'}, 'start': {'x': 17 * 32 + 4, 'y': (H3 - 3) * 32 + 8, 'facing': 'up'}, 'box': {'x': BOX_X, 'y': BOX_Y + 40, 'facing': 'up'}},
       'meta': {'box': [BOX_X, BOX_Y], 'clearing': [CL0, CL1, CR0, CR1]},
       'entities': ents3}
-me = placeholder('teal_east', {'type': 'door', 'x': 32, 'y': 4 * 32, 'w': 8, 'h': 128, 'to': 'teal2', 'spawn': 'landing_east', 'sfx': False})
-maps = {'teal1': m1, 'teal2': m2, 'teal3': m3, 'teal_east': me}
+# ── teal_east (청록숲 4): 쭉 가는 길인데 세로로도 긴 맵 — 오른쪽 → 아래로 길게 → 오른쪽. 이벤트 3(바나나 껍질·수상한 버튼2·검은 꽃) + 걸어다니는 CS 둘 (사용자 2026-09-10)
+W4, H4 = 44, 40
+rows = [[' '] * W4 for _ in range(H4)]
+HR0, HR1 = 4, 6                   # 위 가로 길 (행 4~6), 열 1~26
+VC0, VC1 = 24, 26                 # 세로 길 (열 24~26), 행 4~35
+BR0, BR1 = 33, 35                 # 아래 가로 길 (행 33~35), 열 24~42
+for r in range(HR0, HR1 + 1):
+    for c in range(1, VC1 + 1): rows[r][c] = g(r, c, grass_at(r, c))
+for r in range(HR0, BR1 + 1):
+    for c in range(VC0, VC1 + 1): rows[r][c] = g(r, c, grass_at(r, c))
+for r in range(BR0, BR1 + 1):
+    for c in range(VC0, W4 - 1): rows[r][c] = g(r, c, grass_at(r, c))
+for r in range(HR1 + 1, HR1 + 4):                       # 버튼 주머니(위 길 아래)
+    for c in range(10, 15): rows[r][c] = g(r, c, grass_at(r, c))
+for r in range(18, 23):                                 # 검은 꽃 주머니(세로 길 왼쪽, 나무로 음지)
+    for c in range(VC0 - 5, VC0): rows[r][c] = g(r, c, grass_at(r, c))
+cliffs(rows, W4, H4)
+ents4 = [
+    {'type': 'door', 'x': 32, 'y': HR0 * 32, 'w': 8, 'h': 96, 'to': 'teal2', 'spawn': 'landing_east', 'sfx': False},
+    {'type': 'door', 'x': (W4 - 1) * 32 - 8, 'y': BR0 * 32, 'w': 8, 'h': 96, 'to': 'teal5', 'spawn': 'from_left', 'sfx': False},
+    # 1) 바나나 껍질: 위 길 한가운데, 밟으면(트리거) 미끄러짐
+    {'type': 'prop', 'id': 'peel', 'image': 'assets/props/banana_peel.png', 'x': 8 * 32 + 3, 'y': 5 * 32 + 14, 'w': 26, 'h': 8, 'ix': 8 * 32 + 3, 'iy': 5 * 32 + 8, 'solid': False, 'sortY': 0},
+    {'type': 'trigger', 'id': 'peel_trig', 'x': 8 * 32 + 3, 'y': 5 * 32 + 6, 'w': 26, 'h': 20, 'script': 'teal4_peel'},
+    # 2) 수상한 버튼 2: 주머니 안
+    {'type': 'prop', 'id': 'button2', 'image': 'assets/props/button.png', 'x': 12 * 32 + 3, 'y': 8 * 32 + 6, 'solid': True, 'script': 'teal4_button'},
+    # 3) 검은 꽃: 세로 길 왼쪽 주머니, 숲 나무로 둘러싸 음지
+    {'type': 'prop', 'id': 'black_flower', 'image': 'assets/props/black_flower.png', 'x': 20 * 32 + 2, 'y': 20 * 32 + 20, 'w': 24, 'h': 10, 'ix': 20 * 32, 'iy': 20 * 32 + 30 - 36, 'solid': True, 'script': 'teal4_flower'},
+    # 걸어다니는 CS 둘 (세로 길·아래 길). 잡으면 <맵>_<id>_defeated 로 영구 제거
+    {'type': 'enemy', 'id': 'walker1', 'sprite': 'cs_red', 'x': 25 * 32, 'y': 14 * 32, 'facing': 'down', 'wander': 40, 'enemies': ['cs_red'], 'unless': 'teal_east_walker1_defeated'},
+    {'type': 'enemy', 'id': 'walker2', 'sprite': 'cs_blue', 'x': 33 * 32, 'y': 34 * 32, 'facing': 'left', 'wander': 40, 'enemies': ['cs_blue'], 'unless': 'teal_east_walker2_defeated'},
+]
+for j, (c, r) in enumerate([(18, 17), (23, 16), (18, 23), (23, 24)]):   # 검은 꽃 주머니 둘레 숲 나무(음지)
+    ents4.append(ftree(f'etree{j + 1}', c * 32 - 12, r * 32 - 40))
+for j, (c, r) in enumerate([(3, HR0), (16, HR0), (30, BR0), (38, BR0)]):   # 길가 동상 몇 개
+    ents4.append(statue(f'estatue{j + 1}', c * 32 - 6, r * 32 - 30, 'teal2_statue_look'))
+me = {'id': 'teal_east', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'teal', 'rows': [''.join(r) for r in rows],
+      'spawns': {'from_left': {'x': 60, 'y': HR0 * 32 + 40, 'facing': 'right'}, 'start': {'x': 60, 'y': HR0 * 32 + 40, 'facing': 'right'}, 'landing': {'x': (W4 - 3) * 32, 'y': BR0 * 32 + 40, 'facing': 'left'}},
+      'meta': {'road': [HR0, HR1, VC0, VC1, BR0, BR1]},
+      'entities': ents4}
+m5 = placeholder('teal5', {'type': 'door', 'x': 32, 'y': 4 * 32, 'w': 8, 'h': 128, 'to': 'teal_east', 'spawn': 'landing', 'sfx': False})
+maps = {'teal1': m1, 'teal2': m2, 'teal3': m3, 'teal_east': me, 'teal5': m5}
 if '--check' in sys.argv:
     ok = all(json.loads(io.open(f'assets/maps/{k}.json', encoding='utf-8').read()) == v for k, v in maps.items())
     print('teal maps', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)

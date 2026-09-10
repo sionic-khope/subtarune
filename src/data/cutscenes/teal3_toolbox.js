@@ -66,7 +66,13 @@ export const teal3_toolbox = [
   { fade: 'out', duration: 0.25 },
   { wait: 0.15 },
   { vortex: null },
-  { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won', bg: 'teal' } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster, 배경 청록 잎 구름
+  { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won', bg: 'teal', intro: [   // 첫 전투 튜토리얼(사용자 2026-09-10, 대사 그대로): 상황 문구 → 억빠맨 4줄 (전투 안 대사)
+    '* CS 랑 전투가 시작되었다!\n* CS 한마리가 떨고 있는 것 같다.',
+    { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 아 형 전투는 처음이시죠' },
+    { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 근데 저능아 아니고서야 공격하기랑 아이템 밖에없는데 솔직히' },
+    { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 굳이 설명안해도 알거라고 생각합니다.' },
+    { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 조져 시발새끼들' },
+  ] } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster, 배경 청록 잎 구름. 적 턴 직전 "억빠맨이 CS 막타를 노리고 있는 듯 하다" 는 enemies.js idle 줄(순서: 상황 문구가 먼저)
   // ── 전투 뒤 (사용자 브리핑 2026-09-10): 미니언 둘이 파들파들 떨다가 → 빠맨 "응 ? 뭐 뭐지" → 점프 → 길 따라 아래로 → 청록숲2 오른쪽 길의 나무 동상들을 펑펑 날려버림 → 주인공 화면 → 나레이션 ──
   { bgm: null, fadeOut: 0.6 },
   { set: { teal3_battle_pending: true } },

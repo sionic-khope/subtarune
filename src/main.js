@@ -45,6 +45,7 @@ class Game {
     this.inventory = [];
     this.party = [];                      // 동료 캐릭터 id 순서 (예: ['ppaman']) — src/data/characters.js 키. 저장/복원됨
     this.partyHp = {};                    // 전투 HP (id → 현재 HP, 없으면 최대). 저장/복원됨 (2026-09-10 전투)
+    this.money = 0;                       // 소지금(원) — 미니언 잡으면 30원 (2026-09-10 돈 시스템). 저장/복원됨
     this.battle = null;                   // 진행 중인 전투 (src/battle/battle.js) — 있으면 update/draw 를 전투가 가져간다
     this.lastBattle = null;
     this.settings = { textSpeed: 1, sound: true };
@@ -148,7 +149,7 @@ class Game {
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때(필드에서만) */
   autosave() {
     if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test') return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
@@ -158,7 +159,7 @@ class Game {
     if (!d || !MAPS[d.map]) { this.startGame(); return; }
     this.flags = {}; this.story = new Story(this.flags); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
-    this.inventory = [...(d.inventory || [])]; this.party = [...(d.party || [])]; this.partyHp = { ...(d.partyHp || {}) }; this.settings = { ...this.settings, ...(d.settings || {}) };
+    this.inventory = [...(d.inventory || [])]; this.party = [...(d.party || [])]; this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
     this.changeMap(d.map, null, true);
@@ -316,6 +317,23 @@ class Game {
     return true;
   }
 
+  /** 필드에서 적(enemy 엔티티)에 닿음 → 표준 전투 진입 연출 + 전투 + 승리 시 적 제거(플래그로 영구). 어느 맵이든 같은 흐름 (2026-09-10) */
+  startEncounter(e) {
+    if (this.battle || this.dialogue.running || this.transitioning || this.encountering) return;
+    this.encountering = true; this.player.moving = false;
+    const flag = `${this.mapId}_${e.id}_defeated`;
+    this.runScript([
+      { sfx: 'battle_start' }, { shake: 0.45, amp: 3 },
+      { vortex: { at: 'center', size: 40, grow: 0.9 } }, { zoom: 1.9, at: 'center', duration: 0.55 }, { vortex: { size: 900, grow: 0.5 } },
+      { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
+      { battle: { enemies: e.def.enemies || ['cs_red'], bgm: e.def.bgm || 'rude_buster', bg: e.def.bg || MAPS[this.mapId]?.battleBg, flag } },
+      { bgm: null }, { zoom: 1 },
+      { action: (g) => { if (g.lastBattle?.win) e.dead = true; g.encountering = false; } },
+      { fade: 'in', duration: 0.5 },
+      { regroup: true },
+    ]);
+  }
+
   /** 전투 시작 (컷신 {battle}) — 끝나면 endBattle → game.lastBattle = { win }. 필드·대화창은 그대로 두고 화면만 전투가 가져간다 */
   startBattle(cfg) {
     if (this.battle) return this.battle;
@@ -430,7 +448,7 @@ class Game {
 
   // ── 스크립트 ────────────────────────────────────────────
   runScript(key, onEnd) {
-    const script = SCRIPTS[key];
+    const script = Array.isArray(key) ? key : SCRIPTS[key];   // 배열이면 즉석 스크립트(필드 조우 등)
     if (!script) { console.warn('[script] 없음:', key); return; }
     this.player.moving = false;
     this.dialogue.start(script, () => { if (onEnd) onEnd(); this.autosave(); });
@@ -671,9 +689,10 @@ class Game {
     });
     if (m.sub === 0) {                                  // 아이템: [그냥 아이템] 골라 쓰기 / [중요 아이템] 보기
       const plain = plainItems(this.inventory), keys = keyItems(this.inventory);
-      const rows = 2 + Math.max(1, plain.length) + 1 + Math.max(1, keys.length);
+      const rows = 3 + Math.max(1, plain.length) + 1 + Math.max(1, keys.length);
       drawBox(ctx, 116, 8, 200, LH * rows + 16);
-      let y = 16; ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_plain_items, 124, y); y += LH;
+      let y = 16; ctx.fillStyle = '#ffe066'; ctx.fillText(`${L.menu_money} ${this.money}${L.won}`, 124, y); y += LH;   // 소지금
+      ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_plain_items, 124, y); y += LH;
       if (!plain.length) { ctx.fillStyle = '#777'; ctx.fillText(L.menu_no_plain, 138, y); y += LH; }
       plain.forEach((it, i) => { const sel = i === m.subIndex; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(it + (ITEMS[it]?.heal ? `  (+${ITEMS[it].heal})` : ''), 138, y); if (sel) drawHeart(ctx, 125, y + Math.round(F.size / 2) - 3); y += LH; });
       y += 4; ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_key_items, 124, y); y += LH;
@@ -762,7 +781,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.40';
+export const BUILD = '2026-09-10.41';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

@@ -133,6 +133,29 @@ def prop_toolbox():
     c.rect(6, 15, 2, 6, SD); c.rect(28, 15, 2, 6, SD)                                # 모서리 쇠
     return c
 
+def prop_peel():
+    """바나나 껍질 26x14: 벌어진 노란 껍질 세 갈래, 갈색 꼭지 (밟으면 미끄러진다)"""
+    Y = hexc('#f4cf3c'); YL = hexc('#fff2a6'); YD = hexc('#c9a027'); B = hexc('#5a3a1a')
+    c = Canvas(26, 14)
+    for (x0, y0, dx) in ((12, 2, -1), (12, 2, 0), (12, 2, 1)):        # 세 갈래
+        for i in range(9):
+            x = x0 + dx * (i // 2) * 2 - (i // 3 if dx < 0 else 0); y = y0 + i
+            c.px(x, y, Y); c.px(x + 1, y, Y); c.px(x + (1 if dx <= 0 else 0), y, YL if i < 4 else Y)
+    c.rect(10, 10, 6, 3, YD); c.rect(11, 12, 4, 2, B)
+    outline_silhouette(c)
+    return c
+
+def prop_black_flower():
+    """검은 꽃 28x36: 검은 꽃잎 6장, 보라 심, 검푸른 줄기 — 음지스러운 이벤트"""
+    K = hexc('#0a0a12'); KL = hexc('#1c1a2e'); C = hexc('#6a2a9a'); CL = hexc('#b57cff'); S = hexc('#12303a')
+    c = Canvas(28, 36)
+    c.vline(13, 18, 18, S); c.vline(14, 18, 18, S); c.px(11, 26, S); c.px(10, 25, S); c.px(16, 29, S); c.px(17, 28, S)
+    for (dx, dy) in ((0, -7), (6, -4), (6, 4), (0, 7), (-6, 4), (-6, -4)):
+        c.rrect_outlined(14 + dx - 4, 11 + dy - 4, 8, 8, K, KL, 3)
+    c.rrect_outlined(11, 8, 6, 6, C, K, 2); c.px(13, 10, CL)
+    outline_silhouette(c, KL)
+    return c
+
 def prop_statue():
     """쥰희를 닮은 나무 동상 44x60: 돌 받침(아래 12px) + 나무 조각(둥근 머리·세모 귀·큰 코·땅딸막한 몸), 나뭇결·금."""
     W0 = [hexc('#3a2314'), hexc('#5a3a22'), hexc('#7a4f2e'), hexc('#a0703f')]   # 어둠→밝음
@@ -164,6 +187,7 @@ if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
     prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
     tile_leaves().save('assets/tiles/leaves_teal.png'); prop_tree_forest().save('assets/props/tree_forest.png'); prop_bush().save('assets/props/bush_teal.png'); prop_toolbox().save('assets/props/toolbox.png')
+    prop_peel().save('assets/props/banana_peel.png'); prop_black_flower().save('assets/props/black_flower.png')
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     print('teal set ok (+banana, tree_teal)')
