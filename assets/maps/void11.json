@@ -1,15 +1,13 @@
 {
  "id": "void11",
  "name": "???",
- "bgm": "lancer",
- "bgmFlag": "void11_intro",
+ "bgm": null,
  "stage": "void_fallen",
  "dim": 0,
  "backdrop": "purple_fire",
  "enter": {
   "script": "void11_intro",
-  "flag": "void11_intro",
-  "early": true
+  "flag": "void11_intro"
  },
  "rows": [
   "                                            ",
@@ -57,7 +55,8 @@
    "h": 14,
    "ix": 584,
    "iy": 66,
-   "solid": true
+   "solid": true,
+   "script": "void11_tree_look"
   },
   {
    "type": "prop",

@@ -103,5 +103,5 @@ def prop_logs():
     return c
 
 if __name__ == '__main__':
-    prop_portal().save('assets/props/portal.png'); prop_tree_big().save('assets/props/tree_big.png'); prop_logs().save('assets/props/logs.png')
+    prop_tree_big().save('assets/props/tree_big.png'); prop_logs().save('assets/props/logs.png')   # 포탈은 안 쓴다(사용자: 진짜 포탈 UI 를 원한 게 아님) — 함수만 남김
     print('void10 props ok')

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """보라맵10 미로 생성기 (사용자 브리핑 2026-09-10: "보라색 땅 미로, 대각선 아래가 목표, 걷기만, 중간중간 표지판 5개").
-셀 15×11(통로 2타일·벽 1타일 = 46×34 타일), 되돌아가기(recursive backtracker) 미로. 시드는 정답 길이 30~45셀이 되는 것을 고른다.
+셀 15×11(통로 2타일·벽 1타일 = 46×34 타일), 되돌아가기(recursive backtracker) 미로 — **직진 2셀 이상이면 꺾는 쪽 우선**(사용자: "미로 치고는 길이 그대로 이어져 있다").
+시드는 정답 길이 30~45셀, 정답 길의 최대 직진 3셀 이하가 되는 것을 고른다.
 표지판 5개는 정답 길 옆(그래프 거리 ≤2) 막다른 셀에, 진행 순서대로 1→5 (5번 "나갈 수 없어" 가 출구에 가장 가깝다).
-출구 = 오른쪽 아래 셀의 포탈(그림, 겹쳐 그려짐) + 밟는 문 → void11. 도착 컷신용 쥰희·경섭 NPC 는 `unless: void10_intro`.
+출구 = 오른쪽 아래 셀이 맵 오른쪽 가장자리까지 열려 있고 가장자리를 밟으면 void11 (포탈 그림 없음 — 사용자: "진짜 포탈 UI 를 만들라는 건 아니었다"). 컷신의 쥰희·경섭은 가장자리 밖으로 걸어 나가 사라진다. NPC 는 `unless: void10_intro`.
 실행: /usr/bin/python3 tools/maps/void10.py  (--check 는 기존과 동일한지만)
 """
 import io, json, sys, random
@@ -13,13 +14,24 @@ START, GOAL = (0, 0), (CW - 1, CH - 1)
 
 def gen(seed):
     rnd = random.Random(seed)
-    seen = {START}; stack = [START]; adj = {(c, r): set() for c in range(CW) for r in range(CH)}
+    seen = {START}; stack = [(START, None, 0)]; adj = {(c, r): set() for c in range(CW) for r in range(CH)}   # (셀, 들어온 방향, 직진 횟수)
     while stack:
-        c, r = stack[-1]
-        nb = [(c + dx, r + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if 0 <= c + dx < CW and 0 <= r + dy < CH and (c + dx, r + dy) not in seen]
+        (c, r), d, run = stack[-1]
+        nb = [((c + dx, r + dy), (dx, dy)) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if 0 <= c + dx < CW and 0 <= r + dy < CH and (c + dx, r + dy) not in seen]
         if not nb: stack.pop(); continue
-        n = rnd.choice(nb); seen.add(n); adj[(c, r)].add(n); adj[n].add((c, r)); stack.append(n)
+        turns = [n for n in nb if n[1] != d]
+        pool = turns if (run >= 2 and turns) else nb                       # 직진 2셀 이상이면 반드시 꺾는다
+        if len(pool) > 1 and any(n[1] == d for n in pool) and rnd.random() < 0.6: pool = [n for n in pool if n[1] != d]   # 그 전에도 60% 는 꺾는다
+        n, nd = rnd.choice(pool)
+        seen.add(n); adj[(c, r)].add(n); adj[n].add((c, r)); stack.append((n, nd, run + 1 if nd == d else 1))
     return adj
+
+def max_straight(path):
+    best = run = 1
+    for i in range(2, len(path)):
+        d1 = (path[i - 1][0] - path[i - 2][0], path[i - 1][1] - path[i - 2][1]); d2 = (path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1])
+        run = run + 1 if d1 == d2 else 1; best = max(best, run)
+    return best
 
 def bfs(adj, src):
     dist = {src: 0}; prev = {}; q = deque([src])
@@ -35,7 +47,7 @@ while True:
     path = [GOAL]
     while path[-1] != START: path.append(prev[path[-1]])
     path.reverse()
-    if 30 <= len(path) <= 45:
+    if 30 <= len(path) <= 45 and max_straight(path) <= 3:
         onpath = {cell: i for i, cell in enumerate(path)}
         dead = [cell for cell, ns in adj.items() if len(ns) == 1 and cell not in (START, GOAL)]
         cands = []
@@ -81,12 +93,13 @@ for i, (c, r) in enumerate(signs):
     if nc != c: tr = 1 + 3 * r
     ents.append({'type': 'prop', 'id': f'sign{i + 1}', 'image': 'assets/props/signpost.png', 'x': tc * 32 + 3, 'y': tr * 32 + 2, 'solid': True, 'script': SIGN_SCRIPTS[i]})
 gc, gr = GOAL
-PX, PY = (2 + 3 * gc) * 32 - 4, (1 + 3 * gr) * 32 + 32 - 60     # 포탈 그림 40×60, 셀 오른쪽 위 타일 바닥에 맞춤
+R0, R1 = 1 + 3 * gr, 2 + 3 * gr
+# 출구: 셀의 오른쪽 끝(맵 가장자리 열 바로 안쪽)을 밟으면 다음 맵. 가장자리 열은 다른 맵처럼 비워 둔다(맵 규칙 '옆줄')
+EDGE = (W - 1) * 32                                   # 걸을 수 있는 오른쪽 끝
 ents += [
-    {'type': 'prop', 'id': 'portal', 'image': 'assets/props/portal.png', 'x': PX, 'y': PY, 'w': 40, 'h': 60, 'ix': PX, 'iy': PY, 'solid': False, 'sortY': 100000},   # 항상 캐릭터 위에 — 들어가면 가려진다
-    {'type': 'door', 'x': PX, 'y': PY + 34, 'w': 40, 'h': 26, 'to': 'void11', 'spawn': 'start', 'sfx': 'whoosh'},
-    {'type': 'npc', 'id': 'junhee', 'sprite': 'junhee', 'x': (1 + 3 * gc) * 32 + 2, 'y': (1 + 3 * gr) * 32 + 16, 'facing': 'right', 'wander': 0, 'unless': 'void10_intro'},
-    {'type': 'npc', 'id': 'gyeongsub', 'sprite': 'gyeongsub', 'x': (1 + 3 * gc) * 32 - 20, 'y': (2 + 3 * gr) * 32 + 12, 'facing': 'right', 'wander': 0, 'unless': 'void10_intro'},
+    {'type': 'door', 'x': EDGE - 10, 'y': R0 * 32, 'w': 10, 'h': 64, 'to': 'void11', 'spawn': 'start', 'sfx': False},
+    {'type': 'npc', 'id': 'gyeongsub', 'sprite': 'gyeongsub', 'x': (1 + 3 * gc) * 32 - 28, 'y': R0 * 32 + 14, 'facing': 'right', 'wander': 0, 'unless': 'void10_intro'},   # 쥰희와 중심 거리 ~75px (겹치지 않게), 둘 다 화면 안
+    {'type': 'npc', 'id': 'junhee', 'sprite': 'junhee', 'x': (1 + 3 * gc) * 32 + 44, 'y': R1 * 32 + 8, 'facing': 'right', 'wander': 0, 'unless': 'void10_intro'},
     {'type': 'door', 'x': 32, 'y': 32, 'w': 6, 'h': 64, 'to': 'void9', 'spawn': 'landing', 'sfx': False},
 ]
 sx, sy = tile_px(1, 1)
@@ -94,8 +107,8 @@ m = {'id': 'void10', 'name': '???', 'bgm': 'scarlet', 'stage': 'void_fallen', 'd
      'enter': {'script': 'void10_intro', 'flag': 'void10_intro'},
      'rows': rows,
      'spawns': {'from_left': {'x': sx + 8, 'y': sy, 'facing': 'right'}, 'start': {'x': sx + 8, 'y': sy, 'facing': 'right'},
-                'goal': {'x': (1 + 3 * gc) * 32 + 4, 'y': (2 + 3 * gr) * 32 + 12, 'facing': 'left'}},
-     'meta': {'seed': seed, 'pathCells': len(path), 'signs': signs, 'startTile': [1, 1], 'goalTile': [2 + 3 * gc, 1 + 3 * gr]},
+                'goal': {'x': EDGE - 44, 'y': R1 * 32 + 8, 'facing': 'left'}},
+     'meta': {'seed': seed, 'pathCells': len(path), 'signs': [list(x) for x in signs], 'startTile': [1, 1], 'goalTile': [W - 2, R0], 'exitX': EDGE},
      'entities': ents}
 path_ = 'assets/maps/void10.json'
 if '--check' in sys.argv:

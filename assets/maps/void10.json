@@ -11,38 +11,38 @@
  },
  "rows": [
   "                                              ",
-  " xXxXxXxXxXx xXxXxXxXxXxXxX XxXxXxXxXxXxXx xX ",
-  " XxXxXxXxXxX XxXxXxXxXxXxXx xXxXxXxXxXxXxX Xx ",
-  " yyyyyyyyyXx yyyXxyyyyyyyxX yyyxXyyyyyyyXx xX ",
-  " XxyxXxXxXxX XxXxXyXxXxXyXxXxXxXxyxXxXxyxX Xx ",
-  " xXyXxXxXxXx xXxXxyxXxXxyxXxXxXxXyXxXxXyXx xX ",
-  " XxyxXyyyyyy XxyyyyXxyyyyyyyyyyyyyyyyXxyxX Xx ",
-  " xXyXxyxXxXxXxXyXxXxXyXxXxXxXxyxXxXxXxXyXxXxX ",
-  " XxyxXyXxXxXxXxyxXxXxyxXxXxXxXyXxXxXxXxyxXxXx ",
-  " xXyXxyxXyyyyyyyXxyxXyXxyxXyXxyxXyyyyxXyyyyxX ",
-  " XxyxXxXxyxXxXxyxXyXxXxXyXxyxXxXxyxXxXxXxXyXx ",
-  " xXyXxXxXyXxXxXyXxyxXxXxyxXyXxXxXyXxXxXxXxyxX ",
-  " XxyyyyyyyxXyXxyxXyyyyyyyXxyyyyXxyyyyyyyyyyXx ",
-  " xXxXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXyXxXxX ",
-  " XxXxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxyxXxXx ",
-  " xXyXxyxXyyyyyyyyyyxXyXxyxXyyyyyyyXxyxXyXxyyy ",
-  " XxyxXyXxXxXxXxyxXxXxyxXyXxXxXxXxXxXyXxyxXyXx ",
-  " xXyXxyxXxXxXxXyXxXxXyXxyxXxXxXxXxXxyxXyXxyxX ",
-  " XxyyyyyyyyyyXxyyyyXxyxXyyyyyyyyyyyyyXxyxXyXx ",
-  " xXxXxXxXxXxyxXxXxXxXyXxXxXyXxyxXxXxXxXyXxXxX ",
-  " XxXxXxXxXxXyXxXxXxXxyxXxXxyxXyXxXxXxXxyxXxXx ",
-  " xXyyyyyyyXxyyyyyyyyyyyyyxXyXxyxXyyyyyyyyyyxX ",
-  " XxyxXxXxXxXyXxXxXxXxyxXxXxyxXyXxXxXxXxXxXyXx ",
-  " xXyXxXxXxXxyxXxXxXxXyXxXxXyXxyxXxXxXxXxXxyxX ",
-  " yyyxXyyyyxXyXxyyyyyyyxXyyyyxXyyyyyyyXxyyyyXx ",
-  " xXxXxyxXxXxXxXyXxXxXxXxyxXxXxyxXxXxXxXyXxXxX ",
-  " XxXxXyXxXxXxXxyxXxXxXxXyXxXxXyXxXxXxXxyxXxXx ",
-  " xXyXxyyyyyyyyyyXxyyyyyyyxXyXxyxXyyyyxXyXxyyy ",
-  " XxyxXyXxXxXxXxyxXyXxXxXxXxyxXyXxyxXxXxyxXyXx ",
-  " xXyXxyxXxXxXxXyXxyxXxXxXxXyXxyxXyXxXxXyXxyxX ",
-  " XxyyyyXxyyyyXxyxXyyyyyyyyyyxXyXxyyyyyyyxXyXx ",
-  " xXxXxXxXxXxyxXxXxXxXxXxXxXxXxyxXxXxXxXxXxXxX ",
-  " XxXxXxXxXxXyXxXxXxXxXxXxXxXxXyXxXxXxXxXxXxXx ",
+  " xXxXxXxX XxXxXxXx xXxXx xXxXxXxXxXx xXxXx xX ",
+  " XxXxXxXx xXxXxXxX XxXxX XxXxXxXxXxX XxXxX Xx ",
+  " yyyyyyxX yyyxXyXx xXyXx yyyXxyyyyXx xXyXx xX ",
+  " XxXxXyXxXxXxXxyxXxXxyxXxXxXxXyXxyxXxXxyxXxXx ",
+  " xXxXxyxXxXxXxXyXxXxXyXxXxXxXxyxXyXxXxXyXxXxX ",
+  " XxyyyyyyyyyyyyyyyyyyyyyyyyyyyyXxyyyyyyyyyyXx ",
+  " xXyXxXxXxXxXxXyXxXxXxXxXxXxXxyxXxXxyxXxXxyxX ",
+  " XxyxXxXxXxXxXxyxXxXxXxXxXxXxXyXxXxXyXxXxXyXx ",
+  " xXyXxyxXyyyyxXyyyyxXyXxyyyyXxyxXyXxyxXyyyyxX ",
+  " XxXxXyXxyxXxXxXxXyXxyxXxXxyxXxXxyxXxXxyxXxXx ",
+  " xXxXxyxXyXxXxXxXxyxXyXxXxXyXxXxXyXxXxXyXxXxX ",
+  " XxyyyyXxyyyyyyyxXyyyyyyyXxyyyyyyyxXyyyyxXyyy ",
+  " xXxXxyxXxXxyxXxXxyxXxXxXxXyXxyxXxXxyxXxXxyxX ",
+  " XxXxXyXxXxXyXxXxXyXxXxXxXxyxXyXxXxXyXxXxXyXx ",
+  " yyyXxyyyyXxyyyyXxyxXyyyyyyyXxyxXyyyyxXyyyyxX ",
+  " XxXxXyXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXyXx ",
+  " xXxXxyxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxyxX ",
+  " XxyyyyXxyyyyXxyyyyyyyxXyXxyxXyyyyxXyyyyxXyXx ",
+  " xXxXxXxXyXxyxXxXxyxXxXxyxXyXxyxXxXxXxXyXxXxX ",
+  " XxXxXxXxyxXyXxXxXyXxXxXyXxyxXyXxXxXxXxyxXxXx ",
+  " yyyyyyxXyXxyyyyXxyxXyyyyxXyXxyxXyyyyyyyyyyxX ",
+  " XxXxXxXxyxXxXxyxXxXxyxXxXxyxXxXxXxXyXxXxXxXx ",
+  " xXxXxXxXyXxXxXyXxXxXyXxXxXyXxXxXxXxyxXxXxXxX ",
+  " XxyyyyyyyxXyXxyyyyyyyxXyyyyyyyyyyxXyXxyyyyyy ",
+  " xXxXxyxXxXxyxXxXxXxXyXxXxXyXxXxXyXxyxXxXxyxX ",
+  " XxXxXyXxXxXyXxXxXxXxyxXxXxyxXxXxyxXyXxXxXyXx ",
+  " yyyXxyyyyyyyyyyXxyxXyyyyxXyXxyxXyyyyyyyXxyxX ",
+  " XxyxXyXxXxXyXxXxXyXxXxXyXxXxXyXxXxXxXxyxXxXx ",
+  " xXyXxyxXxXxyxXxXxyxXxXxyxXxXxyxXxXxXxXyXxXxX ",
+  " XxyxXyXxyxXyXxyyyyyyyxXyyyyyyyyyyyyyXxyyyyXx ",
+  " xXxXxXxXyXxXxXyXxXxXxXxXxXxXxXxXxXxyxXxXxXxX ",
+  " XxXxXxXxyxXxXxyxXxXxXxXxXxXxXxXxXxXyXxXxXxXx ",
   " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy ",
   "                                              ",
   "                                              ",
@@ -61,34 +61,34 @@
    "facing": "right"
   },
   "goal": {
-   "x": 1380,
-   "y": 1036,
+   "x": 1396,
+   "y": 1032,
    "facing": "left"
   }
  },
  "meta": {
-  "seed": 19785,
+  "seed": 96580,
   "pathCells": 41,
   "signs": [
    [
-    4,
+    3,
     0
    ],
    [
-    9,
-    0
-   ],
-   [
-    14,
+    8,
     0
    ],
    [
     14,
-    5
+    0
    ],
    [
     14,
-    9
+    4
+   ],
+   [
+    14,
+    8
    ]
   ],
   "startTile": [
@@ -98,14 +98,15 @@
   "goalTile": [
    44,
    31
-  ]
+  ],
+  "exitX": 1440
  },
  "entities": [
   {
    "type": "prop",
    "id": "sign1",
    "image": "assets/props/signpost.png",
-   "x": 419,
+   "x": 323,
    "y": 34,
    "solid": true,
    "script": "void10_sign1"
@@ -114,7 +115,7 @@
    "type": "prop",
    "id": "sign2",
    "image": "assets/props/signpost.png",
-   "x": 899,
+   "x": 803,
    "y": 34,
    "solid": true,
    "script": "void10_sign2"
@@ -133,7 +134,7 @@
    "id": "sign4",
    "image": "assets/props/signpost.png",
    "x": 1411,
-   "y": 514,
+   "y": 418,
    "solid": true,
    "script": "void10_sign4"
   },
@@ -142,49 +143,36 @@
    "id": "sign5",
    "image": "assets/props/signpost.png",
    "x": 1411,
-   "y": 898,
+   "y": 802,
    "solid": true,
    "script": "void10_sign5"
   },
   {
-   "type": "prop",
-   "id": "portal",
-   "image": "assets/props/portal.png",
-   "x": 1404,
-   "y": 964,
-   "w": 40,
-   "h": 60,
-   "ix": 1404,
-   "iy": 964,
-   "solid": false,
-   "sortY": 100000
-  },
-  {
    "type": "door",
-   "x": 1404,
-   "y": 998,
-   "w": 40,
-   "h": 26,
+   "x": 1430,
+   "y": 992,
+   "w": 10,
+   "h": 64,
    "to": "void11",
    "spawn": "start",
-   "sfx": "whoosh"
+   "sfx": false
   },
   {
    "type": "npc",
-   "id": "junhee",
-   "sprite": "junhee",
-   "x": 1378,
-   "y": 1008,
+   "id": "gyeongsub",
+   "sprite": "gyeongsub",
+   "x": 1348,
+   "y": 1006,
    "facing": "right",
    "wander": 0,
    "unless": "void10_intro"
   },
   {
    "type": "npc",
-   "id": "gyeongsub",
-   "sprite": "gyeongsub",
-   "x": 1356,
-   "y": 1036,
+   "id": "junhee",
+   "sprite": "junhee",
+   "x": 1420,
+   "y": 1032,
    "facing": "right",
    "wander": 0,
    "unless": "void10_intro"

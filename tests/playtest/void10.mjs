@@ -1,5 +1,5 @@
 // 보라맵10 미로 검증: ?qa=void10 → 도착 컷신(카메라가 출구로 → 브금 꺼짐 → 쥰희 "형 빨리 오샘" 포탈로 사라짐 → 경섭 "어 그래 어휴.." → 브금 복귀 → 카메라 주인공에게)
-//   → 미로가 시작~출구까지 걸어서 풀림(BFS) → 표지판 5개 대사(진행 순서) → 포탈 밟으면 void11, 검은 화면 아래에서 카메라가 먼저 옮겨져 주인공이 안 보인다(enter.early).
+//   → 미로가 시작~출구까지 걸어서 풀림(BFS) → 표지판 5개 대사(진행 순서) → 오른쪽 가장자리로 나가면 void11: 형섭이 먼저 보이고(브금 없음) 카메라가 오른쪽으로 이동하며 컷신.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
@@ -34,12 +34,14 @@ const talk = async (x, y, f) => { await stand(x, y, f); await page.waitForTimeou
 await page.goto('http://127.0.0.1:8000/index.html?qa=void10'); await ready(); await page.waitForTimeout(150);
 let s = await st(); check('qa=void10: maze with party, intro starts (junhee/gyeongsub NPCs present)', s.map === 'void10' && s.f.length === 1 && s.junhee && s.gyeongsub, JSON.stringify({ map: s.map, f: s.f, j: s.junhee, g: s.gyeongsub }));
 { let shot = false;
-  const r = await drain(30000, (q) => { if (q.text.includes('빨리 오샘') && !shot) { shot = true; page.screenshot({ path: `${S}/void10_01_intro.png` }).catch(() => {}); } return { bgm: q.bgm, cam: q.cam.x, jvis: q.junhee ? q.junhee.vis : null, gvis: q.gyeongsub ? q.gyeongsub.vis : null, running: q.running }; });
+  const r = await drain(30000, (q) => { if (q.text.includes('빨리 오샘') && !shot) { shot = true; page.screenshot({ path: `${S}/void10_01_intro.png` }).catch(() => {}); } return { bgm: q.bgm, cam: q.cam.x, jvis: q.junhee ? q.junhee.vis : null, gvis: q.gyeongsub ? q.gyeongsub.vis : null, running: q.running, gap: q.junhee && q.gyeongsub ? Math.hypot(q.junhee.x - q.gyeongsub.x, q.junhee.y - q.gyeongsub.y) : null, text: q.text, jx: q.junhee?.x ?? null }; });
+  { const at = r.obs.find((o) => o.text.includes('빨리 오샘')); check('intro: 쥰희 and 경섭 stand apart (≥ 70px) while she speaks', at && at.gap >= 70, JSON.stringify({ gap: at?.gap })); }
+  check('intro: 쥰희 walked out past the right map edge before vanishing (no portal)', r.obs.some((o) => o.jx !== null && o.jx > 1430) && !(await page.evaluate(() => game.entities.some((e) => e.id === 'portal'))), 'maxJx=' + Math.max(...r.obs.map((o) => o.jx ?? -1)));
   check('intro: 쥰희 "형 빨리 오샘" → 경섭 "어 그래 어휴.."', ['쥰희|* 형 빨리 오샘', '경섭|* 어 그래 어휴..'].every((k) => r.lines.includes(k)), JSON.stringify(r.lines));
   check('intro: camera panned to the exit (far right) during the scene', r.obs.some((o) => o.cam > 900), 'maxCam=' + Math.max(...r.obs.map((o) => o.cam)));
   check('intro: bgm off while they talk, back to scarlet after', r.obs.some((o) => o.running && o.bgm === null) && (await st()).bgm === 'scarlet', JSON.stringify([...new Set(r.obs.map((o) => o.bgm))]));
   const q = await st();
-  check('intro: junhee then gyeongsub vanished into the portal', q.junhee && !q.junhee.vis && q.gyeongsub && !q.gyeongsub.vis && r.obs.some((o) => o.jvis === false && o.gvis === true), JSON.stringify({ j: q.junhee, g: q.gyeongsub }));
+  check('intro: junhee then gyeongsub walked off and vanished', q.junhee && !q.junhee.vis && q.gyeongsub && !q.gyeongsub.vis && r.obs.some((o) => o.jvis === false && o.gvis === true), JSON.stringify({ j: q.junhee, g: q.gyeongsub }));
   check('intro: camera returned to the player and follows', q.cam.onPlayer && !q.cam.locked && Math.abs(q.cam.x) < 200, JSON.stringify(q.cam));
   check('intro: flag void10_intro set, no re-run', q.flags.void10_intro === true && !q.running, JSON.stringify({ f: q.flags.void10_intro, running: q.running })); }
 // 미로: 시작 타일 → 출구(포탈 문)까지 걸어서 도달 가능한가 (플레이어 히트박스로 BFS)
@@ -61,13 +63,13 @@ let s = await st(); check('qa=void10: maze with party, intro starts (junhee/gyeo
     if (i === 2) await page.screenshot({ path: `${S}/void10_02_sign3.png` }).catch(() => {});
     check(`sign${i + 1}: ${KEYS[i].join(' / ')}`, L.some((l) => l.includes('표지판')) && KEYS[i].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
   }
-  // 출구: 포탈 아래에서 위로 걸어 들어간다
+  // 출구: 오른쪽 가장자리로 걸어 나간다
   const door = await page.evaluate(() => { const d = game.entities.find((e) => e.def?.type === 'door' && e.def.to === 'void11'); return { x: d.x, y: d.y, w: d.w, h: d.h }; });
-  await stand(door.x + door.w / 2 - 10, door.y + door.h + 30, 'up'); await page.waitForTimeout(200); await page.screenshot({ path: `${S}/void10_03_portal.png` });
-  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(700); await page.keyboard.up('ArrowUp');
-  const early = []; const t0 = Date.now(); while (Date.now() - t0 < 2500) { await page.waitForTimeout(40); const q = await st(); if (q.map === 'void11') early.push({ cam: q.cam.x, p: q.p[0], running: q.running, tr: q.transitioning }); }
-  check('portal → void11', early.length > 0, JSON.stringify(early.slice(0, 2)));
-  check('void11: camera already on the pair (right side) from the first frames — player (x≈340) never framed', early.length > 0 && early.every((o) => o.cam > 480), JSON.stringify({ first: early[0], min: Math.min(...early.map((o) => o.cam)) }));
+  await stand(door.x - 70, door.y + 30, 'right'); await page.waitForTimeout(200); await page.screenshot({ path: `${S}/void10_03_exit.png` });
+  await page.keyboard.down('ArrowRight'); await page.waitForTimeout(900); await page.keyboard.up('ArrowRight');
+  const early = []; const t0 = Date.now(); while (Date.now() - t0 < 4500) { await page.waitForTimeout(40); const q = await st(); if (q.map === 'void11') early.push({ cam: q.cam.x, p: q.p[0], running: q.running, tr: q.transitioning, bgm: q.bgm }); }
+  check('edge → void11', early.length > 0, JSON.stringify(early.slice(0, 2)));
+  check('void11: player framed first (cam near x≈100), bgm silent, then the camera pans right past 500 to the pair', early.length > 0 && early[0].cam < 200 && early[0].bgm === null && early.some((o) => o.cam > 500), JSON.stringify({ first: early[0], max: Math.max(...early.map((o) => o.cam)) }));
   check('void11: intro cutscene running after arrival', early.some((o) => o.running), '');
   await page.screenshot({ path: `${S}/void10_04_void11_cut.png` }); }
 await browser.close();

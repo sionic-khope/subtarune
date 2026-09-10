@@ -13,7 +13,7 @@ import { void8_board, void8_arrive } from './cutscenes/void8.js';
 import { rock_flowers, rock_sign, rock_boulder } from './cutscenes/rock_events.js';
 import { void9_button, void9_quiz, void9_puddle, void9_chest } from './cutscenes/void9_events.js';
 import { void10_intro, void10_sign1, void10_sign2, void10_sign3, void10_sign4, void10_sign5 } from './cutscenes/void10_maze.js';
-import { void11_intro } from './cutscenes/void11_tree.js';
+import { void11_intro, void11_tree_look } from './cutscenes/void11_tree.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -60,7 +60,7 @@ export const SCRIPTS = {
   void8_board, void8_arrive,         // 점프 뗏목: 억빠맨 수영 → 벽 쿵 → C 점프 / 도착 물 털기 (src/data/cutscenes/void8.js)
   void9_button, void9_quiz, void9_puddle, void9_chest,   // 보라맵9 뱀길 체크포인트 이벤트 4종 (src/data/cutscenes/void9_events.js)
   void10_intro, void10_sign1, void10_sign2, void10_sign3, void10_sign4, void10_sign5,   // 보라맵10 미로: 포탈 컷신 + 표지판 5 (src/data/cutscenes/void10_maze.js)
-  void11_intro,   // 보라맵11 거대 나무: 쥰희·경섭 컷신 → 경섭 합류 (src/data/cutscenes/void11_tree.js)
+  void11_intro, void11_tree_look,   // 보라맵11 거대 나무: 쥰희·경섭 컷신 → 경섭 합류, 나무 조사 (src/data/cutscenes/void11_tree.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)
   // 보라맵3 뗏목 퍼즐 표지판
   void3_sign_a: [
