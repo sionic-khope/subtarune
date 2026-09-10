@@ -14,6 +14,12 @@ model: opus
 `src/ui/dialogue.js`(텍스트/분기) 가 처리한다. **엔진 코드를 고치지 말고 노드로 표현할 것** — 표현이 안 되면
 그때만 `src/ui/cutscene.js` 에 명령을 추가하고 이 문서의 레퍼런스도 갱신한다.
 
+## 절대 규칙 (2026-09-10 회고)
+- 이동 좌표는 **기준물 상대** `{ move:id, rel:'소품id', at:'left|right|top|bottom', by:[dx,dy] }`. 절대 `px` 는 맵 밖으로 걸어 나갈 때만(맵이 바뀌면 px 가 하늘로 간다 — 억빠맨 수영 버그). `tests/unit/cutscenes.test.mjs` 가 검사한다.
+- 뗏목 위 연출은 `{raft:id, hold:true}` 로 세워 두고 대사한다(문구 동안 앞으로 가서 벽에 부딪히지 않게). 노드: `swim|hold|holdAt:'apex'|x|awaitJump|until:'stop'|'land'`.
+- 사용자 대사는 그대로. 괄호 지시문·'(웃음)' 은 대사가 아니라 연출. 의심 오타는 보고에 한 줄.
+- 파일 수정은 `tools/dev/patch.py`, 한 줄 끝 `//` 금지, 끝나면 `tools/dev/check.sh`.
+
 ## 절차
 
 1. **연출 콘티** — 사용자 브리핑(아래 형식)에서 트리거·등장인물·비트·끝난 뒤 상태를 뽑는다. **되묻지 않는다** — 애매한 연출은 가장 가까운 언더테일식으로 하고 보고에 해석을 한 줄 적는다.

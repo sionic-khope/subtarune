@@ -488,7 +488,9 @@ export class Prop extends Entity {
     super({ solid: def.solid ?? true, ...def }, game);
     this.image = game.propImages[def.image] || null;
     this.scale = def.scale ?? 1;
-    const iw = this.image ? Math.round(this.image.width * this.scale) : 32;
+    this.anim = def.anim || null;                       // { cols, fps } 가로 프레임 띠(폭포처럼 계속 흐르는 소품)
+    const cols = this.anim?.cols || 1;
+    const iw = this.image ? Math.round(this.image.width / cols * this.scale) : 32;
     const ih = this.image ? Math.round(this.image.height * this.scale) : 32;
     this.iw = iw; this.ih = ih;
     // 히트박스: 지정 없으면 이미지 아래쪽 40%
@@ -509,10 +511,12 @@ export class Prop extends Entity {
   draw(ctx, cam) {
     if (!this.visible) return;
     const fx = this.flyX || 0, fy = this.flyY || 0;    // 컷신 {hop}/{fling} 로 밀려난 그림 위치(히트박스 지정 소품은 def.ix 를 따르므로 따로)
+    const cols = this.anim?.cols || 1, fw = this.image ? this.image.width / cols : 0, fi = cols > 1 ? Math.floor(performance.now() / 1000 * (this.anim.fps || 8)) % cols : 0;
+    const blit = (dx, dy) => ctx.drawImage(this.image, fi * fw, 0, fw, this.image.height, dx, dy, this.iw, this.ih);
     if (this.image && this.spin) {                    // 날아가며 회전(컷신 {hop spin}/{fling})
       const cx = this.drawX + fx - cam.x + this.iw / 2, cy = this.drawY + fy - cam.y - (this.hopY || 0) + this.ih / 2;
-      ctx.save(); ctx.translate(Math.round(cx), Math.round(cy)); ctx.rotate(this.spin); ctx.drawImage(this.image, -Math.round(this.iw / 2), -Math.round(this.ih / 2), this.iw, this.ih); ctx.restore();
-    } else if (this.image) ctx.drawImage(this.image, Math.round(this.drawX + fx - cam.x), Math.round(this.drawY + fy - cam.y) - Math.round(this.hopY || 0), this.iw, this.ih);   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
+      ctx.save(); ctx.translate(Math.round(cx), Math.round(cy)); ctx.rotate(this.spin); blit(-Math.round(this.iw / 2), -Math.round(this.ih / 2)); ctx.restore();
+    } else if (this.image) blit(Math.round(this.drawX + fx - cam.x), Math.round(this.drawY + fy - cam.y) - Math.round(this.hopY || 0));   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
     else { ctx.fillStyle = 'rgba(255,0,255,0.5)'; ctx.fillRect(Math.round(this.x - cam.x), Math.round(this.y - cam.y), this.w, this.h); }
   }
 }

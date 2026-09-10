@@ -16,7 +16,7 @@ const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 1500
 const st = () => page.evaluate(() => { const r = game.ride || game.entities.find((e) => e.def?.type === 'raft'); const p = game.player;
   const sw = game.entities.filter((e) => e.def?.type === 'swimmer' && !e.dead).map((s) => ({ id: s.id, x: Math.round(s.x), y: Math.round(s.y) }));
   const walls = game.entities.filter((e) => e.def?.obstacle && !e.dead).map((e) => ({ x: e.x, w: e.w, clear: e.def.clear || 0 })).sort((a, b) => a.x - b.x);
-  const fol = game.entities.filter((e) => e.def?.type === 'follower').map((f) => ({ id: f.id, vis: f.visible !== false, x: Math.round(f.x) }));
+  const fol = game.entities.filter((e) => e.def?.type === 'follower').map((f) => ({ id: f.id, vis: f.visible !== false, x: Math.round(f.x), y: Math.round(f.y) }));
   return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''),
     riding: !!game.ride, rx: Math.round(r?.x ?? 0), ry: Math.round(r?.y ?? 0), jumping: !!r?.jumping, jumpY: Math.round(r?.jumpY || 0), hold: !!r?.hold, doubled: !!r?.doubled, moving: !!r?.moving, blocked: !!r?.blocked, sweeping: !!r?.sweeping, sweeps: r?.sweeps || 0,
     sw, walls, fol, p: [Math.round(p.x), Math.round(p.y)], party: [...game.party], flags: { dj: !!game.flags.double_jump, wall: !!game.flags.teal5_wall_seen, boarded: !!game.flags.raft5_boarded } }; });
@@ -24,7 +24,9 @@ const key = (s) => (s.speaker || '') + '|' + s.text;
 
 await page.goto('http://localhost:8000/index.html?qa=teal5'); await ready(); await page.keyboard.press('KeyX'); await page.waitForTimeout(400);
 let q = await st();
-check('?qa=teal5: map teal5, party [gyeongsub, ppaman] both followers visible, raft at 328 with 4 waterfalls', q.map === 'teal5' && q.party.join() === 'gyeongsub,ppaman' && q.fol.length === 2 && q.rx === 328 && q.walls.length === 4, JSON.stringify({ party: q.party, fol: q.fol, rx: q.rx, walls: q.walls }));
+check('?qa=teal5: map teal5, party [gyeongsub, ppaman] both followers visible, raft at 328 with 4 obstacles', q.map === 'teal5' && q.party.join() === 'gyeongsub,ppaman' && q.fol.length === 2 && q.rx === 328 && q.walls.length === 4, JSON.stringify({ party: q.party, fol: q.fol, rx: q.rx, walls: q.walls }));
+const anim = await page.evaluate(() => { const w = game.entities.find((e) => e.id === 'fall_big1'); return { cols: w?.anim?.cols, fps: w?.anim?.fps, imgW: w?.image?.width, iw: w?.iw }; });
+check('waterfalls animate: 3-frame strip (image 120 wide, drawn 40) at 8fps', anim.cols === 3 && anim.imgW === 120 && anim.iw === 40, JSON.stringify(anim));
 const meta = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal5.meta);
 
 // 선착장으로 걸어가 C (뗏목 10px 앞)
@@ -39,8 +41,9 @@ const pump = async (untilFn, ms) => { const t0 = Date.now(); while (Date.now() -
   else if (s.box === 'waiting') { const k = key(s); if (lines[lines.length - 1] !== k) lines.push(k); await page.keyboard.press('KeyC'); await page.waitForTimeout(60); }
   else if (s.box === 'typing') { const k = key(s); if (lines[lines.length - 1] !== k) lines.push(k); await page.keyboard.press('KeyC'); await page.waitForTimeout(40); }
   else await page.waitForTimeout(40); } return null; };
-let shot1 = false;
-q = await pump((s) => { if (!shot1 && s.sw.length === 1) { shot1 = true; page.screenshot({ path: `${S}/teal5_01_swim.png` }).catch(() => {}); } return !s.running; }, 30000);
+let shot1 = false; let skyY = 0; const dockY = (await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal5.spawns.dock.y));
+q = await pump((s) => { if (!shot1 && s.sw.length === 1) { shot1 = true; page.screenshot({ path: `${S}/teal5_01_swim.png` }).catch(() => {}); } for (const f of s.fol) if (f.vis) skyY = Math.max(skyY, Math.abs(f.y - dockY)); return !s.running; }, 30000);
+check('boarding scene: followers walk to the water edge at dock level (never up into the sky — stale y bug)', skyY <= 80, `max |y - dock| = ${skyY}`);
 const want1 = ['경섭|* 어 .. ... ... 형섭아 내가 타도 될까', '억빠맨|* 아니요 형', '억빠맨|* 옆에서 같이 수영하시죠', '경섭|* ?', '억빠맨|* 형 무게면 땟목 뒤져요', '경섭|* ... 어 알았다.'];
 const inOrder = (want, got) => { let i = 0; for (const g of got) if (g === want[i]) i++; return i === want.length; };
 check('boarding scene: 6 lines in briefing order, choice appeared and was cut by 억빠맨 (auto)', inOrder(want1, lines) && choiceSeen, JSON.stringify({ lines, choiceSeen }));

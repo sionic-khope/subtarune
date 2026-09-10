@@ -9,12 +9,11 @@
 // ─────────────────────────────────────────────────────────────
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
-const EDGE_X = 294;                     // 선착장 물가(물길 320 바로 왼쪽)
 
 /** 뗏목 onBoard: 형섭이 올라탄 직후. 억빠맨·경섭은 선착장에 서 있음 */
 export const teal5_board = [
   { face: 'gyeongsub', dir: 'toward:player' }, { face: 'ppaman', dir: 'toward:player' }, { wait: 0.4 },
-  { move: 'ppaman', px: [EDGE_X, 196] }, { sfx: 'splash' }, { raft: 'raft5', swim: 'ppaman' }, { wait: 0.5 },   // 억빠맨은 바로 수영 모드(뗏목 아래)
+  { move: 'ppaman', rel: 'raft5', at: 'left', by: [-4, 6] }, { sfx: 'splash' }, { raft: 'raft5', swim: 'ppaman' }, { wait: 0.5 },   // 물가(뗏목 왼쪽 기준 — 하드코딩 y 금지: 계단식으로 물길 높이가 바뀌자 하늘로 걸어갔던 버그)
   { face: 'gyeongsub', dir: 'toward:player' },
   G('* 어 ..{w=0.4} ...{w=0.4} ...{w=0.4} 형섭아 내가 타도 될까', { choice: { options: [{ label: '네' }, { label: '아니오' }], auto: 0.35 } }),   // 선택지가 뜨자마자 억빠맨 인터셉트
   P('* 아니요 형'),
@@ -22,7 +21,7 @@ export const teal5_board = [
   G('* ?'),
   P('* 형 무게면 땟목 뒤져요'),
   G('* ...{w=0.5} 어 알았다.'),
-  { move: 'gyeongsub', px: [EDGE_X, 236] }, { sfx: 'splash' }, { raft: 'raft5', swim: 'gyeongsub' }, { wait: 0.4 },   // 경섭도 내려가 바로 아래에서 같이 헤엄(뒤가 아니라 나란히)
+  { move: 'gyeongsub', rel: 'raft5', at: 'left', by: [-4, 40] }, { sfx: 'splash' }, { raft: 'raft5', swim: 'gyeongsub' }, { wait: 0.4 },   // 경섭도 내려가(뗏목 왼쪽 아래) 바로 아래에서 같이 헤엄(뒤가 아니라 나란히)
   { raft: 'raft5', go: true },
   { end: true },                                                     // 여기서부터 정상 조작: C = 점프(1단 폭포)
 ];
@@ -49,6 +48,8 @@ export const teal5_wall = [
   { set: { double_jump: true } },
   { raft: 'raft5', awaitJump: true },                                // 2차 점프(협동: 경섭이 아래에서 받쳐 올린다) → 이단폭포를 넘어 한 단 위 물길로
   { raft: 'raft5', until: 'land' }, { wait: 0.35 },
+  { raft: 'raft5', hold: true },                                     // 문구 동안 뗏목 정지 — 앞으로 가다 다음 폭포에 부딪히지 않게 (사용자)
   { text: '* {c=yellow}2단 점프를 할 수 있게 되었다!{/c}', voice: 'narrator' },   // 넘고 나서 (사용자)
+  { raft: 'raft5', hold: false },
   { end: true },
 ];

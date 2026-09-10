@@ -31,7 +31,7 @@ RAFT_X0, RAFT_X1 = 10 * T + 8, 88 * T - 56 - 8                      # 328 → 27
 # 경유점: 폭포 8px 앞까지 평평 → 폭포(40) + 8px 뒤에서 한 단 위 — 점프하는 동안 뗏목이 위로 올라간다(계단식)
 ROUTE = [[FALLS[0] - 8, Y0], [FALLS[0] + 48, Y1], [FALLS[1] - 8, Y1], [FALLS[1] + 48, Y2], [FALLS[2] - 8, Y2], [FALLS[2] + 48, Y3], [RAFT_X1, Y3]]
 def waterfall(id_, x, top):        # 이단폭포: 위 단(top) 물길 꼭대기부터 아래 단 바닥까지(64+96) 막는다. 항상 뒤에 그린다(sortY) — 뗏목이 폭포 앞을 지나 올라간다
-    return {'type': 'prop', 'id': id_, 'image': 'assets/props/waterfall2.png', 'x': x, 'y': top * T, 'w': 40, 'h': 160, 'ix': x, 'iy': top * T - 4, 'sortY': top * T, 'solid': True, 'obstacle': True, 'clear': 72, 'sweep': True}
+    return {'type': 'prop', 'id': id_, 'image': 'assets/props/waterfall2.png', 'x': x, 'y': top * T, 'w': 40, 'h': 160, 'ix': x, 'iy': top * T - 4, 'sortY': top * T, 'solid': True, 'obstacle': True, 'clear': 72, 'sweep': True, 'anim': {'cols': 3, 'fps': 8}}
 def wall(id_, x, y):               # 기존 한 칸 점프 벽(void8/9 와 같은 소품) — C 점프 한 번
     return {'type': 'prop', 'id': id_, 'image': 'assets/props/water_wall.png', 'x': x, 'y': y, 'w': 28, 'h': 36, 'ix': x, 'iy': y - 16, 'solid': True, 'obstacle': True}
 STOP_X, HOLD_X = 1100, 1116        # 첫 이단폭포 150px 앞 정지 / 튜토리얼 "지금 C" 정지점

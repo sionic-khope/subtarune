@@ -30,6 +30,7 @@ const HIT_AT = 0.14;                 // 공격 모션 시작 뒤 이 시점에 �
 const PREP_OPEN = 0.3;               // 적 턴: 탄막 상자가 패널 자리에서 펼쳐지는 시간(초) — 그 뒤 소울이 보이고 움직일 수 있다
 const PREP_HOLD = 0.9;               // 말풍선이 다 뜬 뒤 탄막까지 준비 시간(초) (사용자: "펼쳐지고 대사 나오고 준비할 딜레이")
 const BUBBLE_CPS = 0.03;             // 말풍선 타자 속도(초/글자)
+const BGM_DELAY = 0.2;               // 전투 화면이 열린 뒤 브금까지의 침묵(초) — 진입 징글이 끝나고 한 박 쉰 뒤 첫 소절부터 크게(페이드 없음)
 const SMALL = FONT.replace(/^\d+px/, '12px');   // 말풍선·HP 숫자용 작은 글씨
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
@@ -81,8 +82,8 @@ export class Battle {
         ...this.enemies.map(async (e) => { e.img = await cached(IMAGE_CACHE, e.def.image || e.def.sheet?.src, () => this.loadEnemyImage(e.def)); }),
       ]);
     } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
-    if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: 0.05 });   // 화면이 열리는 바로 그 순간 첫 소절부터 (preloadBgm 로 공백 없음)
     this.game.fadeTo(0, 0.12);                                                                  // 검은 화면은 델타룬처럼 거의 바로 걷는다
+    this.bgmWait = BGM_DELAY;                                                                   // 화면이 열리고 잠깐(0.2s) 아무 소리 없다가 전투 브금이 첫 소절부터 (사용자 2026-09-10)
     this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
     // 인트로 문구 목록: cfg.intro(전투 안 대사 — 튜토리얼 기믹 등, 문자열 또는 {speaker, portrait, voice, text}) 없으면 적의 appear 줄
     this.introLines = (this.cfg.intro && this.cfg.intro.length) ? [...this.cfg.intro] : [this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`];
@@ -112,6 +113,7 @@ export class Battle {
   // ── 진행 ──
   update(dt, input) {
     this.t += dt;
+    if (this.bgmWait !== undefined) { this.bgmWait -= dt; if (this.bgmWait <= 0) { this.bgmWait = undefined; if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: 0 }); } }   // 0.2s 침묵 뒤 첫 소절부터(페이드 인 없음)
     for (const m of this.members) { if (m.action) m.action.update(dt); if (m.popup) { m.popup.t += dt; if (m.popup.t > 0.9) m.popup = null; } if (m.pose !== undefined && m.pose !== null) { m.pose += dt; const T = BATTLE_SPRITES[m.id].attack.reduce((a, f) => a + f.duration, 0); if (m.pose > T) m.pose = null; } }
     this.enemies.forEach((e, i) => { if (e.shake > 0) e.shake -= dt; if (e.blink > 0) e.blink -= dt; if (e.dying > 0) { e.dying -= dt; if (e.dying <= 0) { e.dead = true; } } if (e.popup) { e.popup.t += dt; if (e.popup.t > 0.9) e.popup = null; }
       const idle = e.def.idle || { swayX: 7, swayY: 2, period: 2.8 }; const ph = this.t * Math.PI * 2 / (idle.period || 2.8) + i * 1.9;   // 기본 모션: 좌우로 천천히(사용자: 정적인 느낌 없애기), 살짝 위아래

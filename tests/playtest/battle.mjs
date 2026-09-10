@@ -26,7 +26,8 @@ const started = await until(async () => { const s = await st(); maxZoom = Math.m
 check('toolbox scene leads into a battle (game.battle set)', !!started, '');
 check('battle entry: close-up zoom at screen center (zoom > 1.5)', maxZoom > 1.5, 'maxZoom=' + maxZoom);
 check('battle entry: sucked into a black vortex (vortex seen, fade color black) — no white flash', sawVortex && started && started.fadeColor === '0,0,0', JSON.stringify({ sawVortex, color: started?.fadeColor }));
-check('battle bgm starts immediately when the battle object appears (no load delay)', started && started.bgm === 'rude_buster', started?.bgm);
+const tB = Date.now(); let bgmDelay = null; while (Date.now() - tB < 2500) { if (await page.evaluate(() => game.sound.bgmName === 'rude_buster')) { bgmDelay = Date.now() - tB; break; } await page.waitForTimeout(20); }
+check('battle bgm: a short silence (~0.2s) after the battle appears, then Rude Buster (user 2026-09-10)', typeof bgmDelay === 'number' && bgmDelay >= 60 && bgmDelay <= 900, String(bgmDelay));
 await page.evaluate(() => { game.battle.rnd = () => 0.5; });   // 결정적: 탄막이 소울(가운데)을 정확히 노린다
 let b = await until(async () => { const q = await bt(); return q && q.state === 'intro' && q.members.every((m) => m.loaded) && q.enemies.every((e) => e.loaded) ? q : null; }, 15000);
 { const ty = []; for (let i = 0; i < 6; i++) { ty.push(await page.evaluate(() => [game.battle.shown, game.battle.text.length])); await page.waitForTimeout(60); }

@@ -18,6 +18,7 @@ model: opus
 - 팔레트는 `room_set.py` 상단 상수 재사용(벽지 WALL, 장판 FLOOR, 나무 WOOD, 시트/이불, 플라스틱, 유리).
 
 ## 절차
+0. 청록숲은 `tools/art/teal_set.py`, 보라맵은 `void_set.py`/`void10_set.py`. 움직이는 소품은 프레임을 가로로 이어 붙인 띠(`Canvas.blit`)로 저장하고 맵 JSON 에 `anim:{cols,fps}`.
 1. 함수 작성 → `main()` 의 `tiles`/`props` dict 에 등록 → `python3 tools/art/room_set.py /tmp/preview.png` 로 미리보기 PNG 를 만들어 **Read 로 확인**한다(반드시 눈으로 본다).
 2. 새 타일이면 `src/world/tiles.js` 에 `registerTile('글자', { name, solid, draw: flat('#색') })` 추가(폴백 색). 이름 = PNG 파일명.
 3. 맵에 배치는 `/map`.

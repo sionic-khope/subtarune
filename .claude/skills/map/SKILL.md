@@ -12,6 +12,8 @@ model: opus
 먼저 `docs/STATE.md` 를 읽는다. 맵은 데이터(`assets/maps/<id>.json`)다. 에디터(`editor.html`)는 같은 JSON 을 GUI 로 만드는 도구일 뿐이므로, 에이전트는 JSON 을 직접 쓴다.
 
 ## 표현 규칙 (반드시)
+- 맵은 **생성기**(`tools/maps/<id>.py`)로 뽑고 `--check` 로 JSON 과 동기화한다(`tools/dev/check.sh` 가 검사). 컷신 좌표가 맵에 묶여 있으니(`cutscenes.test.mjs`) 레이아웃을 바꾸면 컷신도 `rel:` 로 다시 맞춘다.
+- 소품 애니는 가로 프레임 띠 + `anim:{cols,fps}`(폭포). 계단식 물길은 뗏목 `route` 경유점(폭포 8px 앞 → 뒤 48px 한 단 위)·`checkpoints {x,y}`·`clear/sweep` 폭포로.
 - 맵 크기 ≥ 480×360. 타일맵은 사방을 벽 타일(`p/q/e/#`)로 닫는다 → 검은 띠/뚫림 금지. `node --test 'tests/unit/*.test.mjs'` 가 검사한다.
 - 소품 위에 서는 연출(침대 등)은 엔진이 자동으로 앞에 그리지만, 스크린샷으로 전환 순간을 확인한다.
 

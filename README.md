@@ -1,11 +1,17 @@
 # SUBTARUNE
 
-델타룬 스타일 탑다운 도트 RPG 프로토타입. **웹에서 바로 실행**, 빌드 없음, 외부 에셋 0개.
+델타룬 스타일 탑다운 도트 스토리 어드벤처. **웹에서 바로 실행**, 빌드 없음(ES 모듈), 맵·아트는 파이썬 생성기로 뽑고 오디오는 mp3(출처 `design/audio/references.md`).
 
 ```bash
-python3 serve.py 8000            # 캐시 끈 개발 서버 (아무 정적 서버든 됨)
-# → http://localhost:8000
+./dev.sh                          # 캐시 끈 개발 서버 재기동 → http://localhost:8000  (작업 트리를 그대로 서빙 — 아래 '작업 규율')
+tools/dev/check.sh                # 문법 + 단위 테스트 + 맵 생성기 동기화 (커밋 전, pre-commit 이 --quick 을 강제)
+tests/playtest/run.sh battle teal5 # 헤드리스 플레이테스트(Playwright, 스크린샷 tests/playtest/shots/)
 ```
+**QA 바로가기**: 타이틀에서 **Q** 또는 `?qa=<id>` (목록 `src/core/story.js QA_POINTS`). 상태는 `docs/STATE.md`, 규칙은 `CLAUDE.md`.
+
+### 작업 규율 (개발자·에이전트 공통)
+- JS 수정은 `tools/dev/patch.py src/a.js <<'PY' … PY` — 임시 사본에 적용해 `node --check` 를 통과한 것만 원본으로 옮긴다(서버가 작업 트리를 서빙하므로 깨진 중간 상태 금지).
+- 한 줄 문장 끝 `//` 주석 금지. 컷신 좌표는 `rel:` 기준. 커밋 전 `tools/dev/check.sh`.
 
 | 조작 | 키 |
 |---|---|
@@ -22,20 +28,25 @@ index.html            캔버스 (오디오는 첫 키 입력에서 언락)
 src/ui/title.js       타이틀 화면: 블록 로고 "subtArune"(GLYPHS), C로 시작
 src/main.js           Game: 상태(field/dialogue/menu), 맵 전환 페이드, 메뉴, 루프
 src/core/input.js     키보드+게임패드 → 액션(up/down/left/right/confirm/cancel/menu)
-src/core/audio.js     WebAudio 합성. VOICES(화자 음색), 글자당 0.1초 블립, SFX
+src/core/audio.js     mp3 브금/효과음/목소리 로더(preloadBgm·playBgm·sfx·blip) + WebAudio 합성 폴백
 src/core/gfx.js       문자열 도트아트 → 캔버스, 박스/하트, PNG 오버라이드 로더
 src/ui/cutscene.js    컷신 명령(move/face/camera/fade/shake/spawn/map/parallel) → /cutscene 스킬 참고
-src/data/cutscenes/   컷신 데이터 (opening.js, _template.js)
+src/data/cutscenes/   컷신 데이터 (opening.js … teal5_river.js, _template.js)
+src/battle/           턴제 전투(battle.js 상태 기계, bullets.js 탄막), 적 데이터 src/data/enemies.js, 아이템 src/data/items.js
+src/core/story.js     스토리 단계·QA 지점 / src/core/party.js 파티 정규화(걷는 순서 형섭→경섭→빠맨)
+tools/maps/*.py       맵 생성기 → assets/maps/*.json (--check 로 동기화 검사)  ·  tools/art/*_set.py 타일·소품 페인터
+tools/dev/            patch.py(안전 패치) · check.sh(한 번에 검사)
 src/ui/dialogue.js    TextBox(타자기·태그·페이지·초상화·선택지) + ScriptRunner(라벨/분기/플래그)
 src/world/tiles.js    타일 레지스트리 (registerTile)
 src/world/world.js    TileMap / Camera / Entity 종류 (registerEntity)
 src/data/art.js       도트 아트 원본 + 팔레트 (여길 고치면 그림이 바뀜)
-src/data/maps.js      맵: 이미지 맵(실제 배경 PNG + 사각형 충돌) / 타일 맵(문자열 그리드)
+src/data/maps.js      코드 맵(방·거실 이미지 맵). 나머지 맵은 assets/maps/*.json 이 부팅 때 덮어쓴다(index.json)
 src/data/scripts.js   대사 스크립트 (한글)
 src/data/locale/ko.js 시스템 UI 문자열
 assets/               PNG를 넣으면 자동 교체 (아래 규격)
 design/gdd/           기획 문서   ·  .claude/  게임 스튜디오 에이전트(49) + 스킬
-tests/                node:test 단위 테스트 + Playwright 스모크
+tests/unit            node:test — 맵 감사·소품 키·컷신↔맵 정합·아이템·적 문구·파티·QA 지점 …
+tests/playtest        Playwright 시나리오(run.sh 로 실행) — 맵마다 하나, 스크린샷을 눈으로 확인
 ```
 
 ## 콘텐츠 추가하는 법

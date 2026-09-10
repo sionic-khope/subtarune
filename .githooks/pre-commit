@@ -1,0 +1,3 @@
+#!/bin/bash
+# 커밋 전 문법 + 단위 테스트 (tools/dev/check.sh --quick). 통과 못 하면 커밋 거부 — 깨진 파일이 서버·리포에 올라가지 않게 (2026-09-10)
+exec "$(git rev-parse --show-toplevel)/tools/dev/check.sh" --quick

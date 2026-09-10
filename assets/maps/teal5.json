@@ -204,7 +204,11 @@
    "solid": true,
    "obstacle": true,
    "clear": 72,
-   "sweep": true
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 8
+   }
   },
   {
    "type": "prop",
@@ -220,7 +224,11 @@
    "solid": true,
    "obstacle": true,
    "clear": 72,
-   "sweep": true
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 8
+   }
   },
   {
    "type": "prop",
@@ -236,7 +244,11 @@
    "solid": true,
    "obstacle": true,
    "clear": 72,
-   "sweep": true
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 8
+   }
   }
  ]
 }

@@ -183,8 +183,8 @@ def prop_statue():
     for i in range(3): c.px(12 + i, 22 + i, W0[0])
     return c
 
-def prop_waterfall(tiers=2):
-    """이단폭포(계단식) 40x168: 위 단 물길에서 아래 단 물길로 두 번 떨어지는 낙차(32px 턱 2개) + 아래엔 물보라가 퍼지는 아래 단 물(96px).
+def prop_waterfall_frame(phase=0):
+    """이단폭포(계단식) 한 프레임 40x168 (phase = 물줄기 위상, 흐르는 애니): 위 단 물길에서 아래 단 물길로 두 번 떨어지는 낙차(32px 턱 2개) + 아래엔 물보라가 퍼지는 아래 단 물(96px).
     뗏목 한 번 점프로 못 넘고(clear 72) 협동 2단 점프로 올라간다. 닿으면 쓸려 내려간다. (tiers=1 은 안 씀 — 한 칸 벽은 기존 water_wall)"""
     W_, H_ = 40, 64 + 96 + 8
     c = Canvas(W_, H_)
@@ -198,16 +198,22 @@ def prop_waterfall(tiers=2):
             col = WHITE if i % 5 == 1 else LIGHT if i % 5 == 3 else None
             if col is None: continue
             for y in range(y0, y0 + 30):
-                if (y + i * 3) % 6 < 4: c.px(i, y, col)
+                if (y + i * 3 + phase * 2) % 6 < 4: c.px(i, y, col)
         c.hline(0, y0 + 30, W_, LEDGE); c.hline(0, y0 + 31, W_, DEEP)       # 턱
-        for i in range(0, W_, 3): c.px(i + (t % 2), y0 + 29, FOAM)           # 턱 위 거품
+        for i in range(0, W_, 3): c.px((i + t + phase) % W_, y0 + 29, FOAM)   # 턱 위 거품(프레임마다 흐름)
     yb = 4 + 64
     for y in range(yb, H_):                                                   # 아래 단 물: 떨어진 물이 퍼지는 물보라(아래로 갈수록 성김)
         step = 3 + (y - yb) // 12
         for x in range((y * 7) % step, W_, step):
-            if (x * 13 + y * 7) % 5 < (3 if y < yb + 24 else 1): c.px(x, y, FOAM if (x + y) % 2 else LIGHT)
+            if (x * 13 + (y + phase * 3) * 7) % 5 < (3 if y < yb + 24 else 1): c.px(x, y, FOAM if (x + y + phase) % 2 else LIGHT)
     c.vline(0, 0, H_, DEEP); c.vline(W_ - 1, 0, H_, DEEP)
     return c
+
+def prop_waterfall():
+    """이단폭포 애니 띠 3프레임(가로 120x168) — Prop anim {cols:3, fps:8} 로 계속 흐른다 (사용자 2026-09-10 "폭포는 계속 물이 흐르는 느낌")"""
+    strip = Canvas(120, 168)
+    for f in range(3): strip.blit(prop_waterfall_frame(f), f * 40, 0)
+    return strip
 
 if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
