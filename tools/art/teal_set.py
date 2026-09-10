@@ -86,6 +86,53 @@ def prop_spitter():
                 if c.a[y, ox + x, 3] == 0 and any(0 <= x + dx < 20 and 0 <= y + dy < 48 and c.a[y + dy, ox + x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.px(ox + x, y, O)
     return c
 
+def tile_leaves():
+    """낙엽 깔린 땅: 잔풀 땅 위에 연한 잎 조각(밝은 청록·크림색) 6~7개"""
+    c = tile_ground(0)
+    LF = [hexc('#8fd6c9'), hexc('#e8f0d8'), hexc('#5fb8a8')]
+    for i, (x, y) in enumerate([(4, 6), (14, 3), (24, 9), (8, 19), (20, 22), (27, 26), (2, 27)]):
+        col = LF[i % 3]
+        c.px(x, y, col); c.px(x + 1, y, col); c.px(x + 2, y + 1, col); c.px(x + 1, y + 1, hexc('#3b8f84'))
+    return c
+
+def prop_tree_forest():
+    """울창한 숲 나무 56x84: 뾰족한 잎 층 3단(어둠→밝음) + 짧은 줄기. 청록숲 3 에 여러 그루 겹쳐 심는다."""
+    L = [hexc('#0b3330'), hexc('#124d48'), hexc('#1c6e66'), hexc('#2c9a8f')]; T = [hexc('#2a1e1a'), hexc('#4a3529')]
+    c = Canvas(56, 84)
+    c.rect(24, 66, 8, 18, T[1]); c.vline(25, 66, 18, T[0]); c.outline(24, 66, 8, 18, OUT)
+    for (cy, r, li) in ((58, 24, 0), (44, 22, 1), (30, 18, 2), (18, 13, 3)):           # 잎 층: 아래가 넓고 어둡다
+        for y in range(84):
+            for x in range(56):
+                dx, dy = (x - 28) / r, (y - cy) / (r * 0.7)
+                if dx * dx + dy * dy <= 1: c.px(x, y, L[li])
+    for (x, y) in ((10, 60), (44, 58), (18, 46), (36, 44), (24, 30), (30, 16), (22, 18), (40, 32)): c.px(x, y, hexc('#7fe0d2'))   # 반짝
+    outline_silhouette(c)
+    return c
+
+def prop_bush():
+    """풀숲 56x40: 둥근 덤불 덩어리 3개, 어두운 청록 + 밝은 잎 점. 미니언이 여기서 튀어나온다."""
+    B = [hexc('#0f3a38'), hexc('#175550'), hexc('#2a8a82')]
+    c = Canvas(56, 40)
+    for (cx, cy, r, li) in ((16, 26, 15, 0), (40, 25, 16, 0), (28, 18, 16, 1), (12, 20, 10, 1), (44, 16, 10, 1), (28, 12, 9, 2)):
+        for y in range(40):
+            for x in range(56):
+                if ((x - cx) / r) ** 2 + ((y - cy) / (r * 0.8)) ** 2 <= 1: c.px(x, y, B[li])
+    for (x, y) in ((8, 22), (20, 14), (34, 10), (46, 20), (26, 30), (40, 30), (14, 32)): c.px(x, y, hexc('#7fe0d2'))
+    outline_silhouette(c)
+    return c
+
+def prop_toolbox():
+    """공구상자 36x26: 빨간 철제 상자, 은색 걸쇠·손잡이, 살짝 열린 뚜껑 틈"""
+    R = hexc('#b8332f'); RL = hexc('#e0554e'); RD = hexc('#7a1f1c'); S = hexc('#c9d3d3'); SD = hexc('#6f7a7a')
+    c = Canvas(36, 26)
+    c.rrect_outlined(2, 10, 32, 16, R, OUT, 2); c.hline(4, 12, 28, RL); c.rect(4, 22, 28, 2, RD)
+    c.rrect_outlined(4, 4, 28, 8, R, OUT, 2); c.hline(6, 6, 24, RL)                  # 뚜껑
+    c.hline(4, 11, 28, hexc('#2a0a0a'))                                             # 뚜껑 틈(살짝 열림)
+    c.rrect_outlined(13, 0, 10, 5, S, OUT, 2); c.px(15, 2, SD); c.px(20, 2, SD)      # 손잡이
+    c.rect(16, 12, 4, 5, S); c.outline(16, 12, 4, 5, OUT); c.px(17, 14, SD)         # 걸쇠
+    c.rect(6, 15, 2, 6, SD); c.rect(28, 15, 2, 6, SD)                                # 모서리 쇠
+    return c
+
 def prop_statue():
     """쥰희를 닮은 나무 동상 44x60: 돌 받침(아래 12px) + 나무 조각(둥근 머리·세모 귀·큰 코·땅딸막한 몸), 나뭇결·금."""
     W0 = [hexc('#3a2314'), hexc('#5a3a22'), hexc('#7a4f2e'), hexc('#a0703f')]   # 어둠→밝음
@@ -116,6 +163,7 @@ def prop_statue():
 if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
     prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
+    tile_leaves().save('assets/tiles/leaves_teal.png'); prop_tree_forest().save('assets/props/tree_forest.png'); prop_bush().save('assets/props/bush_teal.png'); prop_toolbox().save('assets/props/toolbox.png')
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     print('teal set ok (+banana, tree_teal)')

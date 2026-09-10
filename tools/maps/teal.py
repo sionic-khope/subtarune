@@ -3,7 +3,7 @@
 teal1: 오른쪽으로 쭉 가는 길 (64×12), 청록 땅·검은 수풀 배경, 브금 Weird Birds.   void11 오른쪽 출구 → teal1 → teal2
 teal2: 오른쪽 길이 쥰희 닮은 나무 동상 벽(출구보다 3칸 왼쪽)으로 막혀 있고, 그 바로 왼쪽에서 위로 가는 길이 시작(44×26). 동상들이 여기저기 깔려 있다. 브금 Field of Hopes and Dreams.
        가운데는 넓은 광장(13~28열·12~23행, 사용자 "가운데 중앙은 좀 더 넓게") — 이벤트 나무(`tree_teal.png`, 똑똑 연출) + 바나나 2개(포타슘 이벤트).
-teal3(위, 다음 브리핑) / teal_east(막힌 오른쪽 너머) 는 빈 착지.
+teal3: 아래에서 위로 오르는 길 → 울창한 숲 공터(숲 나무 여러 그루·낙엽·오른쪽 풀숲) → 가운데 공구상자(컷신: CS 미니언 등장 → 전투 시작 연출). teal_east(막힌 오른쪽 너머) 는 빈 착지.
 실행: /usr/bin/python3 tools/maps/teal.py  (--check)
 """
 import io, json, sys
@@ -12,7 +12,7 @@ def g(r, c, grass=False): return 'w' if grass else ('t' if (r + c) % 2 == 0 else
 def cliffs(rows, W, H):
     for r in range(1, H):
         for c in range(W):
-            if rows[r][c] == ' ' and rows[r - 1][c] in 'tuw': rows[r][c] = 'v'
+            if rows[r][c] == ' ' and rows[r - 1][c] in 'tuwn': rows[r][c] = 'v'
 def grass_at(r, c): return (r * 7 + c * 13) % 11 == 0     # 잔풀 땅을 드문드문
 STATUES = cycle(f'assets/props/statue_junhee_{pose}.png' for pose in
                 ('arms_crossed', 'laugh', 'gesture', 'arms_raised', 'thinking', 'look_back'))
@@ -85,8 +85,38 @@ def placeholder(id_, door):
     return {'id': id_, 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'rows': [''.join(r) for r in rows],
             'spawns': {'from_bottom': {'x': 8 * 32 + 4, 'y': 6 * 32 + 16, 'facing': 'up'}, 'from_left': {'x': 60, 'y': 6 * 32 + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 6 * 32 + 8}},
             'entities': [door]}
-m3 = placeholder('teal3', {'type': 'door', 'x': 6 * 32, 'y': 8 * 32 - 8, 'w': 160, 'h': 8, 'to': 'teal2', 'spawn': 'from_top', 'sfx': False})
-m3['rows'] = [r if i < 8 else r for i, r in enumerate(m3['rows'])]
+# ── teal3: 위로 오르는 길 → 숲 공터 ──
+W3, H3 = 34, 30
+CL0, CL1, CR0, CR1 = 6, 27, 8, 21          # 공터 열 6~27, 행 8~21
+UP0, UP1 = 16, 18                          # 아래 길 3열(행 22~28)
+rows = [[' '] * W3 for _ in range(H3)]
+leaf_at = lambda r, c: (r * 5 + c * 11) % 9 == 0
+for r in range(CR0, CR1 + 1):
+    for c in range(CL0, CL1 + 1): rows[r][c] = 'n' if leaf_at(r, c) else g(r, c, grass_at(r, c))
+for r in range(CR1 + 1, H3 - 1):
+    for c in range(UP0, UP1 + 1): rows[r][c] = g(r, c, grass_at(r, c))
+cliffs(rows, W3, H3)
+BOX_X, BOX_Y = 16 * 32 + 8, 14 * 32 + 8    # 공구상자 히트박스(32×16), 그림 36×26
+def ftree(id_, x, y):   # 숲 나무 56×84, 줄기 밑동만 막힘(24×12)
+    return {'type': 'prop', 'id': id_, 'image': 'assets/props/tree_forest.png', 'x': x + 16, 'y': y + 72, 'w': 24, 'h': 12, 'ix': x, 'iy': y, 'solid': True}
+def bush(id_, x, y):    # 풀숲 56×40, 아래 절반 막힘
+    return {'type': 'prop', 'id': id_, 'image': 'assets/props/bush_teal.png', 'x': x + 4, 'y': y + 22, 'w': 48, 'h': 18, 'ix': x, 'iy': y, 'solid': True}
+ents3 = [
+    {'type': 'door', 'x': UP0 * 32, 'y': (H3 - 1) * 32 - 8, 'w': 96, 'h': 8, 'to': 'teal2', 'spawn': 'from_top', 'sfx': False},
+    {'type': 'prop', 'id': 'toolbox', 'image': 'assets/props/toolbox.png', 'x': BOX_X, 'y': BOX_Y, 'w': 32, 'h': 16, 'ix': BOX_X - 2, 'iy': BOX_Y + 16 - 26, 'solid': True, 'script': 'teal3_toolbox'},
+]
+# 숲 나무: 공터 위쪽 두 줄(빽빽이), 양옆 세로줄, 아래 모서리
+tx = [(c, 6, 240) for c in range(CL0 - 1, CL1 + 1, 2)] + [(c, 7, 262) for c in range(CL0, CL1 + 1, 3)]
+tx += [(CL0 - 1, r, None) for r in range(9, CR1, 2)] + [(CL1 + 1, r, None) for r in range(9, 12, 2)] + [(CL1 + 1, r, None) for r in range(17, CR1, 2)]
+tx += [(c, CR1 + 1, None) for c in (CL0, CL0 + 2, CL0 + 4, CL0 + 6, CL0 + 8, CL1 - 8, CL1 - 6, CL1 - 4, CL1 - 2, CL1)]
+for i, (c, r, yy) in enumerate(tx):
+    ents3.append(ftree(f'ftree{i + 1}', c * 32 - 12 + ((i * 7) % 3) * 4, (yy if yy is not None else r * 32 - 40)))
+for j, (c, r) in enumerate([(CL1, 13), (CL1, 15), (CL1 - 1, 12), (CL1 - 1, 16)]):   # 오른쪽 풀숲(미니언이 튀어나오는 곳)
+    ents3.append(bush(f'bush{j + 1}', c * 32 - 12, r * 32 - 10))
+m3 = {'id': 'teal3', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'rows': [''.join(r) for r in rows],
+      'spawns': {'from_bottom': {'x': 17 * 32 + 4, 'y': (H3 - 3) * 32 + 8, 'facing': 'up'}, 'start': {'x': 17 * 32 + 4, 'y': (H3 - 3) * 32 + 8, 'facing': 'up'}, 'box': {'x': BOX_X, 'y': BOX_Y + 40, 'facing': 'up'}},
+      'meta': {'box': [BOX_X, BOX_Y], 'clearing': [CL0, CL1, CR0, CR1]},
+      'entities': ents3}
 me = placeholder('teal_east', {'type': 'door', 'x': 32, 'y': 4 * 32, 'w': 8, 'h': 128, 'to': 'teal2', 'spawn': 'landing_east', 'sfx': False})
 maps = {'teal1': m1, 'teal2': m2, 'teal3': m3, 'teal_east': me}
 if '--check' in sys.argv:
