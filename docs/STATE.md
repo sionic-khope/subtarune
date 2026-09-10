@@ -41,6 +41,8 @@
 - 컷신 중 맵이 새면 안 됨 → `{curtain:'black'|'white'|null}` 로 막는다. `{bgm:null, fadeOut:n}` (fade 아님).
 - **UI 표현 규칙(재발 금지)**: 맵은 화면(480×360) 이상 크기 + 타일맵은 사방 벽으로 닫는다(검은 띠·뚫림 금지, `tests/unit/maps.test.mjs` 가 검사). 플레이어가 소품 히트박스에 겹쳐 있으면(침대 위 등) 항상 소품 앞에 그린다. 컷신 포즈 전환 직후 캐릭터가 가려지면 안 된다. 스크린샷으로 **네 모서리와 상태 전환 순간**을 확인한 뒤 완료라고 한다.
 - OMC 하네스 유지: `.claude/settings.json` 에 statusLine/hooks 넣지 않는다.
+- **맵 디자인 지침(사용자 피드백 회고)** 은 `.claude/skills/map/SKILL.md` 맨 위 "사용자가 원하는 맵 디자인" 8줄 — 새 맵은 먼저 이걸 대조한다.
+- **재사용 원칙**: 연출/기믹은 한 번 쓰고 버리지 않는다 — 엔티티(`rockfall`·`raft`·`door interact`·`follower`)·컷신 노드(`bubble`·`join`·`tiles`)·헬퍼(`rapid`·`HS`)·생성기(`tools/maps/*.py`)로 만들어 두 번째 사용이 한 줄이 되게 한다. 컷신 파일 안에만 있는 로컬 헬퍼는 두 번째 사용 전에 `helpers.js` 로 올린다.
 - **2026-09-10 피드백 묶음(포스트모텀 `docs/postmortems/2026-09-10-rockfall-door-feedback.md`)**:
   - **그림이 있는 문은 C 로만** 연다(`door` 엔티티 `interact:true`, 히트박스는 문 그림보다 넓게 ≈70px). 밟아서 열리는 건 그림 없는 가장자리 출구뿐. 잠긴 문은 합류 전에도 C 누르면 "잠겨 있다" 가 떠야 한다.
   - **위험물의 피격 영역 = 보이는 그대로**. 바위가 실제로 지나가는 자리에서만 맞는다(보이지 않는 넓은 히트박스 금지). 맞으면 순간이동·벽 튕김이 아니라 **슬라이드**(`Player.knock`).
@@ -87,7 +89,7 @@
 - `src/world/world.js Rockfall` (`type:'rockfall'`): `{ "type":"rockfall","image":"assets/props/rock.png","x":<레인 중심 x>,"ground":<바위 아래쪽 y — 길 맨 아랫줄>,"period":2.0,"offset":0,"warn":0.8,"fall":0.4,"rest":0.45 }`. 주기: idle → warn(스포트라이트만, `drawOverlay` 로 어두움 위에) → fall(위 -48 에서 ground 까지 가속, 길 전체를 지나감) → rest(놓였다 페이드) → idle. **피격은 `rockRect`(실제 바위 사각형)와 겹칠 때만**(fall 전체 + rest 앞 절반). 소리 없음. 대사/탈것 중엔 안 맞음.
 - 패턴은 `offset` 으로: 3개는 0/0.67/1.33(순차), 6개·9개는 같은 offset 을 3개씩 공유(2·3개가 한 박자). 다른 리듬이 필요하면 `period/offset` 만 바꾼다.
 - `game.hurtPlayer(src, {silent, dir, push})`: 붉은 섬광(`hurt`) + 흔들림 + (silent 아니면 thud) + **슬라이드**(`player.knock = {vx,t,dur}`, 0.3s 감속, ≈36px, 동료도 같은 knock) + 무적 0.9s. HP 개념 없음(스토리 게임) — 필요해지면 여기서 확장.
-- 맵 만들 때: 가로 길(3줄), 입구에서 8타일 뒤 첫 레인, 레인 5타일 간격, 마지막 뒤 6타일, 입구는 왼쪽 가장자리 또는 위(세로 길), 출구는 오른쪽 끝에서 아래(세로 길 끝 `door` 띠) 또는 오른쪽 가장자리. 생성 스크립트 형태는 이번 배치의 `build()`(레인 x = 열*32+16, ground 250) 를 따른다. `tests/playtest/rockfall.mjs` 가 3맵 통과·피격·문 열쇠를 검사.
+- 맵 만들 때: 가로 길(3줄), 입구에서 8타일 뒤 첫 레인, 레인 5타일 간격, 마지막 뒤 6타일, 입구는 왼쪽 가장자리 또는 위(세로 길), 출구는 오른쪽 끝에서 아래(세로 길 끝 `door` 띠) 또는 오른쪽 가장자리. **생성기 `tools/maps/rockfall_map.py`** 로 뽑는다(void5/6/7 은 `--check` 로 동일 재현됨). 손으로 쓰지 않는다. `tests/playtest/rockfall.mjs` 가 3맵 통과·피격·문 열쇠를 검사.
 
 ## 파티(동료) 시스템 (2026-09-10)
 - `game.party = ['ppaman', …]`(캐릭터 id 순서). 저장/이어하기에 포함. 새 게임·타이틀에서 초기화. QA 지점 `party:[…]` 로 구성 가능(`?qa=party`).
@@ -96,7 +98,7 @@
 - **파티 상태 UI**: V 메뉴 → `파티` — 리더(보라맵부턴 '요플래')와 동료들의 흰검 초상화·이름·역할·한 줄 상태(전투 없음 → HP 대신 상태). 표시명/한 줄은 `characters.js` 의 `partyName/partyDesc`. 메뉴 순서: 아이템·파티·설정·닫기.
 - 동료는 말 걸 수 없고(canInteract false), 컷신에서 id 로 `move/face` 가능.
 - **`...` 말풍선(재사용)** `src/ui/bubble.js`: 컷신 `{ bubble:'player'|id, dots:3, gap:0.4, hold:0.5 }` — 대화창 없이 머리 위 흰 풍선(36×22, 검은 1px 테두리, 아래 꼬리)에 **4px 둥근 점**이 하나씩 짧은 간격으로 찍히고 사라진 뒤 다음 노드(2026-09-10: 점 6px 네모 → 4px 둥글게, 풍선 18 → 22 높이). 브리핑의 ". (딜레이) . (딜레이) . 말풍선" 은 이걸로.
-- 개그 의성어 상자(`void4_ppaman.js BOOM` 30개)는 `FAST(text,i,n)` 으로 **가속**(auto 0.34→0.05s, speed 3→9). 새 표현 추가는 배열에 넣기만.
+- 개그 의성어 상자(`void4_ppaman.js BOOM` 30개)는 공용 헬퍼 `rapid(texts, P)`(`src/data/cutscenes/helpers.js`)로 **가속**(auto 0.34→0.05s, speed 3→9). 다른 컷신도 같은 한 줄. 새 표현 추가는 배열에 넣기만.
 - 검증: `tests/playtest/party.mjs`(인사·3분기·개그 30상자 가속·말풍선·루프·가입·따라걷기·방향전환·메뉴·저장/이어하기·맵전환 재정렬·뗏목 동승·QA 25개).
 
 ## 맵 연출 옵션 (2026-09-10 추가)

@@ -51,7 +51,7 @@ model: opus
 | `# 오류창/시스템 메시지 (버튼)` | `{dialog:{…}}` → 대사 → `{dialog:'press'}` → `{dialog:null}` |
 | `# 화면에 소용돌이/이펙트가 커짐` | `{vortex:{at,size,grow}}` 를 대사 사이에 단계적으로 |
 | `# . (딜레이) . (딜레이) . 말풍선` | `{ bubble:'player' }` (dots/gap/hold 로 조절) |
-| `# 같은 대사 여러 개가 ㅈㄴ 빠르게 넘어감` | 배열 + `FAST(text, i, n)` 로 **갈수록 빨라지게**(auto 0.34→0.05, speed 3→9) (예 `void4_ppaman.js` BOOM 30개). 일정 속도로 두지 않는다 |
+| `# 같은 대사 여러 개가 ㅈㄴ 빠르게 넘어감` | `import { rapid } from './helpers.js'` → `...rapid(['펑','쾅',…], P)` — **갈수록 빨라짐**(auto 0.34→0.05, speed 3→9, 옵션으로 조절). 컷신 안에서 직접 auto 를 손으로 박지 않는다 (예 `void4_ppaman.js` BOOM) |
 | `# 질문 골라서 답 듣고 '더 물어볼거?' 반복` | 선택지 → 각 답 끝에 `{goto:'more'}` → `more` 라벨의 선택지(같은 옵션) → 종료 옵션만 빠져나감 (예 `void4_ppaman.js`) |
 | `# X가 동료가 되었다` | 나레이션 줄 + `{ join:'id' }` + `{ set:{id_joined:true} }`, 맵 NPC 에 `unless:'id_joined'` |
 | `# X가 앞장서고 주인공이 따라감` | `{move:'<동료id>', px, run}` 먼저, 이어서 `{parallel:[{move:'<동료id>'…},{move:'player', px:<동료의 이전 지점>}]}` 를 구간마다 반복, 끝에 `{regroup:true}` (예 `void4_key.js`) |

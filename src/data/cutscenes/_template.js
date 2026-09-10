@@ -4,6 +4,7 @@
 // 트리거 방법: 맵 entities 에 { type:'trigger', once:true, flag:'my_scene_seen', script:'my_scene' }
 //              또는 NPC script:'my_scene', 또는 코드에서 game.runScript('my_scene')
 // 노드 레퍼런스: src/ui/cutscene.js 상단 주석 / .claude/skills/cutscene/SKILL.md
+// 공용 헬퍼: ./helpers.js (rapid — 갈수록 빨라지는 연속 상자). 형섭 대사는 scripts.js 의 HS().
 // ─────────────────────────────────────────────────────────────
 const N = (text, extra = {}) => ({ style: 'narration', voice: 'none', speed: 0.6, text, ...extra });
 

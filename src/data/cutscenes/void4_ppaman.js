@@ -4,13 +4,14 @@
 //   1번 답 중간에 "퍼엉 퍼엉 팍 우르르 쾅쾅" 식 의성어 30개가 갈수록 빨라지며 넘어가는 개그 연출(auto 0.34s→0.05s, 목소리 그대로).
 //   가입 후 다시 말 걸면 짧은 한마디.
 // ─────────────────────────────────────────────────────────────
+import { rapid } from './helpers.js';
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 // 개그 연출: 의성어 상자가 갈수록 빨라진다 — 첫 상자 0.34s → 마지막 0.05s, 글자 속도도 3배 → 9배 (2026-09-10 사용자 요청 "갈수록 더 빨라지게")
 const BOOM = [
   '펑', '퍼엉', '팍', '우르르', '쾅쾅', '퍼버벙', '펑펑', '콰광', '두두두', '펑!', '퍼엉 퍼엉', '팍팍', '우르르 쾅', '뻥', '펑펑펑',
   '콰과광', '쾅', '퍼벙', '펑 퍼벙 펑', '팡!', '우르르르', '쾅!', '펑 쾅', '콰르르', '퍼펑', '우르르 쾅쾅', '펑펑펑펑', '콰앙', '쾅쾅쾅', '펑!!',
 ];
-const FAST = (text, i, n) => { const u = n > 1 ? i / (n - 1) : 1; return P(`* ${text}`, { auto: +(0.34 - 0.29 * u).toFixed(3), speed: Math.round(3 + 6 * u) }); };
+// 가속은 공용 헬퍼 rapid() (src/data/cutscenes/helpers.js) — 다른 컷신도 같은 한 줄로 쓴다
 
 export const void4_ppaman_talk = [
   { if: (f) => f.ppaman_joined, goto: 'joined' },
@@ -30,7 +31,7 @@ export const void4_ppaman_talk = [
   P('* 그 뒤로..{w=0.4} 갑자기 뭐가 막 막 퍼엉 퍼엉 팍 우르르 쾅쾅'),
   P('* 그런뒤에 제가 꺄아아아아아악 해보니까 흐음 우르르 펑펑'),
   P('* 펑 하고 다시 돌아와서'),
-  ...BOOM.map((t, i) => FAST(t, i, BOOM.length)),
+  ...rapid(BOOM, P),
   { bubble: 'player', dots: 3, gap: 0.4, hold: 0.5 },   // 형섭 머리 위에 . . . (대화창 없이)
   P('* 했어요.'),
   { text: '* ...{w=0.6} ㅂㅅ새끼같다', voice: 'narrator' },
