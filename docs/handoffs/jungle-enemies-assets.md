@@ -31,3 +31,7 @@ uv run tools/sprites/import_jungle_enemies.py
 ## 확인 범위
 
 6장 모두 직접 열어 정면/왼쪽 방향, 실루엣과 투명 배경을 확인한다. 가져오기 스크립트를 두 번 실행해 PNG·manifest 바이트가 같고, 출력 크기·알파·경계 여백·문서 경로가 계약에 맞는지 확인한다. 이 에셋 패키지에는 게임 실행 또는 실제 전투 연결 검증이 포함되지 않는다.
+
+## 연결 완료 (2026-09-11)
+- `src/data/enemies.js` razorbeak/wolf/toad 의 `image` → `jungle-raptor/-wolf/-gromp-battle-left.png`(pivot 32,60 scale 1.4), `src/data/characters.js` `still` → `jungle-*-front.png`. 청록숲6 정글 캠프(`assets/maps/teal6.json` enemy 엔티티)에서 사용.
+- 검증: `tests/playtest/enemy.mjs razorbeak|wolf|toad`, `tests/playtest/teal6.mjs`, `tests/unit/enemies.test.mjs`(이미지 존재).

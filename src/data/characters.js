@@ -13,9 +13,9 @@ export const CHARACTERS = {
   junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6, sideWalk: { feetY: 74, splitX: 46, stride: 2 } },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
   cs_red:    { name: '레드 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-red-front.png' },    // 청록숲3 미니언 — PR #7 정면 정지 1장(48×48), docs/handoffs/combat-assets.md
   cs_blue:   { name: '블루 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-blue-front.png' },
-  razorbeak: { name: '칼날부리', voice: 'cat', palette: 'ghost', still: 'assets/enemies/razorbeak-front.png' },   // 청록숲6 정글 몹 (tools/art/monsters_set.py)
-  wolf:      { name: '늑대', voice: 'cat', palette: 'ghost', still: 'assets/enemies/wolf-front.png' },
-  toad:      { name: '두꺼비', voice: 'cat', palette: 'ghost', still: 'assets/enemies/toad-front.png' },
+  razorbeak: { name: '칼날부리', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-raptor-front.png' },   // 청록숲6 정글 몹 — PR #10 이미지(docs/handoffs/jungle-enemies-assets.md)
+  wolf:      { name: '늑대', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-wolf-front.png' },
+  toad:      { name: '두꺼비', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-gromp-front.png' },
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },
   cat:       { name: '???',  voice: 'cat',     palette: 'cat' },
   guard:     { name: '경비병', voice: 'robot', palette: 'guard' },

@@ -35,10 +35,10 @@ export const ENEMIES = {
     lines: { appear: '* 블루 CS 가 나타났다!', idle: ['* 억빠맨이 CS 막타를 노리고 있는 듯 하다..{w=0.3} (신경쓸 필욘 없다)', '* 블루 CS 가 망치를 만지작거린다.{w=0.3} 어디에 쓰는지는 모른다.', '* 요플래는 아무 생각이 없다.', '* 블루 CS 가 콧노래를 흥얼거린다.{w=0.3} 음정이 하나도 안 맞는다.'], die: '* 블루 CS 가 쓰러졌다.',
       speak: ['이 망치 어디에 쓰는 거지?', '흥얼흥얼~ 음 음~', '블루가 진짜 최고인 거 알지?', '이 게임 브금 좋네요.', '잠깐만요 신발끈 좀..'] },
   },
-  // ── 청록숲6 정글 몹 (사용자 브리핑 2026-09-11: 칼날부리·늑대·두꺼비, 40/50/60원). 소지품·성격이 탄: 칼날 깃털 / 발톱·도약 / 방울·혀 ──
+  // ── 청록숲6 정글 몹 (사용자 브리핑 2026-09-11: 칼날부리·늑대·두꺼비, 40/50/60원). 이미지 = PR #10(docs/handoffs/jungle-enemies-assets.md, 필드 48×48 pivot 24,44 / 전투 64×64 pivot 32,60). 소지품·성격이 탄: 칼날 깃털 / 발톱·도약 / 방울·혀 ──
   razorbeak: {
     name: '칼날부리', hp: 6,
-    image: 'assets/enemies/razorbeak-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 40, idle: { swayX: 6, swayY: 3, period: 2.2 },
+    image: 'assets/enemies/jungle-raptor-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 40, idle: { swayX: 6, swayY: 3, period: 2.2 },
     patterns: [
       { type: 'sweep', duration: 4.4, rows: 3, gap: 30, speed: 95, r: 5, every: 1.0, shape: 'feather', kind: 'white', spin: 0 },   // 깃털 칼날이 줄지어 지나간다
       { type: 'aimed', duration: 4.0, every: 0.5, speed: 140, r: 5, shape: 'feather', kind: 'white', spin: 7 },                    // 부리 방향으로 날리는 깃털
@@ -49,7 +49,7 @@ export const ENEMIES = {
   },
   wolf: {
     name: '늑대', hp: 7,
-    image: 'assets/enemies/wolf-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 9, money: 50, idle: { swayX: 9, swayY: 1, period: 1.9 },
+    image: 'assets/enemies/jungle-wolf-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 9, money: 50, idle: { swayX: 9, swayY: 1, period: 1.9 },
     patterns: [
       { type: 'sweep', duration: 4.4, rows: 4, gap: 26, speed: 120, r: 5, every: 0.9, shape: 'claw', kind: 'white' },                // 발톱 할큄이 줄지어
       { type: 'slam', duration: 4.4, every: 1.0, warn: 0.45, speed: 280, from: 'left', shape: 'fang', kind: 'white' },               // 예고 뒤 옆에서 덮치는 도약
@@ -60,7 +60,7 @@ export const ENEMIES = {
   },
   toad: {
     name: '두꺼비', hp: 8,
-    image: 'assets/enemies/toad-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 10, money: 60, idle: { swayX: 3, swayY: 4, period: 3.4 },
+    image: 'assets/enemies/jungle-gromp-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 10, money: 60, idle: { swayX: 3, swayY: 4, period: 3.4 },
     patterns: [
       { type: 'bounce', duration: 4.6, count: 3, speed: 90, r: 8, shape: 'bubble', kind: 'blue' },                                   // 튕기는 큰 방울
       { type: 'slam', duration: 4.4, every: 1.1, warn: 0.5, speed: 240, from: 'bottom', shape: 'tongue', kind: 'red' },              // 예고 뒤 아래서 솟는 혀
