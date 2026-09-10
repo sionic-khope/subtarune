@@ -100,7 +100,7 @@
   {
    "type": "prop",
    "id": "statue_w1",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_arms_crossed.png",
    "x": 1248,
    "y": 608,
    "w": 32,
@@ -113,7 +113,7 @@
   {
    "type": "prop",
    "id": "statue_w2",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_laugh.png",
    "x": 1280,
    "y": 640,
    "w": 32,
@@ -126,7 +126,7 @@
   {
    "type": "prop",
    "id": "statue_w3",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_gesture.png",
    "x": 1248,
    "y": 672,
    "w": 32,
@@ -139,7 +139,7 @@
   {
    "type": "prop",
    "id": "statue_w4",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_arms_raised.png",
    "x": 1280,
    "y": 704,
    "w": 32,
@@ -152,7 +152,7 @@
   {
    "type": "prop",
    "id": "statue_w5",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_thinking.png",
    "x": 1248,
    "y": 736,
    "w": 32,
@@ -165,7 +165,7 @@
   {
    "type": "prop",
    "id": "statue_d1",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_look_back.png",
    "x": 160,
    "y": 624,
    "w": 32,
@@ -178,7 +178,7 @@
   {
    "type": "prop",
    "id": "statue_d2",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_arms_crossed.png",
    "x": 352,
    "y": 624,
    "w": 32,
@@ -191,7 +191,7 @@
   {
    "type": "prop",
    "id": "statue_d3",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_laugh.png",
    "x": 576,
    "y": 624,
    "w": 32,
@@ -204,7 +204,7 @@
   {
    "type": "prop",
    "id": "statue_d4",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_gesture.png",
    "x": 800,
    "y": 624,
    "w": 32,
@@ -217,7 +217,7 @@
   {
    "type": "prop",
    "id": "statue_d5",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_arms_raised.png",
    "x": 992,
    "y": 624,
    "w": 32,
@@ -230,7 +230,7 @@
   {
    "type": "prop",
    "id": "statue_d6",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_thinking.png",
    "x": 1120,
    "y": 208,
    "w": 32,
@@ -243,7 +243,7 @@
   {
    "type": "prop",
    "id": "statue_d7",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_look_back.png",
    "x": 1184,
    "y": 400,
    "w": 32,
@@ -256,7 +256,7 @@
   {
    "type": "prop",
    "id": "statue_d8",
-   "image": "assets/props/statue_junhee.png",
+   "image": "assets/props/statue_junhee_arms_crossed.png",
    "x": 1184,
    "y": 112,
    "w": 32,
