@@ -107,7 +107,7 @@ export function choiceMove(i, n, dir) {
 }
 
 /** 선택지 확정 잠금(초): 선택지가 다 뜬 뒤 이 시간 동안 C/X 가 안 먹는다 — 모든 선택지 공통 (2026-09-10 사용자 요청) */
-export const CHOICE_LOCK = 0.4;
+export const CHOICE_LOCK = 0.1;   // 선택지 확정 잠금(초) — 0.4 → 0.1 (사용자 2026-09-11: 너무 답답함)
 
 export class TextBox {
   constructor(sound, portraits) {

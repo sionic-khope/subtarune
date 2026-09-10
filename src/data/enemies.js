@@ -16,10 +16,10 @@ export const ENEMIES = {
   cs_red: {
     name: '레드 CS', hp: 6,
     image: 'assets/enemies/cs-red-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 30, idle: { swayX: 8, swayY: 2, period: 2.6 },
-    patterns: [
-      { type: 'rain', duration: 4.2, rate: 0.16, speed: 95, r: 4 },
-      { type: 'aimed', duration: 4.0, every: 0.55, speed: 120, r: 5 },
-      { type: 'sweep', duration: 4.4, rows: 3, gap: 34, speed: 80, r: 4 },
+    patterns: [                                                                    // 레드 = 방패 기사: 방패 벽 → 망치 내리찍기(예고선) → 방패 조준탄
+      { type: 'shield_wall', duration: 4.6, rows: 3, speed: 70, every: 1.3, kind: 'red' },
+      { type: 'hammer_slam', duration: 4.4, every: 1.1, warn: 0.55, speed: 250, kind: 'red' },
+      { type: 'aimed', duration: 4.0, every: 0.6, speed: 115, r: 6, shape: 'shield', kind: 'red', spin: 3 },
     ],
     lines: { appear: '* 레드 CS 가 나타났다!', idle: ['* 억빠맨이 CS 막타를 노리고 있는 듯 하다..{w=0.3} (신경쓸 필욘 없다)', '* 레드 CS 가 방패를 닦고 있다.{w=0.3} 왜인지 뿌듯해 보인다.', '* 레드 CS 가 이쪽을 노려본다.{w=0.3} 눈이 마주쳐서 좀 민망하다.', '* 경섭이 허허 하고 웃었다.{w=0.3} (별 뜻은 없다)'], die: '* 레드 CS 가 쓰러졌다.',
       speak: ['막타는 내 거다.', '방패 좀 닦고 때릴게요.', '어 잠깐 잠깐, 아직 준비 안 됐는데.', '허허 우리도 월급은 받아야지.', '이거 진짜 무거운데요..'] },   // 적 턴 말풍선(1인칭, 델타룬식) — 다른 적 언급 금지
@@ -27,12 +27,46 @@ export const ENEMIES = {
   cs_blue: {
     name: '블루 CS', hp: 6,
     image: 'assets/enemies/cs-blue-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 30, idle: { swayX: 8, swayY: 2, period: 3.1 },
-    patterns: [
-      { type: 'aimed', duration: 4.0, every: 0.55, speed: 120, r: 5 },
-      { type: 'bounce', duration: 4.5, count: 2, speed: 100, r: 7 },
-      { type: 'rain', duration: 4.2, rate: 0.16, speed: 95, r: 4 },
+    patterns: [                                                                    // 블루 = 망치 기사: 던지는 망치 포물선 → 망치 내리찍기(예고선) → 위에서 쏟아지는 작은 망치
+      { type: 'hammer_arc', duration: 4.4, every: 0.7, speed: 150, kind: 'blue' },
+      { type: 'hammer_slam', duration: 4.4, every: 1.0, warn: 0.5, speed: 260, kind: 'blue' },
+      { type: 'rain', duration: 4.2, rate: 0.3, speed: 110, r: 7, shape: 'hammer', kind: 'blue', spin: 6 },
     ],
     lines: { appear: '* 블루 CS 가 나타났다!', idle: ['* 억빠맨이 CS 막타를 노리고 있는 듯 하다..{w=0.3} (신경쓸 필욘 없다)', '* 블루 CS 가 망치를 만지작거린다.{w=0.3} 어디에 쓰는지는 모른다.', '* 요플래는 아무 생각이 없다.', '* 블루 CS 가 콧노래를 흥얼거린다.{w=0.3} 음정이 하나도 안 맞는다.'], die: '* 블루 CS 가 쓰러졌다.',
       speak: ['이 망치 어디에 쓰는 거지?', '흥얼흥얼~ 음 음~', '블루가 진짜 최고인 거 알지?', '이 게임 브금 좋네요.', '잠깐만요 신발끈 좀..'] },
+  },
+  // ── 청록숲6 정글 몹 (사용자 브리핑 2026-09-11: 칼날부리·늑대·두꺼비, 40/50/60원). 소지품·성격이 탄: 칼날 깃털 / 발톱·도약 / 방울·혀 ──
+  razorbeak: {
+    name: '칼날부리', hp: 6,
+    image: 'assets/enemies/razorbeak-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 40, idle: { swayX: 6, swayY: 3, period: 2.2 },
+    patterns: [
+      { type: 'sweep', duration: 4.4, rows: 3, gap: 30, speed: 95, r: 5, every: 1.0, shape: 'feather', kind: 'white', spin: 0 },   // 깃털 칼날이 줄지어 지나간다
+      { type: 'aimed', duration: 4.0, every: 0.5, speed: 140, r: 5, shape: 'feather', kind: 'white', spin: 7 },                    // 부리 방향으로 날리는 깃털
+      { type: 'rain', duration: 4.2, rate: 0.22, speed: 120, r: 5, shape: 'feather', kind: 'white', spin: 4 },
+    ],
+    lines: { appear: '* 칼날부리가 나타났다!', idle: ['* 칼날부리가 부리를 갈고 있다.{w=0.3} 소름 돋는 소리다.', '* 칼날부리가 고개를 갸웃한다.', '* 억빠맨은 새를 무서워하는 것 같다.', '* 요플래는 치킨이 먹고 싶어졌다.'], die: '* 칼날부리가 쓰러졌다.',
+      speak: ['꾸엑!', '부리 갈아 놨다.', '눈 감아라.', '깃털 값은 따로 받는다.'] },
+  },
+  wolf: {
+    name: '늑대', hp: 7,
+    image: 'assets/enemies/wolf-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 9, money: 50, idle: { swayX: 9, swayY: 1, period: 1.9 },
+    patterns: [
+      { type: 'sweep', duration: 4.4, rows: 4, gap: 26, speed: 120, r: 5, every: 0.9, shape: 'claw', kind: 'white' },                // 발톱 할큄이 줄지어
+      { type: 'slam', duration: 4.4, every: 1.0, warn: 0.45, speed: 280, from: 'left', shape: 'fang', kind: 'white' },               // 예고 뒤 옆에서 덮치는 도약
+      { type: 'bounce', duration: 4.5, count: 3, speed: 110, r: 6, shape: 'claw', kind: 'white', spin: 5 },
+    ],
+    lines: { appear: '* 늑대가 나타났다!', idle: ['* 늑대가 으르렁거린다.', '* 늑대가 꼬리를 흔든다.{w=0.3} 반가운 건 아닌 것 같다.', '* 경섭이 개인 줄 알고 손을 내밀었다.', '* 억빠맨이 늑대를 보며 침을 삼켰다.{w=0.3} 왜?'], die: '* 늑대가 쓰러졌다.',
+      speak: ['아우우우—', '간식 시간이다.', '킁킁..{w=0.3} 바나나 냄새?', '도망치면 더 재밌는데.'] },
+  },
+  toad: {
+    name: '두꺼비', hp: 8,
+    image: 'assets/enemies/toad-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 10, money: 60, idle: { swayX: 3, swayY: 4, period: 3.4 },
+    patterns: [
+      { type: 'bounce', duration: 4.6, count: 3, speed: 90, r: 8, shape: 'bubble', kind: 'blue' },                                   // 튕기는 큰 방울
+      { type: 'slam', duration: 4.4, every: 1.1, warn: 0.5, speed: 240, from: 'bottom', shape: 'tongue', kind: 'red' },              // 예고 뒤 아래서 솟는 혀
+      { type: 'rain', duration: 4.2, rate: 0.2, speed: 80, r: 7, shape: 'bubble', kind: 'blue' },
+    ],
+    lines: { appear: '* 두꺼비가 나타났다!', idle: ['* 두꺼비가 숨을 크게 들이쉰다.', '* 두꺼비 등에 사마귀가 많다.{w=0.3} 세다가 포기했다.', '* 요플래는 두꺼비를 만지고 싶어졌다.', '* 경섭이 허허 하고 웃었다.{w=0.3} (별 뜻은 없다)'], die: '* 두꺼비가 쓰러졌다.',
+      speak: ['개굴.', '.........', '침 좀 튀길게.', '나 원래 안 움직여.'] },
   },
 };

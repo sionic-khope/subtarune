@@ -94,7 +94,7 @@ await page.screenshot({ path: `${S}/teal_02_wall.png` });
   check('one banana placed in the upper plaza; no second banana', bn.every(Boolean) && bn[0].y < 15 * 32 && !(await page.evaluate(() => game.entities.some((e) => e.id === 'banana2'))), JSON.stringify(bn));
   { await stand(bn[0].x + bn[0].w / 2 - 12, bn[0].y + bn[0].h + 4, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');   // 선택지 잠금: 뜨자마자 C 연타해도 안 넘어간다 (사용자 2026-09-10)
     let sawChoice = false; const t0 = Date.now(); while (Date.now() - t0 < 6000) { await page.waitForTimeout(40); const q = await st(); if (!q.running) break; if (q.box === 'choice') { sawChoice = true; break; } if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); }
-    await page.keyboard.press('KeyC'); await page.waitForTimeout(60); await page.keyboard.press('KeyC'); await page.waitForTimeout(120);
+    await page.keyboard.press('KeyC'); await page.waitForTimeout(30);   // 잠금(0.1s) 안의 한 번은 무시
     const q = await st(); check('choice lock: mashing C right as the choice appears does not confirm it', sawChoice && q.box === 'choice' && q.running, JSON.stringify({ sawChoice, box: q.box }));
     await page.waitForTimeout(500); await page.keyboard.press('KeyC');   // 잠금 뒤 [먹는다]
     const rest = await drain(6000); check('choice lock: after the lock, C confirms [먹는다] → 포타슘', rest.lines.some((l) => l.includes('포타슘')), JSON.stringify(rest.lines)); }

@@ -15,6 +15,7 @@ import { BATTLE_SPRITES, BATTLE_PREVIEW } from '../data/battle-sprites.js';
 import { loadActorFrames, playbackFrameAt } from '../ui/battle-preview.js';
 import { BattleAction } from '../ui/battle-action.js';
 import { Board, Soul, Bullet, PATTERNS } from './bullets.js';
+import { getBattleMode, NATIVE } from './modes.js';
 import { ITEMS, plainItems } from '../data/items.js';
 import L from '../data/locale/ko.js';
 
@@ -71,6 +72,7 @@ export class Battle {
     this.enemies = cfg.enemies.map((id, i) => { const def = ENEMIES[id]; return { id, def, name: def.name, hp: def.hp, maxHp: def.hp, x: ENEMY_X, y: eys[i], img: null, dead: false, dying: 0, shake: 0, blink: 0, popup: null, patternIdx: 0 }; });
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
     this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random;
+    this.modes = { attack: cfg.modes?.attack || 'rush', enemy: cfg.modes?.enemy || 'bullets' }; this.gimmick = null;   // 기믹 모드(src/battle/modes.js): 공격/적 턴을 미니게임으로 바꿔 끼움
     this.result = null; this.pressed = false;
     this.load();                                                       // 브금·페이드인은 load() 가 에셋을 다 준비한 뒤 — 검은 화면/로딩 정지 아래에서 첫 소절이 지나가지 않게 (사용자 2026-09-10 '초반이 패스당한 느낌')
   }
@@ -128,7 +130,8 @@ export class Battle {
       case 'item': return this.updateItem(input);
       case 'item-target': return this.updateItemTarget(input);
       case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.5 && (input.just('confirm') || this.t > 1.8)) { this.state = this.after || 'menu'; this.t = 0; } return;
-      case 'act': return this.updateAct(dt);
+      case 'act': return this.updateAct(dt, input);
+      case 'enemy-mode': if (this.gimmick && this.gimmick.update(dt, input) && this.state === 'enemy-mode') { this.gimmick = null; this.beginMenu(); } return;
       case 'enemy-prep': return this.updatePrep(dt, input);
       case 'bullets': return this.updateBullets(dt, input);
       case 'board-close': if (this.t > 0.3) this.beginMenu(); return;
@@ -188,7 +191,8 @@ export class Battle {
 
   // ── 행동 실행 ──
   beginAct() { this.state = 'act'; this.t = 0; this.actIdx = 0; this.actWait = 0; this.cur = null; this.setText(''); }   // 이전 문구(아이템 없음 등)가 남지 않게
-  updateAct(dt) {
+  updateAct(dt, input) {
+    if (this.cur?.gimmick) { if (this.gimmick.update(dt, input)) { this.gimmick = null; this.cur = null; this.actWait = BETWEEN_ACTS; } return; }   // 미니게임 공격 모드
     if (this.cur) {
       const { plan, action } = this.cur;
       if (action.mode === 'attack' && !this.cur.hit && action.elapsed >= HIT_AT) { this.cur.hit = true; this.hitEnemy(plan.target, plan.member); }
@@ -205,12 +209,15 @@ export class Battle {
     if (plan.type === 'item') { this.useItem(plan.target || plan.member, plan.name, plan.member); this.actWait = 0.6; return; }
     let target = plan.target; if (target.dead || target.dying > 0) target = this.living()[0]; if (!target) return;
     plan.target = target;
+    const modeName = plan.member.attackMode || this.modes.attack; const create = getBattleMode('attack', modeName);
+    if (typeof create === 'function') { this.gimmick = create(this, { plan, member: plan.member, target }); this.cur = { plan, gimmick: true }; return; }
+    if (create !== NATIVE) console.warn('[battle] 모르는 공격 모드', modeName);
     const def = BATTLE_SPRITES[plan.member.id]; const attackT = def.attack.reduce((s, f) => s + f.duration, 0);
     const action = new FastAction(plan.member.home, [target.x - 44, target.y + 6], attackT / ATTACK_SPEEDUP); action.start();
     plan.member.action = action; this.cur = { plan, action, hit: false };
   }
-  hitEnemy(e, by) {
-    e.hp = Math.max(0, e.hp - 1); e.shake = 0.35; e.blink = 0.3; e.popup = { t: 0, text: '1' };
+  hitEnemy(e, by, dmg = 1) {
+    e.hp = Math.max(0, e.hp - dmg); e.shake = 0.35; e.blink = 0.3; e.popup = { t: 0, text: String(dmg) };
     this.sfx('hit'); this.sfx('damage');                        // 델타룬 공식: 베기(snd_laz) + 타격(snd_damage)
     if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
   }
@@ -225,6 +232,9 @@ export class Battle {
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
     const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)]; const lines = e.def.lines?.speak || [];
+    const defName = e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
+    if (typeof create === 'function') { this.gimmick = create(this, { enemy: e }); this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); return; }   // 적 턴 미니게임 모드
+    if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
     this.bubble = { enemy: e, text: lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...', shown: 0, t: 0, voice: e.def.voice || 'narrator' };
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
@@ -290,7 +300,8 @@ export class Battle {
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
     for (const m of idle) this.drawMember(ctx, m);
     for (const m of busy) this.drawMember(ctx, m);
-    if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.board.draw(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
+    if (this.gimmick) { if (this.gimmick.draw) this.gimmick.draw(ctx); else this.drawTextBox(ctx); }
+    else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.board.draw(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
     else this.drawPanel(ctx);
     if (this.state === 'lose') this.drawTextBox(ctx);
     if (this.bubble) this.drawBubble(ctx);                          // 적 말풍선(준비 단계)
@@ -414,7 +425,7 @@ export class Battle {
    *  menu   — 위 두 줄 잡담 문구 + 아랫줄 현재 멤버 이름과 [공격하기][아이템] 상자 버튼(글자보다 넓게)
    *  target — 적 목록(하트 커서 ↑↓, 이름·HP 바·숫자)  item — 2열 격자  item-target — 멤버 목록(색 HP 바). HP 띠는 맨 아래(drawHpStrip) */
   drawPanel(ctx) {
-    if (['intro', 'win', 'lose', 'text', 'act', 'load', 'ending'].includes(this.state)) { this.drawTextBox(ctx); return; }
+    if (['intro', 'win', 'lose', 'text', 'act', 'load', 'ending', 'enemy-mode'].includes(this.state)) { this.drawTextBox(ctx); return; }
     this.box(ctx, 20, 246, 440, 72); ctx.textAlign = 'left'; ctx.fillStyle = '#fff';
     const m = this.members[this.memberIdx]; if (!m) return;
     const row = (i) => 254 + i * 18;

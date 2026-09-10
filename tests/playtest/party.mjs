@@ -26,7 +26,7 @@ const untilChoice = async (max = 60) => {
   }
   return { texts, choice: false };
 };
-const pick = async (idx) => {   // 선택지는 2열 격자(3개 = 2+1): ↓ 로 줄, → 로 칸 (2026-09-10 격자 이동). 확정 잠금 0.4s + 펼침 뒤에 누른다
+const pick = async (idx) => {   // 선택지는 2열 격자(3개 = 2+1): ↓ 로 줄, → 로 칸 (2026-09-10 격자 이동). 확정 잠금 0.1s + 펼침 뒤에 누른다
   await page.waitForTimeout(650);
   for (let k = 0; k < Math.floor(idx / 2); k++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(70); }
   for (let k = 0; k < idx % 2; k++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(70); }
