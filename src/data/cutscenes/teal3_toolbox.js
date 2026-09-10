@@ -57,18 +57,19 @@ export const teal3_toolbox = [
   { face: 'ppaman', dir: 'right' },
   { parallel: [{ hop: 'cs1', by: [-24, 0], height: 18, duration: 0.35, sfx: false }, { hop: 'cs2', by: [-24, 0], height: 18, duration: 0.35, sfx: false }] },   // 다가온다
   P('* 오{w=0.3} 온다!'),
-  // ── 전투 시작 연출 (인게임 전투는 다음 브리핑) ──
-  { sfx: 'battle_start' },
-  { shake: 0.5, amp: 4 },
-  { zoom: 1.8, at: 'player', duration: 0.6 },
-  { fade: 'white', duration: 0.35 },
-  { wait: 0.7 },
+  // ── 전투 시작 연출: 화면 가운데로 클로즈업 + 델타룬 전투 시작 징글 → 흰 섬광 → 전투 화면 ──
+  { sfx: 'battle_start' }, { shake: 0.45, amp: 3 },
+  { zoom: 1.9, at: 'center', duration: 0.55 },
+  { fade: 'white', duration: 0.3 },
+  { wait: 0.35 },
+  { battle: { enemies: ['cs', 'cs'], bgm: 'rude_buster', flag: 'teal3_cs_won' } },   // CS 두 마리, 각 HP 6. 일반 전투 브금 Rude Buster
+  { bgm: null, fadeOut: 0.6 },
   { set: { teal3_battle_pending: true } },
   { remove: 'cs1' }, { remove: 'cs2' },
   { zoom: 1 },
   { regroup: true },
   { fade: 'in', duration: 0.5 },
-  N('* (전투 — 다음 브리핑에서 이어진다.)'),
+  N('* CS 를 물리쳤다.'),
   { end: true },
   { label: 'again' },
   N('* 공구상자다.{w=0.4} 뭔가 많이 들어 있다.'),

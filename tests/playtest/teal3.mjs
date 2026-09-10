@@ -1,5 +1,5 @@
 // 청록숲 3 검증: ?qa=teal3 → 아래 길에서 위 공터로 → 공구상자 C: 브금 꺼짐 → 셋이 상자 기준으로 흩어져 상자를 바라봄 → 대사 → 오른쪽 풀숲에서 CS 두 마리가 튀어나옴(hop)
-//   → 대사 → CS 점프 → 셋이 한 칸 물러나 오른쪽을 봄 → 빠맨이 상자→형섭→상자→경섭 달리기 → "오 온다!" → 전투 시작 연출(줌·흰 섬광) → 자리표시 → 재조작 가능·동료 재정렬 → 재방문 대사.
+//   → 대사 → CS 점프 → 셋이 한 칸 물러나 오른쪽을 봄 → 빠맨이 상자→형섭→상자→경섭 달리기 → "오 온다!" → 전투 시작 연출(줌·흰 섬광) → 전투(여기선 바로 승리 처리; 전투 자체는 battle.mjs) → 컷신 마무리 → 재조작 가능·동료 재정렬 → 재방문 대사.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
@@ -47,6 +47,9 @@ const r = await drain(90000, async (q) => {
   if (q.cs1 && q.cs1.hopY > 6 && !shots.pop) { shots.pop = true; await page.screenshot({ path: `${S}/teal3_03_pop.png` }).catch(() => {}); }
   if (q.text.startsWith('* 아 안되겠다') && !shots.back) { shots.back = true; await page.screenshot({ path: `${S}/teal3_04_back.png` }).catch(() => {}); }
   if (q.zoom > 1.3 && !shots.flash) { shots.flash = true; await page.screenshot({ path: `${S}/teal3_05_battle.png` }).catch(() => {}); }
+  // 전투가 뜨면 바로 승리 처리 (전투 검증은 battle.mjs)
+  const inBattle = await page.evaluate(() => { const b = game.battle; if (!b || b.state === 'load' || b.state === 'ending') return false; if (b.state !== 'win') { for (const e of b.enemies) { e.hp = 0; e.dead = true; } b.state = 'win'; b.t = 1; b.setText('* 이겼다!'); } return true; });
+  if (inBattle) { await page.waitForTimeout(80); await page.keyboard.press('KeyC'); }
   return { text: q.text.slice(0, 12), bgm: q.bgm, p: q.p, pf: q.pf, pp: q.pp, gs: q.gs, cs1: q.cs1, cs2: q.cs2, zoom: q.zoom, shake: q.shake };
 });
 const L = r.lines, o = r.obs; const li = (t) => o.findIndex((x) => x.text.startsWith(t));
@@ -68,7 +71,7 @@ check('toolbox scene: 8 lines in briefing order', idx.every((i) => i >= 0) && id
   const k = li('* 오 온다');
   check('battle start: zoom-in + shake after "오 온다!"', o.slice(k).some((x) => x.zoom > 1.3) && o.slice(k).some((x) => x.shake), JSON.stringify({ maxZoom: Math.max(...o.slice(Math.max(0, k)).map((x) => x.zoom)) })); }
 s = await st();
-check('after the placeholder: flag set, CS removed, zoom back, followers regrouped, controllable', s.flags.teal3_battle_pending === true && (!s.cs1 || s.cs1.dead) && (!s.cs2 || s.cs2.dead) && s.zoom === 1 && !s.running && s.f.every((x) => x.vis && Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ flags: s.flags.teal3_battle_pending, cs1: s.cs1, zoom: s.zoom, f: s.f, p: s.p }));
+check('after the battle: flags set (won + pending), CS removed, zoom back, followers regrouped, controllable', s.flags.teal3_battle_pending === true && s.flags.teal3_cs_won === true && (!s.cs1 || s.cs1.dead) && (!s.cs2 || s.cs2.dead) && s.zoom === 1 && !s.running && s.f.every((x) => x.vis && Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ flags: s.flags.teal3_battle_pending, cs1: s.cs1, zoom: s.zoom, f: s.f, p: s.p }));
 { await stand(bx + 4, by + 24, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); const r2 = await drain(6000);
   check('toolbox again: 공구상자다. 뭔가 많이 들어 있다.', r2.lines.some((l) => l.includes('뭔가 많이 들어 있다')), JSON.stringify(r2.lines)); }
 await page.screenshot({ path: `${S}/teal3_06_after.png` });

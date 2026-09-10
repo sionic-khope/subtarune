@@ -33,10 +33,9 @@ def frame(c, ox, oy, dir_, f):
     if dir_ == 'down' or dir_ == 'left' or dir_ == 'right':
         glyph(c, bx + 13, by + 25, 'C', K); glyph(c, bx + 19, by + 25, 'S', K)
     if dir_ == 'up': c.rect(bx + 12, by + 8, 12, 3, BD)                 # 뒤통수 줄
-    # 테두리
-    for y in range(oy, oy + FH):
-        for x in range(ox, ox + FW):
-            if c.a[y, x, 3] == 0 and any(ox <= x + dx < ox + FW and oy <= y + dy < oy + FH and c.a[y + dy, x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.px(x, y, OUT)
+    # 테두리 — 먼저 모아서 나중에 칠한다 (칠하면서 검사하면 번져서 프레임 전체가 채워진다)
+    todo = [(x, y) for y in range(oy, oy + FH) for x in range(ox, ox + FW) if c.a[y, x, 3] == 0 and any(ox <= x + dx < ox + FW and oy <= y + dy < oy + FH and c.a[y + dy, x + dx, 3] != 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))]
+    for (x, y) in todo: c.px(x, y, OUT)
 c = Canvas(FW * 4, FH * 4)
 for r, d in enumerate(('down', 'up', 'left', 'right')):
     for f in range(4): frame(c, f * FW, r * FH, d, f)

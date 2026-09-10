@@ -101,6 +101,18 @@ export function makeTransparentFrame(image, definition, colorKey, createCanvas) 
   return { ...definition, image: canvas };
 }
 
+/**
+ * 전투 아틀라스 한 캐릭터의 대기·공격·달리기 프레임을 투명 처리해 돌려준다 (미리보기·실전투 공용, 2026-09-10).
+ * @returns {Promise<{idle, attack, run}|null>} 실패하면 null
+ */
+export async function loadActorFrames(definition, colorKey, createCanvas = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }, imageLoader = loadImage) {
+  try {
+    const [image, runImage] = await Promise.all([imageLoader(definition.src), imageLoader(definition.run.src)]);
+    const prepare = (d) => makeTransparentFrame(image, d, colorKey, createCanvas);
+    return { idle: definition.idle.map(prepare), attack: definition.attack.map(prepare), run: definition.run.frames.map((d) => makeTransparentFrame(runImage, d, colorKey, createCanvas)) };
+  } catch (e) { console.warn('[battle] 아틀라스 로드 실패', definition.src, e); return null; }
+}
+
 class BattleActor {
   constructor(id, definition, anchor, target) {
     this.id = id;

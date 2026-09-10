@@ -240,6 +240,8 @@ export class Sound {
     if (f) { const a = f.cloneNode(); a.volume = Math.min(1, volume); a.playbackRate = rate; a.play().catch(() => {}); return; }
     switch (name) {
       case 'menu':    this.tone({ freq: 760, wave: 'square', dur: 0.06, gain: 0.224 }); break;
+      case 'hit':     this.tone({ freq: 180, wave: 'sawtooth', dur: 0.12, gain: 0.3, glide: -120, cutoff: 1800 }); this.tone({ freq: 900, wave: 'square', dur: 0.05, gain: 0.12 }); break;   // 전투 타격(파일 sfx/hit.mp3 가 있으면 그것)
+      case 'hurt':    this.tone({ freq: 240, wave: 'square', dur: 0.14, gain: 0.26, glide: -160 }); break;                                                                               // 소울 피격
       case 'chime':   // 띠링 ♪
                       this.tone({ freq: 1318, wave: 'triangle', dur: 0.10, gain: 0.32 });
                       this.tone({ freq: 1760, wave: 'triangle', dur: 0.10, gain: 0.32, delay: 0.07 });

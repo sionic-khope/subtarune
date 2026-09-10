@@ -23,6 +23,7 @@ import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS } from './core/story.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
+import { Battle } from './battle/battle.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -42,6 +43,9 @@ class Game {
     this.story = new Story(this.flags);   // 스토리 단계(src/core/story.js). 단계 id = flags 키
     this.inventory = [];
     this.party = [];                      // 동료 캐릭터 id 순서 (예: ['ppaman']) — src/data/characters.js 키. 저장/복원됨
+    this.partyHp = {};                    // 전투 HP (id → 현재 HP, 없으면 최대). 저장/복원됨 (2026-09-10 전투)
+    this.battle = null;                   // 진행 중인 전투 (src/battle/battle.js) — 있으면 update/draw 를 전투가 가져간다
+    this.lastBattle = null;
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu | battle-preview
     this.fade = { alpha: 0, dir: 0, cb: null, color: '0,0,0' };
@@ -94,7 +98,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(`assets/sprites/${name}.png`);
         if (img) this.spriteOverrides[name] = img;
@@ -143,7 +147,7 @@ class Game {
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때(필드에서만) */
   autosave() {
     if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test') return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
@@ -153,7 +157,7 @@ class Game {
     if (!d || !MAPS[d.map]) { this.startGame(); return; }
     this.flags = {}; this.story = new Story(this.flags); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
-    this.inventory = [...(d.inventory || [])]; this.party = [...(d.party || [])]; this.settings = { ...this.settings, ...(d.settings || {}) };
+    this.inventory = [...(d.inventory || [])]; this.party = [...(d.party || [])]; this.partyHp = { ...(d.partyHp || {}) }; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
     this.changeMap(d.map, null, true);
@@ -297,6 +301,20 @@ class Game {
     this.state = 'battle-preview';
     void this.battlePreview.open();
     return true;
+  }
+
+  /** 전투 시작 (컷신 {battle}) — 끝나면 endBattle → game.lastBattle = { win }. 필드·대화창은 그대로 두고 화면만 전투가 가져간다 */
+  startBattle(cfg) {
+    if (this.battle) return this.battle;
+    this.player.moving = false; this.textbox.close?.();
+    this.battle = new Battle(this, cfg);
+    this.fadeTo(0, 0.45);                 // 진입 섬광(흰색)을 걷어 낸다 — 전투 화면이 보여야 한다 (2026-09-10 스크린샷으로 발견: 섬광이 전투 내내 덮고 있었음)
+    return this.battle;
+  }
+  endBattle(result) {
+    this.lastBattle = result; this.battle = null; this.shake = null;
+    if (result?.win && this.battleFlag) this.setFlag(this.battleFlag);
+    this.battleFlag = null;
   }
 
   /** 전투 모션 미리보기를 닫고 중단했던 필드로 돌아간다. */
@@ -449,6 +467,7 @@ class Game {
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
+    if (this.battle) { this.battle.update(dt, Input); if (this.dialogue.running) this.dialogue.update(dt, Input); return; }   // 전투 중: 전투 + 컷신 대기자만
     if (this.dialogue.running) {
       this.dialogue.update(dt, Input);
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
@@ -544,6 +563,12 @@ class Game {
     }
     if (this.state === 'battle-preview') {
       this.battlePreview.draw(ctx, SCREEN_W, SCREEN_H);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
+    if (this.battle) {                                   // 전투 화면 (흔들림·페이드만 공유)
+      ctx.save(); if (this.shake) { const a = this.shake.amp || 3; ctx.translate(Math.round((Math.random() * 2 - 1) * a), Math.round((Math.random() * 2 - 1) * a)); }
+      this.battle.draw(ctx); ctx.restore();
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
@@ -695,7 +720,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.35';
+export const BUILD = '2026-09-10.36';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
