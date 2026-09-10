@@ -67,8 +67,8 @@ s = await st(); check('can walk on bridge tiles', s.p[0] < 1950 && s.p[1] >= 224
 await stand(1300, 232, 'left'); await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(900); await page.keyboard.up('ArrowLeft'); await page.waitForTimeout(120);
 s = await st(); check('stopped next to pillar', s.p[0] >= 1216 && s.p[0] <= 1224, JSON.stringify(s.p));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(400);
-s = await st(); check('talk to ppaman: 안녕하세요형', s.speaker === '억빠맨' && s.text.includes('안녕하세요형'), JSON.stringify({ sp: s.speaker, t: s.text }));
-await page.screenshot({ path: `${S}/void4_07_ppaman_talk.png` }); await finish();
+s = await st(); check('talk to ppaman: 안녕하세요 형', s.speaker === '억빠맨' && s.text.includes('안녕하세요 형'), JSON.stringify({ sp: s.speaker, t: s.text }));
+await page.screenshot({ path: `${S}/void4_07_ppaman_talk.png` }); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('KeyX'); await page.waitForTimeout(300); await finish();   // 선택지에서 X(=물어볼건 없다) 로 빠져나감
 // 재로드: 플래그로 다리 유지
 await page.evaluate(() => game.changeMap('void4', 'landing', true)); await page.waitForTimeout(300);
 s = await st(); check('bridge persists via flag on reload', s.row5 === 'bbbb' && s.leverOn, JSON.stringify({ row5: s.row5, leverOn: s.leverOn }));

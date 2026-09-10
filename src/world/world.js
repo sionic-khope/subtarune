@@ -245,11 +245,18 @@ export class Player extends Character {
     }
     this.moving = this.x !== startX || this.y !== startY;
     this.animate(dt, input.down('cancel') ? 8 : 12);
+    if (this.moving) this.recordTrail();
 
     // 밟는 트리거
     for (const e of this.game.entities) {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
+  }
+  /** 동료가 따라올 발자국 기록 (이동한 프레임만) — Follower 가 뒤에서 이 자취를 따라 걷는다 */
+  recordTrail() {
+    if (!this.trail) this.trail = [];
+    const last = this.trail[this.trail.length - 1];
+    if (!last || Math.hypot(this.x - last.x, this.y - last.y) >= 2) { this.trail.push({ x: this.x, y: this.y, facing: this.facing }); if (this.trail.length > 400) this.trail.splice(0, this.trail.length - 400); }
   }
   /** 바라보는 방향 앞의 상호작용 대상 */
   probe() {
@@ -452,7 +459,54 @@ export class Raft extends Prop {
   }
 }
 
+/**
+ * 동료(파티원): 델타룬처럼 주인공의 발자국을 일정 거리 뒤에서 따라 걷는다. 충돌 없음(끼임 방지).
+ *   game.party = ['ppaman', ...] 순서대로 1번·2번 뒤. 맵 전환 시 주인공 뒤에 다시 모인다. 탈것(ride) 중엔 주인공 옆에 붙는다.
+ *   말을 걸 수 있는 대상은 아니다(canInteract false). 컷신에서 id 로 move/face 가능(id = 캐릭터 id).
+ */
+export class Follower extends Character {
+  constructor(def, game) {
+    super({ solid: false, ...def }, game);
+    this.slot = def.slot ?? 1;                       // 뒤에서 몇 번째
+    this.gap = TILE * 0.9 * this.slot;               // 주인공과의 거리(발자국 길이)
+    this.snapBehind();
+  }
+  canInteract() { return false; }
+  /** 주인공 바로 뒤(바라보는 반대 방향)에 즉시 놓는다 — 맵 전환·컷신 뒤 재정렬 */
+  snapBehind() {
+    const p = this.game.player; if (!p) return;
+    const [dx, dy] = DIRS[p.facing];
+    this.x = p.x - dx * this.gap; this.y = p.y - dy * this.gap; this.facing = p.facing; this.moving = false; this.frame = 0;
+    const map = this.game.map;
+    if (map && map.solidRect(this.x, this.y, this.w, this.h)) { this.x = p.x; this.y = p.y; }
+  }
+  update(dt) {
+    const p = this.game.player; if (!p) return;
+    if (this.game.ride) { this.x = p.x - 6 * this.slot; this.y = p.y - 2 * this.slot; this.facing = p.facing; this.moving = p.moving; this.animate(dt, 4); return; }
+    const trail = p.trail || [];
+    // 발자국을 뒤에서부터 gap 만큼 거슬러 올라간 지점이 목표
+    let acc = 0, target = null, prev = { x: p.x, y: p.y };
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const t = trail[i]; acc += Math.hypot(prev.x - t.x, prev.y - t.y);
+      if (acc >= this.gap) { target = t; break; }
+      prev = t;
+    }
+    const startX = this.x, startY = this.y;
+    if (target) {
+      const dx = target.x - this.x, dy = target.y - this.y, dist = Math.hypot(dx, dy);
+      if (dist > 1) {
+        const step = Math.min(dist, p.speed * dt * 1.05);
+        this.x += (dx / dist) * step; this.y += (dy / dist) * step;
+        this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      }
+    }
+    this.moving = Math.hypot(this.x - startX, this.y - startY) > 0.3;
+    this.animate(dt, 12);
+  }
+}
+
 registerEntity('player', Player);
+registerEntity('follower', Follower);
 registerEntity('raft', Raft);
 registerEntity('prop', Prop);
 registerEntity('npc', NPC);

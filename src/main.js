@@ -11,6 +11,7 @@ import { TitleScreen } from './ui/title.js';
 import { StreamChat } from './ui/chat.js';
 import { SysDialog } from './ui/sysdialog.js';
 import { Vortex } from './ui/vortex.js';
+import { DotBubble } from './ui/bubble.js';
 import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
@@ -37,6 +38,7 @@ class Game {
     this.flags = {};
     this.story = new Story(this.flags);   // 스토리 단계(src/core/story.js). 단계 id = flags 키
     this.inventory = [];
+    this.party = [];                      // 동료 캐릭터 id 순서 (예: ['ppaman']) — src/data/characters.js 키. 저장/복원됨
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu
     this.fade = { alpha: 0, dir: 0, cb: null, color: '0,0,0' };
@@ -100,6 +102,7 @@ class Game {
     this.chat = new StreamChat();        // 방송 채팅창 오버레이 (컷신 {chat})
     this.sysdialog = new SysDialog();    // 시스템 오류창 (컷신 {dialog})
     this.vortex = new Vortex();          // 소용돌이 이펙트 (컷신 {vortex})
+    this.bubble = new DotBubble();       // 머리 위 '...' 말풍선 (컷신 {bubble})
     this.playerSprite = 'hyungsub';   // 기본 주인공 = 형섭 (기존 파란 후드 문자 도트는 사용 안 함)
     // 개발용: ?map=test&spawn=start 로 타이틀/오프닝 건너뛰고 바로 진입
     const q = new URLSearchParams(location.search);
@@ -126,7 +129,7 @@ class Game {
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때(필드에서만) */
   autosave() {
     if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test') return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, map: this.mapId, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
@@ -136,7 +139,7 @@ class Game {
     if (!d || !MAPS[d.map]) { this.startGame(); return; }
     this.flags = {}; this.story = new Story(this.flags); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
-    this.inventory = [...(d.inventory || [])]; this.settings = { ...this.settings, ...(d.settings || {}) };
+    this.inventory = [...(d.inventory || [])]; this.party = [...(d.party || [])]; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
     this.changeMap(d.map, null, true);
@@ -144,14 +147,36 @@ class Game {
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
-  devJump({ map, spawn, stage, flags }) {
+  devJump({ map, spawn, stage, flags, party }) {
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
     if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
+    if (party) this.party = [...party];             // QA 지점의 동료 구성
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
     this.changeMap(map, spawn || 'start', true);
     this.state = 'field';
   }
+
+  // ── 파티(동료) ──────────────────────────────────────────
+  /** 현재 맵에 party 순서대로 Follower 를 주인공 뒤에 세운다 (맵 전환·가입 직후) */
+  spawnParty() {
+    this.entities = this.entities.filter((e) => e.def?.type !== 'follower');
+    this.party.forEach((id, i) => {
+      const f = createEntity({ type: 'follower', id, sprite: id, x: this.player.x, y: this.player.y, facing: this.player.facing, slot: i + 1 }, this);
+      if (f) this.entities.push(f);
+    });
+    this.player.trail = [];
+  }
+  /** 동료 가입: 맵의 같은 id NPC 를 제거하고 뒤에 붙인다. 이미 있으면 무시 */
+  joinParty(id) {
+    if (this.party.includes(id)) return false;
+    this.party.push(id);
+    for (const e of this.entities) if (e.def?.type === 'npc' && e.id === id) e.dead = true;
+    this.spawnParty();
+    this.autosave();
+    return true;
+  }
+  leaveParty(id) { this.party = this.party.filter((x) => x !== id); this.spawnParty(); }
 
   /** 맵 JSON `tileSwaps: { <플래그>: { rows: { "<행>": "<새 행 문자열>" } } }` 를 적용하고 다시 굽는다 (레버로 다리 내려오기 등) */
   applyTiles(key, bake = true) {
@@ -188,9 +213,9 @@ class Game {
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
-    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null;
+    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true;
     this.fadeTo(1, 0.4, () => {
-      this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
+      this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = [];
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
       this.state = 'title'; this.title.enter();
       this.transitioning = false;
@@ -244,6 +269,7 @@ class Game {
       const spawn = def.spawns[spawnId] || def.spawns.start || Object.values(def.spawns)[0];   // 이어하기(위치는 세이브가 덮어씀) 대비
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: spawn.facing ?? this.player?.facing ?? 'down' }, this);   // 스폰에 facing 을 주면 그 방향(QA 지점 등)
       this.entities.push(this.player);
+      this.spawnParty();
       // 문 위에서 스폰될 때 바로 되돌아가지 않도록 쿨다운
       for (const e of this.entities) if (e.cooldown !== undefined) e.cooldown = 0.6;
       this.camera.map = this.map;
@@ -274,7 +300,7 @@ class Game {
   /** 타이틀에서 새 게임: 세이브 삭제 → 오프닝 컷신 */
   startGame() {
     this.clearSave();
-    this.flags = {}; this.story = new Story(this.flags); this.inventory = [];
+    this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = [];
     this.changeMap('room', 'bed', true, { bgm: false });   // 방 브금은 오프닝 컷신이 흰색 뒤에 직접 튼다
     this.state = 'field';
     if (SCRIPTS.opening) this.runScript('opening');
@@ -327,7 +353,7 @@ class Game {
       if (tw.t >= tw.dur) { this.zoom.s = tw.to; this.zoom.tween = null; if (tw.cb) tw.cb(); }
     }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
-    this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt);
+    this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt);
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.dialogue.running) {
@@ -352,15 +378,15 @@ class Game {
 
   updateMenu() {
     const m = this.menu;
-    const items = [L.menu_items, L.menu_settings, L.menu_close];
+    const N = 4;   // 아이템 / 파티 / 설정 / 닫기
     if (m.sub === null) {
-      if (Input.just('up')) { m.index = (m.index + 2) % 3; this.sound.sfx('menu'); }
-      if (Input.just('down')) { m.index = (m.index + 1) % 3; this.sound.sfx('menu'); }
-      if (Input.just('cancel') || (Input.just('confirm') && m.index === 2)) { this.state = 'field'; this.sound.sfx('close'); return; }
+      if (Input.just('up')) { m.index = (m.index + N - 1) % N; this.sound.sfx('menu'); }
+      if (Input.just('down')) { m.index = (m.index + 1) % N; this.sound.sfx('menu'); }
+      if (Input.just('cancel') || (Input.just('confirm') && m.index === 3)) { this.state = 'field'; this.sound.sfx('close'); return; }
       if (Input.just('confirm')) { m.sub = m.index; m.subIndex = 0; this.sound.sfx('confirm'); }
-    } else if (m.sub === 0) {
+    } else if (m.sub === 0 || m.sub === 1) {          // 아이템 / 파티: 보기만
       if (Input.just('cancel') || Input.just('confirm')) { m.sub = null; this.sound.sfx('cancel'); }
-    } else if (m.sub === 1) {
+    } else if (m.sub === 2) {                          // 설정
       if (Input.just('up')) { m.subIndex = (m.subIndex + 1) % 2; this.sound.sfx('menu'); }
       if (Input.just('down')) { m.subIndex = (m.subIndex + 1) % 2; this.sound.sfx('menu'); }
       if (Input.just('left') || Input.just('right') || Input.just('confirm')) {
@@ -417,6 +443,7 @@ class Game {
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
+    this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
     const dim = MAPS[this.mapId]?.dim;
@@ -442,8 +469,8 @@ class Game {
     const m = this.menu;
     ctx.font = FONT; ctx.textBaseline = 'top';
     const LH = F.lineH;
-    drawBox(ctx, 8, 8, 100, LH * 3 + 16);
-    const items = [L.menu_items, L.menu_settings, L.menu_close];
+    drawBox(ctx, 8, 8, 100, LH * 4 + 16);
+    const items = [L.menu_items, L.menu_party, L.menu_settings, L.menu_close];
     items.forEach((label, i) => {
       ctx.fillStyle = m.sub === null && i === m.index ? '#ffe066' : '#fff';
       ctx.fillText(label, 30, 16 + i * LH);
@@ -455,7 +482,8 @@ class Game {
       if (!this.inventory.length) ctx.fillText(L.no_items, 124, 16);
       this.inventory.forEach((it, i) => ctx.fillText('* ' + it, 124, 16 + i * LH));
     }
-    if (m.sub === 1) {
+    if (m.sub === 1) this.drawParty(ctx, 116, 8);
+    if (m.sub === 2) {
       drawBox(ctx, 116, 8, 196, LH * 2 + 16);
       const rows = [
         [L.setting_text_speed, L[TEXT_SPEEDS[this.settings.textSpeed].key]],
@@ -468,6 +496,22 @@ class Game {
         if (i === m.subIndex) drawHeart(ctx, 125, 16 + Math.round(F.size / 2) - 3 + i * LH);
       });
     }
+  }
+
+  /** 파티 상태창: 리더(요플래/형섭) + 동료들 — 흰검 초상화, 표시 이름, 역할, 한 줄 상태 (전투 없음 → HP 대신 상태) */
+  drawParty(ctx, x, y) {
+    const LH = F.lineH, members = [this.playerSprite || 'hyungsub', ...this.party];
+    const rowH = 58, w = 236, h = rowH * members.length + 14;
+    drawBox(ctx, x, y, w, h);
+    ctx.font = FONT; ctx.textBaseline = 'top';
+    members.forEach((id, i) => {
+      const ch = CHARACTERS[id] || { name: id }; const ry = y + 8 + i * rowH;
+      const face = this.portraits[id]; if (face) ctx.drawImage(face, x + 10, ry + 2, 48, 48);
+      const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
+      ctx.fillStyle = '#ffe066'; ctx.fillText(name, x + 68, ry + 3);
+      ctx.fillStyle = '#fff'; ctx.fillText(i === 0 ? L.party_leader : L.party_member, x + 68, ry + 3 + LH);
+      ctx.fillStyle = '#9a9ab0'; ctx.fillText(ch.partyDesc || (i === 0 ? L.party_desc_leader : L.party_desc_member), x + 68, ry + 3 + LH * 2);
+    });
   }
 
   /** 지역 이름 캡션: 페이드 인 → 유지 → 페이드 아웃 (언더테일 지역명처럼) */
@@ -495,7 +539,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.8';
+export const BUILD = '2026-09-10.11';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

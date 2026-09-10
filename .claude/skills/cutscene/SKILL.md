@@ -50,6 +50,10 @@ model: opus
 | `# 채팅창이 뜨고 시청자들이 …` | `{chat:'open'}` + 모드. 새 분위기면 `POOL` 에 모드 추가 |
 | `# 오류창/시스템 메시지 (버튼)` | `{dialog:{…}}` → 대사 → `{dialog:'press'}` → `{dialog:null}` |
 | `# 화면에 소용돌이/이펙트가 커짐` | `{vortex:{at,size,grow}}` 를 대사 사이에 단계적으로 |
+| `# . (딜레이) . (딜레이) . 말풍선` | `{ bubble:'player' }` (dots/gap/hold 로 조절) |
+| `# 같은 대사 여러 개가 ㅈㄴ 빠르게 넘어감` | `P('* …', { auto: 0.16, speed: 3 })` 를 배열로 (예 `void4_ppaman.js` BOOM) |
+| `# 질문 골라서 답 듣고 '더 물어볼거?' 반복` | 선택지 → 각 답 끝에 `{goto:'more'}` → `more` 라벨의 선택지(같은 옵션) → 종료 옵션만 빠져나감 (예 `void4_ppaman.js`) |
+| `# X가 동료가 되었다` | 나레이션 줄 + `{ join:'id' }` + `{ set:{id_joined:true} }`, 맵 NPC 에 `unless:'id_joined'` |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |
 | `# 다리/문이 내려오며 쿵` | `{spawn: 떨어질 소품(preload 필요)}` `{sfx:'rumble'}` `{move:id, px, speed}` `{sfx:'thud'}` `{shake}` `{tiles}` `{remove}` (예 `void4_lever`) |
 | `# 3D 로 전환해서 마우스로 …` | `{zoom:2.8, at:'<소품 id>'}` → `{scene3d:'<씬>', flag}` → `{zoom:1}` (씬은 `src/scenes/drawer.js` 골격 복사) |
@@ -85,6 +89,8 @@ model: opus
 | `{ chat:'open'\|'late'\|'spam'\|'idle'\|'question'\|'silence'\|'panic'\|'close' }` | 방송 채팅창(오른쪽, 100명). 모드별 메시지 풀은 `src/ui/chat.js POOL` |
 | `{ dialog:{title,text,button} }` `{ dialog:'press' }` `{ dialog:null }` | 윈도우식 오류창. press 는 0.35s 기다림 |
 | `{ vortex:{ at:'pc'\|[x,y], size, grow } }` `{ vortex:{size,grow} }` `{ vortex:null }` | 소용돌이(월드). 기다리지 않으므로 대사와 겹쳐 키운다 |
+| `{ join:'ppaman' }` `{ leave:'id' }` `{ regroup:true }` | 동료 가입/이탈/주인공 뒤 재정렬 (파티 시스템, STATE.md 참고) |
+| `{ bubble:'player'\|id, dots?:3, gap?:0.4, hold?:0.5 }` | 머리 위 `...` 말풍선(대화창 없이 점이 하나씩). 끝나면 다음 노드 |
 | `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |
