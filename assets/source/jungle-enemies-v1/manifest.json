@@ -1,0 +1,292 @@
+{
+  "version": 1,
+  "status": "static-assets-not-wired",
+  "pathBase": "repository-root",
+  "generator": "built-in image_gen",
+  "reference": {
+    "url": "https://www.tarreo.com/noticias/479844/El-Escurridizo-ha-causado-que-Castigo-sea-el-hechizo-mas-jugado-del-momento-y-traera-cambios",
+    "role": "visual reference only; generated derivative sprites"
+  },
+  "processing": "Edge-connected chromakey plus magenta-only residual removal (R > G+20 and B > G+20); whole silhouette fit; bottom-center alignment; NEAREST only.",
+  "paletteQuantization": false,
+  "artworkRepainted": false,
+  "reproduce": "uv run tools/sprites/import_jungle_enemies.py",
+  "assets": [
+    {
+      "id": "jungle-raptor-front",
+      "species": "raptor",
+      "image": "assets/enemies/jungle-raptor-front.png",
+      "role": "field",
+      "facing": "front",
+      "size": [
+        48,
+        48
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        44
+      ],
+      "source": "assets/source/jungle-enemies-v1/raptor-front-raw.png",
+      "prompt": "assets/source/jungle-enemies-v1/raptor-front-prompt.txt",
+      "sourceBounds": [
+        357,
+        210,
+        897,
+        1027
+      ],
+      "scale": 0.04895960832313342,
+      "resized": [
+        26,
+        40
+      ],
+      "placement": [
+        11,
+        4
+      ],
+      "alphaBounds": [
+        11,
+        5,
+        37,
+        44
+      ],
+      "sha256": "799b56d213b49c92a955cad0ad9449a316ebc0a594a0fe584edf5d203052b231"
+    },
+    {
+      "id": "jungle-raptor-battle-left",
+      "species": "raptor",
+      "image": "assets/enemies/jungle-raptor-battle-left.png",
+      "role": "battle",
+      "facing": "left",
+      "size": [
+        64,
+        64
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        60
+      ],
+      "source": "assets/source/jungle-enemies-v1/raptor-battle-left-raw.png",
+      "prompt": "assets/source/jungle-enemies-v1/raptor-battle-left-prompt.txt",
+      "sourceBounds": [
+        106,
+        266,
+        1154,
+        1038
+      ],
+      "scale": 0.05343511450381679,
+      "resized": [
+        56,
+        41
+      ],
+      "placement": [
+        4,
+        19
+      ],
+      "alphaBounds": [
+        4,
+        19,
+        60,
+        60
+      ],
+      "sha256": "83a32b9cba192b493908a757ef9ee45187627b3ab5a83977fc22dd83981de499"
+    },
+    {
+      "id": "jungle-gromp-front",
+      "species": "gromp",
+      "image": "assets/enemies/jungle-gromp-front.png",
+      "role": "field",
+      "facing": "front",
+      "size": [
+        48,
+        48
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        44
+      ],
+      "source": "assets/source/jungle-enemies-v1/gromp-front-raw.png",
+      "prompt": "assets/source/jungle-enemies-v1/gromp-front-prompt.txt",
+      "sourceBounds": [
+        179,
+        305,
+        1075,
+        976
+      ],
+      "scale": 0.044642857142857144,
+      "resized": [
+        40,
+        30
+      ],
+      "placement": [
+        4,
+        14
+      ],
+      "alphaBounds": [
+        4,
+        14,
+        44,
+        44
+      ],
+      "sha256": "9db25b648232f5ccb42ffb2bfadbd2fee2c6159c9c41bf1f5fa26f3aea179db0"
+    },
+    {
+      "id": "jungle-gromp-battle-left",
+      "species": "gromp",
+      "image": "assets/enemies/jungle-gromp-battle-left.png",
+      "role": "battle",
+      "facing": "left",
+      "size": [
+        64,
+        64
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        60
+      ],
+      "source": "assets/source/jungle-enemies-v1/gromp-battle-left-raw.png",
+      "prompt": "assets/source/jungle-enemies-v1/gromp-battle-left-prompt.txt",
+      "sourceBounds": [
+        157,
+        281,
+        1115,
+        1013
+      ],
+      "scale": 0.05845511482254697,
+      "resized": [
+        56,
+        43
+      ],
+      "placement": [
+        4,
+        17
+      ],
+      "alphaBounds": [
+        4,
+        17,
+        60,
+        60
+      ],
+      "sha256": "6d58fe15ef150832e7d2f583de0a17aa2e7b1e1a88bdb5190e874e2318d0409b"
+    },
+    {
+      "id": "jungle-wolf-front",
+      "species": "wolf",
+      "image": "assets/enemies/jungle-wolf-front.png",
+      "role": "field",
+      "facing": "front",
+      "size": [
+        48,
+        48
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        44
+      ],
+      "source": "assets/source/jungle-enemies-v1/wolf-front-raw.png",
+      "prompt": "assets/source/jungle-enemies-v1/wolf-front-prompt.txt",
+      "sourceBounds": [
+        383,
+        217,
+        953,
+        1042
+      ],
+      "scale": 0.048484848484848485,
+      "resized": [
+        28,
+        40
+      ],
+      "placement": [
+        10,
+        4
+      ],
+      "alphaBounds": [
+        10,
+        4,
+        38,
+        44
+      ],
+      "sha256": "d2928c4a19654ae1cff151b4af5074a53264d9f910b1d35e4b259abcc7c59ec4"
+    },
+    {
+      "id": "jungle-wolf-battle-left",
+      "species": "wolf",
+      "image": "assets/enemies/jungle-wolf-battle-left.png",
+      "role": "battle",
+      "facing": "left",
+      "size": [
+        64,
+        64
+      ],
+      "frameCount": 1,
+      "frameRect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        60
+      ],
+      "source": "assets/source/jungle-enemies-v1/wolf-battle-left-raw.png",
+      "prompt": "assets/source/jungle-enemies-v1/wolf-battle-left-prompt.txt",
+      "sourceBounds": [
+        95,
+        332,
+        1162,
+        970
+      ],
+      "scale": 0.05248359887535145,
+      "resized": [
+        56,
+        33
+      ],
+      "placement": [
+        4,
+        27
+      ],
+      "alphaBounds": [
+        4,
+        27,
+        60,
+        60
+      ],
+      "sha256": "86642dd4d5571e4d7e258fd6bbf8d849f7e7e961c2c31558cc4f55256dcc2eb2"
+    }
+  ]
+}
