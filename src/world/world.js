@@ -228,6 +228,7 @@ export class Character extends Entity {
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
       ctx.drawImage(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
+      if (this.emote) drawEmote(ctx, this.emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scale));
       return;
     }
     const img = this.sprite[this.facing][this.frame];
@@ -247,6 +248,7 @@ export class Character extends Entity {
     ctx.fillStyle = 'rgba(0,0,0,0.28)';
     ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3);
     ctx.drawImage(img, sx, sy, dw, dh);
+    if (this.emote) drawEmote(ctx, this.emote, sx + Math.round(dw / 2), sy);
   }
   draw(ctx, cam) { if (this.visible) this.drawSprite(ctx, cam); }
   /** 스프라이트 교체 (테스트룸/컷신용) */
@@ -262,6 +264,23 @@ export class Character extends Entity {
 }
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+/**
+ * 머리 위 이모트 (컷신 { emote:id, kind:'!'|'sweat', duration }): '!' 는 0.12초 동안 튀어올라 머물고, 'sweat' 는 오른쪽 관자놀이에서 식은땀이 흘러내린다.
+ * main.js 가 e.emote.t 를 올리고 life 가 지나면 지운다. 새 스프라이트 없이 캐릭터 위에 덧그린다 (2026-09-10 쥰희·경섭 컷신).
+ */
+export function drawEmote(ctx, em, cx, top) {
+  const t = em.t;
+  if (em.kind === 'sweat') {
+    const x = cx + 14, y = top + 6 + Math.min(10, t * 12);
+    ctx.fillStyle = '#0b1a3a'; ctx.fillRect(x - 1, y, 3, 3); ctx.fillRect(x - 2, y + 3, 5, 4); ctx.fillRect(x - 1, y + 7, 3, 1);
+    ctx.fillStyle = '#4fa3ff'; ctx.fillRect(x, y + 1, 1, 2); ctx.fillRect(x - 1, y + 3, 3, 4);
+    ctx.fillStyle = '#d6ecff'; ctx.fillRect(x - 1, y + 3, 1, 2);
+    return;
+  }
+  const pop = Math.min(1, t / 0.12), y = top - 22 - Math.round(6 * Math.sin(pop * Math.PI / 2)), x = cx - 3;   // '!'
+  ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 8, 12); ctx.fillRect(x - 1, y + 13, 8, 5);
+  ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 6, 10); ctx.fillRect(x, y + 14, 6, 3);
+}
 let _unstickTick = 0; const g_frame_skip = () => (++_unstickTick % 6) !== 0;   // 끼임 검사는 6프레임마다 (비용 절감)
 
 /**

@@ -1,0 +1,45 @@
+{
+ "id": "void12",
+ "name": "???",
+ "bgm": "lancer",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "purple_fire",
+ "rows": [
+  "                ",
+  "                ",
+  "                ",
+  "                ",
+  " XxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxX ",
+  " yyyyyyyyyyyyyy ",
+  "                ",
+  "                ",
+  "                "
+ ],
+ "spawns": {
+  "from_left": {
+   "x": 60,
+   "y": 184,
+   "facing": "right"
+  },
+  "start": {
+   "x": 60,
+   "y": 184
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 128,
+   "w": 12,
+   "h": 128,
+   "to": "void11",
+   "spawn": "landing",
+   "sfx": false
+  }
+ ]
+}

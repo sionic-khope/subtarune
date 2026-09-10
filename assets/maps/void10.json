@@ -5,38 +5,196 @@
  "stage": "void_fallen",
  "dim": 0,
  "backdrop": "purple_fire",
+ "enter": {
+  "script": "void10_intro",
+  "flag": "void10_intro"
+ },
  "rows": [
-  "                ",
-  "                ",
-  "                ",
-  "                ",
-  " XxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxX ",
-  " XxXxXxXxXxXxXx ",
-  " xXxXxXxXxXxXxX ",
-  " yyyyyyyyyyyyyy ",
-  "                ",
-  "                ",
-  "                "
+  "                                              ",
+  " xXxXxXxXxXx xXxXxXxXxXxXxX XxXxXxXxXxXxXx xX ",
+  " XxXxXxXxXxX XxXxXxXxXxXxXx xXxXxXxXxXxXxX Xx ",
+  " yyyyyyyyyXx yyyXxyyyyyyyxX yyyxXyyyyyyyXx xX ",
+  " XxyxXxXxXxX XxXxXyXxXxXyXxXxXxXxyxXxXxyxX Xx ",
+  " xXyXxXxXxXx xXxXxyxXxXxyxXxXxXxXyXxXxXyXx xX ",
+  " XxyxXyyyyyy XxyyyyXxyyyyyyyyyyyyyyyyXxyxX Xx ",
+  " xXyXxyxXxXxXxXyXxXxXyXxXxXxXxyxXxXxXxXyXxXxX ",
+  " XxyxXyXxXxXxXxyxXxXxyxXxXxXxXyXxXxXxXxyxXxXx ",
+  " xXyXxyxXyyyyyyyXxyxXyXxyxXyXxyxXyyyyxXyyyyxX ",
+  " XxyxXxXxyxXxXxyxXyXxXxXyXxyxXxXxyxXxXxXxXyXx ",
+  " xXyXxXxXyXxXxXyXxyxXxXxyxXyXxXxXyXxXxXxXxyxX ",
+  " XxyyyyyyyxXyXxyxXyyyyyyyXxyyyyXxyyyyyyyyyyXx ",
+  " xXxXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXyXxXxX ",
+  " XxXxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxyxXxXx ",
+  " xXyXxyxXyyyyyyyyyyxXyXxyxXyyyyyyyXxyxXyXxyyy ",
+  " XxyxXyXxXxXxXxyxXxXxyxXyXxXxXxXxXxXyXxyxXyXx ",
+  " xXyXxyxXxXxXxXyXxXxXyXxyxXxXxXxXxXxyxXyXxyxX ",
+  " XxyyyyyyyyyyXxyyyyXxyxXyyyyyyyyyyyyyXxyxXyXx ",
+  " xXxXxXxXxXxyxXxXxXxXyXxXxXyXxyxXxXxXxXyXxXxX ",
+  " XxXxXxXxXxXyXxXxXxXxyxXxXxyxXyXxXxXxXxyxXxXx ",
+  " xXyyyyyyyXxyyyyyyyyyyyyyxXyXxyxXyyyyyyyyyyxX ",
+  " XxyxXxXxXxXyXxXxXxXxyxXxXxyxXyXxXxXxXxXxXyXx ",
+  " xXyXxXxXxXxyxXxXxXxXyXxXxXyXxyxXxXxXxXxXxyxX ",
+  " yyyxXyyyyxXyXxyyyyyyyxXyyyyxXyyyyyyyXxyyyyXx ",
+  " xXxXxyxXxXxXxXyXxXxXxXxyxXxXxyxXxXxXxXyXxXxX ",
+  " XxXxXyXxXxXxXxyxXxXxXxXyXxXxXyXxXxXxXxyxXxXx ",
+  " xXyXxyyyyyyyyyyXxyyyyyyyxXyXxyxXyyyyxXyXxyyy ",
+  " XxyxXyXxXxXxXxyxXyXxXxXxXxyxXyXxyxXxXxyxXyXx ",
+  " xXyXxyxXxXxXxXyXxyxXxXxXxXyXxyxXyXxXxXyXxyxX ",
+  " XxyyyyXxyyyyXxyxXyyyyyyyyyyxXyXxyyyyyyyxXyXx ",
+  " xXxXxXxXxXxyxXxXxXxXxXxXxXxXxyxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXyXxXxXxXxXxXxXxXxXyXxXxXxXxXxXxXx ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy ",
+  "                                              ",
+  "                                              ",
+  "                                              ",
+  "                                              "
  ],
  "spawns": {
   "from_left": {
-   "x": 60,
-   "y": 184,
+   "x": 44,
+   "y": 48,
    "facing": "right"
   },
   "start": {
-   "x": 60,
-   "y": 184
+   "x": 44,
+   "y": 48,
+   "facing": "right"
+  },
+  "goal": {
+   "x": 1380,
+   "y": 1036,
+   "facing": "left"
   }
+ },
+ "meta": {
+  "seed": 19785,
+  "pathCells": 41,
+  "signs": [
+   [
+    4,
+    0
+   ],
+   [
+    9,
+    0
+   ],
+   [
+    14,
+    0
+   ],
+   [
+    14,
+    5
+   ],
+   [
+    14,
+    9
+   ]
+  ],
+  "startTile": [
+   1,
+   1
+  ],
+  "goalTile": [
+   44,
+   31
+  ]
  },
  "entities": [
   {
+   "type": "prop",
+   "id": "sign1",
+   "image": "assets/props/signpost.png",
+   "x": 419,
+   "y": 34,
+   "solid": true,
+   "script": "void10_sign1"
+  },
+  {
+   "type": "prop",
+   "id": "sign2",
+   "image": "assets/props/signpost.png",
+   "x": 899,
+   "y": 34,
+   "solid": true,
+   "script": "void10_sign2"
+  },
+  {
+   "type": "prop",
+   "id": "sign3",
+   "image": "assets/props/signpost.png",
+   "x": 1411,
+   "y": 34,
+   "solid": true,
+   "script": "void10_sign3"
+  },
+  {
+   "type": "prop",
+   "id": "sign4",
+   "image": "assets/props/signpost.png",
+   "x": 1411,
+   "y": 514,
+   "solid": true,
+   "script": "void10_sign4"
+  },
+  {
+   "type": "prop",
+   "id": "sign5",
+   "image": "assets/props/signpost.png",
+   "x": 1411,
+   "y": 898,
+   "solid": true,
+   "script": "void10_sign5"
+  },
+  {
+   "type": "prop",
+   "id": "portal",
+   "image": "assets/props/portal.png",
+   "x": 1404,
+   "y": 964,
+   "w": 40,
+   "h": 60,
+   "ix": 1404,
+   "iy": 964,
+   "solid": false,
+   "sortY": 100000
+  },
+  {
+   "type": "door",
+   "x": 1404,
+   "y": 998,
+   "w": 40,
+   "h": 26,
+   "to": "void11",
+   "spawn": "start",
+   "sfx": "whoosh"
+  },
+  {
+   "type": "npc",
+   "id": "junhee",
+   "sprite": "junhee",
+   "x": 1378,
+   "y": 1008,
+   "facing": "right",
+   "wander": 0,
+   "unless": "void10_intro"
+  },
+  {
+   "type": "npc",
+   "id": "gyeongsub",
+   "sprite": "gyeongsub",
+   "x": 1356,
+   "y": 1036,
+   "facing": "right",
+   "wander": 0,
+   "unless": "void10_intro"
+  },
+  {
    "type": "door",
    "x": 32,
-   "y": 128,
-   "w": 12,
-   "h": 128,
+   "y": 32,
+   "w": 6,
+   "h": 64,
    "to": "void9",
    "spawn": "landing",
    "sfx": false

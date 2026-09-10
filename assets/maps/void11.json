@@ -1,0 +1,116 @@
+{
+ "id": "void11",
+ "name": "???",
+ "bgm": "lancer",
+ "bgmFlag": "void11_intro",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "purple_fire",
+ "enter": {
+  "script": "void11_intro",
+  "flag": "void11_intro",
+  "early": true
+ },
+ "rows": [
+  "                                            ",
+  "                                            ",
+  "                                            ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy ",
+  "                                            ",
+  "                                            "
+ ],
+ "spawns": {
+  "start": {
+   "x": 340,
+   "y": 336,
+   "facing": "right"
+  },
+  "from_left": {
+   "x": 60,
+   "y": 336,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 1330,
+   "y": 336,
+   "facing": "left"
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "tree",
+   "image": "assets/props/tree_big.png",
+   "x": 672,
+   "y": 306,
+   "w": 64,
+   "h": 14,
+   "ix": 584,
+   "iy": 66,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "logs",
+   "image": "assets/props/logs.png",
+   "x": 752,
+   "y": 336,
+   "w": 36,
+   "h": 10,
+   "ix": 752,
+   "iy": 324,
+   "solid": true,
+   "unless": "void11_intro"
+  },
+  {
+   "type": "npc",
+   "id": "gyeongsub",
+   "sprite": "gyeongsub",
+   "x": 806,
+   "y": 330,
+   "facing": "right",
+   "wander": 0,
+   "unless": "void11_intro"
+  },
+  {
+   "type": "npc",
+   "id": "junhee",
+   "sprite": "junhee",
+   "x": 892,
+   "y": 330,
+   "facing": "left",
+   "wander": 0,
+   "unless": "void11_intro"
+  },
+  {
+   "type": "door",
+   "x": 32,
+   "y": 96,
+   "w": 8,
+   "h": 320,
+   "to": "void10",
+   "spawn": "goal",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 1368,
+   "y": 96,
+   "w": 8,
+   "h": 320,
+   "to": "void12",
+   "spawn": "from_left",
+   "sfx": false
+  }
+ ]
+}

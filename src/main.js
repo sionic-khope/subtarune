@@ -321,7 +321,11 @@ class Game {
       this.camera.map = this.map;
       this.camera.target = this.player;
       this.camera.snap();
-      if (bgm && def.bgm && !this.dialogue.running && this.state !== 'title') this.sound.playBgm(def.bgm, { volume: 0.45 });   // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
+      if (bgm && !this.dialogue.running && this.state !== 'title') {                 // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
+        const gated = def.bgmFlag && !this.has(def.bgmFlag);                        // bgmFlag: 이 플래그가 켜진 뒤에만 맵 브금 — 첫 도착 컷신이 대사 중간에 직접 켜는 맵(void11)
+        if (def.bgm && !gated) this.sound.playBgm(def.bgm, { volume: 0.45 });
+        else if (gated || def.bgm === null) this.sound.stopBgm(0.4);                // 컷신 전엔 조용히
+      }
     };
     // 맵 JSON `enter: { script, flag? }` — 도착(페이드 인 끝) 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회
     const enter = () => {
@@ -333,7 +337,8 @@ class Game {
     };
     if (instant) { go(); enter(); return; }
     this.transitioning = true;
-    this.fadeTo(1, 0.25, () => { go(); this.fadeTo(0, 0.25, () => { this.transitioning = false; this.autosave(); enter(); }, 'black'); }, 'black');   // 문 전환은 항상 검은색 (직전 컷신이 흰 페이드를 썼어도)
+    const early = !!MAPS[mapId].enter?.early;   // enter.early: 검은 화면이 걷히기 전에 시작 — 첫 노드로 카메라를 옮겨 두면 플레이어가 잠깐도 안 보인다(void11)
+    this.fadeTo(1, 0.25, () => { go(); if (early) enter(); this.fadeTo(0, 0.25, () => { this.transitioning = false; this.autosave(); if (!early) enter(); }, 'black'); }, 'black');   // 문 전환은 항상 검은색 (직전 컷신이 흰 페이드를 썼어도)
   }
 
   fadeTo(target, duration, cb, color) {
@@ -407,6 +412,7 @@ class Game {
     if (this.hurt > 0) this.hurt -= dt;
     if (this.invuln > 0) this.invuln -= dt;
     for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }
+    for (const e of this.entities) if (e.emote) { e.emote.t += dt; if (e.emote.t >= e.emote.life) e.emote = null; }   // 머리 위 이모트 수명
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
@@ -655,7 +661,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.26';
+export const BUILD = '2026-09-10.27';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
