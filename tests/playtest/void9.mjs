@@ -2,7 +2,7 @@
 //   체크포인트마다 이벤트: B 버튼(누른다 → 바위 떨어짐) / C 퀴즈(3지선다 격자) / D 웅덩이(억빠맨 {hop} 점프 → 첨벙) / E 상자(먼지) → F 오른쪽 출구 → void10.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
-process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
+process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });

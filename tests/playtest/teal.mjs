@@ -2,7 +2,7 @@
 //   → 동상 벽이 오른쪽을 막음 → 벽 동상에 C: 빠맨·경섭 대사 → 빠맨 몸통 박치기(hop)·쿵·흔들림·식은땀 → "다른 방법을 찾아봐야겠다" → 카메라가 위 길을 비춤 → 재방문 대사 → 깔린 동상 나레이션 → 위 길 → teal3 → 되돌아오기.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
-process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
+process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });

@@ -2,7 +2,7 @@
 //   → 경섭 "ㅅㅂ인생" → 뒤돌아 느낌표 → 카메라가 형섭·억빠맨에게 → 둘이 걸어옴 → 대화 → 노란 '경섭이 동료가 되었다' → 합류(파티 2명) → 브금 꺼짐 → 오른쪽 출구 void12 → 되돌아와도 컷신 없음·NPC 없음·조용.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
-process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
+process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });

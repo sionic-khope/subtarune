@@ -3,7 +3,7 @@
 //   → 전투 뒤: 미니언 파들파들 → "응 ? 뭐 뭐지" → 길 따라 내려감 → teal2 동상 벽 펑펑(동상 날아가 사라짐, statues_cleared) → teal3 주인공 화면 → "어찌저찌"/"전투를 할 수 있게 되었다!" → teal2 오른쪽 길이 뚫려 teal_east 까지.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
-process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
+process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
@@ -46,11 +46,13 @@ const shots = { spread: false, pop: false, jump: false, back: false, flash: fals
 const r = await drain(90000, async (q) => {
   if (q.text.startsWith('* 뭔가 많이') && !shots.spread) { shots.spread = true; await page.screenshot({ path: `${S}/teal3_02_spread.png` }).catch(() => {}); }
   if (q.cs1 && !spr) spr = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'cs1'); const f = game.entities.find((x) => x.id === 'cs2'); const info = (e) => e ? { fw: e.sprite.fw, fh: e.sprite.fh, px: e.sprite.px, same: e.sprite.down[0] === e.sprite.left[1], sprite: e.def.sprite } : null; return { cs1: info(e), cs2: info(f), box: game.entities.find((x) => x.id === 'toolbox')?.def.image }; });
+  if (spr && !spr.cs2) spr = null;   // cs2 는 cs1 바로 다음 노드에서 스폰 — 둘 다 있을 때만 확정(폴링이 그 사이에 걸리면 재시도)
   if (q.cs1 && q.cs1.hopY > 6 && !shots.pop) { shots.pop = true; shots.popOnScreen = q.cs1.x - q.cam > 0 && q.cs1.x - q.cam < 470 && q.p[0] - q.cam > 0; await page.screenshot({ path: `${S}/teal3_03_pop.png` }).catch(() => {}); }
   if (q.text.startsWith('* 아 안되겠다') && !shots.back) { shots.back = true; await page.screenshot({ path: `${S}/teal3_04_back.png` }).catch(() => {}); }
   if (q.zoom > 1.3 && !shots.flash) { shots.flash = true; await page.screenshot({ path: `${S}/teal3_05_battle.png` }).catch(() => {}); }
   if (q.cs1 && (await page.evaluate(() => !!game.entities.find((x) => x.id === 'cs1')?.jitter))) post.tremble = true;
-  if (q.map === 'teal2') { post.teal2 = true; const w = await page.evaluate(() => { const ws = game.entities.filter((e) => /^statue_w\d$/.test(e.id)); return { n: ws.filter((e) => !e.dead).length, fly: ws.some((e) => (e.hopY || 0) > 10) }; }); if (w.fly) { post.statueFly = true; if (!shots.smash) { shots.smash = true; await page.screenshot({ path: `${S}/teal3_07_smash.png` }).catch(() => {}); } } if (w.n === 0) post.statuesGone = true; }
+  // 동상: 위로만이 아니라 가로로도 날아가야(flyX) — 이전엔 hopY 만 봐서 제자리 점프를 못 잡았다
+  if (q.map === 'teal2') { post.teal2 = true; const w = await page.evaluate(() => { const ws = game.entities.filter((e) => /^statue_w\d$/.test(e.id)); return { n: ws.filter((e) => !e.dead).length, fly: ws.some((e) => (e.hopY || 0) > 10 && Math.abs(e.flyX || 0) > 4) }; }); if (w.fly) { post.statueFly = true; if (!shots.smash) { shots.smash = true; await page.screenshot({ path: `${S}/teal3_07_smash.png` }).catch(() => {}); } } if (w.n === 0) post.statuesGone = true; }
   // 전투가 뜨면 바로 승리 처리 (전투 검증은 battle.mjs)
   const inBattle = await page.evaluate(() => { const b = game.battle; if (!b || b.state === 'load' || b.state === 'ending') return false; if (b.state !== 'win') { for (const e of b.enemies) { e.hp = 0; e.dead = true; } b.state = 'win'; b.t = 1; b.setText('* 이겼다!'); } return true; });
   if (inBattle) { await page.waitForTimeout(80); await page.keyboard.press('KeyC'); }
@@ -77,7 +79,7 @@ check('toolbox scene: 8 lines in briefing order', idx.every((i) => i >= 0) && id
   const k = li('* 오 온다');
   check('battle start: zoom-in + shake after "오 온다!"', o.slice(k).some((x) => x.zoom > 1.3) && o.slice(k).some((x) => x.shake), JSON.stringify({ maxZoom: Math.max(...o.slice(Math.max(0, k)).map((x) => x.zoom)) })); }
 s = await st();
-check('post-battle: minions tremble → "응 ? 뭐 뭐지" → scene moves to teal2 → statues fly (hop) and vanish → "어찌저찌" / "전투를 할 수 있게 되었다!"', post.tremble && post.teal2 && post.statueFly && post.statuesGone && ['응 ? 뭐 뭐지', '어찌저찌', '전투를 할 수 있게'].every((k) => r.lines.some((l) => l.includes(k))) && s.map === 'teal3' && s.flags.statues_cleared === true, JSON.stringify({ post, map: s.map, tail: r.lines.slice(-3) }));
+check('post-battle: minions tremble → "응 ? 뭐 뭐지" → scene moves to teal2 → statues fling sideways+up (hopY & flyX) and vanish → "어찌저찌" / "전투를 할 수 있게 되었다!"', post.tremble && post.teal2 && post.statueFly && post.statuesGone && ['응 ? 뭐 뭐지', '어찌저찌', '전투를 할 수 있게'].every((k) => r.lines.some((l) => l.includes(k))) && s.map === 'teal3' && s.flags.statues_cleared === true, JSON.stringify({ post, map: s.map, tail: r.lines.slice(-3) }));
 check('after the battle: flags set (won + pending), CS removed, zoom back, camera on player, followers regrouped, controllable', s.flags.teal3_battle_pending === true && s.flags.teal3_cs_won === true && (await page.evaluate(() => game.camera.target === game.player && !game.camera.locked)) && (!s.cs1 || s.cs1.dead) && (!s.cs2 || s.cs2.dead) && s.zoom === 1 && !s.running && s.f.every((x) => x.vis && Math.hypot(x.x - s.p[0], x.y - s.p[1]) < 140), JSON.stringify({ flags: s.flags.teal3_battle_pending, cs1: s.cs1, zoom: s.zoom, f: s.f, p: s.p }));
 { await stand(bx + 4, by + 24, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC'); const r2 = await drain(6000);
   check('toolbox again: 공구상자다. 뭔가 많이 들어 있다.', r2.lines.some((l) => l.includes('뭔가 많이 들어 있다')), JSON.stringify(r2.lines)); }

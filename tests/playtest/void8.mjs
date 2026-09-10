@@ -3,7 +3,7 @@
 //   → 도착: Swimmer 제거, 억빠맨 뭍에서 마주 봄, 물 털기(jitter+물방울) → 대사 3줄 → void8_done. 기존 뗏목(void2)은 C 눌러도 점프 안 됨.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
-process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
+process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });

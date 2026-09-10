@@ -2,7 +2,7 @@
 //   → 멤버마다 [공격하기]→적 선택→C → 셋이 순서대로 빠르게 달려가 한 대씩(적 HP −1) → 적 턴: 상자·소울·탄막, 맞으면 멤버 HP 감소 → 반복 → 승리 → 컷신 이어짐(플래그·CS 제거·HP 유지).
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
-process.on('uncaughtException', (e) => { console.log(logs.join('\n')); console.log('CRASH', e.message); process.exit(2); });
+process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 for (const f of fs.readdirSync(S)) if (f.startsWith('battle_')) fs.unlinkSync(`${S}/${f}`);   // 옛 스크린샷이 남아 새 상태를 가리지 않게
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
