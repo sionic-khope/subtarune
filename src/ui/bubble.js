@@ -2,7 +2,7 @@
 // 머리 위 말풍선 "..." 연출 (재사용). 언더테일식: 흰 바탕·검은 1px 테두리·아래 꼬리, 점이 하나씩 짧은 간격으로 찍힌다.
 //   컷신 노드: { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 }  → 점이 다 찍히고 hold 만큼 머문 뒤 사라지며 다음 노드로
 //   game.bubble = new DotBubble();  main.js 가 update/draw 한다 (월드 좌표, 캐릭터 머리 위, 카메라 따라감).
-// 비율: 풍선 34×18(점 3개 기준, 점 6px·간격 4px), 꼬리 6px. 점은 풍선 정중앙 줄에 가운데 정렬.
+// 비율: 풍선 36×22(점 3개 기준, 점 4px 둥근 점·간격 4px), 꼬리 6px. 점은 풍선 정중앙 줄에 가운데 정렬. (2026-09-10: 점이 네모나고 커서 작게·둥글게, 풍선은 세로로 조금 길게)
 // ─────────────────────────────────────────────────────────────
 export class DotBubble {
   constructor() { this.target = null; this.dots = 3; this.shown = 0; this.gap = 0.4; this.hold = 0.6; this.timer = 0; this.done = true; this.fadeT = 0; }
@@ -23,7 +23,7 @@ export class DotBubble {
   draw(ctx, cam) {
     if (this.done || !this.target) return;
     const t = this.target;
-    const DOT = 6, GAP = 4, PAD = 8, H = 18, TAIL = 6, R = 4;
+    const DOT = 4, GAP = 4, PAD = 8, H = 22, TAIL = 6, R = 5;
     const w = PAD * 2 + this.dots * DOT + (this.dots - 1) * GAP;
     // 스프라이트 머리 위: 히트박스 중심 x, 스프라이트 상단(발 기준 높이) 위 6px
     const spriteH = t.sprite ? Math.round(t.sprite.fh / t.sprite.px * 1.43) : 48;
@@ -41,7 +41,7 @@ export class DotBubble {
     // 점: 정중앙 줄, 가운데 정렬, 하나씩
     ctx.fillStyle = '#000';
     const dy = y + Math.round((H - DOT) / 2);
-    for (let i = 0; i < this.shown; i++) ctx.fillRect(x + PAD + i * (DOT + GAP), dy, DOT, DOT);
+    for (let i = 0; i < this.shown; i++) { const px = x + PAD + i * (DOT + GAP); ctx.fillRect(px + 1, dy, DOT - 2, DOT); ctx.fillRect(px, dy + 1, DOT, DOT - 2); }   // 4px 둥근 점(모서리 뺌)
     ctx.restore();
   }
 }

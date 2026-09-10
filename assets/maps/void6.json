@@ -1,128 +1,128 @@
 {
-  "id": "void6",
-  "name": "???",
-  "bgm": "scarlet",
-  "stage": "void_fallen",
-  "dim": 0.3,
-  "backdrop": "purple_fire",
-  "rows": [
-    "                          ",
-    " xXx                      ",
-    " XxX                      ",
-    " xXx                      ",
-    " XxX                      ",
-    " xXxXxXxXxXxXxXxXxXxXxXxX ",
-    " XxXxXxXxXxXxXxXxXxXxXxXx ",
-    " xXxXxXxXxXxXxXxXxXxXxXxX ",
-    " yyyyyyyyyyyyyyyyyyyyyxXx ",
-    "                      XxX ",
-    "                      xXx ",
-    "                      XxX ",
-    "                      xXx ",
-    "                      yyy "
-  ],
-  "spawns": {
-    "from_top": {
-      "x": 64,
-      "y": 58,
-      "facing": "down"
-    },
-    "start": {
-      "x": 64,
-      "y": 58
-    },
-    "door_back": {
-      "x": 736,
-      "y": 352,
-      "facing": "up"
-    }
+ "id": "void6",
+ "name": "???",
+ "bgm": "scarlet",
+ "stage": "void_fallen",
+ "dim": 0.3,
+ "backdrop": "purple_fire",
+ "rows": [
+  "                                                ",
+  " xXx                                            ",
+  " XxX                                            ",
+  " xXx                                            ",
+  " XxX                                            ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxXx ",
+  "                                            XxX ",
+  "                                            xXx ",
+  "                                            XxX ",
+  "                                            xXx ",
+  "                                            yyy "
+ ],
+ "spawns": {
+  "from_top": {
+   "x": 64,
+   "y": 58,
+   "facing": "down"
   },
-  "entities": [
-    {
-      "type": "door",
-      "x": 32,
-      "y": 32,
-      "w": 96,
-      "h": 10,
-      "to": "void5",
-      "spawn": "door_back",
-      "sfx": false
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 144,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 0.0,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 240,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 0.667,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 336,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 1.333,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 432,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 0.0,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 528,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 0.667,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 624,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 1.333,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "door",
-      "x": 704,
-      "y": 404,
-      "w": 96,
-      "h": 12,
-      "to": "void7",
-      "spawn": "from_top",
-      "sfx": false
-    }
-  ]
+  "start": {
+   "x": 64,
+   "y": 58
+  },
+  "door_back": {
+   "x": 1440,
+   "y": 384,
+   "facing": "up"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 32,
+   "w": 96,
+   "h": 10,
+   "to": "void5",
+   "spawn": "door_back",
+   "sfx": false
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 400,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 0.0,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 560,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 0.667,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 720,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 1.334,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 880,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 0.0,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 1040,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 0.667,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 1200,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 1.334,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "door",
+   "x": 1408,
+   "y": 404,
+   "w": 96,
+   "h": 12,
+   "to": "void7",
+   "spawn": "from_top",
+   "sfx": false
+  }
+ ]
 }

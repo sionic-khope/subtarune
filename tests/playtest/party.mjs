@@ -35,7 +35,7 @@ let r = await untilChoice();
 check('greeting then choice', r.choice && r.texts.some((t) => t.includes('구해주셔서 감사해요')), JSON.stringify(r.texts));
 await page.screenshot({ path: `${S}/party_01_choice.png` });
 // 1. 여긴 어디
-await page.evaluate(() => { window.__shown = []; const o = game.textbox.show.bind(game.textbox); game.textbox.show = (node, ctx, cb) => { window.__shown.push((node.auto !== undefined ? 'A' : '') + (node.speaker || '') + '|' + (node.text || '')); return o(node, ctx, cb); }; });   // 'A' = auto(개그 상자)   // 0.16s 개그 상자는 폴링으로 못 세니 show() 호출을 기록
+await page.evaluate(() => { window.__shown = []; const o = game.textbox.show.bind(game.textbox); game.textbox.show = (node, ctx, cb) => { window.__shown.push((node.auto !== undefined ? 'A' : '') + (node.speaker || '') + '|' + (node.text || '')); if (node.auto !== undefined) (window.__autos = window.__autos || []).push(node.auto); return o(node, ctx, cb); }; });   // 'A' = auto(개그 상자)   // 0.16s 개그 상자는 폴링으로 못 세니 show() 호출을 기록
 const t1 = Date.now(); await pick(0);
 // 개그 뒤 말풍선: 대화창이 닫힌 채 형섭 머리 위 점이 하나씩 (bubble.shown 1→3)
 let bubbleSeen = 0, bubbleBoxClosed = false;
@@ -45,7 +45,8 @@ r = await untilChoice(120); const gagSec = (Date.now() - t1) / 1000;
 const shown = await page.evaluate(() => window.__shown);
 const boom = shown.filter((t) => t.startsWith('A억빠맨|'));   // auto 0.16s 개그 상자만
 check('where: story lines', shown.some((t) => t.includes('저도 잘 모르겠어요')) && shown.some((t) => t.includes('꺄아아아아아악')), JSON.stringify(shown.slice(0, 5)));
-check('where: rapid gag 20 boxes', boom.length === 20, `${boom.length} in ${gagSec.toFixed(1)}s`);
+check('where: rapid gag 30 boxes', boom.length === 30, `${boom.length} in ${gagSec.toFixed(1)}s`);
+{ const autos = await page.evaluate(() => window.__autos || []); check('where: gag boxes accelerate (first slower than last)', autos.length >= 2 && autos[0] > autos[autos.length - 1] && autos.every((a, i) => i === 0 || a <= autos[i - 1]), JSON.stringify(autos)); }
 check('where: gag fast (<12s total incl. lines+bubble)', gagSec < 14, gagSec.toFixed(1) + 's');
 check('where: 했어요 → narrator ㅂㅅ새끼같다 → 어쨋든', shown.some((t) => t.endsWith('|* 했어요.')) && shown.some((t) => t.startsWith('|') && t.includes('ㅂㅅ새끼')) && shown.some((t) => t.includes('어쨋든 그래요')), '');
 check('loop prompt: 더 물어보실거 있으세요?', r.choice && r.prompt.includes('더 물어보실거'), r.prompt);
@@ -66,7 +67,7 @@ await page.screenshot({ path: `${S}/party_03_joined.png` });
 await hold('ArrowRight', 1200); await page.waitForTimeout(700);
 s = await st();
 const gap = s.f ? Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) : 0;
-check('follower trails behind (left of player), reasonable gap', s.f && s.f[0] < s.p[0] && gap > 16 && gap < 60, JSON.stringify({ p: s.p, f: s.f, gap: Math.round(gap) }));
+check('follower trails behind (left of player), 1.5-tile gap', s.f && s.f[0] < s.p[0] && gap > 36 && gap < 72, JSON.stringify({ p: s.p, f: s.f, gap: Math.round(gap) }));
 check('follower faces walking direction and stops', s.f && s.f[2] === 'right' && s.f[3] === false, JSON.stringify(s.f));
 await page.screenshot({ path: `${S}/party_04_follow.png` });
 await hold('ArrowLeft', 900); await page.waitForTimeout(400); s = await st();
@@ -89,9 +90,9 @@ await page.waitForTimeout(900); s = await st();
 check('continue restores party + follower', s.state === 'field' && s.party.includes('ppaman') && !!s.f && !s.npc, JSON.stringify({ party: s.party, f: s.f, npc: s.npc }));
 // 맵 전환 후 재정렬 + 뗏목 동승
 await page.evaluate(() => game.changeMap('void4', 'from_void3', true)); await page.waitForTimeout(300); s = await st();
-check('after map change follower regroups behind', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 40, JSON.stringify({ p: s.p, f: s.f }));
+check('after map change follower regroups behind', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70, JSON.stringify({ p: s.p, f: s.f }));
 await stand(132, 274, 'right'); await page.waitForTimeout(100); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
-check('follower rides along on the raft', s.ride && s.f && Math.abs(s.f[0] - s.p[0]) < 12 && Math.abs(s.f[1] - s.p[1]) < 8, JSON.stringify({ p: s.p, f: s.f }));
+check('follower rides along on the raft (beside, not overlapping)', s.ride && s.f && Math.abs(s.f[0] - s.p[0]) >= 12 && Math.abs(s.f[0] - s.p[0]) < 24 && Math.abs(s.f[1] - s.p[1]) < 8, JSON.stringify({ p: s.p, f: s.f }));
 check('follower stands still on the raft (no walk animation)', s.f && s.f[3] === false && s.f[4] === 0, JSON.stringify(s.f));
 await page.screenshot({ path: `${S}/party_06_raft.png` });
 // QA party 지점

@@ -47,8 +47,8 @@ check('ppaman lines with 억빠맨 name/portrait', seen.filter((x) => x.startsWi
 check('no 오케이 line', !seen.some((x) => x.includes('오케이')), seen.join(' / '));
 s = await st(); check('camera back to player, zoom 1', !s.locked && s.zoom === 1);
 // 잠긴 문
-await stand(2370, 300, 'right'); await page.waitForTimeout(120); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
-s = await st(); check('door locked line', s.text.includes('자물쇠'), s.text); await finish();
+await stand(2360, 236, 'up'); await page.waitForTimeout(200); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);   // 작은 문 아래에서 위를 보고 C (밟아서는 안 열림)
+s = await st(); check('door locked line (C on door)', s.text.includes('자물쇠'), s.text); await finish();
 // 계단 → 레버
 await stand(2276, 300, 'up'); await page.keyboard.down('ArrowUp'); await page.waitForTimeout(2000); await page.keyboard.up('ArrowUp'); await page.waitForTimeout(100);
 s = await st(); check('climbed stairs to upper platform', s.p[1] < 96, JSON.stringify(s.p));

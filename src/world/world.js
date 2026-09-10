@@ -260,6 +260,13 @@ export class Player extends Character {
     this.lastMove = 0;
   }
   update(dt, input) {
+    if (this.knock) {                       // 피격 슬라이드: 입력 없이 옆으로 미끄러진다(벽에 부딪히는 느낌 금지) — game.hurtPlayer 가 건다
+      const k = this.knock; k.t -= dt;
+      this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, 0);
+      if (k.t <= 0) this.knock = null;
+      this.moving = false; this.animate(dt);
+      return;
+    }
     const startX = this.x, startY = this.y;
     const a = input.axis();
     if (a.x !== 0 || a.y !== 0) {
@@ -387,11 +394,21 @@ export class Trigger extends Entity {
 
 /**
  * 문/워프: 밟으면 다른 맵으로. 트리거와 같은 진입 규칙(edge 1회 + 쿨다운 + 대사 중 무시).
- *   { type:'door', x,y,w?,h?, to:'맵', spawn:'스폰', requires?:'플래그', lockedScript?:'스크립트', sfx?:false|'이름' }
+ *   { type:'door', x,y,w?,h?, to:'맵', spawn:'스폰', requires?:'플래그', lockedScript?:'스크립트', sfx?:false|'이름', interact?:true }
  *   requires 플래그가 없으면 lockedScript 대사만 띄우고 이동하지 않는다 (같은 자리에 서 있어도 반복 안 됨).
+ *   interact:true 면 **밟아서는 아무 일도 없고 앞에서 C 를 눌러야** 연다(잠긴 작은 문 등, 2026-09-10 사용자 규칙 "상호작용해야 문이 열려야지").
+ *     이때 x,y,w,h 는 상호작용 히트박스 — 문 그림보다 넓게(≈70px) 줘서 좁은 자리 찾기가 없게 한다.
  */
 export class Door extends Trigger {
   constructor(def, game) { super({ w: TILE, h: TILE * 0.375, ...def }, game); }
+  canInteract() { return !!this.def.interact; }
+  interact() {
+    if (!this.def.interact) return false;
+    if (this.running || this.cooldown > 0 || this.game.dialogue.running || this.game.transitioning) return true;
+    this.running = true; this.fire(() => { this.running = false; this.cooldown = Trigger.COOLDOWN; });
+    return true;
+  }
+  update(dt) { if (this.def.interact) { if (this.cooldown > 0) this.cooldown -= dt; return; } super.update(dt); }
   fire(done) {
     if (this.def.requires && !this.game.has(this.def.requires)) {
       if (this.def.lockedScript) this.game.runScript(this.def.lockedScript, done); else done();
@@ -489,14 +506,14 @@ export class Raft extends Prop {
 
 /**
  * 동료(파티원): 델타룬처럼 주인공의 발자국을 일정 거리 뒤에서 따라 걷는다. 충돌 없음(끼임 방지).
- *   game.party = ['ppaman', ...] 순서대로 1번·2번 뒤. 맵 전환 시 주인공 뒤에 다시 모인다. 탈것(ride) 중엔 주인공 옆에 붙는다.
+ *   game.party = ['ppaman', ...] 순서대로 1번·2번 뒤(슬롯당 1.5타일). 맵 전환 시 주인공 뒤에 다시 모인다. 탈것(ride) 중엔 주인공 옆에 붙는다.
  *   말을 걸 수 있는 대상은 아니다(canInteract false). 컷신에서 id 로 move/face 가능(id = 캐릭터 id).
  */
 export class Follower extends Character {
   constructor(def, game) {
     super({ solid: false, ...def }, game);
     this.slot = def.slot ?? 1;                       // 뒤에서 몇 번째
-    this.gap = TILE * 0.9 * this.slot;               // 주인공과의 거리(발자국 길이)
+    this.gap = TILE * 1.5 * this.slot;               // 주인공과의 거리(발자국 길이) — 1.5타일, 바로 뒤에 붙지 않게 (2026-09-10 사용자 지적)
     this.snapBehind();
   }
   canInteract() { return false; }
@@ -510,8 +527,12 @@ export class Follower extends Character {
   }
   update(dt) {
     const p = this.game.player; if (!p) return;
+    if (this.knock) {                                // 주인공이 피격 슬라이드 중이면 같이 미끄러진다(간격 유지, 겹침 방지)
+      const k = this.knock; k.t -= dt; this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, 0);
+      if (k.t <= 0) this.knock = null; this.moving = false; this.animate(dt); return;
+    }
     if (this.game.dialogue.running) return;          // 컷신 중엔 컷신(move)이 움직인다 — 발자국 추종과 싸우지 않게
-    if (this.game.ride) { this.x = p.x - 6 * this.slot; this.y = p.y - 2 * this.slot; this.facing = p.facing; this.moving = false; this.frame = 0; this.animPhase = 0; return; }   // 탈것 위에선 동료도 가만히
+    if (this.game.ride) { this.x = p.x - 18 * this.slot; this.y = p.y - 3 * this.slot; this.facing = p.facing; this.moving = false; this.frame = 0; this.animPhase = 0; return; }   // 탈것 위에선 동료도 가만히, 주인공 옆(겹치지 않게)
     const trail = p.trail || [];
     // 발자국을 뒤에서부터 gap 만큼 거슬러 올라간 지점이 목표
     let acc = 0, target = null, prev = { x: p.x, y: p.y };
@@ -536,21 +557,27 @@ export class Follower extends Character {
 
 registerEntity('player', Player);
 /**
- * 낙석 레인(재사용): 정해진 x 에서 일정한 리듬으로 바위가 떨어진다. 떨어지기 전엔 세로 빛기둥(스포트라이트)이 그 자리를 비춘다.
- *   { type:'rockfall', image:'assets/props/rock.png', x:<레인 중심>, ground:<착지 y(중심)>, hitH:96, period:2.0, offset:0, warn:0.7, fall:0.2, rest:0.4 }
- *   주기: idle → warn(빛기둥) → fall(낙하) → rest(바닥에 놓임) → idle. 착지 순간·rest 동안 플레이어가 겹치면 game.hurtPlayer(레인 왼쪽으로 밀림).
- *   대사/탈것 중엔 맞지 않는다. 빛기둥은 어두움(dim) 위에 그려진다(drawOverlay).
+ * 낙석 레인(재사용): 정해진 x 에서 일정한 리듬으로 바위가 **화면 위에서 길 전체를 쓸고 내려와** 길 맨 아래(ground)에 떨어진다.
+ *   { type:'rockfall', image:'assets/props/rock.png', x:<레인 중심>, ground:<착지 y(바위 아래쪽)>, period:2.0, offset:0, warn:0.8, fall:0.4, rest:0.45 }
+ *   주기: idle → warn(부드러운 스포트라이트만, 가운데 선·흰 섬광 없음) → fall(위→아래로 길의 모든 줄을 지나감) → rest(바닥에 놓였다 사라짐) → idle.
+ *   피격: 떨어지는 동안·놓인 직후 바위 사각형과 겹치면 game.hurtPlayer(무음) → 왼쪽으로 슬라이드. 어느 줄에 서 있든 바위가 실제로 지나갈 때만 맞는다.
+ *   소리 없음(2026-09-10 사용자 규칙). 대사/탈것 중엔 맞지 않는다. 스포트라이트는 어두움(dim) 위에 그려진다(drawOverlay).
  */
 export class Rockfall extends Entity {
   constructor(def, game) {
-    const w = def.w ?? 28, h = def.hitH ?? 96;               // 히트 영역은 빛기둥 폭 × 길 전체 높이(3줄) — 어느 줄로 지나가도 맞는다
-    super({ solid: false, ...def, x: def.x - w / 2, y: def.ground - h / 2, w, h }, game);
-    this.lx = def.x; this.gy = def.ground; this.top = def.top ?? -40;
-    this.period = def.period ?? 2.0; this.offset = def.offset ?? 0; this.warn = def.warn ?? 0.7; this.fall = def.fall ?? 0.2; this.rest = def.rest ?? 0.4;
+    const w = def.w ?? 28;
+    super({ solid: false, ...def, x: def.x - w / 2, y: def.ground - 24, w, h: 24 }, game);
+    this.lx = def.x; this.gy = def.ground; this.top = def.top ?? -48;
+    this.period = def.period ?? 2.0; this.offset = def.offset ?? 0; this.warn = def.warn ?? 0.8; this.fall = def.fall ?? 0.4; this.rest = def.rest ?? 0.45;
     this.image = game.propImages[def.image] || null;
+    this.rw = this.image ? this.image.width : 28; this.rh = this.image ? this.image.height : 24;
     this.t = this.offset; this.phase = 'idle'; this.k = 0; this.hitDone = false;
   }
   canInteract() { return false; }
+  /** 바위 아래쪽 y (떨어지는 동안은 위에서 가속) */
+  rockY() { return this.phase === 'fall' ? this.top + (this.gy - this.top) * Math.pow(this.k, 1.7) : this.gy; }
+  /** 지금 바위의 월드 사각형 — 떨어지는 동안 길의 모든 줄을 지나간다 */
+  get rockRect() { const y = this.rockY(); return { x: this.lx - this.rw / 2 + 2, y: y - this.rh + 4, w: this.rw - 4, h: this.rh - 4 }; }
   update(dt) {
     this.t = (this.t + dt) % this.period;
     const t = this.t, w = this.warn, f = this.fall, r = this.rest;
@@ -558,34 +585,30 @@ export class Rockfall extends Entity {
     if (t < w) { phase = 'warn'; k = t / w; }
     else if (t < w + f) { phase = 'fall'; k = (t - w) / f; }
     else if (t < w + f + r) { phase = 'rest'; k = (t - w - f) / r; }
-    if (phase === 'rest' && this.phase !== 'rest') { this.hitDone = false; this.game.sound.sfx('thud', { volume: 0.35, rate: 1.4 }); }
+    if (phase === 'warn' && this.phase !== 'warn') this.hitDone = false;
     this.phase = phase; this.k = k;
     const p = this.game.player;
-    if (phase === 'rest' && !this.hitDone && k < 0.6 && p && !this.game.dialogue.running && !this.game.ride && p.overlaps(this.rect)) { this.hitDone = true; this.game.hurtPlayer(this); }
+    const active = phase === 'fall' || (phase === 'rest' && k < 0.5);
+    if (active && !this.hitDone && p && !this.game.dialogue.running && !this.game.ride && p.overlaps(this.rockRect)) { this.hitDone = true; this.game.hurtPlayer(this, { silent: true }); }
   }
-  /** 바위 (y 정렬 대상). idle 땐 안 보임 */
+  /** 바위 (y 정렬 대상). idle·warn 땐 안 보임 */
   draw(ctx, cam) {
     if (this.phase === 'idle' || this.phase === 'warn') return;
-    const rw = this.image ? this.image.width : 28, rh = this.image ? this.image.height : 24;
-    const y = this.phase === 'fall' ? this.top + (this.gy - this.top) * (this.k * this.k) : this.gy;
-    const x = Math.round(this.lx - rw / 2 - cam.x), yy = Math.round(y - rh + 6 - cam.y);
-    if (this.phase === 'fall') { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(this.lx - cam.x), Math.round(this.gy + 4 - cam.y), 6 + 8 * this.k, 3 + 3 * this.k, 0, 0, Math.PI * 2); ctx.fill(); }
-    if (this.phase === 'rest' && this.k > 0.75) ctx.globalAlpha = 1 - (this.k - 0.75) / 0.25;
-    if (this.image) ctx.drawImage(this.image, x, yy); else { ctx.fillStyle = '#6b5a80'; ctx.fillRect(x, yy, rw, rh); }
+    const y = this.rockY();
+    const x = Math.round(this.lx - this.rw / 2 - cam.x), yy = Math.round(y - this.rh - cam.y);
+    if (this.phase === 'fall') { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(this.lx - cam.x), Math.round(this.gy + 2 - cam.y), 5 + 9 * this.k, 2 + 3 * this.k, 0, 0, Math.PI * 2); ctx.fill(); }   // 바닥 그림자(어둡게, 커짐)
+    if (this.phase === 'rest' && this.k > 0.7) ctx.globalAlpha = 1 - (this.k - 0.7) / 0.3;
+    if (this.image) ctx.drawImage(this.image, x, yy); else { ctx.fillStyle = '#5a4a70'; ctx.fillRect(x, yy, this.rw, this.rh); }
     ctx.globalAlpha = 1;
   }
-  /** 빛기둥·착지 섬광 (어두움 위에) */
+  /** 스포트라이트(어두움 위에): 위는 좁고 아래는 넓은 연보라 원뿔 + 바닥 타원. 가운데 선·착지 섬광 없음 (2026-09-10 사용자 지적) */
   drawOverlay(ctx, cam) {
+    if (this.phase !== 'warn' && this.phase !== 'fall') return;
     const x = Math.round(this.lx - cam.x), gy = Math.round(this.gy - cam.y);
-    if (this.phase === 'warn' || this.phase === 'fall') {
-      const a = this.phase === 'warn' ? 0.12 + 0.38 * this.k : 0.55;
-      const g = ctx.createLinearGradient(0, 0, 0, gy + 12);
-      g.addColorStop(0, `rgba(235,215,255,${a * 0.35})`); g.addColorStop(1, `rgba(235,215,255,${a})`);
-      ctx.fillStyle = g; ctx.fillRect(x - 16, 0, 32, gy + 12);
-      ctx.fillStyle = `rgba(255,255,255,${a * 0.5})`; ctx.fillRect(x - 3, 0, 6, gy + 12);
-      ctx.fillStyle = `rgba(235,215,255,${a})`; ctx.beginPath(); ctx.ellipse(x, gy + 4, 18, 6, 0, 0, Math.PI * 2); ctx.fill();
-    }
-    if (this.phase === 'rest' && this.k < 0.25) { ctx.fillStyle = `rgba(255,255,255,${(0.25 - this.k) * 2})`; ctx.beginPath(); ctx.ellipse(x, gy + 4, 22 + this.k * 40, 7 + this.k * 10, 0, 0, Math.PI * 2); ctx.fill(); }
+    const a = this.phase === 'warn' ? 0.08 + 0.2 * this.k : 0.28;
+    ctx.fillStyle = `rgba(205,180,245,${a})`;
+    ctx.beginPath(); ctx.moveTo(x - 7, 0); ctx.lineTo(x + 7, 0); ctx.lineTo(x + 19, gy + 4); ctx.lineTo(x - 19, gy + 4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = `rgba(215,195,250,${a * 1.15})`; ctx.beginPath(); ctx.ellipse(x, gy + 2, 19, 6, 0, 0, Math.PI * 2); ctx.fill();
   }
 }
 

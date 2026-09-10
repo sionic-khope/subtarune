@@ -210,14 +210,39 @@ def main():
 
 
 # ── 낙석 ─────────────────────────────────────────────────────────
+ROCK_GRID = [
+    "..........########..........",
+    ".......###llllllll###.......",
+    ".....##lllhhlllllllaa##.....",
+    "....#lllhhllllllllaaaaa#....",
+    "...#lllhlllllllllaaaaaaa#...",
+    "..#llllllllllllaaaaaaaaaa#..",
+    "..#lllllllllaaaaaaaaaaaaa#..",
+    ".#lllllllaaaaaaaaaaaaaaaaa#.",
+    ".#llllllaaaaaaaaaaaaaaaaad#.",
+    "#lllllaaaaaaaaaaaaaaaaaaadd#",
+    "#llllaaaaaaaaaadaaaaaaaaddd#",
+    "#lllaaaaaaaaaadaaaaaaaaaddd#",
+    "#llaaaaaaaaaaadaaaaaaaadddd#",
+    "#laaaaaaaaaaadaaaaaaaaddddd#",
+    "#aaaaaaaaaaaadaaaaaaaaddddd#",
+    "#aaaaaaaaaaadaaaaaaaadddddd#",
+    ".#aaaaaaaaaaaaaaaaaadddddd#.",
+    ".#aaaaaaaaaaaaaaaaaddddddd#.",
+    "..#aaaaaaaaaaaaaddddddddd#..",
+    "..#aaaaaaaaaaaddddddddddd#..",
+    "...#aaaaaaaadddddddddddd#...",
+    "....#dddddddddddddddddd#....",
+    ".....##dddddddddddddd##.....",
+    ".......##############.......",
+]
 def prop_rock():
-    """낙석 28x24: 보라빛 회색 바위, 외곽선 + 2톤 (캐릭터 폭 정도)"""
-    w, h = 28, 24; c = Canvas(w, h)
-    RK = hexc('#6b5a80'); RK_L = hexc('#8a78a3'); RK_D = hexc('#4a3d5c')
-    c.rrect_outlined(0, 3, w, h - 3, RK, OUT, 5)
-    c.rrect(6, 0, 16, 8, RK, 3); c.outline(6, 0, 16, 2, OUT); c.px(5, 1, OUT); c.px(22, 1, OUT)
-    c.hline(8, 3, 12, RK_L); c.hline(3, 7, 8, RK_L); c.px(20, 8, RK_L)
-    c.rect(4, h - 6, w - 8, 3, RK_D); c.px(9, 12, RK_D); c.px(18, 15, RK_D); c.px(14, 9, RK_D)
+    """낙석 28x24: 손그림 그리드 — 둥근 덩어리, 왼쪽 위 밝음·오른쪽 아래 어두움, 금 한 줄. 2026-09-10 사용자 지적으로 다시 그림(전엔 둥근 사각형+혹)"""
+    pal = {'#': OUT, 'a': hexc('#5a4a70'), 'l': hexc('#7d6b96'), 'd': hexc('#3e3050'), 'h': hexc('#a494bd')}
+    c = Canvas(28, 24)
+    for y, row in enumerate(ROCK_GRID):
+        for x, ch in enumerate(row):
+            if ch != '.': c.px(x, y, pal[ch])
     return c
 
 _main2 = main

@@ -1,5 +1,5 @@
 // 레버 열쇠 → 철컥 문 → 낙석 맵 3개(3/6/9) → 다음 방 검증.
-//   ?qa=key → 문에 닿음 → 억빠맨 "어라 문이 잠겨있네요" → 억빠맨이 앞장서 레버로(플레이어 따라감) → "음음 이 레버를" → 레버 사라짐 → "뽑아버렸다" → "열쇠?를 얻었다"(인벤토리)
+//   ?qa=key → 문 아래에서 위를 보고 C(밟아서는 안 열림) → 억빠맨 "어라 문이 잠겨있네요" → 억빠맨이 앞장서 레버로(플레이어 따라감) → "음음 이 레버를" → 레버 사라짐 → "뽑아버렸다" → "열쇠?를 얻었다"(인벤토리)
 //   → 문에 다시 닿음 → "철컥! 문이 열렸다." → "ㅎㅎ" → void5(브금 scarlet, 자물쇠 없음) → 낙석: 빛기둥(warn) → 낙하 → 착지 시 맞으면 뒤로 밀림 → 안전 타이밍에 건너 → 아래로 → void6 → void7 → 오른쪽 끝 → void8.
 // 실행: CHROME_EXE=... node tests/playtest/rockfall.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
@@ -13,9 +13,11 @@ page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
 const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 15000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player))) return; await page.waitForTimeout(100); } };
-const st = () => page.evaluate(() => { const f = game.entities.find((e) => e.def?.type === 'follower'); return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', p: [Math.round(game.player.x), Math.round(game.player.y)], f: f ? [Math.round(f.x), Math.round(f.y)] : null, flags: { ...game.flags }, inv: [...game.inventory], bgm: game.sound.bgmName, leverOn: !!game.entities.find((e) => e.id === 'lever_on' && !e.dead && e.visible), padlock: !!game.entities.find((e) => e.id === 'padlock' && !e.dead), rocks: game.entities.filter((e) => e.def?.type === 'rockfall').map((r) => ({ x: r.lx, phase: r.phase, k: +r.k.toFixed(2) })), hurt: game.hurt > 0, invuln: game.invuln > 0 }; });
+const st = () => page.evaluate(() => { const f = game.entities.find((e) => e.def?.type === 'follower'); return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', p: [Math.round(game.player.x), Math.round(game.player.y)], f: f ? [Math.round(f.x), Math.round(f.y)] : null, flags: { ...game.flags }, inv: [...game.inventory], bgm: game.sound.bgmName, leverOn: !!game.entities.find((e) => e.id === 'lever_on' && !e.dead && e.visible), padlock: !!game.entities.find((e) => e.id === 'padlock' && !e.dead), rocks: game.entities.filter((e) => e.def?.type === 'rockfall').map((r) => ({ x: r.lx, phase: r.phase, k: +r.k.toFixed(2), ry: Math.round(r.rockRect.y) })), hurt: game.hurt > 0, invuln: game.invuln > 0, knock: !!game.player.knock, sfx: (window.__sfx || []).slice() }; });
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.player.trail = []; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); }, [x, y, f]);
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
+const doorC = async () => { await stand(2360, 236, 'up'); await page.waitForTimeout(500); await page.keyboard.press('KeyC'); };   // 작은 문 아래에서 위를 보고 C
+const hookSfx = () => page.evaluate(() => { window.__sfx = []; const o = game.sound.sfx.bind(game.sound); game.sound.sfx = (n, opt) => { window.__sfx.push(n); return o(n, opt); }; });
 const collect = async (max = 80) => {   // 대사를 넘기며 (speaker|text) 를 모은다. 컷신 이동 중엔 기다림
   const out = []; let idle = 0;
   for (let i = 0; i < max; i++) {
@@ -27,11 +29,22 @@ const collect = async (max = 80) => {   // 대사를 넘기며 (speaker|text) �
   return out;
 };
 
+// ── 0) 합류 전: 문 앞에서 C → "자물쇠로 잠겨 있다" / 밟고 지나가도 아무 일 없음 ──
+await page.goto('http://127.0.0.1:8000/index.html?qa=void4_end'); await ready(); await page.waitForTimeout(400);
+let s = await st(); check('qa=void4_end: before joining', s.map === 'void4' && !s.flags.ppaman_joined, JSON.stringify(s.flags));
+await stand(2300, 236, 'right'); await hold('ArrowRight', 700); await page.waitForTimeout(400); s = await st();
+check('walking under/into the door does nothing', s.map === 'void4' && !s.running, JSON.stringify({ map: s.map, running: s.running, p: s.p }));
+await doorC(); let lines = await collect();
+check('before joining: C on door → 자물쇠로 잠겨 있다', lines.some((l) => l.includes('자물쇠로 잠겨')), JSON.stringify(lines));
+await stand(2340, 236, 'up'); await page.waitForTimeout(500); await page.keyboard.press('KeyC'); lines = await collect();
+check('door interact area is wide (left edge of door image still works)', lines.some((l) => l.includes('자물쇠로 잠겨')), JSON.stringify(lines));
+await page.screenshot({ path: `${S}/rock_00_locked.png` });
+
 // ── 1) 잠긴 문 → 레버 열쇠 ──
 await page.goto('http://127.0.0.1:8000/index.html?qa=key'); await ready(); await page.waitForTimeout(400);
-let s = await st(); check('qa=key: void4 landing with party', s.map === 'void4' && s.flags.ppaman_joined && !!s.f, JSON.stringify({ p: s.p, f: s.f }));
-await stand(2350, 300, 'right'); await page.waitForTimeout(700); await hold('ArrowRight', 500);
-let lines = []; let ppamanAtLever = false;
+s = await st(); check('qa=key: void4 landing with party', s.map === 'void4' && s.flags.ppaman_joined && !!s.f, JSON.stringify({ p: s.p, f: s.f }));
+await doorC();
+lines = []; let ppamanAtLever = false;
 { const t0 = Date.now(); while (Date.now() - t0 < 30000) { await page.waitForTimeout(150); s = await st(); if (!s.running && lines.length) break; if (s.f && s.f[1] < 100 && s.f[0] < 2260) ppamanAtLever = true; if (s.box === 'waiting') { const k = (s.speaker || '') + '|' + s.text; if (!lines.includes(k)) lines.push(k); if (s.text.includes('이 레버를')) await page.screenshot({ path: `${S}/rock_01_lever.png` }); await page.keyboard.press('KeyC'); } else if (s.box === 'typing') await page.keyboard.press('KeyC'); } }
 check('door: 어라 문이 잠겨있네요 / 아까 레버에', lines.some((l) => l.includes('문이 잠겨있네요')) && lines.some((l) => l.includes('레버에 뭐 없으셨어요')), JSON.stringify(lines.slice(0, 2)));
 check('ppaman led the way to the lever (upper platform)', ppamanAtLever);
@@ -39,10 +52,10 @@ s = await st();
 check('player followed up to the platform', s.p[1] < 100 && s.p[0] > 2260, JSON.stringify(s.p));
 check('음음 이 레버를 → 뽑아버렸다 → 열쇠', lines.some((l) => l.includes('이 레버를')) && lines.some((l) => l.startsWith('|') && l.includes('뽑아버렸다')) && lines.some((l) => l.includes('열쇠로 쓰면')) && lines.some((l) => l.includes('열쇠?')), JSON.stringify(lines.slice(2)));
 check('lever gone, key in inventory, flag', !s.leverOn && s.inv.includes('열쇠?') && s.flags.lever_taken, JSON.stringify({ lever: s.leverOn, inv: s.inv }));
-check('follower regrouped near player', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 40, JSON.stringify({ p: s.p, f: s.f }));
+check('follower regrouped near player (1.5 tiles)', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70, JSON.stringify({ p: s.p, f: s.f }));
 await page.screenshot({ path: `${S}/rock_02_key.png` });
-// ── 2) 문 열기 ──
-await stand(2350, 300, 'right'); await page.waitForTimeout(700); await hold('ArrowRight', 500);
+// ── 2) 문 열기 (C) ──
+await doorC();
 lines = await collect();
 await page.waitForTimeout(800); s = await st();
 check('철컥! 문이 열렸다 → ㅎㅎ', lines.some((l) => l.includes('철컥')) && lines.some((l) => l.includes('ㅎㅎ')), JSON.stringify(lines));
@@ -51,19 +64,29 @@ await page.screenshot({ path: `${S}/rock_03_void5.png` });
 // void4 로 돌아가면 자물쇠 없음 + 문이 바로 열림
 await page.evaluate(() => game.changeMap('void4', 'door_back', true)); await page.waitForTimeout(300); s = await st();
 check('back in void4: padlock gone', !s.padlock);
-await page.waitForTimeout(600); await hold('ArrowRight', 700); await page.waitForTimeout(900); s = await st();
-check('open door passes straight to void5', s.map === 'void5' && !s.running, s.map);
+await stand(2300, 236, 'right'); await hold('ArrowRight', 700); await page.waitForTimeout(400); s = await st();
+check('open door: walking past does NOT warp', s.map === 'void4');
+await doorC(); await page.waitForTimeout(1200); s = await st();
+check('open door: C passes straight to void5', s.map === 'void5' && !s.running, s.map);
 
 // ── 3) 낙석 맵 ──
 const crossMap = async (mapId, expectLanes, exitDir, nextMap) => {
   s = await st(); check(`${mapId}: ${expectLanes} rockfall lanes`, s.map === mapId && s.rocks.length === expectLanes, JSON.stringify({ map: s.map, n: s.rocks.length }));
   // 빛기둥 → 낙하 → 착지 순서 관찰
-  const seen = new Set(); { const t0 = Date.now(); while (Date.now() - t0 < 3000) { const r = (await st()).rocks[0]; seen.add(r.phase); await page.waitForTimeout(60); } }
+  await hookSfx();
+  const seen = new Set(); let minRy = 9999; { const t0 = Date.now(); while (Date.now() - t0 < 3000) { const r = (await st()).rocks[0]; seen.add(r.phase); if (r.phase === 'fall') minRy = Math.min(minRy, r.ry); await page.waitForTimeout(40); } }
   check(`${mapId}: lane cycles warn→fall→rest→idle`, ['warn', 'fall', 'rest', 'idle'].every((p) => seen.has(p)), [...seen].join(','));
+  check(`${mapId}: rock sweeps the whole path from above (seen above top row)`, minRy < 176, `minRy=${minRy}`);
+  check(`${mapId}: first lane is 8 tiles past the entrance`, s.rocks[0].x >= 300, `x=${s.rocks[0].x}`);
+  check(`${mapId}: lanes 5 tiles apart`, s.rocks.every((r, i) => i === 0 || r.x - s.rocks[i - 1].x === 160), JSON.stringify(s.rocks.map((r) => r.x)));
+  { const sf = (await st()).sfx; check(`${mapId}: rocks make no sound`, !sf.some((n) => n === 'thud'), sf.join(',')); }
   if (mapId === 'void5') {
     // 맞아보기: 레인 위에 서 있기
-    const lane = s.rocks[0].x; await stand(lane - 12, 168, 'right'); let h; { const t0 = Date.now(); do { await page.waitForTimeout(80); h = await st(); } while (Date.now() - t0 < 3000 && !h.invuln); }
-    check('void5: standing on a lane → knocked back left + red flash', h.p[0] < lane - 30 && (h.hurt || h.invuln), JSON.stringify({ lane, p: h.p, hurt: h.hurt, invuln: h.invuln }));
+    const lane = s.rocks[0].x; await stand(lane - 12, 168, 'right'); let h; { const t0 = Date.now(); do { await page.waitForTimeout(40); h = await st(); } while (Date.now() - t0 < 3000 && !h.invuln); }
+    const atHit = h.p[0];
+    check('void5: standing on the TOP row of a lane still gets hit (rock passes through) + red flash + slide starts', h.invuln && (h.hurt || h.knock) && atHit > lane - 40, JSON.stringify({ lane, p: h.p, hurt: h.hurt, knock: h.knock }));
+    await page.waitForTimeout(450); h = await st();
+    check('void5: slid left (not teleported), ~36px, and hit was silent', h.p[0] < lane - 30 && h.p[0] > lane - 80 && !h.sfx.includes('thud'), JSON.stringify({ lane, from: atHit, to: h.p, sfx: h.sfx }));
     await page.screenshot({ path: `${S}/rock_04_hit.png` });
   }
   // 안전하게 건너기: 각 레인 앞에서 'rest' 가 끝나는 순간(idle 진입)에 달려서 통과

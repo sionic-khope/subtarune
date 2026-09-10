@@ -1,191 +1,192 @@
 {
-  "id": "void4",
-  "name": "???",
-  "bgm": "wind",
-  "stage": "void_fallen",
-  "dim": 0,
-  "backdrop": "purple_fire",
-  "rows": [
-    "                                                                            ",
-    "                                                                    XxXxXxX ",
-    "                                                                    xzxXxXx ",
-    "                                                                    yyysyyy ",
-    "                                                                       s    ",
-    "                                                                       s    ",
-    "                                                                       s    ",
-    " xXxX                                                                xXxXxX ",
-    " XzXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
-    " xXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXzX ",
-    " XxXx                                                                XzXxXx ",
-    " xXzX                                                                xXxXxX ",
-    " yyyy                                                                yyyyyy ",
-    "                                                                            ",
-    "                                                                            ",
-    "                                                                            "
-  ],
-  "tileSwaps": {
-    "bridge_down": {
-      "rows": {
-        "7": " xXxX                                 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbxXxXxX "
-      }
-    }
+ "id": "void4",
+ "name": "???",
+ "bgm": "wind",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "purple_fire",
+ "rows": [
+  "                                                                            ",
+  "                                                                    XxXxXxX ",
+  "                                                                    xzxXxXx ",
+  "                                                                    yyssyyy ",
+  "                                                                      ss    ",
+  "                                                                      ss    ",
+  "                                                                      ss    ",
+  " xXxX                                                                xXxXxX ",
+  " XzXxOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoXxXxXx ",
+  " xXxXoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOxXxXzX ",
+  " XxXx                                                                XzXxXx ",
+  " xXzX                                                                xXxXxX ",
+  " yyyy                                                                yyyyyy ",
+  "                                                                            ",
+  "                                                                            ",
+  "                                                                            "
+ ],
+ "tileSwaps": {
+  "bridge_down": {
+   "rows": {
+    "7": " xXxX                                 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbxXxXxX "
+   }
+  }
+ },
+ "preload": [
+  "assets/props/bridge_span31.png",
+  "assets/props/lever_on.png"
+ ],
+ "spawns": {
+  "from_void3": {
+   "x": 60,
+   "y": 274,
+   "facing": "right"
   },
-  "preload": [
-    "assets/props/bridge_span31.png",
-    "assets/props/lever_on.png"
-  ],
-  "spawns": {
-    "from_void3": {
-      "x": 60,
-      "y": 274,
-      "facing": "right"
-    },
-    "start": {
-      "x": 60,
-      "y": 274
-    },
-    "landing": {
-      "x": 2300,
-      "y": 300,
-      "facing": "up"
-    },
-    "door_back": {
-      "x": 2300,
-      "y": 300,
-      "facing": "left"
-    },
-    "pillar": {
-      "x": 1220,
-      "y": 232,
-      "facing": "left"
-    }
+  "start": {
+   "x": 60,
+   "y": 274
   },
-  "entities": [
-    {
-      "type": "door",
-      "x": 32,
-      "y": 256,
-      "w": 12,
-      "h": 64,
-      "to": "void3",
-      "spawn": "door_back",
-      "sfx": false
-    },
-    {
-      "type": "raft",
-      "id": "raft4",
-      "image": "assets/props/raft.png",
-      "x": 164,
-      "y": 268,
-      "route": [
-        [
-          2148,
-          268
-        ]
-      ]
-    },
-    {
-      "type": "prop",
-      "id": "pillar",
-      "image": "assets/props/pillar.png",
-      "x": 1184,
-      "y": 254,
-      "w": 32,
-      "h": 8,
-      "ix": 1184,
-      "iy": 208,
-      "solid": false,
-      "sortY": 0
-    },
-    {
-      "type": "npc",
-      "id": "ppaman",
-      "sprite": "ppaman",
-      "x": 1188,
-      "y": 232,
-      "facing": "down",
-      "wander": 0,
-      "script": "void4_ppaman",
-      "unless": "ppaman_joined"
-    },
-    {
-      "type": "trigger",
-      "x": 2208,
-      "y": 224,
-      "w": 24,
-      "h": 160,
-      "once": true,
-      "flag": "void4_arrived",
-      "script": "void4_arrive"
-    },
-    {
-      "type": "prop",
-      "id": "lever_off",
-      "image": "assets/props/lever_off.png",
-      "x": 2212,
-      "y": 52,
-      "w": 24,
-      "h": 8,
-      "ix": 2212,
-      "iy": 28,
-      "solid": true,
-      "script": "void4_lever",
-      "unless": "bridge_down"
-    },
-    {
-      "type": "prop",
-      "id": "lever_on",
-      "image": "assets/props/lever_on.png",
-      "x": 2212,
-      "y": 52,
-      "w": 24,
-      "h": 8,
-      "ix": 2212,
-      "iy": 28,
-      "solid": true,
-      "script": "void4_lever",
-      "requires": "bridge_down",
-      "unless": "lever_taken"
-    },
-    {
-      "type": "prop",
-      "id": "door_small",
-      "image": "assets/props/door_small.png",
-      "x": 2300,
-      "y": 150,
-      "w": 8,
-      "h": 8,
-      "ix": 2354,
-      "iy": 184,
-      "solid": false,
-      "sortY": 0
-    },
-    {
-      "type": "prop",
-      "id": "padlock",
-      "image": "assets/props/padlock.png",
-      "x": 2300,
-      "y": 160,
-      "w": 8,
-      "h": 8,
-      "ix": 2365,
-      "iy": 212,
-      "solid": false,
-      "sortY": 1,
-      "unless": "door_open"
-    },
-    {
-      "type": "door",
-      "id": "door_zone",
-      "x": 2388,
-      "y": 224,
-      "w": 12,
-      "h": 160,
-      "to": "void5",
-      "spawn": "from_void4",
-      "requires": "door_open",
-      "lockedScript": "void4_door",
-      "sfx": false
-    }
-  ]
+  "landing": {
+   "x": 2300,
+   "y": 300,
+   "facing": "up"
+  },
+  "door_back": {
+   "x": 2300,
+   "y": 300,
+   "facing": "left"
+  },
+  "pillar": {
+   "x": 1220,
+   "y": 232,
+   "facing": "left"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 256,
+   "w": 12,
+   "h": 64,
+   "to": "void3",
+   "spawn": "door_back",
+   "sfx": false
+  },
+  {
+   "type": "raft",
+   "id": "raft4",
+   "image": "assets/props/raft.png",
+   "x": 164,
+   "y": 268,
+   "route": [
+    [
+     2148,
+     268
+    ]
+   ]
+  },
+  {
+   "type": "prop",
+   "id": "pillar",
+   "image": "assets/props/pillar.png",
+   "x": 1184,
+   "y": 254,
+   "w": 32,
+   "h": 8,
+   "ix": 1184,
+   "iy": 208,
+   "solid": false,
+   "sortY": 0
+  },
+  {
+   "type": "npc",
+   "id": "ppaman",
+   "sprite": "ppaman",
+   "x": 1188,
+   "y": 232,
+   "facing": "down",
+   "wander": 0,
+   "script": "void4_ppaman",
+   "unless": "ppaman_joined"
+  },
+  {
+   "type": "trigger",
+   "x": 2208,
+   "y": 224,
+   "w": 24,
+   "h": 160,
+   "once": true,
+   "flag": "void4_arrived",
+   "script": "void4_arrive"
+  },
+  {
+   "type": "prop",
+   "id": "lever_off",
+   "image": "assets/props/lever_off.png",
+   "x": 2212,
+   "y": 52,
+   "w": 24,
+   "h": 8,
+   "ix": 2212,
+   "iy": 28,
+   "solid": true,
+   "script": "void4_lever",
+   "unless": "bridge_down"
+  },
+  {
+   "type": "prop",
+   "id": "lever_on",
+   "image": "assets/props/lever_on.png",
+   "x": 2212,
+   "y": 52,
+   "w": 24,
+   "h": 8,
+   "ix": 2212,
+   "iy": 28,
+   "solid": true,
+   "script": "void4_lever",
+   "requires": "bridge_down",
+   "unless": "lever_taken"
+  },
+  {
+   "type": "prop",
+   "id": "door_small",
+   "image": "assets/props/door_small.png",
+   "x": 2300,
+   "y": 150,
+   "w": 8,
+   "h": 8,
+   "ix": 2354,
+   "iy": 184,
+   "solid": false,
+   "sortY": 0
+  },
+  {
+   "type": "prop",
+   "id": "padlock",
+   "image": "assets/props/padlock.png",
+   "x": 2300,
+   "y": 160,
+   "w": 8,
+   "h": 8,
+   "ix": 2365,
+   "iy": 212,
+   "solid": false,
+   "sortY": 1,
+   "unless": "door_open"
+  },
+  {
+   "type": "door",
+   "id": "door_zone",
+   "x": 2336,
+   "y": 206,
+   "w": 72,
+   "h": 26,
+   "to": "void5",
+   "spawn": "from_void4",
+   "requires": "door_open",
+   "lockedScript": "void4_door",
+   "sfx": false,
+   "interact": true
+  }
+ ]
 }

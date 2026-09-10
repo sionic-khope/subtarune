@@ -1,94 +1,94 @@
 {
-  "id": "void5",
-  "name": "???",
-  "bgm": "scarlet",
-  "stage": "void_fallen",
-  "dim": 0.3,
-  "backdrop": "purple_fire",
-  "rows": [
-    "                 ",
-    "                 ",
-    "                 ",
-    "                 ",
-    "                 ",
-    " xXxXxXxXxXxXxXx ",
-    " XxXxXxXxXxXxXxX ",
-    " xXxXxXxXxXxXxXx ",
-    " yyyyyyyyyyyyXxX ",
-    "             xXx ",
-    "             XxX ",
-    "             xXx ",
-    "             yyy "
-  ],
-  "spawns": {
-    "from_void4": {
-      "x": 60,
-      "y": 200,
-      "facing": "right"
-    },
-    "start": {
-      "x": 60,
-      "y": 200
-    },
-    "door_back": {
-      "x": 448,
-      "y": 320,
-      "facing": "up"
-    }
+ "id": "void5",
+ "name": "???",
+ "bgm": "scarlet",
+ "stage": "void_fallen",
+ "dim": 0.3,
+ "backdrop": "purple_fire",
+ "rows": [
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " XxXxXxXxXxXxXxXxXxXxXxXxXxXx ",
+  " xXxXxXxXxXxXxXxXxXxXxXxXxXxX ",
+  " yyyyyyyyyyyyyyyyyyyyyyyyyxXx ",
+  "                          XxX ",
+  "                          xXx ",
+  "                          XxX ",
+  "                          yyy "
+ ],
+ "spawns": {
+  "from_void4": {
+   "x": 60,
+   "y": 200,
+   "facing": "right"
   },
-  "entities": [
-    {
-      "type": "door",
-      "x": 32,
-      "y": 160,
-      "w": 12,
-      "h": 96,
-      "to": "void4",
-      "spawn": "door_back",
-      "sfx": false
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 144,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 0.0,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 240,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 0.667,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "rockfall",
-      "image": "assets/props/rock.png",
-      "x": 336,
-      "ground": 208,
-      "period": 2.0,
-      "offset": 1.333,
-      "warn": 0.7,
-      "fall": 0.2,
-      "rest": 0.4
-    },
-    {
-      "type": "door",
-      "x": 416,
-      "y": 372,
-      "w": 96,
-      "h": 12,
-      "to": "void6",
-      "spawn": "from_top",
-      "sfx": false
-    }
-  ]
+  "start": {
+   "x": 60,
+   "y": 200
+  },
+  "door_back": {
+   "x": 864,
+   "y": 352,
+   "facing": "up"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 160,
+   "w": 12,
+   "h": 96,
+   "to": "void4",
+   "spawn": "door_back",
+   "sfx": false
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 304,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 0.0,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 464,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 0.667,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "rockfall",
+   "image": "assets/props/rock.png",
+   "x": 624,
+   "ground": 250,
+   "period": 2.0,
+   "offset": 1.334,
+   "warn": 0.8,
+   "fall": 0.4,
+   "rest": 0.45
+  },
+  {
+   "type": "door",
+   "x": 832,
+   "y": 372,
+   "w": 96,
+   "h": 12,
+   "to": "void6",
+   "spawn": "from_top",
+   "sfx": false
+  }
+ ]
 }

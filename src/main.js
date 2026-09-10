@@ -168,14 +168,16 @@ class Game {
   }
 
   /** 낙석 등에 맞음: 붉은 섬광 + 흔들림 + 소리, 레인 왼쪽으로 밀려남(체력 없음 — 진행만 되돌림), 잠깐 무적. 동료는 뒤로 재정렬 */
-  hurtPlayer(src) {
+  /** 피격(낙석 등): 붉은 섬광 + 흔들림 + 무적 0.9s + **왼쪽으로 슬라이드**(순간이동·벽 튕김 금지). silent:true 면 소리 없음(낙석). HP 없음 */
+  hurtPlayer(src, { silent = false, dir = -1, push = 240 } = {}) {
     if (this.invuln > 0) return;
     this.invuln = 0.9; this.hurt = 0.32;
-    this.sound.sfx('thud', { volume: 0.8 }); this.shake = { time: 0.25, amp: 3 };
-    const p = this.player, nx = Math.round(src.x - p.w - 14);
-    if (!this.map.solidRect(nx, p.y, p.w, p.h)) p.x = nx;
+    if (!silent) this.sound.sfx('thud', { volume: 0.8 });
+    this.shake = { time: 0.25, amp: 3 };
+    const p = this.player;
+    p.knock = { vx: dir * push, t: 0.3, dur: 0.3 };   // Player.update 가 감속하며 미끄러뜨린다(≈36px)
     p.trail = [];
-    for (const e of this.entities) if (e.def?.type === 'follower') e.snapBehind();
+    for (const e of this.entities) if (e.def?.type === 'follower') e.knock = { vx: dir * push, t: 0.3, dur: 0.3 };   // 동료도 같이 밀려 간격 유지
   }
 
   // ── 파티(동료) ──────────────────────────────────────────
@@ -591,7 +593,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.14';
+export const BUILD = '2026-09-10.15';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
