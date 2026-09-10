@@ -29,7 +29,7 @@ ents = [
   {'type': 'door', 'x': 32, 'y': 96, 'w': 12, 'h': 128, 'to': 'void8', 'spawn': 'landing', 'sfx': False},
   raft('raft9a', 224, 108, 1248, 108),
   wall('w1', 560, 112), wall('w2', 880, 112, osc={'dx': 64, 'period': 3.2}),
-  {'type': 'prop', 'id': 'button', 'image': 'assets/props/button.png', 'x': 1340, 'y': 118, 'solid': True, 'script': 'void9_button'},
+  {'type': 'prop', 'id': 'button', 'image': 'assets/props/button.png', 'x': 1352, 'y': 100, 'solid': True, 'script': 'void9_button'},
   raft('raft9b', 1380, 224, 1380, 816),
   wall('w3', 1376, 520, wide=True), wall('w4', 1376, 720, wide=True, osc={'dy': 56, 'period': 3.6}),
   {'type': 'prop', 'id': 'sign_quiz', 'image': 'assets/props/signpost.png', 'x': 1460, 'y': 880, 'solid': True, 'script': 'void9_quiz'},

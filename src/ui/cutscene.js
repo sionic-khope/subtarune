@@ -3,7 +3,7 @@
 // waiter = { update(dt, input) → true(끝) }
 //
 //  { wait: 1.0 }                              초 단위 대기
-//  { move: 'player'|id, to:[tx,ty] | px:[x,y] | by:[dx,dy], speed?: 60, run?: true }
+//  { move: 'player'|id, to:[tx,ty] | px:[x,y] | by:[dx,dy] | rel:'소품id', at:'bottom'|'top'|'left'|'right', by:[dx,dy], speed?: 60, run?: true }  — 소품 앞 연출은 rel 로(누른 위치 무관), 도착 지점은 끼임 자동 보정
 //                                             걸어서 이동(충돌 무시). to=타일, px=픽셀, by=상대 픽셀
 //  { face: id, dir: 'up'|'down'|'left'|'right' | 'toward:'+id }
 //  { camera: [tx,ty] | 'player' | id, duration?: 1 }   카메라 팬 / 다시 따라가기
@@ -27,7 +27,7 @@
 //  { async: 노드 | [노드...] }                 기다리지 않고 다음으로 (배열이면 배경에서 순차 실행)
 // ─────────────────────────────────────────────────────────────
 import { TILE } from '../world/tiles.js';
-import { SCREEN_W, SCREEN_H } from '../world/world.js';
+import { freeSpot, SCREEN_W, SCREEN_H } from '../world/world.js';
 import { characterMotionWaiter } from '../world/character-motion.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -45,10 +45,20 @@ function mover(game, node) {
   const e = findEntity(game, node.move);
   if (!e) return done;
   let tx, ty;
-  if (node.to) { tx = node.to[0] * TILE + TILE * 0.125; ty = node.to[1] * TILE + TILE * 0.5; }
+  if (node.rel) {                                        // { move, rel:'소품id', at:'bottom'|'top'|'left'|'right', by:[dx,dy] } — C 를 어디서 눌렀든 소품 기준 같은 자리
+    const t = findEntity(game, node.rel); if (!t) return done;
+    const at = node.at || 'bottom', [bx, by] = node.by || [0, 0];
+    if (at === 'bottom') { tx = t.x + t.w / 2 - e.w / 2; ty = t.y + t.h - e.h; }
+    else if (at === 'top') { tx = t.x + t.w / 2 - e.w / 2; ty = t.y - e.h; }
+    else if (at === 'left') { tx = t.x - e.w; ty = t.y + t.h / 2 - e.h / 2; }
+    else { tx = t.x + t.w; ty = t.y + t.h / 2 - e.h / 2; }
+    tx = Math.round(tx + bx); ty = Math.round(ty + by);
+  }
+  else if (node.to) { tx = node.to[0] * TILE + TILE * 0.125; ty = node.to[1] * TILE + TILE * 0.5; }
   else if (node.px) { [tx, ty] = node.px; }
   else if (node.by) { tx = e.x + node.by[0] * TILE / 16; ty = e.y + node.by[1] * TILE / 16; }   // by 는 16px 단위
   else return done;
+  [tx, ty] = freeSpot(game, e, tx, ty);
   const speed = (node.speed ?? (node.run ? 110 : 60)) * TILE / 16;
   return {
     update(dt) {
@@ -218,7 +228,7 @@ export function makeWaiter(game, node) {
     const e = findEntity(game, node.hop); if (!e) return done;
     const [dx, dy] = node.by || [0, 0], h = node.height ?? 24, dur = node.duration ?? 0.5, x0 = e.x, y0 = e.y; let t = 0;
     if (node.sfx !== false) game.sound.sfx(node.sfx || 'jump', { volume: 0.7 });
-    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); e.x = Math.round(x0 + dx * k); e.y = Math.round(y0 + dy * k); e.hopY = h * Math.sin(Math.PI * k); e.moving = false; e.frame = 0; if (k >= 1) { e.hopY = 0; return true; } return false; } };
+    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); e.x = Math.round(x0 + dx * k); e.y = Math.round(y0 + dy * k); e.hopY = h * Math.sin(Math.PI * k); e.moving = false; e.frame = 0; if (k >= 1) { e.hopY = 0; [e.x, e.y] = freeSpot(game, e, e.x, e.y); return true; } return false; } };
   }
   if (node.regroup) { for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); return done; }   // 동료를 주인공 뒤로 재정렬   // { tiles:'bridge_down' } 맵 tileSwaps 적용 + 다시 굽기
   if (node.parallel) return parallel(game, node.parallel);

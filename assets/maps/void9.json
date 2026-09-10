@@ -161,8 +161,8 @@
    "type": "prop",
    "id": "button",
    "image": "assets/props/button.png",
-   "x": 1340,
-   "y": 118,
+   "x": 1352,
+   "y": 100,
    "solid": true,
    "script": "void9_button"
   },

@@ -262,6 +262,23 @@ export class Character extends Entity {
 }
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+let _unstickTick = 0; const g_frame_skip = () => (++_unstickTick % 6) !== 0;   // 끼임 검사는 6프레임마다 (비용 절감)
+
+/**
+ * 캐릭터를 놓을 자리가 막혀 있으면(타일·solid 소품) 주변 8px 격자에서 가장 가까운 빈 칸을 돌려준다.
+ * 컷신 이동 도착·점프 착지·동료 재정렬 등 "코드가 캐릭터를 옮기는" 모든 곳이 쓴다 — 벽/소품 안에 끼워 넣지 않기 (2026-09-10 포스트모텀).
+ */
+export function freeSpot(game, e, tx, ty, radius = 48) {
+  const map = game.map; if (!map) return [tx, ty];
+  const blocked = (x, y) => map.solidRect(x, y, e.w, e.h) || game.entities.some((o) => o !== e && o.solid && !o.dead && o !== game.player && o.def?.type !== 'follower' && o.overlaps({ x, y, w: e.w, h: e.h }));
+  if (!blocked(tx, ty)) return [tx, ty];
+  let best = null;
+  for (let dy = -radius; dy <= radius; dy += 8) for (let dx = -radius; dx <= radius; dx += 8) {
+    const x = tx + dx, y = ty + dy; if (blocked(x, y)) continue;
+    const d = Math.hypot(dx, dy); if (!best || d < best.d) best = { x, y, d };
+  }
+  return best ? [best.x, best.y] : [tx, ty];
+}
 
 export class Player extends Character {
   constructor(def, game) {
@@ -269,7 +286,15 @@ export class Player extends Character {
     this.slowMul = 1 / 1.75;              // X/Shift 를 누르면 천천히 (기본이 달리기)
     this.lastMove = 0;
   }
+  /** 어떤 코드 경로로든 벽·solid 소품 안에 놓였으면(끼임) 가장 가까운 빈 칸으로 빠져나온다 — 영구 끼임 방지 안전장치 (2026-09-10) */
+  unstick() {
+    const g = this.game, map = g.map; if (!map) return;
+    const inSolid = map.solidRect(this.x, this.y, this.w, this.h) || g.entities.some((o) => o !== this && o.solid && !o.dead && o.def?.type !== 'follower' && o.overlaps(this.rect));
+    if (!inSolid) return;
+    const [x, y] = freeSpot(g, this, this.x, this.y, 64); this.x = x; this.y = y;
+  }
   update(dt, input) {
+    if (!g_frame_skip(this)) this.unstick();
     if (this.knock) {                       // 피격 슬라이드: 입력 없이 옆으로 미끄러진다(벽에 부딪히는 느낌 금지) — game.hurtPlayer 가 건다
       const k = this.knock; k.t -= dt;
       this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, 0);
@@ -569,11 +594,12 @@ export class Raft extends Prop {
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
   _disembark(dx, dy) {
     const p = this.rider; const map = this.game.map;
+    const solidEnt = (x, y) => this.game.entities.some((o) => o !== this && o !== p && o.solid && !o.dead && o.def?.type !== 'follower' && o.overlaps({ x, y, w: p.w, h: p.h }));
     const dirs = Math.abs(dx) > Math.abs(dy) ? [[Math.sign(dx), 0], [0, 1], [0, -1]] : [[0, Math.sign(dy) || 1], [1, 0], [-1, 0]];
     for (const [ux, uy] of dirs) {
       for (let k = 1; k <= 24; k++) {
         const nx = p.x + ux * 4 * k, ny = p.y + uy * 4 * k;
-        if (!map.solidRect(nx, ny, p.w, p.h) && !this.overlaps({ x: nx, y: ny, w: p.w, h: p.h })) { p.x = nx; p.y = ny; p.moving = false; p.frame = 0; return; }
+        if (!map.solidRect(nx, ny, p.w, p.h) && !this.overlaps({ x: nx, y: ny, w: p.w, h: p.h }) && !solidEnt(nx, ny)) { p.x = nx; p.y = ny; p.moving = false; p.frame = 0; return; }   // 타일·뗏목·소품(버튼 등) 전부 피한다
       }
     }
     // 못 찾으면(이상 위치) 뗏목 주변 6타일 안에서 가장 가까운 빈 자리로 — 어떤 경우에도 막힌 칸에 남기지 않는다
@@ -591,9 +617,9 @@ export class Raft extends Prop {
     if (!this.def.swim) return;
     if (this.swimmer) { this.swimmer.dead = true; this.swimmer = null; }
     const f = this.game.entities.find((e) => e.def?.type === 'follower' && e.id === this.def.swim); if (!f) return;
-    const p = this.rider, ahead = this.dirFacing === 'left' ? -1 : 1, map = this.game.map;
-    const px = p.x + ahead * 40; if (!map.solidRect(px, p.y, p.w, p.h)) p.x = px;
-    f.visible = true; f.x = p.x - ahead * (f.w + 18); f.y = p.y; f.facing = ahead > 0 ? 'right' : 'left'; f.moving = false; f.frame = 0; p.facing = ahead > 0 ? 'left' : 'right'; p.trail = [];
+    const p = this.rider, ahead = this.dirFacing === 'left' ? -1 : 1;
+    [p.x, p.y] = freeSpot(this.game, p, p.x + ahead * 40, p.y);                       // 뭍 안쪽으로 — 소품(버튼 등)·벽이면 옆 빈 칸 (2026-09-10 '도착하면 버튼에 낌')
+    f.visible = true; [f.x, f.y] = freeSpot(this.game, f, p.x - ahead * (f.w + 18), p.y); f.facing = ahead > 0 ? 'right' : 'left'; f.moving = false; f.frame = 0; p.facing = ahead > 0 ? 'left' : 'right'; p.trail = [];
   }
   draw(ctx, cam) {
     if (!this.visible) return;
@@ -655,8 +681,7 @@ export class Follower extends Character {
     const p = this.game.player; if (!p) return;
     const [dx, dy] = DIRS[p.facing];
     this.x = p.x - dx * this.gap; this.y = p.y - dy * this.gap; this.facing = p.facing; this.moving = false; this.frame = 0;
-    const map = this.game.map;
-    if (map && map.solidRect(this.x, this.y, this.w, this.h)) { this.x = p.x; this.y = p.y; }
+    [this.x, this.y] = freeSpot(this.game, this, this.x, this.y);   // 벽·소품(버튼 등) 안에 세우지 않는다
   }
   update(dt) {
     const p = this.game.player; if (!p) return;

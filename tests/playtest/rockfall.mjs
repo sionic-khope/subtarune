@@ -116,10 +116,15 @@ const crossMap = async (mapId, expectLanes, exitDir, nextMap) => {
   if (mapId === 'void5') {
     let L = await talk(924, 168, 'right', [0]);   // 꽃: 왼쪽에서 다가가 C(소품이 스프라이트에 안 가리게) — 냄새를 맡게 시킨다
     check('void5 flowers: 꽃들이다 → 네 왜요? → [냄새] → 아 넵 → 킁킁 → .... → 냄새 존나 구려요 → ㅋㅋ 갈길', ['꽃들이다', '네 왜요?', '아 넵', '킁킁', '....', '냄새 존나 구려요', 'ㅋㅋ 갈길 가야겠다'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
-    s = await st(); check('void5 flowers: player stepped back left while ppaman sniffed', s.p[0] < 924 - 20, JSON.stringify(s.p));
+    s = await st(); check('void5 flowers: staged relative to the flowers (player ends below the flowers, same column as ppaman)', s.p[1] >= 210 && Math.abs(s.p[0] - 1004) < 6, JSON.stringify(s.p));
     check('void5 flowers: follower regrouped after sniffing', s.f && Math.hypot(s.p[0] - s.f[0], s.p[1] - s.f[1]) < 70 && s.flags.flowers_sniffed, JSON.stringify({ p: s.p, f: s.f }));
     L = await talk(924, 168, 'right', [1]);
     check('void5 flowers again: 저 이제 안 맡을 거예요', L.some((l) => l.includes('안 맡을')), JSON.stringify(L));
+    // 오른쪽에서 눌러도 같은 자리(꽃 아래·그 아래), 겹치지 않고 막힌 칸이 아님
+    await page.evaluate(() => { delete game.flags.flowers_sniffed; });
+    { await stand(1084, 168, 'left'); await page.waitForTimeout(300); await page.keyboard.press('KeyC'); let snap = null; const t0 = Date.now();
+      while (Date.now() - t0 < 12000) { await page.waitForTimeout(80); const q = await st(); if (!q.running) break; if (q.text.includes('킁킁') && !snap) { snap = await page.evaluate(() => { const f = game.entities.find((e) => e.def?.type === 'follower'), p = game.player, fl = game.entities.find((e) => e.id === 'flowers'); return { p: [p.x, p.y], f: [f.x, f.y], fl: [fl.x, fl.y, fl.w, fl.h], pSolid: game.map.solidRect(p.x, p.y, p.w, p.h), dist: Math.hypot(p.x - f.x, p.y - f.y) }; }); await page.screenshot({ path: `${S}/rock_08_flowers_right.png` }); } if (q.box === 'choice') { await page.keyboard.press('KeyC'); } else if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); }
+      check('void5 flowers from the RIGHT: staged relative to the flowers (ppaman below flowers, player further below), no overlap, not stuck', snap && Math.abs(snap.f[0] - (snap.fl[0] + snap.fl[2] / 2 - 12)) < 4 && snap.p[1] >= snap.f[1] + 30 && snap.dist >= 30 && !snap.pSolid, JSON.stringify(snap)); }
   }
   if (mapId === 'void6') {
     const L = await talk(1384, 170, 'right');

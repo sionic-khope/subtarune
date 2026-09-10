@@ -59,6 +59,7 @@ model: opus
 | `# 뗏목에 타면 출발 안 하고 연출 시작` | 뗏목 `onBoard:'스크립트'` → 컷신 안에서 `{raft:id, go:true}` 로 출발, `{raft:id, until:'stop'}` 로 벽/도착까지 대기, `{raft:id, jump:true}` 로 점프 (예 `void8.js`) |
 | `# c를 눌러보자 (가이드 창)` | `{ prompt:'C를 눌러보자' }` — C 로만 닫힘 |
 | `# 몸 털면서 물 털리는 이펙트` | `{ shakeOff:'ppaman', duration:0.9 }` — 타다다닥 + 파란 점, 스프라이트 안 만듦 |
+| `# X가 소품 앞/안으로 가고 주인공은 살짝 물러남` | `{ parallel:[ {move:'X', rel:'소품', at:'bottom', by:[0,8]}, {move:'player', rel:'소품', at:'bottom', by:[0,56]} ] }` — **소품 기준**으로(누른 위치 무관), 절대 `by` 로 주인공을 밀지 않는다 |
 | `# X가 건너뛴다 / 점프한다` | `{ hop:'id', by:[dx,dy], height:30, duration:0.55 }` (jump.mp3 자동, 포물선) |
 | `# 점프 (사운드)` | `{ sfx:'jump' }` (델타룬 점프음, 공용) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |

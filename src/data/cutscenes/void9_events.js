@@ -13,7 +13,8 @@ export const void9_button = [
   { if: (f) => !withPpaman(f), goto: 'alone' },
   P('* 형{w=0.3} 저거 누르면 어떻게 될까요', { choice: { options: [{ label: '누른다', goto: 'press' }, { label: '안 누른다', goto: 'no' }], cancel: 1 } }),
   { label: 'press' },
-  { move: 'ppaman', px: [1348, 150] }, { face: 'ppaman', dir: 'up' }, { wait: 0.3 },
+  { parallel: [{ move: 'ppaman', rel: 'button', at: 'bottom', by: [0, 26] }, { move: 'player', rel: 'button', at: 'bottom', by: [-44, 30] }] },   // 억빠맨은 버튼 아래, 형섭은 그 왼쪽
+  { face: 'ppaman', dir: 'up' }, { face: 'player', dir: 'right' }, { wait: 0.3 },
   P('* 꾹'),
   { shake: 0.35, amp: 3 }, { wait: 0.6 },
   N('* ...{w=0.6} 아무 일도 일어나지 않았다.'),
@@ -64,9 +65,9 @@ export const void9_puddle = [
   N('* 물웅덩이다.'),
   { if: (f) => !withPpaman(f), goto: 'alone' },
   P('* 제가 건너뛰어 볼게요'),
-  { parallel: [{ move: 'ppaman', px: [92, 974] }, { move: 'player', by: [-30, 0] }] },   // 형섭은 살짝 물러나고(겹침 방지) 억빠맨이 앞으로
+  { parallel: [{ move: 'ppaman', rel: 'puddle', at: 'left', by: [-8, 18] }, { move: 'player', rel: 'puddle', at: 'left', by: [-52, -6] }] },   // 웅덩이 왼쪽에 억빠맨, 그 왼쪽에 형섭 (누른 위치 무관)
   { face: 'ppaman', dir: 'right' }, { face: 'player', dir: 'right' }, { wait: 0.4 },
-  { hop: 'ppaman', by: [54, -28], height: 30, duration: 0.55 },
+  { hop: 'ppaman', by: [58, -18], height: 30, duration: 0.55 },
   { sfx: 'splash' },
   N('* 억빠맨은 웅덩이 한가운데 착지했다.'),
   { wait: 0.5 },

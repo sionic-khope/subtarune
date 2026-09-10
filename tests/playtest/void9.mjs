@@ -50,10 +50,13 @@ let s = await st(); check('qa=void9: dock A with party', s.map === 'void9' && s.
 s = await board(190, 120, 'right'); check('board raft9a: no intro cutscene, swimmer appears, moving right', s.ride && s.rideId === 'raft9a' && !s.running && !!s.sw && s.raft.moving, JSON.stringify({ ride: s.rideId, running: s.running, sw: s.sw }));
 await page.waitForTimeout(600); await page.screenshot({ path: `${S}/void9_01_h1.png` });
 let r = await autoRide('H1'); s = r.s; check('H1: arrived at landing B (player on land, right of raft end)', !s.ride && s.p[0] > 1300 && s.p[1] < 230, JSON.stringify(s.p));
+{ const q = await page.evaluate(() => { const p = game.player; const inSolid = game.map.solidRect(p.x, p.y, p.w, p.h) || game.entities.some((o) => o !== p && o.solid && !o.dead && o.def?.type !== 'follower' && o.overlaps(p.rect)); return { inSolid, p: [p.x, p.y] }; });
+  check('B arrival: player not inside any solid prop (button) and can walk', !q.inSolid, JSON.stringify(q));
+  await page.keyboard.down('ArrowDown'); await page.waitForTimeout(250); await page.keyboard.up('ArrowDown'); const q2 = await st(); check('B arrival: player can move after landing', q2.p[1] > q.p[1] + 10, JSON.stringify({ before: q.p, after: q2.p })); }
 // B 버튼
-let L = await talk(1340, 150, 'up', [0]);
+let L = await talk(1352, 134, 'up', [0]);
 check('B button: 수상한 버튼 → [누른다] → 꾹 → 아무 일도 → 바위 → 다신 안 누를게요', ['수상한 버튼', '꾹', '아무 일도 일어나지', '다신 안 누를게요'].every((k) => L.some((l) => l.includes(k))) && (await st()).flags.button_pressed, JSON.stringify(L));
-L = await talk(1340, 150, 'up'); check('B button again: 저 이제 안 눌러요', L.some((l) => l.includes('안 눌러요')), JSON.stringify(L));
+L = await talk(1352, 134, 'up'); check('B button again: 저 이제 안 눌러요', L.some((l) => l.includes('안 눌러요')), JSON.stringify(L));
 // ── 2) V1 ↓ ──
 s = await board(1396, 196, 'down'); check('board raft9b (down)', s.ride && s.rideId === 'raft9b' && s.raft.dir === 'down' && !!s.sw, JSON.stringify({ ride: s.rideId, dir: s.raft?.dir, sw: s.sw, raft: s.raft }));
 await page.waitForTimeout(500); await page.screenshot({ path: `${S}/void9_02_v1.png` });
@@ -69,8 +72,9 @@ await page.screenshot({ path: `${S}/void9_03_quiz.png` });
 s = await board(1316, 890, 'left'); check('board raft9c (left)', s.ride && s.rideId === 'raft9c' && s.raft.dir === 'left' && s.sw && s.sw.x > s.raft.x, JSON.stringify({ ride: s.rideId, dir: s.raft?.dir, sw: s.sw, raft: s.raft }));
 r = await autoRide('H2'); s = r.s; check('H2: arrived at landing D (left)', !s.ride && s.p[0] < 224 && s.p[1] > 850 && s.p[1] < 1000, JSON.stringify(s.p));
 // D 웅덩이 (hop)
-{ await stand(86, 946, 'right'); await page.waitForTimeout(300); await page.keyboard.press('KeyC'); let sawHop = false; const t0 = Date.now(); const out = [];
-  while (Date.now() - t0 < 12000) { await page.waitForTimeout(60); const q = await st(); if (!q.running) break; if (q.f && q.f.hopY > 8) { sawHop = true; if (!fs.existsSync(`${S}/void9_04_hop.png`)) await page.screenshot({ path: `${S}/void9_04_hop.png` }); } if (q.box === 'waiting') { const k = (q.speaker || '') + '|' + q.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); } else if (q.box === 'typing') await page.keyboard.press('KeyC'); }
+{ await stand(184, 946, 'left'); await page.waitForTimeout(300); await page.keyboard.press('KeyC'); let sawHop = false, minDist = null; const t0 = Date.now(); const out = [];   // 오른쪽에서 눌러도 웅덩이 기준으로 선다
+  while (Date.now() - t0 < 12000) { await page.waitForTimeout(60); const q = await st(); if (!q.running) break; if (q.f && q.f.hopY > 8) { sawHop = true; const d = Math.hypot(q.p[0] - q.f.x, q.p[1] - q.f.y); minDist = minDist === null ? d : Math.min(minDist, d); if (!fs.existsSync(`${S}/void9_04_hop.png`)) await page.screenshot({ path: `${S}/void9_04_hop.png` }); } if (q.box === 'waiting') { const k = (q.speaker || '') + '|' + q.text.replace(/\{[^}]*\}/g, ''); if (!out.includes(k)) out.push(k); await page.keyboard.press('KeyC'); } else if (q.box === 'typing') await page.keyboard.press('KeyC'); }
+  check('D puddle: player and ppaman not overlapping at the hop (staged relative to the puddle)', minDist === null || minDist >= 36, `minDist=${minDist}`);
   check('D puddle: 물웅덩이다 → 건너뛰어 볼게요 → hop arc (hopY>8) → 한가운데 착지 → 젖었어요', sawHop && ['물웅덩이다', '건너뛰어', '한가운데 착지', '젖었어요'].every((k) => out.some((l) => l.includes(k))), JSON.stringify({ sawHop, out }));
   const q = await st(); check('D puddle: ppaman regroups; flag', q.flags.puddle_jumped && q.f && Math.hypot(q.p[0] - q.f.x, q.p[1] - q.f.y) < 70, JSON.stringify({ p: q.p, f: q.f })); }
 // ── 4) V2 ↓ ──

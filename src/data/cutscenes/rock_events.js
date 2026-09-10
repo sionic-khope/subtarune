@@ -14,11 +14,11 @@ export const rock_flowers = [
   P('* 네{w=0.3} 왜요?', { choice: { options: [{ label: '냄새를 맡게 시킨다', goto: 'sniff' }, { label: '그냥 간다', goto: 'go' }], cancel: 1 } }),
   { label: 'sniff' },
   P('* 아 넵.'),
-  { parallel: [
-    { move: 'ppaman', px: [1004, 176] },       // 꽃들로 들어간다(꽃 무더기 한가운데 — 양옆 꽃이 보인다)
-    { move: 'player', by: [-28, 0] },          // 형섭은 살짝 뒤로 물러난다(겹쳐 보이지 않게, 2026-09-10)
+  { parallel: [                                 // C 를 어디서 눌렀든 꽃 기준: 억빠맨은 꽃 바로 아래(안), 형섭은 그 아래 (2026-09-10 '꽃 기준 아래아래')
+    { move: 'ppaman', rel: 'flowers', at: 'bottom', by: [0, 8] },
+    { move: 'player', rel: 'flowers', at: 'bottom', by: [0, 56] },
   ] },
-  { face: 'player', dir: 'right' }, { face: 'ppaman', dir: 'up' }, { wait: 0.5 },
+  { face: 'player', dir: 'up' }, { face: 'ppaman', dir: 'up' }, { wait: 0.5 },
   P('* 킁킁'),
   { wait: 0.4 },
   P('* ....'),
@@ -57,8 +57,8 @@ export const rock_boulder = [
   N('* 현명했다.'),
   { end: true },
   { label: 'kick' },
-  { move: 'ppaman', px: [1856, 214] },         // 바위 옆으로
-  { face: 'ppaman', dir: 'right' }, { wait: 0.3 },
+  { parallel: [{ move: 'ppaman', rel: 'boulder', at: 'left', by: [-4, 0] }, { move: 'player', rel: 'boulder', at: 'left', by: [-52, 0] }] },   // 바위 왼쪽에 억빠맨, 그 왼쪽에 형섭
+  { face: 'ppaman', dir: 'right' }, { face: 'player', dir: 'right' }, { wait: 0.3 },
   P('* 얍!'),
   { shake: 0.2, amp: 2 },
   P('* 아 ㅅㅂ{w=0.3} 발'),
