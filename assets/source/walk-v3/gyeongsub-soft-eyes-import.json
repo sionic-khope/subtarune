@@ -1,0 +1,35 @@
+{
+  "character": "gyeongsub",
+  "purpose": "Import approved relaxed front-facing eyes and eyebrows only; preserve the rest of walk-v3.",
+  "generation": {
+    "raw": "gyeongsub-soft-eyes-v1.png",
+    "prompt": "gyeongsub-soft-eyes-v1-prompt.txt",
+    "tool": "built-in image_gen",
+    "note": "The raw generated proposal has incidental whole-sheet pixel drift. It is archived, not used as a full replacement."
+  },
+  "source": "gyeongsub.png",
+  "baselineCommit": "05616c56aaed4fa6191a6eb3d035b061eedebad0",
+  "baselinePath": "assets/source/walk-v3/gyeongsub.png",
+  "canvas": [1024, 1536],
+  "import": {
+    "operation": "Copy these RGB rectangles from the generated raw sheet onto the baseline at identical coordinates, without scaling, filtering, or drawing.",
+    "coordinateConvention": "left, top, right-exclusive, bottom-exclusive",
+    "rectangles": [[102, 175, 198, 217], [343, 175, 439, 217], [584, 175, 680, 217], [825, 175, 921, 217]],
+    "changedSourcePixels": 16018,
+    "outsideRectanglesUnchanged": true
+  },
+  "runtime": {
+    "path": "../../sprites/gyeongsub.png",
+    "command": "uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/gyeongsub.png gyeongsub",
+    "size": [256, 408],
+    "cell": [64, 102],
+    "changedPixels": 1782,
+    "changedRows": ["down"],
+    "changedBoundingBoxWithinEachDownFrame": [16, 28, 48, 42],
+    "alphaUnchanged": true,
+    "otherDirectionsPixelIdentical": true,
+    "sha256": "f246cec9d496ea78701b81dc911d9a588804afea8d5e771e34432bce58367f8a",
+    "repeatImportByteIdentical": true
+  },
+  "preserved": ["portraits", "battle sprites", "other characters", "walking poses", "frame timing", "runtime code"]
+}
