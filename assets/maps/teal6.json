@@ -68,6 +68,10 @@
  },
  "meta": {
   "connected": true,
+  "events": [
+   "ward",
+   "blue"
+  ],
   "camps": {
    "bird": [
     6,
@@ -104,6 +108,40 @@
    "to": "teal7",
    "spawn": "from_left",
    "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "ward",
+   "image": "assets/props/ward.png",
+   "anim": {
+    "cols": 2,
+    "fps": 2
+   },
+   "x": 422,
+   "y": 212,
+   "w": 20,
+   "h": 12,
+   "ix": 422,
+   "iy": 188,
+   "solid": true,
+   "script": "teal6_ward"
+  },
+  {
+   "type": "prop",
+   "id": "blue",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 324,
+   "y": 342,
+   "w": 32,
+   "h": 12,
+   "ix": 320,
+   "iy": 310,
+   "solid": true,
+   "script": "teal6_blue"
   },
   {
    "type": "enemy",

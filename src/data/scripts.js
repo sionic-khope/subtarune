@@ -19,6 +19,7 @@ import { teal2_tree, teal2_banana1 } from './cutscenes/teal2_events.js';
 import { teal3_toolbox } from './cutscenes/teal3_toolbox.js';
 import { teal4_peel, teal4_button, teal4_flower } from './cutscenes/teal4_events.js';
 import { teal5_board, teal5_wall } from './cutscenes/teal5_river.js';
+import { teal6_ward, teal6_blue } from './cutscenes/teal6_events.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -69,6 +70,7 @@ export const SCRIPTS = {
   teal2_statue_look, teal2_statue_wall,   // 청록숲2 나무 동상: 조사 / 길 막은 동상(빠맨 공격 시도) (src/data/cutscenes/teal2_statue.js)
   teal2_tree, teal2_banana1,   // 청록숲2 광장: 똑똑 나무 / 바나나 포타슘
   teal3_toolbox,   // 청록숲3 공구상자 → CS 미니언 등장 → 전투 시작 연출 (src/data/cutscenes/teal3_toolbox.js)
+  teal6_ward, teal6_blue,   // 청록숲6 정글: 와드 정찰(카메라 투어) / 파란 돌(경섭 핥기 → 전원 HP 회복 쉼터) (src/data/cutscenes/teal6_events.js)
   teal5_board, teal5_wall,   // 청록숲5 물길: 승선 컷신(경섭 선택지 끊김·둘 다 헤엄) / 이단폭포 협동 2단 점프 튜토리얼 (src/data/cutscenes/teal5_river.js)
   teal4_peel, teal4_button, teal4_flower,   // 청록숲4: 바나나 껍질·수상한 버튼2·검은 꽃 (src/data/cutscenes/teal4_events.js) (src/data/cutscenes/teal2_events.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)

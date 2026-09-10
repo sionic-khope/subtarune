@@ -41,6 +41,10 @@ ents = [
     {'type': 'door', 'x': 32, 'y': 4 * T, 'w': 8, 'h': 96, 'to': 'teal5', 'spawn': 'landing', 'sfx': False},
     {'type': 'door', 'x': (W - 1) * T - 8, 'y': 6 * T, 'w': 8, 'h': 96, 'to': 'teal7', 'spawn': 'from_left', 'sfx': False},
     # 캠프 몹 (걸어다니고 가까이 가면 쫓아온다). 잡으면 teal6_<id>_defeated 로 영구 제거
+    # 이벤트 1 와드(정찰): A2 길 위쪽 가장자리에 박혀 있다 → 억빠맨이 박으면 시야 확보 → 카메라가 캠프 3곳을 훑는다 (롤 정글, 사용자 2026-09-11)
+    {'type': 'prop', 'id': 'ward', 'image': 'assets/props/ward.png', 'anim': {'cols': 2, 'fps': 2}, 'x': 13 * T + 6, 'y': 6 * T + 20, 'w': 20, 'h': 12, 'ix': 13 * T + 6, 'iy': 6 * T - 4, 'solid': True, 'script': 'teal6_ward'},
+    # 이벤트 2 파란 돌(블루 버프): 늑대 캠프 안쪽 구석 — 경섭이 핥는다 → 전원 HP 회복(쉼터, 반복 가능)
+    {'type': 'prop', 'id': 'blue', 'image': 'assets/props/blue_buff.png', 'anim': {'cols': 3, 'fps': 4}, 'x': 10 * T + 4, 'y': 10 * T + 22, 'w': 32, 'h': 12, 'ix': 10 * T, 'iy': 10 * T - 10, 'solid': True, 'script': 'teal6_blue'},
     {'type': 'enemy', 'id': 'bird', 'sprite': 'razorbeak', 'x': 6 * T + 4, 'y': 10 * T, 'facing': 'left', 'wander': 30, 'enemies': ['razorbeak'], 'unless': 'teal6_bird_defeated'},
     {'type': 'enemy', 'id': 'wolf', 'sprite': 'wolf', 'x': 13 * T, 'y': 12 * T, 'facing': 'right', 'wander': 36, 'enemies': ['wolf'], 'unless': 'teal6_wolf_defeated'},
     {'type': 'enemy', 'id': 'toad', 'sprite': 'toad', 'x': 33 * T, 'y': 21 * T + 8, 'facing': 'left', 'wander': 20, 'enemies': ['toad'], 'unless': 'teal6_toad_defeated'},
@@ -63,7 +67,7 @@ for j, (r, c) in enumerate(spots):
 m = {'id': 'teal6', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'teal', 'rows': rows,
      'spawns': {'from_left': {'x': 60, 'y': 5 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 5 * T + 8, 'facing': 'right'}, 'landing': {'x': (W - 4) * T, 'y': 7 * T + 8, 'facing': 'left'},
                 'camp1': {'x': 6 * T, 'y': 8 * T + 8, 'facing': 'down'}, 'camp2': {'x': 15 * T, 'y': 12 * T + 8, 'facing': 'left'}, 'camp3': {'x': 33 * T, 'y': 20 * T + 8, 'facing': 'down'}},
-     'meta': {'connected': True, 'camps': {'bird': [6, 10], 'wolf': [13, 12], 'toad': [33, 21]}, 'trees': len([e for e in ents if e.get('id', '').startswith('jt')])},
+     'meta': {'connected': True, 'events': ['ward', 'blue'], 'camps': {'bird': [6, 10], 'wolf': [13, 12], 'toad': [33, 21]}, 'trees': len([e for e in ents if e.get('id', '').startswith('jt')])},
      'entities': ents}
 path = 'assets/maps/teal6.json'
 if '--check' in sys.argv:

@@ -43,6 +43,25 @@ for (const [id, gain] of camps) {
   check(`${id}: money +${gain}, removed and flagged, map BGM back`, !!after && after.money === money + gain && !after.enemies.some((x) => x.id === id) && after.flags.includes(`teal6_${id}_defeated`) && after.bgm === 'hopes', JSON.stringify(after && { money: after.money, want: money + gain, enemies: after.enemies.map((x) => x.id), flags: after.flags, bgm: after.bgm }));
   money = after ? after.money : money;
 }
+// 이벤트 1 와드: 억빠맨이 박음 → 시야 확보 → 카메라가 캠프 셋을 훑는다 → 경섭 눈 반짝
+const lines = []; let camFar = 0; let emoteSeen = false;
+const pump = async (ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), cam: Math.round(Math.abs(game.camera.x + 240 - game.player.x)), em: game.entities.find((e) => e.id === 'gyeongsub')?.emote?.kind || null })); if (!q.running) return; camFar = Math.max(camFar, q.cam); if (q.em === '!') emoteSeen = true; const k = (q.speaker || '') + '|' + q.text; if ((q.box === 'waiting' || q.box === 'typing') && lines[lines.length - 1] !== k) lines.push(k); if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); await page.waitForTimeout(70); } };
+const ward = await page.evaluate(() => { const w = game.entities.find((e) => e.id === 'ward'); return { x: w.x, y: w.y, cols: w.anim?.cols, iw: w.iw }; });
+check('ward prop present with a 2-frame blink strip', ward.cols === 2 && ward.iw === 20, JSON.stringify(ward));
+await stand(ward.x + 2, ward.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
+const wantW = ['억빠맨|* 어 이거 와드네요.', '경섭|* 와드가 뭔데', '|* 시야가 확보되었다!', '경섭|* ... 저게 다 뭐냐', '억빠맨|* 정글 몹이요. 잡으면 돈 줘요', '경섭|* 돈?', '억빠맨|* 형 눈이 왜 그래요'];
+const inOrder = (want, got) => { let i = 0; for (const g of got) if (g === want[i]) i++; return i === want.length; };
+check('ward: lines in order, camera toured far away from the player (≥ 400px) and 경섭 "!" emote, flag set', inOrder(wantW, lines) && camFar >= 400 && emoteSeen && (await st()).flags.includes('teal6_ward_done'), JSON.stringify({ lines, camFar, emoteSeen }));
+await page.screenshot({ path: `${S}/teal6_04_ward.png` });
+// 이벤트 2 파란 돌: 경섭이 핥는다 → 전원 HP 회복, 두 번째는 짧게 회복만
+await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub = 40; game.partyHp.ppaman = 20; });
+const blue = await page.evaluate(() => { const b = game.entities.find((e) => e.id === 'blue'); return { x: b.x, y: b.y, cols: b.anim?.cols }; });
+lines.length = 0; await stand(blue.x + 6, blue.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
+const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]);
+check('blue buff: 억빠맨 explains, 경섭 licks it ("달다"), party fully healed (100/120/90)', blue.cols === 3 && lines.some((l) => l.includes('블루 버프')) && lines.some((l) => l.includes('마나가 뭔데')) && lines.some((l) => l.includes('핥았다')) && lines.some((l) => l.includes('달다')) && lines.some((l) => l.includes('HP가 모두 회복')) && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
+await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
+const hp2 = await page.evaluate(() => game.hpOf('hyungsub'));
+check('blue buff again: short line + heal only (rest point)', lines.some((l) => l.includes('아직 빛나고')) && !lines.some((l) => l.includes('블루 버프')) && hp2 === 100, JSON.stringify({ lines, hp2 }));
 await page.screenshot({ path: `${S}/teal6_03_cleared.png` });
 // 출구
 const L = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal6.spawns.landing);

@@ -227,6 +227,36 @@ def tile_forest_floor():
     for (x, y) in ((5, 8), (20, 4), (26, 18), (11, 24), (17, 14), (29, 28)): c.px(x, y, LEAF); c.px(x + 1, y, LEAF)
     return c
 
+def prop_ward():
+    """와드(롤 토템 와드) 2프레임 띠 40x36: 초록 말뚝 + 노란 머리 + 큰 눈(뜸/감음). anim {cols:2, fps:2}"""
+    strip = Canvas(40, 36)
+    for f in range(2):
+        c = Canvas(20, 36)
+        c.rect(8, 16, 4, 18, hexc('#2e5a2e')); c.rect(9, 16, 1, 18, hexc('#4f8a3f'))                         # 말뚝
+        c.rrect(3, 2, 14, 15, hexc('#d9c34a'), 4); c.rrect(4, 3, 12, 6, hexc('#f0e07a'), 3)                    # 머리(노랑)
+        c.rect(2, 12, 16, 3, hexc('#8a7a2a'))                                                                   # 띠
+        if f == 0: c.rrect(6, 5, 8, 7, hexc('#ffffff'), 3); c.rect(9, 7, 3, 3, hexc('#1a1a2a')); c.px(11, 7, hexc('#7fd0ff'))   # 뜬 눈
+        else: c.rect(6, 8, 8, 2, hexc('#1a1a2a'))                                                              # 감은 눈
+        outline_silhouette(c); strip.blit(c, f * 20, 0)
+    return strip
+
+def prop_blue_buff():
+    """파란 돌(블루 버프) 3프레임 띠 120x44: 회색 받침 위 파란 수정 3조각, 프레임마다 반짝임이 옮겨 다닌다. anim {cols:3, fps:4}"""
+    strip = Canvas(120, 44)
+    B, B_D, B_L, ST, ST_D = hexc('#3b7fe0'), hexc('#1f4da8'), hexc('#9fe0ff'), hexc('#6b6f78'), hexc('#3f434b')
+    for f in range(3):
+        c = Canvas(40, 44)
+        c.rrect(4, 34, 32, 9, ST, 3); c.rect(6, 35, 28, 2, hexc('#8a8f98')); c.rect(4, 40, 32, 3, ST_D)          # 받침
+        for (cx, top, w) in ((13, 8, 10), (22, 3, 10), (30, 14, 8)):                                             # 수정 3조각
+            for y in range(top, 35):
+                hw = max(1, int(w / 2 * min(1.0, (y - top + 3) / 10)))
+                c.rect(cx - hw, y, hw * 2, 1, B)
+                c.px(cx - hw, y, B_D); c.px(cx + hw - 1, y, B_L)
+        sparks = [((10, 12), (24, 6)), ((26, 20), (14, 22)), ((31, 16), (20, 10))][f]
+        for (x, y) in sparks: c.px(x, y, hexc('#ffffff')); c.px(x + 1, y, B_L); c.px(x, y + 1, B_L)
+        outline_silhouette(c); strip.blit(c, f * 40, 0)
+    return strip
+
 if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
     prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
@@ -234,6 +264,7 @@ if __name__ == '__main__':
     prop_peel().save('assets/props/banana_peel.png'); prop_black_flower().save('assets/props/black_flower.png')
     prop_waterfall().save('assets/props/waterfall2.png')   # 청록숲5 이단폭포(계단식)
     tile_forest_floor().save('assets/tiles/forest_floor_teal.png')   # 숲 바닥(막힘)
+    prop_ward().save('assets/props/ward.png'); prop_blue_buff().save('assets/props/blue_buff.png')   # 청록숲6 이벤트 소품(애니 띠)
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     from pathlib import Path
