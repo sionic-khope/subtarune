@@ -559,18 +559,19 @@ registerEntity('player', Player);
 /**
  * 낙석 레인(재사용): 정해진 x 에서 일정한 리듬으로 바위가 **화면 위에서 길 전체를 쓸고 내려와** 길 맨 아래(ground)에 떨어진다.
  *   { type:'rockfall', image:'assets/props/rock.png', x:<레인 중심>, ground:<착지 y(바위 아래쪽)>, period:2.0, offset:0, warn:0.8, fall:0.4, rest:0.45 }
- *   주기: idle → warn(부드러운 스포트라이트만, 가운데 선·흰 섬광 없음) → fall(위→아래로 길의 모든 줄을 지나감) → rest(바닥에 놓였다 사라짐) → idle.
+ *   주기: idle → warn(바위 폭의 평행한 세로 스포트라이트만, 원뿔·가운데 선·흰 섬광 없음) → fall(위→아래로 길의 모든 줄을 지나감) → rest(바닥에 놓였다 사라짐) → idle.
  *   피격: 떨어지는 동안·놓인 직후 바위 사각형과 겹치면 game.hurtPlayer(무음) → 왼쪽으로 슬라이드. 어느 줄에 서 있든 바위가 실제로 지나갈 때만 맞는다.
  *   소리 없음(2026-09-10 사용자 규칙). 대사/탈것 중엔 맞지 않는다. 스포트라이트는 어두움(dim) 위에 그려진다(drawOverlay).
  */
 export class Rockfall extends Entity {
   constructor(def, game) {
-    const w = def.w ?? 28;
-    super({ solid: false, ...def, x: def.x - w / 2, y: def.ground - 24, w, h: 24 }, game);
+    const img = game.propImages[def.image] || null;
+    const w = def.w ?? (img ? img.width : 40), h = img ? img.height : 28;   // 히트 폭 = 바위 그림 폭(기본 40px, 2026-09-10 "x 면적 높여")
+    super({ solid: false, ...def, x: def.x - w / 2, y: def.ground - h, w, h }, game);
     this.lx = def.x; this.gy = def.ground; this.top = def.top ?? -48;
     this.period = def.period ?? 2.0; this.offset = def.offset ?? 0; this.warn = def.warn ?? 0.8; this.fall = def.fall ?? 0.4; this.rest = def.rest ?? 0.45;
-    this.image = game.propImages[def.image] || null;
-    this.rw = this.image ? this.image.width : 28; this.rh = this.image ? this.image.height : 24;
+    this.image = img;
+    this.rw = w; this.rh = h;
     this.t = this.offset; this.phase = 'idle'; this.k = 0; this.hitDone = false;
   }
   canInteract() { return false; }
@@ -601,14 +602,15 @@ export class Rockfall extends Entity {
     if (this.image) ctx.drawImage(this.image, x, yy); else { ctx.fillStyle = '#5a4a70'; ctx.fillRect(x, yy, this.rw, this.rh); }
     ctx.globalAlpha = 1;
   }
-  /** 스포트라이트(어두움 위에): 위는 좁고 아래는 넓은 연보라 원뿔 + 바닥 타원. 가운데 선·착지 섬광 없음 (2026-09-10 사용자 지적) */
+  /** 스포트라이트(어두움 위에): 바위 폭만큼의 **평행한 세로 기둥**(연보라 한 겹, 아래로 갈수록 조금 진해짐) + 바닥 타원. 원뿔·가운데 선·착지 섬광 없음 (2026-09-10 사용자 지적 두 번) */
   drawOverlay(ctx, cam) {
     if (this.phase !== 'warn' && this.phase !== 'fall') return;
-    const x = Math.round(this.lx - cam.x), gy = Math.round(this.gy - cam.y);
+    const x = Math.round(this.lx - cam.x), gy = Math.round(this.gy - cam.y), hw = Math.round(this.rw / 2) + 4;
     const a = this.phase === 'warn' ? 0.08 + 0.2 * this.k : 0.28;
-    ctx.fillStyle = `rgba(205,180,245,${a})`;
-    ctx.beginPath(); ctx.moveTo(x - 7, 0); ctx.lineTo(x + 7, 0); ctx.lineTo(x + 19, gy + 4); ctx.lineTo(x - 19, gy + 4); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = `rgba(215,195,250,${a * 1.15})`; ctx.beginPath(); ctx.ellipse(x, gy + 2, 19, 6, 0, 0, Math.PI * 2); ctx.fill();
+    const g = ctx.createLinearGradient(0, 0, 0, gy + 4);
+    g.addColorStop(0, `rgba(205,180,245,${a * 0.6})`); g.addColorStop(1, `rgba(205,180,245,${a})`);
+    ctx.fillStyle = g; ctx.fillRect(x - hw, 0, hw * 2, gy + 4);
+    ctx.fillStyle = `rgba(215,195,250,${a * 1.15})`; ctx.beginPath(); ctx.ellipse(x, gy + 2, hw, 6, 0, 0, Math.PI * 2); ctx.fill();
   }
 }
 

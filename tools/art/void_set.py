@@ -211,35 +211,39 @@ def main():
 
 # ── 낙석 ─────────────────────────────────────────────────────────
 ROCK_GRID = [
-    "..........########..........",
-    ".......###llllllll###.......",
-    ".....##lllhhlllllllaa##.....",
-    "....#lllhhllllllllaaaaa#....",
-    "...#lllhlllllllllaaaaaaa#...",
-    "..#llllllllllllaaaaaaaaaa#..",
-    "..#lllllllllaaaaaaaaaaaaa#..",
-    ".#lllllllaaaaaaaaaaaaaaaaa#.",
-    ".#llllllaaaaaaaaaaaaaaaaad#.",
-    "#lllllaaaaaaaaaaaaaaaaaaadd#",
-    "#llllaaaaaaaaaadaaaaaaaaddd#",
-    "#lllaaaaaaaaaadaaaaaaaaaddd#",
-    "#llaaaaaaaaaaadaaaaaaaadddd#",
-    "#laaaaaaaaaaadaaaaaaaaddddd#",
-    "#aaaaaaaaaaaadaaaaaaaaddddd#",
-    "#aaaaaaaaaaadaaaaaaaadddddd#",
-    ".#aaaaaaaaaaaaaaaaaadddddd#.",
-    ".#aaaaaaaaaaaaaaaaaddddddd#.",
-    "..#aaaaaaaaaaaaaddddddddd#..",
-    "..#aaaaaaaaaaaddddddddddd#..",
-    "...#aaaaaaaadddddddddddd#...",
-    "....#dddddddddddddddddd#....",
-    ".....##dddddddddddddd##.....",
-    ".......##############.......",
+    "..............############..............",
+    "..........####llllllllll####............",
+    ".......###llllhhhlllllllllll###.........",
+    ".....##llllhhhllllllllllllaaaa##........",
+    "....#llllhhlllllllllllllaaaaaaaa#.......",
+    "...#lllllhllllllllllllaaaaaaaaaaa#......",
+    "..#llllllllllllllllllaaaaaaaaaaaaa#.....",
+    "..#lllllllllllllllaaaaaaaaaaaaaaaaa#....",
+    ".#llllllllllllllaaaaaaaaaaaaaaaaaaaa#...",
+    ".#lllllllllllaaaaaaaaaaaaaaaaaaaaaaad#..",
+    "#llllllllllaaaaaaaaaaaaaaaaaaaaaaaaadd#.",
+    "#lllllllllaaaaaaaaaaaaaadaaaaaaaaaaddd#.",
+    "#llllllllaaaaaaaaaaaaaadaaaaaaaaaadddd#.",
+    "#lllllllaaaaaaaaaaaaaadaaaaaaaaaaddddd#.",
+    "#llllllaaaaaaaaaaaaaadaaaaaaaaaadddddd#.",
+    "#lllllaaaaaaaaaaaaaadaaaaaaaaaaddddddd#.",
+    "#llllaaaaaaaaaaaaaadaaaaaaaaaadddddddd#.",
+    "#lllaaaaaaaaaaaaaaaaaaaaaaaaadddddddddd#",
+    "#llaaaaaaaaaaaaaaaaaaaaaaaaaddddddddddd#",
+    ".#aaaaaaaaaaaaaaaaaaaaaaaaadddddddddddd#",
+    ".#aaaaaaaaaaaaaaaaaaaaaaaadddddddddddd#.",
+    "..#aaaaaaaaaaaaaaaaaaaaaddddddddddddd#..",
+    "..#aaaaaaaaaaaaaaaaaadddddddddddddddd#..",
+    "...#aaaaaaaaaaaaaaadddddddddddddddd#....",
+    "....#aaaaaaaaaaaadddddddddddddddd#......",
+    ".....##ddddddddddddddddddddddd##........",
+    ".......###dddddddddddddddddd###.........",
+    "..........################..............",
 ]
 def prop_rock():
-    """낙석 28x24: 손그림 그리드 — 둥근 덩어리, 왼쪽 위 밝음·오른쪽 아래 어두움, 금 한 줄. 2026-09-10 사용자 지적으로 다시 그림(전엔 둥근 사각형+혹)"""
+    """낙석 40x28(가로로 넓게 — 2026-09-10 "x 면적 높여"): 손그림 그리드 — 둥근 덩어리, 왼쪽 위 밝음·오른쪽 아래 어두움, 금 한 줄"""
     pal = {'#': OUT, 'a': hexc('#5a4a70'), 'l': hexc('#7d6b96'), 'd': hexc('#3e3050'), 'h': hexc('#a494bd')}
-    c = Canvas(28, 24)
+    c = Canvas(len(ROCK_GRID[0]), len(ROCK_GRID))
     for y, row in enumerate(ROCK_GRID):
         for x, ch in enumerate(row):
             if ch != '.': c.px(x, y, pal[ch])
