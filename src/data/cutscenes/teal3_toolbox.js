@@ -58,11 +58,14 @@ export const teal3_toolbox = [
   { face: 'ppaman', dir: 'right' },
   { parallel: [{ hop: 'cs1', by: [-24, 0], height: 18, duration: 0.35, sfx: false }, { hop: 'cs2', by: [-24, 0], height: 18, duration: 0.35, sfx: false }] },   // 다가온다
   P('* 오{w=0.3} 온다!'),
-  // ── 전투 시작 연출: 화면 가운데로 클로즈업 + 델타룬 전투 시작 징글 → 흰 섬광 → 전투 화면 ──
+  // ── 전투 시작 연출: 델타룬 공식 전투 시작음 + 화면 가운데로 클로즈업 + 검은 소용돌이에 빨려 들어감 → 전투 화면 (사용자: 흰 섬광 대신 검게) ──
   { sfx: 'battle_start' }, { shake: 0.45, amp: 3 },
+  { vortex: { at: 'center', size: 40, grow: 0.9 } },
   { zoom: 1.9, at: 'center', duration: 0.55 },
-  { fade: 'white', duration: 0.3 },
-  { wait: 0.35 },
+  { vortex: { size: 900, grow: 0.5 } },
+  { fade: 'out', duration: 0.25 },
+  { wait: 0.15 },
+  { vortex: null },
   { battle: { enemies: ['cs_red', 'cs_blue'], bgm: 'rude_buster', flag: 'teal3_cs_won' } },   // 레드·블루 CS, 각 HP 6. 일반 전투 브금 Rude Buster
   { bgm: null, fadeOut: 0.6 },
   { set: { teal3_battle_pending: true } },

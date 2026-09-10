@@ -206,6 +206,7 @@ export function makeWaiter(game, node) {
     else {
       let x = 0, y = 0;
       if (Array.isArray(node.vortex.at)) [x, y] = node.vortex.at;
+      else if (node.vortex.at === 'center') { x = game.camera.x + SCREEN_W / 2; y = game.camera.y + SCREEN_H / 2; }   // 화면 가운데(전투 진입: 검게 빨려 들어감)
       else { const e = findEntity(game, node.vortex.at); if (e) { x = (e.drawX ?? e.x) + (e.iw ?? e.w) / 2; y = (e.drawY ?? e.y) + (e.ih ?? e.h) * 0.35; } }
       game.vortex.start({ x, y, size: node.vortex.size, grow: node.vortex.grow });
     }

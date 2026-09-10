@@ -25,7 +25,7 @@ export class Board {
 }
 
 export class Soul {
-  constructor() { this.x = 240; this.y = 225; this.r = 5; this.speed = 110; this.invuln = 0; this.hits = 0; }
+  constructor() { this.x = 240; this.y = 225; this.r = 6; this.speed = 110; this.invuln = 0; this.hits = 0; }   // 델타룬 소울 크기(약 16px@640 → 12px@480)
   center(board) { this.x = board.x + board.w / 2; this.y = board.y + board.h / 2; }
   update(dt, input, board) {
     let vx = 0, vy = 0;
@@ -41,10 +41,11 @@ export class Soul {
     if (this.invuln > 0 && Math.floor(this.invuln * 16) % 2) return;   // 무적 깜빡임
     const x = Math.round(this.x), y = Math.round(this.y);
     ctx.fillStyle = '#ff0000';
-    // 8px 하트
-    ctx.fillRect(x - 4, y - 3, 3, 2); ctx.fillRect(x + 1, y - 3, 3, 2);
-    ctx.fillRect(x - 5, y - 1, 10, 2); ctx.fillRect(x - 4, y + 1, 8, 1); ctx.fillRect(x - 3, y + 2, 6, 1); ctx.fillRect(x - 2, y + 3, 4, 1); ctx.fillRect(x - 1, y + 4, 2, 1);
+    // 델타룬식 하트 14x12
+    const rows = ['..XXX...XXX..', '.XXXXX.XXXXX.', 'XXXXXXXXXXXXX', 'XXXXXXXXXXXXX', 'XXXXXXXXXXXXX', '.XXXXXXXXXXX.', '..XXXXXXXXX..', '...XXXXXXX...', '....XXXXX....', '.....XXX.....', '......X......'];
+    rows.forEach((row, ry) => { for (let rx = 0; rx < row.length; rx++) if (row[rx] === 'X') ctx.fillRect(x - 6 + rx, y - 5 + ry, 1, 1); });
   }
+
 }
 
 /** 알갱이: 원. kind 로 색만 다르게 */

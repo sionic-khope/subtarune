@@ -65,7 +65,7 @@ model: opus
 | `# 도착하자마자 다른 곳에서 연출 (플레이어 안 보이게)` | 맵 `enter:{script, flag, early:true}` + 첫 노드 `{ camera:[tx,ty], duration:0.01 }` |
 | `# 브금 꺼졌다가 X 대사에 브금` | 맵 `bgm:'x', bgmFlag:'<enter flag>'` + 대사 직전 `{ bgm:'x' }` |
 | `# 선택지` | `{ choice:{ options:[{label, goto}], cancel } }` — 엔진이 다 뜬 뒤 0.4초 확정 잠금을 건다(연타 방지, 따로 delay 불필요). 테스트는 선택지 감지 후 500ms 기다렸다 조작 |
-| `# (전투시작)` | `{ sfx:'battle_start' }, { zoom:1.9, at:'center', duration:0.55 }, { fade:'white', duration:0.3 }, { wait:0.35 }, { battle:{ enemies:['cs','cs'], bgm:'rude_buster', flag:'..._won' } }` 뒤에 `{ bgm:null }`·`{ zoom:1 }`·`{ fade:'in' }` |
+| `# (전투시작)` | `{ sfx:'battle_start' }, { shake:0.45, amp:3 }, { vortex:{ at:'center', size:40, grow:0.9 } }, { zoom:1.9, at:'center', duration:0.55 }, { vortex:{ size:900, grow:0.5 } }, { fade:'out', duration:0.25 }, { wait:0.15 }, { vortex:null }, { battle:{ enemies:['cs_red','cs_blue'], bgm:'rude_buster', flag:'..._won' } }` 뒤에 `{ bgm:null }`·`{ zoom:1 }`·`{ camera:'player' }`·`{ fade:'in' }` (검게 빨려 들어가는 전환) |
 | `# X가 건너뛴다 / 점프한다` | `{ hop:'id', by:[dx,dy], height:30, duration:0.55 }` (jump.mp3 자동, 포물선) |
 | `# 점프 (사운드)` | `{ sfx:'jump' }` (델타룬 점프음, 공용) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |

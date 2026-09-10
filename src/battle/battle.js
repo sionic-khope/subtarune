@@ -20,9 +20,9 @@ import L from '../data/locale/ko.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', 'gyeongsub', 'ppaman'];   // 위→아래 (브리핑 순서)
-const PARTY_X = 84, PARTY_YS = { 1: [178], 2: [120, 236], 3: [92, 178, 264] };
+const PARTY_X = 84, PARTY_YS = { 1: [172], 2: [118, 218], 3: [84, 162, 240] };   // 세로 간격 78px — 셋이 패널(y 268) 위에 다 들어온다 (2026-09-10 사용자)
 const ENEMY_X = 396, ENEMY_YS = { 1: [186], 2: [124, 244], 3: [96, 186, 276] };
-const ACTOR_SCALE = 0.6;             // 미리보기(0.25) 대비 — 화면에 셋을 세로로 세우려면 작게
+const ACTOR_SCALE = 0.66;            // 미리보기(0.25) 대비 (사용자 요청으로 10% 확대)
 const APPROACH_SPEED = 820, RETURN_SPEED = 700;   // px/s — "생각보다 빠르게"
 const ATTACK_SPEEDUP = 1.35;         // 공격 모션 재생 배속
 const BETWEEN_ACTS = 0.08;           // 멤버 사이 딜레이(초) — "빠르게빠르게"
@@ -65,6 +65,7 @@ export class Battle {
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
     this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random;
     this.result = null; this.pressed = false;
+    if (cfg.bgm) game.sound.playBgm(cfg.bgm, { volume: 0.5, fadeIn: 0.15 });   // 전환 즉시(로딩 기다리지 않음 — 딜레이 지적)
     this.load();
   }
 
@@ -73,7 +74,7 @@ export class Battle {
       ...this.members.map(async (m) => { m.frames = await loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey); }),
       ...this.enemies.map(async (e) => { e.img = await this.loadEnemyImage(e.def); }),
     ]);
-    if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5 });
+    this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
     this.setText(this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`);
     this.state = 'intro'; this.t = 0;
   }
@@ -90,7 +91,7 @@ export class Battle {
   // ── 진행 ──
   update(dt, input) {
     this.t += dt;
-    for (const m of this.members) { if (m.action) m.action.update(dt); if (m.popup) { m.popup.t += dt; if (m.popup.t > 0.9) m.popup = null; } }
+    for (const m of this.members) { if (m.action) m.action.update(dt); if (m.popup) { m.popup.t += dt; if (m.popup.t > 0.9) m.popup = null; } if (m.pose !== undefined && m.pose !== null) { m.pose += dt; const T = BATTLE_SPRITES[m.id].attack.reduce((a, f) => a + f.duration, 0); if (m.pose > T) m.pose = null; } }
     for (const e of this.enemies) { if (e.shake > 0) e.shake -= dt; if (e.blink > 0) e.blink -= dt; if (e.dying > 0) { e.dying -= dt; if (e.dying <= 0) { e.dead = true; } } if (e.popup) { e.popup.t += dt; if (e.popup.t > 0.9) e.popup = null; } }
     this.board.update(dt);
     switch (this.state) {
@@ -129,8 +130,8 @@ export class Battle {
   }
   updateTarget(input) {
     const list = this.living(); if (!list.length) { this.state = 'menu'; return; }
-    if (input.just('up') || input.just('left')) { this.targetIdx = (this.targetIdx + list.length - 1) % list.length; this.sfx('menu'); }
-    if (input.just('down') || input.just('right')) { this.targetIdx = (this.targetIdx + 1) % list.length; this.sfx('menu'); }
+    if (input.just('left') || input.just('up')) { this.targetIdx = (this.targetIdx + list.length - 1) % list.length; this.sfx('menu'); }
+    if (input.just('right') || input.just('down')) { this.targetIdx = (this.targetIdx + 1) % list.length; this.sfx('menu'); }
     if (input.just('cancel')) { this.sfx('cancel'); this.state = 'menu'; return; }
     if (input.just('confirm')) { this.sfx('confirm'); this.plans.push({ member: this.members[this.memberIdx], type: 'fight', target: list[this.targetIdx] }); this.nextMember(); }
   }
@@ -158,7 +159,7 @@ export class Battle {
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
-      if (!this.living().length) { this.state = 'win'; this.t = 0; this.setText(L.battle_win); return; }
+      if (!this.living().length) { this.state = 'win'; this.t = 0; this.setText(L.battle_win); this.game.sound.stopBgm(0.3); this.sfx('won'); return; }
       this.beginEnemyTurn(); return;
     }
     const plan = this.plans[this.actIdx++];
@@ -172,8 +173,8 @@ export class Battle {
   }
   hitEnemy(e, by) {
     e.hp = Math.max(0, e.hp - 1); e.shake = 0.35; e.blink = 0.3; e.popup = { t: 0, text: '1' };
-    this.sfx('hit');
-    if (e.hp <= 0) { e.dying = 0.5; this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); } else this.setText(e.def.lines?.hurt || '');
+    this.sfx('hit'); this.sfx('damage');                        // 델타룬 공식: 베기(snd_laz) + 타격(snd_damage)
+    if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
   }
   useItem(m, name) {
     const def = ITEMS[name] || {}; const i = this.game.inventory.indexOf(name); if (i >= 0) this.game.inventory.splice(i, 1);
@@ -243,9 +244,10 @@ export class Battle {
   }
   drawMember(ctx, m) {
     if (!m.frames) return;
-    const act = m.action, mode = act ? act.mode : 'idle', running = mode === 'approach' || mode === 'return';
+    const act = m.action, posing = m.pose !== undefined && m.pose !== null && m.pose >= 0 && (!act || act.mode === 'idle');
+    const mode = act ? act.mode : posing ? 'attack' : 'idle', running = mode === 'approach' || mode === 'return';
     const seq = m.frames[running ? 'run' : mode === 'attack' ? 'attack' : 'idle'];
-    const { index } = playbackFrameAt(seq, act && mode !== 'idle' ? act.elapsed * (mode === 'attack' ? ATTACK_SPEEDUP : 1) : this.t, mode !== 'attack');
+    const { index } = playbackFrameAt(seq, posing ? m.pose : act && mode !== 'idle' ? act.elapsed * (mode === 'attack' ? ATTACK_SPEEDUP : 1) : this.t, mode !== 'attack');
     const fr = seq[index]; const def = BATTLE_SPRITES[m.id];
     const scale = (running ? def.run.scale : def.scale) * ACTOR_SCALE;
     const [px, py] = act ? act.position : m.home;
@@ -282,29 +284,35 @@ export class Battle {
     this.text.split('\n').forEach((line, i) => ctx.fillText(line, 36, 282 + i * LH));
   }
   drawPanel(ctx) {
-    if (this.state === 'intro' || this.state === 'win' || this.state === 'lose' || this.state === 'text' || this.state === 'enemy-text' || this.state === 'act' || this.state === 'load') { this.drawTextBox(ctx); return; }
-    // 멤버 카드 (델타룬식): 이름 · HP 바 · 현재 멤버 위에 [공격하기] [아이템]
+    if (['intro', 'win', 'lose', 'text', 'enemy-text', 'act', 'load'].includes(this.state)) { this.drawTextBox(ctx); return; }
+    // 멤버 카드(델타룬식): 이름 · HP 바 · 현재 멤버 카드 안에 [공격하기] [아이템] 상자 버튼. 적 선택도 같은 패널 안(새 창 없음)
     const n = this.members.length, cw = Math.floor(440 / n);
     this.box(ctx, 20, 268, 440, 84);
     this.members.forEach((m, i) => {
       const x = 20 + i * cw, active = i === this.memberIdx && (this.state === 'menu' || this.state === 'target' || this.state === 'item');
-      ctx.fillStyle = m.down ? '#777' : active ? '#ffe066' : '#fff'; ctx.textAlign = 'left'; ctx.fillText(m.name, x + 12, 278);
-      ctx.fillStyle = '#7a1b1b'; ctx.fillRect(x + 12, 300, cw - 24, 8); ctx.fillStyle = m.down ? '#555' : '#ffd23b'; ctx.fillRect(x + 12, 300, Math.round((cw - 24) * m.hp / m.maxHp), 8);
-      ctx.fillStyle = '#fff'; ctx.fillText(`${L.battle_hp} ${m.hp}/${m.maxHp}${m.down ? ' ' + L.battle_down : ''}`, x + 12, 314);
-      if (this.plans.some((p) => p.member === m)) { ctx.fillStyle = '#9fd3ff'; ctx.fillText(L.battle_fight, x + 12, 334); }
-      if (active && this.state === 'menu') {                     // 버튼 두 개
-        [L.battle_fight, L.battle_item].forEach((label, k) => { const bx = x + 12 + k * 84, by = 334; ctx.fillStyle = this.menuIdx === k ? '#ffe066' : '#fff'; ctx.fillText(label, bx + 12, by); if (this.menuIdx === k) this.heart(ctx, bx, by + 4); });
+      if (active) { ctx.fillStyle = '#1a1a2a'; ctx.fillRect(x + 4, 272, cw - 8, 76); }
+      ctx.fillStyle = m.down ? '#777' : active ? '#ffe066' : '#fff'; ctx.textAlign = 'left'; ctx.fillText(m.name, x + 12, 276);
+      ctx.fillStyle = '#7a1b1b'; ctx.fillRect(x + 12, 296, cw - 24, 7); ctx.fillStyle = m.down ? '#555' : '#ffd23b'; ctx.fillRect(x + 12, 296, Math.round((cw - 24) * m.hp / m.maxHp), 7);
+      ctx.fillStyle = '#fff'; ctx.fillText(`${L.battle_hp} ${m.hp}/${m.maxHp}${m.down ? ' ' + L.battle_down : ''}`, x + 12, 306);
+      const planned = this.plans.find((pl) => pl.member === m);
+      if (planned && !active) { ctx.fillStyle = '#9fd3ff'; ctx.fillText(planned.type === 'fight' ? `${L.battle_fight} → ${planned.target.name}` : `${L.battle_item} ${planned.name}`, x + 12, 328); }
+      if (active && this.state === 'menu') {                     // 상자 버튼 두 개
+        [L.battle_fight, L.battle_item].forEach((label, k) => { const bx = x + 6 + (k ? 82 : 0), by = 326, bw = k ? 56 : 78, bh = 20; const sel = this.menuIdx === k;
+          ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+          ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.textAlign = 'center'; ctx.fillText(label, bx + bw / 2 + (sel ? 5 : 0), by + 2); ctx.textAlign = 'left'; if (sel) this.heart(ctx, bx + 3, by + 6); });
+      }
+      if (active && this.state === 'target') {                   // 적 선택: 카드 안에 이름·HP% (← → 로 고름)
+        const list = this.living(); ctx.fillStyle = '#cfcfdd'; ctx.fillText(L.battle_target, x + 12, 326);
+        list.forEach((e, k) => { const bx = x + 12 + k * Math.floor((cw - 24) / Math.max(1, list.length)); const sel = k === this.targetIdx; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, bx + (sel ? 12 : 0), 340 - 4); if (sel) this.heart(ctx, bx, 340); });
+      }
+      if (active && this.state === 'item') {
+        const items = plainItems(this.game.inventory); ctx.fillStyle = '#cfcfdd'; ctx.fillText(L.battle_item, x + 12, 326);
+        items.slice(0, 3).forEach((name, k) => { const bx = x + 12 + k * 60; const sel = k === this.itemIdx; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(name, bx + (sel ? 12 : 0), 336); if (sel) this.heart(ctx, bx, 340); });
       }
     });
-    if (this.state === 'target') {                                // 적 목록 (이름 + HP%)
-      const list = this.living(); this.box(ctx, 120, 150, 240, 24 + list.length * LH + 8);
-      ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(L.battle_target, 134, 158);
-      list.forEach((e, i) => { const y = 180 + i * LH; if (i === this.targetIdx) this.heart(ctx, 134, y + 4); ctx.fillStyle = i === this.targetIdx ? '#ffe066' : '#fff'; ctx.fillText(e.name, 150, y); ctx.fillStyle = '#7a1b1b'; ctx.fillRect(250, y + 4, 80, 8); ctx.fillStyle = '#4cd964'; ctx.fillRect(250, y + 4, Math.round(80 * e.hp / e.maxHp), 8); ctx.fillStyle = '#fff'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, 336, y); });
-    }
-    if (this.state === 'item') {
-      const items = plainItems(this.game.inventory); this.box(ctx, 120, 150, 240, 24 + items.length * LH + 8);
-      ctx.fillStyle = '#fff'; ctx.fillText(L.battle_item, 134, 158);
-      items.forEach((name, i) => { const y = 180 + i * LH; if (i === this.itemIdx) this.heart(ctx, 134, y + 4); ctx.fillStyle = i === this.itemIdx ? '#ffe066' : '#fff'; ctx.fillText(name, 150, y); });
+    if (this.state === 'target') {                                // 고르는 적 위에 화살표 + HP 바 (화면 위쪽, 창 없음)
+      const e = this.living()[this.targetIdx]; if (e) { const ax = e.x, ay = e.y - 100; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#7a1b1b'; ctx.fillRect(ax - 24, ay - 12, 48, 6); ctx.fillStyle = '#4cd964'; ctx.fillRect(ax - 24, ay - 12, Math.round(48 * e.hp / e.maxHp), 6); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(`${Math.round(100 * e.hp / e.maxHp)}%`, ax, ay - 32); ctx.textAlign = 'left'; }
     }
     if (this.text && this.state === 'menu') { ctx.fillStyle = '#cfcfdd'; ctx.textAlign = 'center'; ctx.fillText(this.text.split('\n')[0], 240, 246); ctx.textAlign = 'left'; }
   }

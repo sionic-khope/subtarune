@@ -12,7 +12,7 @@ page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
 const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 15000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player))) return; await page.waitForTimeout(100); } };
-const st = () => page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), battle: !!game.battle, zoom: +(game.zoom?.s ?? 1).toFixed(2), bgm: game.sound.bgmName || null, flags: { ...game.flags }, partyHp: { ...game.partyHp }, cs: game.entities.filter((e) => e.id === 'cs1' || e.id === 'cs2').filter((e) => !e.dead).length, f: game.entities.filter((e) => e.def?.type === 'follower').length }));
+const st = () => page.evaluate(() => ({ vortex: game.vortex.active, fadeColor: game.fade.color, running: game.dialogue.running, box: game.textbox.state, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), battle: !!game.battle, zoom: +(game.zoom?.s ?? 1).toFixed(2), bgm: game.sound.bgmName || null, flags: { ...game.flags }, partyHp: { ...game.partyHp }, cs: game.entities.filter((e) => e.id === 'cs1' || e.id === 'cs2').filter((e) => !e.dead).length, f: game.entities.filter((e) => e.def?.type === 'follower').length }));
 const bt = () => page.evaluate(() => { const b = game.battle; if (!b) return null; return { state: b.state, memberIdx: b.memberIdx, menuIdx: b.menuIdx, targetIdx: b.targetIdx, members: b.members.map((m) => ({ id: m.id, name: m.name, hp: m.hp, max: m.maxHp, home: m.home, down: m.down, mode: m.action?.mode || 'idle', px: Math.round(m.action?.position?.[0] ?? m.home[0]), loaded: !!m.frames })), enemies: b.enemies.map((e) => ({ id: e.id, hp: e.hp, max: e.maxHp, x: e.x, y: e.y, dead: e.dead, loaded: !!e.img })), bullets: b.bullets.length, soul: { x: Math.round(b.soul.x), y: Math.round(b.soul.y), hits: b.soul.hits }, board: { w: Math.round(b.board.w), h: Math.round(b.board.h) }, text: b.text, plans: b.plans.length }; });
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.player.trail = []; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); }, [x, y, f]);
 const until = async (fn, ms, step = 60) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await fn(); if (v) return v; await page.waitForTimeout(step); } return null; };
@@ -21,14 +21,19 @@ await page.goto('http://127.0.0.1:8000/index.html?qa=teal3'); await ready(); awa
 const meta = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal3.meta);
 await stand(meta.box[0] + 4, meta.box[1] + 24, 'up'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');
 // 컷신 진행 → 전투 시작까지 (대사 넘기기)
-let maxZoom = 1, sawWhite = false;
-const started = await until(async () => { const s = await st(); maxZoom = Math.max(maxZoom, s.zoom); if (!s.battle && (s.box === 'waiting' || s.box === 'typing')) await page.keyboard.press('KeyC'); return s.battle ? s : null; }, 60000, 70);
+let maxZoom = 1, sawVortex = false;
+const started = await until(async () => { const s = await st(); maxZoom = Math.max(maxZoom, s.zoom); if (s.vortex) sawVortex = true; if (!s.battle && (s.box === 'waiting' || s.box === 'typing')) await page.keyboard.press('KeyC'); return s.battle ? s : null; }, 60000, 70);
 check('toolbox scene leads into a battle (game.battle set)', !!started, '');
-check('battle entry: close-up zoom at screen center (zoom > 1.5) before the flash', maxZoom > 1.5, 'maxZoom=' + maxZoom);
+check('battle entry: close-up zoom at screen center (zoom > 1.5)', maxZoom > 1.5, 'maxZoom=' + maxZoom);
+check('battle entry: sucked into a black vortex (vortex seen, fade color black) — no white flash', sawVortex && started && started.fadeColor === '0,0,0', JSON.stringify({ sawVortex, color: started?.fadeColor }));
+check('battle bgm starts immediately when the battle object appears (no load delay)', started && started.bgm === 'rude_buster', started?.bgm);
 await page.evaluate(() => { game.battle.rnd = () => 0.5; });   // 결정적: 탄막이 소울(가운데)을 정확히 노린다
 let b = await until(async () => { const q = await bt(); return q && q.state === 'intro' && q.members.every((m) => m.loaded) && q.enemies.every((e) => e.loaded) ? q : null; }, 15000);
 check('battle loaded: party hyungsub/gyeongsub/ppaman top→bottom on the left (HP 100/120/90), 2 CS on the right (HP 6 each)', !!b && b.members.map((m) => m.id).join() === 'hyungsub,gyeongsub,ppaman' && b.members.map((m) => m.max).join() === '100,120,90' && b.members.every((m, i) => i === 0 || m.home[1] > b.members[i - 1].home[1]) && b.members.every((m) => m.home[0] < 160) && b.enemies.length === 2 && b.enemies.every((e) => e.hp === 6 && e.x > 320), JSON.stringify({ m: b?.members.map((m) => [m.id, m.max, m.home]), e: b?.enemies.map((e) => [e.hp, e.x, e.y]) }));
 let s = await st(); check('battle bgm Rude Buster', s.bgm === 'rude_buster', s.bgm);
+{ const lay = await page.evaluate(() => ({ ys: game.battle.members.map((m) => m.home[1]), poses: game.battle.members.map((m) => m.pose), soulR: game.battle.soul.r }));
+  check('party fits above the panel (feet y ≤ 240, spacing ~78px) and does the attack pose at intro', lay.ys.every((y) => y <= 240 && y >= 80) && lay.ys[1] - lay.ys[0] <= 80 && lay.poses.some((p) => p !== null && p !== undefined), JSON.stringify(lay));
+  check('soul heart is Deltarune-sized (r ≥ 6)', lay.soulR >= 6, 'r=' + lay.soulR); }
 { const en = await page.evaluate(() => game.battle.enemies.map((e) => ({ id: e.id, name: e.name, img: e.img?.src?.split('/').slice(-2).join('/'), w: e.img?.width, h: e.img?.height })));
   check('enemies are red/blue CS drawn from PR #7 battle-left PNGs (64×64, image not sheet)', en.length === 2 && en[0].id === 'cs_red' && en[1].id === 'cs_blue' && en.every((e) => /cs-(red|blue)-battle-left\.png$/.test(e.img || '') && e.w === 64 && e.h === 64), JSON.stringify(en)); }
 await page.screenshot({ path: `${S}/battle_01_intro.png` });
@@ -44,6 +49,11 @@ b = await bt(); check('[아이템] with nothing usable → "쓸 수 있는 아�
 await page.waitForTimeout(600); await page.keyboard.press('KeyC'); await page.waitForTimeout(200);
 b = await bt(); check('back in menu', !!b && b.state === 'menu', b?.state);
 await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(100);
+// X 뒤로가기: 적 선택 중 X → 메뉴, 다음 멤버 메뉴에서 X → 앞 멤버 선택 취소
+await page.keyboard.press('KeyC'); await page.waitForTimeout(150); b = await bt(); check('[공격하기] → target picker inside the panel (no popup state)', !!b && b.state === 'target', b?.state);
+await page.keyboard.press('KeyX'); await page.waitForTimeout(150); b = await bt(); check('X in target picker → back to the same member menu', !!b && b.state === 'menu' && b.memberIdx === 0, JSON.stringify({ s: b?.state, m: b?.memberIdx }));
+await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.keyboard.press('KeyC'); await page.waitForTimeout(150); b = await bt(); check('member 0 planned → member 1 menu', !!b && b.state === 'menu' && b.memberIdx === 1 && b.plans === 1, JSON.stringify({ s: b?.state, m: b?.memberIdx, plans: b?.plans }));
+await page.keyboard.press('KeyX'); await page.waitForTimeout(150); b = await bt(); check('X in member 1 menu → back to member 0 with the plan undone', !!b && b.memberIdx === 0 && b.plans === 0, JSON.stringify({ m: b?.memberIdx, plans: b?.plans }));
 // 한 라운드: 셋 다 공격하기 → 첫 적
 const pickAll = async () => { for (let i = 0; i < 3; i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(150); const q = await bt(); if (q.state !== 'target') break; await page.keyboard.press('KeyC'); await page.waitForTimeout(150); } };
 await pickAll();
