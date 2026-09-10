@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { clearExteriorChroma, playbackFrameAt } from '../../src/ui/battle-preview.js';
+import { BattlePreview, clearExteriorChroma, playbackFrameAt } from '../../src/ui/battle-preview.js';
 
 const FRAMES = [
   { duration: 0.1 },
@@ -9,6 +9,26 @@ const FRAMES = [
   { duration: 0.3 },
   { duration: 0.4 },
 ];
+
+test('test_battle_preview_busy_input_locks_selection_and_cancel_restores_all_homes', () => {
+  const preview = new BattlePreview({
+    sprites: { one: { attack: FRAMES }, two: { attack: FRAMES } },
+    preview: { ids: ['one', 'two'], anchors: [[0, 0], [20, 0]], attackAnchor: [190, 0] },
+    strings: {}, onClose: () => {},
+  });
+  preview.active = true;
+  for (const actor of preview.actors) actor.frames = { attack: FRAMES };
+  const input = (...keys) => ({ just: (key) => keys.includes(key) });
+  preview.update(0.25, input('confirm'));
+  preview.update(0.25, input('right', 'confirm'));
+  assert.equal(preview.selected, 0);
+  assert.equal(preview.actors[0].elapsed, 0.5);
+  assert.equal(preview.actors[1].mode, 'idle');
+  preview.update(0, input('cancel'));
+  assert.equal(preview.active, false);
+  assert.deepEqual(preview.actors.map((actor) => actor.action.position), [[0, 0], [20, 0]]);
+  assert.ok(preview.actors.every((actor) => actor.mode === 'idle'));
+});
 
 test('test_battle_preview_idle_timing_loops_on_frame_durations', () => {
   assert.deepEqual(playbackFrameAt(FRAMES, 0, true), { index: 0, ended: false });
