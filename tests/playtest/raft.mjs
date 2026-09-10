@@ -9,7 +9,7 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
-const st = () => page.evaluate(() => { const r = game.entities.find((e) => e.id === 'raft1'); return { map: game.mapId, stage: game.story.stage, ride: !!game.ride, p: [Math.round(game.player.x), Math.round(game.player.y)], facing: game.player.facing, raft: r ? [Math.round(r.x), Math.round(r.y), r.at] : null, flag: game.flags.raft_raft1, running: game.dialogue.running, text: game.textbox.node?.text || '' }; });
+const st = () => page.evaluate(() => { const r = game.entities.find((e) => e.id === 'raft1'); return { map: game.mapId, stage: game.story.stage, ride: !!game.ride, moving: game.player.moving, frame: game.player.frame, p: [Math.round(game.player.x), Math.round(game.player.y)], facing: game.player.facing, raft: r ? [Math.round(r.x), Math.round(r.y), r.at] : null, flag: game.flags.raft_raft1, running: game.dialogue.running, text: game.textbox.node?.text || '' }; });
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
 
 // 1) QA: 뗏목 앞
@@ -21,6 +21,7 @@ await page.keyboard.press('KeyC'); await page.waitForTimeout(400);
 s = await st(); check('C boards the raft (ride starts)', s.ride && s.p[0] > 120, JSON.stringify(s));
 await page.waitForTimeout(1800); await page.screenshot({ path: `${S}/raft_02_riding.png` });
 s = await st(); check('mid-ride: player carried on raft', s.ride && Math.abs(s.p[0] - (s.raft[0] + 16)) < 6, JSON.stringify({ p: s.p, raft: s.raft }));
+{ let walked = false; for (let i = 0; i < 12; i++) { await page.waitForTimeout(90); const q = await st(); if (!q.ride) break; if (q.moving || q.frame !== 0) walked = true; } check('mid-ride: rider stands still (no walk animation)', !walked); }
 const t0 = Date.now(); while (Date.now() - t0 < 8000 && (await st()).ride) await page.waitForTimeout(100);
 const rideMs = Date.now() - t0 + 2200;
 s = await st();

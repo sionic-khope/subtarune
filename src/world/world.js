@@ -403,7 +403,7 @@ export class Prop extends Entity {
  * 뗏목(재사용 기믹): 물 위 발판. 옆에 서서 C → 정해진 경로(route)를 따라 일직선으로 이동, 끝에서 내린다. 반대편에서 타면 되돌아온다.
  *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:171, flag?:'raft1' }
  *   x,y 와 route 는 이미지 좌상단(월드). 상태: flags[flag] = 지금 있는 route 인덱스(0=시작) → 맵을 다시 들어와도 그 자리.
- *   타는 동안 game.ride 가 서서 플레이어 입력·트리거가 멈춘다(main.js). 도착하면 진행 방향으로 플레이어를 밀어 내린다.
+ *   타는 동안 game.ride 가 서서 플레이어 입력·트리거가 멈춘다(main.js). 탑승자(와 동료)는 걷지 않고 정지 프레임으로 서 있는다. 도착하면 진행 방향으로 플레이어를 밀어 내린다.
  */
 export class Raft extends Prop {
   constructor(def, game) {
@@ -442,7 +442,7 @@ export class Raft extends Prop {
     }
     this.x += (dx / dist) * step; this.y += (dy / dist) * step; this.def.ix = this.x; this.def.iy = this.y;
     this._carry();
-    this.rider.moving = true; this.rider.animate?.(dt, 4);
+    this.rider.moving = false; this.rider.frame = 0; this.rider.animPhase = 0;   // 실려 가는 동안 가만히 서 있는다(걷기 애니 금지, 2026-09-10)
     this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (1.1s 마다, 작게·피치 조금씩 다르게)
     if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 }); }
   }
@@ -483,7 +483,7 @@ export class Follower extends Character {
   update(dt) {
     const p = this.game.player; if (!p) return;
     if (this.game.dialogue.running) return;          // 컷신 중엔 컷신(move)이 움직인다 — 발자국 추종과 싸우지 않게
-    if (this.game.ride) { this.x = p.x - 6 * this.slot; this.y = p.y - 2 * this.slot; this.facing = p.facing; this.moving = p.moving; this.animate(dt, 4); return; }
+    if (this.game.ride) { this.x = p.x - 6 * this.slot; this.y = p.y - 2 * this.slot; this.facing = p.facing; this.moving = false; this.frame = 0; this.animPhase = 0; return; }   // 탈것 위에선 동료도 가만히
     const trail = p.trail || [];
     // 발자국을 뒤에서부터 gap 만큼 거슬러 올라간 지점이 목표
     let acc = 0, target = null, prev = { x: p.x, y: p.y };
