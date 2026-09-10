@@ -45,7 +45,8 @@ const board = async (x, y, f) => { await stand(x, y, f); await page.waitForTimeo
 await page.goto('http://127.0.0.1:8000/index.html?qa=void9'); await ready(); await page.waitForTimeout(400);
 let s = await st(); check('qa=void9: dock A with party', s.map === 'void9' && s.f?.vis && s.flags.void8_done, JSON.stringify({ p: s.p, f: s.f }));
 // 움직이는 벽
-{ const a = s.walls; await page.waitForTimeout(900); const b = (await st()).walls; const moved = a.filter((w, i) => w.x !== b[i].x || w.y !== b[i].y).map((w) => w.id); check('moving walls oscillate (w2,w4,w5,w7,w8,w10), static ones do not', ['w2', 'w4', 'w5', 'w7', 'w8', 'w10'].every((id) => moved.includes(id)) && !['w1', 'w3', 'w6', 'w9'].some((id) => moved.includes(id)), moved.join(',')); }
+// 움직이는 벽: 세 번 표본(0/0.5/1.2s) — 주기 3.6s 벽이 0.9s 간격 두 표본에서 같은 자리로 잡히던 위상 우연 방지
+{ const a = s.walls; await page.waitForTimeout(500); const b = (await st()).walls; await page.waitForTimeout(700); const c = (await st()).walls; const moved = a.filter((w, i) => w.x !== b[i].x || w.y !== b[i].y || w.x !== c[i].x || w.y !== c[i].y).map((w) => w.id); check('moving walls oscillate (w2,w4,w5,w7,w8,w10), static ones do not', ['w2', 'w4', 'w5', 'w7', 'w8', 'w10'].every((id) => moved.includes(id)) && !['w1', 'w3', 'w6', 'w9'].some((id) => moved.includes(id)), moved.join(',')); }
 // ── 1) H1 → ──
 s = await board(190, 120, 'right'); check('board raft9a: no intro cutscene, swimmer appears, moving right', s.ride && s.rideId === 'raft9a' && !s.running && !!s.sw && s.raft.moving, JSON.stringify({ ride: s.rideId, running: s.running, sw: s.sw }));
 await page.waitForTimeout(600); await page.screenshot({ path: `${S}/void9_01_h1.png` });

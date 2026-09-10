@@ -220,11 +220,18 @@ export function makeWaiter(game, node) {
   }
   if (node.join) { game.joinParty(node.join); return done; }          // { join:'ppaman' } 동료 가입(맵의 같은 id NPC 는 사라짐)
   if (node.leave) { game.leaveParty(node.leave); return done; }
-  if (node.raft) {                                     // { raft:id, go:true } 출발 / { raft:id, jump:true } 점프(컷신용 강제) / { raft:id, until:'stop' } 멈출 때까지(벽에 쿵·도착)
+  if (node.raft) {                                     // { raft:id, go:true } 출발 / { raft:id, jump:true } 점프(컷신용 강제) / { raft:id, until:'stop'|'land' } 멈출/착지할 때까지 / { raft:id, swim:id } 동료를 물에 / { raft:id, hold:bool } 정지 / { raft:id, holdAt:'apex'|x } 정점·x 에서 정지 / { raft:id, awaitJump:true } C 기다려 점프(공중이면 2단)
     const r = findEntity(game, node.raft); if (!r) return done;
     if (node.go) { r.depart(); return done; }
     if (node.jump) { r.jump(true); return done; }
+    if (node.swim) { r.addSwimmer(node.swim); return done; }                                   // 동료 한 명을 지금 물에 (뗏목 옆/아래에서 헤엄)
+    if ('hold' in node) { r.hold = !!node.hold; if (!r.hold) r.moving = true; return done; }   // 제자리 정지/해제 (공중 포함)
+    if (node.holdAt !== undefined) return { update: () => {                                    // 'apex' = 점프 정점에서 공중 정지 / 숫자 = 그 x 에 닿으면 정지
+      if (node.holdAt === 'apex') { if (!r.jumping) return true; if (r.jumpT >= r.jumpDur * 0.5) { r.hold = true; return true; } return false; }
+      if (r.x >= node.holdAt) { r.setPos([node.holdAt, r.y]); r._carry(); r.hold = true; return true; } return false; } };
+    if (node.awaitJump) return { update: (dt, input) => { if (input.just('confirm')) { r.hold = false; r.moving = true; r.jump(true); return true; } return false; } };   // C 를 기다렸다 점프(공중이면 2단)
     if (node.until === 'stop') return { update: () => !r.moving };
+    if (node.until === 'land') return { update: () => !r.jumping };
     return done;
   }
   if (node.prompt) {                                   // { prompt:'C를 눌러보자' } 작은 안내 창 — C 를 누를 때까지(텍스트 넘김 아님)

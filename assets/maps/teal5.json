@@ -5,26 +5,24 @@
  "stage": "void_fallen",
  "dim": 0,
  "backdrop": "teal_bush",
+ "battleBg": "teal",
  "rows": [
-  "                ",
-  "                ",
-  "                ",
-  "                ",
-  " ututututututut ",
-  " tututututututu ",
-  " ututututututut ",
-  " tututututututu ",
-  " vvvvvvvvvvvvvv ",
-  "                ",
-  "                ",
-  "                "
+  "                                                                                                                        ",
+  "                                                                                                                        ",
+  "                                                                                                                        ",
+  "                                                                                                                        ",
+  " utututuwu                                                                              tutututuwutututututwtututututuw ",
+  " tututututOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoutututututwtututututuwututututu ",
+  " wtutututuoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOtwtututututuwutututututwtututut ",
+  " tuwutututOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoutuwutututututwtututututuwututu ",
+  " ututwtutu                                                                              tututwtututututuwutututututwtut ",
+  " vvvvvvvvv                                                                              vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ",
+  "                                                                                                                        ",
+  "                                                                                                                        ",
+  "                                                                                                                        ",
+  "                                                                                                                        "
  ],
  "spawns": {
-  "from_bottom": {
-   "x": 260,
-   "y": 208,
-   "facing": "up"
-  },
   "from_left": {
    "x": 60,
    "y": 200,
@@ -32,8 +30,37 @@
   },
   "start": {
    "x": 60,
-   "y": 200
+   "y": 200,
+   "facing": "right"
+  },
+  "dock": {
+   "x": 294,
+   "y": 200,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 3712,
+   "y": 200,
+   "facing": "left"
   }
+ },
+ "meta": {
+  "raftStart": 328,
+  "raftEnd": 2752,
+  "stop": 1100,
+  "holdAt": 1124,
+  "checkpoints": [
+   328,
+   1100,
+   1400,
+   1900
+  ],
+  "waterfalls": [
+   740,
+   1250,
+   1750,
+   2250
+  ]
  },
  "entities": [
   {
@@ -41,10 +68,112 @@
    "x": 32,
    "y": 128,
    "w": 8,
-   "h": 128,
+   "h": 160,
    "to": "teal_east",
    "spawn": "landing",
    "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 3800,
+   "y": 128,
+   "w": 8,
+   "h": 160,
+   "to": "teal6",
+   "spawn": "from_left",
+   "sfx": false
+  },
+  {
+   "type": "raft",
+   "id": "raft5",
+   "image": "assets/props/raft.png",
+   "x": 328,
+   "y": 166,
+   "route": [
+    [
+     2752,
+     166
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "swim": [
+    "ppaman",
+    "gyeongsub"
+   ],
+   "swimAt": "below",
+   "onBoard": "teal5_board",
+   "stops": [
+    {
+     "x": 1100,
+     "script": "teal5_wall",
+     "flag": "teal5_wall_seen"
+    }
+   ],
+   "checkpoints": [
+    328,
+    1100,
+    1400,
+    1900
+   ]
+  },
+  {
+   "type": "prop",
+   "id": "fall_small",
+   "image": "assets/props/waterfall1.png",
+   "x": 740,
+   "y": 160,
+   "w": 24,
+   "h": 96,
+   "ix": 740,
+   "iy": 156,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "fall_big1",
+   "image": "assets/props/waterfall2.png",
+   "x": 1250,
+   "y": 160,
+   "w": 40,
+   "h": 96,
+   "ix": 1250,
+   "iy": 156,
+   "solid": true,
+   "obstacle": true,
+   "clear": 72,
+   "sweep": true
+  },
+  {
+   "type": "prop",
+   "id": "fall_big2",
+   "image": "assets/props/waterfall2.png",
+   "x": 1750,
+   "y": 160,
+   "w": 40,
+   "h": 96,
+   "ix": 1750,
+   "iy": 156,
+   "solid": true,
+   "obstacle": true,
+   "clear": 72,
+   "sweep": true
+  },
+  {
+   "type": "prop",
+   "id": "fall_big3",
+   "image": "assets/props/waterfall2.png",
+   "x": 2250,
+   "y": 160,
+   "w": 40,
+   "h": 96,
+   "ix": 2250,
+   "iy": 156,
+   "solid": true,
+   "obstacle": true,
+   "clear": 72,
+   "sweep": true
   }
  ]
 }
