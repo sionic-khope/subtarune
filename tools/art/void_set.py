@@ -276,16 +276,16 @@ def main():
     print('water_wall ok')
 
 def prop_flowers():
-    """꽃 무더기 44x26 (낙석 맵 냄새 이벤트): 보라 꽃 3송이, 배경 없음. 2026-09-10"""
-    c = Canvas(44, 26)
+    """꽃 무더기 96x26 (낙석 맵 냄새 이벤트): 보라 꽃 7송이가 3타일 폭으로 — 억빠맨이 가운데 들어가도 양옆 꽃이 보인다. 배경 없음. 2026-09-10"""
+    c = Canvas(96, 26)
     def flower(cx, cy, r):
         c.vline(cx, cy + r + 1, 26 - (cy + r + 1), STEM)
         for (dx, dy) in [(0, -r), (r, 0), (0, r), (-r, 0)]: c.rrect_outlined(cx + dx - 2, cy + dy - 2, 5, 5, PETAL, OUT, 2)
         if r >= 4:
             for (dx, dy) in [(3, -3), (-3, -3), (3, 3), (-3, 3)]: c.rrect_outlined(cx + dx - 2, cy + dy - 2, 5, 5, PETAL, OUT, 2)
         c.rrect(cx - 2, cy - 2, 5, 5, CORE, 2); c.px(cx, cy, PETAL_L)
-    flower(10, 12, 4); flower(24, 8, 4); flower(36, 14, 3)
-    c.px(2, 22, STEM); c.px(3, 21, STEM); c.px(41, 23, STEM)
+    for (x, y, r) in [(8, 12, 4), (22, 7, 4), (36, 14, 3), (50, 9, 4), (63, 15, 3), (76, 8, 4), (89, 13, 3)]: flower(x, y, r)
+    for (x, y) in [(2, 22), (3, 21), (43, 23), (58, 22), (93, 23)]: c.px(x, y, STEM)
     return c
 
 _main4 = main
