@@ -237,7 +237,7 @@ export const SCRIPTS = {
   test_junhee: [
     { speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* 뭘 봐.' },
     { speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* ...{w=0.4}{shake}꿀꿀{/shake}이라고 하면 죽는다.' },
-    { sfx: 'laugh_junhee' },
+    { motion: 'junhee', name: 'laugh', sfx: 'laugh_junhee' },
     { speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* {wave}크크크.{/wave}' },
   ],
   test_cutscene: Object.assign([

@@ -15,6 +15,7 @@ import { BattlePreview } from './ui/battle-preview.js';
 import { DotBubble } from './ui/bubble.js';
 import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
+import { loadCharacterMotions } from './world/character-motion.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
@@ -91,6 +92,7 @@ class Game {
       ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
       ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
+      loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
       this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
@@ -237,6 +239,7 @@ class Game {
     this.battlePreview?.close();
     this.sound.stopBgm(0.4); this.sound.stopIntro(0.2);
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
+    for (const entity of this.entities) entity.motion = null;
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true; this.fx = []; this.prompt = null;

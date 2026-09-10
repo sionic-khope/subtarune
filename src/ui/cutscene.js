@@ -21,12 +21,14 @@
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
 //  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
+//  { motion: id, name: 'laugh', sfx?: 'laugh_junhee' } 캐릭터별 등록 동작을 한 번 재생 후 복귀
 //  { curtain: 'black'|'white'|null }            맵을 완전히 가리는 막 (타이밍과 무관하게 새는 것 방지)
 //  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기
 //  { async: 노드 | [노드...] }                 기다리지 않고 다음으로 (배열이면 배경에서 순차 실행)
 // ─────────────────────────────────────────────────────────────
 import { TILE } from '../world/tiles.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
+import { characterMotionWaiter } from '../world/character-motion.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -113,6 +115,13 @@ function parallel(game, nodes) {
 export function makeWaiter(game, node) {
   if (node.wait !== undefined) return timer(node.wait);
   if (node.move) return mover(game, node);
+  if (node.motion) {
+    const entity = findEntity(game, node.motion);
+    const definition = game.characterMotions?.[entity?.def.sprite]?.[node.name];
+    if (node.sfx) game.sound.sfx(node.sfx);
+    if (!entity || !definition) { console.warn('[cutscene] 동작 없음:', node.motion, node.name); return done; }
+    return characterMotionWaiter(entity, definition);
+  }
   if (node.face) {
     const e = findEntity(game, node.face);
     if (e) {
