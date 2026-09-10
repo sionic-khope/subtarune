@@ -1,0 +1,148 @@
+{
+  "source_grid": [
+    2,
+    2
+  ],
+  "frame_order": "row-major, zero-based",
+  "resampling": "NEAREST",
+  "palette_quantization": false,
+  "background": "edge-connected magenta chromakey via slice_sheet.key_cell",
+  "anchor": "shared crop relative to source bottom-center, bottom at frame height minus 1",
+  "imports": [
+    {
+      "prop": {
+        "name": "ward",
+        "frame_size": [
+          20,
+          36
+        ],
+        "selected_frames": [
+          0,
+          1
+        ],
+        "fps": 2,
+        "pivot": [
+          10,
+          36
+        ]
+      },
+      "source_cell_size": [
+        572,
+        687
+      ],
+      "source_anchors": [
+        [
+          295,
+          622
+        ],
+        [
+          277,
+          622
+        ]
+      ],
+      "shared_crop": [
+        -140,
+        -545,
+        141,
+        0
+      ],
+      "scale": 0.062385321100917435,
+      "resized_size": [
+        18,
+        34
+      ],
+      "placement": [
+        1,
+        1
+      ],
+      "frame_bounds": [
+        [
+          1,
+          1,
+          19,
+          35
+        ],
+        [
+          1,
+          1,
+          19,
+          35
+        ]
+      ],
+      "sha256": "3899e6b983e1ed6dc9f60998dbcce1672d97ae95010f429ed79cffecf0eb27aa"
+    },
+    {
+      "prop": {
+        "name": "blue_buff",
+        "frame_size": [
+          40,
+          44
+        ],
+        "selected_frames": [
+          0,
+          1,
+          2
+        ],
+        "fps": 4,
+        "pivot": [
+          20,
+          44
+        ]
+      },
+      "source_cell_size": [
+        670,
+        586
+      ],
+      "source_anchors": [
+        [
+          335,
+          487
+        ],
+        [
+          335,
+          487
+        ],
+        [
+          334,
+          488
+        ]
+      ],
+      "shared_crop": [
+        -217,
+        -316,
+        217,
+        0
+      ],
+      "scale": 0.08755760368663594,
+      "resized_size": [
+        38,
+        28
+      ],
+      "placement": [
+        1,
+        15
+      ],
+      "frame_bounds": [
+        [
+          1,
+          17,
+          39,
+          43
+        ],
+        [
+          1,
+          15,
+          39,
+          43
+        ],
+        [
+          1,
+          17,
+          39,
+          43
+        ]
+      ],
+      "sha256": "17a9d068c1c0c2fb4a712e24cb91cc72a4ed834b9bb6d0fab179b4ebfcd8878b"
+    }
+  ]
+}

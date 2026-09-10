@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-10
 
+**청록숲6 생성 소품 교체(2026-09-11)**: 와드는 눈 뜸/감음 2프레임, 블루는 파란 물줄기와 돌 테두리를 갖춘 생명·마나의 샘 3프레임으로 교체했다. 블루는 몬스터가 아닌 환경 소품이다. 기존 `ward.png` 40×36(셀 20×36, 2fps), `blue_buff.png` 120×44(셀 40×44, 4fps) 계약과 맵 위치·충돌·대사·이벤트는 유지한다. 생성 원본 2×2 시트·프롬프트·교체 전 사본·정규 런타임 사본·공통 배율/프레임/pivot 기록은 `assets/source/teal6-props-v1/`에 있다. `uv run tools/sprites/import_teal6_props.py`로 재추출하며 `tools/art/teal_set.py`도 정규 사본을 복원한다. [재추출 및 확인 가이드](handoffs/teal6-props.md).
+
 **정글 몬스터 에셋 전달 (2026-09-11)**: [정글 몬스터 전달 가이드](handoffs/jungle-enemies-assets.md). 칼날부리·두꺼비·늑대 각각 정면 필드 48×48(pivot 24,44), 왼쪽 전투 64×64(pivot 32,60)의 투명 정지 PNG를 `assets/enemies/jungle-*.png`로 제공한다. 원본 6장·프롬프트·규격은 `assets/source/jungle-enemies-v1/`, 재추출은 `tools/sprites/import_jungle_enemies.py`. 애니메이션·적 등록·능력치·맵/전투 연결은 포함하지 않는 별도 에셋 전달이다.
 **따듯한비데 v2 자산 전달(2026-09-11)**: [이동·전투 대기 전달 가이드](handoffs/warm-bidet-assets.md). 키가 큰 갑옷 캐릭터와 큰 도끼의 이동 16장·오른쪽 전투 대기 4장을 원본 픽셀 크기로 투명 추출했다. 원본/프롬프트/재현 도구/pivot은 `assets/source/warm-bidet-v2/`, 출력은 `assets/sprites/warm-bidet-v2/`와 `assets/battle/warm-bidet-idle*.png`. 엔진 순서·크기와 다른 자산 전달 계약이며 캐릭터/적/맵/전투 등록은 하지 않았다. 공격 모션·소속·능력도 미정이다.
 

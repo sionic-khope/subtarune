@@ -264,11 +264,12 @@ if __name__ == '__main__':
     prop_peel().save('assets/props/banana_peel.png'); prop_black_flower().save('assets/props/black_flower.png')
     prop_waterfall().save('assets/props/waterfall2.png')   # 청록숲5 이단폭포(계단식)
     tile_forest_floor().save('assets/tiles/forest_floor_teal.png')   # 숲 바닥(막힘)
-    prop_ward().save('assets/props/ward.png'); prop_blue_buff().save('assets/props/blue_buff.png')   # 청록숲6 이벤트 소품(애니 띠)
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     from pathlib import Path
     from shutil import copyfile
     for name in ('banana', 'tree_teal', 'tree_forest', 'banana_peel', 'black_flower', 'button_teal', 'bush_teal'):
         copyfile(Path(__file__).resolve().parents[2] / 'assets/source/teal-props-v1/runtime' / f'{name}.png', f'assets/props/{name}.png')
+    for name in ('ward', 'blue_buff'):
+        copyfile(Path(__file__).resolve().parents[2] / 'assets/source/teal6-props-v1/runtime' / f'{name}.png', f'assets/props/{name}.png')
     print('teal set ok (+banana, tree_teal)')
