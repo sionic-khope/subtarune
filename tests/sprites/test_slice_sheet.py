@@ -93,6 +93,18 @@ def test_cli_hyungsub_left_walk_preserves_constant_source_head_height(tmp_path: 
     assert len(set(output_tops)) == 1, f'fixed source head height became {output_tops}'
 
 
+def test_cli_sprites_only_does_not_overwrite_portraits(tmp_path: Path) -> None:
+    source_path = ROOT / 'assets/source/walk-v3/hyungsub.png'
+
+    _ = subprocess.run([sys.executable, str(ROOT / 'tools/sprites/slice_sheet.py'), '--sprites-only', str(source_path), 'hyungsub'],
+                       cwd=tmp_path, capture_output=True, check=True)
+
+    with Image.open(tmp_path / 'assets/sprites/hyungsub.png') as sheet:
+        assert sheet.mode == 'RGBA'
+        assert sheet.getbbox() is not None
+    assert not (tmp_path / 'assets/portraits/hyungsub.png').exists()
+
+
 @pytest.mark.parametrize(('source_name', 'ids'), [
     ('sheet_hyungsub_gyeongsub_ppaman.png', ('hyungsub', 'gyeongsub', 'ppaman')),
     ('sheet_junhee.png', ('junhee',)),

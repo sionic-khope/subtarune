@@ -6,9 +6,9 @@
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
   hyungsub:  { name: '형섭', voice: 'hyungsub', palette: 'hero', self: true,   // 인트로의 HS() 대사는 이름·초상화·목소리 사용. 보라맵부터는 나레이션
-    sideWalk: { legY: 60, legFrames: [1, 3] } },
-  gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard', sideWalk: { feetY: 78, splitX: 27, stride: 2 } },
-  ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', portraitThreshold: 0.3, partyName: '억빠맨', partyDesc: '형 뒤에 붙어 다닌다.', sideWalk: { feetY: 74, splitX: 27, stride: 2 } },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
+    sideWalk: { legY: 76, legFrames: [1, 3] } },
+  gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard', sideWalk: { legY: 76, legFrames: [1, 3] } },
+  ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', portraitThreshold: 0.3, partyName: '억빠맨', partyDesc: '형 뒤에 붙어 다닌다.', sideWalk: { legY: 82, legFrames: [1, 3] } },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
   junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6, sideWalk: { feetY: 74, splitX: 46, stride: 2 } },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },
   cat:       { name: '???',  voice: 'cat',     palette: 'cat' },

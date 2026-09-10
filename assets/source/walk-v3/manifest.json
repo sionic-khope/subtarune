@@ -1,0 +1,10 @@
+{
+  "version": "walk-v3",
+  "sourceLayout": "one character per 4 columns × 4 rows: down, left, right, up",
+  "importCommand": "uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/<id>.png <id>",
+  "characters": [
+    { "id": "hyungsub", "source": "hyungsub.png", "sprite": "../../sprites/hyungsub.png", "cell": [60, 104], "legY": 76, "legFrames": [1, 3] },
+    { "id": "gyeongsub", "source": "gyeongsub.png", "sprite": "../../sprites/gyeongsub.png", "cell": [64, 102], "legY": 76, "legFrames": [1, 3] },
+    { "id": "ppaman", "source": "ppaman.png", "sprite": "../../sprites/ppaman.png", "cell": [68, 102], "legY": 82, "legFrames": [1, 3] }
+  ]
+}

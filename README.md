@@ -128,6 +128,16 @@ node tests/playtest/smoke.mjs                            # 헤드리스 자동 �
 
 ### 캐릭터 시트 재추출
 
+현재 형섭·경섭·빠맨의 걷기 이미지는 **2026-09-10 재생성한 walk-v3**다. 각 4방향×4열 원본과 프롬프트, 프레임 크기 및 연결 높이는 `assets/source/walk-v3/manifest.json`을 따른다. 현재 버전을 재추출하려면 아래 명령을 사용한다. `--sprites-only`는 기존 대화창 초상화를 덮어쓰지 않는다.
+
+```bash
+uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/hyungsub.png hyungsub
+uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/gyeongsub.png gyeongsub
+uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/walk-v3/ppaman.png ppaman
+```
+
+세 캐릭터 모두 새 중립 상체에 새 원본 하체 A/B를 붙여 **기본→발 A→기본→발 B**로 걷는다. `characters.js sideWalk`의 연결 높이는 형섭/경섭 76px, 빠맨 82px다. 쥰희의 기존 발 위치 이동 방식은 유지한다. 이전 원본과 초상화는 보존했으며, 아래의 3인 통합 시트 명령·픽셀 수정 기록은 **과거 버전 복원용**이다. 그 명령으로 현재 v3를 덮어쓰지 않는다.
+
 원본 3인 시트의 왼쪽→오른쪽은 **형섭(`hyungsub`) · 경섭(`gyeongsub`) · 빠맨(`ppaman`)**이다. 분홍 돼지는 게임에서 **쥰희(`junhee`)**를 사용한다. 원본 행 순서(정면/왼쪽/오른쪽/뒤)는 변환기가 엔진 순서(정면/뒤/왼쪽/오른쪽)로 재배열한다. 완성 PNG를 다시 변환기에 넣지 않는다.
 
 ```bash

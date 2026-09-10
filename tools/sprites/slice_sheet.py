@@ -4,7 +4,7 @@
 입력 시트 레이아웃(캐릭터당 4열): 행0=정면(down) 행1=왼쪽(left) 행2=오른쪽(right) 행3=뒷모습(up)
 출력: assets/sprites/<id>.png  = 4열(걷기 프레임) x 4행 [down, up, left, right]. 2x 해상도(원본 1/3)
       assets/portraits/<id>.png = 96x96(2x) 초상화 (정면 0번 프레임의 머리 부분, 원본 그대로에 가깝게)
-사용: python3 tools/sprites/slice_sheet.py sheet.png hyungsub gyeongsub ppaman
+사용: python3 tools/sprites/slice_sheet.py [--sprites-only] sheet.png hyungsub gyeongsub ppaman
 필요: pip install pillow numpy
 """
 import sys
@@ -119,14 +119,20 @@ def make_portrait(cell_rgb, size=96, head_ratio=0.56):
 
 
 def main() -> None:
-    src, ids = sys.argv[1], sys.argv[2:]
+    args = sys.argv[1:]
+    sprites_only = args[0] == '--sprites-only'
+    if sprites_only:
+        args = args[1:]
+    src, ids = args[0], args[1:]
     img = Image.open(src).convert('RGB')
     im = np.array(img).astype(int)
     cols, rows = detect_grid(im)
     assert len(rows) == 4, f'행 4개 기대, {len(rows)}개 감지'
     assert len(cols) == 4 * len(ids), f'열 {4*len(ids)}개 기대, {len(cols)}개 감지'
     print(f'grid: {len(cols)} cols x {len(rows)} rows')
-    import os; os.makedirs('assets/sprites', exist_ok=True); os.makedirs('assets/portraits', exist_ok=True)
+    import os; os.makedirs('assets/sprites', exist_ok=True)
+    if not sprites_only:
+        os.makedirs('assets/portraits', exist_ok=True)
     for ci, cid in enumerate(ids):
         cell_h = rows[0][1] - rows[0][0]
         downsample = max(1, round(cell_h / CELL_TARGET_H))
@@ -152,9 +158,10 @@ def main() -> None:
         out = f'assets/sprites/{cid}.png'
         sheet.save(out)
         print('wrote', out, sheet.size)
-        x0, x1 = cols[ci * 4]; y0, y1 = rows[ROW_MAP['down']]
-        make_portrait(im[y0:y1, x0:x1]).save(f'assets/portraits/{cid}.png')
-        print('wrote', f'assets/portraits/{cid}.png')
+        if not sprites_only:
+            x0, x1 = cols[ci * 4]; y0, y1 = rows[ROW_MAP['down']]
+            make_portrait(im[y0:y1, x0:x1]).save(f'assets/portraits/{cid}.png')
+            print('wrote', f'assets/portraits/{cid}.png')
 
 
 if __name__ == '__main__':
