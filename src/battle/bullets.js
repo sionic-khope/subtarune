@@ -5,6 +5,7 @@
 //   PATTERNS[type](opts) → { duration, update(t, dt, api) }  api = { emit, box, soul, rnd }
 //     rain  : 위에서 떨어지는 알갱이   aimed : 가장자리에서 소울을 겨눠 쏨   sweep : 줄지어 옆으로 지나가는 알갱이(사이로 피함)   bounce : 상자 안에서 튕기는 큰 알갱이
 //     hammer_arc : 아래에서 던져 올라갔다 떨어지는 회전 망치(블루 CS)   shield_wall : 방패 줄이 한 칸 비우고 밀려온다(레드 CS)   hammer_slam : 소울 위에 점선 예고 뒤 망치가 내리꽂힌다
+//     slam(from top|bottom|left|right|sides|updown, warn 예고 뒤 그 줄로) · combo(parts 동시 — 난이도)
 //   알갱이 모양(shape): circle(기본) | hammer | shield | vline(예고선, harmless). 모든 패턴은 o.shape / o.kind 로 모양·색을 바꿀 수 있다.
 //   설계 지침(델타룬 참고, 사용자 2026-09-11 "상대 캐릭터의 특징을 살린 공격"): 적의 소지품·성격이 탄이 된다(망치·방패), 빠른 탄은 반드시 예고(vline/깜빡임), 한 패턴 = 한 가지 피하는 법, 4~5초, docs/battle/adding-enemies.md
 //   새 패턴 = 여기 함수 하나 추가 → src/data/enemies.js 의 patterns 에서 type 으로 쓴다. tests/unit/enemies.test.mjs 가 이름을 검사한다.
@@ -128,14 +129,16 @@ export const PATTERNS = {
     return { duration: o.duration ?? 4.6, update(t, dt, api) { if (t < next) return; next += every; const b = api.box, dir = n++ % 2 ? -1 : 1, hole = Math.floor(api.rnd() * rows);
       for (let i = 0; i < rows; i++) { if (i === hole) continue; const y = b.y + 14 + i * ((b.h - 28) / Math.max(1, rows - 1)); api.emit({ x: dir > 0 ? b.x - 12 : b.x + b.w + 12, y, vx: dir * speed, r: 7, shape: 'shield', kind: o.kind || 'red' }); } } }; },
   hammer_slam: (o = {}) => PATTERNS.slam({ from: 'top', shape: 'hammer', rot: Math.PI, ...o }),
+  // 여러 패턴을 한 턴에 동시에(난이도 올리기): { type:'combo', parts:[{type,...},{type,...}] } — 각 부분은 자기 duration 까지, 전체는 가장 긴 것
+  combo: (o = {}) => { const parts = (o.parts || []).map((c) => PATTERNS[c.type](c)); return { duration: o.duration ?? Math.max(1, ...parts.map((p) => p.duration)), update(t, dt, api) { for (const p of parts) if (t < p.duration) p.update(t, dt, api); } }; },
   // 범용 '예고 뒤 덮침': from top|bottom 은 소울의 x 열에 세로 예고선, left|right 는 소울의 y 행에 가로 예고선 → warn 초 뒤 그 줄로 빠르게. 늑대 도약(fang)·두꺼비 혀(tongue)·망치(hammer)
-  slam: (o = {}) => { const every = o.every ?? 1.1, warn = o.warn ?? 0.55, speed = o.speed ?? 250, from = o.from || 'top'; let next = 0.5; const queue = [];
-    return { duration: o.duration ?? 4.4, update(t, dt, api) { const b = api.box;
-      if (t >= next) { next += every; const x = Math.round(api.soul.x), y = Math.round(api.soul.y);
+  slam: (o = {}) => { const every = o.every ?? 1.1, warn = o.warn ?? 0.55, speed = o.speed ?? 250, from0 = o.from || 'top'; let next = 0.5, n = 0; const queue = [];
+    return { duration: o.duration ?? 4.4, update(t, dt, api) { const b = api.box; const from = from0 === 'sides' ? (n % 2 ? 'right' : 'left') : from0 === 'updown' ? (n % 2 ? 'bottom' : 'top') : from0;   // sides/updown = 번갈아
+      if (t >= next) { next += every; n++; const x = Math.round(api.soul.x), y = Math.round(api.soul.y);
         if (from === 'top' || from === 'bottom') api.emit({ x, y: b.y + 4, shape: 'vline', len: b.h - 8, harmless: true, life: warn, r: 1 });
         else api.emit({ x: b.x + 4, y, shape: 'hline', len: b.w - 8, harmless: true, life: warn, r: 1 });
-        queue.push({ at: t + warn, x, y }); }
-      while (queue.length && t >= queue[0].at) { const q = queue.shift(); const base = { r: o.r ?? 7, shape: o.shape || 'hammer', rot: o.rot || 0, spin: o.spin || 0, kind: o.kind || 'blue' };
+        queue.push({ at: t + warn, x, y, from }); }
+      while (queue.length && t >= queue[0].at) { const q = queue.shift(); const from = q.from; const base = { r: o.r ?? 7, shape: o.shape || 'hammer', rot: o.rot || 0, spin: o.spin || 0, kind: o.kind || 'blue' };
         if (from === 'top') api.emit({ ...base, x: q.x, y: b.y - 6, vy: speed }); else if (from === 'bottom') api.emit({ ...base, x: q.x, y: b.y + b.h + 6, vy: -speed });
         else if (from === 'left') api.emit({ ...base, x: b.x - 6, y: q.y, vx: speed }); else api.emit({ ...base, x: b.x + b.w + 6, y: q.y, vx: -speed }); } } }; },
 };

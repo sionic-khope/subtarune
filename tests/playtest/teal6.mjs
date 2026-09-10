@@ -49,7 +49,7 @@ const pump = async (ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms)
 const ward = await page.evaluate(() => { const w = game.entities.find((e) => e.id === 'ward'); return { x: w.x, y: w.y, cols: w.anim?.cols, iw: w.iw }; });
 check('ward prop present with a 2-frame blink strip', ward.cols === 2 && ward.iw === 20, JSON.stringify(ward));
 await stand(ward.x + 2, ward.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
-const wantW = ['억빠맨|* 어 이거 와드네요.', '경섭|* 와드가 뭔데', '|* 시야가 확보되었다!', '경섭|* ... 저게 다 뭐냐', '억빠맨|* 정글 몹이요. 잡으면 돈 줘요', '경섭|* 돈?', '억빠맨|* 형 눈이 왜 그래요'];
+const wantW = ['억빠맨|* 어 이거 와드네요.', '경섭|* 핑크 아니고 토템이네. 아깝다', '억빠맨|* 형 정글 아니잖아요', '경섭|* 야 박기나 해', '|* 시야가 확보되었다!', '경섭|* 새 늑대 두꺼비. 풀캠이네', '경섭|* 당연히 늑대. 골드 효율.', '경섭|* 잠깐 두꺼비가 60원?', '억빠맨|* 형 눈이 왜 그래요'];
 const inOrder = (want, got) => { let i = 0; for (const g of got) if (g === want[i]) i++; return i === want.length; };
 check('ward: lines in order, camera toured far away from the player (≥ 400px) and 경섭 "!" emote, flag set', inOrder(wantW, lines) && camFar >= 400 && emoteSeen && (await st()).flags.includes('teal6_ward_done'), JSON.stringify({ lines, camFar, emoteSeen }));
 await page.screenshot({ path: `${S}/teal6_04_ward.png` });
@@ -58,7 +58,7 @@ await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub =
 const blue = await page.evaluate(() => { const b = game.entities.find((e) => e.id === 'blue'); return { x: b.x, y: b.y, cols: b.anim?.cols }; });
 lines.length = 0; await stand(blue.x + 6, blue.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
 const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]);
-check('blue buff: 억빠맨 explains, 경섭 licks it ("달다"), party fully healed (100/120/90)', blue.cols === 3 && lines.some((l) => l.includes('블루 버프')) && lines.some((l) => l.includes('마나가 뭔데')) && lines.some((l) => l.includes('핥았다')) && lines.some((l) => l.includes('달다')) && lines.some((l) => l.includes('HP가 모두 회복')) && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
+check('blue buff: 억빠맨 explains, 경섭 licks it ("달다"), party fully healed (100/120/90)', blue.cols === 3 && lines.some((l) => l.includes('블루 버프')) && lines.some((l) => l.includes('여기 정글이지')) && lines.some((l) => l.includes('서폿도 블루')) && lines.some((l) => l.includes('핥았다')) && lines.some((l) => l.includes('달다')) && lines.some((l) => l.includes('HP가 모두 회복')) && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
 await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
 const hp2 = await page.evaluate(() => game.hpOf('hyungsub'));
 check('blue buff again: short line + heal only (rest point)', lines.some((l) => l.includes('아직 빛나고')) && !lines.some((l) => l.includes('블루 버프')) && hp2 === 100, JSON.stringify({ lines, hp2 }));

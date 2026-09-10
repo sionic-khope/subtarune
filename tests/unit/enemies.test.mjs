@@ -21,7 +21,8 @@ test('test_enemies_every_entry_has_hp_lines_and_money', () => {
 });
 test('test_enemies_patterns_and_images_exist', () => {
   for (const [id, e] of Object.entries(ENEMIES)) {
-    for (const c of e.patterns || []) assert.ok(PATTERNS[c.type], `${id}: 모르는 탄막 패턴 '${c.type}'`);
+    for (const c of e.patterns || []) { assert.ok(PATTERNS[c.type], `${id}: 모르는 탄막 패턴 '${c.type}'`); for (const q of c.parts || []) assert.ok(PATTERNS[q.type], `${id}: combo 안 모르는 패턴 '${q.type}'`); if (c.type === 'combo') assert.ok((c.parts || []).length >= 2, `${id}: combo 는 parts 2개 이상`); }
+    for (const c of e.patterns || []) for (const q of [c, ...(c.parts || [])]) if (q.type === 'slam') assert.ok((q.warn ?? 0.55) >= 0.3, `${id}: slam 예고 ${q.warn}s 는 너무 짧다(≥0.3 — 보고 피할 수 있어야)`);
     const img = e.image || e.sheet?.src; assert.ok(img && fs.existsSync(new URL('../../' + img, import.meta.url)), `${id}: 이미지 없음 ${img}`);
   }
 });
