@@ -337,7 +337,7 @@ class Game {
     this.encountering = true; this.player.moving = false;
     const flag = `${this.mapId}_${e.id}_defeated`;
     this.runScript([
-      { action: (g) => g.sound.preloadBgm(e.def.bgm || 'rude_buster') },   // 전투 브금 미리 로드 → 전투 화면과 동시에 소리 (공백 없음)
+      { action: (g) => { g.sound.preloadBgm(e.def.bgm || 'rude_buster'); Battle.preload(g, e.def.enemies || ['cs_red']); } },   // 전투 브금·아틀라스·적 이미지 미리 로드 → 징글이 끝나는 순간 화면이 열리고 브금이 이어진다
       { sfx: 'battle_start' }, { bgm: null, fadeOut: 0.2 }, { shake: 0.45, amp: 3 },   // 델타룬처럼 조우 순간 필드 브금은 끊고 징글만
       { vortex: { at: 'center', size: 40, grow: 0.9 } }, { zoom: 1.9, at: 'center', duration: 0.55 }, { vortex: { size: 900, grow: 0.5 } },
       { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
@@ -799,7 +799,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-11.53';
+export const BUILD = '2026-09-11.54';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

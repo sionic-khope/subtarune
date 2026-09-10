@@ -215,12 +215,25 @@ def prop_waterfall():
     for f in range(3): strip.blit(prop_waterfall_frame(f), f * 40, 0)
     return strip
 
+def tile_forest_floor():
+    """숲 바닥 32x32(막힘): 땅보다 어두운 청록 + 낙엽·잔가지 점 — 길 밖에서 나무가 서는 땅. 허공(검정)과 길 사이에 깔린다."""
+    c = Canvas(T, T)
+    D0, D1, D2, LEAF = hexc('#154844'), hexc('#0f3a38'), hexc('#1b5652'), hexc('#3a7a5a')
+    c.rect(0, 0, T, T, D0)
+    for y in range(T):
+        for x in range(T):
+            if (x * 7 + y * 13) % 17 == 0: c.px(x, y, D1)
+            elif (x * 5 + y * 11) % 23 == 0: c.px(x, y, D2)
+    for (x, y) in ((5, 8), (20, 4), (26, 18), (11, 24), (17, 14), (29, 28)): c.px(x, y, LEAF); c.px(x + 1, y, LEAF)
+    return c
+
 if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
     prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
     tile_leaves().save('assets/tiles/leaves_teal.png'); prop_tree_forest().save('assets/props/tree_forest.png'); prop_bush().save('assets/props/bush_teal.png'); prop_toolbox().save('assets/props/toolbox.png')
     prop_peel().save('assets/props/banana_peel.png'); prop_black_flower().save('assets/props/black_flower.png')
     prop_waterfall().save('assets/props/waterfall2.png')   # 청록숲5 이단폭포(계단식)
+    tile_forest_floor().save('assets/tiles/forest_floor_teal.png')   # 숲 바닥(막힘)
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     from pathlib import Path

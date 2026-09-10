@@ -25,9 +25,14 @@ fill(11, 13, 16, 17); fill(10, 14, 10, 16)   # 캠프2 늑대: B 왼쪽
 fill(19, 19, 32, 34); fill(20, 23, 30, 36)   # 캠프3 두꺼비: C2 아래
 # 낙엽 패치(숲 느낌)
 for (r, c) in ((5, 3), (7, 14), (15, 22), (17, 34), (9, 44), (7, 56), (11, 6), (12, 13), (21, 33)): rows[r][c] = 'n'
+# 숲 바닥('m', 막힘): 길·캠프 둘레 2칸을 어두운 땅으로 — 나무가 허공에 떠 보이지 않게 (사용자 2026-09-11)
+walk = [[rows[r][c] in 'tuwn' for c in range(W)] for r in range(H)]
+for r in range(1, H - 1):
+    for c in range(1, W - 1):
+        if rows[r][c] == ' ' and any(walk[r + dr][c + dc] for dr in (-2, -1, 0, 1, 2) for dc in (-2, -1, 0, 1, 2) if 0 <= r + dr < H and 0 <= c + dc < W): rows[r][c] = 'm'
 for r in range(1, H):
     for c in range(W):
-        if rows[r][c] == ' ' and rows[r - 1][c] in 'tuwn': rows[r][c] = 'v'
+        if rows[r][c] == ' ' and rows[r - 1][c] in 'tuwnm': rows[r][c] = 'v'   # 숲 바닥 아래 가장자리에 절벽면
 rows = [''.join(r) for r in rows]
 
 def ftree(id_, x, y):   # 숲 나무 56×84, 줄기 밑동만 막힘(24×12) — teal.py 와 같은 소품
@@ -46,10 +51,10 @@ def ground(r, c): return 0 <= r < H and 0 <= c < W and grid[r][c] in 'tuwn'
 spots = []
 for r in range(1, H - 2):
     for c in range(1, W - 2):
-        if grid[r][c] != ' ': continue
+        if grid[r][c] != 'm': continue                                          # 나무는 숲 바닥 위에만
         near = any(ground(r + dr, c + dc) for dr in (-1, 0, 1) for dc in (-1, 0, 1))
-        if near and (r * 5 + c * 3) % 4 == 0: spots.append((r, c))          # 가장자리
-        elif not near and (r * 11 + c * 7) % 23 == 0: spots.append((r, c))   # 깊은 숲
+        if near and (r * 5 + c * 3) % 4 == 0: spots.append((r, c))          # 길 가장자리 줄
+        elif not near and (r * 11 + c * 7) % 9 == 0: spots.append((r, c))    # 숲 안쪽
 seen = set()
 for j, (r, c) in enumerate(spots):
     x, y = c * T - 12, r * T - 40

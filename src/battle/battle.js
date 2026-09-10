@@ -31,7 +31,8 @@ const HIT_AT = 0.14;                 // 공격 모션 시작 뒤 이 시점에 �
 const PREP_OPEN = 0.3;               // 적 턴: 탄막 상자가 패널 자리에서 펼쳐지는 시간(초) — 그 뒤 소울이 보이고 움직일 수 있다
 const PREP_HOLD = 0.9;               // 말풍선이 다 뜬 뒤 탄막까지 준비 시간(초) (사용자: "펼쳐지고 대사 나오고 준비할 딜레이")
 const BUBBLE_CPS = 0.03;             // 말풍선 타자 속도(초/글자)
-const BGM_DELAY = 0.2;               // 전투 화면이 열린 뒤 브금까지의 침묵(초) — 진입 징글이 끝나고 한 박 쉰 뒤 첫 소절부터 크게(페이드 없음)
+const BGM_DELAY = 0;                 // 전투 화면이 열리는 순간 브금 (침묵 없음). 2026-09-11 타임라인: 징글 마지막 악절이 1.45~1.5s 에 끝나고 화면이 1.5s 에 열린다 → 그 자리에 바로 이어 붙인다
+const BGM_FADE = 0.15;               // 징글 꼬리에서 브금으로 넘어가는 짧은 페이드(초) — 0 이면 쾅 하고 시작해 부자연스럽고, 0.2s 침묵 뒤 시작도 부자연스러웠다(사용자)
 const SMALL = FONT.replace(/^\d+px/, '12px');   // 말풍선·HP 숫자용 작은 글씨
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
@@ -59,6 +60,12 @@ class FastAction extends BattleAction {
 }
 
 export class Battle {
+  /** 진입 연출 동안 아틀라스·적 이미지를 캐시에 올려 둔다 — 첫 전투도 로딩 정지 없이 징글이 끝나는 순간 화면이 열린다 (2026-09-11 브금 전환 타임라인) */
+  static preload(game, enemyIds = []) {
+    const ids = PARTY_ORDER.filter((id) => id === 'hyungsub' || game.party.includes(id));
+    for (const id of ids) if (BATTLE_SPRITES[id]) cached(FRAME_CACHE, id, () => loadActorFrames(BATTLE_SPRITES[id], BATTLE_PREVIEW.colorKey));
+    for (const eid of enemyIds) { const def = ENEMIES[eid]; if (!def) continue; const src = def.image || def.sheet?.src; cached(IMAGE_CACHE, src, () => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => resolve(null); im.src = src; })); }
+  }
   constructor(game, cfg) {
     this.game = game; this.cfg = cfg;
     const ids = PARTY_ORDER.filter((id) => id === 'hyungsub' || game.party.includes(id));
@@ -85,7 +92,7 @@ export class Battle {
       ]);
     } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
     this.game.fadeTo(0, 0.12);                                                                  // 검은 화면은 델타룬처럼 거의 바로 걷는다
-    this.bgmWait = BGM_DELAY;                                                                   // 화면이 열리고 잠깐(0.2s) 아무 소리 없다가 전투 브금이 첫 소절부터 (사용자 2026-09-10)
+    this.bgmWait = BGM_DELAY;                                                                   // 화면이 열리는 순간(BGM_DELAY 0) 징글 꼬리에 이어 브금
     this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
     // 인트로 문구 목록: cfg.intro(전투 안 대사 — 튜토리얼 기믹 등, 문자열 또는 {speaker, portrait, voice, text}) 없으면 적의 appear 줄
     this.introLines = (this.cfg.intro && this.cfg.intro.length) ? [...this.cfg.intro] : [this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`];
@@ -115,7 +122,7 @@ export class Battle {
   // ── 진행 ──
   update(dt, input) {
     this.t += dt;
-    if (this.bgmWait !== undefined) { this.bgmWait -= dt; if (this.bgmWait <= 0) { this.bgmWait = undefined; if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: 0 }); } }   // 0.2s 침묵 뒤 첫 소절부터(페이드 인 없음)
+    if (this.bgmWait !== undefined) { this.bgmWait -= dt; if (this.bgmWait <= 0) { this.bgmWait = undefined; if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: BGM_FADE }); } }   // 화면이 열리는 순간 짧은 페이드로
     for (const m of this.members) { if (m.action) m.action.update(dt); if (m.popup) { m.popup.t += dt; if (m.popup.t > 0.9) m.popup = null; } if (m.pose !== undefined && m.pose !== null) { m.pose += dt; const T = BATTLE_SPRITES[m.id].attack.reduce((a, f) => a + f.duration, 0); if (m.pose > T) m.pose = null; } }
     this.enemies.forEach((e, i) => { if (e.shake > 0) e.shake -= dt; if (e.blink > 0) e.blink -= dt; if (e.dying > 0) { e.dying -= dt; if (e.dying <= 0) { e.dead = true; } } if (e.popup) { e.popup.t += dt; if (e.popup.t > 0.9) e.popup = null; }
       const idle = e.def.idle || { swayX: 7, swayY: 2, period: 2.8 }; const ph = this.t * Math.PI * 2 / (idle.period || 2.8) + i * 1.9;   // 기본 모션: 좌우로 천천히(사용자: 정적인 느낌 없애기), 살짝 위아래

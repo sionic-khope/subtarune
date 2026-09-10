@@ -12,7 +12,7 @@ def g(r, c, grass=False): return 'w' if grass else ('t' if (r + c) % 2 == 0 else
 def cliffs(rows, W, H):
     for r in range(1, H):
         for c in range(W):
-            if rows[r][c] == ' ' and rows[r - 1][c] in 'tuwn': rows[r][c] = 'v'
+            if rows[r][c] == ' ' and rows[r - 1][c] in 'tuwnm': rows[r][c] = 'v'
 def grass_at(r, c): return (r * 7 + c * 13) % 11 == 0     # 잔풀 땅을 드문드문
 STATUES = cycle(f'assets/props/statue_junhee_{pose}.png' for pose in
                 ('arms_crossed', 'laugh', 'gesture', 'arms_raised', 'thinking', 'look_back'))
@@ -135,6 +135,10 @@ for r in range(HR1 + 1, HR1 + 4):                       # 버튼 주머니(위 �
     for c in range(10, 15): rows[r][c] = g(r, c, grass_at(r, c))
 for r in range(18, 23):                                 # 검은 꽃 주머니(세로 길 왼쪽, 나무로 음지)
     for c in range(VC0 - 5, VC0): rows[r][c] = g(r, c, grass_at(r, c))
+walk4 = [[rows[r][c] in 'tuwn' for c in range(W4)] for r in range(H4)]   # 길 둘레 2칸 숲 바닥('m') — 나무가 허공에 뜨지 않게 (2026-09-11)
+for r in range(1, H4 - 1):
+    for c in range(1, W4 - 1):
+        if rows[r][c] == ' ' and any(walk4[r + dr][c + dc] for dr in (-2, -1, 0, 1, 2) for dc in (-2, -1, 0, 1, 2) if 0 <= r + dr < H4 and 0 <= c + dc < W4): rows[r][c] = 'm'
 cliffs(rows, W4, H4)
 ents4 = [
     {'type': 'door', 'x': 32, 'y': HR0 * 32, 'w': 8, 'h': 96, 'to': 'teal2', 'spawn': 'landing_east', 'sfx': False},

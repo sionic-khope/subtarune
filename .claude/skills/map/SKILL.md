@@ -18,7 +18,7 @@ model: opus
 |---|---|---|---|---|
 | 집(방·거실·복도) | 이미지 맵 + 사각 충돌 | `room` | 실제 가구 PNG(tools/art/room_set·living_set) | `src/data/maps.js` |
 | 허공(보라, void1~11) | `x/X` 땅, `y` 절벽, `o/O` 물, `Z` 걸어 나가는 바닥 | `wind`(void1) → `scarlet`(void5~9) → `lancer`(void11) | 보라 불 원경, 꽃·바위·버튼·표지판·뗏목·낙석(void_set/void10_set) | `void9.py`, `void10.py`(미로), `void11.py`, `rockfall_map.py` |
-| 청록숲(teal1~) | `t/u` 땅, `w` 잔풀, `n` 낙엽, `v` 절벽, `o/O` 물 | `weird_birds`(teal1) → `hopes`(teal2~) | 검은 수풀 원경(backdrop `teal_bush`), 동상·나무(`tree_teal`/`tree_forest`)·풀숲·폭포·뗏목(teal_set) | `teal.py`, `teal5.py`(물길·계단), `teal6.py`(정글) |
+| 청록숲(teal1~) | `t/u` 땅, `w` 잔풀, `n` 낙엽, `v` 절벽, `o/O` 물, **`m` 숲 바닥(막힘, 길 둘레 2칸 — 나무는 그 위에만)** | `weird_birds`(teal1) → `hopes`(teal2~) | 검은 수풀 원경(backdrop `teal_bush`), 동상·나무(`tree_teal`/`tree_forest`)·풀숲·폭포·뗏목(teal_set) | `teal.py`, `teal5.py`(물길·계단), `teal6.py`(정글) |
 | 다음 지역 | 새 타일 세트(`tools/art/<지역>_set.py`) + `registerTile` 폴백 색 | 새 브금은 `design/audio/references.md` 에 출처 | 원경 한 장(`backdrop`) | 생성기 새로 |
 
 **동선 모양 카탈로그**(브리핑의 한 단어 → 구조): 일직선 통로(teal1) · ㄱ자/계단식(teal_east, teal6) · 광장+위로 가는 길(teal2) · 아래→위 오르막+공터(teal3) · 뱀길(void9) · 미로(void10, 뒤로 물러나는 backtracker) · 물길 일직선+계단(teal5) · **정글**(구불구불한 본길 + 목 3칸으로 붙은 주머니 캠프에 몹, 길 가장자리 나무 빽빽, teal6). 폭은 3칸, 도입 여유 8타일, 타이밍 장애물 간격 ≥512px.
@@ -26,7 +26,7 @@ model: opus
 **이벤트 유형 — 이미 쓴 것(같은 걸 또 만들지 말고 변형·신규)**: 꽃 무더기(냄새·물러남) · 바위(밀기) · 물웅덩이(억빠맨 {hop}) · 수상한 버튼(누르면 바위 떨어짐 / 바나나) · 표지판 퀴즈(3지선다) · 빈 상자(먼지) · 나무 똑똑 개그 · 바나나(선택지 포타슘) · 바나나 껍질(밟으면 미끄러짐) · 검은 꽃(말하는 꽃, 음지) · 동상 벽(펑) · 공구상자(전투 튜토리얼) · 뗏목 점프·2단 점프 튜토리얼 · 걸어다니는 몹 조우.
 **아직 안 쓴 유형(아이디어)**: 소리 나는 소품(멀어지면 멈춤) · 따라오는 NPC 한 마디 · 발판 밟는 순서 퍼즐 · 시간 제한 통로 · 숨은 통로(나무 사이) · 상자 셋 중 하나만 진짜 · 낚시/던지기 미니게임 · 가게(돈 쓰기 — 돈 시스템 있음) · 몹이 도망가는 조우 · 보스 전투 기믹 모드(`/enemy`).
 
-**신경 쓸 것**: 스폰은 땅·소품·문 밖 / 문은 양방향 스폰 존재 / 출구는 땅을 화면 끝까지 / 컷신 좌표는 `rel:` / 몹은 `unless:'<맵>_<id>_defeated'` / 브금은 맵 `bgm` 한 줄(컷신 중 껐으면 표준 조우가 복귀시킨다) / 새 소품은 `props.test` 키·히트박스 규칙 / 생성기 `--check` 가 `tools/dev/check.sh` 에 잡힘.
+**신경 쓸 것**: 나무·동상 밑동은 항상 땅 타일 위(허공에 뜬 소품 금지 — 청록숲은 `m` 띠) / 스폰은 땅·소품·문 밖 / 문은 양방향 스폰 존재 / 출구는 땅을 화면 끝까지 / 컷신 좌표는 `rel:` / 몹은 `unless:'<맵>_<id>_defeated'` / 브금은 맵 `bgm` 한 줄(컷신 중 껐으면 표준 조우가 복귀시킨다) / 새 소품은 `props.test` 키·히트박스 규칙 / 생성기 `--check` 가 `tools/dev/check.sh` 에 잡힘.
 
 ## 표현 규칙 (반드시)
 - 맵은 **생성기**(`tools/maps/<id>.py`)로 뽑고 `--check` 로 JSON 과 동기화한다(`tools/dev/check.sh` 가 검사). 컷신 좌표가 맵에 묶여 있으니(`cutscenes.test.mjs`) 레이아웃을 바꾸면 컷신도 `rel:` 로 다시 맞춘다.
