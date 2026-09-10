@@ -219,6 +219,9 @@ export const SCRIPTS = {
     { label: 'c' }, { action: (g) => g.setPlayerSprite('ppaman') }, { end: true },
     { label: 'd' },
   ],
+  test_battle_preview: [
+    { action: (game) => game.openBattlePreview() },
+  ],
   test_hyungsub: [
     { text: '* (거울이다.){w=0.4} 흰 티에 반바지.', voice: 'narrator' },
     { text: '* 오늘도 멀쩡하군.', voice: 'narrator' },

@@ -11,6 +11,7 @@ import { TitleScreen } from './ui/title.js';
 import { StreamChat } from './ui/chat.js';
 import { SysDialog } from './ui/sysdialog.js';
 import { Vortex } from './ui/vortex.js';
+import { BattlePreview } from './ui/battle-preview.js';
 import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
@@ -19,6 +20,7 @@ import { SCRIPTS } from './data/scripts.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS } from './core/story.js';
+import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -38,7 +40,7 @@ class Game {
     this.story = new Story(this.flags);   // 스토리 단계(src/core/story.js). 단계 id = flags 키
     this.inventory = [];
     this.settings = { textSpeed: 1, sound: true };
-    this.state = 'title';          // title | field | menu
+    this.state = 'title';          // title | field | menu | battle-preview
     this.fade = { alpha: 0, dir: 0, cb: null, color: '0,0,0' };
     this.transitioning = false;
     this.debug = false;
@@ -100,6 +102,12 @@ class Game {
     this.chat = new StreamChat();        // 방송 채팅창 오버레이 (컷신 {chat})
     this.sysdialog = new SysDialog();    // 시스템 오류창 (컷신 {dialog})
     this.vortex = new Vortex();          // 소용돌이 이펙트 (컷신 {vortex})
+    this.battlePreview = new BattlePreview({
+      sprites: BATTLE_SPRITES,
+      preview: BATTLE_PREVIEW,
+      strings: L,
+      onClose: () => this.closeBattlePreview(),
+    });
     this.playerSprite = 'hyungsub';   // 기본 주인공 = 형섭 (기존 파란 후드 문자 도트는 사용 안 함)
     // 개발용: ?map=test&spawn=start 로 타이틀/오프닝 건너뛰고 바로 진입
     const q = new URLSearchParams(location.search);
@@ -111,6 +119,7 @@ class Game {
     } else {
       this.changeMap('room', 'bed', true, { bgm: false });   // 부팅 시 타이틀 뒤에 준비만 — 방 브금이 타이틀/시작 순간에 새지 않게
     }
+    if (q.get('battle') === '1' && this.mapId === 'test') this.openBattlePreview();
   }
 
   // ── 상태 시스템 ─────────────────────────────────────────
@@ -184,6 +193,7 @@ class Game {
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
     this.transitioning = true;
+    this.battlePreview?.close();
     this.sound.stopBgm(0.4); this.sound.stopIntro(0.2);
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
@@ -201,6 +211,23 @@ class Game {
   setPlayerSprite(name) {
     this.playerSprite = name;
     this.player.setSprite(name);
+  }
+
+  /** 필드 위치와 저장 상태를 유지한 채 전투 모션 미리보기를 연다. */
+  openBattlePreview() {
+    if (this.state !== 'field') return false;
+    this.player.moving = false;
+    this.state = 'battle-preview';
+    void this.battlePreview.open();
+    return true;
+  }
+
+  /** 전투 모션 미리보기를 닫고 중단했던 필드로 돌아간다. */
+  closeBattlePreview() {
+    if (this.state !== 'battle-preview') return false;
+    this.battlePreview.close();
+    this.state = 'field';
+    return true;
   }
 
   /** 초상화: assets/portraits/<name>.png (48x48) → 없으면 시트의 정면 얼굴 확대 → 없으면 문자 도트 얼굴 */
@@ -319,6 +346,10 @@ class Game {
       this.title.update(dt, Input);
       return;
     }
+    if (this.state === 'battle-preview') {
+      this.battlePreview.update(dt, Input);
+      return;
+    }
     if (this.shake) { this.shake.time -= dt; if (this.shake.time <= 0) this.shake = null; }
     if (this.zoom.tween) {
       const tw = this.zoom.tween; tw.t = Math.min(tw.dur, tw.t + dt);
@@ -382,6 +413,11 @@ class Game {
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (this.state === 'title') {
       this.title.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
+    if (this.state === 'battle-preview') {
+      this.battlePreview.draw(ctx, SCREEN_W, SCREEN_H);
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
