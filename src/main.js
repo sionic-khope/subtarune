@@ -269,15 +269,15 @@ class Game {
       { par: 0.38, col: '#103b37', rim: '#1a5450', leaf: '#22665f', base: 186, n: 12, r: [18, 34], sway: 1.8 },
     ];
     for (let li = 0; li < layers.length; li++) {
-      const L = layers[li], span = 640, off = ((cam.x * L.par) % span + span) % span;
-      for (let i = 0; i < L.n * 2; i++) {
-        const bx = ((i * (span / L.n)) + hash(i, li) * 40 - off + span) % (span + 80) - 40;
-        const r = L.r[0] + hash(i + 7, li) * (L.r[1] - L.r[0]);
-        const sw = Math.sin(t * 0.35 * L.sway + i) * 1.5;
-        const by = L.base - hash(i + 3, li) * 30;
+      const ly = layers[li], span = 640, off = ((cam.x * ly.par) % span + span) % span;
+      for (let i = 0; i < ly.n * 2; i++) {
+        const bx = ((i * (span / ly.n)) + hash(i, li) * 40 - off + span) % (span + 80) - 40;
+        const r = ly.r[0] + hash(i + 7, li) * (ly.r[1] - ly.r[0]);
+        const sw = Math.sin(t * 0.35 * ly.sway + i) * 1.5;
+        const by = ly.base - hash(i + 3, li) * 30;
         const blob = (dy, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(bx + sw, by + dy, r, 0, Math.PI * 2); ctx.arc(bx + sw - r * 0.6, by + dy + r * 0.35, r * 0.7, 0, Math.PI * 2); ctx.arc(bx + sw + r * 0.6, by + dy + r * 0.3, r * 0.75, 0, Math.PI * 2); ctx.fill(); };
-        blob(0, L.rim); blob(3, L.col);                                                                    // 위쪽 3px 만 밝게 남는 잎 테두리
-        ctx.fillStyle = L.leaf;                                                                            // 잎 점(디테일) — 위쪽에 많이
+        blob(0, ly.rim); blob(3, ly.col);                                                                    // 위쪽 3px 만 밝게 남는 잎 테두리
+        ctx.fillStyle = ly.leaf;                                                                            // 잎 점(디테일) — 위쪽에 많이
         for (let k = 0; k < 14; k++) { const a = hash(i * 13 + k, li + 5) * Math.PI * 2, d = hash(i * 17 + k, li + 9) * r * 0.95; const lx = bx + sw + Math.cos(a) * d, ly = by + Math.sin(a) * d * 0.8; if (ly < by + r * 0.4) ctx.fillRect(Math.round(lx), Math.round(ly), 2, 1); }
         if (hash(i + 11, li) > 0.55) { ctx.fillStyle = '#020b0a'; ctx.fillRect(Math.round(bx + sw), Math.round(by - r * 0.2), 1, Math.round(r * 1.6)); }   // 가는 줄기
       }
@@ -400,6 +400,7 @@ class Game {
 
   // ── 맵 전환 ─────────────────────────────────────────────
   changeMap(mapId, spawnId, instant = false, { bgm = true, enter: runEnter = true } = {}) {   // enter:false — 도착 스크립트는 호출자가 runMapEnter() 로 (이어하기·QA: 위치·동료·세이브를 먼저)
+    if (!MAPS[mapId]) { console.warn('[map] 없는 맵', mapId); return; }                        // 문/QA/스크립트가 잘못된 id 를 줘도 게임이 죽지 않는다 (2026-09-11 smoke)
     const go = () => {
       const def = MAPS[mapId];
       this.mapId = mapId; this.entrySpawn = spawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
@@ -798,7 +799,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.49';
+export const BUILD = '2026-09-11.50';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

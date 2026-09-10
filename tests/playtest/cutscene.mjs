@@ -9,7 +9,7 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 760 } });
 const logs = [];
 page.on('console', (m) => { if (!/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
-await page.goto('http://127.0.0.1:8765/index.html');
+await page.goto('http://127.0.0.1:8000/index.html');
 await page.waitForTimeout(600);
 // 타이틀 건너뛰고 필드에서 바로 실행
 await page.evaluate((n) => { game.state = 'field'; game.title.phase = 'locked'; game.fade.alpha = 1; game.runScript(n); }, name);
@@ -25,3 +25,4 @@ while (i < 80) {
 logs.push('frames=' + i + ' flags=' + JSON.stringify(await page.evaluate(() => game.flags)) + ' map=' + await page.evaluate(() => game.mapId));
 await browser.close();
 console.log(logs.join('\n'));
+console.log('fails=' + logs.filter((l) => /^\[(pageerror|error)\]|FAIL/.test(l)).length);

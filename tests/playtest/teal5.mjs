@@ -52,7 +52,7 @@ check('after scene: raft moving, ppaman_swim + gyeongsub_swim both BELOW the raf
 await page.screenshot({ path: `${S}/teal5_02_ride.png` });
 
 // 자동 항해: 벽 40~90px 앞에서 C. 이단폭포는 0.3s 뒤 C 한 번 더(2단). fall_big2 는 처음엔 일부러 안 뛰어 쓸려 내려감을 본다
-const lines2 = []; let skipBig2 = true, sweptAt = null, sweepShot = false, holds = 0, lastHold = false, apexShot = false, wallShot = false, jumps = 0, tutorialDone = false;
+const lines2 = []; let skipBig2 = true, skipBig3 = true, swept = [], sweptAt = null, sweepShot = false, holds = 0, lastHold = false, apexShot = false, wallShot = false, jumps = 0, tutorialDone = false;
 const t0 = Date.now(); let landed = null;
 while (Date.now() - t0 < 90000) {
   const s = await st();
@@ -64,22 +64,22 @@ while (Date.now() - t0 < 90000) {
     lastHold = false; await page.waitForTimeout(40); continue;
   }
   if (s.flags.dj) tutorialDone = true;
-  if (s.sweeping && sweptAt === null) { sweptAt = s.rx; if (!sweepShot) { sweepShot = true; await page.screenshot({ path: `${S}/teal5_05_sweep.png` }).catch(() => {}); } }
+  if (s.sweeping && (swept.length === 0 || s.rx > swept[swept.length - 1] + 300)) { swept.push(s.rx); if (sweptAt === null) sweptAt = s.rx; if (!sweepShot) { sweepShot = true; await page.screenshot({ path: `${S}/teal5_05_sweep.png` }).catch(() => {}); } }
   const next = s.walls.find((w) => w.x > s.rx + 56); const gap = next ? next.x - (s.rx + 56) : null;
   if (s.riding && !s.moving && s.blocked && !s.jumping && !s.sweeping) { await page.keyboard.press('KeyC'); jumps++; await page.waitForTimeout(150); continue; }   // 1단 폭포에 쿵 → 그 자리에서 C(점프 재출발)
   if (s.moving && !s.jumping && !s.sweeping && gap !== null && gap >= 30 && gap <= 80) {
-    if (next.clear > 0 && next.x === 1750 && skipBig2) { await page.waitForTimeout(40); continue; }   // 일부러 안 뛴다 → 쓸려 내려감
+    if (next.clear > 0 && ((next.x === 1750 && skipBig2) || (next.x === 2250 && skipBig3))) { await page.waitForTimeout(40); continue; }   // 2·3번째 폭포는 처음엔 일부러 안 뛴다 → 쓸려 내려감(체크포인트 1400 / 1900)
     await page.keyboard.press('KeyC'); jumps++;
     if (next.clear > 0) { await page.waitForTimeout(300); await page.keyboard.press('KeyC'); jumps++; }   // 2단: 상승 중 한 번 더
     await page.waitForTimeout(150); continue;
   }
-  if (s.sweeps >= 1) skipBig2 = false;
+  if (s.sweeps >= 1) skipBig2 = false; if (s.sweeps >= 2) skipBig3 = false;
   await page.waitForTimeout(40);
 }
 const want2 = ['억빠맨|* 어 형 잠깐만요!!', '억빠맨|* 형 이건 도무지 저 혼자서 못넘을거같아요', '경섭|* 흠 ... ... ...', '억빠맨|* 아니요', '경섭|* ...', '억빠맨|* 뭔데요?', '경섭|* 너가 c를 눌러 점프할때 나랑 협동을 하면 더 높게 올라갈 수 있을거같아.', '억빠맨|* ...음.. 해볼수밖에 없겠네요', '억빠맨|* 지금 c를 눌러야해요!', '경섭|* 형섭아 지금 한번 더 눌러', '|* 2단 점프를 할 수 있게 되었다!'];   // 노란 문구는 넘고 나서
 check('waterfall scene: lines in briefing order (믿어볼수있겠.. is cut instantly), tutorial held the raft twice (before C, and mid-air at the apex)', inOrder(want2, lines2) && holds >= 2, JSON.stringify({ lines2, holds }));
 check('double_jump flag set during the tutorial; first big waterfall crossed without a sweep', tutorialDone && (sweptAt === null || sweptAt > 1600), JSON.stringify({ dj: tutorialDone, sweptAt }));
-check('touching the 2nd big waterfall without the double jump → swept back to checkpoint 1400, then auto-resumed and crossed with C + C', sweptAt !== null && sweptAt >= 1650 && !!landed && landed.sweeps === 1, JSON.stringify({ sweptAt, sweeps: landed?.sweeps }));
+check('touching the 2nd and 3rd big waterfalls without the double jump → swept back each time (checkpoints 1400 / 1900), auto-resumed and crossed with C + C', swept.length === 2 && swept[0] >= 1650 && swept[1] >= 2150 && !!landed && landed.sweeps === 2, JSON.stringify({ swept, sweeps: landed?.sweeps }));
 check('raft climbed three steps: ended one level higher per waterfall (y 390 → 198)', !!landed && landed.ry === meta.levels[3], JSON.stringify({ ry: landed?.ry, levels: meta.levels }));
 check('arrived at the far bank: player on land right of the water, both followers visible behind AND on land (not hidden behind the raft)', !!landed && landed.p[0] >= 2816 && landed.fol.length === 2 && landed.fol.every((f) => f.vis && f.x < landed.p[0] && f.x >= 2812), JSON.stringify(landed && { p: landed.p, fol: landed.fol, rx: landed.rx }));
 await page.screenshot({ path: `${S}/teal5_06_land.png` });

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const outputDir = process.env.SHOT_DIR || new URL('./shots/battle-preview/', import.meta.url).pathname;
-const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:8765';
+const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:8000';
 fs.mkdirSync(outputDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -128,3 +128,4 @@ fs.writeFileSync(`${outputDir}/result.json`, JSON.stringify({
 
 await browser.close();
 console.log(`battle preview playtest passed: ${outputDir}`);
+console.log('fails=0');

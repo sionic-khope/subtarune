@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
+const __ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 20000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player)).catch(() => false)) return; await page.waitForTimeout(100); } };   // 페이지가 준비될 때까지(느린 머신에서 고정 대기는 부족)
 const logs = []; let fails = 0;
 page.on('console', (m) => { if (!/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
@@ -27,9 +28,9 @@ const finishDialogue = async (pick = 0, max = 30) => {
 };
 
 // 1) 방: 컴퓨터 전엔 문이 잠김 — 서 있어도 대사 1회만
-await page.goto('http://127.0.0.1:8000/index.html?map=room&spawn=door'); await page.waitForTimeout(1200);
+await page.goto('http://127.0.0.1:8000/index.html?map=room&spawn=door'); await __ready(); await page.waitForTimeout(1200);
 await page.evaluate(() => { window.__opens = 0; const o = game.dialogue.start.bind(game.dialogue); game.dialogue.start = (...a) => { window.__opens++; return o(...a); }; });
-await hold('ArrowUp', 350); await page.waitForTimeout(400);
+await page.keyboard.down('ArrowUp'); { const t0 = Date.now(); while (Date.now() - t0 < 4000) { const q = await page.evaluate(() => ({ y: game.player.y, running: game.dialogue.running })); if (q.running || q.y <= 100) break; await page.waitForTimeout(40); } } await page.keyboard.up('ArrowUp'); await page.waitForTimeout(400);   // 문에 닿아 대사가 열릴 때까지(느린 GL 에서도)
 for (let i = 0; i < 6; i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(200); }
 let s = await st();
 check('locked door: still in room', s.map === 'room');
@@ -98,7 +99,7 @@ await page.evaluate(() => { game.player.x = 384; game.player.y = 286; game.camer
 check('tart stays gone after re-enter', await page.evaluate(() => !game.entities.find((e) => e.id === 'tart')));
 await shot('09_living_reenter');
 // 9) 복도 → 방 (문 왕복)
-await page.evaluate(() => { game.mapId; }); await page.goto('http://127.0.0.1:8000/index.html?map=corridor&spawn=from_room'); await page.waitForTimeout(1000);
+await page.evaluate(() => { game.mapId; }); await page.goto('http://127.0.0.1:8000/index.html?map=corridor&spawn=from_room'); await __ready(); await page.waitForTimeout(1000);
 await hold('ArrowUp', 400); await page.waitForTimeout(900);
 s = await st(); check('corridor → room', s.map === 'room' && !s.running, s.map + ' ' + JSON.stringify(s.p));
 await page.waitForTimeout(800); s = await st(); check('no ping-pong back to corridor', s.map === 'room');

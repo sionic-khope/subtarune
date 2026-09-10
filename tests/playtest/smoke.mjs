@@ -7,10 +7,11 @@ const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname;
 const exe = process.env.CHROME_EXE; // 예: ~/Library/Caches/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-mac-arm64/chrome-headless-shell
 const browser = await chromium.launch({ executablePath: exe, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 760 } });
+const __ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 20000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player)).catch(() => false)) return; await page.waitForTimeout(100); } };   // 페이지가 준비될 때까지(느린 머신에서 고정 대기는 부족)
 const logs = [];
 page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
-await page.goto('http://127.0.0.1:8765/index.html?map=test');
+await page.goto('http://127.0.0.1:8000/index.html?map=test'); await __ready();
 await page.waitForTimeout(1500);
 const shot = async (n) => page.screenshot({ path: `${S}/${n}.png` });
 await shot('01_boot');
@@ -53,15 +54,10 @@ await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
 await page.keyboard.press('KeyV'); await page.waitForTimeout(200); await shot('11_menu');
 await page.keyboard.press('ArrowDown'); await page.keyboard.press('KeyC'); await page.waitForTimeout(200); await shot('12_settings');
 await page.keyboard.press('KeyX'); await page.keyboard.press('KeyX'); await page.waitForTimeout(200);
-// 집으로 워프 (evaluate) → 상자 → 유령
-await page.evaluate(() => game.changeMap('house', 'entrance'));
-await page.waitForTimeout(900);
-await shot('13_house');
-await page.evaluate(() => { const c = game.entities.find(e => e.def.type === 'chest'); if (c) c.interact(game.player); });
-await page.waitForTimeout(300); await page.keyboard.press('KeyX'); await page.waitForTimeout(200); await shot('14_chest');
-await page.keyboard.press('KeyC'); await page.waitForTimeout(150); await page.keyboard.press('KeyX'); await page.waitForTimeout(150); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
+// (옛 프로토타입의 'house' 맵·상자·유령은 사라짐 — 2026-09-11 제거. 집 동선은 house.mjs, 새 게임은 newgame.mjs)
 await page.keyboard.press('F1'); await page.waitForTimeout(100); await shot('15_debug');
 logs.push('flags ' + JSON.stringify(await page.evaluate(() => ({ flags: game.flags, inv: game.inventory, map: game.mapId }))));
 fs.writeFileSync(`${S}/console.txt`, logs.join('\n'));
 await browser.close();
 console.log(logs.join('\n'));
+console.log('fails=' + logs.filter((l) => /^\[(pageerror|error)\]/.test(l) && !/404/.test(l)).length);   // 선택 에셋 탐색 404 는 정상

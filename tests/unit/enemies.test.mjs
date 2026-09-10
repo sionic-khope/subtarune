@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ENEMIES } from '../../src/data/enemies.js';
+import { PATTERNS } from '../../src/battle/bullets.js';
+import fs from 'node:fs';
 
 test('test_enemies_idle_lines_do_not_mention_other_enemies', () => {
   const names = Object.values(ENEMIES).map((e) => e.name);
@@ -15,5 +17,11 @@ test('test_enemies_every_entry_has_hp_lines_and_money', () => {
     assert.ok(Number.isInteger(e.hp) && e.hp > 0, `${id}: hp`);
     assert.ok(e.lines?.appear && e.lines?.die && (e.lines.idle || []).length >= 1, `${id}: lines.appear/die/idle`);
     assert.ok(Number.isInteger(e.money ?? 30), `${id}: money`);
+  }
+});
+test('test_enemies_patterns_and_images_exist', () => {
+  for (const [id, e] of Object.entries(ENEMIES)) {
+    for (const c of e.patterns || []) assert.ok(PATTERNS[c.type], `${id}: 모르는 탄막 패턴 '${c.type}'`);
+    const img = e.image || e.sheet?.src; assert.ok(img && fs.existsSync(new URL('../../' + img, import.meta.url)), `${id}: 이미지 없음 ${img}`);
   }
 });

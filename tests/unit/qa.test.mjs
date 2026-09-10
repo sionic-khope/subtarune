@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { QA_POINTS, STAGES, PARTY_FLAGS, partyFromFlags, Story } from '../../src/core/story.js';
+import fs from 'node:fs';
 
 test('test_qa_points_party_matches_join_flags', () => {
   for (const pt of QA_POINTS) {
@@ -24,4 +25,12 @@ test('test_party_from_flags_walk_order_gyeongsub_then_ppaman', () => {
   assert.deepEqual(partyFromFlags({}), []);
   assert.deepEqual(partyFromFlags({ ppaman_joined: true }), ['ppaman']);
   assert.deepEqual(partyFromFlags({ void11_done: true, ppaman_joined: true }), ['gyeongsub', 'ppaman']);
+});
+test('test_qa_points_map_and_spawn_exist_in_json_maps', () => {
+  for (const pt of QA_POINTS) {
+    const url = new URL(`../../assets/maps/${pt.map}.json`, import.meta.url);
+    if (!fs.existsSync(url)) continue;                                            // 코드 맵(방·거실)은 src/data/maps.js
+    const m = JSON.parse(fs.readFileSync(url, 'utf8'));
+    assert.ok(m.spawns?.[pt.spawn], `QA '${pt.id}': ${pt.map} 에 스폰 '${pt.spawn}' 없음`);
+  }
 });

@@ -6,6 +6,7 @@ import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
+const __ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 20000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player)).catch(() => false)) return; await page.waitForTimeout(100); } };   // 페이지가 준비될 때까지(느린 머신에서 고정 대기는 부족)
 const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if (m.type() === 'warning' || m.type() === 'error') if (!/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
@@ -36,7 +37,7 @@ const CASES = {
 };
 for (const [map, cases] of Object.entries(CASES)) {
   const spawn = map === 'room' ? 'door' : map === 'corridor' ? 'from_room' : 'from_hall';
-  await page.goto(`http://127.0.0.1:8000/index.html?map=${map}&spawn=${spawn}`); await page.waitForTimeout(1000);
+  await page.goto(`http://127.0.0.1:8000/index.html?map=${map}&spawn=${spawn}`); await __ready(); await page.waitForTimeout(1000);
   await finishDialogue();   // 진입 컷신이 있으면 넘김
   for (const [name, x, y, facing, kw] of cases) {
     await page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.camera.snap(); }, [x, y, facing]);
@@ -53,7 +54,7 @@ for (const [map, cases] of Object.entries(CASES)) {
   }
 }
 // 방: 러그가 없어야 한다
-await page.goto('http://127.0.0.1:8000/index.html?map=room&spawn=door'); await page.waitForTimeout(800);
+await page.goto('http://127.0.0.1:8000/index.html?map=room&spawn=door'); await __ready(); await page.waitForTimeout(800);
 check('room has no rug', await page.evaluate(() => !game.entities.some((e) => (e.def.image || '').includes('rug'))));
 await page.screenshot({ path: `${S}/furn_room.png` });
 await browser.close();

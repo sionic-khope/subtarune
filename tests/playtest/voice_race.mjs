@@ -10,4 +10,6 @@ const t0 = Date.now(); while (Date.now() - t0 < 20000) { if (await page.evaluate
 await page.waitForTimeout(3500);
 const r = await page.evaluate(() => ({ raw: Object.keys(game.sound.voiceRaw).length, buf: Object.keys(game.sound.voiceBuf).length, ctx: game.sound.ctx?.state || null }));
 console.log('after late files:', JSON.stringify(r));
+console.log((r.buf >= 5 && r.ctx === 'running' ? 'PASS' : 'FAIL') + ' late voice files decoded after unlock ' + JSON.stringify(r));
+console.log('fails=' + (r.buf >= 5 && r.ctx === 'running' ? 0 : 1));
 await browser.close();

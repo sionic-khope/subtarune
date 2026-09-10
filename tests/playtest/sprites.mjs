@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const output = process.env.SHOT_DIR || new URL('./shots/sprites/', import.meta.url).pathname;
-const baseURL = process.env.BASE_URL || 'http://127.0.0.1:8765';
+const baseURL = process.env.BASE_URL || 'http://127.0.0.1:8000';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
@@ -96,3 +96,4 @@ try {
   await browser.close();
 }
 console.log(results.join('\n'));
+console.log('fails=' + errors.length);
