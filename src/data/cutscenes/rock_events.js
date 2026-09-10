@@ -16,7 +16,7 @@ export const rock_flowers = [
   P('* 아 넵.'),
   { parallel: [                                 // C 를 어디서 눌렀든 꽃 기준: 억빠맨은 꽃 바로 아래(안), 형섭은 그 아래 (2026-09-10 '꽃 기준 아래아래')
     { move: 'ppaman', rel: 'flowers', at: 'bottom', by: [0, 8] },
-    { move: 'player', rel: 'flowers', at: 'bottom', by: [0, 56] },
+    { move: 'player', rel: 'flowers', at: 'bottom', by: [0, 72] },   // 길 맨 아랫줄 — 억빠맨 스프라이트와 안 겹치게(세로 56px 간격)
   ] },
   { face: 'player', dir: 'up' }, { face: 'ppaman', dir: 'up' }, { wait: 0.5 },
   P('* 킁킁'),
