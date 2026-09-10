@@ -158,8 +158,8 @@ export function makeWaiter(game, node) {
   if (node.shake !== undefined) { game.shake = { time: node.shake, amp: node.amp ?? 3 }; return timer(node.shake); }
   if (node.sfx) { game.sound.sfx(node.sfx); return done; }
   if (node.sound) { game.sound[node.sound]?.(); return done; }
-  if (node.show) { const e = findEntity(game, node.show); if (e) e.visible = true; return done; }
-  if (node.hide) { const e = findEntity(game, node.hide); if (e) e.visible = false; return done; }
+  if (node.show) { const e = findEntity(game, node.show); if (e) { e.visible = true; if (e._solidBeforeHide !== undefined) { e.solid = e._solidBeforeHide; delete e._solidBeforeHide; } } return done; }
+  if (node.hide) { const e = findEntity(game, node.hide); if (e) { e.visible = false; if (e._solidBeforeHide === undefined) e._solidBeforeHide = e.solid; e.solid = false; } return done; }   // 안 보이는 것은 막지도 않는다 (2026-09-10 미로 출구에서 숨긴 NPC 가 길을 막았음)
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
   if (node.map) { game.changeMap(node.map, node.spawn, true); return done; }
   if (node.spawn) { game.spawn(node.spawn); return done; }

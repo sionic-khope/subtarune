@@ -18,12 +18,12 @@ export const void10_intro = [
   { bgm: null, fadeOut: 0.6 },
   { wait: 0.4 },
   J('* 형 빨리 오샘'),
-  { move: 'junhee', px: [OFF(), 1032], run: true },   // 오른쪽 가장자리 밖으로 걸어 나가 사라진다
-  { hide: 'junhee' },
+  { move: 'junhee', px: [OFF(), 1032], run: true },   // 오른쪽 가장자리 밖으로 걸어 나가 사라진다(맵을 떠났으니 remove — 충돌도 남기지 않는다)
+  { remove: 'junhee' },
   { wait: 0.5 },
   G('* 어 그래 어휴..'),
   { move: 'gyeongsub', px: [OFF(), 1006] },
-  { hide: 'gyeongsub' },
+  { remove: 'gyeongsub' },
   { wait: 0.6 },
   { bgm: 'scarlet' },
   { camera: meta().startTile, duration: 1.2 },

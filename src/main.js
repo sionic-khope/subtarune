@@ -244,9 +244,9 @@ class Game {
     ctx.fillStyle = g; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     const hash = (i, k) => { const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); };
     const layers = [
-      { par: 0.12, col: '#071c1a', rim: '#0b2926', leaf: '#0e3330', base: 168, n: 16, r: [34, 60], sway: 0.9 },
-      { par: 0.22, col: '#0b2a27', rim: '#123b37', leaf: '#184944', base: 196, n: 14, r: [26, 46], sway: 1.3 },
-      { par: 0.38, col: '#103b37', rim: '#1a5450', leaf: '#22665f', base: 230, n: 12, r: [18, 34], sway: 1.8 },
+      { par: 0.12, col: '#071c1a', rim: '#0b2926', leaf: '#0e3330', base: 130, n: 16, r: [34, 60], sway: 0.9 },
+      { par: 0.22, col: '#0b2a27', rim: '#123b37', leaf: '#184944', base: 156, n: 14, r: [26, 46], sway: 1.3 },
+      { par: 0.38, col: '#103b37', rim: '#1a5450', leaf: '#22665f', base: 186, n: 12, r: [18, 34], sway: 1.8 },
     ];
     for (let li = 0; li < layers.length; li++) {
       const L = layers[li], span = 640, off = ((cam.x * L.par) % span + span) % span;
@@ -257,13 +257,13 @@ class Game {
         const by = L.base - hash(i + 3, li) * 30;
         const blob = (dy, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(bx + sw, by + dy, r, 0, Math.PI * 2); ctx.arc(bx + sw - r * 0.6, by + dy + r * 0.35, r * 0.7, 0, Math.PI * 2); ctx.arc(bx + sw + r * 0.6, by + dy + r * 0.3, r * 0.75, 0, Math.PI * 2); ctx.fill(); };
         blob(0, L.rim); blob(3, L.col);                                                                    // 위쪽 3px 만 밝게 남는 잎 테두리
-        ctx.fillStyle = L.col; ctx.fillRect(Math.round(bx + sw - r), Math.round(by), Math.round(r * 2), SCREEN_H);   // 덤불 아래는 어둠으로 이어짐
         ctx.fillStyle = L.leaf;                                                                            // 잎 점(디테일) — 위쪽에 많이
         for (let k = 0; k < 14; k++) { const a = hash(i * 13 + k, li + 5) * Math.PI * 2, d = hash(i * 17 + k, li + 9) * r * 0.95; const lx = bx + sw + Math.cos(a) * d, ly = by + Math.sin(a) * d * 0.8; if (ly < by + r * 0.4) ctx.fillRect(Math.round(lx), Math.round(ly), 2, 1); }
         if (hash(i + 11, li) > 0.55) { ctx.fillStyle = '#020b0a'; ctx.fillRect(Math.round(bx + sw), Math.round(by - r * 0.2), 1, Math.round(r * 1.6)); }   // 가는 줄기
       }
     }
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);   // 발밑 어둠
+    const gd = ctx.createLinearGradient(0, 170, 0, 250); gd.addColorStop(0, 'rgba(0,0,0,0)'); gd.addColorStop(1, '#000');   // 덤불 띠 아래는 완전한 검정 — 바닥처럼 보이는 밝은 면을 남기지 않는다(2026-09-10 "길이 투명하게 뚫려 허공을 걷는 느낌")
+    ctx.fillStyle = gd; ctx.fillRect(0, 170, SCREEN_W, 80); ctx.fillStyle = '#000'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);
   }
 
   /** ESC: 메인(타이틀)으로 */
@@ -695,7 +695,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-10.30';
+export const BUILD = '2026-09-10.31';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

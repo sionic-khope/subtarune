@@ -57,7 +57,8 @@
   "pillar": {
    "x": 1220,
    "y": 232,
-   "facing": "left"
+   "facing": "left",
+   "platform": true
   }
  },
  "entities": [

@@ -41,7 +41,8 @@ let s = await st(); check('qa=void10: maze with party, intro starts (junhee/gyeo
   check('intro: camera panned to the exit (far right) during the scene', r.obs.some((o) => o.cam > 900), 'maxCam=' + Math.max(...r.obs.map((o) => o.cam)));
   check('intro: bgm off while they talk, back to scarlet after', r.obs.some((o) => o.running && o.bgm === null) && (await st()).bgm === 'scarlet', JSON.stringify([...new Set(r.obs.map((o) => o.bgm))]));
   const q = await st();
-  check('intro: junhee then gyeongsub walked off and vanished', q.junhee && !q.junhee.vis && q.gyeongsub && !q.gyeongsub.vis && r.obs.some((o) => o.jvis === false && o.gvis === true), JSON.stringify({ j: q.junhee, g: q.gyeongsub }));
+  const gone = (e) => !e || e.dead || !e.vis;
+  check('intro: junhee then gyeongsub walked off and vanished (removed — no invisible wall left behind)', gone(q.junhee) && gone(q.gyeongsub) && r.obs.some((o) => (o.jvis === false || o.jvis === null) && o.gvis === true), JSON.stringify({ j: q.junhee, g: q.gyeongsub }));
   check('intro: camera returned to the player and follows', q.cam.onPlayer && !q.cam.locked && Math.abs(q.cam.x) < 200, JSON.stringify(q.cam));
   check('intro: flag void10_intro set, no re-run', q.flags.void10_intro === true && !q.running, JSON.stringify({ f: q.flags.void10_intro, running: q.running })); }
 // 미로: 시작 타일 → 출구(포탈 문)까지 걸어서 도달 가능한가 (플레이어 히트박스로 BFS)

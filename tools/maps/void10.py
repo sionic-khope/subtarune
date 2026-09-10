@@ -10,7 +10,7 @@ import io, json, sys, random
 from collections import deque
 CW, CH = 15, 11
 W, H = CW * 3 + 1, CH * 3 + 1
-EXT = 4                                   # 출구 오른쪽으로 이어지는 바닥(막힌 땅 'Z') — 쥰희·경섭이 화면 밖으로 걸어 나갈 때 공중부양처럼 보이지 않게 (사용자 2026-09-10)
+EXT = 4                                   # 출구 오른쪽으로 이어지는 길 — 걸어서 맵 오른쪽 끝까지 가면 다음 맵(사용자: "오른쪽 길 만들었으면 이동 기준도 거기로"). 맨 끝 열만 막힌 땅 'Z'(맵 규칙·쥰희가 걸어 나가는 바닥)
 START, GOAL = (0, 0), (CW - 1, CH - 1)
 
 def gen(seed):
@@ -91,7 +91,8 @@ for r in range(1, H):
         if rows[r][c] == ' ' and rows[r - 1][c] != ' ': rows[r][c] = 'y'   # 땅 아래 절벽면
 _gr = CH - 1
 for r in (1 + 3 * _gr, 2 + 3 * _gr):
-    for c in range(W - 1, W + EXT): rows[r][c] = 'Z'                        # 출구 셀 → 맵 오른쪽 끝까지 땅처럼 보이는 막힌 길
+    for c in range(W - 1, W + EXT - 1): rows[r][c] = g(r, c)               # 출구 셀 → 오른쪽 끝까지 걸을 수 있는 길
+    rows[r][W + EXT - 1] = 'Z'                                              # 맨 끝 열: 땅처럼 보이지만 막힘
 for c in range(W - 1, W + EXT): rows[3 + 3 * _gr][c] = 'y'
 rows = [''.join(r) for r in rows] + [' ' * (W + EXT)] * 4   # 아래 여백 4행: 출구 컷신 때 카메라가 더 내려가 두 사람이 대화창 위에 보인다
 
@@ -107,8 +108,8 @@ for i, (c, r) in enumerate(signs):
     ents.append({'type': 'prop', 'id': f'sign{i + 1}', 'image': 'assets/props/signpost.png', 'x': tc * 32 + 3, 'y': tr * 32 + 2, 'solid': True, 'script': SIGN_SCRIPTS[i]})
 gc, gr = GOAL
 R0, R1 = 1 + 3 * gr, 2 + 3 * gr
-# 출구: 셀의 오른쪽 끝(맵 가장자리 열 바로 안쪽)을 밟으면 다음 맵. 가장자리 열은 다른 맵처럼 비워 둔다(맵 규칙 '옆줄')
-EDGE = (W - 1) * 32                                   # 걸을 수 있는 오른쪽 끝
+# 출구: 이어진 길의 오른쪽 끝(맵 가장자리 'Z' 열 바로 안쪽)을 밟으면 다음 맵
+EDGE = (W + EXT - 1) * 32                             # 걸을 수 있는 오른쪽 끝
 ents += [
     {'type': 'door', 'x': EDGE - 10, 'y': R0 * 32, 'w': 10, 'h': 64, 'to': 'void11', 'spawn': 'start', 'sfx': False},
     {'type': 'npc', 'id': 'gyeongsub', 'sprite': 'gyeongsub', 'x': (1 + 3 * gc) * 32 - 28, 'y': R0 * 32 + 14, 'facing': 'right', 'wander': 0, 'unless': 'void10_intro'},   # 쥰희와 중심 거리 ~75px (겹치지 않게), 둘 다 화면 안

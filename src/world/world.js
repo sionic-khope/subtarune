@@ -699,8 +699,13 @@ export class Follower extends Character {
   snapBehind() {
     const p = this.game.player; if (!p) return;
     const [dx, dy] = DIRS[p.facing];
-    this.x = p.x - dx * this.gap; this.y = p.y - dy * this.gap; this.facing = p.facing; this.moving = false; this.frame = 0;
-    [this.x, this.y] = freeSpot(this.game, this, this.x, this.y);   // 벽·소품(버튼 등) 안에 세우지 않는다
+    const g = this.game, map = g.map;
+    const blocked = (x, y) => (map && map.solidRect(x, y, this.w, this.h)) || g.entities.some((o) => o !== this && o !== p && o.solid && !o.dead && o.def?.type !== 'follower' && o.overlaps({ x, y, w: this.w, h: this.h }));
+    let x = p.x - dx * this.gap, y = p.y - dy * this.gap;
+    for (let k = 0; k < 24 && blocked(x, y); k++) { x += dx * 8; y += dy * 8; }   // 뒤 자리가 허공·벽(맵 가장자리 입구 등)이면 주인공 쪽으로 8px 씩 당긴다 — 동료가 땅 밖에 서지 않게 (2026-09-10 "경섭이 허공을 걷는다")
+    if (blocked(x, y)) { x = p.x; y = p.y; }
+    this.x = Math.round(x); this.y = Math.round(y); this.facing = p.facing; this.moving = false; this.frame = 0;
+    [this.x, this.y] = freeSpot(g, this, this.x, this.y);            // 소품(버튼 등) 안에 세우지 않는다
   }
   update(dt) {
     const p = this.game.player; if (!p) return;

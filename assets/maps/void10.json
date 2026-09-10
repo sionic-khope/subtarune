@@ -41,8 +41,8 @@
   " XxXxXxXxyxXxXxyxXxXxyxXxXxyxXyXxXxXyXxXxXxXx     ",
   " xXxXxXxXyXxXxXyXxXxXyXxXxXyXxyxXxXxyxXxXxXxX     ",
   " yyyyyyyyyxXyXxyyyyyyyyyyXxyyyyXxyxXyXxyyyyXx     ",
-  " xXxXxXxXxXxyxXxXxXxXxXxXxXxXxXxXyXxXxXyXxXxXZZZZZ",
-  " XxXxXxXxXxXyXxXxXxXxXxXxXxXxXxXxyxXxXxyxXxXxZZZZZ",
+  " xXxXxXxXxXxyxXxXxXxXxXxXxXxXxXxXyXxXxXyXxXxXxXxXZ",
+  " XxXxXxXxXxXyXxXxXxXxXxXxXxXxXxXxyxXxXxyxXxXxXxXxZ",
   " yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
   "                                                  ",
   "                                                  ",
@@ -61,7 +61,7 @@
    "facing": "right"
   },
   "goal": {
-   "x": 1396,
+   "x": 1524,
    "y": 1032,
    "facing": "left"
   }
@@ -149,7 +149,7 @@
   },
   {
    "type": "door",
-   "x": 1430,
+   "x": 1558,
    "y": 992,
    "w": 10,
    "h": 64,

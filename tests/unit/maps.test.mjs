@@ -5,12 +5,26 @@ import fs from 'node:fs';
 const SCREEN_W = 480, SCREEN_H = 360, TILE = 32;
 const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y', 'Z', 'v']);   // Z: 막힌 땅(가장자리로 이어지는 길)
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
+const PW = 24, PH = 16;   // 주인공 히트박스 (스폰 x,y = 히트박스 왼쪽 위)
+const solidAt = (m, x, y) => { const c = Math.floor(x / TILE), r = Math.floor(y / TILE); if (r < 0 || r >= m.rows.length || c < 0 || c >= m.rows[0].length) return true; return SOLID_CHARS.has(m.rows[r][c]); };
+const onProp = (m, x, y) => (m.entities || []).some((e) => e.type === 'prop' && e.w !== undefined && x < e.x + e.w && x + PW > e.x && y < e.y + e.h && y + PH > e.y);   // 발판 소품(void4 기둥) 위는 허용
+const onGround = (m, x, y) => { if (onProp(m, x, y)) return true; for (const px of [x, x + PW - 1]) for (const py of [y, y + PH - 1]) if (solidAt(m, px, py)) return false; return true; };
+const ALL = Object.fromEntries(index.maps.map((id) => [id, JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'))]));
 for (const id of index.maps) {
   const m = JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
   if (m.rows) {
     test(`${id}: 타일맵은 화면 이상 크기`, () => {
       assert.ok(m.rows[0].length * TILE >= SCREEN_W, `가로 ${m.rows[0].length * TILE} < ${SCREEN_W}`);
       assert.ok(m.rows.length * TILE >= SCREEN_H, `세로 ${m.rows.length * TILE} < ${SCREEN_H}`);
+    });
+    test(`${id}: 모든 스폰이 땅 위(허공·벽 아님)`, () => {   // 2026-09-10 "허공을 걷는 느낌" — 스폰이 막힌 타일 위면 동료·주인공이 허공에 선다
+      for (const [name, sp] of Object.entries(m.spawns || {})) if (!sp.platform) assert.ok(onGround(m, sp.x, sp.y), `스폰 ${name} (${sp.x},${sp.y}) 가 땅 위가 아님`);   // platform:true = 발판 소품 위(void4 기둥 QA)
+    });
+    test(`${id}: 문이 가리키는 맵·스폰이 존재`, () => {
+      for (const e of (m.entities || []).filter((e) => e.type === 'door' && e.to)) {
+        assert.ok(ALL[e.to], `문 → ${e.to} 맵 없음`);
+        assert.ok(!e.spawn || (ALL[e.to].spawns && ALL[e.to].spawns[e.spawn]), `문 → ${e.to}.${e.spawn} 스폰 없음`);
+      }
     });
     test(`${id}: 타일맵 사방이 막힘`, () => {
       const top = m.rows[0], bottom = m.rows[m.rows.length - 1];
