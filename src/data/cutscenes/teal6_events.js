@@ -8,7 +8,7 @@ import { CHARACTERS } from '../characters.js';
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const N = (text) => ({ text, voice: 'narrator' });
-const healAll = (g) => { for (const id of ['hyungsub', ...g.party]) g.partyHp[id] = CHARACTERS[id]?.hp ?? 100; g.autosave?.(); };
+const healAll = (g) => { for (const id of ['hyungsub', ...g.party]) g.partyHp[id] = g.maxHpOf ? g.maxHpOf(id) : (CHARACTERS[id]?.hp ?? 100); g.autosave?.(); };
 
 export const teal6_ward = [
   { if: (f) => f.teal6_ward_done, goto: 'again' },

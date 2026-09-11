@@ -23,11 +23,15 @@ await page.goto('http://localhost:8000/index.html?qa=teal9'); await until(() => 
 const meta = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal9.meta);
 const rows = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal9.rows);
 let s = await st();
-check('qa=teal9: straight road, party of 3, 레드·블루 block the right end (solid, facing left)', s.map === 'teal9' && s.gs && s.pp && s.red && s.blue && s.red.solid && s.blue.solid && s.red.f === 'left' && s.red.x === meta.stage.red[0] && s.blue.y > s.red.y, JSON.stringify({ red: s.red, blue: s.blue }));
+check('qa=teal9: straight road into a tall plaza, party of 3, 레드(upper right)·블루(lower left) guard the giant stone door (solid, facing left)', s.map === 'teal9' && s.gs && s.pp && s.red && s.blue && s.red.solid && s.blue.solid && s.red.f === 'left' && s.red.x === meta.stage.red[0] && s.blue.y > s.red.y && s.red.x > s.blue.x && rows.length === 18, JSON.stringify({ red: s.red, blue: s.blue, rows: rows.length }));
+const sizes = await page.evaluate(async () => { const { CHAR_SCALE } = await import('/src/world/world.js'); const h = (e) => Math.round(e.sprite.fh / e.sprite.px * CHAR_SCALE); const r = game.entities.find((e) => e.id === 'red'); return { red: h(r), player: h(game.player) }; });
+check('레드·블루 are drawn far bigger than the party (≥ 3× 형섭 height)', sizes.red >= sizes.player * 3, JSON.stringify(sizes));
+const doorBefore = await page.evaluate(() => { const c = game.entities.find((e) => e.id === 'door_closed'), o = game.entities.find((e) => e.id === 'door_open'); return { closed: !!c && c.solid, open: !!o, plazaRows: game.map.rows.slice(4, 13).every((r) => /[rR]/.test(r[48])) }; });
+check('giant temple door: closed (solid) face stands at the right end over the open one; plaza rows 4~12 are stone', doorBefore.closed && doorBefore.open && doorBefore.plazaRows, JSON.stringify(doorBefore));
 const stoneCols = rows[7].split('').map((ch, i) => 'rR'.includes(ch) ? i : -1).filter((i) => i >= 0);
 check('ancient temple floor: ground tiles first, stone flagstones from col ~20 to the gate (moss variant mixed in)', stoneCols.length >= 30 && Math.min(...stoneCols) <= meta.stone_from && /[tuwn]/.test(rows[7][5]) && rows[7].includes('R'), JSON.stringify({ first: Math.min(...stoneCols), n: stoneCols.length }));
 const props = await page.evaluate(() => { const c = {}; for (const e of game.entities) if (e.def?.type === 'prop' && !e.dead) { const k = (e.def.image || '').split('/').pop(); c[k] = (c[k] || 0) + 1; } return c; });
-check('temple props: pillars, broken pillars, lanterns, blocks and the gate arch are placed', (props['pillar.png'] || 0) >= 4 && (props['pillar_broken.png'] || 0) >= 2 && (props['stone_lantern.png'] || 0) >= 2 && (props['stone_block.png'] || 0) >= 2 && props['temple_gate.png'] === 1, JSON.stringify(props));
+check('temple props: pillars, broken pillars, lanterns, blocks and the giant door (closed over open) are placed', (props['pillar.png'] || 0) >= 4 && (props['pillar_broken.png'] || 0) >= 2 && (props['stone_lantern.png'] || 0) >= 2 && (props['stone_block.png'] || 0) >= 2 && props['temple_door.png'] === 1 && props['temple_door_open.png'] === 1, JSON.stringify(props));
 await stand(meta.stone_from * 32 + 96, 7 * 32 + 8, 'right'); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/teal9_01_temple.png` });
 // 석등 한 줄
 const lan = await page.evaluate(() => { const l = game.entities.find((e) => e.id?.startsWith('lan_b')); return l ? { x: l.x, y: l.y } : null; });
@@ -65,7 +69,8 @@ while (Date.now() - t0 < 180000) {
   else await page.waitForTimeout(50);
 }
 const want = ['억빠맨|* ... ... 레드랑 블루인데요?', '경섭|* 응 그렇네', '레드|* 여기는 지나갈 수 없다.', '블루|* 없다.', '억빠맨|* 마 말을 했어?', '레드|* 여기는 신성한 오브젝트들의 영역', '블루|* 영역', '레드|* 여기를 지나가기 위해서는 시험을 받아야한다.', '블루|* 한다',
-  '억빠맨|* 이미 쥰희랑 용준이는 지나갔을텐데 ㅂㅅ인가?', '레드|* ...', '블루|* ...', '레드|* 침입자 발생 침입자 발생 침입자 발생', '블루|* 침입자', '레드|* 제거하라 제거하라 제거하라 제거하라 제거하라', '블루|* 하라.', '억빠맨|* 오...', '레드|* 처리하라', '블루|* 하라', '|* 시험이 끝났다. 사원으로 가는 길이 열렸다.'];
+  '억빠맨|* 이미 쥰희랑 용준이는 지나갔을텐데 ㅂㅅ인가?', '레드|* ...', '블루|* ...', '레드|* 침입자 발생 침입자 발생 침입자 발생', '블루|* 침입자', '레드|* 제거하라 제거하라 제거하라 제거하라 제거하라', '블루|* 하라.', '억빠맨|* 오...', '레드|* 처리하라', '블루|* 하라',
+  '레드|* ...', '블루|* ...', '레드|* 시험에 통과한자들 지나가도 좋다.', '블루|* 좋다', '억빠맨|* 와 ㅈㄴ 세네 시발', '경섭|* 어서 지나가자.', '레드|* 잠깐', '블루|* 깐', '억빠맨|* ?', '레드|* 오브젝트님들의 영역은 신성한 곳', '블루|* 신성한 곳', '레드|* 시험에 통과했으니 우리의 힘을 주겠다.', '블루|* 겠다.', '|* 레드와 블루 버프를 획득했다.* 공격력과 체력이 증가하였다.', '레드|* 지나가라', '블루|* 라.'];
 const inOrder = (w, got) => { let i = 0; for (const g of got) if (g === w[i]) i++; return { ok: i === w.length, at: i }; };
 const io_ = inOrder(want, lines);
 check('all lines in briefing order (verbatim) through the battle to the closing line', io_.ok, JSON.stringify({ reached: io_.at, of: want.length, next: want[io_.at], got: lines.slice(Math.max(0, io_.at - 2), io_.at + 2) }));
@@ -77,13 +82,16 @@ const chase = lines.filter((l) => l === '레드|* 처리하라').length;
 check('처리하라/하라 exchange: 6 pairs, switching faster and faster (last gap < first gap)', chase === 6 && chaseGaps.length >= 5 && chaseGaps[chaseGaps.length - 1] < chaseGaps[0] * 0.6, JSON.stringify({ chase, gaps: chaseGaps }));
 check('boss battle: 레드·블루 both, HP 22 each, party of 3', !!battleSnap && battleSnap.enemies.length === 2 && battleSnap.enemies.every((e) => e.max === 22) && battleSnap.members === 3, JSON.stringify(battleSnap));
 s = await st();
-check('after: 레드·블루 removed, flag set, party regrouped', !s.red && !s.blue && s.flags.won && s.gs && s.pp, JSON.stringify({ red: s.red, blue: s.blue, flags: s.flags }));
+const doorAfter = await page.evaluate(() => ({ closed: !!game.entities.find((e) => e.id === 'door_closed' && !e.dead), open: !!game.entities.find((e) => e.id === 'door_open' && !e.dead), attack: game.attack, hpBonus: game.hpBonus, maxHp: [game.maxHpOf('hyungsub'), game.maxHpOf('gyeongsub'), game.maxHpOf('ppaman')], hp: [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')] }));
+check('after: 레드·블루 stepped aside UP (plaza top row) facing down, the closed door gone (open passage remains), flag set', !!s.red && !!s.blue && s.red.y === meta.stage.red_aside[1] && s.blue.y === meta.stage.blue_aside[1] && s.red.f === 'down' && s.blue.f === 'down' && !doorAfter.closed && doorAfter.open && s.flags.won && s.gs && s.pp, JSON.stringify({ red: s.red, blue: s.blue, flags: s.flags, doorAfter }));
+check('buff: attack 1→2, max HP +20 each (120/140/110) with current HP raised by 20 too; join sound (item) played', doorAfter.attack === 2 && doorAfter.hpBonus === 20 && doorAfter.maxHp.join() === '120,140,110' && doorAfter.hp.join() === '120,140,110' && sfx.includes('item'), JSON.stringify(doorAfter));
+check('battle entry effect played before the boss battle: jingle + rumble after (door opening)', sfx.includes('battle_start') && sfx.includes('rumble'), JSON.stringify([...new Set(sfx)]));
 await page.screenshot({ path: `${S}/teal9_05_after.png` });
-await stand(46 * 32, 7 * 32 + 8, 'right'); await page.waitForTimeout(200);   // 문 구간은 아래 두 줄(7~8행)만 열려 있다
+await stand(48 * 32, 8 * 32 + 8, 'right'); await page.waitForTimeout(200);   // 광장 가운데 줄에서 열린 돌문 통로로
 await page.keyboard.down('KeyX'); await page.keyboard.down('ArrowRight');
 const t2 = Date.now(); let mapNow = 'teal9'; while (Date.now() - t2 < 15000) { mapNow = await page.evaluate(() => game.mapId); if (mapNow === 'teal10') break; await page.waitForTimeout(100); }
 await page.keyboard.up('ArrowRight'); await page.keyboard.up('KeyX');
-check('right door (past the gate) → teal10', mapNow === 'teal10', mapNow);
+check('through the opened stone door → teal10', mapNow === 'teal10', mapNow);
 check('no page/console errors', errs.length === 0, JSON.stringify(errs.slice(0, 4)));
 console.log(logs.join('\n')); console.log(`fails=${fails}`);
 await browser.close(); process.exit(fails ? 1 : 0);

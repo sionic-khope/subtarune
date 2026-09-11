@@ -110,12 +110,12 @@ export const ENEMIES = {
   //    이미지 PR #16(docs/handoffs/red-blue-buff-sprites.md): 전투 대기 192×192 시트(96×96 셀 2×2, 220ms, 발 pivot 48,89) / 필드 정면 64×64(pivot 32,60). 롤 레드 브램블백·블루 센티넬 모티브
   red: {
     name: '레드', hp: 22, voice: 'red',
-    sheet: { src: 'assets/enemies/red-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.3, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 2.4 },
+    sheet: { src: 'assets/enemies/red-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 2.0, dx: 22, dy: 70, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [                                                                    // 방패 기사 = 신성한 영역: 한 칸만 안전 / 십자 성광 / 방패 벽 + 조준 방패 / 거대 방패 + 붉은 비
-      { type: 'zone', cols: 3, rows: 2, safe: 1, warn: 0.9, hit: 0.35, every: 1.7, duration: 5.2 },
-      { type: 'beam', dir: 'both', count: 1, thick: 30, warn: 0.75, hit: 0.3, every: 1.5, duration: 5.0 },
-      { type: 'combo', parts: [{ type: 'shield_wall', duration: 5.0, rows: 4, speed: 95, every: 1.1, kind: 'red' }, { type: 'aimed', duration: 5.0, every: 0.7, speed: 170, r: 7, shape: 'shield', kind: 'red' }] },
-      { type: 'combo', parts: [{ type: 'giant', duration: 5.0, from: 'sides', r: 30, speed: 160, warn: 0.8, every: 2.0, kind: 'red' }, { type: 'rain', duration: 5.0, rate: 0.3, speed: 110, r: 4, kind: 'red' }] },
+      { type: 'zone', cols: 3, rows: 2, safe: 1, warn: 1.0, hit: 0.35, every: 1.9, duration: 5.2 },                                                                                         // (2026-09-11 약 10% 완화: 예고 +0.1, 간격·속도 10%)
+      { type: 'beam', dir: 'both', count: 1, thick: 26, warn: 0.85, hit: 0.3, every: 1.65, duration: 5.0 },
+      { type: 'combo', parts: [{ type: 'shield_wall', duration: 5.0, rows: 4, speed: 86, every: 1.2, kind: 'red' }, { type: 'aimed', duration: 5.0, every: 0.8, speed: 153, r: 7, shape: 'shield', kind: 'red' }] },
+      { type: 'combo', parts: [{ type: 'giant', duration: 5.0, from: 'sides', r: 30, speed: 145, warn: 0.9, every: 2.2, kind: 'red' }, { type: 'rain', duration: 5.0, rate: 0.34, speed: 100, r: 4, kind: 'red' }] },
     ],
     lines: { appear: '* 레드가 시험을 시작한다!',
       idle: ['* 레드가 방패를 고쳐 잡는다.', '* 레드의 눈이 붉게 깜빡인다.{w=0.3} 사이렌 소리가 아직 귀에 남아 있다.', '* 억빠맨은 레드가 말을 한다는 게 아직도 안 믿긴다.', '* 요플래는 오브젝트가 대체 뭔지 궁금해졌다.', '* 경섭이 허허 하고 웃었다.{w=0.3} 긴장한 것 같다.', '* 레드가 "침입자" 라고 작게 중얼거린다.'],
@@ -124,12 +124,12 @@ export const ENEMIES = {
   },
   blue: {
     name: '블루', hp: 22, voice: 'blue',
-    sheet: { src: 'assets/enemies/blue-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.3, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 3.0 },
+    sheet: { src: 'assets/enemies/blue-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 2.0, dx: -20, dy: 80, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 3.0 },
     patterns: [                                                                    // 망치 기사: 망치 낙하(파편) / 위아래 망치 + 방사형 망치 / 포물선 망치 + 따라오는 망치 / 내리찍기 자리 4곳
-      { type: 'bomb', every: 1.2, warn: 0.7, frags: 8, fragSpeed: 140, r: 8, shape: 'hammer', fragKind: 'blue', duration: 5.0 },
-      { type: 'combo', parts: [{ type: 'slam', duration: 5.0, every: 0.5, warn: 0.35, speed: 380, from: 'updown', shape: 'hammer', rot: Math.PI }, { type: 'burst', duration: 5.0, at: 'random', n: 8, speed: 120, every: 1.1, r: 6, shape: 'hammer', kind: 'blue', spin: 8 }] },
-      { type: 'combo', parts: [{ type: 'hammer_arc', duration: 5.0, every: 0.55, speed: 165 }, { type: 'homing', duration: 5.0, count: 1, speed: 100, turn: 2.6, life: 2.4, every: 1.5, r: 6, shape: 'hammer', kind: 'blue', spin: 6 }] },
-      { type: 'zone', cols: 4, rows: 2, count: 4, warn: 0.8, hit: 0.3, every: 1.3, duration: 5.0 },
+      { type: 'bomb', every: 1.35, warn: 0.8, frags: 8, fragSpeed: 126, r: 8, shape: 'hammer', fragKind: 'blue', duration: 5.0 },                                                        // (2026-09-11 약 10% 완화)
+      { type: 'combo', parts: [{ type: 'slam', duration: 5.0, every: 0.56, warn: 0.4, speed: 345, from: 'updown', shape: 'hammer', rot: Math.PI }, { type: 'burst', duration: 5.0, at: 'random', n: 8, speed: 108, every: 1.2, r: 6, shape: 'hammer', kind: 'blue', spin: 8 }] },
+      { type: 'combo', parts: [{ type: 'hammer_arc', duration: 5.0, every: 0.62, speed: 150 }, { type: 'homing', duration: 5.0, count: 1, speed: 90, turn: 2.4, life: 2.4, every: 1.65, r: 6, shape: 'hammer', kind: 'blue', spin: 6 }] },
+      { type: 'zone', cols: 4, rows: 2, count: 3, warn: 0.9, hit: 0.3, every: 1.45, duration: 5.0 },
     ],
     lines: { appear: '* 블루도.',
       idle: ['* 블루가 망치를 어깨에 걸쳤다.', '* 블루는 말을 아낀다.{w=0.3} 아니면 못 하는 걸지도.', '* 억빠맨은 블루가 따라 하는 게 웃긴 모양이다.', '* 요플래는 블루의 망치가 몇 kg 인지 궁금해졌다.', '* 블루가 "...하라." 하고 혼자 중얼거렸다.', '* 블루의 눈이 파랗게 깜빡인다.'],

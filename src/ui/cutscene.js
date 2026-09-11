@@ -12,6 +12,7 @@
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
 //  { pulse: 'red', times: 3, every: 0.4 }        화면 붉은 번쩍임(사이렌) — 대사와 겹치려면 { async: [{ pulse }] }
+//  { aura: { from:['red','blue'], to:['player','gyeongsub','ppaman'], colors:['#ff5c5c','#4fa8ff'], n:36, duration:1.6 } }  반짝이는 입자가 감싸 돈다(버프 획득)
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { zoom: s, at: id|[x,y]|'center', offset?, duration? }  2D 월드 줌 (UI 제외)   { battle:{enemies:[id..], bgm?, flag?} } 턴제 전투(끝날 때까지 대기, game.lastBattle.win)
 //  { scene3d: 'drawer', flag? }  src/scenes/<name>.js 의 run(game,node) → {found} 을 기다림
@@ -152,6 +153,17 @@ export function makeWaiter(game, node) {
   if (node.pulse) {                                    // { pulse:'red', times?:3, every?:0.4 } 화면이 붉게 번쩍번쩍(사이렌 — 청록숲9 레드). 낙석 피격의 hurt 오버레이를 재사용, 대사 중에도 돈다({async} 로)
     const times = node.times ?? 3, every = node.every ?? 0.4; let t = 0, n = 0;
     return { update: (dt) => { t += dt; if (n < times && t >= n * every) { game.hurt = 0.32; n++; } return t >= times * every; } };
+  }
+  if (node.aura) {                                     // { aura:{ from:[id…], to:[id…], colors:['#ff5c5c','#4fa8ff'], n:36, duration:1.6 } } 반짝이는 입자가 from 에서 날아와 to 를 감싸 돈다(레드·블루 버프). game.sparks 를 main.js 가 그린다
+    const a = node.aura; const froms = (a.from || []).map((id) => findEntity(game, id)).filter(Boolean), tos = (a.to || []).map((id) => findEntity(game, id)).filter(Boolean);
+    if (!froms.length || !tos.length) return done;
+    const dur = a.duration ?? 1.6, parts = [];
+    for (let i = 0; i < (a.n ?? 36); i++) { const f = froms[i % froms.length]; parts.push({ x0: f.x + f.w / 2 + (Math.random() - 0.5) * 30, y0: f.y + f.h - 20 - Math.random() * 60, tx: tos[i % tos.length], ang: Math.random() * Math.PI * 2, r: 18 + Math.random() * 10, color: (a.colors || ['#fff'])[i % (a.colors || ['#fff']).length], delay: Math.random() * 0.4, t: 0, x: 0, y: 0, a: 0 }); }
+    game.sparks = parts; let t = 0;
+    return { update: (dt) => { t += dt;
+      for (const p of parts) { p.t += dt; const k = Math.min(1, Math.max(0, (p.t - p.delay) / (dur * 0.55))); const cx = p.tx.x + p.tx.w / 2, cy = p.tx.y + p.tx.h - 26; p.ang += dt * 5;
+        p.x = p.x0 + (cx - p.x0) * k + Math.cos(p.ang) * p.r * k; p.y = p.y0 + (cy - p.y0) * k + Math.sin(p.ang) * p.r * 0.5 * k; p.a = p.t < p.delay ? 0 : t < dur ? 1 : Math.max(0, 1 - (t - dur) / 0.5); }
+      if (t >= dur + 0.5) { game.sparks = null; return true; } return false; } };
   }
   if (node.camera !== undefined) return cameraPan(game, node);
   if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }

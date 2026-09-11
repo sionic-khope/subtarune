@@ -46,6 +46,7 @@ class Game {
     this.inventory = [];
     this.party = [];                      // 동료 캐릭터 id 순서 (예: ['ppaman']) — src/data/characters.js 키. 저장/복원됨
     this.partyHp = {};                    // 전투 HP (id → 현재 HP, 없으면 최대). 저장/복원됨 (2026-09-10 전투)
+    this.attack = 1; this.hpBonus = 0;    // 공격력(기본 1) · 최대 HP 보너스 — 레드·블루 버프로 2 / +20 (청록숲9). 저장/복원됨
     this.money = 0;                       // 소지금(원) — 미니언 잡으면 30원 (2026-09-10 돈 시스템). 저장/복원됨
     this.battle = null;                   // 진행 중인 전투 (src/battle/battle.js) — 있으면 update/draw 를 전투가 가져간다
     this.lastBattle = null;
@@ -150,13 +151,13 @@ class Game {
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때·QA 바로가기 직후(필드에서만). 컷신이 도는 동안은 저장하지 않는다(숨긴 주인공·임시 맵 위치가 세이브에 남지 않게, 2026-09-10) */
   autosave() {
     if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, map: this.mapId, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
-    this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0;
+    this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0; this.attack = 1; this.hpBonus = 0;   // 공격력·최대 HP 보너스(레드·블루 버프)
     this.battle = null; this.lastBattle = null; this.battleFlag = null; this.encountering = false; this.ride = null;
   }
   /** 타이틀에서 '이어하기': 세이브를 통째로 복원 → 맵 → 위치 → 동료를 주인공 뒤에 다시 세움 → 그 뒤에야 도착 스크립트(플래그 안 섰으면 처음부터 다시) */
@@ -167,7 +168,7 @@ class Game {
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
     this.inventory = (d.inventory || []).filter((n) => typeof n === 'string');
     this.party = normalizeParty(d.party);            // 어떤 조합이든 걷는 순서(경섭 → 빠맨)로
-    this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
+    this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.attack = d.attack || 1; this.hpBonus = d.hpBonus || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
     this.changeMap(d.map, d.spawn || null, true, { enter: false });
@@ -319,14 +320,16 @@ class Game {
     return true;
   }
 
+  /** 최대 HP = 캐릭터 기본 + 버프(hpBonus, 레드·블루 버프 +20 — 청록숲9) */
+  maxHpOf(id) { return (CHARACTERS[id]?.hp ?? 100) + (this.hpBonus || 0); }
   /** 현재 HP (전투 밖): partyHp 에 없으면 최대 */
-  hpOf(id) { const max = CHARACTERS[id]?.hp ?? 100; return Math.max(0, Math.min(max, this.partyHp[id] ?? max)); }
+  hpOf(id) { const max = this.maxHpOf(id); return Math.max(0, Math.min(max, this.partyHp[id] ?? max)); }
   /** 메뉴에서 힐템 사용: 인벤토리에서 빼고 partyHp 회복 (2026-09-10) */
   useItemOn(name, id) {
     const def = ITEMS[name]; if (!def?.heal) return false;
     const i = this.inventory.indexOf(name); if (i < 0) return false;
     this.inventory.splice(i, 1);
-    const max = CHARACTERS[id]?.hp ?? 100; this.partyHp[id] = Math.min(max, this.hpOf(id) + def.heal);
+    const max = this.maxHpOf(id); this.partyHp[id] = Math.min(max, this.hpOf(id) + def.heal);
     this.sound.sfx('heal'); this.autosave();
     return true;
   }
@@ -669,6 +672,7 @@ class Game {
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
+    if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = Math.floor(p.ang * 3) % 2 ? 4 : 2; ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }   // 컷신 {aura} 반짝임(버프)
     this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
@@ -722,7 +726,7 @@ class Game {
         ctx.fillStyle = '#fff'; ctx.fillText(L.menu_use_on, bx + 8, by + 8);
         members.forEach((id, i) => { const ch = CHARACTERS[id] || {}; const ry = by + 8 + LH * (i + 1); const sel = i === m.pick; const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
           ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(name, bx + 22, ry); if (sel) drawHeart(ctx, bx + 9, ry + Math.round(F.size / 2) - 3);
-          const max = ch.hp ?? 100, hp = this.hpOf(id); ctx.fillStyle = '#3a2020'; ctx.fillRect(bx + 96, ry + 5, 60, 7); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(bx + 96, ry + 5, Math.round(60 * hp / max), 7); ctx.fillStyle = '#fff'; ctx.fillText(`${hp}`, bx + 162, ry); });
+          const max = this.maxHpOf(id), hp = this.hpOf(id); ctx.fillStyle = '#3a2020'; ctx.fillRect(bx + 96, ry + 5, 60, 7); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(bx + 96, ry + 5, Math.round(60 * hp / max), 7); ctx.fillStyle = '#fff'; ctx.fillText(`${hp}`, bx + 162, ry); });
       }
     }
     if (m.sub === 1) this.drawParty(ctx, 116, 8);
@@ -755,7 +759,7 @@ class Game {
       ctx.fillStyle = '#ffe066'; ctx.fillText(name, x + 68, ry + 3);
       ctx.fillStyle = '#fff'; ctx.fillText(i === 0 ? L.party_leader : L.party_member, x + 68, ry + 3 + LH);
       ctx.fillStyle = '#9a9ab0'; ctx.fillText(ch.partyDesc || (i === 0 ? L.party_desc_leader : L.party_desc_member), x + 68, ry + 3 + LH * 2);
-      const max = ch.hp ?? 100, hp = this.hpOf(id);                                   // 색 HP 바 (전투와 같은 색)
+      const max = this.maxHpOf(id), hp = this.hpOf(id);                                   // 색 HP 바 (전투와 같은 색)
       ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 68, ry + 3 + LH * 3 - 2, 100, 6); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(x + 68, ry + 3 + LH * 3 - 2, Math.round(100 * hp / max), 6); ctx.fillStyle = '#fff'; ctx.fillText(`HP ${hp}/${max}`, x + 174, ry + 3 + LH * 3 - 8);
     });
   }
@@ -799,7 +803,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-11.67';
+export const BUILD = '2026-09-11.69';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

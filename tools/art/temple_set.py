@@ -91,7 +91,38 @@ def prop_temple_gate():
     for (x, y) in ((8, 60), (108, 40), (112, 70)): c.rrect(x, y, 5, 3, MOSS, 1); c.px(x + 1, y, MOSS_L)
     return c
 
+def prop_temple_door(opened=False):
+    """거대한 사원 돌문 96x288(옆면 = 광장 오른쪽 끝을 막는 문의 정면): 굵은 돌 틀 + 두 짝 문(세로 이음새, 징, 가운데 빛나는 표식) + 이끼. opened=True 면 두 짝이 안으로 열려 어두운 통로 + 테두리 빛"""
+    W_, H_ = 96, 288
+    c = Canvas(W_, H_)
+    c.rrect_outlined(0, 0, W_, H_, S1, OUT, 4)                                                   # 틀
+    for x in (6, 12): c.vline(x, 6, H_ - 12, S2)
+    for x in (W_ - 7, W_ - 13): c.vline(x, 6, H_ - 12, S0)
+    c.rect(4, 4, W_ - 8, 10, S2); c.rect(4, 14, W_ - 8, 2, S0)                                   # 상인방
+    for x in range(10, W_ - 12, 14): c.rect(x, 6, 6, 5, S0)
+    c.rect(4, H_ - 14, W_ - 8, 10, S0); c.hline(6, H_ - 14, W_ - 12, S2)                          # 문턱
+    ix, iy, iw, ih = 18, 20, W_ - 36, H_ - 40                                                    # 문 짝 영역
+    if not opened:
+        c.rrect_outlined(ix, iy, iw, ih, S1, OUT, 3)
+        c.vline(ix + iw // 2, iy + 2, ih - 4, OUT); c.vline(ix + iw // 2 - 1, iy + 2, ih - 4, S0)   # 이음새
+        for yy in range(iy + 14, iy + ih - 10, 26):                                              # 징
+            for xx in (ix + 8, ix + iw // 2 - 12, ix + iw // 2 + 8, ix + iw - 12): c.rrect(xx, yy, 5, 5, S3, 2); c.px(xx + 1, yy + 1, hexc('#b8d0cd'))
+        for yy in range(iy + 8, iy + ih - 8, 52): c.hline(ix + 3, yy, iw - 6, S2)                # 가로 판 줄
+        ex, ey = ix + iw // 2 - 14, iy + ih // 2 - 18                                            # 가운데 표식(빛)
+        c.rrect_outlined(ex, ey, 28, 36, S0, OUT, 4); c.rrect(ex + 6, ey + 8, 16, 20, GLOW_D, 4); c.rrect(ex + 9, ey + 12, 10, 12, GLOW, 3); c.px(ex + 12, ey + 15, hexc('#fff3c4'))
+        for (x, y) in ((ix + 4, iy + ih - 30), (ix + iw - 14, iy + 30), (ix + iw - 10, iy + ih - 50)): c.rrect(x, y, 7, 4, MOSS, 1); c.px(x + 2, y, MOSS_L)
+    else:
+        c.rect(ix, iy, iw, ih, hexc('#050d0c'))                                                  # 어두운 통로
+        for k in range(6): c.rect(ix + k, iy + k, iw - 2 * k, 1, S0 if k < 3 else hexc('#0b1a19'))
+        c.rect(ix, iy, 8, ih, S1); c.rect(ix + iw - 8, iy, 8, ih, S1)                            # 안으로 열린 두 짝(옆면만 보임)
+        c.vline(ix + 2, iy + 4, ih - 8, S2); c.vline(ix + iw - 3, iy + 4, ih - 8, S0)
+        for yy in range(iy + 20, iy + ih - 20, 40): c.px(ix + 4, yy, S3); c.px(ix + iw - 5, yy, S3)
+        c.rect(ix + 8, iy + ih - 6, iw - 16, 6, S0); c.hline(ix + 8, iy + ih - 6, iw - 16, S2)   # 안쪽 바닥 끝
+        c.rrect(ix + iw // 2 - 8, iy + 6, 16, 10, GLOW_D, 3); c.rrect(ix + iw // 2 - 5, iy + 8, 10, 6, GLOW, 2)   # 통로 위 빛
+    return c
+
 if __name__ == '__main__':
+    prop_temple_door(False).save('assets/props/temple_door.png'); prop_temple_door(True).save('assets/props/temple_door_open.png')
     tile_stone(0).save('assets/tiles/stone_teal.png'); tile_stone_moss().save('assets/tiles/stone_teal_moss.png')
     prop_pillar().save('assets/props/pillar.png'); prop_pillar_broken().save('assets/props/pillar_broken.png'); prop_stone_lantern().save('assets/props/stone_lantern.png')
     prop_stone_block().save('assets/props/stone_block.png'); prop_temple_gate().save('assets/props/temple_gate.png')
