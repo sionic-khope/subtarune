@@ -389,7 +389,11 @@ export class Battle {
     const sh = e.def.sheet; const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(e.ox || 0), sy = Math.round(e.oy || 0);
     if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, e.x, e.y - 60, e.popup.text, e.popup.t, '#fff'); return; }
     ctx.save(); if (e.dying > 0) ctx.globalAlpha = Math.max(0, e.dying / 0.5);
-    if (e.img && sh) {
+    if (e.img && sh && sh.count) {                             // 격자 시트(PR #14 규격): cols×rows 셀을 좌상→우상→좌하→우하 순서로 count 개, 셀 안 pivot(def.pivot) 을 (e.x, e.y) 에. px 1 = 원본 크기
+      const fw = Math.floor(e.img.width / sh.cols), fh = Math.floor(e.img.height / (sh.rows || 1)); const i = Math.floor(this.t * (sh.fps || 5.5)) % sh.count;
+      const s = (e.def.scale ?? 1) / (sh.px || 1), dw = Math.round(fw * s), dh = Math.round(fh * s); const [pvx, pvy] = e.def.pivot || [fw / 2, fh];
+      ctx.drawImage(e.img, (i % sh.cols) * fw, Math.floor(i / sh.cols) * fh, fw, fh, Math.round(e.x - pvx * s + sx), Math.round(e.y - pvy * s + sy), dw, dh);
+    } else if (e.img && sh) {                                  // 한 줄 시트(레거시, 2x): row 의 frames 열을 차례로, 발은 아래 가운데
       const fw = Math.floor(e.img.width / sh.cols), fh = Math.floor(e.img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
       const s = e.def.scale ?? 1, dw = Math.round(fw / 2 * s), dh = Math.round(fh / 2 * s);
       ctx.drawImage(e.img, col * fw, sh.row * fh, fw, fh, Math.round(e.x - dw / 2 + sx), Math.round(e.y - dh + sy), dw, dh);

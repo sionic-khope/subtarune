@@ -17,7 +17,7 @@ export const CHARACTERS = {
   razorbeak: { name: '칼날부리', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-raptor-front.png' },   // 청록숲6 정글 몹 — PR #10 이미지(docs/handoffs/jungle-enemies-assets.md)
   wolf:      { name: '늑대', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-wolf-front.png' },
   toad:      { name: '두꺼비', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-gromp-front.png' },
-  krug:      { name: '돌거북', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-krug-front.png' },      // 청록숲8 정글 2 — 자리표시 도트(tools/art/jungle8_set.py), 사용자 PR 이미지가 같은 이름으로 덮는다
+  krug:      { name: '돌거북', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-krug-front.png' },      // 청록숲8 정글 2 — PR #14 이미지(assets/source/krug-scuttle-cannon-v1, docs/handoffs/krug-scuttle-cannon-sprites.md)
   scuttle:   { name: '바위게', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-scuttle-front.png' },
   cannon:    { name: '대포미니언', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-cannon-front.png' },
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },

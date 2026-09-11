@@ -13,7 +13,7 @@ model: opus
 
 ## 순서
 1. `docs/STATE.md` 전투 항목 + `docs/battle/adding-enemies.md` 읽기.
-2. 스프라이트(`assets/enemies/<id>-battle-left.png` 64×64 pivot 32,60; 필드용 `-front.png` 48×48) — 없으면 `/art` 로 그린다(델타룬 밀도, 외곽선 1px, 2톤).
+2. 스프라이트(`assets/enemies/<id>-battle-left.png` 64×64 pivot 32,60, 또는 대기 4프레임 격자 시트 `-battle-idle.png` 128×128 → `sheet:{cols:2,rows:2,count:4,fps:1000/180,px:1}`; 필드용 `-front.png` 48×48) — 사용자 PR 로 오는 게 기본, 오기 전엔 자리표시로 그려 두고 같은 파일명으로 덮는다.
 3. `src/data/enemies.js` 항목: name/hp/image/pivot/scale/damage/money/idle/patterns/lines{appear, idle[], speak[], die}. 대사는 사용자 브리핑 **그대로**.
 4. 탄막: 적의 **소지품·성격이 탄**이 되게(방패 벽, 던지는 망치…). 기존 패턴(rain/aimed/sweep/bounce/hammer_arc/shield_wall/hammer_slam)에 `shape/kind/spin` 을 주거나 `bullets.js PATTERNS` 에 함수 하나 추가. 빠른 탄은 예고(`vline`).
 5. 배치: 맵 생성기 `enemy` 엔티티(걸어다님·쫓아옴·표준 조우) 또는 컷신 `{battle}` 노드(intro 대사·flag).

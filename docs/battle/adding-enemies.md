@@ -9,6 +9,8 @@
    goblin: {
      name: '고블린', hp: 6,                               // hp = 맞아야 하는 횟수(우리 공격은 1 데미지 고정)
      image: 'assets/enemies/goblin-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 8, money: 30,
+     // 대기 애니가 있으면 image 대신 격자 시트(PR #14 규격, 2026-09-11): 64×64 셀 cols×rows, 좌상→우상→좌하→우하 순서로 count 프레임, fps(180ms = 1000/180), px 1(원본 크기). pivot·scale 은 그대로 셀 기준
+     // sheet: { src: 'assets/enemies/<id>-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
      idle: { swayX: 8, swayY: 2, period: 2.8 },           // 서 있을 때 좌우로 살짝 (정적인 느낌 금지)
      patterns: [ { type: 'shield_wall', kind: 'red' }, { type: 'hammer_slam' } ],   // 턴마다 돌아가며. 아래 3장
      lines: {
