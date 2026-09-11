@@ -3,7 +3,8 @@
 // waiter = { update(dt, input) → true(끝) }
 //
 //  { wait: 1.0 }                              초 단위 대기
-//  { move: 'player'|id, to:[tx,ty] | px:[x,y] | by:[dx,dy] | rel:'소품id', at:'bottom'|'top'|'left'|'right', by:[dx,dy], speed?: 60, run?: true }  — 소품 앞 연출은 rel 로(누른 위치 무관), 도착 지점은 끼임 자동 보정
+//  { move: 'player'|id, to:[tx,ty] | px:[x,y] | by:[dx,dy] | rel:'소품id', at:'bottom'|'top'|'left'|'right', by:[dx,dy], speed?: 60, run?: true, dash?: true }  — 소품 앞 연출은 rel 로(누른 위치 무관), 도착 지점은 끼임 자동 보정
+//                                             속도 기준(16px 단위/초 → 실제 px/s): 걷기 60(120) · run 110(220) · dash 190(380, 숨으러 뛰어가기 같은 "빨리") — 브리핑에 '빨리·달려·급히'가 있으면 run/dash 중 하나를 반드시 넣는다(2026-09-11 사용자)
 //                                             걸어서 이동(충돌 무시). to=타일, px=픽셀, by=상대 픽셀
 //  { face: id, dir: 'up'|'down'|'left'|'right' | 'toward:'+id }
 //  { camera: [tx,ty] | 'player' | id, duration?: 1 }   카메라 팬 / 다시 따라가기
@@ -59,7 +60,8 @@ function mover(game, node) {
   else if (node.by) { tx = e.x + node.by[0] * TILE / 16; ty = e.y + node.by[1] * TILE / 16; }   // by 는 16px 단위
   else return done;
   [tx, ty] = freeSpot(game, e, tx, ty);
-  const speed = (node.speed ?? (node.run ? 110 : 60)) * TILE / 16;
+  const speed = (node.speed ?? (node.dash ? 190 : node.run ? 110 : 60)) * TILE / 16;   // dash: 질주(380px/s)
+  const fast = node.run || node.dash;
   return {
     update(dt) {
       const dx = tx - e.x, dy = ty - e.y;
@@ -72,7 +74,7 @@ function mover(game, node) {
       const step = Math.min(dist, speed * dt);
       e.x += (dx / dist) * step; e.y += (dy / dist) * step;
       e.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-      e.moving = true; e.animate?.(dt, node.run ? 14 : 8);
+      e.moving = true; e.animate?.(dt, fast ? 14 : 8); e.driven = true;   // driven: 이 틱은 컷신이 걷기 프레임을 진행시켰다 — NPC.update 의 대화 중 정지 처리가 프레임을 0 으로 덮지 않게 (PR #13 지침, 2026-09-11)
       return false;
     },
   };

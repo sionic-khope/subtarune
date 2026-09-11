@@ -374,6 +374,8 @@ export class NPC extends Character {
     this.baseFacing = this.facing;
   }
   update(dt) {
+    // 컷신 이동(cutscene move)이 이 틱에 걷기 프레임을 진행시켰으면(driven) 정지 처리로 덮지 않는다 — 전에는 매 틱 frame 이 0 으로 돌아가 NPC(쥰희·용준)가 미끄러지듯 움직였다 (PR #13 지침, 2026-09-11)
+    if (this.driven) { this.driven = false; return; }
     if (this.game.dialogue.running) { this.moving = false; this.animate(dt); return; }
     const startX = this.x, startY = this.y;
     if (this.wander > 0) {
@@ -927,8 +929,9 @@ registerEntity('raft', Raft);
 registerEntity('swimmer', Swimmer);
 /**
  * 그늘(어두운 덮개): 지정 사각형을 **엔티티 위에** 반투명 검정으로 덮는다 — 나무에 둘러싸인 은신처(청록숲7). 그 안에 선 캐릭터는 어둠 속에서 흐릿하게 보인다
- *   (델타룬 2장 어두운 문틈에 숨는 장면 참고, 2026-09-11 사용자 '그림자 완전 어둡게'). 가장자리보다 안쪽이 한 단계 더 어둡다.
- *   { type:'shade', id?, x, y, w, h, alpha?:0.62, inset?:14 }  — 충돌·상호작용 없음, y 정렬 무관(맨 위 drawOverlay), 맵 dim 위에 그려진다
+ *   (델타룬 2장 어두운 문틈에 숨는 장면 참고, 2026-09-11 사용자 '그림자 완전 어둡게'). 위(뒤)가 alpha 로 짙고 아래(입구)로 갈수록 fade 까지 옅어지는 세로 그라데이션 —
+ *   네모난 띠가 보이던 1차(안쪽 inset 사각형)는 "퀄이 구리다"(같은 날). 사각형은 나무를 건드리지 않는 바닥 영역으로 잡는다(맵 생성기).
+ *   { type:'shade', id?, x, y, w, h, alpha?:0.7, fade?:0.3 }  — 충돌·상호작용 없음, y 정렬 무관(맨 위 drawOverlay), 맵 dim 위에 그려진다
  */
 export class Shade extends Entity {
   constructor(def, game) { super({ solid: false, ...def }, game); }
@@ -936,10 +939,10 @@ export class Shade extends Entity {
   draw() {}
   drawOverlay(ctx, cam) {
     if (!this.visible) return;
-    const a = this.def.alpha ?? 0.62, inset = this.def.inset ?? 14;
+    const a = this.def.alpha ?? 0.7, f = this.def.fade ?? 0.3;
     const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
-    ctx.fillStyle = `rgba(1,4,6,${a})`; ctx.fillRect(x, y, this.w, this.h);
-    if (inset > 0 && this.w > inset * 2 && this.h > inset * 2) { ctx.fillStyle = `rgba(1,4,6,${a * 0.5})`; ctx.fillRect(x + inset, y + inset, this.w - inset * 2, this.h - inset * 2); }
+    const g = ctx.createLinearGradient(0, y, 0, y + this.h); g.addColorStop(0, `rgba(1,4,6,${a})`); g.addColorStop(1, `rgba(1,4,6,${f})`);
+    ctx.fillStyle = g; ctx.fillRect(x, y, this.w, this.h);
   }
 }
 registerEntity('shade', Shade);

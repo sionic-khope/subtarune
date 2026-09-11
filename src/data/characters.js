@@ -10,8 +10,8 @@ export const CHARACTERS = {
     sideWalk: { legY: 76, legFrames: [1, 3] } },
   gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard', hp: 120, hpColor: '#ff5c5c', partyName: '경섭', partyDesc: '뭔가 살짝 수상하다.', sideWalk: { legY: 76, legFrames: [1, 3] } },   // 보라맵11 거대 나무에서 합류
   ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', hp: 90, hpColor: '#c9a3ff', portraitThreshold: 0.3, partyName: '억빠맨', partyDesc: '형 뒤에 붙어 다닌다.', sideWalk: { legY: 82, legFrames: [1, 3] } },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
-  yongjun:   { name: '박용준', voice: 'yongjun', palette: 'ghost' },   // 청록숲7 — 스프라이트 PR #12 assets/sprites/yongjun.png(62×86 셀 4×4, 엔진 순서, docs/handoffs/yongjun-assets.md), 목소리 = 유튜브 쇼츠 시작 '어?' (voices/yongjun.mp3). 옆걷기 보정(sideWalk)은 미측정
-  junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6, sideWalk: { feetY: 74, splitX: 46, stride: 2 } },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
+  yongjun:   { name: '박용준', voice: 'yongjun', palette: 'ghost', sideWalk: { legY: 70, legFrames: [1, 3] } },   // 청록숲7 — PR #13 뚱뚱한 버전 assets/sprites/yongjun.png(68×88 셀 4×4, 엔진 순서 down/up/left/right, 0 중립·1 발A·2 중립·3 발B; docs/handoffs/junhee-yongjun-walk-v4.md). 목소리 = 유튜브 쇼츠 시작 '어?'. legY 는 옆모습 셀에서 이음새 어긋남이 최소인 줄을 재서 정함(배는 고정, 다리·신발만 바뀐다)
+  junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6, sideWalk: { legY: 69, legFrames: [1, 3] } },   // 돼지. PR #13 시트(92×90 셀, 0 중립·1 발A·2 중립·3 발B): 옆걷기는 옛 발 반쪽 밀기(feetY/splitX) 대신 상체 고정 + 시트의 발 프레임. legY 69 = 엉덩이 줄(배 폭 69→다리 폭 50 으로 꺾이는 곳, 이음새 어긋남 8px) — 다리 전체가 움직인다. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
   cs_red:    { name: '레드 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-red-front.png' },    // 청록숲3 미니언 — PR #7 정면 정지 1장(48×48), docs/handoffs/combat-assets.md
   cs_blue:   { name: '블루 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-blue-front.png' },
   razorbeak: { name: '칼날부리', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-raptor-front.png' },   // 청록숲6 정글 몹 — PR #10 이미지(docs/handoffs/jungle-enemies-assets.md)

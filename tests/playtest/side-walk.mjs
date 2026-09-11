@@ -12,7 +12,7 @@ const errors = [];
 const results = [];
 page.on('pageerror', (error) => errors.push(error.message));
 try {
-  for (const id of ['hyungsub', 'gyeongsub', 'ppaman', 'junhee', 'merchant', 'cat', 'guard', 'ghost']) {
+  for (const id of ['hyungsub', 'gyeongsub', 'ppaman', 'junhee', 'yongjun', 'merchant', 'cat', 'guard', 'ghost']) {   // yongjun: PR #13 뚱뚱한 시트(legY 70)
     await page.goto(`${baseURL}/?map=test&sprite=${id}`);
     await page.waitForFunction(() => window.game?.state === 'field');
     const poses = await page.evaluate(async (name) => {

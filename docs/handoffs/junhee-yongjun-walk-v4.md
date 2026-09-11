@@ -1,3 +1,5 @@
+> **적용 완료 (2026-09-11, main)**: 두 engine-sheet 를 `assets/sprites/junhee.png`·`yongjun.png` 로 교체, `characters.js` sideWalk 를 `legFrames` 모드(쥰희 legY 69, 용준 70)로, 컷신 이동의 `driven` 플래그로 NPC 정지 처리가 걷기 프레임을 덮지 않게 수정. 검증: `tests/playtest/teal7.mjs`(이동 중 프레임·정지 0·웃음 복귀 포함 흐름), `side-walk.mjs`, `tests/unit/sprite-order.test.mjs`. 아래는 전달 당시 지침 원문.
+
 # 쥰희 전체 컷신 및 용준 이동·정지 수정 지침
 
 이 PR은 **이미지와 구현 지침만 전달**한다. 실행 코드·기존 게임 PNG·맵·대사·테스트는 변경하지 않았다. 실제 구현은 게임 개발 세션에서 진행한다.

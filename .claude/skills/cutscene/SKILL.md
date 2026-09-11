@@ -52,6 +52,7 @@ model: opus
 | `# …라고 말하다 끊김` | `{ text:'* 그러니까 이건{w=0.4}', auto:0.1 }` 뒤에 끊는 대사 |
 | `# 화면 흔들림 / 효과음 / 흰색·검은 화면` | `{shake}` `{sfx}` `{fade:'white'}` `{curtain}` |
 | `# 천천히` | `speed:0.5` 또는 `{s=0.4}…{/s}` |
+| `# 빨리 / 달려가서 / 급히 / 숨어야` | 이동에 `run:true`(220px/s) 또는 `dash:true`(380px/s). 등장은 run, 숨기·도망은 dash (예 `teal7_hide.js`) |
 | `# 이동/바라보기` | `{move}` `{face}` |
 | `# 채팅창이 뜨고 시청자들이 …` | `{chat:'open'}` + 모드. 새 분위기면 `POOL` 에 모드 추가 |
 | `# 오류창/시스템 메시지 (버튼)` | `{dialog:{…}}` → 대사 → `{dialog:'press'}` → `{dialog:null}` |
@@ -97,6 +98,7 @@ model: opus
 |---|---|
 | `{ wait: 초 }` | 대기 |
 | `{ move:'player'\|id, to:[tx,ty] \| px:[x,y] \| by:[dx,dy], speed?, run? }` | 걸어서 이동(충돌 무시, 걷기 애니 자동) |
+| 이동 속도 기준 | 걷기 기본 60(120px/s) · `run:true` 110(220px/s) · `dash:true` 190(380px/s). **브리핑에 '빨리·달려·급히·질주·숨어야'가 있으면 run 또는 dash 를 반드시 넣는다** — 기본 걷기로 맵 끝에서 오면 4.5초, 사용자가 "너무 느리다"고 했다(2026-09-11). 멀리서 등장 = run, 숨기·도망·달려들기 = dash |
 | `{ face:id, dir:'up'\|'down'\|'left'\|'right'\|'toward:<id>' }` | 방향 |
 | `{ camera:[tx,ty], duration? }` / `{ camera:'player' }` | 카메라 팬 / 복귀 |
 | `{ fade:'in'\|'out', duration? }` | 검은 페이드. `duration:0` 즉시 |

@@ -21,8 +21,9 @@ export const teal7_hide = [
   { face: 'player', dir: 'right' }, { face: 'ppaman', dir: 'right' }, { face: 'gyeongsub', dir: 'right' },
   Q('* 아 경섭이형 어딨어!', 'junhee'),
   { parallel: [{ emote: 'player', kind: '!', duration: 1.0, hold: 0.5, sfx: 'chime' }, { emote: 'ppaman', kind: '!', duration: 1.0, hold: 0.5 }] },
-  // 형섭·빠맨: 위 그림자 나무 사이로 (양옆에 나란히, 앞을 본다) / 경섭: 그 바로 아래 길
-  { parallel: [{ move: 'player', ...at('left'), run: true }, { move: 'ppaman', ...at('right'), run: true }, { move: 'gyeongsub', ...at('gyeongsub'), run: true }] },
+  // 형섭·빠맨: 먼저 입구 앞(길 윗줄)으로, 거기서 곧장 위로 은신처 안(양옆에 나란히, 앞을 본다) — 옆 나무를 대각선으로 뚫지 않는다 / 경섭: 그 바로 아래 길
+  { parallel: [{ move: 'player', ...at('gate_l'), dash: true }, { move: 'ppaman', ...at('gate_r'), dash: true }, { move: 'gyeongsub', ...at('gyeongsub'), run: true }] },   // 숨는 건 질주(dash 380px/s, 사용자 2026-09-11 '빨리 달려가서 숨어야지')
+  { parallel: [{ move: 'player', ...at('left'), dash: true }, { move: 'ppaman', ...at('right'), dash: true }] },
   { face: 'player', dir: 'down' }, { face: 'ppaman', dir: 'down' }, { face: 'gyeongsub', dir: 'right' },
   { camera: [27, 10.2], duration: 0.5 },                                                   // 숨은 둘은 화면 위, 바로 아래 길의 경섭·쥰희가 대화창 위에 보이게 카메라를 조금 내린다
   spawnAtEdge('junhee', 'junhee'),
@@ -48,7 +49,7 @@ export const teal7_hide = [
   Q('* 형', 'yongjun'),
   J('* 오 이런{w=0.3} 나좀 숨겨줘'),
   // 쥰희가 그냥 바로 위로 올라가 형섭·빠맨 사이에 서서 아래를 본다. 둘은 양옆으로 살짝 비켜 아래를 보고 식은땀
-  { parallel: [{ move: 'junhee', ...at('center'), run: true, speed: 190 }, { move: 'player', ...at('left_wide') }, { move: 'ppaman', ...at('right_wide') }] },   // 쥰희는 전력 질주(380px/s, 사용자 2026-09-11 '숨으러 달려가는 속도 빨라야 됨')
+  { parallel: [{ move: 'junhee', ...at('center'), dash: true }, { move: 'player', ...at('left_wide') }, { move: 'ppaman', ...at('right_wide') }] },   // 쥰희도 질주(dash, 사용자 2026-09-11 '숨으러 달려가는 속도 빨라야 됨')
   { face: 'junhee', dir: 'down' }, { face: 'player', dir: 'down' }, { face: 'ppaman', dir: 'down' },
   { parallel: [{ emote: 'player', kind: 'sweat', duration: 2.4, hold: 0.3 }, { emote: 'ppaman', kind: 'sweat', duration: 2.4, hold: 0.3 }] },
   G('* 어 ?'),

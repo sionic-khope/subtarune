@@ -9,9 +9,9 @@
  "rows": [
   "                                                ",
   "                                                ",
+  "                                                ",
   "                       mmmmmmmmm                ",
   "                       mmmmmmmmm                ",
-  "                       mmdddddmm                ",
   "                       mmdddddmm                ",
   " mmmmmmmmmmmmmmmmmmmmmmmmdddddmmmmmmmmmmmmmmmmm ",
   " mmmmmmmmmmmmmmmmmmmmmmmmdddddmmmmmmmmmmmmmmmmm ",
@@ -47,23 +47,23 @@
   "hide": {
    "left": [
     836,
-    168
+    200
    ],
    "center": [
     868,
-    168
+    200
    ],
    "right": [
     900,
-    168
+    200
    ],
    "left_wide": [
     822,
-    168
+    200
    ],
    "right_wide": [
     914,
-    168
+    200
    ]
   },
   "stage": {
@@ -80,20 +80,28 @@
     296
    ],
    "back_h": [
-    836,
+    804,
     296
    ],
    "back_p": [
-    804,
-    296
+    740,
+    316
+   ],
+   "gate_l": [
+    836,
+    264
+   ],
+   "gate_r": [
+    900,
+    264
    ]
   },
   "trigger": 720,
   "shade": [
-   792,
-   112,
-   176,
-   144
+   816,
+   172,
+   152,
+   84
   ],
   "ring": 17
  },
@@ -121,7 +129,7 @@
   {
    "type": "trigger",
    "id": "hide_trig",
-   "x": 720,
+   "x": 832,
    "y": 256,
    "w": 16,
    "h": 96,
@@ -134,11 +142,11 @@
    "id": "ring_b0",
    "image": "assets/props/tree_forest.png",
    "x": 780,
-   "y": 136,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 764,
-   "iy": 64,
+   "iy": 88,
    "solid": true
   },
   {
@@ -146,11 +154,11 @@
    "id": "ring_b1",
    "image": "assets/props/tree_forest.png",
    "x": 820,
-   "y": 136,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 804,
-   "iy": 64,
+   "iy": 88,
    "solid": true
   },
   {
@@ -158,11 +166,11 @@
    "id": "ring_b2",
    "image": "assets/props/tree_forest.png",
    "x": 860,
-   "y": 136,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 844,
-   "iy": 64,
+   "iy": 88,
    "solid": true
   },
   {
@@ -170,11 +178,11 @@
    "id": "ring_b3",
    "image": "assets/props/tree_forest.png",
    "x": 900,
-   "y": 136,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 884,
-   "iy": 64,
+   "iy": 88,
    "solid": true
   },
   {
@@ -182,11 +190,11 @@
    "id": "ring_b4",
    "image": "assets/props/tree_forest.png",
    "x": 940,
-   "y": 136,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 924,
-   "iy": 64,
+   "iy": 88,
    "solid": true
   },
   {
@@ -194,11 +202,11 @@
    "id": "ring_b5",
    "image": "assets/props/tree_forest.png",
    "x": 980,
-   "y": 136,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 964,
-   "iy": 64,
+   "iy": 88,
    "solid": true
   },
   {
@@ -206,11 +214,11 @@
    "id": "ring_c0",
    "image": "assets/props/tree_forest.png",
    "x": 800,
-   "y": 116,
+   "y": 140,
    "w": 24,
    "h": 12,
    "ix": 784,
-   "iy": 44,
+   "iy": 68,
    "solid": true
   },
   {
@@ -218,11 +226,11 @@
    "id": "ring_c1",
    "image": "assets/props/tree_forest.png",
    "x": 840,
-   "y": 116,
+   "y": 140,
    "w": 24,
    "h": 12,
    "ix": 824,
-   "iy": 44,
+   "iy": 68,
    "solid": true
   },
   {
@@ -230,11 +238,11 @@
    "id": "ring_c2",
    "image": "assets/props/tree_forest.png",
    "x": 880,
-   "y": 116,
+   "y": 140,
    "w": 24,
    "h": 12,
    "ix": 864,
-   "iy": 44,
+   "iy": 68,
    "solid": true
   },
   {
@@ -242,11 +250,11 @@
    "id": "ring_c3",
    "image": "assets/props/tree_forest.png",
    "x": 920,
-   "y": 116,
+   "y": 140,
    "w": 24,
    "h": 12,
    "ix": 904,
-   "iy": 44,
+   "iy": 68,
    "solid": true
   },
   {
@@ -254,11 +262,11 @@
    "id": "ring_c4",
    "image": "assets/props/tree_forest.png",
    "x": 960,
-   "y": 116,
+   "y": 140,
    "w": 24,
    "h": 12,
    "ix": 944,
-   "iy": 44,
+   "iy": 68,
    "solid": true
   },
   {
@@ -266,11 +274,11 @@
    "id": "ring_l0",
    "image": "assets/props/tree_forest.png",
    "x": 776,
-   "y": 164,
+   "y": 172,
    "w": 24,
    "h": 12,
    "ix": 760,
-   "iy": 92,
+   "iy": 100,
    "solid": true
   },
   {
@@ -278,11 +286,11 @@
    "id": "ring_r0",
    "image": "assets/props/tree_forest.png",
    "x": 984,
-   "y": 164,
+   "y": 172,
    "w": 24,
    "h": 12,
    "ix": 968,
-   "iy": 92,
+   "iy": 100,
    "solid": true
   },
   {
@@ -290,11 +298,11 @@
    "id": "ring_l1",
    "image": "assets/props/tree_forest.png",
    "x": 776,
-   "y": 200,
+   "y": 208,
    "w": 24,
    "h": 12,
    "ix": 760,
-   "iy": 128,
+   "iy": 136,
    "solid": true
   },
   {
@@ -302,11 +310,11 @@
    "id": "ring_r1",
    "image": "assets/props/tree_forest.png",
    "x": 984,
-   "y": 200,
+   "y": 208,
    "w": 24,
    "h": 12,
    "ix": 968,
-   "iy": 128,
+   "iy": 136,
    "solid": true
   },
   {
@@ -314,11 +322,11 @@
    "id": "ring_l2",
    "image": "assets/props/tree_forest.png",
    "x": 776,
-   "y": 236,
+   "y": 240,
    "w": 24,
    "h": 12,
    "ix": 760,
-   "iy": 164,
+   "iy": 168,
    "solid": true
   },
   {
@@ -326,21 +334,22 @@
    "id": "ring_r2",
    "image": "assets/props/tree_forest.png",
    "x": 984,
-   "y": 236,
+   "y": 240,
    "w": 24,
    "h": 12,
    "ix": 968,
-   "iy": 164,
+   "iy": 168,
    "solid": true
   },
   {
    "type": "shade",
    "id": "hide_shade",
-   "x": 792,
-   "y": 112,
-   "w": 176,
-   "h": 144,
-   "alpha": 0.62
+   "x": 816,
+   "y": 172,
+   "w": 152,
+   "h": 84,
+   "alpha": 0.7,
+   "fade": 0.3
   },
   {
    "type": "prop",

@@ -24,7 +24,7 @@ test('test_v3_side_walks_reuse_authored_leg_poses_under_fixed_upper_bodies', () 
   // Given: Each v3 character's neutral side frame and two authored lower-leg poses.
   const restoreDocument = installCanvasRecorder();
   try {
-    for (const [id, image] of Object.entries({ hyungsub: { width: 240, height: 416 }, gyeongsub: { width: 256, height: 408 }, ppaman: { width: 272, height: 408 } })) {
+    for (const [id, image] of Object.entries({ hyungsub: { width: 240, height: 416 }, gyeongsub: { width: 256, height: 408 }, ppaman: { width: 272, height: 408 }, junhee: { width: 368, height: 360 }, yongjun: { width: 272, height: 352 } })) {   // junhee·yongjun: PR #13 v4 시트(발 프레임 1·3)
       const { legY, legFrames } = CHARACTERS[id].sideWalk;
       const fw = image.width / 4;
       const fh = image.height / 4;
@@ -56,16 +56,17 @@ test('test_v3_side_walks_reuse_authored_leg_poses_under_fixed_upper_bodies', () 
   }
 });
 
-test('test_junhee_side_walk_keeps_configured_split_stride_composition', () => {
-  // Given: Junhee's unchanged split-feet side-walk setting.
+test('test_split_stride_side_walk_keeps_configured_composition', () => {
+  // Given: a character using the legacy split-feet side-walk mode (Junhee's pre-PR#13 setting; no shipped character uses it now, the path stays supported).
   const restoreDocument = installCanvasRecorder();
   const image = { width: 368, height: 360 };
-  const { feetY, splitX, stride } = CHARACTERS.junhee.sideWalk;
+  CHARACTERS.__splitpig = { name: 'test', sideWalk: { feetY: 74, splitX: 46, stride: 2 } };
+  const { feetY, splitX, stride } = CHARACTERS.__splitpig.sideWalk;
   const fw = image.width / 4;
   const fh = image.height / 4;
   try {
-    // When: the PNG override is baked into Junhee's side animation frames.
-    const sprite = characterSprite('junhee', image);
+    // When: the PNG override is baked into that character's side animation frames.
+    const sprite = characterSprite('__splitpig', image);
 
     // Then: each step still moves the two configured lower-foot slices in opposite directions.
     for (const row of [2, 3]) {
@@ -82,6 +83,7 @@ test('test_junhee_side_walk_keeps_configured_split_stride_composition', () => {
       ]);
     }
   } finally {
+    delete CHARACTERS.__splitpig;
     restoreDocument();
   }
 });

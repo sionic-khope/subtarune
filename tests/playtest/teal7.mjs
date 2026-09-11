@@ -13,7 +13,7 @@ page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) errs.push(`[${m.type()}] ${m.text().slice(0, 160)}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
 const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < ms) { const v = await page.evaluate(fn); if (v) return v; await page.waitForTimeout(60); } return null; };
-const st = () => page.evaluate(() => { const e = (id) => { const x = id === 'player' ? game.player : game.entities.find((k) => k.id === id && !k.dead); return x ? { x: Math.round(x.x), y: Math.round(x.y), f: x.facing, em: x.emote?.kind || null, vis: x.visible !== false } : null; };
+const st = () => page.evaluate(() => { const e = (id) => { const x = id === 'player' ? game.player : game.entities.find((k) => k.id === id && !k.dead); return x ? { x: Math.round(x.x), y: Math.round(x.y), f: x.facing, em: x.emote?.kind || null, fr: x.frame, mv: !!x.moving, mo: !!x.motion, vis: x.visible !== false } : null; };
   return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), voice: game.textbox.node?.voice || null, bgm: game.sound.bgmName, zoom: +(game.zoom?.s || 1).toFixed(2),
     p: e('player'), pp: e('ppaman'), gs: e('gyeongsub'), j: e('junhee'), y: e('yongjun'), flags: { seen: !!game.flags.teal7_hide_seen, done: !!game.flags.teal7_hide_done } }; });
 const key = (s) => (s.speaker || '') + '|' + s.text;
@@ -28,17 +28,20 @@ const t0 = Date.now(); const started = await until(() => game.dialogue.running ?
 await page.keyboard.up('ArrowRight');
 check('walking right ~3s triggers the scene once (flag teal7_hide_seen)', !!started && walkMs >= 1500 && walkMs <= 6000 && (await st()).flags.seen, `after ${walkMs}ms`);
 // 연출 펌프: 대사 기록 + 상태 스냅
-const lines = []; let hideSnap = null, sandwich = null, sweat = false, lancer = false, zoomed = false, yongjunSeen = false, closeupAt = null, camY = null;
-const voices = {}; let yongjunAt = null, yongjunLineAt = null, dashStart = null, dashEnd = null;   // 화면 밖 목소리 / 용준 달려오는 시간 / 쥰희 숨으러 달리는 시간 (사용자 2026-09-11)
+const lines = []; let talkSnap = null, hideSnap = null, sandwich = null, sweat = false, lancer = false, zoomed = false, yongjunSeen = false, closeupAt = null, camY = null;
+const voices = {}; let yongjunAt = null, yongjunLineAt = null, dashStart = null, dashEnd = null;
+const walkFrames = { j: new Set(), y: new Set() }, stopFrames = { j: new Set(), y: new Set() };   // NPC 걷기 프레임이 컷신 이동 중 0 에 고정되지 않는지(PR #13 프레임 초기화 버그), 멈추면 0 으로 돌아오는지   // 화면 밖 목소리 / 용준 달려오는 시간 / 쥰희 숨으러 달리는 시간 (사용자 2026-09-11)
 const t1 = Date.now();
 while (Date.now() - t1 < 120000) {
   const q = await st(); if (!q.running) break;
+  for (const k of ['j', 'y']) if (q[k] && !q[k].mo) { (q[k].mv ? walkFrames : stopFrames)[k].add(q[k].fr); }
   if (q.bgm === 'lancer') lancer = true; if (q.zoom >= 1.4) zoomed = true; if (q.y) { yongjunSeen = true; if (yongjunAt === null) yongjunAt = Date.now(); }
   if (q.j && sandwich === null) { if (dashStart === null && q.j.x === meta.stage.guest[0] && q.j.y === meta.stage.guest[1] && lines.includes('쥰희|* 오 이런 나좀 숨겨줘')) dashStart = Date.now(); if (dashStart !== null && dashEnd === null && q.j.y === meta.hide.center[1]) dashEnd = Date.now(); }
   if ((q.box === 'waiting' || q.box === 'typing')) { const k = key(q); if (lines[lines.length - 1] !== k) { lines.push(k); if (q.speaker === '???') voices[q.text] = q.voice; if (k === '박용준|* 어 형 안녕하세요' && yongjunLineAt === null) yongjunLineAt = Date.now();
       if (q.text.includes('형 여깄었구나') && !hideSnap) { hideSnap = q; camY = await page.evaluate(() => Math.round(game.camera.y)); await page.screenshot({ path: `${S}/teal7_01_hide.png` }); }
       if (q.text.includes('어 ?') && q.speaker === '경섭' && !sandwich) { sandwich = q; await page.screenshot({ path: `${S}/teal7_02_sandwich.png` }); }
-      if (q.text.includes('센게 멋지잖아') && !closeupAt) { closeupAt = q.zoom; await page.screenshot({ path: `${S}/teal7_03_closeup.png` }); } }
+      if (q.text.includes('센게 멋지잖아') && !closeupAt) { closeupAt = q.zoom; await page.screenshot({ path: `${S}/teal7_03_closeup.png` }); }
+      if (q.text.includes('아까 본게 쥰희였구나') && !talkSnap) { talkSnap = q; await page.screenshot({ path: `${S}/teal7_05_talk.png` }); } }
     if (q.p?.em === 'sweat' || q.pp?.em === 'sweat') sweat = true;
     await page.keyboard.press('KeyC'); await page.waitForTimeout(50); }
   else { if (q.p?.em === 'sweat' || q.pp?.em === 'sweat') sweat = true; await page.waitForTimeout(50); }
@@ -51,6 +54,7 @@ check('camera sits lower during the hide so both the pocket row and the road are
 check('hide staging: 형섭 left / 빠맨 right in the pocket row facing down, 경섭 on the road right below, 쥰희 arrived from the right facing left', !!hideSnap && hideSnap.p.y === meta.hide.left[1] && hideSnap.pp.y === meta.hide.right[1] && hideSnap.p.x < hideSnap.pp.x && hideSnap.p.f === 'down' && hideSnap.pp.f === 'down' && hideSnap.gs.y === meta.stage.gyeongsub[1] && hideSnap.j && hideSnap.j.f === 'left' && hideSnap.j.x > hideSnap.gs.x, JSON.stringify(hideSnap && { p: hideSnap.p, pp: hideSnap.pp, gs: hideSnap.gs, j: hideSnap.j }));
 check('BGM: Lancer plays during the scene; close-up zoom on 쥰희 at "센게 멋지잖아!"', lancer && zoomed && closeupAt >= 1.4, JSON.stringify({ lancer, zoomed, closeupAt }));
 check('off-screen ??? lines use the real voices: "아 경섭이형 어딨어!" = junhee, "형" = yongjun', voices['* 아 경섭이형 어딨어!'] === 'junhee' && voices['* 형'] === 'yongjun', JSON.stringify(voices));
+check('NPC walk frames advance during cutscene moves (쥰희·용준 not stuck on frame 0) and rest on frame 0 when stopped', walkFrames.j.size >= 2 && walkFrames.y.size >= 2 && [...stopFrames.j].every((f) => f === 0) && [...stopFrames.y].every((f) => f === 0), JSON.stringify({ walk: { j: [...walkFrames.j], y: [...walkFrames.y] }, stop: { j: [...stopFrames.j], y: [...stopFrames.y] } }));
 check('용준 runs in: spawn → first line within 3.5s (was a 4.5s walk)', yongjunAt !== null && yongjunLineAt !== null && yongjunLineAt - yongjunAt <= 3500, `${yongjunLineAt - yongjunAt}ms`);
 check('쥰희 sprints up to hide: guest → center row within 0.9s', dashStart !== null && dashEnd !== null && dashEnd - dashStart <= 900, `${dashEnd - dashStart}ms`);
 const pocket = await page.evaluate(() => { const ring = game.entities.filter((e) => e.def.type === 'prop' && /^ring_/.test(e.id || '')); const sh = game.entities.find((e) => e.def.type === 'shade');
@@ -61,6 +65,7 @@ check('sandwich: 쥰희 goes up between 형섭 and 빠맨 (x order 형섭 < 쥰�
 s = await st();
 check('after: 용준 appeared and left, 쥰희 gone, party back on the road behind 형섭, BGM hopes, flag done', yongjunSeen && !s.j && !s.y && s.flags.done && s.bgm === 'hopes' && s.p.y === meta.stage.back_h[1] && s.pp && s.gs && Math.abs(s.pp.y - s.p.y) <= 40 && Math.abs(s.gs.y - s.p.y) <= 40, JSON.stringify({ yongjunSeen, j: s.j, y: s.y, flags: s.flags, bgm: s.bgm, p: s.p, pp: s.pp, gs: s.gs }));
 await page.screenshot({ path: `${S}/teal7_04_after.png` });
+check('final talk staging ("아까 본게 쥰희였구나") is loose: 경섭 ← ≥56px → 형섭 ← ≥56px → 빠맨, 빠맨 one step lower (32px was "too close")', !!talkSnap && Math.abs(talkSnap.gs.x - talkSnap.p.x) >= 56 && Math.abs(talkSnap.p.x - talkSnap.pp.x) >= 56 && talkSnap.pp.y > talkSnap.p.y, JSON.stringify(talkSnap && { gs: talkSnap.gs.x, p: [talkSnap.p.x, talkSnap.p.y], pp: [talkSnap.pp.x, talkSnap.pp.y] }));
 await page.keyboard.down('KeyX'); await page.keyboard.down('ArrowRight');
 const t2 = Date.now(); let mapNow = 'teal7'; while (Date.now() - t2 < 20000) { mapNow = await page.evaluate(() => game.mapId); if (mapNow === 'teal8') break; await page.waitForTimeout(100); }
 await page.keyboard.up('ArrowRight'); await page.keyboard.up('KeyX');
