@@ -79,7 +79,7 @@ export const obj1_meet = [
   { set: { obj1_meet_seen: true } },
 ];
 
-// 연출 뒤 용준에게 말 걸면 (사용자 브리핑 2026-09-11 대사 그대로): 한 줄로 서기 → "그리고.. ...." → "준비 ~~~"(브금 off) → 쿵! "밀어!!!" → C 연타 100(브금 Rude Buster, 불씨 게이지)
+// 연출 뒤 용준에게 말 걸면 (사용자 브리핑 2026-09-11 대사 그대로): 한 줄로 서기 → "그리고... 준비 ~~~"(브금 off) → 쿵! "밀어!!!" → C 연타 100(브금 Rude Buster, 불씨 게이지)
 //   → "어어어.. 어?" 용준 등에 불(파티는 물러나 바라봄) → "뜨거운 느끼.." → 쌩!(브금 off, 화르르륵, 흔들림) 용준+대포가 로켓처럼 오른쪽으로 쏘아져 맵 밖(카메라 추적) → 3초 뒤 쿠구구궁 → 카메라 복귀 → 셋 . . . → 6줄 → 브금 wind
 const CAM_PUSH = [29.8, 8.25], CAM_AFTER = [26.2, 8.25];   // 한 줄로 선 파티(빠맨 ~768px)부터 대포(1164px)까지 / 발사 뒤 물러선 파티
 export const obj1_push = [
@@ -89,8 +89,7 @@ export const obj1_push = [
   { parallel: [{ move: 'player', rel: 'yongjun_after', at: 'left', by: [-24, 0], run: true }, { move: 'gyeongsub', rel: 'yongjun_after', at: 'left', by: [-72, 0], run: true }, { move: 'ppaman', rel: 'yongjun_after', at: 'left', by: [-120, 0], run: true }] },   // 용준 뒤에 48px 간격 한 줄
   { face: 'player', dir: 'right' }, { face: 'gyeongsub', dir: 'right' }, { face: 'ppaman', dir: 'right' },
   { camera: CAM_PUSH, duration: 0.5 },
-  Y('* 그리고..{w=0.4} ....{w=0.5} ........'),
-  { bgm: null, fadeOut: 0.4 },                           // 준비 ~~~ 에서 브금 꺼졌다가
+  { bgm: null, fadeOut: 0.4 },                           // 준비 ~~~ 에서 브금 꺼졌다가 ("그리고.." 는 이 줄 하나로 — 사용자 2026-09-11 "대사 두 개 들어갔는데 하나는 지우라는 뜻")
   Y('* 그리고...{w=0.5} 준비{w=0.3} ~~~~~~~~~~~~~~~'),
   { sfx: 'thud' }, { shake: 0.3, amp: 4 },               // (쿵!)
   Y('* {shake}밀어!!!!!!!!!!!!!!!!!!!!!{/shake}'),

@@ -301,13 +301,15 @@ class Game {
     for (const p of this.flames) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= 20 * dt; }
     this.flames = this.flames.filter((p) => p.t < p.life);
   }
-  /** C 연타 안내 창(컷신 {mash}): 가운데 검은 상자 — 제목, 눌리면 납작해지는 C 키, 아래 게이지에 불씨가 차오른다(누를 때마다 불씨 튐). 달성하면 게이지가 깜빡인다 */
+  /** C 연타 안내(컷신 {mash}): 배경 상자 없이 화면 위에 바로 — 제목(검은 테두리), 눌리면 납작해지는 C 키, 아래 게이지에 불씨가 차오른다(누를 때마다 불씨 튐). 달성하면 게이지가 깜빡인다. 배경 상자는 장면을 가려서 뺐다(2026-09-11 사용자) */
   drawMash(ctx) {
-    const m = this.mash, w = 240, h = 92, x = Math.round((SCREEN_W - w) / 2), y = 96;
-    ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4); ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
-    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(L.mash_title, SCREEN_W / 2, y + 8);
+    const m = this.mash, w = 240, x = Math.round((SCREEN_W - w) / 2), y = 44;   // 화면 위쪽 — 배경이 없으니 캐릭터 위를 가로지르지 않게 (2026-09-11)
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#000';
+    for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) ctx.fillText(L.mash_title, SCREEN_W / 2 + ox, y + 8 + oy);   // 검은 테두리 — 배경 없이도 읽힌다
+    ctx.fillStyle = '#fff'; ctx.fillText(L.mash_title, SCREEN_W / 2, y + 8);
     const pressed = m.pressT > 0, kw = 34, kh = pressed ? 22 : 28, kx = Math.round(SCREEN_W / 2 - kw / 2), ky = y + 30 + (pressed ? 6 : 0);
-    ctx.fillStyle = pressed ? '#ffd76a' : '#fff'; ctx.fillRect(kx, ky, kw, kh); ctx.fillStyle = '#000'; ctx.fillRect(kx + 2, ky + 2, kw - 4, kh - 4);
+    ctx.fillStyle = pressed ? '#ffd76a' : '#fff'; ctx.fillRect(kx - 1, ky - 1, kw + 2, kh + 2); ctx.fillStyle = '#000'; ctx.fillRect(kx, ky, kw, kh);
     ctx.fillStyle = pressed ? '#ffd76a' : '#fff'; ctx.fillText('C', SCREEN_W / 2, ky + (pressed ? 3 : 6));
     const gx = x + 20, gy = y + 68, gw = w - 40, gh = 12, k = Math.min(1, m.count / m.target);
     ctx.fillStyle = '#fff'; ctx.fillRect(gx - 1, gy - 1, gw + 2, gh + 2); ctx.fillStyle = '#1a0a05'; ctx.fillRect(gx, gy, gw, gh);
@@ -862,7 +864,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-11.78';
+export const BUILD = '2026-09-11.80';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
