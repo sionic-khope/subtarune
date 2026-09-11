@@ -11,6 +11,8 @@
 //  { fade: 'in'|'out'|'white', duration?: 0.5 }     white = 하얗게. 'in' 은 현재 색에서 걷힘
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
+//  { bgmPause: 0.3 } / { bgmResume: 0.3 }         브금을 재생 위치 그대로 잠깐 멈췄다 이어 튼다(정적 개그 뒤 '이어서')
+//  { slide: id, by:[dx,dy], duration?: 0.6, sfx? }  소품을 미끄러뜨린다(히트박스+그림 같이, 걷기 애니 없음) — 대포 밀기. by 는 픽셀
 //  { pulse: 'red', times: 3, every: 0.4 }        화면 붉은 번쩍임(사이렌) — 대사와 겹치려면 { async: [{ pulse }] }
 //  { aura: { from:['red','blue'], to:['player','gyeongsub','ppaman'], colors:['#ff5c5c','#4fa8ff'], n:36, duration:1.6 } }  반짝이는 입자가 감싸 돈다(버프 획득)
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
@@ -167,6 +169,14 @@ export function makeWaiter(game, node) {
   }
   if (node.camera !== undefined) return cameraPan(game, node);
   if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
+  if (node.bgmPause !== undefined) { game.sound.pauseBgm(node.bgmPause || 0.3); return done; }
+  if (node.bgmResume !== undefined) { game.sound.resumeBgm(node.bgmResume || 0.3); return done; }
+  if (node.slide) {                                    // { slide:id, by:[dx,dy], duration?:0.6, sfx? } — 소품(대포 등)을 히트박스·그림 같이 미끄러뜨린다
+    const e = findEntity(game, node.slide); if (!e) return done;
+    const [dx, dy] = node.by || [0, 0], dur = node.duration ?? 0.6, sx = e.x, sy = e.y, six = e.def.ix ?? e.x, siy = e.def.iy ?? e.y; let t = 0;
+    if (node.sfx) game.sound.sfx(node.sfx);
+    return { update(dt) { t = Math.min(dur, t + dt); const k = dur > 0 ? t / dur : 1; e.x = Math.round(sx + dx * k); e.y = Math.round(sy + dy * k); if (e.def.ix !== undefined) { e.def.ix = Math.round(six + dx * k); e.def.iy = Math.round(siy + dy * k); } return t >= dur; } };
+  }
   if (node.fade) {
     let finished = false;
     const toColor = node.fade === 'white' ? 'white' : node.fade === 'out' ? 'black' : undefined;

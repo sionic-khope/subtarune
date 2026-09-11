@@ -52,3 +52,5 @@
 | 사이렌 효과음(레드 몸에서 위잉위잉) | 합성(ffmpeg aevalsrc 760Hz 위상변조 1.7Hz, 2.6s) | `sfx/siren.mp3` | **적용됨** 2026-09-11 |
 | 얕은 물 발소리(옵젝영역0) — 물방울 '짤랑' 긴 울림 | 합성(ffmpeg: 1250→2150Hz 위로 휘는 물방울 사인 + 0.075s 뒤 2600→3300Hz 작은 두 번째 방울 + 520Hz 몸통, highpass 300, aecho 6탭 120~1080ms, 1.9s, 피크 약 -6dB). 1차(짧은 첨벙·노이즈, 프레임 1·3 초당 6번)는 사용자 "빈도 너무 많고 쫀득" → 걸음 주기 1번·최소 0.4s(`STEP_GAP`) | `sfx/water_step.mp3` | **적용됨** 2026-09-11 (`tiles.js` `step`, `Player.footstep` rate 0.9~1.1) |
 | 옵젝영역0 브금 — 허공 바람 재사용(사용자 "청록숲0 처럼 휘잉") | (위 `bgm/wind.mp3`) | `obj0.json bgm` | **적용됨** 2026-09-11 |
+| **옵젝영역1 연출 브금**(쥰희·용준 대포 밀기 → 만남, "다 닥쳐!!!" 에서 off) — Vs. Lancer (Deltarune) | https://www.youtube.com/watch?v=Ce-gU8G6Vik (사용자 지정, 재생목록 21번) | `bgm/vs_lancer.mp3` | **적용됨** 2026-09-11 (앞 무음만 잘라냄, `obj1_cannon.js`; 정적 개그 구간은 `{bgmPause}`/`{bgmResume}` 로 재생 위치 유지) |
+| 대포 밀기 드륵 / 두구두구두구 / 빰빠밤 | 합성(ffmpeg: scrape = 밴드패스 노이즈 두 알갱이 + 72Hz 0.55s / drumroll = 55ms 간격 노이즈 스네어 크레셴도 1.7s / fanfare = C5·E5·G5 배음 3음 + 화음 1.9s) | `sfx/scrape.mp3`, `sfx/drumroll.mp3`, `sfx/fanfare.mp3` | **적용됨** 2026-09-11 (`obj1_cannon.js`) |

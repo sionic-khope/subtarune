@@ -180,6 +180,21 @@ export class Sound {
     this.bgm = null; this.bgmName = null;
     this._ramp(a, 0, fade, () => { a.pause(); a.src = ''; });
   }
+  /** 브금 잠깐 멈춤(재생 위치 유지) → resumeBgm 이 그 자리에서 이어 튼다 — 컷신 {bgmPause}/{bgmResume} (옵젝영역1 "그 소리 내면 안되는거 아니에요?" … "하이얍!!!!" 에 이어서, 2026-09-11) */
+  pauseBgm(fade = 0.3) {
+    const a = this.bgm; if (!a) return;
+    if (this.paused) { this.paused.a.pause(); this.paused.a.src = ''; }
+    this.paused = { a, name: this.bgmName, volume: this.bgmVolume };
+    this.bgm = null; this.bgmName = null;
+    this._ramp(a, 0, fade, () => { if (this.paused?.a === a) a.pause(); });
+  }
+  resumeBgm(fadeIn = 0.3) {
+    const p = this.paused; if (!p) return;
+    this.paused = null; this.stopBgm(0.2);
+    p.a.play().catch(() => {});
+    this.bgm = p.a; this.bgmName = p.name; this.bgmVolume = p.volume;
+    this._ramp(p.a, this.muted ? 0 : p.volume, fadeIn);
+  }
   _ramp(a, to, sec, done) {
     const from = a.volume, t0 = performance.now();
     if (sec <= 0) { a.volume = to; if (done) done(); return; }

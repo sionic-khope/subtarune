@@ -94,7 +94,7 @@ def prop_tree(purple=False):
     return c
 
 if __name__ == '__main__':
-    tile_water(0).save('assets/tiles/water_shallow.png'); tile_water(1).save('assets/tiles/water_shallow2.png'); tile_water_pad().save('assets/tiles/water_shallow_pad.png')
+    tile_water(0).save('assets/tiles/water_shallow.png'); tile_water(1).save('assets/tiles/water_shallow2.png'); tile_water_pad().save('assets/tiles/water_shallow_pad.png'); tile_water(0).save('assets/tiles/water_shallow_edge.png')   # Y: 막힌 물(가장자리)
     tile_forest_floor().save('assets/tiles/forest_floor_obj.png'); tile_cliff().save('assets/tiles/cliff_obj.png')
     prop_tree().save('assets/props/tree_obj.png'); prop_tree(True).save('assets/props/tree_obj_purple.png')
     print('obj set ok')
