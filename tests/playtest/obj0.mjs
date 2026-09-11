@@ -1,4 +1,4 @@
-// 옵젝영역0 검증: ?qa=obj0 → 얕은 물 일직선 길(60×14, a/A/j 타일, 나무 초록·보라 섞임, 배경 obj_forest, 브금 wind) → 걸으면 발 딛는 프레임마다 water_step 효과음(음높이 살짝 랜덤) + 물결 고리, 멈추면 조용 → 오른쪽 문 → obj1 → 왼쪽 문 → obj0 landing.
+// 옵젝영역0 검증: ?qa=obj0 → 얕은 물 일직선 길(60×14, a/A/j 타일, 나무 초록·보라 섞임, 배경 obj_forest, 브금 wind) → 걸으면 80px 마다 water_step 효과음(음높이 살짝 랜덤) + 물결 고리, 멈추면 조용 → 마나샘(억빠맨이 발밑 물 먼저 → 흙맛 → 마나샘 → 전원 회복, 두 번째는 짧게) → 오른쪽 문 → obj1 → 왼쪽 문 → obj0 landing.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -23,18 +23,32 @@ const road = def.rows.slice(6, 9).map((r) => r.slice(1, -1)).join('');
 check('qa=obj0: 옵젝영역, straight shallow-water road (60×14, rows 6–8 all a/A/j), wind bgm, obj_forest backdrop, party of 3', s.map === 'obj0' && def.name === '옵젝영역' && def.bgm === 'wind' && s.bgm === 'wind' && def.backdrop === 'obj_forest' && def.rows.length === 14 && def.rows[0].length === 60 && /^[aAj]+$/.test(road) && road.includes('j') && s.party.length === 2, JSON.stringify({ map: s.map, name: def.name, bgm: [def.bgm, s.bgm], backdrop: def.backdrop, size: [def.rows.length, def.rows[0].length], party: s.party }));
 check('trees: dense (≥ 60), green and purple mixed, no trunk on the road', s.trees.length >= 60 && s.trees.some((i) => /tree_obj\.png/.test(i)) && s.trees.some((i) => /tree_obj_purple/.test(i)) && def.meta.trees === s.trees.length, JSON.stringify({ n: s.trees.length, purple: s.trees.filter((i) => /purple/.test(i)).length }));
 await page.screenshot({ path: `${S}/obj0_01_start.png` });
-// 발소리: 1.5초 달리면(12fps 걷기 → 초당 6걸음) water_step 이 6~14번, 음높이가 제각각, 물결 고리가 생긴다
+// 발소리: 1.5초 달리면 water_step 이 80px 마다(발 딛는 프레임에) 2~4번(물방울 '짤랑' 긴 울림이 겹치지 않게), 음높이가 제각각, 물결 고리가 생긴다
 await page.evaluate(() => { window.__steps = []; });
-await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); const mid = await st(); await page.screenshot({ path: `${S}/obj0_02_walk.png` }); await page.waitForTimeout(800); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(100);
+await page.keyboard.down('ArrowRight'); let maxRipples = 0; let shot = false; for (let i = 0; i < 15; i++) { await page.waitForTimeout(100); const q = await page.evaluate(() => game.ripples.length); maxRipples = Math.max(maxRipples, q); if (!shot && q > 0) { shot = true; await page.screenshot({ path: `${S}/obj0_02_walk.png` }); } } await page.keyboard.up('ArrowRight'); await page.waitForTimeout(100); const mid = { ripples: maxRipples };
 s = await st(); const rates = new Set(s.steps.map((k) => k.rate)); const gaps = s.steps.slice(1).map((k, i) => k.t - s.steps[i].t);
-check('running 1.5s on shallow water → water_step 6~14 times, varied pitch (rate 0.92~1.08), volume 0.5, steps spaced ≥ 100ms, ripples appeared', s.steps.length >= 6 && s.steps.length <= 14 && rates.size >= 3 && s.steps.every((k) => k.rate >= 0.92 && k.rate <= 1.08 && k.volume === 0.5) && gaps.every((g) => g >= 100) && mid.ripples > 0, JSON.stringify({ n: s.steps.length, rates: [...rates].map((r) => +r.toFixed(3)), gaps: gaps.map(Math.round), ripples: mid.ripples }));
+check('running 1.5s on shallow water → water_step 2~4 times (≥ 0.4s apart), varied pitch (rate 0.9~1.1), volume 0.5, ripples appeared', s.steps.length >= 2 && s.steps.length <= 4 && rates.size >= 2 && s.steps.every((k) => k.rate >= 0.9 && k.rate <= 1.1 && k.volume === 0.5) && gaps.every((g) => g >= 400) && mid.ripples > 0, JSON.stringify({ n: s.steps.length, rates: [...rates].map((r) => +r.toFixed(3)), gaps: gaps.map(Math.round), ripples: mid.ripples }));
 const n0 = s.steps.length; await page.waitForTimeout(700); s = await st();
-check('standing still → no more footsteps, ripples fade out', s.steps.length === n0 && s.ripples === 0, JSON.stringify({ n0, n: s.steps.length, ripples: s.ripples }));
-// 천천히(X 누른 채) 걸으면 8fps → 초당 4걸음
+check('standing still 0.7s → no more footsteps, ripples faded out', s.steps.length === n0 && s.ripples === 0, JSON.stringify({ n0, n: s.steps.length, ripples: s.ripples }));
+// 천천히(X 누른 채) 걸으면 125px/s → 80px 마다 ≈ 초당 1.3번
 await page.evaluate(() => { window.__steps = []; }); await page.keyboard.down('KeyX'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1500); await page.keyboard.up('ArrowRight'); await page.keyboard.up('KeyX'); await page.waitForTimeout(100);
 s = await st();
-check('walking slowly 1.5s → fewer footsteps (3~9)', s.steps.length >= 3 && s.steps.length <= 9, JSON.stringify({ n: s.steps.length }));
+check('walking slowly 1.5s → 1~3 footsteps (fewer than running)', s.steps.length >= 1 && s.steps.length <= 3, JSON.stringify({ n: s.steps.length }));
 await stand(30 * 32, 7 * 32 + 8, 'right'); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/obj0_03_middle.png` });
+// 마나샘: 억빠맨이 발밑 물을 먼저 떠 마심(첨벙, 흙맛) → 마나샘 → 셋이 마심 → 전원 HP 회복. 두 번째는 "졸졸" + 회복만
+const lines = []; const sfxSeen = [];
+await page.evaluate(() => { const orig = game.sound.sfx.bind(game.sound); const prev = game.sound.sfx; game.sound.sfx = (n, o) => { (window.__sfx ||= []).push(n); return prev(n, o); }; });
+const pump = async (ms) => { await until(() => game.dialogue.running ? true : null, 2500); const t0 = Date.now(); while (Date.now() - t0 < ms) { const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, '') })); if (!q.running) return; const k = (q.speaker || '') + '|' + q.text; if ((q.box === 'waiting' || q.box === 'typing') && lines[lines.length - 1] !== k) lines.push(k); if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); await page.waitForTimeout(70); } };
+const blue = await page.evaluate(() => { const b = game.entities.find((e) => e.id === 'blue'); return b ? { x: b.x, y: b.y, cols: b.anim?.cols } : null; });
+check('mana spring prop (blue_buff, 3-frame strip) sits on the top forest edge touching the road', !!blue && blue.cols === 3 && blue.y === 6 * 32 - 12, JSON.stringify(blue));
+await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub = 40; game.partyHp.ppaman = 20; });
+await stand(blue.x + 4, blue.y + 12 + 2, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
+const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]); const sfx1 = await page.evaluate(() => window.__sfx || []);
+check('mana spring: "물 위에 서 있잖아요" → 억빠맨 drinks the floor water (splash) → "퉤 흙맛" → drinks the spring → "시원하네" → all three drink → healed to max (100/120/90) → "발밑 물은 마시지 마세요" / "너만 마셨어"', ['여기도 있네', '물 위에 서 있잖아요', '뭐가 달라요', '파란색이잖아', '발밑의 물을 한 모금', '흙맛', '그걸 왜 마셔', '비교해 보려고요', '이번엔 마나샘 물을', '시원하네', '한 모금씩 마셨다', '회복되었다', '마시지 마세요', '너만 마셨어'].every((k) => lines.some((l) => l.includes(k))) && sfx1.includes('splash') && sfx1.includes('heal') && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
+await page.screenshot({ path: `${S}/obj0_04_spring.png` });
+await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.waitForTimeout(600); await stand(blue.x + 4, blue.y + 14, 'up'); await page.waitForTimeout(400); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
+const hp2 = await page.evaluate(() => game.hpOf('hyungsub'));
+check('mana spring again: short line ("졸졸 흐른다") + heal only (rest point), no floor-water gag', lines.some((l) => l.includes('졸졸 흐른다')) && !lines.some((l) => l.includes('흙맛')) && hp2 === 100, JSON.stringify({ lines, hp2 }));
 // 출구 → obj1 → 되돌아오기
 const L = def.rows && (await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.obj0.spawns.landing));
 await stand(L.x, L.y, 'right'); await page.waitForTimeout(300); await page.keyboard.down('ArrowRight');

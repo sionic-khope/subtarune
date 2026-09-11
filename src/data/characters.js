@@ -21,7 +21,8 @@ export const CHARACTERS = {
   scuttle:   { name: '바위게', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-scuttle-front.png' },
   cannon:    { name: '대포미니언', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-cannon-front.png' },
   red:       { name: '레드', voice: 'red', palette: 'ghost', still: 'assets/enemies/red-front.png', stillScale: 1.8 },        // 청록숲9 사원 문지기(NPC → 전투). PR #16 정면 64×64(레드 브램블백 모티브). 목소리 낮고 드문 합성(audio.js VOICES.red)
-  blue:      { name: '블루', voice: 'blue', palette: 'ghost', still: 'assets/enemies/blue-front.png', stillScale: 1.8 },      // PR #16 (블루 센티넬 모티브)
+  blue:      { name: '블루', voice: 'blue', palette: 'ghost', still: 'assets/enemies/blue-front.png', stillScale: 1.8 },
+  baron:     { name: '바론', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/baron-front.png' },                    // PR #15 바론(LoL 모티브 보스) 필드 정면 160×160(바닥 앵커 80,148) → 1.43배 229px = 대화 중 보이는 높이(230) 꽉 참. 전투 시트 assets/enemies/baron-battle-idle.png 512×512 2×2 셀 256, 240ms, pivot [128,238] — 능력치·패턴은 브리핑 뒤 enemies.js 에(2026-09-11 "이제 쓸 건데 다음 맵에서 바로는 아님")      // PR #16 (블루 센티넬 모티브)
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },
   cat:       { name: '???',  voice: 'cat',     palette: 'cat' },
   guard:     { name: '경비병', voice: 'robot', palette: 'guard' },

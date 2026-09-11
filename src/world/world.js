@@ -10,6 +10,7 @@ import { CHARACTERS } from '../data/characters.js';
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
 export const RENDER_SCALE = 2;   // 물리 해상도 배율 (640x480). 2x 시트가 1:1 로 찍힌다
+export const STEP_DIST = 80;     // 발소리 최소 간격(px) — 달리기(218px/s) ≈ 초당 2번, 걷기 ≈ 1.3번 (긴 물방울 울림이 겹쳐 뭉개지지 않게)
 export const CHAR_SCALE = 1.43;  // 캐릭터 추가 배율 (+30% → 2026-09-09 사용자 요청으로 +10% 더 = 1.43)
 
 // ── 타일맵 ───────────────────────────────────────────────────
@@ -351,13 +352,17 @@ export class Player extends Character {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
   }
-  /** 발소리: 걷기 프레임이 발 딛는 프레임(1·3)으로 넘어가는 순간, 밟고 있는 타일이 `step` 효과음을 선언했으면(얕은 물 — 옵젝영역0) 살짝 음높이를 바꿔 재생하고 물결 고리를 낸다 (2026-09-11 사용자 "걸을 때마다 울리는 에코 물 밟는 소리") */
+  /** 발소리: 발 딛는 프레임(1·3)으로 넘어가는 순간 중 지난 발소리에서 STEP_DIST(80px) 이상 걸었을 때만, 밟고 있는 타일이 `step` 효과음을 선언했으면(얕은 물 — 옵젝영역0) 살짝 음높이를 바꿔 재생하고 물결 고리를 낸다.
+   *  거리 기준이라 달리기 ≈ 초당 2번(0.5s), 걷기 ≈ 1.3번 — 시간 기준(0.4s)은 달리기 주기(0.333s)와 엇갈려 걷기가 더 잦아졌다.
+   *  2026-09-11 사용자: "걸을 때마다 울리는 에코 물 밟는 소리" → 1차(프레임 1·3 전부, 초당 6번, 짧은 첨벙)는 "빈도 너무 많고 쫀득" → 물방울 '짤랑' 긴 울림을 드문드문 */
   footstep(prevFrame) {
     if (this.frame === prevFrame || (this.frame !== 1 && this.frame !== 3)) return;
     const cx = this.x + this.w / 2, fy = this.y + this.h - 1;
+    if (this.lastStepAt && Math.hypot(cx - this.lastStepAt[0], fy - this.lastStepAt[1]) < STEP_DIST) return;
     const tile = this.game.map.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE));
     if (!tile?.step) return;
-    this.game.sound.sfx(tile.step, { volume: 0.5, rate: 0.92 + Math.random() * 0.16 });
+    this.lastStepAt = [cx, fy];
+    this.game.sound.sfx(tile.step, { volume: 0.5, rate: 0.9 + Math.random() * 0.2 });
     this.game.emitRipple?.(cx, fy - 2);
   }
   /** 동료가 따라올 발자국 기록 (이동한 프레임만) — Follower 가 뒤에서 이 자취를 따라 걷는다 */

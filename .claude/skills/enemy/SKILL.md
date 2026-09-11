@@ -35,3 +35,7 @@ model: opus
 - **전투 그림은 480×360 안, 패널 윗선(y 246) 위에 전부** 들어와야 한다. 둘이면 각 ≤ 144px(96 셀 × 1.5), `def.dx/dy` 로 발을 144/246 에 두고 가로 40px 엇갈림. `tests/playtest/enemy.mjs` 가 그림 사각형을 재서 막는다 — 스크린샷에서 가장자리에 걸린 그림이 있으면 실패다.
 - 필드 NPC 로도 서는 적(`CHARACTERS.stillScale`)은 이벤트 카메라(대화창 위 230px) 안에 전신이 들어오는 크기까지만(64px 그림이면 ≤ 1.8배). 배치는 사각형으로 계산해 파티·서로와 안 겹치게, `tests/playtest/<맵>.mjs` 에 검사 한 줄.
 - 배경: `src/battle/backgrounds.js` 레지스트리 — `registerBattleBg('name', (ctx, battle) => …)`, 맵 `battleBg` 또는 `{battle:{bg}}` 로 고른다. 기본 `teal`, 보스 무대 `temple`(사원 광장·문양). 새 배경은 함수 하나 + 캐시 캔버스, `tests/unit/battle-bgs.test.mjs` 가 이름 등록을 검사한다.
+
+## 준비된 스프라이트(브리핑 오면 바로 등록, 2026-09-11)
+- **바론**(PR #15, LoL 바론 모티브 보스): 필드 정면 `assets/enemies/baron-front.png` 160×160(앵커 80,148, `CHARACTERS.baron` 등록됨, 1.43배 229px — 대화 중 보이는 높이 230 꽉 참이라 카메라를 화자별로) / 전투 `assets/enemies/baron-battle-idle.png` 512×512 2×2 셀 256 240ms → `sheet:{cols:2,rows:2,count:4,fps:1000/240,px:1}, pivot:[128,238]`. **축소·자동 크기 정규화 금지**(보스 규격). 전투 패널 위 246px 안에 들어오는지 `enemy.mjs` 그림 사각형으로 확인하고 `dy`·`scale` 로 맞춘다.
+- **용준·쥰희 나무 대포**(PR #15): `assets/props/wooden_cannon.png` 128×128 3/4 정지 1장(바닥 앵커 64,119) — 무기 단독 자산, 발사·반동 애니 없음(필요하면 `/art` 로 띠 추가).

@@ -16,7 +16,7 @@ const N = (text) => ({ text, voice: 'narrator' });
 // 자리는 맵 meta(JSON, 부팅 뒤 로드)에서 실행 시점에 읽는다
 const at = (k) => ({ px: () => MAPS.teal9.meta.stage[k] });
 // 카메라는 말하는 쪽으로(델타룬처럼): 레드·파티 대사 = 위(레드 전신 + 파티), 블루 대사 = 아래(블루 전신), 응수 구간 = 가운데. 대화창 위 230px 에 165px 둘을 다 넣을 수 없어서(포스트모텀 2026-09-11)
-const CAM_RED = [48, 6.7], CAM_BLUE = [48, 11], CAM_MID = [48, 8.6];
+const CAM_RED = [48, 6.7], CAM_BLUE = [48, 11], CAM_MID = [48, 8.6], CAM_PARTY = [43, 7.3];   // CAM_PARTY: 힘을 받는 순간은 주인공 쪽(파티 열 42) — 블루에 맞춰 두면 힘 받는 게 안 보인다(2026-09-11 사용자)
 const cam = (c) => ({ camera: c, duration: 0.3 });
 const stomp = (n) => Array.from({ length: n }, () => [{ hop: 'red', by: [0, 0], height: 14, duration: 0.28, sfx: 'thud' }, { shake: 0.12, amp: 3 }]).flat();   // 레드 쿵쿵
 // 처리하라/하라 응수: 레드·블루가 번갈아 외치는데 갈수록 전환이 빨라진다(auto 0.55s → 0.07s, 타자 속도 2 → 9) — 긴박하게 몰아간 뒤 돌진 (사용자 2026-09-11)
@@ -111,7 +111,8 @@ export const teal9_boss = [
   R('* 시험에 통과했으니 우리의 힘을 주겠다.'),
   cam(CAM_BLUE),
   B('* 겠다.'),
-  // 레드·블루에서 빨강·파랑 반짝임이 날아와 셋을 감싸 돈다 → 버프: 공격력 1→2, 최대 HP 각 +20 (현재 HP 도 +20). 합류 효과음('item')과 같은 소리
+  // 레드·블루에서 빨강·파랑 반짝임이 날아와 셋을 감싸 돈다 → 버프: 공격력 1→2, 최대 HP 각 +20 (현재 HP 도 +20). 합류 효과음('item')과 같은 소리. 카메라는 힘을 받는 주인공 쪽으로
+  { camera: CAM_PARTY, duration: 0.5 },
   { aura: { from: ['red', 'blue'], to: ['player', 'gyeongsub', 'ppaman'], colors: ['#ff5c5c', '#ff9a8a', '#4fa8ff', '#9fd0ff'], n: 42, duration: 1.8 } },
   { action: (g) => { g.attack = 2; g.hpBonus = (g.hpBonus || 0) + 20; for (const id of ['hyungsub', ...g.party]) g.partyHp[id] = Math.min(g.maxHpOf(id), g.hpOf(id) + 20); g.autosave?.(); } },
   { sfx: 'item' },
