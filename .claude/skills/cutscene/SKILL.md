@@ -146,3 +146,12 @@ model: opus
 - 말 걸어 시작하는 후속 이벤트의 NPC/소품은 `requires:'앞 플래그', unless:'끝 플래그'` 쌍으로 두고, QA 지점을 그 앞에 하나 더(`obj1_push`).
 - 대사 옵션 `{ cut: 3.6 }` — 찍히는 중이라도 그때 말이 끊기고 다음 노드로(C/X 로 못 넘김). 말하다 날아가는·끊기는 연출에.
 - **말 걸어 시작하는 후속 이벤트의 함정 2가지**(2026-09-11 옵젝영역1): ① 연출이 `requires` 변형 엔티티를 쓰면 그 연출이 끝난 직후엔 아직 **원래 엔티티**가 서 있다 → 끝에서 id·script 를 바꿔 주거나 원래 엔티티에도 같은 script 를. ② NPC 는 **플레이어가 걸어 들어오는 줄(문 스폰 y)** 에 세운다 — 길이 세로로 넓으면 다른 줄에 선 NPC 는 프로브(19px)가 안 닿아 그냥 지나쳐 버린다(플레이테스트에 '입구 줄에서 오른쪽으로 걸으면 프로브에 잡힌다' 검사).
+
+## 큰 이펙트 애니(폭발 등)는 영상에서 (2026-09-12)
+직접 그리지 말고 사용자가 준 영상에서 누끼를 딴다.
+1. `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.4 --dur 1.2 --fps 14 --height 96 [--key black|green|white]`
+   — 검은 배경 이펙트 영상은 기본값(`black`)이 밝기로 알파를 만들어 연기 가장자리가 반투명하게 남는다. 끝나면 붙여 넣을 `{ boom: … }` 한 줄을 찍어 준다.
+2. 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -c:a libmp3lame -q:a 3 assets/audio/sfx/<이름>.mp3` → `main.js loadSfxFiles` 목록 + `design/audio/references.md` 출처 한 줄.
+3. 컷신: `{ boom: { sheet:'assets/fx/<이름>.png', at:'<대상id>'|[x,y], cols, rows, count, fps, scale, offset:[dx,dy], sfx:'<이름>', hold } }`
+   — **모든 캐릭터 위**에 한 번만 재생하고 사라진다. 그림이 없으면 소리만 나고 조용히 통과하므로 반드시 `tests/unit/fx.test.mjs`(띠 존재·칸 수) 를 돌린다.
+4. 그 연출이 도는 맵 JSON 의 `preload` 에 시트 경로를 넣는다(첫 재생이 늦지 않게). 크기·타이밍은 중간 프레임 스크린샷으로 맞춘다(`scale`, `fps`, 앞뒤 `wait`).
