@@ -45,7 +45,7 @@ for (const [id, gain] of camps) {
 }
 // 이벤트 1 와드: 억빠맨이 박음 → 시야 확보 → 카메라가 캠프 셋을 훑는다 → 경섭 눈 반짝
 const lines = []; let camFar = 0; let emoteSeen = false;
-const pump = async (ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), cam: Math.round(Math.abs(game.camera.x + 240 - game.player.x)), em: game.entities.find((e) => e.id === 'gyeongsub')?.emote?.kind || null })); if (!q.running) return; camFar = Math.max(camFar, q.cam); if (q.em === '!') emoteSeen = true; const k = (q.speaker || '') + '|' + q.text; if ((q.box === 'waiting' || q.box === 'typing') && lines[lines.length - 1] !== k) lines.push(k); if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); await page.waitForTimeout(70); } };
+const pump = async (ms) => { await until(() => game.dialogue.running ? true : null, 2500); const t0 = Date.now(); while (Date.now() - t0 < ms) { const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), cam: Math.round(Math.abs(game.camera.x + 240 - game.player.x)), em: game.entities.find((e) => e.id === 'gyeongsub')?.emote?.kind || null })); if (!q.running) return; camFar = Math.max(camFar, q.cam); if (q.em === '!') emoteSeen = true; const k = (q.speaker || '') + '|' + q.text; if ((q.box === 'waiting' || q.box === 'typing') && lines[lines.length - 1] !== k) lines.push(k); if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); await page.waitForTimeout(70); } };
 const ward = await page.evaluate(() => { const w = game.entities.find((e) => e.id === 'ward'); return { x: w.x, y: w.y, cols: w.anim?.cols, iw: w.iw }; });
 check('ward prop present with a 2-frame blink strip', ward.cols === 2 && ward.iw === 20, JSON.stringify(ward));
 await stand(ward.x + 2, ward.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
@@ -58,17 +58,17 @@ await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub =
 const blue = await page.evaluate(() => { const b = game.entities.find((e) => e.id === 'blue'); return { x: b.x, y: b.y, cols: b.anim?.cols }; });
 lines.length = 0; await stand(blue.x + 6, blue.y + 24, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
 const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]);
-check('blue buff: 억빠맨 explains, 경섭 licks it ("달다"), party fully healed (100/120/90)', blue.cols === 3 && lines.some((l) => l.includes('블루 버프')) && lines.some((l) => l.includes('여기 정글이지')) && lines.some((l) => l.includes('서폿도 블루')) && lines.some((l) => l.includes('핥았다')) && lines.some((l) => l.includes('달다')) && lines.some((l) => l.includes('HP가 모두 회복')) && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
-await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
+check('mana spring: 경섭 "오 이게 뭐지" → drinks → 빠맨 objects → "시원하다" → 요플래 drinks too → "아니 왜 다들" → party fully healed (100/120/90) → 빠맨 "저도 한 모금만"', blue.cols === 3 && ['오 이게 뭐지', '벌컥벌컥 마셨다', '마시는 거 아니에요', '시원하다', '요플래도 슬쩍 한 모금', '아니 왜 다들', 'HP가 모두 회복', '저도 한 모금만'].every((k) => lines.some((l) => l.includes(k))) && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
+await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.waitForTimeout(600); await stand(blue.x + 6, blue.y + 24, 'up'); await page.waitForTimeout(400); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
 const hp2 = await page.evaluate(() => game.hpOf('hyungsub'));
-check('blue buff again: short line + heal only (rest point)', lines.some((l) => l.includes('아직 빛나고')) && !lines.some((l) => l.includes('블루 버프')) && hp2 === 100, JSON.stringify({ lines, hp2 }));
+check('mana spring again: short line + heal only (rest point)', lines.some((l) => l.includes('졸졸 흐른다')) && !lines.some((l) => l.includes('이게 뭐지')) && hp2 === 100, JSON.stringify({ lines, hp2 }));
 await page.screenshot({ path: `${S}/teal6_03_cleared.png` });
 // 출구
 const L = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal6.spawns.landing);
-await stand(L.x, L.y, 'right'); await page.keyboard.down('ArrowRight');
+await page.waitForTimeout(500); await stand(L.x, L.y, 'right'); await page.waitForTimeout(300); const preDoor = await st(); await page.keyboard.down('ArrowRight');
 const t1 = Date.now(); let mapNow = 'teal6'; while (Date.now() - t1 < 8000) { mapNow = await page.evaluate(() => game.mapId); if (mapNow === 'teal7') break; await page.waitForTimeout(100); }
 await page.keyboard.up('ArrowRight');
-check('right door → teal7', mapNow === 'teal7', mapNow);
+check('right door → teal7', mapNow === 'teal7', JSON.stringify({ mapNow, preDoor: { running: preDoor.running, box: preDoor.box, p: preDoor.p } }));
 check('no page/console errors', errs.length === 0, JSON.stringify(errs.slice(0, 4)));
 console.log(logs.join('\n')); console.log(`fails=${fails}`);
 await browser.close(); process.exit(fails ? 1 : 0);

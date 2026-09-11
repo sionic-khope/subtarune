@@ -22,6 +22,8 @@ for t, tmp in mapping.items():
     if t.endswith(('.js', '.mjs')):
         r = subprocess.run(['node', '--check', tmp], capture_output=True, text=True)
         if r.returncode != 0: bad.append((t, r.stderr.strip().splitlines()[-1] if r.stderr.strip() else 'syntax error'))
+        lint = subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'lint_comments.py'), tmp], capture_output=True, text=True)
+        if lint.returncode != 0: bad.append((t, lint.stdout.strip().splitlines()[0] if lint.stdout.strip() else 'inline comment'))   # 문장 중간 // 주석은 문법은 통과해도 뒤 코드를 삼킨다
 if bad:
     for t, msg in bad: print('REJECTED', t, '-', msg)
     print('원본은 바뀌지 않았다'); sys.exit(1)

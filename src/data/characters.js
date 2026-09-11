@@ -10,7 +10,7 @@ export const CHARACTERS = {
     sideWalk: { legY: 76, legFrames: [1, 3] } },
   gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard', hp: 120, hpColor: '#ff5c5c', partyName: '경섭', partyDesc: '뭔가 살짝 수상하다.', sideWalk: { legY: 76, legFrames: [1, 3] } },   // 보라맵11 거대 나무에서 합류
   ppaman:    { name: '빠맨', voice: 'ppaman',  palette: 'cat', hp: 90, hpColor: '#c9a3ff', portraitThreshold: 0.3, partyName: '억빠맨', partyDesc: '형 뒤에 붙어 다닌다.', sideWalk: { legY: 82, legFrames: [1, 3] } },     // 파란 털(밝기 0.45)은 흰색으로 남겨야 해서 낮게
-  yongjun:   { name: '박용준', voice: 'yongjun', palette: 'ghost' },   // 청록숲7 — 스프라이트 임시(기본 도트, 곧 교체), 목소리 = 유튜브 쇼츠 '어?' (assets/audio/voices/yongjun.mp3)
+  yongjun:   { name: '박용준', voice: 'yongjun', palette: 'ghost' },   // 청록숲7 — 스프라이트 PR #12 assets/sprites/yongjun.png(62×86 셀 4×4, 엔진 순서, docs/handoffs/yongjun-assets.md), 목소리 = 유튜브 쇼츠 시작 '어?' (voices/yongjun.mp3). 옆걷기 보정(sideWalk)은 미측정
   junhee:    { name: '쥰희', voice: 'junhee',  palette: 'merchant', portraitThreshold: 0.6, sideWalk: { feetY: 74, splitX: 46, stride: 2 } },   // 돼지. 분홍 피부(0.85)만 흰색, 이목구비(≤0.6)는 검정. 웃음소리 sfx: laugh_junhee
   cs_red:    { name: '레드 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-red-front.png' },    // 청록숲3 미니언 — PR #7 정면 정지 1장(48×48), docs/handoffs/combat-assets.md
   cs_blue:   { name: '블루 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-blue-front.png' },
