@@ -204,7 +204,7 @@
 ## 맵 데이터 옵션 (엔진이 지원하는 것)
 - 맵 JSON: `bgm`, `dim`(0~1, 어두움 오버레이 — 대화창은 안 어두워짐), `enter:{script, flag}`(도착 페이드 인 직후 1회 스크립트. flag 있으면 영구 1회, 대사 중이면 건너뜀).
 - 엔티티: `door` 는 `requires:'플래그'` + `lockedScript` 로 잠금(트리거와 같은 진입 1회 규칙). 소품 `unless:'플래그'`(플래그 서면 안 나옴, 예: 먹은 에그타르트) / `requires:'플래그'`(서야 나옴). 스크립트에서 `{remove:'id'}` 로 즉시 제거.
-- `shade` 엔티티 `{type:'shade', x,y,w,h, alpha?:0.62, inset?:14}`: 사각형을 **엔티티 위에**(맵 dim 위) 반투명 검정으로 덮는다 — 나무에 둘러싸인 은신처 안(청록숲7 `hide_shade`). 충돌·상호작용 없음. 안쪽 inset 은 한 단계 더 어둡다.
+- `shade` 엔티티 `{type:'shade', x,y,w,h, alpha?:0.7, fade?:0.3, spriteAlpha?:0.6, margin?:8}`: 바닥은 **엔티티 아래에** 세로 그라데이션으로 깔고, 발이 사각형 안(margin 여유)인 캐릭터는 `Character.drawSprite` 가 **스프라이트 통째로** 어둡게 그린다(`drawDimmed`, source-atop). 영역 덮개는 얼굴에 경계선이 생겨 금지(2026-09-11 사용자 '사진 단위로'). 은신처(청록숲7 `hide_shade`). 충돌·상호작용 없음.
 - 장식 소품(러그·방석, script 없음)은 C 프로브 대상이 아니다(`canInteract`). 바닥에 깔리는 소품은 히트박스를 윗변 2px(`w,h:2`)로 줘서 y정렬상 항상 뒤에 그린다.
 - 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 체크). 맵 JSON `stage` 필드는 위 '상태 시스템' 참고.
 

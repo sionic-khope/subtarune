@@ -228,13 +228,15 @@ export class Character extends Entity {
     if (dy) { const ny = this.y + dy; if (!blocked(this.x, ny)) this.y = ny; }
   }
   drawSprite(ctx, cam) {
+    const dim = shadeDimAt(this.game, this.x + this.w / 2, this.y + this.h);   // 그늘(Shade) 안이면 스프라이트 통째로 어둡게
+    const blit = (img, x, y, w, h) => dim ? drawDimmed(ctx, img, x, y, w, h, dim) : ctx.drawImage(img, x, y, w, h);
     if (this.motion) {
       const frame = this.motion.frames[this.motion.index];
       const scale = this.motion.scale * CHAR_SCALE;
       const anchorX = this.x + this.w / 2 - cam.x, anchorY = this.y + this.h - cam.y;
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
-      ctx.drawImage(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
+      blit(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
       if (this.emote) drawEmote(ctx, this.emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scale));
       return;
     }
@@ -254,7 +256,7 @@ export class Character extends Entity {
     // 발밑 그림자
     ctx.fillStyle = 'rgba(0,0,0,0.28)';
     ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3);
-    ctx.drawImage(img, sx, sy, dw, dh);
+    blit(img, sx, sy, dw, dh);
     if (this.emote) drawEmote(ctx, this.emote, sx + Math.round(dw / 2), sy);
   }
   draw(ctx, cam) { if (this.visible) this.drawSprite(ctx, cam); }
@@ -928,22 +930,37 @@ registerEntity('spitter', Spitter);
 registerEntity('raft', Raft);
 registerEntity('swimmer', Swimmer);
 /**
- * 그늘(어두운 덮개): 지정 사각형을 **엔티티 위에** 반투명 검정으로 덮는다 — 나무에 둘러싸인 은신처(청록숲7). 그 안에 선 캐릭터는 어둠 속에서 흐릿하게 보인다
- *   (델타룬 2장 어두운 문틈에 숨는 장면 참고, 2026-09-11 사용자 '그림자 완전 어둡게'). 위(뒤)가 alpha 로 짙고 아래(입구)로 갈수록 fade 까지 옅어지는 세로 그라데이션 —
- *   네모난 띠가 보이던 1차(안쪽 inset 사각형)는 "퀄이 구리다"(같은 날). 사각형은 나무를 건드리지 않는 바닥 영역으로 잡는다(맵 생성기).
- *   { type:'shade', id?, x, y, w, h, alpha?:0.7, fade?:0.3 }  — 충돌·상호작용 없음, y 정렬 무관(맨 위 drawOverlay), 맵 dim 위에 그려진다
+ * 그늘: 나무에 둘러싸인 은신처(청록숲7)의 어둠. 두 겹으로 나뉜다 —
+ *   1) 바닥: 사각형을 **엔티티 아래에**(y 정렬 맨 앞, sortY -∞) 세로 그라데이션(위 alpha → 아래 fade)으로 깐다. 나무·캐릭터는 안 덮는다.
+ *   2) 캐릭터: 발이 사각형 안(margin 만큼 여유)에 있는 캐릭터는 Character.drawSprite 가 **스프라이트 통째로** spriteAlpha 만큼 어둡게 그린다(drawDimmed).
+ *   영역 덮개로 캐릭터를 어둡게 하면 경계선이 얼굴을 가로지른다(2026-09-11 사용자 "인식을 사진 단위로 안 하고 영역 단위로 하니까") — 그래서 사진(스프라이트) 단위.
+ *   델타룬 2장 어두운 문틈에 숨는 장면 참고. { type:'shade', id?, x, y, w, h, alpha?:0.7, fade?:0.3, spriteAlpha?:0.6, margin?:8 } — 충돌·상호작용 없음
  */
 export class Shade extends Entity {
-  constructor(def, game) { super({ solid: false, ...def }, game); }
+  constructor(def, game) { super({ solid: false, ...def }, game); this.def.sortY = -1e9; this.spriteDim = def.spriteAlpha ?? 0.6; }
   canInteract() { return false; }
-  draw() {}
-  drawOverlay(ctx, cam) {
+  /** 발 위치(x,y)가 그늘 안인가 — 가장자리 margin 만큼 넘쳐도 안으로 친다(사용자 "좀 넘치더라도") */
+  contains(x, y) { const m = this.def.margin ?? 8; return x >= this.x - m && x <= this.x + this.w + m && y >= this.y - m && y <= this.y + this.h + m; }
+  draw(ctx, cam) {
     if (!this.visible) return;
     const a = this.def.alpha ?? 0.7, f = this.def.fade ?? 0.3;
     const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
     const g = ctx.createLinearGradient(0, y, 0, y + this.h); g.addColorStop(0, `rgba(1,4,6,${a})`); g.addColorStop(1, `rgba(1,4,6,${f})`);
     ctx.fillStyle = g; ctx.fillRect(x, y, this.w, this.h);
   }
+}
+/** (x,y) 발 위치를 덮는 그늘의 스프라이트 어둡기(0 = 그늘 밖) */
+export function shadeDimAt(game, x, y) { let a = 0; for (const e of game.entities) if (e instanceof Shade && !e.dead && e.visible && e.contains(x, y)) a = Math.max(a, e.spriteDim); return a; }
+let dimCanvas = null;
+/** 스프라이트를 통째로 어둡게 그린다: 오프스크린에 그린 뒤 source-atop 으로 검정을 덮어 불투명 픽셀만 어두워진다(주변 바닥은 그대로) */
+export function drawDimmed(ctx, img, sx, sy, dw, dh, amount) {
+  if (!dimCanvas) dimCanvas = makeCanvas(Math.max(64, dw), Math.max(64, dh));
+  if (dimCanvas.width < dw || dimCanvas.height < dh) { dimCanvas.width = Math.max(dimCanvas.width, dw); dimCanvas.height = Math.max(dimCanvas.height, dh); dimCanvas.getContext('2d').imageSmoothingEnabled = false; }
+  const c = dimCanvas.getContext('2d');
+  c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, dw, dh); c.drawImage(img, 0, 0, dw, dh);
+  c.globalCompositeOperation = 'source-atop'; c.fillStyle = `rgba(1,4,6,${amount})`; c.fillRect(0, 0, dw, dh);
+  c.globalCompositeOperation = 'source-over';
+  ctx.drawImage(dimCanvas, 0, 0, dw, dh, sx, sy, dw, dh);
 }
 registerEntity('shade', Shade);
 registerEntity('prop', Prop);

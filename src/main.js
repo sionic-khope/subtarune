@@ -799,7 +799,7 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-11.61';
+export const BUILD = '2026-09-11.62';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
