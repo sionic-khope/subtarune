@@ -39,7 +39,28 @@
 - **빠른 탄은 반드시 예고**(점선 `vline`·깜빡임 0.5s) — 언더테일식 "보고 피할 수 있는 공정함". 느린 탄(≤90px/s)은 예고 없이 양으로.
 - **수치 범위**: 지속 4~5s, 탄 반지름 4~8, 속도 70~150(예고 있는 낙하는 250까지), 간격 0.5~1.3s, 상자 200×150 기준. 첫 전투 적은 한 턴에 맞아도 1~2번.
 - **모양**: `shape: 'hammer'|'shield'|'circle'` + `kind`(색) + `spin`. 새 모양은 `Bullet.draw` 에 그림 한 블록(외곽선 1px + 2톤, 델타룬 밀도). 새 패턴은 `bullets.js PATTERNS` 에 함수 하나: `{ duration, update(t, dt, api) }`, `api = { emit, box, soul, rnd }`.
-- **턴마다 돌아가며** 쓰이므로 2~3개면 충분. 첫 턴은 가장 읽기 쉬운 것.
+- **턴마다 돌아가며** 쓰이므로 3~4개. 첫 턴은 가장 읽기 쉬운 것. **유형을 섞는다**(사용자 2026-09-11 "주황 선 쏘는 거랑 날아다니는 것만 있다"): 영역 예고 계열 1개 + 대형 1개 + 날아오는 것 1개 + (combo 1개).
+- **템플릿 카탈로그** (`src/battle/bullets.js PATTERNS`, 전부 `shape/kind/spin/duration` 공통):
+
+| 유형 | 템플릿 | 피하는 법 | 주요 옵션 | 쓴 예 |
+|---|---|---|---|---|
+| 날아오는 것 | `rain` 위에서 비 | 빈 세로 줄 찾기 | `rate speed r` | 칼날부리 깃털 비 |
+| | `aimed` 가장자리에서 소울 조준 | 옆으로 한 발 | `every speed r` | 포탄 조준 |
+| | `sweep` 줄지어 옆으로(한 줄 빔) | 빈 줄로 | `rows gap speed every` | 집게 줄 |
+| | `bounce` 상자 안에서 튕김 | 궤적 읽기 | `count speed r` | 튕기는 바위 |
+| | `burst` 한 점에서 방사형 | 탄 사이 틈 | `at n speed every` | 대포 산탄 |
+| | `homing` 소울을 따라옴 | 계속 움직여 따돌림 | `count speed turn life` | 바위게 물방울 |
+| 예고 뒤 덮침 | `slam` 소울 줄에 점선 예고 → 그 줄로 | 예고 줄 비키기 | `from warn speed r` | 늑대 도약·혀·망치 |
+| | `hammer_slam`/`hammer_arc`/`shield_wall` | (CS 전용 변형) | | 레드·블루 CS |
+| 영역 예고 | `zone` 칸을 빨갛게 → 덮침 | 빨간 칸 밖 / `safe:1` 이면 **한 칸만 안전** | `cols rows count\|safe warn hit every` | 돌거북 내리찍기·대포 광역 |
+| | `beam` 선 예고 → 굵은 빔(가로/세로/십자) | 빔 사이·옆 | `dir(h\|v\|alt\|both) count thick warn hit` | 바위게 집게 궤적 |
+| | `bomb` 착지 고리 예고 → 파편 | 고리에서 멀리 | `every warn frags fragSpeed r` | 대포 낙하 |
+| 대형 | `giant` 띠 예고 → 거대 탄 하나(r 30+) | 띠 밖으로 | `from r speed warn every` | 거대 바위 |
+| 조합 | `combo` 둘 동시 | (난이도) | `parts:[…]` | 정글 몹 전부 |
+
+  예고(`warn`)가 있는 유형(slam/zone/beam/giant/bomb)은 **≥0.3s**(`enemies.test`), 영역은 상자 안에만(`patterns.test`). 새 템플릿은 함수 하나 + `patterns.test.mjs` 에 계약 한 줄.
+- **하나씩 눈으로**: `node tests/playtest/enemy.mjs <id> --pattern=N` → `enemy_<id>_pN_03_bullets.png`. 예고가 먼저 뜨고(빨간 칸·점선·고리) 그 뒤 덮치는지 본다.
+- **시트에 대기 모션이 있는 적**(PR #14 식 4프레임)은 `idle:{swayX:0, swayY:0}` — 좌우 흔들림을 겹치지 않는다(사용자 2026-09-11). 단일 PNG 적만 sway 로 살린다.
 
 ## 4. 전투 기믹(미니게임) — 모드 플러그인
 `src/battle/modes.js` 레지스트리. 공격 단계나 적 턴을 **통째로** 다른 놀이로 바꾼다(리듬게임으로 공격, 춤으로 공격, FPS 모드로 마우스 공격, 적 턴이 퀴즈…).

@@ -1,4 +1,4 @@
-// 새 적 범용 검증 (2026-09-11 /enemy 스킬): node enemy.mjs <적id> [--attack=timing] [--enemy=bullets]
+// 새 적 범용 검증 (2026-09-11 /enemy 스킬): node enemy.mjs <적id> [--attack=timing] [--enemy=bullets] [--pattern=N]  (N: 적 턴에 patterns[N] 을 강제 — 템플릿 하나씩 스크린샷 enemy_<id>_pN_03_bullets.png)
 //   전투를 직접 열어(startBattle) 한 라운드를 돈다: 인트로 → 메뉴(잡담 문구) → 세 멤버 공격 → 적 턴 준비(말풍선 speak) → 탄막(모양이 있는 탄이 실제로 나오는지) → 회피 → 메뉴
 //   → 적 HP 를 1 로 만들고 이겨서 승리 문구·돈 → 전투 종료. 페이지 에러 0. 스크린샷 enemy_<id>_*.png
 import { chromium } from 'playwright-core';
@@ -28,6 +28,8 @@ check('menu: idle flavor line shows with the buttons (starts with "* ")', !!b &&
 // 세 멤버: 공격하기 → 첫 적 → C
 for (let i = 0; i < 3; i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(160); const s = await bt(); if (s.state === 'target') { await page.keyboard.press('KeyC'); await page.waitForTimeout(160); } }
 b = await until(() => game.battle?.state === 'act' ? true : null, 4000); check('three plans → act', !!b, (await bt())?.state);
+const tag = opt.pattern !== undefined ? `${id}_p${opt.pattern}` : id;
+if (opt.pattern !== undefined) await page.evaluate((n) => { for (const e of game.battle.enemies) e.patternIdx = n; }, Number(opt.pattern));
 if ((opt.attack || 'rush') === 'timing') {                                                    // 타이밍 모드: 마커가 가운데 근처일 때 C (0.37s 주기)
   let hits = 0; for (let k = 0; k < 3; k++) { const ok = await until(() => game.battle?.gimmick ? true : null, 4000); if (!ok) break; await page.waitForTimeout(340); await page.keyboard.press('KeyC'); hits++; await page.waitForTimeout(700); }
   check('timing attack mode ran for each member', hits === 3, String(hits));
@@ -36,7 +38,7 @@ const prep = await until(() => game.battle?.state === 'enemy-prep' || game.battl
 check('enemy turn: prep (bubble with a speak line) or a custom enemy mode', !!prep && (qp.state === 'enemy-mode' || (typeof qp.bubble === 'string' && qp.bubble.length > 0)), JSON.stringify({ state: qp?.state, bubble: qp?.bubble }));
 await page.waitForTimeout(600); await page.screenshot({ path: `${S}/enemy_${id}_02_prep.png` });
 const shapes = new Set(); let maxBullets = 0; let dodgeDir = 'ArrowLeft'; const t0 = Date.now(); let shot = false;
-while (Date.now() - t0 < 12000) { const s = await bt(); if (!s) break; if (s.state === 'bullets') { maxBullets = Math.max(maxBullets, s.bullets.length); s.bullets.forEach((x) => shapes.add(x)); if (!shot && s.bullets.length > 2) { shot = true; await page.screenshot({ path: `${S}/enemy_${id}_03_bullets.png` }); } await page.keyboard.down(dodgeDir); await page.waitForTimeout(120); await page.keyboard.up(dodgeDir); dodgeDir = dodgeDir === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft'; }
+while (Date.now() - t0 < 12000) { const s = await bt(); if (!s) break; if (s.state === 'bullets') { maxBullets = Math.max(maxBullets, s.bullets.length); s.bullets.forEach((x) => shapes.add(x)); if (!shot && s.bullets.length >= 1) { shot = true; await page.waitForTimeout(450); await page.screenshot({ path: `${S}/enemy_${tag}_03_bullets.png` }); } await page.keyboard.down(dodgeDir); await page.waitForTimeout(120); await page.keyboard.up(dodgeDir); dodgeDir = dodgeDir === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft'; }
   else if (s.state === 'menu' || s.state === 'win' || s.state === 'lose') break; else await page.waitForTimeout(80); }
 const q1 = await bt();
 check('bullets were emitted during the enemy turn and the round came back to the menu', maxBullets > 0 && q1?.state === 'menu', JSON.stringify({ maxBullets, shapes: [...shapes], state: q1?.state }));
