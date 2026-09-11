@@ -55,7 +55,7 @@ function mover(game, node) {
     tx = Math.round(tx + bx); ty = Math.round(ty + by);
   }
   else if (node.to) { tx = node.to[0] * TILE + TILE * 0.125; ty = node.to[1] * TILE + TILE * 0.5; }
-  else if (node.px) { [tx, ty] = node.px; }
+  else if (node.px) { [tx, ty] = typeof node.px === 'function' ? node.px(game) : node.px; }   // px:(game)=>[x,y] — 맵 meta 처럼 부팅 뒤에야 있는 값은 함수로(모듈 로드 때 MAPS.<json맵> 은 아직 없다, 2026-09-11)
   else if (node.by) { tx = e.x + node.by[0] * TILE / 16; ty = e.y + node.by[1] * TILE / 16; }   // by 는 16px 단위
   else return done;
   [tx, ty] = freeSpot(game, e, tx, ty);

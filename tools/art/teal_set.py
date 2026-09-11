@@ -257,6 +257,17 @@ def prop_blue_buff():
         outline_silhouette(c); strip.blit(c, f * 40, 0)
     return strip
 
+def tile_ground_shade():
+    """그늘 땅 32x32(걸을 수 있음): 땅 타일보다 어둡고 점이 성기다 — 나무 그림자 아래 숨는 공간"""
+    base = tile_ground(0)
+    c = Canvas(T, T)
+    for y in range(T):
+        for x in range(T):
+            r, g, b, a = base.a[y, x]
+            c.a[y, x] = (int(r * 0.62), int(g * 0.62), int(b * 0.62), 255)
+    for (x, y) in ((6, 10), (22, 6), (14, 24), (27, 20)): c.px(x, y, hexc('#0d2f2c'))
+    return c
+
 if __name__ == '__main__':
     tile_ground(0).save('assets/tiles/ground_teal.png'); tile_ground(1).save('assets/tiles/ground_teal2.png'); tile_grass().save('assets/tiles/grass_teal.png'); tile_cliff().save('assets/tiles/cliff_teal.png')
     prop_statue().save('assets/props/statue_junhee.png'); prop_banana().save('assets/props/banana.png'); prop_spitter().save('assets/props/spitter.png')
@@ -265,6 +276,7 @@ if __name__ == '__main__':
     prop_waterfall().save('assets/props/waterfall2.png')   # 청록숲5 이단폭포(계단식)
     tile_forest_floor().save('assets/tiles/forest_floor_teal.png')   # 숲 바닥(막힘)
     prop_ward().save('assets/props/ward.png'); prop_blue_buff().save('assets/props/blue_buff.png')   # 청록숲6 이벤트 소품(애니 띠)
+    tile_ground_shade().save('assets/tiles/ground_teal_shade.png')   # 청록숲7 그늘 땅
     from void10_set import prop_tree_big
     prop_tree_big(trunk=('#241a16', '#43312a', '#63483a', '#866652'), leaves=('#0b3330', '#124d48', '#1c6e66', '#2c9a8f', '#7fe0d2')).save('assets/props/tree_teal.png')
     from pathlib import Path

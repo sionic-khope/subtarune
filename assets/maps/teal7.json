@@ -5,46 +5,422 @@
  "stage": "void_fallen",
  "dim": 0,
  "backdrop": "teal_bush",
+ "battleBg": "teal",
  "rows": [
-  "                ",
-  "                ",
-  "                ",
-  "                ",
-  " ututututututut ",
-  " tututututututu ",
-  " ututututututut ",
-  " tututututututu ",
-  " vvvvvvvvvvvvvv ",
-  "                ",
-  "                ",
-  "                "
+  "                                                ",
+  "                                                ",
+  "                      mmmmmmmmmmm               ",
+  "                      mmmmmmmmmmm               ",
+  "                      mmdddddddmm               ",
+  "                      mmdddddddmm               ",
+  " mmmmmmmmmmmmmmmmmmmmmmmdddddddmmmmmmmmmmmmmmmm ",
+  " mmmmmmmmmmmmmmmmmmmmmmmdddddddmmmmmmmmmmmmmmmm ",
+  " ututwtututututuwutututututwtututututuwutututut ",
+  " tututuwutututututwtututututuwutututututwtututu ",
+  " ututututwtututututuwutututututwtututututuwutut ",
+  " mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm ",
+  " mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm ",
+  " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv "
+ ],
+ "preload": [
+  "assets/sprites/junhee.png"
  ],
  "spawns": {
-  "from_bottom": {
-   "x": 260,
-   "y": 208,
-   "facing": "up"
-  },
   "from_left": {
    "x": 60,
-   "y": 200,
+   "y": 296,
    "facing": "right"
   },
   "start": {
    "x": 60,
-   "y": 200
+   "y": 296,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 1408,
+   "y": 296,
+   "facing": "left"
   }
+ },
+ "meta": {
+  "connected": true,
+  "hide": {
+   "left": [
+    836,
+    168
+   ],
+   "center": [
+    868,
+    168
+   ],
+   "right": [
+    900,
+    168
+   ],
+   "left_wide": [
+    822,
+    168
+   ],
+   "right_wide": [
+    914,
+    168
+   ]
+  },
+  "stage": {
+   "gyeongsub": [
+    868,
+    296
+   ],
+   "guest": [
+    964,
+    296
+   ],
+   "edge": [
+    1508,
+    296
+   ],
+   "back_h": [
+    836,
+    296
+   ],
+   "back_p": [
+    804,
+    296
+   ]
+  },
+  "trigger": 720
  },
  "entities": [
   {
    "type": "door",
    "x": 32,
-   "y": 128,
+   "y": 256,
    "w": 8,
-   "h": 128,
+   "h": 96,
    "to": "teal6",
    "spawn": "landing",
    "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 1496,
+   "y": 256,
+   "w": 8,
+   "h": 96,
+   "to": "teal8",
+   "spawn": "from_left",
+   "sfx": false
+  },
+  {
+   "type": "trigger",
+   "id": "hide_trig",
+   "x": 720,
+   "y": 256,
+   "w": 16,
+   "h": 96,
+   "once": true,
+   "flag": "teal7_hide_seen",
+   "script": "teal7_hide"
+  },
+  {
+   "type": "prop",
+   "id": "hide_tree_l",
+   "image": "assets/props/tree_forest.png",
+   "x": 792,
+   "y": 224,
+   "w": 24,
+   "h": 12,
+   "ix": 776,
+   "iy": 152,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "hide_tree_r",
+   "image": "assets/props/tree_forest.png",
+   "x": 952,
+   "y": 224,
+   "w": 24,
+   "h": 12,
+   "ix": 936,
+   "iy": 152,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st0",
+   "image": "assets/props/tree_forest.png",
+   "x": 196,
+   "y": 224,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 152,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st1",
+   "image": "assets/props/tree_forest.png",
+   "x": 484,
+   "y": 224,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 152,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st2",
+   "image": "assets/props/tree_forest.png",
+   "x": 1060,
+   "y": 224,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 152,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st3",
+   "image": "assets/props/tree_forest.png",
+   "x": 1348,
+   "y": 224,
+   "w": 24,
+   "h": 12,
+   "ix": 1332,
+   "iy": 152,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st4",
+   "image": "assets/props/tree_forest.png",
+   "x": 100,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 84,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st5",
+   "image": "assets/props/tree_forest.png",
+   "x": 228,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 212,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st6",
+   "image": "assets/props/tree_forest.png",
+   "x": 356,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st7",
+   "image": "assets/props/tree_forest.png",
+   "x": 484,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st8",
+   "image": "assets/props/tree_forest.png",
+   "x": 612,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 596,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st9",
+   "image": "assets/props/tree_forest.png",
+   "x": 1124,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 1108,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st10",
+   "image": "assets/props/tree_forest.png",
+   "x": 1252,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 1236,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st11",
+   "image": "assets/props/tree_forest.png",
+   "x": 1380,
+   "y": 256,
+   "w": 24,
+   "h": 12,
+   "ix": 1364,
+   "iy": 184,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st12",
+   "image": "assets/props/tree_forest.png",
+   "x": 100,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 84,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st13",
+   "image": "assets/props/tree_forest.png",
+   "x": 228,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 212,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st14",
+   "image": "assets/props/tree_forest.png",
+   "x": 356,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st15",
+   "image": "assets/props/tree_forest.png",
+   "x": 484,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st16",
+   "image": "assets/props/tree_forest.png",
+   "x": 612,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 596,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st17",
+   "image": "assets/props/tree_forest.png",
+   "x": 740,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 724,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st18",
+   "image": "assets/props/tree_forest.png",
+   "x": 868,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 852,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st19",
+   "image": "assets/props/tree_forest.png",
+   "x": 996,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 980,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st20",
+   "image": "assets/props/tree_forest.png",
+   "x": 1124,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 1108,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st21",
+   "image": "assets/props/tree_forest.png",
+   "x": 1252,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 1236,
+   "iy": 312,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "st22",
+   "image": "assets/props/tree_forest.png",
+   "x": 1380,
+   "y": 384,
+   "w": 24,
+   "h": 12,
+   "ix": 1364,
+   "iy": 312,
+   "solid": true
   }
  ]
 }
