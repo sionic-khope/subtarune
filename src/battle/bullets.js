@@ -99,6 +99,22 @@ export class Bullet {
     if (this.shape === 'tongue') {                                                  // 혀: 세로 분홍 막대(위 끝 둥글게)
       ctx.fillStyle = '#7a1b3a'; ctx.fillRect(x - 6, y - 12, 12, 40); ctx.fillStyle = '#e0557f'; ctx.fillRect(x - 5, y - 11, 10, 38); ctx.beginPath(); ctx.arc(x, y - 11, 5, 0, Math.PI * 2); ctx.fill(); return;
     }
+    if (this.shape === 'rock') {                                                    // 바위: 회색 각진 덩어리(회전) + 밝은 면 — 돌거북
+      ctx.save(); ctx.translate(x, y); ctx.rotate(this.rot); const r = this.r;
+      ctx.fillStyle = '#2b2f36'; ctx.beginPath(); ctx.moveTo(-r, -r * 0.4); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.6, -r * 0.9); ctx.lineTo(r, 0); ctx.lineTo(r * 0.5, r); ctx.lineTo(-r * 0.6, r * 0.8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#7d8592'; ctx.beginPath(); ctx.moveTo(-r + 2, -r * 0.4 + 1); ctx.lineTo(-r * 0.4 + 1, -r + 2); ctx.lineTo(r * 0.6 - 1, -r * 0.9 + 2); ctx.lineTo(r - 2, 0); ctx.lineTo(r * 0.5 - 1, r - 2); ctx.lineTo(-r * 0.6 + 1, r * 0.8 - 2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#b3bac6'; ctx.fillRect(-r * 0.4, -r * 0.6, r * 0.7, 2); ctx.restore(); return;
+    }
+    if (this.shape === 'pincer') {                                                  // 집게: 벌어진 청록 집게 두 갈래(진행 방향) — 바위게
+      ctx.save(); ctx.translate(x, y); ctx.rotate(this.rot + Math.atan2(this.vy, this.vx || 1e-6));
+      ctx.fillStyle = '#12332c'; ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(2, -7); ctx.lineTo(10, -3); ctx.lineTo(3, -1); ctx.lineTo(3, 1); ctx.lineTo(10, 3); ctx.lineTo(2, 7); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#4fae95'; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(2, -5); ctx.lineTo(7, -3); ctx.lineTo(2, -1); ctx.lineTo(2, 1); ctx.lineTo(7, 3); ctx.lineTo(2, 5); ctx.closePath(); ctx.fill(); ctx.restore(); return;
+    }
+    if (this.shape === 'cannonball') {                                              // 포탄: 크고 검은 공 + 하이라이트 + 불붙은 심지 — 대포미니언
+      ctx.fillStyle = '#0d1014'; ctx.beginPath(); ctx.arc(x, y, this.r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#3a4048'; ctx.beginPath(); ctx.arc(x, y, this.r - 2, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(x - this.r / 2, y - this.r / 2, 3, 3);
+      ctx.fillStyle = Math.floor(this.age * 16) % 2 ? '#ffb347' : '#ff5c2b'; ctx.fillRect(x + this.r - 3, y - this.r - 1, 3, 3); return;
+    }
     if (this.shape === 'fang') {                                                    // 송곳니 도약: 흰 삼각 둘
       ctx.save(); ctx.translate(x, y); ctx.rotate(Math.atan2(this.vy, this.vx || 1e-6)); ctx.fillStyle = '#f4f6f8';
       ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-6, -7); ctx.lineTo(-2, 0); ctx.lineTo(-6, 7); ctx.closePath(); ctx.fill(); ctx.restore(); return;

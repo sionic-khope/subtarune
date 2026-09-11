@@ -162,8 +162,8 @@ me = {'id': 'teal_east', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fal
       'spawns': {'from_left': {'x': 60, 'y': HR0 * 32 + 40, 'facing': 'right'}, 'start': {'x': 60, 'y': HR0 * 32 + 40, 'facing': 'right'}, 'landing': {'x': (W4 - 3) * 32, 'y': BR0 * 32 + 40, 'facing': 'left'}},
       'meta': {'road': [HR0, HR1, VC0, VC1, BR0, BR1]},
       'entities': ents4}
-m8 = placeholder('teal8', {'type': 'door', 'x': 32, 'y': 4 * 32, 'w': 8, 'h': 128, 'to': 'teal7', 'spawn': 'landing', 'sfx': False})   # teal5=teal5.py, teal6=teal6.py, teal7=teal7.py
-maps = {'teal1': m1, 'teal2': m2, 'teal3': m3, 'teal_east': me, 'teal8': m8}
+m9 = placeholder('teal9', {'type': 'door', 'x': 32, 'y': 4 * 32, 'w': 8, 'h': 128, 'to': 'teal8', 'spawn': 'landing', 'sfx': False})   # teal5=teal5.py, teal6=teal6.py, teal7=teal7.py, teal8=teal8.py
+maps = {'teal1': m1, 'teal2': m2, 'teal3': m3, 'teal_east': me, 'teal9': m9}
 if '--check' in sys.argv:
     ok = all(json.loads(io.open(f'assets/maps/{k}.json', encoding='utf-8').read()) == v for k, v in maps.items())
     print('teal maps', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)

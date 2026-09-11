@@ -69,4 +69,38 @@ export const ENEMIES = {
     lines: { appear: '* 두꺼비가 나타났다!', idle: ['* 두꺼비가 숨을 크게 들이쉰다.', '* 두꺼비 등에 사마귀가 많다.{w=0.3} 세다가 포기했다.', '* 요플래는 두꺼비를 만지고 싶어졌다.', '* 경섭이 허허 하고 웃었다.{w=0.3} (별 뜻은 없다)'], die: '* 두꺼비가 쓰러졌다.',
       speak: ['개굴.', '.........', '침 좀 튀길게.', '나 원래 안 움직여.'] },
   },
+  // ── 청록숲8 정글 2 (사용자 2026-09-11: HP 9/10/11, 70/80/100원, 패턴 어렵게). 자리표시 도트(tools/art/jungle8_set.py) — 사용자 PR 이미지가 같은 파일명으로 덮는다
+  krug: {
+    name: '돌거북', hp: 9,
+    image: 'assets/enemies/jungle-krug-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 12, money: 70, idle: { swayX: 2, swayY: 3, period: 3.6 },
+    patterns: [                                                                    // 돌·등껍질: 느리지만 크고 무겁게 — 낙석(예고) + 자갈 비, 튕기는 바위 5, 위아래 바위 + 조준 등껍질
+      { type: 'combo', parts: [{ type: 'slam', duration: 5.0, every: 0.7, warn: 0.4, speed: 340, from: 'top', r: 9, shape: 'rock', kind: 'white' }, { type: 'rain', duration: 5.0, rate: 0.2, speed: 120, r: 5, shape: 'rock', kind: 'white', spin: 3 }] },
+      { type: 'combo', parts: [{ type: 'bounce', duration: 5.0, count: 5, speed: 130, r: 9, shape: 'rock', kind: 'white', spin: 2 }, { type: 'sweep', duration: 5.0, rows: 3, gap: 28, speed: 125, r: 5, every: 0.9, shape: 'rock', kind: 'white' }] },
+      { type: 'combo', parts: [{ type: 'slam', duration: 4.8, every: 0.55, warn: 0.35, speed: 360, from: 'updown', r: 8, shape: 'rock', kind: 'white' }, { type: 'aimed', duration: 4.8, every: 0.8, speed: 160, r: 9, shape: 'rock', kind: 'white', spin: 5 }] },
+    ],
+    lines: { appear: '* 돌거북이 나타났다!', idle: ['* 돌거북이 등껍질 속으로 들어갔다.{w=0.3} 나올 생각이 없어 보인다.', '* 돌거북 등에 이끼가 끼어 있다.', '* 요플래가 돌거북을 두드려 봤다.{w=0.3} 돌 소리가 난다.', '* 억빠맨은 거북이가 느린 줄 알았다.'], die: '* 돌거북이 부서졌다.',
+      speak: ['...쿵.', '천천히 가자.', '등껍질은 안 판다.', '돌 맞아 봤어?'] },
+  },
+  scuttle: {
+    name: '바위게', hp: 10,
+    image: 'assets/enemies/jungle-scuttle-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 13, money: 80, idle: { swayX: 12, swayY: 1, period: 1.4 },
+    patterns: [                                                                    // 옆으로 잽싸게: 좌우 집게 돌진(예고 0.3) + 물방울 비, 집게 줄 5(한 줄만 빔) + 조준 방울, 튕기는 집게 6 + 좌우 돌진
+      { type: 'combo', parts: [{ type: 'slam', duration: 4.8, every: 0.5, warn: 0.3, speed: 400, from: 'sides', r: 7, shape: 'pincer', kind: 'white' }, { type: 'rain', duration: 4.8, rate: 0.22, speed: 110, r: 6, shape: 'bubble', kind: 'blue' }] },
+      { type: 'combo', parts: [{ type: 'sweep', duration: 4.8, rows: 5, gap: 20, speed: 165, r: 5, every: 0.65, shape: 'pincer', kind: 'white' }, { type: 'aimed', duration: 4.8, every: 0.55, speed: 200, r: 6, shape: 'bubble', kind: 'blue' }] },
+      { type: 'combo', parts: [{ type: 'bounce', duration: 4.8, count: 6, speed: 160, r: 6, shape: 'pincer', kind: 'white', spin: 8 }, { type: 'slam', duration: 4.8, every: 0.8, warn: 0.35, speed: 380, from: 'sides', r: 7, shape: 'pincer', kind: 'white' }] },
+    ],
+    lines: { appear: '* 바위게가 나타났다!', idle: ['* 바위게가 옆으로 잽싸게 움직인다.', '* 바위게가 집게를 딱딱거린다.', '* 경섭이 게장이 먹고 싶다고 했다.', '* 요플래는 게가 왜 옆으로만 걷는지 궁금해졌다.'], die: '* 바위게가 뒤집혔다.',
+      speak: ['딱딱딱.', '옆으로만 갈 수 있어.', '잡으면 시야 줄게.', '거품 좀 물게.'] },
+  },
+  cannon: {
+    name: '대포미니언', hp: 11,
+    image: 'assets/enemies/jungle-cannon-battle-left.png', pivot: [32, 60], scale: 1.4, damage: 14, money: 100, idle: { swayX: 4, swayY: 2, period: 2.6 },
+    patterns: [                                                                    // 대포: 큰 포탄(조준·박격·튕김) + 불티(작고 빠름) 동시
+      { type: 'combo', parts: [{ type: 'aimed', duration: 5.0, every: 0.5, speed: 210, r: 10, shape: 'cannonball', kind: 'white' }, { type: 'rain', duration: 5.0, rate: 0.16, speed: 150, r: 4, shape: 'circle', kind: 'orange' }] },
+      { type: 'combo', parts: [{ type: 'slam', duration: 5.0, every: 0.6, warn: 0.4, speed: 380, from: 'top', r: 10, shape: 'cannonball', kind: 'white' }, { type: 'sweep', duration: 5.0, rows: 4, gap: 24, speed: 140, r: 4, every: 0.8, shape: 'circle', kind: 'orange' }] },
+      { type: 'combo', parts: [{ type: 'bounce', duration: 5.0, count: 4, speed: 150, r: 10, shape: 'cannonball', kind: 'white', spin: 3 }, { type: 'slam', duration: 5.0, every: 0.7, warn: 0.35, speed: 400, from: 'sides', r: 6, shape: 'circle', kind: 'orange' }] },
+    ],
+    lines: { appear: '* 대포미니언이 나타났다!', idle: ['* 대포미니언이 대포를 재장전한다.', '* 대포미니언은 여기가 정글인 줄 모르는 것 같다.', '* 억빠맨이 귀를 막았다.', '* 요플래는 미니언을 마지막으로 잡아 본 게 언제인지 떠올렸다.'], die: '* 대포미니언이 폭발했다.',
+      speak: ['장전 완료.', '라인이 어디죠?', '펑.', '포탑 어디 갔어.'] },
+  },
 };
