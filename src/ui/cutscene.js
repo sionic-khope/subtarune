@@ -17,6 +17,9 @@
 //  { fire: { at:id, dx, dy, spread, rate, grow } } / { fire:null }   캐릭터·소품에 불이 붙어 커진다(기다리지 않음, game.flameEmitters) / 전부 끈다
 //  대사 노드 옵션 { cut: 1.4 }                   찍히는 중이라도 그 시간에 말이 끊기고 다음으로 (C/X 로 못 넘김) — 말하다 날아가는 연출
 //  { rocket: { ids:[id…], speed:1100, camera:id, amp:5 } }   불꼬리를 달고 오른쪽으로 쏘아져 맵 밖으로 사라진다(카메라가 따라감·흔들림, 끝나면 제거)
+//  { boom: { sheet:'assets/fx/<이름>.png', at:id|[x,y], cols, rows?:1, count?, fps?:14, scale?:1, offset?:[dx,dy], sfx?, hold?:0 } }
+//        한 번만 재생하는 큰 이펙트 애니(가로 프레임 띠). 모든 캐릭터 **위**에 그려지고 다 돌면 사라진다. 그림이 아직 없으면 소리만 나고 조용히 넘어간다.
+//        영상에서 만들기: /usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png (누끼·프레임 띠 자동)
 //  { pulse: 'red', times: 3, every: 0.4 }        화면 붉은 번쩍임(사이렌) — 대사와 겹치려면 { async: [{ pulse }] }
 //  { aura: { from:['red','blue'], to:['player','gyeongsub','ppaman'], colors:['#ff5c5c','#4fa8ff'], n:36, duration:1.6 } }  반짝이는 입자가 감싸 돈다(버프 획득)
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
@@ -206,6 +209,18 @@ export function makeWaiter(game, node) {
       game.shake = { time: 0.1, amp: r.amp ?? 5 };
       if (lead.x > game.map.pxW + 140) { for (const e of es) e.dead = true; game.flameEmitters = game.flameEmitters.filter((em) => !es.includes(em.e)); game.shake = null; return true; }
       return false; } };
+  }
+  if (node.boom) {                                     // { boom:{ sheet, at, cols, rows, count, fps, scale, offset, sfx, hold } } — 한 번 재생하는 이펙트 애니(캐릭터 위)
+    const b = node.boom;
+    let pos = Array.isArray(b.at) ? b.at : null;
+    if (!pos && b.at) { const e = findEntity(game, b.at); pos = e ? [(e.drawX ?? e.x) + (e.iw ?? e.w) / 2, (e.drawY ?? e.y) + (e.ih ?? e.h) / 2] : null; }
+    if (!pos) pos = [game.camera.x + SCREEN_W / 2, game.camera.y + SCREEN_H / 2];
+    if (b.offset) pos = [pos[0] + b.offset[0], pos[1] + b.offset[1]];
+    if (b.sfx) game.sound.sfx(b.sfx, b.volume !== undefined ? { volume: b.volume } : undefined);
+    const fps = b.fps ?? 14, count = b.count ?? (b.cols * (b.rows ?? 1)), dur = count / fps + (b.hold ?? 0);
+    game.playBoom({ src: b.sheet, x: pos[0], y: pos[1], cols: b.cols, rows: b.rows ?? 1, count, fps, scale: b.scale ?? 1 });
+    let t = 0;
+    return { update: (dt) => (t += dt) >= dur };
   }
   if (node.camera !== undefined) return cameraPan(game, node);
   if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }

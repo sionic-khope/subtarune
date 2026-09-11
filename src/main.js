@@ -71,6 +71,7 @@ class Game {
     this.ripples = [];            // 얕은 물 발소리 물결 고리 { x,y,t,dur } — emitRipple, 맵 위·캐릭터 아래에 그린다
     this.flames = []; this.flameEmitters = [];   // 불꽃 입자·방출기 (컷신 {fire}/{rocket}) — updateFlames, 캐릭터 위에 그린다
     this.mash = null;             // C 연타 미니게임 상태 (컷신 {mash}) — drawMash
+    this.booms = [];              // 한 번 재생하는 큰 이펙트 애니 (컷신 {boom}) — 캐릭터 위에 그린다
     this.prompt = null;           // { text, t } 작은 안내 창 (컷신 {prompt}) — C 로만 닫힘
   }
 
@@ -289,6 +290,22 @@ class Game {
     ctx.fillStyle = gd; ctx.fillRect(0, 170, SCREEN_W, 80); ctx.fillStyle = '#000'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);
   }
 
+  /** 한 번 재생하는 큰 이펙트 애니(컷신 {boom}): 가로(·세로) 프레임 띠를 그 자리에 한 바퀴만, 캐릭터 위에. 그림이 아직 없으면 조용히 넘어간다 */
+  playBoom({ src, x, y, cols, rows = 1, count, fps, scale = 1 }) {
+    const img = this.propImages[src];
+    const put = (image) => { if (image) this.booms.push({ img: image, x, y, cols, rows, count, fps, scale, t: 0 }); };
+    if (img) put(img);
+    else loadImageOptional(src).then((im) => { if (im) { this.propImages[src] = im; put(im); } else console.warn('[boom] 그림 없음', src); });
+  }
+  drawBooms(ctx, cam) {
+    for (const b of this.booms) {
+      const i = Math.min(b.count - 1, Math.floor(b.t * b.fps));
+      const fw = b.img.width / b.cols, fh = b.img.height / b.rows;
+      const sx = (i % b.cols) * fw, sy = Math.floor(i / b.cols) * fh;
+      const dw = Math.round(fw * b.scale), dh = Math.round(fh * b.scale);
+      ctx.drawImage(b.img, sx, sy, fw, fh, Math.round(b.x - cam.x - dw / 2), Math.round(b.y - cam.y - dh / 2), dw, dh);
+    }
+  }
   /** 불꽃 입자(컷신 {fire}/{rocket}): 방출기(엔티티에 붙음)가 rate 개/초(grow 로 점점 많이) 뿜고, 입자는 위로 오르며 노랑→주황→빨강→검붉게 사라진다. trail 은 뒤로 흐르는 불꼬리 */
   updateFlames(dt) {
     for (const em of this.flameEmitters) {
@@ -340,7 +357,7 @@ class Game {
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true; this.fx = []; this.prompt = null;
-    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = [];
+    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = [];
     this.fadeTo(1, 0.4, () => {
       this.resetState();
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
@@ -563,6 +580,7 @@ class Game {
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
     if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
+    if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.t * b.fps < b.count); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.battle) { this.battle.update(dt, Input); if (this.dialogue.running) this.dialogue.update(dt, Input); return; }   // 전투 중: 전투 + 컷신 대기자만
@@ -599,7 +617,7 @@ class Game {
     this.state = 'field'; this.menu = null; this.sound.sfx('close');
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
-    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null;
+    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null; this.booms = [];
     const spawnId = this.entrySpawn || 'start', def = MAPS[this.mapId], sp = def?.spawns?.[spawnId] || def?.spawns?.start || { x: this.player.x, y: this.player.y };
     for (const e of def?.entities || []) {                        // 뗏목: 입구에 가까운 끝으로 (route 0 또는 마지막)
       if (e.type !== 'raft') continue;
@@ -722,6 +740,7 @@ class Game {
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = Math.floor(p.ang * 3) % 2 ? 4 : 2; ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }   // 컷신 {aura} 반짝임(버프)
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})
+    if (this.booms.length) this.drawBooms(ctx, cam);
     this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다

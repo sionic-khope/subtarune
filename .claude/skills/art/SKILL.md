@@ -22,3 +22,6 @@ model: opus
 1. 함수 작성 → `main()` 의 `tiles`/`props` dict 에 등록 → `python3 tools/art/room_set.py /tmp/preview.png` 로 미리보기 PNG 를 만들어 **Read 로 확인**한다(반드시 눈으로 본다).
 2. 새 타일이면 `src/world/tiles.js` 에 `registerTile('글자', { name, solid, draw: flat('#색') })` 추가(폴백 색). 이름 = PNG 파일명.
 3. 맵에 배치는 `/map`.
+
+## 영상에서 이펙트 애니 만들기 (2026-09-12)
+폭발·불꽃 같은 이펙트는 직접 그리지 말고 사용자가 준 영상에서 누끼를 딴다: `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.4 --dur 1.2 --fps 14 --height 96 [--key black|green]`. 검은 배경 이펙트 영상은 기본값(`--key black`)이 밝기로 알파를 만들어 연기 가장자리가 반투명하게 남는다. 결과 띠를 컷신 `{ boom: {…} }` 로 재생(캐릭터 위, 한 번). 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -af ... assets/audio/sfx/<이름>.mp3` 후 `main.js loadSfxFiles` 목록 + `design/audio/references.md` 에 출처.
