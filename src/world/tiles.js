@@ -141,6 +141,8 @@ registerTile('u', { name: 'ground_teal2', solid: false, draw: flat('#1f6b66') })
 registerTile('w', { name: 'grass_teal', solid: false, draw: flat('#1f6b66') });   // ('g' 는 방 바닥 floor_vinyl2 — 2026-09-10 잘못 덮어썼다가 되돌림)
 registerTile('v', { name: 'cliff_teal', solid: true, draw: flat('#0f3a38') });
 registerTile('n', { name: 'leaves_teal', solid: false, draw: flat('#1f6b66') });   // 낙엽 깔린 땅 (청록숲 3)
+registerTile('r', { name: 'stone_teal', solid: false, draw: flat('#3b5957') });        // 고대 사원 판석(걸을 수 있음) — 청록숲9 (2026-09-11, tools/art/temple_set.py)
+registerTile('R', { name: 'stone_teal_moss', solid: false, draw: flat('#3b5957') });   // 이끼·금 간 판석
 registerTile('m', { name: 'forest_floor_teal', solid: true, draw: flat('#154844') });
 registerTile('d', { name: 'ground_teal_shade', solid: false, draw: flat('#061412') });   // 그늘 진 땅(걸을 수 있음): 나무 뒤 숨는 공간 (청록숲7, 2026-09-11)   // 숲 바닥(막힘): 길 밖 나무들이 서는 어두운 땅 — 허공에 뜬 나무 방지 (2026-09-11 사용자)
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)

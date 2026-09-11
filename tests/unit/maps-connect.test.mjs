@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/maps/index.json'), 'utf8')).maps;
-const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B']);
+const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B']);   // r/R: 고대 사원 판석(청록숲9)
 for (const id of idx) {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, `assets/maps/${id}.json`), 'utf8'));
   if (!m.rows || !m.meta?.connected) continue;

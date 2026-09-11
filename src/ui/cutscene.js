@@ -11,6 +11,7 @@
 //  { fade: 'in'|'out'|'white', duration?: 0.5 }     white = 하얗게. 'in' 은 현재 색에서 걷힘
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
+//  { pulse: 'red', times: 3, every: 0.4 }        화면 붉은 번쩍임(사이렌) — 대사와 겹치려면 { async: [{ pulse }] }
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
 //  { zoom: s, at: id|[x,y]|'center', offset?, duration? }  2D 월드 줌 (UI 제외)   { battle:{enemies:[id..], bgm?, flag?} } 턴제 전투(끝날 때까지 대기, game.lastBattle.win)
 //  { scene3d: 'drawer', flag? }  src/scenes/<name>.js 의 run(game,node) → {found} 을 기다림
@@ -148,6 +149,10 @@ export function makeWaiter(game, node) {
     if (node.sfx) game.sound.sfx(node.sfx);
     let t = 0; return { update: (dt) => { t += dt; return t >= (node.hold ?? 0.5); } };
   }   // (sfx 키를 같이 쓰므로 { sfx } 분기보다 앞에)
+  if (node.pulse) {                                    // { pulse:'red', times?:3, every?:0.4 } 화면이 붉게 번쩍번쩍(사이렌 — 청록숲9 레드). 낙석 피격의 hurt 오버레이를 재사용, 대사 중에도 돈다({async} 로)
+    const times = node.times ?? 3, every = node.every ?? 0.4; let t = 0, n = 0;
+    return { update: (dt) => { t += dt; if (n < times && t >= n * every) { game.hurt = 0.32; n++; } return t >= times * every; } };
+  }
   if (node.camera !== undefined) return cameraPan(game, node);
   if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
   if (node.fade) {
@@ -158,7 +163,7 @@ export function makeWaiter(game, node) {
     return { update: () => finished };
   }
   if (node.shake !== undefined) { game.shake = { time: node.shake, amp: node.amp ?? 3 }; return timer(node.shake); }
-  if (node.sfx) { game.sound.sfx(node.sfx); return done; }
+  if (node.sfx && Object.keys(node).every((k) => k === 'sfx' || k === 'volume')) { game.sound.sfx(node.sfx, node.volume !== undefined ? { volume: node.volume } : undefined); return done; }   // 효과음만 있는 노드. hop/fling 처럼 sfx 를 곁들이는 노드는 여기서 삼키지 않는다(2026-09-11: { hop, sfx:'thud' } 가 소리만 나고 안 뛰던 버그)
   if (node.sound) { game.sound[node.sound]?.(); return done; }
   if (node.show) { const e = findEntity(game, node.show); if (e) { e.visible = true; if (e._solidBeforeHide !== undefined) { e.solid = e._solidBeforeHide; delete e._solidBeforeHide; } } return done; }
   if (node.hide) { const e = findEntity(game, node.hide); if (e) { e.visible = false; if (e._solidBeforeHide === undefined) e._solidBeforeHide = e.solid; e.solid = false; } return done; }   // 안 보이는 것은 막지도 않는다 (2026-09-10 미로 출구에서 숨긴 NPC 가 길을 막았음)

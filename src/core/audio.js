@@ -15,7 +15,9 @@ export const VOICES = {
   gyeongsub:{ freq: 330, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.272, cutoff: 1600, glide: -20, rate: 0.9, cut: true, minGap: 0.07, level: 1.0 },   // 파일: 영상 첫 소리의 어택(앞 무음 62ms 잘라냄) 0.15s, 빠맨과 같은 톤다운(0.9)
   ppaman:   { freq: 990, wave: 'sine',     dur: 0.10, jitter: 15, gain: 0.288, cutoff: 3600, glide: 60, bell: true, rate: 0.9, cut: true, minGap: 0.08 }, // '띠링'을 톤다운한 종소리
   junhee:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90, rate: 0.92, level: 0.85, cut: true, minGap: 0.07 },   // 파일: 델타룬 수지 목소리(library snd_txtsus) 살짝 톤다운 — 2026-09-10 사용자 '귀아파' 로 합성 콧소리(voices/junhee_snort.mp3 보관, 피크 0dB)에서 교체
-  yongjun:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90, rate: 0.92, level: 0.85, cut: true, minGap: 0.07 },   // 박용준 — 파일 assets/audio/voices/yongjun.mp3(유튜브 쇼츠 LWx1CyyfvvI 시작 직후 0.34s '어?'), 없으면 이 합성
+  yongjun:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90, rate: 0.92, level: 0.85, cut: true, minGap: 0.07 },
+  red:       { freq: 150, wave: 'square',   dur: 0.09, jitter: 3,  gain: 0.2,   cutoff: 800,  glide: -10, cut: true, minGap: 0.12 },   // 레드(청록숲9 문지기) — 낮고 소리가 드문 기계 목소리 (사용자 2026-09-11 '약간 많이 낮으면서 소리가 많지 않은')
+  blue:      { freq: 118, wave: 'square',   dur: 0.10, jitter: 2,  gain: 0.2,   cutoff: 700,  glide: -8,  cut: true, minGap: 0.15 },   // 블루 — 레드보다 더 낮고 더 드문(따라 말하는 놈)   // 박용준 — 파일 assets/audio/voices/yongjun.mp3(유튜브 쇼츠 LWx1CyyfvvI 시작 직후 0.34s '어?'), 없으면 이 합성
 };
 
 export class Sound {

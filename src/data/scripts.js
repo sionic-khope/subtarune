@@ -21,6 +21,7 @@ import { teal4_peel, teal4_button, teal4_flower } from './cutscenes/teal4_events
 import { teal5_board, teal5_wall } from './cutscenes/teal5_river.js';
 import { teal6_ward, teal6_blue } from './cutscenes/teal6_events.js';
 import { teal8_ward, teal8_blue } from './cutscenes/teal8_events.js';
+import { teal9_boss, teal9_lantern, teal9_block } from './cutscenes/teal9_boss.js';
 import { teal7_hide } from './cutscenes/teal7_hide.js';
 
 /**
@@ -75,6 +76,7 @@ export const SCRIPTS = {
   teal7_hide,   // 청록숲7: 나무 뒤에 숨어 쥰희·경섭·용준 엿듣기 (src/data/cutscenes/teal7_hide.js)
   teal6_ward, teal6_blue,   // 청록숲6 정글: 와드 정찰(카메라 투어) / 파란 돌(경섭 핥기 → 전원 HP 회복 쉼터) (src/data/cutscenes/teal6_events.js)
   teal8_ward, teal8_blue,   // 청록숲8 정글 2: 같은 소품, 역할 바꾼 대사(경섭이 와드 박기 / 억빠맨이 먼저 마심) (src/data/cutscenes/teal8_events.js)
+  teal9_boss, teal9_lantern, teal9_block,   // 청록숲9 고대 사원 길: 레드·블루 문지기(대화 → 사이렌 → 보스전) + 석등·돌덩이 한 줄 (src/data/cutscenes/teal9_boss.js)
   teal5_board, teal5_wall,   // 청록숲5 물길: 승선 컷신(경섭 선택지 끊김·둘 다 헤엄) / 이단폭포 협동 2단 점프 튜토리얼 (src/data/cutscenes/teal5_river.js)
   teal4_peel, teal4_button, teal4_flower,   // 청록숲4: 바나나 껍질·수상한 버튼2·검은 꽃 (src/data/cutscenes/teal4_events.js) (src/data/cutscenes/teal2_events.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)

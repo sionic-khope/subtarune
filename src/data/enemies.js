@@ -106,4 +106,34 @@ export const ENEMIES = {
     lines: { appear: '* 대포미니언이 나타났다!', idle: ['* 대포미니언이 대포를 재장전한다.', '* 대포미니언은 여기가 정글인 줄 모르는 것 같다.', '* 억빠맨이 귀를 막았다.', '* 요플래는 미니언을 마지막으로 잡아 본 게 언제인지 떠올렸다.'], die: '* 대포미니언이 폭발했다.',
       speak: ['장전 완료.', '라인이 어디죠?', '펑.', '포탑 어디 갔어.'] },
   },
+  // ── 청록숲9 사원 문지기 보스 레드·블루 (사용자 2026-09-11: HP 22 씩, 꽤 어렵게, 대사 다채롭게). 둘이 한 전투 — 턴마다 각자 패턴이 동시에 온다.
+  //    이미지 PR #16(docs/handoffs/red-blue-buff-sprites.md): 전투 대기 192×192 시트(96×96 셀 2×2, 220ms, 발 pivot 48,89) / 필드 정면 64×64(pivot 32,60). 롤 레드 브램블백·블루 센티넬 모티브
+  red: {
+    name: '레드', hp: 22, voice: 'red',
+    sheet: { src: 'assets/enemies/red-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.15, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 2.4 },
+    patterns: [                                                                    // 방패 기사 = 신성한 영역: 한 칸만 안전 / 십자 성광 / 방패 벽 + 조준 방패 / 거대 방패 + 붉은 비
+      { type: 'zone', cols: 3, rows: 2, safe: 1, warn: 0.9, hit: 0.35, every: 1.7, duration: 5.2 },
+      { type: 'beam', dir: 'both', count: 1, thick: 30, warn: 0.75, hit: 0.3, every: 1.5, duration: 5.0 },
+      { type: 'combo', parts: [{ type: 'shield_wall', duration: 5.0, rows: 4, speed: 95, every: 1.1, kind: 'red' }, { type: 'aimed', duration: 5.0, every: 0.7, speed: 170, r: 7, shape: 'shield', kind: 'red' }] },
+      { type: 'combo', parts: [{ type: 'giant', duration: 5.0, from: 'sides', r: 30, speed: 160, warn: 0.8, every: 2.0, kind: 'red' }, { type: 'rain', duration: 5.0, rate: 0.3, speed: 110, r: 4, kind: 'red' }] },
+    ],
+    lines: { appear: '* 레드가 시험을 시작한다!',
+      idle: ['* 레드가 방패를 고쳐 잡는다.', '* 레드의 눈이 붉게 깜빡인다.{w=0.3} 사이렌 소리가 아직 귀에 남아 있다.', '* 억빠맨은 레드가 말을 한다는 게 아직도 안 믿긴다.', '* 요플래는 오브젝트가 대체 뭔지 궁금해졌다.', '* 경섭이 허허 하고 웃었다.{w=0.3} 긴장한 것 같다.', '* 레드가 "침입자" 라고 작게 중얼거린다.'],
+      die: '* 레드가 무릎을 꿇었다.{w=0.3} 시험 종료.',
+      speak: ['시험 시작.', '침입자 확인.', '신성한 영역이다.', '통과 불가.', '제거하라.', '방패는 뚫리지 않는다.', '경고는 끝났다.', '오브젝트를 지켜라.', '판정. 판정. 판정.', '물러나라.'] },
+  },
+  blue: {
+    name: '블루', hp: 22, voice: 'blue',
+    sheet: { src: 'assets/enemies/blue-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.15, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 3.0 },
+    patterns: [                                                                    // 망치 기사: 망치 낙하(파편) / 위아래 망치 + 방사형 망치 / 포물선 망치 + 따라오는 망치 / 내리찍기 자리 4곳
+      { type: 'bomb', every: 1.2, warn: 0.7, frags: 8, fragSpeed: 140, r: 8, shape: 'hammer', fragKind: 'blue', duration: 5.0 },
+      { type: 'combo', parts: [{ type: 'slam', duration: 5.0, every: 0.5, warn: 0.35, speed: 380, from: 'updown', shape: 'hammer', rot: Math.PI }, { type: 'burst', duration: 5.0, at: 'random', n: 8, speed: 120, every: 1.1, r: 6, shape: 'hammer', kind: 'blue', spin: 8 }] },
+      { type: 'combo', parts: [{ type: 'hammer_arc', duration: 5.0, every: 0.55, speed: 165 }, { type: 'homing', duration: 5.0, count: 1, speed: 100, turn: 2.6, life: 2.4, every: 1.5, r: 6, shape: 'hammer', kind: 'blue', spin: 6 }] },
+      { type: 'zone', cols: 4, rows: 2, count: 4, warn: 0.8, hit: 0.3, every: 1.3, duration: 5.0 },
+    ],
+    lines: { appear: '* 블루도.',
+      idle: ['* 블루가 망치를 어깨에 걸쳤다.', '* 블루는 말을 아낀다.{w=0.3} 아니면 못 하는 걸지도.', '* 억빠맨은 블루가 따라 하는 게 웃긴 모양이다.', '* 요플래는 블루의 망치가 몇 kg 인지 궁금해졌다.', '* 블루가 "...하라." 하고 혼자 중얼거렸다.', '* 블루의 눈이 파랗게 깜빡인다.'],
+      die: '* 블루가 쓰러졌다.{w=0.3} ...졌다.',
+      speak: ['...없다.', '하라.', '영역.', '시험.', '쿵.', '망치 간다.', '한다.', '제거.', '...따라 하는 거 아니다.', '침입자.'] },
+  },
 };

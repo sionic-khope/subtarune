@@ -1,0 +1,50 @@
+{
+ "id": "teal10",
+ "name": "청록숲",
+ "bgm": "hopes",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "teal_bush",
+ "rows": [
+  "                ",
+  "                ",
+  "                ",
+  "                ",
+  " ututututututut ",
+  " tututututututu ",
+  " ututututututut ",
+  " tututututututu ",
+  " vvvvvvvvvvvvvv ",
+  "                ",
+  "                ",
+  "                "
+ ],
+ "spawns": {
+  "from_bottom": {
+   "x": 260,
+   "y": 208,
+   "facing": "up"
+  },
+  "from_left": {
+   "x": 60,
+   "y": 200,
+   "facing": "right"
+  },
+  "start": {
+   "x": 60,
+   "y": 200
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 128,
+   "w": 8,
+   "h": 128,
+   "to": "teal9",
+   "spawn": "landing",
+   "sfx": false
+  }
+ ]
+}

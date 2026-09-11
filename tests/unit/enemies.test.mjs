@@ -8,7 +8,7 @@ import fs from 'node:fs';
 test('test_enemies_idle_lines_do_not_mention_other_enemies', () => {
   const names = Object.values(ENEMIES).map((e) => e.name);
   for (const [id, e] of Object.entries(ENEMIES)) for (const line of [...(e.lines?.idle || []), ...(e.lines?.speak || [])]) {
-    for (const other of names) if (other !== e.name) assert.ok(!line.includes(other), `${id} idle 문구가 다른 적 '${other}' 를 언급: ${line}`);
+    for (const other of names) if (other !== e.name && !e.name.includes(other)) assert.ok(!line.includes(other), `${id} idle 문구가 다른 적 '${other}' 를 언급: ${line}`);   // 자기 이름에 포함된 이름('레드 CS' 의 '레드')은 제외
     assert.ok(!/서로|둘이서|둘이 |둘 다|CS 들이|들이 서로/.test(line), `${id} idle 문구가 복수의 적을 전제: ${line}`);   // '들이쉰다' 같은 낱말은 제외
   }
 });
