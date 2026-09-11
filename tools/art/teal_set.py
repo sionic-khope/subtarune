@@ -258,14 +258,14 @@ def prop_blue_buff():
     return strip
 
 def tile_ground_shade():
-    """그늘 땅 32x32(걸을 수 있음): 땅 타일보다 어둡고 점이 성기다 — 나무 그림자 아래 숨는 공간"""
+    """그늘 땅 32x32(걸을 수 있음): 땅 타일을 거의 검정(22%)까지 낮춘다 — 나무에 둘러싸인 은신처 바닥. 그 위를 shade 엔티티가 한 번 더 덮는다 (2026-09-11 사용자 '그림자 완전 어둡게')"""
     base = tile_ground(0)
     c = Canvas(T, T)
     for y in range(T):
         for x in range(T):
             r, g, b, a = base.a[y, x]
-            c.a[y, x] = (int(r * 0.62), int(g * 0.62), int(b * 0.62), 255)
-    for (x, y) in ((6, 10), (22, 6), (14, 24), (27, 20)): c.px(x, y, hexc('#0d2f2c'))
+            c.a[y, x] = (int(r * 0.22), int(g * 0.22), int(b * 0.22), 255)
+    for (x, y) in ((6, 10), (22, 6), (14, 24), (27, 20)): c.px(x, y, hexc('#03100e'))
     return c
 
 if __name__ == '__main__':

@@ -925,6 +925,24 @@ export class Spitter extends Entity {
 registerEntity('spitter', Spitter);
 registerEntity('raft', Raft);
 registerEntity('swimmer', Swimmer);
+/**
+ * 그늘(어두운 덮개): 지정 사각형을 **엔티티 위에** 반투명 검정으로 덮는다 — 나무에 둘러싸인 은신처(청록숲7). 그 안에 선 캐릭터는 어둠 속에서 흐릿하게 보인다
+ *   (델타룬 2장 어두운 문틈에 숨는 장면 참고, 2026-09-11 사용자 '그림자 완전 어둡게'). 가장자리보다 안쪽이 한 단계 더 어둡다.
+ *   { type:'shade', id?, x, y, w, h, alpha?:0.62, inset?:14 }  — 충돌·상호작용 없음, y 정렬 무관(맨 위 drawOverlay), 맵 dim 위에 그려진다
+ */
+export class Shade extends Entity {
+  constructor(def, game) { super({ solid: false, ...def }, game); }
+  canInteract() { return false; }
+  draw() {}
+  drawOverlay(ctx, cam) {
+    if (!this.visible) return;
+    const a = this.def.alpha ?? 0.62, inset = this.def.inset ?? 14;
+    const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
+    ctx.fillStyle = `rgba(1,4,6,${a})`; ctx.fillRect(x, y, this.w, this.h);
+    if (inset > 0 && this.w > inset * 2 && this.h > inset * 2) { ctx.fillStyle = `rgba(1,4,6,${a * 0.5})`; ctx.fillRect(x + inset, y + inset, this.w - inset * 2, this.h - inset * 2); }
+  }
+}
+registerEntity('shade', Shade);
 registerEntity('prop', Prop);
 registerEntity('npc', NPC);
 

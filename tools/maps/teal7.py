@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""청록숲7 (사용자 브리핑 2026-09-11): 일직선 길 + 길 중간 위쪽에 나무 두 그루 사이 세 명이 숨을 그림자 진 공간(주머니). 입구에서 3초쯤 걸으면 쥰희·경섭·용준 연출(teal7_hide).
+"""청록숲7 (사용자 브리핑 2026-09-11): 일직선 길 + 길 중간 위쪽에 나무에 둘러싸인 어두운 은신처(주머니). 입구에서 3초쯤 걸으면 쥰희·경섭·용준 연출(teal7_hide).
+은신처: 바닥은 거의 검은 그늘 땅(d) + 그 위를 shade 엔티티가 반투명 검정으로 덮어 안에 선 캐릭터가 어둠 속에 흐릿하게 보인다(델타룬 2장 어두운 문틈 참고).
+  뒷벽 두 줄(11그루)·양옆 기둥(3+3그루)이 감싸고 아래(길 쪽)만 열려 있다 — 2026-09-11 사용자 "그림자 완전 어둡게, 나무가 둘러싸여 은폐하는 것처럼".
 실행: /usr/bin/python3 tools/maps/teal7.py  (--check)
 """
 import io, json, sys
@@ -9,9 +11,10 @@ def g(r, c): return 'w' if (r * 7 + c * 13) % 11 == 0 else ('t' if (r + c) % 2 =
 R0, R1 = 8, 10                       # 길 3줄 (256~352)
 for r in range(R0, R1 + 1):
     for c in range(1, W - 1): rows[r][c] = g(r, c)
-PC0, PC1, PR0, PR1 = 24, 30, 4, 7    # 그림자 주머니: 24~30열, 4~7행 (길 바로 위, 7행이 길과 닿는다) — 트리거(22열) 바로 뒤, 맵 가운데
+PC0, PC1, PR0, PR1 = 25, 29, 4, 7    # 은신처 바닥(d): 25~29열, 4~7행 (길 바로 위, 7행이 길과 닿는다 = 입구) — 트리거(22열) 바로 뒤, 맵 가운데. 양옆 24·30열은 숲 바닥(m)에 나무 기둥이 선다
 for r in range(PR0, PR1 + 1):
-    for c in range(PC0, PC1 + 1): rows[r][c] = 'd'    # 그늘 땅(걸을 수 있음, 어두움)
+    for c in range(PC0, PC1 + 1): rows[r][c] = 'd'    # 그늘 땅(걸을 수 있음, 거의 검정)
+    rows[r][PC0 - 1] = 'm'; rows[r][PC1 + 1] = 'm'
 walk = [[rows[r][c] in 'tuwnd' for c in range(W)] for r in range(H)]
 for r in range(1, H - 1):
     for c in range(1, W - 1):
@@ -31,9 +34,17 @@ ents = [
     {'type': 'door', 'x': (W - 1) * T - 8, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'teal8', 'spawn': 'from_left', 'sfx': False},
     # 입구에서 3초쯤(걷기 218px/s × 3 ≈ 650px) 걸으면 연출 1회
     {'type': 'trigger', 'id': 'hide_trig', 'x': 22 * T + 16, 'y': R0 * T, 'w': 16, 'h': 96, 'once': True, 'flag': 'teal7_hide_seen', 'script': 'teal7_hide'},
-    # 숨는 공간 양옆 나무 두 그루 (밑동은 주머니 아랫줄, 잎은 위로) — 사이에 셋이 선다
-    ftree('hide_tree_l', 24 * T + 8, PR1 * T - 72), ftree('hide_tree_r', 29 * T + 8, PR1 * T - 72),
 ]
+# 은신처를 감싸는 나무 고리 (tree_forest.png 56x84: 밑동 히트박스 y+72~84, x+16~40 → 밑동 y 로 놓는다). y 정렬은 밑동 기준: 숨는 줄(y 168, 히트박스 아래 ~184)보다 밑동이 위면 셋의 뒤, 아래면 앞에 그려진다
+TREE_H = 84
+def tree_base(id_, x, base_y): return ftree(id_, x, base_y - TREE_H)
+ring = []
+for i, x in enumerate(range(24 * T - 4, 30 * T + 5, 40)): ring.append(tree_base(f'ring_b{i}', x, 4 * T + 20))     # 뒷벽 6그루(밑동 148) — 숨은 셋 바로 뒤
+for i, x in enumerate(range(24 * T + 16, 30 * T - 3, 40)): ring.append(tree_base(f'ring_c{i}', x, 4 * T))         # 뒷벽 사이사이 5그루(한 단 위) — 빽빽하게
+for i, by in enumerate((5 * T + 16, 6 * T + 20, 7 * T + 24)):                                                      # 양옆 기둥 3+3그루 — 아래 둘은 셋보다 앞이라 옆을 가린다
+    ring.append(tree_base(f'ring_l{i}', 24 * T - 8, by)); ring.append(tree_base(f'ring_r{i}', 30 * T + 8, by))
+SHADE = {'type': 'shade', 'id': 'hide_shade', 'x': PC0 * T - 8, 'y': PR0 * T - 16, 'w': (PC1 - PC0 + 1) * T + 16, 'h': (PR1 - PR0 + 1) * T + 16, 'alpha': 0.62}   # 안을 덮는 어둠(엔티티 위, src/world/world.js Shade)
+ents += ring + [SHADE]
 grid = [list(r) for r in rows]
 def ground(r, c): return 0 <= r < H and 0 <= c < W and grid[r][c] in 'tuwnd'
 seen = set(); k = 0
@@ -49,9 +60,9 @@ for r in range(1, H - 2):
 m = {'id': 'teal7', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'teal', 'rows': rows,
      'preload': ['assets/sprites/junhee.png'],
      'spawns': {'from_left': {'x': 60, 'y': 9 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 9 * T + 8, 'facing': 'right'}, 'landing': {'x': (W - 4) * T, 'y': 9 * T + 8, 'facing': 'left'}},
-     'meta': {'connected': True, 'hide': HIDE, 'stage': STAGE, 'trigger': 22 * T + 16},
+     'meta': {'connected': True, 'hide': HIDE, 'stage': STAGE, 'trigger': 22 * T + 16, 'shade': [SHADE['x'], SHADE['y'], SHADE['w'], SHADE['h']], 'ring': len(ring)},
      'entities': ents}
 path = 'assets/maps/teal7.json'
 if '--check' in sys.argv:
     cur = json.loads(io.open(path, encoding='utf-8').read()); print('teal7', 'same' if cur == m else 'DIFFERENT'); sys.exit(0 if cur == m else 1)
-io.open(path, 'w', encoding='utf-8').write(json.dumps(m, ensure_ascii=False, indent=1)); print('wrote', path, W, 'x', H, 'trees', k + 2)
+io.open(path, 'w', encoding='utf-8').write(json.dumps(m, ensure_ascii=False, indent=1)); print('wrote', path, W, 'x', H, 'trees', k + len(ring), 'ring', len(ring))

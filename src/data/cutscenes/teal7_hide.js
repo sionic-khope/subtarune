@@ -3,14 +3,15 @@
 //   쥰희 "아 경섭이형 어딨어!" → 형섭·빠맨 느낌표 → 위 그림자 나무 사이로 뛰어가 양옆에 나란히 숨고 아래(앞)를 본다. 그 바로 아래 경섭, 오른쪽에서 쥰희가 다가옴 → 쥰희 느낌표.
 //   (웃음) 형 여깄었구나 … 그것(노란색) … 쥰희 클로즈업 두둥 "그냥 존나 센게 멋지잖아!" … ???: 형 → 쥰희 "나좀 숨겨줘" → 쥰희가 위로 올라가 형섭·빠맨 사이에 서서 아래를 본다(둘은 양옆으로 살짝 비켜 식은땀)
 //   → 용준이 오른쪽에서 걸어옴 → 대화(그것의 정체는 경섭이 말을 끊어 숨김) → 용준 오른쪽 퇴장 → 쥰희 내려와 "... ... ..." / "뭐 ㅅㅂ 이따봐 형" → 퇴장 → 형섭·빠맨 천천히 내려옴 → 억빠맨 "형 뭐 숨기고있어요?" … "구경가보죠" / "그 그려".
-//   브금: 쥰희 등장부터 Lancer(사전 준비 요청), 끝나면 맵 브금(hopes). 용준 스프라이트는 임시(guard 팔레트 기본 도트) — 곧 교체 예정.
+//   브금: 쥰희 등장부터 Lancer(사전 준비 요청), 끝나면 맵 브금(hopes). 용준 스프라이트는 PR #12(assets/sprites/yongjun.png), 목소리는 유튜브 쇼츠 '어?'.
+//   은신처: 나무에 둘러싸인 어두운 주머니(맵 shade 엔티티가 그 안을 덮는다) — 숨은 둘은 어둠 속에서 흐릿하게 보인다.
 // ─────────────────────────────────────────────────────────────
 import { MAPS } from '../maps.js';
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const J = (text, extra = {}) => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text, ...extra });
 const Y = (text, extra = {}) => ({ speaker: '박용준', portrait: 'yongjun', voice: 'yongjun', text, ...extra });
-const Q = (text) => ({ speaker: '???', voice: 'mystery', text });
+const Q = (text, voice = 'mystery') => ({ speaker: '???', voice, text });   // 화면 밖 목소리: 이름은 ??? 지만 목소리는 그 사람 것(사용자 2026-09-11 '경섭이형 어딨어 도 쥰희 목소리로')
 const N = (text) => ({ text, voice: 'narrator' });
 // 좌표는 맵 meta(JSON, 부팅 뒤 로드)에서 실행 시점에 읽는다 — 모듈 로드 때 MAPS.teal7 은 아직 없다
 const at = (k) => ({ px: () => MAPS.teal7.meta.hide[k] || MAPS.teal7.meta.stage[k] });
@@ -18,7 +19,7 @@ const spawnAtEdge = (id, sprite) => ({ action: (g) => { const [x, y] = MAPS.teal
 
 export const teal7_hide = [
   { face: 'player', dir: 'right' }, { face: 'ppaman', dir: 'right' }, { face: 'gyeongsub', dir: 'right' },
-  Q('* 아 경섭이형 어딨어!'),
+  Q('* 아 경섭이형 어딨어!', 'junhee'),
   { parallel: [{ emote: 'player', kind: '!', duration: 1.0, hold: 0.5, sfx: 'chime' }, { emote: 'ppaman', kind: '!', duration: 1.0, hold: 0.5 }] },
   // 형섭·빠맨: 위 그림자 나무 사이로 (양옆에 나란히, 앞을 본다) / 경섭: 그 바로 아래 길
   { parallel: [{ move: 'player', ...at('left'), run: true }, { move: 'ppaman', ...at('right'), run: true }, { move: 'gyeongsub', ...at('gyeongsub'), run: true }] },
@@ -44,15 +45,15 @@ export const teal7_hide = [
   { zoom: 1, duration: 0.4 },                                                              // 카메라 다시 쥰희·경섭
   G('* 허허..'),
   J('* 일단은 잘 준비하고 따라와보라고{w=0.3} 으하하'),
-  Q('* 형'),
+  Q('* 형', 'yongjun'),
   J('* 오 이런{w=0.3} 나좀 숨겨줘'),
   // 쥰희가 그냥 바로 위로 올라가 형섭·빠맨 사이에 서서 아래를 본다. 둘은 양옆으로 살짝 비켜 아래를 보고 식은땀
-  { parallel: [{ move: 'junhee', ...at('center'), run: true }, { move: 'player', ...at('left_wide') }, { move: 'ppaman', ...at('right_wide') }] },
+  { parallel: [{ move: 'junhee', ...at('center'), run: true, speed: 190 }, { move: 'player', ...at('left_wide') }, { move: 'ppaman', ...at('right_wide') }] },   // 쥰희는 전력 질주(380px/s, 사용자 2026-09-11 '숨으러 달려가는 속도 빨라야 됨')
   { face: 'junhee', dir: 'down' }, { face: 'player', dir: 'down' }, { face: 'ppaman', dir: 'down' },
   { parallel: [{ emote: 'player', kind: 'sweat', duration: 2.4, hold: 0.3 }, { emote: 'ppaman', kind: 'sweat', duration: 2.4, hold: 0.3 }] },
   G('* 어 ?'),
   spawnAtEdge('yongjun', 'yongjun'),
-  { move: 'yongjun', ...at('guest') }, { face: 'gyeongsub', dir: 'right' },
+  { move: 'yongjun', ...at('guest'), run: true }, { face: 'gyeongsub', dir: 'right' },                    // 쥰희를 잡으러 뛰어온다(걷기 120px/s 는 4.5초 — 사용자 2026-09-11 '너무 느린 듯')
   Y('* 어 형 안녕하세요'),
   G('* 어 용준아 안녕'),
   Y('* 쥰희형 못보셨어요?'),

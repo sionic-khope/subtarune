@@ -32,8 +32,12 @@ const PREP_OPEN = 0.3;               // 적 턴: 탄막 상자가 패널 자리�
 const PREP_HOLD = 0.9;               // 말풍선이 다 뜬 뒤 탄막까지 준비 시간(초) (사용자: "펼쳐지고 대사 나오고 준비할 딜레이")
 const BUBBLE_CPS = 0.03;             // 말풍선 타자 속도(초/글자)
 const BGM_DELAY = 0;                 // 전투 화면이 열리는 순간 브금 (침묵 없음). 2026-09-11 타임라인: 징글 마지막 악절이 1.45~1.5s 에 끝나고 화면이 1.5s 에 열린다 → 그 자리에 바로 이어 붙인다
-const BGM_FADE = 0.3;                // 징글 꼬리에서 브금으로 넘어가는 페이드(초) — 0 은 쾅, 0.2s 침묵도 어색, 0.15 도 급함 → 0.3 (사용자 2026-09-11)
+const BGM_FADE = 0;                  // 페이드 없음. rude_buster.mp3 는 0.000s 에 가장 큰 첫 타(peak 1.07)가 있어 0.3s 선형 페이드가 그 타를 통째로 삼켰다(사용자 2026-09-11 '시작 지점이 사라진 느낌'). 징글은 1.50s 에 끝나고 화면이 1.52s 에 열리므로 그 자리에서 원래 음량으로 바로 (tests/playtest/battle_bgm.mjs 가 currentTime·음량을 잰다)
 const SMALL = FONT.replace(/^\d+px/, '12px');   // 말풍선·HP 숫자용 작은 글씨
+const DOWN_TURNS = 3;                // 쓰러진 동료가 일어나기까지의 라운드 수 — 라운드(적 턴 끝)마다 회복 이펙트, 마지막에 반피로 부활 (사용자 2026-09-11)
+const REVIVE_RATIO = 0.5;            // 부활 HP 비율(반피). 승리 시 쓰러진 동료도 이 비율로 일어난다
+const LOSE_HOLD = 0.9;               // 전원 쓰러진 뒤 전장을 이만큼 보여 주고 어두워진다(게임 오버 = 셋 다 쓰러졌을 때만)
+const RETRY_JINGLE = 1.5;            // 다시 도전: 검은 화면에서 징글이 끝나는 시간(표준 조우 타임라인과 같다) 뒤 전투 화면
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
 const cached = (map, key, make) => { if (!map.has(key)) map.set(key, make()); return map.get(key); };
@@ -73,14 +77,14 @@ export class Battle {
     this.members = ids.map((id, i) => {
       const ch = CHARACTERS[id]; const max = ch.hp ?? 100;
       const name = i === 0 && game.has?.('void_fallen') ? '요플래' : (ch.partyName || ch.name);
-      return { id, name, maxHp: max, hp: Math.max(1, Math.min(max, game.partyHp?.[id] ?? max)), home: [PARTY_X, ys[i]], frames: null, action: null, popup: null, down: false };
+      return { id, name, maxHp: max, hp: Math.max(1, Math.min(max, game.partyHp?.[id] ?? max)), home: [PARTY_X, ys[i]], frames: null, action: null, popup: null, down: false, downTurns: 0 };
     });
     const eys = ENEMY_YS[cfg.enemies.length] || ENEMY_YS[3];
     this.enemies = cfg.enemies.map((id, i) => { const def = ENEMIES[id]; return { id, def, name: def.name, hp: def.hp, maxHp: def.hp, x: ENEMY_X, y: eys[i], img: null, dead: false, dying: 0, shake: 0, blink: 0, popup: null, patternIdx: 0 }; });
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
     this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random;
     this.modes = { attack: cfg.modes?.attack || 'rush', enemy: cfg.modes?.enemy || 'bullets' }; this.gimmick = null;   // 기믹 모드(src/battle/modes.js): 공격/적 턴을 미니게임으로 바꿔 끼움
-    this.result = null; this.pressed = false;
+    this.result = null; this.pressed = false; this.fx = []; this.retryT = undefined;   // fx: 회복 반짝임(쓰러진 동료 위)
     this.load();                                                       // 브금·페이드인은 load() 가 에셋을 다 준비한 뒤 — 검은 화면/로딩 정지 아래에서 첫 소절이 지나가지 않게 (사용자 2026-09-10 '초반이 패스당한 느낌')
   }
 
@@ -128,6 +132,7 @@ export class Battle {
       const idle = e.def.idle || { swayX: 7, swayY: 2, period: 2.8 }; const ph = this.t * Math.PI * 2 / (idle.period || 2.8) + i * 1.9;   // 기본 모션: 좌우로 천천히(사용자: 정적인 느낌 없애기), 살짝 위아래
       e.ox = Math.sin(ph) * (idle.swayX ?? 7); e.oy = -Math.abs(Math.sin(ph * 2)) * (idle.swayY ?? 2); });
     this.board.update(dt); this.typeText(dt);
+    this.fx = this.fx.filter((f) => { f.t += dt; if (f.t > 0) f.y += f.vy * dt; return f.t < f.life; });
     switch (this.state) {
       case 'load': return;
       case 'intro': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; }
@@ -138,13 +143,14 @@ export class Battle {
       case 'item-target': return this.updateItemTarget(input);
       case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.5 && (input.just('confirm') || this.t > 1.8)) { this.state = this.after || 'menu'; this.t = 0; } return;
       case 'act': return this.updateAct(dt, input);
-      case 'enemy-mode': if (this.gimmick && this.gimmick.update(dt, input) && this.state === 'enemy-mode') { this.gimmick = null; this.beginMenu(); } return;
+      case 'enemy-mode': if (this.gimmick && this.gimmick.update(dt, input) && this.state === 'enemy-mode') { this.gimmick = null; this.afterEnemyPhase(); } return;
       case 'enemy-prep': return this.updatePrep(dt, input);
       case 'bullets': return this.updateBullets(dt, input);
-      case 'board-close': if (this.t > 0.3) this.beginMenu(); return;
+      case 'board-close': if (this.t > 0.3) this.afterEnemyPhase(); return;
       case 'win': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.6 && input.just('confirm')) this.finish(true); return;
       case 'ending': return;
-      case 'lose': if (this.t > 0.8 && input.just('confirm')) this.retry(); return;
+      case 'lose': if (this.t > LOSE_HOLD + 1.0 && input.just('confirm')) this.beginRetry(); return;   // 게임 오버 화면의 [다시 도전하기]
+      case 'retry': if (this.retryT !== undefined) { this.retryT -= dt; if (this.retryT <= 0) { this.retryT = undefined; this.load(); } } return;
     }
   }
   beginMenu() {
@@ -208,7 +214,7 @@ export class Battle {
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
-      if (!this.living().length) { const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0); this.game.money = (this.game.money || 0) + gain; this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain)); this.game.sound.stopBgm(0.3); this.sfx('won'); return; }   // 표준 승리 문구: '전투에서 승리했다! n원을 얻었다.' + 델타룬 snd_won
+      if (!this.living().length) { this.standUpAll(); const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0); this.game.money = (this.game.money || 0) + gain; this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain)); this.game.sound.stopBgm(0.3); this.sfx('won'); return; }   // 표준 승리 문구: '전투에서 승리했다! n원을 얻었다.' + 델타룬 snd_won
       this.beginEnemyTurn(); return;
     }
     const plan = this.plans[this.actIdx++];
@@ -282,14 +288,36 @@ export class Battle {
     const m = alive[Math.floor(this.rnd() * alive.length)];
     m.hp = Math.max(0, m.hp - dmg); m.popup = { t: 0, text: String(dmg) };
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
-    if (m.hp <= 0) { m.down = true; }
-    if (!this.alive().length) { this.bullets = []; this.bubble = null; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(L.battle_lose); }
+    if (m.hp <= 0) { m.down = true; m.downTurns = 0; m.action = null; m.pose = null; }   // 쓰러짐: 누워서 행동 불능 (afterEnemyPhase 가 라운드마다 세어 DOWN_TURNS 에 일으킨다)
+    // 게임 오버는 셋(전원)이 다 쓰러졌을 때만 (사용자 2026-09-11)
+    if (!this.alive().length) { this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
   }
-  retry() {
-    this.bubble = null;
-    for (const m of this.members) { m.hp = m.maxHp; m.down = false; }
-    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; }
-    this.setText(this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n')); this.state = 'intro'; this.t = 0;
+  /** 라운드 경계(적 턴 끝): 쓰러진 동료마다 회복 이펙트(초록 반짝임 + heal 음), DOWN_TURNS 번째 라운드에 반피로 일어난다 — 사용자 2026-09-11 '한 턴마다 회복 이펙트, 3턴 지나면 반피 부활' */
+  afterEnemyPhase() {
+    const up = [];
+    for (const m of this.members) {
+      if (!m.down) continue;
+      m.downTurns++;
+      if (m.downTurns >= DOWN_TURNS) { this.standUp(m); up.push(m); this.sparkle(m, 26, true); }
+      else this.sparkle(m, 10, false);
+    }
+    if (up.length || this.members.some((m) => m.down)) this.sfx('heal');
+    this.beginMenu();
+    if (up.length) this.setText(up.map((m) => L.battle_revive.replace('{name}', m.name)).join('\n'));   // 잡담 문구 자리에 '다시 일어났다!'
+  }
+  standUp(m) { m.down = false; m.downTurns = 0; m.hp = Math.max(1, Math.ceil(m.maxHp * REVIVE_RATIO)); m.popup = { t: 0, text: '+' + m.hp, heal: true }; }
+  /** 승리 시 쓰러진 동료도 반피로 일어난다(전투 밖에서 HP 0 으로 남지 않게) */
+  standUpAll() { for (const m of this.members) if (m.down) this.standUp(m); }
+  /** 회복 반짝임: 누운 몸 위에서 초록 점(부활 때는 + 모양 섞어서 더 많이)이 떠오른다 */
+  sparkle(m, n, big) { for (let i = 0; i < n; i++) this.fx.push({ x: m.home[0] - 34 + this.rnd() * 68, y: m.home[1] - 6 + this.rnd() * 10, vy: -(28 + this.rnd() * 46), t: -this.rnd() * 0.25, life: 0.7 + this.rnd() * 0.5, plus: !!big && i % 3 === 0 }); }
+  /** 게임 오버 → [다시 도전하기]: 즉시 검은 화면 + 징글·흔들림(표준 조우와 같은 타임라인) → HP·적 복구 → load() 가 화면을 걷고 브금을 튼다. 같은 전투를 처음부터 */
+  beginRetry() {
+    this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = [];
+    for (const m of this.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; m.action = null; m.popup = null; m.pose = null; }
+    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.popup = null; e.shake = 0; e.blink = 0; }
+    this.game.fadeTo(1, 0, undefined, 'black');
+    this.game.sound.preloadBgm(this.cfg.bgm); this.sfx('battle_start'); this.game.shake = { time: 0.45, amp: 3 };
+    this.retryT = RETRY_JINGLE;
   }
   finish(win) {
     if (this.state === 'ending') return;
@@ -301,21 +329,48 @@ export class Battle {
   // ── 그리기 ──
   draw(ctx) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    if (this.state === 'retry') return;                             // 징글 동안 검은 화면(표준 조우의 검은 화면과 같다)
     if (this.cfg.bg === 'teal') this.drawTealBg(ctx);
     ctx.font = FONT; ctx.textBaseline = 'top';
     for (const e of this.enemies) this.drawEnemy(ctx, e);
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
     for (const m of idle) this.drawMember(ctx, m);
     for (const m of busy) this.drawMember(ctx, m);
+    for (const f of this.fx) { if (f.t < 0) continue; const k = 1 - f.t / f.life; ctx.globalAlpha = Math.max(0, Math.min(1, k * 1.6)); ctx.fillStyle = f.plus ? '#eaffea' : '#7cff7c'; const X = Math.round(f.x), Y = Math.round(f.y);
+      if (f.plus) { ctx.fillRect(X - 3, Y, 8, 2); ctx.fillRect(X, Y - 3, 2, 8); } else ctx.fillRect(X, Y, 3, 3); }
+    ctx.globalAlpha = 1;
     if (this.gimmick) { if (this.gimmick.draw) this.gimmick.draw(ctx); else this.drawTextBox(ctx); }
     else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.board.draw(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
-    else this.drawPanel(ctx);
-    if (this.state === 'lose') this.drawTextBox(ctx);
+    else if (this.state !== 'lose') this.drawPanel(ctx);
     if (this.bubble) this.drawBubble(ctx);                          // 적 말풍선(준비 단계)
     this.drawHpStrip(ctx);                                          // HP 띠는 어느 상태에서나 맨 아래 (사용자: '체력바를 아예 아래로 빼')
+    if (this.state === 'lose') this.drawGameOver(ctx);              // 전원 쓰러짐: 전장이 어두워지고 GAME OVER + [다시 도전하기]
+  }
+  /** 게임 오버(사용자 2026-09-11 '게임오버 기준은 셋 다 죽었을 때, 다시 도전하기 버튼'): LOSE_HOLD 동안 누운 셋을 보여 준 뒤 0.8s 에 걸쳐 어두워지고 GAME OVER · 문구 · [다시 도전하기](하트 커서, C) */
+  drawGameOver(ctx) {
+    const k = Math.min(1, Math.max(0, (this.t - LOSE_HOLD) / 0.8));
+    ctx.fillStyle = `rgba(0,0,0,${0.92 * k})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    if (k < 1) return;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = FONT.replace(/^\d+px/, '34px'); ctx.fillStyle = '#fff'; ctx.fillText(L.battle_gameover, 240, 104);
+    ctx.font = FONT; ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.battle_lose, 240, 156);
+    const label = L.battle_retry, bw = Math.ceil(ctx.measureText(label).width) + 44, bh = 24, bx = 240 - Math.round(bw / 2), by = 204;
+    ctx.fillStyle = '#3a3000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+    ctx.fillStyle = '#ffe066'; ctx.fillText(label, 240 + 9, by + 4); this.heart(ctx, bx + 10, by + 9);
+    ctx.textAlign = 'left';
+  }
+  /** 쓰러진 동료: 대기 첫 프레임을 90° 눕혀 발 자리에(머리 왼쪽·얼굴 위) + 바닥 그림자 — 행동 불능. 흐리게 하지 않고 또렷이 누워 있다(사용자 2026-09-11 '그냥 누워있고') */
+  drawLying(ctx, m) {
+    const fr = m.frames.idle[0], sc = BATTLE_SPRITES[m.id].scale * ACTOR_SCALE, hh = Math.round(fr.image.height * sc), ww = Math.round(fr.image.width * sc);
+    const [hx, hy] = m.home;
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(hx, hy + 6, Math.round(hh * 0.5), 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(Math.round(hx + hh * 0.45), Math.round(hy + 2)); ctx.rotate(-Math.PI / 2); ctx.globalAlpha = 0.92;
+    ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * sc), Math.round(-fr.pivot[1] * sc), ww, hh); ctx.restore();
+    if (m.popup) this.drawPopup(ctx, hx, hy - 48, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
   drawMember(ctx, m) {
     if (!m.frames) return;
+    if (m.down) { this.drawLying(ctx, m); return; }
     const act = m.action, posing = m.pose !== undefined && m.pose !== null && m.pose >= 0 && (!act || act.mode === 'idle');
     const mode = act ? act.mode : posing ? 'attack' : 'idle', running = mode === 'approach' || mode === 'return';
     const seq = m.frames[running ? 'run' : mode === 'attack' ? 'attack' : 'idle'];
@@ -325,7 +380,6 @@ export class Battle {
     const picking = ['menu', 'target', 'item', 'item-target'].includes(this.state) && m === this.members[this.memberIdx];
     const [px0, py] = act ? act.position : m.home; const px = px0 + (!act && picking ? 10 : 0);   // 차례인 멤버는 한 발 앞으로(델타룬)
     ctx.save(); ctx.translate(Math.round(px), Math.round(py)); if (mode === 'return') ctx.scale(-1, 1);
-    if (m.down) ctx.globalAlpha = 0.35;
     ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
     ctx.restore();
     if (m.popup) this.drawPopup(ctx, px, py - 70, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
@@ -369,13 +423,14 @@ export class Battle {
       const x = 20 + i * cw, active = picking && i === this.memberIdx;
       const face = this.game.portraits?.[m.id];
       if (face) { ctx.save(); if (m.down) ctx.globalAlpha = 0.4; ctx.drawImage(face, x + 4, y + 2, 26, 26); ctx.restore(); }
+      if (m.down) { const left = Math.max(0, DOWN_TURNS - m.downTurns); ctx.fillStyle = '#c0392b'; ctx.fillRect(x + 1, y, 14, 14); ctx.font = SMALL; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(String(left), x + 8, y + 1); ctx.textAlign = 'left'; }   // 일어나기까지 남은 라운드
       const planned = this.plans.find((pl) => pl.member === m); if (planned) this.drawIcon(ctx, planned.type === 'fight' ? 'sword' : 'bread', x + 20, y + 18);
       ctx.font = FONT; ctx.textAlign = 'left'; ctx.fillStyle = m.down ? '#777' : active ? '#ffe066' : '#fff'; ctx.fillText(m.name, x + 34, y + 6);
       const nameW = Math.ceil(ctx.measureText(m.name).width);
       const bx = x + 34 + nameW + 24, bw = Math.min(96, x + cw - 6 - bx);
       ctx.font = small; ctx.fillStyle = '#fff'; ctx.fillText('HP', bx - 19, y + 15);
       ctx.fillStyle = '#7a1b1b'; ctx.fillRect(bx, y + 16, bw, 9); ctx.fillStyle = m.down ? '#555' : this.hpColor(m); ctx.fillRect(bx, y + 16, Math.round(bw * m.hp / m.maxHp), 9);   // 캐릭터별 색(하늘/빨강/연보라)
-      ctx.textAlign = 'right'; ctx.fillStyle = m.down ? '#aaa' : '#fff'; ctx.fillText(`${m.hp}/ ${m.maxHp}`, bx + bw, y + 3);
+      ctx.textAlign = 'right'; ctx.fillStyle = m.down ? '#ff6b6b' : '#fff'; ctx.fillText(`${m.hp}/ ${m.maxHp}`, bx + bw, y + 3);
       ctx.textAlign = 'left'; ctx.font = FONT;
     });
   }
