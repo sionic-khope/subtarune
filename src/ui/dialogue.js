@@ -139,6 +139,8 @@ export class TextBox {
     this.autoDelay = node.speed ? this.charDelay / node.speed : null;
     this.auto = node.auto ?? null;             // 초: 다 나온 뒤 자동으로 넘어감
     this.autoTimer = 0;
+    this.cut = node.cut ?? null;               // 초: **찍히는 중이라도** 그 시간에 말이 끊기고 다음으로(용준이 말하다가 날아감). 그동안 C/X 로 넘기지 못한다 (2026-09-11)
+    this.cutTimer = 0;
 
     const text = node.text ?? '';
     this.tokens = parseText(text);
@@ -187,10 +189,14 @@ export class TextBox {
   update(dt, input) {
     if (this.state === 'closed') return;
     this.time += dt;
+    if (this.cut !== null) {                                   // 말이 끊기는 대사: 시간이 되면 찍히던 중이라도 닫고 다음으로
+      this.cutTimer += dt;
+      if (this.cutTimer >= this.cut) { this._done(null); return; }
+    }
 
     if (this.state === 'typing') {
-      // X = 즉시 전부 표시 / C = 즉시 전부 표시
-      if (input.just('cancel') || input.just('confirm')) {
+      // X = 즉시 전부 표시 / C = 즉시 전부 표시 (끊기는 대사는 연출이라 넘기지 못한다)
+      if (this.cut === null && (input.just('cancel') || input.just('confirm'))) {
         this._finishPage();
         return;
       }
@@ -208,6 +214,7 @@ export class TextBox {
     }
 
     if (this.state === 'waiting') {
+      if (this.cut !== null) return;                           // 끊기는 대사는 cut 타이머만 기다린다
       if (this.auto !== null) this.autoTimer += dt;
       if (input.just('confirm') || (this.auto !== null && this.autoTimer >= this.auto)) {
         this.autoTimer = 0;

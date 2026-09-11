@@ -15,6 +15,7 @@
 //  { slide: id, by:[dx,dy], duration?: 0.6, sfx? }  소품을 미끄러뜨린다(히트박스+그림 같이, 걷기 애니 없음) — 대포 밀기. by 는 픽셀
 //  { mash: { target:100, push:[id…], tremble:id } }   C 연타 미니게임: 가운데 안내 창(C 키가 눌리는 애니 + 게이지에 불씨가 찬다, 누를 때마다 ember). push 는 미는 걷기 애니, tremble 은 부들부들. target 번이면 끝
 //  { fire: { at:id, dx, dy, spread, rate, grow } } / { fire:null }   캐릭터·소품에 불이 붙어 커진다(기다리지 않음, game.flameEmitters) / 전부 끈다
+//  대사 노드 옵션 { cut: 1.4 }                   찍히는 중이라도 그 시간에 말이 끊기고 다음으로 (C/X 로 못 넘김) — 말하다 날아가는 연출
 //  { rocket: { ids:[id…], speed:1100, camera:id, amp:5 } }   불꼬리를 달고 오른쪽으로 쏘아져 맵 밖으로 사라진다(카메라가 따라감·흔들림, 끝나면 제거)
 //  { pulse: 'red', times: 3, every: 0.4 }        화면 붉은 번쩍임(사이렌) — 대사와 겹치려면 { async: [{ pulse }] }
 //  { aura: { from:['red','blue'], to:['player','gyeongsub','ppaman'], colors:['#ff5c5c','#4fa8ff'], n:36, duration:1.6 } }  반짝이는 입자가 감싸 돈다(버프 획득)

@@ -46,7 +46,7 @@ export const obj1_meet = [
   Y('* 이거로 말씀드릴거같으면 바로 ~!!'),
   { async: [{ sfx: 'drumroll' }] },                      // 두구두구두구
   { zoom: 1.45, at: 'cannon', offset: [0, 70], duration: 1.5 },   // 대포로 카메라 이동 + 클로즈업 — 2배 대포(보이는 몸통 216×158)가 대화창 위 영역(480×248)에 다 들어오는 최대 배율. at 은 그림 중심(iy+128)이라 +70 으로 초점을 내려 몸통(그림 y80~238)이 위 영역 가운데(화면 y124)에 오게
-  Y('* 저의 역착 울트라 슈퍼 하이퍼 초 미라클 레전더리 어메이징 바주카 용준짱 대포!!!!'),
+  Y('* 저의 역작 울트라 슈퍼 하이퍼 초 미라클 레전더리 어메이징 바주카 용준짱 대포!!!!'),
   { sfx: 'fanfare' }, { wait: 1.1 },                     // 빰빠밤~~~
   P('* 울트라 스펠링 머임?'),                              // 카메라 그대로, 대화창만
   { zoom: 1, duration: 0.5 },
@@ -76,6 +76,11 @@ export const obj1_meet = [
   Y('* 그래서 말인데요 형님들{w=0.3} 저 이거 미는것좀 도와주실 수 있나요?'),
   { camera: 'player', duration: 0.6 },
   { bgm: 'wind', volume: 0.45 },                          // 맵 브금(옵젝영역0 과 같은 바람) 복귀
+  // 이 자리에 있던 '연출 전' 엔티티를 그대로 '연출 후'(requires obj1_meet_seen) 것으로 바꾼다 — 맵을 다시 들어오지 않아도 바로 말을 걸 수 있게(2026-09-11 "말걸어도 이벤트가 발생 안 해")
+  { action: (g) => {
+    const y = g.entities.find((e) => e.id === 'yongjun' && !e.dead); if (y) { y.id = 'yongjun_after'; y.def = { ...y.def, id: 'yongjun_after', script: 'obj1_push' }; }
+    const c = g.entities.find((e) => e.id === 'cannon' && !e.dead); if (c) { c.id = 'cannon_after'; c.def = { ...c.def, id: 'cannon_after', script: 'obj1_cannon_look' }; }
+  } },
   { set: { obj1_meet_seen: true } },
 ];
 
@@ -89,18 +94,22 @@ export const obj1_push = [
   { parallel: [{ move: 'player', rel: 'yongjun_after', at: 'left', by: [-24, 0], run: true }, { move: 'gyeongsub', rel: 'yongjun_after', at: 'left', by: [-72, 0], run: true }, { move: 'ppaman', rel: 'yongjun_after', at: 'left', by: [-120, 0], run: true }] },   // 용준 뒤에 48px 간격 한 줄
   { face: 'player', dir: 'right' }, { face: 'gyeongsub', dir: 'right' }, { face: 'ppaman', dir: 'right' },
   { camera: CAM_PUSH, duration: 0.5 },
-  { bgm: null, fadeOut: 0.4 },                           // 준비 ~~~ 에서 브금 꺼졌다가 ("그리고.." 는 이 줄 하나로 — 사용자 2026-09-11 "대사 두 개 들어갔는데 하나는 지우라는 뜻")
+  { bgm: null, fadeOut: 0 },                             // 이 줄이 뜨는 순간 브금이 뚝 (사용자 2026-09-11 "나오자마자 꺼져야"). "그리고.." 는 이 줄 하나로
   Y('* 그리고...{w=0.5} 준비{w=0.3} ~~~~~~~~~~~~~~~'),
   { sfx: 'thud' }, { shake: 0.3, amp: 4 },               // (쿵!)
   Y('* {shake}밀어!!!!!!!!!!!!!!!!!!!!!{/shake}'),
   { bgm: 'rude_buster', volume: 0.45 },                  // C 연타 들어가는 순간 일반 전투 브금
   { mash: { target: 100, push: ['player', 'gyeongsub', 'ppaman', 'yongjun_after'], tremble: 'cannon_after' } },
+  // 불은 작게 붙어서 점점 강렬해진다(grow 로 초당 입자 수가 계속 늘어남) — 바로 뿅 날아가지 않고 타오르다가 말이 끊기며 발사 (사용자 2026-09-11)
+  { fire: { at: 'yongjun_after', dx: -10, dy: -20, spread: 9, rate: 7, grow: 2.6 } },   // 작게 붙어서 점점 거세진다(초당 입자 = rate × (1 + grow × 지난 시간))
+  { sfx: 'ember', volume: 0.5 },
   Y('* 어어어..{w=0.4} 어?'),
-  { fire: { at: 'yongjun_after', dx: -10, dy: -22, spread: 12, rate: 28, grow: 1.6 } },   // 용준 등 뒤에 불이 타오르기 시작
   { parallel: [{ move: 'player', by: [-14, 0], run: true }, { move: 'gyeongsub', by: [-14, 0], run: true }, { move: 'ppaman', by: [-14, 0], run: true }] },   // 밀기를 멈추고 뒤로 물러나 바라봄
   { face: 'player', dir: 'right' }, { face: 'gyeongsub', dir: 'right' }, { face: 'ppaman', dir: 'right' },
-  Y('* 뭐{w=0.3} 뭐지{w=0.4} 뭔가 등이...{w=0.5} 뜨거운 느끼..'),
-  { bgm: null, fadeOut: 0.1 },                           // 날아가는 연출엔 브금 없음
+  { async: [{ shake: 1.1, amp: 1 }, { shake: 1.1, amp: 2 }, { shake: 1.4, amp: 3 }] },    // 진동도 점점 크게(대사와 겹쳐서)
+  { async: [{ wait: 0.9 }, { sfx: 'ember' }, { wait: 0.8 }, { sfx: 'ember' }, { wait: 0.6 }, { sfx: 'ember' }] },   // 타닥… 타닥.. 타닥
+  Y('* 뭐{w=0.3} 뭐지{w=0.4} 뭔가 등이...{w=0.5} 뜨거운 느끼..', { cut: 3.6 }),   // 말하다가 끊긴다(찍히는 중에 닫힘) → 그대로 발사
+  { bgm: null, fadeOut: 0 },                             // 날아가는 연출엔 브금 없음
   { sfx: 'rocket' },
   { rocket: { ids: ['yongjun_after', 'cannon_after'], speed: 1100, camera: 'cannon_after', amp: 5 } },   // 쌩!!! 화르르륵 — 맵 밖(옆 포탈)으로
   { set: { obj1_launched: true } },

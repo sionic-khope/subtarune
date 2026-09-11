@@ -65,9 +65,9 @@
   "push": 5,
   "pushers": [
    692,
-   284,
+   248,
    752,
-   300
+   264
   ],
   "cam_group": [
    27.5,
@@ -119,7 +119,7 @@
    "id": "junhee",
    "sprite": "junhee",
    "x": 692,
-   "y": 284,
+   "y": 248,
    "facing": "right",
    "wander": 0,
    "unless": "obj1_meet_seen"
@@ -129,7 +129,7 @@
    "id": "yongjun",
    "sprite": "yongjun",
    "x": 752,
-   "y": 300,
+   "y": 264,
    "facing": "right",
    "wander": 0,
    "unless": "obj1_meet_seen"
@@ -155,7 +155,7 @@
    "id": "yongjun_after",
    "sprite": "yongjun",
    "x": 912,
-   "y": 300,
+   "y": 264,
    "facing": "left",
    "wander": 0,
    "requires": "obj1_meet_seen",
