@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-10
 
+**용준 이동 에셋 전달 (2026-09-11)**: [용준 스프라이트 사용 지침](handoffs/yongjun-assets.md). `assets/sprites/yongjun.png`는 248×344 RGBA, 62×86 셀 16개, 엔진 행 순서 down/up/left/right, 하단 중앙 pivot [31,86]이다. 원본·레퍼런스·프롬프트·재추출 계약은 `assets/source/yongjun-v1/`. 기존 변환기를 재사용한 자산 전달이며 캐릭터/맵/파티/전투에는 등록하지 않았다. 후속 연결 시 용준 셀에서 `sideWalk` 값을 측정한다. 치아 보이는 입과 무안경을 유지하며 v1 색·의상은 미확정 보완안이다.
+
 **정글 몬스터 에셋 전달 (2026-09-11)**: [정글 몬스터 전달 가이드](handoffs/jungle-enemies-assets.md). 칼날부리·두꺼비·늑대 각각 정면 필드 48×48(pivot 24,44), 왼쪽 전투 64×64(pivot 32,60)의 투명 정지 PNG를 `assets/enemies/jungle-*.png`로 제공한다. 원본 6장·프롬프트·규격은 `assets/source/jungle-enemies-v1/`, 재추출은 `tools/sprites/import_jungle_enemies.py`. 애니메이션·적 등록·능력치·맵/전투 연결은 포함하지 않는 별도 에셋 전달이다.
 **따듯한비데 v2 자산 전달(2026-09-11)**: [이동·전투 대기 전달 가이드](handoffs/warm-bidet-assets.md). 키가 큰 갑옷 캐릭터와 큰 도끼의 이동 16장·오른쪽 전투 대기 4장을 원본 픽셀 크기로 투명 추출했다. 원본/프롬프트/재현 도구/pivot은 `assets/source/warm-bidet-v2/`, 출력은 `assets/sprites/warm-bidet-v2/`와 `assets/battle/warm-bidet-idle*.png`. 엔진 순서·크기와 다른 자산 전달 계약이며 캐릭터/적/맵/전투 등록은 하지 않았다. 공격 모션·소속·능력도 미정이다.
 

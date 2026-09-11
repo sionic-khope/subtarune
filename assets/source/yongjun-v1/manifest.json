@@ -1,0 +1,49 @@
+{
+  "version": "yongjun-v1",
+  "name": "용준",
+  "scope": "field-walk asset handoff; no character, map, party or battle registration",
+  "source": "assets/source/yongjun-v1/walk-sheet.png",
+  "reference": "assets/source/yongjun-v1/reference.png",
+  "prompt": "assets/source/yongjun-v1/prompt.txt",
+  "sprite": "assets/sprites/yongjun.png",
+  "sourceSize": [1254, 1254],
+  "sourceRows": ["down", "left", "right", "up"],
+  "sourceColumnRanges": [[78, 340], [363, 616], [639, 891], [914, 1176]],
+  "sourceRowRanges": [[103, 367], [390, 648], [671, 926], [949, 1204]],
+  "sharedCropPerDirection": {
+    "down": [36, 12, 216, 261],
+    "up": [42, 9, 213, 252],
+    "left": [39, 6, 204, 255],
+    "right": [45, 9, 216, 252]
+  },
+  "coordinateConvention": "Ranges and crops are half-open. Crops are relative to each detected source cell; pivot is relative to each output frame.",
+  "processing": "Existing slice_sheet.py: edge-connected lavender background removal, one crop/sampling grid per direction, uniform 1/3 nearest-neighbor resize, bottom-center placement. No palette quantization or redrawing.",
+  "sheetSize": [248, 344],
+  "frameSize": [62, 86],
+  "columns": 4,
+  "rows": ["down", "up", "left", "right"],
+  "frameCount": 16,
+  "frameRect": "[column * 62, row * 86, 62, 86]",
+  "frameOrder": [0, 1, 2, 3],
+  "idleFrame": 0,
+  "runtimePixelsPerLogicalPixel": 2,
+  "pivot": [31, 86],
+  "pivotMeaning": "Engine bottom-center anchor, shared by all frames; preserve authored foot variation rather than individually realigning frames.",
+  "opaqueBottomExclusive": {
+    "down": [86, 86, 86, 86],
+    "up": [85, 85, 85, 85],
+    "left": [86, 86, 86, 85],
+    "right": [85, 86, 85, 85]
+  },
+  "alpha": "RGBA; alpha values 0 and 255 only",
+  "sideWalk": "Not configured. Measure Yongjun-specific legY/legFrames or feetY/splitX/stride and verify the fixed-upper-body, neutral/A/neutral/B loop before scene integration. Existing characters' settings are not transferable.",
+  "designStatus": "Identity: black bowl hair, broad cheeks, narrow eyes, small nose, visible toothy grin, no glasses. Peach skin, white tee, navy shorts and dark shoes are the existing v1 interpretation, not permanently user-approved design.",
+  "importCommand": "uv run --with pillow --with numpy -- python tools/sprites/slice_sheet.py --sprites-only assets/source/yongjun-v1/walk-sheet.png yongjun",
+  "sha256": {
+    "assets/source/yongjun-v1/walk-sheet.png": "7d120940b2588c985d87a335cbea3f51bc93b0f95c819ed4721ad63c1d53a90a",
+    "assets/source/yongjun-v1/reference.png": "fa60526c7832a664e2a1a3de038656d008146f4f68c4bfd6bd78322474588b0d",
+    "assets/source/yongjun-v1/prompt.txt": "1eee598a76814d1569dc35cc00662d1d022f41ca7e00232223b2b11e0a3ee541",
+    "assets/sprites/yongjun.png": "fb9fce00fc20cd626a61ecdd3ebf888ccc4ac4990a1c27dbcf6f36a8c9b65368",
+    "tools/sprites/slice_sheet.py": "ce3e7492655adad1248d7305db8cbb47a61c2ed3e8b10157af157cf3f3deeeb2"
+  }
+}

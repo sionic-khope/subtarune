@@ -1,0 +1,29 @@
+제작 도구: built-in image_gen
+결과: yongjun-walk-v1.png
+원본: assets/references/yongjun.png (저장소 루트 기준)
+사용자 지정 이름: 용준
+구성: 4방향 × 4프레임, 총 16프레임. 행 순서 정면 / 왼쪽 / 오른쪽 / 뒷모습.
+원본에 없는 색·의상 보완: 살구색 피부, 흰 반팔 티셔츠, 짙은 반바지, 어두운 신발은 이번 v1의 임시 해석이며 확정 설정이 아님.
+최종 생성 프롬프트:
+
+Use case: stylized-concept.
+Asset: one retro pixel-game 4-direction walking sprite sheet for the character named "용준" (Yongjun).
+Input roles: image 1 is the NEW CHARACTER IDENTITY reference; image 2 is the strict low-resolution PIXEL ART STYLE reference; image 3 is supporting consistency reference for this project's existing human game sprites. Include ONLY Yongjun from image 1 in the output.
+
+Character identity is the priority:
+A stocky human man with a very wide rounded face, large full cheeks, a heavy rounded jaw and short neck. Solid BLACK short rounded bowl/crop haircut: one continuous domed black cap on top with a nearly straight blunt fringe and very short/shaved-looking sides. NO center part, no fluffy quiff. Small narrow half-lidded eyes with a slightly asymmetrical relaxed sideways glance, fine short eyebrows. A small broad human nose, not a giant bulbous nose. A small OPEN grinning mouth with a visible horizontal white tooth strip, like the reference's awkward amused smile. His mouth is a defining feature and must be visible on front and side views. He does NOT wear glasses. No beard or mustache.
+Color interpretation of the monochrome drawing: light warm peach skin, solid near-black hair. The supplied drawing shows only the upper body, so complete the silhouette simply with a plain white short-sleeve T-shirt, dark navy shorts, peach bare lower legs and simple dark low shoes, consistent with the scale of the project. A stout rounded torso, short arms and short legs. No logos or accessories. Keep him distinct from the existing glasses-wearing characters. No animal features.
+
+Composition:
+Square sprite sheet around 1024×1024, with a small centered crisp Korean pixel label "용준" at the very top, written exactly once.
+Below the title, EXACTLY 4 columns × 4 rows = 16 separate full-body sprites in equally sized cells, with regular gutters. All sprites fully visible, stable size, fixed floor baseline within each row.
+ROW 1: FRONT facing viewer.
+ROW 2: LEFT-facing full profile, nose points screen LEFT.
+ROW 3: RIGHT-facing full profile, nose points screen RIGHT.
+ROW 4: BACK-facing, back of hair, shirt and legs only, no eyes, mouth or nose on the back.
+Within each row show FOUR phases of a walking loop: left-leg contact, passing pose, right-leg contact, passing pose. Clearly alternate the legs and swing arms in opposition. A small one-logical-pixel body bob. Maintain identical body proportions, haircut, eyes and outfit from frame to frame. Avoid sixteen static copies.
+Background: flat muted medium purple gutters and flat pale lavender rectangular sprite cells, like image 2. No scenery or shadows on the floor. No text other than "용준"; no frame numbers, arrows or direction captions.
+
+PIXEL QUALITY:
+Match the original source sprite sheet image 2's sparse, chunky pixel art, roughly 24–30 logical pixels wide and 34–42 logical pixels high per whole character, displayed with integer nearest-neighbor enlargement. Use uniform clearly visible square pixels, sharp stair-step contours, approximately one-logical-pixel dark outer outlines, large simple flat color clusters. Only about 8–10 flat colors for the character, no more than two shadow tones on skin/shirt. Eyes and grin must be just a few economical pixels; do not make the face a detailed cartoon illustration. A crisp simple black cap hairstyle is essential.
+Avoid gradients, soft/painterly shading, antialiasing, smooth curves, detailed skin, 3D, photorealism, HD sprites, excessive texture, glasses, hats, parted hair, huge U-shaped nose, pig features, face on back, merged frames, cropped limbs. Reconstruct the recognisable wide-faced, narrow-eyed, bowl-haired smiling Yongjun from image 1 in the project's existing pixel language.
