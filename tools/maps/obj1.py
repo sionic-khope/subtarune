@@ -10,11 +10,12 @@ sys.path.insert(0, 'tools/maps')
 from objlib import T, build
 W, H, R0, R1 = 60, 16, 6, 11
 CANNON_C, FOOT_Y, PUSH = 24, 300, 5            # 대포 시작 열, 바닥 앵커 y(길 9행 안), 미는 횟수(한 칸씩)
-ix, iy = CANNON_C * T, FOOT_Y - 119            # 그림 좌상단 (앵커 64,119)
-def cannon(id_, x, extra):                     # 히트박스는 포신 밑동 60×12 (그림 128 중 가운데)
-    return {'type': 'prop', 'id': id_, 'image': 'assets/props/wooden_cannon.png', 'x': x + 34, 'y': FOOT_Y - 12, 'w': 60, 'h': 12, 'ix': x, 'iy': iy, 'solid': True, **extra}
-PX = ix - 28                                   # 미는 둘: 용준은 대포 왼쪽에 바짝(아래), 쥰희는 그 뒤 56px(위) — 같은 x 에 위아래로 두면 그림이 겹친다(레이아웃 규칙 ③)
-JX, JY, YY = ix - 28 - 60, 284, 300
+SCALE = 2                                      # 큰 무기 — 사용자 2026-09-11 "거의 두 배" (그림 256×256, 보이는 몸통 216×158: 원본 bbox x10~118·y40~119 의 2배)
+ix, iy = CANNON_C * T, FOOT_Y - 119 * SCALE    # 그림 좌상단 (앵커 64,119 → 128,238)
+def cannon(id_, x, extra):                     # 히트박스는 포신 밑동 136×14 (보이는 몸통 x20~236 의 가운데). 밑변은 그림 밑변(iy+256, 아래 여백 18px 포함)에 맞춘다 — props.test '보이는 밑동은 막힘'
+    return {'type': 'prop', 'id': id_, 'image': 'assets/props/wooden_cannon.png', 'scale': SCALE, 'x': x + 60, 'y': iy + 128 * SCALE - 14, 'w': 136, 'h': 14, 'ix': x, 'iy': iy, 'solid': True, **extra}
+PX = ix + 10 * SCALE - 36                      # 미는 둘: 용준은 보이는 몸통 왼쪽 가장자리(ix+20)에서 8px 띄워(아래 — 대포가 앞에 그려져도 안 겹치게), 쥰희는 그 뒤 60px(위) — 같은 x 에 위아래로 두면 그림이 겹친다(레이아웃 규칙 ③)
+JX, JY, YY = PX - 60, 284, 300
 ents1 = [
     {'type': 'door', 'x': 32, 'y': R0 * T, 'w': 8, 'h': (R1 - R0 + 1) * T, 'to': 'obj0', 'spawn': 'landing', 'sfx': False},
     {'type': 'door', 'x': (W - 1) * T - 8, 'y': R0 * T, 'w': 8, 'h': (R1 - R0 + 1) * T, 'to': 'obj2', 'spawn': 'from_left', 'sfx': False},
@@ -33,7 +34,7 @@ m1 = {'id': 'obj1', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen
       'enter': {'script': 'obj1_arrive'},
       'preload': ['assets/sprites/junhee.png', 'assets/sprites/yongjun.png'],
       'meta': {'connected': True, 'road': [R0, R1], 'cannon': [ix, iy], 'push': PUSH, 'pushers': [JX, JY, PX, YY],
-               'cam_group': [CANNON_C + 3.6, 8.25], 'cam_meet': [CANNON_C + 2.0, 8.25],
+               'cam_group': [CANNON_C + 3.5, 8.25], 'cam_meet': [CANNON_C + 2.9, 8.25],
                'trees': len([e for e in ents1 if e.get('id', '').startswith('ot')])},
       'entities': ents1}
 ents2 = [{'type': 'door', 'x': 32, 'y': 5 * T, 'w': 8, 'h': 96, 'to': 'obj1', 'spawn': 'landing', 'sfx': False}]

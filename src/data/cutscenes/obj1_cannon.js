@@ -9,7 +9,7 @@ const J = (text, extra = {}) => ({ speaker: '쥰희', portrait: 'junhee', voice:
 const Y = (text, extra = {}) => ({ speaker: '박용준', portrait: 'yongjun', voice: 'yongjun', text, ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const N = (text) => ({ text, voice: 'narrator' });
-const CAM_GROUP = [27.6, 8.25], CAM_MEET = [26.0, 8.25];   // 대포+둘이 한 화면(밀기 전후 모두), 만남 땐 파티(빠맨 641px)부터 대포 오른쪽 끝(1056px)까지 — 뷰 592~1072, obj1.mjs 프레이밍 검사
+const CAM_GROUP = [27.5, 8.25], CAM_MEET = [26.9, 8.25];   // CAM_GROUP: 밀기 시작 순간 대포(2배, 그림 768~1024)+둘. 그 뒤엔 대포를 따라간다. CAM_MEET: 파티(빠맨 641px)가 왼쪽 가장자리 안 — 대포 포구 끝(1164px)은 40px 쯤 화면 밖(큰 무기라 다 못 담는다, 줌에서 전부 보인다)
 // 한 칸 밀기: 대포는 미끄러지고(드륵) 둘은 같은 만큼 천천히 걸어 따라간다(걷기 애니 한 번) — 사용자 "미는 건 둘이 걷기 애니 한 번 싹"
 const push = () => [{ parallel: [{ slide: 'cannon', by: [32, 0], duration: 0.6, sfx: 'scrape' }, { move: 'junhee', by: [16, 0], speed: 27 }, { move: 'yongjun', by: [16, 0], speed: 27 }] }, { wait: 0.2 }];   // move.by 는 16px 아트 단위(16 = 한 칸 32px), slide.by 는 픽셀
 
@@ -18,6 +18,7 @@ export const obj1_arrive = [
   { wait: 0.5 },
   { bgm: 'vs_lancer', volume: 0.5 },
   { camera: CAM_GROUP, duration: 1.3 }, { wait: 0.3 },
+  { camera: 'cannon' },                                  // 밀리는 대포를 카메라가 따라간다(2배라 고정 카메라엔 다 안 담긴다)
   J('* 허이얍!!'), ...push(),
   Y('* 흐이야아압!!'), ...push(),
   J('* 허이얍!!!!!!{w=0.25} 하아아압!!'), ...push(),
@@ -37,18 +38,18 @@ export const obj1_meet = [
   { camera: CAM_MEET, duration: 0.5 },
   { emote: 'junhee', kind: '!', hold: 0.5 },
   J('* 아{w=0.2} 아닛{w=0.3} 이럴수가{w=0.3} 너{w=0.2} 너희가 어떻게'),
-  Y('* 어 경섭이형{w=0.3} 응 빠맨이형도 있네{w=0.3} 그리고..', { auto: 0.1 }),   // 말을 끊으며
+  Y('* 어 경섭이형{w=0.3} 응 빠맨이형도 있네{w=0.3} 그리고..', { auto: 0.5 }),   // 말을 끊으며 — '그리고..' 까지 다 찍힌 뒤 0.5초 있다가 억빠맨(사용자: 다 나오고 끊어야)
   P('* 뭐함 너네?'),
   Y('* 훗훗훗{w=0.3} 저희 바론 사냥하러 갑니다 빠맨이형'),
   P('* 뭔데 이게?'),
   Y('* 이거로 말씀드릴거같으면 바로 ~!!'),
   { async: [{ sfx: 'drumroll' }] },                      // 두구두구두구
-  { zoom: 1.8, at: 'cannon', offset: [0, 30], duration: 1.5 },   // 대포로 카메라 이동 + 클로즈업 — 초점을 조금 아래로 두어 대포·둘의 머리가 대화창 위에 오게
+  { zoom: 1.45, at: 'cannon', offset: [0, 70], duration: 1.5 },   // 대포로 카메라 이동 + 클로즈업 — 2배 대포(보이는 몸통 216×158)가 대화창 위 영역(480×248)에 다 들어오는 최대 배율. at 은 그림 중심(iy+128)이라 +70 으로 초점을 내려 몸통(그림 y80~238)이 위 영역 가운데(화면 y124)에 오게
   Y('* 저의 역착 울트라 슈퍼 하이퍼 초 미라클 레전더리 어메이징 바주카 용준짱 대포!!!!'),
   { sfx: 'fanfare' }, { wait: 1.1 },                     // 빰빠밤~~~
   P('* 울트라 스펠링 머임?'),                              // 카메라 그대로, 대화창만
   { zoom: 1, duration: 0.5 },
-  Y('* ...{w=0.4} 네?{w=0.4} 아..{w=0.3} ㅋㅋ{w=0.3} 아 형 그게 무슨상관', { auto: 0.1 }),
+  Y('* ...{w=0.4} 네?{w=0.4} 아..{w=0.3} ㅋㅋ{w=0.3} 아 형 그게 무슨상관', { auto: 0.5 }),
   P('* 머냐고'),
   Y('* ...{w=0.5} ...{w=0.5} ...{w=0.5} ourtla ?'),
   P('* 느금마'),

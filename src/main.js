@@ -21,7 +21,8 @@ import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
-import { Story, STAGES, QA_POINTS, partyFromFlags } from './core/story.js';
+import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags } from './core/story.js';
+import { ENEMIES } from './data/enemies.js';
 import { normalizeParty } from './core/party.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
@@ -184,7 +185,9 @@ class Game {
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
     if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
     this.party = normalizeParty(party || partyFromFlags(this.flags));   // QA 지점의 동료 구성 — 없으면 가입 플래그에서 유도, 순서는 걷는 순서
-    if (inventory) this.inventory = [...inventory]; if (money) this.money = money;
+    // 아이템·돈·버프도 플래그에서 유도(STATE_FROM_FLAGS + 맵 위 몹 unless) — 바나나 2개·레드블루 버프처럼 실제 플레이와 같은 상태로 점프 (2026-09-11 사용자). 지점이 직접 주면 그게 우선
+    const derived = stateFromFlags(this.flags, { maps: MAPS, enemyMoney: (id) => ENEMIES[id]?.money ?? 30 });
+    this.inventory = inventory ? [...inventory] : derived.inventory; this.money = money ?? derived.money; this.attack = derived.attack; this.hpBonus = derived.hpBonus;
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
     this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)
@@ -826,7 +829,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-11.76';
+export const BUILD = '2026-09-11.77';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

@@ -47,6 +47,39 @@ export class Story {
   reset() { this.index = 0; }
 }
 
+/**
+ * 플래그 → 그 시점까지 실제 플레이로 쌓였을 상태(아이템·돈·버프). QA 지점은 flags 만 적고 나머지는 여기서 유도한다(devJump) —
+ * 2026-09-11 사용자 "QA 점프도 바나나 2개·레드블루 버프 같은 상태를 최신화해야 인게임 문제를 놓치지 않는다".
+ *   items    그 플래그가 서면 인벤토리에 있는 아이템(획득 순서)   with: 이 플래그도 서 있을 때만(먼지는 빠맨과 함께일 때만)
+ *   enemies  그 플래그가 선 컷신 전투에서 잡은 적 → 돈(enemies.js money). 맵 위 몹(unless:'…_defeated')은 맵 데이터에서 자동으로 센다
+ *   attack / hpBonus  버프
+ * 새 아이템·컷신 전투·버프를 만들면 여기 한 줄 — tests/unit/qa-state.test.mjs 가 스크립트의 inventory.push / battle flag 와 대조한다.
+ */
+export const STATE_FROM_FLAGS = [
+  { flag: 'cord_found',     items: ['보라색 코드 ?'] },                                     // 인트로 티비 서랍(3D) — scripts.js
+  { flag: 'lever_taken',    items: ['열쇠?'] },                                             // 허공4 레버 열쇠 — void4_key.js
+  { flag: 'chest9_opened',  items: ['먼지'], with: 'ppaman_joined' },                       // 허공9 빈 상자(빠맨과 함께일 때만) — void9_events.js
+  { flag: 'teal3_cs_won',   items: ['바나나', '바나나'], enemies: ['cs_red', 'cs_blue'] },   // 청록숲3 첫 전투 + 상자 바나나 2 — teal3_toolbox.js
+  { flag: 'button2_done',   items: ['바나나'] },                                             // 청록숲4 수상한 버튼 2 — teal4_events.js
+  { flag: 'teal9_boss_won', enemies: ['red', 'blue'], attack: 2, hpBonus: 20 },             // 청록숲9 문지기 보스전 + 축복 버프 — teal9_boss.js
+];
+/**
+ * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.
+ * @returns { inventory: string[], money: number, attack: number, hpBonus: number }
+ */
+export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } = {}) {
+  const out = { inventory: [], money: 0, attack: 1, hpBonus: 0 };
+  for (const r of STATE_FROM_FLAGS) {
+    if (!flags[r.flag] || (r.with && !flags[r.with])) continue;
+    if (r.items) out.inventory.push(...r.items);
+    if (r.enemies) for (const id of r.enemies) out.money += enemyMoney(id);
+    if (r.attack !== undefined) out.attack = r.attack;
+    if (r.hpBonus) out.hpBonus += r.hpBonus;
+  }
+  for (const m of Object.values(maps)) for (const e of (m?.entities || [])) if (e.type === 'enemy' && e.unless && flags[e.unless]) for (const id of (e.enemies || [])) out.money += enemyMoney(id);
+  return out;
+}
+
 /** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 export const partyFromFlags = (flags) => PARTY_FLAGS.filter(([f]) => flags?.[f]).map(([, id]) => id);

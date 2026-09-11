@@ -123,3 +123,4 @@ model: opus
 5. 대사 키는 `src/data/scripts.js` 에 추가.
 6. 검증: `node --test 'tests/unit/*.test.mjs'`(크기·벽·문 핑퐁·스폰·영역 겹침·스크립트 키·이미지 존재) → `tests/playtest/house.mjs` 에 새 구간을 이어 붙여 헤드리스로 동선·상호작용·재진입을 확인하고, 스크린샷 **네 모서리**를 본다.
 7. `docs/STATE.md` 의 스토리 진행 상태 갱신.
+- **QA 지점 추가 규칙(2026-09-11)**: `QA_POINTS` 는 `flags` 만 정확히(앞 지점 플래그 전부 + 이번 맵까지의 이벤트 플래그) — 아이템·돈·버프는 `story.js STATE_FROM_FLAGS` 로 유도된다. 새 아이템·컷신 전투·버프를 만들면 그 표에 한 줄(`tests/unit/qa-state.test.mjs` 가 빠진 것을 잡는다).

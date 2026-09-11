@@ -141,3 +141,4 @@ model: opus
 - 말 끊기: 끊기는 쪽 대사에 `{ auto: 0.1 }`. 소리치기: 글자 `{shake}…{/shake}` + `{ async:[{ shake:0.7, amp:4 }] }`.
 - NPC 가 달려 나가는 쪽 맵 가장자리는 걷는 타일이 아니라 **막힌 같은 무늬 타일**(`Z` 보라 땅 / `Y` 얕은 물) 로 끝까지 — 공중부양 금지 + 사방 막힘 규칙.
 - 만남 프레이밍은 파티 셋 + 상대 + 소품 그림 사각형을 전부 재서 카메라 타일을 정한다(`obj1.mjs` framing 검사 참고). 같은 x 에 위아래로 둔 두 NPC 는 겹친다 — 뒤쪽을 60px 옆으로.
+- 아이템 획득(`inventory.push`)·컷신 전투(`battle.flag`)·버프를 넣으면 `src/core/story.js STATE_FROM_FLAGS` 에 플래그 규칙 한 줄 — QA 점프 상태가 실제 플레이와 같아진다(`qa-state.test`).

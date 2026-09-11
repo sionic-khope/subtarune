@@ -55,21 +55,21 @@
   ],
   "cannon": [
    768,
-   181
+   62
   ],
   "push": 5,
   "pushers": [
-   680,
+   692,
    284,
-   740,
+   752,
    300
   ],
   "cam_group": [
-   27.6,
+   27.5,
    8.25
   ],
   "cam_meet": [
-   26.0,
+   26.9,
    8.25
   ],
   "trees": 149
@@ -99,12 +99,13 @@
    "type": "prop",
    "id": "cannon",
    "image": "assets/props/wooden_cannon.png",
-   "x": 802,
-   "y": 288,
-   "w": 60,
-   "h": 12,
+   "scale": 2,
+   "x": 828,
+   "y": 304,
+   "w": 136,
+   "h": 14,
    "ix": 768,
-   "iy": 181,
+   "iy": 62,
    "solid": true,
    "unless": "obj1_meet_seen"
   },
@@ -112,7 +113,7 @@
    "type": "npc",
    "id": "junhee",
    "sprite": "junhee",
-   "x": 680,
+   "x": 692,
    "y": 284,
    "facing": "right",
    "wander": 0,
@@ -122,7 +123,7 @@
    "type": "npc",
    "id": "yongjun",
    "sprite": "yongjun",
-   "x": 740,
+   "x": 752,
    "y": 300,
    "facing": "right",
    "wander": 0,
@@ -132,12 +133,13 @@
    "type": "prop",
    "id": "cannon_after",
    "image": "assets/props/wooden_cannon.png",
-   "x": 962,
-   "y": 288,
-   "w": 60,
-   "h": 12,
+   "scale": 2,
+   "x": 988,
+   "y": 304,
+   "w": 136,
+   "h": 14,
    "ix": 928,
-   "iy": 181,
+   "iy": 62,
    "solid": true,
    "requires": "obj1_meet_seen",
    "script": "obj1_cannon_look"
@@ -146,7 +148,7 @@
    "type": "npc",
    "id": "yongjun_after",
    "sprite": "yongjun",
-   "x": 900,
+   "x": 912,
    "y": 300,
    "facing": "left",
    "wander": 0,
@@ -156,7 +158,7 @@
   {
    "type": "trigger",
    "id": "meet_trig",
-   "x": 772,
+   "x": 784,
    "y": 192,
    "w": 16,
    "h": 192,

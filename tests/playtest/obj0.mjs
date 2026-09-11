@@ -21,6 +21,8 @@ let s = await st();
 const def = await page.evaluate(async () => { const M = (await import('/src/data/maps.js')).MAPS.obj0; return { name: M.name, bgm: M.bgm, backdrop: M.backdrop, rows: M.rows, meta: M.meta }; });
 const road = def.rows.slice(6, 9).map((r) => r.slice(1, -1)).join('');
 check('qa=obj0: 옵젝영역, straight shallow-water road (60×14, rows 6–8 all a/A/j), wind bgm, obj_forest backdrop, party of 3', s.map === 'obj0' && def.name === '옵젝영역' && def.bgm === 'wind' && s.bgm === 'wind' && def.backdrop === 'obj_forest' && def.rows.length === 14 && def.rows[0].length === 60 && /^[aAj]+$/.test(road) && road.includes('j') && s.party.length === 2, JSON.stringify({ map: s.map, name: def.name, bgm: [def.bgm, s.bgm], backdrop: def.backdrop, size: [def.rows.length, def.rows[0].length], party: s.party }));
+const derived = await page.evaluate(() => ({ attack: game.attack, hpBonus: game.hpBonus, maxHp: game.maxHpOf('hyungsub'), inv: game.inventory, money: game.money }));
+check('qa=obj0 state is derived from flags like real play: attack 2, HP bonus +20 (max 120), 2 bananas + 열쇠? + 보라색 코드 ?, money from CS/문지기 battles', derived.attack === 2 && derived.hpBonus === 20 && derived.maxHp === 120 && derived.inv.filter((n) => n === '바나나').length === 2 && derived.inv.includes('열쇠?') && derived.money >= 360, JSON.stringify(derived));
 check('trees: dense (≥ 60), green and purple mixed, no trunk on the road', s.trees.length >= 60 && s.trees.some((i) => /tree_obj\.png/.test(i)) && s.trees.some((i) => /tree_obj_purple/.test(i)) && def.meta.trees === s.trees.length, JSON.stringify({ n: s.trees.length, purple: s.trees.filter((i) => /purple/.test(i)).length }));
 await page.screenshot({ path: `${S}/obj0_01_start.png` });
 // 발소리: 1.5초 달리면 water_step 이 80px 마다(발 딛는 프레임에) 2~4번(물방울 '짤랑' 긴 울림이 겹치지 않게), 음높이가 제각각, 물결 고리가 생긴다
@@ -43,14 +45,15 @@ const blue = await page.evaluate(() => { const b = game.entities.find((e) => e.i
 check('mana spring prop (blue_buff, 3-frame strip) sits on the top forest edge touching the road', !!blue && blue.cols === 3 && blue.y === 6 * 32 - 12, JSON.stringify(blue));
 await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub = 40; game.partyHp.ppaman = 20; });
 await stand(blue.x + 4, blue.y + 12 + 2, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
-const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]); const sfx1 = await page.evaluate(() => window.__sfx || []);
-check('mana spring: "물 위에 서 있잖아요" → 억빠맨 drinks the floor water (splash) → "퉤 흙맛" → drinks the spring → "시원하네" → all three drink → healed to max (100/120/90) → "발밑 물은 마시지 마세요" / "너만 마셨어"', ['여기도 있네', '물 위에 서 있잖아요', '뭐가 달라요', '파란색이잖아', '발밑의 물을 한 모금', '흙맛', '그걸 왜 마셔', '비교해 보려고요', '이번엔 마나샘 물을', '시원하네', '한 모금씩 마셨다', '회복되었다', '마시지 마세요', '너만 마셨어'].every((k) => lines.some((l) => l.includes(k))) && sfx1.includes('splash') && sfx1.includes('heal') && hp1.join() === '100,120,90', JSON.stringify({ lines, hp1 }));
+const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]); const maxHp = await page.evaluate(() => [game.maxHpOf('hyungsub'), game.maxHpOf('gyeongsub'), game.maxHpOf('ppaman')]); const sfx1 = await page.evaluate(() => window.__sfx || []);
+check('mana spring: "물 위에 서 있잖아요" → 억빠맨 drinks the floor water (splash) → "퉤 흙맛" → drinks the spring → "시원하네" → all three drink → healed to max (120/140/110 with the 레드·블루 buff) → "발밑 물은 마시지 마세요" / "너만 마셨어"', ['여기도 있네', '물 위에 서 있잖아요', '뭐가 달라요', '파란색이잖아', '발밑의 물을 한 모금', '흙맛', '그걸 왜 마셔', '비교해 보려고요', '이번엔 마나샘 물을', '시원하네', '한 모금씩 마셨다', '회복되었다', '마시지 마세요', '너만 마셨어'].every((k) => lines.some((l) => l.includes(k))) && sfx1.includes('splash') && sfx1.includes('heal') && hp1.join() === maxHp.join() && maxHp.join() === '120,140,110', JSON.stringify({ lines, hp1, maxHp }));
 await page.screenshot({ path: `${S}/obj0_04_spring.png` });
 await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.waitForTimeout(600); await stand(blue.x + 4, blue.y + 14, 'up'); await page.waitForTimeout(400); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
 const hp2 = await page.evaluate(() => game.hpOf('hyungsub'));
-check('mana spring again: short line ("졸졸 흐른다") + heal only (rest point), no floor-water gag', lines.some((l) => l.includes('졸졸 흐른다')) && !lines.some((l) => l.includes('흙맛')) && hp2 === 100, JSON.stringify({ lines, hp2 }));
+check('mana spring again: short line ("졸졸 흐른다") + heal only (rest point), no floor-water gag', lines.some((l) => l.includes('졸졸 흐른다')) && !lines.some((l) => l.includes('흙맛')) && hp2 === maxHp[0], JSON.stringify({ lines, hp2 }));
 // 출구 → obj1 → 되돌아오기
 const L = def.rows && (await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.obj0.spawns.landing));
+await page.evaluate(() => { game.flags.obj1_meet_seen = true; });   // obj1 도착 연출(대포 밀기)은 obj1.mjs 가 검사 — 여기선 문 왕복만
 await stand(L.x, L.y, 'right'); await page.waitForTimeout(300); await page.keyboard.down('ArrowRight');
 let mapNow = 'obj0'; const t1 = Date.now(); while (Date.now() - t1 < 8000) { mapNow = await page.evaluate(() => game.mapId); if (mapNow === 'obj1') break; await page.waitForTimeout(100); }
 await page.keyboard.up('ArrowRight');
