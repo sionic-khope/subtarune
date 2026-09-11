@@ -16,6 +16,7 @@ import { loadActorFrames, playbackFrameAt } from '../ui/battle-preview.js';
 import { BattleAction } from '../ui/battle-action.js';
 import { Board, Soul, Bullet, PATTERNS } from './bullets.js';
 import { getBattleMode, NATIVE } from './modes.js';
+import { BATTLE_BGS } from './backgrounds.js';
 import { ITEMS, plainItems } from '../data/items.js';
 import L from '../data/locale/ko.js';
 
@@ -330,7 +331,7 @@ export class Battle {
   draw(ctx) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (this.state === 'retry') return;                             // 징글 동안 검은 화면(표준 조우의 검은 화면과 같다)
-    if (this.cfg.bg === 'teal') this.drawTealBg(ctx);
+    const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
     ctx.font = FONT; ctx.textBaseline = 'top';
     for (const e of this.enemies) this.drawEnemy(ctx, e);
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
@@ -409,14 +410,6 @@ export class Battle {
     ctx.fillText(text, Math.round(x), Math.round(y - Math.min(14, t * 40))); ctx.restore(); ctx.textAlign = 'left';
   }
   /** 청록숲 전투 배경: 화면 위쪽에 아주 옅은 청록 잎 구름 (사용자: '진짜 살짝만') */
-  drawTealBg(ctx) {
-    ctx.save(); ctx.globalAlpha = 0.16;
-    const blobs = [[30, 8, 58], [120, -6, 70], [220, 10, 62], [330, -4, 74], [430, 12, 60], [70, 40, 34], [280, 44, 38], [400, 46, 30]];
-    for (const [x, y, r] of blobs) { ctx.fillStyle = '#1c6e66'; ctx.beginPath(); ctx.arc(x + Math.sin(this.t * 0.3 + x) * 2, y, r, 0, Math.PI * 2); ctx.fill(); }
-    ctx.globalAlpha = 0.1; ctx.fillStyle = '#2c9a8f';
-    for (const [x, y, r] of blobs) { ctx.beginPath(); ctx.arc(x + 10, y - 8, r * 0.55, 0, Math.PI * 2); ctx.fill(); }
-    ctx.restore();
-  }
   hpColor(m) { return CHARACTERS[m.id]?.hpColor || '#ffd23b'; }
   /** 화면 맨 아래 HP 띠(델타룬식, 사용자 참고 이미지 2026-09-10): 얼굴 · 이름 · HP · 색 바(바 위에 숫자). 현재 차례는 노란 이름, 정한 행동은 얼굴 귀퉁이 아이콘. 회피 중에도 그대로 */
   drawHpStrip(ctx) {

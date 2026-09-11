@@ -22,6 +22,9 @@ check(`enemy '${id}' exists in src/data/enemies.js`, known, ''); if (!known) { c
 await page.evaluate(({ id, attack, enemy }) => { game.startBattle({ enemies: [id], bgm: 'rude_buster', bg: 'teal', modes: { attack, enemy } }); }, { id, attack: opt.attack || 'rush', enemy: opt.enemy || 'bullets' });
 let b = await until(() => game.battle && game.battle.state === 'intro' && game.battle.enemies.every((e) => e.img) ? true : null, 15000); check('battle opens: intro with the enemy image loaded', !!b, JSON.stringify(await bt()));
 await page.screenshot({ path: `${S}/enemy_${id}_01_intro.png` });
+const rects = await page.evaluate(() => game.battle.enemies.map((e) => { const sh = e.def.sheet, s0 = e.def.scale ?? 1; let fw, fh, s; if (sh && sh.count) { fw = e.img.width / sh.cols; fh = e.img.height / (sh.rows || 1); s = s0 / (sh.px || 1); } else if (sh) { fw = e.img.width / sh.cols; fh = e.img.height / sh.rows; s = s0 / 2; const dw = fw * s, dh = fh * s; return { id: e.id, x: e.x - dw / 2, y: e.y - dh, w: dw, h: dh }; } else { fw = e.img.width; fh = e.img.height; s = s0; }
+  const [pvx, pvy] = e.def.pivot || [fw / 2, fh]; return { id: e.id, x: Math.round(e.x - pvx * s), y: Math.round(e.y - pvy * s), w: Math.round(fw * s), h: Math.round(fh * s) }; }));
+check('enemy sprite fits the screen (480×360) and stays above the action panel (y 246) — no clipping (2026-09-11 postmortem)', rects.every((r) => r.x >= 0 && r.y >= 0 && r.x + r.w <= 480 && r.y + r.h <= 250), JSON.stringify(rects));
 await page.evaluate(() => { game.battle.shown = game.battle.text.length; }); await page.waitForTimeout(700); await page.keyboard.press('KeyC');
 b = await until(() => game.battle?.state === 'menu' ? true : null, 6000); const q0 = await bt();
 check('menu: idle flavor line shows with the buttons (starts with "* ")', !!b && typeof q0.text === 'string' && q0.text.startsWith('* '), JSON.stringify({ text: q0?.text }));

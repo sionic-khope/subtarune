@@ -42,8 +42,9 @@ def block(id_, x, base_y):           # 30x22
     return {'type': 'prop', 'id': id_, 'image': 'assets/props/stone_block.png', 'x': x + 1, 'y': base_y - 8, 'w': 28, 'h': 8, 'ix': x, 'iy': base_y - 22, 'solid': True, 'script': 'teal9_block'}
 # 연출 자리(컷신은 meta 로 읽는다): 파티는 광장 입구 길(42열)에서 위에서부터 세로로 정렬(간격 36px). 레드(위·오른쪽)·블루(아래·왼쪽)는 문 앞에 엇갈려 선다 — 그림 2.6배(238px)라 위아래로 벌린다
 STAGE = {'h': [42 * T + 4, 6 * T], 'g': [42 * T + 4, 6 * T + 36], 'p': [42 * T + 4, 6 * T + 72],   # 맨 아래(빠맨) 히트박스가 길 아랫줄(8행) 안에 들어와야 freeSpot 이 밀어 올리지 않는다
-         'red': [51 * T + 4, 6 * T], 'blue': [47 * T + 4, 9 * T],
-         'red_aside': [51 * T + 4, PR0 * T + 4], 'blue_aside': [46 * T + 4, PR0 * T + 4]}   # 승리 뒤 위로 비켜선 자리(광장 맨 윗줄 안 — 히트박스가 걸을 수 있는 칸에 있어야 연결성 감사를 통과, 아래를 본다)
+         # 레드(위)·블루(아래): 문 바로 앞 같은 열(50열)에 세로로 — 1.8배(165px)라 발 사이 160px 을 띄워 서로 겹치지 않는다(2026-09-11 "너무 크고 배열이 이상하다" → 크기 내리고 한 줄로)
+         'red': [50 * T + 4, 5 * T + 16], 'blue': [50 * T + 4, 10 * T + 24],   # 레드 발 216(그림 51~216)·블루 발 384(그림 219~384) → 안 겹치고, 카메라 CAM_RED(뷰 50~280)엔 레드+파티 전신, CAM_BLUE 엔 블루 전신
+         'red_aside': [48 * T + 4, PR0 * T + 4], 'blue_aside': [52 * T + 4, PR0 * T + 4]}   # 승리 뒤 위로 비켜선 자리(광장 맨 윗줄, 좌우로 나란히, 아래를 본다) — 통로(7~9행)가 비게
 DOOR = {'x': 52 * T + 16, 'y': PR0 * T, 'w': 96, 'h': 288}                                 # 거대한 사원 돌문(옆면) 96×288 — 광장 오른쪽 끝 4~12행
 ents = [
     {'type': 'door', 'x': 32, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'teal8', 'spawn': 'landing', 'sfx': False},
@@ -52,7 +53,7 @@ ents = [
     # 거대한 사원 돌문(옆면): 열린 문은 항상 뒤에 깔려 있고(충돌 없음), 닫힌 문이 그 위에 덮여 길을 막는다(solid, 이기면 unless 로 사라짐). 둘 다 sortY 0 = 캐릭터 뒤
     {'type': 'prop', 'id': 'door_open', 'image': 'assets/props/temple_door_open.png', 'x': DOOR['x'], 'y': DOOR['y'], 'w': DOOR['w'], 'h': DOOR['h'], 'ix': DOOR['x'], 'iy': DOOR['y'], 'solid': False, 'sortY': 0},
     {'type': 'prop', 'id': 'door_closed', 'image': 'assets/props/temple_door.png', 'x': DOOR['x'], 'y': DOOR['y'], 'w': DOOR['w'], 'h': DOOR['h'], 'ix': DOOR['x'], 'iy': DOOR['y'], 'solid': True, 'sortY': 0, 'unless': 'teal9_boss_won'},
-    # 레드·블루(2.6배 거대): 문 앞에 위·아래로 엇갈려 선다. 히트박스 40x40(발 밑). 말 걸면 teal9_boss. 이기면 영구 제거
+    # 레드·블루(1.8배): 문 바로 앞 같은 열에 위·아래로 선다. 히트박스 40x40(발 밑). 말 걸면 teal9_boss. 이기면 위로 비켜선 requires NPC 로 바뀐다
     {'type': 'npc', 'id': 'red', 'sprite': 'red', 'x': STAGE['red'][0], 'y': STAGE['red'][1], 'w': 40, 'h': 40, 'facing': 'left', 'wander': 0, 'script': 'teal9_boss', 'unless': 'teal9_boss_won'},
     {'type': 'npc', 'id': 'blue', 'sprite': 'blue', 'x': STAGE['blue'][0], 'y': STAGE['blue'][1], 'w': 40, 'h': 40, 'facing': 'left', 'wander': 0, 'script': 'teal9_boss', 'unless': 'teal9_boss_won'},
     # 시험 뒤(다시 들어왔을 때): 둘은 위로 비켜서 아래를 본다 — 연출 끝 자리와 같다(STAGE red_aside/blue_aside)
@@ -86,7 +87,7 @@ for j, (r, c) in enumerate(spots):
     if any(abs(x - sx) < 34 and abs(y - sy) < 30 for (sx, sy) in seen): continue
     if any(abs(x - e.get('ix', -999)) < 40 and abs(y - e.get('iy', -999)) < 60 for e in ents if e['type'] == 'prop' and not e['id'].startswith('jt')): continue   # 사원 소품·문과 겹치지 않게
     seen.add((x, y)); ents.append(ftree(f'jt{j}', x, y))
-m = {'id': 'teal9', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'teal', 'rows': rows,
+m = {'id': 'teal9', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'temple', 'rows': rows,
      'spawns': {'from_left': {'x': 60, 'y': 7 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 7 * T + 8, 'facing': 'right'}, 'landing': {'x': 50 * T, 'y': 8 * T + 8, 'facing': 'left'},
                 'gate': {'x': 42 * T, 'y': 7 * T + 8, 'facing': 'right'}},
      'meta': {'connected': True, 'stage': STAGE, 'stone_from': STONE_C, 'plaza': [PLAZA_C, PR0, W - 2, PR1], 'door': DOOR, 'trees': len([e for e in ents if e.get('id', '').startswith('jt')])},

@@ -5,7 +5,7 @@
  "stage": "void_fallen",
  "dim": 0,
  "backdrop": "teal_bush",
- "battleBg": "teal",
+ "battleBg": "temple",
  "rows": [
   "                                                        ",
   "                                                        ",
@@ -64,19 +64,19 @@
     264
    ],
    "red": [
-    1636,
-    192
+    1604,
+    176
    ],
    "blue": [
-    1508,
-    288
+    1604,
+    344
    ],
    "red_aside": [
-    1636,
+    1540,
     132
    ],
    "blue_aside": [
-    1476,
+    1668,
     132
    ]
   },
@@ -147,8 +147,8 @@
    "type": "npc",
    "id": "red",
    "sprite": "red",
-   "x": 1636,
-   "y": 192,
+   "x": 1604,
+   "y": 176,
    "w": 40,
    "h": 40,
    "facing": "left",
@@ -160,8 +160,8 @@
    "type": "npc",
    "id": "blue",
    "sprite": "blue",
-   "x": 1508,
-   "y": 288,
+   "x": 1604,
+   "y": 344,
    "w": 40,
    "h": 40,
    "facing": "left",
@@ -173,7 +173,7 @@
    "type": "npc",
    "id": "red_aside",
    "sprite": "red",
-   "x": 1636,
+   "x": 1540,
    "y": 132,
    "w": 40,
    "h": 40,
@@ -186,7 +186,7 @@
    "type": "npc",
    "id": "blue_aside",
    "sprite": "blue",
-   "x": 1476,
+   "x": 1668,
    "y": 132,
    "w": 40,
    "h": 40,

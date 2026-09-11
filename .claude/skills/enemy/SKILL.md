@@ -30,3 +30,8 @@ model: opus
 - 탄막 피해는 서 있는 멤버 중 무작위(`hurtParty`). HP 0 → `down`: 누워서 행동 불능(메뉴·아이템 대상에서 건너뜀), 라운드(적 턴 끝 `afterEnemyPhase`)마다 회복 반짝임, `DOWN_TURNS`(3) 번째 라운드에 `REVIVE_RATIO`(반피)로 부활. 승리 시 쓰러진 멤버도 반피로 일어난다.
 - **게임 오버는 전원이 쓰러졌을 때만** → GAME OVER + [다시 도전하기] → 징글 뒤 같은 전투 처음부터(`beginRetry` → `load()`). 컷신 전투(튜토리얼)도 같은 경로.
 - 적 피해량(`damage`)을 정할 때 이 규칙을 전제로: 한 명이 두 번 맞고 쓰러지는 정도(10~14)가 표준 3인 파티 기준. 검증 `tests/playtest/battle_lose.mjs`.
+
+## 크기·배치·배경 (2026-09-11 포스트모텀 docs/postmortems/2026-09-11-teal9-boss-sizing.md)
+- **전투 그림은 480×360 안, 패널 윗선(y 246) 위에 전부** 들어와야 한다. 둘이면 각 ≤ 144px(96 셀 × 1.5), `def.dx/dy` 로 발을 144/246 에 두고 가로 40px 엇갈림. `tests/playtest/enemy.mjs` 가 그림 사각형을 재서 막는다 — 스크린샷에서 가장자리에 걸린 그림이 있으면 실패다.
+- 필드 NPC 로도 서는 적(`CHARACTERS.stillScale`)은 이벤트 카메라(대화창 위 230px) 안에 전신이 들어오는 크기까지만(64px 그림이면 ≤ 1.8배). 배치는 사각형으로 계산해 파티·서로와 안 겹치게, `tests/playtest/<맵>.mjs` 에 검사 한 줄.
+- 배경: `src/battle/backgrounds.js` 레지스트리 — `registerBattleBg('name', (ctx, battle) => …)`, 맵 `battleBg` 또는 `{battle:{bg}}` 로 고른다. 기본 `teal`, 보스 무대 `temple`(사원 광장·문양). 새 배경은 함수 하나 + 캐시 캔버스, `tests/unit/battle-bgs.test.mjs` 가 이름 등록을 검사한다.

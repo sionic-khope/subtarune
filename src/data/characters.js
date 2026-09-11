@@ -20,8 +20,8 @@ export const CHARACTERS = {
   krug:      { name: '돌거북', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-krug-front.png' },      // 청록숲8 정글 2 — PR #14 이미지(assets/source/krug-scuttle-cannon-v1, docs/handoffs/krug-scuttle-cannon-sprites.md)
   scuttle:   { name: '바위게', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-scuttle-front.png' },
   cannon:    { name: '대포미니언', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-cannon-front.png' },
-  red:       { name: '레드', voice: 'red', palette: 'ghost', still: 'assets/enemies/red-front.png', stillScale: 2.6 },        // 청록숲9 사원 문지기(NPC → 전투). PR #16 정면 64×64(레드 브램블백 모티브). 목소리 낮고 드문 합성(audio.js VOICES.red)
-  blue:      { name: '블루', voice: 'blue', palette: 'ghost', still: 'assets/enemies/blue-front.png', stillScale: 2.6 },      // PR #16 (블루 센티넬 모티브)
+  red:       { name: '레드', voice: 'red', palette: 'ghost', still: 'assets/enemies/red-front.png', stillScale: 1.8 },        // 청록숲9 사원 문지기(NPC → 전투). PR #16 정면 64×64(레드 브램블백 모티브). 목소리 낮고 드문 합성(audio.js VOICES.red)
+  blue:      { name: '블루', voice: 'blue', palette: 'ghost', still: 'assets/enemies/blue-front.png', stillScale: 1.8 },      // PR #16 (블루 센티넬 모티브)
   merchant:  { name: '상인', voice: 'low',     palette: 'merchant' },
   cat:       { name: '???',  voice: 'cat',     palette: 'cat' },
   guard:     { name: '경비병', voice: 'robot', palette: 'guard' },

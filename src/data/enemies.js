@@ -108,9 +108,10 @@ export const ENEMIES = {
   },
   // ── 청록숲9 사원 문지기 보스 레드·블루 (사용자 2026-09-11: HP 22 씩, 꽤 어렵게, 대사 다채롭게). 둘이 한 전투 — 턴마다 각자 패턴이 동시에 온다.
   //    이미지 PR #16(docs/handoffs/red-blue-buff-sprites.md): 전투 대기 192×192 시트(96×96 셀 2×2, 220ms, 발 pivot 48,89) / 필드 정면 64×64(pivot 32,60). 롤 레드 브램블백·블루 센티넬 모티브
+  //    크기 규칙(2026-09-11 포스트모텀): 전투 그림은 화면 480×360 안, 패널 윗선(y 246) 위에 **전부** 들어와야 한다 — 둘이면 각 ≤ 144px(1.5배), 발 144/246 에 가로 40px 엇갈림. tests/playtest/enemy.mjs 가 잰다
   red: {
     name: '레드', hp: 22, voice: 'red',
-    sheet: { src: 'assets/enemies/red-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 2.0, dx: 22, dy: 70, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 2.4 },
+    sheet: { src: 'assets/enemies/red-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.5, dx: 10, dy: 24, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [                                                                    // 방패 기사 = 신성한 영역: 한 칸만 안전 / 십자 성광 / 방패 벽 + 조준 방패 / 거대 방패 + 붉은 비
       { type: 'zone', cols: 3, rows: 2, safe: 1, warn: 1.0, hit: 0.35, every: 1.9, duration: 5.2 },                                                                                         // (2026-09-11 약 10% 완화: 예고 +0.1, 간격·속도 10%)
       { type: 'beam', dir: 'both', count: 1, thick: 26, warn: 0.85, hit: 0.3, every: 1.65, duration: 5.0 },
@@ -124,7 +125,7 @@ export const ENEMIES = {
   },
   blue: {
     name: '블루', hp: 22, voice: 'blue',
-    sheet: { src: 'assets/enemies/blue-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 2.0, dx: -20, dy: 80, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 3.0 },
+    sheet: { src: 'assets/enemies/blue-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.5, dx: -30, dy: 10, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 3.0 },
     patterns: [                                                                    // 망치 기사: 망치 낙하(파편) / 위아래 망치 + 방사형 망치 / 포물선 망치 + 따라오는 망치 / 내리찍기 자리 4곳
       { type: 'bomb', every: 1.35, warn: 0.8, frags: 8, fragSpeed: 126, r: 8, shape: 'hammer', fragKind: 'blue', duration: 5.0 },                                                        // (2026-09-11 약 10% 완화)
       { type: 'combo', parts: [{ type: 'slam', duration: 5.0, every: 0.56, warn: 0.4, speed: 345, from: 'updown', shape: 'hammer', rot: Math.PI }, { type: 'burst', duration: 5.0, at: 'random', n: 8, speed: 108, every: 1.2, r: 6, shape: 'hammer', kind: 'blue', spin: 8 }] },

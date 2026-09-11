@@ -23,9 +23,9 @@ await page.goto('http://localhost:8000/index.html?qa=teal9'); await until(() => 
 const meta = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal9.meta);
 const rows = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.teal9.rows);
 let s = await st();
-check('qa=teal9: straight road into a tall plaza, party of 3, 레드(upper right)·블루(lower left) guard the giant stone door (solid, facing left)', s.map === 'teal9' && s.gs && s.pp && s.red && s.blue && s.red.solid && s.blue.solid && s.red.f === 'left' && s.red.x === meta.stage.red[0] && s.blue.y > s.red.y && s.red.x > s.blue.x && rows.length === 18, JSON.stringify({ red: s.red, blue: s.blue, rows: rows.length }));
+check('qa=teal9: straight road into a tall plaza, party of 3, 레드(upper right)·블루(lower left) guard the giant stone door (solid, facing left)', s.map === 'teal9' && s.gs && s.pp && s.red && s.blue && s.red.solid && s.blue.solid && s.red.f === 'left' && s.red.x === meta.stage.red[0] && s.blue.y > s.red.y && s.red.x === s.blue.x && s.blue.y - s.red.y >= 150 && rows.length === 18, JSON.stringify({ red: s.red, blue: s.blue, rows: rows.length }));
 const sizes = await page.evaluate(async () => { const { CHAR_SCALE } = await import('/src/world/world.js'); const h = (e) => Math.round(e.sprite.fh / e.sprite.px * CHAR_SCALE); const r = game.entities.find((e) => e.id === 'red'); return { red: h(r), player: h(game.player) }; });
-check('레드·블루 are drawn far bigger than the party (≥ 3× 형섭 height)', sizes.red >= sizes.player * 3, JSON.stringify(sizes));
+check('레드·블루 are drawn much bigger than the party (≥ 2× 형섭 height) but capped so they fit the event camera', sizes.red >= sizes.player * 2 && sizes.red <= 170, JSON.stringify(sizes));
 const doorBefore = await page.evaluate(() => { const c = game.entities.find((e) => e.id === 'door_closed'), o = game.entities.find((e) => e.id === 'door_open'); return { closed: !!c && c.solid, open: !!o, plazaRows: game.map.rows.slice(4, 13).every((r) => /[rR]/.test(r[48])) }; });
 check('giant temple door: closed (solid) face stands at the right end over the open one; plaza rows 4~12 are stone', doorBefore.closed && doorBefore.open && doorBefore.plazaRows, JSON.stringify(doorBefore));
 const stoneCols = rows[7].split('').map((ch, i) => 'rR'.includes(ch) ? i : -1).filter((i) => i >= 0);
@@ -42,6 +42,7 @@ if (lan) { await stand(lan.x + 2, lan.y - 26, 'down'); await page.keyboard.press
 await page.evaluate(() => { window.__sfx = []; const o = game.sound.sfx.bind(game.sound); game.sound.sfx = (n, a) => { window.__sfx.push(n); return o(n, a); }; });
 await stand(meta.stage.red[0] - 40, meta.stage.red[1] + 12, 'right'); await page.waitForTimeout(200); await page.keyboard.press('KeyC');
 const started = await until(() => game.dialogue.running ? true : null, 3000); check('C on 레드 → scene starts', !!started, '');
+let lineupRects = null;
 const lines = []; let lineup = null, hopSeen = false, alarmAt = null, hurtSeen = false, redHop = false, bgmOffSeen = false, battleSnap = null, chaseGaps = [];
 let lastLineAt = 0, lastKey = '';
 const t0 = Date.now();
@@ -62,7 +63,10 @@ while (Date.now() - t0 < 180000) {
   if (q.red && q.red.hop > 2) redHop = true; if ((q.p && q.p.hop > 2) || (q.gs && q.gs.hop > 2) || (q.pp && q.pp.hop > 2)) hopSeen = true;
   if (q.box === 'waiting' || q.box === 'typing') { const k = key(q);
     if (k !== lastKey) { lastKey = k; lines.push(k); const now = Date.now(); if (k.startsWith('블루|* 하라') && lines.length > 18) chaseGaps.push(now - lastLineAt); lastLineAt = now;
-      if (q.text.includes('레드랑 블루인데요') && !lineup) { lineup = q; await page.screenshot({ path: `${S}/teal9_02_lineup.png` }); }
+      if (q.text.includes('레드랑 블루인데요') && !lineup) { lineup = q; await page.screenshot({ path: `${S}/teal9_02_lineup.png` });
+        lineupRects = await page.evaluate(async () => { const { CHAR_SCALE } = await import('/src/world/world.js'); const rect = (e) => { const w = Math.round(e.sprite.fw / e.sprite.px * CHAR_SCALE), h = Math.round(e.sprite.fh / e.sprite.px * CHAR_SCALE); return { x: Math.round(e.x + e.w / 2 - w / 2), y: Math.round(e.y + e.h - h), w, h }; };
+          const g = (id) => id === 'player' ? game.player : game.entities.find((k) => k.id === id && !k.dead); return { cam: { x: Math.round(game.camera.x), y: Math.round(game.camera.y) }, red: rect(g('red')), blue: rect(g('blue')), party: ['player', 'gyeongsub', 'ppaman'].map((id) => rect(g(id))) }; }); }
+      if (q.speaker === '블루' && q.text === '* 없다.' && !fs.existsSync(`${S}/teal9_06_blue.png`)) { await page.waitForTimeout(400); const cb = await page.evaluate(async () => { const { CHAR_SCALE } = await import('/src/world/world.js'); const b = game.entities.find((e) => e.id === 'blue'); const h = Math.round(b.sprite.fh / b.sprite.px * CHAR_SCALE); return { top: b.y + b.h - h, bottom: b.y + b.h, camY: Math.round(game.camera.y) }; }); check('camera follows the speaker: on a 블루 line 블루 is fully inside the visible area above the text box', cb.top >= cb.camY && cb.bottom <= cb.camY + 230, JSON.stringify(cb)); await page.screenshot({ path: `${S}/teal9_06_blue.png` }); }
       if (q.text.includes('침입자 발생') && !fs.existsSync(`${S}/teal9_03_alarm.png`)) { for (let i = 0; i < 12; i++) { const h = await page.evaluate(() => { const r = game.entities.find((e) => e.id === 'red'); return r ? r.hopY || 0 : 0; }); if (h > 2) redHop = true; await page.waitForTimeout(40); } await page.screenshot({ path: `${S}/teal9_03_alarm.png` }); } }
     if (k !== '레드|* 처리하라' && k !== '블루|* 하라') { await page.keyboard.press('KeyC'); }                       // 처리하라/하라 응수 구간(마침표 없음)은 auto 로 넘어간다
     await page.waitForTimeout(50); }
@@ -75,6 +79,9 @@ const inOrder = (w, got) => { let i = 0; for (const g of got) if (g === w[i]) i+
 const io_ = inOrder(want, lines);
 check('all lines in briefing order (verbatim) through the battle to the closing line', io_.ok, JSON.stringify({ reached: io_.at, of: want.length, next: want[io_.at], got: lines.slice(Math.max(0, io_.at - 2), io_.at + 2) }));
 check('party lines up vertically from the top (형섭 → 경섭 → 빠맨, same x, 36px apart) facing right; 레드·블루 face left', !!lineup && lineup.p.x === lineup.gs.x && lineup.gs.x === lineup.pp.x && lineup.gs.y - lineup.p.y === 36 && lineup.pp.y - lineup.gs.y === 36 && [lineup.p, lineup.gs, lineup.pp].every((c) => c.f === 'right') && lineup.red.f === 'left', JSON.stringify(lineup && { p: lineup.p, gs: lineup.gs, pp: lineup.pp }));
+{ const R = lineupRects; const inside = (r, box) => r.x >= box.x && r.y >= box.y && r.x + r.w <= box.x + box.w && r.y + r.h <= box.y + box.h; const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  const view = R && { x: R.cam.x, y: R.cam.y, w: 480, h: 230 };   // 대화창 위 보이는 영역(대화창은 화면 y 230 부터)
+  check('event framing: 레드 fully inside the visible area above the text box, 블루 top visible, neither overlaps the party or each other (no clipping — 2026-09-11 postmortem)', !!R && inside(R.red, view) && R.blue.y >= view.y && R.blue.y < view.y + view.h && !overlap(R.red, R.blue) && R.party.every((p) => !overlap(p, R.red) && !overlap(p, R.blue) && inside(p, view)), JSON.stringify(R)); }
 check('BGM: off after the lineup, alarm track from "침입자 발생", boss track in battle, hopes after', bgmOffSeen && alarmAt !== null && alarmAt >= 12 && (await st()).bgm === 'hopes', JSON.stringify({ bgmOffSeen, alarmAt, now: (await st()).bgm }));
 const sfx = (await st()).sfx;
 check('startled hop uses the "!" chime, NOT the official jump sound; siren + thud stomps + red screen pulses during the alarm', hopSeen && sfx.includes('chime') && !sfx.includes('jump') && sfx.filter((n) => n === 'siren').length >= 2 && sfx.includes('thud') && redHop && hurtSeen, JSON.stringify({ hopSeen, redHop, hurtSeen, sfx: [...new Set(sfx)] }));

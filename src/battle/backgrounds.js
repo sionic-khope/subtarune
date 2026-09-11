@@ -1,0 +1,53 @@
+// ─────────────────────────────────────────────────────────────
+// 전투 배경 레지스트리 (2026-09-11, 사용자 "전투맵을 색다르게 — 기믹 확장성"): 전투 cfg.bg 이름 → 그리기 함수 (ctx, battle).
+//   registerBattleBg('name', fn) 로 새 배경을 끼운다. 맵 JSON `battleBg` 또는 컷신 { battle:{ bg } } 로 고른다. 없는 이름은 검정.
+//   teal   : 청록숲 — 위쪽에 흐릿한 잎 뭉치(살짝 흔들림)
+//   temple : 고대 사원 광장(델타룬 왕 전투 참고) — 어두운 기둥·아치 실루엣 + 둥근 판석 무대(원근 줄눈) + 가운데 신성한 오브젝트 문양(빛나는 테). 한 번 그려 캐시
+// ─────────────────────────────────────────────────────────────
+import { makeCanvas } from '../core/gfx.js';
+export const BATTLE_BGS = {};
+/** 새 전투 배경 등록: fn(ctx, battle) — 480×360, 패널(y 246~)·HP 띠는 위에 덮인다 */
+export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
+
+registerBattleBg('teal', (ctx, b) => {
+  ctx.save(); ctx.globalAlpha = 0.16;
+  const blobs = [[30, 8, 58], [120, -6, 70], [220, 10, 62], [330, -4, 74], [430, 12, 60], [70, 40, 34], [280, 44, 38], [400, 46, 30]];
+  for (const [x, y, r] of blobs) { ctx.fillStyle = '#1c6e66'; ctx.beginPath(); ctx.arc(x + Math.sin(b.t * 0.3 + x) * 2, y, r, 0, Math.PI * 2); ctx.fill(); }
+  ctx.globalAlpha = 0.1; ctx.fillStyle = '#2c9a8f';
+  for (const [x, y, r] of blobs) { ctx.beginPath(); ctx.arc(x + 10, y - 8, r * 0.55, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+});
+
+let templeCache = null;
+function buildTemple() {
+  const c = makeCanvas(480, 360), g = c.getContext('2d');
+  // 뒷벽: 위가 더 어두운 청록 돌
+  const wall = g.createLinearGradient(0, 0, 0, 140); wall.addColorStop(0, '#040e0d'); wall.addColorStop(1, '#0f2a28'); g.fillStyle = wall; g.fillRect(0, 0, 480, 140);
+  // 기둥 실루엣(뒤) + 가운데 아치
+  g.fillStyle = '#081b1a';
+  for (const [x, w, top] of [[28, 20, 26], [92, 16, 40], [160, 22, 18], [300, 22, 18], [372, 16, 40], [432, 20, 26]]) { g.fillRect(x, top, w, 140 - top); g.fillRect(x - 4, top, w + 8, 8); g.fillRect(x - 3, 128, w + 6, 8); }
+  g.fillStyle = '#06201e'; g.beginPath(); g.moveTo(190, 140); g.lineTo(190, 60); g.quadraticCurveTo(240, 10, 290, 60); g.lineTo(290, 140); g.closePath(); g.fill();
+  g.strokeStyle = '#1d4b47'; g.lineWidth = 3; g.beginPath(); g.moveTo(192, 140); g.lineTo(192, 62); g.quadraticCurveTo(240, 14, 288, 62); g.lineTo(288, 140); g.stroke();
+  g.fillStyle = 'rgba(255,217,138,0.18)'; g.fillRect(230, 78, 20, 30); g.fillStyle = 'rgba(255,217,138,0.45)'; g.fillRect(236, 86, 8, 14);   // 아치 안 희미한 빛
+  // 둥근 판석 무대
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r); g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h); g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r); g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath(); };
+  rr(18, 92, 444, 176, 30); g.fillStyle = '#1b3332'; g.fill();                                   // 테두리(어두운 돌)
+  rr(26, 98, 428, 166, 26); g.fillStyle = '#2f4a49'; g.fill();                                   // 바닥
+  g.save(); rr(26, 98, 428, 166, 26); g.clip();
+  g.strokeStyle = 'rgba(22,48,47,0.75)'; g.lineWidth = 2;
+  for (let y = 112; y < 264; y += 22) { g.beginPath(); g.moveTo(0, y); g.lineTo(480, y); g.stroke(); }                                  // 가로 줄눈
+  for (let xb = -48; xb <= 528; xb += 48) { const xt = 240 + (xb - 240) * 0.82; g.beginPath(); g.moveTo(xt, 98); g.lineTo(xb, 264); g.stroke(); }   // 세로 줄눈(살짝 원근)
+  g.strokeStyle = 'rgba(90,128,125,0.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(40, 101); g.lineTo(440, 101); g.stroke();          // 윗변 하이라이트
+  // 가운데 신성한 오브젝트 문양: 큰 마름모 + 원 + 빛나는 테
+  g.fillStyle = '#1c3634'; g.beginPath(); g.moveTo(240, 108); g.lineTo(316, 180); g.lineTo(240, 252); g.lineTo(164, 180); g.closePath(); g.fill();
+  g.strokeStyle = 'rgba(90,128,125,0.55)'; g.lineWidth = 3; g.stroke();
+  g.fillStyle = '#0d2321'; g.beginPath(); g.arc(240, 180, 24, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = 'rgba(255,217,138,0.28)'; g.lineWidth = 4; g.beginPath(); g.arc(240, 180, 30, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = 'rgba(255,217,138,0.5)'; g.fillRect(236, 176, 8, 8);
+  g.restore();
+  // 좌우 비네트
+  const vl = g.createLinearGradient(0, 0, 90, 0); vl.addColorStop(0, 'rgba(0,0,0,0.55)'); vl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = vl; g.fillRect(0, 0, 90, 360);
+  const vr = g.createLinearGradient(480, 0, 390, 0); vr.addColorStop(0, 'rgba(0,0,0,0.55)'); vr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = vr; g.fillRect(390, 0, 90, 360);
+  return c;
+}
+registerBattleBg('temple', (ctx) => { if (!templeCache) templeCache = buildTemple(); ctx.drawImage(templeCache, 0, 0); });

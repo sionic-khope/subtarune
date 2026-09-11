@@ -62,6 +62,9 @@
 - **하나씩 눈으로**: `node tests/playtest/enemy.mjs <id> --pattern=N` → `enemy_<id>_pN_03_bullets.png`. 예고가 먼저 뜨고(빨간 칸·점선·고리) 그 뒤 덮치는지 본다.
 - **시트에 대기 모션이 있는 적**(PR #14 식 4프레임)은 `idle:{swayX:0, swayY:0}` — 좌우 흔들림을 겹치지 않는다(사용자 2026-09-11). 단일 PNG 적만 sway 로 살린다.
 
+## 3.5 전투 배경 — 레지스트리 (2026-09-11)
+`src/battle/backgrounds.js`: `registerBattleBg('name', (ctx, battle) => { … })`. 맵 JSON `battleBg` 또는 컷신 `{ battle:{ bg:'name' } }` 로 고른다. 기본 `teal`(청록숲 잎 뭉치), `temple`(고대 사원 광장 무대: 기둥·아치 실루엣, 둥근 판석 무대, 가운데 문양 — 델타룬 왕 전투 참고). 정적 배경은 오프스크린 캔버스에 한 번 그려 캐시한다. 패널(y 246~)·HP 띠가 위에 덮이므로 무대는 y ≤ 262 까지만 의미 있다. `tests/unit/battle-bgs.test.mjs` 가 맵·컷신이 쓰는 이름의 등록을 검사한다.
+
 ## 4. 전투 기믹(미니게임) — 모드 플러그인
 `src/battle/modes.js` 레지스트리. 공격 단계나 적 턴을 **통째로** 다른 놀이로 바꾼다(리듬게임으로 공격, 춤으로 공격, FPS 모드로 마우스 공격, 적 턴이 퀴즈…).
 ```js
