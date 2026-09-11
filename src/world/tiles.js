@@ -148,9 +148,12 @@ registerTile('d', { name: 'ground_teal_shade', solid: false, draw: flat('#061412
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });
 // 옵젝영역(obj0~, tools/art/obj_set.py, 2026-09-11): 얕은 물 바닥(걸을 수 있음, 밟으면 step 효과음 + 물결 고리 — Player.footstep) / 수련잎 / 초록·보라 숲 바닥(막힘) / 절벽면
-registerTile('a', { name: 'water_shallow', solid: false, step: 'water_step', draw: flat('#1a5561') });
-registerTile('A', { name: 'water_shallow2', solid: false, step: 'water_step', draw: flat('#1a5561') });
-registerTile('j', { name: 'water_shallow_pad', solid: false, step: 'water_step', draw: flat('#1a5561') });
+// `step`: 그 타일을 밟을 때 나는 **걸음 소리**. 여러 개면 걸음마다 하나를 골라 쓴다(같은 소리 반복이 티 나지 않게).
+//   물걸음 사운드 = water_step·2·3·4 (델타룬 walking 효과음에서 걸음 4개를 잘라 씀, design/audio/references.md)
+const WATER_STEP = ['water_step', 'water_step2', 'water_step3', 'water_step4'];
+registerTile('a', { name: 'water_shallow', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
+registerTile('A', { name: 'water_shallow2', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
+registerTile('j', { name: 'water_shallow_pad', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
 registerTile('c', { name: 'forest_floor_obj', solid: true, draw: flat('#0f2f18') });
 registerTile('Y', { name: 'water_shallow_edge', solid: true, draw: flat('#1a5561') });   // 물처럼 보이지만 막힘 — 맵 가장자리 밖으로 이어지는 물길(컷신 NPC 가 달려 나가는 바닥, Z 의 물 판). 옵젝영역1 오른쪽 끝
 registerTile('V', { name: 'cliff_obj', solid: true, draw: flat('#0b2412') });

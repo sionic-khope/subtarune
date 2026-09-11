@@ -352,7 +352,7 @@ export class Player extends Character {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
   }
-  /** 발소리: 발 딛는 프레임(1·3)으로 넘어가는 순간 중 지난 발소리에서 STEP_DIST(80px) 이상 걸었을 때만, 밟고 있는 타일이 `step` 효과음을 선언했으면(얕은 물 — 옵젝영역0) 살짝 음높이를 바꿔 재생하고 물결 고리를 낸다.
+  /** 발소리: 발 딛는 프레임(1·3)으로 넘어가는 순간 중 지난 발소리에서 STEP_DIST(80px) 이상 걸었을 때만, 밟고 있는 타일이 `step` 효과음(하나 또는 여러 개)을 선언했으면(얕은 물 — 옵젝영역) 그중 하나를 살짝 음높이를 바꿔 재생하고 물결 고리를 낸다.
    *  거리 기준이라 달리기 ≈ 초당 2번(0.5s), 걷기 ≈ 1.3번 — 시간 기준(0.4s)은 달리기 주기(0.333s)와 엇갈려 걷기가 더 잦아졌다.
    *  2026-09-11 사용자: "걸을 때마다 울리는 에코 물 밟는 소리" → 1차(프레임 1·3 전부, 초당 6번, 짧은 첨벙)는 "빈도 너무 많고 쫀득" → 물방울 '짤랑' 긴 울림을 드문드문 */
   footstep(prevFrame) {
@@ -362,7 +362,8 @@ export class Player extends Character {
     const tile = this.game.map.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE));
     if (!tile?.step) return;
     this.lastStepAt = [cx, fy];
-    this.game.sound.sfx(tile.step, { volume: 0.5, rate: 0.9 + Math.random() * 0.2 });
+    const step = Array.isArray(tile.step) ? tile.step[Math.floor(Math.random() * tile.step.length)] : tile.step;   // 여러 개면 걸음마다 골라 쓴다
+    this.game.sound.sfx(step, { volume: 0.6, rate: 0.94 + Math.random() * 0.12 });
     this.game.emitRipple?.(cx, fy - 2);
   }
   /** 동료가 따라올 발자국 기록 (이동한 프레임만) — Follower 가 뒤에서 이 자취를 따라 걷는다 */
