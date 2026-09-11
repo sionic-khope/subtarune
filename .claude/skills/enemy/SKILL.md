@@ -39,3 +39,4 @@ model: opus
 ## 준비된 스프라이트(브리핑 오면 바로 등록, 2026-09-11)
 - **바론**(PR #15, LoL 바론 모티브 보스): 필드 정면 `assets/enemies/baron-front.png` 160×160(앵커 80,148, `CHARACTERS.baron` 등록됨, 1.43배 229px — 대화 중 보이는 높이 230 꽉 참이라 카메라를 화자별로) / 전투 `assets/enemies/baron-battle-idle.png` 512×512 2×2 셀 256 240ms → `sheet:{cols:2,rows:2,count:4,fps:1000/240,px:1}, pivot:[128,238]`. **축소·자동 크기 정규화 금지**(보스 규격). 전투 패널 위 246px 안에 들어오는지 `enemy.mjs` 그림 사각형으로 확인하고 `dy`·`scale` 로 맞춘다.
 - **용준·쥰희 나무 대포**(PR #15): `assets/props/wooden_cannon.png` 128×128 3/4 정지 1장(바닥 앵커 64,119) — 무기 단독 자산, 발사·반동 애니 없음(필요하면 `/art` 로 띠 추가).
+- **동료 HP 0 쓰러짐**(PR #17): `assets/battle/down/<id>.png` 96×96(기준점 48,89) — 새 동료가 생기면 같은 규격으로 한 장 추가하면 `drawLying` 이 자동으로 쓴다(없으면 눕힌 프레임 폴백).

@@ -28,6 +28,8 @@ b = await bt();
 const downed = b.members.filter((m) => m.down);
 check('one member down (hp 0, lying), the other two alive, game NOT over', b.state === 'menu' && downed.length === 1 && downed[0].hp === 0 && b.members.filter((m) => !m.down).length === 2, JSON.stringify(b.members));
 await page.waitForTimeout(300); await page.screenshot({ path: `${S}/lose_01_down.png` });
+const downImg = await page.evaluate(() => game.battle.members.map((m) => ({ id: m.id, w: m.downImg?.naturalWidth || 0, h: m.downImg?.naturalHeight || 0 })));
+check('downed member uses the PR #17 fallen sprite (assets/battle/down/<id>.png 96×96 loaded for every member)', downImg.every((d) => d.w === 96 && d.h === 96), JSON.stringify(downImg));
 // 메뉴가 쓰러진 멤버를 건너뛰는지: 멤버 순서대로 [공격하기] 를 고르면 산 둘만 계획에 들어간다
 await page.evaluate(() => { const b = game.battle; b.beginMenu(); });
 b = await bt(); check('menu starts on a standing member', !b.members[b.memberIdx].down, `memberIdx=${b.memberIdx}`);

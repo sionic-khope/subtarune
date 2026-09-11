@@ -41,6 +41,9 @@ const LOSE_HOLD = 0.9;               // 전원 쓰러진 뒤 전장을 이만큼
 const RETRY_JINGLE = 1.5;            // 다시 도전: 검은 화면에서 징글이 끝나는 시간(표준 조우 타임라인과 같다) 뒤 전투 화면
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
+const DOWN_SRC = (id) => `assets/battle/down/${id}.png`;   // HP 0 쓰러짐 정지 그림(PR #17, 96×96, 하단 기준점 48,89, 머리 오른쪽·발 왼쪽 — 누운 길이 81px ≈ 서 있는 키 81px 이라 배율 1)
+const DOWN_SCALE = 1, DOWN_PIVOT = [48, 89];
+const loadImage = (src) => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => resolve(null); im.src = src; });
 const cached = (map, key, make) => { if (!map.has(key)) map.set(key, make()); return map.get(key); };
 
 /** 빠른 접근/복귀용: BattleAction 의 이동 시간을 속도 기준으로 다시 잡는다 */
@@ -68,7 +71,7 @@ export class Battle {
   /** 진입 연출 동안 아틀라스·적 이미지를 캐시에 올려 둔다 — 첫 전투도 로딩 정지 없이 징글이 끝나는 순간 화면이 열린다 (2026-09-11 브금 전환 타임라인) */
   static preload(game, enemyIds = []) {
     const ids = PARTY_ORDER.filter((id) => id === 'hyungsub' || game.party.includes(id));
-    for (const id of ids) if (BATTLE_SPRITES[id]) cached(FRAME_CACHE, id, () => loadActorFrames(BATTLE_SPRITES[id], BATTLE_PREVIEW.colorKey));
+    for (const id of ids) if (BATTLE_SPRITES[id]) { cached(FRAME_CACHE, id, () => loadActorFrames(BATTLE_SPRITES[id], BATTLE_PREVIEW.colorKey)); cached(IMAGE_CACHE, DOWN_SRC(id), () => loadImage(DOWN_SRC(id))); }
     for (const eid of enemyIds) { const def = ENEMIES[eid]; if (!def) continue; const src = def.image || def.sheet?.src; cached(IMAGE_CACHE, src, () => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => resolve(null); im.src = src; })); }
   }
   constructor(game, cfg) {
@@ -92,7 +95,7 @@ export class Battle {
   async load() {
     try {
       await Promise.all([
-        ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); }),
+        ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),
         ...this.enemies.map(async (e) => { e.img = await cached(IMAGE_CACHE, e.def.image || e.def.sheet?.src, () => this.loadEnemyImage(e.def)); }),
       ]);
     } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
@@ -361,12 +364,18 @@ export class Battle {
     ctx.textAlign = 'left';
   }
   /** 쓰러진 동료: 대기 첫 프레임을 90° 눕혀 발 자리에(머리 왼쪽·얼굴 위) + 바닥 그림자 — 행동 불능. 흐리게 하지 않고 또렷이 누워 있다(사용자 2026-09-11 '그냥 누워있고') */
+  /** HP 0 으로 누운 동료: PR #17 쓰러짐 그림(assets/battle/down/<id>.png)을 발 위치(home)에 하단 기준점으로. 그림이 없으면(로드 실패) 서 있는 첫 프레임을 눕힌다 */
   drawLying(ctx, m) {
     const fr = m.frames.idle[0], sc = BATTLE_SPRITES[m.id].scale * ACTOR_SCALE, hh = Math.round(fr.image.height * sc), ww = Math.round(fr.image.width * sc);
     const [hx, hy] = m.home;
     ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(hx, hy + 6, Math.round(hh * 0.5), 6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.save(); ctx.translate(Math.round(hx + hh * 0.45), Math.round(hy + 2)); ctx.rotate(-Math.PI / 2); ctx.globalAlpha = 0.92;
-    ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * sc), Math.round(-fr.pivot[1] * sc), ww, hh); ctx.restore();
+    if (m.downImg) {
+      const w = Math.round(m.downImg.width * DOWN_SCALE), h = Math.round(m.downImg.height * DOWN_SCALE);
+      ctx.drawImage(m.downImg, Math.round(hx - DOWN_PIVOT[0] * DOWN_SCALE), Math.round(hy - DOWN_PIVOT[1] * DOWN_SCALE), w, h);
+    } else {
+      ctx.save(); ctx.translate(Math.round(hx + hh * 0.45), Math.round(hy + 2)); ctx.rotate(-Math.PI / 2); ctx.globalAlpha = 0.92;
+      ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * sc), Math.round(-fr.pivot[1] * sc), ww, hh); ctx.restore();
+    }
     if (m.popup) this.drawPopup(ctx, hx, hy - 48, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
   drawMember(ctx, m) {
