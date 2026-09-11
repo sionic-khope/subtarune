@@ -86,7 +86,7 @@
     3
    ]
   },
-  "trees": 76
+  "trees": 68
  },
  "entities": [
   {
@@ -187,11 +187,11 @@
    "id": "jt0",
    "image": "assets/props/tree_forest.png",
    "x": 1572,
-   "y": 64,
+   "y": 32,
    "w": 24,
    "h": 12,
    "ix": 1556,
-   "iy": -8,
+   "iy": -40,
    "solid": true
   },
   {
@@ -199,11 +199,11 @@
    "id": "jt1",
    "image": "assets/props/tree_forest.png",
    "x": 1700,
-   "y": 64,
+   "y": 32,
    "w": 24,
    "h": 12,
    "ix": 1684,
-   "iy": -8,
+   "iy": -40,
    "solid": true
   },
   {
@@ -211,11 +211,11 @@
    "id": "jt2",
    "image": "assets/props/tree_forest.png",
    "x": 1828,
-   "y": 64,
+   "y": 32,
    "w": 24,
    "h": 12,
    "ix": 1812,
-   "iy": -8,
+   "iy": -40,
    "solid": true
   },
   {
@@ -268,38 +268,14 @@
   },
   {
    "type": "prop",
-   "id": "jt7",
-   "image": "assets/props/tree_forest.png",
-   "x": 388,
-   "y": 160,
-   "w": 24,
-   "h": 12,
-   "ix": 372,
-   "iy": 88,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt8",
    "image": "assets/props/tree_forest.png",
    "x": 516,
-   "y": 160,
+   "y": 128,
    "w": 24,
    "h": 12,
    "ix": 500,
-   "iy": 88,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt9",
-   "image": "assets/props/tree_forest.png",
-   "x": 644,
-   "y": 160,
-   "w": 24,
-   "h": 12,
-   "ix": 628,
-   "iy": 88,
+   "iy": 56,
    "solid": true
   },
   {
@@ -307,11 +283,11 @@
    "id": "jt10",
    "image": "assets/props/tree_forest.png",
    "x": 772,
-   "y": 160,
+   "y": 128,
    "w": 24,
    "h": 12,
    "ix": 756,
-   "iy": 88,
+   "iy": 56,
    "solid": true
   },
   {
@@ -388,26 +364,14 @@
   },
   {
    "type": "prop",
-   "id": "jt17",
-   "image": "assets/props/tree_forest.png",
-   "x": 1348,
-   "y": 224,
-   "w": 24,
-   "h": 12,
-   "ix": 1332,
-   "iy": 152,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt18",
    "image": "assets/props/tree_forest.png",
    "x": 1476,
-   "y": 224,
+   "y": 192,
    "w": 24,
    "h": 12,
    "ix": 1460,
-   "iy": 152,
+   "iy": 120,
    "solid": true
   },
   {
@@ -415,23 +379,11 @@
    "id": "jt19",
    "image": "assets/props/tree_forest.png",
    "x": 1604,
-   "y": 224,
+   "y": 192,
    "w": 24,
    "h": 12,
    "ix": 1588,
-   "iy": 152,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt20",
-   "image": "assets/props/tree_forest.png",
-   "x": 1860,
-   "y": 224,
-   "w": 24,
-   "h": 12,
-   "ix": 1844,
-   "iy": 152,
+   "iy": 120,
    "solid": true
   },
   {
@@ -439,11 +391,11 @@
    "id": "jt21",
    "image": "assets/props/tree_forest.png",
    "x": 996,
-   "y": 256,
+   "y": 224,
    "w": 24,
    "h": 12,
    "ix": 980,
-   "iy": 184,
+   "iy": 152,
    "solid": true
   },
   {
@@ -451,11 +403,11 @@
    "id": "jt22",
    "image": "assets/props/tree_forest.png",
    "x": 1124,
-   "y": 256,
+   "y": 224,
    "w": 24,
    "h": 12,
    "ix": 1108,
-   "iy": 184,
+   "iy": 152,
    "solid": true
   },
   {
@@ -544,18 +496,6 @@
   },
   {
    "type": "prop",
-   "id": "jt30",
-   "image": "assets/props/tree_forest.png",
-   "x": 932,
-   "y": 320,
-   "w": 24,
-   "h": 12,
-   "ix": 916,
-   "iy": 248,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt31",
    "image": "assets/props/tree_forest.png",
    "x": 1188,
@@ -607,11 +547,11 @@
    "id": "jt35",
    "image": "assets/props/tree_forest.png",
    "x": 1476,
-   "y": 352,
+   "y": 320,
    "w": 24,
    "h": 12,
    "ix": 1460,
-   "iy": 280,
+   "iy": 248,
    "solid": true
   },
   {
@@ -655,11 +595,11 @@
    "id": "jt39",
    "image": "assets/props/tree_forest.png",
    "x": 100,
-   "y": 384,
+   "y": 352,
    "w": 24,
    "h": 12,
    "ix": 84,
-   "iy": 312,
+   "iy": 280,
    "solid": true
   },
   {
@@ -667,11 +607,11 @@
    "id": "jt40",
    "image": "assets/props/tree_forest.png",
    "x": 228,
-   "y": 384,
+   "y": 352,
    "w": 24,
    "h": 12,
    "ix": 212,
-   "iy": 312,
+   "iy": 280,
    "solid": true
   },
   {
@@ -820,50 +760,14 @@
   },
   {
    "type": "prop",
-   "id": "jt54",
-   "image": "assets/props/tree_forest.png",
-   "x": 964,
-   "y": 480,
-   "w": 24,
-   "h": 12,
-   "ix": 948,
-   "iy": 408,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt55",
-   "image": "assets/props/tree_forest.png",
-   "x": 1092,
-   "y": 480,
-   "w": 24,
-   "h": 12,
-   "ix": 1076,
-   "iy": 408,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt56",
-   "image": "assets/props/tree_forest.png",
-   "x": 1220,
-   "y": 480,
-   "w": 24,
-   "h": 12,
-   "ix": 1204,
-   "iy": 408,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt57",
    "image": "assets/props/tree_forest.png",
    "x": 100,
-   "y": 512,
+   "y": 480,
    "w": 24,
    "h": 12,
    "ix": 84,
-   "iy": 440,
+   "iy": 408,
    "solid": true
   },
   {

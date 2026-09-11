@@ -215,6 +215,7 @@
 - 검증 스크립트: `tests/playtest/house.mjs` (방→복도→거실 전 동선·상호작용·재진입 체크). 맵 JSON `stage` 필드는 위 '상태 시스템' 참고.
 
 ## 검증 방법
+- **레이아웃 감사 (2026-09-11 포스트모텀 `docs/postmortems/2026-09-11-layout-issues.md`)**: `src/core/layout.js`(예산) ↔ `tests/unit/layout.test.mjs`(코드 리터럴 대조), `tests/unit/maps-layout.test.mjs`(전 맵: 대사 소품 프로브 도달·자동 나무 밑동은 길 밖·컷신 자리는 걷는 타일·NPC 정지 그림 ≤ 230px), `tests/playtest/lib/layout.mjs`(`rectsOf`/`enemyRects`/`inside`/`overlap` — run.sh 가 lib 를 같이 복사). 청록숲9: 연출은 45열 트리거로 시작, 42열 기둥 제거, 정지 그림 그림자 생략.
 - 전투 쓰러짐·부활·게임 오버: `tests/playtest/run.sh battle_lose` (한 명 쓰러짐 → 라운드 3번에 반피 부활 → 전원 쓰러짐 → GAME OVER 버튼 → C → 다시 도전, 스크린샷 `lose_01_down/02_revive/03_gameover`). 브금 시작점: `battle_bgm` (currentTime≈0·음량 즉시·징글 뒤 1.3~2.2s). 청록숲7 은신처: `teal7` (??? 목소리, 용준 달려옴 ≤3.5s, 쥰희 질주 ≤0.9s, 고리 나무 17 + shade 안에 숨는 자리).
 3포즈 옆걷기: `node tests/playtest/side-walk.mjs`는 등록된 8명 모두 좌/우 3종 이미지·기본 포즈 재사용·상체 픽셀 동일·정면/뒷면 불변·4박자 재생과 정지를 실제 브라우저에서 검사한다. 두 브라우저 테스트는 `BASE_URL`로 서버 주소, `SHOT_DIR`로 캡처 폴더를 지정할 수 있다. 보폭/발 영역을 조정할 때는 모든 옆방향의 발 연결·잘림을 다시 눈으로 확인한다.
 

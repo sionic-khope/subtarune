@@ -14,7 +14,7 @@ export CHROME_EXE SHOT_DIR="${SHOT_DIR:-$ROOT/tests/playtest/shots}"
 names=("$@"); [ ${#names[@]} -eq 0 ] && names=($(cd tests/playtest && ls *.mjs | sed 's/\.mjs$//'))
 total=0
 for n in "${names[@]}"; do
-  cp "tests/playtest/$n.mjs" "$PW_DIR/"; echo "### $n"
+  cp "tests/playtest/$n.mjs" "$PW_DIR/"; mkdir -p "$PW_DIR/lib"; cp tests/playtest/lib/*.mjs "$PW_DIR/lib/" 2>/dev/null; echo "### $n"
   out="$(cd "$PW_DIR" && node "$n.mjs" 2>&1)"; echo "$out" | grep -E "FAIL|fails=|CRASH" || echo "$out" | tail -5
   f="$(echo "$out" | grep -oE "fails=[0-9]+" | tail -1 | cut -d= -f2)"; total=$((total + ${f:-1}))
 done

@@ -64,6 +64,7 @@ for r in range(1, H - 2):
 seen = set()
 for j, (r, c) in enumerate(spots):
     x, y = c * T - 12, r * T - 40
+    if ground(r + 1, c): y -= T                                                       # 밑동 히트박스(그림 y+72 = 한 칸 아래)가 길 위에 떨어지면 한 칸 올린다 — 나무 밑동은 길 밖(레이아웃 감사 tests/unit/maps-layout.test.mjs)
     if any(abs(x - sx) < 34 and abs(y - sy) < 30 for (sx, sy) in seen): continue
     seen.add((x, y)); ents.append(ftree(f'jt{j}', x, y))
 m = {'id': 'teal8', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'teal', 'rows': rows,

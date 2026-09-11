@@ -54,14 +54,16 @@ ents = [
     {'type': 'prop', 'id': 'door_open', 'image': 'assets/props/temple_door_open.png', 'x': DOOR['x'], 'y': DOOR['y'], 'w': DOOR['w'], 'h': DOOR['h'], 'ix': DOOR['x'], 'iy': DOOR['y'], 'solid': False, 'sortY': 0},
     {'type': 'prop', 'id': 'door_closed', 'image': 'assets/props/temple_door.png', 'x': DOOR['x'], 'y': DOOR['y'], 'w': DOOR['w'], 'h': DOOR['h'], 'ix': DOOR['x'], 'iy': DOOR['y'], 'solid': True, 'sortY': 0, 'unless': 'teal9_boss_won'},
     # 레드·블루(1.8배): 문 바로 앞 같은 열에 위·아래로 선다. 히트박스 40x40(발 밑). 말 걸면 teal9_boss. 이기면 위로 비켜선 requires NPC 로 바뀐다
-    {'type': 'npc', 'id': 'red', 'sprite': 'red', 'x': STAGE['red'][0], 'y': STAGE['red'][1], 'w': 40, 'h': 40, 'facing': 'left', 'wander': 0, 'script': 'teal9_boss', 'unless': 'teal9_boss_won'},
-    {'type': 'npc', 'id': 'blue', 'sprite': 'blue', 'x': STAGE['blue'][0], 'y': STAGE['blue'][1], 'w': 40, 'h': 40, 'facing': 'left', 'wander': 0, 'script': 'teal9_boss', 'unless': 'teal9_boss_won'},
+    {'type': 'npc', 'id': 'red', 'sprite': 'red', 'x': STAGE['red'][0], 'y': STAGE['red'][1], 'w': 40, 'h': 40, 'facing': 'left', 'wander': 0, 'unless': 'teal9_boss_won'},
+    {'type': 'npc', 'id': 'blue', 'sprite': 'blue', 'x': STAGE['blue'][0], 'y': STAGE['blue'][1], 'w': 40, 'h': 40, 'facing': 'left', 'wander': 0, 'unless': 'teal9_boss_won'},
+    # 연출 트리거: 말을 거는 게 아니라 레드·블루 앞 영역(45열, 광장 세로 전체)에 닿으면 시작 (사용자 2026-09-11). 1회, 이기면 안 뜬다
+    {'type': 'trigger', 'id': 'boss_trig', 'x': 45 * T, 'y': PR0 * T, 'w': 16, 'h': (PR1 - PR0 + 1) * T, 'once': True, 'flag': 'teal9_boss_seen', 'script': 'teal9_boss', 'unless': 'teal9_boss_won'},
     # 시험 뒤(다시 들어왔을 때): 둘은 위로 비켜서 아래를 본다 — 연출 끝 자리와 같다(STAGE red_aside/blue_aside)
     {'type': 'npc', 'id': 'red_aside', 'sprite': 'red', 'x': STAGE['red_aside'][0], 'y': STAGE['red_aside'][1], 'w': 40, 'h': 40, 'facing': 'down', 'wander': 0, 'script': 'teal9_red_after', 'requires': 'teal9_boss_won'},
     {'type': 'npc', 'id': 'blue_aside', 'sprite': 'blue', 'x': STAGE['blue_aside'][0], 'y': STAGE['blue_aside'][1], 'w': 40, 'h': 40, 'facing': 'down', 'wander': 0, 'script': 'teal9_blue_after', 'requires': 'teal9_boss_won'},
 ]
 # 사원 소품: 판석 구간 길 양옆(숲 바닥 m 위)에 기둥·부서진 기둥·석등을 번갈아, 길 위에 돌덩이 둘
-for i, c in enumerate(range(STONE_C + 2, PLAZA_C - 1, 5)):
+for i, c in enumerate(range(STONE_C + 2, PLAZA_C - 4, 5)):   # 42열(파티 정렬 자리)엔 기둥을 두지 않는다 — 빠맨이 기둥 뒤에 가려졌다(사용자 2026-09-11)
     top_y, bot_y = R0 * T - 6, (R1 + 1) * T + 4   # 밑동 히트박스가 길 가장자리에 닿아야 C 프로브(0.6타일)에 잡힌다 — 아랫줄 밑동은 길 아래 4px
     kind = i % 3
     if kind == 0: ents.append(pillar(f'pil_t{i}', c * T + 4, top_y)); ents.append(pillar(f'pil_b{i}', c * T + 4, bot_y))
@@ -90,7 +92,7 @@ for j, (r, c) in enumerate(spots):
 m = {'id': 'teal9', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'temple', 'rows': rows,
      'spawns': {'from_left': {'x': 60, 'y': 7 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 7 * T + 8, 'facing': 'right'}, 'landing': {'x': 50 * T, 'y': 8 * T + 8, 'facing': 'left'},
                 'gate': {'x': 42 * T, 'y': 7 * T + 8, 'facing': 'right'}},
-     'meta': {'connected': True, 'stage': STAGE, 'stone_from': STONE_C, 'plaza': [PLAZA_C, PR0, W - 2, PR1], 'door': DOOR, 'trees': len([e for e in ents if e.get('id', '').startswith('jt')])},
+     'meta': {'connected': True, 'stage': STAGE, 'stone_from': STONE_C, 'plaza': [PLAZA_C, PR0, W - 2, PR1], 'door': DOOR, 'trigger_x': 45 * T, 'trees': len([e for e in ents if e.get('id', '').startswith('jt')])},
      'entities': ents}
 path = 'assets/maps/teal9.json'
 if '--check' in sys.argv:

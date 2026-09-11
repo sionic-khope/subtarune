@@ -59,6 +59,7 @@ for r in range(1, H - 2):
         if not ((near and (r * 5 + c * 3) % 4 == 0) or (not near and (r * 11 + c * 7) % 9 == 0)): continue
         if PC0 - 2 <= c <= PC1 + 2 and r <= PR1 + 1: continue                 # 주머니 둘레는 비워 둔다(숨는 공간이 보이게)
         x, y = c * T - 12, r * T - 40
+        if ground(r + 1, c): y -= T                                                   # 밑동이 길 위에 떨어지면 한 칸 올린다(레이아웃 감사)
         if any(abs(x - sx) < 34 and abs(y - sy) < 30 for (sx, sy) in seen): continue
         seen.add((x, y)); ents.append(ftree(f'st{k}', x, y)); k += 1
 m = {'id': 'teal7', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'teal_bush', 'battleBg': 'teal', 'rows': rows,

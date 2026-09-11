@@ -55,6 +55,7 @@ model: opus
 | `# 빨리 / 달려가서 / 급히 / 숨어야` | 이동에 `run:true`(220px/s) 또는 `dash:true`(380px/s). 등장은 run, 숨기·도망은 dash (예 `teal7_hide.js`) |
 | `# 사이렌·경보·비상` | `{bgm:'alarm'}` + `{sfx:'siren'}` + `{async:[{hop:id, sfx:'thud'}, {shake}…]}` + `{async:[{pulse:'red', times, every}]}` — 대사와 동시에 돌린다 (예 `teal9_boss.js`) |
 | `# 갈수록 빨라지는 응수(A/B 번갈아)` | 두 화자 라인을 `auto` 0.55→0.07, `speed` 2→9 로 선형 보간해 번갈아 넣는다 (`teal9_boss.js chase()`); 한 화자면 `rapid()` |
+| `# 검증(프레이밍)` | `tests/playtest/lib/layout.mjs` 의 `rectsOf(page, ids)` 로 카메라 뷰(480×230)·캐릭터 사각형을 받아 `inside/overlap` 검사 한 줄(예 `teal9.mjs`). 잘림·겹침·가림은 스크린샷 전에 숫자로 |
 | `# 큰 NPC(보스)가 서 있는 장면` | 보이는 영역 = 카메라 480×230(대화창 위). 큰 그림은 전신이 그 안에 들어오는 크기까지만(`stillScale`), 서로·파티와 사각형이 안 겹치게 자리를 재고 `{camera:[tx,ty]}` 로 잡는다. 테스트에 사각형 검사(예 `teal9.mjs` framing). 2026-09-11 포스트모텀 |
 | `# 놀라서 살짝 점프(공식 점프 소리 ✗)` | `{hop:id, height:12, duration:0.3, sfx:false}` + `{emote:id, kind:'!', sfx:'chime'}` 를 parallel 로 |
 | `# 이동/바라보기` | `{move}` `{face}` |

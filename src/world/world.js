@@ -254,9 +254,8 @@ export class Character extends Entity {
       ctx.restore();
       return;
     }
-    // 발밑 그림자
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3);
+    // 발밑 그림자 — 정지 그림(still: 몹·문지기)은 그림 안에 밑동이 있어 긴 그림자 막대가 '떠 있는' 느낌을 준다(사용자 2026-09-11) → 생략
+    if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3); }
     blit(img, sx, sy, dw, dh);
     if (this.emote) drawEmote(ctx, this.emote, sx + Math.round(dw / 2), sy);
   }

@@ -93,7 +93,8 @@
    "w": 96,
    "h": 288
   },
-  "trees": 23
+  "trigger_x": 1440,
+  "trees": 24
  },
  "entities": [
   {
@@ -153,7 +154,6 @@
    "h": 40,
    "facing": "left",
    "wander": 0,
-   "script": "teal9_boss",
    "unless": "teal9_boss_won"
   },
   {
@@ -166,6 +166,17 @@
    "h": 40,
    "facing": "left",
    "wander": 0,
+   "unless": "teal9_boss_won"
+  },
+  {
+   "type": "trigger",
+   "id": "boss_trig",
+   "x": 1440,
+   "y": 128,
+   "w": 16,
+   "h": 288,
+   "once": true,
+   "flag": "teal9_boss_seen",
    "script": "teal9_boss",
    "unless": "teal9_boss_won"
   },
@@ -290,30 +301,6 @@
    "w": 20,
    "h": 10,
    "ix": 1188,
-   "iy": 220,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "pbk_t4",
-   "image": "assets/props/pillar_broken.png",
-   "x": 1350,
-   "y": 176,
-   "w": 20,
-   "h": 10,
-   "ix": 1348,
-   "iy": 146,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "pil_b4",
-   "image": "assets/props/pillar.png",
-   "x": 1350,
-   "y": 282,
-   "w": 20,
-   "h": 10,
-   "ix": 1348,
    "iy": 220,
    "solid": true
   },
@@ -604,6 +591,18 @@
    "w": 24,
    "h": 12,
    "ix": 1140,
+   "iy": 248,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jt25",
+   "image": "assets/props/tree_forest.png",
+   "x": 1348,
+   "y": 320,
+   "w": 24,
+   "h": 12,
+   "ix": 1332,
    "iy": 248,
    "solid": true
   },

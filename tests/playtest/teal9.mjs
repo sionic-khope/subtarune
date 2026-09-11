@@ -31,7 +31,7 @@ check('giant temple door: closed (solid) face stands at the right end over the o
 const stoneCols = rows[7].split('').map((ch, i) => 'rR'.includes(ch) ? i : -1).filter((i) => i >= 0);
 check('ancient temple floor: ground tiles first, stone flagstones from col ~20 to the gate (moss variant mixed in)', stoneCols.length >= 30 && Math.min(...stoneCols) <= meta.stone_from && /[tuwn]/.test(rows[7][5]) && rows[7].includes('R'), JSON.stringify({ first: Math.min(...stoneCols), n: stoneCols.length }));
 const props = await page.evaluate(() => { const c = {}; for (const e of game.entities) if (e.def?.type === 'prop' && !e.dead) { const k = (e.def.image || '').split('/').pop(); c[k] = (c[k] || 0) + 1; } return c; });
-check('temple props: pillars, broken pillars, lanterns, blocks and the giant door (closed over open) are placed', (props['pillar.png'] || 0) >= 4 && (props['pillar_broken.png'] || 0) >= 2 && (props['stone_lantern.png'] || 0) >= 2 && (props['stone_block.png'] || 0) >= 2 && props['temple_door.png'] === 1 && props['temple_door_open.png'] === 1, JSON.stringify(props));
+check('temple props: pillars, broken pillars, lanterns, blocks and the giant door (closed over open) are placed', (props['pillar.png'] || 0) >= 4 && (props['pillar_broken.png'] || 0) >= 1 && (props['stone_lantern.png'] || 0) >= 2 && (props['stone_block.png'] || 0) >= 2 && props['temple_door.png'] === 1 && props['temple_door_open.png'] === 1, JSON.stringify(props));
 await stand(meta.stone_from * 32 + 96, 7 * 32 + 8, 'right'); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/teal9_01_temple.png` });
 // 석등 한 줄
 const lan = await page.evaluate(() => { const l = game.entities.find((e) => e.id?.startsWith('lan_b')); return l ? { x: l.x, y: l.y } : null; });
@@ -40,8 +40,9 @@ if (lan) { await stand(lan.x + 2, lan.y - 26, 'down'); await page.keyboard.press
   await page.waitForTimeout(500); }
 // 레드 앞에서 C → 연출
 await page.evaluate(() => { window.__sfx = []; const o = game.sound.sfx.bind(game.sound); game.sound.sfx = (n, a) => { window.__sfx.push(n); return o(n, a); }; });
-await stand(meta.stage.red[0] - 40, meta.stage.red[1] + 12, 'right'); await page.waitForTimeout(200); await page.keyboard.press('KeyC');
-const started = await until(() => game.dialogue.running ? true : null, 3000); check('C on 레드 → scene starts', !!started, '');
+await stand(meta.trigger_x - 120, 7 * 32 + 8, 'right'); await page.waitForTimeout(200);   // 말 걸기가 아니라 레드·블루 앞 영역(45열)에 닿으면 시작
+await page.keyboard.down('ArrowRight'); const started = await until(() => game.dialogue.running ? true : null, 4000); await page.keyboard.up('ArrowRight');
+check('walking into the area in front of 레드·블루 (x ≥ trigger) starts the scene (no C needed)', !!started && (await page.evaluate(() => game.flags.teal9_boss_seen)), '');
 let lineupRects = null;
 const lines = []; let lineup = null, hopSeen = false, alarmAt = null, hurtSeen = false, redHop = false, bgmOffSeen = false, battleSnap = null, chaseGaps = [];
 let lastLineAt = 0, lastKey = '';

@@ -86,7 +86,7 @@
     21
    ]
   },
-  "trees": 62
+  "trees": 55
  },
  "entities": [
   {
@@ -208,26 +208,14 @@
   },
   {
    "type": "prop",
-   "id": "jt2",
-   "image": "assets/props/tree_forest.png",
-   "x": 100,
-   "y": 128,
-   "w": 24,
-   "h": 12,
-   "ix": 84,
-   "iy": 56,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt3",
    "image": "assets/props/tree_forest.png",
    "x": 228,
-   "y": 128,
+   "y": 96,
    "w": 24,
    "h": 12,
    "ix": 212,
-   "iy": 56,
+   "iy": 24,
    "solid": true
   },
   {
@@ -292,26 +280,14 @@
   },
   {
    "type": "prop",
-   "id": "jt10",
-   "image": "assets/props/tree_forest.png",
-   "x": 420,
-   "y": 192,
-   "w": 24,
-   "h": 12,
-   "ix": 404,
-   "iy": 120,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt11",
    "image": "assets/props/tree_forest.png",
    "x": 548,
-   "y": 192,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 532,
-   "iy": 120,
+   "iy": 88,
    "solid": true
   },
   {
@@ -328,38 +304,14 @@
   },
   {
    "type": "prop",
-   "id": "jt13",
-   "image": "assets/props/tree_forest.png",
-   "x": 1572,
-   "y": 192,
-   "w": 24,
-   "h": 12,
-   "ix": 1556,
-   "iy": 120,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt14",
    "image": "assets/props/tree_forest.png",
    "x": 1700,
-   "y": 192,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 1684,
-   "iy": 120,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt15",
-   "image": "assets/props/tree_forest.png",
-   "x": 1828,
-   "y": 192,
-   "w": 24,
-   "h": 12,
-   "ix": 1812,
-   "iy": 120,
+   "iy": 88,
    "solid": true
   },
   {
@@ -367,11 +319,11 @@
    "id": "jt16",
    "image": "assets/props/tree_forest.png",
    "x": 1956,
-   "y": 192,
+   "y": 160,
    "w": 24,
    "h": 12,
    "ix": 1940,
-   "iy": 120,
+   "iy": 88,
    "solid": true
   },
   {
@@ -403,23 +355,11 @@
    "id": "jt19",
    "image": "assets/props/tree_forest.png",
    "x": 1252,
-   "y": 256,
+   "y": 224,
    "w": 24,
    "h": 12,
    "ix": 1236,
-   "iy": 184,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt20",
-   "image": "assets/props/tree_forest.png",
-   "x": 1380,
-   "y": 256,
-   "w": 24,
-   "h": 12,
-   "ix": 1364,
-   "iy": 184,
+   "iy": 152,
    "solid": true
   },
   {
@@ -427,11 +367,11 @@
    "id": "jt21",
    "image": "assets/props/tree_forest.png",
    "x": 1508,
-   "y": 256,
+   "y": 224,
    "w": 24,
    "h": 12,
    "ix": 1492,
-   "iy": 184,
+   "iy": 152,
    "solid": true
   },
   {
@@ -439,11 +379,11 @@
    "id": "jt22",
    "image": "assets/props/tree_forest.png",
    "x": 420,
-   "y": 320,
+   "y": 288,
    "w": 24,
    "h": 12,
    "ix": 404,
-   "iy": 248,
+   "iy": 216,
    "solid": true
   },
   {
@@ -631,11 +571,11 @@
    "id": "jt40",
    "image": "assets/props/tree_forest.png",
    "x": 676,
-   "y": 448,
+   "y": 416,
    "w": 24,
    "h": 12,
    "ix": 660,
-   "iy": 376,
+   "iy": 344,
    "solid": true
   },
   {
@@ -643,23 +583,11 @@
    "id": "jt41",
    "image": "assets/props/tree_forest.png",
    "x": 804,
-   "y": 448,
+   "y": 416,
    "w": 24,
    "h": 12,
    "ix": 788,
-   "iy": 376,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "jt42",
-   "image": "assets/props/tree_forest.png",
-   "x": 932,
-   "y": 448,
-   "w": 24,
-   "h": 12,
-   "ix": 916,
-   "iy": 376,
+   "iy": 344,
    "solid": true
   },
   {
@@ -736,26 +664,14 @@
   },
   {
    "type": "prop",
-   "id": "jt49",
-   "image": "assets/props/tree_forest.png",
-   "x": 996,
-   "y": 512,
-   "w": 24,
-   "h": 12,
-   "ix": 980,
-   "iy": 440,
-   "solid": true
-  },
-  {
-   "type": "prop",
    "id": "jt50",
    "image": "assets/props/tree_forest.png",
    "x": 1124,
-   "y": 512,
+   "y": 480,
    "w": 24,
    "h": 12,
    "ix": 1108,
-   "iy": 440,
+   "iy": 408,
    "solid": true
   },
   {
@@ -859,11 +775,11 @@
    "id": "jt59",
    "image": "assets/props/tree_forest.png",
    "x": 996,
-   "y": 640,
+   "y": 608,
    "w": 24,
    "h": 12,
    "ix": 980,
-   "iy": 568,
+   "iy": 536,
    "solid": true
   },
   {
@@ -871,11 +787,11 @@
    "id": "jt60",
    "image": "assets/props/tree_forest.png",
    "x": 1124,
-   "y": 640,
+   "y": 608,
    "w": 24,
    "h": 12,
    "ix": 1108,
-   "iy": 568,
+   "iy": 536,
    "solid": true
   },
   {
