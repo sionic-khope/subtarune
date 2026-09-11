@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """옵젝영역1 (사용자 브리핑 2026-09-11): 옵젝영역0 과 같은 얕은 물 길인데 세로로만 넓다(길 6줄). 넘어오면 연출 시작(src/data/cutscenes/obj1_cannon.js):
   가운데쯤에서 쥰희·용준이 나무 대포(PR #15 wooden_cannon.png 128×128, 바닥 앵커 64,119)를 한 칸씩 힘들게 민다(허이얍/흐이야아압, 드륵) → 카메라 주인공으로 → 주인공이 그 앞까지 가면(트리거) 만남 연출
-  → 용준의 대포 자랑(두구두구 → 줌 → 빰빠밤) → 쥰희 "다 닥쳐!!!"(브금 off) → 쥰희가 오른쪽으로 달려 맵 밖으로(Y 막힌 물이 가장자리까지) → 용준 "미는 것 좀 도와주실 수 있나요?" (여기까지).
+  → 용준의 대포 자랑(두구두구 → 줌 → 빰빠밤) → 쥰희 "다 닥쳐!!!"(브금 off) → 쥰희가 오른쪽으로 달려 맵 밖으로(Y 막힌 물이 가장자리까지) → 용준 "미는 것 좀 도와주실 수 있나요?" → 다시 말 걸면 obj1_push(한 줄로 서기 → 준비(브금 off) → 밀어!!(쿵) → C 연타 100(브금 rude_buster) → 용준 등에 불 → 로켓 발사(브금 off, 카메라 추적) → 3초 뒤 쿠구구궁 → 셋 . . . → 6줄 → 브금 wind).
   브금: 맵은 옵젝영역0 과 같은 wind, 연출 중엔 Vs. Lancer(vs_lancer). 오른쪽 출구 → obj2 자리표시.
 실행: /usr/bin/python3 tools/maps/obj1.py  (--check)
 """
@@ -23,14 +23,15 @@ ents1 = [
     cannon('cannon', ix, {'unless': 'obj1_meet_seen'}),
     {'type': 'npc', 'id': 'junhee', 'sprite': 'junhee', 'x': JX, 'y': JY, 'facing': 'right', 'wander': 0, 'unless': 'obj1_meet_seen'},
     {'type': 'npc', 'id': 'yongjun', 'sprite': 'yongjun', 'x': PX, 'y': YY, 'facing': 'right', 'wander': 0, 'unless': 'obj1_meet_seen'},
-    cannon('cannon_after', ix + PUSH * T, {'requires': 'obj1_meet_seen', 'script': 'obj1_cannon_look'}),
-    {'type': 'npc', 'id': 'yongjun_after', 'sprite': 'yongjun', 'x': PX + PUSH * T, 'y': YY, 'facing': 'left', 'wander': 0, 'requires': 'obj1_meet_seen', 'script': 'obj1_yongjun_after'},
+    # 연출 후(용준에게 말 걸면 obj1_push: 한 줄로 서서 C 연타 → 불 → 로켓 발사 → 둘 다 사라짐 obj1_launched)
+    cannon('cannon_after', ix + PUSH * T, {'requires': 'obj1_meet_seen', 'unless': 'obj1_launched', 'script': 'obj1_cannon_look'}),
+    {'type': 'npc', 'id': 'yongjun_after', 'sprite': 'yongjun', 'x': PX + PUSH * T, 'y': YY, 'facing': 'left', 'wander': 0, 'requires': 'obj1_meet_seen', 'unless': 'obj1_launched', 'script': 'obj1_push'},
     # 만남 트리거: 다 민 뒤 쥰희(뒤쪽) 자리에서 2칸 앞(용준에서 4칸), 길 세로 전체. 1회 — 주인공 그림이 쥰희 그림과 안 겹치는 거리
     {'type': 'trigger', 'id': 'meet_trig', 'x': PX + PUSH * T - 128, 'y': R0 * T, 'w': 16, 'h': (R1 - R0 + 1) * T, 'once': True, 'flag': 'obj1_meet_seen', 'script': 'obj1_meet', 'unless': 'obj1_meet_seen'},
 ]
 rows1 = build(W, H, R0, R1, ents1, trees=True, edge_right=True)
 m1 = {'id': 'obj1', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'obj_forest', 'rows': rows1,
-      'spawns': {'from_left': {'x': 60, 'y': 8 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 8 * T + 8, 'facing': 'right'}, 'landing': {'x': (W - 4) * T, 'y': 8 * T + 8, 'facing': 'left'}},
+      'spawns': {'from_left': {'x': 60, 'y': 8 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 8 * T + 8, 'facing': 'right'}, 'landing': {'x': (W - 4) * T, 'y': 8 * T + 8, 'facing': 'left'}, 'meet': {'x': PX + PUSH * T - 210, 'y': 8 * T + 8, 'facing': 'right'}},
       'enter': {'script': 'obj1_arrive'},
       'preload': ['assets/sprites/junhee.png', 'assets/sprites/yongjun.png'],
       'meta': {'connected': True, 'road': [R0, R1], 'cannon': [ix, iy], 'push': PUSH, 'pushers': [JX, JY, PX, YY],

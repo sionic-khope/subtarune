@@ -8,6 +8,7 @@
 const J = (text, extra = {}) => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text, ...extra });
 const Y = (text, extra = {}) => ({ speaker: '박용준', portrait: 'yongjun', voice: 'yongjun', text, ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
+const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const N = (text) => ({ text, voice: 'narrator' });
 const CAM_GROUP = [27.5, 8.25], CAM_MEET = [26.9, 8.25];   // CAM_GROUP: 밀기 시작 순간 대포(2배, 그림 768~1024)+둘. 그 뒤엔 대포를 따라간다. CAM_MEET: 파티(빠맨 641px)가 왼쪽 가장자리 안 — 대포 포구 끝(1164px)은 40px 쯤 화면 밖(큰 무기라 다 못 담는다, 줌에서 전부 보인다)
 // 한 칸 밀기: 대포는 미끄러지고(드륵) 둘은 같은 만큼 천천히 걸어 따라간다(걷기 애니 한 번) — 사용자 "미는 건 둘이 걷기 애니 한 번 싹"
@@ -78,5 +79,43 @@ export const obj1_meet = [
   { set: { obj1_meet_seen: true } },
 ];
 
-export const obj1_yongjun_after = [Y('* 형님들{w=0.3} 이거 미는것좀 도와주세요')];
+// 연출 뒤 용준에게 말 걸면 (사용자 브리핑 2026-09-11 대사 그대로): 한 줄로 서기 → "그리고.. ...." → "준비 ~~~"(브금 off) → 쿵! "밀어!!!" → C 연타 100(브금 Rude Buster, 불씨 게이지)
+//   → "어어어.. 어?" 용준 등에 불(파티는 물러나 바라봄) → "뜨거운 느끼.." → 쌩!(브금 off, 화르르륵, 흔들림) 용준+대포가 로켓처럼 오른쪽으로 쏘아져 맵 밖(카메라 추적) → 3초 뒤 쿠구구궁 → 카메라 복귀 → 셋 . . . → 6줄 → 브금 wind
+const CAM_PUSH = [29.8, 8.25], CAM_AFTER = [26.2, 8.25];   // 한 줄로 선 파티(빠맨 ~768px)부터 대포(1164px)까지 / 발사 뒤 물러선 파티
+export const obj1_push = [
+  { face: 'yongjun_after', dir: 'toward:player' },
+  Y('* 형들 자{w=0.3} 제 뒤에 이렇게 딱 맞춰서 서봐요'),
+  { face: 'yongjun_after', dir: 'right' },
+  { parallel: [{ move: 'player', rel: 'yongjun_after', at: 'left', by: [-24, 0], run: true }, { move: 'gyeongsub', rel: 'yongjun_after', at: 'left', by: [-72, 0], run: true }, { move: 'ppaman', rel: 'yongjun_after', at: 'left', by: [-120, 0], run: true }] },   // 용준 뒤에 48px 간격 한 줄
+  { face: 'player', dir: 'right' }, { face: 'gyeongsub', dir: 'right' }, { face: 'ppaman', dir: 'right' },
+  { camera: CAM_PUSH, duration: 0.5 },
+  Y('* 그리고..{w=0.4} ....{w=0.5} ........'),
+  { bgm: null, fadeOut: 0.4 },                           // 준비 ~~~ 에서 브금 꺼졌다가
+  Y('* 그리고...{w=0.5} 준비{w=0.3} ~~~~~~~~~~~~~~~'),
+  { sfx: 'thud' }, { shake: 0.3, amp: 4 },               // (쿵!)
+  Y('* {shake}밀어!!!!!!!!!!!!!!!!!!!!!{/shake}'),
+  { bgm: 'rude_buster', volume: 0.45 },                  // C 연타 들어가는 순간 일반 전투 브금
+  { mash: { target: 100, push: ['player', 'gyeongsub', 'ppaman', 'yongjun_after'], tremble: 'cannon_after' } },
+  Y('* 어어어..{w=0.4} 어?'),
+  { fire: { at: 'yongjun_after', dx: -10, dy: -22, spread: 12, rate: 28, grow: 1.6 } },   // 용준 등 뒤에 불이 타오르기 시작
+  { parallel: [{ move: 'player', by: [-14, 0], run: true }, { move: 'gyeongsub', by: [-14, 0], run: true }, { move: 'ppaman', by: [-14, 0], run: true }] },   // 밀기를 멈추고 뒤로 물러나 바라봄
+  { face: 'player', dir: 'right' }, { face: 'gyeongsub', dir: 'right' }, { face: 'ppaman', dir: 'right' },
+  Y('* 뭐{w=0.3} 뭐지{w=0.4} 뭔가 등이...{w=0.5} 뜨거운 느끼..'),
+  { bgm: null, fadeOut: 0.1 },                           // 날아가는 연출엔 브금 없음
+  { sfx: 'rocket' },
+  { rocket: { ids: ['yongjun_after', 'cannon_after'], speed: 1100, camera: 'cannon_after', amp: 5 } },   // 쌩!!! 화르르륵 — 맵 밖(옆 포탈)으로
+  { set: { obj1_launched: true } },
+  { wait: 3.0 }, { sfx: 'boom' }, { shake: 0.9, amp: 6 }, { wait: 0.7 },   // 3초 뒤 쿠구구궁!!!
+  { camera: CAM_AFTER, duration: 1.0 },                  // 따라간 카메라가 주인공 쪽으로
+  { bubble: 'player', dots: 3, gap: 0.3, hold: 0.3 }, { bubble: 'gyeongsub', dots: 3, gap: 0.3, hold: 0.3 }, { bubble: 'ppaman', dots: 3, gap: 0.3, hold: 0.5 },
+  G('* 허허{w=0.3} 가버렸네'),
+  P('* 신경쓰지말고 갈길가죠.{w=0.4} 근데 {c=yellow}그것{/c}이 도대체 뭘까요?'),
+  G('* 허허{w=0.3} 그러게'),
+  P('* 뭐냐고 씨발년아'),
+  G('* 응?'),
+  P('* 아니에요{w=0.3} 가시죠'),
+  { camera: 'player', duration: 0.6 },
+  { bgm: 'wind', volume: 0.45 },
+  { regroup: true },
+];
 export const obj1_cannon_look = [N('* 나무로 만든 대포다.{w=0.4} 포구가 돼지코처럼 둘이다.')];

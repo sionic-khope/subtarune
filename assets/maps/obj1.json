@@ -38,6 +38,11 @@
    "x": 1792,
    "y": 264,
    "facing": "left"
+  },
+  "meet": {
+   "x": 702,
+   "y": 264,
+   "facing": "right"
   }
  },
  "enter": {
@@ -142,6 +147,7 @@
    "iy": 62,
    "solid": true,
    "requires": "obj1_meet_seen",
+   "unless": "obj1_launched",
    "script": "obj1_cannon_look"
   },
   {
@@ -153,7 +159,8 @@
    "facing": "left",
    "wander": 0,
    "requires": "obj1_meet_seen",
-   "script": "obj1_yongjun_after"
+   "unless": "obj1_launched",
+   "script": "obj1_push"
   },
   {
    "type": "trigger",

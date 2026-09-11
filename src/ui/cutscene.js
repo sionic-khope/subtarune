@@ -13,6 +13,9 @@
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
 //  { bgmPause: 0.3 } / { bgmResume: 0.3 }         브금을 재생 위치 그대로 잠깐 멈췄다 이어 튼다(정적 개그 뒤 '이어서')
 //  { slide: id, by:[dx,dy], duration?: 0.6, sfx? }  소품을 미끄러뜨린다(히트박스+그림 같이, 걷기 애니 없음) — 대포 밀기. by 는 픽셀
+//  { mash: { target:100, push:[id…], tremble:id } }   C 연타 미니게임: 가운데 안내 창(C 키가 눌리는 애니 + 게이지에 불씨가 찬다, 누를 때마다 ember). push 는 미는 걷기 애니, tremble 은 부들부들. target 번이면 끝
+//  { fire: { at:id, dx, dy, spread, rate, grow } } / { fire:null }   캐릭터·소품에 불이 붙어 커진다(기다리지 않음, game.flameEmitters) / 전부 끈다
+//  { rocket: { ids:[id…], speed:1100, camera:id, amp:5 } }   불꼬리를 달고 오른쪽으로 쏘아져 맵 밖으로 사라진다(카메라가 따라감·흔들림, 끝나면 제거)
 //  { pulse: 'red', times: 3, every: 0.4 }        화면 붉은 번쩍임(사이렌) — 대사와 겹치려면 { async: [{ pulse }] }
 //  { aura: { from:['red','blue'], to:['player','gyeongsub','ppaman'], colors:['#ff5c5c','#4fa8ff'], n:36, duration:1.6 } }  반짝이는 입자가 감싸 돈다(버프 획득)
 //  { show: id } { hide: id } { spawn: {type,...} } { remove: id }
@@ -166,6 +169,42 @@ export function makeWaiter(game, node) {
       for (const p of parts) { p.t += dt; const k = Math.min(1, Math.max(0, (p.t - p.delay) / (dur * 0.55))); const cx = p.tx.x + p.tx.w / 2, cy = p.tx.y + p.tx.h - 26; p.ang += dt * 5;
         p.x = p.x0 + (cx - p.x0) * k + Math.cos(p.ang) * p.r * k; p.y = p.y0 + (cy - p.y0) * k + Math.sin(p.ang) * p.r * 0.5 * k; p.a = p.t < p.delay ? 0 : t < dur ? 1 : Math.max(0, 1 - (t - dur) / 0.5); }
       if (t >= dur + 0.5) { game.sparks = null; return true; } return false; } };
+  }
+  if (node.mash) {                                     // { mash:{ target, push:[…], tremble } } — 옵젝영역1 대포 밀기 (사용자 2026-09-11 "C 를 연타하라 UI, 게이지에 불씨가 타다다닥, 100회면 달성")
+    const cfg = node.mash, target = cfg.target ?? 100;
+    const pushers = (cfg.push || []).map((id) => findEntity(game, id)).filter(Boolean), trem = cfg.tremble ? findEntity(game, cfg.tremble) : null;
+    game.mash = { count: 0, target, pressT: 0, sparks: [], done: false, doneT: 0, t: 0 };
+    return { update(dt, input) {
+      const m = game.mash; if (!m) return true; m.t += dt; m.pressT = Math.max(0, m.pressT - dt);
+      for (const e of pushers) { e.moving = true; e.animate?.(dt, 10); e.driven = true; }
+      if (trem) trem.flyX = m.done ? 0 : (Math.random() - 0.5) * (1 + 4 * m.count / target);
+      if (!m.done && input.just('confirm')) {
+        m.count++; m.pressT = 0.09; game.sound.sfx('ember', { volume: 0.6, rate: 0.85 + Math.random() * 0.4 });
+        for (let i = 0; i < 3; i++) m.sparks.push({ k: m.count / target, x: 0, y: 0, vx: (Math.random() - 0.5) * 24, vy: -40 - Math.random() * 50, t: 0, life: 0.35 + Math.random() * 0.3 });
+        if (m.count >= target) { m.done = true; m.doneT = 0; }
+      }
+      for (const s of m.sparks) { s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; }
+      m.sparks = m.sparks.filter((s) => s.t < s.life);
+      if (m.done) { m.doneT += dt; if (m.doneT >= 0.7) { game.mash = null; for (const e of pushers) { e.moving = false; e.frame = 0; } if (trem) trem.flyX = 0; return true; } }
+      return false; } };
+  }
+  if ('fire' in node) {                                // { fire:{ at, dx, dy, spread, rate, grow } } / { fire:null }
+    if (!node.fire) { game.flameEmitters = []; return done; }
+    const f = node.fire, e = findEntity(game, f.at); if (!e) return done;
+    game.flameEmitters.push({ e, dx: f.dx ?? 0, dy: f.dy ?? -20, spread: f.spread ?? 14, rate: f.rate ?? 30, grow: f.grow ?? 1.5, t: 0 });
+    return done;
+  }
+  if (node.rocket) {                                   // { rocket:{ ids, speed, camera, amp } }
+    const r = node.rocket, es = r.ids.map((id) => findEntity(game, id)).filter(Boolean); if (!es.length) return done;
+    const lead = findEntity(game, r.camera) || es[0], speed = r.speed ?? 1100;
+    game.flameEmitters = game.flameEmitters.filter((em) => !es.includes(em.e));
+    for (const e of es) game.flameEmitters.push({ e, dx: -((e.iw ?? e.w) / 2) - 8, dy: -((e.ih ?? e.h) * 0.45), spread: e.iw ? 26 : 10, rate: e.iw ? 170 : 60, grow: 0, t: 0, trail: true });
+    return { update(dt) {
+      for (const e of es) { const step = speed * dt; e.x += step; if (e.def?.ix !== undefined) e.def.ix += step; e.moving = false; }
+      game.camera.target = lead; game.camera.locked = false; game.camera.follow(1);
+      game.shake = { time: 0.1, amp: r.amp ?? 5 };
+      if (lead.x > game.map.pxW + 140) { for (const e of es) e.dead = true; game.flameEmitters = game.flameEmitters.filter((em) => !es.includes(em.e)); game.shake = null; return true; }
+      return false; } };
   }
   if (node.camera !== undefined) return cameraPan(game, node);
   if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }

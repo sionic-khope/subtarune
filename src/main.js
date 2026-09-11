@@ -69,6 +69,8 @@ class Game {
     this.hurt = 0; this.invuln = 0;   // 낙석 등에 맞았을 때 붉은 섬광 / 무적 시간
     this.fx = [];                 // 작은 입자(물방울 등) { x,y,vx,vy,t,color }
     this.ripples = [];            // 얕은 물 발소리 물결 고리 { x,y,t,dur } — emitRipple, 맵 위·캐릭터 아래에 그린다
+    this.flames = []; this.flameEmitters = [];   // 불꽃 입자·방출기 (컷신 {fire}/{rocket}) — updateFlames, 캐릭터 위에 그린다
+    this.mash = null;             // C 연타 미니게임 상태 (컷신 {mash}) — drawMash
     this.prompt = null;           // { text, t } 작은 안내 창 (컷신 {prompt}) — C 로만 닫힘
   }
 
@@ -104,7 +106,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'water_step', 'scrape', 'drumroll', 'fanfare']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'water_step', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || `assets/sprites/${name}.png`);   // still: 정지 1장 캐릭터(미니언 등)
         if (img) this.spriteOverrides[name] = img;
@@ -287,6 +289,33 @@ class Game {
     ctx.fillStyle = gd; ctx.fillRect(0, 170, SCREEN_W, 80); ctx.fillStyle = '#000'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);
   }
 
+  /** 불꽃 입자(컷신 {fire}/{rocket}): 방출기(엔티티에 붙음)가 rate 개/초(grow 로 점점 많이) 뿜고, 입자는 위로 오르며 노랑→주황→빨강→검붉게 사라진다. trail 은 뒤로 흐르는 불꼬리 */
+  updateFlames(dt) {
+    for (const em of this.flameEmitters) {
+      em.t += dt; const e = em.e; if (!e || e.dead) continue;
+      const cx = (e.drawX ?? e.x) + (e.iw ?? e.w) / 2 + em.dx, cy = (e.drawY ?? e.y) + (e.ih ?? e.h) + em.dy;
+      const n = Math.floor(em.rate * (1 + em.grow * em.t) * dt + Math.random());
+      for (let i = 0; i < n; i++) this.flames.push({ x: cx + (Math.random() - 0.5) * em.spread * (1 + em.grow * em.t * 0.3), y: cy + (Math.random() - 0.5) * 10, vx: (Math.random() - 0.5) * 30 - (em.trail ? 90 : 0), vy: -50 - Math.random() * 70 * (1 + em.grow * em.t * 0.2), t: 0, life: 0.35 + Math.random() * 0.35, size: 3 + Math.random() * 3 });
+    }
+    this.flameEmitters = this.flameEmitters.filter((em) => em.e && !em.e.dead);
+    for (const p of this.flames) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= 20 * dt; }
+    this.flames = this.flames.filter((p) => p.t < p.life);
+  }
+  /** C 연타 안내 창(컷신 {mash}): 가운데 검은 상자 — 제목, 눌리면 납작해지는 C 키, 아래 게이지에 불씨가 차오른다(누를 때마다 불씨 튐). 달성하면 게이지가 깜빡인다 */
+  drawMash(ctx) {
+    const m = this.mash, w = 240, h = 92, x = Math.round((SCREEN_W - w) / 2), y = 96;
+    ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4); ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(L.mash_title, SCREEN_W / 2, y + 8);
+    const pressed = m.pressT > 0, kw = 34, kh = pressed ? 22 : 28, kx = Math.round(SCREEN_W / 2 - kw / 2), ky = y + 30 + (pressed ? 6 : 0);
+    ctx.fillStyle = pressed ? '#ffd76a' : '#fff'; ctx.fillRect(kx, ky, kw, kh); ctx.fillStyle = '#000'; ctx.fillRect(kx + 2, ky + 2, kw - 4, kh - 4);
+    ctx.fillStyle = pressed ? '#ffd76a' : '#fff'; ctx.fillText('C', SCREEN_W / 2, ky + (pressed ? 3 : 6));
+    const gx = x + 20, gy = y + 68, gw = w - 40, gh = 12, k = Math.min(1, m.count / m.target);
+    ctx.fillStyle = '#fff'; ctx.fillRect(gx - 1, gy - 1, gw + 2, gh + 2); ctx.fillStyle = '#1a0a05'; ctx.fillRect(gx, gy, gw, gh);
+    const grad = ctx.createLinearGradient(gx, 0, gx + gw, 0); grad.addColorStop(0, '#7a1e0a'); grad.addColorStop(0.5, '#ff6a1a'); grad.addColorStop(1, '#ffe27a');
+    ctx.fillStyle = m.done && Math.floor(m.doneT * 12) % 2 ? '#fff' : grad; ctx.fillRect(gx, gy, Math.round(gw * k), gh);
+    for (const s of m.sparks) { const kk = s.t / s.life; ctx.globalAlpha = 1 - kk; ctx.fillStyle = kk < 0.4 ? '#fff2a0' : '#ff8a2a'; ctx.fillRect(Math.round(gx + gw * s.k + s.x), Math.round(gy + s.y), 2, 2); }
+    ctx.globalAlpha = 1; ctx.textAlign = 'left';
+  }
   /** 얕은 물 발소리 물결 고리(옵젝영역): 발밑에서 타원 고리가 퍼지며 옅어진다 — 맵 위·캐릭터 아래 */
   emitRipple(x, y) { this.ripples.push({ x, y, t: 0, dur: 0.6 }); }
   drawRipples(ctx, cam) {
@@ -309,6 +338,7 @@ class Game {
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true; this.fx = []; this.prompt = null;
+    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = [];
     this.fadeTo(1, 0.4, () => {
       this.resetState();
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
@@ -530,6 +560,7 @@ class Game {
     for (const e of this.entities) if (e.emote) { e.emote.t += dt; if (e.emote.t >= e.emote.life) e.emote = null; }   // 머리 위 이모트 수명
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
+    if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.battle) { this.battle.update(dt, Input); if (this.dialogue.running) this.dialogue.update(dt, Input); return; }   // 전투 중: 전투 + 컷신 대기자만
@@ -566,7 +597,7 @@ class Game {
     this.state = 'field'; this.menu = null; this.sound.sfx('close');
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
-    this.player.knock = null; this.prompt = null; this.fx = [];
+    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null;
     const spawnId = this.entrySpawn || 'start', def = MAPS[this.mapId], sp = def?.spawns?.[spawnId] || def?.spawns?.start || { x: this.player.x, y: this.player.y };
     for (const e of def?.entities || []) {                        // 뗏목: 입구에 가까운 끝으로 (route 0 또는 마지막)
       if (e.type !== 'raft') continue;
@@ -688,6 +719,7 @@ class Game {
     for (const e of sorted) e.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = Math.floor(p.ang * 3) % 2 ? 4 : 2; ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }   // 컷신 {aura} 반짝임(버프)
+    if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})
     this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
@@ -703,6 +735,7 @@ class Game {
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
     if (this.prompt) this.drawPrompt(ctx);
+    if (this.mash) this.drawMash(ctx);
     if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
     if (this.state === 'menu') this.drawMenu(ctx);
 
@@ -829,7 +862,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-11.77';
+export const BUILD = '2026-09-11.78';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

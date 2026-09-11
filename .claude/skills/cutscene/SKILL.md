@@ -142,3 +142,5 @@ model: opus
 - NPC 가 달려 나가는 쪽 맵 가장자리는 걷는 타일이 아니라 **막힌 같은 무늬 타일**(`Z` 보라 땅 / `Y` 얕은 물) 로 끝까지 — 공중부양 금지 + 사방 막힘 규칙.
 - 만남 프레이밍은 파티 셋 + 상대 + 소품 그림 사각형을 전부 재서 카메라 타일을 정한다(`obj1.mjs` framing 검사 참고). 같은 x 에 위아래로 둔 두 NPC 는 겹친다 — 뒤쪽을 60px 옆으로.
 - 아이템 획득(`inventory.push`)·컷신 전투(`battle.flag`)·버프를 넣으면 `src/core/story.js STATE_FROM_FLAGS` 에 플래그 규칙 한 줄 — QA 점프 상태가 실제 플레이와 같아진다(`qa-state.test`).
+- 미니게임·연출 노드(2026-09-11 대포 발사): `{ mash:{ target:100, push:[ids], tremble:id } }` C 연타(가운데 창·불씨 게이지, `ember` 소리) / `{ fire:{ at:id, dx, dy, spread, rate, grow } }` 불이 붙어 커진다(기다리지 않음, `{fire:null}` 끔) / `{ rocket:{ ids, speed, camera, amp } }` 불꼬리 달고 오른쪽 맵 밖으로(카메라 추적·흔들림·제거). 브금은 브리핑 타이밍대로 `{bgm:null}`·`{bgm:'rude_buster'}` 를 직접 — 연타 구간엔 전투 브금, 날아가는 연출엔 무음, 끝에 맵 브금.
+- 말 걸어 시작하는 후속 이벤트의 NPC/소품은 `requires:'앞 플래그', unless:'끝 플래그'` 쌍으로 두고, QA 지점을 그 앞에 하나 더(`obj1_push`).

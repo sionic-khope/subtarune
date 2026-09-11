@@ -1,6 +1,6 @@
 // 옵젝영역1 검증: ?qa=obj1 → 도착 연출(브금 vs_lancer, 카메라가 가운데 둘에게, 허이얍/흐이야아압 마다 대포+둘이 한 칸(32px)·드륵 ×5, "그 소리 내면" 에 브금 일시정지 → . . . 말풍선 → "하이얍" 에 이어서, 카메라 주인공)
 //   → 걸어가 둘 앞 3칸 트리거 → 만남 연출(느낌표, 두구두구 → 대포 줌 → 빰빠밤, 다 닥쳐(흔들림·브금 off), 요플래 줌, 웃음, 쥰희가 오른쪽으로 달려 맵 밖으로, 카메라 복귀, 도와주실 수 있나요, 브금 wind)
-//   → 다시 들어오면 연출 없음, 용준·대포는 민 자리에, 쥰희 없음.
+//   → 다시 들어오면 연출 없음, 용준·대포는 민 자리에, 쥰희 없음 → 용준에게 말 걸면 한 줄로 서기 → 준비(브금 off) → 밀어!!(쿵) → C 연타 UI(브금 rude_buster, 100번) → 용준 등에 불 → 로켓 발사(브금 off, 카메라 추적, 둘 제거) → 3초 뒤 쿠구구궁 → 셋 . . . → 6줄 → 브금 wind.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -70,6 +70,29 @@ const L = await page.evaluate(async () => (await import('/src/data/maps.js')).MA
 await page.waitForTimeout(500); await stand(L.x, L.y, 'right'); await page.keyboard.down('ArrowRight'); await until(() => game.mapId === 'obj2' ? true : null, 8000); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(800);
 await page.keyboard.down('ArrowLeft'); await until(() => game.mapId === 'obj1' ? true : null, 8000); await page.keyboard.up('ArrowLeft'); await page.waitForTimeout(1200); s = await st();
 check('re-entering obj1: no scene, 용준(after) and the cannon stand where they were pushed to, 쥰희 gone, bgm wind', s.map === 'obj1' && !s.running && s.yongjun?.id === 'yongjun_after' && s.yongjun.x === meta.pushers[2] + 5 * 32 && s.cannon?.id === 'cannon_after' && s.cannon.ix === meta.cannon[0] + 5 * 32 && !s.junhee && s.bgm === 'wind', JSON.stringify({ running: s.running, yongjun: s.yongjun, cannon: s.cannon, junhee: s.junhee, bgm: s.bgm }));
+// 용준에게 말 걸기 → C 연타 로켓 발사
+await page.evaluate(() => { window.__sfx = []; window.__bub = []; const os = game.bubble.start.bind(game.bubble); game.bubble.start = (e, n) => { window.__bub.push(e === game.player ? 'player' : e.id); return os(e, n); }; });
+const yj = await page.evaluate(() => { const y = game.entities.find((e) => e.id === 'yongjun_after' && !e.dead); return y ? { x: y.x, y: y.y } : null; });
+check('용준(after) can be talked to', !!yj, JSON.stringify(yj));
+await stand(yj.x - 40, yj.y, 'right'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);   // 프로브 19px 가 히트박스에 닿는 거리(간격 16px)
+let bgmAtReady = 'x', bgmAtMash = 'x', mashSeen = false, mashMax = 0, mashDone = false, lineup = null, fireSeen = false, bgmAtLaunch = 'x', launchGone = false, camFollowedRocket = false, boomDelay = null, tLaunch = 0;
+const lines3 = await pump(240000, async (k) => {
+  if (k.includes('맞춰서 서봐요')) { await advance(); await page.waitForTimeout(2500); lineup = await page.evaluate(() => { const g = (id) => id === 'player' ? game.player : game.entities.find((e) => e.id === id && !e.dead); return ['ppaman', 'gyeongsub', 'player', 'yongjun_after'].map((id) => ({ id, x: Math.round(g(id).x), y: Math.round(g(id).y), f: g(id).facing })); }); }
+  if (k.includes('준비')) { await advance(); await page.waitForTimeout(600); bgmAtReady = (await st()).bgm; }
+  if (k.includes('밀어')) { await advance(); const m0 = await until(() => game.mash ? true : null, 4000); mashSeen = !!m0; await page.waitForTimeout(200); bgmAtMash = (await st()).bgm; await page.screenshot({ path: `${S}/obj1_05_mash.png` });
+    for (let i = 0; i < 120; i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(24); if (i % 10 === 9) { const c = await page.evaluate(() => game.mash ? game.mash.count : -1); if (c > mashMax) mashMax = c; if (c < 0) break; if (i === 59) await page.screenshot({ path: `${S}/obj1_06_mash_half.png` }); } }
+    mashDone = !!(await until(() => !game.mash ? true : null, 6000)); }
+  if (k.includes('뜨거운')) { await page.waitForTimeout(300); fireSeen = await page.evaluate(() => game.flames.length > 0 && game.flameEmitters.length > 0); await page.screenshot({ path: `${S}/obj1_07_fire.png` }); await advance(); tLaunch = Date.now();
+    for (let i = 0; i < 80; i++) { await page.waitForTimeout(40); const w = await page.evaluate(() => ({ bgm: game.sound.bgmName, gone: !game.entities.find((e) => e.id === 'yongjun_after' && !e.dead), camT: game.camera.target?.id || null, flames: game.flames.length })); if (w.camT === 'cannon_after' && w.flames > 0) { camFollowedRocket = true; if (!fs.existsSync(`${S}/obj1_08_launch.png`)) await page.screenshot({ path: `${S}/obj1_08_launch.png` }); } if (w.gone) { launchGone = true; bgmAtLaunch = w.bgm; break; } }
+    const tGone = Date.now(); const boom = await until(() => (window.__sfx || []).includes('boom') ? true : null, 6000); if (boom) boomDelay = (Date.now() - tGone) / 1000; }
+  if (k.includes('가버렸네')) await page.screenshot({ path: `${S}/obj1_09_after.png` }); });
+s = await st(); const bub = await page.evaluate(() => window.__bub);
+const want3 = ['박용준|* 형들 자 제 뒤에 이렇게 딱 맞춰서 서봐요', '박용준|* 그리고.. .... ........', '박용준|* 그리고... 준비 ~~~~~~~~~~~~~~~', '박용준|* 밀어!!!!!!!!!!!!!!!!!!!!!', '박용준|* 어어어.. 어?', '박용준|* 뭐 뭐지 뭔가 등이... 뜨거운 느끼..', '경섭|* 허허 가버렸네', '억빠맨|* 신경쓰지말고 갈길가죠. 근데 그것이 도대체 뭘까요?', '경섭|* 허허 그러게', '억빠맨|* 뭐냐고 씨발년아', '경섭|* 응?', '억빠맨|* 아니에요 가시죠'];
+check('push scene: 12 lines verbatim in order', JSON.stringify(lines3) === JSON.stringify(want3), JSON.stringify(lines3));
+check('lineup: party in a row behind 용준 (48px apart, same y, all facing right)', !!lineup && lineup.every((c) => c.f === 'right') && lineup[3].x - lineup[2].x === 48 && lineup[2].x - lineup[1].x === 48 && lineup[1].x - lineup[0].x === 48 && new Set(lineup.map((c) => c.y)).size === 1, JSON.stringify(lineup));
+check('"준비 ~~~" → bgm off; "밀어!!!" (thud + shake) → C-mash UI appears with Rude Buster; 100 presses fill the ember gauge and finish', bgmAtReady === null && mashSeen && bgmAtMash === 'rude_buster' && mashMax >= 90 && mashDone && s.sfx.includes('thud') && s.sfx.filter((n) => n === 'ember').length >= 90, JSON.stringify({ bgmAtReady, mashSeen, bgmAtMash, mashMax, mashDone, ember: s.sfx.filter((n) => n === 'ember').length }));
+check('fire behind 용준 after "어어어.. 어?"; launch: bgm off, rocket sfx, camera follows the cannon with a flame trail, both gone off the map; boom ≈ 3s later', fireSeen && launchGone && bgmAtLaunch === null && s.sfx.includes('rocket') && camFollowedRocket && boomDelay !== null && boomDelay >= 2.5 && boomDelay <= 4.2 && s.sfx.includes('boom'), JSON.stringify({ fireSeen, launchGone, bgmAtLaunch, camFollowedRocket, boomDelay }));
+check('after: . . . bubbles on all three, camera back on the player, bgm wind, flag obj1_launched, 용준·대포 gone', bub.includes('player') && bub.includes('gyeongsub') && bub.includes('ppaman') && s.camTarget === 'player' && s.bgm === 'wind' && s.flags.includes('obj1_launched') && !s.yongjun && !s.cannon, JSON.stringify({ bub, camTarget: s.camTarget, bgm: s.bgm, flags: s.flags, yongjun: s.yongjun, cannon: s.cannon }));
 check('no page/console errors', errs.length === 0, JSON.stringify(errs.slice(0, 4)));
 console.log(logs.join('\n')); console.log(`fails=${fails}`);
 await browser.close(); process.exit(fails ? 1 : 0);
