@@ -1,5 +1,5 @@
 // 청록숲9 검증: ?qa=teal9 → 일직선 길, 뒤로 갈수록 고대 사원 판석·기둥·석등·사원 문 → 오른쪽 끝 레드·블루가 막고 있음 → C → 파티 세로 정렬 → 브금 꺼짐 → 대사(브리핑 그대로)
-//   → 셋 놀람 점프(공식 jump 소리 ✗, chime ✓) → "침입자 발생" 에 브금 alarm + 사이렌 + 레드 쿵쿵 + 붉은 번쩍 → 처리하라/하라 가속 응수 → 돌진 → 보스전(red·blue HP 22, 브금 boss) → 승리 → 둘 제거·플래그·브금 hopes → 오른쪽 문 → teal10.
+//   → 셋 놀람 점프(공식 jump 소리 ✗, chime ✓) → "침입자 발생" 에 브금 alarm + 사이렌 + 레드 쿵쿵 + 붉은 번쩍 → 처리하라/하라 가속 응수 → 돌진 → 보스전(red·blue HP 22, 브금 boss) → 승리 → 둘 제거·플래그·브금 hopes → 오른쪽 문 → obj0(옵젝영역0).
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -97,9 +97,9 @@ check('battle entry effect played before the boss battle: jingle + rumble after 
 await page.screenshot({ path: `${S}/teal9_05_after.png` });
 await stand(48 * 32, 8 * 32 + 8, 'right'); await page.waitForTimeout(200);   // 광장 가운데 줄에서 열린 돌문 통로로
 await page.keyboard.down('KeyX'); await page.keyboard.down('ArrowRight');
-const t2 = Date.now(); let mapNow = 'teal9'; while (Date.now() - t2 < 15000) { mapNow = await page.evaluate(() => game.mapId); if (mapNow === 'teal10') break; await page.waitForTimeout(100); }
+const t2 = Date.now(); let mapNow = 'teal9'; while (Date.now() - t2 < 15000) { mapNow = await page.evaluate(() => game.mapId); if (mapNow === 'obj0') break; await page.waitForTimeout(100); }
 await page.keyboard.up('ArrowRight'); await page.keyboard.up('KeyX');
-check('through the opened stone door → teal10', mapNow === 'teal10', mapNow);
+check('through the opened stone door → obj0 (옵젝영역0)', mapNow === 'obj0', mapNow);
 check('no page/console errors', errs.length === 0, JSON.stringify(errs.slice(0, 4)));
 console.log(logs.join('\n')); console.log(`fails=${fails}`);
 await browser.close(); process.exit(fails ? 1 : 0);

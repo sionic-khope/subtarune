@@ -342,13 +342,23 @@ export class Player extends Character {
       this.moveBy((a.x / len) * step, (a.y / len) * step);
     }
     this.moving = this.x !== startX || this.y !== startY;
+    const prevFrame = this.frame;
     this.animate(dt, input.down('cancel') ? 8 : 12);
-    if (this.moving) this.recordTrail();
+    if (this.moving) { this.recordTrail(); this.footstep(prevFrame); }
 
     // 밟는 트리거
     for (const e of this.game.entities) {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
+  }
+  /** 발소리: 걷기 프레임이 발 딛는 프레임(1·3)으로 넘어가는 순간, 밟고 있는 타일이 `step` 효과음을 선언했으면(얕은 물 — 옵젝영역0) 살짝 음높이를 바꿔 재생하고 물결 고리를 낸다 (2026-09-11 사용자 "걸을 때마다 울리는 에코 물 밟는 소리") */
+  footstep(prevFrame) {
+    if (this.frame === prevFrame || (this.frame !== 1 && this.frame !== 3)) return;
+    const cx = this.x + this.w / 2, fy = this.y + this.h - 1;
+    const tile = this.game.map.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE));
+    if (!tile?.step) return;
+    this.game.sound.sfx(tile.step, { volume: 0.5, rate: 0.92 + Math.random() * 0.16 });
+    this.game.emitRipple?.(cx, fy - 2);
   }
   /** 동료가 따라올 발자국 기록 (이동한 프레임만) — Follower 가 뒤에서 이 자취를 따라 걷는다 */
   recordTrail() {

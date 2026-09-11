@@ -50,3 +50,5 @@
 | **청록숲9 사이렌 브금**(레드 "침입자 발생" 부터 전투 직전까지) — Rumpus Music, Mario & Luigi: Bowser's Inside Story | https://www.youtube.com/watch?v=Us_1Ky2X-qA (사용자 지정, 재생목록 7번) | `bgm/alarm.mp3` | **적용됨** 2026-09-11 (앞 무음만 잘라냄, `teal9_boss.js`) |
 | **청록숲9 보스전 브금**(레드·블루) — Boss: Tough Guy Alert!, Mario & Luigi: Bowser's Inside Story | https://www.youtube.com/watch?v=DW6ECP1doRk (사용자 지정, 재생목록 19번) | `bgm/boss.mp3` | **적용됨** 2026-09-11 (`{battle:{bgm:'boss'}}`) |
 | 사이렌 효과음(레드 몸에서 위잉위잉) | 합성(ffmpeg aevalsrc 760Hz 위상변조 1.7Hz, 2.6s) | `sfx/siren.mp3` | **적용됨** 2026-09-11 |
+| 얕은 물 발소리(옵젝영역0, 걸을 때마다 울리는 에코) | 합성(ffmpeg: 260→980Hz 사인 스윕 '플립' + 108Hz 쿵 + 1.5kHz 밴드패스 노이즈, aecho 4탭 70/150/260/400ms, lowpass 3.4k, 0.7s, 피크 -6.7dB) | `sfx/water_step.mp3` | **적용됨** 2026-09-11 (`tiles.js` `step`, `Player.footstep` rate 0.92~1.08) |
+| 옵젝영역0 브금 — 허공 바람 재사용(사용자 "청록숲0 처럼 휘잉") | (위 `bgm/wind.mp3`) | `obj0.json bgm` | **적용됨** 2026-09-11 |

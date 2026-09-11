@@ -19,6 +19,7 @@ model: opus
 | 집(방·거실·복도) | 이미지 맵 + 사각 충돌 | `room` | 실제 가구 PNG(tools/art/room_set·living_set) | `src/data/maps.js` |
 | 허공(보라, void1~11) | `x/X` 땅, `y` 절벽, `o/O` 물, `Z` 걸어 나가는 바닥 | `wind`(void1) → `scarlet`(void5~9) → `lancer`(void11) | 보라 불 원경, 꽃·바위·버튼·표지판·뗏목·낙석(void_set/void10_set) | `void9.py`, `void10.py`(미로), `void11.py`, `rockfall_map.py` |
 | 청록숲(teal1~) | `t/u` 땅, `w` 잔풀, `n` 낙엽, `v` 절벽, `o/O` 물, **`m` 숲 바닥(막힘, 길 둘레 2칸 — 나무는 그 위에만)** | `weird_birds`(teal1) → `hopes`(teal2~) | 검은 수풀 원경(backdrop `teal_bush`), 동상·나무(`tree_teal`/`tree_forest`)·풀숲·폭포·뗏목(teal_set) | `teal.py`, `teal5.py`(물길·계단), `teal6.py`(정글) |
+| 옵젝영역(obj0~) | `a/A` 얕은 물(걸을 수 있음, `step:'water_step'` 발소리+물결), `j` 수련잎, **`c` 숲 바닥(막힘, 물 둘레 2칸)**, `V` 절벽 | `wind`(휘잉 바람) | 원경 `obj_forest`(초록 덤불 + 보라 먼 층), 나무 `tree_obj`/`tree_obj_purple`(넷에 하나) (obj_set) | `obj0.py`(일직선) |
 | 다음 지역 | 새 타일 세트(`tools/art/<지역>_set.py`) + `registerTile` 폴백 색 | 새 브금은 `design/audio/references.md` 에 출처 | 원경 한 장(`backdrop`) | 생성기 새로 |
 
 **동선 모양 카탈로그**(브리핑의 한 단어 → 구조): 일직선 통로(teal1) · ㄱ자/계단식(teal_east, teal6) · 광장+위로 가는 길(teal2) · 아래→위 오르막+공터(teal3) · 뱀길(void9) · 미로(void10, 뒤로 물러나는 backtracker) · 물길 일직선+계단(teal5) · **정글**(구불구불한 본길 + 목 3칸으로 붙은 주머니 캠프에 몹, 길 가장자리 나무 빽빽, teal6). 폭은 3칸, 도입 여유 8타일, 타이밍 장애물 간격 ≥512px.
@@ -28,7 +29,7 @@ model: opus
 
 **이벤트 설계 원칙(사용자 2026-09-11 "억빠맨이 '저 이제 안 할 거예요' 같은 반복 개그 말고 색다른 웃긴 연출")**: 새 이벤트마다 **처음 보는 연출 장치 하나**를 넣는다 — 카메라가 다른 곳을 훑음(와드 정찰), 실제 효과가 남음(마나샘 = 전원 회복 쉼터), 소품이 움직임(anim 띠), 캐릭터가 이상한 짓을 함(핥기·끼임·날아감), 화면 밖으로 퇴장, 선택지가 끊김, 물리 연출(2단 점프·쓸림). 대사만 바꾼 같은 틀(억빠맨 거절·경섭 허허)은 금지. 개그의 오브젝트는 그 지역의 소재(정글 = 와드·버프·게·귀환)에서 가져온다. 이벤트 소품은 `anim` 으로 살아 있게(눈 깜빡임·반짝임).
 **롤 정글 아이디어 풀(안 쓴 것)**: 스커틀 게(도망가는 크리터, 잡으면 돈+시야) · 귀환(B 채널링 원, 입구로 순간이동, 움직이면 취소) · 드래곤 알(깨지면 새끼용이 불 뿜음) · 부시 잠복(억빠맨이 풀숲에 숨어 사라짐) · 정글 타이머 표지판(리스폰 카운트 개그) · 강타 버튼(눌러도 아무 일 없음, "레벨이 낮아요") · 바론 둥지(거대 발자국만) · 텔레포트 와드 낚시.
-**신경 쓸 것**: 레이아웃 예산 `src/core/layout.js`(대화 중 230px·전투 246px·프로브 19px) 안에서 사각형으로 계산(2026-09-11 레이아웃 포스트모텀 `docs/postmortems/2026-09-11-layout-issues.md`) / 나무·동상 밑동은 항상 땅 타일 위(허공에 뜬 소품 금지 — 청록숲은 `m` 띠) / 스폰은 땅·소품·문 밖 / 문은 양방향 스폰 존재 / 출구는 땅을 화면 끝까지 / 컷신 좌표는 `rel:` / 몹은 `unless:'<맵>_<id>_defeated'` / 브금은 맵 `bgm` 한 줄(컷신 중 껐으면 표준 조우가 복귀시킨다) / 새 소품은 `props.test` 키·히트박스 규칙 / 생성기 `--check` 가 `tools/dev/check.sh` 에 잡힘.
+**신경 쓸 것**: 레이아웃 예산 `src/core/layout.js`(대화 중 230px·전투 246px·프로브 19px) 안에서 사각형으로 계산(2026-09-11 레이아웃 포스트모텀 `docs/postmortems/2026-09-11-layout-issues.md`) / 나무·동상 밑동은 항상 땅 타일 위(허공에 뜬 소품 금지 — 청록숲은 `m` 띠) / 스폰은 땅·소품·문 밖 / 문은 양방향 스폰 존재 / 출구는 땅을 화면 끝까지 / 컷신 좌표는 `rel:` / 몹은 `unless:'<맵>_<id>_defeated'` / 브금은 맵 `bgm` 한 줄(컷신 중 껐으면 표준 조우가 복귀시킨다) / **발소리가 있는 바닥**은 타일에 `step:'<sfx>'` 만 선언(`Player.footstep` 이 프레임 1·3 에 재생, 새 sfx 는 `loadSfxFiles` 목록 + `design/audio/references.md`) / 새 타일 글자는 `tiles.js` + `maps.test SOLID_CHARS`·`maps-connect`/`maps-layout` WALK·ROAD 에도 / 새 소품은 `props.test` 키·히트박스 규칙 / 생성기 `--check` 가 `tools/dev/check.sh` 에 잡힘.
 
 ## 표현 규칙 (반드시)
 - 맵은 **생성기**(`tools/maps/<id>.py`)로 뽑고 `--check` 로 JSON 과 동기화한다(`tools/dev/check.sh` 가 검사). 컷신 좌표가 맵에 묶여 있으니(`cutscenes.test.mjs`) 레이아웃을 바꾸면 컷신도 `rel:` 로 다시 맞춘다.

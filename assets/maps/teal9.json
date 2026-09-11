@@ -113,7 +113,7 @@
    "y": 224,
    "w": 24,
    "h": 96,
-   "to": "teal10",
+   "to": "obj0",
    "spawn": "from_left",
    "sfx": false
   },

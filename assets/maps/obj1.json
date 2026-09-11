@@ -1,0 +1,46 @@
+{
+ "id": "obj1",
+ "name": "옵젝영역",
+ "bgm": "wind",
+ "stage": "void_fallen",
+ "dim": 0,
+ "backdrop": "obj_forest",
+ "rows": [
+  "                ",
+  "                ",
+  "                ",
+  " cccccccccccccc ",
+  " cccccccccccccc ",
+  " aAaAaAaAaAajaA ",
+  " AaAaAaAaAaAaAa ",
+  " aAaAaAaAaAaAjA ",
+  " cccccccccccccc ",
+  " cccccccccccccc ",
+  " VVVVVVVVVVVVVV ",
+  "                "
+ ],
+ "spawns": {
+  "from_left": {
+   "x": 60,
+   "y": 200,
+   "facing": "right"
+  },
+  "start": {
+   "x": 60,
+   "y": 200,
+   "facing": "right"
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "x": 32,
+   "y": 160,
+   "w": 8,
+   "h": 96,
+   "to": "obj0",
+   "spawn": "landing",
+   "sfx": false
+  }
+ ]
+}

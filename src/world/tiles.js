@@ -147,5 +147,11 @@ registerTile('m', { name: 'forest_floor_teal', solid: true, draw: flat('#154844'
 registerTile('d', { name: 'ground_teal_shade', solid: false, draw: flat('#061412') });   // 그늘 진 땅(걸을 수 있음): 나무 뒤 숨는 공간 (청록숲7, 2026-09-11)   // 숲 바닥(막힘): 길 밖 나무들이 서는 어두운 땅 — 허공에 뜬 나무 방지 (2026-09-11 사용자)
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });
+// 옵젝영역(obj0~, tools/art/obj_set.py, 2026-09-11): 얕은 물 바닥(걸을 수 있음, 밟으면 step 효과음 + 물결 고리 — Player.footstep) / 수련잎 / 초록·보라 숲 바닥(막힘) / 절벽면
+registerTile('a', { name: 'water_shallow', solid: false, step: 'water_step', draw: flat('#1a5561') });
+registerTile('A', { name: 'water_shallow2', solid: false, step: 'water_step', draw: flat('#1a5561') });
+registerTile('j', { name: 'water_shallow_pad', solid: false, step: 'water_step', draw: flat('#1a5561') });
+registerTile('c', { name: 'forest_floor_obj', solid: true, draw: flat('#0f2f18') });
+registerTile('V', { name: 'cliff_obj', solid: true, draw: flat('#0b2412') });
 registerTile('b', { name: 'bridge_purple', solid: false, draw: flat('#8a6238') });   // 레버로 내려오는 다리 (tileSwaps 로 ' ' → 'b')
 registerTile('s', { name: 'stairs_purple', solid: false, draw: flat('#5e2f98') });   // 위 발판으로 오르는 계단

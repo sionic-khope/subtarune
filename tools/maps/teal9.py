@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """청록숲9 고대 사원 길 (사용자 브리핑 2026-09-11): 오른쪽으로 쭉 가는 일직선 길. 청록숲인데 뒤로 갈수록 고대 사원의 돌 바닥(판석)·기둥·석등·돌덩이가 늘고, 끝에 사원 문(아치).
   끝은 세로로 넓은 광장(4~12행): 오른쪽 끝에 거대한 사원 돌문(옆면, 96×288, 닫힘/열림 두 장)이 서 있고 그 앞을 2.6배 크기의 레드·블루(적군이지만 NPC — 말 걸면 대화 연출 뒤 전투, teal9_boss.js)가 위아래로 엇갈려 막는다.
-  이기면 둘이 사라지고 닫힌 문도 사라져(unless) 열린 통로로 → teal10 자리표시. (2026-09-11 사용자: "두 배로 크게, 맵을 세로로 늘려, 사원 돌문이 옆면으로 막고 있게")
+  이기면 둘이 사라지고 닫힌 문도 사라져(unless) 열린 통로로 → obj0(옵젝영역0). (2026-09-11 사용자: "두 배로 크게, 맵을 세로로 늘려, 사원 돌문이 옆면으로 막고 있게")
   레드·블루 스프라이트는 사용자 PR 로 온다 — 그때까지 청록숲3 CS 정면 그림(cs-red/blue-front) 을 쓴다.
 실행: /usr/bin/python3 tools/maps/teal9.py  (--check)
 """
@@ -49,7 +49,7 @@ DOOR = {'x': 52 * T + 16, 'y': PR0 * T, 'w': 96, 'h': 288}                      
 ents = [
     {'type': 'door', 'x': 32, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'teal8', 'spawn': 'landing', 'sfx': False},
     # 출구: 돌문 안 통로(닫힌 문이 있는 동안은 막혀 있다). 이기면 닫힌 문이 사라지고 열린 문(어두운 통로)이 드러난다
-    {'type': 'door', 'x': 53 * T + 8, 'y': 7 * T, 'w': 24, 'h': 96, 'to': 'teal10', 'spawn': 'from_left', 'sfx': False},
+    {'type': 'door', 'x': 53 * T + 8, 'y': 7 * T, 'w': 24, 'h': 96, 'to': 'obj0', 'spawn': 'from_left', 'sfx': False},
     # 거대한 사원 돌문(옆면): 열린 문은 항상 뒤에 깔려 있고(충돌 없음), 닫힌 문이 그 위에 덮여 길을 막는다(solid, 이기면 unless 로 사라짐). 둘 다 sortY 0 = 캐릭터 뒤
     {'type': 'prop', 'id': 'door_open', 'image': 'assets/props/temple_door_open.png', 'x': DOOR['x'], 'y': DOOR['y'], 'w': DOOR['w'], 'h': DOOR['h'], 'ix': DOOR['x'], 'iy': DOOR['y'], 'solid': False, 'sortY': 0},
     {'type': 'prop', 'id': 'door_closed', 'image': 'assets/props/temple_door.png', 'x': DOOR['x'], 'y': DOOR['y'], 'w': DOOR['w'], 'h': DOOR['h'], 'ix': DOOR['x'], 'iy': DOOR['y'], 'solid': True, 'sortY': 0, 'unless': 'teal9_boss_won'},

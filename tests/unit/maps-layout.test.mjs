@@ -11,7 +11,7 @@ import { TILE, PROBE_RANGE, CHAR_BOX, DIALOGUE_VISIBLE_H } from '../../src/core/
 
 const root = new URL('../../', import.meta.url).pathname;
 const CHAR_SCALE = Number(fs.readFileSync(root + 'src/world/world.js', 'utf-8').match(/export const CHAR_SCALE = ([\d.]+)/)[1]);
-const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B']);   // 길(걷는 타일). 'd'(그늘 바닥)는 장식 나무를 허용
+const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B']);   // 길(걷는 타일). 'd'(그늘 바닥)는 장식 나무를 허용. a/A/j: 얕은 물(옵젝영역)
 const WALK = new Set([...ROAD, 'd']);
 const pngH = (p) => fs.readFileSync(root + p).readUInt32BE(20);
 const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8')).maps.map((id) => JSON.parse(fs.readFileSync(root + `assets/maps/${id}.json`, 'utf-8'))).filter((m) => m.rows);
@@ -42,7 +42,7 @@ for (const m of maps) {
     }
   });
   test(`${m.id}: 나무 밑동은 길 타일 위에 없다`, () => {
-    for (const e of (m.entities || []).filter((p) => p.type === 'prop' && p.solid !== false && /tree_/.test(p.image || '') && /^(jt|st)\d/.test(p.id || ''))) {   // 생성기가 자동으로 뿌린 숲 나무만(손으로 둔 나무는 개별 검토)
+    for (const e of (m.entities || []).filter((p) => p.type === 'prop' && p.solid !== false && /tree_/.test(p.image || '') && /^(jt|st|ot)\d/.test(p.id || ''))) {   // 생성기가 자동으로 뿌린 숲 나무만(손으로 둔 나무는 개별 검토)
       const hb = { x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 12 };
       const onRoad = [[hb.x, hb.y], [hb.x + hb.w - 1, hb.y], [hb.x, hb.y + hb.h - 1], [hb.x + hb.w - 1, hb.y + hb.h - 1]].some(([px, py]) => ROAD.has(tileAt(m, px, py)));
       assert.ok(!onRoad, `${m.id}.${e.id}: 나무 밑동(${hb.x},${hb.y})이 길 위에 있다 — 생성기에서 한 칸 올린다(teal9.py 참고)`);

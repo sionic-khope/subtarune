@@ -67,6 +67,7 @@ class Game {
     this.ride = null;             // 타고 있는 탈것(Raft 등) — 있으면 플레이어 입력 정지
     this.hurt = 0; this.invuln = 0;   // 낙석 등에 맞았을 때 붉은 섬광 / 무적 시간
     this.fx = [];                 // 작은 입자(물방울 등) { x,y,vx,vy,t,color }
+    this.ripples = [];            // 얕은 물 발소리 물결 고리 { x,y,t,dur } — emitRipple, 맵 위·캐릭터 아래에 그린다
     this.prompt = null;           // { text, t } 작은 안내 창 (컷신 {prompt}) — C 로만 닫힘
   }
 
@@ -102,7 +103,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'water_step']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || `assets/sprites/${name}.png`);   // still: 정지 1장 캐릭터(미니언 등)
         if (img) this.spriteOverrides[name] = img;
@@ -258,17 +259,13 @@ class Game {
    * 맵 JSON `backdrop:'teal_bush'` — 청록숲: 검은 어둠 속에 멀리 겹겹이 서 있는 수풀 실루엣 (사용자 2026-09-10 "뭔가 애매하게 보이는 수풀 같은 배경을 디테일하게").
    * 3겹(멀수록 어둡고 느리게 흐름: 카메라 x 의 0.12/0.22/0.38), 둥근 덤불 덩어리 + 가는 줄기 + 잎 점, 아주 느린 흔들림. 위치는 인덱스 해시로 고정.
    */
-  drawBackdropTeal(ctx, cam) {
+  drawBackdropTeal(ctx, cam, pal = BACKDROP_TEAL) {
     const t = this.time;
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-    const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H); g.addColorStop(0, '#000'); g.addColorStop(0.55, '#03110f'); g.addColorStop(1, '#000');
+    const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H); g.addColorStop(0, '#000'); g.addColorStop(0.55, pal.mid); g.addColorStop(1, '#000');
     ctx.fillStyle = g; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     const hash = (i, k) => { const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); };
-    const layers = [
-      { par: 0.12, col: '#071c1a', rim: '#0b2926', leaf: '#0e3330', base: 130, n: 16, r: [34, 60], sway: 0.9 },
-      { par: 0.22, col: '#0b2a27', rim: '#123b37', leaf: '#184944', base: 156, n: 14, r: [26, 46], sway: 1.3 },
-      { par: 0.38, col: '#103b37', rim: '#1a5450', leaf: '#22665f', base: 186, n: 12, r: [18, 34], sway: 1.8 },
-    ];
+    const layers = pal.layers;
     for (let li = 0; li < layers.length; li++) {
       const ly = layers[li], span = 640, off = ((cam.x * ly.par) % span + span) % span;
       for (let i = 0; i < ly.n * 2; i++) {
@@ -280,11 +277,23 @@ class Game {
         blob(0, ly.rim); blob(3, ly.col);                                                                    // 위쪽 3px 만 밝게 남는 잎 테두리
         ctx.fillStyle = ly.leaf;                                                                            // 잎 점(디테일) — 위쪽에 많이
         for (let k = 0; k < 14; k++) { const a = hash(i * 13 + k, li + 5) * Math.PI * 2, d = hash(i * 17 + k, li + 9) * r * 0.95; const lx = bx + sw + Math.cos(a) * d, ly = by + Math.sin(a) * d * 0.8; if (ly < by + r * 0.4) ctx.fillRect(Math.round(lx), Math.round(ly), 2, 1); }
-        if (hash(i + 11, li) > 0.55) { ctx.fillStyle = '#020b0a'; ctx.fillRect(Math.round(bx + sw), Math.round(by - r * 0.2), 1, Math.round(r * 1.6)); }   // 가는 줄기
+        if (hash(i + 11, li) > 0.55) { ctx.fillStyle = pal.stem; ctx.fillRect(Math.round(bx + sw), Math.round(by - r * 0.2), 1, Math.round(r * 1.6)); }   // 가는 줄기
       }
     }
     const gd = ctx.createLinearGradient(0, 170, 0, 250); gd.addColorStop(0, 'rgba(0,0,0,0)'); gd.addColorStop(1, '#000');   // 덤불 띠 아래는 완전한 검정 — 바닥처럼 보이는 밝은 면을 남기지 않는다(2026-09-10 "길이 투명하게 뚫려 허공을 걷는 느낌")
     ctx.fillStyle = gd; ctx.fillRect(0, 170, SCREEN_W, 80); ctx.fillStyle = '#000'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);
+  }
+
+  /** 얕은 물 발소리 물결 고리(옵젝영역): 발밑에서 타원 고리가 퍼지며 옅어진다 — 맵 위·캐릭터 아래 */
+  emitRipple(x, y) { this.ripples.push({ x, y, t: 0, dur: 0.6 }); }
+  drawRipples(ctx, cam) {
+    if (!this.ripples.length) return;
+    ctx.lineWidth = 1;
+    for (const r of this.ripples) {
+      const k = r.t / r.dur, rad = 4 + 14 * k;
+      ctx.strokeStyle = `rgba(170,232,236,${(1 - k) * 0.7})`;
+      ctx.beginPath(); ctx.ellipse(Math.round(r.x - cam.x), Math.round(r.y - cam.y), rad, rad * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+    }
   }
 
   /** ESC: 메인(타이틀)으로 */
@@ -517,6 +526,7 @@ class Game {
     for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }
     for (const e of this.entities) if (e.emote) { e.emote.t += dt; if (e.emote.t >= e.emote.life) e.emote = null; }   // 머리 위 이모트 수명
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
+    if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.battle) { this.battle.update(dt, Input); if (this.dialogue.running) this.dialogue.update(dt, Input); return; }   // 전투 중: 전투 + 컷신 대기자만
@@ -654,6 +664,7 @@ class Game {
     if (this.shake) { cam.x += Math.round((Math.random() * 2 - 1) * this.shake.amp); cam.y += Math.round((Math.random() * 2 - 1) * this.shake.amp); }
     if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
+    else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
 
     // 2D 줌: 월드(맵·엔티티·어두움)만 확대, UI 는 그대로
     ctx.save();
@@ -665,6 +676,7 @@ class Game {
       ctx.translate(Cx, Cy); ctx.scale(z.s, z.s); ctx.translate(-Fx, -Fy);
     }
     this.map.draw(ctx, cam);
+    this.drawRipples(ctx, cam);
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
     const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
@@ -803,7 +815,18 @@ class Game {
 }
 
 // ── 부트 ────────────────────────────────────────────────────
-export const BUILD = '2026-09-11.72';
+/** 배경 실루엣 팔레트 — drawBackdropTeal(pal). 청록숲(teal_bush)은 기존 값 그대로, 옵젝영역(obj_forest)은 초록 덤불에 먼 층·잎 점이 보라 (2026-09-11 "울창한 초록숲, 보라색도 살짝") */
+const BACKDROP_TEAL = { mid: '#03110f', stem: '#020b0a', layers: [
+  { par: 0.12, col: '#071c1a', rim: '#0b2926', leaf: '#0e3330', base: 130, n: 16, r: [34, 60], sway: 0.9 },
+  { par: 0.22, col: '#0b2a27', rim: '#123b37', leaf: '#184944', base: 156, n: 14, r: [26, 46], sway: 1.3 },
+  { par: 0.38, col: '#103b37', rim: '#1a5450', leaf: '#22665f', base: 186, n: 12, r: [18, 34], sway: 1.8 },
+] };
+const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
+  { par: 0.12, col: '#140a24', rim: '#211438', leaf: '#3a2358', base: 130, n: 16, r: [34, 60], sway: 0.9 },
+  { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
+  { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
+] };
+export const BUILD = '2026-09-11.73';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
