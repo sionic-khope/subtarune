@@ -3,7 +3,7 @@
    같은 실수가 하루에 네 번 반복돼(2026-09-10~11) 문법 검사로는 못 잡는 이 패턴을 여기서 막는다.
 사용: /usr/bin/python3 tools/dev/lint_comments.py <파일...>   (없으면 src/ tests/ 전체). 문제가 있으면 1 로 끝난다."""
 import io, re, sys, os
-CODE_AFTER = re.compile(r";\s*(await |return\b|const |let |var |if \(|for \(|while \(|this\.|game\.|page\.|check\(|await\b)")
+CODE_AFTER = re.compile(r"(?:^|[\s;)\]}])(?:await [A-Za-z_$][\w$.]*\(|page\.[A-Za-z_]+\(|game\.[A-Za-z_.]+\(|check\(|logs\.push\(|return [^;]*;|const [A-Za-z_$][\w$]* =|let [A-Za-z_$][\w$]* =|if \([^)]*\) *[{a-z]|\} *else\b)")   # 주석 뒤에 이런 코드 꼴이 오면 삼켜진 것
 def strip_strings(line):
     out, i, q = [], 0, None
     while i < len(line):
@@ -26,7 +26,7 @@ def lint(path):
     bad = []
     for n, line in enumerate(io.open(path, encoding='utf-8').read().splitlines(), 1):
         i = find_comment(line)
-        if i < 0: continue
+        if i < 0 or not line[:i].strip(): continue   # 줄 전체가 주석이면 삼킬 코드가 없다
         after = strip_strings(line)[i + 2:]
         if CODE_AFTER.search(after): bad.append((n, line.strip()[:120]))
     return bad
