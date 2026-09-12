@@ -73,12 +73,22 @@ function mover(game, node) {
   [tx, ty] = freeSpot(game, e, tx, ty);
   const speed = (node.speed ?? (node.dash ? 190 : node.run ? 110 : 60)) * TILE / 16;   // dash: 질주(380px/s)
   const fast = node.run || node.dash;
+  const passenger = node.carry ? findEntity(game, node.carry.id) : null;
+  const syncPassenger = () => {
+    if (!passenger) return;
+    const [dx, dy] = node.carry.offset;
+    passenger.x = e.x + dx; passenger.y = e.y + dy;
+    passenger.moving = false; passenger.frame = 0;
+    passenger.facing = node.carry.facing || e.facing;
+  };
+  syncPassenger();
   return {
     update(dt) {
       const dx = tx - e.x, dy = ty - e.y;
       const dist = Math.hypot(dx, dy);
       if (dist < 0.5) {
         e.x = tx; e.y = ty; e.moving = false; e.animate?.(dt);
+        syncPassenger();
         if (e === game.player) e.trail = [];   // 동료가 옛 발자국으로 되돌아가지 않게
         return true;
       }
@@ -86,6 +96,9 @@ function mover(game, node) {
       e.x += (dx / dist) * step; e.y += (dy / dist) * step;
       e.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
       e.moving = true; e.animate?.(dt, fast ? 14 : 8); e.driven = true;   // driven: 이 틱은 컷신이 걷기 프레임을 진행시켰다 — NPC.update 의 대화 중 정지 처리가 프레임을 0 으로 덮지 않게 (PR #13 지침, 2026-09-11)
+      syncPassenger();
+      if (node.track) { game.camera.target = e; game.camera.locked = false; game.camera.snap(); }
+      if (node.shake) game.shake = { time: 0.08, amp: node.shake };
       return false;
     },
   };

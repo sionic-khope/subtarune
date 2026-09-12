@@ -1,5 +1,6 @@
 import { FX } from '../fx.js';
 import { battleEntry } from './helpers.js';
+import { abductionBeats } from './obj4_abduction.js';
 
 const Y = (text, extra = {}) => ({ speaker: '용준', portrait: 'yongjun', voice: 'yongjun', text, ...extra });
 const P = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text });
@@ -16,7 +17,8 @@ const roar = () => [
 ];
 
 export const obj4_baron_intro = Object.assign([
-  { if: (f) => f.obj4_baron_won, goto: 'done' },
+  { if: (f) => f.obj4_abduction_done, goto: 'done' },
+  { if: (f) => f.obj4_baron_won, goto: 'abduction' },
   { if: (f) => f.obj4_baron_done, goto: 'fight' },
   { action: (g) => { g.sound.preloadBgm('baron_intro'); } },
   { hide: 'baron' },
@@ -108,11 +110,7 @@ export const obj4_baron_intro = Object.assign([
   { camera: 'player' },
   ...battleEntry(['baron'], 'baron_battle'),
   { battle: { enemies: ['baron'], bgm: 'baron_battle', bg: 'baron_nest', flag: 'obj4_baron_won', modes: { attack: 'rush', enemy: 'bullets' } } },
-  { remove: 'baron' }, { remove: 'baron_after' },
-  { zoom: 1, duration: 0 },
-  { action: (g) => g.resumeMapBgm() },
-  { camera: 'player' },
-  { regroup: true },
-  { fade: 'in', duration: 0.5 },
+  { label: 'abduction' },
+  ...abductionBeats,
   { label: 'done' },
 ], { silent: true });

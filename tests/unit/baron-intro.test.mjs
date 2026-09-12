@@ -9,7 +9,7 @@ import { CHARACTERS } from '../../src/data/characters.js';
 const flatten = (nodes) => nodes.flatMap((node) => [node, ...flatten(node.parallel || []), ...flatten(Array.isArray(node.async) ? node.async : [])]);
 
 test('test_baron_intro_starts_standard_battle_after_exact_challenge', () => {
-  const nodes = flatten(obj4_baron_intro);
+  const nodes = flatten(obj4_baron_intro.slice(0, obj4_baron_intro.findIndex((node) => node.label === 'abduction')));
   const fight = nodes.find((node) => node.battle)?.battle;
   assert.deepEqual(fight.enemies, ['baron']);
   assert.equal(fight.bgm, 'baron_battle');

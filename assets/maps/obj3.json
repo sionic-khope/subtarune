@@ -48,6 +48,7 @@
  "entities": [
   {
    "type": "door",
+   "id": "south_exit",
    "x": 224,
    "y": 472,
    "w": 128,

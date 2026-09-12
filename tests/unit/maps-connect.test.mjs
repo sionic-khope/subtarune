@@ -21,9 +21,11 @@ for (const id of idx) {
     return seen;
   };
   // 막아야 하는 길: **타일이 아니라 실제 히트박스로** 재야 한다 — 타일 단위 BFS 는 12px 틈(동상 받침만 막던 것)을 못 본다 (2026-09-12)
-  if (m.meta?.blocked) test(`${id}: 막아야 하는 길이 빈틈없이 막혀 있다(플레이어 24×16 이 못 지나간다)`, () => {
+  const barrierStates = [{ flags: {}, cleared: false }];
+  if (m.meta?.blockedClearedBy) barrierStates.push({ flags: { [m.meta.blockedClearedBy]: true }, cleared: true });
+  for (const { flags, cleared } of barrierStates) if (m.meta?.blocked) test(`${id}: 장애물 ${cleared ? '제거 후 통과' : '제거 전 차단'}(플레이어 24×16)`, () => {
     const PW = 24, PH = 16, STEP = 4;                                  // 플레이어 히트박스와 탐색 간격(px)
-    const rects = (m.entities || []).filter((e) => e.solid !== false && !e.unless && (e.type === 'prop' || e.type === 'raft')).map((e) => ({ x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 32 }));
+    const rects = (m.entities || []).filter((e) => e.solid !== false && !(e.unless && flags[e.unless]) && !(e.requires && !flags[e.requires]) && (e.type === 'prop' || e.type === 'raft')).map((e) => ({ x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 32 }));
     const tileOk = (x, y) => { const r = Math.floor(y / 32), c = Math.floor(x / 32); return r >= 0 && c >= 0 && r < m.rows.length && c < m.rows[0].length && WALK.has(m.rows[r][c]); };
     const free = (x, y) => [[x, y], [x + PW - 1, y], [x, y + PH - 1], [x + PW - 1, y + PH - 1]].every(([px, py]) => tileOk(px, py))
       && !rects.some((s) => x < s.x + s.w && x + PW > s.x && y < s.y + s.h && y + PH > s.y);
@@ -36,7 +38,7 @@ for (const id of idx) {
         for (const [dx, dy] of [[STEP, 0], [-STEP, 0], [0, STEP], [0, -STEP]]) { const nx = x + dx, ny = y + dy;
           if (!seen.has(key(nx, ny)) && free(nx, ny)) { seen.add(key(nx, ny)); q.push([nx, ny]); } } }
       const inTarget = [...seen].some((k) => { const [x, y] = k.split(',').map(Number); return Math.floor(x / 32) === tc && Math.floor(y / 32) === tr; });
-      assert.ok(!inTarget, `${id}: (${tc},${tr}) 로 지나갈 수 있다 — 막는 소품 사이에 틈이 있다(히트박스를 타일 전체 32×32 로)`);
+      assert.equal(inTarget, cleared, `${id}: (${tc},${tr}) 도달 여부가 장애물 제거 상태(${cleared})와 다르다`);
     }
   });
   if (!m.meta?.connected) continue;

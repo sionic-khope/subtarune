@@ -120,7 +120,7 @@ export function characterSprite(paletteName, override = null) {
     // assets/sprites/<name>.png : 4열(프레임) x 4행(down, up, left, right). 프레임 = 폭/4 x 높이/4
     const fw = Math.floor(override.width / 4), fh = Math.floor(override.height / 4);
     set.fw = fw; set.fh = fh; set.px = RENDER_SCALE;   // assets/sprites 시트는 2x 해상도
-    const rows = ['down', 'up', 'left', 'right'];
+    const rows = CHARACTERS[paletteName]?.rowOrder || ['down', 'up', 'left', 'right'];
     rows.forEach((dir, r) => {
       const sideWalk = CHARACTERS[paletteName]?.sideWalk;
       if (sideWalk && (dir === 'left' || dir === 'right')) {

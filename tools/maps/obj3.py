@@ -57,7 +57,7 @@ def main() -> None:
         },
         'meta': {'connected': True, 'approachPx': 392, 'corridorWidth': 128},
         'entities': [
-            {'type': 'door', 'x': 224, 'y': 472, 'w': 128, 'h': 8,
+            {'type': 'door', 'id': 'south_exit', 'x': 224, 'y': 472, 'w': 128, 'h': 8,
              'to': 'obj2', 'spawn': 'from_top', 'sfx': False},
             {'type': 'door', 'x': 224, 'y': 32, 'w': 128, 'h': 8,
              'to': 'obj4', 'spawn': 'from_bottom', 'sfx': False},

@@ -77,6 +77,7 @@ def main() -> None:
     data = {
         'id': 'obj4', 'name': '바론의 둥지', 'stage': 'void_fallen',
         'bgm': 'wind', 'dim': 0.16, 'backdrop': 'obj_forest',
+        'enter': {'script': 'obj4_baron_abduction'},
         'spotlight': {'x': CENTER[0], 'y': CENTER[1], 'rx': 532, 'ry': 430, 'alpha': 0.14},
         'rows': [''.join(row) for row in rows],
         'spawns': {

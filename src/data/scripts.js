@@ -27,6 +27,7 @@ import { obj2_statue, obj2_sign, obj2_blue, obj2_recall, obj2_egg, obj2_banana }
 import { teal9_boss, teal9_lantern, teal9_block, teal9_red_after, teal9_blue_after } from './cutscenes/teal9_boss.js';
 import { teal7_hide } from './cutscenes/teal7_hide.js';
 import { obj4_baron_intro } from './cutscenes/obj4_baron.js';
+import { obj4_baron_abduction } from './cutscenes/obj4_abduction.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -39,6 +40,7 @@ export const HS = (text, extra = {}) => ({ speaker: '형섭', portrait: 'hyungsu
 export const SCRIPTS = {
   opening,
   obj4_baron_intro,
+  obj4_baron_abduction,
 
   _chest_empty: [{ text: '* 상자는 비어 있다.', voice: 'narrator' }],
 

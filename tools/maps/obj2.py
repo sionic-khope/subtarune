@@ -31,7 +31,7 @@ rows = [''.join(r) for r in rows]
 
 def statue(id_, row, k):             # PR 그림 44×60(포즈 6종, 청록숲2 동상 벽과 같은 세트). 벽이라 히트박스는 타일 전체(32×32)로 빈틈 없이 막는다
     ix, iy = STAT_C * T - 6, row * T - 28
-    return {'type': 'prop', 'id': id_, 'image': JUNHEE_STATUES[k % len(JUNHEE_STATUES)], 'x': ix + 6, 'y': iy + 28, 'w': 32, 'h': 32, 'ix': ix, 'iy': iy, 'solid': True, 'script': 'obj2_statue'}
+    return {'type': 'prop', 'id': id_, 'image': JUNHEE_STATUES[k % len(JUNHEE_STATUES)], 'x': ix + 6, 'y': iy + 28, 'w': 32, 'h': 32, 'ix': ix, 'iy': iy, 'solid': True, 'script': 'obj2_statue', 'unless': 'obj2_statues_cleared'}
 ents = [
     {'type': 'door', 'x': 32, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'obj1', 'spawn': 'landing', 'sfx': False},
     {'type': 'door', 'x': UC0 * T + 8, 'y': 32, 'w': 96, 'h': 8, 'to': 'obj3', 'spawn': 'from_bottom', 'sfx': False},
@@ -83,7 +83,7 @@ m2 = {'id': 'obj2', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen
       'meta': {'connected': True, 'road': [R0, R1], 'plaza': [PC0, PC1, PR0, PR1], 'up': [UC0, UC1], 'statue_c': STAT_C,
                'events': ['blue', 'recall', 'egg', 'banana', 'sign', 'statue1'],
                # 막아야 하는 길: [출발 타일, 절대 닿으면 안 되는 타일] — 동상 벽에 틈이 있으면 tests/unit/maps-connect.test.mjs 가 잡는다(2026-09-12 '다 안 막히고 뚫린다')
-               'blocked': [[46, R0 + 1], [W - 3, R0 + 1]], 'trees': tree_count},
+               'blocked': [[46, R0 + 1], [W - 3, R0 + 1]], 'blockedClearedBy': 'obj2_statues_cleared', 'trees': tree_count},
       'entities': ents}
 maps = {'obj2': m2}
 if '--check' in sys.argv:

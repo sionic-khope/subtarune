@@ -5,6 +5,9 @@
  "bgm": "wind",
  "dim": 0.16,
  "backdrop": "obj_forest",
+ "enter": {
+  "script": "obj4_baron_abduction"
+ },
  "spotlight": {
   "x": 768,
   "y": 624,

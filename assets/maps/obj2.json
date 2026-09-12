@@ -86,6 +86,7 @@
     14
    ]
   ],
+  "blockedClearedBy": "obj2_statues_cleared",
   "trees": 171
  },
  "entities": [
@@ -120,7 +121,8 @@
    "ix": 1594,
    "iy": 388,
    "solid": true,
-   "script": "obj2_statue"
+   "script": "obj2_statue",
+   "unless": "obj2_statues_cleared"
   },
   {
    "type": "prop",
@@ -133,7 +135,8 @@
    "ix": 1594,
    "iy": 420,
    "solid": true,
-   "script": "obj2_statue"
+   "script": "obj2_statue",
+   "unless": "obj2_statues_cleared"
   },
   {
    "type": "prop",
@@ -146,7 +149,8 @@
    "ix": 1594,
    "iy": 452,
    "solid": true,
-   "script": "obj2_statue"
+   "script": "obj2_statue",
+   "unless": "obj2_statues_cleared"
   },
   {
    "type": "prop",

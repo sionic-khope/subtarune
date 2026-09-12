@@ -131,8 +131,9 @@ for (const [id, desc, done, won] of [
   ['obj3', '옵젝영역3: 바론 둥지로 올라가는 짧은 물길', false, false],
   ['obj4', '옵젝영역4: 용준 대포 실패·바론 등장과 전투', false, false],
   ['obj4_battle', '옵젝영역4: 바론 전투 직전(위로 걸어 진입)', true, false],
+  ['obj4_abduction', '옵젝영역4: 바론 처치 직후 용준 납치', true, true],
   ['obj4_after', '옵젝영역4: 바론 처치 후', true, true],
 ]) {
   QA_POINTS.push({ ...obj2Checkpoint, id, desc, map: id === 'obj3' ? 'obj3' : 'obj4', spawn: id === 'obj4_battle' ? 'scene' : 'from_bottom',
-    flags: { ...obj2Checkpoint.flags, ...(done ? { obj4_baron_seen: true, obj4_baron_done: true } : {}), ...(won ? { obj4_baron_won: true } : {}) }, party: [...obj2Checkpoint.party] });
+    flags: { ...obj2Checkpoint.flags, ...(done ? { obj4_baron_seen: true, obj4_baron_done: true } : {}), ...(won ? { obj4_baron_won: true } : {}), ...(id === 'obj4_after' ? { obj4_abduction_done: true, obj2_statues_cleared: true } : {}) }, party: [...obj2Checkpoint.party] });
 }
