@@ -32,7 +32,7 @@ export function createBattleSupport(battle) {
         update(dt, input) {
           elapsed += dt; hold += dt;
           if (phase === 'enter') {
-            y = Math.min(C.intro.toY, y + C.intro.speed * dt);
+            y = Math.min(C.intro.toY, y + C.intro.enterSpeed * dt);
             if (y === C.intro.toY) { phase = 'talk'; hold = 0; battle.showLine(C.introLines[line]); }
           } else if (phase === 'talk' && input.just('confirm') && hold >= 0.15) {
             if (!battle.typed) battle.shown = battle.text.length;

@@ -175,14 +175,14 @@ export class Battle {
     if (this.memberIdx >= this.members.length) { this.beginAct(); return; }
     const buttonCount = this.support?.unlocked ? 3 : 2;
     if (input.just('left') || input.just('right')) { this.menuIdx = (this.menuIdx + (input.just('left') ? buttonCount - 1 : 1)) % buttonCount; this.sfx('menu'); }
-    if (this.menuIdx === 2 && (input.just('left') || input.just('right'))) this.setText(L.battle_cannon_wait);
+    if (this.menuIdx === 2 && (input.just('left') || input.just('right'))) this.setText(L.battle_cannon_wait(Math.max(0, BARON_CANNON.requiredHits - this.support.charge)));
     if (input.just('confirm')) {
       this.sfx('confirm');
       if (this.menuIdx === 0) { this.state = 'target'; this.targetIdx = 0; this.t = 0; }
       else if (this.menuIdx === 2) {
         const action = this.support?.action();
         if (action) { this.plans = [action]; this.beginAct(); }
-        else this.setText(L.battle_cannon_wait);
+        else this.setText(L.battle_cannon_wait(Math.max(0, BARON_CANNON.requiredHits - this.support.charge)));
       } else { const items = plainItems(this.game.inventory); if (!items.length) { this.setText(L.battle_no_items); this.state = 'text'; this.after = 'menu'; this.t = 0; } else { this.state = 'item'; this.itemIdx = 0; this.t = 0; } }
       return;
     }

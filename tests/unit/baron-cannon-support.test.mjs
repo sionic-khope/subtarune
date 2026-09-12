@@ -97,3 +97,38 @@ test('test_other_enemies_have_no_support_and_nonready_button_cannot_start', () =
   assert.equal(c.state, 'menu');
   assert.equal(c.plans.length, 0);
 });
+
+test('test_cannon_hint_tracks_remaining_hits_on_selection_and_unready_confirm', () => {
+  const b = fixture(); unlock(b);
+  const right = { just: (key) => key === 'right' };
+  for (const charge of [0, 5, 9]) {
+    while (b.support.charge < charge) b.hitEnemy(b.enemies[0], b.members[0]);
+    b.state = 'menu'; b.memberIdx = 0; b.menuIdx = 1;
+    b.updateMenu(right);
+    const expected = `* 바론을 좀 패고 있으면 용준이가 올 것 같다.\n${9 - charge}대 남았다.`;
+    assert.equal(b.text, expected);
+    if (charge < 9) {
+      b.setText('');
+      b.updateMenu(confirm);
+      assert.equal(b.text, expected);
+      assert.equal(b.state, 'menu');
+    }
+  }
+});
+
+test('test_cannon_intro_descends_faster_and_preserves_exit_speed', () => {
+  const b = fixture();
+  const intro = b.support.afterEnemyPhase();
+  intro.update(1, noInput);
+  assert.equal(intro.snapshot.y, C.intro.fromY + 78);
+  intro.update(2, noInput);
+  assert.equal(intro.snapshot.phase, 'talk');
+  assert.equal(intro.snapshot.y, C.intro.toY);
+  for (let i = 0; i < C.introLines.length; i++) {
+    b.shown = b.text.length;
+    intro.update(0.2, confirm);
+  }
+  intro.update(1, noInput);
+  assert.equal(intro.snapshot.phase, 'exit');
+  assert.equal(intro.snapshot.y, C.intro.toY - 65);
+});

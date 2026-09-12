@@ -3,12 +3,14 @@ const ppaman = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'pp
 
 /** DESIGN.md §6: battle-local support charge, exact briefing, and monochrome mode assets. */
 export const BARON_CANNON = {
-  requiredHits: 9, damage: 50, chargeSeconds: 12, focusSeconds: 3, fireSeconds: 3,
-  intro: { x: 183, fromY: -10, toY: 184, speed: 65, scale: 0.65, frameSeconds: 0.16 },
+  requiredHits: 9, damage: 50, chargeSeconds: 12, focusSeconds: 3, fireSeconds: 3, shotTravelSeconds: 1.4,
+  intro: { x: 183, fromY: -10, toY: 184, enterSpeed: 78, speed: 65, scale: 0.65, frameSeconds: 0.16 },
   assets: {
     yongjun: 'assets/battle/cannon-guard/yongjun.png',
     cannon: 'assets/battle/cannon-guard/cannon.png',
     baron: 'assets/battle/cannon-guard/baron.png',
+    acid: 'assets/battle/cannon-guard/acid.png',
+    shot: 'assets/battle/cannon-guard/shot.png',
   },
   introLines: [
     yongjun('헉.. 헉.. 형들 제 대포가 오발탄이 되긴했는데, 지금 고치고있어요'),
@@ -22,7 +24,9 @@ export const BARON_CANNON = {
     { voice: 'narrator', text: '* 대포 스택이 추가되었다.' },
   ],
   dialogue: {
-    charge: yongjun('형 차지 할게요 12초정도 걸려요 지 지켜주세요 !!'),
+    charge: yongjun('형 차징 좀 할게요 12초정도 걸려요 지 지켜주세요 !!'),
+    controls: yongjun('위 아래 방향키로 막을 수 있어요'),
+    damage: { voice: 'narrator', text: '* 바론에게 50 데미지를 입혔다.' },
     success: yongjun('하하 맛이 어떠냐! 형 정비하고 올게요'),
     failure: yongjun('아 씨발'),
   },
