@@ -55,6 +55,12 @@ try {
   await page.evaluate(() => game.continueGame());
   await page.waitForFunction(() => !game.transitioning && game.fade.alpha === 0);
   check('continue restores totals without reapplying upgrades', await page.evaluate(() => game.attack === 3 && game.hpBonus === 40 && game.money === 150));
+  const medicineIndex = await page.evaluate(async () => { const { plainItems } = await import('./src/data/items.js'); return plainItems(game.inventory).indexOf('위장약'); });
+  await key('Tab'); await key('KeyC');
+  for (let i = 0; i < medicineIndex; i++) await key('ArrowDown');
+  await key('KeyC'); await key('KeyC');
+  check('using a purchased item in Tab menu saves consumption immediately', await page.evaluate(() => !game.inventory.includes('위장약') && !JSON.parse(localStorage.getItem('subtarune.save.v1')).inventory.includes('위장약')));
+  await key('KeyX'); await key('KeyX');
   await walk(1348, 270); await key('ArrowUp');
   for (let pass = 0; pass < 2; pass++) {
     await page.evaluate(() => { game.partyHp = { hyungsub: 1, gyeongsub: 2, ppaman: 0 }; });

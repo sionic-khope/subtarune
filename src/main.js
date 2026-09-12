@@ -169,7 +169,7 @@ class Game {
   hasSave() { try { return !!localStorage.getItem(Game.SAVE_KEY); } catch { return false; } }
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때·QA 바로가기 직후(필드에서만). 컷신이 도는 동안은 저장하지 않는다(숨긴 주인공·임시 맵 위치가 세이브에 남지 않게, 2026-09-10) */
   autosave() {
-    if (!['field', 'shop'].includes(this.state) || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
+    if (!['field', 'shop', 'menu'].includes(this.state) || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
     const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
