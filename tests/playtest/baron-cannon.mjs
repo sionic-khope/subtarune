@@ -199,8 +199,8 @@ try {
   const chargeCue = events.sounds.find(e => e.name === 'cannon_guard_charge'), fireCue = events.sounds.find(e => e.name === 'cannon_guard_fire');
   check('full12-second charge with sound at9 and shot at12', chargeCue?.elapsed >= 9 && chargeCue.elapsed < 9.1 && fireCue?.elapsed >= 12 && fireCue.elapsed < 12.1 && phases[2]?.elapsed >= 12 && phases[2]?.elapsed < 12.2, { phases, chargeCue, fireCue });
   check('single shot travels1.4seconds before any damage', projectileSamples.filter(p => p.phaseTime < 1.4).length > 5 && projectileSamples.filter(p => p.phaseTime < 1.4).every(p => p.hp === beforeSuccess && !p.damageApplied && !p.projectile.arrived) && events.damage.length === 1 && events.damage[0].phaseTime >= 1.4 && events.damage[0].phaseTime < 1.5 && events.damage[0].arrived, { projectileSamples, damage: events.damage });
-  check('damage UI shown before success', captures.some(c => c.filename === 'damage_ui.png' && c.snapshot.text === '* 바론에게 50 데미지를 입혔다.' && c.snapshot.typed));
-  check('success applies exactly50 once and exact dialogue', beforeSuccess - s.hp === 50 && s.text === '* 하하 맛이 어떠냐! 형 정비하고 올게요' && events.damage.length === 1 && events.damage[0].amount === 50, s);
+  check('damage UI shown before success', captures.some(c => c.filename === 'damage_ui.png' && c.snapshot.text === '* 바론에게 60 데미지를 입혔다.' && c.snapshot.typed));
+  check('success applies exactly60 once and exact dialogue', beforeSuccess - s.hp === 60 && s.text === '* 하하 맛이 어떠냐! 형 정비하고 올게요' && events.damage.length === 1 && events.damage[0].amount === 60, s);
   await sizes('mode_success');
   await press('KeyC');
   await page.waitForTimeout(220); await capture('mode_success_leave');

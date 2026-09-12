@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeWaiter } from '../../src/ui/cutscene.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { QA_POINTS } from '../../src/core/story.js';
+import { QA_POINTS, storyBgm } from '../../src/core/story.js';
 import { CHARACTERS } from '../../src/data/characters.js';
 import { abductionBeats } from '../../src/data/cutscenes/obj4_abduction.js';
 
@@ -58,4 +58,17 @@ test('post-win QA recovers the abduction while completed QA skips it', () => {
   assert.equal(!!pending.flags.obj4_abduction_done, false);
   assert.ok(QA_POINTS.find((p) => p.id === 'obj4_after').flags.obj4_abduction_done);
   assert.ok(SCRIPTS.obj4_baron_abduction);
+});
+
+test('test_abduction_chase_music_survives_route_maps_only_after_abduction', () => {
+  for (const map of ['obj1', 'obj2', 'obj3', 'obj4']) {
+    assert.equal(storyBgm(map, { obj4_abduction_done: true }), 'baron_intro');
+    assert.equal(storyBgm(map, { obj4_baron_won: true }), undefined);
+  }
+  assert.equal(storyBgm('teal9', { obj4_abduction_done: true }), undefined);
+});
+
+test('test_abduction_capture_has_boss_impact_sound_at_contact', () => {
+  const contact = abductionBeats.findIndex(n => n.move === 'baron_chase' && n.rel === 'yongjun_captive');
+  assert.equal(abductionBeats[contact + 1].sfx, 'baron_slam');
 });

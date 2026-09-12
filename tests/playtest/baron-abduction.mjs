@@ -52,7 +52,10 @@ try {
     window.abductionEvidence = { samples: [], sounds: [], bgms: [], money: game.money };
     const originalSfx = game.sound.sfx.bind(game.sound);
     game.sound.sfx = (id, options) => {
-      abductionEvidence.sounds.push({ id, at: performance.now(), map: game.mapId });
+      const baron = game.entities.find(e => e.id === 'baron_chase');
+      const captive = game.entities.find(e => e.id === 'yongjun_captive');
+      abductionEvidence.sounds.push({ id, at: performance.now(), map: game.mapId,
+        offset: baron && captive ? [captive.x - baron.x, captive.y - baron.y] : null });
       return originalSfx(id, options);
     };
     window.abductionSampler = setInterval(() => {
@@ -125,6 +128,8 @@ try {
   const reaction = samples.find(s => s.text === '* 어 어라?' && s.box === 'waiting');
   check('opening reaction has no BGM', reaction?.bgm === null, reaction?.bgm);
   check('The Chase continues in both following maps', ['obj3', 'obj2'].every(map => samples.some(s => s.map === map && s.bgm === 'baron_intro')));
+  check('contact with Yongjun plays a boss impact', evidence.sounds.some(s => s.id === 'baron_slam' && s.map === 'obj4' && s.offset?.[0] === 35 && s.offset?.[1] === 150));
+  check('The Chase remains after final dialogue', await page.evaluate(() => game.sound.bgmName === 'baron_intro' && !game.sound.bgm.paused));
   check('cannon visibly thrown horizontally', samples.some(s => s.entities.some(e => e.id === 'cannon_abduction' && Math.abs(e.flyX) > 100)));
   for (const id of ['statue1', 'statue2', 'statue3']) {
     check(`${id} visibly thrown horizontally`, samples.some(s => s.entities.some(e => e.id === id && Math.abs(e.flyX) > 50)));
@@ -153,7 +158,21 @@ try {
     await page.waitForTimeout(150);
   }
   check('continue restores completed event without replay', await page.evaluate(() => game.state !== 'title' && game.mapId === 'obj4' && game.flags.obj4_abduction_done && !game.dialogue.running && game.flags.obj2_statues_cleared));
+  check('continue restores chase music', await page.evaluate(() => game.sound.bgmName === 'baron_intro'));
+  await page.waitForFunction(() => game.fade.alpha === 0);
+  await page.evaluate(async () => {
+    const { freeSpot } = await import('/src/world/world.js');
+    const door = game.entities.find(e => e.def.to === 'obj3');
+    [game.player.x, game.player.y] = freeSpot(game, game.player, door.x + door.w / 2, door.y - 140);
+    game.camera.snap();
+    window.chaseAudioBeforeDoor = game.sound.bgm;
+  });
+  await page.keyboard.down('ArrowDown');
+  await page.waitForFunction(() => game.mapId === 'obj3' && !game.transitioning);
+  await page.keyboard.up('ArrowDown');
+  check('walking through the exit preserves the same playing audio', await page.evaluate(() => game.sound.bgmName === 'baron_intro' && game.sound.bgm === chaseAudioBeforeDoor && !game.sound.bgm.paused));
   await page.evaluate(() => { game.changeMap('obj2', 'from_top', true, { enter: false }); });
+  check('next plaza preserves chase audio too', await page.evaluate(() => game.sound.bgm === chaseAudioBeforeDoor));
   check('statues stay absent on map reload', await page.evaluate(() => !game.entities.some(e => /^statue[123]$/.test(e.id) && !e.dead)));
   await page.evaluate(async () => {
     const { freeSpot } = await import('/src/world/world.js');

@@ -73,7 +73,7 @@ try {
   await until(() => game.battle.gimmick.snapshot.phaseTime >= 2.1);
   await capture('impact_smoke');
   await until(() => game.battle.gimmick.snapshot.phase === 'success-dialogue' && game.battle.typed);
-  check('exactly 50 damage retained', await page.evaluate(() => game.battle.enemies[0].hp === 200));
+  check('exactly 60 damage applied', await page.evaluate(() => game.battle.enemies[0].hp === 190));
   for (const width of [375, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.waitForTimeout(100);

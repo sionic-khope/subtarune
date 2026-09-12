@@ -3,7 +3,7 @@ const ppaman = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'pp
 
 /** DESIGN.md §6: battle-local support charge, exact briefing, and monochrome mode assets. */
 export const BARON_CANNON = {
-  requiredHits: 9, damage: 50, chargeSeconds: 12, focusSeconds: 3, fireSeconds: 3, shotTravelSeconds: 1.4,
+  requiredHits: 9, damage: 60, chargeSeconds: 12, focusSeconds: 3, fireSeconds: 3, shotTravelSeconds: 1.4,
   intro: { x: 183, fromY: -10, toY: 184, enterSpeed: 78, speed: 65, scale: 0.65, frameSeconds: 0.16 },
   assets: {
     yongjun: 'assets/battle/cannon-guard/yongjun.png',
@@ -26,7 +26,7 @@ export const BARON_CANNON = {
   dialogue: {
     charge: yongjun('형 차징 좀 할게요 12초정도 걸려요 지 지켜주세요 !!'),
     controls: yongjun('위 아래 방향키로 막을 수 있어요'),
-    damage: { voice: 'narrator', text: '* 바론에게 50 데미지를 입혔다.' },
+    damage: { voice: 'narrator', text: '* 바론에게 60 데미지를 입혔다.' },
     success: yongjun('하하 맛이 어떠냐! 형 정비하고 올게요'),
     failure: yongjun('아 씨발'),
   },

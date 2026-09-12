@@ -23,6 +23,12 @@ export const STAGES = [
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
+/** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
+export function storyBgm(mapId, flags) {
+  if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4'].includes(mapId)) return 'baron_intro';
+  return undefined;
+}
+
 /** 스토리 단계. flags 객체를 공유해서 단계 도달 = 플래그 세팅. */
 export class Story {
   constructor(flags) { this.flags = flags; this.index = 0; }

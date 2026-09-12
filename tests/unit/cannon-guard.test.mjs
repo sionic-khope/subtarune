@@ -64,7 +64,7 @@ test('test_cannon_guard_dialogue_clock_frozen_until_typed_confirm', () => {
   assert.equal(f.sounds.filter((s) => s === 'baron_roar').length, 1);
 });
 
-test('test_cannon_guard_success_twelve_seconds_then_slow_projectile_actual_impact_fifty_damage_once', () => {
+test('test_cannon_guard_success_twelve_seconds_then_slow_projectile_actual_impact_sixty_damage_once', () => {
   const f = fixture(); begin(f);
   defend(f, 8.9);
   assert.equal(f.mode.snapshot.phase, 'guard');
@@ -83,10 +83,10 @@ test('test_cannon_guard_success_twelve_seconds_then_slow_projectile_actual_impac
   assert.deepEqual(f.hits, []);
   assert.equal(f.mode.snapshot.projectile.arrived, false);
   f.mode.update(0.02, input());
-  assert.deepEqual(f.hits, [50]);
-  assert.equal(f.target.hp, 200);
+  assert.deepEqual(f.hits, [60]);
+  assert.equal(f.target.hp, 190);
   assert.equal(f.mode.snapshot.projectile.arrived, true);
-  assert.equal(f.lines.at(-1).text, '* 바론에게 50 데미지를 입혔다.');
+  assert.equal(f.lines.at(-1).text, '* 바론에게 60 데미지를 입혔다.');
   f.mode.update(1.4, input());
   assert.equal(f.mode.snapshot.phase, 'fire');
   f.mode.update(3, input());
@@ -95,7 +95,7 @@ test('test_cannon_guard_success_twelve_seconds_then_slow_projectile_actual_impac
   f.mode.update(0.3, input('confirm'));
   assert.equal(f.mode.update(0.9, input()), true);
   f.mode.update(10, input());
-  assert.deepEqual(f.hits, [50]);
+  assert.deepEqual(f.hits, [60]);
   assert.equal(f.sounds.filter((s) => s === 'cannon_guard_block').length, cannonBreaths().length);
 });
 

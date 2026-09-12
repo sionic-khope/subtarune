@@ -22,7 +22,7 @@ import { SCRIPTS } from './data/scripts.js';
 import { battleEntry } from './data/cutscenes/helpers.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
-import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags } from './core/story.js';
+import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
 import { WATER_WALK } from './data/footsteps.js';
 import { normalizeParty } from './core/party.js';
@@ -424,7 +424,13 @@ class Game {
     return this.battle;
   }
   /** 전투 뒤 맵 브금 복귀 — 표준 조우(startEncounter) 전용. 컷신 전투(튜토리얼)는 컷신이 알아서 (사용자 2026-09-10: 튜토리얼은 꺼져도 되지만 그 뒤 맵부턴 별도 요청 없으면 돌아와야 함) */
-  resumeMapBgm() { const def = MAPS[this.mapId]; if (!def) return; const gated = def.bgmFlag && !this.has(def.bgmFlag); if (def.bgm && !gated) this.sound.playBgm(def.bgm, { volume: 0.45 }); }
+  resumeMapBgm() {
+    const def = MAPS[this.mapId];
+    if (!def) return;
+    const name = storyBgm(this.mapId, this.flags) ?? def.bgm;
+    const gated = def.bgmFlag && !this.has(def.bgmFlag);
+    if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
+  }
   endBattle(result) {
     this.battle?.disposeGimmick();
     this.lastBattle = result; this.battle = null; this.shake = null;
@@ -490,8 +496,9 @@ class Game {
       this.camera.snap();
       if (bgm && !this.dialogue.running && this.state !== 'title') {                 // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
         const gated = def.bgmFlag && !this.has(def.bgmFlag);                        // bgmFlag: 이 플래그가 켜진 뒤에만 맵 브금 — 첫 도착 컷신이 대사 중간에 직접 켜는 맵(void11)
-        if (def.bgm && !gated) this.sound.playBgm(def.bgm, { volume: 0.45 });
-        else if (gated || def.bgm === null) this.sound.stopBgm(0.4);                // 컷신 전엔 조용히
+        const name = storyBgm(mapId, this.flags) ?? def.bgm;
+        if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
+        else if (gated || name === null) this.sound.stopBgm(0.4);
       }
     };
     const enter = () => { if (runEnter) this.runMapEnter(mapId); };
@@ -899,7 +906,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.99';
+export const BUILD = '2026-09-12.100';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

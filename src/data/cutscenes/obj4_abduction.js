@@ -44,6 +44,7 @@ export const abductionBeats = [
   { async: [{ fling: 'cannon_abduction', vx: 730, vup: 620, gravity: 620, spin: 10, duration: 1.2 }] },
   { async: [{ shake: 0.5, amp: 9 }] },
   { move: 'baron_chase', rel: 'yongjun_captive', by: [-35, -150], dash: true, speed: 310 },
+  { sfx: 'baron_slam' },
   { emote: 'yongjun_captive', kind: '!', duration: 0.7, hold: 0.12 },
   { zoom: 0.7, duration: 0.2 },
   run({ px: [756, 1830] }),
@@ -92,8 +93,8 @@ export const abductionBeats = [
   G('* 허허.. 빨리 가자'),
   close,
   { regroup: true },
-  { action: (g) => g.resumeMapBgm() },
   { set: { obj4_abduction_done: true } },
+  { action: (g) => g.resumeMapBgm() },
 ];
 
 export const obj4_baron_abduction = Object.assign([

@@ -89,6 +89,8 @@ registerBattleMode('attack', 'dance', createDanceAttack);
 
 ### 전투 중 지원 행동 (2026-09-12 바론 대포)
 
+최신 조정(BUILD 2026-09-12.100): 대포 명중은 **60피해**이며 `BARON_CANNON.damage`가 기준이다. 아래50피해/12+3+3초는 초기 구현 기록이다. 현재는12초 차징(마지막3초에 차징음) 뒤3초 발사 연출 중1.4초에 단일 충돌한다. HP250·9회 충전은 그대로다.
+
 적 `support:'baron_cannon'`은 전투 로컬 지원 컨트롤러(`support/baron-cannon.js`)를 선택한다. 첫 공방 뒤 `afterEnemyPhase()`가 돌려준 interlude의 `update/draw` 동안 일반 메뉴 입력을 잠근다. 정확한 대사·해금 조건·명중9회·50피해·12+3+3초는 `src/data/baron-cannon.js`를 단일 기준으로 쓴다. 스택은 해금 후 살아 있는 바론에 실제 들어간 일반 명중당1이며 피해 수치·대포·0피해·죽은 적은 세지 않는다. 대포 선택은 앞서 계획한 행동을 지우고 파티 전체 한 턴으로 실행하며 성공/실패 모두0으로 소비한다. 재도전은 해금과 스택도 초기화한다.
 
 모드의 선택적 `fullscreen:true`는 검정 배경부터 HP 띠까지 그리기를 위임한다. `dispose()`는 끝/패배/재시도 자원 정리 계약이다. 대포는 `battle.applyCannonDamage(target,50)`을 호출해 일반 타격 효과음·스택을 제외하고 공통 사망/승리 판정을 사용한다. 모드는 HP나 `battle.state`를 직접 쓰지 않는다. 바론 일반6패턴과 피해12는 유지한다.

@@ -60,7 +60,7 @@ test('test_cannon_counts_live_ordinary_hits_not_damage_and_consumes_once', () =>
   const before = enemy.hp, sounds = [];
   b.sfx = (name) => sounds.push(name);
   b.applyCannonDamage(enemy);
-  assert.equal(before - enemy.hp, 50);
+  assert.equal(before - enemy.hp, 60);
   assert.equal(b.support.charge, 0);
   assert.deepEqual(sounds, []);
   enemy.dead = true;
