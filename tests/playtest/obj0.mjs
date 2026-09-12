@@ -1,4 +1,4 @@
-// 옵젝영역0 검증: ?qa=obj0 → 얕은 물 일직선 길(60×14, a/A/j 타일, 나무 초록·보라 섞임, 배경 obj_forest, 브금 wind) → 걸으면 80px 마다 물걸음 소리(한 파일에 이어 붙인 걸음 33개 중 하나, 음높이 살짝 랜덤) + 물결 고리, 멈추면 조용 → 마나샘(억빠맨이 발밑 물 먼저 → 흙맛 → 마나샘 → 전원 회복, 두 번째는 짧게) → 오른쪽 문 → obj1 → 왼쪽 문 → obj0 landing.
+// 옵젝영역0 검증: ?qa=obj0 → 얕은 물 일직선 길(60×14, a/A/j 타일, 나무 초록·보라 섞임, 배경 obj_forest, 브금 wind) → 걸으면 80px 마다 물걸음 소리(걸음 33개 파일 중 하나를 그대로) + 물결 고리, 멈추면 조용 → 마나샘(억빠맨이 발밑 물 먼저 → 흙맛 → 마나샘 → 전원 회복, 두 번째는 짧게) → 오른쪽 문 → obj1 → 왼쪽 문 → obj0 landing.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -29,8 +29,8 @@ await page.screenshot({ path: `${S}/obj0_01_start.png` });
 await page.evaluate(() => { window.__steps = []; });
 await page.keyboard.down('ArrowRight'); let maxRipples = 0; let shot = false; for (let i = 0; i < 15; i++) { await page.waitForTimeout(100); const q = await page.evaluate(() => game.ripples.length); maxRipples = Math.max(maxRipples, q); if (!shot && q > 0) { shot = true; await page.screenshot({ path: `${S}/obj0_02_walk.png` }); } } await page.keyboard.up('ArrowRight'); await page.waitForTimeout(100); const mid = { ripples: maxRipples };
 s = await st(); const rates = new Set(s.steps.map((k) => k.rate)); const gaps = s.steps.slice(1).map((k, i) => k.t - s.steps[i].t);
-const FS = await page.evaluate(async () => (await import('/src/data/footsteps.js')).WATER_STEPS);
-check('running 1.5s on shallow water → a step 2~4 times (≥ 0.4s apart), each a real slice of the recorded walking clip (full natural length ≥ 0.13s), slightly varied pitch, ripples appeared', s.steps.length >= 2 && s.steps.length <= 4 && s.steps.every((k) => k.name === 'water_step' && k.len >= 0.13 && FS.some(([f, l]) => f === k.from && l === k.len) && k.rate >= 0.96 && k.rate <= 1.04 && k.volume === 0.6) && gaps.every((g) => g >= 400) && mid.ripples > 0, JSON.stringify({ n: s.steps.length, slices: s.steps.map((k) => [k.from, k.len]), pool: FS.length, rates: [...rates].map((r) => +r.toFixed(3)), gaps: gaps.map(Math.round), ripples: mid.ripples }));
+const FS = await page.evaluate(async () => (await import('/src/data/footsteps.js')).WATER_STEP_SFX);
+check('running 1.5s on shallow water → a step 2~4 times (≥ 0.4s apart), each a different recorded step file played as-is (no pitch/level tweak), ripples appeared', s.steps.length >= 2 && s.steps.length <= 4 && FS.length >= 30 && s.steps.every((k) => FS.includes(k.name) && k.from === undefined && k.rate === undefined && k.volume === 0.75) && new Set(s.steps.map((k) => k.name)).size === s.steps.length && gaps.every((g) => g >= 400) && mid.ripples > 0, JSON.stringify({ n: s.steps.length, names: s.steps.map((k) => k.name), pool: FS.length, gaps: gaps.map(Math.round), ripples: mid.ripples }));
 const n0 = s.steps.length; await page.waitForTimeout(700); s = await st();
 check('standing still 0.7s → no more footsteps, ripples faded out', s.steps.length === n0 && s.ripples === 0, JSON.stringify({ n0, n: s.steps.length, ripples: s.ripples }));
 // 천천히(X 누른 채) 걸으면 125px/s → 80px 마다 ≈ 초당 1.3번

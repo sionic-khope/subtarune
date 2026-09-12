@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { WATER_STEP_SFX } from '../../src/data/footsteps.js';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const files = (dir) => new Set(fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')));
@@ -35,7 +36,7 @@ test('test_audio_every_referenced_voice_exists_as_file_or_preset', () => {
 });
 test('test_audio_loadSfxFiles_list_matches_files', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8');
-  const list = [...(main.match(/loadSfxFiles\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]);
+  const list = [...[...(main.match(/loadSfxFiles\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]), ...(main.includes('...WATER_STEP_SFX') ? WATER_STEP_SFX : [])];   // 목록에 펼쳐 넣은 걸음 소리(src/data/footsteps.js)
   assert.ok(list.length > 10, 'loadSfxFiles 목록을 찾지 못함');
   const missing = list.filter((n) => !SFX.has(n) && !SYNTH.has(n)); assert.deepEqual(missing, [], '목록에 있지만 파일도 합성도 없음: ' + missing.join(', '));   // open/close/chime 은 합성 폴백
   const unused = [...SFX].filter((n) => !list.includes(n) && !/_(yt|prev|dr)$/.test(n) && !['battle_end', 'cancel', 'click', 'error', 'plug', 'rumble', 'white', 'whoosh', 'laugh_junhee'].includes(n));

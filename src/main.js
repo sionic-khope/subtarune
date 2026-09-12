@@ -23,6 +23,7 @@ import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
+import { WATER_STEP_SFX } from './data/footsteps.js';
 import { normalizeParty } from './core/party.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
@@ -107,7 +108,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'water_step', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', ...WATER_STEP_SFX, 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || `assets/sprites/${name}.png`);   // still: 정지 1장 캐릭터(미니언 등)
         if (img) this.spriteOverrides[name] = img;
@@ -883,7 +884,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.86';
+export const BUILD = '2026-09-12.87';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
