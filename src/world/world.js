@@ -605,6 +605,11 @@ export class Raft extends Prop {
   static JUMP_G = 900;
   get swimIds() { const s = this.def.swim; return Array.isArray(s) ? s : s ? [s] : []; }
   get flagKey() { return this.def.flag || `raft_${this.id || 'raft'}`; }
+  /** 승객의 시선만 바꾸며 탈것의 진행 방향은 유지한다. */
+  get passengerFacing() {
+    return this.def.passengerLookFacing && this.rideTime >= this.def.passengerLookAfter
+      ? this.def.passengerLookFacing : this.dirFacing;
+  }
   setPos([x, y]) { this.x = x; this.y = y; this.def.ix = x; this.def.iy = y; }
   canInteract() { return true; }
   interact(player) {
@@ -617,6 +622,7 @@ export class Raft extends Prop {
   }
   /** 올라타기만 (출발 안 함) */
   board(player) {
+    this.rideTime = 0;
     this.riding = true; this.game.ride = this; this.rider = player; player.moving = false; player.frame = 0;
     this.dir = this.at === 0 ? 1 : -1; this.target = this.at + this.dir;   // 경유점을 차례로(계단식 폭포: 폭포마다 물길이 한 단 위로 — 경유점 사이는 멈추지 않는다)
     const [tx, ty] = this.route[this.route.length - 1 - (this.dir > 0 ? 0 : this.route.length - 1)]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up'; this.dirFacing = player.facing;
@@ -665,6 +671,7 @@ export class Raft extends Prop {
   }
   _carry() {
     const p = this.rider, [ox, oy] = this.def.riderOffset || [0, 0];
+    if (this.def.passengerLookFacing) p.facing = this.passengerFacing;
     p.x = Math.round(this.x + this.w / 2 - p.w / 2 + ox);
     p.y = Math.round(this.y + this.h * 0.68 - p.h + oy) - Math.round(this.jumpY);
   }
@@ -708,6 +715,7 @@ export class Raft extends Prop {
       }
     }
     if (!this.moving) { this._carry(); this.rider.moving = false; this.rider.frame = 0; return; }
+    this.rideTime += dt;
     const [tx, ty] = this.route[this.target];
     const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy), step = this.speed * dt;
     if (dist <= step) {
@@ -717,6 +725,7 @@ export class Raft extends Prop {
       this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.jumping = false; this.jumpY = 0; this._carry();                 // 공중에서 도착해도 먼저 뗏목 위로 내려놓고(점프 높이 0) 하차 자리를 찾는다 (2026-09-10 '도착할 때쯤 점프하면 맵 밖에 갇힘')
       this.riding = false; this.moving = false; this.game.ride = null;
+      if (this.def.passengerLookFacing) this.rider.facing = this.dirFacing;
       if (this.def.arriveSfx !== false) this.game.sound.sfx(this.def.arriveSfx || 'splash', { volume: 0.5 });
       this._disembark(dx, dy);
       this._landSwimmer();
@@ -896,7 +905,7 @@ export class Follower extends Character {
       const slot = configured >= 0 ? configured + 1 : this.slot;
       const gap = ride.def.passengerGap || 18;
       this.x = p.x - gap * slot; this.y = p.y - (ride.def.passengerGap ? 0 : 3 * slot);
-      this.facing = ride.dirFacing; this.moving = false; this.frame = 0; this.animPhase = 0;
+      this.facing = ride.passengerFacing; this.moving = false; this.frame = 0; this.animPhase = 0;
       this.def.sortY = ride.y + ride.h + 1;
       return;
     }

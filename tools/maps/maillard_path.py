@@ -11,16 +11,16 @@ from pathlib import Path
 import sys
 from typing import Final
 
-WIDTH: Final = 132
+WIDTH: Final = 188
 HEIGHT: Final = 40
 TILE: Final = 32
 MAP_ID: Final = 'maillard_path'
 APPROACH: Final = ((4, 31), (58, 31))
 APPROACH_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in APPROACH]
 CART_START: Final = [1856, 986]
-CART_END: Final = [3136, 986]
-LANDING: Final = [3520, 1000]
-WALKOUT: Final = ((102, 31), (128, 31), (128, 18), (112, 18), (112, 5), (128, 5))
+CART_END: Final = [4928, 986]
+LANDING: Final = [5312, 1000]
+WALKOUT: Final = ((158, 31), (184, 31), (184, 18), (168, 18), (168, 5), (184, 5))
 WALKOUT_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in WALKOUT]
 
 
@@ -40,17 +40,17 @@ grid = [['!'] * WIDTH for _ in range(HEIGHT)]
 paint_path(grid, APPROACH)
 for path_column in range(1, 4):
     grid[31][path_column] = 'M'
-for path_column in range(58, 104):
+for path_column in range(58, 160):
     grid[31][path_column] = 'M'
 paint_path(grid, WALKOUT)
 for pocket_row in range(28, 35):
-    for pocket_column in range(120, 131):
+    for pocket_column in range(176, 187):
         grid[pocket_row][pocket_column] = 'M'
 for pocket_row in range(15, 22):
-    for pocket_column in range(109, 117):
+    for pocket_column in range(165, 173):
         grid[pocket_row][pocket_column] = 'M'
 for pocket_row in range(2, 9):
-    for pocket_column in range(120, 131):
+    for pocket_column in range(176, 187):
         grid[pocket_row][pocket_column] = 'M'
 
 rows = [''.join(row) for row in grid]
@@ -63,20 +63,21 @@ entities = [
      'boardSfx': 'thud', 'arriveSfx': False, 'moveSfx': False,
      'cars': 3, 'carGap': 80, 'assetCrop': [61, 106, 134, 43], 'displaySize': [78, 25],
      'riderOffset': [80, 10], 'seatClipY': 3, 'disembarkPartyGap': 144,
+     'passengerLookAfter': 8, 'passengerLookFacing': 'up',
      'passengerGap': 80, 'passengerOrder': ['ppaman', 'gyeongsub']},
-    {'type': 'npc', 'id': 'sunrise_junhee', 'sprite': 'junhee', 'x': 3904, 'y': 936,
+    {'type': 'npc', 'id': 'sunrise_junhee', 'sprite': 'junhee', 'x': 5696, 'y': 936,
      'facing': 'right', 'wander': 0, 'solid': False},
-    {'type': 'npc', 'id': 'sunrise_yongjun', 'sprite': 'yongjun', 'x': 3664, 'y': 552,
+    {'type': 'npc', 'id': 'sunrise_yongjun', 'sprite': 'yongjun', 'x': 5456, 'y': 552,
      'facing': 'right', 'wander': 0, 'solid': False},
-    {'type': 'npc', 'id': 'sunrise_cs_red', 'sprite': 'cs_red', 'x': 3856, 'y': 104,
+    {'type': 'npc', 'id': 'sunrise_cs_red', 'sprite': 'cs_red', 'x': 5648, 'y': 104,
      'facing': 'right', 'wander': 0, 'solid': False},
-    {'type': 'npc', 'id': 'sunrise_cs_blue', 'sprite': 'cs_blue', 'x': 4056, 'y': 104,
+    {'type': 'npc', 'id': 'sunrise_cs_blue', 'sprite': 'cs_blue', 'x': 5848, 'y': 104,
      'facing': 'left', 'wander': 0, 'solid': False},
 ]
 map_data = {
     'id': MAP_ID, 'name': '마이야르호 일출 갑판', 'stage': 'void_fallen',
     'bgm': 'maillard_sunrise', 'dim': 0, 'backdrop': 'maillard_sunrise',
-    'followScreenY': 292, 'rails': [[1856, 1007, 1518]],
+    'followScreenY': 292, 'rails': [[1856, 1007, 3310]],
     'sunrise': {'animated': True}, 'rows': rows,
     'preload': ['assets/tiles/maillard_deck.png', 'assets/backdrops/maillard_sunset.png',
                 'assets/props/maillard_sun.png', 'assets/props/maillard-cart.png',
@@ -91,7 +92,7 @@ map_data = {
         'sunriseRoute': APPROACH_PIXELS,
         'sunriseWalkout': WALKOUT_PIXELS,
         'sunriseCart': {
-            'duration': 10,
+            'duration': 24,
             'order': ['player', 'ppaman', 'gyeongsub'],
             'departure': CART_START,
             'landing': LANDING,

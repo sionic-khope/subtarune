@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
-const shots = process.env.SHOT_DIR || '/tmp/maillard108';
+const shots = process.env.SHOT_DIR || '/tmp/maillard110';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
@@ -31,7 +31,7 @@ const read = () => page.evaluate(() => {
   return {
     map: g.mapId, state: g.state, ride: g.ride?.id,
     x: g.player.x, facing: g.player.facing, screenY: g.player.y + g.player.h - g.camera.y,
-    cart: cart && { x: cart.x, at: cart.at, moving: cart.moving },
+    cart: cart && { x: cart.x, at: cart.at, moving: cart.moving, rideTime: cart.rideTime },
     bgm: g.sound.bgmName, time: g.sound.bgm?.currentTime, paused: g.sound.bgm?.paused,
     sun: g.sunrise.frame.sunProgress, light: g.sunrise.frame.lightProgress,
     seen: !!g.flags.maillard_sunrise_seen, done: !!g.flags.maillard_cart_done,
@@ -94,24 +94,34 @@ try {
   await shot('03-seated-rail-ride');
   await page.waitForFunction(() => game.sound.bgm.currentTime >= 14);
   const highlight = await read();
-  check('the sun only starts at the music highlight', highlight.sun < 0.03 && highlight.light < 0.12, highlight);
+  check('the sun starts at the music highlight while everyone is riding', highlight.sun < 0.03 && highlight.light < 0.12 && highlight.ride === 'maillard_cart', highlight);
   await shot('04-highlight-first-light');
-  await page.waitForFunction(() => game.flags.maillard_cart_done && !game.ride, null, { timeout: 14000 });
+  await page.waitForFunction(() => game.ride.rideTime >= 7.5);
+  const beforeLook = await read();
+  check('passengers still face the route before eight riding seconds', beforeLook.facing === 'right' && beforeLook.followers.every(f => f.facing === 'right'), beforeLook);
+  await page.waitForFunction(() => game.ride.rideTime >= 8.1);
+  const looking = await read();
+  check('all three turn toward the sunset after eight riding seconds while the cart keeps moving right', looking.facing === 'up' && looking.followers.every(f => f.facing === 'up') && looking.cart.x > beforeLook.cart.x && looking.cart.moving, looking);
+  await shot('05-looking-up');
+  for (const time of [24, 30]) {
+    await page.waitForFunction(t => game.sound.bgm.currentTime >= t, time);
+    const riding = await read();
+    check(`music ${time} seconds still shows all three riding toward the sunset`, riding.ride === 'maillard_cart' && riding.facing === 'up' && riding.followers.every(f => f.facing === 'up') && riding.cart.moving, riding);
+    await shot(`06-riding-music-${time}`);
+  }
+  await page.waitForFunction(() => game.flags.maillard_cart_done && !game.ride, null, { timeout: 6000 });
   const landed = await read(), rideSeconds = landed.time - boarding.time;
-  check('cart takes about ten seconds and lands with both followers', rideSeconds > 9.6 && rideSeconds < 10.5 && landed.followers.length === 2 && landed.followers.every(f => f.visible && f.safe && f.clearOfCart && Math.abs(f.x - landed.x) < 130), { rideSeconds, landed });
-  await shot('05-everyone-disembarked');
+  check('cart takes about twenty-four seconds and lands after music thirty with both followers facing right', rideSeconds > 23.6 && rideSeconds < 24.5 && landed.time > 30 && landed.facing === 'right' && landed.followers.length === 2 && landed.followers.every(f => f.facing === 'right' && f.visible && f.safe && f.clearOfCart && Math.abs(f.x - landed.x) < 130), { rideSeconds, landed });
+  await shot('07-everyone-disembarked');
   await page.keyboard.press('ArrowRight', { delay: 600 });
   const walked = await read();
   check('both followers keep following after disembarking', walked.followers.every(f => f.x > landed.followers.find(old => old.id === f.id).x && Math.abs(f.x - walked.x) < 130), walked);
-  await shot('06-party-following');
-  await page.waitForFunction(() => game.sound.bgm.currentTime >= 28);
-  const halfway = await read();
-  check('sunrise continues slowly after the ride', halfway.sun > 0.48 && halfway.sun < 0.53 && !halfway.ride, halfway);
-  await shot('07-slow-sun-after-cart');
+  await shot('08-party-following');
+  check('sunrise is still rising after the extended ride', walked.sun > 0.6 && walked.sun < 1 && !walked.ride, walked);
   await page.waitForFunction(() => game.sunrise.frame.completed, null, { timeout: 18000 });
   const complete = await read();
   check('large sunrise finishes near 42 seconds with continuous music', complete.seen && complete.time >= 42 && complete.bgm === 'maillard_sunrise' && !complete.paused, complete);
-  await shot('08-wide-sky-sunrise');
+  await shot('09-wide-sky-sunrise');
   const brightSky = await skyBrightness();
   check('music reveal transforms the dark sky into a much brighter sunset', darkSky < 35 && brightSky > darkSky * 2.5, { darkSky, brightSky });
   resettingFixture = true;
