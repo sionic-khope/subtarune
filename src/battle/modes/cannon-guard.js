@@ -32,7 +32,7 @@ function images() {
 }
 
 export function cannonBreaths() {
-  return ROWS.map((lane, i) => ({ lane, at: 0.1 + i * 0.9, warn: WARN, travel: TRAVEL, resolved: false, blocked: false }));
+  return ROWS.map((lane, i) => ({ lane, at: 0.1 + i * 0.9, warn: WARN, travel: TRAVEL, launched: false, resolved: false, blocked: false }));
 }
 
 export function cannonShotPosition(time) {
@@ -87,11 +87,16 @@ export function createCannonGuard(battle, { target }) {
         move(dt, input);
         elapsed += dt;
         for (const breath of breaths) {
+          if (!breath.launched && elapsed >= breath.at + breath.warn) {
+            breath.launched = true;
+            battle.sfx('cannon_guard_breath');
+          }
           if (breath.resolved || elapsed < breath.at + breath.warn + breath.travel) continue;
           breath.resolved = true;
           if (breath.lane !== lane) { battle.sfx('baron_slam'); line('failure', 'failure-dialogue'); return false; }
           breath.blocked = true;
           blocked++;
+          battle.sfx('cannon_guard_block');
         }
         if (phase === 'guard' && elapsed >= BARON_CANNON.chargeSeconds - BARON_CANNON.focusSeconds) {
           change('focus');
@@ -144,7 +149,7 @@ export function createCannonGuard(battle, { target }) {
       drawFrame(ctx, art.baron.image, baronFrame, 192, 288 + Math.round(192 * (1 - baronEntry)) + hitShake, 50);
       ctx.restore();
       if (!['failure-dialogue', 'fly', 'leave', 'done'].includes(phase)) {
-        if (guarding()) for (const breath of breaths) drawBreath(ctx, breath, elapsed, art.acid?.image);
+        if (guarding()) for (const breath of breaths) drawBreath(ctx, breath, elapsed);
         if (guarding() || phase.endsWith('-dialogue')) {
           ctx.save(); ctx.translate(SOUL_X - 7, GUARD_LANES[lane] - 7); ctx.scale(2, 2);
           drawHeart(ctx, 0, 0, COLORS.heart); ctx.restore();
@@ -187,7 +192,7 @@ function drawBoard(ctx, opening, lane) {
   ctx.fillRect(SOUL_X - 16, GUARD_LANES[lane] - 11, 2, 22);
 }
 
-function drawBreath(ctx, breath, time, image) {
+function drawBreath(ctx, breath, time) {
   const age = time - breath.at, y = GUARD_LANES[breath.lane];
   if (age < 0 || age > breath.warn + breath.travel + BLOCK_FLASH) return;
   if (age < breath.warn) {
@@ -200,15 +205,26 @@ function drawBreath(ctx, breath, time, image) {
     ctx.globalAlpha = 1;
   } else {
     const k = clamp((age - breath.warn) / breath.travel, 0, 1);
-    const front = Math.round(MOUTH_X + (SOUL_X + 12 - MOUTH_X) * k);
-    const frontY = Math.round(MOUTH_Y + (y - MOUTH_Y) * k);
-    for (let i = 4; i >= 0; i--) {
-      const q = clamp(k - i * 0.055, 0, 1), x = MOUTH_X + (SOUL_X + 12 - MOUTH_X) * q;
-      const cy = MOUTH_Y + (y - MOUTH_Y) * q + Math.sin(time * 16 + i * 2) * i;
-      pixelGlobule(ctx, x, cy, 11 - i * 1.5, i % 2 ? COLORS.core : COLORS.purple);
+    const length = (MOUTH_X - SOUL_X - 12) * k;
+    const afterBlock = breath.blocked ? clamp((age - breath.warn - breath.travel) / BLOCK_FLASH, 0, 1) : 0;
+    ctx.globalAlpha = 1 - afterBlock;
+    for (let d = Math.ceil(length * afterBlock / 2) * 2; d <= length; d += 2) {
+      const u = d / Math.max(1, length), tip = clamp((length - d + 2) / 20, 0.1, 1);
+      const wave = Math.sin(d * 0.12 - time * 21);
+      const center = MOUTH_Y + (y - MOUTH_Y) * d / (MOUTH_X - SOUL_X - 12) + wave * Math.sin(u * Math.PI) * 4;
+      const width = (5 + 13 * Math.sin(u * Math.PI * 0.8)) * tip;
+      const upper = Math.max(2, Math.round((width + Math.sin(d * 0.27 - time * 17) * 4 * u * tip) / 2) * 2);
+      const lower = Math.max(2, Math.round((width * 0.7 + Math.cos(d * 0.19 - time * 24) * 5 * u * tip) / 2) * 2);
+      const x = Math.round(MOUTH_X - d), top = Math.round(center / 2) * 2 - upper;
+      ctx.fillStyle = COLORS.line; ctx.fillRect(x, top - 2, 2, upper + lower + 4);
+      ctx.fillStyle = COLORS.purple; ctx.fillRect(x, top, 2, upper + lower);
+      const streak = (d - time * 115 + 10000) % 34;
+      const coreY = Math.round((center + wave * 2 * u) / 2) * 2;
+      ctx.fillStyle = COLORS.core;
+      if (streak < 23 || d < 8) ctx.fillRect(x, coreY - 2, 2, Math.max(2, Math.round(width * 0.3 / 2) * 2));
+      if (u > 0.2 && streak > 25 && width > 9) ctx.fillRect(x, top + 4, 2, 2);
     }
-    if (image) drawFrame(ctx, image, Math.floor(age / 0.11) % 4, 64, front - 26, frontY - 26, 0.8125);
-    else { pixelGlobule(ctx, front, frontY, 23, COLORS.purple); pixelGlobule(ctx, front - 3, frontY - 3, 12, COLORS.core); }
+    ctx.globalAlpha = 1;
     if (breath.blocked) {
       const fade = 1 - (age - breath.warn - breath.travel) / BLOCK_FLASH;
       ctx.globalAlpha = Math.max(0, fade);
@@ -257,15 +273,63 @@ function drawCannonFire(ctx, time, hitShake, image) {
     else { pixelGlobule(ctx, shot.x, shot.y, 36 * scale, COLORS.core); pixelGlobule(ctx, shot.x, shot.y, 25 * scale, COLORS.white); }
     return;
   }
-  const impact = time - BARON_CANNON.shotTravelSeconds, fade = clamp(1 - impact / 0.8, 0, 1);
-  ctx.globalAlpha = fade;
-  pixelGlobule(ctx, MOUTH_X + hitShake, MOUTH_Y, 34 + impact * 22, COLORS.core);
-  pixelGlobule(ctx, MOUTH_X + hitShake, MOUTH_Y, 22 * fade, COLORS.white);
-  for (let i = 0; i < 14; i++) {
-    const a = i * Math.PI / 7, d = 26 + impact * (48 + i % 3 * 9);
-    ctx.fillStyle = i % 2 ? COLORS.white : COLORS.core;
-    ctx.fillRect(Math.round(MOUTH_X + hitShake + Math.cos(a) * d), Math.round(MOUTH_Y + Math.sin(a) * d), 5, 5);
+  const impact = time - BARON_CANNON.shotTravelSeconds, fade = clamp(1 - impact / 1.15, 0, 1);
+  const cx = MOUTH_X + hitShake;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(228, 40, 232, 202); ctx.clip();
+  for (let i = 0; i < 9; i++) {
+    const a = i * 2.4, d = 16 + impact * (22 + i % 3 * 10);
+    ctx.globalAlpha = Math.min(0.65, impact * 3) * fade;
+    pixelGlobule(ctx, cx + Math.cos(a) * d, MOUTH_Y + Math.sin(a) * d - impact * 14, 10 + impact * 15, COLORS.line);
   }
-  ctx.globalAlpha = 1;
+  for (let ring = 0; ring < 2; ring++) {
+    const age = impact - ring * 0.1;
+    if (age < 0 || age > 0.65) continue;
+    const radius = 22 + age * 112;
+    ctx.globalAlpha = (1 - age / 0.65) * 0.85;
+    ctx.fillStyle = ring ? COLORS.white : COLORS.core;
+    for (let i = 0; i < 72; i++) {
+      const a = i * Math.PI / 36;
+      ctx.fillRect(Math.round((cx + Math.cos(a) * radius) / 3) * 3, Math.round((MOUTH_Y + Math.sin(a) * radius * 0.8) / 3) * 3, 3, 3);
+    }
+  }
+  const burst = clamp(1 - impact / 0.42, 0, 1);
+  if (burst > 0) {
+    ctx.globalAlpha = burst;
+    pixelBurst(ctx, cx, MOUTH_Y, 58 + impact * 65, 24, COLORS.purple);
+    pixelBurst(ctx, cx, MOUTH_Y, 47 + impact * 45, 18, COLORS.core);
+    pixelBurst(ctx, cx, MOUTH_Y, 32 * burst, 15 * burst, COLORS.white);
+  }
+  ctx.globalAlpha = fade;
+  for (let i = 0; i < 32; i++) {
+    const a = i * 2.4, d = 15 + impact * (58 + i % 5 * 16);
+    const x = cx + Math.cos(a) * d, y = MOUTH_Y + Math.sin(a) * d + impact * impact * 22;
+    ctx.fillStyle = i % 3 ? COLORS.core : COLORS.white;
+    for (let tail = 0; tail < 3; tail++) {
+      const size = tail ? 2 : 4;
+      ctx.fillRect(Math.round(x - Math.cos(a) * tail * 4), Math.round(y - Math.sin(a) * tail * 4), size, size);
+    }
+  }
+  ctx.restore();
   ctx.fillStyle = COLORS.white; ctx.fillText(String(BARON_CANNON.damage), MOUTH_X + 20, MOUTH_Y - 50 - Math.min(20, impact * 10));
+}
+
+function pixelBurst(ctx, x, y, outer, inner, color) {
+  const points = Array.from({ length: 20 }, (_, i) => {
+    const a = i * Math.PI / 10, r = i % 2 ? inner : outer * (0.78 + (i % 6) * 0.05);
+    return [x + Math.cos(a) * r, y + Math.sin(a) * r];
+  });
+  ctx.fillStyle = color;
+  for (let row = Math.floor((y - outer) / 3) * 3; row <= y + outer; row += 3) {
+    const crossings = [];
+    for (let i = 0; i < points.length; i++) {
+      const [ax, ay] = points[i], [bx, by] = points[(i + 1) % points.length];
+      if ((ay <= row && by > row) || (by <= row && ay > row)) crossings.push(ax + (row - ay) * (bx - ax) / (by - ay));
+    }
+    crossings.sort((a, b) => a - b);
+    for (let i = 0; i + 1 < crossings.length; i += 2) {
+      const left = Math.round(crossings[i] / 3) * 3, right = Math.round(crossings[i + 1] / 3) * 3;
+      if (right > left) ctx.fillRect(left, row, right - left, 3);
+    }
+  }
 }

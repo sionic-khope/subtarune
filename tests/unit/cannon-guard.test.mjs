@@ -77,6 +77,8 @@ test('test_cannon_guard_success_twelve_seconds_then_slow_projectile_actual_impac
   assert.equal(f.mode.snapshot.phase, 'fire');
   assert.ok(f.mode.snapshot.elapsed >= 12 && f.mode.snapshot.elapsed < 12.02);
   assert.equal(f.mode.snapshot.blocked, cannonBreaths().length);
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_breath').length, cannonBreaths().length);
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_block').length, cannonBreaths().length);
   f.mode.update(1.39, input());
   assert.deepEqual(f.hits, []);
   assert.equal(f.mode.snapshot.projectile.arrived, false);
@@ -94,6 +96,66 @@ test('test_cannon_guard_success_twelve_seconds_then_slow_projectile_actual_impac
   assert.equal(f.mode.update(0.9, input()), true);
   f.mode.update(10, input());
   assert.deepEqual(f.hits, [50]);
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_block').length, cannonBreaths().length);
+});
+
+test('test_cannon_guard_breath_sound_starts_after_warning_once_and_block_sound_waits_for_resolution', () => {
+  const f = fixture(); begin(f);
+  f.mode.update(0.69, input());
+  assert.equal(f.sounds.includes('cannon_guard_breath'), false);
+  assert.equal(f.mode.snapshot.breaths[0].launched, false);
+  f.mode.update(0.02, input());
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_breath').length, 1);
+  assert.equal(f.mode.snapshot.breaths[0].launched, true);
+  f.mode.update(0.1, input());
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_breath').length, 1);
+  assert.equal(f.sounds.includes('cannon_guard_block'), false);
+  f.mode.update(0.8, input());
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_breath').length, 2);
+  assert.equal(f.sounds.includes('cannon_guard_block'), false);
+  f.mode.update(0.2, input());
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_block').length, 1);
+  f.mode.update(0.1, input());
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_block').length, 1);
+});
+
+test('test_cannon_guard_missed_first_breath_never_plays_successful_block_sound', () => {
+  const f = fixture(); begin(f);
+  defend(f, 2, 0);
+  assert.equal(f.mode.snapshot.phase, 'failure-dialogue');
+  assert.equal(f.mode.snapshot.blocked, 0);
+  assert.equal(f.sounds.includes('cannon_guard_block'), false);
+  const launches = f.sounds.filter((s) => s === 'cannon_guard_breath').length;
+  assert.equal(launches, 2);
+  f.mode.update(1, input());
+  assert.equal(f.sounds.filter((s) => s === 'cannon_guard_breath').length, launches);
+  assert.equal(f.sounds.includes('cannon_guard_block'), false);
+});
+
+test('test_cannon_guard_active_jet_has_contiguous_pixel_columns_from_front_to_mouth', () => {
+  const f = fixture(); begin(f);
+  f.mode.update(1.4, input());
+  const columns = [];
+  const ctx = new Proxy({
+    fillRect(x, y, w, h) {
+      if (this.fillStyle === '#8d45db' && w === 2 && x > 166) columns.push({ x, y, w, h });
+    },
+  }, { get: (target, key) => target[key] ?? (() => {}) });
+  f.mode.draw(ctx);
+  const first = f.mode.snapshot.breaths[0];
+  const distance = (340 - 178) * (1.4 - first.at - first.warn) / first.travel;
+  assert.equal(columns.length, Math.floor(distance / 2) + 1);
+  assert.equal(columns[0].x, 340);
+  assert.equal(columns.at(-1).x, 340 - Math.floor(distance / 2) * 2);
+  for (let i = 0; i < columns.length; i++) {
+    const c = columns[i];
+    assert.ok([c.x, c.y, c.w, c.h].every(Number.isInteger));
+    if (i) {
+      const previous = columns[i - 1];
+      assert.equal(c.x + c.w, previous.x);
+      assert.ok(c.y < previous.y + previous.h && previous.y < c.y + c.h);
+    }
+  }
 });
 
 test('test_cannon_guard_final_focus_miss_zero_damage_then_exact_failure_line_and_flyaway', () => {

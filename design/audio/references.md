@@ -87,6 +87,19 @@
 - 음악 시작부터 끝까지 그대로 변환했으며 트리밍·음높이/속도/음량 변경·합성 대체 없음. MP3 변환에 따른 손실 압축만 있다. ffprobe 규격·길이 확인과 ffmpeg 전체 디코드가 오류 없이 완료됐다.
 - 이 파일은 전투용이다. 기존 등장 컷신용 `baron_intro.mp3`(The Chase)는 변경하지 않았다.
 
+### 바론 대포 브레스·방어 피드백 (BUILD98, 2026-09-12)
+
+사용자 "막을때 효과음", "브레스 쏴질때도 소리" 요청. 새 파일만 추가하며 기존 음악·충전·발사·충돌음은 유지한다.
+
+- 방어 성공 `cannon_guard_block.mp3`: [Deltarune snd_metalhit](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_metalhit/snd_metalhit), 게임 디컴파일 자료(공식 배포처 아님). 원본 `assets/source/cannon-feedback-v1/audio/snd_metalhit.wav`, SHA256 `4bee3b1f7c08d10fc54f7f72a7f60f64e73d1e6a4df56826aa0ad5bb1aeaaaf4`. 첫0.28초, gain1.1, 끝0.12초 감쇠.
+- 브레스 분사 `cannon_guard_breath.mp3`: 기존 합성 `whoosh.mp3`의 첫0.65초와 기존 `baron_roar.mp3`(위 출처)의0.15~0.8초를 합친 별도0.65초 가공본. 매 브레스 예고 종료/실제 발사 때1회. 방어 성공 때만 타격음1회. 런타임 seek/루프 없음.
+- 두 파일은44.1kHz 모노 MP3, 전체 디코드 및 비무음·무클리핑 확인. 사람의 음색 청취 평가와는 구분한다.
+
+```sh
+ffmpeg -i assets/source/cannon-feedback-v1/audio/snd_metalhit.wav -af 'atrim=duration=0.28,asetpts=PTS-STARTPTS,volume=1.1,afade=t=out:st=0.16:d=0.12' -ar 44100 -ac 1 -codec:a libmp3lame -q:a 2 assets/audio/sfx/cannon_guard_block.mp3
+ffmpeg -i assets/audio/sfx/whoosh.mp3 -i assets/audio/sfx/baron_roar.mp3 -filter_complex '[0:a]atrim=duration=0.65,asetpts=PTS-STARTPTS,volume=0.8[a];[1:a]atrim=start=0.15:duration=0.65,asetpts=PTS-STARTPTS,lowpass=f=1200,volume=0.75[b];[a][b]amix=inputs=2:normalize=0,alimiter=limit=0.75:level=false,afade=t=in:st=0:d=0.015,afade=t=out:st=0.4:d=0.25[out]' -map '[out]' -ar 44100 -ac 1 -codec:a libmp3lame -q:a 2 assets/audio/sfx/cannon_guard_breath.mp3
+```
+
 ### 바론 대포 방어 기믹 충전·발사 (2026-09-12)
 
 사용자 요청: "델타룬 차징 이펙트", 3초 충전 뒤 웅장한 약 3초 발사음. 새 합성음이나 파티원 검 소리 대신 아래 **Deltarune charge-shot 샘플의 가공본**을 사용한다. 원본 권리는 원 제작자에게 있으며, 아래 저장소는 공식 배포처가 아닌 게임 디컴파일 자료다. 사용자가 직접 지정한 기존 BGM·SFX는 변경하지 않았다.
