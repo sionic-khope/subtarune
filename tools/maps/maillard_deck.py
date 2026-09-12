@@ -44,7 +44,7 @@ map_data = {
         {'type': 'prop', 'id': 'hold_stairs', 'image': 'assets/props/maillard_hold_stairs.png',
          'x': 832, 'y': 224, 'w': 96, 'h': 80, 'solid': False, 'sortY': -5,
          },
-        {'type': 'door', 'id': 'hold_stairs_door', 'x': 808, 'y': 216, 'w': 112, 'h': 88,
+        {'type': 'door', 'id': 'hold_stairs_door', 'x': 808, 'y': 216, 'w': 144, 'h': 88,
          'to': 'maillard_path', 'spawn': 'from_hold', 'requires': 'maillard_hold_done',
          'lockedScript': 'maillard_hold_stairs', 'sfx': False, 'interact': True},
         {'type': 'npc', 'id': 'yongjun', 'sprite': 'yongjun', 'x': 48, 'y': 248,

@@ -16,8 +16,18 @@ for (const id of idx) {
     for (const e of m.entities || []) if (e.solid !== false && !e.unless && (e.type === 'prop' || e.type === 'raft')) { const x0 = Math.floor(e.x / 32), y0 = Math.floor(e.y / 32), x1 = Math.floor((e.x + (e.w || 32) - 1) / 32), y1 = Math.floor((e.y + (e.h || 32) - 1) / 32); for (let r = y0; r <= y1; r++) for (let c = x0; c <= x1; c++) solid.add(`${r},${c}`); }
     const ok = (r, c) => r >= 0 && c >= 0 && r < H && c < W && WALK.has(m.rows[r][c]) && !solid.has(`${r},${c}`);
     const s = m.spawns.start || Object.values(m.spawns)[0]; const start = [Math.floor(s.y / 32), Math.floor(s.x / 32)];
+    const stations = (m.entities || []).filter(e => e.type === 'raft' && e.route?.length).map(e =>
+      [[e.x, e.y], ...e.route].flatMap(([x, y]) => {
+        const row = Math.floor((y + (e.h || 40) * 0.68) / 32);
+        return [[row, Math.floor(x / 32) - 1], [row, Math.ceil((x + (e.w || 56)) / 32)]];
+      }).filter(([r, c]) => ok(r, c)));
     const seen = new Set([start.join(',')]); const q = [start];
-    while (q.length) { const [r, c] = q.shift(); for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nr = r + dr, nc = c + dc; if (ok(nr, nc) && !seen.has(`${nr},${nc}`)) { seen.add(`${nr},${nc}`); q.push([nr, nc]); } } }
+    while (q.length) {
+      const [r, c] = q.shift();
+      const next = [[r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]];
+      for (const stops of stations) if (stops.some(([sr, sc]) => sr === r && sc === c)) next.push(...stops);
+      for (const [nr, nc] of next) if (ok(nr, nc) && !seen.has(`${nr},${nc}`)) { seen.add(`${nr},${nc}`); q.push([nr, nc]); }
+    }
     return seen;
   };
   // 막아야 하는 길: **타일이 아니라 실제 히트박스로** 재야 한다 — 타일 단위 BFS 는 12px 틈(동상 받침만 막던 것)을 못 본다 (2026-09-12)
@@ -42,7 +52,7 @@ for (const id of idx) {
     }
   });
   if (!m.meta?.connected) continue;
-  test(`${id}: start 스폰에서 모든 스폰·문·적이 걸어서 닿는다`, () => {
+  test(`${id}: start 스폰에서 보행·탈것으로 모든 스폰·문·적에 닿는다`, () => {
     const seen = reachable();
     const reach = (x, y) => seen.has(`${Math.floor(y / 32)},${Math.floor(x / 32)}`);
     const bad = [];

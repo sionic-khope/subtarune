@@ -72,11 +72,11 @@ export class MaillardSunrise {
     ctx.globalAlpha = 1;
     const [sunX, finalSunY] = this.config.sunCenter;
     const radius = this.config.sunDiameter / 2;
-    const eased = rise * rise * (3 - 2 * rise);
-    const hiddenY = this.config.horizonY + radius + 4;
+    const eased = rise * (2 - rise);
+    const hiddenY = this.config.horizonY + radius;
     const sunY = Math.round(hiddenY + (finalSunY - hiddenY) * eased);
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, SCREEN_W, this.config.horizonY); ctx.clip();
-    ctx.globalAlpha = Math.min(1, rise * 1.8);
+    ctx.globalAlpha = 1;
     const sun = this.images[this.config.sun];
     if (sun) ctx.drawImage(sun, ...this.config.sunCrop, Math.round(sunX - radius), Math.round(sunY - radius), this.config.sunDiameter, this.config.sunDiameter);
     else drawPixelSun(ctx, sunX, sunY, this.config.sunDiameter, this.config.colors);
@@ -92,7 +92,7 @@ export class MaillardSunrise {
       ctx.globalAlpha = light * (0.24 - i * 0.012);
       ctx.fillRect(Math.round(sunX - width / 2 + shimmer * 4), y, width, 2);
     }
-    const streak = clamp((this.frame.lastAudioTime - 11) / 7);
+    const streak = light;
     ctx.globalAlpha = streak * 0.34;
     ctx.fillStyle = this.config.colors.streak;
     ctx.fillRect(Math.round(-120 + (this.frame.lastAudioTime * 42) % 720), this.config.horizonY + 14, 118, 1);

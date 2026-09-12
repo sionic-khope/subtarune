@@ -5,6 +5,14 @@
  "bgm": "maillard_sunrise",
  "dim": 0,
  "backdrop": "maillard_sunrise",
+ "followScreenY": 292,
+ "rails": [
+  [
+   1856,
+   1007,
+   1518
+  ]
+ ],
  "sunrise": {
   "animated": true
  },
@@ -39,9 +47,9 @@
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMM!!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMMMMMMMMMM!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMMMMMMMMMM!",
-  "!!!!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
+  "!!!!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
   "!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
-  "!!!!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
+  "!!!!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMMMMMMMMMM!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!MMMMMMMMMMM!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
@@ -69,7 +77,7 @@
    "facing": "right"
   },
   "cart_landing": {
-   "x": 3280,
+   "x": 3520,
    "y": 1000,
    "facing": "right"
   }
@@ -113,7 +121,7 @@
    ]
   ],
   "sunriseCart": {
-   "duration": 20,
+   "duration": 10,
    "order": [
     "player",
     "ppaman",
@@ -124,7 +132,7 @@
     986
    ],
    "landing": [
-    3280,
+    3520,
     1000
    ]
   }
@@ -155,10 +163,9 @@
      986
     ]
    ],
-   "speed": 64,
+   "speed": 128,
    "flag": "maillard_cart_done",
-   "autoBoard": "left",
-   "boardSfx": false,
+   "boardSfx": "thud",
    "arriveSfx": false,
    "moveSfx": false,
    "cars": 3,
@@ -175,8 +182,10 @@
    ],
    "riderOffset": [
     80,
-    0
+    10
    ],
+   "seatClipY": 3,
+   "disembarkPartyGap": 144,
    "passengerGap": 80,
    "passengerOrder": [
     "ppaman",

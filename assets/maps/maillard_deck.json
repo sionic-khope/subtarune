@@ -120,7 +120,7 @@
    "id": "hold_stairs_door",
    "x": 808,
    "y": 216,
-   "w": 112,
+   "w": 144,
    "h": 88,
    "to": "maillard_path",
    "spawn": "from_hold",

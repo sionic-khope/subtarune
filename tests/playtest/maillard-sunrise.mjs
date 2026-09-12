@@ -2,111 +2,128 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
-const shots = process.env.SHOT_DIR || '/tmp/maillard-sunrise107';
+const shots = process.env.SHOT_DIR || '/tmp/maillard108';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
-const checks = [], errors = [], captures = [];
+const checks = [], errors = [], captures = [], resetCancellations = [];
+let resettingFixture = false;
 const check = (name, ok, detail) => { checks.push({ name, ok, detail }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, detail ?? ''); };
-const shot = async (name) => { await page.screenshot({ path: path.join(shots, `${name}.png`) }); captures.push(name); };
-page.on('pageerror', (error) => errors.push(error.message));
-page.on('requestfailed', (request) => errors.push(`${request.url()} ${request.failure()?.errorText}`));
+const shot = async name => { await page.screenshot({ path: path.join(shots, name + '.png') }); captures.push(name); };
+page.on('pageerror', error => errors.push(error.message));
+page.on('requestfailed', request => {
+  const failure = request.failure()?.errorText;
+  if (resettingFixture && failure === 'net::ERR_ABORTED' && request.url().endsWith('/assets/audio/bgm/maillard_sunrise.mp3')) {
+    resetCancellations.push(request.url());
+    return;
+  }
+  errors.push(`${request.url()} ${failure}`);
+});
 const read = () => page.evaluate(() => {
-  const cart = game.entities.find((entity) => entity.id === 'maillard_cart');
+  const g = game, cart = g.entities.find(e => e.id === 'maillard_cart');
   return {
-    map: game.mapId,
-    state: game.state,
-    player: { x: game.player.x, y: game.player.y, facing: game.player.facing },
-    cart: cart && { x: cart.x, y: cart.y, riding: cart.riding, moving: cart.moving, at: cart.at },
-    fieldRide: game.ride?.id,
-    hasSpecialScene: Object.hasOwn(game, 'maillardCart'),
-    bgm: game.sound.bgmName,
-    bgmPaused: game.sound.bgm?.paused,
-    bgmTime: game.sound.bgm?.currentTime,
-    light: game.sunrise.frame.lightProgress,
-    sun: game.sunrise.frame.sunProgress,
-    done: !!game.flags.maillard_cart_done,
-    seen: !!game.flags.maillard_sunrise_seen,
-    party: game.party,
+    map: g.mapId, state: g.state, ride: g.ride?.id,
+    x: g.player.x, facing: g.player.facing, screenY: g.player.y + g.player.h - g.camera.y,
+    cart: cart && { x: cart.x, at: cart.at, moving: cart.moving },
+    bgm: g.sound.bgmName, time: g.sound.bgm?.currentTime, paused: g.sound.bgm?.paused,
+    sun: g.sunrise.frame.sunProgress, light: g.sunrise.frame.lightProgress,
+    seen: !!g.flags.maillard_sunrise_seen, done: !!g.flags.maillard_cart_done,
+    followers: g.entities.filter(e => e.def.type === 'follower').map(e => ({
+      id: e.id, x: e.x, y: e.y, visible: e.visible, facing: e.facing,
+      safe: !g.map.solidRect(e.x, e.y, e.w, e.h),
+      clearOfCart: !cart?.overlaps(e.rect),
+    })),
   };
 });
-
 try {
   await page.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/?qa=maillard_path`);
-  await page.waitForFunction(() => window.game?.mapId === 'maillard_path');
-  const entry = await read();
-  check('map entry selects sunrise BGM before cart boarding', entry.bgm === 'maillard_sunrise' && entry.player.facing === 'right', entry);
-  check('sunrise begins independently in normal field state', entry.state === 'field' && entry.light === 0 && entry.sun === 0 && !entry.hasSpecialScene, entry);
-  await shot('01-entry-dark');
-
-  const started = Date.now();
+  await page.waitForFunction(() => game?.mapId === 'maillard_path');
+  await page.evaluate(() => {
+    game.setFlag('maillard_hold_done');
+    game.changeMap('maillard_deck', 'from_path', true, { enter: false });
+  });
+  await page.keyboard.press('ArrowRight', { delay: 1100 });
+  const door = await page.evaluate(() => ({ facing: game.player.facing, target: game.player.probe()?.id, x: game.player.x }));
+  check('right-facing interaction works at the far end of the stairs', door.facing === 'right' && door.target === 'hold_stairs_door', door);
+  await shot('01-stairs-facing-right');
+  await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => game.mapId === 'maillard_path' && !game.transitioning);
+  check('stairs enter the deck without turning around', (await read()).map === 'maillard_path');
+  await shot('02-lower-deck-dark');
+  await page.evaluate(() => {
+    window.cartSounds = [];
+    const original = game.sound.sfx.bind(game.sound);
+    game.sound.sfx = (name, ...args) => { window.cartSounds.push(name); return original(name, ...args); };
+  });
   await page.keyboard.down('ArrowRight');
-  await page.waitForFunction(() => game.ride?.id === 'maillard_cart', { timeout: 12000 });
+  await page.waitForFunction(() => game.player.probe()?.id === 'maillard_cart', null, { timeout: 12000 });
   await page.keyboard.up('ArrowRight');
+  check('approaching the cart does not board without C', !(await read()).ride);
+  await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => game.ride?.id === 'maillard_cart');
   const boarding = await read();
-  const approachSeconds = (Date.now() - started) / 1000;
-  check('walking right auto-boards in about eight seconds without confirm', approachSeconds > 7.3 && approachSeconds < 8.8 && boarding.fieldRide === 'maillard_cart', { approachSeconds, boarding });
-  check('cart remains a map entity in field state and faces right', boarding.state === 'field' && boarding.cart?.riding && boarding.cart?.moving && boarding.player.facing === 'right' && !boarding.hasSpecialScene, boarding);
-  check('first movement unlocks and plays BGM without confirm', boarding.bgm === 'maillard_sunrise' && boarding.bgmPaused === false && boarding.bgmTime > 6, boarding);
-  const boardingMusicTime = boarding.bgmTime;
-  await shot('02-auto-board-field');
-
-  await page.waitForFunction((x) => game.entities.find((entity) => entity.id === 'maillard_cart')?.x > x + 40, boarding.cart.x);
+  check('C boards facing right and plays the boarding sound', boarding.facing === 'right' && await page.evaluate(() => window.cartSounds.filter(n => n === 'thud').length === 1), boarding);
+  await page.waitForFunction(x => game.ride?.x > x + 128, boarding.cart.x);
   const moving = await read();
-  check('field cart travels right and does not reset the music clock', moving.cart.x > boarding.cart.x && moving.bgmTime > boardingMusicTime && moving.state === 'field', { boarding, moving });
-  await shot('03-field-ride');
-
-  await page.waitForFunction(() => game.sound.bgm?.currentTime >= 9);
-  const gradual = await read();
-  check('light and sun are still mid-rise after nine seconds', gradual.light > 0.45 && gradual.light < 0.56 && gradual.sun > 0.35 && gradual.sun < 0.46, gradual);
-  await shot('04-slow-rise-9s');
-
-  await page.waitForFunction(() => game.sound.bgm?.currentTime >= 14);
+  check('rail rides along the bottom of the screen', moving.screenY > 280 && moving.screenY < 320, moving);
+  const clipped = await page.evaluate(() => {
+    const g = game, r = g.ride, c = document.createElement('canvas');
+    c.width = 480; c.height = 360;
+    const ctx = c.getContext('2d'), cam = { x: Math.round(g.camera.x), y: Math.round(g.camera.y) };
+    for (const e of [g.player, ...g.entities.filter(e => e.def.type === 'follower')]) e.draw(ctx, cam);
+    const rim = Math.round(r.drawY + r.def.seatClipY - cam.y);
+    const pixels = ctx.getImageData(0, 0, 480, 360).data;
+    let above = 0, below = 0;
+    for (let y = 0; y < 360; y++) for (let x = 0; x < 480; x++) {
+      if (pixels[(y * 480 + x) * 4 + 3]) { if (y >= rim) below++; else above++; }
+    }
+    return { above, below, rim };
+  });
+  check('riders draw only above the cart rim with no visible legs', clipped.above > 0 && clipped.below === 0, clipped);
+  await shot('03-seated-rail-ride');
+  await page.waitForFunction(() => game.sound.bgm.currentTime >= 14);
   const highlight = await read();
-  check('music highlight occurs during the same continuous field ride', highlight.fieldRide === 'maillard_cart' && highlight.light > 0.75 && highlight.light < 0.82 && highlight.sun > 0.64 && highlight.sun < 0.72, highlight);
-  await shot('05-low-sun-14s');
-
-  await page.waitForFunction(() => game.sunrise.frame.completed);
-  const raised = await read();
-  check('slow sunrise completes without requiring cart completion', raised.seen && raised.light === 1 && raised.sun === 1, raised);
-  const midRideSave = await page.evaluate(() => localStorage.getItem('subtarune.save.v1'));
-  const midRidePersisted = JSON.parse(midRideSave);
-  check('mid-ride sunrise completion defers persistence until safe landing', !midRidePersisted.flags.maillard_sunrise_seen && !midRidePersisted.flags.maillard_cart_done, midRidePersisted);
-  await shot('06-sunrise-complete');
-
-  await page.waitForFunction(() => game.flags.maillard_cart_done && !game.ride, { timeout: 14000 });
-  const landed = await read();
-  check('cart disembarks on the right into the winding deck', landed.done && landed.cart?.at === 1 && landed.player.x > 3200 && landed.player.facing === 'right', landed);
-  check('BGM remains continuous after disembark', landed.bgm === 'maillard_sunrise' && landed.bgmPaused === false && landed.bgmTime > raised.bgmTime, { raised, landed });
-  const landedSave = await page.evaluate(() => JSON.parse(localStorage.getItem('subtarune.save.v1')));
-  check('safe landing persists both sunrise and cart completion', landedSave.flags.maillard_sunrise_seen && landedSave.flags.maillard_cart_done && landedSave.x > 3200, landedSave);
-  await shot('07-right-landing');
-
-  await page.keyboard.down('ArrowRight');
-  await page.waitForFunction((x) => game.player.x > x + 96, landed.player.x, { timeout: 4000 });
-  await page.keyboard.up('ArrowRight');
-  await page.waitForTimeout(800);
-  check('post-cart winding path returns normal movement', await page.evaluate(() => !game.ride && game.state === 'field'));
-  await shot('08-winding-path');
-
-  await page.evaluate((save) => { localStorage.setItem('subtarune.save.v1', save); game.continueGame(); }, midRideSave);
-  await page.waitForFunction(() => game.mapId === 'maillard_path' && game.state === 'field');
-  const resumed = await read();
-  check('reloading the deferred mid-ride save resumes safely before the cart', !resumed.fieldRide && resumed.cart?.at === 0 && resumed.player.x < resumed.cart.x, resumed);
-
+  check('the sun only starts at the music highlight', highlight.sun < 0.03 && highlight.light < 0.12, highlight);
+  await shot('04-highlight-first-light');
+  await page.waitForFunction(() => game.flags.maillard_cart_done && !game.ride, null, { timeout: 14000 });
+  const landed = await read(), rideSeconds = landed.time - boarding.time;
+  check('cart takes about ten seconds and lands with both followers', rideSeconds > 9.6 && rideSeconds < 10.5 && landed.followers.length === 2 && landed.followers.every(f => f.visible && f.safe && f.clearOfCart && Math.abs(f.x - landed.x) < 130), { rideSeconds, landed });
+  await shot('05-everyone-disembarked');
+  await page.keyboard.press('ArrowRight', { delay: 600 });
+  const walked = await read();
+  check('both followers keep following after disembarking', walked.followers.every(f => f.x > landed.followers.find(old => old.id === f.id).x && Math.abs(f.x - walked.x) < 130), walked);
+  await shot('06-party-following');
+  await page.waitForFunction(() => game.sound.bgm.currentTime >= 28);
+  const halfway = await read();
+  check('sunrise continues slowly after the ride', halfway.sun > 0.48 && halfway.sun < 0.53 && !halfway.ride, halfway);
+  await shot('07-slow-sun-after-cart');
+  await page.waitForFunction(() => game.sunrise.frame.completed, null, { timeout: 18000 });
+  const complete = await read();
+  check('large sunrise finishes near 42 seconds with continuous music', complete.seen && complete.time >= 42 && complete.bgm === 'maillard_sunrise' && !complete.paused, complete);
+  await shot('08-wide-sky-sunrise');
+  resettingFixture = true;
+  await page.evaluate(() => game.continueGame());
+  const continued = await read();
+  check('continue restores both followers at safe landing', continued.done && continued.seen && continued.followers.length === 2 && continued.followers.every(f => f.visible && f.safe && f.clearOfCart), continued);
+  await page.evaluate(() => {
+    game.devJump({ map: 'maillard_path', spawn: 'from_hold', flags: { maillard_hold_done: true }, party: ['gyeongsub', 'ppaman'] });
+    const cart = game.entities.find(e => e.id === 'maillard_cart');
+    cart.interact(game.player);
+    window.safeCartSave = localStorage.getItem('subtarune.save.v1');
+    game.sunrise.sound = { bgmName: 'maillard_sunrise', bgm: { currentTime: 43 } };
+  });
+  await page.waitForFunction(() => game.sunrise.frame.completed, null, { timeout: 5000 });
+  check('late boarding still defers sunrise autosave while riding', await page.evaluate(() => !!game.ride && localStorage.getItem('subtarune.save.v1') === window.safeCartSave));
+  await page.evaluate(() => game.continueGame());
+  const deferred = await read();
+  check('mid-ride reload returns safely to the station', !deferred.ride && deferred.cart.at === 0 && deferred.x < deferred.cart.x, deferred);
   check('no runtime or asset-load errors', errors.length === 0, errors);
 } catch (error) {
-  errors.push(error.message);
-  console.error(error);
+  errors.push(error.message); console.error(error);
 } finally {
-  fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({
-    fixture: 'QA maillard_path; only ArrowRight input, zero confirm presses; natural BGM clock and field-cart movement.',
-    checks,
-    captures,
-    errors,
-  }, null, 2));
+  fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({ fixture: 'Completed hold fixture, real right/C portal and boarding, real 42-second BGM clock; final synthetic media-clock fixture checks late-boarding persistence.', checks, captures, errors, resetCancellations }, null, 2));
   await browser.close();
 }
-const fails = checks.filter((item) => !item.ok).length + errors.length;
+const fails = checks.filter(check => !check.ok).length + errors.length;
 console.log(`fails=${fails}`);
 process.exitCode = fails ? 1 : 0;

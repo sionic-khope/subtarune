@@ -76,6 +76,14 @@ export class TileMap {
         ctx.drawImage(tileCanvas(def, variant), tx * TILE, ty * TILE, TILE, TILE);
       }
     }
+    for (const [x, y, width] of this.def.rails || []) {
+      ctx.fillStyle = '#543a2d';
+      for (let offset = 0; offset < width; offset += 16) ctx.fillRect(x + offset, y - 4, 5, 20);
+      ctx.fillStyle = '#1c202b';
+      ctx.fillRect(x, y, width, 3); ctx.fillRect(x, y + 10, width, 3);
+      ctx.fillStyle = '#9a94a0';
+      ctx.fillRect(x, y, width, 1); ctx.fillRect(x, y + 10, width, 1);
+    }
     this.canvas = c;
   }
 
@@ -92,7 +100,7 @@ export class Camera {
   follow(lerp = 0.15) {
     if (this.locked || !this.target || !this.map) return;
     const tx = this.target.x + this.target.w / 2 - SCREEN_W / 2;
-    const ty = this.target.y + this.target.h / 2 - SCREEN_H / 2;
+    const ty = this.target.y + this.target.h / 2 - (this.map.def.followScreenY ?? SCREEN_H / 2);
     this.x += (tx - this.x) * lerp;
     this.y += (ty - this.y) * lerp;
     this.x = Math.max(0, Math.min(this.map.pxW - SCREEN_W, this.x));
@@ -267,6 +275,11 @@ export class Character extends Entity {
   draw(ctx, cam) {
     if (!this.visible) return;
     ctx.save();
+    const ride = this.game.ride;
+    if (ride?.def.seatClipY !== undefined && (this === ride.rider || this.def.type === 'follower')) {
+      const rim = Math.round(ride.drawY + ride.def.seatClipY - ride.jumpY - cam.y);
+      ctx.beginPath(); ctx.rect(-SCREEN_W * 2, -SCREEN_H * 4, SCREEN_W * 5, rim + SCREEN_H * 4); ctx.clip();
+    }
     if (this.emerge) {
       const floor = Math.round(this.y + this.h - cam.y);
       ctx.beginPath(); ctx.rect(-SCREEN_W * 2, -SCREEN_H * 4, SCREEN_W * 5, floor + SCREEN_H * 4); ctx.clip();
@@ -707,6 +720,14 @@ export class Raft extends Prop {
       if (this.def.arriveSfx !== false) this.game.sound.sfx(this.def.arriveSfx || 'splash', { volume: 0.5 });
       this._disembark(dx, dy);
       this._landSwimmer();
+      if (this.def.disembarkPartyGap) {
+        const ahead = this.dirFacing === 'left' ? -1 : 1;
+        const p = this.rider;
+        [p.x, p.y] = freeSpot(this.game, p, p.x + ahead * this.def.disembarkPartyGap, p.y);
+        this.game.spawnParty();
+        const distance = this.game.party.length * TILE * 1.5;
+        for (let back = distance; back >= 0; back -= 2) p.trail.push({ x: p.x - ahead * back, y: p.y, facing: p.facing });
+      }
       const af = this.def.onArriveFlag || `${this.id}_arrived`;
       const runArrive = this.def.onArrive && !this.game.has(af);
       if (runArrive) this.game.setFlag(af);

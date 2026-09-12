@@ -9,6 +9,8 @@ model: opus
 
 # Map (맵 작성)
 
+탈것·문 진입·원경이 중요한 맵을 수정할 때 [마이야르호 회고](../../../docs/postmortems/2026-09-12-maillard-staging.md)의 완료 기준을 적용한다. 접근 방향 그대로 문 사용 → 탑승 → 전원 하차 후 계속 걷기를 실제 입력으로 확인한다.
+
 먼저 `docs/STATE.md` 를 읽는다. 맵은 데이터(`assets/maps/<id>.json`)다. 에디터(`editor.html`)는 같은 JSON 을 GUI 로 만드는 도구일 뿐이므로, 에이전트는 JSON 을 직접 쓴다.
 
 ## 지역 자산 연속성 (맵 확장·분위기 변경 전에)

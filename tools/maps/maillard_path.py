@@ -19,7 +19,7 @@ APPROACH: Final = ((4, 31), (58, 31))
 APPROACH_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in APPROACH]
 CART_START: Final = [1856, 986]
 CART_END: Final = [3136, 986]
-LANDING: Final = [3280, 1000]
+LANDING: Final = [3520, 1000]
 WALKOUT: Final = ((102, 31), (128, 31), (128, 18), (112, 18), (112, 5), (128, 5))
 WALKOUT_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in WALKOUT]
 
@@ -41,8 +41,7 @@ paint_path(grid, APPROACH)
 for path_column in range(1, 4):
     grid[31][path_column] = 'M'
 for path_column in range(58, 104):
-    for path_row in range(30, 33):
-        grid[path_row][path_column] = 'M'
+    grid[31][path_column] = 'M'
 paint_path(grid, WALKOUT)
 for pocket_row in range(28, 35):
     for pocket_column in range(120, 131):
@@ -60,10 +59,11 @@ entities = [
      'to': 'maillard_deck', 'spawn': 'from_path', 'sfx': False},
     {'type': 'raft', 'id': 'maillard_cart', 'image': 'assets/props/maillard-cart.png',
      'x': CART_START[0], 'y': CART_START[1], 'w': 238, 'h': 28,
-     'route': [CART_END], 'speed': 64, 'flag': 'maillard_cart_done',
-     'autoBoard': 'left', 'boardSfx': False, 'arriveSfx': False, 'moveSfx': False,
+     'route': [CART_END], 'speed': 128, 'flag': 'maillard_cart_done',
+     'boardSfx': 'thud', 'arriveSfx': False, 'moveSfx': False,
      'cars': 3, 'carGap': 80, 'assetCrop': [61, 106, 134, 43], 'displaySize': [78, 25],
-     'riderOffset': [80, 0], 'passengerGap': 80, 'passengerOrder': ['ppaman', 'gyeongsub']},
+     'riderOffset': [80, 10], 'seatClipY': 3, 'disembarkPartyGap': 144,
+     'passengerGap': 80, 'passengerOrder': ['ppaman', 'gyeongsub']},
     {'type': 'npc', 'id': 'sunrise_junhee', 'sprite': 'junhee', 'x': 3904, 'y': 936,
      'facing': 'right', 'wander': 0, 'solid': False},
     {'type': 'npc', 'id': 'sunrise_yongjun', 'sprite': 'yongjun', 'x': 3664, 'y': 552,
@@ -76,6 +76,7 @@ entities = [
 map_data = {
     'id': MAP_ID, 'name': '마이야르호 일출 갑판', 'stage': 'void_fallen',
     'bgm': 'maillard_sunrise', 'dim': 0, 'backdrop': 'maillard_sunrise',
+    'followScreenY': 292, 'rails': [[1856, 1007, 1518]],
     'sunrise': {'animated': True}, 'rows': rows,
     'preload': ['assets/tiles/maillard_deck.png', 'assets/backdrops/maillard_sunset.png',
                 'assets/props/maillard_sun.png', 'assets/props/maillard-cart.png',
@@ -90,7 +91,7 @@ map_data = {
         'sunriseRoute': APPROACH_PIXELS,
         'sunriseWalkout': WALKOUT_PIXELS,
         'sunriseCart': {
-            'duration': 20,
+            'duration': 10,
             'order': ['player', 'ppaman', 'gyeongsub'],
             'departure': CART_START,
             'landing': LANDING,

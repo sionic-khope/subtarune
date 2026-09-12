@@ -39,18 +39,19 @@ test('maillard deck begins at the left and reaches the cart by walking right for
   }
 });
 
-test('maillard cart is a field raft that auto-boards and travels right without a script or C input', () => {
+test('maillard cart waits for interaction and travels right on its own rail', () => {
   const data = map();
   const cart = data.entities.find((entity) => entity.id === 'maillard_cart');
   const legacyTrigger = data.entities.find((entity) => entity.id === 'cart_board');
 
   assert.ok(cart);
   assert.equal(cart.type, 'raft');
-  assert.equal(cart.autoBoard, 'left');
+  assert.equal(cart.autoBoard, undefined);
+  assert.equal(cart.boardSfx, 'thud');
   assert.equal(cart.script, undefined);
   assert.equal(legacyTrigger, undefined);
   assert.ok(cart.route[0][0] > cart.x);
-  assert.equal(routeDistance([[cart.x, cart.y], ...cart.route]) / cart.speed, 20);
+  assert.equal(routeDistance([[cart.x, cart.y], ...cart.route]) / cart.speed, 10);
   assert.equal(cart.flag, 'maillard_cart_done');
   assert.equal(cart.cars, 3);
   assert.equal(cart.riderOffset[0], 80);
@@ -69,8 +70,8 @@ test('post-cart winding deck stays narrow enough to preserve the sky and keeps b
   assert.ok(bystanders.length >= 3 && bystanders.length <= 4);
   assert.ok(bystanders.every((entity) => entity.wander === 0 && entity.script === undefined));
   assert.deepEqual(returnDoor && [returnDoor.to, returnDoor.spawn], ['maillard_deck', 'from_path']);
-  assert.deepEqual(data.meta.sunriseCart.landing, [3280, 1000]);
-  assert.deepEqual(data.spawns.cart_landing, { x: 3280, y: 1000, facing: 'right' });
+  assert.deepEqual(data.meta.sunriseCart.landing, [3520, 1000]);
+  assert.deepEqual(data.spawns.cart_landing, { x: 3520, y: 1000, facing: 'right' });
   assert.ok(walkout[0][1] - walkout[2][1] >= 12 * TILE, 'the next deck tier must remain outside the current viewport');
   assert.ok(walkout[2][1] - walkout[4][1] >= 12 * TILE, 'each winding tier must preserve an open sky view');
   assert.ok(routeDistance(walkout) / WALK_SPEED >= 9);
