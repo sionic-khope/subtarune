@@ -6,30 +6,47 @@
 # ─── How to run ───
 # Run from repository root: uv run tools/maps/maillard_deck.py [--check]
 # ──────────────────
-"""Generate the simple sunlit Maillard wooden deck after the rescue reveal."""
+"""Generate the enclosed Maillard lower hold; the exterior deck comes later."""
 import json
 from pathlib import Path
 import sys
 from typing import Final
 
-WIDTH: Final = 20
+WIDTH: Final = 30
 HEIGHT: Final = 14
 MAP_ID: Final = 'maillard_deck'
 rows = [' ' * WIDTH for _ in range(5)]
-rows.extend(' ' + 'M' * (WIDTH - 2) + ' ' for _ in range(5, HEIGHT - 1))
-rows.append(' ' * WIDTH)
+rows.extend(' ' + 'M' * (WIDTH - 2) + ' ' for _ in range(5, HEIGHT - 2))
+rows.extend([' ' * WIDTH] * 2)
 map_data = {
-    'id': MAP_ID, 'name': '마이야르호 갑판', 'stage': 'void_fallen',
-    'bgm': None, 'dim': 0, 'backdrop': 'maillard_sea', 'rows': rows,
-    'preload': ['assets/tiles/maillard_deck.png', 'assets/backdrops/maillard_sea.png'],
+    'id': MAP_ID, 'name': '마이야르호 선창', 'stage': 'void_fallen',
+    'bgm': 'wind', 'dim': 0.08, 'rows': rows,
+    'enter': {'script': 'maillard_hold', 'flag': 'maillard_hold_done', 'early': True},
+    'preload': ['assets/tiles/maillard_deck.png', 'assets/props/maillard_hold_walls.png',
+                'assets/props/maillard_hold_hatch.png', 'assets/props/maillard_hold_stairs.png'],
     'spawns': {
-        'start': {'x': 308, 'y': 264, 'facing': 'up'},
-        'arrival': {'x': 308, 'y': 264, 'facing': 'up'},
+        'start': {'x': 452, 'y': 216, 'facing': 'up'},
+        'arrival': {'x': 452, 'y': 216, 'facing': 'up'},
     },
     'meta': {'connected': True, 'stage': {
-        'player': [308, 264], 'gyeongsub': [244, 296], 'ppaman': [372, 296],
+        'player': [452, 216], 'gyeongsub': [388, 280], 'ppaman': [516, 280],
+        'yongjun': [316, 248],
     }},
-    'entities': [],
+    'entities': [
+        {'type': 'prop', 'id': 'hold_walls', 'image': 'assets/props/maillard_hold_walls.png',
+         'x': 0, 'y': 0, 'w': 960, 'h': 448, 'solid': False, 'sortY': -1000},
+        {'type': 'prop', 'id': 'hold_hatch', 'image': 'assets/props/maillard_hold_hatch.png',
+         'x': 432, 'y': 320, 'w': 64, 'h': 48, 'solid': False, 'sortY': -10,
+         'script': 'maillard_hold_hatch'},
+        {'type': 'prop', 'id': 'hold_stage', 'image': 'assets/props/maillard_hold_hatch.png',
+         'x': 452, 'y': 216, 'w': 24, 'h': 16, 'hidden': True, 'solid': False},
+        {'type': 'prop', 'id': 'hold_stairs', 'image': 'assets/props/maillard_hold_stairs.png',
+         'x': 832, 'y': 224, 'w': 96, 'h': 80, 'solid': False, 'sortY': -5,
+         'script': 'maillard_hold_stairs'},
+        {'type': 'npc', 'id': 'yongjun', 'sprite': 'yongjun', 'x': 48, 'y': 248,
+         'facing': 'right', 'wander': 0, 'solid': False, 'hidden': True,
+         'unless': 'maillard_hold_done'},
+    ],
 }
 output = Path(f'assets/maps/{MAP_ID}.json')
 index_path = Path('assets/maps/index.json')

@@ -48,7 +48,9 @@ test('Maillard deck checkpoint preserves the sea victory inventory and party', (
   assert.deepEqual(story.stateFromFlags(after.flags), story.stateFromFlags(before.flags));
   assert.deepEqual(after.party, before.party);
   const map = JSON.parse(fs.readFileSync('assets/maps/maillard_deck.json', 'utf8'));
-  assert.equal(map.backdrop, 'maillard_sea');
+  assert.equal(map.backdrop, undefined);
+  assert.equal(map.bgm, 'wind');
+  assert.equal(map.enter.flag, 'maillard_hold_done');
   assert.ok(map.spawns[after.spawn]);
-  assert.equal(map.entities.length, 0);
+  assert.ok(map.entities.some(entity => entity.id === 'hold_stairs'));
 });

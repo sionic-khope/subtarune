@@ -4,7 +4,7 @@ import { SCREEN_W } from '../world/world.js';
 
 const clamp = (value) => Math.max(0, Math.min(1, value));
 const smooth = (value) => { const k = clamp(value); return k * k * (3 - 2 * k); };
-const REVEALED = new Set(['reveal', 'hops', 'compose', 'spotlight', 'laugh', 'island']);
+const REVEALED = new Set(['reveal', 'hops', 'compose', 'spotlight', 'laugh', 'island', 'boarding']);
 
 /** Camera-only presentation over the completed shooter; dialogue is authored in its DSL. */
 export class MaillardArrival {
@@ -14,6 +14,7 @@ export class MaillardArrival {
     this.beat = 'unstable';
     this.time = 0;
     this.beatTime = 0;
+    this.sailTime = 0;
     this.ship = null;
     this.island = null;
     this.disposed = false;
@@ -32,7 +33,9 @@ export class MaillardArrival {
     this.time += dt;
     this.beatTime += dt;
     this.sea.model.time += dt;
-    this.sea.model.scroll += dt * this.sea.model.config.scrollSpeed;
+    const sailing = REVEALED.has(this.beat);
+    if (sailing) this.sailTime += dt;
+    this.sea.model.scroll += dt * (sailing ? -C.cruise.waterSpeed : this.sea.model.config.scrollSpeed);
   }
 
   /** Reset/title/map disposal prevents late asset results from reviving this scene. */
@@ -54,7 +57,9 @@ export class MaillardArrival {
       centerY = C.silentBox.centerY + (C.shipBox.centerY - C.silentBox.centerY) * k;
     }
     const height = width * ratio;
-    return { x: Math.round(C.shipBox.centerX - width / 2), y: Math.round(centerY - height / 2), width: Math.round(width), height: Math.round(height) };
+    const travel = Math.min(C.cruise.drift, (this.sailTime || 0) * C.cruise.driftSpeed);
+    const bob = Math.sin((this.sailTime || 0) * C.cruise.bobRate) * C.cruise.bobHeight;
+    return { x: Math.round(C.shipBox.centerX - width / 2 - travel), y: Math.round(centerY - height / 2 + bob), width: Math.round(width), height: Math.round(height) };
   }
 
   /** Draw only scene content; main retains the same TextBox and fade layer as field play. */
@@ -78,16 +83,19 @@ export class MaillardArrival {
     ctx.save(); ctx.globalAlpha = distance;
     ctx.translate(37, 205); ctx.scale(0.2, 0.2); ctx.translate(-this.sea.model.config.raft.x, -this.sea.model.raftY);
     this.sea.drawRaft(ctx); ctx.restore();
-    ctx.save(); ctx.globalAlpha = distance;
-    ctx.translate(415, 175); ctx.scale(0.14, 0.14); ctx.translate(-this.sea.model.bossX, -this.sea.model.bossY);
-    this.sea.drawBoss(ctx); ctx.restore();
     if (['spotlight', 'laugh', 'island'].includes(this.beat)) {
       ctx.fillStyle = '#fff1ae'; ctx.globalAlpha = 0.17;
       for (const x of [68, 163, 271, 378]) ctx.fillRect(x, 0, 28, 225);
       ctx.globalAlpha = 1;
     }
     this.drawWake(ctx, rect);
-    if (this.ship) ctx.drawImage(this.ship, rect.x, rect.y, rect.width, rect.height);
+    if (this.ship) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.width, Math.round(rect.height * 0.92)); ctx.clip();
+      ctx.drawImage(this.ship, rect.x, rect.y, rect.width, rect.height);
+      ctx.restore();
+    }
+    this.drawWaterline(ctx, rect);
     this.drawJunhee(ctx, rect);
     if (this.beat === 'island' && this.island) {
       ctx.fillStyle = 'rgba(2,14,24,0.75)'; ctx.fillRect(0, 0, SCREEN_W, 230);
@@ -116,15 +124,19 @@ export class MaillardArrival {
     ctx.drawImage(this.ship, Math.round(240 - C.fallWidth / 2), Math.round(y), C.fallWidth, Math.round(height));
   }
 
-  /** Existing water colors form outward crests around the heavy, settled hull. */
+  /** The left-facing bow cuts water while the stern trails foam to the right. */
   drawWake(ctx, rect) {
-    const spread = this.beat === 'reveal' ? Math.min(1, this.beatTime / 1.6) : 1;
+    const waterY = Math.round(rect.y + rect.height * 0.92);
+    const sternX = rect.x + rect.width * 0.91;
     ctx.fillStyle = '#c4f2ea';
-    for (let i = 0; i < 18; i++) {
-      const x = rect.x + rect.width * i / 17;
-      const y = Math.min(220, rect.y + rect.height * 0.83) + Math.round(Math.sin(this.time * 3 + i) * 3);
-      ctx.fillRect(Math.round(x - 12), Math.round(y + i % 3 * 4 + spread * 10), 25, 3);
+    for (let i = 0; i < 24; i++) {
+      const trail = ((this.sailTime || 0) * C.cruise.wakeSpeed + i * 11) % 135;
+      const side = i % 2 ? 1 : -1;
+      const y = waterY - 5 + side * (4 + trail * 0.1) + i % 3 * 2;
+      ctx.globalAlpha = (1 - trail / 150) * 0.85;
+      ctx.fillRect(Math.round(sternX + trail), Math.round(y), 5 + i % 4 * 4, 2);
     }
+    ctx.globalAlpha = 1;
     if (this.beat === 'reveal' && this.beatTime < 1.8) {
       const k = this.beatTime / 1.8;
       for (let i = 0; i < 28; i++) {
@@ -135,6 +147,17 @@ export class MaillardArrival {
         ctx.fillStyle = i % 3 ? '#d8fff4' : '#75c7df';
         ctx.fillRect(Math.round(x), Math.round(y), size, size * 2);
       }
+    }
+  }
+
+  /** Small moving crests overlap the hull instead of leaving it floating above the sea. */
+  drawWaterline(ctx, rect) {
+    const waterY = Math.round(rect.y + rect.height * 0.92);
+    for (let i = 0; i < 12; i++) {
+      const k = ((this.sailTime || 0) * 0.45 + i / 12) % 1;
+      const x = rect.x + rect.width * (0.18 + k * 0.74);
+      ctx.fillStyle = i % 3 ? '#c4f2ea' : '#75c7df';
+      ctx.fillRect(Math.round(x), waterY - 2 + i % 2 * 3, 5 + i % 3 * 4, 2);
     }
   }
 

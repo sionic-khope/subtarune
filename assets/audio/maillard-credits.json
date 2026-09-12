@@ -13,6 +13,14 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/",
     "changes": "None. Noncommercial use only."
   },
+  "maillard_water_lift": {
+    "title": "Water lift swell, derived from Large Water Splash With Heavy Surface Impact",
+    "creator": "Alexander / Orange Free Sounds",
+    "source": "https://orangefreesounds.com/large-water-splash-with-heavy-surface-impact-realistic-splash-sound-effect/",
+    "license": "CC BY-NC 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "changes": "Trim 0.45–2.8 seconds, reverse, tempo 0.85, fade in/out and limit peak. Original maillard_splash unchanged."
+  },
   "maillard_applause": {
     "title": "Large Crowd Applause Sound Effect",
     "creator": "Alexander / Orange Free Sounds",

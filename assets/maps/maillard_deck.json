@@ -1,39 +1,45 @@
 {
  "id": "maillard_deck",
- "name": "마이야르호 갑판",
+ "name": "마이야르호 선창",
  "stage": "void_fallen",
- "bgm": null,
- "dim": 0,
- "backdrop": "maillard_sea",
+ "bgm": "wind",
+ "dim": 0.08,
  "rows": [
-  "                    ",
-  "                    ",
-  "                    ",
-  "                    ",
-  "                    ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMM ",
-  "                    "
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                              ",
+  "                              "
  ],
+ "enter": {
+  "script": "maillard_hold",
+  "flag": "maillard_hold_done",
+  "early": true
+ },
  "preload": [
   "assets/tiles/maillard_deck.png",
-  "assets/backdrops/maillard_sea.png"
+  "assets/props/maillard_hold_walls.png",
+  "assets/props/maillard_hold_hatch.png",
+  "assets/props/maillard_hold_stairs.png"
  ],
  "spawns": {
   "start": {
-   "x": 308,
-   "y": 264,
+   "x": 452,
+   "y": 216,
    "facing": "up"
   },
   "arrival": {
-   "x": 308,
-   "y": 264,
+   "x": 452,
+   "y": 216,
    "facing": "up"
   }
  },
@@ -41,18 +47,81 @@
   "connected": true,
   "stage": {
    "player": [
-    308,
-    264
+    452,
+    216
    ],
    "gyeongsub": [
-    244,
-    296
+    388,
+    280
    ],
    "ppaman": [
-    372,
-    296
+    516,
+    280
+   ],
+   "yongjun": [
+    316,
+    248
    ]
   }
  },
- "entities": []
+ "entities": [
+  {
+   "type": "prop",
+   "id": "hold_walls",
+   "image": "assets/props/maillard_hold_walls.png",
+   "x": 0,
+   "y": 0,
+   "w": 960,
+   "h": 448,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "hold_hatch",
+   "image": "assets/props/maillard_hold_hatch.png",
+   "x": 432,
+   "y": 320,
+   "w": 64,
+   "h": 48,
+   "solid": false,
+   "sortY": -10,
+   "script": "maillard_hold_hatch"
+  },
+  {
+   "type": "prop",
+   "id": "hold_stage",
+   "image": "assets/props/maillard_hold_hatch.png",
+   "x": 452,
+   "y": 216,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "hold_stairs",
+   "image": "assets/props/maillard_hold_stairs.png",
+   "x": 832,
+   "y": 224,
+   "w": 96,
+   "h": 80,
+   "solid": false,
+   "sortY": -5,
+   "script": "maillard_hold_stairs"
+  },
+  {
+   "type": "npc",
+   "id": "yongjun",
+   "sprite": "yongjun",
+   "x": 48,
+   "y": 248,
+   "facing": "right",
+   "wander": 0,
+   "solid": false,
+   "hidden": true,
+   "unless": "maillard_hold_done"
+  }
+ ]
 }

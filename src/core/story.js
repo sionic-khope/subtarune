@@ -168,6 +168,6 @@ for (const [id, desc, started, cleared] of [
 }
 
 const seaVictoryCheckpoint = QA_POINTS.find((point) => point.id === 'obj5_after');
-QA_POINTS.push({ ...seaVictoryCheckpoint, id: 'maillard_deck', desc: '마이야르호: 전함 등장 뒤 갑판',
+QA_POINTS.push({ ...seaVictoryCheckpoint, id: 'maillard_deck', desc: '마이야르호: 선창 도착·용준과 대화',
   map: 'maillard_deck', spawn: 'arrival',
   flags: { ...seaVictoryCheckpoint.flags, obj5_maillard_done: true }, party: [...seaVictoryCheckpoint.party] });
