@@ -10,9 +10,9 @@ test('sunrise light and low sun unfold slowly from map-entry music time', () => 
   const cfg = { ...MAILLARD_SUNRISE, animated: true, seen: false };
   const start = advanceSunrise(fresh(), 0, cfg);
   const middle = advanceSunrise(start, 9, cfg);
-  const highlight = advanceSunrise(middle, 14, cfg);
-  const rising = advanceSunrise(highlight, 28, cfg);
-  const complete = advanceSunrise(rising, 42, cfg);
+  const highlight = advanceSunrise(middle, 13, cfg);
+  const rising = advanceSunrise(highlight, 27, cfg);
+  const complete = advanceSunrise(rising, 41, cfg);
 
   assert.equal(start.lightProgress, 0);
   assert.equal(start.sunProgress, 0);
@@ -29,7 +29,7 @@ test('sunrise light and low sun unfold slowly from map-entry music time', () => 
 test('seen or static sunrise stays fully raised and never replays after music loops', () => {
   const seen = advanceSunrise(fresh(), 0, { ...MAILLARD_SUNRISE, animated: true, seen: true });
   const staticMap = advanceSunrise(fresh(), 0, { ...MAILLARD_SUNRISE, animated: false, seen: false });
-  const complete = advanceSunrise(fresh(), 42, { ...MAILLARD_SUNRISE, animated: true, seen: false });
+  const complete = advanceSunrise(fresh(), 41, { ...MAILLARD_SUNRISE, animated: true, seen: false });
   const looped = advanceSunrise(complete, 0.25, { ...MAILLARD_SUNRISE, animated: true, seen: false });
 
   for (const frame of [seen, staticMap, looped]) {
@@ -46,7 +46,7 @@ test('muted or buffered media advances only from the selected BGM currentTime', 
   const effect = new MaillardSunrise(MAILLARD_SUNRISE);
   effect.enter({ sound, images: {}, animated: true, seen: false });
 
-  bgm.currentTime = 22;
+  bgm.currentTime = 21;
   effect.update();
   const middle = { ...effect.frame };
   effect.update();

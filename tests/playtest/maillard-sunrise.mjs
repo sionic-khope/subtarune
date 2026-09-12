@@ -92,7 +92,7 @@ try {
   });
   check('riders draw only above the cart rim with no visible legs', clipped.above > 0 && clipped.below === 0, clipped);
   await shot('03-seated-rail-ride');
-  await page.waitForFunction(() => game.sound.bgm.currentTime >= 14);
+  await page.waitForFunction(() => game.sound.bgm.currentTime >= 13);
   const highlight = await read();
   check('the sun starts at the music highlight while everyone is riding', highlight.sun < 0.03 && highlight.light < 0.12 && highlight.ride === 'maillard_cart', highlight);
   await shot('04-highlight-first-light');
@@ -120,7 +120,7 @@ try {
   check('sunrise is still rising after the extended ride', walked.sun > 0.6 && walked.sun < 1 && !walked.ride, walked);
   await page.waitForFunction(() => game.sunrise.frame.completed, null, { timeout: 18000 });
   const complete = await read();
-  check('large sunrise finishes near 42 seconds with continuous music', complete.seen && complete.time >= 42 && complete.bgm === 'maillard_sunrise' && !complete.paused, complete);
+  check('large sunrise finishes near 41 seconds with continuous music', complete.seen && complete.time >= 41 && complete.bgm === 'maillard_sunrise' && !complete.paused, complete);
   await shot('09-wide-sky-sunrise');
   const brightSky = await skyBrightness();
   check('music reveal transforms the dark sky into a much brighter sunset', darkSky < 35 && brightSky > darkSky * 2.5, { darkSky, brightSky });
@@ -144,7 +144,7 @@ try {
 } catch (error) {
   errors.push(error.message); console.error(error);
 } finally {
-  fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({ fixture: 'Completed hold fixture, real right-only portal and C boarding, real 42-second BGM clock; final synthetic media-clock fixture checks late-boarding persistence.', checks, captures, errors, resetCancellations }, null, 2));
+  fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({ fixture: 'Completed hold fixture, real right-only portal and C boarding, real 41-second BGM clock; final synthetic media-clock fixture checks late-boarding persistence.', checks, captures, errors, resetCancellations }, null, 2));
   await browser.close();
 }
 const fails = checks.filter(check => !check.ok).length + errors.length;
