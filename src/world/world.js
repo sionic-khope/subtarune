@@ -10,7 +10,7 @@ import { CHARACTERS } from '../data/characters.js';
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
 export const RENDER_SCALE = 2;   // 물리 해상도 배율 (640x480). 2x 시트가 1:1 로 찍힌다
-export const STEP_DIST = 80;     // 발소리 최소 간격(px) — 달리기(218px/s) ≈ 초당 2번, 걷기 ≈ 1.3번 (긴 물방울 울림이 겹쳐 뭉개지지 않게)
+export const STEP_DIST = 80;     // 물결 고리 최소 간격(px) — 달리기(218px/s) ≈ 초당 2.7번, 걷기 ≈ 1.5번. 소리는 Sound.walk 루프(footstep 참고)
 export const CHAR_SCALE = 1.43;  // 캐릭터 추가 배율 (+30% → 2026-09-09 사용자 요청으로 +10% 더 = 1.43)
 
 // ── 타일맵 ───────────────────────────────────────────────────
@@ -346,27 +346,26 @@ export class Player extends Character {
     const prevFrame = this.frame;
     this.animate(dt, input.down('cancel') ? 8 : 12);
     if (this.moving) { this.recordTrail(); this.footstep(prevFrame); }
+    // 물 위 걷기 소리(영상 루프): 걷는 동안 이어 틀고, 멈추면 다음 걸음 직전에 끊는다 — audio.js walk (2026-09-12)
+    this.game.sound?.walk?.(this.moving ? this.stepTile() : null);
 
     // 밟는 트리거
     for (const e of this.game.entities) {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
   }
-  /** 발소리: 발 딛는 프레임(1·3)으로 넘어가는 순간 중 지난 발소리에서 STEP_DIST(80px) 이상 걸었을 때만, 밟고 있는 타일이 `step`(이름 또는 이름 배열)을 선언했으면(얕은 물 — 옵젝영역) 그중 한 걸음을 그대로 재생하고 물결 고리를 낸다.
-   *  거리 기준이라 달리기 ≈ 초당 2번(0.5s), 걷기 ≈ 1.3번 — 시간 기준(0.4s)은 달리기 주기(0.333s)와 엇갈려 걷기가 더 잦아졌다.
-   *  2026-09-11 사용자: "걸을 때마다 울리는 에코 물 밟는 소리" → 1차(프레임 1·3 전부, 초당 6번, 짧은 첨벙)는 "빈도 너무 많고 쫀득" → 물방울 '짤랑' 긴 울림을 드문드문 */
+  /** 물결 고리: 발 딛는 프레임(1·3)으로 넘어가는 순간 중 지난 고리에서 STEP_DIST(80px) 이상 걸었을 때, 발밑 타일이 `step`(물 위 걷기 소리 정의)이면 발밑에 물결을 낸다.
+   *  소리는 여기서 내지 않는다 — 걷는 동안 Sound.walk 가 영상 루프를 이어 튼다(2026-09-12: 걸음마다 파일을 트는 방식은 전부 "끊긴다"). */
   footstep(prevFrame) {
     if (this.frame === prevFrame || (this.frame !== 1 && this.frame !== 3)) return;
     const cx = this.x + this.w / 2, fy = this.y + this.h - 1;
     if (this.lastStepAt && Math.hypot(cx - this.lastStepAt[0], fy - this.lastStepAt[1]) < STEP_DIST) return;
-    const tile = this.game.map.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE));
-    if (!tile?.step) return;
+    if (!this.stepTile()) return;
     this.lastStepAt = [cx, fy];
-    const s = tile.step;
-    // 걸음마다 다른 파일 하나를 **그대로**(음높이·세기 손대지 않고) — 원본 영상 소리 그대로 들리게 (2026-09-12)
-    this.game.sound.sfx(Array.isArray(s) ? s[Math.floor(Math.random() * s.length)] : s, { volume: 0.75 });
     this.game.emitRipple?.(cx, fy - 2);
   }
+  /** 발밑 타일의 `step`(물 위 걷기 소리 정의, src/data/footsteps.js WATER_WALK) 또는 null */
+  stepTile() { const cx = this.x + this.w / 2, fy = this.y + this.h - 1; return this.game.map?.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE))?.step || null; }
   /** 동료가 따라올 발자국 기록 (이동한 프레임만) — Follower 가 뒤에서 이 자취를 따라 걷는다 */
   recordTrail() {
     if (!this.trail) this.trail = [];

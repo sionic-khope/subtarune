@@ -82,7 +82,80 @@ export class Sound {
     this.master.gain.value = 1.0;
     this.master.connect(this.ctx.destination);
     this._decodeVoices();
+    this._decodeWalk();
   }
+
+  // ── 물 위 걷기 루프 (2026-09-12 사용자 "영상 소리랑 그대로 나오고 싶다" · "각각의 발소리가 에코가 있는데 끊긴다" · "그냥 이거처럼 새로 만들면 안 되나") ──
+  //   걸음마다 파일을 따로 트는 방식은 전부 "끊긴다": 영상은 걸음이 초당 6번 겹치며 울림이 계속 깔리는 소리라 0.4~0.8초에 한 번 틀면 '한 번, 쉬고, 한 번' 이 된다.
+  //   그래서 걷는 동안 영상 구간(끊김 없는 루프 wav)을 WebAudio 로 표본 단위 루프 재생하고, 멈추면 시각표의 **다음 걸음 8ms 앞**에서 끊고 울림 꼬리(wav)를 이어 붙인다.
+  //   정의는 src/data/footsteps.js WATER_WALK(생성기 tools/audio/water_steps.py). 타일 step 이 그 객체면 Player 가 매 프레임 walk() 를 부른다.
+  /** 걷기 루프·꼬리 wav 를 받아 둔다(unlock 뒤 디코드) */
+  async loadWalkLoop(def) {
+    this.walkDef = def;
+    const grab = async (src) => { try { const r = await fetch(src); return r.ok ? await r.arrayBuffer() : null; } catch { return null; } };
+    const [loop, tail] = await Promise.all([grab(def.loop), grab(def.tail)]);
+    if (loop) this.walkRaw = { loop, tail };
+    if (this.ctx) this._decodeWalk();
+  }
+  async _decodeWalk() {
+    if (!this.ctx || !this.walkRaw || this.walkBuf || this._decodingWalk) return;
+    this._decodingWalk = true;
+    try {
+      const loop = await this.ctx.decodeAudioData(this.walkRaw.loop.slice(0));
+      const tail = this.walkRaw.tail ? await this.ctx.decodeAudioData(this.walkRaw.tail.slice(0)) : null;
+      this.walkBuf = { loop, tail };
+    } catch (e) { console.warn('[audio] 걷기 루프 디코드 실패', e); } finally { this._decodingWalk = false; }
+  }
+  /** 매 프레임(Player.update): def 면 걷는 중 → 루프를 틀거나 유지(멈추던 중이면 되살림), null 이면 멈춤 → 다음 걸음 직전에 끊고 울림 꼬리.
+   *  150ms 동안 안 불리면(전투·맵 전환·메뉴) 스스로 멈춘다. 음소거면 즉시 끊는다. */
+  walk(def) {
+    this._walkBeat = performance.now();
+    if (!def || this.muted) { if (this.w) { if (this.muted) this._walkKill(); else this._walkStop(); } return; }
+    if (!this.ctx || !this.walkBuf) { if (this.ctx && this.walkRaw) this._decodeWalk(); return; }
+    if (this.w) { if (this.w.stopping) this._walkResume(); return; }
+    this._walkStart(def);
+  }
+  _walkStart(def) {
+    const ctx = this.ctx, t = ctx.currentTime;
+    const src = ctx.createBufferSource(); src.buffer = this.walkBuf.loop; src.loop = true; src.loopStart = def.loopStart; src.loopEnd = def.loopEnd;
+    const g = ctx.createGain(); g.gain.value = def.volume; src.connect(g); g.connect(this.master);
+    // 아무 걸음 직전에서 시작 — 첫 소리가 항상 같은 걸음이 아니게
+    const o = def.onsets[Math.floor(Math.random() * def.onsets.length)] - def.cutBefore;
+    src.start(t, o); this.w = { src, g, def, t0: t, o, stopping: null }; this.walkStarts = (this.walkStarts || 0) + 1;
+    if (!this._walkWatch) this._walkWatch = setInterval(() => { if (this.w && !this.w.stopping && performance.now() - this._walkBeat > 150) this._walkStop(); if (!this.w) { clearInterval(this._walkWatch); this._walkWatch = null; } }, 100);
+  }
+  /** 루프 안 현재 위치(초) */
+  _walkPos(w, t) { const d = w.def, L = d.loopEnd - d.loopStart; return d.loopStart + (((w.o - d.loopStart) + (t - w.t0)) % L); }
+  _walkStop() {
+    const w = this.w; if (!w || w.stopping) return;
+    const ctx = this.ctx, d = w.def, t = ctx.currentTime, pos = this._walkPos(w, t), L = d.loopEnd - d.loopStart;
+    let next = d.onsets.find((x) => x - d.cutBefore > pos + 0.004); if (next === undefined) next = d.onsets[0] + L;
+    const cut = t + (next - d.cutBefore - pos), X = 0.008;
+    w.g.gain.setValueAtTime(d.volume, cut - X); w.g.gain.linearRampToValueAtTime(0.0001, cut);
+    let tail = null;
+    if (this.walkBuf.tail) { tail = ctx.createBufferSource(); tail.buffer = this.walkBuf.tail; const tg = ctx.createGain(); tg.gain.value = d.volume; tail.connect(tg); tg.connect(this.master); tail.start(cut - X); }
+    const timer = setTimeout(() => { try { w.src.stop(); } catch {} if (this.w === w) this.w = null; }, (cut - t) * 1000 + 40);
+    w.stopping = { cut, tail, timer };
+  }
+  /** 멈추던 중에 다시 걸으면: 아직 안 끊었으면 그대로 잇고, 이미 끊었으면 새로 튼다(꼬리는 그대로 둔다) */
+  _walkResume() {
+    const w = this.w, s = w.stopping, t = this.ctx.currentTime;
+    clearTimeout(s.timer);
+    if (t >= s.cut - 0.008) { try { w.src.stop(); } catch {} this.w = null; this._walkStart(w.def); return; }
+    w.g.gain.cancelScheduledValues(t); w.g.gain.setValueAtTime(w.def.volume, t);
+    if (s.tail) { try { s.tail.stop(); } catch {} }
+    w.stopping = null;
+  }
+  /** 즉시 끊기(음소거) */
+  _walkKill() {
+    const w = this.w; if (!w) return; const t = this.ctx.currentTime;
+    if (w.stopping) { clearTimeout(w.stopping.timer); if (w.stopping.tail) { try { w.stopping.tail.stop(); } catch {} } }
+    try { w.g.gain.cancelScheduledValues(t); w.g.gain.setValueAtTime(0.0001, t); w.src.stop(t + 0.02); } catch {}
+    this.w = null;
+  }
+  /** 테스트용: 재생 중이면 { stopping, pos } */
+  get walkState() { const w = this.w; return w ? { stopping: !!w.stopping, pos: +this._walkPos(w, this.ctx.currentTime).toFixed(3) } : null; }
+
 
   tone(opts = {}) {
     if (!this.ctx || this.muted) return;
