@@ -47,6 +47,7 @@ map_data = {
     'id': 'obj5', 'name': '옵젝영역 해안', 'bgm': 'baron_intro',
     'stage': 'void_fallen', 'dim': 0, 'backdrop': 'obj_forest', 'rows': rows,
     'enter': {'script': 'obj5_resume'},
+    'preload': ['assets/props/wooden_gun.png'],
     'spawns': {
         'start': {'x': 60, 'y': 328, 'facing': 'right'},
         'from_left': {'x': 60, 'y': 328, 'facing': 'right'},

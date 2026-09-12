@@ -6,6 +6,7 @@ import { makeCanvas, artToCanvas, flipH, mulberry32 } from '../core/gfx.js';
 import { TILE, getTile, tileCanvas } from './tiles.js';
 import { TORSO, LEGS, WALK_CYCLE, PALETTES } from '../data/art.js';
 import { CHARACTERS } from '../data/characters.js';
+import { storyExitScript } from '../core/story.js';
 
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
@@ -509,6 +510,8 @@ export class Door extends Trigger {
   }
   update(dt) { if (this.def.interact) { if (this.cooldown > 0) this.cooldown -= dt; return; } super.update(dt); }
   fire(done) {
+    const storyScript = storyExitScript(this.game.mapId, this.def.to, this.game.flags);
+    if (storyScript) { this.game.runScript(storyScript, done); return; }
     if (this.def.requires && !this.game.has(this.def.requires)) {
       if (this.def.lockedScript) this.game.runScript(this.def.lockedScript, done); else done();
       return;

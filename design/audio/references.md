@@ -132,3 +132,15 @@ ffmpeg -i assets/source/cannon-guard-v1/audio/snd_chargeshot_fire.wav -af 'asetr
 ```sh
 yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/baron_sea_battle.%(ext)s' 'https://www.youtube.com/watch?v=QvoQVCBqegU'
 ```
+
+### 마이야르호 등장·관객 박수 (2026-09-12)
+
+- 등장곡 `maillard_reveal`: 사용자 지정 [Rouxls Kaard — Toby Fox](https://www.youtube.com/watch?v=yfC8OU2YtNo), 영상 ID `yfC8OU2YtNo`. yt-dlp에서 제목·업로더·19초 메타데이터 확인 후 오디오 포맷 251 전체를 MP3 품질 2로 변환했다. `assets/audio/bgm/maillard_reveal.mp3`: **19.009917초, 48kHz 스테레오, 489,068바이트**. 트리밍·페이드·음높이·속도·음량 변경 없음. BGM은 파일 이름으로 자동 연결되며 전환 전에 `preloadBgm('maillard_reveal')`, 등장 시 `fadeIn:0`으로 첫 박부터 재생한다.
+- 거대한 물 충돌 `maillard_splash`: Alexander / Orange Free Sounds, [Large Water Splash With Heavy Surface Impact – Realistic Splash Sound Effect](https://orangefreesounds.com/large-water-splash-with-heavy-surface-impact-realistic-splash-sound-effect/), [원본 MP3](https://orangefreesounds.com/wp-content/uploads/2026/02/Large-water-splash-with-heavy-surface-impact-realistic-splash-sound-effect.mp3). [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)로 제공되며 이 프로젝트의 비수익 팬게임 용도에 사용한다. `assets/audio/sfx/maillard_splash.mp3`: **8.254667초, 44.1kHz 스테레오, 198,112바이트**. 다운로드한 파일 그대로 보존했다. 첫 0.144초는 -35dBFS 이하이며 이후 수면 충돌·물 잔향이 이어진다. 기존 뗏목용 `splash`(0.87초 합성 첨벙)는 별도 유지한다.
+- 관객 박수 `maillard_applause`: Alexander / Orange Free Sounds, [Large Crowd Applause Sound Effect](https://orangefreesounds.com/large-crowd-applause-sound-effect/), [원본 MP3](https://www.orangefreesounds.com/wp-content/uploads/2016/11/Large-crowd-applause-sound-effect.mp3). [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `assets/audio/sfx/maillard_applause.mp3`: **9.116688초, 44.1kHz 스테레오, 145,867바이트**. 다운로드한 파일 그대로 보존했다. 첫 박수는 약 0.20초부터 시작하고 초반 0.55초에 걸쳐 밀도가 올라간다. 웃음은 기존 사용자 지정 `laugh_junhee`를 재사용한다.
+- 두 SFX를 `src/main.js`의 `loadSfxFiles`에 등록했다. 전체 파일을 한 번 재생하며 런타임 구간 루프나 새 합성 대체음을 추가하지 않는다. 이 출처·저작자·라이선스 기록은 배포되는 프로젝트와 함께 유지한다.
+- 파일 검증: 세 파일의 ffprobe 규격·길이 확인 및 ffmpeg 전체 디코드 성공. 평균/peak: 등장곡 -14.0/-1.3dBFS, 물 충돌 -21.2/-0.1dBFS, 박수 -22.7/-1.0dBFS. 파일 검증이며 실제 게임 청취 평가는 별도다.
+
+```sh
+yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/maillard_reveal.%(ext)s' 'https://www.youtube.com/watch?v=yfC8OU2YtNo'
+```

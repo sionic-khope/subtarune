@@ -28,6 +28,9 @@
  "enter": {
   "script": "obj5_resume"
  },
+ "preload": [
+  "assets/props/wooden_gun.png"
+ ],
  "spawns": {
   "start": {
    "x": 60,

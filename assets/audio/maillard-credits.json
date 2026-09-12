@@ -1,0 +1,24 @@
+{
+  "maillard_reveal": {
+    "title": "Rouxls Kaard",
+    "creator": "Toby Fox",
+    "source": "https://www.youtube.com/watch?v=yfC8OU2YtNo",
+    "note": "User-selected original music; rights remain with the original rights holder."
+  },
+  "maillard_splash": {
+    "title": "Large Water Splash With Heavy Surface Impact",
+    "creator": "Alexander / Orange Free Sounds",
+    "source": "https://orangefreesounds.com/large-water-splash-with-heavy-surface-impact-realistic-splash-sound-effect/",
+    "license": "CC BY-NC 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "changes": "None. Noncommercial use only."
+  },
+  "maillard_applause": {
+    "title": "Large Crowd Applause Sound Effect",
+    "creator": "Alexander / Orange Free Sounds",
+    "source": "https://orangefreesounds.com/large-crowd-applause-sound-effect/",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "None."
+  }
+}

@@ -111,6 +111,8 @@ registerTile('=', {
 registerTile('#', { name: 'wall', solid: true, art: TILE_ART.wall });
 registerTile('T', { name: 'tree', solid: true, art: TILE_ART.tree, drawOver: ',' });
 registerTile('D', { name: 'door', solid: false, art: TILE_ART.door });
+registerTile('M', { name: 'maillard_deck', solid: false,
+  draw: (ctx) => { ctx.fillStyle = '#785132'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
 registerTile('B', { name: 'bed', solid: false, art: TILE_ART.bed, drawOver: '.' });   // 침대 위로 올라갈 수 있음(눕기 연출)

@@ -53,10 +53,64 @@ test('obj5 music follows boarding and the active or cleared sea phase', () => {
 
 test('chest grant is idempotent and hands control to sea mode without a turn battle', () => {
   const nodes = SCRIPTS.obj5_chase;
-  assert.ok(nodes.some((n) => n.seaChase));
+  assert.ok(nodes.some((n) => n.seaChase || n.parallel?.some((part) => part.seaChase)));
   assert.equal(nodes.some((n) => n.battle), false);
   const grant = nodes.find((n) => n.action && n.action.toString().includes('inventory.push'));
   const game = { inventory: [], flags: {}, has(flag) { return this.flags[flag]; }, setFlag(flag) { this.flags[flag] = true; } };
   grant.action(game); grant.action(game);
   assert.deepEqual(game.inventory, ['나무총']);
+});
+
+test('test_obj5_pickup_waits_for_closed_dialogue_before_boarding', () => {
+  const nodes = SCRIPTS.obj5_chase;
+  const instruction = nodes.findIndex((node) => node.text === '* 어서 이거 타고 쫒아가자. 그거 챙겨');
+  const boarding = nodes.findIndex((node, index) => index > instruction && node.move);
+  const game = {
+    inventory: [], flags: {},
+    has(flag) { return this.flags[flag]; },
+    setFlag(flag) { this.flags[flag] = true; },
+    textbox: { state: 'waiting', close() { this.state = 'closed'; } },
+  };
+  let quietBeat = 0;
+  for (const node of nodes.slice(instruction + 1, boarding)) {
+    if (node.action?.toString().includes('inventory.push')) {
+      assert.equal(game.textbox.state, 'closed', 'instruction must disappear before taking the gun');
+      assert.ok(quietBeat >= 0.2, 'leave a visible quiet beat before pickup');
+      node.action(game);
+      break;
+    }
+    node.action?.(game);
+    if (game.textbox.state === 'closed' && node.wait) quietBeat += node.wait;
+  }
+  assert.deepEqual(game.inventory, ['나무총']);
+  assert.equal(game.textbox.state, 'closed', 'boarding must not retain the instruction');
+  assert.deepEqual(nodes.slice(boarding).filter((node) => node.move).map((node) => node.move), ['player', 'ppaman', 'gyeongsub']);
+});
+
+test('test_obj5_sea_handoff_opens_under_white_then_reveals_the_scene', () => {
+  const nodes = SCRIPTS.obj5_chase;
+  const sea = nodes.findIndex((node) => node.label === 'sea');
+  assert.deepEqual(nodes[sea + 1], { fade: 'white', duration: 0.18 });
+  assert.ok(nodes[sea + 2].wait > 0);
+  assert.deepEqual(nodes[sea + 3].parallel, [{ seaChase: true }, { fade: 'in', duration: 0.28 }]);
+});
+
+test('test_obj5_pending_retry_does_not_automatically_restart_on_entry', () => {
+  const flags = { obj5_chase_started: true, obj5_chase_retry_pending: true };
+  assert.equal(SCRIPTS.obj5_resume[0].if(flags), true);
+  assert.equal(SCRIPTS.obj5_resume[0].goto, 'retry_dock');
+  assert.equal(SCRIPTS.obj5_chase[0].if(flags), true);
+  assert.equal(SCRIPTS.obj5_chase[0].goto, 'retry');
+});
+
+test('test_obj5_pending_raft_interaction_offers_retry_without_boarding', () => {
+  let boarded = 0, prompts = 0;
+  const raft = { id: 'obj5_raft', interact() { boarded++; return true; } };
+  const game = { entities: [raft], promptSeaRetry() { prompts++; } };
+  const setup = SCRIPTS.obj5_resume.find((node) => node.action);
+  assert.ok(setup, 'pending dock must replace free raft departure');
+  setup.action(game);
+  assert.equal(raft.interact(), true);
+  assert.equal(prompts, 1);
+  assert.equal(boarded, 0);
 });

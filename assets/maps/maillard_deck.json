@@ -1,0 +1,58 @@
+{
+ "id": "maillard_deck",
+ "name": "마이야르호 갑판",
+ "stage": "void_fallen",
+ "bgm": null,
+ "dim": 0,
+ "backdrop": "maillard_sea",
+ "rows": [
+  "                    ",
+  "                    ",
+  "                    ",
+  "                    ",
+  "                    ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMM ",
+  "                    "
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/backdrops/maillard_sea.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 308,
+   "y": 264,
+   "facing": "up"
+  },
+  "arrival": {
+   "x": 308,
+   "y": 264,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "player": [
+    308,
+    264
+   ],
+   "gyeongsub": [
+    244,
+    296
+   ],
+   "ppaman": [
+    372,
+    296
+   ]
+  }
+ },
+ "entities": []
+}

@@ -18,6 +18,13 @@ try {
   await page.waitForFunction(() => !!window.game?.player);
   await page.keyboard.press('KeyX', { delay: 65 });
   await page.waitForFunction(() => !game.dialogue.running && game.fade.alpha === 0);
+  await page.evaluate(() => {
+    const start = game.startSeaChase.bind(game);
+    game.startSeaChase = (...args) => {
+      window.seaTransition = { alpha: game.fade.alpha, color: game.fade.color };
+      return start(...args);
+    };
+  });
   await shot('01_approach');
   const start = Date.now();
   await page.keyboard.down('ArrowRight');
@@ -32,8 +39,29 @@ try {
       if (!lines.includes(state.text)) {
         lines.push(state.text);
         await shot(`line_${lines.length}`);
+        if (lines.length <= 2) {
+          const standing = () => page.evaluate(() => ({
+            actors: [game.player, ...game.entities.filter((entity) => ['ppaman', 'gyeongsub'].includes(entity.id))]
+              .map((entity) => ({ id: entity.id || 'player', x: entity.x, y: entity.y, moving: entity.moving })),
+            chestHeight: game.entities.find((entity) => entity.id === 'gun_chest').image.height,
+            gunTaken: game.has('obj5_gun_taken'),
+          }));
+          const before = await standing();
+          await page.waitForTimeout(300);
+          const after = await standing();
+          check(`party stands still during chest line ${lines.length}`, before.actors.length === 3 &&
+            before.actors.every((actor) => !actor.moving) && JSON.stringify(before.actors) === JSON.stringify(after.actors), { before, after });
+          check(`chest is open before line ${lines.length}, gun not yet taken`, after.chestHeight === 30 && !after.gunTaken, after);
+        }
       }
       await press();
+      if (state.text === '* 어서 이거 타고 쫒아가자. 그거 챙겨') {
+        const beat = await page.evaluate(() => ({ box: game.textbox.state, taken: game.has('obj5_gun_taken'), moving: game.player.moving }));
+        check('instruction closes before pickup and boarding', beat.box === 'closed' && !beat.taken && !beat.moving, beat);
+        await page.waitForFunction(() => game.has('obj5_gun_taken'));
+        await shot('pickup');
+        check('pickup happens while the party is still standing', await page.evaluate(() => game.textbox.state === 'closed' && !game.player.moving));
+      }
     }
     await page.waitForTimeout(65);
   }
@@ -45,6 +73,7 @@ try {
   ]), lines);
   check('gun obtained once and raft retained', state.items.filter(item => item === '나무총').length === 1 && state.ride === 'obj5_raft', state);
   check('waits for real tutorial C', state.phase === 'tutorial');
+  check('white cover hides the scene and raft-size switch', await page.evaluate(() => seaTransition.alpha === 1 && seaTransition.color === '255,255,255' && game.fade.alpha === 0));
   await shot('08_tutorial');
   await press();
   await page.waitForFunction(() => game.seaChase?.model.phase === 'tutorial-hit');

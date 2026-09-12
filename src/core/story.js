@@ -31,6 +31,15 @@ export function storyBgm(mapId, flags) {
   return undefined;
 }
 
+const PURSUIT_EXITS = { obj0: 'obj1', obj1: 'obj2', obj2: 'obj5', obj3: 'obj2', obj4: 'obj3', obj5: null };
+
+/** 납치 추격 중에는 문으로 우회하거나 직전 구역으로 돌아갈 수 없다. */
+export function storyExitScript(mapId, destination, flags) {
+  if (!flags.obj4_abduction_done || flags.obj5_maillard_done) return undefined;
+  if (Object.hasOwn(PURSUIT_EXITS, mapId) && PURSUIT_EXITS[mapId] !== destination) return 'chase_route_block';
+  return undefined;
+}
+
 /** 스토리 단계. flags 객체를 공유해서 단계 도달 = 플래그 세팅. */
 export class Story {
   constructor(flags) { this.flags = flags; this.index = 0; }
@@ -151,9 +160,14 @@ const chaseCheckpoint = QA_POINTS.find((point) => point.id === 'obj4_after');
 for (const [id, desc, started, cleared] of [
   ['obj5', '옵젝영역5: 해안 풀숲길·나무총 상자·뗏목 승선', false, false],
   ['obj5_sea', '바론 바다 추격: 용준·나무총 사격', true, false],
-  ['obj5_after', '바론 바다 추격: 첫 체력 소진 뒤 대치', true, true],
+  ['obj5_after', '바론 바다 추격: 마이야르호 등장 직전', true, true],
 ]) {
   QA_POINTS.push({ ...chaseCheckpoint, id, desc, map: 'obj5', spawn: 'from_left',
     flags: { ...chaseCheckpoint.flags, ...(started ? { obj5_gun_taken: true, obj5_boarding_seen: true, obj5_chase_started: true } : {}), ...(cleared ? { obj5_chase_cleared: true } : {}) },
     party: [...chaseCheckpoint.party] });
 }
+
+const seaVictoryCheckpoint = QA_POINTS.find((point) => point.id === 'obj5_after');
+QA_POINTS.push({ ...seaVictoryCheckpoint, id: 'maillard_deck', desc: '마이야르호: 전함 등장 뒤 갑판',
+  map: 'maillard_deck', spawn: 'arrival',
+  flags: { ...seaVictoryCheckpoint.flags, obj5_maillard_done: true }, party: [...seaVictoryCheckpoint.party] });

@@ -29,6 +29,7 @@ import { teal7_hide } from './cutscenes/teal7_hide.js';
 import { obj4_baron_intro } from './cutscenes/obj4_baron.js';
 import { obj4_baron_abduction } from './cutscenes/obj4_abduction.js';
 import { obj5_chase, obj5_resume } from './cutscenes/obj5_chase.js';
+import { obj5_maillard } from './cutscenes/obj5_maillard.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -44,6 +45,8 @@ export const SCRIPTS = {
   obj4_baron_abduction,
   obj5_chase,
   obj5_resume,
+  obj5_maillard,
+  chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
 
   _chest_empty: [{ text: '* 상자는 비어 있다.', voice: 'narrator' }],
 
