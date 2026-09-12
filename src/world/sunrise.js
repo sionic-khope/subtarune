@@ -63,12 +63,24 @@ export class MaillardSunrise {
     if (!this.active) return;
     const light = this.frame.lightProgress;
     const rise = this.frame.sunProgress;
+    const glowProgress = this.frame.completed ? 1 : clamp((this.frame.lastAudioTime - this.config.glowStartSeconds) / this.config.glowDurationSeconds);
+    const glow = glowProgress * glowProgress * (3 - 2 * glowProgress);
     const sky = this.images[this.config.sky];
     ctx.save();
     ctx.fillStyle = this.config.colors.sea; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (sky) drawCover(ctx, sky);
-    ctx.globalAlpha = 0.68 * (1 - light); ctx.fillStyle = this.config.colors.cool; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-    ctx.globalAlpha = 0.18 * light; ctx.fillStyle = this.config.colors.warm; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.globalAlpha = 0.88 * (1 - light); ctx.fillStyle = this.config.colors.cool; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.globalAlpha = 0.26 * light; ctx.fillStyle = this.config.colors.warm; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    const atmosphere = ctx.createLinearGradient(0, this.config.horizonY - 100, 0, this.config.horizonY + 120);
+    atmosphere.addColorStop(0, `${this.config.colors.atmosphere}00`);
+    atmosphere.addColorStop(0.38, this.config.colors.atmosphere);
+    atmosphere.addColorStop(0.46, this.config.colors.gold);
+    atmosphere.addColorStop(0.6, this.config.colors.atmosphere);
+    atmosphere.addColorStop(1, `${this.config.colors.atmosphere}00`);
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = glow * 0.27;
+    ctx.fillStyle = atmosphere; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
     const [sunX, finalSunY] = this.config.sunCenter;
     const radius = this.config.sunDiameter / 2;
@@ -89,7 +101,7 @@ export class MaillardSunrise {
       const y = this.config.horizonY + 7 + i * 11;
       const shimmer = Math.sin(this.frame.lastAudioTime * 1.5 + i * 1.7);
       const width = Math.max(0, Math.round((8 + i * 3 + shimmer * 5) * light));
-      ctx.globalAlpha = light * (0.24 - i * 0.012);
+      ctx.globalAlpha = light * (0.24 - i * 0.012) + glow * 0.1;
       ctx.fillRect(Math.round(sunX - width / 2 + shimmer * 4), y, width, 2);
     }
     const streak = light;

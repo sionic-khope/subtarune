@@ -14,7 +14,7 @@ test('arrival cabin is enclosed timber with wind and no exterior backdrop', () =
   assert.ok(map.entities.some(entity => entity.id === 'hold_stairs' && entity.script === undefined));
   const stairsDoor = map.entities.find(entity => entity.id === 'hold_stairs_door');
   assert.deepEqual([stairsDoor.interact, stairsDoor.requires, stairsDoor.lockedScript, stairsDoor.to, stairsDoor.spawn],
-    [true, 'maillard_hold_done', 'maillard_hold_stairs', 'maillard_path', 'from_hold']);
+    [false, 'maillard_hold_done', 'maillard_hold_stairs', 'maillard_path', 'from_hold']);
 });
 
 test('hold arrival has a one-time completion gate and tracked rightward departure', () => {

@@ -10,6 +10,13 @@ const checks = [], errors = [], captures = [], resetCancellations = [];
 let resettingFixture = false;
 const check = (name, ok, detail) => { checks.push({ name, ok, detail }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, detail ?? ''); };
 const shot = async name => { await page.screenshot({ path: path.join(shots, name + '.png') }); captures.push(name); };
+const skyBrightness = () => page.evaluate(() => {
+  const canvas = document.getElementById('screen');
+  const pixels = canvas.getContext('2d').getImageData(Math.round(canvas.width * 0.05), Math.round(canvas.height * 0.05), Math.round(canvas.width * 0.9), Math.round(canvas.height * 0.25)).data;
+  let brightness = 0;
+  for (let i = 0; i < pixels.length; i += 4) brightness += pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722;
+  return brightness / (pixels.length / 4);
+});
 page.on('pageerror', error => errors.push(error.message));
 page.on('requestfailed', request => {
   const failure = request.failure()?.errorText;
@@ -36,20 +43,24 @@ const read = () => page.evaluate(() => {
   };
 });
 try {
+  resettingFixture = true;
   await page.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/?qa=maillard_path`);
   await page.waitForFunction(() => game?.mapId === 'maillard_path');
   await page.evaluate(() => {
+    window.initialFixtureBgm = game.sound.bgm;
     game.setFlag('maillard_hold_done');
     game.changeMap('maillard_deck', 'from_path', true, { enter: false });
   });
-  await page.keyboard.press('ArrowRight', { delay: 1100 });
-  const door = await page.evaluate(() => ({ facing: game.player.facing, target: game.player.probe()?.id, x: game.player.x }));
-  check('right-facing interaction works at the far end of the stairs', door.facing === 'right' && door.target === 'hold_stairs_door', door);
-  await shot('01-stairs-facing-right');
-  await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => window.initialFixtureBgm.getAttribute('src') === '');
+  await shot('01-stairs-approach');
+  resettingFixture = false;
+  await page.keyboard.down('ArrowRight');
+  await page.waitForFunction(() => game.mapId === 'maillard_path', null, { timeout: 4000 });
+  await page.keyboard.up('ArrowRight');
   await page.waitForFunction(() => game.mapId === 'maillard_path' && !game.transitioning);
-  check('stairs enter the deck without turning around', (await read()).map === 'maillard_path');
+  check('stairs enter the deck by walking right with zero confirm input', (await read()).map === 'maillard_path');
   await shot('02-lower-deck-dark');
+  const darkSky = await skyBrightness();
   await page.evaluate(() => {
     window.cartSounds = [];
     const original = game.sound.sfx.bind(game.sound);
@@ -101,6 +112,8 @@ try {
   const complete = await read();
   check('large sunrise finishes near 42 seconds with continuous music', complete.seen && complete.time >= 42 && complete.bgm === 'maillard_sunrise' && !complete.paused, complete);
   await shot('08-wide-sky-sunrise');
+  const brightSky = await skyBrightness();
+  check('music reveal transforms the dark sky into a much brighter sunset', darkSky < 35 && brightSky > darkSky * 2.5, { darkSky, brightSky });
   resettingFixture = true;
   await page.evaluate(() => game.continueGame());
   const continued = await read();
@@ -121,7 +134,7 @@ try {
 } catch (error) {
   errors.push(error.message); console.error(error);
 } finally {
-  fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({ fixture: 'Completed hold fixture, real right/C portal and boarding, real 42-second BGM clock; final synthetic media-clock fixture checks late-boarding persistence.', checks, captures, errors, resetCancellations }, null, 2));
+  fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({ fixture: 'Completed hold fixture, real right-only portal and C boarding, real 42-second BGM clock; final synthetic media-clock fixture checks late-boarding persistence.', checks, captures, errors, resetCancellations }, null, 2));
   await browser.close();
 }
 const fails = checks.filter(check => !check.ok).length + errors.length;

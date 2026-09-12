@@ -46,13 +46,13 @@ test('muted or buffered media advances only from the selected BGM currentTime', 
   const effect = new MaillardSunrise(MAILLARD_SUNRISE);
   effect.enter({ sound, images: {}, animated: true, seen: false });
 
-  bgm.currentTime = 26;
+  bgm.currentTime = 22;
   effect.update();
   const middle = { ...effect.frame };
   effect.update();
 
   assert.equal(middle.lightProgress, 0.5);
-  assert.ok(middle.sunProgress > 0.35 && middle.sunProgress < 0.45);
+  assert.ok(middle.sunProgress > 0.28 && middle.sunProgress < 0.29);
   assert.deepEqual(effect.frame, middle);
 });
 

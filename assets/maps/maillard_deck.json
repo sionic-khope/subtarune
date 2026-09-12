@@ -43,7 +43,7 @@
    "facing": "up"
   },
   "from_path": {
-   "x": 760,
+   "x": 640,
    "y": 248,
    "facing": "right"
   }
@@ -127,7 +127,7 @@
    "requires": "maillard_hold_done",
    "lockedScript": "maillard_hold_stairs",
    "sfx": false,
-   "interact": true
+   "interact": false
   },
   {
    "type": "npc",
