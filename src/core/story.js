@@ -178,14 +178,3 @@ const maillardDeckCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_
 QA_POINTS.push({ ...maillardDeckCheckpoint, id: 'maillard_path', desc: '마이야르호: 일출 갑판 길',
   map: 'maillard_path', spawn: 'from_hold',
   flags: { ...maillardDeckCheckpoint.flags, maillard_hold_done: true }, party: [...maillardDeckCheckpoint.party] });
-
-const maillardPathCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_path');
-for (const [id, spawn, desc] of [
-  ['maillard_chakgeom', 'chakgeom', '마이야르호: 잠 못 잔 착검 앞'],
-  ['maillard_tarts', 'tarts', '마이야르호: 파랑이·노랑이 에그타르트'],
-  ['maillard_wemix', 'wemix', '마이야르호: 위믹스 앞'],
-]) {
-  QA_POINTS.push({ ...maillardPathCheckpoint, id, spawn, desc,
-    flags: { ...maillardPathCheckpoint.flags, maillard_cart_done: true, maillard_sunrise_seen: true },
-    party: [...maillardPathCheckpoint.party] });
-}

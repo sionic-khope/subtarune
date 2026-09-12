@@ -12,12 +12,18 @@ async function open(qa) {
   const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'warning' && message.text().includes('cutscene')) errors.push(message.text()); });
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8770'}/?qa=${qa}`);
+  await page.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/?qa=maillard_path`);
   await page.waitForFunction(() => game?.player && game.state === 'field' && !game.dialogue.running);
+  await page.evaluate(async (id) => {
+    game.flags.maillard_cart_done = true;
+    game.flags.maillard_sunrise_seen = true;
+    await game.changeMap('maillard_path', id.replace('maillard_', ''), true, { enter: false });
+  }, qa);
+  await page.waitForTimeout(350);
   await page.keyboard.press('KeyX');
   return page;
 }
-async function talk(page, name, automatic = false) {
+async function talk(page, name) {
   const lines = [], seen = new Set();
   await page.keyboard.press('KeyC');
   await page.waitForFunction(() => game.dialogue.running);
@@ -26,18 +32,19 @@ async function talk(page, name, automatic = false) {
     const state = await page.evaluate(() => {
       const e = game.entities.find(e => e.id === 'wemix');
       return { running: game.dialogue.running, text: game.textbox.node?.text, speaker: game.textbox.node?.speaker,
-        voice: game.textbox.node?.voice, box: game.textbox.state, hop: e?.hopY || 0, dead: e?.dead };
+        voice: game.textbox.node?.voice, timed: game.textbox.node?.cut > 0 || game.textbox.node?.auto > 0,
+        box: game.textbox.state, hop: e?.hopY || 0, dead: e?.dead, remix: window.remixPlayed || 0 };
     });
     if (!state.running) break;
     if (state.text && !seen.has(state.text)) {
-      seen.add(state.text); lines.push({ text: state.text, speaker: state.speaker, voice: state.voice });
+      seen.add(state.text); lines.push({ text: state.text, speaker: state.speaker, voice: state.voice, remix: state.remix });
     }
     if (state.hop > 12 && !seen.has('jump')) { seen.add('jump'); await shot(page, `${name}-jump`); }
     if (state.hop < -45 && !state.dead && !seen.has('fall')) { seen.add('fall'); await shot(page, `${name}-fall`); }
     if (state.box === 'waiting' && state.text && !seen.has(`shot:${state.text}`)) {
       seen.add(`shot:${state.text}`); await shot(page, `${name}-line-${lines.length}`);
     }
-    if (!automatic && state.box !== 'closed') await page.keyboard.press('KeyC');
+    if (!state.timed && state.box !== 'closed') await page.keyboard.press('KeyC');
     await page.waitForTimeout(70);
   }
   check(`${name} returns field control`, await page.evaluate(() => !game.dialogue.running));
@@ -49,13 +56,20 @@ try {
   const first = await open('maillard_chakgeom');
   check('all four requested sprite assets loaded', await first.evaluate(() => ['chakgeom', 'parang', 'norang', 'wemix'].every(id => !!game.spriteOverrides[id])));
   await shot(first, 'chakgeom-before');
+  const positions = () => first.evaluate(() => [game.player, ...game.entities.filter(e => ['gyeongsub', 'ppaman'].includes(e.id))].map(e => [e.id, e.x, e.y]));
+  const originalPositions = await positions();
   const greeting = await talk(first, 'chakgeom');
   check('chakgeom opens politely and completes his scene', greeting.lines[0]?.text.includes('안녕하세요 형님들') && await first.evaluate(() => game.flags.maillard_chakgeom_seen));
-  await first.evaluate(() => game.changeMap('maillard_path', 'chakgeom', true, { enter: false }));
-  await talk(first, 'chakgeom-repeat');
+  const repeat = await talk(first, 'chakgeom-repeat');
+  check('chakgeom leaves party where addressed and repeat skips the event', JSON.stringify(originalPositions) === JSON.stringify(await positions()) && repeat.lines.length === 1 && !repeat.lines[0].text.includes('안녕하세요'));
   await first.close();
 
   const pair = await open('maillard_tarts');
+  await pair.evaluate(() => {
+    window.itemSounds = 0;
+    const sfx = game.sound.sfx.bind(game.sound);
+    game.sound.sfx = (id, ...args) => { if (id === 'item') window.itemSounds++; return sfx(id, ...args); };
+  });
   await shot(pair, 'pair-original-art');
   const gift = await talk(pair, 'pair');
   const count = () => pair.evaluate(() => game.inventory.filter(name => name === '에그타르트').length);
@@ -66,6 +80,7 @@ try {
   check('yellow friend can also be addressed', await pair.evaluate(() => game.player.probe()?.id === 'norang'));
   await talk(pair, 'pair-repeat-yellow');
   check('shared gift cannot be duplicated by talking to the other friend', await count() === 2);
+  check('item receipt uses existing yellow markup and one item sound', gift.lines.some(line => line.text.includes('{c=yellow}에그타르트{/c}')) && await pair.evaluate(() => window.itemSounds === 1));
   const healing = await pair.evaluate(() => {
     game.partyHp.gyeongsub = 1;
     const first = game.useItemOn('에그타르트', 'gyeongsub');
@@ -95,7 +110,10 @@ try {
   });
   check('requested remix is loaded as the real audio file', await exit.evaluate(() => game.sound.files.wemix_remix?.readyState >= 3 && game.sound.files.wemix_remix.duration > 2));
   await shot(exit, 'wemix-before');
-  const falling = await talk(exit, 'wemix', true);
+  const falling = await talk(exit, 'wemix');
+  const introduction = falling.lines.findIndex(line => line.speaker === '억빠맨' && line.text.includes('어 이거 위믹스네요'));
+  const remixLine = falling.lines.findIndex(line => line.speaker === '위믹스' && line.text.includes('위믹스~'));
+  check('wemix waits for silence and recognition before the remix', introduction > 0 && remixLine > introduction && falling.lines.slice(0, introduction + 1).every(line => line.remix === 0));
   check('wemix visibly jumps and falls with real audio playback and no additional input', falling.seen.has('jump') && falling.seen.has('fall') && await exit.evaluate(() => window.remixPlayed === 1 && window.remixAudios.some(audio => audio.currentTime > 1) && game.flags.maillard_wemix_gone));
   check('requested reaction follows the fall', falling.lines.some(line => line.speaker === '억빠맨' && line.text.includes('어 위믹스 어 떨어졌네')) && falling.lines.some(line => line.voice === 'narrator' && line.text.includes('씨발')));
   await exit.evaluate(() => { game.autosave(); game.continueGame(); });
@@ -103,6 +121,24 @@ try {
   check('wemix stays gone after continue and sunset music remains', await exit.evaluate(() => !game.entities.some(e => e.id === 'wemix' && !e.dead) && game.sound.bgmName === 'maillard_sunrise'));
   await shot(exit, 'wemix-gone');
   await exit.close();
+  const menu = await browser.newPage({ viewport: { width: 1000, height: 780 } });
+  await menu.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/`);
+  await menu.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'wait');
+  await menu.keyboard.press('KeyX');
+  await menu.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'zoom');
+  await menu.keyboard.press('KeyC');
+  await menu.waitForFunction(() => game.title?.phase === 'locked');
+  await menu.keyboard.press('KeyQ');
+  await menu.waitForFunction(() => !!game.title?.qa);
+  await menu.keyboard.press('ArrowUp');
+  await menu.waitForTimeout(200);
+  await shot(menu, 'q-menu-map-entry');
+  check('Q retains the map entry without per-NPC shortcuts', await menu.evaluate(async () => {
+    const { QA_POINTS } = await import('/src/core/story.js');
+    return QA_POINTS.some(point => point.id === 'maillard_path') &&
+      !QA_POINTS.some(point => ['maillard_chakgeom', 'maillard_tarts', 'maillard_wemix'].includes(point.id));
+  }));
+  await menu.close();
   check('no runtime errors', errors.length === 0, errors);
 } catch (error) { errors.push(error.message); console.error(error); }
 finally {
