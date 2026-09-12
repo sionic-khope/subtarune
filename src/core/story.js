@@ -193,3 +193,12 @@ QA_POINTS.push({ ...maillardPathCheckpoint, id: 'maillard_lounge', desc: '마이
   map: 'maillard_lounge', spawn: 'from_path',
   flags: { ...maillardPathCheckpoint.flags, maillard_cart_done: true, maillard_sunrise_seen: true },
   party: [...maillardPathCheckpoint.party] });
+
+const maillardLoungeCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_lounge');
+for (const [id, desc] of [
+  ['maillard_storage', '강퇴폐기창고'],
+  ['maillard_saloon', '안쪽 라운지'],
+]) {
+  QA_POINTS.push({ ...maillardLoungeCheckpoint, id, desc, map: id, spawn: 'start',
+    flags: { ...maillardLoungeCheckpoint.flags }, party: [...maillardLoungeCheckpoint.party] });
+}

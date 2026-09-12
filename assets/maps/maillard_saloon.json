@@ -1,0 +1,75 @@
+{
+ "id": "maillard_saloon",
+ "name": "마이야르호 안쪽 라운지",
+ "stage": "void_fallen",
+ "bgm": "maillard_lounge",
+ "dim": 0.08,
+ "rows": [
+  "                                             ",
+  "                                             ",
+  "                                             ",
+  "                                             ",
+  "                                             ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                                             ",
+  "                                             "
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/props/maillard_saloon_interior.png",
+  "assets/props/door.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 228,
+   "y": 304,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "saloon_interior",
+   "image": "assets/props/maillard_saloon_interior.png",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 448,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "saloon_door_image",
+   "image": "assets/props/door.png",
+   "x": 210,
+   "y": 82,
+   "w": 72,
+   "h": 24,
+   "scale": 1.5,
+   "solid": false,
+   "sortY": -10
+  },
+  {
+   "type": "door",
+   "id": "saloon_to_lounge",
+   "x": 204,
+   "y": 148,
+   "w": 72,
+   "h": 24,
+   "to": "maillard_lounge",
+   "spawn": "from_saloon",
+   "sfx": false,
+   "interact": true
+  }
+ ]
+}

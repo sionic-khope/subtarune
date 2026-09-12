@@ -1,0 +1,75 @@
+{
+ "id": "maillard_storage",
+ "name": "마이야르호 강퇴폐기창고",
+ "stage": "void_fallen",
+ "bgm": "wind",
+ "dim": 0.08,
+ "rows": [
+  "               ",
+  "               ",
+  "               ",
+  "               ",
+  "               ",
+  " MMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMM ",
+  "               ",
+  "               "
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/props/maillard_storage_interior.png",
+  "assets/props/maillard_storage_door.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 228,
+   "y": 304,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "storage_interior",
+   "image": "assets/props/maillard_storage_interior.png",
+   "x": 0,
+   "y": 0,
+   "w": 480,
+   "h": 448,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "storage_door_image",
+   "image": "assets/props/maillard_storage_door.png",
+   "x": 192,
+   "y": 70,
+   "w": 72,
+   "h": 24,
+   "scale": 1,
+   "solid": false,
+   "sortY": -10
+  },
+  {
+   "type": "door",
+   "id": "storage_to_lounge",
+   "x": 204,
+   "y": 148,
+   "w": 72,
+   "h": 24,
+   "to": "maillard_lounge",
+   "spawn": "from_storage",
+   "sfx": false,
+   "interact": true
+  }
+ ]
+}

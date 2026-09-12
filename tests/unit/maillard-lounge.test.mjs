@@ -22,7 +22,7 @@ test('lounge provides a broad enclosed ship floor at the shorter room height', (
   assert.equal([...map.rows.join('')].filter((tile) => tile === 'M').length, 598);
   assert.ok(map.rows[0].trim().length === 0 && map.rows.at(-1).trim().length === 0);
   assert.ok(map.rows.every((row) => row[0] === ' ' && row.at(-1) === ' '));
-  assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 1);
+  assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 2);
   assert.equal(map.entities.filter((entity) => entity.type === 'npc').length, 0);
   const spring = map.entities.find((entity) => entity.id === 'lounge_spring');
   assert.equal(spring.image, 'assets/props/blue_buff.png');
