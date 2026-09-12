@@ -7,7 +7,7 @@
 """
 import io, json, sys
 sys.path.insert(0, 'tools/maps')
-from objlib import T, water
+from objlib import T, water, JUNHEE_STATUES
 W, H = 76, 22
 R0, R1 = 13, 15                      # 가로 길 3줄(들어오는 길·오른쪽길)
 PC0, PC1, PR0, PR1 = 26, 44, 6, 17   # 광장(공터)
@@ -29,13 +29,14 @@ for r in range(1, H):
         if rows[r][c] == ' ' and rows[r - 1][c] == 'c': rows[r][c] = 'V'
 rows = [''.join(r) for r in rows]
 
-def statue(id_, x, base_y):          # statue_junhee.png 44x60, 받침(아래 12px)만 막힘
-    return {'type': 'prop', 'id': id_, 'image': 'assets/props/statue_junhee.png', 'x': x + 4, 'y': base_y - 12, 'w': 36, 'h': 12, 'ix': x, 'iy': base_y - 60, 'solid': True, 'script': 'obj2_statue'}
+def statue(id_, row, k):             # PR 그림 44×60(포즈 6종, 청록숲2 동상 벽과 같은 세트). 벽이라 히트박스는 타일 전체(32×32)로 빈틈 없이 막는다
+    ix, iy = STAT_C * T - 6, row * T - 28
+    return {'type': 'prop', 'id': id_, 'image': JUNHEE_STATUES[k % len(JUNHEE_STATUES)], 'x': ix + 6, 'y': iy + 28, 'w': 32, 'h': 32, 'ix': ix, 'iy': iy, 'solid': True, 'script': 'obj2_statue'}
 ents = [
     {'type': 'door', 'x': 32, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'obj1', 'spawn': 'landing', 'sfx': False},
     {'type': 'door', 'x': UC0 * T + 8, 'y': 32, 'w': 96, 'h': 8, 'to': 'obj3', 'spawn': 'from_bottom', 'sfx': False},
     # 오른쪽길을 막는 쥰희 나무 동상 3개(길 3줄을 통째로) — 조사하면 obj2_statue
-    *[statue(f'statue{k + 1}', STAT_C * T + 2, (R0 + k) * T + 30) for k in range(3)],
+    *[statue(f'statue{k + 1}', R0 + k, k) for k in range(3)],
     # 윗길 입구 표지판(바론 둥지 경고) — 광장 위쪽, 길 왼쪽 가장자리
     {'type': 'prop', 'id': 'sign', 'image': 'assets/props/signpost.png', 'scale': 1.4, 'x': (UC0 - 2) * T + 4, 'y': (PR0 + 1) * T + 10, 'w': 28, 'h': 10, 'ix': (UC0 - 2) * T, 'iy': (PR0 + 1) * T - 32, 'solid': True, 'script': 'obj2_sign'},
     # 마나샘(재사용): 광장 위쪽 가장자리
@@ -78,7 +79,9 @@ m2 = {'id': 'obj2', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen
       'spawns': {'from_left': {'x': 60, 'y': 14 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 14 * T + 8, 'facing': 'right'},
                  'plaza': {'x': 34 * T, 'y': 14 * T + 8, 'facing': 'right'}, 'from_top': {'x': UC0 * T + 40, 'y': 3 * T + 8, 'facing': 'down'}},
       'meta': {'connected': True, 'road': [R0, R1], 'plaza': [PC0, PC1, PR0, PR1], 'up': [UC0, UC1], 'statue_c': STAT_C,
-               'events': ['blue', 'recall', 'egg', 'banana', 'sign', 'statue1'], 'trees': len([e for e in ents if e.get('id', '').startswith('ot')])},
+               'events': ['blue', 'recall', 'egg', 'banana', 'sign', 'statue1'],
+               # 막아야 하는 길: [출발 타일, 절대 닿으면 안 되는 타일] — 동상 벽에 틈이 있으면 tests/unit/maps-connect.test.mjs 가 잡는다(2026-09-12 '다 안 막히고 뚫린다')
+               'blocked': [[46, R0 + 1], [W - 3, R0 + 1]], 'trees': len([e for e in ents if e.get('id', '').startswith('ot')])},
       'entities': ents}
 # obj3 자리표시(바론 둥지 — 다음 브리핑): 아래에서 올라오는 짧은 길
 rows3 = [[' '] * 16 for _ in range(12)]

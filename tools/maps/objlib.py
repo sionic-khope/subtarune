@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""옵젝영역(obj0~) 생성기 공용 조각: 얕은 물 길(a/A/j) + 둘레 2칸 숲 바닥(c) + 절벽(V) + 나무(tree_obj / 넷에 하나 tree_obj_purple, 밑동은 숲 바닥 위·길 밖).
+"""맵 생성기 공용 조각 — 옵젝영역(obj0~) 지형 + 여러 지역이 같이 쓰는 소품 목록: 얕은 물 길(a/A/j) + 둘레 2칸 숲 바닥(c) + 절벽(V) + 나무(tree_obj / 넷에 하나 tree_obj_purple, 밑동은 숲 바닥 위·길 밖).
    obj0.py / obj1.py 가 import 한다(직접 실행 없음 — check.sh 는 --check 인자 처리가 없는 파일을 건너뛴다)."""
 T = 32
 def water(r, c):
@@ -45,3 +45,8 @@ def build(W, H, R0, R1, ents, trees=True, clear=(), edge_right=False, prefix='ot
         img = 'assets/props/tree_obj_purple.png' if (r * 13 + c * 7) % 4 == 0 else 'assets/props/tree_obj.png'   # 넷에 하나는 보라 나무
         ents.append({'type': 'prop', 'id': f'{prefix}{j}', 'image': img, 'x': x + 16, 'y': y + 72, 'w': 24, 'h': 12, 'ix': x, 'iy': y, 'solid': True})
     return rows
+
+# 쥰희 나무 동상 포즈 6종 (PR 로 받은 그림 assets/source/junhee-statues, 44×60). 청록숲2 동상 벽과 옵젝영역2 가 같이 쓴다.
+# 예전의 손그림 statue_junhee.png 는 폴백일 뿐 맵에 쓰지 않는다(2026-09-12 사용자 "스프라이트가 있는데 왜 구버전 쓰냐").
+JUNHEE_STATUE_POSES = ('arms_crossed', 'laugh', 'gesture', 'arms_raised', 'thinking', 'look_back')
+JUNHEE_STATUES = [f'assets/props/statue_junhee_{p}.png' for p in JUNHEE_STATUE_POSES]

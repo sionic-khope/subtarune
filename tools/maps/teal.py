@@ -7,6 +7,8 @@ teal3: 아래에서 위로 오르는 길 → 울창한 숲 공터(숲 나무 여
 실행: /usr/bin/python3 tools/maps/teal.py  (--check)
 """
 import io, json, sys
+import sys; sys.path.insert(0, 'tools/maps')
+from objlib import JUNHEE_STATUES
 from itertools import cycle
 def g(r, c, grass=False): return 'w' if grass else ('t' if (r + c) % 2 == 0 else 'u')
 def cliffs(rows, W, H):
@@ -14,8 +16,7 @@ def cliffs(rows, W, H):
         for c in range(W):
             if rows[r][c] == ' ' and rows[r - 1][c] in 'tuwnm': rows[r][c] = 'v'
 def grass_at(r, c): return (r * 7 + c * 13) % 11 == 0     # 잔풀 땅을 드문드문
-STATUES = cycle(f'assets/props/statue_junhee_{pose}.png' for pose in
-                ('arms_crossed', 'laugh', 'gesture', 'arms_raised', 'thinking', 'look_back'))
+STATUES = cycle(JUNHEE_STATUES)   # 포즈 6종 (목록은 tools/maps/objlib.py — 옵젝영역2 도 같은 것을 쓴다)
 def statue(id_, x, y, script, wall=False):   # 그림 44×60. 히트박스 = 받침(32×14); 벽 동상은 타일 전체(32×32) 로 빈틈 없이 막는다
     image = next(STATUES)
     if wall: return {'type': 'prop', 'id': id_, 'image': image, 'x': x + 6, 'y': y + 28, 'w': 32, 'h': 32, 'ix': x, 'iy': y, 'solid': True, 'script': script}

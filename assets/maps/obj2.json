@@ -76,6 +76,16 @@
    "sign",
    "statue1"
   ],
+  "blocked": [
+   [
+    46,
+    14
+   ],
+   [
+    73,
+    14
+   ]
+  ],
   "trees": 171
  },
  "entities": [
@@ -102,39 +112,39 @@
   {
    "type": "prop",
    "id": "statue1",
-   "image": "assets/props/statue_junhee.png",
-   "x": 1606,
-   "y": 434,
-   "w": 36,
-   "h": 12,
-   "ix": 1602,
-   "iy": 386,
+   "image": "assets/props/statue_junhee_arms_crossed.png",
+   "x": 1600,
+   "y": 416,
+   "w": 32,
+   "h": 32,
+   "ix": 1594,
+   "iy": 388,
    "solid": true,
    "script": "obj2_statue"
   },
   {
    "type": "prop",
    "id": "statue2",
-   "image": "assets/props/statue_junhee.png",
-   "x": 1606,
-   "y": 466,
-   "w": 36,
-   "h": 12,
-   "ix": 1602,
-   "iy": 418,
+   "image": "assets/props/statue_junhee_laugh.png",
+   "x": 1600,
+   "y": 448,
+   "w": 32,
+   "h": 32,
+   "ix": 1594,
+   "iy": 420,
    "solid": true,
    "script": "obj2_statue"
   },
   {
    "type": "prop",
    "id": "statue3",
-   "image": "assets/props/statue_junhee.png",
-   "x": 1606,
-   "y": 498,
-   "w": 36,
-   "h": 12,
-   "ix": 1602,
-   "iy": 450,
+   "image": "assets/props/statue_junhee_gesture.png",
+   "x": 1600,
+   "y": 480,
+   "w": 32,
+   "h": 32,
+   "ix": 1594,
+   "iy": 452,
    "solid": true,
    "script": "obj2_statue"
   },

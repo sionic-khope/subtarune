@@ -17,9 +17,14 @@ const st = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.
   ents: game.entities.filter((e) => ['blue', 'recall', 'egg', 'egg_run', 'banana', 'sign', 'statue1', 'statue2', 'statue3'].includes(e.id) && !e.dead).map((e) => e.id), flags: Object.keys(game.flags).filter((k) => k.startsWith('obj2_')) }));
 const stand = async (x, y, f) => { await page.evaluate(({ x, y, f }) => { game.player.x = x; game.player.y = y; game.player.facing = f; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); }, { x, y, f }); await page.waitForTimeout(150); };
 const key = (q) => (q.speaker || '') + '|' + (q.text || '').replace(/\{[^}]*\}/g, '');
+// 네 방향에서 서 보고 **프로브가 실제로 그 소품을 잡는 자리**에서 말을 건다(벽처럼 큰 히트박스는 아래에 서면 옆 동상 안에 끼인다)
 const talk = async (id, ms = 40000) => { const pos = await page.evaluate((id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: e.x, y: e.y, w: e.w, h: e.h } : null; }, id);
   if (!pos) return null;
-  await stand(pos.x + pos.w / 2 - 12, pos.y + pos.h + 8, 'up'); await page.waitForTimeout(200); await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
+  const spots = [[pos.x - 24 - 14, pos.y + pos.h / 2 - 8, 'right'], [pos.x + pos.w + 14, pos.y + pos.h / 2 - 8, 'left'], [pos.x + pos.w / 2 - 12, pos.y + pos.h + 8, 'up'], [pos.x + pos.w / 2 - 12, pos.y - 16 - 8, 'down']];
+  let ok = false;
+  for (const [x, y, f] of spots) { await stand(x, y, f); await page.waitForTimeout(120); if (await page.evaluate((id) => game.player.probe()?.id === id, id)) { ok = true; break; } }
+  if (!ok) return ['프로브가 닿는 자리를 못 찾음'];
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
   const lines = []; let last = null; const t0 = Date.now();
   while (Date.now() - t0 < ms) { const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', auto: game.textbox.auto })); if (!q.running) break;
     if (q.box === 'waiting' || q.box === 'typing') { const k = key(q); if (k !== last) { last = k; lines.push(k); } if (q.box === 'waiting' && q.auto === null) await page.keyboard.press('KeyC'); }
@@ -29,12 +34,20 @@ const talk = async (id, ms = 40000) => { const pos = await page.evaluate((id) =>
 await page.goto('http://localhost:8000/index.html?qa=obj2'); await until(() => !!(window.game && game.entities && game.player), 15000); await page.keyboard.press('KeyX'); await page.waitForTimeout(500);
 const meta = await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.obj2.meta);
 let s = await st();
+const statueImgs = await page.evaluate(() => game.entities.filter((e) => /^statue\d$/.test(e.id)).map((e) => e.def.image.split('/').pop()));
+check('statues use the PR statue sprites (poses), not the old hand-drawn statue_junhee.png', statueImgs.length === 3 && statueImgs.every((n) => /^statue_junhee_[a-z_]+\.png$/.test(n)) && new Set(statueImgs).size === 3, JSON.stringify(statueImgs));
 check('qa=obj2: 오른쪽으로 긴 맵(76×22) with a plaza in the middle; 마나샘·귀환 발판·알·바나나·표지판·동상 3 all present', s.map === 'obj2' && meta.plaza.join() === '26,44,6,17' && ['blue', 'recall', 'egg', 'banana', 'sign', 'statue1', 'statue2', 'statue3'].every((id) => s.ents.includes(id)), JSON.stringify({ ents: s.ents, plaza: meta.plaza }));
 await stand(34 * 32, 12 * 32, 'down'); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/obj2_01_plaza.png` });
-// 오른쪽길은 동상으로 막혀 있다 — 광장에서 오른쪽으로 계속 걸어도 동상 열을 못 지나간다
-await stand(46 * 32, 14 * 32 + 8, 'right'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(2500); await page.keyboard.up('ArrowRight');
-s = await st();
-check('right path is blocked by the 쥰희 statues (cannot walk past them)', s.p[0] < meta.statue_c * 32, JSON.stringify({ x: s.p[0], statueX: meta.statue_c * 32 }));
+// 오른쪽길은 동상으로 막혀 있다 — **길의 모든 줄에서** 밀어도 동상 열을 못 지나간다(예전엔 히트박스가 12px 라 줄 사이로 빠져나갔다)
+const through = [];
+for (let r = meta.road[0]; r <= meta.road[1]; r++) for (const dy of [0, 12, 24]) {
+  const y = r * 32 + dy; if (y + 16 > (meta.road[1] + 1) * 32) continue;
+  await stand(46 * 32, y, 'right');
+  await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1400); await page.keyboard.up('ArrowRight');
+  const q = await st(); if (q.p[0] >= meta.statue_c * 32) through.push({ y, x: q.p[0] });
+}
+check('right path is fully blocked by the 쥰희 statues — no gap on any row of the corridor', through.length === 0, JSON.stringify({ through, statueX: meta.statue_c * 32 }));
+await stand(46 * 32, 14 * 32 + 8, 'right'); s = await st();
 await page.screenshot({ path: `${S}/obj2_02_statue.png` });
 const wantStatue = ['억빠맨|* 아 씨발 또 이 좆같은걸로 막혀있네요', '경섭|* 허허..', '억빠맨|* 여기 뭐가 적혀있네 그것을 만드는 장소?', '경섭|* 뭐 뭐라고????', '억빠맨|* 뻥인데요', '경섭|* ...', '억빠맨|* 뭔가 많이 당황하시네요', '경섭|* 허허 그런가', '|* 분열이 일어나면 안될텐데'];
 const gotStatue = await talk('statue2');
