@@ -5,31 +5,30 @@
  "bgm": "maillard_lounge",
  "dim": 0.08,
  "rows": [
-  "                                             ",
-  "                                             ",
-  "                                             ",
-  "                                             ",
-  "                                             ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  "                                             ",
-  "                                             "
+  "                       ",
+  "                       ",
+  "                       ",
+  "                       ",
+  "                       ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMM ",
+  "                       ",
+  "                       "
  ],
  "preload": [
   "assets/tiles/maillard_deck.png",
-  "assets/props/maillard_saloon_interior.png",
-  "assets/props/door.png"
+  "assets/props/maillard_saloon_interior.png"
  ],
  "spawns": {
   "start": {
    "x": 228,
-   "y": 304,
-   "facing": "down"
+   "y": 248,
+   "facing": "up"
   }
  },
  "meta": {
@@ -42,33 +41,21 @@
    "image": "assets/props/maillard_saloon_interior.png",
    "x": 0,
    "y": 0,
-   "w": 1440,
+   "w": 736,
    "h": 448,
    "solid": false,
    "sortY": -1000
   },
   {
-   "type": "prop",
-   "id": "saloon_door_image",
-   "image": "assets/props/door.png",
-   "x": 210,
-   "y": 82,
-   "w": 72,
-   "h": 24,
-   "scale": 1.5,
-   "solid": false,
-   "sortY": -10
-  },
-  {
    "type": "door",
    "id": "saloon_to_lounge",
    "x": 204,
-   "y": 148,
+   "y": 366,
    "w": 72,
-   "h": 24,
+   "h": 32,
    "to": "maillard_lounge",
    "spawn": "from_saloon",
-   "sfx": false,
+   "sfx": "plug",
    "interact": true
   }
  ]

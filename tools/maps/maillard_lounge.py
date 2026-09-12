@@ -52,7 +52,7 @@ def main() -> None:
              'solid': False, 'sortY': -10},
             {'type': 'door', 'id': 'lounge_saloon_door', 'x': 378, 'y': 148,
              'w': 72, 'h': 24, 'to': 'maillard_saloon', 'spawn': 'start',
-             'sfx': False, 'interact': True},
+             'sfx': 'plug', 'interact': True},
             *[{'type': 'prop', 'id': f'lounge_statue_{pose}',
                'image': f'assets/props/statue_junhee_{pose}.png',
                'x': x + 6, 'y': 226, 'w': 32, 'h': 14,

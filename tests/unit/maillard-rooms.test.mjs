@@ -40,11 +40,13 @@ test('upper lounge doors are player-sized with reachable C probes clear of statu
   }
 });
 
-for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_saloon', 1440, 'maillard_lounge']]) {
+for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_saloon', 736, 'maillard_lounge']]) {
   test(`${id} is an empty enclosed room with the requested dimensions and music`, () => {
     const map = readMap(id);
     const tiles = new TileMap(map);
     assert.deepEqual([tiles.pxW, tiles.pxH], [width, 448]);
+    const interior = fs.readFileSync(map.entities.find(entity => entity.id.endsWith('_interior')).image);
+    assert.deepEqual([interior.readUInt32BE(16), interior.readUInt32BE(20)], [width, 448]);
     assert.equal(map.bgm, bgm);
     assert.equal(map.meta.connected, true);
     assert.equal(map.backdrop, undefined);
@@ -65,19 +67,31 @@ for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_sa
     assert.equal(exit.to, 'maillard_lounge');
     assert.equal(exit.spawn, id.replace('maillard_', 'from_'));
     assert.equal(exit.interact, true);
+    assert.equal(exit.sfx, 'plug');
+    assert.ok(exit.y >= 366 && exit.y + exit.h > 384);
     for (const [map, spawn] of [[room, room.spawns.start], [lounge, lounge.spawns[exit.spawn]]]) {
       assert.ok(spawn);
-      assert.equal(spawn.facing, 'down');
-      assert.equal(spawn.y, 304);
+      const entering = map === room;
+      assert.equal(spawn.facing, entering ? 'up' : 'down');
+      assert.equal(spawn.y, entering ? 248 : 304);
       const player = { ...spawn, w: 24, h: 16 };
       assert.equal(new TileMap(map).solidRect(spawn.x, spawn.y, 24, 16), false);
+      for (const offset of [48, 96]) {
+        const followerY = spawn.y + (entering ? offset : -offset);
+        assert.equal(new TileMap(map).solidRect(spawn.x, followerY, 24, 16), false);
+      }
       for (const door of map.entities.filter((entity) => entity.type === 'door' || entity.type === 'sign')) {
         assert.equal(overlaps(player, door), false);
         assert.equal(overlaps({ ...player, y: player.y - 19.2 }, door), false);
       }
     }
-    const stand = { x: exit.x + exit.w / 2 - 12, y: 160, w: 24, h: 16 };
-    assert.equal(overlaps({ ...stand, y: stand.y - 19.2 }, exit), true);
+    const stand = { x: exit.x + exit.w / 2 - 12, y: 368, w: 24, h: 16 };
+    assert.equal(overlaps({ ...stand, y: stand.y + 19.2 }, exit), true);
     assert.equal(new TileMap(room).solidRect(stand.x, stand.y, stand.w, stand.h), false);
   });
 }
+
+test('wooden lounge door plays the requested clank when entering', () => {
+  const door = readMap('maillard_lounge').entities.find(entity => entity.id === 'lounge_saloon_door');
+  assert.equal(door.sfx, 'plug');
+});

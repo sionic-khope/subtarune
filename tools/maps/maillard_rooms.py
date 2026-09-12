@@ -22,11 +22,9 @@ def main() -> None:
     index_path = Path('assets/maps/index.json')
     index = json.loads(index_path.read_text(encoding='utf-8'))
     checks = []
-    for suffix, name, width, bgm, image, door_x, door_y, scale in (
-        ('storage', '마이야르호 강퇴폐기창고', 15, 'wind',
-         'assets/props/maillard_storage_door.png', 192, 70, 1),
-        ('saloon', '마이야르호 안쪽 라운지', 45, 'maillard_lounge',
-         'assets/props/door.png', 210, 82, 1.5),
+    for suffix, name, width, bgm in (
+        ('storage', '마이야르호 강퇴폐기창고', 15, 'wind'),
+        ('saloon', '마이야르호 안쪽 라운지', 23, 'maillard_lounge'),
     ):
         map_id = f'maillard_{suffix}'
         interior = f'assets/props/{map_id}_interior.png'
@@ -36,20 +34,17 @@ def main() -> None:
         map_data = {
             'id': map_id, 'name': name, 'stage': 'void_fallen',
             'bgm': bgm, 'dim': 0.08, 'rows': rows,
-            'preload': ['assets/tiles/maillard_deck.png', interior, image],
-            'spawns': {'start': {'x': 228, 'y': 304, 'facing': 'down'}},
+            'preload': ['assets/tiles/maillard_deck.png', interior],
+            'spawns': {'start': {'x': 228, 'y': 248, 'facing': 'up'}},
             'meta': {'connected': True},
             'entities': [
                 {'type': 'prop', 'id': f'{suffix}_interior', 'image': interior,
                  'x': 0, 'y': 0, 'w': width * 32, 'h': 448,
                  'solid': False, 'sortY': -1000},
-                {'type': 'prop', 'id': f'{suffix}_door_image', 'image': image,
-                 'x': door_x, 'y': door_y, 'w': 72, 'h': 24,
-                 'scale': scale, 'solid': False, 'sortY': -10},
                 {'type': 'door', 'id': f'{suffix}_to_lounge',
-                 'x': 204, 'y': 148, 'w': 72, 'h': 24,
+                 'x': 204, 'y': 366, 'w': 72, 'h': 32,
                  'to': 'maillard_lounge', 'spawn': f'from_{suffix}',
-                 'sfx': False, 'interact': True},
+                 'sfx': 'plug', 'interact': True},
             ],
         }
         output = Path(f'assets/maps/{map_id}.json')

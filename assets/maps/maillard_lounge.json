@@ -113,7 +113,7 @@
    "h": 24,
    "to": "maillard_saloon",
    "spawn": "start",
-   "sfx": false,
+   "sfx": "plug",
    "interact": true
   },
   {

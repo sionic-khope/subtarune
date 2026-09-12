@@ -4,4 +4,4 @@
 
 나무문은 기존 `assets/props/door.png`를 런타임1.5배로 표시한다. 목재 마루와 벽도 현행 마이야르호 내부 자산을 이어 쓰며 새 인물·장식·사건은 없다. 방 생성·배치 원본은 `tools/maps/maillard_rooms.py`, 방 배경 조립 원본은 `tools/sprites/prepare_maillard_rooms.py`다.
 
-강퇴폐기창고:480×448, 철제 빈 방, wind. 안쪽 라운지:1440×448, 목재 빈 방, maillard_lounge. 철문 선택지와 검정 전환은 `src/data/cutscenes/maillard_rooms.js`. 두 방은 추후 NPC·이벤트를 추가할 공간이며 현재 콘텐츠를 미리 만들지 않았다.
+강퇴폐기창고:480×448, 철제 빈 방, wind. 안쪽 라운지:초기1440×448에서 BUILD116에736×448로 축소, 목재 빈 방, maillard_lounge. 두 방은 아래 문에서 위를 보고 입장하며, 아래쪽 낮은 문턱을 향해 C로 귀환한다. 문 사용음은 기존 plug.mp3다. 철문 선택지와 검정 전환은 `src/data/cutscenes/maillard_rooms.js`. 두 방은 추후 NPC·이벤트를 추가할 공간이며 현재 콘텐츠를 미리 만들지 않았다.

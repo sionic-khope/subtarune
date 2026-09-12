@@ -2,12 +2,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
-const shots = process.env.SHOT_DIR || '/tmp/rooms115';
+const shots = process.env.SHOT_DIR || '/tmp/rooms116';
 const base = process.env.BASE_URL || 'http://localhost:8773';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const checks = [], errors = [], captures = [], resourceErrors = [];
+await page.addInitScript(() => {
+  window.doorClanks = [];
+  const originalPlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function (...args) {
+    if (this.src.endsWith('/plug.mp3')) window.doorClanks.push(this);
+    return originalPlay.apply(this, args);
+  };
+});
 const check = (name, ok, detail) => { checks.push({ name, ok, detail }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`); };
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', message => { if (message.type() === 'error' && !message.text().includes('Failed to load resource')) errors.push(message.text()); });
@@ -34,6 +42,16 @@ async function wallApproach(x) {
   await walkTo(x, 208);
   await page.keyboard.press('ArrowUp', { delay: 700 });
   await page.waitForTimeout(200);
+}
+async function exitApproach() {
+  await walkTo(228, 340);
+  await page.keyboard.press('ArrowDown', { delay: 700 });
+  await page.waitForTimeout(200);
+}
+async function clank(name, previousCount) {
+  const detail = await page.evaluate(() => window.doorClanks.map(media => ({ src: media.src, time: media.currentTime, duration: media.duration, error: media.error?.message })));
+  check(name, detail.length > previousCount && detail.slice(previousCount).every(media => media.time > 0 && !media.error), detail);
+  return detail.length;
 }
 const stats = () => page.evaluate(() => ({ party: [...game.party], inventory: [...game.inventory], money: game.money, attack: game.attack, hpBonus: game.hpBonus, hp: ['hyungsub', ...game.party].map(id => game.hpOf(id)) }));
 async function safeParty(name) {
@@ -89,6 +107,7 @@ try {
   await ready('maillard_lounge');
   await page.keyboard.press('KeyX');
   const initialStats = await stats();
+  let clanks = 0;
   await walkTo(180, 208);
   await shot('01-door-pair');
   await wallApproach(180);
@@ -107,12 +126,15 @@ try {
   await page.keyboard.press('KeyX', { delay: 50 });
   await ready('maillard_lounge');
   check('X cancels and stays outside', await page.evaluate(() => game.mapId === 'maillard_lounge'));
+  check('declining or cancelling the iron door does not clank', await page.evaluate(() => window.doorClanks.length === 0));
   await choice();
   await page.keyboard.press('KeyC', { delay: 20 });
   await page.waitForFunction(() => game.fade.alpha > 0.1);
   check('Yes starts black fade', await page.evaluate(() => game.fade.color === '0,0,0'));
   await shot('04-iron-fade');
   await ready('maillard_storage');
+  clanks = await clank('iron entry plays the door clank', clanks);
+  check('entering upward continues upward inside storage', await page.evaluate(() => game.player.facing === 'up' && game.player.y === 248));
   await audio('wind');
   check('storage is empty steel room 480x448 with one exit and no automatic events', await page.evaluate(() => game.map.pxW === 480 && game.map.pxH === 448 && !game.map.def.enter && !game.entities.some(e => ['npc', 'trigger'].includes(e.def.type)) && game.map.def.entities.filter(e => e.type === 'door').length === 1));
   await safeParty('all party members arrive safely and visibly in storage');
@@ -122,10 +144,12 @@ try {
     await walkTo(x, y);
     await shot(`06-storage-${name}`);
   }
-  await wallApproach(228);
+  await exitApproach();
+  await shot('06-storage-exit-approach');
   check('walking to storage exit requires C', await page.evaluate(() => game.mapId === 'maillard_storage'));
   await page.keyboard.press('KeyC', { delay: 50 });
   await ready('maillard_lounge');
+  clanks = await clank('storage exit plays the door clank', clanks);
   check('storage return uses safe down-facing lounge spawn', await page.evaluate(() => Math.abs(game.player.x - 180) < 2 && game.player.y === 304 && game.player.facing === 'down'));
   await safeParty('storage return shows all party on safe floor');
   await audio('maillard_lounge');
@@ -135,18 +159,22 @@ try {
   check('walking fully to wooden door does not enter', await page.evaluate(() => game.mapId === 'maillard_lounge' && !game.dialogue.running));
   await page.keyboard.press('KeyC', { delay: 50 });
   await ready('maillard_saloon');
+  clanks = await clank('wooden entry plays the door clank', clanks);
+  check('entering upward continues upward inside wooden room', await page.evaluate(() => game.player.facing === 'up' && game.player.y === 248));
   await audio('maillard_lounge');
-  check('wooden room is exactly 3x storage width, same height and empty', await page.evaluate(() => game.map.pxW === 1440 && game.map.pxH === 448 && !game.map.def.enter && !game.entities.some(e => ['npc', 'trigger'].includes(e.def.type)) && game.map.def.entities.filter(e => e.type === 'door').length === 1));
+  check('wooden room has 672px open floor in a 736x448 empty enclosure', await page.evaluate(() => game.map.pxW === 736 && game.map.pxH === 448 && !game.map.solidRect(32, 160, 672, 224) && !game.map.def.enter && !game.entities.some(e => ['npc', 'trigger'].includes(e.def.type)) && game.map.def.entities.filter(e => e.type === 'door').length === 1));
   await safeParty('wooden entry shows all party safely');
   await shot('08-wood-left');
-  await follow('wooden room party follows across open floor', 704, 280);
+  await follow('wooden room party follows across open floor', 408, 280);
   await shot('09-wood-middle');
-  await walkTo(1320, 280);
+  await walkTo(640, 280);
   await shot('10-wood-right');
-  await wallApproach(228);
+  await exitApproach();
+  await shot('10-wood-exit-approach');
   check('wooden room exit also requires C', await page.evaluate(() => game.mapId === 'maillard_saloon'));
   await page.keyboard.press('KeyC', { delay: 50 });
   await ready('maillard_lounge');
+  clanks = await clank('wooden exit plays the door clank', clanks);
   check('wooden return uses safe down-facing lounge spawn', await page.evaluate(() => Math.abs(game.player.x - 402) < 2 && game.player.y === 304 && game.player.facing === 'down'));
   await safeParty('wooden return shows all party safely');
   await shot('11-wood-return');
@@ -165,7 +193,7 @@ try {
     await shot(`q-arrival-${id}`);
   }
   check('no browser runtime or console errors', errors.length === 0, errors);
-  check('room assets and requested audio have no failed requests', !resourceErrors.some(url => /maillard_|\/wind\.mp3|\/props\/door\.png/.test(url)), resourceErrors);
+  check('room assets and requested audio have no failed requests', !resourceErrors.some(url => /maillard_|\/wind\.mp3|\/plug\.mp3|\/props\/door\.png/.test(url)), resourceErrors);
 } catch (error) {
   errors.push(error.stack || error.message);
   errors.push(JSON.stringify(await page.evaluate(() => ({ map: game.mapId, bgm: game.sound.bgmName, src: game.sound.bgm?.src, time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused }))));
