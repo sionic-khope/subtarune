@@ -17,15 +17,15 @@ export const ENEMIES = {
   baron: {
     name: '바론', hp: 100,
     sheet: { src: 'assets/enemies/baron-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 240, px: 1 },
-    pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 20, money: 300,
+    pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 12, money: 300,
     idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [
-      { type: 'baron_acid_spit', duration: 6.6, warn: 0.6, poolHold: 1.6, poolOffset: 32, lobHeight: 18, every: 0.72, volleys: 6 },
-      { type: 'baron_tentacle_rake', duration: 6.8, warn: 0.6, hold: 0.66, segments: 14, segmentDelay: 0.025, reach: 0.73, bend: 0.28, every: 1.7, waves: 4 },
-      { type: 'baron_spine_fault', duration: 6.6, warn: 0.6, hold: 0.62, columns: 9, step: 0.07, every: 1.1, waves: 5 },
-      { type: 'baron_maw_breath', duration: 6.8, warn: 0.7, hold: 0.9, rows: 6, step: 0.045, spread: 20, every: 2.1, waves: 3 },
-      { type: 'baron_tendril_cage', duration: 6.8, warn: 0.65, hold: 0.85, segments: 26, rings: 2, radius: 63, constrict: 18, ringDelay: 0.35, flatten: 0.82, gapAngle: 0.66, every: 2.2, waves: 3 },
-      { type: 'baron_predatory_surge', duration: 6.9, warn: 0.6, hold: 0.65, segments: 13, segmentDelay: 0.025, reach: 0.66, bend: 0.26, poolHold: 1.3, poolOffset: 32, lobHeight: 18, columns: 8, step: 0.045, rows: 6, spread: 18 },
+      { type: 'baron_acid_spit', duration: 6.6, warn: 0.55, poolHold: 1.45, flight: 1.8, streams: 5, weave: 0.09, every: 0.82, volleys: 6 },
+      { type: 'baron_tentacle_rake', duration: 6.8, warn: 0.55, hold: 1.65, segments: 17, reach: 1.04, bend: 14, every: 1.48, waves: 4 },
+      { type: 'baron_spine_fault', duration: 6.6, warn: 0.55, hold: 1.6, columns: 9, drift: 22, every: 1.4, waves: 4 },
+      { type: 'baron_maw_breath', duration: 6.8, warn: 0.6, hold: 2.15, rows: 7, spread: 10, every: 3.15, waves: 2 },
+      { type: 'baron_tendril_cage', duration: 6.8, warn: 0.6, hold: 1.45, segments: 30, rotation: 1.35, gapAngle: 0.6, every: 2.15, waves: 3 },
+      { type: 'baron_predatory_surge', duration: 6.9, warn: 0.55, hold: 1.65, segments: 15, reach: 1.02, bend: 12, poolHold: 1.1, flight: 1.7, streams: 4, weave: 0.06, columns: 9, drift: 18, rows: 7, spread: 9 },
     ],
     lines: {
       appear: '* 바론이 거대한 몸을 일으킨다!',

@@ -5,6 +5,7 @@ import { enemyRects, inside } from './lib/layout.mjs';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
 const base = process.env.BASE_URL || 'http://localhost:8000';
 const selectedPattern = process.env.SIGNATURE_PATTERN_INDEX === undefined ? null : Number(process.env.SIGNATURE_PATTERN_INDEX);
+const contextChecks = process.env.SIGNATURE_CONTEXT_CHECKS === '1';
 if (selectedPattern !== null && (!Number.isInteger(selectedPattern) || selectedPattern < 0 || selectedPattern > 5)) throw new Error('SIGNATURE_PATTERN_INDEX must be 0 through 5');
 const shots = process.env.SHOT_DIR || new URL('./shots/baron-signature/', import.meta.url).pathname;
 fs.mkdirSync(shots, { recursive: true });
@@ -75,9 +76,32 @@ async function enterBattle() {
       modes: b.modes, bgm: game.sound.bgmName, types: b.enemies[0].def.patterns.map(p => p.type) };
   });
   check('HP100 native attack and defense modes and selected BGM retained', initial.hp === 100 && initial.maxHp === 100 && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets' && initial.bgm === 'baron_battle', initial);
-  check('six dedicated Baron patterns with damage20', initial.damage === 20 && initial.types.length === 6 && new Set(initial.types).size === 6 && initial.types.every(type => type.startsWith('baron_')), initial);
+  check('six dedicated Baron patterns with damage12', initial.damage === 12 && initial.types.length === 6 && new Set(initial.types).size === 6 && initial.types.every(type => type.startsWith('baron_')), initial);
   await page.evaluate(() => {
-    window.signatureEvidence = { sounds: [], hits: [], geometryFailures: [] };
+    window.signatureEvidence = { sounds: [], hits: [], motion: [] };
+    const tracked = new WeakMap();
+    const observeMotion = () => {
+      const b = game.battle;
+      if (b?.state === 'bullets') for (const bullet of b.bullets) {
+        if (bullet.harmless || bullet.age < bullet.warn || bullet.age >= bullet.life) continue;
+        let trace = tracked.get(bullet);
+        const position = { t: b.t, age: bullet.age, x: bullet.x, y: bullet.y };
+        if (!trace) {
+          trace = { id: signatureEvidence.motion.length, pattern: b.enemies[0].patternIdx - 1,
+            shape: bullet.shape, damage: bullet.dmg, first: position, last: position, frames: 0,
+            path: 0, displacement: 0, samples: [position] };
+          tracked.set(bullet, trace);
+          signatureEvidence.motion.push(trace);
+        }
+        trace.path += Math.hypot(position.x - trace.last.x, position.y - trace.last.y);
+        trace.displacement = Math.max(trace.displacement, Math.hypot(position.x - trace.first.x, position.y - trace.first.y));
+        trace.last = position;
+        trace.frames++;
+        if (position.age - trace.samples.at(-1).age >= 0.15) trace.samples.push(position);
+      }
+      requestAnimationFrame(observeMotion);
+    };
+    requestAnimationFrame(observeMotion);
     const sound = game.sound.sfx.bind(game.sound);
     game.sound.sfx = (name, options) => {
       const b = game.battle;
@@ -121,7 +145,7 @@ async function patternFixture(index) {
   }
   await until(() => game.battle.state === 'bullets' && game.battle.bullets.some(b => !b.harmless && b.age < b.warn));
   const warning = await page.evaluate(() => ({ t: game.battle.t, hazards: game.battle.bullets.filter(b => !b.harmless).map(b => ({ shape: b.shape, age: b.age, warn: b.warn, cells: b.cells?.length, damage: b.dmg })) }));
-  check(`pattern ${index + 1} visible signature warnings precede damage`, warning.hazards.length > 0 && warning.hazards.every(b => b.shape.startsWith('baron_') && b.warn >= 0.3 && b.damage === 20 && b.cells > 0), warning);
+  check(`pattern ${index + 1} visible signature warnings precede damage`, warning.hazards.length > 0 && warning.hazards.every(b => b.shape.startsWith('baron_') && b.warn >= 0.3 && b.damage === 12 && b.cells > 0), warning);
   await capture(`pattern_${index + 1}_warning`);
   await until(() => game.battle.bullets.some(b => !b.harmless && b.age >= b.warn));
   const attack = await page.evaluate(() => {
@@ -132,7 +156,6 @@ async function patternFixture(index) {
       inBounds: hazards.every(p => p.cells.every(c => p.x + c.x >= box.x && p.y + c.y >= box.y && p.x + c.x + c.w <= box.x + box.w && p.y + c.y + c.h <= box.y + box.h)) };
   });
   check(`pattern ${index + 1} active geometry is visible inside board`, attack.count > 0 && attack.cells > 0 && attack.inBounds, attack);
-  await capture(`pattern_${index + 1}_attack`);
   // Explicit collision fixture: move onto a currently visible active cell; the
   // browser's next ordinary frame performs collision and damage processing.
   await page.evaluate(() => {
@@ -144,19 +167,28 @@ async function patternFixture(index) {
     b.soul.y = hazard.y + cell.y + cell.h / 2;
     b.soul.invuln = 0;
   });
+  const activeFrames = [];
+  for (const [label, time] of [['mid_active', 2.5], ['late_active', 5.4]]) {
+    await page.waitForFunction(time => game.battle.state === 'bullets' && game.battle.t >= time && game.battle.bullets.some(b => !b.harmless && b.age >= b.warn && b.age < b.life), time, { timeout: 10000, polling: 30 });
+    activeFrames.push(await page.evaluate(label => ({ label, t: game.battle.t,
+      hazards: game.battle.bullets.filter(b => !b.harmless && b.age >= b.warn && b.age < b.life).map(b => ({ shape: b.shape, x: b.x, y: b.y, age: b.age, warn: b.warn })) }), label));
+    await capture(`pattern_${index + 1}_${label}`);
+  }
   await until(() => game.battle.state === 'menu', 15000);
   const result = await page.evaluate(index => ({
     hp: game.battle.enemies[0].hp, bullets: game.battle.bullets.length, bubble: game.battle.bubble,
     sounds: signatureEvidence.sounds.filter(sound => sound.pattern === index),
     hits: signatureEvidence.hits.filter(hit => hit.pattern === index),
+    motion: signatureEvidence.motion.filter(trace => trace.pattern === index).sort((a, b) => b.path - a.path).slice(0, 6),
     bgm: game.sound.bgmName,
   }), index);
-  check(`pattern ${index + 1} collision deals20 through ordinary hurtParty`, result.hits.length > 0 && result.hits.every(hit => hit.damage === 20 && hit.lostHp === 20), result.hits);
+  check(`pattern ${index + 1} same harmful glyph moves after activation`, result.motion.some(trace => trace.damage === 12 && trace.frames >= 3 && trace.path > 15 && trace.displacement > 15), result.motion);
+  check(`pattern ${index + 1} collision deals12 through ordinary hurtParty`, result.hits.length > 0 && result.hits.every(hit => hit.damage === 12 && hit.lostHp === 12), result.hits);
   const bossSounds = result.sounds.filter(sound => sound.name.startsWith('baron_'));
   check(`pattern ${index + 1} gesture sounds use boss files without party hit sound`, bossSounds.length > 0 && bossSounds.every(sound => ['baron_slam', 'baron_eruption', 'baron_roar'].includes(sound.name) && sound.state === 'bullets') && !result.sounds.some(sound => ['hit', 'damage'].includes(sound.name)), bossSounds);
   check(`pattern ${index + 1} boss sounds align with windup or activation`, bossSounds.every(sound => sound.name === 'baron_roar' ? sound.newestWarningAge !== null && sound.newestWarningAge < 0.1 : sound.activationDistance !== null && sound.activationDistance < 0.1), bossSounds);
   check(`pattern ${index + 1} natural phase completion clears hazards`, result.bullets === 0 && result.bubble === null && result.hp === 100 && result.bgm === 'baron_battle', result);
-  patterns.push({ index, warning, attack, ...result });
+  patterns.push({ index, warning, attack, activeFrames, ...result });
 }
 
 async function viewportChecks() {
@@ -171,10 +203,10 @@ async function viewportChecks() {
 }
 
 try {
-  if (selectedPattern === null) await titleSelection();
+  if (contextChecks && selectedPattern === null) await titleSelection();
   await enterBattle();
   for (const index of selectedPattern === null ? [0, 1, 2, 3, 4, 5] : [selectedPattern]) await patternFixture(index);
-  if (selectedPattern === null) await viewportChecks();
+  if (contextChecks && selectedPattern === null) await viewportChecks();
 } catch (error) {
   check('focused signature playtest completes', false, error.stack);
   await capture('failure').catch(() => {});
@@ -182,7 +214,7 @@ try {
   check('no browser errors', errors.length === 0, errors);
   const requiredFailures = resourceFailures.filter(resource => /\/(baron-patterns\.js|baron-battle-idle\.png|baron_(slam|eruption|roar|battle)\.mp3)(\?|$)/.test(resource.url));
   check('required Baron resources load', requiredFailures.length === 0, requiredFailures);
-  fs.writeFileSync(path.join(shots, 'baron-signature-report.json'), JSON.stringify({ base, elapsedMs: Date.now() - started, fixture: 'Pattern selection / party restoration / explicit active-cell collision; natural browser timers and phase completion. No full victory replay.', checks, patterns, resourceFailures, failures }, null, 2));
+  fs.writeFileSync(path.join(shots, 'baron-signature-report.json'), JSON.stringify({ base, elapsedMs: Date.now() - started, contextChecks, fixture: 'Pattern selection / party restoration / explicit active-cell collision / invulnerability after first collision; natural browser timers, WeakMap identity tracks the same harmful glyph only while active, and natural phase completion. No full victory replay or human difficulty verdict.', checks, patterns, resourceFailures, failures }, null, 2));
   await browser.close();
 }
 console.log(`fails=${failures}`);

@@ -67,15 +67,25 @@ function hitsAnatomy(bullet, soul) {
 }
 
 function anatomy(api, name, x, y, warn, hold, extra = {}) {
+  let bounds;
   if (!extra.harmless) {
     const cells = CELLS[name], b = api.box;
     const left = Math.min(...cells.map((c) => c.x)), right = Math.max(...cells.map((c) => c.x + c.w));
     const top = Math.min(...cells.map((c) => c.y)), bottom = Math.max(...cells.map((c) => c.y + c.h));
-    x = clamp(x, b.x + 2 - left, b.x + b.w - 2 - right);
-    y = clamp(y, b.y + 2 - top, b.y + b.h - 2 - bottom);
+    bounds = [b.x + 2 - left, b.x + b.w - 2 - right, b.y + 2 - top, b.y + b.h - 2 - bottom];
+    x = clamp(x, bounds[0], bounds[1]);
+    y = clamp(y, bounds[2], bounds[3]);
   }
+  const move = extra.steer;
   api.emit({ x, y, r: 0, shape: `baron_${name}`, cells: CELLS[name], outline: OUTLINES[name], warn, life: warn + hold,
-    drawShape: drawAnatomy, hitShape: hitsAnatomy, ...extra });
+    drawShape: drawAnatomy, hitShape: hitsAnatomy, ...extra,
+    steer: move ? (bullet) => {
+      move(bullet);
+      if (bounds) {
+        bullet.x = clamp(bullet.x, bounds[0], bounds[1]);
+        bullet.y = clamp(bullet.y, bounds[2], bounds[3]);
+      }
+    } : null });
 }
 
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -91,135 +101,149 @@ function timeline(duration, events) {
 
 function sound(events, at, name) { events.push({ at, run: (api) => api.sfx?.(name) }); }
 
-function spit(api, o, side = 0) {
-  const b = api.box;
-  const x = clamp(api.soul.x + side * o.poolOffset, b.x + 20, b.x + b.w - 20);
-  const y = clamp(api.soul.y, b.y + 24, b.y + b.h - 24);
-  anatomy(api, 'pool', x, y, o.warn, o.poolHold);
-  const startX = b.x + b.w / 2, startY = b.y + 8;
-  anatomy(api, 'acid', startX, startY, 0, o.warn, { harmless: true,
-    steer(bullet) {
-      const t = Math.min(1, bullet.age / o.warn);
-      bullet.x = startX + (x - startX) * t;
-      bullet.y = startY + (y - startY) * t - Math.sin(t * Math.PI) * o.lobHeight;
-    },
-  });
+function moving(api, name, warn, hold, path) {
+  const start = path(0);
+  anatomy(api, name, start.x, start.y, warn, hold, { steer(bullet) {
+    const point = path(clamp((bullet.age - warn) / hold, 0, 1));
+    bullet.x = point.x;
+    bullet.y = point.y;
+  } });
 }
 
-function tentacle(api, o, side, bend) {
+function spit(api, o, wave) {
+  const b = api.box, vertical = wave % 2 === 1, reverse = wave % 4 >= 2;
+  for (let lane = 0; lane < o.streams; lane++) {
+    const line = lane / (o.streams - 1);
+    moving(api, 'acid', o.warn, o.flight, (t) => {
+      const travel = reverse ? 1 - t : t;
+      const cross = clamp(line + Math.sin(t * Math.PI * 2 + lane) * o.weave, 0, 1);
+      return { x: b.x + 9 + (b.w - 18) * (vertical ? cross : travel),
+        y: b.y + 8 + (b.h - 16) * (vertical ? travel : cross) };
+    });
+  }
+  if (wave % 2 === 0) anatomy(api, 'pool', api.soul.x, api.soul.y, o.warn, o.poolHold);
+}
+
+function tentacle(api, o, side, reverse) {
   const b = api.box;
-  const rootX = side ? b.x + b.w - 10 : b.x + 10;
-  const targetX = clamp(api.soul.x, side ? rootX - b.w * o.reach : rootX, side ? rootX : rootX + b.w * o.reach);
-  const targetY = api.soul.y;
   for (let i = 0; i < o.segments; i++) {
+    if (i === 5 || i === 6) continue;
     const u = i / (o.segments - 1);
-    const x = rootX + (targetX - rootX) * u;
-    const y = (b.y + b.h / 2) * (1 - u) + targetY * u + b.h * bend * Math.sin(u * Math.PI);
-    anatomy(api, 'segment', x, y, o.warn + i * o.segmentDelay, o.hold);
+    moving(api, 'segment', o.warn, o.hold, (t) => {
+      const sweep = reverse ? 1 - t : t;
+      const angle = -1.5 + sweep * 3;
+      const reach = u * b.w * o.reach;
+      return { x: b.x + (side ? b.w - 10 - Math.cos(angle) * reach : 10 + Math.cos(angle) * reach),
+        y: b.y + b.h / 2 + Math.sin(angle) * reach + Math.sin(u * Math.PI) * Math.sin(t * Math.PI * 2) * o.bend };
+    });
   }
 }
 
-function spineRow(api, o, row, gap) {
+function spineRow(api, o, reverse, gap) {
   const b = api.box;
   for (let i = 0; i < o.columns; i++) {
     if (i === gap || i === gap + 1) continue;
-    const x = b.x + (i + 0.5) * b.w / o.columns;
-    const y = b.y + b.h * row;
-    anatomy(api, 'spine', x, y, o.warn + i * o.step, o.hold);
+    moving(api, 'spine', o.warn, o.hold, (t) => ({
+      x: b.x + (i + 0.5) * b.w / o.columns + Math.sin(t * Math.PI * 2) * o.drift,
+      y: b.y + 12 + (b.h - 24) * (reverse ? 1 - t : t),
+    }));
   }
 }
 
-function breath(api, o, lane) {
-  const b = api.box, center = b.x + b.w * lane;
-  anatomy(api, 'jaw', center, b.y + 20, 0, o.warn + o.hold, { harmless: true });
+function breath(api, o, reverse) {
+  const b = api.box;
+  const center = (t) => b.x + 18 + (b.w - 36) * (reverse ? 1 - t : t);
+  anatomy(api, 'jaw', center(0), b.y + 14, 0, o.warn + o.hold, { harmless: true,
+    steer(bullet) { bullet.x = center(clamp((bullet.age - o.warn) / o.hold, 0, 1)); },
+  });
   for (let i = 0; i < o.rows; i++) {
-    const y = b.y + 44 + i * (b.h - 58) / (o.rows - 1);
-    for (const side of [-1, 0, 1]) {
-      const x = center + side * (o.spread * i / (o.rows - 1));
-      anatomy(api, 'breath', x, y, o.warn + i * o.step, o.hold);
-    }
+    if (i === (reverse ? o.rows - 3 : 2)) continue;
+    moving(api, 'breath', o.warn, o.hold, (t) => ({
+      x: center(t) + Math.sin(t * Math.PI * 2 - i * 0.45) * o.spread,
+      y: b.y + 8 + i * (b.h - 16) / (o.rows - 1),
+    }));
   }
 }
 
-function enclosure(api, o, gapAngle) {
+function enclosure(api, o, wave) {
   const b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-  anatomy(api, 'pool', api.soul.x, api.soul.y, o.warn + o.ringDelay, o.hold);
-  for (let ring = 0; ring < o.rings; ring++) {
-    const radius = o.radius - ring * o.constrict;
-    for (let i = 0; i < o.segments; i++) {
-      const angle = i * Math.PI * 2 / o.segments;
-      const difference = Math.atan2(Math.sin(angle - gapAngle), Math.cos(angle - gapAngle));
-      if (Math.abs(difference) < o.gapAngle) continue;
-      anatomy(api, 'segment', cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius * o.flatten,
-        o.warn + ring * o.ringDelay, o.hold);
-    }
+  for (let i = 0; i < o.segments; i++) {
+    const angle = i * Math.PI * 2 / o.segments;
+    const gap = wave % 2 ? Math.PI / 2 : -Math.PI / 2;
+    if (Math.abs(Math.atan2(Math.sin(angle - gap), Math.cos(angle - gap))) < o.gapAngle) continue;
+    moving(api, 'segment', o.warn, o.hold, (t) => {
+      const radius = wave % 2 ? 0.12 + 1.4 * t : 1.52 - 1.4 * t;
+      const spin = angle + t * o.rotation * (wave % 2 ? -1 : 1);
+      return { x: cx + Math.cos(spin) * (b.w / 2 - 10) * radius,
+        y: cy + Math.sin(spin) * (b.h / 2 - 10) * radius };
+    });
   }
 }
 
 /** Six Baron-owned gestures; tuning is passed from ENEMIES.baron.patterns. */
 export const BARON_PATTERNS = {
   baron_acid_spit(o = {}) {
-    o = { duration: 6.6, warn: 0.6, poolHold: 1.6, poolOffset: 32, lobHeight: 18, every: 0.72, volleys: 6, ...o };
+    o = { duration: 6.6, warn: 0.55, poolHold: 1.45, flight: 1.8, streams: 5, weave: 0.09, every: 0.82, volleys: 6, ...o };
     const events = [];
     sound(events, 0.15, 'baron_roar');
-    for (let i = 0; i < o.volleys; i++) events.push({ at: 0.15 + i * o.every, run: (api) => { spit(api, o); spit(api, o, i % 2 ? -1 : 1); } });
+    for (let i = 0; i < o.volleys; i++) events.push({ at: 0.1 + i * o.every, run: (api) => spit(api, o, i) });
     return timeline(o.duration, events);
   },
   baron_tentacle_rake(o = {}) {
-    o = { duration: 6.8, warn: 0.6, hold: 0.66, segments: 14, segmentDelay: 0.025, reach: 0.73, bend: 0.28, every: 1.7, waves: 4, ...o };
+    o = { duration: 6.8, warn: 0.55, hold: 1.65, segments: 17, reach: 1.04, bend: 14, every: 1.48, waves: 4, ...o };
     const events = [];
     for (let i = 0; i < o.waves; i++) {
       const at = 0.1 + i * o.every;
-      events.push({ at, run: (api) => tentacle(api, o, i % 2, i % 2 ? -o.bend : o.bend) });
+      events.push({ at, run: (api) => tentacle(api, o, i % 2, i % 2 === 1) });
       sound(events, at + o.warn, 'baron_slam');
     }
     return timeline(o.duration, events);
   },
   baron_spine_fault(o = {}) {
-    o = { duration: 6.6, warn: 0.6, hold: 0.62, columns: 9, step: 0.07, every: 1.1, waves: 5, ...o };
+    o = { duration: 6.6, warn: 0.55, hold: 1.6, columns: 9, drift: 22, every: 1.4, waves: 4, ...o };
     const events = [];
     for (let i = 0; i < o.waves; i++) {
       const at = 0.15 + i * o.every;
-      events.push({ at, run: (api) => spineRow(api, o, [0.3, 0.5, 0.7, 0.5, 0.3][i % 5], [1, 6, 3, 0, 5][i % 5]) });
-      sound(events, at + o.warn + (i % 5 === 3 ? 2 * o.step : 0), 'baron_eruption');
+      events.push({ at, run: (api) => spineRow(api, o, i % 2 === 1, [1, 6, 2, 5][i % 4]) });
+      sound(events, at + o.warn, 'baron_eruption');
     }
     return timeline(o.duration, events);
   },
   baron_maw_breath(o = {}) {
-    o = { duration: 6.8, warn: 0.7, hold: 0.9, rows: 6, step: 0.045, spread: 20, every: 2.1, waves: 3, ...o };
+    o = { duration: 6.8, warn: 0.6, hold: 2.15, rows: 7, spread: 10, every: 3.15, waves: 2, ...o };
     const events = [];
     for (let i = 0; i < o.waves; i++) {
       const at = 0.2 + i * o.every;
-      events.push({ at, run: (api) => breath(api, o, [0.32, 0.68, 0.5][i % 3]) });
+      events.push({ at, run: (api) => breath(api, o, i % 2 === 1) });
       sound(events, at, 'baron_roar');
     }
     return timeline(o.duration, events);
   },
   baron_tendril_cage(o = {}) {
-    o = { duration: 6.8, warn: 0.65, hold: 0.85, segments: 26, rings: 2, radius: 63, constrict: 18, ringDelay: 0.35, flatten: 0.82, gapAngle: 0.66, every: 2.2, waves: 3, ...o };
+    o = { duration: 6.8, warn: 0.6, hold: 1.45, segments: 30, rotation: 1.35, gapAngle: 0.6, every: 2.15, waves: 3, ...o };
     const events = [];
     for (let i = 0; i < o.waves; i++) {
       const at = 0.15 + i * o.every;
-      events.push({ at, run: (api) => enclosure(api, o, i % 2 ? -Math.PI / 2 : Math.PI / 2) });
+      events.push({ at, run: (api) => enclosure(api, o, i) });
       sound(events, at + o.warn, 'baron_slam');
     }
     return timeline(o.duration, events);
   },
   baron_predatory_surge(o = {}) {
-    o = { duration: 6.9, warn: 0.6, hold: 0.65, segments: 13, segmentDelay: 0.025, reach: 0.66, bend: 0.26,
-      poolHold: 1.3, poolOffset: 32, lobHeight: 18, columns: 8, step: 0.045, rows: 6, spread: 18, ...o };
+    o = { duration: 6.9, warn: 0.55, hold: 1.65, segments: 15, reach: 1.02, bend: 12,
+      poolHold: 1.1, flight: 1.7, streams: 4, weave: 0.06, columns: 9, drift: 18, rows: 7, spread: 9, ...o };
     const events = [
-      { at: 0.1, run: (api) => { tentacle(api, o, 0, o.bend); spit(api, o, -1); } },
-      { at: 1.55, run: (api) => spineRow(api, o, 0.72, 3) },
-      { at: 2.8, run: (api) => { tentacle(api, o, 1, -o.bend); spit(api, o, 1); } },
-      { at: 4.2, run: (api) => spineRow(api, o, 0.3, 3) },
-      { at: 5.35, run: (api) => breath(api, o, 0.5) },
+      { at: 0.1, run: (api) => tentacle(api, o, 0, false) },
+      { at: 0.85, run: (api) => spit(api, o, 1) },
+      { at: 1.55, run: (api) => spineRow(api, o, true, 5) },
+      { at: 2.65, run: (api) => tentacle(api, o, 1, true) },
+      { at: 3.45, run: (api) => spit(api, o, 2) },
+      { at: 4.45, run: (api) => breath(api, o, false) },
     ];
     sound(events, 0.1 + o.warn, 'baron_slam');
     sound(events, 1.55 + o.warn, 'baron_eruption');
-    sound(events, 2.8 + o.warn, 'baron_slam');
-    sound(events, 4.2 + o.warn, 'baron_eruption');
-    sound(events, 5.35, 'baron_roar');
+    sound(events, 2.65 + o.warn, 'baron_slam');
+    sound(events, 4.45, 'baron_roar');
     return timeline(o.duration, events);
   },
 };
