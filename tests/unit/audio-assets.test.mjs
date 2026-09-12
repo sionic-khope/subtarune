@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { WATER_STEP_SFX } from '../../src/data/footsteps.js';
+import { WATER_WALK } from '../../src/data/footsteps.js';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const files = (dir) => new Set(fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')));
@@ -36,9 +36,19 @@ test('test_audio_every_referenced_voice_exists_as_file_or_preset', () => {
 });
 test('test_audio_loadSfxFiles_list_matches_files', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8');
-  const list = [...[...(main.match(/loadSfxFiles\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]), ...(main.includes('...WATER_STEP_SFX') ? WATER_STEP_SFX : [])];   // 목록에 펼쳐 넣은 걸음 소리(src/data/footsteps.js)
+  const list = [...[...(main.match(/loadSfxFiles\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1])];
   assert.ok(list.length > 10, 'loadSfxFiles 목록을 찾지 못함');
   const missing = list.filter((n) => !SFX.has(n) && !SYNTH.has(n)); assert.deepEqual(missing, [], '목록에 있지만 파일도 합성도 없음: ' + missing.join(', '));   // open/close/chime 은 합성 폴백
   const unused = [...SFX].filter((n) => !list.includes(n) && !/_(yt|prev|dr)$/.test(n) && !['battle_end', 'cancel', 'click', 'error', 'plug', 'rumble', 'white', 'whoosh', 'laugh_junhee'].includes(n));
   assert.deepEqual(unused, [], '파일은 있는데 로드 목록에 없음(무음이 됨): ' + unused.join(', '));
+});
+// 물걸음 루프(src/data/footsteps.js WATER_WALK): 루프·꼬리 wav 가 있고, 루프 구간이 파일 안에 있고, 걸음 시각표가 루프 구간 안에서 오름차순
+const wavSeconds = (p) => { const b = fs.readFileSync(path.join(ROOT, p)); const rate = b.readUInt32LE(24), ch = b.readUInt16LE(22), bps = b.readUInt16LE(34); let i = 12; while (i < b.length - 8) { const id = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); if (id === 'data') return n / (rate * ch * bps / 8); i += 8 + n + (n % 2); } return 0; };
+test('test_audio_water_walk_loop_assets_and_cut_table_are_consistent', () => {
+  const d = WATER_WALK; const loopSec = wavSeconds(d.loop), tailSec = wavSeconds(d.tail);
+  assert.ok(loopSec > 4 && tailSec > 0.5, '루프/꼬리 wav 길이: ' + [loopSec, tailSec]);
+  assert.ok(d.loopStart >= 0 && d.loopStart < d.loopEnd && d.loopEnd <= loopSec + 1e-3, '루프 구간이 파일 밖: ' + [d.loopStart, d.loopEnd, loopSec]);
+  assert.ok(d.onsets.length >= 20 && d.onsets.every((o, i) => o >= d.loopStart && o < d.loopEnd && (i === 0 || o - d.onsets[i - 1] > 0.05)), '시각표가 루프 밖이거나 겹침');
+  assert.ok(d.cutBefore > 0 && d.cutBefore < 0.03 && d.volume > 0 && d.volume <= 1);
+  const w = fs.readFileSync(path.join(ROOT, 'src/world/world.js'), 'utf8'); assert.ok(/sound\?\.walk\?\.\(/.test(w), 'Player 가 매 프레임 sound.walk 를 불러야 한다');
 });

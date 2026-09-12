@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 import { artToCanvas, makeCanvas, mulberry32, loadImageOptional } from '../core/gfx.js';
 import { TILE_ART } from '../data/art.js';
-import { WATER_STEP_SFX } from '../data/footsteps.js';
+import { WATER_WALK } from '../data/footsteps.js';
 
 export const TILE = 32;        // 월드 타일 크기(논리 px)
 export const ART_PX = 16;      // 타일 도트 아트 원본 크기 (TILE 로 정수배 확대)
@@ -150,8 +150,8 @@ registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });  
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });
 // 옵젝영역(obj0~, tools/art/obj_set.py, 2026-09-11): 얕은 물 바닥(걸을 수 있음, 밟으면 step 효과음 + 물결 고리 — Player.footstep) / 수련잎 / 초록·보라 숲 바닥(막힘) / 절벽면
 // `step`: 그 타일을 밟을 때 나는 **걸음 소리**. 이름 하나 또는 이름 배열(걸음마다 하나를 골라 쓴다).
-//   물걸음 사운드 = water_step01~33 (델타룬 walking 효과음의 걸음 전부, src/data/footsteps.js · design/audio/references.md)
-const WATER_STEP = WATER_STEP_SFX;
+//   물걸음 사운드 = 델타룬 walking 효과음 영상을 그대로 이어 트는 루프(WATER_WALK, src/data/footsteps.js · design/audio/references.md). Player 가 걷는 동안 Sound.walk 로 튼다
+const WATER_STEP = WATER_WALK;
 registerTile('a', { name: 'water_shallow', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
 registerTile('A', { name: 'water_shallow2', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
 registerTile('j', { name: 'water_shallow_pad', solid: false, step: WATER_STEP, draw: flat('#1a5561') });

@@ -1,19 +1,20 @@
-// ─────────────────────────────────────────────────────────────
-// 발소리 목록 (2026-09-12 사용자 "발소리 다 쓰라", "영상 소리 그대로", "각각의 발소리가 에코가 있는데 끊긴다").
-//   걸음마다 이 중 하나를 골라 **그대로** 재생한다(타일 `step` 이 배열이면 랜덤 — src/world/tiles.js, Player.footstep). 음높이·세기 안 건드림.
-//   원본은 걸음이 0.07~0.27초 간격으로 이어져 **어느 걸음도 울림이 온전하지 않다**(다음 걸음에 가려짐). 잘라 붙인 꼬리는 세 번 "끊긴다".
-//   사용자 "그냥 이거처럼 새로 만들면 안 되나" → 걸음마다 **영상 소리를 본떠 새로 렌더링**(생성기 tools/audio/water_steps.py):
-//     그 걸음의 첫 찰싹(영상 그대로, ~100ms) ⊛ 방 임펄스 응답(영상에서 잰 감쇠 -43dB/s·음색·50ms 차오름, 울림 세기는 원본 레벨로 걸음마다 보정).
-//     원본과 포락선 오차 평균 2.2dB. -72dBFS 까지 0.95~1.04초.
-//   한 파일 안에서 구간만 재생하는 방식은 금지(브라우저가 mp3 `currentTime` 을 무시한다).
-// ─────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────────
+// 생성 파일 — tools/audio/water_steps.py 가 만든다. 손으로 고치지 말 것.
+// 물걸음 사운드(사용자 지정 델타룬 walking 효과음 youtube 1jZCrBnRm88): 물 위를 걷는 동안 영상 소리를 **그대로 이어 튼다**
+//   (2026-09-12 "영상 소리랑 그대로 나오고 싶다", "각각의 발소리가 에코가 있는데 끊긴다").
+//   걸음마다 파일을 따로 트는 방식은 전부 "끊긴다" — 영상은 걸음이 초당 6번 겹치며 울림이 계속 깔리는 소리다.
+//   재생: src/core/audio.js Sound.walk(def) — Player 가 매 프레임 부른다(걷는 중이고 발밑 타일이 step 이면 def, 아니면 null).
+//   멈추면 onsets 의 다음 걸음 cutBefore 앞에서 루프를 끊고 tail(울림 꼬리)을 이어 붙인다 → 마지막 걸음의 에코가 자연스럽게 꺼진다.
+// ───────────────────────────────────────────────────────────────
 
-/** 물걸음 사운드 33개 — 델타룬 walking 효과음(youtube 1jZCrBnRm88)의 걸음 전부를 새로 렌더링. 울림까지 0.95~1.04초 */
-export const WATER_STEP_SFX = [
-  'water_step01', 'water_step02', 'water_step03', 'water_step04', 'water_step05', 'water_step06',
-  'water_step07', 'water_step08', 'water_step09', 'water_step10', 'water_step11', 'water_step12',
-  'water_step13', 'water_step14', 'water_step15', 'water_step16', 'water_step17', 'water_step18',
-  'water_step19', 'water_step20', 'water_step21', 'water_step22', 'water_step23', 'water_step24',
-  'water_step25', 'water_step26', 'water_step27', 'water_step28', 'water_step29', 'water_step30',
-  'water_step31', 'water_step32', 'water_step33',
-];
+/** 물 위 걷기 소리 — 타일 `step` 이 이 객체면 Player 가 Sound.walk 로 튼다 (src/world/tiles.js a/A/j) */
+export const WATER_WALK = {
+  loop: 'assets/audio/sfx/water_walk_loop.wav',
+  tail: 'assets/audio/sfx/water_walk_tail.wav',
+  loopStart: 0.0500,
+  loopEnd: 4.8580,
+  cutBefore: 0.008,
+  volume: 0.75,
+  /** 루프 파일 안 걸음 시작 시각(초) — 걸음 2~31 중 또렷한 22개(약한 겹걸음은 앞 걸음의 일부) */
+  onsets: [0.0560, 0.2530, 0.5210, 0.6870, 0.9550, 1.3700, 1.5660, 1.8340, 2.0010, 2.2690, 2.5370, 2.6320, 2.9000, 3.0670, 3.1690, 3.3350, 3.5310, 3.7990, 3.9660, 4.2340, 4.4000, 4.6680],
+};
