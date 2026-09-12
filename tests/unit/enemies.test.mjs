@@ -33,6 +33,8 @@ test('test_baron_has_100_hp_and_uses_standard_attack_and_enemy_modes', () => {
   assert.equal(Math.ceil(baron.hp / (3 * 2)), 17);
   assert.equal(baron.defense, undefined);
   assert.equal(baron.patterns.length, 6);
+  assert.equal(baron.damage, 20);
+  assert.ok(baron.patterns.every((p) => p.type.startsWith('baron_') && p.warn >= 0.45));
   assert.deepEqual(baron.pivot, [128, 238]);
   assert.equal(baron.sheet.px, 1);
   assert.equal(baron.idle.swayX, 0);

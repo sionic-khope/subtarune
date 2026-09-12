@@ -88,7 +88,7 @@ test('test_baron_patterns_emit_damage_with_warned_areas_and_safe_space', () => {
         bullets.push(bullet);
       },
     };
-    assert.ok(pattern.duration >= 4 && pattern.duration <= 5.2, `${config.type}: 방어 시간`);
+    assert.ok(pattern.duration >= 6 && pattern.duration <= 7, `${config.type}: 사용자 요청의 긴 보스 방어 시간`);
     for (let t = 0; t < pattern.duration; t += dt) {
       pattern.update(t, dt, api);
       for (const bullet of bullets) bullet.update(dt, BOX);

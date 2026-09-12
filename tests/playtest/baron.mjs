@@ -59,7 +59,14 @@ async function dodge() {
         for (const p of b.bullets) {
           if (p.life && p.age+t > p.life && !p.harmless) continue;
           let clearance;
-          if (p.zone) {
+          if (p.cells) {
+            if (p.harmless) continue;
+            clearance = Math.min(...p.cells.map(cell => {
+              const left = Math.round(p.x) + Math.round(cell.x), top = Math.round(p.y) + Math.round(cell.y);
+              const outsideX = Math.max(left-x,0,x-left-cell.w), outsideY = Math.max(top-y,0,y-top-cell.h);
+              return Math.hypot(outsideX,outsideY)-7;
+            }));
+          } else if (p.zone) {
             const outsideX = Math.max(p.x-x,0,x-p.x-p.w), outsideY = Math.max(p.y-y,0,y-p.y-p.h);
             clearance = Math.hypot(outsideX,outsideY)-7;
             if (clearance <= 0) clearance -= Math.min(x-p.x,p.x+p.w-x,y-p.y,p.y+p.h-y);
@@ -67,7 +74,7 @@ async function dodge() {
             if (p.harmless) continue;
             clearance = Math.hypot(x-p.x-p.vx*t,y-p.y-p.vy*t)-p.r-7;
           }
-          const activation = p.zone && p.age+t < p.warn ? .6 : 1;
+          const activation = (p.zone || p.cells) && p.age+t < p.warn ? .6 : 1;
           cost += activation * (clearance < 0 ? 500-clearance*12 : 24/(clearance+3)) / (t+.3);
         }
         cost += .001 * Math.hypot(x-(box.x+box.w/2),y-(box.y+box.h/2));
@@ -85,7 +92,7 @@ try {
   check('encounter starts with Baron HP100, ordinary modes, Black Knife key', initial.hp === 100 && initial.maxHp === 100 && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
   await capture('baron_01_menu');
   let lastRound = -1;
-  const deadline = Date.now() + 260000;
+  const deadline = Date.now() + 360000;
   while (Date.now() < deadline) {
     const s = await snapshot();
     if (!s || s.state === 'win' || s.state === 'lose') break;

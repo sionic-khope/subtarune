@@ -273,7 +273,7 @@ export class Battle {
   }
   updateBullets(dt, input) {
     this.soul.update(dt, input, this.board);
-    const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null };
+    const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: (name) => this.sfx(name) };
     let running = false;
     for (const pat of this.patterns) {
       if (pat.t >= pat.p.duration) continue; running = true;

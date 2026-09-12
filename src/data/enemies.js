@@ -17,24 +17,15 @@ export const ENEMIES = {
   baron: {
     name: '바론', hp: 100,
     sheet: { src: 'assets/enemies/baron-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 240, px: 1 },
-    pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 12, money: 300,
+    pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 20, money: 300,
     idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [
-      // 지면 분출: 절반의 칸은 안전하며 다음 분출 전 충분히 이동할 수 있다.
-      { type: 'zone', cols: 3, rows: 2, count: 3, warn: 1.0, hit: 0.3, every: 1.65, duration: 4.8, kind: 'blue' },
-      // 거대한 산성 방울: 좌우로 번갈아 지나갈 넓은 띠를 먼저 보여 준다.
-      { type: 'giant', from: 'sides', r: 32, speed: 125, warn: 0.9, every: 2.3, shape: 'bubble', kind: 'blue', duration: 5.0 },
-      // 촉수 휩쓸기: 가로와 세로 두 줄을 번갈아 예고한다.
-      { type: 'beam', dir: 'alt', count: 2, thick: 20, warn: 0.8, hit: 0.25, every: 1.55, duration: 4.8, kind: 'blue' },
-      // 송곳니 부채: 위쪽에서 느리게 퍼지는 탄 사이로 빠져나간다.
-      { type: 'burst', at: 'top', n: 12, speed: 85, every: 1.05, r: 5, shape: 'fang', kind: 'white', duration: 4.8 },
-      // 산성 비: 실제 낙하 속도는 60~90px/s, 빈 세로 길로 이동한다.
-      { type: 'rain', rate: 0.25, speed: 75, r: 6, shape: 'bubble', kind: 'blue', duration: 4.8 },
-      // 촉수 한 줄을 비키며 느린 조준 방울을 옆으로 흘린다.
-      { type: 'combo', parts: [
-        { type: 'beam', dir: 'h', count: 1, thick: 22, warn: 0.9, hit: 0.25, every: 1.7, duration: 5.0, kind: 'blue' },
-        { type: 'aimed', every: 0.72, speed: 85, r: 6, shape: 'bubble', kind: 'blue', duration: 5.0 },
-      ] },
+      { type: 'baron_acid_spit', duration: 6.6, warn: 0.6, poolHold: 1.6, poolOffset: 32, lobHeight: 18, every: 0.72, volleys: 6 },
+      { type: 'baron_tentacle_rake', duration: 6.8, warn: 0.6, hold: 0.66, segments: 14, segmentDelay: 0.025, reach: 0.73, bend: 0.28, every: 1.7, waves: 4 },
+      { type: 'baron_spine_fault', duration: 6.6, warn: 0.6, hold: 0.62, columns: 9, step: 0.07, every: 1.1, waves: 5 },
+      { type: 'baron_maw_breath', duration: 6.8, warn: 0.7, hold: 0.9, rows: 6, step: 0.045, spread: 20, every: 2.1, waves: 3 },
+      { type: 'baron_tendril_cage', duration: 6.8, warn: 0.65, hold: 0.85, segments: 26, rings: 2, radius: 63, constrict: 18, ringDelay: 0.35, flatten: 0.82, gapAngle: 0.66, every: 2.2, waves: 3 },
+      { type: 'baron_predatory_surge', duration: 6.9, warn: 0.6, hold: 0.65, segments: 13, segmentDelay: 0.025, reach: 0.66, bend: 0.26, poolHold: 1.3, poolOffset: 32, lobHeight: 18, columns: 8, step: 0.045, rows: 6, spread: 18 },
     ],
     lines: {
       appear: '* 바론이 거대한 몸을 일으킨다!',

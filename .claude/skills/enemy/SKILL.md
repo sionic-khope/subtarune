@@ -15,7 +15,7 @@ model: opus
 1. `docs/STATE.md` 전투 항목 + `docs/battle/adding-enemies.md` 읽기.
 2. 스프라이트(`assets/enemies/<id>-battle-left.png` 64×64 pivot 32,60, 또는 대기 4프레임 격자 시트 `-battle-idle.png` 128×128 → `sheet:{cols:2,rows:2,count:4,fps:1000/180,px:1}`; 필드용 `-front.png` 48×48) — 사용자 PR 로 오는 게 기본, 오기 전엔 자리표시로 그려 두고 같은 파일명으로 덮는다.
 3. `src/data/enemies.js` 항목: name/hp/image/pivot/scale/damage/money/idle/patterns/lines{appear, idle[], speak[], die}. 대사는 사용자 브리핑 **그대로**.
-4. 탄막: 적의 **소지품·성격이 탄**이 되게(방패 벽, 던지는 망치…). **유형을 섞는다** — 영역 예고(`zone`/`beam`/`bomb`) 1 + 대형(`giant`) 1 + 날아오는 것(`rain/aimed/sweep/bounce/burst/homing`) 1 + `combo` 1. 카탈로그·옵션·피하는 법은 `docs/battle/adding-enemies.md §3` 표. 새 템플릿은 `bullets.js PATTERNS` 함수 하나 + `tests/unit/patterns.test.mjs` 계약. 빠른 탄·영역은 예고 ≥0.3s. 시트 대기 모션이 있으면 `idle sway 0`. 템플릿마다 `node tests/playtest/enemy.mjs <id> --pattern=N` 으로 스크린샷을 본다.
+4. 탄막: 먼저 `docs/battle/adding-enemies.md §3 고유성 규칙`을 적용한다. 기믹 원리는 참고하되 적의 신체/소지품/성격에서 **전용 동작·실루엣·예고·회피법**을 설계한다. 영역/대형/투사체/연쇄 등 회피 유형은 다양하게 만들고, 카탈로그를 그대로 재사용하지 않는다. 새 패턴은 등록 함수 + 계약 테스트로 연결한다. 빠른 탄·영역은 예고 ≥0.3s. 시트 대기 모션이 있으면 `idle sway 0`. 각 패턴의 예고/타격을 실제 화면으로 확인한다.
 5. 배치: 맵 생성기 `enemy` 엔티티(걸어다님·쫓아옴·표준 조우) 또는 컷신 `{battle}` 노드(intro 대사·flag).
 6. 기믹이 있으면 `src/battle/modes/<name>.js` 를 만들고 `modes.js` 에 등록, `{battle:{modes}}` 또는 `def.defense` 로 고른다. 엔진 상태 기계는 건드리지 않는다.
 7. 검증: `node --test tests/unit/*.test.mjs` → `CHROME_EXE=… node tests/playtest/enemy.mjs <id> [--attack=<mode>]` → 스크린샷 4장 Read → 필드 배치면 맵 플레이테스트에 조우 케이스 → `tools/dev/check.sh` → STATE.md → 커밋.

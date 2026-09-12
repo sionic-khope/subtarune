@@ -12,6 +12,8 @@
 //   설계 지침(델타룬 참고, 사용자 2026-09-11 "상대 캐릭터의 특징을 살린 공격"): 적의 소지품·성격이 탄이 된다(망치·방패), 빠른 탄은 반드시 예고(vline/깜빡임), 한 패턴 = 한 가지 피하는 법, 4~5초, docs/battle/adding-enemies.md
 //   새 패턴 = 여기 함수 하나 추가 → src/data/enemies.js 의 patterns 에서 type 으로 쓴다. tests/unit/enemies.test.mjs 가 이름을 검사한다.
 // ─────────────────────────────────────────────────────────────
+import { BARON_PATTERNS } from './baron-patterns.js';
+
 export class Board {
   constructor() { this.x = 140; this.y = 150; this.w = 200; this.h = 150; this.target = null; this.open = 0; }
   /** 목표 크기로 부드럽게 (0.25초) */
@@ -69,6 +71,7 @@ export class Bullet {
   out(board) { if (this.life && this.age >= this.life) return true; const m = 40; return this.x < board.x - m || this.x > board.x + board.w + m || this.y < board.y - m || this.y > board.y + board.h + m; }
   hits(soul) {
     if (this.harmless) return false;
+    if (this.hitShape) return this.hitShape(this, soul);
     if (this.zone) {                                                                // 영역: 예고(warn) 동안은 안 맞고, 그 뒤 사각형 안(소울 원과 겹침)이면 맞는다
       if (this.age < this.warn) return false;
       const cx = Math.max(this.x, Math.min(soul.x, this.x + this.w)), cy = Math.max(this.y, Math.min(soul.y, this.y + this.h)); const dx = soul.x - cx, dy = soul.y - cy, rr = Math.max(0, soul.r - 2); return dx * dx + dy * dy <= rr * rr;
@@ -77,6 +80,7 @@ export class Bullet {
   }
   color() { return this.kind === 'blue' ? '#3b8cff' : this.kind === 'orange' ? '#ff9a3b' : this.kind === 'red' ? '#d13b3b' : '#fff'; }
   draw(ctx) {
+    if (this.drawShape) { this.drawShape(ctx, this); return; }
     const x = Math.round(this.x), y = Math.round(this.y);
     if (this.zone) {                                                                 // 경고 영역(zone/beam/giant 띠): warn 동안 빨간 반투명 + 깜빡이는 테두리(beam 은 가운데 점선) → 그 뒤 hit 동안 밝게 덮친다
       const zx = x, zy = y, zw = Math.round(this.w), zh = Math.round(this.h);
@@ -148,6 +152,7 @@ export class Bullet {
 
 /** 패턴 라이브러리. 각 패턴은 { duration, update(t, dt, api) } 를 돌려준다. */
 export const PATTERNS = {
+  ...BARON_PATTERNS,
   rain: (o = {}) => { const rate = o.rate ?? 0.18, speed = o.speed ?? 90, r = o.r ?? 4; let acc = 0;
     return { duration: o.duration ?? 4, update(t, dt, api) { acc += dt; while (acc >= rate) { acc -= rate; const b = api.box; api.emit({ x: b.x + 8 + api.rnd() * (b.w - 16), y: b.y - 12, vy: speed * (0.8 + api.rnd() * 0.4), r, shape: o.shape, kind: o.kind, spin: o.spin }); } } }; },
   aimed: (o = {}) => { const every = o.every ?? 0.6, speed = o.speed ?? 120, r = o.r ?? 5; let next = 0.4;
