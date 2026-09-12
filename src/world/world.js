@@ -189,7 +189,7 @@ export class Entity {
     this.w = def.w ?? TILE * 0.75; this.h = def.h ?? TILE * 0.5;     // 충돌 박스(발 밑)
     this.solid = def.solid ?? true;
     this.facing = def.facing ?? 'down';
-    this.visible = true;
+    this.visible = !def.hidden;
     this.dead = false;
   }
   get rect() { return { x: this.x, y: this.y, w: this.w, h: this.h }; }
@@ -234,7 +234,7 @@ export class Character extends Entity {
     const blit = (img, x, y, w, h) => dim ? drawDimmed(ctx, img, x, y, w, h, dim) : ctx.drawImage(img, x, y, w, h);
     if (this.motion) {
       const frame = this.motion.frames[this.motion.index];
-      const scale = this.motion.scale * CHAR_SCALE;
+      const scale = this.motion.scale * CHAR_SCALE * (this.def.visualScale || 1);
       const anchorX = this.x + this.w / 2 - cam.x, anchorY = this.y + this.h - cam.y;
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
@@ -243,10 +243,13 @@ export class Character extends Entity {
       return;
     }
     const img = this.sprite[this.facing][this.frame];
-    const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE);
+    const visualScale = this.def.visualScale || 1;
+    const dw = Math.round(this.sprite.fw / this.sprite.px * CHAR_SCALE * visualScale), dh = Math.round(this.sprite.fh / this.sprite.px * CHAR_SCALE * visualScale);
     const jx = this.jitter && this.jitter.t > 0 ? (Math.floor(this.jitter.t * 18) % 2 ? this.jitter.amp : -this.jitter.amp) : 0;   // 타다다닥(강아지 물 털듯) — main.js 가 t 를 줄인다
-    const sx = Math.round(this.x + this.w / 2 - dw / 2 - cam.x) + jx;
-    const sy = Math.round(this.y + this.h - dh - cam.y) - Math.round(this.hopY || 0);   // hopY: 컷신 {hop} 점프 연출
+    const pivot = CHARACTERS[this.def.sprite]?.stillPivot;
+    const drawScale = CHAR_SCALE * visualScale / this.sprite.px;
+    const sx = Math.round(this.x + this.w / 2 - (pivot ? pivot[0] * drawScale : dw / 2) - cam.x) + jx;
+    const sy = Math.round(this.y + this.h - (pivot ? pivot[1] * drawScale : dh) - cam.y);
     if (this.pose === 'lying') {           // 침대에 누움: 정면 스프라이트를 90도 눕힘 (머리가 위쪽)
       ctx.save();
       ctx.translate(Math.round(this.x + this.w / 2 - cam.x), Math.round(this.y + this.h / 2 - cam.y));
@@ -260,7 +263,22 @@ export class Character extends Entity {
     blit(img, sx, sy, dw, dh);
     if (this.emote) drawEmote(ctx, this.emote, sx + Math.round(dw / 2), sy);
   }
-  draw(ctx, cam) { if (this.visible) this.drawSprite(ctx, cam); }
+  draw(ctx, cam) {
+    if (!this.visible) return;
+    ctx.save();
+    if (this.emerge) {
+      const floor = Math.round(this.y + this.h - cam.y);
+      ctx.beginPath(); ctx.rect(-SCREEN_W * 2, -SCREEN_H * 4, SCREEN_W * 5, floor + SCREEN_H * 4); ctx.clip();
+      ctx.translate(0, Math.round(this.emerge.depth * (1 - this.emerge.progress)));
+    }
+    ctx.translate(Math.round(this.flyX || 0), Math.round(this.flyY || 0) - Math.round(this.hopY || 0));
+    if (this.spin) {
+      const cx = Math.round(this.x + this.w / 2 - cam.x), cy = Math.round(this.y + this.h / 2 - cam.y);
+      ctx.translate(cx, cy); ctx.rotate(this.spin); ctx.translate(-cx, -cy);
+    }
+    this.drawSprite(ctx, cam);
+    ctx.restore();
+  }
   /** 스프라이트 교체 (테스트룸/컷신용) */
   setSprite(name) {
     this.def.sprite = name;

@@ -1,4 +1,17 @@
 export const CHARACTER_MOTIONS = {
+  baron_intro: {
+    roar: {
+      src: 'assets/enemies/baron-roar.png',
+      scale: 160 / 256,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [
+        { rect: [0, 0, 256, 256], pivot: [128, 240], duration: 0.25 },
+        { rect: [256, 0, 256, 256], pivot: [128, 240], duration: 0.35 },
+        { rect: [0, 256, 256, 256], pivot: [128, 240], duration: 0.8 },
+        { rect: [256, 256, 256, 256], pivot: [128, 240], duration: 0.35 },
+      ],
+    },
+  },
   junhee: {
     laugh: {
       src: 'assets/sprites/junhee-laugh.png',

@@ -20,6 +20,7 @@ export const STAGES = [
   { id: 'void_fallen',    desc: '방송 중 코드 에러 → 소용돌이 → 보라색 땅에 추락', map: 'void',   spawn: 'fall' },
   // 다음 비트는 사용자 브리핑 후 여기에 추가 (예: cord_plugged)
 ];
+
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 스토리 단계. flags 객체를 공유해서 단계 도달 = 플래그 세팅. */
@@ -123,3 +124,13 @@ export const QA_POINTS = [
   { id: 'obj2',      desc: '옵젝영역2 광장(마나샘·귀환 발판·알·바나나, 동상 벽·바론 표지판)',   stage: 'void_fallen',    map: 'obj2', spawn: 'from_left', flags: { void4_arrived: true, bridge_down: true, ppaman_joined: true, lever_taken: true, door_open: true, void8_intro: true, void8_arrived: true, void8_done: true, void10_intro: true, void11_intro: true, void11_done: true, statue_hit: true, teal3_battle_pending: true, teal3_cs_won: true, statues_cleared: true, teal5_wall_seen: true, double_jump: true, teal7_hide_seen: true, teal7_hide_done: true, teal9_boss_seen: true, teal9_boss_won: true, obj0_blue_done: true, obj1_meet_seen: true, obj1_junhee_gone: true, obj1_launched: true }, party: ['gyeongsub', 'ppaman'] },
   { id: 'party',     desc: '억빠맨 동료 상태로 보라맵4',                stage: 'void_fallen',    map: 'void4',  spawn: 'pillar', flags: { void4_arrived: true, bridge_down: true, ppaman_greeted: true, ppaman_joined: true }, party: ['ppaman'] },
 ];
+
+const obj2Checkpoint = QA_POINTS.find((point) => point.id === 'obj2');
+for (const [id, desc, done] of [
+  ['obj3', '옵젝영역3: 바론 둥지로 올라가는 짧은 공허 길', false],
+  ['obj4', '옵젝영역4: 용준 대포 실패·바론 등장(전투 시작 전까지)', false],
+  ['obj4_after', '옵젝영역4: 바론 대치 연출 후(전투 없음)', true],
+]) {
+  QA_POINTS.push({ ...obj2Checkpoint, id, desc, map: id === 'obj3' ? 'obj3' : 'obj4', spawn: 'from_bottom',
+    flags: { ...obj2Checkpoint.flags, ...(done ? { obj4_baron_seen: true, obj4_baron_done: true } : {}) }, party: [...obj2Checkpoint.party] });
+}

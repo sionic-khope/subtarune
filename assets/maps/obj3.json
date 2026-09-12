@@ -1,46 +1,214 @@
 {
  "id": "obj3",
- "name": "옵젝영역",
- "bgm": "wind",
+ "name": "옵젝영역 — 둥지 앞길",
  "stage": "void_fallen",
- "dim": 0,
+ "bgm": "wind",
+ "dim": 0.12,
  "backdrop": "obj_forest",
  "rows": [
-  "                ",
-  "                ",
-  "                ",
-  " cccccccccccccc ",
-  " cccccccccccccc ",
-  " aAaAaAaAaAajaA ",
-  " AaAaAaAaAaAaAa ",
-  " aAaAaAaAaAaAjA ",
-  " cccccccccccccc ",
-  " cccccccccccccc ",
-  " VVVVVVVVVVVVVV ",
-  "                "
+  "    cccYYYYccc    ",
+  "    cccaAajccc    ",
+  "    cccAaAaccc    ",
+  "    cccaAaAccc    ",
+  "    cccAaAaccc    ",
+  "    cccaAaAccc    ",
+  "    cccAaAaccc    ",
+  "    cccaAaAccc    ",
+  "    cccAaAaccc    ",
+  "    cccaAaAccc    ",
+  "    cccAaAaccc    ",
+  "    cccaAaAccc    ",
+  "    cccAaAaccc    ",
+  "    cccaAaAccc    ",
+  "    cccjaAaccc    ",
+  "    VVVYYYYVVV    "
  ],
  "spawns": {
-  "from_bottom": {
-   "x": 224,
-   "y": 200,
+  "start": {
+   "x": 276,
+   "y": 432,
    "facing": "up"
   },
-  "start": {
-   "x": 224,
-   "y": 200,
+  "from_bottom": {
+   "x": 276,
+   "y": 432,
    "facing": "up"
+  },
+  "from_top": {
+   "x": 276,
+   "y": 96,
+   "facing": "down"
   }
+ },
+ "meta": {
+  "connected": true,
+  "approachPx": 392,
+  "corridorWidth": 128
  },
  "entities": [
   {
    "type": "door",
-   "x": 192,
-   "y": 248,
-   "w": 96,
+   "x": 224,
+   "y": 472,
+   "w": 128,
    "h": 8,
    "to": "obj2",
    "spawn": "from_top",
    "sfx": false
+  },
+  {
+   "type": "door",
+   "x": 224,
+   "y": 32,
+   "w": 128,
+   "h": 8,
+   "to": "obj4",
+   "spawn": "from_bottom",
+   "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "ot0",
+   "image": "assets/props/tree_obj.png",
+   "x": 196,
+   "y": 112,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 40,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot1",
+   "image": "assets/props/tree_obj.png",
+   "x": 356,
+   "y": 112,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 40,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot2",
+   "image": "assets/props/tree_obj.png",
+   "x": 196,
+   "y": 176,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 104,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot3",
+   "image": "assets/props/tree_obj_purple.png",
+   "x": 356,
+   "y": 176,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 104,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot4",
+   "image": "assets/props/tree_obj.png",
+   "x": 196,
+   "y": 240,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 168,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot5",
+   "image": "assets/props/tree_obj.png",
+   "x": 356,
+   "y": 240,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 168,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot6",
+   "image": "assets/props/tree_obj.png",
+   "x": 196,
+   "y": 304,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 232,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot7",
+   "image": "assets/props/tree_obj_purple.png",
+   "x": 356,
+   "y": 304,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 232,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot8",
+   "image": "assets/props/tree_obj.png",
+   "x": 196,
+   "y": 368,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 296,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot9",
+   "image": "assets/props/tree_obj.png",
+   "x": 356,
+   "y": 368,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 296,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot10",
+   "image": "assets/props/tree_obj.png",
+   "x": 196,
+   "y": 432,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 360,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ot11",
+   "image": "assets/props/tree_obj_purple.png",
+   "x": 356,
+   "y": 432,
+   "w": 24,
+   "h": 12,
+   "ix": 340,
+   "iy": 360,
+   "solid": true
   }
  ]
 }

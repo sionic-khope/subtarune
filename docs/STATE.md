@@ -2,6 +2,10 @@
 
 마지막 갱신: 2026-09-10
 
+**바론 둥지 사용자 피드백 수정(2026-09-12, 미병합 작업 브랜치)**: obj3/obj4의 옛 허공 자산 선택은 잘못이었다. [포스트모텀](postmortems/2026-09-12-object-region-art.md)과 공통 맵·컷신 스킬을 읽는다. obj3은 기존 오브제 물길/나무/원경, obj4는 약10% 줄인 가시 둘레와 전용 젖은 바위 바닥이다. 유충은 초기 숨김→화면 밖 왼쪽에서 오른쪽 진입. 바론은 큰 머리 v2 시트, 0.28초 분출+보라 돌풍, 검소리가 아닌 `baron_slam`과 전용 `baron_eruption`을 사용한다. 새 이미지 원본·규격·프롬프트는 `assets/source/baron-nest-intro-v2/`; 아래 v1 기록은 최초 구현 이력이다.
+
+**바론 둥지 연출 구현 (2026-09-12, 작업 브랜치)**: `obj3`은 짧은 북쪽 진입로, `obj4`는 밝은 원형 중앙과 붉은·보라 가시 테두리의 거대한 둥지다. `obj4_baron_intro`는 용준의 북향 대포 밀기 → 귀여운 공허유충 → 바론 지면 등장·포효 → 대포 충전/헛방 → 용준과 대포 날아감 → 파티 도착/도발까지이며 **전투·추격은 시작하지 않는다**. QA `obj3`, `obj4`, `obj4_after`; 완료 플래그 `obj4_baron_done`. 재진입하면 바론만 남고 연출은 반복되지 않는다. 콘티는 [obj4_baron](../design/narrative/cutscenes/obj4_baron.md), 새 원본·PNG·피벗·프롬프트는 `assets/source/baron-nest-intro-v1/`. 지정곡은 `baron_intro`(The Chase, 사용자 지정 URL), 기존 대포·바론 자산은 유지했다. 현재 작업 브랜치 구현 기록이며 main 병합·배포 완료를 뜻하지 않는다.
+
 **용준 이동 에셋 전달 (2026-09-11)**: [용준 스프라이트 사용 지침](handoffs/yongjun-assets.md). `assets/sprites/yongjun.png`는 248×344 RGBA, 62×86 셀 16개, 엔진 행 순서 down/up/left/right, 하단 중앙 pivot [31,86]이다. 원본·레퍼런스·프롬프트·재추출 계약은 `assets/source/yongjun-v1/`. 기존 변환기를 재사용한 자산 전달이며 캐릭터/맵/파티/전투에는 등록하지 않았다. 후속 연결 시 용준 셀에서 `sideWalk` 값을 측정한다. 치아 보이는 입과 무안경을 유지하며 v1 색·의상은 미확정 보완안이다.
 **청록숲6 생성 소품 교체(2026-09-11)**: 와드는 눈 뜸/감음 2프레임, 블루는 파란 물줄기와 돌 테두리를 갖춘 생명·마나의 샘 3프레임으로 교체했다. 블루는 몬스터가 아닌 환경 소품이다. 기존 `ward.png` 40×36(셀 20×36, 2fps), `blue_buff.png` 120×44(셀 40×44, 4fps) 계약과 맵 위치·충돌·대사·이벤트는 유지한다. 생성 원본 2×2 시트·프롬프트·교체 전 사본·정규 런타임 사본·공통 배율/프레임/pivot 기록은 `assets/source/teal6-props-v1/`에 있다. `uv run tools/sprites/import_teal6_props.py`로 재추출하며 `tools/art/teal_set.py`도 정규 사본을 복원한다. [재추출 및 확인 가이드](handoffs/teal6-props.md).
 

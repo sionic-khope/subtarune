@@ -108,7 +108,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', ...WATER_STEP_SFX, 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', ...WATER_STEP_SFX, 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption']),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || `assets/sprites/${name}.png`);   // still: 정지 1장 캐릭터(미니언 등)
         if (img) this.spriteOverrides[name] = img;
@@ -724,7 +724,9 @@ class Game {
     // 2D 줌: 월드(맵·엔티티·어두움)만 확대, UI 는 그대로
     ctx.save();
     const z = this.zoom;
-    if (z.s > 1.0001) {
+    if (z.s < 0.9999) {
+      ctx.translate(SCREEN_W / 2, SCREEN_H / 2); ctx.scale(z.s, z.s); ctx.translate(-SCREEN_W / 2, -SCREEN_H / 2);
+    } else if (z.s > 1.0001) {
       const Fx = z.fx - cam.x, Fy = z.fy - cam.y;                       // 줌 초점(화면 좌표)
       const k = z.smax > 1 ? Math.min(1, (z.s - 1) / (z.smax - 1)) : 1; // 0(원래) → 1(최대 줌): 초점이 화면 중앙으로
       const Cx = Fx + (SCREEN_W / 2 - Fx) * k, Cy = Fy + (SCREEN_H / 2 - Fy) * k;
@@ -739,14 +741,24 @@ class Game {
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) e.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
-    if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = Math.floor(p.ang * 3) % 2 ? 4 : 2; ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }   // 컷신 {aura} 반짝임(버프)
+    if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})
     if (this.booms.length) this.drawBooms(ctx, cam);
     this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
     const dim = MAPS[this.mapId]?.dim;
-    if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
+    const light = MAPS[this.mapId]?.spotlight;
+    if (light) {
+      ctx.save(); ctx.translate(light.x - cam.x, light.y - cam.y); ctx.scale(1, light.ry / light.rx);
+      const shade = ctx.createRadialGradient(0, 0, light.rx * 0.35, 0, 0, light.rx);
+      shade.addColorStop(0, 'rgba(0,0,0,0)'); shade.addColorStop(1, `rgba(0,0,0,${dim || 0})`);
+      ctx.fillStyle = shade; ctx.fillRect(-10000, -10000, 20000, 20000);
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, light.rx);
+      glow.addColorStop(0, `rgba(220,202,255,${light.alpha})`); glow.addColorStop(1, 'rgba(220,202,255,0)');
+      ctx.fillStyle = glow; ctx.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2);
+      ctx.restore();
+    } else if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
     ctx.restore();
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
@@ -884,7 +896,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.90';
+export const BUILD = '2026-09-12.91-baron-preview';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

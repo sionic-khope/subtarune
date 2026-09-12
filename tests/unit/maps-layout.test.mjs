@@ -11,7 +11,7 @@ import { TILE, PROBE_RANGE, CHAR_BOX, DIALOGUE_VISIBLE_H } from '../../src/core/
 
 const root = new URL('../../', import.meta.url).pathname;
 const CHAR_SCALE = Number(fs.readFileSync(root + 'src/world/world.js', 'utf-8').match(/export const CHAR_SCALE = ([\d.]+)/)[1]);
-const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B']);   // 길(걷는 타일). 'd'(그늘 바닥)는 장식 나무를 허용. a/A/j: 얕은 물(옵젝영역)
+const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B']);
 const WALK = new Set([...ROAD, 'd']);
 const pngH = (p) => fs.readFileSync(root + p).readUInt32BE(20);
 const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8')).maps.map((id) => JSON.parse(fs.readFileSync(root + `assets/maps/${id}.json`, 'utf-8'))).filter((m) => m.rows);

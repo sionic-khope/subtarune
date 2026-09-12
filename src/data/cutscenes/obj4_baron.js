@@ -1,0 +1,107 @@
+import { FX } from '../fx.js';
+
+const Y = (text, extra = {}) => ({ speaker: '용준', portrait: 'yongjun', voice: 'yongjun', text, ...extra });
+const P = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text });
+const G = (text) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text });
+const closeBox = { action: (g) => g.textbox.close() };
+const ROAR_CAMERA = [23.5, 10.4375];
+const ROAR_ZOOM = 0.7;
+const TALK_CAMERA = [23.5, 26.5];
+const roar = () => [
+  closeBox,
+  { parallel: [{ camera: ROAR_CAMERA, duration: 0.55 }, { zoom: ROAR_ZOOM, duration: 0.55 }] },
+  { parallel: [{ motion: 'baron', name: 'roar', sfx: 'baron_roar' }, { shake: 1.35, amp: 5 }] },
+  { wait: 0.25 },
+];
+
+/** Baron introduction only: the final challenge releases control without creating a battle. */
+export const obj4_baron_intro = Object.assign([
+  { if: (f) => f.obj4_baron_done, goto: 'done' },
+  { action: (g) => { g.sound.preloadBgm('baron_intro'); } },
+  { hide: 'baron' },
+  { parallel: [{ camera: [23.5, 24.5], duration: 1.25 }, { zoom: 0.8, duration: 1.25 }] },
+  { face: 'yongjun', dir: 'up' },
+  { parallel: [
+    { slide: 'cannon_up', by: [0, -32], duration: 1.1, sfx: 'scrape' },
+    { move: 'yongjun', by: [0, -16], speed: 14.55 },
+  ] },
+  { bgm: 'vs_lancer', volume: 0.5 },
+  Y('* 헉 헉.. 휴 .. 다 왔다 이제쯤이면 됐겠지'),
+  Y('* 그래도 아무래도 바론을 정면 돌파 하는건 좀 힘드니까'),
+  Y('* 저기 옆에서 몰래 숨어있다가 나오면 발사해야겠다.'),
+  Y('* 하 하 하 난 천재인가봐'),
+  { bgm: null, fadeOut: 0.1 },
+  { show: 'voidgrub' },
+  { async: [{ move: 'voidgrub', rel: 'yongjun', at: 'left', by: [-4, 0], speed: 40 }] },
+  Y('* 하아 하아 근데 너무 힘들다.', { cut: 4.8 }),
+  { face: 'yongjun', dir: 'left' },
+  Y('* 음 근데 이거 무슨소리지?'),
+  Y('* ... ... ...'),
+  { async: [{ shake: 0.6, amp: 5 }, { wait: 0.15 }] },
+  { async: [{ hop: 'yongjun', height: 30, duration: 0.45 }] },
+  Y('* {shake}아 씨발 깜짝이야!!!{/shake}', { auto: 0.4 }),
+  { hop: 'voidgrub', height: 12, duration: 0.3, sfx: false },
+  { move: 'voidgrub', rel: 'baron', at: 'bottom', by: [-100, -20], dash: true },
+  { remove: 'voidgrub' },
+  { shake: 0.85, amp: 3 },
+  Y('* ... ... 어'),
+  closeBox,
+  { sfx: 'rumble' },
+  { parallel: [{ camera: ROAR_CAMERA, duration: 0.9 }, { zoom: ROAR_ZOOM, duration: 0.9 }, { shake: 0.9, amp: 7 }] },
+  { bgm: 'baron_intro', volume: 0.55 },
+  { parallel: [
+    { emerge: 'baron', depth: 430, duration: 0.28, ease: 'out' },
+    { shake: 0.7, amp: 14 },
+    { boom: { ...FX.baron_emerge_wind, at: 'baron', offset: [0, -90], scale: 1.7, hold: 0.1 } },
+  ] },
+  { parallel: [{ camera: TALK_CAMERA, duration: 0.4 }, { zoom: 1, duration: 0.4 }] },
+  Y('* 어 시발'),
+  ...roar(),
+  { parallel: [{ camera: TALK_CAMERA, duration: 0.4 }, { zoom: 1, duration: 0.4 }] },
+  Y('* {shake}으아아아아악!!!{/shake}'),
+  Y('* 내 내가 그런다고 쫄 쫄가보냐.'),
+  { move: 'yongjun', rel: 'cannon_up', at: 'bottom', by: [0, 26], speed: 6 },
+  { face: 'yongjun', dir: 'up' },
+  Y('* 바... 발사 !!!!!!!!!!'),
+  closeBox,
+  { sfx: 'cannon_charge' },
+  { parallel: [
+    { zoom: 2.6, at: 'cannon_up', offset: [0, -95], duration: 1.65 },
+    { aura: { from: ['yongjun'], to: ['cannon_up'], targetImageTop: true, offset: [0, 25], colors: ['#d39eff', '#fff0ff'], n: 42, duration: 1.15 } },
+  ] },
+  { tremble: 'cannon_up', duration: 0.4, amp: 2 },
+  { wait: 0.45 },
+  { sfx: 'cannon_puff' },
+  { puff: 'cannon_up', offset: [0, 18], duration: 0.7 },
+  { wait: 0.5 },
+  { zoom: 1, duration: 0.5 },
+  { bubble: 'yongjun', dots: 3, gap: 0.45, hold: 0.7 },
+  Y('* 아니씨ㅂ...', { auto: 0.1 }),
+  closeBox,
+  { parallel: [{ camera: [23.5, 18.5], duration: 0.25 }, { zoom: 0.5, duration: 0.25 }] },
+  { async: [{ motion: 'baron', name: 'roar' }] },
+  { async: [{ hop: 'baron', by: [0, 80], height: 12, duration: 0.18, sfx: false }, { hop: 'baron', by: [0, -80], height: 4, duration: 0.3, sfx: false }] },
+  { sfx: 'baron_slam' },
+  { parallel: [
+    { shake: 0.75, amp: 12 },
+    { fling: 'yongjun', vx: -630, vup: 510, gravity: 550, spin: -11, duration: 1.4 },
+    { fling: 'cannon_up', vx: 650, vup: 450, gravity: 520, spin: 9, duration: 1.4 },
+  ] },
+  ...roar(),
+  { parallel: [{ camera: TALK_CAMERA, duration: 0.55 }, { zoom: 1, duration: 0.55 }] },
+  { parallel: [
+    { move: 'player', rel: 'baron', at: 'bottom', by: [0, 302], run: true },
+    { move: 'gyeongsub', rel: 'baron', at: 'bottom', by: [-80, 310], run: true },
+    { move: 'ppaman', rel: 'baron', at: 'bottom', by: [80, 310], run: true },
+  ] },
+  { face: 'player', dir: 'up' }, { face: 'gyeongsub', dir: 'up' }, { face: 'ppaman', dir: 'up' },
+  P('* 아 저 병신새끼'),
+  G('* 허허 화가 많이 난거같은데'),
+  P('* 어쩔수없죠 저희가 처리해야될거같아요'),
+  ...roar(),
+  { parallel: [{ camera: TALK_CAMERA, duration: 0.5 }, { zoom: 1, duration: 0.5 }] },
+  P('* 바론 버스트다 씨발새끼 들어와'),
+  { set: { obj4_baron_done: true } },
+  { camera: 'player' },
+  { label: 'done' },
+], { silent: true });

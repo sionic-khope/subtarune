@@ -1,0 +1,189 @@
+{
+  "version": 2,
+  "asset": "baron-nest-intro-v2",
+  "assets": {
+    "roar": {
+      "file": "baron-roar.png",
+      "runtime_path": "assets/enemies/baron-roar.png",
+      "source": "raw-roar.png",
+      "prompt": "baronBigHeadV2-prompt.txt",
+      "sheet_size": [
+        512,
+        512
+      ],
+      "grid": [
+        2,
+        2
+      ],
+      "cell": [
+        256,
+        256
+      ],
+      "logical_cell": [
+        128,
+        128
+      ],
+      "pivot": [
+        128,
+        240
+      ],
+      "frames": [
+        "roar-1.png",
+        "roar-2.png",
+        "roar-3.png",
+        "roar-4.png"
+      ],
+      "frame_bboxes": [
+        [
+          34,
+          24,
+          220,
+          240
+        ],
+        [
+          34,
+          24,
+          220,
+          240
+        ],
+        [
+          18,
+          16,
+          238,
+          240
+        ],
+        [
+          32,
+          18,
+          224,
+          240
+        ]
+      ],
+      "idle_file": "baron-roar-idle.png",
+      "idle_runtime_path": "assets/enemies/baron-roar-idle.png",
+      "preview": "roar.gif",
+      "preview_duration_ms": 160,
+      "chroma_key": {
+        "color": "#FF00FF",
+        "distance_threshold": 20,
+        "edge_distance_threshold": 30
+      },
+      "source_grid_x": [
+        0,
+        627,
+        1254
+      ],
+      "source_grid_y": [
+        0,
+        606,
+        1254
+      ],
+      "scale": "One shared frame scale, nearest-neighbor logical128 to256",
+      "alpha": "binary"
+    },
+    "wind": {
+      "file": "baron_emerge_wind.png",
+      "runtime_path": "assets/fx/baron_emerge_wind.png",
+      "source": "raw-wind.png",
+      "prompt": "baronWindV2-prompt.txt",
+      "sheet_size": [
+        512,
+        768
+      ],
+      "grid": [
+        2,
+        3
+      ],
+      "cell": [
+        256,
+        256
+      ],
+      "pivot": [
+        128,
+        128
+      ],
+      "frames": [
+        "wind-1.png",
+        "wind-2.png",
+        "wind-3.png",
+        "wind-4.png",
+        "wind-5.png",
+        "wind-6.png"
+      ],
+      "frame_bboxes": [
+        [
+          60,
+          108,
+          196,
+          202
+        ],
+        [
+          16,
+          26,
+          234,
+          210
+        ],
+        [
+          16,
+          8,
+          242,
+          224
+        ],
+        [
+          16,
+          22,
+          240,
+          224
+        ],
+        [
+          36,
+          26,
+          232,
+          210
+        ],
+        [
+          52,
+          44,
+          196,
+          208
+        ]
+      ],
+      "frame_order": "row-major",
+      "fps": 12,
+      "duration_ms": 500,
+      "loop": false,
+      "alpha": "Original semitransparency preserved; only alpha0..2 removed as border noise.",
+      "sampling": "Each original512 cell resized uniformly to120, pasted at4,4 into128, then nearest-neighbor2x. Fixed cell center and relative expansion preserved; no per-frame bbox normalization.",
+      "preview": "wind-preview.gif",
+      "preview_duration_ms": 80,
+      "preview_note": "Looping GIF is a palette/binary-alpha preview; runtime PNG preserves full glow transparency."
+    },
+    "wet_floor": {
+      "file": "baron_nest_wet.png",
+      "runtime_path": "assets/tiles/baron_nest_wet.png",
+      "source": "raw-wet.png",
+      "prompt": "baronWetFloorV2-prompt.txt",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "source_crop": [
+        250,
+        0,
+        650,
+        400
+      ],
+      "sampling": "Square400px patch containing large water/stone regions, nearest-neighbor resize to32. Opaque; no padding or chroma cleanup.",
+      "seamless": "Crop is selected for readability; exact edge matching is not guaranteed."
+    }
+  },
+  "qc": {
+    "roar_distinct_frames": 4,
+    "wind_distinct_frames": 6,
+    "empty_frames": 0,
+    "output_edge_touch_frames": 0,
+    "body_paste_clamped_frames": 0,
+    "body_forehead_check": "All four heads checked on opaque blue-gray background after narrowing chroma cleanup."
+  }
+}

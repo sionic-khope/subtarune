@@ -6,6 +6,8 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  baron_intro: { name: '바론', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/baron-roar-idle.png', stillScale: 0.625, stillPivot: [128, 240] },
+  voidgrub: { name: '공허유충', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/voidgrub-front.png' },
   hyungsub:  { name: '형섭', voice: 'hyungsub', palette: 'hero', self: true, hp: 100, hpColor: '#7fd0ff',   // 전투 HP (2026-09-10 브리핑: 형섭 100 / 경섭 120 / 빠맨 90, 경험치·공격력 없음)   // 인트로의 HS() 대사는 이름·초상화·목소리 사용. 보라맵부터는 나레이션
     sideWalk: { legY: 76, legFrames: [1, 3] } },
   gyeongsub: { name: '경섭', voice: 'gyeongsub', palette: 'guard', hp: 120, hpColor: '#ff5c5c', partyName: '경섭', partyDesc: '뭔가 살짝 수상하다.', sideWalk: { legY: 76, legFrames: [1, 3] } },   // 보라맵11 거대 나무에서 합류

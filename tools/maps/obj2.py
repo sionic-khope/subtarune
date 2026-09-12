@@ -2,12 +2,12 @@
 """옵젝영역2 (사용자 브리핑 2026-09-12): 오른쪽으로 조금 긴 얕은 물 길 — 가운데에 광장(진짜 광장은 아니고 이벤트가 모인 공터).
   광장: 마나샘(회복 재사용) + 이벤트 2종(**귀환 발판**·**오브젝트 알**) + 바나나 1개.
   광장 가운데에서 **윗길**(바론 둥지 — 표지판 하나, 아직 여기까지)과 **오른쪽길**이 갈리는데, 오른쪽길은 **쥰희 나무 동상**으로 막혀 있어 위로 가게 유도한다.
-  타일·소품: tools/art/obj_set.py(recall_pad·obj_egg·obj_egg_cracked·obj_egg_legs), 공용 조각: tools/maps/objlib.py. 왼쪽 ← obj1, 윗길 끝 → obj3 자리표시.
+  타일·소품: tools/art/obj_set.py(recall_pad·obj_egg·obj_egg_cracked·obj_egg_legs), 공용 조각: tools/maps/objlib.py. 왼쪽 ← obj1, 윗길 끝 → obj3(별도 생성기).
 실행: /usr/bin/python3 tools/maps/obj2.py  (--check)
 """
 import io, json, sys
-sys.path.insert(0, 'tools/maps')
-from objlib import T, water, JUNHEE_STATUES
+sys.path.insert(0, '.')
+from tools.maps.objlib import T, water, JUNHEE_STATUES
 W, H = 76, 22
 R0, R1 = 13, 15                      # 가로 길 3줄(들어오는 길·오른쪽길)
 PC0, PC1, PR0, PR1 = 26, 44, 6, 17   # 광장(공터)
@@ -68,6 +68,7 @@ for r in range(1, H - 2):
         elif near and (r * 7 + c * 5) % 4 == 0: spots.append((r, c))
         elif not near and (r * 11 + c * 7) % 5 == 0: spots.append((r, c))
 seen = set()
+tree_count = 0
 for j, (r, c) in enumerate(spots):
     x, y = c * T - 12, r * T - 40
     if ground(r + 1, c): y -= T
@@ -75,31 +76,18 @@ for j, (r, c) in enumerate(spots):
     seen.add((x, y))
     img = 'assets/props/tree_obj_purple.png' if (r * 13 + c * 7) % 4 == 0 else 'assets/props/tree_obj.png'
     ents.append({'type': 'prop', 'id': f'ot{j}', 'image': img, 'x': x + 16, 'y': y + 72, 'w': 24, 'h': 12, 'ix': x, 'iy': y, 'solid': True})
+    tree_count += 1
 m2 = {'id': 'obj2', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'obj_forest', 'rows': rows,
       'spawns': {'from_left': {'x': 60, 'y': 14 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 14 * T + 8, 'facing': 'right'},
                  'plaza': {'x': 34 * T, 'y': 14 * T + 8, 'facing': 'right'}, 'from_top': {'x': UC0 * T + 40, 'y': 3 * T + 8, 'facing': 'down'}},
       'meta': {'connected': True, 'road': [R0, R1], 'plaza': [PC0, PC1, PR0, PR1], 'up': [UC0, UC1], 'statue_c': STAT_C,
                'events': ['blue', 'recall', 'egg', 'banana', 'sign', 'statue1'],
                # 막아야 하는 길: [출발 타일, 절대 닿으면 안 되는 타일] — 동상 벽에 틈이 있으면 tests/unit/maps-connect.test.mjs 가 잡는다(2026-09-12 '다 안 막히고 뚫린다')
-               'blocked': [[46, R0 + 1], [W - 3, R0 + 1]], 'trees': len([e for e in ents if e.get('id', '').startswith('ot')])},
+               'blocked': [[46, R0 + 1], [W - 3, R0 + 1]], 'trees': tree_count},
       'entities': ents}
-# obj3 자리표시(바론 둥지 — 다음 브리핑): 아래에서 올라오는 짧은 길
-rows3 = [[' '] * 16 for _ in range(12)]
-for r in range(5, 8):
-    for c in range(1, 15): rows3[r][c] = water(r, c)
-for r in range(12):
-    for c in range(16):
-        if rows3[r][c] == ' ' and any(0 <= r + dr < 12 and rows3[r + dr][c] in 'aAj' for dr in (-2, -1, 1, 2)): rows3[r][c] = 'c'
-for r in range(1, 12):
-    for c in range(16):
-        if rows3[r][c] == ' ' and rows3[r - 1][c] == 'c': rows3[r][c] = 'V'
-rows3 = [''.join(r) for r in rows3]
-m3 = {'id': 'obj3', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'obj_forest', 'rows': rows3,
-      'spawns': {'from_bottom': {'x': 7 * T, 'y': 6 * T + 8, 'facing': 'up'}, 'start': {'x': 7 * T, 'y': 6 * T + 8, 'facing': 'up'}},
-      'entities': [{'type': 'door', 'x': 6 * T, 'y': 8 * T - 8, 'w': 96, 'h': 8, 'to': 'obj2', 'spawn': 'from_top', 'sfx': False}]}
-maps = {'obj2': m2, 'obj3': m3}
+maps = {'obj2': m2}
 if '--check' in sys.argv:
     ok = all(json.loads(io.open(f'assets/maps/{k}.json', encoding='utf-8').read()) == v for k, v in maps.items())
-    print('obj2/obj3', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)
+    print('obj2', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)
 for k, v in maps.items(): io.open(f'assets/maps/{k}.json', 'w', encoding='utf-8').write(json.dumps(v, ensure_ascii=False, indent=1))
-print('wrote obj2', W, 'x', H, 'trees', m2['meta']['trees'], '/ obj3 자리표시')
+print('wrote obj2', W, 'x', H, 'trees', tree_count)

@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "asset": "baron-nest-intro-v1",
+  "processing": "Generated art with deterministic background cleanup, shared scale within roar, binary alpha, nearest-neighbor resizing.",
+  "export_scale": 2,
+  "assets": {
+    "roar": {
+      "file": "baron-roar.png",
+      "runtime_path": "assets/enemies/baron-roar.png",
+      "source": "raw-roar.png",
+      "prompt": "nestRoar-prompt.txt",
+      "sheet_size": [
+        512,
+        512
+      ],
+      "grid": [
+        2,
+        2
+      ],
+      "cell": [
+        256,
+        256
+      ],
+      "logical_cell": [
+        128,
+        128
+      ],
+      "pivot": [
+        128,
+        240
+      ],
+      "frame_order": "row-major",
+      "frames": [
+        "roar-1.png",
+        "roar-2.png",
+        "roar-3.png",
+        "roar-4.png"
+      ],
+      "frame_bboxes": [
+        [
+          30,
+          20,
+          224,
+          240
+        ],
+        [
+          30,
+          18,
+          224,
+          240
+        ],
+        [
+          18,
+          16,
+          236,
+          240
+        ],
+        [
+          30,
+          18,
+          224,
+          240
+        ]
+      ],
+      "idle_file": "baron-roar-idle.png",
+      "idle_runtime_path": "assets/enemies/baron-roar-idle.png",
+      "preview": "roar.gif",
+      "preview_duration_ms": 160,
+      "preview_loop": true
+    },
+    "cannon": {
+      "file": "wooden_cannon_up.png",
+      "runtime_path": "assets/props/wooden_cannon_up.png",
+      "source": "raw-cannon.png",
+      "prompt": "nestCannon-prompt.txt",
+      "size": [
+        192,
+        192
+      ],
+      "logical_cell": [
+        96,
+        96
+      ],
+      "pivot": [
+        96,
+        180
+      ],
+      "bbox": [
+        36,
+        12,
+        156,
+        180
+      ],
+      "direction": "up"
+    },
+    "thorns": {
+      "file": "baron_thorns.png",
+      "runtime_path": "assets/props/baron_thorns.png",
+      "source": "raw-thorns.png",
+      "prompt": "nestThorn-prompt.txt",
+      "size": [
+        128,
+        128
+      ],
+      "logical_cell": [
+        64,
+        64
+      ],
+      "pivot": [
+        64,
+        120
+      ],
+      "bbox": [
+        8,
+        10,
+        120,
+        120
+      ]
+    },
+    "voidgrub": {
+      "file": "voidgrub-front.png",
+      "runtime_path": "assets/enemies/voidgrub-front.png",
+      "size": [
+        32,
+        32
+      ],
+      "bbox": [
+        2,
+        7,
+        29,
+        30
+      ],
+      "provenance": "Unchanged copy of approved voidgrub-v2-cute/front/front-1.png; no redraw or resize"
+    }
+  },
+  "qc": {
+    "generated_frames": 6,
+    "empty_frames": 0,
+    "edge_touch_frames": 0,
+    "paste_clamped_frames": 0,
+    "alpha": "0 or 255",
+    "roar_distinct_frames": 4
+  }
+}

@@ -20,6 +20,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 2. 맵은 `/map`, 그림은 `/art`, 컷신은 `/cutscene` 스킬로. 작업 끝나면 `docs/STATE.md` 갱신 + 커밋/푸시(`sionic-khope/subtarune`) + `./dev.sh` 재기동.
 
 ## 작업 규율 (2026-09-10 버그 회고에서 확정 — 어기면 사용자가 곧바로 겪는다)
+- **맵 확장·분위기 변경**: 먼저 `.claude/skills/map/SKILL.md`의 “지역 자산 연속성”을 적용한다. 옛 지역 자산을 잘못 재사용하고 검증에서 놓친 [회고](docs/postmortems/2026-09-12-object-region-art.md)를 새 지역 작업·관련 리뷰 때 읽는다.
 - **서버는 작업 트리를 그대로 서빙한다.** 사용자는 작업 중에도 플레이한다. JS 는 `tools/dev/patch.py <files> <<'PY' … PY` 로만 고친다(임시 사본 → `node --check` → 이동). 문법이 깨진 파일이 1초라도 저장되면 "목소리·브금이 사라졌다"로 보인다.
 - **한 줄짜리 문장 끝에 `//` 주석 금지**(뒤 코드가 주석 처리됨 — 같은 날 세 번 반복). 주석은 윗줄에.
 - **컷신 좌표는 기준물 상대**(`{move, rel:'id', at, by}`). 절대 `px` 는 맵 밖으로 걸어 나갈 때만. 맵을 바꾸면 컷신 좌표가 같이 깨진다 — `tests/unit/cutscenes.test.mjs` 가 맵 안쪽 허공으로 가는 이동을 잡는다.

@@ -137,6 +137,20 @@ function parallel(game, nodes) {
 /** 노드 → waiter | null(컷신 명령 아님) */
 export function makeWaiter(game, node) {
   if (node.wait !== undefined) return timer(node.wait);
+  if (node.emerge) {
+    const e = findEntity(game, node.emerge); if (!e) return done;
+    const depth = node.depth ?? 360, duration = node.duration ?? 2;
+    e.visible = true; e.emerge = { depth, progress: 0 }; let t = 0;
+    return { update(dt) { t += dt; const progress = Math.min(1, t / duration); e.emerge.progress = node.ease === 'out' ? 1 - (1 - progress) ** 3 : progress; if (t >= duration) { e.emerge = null; return true; } return false; } };
+  }
+  if (node.puff) {
+    const e = findEntity(game, node.puff); if (!e) return done;
+    const [dx, dy] = node.offset || [0, -20], duration = node.duration ?? 0.7;
+    const x = (e.drawX ?? e.x) + (e.iw ?? e.w) / 2 + dx, y = (e.drawY ?? e.y) + dy;
+    const parts = [-4, 0, 4].map((offset) => ({ x: x + offset, y, a: 1, color: '#dbd1e6', ang: 1, size: offset ? 5 : 8 }));
+    game.sparks = parts; let t = 0;
+    return { update(dt) { t += dt; for (const p of parts) { p.y -= dt * 24; p.a = Math.max(0, 1 - t / duration); } if (t >= duration) { if (game.sparks === parts) game.sparks = null; return true; } return false; } };
+  }
   if (node.move) return mover(game, node);
   if (node.motion) {
     const entity = findEntity(game, node.motion);
@@ -170,7 +184,7 @@ export function makeWaiter(game, node) {
     for (let i = 0; i < (a.n ?? 36); i++) { const f = froms[i % froms.length]; parts.push({ x0: f.x + f.w / 2 + (Math.random() - 0.5) * 30, y0: f.y + f.h - 20 - Math.random() * 60, tx: tos[i % tos.length], ang: Math.random() * Math.PI * 2, r: 18 + Math.random() * 10, color: (a.colors || ['#fff'])[i % (a.colors || ['#fff']).length], delay: Math.random() * 0.4, t: 0, x: 0, y: 0, a: 0 }); }
     game.sparks = parts; let t = 0;
     return { update: (dt) => { t += dt;
-      for (const p of parts) { p.t += dt; const k = Math.min(1, Math.max(0, (p.t - p.delay) / (dur * 0.55))); const cx = p.tx.x + p.tx.w / 2, cy = p.tx.y + p.tx.h - 26; p.ang += dt * 5;
+      for (const p of parts) { p.t += dt; const k = Math.min(1, Math.max(0, (p.t - p.delay) / (dur * 0.55))); const cx = a.targetImageTop ? (p.tx.drawX ?? p.tx.x) + (p.tx.iw ?? p.tx.w) / 2 + (a.offset?.[0] || 0) : p.tx.x + p.tx.w / 2, cy = a.targetImageTop ? (p.tx.drawY ?? p.tx.y) + (a.offset?.[1] || 0) : p.tx.y + p.tx.h - 26; p.ang += dt * 5;
         p.x = p.x0 + (cx - p.x0) * k + Math.cos(p.ang) * p.r * k; p.y = p.y0 + (cy - p.y0) * k + Math.sin(p.ang) * p.r * 0.5 * k; p.a = p.t < p.delay ? 0 : t < dur ? 1 : Math.max(0, 1 - (t - dur) / 0.5); }
       if (t >= dur + 0.5) { game.sparks = null; return true; } return false; } };
   }
