@@ -30,7 +30,6 @@ import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
 import { MaillardArrival } from './scenes/maillard-arrival.js';
-import { MaillardCart } from './scenes/maillard-cart.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
@@ -60,7 +59,6 @@ class Game {
     this.lastBattle = null;
     this.seaChase = null;
     this.maillardArrival = null;
-    this.maillardCart = null;
     this.sunrise = new MaillardSunrise(MAILLARD_SUNRISE);
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu | battle-preview
@@ -176,7 +174,6 @@ class Game {
   resetState() {
     this.seaRetryPromptPending = false;
     this.maillardArrival?.dispose(); this.maillardArrival = null;
-    this.maillardCart?.dispose(); this.maillardCart = null;
     this.sunrise.dispose();
     this.seaChase?.dispose(); this.seaChase = null;
     this.battle?.disposeGimmick();
@@ -369,7 +366,6 @@ class Game {
   toTitle() {
     this.seaRetryPromptPending = false;
     this.maillardArrival?.dispose(); this.maillardArrival = null;
-    this.maillardCart?.dispose(); this.maillardCart = null;
     this.sunrise.dispose();
     this.seaChase?.dispose(); this.seaChase = null;
     this.battle?.disposeGimmick();
@@ -497,7 +493,6 @@ class Game {
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
       this.maillardArrival?.dispose(); this.maillardArrival = null;
-      this.maillardCart?.dispose(); this.maillardCart = null;
       this.sunrise.dispose();
       this.seaChase?.dispose(); this.seaChase = null;
       const def = MAPS[mapId];
@@ -531,6 +526,7 @@ class Game {
         images: this.propImages,
         animated: def.sunrise?.animated !== false,
         seen: this.has(MAILLARD_SUNRISE.completionFlag),
+        onComplete: () => { this.setFlag(MAILLARD_SUNRISE.completionFlag); if (!this.ride) this.autosave(); },
       });
     };
     const enter = () => { if (runEnter) this.runMapEnter(mapId); };
@@ -612,28 +608,6 @@ class Game {
     this.changeMap('maillard_deck', 'arrival', true, { enter: false });
   }
 
-  /** Start automatic boarding without saving the trigger position as completed travel. */
-  startMaillardCart() {
-    if (this.has(MAILLARD_CART.completionFlag)) return false;
-    this.maillardCart?.dispose();
-    this.maillardCart = new MaillardCart(this);
-    this.state = 'cart';
-    return true;
-  }
-
-  /** Commit both one-shot flags only after a brief black transition reaches the safe landing. */
-  finishMaillardCart() {
-    if (!this.maillardCart || this.transitioning) return;
-    this.transitioning = true;
-    this.fadeTo(1, 0.2, () => {
-      this.setFlag(MAILLARD_SUNRISE.completionFlag);
-      this.setFlag(MAILLARD_CART.completionFlag);
-      this.state = 'field';
-      this.changeMap(MAILLARD_CART.map, MAILLARD_CART.landingSpawn, true, { bgm: false, enter: false });
-      this.fadeTo(0, 0.25, () => { this.transitioning = false; this.autosave(); }, 'black');
-    }, 'black');
-  }
-
   /** Defer the retry choice until the current chest script has released its runner. */
   promptSeaRetry() { this.seaRetryPromptPending = true; }
 
@@ -694,10 +668,6 @@ class Game {
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.t * b.fps < b.count); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
-    if (this.maillardCart) {
-      this.maillardCart.update(dt);
-      return;
-    }
     if (this.maillardArrival) {
       this.maillardArrival.update(dt);
       if (this.dialogue.running) this.dialogue.update(dt, Input);
@@ -834,11 +804,6 @@ class Game {
     }
     if (this.state === 'battle-preview') {
       this.battlePreview.draw(ctx, SCREEN_W, SCREEN_H);
-      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
-      return;
-    }
-    if (this.maillardCart) {
-      this.maillardCart.draw(ctx);
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
@@ -1063,7 +1028,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.106';
+export const BUILD = '2026-09-12.107';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

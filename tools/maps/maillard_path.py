@@ -11,89 +11,90 @@ from pathlib import Path
 import sys
 from typing import Final
 
-WIDTH: Final = 75
-HEIGHT: Final = 25
+WIDTH: Final = 132
+HEIGHT: Final = 40
 TILE: Final = 32
 MAP_ID: Final = 'maillard_path'
-ROUTE: Final = ((72, 18), (19, 18))
-ROUTE_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in ROUTE]
-RAILS: Final = [
-    [2304, 544, 608, 544], [2304, 640, 608, 640],
-]
-CASTERS: Final = [[2048, 544], [1536, 544], [1024, 544], [672, 544]]
-WALKOUT: Final = ((64, 14), (38, 14), (38, 6), (5, 6), (5, 2))
+APPROACH: Final = ((4, 31), (58, 31))
+APPROACH_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in APPROACH]
+CART_START: Final = [1856, 986]
+CART_END: Final = [3136, 986]
+LANDING: Final = [3280, 1000]
+WALKOUT: Final = ((102, 31), (128, 31), (128, 18), (112, 18), (112, 5), (128, 5))
 WALKOUT_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in WALKOUT]
 
-grid = [[' '] * WIDTH for _ in range(HEIGHT)]
-for (column, row), (next_column, next_row) in zip(ROUTE, ROUTE[1:]):
-    if column == next_column:
-        for path_row in range(min(row, next_row), max(row, next_row) + 1):
-            for path_column in range(column - 1, column + 2):
-                grid[path_row][path_column] = 'M'
-    else:
-        for path_column in range(min(column, next_column), max(column, next_column) + 1):
-            for path_row in range(row - 1, row + 2):
-                grid[path_row][path_column] = 'M'
 
-for path_row in range(17, 20):
-    for path_column in range(73, WIDTH - 1):
+def paint_path(grid: list[list[str]], points: tuple[tuple[int, int], ...]) -> None:
+    for (column, row), (next_column, next_row) in zip(points, points[1:]):
+        if column == next_column:
+            for path_row in range(min(row, next_row), max(row, next_row) + 1):
+                for path_column in range(column - 1, column + 2):
+                    grid[path_row][path_column] = 'M'
+        else:
+            for path_column in range(min(column, next_column), max(column, next_column) + 1):
+                for path_row in range(row - 1, row + 2):
+                    grid[path_row][path_column] = 'M'
+
+
+grid = [['!'] * WIDTH for _ in range(HEIGHT)]
+paint_path(grid, APPROACH)
+for path_column in range(1, 4):
+    grid[31][path_column] = 'M'
+for path_column in range(58, 104):
+    for path_row in range(30, 33):
         grid[path_row][path_column] = 'M'
-for (column, row), (next_column, next_row) in zip(WALKOUT, WALKOUT[1:]):
-    if column == next_column:
-        for path_row in range(min(row, next_row), max(row, next_row) + 1):
-            for path_column in range(column - 1, column + 2):
-                grid[path_row][path_column] = 'M'
-    else:
-        for path_column in range(min(column, next_column), max(column, next_column) + 1):
-            for path_row in range(row - 1, row + 2):
-                grid[path_row][path_column] = 'M'
-for pocket_row in range(11, 16):
-    for pocket_column in range(47, 56):
+paint_path(grid, WALKOUT)
+for pocket_row in range(28, 35):
+    for pocket_column in range(120, 131):
         grid[pocket_row][pocket_column] = 'M'
-for pocket_row in range(5, 10):
-    for pocket_column in range(36, 42):
+for pocket_row in range(15, 22):
+    for pocket_column in range(109, 117):
         grid[pocket_row][pocket_column] = 'M'
-for pocket_row in range(4, 9):
-    for pocket_column in range(15, 21):
-        grid[pocket_row][pocket_column] = 'M'
-for pocket_row in range(1, 5):
-    for pocket_column in range(2, 11):
+for pocket_row in range(2, 9):
+    for pocket_column in range(120, 131):
         grid[pocket_row][pocket_column] = 'M'
 
 rows = [''.join(row) for row in grid]
 entities = [
-    {'type': 'door', 'id': 'path_to_hold', 'x': 2336, 'y': 544, 'w': 24, 'h': 96,
+    {'type': 'door', 'id': 'path_to_hold', 'x': 16, 'y': 960, 'w': 24, 'h': 96,
      'to': 'maillard_deck', 'spawn': 'from_path', 'sfx': False},
-    {'type': 'trigger', 'id': 'cart_board', 'x': 560, 'y': 544, 'w': 72, 'h': 96,
-     'script': 'maillard_cart_board', 'unless': 'maillard_cart_done'},
-    {'type': 'npc', 'id': 'sunrise_junhee', 'sprite': 'junhee', 'x': 1636, 'y': 392,
+    {'type': 'raft', 'id': 'maillard_cart', 'image': 'assets/props/maillard-cart.png',
+     'x': CART_START[0], 'y': CART_START[1], 'w': 238, 'h': 28,
+     'route': [CART_END], 'speed': 64, 'flag': 'maillard_cart_done',
+     'autoBoard': 'left', 'boardSfx': False, 'arriveSfx': False, 'moveSfx': False,
+     'cars': 3, 'carGap': 80, 'assetCrop': [61, 106, 134, 43], 'displaySize': [78, 25],
+     'riderOffset': [80, 0], 'passengerGap': 80, 'passengerOrder': ['ppaman', 'gyeongsub']},
+    {'type': 'npc', 'id': 'sunrise_junhee', 'sprite': 'junhee', 'x': 3904, 'y': 936,
+     'facing': 'right', 'wander': 0, 'solid': False},
+    {'type': 'npc', 'id': 'sunrise_yongjun', 'sprite': 'yongjun', 'x': 3664, 'y': 552,
+     'facing': 'right', 'wander': 0, 'solid': False},
+    {'type': 'npc', 'id': 'sunrise_cs_red', 'sprite': 'cs_red', 'x': 3856, 'y': 104,
+     'facing': 'right', 'wander': 0, 'solid': False},
+    {'type': 'npc', 'id': 'sunrise_cs_blue', 'sprite': 'cs_blue', 'x': 4056, 'y': 104,
      'facing': 'left', 'wander': 0, 'solid': False},
-    {'type': 'npc', 'id': 'sunrise_yongjun', 'sprite': 'yongjun', 'x': 1252, 'y': 200,
-     'facing': 'left', 'wander': 0, 'solid': False},
-    {'type': 'npc', 'id': 'sunrise_cs_red', 'sprite': 'cs_red', 'x': 580, 'y': 200,
-     'facing': 'left', 'wander': 0, 'solid': False},
-    {'type': 'npc', 'id': 'sunrise_cs_blue', 'sprite': 'cs_blue', 'x': 196, 'y': 72,
-     'facing': 'down', 'wander': 0, 'solid': False},
 ]
 map_data = {
-    'id': MAP_ID, 'name': '마이야르호 일출 갑판', 'stage': 'void_fallen', 'bgm': 'wind',
-    'dim': 0, 'backdrop': 'maillard_sunrise', 'sunrise': {'animated': True}, 'rows': rows,
+    'id': MAP_ID, 'name': '마이야르호 일출 갑판', 'stage': 'void_fallen',
+    'bgm': 'maillard_sunrise', 'dim': 0, 'backdrop': 'maillard_sunrise',
+    'sunrise': {'animated': True}, 'rows': rows,
     'preload': ['assets/tiles/maillard_deck.png', 'assets/backdrops/maillard_sunset.png',
                 'assets/props/maillard_sun.png', 'assets/props/maillard-cart.png',
                 'assets/backdrops/maillard_sea.png'],
     'spawns': {
-        'start': {'x': 2308, 'y': 584, 'facing': 'left'},
-        'from_hold': {'x': 2308, 'y': 584, 'facing': 'left'},
-        'cart_landing': {'x': 1920, 'y': 456, 'facing': 'left'},
+        'start': {'x': 128, 'y': 1000, 'facing': 'right'},
+        'from_hold': {'x': 128, 'y': 1000, 'facing': 'right'},
+        'cart_landing': {'x': LANDING[0], 'y': LANDING[1], 'facing': 'right'},
     },
     'meta': {
-        'connected': False,
-        'sunriseRoute': ROUTE_PIXELS,
+        'connected': True,
+        'sunriseRoute': APPROACH_PIXELS,
         'sunriseWalkout': WALKOUT_PIXELS,
-        'sunriseRails': {'lines': RAILS},
-        'sunriseCasters': CASTERS,
-        'sunriseCart': {'duration': 20, 'order': ['player', 'ppaman', 'gyeongsub'],
-                        'departure': [608, 592], 'landing': [1920, 456]},
+        'sunriseCart': {
+            'duration': 20,
+            'order': ['player', 'ppaman', 'gyeongsub'],
+            'departure': CART_START,
+            'landing': LANDING,
+        },
     },
     'entities': entities,
 }

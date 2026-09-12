@@ -5,7 +5,7 @@
 | 원본 | 게임 파일 | 규격 |
 |---|---|---|
 | sunset-raw.png | assets/backdrops/maillard_sunset.png | 1536×1024 원본 그대로. 해 없는 노을 바다, 수평선 원본 y약400 |
-| sun-raw.png | assets/props/maillard_sun.png | 256×256 RGBA. crop [30,30,196,196], 중심[128,128] |
+| sun-raw.png | 과거 원본 보관 | BUILD106의 두꺼운 테두리 해. 현재 런타임은 `../maillard-sunrise-v2/` 사용 |
 | cart-side-raw.png | assets/props/maillard-cart.png | 256×256 RGBA. crop [61,106,134,43], 수평 옆모습, 바퀴 포함 |
 
 원본은 보존했다. generate2dsprite processor로 배경 제거·가장 큰 연결체 추출·최근접 축소만 실행했다. 테두리 침식·색 양자화 없음. strict QC: empty/edge-touch/clamp 모두0. 처리 설정과 bbox는 `sun-pipeline-meta.json`, `cart-pipeline-meta.json`. 도구 기본 저장소에도 생성 원본이 남아 있다.

@@ -31,7 +31,6 @@ import { obj4_baron_abduction } from './cutscenes/obj4_abduction.js';
 import { obj5_chase, obj5_resume } from './cutscenes/obj5_chase.js';
 import { obj5_maillard } from './cutscenes/obj5_maillard.js';
 import { maillard_hold, maillard_hold_stairs, maillard_hold_hatch } from './cutscenes/maillard_hold.js';
-import { maillard_cart_board } from './cutscenes/maillard_cart.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -49,7 +48,6 @@ export const SCRIPTS = {
   obj5_resume,
   obj5_maillard,
   maillard_hold, maillard_hold_stairs, maillard_hold_hatch,
-  maillard_cart_board,
   chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
 
   _chest_empty: [{ text: '* 상자는 비어 있다.', voice: 'narrator' }],

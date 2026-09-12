@@ -607,7 +607,9 @@ export class Raft extends Prop {
     this.riding = true; this.game.ride = this; this.rider = player; player.moving = false; player.frame = 0;
     this.dir = this.at === 0 ? 1 : -1; this.target = this.at + this.dir;   // 경유점을 차례로(계단식 폭포: 폭포마다 물길이 한 단 위로 — 경유점 사이는 멈추지 않는다)
     const [tx, ty] = this.route[this.route.length - 1 - (this.dir > 0 ? 0 : this.route.length - 1)]; player.facing = tx > this.x ? 'right' : tx < this.x ? 'left' : ty > this.y ? 'down' : 'up'; this.dirFacing = player.facing;
-    this._carry(); this.game.sound.sfx('splash', { volume: 0.6 }); this.splashT = 1.1;
+    this._carry();
+    if (this.def.boardSfx !== false) this.game.sound.sfx(this.def.boardSfx || 'splash', { volume: 0.6 });
+    this.splashT = 1.1;
   }
   /** 출발 (swim 동료가 있으면 숨기고 뒤/아래에서 헤엄치게) */
   depart() { if (!this.riding) return; this.moving = true; this.blocked = null; this.ensureSwimmer(); }
@@ -648,8 +650,19 @@ export class Raft extends Prop {
     this.game.sound.sfx('thud', { volume: 0.8 }); this.game.sound.sfx('splash', { volume: 0.8, rate: 0.8 }); this.game.shake = { time: 0.4, amp: 5 };
     this.game.emitDropletsAt(this.x + this.w / 2, this.y + this.h * 0.7, 16);
   }
-  _carry() { const p = this.rider; p.x = Math.round(this.x + this.w / 2 - p.w / 2); p.y = Math.round(this.y + this.h * 0.68 - p.h) - Math.round(this.jumpY); }   // 발이 뗏목 아래쪽에 닿게 → 위에 서 있는 느낌 (그리기 순서는 main.js 가 항상 위로). 점프 중엔 같이 뜬다
+  _carry() {
+    const p = this.rider, [ox, oy] = this.def.riderOffset || [0, 0];
+    p.x = Math.round(this.x + this.w / 2 - p.w / 2 + ox);
+    p.y = Math.round(this.y + this.h * 0.68 - p.h + oy) - Math.round(this.jumpY);
+  }
   update(dt) {
+    if (!this.riding && this.def.autoBoard && !this.game.ride && this.at === 0) {
+      const p = this.game.player, side = this.def.autoBoard;
+      const zone = side === 'left'
+        ? { x: this.x - 32, y: this.y - 24, w: 40, h: this.h + 48 }
+        : { x: this.x + this.w - 8, y: this.y - 24, w: 40, h: this.h + 48 };
+      if (p?.overlaps(zone)) { this.board(p); this.depart(); }
+    }
     if (!this.riding) return;
     if (this.sweeping) {                                                        // 쓸려 내려가는 중(520px/s, 물보라)
       const sw = this.sweeping, ddx = sw.toX - this.x, ddy = sw.toY - this.y, dd = Math.hypot(ddx, ddy), step = 520 * dt;
@@ -691,7 +704,7 @@ export class Raft extends Prop {
       this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.jumping = false; this.jumpY = 0; this._carry();                 // 공중에서 도착해도 먼저 뗏목 위로 내려놓고(점프 높이 0) 하차 자리를 찾는다 (2026-09-10 '도착할 때쯤 점프하면 맵 밖에 갇힘')
       this.riding = false; this.moving = false; this.game.ride = null;
-      this.game.sound.sfx('splash', { volume: 0.5 });
+      if (this.def.arriveSfx !== false) this.game.sound.sfx(this.def.arriveSfx || 'splash', { volume: 0.5 });
       this._disembark(dx, dy);
       this._landSwimmer();
       const af = this.def.onArriveFlag || `${this.id}_arrived`;
@@ -722,7 +735,10 @@ export class Raft extends Prop {
     this.rider.moving = false; this.rider.frame = 0; this.rider.animPhase = 0;   // 실려 가는 동안 가만히 서 있는다(걷기 애니 금지, 2026-09-10)
     if (!this.jumping) {
       this.splashT -= dt;                                                     // 움직이는 동안 첨벙 (1.1s 마다, 작게·피치 조금씩 다르게)
-      if (this.splashT <= 0) { this.splashT = 1.1; this.game.sound.sfx('splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 }); }
+      if (this.splashT <= 0) {
+        this.splashT = 1.1;
+        if (this.def.moveSfx !== false) this.game.sound.sfx(this.def.moveSfx || 'splash', { volume: 0.32, rate: 0.85 + Math.random() * 0.2 });
+      }
     }
   }
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
@@ -761,9 +777,22 @@ export class Raft extends Prop {
   }
   draw(ctx, cam) {
     if (!this.visible) return;
-    const x = Math.round(this.drawX - cam.x), y = Math.round(this.drawY - cam.y);
-    if (this.jumpY > 0) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x + this.iw / 2, y + this.ih * 0.7, this.iw * 0.45, 5, 0, 0, Math.PI * 2); ctx.fill(); }   // 물 위 그림자
-    if (this.image) ctx.drawImage(this.image, x, y - Math.round(this.jumpY), this.iw, this.ih);
+    const x = Math.round(this.drawX - cam.x), y = Math.round(this.drawY - cam.y - this.jumpY);
+    if (this.def.cars > 1 && this.image) {
+      const [sx, sy, sw, sh] = this.def.assetCrop;
+      const [dw, dh] = this.def.displaySize;
+      const gap = this.def.carGap || dw;
+      for (let i = 0; i < this.def.cars; i++) {
+        if (i > 0) {
+          ctx.fillStyle = '#20151c'; ctx.fillRect(x + i * gap - 4, y + 15, 8, 4);
+          ctx.fillStyle = '#9a6448'; ctx.fillRect(x + i * gap - 3, y + 16, 6, 2);
+        }
+        ctx.drawImage(this.image, sx, sy, sw, sh, x + i * gap, y, dw, dh);
+      }
+      return;
+    }
+    if (this.jumpY > 0) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x + this.iw / 2, y + this.ih * 0.7, this.iw * 0.45, 5, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (this.image) ctx.drawImage(this.image, x, y, this.iw, this.ih);
   }
 }
 
@@ -841,9 +870,16 @@ export class Follower extends Character {
     }
     if (this.game.dialogue.running) return;          // 컷신 중엔 컷신(move)이 움직인다 — 발자국 추종과 싸우지 않게
     if (this.game.ride) {
-      if (this.game.ride.def?.swim) { this.moving = false; this.frame = 0; return; }   // 헤엄치는 뗏목(swim): 타지 않는다(Raft 가 숨기고 Swimmer 로 바꾼다)
-      this.x = p.x - 18 * this.slot; this.y = p.y - 3 * this.slot; this.facing = p.facing; this.moving = false; this.frame = 0; this.animPhase = 0; return;   // 탈것 위에선 동료도 가만히, 주인공 옆(겹치지 않게)
+      if (this.game.ride.def?.swim) { this.moving = false; this.frame = 0; return; }
+      const ride = this.game.ride, configured = ride.def.passengerOrder?.indexOf(this.id);
+      const slot = configured >= 0 ? configured + 1 : this.slot;
+      const gap = ride.def.passengerGap || 18;
+      this.x = p.x - gap * slot; this.y = p.y - (ride.def.passengerGap ? 0 : 3 * slot);
+      this.facing = ride.dirFacing; this.moving = false; this.frame = 0; this.animPhase = 0;
+      this.def.sortY = ride.y + ride.h + 1;
+      return;
     }
+    this.def.sortY = undefined;
     const trail = p.trail || [];
     // 발자국을 뒤에서부터 gap 만큼 거슬러 올라간 지점이 목표
     let acc = 0, target = null, prev = { x: p.x, y: p.y };

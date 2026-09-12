@@ -1,98 +1,68 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MAILLARD_CART, MAILLARD_SUNRISE } from '../../src/data/maillard-sunrise.js';
+import { MAILLARD_SUNRISE } from '../../src/data/maillard-sunrise.js';
 import { advanceSunrise, MaillardSunrise } from '../../src/world/sunrise.js';
-import { cartPassengerProgress } from '../../src/scenes/maillard-cart.js';
+import { Sound } from '../../src/core/audio.js';
 
-const fresh = () => ({ progress: 0, completed: false, lastAudioTime: 0 });
+const fresh = () => ({ progress: 0, lightProgress: 0, sunProgress: 0, completed: false, lastAudioTime: 0 });
 
-test('test_sunrise_audio_clock_holds_before_14_seconds', () => {
-  // Arrange
-  const state = fresh();
-
-  // Act
-  const next = advanceSunrise(state, 13.999, { ...MAILLARD_SUNRISE, animated: true, seen: false });
-
-  // Assert
-  assert.equal(next.progress, 0);
-  assert.equal(next.shouldPersist, false);
-});
-
-test('test_sunrise_audio_clock_rises_from_14_through_18_seconds', () => {
-  // Arrange
+test('sunrise light and low sun unfold slowly from map-entry music time', () => {
   const cfg = { ...MAILLARD_SUNRISE, animated: true, seen: false };
+  const start = advanceSunrise(fresh(), 0, cfg);
+  const middle = advanceSunrise(start, 9, cfg);
+  const highlight = advanceSunrise(middle, 14, cfg);
+  const complete = advanceSunrise(highlight, 20, cfg);
 
-  // Act
-  const atStart = advanceSunrise(fresh(), 14, cfg);
-  const halfway = advanceSunrise(atStart, 16, cfg);
-  const complete = advanceSunrise(halfway, 18, cfg);
-
-  // Assert
-  assert.equal(atStart.progress, 0);
-  assert.equal(halfway.progress, 0.5);
-  assert.equal(complete.progress, 1);
+  assert.equal(start.lightProgress, 0);
+  assert.equal(start.sunProgress, 0);
+  assert.equal(middle.lightProgress, 0.5);
+  assert.ok(middle.sunProgress > 0.35 && middle.sunProgress < 0.45);
+  assert.ok(highlight.lightProgress > 0.75 && highlight.lightProgress < 0.8);
+  assert.ok(highlight.sunProgress > 0.65 && highlight.sunProgress < 0.7);
+  assert.equal(complete.lightProgress, 1);
+  assert.equal(complete.sunProgress, 1);
   assert.equal(complete.shouldPersist, true);
 });
 
-test('test_sunrise_seen_or_static_map_stays_fully_raised', () => {
-  // Arrange
-  const seen = { ...MAILLARD_SUNRISE, animated: true, seen: true };
-  const staticMap = { ...MAILLARD_SUNRISE, animated: false, seen: false };
+test('seen or static sunrise stays fully raised and never replays after music loops', () => {
+  const seen = advanceSunrise(fresh(), 0, { ...MAILLARD_SUNRISE, animated: true, seen: true });
+  const staticMap = advanceSunrise(fresh(), 0, { ...MAILLARD_SUNRISE, animated: false, seen: false });
+  const complete = advanceSunrise(fresh(), 20, { ...MAILLARD_SUNRISE, animated: true, seen: false });
+  const looped = advanceSunrise(complete, 0.25, { ...MAILLARD_SUNRISE, animated: true, seen: false });
 
-  // Act
-  const seenFrame = advanceSunrise(fresh(), 0, seen);
-  const staticFrame = advanceSunrise(fresh(), 0, staticMap);
-
-  // Assert
-  assert.equal(seenFrame.progress, 1);
-  assert.equal(seenFrame.shouldPersist, false);
-  assert.equal(staticFrame.progress, 1);
-  assert.equal(staticFrame.shouldPersist, false);
+  for (const frame of [seen, staticMap, looped]) {
+    assert.equal(frame.lightProgress, 1);
+    assert.equal(frame.sunProgress, 1);
+    assert.equal(frame.completed, true);
+    assert.equal(frame.shouldPersist, false);
+  }
 });
 
-test('test_sunrise_bgm_loop_never_replays_a_completed_rise', () => {
-  // Arrange
-  const cfg = { ...MAILLARD_SUNRISE, animated: true, seen: false };
-  const complete = advanceSunrise(fresh(), 18, cfg);
-
-  // Act
-  const looped = advanceSunrise(complete, 0.25, cfg);
-
-  // Assert
-  assert.equal(looped.progress, 1);
-  assert.equal(looped.completed, true);
-  assert.equal(looped.shouldPersist, false);
-});
-
-test('test_sunrise_muted_or_buffered_media_uses_only_current_time', () => {
-  // Arrange
-  const bgm = { currentTime: 9, play: () => Promise.resolve() };
+test('muted or buffered media advances only from the selected BGM currentTime', () => {
+  const bgm = { currentTime: 0, play: () => Promise.resolve() };
   const sound = { bgmName: MAILLARD_SUNRISE.bgm, bgm, muted: true };
   const effect = new MaillardSunrise(MAILLARD_SUNRISE);
-  effect.enter({ sound, images: {}, animated: true, seen: false, restart: true });
+  effect.enter({ sound, images: {}, animated: true, seen: false });
 
-  // Act
-  bgm.currentTime = 16;
+  bgm.currentTime = 9;
   effect.update();
-  const rising = effect.frame.progress;
+  const middle = { ...effect.frame };
   effect.update();
 
-  // Assert
-  assert.equal(rising, 0.5);
-  assert.equal(effect.frame.progress, 0.5);
+  assert.equal(middle.lightProgress, 0.5);
+  assert.ok(middle.sunProgress > 0.35 && middle.sunProgress < 0.45);
+  assert.deepEqual(effect.frame, middle);
 });
 
-test('test_cart_boarding_order_and_duration_match_scene_contract', () => {
-  // Arrange
-  const firstPassengerBeat = MAILLARD_CART.boardingSeconds / MAILLARD_CART.order.length;
 
-  // Act
-  const first = cartPassengerProgress('boarding', firstPassengerBeat, 0);
-  const second = cartPassengerProgress('boarding', firstPassengerBeat, 1);
+test('audio unlock retries a BGM that browser autoplay left paused', async () => {
+  let plays = 0;
+  const sound = Object.create(Sound.prototype);
+  sound.bgm = { paused: true, play: () => { plays++; return Promise.resolve(); } };
+  sound.ctx = { state: 'running' };
 
-  // Assert
-  assert.deepEqual(MAILLARD_CART.order, ['player', 'ppaman', 'gyeongsub']);
-  assert.equal(first, 1);
-  assert.equal(second, 0);
-  assert.equal(MAILLARD_CART.rideSeconds, 20);
+  sound.unlock();
+  await Promise.resolve();
+
+  assert.equal(plays, 1);
 });

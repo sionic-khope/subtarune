@@ -71,6 +71,7 @@ export class Sound {
   }
 
   unlock() {
+    if (this.bgm?.paused) this.bgm.play().catch((error) => console.warn('[audio] BGM 재생 재시도 실패', error));
     if (this.ctx) {
       if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
       return;
@@ -244,7 +245,7 @@ export class Sound {
     const pre = this._preBgm?.[name]; if (pre) delete this._preBgm[name];
     const a = pre || new Audio(`assets/audio/bgm/${name}.mp3`);
     a.loop = loop; a.volume = 0;
-    a.play().catch(() => {});
+    a.play().catch((error) => console.warn('[audio] BGM 자동 재생 대기', error));
     this.bgm = a; this.bgmName = name; this.bgmVolume = volume;
     this._ramp(a, this.muted ? 0 : volume, fadeIn);
   }

@@ -60,6 +60,7 @@ function fillNoise(ctx, base, specks, rng, count) {
 
 // ── 기본 타일 ────────────────────────────────────────────────
 registerTile(' ', { name: 'void', solid: true, draw: (ctx) => { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+registerTile('!', { name: 'backdrop_void', solid: true, draw: () => {} });
 
 registerTile(',', {
   name: 'grass', solid: false, variants: 4,

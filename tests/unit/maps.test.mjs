@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const SCREEN_W = 480, SCREEN_H = 360, TILE = 32;
-const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y', 'Z', 'v', 'm', 'c', 'V', 'Y', 'o', 'O']);
+const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y', 'Z', 'v', 'm', 'c', 'V', 'Y', 'o', 'O', '!']);
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 const PW = 24, PH = 16;   // 주인공 히트박스 (스폰 x,y = 히트박스 왼쪽 위)
 const solidAt = (m, x, y) => { const c = Math.floor(x / TILE), r = Math.floor(y / TILE); if (r < 0 || r >= m.rows.length || c < 0 || c >= m.rows[0].length) return true; return SOLID_CHARS.has(m.rows[r][c]); };
