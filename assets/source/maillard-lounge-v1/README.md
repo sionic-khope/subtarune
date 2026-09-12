@@ -1,5 +1,7 @@
 # 마이야르호 라운지 자산
 
+2026-09-13 BUILD114: 사용자의 세로 축소 요청으로 런타임 벽은1536×640(아래 경계576), 마나샘은 즉시 회복 상호작용으로 변경했다. 아래896px·비상호작용 설명은 최초113 제작 이력이다. 현재 상점과 전시는 `tools/maps/maillard_lounge.py`, 상점 원본은 `../yongjun-shop-v1/README.md`가 기준이다.
+
 입구는 기존 `maillard_hold_walls.png`를 목재·철제 결속·팔레트 참고로 사용해 내장 imagegen으로 새로 생성했다. 오른쪽으로 걷던 플레이어가 선내로 들어가는 큰 열린 입구다. 프롬프트·원본·처리 메타데이터는 `entrance/`에 보존한다.
 
 가공: `generate2dsprite.py process --target asset --mode single --rows 1 --cols 1 --cell-size 384 --fit-scale 0.94 --align feet --component-mode all --trim-border 0 --edge-clean-depth 0 --strict-qc`. 마젠타 배경만 제거한 후 알파 여백을 잘라 `assets/props/maillard_lounge_entrance.png`(360×263)로 사용한다. 검정 통로는 투명하게 지우지 않는다.

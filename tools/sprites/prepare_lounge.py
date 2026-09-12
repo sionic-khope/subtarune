@@ -16,9 +16,9 @@ from typing import Final
 from PIL import Image
 
 WIDTH: Final = 1536
-HEIGHT: Final = 896
+HEIGHT: Final = 640
 TOP: Final = 160
-BOTTOM: Final = 832
+BOTTOM: Final = 576
 
 
 def main() -> None:

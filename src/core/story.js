@@ -11,6 +11,8 @@
 //
 // 새 스토리 비트 추가: STAGES 에 한 줄(id, 설명, 그 시점의 맵/스폰) → 스크립트에서 `{ stage:'id' }`.
 // ─────────────────────────────────────────────────────────────
+import { YONGJUN_SHOP } from '../data/shops.js';
+
 export const STAGES = [
   { id: 'start',          desc: '새 게임(타이틀)',                         map: 'room',   spawn: 'bed' },
   { id: 'opening_seen',   desc: '오프닝 끝 — 침대에서 일어남',               map: 'room',   spawn: 'up' },
@@ -100,6 +102,13 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
     if (r.hpBonus) out.hpBonus += r.hpBonus;
   }
   for (const m of Object.values(maps)) for (const e of (m?.entities || [])) if (e.type === 'enemy' && e.unless && flags[e.unless]) for (const id of (e.enemies || [])) out.money += enemyMoney(id);
+  for (const item of YONGJUN_SHOP) {
+    if (!item.onceFlag || !flags[item.onceFlag]) continue;
+    out.attack += item.stat?.attack || 0;
+    out.hpBonus += item.stat?.hpBonus || 0;
+    out.money -= item.price;
+  }
+  out.money = Math.max(0, out.money);
   return out;
 }
 

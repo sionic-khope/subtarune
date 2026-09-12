@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { QA_POINTS } from '../../src/core/story.js';
+import { SCRIPTS } from '../../src/data/scripts.js';
 
 const readMap = (id) => {
   const path = `assets/maps/${id}.json`;
@@ -10,22 +11,75 @@ const readMap = (id) => {
 };
 const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-test('lounge provides a broad enclosed ship floor with only its spring and exit', () => {
+test('lounge provides a broad enclosed ship floor at the shorter room height', () => {
   const map = readMap('maillard_lounge');
-  assert.equal(map.rows.length, 28);
+  assert.equal(map.rows.length, 20);
   assert.equal(map.rows[0].length, 48);
   assert.equal(map.backdrop, undefined);
   assert.equal(map.sunrise, undefined);
   assert.equal(map.bgm, 'maillard_lounge');
   assert.equal(map.dim, 0.08);
-  assert.ok([...map.rows.join('')].filter((tile) => tile === 'M').length > 900);
+  assert.equal([...map.rows.join('')].filter((tile) => tile === 'M').length, 598);
   assert.ok(map.rows[0].trim().length === 0 && map.rows.at(-1).trim().length === 0);
   assert.ok(map.rows.every((row) => row[0] === ' ' && row.at(-1) === ' '));
-  assert.deepEqual(map.entities.map((entity) => entity.type).sort(), ['door', 'prop', 'prop']);
+  assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 1);
+  assert.equal(map.entities.filter((entity) => entity.type === 'npc').length, 0);
   const spring = map.entities.find((entity) => entity.id === 'lounge_spring');
   assert.equal(spring.image, 'assets/props/blue_buff.png');
   assert.deepEqual(spring.anim, { cols: 3, fps: 4 });
   assert.equal(map.enter, undefined);
+});
+
+test('three distinct wooden Junhee statues have one-line interactions without actor movement', () => {
+  const map = readMap('maillard_lounge');
+  const statues = map.entities.filter((entity) => entity.id.startsWith('lounge_statue_'));
+  assert.equal(statues.length, 3);
+  assert.equal(new Set(statues.map((entity) => entity.image)).size, 3);
+  for (const statue of statues) {
+    assert.match(statue.image, /statue_junhee_(arms_crossed|laugh|gesture)\.png$/);
+    assert.ok(statue.y + statue.h <= 256);
+    assert.equal(SCRIPTS[statue.script].length, 1);
+    assert.equal(typeof SCRIPTS[statue.script][0].text, 'string');
+    assert.equal(SCRIPTS[statue.script][0].move, undefined);
+  }
+});
+
+test('spring interactions repeatedly restore every current party member before showing the result', () => {
+  const spring = readMap('maillard_lounge').entities.find((entity) => entity.id === 'lounge_spring');
+  const script = SCRIPTS[spring.script];
+  assert.ok(script);
+  const game = { party: ['gyeongsub', 'ppaman'], partyHp: {}, maxHpOf: (id) => id === 'ppaman' ? 180 : 140 };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    game.partyHp = { hyungsub: 1, gyeongsub: 0, ppaman: 20 };
+    for (const node of script) {
+      if (node.text) break;
+      node.action?.(game);
+    }
+    assert.deepEqual(game.partyHp, { hyungsub: 140, gyeongsub: 140, ppaman: 180 });
+  }
+  assert.ok(script.some((node) => node.sfx === 'heal'));
+  assert.equal(script.filter((node) => node.text).length, 1);
+  assert.ok(script.every((node) => !node.move && !node.face && !node.set && !node.if));
+});
+
+test('the shop opens from the reachable front door without automatic entry', () => {
+  const map = readMap('maillard_lounge');
+  const shop = map.entities.find((entity) => entity.id === 'lounge_shop');
+  const entrance = map.entities.find((entity) => entity.script === 'maillard_shop');
+  assert.ok(shop && entrance);
+  assert.equal(shop.image, 'assets/props/yongjun-shop.png');
+  assert.equal(shop.solid, true);
+  assert.equal(shop.script, undefined);
+  assert.equal(entrance.type, 'sign');
+  assert.equal(entrance.solid, false);
+  assert.ok(entrance.x >= shop.x && entrance.x + entrance.w <= shop.x + shop.w);
+  const stand = { x: entrance.x + 12, y: shop.y + shop.h + 2, w: 24, h: 16 };
+  assert.equal(overlaps(stand, shop), false);
+  assert.equal(overlaps({ ...stand, y: stand.y - 19.2 }, entrance), true);
+  let opened = 0;
+  SCRIPTS.maillard_shop[0].action({ openShop() { opened++; } });
+  assert.equal(opened, 1);
+  assert.equal(SCRIPTS.maillard_shop.silent, true);
 });
 
 test('walking right from the final deck reaches the lounge and returns outside either portal', () => {

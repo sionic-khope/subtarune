@@ -32,6 +32,7 @@ import { obj5_chase, obj5_resume } from './cutscenes/obj5_chase.js';
 import { obj5_maillard } from './cutscenes/obj5_maillard.js';
 import { maillard_hold, maillard_hold_stairs, maillard_hold_hatch } from './cutscenes/maillard_hold.js';
 import { maillard_chakgeom, maillard_tarts, maillard_wemix } from './cutscenes/maillard_npcs.js';
+import { maillard_spring, maillard_shop, maillard_statue_arms_crossed, maillard_statue_laugh, maillard_statue_gesture } from './cutscenes/maillard_lounge.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -50,6 +51,7 @@ export const SCRIPTS = {
   obj5_maillard,
   maillard_hold, maillard_hold_stairs, maillard_hold_hatch,
   maillard_chakgeom, maillard_tarts, maillard_wemix,
+  maillard_spring, maillard_shop, maillard_statue_arms_crossed, maillard_statue_laugh, maillard_statue_gesture,
   chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
 
   _chest_empty: [{ text: '* 상자는 비어 있다.', voice: 'narrator' }],

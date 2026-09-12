@@ -7,13 +7,15 @@ import { Sound, VOICES } from './core/audio.js';
 import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait, pixelDisplayScale } from './core/gfx.js';
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
+import { MENU_LAYOUT, menuWindow, menuInventoryRows, drawMenuText } from './ui/menu-layout.js';
 import { TitleScreen } from './ui/title.js';
+import { Shop } from './ui/shop.js';
 import { StreamChat } from './ui/chat.js';
 import { SysDialog } from './ui/sysdialog.js';
 import { Vortex } from './ui/vortex.js';
 import { BattlePreview } from './ui/battle-preview.js';
 import { DotBubble } from './ui/bubble.js';
-import { TileMap, Camera, createEntity, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
+import { TileMap, Camera, createEntity, freeSpot, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
 import { loadCharacterMotions } from './world/character-motion.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
@@ -68,6 +70,8 @@ class Game {
     this.spriteOverrides = {};
     this.time = 0;
     this.menu = { index: 0, sub: null };
+    this.shop = new Shop(this);
+    this.shopPending = false;
     this.shake = null;            // { time, amp }
     this.caption = null;          // { text, time, duration } 지역 이름 표시
     this.curtain = null;          // 'black'|'white': 맵 위를 완전히 덮는 막 (컷신용)
@@ -165,13 +169,15 @@ class Game {
   hasSave() { try { return !!localStorage.getItem(Game.SAVE_KEY); } catch { return false; } }
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때·QA 바로가기 직후(필드에서만). 컷신이 도는 동안은 저장하지 않는다(숨긴 주인공·임시 맵 위치가 세이브에 남지 않게, 2026-09-10) */
   autosave() {
-    if (this.state !== 'field' || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
+    if (!['field', 'shop'].includes(this.state) || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
     const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    this.shopPending = false;
+    this.shop.mode = 'closed';
     this.seaRetryPromptPending = false;
     this.maillardArrival?.dispose(); this.maillardArrival = null;
     this.sunrise.dispose();
@@ -192,7 +198,11 @@ class Game {
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
     this.changeMap(d.map, d.spawn || null, true, { enter: false });
-    if (typeof d.x === 'number') { this.player.x = d.x; this.player.y = d.y; this.player.facing = d.facing || 'down'; }
+    if (Number.isFinite(d.x) && Number.isFinite(d.y) && d.x >= 0 && d.y >= 0 && d.x + this.player.w <= this.map.pxW && d.y + this.player.h <= this.map.pxH) {
+      const [sx, sy] = freeSpot(this, this.player, d.x, d.y, 96);
+      if (!this.map.solidRect(sx, sy, this.player.w, this.player.h)) [this.player.x, this.player.y] = [sx, sy];
+      this.player.facing = d.facing || 'down';
+    }
     this.spawnParty(); this.camera.snap();             // 동료는 저장된 위치의 주인공 뒤에 (스폰 지점에 남겨 두면 화면 밖 → "형섭만 나옴")
     this.runMapEnter();
     this.fadeTo(0, 0.5);
@@ -575,6 +585,9 @@ class Game {
     this.dialogue.start(script, () => { if (onEnd) onEnd(); this.autosave(); });
   }
 
+  /** The shop opens after its interaction script releases the dialogue runner. */
+  openShop() { this.shopPending = true; }
+
   // ── 루프 ────────────────────────────────────────────────
   /** Start the self-contained ocean scene; its cleared tableau survives the script. */
   startSeaChase() {
@@ -643,6 +656,16 @@ class Game {
 
     if (this.state === 'title') {
       this.title.update(dt, Input);
+      return;
+    }
+    if (this.shopPending && !this.dialogue.running && !this.transitioning) {
+      this.shopPending = false;
+      this.player.moving = false;
+      this.shop.open();
+      return;
+    }
+    if (this.state === 'shop') {
+      this.shop.update(dt);
       return;
     }
     if (this.state === 'battle-preview') {
@@ -738,14 +761,14 @@ class Game {
     }
     this.changeMap(this.mapId, spawnId);
   }
-  /** 메뉴 '비상탈출' 패널(오른쪽): 설명 한 줄 + [탈출 / 취소]. 끼었을 때 쓰는 항목 — Tab/V 메뉴 안의 한 칸 (2026-09-10) */
+  /** 메뉴 '비상탈출' 패널: 제목과 [탈출 / 취소]. */
   drawEscape(ctx, x, y) {
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    const LH = F.lineH, m = this.menu;
-    drawBox(ctx, x, y, 300, LH * 3 + 20);
-    ctx.fillStyle = '#8a8aa0'; ctx.fillText(L.escape_desc, x + 10, y + 8);
+    const m = this.menu;
+    drawBox(ctx, x, y, MENU_LAYOUT.width, MENU_LAYOUT.height);
+    ctx.fillStyle = '#fff'; drawMenuText(ctx, L.escape_title, x + 8, y + 8, MENU_LAYOUT.width - 16);
     [L.escape_go, L.escape_cancel].forEach((label, i) => {
-      const yy = y + 12 + LH * (1 + i); ctx.fillStyle = m.subIndex === i ? '#ffe066' : '#fff'; ctx.fillText(label, x + 30, yy);
+      const yy = y + 44 + i * 32; ctx.fillStyle = m.subIndex === i ? '#ffe066' : '#fff'; drawMenuText(ctx, label, x + 30, yy, MENU_LAYOUT.width - 38);
       if (m.subIndex === i) drawHeart(ctx, x + 17, yy + Math.round(F.size / 2) - 3);
     });
   }
@@ -758,7 +781,8 @@ class Game {
       if (Input.just('cancel') || (Input.just('confirm') && m.index === 4)) { this.state = 'field'; this.sound.sfx('close'); return; }
       if (Input.just('confirm')) { m.sub = m.index; m.subIndex = 0; this.sound.sfx('confirm'); }
     } else if (m.sub === 0) {                          // 아이템: 그냥 아이템(힐템)은 골라서 쓴다 → 대상 멤버 선택 (2026-09-10)
-      const plain = plainItems(this.inventory);
+      const plain = plainItems(this.inventory), items = [...plain, ...keyItems(this.inventory)];
+      m.subIndex = Math.max(0, Math.min(m.subIndex, items.length - 1));
       if (m.pick !== undefined && m.pick !== null) {   // 대상 고르는 중
         const members = [this.playerSprite || 'hyungsub', ...this.party];
         if (Input.just('left') || Input.just('up')) { m.pick = (m.pick + members.length - 1) % members.length; this.sound.sfx('menu'); }
@@ -767,11 +791,14 @@ class Game {
         if (Input.just('confirm')) { this.useItemOn(plain[m.subIndex], members[m.pick]); m.pick = null; if (m.subIndex >= plainItems(this.inventory).length) m.subIndex = Math.max(0, plainItems(this.inventory).length - 1); return; }
         return;
       }
-      if (Input.just('up')) { m.subIndex = (m.subIndex + Math.max(1, plain.length) - 1) % Math.max(1, plain.length); this.sound.sfx('menu'); }
-      if (Input.just('down')) { m.subIndex = (m.subIndex + 1) % Math.max(1, plain.length); this.sound.sfx('menu'); }
+      if (Input.just('up')) { m.subIndex = (m.subIndex + Math.max(1, items.length) - 1) % Math.max(1, items.length); this.sound.sfx('menu'); }
+      if (Input.just('down')) { m.subIndex = (m.subIndex + 1) % Math.max(1, items.length); this.sound.sfx('menu'); }
       if (Input.just('cancel')) { m.sub = null; this.sound.sfx('cancel'); return; }
-      if (Input.just('confirm')) { if (plain.length && ITEMS[plain[m.subIndex]]?.heal) { m.pick = 0; this.sound.sfx('confirm'); } else this.sound.sfx('cancel'); }
+      if (Input.just('confirm')) { if (ITEMS[plain[m.subIndex]]?.heal) { m.pick = 0; this.sound.sfx('confirm'); } else this.sound.sfx('cancel'); }
     } else if (m.sub === 1) {                          // 파티: 보기만
+      const count = 1 + this.party.length;
+      if (Input.just('up')) { m.subIndex = (m.subIndex + count - 1) % count; this.sound.sfx('menu'); }
+      if (Input.just('down')) { m.subIndex = (m.subIndex + 1) % count; this.sound.sfx('menu'); }
       if (Input.just('cancel') || Input.just('confirm')) { m.sub = null; this.sound.sfx('cancel'); }
     } else if (m.sub === 2) {                          // 비상탈출: [탈출 / 취소] — 끼었을 때. 스토리 유지, 뗏목만 입구 쪽으로, 입구 재진입 (doEscape)
       if (Input.just('up') || Input.just('down')) { m.subIndex = 1 - m.subIndex; this.sound.sfx('menu'); }
@@ -804,6 +831,11 @@ class Game {
     }
     if (this.state === 'battle-preview') {
       this.battlePreview.draw(ctx, SCREEN_W, SCREEN_H);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
+    if (this.state === 'shop') {
+      this.shop.draw(ctx);
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
@@ -914,68 +946,99 @@ class Game {
 
   drawMenu(ctx) {
     const m = this.menu;
-    ctx.font = FONT; ctx.textBaseline = 'top';
-    const LH = F.lineH;
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    const LH = F.lineH, layout = MENU_LAYOUT;
+    const { x, y, width, height, inset } = layout;
     drawBox(ctx, 8, 8, 100, LH * 5 + 16);
     const items = [L.menu_items, L.menu_party, L.menu_escape, L.menu_settings, L.menu_close];
     items.forEach((label, i) => {
-      ctx.fillStyle = m.sub === null && i === m.index ? '#ffe066' : '#fff';
-      ctx.fillText(label, 30, 16 + i * LH);
+      ctx.fillStyle = (m.sub === null ? i === m.index : i === m.sub) ? '#ffe066' : '#fff';
+      drawMenuText(ctx, label, 30, 16 + i * LH, 70);
       if (m.sub === null && i === m.index) drawHeart(ctx, 17, 16 + Math.round(F.size / 2) - 3 + i * LH);
     });
-    if (m.sub === 0) {                                  // 아이템: [그냥 아이템] 골라 쓰기 / [중요 아이템] 보기
+    if (m.sub === 0) {
       const plain = plainItems(this.inventory), keys = keyItems(this.inventory);
-      const rows = 3 + Math.max(1, plain.length) + 1 + Math.max(1, keys.length);
-      drawBox(ctx, 116, 8, 200, LH * rows + 16);
-      let y = 16; ctx.fillStyle = '#ffe066'; ctx.fillText(`${L.menu_money} ${this.money}${L.won}`, 124, y); y += LH;   // 소지금
-      ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_plain_items, 124, y); y += LH;
-      if (!plain.length) { ctx.fillStyle = '#777'; ctx.fillText(L.menu_no_plain, 138, y); y += LH; }
-      plain.forEach((it, i) => { const sel = i === m.subIndex; ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(it + (ITEMS[it]?.heal ? `  (+${ITEMS[it].heal})` : ''), 138, y); if (sel) drawHeart(ctx, 125, y + Math.round(F.size / 2) - 3); y += LH; });
-      y += 4; ctx.fillStyle = '#9a9ab0'; ctx.fillText(L.menu_key_items, 124, y); y += LH;
-      if (!keys.length) { ctx.fillStyle = '#777'; ctx.fillText(L.menu_no_key, 138, y); y += LH; }
-      keys.forEach((it) => { ctx.fillStyle = '#cfcfdd'; ctx.fillText('* ' + it, 138, y); y += LH; });
-      if (m.pick !== undefined && m.pick !== null) {   // 대상 선택창: 멤버 이름 + 색 HP 바
-        const members = [this.playerSprite || 'hyungsub', ...this.party]; const bx = 116, by = 8 + LH * rows + 24;
-        drawBox(ctx, bx, by, 200, LH * (members.length + 1) + 16);
-        ctx.fillStyle = '#fff'; ctx.fillText(L.menu_use_on, bx + 8, by + 8);
-        members.forEach((id, i) => { const ch = CHARACTERS[id] || {}; const ry = by + 8 + LH * (i + 1); const sel = i === m.pick; const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
-          ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(name, bx + 22, ry); if (sel) drawHeart(ctx, bx + 9, ry + Math.round(F.size / 2) - 3);
-          const max = this.maxHpOf(id), hp = this.hpOf(id); ctx.fillStyle = '#3a2020'; ctx.fillRect(bx + 96, ry + 5, 60, 7); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(bx + 96, ry + 5, Math.round(60 * hp / max), 7); ctx.fillStyle = '#fff'; ctx.fillText(`${hp}`, bx + 162, ry); });
+      const inventory = [...plain, ...keys], item = inventory[m.subIndex];
+      drawBox(ctx, x, y, width, height);
+      if (m.pick !== undefined && m.pick !== null) {
+        const members = [this.playerSprite || 'hyungsub', ...this.party];
+        const visible = menuWindow(members.length, m.pick, layout.targetRows);
+        ctx.fillStyle = '#ffe066'; drawMenuText(ctx, item, x + inset, y + inset, width - inset * 2, 2);
+        ctx.fillStyle = '#fff'; drawMenuText(ctx, L.menu_use_on, x + inset, 64, width - inset * 2);
+        members.slice(visible.start, visible.end).forEach((id, row) => {
+          const i = row + visible.start, ch = CHARACTERS[id] || { name: id };
+          const ry = layout.targetY + row * layout.memberHeight, sel = i === m.pick;
+          const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
+          ctx.fillStyle = sel ? '#ffe066' : '#fff'; drawMenuText(ctx, name, x + 22, ry, width - 30);
+          if (sel) drawHeart(ctx, x + 9, ry + Math.round(F.size / 2) - 3);
+          const max = this.maxHpOf(id), hp = this.hpOf(id), barX = x + 224, barW = 116;
+          ctx.fillStyle = '#fff'; drawMenuText(ctx, `HP ${hp}/${max}`, x + 22, ry + 24, 194);
+          ctx.fillStyle = '#3a2020'; ctx.fillRect(barX, ry + 29, barW, 7);
+          ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(barX, ry + 29, Math.round(barW * Math.max(0, Math.min(1, hp / max))), 7);
+        });
+        ctx.fillStyle = '#9a9ab0'; drawMenuText(ctx, `${m.pick + 1}/${members.length}  ${L.menu_target_controls}`, x + inset, 326, width - inset * 2);
+      } else {
+        const rows = menuInventoryRows(plain, keys, L);
+        const selectedRow = Math.max(0, rows.findIndex((row) => row.index === m.subIndex));
+        const visible = menuWindow(rows.length, selectedRow, layout.listRows);
+        ctx.fillStyle = '#ffe066'; drawMenuText(ctx, `${L.menu_money} ${this.money}${L.won}`, x + inset, y + inset, width - inset * 2);
+        rows.slice(visible.start, visible.end).forEach((row, offset) => {
+          const ry = layout.listY + offset * LH, selected = row.index === m.subIndex;
+          ctx.fillStyle = row.index === null ? '#9a9ab0' : selected ? '#ffe066' : '#fff';
+          drawMenuText(ctx, row.label, x + 22, ry, 226);
+          if (selected) drawHeart(ctx, x + 9, ry + Math.round(F.size / 2) - 3);
+          const heal = row.index === null ? null : ITEMS[row.label]?.heal;
+          if (heal) {
+            ctx.fillStyle = selected ? '#ffe066' : '#fff';
+            drawMenuText(ctx, `HP +${heal}`, x + 254, ry, 94);
+          }
+        });
+        ctx.fillStyle = '#9a9ab0';
+        if (inventory.length) drawMenuText(ctx, `${m.subIndex + 1}/${inventory.length}  ${m.subIndex < plain.length ? L.menu_plain_items : L.menu_key_items}`, x + inset, 264, width - inset * 2);
+        ctx.fillStyle = '#fff'; drawMenuText(ctx, item || L.no_items, x + inset, layout.footerY, width - inset * 2, 2);
+        ctx.fillStyle = '#9a9ab0'; drawMenuText(ctx, ITEMS[plain[m.subIndex]]?.heal ? L.menu_item_controls : L.menu_browse_controls, x + inset, 326, width - inset * 2);
       }
     }
-    if (m.sub === 1) this.drawParty(ctx, 116, 8);
-    if (m.sub === 2) this.drawEscape(ctx, 116, 8);
+    if (m.sub === 1) this.drawParty(ctx, x, y);
+    if (m.sub === 2) this.drawEscape(ctx, x, y);
     if (m.sub === 3) {
-      drawBox(ctx, 116, 8, 196, LH * 2 + 16);
+      drawBox(ctx, x, y, width, height);
+      ctx.fillStyle = '#fff'; drawMenuText(ctx, L.menu_settings, x + inset, y + inset, width - inset * 2);
       const rows = [
         [L.setting_text_speed, L[TEXT_SPEEDS[this.settings.textSpeed].key]],
         [L.setting_sound, this.settings.sound ? L.on : L.off],
       ];
       rows.forEach(([k, v], i) => {
         ctx.fillStyle = i === m.subIndex ? '#ffe066' : '#fff';
-        ctx.fillText(k, 138, 16 + i * LH);
-        ctx.fillText('< ' + v + ' >', 232, 16 + i * LH);
-        if (i === m.subIndex) drawHeart(ctx, 125, 16 + Math.round(F.size / 2) - 3 + i * LH);
+        drawMenuText(ctx, k, x + 22, 52 + i * 32, 156);
+        drawMenuText(ctx, '< ' + v + ' >', x + 194, 52 + i * 32, 154);
+        if (i === m.subIndex) drawHeart(ctx, x + 9, 52 + Math.round(F.size / 2) - 3 + i * 32);
       });
+      ctx.fillStyle = '#9a9ab0'; drawMenuText(ctx, L.menu_settings_controls, x + inset, 326, width - inset * 2);
     }
   }
 
-  /** 파티 상태창: 리더(요플래/형섭) + 동료들 — 흰검 초상화, 표시 이름, 역할, 한 줄 상태 (전투 없음 → HP 대신 상태) */
+  /** 파티 상태창: 초상화, 표시 이름, 역할, HP를 고정 높이 행에 표시한다. */
   drawParty(ctx, x, y) {
-    const LH = F.lineH, members = [this.playerSprite || 'hyungsub', ...this.party];
-    const rowH = 64, w = 250, h = rowH * members.length + 14;
-    drawBox(ctx, x, y, w, h);
-    ctx.font = FONT; ctx.textBaseline = 'top';
-    members.forEach((id, i) => {
-      const ch = CHARACTERS[id] || { name: id }; const ry = y + 8 + i * rowH;
+    const LH = F.lineH, layout = MENU_LAYOUT, members = [this.playerSprite || 'hyungsub', ...this.party];
+    const selected = this.menu.subIndex || 0, visible = menuWindow(members.length, selected, layout.memberRows);
+    drawBox(ctx, x, y, layout.width, layout.height);
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#fff'; drawMenuText(ctx, L.menu_party, x + 8, y + 8, layout.width - 16);
+    members.slice(visible.start, visible.end).forEach((id, row) => {
+      const i = row + visible.start, ch = CHARACTERS[id] || { name: id };
+      const ry = layout.memberY + row * layout.memberHeight;
       const face = this.portraits[id]; if (face) ctx.drawImage(face, x + 10, ry + 2, 48, 48);
       const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
-      ctx.fillStyle = '#ffe066'; ctx.fillText(name, x + 68, ry + 3);
-      ctx.fillStyle = '#fff'; ctx.fillText(i === 0 ? L.party_leader : L.party_member, x + 68, ry + 3 + LH);
-      ctx.fillStyle = '#9a9ab0'; ctx.fillText(ch.partyDesc || (i === 0 ? L.party_desc_leader : L.party_desc_member), x + 68, ry + 3 + LH * 2);
-      const max = this.maxHpOf(id), hp = this.hpOf(id);                                   // 색 HP 바 (전투와 같은 색)
-      ctx.fillStyle = '#3a2020'; ctx.fillRect(x + 68, ry + 3 + LH * 3 - 2, 100, 6); ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(x + 68, ry + 3 + LH * 3 - 2, Math.round(100 * hp / max), 6); ctx.fillStyle = '#fff'; ctx.fillText(`HP ${hp}/${max}`, x + 174, ry + 3 + LH * 3 - 8);
+      ctx.fillStyle = '#ffe066'; drawMenuText(ctx, name, x + 68, ry, layout.width - 76);
+      ctx.fillStyle = '#fff'; drawMenuText(ctx, i === 0 ? L.party_leader : L.party_member, x + 68, ry + LH, layout.width - 76);
+      const max = this.maxHpOf(id), hp = this.hpOf(id), barX = x + 224, barW = 116;
+      drawMenuText(ctx, `HP ${hp}/${max}`, x + 68, ry + 38, 148);
+      ctx.fillStyle = '#3a2020'; ctx.fillRect(barX, ry + 43, barW, 7);
+      ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(barX, ry + 43, Math.round(barW * Math.max(0, Math.min(1, hp / max))), 7);
     });
+    ctx.fillStyle = '#9a9ab0';
+    drawMenuText(ctx, members.length > layout.memberRows ? `${selected + 1}/${members.length}  ${L.menu_browse_controls}` : L.menu_back_controls, x + 8, 326, layout.width - 16);
   }
 
   /** 지역 이름 캡션: 페이드 인 → 유지 → 페이드 아웃 (언더테일 지역명처럼) */
@@ -1028,7 +1091,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.113';
+export const BUILD = '2026-09-13.114';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

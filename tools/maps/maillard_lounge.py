@@ -6,7 +6,7 @@
 # ─── How to run ───
 # Run from repository root: uv run tools/maps/maillard_lounge.py [--check]
 # ──────────────────
-"""Generate the large, otherwise empty Maillard ship lounge."""
+"""Generate the Maillard lounge with its shop, statues, and healing spring."""
 from __future__ import annotations
 
 import json
@@ -15,7 +15,7 @@ import sys
 from typing import Final
 
 WIDTH: Final = 48
-HEIGHT: Final = 28
+HEIGHT: Final = 20
 MAP_ID: Final = 'maillard_lounge'
 
 
@@ -28,7 +28,8 @@ def main() -> None:
         'id': MAP_ID, 'name': '마이야르호 라운지', 'stage': 'void_fallen',
         'bgm': 'maillard_lounge', 'dim': 0.08, 'rows': rows,
         'preload': ['assets/tiles/maillard_deck.png',
-                    'assets/props/maillard_lounge_walls.png', 'assets/props/blue_buff.png'],
+                    'assets/props/maillard_lounge_walls.png', 'assets/props/blue_buff.png',
+                    'assets/props/yongjun-shop.png'],
         'spawns': {
             'start': {'x': 176, 'y': 440, 'facing': 'right'},
             'from_path': {'x': 176, 'y': 440, 'facing': 'right'},
@@ -37,10 +38,19 @@ def main() -> None:
         'entities': [
             {'type': 'prop', 'id': 'lounge_walls',
              'image': 'assets/props/maillard_lounge_walls.png',
-             'x': 0, 'y': 0, 'w': 1536, 'h': 896, 'solid': False, 'sortY': -1000},
+             'x': 0, 'y': 0, 'w': 1536, 'h': 640, 'solid': False, 'sortY': -1000},
+            *[{'type': 'prop', 'id': f'lounge_statue_{pose}',
+               'image': f'assets/props/statue_junhee_{pose}.png',
+               'x': x + 6, 'y': 226, 'w': 32, 'h': 14,
+               'ix': x, 'iy': 180, 'solid': True, 'script': f'maillard_statue_{pose}'}
+              for x, pose in ((300, 'arms_crossed'), (460, 'laugh'), (620, 'gesture'))],
+            {'type': 'prop', 'id': 'lounge_shop', 'image': 'assets/props/yongjun-shop.png',
+             'x': 1010, 'y': 310, 'w': 172, 'h': 48, 'ix': 1000, 'iy': 170, 'solid': True},
+            {'type': 'sign', 'id': 'lounge_shop_door', 'x': 1072, 'y': 346,
+             'w': 48, 'h': 16, 'solid': False, 'script': 'maillard_shop'},
             {'type': 'prop', 'id': 'lounge_spring', 'image': 'assets/props/blue_buff.png',
-             'anim': {'cols': 3, 'fps': 4}, 'x': 1124, 'y': 404, 'w': 32, 'h': 12,
-             'ix': 1120, 'iy': 372, 'solid': True},
+             'anim': {'cols': 3, 'fps': 4}, 'x': 1344, 'y': 244, 'w': 32, 'h': 12,
+             'ix': 1340, 'iy': 212, 'solid': True, 'script': 'maillard_spring'},
             {'type': 'door', 'id': 'lounge_to_path', 'x': 24, 'y': 384, 'w': 40, 'h': 128,
              'to': 'maillard_path', 'spawn': 'from_lounge', 'sfx': False, 'interact': False},
         ],

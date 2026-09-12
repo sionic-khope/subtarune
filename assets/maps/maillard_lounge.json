@@ -23,21 +23,14 @@
   " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
   " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
   " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
   "                                                ",
   "                                                "
  ],
  "preload": [
   "assets/tiles/maillard_deck.png",
   "assets/props/maillard_lounge_walls.png",
-  "assets/props/blue_buff.png"
+  "assets/props/blue_buff.png",
+  "assets/props/yongjun-shop.png"
  ],
  "spawns": {
   "start": {
@@ -62,9 +55,70 @@
    "x": 0,
    "y": 0,
    "w": 1536,
-   "h": 896,
+   "h": 640,
    "solid": false,
    "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "lounge_statue_arms_crossed",
+   "image": "assets/props/statue_junhee_arms_crossed.png",
+   "x": 306,
+   "y": 226,
+   "w": 32,
+   "h": 14,
+   "ix": 300,
+   "iy": 180,
+   "solid": true,
+   "script": "maillard_statue_arms_crossed"
+  },
+  {
+   "type": "prop",
+   "id": "lounge_statue_laugh",
+   "image": "assets/props/statue_junhee_laugh.png",
+   "x": 466,
+   "y": 226,
+   "w": 32,
+   "h": 14,
+   "ix": 460,
+   "iy": 180,
+   "solid": true,
+   "script": "maillard_statue_laugh"
+  },
+  {
+   "type": "prop",
+   "id": "lounge_statue_gesture",
+   "image": "assets/props/statue_junhee_gesture.png",
+   "x": 626,
+   "y": 226,
+   "w": 32,
+   "h": 14,
+   "ix": 620,
+   "iy": 180,
+   "solid": true,
+   "script": "maillard_statue_gesture"
+  },
+  {
+   "type": "prop",
+   "id": "lounge_shop",
+   "image": "assets/props/yongjun-shop.png",
+   "x": 1010,
+   "y": 310,
+   "w": 172,
+   "h": 48,
+   "ix": 1000,
+   "iy": 170,
+   "solid": true
+  },
+  {
+   "type": "sign",
+   "id": "lounge_shop_door",
+   "x": 1072,
+   "y": 346,
+   "w": 48,
+   "h": 16,
+   "solid": false,
+   "script": "maillard_shop"
   },
   {
    "type": "prop",
@@ -74,13 +128,14 @@
     "cols": 3,
     "fps": 4
    },
-   "x": 1124,
-   "y": 404,
+   "x": 1344,
+   "y": 244,
    "w": 32,
    "h": 12,
-   "ix": 1120,
-   "iy": 372,
-   "solid": true
+   "ix": 1340,
+   "iy": 212,
+   "solid": true,
+   "script": "maillard_spring"
   },
   {
    "type": "door",
