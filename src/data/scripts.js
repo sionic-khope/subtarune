@@ -23,6 +23,7 @@ import { teal6_ward, teal6_blue } from './cutscenes/teal6_events.js';
 import { teal8_ward, teal8_blue } from './cutscenes/teal8_events.js';
 import { obj0_blue } from './cutscenes/obj0_events.js';
 import { obj1_arrive, obj1_meet, obj1_push, obj1_cannon_look } from './cutscenes/obj1_cannon.js';
+import { obj2_statue, obj2_sign, obj2_blue, obj2_recall, obj2_egg, obj2_banana } from './cutscenes/obj2_events.js';
 import { teal9_boss, teal9_lantern, teal9_block, teal9_red_after, teal9_blue_after } from './cutscenes/teal9_boss.js';
 import { teal7_hide } from './cutscenes/teal7_hide.js';
 
@@ -79,6 +80,7 @@ export const SCRIPTS = {
   teal6_ward, teal6_blue,   // 청록숲6 정글: 와드 정찰(카메라 투어) / 파란 돌(경섭 핥기 → 전원 HP 회복 쉼터) (src/data/cutscenes/teal6_events.js)
   teal8_ward, teal8_blue,   // 청록숲8 정글 2: 같은 소품, 역할 바꾼 대사(경섭이 와드 박기 / 억빠맨이 먼저 마심) (src/data/cutscenes/teal8_events.js)
   obj1_arrive, obj1_meet, obj1_push, obj1_cannon_look,   // 옵젝영역1 쥰희·용준 대포 밀기 → 만남 → 쥰희 퇴장 → C 연타 로켓 발사 (src/data/cutscenes/obj1_cannon.js)
+  obj2_statue, obj2_sign, obj2_blue, obj2_recall, obj2_egg, obj2_banana,   // 옵젝영역2 광장: 쥰희 동상 벽·바론 둥지 표지판·마나샘·귀환 발판·오브젝트 알·바나나 (src/data/cutscenes/obj2_events.js)
   obj0_blue,   // 옵젝영역0 마나샘: 억빠맨이 발밑 물을 먼저 떠 마심(흙맛) → 마나샘 → 전원 회복 (src/data/cutscenes/obj0_events.js)
   teal9_boss, teal9_lantern, teal9_block, teal9_red_after, teal9_blue_after,   // 청록숲9 고대 사원 길: 레드·블루 문지기(대화 → 사이렌 → 보스전) + 석등·돌덩이 한 줄 (src/data/cutscenes/teal9_boss.js)
   teal5_board, teal5_wall,   // 청록숲5 물길: 승선 컷신(경섭 선택지 끊김·둘 다 헤엄) / 이단폭포 협동 2단 점프 튜토리얼 (src/data/cutscenes/teal5_river.js)

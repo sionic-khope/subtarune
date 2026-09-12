@@ -93,8 +93,61 @@ def prop_tree(purple=False):
     outline_silhouette(c, OUT)
     return c
 
+def prop_recall_pad():
+    """귀환 발판 3프레임 띠 (각 56x28): 바닥에 그려진 파란 마법진 — 두 겹 타원 + 룬 네 개, 프레임마다 반짝임이 돈다. anim {cols:3, fps:4}"""
+    import math
+    B, BL, BD, R = hexc('#3b7fe0'), hexc('#9fe0ff'), hexc('#1f4da8'), hexc('#c9a6f0')
+    strip = Canvas(168, 28)
+    for f in range(3):
+        c = Canvas(56, 28)
+        for (rx, ry, col) in ((25, 12, BD), (24, 11, B), (16, 7, BD), (15, 6, B)):
+            for ang in range(0, 360, 3):
+                x = int(round(28 + math.cos(math.radians(ang)) * rx)); y = int(round(14 + math.sin(math.radians(ang)) * ry))
+                c.px(x, y, col)
+        for k, ang in enumerate((45, 135, 225, 315)):                      # 룬 네 개
+            x = int(round(28 + math.cos(math.radians(ang)) * 20)); y = int(round(14 + math.sin(math.radians(ang)) * 9))
+            col = BL if (k + f) % 3 == 0 else R
+            c.px(x, y, col); c.px(x + 1, y, col); c.px(x, y + 1, col)
+        for (x, y) in (((10, 14), (46, 14), (28, 4))[f],):                  # 도는 반짝임
+            c.px(x, y, BL); c.px(x + 1, y, BL); c.px(x, y + 1, BL); c.px(x + 1, y + 1, BL)
+        strip.blit(c, f * 56, 0)
+    return strip
+
+def _egg_body(c, ox=0, crack=False):
+    SH, S0, S1, SP = hexc('#d8cfe6'), hexc('#efe9f6'), hexc('#b9adcf'), hexc('#7a5a9a')
+    for y in range(30):
+        for x in range(24):
+            dx = (x - 12) / (9.5 - 1.5 * (y / 30)); dy = (y - 17) / 13.0
+            if dx * dx + dy * dy <= 1: c.px(ox + x, y, S0 if (x < 12 and y < 18) else SH)
+    for y in range(30):
+        for x in range(24):
+            if c.a[y, ox + x, 3] and x > 16 and y > 14: c.px(ox + x, y, S1)
+    for (x, y) in ((8, 9), (14, 20), (6, 18), (17, 11)): c.px(ox + x, y, SP)     # 보라 반점
+    if crack:                                                                  # 위에서 아래로 지그재그로 갈라진 금(두 갈래)
+        K = hexc('#241830')
+        for (x, y) in ((12, 4), (12, 5), (11, 6), (11, 7), (12, 8), (13, 9), (13, 10), (12, 11), (12, 12), (13, 13), (14, 14), (14, 15), (13, 16), (13, 17), (14, 18)):
+            c.px(ox + x, y, K); c.px(ox + x, y + 1, K)
+        for (x, y) in ((13, 9), (15, 10), (16, 11), (17, 12), (11, 12), (9, 13), (8, 14)): c.px(ox + x, y, K)
+    return c
+
+def prop_egg(crack=False):
+    """오브젝트 알 24x30: 연보라 알 + 보라 반점 (깨진 판은 금이 간다)"""
+    c = Canvas(24, 30); _egg_body(c, 0, crack); outline_silhouette(c, hexc('#241830'))
+    return c
+
+def prop_egg_legs():
+    """다리 달린 알 껍데기 28x34: 깨진 알에서 가느다란 다리 두 개가 나와 도망간다(옆모습)"""
+    c = Canvas(28, 34); _egg_body(c, 2, True)
+    L = hexc('#e8b06a'); LD = hexc('#a06a2a')
+    for (x0, d) in ((9, -1), (17, 1)):
+        c.vline(x0, 28, 4, L); c.px(x0 + d, 32, L); c.px(x0 + d * 2, 32, LD)
+    outline_silhouette(c, hexc('#241830'))
+    return c
+
 if __name__ == '__main__':
     tile_water(0).save('assets/tiles/water_shallow.png'); tile_water(1).save('assets/tiles/water_shallow2.png'); tile_water_pad().save('assets/tiles/water_shallow_pad.png'); tile_water(0).save('assets/tiles/water_shallow_edge.png')   # Y: 막힌 물(가장자리)
     tile_forest_floor().save('assets/tiles/forest_floor_obj.png'); tile_cliff().save('assets/tiles/cliff_obj.png')
     prop_tree().save('assets/props/tree_obj.png'); prop_tree(True).save('assets/props/tree_obj_purple.png')
+    prop_recall_pad().save('assets/props/recall_pad.png')                                   # 옵젝영역2 귀환 발판(애니 띠 3프레임)
+    prop_egg().save('assets/props/obj_egg.png'); prop_egg(True).save('assets/props/obj_egg_cracked.png'); prop_egg_legs().save('assets/props/obj_egg_legs.png')
     print('obj set ok')

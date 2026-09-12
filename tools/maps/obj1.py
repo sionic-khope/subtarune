@@ -2,7 +2,7 @@
 """옵젝영역1 (사용자 브리핑 2026-09-11): 옵젝영역0 과 같은 얕은 물 길인데 세로로만 넓다(길 6줄). 넘어오면 연출 시작(src/data/cutscenes/obj1_cannon.js):
   가운데쯤에서 쥰희·용준이 나무 대포(PR #15 wooden_cannon.png 128×128, 바닥 앵커 64,119)를 한 칸씩 힘들게 민다(허이얍/흐이야아압, 드륵) → 카메라 주인공으로 → 주인공이 그 앞까지 가면(트리거) 만남 연출
   → 용준의 대포 자랑(두구두구 → 줌 → 빰빠밤) → 쥰희 "다 닥쳐!!!"(브금 off) → 쥰희가 오른쪽으로 달려 맵 밖으로(Y 막힌 물이 가장자리까지) → 용준 "미는 것 좀 도와주실 수 있나요?" → 다시 말 걸면 obj1_push(한 줄로 서기 → 준비(브금 off) → 밀어!!(쿵) → C 연타 100(브금 rude_buster) → 용준 등에 불 → 로켓 발사(브금 off, 카메라 추적) → 3초 뒤 쿠구구궁 → 셋 . . . → 6줄 → 브금 wind).
-  브금: 맵은 옵젝영역0 과 같은 wind, 연출 중엔 Vs. Lancer(vs_lancer). 오른쪽 출구 → obj2 자리표시.
+  브금: 맵은 옵젝영역0 과 같은 wind, 연출 중엔 Vs. Lancer(vs_lancer). 오른쪽 출구 → obj2(옵젝영역2 광장, obj2.py).
 실행: /usr/bin/python3 tools/maps/obj1.py  (--check)
 """
 import io, json, sys
@@ -38,14 +38,9 @@ m1 = {'id': 'obj1', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen
                'cam_group': [CANNON_C + 3.5, 8.25], 'cam_meet': [CANNON_C + 2.9, 8.25],
                'trees': len([e for e in ents1 if e.get('id', '').startswith('ot')])},
       'entities': ents1}
-ents2 = [{'type': 'door', 'x': 32, 'y': 5 * T, 'w': 8, 'h': 96, 'to': 'obj1', 'spawn': 'landing', 'sfx': False}]
-rows2 = build(16, 12, 5, 7, ents2, trees=False)
-m2 = {'id': 'obj2', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'obj_forest', 'rows': rows2,
-      'spawns': {'from_left': {'x': 60, 'y': 6 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 6 * T + 8, 'facing': 'right'}},
-      'entities': ents2}
-maps = {'obj1': m1, 'obj2': m2}
+maps = {'obj1': m1}
 if '--check' in sys.argv:
     ok = all(json.loads(io.open(f'assets/maps/{k}.json', encoding='utf-8').read()) == v for k, v in maps.items())
-    print('obj1/obj2', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)
+    print('obj1', 'same' if ok else 'DIFFERENT'); sys.exit(0 if ok else 1)
 for k, v in maps.items(): io.open(f'assets/maps/{k}.json', 'w', encoding='utf-8').write(json.dumps(v, ensure_ascii=False, indent=1))
-print('wrote obj1', W, 'x', H, 'trees', m1['meta']['trees'], '/ obj2 placeholder')
+print('wrote obj1', W, 'x', H, 'trees', m1['meta']['trees'])
