@@ -61,6 +61,14 @@ try {
   await key('KeyC'); await key('KeyC');
   check('using a purchased item in Tab menu saves consumption immediately', await page.evaluate(() => !game.inventory.includes('위장약') && !JSON.parse(localStorage.getItem('subtarune.save.v1')).inventory.includes('위장약')));
   await key('KeyX'); await key('KeyX');
+  check('menu cannot overwrite a safe save while riding', await page.evaluate(() => {
+    const before = localStorage.getItem('subtarune.save.v1');
+    game.state = 'menu'; game.ride = {}; game.money++;
+    game.autosave();
+    const unchanged = before === localStorage.getItem('subtarune.save.v1');
+    game.money--; game.ride = null; game.state = 'field';
+    return unchanged;
+  }));
   await walk(1348, 270); await key('ArrowUp');
   for (let pass = 0; pass < 2; pass++) {
     await page.evaluate(() => { game.partyHp = { hyungsub: 1, gyeongsub: 2, ppaman: 0 }; });
