@@ -152,6 +152,6 @@ model: opus
 1. `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.04 --dur 1.5 --fps 20 --height 128 [--key black|green|auto]` (예: 동상 벽 폭발 = 그린스크린 `--key green --thresh 70 --soft 55`)
    — 검은 배경 이펙트 영상은 기본값(`black`)이 밝기로 알파를 만들어 연기 가장자리가 반투명하게 남는다. 끝나면 붙여 넣을 `{ boom: … }` 한 줄을 찍어 준다.
 2. 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -c:a libmp3lame -q:a 3 assets/audio/sfx/<이름>.mp3` → `main.js loadSfxFiles` 목록 + `design/audio/references.md` 출처 한 줄.
-3. 컷신: `{ boom: { sheet:'assets/fx/<이름>.png', at:'<대상id>'|[x,y], cols, rows, count, fps, scale, offset:[dx,dy], sfx:'<이름>', hold } }`
-   — **모든 캐릭터 위**에 한 번만 재생하고 사라진다. 그림이 없으면 소리만 나고 조용히 통과하므로 반드시 `tests/unit/fx.test.mjs`(띠 존재·칸 수) 를 돌린다.
+3. **`src/data/fx.js` 의 `FX` 에 한 줄** 등록(sheet·cols·rows·count·fps·sfx) → 컷신에서는 `{ boom: { ...FX.<이름>, at:'<대상id>'|[x,y], scale, offset:[dx,dy], hold } }` 로 쓴다(숫자를 컷신에 복사하지 않는다 — 여러 발이면 `{async:[{wait}, {boom}]}`)
+   — **모든 캐릭터 위**에 한 번만 재생하고 사라진다. 그림이 없으면 소리만 나고 조용히 통과하므로 반드시 `tests/unit/fx.test.mjs`(레지스트리·띠 존재·칸 수·소리 로드 목록) 를 돌린다.
 4. 그 연출이 도는 맵 JSON 의 `preload` 에 시트 경로를 넣는다(첫 재생이 늦지 않게). 크기·타이밍은 중간 프레임 스크린샷으로 맞춘다(`scale`, `fps`, 앞뒤 `wait`).

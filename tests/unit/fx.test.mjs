@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { FX, FX_SHEETS } from '../../src/data/fx.js';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const walk = (dir, out = []) => { for (const f of fs.readdirSync(path.join(ROOT, dir))) { const p = path.join(dir, f); if (fs.statSync(path.join(ROOT, p)).isDirectory()) walk(p, out); else if (/\.(js|json)$/.test(f)) out.push(p); } return out; };
@@ -20,6 +21,20 @@ for (const p of [...walk('src/data'), ...walk('assets/maps')]) {
   }
 }
 
+test('test_fx_registry_sheets_and_sounds_exist_and_match_the_image', () => {
+  const sfxDir = new Set(fs.readdirSync(path.join(ROOT, 'assets/audio/sfx')).map((f) => f.replace(/\.mp3$/, '')));
+  const loaded = [...(fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8').match(/loadSfxFiles\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]);
+  for (const [name, f] of Object.entries(FX)) {
+    assert.ok(fs.existsSync(path.join(ROOT, f.sheet)), `FX.${name}: 띠 파일이 없다 ${f.sheet} — tools/art/video_to_strip.py 로 만든다`);
+    const { w, h } = png(f.sheet);
+    assert.equal(w % f.cols, 0, `FX.${name}: 가로 ${w} 가 cols ${f.cols} 로 안 나눠떨어진다`);
+    assert.equal(h % (f.rows ?? 1), 0, `FX.${name}: 세로 ${h} 가 rows ${f.rows} 로 안 나눠떨어진다`);
+    assert.ok(f.count <= f.cols * (f.rows ?? 1), `FX.${name}: count ${f.count} 가 칸 수보다 많다`);
+    assert.ok(f.fps > 0, `FX.${name}: fps 가 없다`);
+    if (f.sfx) { assert.ok(sfxDir.has(f.sfx), `FX.${name}: 소리 파일 sfx/${f.sfx}.mp3 가 없다`); assert.ok(loaded.includes(f.sfx), `FX.${name}: '${f.sfx}' 가 main.js loadSfxFiles 목록에 없다(무음이 된다)`); }
+  }
+  assert.deepEqual(FX_SHEETS, Object.values(FX).map((f) => f.sheet));
+});
 test('test_fx_every_boom_sheet_file_exists', () => {
   const missing = booms.filter((b) => !fs.existsSync(path.join(ROOT, b.sheet))).map((b) => `${b.sheet} (${b.where})`);
   assert.deepEqual(missing, [], '없는 이펙트 띠 — tools/art/video_to_strip.py 로 만든다: ' + missing.join(', '));

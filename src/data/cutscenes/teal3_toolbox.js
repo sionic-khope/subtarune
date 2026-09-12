@@ -8,6 +8,8 @@
 //   → 빠맨이 상자에서 꺼내(효과음) 형섭·경섭 앞으로 달려가 하나씩 건네는 시늉(효과음·바라보기)
 //   빠맨 "오 온다!" → 전투 시작 연출(공식 징글·줌·검은 소용돌이) → 전투 → 미니언 파들파들 → "응 ? 뭐 뭐지" → 점프 → 길 따라 내려가 청록숲2 동상 벽을 펑펑(폭발 애니·소리는 사용자 지정 영상에서 딴 것) → 주인공 화면 → "... 어찌저찌 된거같다." / "전투를 할 수 있게 되었다!"
 // ─────────────────────────────────────────────────────────────
+import { FX } from '../fx.js';
+
 const N = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
@@ -103,11 +105,11 @@ export const teal3_toolbox = [
   { async: [{ parallel: [{ move: 'cs1', px: [45 * 32, 20 * 32 + 8], run: true, speed: 320 }, { move: 'cs2', px: [45 * 32, 21 * 32 + 8], run: true, speed: 320 }] }, { remove: 'cs1' }, { remove: 'cs2' }] },   // 멈추지 않고 쓱 지나간다(맵 밖으로)
   { wait: 0.26 },                                     // 미니언이 동상 열(x 1248~1280)을 통과하는 순간(320px/s) — 지나가자마자 펑 (사용자 2026-09-10)
   // 펑! 다섯이 한꺼번에 사방으로 튀어나가 빙글빙글 돌며 화면 밖으로 (fling: 속도+중력, 이전 hop 은 히트박스 소품의 가로 이동이 그림에 안 보였음)
-  // 폭발 애니·소리는 사용자가 준 영상(deltarune explosion greenscreen) 에서 누끼·오디오를 딴 것 — assets/fx/explosion.png(31프레임) / sfx/explosion.mp3
-  { sfx: 'explosion' }, { shake: 0.5, amp: 9 },
-  { async: [{ boom: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, scale: 2, at: 'statue_w3' } }] },
-  { async: [{ wait: 0.07 }, { boom: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, scale: 1.25, at: 'statue_w1', offset: [-6, -10] } }] },
-  { async: [{ wait: 0.14 }, { boom: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, scale: 1.25, at: 'statue_w5', offset: [8, 12] } }] },
+  // 폭발 애니·소리는 사용자가 준 영상에서 누끼·오디오를 딴 것 — 설정은 src/data/fx.js 의 FX.explosion 한 곳에서
+  { sfx: FX.explosion.sfx }, { shake: 0.5, amp: 9 },
+  { async: [{ boom: { ...FX.explosion, at: 'statue_w3', scale: 2 } }] },
+  { async: [{ wait: 0.07 }, { boom: { ...FX.explosion, at: 'statue_w1', scale: 1.25, offset: [-6, -10] } }] },
+  { async: [{ wait: 0.14 }, { boom: { ...FX.explosion, at: 'statue_w5', scale: 1.25, offset: [8, 12] } }] },
   { async: [{ fling: 'statue_w1', vx: 150, vup: 860, spin: 13 }] },
   { async: [{ wait: 0.03 }, { fling: 'statue_w2', vx: 360, vup: 680, spin: -15 }] },
   { async: [{ wait: 0.01 }, { fling: 'statue_w3', vx: -90, vup: 940, spin: 16 }] },
