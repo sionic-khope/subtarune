@@ -62,7 +62,7 @@ try {
       const ids = ['player', 'ppaman', 'gyeongsub', 'baron', 'baron_after', 'baron_chase', 'yongjun_captive', 'cannon_abduction', 'statue1', 'statue2', 'statue3'];
       const entities = game.entities.filter(e => e && (e === game.player || ids.includes(e.id)) && !e.dead).map(e => ({
         id: e === game.player ? 'player' : e.id, x: e.x, y: e.y, visible: e.visible, facing: e.facing,
-        frame: e.frame, sprite: e.def.sprite, motion: e.motion?.index, flyX: e.flyX || 0,
+        frame: e.frame, sprite: e.def.sprite, visualScale: e.def.visualScale, motion: e.motion?.index, flyX: e.flyX || 0,
         flyY: e.flyY || 0, hopY: e.hopY || 0, spin: e.spin || 0,
       }));
       abductionEvidence.samples.push({ at: performance.now(), map: game.mapId, bgm: game.sound.bgmName,
@@ -128,7 +128,9 @@ try {
   const reaction = samples.find(s => s.text === '* 어 어라?' && s.box === 'waiting');
   check('opening reaction has no BGM', reaction?.bgm === null, reaction?.bgm);
   check('The Chase continues in both following maps', ['obj3', 'obj2'].every(map => samples.some(s => s.map === map && s.bgm === 'baron_intro')));
-  check('contact with Yongjun plays a boss impact', evidence.sounds.some(s => s.id === 'baron_slam' && s.map === 'obj4' && s.offset?.[0] === 35 && s.offset?.[1] === 150));
+  check('contact with Yongjun plays a boss impact', evidence.sounds.some(s => s.id === 'baron_slam' && s.map === 'obj4' && s.offset?.[0] === 57 && s.offset?.[1] === 243));
+  check('Yongjun looks up before pickup and throughout carrying', samples.flatMap(s => s.entities.filter(e => e.id === 'yongjun_captive' && e.visible)).every(e => e.facing === 'up'));
+  check('moving Baron retains enlarged scale across all route maps', ['obj4', 'obj3', 'obj2'].every(map => samples.some(s => s.map === map && s.entities.some(e => e.id === 'baron_chase' && e.sprite === 'baron_chase' && e.visualScale === 1.7))));
   check('The Chase remains after final dialogue', await page.evaluate(() => game.sound.bgmName === 'baron_intro' && !game.sound.bgm.paused));
   check('cannon visibly thrown horizontally', samples.some(s => s.entities.some(e => e.id === 'cannon_abduction' && Math.abs(e.flyX) > 100)));
   for (const id of ['statue1', 'statue2', 'statue3']) {
