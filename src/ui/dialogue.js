@@ -110,8 +110,9 @@ export function choiceMove(i, n, dir) {
 export const CHOICE_LOCK = 0.1;   // 선택지 확정 잠금(초) — 0.4 → 0.1 (사용자 2026-09-11: 너무 답답함)
 
 export class TextBox {
-  constructor(sound, portraits) {
+  constructor(sound, portraits, presentation = null) {
     this.sound = sound;
+    this.presentation = presentation;
     this.portraits = portraits;     // name → canvas
     this.state = 'closed';          // closed | typing | waiting | choice
     this.charDelay = 0.045;         // 글자 간 기본 간격(초)
@@ -163,6 +164,7 @@ export class TextBox {
   get fullscreen() { return this.isOpen && this.style === 'narration'; }
 
   layoutRect() {
+    if (this.presentation?.rect) return this.presentation.rect;
     if (this.style === 'narration') return { x: 40, y: 60, w: SCREEN_W - 80, h: 120 };
     return { x: 12, y: SCREEN_H - 112, w: SCREEN_W - 24, h: 104 };
   }
@@ -282,10 +284,11 @@ export class TextBox {
     if (this.speaker) {
       ctx.font = FONT;
       const nw = Math.ceil(ctx.measureText(this.speaker).width) + 12;
-      drawBox(ctx, r.x + 6, r.y - (F.size + 8), nw, F.size + 10);
+      if (!this.presentation?.speakerInside) drawBox(ctx, r.x + 6, r.y - (F.size + 8), nw, F.size + 10);
       ctx.fillStyle = '#fff';
       ctx.textBaseline = 'top';
-      ctx.fillText(this.speaker, r.x + 12, r.y - (F.size + 4));
+      if (this.presentation?.speakerInside) ctx.fillText(this.speaker, r.x + 18, r.y + 12);
+      else ctx.fillText(this.speaker, r.x + 12, r.y - (F.size + 4));
     }
 
     // 초상화
@@ -303,7 +306,7 @@ export class TextBox {
     outer:
     for (let li = 0; li < lines.length; li++) {
       let x = tx;
-      const y = r.y + 18 + li * LINE_H;
+      const y = r.y + (this.presentation?.textTop ?? 18) + li * LINE_H;
       for (const t of lines[li]) {
         if (idx >= this.revealed) break outer;
         idx++;

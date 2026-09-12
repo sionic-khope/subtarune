@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { YONGJUN_SHOP } from '../../src/data/shops.js';
 import { ITEMS } from '../../src/data/items.js';
 import { CHARACTERS } from '../../src/data/characters.js';
-import { purchaseShopItem, shopItemState } from '../../src/core/shop.js';
+import { purchaseShopItem, saleItemState, sellShopItem, shopItemState } from '../../src/core/shop.js';
 import { QA_POINTS, stateFromFlags } from '../../src/core/story.js';
 
 const saveFields = ['flags', 'inventory', 'party', 'partyHp', 'money', 'attack', 'hpBonus'];
@@ -20,7 +20,8 @@ const makeGame = (state = {}) => ({
 });
 
 test('test_shop_catalog_prices_effects_and_consumable_contract', () => {
-  assert.deepEqual(YONGJUN_SHOP.map(({ name, price }) => [name, price]), [['에그타르트', 50], ['위장약', 100], ['씨알리스', 1000], ['바세린', 1500]]);
+  assert.deepEqual(YONGJUN_SHOP.map(({ name, price }) => [name, price]), [['에그타르트', 50], ['위장약', 100], ['씨알리스', 10], ['바세린', 10]]);
+  assert.deepEqual(YONGJUN_SHOP.filter((item) => item.event).map((item) => item.id), ['cialis', 'vaseline']);
   for (const item of YONGJUN_SHOP.filter((item) => item.item)) assert.equal(ITEMS[item.item].kind, 'plain');
   assert.equal(ITEMS['에그타르트'].heal, 100);
   assert.equal(ITEMS['위장약'].heal, 200);
@@ -38,7 +39,7 @@ test('test_shop_repeated_consumables_cost_money_and_save_complete_transaction', 
 test('test_shop_unknown_insufficient_and_cancel_inspection_do_not_mutate_or_save', () => {
   const game = makeGame({ money: 49 });
   const before = snapshot(game);
-  assert.equal(shopItemState(game, 'cialis').reason, 'insufficient_money');
+  assert.equal(shopItemState(game, 'stomach_medicine').reason, 'insufficient_money');
   assert.equal(purchaseShopItem(game, 'eggtart').reason, 'insufficient_money');
   assert.equal(purchaseShopItem(game, 'missing').reason, 'unknown');
   assert.deepEqual(snapshot(game), before);
@@ -49,7 +50,7 @@ test('test_shop_cialis_applies_once_to_shared_attack_without_inventory_item', ()
   const game = makeGame();
   assert.equal(purchaseShopItem(game, 'cialis').ok, true);
   assert.equal(game.attack, 3);
-  assert.equal(game.money, 4000);
+  assert.equal(game.money, 4990);
   assert.equal(game.flags.shop_yongjun_cialis, true);
   assert.deepEqual(game.inventory, []);
   const before = snapshot(game);
@@ -63,7 +64,7 @@ test('test_shop_vaseline_preserves_missing_hp_for_leader_and_party_and_returning
   const before = Object.fromEntries(['hyungsub', 'ppaman', 'gyeongsub'].map((id) => [id, { max: game.maxHpOf(id), hp: game.hpOf(id) }]));
   assert.equal(purchaseShopItem(game, 'vaseline').ok, true);
   assert.equal(game.hpBonus, 40);
-  assert.equal(game.money, 3500);
+  assert.equal(game.money, 4990);
   for (const [id, old] of Object.entries(before)) {
     assert.equal(game.maxHpOf(id), old.max + 20);
     assert.equal(game.hpOf(id), old.hp + 20);
@@ -104,7 +105,7 @@ test('test_shop_save_reload_keeps_purchases_sold_out_without_amplification', () 
 test('test_shop_qa_reconstruction_adds_upgrades_after_story_buffs_and_subtracts_cost_once', () => {
   const flags = { teal9_boss_won: true, shop_yongjun_cialis: true, shop_yongjun_vaseline: true };
   const options = { enemyMoney: () => 1500 };
-  const expected = { inventory: [], money: 500, attack: 3, hpBonus: 40 };
+  const expected = { inventory: [], money: 2980, attack: 3, hpBonus: 40 };
   assert.deepEqual(stateFromFlags(flags, options), expected);
   assert.deepEqual(stateFromFlags(flags, options), expected);
   const reconstructed = makeGame({ ...expected, flags });
@@ -122,4 +123,74 @@ test('test_shop_normal_lounge_qa_does_not_grant_purchases_and_legacy_flags_remai
   assert.equal(derived.hpBonus, 20);
   const legacy = makeGame({ flags: { vaseline: true } });
   assert.equal(shopItemState(legacy, 'vaseline').ok, true);
+});
+
+test('test_shop_event_prices_accept_exact_money_and_reject_short_balance', () => {
+  for (const id of ['cialis', 'vaseline']) {
+    const short = makeGame({ money: 9 });
+    const before = snapshot(short);
+    assert.equal(purchaseShopItem(short, id).reason, 'insufficient_money');
+    assert.deepEqual(snapshot(short), before);
+    assert.equal(short.saves.length, 0);
+    const exact = makeGame({ money: 10 });
+    assert.equal(purchaseShopItem(exact, id).ok, true);
+    assert.equal(exact.money, 0);
+  }
+});
+
+test('test_shop_sale_prices_and_read_only_inspection', () => {
+  const game = makeGame({ inventory: ['에그타르트', '위장약', '바나나', '먼지'] });
+  const before = snapshot(game);
+  for (const [inventoryIndex, price] of [25, 50, 10, 1].entries()) {
+    const result = saleItemState(game, inventoryIndex);
+    assert.deepEqual(result, { ok: true, reason: null, name: game.inventory[inventoryIndex], item: ITEMS[game.inventory[inventoryIndex]], price, inventoryIndex });
+  }
+  assert.deepEqual(snapshot(game), before);
+  assert.equal(game.saves.length, 0);
+});
+
+test('test_shop_sale_removes_only_selected_duplicate_and_saves_complete_transaction', () => {
+  const game = makeGame({ inventory: ['에그타르트', '바나나', '에그타르트', '낡은 열쇠'], money: 0, flags: { shop_yongjun_cialis: true, shop_yongjun_vaseline: true } });
+  const before = snapshot(game);
+  assert.equal(sellShopItem(game, 2).ok, true);
+  assert.deepEqual(game.inventory, ['에그타르트', '바나나', '낡은 열쇠']);
+  assert.equal(game.money, 25);
+  assert.equal(game.saves.length, 1);
+  assert.deepEqual(game.saves[0], snapshot(game));
+  for (const key of ['flags', 'attack', 'hpBonus', 'partyHp', 'party']) assert.deepEqual(game[key], before[key]);
+});
+
+test('test_shop_sale_last_item_then_stale_index_cannot_sell_again', () => {
+  const game = makeGame({ inventory: ['먼지'], money: 0 });
+  assert.equal(sellShopItem(game, 0).ok, true);
+  assert.deepEqual(game.inventory, []);
+  assert.equal(game.money, 1);
+  assert.equal(sellShopItem(game, 0).reason, 'invalid_index');
+  assert.equal(game.money, 1);
+  assert.equal(game.saves.length, 1);
+});
+
+test('test_shop_sale_direct_commands_reject_key_unknown_and_invalid_indices', () => {
+  const names = [...Object.keys(ITEMS).filter((name) => ITEMS[name].kind === 'key'), '미등록 물건', '__proto__'];
+  const game = makeGame({ inventory: names });
+  const before = snapshot(game);
+  for (const [index, name] of names.entries()) {
+    assert.equal(saleItemState(game, index).ok, false);
+    assert.equal(sellShopItem(game, index).reason, Object.hasOwn(ITEMS, name) ? 'key_item' : 'unknown');
+  }
+  for (const index of [-1, names.length, 0.5, '0', null, undefined, NaN, Infinity]) {
+    assert.equal(sellShopItem(game, index).reason, 'invalid_index');
+  }
+  assert.deepEqual(snapshot(game), before);
+  assert.equal(game.saves.length, 0);
+});
+
+test('test_shop_sale_rechecks_inventory_before_committing', () => {
+  const game = makeGame({ inventory: ['바나나'] });
+  assert.equal(saleItemState(game, 0).ok, true);
+  game.inventory[0] = '나무총';
+  const before = snapshot(game);
+  assert.equal(sellShopItem(game, 0).reason, 'key_item');
+  assert.deepEqual(snapshot(game), before);
+  assert.equal(game.saves.length, 0);
 });

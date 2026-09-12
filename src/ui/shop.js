@@ -1,10 +1,12 @@
 import { Input } from '../core/input.js';
 import { drawBox, drawHeart, loadImageOptional } from '../core/gfx.js';
-import { purchaseShopItem, shopItemState } from '../core/shop.js';
+import { purchaseShopItem, shopItemState, saleItemState, sellShopItem } from '../core/shop.js';
 import { YONGJUN_SHOP } from '../data/shops.js';
 import { SHOP_KO as L } from '../data/locale/shop-ko.js';
 import { FONT, F } from './font.js';
-import { drawMenuText } from './menu-layout.js';
+import { drawMenuText, menuWindow } from './menu-layout.js';
+import { ShopGreeting } from './shop-greeting.js';
+import { SHOP_GREETING_FLAG } from '../data/cutscenes/shop_greeting.js';
 
 /** Logical-pixel shop geometry and palette from DESIGN.md's Yongjun contract. */
 export const SHOP_LAYOUT = Object.freeze({
@@ -31,24 +33,42 @@ export class Shop {
     this.index = 0;
     this.choice = 1;
     this.art = null;
+    this.greeting = null;
     this.artReady = typeof Image === 'undefined' ? Promise.resolve(null) : loadImageOptional('assets/shop/yongjun-counter.png').then((image) => { this.art = image; return image; });
   }
 
-  /** Open the product list; discard the press that entered the shop. */
+  /** Open the first-visit greeting or home menu; discard the entry press. */
   open() {
+    this.reset();
     this.index = 0;
     this.choice = 1;
     this.message = null;
-    this.mode = 'browse';
+    this.mode = 'home';
+    this.section = 'buy';
     this.lock = SHOP_LAYOUT.inputLock;
     this.waitForRelease = true;
     this.game.state = 'shop';
-    this.game.sound.sfx('open');
+    if (!this.game.has(SHOP_GREETING_FLAG)) {
+      this.mode = 'greeting';
+      this.greeting = new ShopGreeting(this.game, SHOP_LAYOUT.products);
+      this.greeting.start(() => {
+        this.mode = 'home';
+        this.lock = SHOP_LAYOUT.inputLock;
+        this.waitForRelease = true;
+      });
+    }
+  }
+
+  /** Reset transient UI on new game, reload, QA jump, or interrupted entry. */
+  reset() {
+    this.greeting?.dispose();
+    this.greeting = null;
+    this.mode = 'closed';
   }
 
   /** Return directly to the paused field without changing its music or position. */
   close() {
-    this.mode = 'closed';
+    this.reset();
     this.game.state = 'field';
     this.game.sound.sfx('close');
   }
@@ -62,9 +82,26 @@ export class Shop {
       return;
     }
     if (this.lock > 0) return;
+    if (this.mode === 'greeting') {
+      this.greeting.update(dt, input);
+      return;
+    }
     if (input.just('cancel')) {
-      if (this.mode === 'browse') this.close();
+      if (this.mode === 'home') this.close();
+      else if (this.mode === 'browse' || this.mode === 'sell') this._home();
       else this._browse();
+      return;
+    }
+    if (this.mode === 'home') {
+      this._move(input, 3);
+      if (input.just('confirm')) {
+        if (this.index === 2) this.close();
+        else {
+          this.section = this.index === 0 ? 'buy' : 'sell';
+          this.index = 0;
+          this._browse();
+        }
+      }
       return;
     }
     if (this.mode === 'message') {
@@ -78,19 +115,16 @@ export class Shop {
       }
       if (input.just('confirm')) {
         if (this.choice === 1) this._browse();
-        else this._purchase();
+        else this._transact();
       }
       return;
     }
-    const count = YONGJUN_SHOP.length + 1;
-    if (input.just('up') || input.just('down')) {
-      this.index = (this.index + (input.just('up') ? count - 1 : 1)) % count;
-      this.game.sound.sfx('menu');
-    }
+    const count = (this.section === 'sell' ? this.game.inventory : YONGJUN_SHOP).length + 1;
+    this._move(input, count);
     if (!input.just('confirm')) return;
-    const item = YONGJUN_SHOP[this.index];
-    if (!item) { this.close(); return; }
-    const result = shopItemState(this.game, item.id);
+    if (this.index === count - 1) { this._home(); return; }
+    const result = this.section === 'sell' ? saleItemState(this.game, this.index) : shopItemState(this.game, YONGJUN_SHOP[this.index].id);
+    this.transaction = result;
     if (!result.ok) { this._feedback(result); return; }
     this.choice = 1;
     this.mode = 'confirm';
@@ -99,14 +133,35 @@ export class Shop {
   }
 
   _browse() {
-    this.mode = 'browse';
+    this.mode = this.section === 'sell' ? 'sell' : 'browse';
+    const count = this.section === 'sell' ? this.game.inventory.length : YONGJUN_SHOP.length;
+    this.index = Math.min(this.index, count);
     this.message = null;
     this.lock = SHOP_LAYOUT.inputLock;
     this.game.sound.sfx('cancel');
   }
 
-  _purchase() {
-    this._feedback(purchaseShopItem(this.game, YONGJUN_SHOP[this.index].id));
+  _home() {
+    this.mode = 'home';
+    this.index = this.section === 'sell' ? 1 : 0;
+    this.message = null;
+    this.lock = SHOP_LAYOUT.inputLock;
+    this.game.sound.sfx('cancel');
+  }
+
+  _move(input, count) {
+    if (input.just('up') || input.just('down')) {
+      this.index = (this.index + (input.just('up') ? count - 1 : 1)) % count;
+      this.game.sound.sfx('menu');
+    }
+  }
+
+  _transact() {
+    if (this.section === 'sell' && this.game.inventory[this.transaction.inventoryIndex] !== this.transaction.name) {
+      this._feedback({ ok: false, reason: 'invalid_index' });
+      return;
+    }
+    this._feedback(this.section === 'sell' ? sellShopItem(this.game, this.transaction.inventoryIndex) : purchaseShopItem(this.game, this.transaction.item.id));
   }
 
   _feedback(result) {
@@ -136,7 +191,15 @@ export class Shop {
     }
     panel(ctx, products);
     panel(ctx, detail);
-    if (this.mode === 'browse') this._drawProducts(ctx);
+    if (this.mode === 'greeting') {
+      this._drawMoney(ctx);
+      this.greeting.draw(ctx);
+      ctx.restore();
+      return;
+    }
+    if (this.mode === 'home') this._drawHome(ctx);
+    else if (this.mode === 'browse') this._drawProducts(ctx);
+    else if (this.mode === 'sell') this._drawSales(ctx);
     else this._drawAction(ctx);
     this._drawDetail(ctx);
     ctx.restore();
@@ -149,8 +212,13 @@ export class Shop {
       const soldOut = item && shopItemState(this.game, item.id).reason === 'sold_out';
       const y = listY + i * rowHeight;
       ctx.fillStyle = i === this.index ? colors.selected : soldOut ? colors.muted : colors.text;
-      ctx.fillText(item?.name ?? L.exit, nameX, y);
+      ctx.fillText(item?.name ?? L.back, nameX, y);
       if (item) {
+        if (item.event) {
+          ctx.fillStyle = colors.selected;
+          ctx.fillText(L.event, nameX + Math.ceil(ctx.measureText(item.name).width) + 8, y);
+          ctx.fillStyle = i === this.index ? colors.selected : soldOut ? colors.muted : colors.text;
+        }
         ctx.textAlign = 'right';
         ctx.fillText(soldOut ? L.soldOut : L.moneyAmount(item.price), priceX, y);
         ctx.textAlign = 'left';
@@ -160,19 +228,49 @@ export class Shop {
     this._drawHint(ctx, L.browseHint);
   }
 
+  _drawHome(ctx) {
+    const { listY, rowHeight, nameX, colors } = SHOP_LAYOUT;
+    [L.buy, L.sell, L.exit].forEach((label, i) => {
+      const y = listY + i * rowHeight;
+      ctx.fillStyle = this.index === i ? colors.selected : colors.text;
+      ctx.fillText(label, nameX, y);
+      if (this.index === i) drawHeart(ctx, nameX - 14, y + 5, colors.heart);
+    });
+    this._drawHint(ctx, L.homeHint);
+  }
+
+  _drawSales(ctx) {
+    const { listY, rowHeight, nameX, priceX, colors } = SHOP_LAYOUT;
+    const count = this.game.inventory.length;
+    const window = menuWindow(count + 1, this.index, 5);
+    for (let i = window.start; i < window.end; i++) {
+      const result = i < count ? saleItemState(this.game, i) : null;
+      const y = listY + (i - window.start) * rowHeight;
+      const price = result ? result.ok ? L.moneyAmount(result.price) : L.cannotSell : '';
+      ctx.fillStyle = i === this.index ? colors.selected : result && !result.ok ? colors.muted : colors.text;
+      drawMenuText(ctx, result?.name ?? L.back, nameX, y, priceX - nameX - ctx.measureText(price).width - 8);
+      ctx.textAlign = 'right';
+      ctx.fillText(price, priceX, y);
+      ctx.textAlign = 'left';
+      if (i === this.index) drawHeart(ctx, nameX - 14, y + 5, colors.heart);
+    }
+    this._drawHint(ctx, L.sellHint);
+  }
+
   _drawAction(ctx) {
     const { products, inset, colors } = SHOP_LAYOUT;
-    const item = YONGJUN_SHOP[this.index];
+    const item = this.transaction.item;
+    const selling = this.section === 'sell';
     const x = products.x + inset;
     const width = products.w - inset * 2;
     ctx.fillStyle = colors.selected;
-    ctx.fillText(item.name, x, 202);
+    drawMenuText(ctx, selling ? this.transaction.name : item.name, x, 202, width - 80);
     if (this.mode === 'confirm') {
       ctx.textAlign = 'right';
-      ctx.fillText(L.moneyAmount(item.price), products.x + products.w - inset, 202);
+      ctx.fillText(L.moneyAmount(selling ? this.transaction.price : item.price), products.x + products.w - inset, 202);
       ctx.textAlign = 'left';
       ctx.fillStyle = colors.text;
-      ctx.fillText(L.buyQuestion, x, 232);
+      ctx.fillText(selling ? L.sellQuestion : L.buyQuestion, x, 232);
       [L.yes, L.no].forEach((label, index) => {
         const choiceX = x + 24 + index * 112;
         ctx.fillStyle = this.choice === index ? colors.selected : colors.text;
@@ -184,12 +282,12 @@ export class Shop {
     }
     const result = this.message;
     if (result.ok) {
-      ctx.fillText(L.purchased, x, 202 + F.lineH);
-      const effect = item.stat?.attack ? L.attackEffect(item.stat.attack) : item.stat?.hpBonus ? L.hpEffect(item.stat.hpBonus) : L.inventoryEffect;
+      ctx.fillText(selling ? L.sold : L.purchased, x, 202 + F.lineH);
+      const effect = selling ? L.saleEffect(result.price) : item.stat?.attack ? L.attackEffect(item.stat.attack) : item.stat?.hpBonus ? L.hpEffect(item.stat.hpBonus) : L.inventoryEffect;
       drawMenuText(ctx, effect, x, 250, width, 3);
     } else {
       ctx.fillStyle = colors.text;
-      const reason = result.reason === 'insufficient_money' ? L.insufficientMoney : result.reason === 'sold_out' ? L.soldOutMessage : L.unavailable;
+      const reason = selling ? result.reason === 'key_item' ? L.keyItem : L.noSale : result.reason === 'insufficient_money' ? L.insufficientMoney : result.reason === 'sold_out' ? L.soldOutMessage : L.unavailable;
       drawMenuText(ctx, reason, x, 238, width, 3);
     }
     this._drawHint(ctx, L.messageHint);
@@ -201,7 +299,25 @@ export class Shop {
     const x = detail.x + inset;
     const width = detail.w - inset * 2;
     ctx.fillStyle = colors.text;
-    drawMenuText(ctx, item?.description ?? L.exitDescription, x, 202, width, 5);
+    let description = item?.description ?? L.backDescription;
+    if (this.mode === 'home') description = [L.buyDescription, L.sellDescription, L.exitDescription][this.index];
+    else if (this.section === 'sell') {
+      const selected = this.mode === 'sell' ? saleItemState(this.game, this.index) : this.transaction;
+      description = selected.reason === 'invalid_index' ? this.game.inventory.length ? L.backDescription : L.emptyInventory : selected.item?.desc ?? L.noSale;
+      if (this.mode === 'sell' && this.game.inventory.length >= 5) {
+        ctx.fillStyle = colors.muted;
+        ctx.fillText(L.listPosition(this.index + 1, this.game.inventory.length + 1), x, 280);
+      }
+    }
+    ctx.fillStyle = colors.text;
+    drawMenuText(ctx, description, x, 202, width, 4);
+    this._drawMoney(ctx);
+  }
+
+  _drawMoney(ctx) {
+    const { detail, inset, colors } = SHOP_LAYOUT;
+    const x = detail.x + inset;
+    const width = detail.w - inset * 2;
     ctx.fillStyle = colors.muted;
     ctx.fillText(L.money, x, 304);
     ctx.fillStyle = colors.text;
