@@ -75,6 +75,7 @@ m2 = {'id': 'teal2', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen'
       'spawns': {'from_left': {'x': 60, 'y': 21 * 32 + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 21 * 32 + 8, 'facing': 'right'},
                  'from_top': {'x': 21 * 32 + 4, 'y': 2 * 32 + 16, 'facing': 'down'}, 'landing_east': {'x': (W - 3) * 32, 'y': 21 * 32 + 8, 'facing': 'left'}},
       'meta': {'wallCol': WALLC, 'upCols': [UPC0, UPC1], 'roadRows': [R0, R1], 'plaza': [PC0, PC1, PR0, R1]},
+      'preload': ['assets/fx/explosion.png'],   # 동상 벽 폭발 애니(첫 재생이 늦지 않게)
       'entities': ents}
 
 def placeholder(id_, door):

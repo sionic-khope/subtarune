@@ -149,7 +149,7 @@ model: opus
 
 ## 큰 이펙트 애니(폭발 등)는 영상에서 (2026-09-12)
 직접 그리지 말고 사용자가 준 영상에서 누끼를 딴다.
-1. `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.4 --dur 1.2 --fps 14 --height 96 [--key black|green|white]`
+1. `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.04 --dur 1.5 --fps 20 --height 128 [--key black|green|auto]` (예: 동상 벽 폭발 = 그린스크린 `--key green --thresh 70 --soft 55`)
    — 검은 배경 이펙트 영상은 기본값(`black`)이 밝기로 알파를 만들어 연기 가장자리가 반투명하게 남는다. 끝나면 붙여 넣을 `{ boom: … }` 한 줄을 찍어 준다.
 2. 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -c:a libmp3lame -q:a 3 assets/audio/sfx/<이름>.mp3` → `main.js loadSfxFiles` 목록 + `design/audio/references.md` 출처 한 줄.
 3. 컷신: `{ boom: { sheet:'assets/fx/<이름>.png', at:'<대상id>'|[x,y], cols, rows, count, fps, scale, offset:[dx,dy], sfx:'<이름>', hold } }`

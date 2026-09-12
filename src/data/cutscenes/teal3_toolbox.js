@@ -6,7 +6,7 @@
 //   빠맨 "앗 ... ... 엥 CS?" / 경섭 "허허 저게 뭐냐 근데 뭔가 꼭... 우리를" → CS 점프 연출 → 세 사람 한 칸 뒤로 물러나 오른쪽(CS)을 바라봄
 //   빠맨 "아 안되겠다 싸 싸워야할거같은데요? ㅈ ㅈ됐다. 빨리 이 상자에서 아무거나 꺼내봐요 !!!"
 //   → 빠맨이 상자에서 꺼내(효과음) 형섭·경섭 앞으로 달려가 하나씩 건네는 시늉(효과음·바라보기)
-//   빠맨 "오 온다!" → 전투 시작 연출(공식 징글·줌·검은 소용돌이) → 전투 → 미니언 파들파들 → "응 ? 뭐 뭐지" → 점프 → 길 따라 내려가 청록숲2 동상 벽을 펑펑 → 주인공 화면 → "... 어찌저찌 된거같다." / "전투를 할 수 있게 되었다!"
+//   빠맨 "오 온다!" → 전투 시작 연출(공식 징글·줌·검은 소용돌이) → 전투 → 미니언 파들파들 → "응 ? 뭐 뭐지" → 점프 → 길 따라 내려가 청록숲2 동상 벽을 펑펑(폭발 애니·소리는 사용자 지정 영상에서 딴 것) → 주인공 화면 → "... 어찌저찌 된거같다." / "전투를 할 수 있게 되었다!"
 // ─────────────────────────────────────────────────────────────
 const N = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
@@ -103,8 +103,11 @@ export const teal3_toolbox = [
   { async: [{ parallel: [{ move: 'cs1', px: [45 * 32, 20 * 32 + 8], run: true, speed: 320 }, { move: 'cs2', px: [45 * 32, 21 * 32 + 8], run: true, speed: 320 }] }, { remove: 'cs1' }, { remove: 'cs2' }] },   // 멈추지 않고 쓱 지나간다(맵 밖으로)
   { wait: 0.26 },                                     // 미니언이 동상 열(x 1248~1280)을 통과하는 순간(320px/s) — 지나가자마자 펑 (사용자 2026-09-10)
   // 펑! 다섯이 한꺼번에 사방으로 튀어나가 빙글빙글 돌며 화면 밖으로 (fling: 속도+중력, 이전 hop 은 히트박스 소품의 가로 이동이 그림에 안 보였음)
-  { sfx: 'pop' }, { shake: 0.5, amp: 9 },
-  { async: [{ wait: 0.08 }, { sfx: 'pop' }, { wait: 0.1 }, { sfx: 'pop' }] },
+  // 폭발 애니·소리는 사용자가 준 영상(deltarune explosion greenscreen) 에서 누끼·오디오를 딴 것 — assets/fx/explosion.png(31프레임) / sfx/explosion.mp3
+  { sfx: 'explosion' }, { shake: 0.5, amp: 9 },
+  { async: [{ boom: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, scale: 2, at: 'statue_w3' } }] },
+  { async: [{ wait: 0.07 }, { boom: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, scale: 1.25, at: 'statue_w1', offset: [-6, -10] } }] },
+  { async: [{ wait: 0.14 }, { boom: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, scale: 1.25, at: 'statue_w5', offset: [8, 12] } }] },
   { async: [{ fling: 'statue_w1', vx: 150, vup: 860, spin: 13 }] },
   { async: [{ wait: 0.03 }, { fling: 'statue_w2', vx: 360, vup: 680, spin: -15 }] },
   { async: [{ wait: 0.01 }, { fling: 'statue_w3', vx: -90, vup: 940, spin: 16 }] },
@@ -112,7 +115,7 @@ export const teal3_toolbox = [
   { async: [{ wait: 0.02 }, { fling: 'statue_w5', vx: 240, vup: 760, spin: 14 }] },
   { set: { statues_cleared: true } },
   { wait: 1.1 },
-  { wait: 0.4 },
+  { wait: 0.6 },
   { fade: 'out', duration: 0.35 },
   // 주인공 화면으로
   { map: 'teal3', spawn: 'box' },

@@ -24,4 +24,4 @@ model: opus
 3. 맵에 배치는 `/map`.
 
 ## 영상에서 이펙트 애니 만들기 (2026-09-12)
-폭발·불꽃 같은 이펙트는 직접 그리지 말고 사용자가 준 영상에서 누끼를 딴다: `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.4 --dur 1.2 --fps 14 --height 96 [--key black|green]`. 검은 배경 이펙트 영상은 기본값(`--key black`)이 밝기로 알파를 만들어 연기 가장자리가 반투명하게 남는다. 결과 띠를 컷신 `{ boom: {…} }` 로 재생(캐릭터 위, 한 번). 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -af ... assets/audio/sfx/<이름>.mp3` 후 `main.js loadSfxFiles` 목록 + `design/audio/references.md` 에 출처.
+폭발·불꽃 같은 이펙트는 직접 그리지 말고 사용자가 준 영상에서 누끼를 딴다: `/usr/bin/python3 tools/art/video_to_strip.py <영상> --out assets/fx/<이름>.png --start 0.4 --dur 1.2 --fps 14 --height 96 [--key black|green]`. 검은 배경 영상은 기본값(`--key black`)이 밝기로 알파를 만들고, **그린스크린은 `--key green --thresh 70 --soft 55`** — 네 모서리에서 실제 배경색을 재서 키잉하고 반투명 가장자리의 초록 스필까지 지운다(순수 초록이 아니라 (77,224,0) 같은 색이라 고정 임계값으로는 안 지워진다). 결과 띠를 컷신 `{ boom: {…} }` 로 재생(캐릭터 위, 한 번). 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -af ... assets/audio/sfx/<이름>.mp3` 후 `main.js loadSfxFiles` 목록 + `design/audio/references.md` 에 출처.

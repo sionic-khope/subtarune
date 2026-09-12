@@ -72,6 +72,9 @@
    23
   ]
  },
+ "preload": [
+  "assets/fx/explosion.png"
+ ],
  "entities": [
   {
    "type": "door",

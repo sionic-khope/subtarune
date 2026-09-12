@@ -10,8 +10,8 @@
   --fps 14                   뽑을 프레임 수/초 (컷신 fps 와 같게)
   --height 96                프레임 세로 크기(도트 밀도). 가로는 비율 유지
   --cols 0                   띠 가로 칸 수(0 = 한 줄에 전부)
-  --key black|green|white|none   배경 지우기 방식(기본 black — 검은 배경 이펙트 영상)
-  --thresh 24                배경으로 볼 밝기/색 거리 임계값
+  --key black|green|auto|white|none   배경 지우기 방식(기본 black — 검은 배경. 그린스크린은 green/auto: 네 모서리에서 실제 배경색을 재고 스필까지 제거)
+  --thresh 60                배경으로 볼 밝기/색 거리 임계값(그린스크린은 60~90)
   --soft 40                  이 밝기까지 반투명으로 부드럽게(연기 가장자리)
   --crop-to-content          모든 프레임의 내용 경계로 잘라 여백 제거(기본 켜짐)
   --keep-frames              중간 프레임 PNG 를 남긴다(확인용)
@@ -29,17 +29,31 @@ def extract(video, outdir, start, dur, fps):
     subprocess.run(cmd, check=True)
     return sorted(os.path.join(outdir, f) for f in os.listdir(outdir) if f.endswith('.png'))
 
-def key_alpha(a, mode, thresh, soft):
-    """RGBA 배열에 알파를 씌운다. black: 밝기가 낮을수록 투명(연기 가장자리는 반투명)."""
+def bg_color(a):
+    """배경색 추정: 네 모서리 16x16 의 중앙값(그린스크린은 순수 초록이 아니라 조명 때문에 (61,214,27) 같은 색이다)"""
+    h, w = a.shape[:2]; k = 16
+    corners = np.concatenate([a[:k, :k, :3].reshape(-1, 3), a[:k, -k:, :3].reshape(-1, 3), a[-k:, :k, :3].reshape(-1, 3), a[-k:, -k:, :3].reshape(-1, 3)])
+    return np.median(corners, axis=0).astype(np.float32)
+
+def key_alpha(a, mode, thresh, soft, bg=None):
+    """RGBA 배열에 알파를 씌운다.
+       black/white: 밝기로(연기 가장자리는 반투명)
+       green/auto : **실제 배경색과의 거리**로 키잉하고, 반투명 가장자리는 배경색 성분을 빼 초록 테두리(스필)를 지운다"""
     rgb = a[:, :, :3].astype(np.float32)
     if mode == 'none':
         return a
     if mode in ('black', 'white'):
         lum = rgb.max(axis=2) if mode == 'black' else 255 - rgb.min(axis=2)
         al = np.clip((lum - thresh) / max(1.0, soft - thresh), 0, 1)
-    else:                                                            # green: 초록과의 거리
-        dist = np.sqrt(((rgb - np.array([0, 255, 0], np.float32)) ** 2).sum(axis=2))
+    else:
+        key = bg if bg is not None else np.array([0, 255, 0], np.float32)
+        dist = np.sqrt(((rgb - key) ** 2).sum(axis=2))
         al = np.clip((dist - thresh) / max(1.0, soft), 0, 1)
+        edge = (al > 0.02) & (al < 0.98)                             # 스필 제거: 가장자리에서 배경색을 덜어낸다
+        if edge.any():
+            w = (1 - al[edge])[:, None]
+            rgb[edge] = np.clip((rgb[edge] - key[None, :] * w) / np.maximum(0.15, 1 - w), 0, 255)
+            a[:, :, :3] = rgb.astype(np.uint8)
     a[:, :, 3] = (al * 255).astype(np.uint8)
     return a
 
@@ -49,7 +63,7 @@ def main():
     ap.add_argument('--start', type=float, default=None); ap.add_argument('--dur', type=float, default=None)
     ap.add_argument('--fps', type=int, default=14); ap.add_argument('--height', type=int, default=96)
     ap.add_argument('--cols', type=int, default=0)
-    ap.add_argument('--key', choices=['black', 'green', 'white', 'none'], default='black')
+    ap.add_argument('--key', choices=['black', 'green', 'auto', 'white', 'none'], default='black')
     ap.add_argument('--thresh', type=float, default=24); ap.add_argument('--soft', type=float, default=40)
     ap.add_argument('--no-crop', action='store_true'); ap.add_argument('--keep-frames', action='store_true')
     args = ap.parse_args()
@@ -59,9 +73,12 @@ def main():
         files = extract(args.video, tmp, args.start, args.dur, args.fps)
         if not files: sys.exit('프레임을 못 뽑았다 — 구간(--start/--dur)을 확인')
         frames = []
+        bg = None
         for f in files:
-            im = Image.open(f).convert('RGBA')
-            frames.append(key_alpha(np.array(im), args.key, args.thresh, args.soft))
+            im = np.array(Image.open(f).convert('RGBA'))
+            if bg is None and args.key in ('green', 'auto'):
+                bg = bg_color(im); print(f'배경색 {tuple(int(v) for v in bg)} 로 키잉')
+            frames.append(key_alpha(im, args.key, args.thresh, args.soft, bg))
         if not args.no_crop:                                          # 모든 프레임의 내용 경계 합집합으로 자른다
             box = None
             for a in frames:
