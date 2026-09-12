@@ -87,6 +87,12 @@ registerBattleMode('attack', 'dance', createDanceAttack);
 - 계약: `update` 가 `true` 를 돌려주면 끝. 결과는 `battle.hitEnemy` / `battle.hurtParty` / `battle.setText` 만. 상태 문자열을 직접 바꾸지 않는다. HP 띠·승패 판정은 battle 이 한다. 마우스가 필요하면 `battle.game.canvas` 에 pointer 리스너를 달고 끝날 때 뗀다.
 - 예시 `timing`(타이밍 바, `src/battle/modes/timing.js`): `node tests/playtest/enemy.mjs cs_blue --attack=timing` 으로 돌려 본다. 단위 테스트 `battle-modes.test.mjs` 가 계약을 검사한다.
 
+### 전투 중 지원 행동 (2026-09-12 바론 대포)
+
+적 `support:'baron_cannon'`은 전투 로컬 지원 컨트롤러(`support/baron-cannon.js`)를 선택한다. 첫 공방 뒤 `afterEnemyPhase()`가 돌려준 interlude의 `update/draw` 동안 일반 메뉴 입력을 잠근다. 정확한 대사·해금 조건·명중9회·50피해·12+3+3초는 `src/data/baron-cannon.js`를 단일 기준으로 쓴다. 스택은 해금 후 살아 있는 바론에 실제 들어간 일반 명중당1이며 피해 수치·대포·0피해·죽은 적은 세지 않는다. 대포 선택은 앞서 계획한 행동을 지우고 파티 전체 한 턴으로 실행하며 성공/실패 모두0으로 소비한다. 재도전은 해금과 스택도 초기화한다.
+
+모드의 선택적 `fullscreen:true`는 검정 배경부터 HP 띠까지 그리기를 위임한다. `dispose()`는 끝/패배/재시도 자원 정리 계약이다. 대포는 `battle.applyCannonDamage(target,50)`을 호출해 일반 타격 효과음·스택을 제외하고 공통 사망/승리 판정을 사용한다. 모드는 HP나 `battle.state`를 직접 쓰지 않는다. 바론 일반6패턴과 피해12는 유지한다.
+
 ## 5. 체크리스트 (끝나기 전에)
 - [ ] `node --test tests/unit/*.test.mjs` 통과 (enemies·audio-assets·battle-modes)
 - [ ] `tests/playtest/enemy.mjs <id>` 통과 + 스크린샷 4장 확인 (인트로/준비/탄막/승리)

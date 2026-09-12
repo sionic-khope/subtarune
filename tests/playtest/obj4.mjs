@@ -67,7 +67,7 @@ try {
   check('Baron strike uses its own sound, not party sword', result.evidence.sounds.includes('baron_slam') && !result.evidence.sounds.includes('hit'));
   await page.waitForFunction(() => game.battle?.state === 'intro' && game.fade.alpha < 0.1);
   await page.screenshot({ path: `${shots}/obj4_battle_entry.png` });
-  check('battle starts at HP100 with selected music and native modes', await page.evaluate(() => game.battle.enemies[0].hp === 100 && game.battle.cfg.bgm === 'baron_battle' && game.battle.modes.attack === 'rush' && game.battle.modes.enemy === 'bullets'));
+  check('battle starts at HP250 with selected music and native modes', await page.evaluate(() => game.battle.enemies[0].hp === 250 && game.battle.cfg.bgm === 'baron_battle' && game.battle.modes.attack === 'rush' && game.battle.modes.enemy === 'bullets'));
   check('no console or page errors', errors.length === 0, JSON.stringify(errors));
 } finally { if (errors.length) console.log('browser errors', errors); await browser.close(); }
 console.log(`fails=${fails}`);

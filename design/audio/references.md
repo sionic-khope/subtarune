@@ -86,3 +86,25 @@
 - 파일: `assets/audio/bgm/baron_battle.mp3`, 통합 이름 `baron_battle`. YouTube 오디오 포맷 251을 ffmpeg/libmp3lame 품질 2로 MP3 변환. **48kHz 스테레오, 121.928초, 2,909,612바이트**.
 - 음악 시작부터 끝까지 그대로 변환했으며 트리밍·음높이/속도/음량 변경·합성 대체 없음. MP3 변환에 따른 손실 압축만 있다. ffprobe 규격·길이 확인과 ffmpeg 전체 디코드가 오류 없이 완료됐다.
 - 이 파일은 전투용이다. 기존 등장 컷신용 `baron_intro.mp3`(The Chase)는 변경하지 않았다.
+
+### 바론 대포 방어 기믹 충전·발사 (2026-09-12)
+
+사용자 요청: "델타룬 차징 이펙트", 3초 충전 뒤 웅장한 약 3초 발사음. 새 합성음이나 파티원 검 소리 대신 아래 **Deltarune charge-shot 샘플의 가공본**을 사용한다. 원본 권리는 원 제작자에게 있으며, 아래 저장소는 공식 배포처가 아닌 게임 디컴파일 자료다. 사용자가 직접 지정한 기존 BGM·SFX는 변경하지 않았다.
+
+- 고정 출처 커밋: `TeamBlossomDevs/DeltaruneDecomp_beta`의 `154f9a97b8f18fa6974e917c4c4e774bde6b7eba` (chapter2).
+- 충전 원본: [snd_chargeshot_charge](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_chargeshot_charge/snd_chargeshot_charge), 1.309320초. 원본 보관 `assets/source/cannon-guard-v1/audio/snd_chargeshot_charge.wav`, SHA256 `bbbe8f9183877d5bf99bdd2fdf54bc1ccd9e3ccb1e7e71cb25c3b144aa535c04`.
+- 발사 원본: [snd_chargeshot_fire](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_chargeshot_fire/snd_chargeshot_fire), 1.772018초. 원본 보관 `assets/source/cannon-guard-v1/audio/snd_chargeshot_fire.wav`, SHA256 `59acdd7fdb558333a25be9cb50fdac490c5b6b2e1f99a9f8ce7cb1079c90c7e6`.
+
+| 통합 이름 / 파일 | 가공 | 검증 |
+|---|---|---|
+| `cannon_guard_charge` / `assets/audio/sfx/cannon_guard_charge.mp3` | 음높이를 유지한 시간 확장(`atempo=0.5,atempo=0.86`), 3초로 자르기, gain 1.3, 처음 40ms·끝 30ms 페이드 | 44.1kHz 모노, **3.000초**, 평균 -15.9dBFS, peak -4.6dBFS |
+| `cannon_guard_fire` / `assets/audio/sfx/cannon_guard_fire.mp3` | 원본을 0.75배 속도·음높이로 낮춰 무게를 주고 240/510ms 잔향 추가, gain 1.8·limiter 0.85, 3초 길이·끝 350ms 페이드 | 44.1kHz 모노, **3.000초**, 평균 -18.9dBFS, peak -2.8dBFS |
+
+재현: 아래 명령을 저장소 루트에서 실행한다. 두 출력은 전체 파일을 한 번 재생하며, MP3 `currentTime` 구간 재생이나 런타임 루프를 사용하지 않는다. `loadSfxFiles`에 두 이름 등록 후 충전 시작과 발사 시작에서 각각 한 번 재생한다.
+
+```sh
+ffmpeg -i assets/source/cannon-guard-v1/audio/snd_chargeshot_charge.wav -af 'atempo=0.5,atempo=0.86,apad,atrim=duration=3,volume=1.3,afade=t=in:st=0:d=0.04,afade=t=out:st=2.97:d=0.03' -ar 44100 -ac 1 -codec:a libmp3lame -q:a 2 assets/audio/sfx/cannon_guard_charge.mp3
+ffmpeg -i assets/source/cannon-guard-v1/audio/snd_chargeshot_fire.wav -af 'asetrate=33075,aresample=44100,aecho=0.9:0.8:240|510:0.32|0.18,volume=1.8,alimiter=limit=0.85:level=false,apad,atrim=duration=3,afade=t=out:st=2.65:d=0.35' -ar 44100 -ac 1 -codec:a libmp3lame -q:a 2 assets/audio/sfx/cannon_guard_fire.mp3
+```
+
+검증 범위: ffprobe 길이, ffmpeg 전체 디코드·volumedetect, 3초 파형 시각 확인(충전은 연속, 발사는 첫 타격 뒤 잔향 감쇠). 청취로 음색을 검증했다고 주장하지 않는다. 기존 바론 포효·돌출·타격 파일과 오발 대포 소리는 그대로 둔다.

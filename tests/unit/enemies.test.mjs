@@ -27,10 +27,10 @@ test('test_enemies_patterns_and_images_exist', () => {
   }
 });
 
-test('test_baron_has_100_hp_and_uses_standard_attack_and_enemy_modes', () => {
+test('test_baron_has_250_hp_cannon_support_and_standard_enemy_patterns', () => {
   const baron = ENEMIES.baron;
-  assert.equal(baron.hp, 100);
-  assert.equal(Math.ceil(baron.hp / (3 * 2)), 17);
+  assert.equal(baron.hp, 250);
+  assert.equal(baron.support, 'baron_cannon');
   assert.equal(baron.defense, undefined);
   assert.equal(baron.patterns.length, 6);
   assert.equal(baron.damage, 12);

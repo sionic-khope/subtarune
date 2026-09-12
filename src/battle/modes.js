@@ -7,9 +7,10 @@
 //     enemy  ctx = { enemy }                — 피해는 battle.hurtParty(dmg) 로 (전원 0 이면 battle 이 알아서 패배 처리)
 //   고르는 법: 컷신 { battle:{ modes:{ attack:'timing', enemy:'bullets' } } } / 맵 enemy 엔티티 def.modes / 적 데이터 def.defense (그 적의 턴만) / 멤버 attackMode.
 //   기본: attack 'rush'(달려가 한 방, battle.js 내장) · enemy 'bullets'(소울 탄막, 내장). 예시 구현: attack 'timing'(src/battle/modes/timing.js) — 새 미니게임은 이 파일을 복사.
-//   규칙: 모드는 battle 의 공개 API(hitEnemy/hurtParty/setText/sfx/box/heart/hpColor/members/enemies)만 쓴다. 상태 문자열을 직접 바꾸지 않는다. HP 띠는 battle 이 항상 그린다.
+//   규칙: 모드는 battle 공개 API만 쓰고 상태 문자열을 직접 바꾸지 않는다. fullscreen:true이면 전장/HP 띠도 모드에 위임한다. dispose?는 종료/패배/재시도 때 자원을 정리한다.
 // ─────────────────────────────────────────────────────────────
 import { createTimingAttack } from './modes/timing.js';
+import { createCannonGuard } from './modes/cannon-guard.js';
 
 const MODES = { attack: new Map(), enemy: new Map() };
 export const NATIVE = 'native';                          // battle.js 가 직접 처리하는 기본 모드 표시
@@ -28,3 +29,4 @@ export const listBattleModes = () => ({ attack: [...MODES.attack.keys()], enemy:
 registerBattleMode('attack', 'rush', NATIVE);
 registerBattleMode('enemy', 'bullets', NATIVE);
 registerBattleMode('attack', 'timing', createTimingAttack);
+registerBattleMode('attack', 'cannon_guard', createCannonGuard);

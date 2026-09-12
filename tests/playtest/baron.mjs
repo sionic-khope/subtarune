@@ -89,14 +89,14 @@ async function dodge() {
 try {
   await enter();
   const initial = await snapshot();
-  check('encounter starts with Baron HP100, ordinary modes, Black Knife key', initial.hp === 100 && initial.maxHp === 100 && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
+  check('encounter starts with Baron HP250, ordinary modes, Black Knife key', initial.hp === 250 && initial.maxHp === 250 && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
   await capture('baron_01_menu');
   let lastRound = -1;
-  const deadline = Date.now() + 360000;
+  const deadline = Date.now() + 360000 * Math.max(1, initial.maxHp / 100);
   while (Date.now() < deadline) {
     const s = await snapshot();
     if (!s || s.state === 'win' || s.state === 'lose') break;
-    if (s.state === 'menu' || s.state === 'target') {
+    if (s.state === 'menu' || s.state === 'target' || s.state === 'interlude') {
       await keys([]);
       if (s.state === 'menu' && s.pattern !== lastRound) { lastRound=s.pattern; rounds.push(s); console.log(`ROUND ${s.pattern} Baron=${s.hp} party=${s.members.map(m=>m.hp)} hits=${s.hits}`); }
       await page.keyboard.press('KeyC');
@@ -110,7 +110,7 @@ try {
   }
   await keys([]);
   const victory = await snapshot();
-  check('ordinary keyboard attacks defeat full HP100 Baron', victory?.state === 'win' && victory.hp === 0, victory);
+  check('ordinary keyboard attacks defeat full HP250 Baron', victory?.state === 'win' && victory.hp === 0, victory);
   check('six natural enemy patterns observed', patterns.size === 6, [...patterns]);
   await capture(victory?.state === 'win' ? 'baron_02_victory' : 'baron_primary_failure');
   if (victory?.state !== 'win') throw new Error('Primary victory failed; no forced checks run');
@@ -138,7 +138,7 @@ try {
   check('retry button enters retry sequence', await until(() => game.battle?.state === 'retry', 1500));
   await until(() => game.battle?.state === 'menu', 10000);
   const retry = await snapshot();
-  check('retry restores same Baron HP100, modes and Black Knife BGM', retry.hp === 100 && retry.bgm === 'baron_battle' && retry.cfg.bg === initial.cfg.bg && JSON.stringify(retry.modes) === JSON.stringify(initial.modes) && retry.members.every(m=>!m.down && m.hp===m.maxHp), retry);
+  check('retry restores same Baron HP250, modes and Black Knife BGM', retry.hp === 250 && retry.bgm === 'baron_battle' && retry.cfg.bg === initial.cfg.bg && JSON.stringify(retry.modes) === JSON.stringify(initial.modes) && retry.members.every(m=>!m.down && m.hp===m.maxHp), retry);
   await capture('baron_forced_retry');
 } catch (error) { check('playtest completes', false, error.stack); }
 finally {

@@ -27,6 +27,8 @@ export default {
   title_confirm_new: '정말 처음부터? 한 번 더 X',
   menu_plain_items: '그냥 아이템', menu_key_items: '중요 아이템', menu_use_on: '누구에게?', menu_no_plain: '(없음)', menu_no_key: '(없음)',
   battle_fight: '공격하기', battle_item: '아이템', battle_no_items: '* 쓸 수 있는 아이템이 없다.', battle_target: '* 누구를 공격할까?',
+  battle_cannon: '대포', battle_cannon_wait: '* 대포는 명중 9회가 필요하다. 준비되면 파티 전체가 한 턴을 사용한다.',
+  battle_cannon_guard_hint: '↑ ↓  브레스 막기', battle_cannon_guard_seconds: (n) => `${n}초`,
   battle_win: '* 이겼다!', battle_win_money: '* 전투에서 승리했다!\n* {n}원을 얻었다.', menu_money: '소지금', won: '원', battle_lose: '* 모두 쓰러졌다...', battle_gameover: 'GAME OVER', battle_retry: '다시 도전하기', battle_revive: '* {name} 이(가) 다시 일어났다!', battle_hp: 'HP', battle_down: '쓰러짐', mash_title: 'C를 연타하라!',
   battle_preview_title: '전투 모션 미리보기',
   battle_preview_help: '← → 선택 · C 접근/공격/복귀 · X 나가기',

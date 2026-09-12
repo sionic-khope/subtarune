@@ -75,7 +75,7 @@ async function enterBattle() {
     return { hp: b.enemies[0].hp, maxHp: b.enemies[0].maxHp, damage: b.enemies[0].def.damage,
       modes: b.modes, bgm: game.sound.bgmName, types: b.enemies[0].def.patterns.map(p => p.type) };
   });
-  check('HP100 native attack and defense modes and selected BGM retained', initial.hp === 100 && initial.maxHp === 100 && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets' && initial.bgm === 'baron_battle', initial);
+  check('HP250 native attack and defense modes and selected BGM retained', initial.hp === 250 && initial.maxHp === 250 && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets' && initial.bgm === 'baron_battle', initial);
   check('six dedicated Baron patterns with damage12', initial.damage === 12 && initial.types.length === 6 && new Set(initial.types).size === 6 && initial.types.every(type => type.startsWith('baron_')), initial);
   await page.evaluate(() => {
     window.signatureEvidence = { sounds: [], hits: [], motion: [] };
@@ -174,7 +174,13 @@ async function patternFixture(index) {
       hazards: game.battle.bullets.filter(b => !b.harmless && b.age >= b.warn && b.age < b.life).map(b => ({ shape: b.shape, x: b.x, y: b.y, age: b.age, warn: b.warn })) }), label));
     await capture(`pattern_${index + 1}_${label}`);
   }
-  await until(() => game.battle.state === 'menu', 15000);
+  await until(() => ['menu', 'interlude'].includes(game.battle.state), 15000);
+  const interludeDeadline = Date.now() + 20000;
+  while (await page.evaluate(() => game.battle.state === 'interlude')) {
+    if (Date.now() > interludeDeadline) throw new Error('Support introduction did not finish');
+    await page.keyboard.press('KeyC');
+    await page.waitForTimeout(180);
+  }
   const result = await page.evaluate(index => ({
     hp: game.battle.enemies[0].hp, bullets: game.battle.bullets.length, bubble: game.battle.bubble,
     sounds: signatureEvidence.sounds.filter(sound => sound.pattern === index),
@@ -187,7 +193,7 @@ async function patternFixture(index) {
   const bossSounds = result.sounds.filter(sound => sound.name.startsWith('baron_'));
   check(`pattern ${index + 1} gesture sounds use boss files without party hit sound`, bossSounds.length > 0 && bossSounds.every(sound => ['baron_slam', 'baron_eruption', 'baron_roar'].includes(sound.name) && sound.state === 'bullets') && !result.sounds.some(sound => ['hit', 'damage'].includes(sound.name)), bossSounds);
   check(`pattern ${index + 1} boss sounds align with windup or activation`, bossSounds.every(sound => sound.name === 'baron_roar' ? sound.newestWarningAge !== null && sound.newestWarningAge < 0.1 : sound.activationDistance !== null && sound.activationDistance < 0.1), bossSounds);
-  check(`pattern ${index + 1} natural phase completion clears hazards`, result.bullets === 0 && result.bubble === null && result.hp === 100 && result.bgm === 'baron_battle', result);
+  check(`pattern ${index + 1} natural phase completion clears hazards`, result.bullets === 0 && result.bubble === null && result.hp === 250 && result.bgm === 'baron_battle', result);
   patterns.push({ index, warning, attack, activeFrames, ...result });
 }
 
