@@ -162,7 +162,14 @@ try {
   clanks = await clank('wooden entry plays the door clank', clanks);
   check('entering upward continues upward inside wooden room', await page.evaluate(() => game.player.facing === 'up' && game.player.y === 248));
   await audio('maillard_lounge');
-  check('wooden room has 672px open floor in a 736x448 empty enclosure', await page.evaluate(() => game.map.pxW === 736 && game.map.pxH === 448 && !game.map.solidRect(32, 160, 672, 224) && !game.map.def.enter && !game.entities.some(e => ['npc', 'trigger'].includes(e.def.type)) && game.map.def.entities.filter(e => e.type === 'door').length === 1));
+  check('wooden room keeps 672px floor, four optional NPCs, and no automatic events', await page.evaluate(() => {
+    const npcs = game.entities.filter(e => e.def.type === 'npc');
+    return game.map.pxW === 736 && game.map.pxH === 448 && !game.map.solidRect(32, 160, 672, 224)
+      && !game.map.def.enter && !game.entities.some(e => e.def.type === 'trigger')
+      && npcs.map(e => e.id).sort().join() === ['mabaem', 'parkwonsung', 'yakulbeol', 'yerim'].join()
+      && npcs.every(e => typeof e.def.script === 'string')
+      && game.map.def.entities.filter(e => e.type === 'door').length === 1;
+  }));
   await safeParty('wooden entry shows all party safely');
   await shot('08-wood-left');
   await follow('wooden room party follows across open floor', 408, 280);

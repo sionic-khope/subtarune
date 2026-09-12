@@ -1,5 +1,25 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 마이야르호 라운지 NPC 목소리 (2026-09-13)
+
+사용자가 새로 만들도록 요청한 야꿀벌·마뱀이·박원숭은 실제 사람 녹음이나 음성 모델을 사용하지 않은 원본 비언어 캐릭터 블립이다. 생성기 `tools/audio/lounge_npc_voices.mjs`는 14개 사인 배음에 두 공명 대역을 입히고 음높이 변화·떨림을 더한다. 각 샘플은 6ms 어택·25ms 릴리스이며 44.1kHz 모노 PCM을 ffmpeg/libmp3lame quality 2로 변환한다. 재현은 `node tools/audio/lounge_npc_voices.mjs`.
+
+| 화자 / 파일 | 음색 설계 | 실제 길이 / 평균·피크(dBFS) |
+|---|---|---|
+| 야꿀벌 `voices/yakulbeol.mp3` | 425Hz에서 살짝 올라가는 밝은 높은 소리, 115Hz 약한 진폭 변조로 벌의 윙윙 느낌 | 0.17초 / -20.4·-11.7 |
+| 마뱀이 `voices/mabaem.mp3` | 175Hz에서 살짝 내려가는 둥글고 엉뚱한 만화 발성, 470/1050Hz 공명. 특정 사람 모사 없음 | 0.18초 / -21.4·-10.9 |
+| 박원숭 `voices/parkwonsung.mp3` | 310→510Hz의 짧게 치솟는 ‘우끼’ 느낌, 620/2300Hz 공명 | 0.16초 / -19.1·-11.9 |
+| 예림 `voices/yerim.mp3` | 아래 사용자 지정 영상의 실제 발성 한 조각. 새 대사 합성이나 목소리 복제 없음 | 0.18초 / -20.3·-8.6 |
+
+예림 출처는 사용자 지정 [롯데 16실점 정병 ON!](https://www.youtube.com/shorts/HvPi7NAC7RE), 영상 ID `HvPi7NAC7RE`, 업로더 **김예림**. yt-dlp 메타데이터 길이는 40초, 받은 포맷251 오디오의 길이는 39.66초다. 원본의 **3.40~3.58초**를 추출하고 시작4ms·끝20ms 페이드, 음량0.65배, 모노44.1kHz 변환만 적용했다. 음높이·속도 변경은 없다. 앞8초 영상 프레임에서 김예림 아바타의 발화 장면을 확인하고 로컬 Whisper의 3.2~4.82초 발화 검출 및 3.40초 창의 주기성/레벨로 구간을 선정했다. 자동 전사는 정확한 대사 인용에 쓰지 않았다. 원본에는 야구 중계 배경음이 포함되며 별도의 음원 분리 처리는 하지 않았다. 이 환경은 오디오 입력 청취를 지원하지 않아 주관적 음색 청취 완료로 기록하지 않는다.
+
+```sh
+python3 -m yt_dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f '251/bestaudio' --write-info-json -o '/tmp/subtarune-npcs117-audio.cQoJSF/yerim-source.%(ext)s' 'https://www.youtube.com/shorts/HvPi7NAC7RE'
+ffmpeg -hide_banner -loglevel error -ss 3.40 -i /tmp/subtarune-npcs117-audio.cQoJSF/yerim-source.webm -t 0.18 -ac 1 -ar 44100 -af 'afade=t=in:d=0.004,afade=t=out:st=0.160:d=0.020,volume=0.65' -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/voices/yerim.mp3
+```
+
+`VOICES`에 `yakulbeol`, `mabaem`, `parkwonsung`, `yerim`을 등록했다. 기존 `Object.keys(VOICES)` 로더로 파일을 받아 재생하며, 모두 rate1·cut0.12초·최소간격0.08초(박원숭0.09초), level0.85(예림0.80)다. 네 파일 ffprobe 길이·포맷과 ffmpeg 전체 디코드/비무음/무클리핑을 확인했고 오디오 자산 단위 테스트5개 통과. 사용자 지정 음원은 변경하지 않았다. 예림 원본 녹음 권리는 원 권리자에게 있으며 출처 확인이 별도 이용허락을 뜻하지 않는다. 전체 원본과 확인용 영상은 임시 폴더에만 두고 배포 자산에는 0.18초 결과만 포함한다.
+
 ## 마이야르호 선내 라운지 (2026-09-12)
 
 사용자 지정 [영상 -hxMwv7iksk](https://www.youtube.com/watch?v=-hxMwv7iksk&list=PLKXdyINOQYsbqGQp08A83PtAWNBrY1FXP&index=25)의 yt-dlp 메타데이터 제목은 **25. Thousand Cafe Zukan (DELTARUNE Chapter 5 Soundtrack) - Toby Fox**, 업로더는 **Toby Fox**, 영상 길이는 89초다. `--no-playlist`로 지정 영상의 오디오 포맷 251만 받아 전체를 libmp3lame quality 2로 변환했다. `assets/audio/bgm/maillard_lounge.mp3`는 **89.327167초, 48kHz 스테레오, 1,897,772바이트**, SHA256 `12aaa7e4f01167853e929756b6b826991cd3a8866d4aff61448c5def7ff9e739`이며, 트리밍·페이드·음량·음높이·속도 변경 없이 0초부터 전체 파일을 반복 재생하는 용도다. ffprobe 규격·길이와 ffmpeg 전체 디코드 검사를 통과했고 평균 -18.7dBFS / peak -0.7dBFS를 확인했다. 파일 검증이며 사람의 청취 평가나 게임 안 재생 확인과 구분한다. 출처·변환·검증 기록은 배포용 `assets/audio/maillard-lounge-credits.json`에 보관한다. 원본 권리는 원 권리자에게 있으며 메타데이터는 이용허락을 뜻하지 않는다. 임시 오디오·메타데이터 폴더 `/tmp/subtarune-lounge113-audio.4tXlqs`는 결과 이동 후 제거했고 전체 영상은 다운로드하지 않았다.

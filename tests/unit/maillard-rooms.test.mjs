@@ -41,7 +41,7 @@ test('upper lounge doors are player-sized with reachable C probes clear of statu
 });
 
 for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_saloon', 736, 'maillard_lounge']]) {
-  test(`${id} is an empty enclosed room with the requested dimensions and music`, () => {
+  test(`${id} is an enclosed room with the requested dimensions and music`, () => {
     const map = readMap(id);
     const tiles = new TileMap(map);
     assert.deepEqual([tiles.pxW, tiles.pxH], [width, 448]);
@@ -52,8 +52,10 @@ for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_sa
     assert.equal(map.backdrop, undefined);
     assert.equal(map.enter, undefined);
     assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 1);
-    assert.ok(map.entities.every((entity) => ['prop', 'door'].includes(entity.type)));
-    assert.ok(map.entities.every((entity) => !entity.script && !entity.flag && !entity.requires));
+    if (id === 'maillard_storage') {
+      assert.ok(map.entities.every((entity) => ['prop', 'door'].includes(entity.type)));
+      assert.ok(map.entities.every((entity) => !entity.script && !entity.flag && !entity.requires));
+    }
     assert.equal(tiles.solidRect(32, 160, width - 64, 224), false);
     for (const point of [[0, 240], [width - 1, 240], [240, 159], [240, 384]]) {
       assert.equal(tiles.solidRect(...point, 1, 1), true);

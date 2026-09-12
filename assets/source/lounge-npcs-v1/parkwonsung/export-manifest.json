@@ -1,0 +1,125 @@
+{
+  "source": "raw-sheet.png",
+  "processor_metadata": "processed/pipeline-meta.json",
+  "resampling": "NEAREST",
+  "palette_quantization_png": false,
+  "engine_directions": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "source_row_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "cell_size": 64,
+  "atlas_size": [
+    256,
+    256
+  ],
+  "frame_count": 16,
+  "output_bounds": [
+    [
+      8,
+      4,
+      55,
+      62
+    ],
+    [
+      7,
+      4,
+      56,
+      62
+    ],
+    [
+      8,
+      4,
+      55,
+      62
+    ],
+    [
+      7,
+      4,
+      56,
+      62
+    ],
+    [
+      8,
+      4,
+      56,
+      62
+    ],
+    [
+      6,
+      4,
+      57,
+      62
+    ],
+    [
+      8,
+      4,
+      55,
+      62
+    ],
+    [
+      7,
+      4,
+      57,
+      62
+    ],
+    [
+      9,
+      5,
+      55,
+      62
+    ],
+    [
+      8,
+      5,
+      56,
+      62
+    ],
+    [
+      9,
+      5,
+      54,
+      62
+    ],
+    [
+      8,
+      5,
+      56,
+      62
+    ],
+    [
+      9,
+      5,
+      54,
+      62
+    ],
+    [
+      9,
+      5,
+      54,
+      62
+    ],
+    [
+      9,
+      5,
+      54,
+      62
+    ],
+    [
+      9,
+      5,
+      54,
+      62
+    ]
+  ],
+  "output_edge_touch_frames": [],
+  "empty_frames": [],
+  "scope": "Crop, chromakey, shared-scale sampling, translation, atlas row reorder only."
+}

@@ -6,6 +6,11 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  yakulbeol: { name: '야꿀벌', voice: 'yakulbeol', sheet: 'assets/sprites/yakulbeol.png' },
+  mabaem: { name: '마뱀이', voice: 'mabaem', sheet: 'assets/sprites/mabaem.png' },
+  parkwonsung: { name: '박원숭', voice: 'parkwonsung', sheet: 'assets/sprites/parkwonsung.png' },
+  yerim: { name: '예림', voice: 'yerim', still: 'assets/sprites/yerim.png', stillScale: 0.29, stillPivot: [160, 300] },
+  yerim_kick: { name: '예림', voice: 'yerim', still: 'assets/sprites/yerim-kick.png', stillScale: 0.29, stillPivot: [160, 300] },
   chakgeom: { name: '착검하고검사로살기', voice: 'narrator', sheet: 'assets/sprites/chakgeom.png' },
   parang: { name: '파랑이', voice: 'narrator', still: 'assets/props/parang.png' },
   norang: { name: '노랑이', voice: 'narrator', still: 'assets/props/norang.png' },

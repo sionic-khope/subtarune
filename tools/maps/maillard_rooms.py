@@ -6,7 +6,7 @@
 # ─── How to run ───
 # From repository root: uv run tools/maps/maillard_rooms.py [--check]
 # ──────────────────
-"""Generate the empty steel storage room and timber saloon beside the lounge."""
+"""Generate the steel storage room and timber saloon beside the lounge."""
 from __future__ import annotations
 
 import json
@@ -15,6 +15,23 @@ import sys
 from typing import Final
 
 HEIGHT: Final = 14
+SALOON_NPCS: Final = (
+    {'type': 'npc', 'id': 'yakulbeol', 'sprite': 'yakulbeol',
+     'x': 116, 'y': 220, 'facing': 'down', 'wander': 18,
+     'script': 'maillard_yakulbeol'},
+    {'type': 'npc', 'id': 'mabaem', 'sprite': 'mabaem',
+     'x': 324, 'y': 220, 'facing': 'down', 'wander': 18,
+     'script': 'maillard_mabaem'},
+    {'type': 'npc', 'id': 'yerim', 'sprite': 'yerim',
+     'x': 480, 'y': 220, 'facing': 'down', 'wander': 0,
+     'script': 'maillard_yerim_pair'},
+    {'type': 'npc', 'id': 'parkwonsung', 'sprite': 'parkwonsung',
+     'x': 592, 'y': 220, 'facing': 'left', 'wander': 0, 'visualScale': 1.3,
+     'script': 'maillard_yerim_pair', 'unless': 'maillard_yerim_pair_seen'},
+    {'type': 'npc', 'id': 'parkwonsung', 'sprite': 'parkwonsung',
+     'x': 664, 'y': 220, 'facing': 'left', 'wander': 0, 'visualScale': 1.3,
+     'script': 'maillard_yerim_pair', 'requires': 'maillard_yerim_pair_seen'},
+)
 
 
 def main() -> None:
@@ -47,6 +64,9 @@ def main() -> None:
                  'sfx': 'plug', 'interact': True},
             ],
         }
+        if map_id == 'maillard_saloon':
+            map_data['entities'].extend(SALOON_NPCS)
+            map_data['preload'].extend(['assets/sprites/yerim.png', 'assets/sprites/yerim-kick.png'])
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == map_data

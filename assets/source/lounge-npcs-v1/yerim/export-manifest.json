@@ -1,0 +1,53 @@
+{
+  "source": "raw-sheet.png",
+  "processor_metadata": "processed/pipeline-meta.json",
+  "resampling": "LANCZOS",
+  "source_to_output_scale": 0.4082934609250399,
+  "cell_size": 320,
+  "stillScale": 0.29,
+  "stillPivot": [
+    160,
+    300
+  ],
+  "alignment": "Whole-frame y translation to actual alpha bottom300; preserve processor support-foot x160.",
+  "frames": [
+    {
+      "name": "neutral",
+      "bounds": [
+        116,
+        55,
+        206,
+        300
+      ]
+    },
+    {
+      "name": "windup",
+      "bounds": [
+        101,
+        54,
+        199,
+        300
+      ]
+    },
+    {
+      "name": "kick",
+      "bounds": [
+        74,
+        54,
+        294,
+        300
+      ]
+    },
+    {
+      "name": "recovery",
+      "bounds": [
+        119,
+        54,
+        209,
+        300
+      ]
+    }
+  ],
+  "output_edge_touch_frames": [],
+  "empty_frames": []
+}

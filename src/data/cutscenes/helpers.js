@@ -2,6 +2,21 @@
 
 import { Battle } from '../../battle/battle.js';
 
+/** 작은 배회 NPC를 가리지 않게 파티가 오른쪽 아래에 서서 서로 바라본다. */
+export function roamerTalkStage(id) {
+  return [
+    { parallel: [
+      { move: 'gyeongsub', rel: id, at: 'bottom', by: [56, 64], run: true },
+      { move: 'player', rel: id, at: 'bottom', by: [120, 64], run: true },
+      { move: 'ppaman', rel: id, at: 'bottom', by: [184, 64], run: true },
+    ] },
+    { face: 'gyeongsub', dir: `toward:${id}` },
+    { face: 'player', dir: `toward:${id}` },
+    { face: 'ppaman', dir: `toward:${id}` },
+    { face: id, dir: 'toward:player' },
+  ];
+}
+
 /** 표준 조우와 컷신 전투가 공유하는 진입 연출. 전투·승리 뒤 동작은 호출자가 지정한다. */
 export function battleEntry(enemies, bgm) {
   return [
