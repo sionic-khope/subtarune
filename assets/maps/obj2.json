@@ -49,6 +49,11 @@
    "x": 1096,
    "y": 104,
    "facing": "down"
+  },
+  "from_right": {
+   "x": 2336,
+   "y": 456,
+   "facing": "left"
   }
  },
  "meta": {
@@ -90,6 +95,18 @@
   "trees": 171
  },
  "entities": [
+  {
+   "type": "door",
+   "x": 2392,
+   "y": 416,
+   "w": 8,
+   "h": 96,
+   "to": "obj5",
+   "spawn": "from_left",
+   "sfx": false,
+   "requires": "obj2_statues_cleared",
+   "lockedScript": "obj2_statue"
+  },
   {
    "type": "door",
    "x": 32,

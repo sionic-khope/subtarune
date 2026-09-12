@@ -33,6 +33,7 @@ def statue(id_, row, k):             # PR 그림 44×60(포즈 6종, 청록숲2 
     ix, iy = STAT_C * T - 6, row * T - 28
     return {'type': 'prop', 'id': id_, 'image': JUNHEE_STATUES[k % len(JUNHEE_STATUES)], 'x': ix + 6, 'y': iy + 28, 'w': 32, 'h': 32, 'ix': ix, 'iy': iy, 'solid': True, 'script': 'obj2_statue', 'unless': 'obj2_statues_cleared'}
 ents = [
+    {'type': 'door', 'x': (W - 1) * T - 8, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'obj5', 'spawn': 'from_left', 'sfx': False, 'requires': 'obj2_statues_cleared', 'lockedScript': 'obj2_statue'},
     {'type': 'door', 'x': 32, 'y': R0 * T, 'w': 8, 'h': 96, 'to': 'obj1', 'spawn': 'landing', 'sfx': False},
     {'type': 'door', 'x': UC0 * T + 8, 'y': 32, 'w': 96, 'h': 8, 'to': 'obj3', 'spawn': 'from_bottom', 'sfx': False},
     # 오른쪽길을 막는 쥰희 나무 동상 3개(길 3줄을 통째로) — 조사하면 obj2_statue
@@ -79,7 +80,8 @@ for j, (r, c) in enumerate(spots):
     tree_count += 1
 m2 = {'id': 'obj2', 'name': '옵젝영역', 'bgm': 'wind', 'stage': 'void_fallen', 'dim': 0, 'backdrop': 'obj_forest', 'rows': rows,
       'spawns': {'from_left': {'x': 60, 'y': 14 * T + 8, 'facing': 'right'}, 'start': {'x': 60, 'y': 14 * T + 8, 'facing': 'right'},
-                 'plaza': {'x': 34 * T, 'y': 14 * T + 8, 'facing': 'right'}, 'from_top': {'x': UC0 * T + 40, 'y': 3 * T + 8, 'facing': 'down'}},
+                 'plaza': {'x': 34 * T, 'y': 14 * T + 8, 'facing': 'right'}, 'from_top': {'x': UC0 * T + 40, 'y': 3 * T + 8, 'facing': 'down'},
+                 'from_right': {'x': (W - 3) * T, 'y': 14 * T + 8, 'facing': 'left'}},
       'meta': {'connected': True, 'road': [R0, R1], 'plaza': [PC0, PC1, PR0, PR1], 'up': [UC0, UC1], 'statue_c': STAT_C,
                'events': ['blue', 'recall', 'egg', 'banana', 'sign', 'statue1'],
                # 막아야 하는 길: [출발 타일, 절대 닿으면 안 되는 타일] — 동상 벽에 틈이 있으면 tests/unit/maps-connect.test.mjs 가 잡는다(2026-09-12 '다 안 막히고 뚫린다')

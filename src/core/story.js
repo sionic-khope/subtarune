@@ -25,7 +25,9 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
-  if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4'].includes(mapId)) return 'baron_intro';
+  if (mapId === 'obj5' && flags.obj5_chase_cleared) return 'baron_sea_battle';
+  if (mapId === 'obj5' && flags.obj5_chase_started) return 'baron_intro';
+  if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5'].includes(mapId)) return 'baron_intro';
   return undefined;
 }
 
@@ -71,6 +73,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'teal9_boss_won', enemies: ['red', 'blue'], attack: 2, hpBonus: 20 },             // 청록숲9 문지기 보스전 + 축복 버프 — teal9_boss.js
   { flag: 'obj2_banana_taken', items: ['바나나'] },                                          // 옵젝영역2 광장 바나나 — obj2_events.js
   { flag: 'obj4_baron_won', enemies: ['baron'] },
+  { flag: 'obj5_gun_taken', items: ['나무총'] },
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.
@@ -142,4 +145,15 @@ for (const [id, desc, done, won] of [
 ]) {
   QA_POINTS.push({ ...obj2Checkpoint, id, desc, map: id === 'obj3' ? 'obj3' : 'obj4', spawn: id === 'obj4_battle' ? 'scene' : 'from_bottom',
     flags: { ...obj2Checkpoint.flags, ...(done ? { obj4_baron_seen: true, obj4_baron_done: true } : {}), ...(won ? { obj4_baron_won: true } : {}), ...(id === 'obj4_after' ? { obj4_abduction_done: true, obj2_statues_cleared: true } : {}) }, party: [...obj2Checkpoint.party] });
+}
+
+const chaseCheckpoint = QA_POINTS.find((point) => point.id === 'obj4_after');
+for (const [id, desc, started, cleared] of [
+  ['obj5', '옵젝영역5: 해안 풀숲길·나무총 상자·뗏목 승선', false, false],
+  ['obj5_sea', '바론 바다 추격: 용준·나무총 사격', true, false],
+  ['obj5_after', '바론 바다 추격: 첫 체력 소진 뒤 대치', true, true],
+]) {
+  QA_POINTS.push({ ...chaseCheckpoint, id, desc, map: 'obj5', spawn: 'from_left',
+    flags: { ...chaseCheckpoint.flags, ...(started ? { obj5_gun_taken: true, obj5_boarding_seen: true, obj5_chase_started: true } : {}), ...(cleared ? { obj5_chase_cleared: true } : {}) },
+    party: [...chaseCheckpoint.party] });
 }

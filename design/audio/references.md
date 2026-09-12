@@ -121,3 +121,14 @@ ffmpeg -i assets/source/cannon-guard-v1/audio/snd_chargeshot_fire.wav -af 'asetr
 ```
 
 검증 범위: ffprobe 길이, ffmpeg 전체 디코드·volumedetect, 3초 파형 시각 확인(충전은 연속, 발사는 첫 타격 뒤 잔향 감쇠). 청취로 음색을 검증했다고 주장하지 않는다. 기존 바론 포효·돌출·타격 파일과 오발 대포 소리는 그대로 둔다.
+
+### 바론 바다 추격전 BGM (2026-09-12)
+
+- 사용자 지정 원본: https://www.youtube.com/watch?v=QvoQVCBqegU — **Rakuichi Buster**, 업로더 **Toby Fox**. 기존 yt-dlp로 영상 ID `QvoQVCBqegU`·제목·110초 메타데이터를 확인했다.
+- 파일: `assets/audio/bgm/baron_sea_battle.mp3`, 통합 이름 `baron_sea_battle`. YouTube 오디오 포맷 251 전체를 ffmpeg/libmp3lame 품질 2로 MP3 변환했다. **48kHz 스테레오, 109.714292초, 2,788,892바이트**.
+- 시작부터 끝까지 보존하고 트리밍·페이드·음량·음높이·속도 변경을 하지 않았다. 첫 박을 유지하도록 런타임에서도 0초부터 즉시 재생한다. 압축 변환 외 음악 내용은 가공하지 않았다.
+- 검증: ffprobe 규격·길이 확인 및 ffmpeg 전체 디코드 성공, 평균 -14.8dBFS / peak 0.0dBFS. 이는 파일 디코드 검증이며 사람의 청취 평가나 게임 안 재생 확인을 뜻하지 않는다.
+
+```sh
+yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/baron_sea_battle.%(ext)s' 'https://www.youtube.com/watch?v=QvoQVCBqegU'
+```

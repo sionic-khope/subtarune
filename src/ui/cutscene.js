@@ -277,6 +277,10 @@ export function makeWaiter(game, node) {
   if ('curtain' in node) { game.curtain = node.curtain; return done; }
   if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }
   if (node.pose) { const e = findEntity(game, node.pose); if (e) { e.pose = node.to === 'lying' ? 'lying' : null; e.moving = false; e.frame = 0; } return done; }
+  if (node.seaChase) {
+    const scene = game.startSeaChase();
+    return { update: () => scene.completed };
+  }
   if (node.battle) {                                   // { battle:{ enemies:['cs','cs'], bgm:'rude_buster', flag?:'..._won' } } 전투가 끝날 때까지 기다림 (game.lastBattle.win)
     game.battleFlag = node.battle.flag || null; game.startBattle(node.battle);
     return { update: () => !game.battle };
