@@ -142,6 +142,8 @@ yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 
 
 ### 마이야르호 등장·관객 박수 (2026-09-12)
 
+- 갑판 위믹스 `wemix_remix`(BUILD111): 사용자 지정 [True Damage 에코 스킬 대사 #shorts](https://www.youtube.com/shorts/uLWnUnSWbGU), 리아리토,2021-12-30. 원본 자막 `리믹스!` 구간30.720~32.800초만 추출해 다음 `리플레이!`를 제외했다. MP3/44.1kHz/stereo/2.08초, 시작10ms·끝80ms페이드 외 음높이·속도·게인 변경 없음. ffprobe/전체디코드 통과; 직접 청취 기능은 제공되지 않아 청취했다고 주장하지 않는다. 출처는 배포용 `assets/audio/deck-npcs-credits.json`, 상세 `assets/source/deck-npcs-v1/audio-provenance.md`.
+
 - 승선 물 끌어올림 `maillard_water_lift` (BUILD104): 아래 Alexander / Orange Free Sounds의 CC BY-NC 4.0 물 충돌 원본 중0.45~2.8초를 역재생하고0.85배 템포·페이드로 물이 차오르는2.742698초 소리를 만들었다. 원본 충돌음/사용자 선택곡은 그대로 보존한다. `sfx/maillard_water_lift.mp3`, `assets/audio/maillard-credits.json`에 출처·변경사항을 함께 기록한다. "... 어" 뒤 흰 페이드 시작에서 한 번 재생한다. 재현: `ffmpeg -i assets/audio/sfx/maillard_splash.mp3 -af 'atrim=start=0.45:end=2.8,areverse,atempo=0.85,afade=t=in:st=0:d=1.35,afade=t=out:st=2.3:d=0.45,alimiter=limit=0.85' -c:a libmp3lame -q:a 2 assets/audio/sfx/maillard_water_lift.mp3`.
 
 - 등장곡 `maillard_reveal`: 사용자 지정 [Rouxls Kaard — Toby Fox](https://www.youtube.com/watch?v=yfC8OU2YtNo), 영상 ID `yfC8OU2YtNo`. yt-dlp에서 제목·업로더·19초 메타데이터 확인 후 오디오 포맷 251 전체를 MP3 품질 2로 변환했다. `assets/audio/bgm/maillard_reveal.mp3`: **19.009917초, 48kHz 스테레오, 489,068바이트**. 트리밍·페이드·음높이·속도·음량 변경 없음. BGM은 파일 이름으로 자동 연결되며 전환 전에 `preloadBgm('maillard_reveal')`, 등장 시 `fadeIn:0`으로 첫 박부터 재생한다.

@@ -6,6 +6,10 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  chakgeom: { name: '착검하고검사로살기', voice: 'narrator', sheet: 'assets/sprites/chakgeom.png' },
+  parang: { name: '파랑이', voice: 'narrator', still: 'assets/props/parang.png' },
+  norang: { name: '노랑이', voice: 'narrator', still: 'assets/props/norang.png' },
+  wemix: { name: '위믹스', voice: 'narrator', sheet: 'assets/sprites/wemix.png' },
   baron_intro: { name: '바론', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/baron-roar-idle.png', stillScale: 0.625, stillPivot: [128, 240] },
   baron_chase: { name: '바론', voice: 'mystery', palette: 'ghost', sheet: 'assets/sprites/baron-chase.png', rowOrder: ['down', 'left', 'right', 'up'], stillPivot: [256, 256] },
   voidgrub: { name: '공허유충', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/voidgrub-front.png' },

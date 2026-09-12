@@ -51,7 +51,9 @@ test('maillard cart waits for interaction and travels right on its own rail', ()
   assert.equal(cart.script, undefined);
   assert.equal(legacyTrigger, undefined);
   assert.ok(cart.route[0][0] > cart.x);
-  assert.equal(cart.speed, 128);
+  assert.equal(cart.speed, 192);
+  assert.deepEqual(cart.route, [[6464, 986]]);
+  assert.deepEqual(data.rails, [[1856, 1007, 4846]]);
   assert.equal(routeDistance([[cart.x, cart.y], ...cart.route]) / cart.speed, 24);
   assert.equal(data.meta.sunriseCart.duration, 24);
   assert.equal(cart.passengerLookAfter, 8);
@@ -65,18 +67,18 @@ test('maillard cart waits for interaction and travels right on its own rail', ()
   assert.equal(storyBgm('maillard_path', { maillard_cart_done: true }), 'maillard_sunrise');
 });
 
-test('post-cart winding deck stays narrow enough to preserve the sky and keeps bystanders inert', () => {
+test('post-cart winding deck stays narrow enough to preserve the sky and keeps NPCs off the route', () => {
   const data = map();
   const bystanders = data.entities.filter((entity) => entity.type === 'npc');
   const returnDoor = data.entities.find((entity) => entity.id === 'path_to_hold');
   const walkout = data.meta.sunriseWalkout;
 
   assert.ok(bystanders.length >= 3 && bystanders.length <= 4);
-  assert.ok(bystanders.every((entity) => entity.wander === 0 && entity.script === undefined));
+  assert.ok(bystanders.every((entity) => entity.wander === 0 && entity.solid === false && entity.script));
   assert.deepEqual(returnDoor && [returnDoor.to, returnDoor.spawn], ['maillard_deck', 'from_path']);
-  assert.equal(data.rows[0].length, 188);
-  assert.deepEqual(data.meta.sunriseCart.landing, [5312, 1000]);
-  assert.deepEqual(data.spawns.cart_landing, { x: 5312, y: 1000, facing: 'right' });
+  assert.equal(data.rows[0].length, 236);
+  assert.deepEqual(data.meta.sunriseCart.landing, [6848, 1000]);
+  assert.deepEqual(data.spawns.cart_landing, { x: 6848, y: 1000, facing: 'right' });
   assert.ok(walkout[0][1] - walkout[2][1] >= 12 * TILE, 'the next deck tier must remain outside the current viewport');
   assert.ok(walkout[2][1] - walkout[4][1] >= 12 * TILE, 'each winding tier must preserve an open sky view');
   assert.ok(routeDistance(walkout) / WALK_SPEED >= 9);
