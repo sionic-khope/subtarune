@@ -178,3 +178,9 @@ const maillardDeckCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_
 QA_POINTS.push({ ...maillardDeckCheckpoint, id: 'maillard_path', desc: '마이야르호: 일출 갑판 길',
   map: 'maillard_path', spawn: 'from_hold',
   flags: { ...maillardDeckCheckpoint.flags, maillard_hold_done: true }, party: [...maillardDeckCheckpoint.party] });
+
+const maillardPathCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_path');
+QA_POINTS.push({ ...maillardPathCheckpoint, id: 'maillard_lounge', desc: '마이야르호: 라운지 입구',
+  map: 'maillard_lounge', spawn: 'from_path',
+  flags: { ...maillardPathCheckpoint.flags, maillard_cart_done: true, maillard_sunrise_seen: true },
+  party: [...maillardPathCheckpoint.party] });

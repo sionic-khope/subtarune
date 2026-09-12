@@ -76,7 +76,7 @@ test('post-cart winding deck stays narrow enough to preserve the sky and keeps N
   assert.ok(bystanders.length >= 3 && bystanders.length <= 4);
   assert.ok(bystanders.every((entity) => entity.wander === 0 && entity.solid === false && entity.script));
   assert.deepEqual(returnDoor && [returnDoor.to, returnDoor.spawn], ['maillard_deck', 'from_path']);
-  assert.equal(data.rows[0].length, 236);
+  assert.equal(data.rows[0].length, 250);
   assert.deepEqual(data.meta.sunriseCart.landing, [6848, 1000]);
   assert.deepEqual(data.spawns.cart_landing, { x: 6848, y: 1000, facing: 'right' });
   assert.ok(walkout[0][1] - walkout[2][1] >= 12 * TILE, 'the next deck tier must remain outside the current viewport');

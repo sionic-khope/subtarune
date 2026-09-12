@@ -1,5 +1,11 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 마이야르호 선내 라운지 (2026-09-12)
+
+사용자 지정 [영상 -hxMwv7iksk](https://www.youtube.com/watch?v=-hxMwv7iksk&list=PLKXdyINOQYsbqGQp08A83PtAWNBrY1FXP&index=25)의 yt-dlp 메타데이터 제목은 **25. Thousand Cafe Zukan (DELTARUNE Chapter 5 Soundtrack) - Toby Fox**, 업로더는 **Toby Fox**, 영상 길이는 89초다. `--no-playlist`로 지정 영상의 오디오 포맷 251만 받아 전체를 libmp3lame quality 2로 변환했다. `assets/audio/bgm/maillard_lounge.mp3`는 **89.327167초, 48kHz 스테레오, 1,897,772바이트**, SHA256 `12aaa7e4f01167853e929756b6b826991cd3a8866d4aff61448c5def7ff9e739`이며, 트리밍·페이드·음량·음높이·속도 변경 없이 0초부터 전체 파일을 반복 재생하는 용도다. ffprobe 규격·길이와 ffmpeg 전체 디코드 검사를 통과했고 평균 -18.7dBFS / peak -0.7dBFS를 확인했다. 파일 검증이며 사람의 청취 평가나 게임 안 재생 확인과 구분한다. 출처·변환·검증 기록은 배포용 `assets/audio/maillard-lounge-credits.json`에 보관한다. 원본 권리는 원 권리자에게 있으며 메타데이터는 이용허락을 뜻하지 않는다. 임시 오디오·메타데이터 폴더 `/tmp/subtarune-lounge113-audio.4tXlqs`는 결과 이동 후 제거했고 전체 영상은 다운로드하지 않았다.
+
+재현: `python3 -m yt_dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/maillard_lounge.%(ext)s' 'https://www.youtube.com/watch?v=-hxMwv7iksk'`.
+
 ## 마이야르호 카트·노을 (2026-09-12)
 
 - 사용자 지정 [영상 _Q6S2XgQJ8c](https://www.youtube.com/watch?v=_Q6S2XgQJ8c), 메타데이터 제목 **19. Sunset of Seven Suns (DELTARUNE Chapter 5 Soundtrack) - Toby Fox**, 업로더 Toby Fox. 메타데이터 확인은 별도 이용허락을 뜻하지 않는다.

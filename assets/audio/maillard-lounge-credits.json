@@ -1,0 +1,23 @@
+{
+  "maillard_lounge": {
+    "title": "25. Thousand Cafe Zukan (DELTARUNE Chapter 5 Soundtrack) - Toby Fox",
+    "uploader": "Toby Fox",
+    "source": "https://www.youtube.com/watch?v=-hxMwv7iksk",
+    "requestedUrl": "https://www.youtube.com/watch?v=-hxMwv7iksk&list=PLKXdyINOQYsbqGQp08A83PtAWNBrY1FXP&index=25",
+    "videoId": "-hxMwv7iksk",
+    "uploadDate": "2026-06-26",
+    "retrievedDate": "2026-09-12",
+    "sourceFormat": "YouTube 251 (Opus audio only)",
+    "sourceMetadataDurationSeconds": 89,
+    "file": "assets/audio/bgm/maillard_lounge.mp3",
+    "durationSeconds": 89.327167,
+    "sampleRateHz": 48000,
+    "channels": 2,
+    "sizeBytes": 1897772,
+    "sha256": "12aaa7e4f01167853e929756b6b826991cd3a8866d4aff61448c5def7ff9e739",
+    "changes": "Full-track MP3 conversion with ffmpeg/libmp3lame quality 2. No trimming, fades, gain, pitch or speed changes. Intended playback starts at 0 seconds and loops the complete file.",
+    "verification": "Exact video ID/title/uploader confirmed with yt-dlp 2026.08.19. ffprobe format/duration checks and full ffmpeg decode passed; mean -18.7 dBFS, peak -0.7 dBFS. No subjective listening or in-game playback claim.",
+    "temporaryFiles": "Audio-only source and download metadata were created under /tmp/subtarune-lounge113-audio.4tXlqs. The final MP3 was moved into the project; temporary source/metadata and directory were removed. No full video was downloaded.",
+    "rights": "User-selected source. Rights remain with the original rights holder; YouTube metadata does not establish a license grant."
+  }
+}

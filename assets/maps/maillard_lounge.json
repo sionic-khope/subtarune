@@ -1,0 +1,98 @@
+{
+ "id": "maillard_lounge",
+ "name": "마이야르호 라운지",
+ "stage": "void_fallen",
+ "bgm": "maillard_lounge",
+ "dim": 0.08,
+ "rows": [
+  "                                                ",
+  "                                                ",
+  "                                                ",
+  "                                                ",
+  "                                                ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                                                ",
+  "                                                "
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/props/maillard_lounge_walls.png",
+  "assets/props/blue_buff.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 176,
+   "y": 440,
+   "facing": "right"
+  },
+  "from_path": {
+   "x": 176,
+   "y": 440,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "lounge_walls",
+   "image": "assets/props/maillard_lounge_walls.png",
+   "x": 0,
+   "y": 0,
+   "w": 1536,
+   "h": 896,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "lounge_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 1124,
+   "y": 404,
+   "w": 32,
+   "h": 12,
+   "ix": 1120,
+   "iy": 372,
+   "solid": true
+  },
+  {
+   "type": "door",
+   "id": "lounge_to_path",
+   "x": 24,
+   "y": 384,
+   "w": 40,
+   "h": 128,
+   "to": "maillard_path",
+   "spawn": "from_lounge",
+   "sfx": false,
+   "interact": false
+  }
+ ]
+}

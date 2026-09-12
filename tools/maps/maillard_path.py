@@ -11,7 +11,7 @@ from pathlib import Path
 import sys
 from typing import Final
 
-WIDTH: Final = 236
+WIDTH: Final = 250
 HEIGHT: Final = 40
 TILE: Final = 32
 MAP_ID: Final = 'maillard_path'
@@ -22,6 +22,7 @@ CART_END: Final = [6464, 986]
 LANDING: Final = [6848, 1000]
 WALKOUT: Final = ((206, 31), (232, 31), (232, 18), (216, 18), (216, 5), (232, 5))
 WALKOUT_PIXELS: Final = [[column * TILE, row * TILE + TILE // 2] for column, row in WALKOUT]
+LOUNGE_APPROACH: Final = ((232, 5), (243, 5))
 
 
 def paint_path(grid: list[list[str]], points: tuple[tuple[int, int], ...]) -> None:
@@ -43,6 +44,10 @@ for path_column in range(1, 4):
 for path_column in range(58, 208):
     grid[31][path_column] = 'M'
 paint_path(grid, WALKOUT)
+paint_path(grid, LOUNGE_APPROACH)
+for apron_row in range(7, 9):
+    for apron_column in range(237, 244):
+        grid[apron_row][apron_column] = 'M'
 for pocket_row in range(28, 35):
     for pocket_column in range(224, 235):
         grid[pocket_row][pocket_column] = 'M'
@@ -55,6 +60,10 @@ for pocket_row in range(2, 9):
 
 rows = [''.join(row) for row in grid]
 entities = [
+    {'type': 'prop', 'id': 'lounge_entrance', 'image': 'assets/props/maillard_lounge_entrance.png',
+     'x': 7584, 'y': 0, 'w': 360, 'h': 263, 'solid': False, 'sortY': 0},
+    {'type': 'door', 'id': 'path_to_lounge', 'x': 7720, 'y': 144, 'w': 40, 'h': 64,
+     'to': 'maillard_lounge', 'spawn': 'from_path', 'sfx': False, 'interact': False},
     {'type': 'door', 'id': 'path_to_hold', 'x': 16, 'y': 960, 'w': 24, 'h': 96,
      'to': 'maillard_deck', 'spawn': 'from_path', 'sfx': False},
     {'type': 'raft', 'id': 'maillard_cart', 'image': 'assets/props/maillard-cart.png',
@@ -86,6 +95,7 @@ map_data = {
     'spawns': {
         'start': {'x': 128, 'y': 1000, 'facing': 'right'},
         'from_hold': {'x': 128, 'y': 1000, 'facing': 'right'},
+        'from_lounge': {'x': 7536, 'y': 168, 'facing': 'left'},
         'cart_landing': {'x': LANDING[0], 'y': LANDING[1], 'facing': 'right'},
         'chakgeom': {'x': 7232, 'y': 964, 'facing': 'up'},
         'tarts': {'x': 6864, 'y': 580, 'facing': 'up'},
@@ -95,6 +105,7 @@ map_data = {
         'connected': True,
         'sunriseRoute': APPROACH_PIXELS,
         'sunriseWalkout': WALKOUT_PIXELS,
+        'loungeApproach': [[column * TILE, row * TILE + TILE // 2] for column, row in LOUNGE_APPROACH],
         'sunriseCart': {
             'duration': 24,
             'order': ['player', 'ppaman', 'gyeongsub'],
