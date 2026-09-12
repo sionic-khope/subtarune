@@ -70,7 +70,7 @@ try {
     const state = await page.evaluate(() => {
       const m = game.seaChase?.model;
       if (!m || m.phase !== 'fight') return { phase: m?.phase };
-      const c = m.config, travel = (m.bossX + c.boss.width * 0.48 - (c.raft.x + c.raft.gunWidth)) / c.bulletSpeed;
+      const c = m.config, heart = m.playerHeart(), travel = (m.bossX + c.boss.width * 0.48 - (c.raft.x + c.raft.gunWidth)) / c.bulletSpeed;
       const futureMotion = m.motionTime + travel * (m.enraged ? c.enrage.moveMultiplier : 1);
       const futureBossY = c.boss.baseY + c.boss.amplitude * (1 - Math.cos(futureMotion * Math.PI * 2 / c.boss.period)) / 2;
       let best = { score: Infinity, y: m.raftY };
@@ -80,17 +80,18 @@ try {
           const speed = Math.hypot(a.vx, a.vy), tail = a.length || 0;
           for (let t = 0; t <= 1.9; t += 0.08) {
             const atY = m.raftY + Math.sign(y - m.raftY) * Math.min(Math.abs(y - m.raftY), c.raft.speed * t);
+            const heartY = atY + heart.y - m.raftY;
             const headX = a.x + a.vx * t, headY = a.y + a.vy * t;
             const tailX = headX - a.vx / speed * tail, tailY = headY - a.vy / speed * tail;
             const dx = headX - tailX, dy = headY - tailY;
-            const k = Math.max(0, Math.min(1, ((c.raft.x - tailX) * dx + (atY - 12 - tailY) * dy) / (dx * dx + dy * dy || 1)));
-            if (Math.hypot(tailX + dx * k - c.raft.x, tailY + dy * k - (atY - 12)) < a.radius + c.raft.hitRadius + 11) risk += 10000 * (2 - t);
+            const k = Math.max(0, Math.min(1, ((heart.x - tailX) * dx + (heartY - tailY) * dy) / (dx * dx + dy * dy || 1)));
+            if (Math.hypot(tailX + dx * k - heart.x, tailY + dy * k - heartY) < a.radius + heart.radius + 11) risk += 10000 * (2 - t);
           }
         }
         const warning = m.warning;
         if (warning) {
           const targets = warning.kind === 'aimed' ? [warning.targetY - 20, warning.targetY, warning.targetY + 20] : c.attacks.lanes.filter(v => Math.abs(v - warning.gapY) >= c.attacks.gap / 2);
-          if (targets.some(v => Math.abs(y - 12 - v) < 31)) risk += 2000;
+          if (targets.some(v => Math.abs(y + heart.y - m.raftY - v) < 31)) risk += 2000;
         }
         const aim = m.opaqueAt(0.48, (y + c.raft.gunY - futureBossY) / c.boss.height, m.frame());
         const score = risk + (aim ? 0 : 160) + Math.abs(y - m.raftY) * 0.25;

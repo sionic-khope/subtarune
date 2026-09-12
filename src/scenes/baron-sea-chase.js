@@ -29,6 +29,19 @@ export class SeaChaseModel {
   frame() { const s = this.config.sheet; return this.phase === 'roar' || this.enrageRoar > 0 || this.warning ? s.roar : this.flash > 0 ? s.hurt : this.phase === 'cleared' ? s.recovery : s.idle; }
   waterline() { return Math.round(this.bossY) + this.config.boss.height * this.config.boss.submerged; }
   mouth() { const b = this.config.boss; return { x: Math.round(this.bossX) + b.width * b.mouth[0], y: Math.round(this.bossY) + b.height * b.mouth[1] }; }
+  /** One rounded raft transform drives the character and its only vulnerable point. */
+  raftPose(entryX = this.config.raft.x) {
+    const c = this.config;
+    const sail = this.phase === 'sail' ? 1 - Math.min(1, this.phaseTime / c.sailDuration) : 0;
+    const recoil = this.recoil > 0 ? this.recoil / 0.15 * 4 : 0;
+    const drift = this.phase === 'sinking' ? Math.pow(this.phaseTime / c.driftDuration, 1.4) * 370 : 0;
+    return { x: Math.round(c.raft.x + (entryX - c.raft.x) * sail * sail - recoil), y: Math.round(this.raftY + Math.round(Math.sin(this.time * 5) * 2) + drift) };
+  }
+  /** The three-pixel-diameter collision circle stays inside the colored heart. */
+  playerHeart() {
+    const pose = this.raftPose(), heart = this.config.heart;
+    return { x: pose.x + heart.x, y: pose.y + heart.y, radius: heart.radius };
+  }
   attackInterval() { return this.config.attacks.interval * (this.enraged ? this.config.enrage.attackMultiplier : 1); }
   /** A bolt samples every logical pixel traversed, including the drawn two-pixel core. */
   hitsBoss(shot, oldX) {
@@ -45,16 +58,16 @@ export class SeaChaseModel {
   }
   /** Aimed droplet volleys alternate with a divided fan leaving a broad moving escape. */
   updateAttacks(dt, events) {
-    const c = this.config, a = c.attacks;
+    const c = this.config, a = c.attacks, heart = this.playerHeart();
     this.attacks = this.attacks.filter(attack => {
       const speed = Math.hypot(attack.vx, attack.vy) || 1;
       const length = Math.min(attack.length || 0, (4 - attack.life) * speed);
       const oldX = attack.x - attack.vx / speed * length, oldY = attack.y - attack.vy / speed * length;
       attack.x += attack.vx * dt; attack.y += attack.vy * dt; attack.life -= dt;
       const dx = attack.x - oldX, dy = attack.y - oldY;
-      const k = Math.max(0, Math.min(1, ((c.raft.x - oldX) * dx + (this.raftY - 12 - oldY) * dy) / (dx * dx + dy * dy || 1)));
+      const k = Math.max(0, Math.min(1, ((heart.x - oldX) * dx + (heart.y - oldY) * dy) / (dx * dx + dy * dy || 1)));
       const radius = attack.radius * (length > 0 ? 0.55 + 0.45 * k : 1);
-      if (this.invulnerable <= 0 && Math.hypot(oldX + dx * k - c.raft.x, oldY + dy * k - (this.raftY - 12)) < radius + c.raft.hitRadius) {
+      if (this.invulnerable <= 0 && Math.hypot(oldX + dx * k - heart.x, oldY + dy * k - heart.y) < radius + heart.radius) {
         this.playerHits++; this.invulnerable = c.invulnerability; events.push('player-hit');
       }
       return attack.life > 0 && attack.x > -45;
@@ -69,7 +82,7 @@ export class SeaChaseModel {
       const mouth = this.mouth(), warning = this.warning;
       const targets = warning.kind === 'aimed' ? [warning.targetY - 20, warning.targetY, warning.targetY + 20] : a.lanes.filter(y => Math.abs(y - warning.gapY) >= a.gap / 2);
       for (const targetY of targets) {
-        const dx = c.raft.x - mouth.x, dy = targetY - mouth.y, distance = Math.hypot(dx, dy);
+        const dx = warning.targetX - mouth.x, dy = targetY - mouth.y, distance = Math.hypot(dx, dy);
         this.attacks.push({ x: mouth.x, y: mouth.y, vx: dx / distance * a.speed, vy: dy / distance * a.speed, radius: warning.kind === 'aimed' ? a.blobRadius : a.sweepRadius, length: warning.kind === 'sweep' ? a.plumeLength : 0, life: 4, kind: warning.kind });
       }
       this.warning = null; this.attackClock = this.attackInterval(); events.push('breath');
@@ -77,7 +90,7 @@ export class SeaChaseModel {
       this.attackClock -= dt;
       if (this.attackClock <= 0) {
         const kind = this.attackIndex % 2 === 0 ? 'aimed' : 'sweep';
-        this.warning = { kind, remaining: a.telegraph, targetY: this.raftY - 12, gapY: this.attackIndex % 4 === 1 ? 130 : 218 };
+        this.warning = { kind, remaining: a.telegraph, targetX: heart.x, targetY: heart.y, gapY: this.attackIndex % 4 === 1 ? 130 : 218 };
         this.attackIndex++;
       }
     }
@@ -210,7 +223,8 @@ export class BaronSeaChase {
       if (event === 'breath') this.game.sound.sfx('cannon_guard_breath', { volume: 0.72 });
       if (event === 'player-hit') {
         this.game.sound.sfx('hurt', { volume: 0.7 });
-        this.burst(CONFIG.raft.x, this.model.raftY - 12, '#e5ff9b', 14);
+        const heart = this.model.playerHeart();
+        this.burst(heart.x, heart.y, '#e5ff9b', 14);
       }
       if (event === 'sinking') {
         this.game.sound.sfx('splash', { volume: 0.8 });
@@ -246,6 +260,7 @@ export class BaronSeaChase {
       ctx.fillStyle = '#ffe8a6'; ctx.fillRect(Math.round(shot.x) - 10, Math.round(shot.y) - 1, 11, 2);
     }
     for (const p of this.particles) { ctx.fillStyle = p.color; ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3); }
+    if (m.phase === 'fight') this.drawPlayerHeart(ctx);
     ctx.restore();
     if (m.phase === 'tutorial') {
       drawBox(ctx, 144, 286, 192, 42);
@@ -286,11 +301,7 @@ export class BaronSeaChase {
   /** Original raft and right-facing party sprites keep the boarding scene continuous. */
   drawRaft(ctx) {
     const m = this.model, r = CONFIG.raft;
-    const bob = Math.round(Math.sin(m.time * 5) * 2);
-    const sail = m.phase === 'sail' ? 1 - Math.min(1, m.phaseTime / CONFIG.sailDuration) : 0;
-    const x = Math.round(r.x + (this.entryRaftX - r.x) * sail * sail - (m.recoil > 0 ? m.recoil / 0.15 * 4 : 0));
-    const drift = m.phase === 'sinking' ? Math.pow(m.phaseTime / CONFIG.driftDuration, 1.4) * 370 : 0;
-    const y = Math.round(m.raftY + bob + drift);
+    const { x, y } = m.raftPose(this.entryRaftX);
     ctx.fillStyle = '#a2dddd';
     for (let i = 0; i < 4; i++) ctx.fillRect(x - 16 - i * 13, y + 21 + i % 2 * 5, 16, 2);
     const image = this.raft?.image;
@@ -312,6 +323,13 @@ export class BaronSeaChase {
       this.drawCharacter(ctx, sprite, sx, water + 30, CHAR_SCALE); ctx.restore();
       ctx.fillStyle = '#b2e8e3'; ctx.fillRect(sx - 20, water, 38, 2);
     });
+  }
+
+  /** The outline is only contrast; invulnerability changes color, never visibility. */
+  drawPlayerHeart(ctx) {
+    const m = this.model, heart = m.playerHeart(), x = heart.x - 3.5, y = heart.y - 3;
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) drawHeart(ctx, x + dx, y + dy, '#101527');
+    drawHeart(ctx, x, y, m.invulnerable > 0 && Math.floor(m.invulnerable * 14) % 2 ? '#ffffff' : '#ff2b4a');
   }
 
   /** Draw a pre-sliced original walking sprite with its native cell proportions. */
@@ -364,7 +382,7 @@ export class BaronSeaChase {
       const targets = w.kind === 'aimed' ? [w.targetY] : a.lanes.filter(y => Math.abs(y - w.gapY) >= a.gap / 2);
       ctx.strokeStyle = '#edcaff'; ctx.lineWidth = 1;
       for (const y of targets) {
-        ctx.setLineDash([4, 9]); ctx.beginPath(); ctx.moveTo(mouth.x, mouth.y); ctx.lineTo(CONFIG.raft.x, y); ctx.stroke();
+        ctx.setLineDash([4, 9]); ctx.beginPath(); ctx.moveTo(mouth.x, mouth.y); ctx.lineTo(w.targetX, y); ctx.stroke();
       }
       ctx.setLineDash([]);
       ctx.strokeRect(Math.round(mouth.x - 9), Math.round(mouth.y - 7), 18, 14);

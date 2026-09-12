@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SeaChaseModel } from '../../src/scenes/baron-sea-chase.js';
+import { SeaChaseModel, BaronSeaChase } from '../../src/scenes/baron-sea-chase.js';
 import { BARON_SEA_CHASE as C } from '../../src/data/baron-sea-chase.js';
 const input = (held = []) => ({ down: key => held.includes(key), just: key => held.includes(key) });
 const fight = () => { const m = new SeaChaseModel(); m.setPhase('fight'); return m; };
@@ -33,12 +33,54 @@ test('held fire is rapid while vertical movement stays in the playfield', () => 
 });
 test('invulnerability prevents stacked hits; fifth hit starts drift then failure', () => {
   const m = fight();
-  const collide = () => { m.attacks.push({ x: C.raft.x, y: m.raftY - 12, vx: 0, vy: 0, radius: 12, life: 1 }); return m.update(0.01, input()); };
+  const collide = () => { const heart = m.playerHeart(); m.attacks.push({ x: heart.x, y: heart.y, vx: 0, vy: 0, radius: 12, life: 1 }); return m.update(0.01, input()); };
   collide(); collide(); assert.equal(m.playerHits, 1);
   for (let i = 0; i < 4; i++) { m.invulnerable = 0; collide(); }
   assert.equal(m.playerHits, 5); assert.equal(m.phase, 'sinking'); assert.equal(m.completed, false);
   m.update(C.driftDuration + 0.1, input());
   assert.equal(m.outcome, 'failed'); assert.equal(m.completed, true);
+});
+test('only the face heart takes damage, not the old torso or the raft', () => {
+  const m = fight(), heart = m.playerHeart();
+  m.attacks.push({ x: C.raft.x, y: m.raftY - 12, vx: 0, vy: 0, radius: 10, life: 1 });
+  m.updateAttacks(0, []); assert.equal(m.playerHits, 0);
+  m.attacks = [{ x: heart.x, y: heart.y, vx: 0, vy: 0, radius: 1, life: 1 }];
+  const events = []; m.updateAttacks(0, events);
+  assert.equal(m.playerHits, 1); assert.deepEqual(events, ['player-hit']);
+});
+test('heart grazes exclude the outline and old broad radius', () => {
+  for (const [offset, hits] of [[2.5, 0], [2.4, 1], [-2.5, 0], [-2.4, 1]]) {
+    const m = fight(), heart = m.playerHeart();
+    m.attacks = [{ x: heart.x + offset, y: heart.y, vx: 0, vy: 0, radius: 1, life: 1 }];
+    m.updateAttacks(0, []); assert.equal(m.playerHits, hits);
+  }
+});
+test('visible heart and damage center follow the same bob, movement and shot recoil', () => {
+  const m = fight();
+  for (const [time, raftY, recoil, invulnerable] of [[0, 140, 0, 0], [0.3, 100.4, 0.15, 0.5], [0.9, 264.2, 0.06, 0.6]]) {
+    Object.assign(m, { time, raftY, recoil, invulnerable });
+    const pose = m.raftPose(), heart = m.playerHeart(), pixels = new Map();
+    assert.deepEqual(heart, { x: pose.x + C.heart.x, y: pose.y + C.heart.y, radius: 1.5 });
+    const ctx = { fillStyle: '', fillRect(x, y) { assert.ok(Number.isInteger(x) && Number.isInteger(y)); pixels.set(`${x},${y}`, this.fillStyle); } };
+    BaronSeaChase.prototype.drawPlayerHeart.call({ model: m }, ctx);
+    const color = invulnerable > 0 && Math.floor(invulnerable * 14) % 2 ? '#ffffff' : '#ff2b4a';
+    assert.equal([...pixels.values()].filter(value => value === color).length, 27);
+    for (let dx = -2; dx <= 2; dx += 0.25) {
+      for (let dy = -2; dy <= 2; dy += 0.25) {
+        if (Math.hypot(dx, dy) >= heart.radius) continue;
+        assert.equal(pixels.get(`${Math.floor(heart.x + dx)},${Math.floor(heart.y + dy)}`), color);
+      }
+    }
+  }
+});
+test('aimed warning and breath share the captured heart target', () => {
+  const m = fight(); m.time = 0.3; m.recoil = 0.15; m.attackClock = 0;
+  const heart = m.playerHeart(); m.updateAttacks(0, []);
+  assert.equal(m.warning.targetX, heart.x); assert.equal(m.warning.targetY, heart.y);
+  m.raftY += 40;
+  m.updateAttacks(C.attacks.telegraph + 0.01, []);
+  const middle = m.attacks[1], timeToTarget = (heart.x - middle.x) / middle.vx;
+  assert.ok(Math.abs(middle.y + middle.vy * timeToTarget - heart.y) < 0.001);
 });
 test('thirty percent remaining causes one roar and faster movement and attacks', () => {
   const m = fight(); m.hits = 279; const before = m.attackInterval();
