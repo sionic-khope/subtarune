@@ -1,6 +1,6 @@
 import { BARON_SEA_CHASE as CONFIG } from '../data/baron-sea-chase.js';
 import { loadImageOptional, makeCanvas, drawBox, drawHeart } from '../core/gfx.js';
-import { characterSprite, SCREEN_W, SCREEN_H, CHAR_SCALE } from '../world/world.js';
+import { characterSprite, drawDimmed, SCREEN_W, SCREEN_H, CHAR_SCALE } from '../world/world.js';
 import { FONT } from '../ui/font.js';
 import L from '../data/locale/ko.js';
 
@@ -311,7 +311,7 @@ export class BaronSeaChase {
       ctx.fillStyle = '#bd8b46';
       for (let i = 0; i < 5; i++) ctx.fillRect(x - 39, y + 2 + i * 5, 82, 3);
     }
-    if (m.invulnerable <= 0 || Math.floor(m.invulnerable * 14) % 2 === 0) this.drawCharacter(ctx, this.playerSprite, x, y + 8, CHAR_SCALE);
+    if (m.invulnerable <= 0 || Math.floor(m.invulnerable * 14) % 2 === 0) this.drawCharacter(ctx, this.playerSprite, x, y + 8, CHAR_SCALE, m.phase === 'fight' ? m.config.heart.bodyDim : 0);
     const gunX = x + r.gunX, gunY = y + r.gunY;
     if (this.gun && !m.completed) {
       const height = Math.round(r.gunWidth * this.gun.height / this.gun.width);
@@ -327,16 +327,24 @@ export class BaronSeaChase {
 
   /** The outline is only contrast; invulnerability changes color, never visibility. */
   drawPlayerHeart(ctx) {
-    const m = this.model, heart = m.playerHeart(), x = heart.x - 3.5, y = heart.y - 3;
-    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) drawHeart(ctx, x + dx, y + dy, '#101527');
-    drawHeart(ctx, x, y, m.invulnerable > 0 && Math.floor(m.invulnerable * 14) % 2 ? '#ffffff' : '#ff2b4a');
+    const m = this.model, heart = m.playerHeart(), scale = m.config.heart.renderScale;
+    const edge = 1 / scale;
+    ctx.save();
+    ctx.translate(Math.round(heart.x - 3.5 * scale), Math.round(heart.y - 3 * scale));
+    ctx.scale(scale, scale);
+    for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [-1, 1], [1, -1], [1, 1]]) drawHeart(ctx, dx * edge, dy * edge, '#101527');
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) drawHeart(ctx, dx * edge, dy * edge, '#ffffff');
+    drawHeart(ctx, 0, 0, m.invulnerable > 0 && Math.floor(m.invulnerable * 14) % 2 ? '#ffffff' : '#ff2b4a');
+    ctx.restore();
   }
 
   /** Draw a pre-sliced original walking sprite with its native cell proportions. */
-  drawCharacter(ctx, sprite, x, bottom, scale) {
+  drawCharacter(ctx, sprite, x, bottom, scale, dim = 0) {
     const image = sprite.right[0];
     const w = Math.round(sprite.fw / sprite.px * scale), h = Math.round(sprite.fh / sprite.px * scale);
-    ctx.drawImage(image, Math.round(x - w / 2), Math.round(bottom - h), w, h);
+    const left = Math.round(x - w / 2), top = Math.round(bottom - h);
+    if (dim) drawDimmed(ctx, image, left, top, w, h, dim);
+    else ctx.drawImage(image, left, top, w, h);
   }
 
   /** The four generated poses share a normalized mouth anchor for the original Yongjun. */

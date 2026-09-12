@@ -21,6 +21,31 @@ try {
   await key('KeyC');
   await page.waitForFunction(() => game.seaChase.model.phase === 'fight');
   await page.evaluate(() => { game.seaChase.model.attackClock = 999; });
+  const dim = await page.evaluate(() => {
+    const scene = game.seaChase, m = scene.model, phase = m.phase;
+    const render = (mode) => {
+      m.phase = mode;
+      const canvas = document.createElement('canvas'); canvas.width = 480; canvas.height = 360;
+      canvas.getContext('2d').imageSmoothingEnabled = false;
+      scene.drawRaft(canvas.getContext('2d'));
+      return canvas.getContext('2d').getImageData(0, 0, 480, 360).data;
+    };
+    const before = render('tutorial'), after = render('fight'); m.phase = phase;
+    const pose = m.raftPose(), sprite = scene.playerSprite;
+    const width = Math.round(sprite.fw / sprite.px * 1.43), height = Math.round(sprite.fh / sprite.px * 1.43);
+    const x = Math.round(pose.x - width / 2), y = Math.round(pose.y + 8 - height);
+    let changed = 0, outside = 0, alphaChanges = 0, source = 0, target = 0;
+    for (let i = 0; i < before.length; i += 4) {
+      if (before[i + 3] !== after[i + 3]) alphaChanges++;
+      if (before[i] === after[i] && before[i + 1] === after[i + 1] && before[i + 2] === after[i + 2]) continue;
+      changed++;
+      const px = i / 4 % 480, py = Math.floor(i / 4 / 480);
+      if (px < x || px >= x + width || py < y || py >= y + height) outside++;
+      source += before[i] + before[i + 1] + before[i + 2]; target += after[i] + after[i + 1] + after[i + 2];
+    }
+    return { changed, outside, alphaChanges, brightness: target / source };
+  });
+  check('only Hyungsub darkens slightly during fight, without transparency', dim.changed > 100 && dim.outside === 0 && dim.alphaChanges === 0 && dim.brightness > 0.7 && dim.brightness < 0.85, dim);
   await shot('rest');
   const before = await page.evaluate(() => game.seaChase.model.playerHeart());
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(100); await shot('move-mid');

@@ -61,10 +61,35 @@ test('visible heart and damage center follow the same bob, movement and shot rec
     Object.assign(m, { time, raftY, recoil, invulnerable });
     const pose = m.raftPose(), heart = m.playerHeart(), pixels = new Map();
     assert.deepEqual(heart, { x: pose.x + C.heart.x, y: pose.y + C.heart.y, radius: 1.5 });
-    const ctx = { fillStyle: '', fillRect(x, y) { assert.ok(Number.isInteger(x) && Number.isInteger(y)); pixels.set(`${x},${y}`, this.fillStyle); } };
+    const fills = [], stack = [];
+    const ctx = {
+      fillStyle: '', tx: 0, ty: 0, sx: 1, sy: 1,
+      save() { stack.push([this.tx, this.ty, this.sx, this.sy, this.fillStyle]); },
+      restore() { [this.tx, this.ty, this.sx, this.sy, this.fillStyle] = stack.pop(); },
+      translate(x, y) { this.tx += x * this.sx; this.ty += y * this.sy; },
+      scale(x, y) { this.sx *= x; this.sy *= y; },
+      fillRect(x, y, w, h) {
+        const left = this.tx + x * this.sx, top = this.ty + y * this.sy;
+        assert.ok(Number.isInteger(left) && Number.isInteger(top));
+        fills.push([left, top, w * this.sx, h * this.sy]);
+        for (let py = top; py < top + h * this.sy; py++) {
+          for (let px = left; px < left + w * this.sx; px++) pixels.set(`${px},${py}`, this.fillStyle);
+        }
+      },
+    };
     BaronSeaChase.prototype.drawPlayerHeart.call({ model: m }, ctx);
     const color = invulnerable > 0 && Math.floor(invulnerable * 14) % 2 ? '#ffffff' : '#ff2b4a';
-    assert.equal([...pixels.values()].filter(value => value === color).length, 27);
+    const colored = new Set();
+    for (const [x, y, w, h] of fills.slice(-27)) {
+      assert.equal(w, 2); assert.equal(h, 2);
+      for (let py = y; py < y + h; py++) {
+        for (let px = x; px < x + w; px++) { colored.add(`${px},${py}`); assert.equal(pixels.get(`${px},${py}`), color); }
+      }
+    }
+    assert.equal(colored.size, 108);
+    assert.ok([...pixels.entries()].some(([key, value]) => !colored.has(key) && value === '#ffffff'));
+    assert.ok([...pixels.values()].includes('#101527'));
+    assert.equal(stack.length, 0);
     for (let dx = -2; dx <= 2; dx += 0.25) {
       for (let dy = -2; dy <= 2; dy += 0.25) {
         if (Math.hypot(dx, dy) >= heart.radius) continue;
