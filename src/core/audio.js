@@ -259,10 +259,16 @@ export class Sound {
     this.tone({ freq: 2637, wave: 'triangle', dur: 0.7, gain: 0.16, delay: 0.12 });
   }
 
-  sfx(name, { volume = 0.9, rate = 1 } = {}) {
+  /** 효과음. from/len(초) 을 주면 파일의 그 구간만 재생한다 — 걸음 소리처럼 한 파일에 여러 개가 이어져 있을 때 (2026-09-12) */
+  sfx(name, { volume = 0.9, rate = 1, from = 0, len = 0 } = {}) {
     if (this.muted || !name) return;
     const f = this.files[name];
-    if (f) { const a = f.cloneNode(); a.volume = Math.min(1, volume); a.playbackRate = rate; a.play().catch(() => {}); return; }
+    if (f) {
+      const a = f.cloneNode(); a.volume = Math.min(1, volume); a.playbackRate = rate;
+      if (from > 0) { try { a.currentTime = from; } catch {} }
+      if (len > 0) setTimeout(() => { a.pause(); a.src = ''; }, (len / rate) * 1000);
+      a.play().catch(() => {}); return;
+    }
     switch (name) {
       case 'menu':    this.tone({ freq: 760, wave: 'square', dur: 0.06, gain: 0.224 }); break;
       case 'hit':     this.tone({ freq: 180, wave: 'sawtooth', dur: 0.12, gain: 0.3, glide: -120, cutoff: 1800 }); this.tone({ freq: 900, wave: 'square', dur: 0.05, gain: 0.12 }); break;   // 전투 타격(파일 sfx/hit.mp3 가 있으면 그것)

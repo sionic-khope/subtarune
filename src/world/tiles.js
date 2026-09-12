@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 import { artToCanvas, makeCanvas, mulberry32, loadImageOptional } from '../core/gfx.js';
 import { TILE_ART } from '../data/art.js';
+import { WATER_STEPS } from '../data/footsteps.js';
 
 export const TILE = 32;        // 월드 타일 크기(논리 px)
 export const ART_PX = 16;      // 타일 도트 아트 원본 크기 (TILE 로 정수배 확대)
@@ -148,9 +149,9 @@ registerTile('d', { name: 'ground_teal_shade', solid: false, draw: flat('#061412
 registerTile('o', { name: 'water_blue', solid: true, draw: flat('#2f4fa8') });    // 파란 물길 (뗏목으로만 건넌다)
 registerTile('O', { name: 'water_blue2', solid: true, draw: flat('#2f4fa8') });
 // 옵젝영역(obj0~, tools/art/obj_set.py, 2026-09-11): 얕은 물 바닥(걸을 수 있음, 밟으면 step 효과음 + 물결 고리 — Player.footstep) / 수련잎 / 초록·보라 숲 바닥(막힘) / 절벽면
-// `step`: 그 타일을 밟을 때 나는 **걸음 소리**. 여러 개면 걸음마다 하나를 골라 쓴다(같은 소리 반복이 티 나지 않게).
-//   물걸음 사운드 = water_step·2·3·4 (델타룬 walking 효과음에서 걸음 4개를 잘라 씀, design/audio/references.md)
-const WATER_STEP = ['water_step', 'water_step2', 'water_step3', 'water_step4'];
+// `step`: 그 타일을 밟을 때 나는 **걸음 소리**. 이름 하나 / 이름 배열 / { sfx, slices } (한 파일 안의 조각들 — 걸음마다 하나를 골라 쓴다).
+//   물걸음 사운드 = sfx/water_step.mp3 안의 걸음 33개 (델타룬 walking 효과음 전체, src/data/footsteps.js · design/audio/references.md)
+const WATER_STEP = { sfx: 'water_step', slices: WATER_STEPS };
 registerTile('a', { name: 'water_shallow', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
 registerTile('A', { name: 'water_shallow2', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
 registerTile('j', { name: 'water_shallow_pad', solid: false, step: WATER_STEP, draw: flat('#1a5561') });
