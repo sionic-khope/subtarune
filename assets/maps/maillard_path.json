@@ -1,0 +1,210 @@
+{
+ "id": "maillard_path",
+ "name": "마이야르호 일출 갑판",
+ "stage": "void_fallen",
+ "bgm": "wind",
+ "dim": 0,
+ "backdrop": "maillard_sunrise",
+ "sunrise": {
+  "animated": true
+ },
+ "rows": [
+  "                                                                           ",
+  "  MMMMMMMMM                                                                ",
+  "  MMMMMMMMM                                                                ",
+  "  MMMMMMMMM                                                                ",
+  "  MMMMMMMMM    MMMMMM                                                      ",
+  "    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM                                 ",
+  "    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM                                 ",
+  "     MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM                                 ",
+  "               MMMMMM               MMMMMM                                 ",
+  "                                    MMMMMM                                 ",
+  "                                     MMM                                   ",
+  "                                     MMM       MMMMMMMMM                   ",
+  "                                     MMM       MMMMMMMMM                   ",
+  "                                     MMMMMMMMMMMMMMMMMMMMMMMMMMMM          ",
+  "                                     MMMMMMMMMMMMMMMMMMMMMMMMMMMM          ",
+  "                                      MMMMMMMMMMMMMMMMMMMMMMMMMMM          ",
+  "                                                                           ",
+  "                   MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                   MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                   MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                                                                           ",
+  "                                                                           ",
+  "                                                                           ",
+  "                                                                           ",
+  "                                                                           "
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/backdrops/maillard_sunset.png",
+  "assets/props/maillard_sun.png",
+  "assets/props/maillard-cart.png",
+  "assets/backdrops/maillard_sea.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 2308,
+   "y": 584,
+   "facing": "left"
+  },
+  "from_hold": {
+   "x": 2308,
+   "y": 584,
+   "facing": "left"
+  },
+  "cart_landing": {
+   "x": 1920,
+   "y": 456,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": false,
+  "sunriseRoute": [
+   [
+    2304,
+    592
+   ],
+   [
+    608,
+    592
+   ]
+  ],
+  "sunriseWalkout": [
+   [
+    2048,
+    464
+   ],
+   [
+    1216,
+    464
+   ],
+   [
+    1216,
+    208
+   ],
+   [
+    160,
+    208
+   ],
+   [
+    160,
+    80
+   ]
+  ],
+  "sunriseRails": {
+   "lines": [
+    [
+     2304,
+     544,
+     608,
+     544
+    ],
+    [
+     2304,
+     640,
+     608,
+     640
+    ]
+   ]
+  },
+  "sunriseCasters": [
+   [
+    2048,
+    544
+   ],
+   [
+    1536,
+    544
+   ],
+   [
+    1024,
+    544
+   ],
+   [
+    672,
+    544
+   ]
+  ],
+  "sunriseCart": {
+   "duration": 20,
+   "order": [
+    "player",
+    "ppaman",
+    "gyeongsub"
+   ],
+   "departure": [
+    608,
+    592
+   ],
+   "landing": [
+    1920,
+    456
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "path_to_hold",
+   "x": 2336,
+   "y": 544,
+   "w": 24,
+   "h": 96,
+   "to": "maillard_deck",
+   "spawn": "from_path",
+   "sfx": false
+  },
+  {
+   "type": "trigger",
+   "id": "cart_board",
+   "x": 560,
+   "y": 544,
+   "w": 72,
+   "h": 96,
+   "script": "maillard_cart_board",
+   "unless": "maillard_cart_done"
+  },
+  {
+   "type": "npc",
+   "id": "sunrise_junhee",
+   "sprite": "junhee",
+   "x": 1636,
+   "y": 392,
+   "facing": "left",
+   "wander": 0,
+   "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "sunrise_yongjun",
+   "sprite": "yongjun",
+   "x": 1252,
+   "y": 200,
+   "facing": "left",
+   "wander": 0,
+   "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "sunrise_cs_red",
+   "sprite": "cs_red",
+   "x": 580,
+   "y": 200,
+   "facing": "left",
+   "wander": 0,
+   "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "sunrise_cs_blue",
+   "sprite": "cs_blue",
+   "x": 196,
+   "y": 72,
+   "facing": "down",
+   "wander": 0,
+   "solid": false
+  }
+ ]
+}

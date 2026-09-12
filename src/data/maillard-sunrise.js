@@ -1,0 +1,36 @@
+export const MAILLARD_SUNRISE = Object.freeze({
+  bgm: 'maillard_sunrise',
+  completionFlag: 'maillard_sunrise_seen',
+  startSeconds: 14,
+  durationSeconds: 4,
+  horizonY: 141,
+  sky: 'assets/backdrops/maillard_sunset.png',
+  sun: 'assets/props/maillard_sun.png',
+  sunCrop: Object.freeze([30, 30, 196, 196]),
+  sunCenter: Object.freeze([172, 70]),
+  sunDiameter: 140,
+  worldDimAlpha: 0.22,
+  colors: Object.freeze({
+    cool: '#343853',
+    sea: '#234e70',
+    warm: '#ed9a76',
+    reflection: '#ffcc70',
+    sun: '#fff2b4',
+    sunEdge: '#f39256',
+    shadow: '#241d35',
+  }),
+});
+
+export const MAILLARD_CART = Object.freeze({
+  asset: 'assets/props/maillard-cart.png',
+  assetCrop: Object.freeze([61, 106, 134, 43]),
+  displaySize: Object.freeze([78, 25]),
+  map: 'maillard_path',
+  landingSpawn: 'cart_landing',
+  completionFlag: 'maillard_cart_done',
+  boardingSeconds: 1.8,
+  rideSeconds: 20,
+  disembarkSeconds: 1.8,
+  order: Object.freeze(['player', 'ppaman', 'gyeongsub']),
+  cartCenters: Object.freeze([[120, 246], [240, 246], [360, 246]]),
+});

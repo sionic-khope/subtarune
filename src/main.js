@@ -30,6 +30,9 @@ import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
 import { MaillardArrival } from './scenes/maillard-arrival.js';
+import { MaillardCart } from './scenes/maillard-cart.js';
+import { MaillardSunrise } from './world/sunrise.js';
+import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
 
 const TEXT_SPEEDS = [
@@ -57,6 +60,8 @@ class Game {
     this.lastBattle = null;
     this.seaChase = null;
     this.maillardArrival = null;
+    this.maillardCart = null;
+    this.sunrise = new MaillardSunrise(MAILLARD_SUNRISE);
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu | battle-preview
     this.fade = { alpha: 0, dir: 0, cb: null, color: '0,0,0' };
@@ -171,6 +176,8 @@ class Game {
   resetState() {
     this.seaRetryPromptPending = false;
     this.maillardArrival?.dispose(); this.maillardArrival = null;
+    this.maillardCart?.dispose(); this.maillardCart = null;
+    this.sunrise.dispose();
     this.seaChase?.dispose(); this.seaChase = null;
     this.battle?.disposeGimmick();
     this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0; this.attack = 1; this.hpBonus = 0;   // 공격력·최대 HP 보너스(레드·블루 버프)
@@ -362,6 +369,8 @@ class Game {
   toTitle() {
     this.seaRetryPromptPending = false;
     this.maillardArrival?.dispose(); this.maillardArrival = null;
+    this.maillardCart?.dispose(); this.maillardCart = null;
+    this.sunrise.dispose();
     this.seaChase?.dispose(); this.seaChase = null;
     this.battle?.disposeGimmick();
     if (this.battle) { this.battle.interlude = null; this.battle.state = 'ending'; }
@@ -485,11 +494,16 @@ class Game {
   // ── 맵 전환 ─────────────────────────────────────────────
   changeMap(mapId, spawnId, instant = false, { bgm = true, enter: runEnter = true } = {}) {   // enter:false — 도착 스크립트는 호출자가 runMapEnter() 로 (이어하기·QA: 위치·동료·세이브를 먼저)
     if (!MAPS[mapId]) { console.warn('[map] 없는 맵', mapId); return; }                        // 문/QA/스크립트가 잘못된 id 를 줘도 게임이 죽지 않는다 (2026-09-11 smoke)
+    if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
       this.maillardArrival?.dispose(); this.maillardArrival = null;
+      this.maillardCart?.dispose(); this.maillardCart = null;
+      this.sunrise.dispose();
       this.seaChase?.dispose(); this.seaChase = null;
       const def = MAPS[mapId];
-      this.mapId = mapId; this.entrySpawn = spawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
+      const completedCartEntry = mapId === MAILLARD_CART.map && this.has(MAILLARD_CART.completionFlag) && (!spawnId || spawnId === 'start' || spawnId === 'from_hold');
+      const resolvedSpawnId = completedCartEntry ? MAILLARD_CART.landingSpawn : spawnId;
+      this.mapId = mapId; this.entrySpawn = resolvedSpawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
       this.map = new TileMap({ ...def, rows: def.rows ? [...def.rows] : def.rows }, this.mapImages?.[mapId] || null);   // rows 는 복사 (tileSwaps 가 원본을 안 건드리게)
       for (const key of Object.keys(def.tileSwaps || {})) if (this.has(key)) this.applyTiles(key, false);   // 플래그가 선 타일 교체는 처음부터 적용
       this.map.bake();
@@ -497,7 +511,7 @@ class Game {
       this.entities = def.entities
         .filter((e) => !(e.unless && this.has(e.unless)) && !(e.requires && e.type !== 'door' && !this.has(e.requires)))
         .map((e) => createEntity({ ...e }, this)).filter(Boolean);
-      const spawn = def.spawns[spawnId] || def.spawns.start || Object.values(def.spawns)[0];   // 이어하기(위치는 세이브가 덮어씀) 대비
+      const spawn = def.spawns[resolvedSpawnId] || def.spawns.start || Object.values(def.spawns)[0];   // 이어하기(위치는 세이브가 덮어씀) 대비
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: spawn.facing ?? this.player?.facing ?? 'down' }, this);   // 스폰에 facing 을 주면 그 방향(QA 지점 등)
       this.entities.push(this.player);
       this.spawnParty();
@@ -512,6 +526,12 @@ class Game {
         if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
         else if (gated || name === null) this.sound.stopBgm(0.4);
       }
+      if (def.backdrop === 'maillard_sunrise') this.sunrise.enter({
+        sound: this.sound,
+        images: this.propImages,
+        animated: def.sunrise?.animated !== false,
+        seen: this.has(MAILLARD_SUNRISE.completionFlag),
+      });
     };
     const enter = () => { if (runEnter) this.runMapEnter(mapId); };
     if (instant) { go(); enter(); return; }
@@ -592,6 +612,28 @@ class Game {
     this.changeMap('maillard_deck', 'arrival', true, { enter: false });
   }
 
+  /** Start automatic boarding without saving the trigger position as completed travel. */
+  startMaillardCart() {
+    if (this.has(MAILLARD_CART.completionFlag)) return false;
+    this.maillardCart?.dispose();
+    this.maillardCart = new MaillardCart(this);
+    this.state = 'cart';
+    return true;
+  }
+
+  /** Commit both one-shot flags only after a brief black transition reaches the safe landing. */
+  finishMaillardCart() {
+    if (!this.maillardCart || this.transitioning) return;
+    this.transitioning = true;
+    this.fadeTo(1, 0.2, () => {
+      this.setFlag(MAILLARD_SUNRISE.completionFlag);
+      this.setFlag(MAILLARD_CART.completionFlag);
+      this.state = 'field';
+      this.changeMap(MAILLARD_CART.map, MAILLARD_CART.landingSpawn, true, { bgm: false, enter: false });
+      this.fadeTo(0, 0.25, () => { this.transitioning = false; this.autosave(); }, 'black');
+    }, 'black');
+  }
+
   /** Defer the retry choice until the current chest script has released its runner. */
   promptSeaRetry() { this.seaRetryPromptPending = true; }
 
@@ -612,6 +654,7 @@ class Game {
     if (Input.just('title') && this.state !== 'title' && !this.transitioning && !this.scene3d && !this.zoom.tween) { this.toTitle(); return; }
     this.textbox.charDelay = TEXT_SPEEDS[this.settings.textSpeed].delay;
     if (this.sound.muted !== !this.settings.sound) { this.sound.muted = !this.settings.sound; if (this.sound.bgm) this.sound._ramp(this.sound.bgm, this.sound.muted ? 0 : (this.sound.bgmVolume ?? 0.35), 0.2); }
+    this.sunrise.update();
 
     // 페이드
     if (this.fade.target !== undefined) {
@@ -651,6 +694,10 @@ class Game {
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.t * b.fps < b.count); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
+    if (this.maillardCart) {
+      this.maillardCart.update(dt);
+      return;
+    }
     if (this.maillardArrival) {
       this.maillardArrival.update(dt);
       if (this.dialogue.running) this.dialogue.update(dt, Input);
@@ -790,6 +837,11 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
+    if (this.maillardCart) {
+      this.maillardCart.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
     if (this.maillardArrival) {
       ctx.save();
       if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
@@ -824,7 +876,8 @@ class Game {
     }
     const cam = { x: Math.round(this.camera.x), y: Math.round(this.camera.y) };
     if (this.shake) { cam.x += Math.round((Math.random() * 2 - 1) * this.shake.amp); cam.y += Math.round((Math.random() * 2 - 1) * this.shake.amp); }
-    if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
+    if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawBackdrop(ctx);
+    else if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
     else if (MAPS[this.mapId]?.backdrop === 'maillard_sea') {
@@ -873,6 +926,7 @@ class Game {
       ctx.restore();
     } else if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
+    if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
@@ -1009,7 +1063,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.105';
+export const BUILD = '2026-09-12.106';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

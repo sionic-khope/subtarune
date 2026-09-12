@@ -25,6 +25,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
+  if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
   if (mapId === 'obj5' && flags.obj5_chase_cleared) return 'baron_sea_battle';
   if (mapId === 'obj5' && flags.obj5_chase_started) return 'baron_intro';
   if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5'].includes(mapId)) return 'baron_intro';
@@ -171,3 +172,8 @@ const seaVictoryCheckpoint = QA_POINTS.find((point) => point.id === 'obj5_after'
 QA_POINTS.push({ ...seaVictoryCheckpoint, id: 'maillard_deck', desc: '마이야르호: 선창 도착·용준과 대화',
   map: 'maillard_deck', spawn: 'arrival',
   flags: { ...seaVictoryCheckpoint.flags, obj5_maillard_done: true }, party: [...seaVictoryCheckpoint.party] });
+
+const maillardDeckCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_deck');
+QA_POINTS.push({ ...maillardDeckCheckpoint, id: 'maillard_path', desc: '마이야르호: 일출 갑판 길',
+  map: 'maillard_path', spawn: 'from_hold',
+  flags: { ...maillardDeckCheckpoint.flags, maillard_hold_done: true }, party: [...maillardDeckCheckpoint.party] });

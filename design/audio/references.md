@@ -1,5 +1,12 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 마이야르호 카트·노을 (2026-09-12)
+
+- 사용자 지정 [영상 _Q6S2XgQJ8c](https://www.youtube.com/watch?v=_Q6S2XgQJ8c), 메타데이터 제목 **19. Sunset of Seven Suns (DELTARUNE Chapter 5 Soundtrack) - Toby Fox**, 업로더 Toby Fox. 메타데이터 확인은 별도 이용허락을 뜻하지 않는다.
+- `assets/audio/bgm/maillard_sunrise.mp3`: 전체96.002917초,48kHz stereo,2,449,196바이트. YouTube251→libmp3lame quality2; 트리밍·페이드·음높이·속도·음량 변경 없음. SHA256 `8612424d417439d2ccdf774cdd6b328c5f01d599daf81c118221bb1740421112`.
+- 카트 출발에서0초부터 재생, 실제 재생시각14초에 해 상승 시작. 전체 파일을 재생하며 MP3 구간 잘라재생 방식은 사용하지 않는다. decode검사 통과; 사람의 주관적 청취 평가와 구분한다. 배포용 출처는 `assets/audio/maillard-credits.json`에도 기록했다.
+- 재현: `yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --output 'assets/audio/bgm/maillard_sunrise.%(ext)s' 'https://www.youtube.com/watch?v=_Q6S2XgQJ8c'`.
+
 비수익 팬게임 용도. 유튜브에서 받아(yt-dlp) 아래 경로에 넣었다. 원본 풀 클립은 커밋하지 않고 잘라낸 결과만 둔다.
 - 효과음: `assets/audio/sfx/<이름>.mp3` 가 있으면 합성음 대신 파일 재생 (`loadSfxFiles`)
 - **대사 글자 소리**: `assets/audio/voices/<voice>.mp3` — 블립 **한 샘플**만 넣으면 글자마다 0.1초로 잘라 재생. 톤다운은 `VOICES.<voice>.rate` (1보다 작으면 낮아짐) (`loadVoiceFiles`)

@@ -27,6 +27,7 @@ map_data = {
     'spawns': {
         'start': {'x': 452, 'y': 216, 'facing': 'up'},
         'arrival': {'x': 452, 'y': 216, 'facing': 'up'},
+        'from_path': {'x': 760, 'y': 248, 'facing': 'right'},
     },
     'meta': {'connected': True, 'stage': {
         'player': [452, 216], 'gyeongsub': [388, 280], 'ppaman': [516, 280],
@@ -42,7 +43,10 @@ map_data = {
          'x': 452, 'y': 216, 'w': 24, 'h': 16, 'hidden': True, 'solid': False},
         {'type': 'prop', 'id': 'hold_stairs', 'image': 'assets/props/maillard_hold_stairs.png',
          'x': 832, 'y': 224, 'w': 96, 'h': 80, 'solid': False, 'sortY': -5,
-         'script': 'maillard_hold_stairs'},
+         },
+        {'type': 'door', 'id': 'hold_stairs_door', 'x': 808, 'y': 216, 'w': 112, 'h': 88,
+         'to': 'maillard_path', 'spawn': 'from_hold', 'requires': 'maillard_hold_done',
+         'lockedScript': 'maillard_hold_stairs', 'sfx': False, 'interact': True},
         {'type': 'npc', 'id': 'yongjun', 'sprite': 'yongjun', 'x': 48, 'y': 248,
          'facing': 'right', 'wander': 0, 'solid': False, 'hidden': True,
          'unless': 'maillard_hold_done'},
