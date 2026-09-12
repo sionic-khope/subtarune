@@ -26,3 +26,15 @@ test('test_enemies_patterns_and_images_exist', () => {
     const img = e.image || e.sheet?.src; assert.ok(img && fs.existsSync(new URL('../../' + img, import.meta.url)), `${id}: 이미지 없음 ${img}`);
   }
 });
+
+test('test_baron_has_100_hp_and_uses_standard_attack_and_enemy_modes', () => {
+  const baron = ENEMIES.baron;
+  assert.equal(baron.hp, 100);
+  assert.equal(Math.ceil(baron.hp / (3 * 2)), 17);
+  assert.equal(baron.defense, undefined);
+  assert.equal(baron.patterns.length, 6);
+  assert.deepEqual(baron.pivot, [128, 238]);
+  assert.equal(baron.sheet.px, 1);
+  assert.equal(baron.idle.swayX, 0);
+  assert.equal(baron.idle.swayY, 0);
+});

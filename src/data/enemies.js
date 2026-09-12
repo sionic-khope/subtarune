@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // 적 레지스트리 — 적 하나 = 항목 하나. 여기만 고치면 새 적이 전투에 나온다 (2026-09-10 전투 브리핑: "여러 적이 생길 때 쉽게 커스텀·추가").
 //   name        전투 화면 이름
-//   hp          체력 (우리 공격은 무조건 1 데미지 → hp = 맞아야 하는 횟수)
+//   hp          체력 (기본 공격 1, 레드·블루 버프 뒤 2 데미지)
 //   image / sheet  그림: image = 단일 PNG(전투 전용, pivot = 발 기준 [x,y], 이미 왼쪽을 보는 그림) | sheet = 오버월드 4x4 시트에서 왼쪽 보는 줄(row 2) 두 프레임을 번갈아
 //   scale       그리는 배율
 //   damage      탄에 맞았을 때 우리 쪽이 잃는 HP
@@ -12,6 +12,37 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  // 바론: 공격 2인 3인 파티가 모두 공격하면 17라운드. 기존 공격/탄막 모드로 처치하며 후속 기믹은 modes 레지스트리에서 선택한다.
+  // 256px 셀 × 0.9 = 230px. 기본 발(396,176)에 dx/dy를 더해 그림 전체를 (233,8)~(463,238)에 둔다.
+  baron: {
+    name: '바론', hp: 100,
+    sheet: { src: 'assets/enemies/baron-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 240, px: 1 },
+    pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 12, money: 300,
+    idle: { swayX: 0, swayY: 0, period: 2.4 },
+    patterns: [
+      // 지면 분출: 절반의 칸은 안전하며 다음 분출 전 충분히 이동할 수 있다.
+      { type: 'zone', cols: 3, rows: 2, count: 3, warn: 1.0, hit: 0.3, every: 1.65, duration: 4.8, kind: 'blue' },
+      // 거대한 산성 방울: 좌우로 번갈아 지나갈 넓은 띠를 먼저 보여 준다.
+      { type: 'giant', from: 'sides', r: 32, speed: 125, warn: 0.9, every: 2.3, shape: 'bubble', kind: 'blue', duration: 5.0 },
+      // 촉수 휩쓸기: 가로와 세로 두 줄을 번갈아 예고한다.
+      { type: 'beam', dir: 'alt', count: 2, thick: 20, warn: 0.8, hit: 0.25, every: 1.55, duration: 4.8, kind: 'blue' },
+      // 송곳니 부채: 위쪽에서 느리게 퍼지는 탄 사이로 빠져나간다.
+      { type: 'burst', at: 'top', n: 12, speed: 85, every: 1.05, r: 5, shape: 'fang', kind: 'white', duration: 4.8 },
+      // 산성 비: 실제 낙하 속도는 60~90px/s, 빈 세로 길로 이동한다.
+      { type: 'rain', rate: 0.25, speed: 75, r: 6, shape: 'bubble', kind: 'blue', duration: 4.8 },
+      // 촉수 한 줄을 비키며 느린 조준 방울을 옆으로 흘린다.
+      { type: 'combo', parts: [
+        { type: 'beam', dir: 'h', count: 1, thick: 22, warn: 0.9, hit: 0.25, every: 1.7, duration: 5.0, kind: 'blue' },
+        { type: 'aimed', every: 0.72, speed: 85, r: 6, shape: 'bubble', kind: 'blue', duration: 5.0 },
+      ] },
+    ],
+    lines: {
+      appear: '* 바론이 거대한 몸을 일으킨다!',
+      idle: ['* 바론의 입에서 산성 방울이 떨어진다.', '* 바론의 촉수가 바닥을 훑는다.', '* 둥지 바닥이 낮게 울린다.'],
+      speak: ['크르르르…', '크아아아!'],
+      die: '* 바론이 쓰러졌다.',
+    },
+  },
   // PR #7 전투 이미지(64×64, 이미 왼쪽을 봄, 발 pivot 32,60) — docs/handoffs/combat-assets.md. 색상별 능력치 차이는 아직 없음(브리핑: CS 각 HP 6)
   cs_red: {
     name: '레드 CS', hp: 6,

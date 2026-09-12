@@ -79,3 +79,10 @@
 | 보라 바람과 함께 한 번에 솟는 팡! | 105→36Hz 감쇠 저음 + 96Hz 충격 공명, 브라운 노이즈(seed 90, 35~650Hz) 지면 폭발 + 핑크 노이즈(seed 91, 240~3400Hz) 25ms 상승·960ms 감쇠 바람. 3ms 어택, limiter 0.78. 단일 충격이며 칼 샘플 없음 | `assets/audio/sfx/baron_eruption.mp3` / `baron_eruption` | 44.1kHz 모노, **1.050초**, 평균 -15.8dBFS / peak -2.2dBFS |
 
 각 파일 전체를 한 번 디코드하여 비무음·클리핑 없음과 길이를 확인했다. 런타임은 두 이름을 SFX 로드 목록에 등록하고 공격/분출 시작 프레임에 각각 한 번 재생한다.
+
+### 바론 전투 BGM (2026-09-12)
+
+- 사용자 지정 원본: https://www.youtube.com/watch?v=B8Us0DZgexw — **30. Black Knife (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox**, 업로더 Toby Fox. yt-dlp 메타데이터에서 ID `B8Us0DZgexw`·제목·122초를 확인했다. 재생목록의 다른 곡은 받지 않았다(`--no-playlist`).
+- 파일: `assets/audio/bgm/baron_battle.mp3`, 통합 이름 `baron_battle`. YouTube 오디오 포맷 251을 ffmpeg/libmp3lame 품질 2로 MP3 변환. **48kHz 스테레오, 121.928초, 2,909,612바이트**.
+- 음악 시작부터 끝까지 그대로 변환했으며 트리밍·음높이/속도/음량 변경·합성 대체 없음. MP3 변환에 따른 손실 압축만 있다. ffprobe 규격·길이 확인과 ffmpeg 전체 디코드가 오류 없이 완료됐다.
+- 이 파일은 전투용이다. 기존 등장 컷신용 `baron_intro.mp3`(The Chase)는 변경하지 않았다.

@@ -141,9 +141,9 @@
    "y": 1088,
    "w": 128,
    "h": 40,
-   "once": true,
+   "once": false,
    "flag": "obj4_baron_seen",
-   "unless": "obj4_baron_done",
+   "unless": "obj4_baron_won",
    "script": "obj4_baron_intro"
   },
   {
@@ -167,7 +167,8 @@
    "facing": "down",
    "wander": 0,
    "visualScale": 1.8,
-   "requires": "obj4_baron_done"
+   "requires": "obj4_baron_done",
+   "unless": "obj4_baron_won"
   },
   {
    "type": "npc",

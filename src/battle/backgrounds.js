@@ -5,6 +5,7 @@
 //   temple : 고대 사원 광장(델타룬 왕 전투 참고) — 어두운 기둥·아치 실루엣 + 둥근 판석 무대(원근 줄눈) + 가운데 신성한 오브젝트 문양(빛나는 테). 한 번 그려 캐시
 // ─────────────────────────────────────────────────────────────
 import { makeCanvas } from '../core/gfx.js';
+import { getTile, tileCanvas } from '../world/tiles.js';
 export const BATTLE_BGS = {};
 /** 새 전투 배경 등록: fn(ctx, battle) — 480×360, 패널(y 246~)·HP 띠는 위에 덮인다 */
 export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
@@ -51,3 +52,20 @@ function buildTemple() {
   return c;
 }
 registerBattleBg('temple', (ctx) => { if (!templeCache) templeCache = buildTemple(); ctx.drawImage(templeCache, 0, 0); });
+
+let nestCache = null;
+registerBattleBg('baron_nest', (ctx, battle) => {
+  if (!nestCache) {
+    nestCache = makeCanvas(480, 360);
+    const g = nestCache.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = g.createPattern(tileCanvas(getTile('a')), 'repeat');
+    g.fillRect(0, 0, 480, 360);
+    g.fillStyle = g.createPattern(tileCanvas(getTile('E')), 'repeat');
+    g.beginPath(); g.ellipse(240, 214, 290, 164, 0, 0, Math.PI * 2); g.fill();
+    const thorns = battle.game.propImages['assets/props/baron_thorns.png'];
+    if (thorns) for (let x = -32; x < 480; x += 48) g.drawImage(thorns, x, -26 + Math.round(Math.abs(x - 240) / 12), 80, 80);
+    g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, 0, 480, 360);
+  }
+  ctx.drawImage(nestCache, 0, 0);
+});

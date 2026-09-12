@@ -1,4 +1,18 @@
 // ─────────────────────────────────────────────────────────────
+
+import { Battle } from '../../battle/battle.js';
+
+/** 표준 조우와 컷신 전투가 공유하는 진입 연출. 전투·승리 뒤 동작은 호출자가 지정한다. */
+export function battleEntry(enemies, bgm) {
+  return [
+    { action: (g) => { g.sound.preloadBgm(bgm); Battle.preload(g, enemies); } },
+    { sfx: 'battle_start' }, { bgm: null, fadeOut: 0.2 }, { shake: 0.45, amp: 3 },
+    { vortex: { at: 'center', size: 40, grow: 0.9 } },
+    { zoom: 1.9, at: 'center', duration: 0.55 },
+    { vortex: { size: 900, grow: 0.5 } },
+    { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
+  ];
+}
 // 컷신 공용 헬퍼 (어느 컷신 파일에서든 import 해서 쓴다)
 //   import { rapid } from './helpers.js';
 // ─────────────────────────────────────────────────────────────

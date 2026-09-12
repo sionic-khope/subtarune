@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PATTERNS, Bullet } from '../../src/battle/bullets.js';
+import { ENEMIES } from '../../src/data/enemies.js';
 
 const BOX = { x: 140, y: 139, w: 200, h: 150 };
 const SOUL = { x: 240, y: 214, r: 6 };
@@ -70,4 +71,36 @@ test('test_patterns_burst_spreads_n_equal_speed_bullets_evenly', () => {
   for (const b of out) assert.ok(Math.abs(Math.hypot(b.vx, b.vy) - 110) < 0.01);
   const angles = out.map((b) => Math.atan2(b.vy, b.vx)).sort((a, c) => a - c);
   for (let i = 1; i < angles.length; i++) assert.ok(Math.abs((angles[i] - angles[i - 1]) - Math.PI / 6) < 0.01, '30° 간격');
+});
+
+test('test_baron_patterns_emit_damage_with_warned_areas_and_safe_space', () => {
+  for (const config of ENEMIES.baron.patterns) {
+    const pattern = PATTERNS[config.type](config);
+    let bullets = [], damaging = 0, seed = 17;
+    const dt = 1 / 60;
+    const api = {
+      box: BOX, soul: SOUL,
+      rnd: () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; },
+      emit: (options) => {
+        const bullet = new Bullet(options);
+        if (!bullet.harmless) damaging++;
+        if (bullet.zone) assert.ok(bullet.warn >= 0.3, `${config.type}: 영역 예고`);
+        bullets.push(bullet);
+      },
+    };
+    assert.ok(pattern.duration >= 4 && pattern.duration <= 5.2, `${config.type}: 방어 시간`);
+    for (let t = 0; t < pattern.duration; t += dt) {
+      pattern.update(t, dt, api);
+      for (const bullet of bullets) bullet.update(dt, BOX);
+      bullets = bullets.filter((bullet) => !bullet.out(BOX));
+      let safe = false;
+      for (let x = BOX.x + 12; x < BOX.x + BOX.w - 12 && !safe; x += 8) {
+        for (let y = BOX.y + 12; y < BOX.y + BOX.h - 12 && !safe; y += 8) {
+          safe = bullets.every((bullet) => !bullet.hits({ x, y, r: SOUL.r }));
+        }
+      }
+      assert.ok(safe, `${config.type}: ${t.toFixed(2)}초에 피할 공간 없음`);
+    }
+    assert.ok(damaging > 0, `${config.type}: 피해를 주는 탄이 없음`);
+  }
 });

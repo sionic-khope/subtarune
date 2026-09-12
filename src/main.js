@@ -19,6 +19,7 @@ import { loadCharacterMotions } from './world/character-motion.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
+import { battleEntry } from './data/cutscenes/helpers.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags } from './core/story.js';
@@ -403,10 +404,7 @@ class Game {
     this.encountering = true; this.player.moving = false;
     const flag = `${this.mapId}_${e.id}_defeated`;
     this.runScript([
-      { action: (g) => { g.sound.preloadBgm(e.def.bgm || 'rude_buster'); Battle.preload(g, e.def.enemies || ['cs_red']); } },   // 전투 브금·아틀라스·적 이미지 미리 로드 → 징글이 끝나는 순간 화면이 열리고 브금이 이어진다
-      { sfx: 'battle_start' }, { bgm: null, fadeOut: 0.2 }, { shake: 0.45, amp: 3 },   // 델타룬처럼 조우 순간 필드 브금은 끊고 징글만
-      { vortex: { at: 'center', size: 40, grow: 0.9 } }, { zoom: 1.9, at: 'center', duration: 0.55 }, { vortex: { size: 900, grow: 0.5 } },
-      { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
+      ...battleEntry(e.def.enemies || ['cs_red'], e.def.bgm || 'rude_buster'),
       { battle: { enemies: e.def.enemies || ['cs_red'], bgm: e.def.bgm || 'rude_buster', bg: e.def.bg || MAPS[this.mapId]?.battleBg, flag } },
       { bgm: null }, { zoom: 1 },
       { action: (g) => { if (g.lastBattle?.win) e.dead = true; g.encountering = false; g.resumeMapBgm(); } },   // 맵 브금 복귀 (전투 뒤 브금 사라지던 버그 2026-09-10)
@@ -897,7 +895,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-12.92';
+export const BUILD = '2026-09-12.93';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

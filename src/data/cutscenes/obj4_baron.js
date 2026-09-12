@@ -1,4 +1,5 @@
 import { FX } from '../fx.js';
+import { battleEntry } from './helpers.js';
 
 const Y = (text, extra = {}) => ({ speaker: '용준', portrait: 'yongjun', voice: 'yongjun', text, ...extra });
 const P = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text });
@@ -14,9 +15,9 @@ const roar = () => [
   { wait: 0.25 },
 ];
 
-/** Baron introduction only: the final challenge releases control without creating a battle. */
 export const obj4_baron_intro = Object.assign([
-  { if: (f) => f.obj4_baron_done, goto: 'done' },
+  { if: (f) => f.obj4_baron_won, goto: 'done' },
+  { if: (f) => f.obj4_baron_done, goto: 'fight' },
   { action: (g) => { g.sound.preloadBgm('baron_intro'); } },
   { hide: 'baron' },
   { parallel: [{ camera: [23.5, 24.5], duration: 1.25 }, { zoom: 0.8, duration: 1.25 }] },
@@ -47,7 +48,7 @@ export const obj4_baron_intro = Object.assign([
   Y('* ... ... 어'),
   closeBox,
   { sfx: 'rumble' },
-  { parallel: [{ camera: ROAR_CAMERA, duration: 0.9 }, { zoom: ROAR_ZOOM, duration: 0.9 }, { shake: 0.9, amp: 7 }] },
+  { parallel: [{ camera: ROAR_CAMERA, duration: 0.9 }, { zoom: ROAR_ZOOM, duration: 0.9 }, { shake: 3, amp: 7 }] },
   { bgm: 'baron_intro', volume: 0.55 },
   { parallel: [
     { emerge: 'baron', depth: 430, duration: 0.28, ease: 'out' },
@@ -102,6 +103,16 @@ export const obj4_baron_intro = Object.assign([
   { parallel: [{ camera: TALK_CAMERA, duration: 0.5 }, { zoom: 1, duration: 0.5 }] },
   P('* 바론 버스트다 씨발새끼 들어와'),
   { set: { obj4_baron_done: true } },
+  { label: 'fight' },
+  closeBox,
   { camera: 'player' },
+  ...battleEntry(['baron'], 'baron_battle'),
+  { battle: { enemies: ['baron'], bgm: 'baron_battle', bg: 'baron_nest', flag: 'obj4_baron_won', modes: { attack: 'rush', enemy: 'bullets' } } },
+  { remove: 'baron' }, { remove: 'baron_after' },
+  { zoom: 1, duration: 0 },
+  { action: (g) => g.resumeMapBgm() },
+  { camera: 'player' },
+  { regroup: true },
+  { fade: 'in', duration: 0.5 },
   { label: 'done' },
 ], { silent: true });

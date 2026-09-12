@@ -64,6 +64,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'button2_done',   items: ['바나나'] },                                             // 청록숲4 수상한 버튼 2 — teal4_events.js
   { flag: 'teal9_boss_won', enemies: ['red', 'blue'], attack: 2, hpBonus: 20 },             // 청록숲9 문지기 보스전 + 축복 버프 — teal9_boss.js
   { flag: 'obj2_banana_taken', items: ['바나나'] },                                          // 옵젝영역2 광장 바나나 — obj2_events.js
+  { flag: 'obj4_baron_won', enemies: ['baron'] },
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.
@@ -126,11 +127,12 @@ export const QA_POINTS = [
 ];
 
 const obj2Checkpoint = QA_POINTS.find((point) => point.id === 'obj2');
-for (const [id, desc, done] of [
-  ['obj3', '옵젝영역3: 바론 둥지로 올라가는 짧은 공허 길', false],
-  ['obj4', '옵젝영역4: 용준 대포 실패·바론 등장(전투 시작 전까지)', false],
-  ['obj4_after', '옵젝영역4: 바론 대치 연출 후(전투 없음)', true],
+for (const [id, desc, done, won] of [
+  ['obj3', '옵젝영역3: 바론 둥지로 올라가는 짧은 물길', false, false],
+  ['obj4', '옵젝영역4: 용준 대포 실패·바론 등장과 전투', false, false],
+  ['obj4_battle', '옵젝영역4: 바론 전투 직전(위로 걸어 진입)', true, false],
+  ['obj4_after', '옵젝영역4: 바론 처치 후', true, true],
 ]) {
-  QA_POINTS.push({ ...obj2Checkpoint, id, desc, map: id === 'obj3' ? 'obj3' : 'obj4', spawn: 'from_bottom',
-    flags: { ...obj2Checkpoint.flags, ...(done ? { obj4_baron_seen: true, obj4_baron_done: true } : {}) }, party: [...obj2Checkpoint.party] });
+  QA_POINTS.push({ ...obj2Checkpoint, id, desc, map: id === 'obj3' ? 'obj3' : 'obj4', spawn: id === 'obj4_battle' ? 'scene' : 'from_bottom',
+    flags: { ...obj2Checkpoint.flags, ...(done ? { obj4_baron_seen: true, obj4_baron_done: true } : {}), ...(won ? { obj4_baron_won: true } : {}) }, party: [...obj2Checkpoint.party] });
 }

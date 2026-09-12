@@ -8,9 +8,16 @@ import { CHARACTERS } from '../../src/data/characters.js';
 
 const flatten = (nodes) => nodes.flatMap((node) => [node, ...flatten(node.parallel || []), ...flatten(Array.isArray(node.async) ? node.async : [])]);
 
-test('test_baron_intro_stops_after_challenge_without_starting_battle', () => {
+test('test_baron_intro_starts_standard_battle_after_exact_challenge', () => {
   const nodes = flatten(obj4_baron_intro);
-  assert.equal(nodes.some((node) => node.battle || node.map), false);
+  const fight = nodes.find((node) => node.battle)?.battle;
+  assert.deepEqual(fight.enemies, ['baron']);
+  assert.equal(fight.bgm, 'baron_battle');
+  assert.equal(fight.flag, 'obj4_baron_won');
+  assert.deepEqual(fight.modes, { attack: 'rush', enemy: 'bullets' });
+  assert.equal(nodes.some((node) => node.map), false);
+  const challenge = nodes.findIndex((node) => node.text?.includes('바론 버스트'));
+  assert.ok(nodes.findIndex((node) => node.sfx === 'battle_start') > challenge);
   assert.equal(nodes.filter((node) => node.motion === 'baron' && node.sfx === 'baron_roar').length, 3);
   assert.equal(nodes.filter((node) => node.puff).length, 1);
   assert.ok(nodes.some((node) => node.hop === 'voidgrub' && node.sfx === false));
@@ -18,6 +25,15 @@ test('test_baron_intro_stops_after_challenge_without_starting_battle', () => {
   assert.ok(nodes.find((node) => node.set?.obj4_baron_done));
   assert.deepEqual(QA_POINTS.find((point) => point.id === 'obj4').party, ['gyeongsub', 'ppaman']);
   assert.ok(QA_POINTS.find((point) => point.id === 'obj4_after').flags.obj4_baron_done);
+  assert.ok(QA_POINTS.find((point) => point.id === 'obj4_after').flags.obj4_baron_won);
+  assert.equal(QA_POINTS.find((point) => point.id === 'obj4_battle').flags.obj4_baron_won, undefined);
+});
+
+test('test_baron_shakes_for_three_seconds_before_the_fast_eruption', () => {
+  const rise = obj4_baron_intro.findIndex((node) => node.parallel?.some((part) => part.emerge));
+  const prepare = obj4_baron_intro[rise - 2];
+  assert.equal(prepare.parallel.find((node) => node.shake).shake, 3);
+  assert.equal(obj4_baron_intro[rise].parallel.find((node) => node.emerge).duration, 0.28);
 });
 
 test('test_baron_transparent_motion_has_explicit_nonmatching_chroma_contract', () => {
