@@ -50,14 +50,20 @@ for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_sa
     assert.equal(map.bgm, bgm);
     assert.equal(map.meta.connected, true);
     assert.equal(map.backdrop, undefined);
-    assert.equal(map.enter, undefined);
-    assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 1);
-    const interiorEntities = map.entities.filter(entity => entity.id.endsWith('_interior') || entity.type === 'door');
+    assert.equal(map.enter?.script, id === 'maillard_saloon' ? 'maillard_starboard_gate' : undefined);
+    const originalEntities = map.entities.filter(entity => !entity.requires);
+    assert.equal(originalEntities.filter((entity) => entity.type === 'door').length, 1);
+    const interiorEntities = originalEntities.filter(entity => entity.id.endsWith('_interior') || entity.type === 'door');
     assert.ok(interiorEntities.every((entity) => ['prop', 'door'].includes(entity.type)));
     assert.ok(interiorEntities.every((entity) => !entity.script && !entity.flag && !entity.requires));
-    assert.equal(map.entities.filter(entity => entity.type === 'npc').length, id === 'maillard_storage' ? 2 : 1);
+    assert.equal(map.entities.filter(entity => entity.type === 'npc' && !entity.id.startsWith('starboard_')).length, id === 'maillard_storage' ? 2 : 1);
     if (id === 'maillard_saloon') assert.equal(map.name, '선장실로 가는 길');
-    assert.equal(tiles.solidRect(32, 160, width - 64, 224), false);
+    assert.equal(tiles.solidRect(32, 160, width - (id === 'maillard_saloon' ? 96 : 64), 224), false);
+    if (id === 'maillard_saloon') {
+      assert.equal(tiles.solidRect(800, 224, 24, 96), true);
+      const opened = new TileMap({ ...map, rows: map.rows.map((row, i) => map.tileSwaps.maillard_starboard_open.rows[i] ?? row) });
+      assert.equal(opened.solidRect(32, 160, width - 64, 224), false);
+    }
     for (const point of [[0, 240], [width - 1, 240], [240, 159], [240, 384]]) {
       assert.equal(tiles.solidRect(...point, 1, 1), true);
     }

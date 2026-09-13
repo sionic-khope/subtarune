@@ -8,7 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { QA_POINTS, STATE_FROM_FLAGS, stateFromFlags, STAGES } from '../../src/core/story.js';
+import { QA_POINTS, STATE_FROM_FLAGS, stateFromFlags, STAGES, storyBgm } from '../../src/core/story.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
@@ -93,4 +93,28 @@ test('test_qa_state_before_saloon_keeps_optional_shop_upgrades_unpurchased', () 
     assert.equal(!!point.flags?.shop_yongjun_cialis, false, point.id);
     assert.equal(!!point.flags?.shop_yongjun_vaseline, false, point.id);
   }
+});
+
+test('test_qa_ship_assault_points_preserve_victory_reward_and_only_completed_beats', () => {
+  const points = ['captain_attack', 'maillard_starboard_gate', 'maillard_starboard'].map(id => QA_POINTS.find(point => point.id === id));
+  const previous = derive(QA_POINTS.find(point => point.id === 'captain_aftermath'));
+  for (const point of points) {
+    assert.deepEqual(derive(point), previous);
+    assert.equal(point.flags.captain_aftermath_done, true);
+    assert.equal(point.flags.captain_mankatsuki_defeated, true);
+    assert.deepEqual(point.party, ['gyeongsub', 'ppaman']);
+  }
+  assert.equal(points[0].flags.captain_attack_done, undefined);
+  assert.equal(points[1].flags.captain_attack_done, true);
+  assert.equal(points[1].flags.maillard_starboard_open, undefined);
+  assert.equal(points[2].flags.maillard_starboard_open, true);
+});
+
+test('test_story_assault_bgm_survives_captain_saloon_and_deck_without_affecting_prior_maps', () => {
+  for (const map of ['maillard_captain', 'maillard_saloon', 'maillard_starboard']) {
+    assert.equal(storyBgm(map, { captain_attack_started: true, captain_aftermath_done: true }), 'youngcle_assault');
+  }
+  assert.equal(storyBgm('maillard_captain', { captain_aftermath_done: true }), null);
+  assert.equal(storyBgm('maillard_saloon', {}), undefined);
+  assert.equal(storyBgm('maillard_lounge', { captain_attack_started: true }), undefined);
 });

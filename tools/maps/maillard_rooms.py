@@ -63,8 +63,17 @@ def main() -> None:
                 'requires': 'storage_viewer_defeated',
             })
         if map_id == 'maillard_saloon':
-            map_data['preload'].extend(['assets/sprites/eunbyeol.png', 'assets/props/captain_door.png'])
+            map_data['preload'].extend(['assets/sprites/eunbyeol.png', 'assets/props/captain_door.png',
+                                        'assets/props/doorway_right.png', 'assets/sprites/junhee.png',
+                                        'assets/sprites/yongjun.png'])
+            map_data['enter'] = {'script': 'maillard_starboard_gate'}
             map_data['spawns']['from_captain'] = {'x': 628, 'y': 288, 'facing': 'down'}
+            map_data['spawns']['from_starboard'] = {'x': 692, 'y': 264, 'facing': 'left'}
+            map_data['tileSwaps'] = {'maillard_starboard_open': {'rows': {
+                str(row): rows[row] for row in range(7, 10)
+            }}}
+            for row in range(7, 10):
+                rows[row] = rows[row][:25] + '  '
             map_data['entities'].extend([
                 {'type': 'npc', 'id': 'eunbyeol', 'sprite': 'eunbyeol',
                  'x': 404, 'y': 256, 'facing': 'down', 'wander': 0,
@@ -73,6 +82,19 @@ def main() -> None:
                  'x': 544, 'y': 0, 'w': 192, 'h': 192, 'solid': False, 'sortY': -10},
                 {'type': 'sign', 'id': 'captain_door', 'x': 588, 'y': 148,
                  'w': 104, 'h': 48, 'solid': False, 'script': 'maillard_captain_enter'},
+                {'type': 'prop', 'id': 'starboard_door_image', 'image': 'assets/props/doorway_right.png',
+                 'x': 824, 'y': 216, 'w': 36, 'h': 100, 'solid': False, 'sortY': 0,
+                 'requires': 'maillard_starboard_open'},
+                {'type': 'door', 'id': 'saloon_to_starboard', 'x': 824, 'y': 224,
+                 'w': 40, 'h': 96, 'to': 'maillard_starboard', 'spawn': 'from_saloon',
+                 'sfx': 'plug', 'interact': True, 'requires': 'maillard_starboard_open',
+                 'lockedScript': 'maillard_starboard_gate'},
+                {'type': 'npc', 'id': 'starboard_junhee', 'sprite': 'junhee',
+                 'x': 740, 'y': 264, 'facing': 'right', 'wander': 0, 'solid': False,
+                 'requires': 'captain_attack_done', 'unless': 'maillard_starboard_open'},
+                {'type': 'npc', 'id': 'starboard_yongjun', 'sprite': 'yongjun',
+                 'x': 676, 'y': 204, 'facing': 'right', 'wander': 0, 'solid': False,
+                 'requires': 'captain_attack_done', 'unless': 'maillard_starboard_open'},
             ])
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:

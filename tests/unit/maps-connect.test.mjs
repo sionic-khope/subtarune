@@ -11,10 +11,11 @@ const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x'
 for (const id of idx) {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, `assets/maps/${id}.json`), 'utf8'));
   if (!m.rows) continue;
-  const reachable = () => {
+  const reachable = (flag) => {
     const H = m.rows.length, W = m.rows[0].length; const solid = new Set();
+    const rows = m.rows.map((row, i) => m.tileSwaps?.[flag]?.rows[i] ?? row);
     for (const e of m.entities || []) if (e.solid !== false && !e.unless && (e.type === 'prop' || e.type === 'raft')) { const x0 = Math.floor(e.x / 32), y0 = Math.floor(e.y / 32), x1 = Math.floor((e.x + (e.w || 32) - 1) / 32), y1 = Math.floor((e.y + (e.h || 32) - 1) / 32); for (let r = y0; r <= y1; r++) for (let c = x0; c <= x1; c++) solid.add(`${r},${c}`); }
-    const ok = (r, c) => r >= 0 && c >= 0 && r < H && c < W && WALK.has(m.rows[r][c]) && !solid.has(`${r},${c}`);
+    const ok = (r, c) => r >= 0 && c >= 0 && r < H && c < W && WALK.has(rows[r][c]) && !solid.has(`${r},${c}`);
     const s = m.spawns.start || Object.values(m.spawns)[0]; const start = [Math.floor(s.y / 32), Math.floor(s.x / 32)];
     const stations = (m.entities || []).filter(e => e.type === 'raft' && e.route?.length).map(e =>
       [[e.x, e.y], ...e.route].flatMap(([x, y]) => {
@@ -57,7 +58,16 @@ for (const id of idx) {
     const reach = (x, y) => seen.has(`${Math.floor(y / 32)},${Math.floor(x / 32)}`);
     const bad = [];
     for (const [name, sp] of Object.entries(m.spawns)) if (!reach(sp.x, sp.y)) bad.push(`spawn ${name}`);
-    for (const e of m.entities || []) { if (e.type === 'enemy' || e.type === 'npc') { if (!reach(e.x, e.y)) bad.push(`${e.type} ${e.id}`); } if (e.type === 'door') { const cy = e.y + (e.h || 32) / 2, cx = e.x + (e.w || 8) / 2; if (![cx - 20, cx, cx + 20].some((x) => reach(x, cy))) bad.push(`door→${e.to}`); } }   // 문 자체는 가장자리 띠라 양옆 한 칸도 본다
+    for (const e of m.entities || []) {
+      if (e.type === 'enemy' || e.type === 'npc') {
+        if (!reach(e.x, e.y)) bad.push(`${e.type} ${e.id}`);
+      }
+      if (e.type === 'door') {
+        const doorSeen = e.requires ? reachable(e.requires) : seen;
+        const cy = e.y + (e.h || 32) / 2, cx = e.x + (e.w || 8) / 2;
+        if (![cx - 20, cx, cx + 20].some(x => doorSeen.has(`${Math.floor(cy / 32)},${Math.floor(x / 32)}`))) bad.push(`door→${e.to}`);
+      }
+    }
     assert.deepEqual(bad, [], `닿지 않음: ${bad.join(', ')}`);
   });
 }

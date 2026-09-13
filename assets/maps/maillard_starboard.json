@@ -1,0 +1,65 @@
+{
+ "id": "maillard_starboard",
+ "name": "마이야르호 우현 갑판",
+ "stage": "void_fallen",
+ "bgm": "youngcle_assault",
+ "dim": 0,
+ "backdrop": "maillard_sunrise",
+ "followScreenY": 285,
+ "sunrise": {
+  "animated": false
+ },
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
+  "!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
+  "!MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/backdrops/maillard_sunset.png",
+  "assets/props/maillard_sun.png",
+  "assets/backdrops/maillard_sea.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 164,
+   "y": 384,
+   "facing": "right"
+  },
+  "from_saloon": {
+   "x": 164,
+   "y": 384,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "starboard_to_saloon",
+   "x": 16,
+   "y": 352,
+   "w": 32,
+   "h": 96,
+   "to": "maillard_saloon",
+   "spawn": "from_starboard",
+   "sfx": false,
+   "interact": false
+  }
+ ]
+}

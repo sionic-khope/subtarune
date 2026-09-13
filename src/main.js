@@ -36,6 +36,8 @@ import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
 import { MaillardArrival } from './scenes/maillard-arrival.js';
+import { ShipAssault } from './scenes/ship-assault.js';
+import { SHIP_ASSAULT } from './data/ship-assault.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
@@ -65,6 +67,8 @@ class Game {
     this.lastBattle = null;
     this.seaChase = null;
     this.maillardArrival = null;
+    this.shipAssault = null;
+    this.captainAttackPending = false;
     this.sunrise = new MaillardSunrise(MAILLARD_SUNRISE);
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu | battle-preview
@@ -117,6 +121,7 @@ class Game {
       }));
     } catch {}
     const propSrcs = new Set(FX_SHEETS);
+    for (const src of Object.values(SHIP_ASSAULT.images)) propSrcs.add(src);
     for (const m of Object.values(MAPS)) { for (const e of (m.entities || [])) if (e.image) propSrcs.add(e.image); for (const src of (m.preload || [])) propSrcs.add(src); }   // 엔티티 이미지 + 컷신에서 spawn 할 이미지(preload)
     await Promise.all([
       ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
@@ -181,6 +186,8 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    this.finishShipAssault(true);
+    this.captainAttackPending = false;
     this.darkSmoke = null;
     this.musicCamera?.dispose();
     this.shopPending = false;
@@ -384,6 +391,8 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    this.finishShipAssault(true);
+    this.captainAttackPending = false;
     this.darkSmoke = null;
     this.musicCamera?.dispose();
     this.seaRetryPromptPending = false;
@@ -516,6 +525,8 @@ class Game {
     if (!MAPS[mapId]) { console.warn('[map] 없는 맵', mapId); return; }                        // 문/QA/스크립트가 잘못된 id 를 줘도 게임이 죽지 않는다 (2026-09-11 smoke)
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      this.finishShipAssault(true);
+      this.captainAttackPending = false;
       this.darkSmoke = null;
       this.booms = [];
       this.maillardArrival?.dispose(); this.maillardArrival = null;
@@ -574,6 +585,10 @@ class Game {
       this.runScript('captain_aftermath');
       return;
     }
+    if (mapId === 'maillard_captain' && this.has('captain_aftermath_done') && !this.has('captain_attack_done')) {
+      this.runScript('captain_attack');
+      return;
+    }
     const en = MAPS[mapId]?.enter;
     if (!en || !en.script || this.dialogue.running) return;
     if (en.flag && this.has(en.flag)) return;
@@ -608,7 +623,47 @@ class Game {
     const script = Array.isArray(key) ? key : SCRIPTS[key];   // 배열이면 즉석 스크립트(필드 조우 등)
     if (!script) { console.warn('[script] 없음:', key); return; }
     this.player.moving = false;
-    this.dialogue.start(script, () => { if (onEnd) onEnd(); this.autosave(); });
+    this.dialogue.start(script, () => {
+      if (onEnd) onEnd();
+      if (this.mapId === 'maillard_captain' && this.has('captain_aftermath_done') && !this.has('captain_attack_done')) this.captainAttackPending = true;
+      this.autosave();
+    });
+  }
+
+  /** Start from stable room anchors so old and interrupted saves resume the same attack. */
+  startShipAssault() {
+    this.finishShipAssault();
+    this.captainAttackPending = false;
+    const junhee = this.entities.find(e => e.id === 'captain_junhee_restored');
+    const carpet = this.entities.find(e => e.id === 'captain_carpet');
+    [junhee.x, junhee.y] = freeSpot(this, junhee,
+      carpet.x + carpet.w / 2 - junhee.w / 2 + 4, carpet.y - junhee.h - 2);
+    junhee.visible = true; junhee.facing = 'down';
+    for (const [i, id] of ['ppaman', 'player', 'gyeongsub'].entries()) {
+      const actor = id === 'player' ? this.player : this.entities.find(e => e.id === id);
+      [actor.x, actor.y] = freeSpot(this, actor,
+        junhee.x + junhee.w / 2 - actor.w / 2 + (i - 1) * 64,
+        junhee.y + junhee.h - actor.h + 90);
+      actor.facing = 'up'; actor.moving = false;
+    }
+    this.player.trail = [];
+    this.camera.target = this.player; this.camera.locked = false; this.camera.snap();
+    this.entities = this.entities.filter(e => e.id !== 'captain_attack_yongjun');
+    const door = this.entities.find(e => e.id === 'captain_to_saloon');
+    this.spawn({ type: 'npc', id: 'captain_attack_yongjun', sprite: 'yongjun',
+      x: door.x + door.w / 2 - 12, y: Math.max(this.map.pxH + 48, this.camera.y + SCREEN_H + 80),
+      hidden: true, solid: false, facing: 'up', wander: 0 });
+    this.sound.preloadBgm(SHIP_ASSAULT.bgm);
+    this.shipAssault = new ShipAssault(this);
+  }
+
+  /** Release ocean, dust and shake on completion or any lifecycle interruption. */
+  finishShipAssault(abort = false) {
+    if (abort && this.shipAssault) {
+      this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
+      this.textbox.close(); this.background = [];
+    }
+    this.shipAssault?.dispose(); this.shipAssault = null;
   }
 
   /** The shop opens after its interaction script releases the dialogue runner. */
@@ -684,6 +739,10 @@ class Game {
       this.title.update(dt, Input);
       return;
     }
+    if (this.captainAttackPending && !this.dialogue.running && !this.transitioning) {
+      this.captainAttackPending = false;
+      if (this.mapId === 'maillard_captain' && !this.has('captain_attack_done')) this.runScript('captain_attack');
+    }
     if (this.shopPending && !this.dialogue.running && !this.transitioning) {
       this.shopPending = false;
       this.player.moving = false;
@@ -721,6 +780,11 @@ class Game {
     if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
+    this.shipAssault?.update(dt);
+    if (this.shipAssault?.ocean) {
+      if (this.dialogue.running) this.dialogue.update(dt, Input);
+      return;
+    }
 
     if (this.maillardArrival) {
       this.maillardArrival.update(dt);
@@ -870,6 +934,15 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
+    if (this.shipAssault?.ocean) {
+      ctx.save();
+      if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
+      this.shipAssault.draw(ctx);
+      ctx.restore();
+      this.textbox.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
     if (this.maillardArrival) {
       ctx.save();
       if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
@@ -961,7 +1034,7 @@ class Game {
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
     if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
     this.sysdialog.draw(ctx);
-
+    this.shipAssault?.drawDust(ctx);
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
     if (this.prompt) this.drawPrompt(ctx);
@@ -1123,7 +1196,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-13.133';
+export const BUILD = '2026-09-13.134';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

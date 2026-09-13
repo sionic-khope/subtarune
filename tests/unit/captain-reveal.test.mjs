@@ -29,7 +29,7 @@ test('captain arrival starts the reveal once and preserves a separate transforme
   assert.equal(ordinary.facing, 'right');
   assert.equal(transformed.requires, 'captain_reveal_done');
   assert.equal(transformed.sprite, 'junhee_mankatsuki');
-  assert.deepEqual(QA_POINTS.filter(point => point.map === room.id).map(point => point.id), ['maillard_captain', 'captain_aftermath']);
+  assert.deepEqual(QA_POINTS.filter(point => point.map === room.id).map(point => point.id), ['maillard_captain', 'captain_aftermath', 'captain_attack']);
   assert.equal(storyBgm(room.id, { captain_reveal_done: true }), 'captain_mankatsuki');
 });
 

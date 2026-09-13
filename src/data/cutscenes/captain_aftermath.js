@@ -113,7 +113,7 @@ export const captain_aftermath = Object.assign([
   J('{shake}{c=yellow}그리고 족치는거다!{/c}{/shake}'),
   { motion: 'captain_mankatsuki', name: 'laugh', sfx: 'laugh_junhee' },
   J('야 요플래 넌 우리 동료로 받아주겠다.'),
-  P('그렇구만 그럼 다음 목적지가 있..'),
+  { ...P('그렇구만 그럼 다음 목적지가 있..'), auto: 0.5 },
   { set: { captain_aftermath_done: true } },
   { action: game => {
     const actor = game.entities.find(entity => entity.id === 'captain_mankatsuki');

@@ -80,6 +80,7 @@
    "facing": "down",
    "wander": 0,
    "requires": "captain_aftermath_done",
+   "unless": "captain_attack_done",
    "script": "captain_aftermath"
   },
   {

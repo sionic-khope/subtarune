@@ -27,6 +27,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
+  if (flags.captain_attack_started && ['maillard_captain', 'maillard_saloon', 'maillard_starboard'].includes(mapId)) return 'youngcle_assault';
   if (mapId === 'maillard_captain' && (flags.captain_mankatsuki_defeated || flags.captain_aftermath_done)) return null;
   if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
   if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
@@ -212,3 +213,15 @@ const captainCheckpoint = QA_POINTS.find(point => point.id === 'maillard_captain
 QA_POINTS.push({ ...captainCheckpoint, id: 'captain_aftermath', desc: '만카츠키 승리 직후: 쥰희 회복·요플래의 과거',
   flags: { ...captainCheckpoint.flags, captain_reveal_started: true, captain_reveal_done: true, captain_mankatsuki_defeated: true },
   party: [...captainCheckpoint.party] });
+
+const aftermathCheckpoint = QA_POINTS.find(point => point.id === 'captain_aftermath');
+QA_POINTS.push({ ...aftermathCheckpoint, id: 'captain_attack', desc: '마이야르호 습격: 철 전함 등장',
+  flags: { ...aftermathCheckpoint.flags, captain_aftermath_done: true }, party: [...aftermathCheckpoint.party] });
+QA_POINTS.push({ ...aftermathCheckpoint, id: 'maillard_starboard_gate', desc: '습격 직후: 쥰희의 갑판 문 공사',
+  map: 'maillard_saloon', spawn: 'from_captain',
+  flags: { ...aftermathCheckpoint.flags, captain_aftermath_done: true, captain_attack_started: true, captain_attack_done: true },
+  party: [...aftermathCheckpoint.party] });
+QA_POINTS.push({ ...aftermathCheckpoint, id: 'maillard_starboard', desc: '마이야르호 오른쪽 갑판',
+  map: 'maillard_starboard', spawn: 'from_saloon',
+  flags: { ...aftermathCheckpoint.flags, captain_aftermath_done: true, captain_attack_started: true,
+    captain_attack_done: true, maillard_starboard_open: true }, party: [...aftermathCheckpoint.party] });

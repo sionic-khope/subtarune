@@ -100,12 +100,12 @@ for (const completed of [false, true]) {
     }
     assert.equal(game.dialogue.running, false);
     assert.equal(game.mapId, 'maillard_captain');
-    assert.deepEqual(effects, completed ? ['finish', 'stop'] : ['finish', 'stop', 'captain_aftermath']);
+    assert.deepEqual(effects, completed ? ['finish', 'stop', 'captain_attack'] : ['finish', 'stop', 'captain_aftermath']);
   });
 }
 
 test('eunbyeol is in the captain path and talks once without staging or rewards', () => {
-  const npcs = readMap('maillard_saloon').entities.filter(e => e.type === 'npc');
+  const npcs = readMap('maillard_saloon').entities.filter(e => e.type === 'npc' && !e.requires);
   assert.deepEqual(npcs.map(e => e.id), ['eunbyeol']);
   assert.equal(readMap('maillard_lounge').entities.some(e => e.id === 'eunbyeol'), false);
   const game = fixture();
@@ -182,6 +182,6 @@ test('captain room keeps timber floors, broad clear center and one return to the
   for (const y of [376, 424, 472]) assert.equal(tiles.solidRect(420, y, 24, 16), false);
   for (const e of room.entities.filter(e => e.solid)) assert.ok(e.y + e.h <= 256 || e.x >= 672 || e.x + e.w <= 192);
   const qa = QA_POINTS.filter(point => point.map === room.id);
-  assert.deepEqual(qa.map(point => point.id), ['maillard_captain', 'captain_aftermath']);
+  assert.deepEqual(qa.map(point => point.id), ['maillard_captain', 'captain_aftermath', 'captain_attack']);
   assert.equal(qa[0].flags.maillard_sunrise_seen, true);
 });
