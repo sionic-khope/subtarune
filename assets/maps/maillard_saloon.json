@@ -1,6 +1,6 @@
 {
  "id": "maillard_saloon",
- "name": "마이야르호 안쪽 라운지",
+ "name": "선장실로 가는 길",
  "stage": "void_fallen",
  "bgm": "maillard_lounge",
  "dim": 0.08,
@@ -22,9 +22,7 @@
  ],
  "preload": [
   "assets/tiles/maillard_deck.png",
-  "assets/props/maillard_saloon_interior.png",
-  "assets/sprites/yerim.png",
-  "assets/sprites/yerim-kick.png"
+  "assets/props/maillard_saloon_interior.png"
  ],
  "spawns": {
   "start": {
@@ -59,60 +57,6 @@
    "spawn": "from_saloon",
    "sfx": "plug",
    "interact": true
-  },
-  {
-   "type": "npc",
-   "id": "yakulbeol",
-   "sprite": "yakulbeol",
-   "x": 116,
-   "y": 220,
-   "facing": "down",
-   "wander": 18,
-   "script": "maillard_yakulbeol"
-  },
-  {
-   "type": "npc",
-   "id": "mabaem",
-   "sprite": "mabaem",
-   "x": 324,
-   "y": 220,
-   "facing": "down",
-   "wander": 18,
-   "script": "maillard_mabaem"
-  },
-  {
-   "type": "npc",
-   "id": "yerim",
-   "sprite": "yerim",
-   "x": 480,
-   "y": 220,
-   "facing": "down",
-   "wander": 0,
-   "script": "maillard_yerim_pair"
-  },
-  {
-   "type": "npc",
-   "id": "parkwonsung",
-   "sprite": "parkwonsung",
-   "x": 592,
-   "y": 220,
-   "facing": "left",
-   "wander": 0,
-   "visualScale": 1.3,
-   "script": "maillard_yerim_pair",
-   "unless": "maillard_yerim_pair_seen"
-  },
-  {
-   "type": "npc",
-   "id": "parkwonsung",
-   "sprite": "parkwonsung",
-   "x": 664,
-   "y": 220,
-   "facing": "left",
-   "wander": 0,
-   "visualScale": 1.3,
-   "script": "maillard_yerim_pair",
-   "requires": "maillard_yerim_pair_seen"
   }
  ]
 }

@@ -32,7 +32,13 @@
   "assets/props/blue_buff.png",
   "assets/props/yongjun-shop.png",
   "assets/props/maillard_storage_door.png",
-  "assets/props/door.png"
+  "assets/props/door.png",
+  "assets/sprites/yerim.png",
+  "assets/sprites/yerim-kick.png",
+  "assets/props/sofa.png",
+  "assets/props/rug_living.png",
+  "assets/props/frame.png",
+  "assets/portraits/junhee.png"
  ],
  "spawns": {
   "start": {
@@ -61,6 +67,48 @@
  },
  "entities": [
   {
+   "type": "npc",
+   "id": "yakulbeol",
+   "sprite": "yakulbeol",
+   "x": 250,
+   "y": 400,
+   "facing": "down",
+   "wander": 18,
+   "script": "maillard_yakulbeol"
+  },
+  {
+   "type": "npc",
+   "id": "mabaem",
+   "sprite": "mabaem",
+   "x": 570,
+   "y": 416,
+   "facing": "down",
+   "wander": 18,
+   "script": "maillard_mabaem"
+  },
+  {
+   "type": "npc",
+   "id": "yerim",
+   "sprite": "yerim",
+   "x": 780,
+   "y": 368,
+   "facing": "down",
+   "wander": 0,
+   "script": "maillard_yerim_pair"
+  },
+  {
+   "type": "npc",
+   "id": "parkwonsung",
+   "sprite": "parkwonsung",
+   "x": 900,
+   "y": 368,
+   "facing": "left",
+   "wander": 0,
+   "visualScale": 1.3,
+   "script": "maillard_yerim_pair",
+   "unless": "maillard_yerim_pair_seen"
+  },
+  {
    "type": "prop",
    "id": "lounge_walls",
    "image": "assets/props/maillard_lounge_walls.png",
@@ -70,6 +118,78 @@
    "h": 640,
    "solid": false,
    "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "lounge_rug_1",
+   "image": "assets/props/rug_living.png",
+   "scale": 2,
+   "x": 96,
+   "y": 320,
+   "w": 256,
+   "h": 176,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "lounge_rug_2",
+   "image": "assets/props/rug_living.png",
+   "scale": 2,
+   "x": 1184,
+   "y": 384,
+   "w": 256,
+   "h": 176,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "lounge_bench_1",
+   "image": "assets/props/sofa.png",
+   "x": 70,
+   "y": 286,
+   "w": 88,
+   "h": 18,
+   "ix": 64,
+   "iy": 256,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_bench_2",
+   "image": "assets/props/sofa.png",
+   "x": 1260,
+   "y": 442,
+   "w": 88,
+   "h": 18,
+   "ix": 1254,
+   "iy": 412,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_junhee_frame",
+   "image": "assets/props/frame.png",
+   "scale": 4,
+   "x": 800,
+   "y": 48,
+   "w": 112,
+   "h": 88,
+   "solid": false,
+   "sortY": -800
+  },
+  {
+   "type": "prop",
+   "id": "lounge_junhee_portrait",
+   "image": "assets/portraits/junhee.png",
+   "scale": 0.625,
+   "x": 826,
+   "y": 64,
+   "w": 60,
+   "h": 60,
+   "solid": false,
+   "sortY": -799
   },
   {
    "type": "prop",

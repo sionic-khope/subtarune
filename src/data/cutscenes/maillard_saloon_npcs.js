@@ -1,6 +1,3 @@
-import { freeSpot } from '../../world/world.js';
-import { roamerTalkStage } from './helpers.js';
-
 const B = (text) => ({ speaker: '야꿀벌', voice: 'yakulbeol', text });
 const M = (text) => ({ speaker: '마뱀이', voice: 'mabaem', text });
 const Y = (text) => ({ speaker: '예림', voice: 'yerim', text });
@@ -9,12 +6,10 @@ const P = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman'
 const G = (text) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text });
 
 export const maillard_yakulbeol = Object.assign([
-  ...roamerTalkStage('yakulbeol'),
   B('* 야꿀벌이에요.'),
 ], { silent: true });
 
 export const maillard_mabaem = Object.assign([
-  ...roamerTalkStage('mabaem'),
   { if: (f) => f.maillard_mabaem_seen, goto: 'again' },
   M('* 어 안녕하세여'),
   P('* 뭐해요?'),
@@ -31,7 +26,7 @@ export const maillard_mabaem = Object.assign([
 
 export const maillard_yerim_pair = Object.assign([
   { if: (f) => f.maillard_yerim_pair_seen, goto: 'again' },
-  { camera: [17, 9], duration: 0.35 },
+  { camera: [27, 12.625], duration: 0.35 },
   { parallel: [
     { move: 'player', rel: 'yerim', at: 'bottom', by: [56, 72], run: true },
     { move: 'gyeongsub', rel: 'yerim', at: 'bottom', by: [-8, 72], run: true },
@@ -53,17 +48,9 @@ export const maillard_yerim_pair = Object.assign([
   Y('* 아 씨밯 이거 뭐야'),
   { action: (g) => g.entities.find(e => e.id === 'yerim').setSprite('yerim_kick') },
   { sfx: 'thud' },
-  { async: [{ fling: 'parkwonsung', vx: 200, vup: 250, gravity: 658, spin: 16, duration: 0.76, keep: true, sfx: 'whoosh' }] },
-  { ...W('* 우끼이익'), cut: 0.82 },
-  { action: (g) => {
-    const monkey = g.entities.find(e => e.id === 'parkwonsung');
-    [monkey.x, monkey.y] = freeSpot(g, monkey, monkey.x + monkey.flyX, monkey.y);
-    monkey.flyX = 0; monkey.flyY = 0; monkey.hopY = 0; monkey.spin = 0;
-    g.entities.find(e => e.id === 'yerim').setSprite('yerim');
-  } },
-  { move: 'parkwonsung', rel: 'yerim', at: 'right', by: [160, 0], dash: true },
-  { face: 'parkwonsung', dir: 'left' },
-  { sfx: 'thud' },
+  { async: [{ fling: 'parkwonsung', vx: 700, vup: 400, gravity: 600, spin: 30, duration: 1.3, sfx: 'whoosh' }] },
+  { ...W('* 우끼이익'), cut: 1.35 },
+  { action: (g) => g.entities.find(e => e.id === 'yerim').setSprite('yerim') },
   { wait: 0.3 },
   Y('* 제가 이러고 삽니다.'),
   P('* 어.. 캠 끄신거 아니죠? 당신요'),

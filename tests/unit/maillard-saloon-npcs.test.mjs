@@ -4,8 +4,9 @@ import fs from 'node:fs';
 import { Camera, Entity, TileMap } from '../../src/world/world.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { ScriptRunner, TextBox } from '../../src/ui/dialogue.js';
+import { CHARACTERS } from '../../src/data/characters.js';
 
-const room = JSON.parse(fs.readFileSync(new URL('../../assets/maps/maillard_saloon.json', import.meta.url), 'utf8'));
+const room = JSON.parse(fs.readFileSync(new URL('../../assets/maps/maillard_lounge.json', import.meta.url), 'utf8'));
 const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 test('test_saloon_wander_zones_leave_entry_and_each_other_clear', () => {
@@ -15,22 +16,30 @@ test('test_saloon_wander_zones_leave_entry_and_each_other_clear', () => {
   const zones = npcs.map(e => ({ x: e.x - e.wander * 2, y: e.y - e.wander * 2, w: 24 + e.wander * 4, h: 16 + e.wander * 4 }));
   for (const zone of zones) {
     assert.equal(tiles.solidRect(zone.x, zone.y, zone.w, zone.h), false);
-    assert.equal(overlaps(zone, { x: 204, y: 248, w: 72, h: 150 }), false);
+    for (const obstacle of room.entities.filter(e => e.solid || e.type === 'door')) assert.equal(overlaps(zone, obstacle), false);
   }
   assert.equal(overlaps(...zones), false);
 });
 
-test('test_saloon_pair_shares_event_and_keeps_one_monkey_after_completion', () => {
+test('test_lounge_pair_shares_event_and_removes_monkey_after_completion', () => {
   const yerim = room.entities.find(e => e.id === 'yerim');
   const variants = room.entities.filter(e => e.id === 'parkwonsung');
   assert.ok(yerim);
-  assert.equal(variants.length, 2);
+  assert.equal(variants.length, 1);
   assert.equal(variants[0].script, yerim.script);
   const flag = variants[0].unless;
-  assert.equal(variants[1].requires, flag);
-  assert.ok(variants[1].x > variants[0].x && variants[0].x > yerim.x);
+  assert.equal(flag, 'maillard_yerim_pair_seen');
+  assert.equal(fixture({ [flag]: true }).entities.some(e => e.id === 'parkwonsung'), false);
+  assert.ok(variants[0].x > yerim.x);
   for (const e of [yerim, ...variants]) assert.equal(new TileMap(room).solidRect(e.x, e.y, 24, 16), false);
   assert.ok(SCRIPTS[yerim.script]);
+});
+
+test('test_lounge_yerim_grows_twenty_percent_with_matching_pose_pivots', () => {
+  assert.equal(CHARACTERS.yerim.stillScale, 0.348);
+  assert.equal(CHARACTERS.yerim_kick.stillScale, CHARACTERS.yerim.stillScale);
+  assert.deepEqual(CHARACTERS.yerim.stillPivot, CHARACTERS.yerim_kick.stillPivot);
+  assert.equal(room.entities.find(e => e.id === 'parkwonsung').visualScale, 1.3);
 });
 
 function fixture(flags = {}) {
@@ -86,7 +95,7 @@ test('test_saloon_mabaem_completion_saves_only_after_full_conversation_and_repea
   assert.deepEqual([game.inventory, game.money], [['바나나'], 57]);
 });
 
-test('test_saloon_roamer_lines_wait_for_safe_spaced_party_at_wander_boundaries', () => {
+test('test_lounge_roamer_lines_start_immediately_without_moving_any_actor', () => {
   for (const id of ['yakulbeol', 'mabaem']) {
     for (const edge of [-36, 36]) {
       const game = fixture();
@@ -94,15 +103,15 @@ test('test_saloon_roamer_lines_wait_for_safe_spaced_party_at_wander_boundaries',
       npc.x += edge; npc.y += edge;
       for (let visit = 0; visit < 2; visit++) {
         let pages = 0;
+        const before = game.entities.map(e => [e.x, e.y]);
+        game.dialogue.start(SCRIPTS[`maillard_${id}`]);
+        assert.equal(game.textbox.isOpen, true);
+        assert.deepEqual(game.entities.map(e => [e.x, e.y]), before);
+        assert.equal(game.camera.locked, false);
         play(game, SCRIPTS[`maillard_${id}`], g => {
           if (!g.textbox.isOpen) return;
           pages++;
-          const party = ['gyeongsub', 'player', 'ppaman'].map(member => g.entities.find(e => e.id === member));
-          assert.deepEqual(party.map(e => [e.x, e.y]), [[npc.x + 56, npc.y + 64], [npc.x + 120, npc.y + 64], [npc.x + 184, npc.y + 64]]);
-          for (const member of party) {
-            assert.equal(g.map.solidRect(member.x, member.y, member.w, member.h), false);
-            assert.equal(member.overlaps(npc.rect), false);
-          }
+          assert.deepEqual(g.entities.map(e => [e.x, e.y]), before);
         });
         assert.ok(pages > 0);
       }
@@ -123,9 +132,12 @@ test('test_saloon_pair_finishes_motion_restores_idle_and_repeat_skips_the_gag', 
   });
   assert.equal(lines.length, 11);
   assert.equal(lines.at(-1)[1], '* 아 아니에요');
-  assert.ok(hop >= 18 && spin > Math.PI * 2 && fly >= 150 && kick);
+  assert.ok(hop >= 18 && spin > Math.PI * 6 && fly >= 900 && kick);
   const monkey = game.entities.find(e => e.id === 'parkwonsung');
-  assert.deepEqual([monkey.x, monkey.y, monkey.flyX, monkey.hopY, monkey.spin, monkey.dead], [664, 220, 0, 0, 0, false]);
+  assert.equal(monkey.dead, true);
+  assert.equal(monkey.x, 812);
+  assert.equal(monkey.y, 368);
+  assert.ok(monkey.x + monkey.flyX - 64 > 640 + 480);
   assert.equal(game.entities.find(e => e.id === 'yerim').def.sprite, 'yerim');
   assert.equal(game.background.length, 0);
   assert.equal(game.camera.locked, false);
@@ -134,7 +146,7 @@ test('test_saloon_pair_finishes_motion_restores_idle_and_repeat_skips_the_gag', 
   assert.deepEqual(['gyeongsub', 'player', 'ppaman'].map(id => {
     const e = game.entities.find(entity => entity.id === id);
     return [e.x, e.y, e.facing];
-  }), [[472, 292, 'up'], [536, 292, 'up'], [600, 292, 'up']]);
+  }), [[772, 440, 'up'], [836, 440, 'up'], [900, 440, 'up']]);
   assert.deepEqual(play(game, SCRIPTS.maillard_yerim_pair), [lines[1]]);
   assert.deepEqual([game.inventory, game.money], [['바나나'], 57]);
 });

@@ -17,6 +17,20 @@ from typing import Final
 WIDTH: Final = 48
 HEIGHT: Final = 20
 MAP_ID: Final = 'maillard_lounge'
+LOUNGE_NPCS: Final = (
+    {'type': 'npc', 'id': 'yakulbeol', 'sprite': 'yakulbeol',
+     'x': 250, 'y': 400, 'facing': 'down', 'wander': 18,
+     'script': 'maillard_yakulbeol'},
+    {'type': 'npc', 'id': 'mabaem', 'sprite': 'mabaem',
+     'x': 570, 'y': 416, 'facing': 'down', 'wander': 18,
+     'script': 'maillard_mabaem'},
+    {'type': 'npc', 'id': 'yerim', 'sprite': 'yerim',
+     'x': 780, 'y': 368, 'facing': 'down', 'wander': 0,
+     'script': 'maillard_yerim_pair'},
+    {'type': 'npc', 'id': 'parkwonsung', 'sprite': 'parkwonsung',
+     'x': 900, 'y': 368, 'facing': 'left', 'wander': 0, 'visualScale': 1.3,
+     'script': 'maillard_yerim_pair', 'unless': 'maillard_yerim_pair_seen'},
+)
 
 
 def main() -> None:
@@ -30,7 +44,10 @@ def main() -> None:
         'preload': ['assets/tiles/maillard_deck.png',
                     'assets/props/maillard_lounge_walls.png', 'assets/props/blue_buff.png',
                     'assets/props/yongjun-shop.png', 'assets/props/maillard_storage_door.png',
-                    'assets/props/door.png'],
+                    'assets/props/door.png', 'assets/sprites/yerim.png',
+                    'assets/sprites/yerim-kick.png', 'assets/props/sofa.png',
+                    'assets/props/rug_living.png', 'assets/props/frame.png',
+                    'assets/portraits/junhee.png'],
         'spawns': {
             'start': {'x': 176, 'y': 440, 'facing': 'right'},
             'from_path': {'x': 176, 'y': 440, 'facing': 'right'},
@@ -39,9 +56,24 @@ def main() -> None:
         },
         'meta': {'connected': True},
         'entities': [
+            *LOUNGE_NPCS,
             {'type': 'prop', 'id': 'lounge_walls',
              'image': 'assets/props/maillard_lounge_walls.png',
              'x': 0, 'y': 0, 'w': 1536, 'h': 640, 'solid': False, 'sortY': -1000},
+            *[{'type': 'prop', 'id': f'lounge_rug_{index}',
+               'image': 'assets/props/rug_living.png', 'scale': 2,
+               'x': x, 'y': y, 'w': 256, 'h': 176, 'solid': False, 'sortY': -900}
+              for index, x, y in ((1, 96, 320), (2, 1184, 384))],
+            *[{'type': 'prop', 'id': f'lounge_bench_{index}',
+               'image': 'assets/props/sofa.png', 'x': x + 6, 'y': y + 30,
+               'w': 88, 'h': 18, 'ix': x, 'iy': y, 'solid': True}
+              for index, x, y in ((1, 64, 256), (2, 1254, 412))],
+            {'type': 'prop', 'id': 'lounge_junhee_frame',
+             'image': 'assets/props/frame.png', 'scale': 4,
+             'x': 800, 'y': 48, 'w': 112, 'h': 88, 'solid': False, 'sortY': -800},
+            {'type': 'prop', 'id': 'lounge_junhee_portrait',
+             'image': 'assets/portraits/junhee.png', 'scale': 0.625,
+             'x': 826, 'y': 64, 'w': 60, 'h': 60, 'solid': False, 'sortY': -799},
             {'type': 'prop', 'id': 'lounge_storage_image',
              'image': 'assets/props/maillard_storage_door.png',
              'x': 144, 'y': 70, 'w': 96, 'h': 96, 'solid': False, 'sortY': -10},

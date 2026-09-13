@@ -23,11 +23,42 @@ test('lounge provides a broad enclosed ship floor at the shorter room height', (
   assert.ok(map.rows[0].trim().length === 0 && map.rows.at(-1).trim().length === 0);
   assert.ok(map.rows.every((row) => row[0] === ' ' && row.at(-1) === ' '));
   assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 2);
-  assert.equal(map.entities.filter((entity) => entity.type === 'npc').length, 0);
+  assert.equal(map.entities.filter((entity) => entity.type === 'npc').length, 4);
   const spring = map.entities.find((entity) => entity.id === 'lounge_spring');
   assert.equal(spring.image, 'assets/props/blue_buff.png');
   assert.deepEqual(spring.anim, { cols: 3, fps: 4 });
   assert.equal(map.enter, undefined);
+});
+
+test('lounge decor reuses furniture and Junhee art without blocking event or arrival positions', () => {
+  const map = readMap('maillard_lounge');
+  const benches = map.entities.filter(e => e.id.startsWith('lounge_bench_'));
+  const rugs = map.entities.filter(e => e.id.startsWith('lounge_rug_'));
+  const portrait = map.entities.find(e => e.id === 'lounge_junhee_portrait');
+  const frame = map.entities.find(e => e.id === 'lounge_junhee_frame');
+  assert.equal(benches.length, 2);
+  assert.equal(rugs.length, 2);
+  assert.equal(portrait.image, 'assets/portraits/junhee.png');
+  assert.ok(portrait.x >= frame.x && portrait.y >= frame.y && portrait.x + portrait.w <= frame.x + frame.w && portrait.y + portrait.h <= frame.y + frame.h);
+  assert.ok(frame.y + frame.h <= 160);
+  for (const decor of [...benches, ...rugs, frame, portrait]) {
+    assert.ok(fs.existsSync(decor.image));
+    assert.equal(decor.script, undefined);
+  }
+  for (const rug of rugs) {
+    assert.equal(rug.solid, false);
+    assert.ok(rug.w >= 256 && rug.h >= 176 && rug.sortY < 0);
+  }
+  const reserved = [
+    { x: 760, y: 320, w: 280, h: 150 },
+    ...Object.values(map.spawns).map(s => ({ ...s, w: 24, h: 16 })),
+    ...map.entities.filter(e => e.type === 'door' || e.type === 'sign'),
+    ...map.entities.filter(e => e.type === 'npc').map(e => ({ x: e.x - e.wander * 2, y: e.y - e.wander * 2, w: 24 + e.wander * 4, h: 16 + e.wander * 4 })),
+  ];
+  for (const bench of benches) {
+    assert.equal(bench.solid, true);
+    assert.ok(reserved.every(area => !overlaps(bench, area)));
+  }
 });
 
 test('three distinct wooden Junhee statues have one-line interactions without actor movement', () => {

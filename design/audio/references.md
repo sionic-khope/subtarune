@@ -1,5 +1,9 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 상점 구매음 (2026-09-13, BUILD118)
+
+사용자 “산다…언더테일이나 델타룬 공식사운드랑 똑같이” 요청으로 구매 성공에 `shop_buy.mp3`를 사용한다. 원본은 UNDERTALE `snd_buyitem.wav`: [보관 저장소 고정 리비전](https://github.com/znm2500/Undertale-Engine-Ultra/blob/a0d77e3c57ef8c15aa12597893dec28d174021ae/sounds/snd_buyitem/snd_buyitem.wav). 배급사 공식 다운로드가 아닌 게임 음원 보관본이다. 잘라내기·합성·피치 변경 없이 `ffmpeg -i snd_buyitem.wav -codec:a libmp3lame -q:a 2 shop_buy.mp3`로 변환했다(약0.646초). `src/main.js loadSfxFiles` 등록, `Shop._feedback`의 구매 성공만 재생. 판매는 기존 `item`, 실패는 `cancel` 유지.
+
 ## 마이야르호 라운지 NPC 목소리 (2026-09-13)
 
 사용자가 새로 만들도록 요청한 야꿀벌·마뱀이·박원숭은 실제 사람 녹음이나 음성 모델을 사용하지 않은 원본 비언어 캐릭터 블립이다. 생성기 `tools/audio/lounge_npc_voices.mjs`는 14개 사인 배음에 두 공명 대역을 입히고 음높이 변화·떨림을 더한다. 각 샘플은 6ms 어택·25ms 릴리스이며 44.1kHz 모노 PCM을 ffmpeg/libmp3lame quality 2로 변환한다. 재현은 `node tools/audio/lounge_npc_voices.mjs`.
@@ -9,16 +13,18 @@
 | 야꿀벌 `voices/yakulbeol.mp3` | 425Hz에서 살짝 올라가는 밝은 높은 소리, 115Hz 약한 진폭 변조로 벌의 윙윙 느낌 | 0.17초 / -20.4·-11.7 |
 | 마뱀이 `voices/mabaem.mp3` | 175Hz에서 살짝 내려가는 둥글고 엉뚱한 만화 발성, 470/1050Hz 공명. 특정 사람 모사 없음 | 0.18초 / -21.4·-10.9 |
 | 박원숭 `voices/parkwonsung.mp3` | 310→510Hz의 짧게 치솟는 ‘우끼’ 느낌, 620/2300Hz 공명 | 0.16초 / -19.1·-11.9 |
-| 예림 `voices/yerim.mp3` | 아래 사용자 지정 영상의 실제 발성 한 조각. 새 대사 합성이나 목소리 복제 없음 | 0.18초 / -20.3·-8.6 |
+| 예림 `voices/yerim.mp3` | 아래 사용자 지정 영상 마지막 발화의 짧은 모음. 새 대사 합성이나 목소리 복제 없음 | 0.13초 / -19.8·-9.3 |
 
-예림 출처는 사용자 지정 [롯데 16실점 정병 ON!](https://www.youtube.com/shorts/HvPi7NAC7RE), 영상 ID `HvPi7NAC7RE`, 업로더 **김예림**. yt-dlp 메타데이터 길이는 40초, 받은 포맷251 오디오의 길이는 39.66초다. 원본의 **3.40~3.58초**를 추출하고 시작4ms·끝20ms 페이드, 음량0.65배, 모노44.1kHz 변환만 적용했다. 음높이·속도 변경은 없다. 앞8초 영상 프레임에서 김예림 아바타의 발화 장면을 확인하고 로컬 Whisper의 3.2~4.82초 발화 검출 및 3.40초 창의 주기성/레벨로 구간을 선정했다. 자동 전사는 정확한 대사 인용에 쓰지 않았다. 원본에는 야구 중계 배경음이 포함되며 별도의 음원 분리 처리는 하지 않았다. 이 환경은 오디오 입력 청취를 지원하지 않아 주관적 음색 청취 완료로 기록하지 않는다.
+예림 출처는 사용자 지정 [롯데 16실점 정병 ON!](https://www.youtube.com/shorts/HvPi7NAC7RE), 영상 ID `HvPi7NAC7RE`, 업로더 **김예림**. yt-dlp 메타데이터 길이는 40초, 받은 포맷251 오디오의 길이는 39.66초다. BUILD118에서 사용자 “목소리가 살짝 이상하다” 피드백에 따라 같은 원본의 **38.32~38.45초**로 교체했다. 마지막 발화 중 모음에 해당하는0.13초이며 시작6ms·끝22ms 페이드, 음량0.85배, 모노44.1kHz 변환만 적용했다. 음높이·속도 변경은 없다. 영상34~39.5초의 프레임에서 아바타의 발화를 확인했고 로컬 Whisper가 검출한 마지막38.18~38.50초 음절 안에서 골랐다. 자동 전사는 정확한 전체 대사 인용에 쓰지 않았다. 같은0.13초 분석 창의 정규화 자기상관 최고값은 이전3.40초0.565→새38.32초0.760으로, 새 구간의 주기적 발성이 더 뚜렷하다(16kHz 모노,160~450Hz 지연 탐색). 이는 청취나 완전한 음원 분리의 증거는 아니다. 원본의 야구 중계 배경음은 별도 분리하지 않았다. 이 환경은 오디오 입력 청취를 지원하지 않아 주관적 음색 청취 완료로 기록하지 않는다.
+
+이전 BUILD117 샘플은3.40~3.58초0.18초였으나 재생 시0.12초로 자르고 최소간격0.08초마다 앞 블립을 다시 끊었다. BUILD118은 원본 모음0.13초 전체를 재생(`cut:false`)하고 최소간격0.14초를 둬 샘플이 끝난 뒤 다음 블립이 시작되게 했다. `rate:1`은 유지하고 재생level은0.80→0.75로 낮췄다. 기존 샘플은 배경음/짧은 어택이 섞인 구간이고 반복 중 잘렸다는 관찰에 근거한 수정이며, 사용자 피드백의 유일한 원인이었다고 단정하지 않는다.
 
 ```sh
 python3 -m yt_dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f '251/bestaudio' --write-info-json -o '/tmp/subtarune-npcs117-audio.cQoJSF/yerim-source.%(ext)s' 'https://www.youtube.com/shorts/HvPi7NAC7RE'
-ffmpeg -hide_banner -loglevel error -ss 3.40 -i /tmp/subtarune-npcs117-audio.cQoJSF/yerim-source.webm -t 0.18 -ac 1 -ar 44100 -af 'afade=t=in:d=0.004,afade=t=out:st=0.160:d=0.020,volume=0.65' -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/voices/yerim.mp3
+ffmpeg -hide_banner -loglevel error -ss 38.32 -i /tmp/subtarune-npcs117-audio.cQoJSF/yerim-source.webm -t 0.13 -ac 1 -ar 44100 -af 'afade=t=in:d=0.006,afade=t=out:st=0.108:d=0.022,volume=0.85' -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/voices/yerim.mp3
 ```
 
-`VOICES`에 `yakulbeol`, `mabaem`, `parkwonsung`, `yerim`을 등록했다. 기존 `Object.keys(VOICES)` 로더로 파일을 받아 재생하며, 모두 rate1·cut0.12초·최소간격0.08초(박원숭0.09초), level0.85(예림0.80)다. 네 파일 ffprobe 길이·포맷과 ffmpeg 전체 디코드/비무음/무클리핑을 확인했고 오디오 자산 단위 테스트5개 통과. 사용자 지정 음원은 변경하지 않았다. 예림 원본 녹음 권리는 원 권리자에게 있으며 출처 확인이 별도 이용허락을 뜻하지 않는다. 전체 원본과 확인용 영상은 임시 폴더에만 두고 배포 자산에는 0.18초 결과만 포함한다.
+`VOICES`에 `yakulbeol`, `mabaem`, `parkwonsung`, `yerim`을 등록했다. 기존 `Object.keys(VOICES)` 로더로 파일을 받아 재생한다. 합성3종은 rate1·cut0.12초·최소간격0.08초(박원숭0.09초)·level0.85를 유지한다. 예림의 최신 값은 위 BUILD118 기록을 따른다. 네 파일 ffprobe 길이·포맷과 ffmpeg 전체 디코드/비무음/무클리핑, 오디오 자산 단위 테스트5개를 확인했다. 예림 외 사용자 지정 음원은 변경하지 않았다. 예림 원본 녹음 권리는 원 권리자에게 있으며 출처 확인이 별도 이용허락을 뜻하지 않는다. 전체 원본과 확인용 영상은 임시 폴더에만 두고 배포 자산에는 예림0.13초 결과만 포함한다.
 
 ## 마이야르호 선내 라운지 (2026-09-12)
 
