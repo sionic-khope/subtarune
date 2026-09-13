@@ -121,6 +121,7 @@ model: opus
 | `{ spawn:{type,id,sprite,x,y,facing,script} }` `{ remove:id }` `{ show:id }` `{ hide:id }` | 엔티티 |
 | `{ map:'room', spawn:'bed' }` | 즉시 맵 교체 — 앞뒤에 `fade` 를 붙일 것 |
 | `{ zoom: 2.8, at:'tv'\|[x,y], offset?:[dx,dy], duration? }` / `{ zoom:1 }` | 2D 월드 줌인/아웃(UI 는 그대로). 3D 씬 진입 전환에 사용 |
+| `{ musicCamera:{src,at,duration,volume,offset,beats,introZoom,peakZoom,lowZoom,beatRelease,bounce} }` | 미리 디코드한 WAV 전체를 한 번 틀며 같은 AudioContext 시계로 박자 줌/바운스. 대화창은 닫고 기존 브금 위치를 보존했다가 끝나면 복구한다. Esc/QA 중단은 WAV·줌을 정리하며 브금을 되살리지 않는다. 설정 예: `src/data/storage-dance.js` |
 | `{ scene3d:'drawer', flag:'cord_found' }` | `src/scenes/<이름>.js` 의 WebGL 오버레이 씬. 끝나면 `{found}` → flag. 앞뒤에 `zoom` 을 붙인다 |
 | `{ chat:'open'\|'late'\|'spam'\|'idle'\|'question'\|'silence'\|'panic'\|'close' }` | 방송 채팅창(오른쪽, 100명). 모드별 메시지 풀은 `src/ui/chat.js POOL` |
 | `{ dialog:{title,text,button} }` `{ dialog:'press' }` `{ dialog:null }` | 윈도우식 오류창. press 는 0.35s 기다림 |

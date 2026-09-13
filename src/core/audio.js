@@ -35,6 +35,38 @@ export class Sound {
     this.files = {};          // sfx 이름 → HTMLAudioElement (assets/audio/sfx/<name>.mp3|ogg)
     this.voiceRaw = {};       // voice 이름 → ArrayBuffer (assets/audio/voices/<name>.mp3|ogg)
     this.voiceBuf = {};       // voice 이름 → AudioBuffer (unlock 후 디코드)
+    this.cueBuffers = new Map();
+  }
+
+  /** Predecode a complete cue; callers never seek into compressed audio. */
+  loadCue(src) {
+    if (!this.cueBuffers.has(src)) {
+      const pending = fetch(src).then(async response => {
+        if (!response.ok) throw new Error(`Audio cue unavailable: ${src}`);
+        const raw = await response.arrayBuffer();
+        return this.ctx.decodeAudioData(raw);
+      });
+      this.cueBuffers.set(src, pending);
+    }
+    return this.cueBuffers.get(src);
+  }
+
+  /** Play one decoded buffer and expose its AudioContext clock and cancellation. */
+  playCue(buffer, { volume = 1 } = {}) {
+    const ctx = this.ctx;
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    gain.gain.value = this.muted ? 0 : volume;
+    source.connect(gain); gain.connect(this.master);
+    const startedAt = ctx.currentTime;
+    let stopped = false;
+    source.onended = () => { source.disconnect(); gain.disconnect(); };
+    source.start(startedAt);
+    return {
+      get elapsed() { return Math.min(buffer.duration, ctx.currentTime - startedAt); },
+      stop() { if (!stopped) { stopped = true; source.stop(); } },
+    };
   }
 
   /** assets/audio/voices/<voice>.(mp3|ogg) 가 있으면 글자 블립을 그 샘플로 낸다 (한 샘플만 있으면 됨) */

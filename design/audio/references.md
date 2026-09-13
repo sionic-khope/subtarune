@@ -134,6 +134,19 @@ ffmpeg -hide_banner -loglevel error -ss 38.32 -i /tmp/subtarune-npcs117-audio.cQ
 - 음악 시작부터 끝까지 그대로 변환했으며 트리밍·음높이/속도/음량 변경·합성 대체 없음. MP3 변환에 따른 손실 압축만 있다. ffprobe 규격·길이 확인과 ffmpeg 전체 디코드가 오류 없이 완료됐다.
 - 이 파일은 전투용이다. 기존 등장 컷신용 `baron_intro.mp3`(The Chase)는 변경하지 않았다.
 
+### 악질맨 레그레이즈 음악 큐 (BUILD120, 2026-09-13)
+
+- 사용자 지정 [원본 영상](https://www.youtube.com/watch?v=Ybq68oZwFAk): **(복원)MC형섭-유미시티**, 업로더 **누당근**, 게시2026-01-10. yt-dlp로 영상 ID·제목·업로더·89초 원본 메타데이터를 확인했다.
+- **51.000~58.000초만 정확히 추출**했다. `assets/audio/sfx/storage_legraise.wav`: **7.000000초, 48kHz 스테레오, PCM16, 336,000샘플 프레임**. 음높이·속도·원본 게인을 그대로 두었고 페이드·정규화·루프·대체음은 없다. 압축 원본을 디코딩한 뒤 WAV로 저장했다.
+- WebAudio로 전체 파일을0초부터 한 번 재생하고 카메라도 같은 AudioContext 재생 시계를 사용한다. 기존 Queen은 `pauseBgm(0)`/`resumeBgm(0)`으로 위치를 유지한다. Esc 등 장면 취소는 재생 중인 소스를 정지해야 한다. 기존 `Sound.sfx` 복제 Audio는 취소 핸들이 없으므로 이 정밀 큐에는 사용하지 않는다.
+- 카메라 박자는 실제 파형에서 측정했다. 분석용 모노12kHz·180Hz 저역통과본의10ms RMS에서30ms 양의 에너지 증가를 추출했다. 강한 규칙적 킥 시작은 **클립3.50,3.95,4.43,4.89,5.34,5.80,6.27,6.73초**(원본54.50~57.73초), 약0.46초 간격이다. 첫3.5초는 상대적으로 약하고 불규칙한 변화이므로 이 템포를 전구간으로 추정하지 않는다. 분석 필터는 배포 WAV에 적용하지 않았다.
+- 전체 디코드·길이·샘플 수 통과, 평균−15.1dBFS/peak−0.7dBFS. 실제 청취 평가를 했다고 주장하지 않는다. 출처·체크섬·측정법은 배포용 `assets/audio/storage-legraise-credits.json`에 함께 둔다. 원본 저작권은 권리자에게 있으며 공개 영상이라는 사실이 별도 이용 허락을 의미하지는 않는다.
+
+```sh
+yt-dlp --no-playlist -f '251/bestaudio' --write-info-json -o '/tmp/storage120-audio-source.%(ext)s' 'https://www.youtube.com/watch?v=Ybq68oZwFAk'
+ffmpeg -i /tmp/storage120-audio-source.webm -af 'atrim=start=51:end=58,asetpts=PTS-STARTPTS' -ar 48000 -ac 2 -c:a pcm_s16le assets/audio/sfx/storage_legraise.wav
+```
+
 ### 바론 대포 브레스·방어 피드백 (BUILD98, 2026-09-12)
 
 사용자 "막을때 효과음", "브레스 쏴질때도 소리" 요청. 새 파일만 추가하며 기존 음악·충전·발사·충돌음은 유지한다.

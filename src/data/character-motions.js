@@ -1,5 +1,11 @@
 export const CHARACTER_MOTIONS = {
   expelled_viewer: {
+    legraise: {
+      src: 'assets/sprites/expelled-viewer-legraise.png',
+      scale: 0.8,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [(i % 2) * 96, Math.floor(i / 2) * 96, 96, 96], pivot: [48, 88], duration: 0.23 })),
+    },
     knockdown: {
       src: 'assets/sprites/expelled-viewer-knockdown.png',
       scale: 0.8,

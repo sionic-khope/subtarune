@@ -241,6 +241,7 @@ export class Character extends Entity {
     if (dy) { const ny = this.y + dy; if (!blocked(this.x, ny)) this.y = ny; }
   }
   drawSprite(ctx, cam) {
+    const emote = this.emote || this.def.persistentEmote;
     const dim = shadeDimAt(this.game, this.x + this.w / 2, this.y + this.h);   // 그늘(Shade) 안이면 스프라이트 통째로 어둡게
     const blit = (img, x, y, w, h) => dim ? drawDimmed(ctx, img, x, y, w, h, dim) : ctx.drawImage(img, x, y, w, h);
     if (this.motion) {
@@ -255,8 +256,9 @@ export class Character extends Entity {
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
       blit(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
-      if (this.emote) drawEmote(ctx, this.emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scale));
+      if (emote && emote.anchor !== 'feet') drawEmote(ctx, emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scale));
       ctx.restore();
+      if (emote?.anchor === 'feet') drawEmote(ctx, emote, Math.round(anchorX), Math.round(anchorY));
       return;
     }
     const img = this.sprite[this.facing][this.frame];
@@ -278,7 +280,7 @@ export class Character extends Entity {
     // 발밑 그림자 — 정지 그림(still: 몹·문지기)은 그림 안에 밑동이 있어 긴 그림자 막대가 '떠 있는' 느낌을 준다(사용자 2026-09-11) → 생략
     if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3); }
     blit(img, sx, sy, dw, dh);
-    if (this.emote) drawEmote(ctx, this.emote, sx + Math.round(dw / 2), sy);
+    if (emote) drawEmote(ctx, emote, sx + Math.round(dw / 2), emote.anchor === 'feet' ? Math.round(this.y + this.h - cam.y) : sy);
   }
   draw(ctx, cam) {
     if (!this.visible) return;
@@ -316,16 +318,16 @@ export class Character extends Entity {
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 /**
  * 머리 위 이모트 (컷신 { emote:id, kind:'!'|'sweat', duration }): '!' 는 0.12초 동안 튀어올라 머물고, 'sweat' 는 오른쪽 관자놀이에서 식은땀이 흘러내린다.
- * main.js 가 e.emote.t 를 올리고 life 가 지나면 지운다. 새 스프라이트 없이 캐릭터 위에 덧그린다 (2026-09-10 쥰희·경섭 컷신).
+ * main.js 가 e.emote.t 를 올리고 life 가 지나면 지운다. def.persistentEmote는 시간 없이 마지막 모양을 유지한다.
  */
 export function drawEmote(ctx, em, cx, top) {
-  const t = em.t;
+  const t = em.t ?? 1;
   if (em.kind === 'stamp') {
     const scale = 1 + Math.max(0, 1 - t / 0.16) * 1.5;
     ctx.save();
-    ctx.translate(Math.round(cx), Math.round(top + 22));
+    ctx.translate(Math.round(cx), Math.round(top + (em.offsetY ?? 22)));
     ctx.scale(scale, scale);
-    ctx.font = FONT.replace(/^\d+px/, '24px');
+    ctx.font = FONT.replace(/^\d+px/, `${em.size ?? 24}px`);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.lineWidth = 4; ctx.strokeStyle = '#000';
     ctx.strokeText(em.text, 0, 0);

@@ -1,5 +1,6 @@
 import { battleEntry } from './helpers.js';
 import { loopCharacterMotion } from '../../world/character-motion.js';
+import { STORAGE_DANCE } from '../storage-dance.js';
 
 const V = (text, extra = {}) => ({ speaker: '???', voice: 'expelled_viewer', text, ...extra });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text });
@@ -26,6 +27,7 @@ export const storage_viewer = Object.assign([
   { if: f => f.storage_viewer_intro_seen, goto: 'battle' },
   { bgm: null },
   { action: g => g.sound.preloadBgm('storage_show') },
+  { action: g => { void g.sound.loadCue(STORAGE_DANCE.src).catch(error => console.warn('[storage-dance] preload failed', error)); } },
   ...STAGE,
   V('* ... ... ... 으... 으...'),
   P('* ??? 뭐 뭐지 저기 괜찮으세요?'),
@@ -41,6 +43,11 @@ export const storage_viewer = Object.assign([
   V('* 샬케고역금통어디감? onep어딨어요?'),
   P('* ... 아니'),
   G('* 허허 강퇴당한 친군가보네'),
+  dance('legraise'),
+  V('* 이게 무슨 자세로 보이시나요? 헤헤 레그레이즈입니다'),
+  V('* 뮤직 큐 해도될까요? 여긴 유미시티'),
+  { musicCamera: { ...STORAGE_DANCE, at: 'expelled_viewer' } },
+  P('* 야야야 아잠깐만 야 야'),
   dance('dance', { flipEvery: 0.22, pop: 13 }),
   V('* ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커', { speed: 3 }),
   P('* 아니 씨발새끼 족쳐'),
@@ -57,13 +64,14 @@ export const storage_viewer = Object.assign([
   P('* 넌니애미따라가라'),
   { parallel: [
     { motion: 'expelled_viewer', name: 'knockdown' },
-    { emote: 'expelled_viewer', kind: 'stamp', labelText: '강퇴!', color: '#ff2929', duration: 1.2, hold: 1.2, sfx: 'thud' },
+    { emote: 'expelled_viewer', kind: 'stamp', labelText: '강퇴!', color: '#ff2929', size: 36, anchor: 'feet', offsetY: -48, duration: 1.2, hold: 1.2, sfx: 'plug' },
     { shake: 0.25, amp: 4 },
   ] },
   { action: g => {
     const actor = g.entities.find(e => e.id === 'expelled_viewer');
     actor.setSprite('expelled_viewer_down');
     actor.def.script = 'storage_viewer_defeated';
+    actor.def.persistentEmote = { kind: 'stamp', text: '강퇴!', color: '#ff2929', size: 36, anchor: 'feet', offsetY: -48 };
   } },
   { regroup: true },
   { camera: 'player' },

@@ -41,6 +41,7 @@
 import { TILE } from '../world/tiles.js';
 import { freeSpot, SCREEN_W, SCREEN_H } from '../world/world.js';
 import { characterMotionWaiter } from '../world/character-motion.js';
+import { MusicCamera } from './music-camera.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -149,6 +150,7 @@ function parallel(game, nodes) {
 
 /** 노드 → waiter | null(컷신 명령 아님) */
 export function makeWaiter(game, node) {
+  if (node.musicCamera) return new MusicCamera(game, node.musicCamera);
   if (node.wait !== undefined) return timer(node.wait);
   if (node.emerge) {
     const e = findEntity(game, node.emerge); if (!e) return done;
@@ -182,7 +184,7 @@ export function makeWaiter(game, node) {
   }
   if (node.emote) {                                    // { emote:id, kind:'!'|'sweat', duration?:1.0, hold?:0.5, sfx? } 머리 위 이모트. hold 만큼 기다리고 다음으로(이모트는 duration 동안 남는다)
     const e = findEntity(game, node.emote); if (!e) return done;
-    e.emote = { kind: node.kind || '!', text: node.labelText, color: node.color, t: 0, life: node.duration ?? 1.0 };
+    e.emote = { kind: node.kind || '!', text: node.labelText, color: node.color, size: node.size, anchor: node.anchor, offsetY: node.offsetY, t: 0, life: node.duration ?? 1.0 };
     if (node.sfx) game.sound.sfx(node.sfx);
     let t = 0; return { update: (dt) => { t += dt; return t >= (node.hold ?? 0.5); } };
   }   // (sfx 키를 같이 쓰므로 { sfx } 분기보다 앞에)

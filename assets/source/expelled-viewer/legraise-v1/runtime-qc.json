@@ -1,0 +1,110 @@
+{
+  "cell": [
+    96,
+    96
+  ],
+  "pivot": [
+    48,
+    88
+  ],
+  "head_root": [
+    24,
+    68
+  ],
+  "filter": "nearest",
+  "per_frame_scaling": false,
+  "color_quantization": false,
+  "edge_touch_frames": [],
+  "clipped_frames": [],
+  "frames": [
+    {
+      "frame": 0,
+      "source_head": [
+        183,
+        407
+      ],
+      "target_head": [
+        24,
+        68
+      ],
+      "scale": 0.14578352180936993,
+      "origin": [
+        11,
+        55
+      ],
+      "bbox": [
+        11,
+        55,
+        86,
+        88
+      ]
+    },
+    {
+      "frame": 1,
+      "source_head": [
+        146,
+        407
+      ],
+      "target_head": [
+        24,
+        68
+      ],
+      "scale": 0.14578352180936993,
+      "origin": [
+        11,
+        45
+      ],
+      "bbox": [
+        11,
+        45,
+        83,
+        88
+      ]
+    },
+    {
+      "frame": 2,
+      "source_head": [
+        183,
+        374
+      ],
+      "target_head": [
+        24,
+        68
+      ],
+      "scale": 0.14578352180936993,
+      "origin": [
+        11,
+        29
+      ],
+      "bbox": [
+        11,
+        29,
+        76,
+        88
+      ]
+    },
+    {
+      "frame": 3,
+      "source_head": [
+        146,
+        374
+      ],
+      "target_head": [
+        24,
+        68
+      ],
+      "scale": 0.14578352180936993,
+      "origin": [
+        11,
+        45
+      ],
+      "bbox": [
+        11,
+        45,
+        85,
+        88
+      ]
+    }
+  ],
+  "raw_pose_observation": "Raised-vertical source pose has a longer pelvis extension; no warp was applied."
+}

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { WATER_WALK } from '../../src/data/footsteps.js';
+import { STORAGE_DANCE } from '../../src/data/storage-dance.js';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const files = (dir) => new Set(fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')));
@@ -44,6 +45,11 @@ test('test_audio_loadSfxFiles_list_matches_files', () => {
 });
 // 물걸음 루프(src/data/footsteps.js WATER_WALK): 루프·꼬리 wav 가 있고, 루프 구간이 파일 안에 있고, 걸음 시각표가 루프 구간 안에서 오름차순
 const wavSeconds = (p) => { const b = fs.readFileSync(path.join(ROOT, p)); const rate = b.readUInt32LE(24), ch = b.readUInt16LE(22), bps = b.readUInt16LE(34); let i = 12; while (i < b.length - 8) { const id = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); if (id === 'data') return n / (rate * ch * bps / 8); i += 8 + n + (n % 2); } return 0; };
+test('test_audio_storage_dance_uses_the_exact_complete_seven_second_wav', () => {
+  assert.equal(wavSeconds(STORAGE_DANCE.src), STORAGE_DANCE.duration);
+  assert.equal(STORAGE_DANCE.duration, 7);
+  assert.ok(STORAGE_DANCE.beats.every((beat, i) => beat > 0 && beat + STORAGE_DANCE.beatRelease < STORAGE_DANCE.duration && (!i || beat > STORAGE_DANCE.beats[i - 1])));
+});
 test('test_audio_water_walk_loop_assets_and_cut_table_are_consistent', () => {
   const d = WATER_WALK; const loopSec = wavSeconds(d.loop), tailSec = wavSeconds(d.tail);
   assert.ok(loopSec > 4 && tailSec > 0.5, '루프/꼬리 wav 길이: ' + [loopSec, tailSec]);

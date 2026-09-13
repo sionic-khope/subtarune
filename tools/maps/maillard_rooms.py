@@ -58,6 +58,8 @@ def main() -> None:
                 'type': 'npc', 'id': 'expelled_viewer_resting', 'sprite': 'expelled_viewer_down',
                 'x': 228, 'y': 208, 'facing': 'up', 'wander': 0,
                 'faceOnInteract': False, 'script': 'storage_viewer_defeated',
+                'persistentEmote': {'kind': 'stamp', 'text': '강퇴!', 'color': '#ff2929',
+                                    'size': 36, 'anchor': 'feet', 'offsetY': -48},
                 'requires': 'storage_viewer_defeated',
             })
         output = Path(f'assets/maps/{map_id}.json')

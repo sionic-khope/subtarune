@@ -5,6 +5,7 @@ import { maillard_storage_enter } from '../../src/data/cutscenes/maillard_rooms.
 import { storage_viewer } from '../../src/data/cutscenes/storage_viewer.js';
 import { loopCharacterMotion, updateLoopCharacterMotion } from '../../src/world/character-motion.js';
 import { makeWaiter } from '../../src/ui/cutscene.js';
+import { Character, drawEmote } from '../../src/world/world.js';
 
 test('storage consent appears only after all warning pages and rejects with X', () => {
   const choiceIndex = maillard_storage_enter.findIndex(n => n.choice);
@@ -48,15 +49,48 @@ test('defeated viewer does not start another encounter', () => {
   assert.equal(branch.goto, 'end');
 });
 
-test('red kick stamp is a timed world emote rather than a dialogue line', () => {
+test('red kick stamp uses the opening cord sound and a persistent-size anchor', () => {
   const actor = { id: 'expelled_viewer' }, sounds = [];
   const node = storage_viewer.flatMap(n => n.parallel || []).find(n => n.kind === 'stamp');
   const waiter = makeWaiter({ entities: [actor], sound: { sfx: id => sounds.push(id) } }, node);
   assert.equal(node.text, undefined);
   assert.equal(actor.emote.text, '강퇴!');
   assert.equal(actor.emote.color, '#ff2929');
-  assert.deepEqual(sounds, ['thud']);
+  assert.deepEqual(sounds, ['plug']);
+  assert.equal(actor.emote.size, 36);
+  assert.equal(actor.emote.anchor, 'feet');
+  assert.equal(actor.emote.offsetY, -48);
   assert.equal(waiter.update(1.2), true);
+});
+
+test('persistent stamp draws at the exact settled transient anchor and size', () => {
+  const calls = [];
+  const ctx = { save() {}, restore() {}, scale() {}, translate: (...xy) => calls.push(xy), strokeText() {}, fillText() {} };
+  const stamp = { kind: 'stamp', text: '강퇴!', color: '#ff2929', size: 36, anchor: 'feet', offsetY: -48 };
+  drawEmote(ctx, { ...stamp, t: 1.2 }, 240, 240);
+  const transientFont = ctx.font;
+  drawEmote(ctx, stamp, 240, 240);
+  assert.deepEqual(calls, [[240, 192], [240, 192]]);
+  assert.match(transientFont, /^36px/);
+  assert.equal(ctx.font, transientFont);
+});
+
+test('defeated map variant retains the larger red stamp after map reload', () => {
+  const map = JSON.parse(fs.readFileSync('assets/maps/maillard_storage.json', 'utf8'));
+  const actor = map.entities.find(e => e.id === 'expelled_viewer_resting');
+  assert.deepEqual(actor.persistentEmote, { kind: 'stamp', text: '강퇴!', color: '#ff2929', size: 36, anchor: 'feet', offsetY: -48 });
+});
+
+test('resting character renders its permanent stamp after the transient emote is gone', () => {
+  const map = JSON.parse(fs.readFileSync('assets/maps/maillard_storage.json', 'utf8'));
+  const def = map.entities.find(e => e.id === 'expelled_viewer_resting');
+  const labels = [], positions = [];
+  const ctx = { drawImage() {}, save() {}, restore() {}, scale() {}, translate: (...xy) => positions.push(xy), strokeText() {}, fillText: text => labels.push(text) };
+  const actor = { def, game: { entities: [] }, x: def.x, y: def.y, w: 24, h: 16, facing: 'up', frame: 0, emote: null, sprite: { up: [{}], fw: 96, fh: 96, px: 1.25 } };
+  Character.prototype.drawSprite.call(actor, ctx, { x: 0, y: 0 });
+  assert.deepEqual(labels, ['강퇴!']);
+  assert.deepEqual(positions, [[240, 176]]);
+  assert.match(ctx.font, /^36px/);
 });
 
 test('storage NPC starts crouched away from the player without forced facing', () => {
