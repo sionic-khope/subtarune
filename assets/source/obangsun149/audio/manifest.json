@@ -1,0 +1,37 @@
+{
+  "id": "obangsun",
+  "origin": "macOS built-in Yuna Korean TTS. Original character voice direction; no recorded-person voice clone.",
+  "text": "흐에에에",
+  "sayArgs": [
+    "-v",
+    "Yuna",
+    "-r",
+    "145"
+  ],
+  "sourceSampleRate": 22050,
+  "pitchRatio": 0.74,
+  "pitchSemitones": -5.212833889749299,
+  "tempoAfterPitch": 0.94,
+  "baseFilter": "asetrate=16317,aresample=44100,atempo=0.94,highpass=f=65,lowpass=f=3800,bass=g=2:f=250:w=0.6,acompressor=threshold=0.025:ratio=3:attack=3:release=50",
+  "fullFilter": "asetrate=16317,aresample=44100,atempo=0.94,highpass=f=65,lowpass=f=3800,bass=g=2:f=250:w=0.6,acompressor=threshold=0.025:ratio=3:attack=3:release=50,afade=t=in:d=0.008,afade=t=out:st=0.9394331065759637:d=0.04",
+  "blipFilter": "asetrate=16317,aresample=44100,atempo=0.94,highpass=f=65,lowpass=f=3800,bass=g=2:f=250:w=0.6,acompressor=threshold=0.025:ratio=3:attack=3:release=50,atrim=start=0.025:duration=0.25,asetpts=PTS-STARTPTS,afade=t=in:d=0.008,afade=t=out:st=0.215:d=0.035",
+  "sampleRate": 44100,
+  "channels": 1,
+  "targetPeak": 0.28,
+  "requestedDuration": 0.25,
+  "fullDuration": 0.9794331065759637,
+  "runtime": {
+    "rate": 1,
+    "level": 0.85,
+    "cut": false,
+    "minGap": 0.27
+  },
+  "decodedSamples": 11025,
+  "duration": 0.25,
+  "peak": 0.2820017337799072,
+  "peakDb": -10.994964431575056,
+  "rmsDb": -18.01578667849596,
+  "preview": "Eight decoded MP3 blips, gain 0.85, onsets 270 ms apart; no autoplay.",
+  "sourceSha256": "8e056a51e0dd4e7e5bc69742ddf1c233ec99df2344136f93334a3465876fae90",
+  "sha256": "edc20b7b9f471eef534463c2315d4ad56af7ca53a560377235084a7c744ea9c3"
+}
