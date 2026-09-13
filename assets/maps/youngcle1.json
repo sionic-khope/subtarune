@@ -33,6 +33,7 @@
   "assets/props/youngcle1_walls.png",
   "assets/props/youngcle_tv_frame.png",
   "assets/props/maillard_storage_door.png",
+  "assets/props/youngcle_angel_door145.png",
   "assets/sprites/youngcle.png",
   "assets/illustrations/youngcle-tv-smirk.png",
   "assets/illustrations/youngcle-tv-laugh.png",
@@ -152,7 +153,7 @@
   {
    "type": "prop",
    "id": "youngcle_left_door_image",
-   "image": "assets/props/maillard_storage_door.png",
+   "image": "assets/props/youngcle_angel_door145.png",
    "x": 48,
    "y": 48,
    "w": 144,

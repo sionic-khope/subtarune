@@ -30,6 +30,7 @@ def main() -> None:
         'enter': {'script': 'youngcle_intro', 'early': True},
         'preload': ['assets/tiles/youngcle_iron.png', 'assets/props/youngcle1_walls.png',
                     'assets/props/youngcle_tv_frame.png', 'assets/props/maillard_storage_door.png',
+                    'assets/props/youngcle_angel_door145.png',
                     'assets/sprites/youngcle.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png'
                       for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'bye', 'yes', 'surprise',
@@ -58,7 +59,7 @@ def main() -> None:
              'x': 788, 'y': 232, 'facing': 'up', 'wander': 0, 'solid': False,
              'unless': 'youngcle_intro_done'},
             {'type': 'prop', 'id': 'youngcle_left_door_image',
-             'image': 'assets/props/maillard_storage_door.png',
+             'image': 'assets/props/youngcle_angel_door145.png',
              'x': 48, 'y': 48, 'w': 144, 'h': 144, 'scale': 1.5,
              'solid': False, 'sortY': -900},
             {'type': 'door', 'id': 'youngcle_left_door', 'x': 80, 'y': 180,

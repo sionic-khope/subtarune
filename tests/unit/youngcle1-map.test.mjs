@@ -52,6 +52,13 @@ test('youngcle1 is a wide enclosed steel room with a central TV and two upper do
   assert.ok(locked.x < map.pxW * 0.2 && locked.y < map.pxH / 2);
   assert.deepEqual([locked.type, locked.to, locked.spawn, locked.requires, locked.lockedScript, locked.interact],
     ['door', 'youngcle1', 'left', 'youngcle_left_door_open', 'youngcle_left_door_locked', true]);
+  const leftImage = data.entities.find(entity => entity.id === 'youngcle_left_door_image');
+  const rightImage = data.entities.find(entity => entity.id === 'youngcle_right_door_image');
+  assert.deepEqual([leftImage.image, leftImage.x, leftImage.y, leftImage.w, leftImage.h, leftImage.scale],
+    ['assets/props/youngcle_angel_door145.png', 48, 48, 144, 144, 1.5]);
+  assert.equal(rightImage.image, 'assets/props/maillard_storage_door.png');
+  assert.equal(data.preload.includes(leftImage.image), true);
+  assert.equal(fs.existsSync(leftImage.image), true);
   assert.deepEqual(data.spawns.left, { x: 108, y: 228, facing: 'down' });
   assert.deepEqual(data.spawns.right, { x: 1212, y: 228, facing: 'down' });
   assert.ok(data.entities.filter(entity => entity.type === 'npc').every(entity => entity.unless === 'youngcle_intro_done'));
