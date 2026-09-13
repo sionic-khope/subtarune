@@ -407,7 +407,7 @@ export const MANKATSUKI_PATTERNS = {
       const at = 0.15 + wave * (o.every ?? 1.1); let poses, shots;
       events.push({ at, run(api) {
         const b = api.box;
-        const anchors = wave % 2 ? [[0.22, -0.12], [0.78, -0.12], [1.04, 0.2]] : [[0.08, 0.25], [1.04, 0.45], [0.5, -0.12]];
+        const anchors = wave % 2 ? [[0.22, -0.16], [0.78, -0.16], [1.14, 0.2]] : [[0.08, -0.16], [1.14, 0.45], [0.5, -0.16]];
         shots = anchors.slice(0, count).map(([x, y]) => {
           const from = { x: b.x + x * b.w, y: b.y + y * b.h };
           return { from, angle: Math.atan2(api.soul.y - from.y, api.soul.x - from.x) };

@@ -348,6 +348,14 @@ test('test_mankatsuki_crossfire_relocates_two_then_three_visible_clones_and_warn
     assert.notDeepEqual(arrivals[0].pose.clones, arrivals[1].pose.clones);
     assert.ok(poses.every(({ pose }) => !pose?.clones || pose.clones.length === options.clones));
     assert.ok(poses.every(({ pose }) => !pose?.clones || pose.clones.every(clone => clone.y < 246 && clone.scale === 0.45)));
+    for (const { pose } of poses) for (const clone of pose?.clones ?? []) {
+      const sheet = clone.sheet === 'attack' ? boss.actions.attack : boss.sheet;
+      const png = fs.readFileSync(sheet.src), width = png.readUInt32BE(16) / sheet.cols, height = png.readUInt32BE(20) / sheet.rows;
+      const left = clone.x - boss.pivot[0] * clone.scale, top = clone.y - boss.pivot[1] * clone.scale;
+      const right = left + width * clone.scale, bottom = top + height * clone.scale;
+      assert.ok(right <= BOX.x || left >= BOX.x + BOX.w || bottom <= BOX.y || top >= BOX.y + BOX.h,
+        `${options.clones} clones/${clone.sheet}: full sprite cell must remain outside the opaque board`);
+    }
     assert.equal(poses.at(-1).pose, null);
     assert.equal(sounds.filter(({ name }) => name === 'whoosh').length, 4 * options.clones);
     const stars = emitted.filter(({ b }) => b.shape === 'mankatsuki_shuriken');
