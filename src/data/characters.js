@@ -6,6 +6,7 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  eunbyeol: { name: '김은별컴퍼니', voice: 'eunbyeol', sheet: 'assets/sprites/eunbyeol.png' },
   expelled_viewer: { name: '악질맨', voice: 'expelled_viewer', still: 'assets/sprites/expelled-viewer.png', stillScale: 0.8, stillPivot: [48, 88] },
   expelled_viewer_down: { name: '악질맨', voice: 'expelled_viewer', still: 'assets/sprites/expelled-viewer-down.png', stillScale: 0.8, stillPivot: [48, 88] },
   yakulbeol: { name: '야꿀벌', voice: 'yakulbeol', sheet: 'assets/sprites/yakulbeol.png' },

@@ -5,30 +5,37 @@
  "bgm": "maillard_lounge",
  "dim": 0.08,
  "rows": [
-  "                       ",
-  "                       ",
-  "                       ",
-  "                       ",
-  "                       ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  " MMMMMMMMMMMMMMMMMMMMM ",
-  "                       ",
-  "                       "
+  "                           ",
+  "                           ",
+  "                           ",
+  "                           ",
+  "                           ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                           ",
+  "                           "
  ],
  "preload": [
   "assets/tiles/maillard_deck.png",
-  "assets/props/maillard_saloon_interior.png"
+  "assets/props/maillard_saloon_interior.png",
+  "assets/sprites/eunbyeol.png",
+  "assets/props/captain_door.png"
  ],
  "spawns": {
   "start": {
    "x": 228,
    "y": 248,
    "facing": "up"
+  },
+  "from_captain": {
+   "x": 628,
+   "y": 288,
+   "facing": "down"
   }
  },
  "meta": {
@@ -41,7 +48,7 @@
    "image": "assets/props/maillard_saloon_interior.png",
    "x": 0,
    "y": 0,
-   "w": 736,
+   "w": 864,
    "h": 448,
    "solid": false,
    "sortY": -1000
@@ -57,6 +64,38 @@
    "spawn": "from_saloon",
    "sfx": "plug",
    "interact": true
+  },
+  {
+   "type": "npc",
+   "id": "eunbyeol",
+   "sprite": "eunbyeol",
+   "x": 404,
+   "y": 256,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1.5,
+   "script": "maillard_eunbyeol"
+  },
+  {
+   "type": "prop",
+   "id": "captain_door_image",
+   "image": "assets/props/captain_door.png",
+   "x": 544,
+   "y": 0,
+   "w": 192,
+   "h": 192,
+   "solid": false,
+   "sortY": -10
+  },
+  {
+   "type": "sign",
+   "id": "captain_door",
+   "x": 588,
+   "y": 148,
+   "w": 104,
+   "h": 48,
+   "solid": false,
+   "script": "maillard_captain_enter"
   }
  ]
 }

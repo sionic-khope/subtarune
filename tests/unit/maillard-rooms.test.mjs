@@ -40,7 +40,7 @@ test('upper lounge doors are player-sized with reachable C probes clear of statu
   }
 });
 
-for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_saloon', 736, 'maillard_lounge']]) {
+for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_saloon', 864, 'maillard_lounge']]) {
   test(`${id} is an enclosed room with the requested dimensions and music`, () => {
     const map = readMap(id);
     const tiles = new TileMap(map);
@@ -52,10 +52,10 @@ for (const [id, width, bgm] of [['maillard_storage', 480, 'wind'], ['maillard_sa
     assert.equal(map.backdrop, undefined);
     assert.equal(map.enter, undefined);
     assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 1);
-    const interiorEntities = map.entities.filter(entity => !entity.id.startsWith('expelled_viewer'));
+    const interiorEntities = map.entities.filter(entity => entity.id.endsWith('_interior') || entity.type === 'door');
     assert.ok(interiorEntities.every((entity) => ['prop', 'door'].includes(entity.type)));
     assert.ok(interiorEntities.every((entity) => !entity.script && !entity.flag && !entity.requires));
-    assert.equal(map.entities.filter(entity => entity.type === 'npc').length, id === 'maillard_storage' ? 2 : 0);
+    assert.equal(map.entities.filter(entity => entity.type === 'npc').length, id === 'maillard_storage' ? 2 : 1);
     if (id === 'maillard_saloon') assert.equal(map.name, '선장실로 가는 길');
     assert.equal(tiles.solidRect(32, 160, width - 64, 224), false);
     for (const point of [[0, 240], [width - 1, 240], [240, 159], [240, 384]]) {

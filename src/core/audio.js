@@ -18,6 +18,7 @@ export const VOICES = {
   yongjun:   { freq: 240, wave: 'sawtooth', dur: 0.10, jitter: 60, gain: 0.224, cutoff: 900,  glide: 90, rate: 0.92, level: 0.85, cut: true, minGap: 0.07 },
   yakulbeol: { freq: 425, wave: 'triangle', dur: 0.12, jitter: 15, gain: 0.18, cutoff: 2800, glide: 40, rate: 1, level: 0.85, cut: true, minGap: 0.08 },
   mabaem:    { freq: 175, wave: 'triangle', dur: 0.12, jitter: 12, gain: 0.18, cutoff: 1500, glide: -15, rate: 1, level: 0.85, cut: true, minGap: 0.08 },
+  eunbyeol: { freq: 620, wave: 'triangle', dur: 0.17, jitter: 45, gain: 0.18, cutoff: 2500, glide: 90, rate: 1, level: 0.85, cut: false, minGap: 0.12 },
   parkwonsung:{ freq: 310, wave: 'triangle', dur: 0.12, jitter: 30, gain: 0.18, cutoff: 2600, glide: 150, rate: 1, level: 0.85, cut: true, minGap: 0.09 },
   yerim:     { freq: 330, wave: 'triangle', dur: 0.13, jitter: 12, gain: 0.18, cutoff: 2200, rate: 1, level: 0.75, cut: false, minGap: 0.14 },
   expelled_viewer: { freq: 180, wave: 'sawtooth', dur: 0.135, jitter: 8, gain: 0.18, cutoff: 2800, rate: 1, level: 0.8, cut: false, minGap: 0.15 },

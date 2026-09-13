@@ -19,20 +19,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'art'))
 from painter import Canvas
 
 PROPS: Final = Path('assets/props')
+SALOON_WIDTH: Final = 864
 
 
 def main() -> None:
     """Keep timber pixels intact and paint only deterministic steel surfaces."""
     with Image.open(PROPS / 'maillard_hold_walls.png') as source:
-        walls = Image.new('RGBA', (736, 448))
+        walls = Image.new('RGBA', (SALOON_WIDTH, 448))
         for y, band_height in ((0, 160), (384, 64)):
-            for x in range(32, 704, 128):
-                span = min(128, 704 - x)
+            for x in range(32, SALOON_WIDTH - 32, 128):
+                span = min(128, SALOON_WIDTH - 32 - x)
                 walls.paste(source.crop((32, y, 32 + span, y + band_height)), (x, y))
             walls.paste(source.crop((0, y, 32, y + band_height)), (0, y))
-            walls.paste(source.crop((928, y, 960, y + band_height)), (704, y))
+            walls.paste(source.crop((928, y, 960, y + band_height)), (SALOON_WIDTH - 32, y))
         walls.paste(source.crop((0, 160, 32, 384)), (0, 160))
-        walls.paste(source.crop((928, 160, 960, 384)), (704, 160))
+        walls.paste(source.crop((928, 160, 960, 384)), (SALOON_WIDTH - 32, 160))
         door = ImageDraw.Draw(walls)
         door.rectangle((204, 380, 275, 399), fill=(43, 28, 23))
         door.rectangle((208, 382, 271, 395), fill=(146, 93, 53))

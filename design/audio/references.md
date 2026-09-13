@@ -208,3 +208,6 @@ yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 
 ```sh
 yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/maillard_reveal.%(ext)s' 'https://www.youtube.com/watch?v=yfC8OU2YtNo'
 ```
+# 김은별컴퍼니 여성 게임 블립 (2026-09-13)
+
+사용자 ‘바보같은 목소리로…여자’ 요청. macOS 기본 한국어 여성 TTS Yuna로 ‘냐’ 한 음절을 `say -v Yuna -r 160`으로 생성했다. 실존 인물이나 사용자 제공 영상의 음성을 복제하지 않는다. 원본은 `assets/source/captain122/voice/yuna-nya.aiff`(22050Hz), 실행 파일은 `assets/audio/voices/eunbyeol.mp3`다. 첫 무음을 -38dB 기준으로 제거한 뒤1.12배 피치,44100Hz,0.17초,시작8ms/끝35ms 페이드,볼륨0.8로 가공했다. VOICES.eunbyeol은 rate1/level0.85/cut:false/minGap0.12로 전체 짧은 샘플을 재생한다. 밝고 둥글게 튀는 여성 블립 의도이며 말 전체를 읽는 TTS는 아니다. ffmpeg 디코드/peak -7.6dBFS 확인, 실제 대화의 AudioBuffer 로드·재생 연결을 확인했다. 주관적 목소리 인상은 사용자의 청취 피드백으로 조정한다.

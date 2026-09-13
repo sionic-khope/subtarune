@@ -24,7 +24,7 @@ def main() -> None:
     checks = []
     for suffix, name, width, bgm in (
         ('storage', '마이야르호 강퇴폐기창고', 15, 'wind'),
-        ('saloon', '선장실로 가는 길', 23, 'maillard_lounge'),
+        ('saloon', '선장실로 가는 길', 27, 'maillard_lounge'),
     ):
         map_id = f'maillard_{suffix}'
         interior = f'assets/props/{map_id}_interior.png'
@@ -62,6 +62,18 @@ def main() -> None:
                                     'size': 36, 'anchor': 'feet', 'offsetY': -48},
                 'requires': 'storage_viewer_defeated',
             })
+        if map_id == 'maillard_saloon':
+            map_data['preload'].extend(['assets/sprites/eunbyeol.png', 'assets/props/captain_door.png'])
+            map_data['spawns']['from_captain'] = {'x': 628, 'y': 288, 'facing': 'down'}
+            map_data['entities'].extend([
+                {'type': 'npc', 'id': 'eunbyeol', 'sprite': 'eunbyeol',
+                 'x': 404, 'y': 256, 'facing': 'down', 'wander': 0,
+                 'visualScale': 1.5, 'script': 'maillard_eunbyeol'},
+                {'type': 'prop', 'id': 'captain_door_image', 'image': 'assets/props/captain_door.png',
+                 'x': 544, 'y': 0, 'w': 192, 'h': 192, 'solid': False, 'sortY': -10},
+                {'type': 'sign', 'id': 'captain_door', 'x': 588, 'y': 148,
+                 'w': 104, 'h': 48, 'solid': False, 'script': 'maillard_captain_enter'},
+            ])
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == map_data

@@ -199,6 +199,7 @@ const maillardLoungeCheckpoint = QA_POINTS.find((point) => point.id === 'maillar
 for (const [id, desc] of [
   ['maillard_storage', '강퇴폐기창고'],
   ['maillard_saloon', '선장실로 가는 길'],
+  ['maillard_captain', '마이야르호 선장실'],
 ]) {
   QA_POINTS.push({ ...maillardLoungeCheckpoint, id, desc, map: id, spawn: 'start',
     flags: { ...maillardLoungeCheckpoint.flags }, party: [...maillardLoungeCheckpoint.party] });

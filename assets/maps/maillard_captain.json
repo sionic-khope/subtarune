@@ -1,0 +1,129 @@
+{
+ "id": "maillard_captain",
+ "name": "마이야르호 선장실",
+ "stage": "void_fallen",
+ "bgm": "maillard_lounge",
+ "dim": 0.06,
+ "rows": [
+  "                           ",
+  "                           ",
+  "                           ",
+  "                           ",
+  "                           ",
+  "                           ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  " MMMMMMMMMMMMMMMMMMMMMMMMM ",
+  "                           ",
+  "                           "
+ ],
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/props/captain_walls.png",
+  "assets/props/captain_window.png",
+  "assets/props/captain_chart.png",
+  "assets/props/captain_helm.png",
+  "assets/props/captain_stowage.png",
+  "assets/props/captain_carpet.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 420,
+   "y": 376,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "captain_walls",
+   "image": "assets/props/captain_walls.png",
+   "x": 0,
+   "y": 0,
+   "w": 864,
+   "h": 576,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "captain_carpet",
+   "image": "assets/props/captain_carpet.png",
+   "x": 284,
+   "y": 288,
+   "w": 288,
+   "h": 176,
+   "solid": false,
+   "sortY": -950
+  },
+  {
+   "type": "prop",
+   "id": "captain_window",
+   "image": "assets/props/captain_window.png",
+   "x": 596,
+   "y": 28,
+   "w": 236,
+   "h": 156,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "captain_chart",
+   "image": "assets/props/captain_chart.png",
+   "x": 72,
+   "y": 212,
+   "w": 144,
+   "h": 40,
+   "ix": 68,
+   "iy": 148,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "captain_helm",
+   "image": "assets/props/captain_helm.png",
+   "x": 676,
+   "y": 226,
+   "w": 128,
+   "h": 28,
+   "ix": 672,
+   "iy": 146,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "captain_stowage",
+   "image": "assets/props/captain_stowage.png",
+   "x": 58,
+   "y": 402,
+   "w": 106,
+   "h": 22,
+   "ix": 55,
+   "iy": 330,
+   "solid": true
+  },
+  {
+   "type": "door",
+   "id": "captain_to_saloon",
+   "x": 396,
+   "y": 490,
+   "w": 72,
+   "h": 36,
+   "to": "maillard_saloon",
+   "spawn": "from_captain",
+   "sfx": "plug",
+   "interact": true
+  }
+ ]
+}
