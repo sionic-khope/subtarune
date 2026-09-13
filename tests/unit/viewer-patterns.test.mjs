@@ -9,7 +9,7 @@ const BOX = { x: 132, y: 136, w: 216, h: 156 };
 function simulate(index, seconds = Infinity, config = ENEMIES.expelled_viewer.patterns[index]) {
   const pattern = PATTERNS[config.type](config);
   const emitted = [], speech = [], sounds = [], soul = new Soul();
-  const api = { box: BOX, soul, rnd: () => 0, images: {}, emit: (o) => emitted.push({ at: time, bullet: new Bullet(o) }), say: (text) => speech.push({ text, at: time }), sfx: (name) => sounds.push(name) };
+  const api = { box: BOX, soul, rnd: () => 0, images: {}, emit: (o) => emitted.push({ at: time, bullet: new Bullet(o) }), say: (text, duration) => speech.push({ text, at: time, duration }), sfx: (name) => sounds.push(name) };
   let time = 0;
   for (; time < Math.min(pattern.duration, seconds); time += 1 / 60) pattern.update(time, 1 / 60, api);
   return { emitted, speech, sounds, duration: pattern.duration };
@@ -97,6 +97,18 @@ test('test_viewer_timeout_telegraph_is_safe_and_chase_turns_without_restricting_
   const soul = new Soul(), x = soul.x, y = soul.y;
   soul.update(0.1, { down: (key) => ['right', 'up'].includes(key) }, BOX);
   assert.ok(soul.x > x && soul.y < y);
+});
+
+test('test_viewer_chicken_says_exact_taunt_once_at_first_launch_only', () => {
+  const text = '순살ㅂㅈ먹어 형섭앜ㅋㅋㅋ 순살ㅂㅈ ㅋㅋㅋ';
+  const { emitted, speech } = simulate(4);
+  const firstChicken = emitted.find((e) => e.bullet.shape === 'viewer_chicken');
+  assert.ok(firstChicken.at >= 0.75 && firstChicken.at < 0.75 + 1 / 60);
+  assert.deepEqual(speech, [{ text, at: firstChicken.at, duration: 4 }]);
+  assert.deepEqual(simulate(4, firstChicken.at).speech, []);
+  for (const index of [0, 1, 2, 3, 5, 6]) {
+    assert.ok(simulate(index).speech.every((line) => line.text !== text));
+  }
 });
 
 test('test_viewer_long_unspaced_taunts_wrap_inside_bubble_without_truncation', () => {

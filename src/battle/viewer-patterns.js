@@ -145,6 +145,7 @@ export const VIEWER_PATTERNS = {
       let aim;
       events.push({ at, run(api) { aim = { x: api.soul.x, y: api.soul.y }; marker(api, aim.x, aim.y, 30, 30, warn); } });
       events.push({ at: at + warn, run(api) {
+        if (wave === 0) api.say?.('순살ㅂㅈ먹어 형섭앜ㅋㅋㅋ 순살ㅂㅈ ㅋㅋㅋ', 4);
         const b = api.box, x = wave % 2 ? b.x + 8 : b.x + b.w - 8, y = b.y + 8;
         const angle = Math.atan2(aim.y - y, aim.x - x);
         for (let n = -1; n <= 1; n++) { const a = angle + n * 0.4; icon(api, 'chicken', x, y, 26, { vx: Math.cos(a) * (o.speed ?? 115), vy: Math.sin(a) * (o.speed ?? 115), spin: n * 2.1 }); }

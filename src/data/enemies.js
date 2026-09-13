@@ -8,13 +8,14 @@
 //   patterns    적 턴에 쓰는 탄막 (src/battle/bullets.js PATTERNS 의 키 + 옵션). 여러 개면 턴마다 돌아가며.
 //   board       탄막 상자 크기 [w,h] (없으면 기본 200x150)
 //   money       잡으면 얻는 돈(원). 없으면 30
+//   boss        true면 승리 징글 없이 브금·화면을 천천히 페이드하고 보상 확인 뒤 후속 연출로 복귀
 //   idle        기본 모션 { swayX, swayY, period } — 좌우로 천천히 흔들리며 살짝 위아래 (없으면 7px / 2px / 2.8초)
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
   mankatsuki_junhee: {
     name: '만카츠키 쥰희', hp: 144, voice: 'junhee', money: 500, damage: 11,
-    attackSfxVolume: 0.72,
+    boss: true, attackSfxVolume: 0.36,
     bgmDelay: 0.4,
     sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },
     actions: { attack: { src: 'assets/enemies/mankatsuki-attack.png', cols: 6, rows: 1, count: 6, fps: 8, px: 1 } },
@@ -73,6 +74,7 @@ export const ENEMIES = {
     },
   },
   expelled_viewer: {
+    boss: true,
     name: '악질맨', hp: 66, voice: 'expelled_viewer', money: 666, damage: 11,
     sheet: { src: 'assets/sprites/expelled-viewer-dance.png', cols: 2, rows: 4, count: 8, fps: 5, px: 1 },
     pivot: [48, 88], scale: 1.4, dx: 16, dy: 0, board: [216, 156], idle: { swayX: 0, swayY: 0, period: 2 },
@@ -101,6 +103,7 @@ export const ENEMIES = {
   },
   // 256px 셀 × 0.9 = 230px. 기본 발(396,176)에 dx/dy를 더해 그림 전체를 (233,8)~(463,238)에 둔다.
   baron: {
+    boss: true,
     name: '바론', hp: 250, support: 'baron_cannon',
     sheet: { src: 'assets/enemies/baron-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 240, px: 1 },
     pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 12, money: 300,
@@ -218,6 +221,7 @@ export const ENEMIES = {
   //    이미지 PR #16(docs/handoffs/red-blue-buff-sprites.md): 전투 대기 192×192 시트(96×96 셀 2×2, 220ms, 발 pivot 48,89) / 필드 정면 64×64(pivot 32,60). 롤 레드 브램블백·블루 센티넬 모티브
   //    크기 규칙(2026-09-11 포스트모텀): 전투 그림은 화면 480×360 안, 패널 윗선(y 246) 위에 **전부** 들어와야 한다 — 둘이면 각 ≤ 144px(1.5배), 발 144/246 에 가로 40px 엇갈림. tests/playtest/enemy.mjs 가 잰다
   red: {
+    boss: true,
     name: '레드', hp: 22, voice: 'red',
     sheet: { src: 'assets/enemies/red-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.5, dx: 10, dy: 24, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [                                                                    // 방패 기사 = 신성한 영역: 한 칸만 안전 / 십자 성광 / 방패 벽 + 조준 방패 / 거대 방패 + 붉은 비
@@ -232,6 +236,7 @@ export const ENEMIES = {
       speak: ['시험 시작.', '침입자 확인.', '신성한 영역이다.', '통과 불가.', '제거하라.', '방패는 뚫리지 않는다.', '경고는 끝났다.', '오브젝트를 지켜라.', '판정. 판정. 판정.', '물러나라.'] },
   },
   blue: {
+    boss: true,
     name: '블루', hp: 22, voice: 'blue',
     sheet: { src: 'assets/enemies/blue-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 220, px: 1 }, pivot: [48, 89], scale: 1.5, dx: -30, dy: 10, damage: 13, money: 150, idle: { swayX: 0, swayY: 0, period: 3.0 },
     patterns: [                                                                    // 망치 기사: 망치 낙하(파편) / 위아래 망치 + 방사형 망치 / 포물선 망치 + 따라오는 망치 / 내리찍기 자리 4곳

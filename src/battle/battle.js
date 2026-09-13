@@ -43,6 +43,7 @@ const DOWN_TURNS = 3;                // 쓰러진 동료가 일어나기까지�
 const REVIVE_RATIO = 0.5;            // 부활 HP 비율(반피). 승리 시 쓰러진 동료도 이 비율로 일어난다
 const LOSE_HOLD = 0.9;               // 전원 쓰러진 뒤 전장을 이만큼 보여 주고 어두워진다(게임 오버 = 셋 다 쓰러졌을 때만)
 const RETRY_JINGLE = 1.5;            // 다시 도전: 검은 화면에서 징글이 끝나는 시간(표준 조우 타임라인과 같다) 뒤 전투 화면
+const BOSS_VICTORY_FADE = 1.8;
 const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
 const DOWN_SRC = (id) => `assets/battle/down/${id}.png`;   // HP 0 쓰러짐 정지 그림(PR #17, 96×96, 하단 기준점 48,89, 머리 오른쪽·발 왼쪽 — 누운 길이 81px ≈ 서 있는 키 81px 이라 배율 1)
@@ -132,6 +133,8 @@ export class Battle {
   // ── 유틸 ──
   alive() { return this.members.filter((m) => !m.down); }
   living() { return this.enemies.filter((e) => !e.dead); }
+  /** Explicit enemy metadata selects the boss victory transition, including mixed encounters. */
+  get bossBattle() { return this.enemies.some(e => e.def.boss === true); }
   setText(t) { this.text = stripTags(t); this.textT = 0; this.shown = 0; this.speaker = null; this.portrait = null; this.voice = 'narrator'; }
   /** 대사 한 줄: 문자열이면 나레이션, 객체면 화자 이름·초상화·목소리 */
   showLine(l) { if (typeof l === 'string') { this.setText(l); return; } this.setText(l.text); this.speaker = l.speaker || null; this.portrait = l.portrait || null; this.voice = l.voice || 'narrator'; }
@@ -253,7 +256,16 @@ export class Battle {
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
-      if (!this.living().length) { this.standUpAll(); const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0); this.game.money = (this.game.money || 0) + gain; this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain)); this.game.sound.stopBgm(0.3); this.sfx('won'); return; }   // 표준 승리 문구: '전투에서 승리했다! n원을 얻었다.' + 델타룬 snd_won
+      if (!this.living().length) {
+        this.standUpAll();
+        const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
+        this.game.money = (this.game.money || 0) + gain;
+        this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain));
+        this.cancelPendingBgm();
+        this.game.sound.stopBgm(this.bossBattle ? BOSS_VICTORY_FADE : 0.3);
+        if (!this.bossBattle) this.sfx('won');
+        return;
+      }
       this.beginEnemyTurn(); return;
     }
     const plan = this.plans[this.actIdx++];
@@ -406,7 +418,7 @@ export class Battle {
     this.disposeGimmick(); this.interlude = null;
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
     this.result = { win }; this.state = 'ending';
-    this.game.fadeTo(1, 0.35, () => this.game.endBattle(this.result), 'black');   // 검게 덮고 필드로 (컷신의 {fade:'in'} 이 걷는다)
+    this.game.fadeTo(1, win && this.bossBattle ? BOSS_VICTORY_FADE : 0.35, () => this.game.endBattle(this.result), 'black');
   }
 
   // ── 그리기 ──
