@@ -119,7 +119,7 @@ async function frameCheck(name, roamer = null) {
   const monkey = detail.find(e => e.id === 'parkwonsung');
   if (monkey) check(`${name}: monkey size preserved`, monkey.h >= 51 && monkey.h <= 54, monkey);
 }
-const pairTexts = ['* 어 예림님 안녕하세요', '* 어 안녕하세요', '* 옆에 애는 뭐지?', '* 우끽!', '* 킁킁 킁킁 킁킁 킁킁', '* 아 씨밯 이거 뭐야', '* 우끼이익', '* 제가 이러고 삽니다.', '* 어.. 캠 끄신거 아니죠? 당신요', '* 네?', '* 아 아니에요'];
+const pairTexts = ['* 어 예림님 안녕하세요', '* 어 안녕하세요', '* 옆에 애는 뭐지?', '* 우끽!', '* 킁킁 킁킁 킁킁 킁킁', '* 아 씨밯 이거 뭐야', '* 우끼이익', '* 제가 이러고 삽니다.', '* 와 진짜미쳣네 이년', '* 네?', '* 아 아니에요'];
 try {
   if (process.env.QA_SCOPE === 'roamers') {
     report.scope = 'Only immediate bee/mabaem dialogue without actor repositioning.';

@@ -53,7 +53,7 @@ export const maillard_yerim_pair = Object.assign([
   { action: (g) => g.entities.find(e => e.id === 'yerim').setSprite('yerim') },
   { wait: 0.3 },
   Y('* 제가 이러고 삽니다.'),
-  P('* 어.. 캠 끄신거 아니죠? 당신요'),
+  P('* 와 진짜미쳣네 이년'),
   Y('* 네?'),
   P('* 아 아니에요'),
   { camera: 'player' },
