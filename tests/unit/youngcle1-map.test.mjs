@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { TileMap, Entity, Door } from '../../src/world/world.js';
+import { TileMap, Entity, Door, Player, Sign } from '../../src/world/world.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 
@@ -93,6 +93,33 @@ test('TV and both upper door interaction anchors are reachable from the steel fl
     assert.equal(new Entity(anchor, {}).overlaps({ ...stand, y: stand.y - 19.2 }), true);
   }
 });
+
+for (const [position, x, y, reachable] of [
+  ['left_edge', 516, 216, true],
+  ['center', 660, 216, true],
+  ['right_edge', 804, 216, true],
+  ['forward_limit', 660, 227, true],
+  ['outside_left', 504, 216, false],
+  ['outside_right', 816, 216, false],
+  ['beyond_forward_limit', 660, 228, false],
+]) {
+  test(`test_youngcle1_TV_C_probe_${position}_${reachable ? 'reaches' : 'misses'}_screen`, () => {
+    const data = readMap('youngcle1');
+    const map = new TileMap(data);
+    const scripts = [];
+    const game = { entities: [], runScript: id => scripts.push(id) };
+    const screen = new Sign(data.entities.find(entity => entity.id === 'youngcle_tv_screen'), game);
+    game.entities.push(screen);
+    const player = new Entity({ x, y, facing: 'up' }, game);
+    assert.equal(map.solidRect(x, y, player.w, player.h), false);
+
+    const target = Player.prototype.probe.call(player);
+    target?.interact();
+
+    assert.equal(target === screen, reachable);
+    assert.deepEqual(scripts, reachable ? ['youngcle_tv_off'] : []);
+  });
+}
 
 test('test_youngcle1_upper_doors_require_C_then_route_right_or_report_left_locked', () => {
   const data = readMap('youngcle1');

@@ -121,9 +121,9 @@
   {
    "type": "sign",
    "id": "youngcle_tv_screen",
-   "x": 624,
+   "x": 528,
    "y": 196,
-   "w": 96,
+   "w": 288,
    "h": 12,
    "solid": false,
    "script": "youngcle_tv_off"

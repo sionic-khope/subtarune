@@ -12,7 +12,9 @@ import { youngcle_intro, youngcle_tv_off } from '../../src/data/cutscenes/youngc
 import { QA_POINTS, stateFromFlags, storyBgm } from '../../src/core/story.js';
 
 const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
-const Game = runInNewContext(main.slice(main.indexOf('class Game {'), main.indexOf('// ── 부트')) + '\nGame;');
+const Game = runInNewContext(main.slice(main.indexOf('class Game {'), main.indexOf('// ── 부트')) + '\nGame;', {
+  Input: { poll() {}, just: () => false }, TEXT_SPEEDS: { normal: { delay: 0.045 } },
+});
 const room = JSON.parse(readFileSync(new URL('../../assets/maps/youngcle1.json', import.meta.url)));
 function fixture() {
   const sounds = [], music = [];
@@ -22,6 +24,7 @@ function fixture() {
     sound: { sfx: name => sounds.push(name), playBgm: name => music.push(name), preloadBgm() {}, blip() {} },
     setFlag(key, value) { this.flags[key] = value; },
     zoomTo(scale, focus, duration, done) { this.zoom.s = scale; done(); },
+    fadeTo(target, duration, done) { done?.(); },
     finishTvBroadcast: Game.prototype.finishTvBroadcast,
   };
   game.entities = room.entities.map(def => new Entity(def, game));
@@ -34,6 +37,47 @@ function fixture() {
   game.textbox = new TextBox(game.sound, {}); game.dialogue = new ScriptRunner(game.textbox, game);
   return { game, sounds, music };
 }
+
+test('test_youngcle_intro_waits_for_full_fade_after_entry_continue_and_QA_initialization', () => {
+  for (const duration of [0.25, 0.5, null]) {
+    const { game } = fixture();
+    let transitionFinished = false;
+    Object.assign(game, {
+      fade: { alpha: duration === null ? 0 : 1, color: '0,0,0' },
+      fadeTo: Game.prototype.fadeTo,
+      state: 'title', settings: { textSpeed: 'normal', sound: true },
+      sunrise: { update() {} }, title: { update() {} },
+    });
+    game.dialogue.start(youngcle_intro);
+    if (duration !== null) game.fadeTo(0, duration, () => { transitionFinished = true; });
+    const input = { just: () => true };
+    const tick = () => {
+      Game.prototype.update.call(game, 0.01);
+      game.dialogue.update(0.01, input);
+    };
+
+    tick(); tick(); tick();
+    assert.equal(game.fade.alpha, 1, `entry ${duration}: restore full black after camera placement`);
+    assert.equal(game.textbox.isOpen, false);
+    assert.equal(game.entities.find(actor => actor.id === 'youngcle_junhee').facing, 'right');
+    assert.equal(game.entities.find(actor => actor.id === 'youngcle_yongjun').facing, 'left');
+    if (duration !== null) assert.equal(transitionFinished, true);
+    tick();
+    assert.equal(game.fade.target, 0);
+    assert.equal(game.fade.speed, 1 / 1.25);
+    for (let step = 0; step < 124; step++) {
+      tick();
+      assert.equal(game.textbox.isOpen, false, `entry ${duration}: dialogue must wait for the fade`);
+      assert.equal(game.player.visible, false);
+      if (step === 61) assert.ok(game.fade.alpha > 0.49 && game.fade.alpha < 0.51);
+    }
+    assert.ok(game.fade.alpha > 0);
+    for (let step = 0; step < 5 && !game.textbox.isOpen; step++) tick();
+    assert.equal(game.fade.alpha, 0);
+    assert.equal(game.textbox.isOpen, true);
+    assert.equal(game.textbox.node.text, '* 어딨어 이자식들');
+  }
+});
 
 test('test_youngcle_intro_runs_all_lines_with_delayed_party_entry_matched_TV_poses_and_one_shot_exit', () => {
   const { game, sounds, music } = fixture();
@@ -165,13 +209,16 @@ test('test_youngcle_door_pan_keeps_zoomed_view_inside_room_and_door_visible', ()
   assert.ok(door.x >= left && door.x + door.w <= right);
 });
 
-test('test_youngcle_off_TV_reinteraction_runs_one_gag_then_stays_short_without_moving_party', () => {
+test('test_youngcle_off_TV_reinteraction_reacts_then_retreats_before_book_and_stays_short_on_repeat', () => {
   const { game, sounds } = fixture();
   game.flags.youngcle_intro_done = true;
-  const positions = new Map(['player', ...game.party].map(id => {
-    const actor = id === 'player' ? game.player : game.entities.find(entity => entity.id === id);
-    return [id, [actor.x, actor.y]];
-  }));
+  const actors = ['player', ...game.party].map(id => game.entities.find(entity => entity.id === id));
+  const positions = actors.map((actor, index) => [660 + [0, -64, 64][index], 284]);
+  actors.forEach((actor, index) => { actor.x = positions[index][0]; actor.y = 224; });
+  const powerIndex = youngcle_tv_off.findIndex(node => node.wait === TV.powerTime);
+  assert.deepEqual(youngcle_tv_off[powerIndex + 1].parallel.map(node => [node.emote, node.kind]),
+    ['player', ...game.party].map(id => [id, '!']));
+  assert.ok(youngcle_tv_off[powerIndex + 2].parallel.every(node => node.run));
   const shown = [], expressions = [], seenExpressions = new Set(), visibleExpressions = new Set(), phases = new Set();
   game.dialogue.start(youngcle_tv_off);
   for (let tick = 0; tick < 2000 && game.dialogue.running; tick++) {
@@ -184,6 +231,9 @@ test('test_youngcle_off_TV_reinteraction_runs_one_gag_then_stays_short_without_m
     if (game.textbox.isOpen && shown.at(-1) !== game.textbox.node.text) {
       shown.push(game.textbox.node.text);
       expressions.push(game.tvBroadcast?.expression);
+      assert.deepEqual(actors.map(actor => [actor.x, actor.y]), positions);
+      assert.ok(actors.every(actor => actor.facing === 'up'));
+      assert.equal(game.zoom.s, 0.72);
     }
   }
   assert.deepEqual(shown, ['* ..오..', '* 뭐 뭐노?!']);
@@ -196,10 +246,7 @@ test('test_youngcle_off_TV_reinteraction_runs_one_gag_then_stays_short_without_m
   assert.equal(game.zoom.s, 1);
   assert.equal(game.camera.target, game.player);
   assert.equal(sounds.filter(name => name === 'youngcle_tv_on').length, 1);
-  for (const [id, position] of positions) {
-    const actor = id === 'player' ? game.player : game.entities.find(entity => entity.id === id);
-    assert.deepEqual([actor.x, actor.y], position);
-  }
+  assert.deepEqual(actors.map(actor => [actor.x, actor.y]), positions);
 
   shown.length = 0;
   game.dialogue.start(youngcle_tv_off);
@@ -210,5 +257,6 @@ test('test_youngcle_off_TV_reinteraction_runs_one_gag_then_stays_short_without_m
   assert.deepEqual(shown, ['* TV는 꺼져 있다.']);
   assert.equal(game.tvBroadcast, null);
   assert.equal(sounds.filter(name => name === 'youngcle_tv_on').length, 1);
-  assert.equal(youngcle_tv_off.some(node => node.move || node.regroup || node.map), false);
+  assert.deepEqual(actors.map(actor => [actor.x, actor.y]), positions);
+  assert.equal(youngcle_tv_off.some(node => node.map), false);
 });
