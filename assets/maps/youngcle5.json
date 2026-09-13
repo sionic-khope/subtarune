@@ -263,7 +263,8 @@
    "x": 162,
    "y": 258,
    "solvedX": 386,
-   "solvedY": 322
+   "solvedY": 322,
+   "onSolved": "youngcle5_crate_complete"
   },
   {
    "type": "factory_crate",
@@ -273,7 +274,8 @@
    "x": 226,
    "y": 258,
    "solvedX": 386,
-   "solvedY": 194
+   "solvedY": 194,
+   "onSolved": "youngcle5_crate_complete"
   },
   {
    "type": "factory_gate",

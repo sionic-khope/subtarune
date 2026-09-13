@@ -7,9 +7,9 @@ import {
   drawFactoryPressurePlate,
   drawFactorySign,
 } from './factory-puzzle-art.js';
+import { PROBE_RANGE } from '../core/layout.js';
 
 const TILE = 32;
-const pushLockedGames = new WeakSet();
 
 const aligned = (plate) => plate.orientation === plate.solution;
 const puzzleEntities = (game, puzzle) => game.entities.filter((entity) => entity.def?.puzzle === puzzle);
@@ -20,35 +20,38 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
       super({ w: 28, h: 28, ...def }, game);
       this.start = [def.x, def.y];
       this.slide = null;
-      this.pushCooldown = 0;
+      this.pendingSolvedScript = null;
       if (game.has(def.flag)) [this.x, this.y] = [def.solvedX, def.solvedY];
     }
 
-    update(dt, input) {
+    update(dt) {
+      if (this.pendingSolvedScript && !this.game.dialogue?.running) {
+        const script = this.pendingSolvedScript;
+        this.pendingSolvedScript = null;
+        this.game.runScript(script);
+      }
       if (this.game.has(this.def.flag)) return;
-      const direction = ['left', 'right', 'up', 'down'].find((name) => input.down(name));
-      if (!direction) pushLockedGames.delete(this.game);
-      this.pushCooldown = Math.max(0, this.pushCooldown - dt);
       if (this.slide) {
         this.slide.t = Math.min(this.slide.duration, this.slide.t + dt);
         const progress = this.slide.t / this.slide.duration;
         this.x = this.slide.fromX + (this.slide.toX - this.slide.fromX) * progress;
         this.y = this.slide.fromY + (this.slide.toY - this.slide.fromY) * progress;
         if (progress >= 1) { this.slide = null; this.checkPlate(); }
-        return;
       }
-      if (this.pushCooldown > 0) return;
-      if (!direction || pushLockedGames.has(this.game)) return;
+    }
+
+    interact(player) {
+      if (this.game.has(this.def.flag) || this.slide) return true;
+      const direction = player.facing;
       const vectors = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] };
       const [dx, dy] = vectors[direction];
-      if (!this.playerCanPush(dx, dy) || !this.targetIsFree(dx, dy)) return;
-      pushLockedGames.add(this.game);
+      if (!this.playerCanPush(dx, dy, player) || !this.targetIsFree(dx, dy)) return true;
       this.slide = {
         fromX: this.x, fromY: this.y, toX: this.x + dx * TILE, toY: this.y + dy * TILE,
         t: 0, duration: 0.14,
       };
-      this.pushCooldown = 0.22;
       this.game.sound.sfx('scrape', { volume: 0.55 });
+      return true;
     }
 
     checkPlate() {
@@ -59,16 +62,18 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
       if (!plates.length || !plates.every((plate) => crates.some((crate) => plate.contains(crate)))) return;
       this.game.setFlag(this.def.flag);
       this.game.autosave();
+      if (!this.def.onSolved) return;
+      if (this.game.dialogue?.running) this.pendingSolvedScript = this.def.onSolved;
+      else this.game.runScript(this.def.onSolved);
     }
 
-    playerCanPush(dx, dy) {
-      const player = this.game.player;
+    playerCanPush(dx, dy, player = this.game.player) {
       const overlapsX = player.x < this.x + this.w && player.x + player.w > this.x;
       const overlapsY = player.y < this.y + this.h && player.y + player.h > this.y;
-      if (dx > 0) return overlapsY && player.x + player.w <= this.x + 3 && this.x - player.x - player.w <= 7;
-      if (dx < 0) return overlapsY && player.x >= this.x + this.w - 3 && player.x - this.x - this.w <= 7;
-      if (dy > 0) return overlapsX && player.y + player.h <= this.y + 3 && this.y - player.y - player.h <= 7;
-      return overlapsX && player.y >= this.y + this.h - 3 && player.y - this.y - this.h <= 7;
+      if (dx > 0) return overlapsY && player.x + player.w <= this.x + 3 && this.x - player.x - player.w <= PROBE_RANGE;
+      if (dx < 0) return overlapsY && player.x >= this.x + this.w - 3 && player.x - this.x - this.w <= PROBE_RANGE;
+      if (dy > 0) return overlapsX && player.y + player.h <= this.y + 3 && this.y - player.y - player.h <= PROBE_RANGE;
+      return overlapsX && player.y >= this.y + this.h - 3 && player.y - this.y - this.h <= PROBE_RANGE;
     }
 
     targetIsFree(dx, dy) {
@@ -82,7 +87,7 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
         && entity.def?.type !== 'follower' && entity.solid && !entity.dead && entity.overlaps(rect));
     }
 
-    reset() { [this.x, this.y] = this.start; this.slide = null; this.pushCooldown = 0; }
+    reset() { [this.x, this.y] = this.start; this.slide = null; this.pendingSolvedScript = null; }
 
     draw(ctx, cam) {
       drawFactoryCrate(ctx, cam, this);

@@ -1,15 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { createEntity, Entity, TileMap } from '../../src/world/world.js';
+import { createEntity, Entity, Player, TileMap } from '../../src/world/world.js';
 import { QA_POINTS, stateFromFlags } from '../../src/core/story.js';
+import * as factoryCutscenes from '../../src/data/cutscenes/factory_puzzles.js';
+import { SCRIPTS } from '../../src/data/scripts.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 
 const makeGame = (data, flags = {}) => {
   const sounds = [], scripts = [];
   const game = {
-    flags, map: new TileMap(data), entities: [], player: null,
+    flags, map: new TileMap(data), entities: [], player: null, dialogue: { running: false },
     has(key) { return !!this.flags[key]; },
     setFlag(key, value = true) { this.flags[key] = value; },
     sound: { sfx: name => sounds.push(name) },
@@ -30,10 +32,12 @@ const push = (game, crate, direction) => {
     down: [crate.x + 2, crate.y - game.player.h],
   };
   [game.player.x, game.player.y] = positions[direction];
-  crate.update(1 / 60, { down: name => name === direction });
+  game.player.facing = direction;
+  const handled = crate.interact(game.player);
+  assert.equal(handled, true);
   assert.ok(crate.slide, `${crate.id} should move ${direction}`);
-  crate.update(0.14, { down: () => false });
-  crate.update(0.08, { down: () => false });
+  crate.update(0.14);
+  crate.update(0.08);
 };
 
 const minimumPushes = (data) => {
@@ -206,7 +210,7 @@ test('test_medium_crate_requires_six_push_route_around_bulkhead', () => {
 test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
   // Arrange
   const data = readMap('youngcle5');
-  const { game } = makeGame(data);
+  const { game, scripts } = makeGame(data);
   const crateA = game.entities.find(entity => entity.id === 'youngcle5_crate_a');
   const crateB = game.entities.find(entity => entity.id === 'youngcle5_crate_b');
   const gate = game.entities.find(entity => entity.id === 'youngcle5_gate');
@@ -216,6 +220,7 @@ test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
   push(game, crateA, 'down');
   for (let count = 0; count < 5; count += 1) push(game, crateB, 'right');
   assert.equal(game.flags.youngcle5_crate_solved, undefined);
+  assert.deepEqual(scripts, []);
   push(game, crateA, 'down');
   for (let count = 0; count < 6; count += 1) push(game, crateA, 'right');
   for (let count = 0; count < 2; count += 1) push(game, crateB, 'up');
@@ -227,43 +232,136 @@ test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
   assert.equal(game.flags.youngcle5_crate_solved, true);
   assert.equal(gate.solid, false);
   assert.equal(game.saved, 1);
+  assert.deepEqual(scripts, ['youngcle5_crate_complete']);
 });
 
-test('test_factory_one_direction_press_starts_only_one_adjacent_crate', () => {
+test('test_factory_final_completion_dialogue_uses_exact_lines_without_reward_nodes', () => {
+  // Arrange / Act
+  const { youngcle5_crate_complete } = factoryCutscenes;
+  const dialogue = youngcle5_crate_complete.map(({ speaker, voice, text }) => ({ speaker, voice, text }));
+
+  // Assert
+  assert.deepEqual(dialogue, [
+    { speaker: '억빠맨', voice: 'ppaman', text: '* ...' },
+    { speaker: '경섭', voice: 'gyeongsub', text: '* 빠맨아 왜?' },
+    { speaker: '억빠맨', voice: 'ppaman', text: '* 제작자가 김형섭 맞춤 퍼즐난이도 조정 ㅈㄴ 잘한거같아서 감탄중이에요' },
+    { speaker: '경섭', voice: 'gyeongsub', text: '* 개추 ㅋㅋㅋ' },
+    { speaker: undefined, voice: 'narrator', text: '* ㅅㅂ년들이' },
+  ]);
+  assert.equal(youngcle5_crate_complete.some(node => node.set || node.stage || node.action), false);
+  assert.equal(SCRIPTS.youngcle5_crate_complete, youngcle5_crate_complete);
+});
+
+test('test_factory_tutorial_and_signs_explain_one_cell_confirm_pushes', () => {
+  // Arrange
+  const guides = [factoryCutscenes.youngcle3_crate_intro, factoryCutscenes.youngcle3_crate_sign,
+    factoryCutscenes.youngcle4_crate_sign, factoryCutscenes.youngcle5_crate_sign];
+
+  // Act
+  const texts = guides.map(nodes => nodes.map(node => node.text || '').join('\n'));
+
+  // Assert
+  assert.ok(texts.every(text => text.includes('C')));
+  assert.ok(texts.every(text => text.includes('한 칸')));
+  assert.ok(texts.every(text => !text.includes('방향키')));
+});
+
+test('test_factory_completion_waits_for_running_dialogue_then_plays_once', () => {
+  // Arrange: put one crate on the top plate and the other one push below the bottom plate.
+  const { game, scripts } = makeGame(readMap('youngcle5'));
+  const [crateA, crateB] = game.entities.filter(entity => entity.def.type === 'factory_crate');
+  [crateA.x, crateA.y] = [386, 194];
+  [crateB.x, crateB.y] = [386, 354];
+  [game.player.x, game.player.y] = [crateB.x + 2, crateB.y + crateB.h];
+  game.player.facing = 'up';
+  game.dialogue.running = true;
+
+  // Act
+  crateB.interact(game.player);
+  crateB.update(0.14, { down: () => false });
+  crateB.update(1 / 60, { down: () => false });
+  game.dialogue.running = false;
+  crateB.update(1 / 60, { down: () => false });
+  crateB.update(1 / 60, { down: () => false });
+
+  // Assert
+  assert.equal(game.flags.youngcle5_crate_solved, true);
+  assert.deepEqual(scripts, ['youngcle5_crate_complete']);
+});
+
+test('test_factory_confirm_interaction_starts_only_one_faced_crate', () => {
   // Arrange: the player's 24px width overlaps both 28px crates across their 4px gap.
   const { game } = makeGame(readMap('youngcle5'));
   const [crateA, crateB] = game.entities.filter(entity => entity.def.type === 'factory_crate');
   [crateA.x, crateA.y] = [194, 258];
   [crateB.x, crateB.y] = [226, 258];
   [game.player.x, game.player.y] = [216, 286];
-  const heldUp = { down: direction => direction === 'up' };
+  game.player.facing = 'up';
 
-  // Act: both entities observe the same physical key press in the same update frame.
-  crateA.update(1 / 60, heldUp);
-  crateB.update(1 / 60, heldUp);
+  // Act
+  const handled = crateA.interact(game.player);
 
   // Assert
+  assert.equal(handled, true);
   assert.equal([crateA, crateB].filter(crate => crate.slide).length, 1,
-    'one direction press must select exactly one overlapping crate');
+    'one confirm interaction must select exactly one faced crate');
 });
 
-test('test_factory_held_direction_waits_for_release_before_another_push', () => {
+test('test_factory_direction_input_does_not_push_without_confirm', () => {
   // Arrange
   const { game } = makeGame(readMap('youngcle3'));
   const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
   [game.player.x, game.player.y] = [crate.x - game.player.w, crate.y + 6];
-  const heldRight = { down: direction => direction === 'right' };
 
-  // Act: finish the first slide and enough cooldown while the same press remains held.
-  crate.update(1 / 60, heldRight);
-  crate.update(0.14, heldRight);
-  game.player.x = crate.x - game.player.w;
-  crate.update(0.24, heldRight);
+  // Act
+  crate.update(0.5, { down: direction => direction === 'right' });
 
   // Assert
-  assert.deepEqual([crate.x, crate.y], [226, 290],
-    'holding one press must move the crate only one tile');
+  assert.deepEqual([crate.x, crate.y], [194, 290]);
   assert.equal(crate.slide, null);
+});
+
+test('test_factory_one_confirm_press_moves_one_faced_tile', () => {
+  // Arrange
+  const { game } = makeGame(readMap('youngcle3'));
+  const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
+  [game.player.x, game.player.y] = [crate.x - game.player.w, crate.y + 6];
+  game.player.facing = 'right';
+
+  // Act
+  const handled = crate.interact(game.player);
+  crate.update(0.14, { down: () => false });
+  crate.update(0.5, { down: () => false });
+
+  // Assert
+  assert.equal(handled, true);
+  assert.deepEqual([crate.x, crate.y], [226, 290]);
+  assert.equal(crate.slide, null);
+});
+
+test('test_factory_confirm_push_matches_the_real_player_probe_edge', () => {
+  // Arrange: use the real Player.probe implementation at 18px and just outside it at 20px.
+  const atGap = gap => {
+    const { game } = makeGame(readMap('youngcle3'));
+    const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
+    [game.player.x, game.player.y] = [crate.x - game.player.w - gap, crate.y + 6];
+    game.player.facing = 'right';
+    game.player.probe = Player.prototype.probe;
+    return { game, crate };
+  };
+  const near = atGap(18);
+  const far = atGap(20);
+
+  // Act
+  const nearTarget = near.game.player.probe();
+  const farTarget = far.game.player.probe();
+  nearTarget?.interact(near.game.player);
+
+  // Assert
+  assert.equal(nearTarget, near.crate);
+  assert.ok(near.crate.slide, 'C must push from anywhere the real interaction probe selects the crate');
+  assert.equal(farTarget, undefined);
+  assert.equal(far.crate.slide, null);
 });
 
 test('test_factory_crate_cannot_leave_the_marked_move_area', () => {
@@ -272,9 +370,10 @@ test('test_factory_crate_cannot_leave_the_marked_move_area', () => {
   const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
   [crate.x, crate.y] = [130, 290];
   [game.player.x, game.player.y] = [crate.x + crate.w, crate.y + 6];
+  game.player.facing = 'left';
 
   // Act
-  crate.update(1 / 60, { down: direction => direction === 'left' });
+  crate.interact(game.player);
 
   // Assert
   assert.equal(crate.slide, null);
@@ -310,17 +409,19 @@ test('test_old_factory_flags_restore_new_crate_layouts_as_solved', () => {
   const cases = [
     ['youngcle3', 'youngcle3_crate_solved'],
     ['youngcle4', 'youngcle4_circuit_solved'],
+    ['youngcle5', 'youngcle5_crate_solved'],
   ];
 
   for (const [id, flag] of cases) {
     // Act
-    const game = makeGame(readMap(id), { [flag]: true }).game;
+    const { game, scripts } = makeGame(readMap(id), { [flag]: true });
     const crates = game.entities.filter(entity => entity.def.type === 'factory_crate');
     const plates = game.entities.filter(entity => entity.def.type === 'factory_plate');
 
     // Assert
     assert.ok(plates.every(plate => crates.some(crate => plate.contains(crate))), id);
     assert.equal(game.entities.find(entity => entity.id === `${id}_gate`).solid, false);
+    assert.deepEqual(scripts, []);
   }
 });
 

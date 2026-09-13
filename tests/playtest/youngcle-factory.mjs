@@ -43,28 +43,55 @@ async function walkTo(x, y) {
   await page.waitForTimeout(100);
 }
 
-async function pushOnce(crateId, direction) {
-  const key = { right: 'ArrowRight', left: 'ArrowLeft', up: 'ArrowUp', down: 'ArrowDown' }[direction];
+async function pushOnce(crateId, direction, holdConfirm = false) {
+  const directionKey = { right: 'ArrowRight', left: 'ArrowLeft', up: 'ArrowUp', down: 'ArrowDown' }[direction];
   const before = await page.evaluate(id => {
     const crate = game.entities.find(entity => entity.id === id);
     return [crate.x, crate.y];
   }, crateId);
-  await page.keyboard.down(key);
+  await page.keyboard.down(directionKey);
+  try {
+    await page.waitForFunction(({ id, move }) => game.player.facing === move && game.player.probe()?.id === id,
+      { id: crateId, move: direction }, { timeout: 2000 });
+  } finally {
+    await page.keyboard.up(directionKey);
+  }
+  const afterArrow = await page.evaluate(id => {
+    const crate = game.entities.find(entity => entity.id === id);
+    return [Math.round(crate.x), Math.round(crate.y), !!crate.slide];
+  }, crateId);
+  check(`${crateId} ${direction} arrow only faces or walks`,
+    afterArrow[0] === Math.round(before[0]) && afterArrow[1] === Math.round(before[1]) && !afterArrow[2], { before, afterArrow });
+  await page.keyboard.down('KeyC');
   try {
     await page.waitForFunction(({ id, start }) => {
       const crate = game.entities.find(entity => entity.id === id);
       return crate.slide || crate.x !== start[0] || crate.y !== start[1];
     }, { id: crateId, start: before }, { timeout: 3000 });
+    await page.waitForFunction(id => !game.entities.find(entity => entity.id === id).slide, crateId);
+    if (holdConfirm) {
+      await page.evaluate(({ id, move }) => {
+        const crate = game.entities.find(entity => entity.id === id);
+        const positions = {
+          left: [crate.x + crate.w, crate.y + 6],
+          right: [crate.x - game.player.w, crate.y + 6],
+          up: [crate.x + 2, crate.y + crate.h],
+          down: [crate.x + 2, crate.y - game.player.h],
+        };
+        [game.player.x, game.player.y] = positions[move];
+        game.player.facing = move;
+      }, { id: crateId, move: direction });
+      await page.waitForTimeout(500);
+    }
   } finally {
-    await page.keyboard.up(key);
+    await page.keyboard.up('KeyC');
   }
-  await page.waitForFunction(id => !game.entities.find(entity => entity.id === id).slide, crateId);
   await page.waitForTimeout(120);
   const after = await page.evaluate(id => {
     const crate = game.entities.find(entity => entity.id === id);
     return [Math.round(crate.x), Math.round(crate.y)];
   }, crateId);
-  check(`${crateId} ${direction} moves exactly one tile`, Math.abs(after[0] - before[0]) + Math.abs(after[1] - before[1]) === 32, { before, after });
+  check(`${crateId} C ${direction} moves exactly one tile`, Math.abs(after[0] - before[0]) + Math.abs(after[1] - before[1]) === 32, { before, after, holdConfirm });
 }
 
 async function settleDialogueLine() {
@@ -97,8 +124,8 @@ try {
   await page.evaluate(() => { window.__factoryBgm = game.sound.bgm; });
   const intro = [await settleDialogueLine(), await settleDialogueLine(), await settleDialogueLine()];
   await page.waitForFunction(() => !game.dialogue.running);
-  check('first entry explains the marked target and direction-key push',
-    intro.some(text => text.includes('표시된 데')) && intro.some(text => text.includes('방향키')), intro);
+  check('first entry explains the marked target and one-cell C push',
+    intro.some(text => text.includes('표시된 데')) && intro.some(text => text.includes('C를 누르면 한 칸씩')), intro);
   check('tutorial intro records a one-time flag', await page.evaluate(() => game.flags.youngcle3_crate_intro_seen === true));
   await shot('01-tutorial-intro-complete');
 
@@ -107,7 +134,7 @@ try {
   await page.evaluate(() => game.changeMap('youngcle3', 'left', true, { enter: false }));
   await page.waitForFunction(() => game.mapId === 'youngcle3' && !game.transitioning);
   await walkTo(160, 296);
-  await pushOnce('youngcle3_crate', 'right');
+  await pushOnce('youngcle3_crate', 'right', true);
   await pushOnce('youngcle3_crate', 'right');
   await walkTo(220, 344);
   await walkTo(260, 344);
@@ -172,6 +199,16 @@ try {
   await walkTo(388, 298);
   await pushOnce('youngcle5_crate_b', 'up');
   await pushOnce('youngcle5_crate_b', 'up');
+  const completion = [await settleDialogueLine(), await settleDialogueLine(), await settleDialogueLine(),
+    await settleDialogueLine(), await settleDialogueLine()];
+  await page.waitForFunction(() => !game.dialogue.running);
+  check('hard first solve plays the exact five-line completion dialogue once', JSON.stringify(completion) === JSON.stringify([
+    '* ...',
+    '* 빠맨아 왜?',
+    '* 제작자가 김형섭 맞춤 퍼즐난이도 조정 ㅈㄴ 잘한거같아서 감탄중이에요',
+    '* 개추 ㅋㅋㅋ',
+    '* ㅅㅂ년들이',
+  ]), completion);
   check('hard 16-push ordered solution opens only after both targets', await page.evaluate(() => game.flags.youngcle5_crate_solved && !game.entities.find(entity => entity.id === 'youngcle5_gate').solid));
   await shot('04-hard-solved');
 
@@ -182,6 +219,7 @@ try {
     const plates = game.entities.filter(entity => entity.def.type === 'factory_plate');
     return plates.every(plate => crates.some(crate => plate.contains(crate))) && !game.entities.find(entity => entity.id === 'youngcle5_gate').solid;
   }));
+  check('hard solved return does not replay completion dialogue', await page.evaluate(() => !game.dialogue.running));
   check('no runtime errors or missing factory resources',
     errors.length === 0 && factoryResourceErrors.length === 0, { errors, factoryResourceErrors });
 } catch (error) {
