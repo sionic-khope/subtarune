@@ -139,12 +139,16 @@
    "h": 12
   },
   {
-   "type": "factory_rail",
-   "id": "youngcle5_rail_end",
-   "x": 532,
+   "type": "door",
+   "id": "youngcle5_right",
+   "x": 528,
    "y": 172,
-   "w": 12,
-   "h": 212
+   "w": 16,
+   "h": 200,
+   "to": "youngcle6",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
   },
   {
    "type": "factory_move_area",

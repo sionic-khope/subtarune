@@ -1,0 +1,149 @@
+{
+ "id": "youngcle6",
+ "name": "영클 전함 휴게실",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "dim": 0.04,
+ "followScreenY": 300,
+ "rows": [
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJ"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/props/youngcle6_walls.png",
+  "assets/props/youngcle_tv_frame.png",
+  "assets/props/sofa.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 80,
+   "y": 304,
+   "facing": "right"
+  },
+  "left": {
+   "x": 80,
+   "y": 304,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "player": [
+    308,
+    312
+   ],
+   "gyeongsub": [
+    244,
+    312
+   ],
+   "ppaman": [
+    372,
+    312
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "youngcle6_walls",
+   "image": "assets/props/youngcle6_walls.png",
+   "x": 0,
+   "y": 0,
+   "w": 640,
+   "h": 448,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_tv",
+   "image": "assets/props/youngcle_tv_frame.png",
+   "x": 176,
+   "y": 24,
+   "w": 288,
+   "h": 176,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "youngcle6_bench_1",
+   "image": "assets/props/sofa.png",
+   "x": 70,
+   "y": 398,
+   "w": 88,
+   "h": 18,
+   "ix": 64,
+   "iy": 368,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "youngcle6_bench_2",
+   "image": "assets/props/sofa.png",
+   "x": 482,
+   "y": 398,
+   "w": 88,
+   "h": 18,
+   "ix": 476,
+   "iy": 368,
+   "solid": true
+  },
+  {
+   "type": "npc",
+   "id": "warm_bidet",
+   "sprite": "warm_bidet",
+   "x": 116,
+   "y": 248,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1
+  },
+  {
+   "type": "npc",
+   "id": "lucky_guy",
+   "sprite": "lucky_guy",
+   "x": 436,
+   "y": 344,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1.79
+  },
+  {
+   "type": "npc",
+   "id": "park_guardian_costume",
+   "sprite": "park_guardian_costume",
+   "x": 500,
+   "y": 248,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 2.22
+  },
+  {
+   "type": "door",
+   "id": "youngcle6_left",
+   "x": 32,
+   "y": 288,
+   "w": 16,
+   "h": 64,
+   "to": "youngcle5",
+   "spawn": "landing",
+   "sfx": false,
+   "interact": false
+  }
+ ]
+}
