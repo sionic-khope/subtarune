@@ -1,0 +1,21 @@
+{
+  "canvas_size": [
+    32,
+    32
+  ],
+  "source_bbox": [
+    146,
+    317,
+    1108,
+    989
+  ],
+  "output_bbox": [
+    2,
+    6,
+    30,
+    26
+  ],
+  "uniform_scale": 0.029106029106029108,
+  "resampling": "NEAREST",
+  "palette_quantization": false
+}
