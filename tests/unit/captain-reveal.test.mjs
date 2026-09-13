@@ -11,6 +11,15 @@ import { makeWaiter } from '../../src/ui/cutscene.js';
 
 const room = JSON.parse(fs.readFileSync('assets/maps/maillard_captain.json', 'utf8'));
 
+test('computer-world reveal surprises only the two uninformed companions', () => {
+  const index = SCRIPTS.captain_reveal.findIndex(node => node.text?.includes('여긴 김형섭의 컴퓨터속인거야'));
+  assert.ok(index >= 0);
+  const reaction = SCRIPTS.captain_reveal[index + 1].parallel;
+  assert.deepEqual(reaction.filter(node => node.emote).map(node => node.emote), ['ppaman', 'gyeongsub']);
+  assert.deepEqual(reaction.filter(node => node.hop).map(node => node.hop), ['ppaman', 'gyeongsub']);
+  assert.equal(reaction.filter(node => node.sfx === 'chime').length, 1);
+});
+
 test('captain arrival starts the reveal once and preserves a separate transformed resident', () => {
   assert.equal(room.enter?.script, 'captain_reveal');
   assert.equal(room.enter.flag, 'captain_reveal_started');

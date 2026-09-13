@@ -48,7 +48,7 @@ export const captain_reveal = Object.assign([
   { sfx: 'captain_thunder' },
   { async: [{ shake: 0.65, amp: 4 }] },
   J('{shake}{c=yellow}여긴 김형섭의 컴퓨터속인거야!!{/c}{/shake}'),
-  surprise([...PARTY, 'captain_junhee'], true),
+  surprise(['ppaman', 'gyeongsub'], true),
   P('뭐 뭐라고? 그 그럴수가. 그러면 방송플랫폼섬은 트위치 치지직 숲 사이트가 구현된거고 적군들은 롤에서?'),
   J('그리고'),
   { action: game => game.entities.find(entity => entity.id === 'captain_junhee').setSprite('junhee_point') },
