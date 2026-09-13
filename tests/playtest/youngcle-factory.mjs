@@ -52,6 +52,26 @@ async function captureBreakpoints(mapId, spawn) {
   }
 }
 
+async function captureControls(width, height) {
+  await page.setViewportSize({ width, height });
+  await page.evaluate(async () => {
+    const { QA_POINTS } = await import('/src/core/story.js');
+    game.devJump(QA_POINTS.find(point => point.id === 'youngcle3'));
+  });
+  await page.waitForFunction(() => game.mapId === 'youngcle3' && !game.transitioning);
+  await walkTo(132, 236);
+  await page.keyboard.press('ArrowUp', { delay: 30 });
+  await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => game.dialogue.running);
+  await page.keyboard.press('KeyX');
+  await page.waitForFunction(() => game.textbox.state === 'waiting');
+  check(`settled crate controls are visible at ${width}px`,
+    await page.evaluate(() => game.textbox.node?.text.includes('방향키')));
+  await shot(`crate-controls-${width}`);
+  await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => !game.dialogue.running);
+}
+
 try {
   await page.goto(`${process.env.BASE_URL || 'http://localhost:8793'}/?qa=youngcle2`);
   await page.waitForFunction(() => game?.player && game.mapId === 'youngcle2' && !game.transitioning);
@@ -167,6 +187,9 @@ try {
   await captureBreakpoints('youngcle2', 'left');
   await captureBreakpoints('youngcle3', 'left');
   await captureBreakpoints('youngcle4', 'landing');
+  await captureControls(375, 812);
+  await captureControls(768, 900);
+  await captureControls(1280, 900);
   check('no runtime errors or missing factory resources',
     errors.length === 0 && factoryResourceErrors.length === 0, { errors, factoryResourceErrors });
 } catch (error) {
