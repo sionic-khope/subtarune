@@ -37,6 +37,7 @@ import { maillard_storage_enter } from './cutscenes/maillard_rooms.js';
 import { maillard_eunbyeol, maillard_captain_enter } from './cutscenes/captain_room.js';
 import { captain_reveal } from './cutscenes/captain_reveal.js';
 import { captain_mankatsuki } from './cutscenes/captain_mankatsuki.js';
+import { captain_aftermath } from './cutscenes/captain_aftermath.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 
@@ -62,6 +63,7 @@ export const SCRIPTS = {
   maillard_eunbyeol, maillard_captain_enter,
   captain_reveal,
   captain_mankatsuki,
+  captain_aftermath,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,

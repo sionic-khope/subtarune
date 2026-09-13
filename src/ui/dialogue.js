@@ -11,6 +11,7 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 
 import { FONT, F } from './font.js';
 import { drawMosaicText, markTextMosaic } from './text-mosaic.js';
+import { IllustratedNarration, ILLUSTRATED_NARRATION } from './illustrated-narration.js';
 export { FONT };
 const LINE_H = F.lineH;
 const MAX_LINES = 4;
@@ -59,7 +60,7 @@ export function parseText(text) {
 }
 
 /** 토큰을 줄바꿈해서 페이지(줄 배열)로 나눈다. 단어 단위(한글 포함), 한 단어가 한 줄보다 길 때만 글자 단위. 어느 줄도 maxWidth 를 넘지 않는다 */
-export function layout(ctx, tokens, maxWidth) {
+export function layout(ctx, tokens, maxWidth, maxLines = MAX_LINES) {
   ctx.font = FONT;
   const lines = [];
   let line = [], width = 0;
@@ -89,7 +90,7 @@ export function layout(ctx, tokens, maxWidth) {
   if (line.length) lines.push(line);
 
   const pages = [];
-  for (let i = 0; i < lines.length; i += MAX_LINES) pages.push(lines.slice(i, i + MAX_LINES));
+  for (let i = 0; i < lines.length; i += maxLines) pages.push(lines.slice(i, i + maxLines));
   return pages.length ? pages : [[[]]];
 }
 
@@ -121,6 +122,7 @@ export class TextBox {
     this.shakeTimer = 0;
     this.node = null;
     this.onDone = null;
+    this.illustration = new IllustratedNarration();
   }
 
   get isOpen() { return this.state !== 'closed'; }
@@ -138,6 +140,8 @@ export class TextBox {
     this.staggerTimer = 0;
     this.choiceAutoTimer = null;               // choice.auto: 다 드러난 뒤 n초 후 고르지 않고 자동 진행
     this.style = node.style || 'box';          // 'box' | 'narration'(검은 화면 중앙 텍스트)
+    if (this.style === 'illustrated') this.illustration.show(node.image);
+    else this.illustration.clear();
     this.autoDelay = node.speed ? this.charDelay / node.speed : null;
     this.auto = node.auto ?? null;             // 초: 다 나온 뒤 자동으로 넘어감
     this.autoTimer = 0;
@@ -148,7 +152,7 @@ export class TextBox {
     this.tokens = parseText(text);
     markTextMosaic(this.tokens, node.mosaic);
     const textW = this.textWidth();
-    this.pages = layout(ctx, this.tokens, textW);
+    this.pages = layout(ctx, this.tokens, textW, this.style === 'illustrated' ? ILLUSTRATED_NARRATION.maxLines : MAX_LINES);
     this.page = 0;
     this.revealed = 0;
     this.timer = 0;
@@ -161,11 +165,15 @@ export class TextBox {
   close() {
     this.state = 'closed';
     this.node = null;
+    this.onDone = null;
+    this.illustration.clear();
+    this.exitChoice = null;
   }
 
-  get fullscreen() { return this.isOpen && this.style === 'narration'; }
+  get fullscreen() { return this.isOpen && (this.style === 'narration' || this.style === 'illustrated'); }
 
   layoutRect() {
+    if (this.style === 'illustrated') return ILLUSTRATED_NARRATION.text;
     if (this.presentation?.rect) return this.presentation.rect;
     if (this.style === 'narration') return { x: 40, y: 60, w: SCREEN_W - 80, h: 120 };
     return { x: 12, y: SCREEN_H - 112, w: SCREEN_W - 24, h: 104 };
@@ -173,6 +181,7 @@ export class TextBox {
   /** 글이 들어갈 폭 = 상자 폭 − 글 시작 오프셋(18 / 초상화 74) − 오른쪽 여백 18. 테두리에 글자가 걸리면 안 된다 */
   textWidth() {
     const r = this.layoutRect();
+    if (this.style === 'illustrated') return r.w;
     if (this.style === 'narration') return r.w - 36;
     return r.w - (this.portrait ? 74 : 18) - 18;
   }
@@ -193,6 +202,14 @@ export class TextBox {
   update(dt, input) {
     if (this.state === 'closed') return;
     this.time += dt;
+    if (this.style === 'illustrated' && this.illustration.transitioning) {
+      this.illustration.update(dt);
+      return;
+    }
+    if (this.style === 'illustrated' && this.illustration.exiting) {
+      this._done(this.exitChoice);
+      return;
+    }
     if (this.cut !== null) {                                   // 말이 끊기는 대사: 시간이 되면 찍히던 중이라도 닫고 다음으로
       this.cutTimer += dt;
       if (this.cutTimer >= this.cut) { this._done(null); return; }
@@ -271,14 +288,20 @@ export class TextBox {
   }
 
   _done(choiceIndex) {
+    if (this.style === 'illustrated' && this.node.imageExit && !this.illustration.exiting) {
+      this.exitChoice = choiceIndex;
+      this.illustration.exit();
+      return;
+    }
     const cb = this.onDone;
     this.state = 'closed';
     if (cb) cb(choiceIndex);
+    if (this.state === 'closed') this.close();
   }
 
   draw(ctx) {
     if (this.state === 'closed') return;
-    if (this.style === 'narration') return this.drawNarration(ctx);
+    if (this.style === 'narration' || this.style === 'illustrated') return this.drawNarration(ctx);
     const r = this.layoutRect();
     drawBox(ctx, r.x, r.y, r.w, r.h);
 
@@ -351,16 +374,21 @@ export class TextBox {
 TextBox.prototype.drawNarration = function (ctx) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+  const illustrated = this.style === 'illustrated';
+  if (illustrated) {
+    this.illustration.draw(ctx);
+    if (this.illustration.transitioning || this.illustration.exiting) return;
+  }
   ctx.font = FONT; ctx.textBaseline = 'top';
-  const LH = F.narrationLH;
+  const LH = illustrated ? ILLUSTRATED_NARRATION.lineHeight : F.narrationLH;
   const lines = this.pages[this.page];
   const totalH = lines.length * LH;
-  const y0 = Math.round((SCREEN_H - totalH) / 2);
+  const y0 = illustrated ? ILLUSTRATED_NARRATION.text.y : Math.round((SCREEN_H - totalH) / 2);
   let idx = 0;
   outer:
   for (let li = 0; li < lines.length; li++) {
     const lineW = lines[li].reduce((a, t) => a + (t.w || 0), 0);
-    let x = Math.round((SCREEN_W - lineW) / 2);
+    let x = illustrated ? ILLUSTRATED_NARRATION.text.x : Math.round((SCREEN_W - lineW) / 2);
     const y = y0 + li * LH;
     for (const t of lines[li]) {
       if (idx >= this.revealed) break outer;

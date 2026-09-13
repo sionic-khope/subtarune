@@ -1,5 +1,7 @@
 # 재사용 검은 연기 컷신 노드
 
+BUILD131: `mode:'dissipate', from:'배우id', duration:3, veil:0`은 기준 배우 주위 구름이 퍼져 사라지는 동안 기존 오라 강도와 방 음영도 함께0으로 줄인다. 다음 `{darkSmoke:null}`로 상태를 정리한다. 중간 프레임의 실제 구름/오라 알파와 종료0을 단위 검사한다.
+
 2026-09-13 채택. 기존 `aura`는 빛나는 버프 입자라서 검은 연기의 불투명한 덩어리·응축/대상 이동을 표현하지 못한다.
 
 `src/ui/dark-smoke.js`는 외부 이미지나 캐릭터를 변형하지 않고64개 고정 시드 픽셀 구름의 위치/크기를 계산한다. `darkSmokeWaiter(game, definition)`은 기존 ScriptRunner가 소비하는 duration waiter이고, `drawDarkSmoke(ctx, game, cam)`는 월드 인물 위/대화창 아래에서 그린다. 시간은 기존 `game.time`을 쓰며 별도 타이머나 백그라운드 루프를 만들지 않는다. `mode`, `from`, `to`, `duration`, `veil`은 컷신 데이터가 정한다. `swell/gather/cloak/transfer`는 각각 확산/응축/대상 감싸기/대상 간 이동이며 `veil`은 연기 없이 방 어둠만 유지한다.

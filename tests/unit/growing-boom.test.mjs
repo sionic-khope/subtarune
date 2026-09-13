@@ -101,10 +101,18 @@ test('map transition clears an active looping boom before entering the next room
   assert.equal(draw(game), undefined);
 });
 
-test('first captain entry and a defeated captain never receive restored smoke', () => {
-  for (const flags of [{}, { captain_reveal_done: true, captain_mankatsuki_defeated: true }]) {
+test('first captain entry and a completed aftermath never receive restored smoke', () => {
+  for (const flags of [{}, { captain_reveal_done: true, captain_mankatsuki_defeated: true, captain_aftermath_done: true }]) {
     const game = fixture(flags);
     game.changeMap('maillard_captain', 'start', true, { bgm: false, enter: false });
     assert.equal(game.darkSmoke, null);
   }
+});
+
+test('victory saved before aftermath restores the transformed resident and purple smoke', () => {
+  const game = fixture({ captain_reveal_done: true, captain_mankatsuki_defeated: true });
+  game.changeMap('maillard_captain', 'start', true, { bgm: false, enter: false });
+  assert.equal(game.darkSmoke?.mode, 'veil');
+  assert.equal(game.darkSmoke?.veil, CAPTAIN_REVEAL_VEIL);
+  assert.equal(game.darkSmoke?.aura.actor.id, 'captain_mankatsuki');
 });

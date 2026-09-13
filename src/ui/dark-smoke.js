@@ -73,6 +73,14 @@ export function drawDarkSmoke(ctx, game, cam) {
         alpha *= clamp(progress * 3);
         break;
       }
+      case 'dissipate': {
+        const radius = (25 + progress * 150) * cloud.radius;
+        x = smoke.source.x + Math.cos(angle) * radius;
+        y = smoke.source.y + Math.sin(angle) * radius * 0.7 - progress * 70;
+        size *= 1 - progress * 0.7;
+        alpha *= 1 - progress;
+        break;
+      }
       case 'gather': {
         const radius = (1 - progress) * 340 * cloud.radius + 12;
         x = smoke.target.x + Math.cos(angle + progress * 3) * radius;
@@ -120,7 +128,7 @@ export function drawDarkSmoke(ctx, game, cam) {
   if (smoke.aura?.actor && !smoke.aura.actor.dead) {
     const { actor, colors, started } = smoke.aura;
     const auraAge = game.time - started;
-    const strength = smooth(clamp(auraAge / 2.4));
+    const strength = smooth(clamp(auraAge / 2.4)) * (smoke.mode === 'dissipate' ? 1 - progress : 1);
     const scale = Math.sqrt(actor.def?.visualScale || 1);
     const cx = actor.x + actor.w / 2 - cam.x;
     const cy = actor.y + actor.h - 28 * scale - cam.y;

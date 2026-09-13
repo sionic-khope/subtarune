@@ -37,7 +37,7 @@ export const maillard_captain_enter = Object.assign([
     const finishEntry = game.dialogue.onEnd;
     game.dialogue.onEnd = () => {
       finishEntry?.();
-      if (game.flags.captain_reveal_done) game.sound.playBgm(game.flags.captain_mankatsuki_defeated ? 'maillard_lounge' : 'captain_mankatsuki', { volume: 0.45 });
+      if (game.flags.captain_reveal_done) game.resumeMapBgm();
       game.runMapEnter();
     };
   } },

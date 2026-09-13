@@ -6,10 +6,10 @@ import { ENEMIES } from '../../src/data/enemies.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { Board, Soul } from '../../src/battle/bullets.js';
 
-test('mankatsuki has independent idle and attack sheets, 130 HP and no invented reward', () => {
+test('mankatsuki has independent idle and attack sheets, 130 HP and the requested 500 reward', () => {
   const boss = ENEMIES.mankatsuki_junhee;
   assert.equal(boss?.hp, 130);
-  assert.equal(boss.money, 0);
+  assert.equal(boss.money, 500);
   assert.equal(boss.sheet.count, 4);
   assert.equal(boss.actions.attack.count, 6);
   assert.deepEqual(boss.board, [240, 160]);
@@ -54,9 +54,11 @@ test('completed reveal can start the shared fight and defeated captain cannot st
   const room = JSON.parse(fs.readFileSync('assets/maps/maillard_captain.json', 'utf8'));
   const boss = room.entities.find(entity => entity.id === 'captain_mankatsuki');
   assert.equal(boss.script, 'captain_mankatsuki');
-  assert.equal(boss.unless, 'captain_mankatsuki_defeated');
+  assert.equal(boss.unless, 'captain_aftermath_done');
   const nodes = SCRIPTS.captain_mankatsuki;
-  assert.equal(nodes[0].if({ captain_mankatsuki_defeated: true }), true);
+  assert.equal(nodes[0].if({ captain_aftermath_done: true }), true);
+  assert.equal(nodes[1].if({ captain_mankatsuki_defeated: true }), true);
+  assert.equal(nodes[1].goto, 'aftermath');
   assert.equal(nodes[0].if({ captain_reveal_done: true }), false);
   const fight = nodes.find(node => node.battle).battle;
   assert.deepEqual(fight.enemies, ['mankatsuki_junhee']);

@@ -2,7 +2,8 @@ import { battleEntry } from './helpers.js';
 import { FX } from '../fx.js';
 
 export const captain_mankatsuki = Object.assign([
-  { if: flags => !!flags.captain_mankatsuki_defeated, goto: 'end' },
+  { if: flags => !!flags.captain_aftermath_done, goto: 'end' },
+  { if: flags => !!flags.captain_mankatsuki_defeated, goto: 'aftermath' },
   { camera: [13, 7], duration: 1 },
   { parallel: ['ppaman', 'player', 'gyeongsub'].map((id, index) => ({
     move: id, rel: 'captain_mankatsuki', at: 'bottom', by: [(index - 1) * 64, 90], run: true,
@@ -25,11 +26,11 @@ export const captain_mankatsuki = Object.assign([
   ...battleEntry(['mankatsuki_junhee'], 'mankatsuki_battle'),
   { darkSmoke: null },
   { battle: { enemies: ['mankatsuki_junhee'], bgm: 'mankatsuki_battle', bg: 'mankatsuki_vortex', flag: 'captain_mankatsuki_defeated' } },
-  { remove: 'captain_mankatsuki' },
-  { bgm: 'maillard_lounge' },
-  { zoom: 1, duration: 0 },
-  { camera: 'player' },
-  { fade: 'in', duration: 0.3 },
+  { label: 'aftermath' },
+  { action: game => {
+    const finishBattle = game.dialogue.onEnd;
+    game.dialogue.onEnd = () => { finishBattle?.(); game.runScript('captain_aftermath'); };
+  } },
   { label: 'end' },
   { end: true },
 ], { silent: true });

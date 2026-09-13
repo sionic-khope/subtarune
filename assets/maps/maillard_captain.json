@@ -68,8 +68,19 @@
    "wander": 0,
    "visualScale": 1.5,
    "requires": "captain_reveal_done",
-   "unless": "captain_mankatsuki_defeated",
+   "unless": "captain_aftermath_done",
    "script": "captain_mankatsuki"
+  },
+  {
+   "type": "npc",
+   "id": "captain_junhee_restored",
+   "sprite": "junhee",
+   "x": 420,
+   "y": 270,
+   "facing": "down",
+   "wander": 0,
+   "requires": "captain_aftermath_done",
+   "script": "captain_aftermath"
   },
   {
    "type": "npc",

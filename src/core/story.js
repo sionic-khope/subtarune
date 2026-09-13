@@ -27,7 +27,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
-  if (mapId === 'maillard_captain' && flags.captain_mankatsuki_defeated) return 'maillard_lounge';
+  if (mapId === 'maillard_captain' && (flags.captain_mankatsuki_defeated || flags.captain_aftermath_done)) return null;
   if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
   if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
   if (mapId === 'obj5' && flags.obj5_chase_cleared) return 'baron_sea_battle';
@@ -207,3 +207,8 @@ for (const [id, desc] of [
   QA_POINTS.push({ ...maillardLoungeCheckpoint, id, desc, map: id, spawn: 'start',
     flags: { ...maillardLoungeCheckpoint.flags, ...((id === 'maillard_saloon' || id === 'maillard_captain') ? { shop_yongjun_cialis: true, shop_yongjun_vaseline: true } : {}) }, party: [...maillardLoungeCheckpoint.party] });
 }
+
+const captainCheckpoint = QA_POINTS.find(point => point.id === 'maillard_captain');
+QA_POINTS.push({ ...captainCheckpoint, id: 'captain_aftermath', desc: '만카츠키 승리 직후: 쥰희 회복·요플래의 과거',
+  flags: { ...captainCheckpoint.flags, captain_reveal_started: true, captain_reveal_done: true, captain_mankatsuki_defeated: true },
+  party: [...captainCheckpoint.party] });

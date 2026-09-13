@@ -18,6 +18,7 @@ import { DotBubble } from './ui/bubble.js';
 import { darkSmokeWaiter, drawDarkSmoke } from './ui/dark-smoke.js';
 import { TileMap, Camera, createEntity, freeSpot, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
+import { preloadCaptainMemories } from './data/captain-memories.js';
 import { loadCharacterMotions } from './world/character-motion.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
@@ -121,6 +122,7 @@ class Game {
       ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
       ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
       loadTileOverrides(),
+      preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
       this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt']),
@@ -462,9 +464,11 @@ class Game {
   resumeMapBgm() {
     const def = MAPS[this.mapId];
     if (!def) return;
-    const name = storyBgm(this.mapId, this.flags) ?? def.bgm;
+    const override = storyBgm(this.mapId, this.flags);
+    const name = override === undefined ? def.bgm : override;
     const gated = def.bgmFlag && !this.has(def.bgmFlag);
     if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
+    else if (name === null || gated) this.sound.stopBgm(0.4);
   }
   endBattle(result) {
     this.battle?.disposeGimmick();
@@ -532,7 +536,7 @@ class Game {
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: spawn.facing ?? this.player?.facing ?? 'down' }, this);   // 스폰에 facing 을 주면 그 방향(QA 지점 등)
       this.entities.push(this.player);
       this.spawnParty();
-      if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_mankatsuki_defeated')) {
+      if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
           aura: { at: 'captain_mankatsuki', colors: CAPTAIN_AURA_COLORS } }).update(0.01);
       }
@@ -543,7 +547,8 @@ class Game {
       this.camera.snap();
       if (bgm && !this.dialogue.running && this.state !== 'title') {                 // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
         const gated = def.bgmFlag && !this.has(def.bgmFlag);                        // bgmFlag: 이 플래그가 켜진 뒤에만 맵 브금 — 첫 도착 컷신이 대사 중간에 직접 켜는 맵(void11)
-        const name = storyBgm(mapId, this.flags) ?? def.bgm;
+        const override = storyBgm(mapId, this.flags);
+        const name = override === undefined ? def.bgm : override;
         if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
         else if (gated || name === null) this.sound.stopBgm(0.4);
       }
@@ -564,6 +569,11 @@ class Game {
 
   /** 맵 JSON `enter: { script, flag?, early? }` — 도착 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회(스크립트 시작 때 섬 — 세이브는 컷신 중엔 안 되므로, 중간에 끄면 이어하기 때 처음부터) */
   runMapEnter(mapId = this.mapId) {
+    if (this.dialogue.running) return;
+    if (mapId === 'maillard_captain' && this.has('captain_mankatsuki_defeated') && !this.has('captain_aftermath_done')) {
+      this.runScript('captain_aftermath');
+      return;
+    }
     const en = MAPS[mapId]?.enter;
     if (!en || !en.script || this.dialogue.running) return;
     if (en.flag && this.has(en.flag)) return;
@@ -1113,7 +1123,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-13.130';
+export const BUILD = '2026-09-13.131';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

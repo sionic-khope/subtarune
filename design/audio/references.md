@@ -1,5 +1,20 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 선장실 과거 기억 네 장면 (2026-09-13, BUILD131)
+
+사용자 지정 [Empty Town — Toby Fox](https://www.youtube.com/watch?v=p8jCS2nSMmI&list=PLwjEXrvFo-2B7iCX61eOThc_oGihi84l9&index=11), 영상 ID `p8jCS2nSMmI`의 포맷251 오디오 전체를 `assets/audio/bgm/captain_memories.mp3`로 변환했다. yt-dlp 메타데이터에서 제목 `Empty Town`, 업로더/채널 `Toby Fox`, 업로드2018-11-17, 표시 길이83초를 확인했다. 출력은 **83.478271초,48kHz 스테레오,1,211,180바이트**, 전체 디코드 평균−17.0dBFS/peak−4.8dBFS다. 트리밍·속도·음높이·페이드·음량 변경 없이 전체 원본을 사용한다. 원본 WebM 컨테이너 길이는83.501초이며 MP3 패딩/코덱 차이 외 시간 편집은 없다.
+
+통합 이름은 `captain_memories`다. 기존 `Sound.preloadBgm`/`playBgm`이 이름으로 MP3 경로를 직접 읽으므로 별도 BGM 등록 목록은 없다. 네 장의 기억 카드에서 같은 곡을 이어 쓰며 최초 시작은0초다. 파일 전체 디코드와 오디오 자산 단위 테스트6개를 통과했다. 주관적 청취 평가와 컷신의 실제 재생 연결 검증은 별도다. 원본 권리는 원 권리자에게 있으며 출처 확인은 별도 이용허락을 뜻하지 않는다.
+
+- MP3 SHA256: `dc0f89fd8c6de6f5d70ed6a06808f73abc5c5476f843603385aa09810f1da770`
+- 원본 WebM SHA256: `151da5d9011cf5baf6169c28aca5ab79b811104016f7b708707de63e4dedecef`
+- 다운로드한 원본/메타데이터: 임시 `/tmp/subtarune-captain131-audio.nymhYO/`(배포에는 MP3만 포함).
+
+```sh
+python3 -m yt_dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f '251/bestaudio' --write-info-json -o '/tmp/subtarune-captain131-audio.nymhYO/captain-memories-source.%(ext)s' 'https://www.youtube.com/watch?v=p8jCS2nSMmI&list=PLwjEXrvFo-2B7iCX61eOThc_oGihi84l9&index=11'
+ffmpeg -hide_banner -loglevel error -i /tmp/subtarune-captain131-audio.nymhYO/captain-memories-source.webm -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/bgm/captain_memories.mp3
+```
+
 BUILD127 공격음 확정: 사용자 ‘기존사운드 활용해도됨’에 따라 분신은 `mankatsuki_clone`, 표창 묶음은 `whoosh`, 돼지 낙하는 기존 묵직한 지면 충격 `baron_slam`(0.7초), 팬 분사는 `rocket`, 주가 레이저 활성화는 공식 `snd_laz_c` 기반 `hit`를 재사용한다. 예고 종료/실제 공격 시작에 동작당1회이며 개별 탄마다 겹쳐 울리지 않는다. 파일 변경·새 합성은 없고 원본 출처는 아래 기록을 따른다.
 
 ## 만카츠키 전투 (2026-09-13, BUILD126)

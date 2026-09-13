@@ -1,12 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { runInNewContext } from 'node:vm';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { ScriptRunner, TextBox, parseText } from '../../src/ui/dialogue.js';
 import { Camera, Entity, TileMap } from '../../src/world/world.js';
-import { QA_POINTS } from '../../src/core/story.js';
+import { QA_POINTS, storyBgm } from '../../src/core/story.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
+const mainSource = fs.readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
+const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;', {
+  MAPS: { maillard_captain: readMap('maillard_captain') }, storyBgm,
+});
 
 function fixture() {
   const game = {
@@ -72,6 +77,30 @@ for (const outcome of ['cancel', 'decline', 'accept']) {
     };
     assert.deepEqual(effects, expected[outcome]);
     assert.deepEqual([game.inventory, game.money, game.hpBonuses], [['바나나'], 57, { hyungsub: 5 }]);
+  });
+}
+
+for (const completed of [false, true]) {
+  test(`test_captain_door_${completed ? 'completed' : 'pending'}_aftermath_uses_silent_story_music_on_exit`, () => {
+    const game = fixture();
+    const effects = [];
+    game.flags = { captain_reveal_started: true, captain_reveal_done: true,
+      captain_mankatsuki_defeated: true, captain_aftermath_done: completed };
+    game.has = key => !!game.flags[key];
+    game.sound.playBgm = id => effects.push(['music', id]);
+    game.sound.stopBgm = () => effects.push('stop');
+    game.resumeMapBgm = Game.prototype.resumeMapBgm;
+    game.runMapEnter = Game.prototype.runMapEnter;
+    game.runScript = key => effects.push(key);
+    game.fadeTo = (alpha, duration, done) => done();
+    game.changeMap = id => { game.mapId = id; };
+    game.dialogue.start(SCRIPTS.maillard_captain_enter, () => effects.push('finish'));
+    for (let tick = 0; tick < 2000 && game.dialogue.running; tick++) {
+      game.dialogue.update(0.025, { just: key => key === 'confirm' && tick % 4 === 0, down: () => false });
+    }
+    assert.equal(game.dialogue.running, false);
+    assert.equal(game.mapId, 'maillard_captain');
+    assert.deepEqual(effects, completed ? ['finish', 'stop'] : ['finish', 'stop', 'captain_aftermath']);
   });
 }
 
@@ -153,6 +182,6 @@ test('captain room keeps timber floors, broad clear center and one return to the
   for (const y of [376, 424, 472]) assert.equal(tiles.solidRect(420, y, 24, 16), false);
   for (const e of room.entities.filter(e => e.solid)) assert.ok(e.y + e.h <= 256 || e.x >= 672 || e.x + e.w <= 192);
   const qa = QA_POINTS.filter(point => point.map === room.id);
-  assert.equal(qa.length, 1);
+  assert.deepEqual(qa.map(point => point.id), ['maillard_captain', 'captain_aftermath']);
   assert.equal(qa[0].flags.maillard_sunrise_seen, true);
 });

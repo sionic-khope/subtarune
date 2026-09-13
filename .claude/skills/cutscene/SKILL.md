@@ -136,7 +136,7 @@ model: opus
 | `{ puff:id, offset:[0,18], duration:0.7 }` | 대상 소품 그림 위쪽 기준 작은 공기 구름 한 번. 소리는 별도 `{sfx:'cannon_puff'}` |
 | `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |
 | `{ nod:id, duration:1.8, times:3, depth:4 }` | 충돌 좌표는 그대로 둔 채 작게 숙이고 끄덕인다. 완료 시 회전/수직 그림 오프셋을 원복한다. |
-| `{ darkSmoke:{ mode:'swell'|'gather'|'cloak'|'transfer'|'veil', from:id, to?:id, duration, veil?:0.4, aura?:{at:id,colors:[]} } }` / `{darkSmoke:null}` | duration 동안 연기 변화. veil과 선택형 배우 오라는 모드 사이에 유지되고 오라는 배우를 따라간다. `aura:null`은 오라만, `darkSmoke:null`은 모두 해제한다. 장면에서 유지하기로 한 음영/오라는 불투명한 전환 뒤 정리하고 타이틀·맵 전환 시 잔재를 남기지 않는다. |
+| `{ darkSmoke:{ mode:'swell'|'gather'|'cloak'|'transfer'|'veil'|'dissipate', from:id, to?:id, duration, veil?:0.4, aura?:{at:id,colors:[]} } }` / `{darkSmoke:null}` | duration 동안 연기 변화. veil과 선택형 배우 오라는 모드 사이에 유지되고 오라는 배우를 따라간다. `aura:null`은 오라만, `darkSmoke:null`은 모두 해제한다. `dissipate`는 `from` 배우 위치에서 구름을 퍼뜨리며 기존 오라를 점차 지운다. 방도 밝히려면 `veil:0`을 명시한다(예: `{darkSmoke:{mode:'dissipate',from:'captain_mankatsuki',duration:3,veil:0}}` 뒤 `{darkSmoke:null}`). 중간 프레임에서 음영·구름·오라가 함께 약해지고 종료 시 모두 사라지는지 확인한다. 그 외 장면에서 유지하기로 한 음영/오라는 불투명한 전환 뒤 정리하고 타이틀·맵 전환 시 잔재를 남기지 않는다. |
 | `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |
