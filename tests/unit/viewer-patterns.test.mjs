@@ -6,14 +6,41 @@ import { VIEWER_NAMES } from '../../src/battle/viewer-patterns.js';
 import { menuTextLines } from '../../src/ui/menu-layout.js';
 
 const BOX = { x: 132, y: 136, w: 216, h: 156 };
-function simulate(index, seconds = Infinity) {
-  const config = ENEMIES.expelled_viewer.patterns[index], pattern = PATTERNS[config.type](config);
+function simulate(index, seconds = Infinity, config = ENEMIES.expelled_viewer.patterns[index]) {
+  const pattern = PATTERNS[config.type](config);
   const emitted = [], speech = [], sounds = [], soul = new Soul();
   const api = { box: BOX, soul, rnd: () => 0, images: {}, emit: (o) => emitted.push({ at: time, bullet: new Bullet(o) }), say: (text) => speech.push({ text, at: time }), sfx: (name) => sounds.push(name) };
   let time = 0;
   for (; time < Math.min(pattern.duration, seconds); time += 1 / 60) pattern.update(time, 1 / 60, api);
-  return { emitted, speech, sounds };
+  return { emitted, speech, sounds, duration: pattern.duration };
 }
+
+test('test_viewer_modest_pressure_increase_preserves_punishment_turns_and_two_approved_patterns', () => {
+  const def = ENEMIES.expelled_viewer, configs = def.patterns;
+  assert.deepEqual([def.hp, def.damage, def.money], [66, 11, 666]);
+  assert.deepEqual(configs[0], { type: 'viewer_eom', duration: 7.5, warn: 0.6, every: 0.95, size: 52, speed: 164 });
+  assert.deepEqual(configs[2], { type: 'viewer_rock', duration: 6.6, flight: 0.7, fuse: 3 });
+  assert.deepEqual(configs.map((c) => c.duration), [7.5, 10.7, 6.6, 6.8, 6.8, 7.5, 7.8]);
+  assert.ok(configs.every((c) => c.warn === undefined || c.warn >= 0.3));
+  for (const index of [1, 6]) {
+    const tuned = simulate(index), base = simulate(index, Infinity, { type: configs[index].type });
+    assert.equal(tuned.emitted.length, base.emitted.length);
+    assert.equal(configs[index].speed / (index === 1 ? 148 : 86), 1.2);
+  }
+  const counts = [[3, 30, 35], [4, 15, 18], [5, 21, 24]];
+  for (const [index, before, after] of counts) {
+    const attacks = (result) => result.emitted.filter((e) => !e.bullet.harmless);
+    const base = attacks(simulate(index, Infinity, { type: configs[index].type }));
+    const tuned = attacks(simulate(index));
+    assert.equal(base.length, before); assert.equal(tuned.length, after);
+    assert.ok(after / before >= 1.14 && after / before <= 1.2);
+    assert.ok(Math.abs(tuned.at(-1).at - base.at(-1).at) <= 1 / 60 + 1e-6);
+  }
+  assert.equal(configs[6].life, 3.4); assert.equal(configs[6].turn, 2.2);
+  const rainWarnings = simulate(3).emitted.filter((e) => e.bullet.shape === 'viewer_warning');
+  assert.equal(rainWarnings.length, 35);
+  for (let wave = 0; wave < 7; wave++) assert.equal(new Set(rainWarnings.slice(wave * 5, wave * 5 + 5).map((e) => e.bullet.x)).size, 5);
+});
 
 test('test_viewer_has_seven_exclusive_patterns_hp66_money666_and_exact_taunts', () => {
   const def = ENEMIES.expelled_viewer;

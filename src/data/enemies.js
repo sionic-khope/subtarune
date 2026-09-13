@@ -22,12 +22,12 @@ export const ENEMIES = {
     },
     patterns: [
       { type: 'viewer_eom', duration: 7.5, warn: 0.6, every: 0.95, size: 52, speed: 164 },
-      { type: 'viewer_names', duration: 10.7, warn: 0.55, speed: 148, letterTime: 0.14 },
+      { type: 'viewer_names', duration: 10.7, warn: 0.55, speed: 177.6, letterTime: 0.14 },
       { type: 'viewer_rock', duration: 6.6, flight: 0.7, fuse: 3 },
-      { type: 'viewer_explain', duration: 6.8, warn: 0.4, speed: 108 },
-      { type: 'viewer_chicken', duration: 6.8, warn: 0.55, speed: 115 },
-      { type: 'viewer_breath', duration: 7.5, warn: 0.55, speed: 132 },
-      { type: 'viewer_timeout', duration: 7.8, warn: 0.65, speed: 86, life: 3.4, turn: 2.2 },
+      { type: 'viewer_explain', duration: 6.8, warn: 0.4, speed: 108, waves: 7, every: 0.83 * 5 / 6 },
+      { type: 'viewer_chicken', duration: 6.8, warn: 0.55, speed: 115, waves: 6, every: 0.88 },
+      { type: 'viewer_breath', duration: 7.5, warn: 0.55, speed: 132, count: 8, letterTime: 0.78 / 7 },
+      { type: 'viewer_timeout', duration: 7.8, warn: 0.65, speed: 103.2, life: 3.4, turn: 2.2 },
     ],
     lines: {
       appear: '* 악질맨이 양팔을 벌렸다.',

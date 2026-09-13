@@ -125,8 +125,8 @@ export const VIEWER_PATTERNS = {
   },
   viewer_explain: (o = {}) => {
     const events = [], text = '패드립한거해명해주세요', warn = o.warn ?? 0.4;
-    for (let wave = 0; wave < 6; wave++) {
-      const at = 0.15 + wave * 0.83, gap = [1, 4, 2, 5, 0, 3][wave];
+    for (let wave = 0; wave < (o.waves ?? 6); wave++) {
+      const at = 0.15 + wave * (o.every ?? 0.83), gap = [1, 4, 2, 5, 0, 3][wave % 6];
       events.push({ at, run(api) { const b = api.box; for (let col = 0; col < 6; col++) if (col !== gap) marker(api, b.x + (col + 0.5) * b.w / 6, b.y + 5, 14, 8, warn); } });
       for (let col = 0; col < 6; col++) {
         if (col === gap) continue;
@@ -137,8 +137,8 @@ export const VIEWER_PATTERNS = {
   },
   viewer_chicken: (o = {}) => {
     const events = [], warn = o.warn ?? 0.55;
-    for (let wave = 0; wave < 5; wave++) {
-      const at = 0.2 + wave * 1.1;
+    for (let wave = 0; wave < (o.waves ?? 5); wave++) {
+      const at = 0.2 + wave * (o.every ?? 1.1);
       let aim;
       events.push({ at, run(api) { aim = { x: api.soul.x, y: api.soul.y }; marker(api, aim.x, aim.y, 30, 30, warn); } });
       events.push({ at: at + warn, run(api) {
@@ -150,13 +150,13 @@ export const VIEWER_PATTERNS = {
     return timeline(o.duration ?? 6.8, events);
   },
   viewer_breath: (o = {}) => {
-    const events = [], warn = o.warn ?? 0.55;
+    const events = [], warn = o.warn ?? 0.55, count = o.count ?? 7;
     for (let burst = 0; burst < 3; burst++) {
       const at = 0.2 + burst * 2, fromTop = burst % 2 === 0;
       events.push({ at, run(api) { const b = api.box; marker(api, b.x + b.w - 14, b.y + b.h * (fromTop ? 0.2 : 0.8), 22, 30, warn); } });
-      for (let k = 0; k < 7; k++) events.push({ at: at + warn + k * 0.13, run(api) {
+      for (let k = 0; k < count; k++) events.push({ at: at + warn + k * (o.letterTime ?? 0.13), run(api) {
         const b = api.box, x = b.x + b.w - 9, y = b.y + b.h * (fromTop ? 0.2 : 0.8);
-        const sweep = (k / 6 - 0.5) * 0.85;
+        const sweep = (k / (count - 1) - 0.5) * 0.85;
         const angle = Math.PI + sweep + (fromTop ? -0.16 : 0.16);
         letter(api, '2기', x, y, 18, { vx: Math.cos(angle) * (o.speed ?? 132), vy: Math.sin(angle) * (o.speed ?? 132), life: 2.5 });
       } });
