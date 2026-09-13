@@ -125,6 +125,25 @@ test('test_shop_normal_lounge_qa_does_not_grant_purchases_and_legacy_flags_remai
   assert.equal(shopItemState(legacy, 'vaseline').ok, true);
 });
 
+test('test_shop_captain_qa_has_full_upgraded_party_and_cannot_repurchase_after_reload', () => {
+  const point = QA_POINTS.find((point) => point.id === 'maillard_captain');
+  assert.ok(point);
+  let game = makeGame({ ...stateFromFlags(point.flags), flags: { ...point.flags }, party: [...point.party] });
+  const expected = snapshot(game);
+  for (let reload = 0; reload < 3; reload++) {
+    for (const [id, hp] of [['hyungsub', 140], ['gyeongsub', 160], ['ppaman', 130]]) {
+      assert.equal(game.maxHpOf(id), hp);
+      assert.equal(game.hpOf(id), hp);
+    }
+    assert.equal(game.attack, 3);
+    assert.equal(purchaseShopItem(game, 'cialis').reason, 'sold_out');
+    assert.equal(purchaseShopItem(game, 'vaseline').reason, 'sold_out');
+    assert.deepEqual(snapshot(game), expected);
+    assert.equal(game.saves.length, 0);
+    game = makeGame(snapshot(game));
+  }
+});
+
 test('test_shop_event_prices_accept_exact_money_and_reject_short_balance', () => {
   for (const id of ['cialis', 'vaseline']) {
     const short = makeGame({ money: 9 });
