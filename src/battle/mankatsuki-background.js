@@ -110,7 +110,7 @@ export function mankatsukiVortexPoint(height, angle, time) {
   const distance = Math.abs(level);
   const profile = distance <= 0.3 ? 7 + distance * 44 : 20.2 + Math.pow((distance - 0.3) / 0.7, 0.55) * 527;
   const radius = profile * (1 + Math.sin(time * 0.67 + level * 2.8) * 0.03 + Math.sin(angle * 3 + level * 4 - time * 0.43) * distance * 0.025);
-  const turn = angle + time * 3.84 + level * (0.65 + Math.sin(time * 0.61) * 0.6) + Math.sin(level * Math.PI) * Math.sin(time * 0.87) * 0.35;
+  const turn = angle + time * 3.072 + level * (0.65 + Math.sin(time * 0.61) * 0.6) + Math.sin(level * Math.PI) * Math.sin(time * 0.87) * 0.35;
   const bend = level * 34 * Math.sin(time * 0.53 + level * 1.9) + distance * distance * 24 * Math.sin(time * 0.37);
   return project(
     bend + Math.cos(turn) * radius,
@@ -134,6 +134,7 @@ export function drawMankatsukiBackground(ctx, battle) {
     `hsl(${hue - 8}, 52%, ${21 + breath * 2}%)`,
   ];
   ctx.save();
+  ctx.globalAlpha = 1;
   ctx.drawImage(floorCache, 0, 0);
   drawWalls(ctx, time, defending);
   const faces = [];
@@ -141,15 +142,20 @@ export function drawMankatsukiBackground(ctx, battle) {
   const rings = HEIGHTS.map(height => Array.from({ length: SIDES + 1 }, (_, side) => mankatsukiVortexPoint(height, side / SIDES * TAU, time)));
   for (let ring = 0; ring < HEIGHTS.length - 1; ring++) {
     for (let side = 0; side < SIDES; side++) {
-      addFace([rings[ring][side], rings[ring][side + 1], rings[ring + 1][side + 1], rings[ring + 1][side]], purple[(side + ring) % purple.length], ring < 3 ? 1 : 0.6);
+      addFace([rings[ring][side], rings[ring][side + 1], rings[ring + 1][side + 1], rings[ring + 1][side]], purple[(side + ring) % purple.length], ring < 3 ? 1 : 0.82);
     }
   }
   faces.sort((a, b) => b.z - a.z);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, 480, 167);
+  ctx.clip();
   for (const face of faces) {
-    ctx.globalAlpha = face.alpha * (defending ? 0.62 : 1);
+    ctx.globalAlpha = face.alpha * (defending ? 0.8 : 1);
     ctx.fillStyle = face.color;
     polygon(ctx, face.points);
   }
+  ctx.restore();
   ctx.globalAlpha = 1;
   if (defending) {
     ctx.fillStyle = 'rgba(4,2,9,0.38)';

@@ -1,3 +1,5 @@
+import { FONT } from '../ui/font.js';
+
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 
 function timeline(duration, events) {
@@ -289,6 +291,35 @@ function motorcycle(api, fromRight, o, wave = 0) {
     } });
 }
 
+function underpantsRain(api, column, text, o) {
+  const box = { ...api.box }, warn = Math.max(0.45, o.warn ?? 0.6), speed = o.speed ?? 126;
+  const x = box.x + (column + 0.5) * box.w / 6, fromY = box.y - 20, flight = (box.h + 40) / speed;
+  api.emit({ shape: text ? 'mankatsuki_retch' : 'mankatsuki_underpants', box, column, text,
+    image: text ? null : api.images?.underpants, x, y: fromY, w: 32, h: 32, r: 0, warn, flight, life: warn + flight,
+    steer(b) { b.y = fromY + clamp(b.age - warn, 0, flight) * speed; },
+    hitShape(b, soul) {
+      if (b.age < warn || b.age >= b.life || !inArena(soul, box)) return false;
+      const points = text ? [{ x: -15, y: -7 }, { x: 15, y: -7 }, { x: 15, y: 7 }, { x: -15, y: 7 }]
+        : [{ x: -12, y: -9 }, { x: 12, y: -9 }, { x: 10, y: 0 }, { x: 5, y: 2 },
+          { x: 4, y: 10 }, { x: -4, y: 10 }, { x: -5, y: 2 }, { x: -10, y: 0 }];
+      return hitPolygon({ x: soul.x - b.x, y: soul.y - b.y, r: soul.r }, points);
+    },
+    drawShape(ctx, b) {
+      ctx.save(); clipArena(ctx, box);
+      if (b.age < warn) {
+        ctx.fillStyle = 'rgba(255,155,192,0.12)'; ctx.fillRect(Math.round(x - 16), box.y + 3, 32, box.h - 6);
+        ctx.strokeStyle = '#ffb9d4'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]);
+        ctx.beginPath(); ctx.moveTo(Math.round(x), box.y + 3); ctx.lineTo(Math.round(x), box.y + box.h - 3); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = '#fff';
+        polygon(ctx, [{ x: x - 4, y: box.y + 7 }, { x: x + 4, y: box.y + 7 }, { x, y: box.y + 13 }]); ctx.fill();
+      } else if (text) {
+        ctx.font = FONT; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, Math.round(b.x), Math.round(b.y));
+      } else if (b.image) ctx.drawImage(b.image, Math.round(b.x - 16), Math.round(b.y - 16), 32, 32);
+      ctx.restore();
+    } });
+}
+
 /** Junhee's teleport, pig faces, flames, stocks, food and motorcycle attacks. */
 export const MANKATSUKI_PATTERNS = {
   mankatsuki_teleport: (o = {}) => {
@@ -426,6 +457,26 @@ export const MANKATSUKI_PATTERNS = {
         api.present?.({ hidden: true, clones: poses }); api.sfx?.('whoosh');
         for (let ray = -1; ray <= 1; ray++) shuriken(api, from, angle + ray * spread, o.speed ?? 134,
           Math.min(2.6, duration - at - warn - index * stagger - 0.04));
+      } });
+    }
+    events.push({ at: duration - 0.15, run(api) { api.present?.(null); } });
+    return timeline(duration, events);
+  },
+  mankatsuki_underpants: (o = {}) => {
+    const duration = o.duration ?? 6.8, events = [], warn = Math.max(0.45, o.warn ?? 0.6);
+    const gaps = [2, 3, 4, 3, 2, 1, 0, 1, 2], safeColumns = clamp(o.safeColumns ?? 2, 1, 2);
+    events.push({ at: 0, run(api) { api.say?.('우욱 우욱 우욱 이거 빤쓰 아녀유?', 2.8); } });
+    for (let wave = 0; wave < (o.waves ?? 7); wave++) {
+      const at = 0.15 + wave * (o.every ?? 0.65), gap = gaps[wave % gaps.length];
+      events.push({ at, run(api) {
+        const flight = (api.box.h + 40) / (o.speed ?? 126);
+        if (at + warn + flight > duration - 0.05) return;
+        for (let column = 0; column < 6; column++) if (column < gap || column >= gap + safeColumns)
+          underpantsRain(api, column, wave < 3 ? '우욱' : null, o);
+      } });
+      events.push({ at: at + warn, run(api) {
+        if (at + warn + (api.box.h + 40) / (o.speed ?? 126) > duration - 0.05) return;
+        api.present?.({ sheet: 'attack' }); api.sfx?.('whoosh');
       } });
     }
     events.push({ at: duration - 0.15, run(api) { api.present?.(null); } });

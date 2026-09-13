@@ -102,6 +102,9 @@ export class Battle {
   }
 
   async load() {
+    const loadToken = {};
+    this.bgmLoadToken = loadToken;
+    this.bgmWait = undefined;
     try {
       await Promise.all([
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),
@@ -113,8 +116,9 @@ export class Battle {
         }),
       ]);
     } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
+    if (this.bgmLoadToken !== loadToken) return;
     this.game.fadeTo(0, 0.12);                                                                  // 검은 화면은 델타룬처럼 거의 바로 걷는다
-    this.bgmWait = BGM_DELAY;                                                                   // 화면이 열리는 순간(BGM_DELAY 0) 징글 꼬리에 이어 브금
+    this.bgmWait = Math.max(BGM_DELAY, ...this.enemies.map(enemy => enemy.def.bgmDelay ?? 0));
     this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
     // 인트로 문구 목록: cfg.intro(전투 안 대사 — 튜토리얼 기믹 등, 문자열 또는 {speaker, portrait, voice, text}) 없으면 적의 appear 줄
     this.introLines = (this.cfg.intro && this.cfg.intro.length) ? [...this.cfg.intro] : [this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`];
@@ -139,12 +143,14 @@ export class Battle {
     for (let i = this.shown; i < n; i++) if (this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip(this.voice || 'narrator');
     this.shown = n;
   }
-  sfx(n) { this.game.sound.sfx(n); }
+  sfx(n, options) { this.game.sound.sfx(n, options); }
+  /** Cancel elapsed BGM delay and invalidate an in-flight load before exit or retry. */
+  cancelPendingBgm() { this.bgmWait = undefined; this.bgmLoadToken = null; }
 
   // ── 진행 ──
   update(dt, input) {
     this.t += dt;
-    if (this.bgmWait !== undefined) { this.bgmWait -= dt; if (this.bgmWait <= 0) { this.bgmWait = undefined; if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: BGM_FADE }); } }   // 화면이 열리는 순간 짧은 페이드로
+    if (this.bgmWait !== undefined) { this.bgmWait -= dt; if (this.bgmWait <= Number.EPSILON) { this.bgmWait = undefined; if (this.cfg.bgm) this.game.sound.playBgm(this.cfg.bgm, { volume: 0.5, fadeIn: BGM_FADE }); } }
     for (const m of this.members) { if (m.action) m.action.update(dt); if (m.popup) { m.popup.t += dt; if (m.popup.t > 0.9) m.popup = null; } if (m.pose !== undefined && m.pose !== null) { m.pose += dt; const T = BATTLE_SPRITES[m.id].attack.reduce((a, f) => a + f.duration, 0); if (m.pose > T) m.pose = null; } }
     this.enemies.forEach((e, i) => { if (e.shake > 0) e.shake -= dt; if (e.blink > 0) e.blink -= dt; if (e.dying > 0) { e.dying -= dt; if (e.dying <= 0) { e.dead = true; } } if (e.popup) { e.popup.t += dt; if (e.popup.t > 0.9) e.popup = null; }
       if (e.def.reactive) {
@@ -328,10 +334,11 @@ export class Battle {
   }
   updateBullets(dt, input) {
     this.soul.update(dt, input, this.board);
-    const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: (name) => this.sfx(name) };
     let running = false;
     for (const pat of this.patterns) {
       if (pat.t >= pat.p.duration) { pat.enemy.patternPose = null; continue; } running = true;
+      const volume = pat.enemy.def.attackSfxVolume;
+      const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: name => this.sfx(name, { volume }) };
       api.emit = (o) => this.bullets.push(new Bullet({ ...o, dmg: o.dmg ?? pat.dmg }));
       api.images = pat.enemy?.projectiles;
       api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
@@ -384,6 +391,7 @@ export class Battle {
   sparkle(m, n, big) { for (let i = 0; i < n; i++) this.fx.push({ x: m.home[0] - 34 + this.rnd() * 68, y: m.home[1] - 6 + this.rnd() * 10, vy: -(28 + this.rnd() * 46), t: -this.rnd() * 0.25, life: 0.7 + this.rnd() * 0.5, plus: !!big && i % 3 === 0 }); }
   /** 게임 오버 → [다시 도전하기]: 즉시 검은 화면 + 징글·흔들림(표준 조우와 같은 타임라인) → HP·적 복구 → load() 가 화면을 걷고 브금을 튼다. 같은 전투를 처음부터 */
   beginRetry() {
+    this.cancelPendingBgm();
     this.disposeGimmick(); this.interlude = null; this.support?.reset(); this.cur = null;
     this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = [];
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; m.action = null; m.popup = null; m.pose = null; }
@@ -394,6 +402,7 @@ export class Battle {
   }
   finish(win) {
     if (this.state === 'ending') return;
+    this.cancelPendingBgm();
     this.disposeGimmick(); this.interlude = null;
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
     this.result = { win }; this.state = 'ending';

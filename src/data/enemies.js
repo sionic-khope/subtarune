@@ -13,7 +13,9 @@
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
   mankatsuki_junhee: {
-    name: '만카츠키 쥰희', hp: 130, voice: 'junhee', money: 500, damage: 11,
+    name: '만카츠키 쥰희', hp: 144, voice: 'junhee', money: 500, damage: 11,
+    attackSfxVolume: 0.72,
+    bgmDelay: 0.4,
     sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },
     actions: { attack: { src: 'assets/enemies/mankatsuki-attack.png', cols: 6, rows: 1, count: 6, fps: 8, px: 1 } },
     pivot: [64, 119], scale: 1.15, dx: 10, dy: 34, board: [240, 160],
@@ -27,9 +29,11 @@ export const ENEMIES = {
       taco: 'assets/projectiles/mankatsuki-taco.png',
       foodTaco: 'assets/projectiles/mankatsuki-food-taco.png',
       motorcycle: 'assets/projectiles/mankatsuki-motorcycle.png',
+      underpants: 'assets/projectiles/mankatsuki-underpants.png',
     },
     patterns: [
       { type: 'mankatsuki_teleport', duration: 6.2, waves: 7, every: 0.66, warn: 0.34, bursts: 2, burstGap: 0.12 },
+      { type: 'mankatsuki_underpants', duration: 6.8, waves: 7, every: 0.65, warn: 0.6, speed: 126, safeColumns: 2 },
       { type: 'mankatsuki_food_taco', duration: 6.6, waves: 8, every: 0.6, warn: 0.7, flight: 0.65, chipSpeed: 78, alternateArc: true },
       { type: 'mankatsuki_motorcycle', duration: 6.6, waves: 8, every: 0.62, warn: 0.75, speed: 280, laneOffsets: [0, 26, 0, -26] },
       { type: 'mankatsuki_stampede', duration: 7, safeSize: 58, every: 3.2, fall: 0.3, hit: 0.35, echoDelay: 0.55, echoWarn: 0.3 },
@@ -42,6 +46,7 @@ export const ENEMIES = {
       { type: 'mankatsuki_clone_crossfire', duration: 7.2, clones: 2, waves: 4, every: 1.1, warn: 0.7, stagger: 0.18 },
     ],
     enragedPatterns: [
+      { type: 'mankatsuki_underpants', duration: 6.8, waves: 9, every: 0.48, warn: 0.55, speed: 152, safeColumns: 1 },
       { type: 'mankatsuki_food_motorcycle', duration: 7.4, motorcycleAt: 0.65,
         food: { duration: 7.4, waves: 8, every: 0.64, warn: 0.7, flight: 0.65, chipSpeed: 78, alternateArc: true },
         motorcycle: { duration: 6.7, waves: 6, every: 0.85, warn: 0.8, speed: 280, laneOffsets: [0, 26, 0, -26] } },
@@ -63,7 +68,7 @@ export const ENEMIES = {
       speakShuffle: true,
       idle: ['* 만카츠키 쥰희가 이쪽을 노려본다.'],
       speak: ['케케케', '너희 죽는다, 탈출 그거 굳이 하셔야겠습니까?', '아 형님 너네 다 죽이겠습니다.',
-        '아 삼전사라고 삼전', '우욱 우욱 우욱 이거 빤쓰아녀유?'],
+        '아 삼전사라고 삼전', '우욱 우욱 우욱 이거 빤쓰 아녀유?'],
       die: '* 만카츠키 쥰희가 쓰러졌다.',
     },
   },

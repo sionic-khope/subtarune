@@ -12,7 +12,7 @@ test('test_mankatsuki_background_has_vertical_hourglass_and_bounded_perspective'
   assert.ok(top.y < waist.y && waist.y < bottom.y);
   assert.ok(Math.abs(top.x - 240) > Math.abs(waist.x - 240) * 10);
   assert.ok(Math.abs(bottom.x - 240) > Math.abs(waist.x - 240) * 10);
-  const turning = mankatsukiVortexPoint(0.28, 0, 2);
+  const turning = mankatsukiVortexPoint(0.28, 0, 0.5);
   assert.ok(turning.z > mankatsukiVortexPoint(0.28, 0, 0).z);
   const front = mankatsukiVortexPoint(0.72, -Math.PI / 2, 0);
   const back = mankatsukiVortexPoint(0.72, Math.PI / 2, 0);
@@ -26,7 +26,7 @@ test('test_mankatsuki_background_has_vertical_hourglass_and_bounded_perspective'
   }
 });
 
-test('test_mankatsuki_faster_rotation_preserves_narrow_waist_and_bounded_perspective', () => {
+test('test_mankatsuki_rotation_is_twenty_percent_slower_with_same_waist_and_perspective', () => {
   let previousTurn = 0;
   for (let time = 0.25; time <= 10; time += 0.25) {
     const point = mankatsukiVortexPoint(0.5, 0, time);
@@ -34,7 +34,7 @@ test('test_mankatsuki_faster_rotation_preserves_narrow_waist_and_bounded_perspec
     const x = (point.x - 240) * (focal + point.z) / focal;
     const turn = Math.atan2(point.z, x);
     const advance = (turn - previousTurn + Math.PI * 2) % (Math.PI * 2);
-    assert.ok(Math.abs(advance / 0.25 - 3.84) < 1e-10, 'waist rotates at five times BUILD133 speed without a phase reset');
+    assert.ok(Math.abs(advance / 0.25 - 3.84 * 0.8) < 1e-10, 'waist rotates at exactly 80 percent of the prior speed without a phase reset');
     previousTurn = turn;
   }
   for (let time = 0; time <= 60; time += 0.25) {
@@ -96,11 +96,16 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
   let canvases = 0;
   const paints = [];
   const context = () => ({
-    globalAlpha: 1, save() {}, restore() {},
-    drawImage(...args) { paints.push({ kind: 'image', alpha: this.globalAlpha, args }); },
-    beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
-    fill() { paints.push({ kind: 'face', alpha: this.globalAlpha }); },
-    fillRect() { paints.push({ kind: 'rect', color: this.fillStyle }); },
+    globalAlpha: 1, stack: [], clipRect: null,
+    save() { this.stack.push({ globalAlpha: this.globalAlpha, fillStyle: this.fillStyle, clipRect: this.clipRect }); },
+    restore() { Object.assign(this, this.stack.pop()); },
+    drawImage(...args) { paints.push({ kind: 'image', alpha: this.globalAlpha, clip: this.clipRect, args }); },
+    beginPath() { this.pathRect = null; },
+    rect(...args) { this.pathRect = args; },
+    clip() { this.clipRect = this.pathRect; },
+    moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
+    fill() { paints.push({ kind: 'face', alpha: this.globalAlpha, clip: this.clipRect }); },
+    fillRect() { paints.push({ kind: 'rect', color: this.fillStyle, clip: this.clipRect }); },
   });
   const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement() {
@@ -112,14 +117,25 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
     else delete globalThis.document;
   });
   const ctx = context();
+  ctx.globalAlpha = 0.3;
+  const outerClip = [0, 0, 480, 360];
+  ctx.clipRect = outerClip;
   drawMankatsukiBackground(ctx, { game: { time: 1 }, state: 'menu' });
+  assert.equal(ctx.globalAlpha, 0.3);
   paints.length = 0;
   drawMankatsukiBackground(ctx, { game: { time: 1 }, state: 'menu' });
+  assert.equal(paints[0].alpha, 1, 'cached wooden floor must draw opaque even with inherited context alpha');
+  assert.equal(ctx.globalAlpha, 0.3);
   const normal = paints.filter(paint => paint.kind === 'face');
   assert.equal(normal.length, 72, 'only one central hourglass remains after removing the three ribbons');
+  for (const face of normal) assert.deepEqual(face.clip, [0, 0, 480, 167]);
+  assert.equal(paints[0].clip, outerClip);
+  assert.equal(Math.min(...normal.map(paint => paint.alpha)), 0.82);
+  assert.equal(normal.filter(paint => paint.alpha === 1).length, 36);
   const walls = paints.filter(paint => paint.kind === 'image' && paint.args.length === 9);
   assert.equal(walls.length, 202, 'wall scanline work stays bounded independently of elapsed time');
   assert.ok(walls.every(paint => paint.alpha === 1));
+  assert.ok(walls.every(paint => paint.clip === outerClip));
   assert.deepEqual(walls[0].args.slice(5), [0, 0, 480, 2]);
   assert.deepEqual(walls[43].args.slice(5), [0, 86, 480, 2]);
   assert.ok(walls.slice(44).every(({ args }) => args[5] === 0 || args[5] + args[7] === 480));
@@ -127,13 +143,23 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
   for (const state of ['enemy-prep', 'bullets', 'board-close']) {
     paints.length = 0;
     drawMankatsukiBackground(ctx, { game: { time: 1 }, state });
+    assert.equal(paints[0].alpha, 1, 'defense must also start from the opaque wooden floor');
+    assert.equal(ctx.globalAlpha, 0.3);
     const quiet = paints.filter(paint => paint.kind === 'face');
     assert.equal(quiet.length, normal.length);
+    for (const face of quiet) assert.deepEqual(face.clip, [0, 0, 480, 167]);
     assert.ok(quiet.every((paint, i) => paint.alpha < normal[i].alpha));
+    assert.ok(Math.abs(Math.min(...quiet.map(paint => paint.alpha)) - 0.656) < 1e-12);
+    assert.ok(quiet.every((paint, i) => Math.abs(paint.alpha - normal[i].alpha * 0.8) < 1e-12));
     const quietWalls = paints.filter(paint => paint.kind === 'image' && paint.args.length === 9);
     assert.equal(quietWalls.length, walls.length);
     assert.ok(quietWalls.every(paint => paint.alpha === 0.62));
     assert.equal(paints.at(-1).color, 'rgba(4,2,9,0.38)');
+    assert.equal(paints.at(-1).clip, outerClip, 'defensive dimming must cover the foreground too');
+    assert.equal(ctx.clipRect, outerClip);
+    assert.equal(ctx.stack.length, 0);
   }
+  ctx.fillRect(0, 200, 480, 160);
+  assert.equal(paints.at(-1).clip, outerClip, 'subsequent HUD drawing retains the caller clip');
   assert.equal(canvases, 2, 'wooden floor and purple wall texture are each baked once');
 });

@@ -12,7 +12,8 @@ const COMBOS = ['mankatsuki_taco_pan', 'mankatsuki_taco_stocks', 'mankatsuki_tel
 const NEW_KEYS = ['mankatsuki_food_taco', 'mankatsuki_motorcycle'];
 const NEW_COMBO = 'mankatsuki_food_motorcycle';
 const CLONE = 'mankatsuki_clone_crossfire';
-const ALL_KEYS = [...KEYS, ...NEW_KEYS, ...COMBOS, NEW_COMBO, CLONE];
+const UNDERPANTS = 'mankatsuki_underpants';
+const ALL_KEYS = [...KEYS, ...NEW_KEYS, ...COMBOS, NEW_COMBO, CLONE, UNDERPANTS];
 const config = name => [...ENEMIES.mankatsuki_junhee.patterns, ...ENEMIES.mankatsuki_junhee.enragedPatterns].find(pattern => pattern.type === name);
 
 function simulate(name, random = 0.35, visit = () => {}, options = config(name)) {
@@ -63,11 +64,12 @@ test('mankatsuki attack sounds fire once per action, not for every projectile', 
     [NEW_KEYS[0], 'whoosh', 8], [NEW_KEYS[0], 'hit', 8], [NEW_KEYS[1], 'rocket', 8],
     [NEW_COMBO, 'whoosh', 8], [NEW_COMBO, 'hit', 8], [NEW_COMBO, 'rocket', 6],
     [CLONE, 'whoosh', 8], [CLONE, 'mankatsuki_clone', 4],
+    [UNDERPANTS, 'whoosh', 7],
   ]) assert.equal(simulate(pattern).sounds.filter(sound => sound.name === cue).length, count, pattern);
 });
 
 test('test_mankatsuki_enraged_pool_adds_food_motorcycle_before_three_pig_face_combinations', () => {
-  assert.deepEqual(ENEMIES.mankatsuki_junhee.enragedPatterns.map(pattern => pattern.type), [NEW_COMBO, ...COMBOS, CLONE]);
+  assert.deepEqual(ENEMIES.mankatsuki_junhee.enragedPatterns.map(pattern => pattern.type), [UNDERPANTS, NEW_COMBO, ...COMBOS, CLONE]);
   for (const [name, tacoCount, companion, companionCount] of [
     [COMBOS[0], 18, 'mankatsuki_flame', 18], [COMBOS[1], 18, 'mankatsuki_stock', 6],
     [COMBOS[2], 12, 'mankatsuki_shuriken', 36],
@@ -79,13 +81,13 @@ test('test_mankatsuki_enraged_pool_adds_food_motorcycle_before_three_pig_face_co
   }
 });
 
-test('test_mankatsuki_keeps_pig_face_sheet_and_puts_food_and_motorcycle_early_at_130_hp', () => {
+test('test_mankatsuki_keeps_pig_face_sheet_and_puts_underpants_food_and_motorcycle_early_at_144_hp', () => {
   const boss = ENEMIES.mankatsuki_junhee;
-  assert.deepEqual(boss.patterns.map(pattern => pattern.type), [KEYS[0], ...NEW_KEYS, ...KEYS.slice(1), CLONE]);
+  assert.deepEqual(boss.patterns.map(pattern => pattern.type), [KEYS[0], UNDERPANTS, ...NEW_KEYS, ...KEYS.slice(1), CLONE]);
   assert.equal(boss.projectiles.taco, 'assets/projectiles/mankatsuki-taco.png');
   assert.equal(boss.projectiles.foodTaco, 'assets/projectiles/mankatsuki-food-taco.png');
   assert.equal(boss.projectiles.motorcycle, 'assets/projectiles/mankatsuki-motorcycle.png');
-  assert.deepEqual([boss.hp, boss.damage, boss.scale], [130, 11, 1.15]);
+  assert.deepEqual([boss.hp, boss.damage, boss.scale], [144, 11, 1.15]);
   const { emitted, poses } = simulate(KEYS[4]);
   assert.equal(emitted.length, 18);
   assert.ok(emitted.every(({ b }) => b.shape === 'mankatsuki_taco' && b.warn >= 0.7 && b.r === 12));
@@ -96,7 +98,7 @@ test('test_mankatsuki_pressure_increases_without_damage_or_warning_shortcuts', (
   const boss = ENEMIES.mankatsuki_junhee;
   assert.equal(boss.dx, 10);
   assert.ok(boss.lines.speak.includes('아 삼전사라고 삼전'));
-  assert.ok(boss.lines.speak.includes('우욱 우욱 우욱 이거 빤쓰아녀유?'));
+  assert.ok(boss.lines.speak.includes('우욱 우욱 우욱 이거 빤쓰 아녀유?'));
   for (const [name, shape, count] of [[KEYS[0], 'mankatsuki_shuriken', 42], [KEYS[2], 'mankatsuki_flame', 42],
     [KEYS[3], 'mankatsuki_stock', 14], [KEYS[4], 'mankatsuki_taco', 18]]) {
     assert.equal(simulate(name).emitted.filter(({ b }) => b.shape === shape).length, count);
@@ -268,7 +270,7 @@ test('test_mankatsuki_teleports_actual_actor_above_and_beside_arena_with_clone_s
 
 test('test_mankatsuki_finishes_both_warned_fans_before_the_next_teleport', () => {
   const boss = ENEMIES.mankatsuki_junhee;
-  for (const options of [boss.patterns[0], boss.enragedPatterns[3].teleport]) {
+  for (const options of [boss.patterns[0], boss.enragedPatterns.find(pattern => pattern.type === 'mankatsuki_teleport_taco').teleport]) {
     const { poses, sounds } = simulate(KEYS[0], 0.35, () => {}, options);
     const departures = poses.filter(({ pose }) => pose?.hidden);
     const arrivals = poses.filter(({ pose }) => pose?.sheet === 'idle');
@@ -390,5 +392,69 @@ test('test_mankatsuki_each_timeline_has_a_continuously_reachable_path_at_100px_p
       reachable = next;
       assert.ok(reachable.size, `${name} random ${random}: escape at ${t.toFixed(2)}`);
     }
+  }
+});
+
+test('test_mankatsuki_retch_rain_precedes_underpants_and_enrages_without_shorter_warnings', () => {
+  const boss = ENEMIES.mankatsuki_junhee;
+  const normal = config(UNDERPANTS), enraged = boss.enragedPatterns.find(pattern => pattern.type === UNDERPANTS);
+  assert.equal(boss.projectiles.underpants, 'assets/projectiles/mankatsuki-underpants.png');
+  assert.equal(boss.enragedAt, 0.5);
+  const counts = [];
+  for (const options of [normal, enraged]) {
+    const { emitted, sounds, speech } = simulate(UNDERPANTS, 0.35, () => {}, options);
+    const retches = emitted.filter(({ b }) => b.shape === 'mankatsuki_retch');
+    const pants = emitted.filter(({ b }) => b.shape === UNDERPANTS);
+    assert.deepEqual(speech, ['우욱 우욱 우욱 이거 빤쓰 아녀유?']);
+    assert.ok(retches.every(({ b }) => b.text === '우욱'));
+    assert.ok(pants.every(({ b }) => b.text === null));
+    assert.ok(retches.at(-1).at < pants[0].at);
+    assert.equal(new Set(retches.map(({ at }) => at)).size, 3);
+    assert.equal(sounds.filter(({ name }) => name === 'whoosh').length, options.waves);
+    assert.equal(emitted.length, options.waves * (6 - options.safeColumns));
+    assert.ok(emitted.every(({ b }) => b.warn >= 0.45));
+    const waveColumns = new Map();
+    for (const { at, b } of emitted) {
+      if (!waveColumns.has(at)) waveColumns.set(at, []);
+      waveColumns.get(at).push(b.column);
+    }
+    const gaps = [...waveColumns.values()].map(columns => [0, 1, 2, 3, 4, 5].filter(column => !columns.includes(column)));
+    assert.ok(gaps.every(gap => gap.length === options.safeColumns));
+    assert.ok(gaps.slice(1).every((gap, index) => Math.abs(gap[0] - gaps[index][0]) === 1));
+    counts.push(pants.length);
+  }
+  assert.ok(counts[1] > counts[0]);
+  assert.ok(enraged.speed > normal.speed);
+});
+
+test('test_mankatsuki_underpants_draws_font_and_single_png_with_warning_and_shape_collision', () => {
+  const image = { width: 32, height: 32 }, emitted = [], calls = [];
+  const pattern = MANKATSUKI_PATTERNS[UNDERPANTS](config(UNDERPANTS));
+  pattern.update(3, 0, { box: BOX, soul: SOUL, images: { underpants: image }, emit(o) { emitted.push(new Bullet(o)); } });
+  const ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); },
+    set(target, key, value) { target[key] = value; return true; } });
+  for (const shape of ['mankatsuki_retch', UNDERPANTS]) {
+    const b = emitted.find(b => b.shape === shape);
+    b.update(b.warn - 0.01, BOX); b.draw(ctx);
+    assert.ok(calls.some(call => call[0] === 'setLineDash'), 'lane warning before descent');
+    assert.equal(b.hits({ x: b.x, y: BOX.y + 10, r: 6 }), false);
+    calls.length = 0;
+    b.update(0.01 + b.flight / 2, BOX); b.draw(ctx);
+    assert.ok(b.y > BOX.y && b.y < BOX.y + BOX.h);
+    assert.equal(b.hits({ x: b.x, y: b.y, r: 6 }), true);
+    assert.equal(b.hits({ x: b.x + 24, y: b.y, r: 6 }), false);
+    assert.equal(b.hits({ x: BOX.x - 6, y: b.y, r: 6 }), false);
+    assert.ok(calls.some(call => call[0] === 'clip'));
+    if (shape === UNDERPANTS) {
+      assert.deepEqual(calls.find(call => call[0] === 'drawImage'), ['drawImage', image, Math.round(b.x - 16), Math.round(b.y - 16), 32, 32]);
+      assert.equal(b.hits({ x: b.x + 13, y: b.y + 12, r: 2 }), false, 'leg opening remains empty');
+    } else {
+      assert.match(ctx.font, /NeoDunggeunmo/);
+      assert.deepEqual(calls.find(call => call[0] === 'fillText'), ['fillText', '우욱', Math.round(b.x), Math.round(b.y)]);
+    }
+    calls.length = 0;
+    b.update(b.life, BOX);
+    assert.equal(b.out(BOX), true);
+    assert.equal(b.hits({ x: b.x, y: b.y, r: 6 }), false);
   }
 });
