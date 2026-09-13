@@ -10,6 +10,8 @@ Accepted. 2026-09-13, BUILD114 구매와 BUILD116 판매·이벤트 가격 사�
 
 ## Decision
 
+BUILD118: 구매 확인은 **예**가 기본이며 좌우로 아니오를 선택하거나 X로 취소할 수 있다. 판매 확인은 기존 **아니오** 기본을 유지한다. 구매 성공에만 원본 `snd_buyitem` 기반 `shop_buy` 효과음을 재생하며 가격·저장·강화 처리는 바꾸지 않는다.
+
 `src/data/shops.js`의 `YONGJUN_SHOP`이 가격·설명·효과·구매 플래그의 원본이다. 에그타르트50원은 HP100, 위장약100원은 HP200 회복 소모품으로 이름 문자열을 기존 인벤토리에 추가한다. 씨알리스와 바세린은 각각10원이며 `event:true`로 노란 `이벤트!` 배지를 표시한다. 씨알리스는 공유 공격력+1, 바세린은 공유 최대 HP 보너스+20을 즉시 적용한다. 강화 상품은 인벤토리에 들어가지 않는다. 기존 상품 ID와 구매 플래그를 유지한다.
 
 `shopItemState(game, itemId)`는 `{ok, reason, item}`을 반환하는 읽기 전용 검사다. `reason`은 `null`, `unknown`, `sold_out`, `insufficient_money` 중 하나다. `purchaseShopItem(game, itemId)`만 실제 구매를 수행한다. 실패에는 변화·저장이 없고 성공에는 돈, 효과, 구매 플래그를 모두 적용한 뒤 `game.autosave()`를 한 번 호출한다. 취소 UI는 구매 함수를 호출하지 않는다.

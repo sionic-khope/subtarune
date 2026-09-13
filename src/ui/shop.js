@@ -126,7 +126,7 @@ export class Shop {
     const result = this.section === 'sell' ? saleItemState(this.game, this.index) : shopItemState(this.game, YONGJUN_SHOP[this.index].id);
     this.transaction = result;
     if (!result.ok) { this._feedback(result); return; }
-    this.choice = 1;
+    this.choice = this.section === 'buy' ? 0 : 1;
     this.mode = 'confirm';
     this.lock = SHOP_LAYOUT.inputLock;
     this.game.sound.sfx('confirm');
@@ -168,7 +168,7 @@ export class Shop {
     this.mode = 'message';
     this.message = result;
     this.lock = SHOP_LAYOUT.inputLock;
-    this.game.sound.sfx(result.ok ? 'item' : 'cancel');
+    this.game.sound.sfx(result.ok ? (this.section === 'buy' ? 'shop_buy' : 'item') : 'cancel');
   }
 
   /** Render original counter art and live, independently measured text panels. */

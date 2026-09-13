@@ -11,7 +11,7 @@ function fixture(saved = {}) {
   const game = {
     flags: {}, inventory: [], money: 3000, attack: 2, hpBonus: 20, partyHp: { ppaman: 87 },
     ctx: { measureText: (text) => ({ width: [...text].length * 16 }) }, portraits: { ppaman: {} },
-    saves: [], voices: [], sound: { sfx() {}, blip(voice) { game.voices.push(voice); } },
+    saves: [], voices: [], sounds: [], sound: { sfx(name) { game.sounds.push(name); }, blip(voice) { game.voices.push(voice); } },
     has(key) { return !!this.flags[key]; }, setFlag(key, value = true) { this.flags[key] = value; },
     autosave() { this.saves.push(snapshot(this)); }, ...saved,
   };
@@ -130,9 +130,10 @@ test('test_shop_home_buy_cancel_returns_home_and_event_upgrade_is_not_inventory'
   shop.update(0, input('down'));
   shop.update(0, input('confirm')); unlock(shop);
   assert.equal(shop.mode, 'confirm');
-  shop.update(0, input('left'));
+  assert.equal(shop.choice, 0);
   shop.update(0, input('confirm')); unlock(shop);
   assert.equal(shop.mode, 'message');
+  assert.equal(game.sounds.at(-1), 'shop_buy');
   assert.equal(game.money, 2990);
   assert.equal(game.attack, 3);
   assert.deepEqual(game.inventory, []);

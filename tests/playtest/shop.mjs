@@ -26,8 +26,8 @@ async function walk(x, y) {
 async function buy() {
   await key('KeyC');
   assert.equal(await page.evaluate(() => game.shop.mode), 'confirm');
-  assert.equal(await page.evaluate(() => game.shop.choice), 1);
-  await key('ArrowLeft'); await key('KeyC');
+  assert.equal(await page.evaluate(() => game.shop.choice), 0);
+  await key('KeyC');
   assert.equal(await page.evaluate(() => game.shop.message.ok), true);
   await key('KeyC');
 }
@@ -43,8 +43,10 @@ try {
   await snap('02-shop-entry');
   check('real storefront C opens shop home without buying', await page.evaluate(() => game.money === 2800 && game.shop.mode === 'home'));
   await key('KeyC');
-  await key('KeyC'); await key('KeyC');
-  check('default No cancels without spending', await page.evaluate(() => game.money === 2800 && game.shop.mode === 'browse'));
+  await key('KeyC');
+  check('purchase confirmation defaults to Yes', await page.evaluate(() => game.shop.mode === 'confirm' && game.shop.choice === 0));
+  await key('ArrowRight'); await key('KeyC');
+  check('selecting No cancels without spending', await page.evaluate(() => game.money === 2800 && game.shop.mode === 'browse'));
   await buy(); await key('ArrowDown'); await buy(); await key('ArrowDown'); await buy(); await key('ArrowDown'); await buy();
   await snap('03-purchased-stock');
   check('all four products debit exact prices and apply team upgrades once', await page.evaluate(() => game.money === 2630 && game.attack === 3 && game.hpBonus === 40 && game.inventory.includes('위장약') && game.inventory.includes('에그타르트') && !game.inventory.includes('씨알리스') && !game.inventory.includes('바세린')));
