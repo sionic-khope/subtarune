@@ -10,6 +10,7 @@ import { makeWaiter } from './cutscene.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 
 import { FONT, F } from './font.js';
+import { drawMosaicText, markTextMosaic } from './text-mosaic.js';
 export { FONT };
 const LINE_H = F.lineH;
 const MAX_LINES = 4;
@@ -145,6 +146,7 @@ export class TextBox {
 
     const text = node.text ?? '';
     this.tokens = parseText(text);
+    markTextMosaic(this.tokens, node.mosaic);
     const textW = this.textWidth();
     this.pages = layout(ctx, this.tokens, textW);
     this.page = 0;
@@ -315,7 +317,7 @@ export class TextBox {
         if (t.shake) { dx = Math.round(Math.random() * 2 - 1); dy = Math.round(Math.random() * 2 - 1); }
         if (t.wave) { dy = Math.round(Math.sin(this.time * 8 + x * 0.25) * 2); }
         ctx.fillStyle = t.color || '#ffffff';
-        ctx.fillText(t.ch, x + dx, y + dy);
+        drawMosaicText(ctx, t.ch, x + dx, y + dy, t.mosaic, t.mosaicDetail);
         x += t.w;
       }
     }
@@ -368,7 +370,7 @@ TextBox.prototype.drawNarration = function (ctx) {
       if (t.shake) { dx = Math.round(Math.random() * 2 - 1); dy = Math.round(Math.random() * 2 - 1); }
       if (t.wave) dy = Math.round(Math.sin(this.time * 8 + x * 0.25) * 2);
       ctx.fillStyle = t.color || '#ffffff';
-      ctx.fillText(t.ch, x + dx, y + dy);
+      drawMosaicText(ctx, t.ch, x + dx, y + dy, t.mosaic, t.mosaicDetail);
       x += t.w;
     }
   }

@@ -49,7 +49,7 @@ export const storage_viewer = Object.assign([
   { musicCamera: { ...STORAGE_DANCE, at: 'expelled_viewer' } },
   P('* 야야야 아잠깐만 야 야'),
   dance('dance', { flipEvery: 0.22, pop: 13 }),
-  V('* ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커', { speed: 3 }),
+  V('* ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커페이커', { speed: 3, mosaic: { text: '페이커', block: 2, detail: 0.45 } }),
   P('* 아니 씨발새끼 족쳐'),
   { set: { storage_viewer_intro_seen: true } },
   { label: 'battle' },

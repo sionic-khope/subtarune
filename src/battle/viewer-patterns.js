@@ -121,6 +121,9 @@ export const VIEWER_PATTERNS = {
         icon(api, 'shard', landing.x, landing.y, 14, { vx: Math.cos(a) * (80 + ring * 48), vy: Math.sin(a) * (80 + ring * 48), spin: (n % 2 ? -1 : 1) * 4, life: 2.5 });
       }
     } });
+    events.push({ at: 0.2 + flight + fuse + 0.12, run(api) {
+      api.say?.('퍼엉이 바위였네 ㅋㅋ (터졌다는뜻)', 1.8);
+    } });
     return timeline(o.duration ?? 6.6, events);
   },
   viewer_explain: (o = {}) => {

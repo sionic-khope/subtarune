@@ -22,6 +22,7 @@ import L from '../data/locale/ko.js';
 import { createBattleSupport } from './support/baron-cannon.js';
 import { BARON_CANNON } from '../data/baron-cannon.js';
 import { menuTextLines } from '../ui/menu-layout.js';
+import { drawMosaicText } from '../ui/text-mosaic.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
@@ -276,7 +277,8 @@ export class Battle {
     const defName = e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
     if (typeof create === 'function') { this.gimmick = create(this, { enemy: e }); this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); return; }   // 적 턴 미니게임 모드
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
-    this.bubble = { enemy: e, text: lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...', shown: 0, t: 0, voice: e.def.voice || 'narrator' };
+    const text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
+    this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.def.voice || 'narrator' };
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
     this.soul.center({ x: 240 - bw / 2, y: 214 - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
@@ -525,7 +527,7 @@ export class Battle {
     ctx.fillStyle = '#fff'; this.roundRect(ctx, x, y, w, h, 9); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x + w - 2, cy - 10); ctx.lineTo(x + w + 18, cy + 1); ctx.lineTo(x + w - 2, cy + 8); ctx.closePath(); ctx.fill();   // 꼬리(적 쪽)
     ctx.fillStyle = '#000';
-    menuTextLines(ctx, b.text.slice(0, b.shown), w - pad * 2, 20).forEach((line, i) => ctx.fillText(line, x + pad, y + pad + i * lh));
+    menuTextLines(ctx, b.text.slice(0, b.shown), w - pad * 2, 20).forEach((line, i) => drawMosaicText(ctx, line, x + pad, y + pad + i * lh, b.mosaic));
     ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top';
   }
   roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); }

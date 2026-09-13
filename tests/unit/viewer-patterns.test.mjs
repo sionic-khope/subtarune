@@ -79,6 +79,11 @@ test('test_viewer_rock_dialogue_then_three_second_fuse_and_twenty_shards', () =>
   const shards = emitted.filter((e) => e.bullet.shape === 'viewer_shard');
   assert.equal(shards.length, 20);
   assert.ok(shards[0].at - speech[0].at >= 2.99);
+  assert.equal(speech.length, 2);
+  assert.equal(speech[1].text, '퍼엉이 바위였네 ㅋㅋ (터졌다는뜻)');
+  assert.ok(speech[1].at - shards[0].at >= 0.1);
+  assert.ok(speech[1].at - shards[0].at < 0.15);
+  assert.equal(simulate(2, shards[0].at).speech.length, 1);
   assert.deepEqual(sounds, ['boom']);
 });
 
