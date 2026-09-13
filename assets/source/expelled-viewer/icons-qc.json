@@ -1,0 +1,75 @@
+{
+  "size": [
+    32,
+    32
+  ],
+  "filter": "nearest",
+  "source_has_alpha": true,
+  "alpha_cleanup_threshold": 128,
+  "rgb_quantization": false,
+  "shard": "Single upper-left fragment from the supplied generated shard pack.",
+  "icons": [
+    {
+      "name": "chicken",
+      "source_region": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "bbox": [
+        3,
+        3,
+        28,
+        29
+      ]
+    },
+    {
+      "name": "timeout",
+      "source_region": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "bbox": [
+        3,
+        3,
+        29,
+        29
+      ]
+    },
+    {
+      "name": "rock",
+      "source_region": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "bbox": [
+        3,
+        5,
+        29,
+        27
+      ]
+    },
+    {
+      "name": "shard",
+      "source_region": [
+        700,
+        690,
+        937,
+        950
+      ],
+      "bbox": [
+        3,
+        3,
+        28,
+        29
+      ]
+    }
+  ],
+  "edge_touch_frames": [],
+  "empty_frames": []
+}

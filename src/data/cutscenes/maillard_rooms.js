@@ -1,6 +1,9 @@
 export const maillard_storage_enter = Object.assign([
-  { voice: 'narrator', text: '* 강퇴폐기창고입니다.{n}* 들어가시겠습니까?',
-    choice: { options: [{ label: '예', goto: 'enter' }, { label: '아니오', goto: 'end' }], cancel: 1 } },
+  { voice: 'narrator', text: '* (주의) 불쾌할수있는 악질 시청자가 존재함 위험함 방송에서 하면 안되는 모든것들을 가지고있음.' },
+  { voice: 'narrator', text: '* 그럼에도 그럼에도...' },
+  { voice: 'narrator', text: '* 그를 마주할 자신이 있고, 욕설, 패드립, 닉언, 가재맨방송에서 그 발언들(모자이크는 함)을 마주할 용기가 있으시다면 들어가시오' },
+  { voice: 'narrator', text: '* 들어가시겠습니까?',
+    choice: { options: [{ label: '네', goto: 'enter' }, { label: '아니오', goto: 'end' }], cancel: 1 } },
   { label: 'enter' },
   { sfx: 'plug' },
   { fade: 'out', duration: 0.25 },

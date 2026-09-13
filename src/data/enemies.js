@@ -12,6 +12,32 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  expelled_viewer: {
+    name: '악질맨', hp: 66, voice: 'expelled_viewer', money: 666, damage: 11,
+    sheet: { src: 'assets/sprites/expelled-viewer-dance.png', cols: 2, rows: 4, count: 8, fps: 5, px: 1 },
+    pivot: [48, 88], scale: 1.4, dx: 16, dy: 0, board: [216, 156], idle: { swayX: 0, swayY: 0, period: 2 },
+    projectiles: {
+      chicken: 'assets/battle/expelled-viewer-chicken.png', timeout: 'assets/battle/expelled-viewer-timeout.png',
+      rock: 'assets/battle/expelled-viewer-rock.png', shard: 'assets/battle/expelled-viewer-shard.png',
+    },
+    patterns: [
+      { type: 'viewer_eom', duration: 7.5, warn: 0.6, every: 0.95, size: 52, speed: 164 },
+      { type: 'viewer_names', duration: 10.7, warn: 0.55, speed: 148, letterTime: 0.14 },
+      { type: 'viewer_rock', duration: 6.6, flight: 0.7, fuse: 3 },
+      { type: 'viewer_explain', duration: 6.8, warn: 0.4, speed: 108 },
+      { type: 'viewer_chicken', duration: 6.8, warn: 0.55, speed: 115 },
+      { type: 'viewer_breath', duration: 7.5, warn: 0.55, speed: 132 },
+      { type: 'viewer_timeout', duration: 7.8, warn: 0.65, speed: 86, life: 3.4, turn: 2.2 },
+    ],
+    lines: {
+      appear: '* 악질맨이 양팔을 벌렸다.',
+      idle: ['* 악질맨이 혼자 춤추고 있다.'],
+      speak: ['샬케랑왕코랑쥰희어디감?', '이고역어디감?onep어디감?', '행복맨어디감? 어라 행복맨이 누구지', '노',
+        '엄준식엄준식엄준식엄준식', '형섭앜ㅋㅋ나는 니 순살ㅂㅈ가 좋더라 귀두키듴ㅋㅋㅋ', 'ㅍㅇㅋ한테 ㅍㄷ립해명좀해주시죠',
+        '이이이이잉 기분좋다', '나는 악질 꿀잼 시청자~', '씹섭아 화장실 언제가ㅋㅋㅋ'],
+      die: '* 악질맨의 춤이 멈췄다.',
+    },
+  },
   // 256px 셀 × 0.9 = 230px. 기본 발(396,176)에 dx/dy를 더해 그림 전체를 (233,8)~(463,238)에 둔다.
   baron: {
     name: '바론', hp: 250, support: 'baron_cannon',

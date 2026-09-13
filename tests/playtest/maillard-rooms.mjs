@@ -75,7 +75,11 @@ async function follow(name, x, y) {
 async function choice() {
   await page.keyboard.press('KeyC', { delay: 40 });
   await page.waitForFunction(() => game.dialogue.running);
-  await page.keyboard.press('KeyX', { delay: 40 });
+  for (let pageIndex = 0; pageIndex < 20; pageIndex++) {
+    if (await page.evaluate(() => game.textbox.state === 'choice')) break;
+    await page.keyboard.press('KeyC', { delay: 40 });
+    await page.waitForTimeout(80);
+  }
   await page.waitForFunction(() => game.textbox.state === 'choice' && game.textbox.choiceLock <= 0);
 }
 async function audio(name) {
@@ -113,7 +117,7 @@ try {
   await wallApproach(180);
   check('walking fully to iron door does not enter or start dialogue', await page.evaluate(() => game.mapId === 'maillard_lounge' && !game.dialogue.running));
   await choice();
-  check('iron door shows exact prompt and yes/no', await page.evaluate(() => game.textbox.node.text === '* 강퇴폐기창고입니다.{n}* 들어가시겠습니까?' && game.textbox.choice.options.map(o => o.label).join() === '예,아니오'));
+  check('iron door shows final consent after warning pages', await page.evaluate(() => game.textbox.node.text === '* 들어가시겠습니까?' && game.textbox.choice.options.map(o => o.label).join() === '네,아니오'));
   await shot('02-iron-choice');
   await page.setViewportSize({ width: 375, height: 812 });
   await shot('03-small-choice');

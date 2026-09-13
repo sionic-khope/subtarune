@@ -87,6 +87,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'obj4_baron_won', enemies: ['baron'] },
   { flag: 'obj5_gun_taken', items: ['나무총'] },
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
+  { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.

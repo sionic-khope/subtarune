@@ -1,0 +1,259 @@
+{
+  "cell": [
+    96,
+    96
+  ],
+  "pivot": [
+    48,
+    88
+  ],
+  "filter": "nearest",
+  "color_quantization": false,
+  "magenta_despill": true,
+  "source": "builtin image_gen",
+  "frames": [
+    {
+      "action": "crouch",
+      "frame": 0,
+      "bbox": [
+        30,
+        41,
+        67,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 897
+    },
+    {
+      "action": "crouch",
+      "frame": 1,
+      "bbox": [
+        30,
+        41,
+        67,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 905
+    },
+    {
+      "action": "crouch",
+      "frame": 2,
+      "bbox": [
+        30,
+        45,
+        67,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 848
+    },
+    {
+      "action": "crouch",
+      "frame": 3,
+      "bbox": [
+        30,
+        42,
+        67,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 906
+    },
+    {
+      "action": "reveal",
+      "frame": 0,
+      "bbox": [
+        29,
+        20,
+        67,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 1085
+    },
+    {
+      "action": "reveal",
+      "frame": 1,
+      "bbox": [
+        21,
+        16,
+        75,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 1184
+    },
+    {
+      "action": "reveal",
+      "frame": 2,
+      "bbox": [
+        8,
+        18,
+        88,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 1272
+    },
+    {
+      "action": "reveal",
+      "frame": 3,
+      "bbox": [
+        10,
+        15,
+        87,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 1304
+    },
+    {
+      "action": "dance",
+      "frame": 0,
+      "bbox": [
+        6,
+        21,
+        90,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1275
+    },
+    {
+      "action": "dance",
+      "frame": 1,
+      "bbox": [
+        19,
+        21,
+        77,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1268
+    },
+    {
+      "action": "dance",
+      "frame": 2,
+      "bbox": [
+        22,
+        25,
+        75,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1228
+    },
+    {
+      "action": "dance",
+      "frame": 3,
+      "bbox": [
+        19,
+        20,
+        78,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1279
+    },
+    {
+      "action": "dance",
+      "frame": 4,
+      "bbox": [
+        26,
+        13,
+        71,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1325
+    },
+    {
+      "action": "dance",
+      "frame": 5,
+      "bbox": [
+        20,
+        19,
+        76,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1205
+    },
+    {
+      "action": "dance",
+      "frame": 6,
+      "bbox": [
+        8,
+        19,
+        89,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1416
+    },
+    {
+      "action": "dance",
+      "frame": 7,
+      "bbox": [
+        6,
+        19,
+        91,
+        89
+      ],
+      "scale": 0.21,
+      "opaque_black_pixels": 1339
+    },
+    {
+      "action": "knockdown",
+      "frame": 0,
+      "bbox": [
+        30,
+        24,
+        66,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 1048
+    },
+    {
+      "action": "knockdown",
+      "frame": 1,
+      "bbox": [
+        22,
+        30,
+        75,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 1032
+    },
+    {
+      "action": "knockdown",
+      "frame": 2,
+      "bbox": [
+        15,
+        57,
+        82,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 930
+    },
+    {
+      "action": "knockdown",
+      "frame": 3,
+      "bbox": [
+        12,
+        60,
+        84,
+        89
+      ],
+      "scale": 0.14578352180936993,
+      "opaque_black_pixels": 823
+    }
+  ],
+  "edge_touch_frames": [],
+  "clipped_frames": [],
+  "note": "Crouch intentionally compressed; dance geometry uses fixed anatomical scale."
+}

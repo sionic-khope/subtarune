@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "expelled-viewer",
+  "processing": {
+    "cell_size": 96,
+    "fit_scale": 0.94,
+    "trim_border": 4,
+    "edge_clean_depth": 3,
+    "align": "feet",
+    "shared_scale": true,
+    "scale_strategy": "preserve",
+    "component_mode": "largest",
+    "component_padding": 0,
+    "min_component_area": 1,
+    "edge_touch_margin": 0
+  },
+  "output_origin": [
+    48.0,
+    94
+  ],
+  "reference": {
+    "target": "npc",
+    "mode": "reveal",
+    "rows": 2,
+    "cols": 2,
+    "body_scale_mean": 0.4456411511972789,
+    "body_scale_cv": 0.020664659056107752,
+    "anchor_y_mean": 0.8945880452342488
+  },
+  "qc": {
+    "max_body_scale_drift": 0.1
+  }
+}

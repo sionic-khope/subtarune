@@ -1,5 +1,13 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 강퇴폐기창고 인물·쇼·전투 (2026-09-13, BUILD119)
+
+지정한 두 영상의 전체 음원을 사용한다. `bgm/storage_show.mp3`는 [Queen — Toby Fox](https://www.youtube.com/watch?v=6XQv5CHmITA)(56.749896초), `bgm/storage_battle.mp3`는 [Cyber Battle (Solo) — Toby Fox](https://www.youtube.com/watch?v=10yw5Q0mPPw)(107.52초)다. `yt-dlp --no-playlist -f '251/bestaudio' --write-info-json`으로 영상 ID/제목/업로더를 확인하고 오디오 전용 원본을 받았다. `ffmpeg -i <source.webm> -map_metadata -1 -c:a libmp3lame -q:a 2 <output.mp3>`로 전체를 변환했으며 잘라내기·피치·속도·페이드·음량 변경은 없다. 전투곡은 기존 전투 규칙대로0초·페이드인 없이 시작한다. 박수는 기존 `maillard_applause`를 재사용한다.
+
+사용자 “굵은 목소리…라디오…테나…직접 써서 톤조정”에 따라 `voices/expelled_viewer.mp3`는 실제 DELTARUNE 테나 대화 블립 `snd_tv_voice_short_0@3-1.15.wav`의 짧은 게임 샘플이다. [출처 고정 리비전](https://github.com/PastelPigeon/drda_generator/blob/8af83474dfbdc1dcc5e74ba294841f3b47a67a15/assets/character_sounds/tenna/snd_tv_voice_short_0%403-1.15.wav)은 배급사 공식 다운로드가 아닌 게임 음원 보관본이다. 원본0.115986초를0.86배 높이/속도로 낮춰0.134875초로 만들고140~2800Hz의 약한 라디오 대역 제한, 시작4ms/끝20ms 페이드, 음량0.65배만 적용했다. 별도 잡음·대사 합성·사람 목소리 복제는 없다.
+
+재현 필터는 `asetrate=37926,aresample=44100,highpass=f=140,lowpass=f=2800,afade=t=in:d=0.004,afade=t=out:st=0.115:d=0.020,volume=0.65`이며 모노44.1kHz·libmp3lame quality2로 저장한다. `VOICES.expelled_viewer`는 `rate:1, level:0.8, cut:false, minGap:0.15`로 전체 샘플이 끝난 뒤 다음 블립을 시작한다. 기존 `Object.keys(VOICES)` 로더가 읽으므로 별도main 로드 목록은 필요 없다. 세 파일 ffprobe/ffmpeg 전체 디코드, 블립 평균-17.2dBFS·최대-5.2dBFS를 확인했다. 청취 도구가 없어 주관적 음색 평가 완료로 기록하지 않는다. 자세한 메타데이터·해시·권리는 `assets/audio/storage-credits.json`에 둔다.
+
 ## 상점 구매음 (2026-09-13, BUILD118)
 
 사용자 “산다…언더테일이나 델타룬 공식사운드랑 똑같이” 요청으로 구매 성공에 `shop_buy.mp3`를 사용한다. 원본은 UNDERTALE `snd_buyitem.wav`: [보관 저장소 고정 리비전](https://github.com/znm2500/Undertale-Engine-Ultra/blob/a0d77e3c57ef8c15aa12597893dec28d174021ae/sounds/snd_buyitem/snd_buyitem.wav). 배급사 공식 다운로드가 아닌 게임 음원 보관본이다. 잘라내기·합성·피치 변경 없이 `ffmpeg -i snd_buyitem.wav -codec:a libmp3lame -q:a 2 shop_buy.mp3`로 변환했다(약0.646초). `src/main.js loadSfxFiles` 등록, `Shop._feedback`의 구매 성공만 재생. 판매는 기존 `item`, 실패는 `cancel` 유지.

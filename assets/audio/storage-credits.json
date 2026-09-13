@@ -1,0 +1,57 @@
+{
+  "retrievedDate": "2026-09-13",
+  "rights": "User-selected game music and fictional-character sound references. Rights remain with the original rights holders; source availability does not establish a license grant.",
+  "tracks": [
+    {
+      "id": "storage_show",
+      "title": "Queen",
+      "uploader": "Toby Fox",
+      "source": "https://www.youtube.com/watch?v=6XQv5CHmITA",
+      "videoId": "6XQv5CHmITA",
+      "uploadDate": "2021-10-04",
+      "sourceFormat": "251 (Opus audio only)",
+      "sourceMetadataDurationSeconds": 57,
+      "file": "assets/audio/bgm/storage_show.mp3",
+      "durationSeconds": 56.749896,
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "sha256": "04bb8db5dc0dd9e9ed107585cbbf1482751242b088426561fe8f75564711748c",
+      "changes": "Full track converted with ffmpeg/libmp3lame quality 2. No trimming, gain, fades, pitch or speed changes. Play from zero and loop the complete file."
+    },
+    {
+      "id": "storage_battle",
+      "title": "Cyber Battle (Solo)",
+      "uploader": "Toby Fox",
+      "source": "https://www.youtube.com/watch?v=10yw5Q0mPPw",
+      "videoId": "10yw5Q0mPPw",
+      "uploadDate": "2021-10-04",
+      "sourceFormat": "251 (Opus audio only)",
+      "sourceMetadataDurationSeconds": 108,
+      "file": "assets/audio/bgm/storage_battle.mp3",
+      "durationSeconds": 107.52,
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "sha256": "51bd03fcbc54639e217c9d5f1f745276075a579b831f45b0cc42e694fdb4986f",
+      "changes": "Full track converted with ffmpeg/libmp3lame quality 2. No trimming, gain, fades, pitch or speed changes. Battle playback starts at zero without fade-in."
+    }
+  ],
+  "voice": {
+    "id": "expelled_viewer",
+    "file": "assets/audio/voices/expelled_viewer.mp3",
+    "originalName": "snd_tv_voice_short_0@3-1.15.wav",
+    "originalCharacter": "Tenna, DELTARUNE Chapter 3",
+    "source": "https://github.com/PastelPigeon/drda_generator/blob/8af83474dfbdc1dcc5e74ba294841f3b47a67a15/assets/character_sounds/tenna/snd_tv_voice_short_0%403-1.15.wav",
+    "sourceType": "Third-party game-sound archive, not a publisher download",
+    "sourceDurationSeconds": 0.115986,
+    "durationSeconds": 0.134875,
+    "sampleRateHz": 44100,
+    "channels": 1,
+    "sha256": "11c617c99cfa4c40af99165f0df2aa0e088e58f8d9d80c375140d247476dae07",
+    "ffmpegFilter": "asetrate=37926,aresample=44100,highpass=f=140,lowpass=f=2800,afade=t=in:d=0.004,afade=t=out:st=0.115:d=0.020,volume=0.65",
+    "changes": "Original fictional-character dialogue blip at 0.86 pitch/speed, mild radio band-limiting, short edge fades and lower gain. No generated speech, human voice clone, additional noise or replacement dialogue.",
+    "playback": { "rate": 1, "level": 0.8, "cut": false, "minGap": 0.15 },
+    "meanDbfs": -17.2,
+    "peakDbfs": -5.2
+  },
+  "verification": "Exact video IDs, titles and uploaders verified with yt-dlp metadata. Three files fully decoded with ffmpeg; duration/sample-rate/channel checks passed. No subjective listening claim. Browser playback is checked separately by the integration task."
+}

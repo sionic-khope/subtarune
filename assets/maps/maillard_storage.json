@@ -57,6 +57,31 @@
    "spawn": "from_storage",
    "sfx": "plug",
    "interact": true
+  },
+  {
+   "type": "npc",
+   "id": "expelled_viewer",
+   "sprite": "expelled_viewer",
+   "x": 228,
+   "y": 208,
+   "facing": "up",
+   "wander": 0,
+   "faceOnInteract": false,
+   "idleMotion": "crouch",
+   "script": "storage_viewer",
+   "unless": "storage_viewer_defeated"
+  },
+  {
+   "type": "npc",
+   "id": "expelled_viewer_resting",
+   "sprite": "expelled_viewer_down",
+   "x": 228,
+   "y": 208,
+   "facing": "up",
+   "wander": 0,
+   "faceOnInteract": false,
+   "script": "storage_viewer_defeated",
+   "requires": "storage_viewer_defeated"
   }
  ]
 }

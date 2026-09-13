@@ -7,6 +7,8 @@ import { TILE, getTile, tileCanvas } from './tiles.js';
 import { TORSO, LEGS, WALK_CYCLE, PALETTES } from '../data/art.js';
 import { CHARACTERS } from '../data/characters.js';
 import { storyExitScript } from '../core/story.js';
+import { loopCharacterMotion, updateLoopCharacterMotion } from './character-motion.js';
+import { FONT } from '../ui/font.js';
 
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
@@ -245,10 +247,16 @@ export class Character extends Entity {
       const frame = this.motion.frames[this.motion.index];
       const scale = this.motion.scale * CHAR_SCALE * (this.def.visualScale || 1);
       const anchorX = this.x + this.w / 2 - cam.x, anchorY = this.y + this.h - cam.y;
+      const beat = this.motion.flipEvery ? this.motion.elapsed / this.motion.flipEvery : 0;
+      const lift = this.motion.pop ? Math.round(Math.max(0, Math.sin(beat * Math.PI * 2)) * this.motion.pop) : 0;
+      ctx.save();
+      ctx.translate(0, -lift);
+      if (Math.floor(beat) % 2) { ctx.translate(Math.round(anchorX) * 2, 0); ctx.scale(-1, 1); }
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
       blit(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
       if (this.emote) drawEmote(ctx, this.emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scale));
+      ctx.restore();
       return;
     }
     const img = this.sprite[this.facing][this.frame];
@@ -312,6 +320,19 @@ const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
  */
 export function drawEmote(ctx, em, cx, top) {
   const t = em.t;
+  if (em.kind === 'stamp') {
+    const scale = 1 + Math.max(0, 1 - t / 0.16) * 1.5;
+    ctx.save();
+    ctx.translate(Math.round(cx), Math.round(top + 22));
+    ctx.scale(scale, scale);
+    ctx.font = FONT.replace(/^\d+px/, '24px');
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4; ctx.strokeStyle = '#000';
+    ctx.strokeText(em.text, 0, 0);
+    ctx.fillStyle = em.color; ctx.fillText(em.text, 0, 0);
+    ctx.restore();
+    return;
+  }
   if (em.kind === 'sweat') {
     const x = cx + 14, y = top + 6 + Math.min(10, t * 12);
     ctx.fillStyle = '#0b1a3a'; ctx.fillRect(x - 1, y, 3, 3); ctx.fillRect(x - 2, y + 3, 5, 4); ctx.fillRect(x - 1, y + 7, 3, 1);
@@ -422,8 +443,11 @@ export class NPC extends Character {
     this.wanderTimer = 1 + Math.random() * 2;
     this.dir = { x: 0, y: 0 };
     this.baseFacing = this.facing;
+    const idleMotion = game.characterMotions?.[def.sprite]?.[def.idleMotion];
+    if (idleMotion) loopCharacterMotion(this, idleMotion);
   }
   update(dt) {
+    updateLoopCharacterMotion(this, dt);
     // 컷신 이동(cutscene move)이 이 틱에 걷기 프레임을 진행시켰으면(driven) 정지 처리로 덮지 않는다 — 전에는 매 틱 frame 이 0 으로 돌아가 NPC(쥰희·용준)가 미끄러지듯 움직였다 (PR #13 지침, 2026-09-11)
     if (this.driven) { this.driven = false; return; }
     if (this.game.dialogue.running) { this.moving = false; this.animate(dt); return; }
@@ -452,7 +476,7 @@ export class NPC extends Character {
   interact(player) {
     const key = typeof this.def.script === 'function' ? this.def.script(this.game.flags) : this.def.script;
     if (!key) return false;
-    this.faceToward(player);
+    if (this.def.faceOnInteract !== false) this.faceToward(player);
     this.dir = { x: 0, y: 0 };
     this.game.runScript(key, () => { this.facing = this.baseFacing; });
     return true;

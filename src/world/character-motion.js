@@ -2,6 +2,21 @@ import { makeCanvas, loadImageOptional } from '../core/gfx.js';
 import { makeTransparentFrame, playbackFrameAt } from '../ui/battle-preview.js';
 import { CHARACTER_MOTIONS } from '../data/character-motions.js';
 
+/** NPC의 대기·춤처럼 대사 중에도 계속되는 동작을 시작한다. */
+export function loopCharacterMotion(entity, definition, options = {}) {
+  if (!definition?.frames?.length) { entity.motion = null; return; }
+  entity.motion = { ...definition, ...options, loop: true, elapsed: 0, index: 0 };
+  entity.moving = false;
+}
+
+/** 반복 동작은 NPC가, 일회성 동작은 컷신 waiter가 각각 한 번만 갱신한다. */
+export function updateLoopCharacterMotion(entity, dt) {
+  const motion = entity.motion;
+  if (!motion?.loop) return;
+  motion.elapsed += dt;
+  motion.index = playbackFrameAt(motion.frames, motion.elapsed, true).index;
+}
+
 /** 걷기 시트와 별개인 캐릭터 동작을 원본 해상도의 투명 프레임으로 캐시한다. */
 export async function loadCharacterMotions(imageLoader = loadImageOptional, createCanvas = makeCanvas) {
   const motions = {};

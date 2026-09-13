@@ -21,6 +21,7 @@ import { ITEMS, plainItems } from '../data/items.js';
 import L from '../data/locale/ko.js';
 import { createBattleSupport } from './support/baron-cannon.js';
 import { BARON_CANNON } from '../data/baron-cannon.js';
+import { menuTextLines } from '../ui/menu-layout.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
@@ -100,7 +101,10 @@ export class Battle {
       await Promise.all([
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),
         ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),
-        ...this.enemies.map(async (e) => { e.img = await cached(IMAGE_CACHE, e.def.image || e.def.sheet?.src, () => this.loadEnemyImage(e.def)); }),
+        ...this.enemies.map(async (e) => {
+          e.img = await cached(IMAGE_CACHE, e.def.image || e.def.sheet?.src, () => this.loadEnemyImage(e.def));
+          e.projectiles = Object.fromEntries(await Promise.all(Object.entries(e.def.projectiles || {}).map(async ([key, src]) => [key, await cached(IMAGE_CACHE, src, () => loadImage(src))])));
+        }),
       ]);
     } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
     this.game.fadeTo(0, 0.12);                                                                  // 검은 화면은 델타룬처럼 거의 바로 걷는다
@@ -285,7 +289,7 @@ export class Battle {
     if ((!b || b.doneAt !== undefined) && this.t > PREP_OPEN && this.t - (b?.doneAt ?? 0) > PREP_HOLD) this.beginBullets();
   }
   beginBullets() {
-    this.patterns = this.living().map((e) => { const cfgs = e.def.patterns || [{ type: 'rain' }]; const c = cfgs[e.patternIdx++ % cfgs.length]; return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6 }; });
+    this.patterns = this.living().map((e) => { const cfgs = e.def.patterns || [{ type: 'rain' }]; const c = cfgs[e.patternIdx++ % cfgs.length]; return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e }; });
     const [bw, bh] = this.boardSize();
     this.board.setTarget(bw, bh, 240, 214); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
     this.bubble = null;                                        // 말풍선은 탄막이 시작되면 사라진다(델타룬) — 상자 위를 가려 탄막을 숨기지 않게
@@ -298,7 +302,16 @@ export class Battle {
     for (const pat of this.patterns) {
       if (pat.t >= pat.p.duration) continue; running = true;
       api.emit = (o) => this.bullets.push(new Bullet({ ...o, dmg: o.dmg ?? pat.dmg }));
+      api.images = pat.enemy?.projectiles;
+      api.say = (text, hold = 2) => { this.bubble = { enemy: pat.enemy, text, shown: 0, t: 0, voice: pat.enemy?.def.voice || 'narrator', patternHold: hold }; };
       pat.p.update(pat.t, dt, api); pat.t += dt;
+    }
+    if (this.bubble?.patternHold) {
+      const b = this.bubble; b.t += dt;
+      const n = Math.min(b.text.length, Math.floor(b.t / BUBBLE_CPS));
+      for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ') this.game.sound.blip(b.voice);
+      b.shown = n;
+      if (b.t > b.text.length * BUBBLE_CPS + b.patternHold) this.bubble = null;
     }
     for (const b of this.bullets) {
       b.update(dt, this.board);
@@ -506,13 +519,13 @@ export class Battle {
   drawBubble(ctx) {
     const b = this.bubble, e = b.enemy; if (!e || e.dead) return;
     ctx.save(); ctx.font = SMALL; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    const w = 172, pad = 10, lh = 14; const lines = this.wrapText(ctx, b.text, w - pad * 2);
+    const w = 172, pad = 10, lh = 14; const lines = menuTextLines(ctx, b.text, w - pad * 2, 20);
     const h = Math.max(50, lines.length * lh + pad * 2);
-    const x = Math.round(e.x - 66 - w), cy = Math.max(6 + h / 2, Math.round(e.y - 62)), y = Math.round(cy - h / 2);
+    const x = Math.round(e.x - 66 - w), cy = b.patternHold ? 28 + h / 2 : Math.max(6 + h / 2, Math.round(e.y - 62)), y = Math.round(cy - h / 2);
     ctx.fillStyle = '#fff'; this.roundRect(ctx, x, y, w, h, 9); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x + w - 2, cy - 10); ctx.lineTo(x + w + 18, cy + 1); ctx.lineTo(x + w - 2, cy + 8); ctx.closePath(); ctx.fill();   // 꼬리(적 쪽)
-    ctx.fillStyle = '#000'; let left = b.shown;
-    lines.forEach((line, i) => { if (left <= 0) return; ctx.fillText(line.slice(0, left), x + pad, y + pad + i * lh); left -= line.length + 1; });
+    ctx.fillStyle = '#000';
+    menuTextLines(ctx, b.text.slice(0, b.shown), w - pad * 2, 20).forEach((line, i) => ctx.fillText(line, x + pad, y + pad + i * lh));
     ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top';
   }
   roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); }

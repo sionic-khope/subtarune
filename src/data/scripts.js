@@ -34,6 +34,7 @@ import { maillard_hold, maillard_hold_stairs, maillard_hold_hatch } from './cuts
 import { maillard_chakgeom, maillard_tarts, maillard_wemix } from './cutscenes/maillard_npcs.js';
 import { maillard_spring, maillard_shop, maillard_statue_arms_crossed, maillard_statue_laugh, maillard_statue_gesture } from './cutscenes/maillard_lounge.js';
 import { maillard_storage_enter } from './cutscenes/maillard_rooms.js';
+import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 
 /**
@@ -55,6 +56,8 @@ export const SCRIPTS = {
   maillard_chakgeom, maillard_tarts, maillard_wemix,
   maillard_spring, maillard_shop, maillard_statue_arms_crossed, maillard_statue_laugh, maillard_statue_gesture,
   maillard_storage_enter,
+  storage_viewer,
+  storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,
   chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
 

@@ -47,6 +47,19 @@ def main() -> None:
                  'sfx': 'plug', 'interact': True},
             ],
         }
+        if map_id == 'maillard_storage':
+            map_data['entities'].append({
+                'type': 'npc', 'id': 'expelled_viewer', 'sprite': 'expelled_viewer',
+                'x': 228, 'y': 208, 'facing': 'up', 'wander': 0,
+                'faceOnInteract': False, 'idleMotion': 'crouch',
+                'script': 'storage_viewer', 'unless': 'storage_viewer_defeated',
+            })
+            map_data['entities'].append({
+                'type': 'npc', 'id': 'expelled_viewer_resting', 'sprite': 'expelled_viewer_down',
+                'x': 228, 'y': 208, 'facing': 'up', 'wander': 0,
+                'faceOnInteract': False, 'script': 'storage_viewer_defeated',
+                'requires': 'storage_viewer_defeated',
+            })
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == map_data

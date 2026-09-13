@@ -1,4 +1,30 @@
 export const CHARACTER_MOTIONS = {
+  expelled_viewer: {
+    knockdown: {
+      src: 'assets/sprites/expelled-viewer-knockdown.png',
+      scale: 0.8,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [(i % 2) * 96, Math.floor(i / 2) * 96, 96, 96], pivot: [48, 88], duration: i === 3 ? 0.5 : 0.12 })),
+    },
+    crouch: {
+      src: 'assets/sprites/expelled-viewer-crouch.png',
+      scale: 0.8,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [(i % 2) * 96, Math.floor(i / 2) * 96, 96, 96], pivot: [48, 88], duration: 0.14 })),
+    },
+    reveal: {
+      src: 'assets/sprites/expelled-viewer-reveal.png',
+      scale: 0.8,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [(i % 2) * 96, Math.floor(i / 2) * 96, 96, 96], pivot: [48, 88], duration: i === 3 ? 0.6 : 0.12 })),
+    },
+    dance: {
+      src: 'assets/sprites/expelled-viewer-dance.png',
+      scale: 0.8,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 8 }, (_, i) => ({ rect: [(i % 2) * 96, Math.floor(i / 2) * 96, 96, 96], pivot: [48, 88], duration: 0.18 })),
+    },
+  },
   baron_intro: {
     roar: {
       src: 'assets/enemies/baron-roar.png',
