@@ -55,7 +55,7 @@ def build_map() -> dict[str, JsonValue]:
             {"type": "factory_rail", "id": "youngcle5_rail_bottom", "x": 32, "y": 384,
              "w": 512, "h": 12},
             {"type": "door", "id": "youngcle5_right", "x": 528, "y": 172, "w": 16, "h": 200,
-             "to": "youngcle6", "spawn": "left", "sfx": False, "interact": False},
+             "to": "youngcle_cats", "spawn": "left", "sfx": False, "interact": False},
             {"type": "factory_move_area", "id": "youngcle5_move_area", "puzzle": PUZZLE,
              "x": 128, "y": 160, "w": 288, "h": 224},
             {"type": "factory_sign", "id": "youngcle5_sign", "x": 96, "y": 208,

@@ -150,8 +150,8 @@
    "y": 288,
    "w": 16,
    "h": 64,
-   "to": "youngcle5",
-   "spawn": "landing",
+   "to": "youngcle_cats",
+   "spawn": "right",
    "sfx": false,
    "interact": false
   }

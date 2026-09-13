@@ -55,7 +55,7 @@ def main() -> None:
                   ('park_guardian_costume', 500, 248, 'down', 2.22),
               )],
             {'type': 'door', 'id': 'youngcle6_left', 'x': 32, 'y': 288, 'w': 16, 'h': 64,
-             'to': 'youngcle5', 'spawn': 'landing', 'sfx': False, 'interact': False},
+             'to': 'youngcle_cats', 'spawn': 'right', 'sfx': False, 'interact': False},
         ],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

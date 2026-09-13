@@ -261,7 +261,12 @@ QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle5', desc: '영클 공장: �
   party: [...youngcleCheckpoint.party] });
 
 const finalFactoryCheckpoint = QA_POINTS.find(point => point.id === 'youngcle5');
-QA_POINTS.push({ ...finalFactoryCheckpoint, id: 'youngcle6', desc: '영클 전함: 중앙 TV 휴게실',
-  map: 'youngcle6', spawn: 'left',
+QA_POINTS.push({ ...finalFactoryCheckpoint, id: 'youngcle_cats', desc: '영클 공장: 섭냥이·경냥이와 마나샘',
+  map: 'youngcle_cats', spawn: 'left',
   flags: { ...finalFactoryCheckpoint.flags, youngcle5_crate_solved: true },
   party: [...finalFactoryCheckpoint.party] });
+
+const catsCheckpoint = QA_POINTS.find(point => point.id === 'youngcle_cats');
+QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6', desc: '영클 전함: 중앙 TV 휴게실',
+  map: 'youngcle6', spawn: 'left', flags: { ...catsCheckpoint.flags },
+  party: [...catsCheckpoint.party] });

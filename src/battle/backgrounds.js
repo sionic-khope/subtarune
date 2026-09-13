@@ -13,6 +13,21 @@ export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
 
 registerBattleBg('mankatsuki_vortex', drawMankatsukiBackground);
 
+let factoryCache = null;
+registerBattleBg('youngcle_factory', (ctx, battle) => {
+  if (!factoryCache) {
+    factoryCache = makeCanvas(480, 360);
+    const g = factoryCache.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    const factory = battle.game.propImages['assets/backdrops/youngcle_factory.png'];
+    if (factory) g.drawImage(factory, 0, 0, 480, 176, 0, 0, 480, 88);
+    g.fillStyle = g.createPattern(tileCanvas(getTile('I')), 'repeat');
+    g.fillRect(0, 88, 480, 272);
+    g.fillStyle = 'rgba(0,0,0,0.40)'; g.fillRect(0, 0, 480, 360);
+  }
+  ctx.drawImage(factoryCache, 0, 0);
+});
+
 registerBattleBg('teal', (ctx, b) => {
   ctx.save(); ctx.globalAlpha = 0.16;
   const blobs = [[30, 8, 58], [120, -6, 70], [220, 10, 62], [330, -4, 74], [430, 12, 60], [70, 40, 34], [280, 44, 38], [400, 46, 30]];

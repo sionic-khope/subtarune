@@ -13,6 +13,32 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  seopnyang: {
+    name: '섭냥이', hp: 27, damage: 11, money: 90,
+    sheet: { src: 'assets/enemies/seopnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
+    pivot: [32, 60], scale: 1.4, idle: { swayX: 0, swayY: 0, period: 2.4 },
+    patterns: [
+      { type: 'cat_knead', duration: 4.8, waves: 5, every: 0.82, warn: 0.6, r: 22, hit: 0.24 },
+      { type: 'cat_reach', duration: 4.8, waves: 3, every: 1.35, warn: 0.6, reach: 0.72, extend: 0.5, hold: 0.12, retract: 0.4 },
+      { type: 'cat_whiskers', duration: 4.8, waves: 2, every: 2, warn: 0.45, speed: 76 },
+    ],
+    lines: { appear: '* 섭냥이가 앞발을 가지런히 모았다.',
+      idle: ['* 섭냥이가 허공에 꾹꾹이를 한다.', '* 섭냥이의 수염이 바짝 섰다.', '* 섭냥이가 자기 발을 보고 뿌듯해한다.'],
+      speak: ['여기 내 자리다냥.', '꾹꾹 해주겠다냥.', '수염은 건드리지 마냥.'], die: '* 섭냥이가 발을 털고 물러났다.' },
+  },
+  gyeongnyang: {
+    name: '경냥이', hp: 30, damage: 12, money: 100,
+    sheet: { src: 'assets/enemies/gyeongnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
+    pivot: [32, 60], scale: 1.4, idle: { swayX: 0, swayY: 0, period: 2.4 },
+    patterns: [
+      { type: 'cat_yarn', duration: 4.8, waves: 2, every: 2.05, warn: 0.55, speed: 78, trail: 0.62 },
+      { type: 'cat_fish', duration: 4.8, waves: 3, every: 1.4, warn: 0.7, rope: 34, speed: 112 },
+      { type: 'cat_tail', duration: 4.8, waves: 2, every: 2.1, warn: 0.7, sweep: 1.2, radius: 49 },
+    ],
+    lines: { appear: '* 경냥이가 실뭉치를 굴려 왔다.',
+      idle: ['* 경냥이가 풀린 실 끝을 감춘다.', '* 경냥이가 생선 장난감을 흔든다.', '* 경냥이의 꼬리가 느긋하게 휘어진다.'],
+      speak: ['이 실은 내 거다냥.', '한 번만 잡아 봐라냥.', '꼬리 조심하라냥.'], die: '* 경냥이가 장난감을 챙겨 물러났다.' },
+  },
   mankatsuki_junhee: {
     name: '만카츠키 쥰희', hp: 144, voice: 'junhee', money: 500, damage: 11,
     boss: true, attackSfxVolume: 0.36,

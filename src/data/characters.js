@@ -6,6 +6,8 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  seopnyang: { name: '섭냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/seopnyang_front.png', stillPivot: [24, 44] },
+  gyeongnyang: { name: '경냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/gyeongnyang_front.png', stillPivot: [24, 44] },
   mini_mario: { name: '마리오', still: 'assets/sprites/mini_mario.png', stillScale: 0.5, stillPivot: [32, 60] },
   warm_bidet: { name: '따듯한비데', voice: 'warm_bidet', sheet: 'assets/sprites/warm_bidet.png', stillPivot: [64, 156] },
   lucky_guy: { name: '럭키가이', voice: 'lucky_guy', sheet: 'assets/sprites/lucky.png', stillPivot: [32, 60] },

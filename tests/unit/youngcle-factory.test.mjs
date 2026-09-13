@@ -115,7 +115,7 @@ test('test_factory_route_connects_three_crate_rooms_and_keeps_factory_surface', 
   assert.deepEqual([map2.rows[0].length * 32, map2.rows.length * 32], [576, 960]);
   assert.deepEqual(map2.meta.route, [[3, 24], [10, 24], [10, 3]]);
   assert.equal(map2.entities.find(entity => entity.id === 'youngcle2_top').to, 'youngcle3');
-  assert.deepEqual(exits, ['youngcle4', 'youngcle5', 'youngcle6']);
+  assert.deepEqual(exits, ['youngcle4', 'youngcle5', 'youngcle_cats']);
   for (const data of rooms) {
     assert.equal(data.bgm, 'youngcle_factory');
     assert.equal(data.backdrop, 'youngcle_factory');

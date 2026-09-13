@@ -5,24 +5,31 @@ import { QA_POINTS, stateFromFlags } from '../../src/core/story.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 
-test('test_lounge_is_reached_through_final_puzzle_landing_and_returns_outside_portal', () => {
+test('test_lounge_is_reached_through_cat_corridor_and_returns_outside_portal', () => {
   // Given the final puzzle's original gate and landing.
   const puzzle = readMap('youngcle5');
   const gate = puzzle.entities.find(entity => entity.type === 'factory_gate');
   // When the player walks to the end of that landing.
   const exit = puzzle.entities.find(entity => entity.id === 'youngcle5_right');
   // Then the open passage leads to the lounge without bypassing the gate.
-  assert.equal(exit?.to, 'youngcle6');
+  assert.equal(exit?.to, 'youngcle_cats');
   assert.ok(exit.x > gate.x + gate.w);
   assert.equal(exit.interact, false);
   assert.equal(exit.sfx, false);
-  const lounge = readMap(exit.to);
-  const back = lounge.entities.find(entity => entity.type === 'door');
+  const corridor = readMap(exit.to);
+  const back = corridor.entities.find(entity => entity.to === 'youngcle5');
   assert.deepEqual([back.to, back.spawn, back.interact, back.sfx], ['youngcle5', 'landing', false, false]);
   const returned = puzzle.spawns[back.spawn];
   assert.ok(returned.x + 24 <= exit.x);
-  const arrived = lounge.spawns[exit.spawn];
+  const arrived = corridor.spawns[exit.spawn];
   assert.ok(arrived.x >= back.x + back.w + 24);
+  const loungeExit = corridor.entities.find(entity => entity.to === 'youngcle6');
+  const lounge = readMap(loungeExit.to);
+  const loungeBack = lounge.entities.find(entity => entity.type === 'door');
+  assert.deepEqual([loungeBack.to, loungeBack.spawn, loungeBack.interact, loungeBack.sfx],
+    ['youngcle_cats', 'right', false, false]);
+  assert.ok(corridor.spawns.right.x + 24 <= loungeExit.x);
+  assert.ok(lounge.spawns[loungeExit.spawn].x >= loungeBack.x + loungeBack.w + 24);
 });
 
 test('test_lounge_qa_inherits_all_completed_puzzles_and_previous_party_upgrades', () => {

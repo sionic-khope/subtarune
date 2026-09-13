@@ -1,0 +1,199 @@
+{
+ "id": "youngcle_cats",
+ "name": "영클 공장 마나샘 연결로",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "backdrop": "youngcle_factory",
+ "battleBg": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!JJJJJJ!JJJJ!JJJJJJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!JIIJ!JIIIIJ!!!!!!!!!",
+  "JJJJJJJJJJIIIIJJJIIJJJIIIIJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png",
+  "assets/props/blue_buff.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 80,
+   "y": 264,
+   "facing": "right"
+  },
+  "left": {
+   "x": 80,
+   "y": 264,
+   "facing": "right"
+  },
+  "right": {
+   "x": 1072,
+   "y": 264,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    2,
+    8
+   ],
+   [
+    18,
+    8
+   ],
+   [
+    33,
+    8
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle_cats_left",
+   "x": 32,
+   "y": 224,
+   "w": 16,
+   "h": 96,
+   "to": "youngcle5",
+   "spawn": "landing",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle_cats_right",
+   "x": 1104,
+   "y": 224,
+   "w": 16,
+   "h": 96,
+   "to": "youngcle6",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_0",
+   "x": 32,
+   "y": 320,
+   "w": 1088,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_1",
+   "x": 32,
+   "y": 212,
+   "w": 288,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_2",
+   "x": 448,
+   "y": 212,
+   "w": 96,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_3",
+   "x": 608,
+   "y": 212,
+   "w": 96,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_4",
+   "x": 832,
+   "y": 212,
+   "w": 288,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_5",
+   "x": 320,
+   "y": 148,
+   "w": 128,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_6",
+   "x": 544,
+   "y": 148,
+   "w": 64,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle_cats_rail_7",
+   "x": 704,
+   "y": 148,
+   "w": 128,
+   "h": 12
+  },
+  {
+   "type": "enemy",
+   "id": "seopnyang",
+   "sprite": "seopnyang",
+   "enemies": [
+    "seopnyang"
+   ],
+   "x": 384,
+   "y": 200,
+   "facing": "down",
+   "wander": 12,
+   "chase": 150,
+   "unless": "youngcle_cats_seopnyang_defeated"
+  },
+  {
+   "type": "enemy",
+   "id": "gyeongnyang",
+   "sprite": "gyeongnyang",
+   "enemies": [
+    "gyeongnyang"
+   ],
+   "x": 768,
+   "y": 200,
+   "facing": "down",
+   "wander": 12,
+   "chase": 150,
+   "unless": "youngcle_cats_gyeongnyang_defeated"
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_cats_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 560,
+   "y": 212,
+   "w": 32,
+   "h": 12,
+   "ix": 556,
+   "iy": 180,
+   "solid": true,
+   "script": "maillard_spring"
+  }
+ ]
+}

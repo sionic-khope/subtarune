@@ -1,0 +1,11 @@
+# Cats149 source contract
+
+Four independent builtin `image_gen` calls created the four `*-raw.png` assets. Raw files are never overwritten. `*-prompt.txt` records the exact prompt. `references/seopnyang.png` and `references/gyeongnyang.png` are the user identity inputs; `assets/enemies/jungle-gromp-front.png` and `assets/enemies/jungle-krug-battle-idle.png` were the viewed density/layout references. The newly generated front raw was the identity input for its corresponding idle.
+
+Run `sh assets/source/cats149/process.sh` from game root. The existing lounge148 NEAREST processor supplies fixed raw-cell sampling scale and foot alignment. Seopnyang's residual magenta edge contamination is neutralized only where both red and blue exceed green by35. No anatomy is drawn, no individual frame scale is applied, and no LANCZOS resampling occurs. Gyeongnyang idle was returned with actual alpha and it is retained. The other three magenta backgrounds are keyed; white lenses, face, mouth and feet remain opaque.
+
+Runtime: `assets/enemies/{seopnyang,gyeongnyang}_front.png` are48×48, foot pivot[24,44]. `assets/enemies/{seopnyang,gyeongnyang}_idle.png` are128×128, 2×2 grid, 64px cells, four row-major frames at180ms, pivot[32,60]. Tiny paw kneading and breathing remain in place, both face screen left in3/4 view. Front sprites are stills, not walking sheets.
+
+QC: each action's `pipeline-meta.json` records frame count, scales, origins, bounds and source dimensions. All10 frames are nonempty, unclamped and clear of source/output edges. Idle body-scale CV: seopnyang0.00641, gyeongnyang0.00698. Idle output mean subject heights41px and44.75px respectively. Explicit anatomy: round white body, center-part hair, square glasses and dot pupils for Seopnyang; elongated body, long wavy hair, round glasses and navy/purple Pr shirt for Gyeongnyang. Both preserve a distinct cat mouth below the nose. Small tucked tails on battle poses are generated completion details.
+
+Source image provenance: builtin output directory `01a09b7f-0d24-75a2-90c5-fcfa477bc813`, generated filenames seopnyang-front=`exec-0c8d7737-fcec-4f6d-b4a9-efeef18d93c2.png`, gyeongnyang-front=`exec-0bfd2ce4-6a00-4100-98e2-5c687ceadc25.png`, seopnyang-idle=`exec-e4dc94b2-df6e-470d-9165-e0df5f805b7f.png`, gyeongnyang-idle=`exec-0f7fcde0-1422-40d1-8328-a9130a4424e2.png`.
