@@ -62,6 +62,24 @@ test('right-shifted boss keeps four distinct afterimages inside the screen', () 
   assert.ok(calls.slice(0, -1).every(call => call.args[5] < main.args[5]));
 });
 
+test('boss idle baseline moves from 210 to 168 with all afterimages and keeps its size', () => {
+  const { battle, enemy } = fixture(20);
+  enemy.x = 396 + ENEMIES.mankatsuki_junhee.dx;
+  const before = render(battle, enemy);
+  enemy.y = 176 + ENEMIES.mankatsuki_junhee.dy;
+  assert.equal(enemy.y, 210 * 0.8);
+  assert.equal(enemy.x, 406);
+  assert.equal(enemy.def.scale, 1.15);
+  const after = render(battle, enemy);
+  assert.equal(after.length, 5);
+  for (let i = 0; i < after.length; i++) {
+    assert.equal(before[i].args[6] - after[i].args[6], 42);
+    assert.equal(before[i].args[5], after[i].args[5]);
+    assert.deepEqual(before[i].args.slice(7), after[i].args.slice(7));
+    assert.ok(after[i].args[6] >= 0 && after[i].args[6] + after[i].args[8] <= 246);
+  }
+});
+
 test('pattern clones draw at most three visual copies while the real boss is hidden', () => {
   const { battle, enemy } = fixture(20);
   enemy.actionImages = { attack: { width: 768, height: 128 } };

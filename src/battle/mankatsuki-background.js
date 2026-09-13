@@ -78,7 +78,7 @@ export function mankatsukiWallRow(y, time) {
   return {
     x: Math.floor(wrap(time * 24 + Math.sin(y * 0.041 - time * 1.15) * 30 + Math.sin(y * 0.093 + time * 0.63) * 12, WALL_WIDTH)),
     y: Math.floor(wrap(y * 0.65 + time * 8 + Math.sin(y * 0.027 + time * 0.72) * 12, WALL_HEIGHT)),
-    sideWidth: Math.round(146 - Math.max(0, y - 88) * 0.77),
+    sideWidth: Math.round(60 - Math.max(0, y - 88) * 0.22),
   };
 }
 
@@ -148,7 +148,7 @@ export function drawMankatsukiBackground(ctx, battle) {
   faces.sort((a, b) => b.z - a.z);
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, 0, 480, 167);
+  ctx.rect(0, 0, 480, 246);
   ctx.clip();
   for (const face of faces) {
     ctx.globalAlpha = face.alpha * (defending ? 0.8 : 1);

@@ -18,7 +18,7 @@ export const ENEMIES = {
     bgmDelay: 0.4,
     sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },
     actions: { attack: { src: 'assets/enemies/mankatsuki-attack.png', cols: 6, rows: 1, count: 6, fps: 8, px: 1 } },
-    pivot: [64, 119], scale: 1.15, dx: 10, dy: 34, board: [240, 160],
+    pivot: [64, 119], scale: 1.15, dx: 10, dy: -8, board: [240, 160],
     idle: { swayX: 0, swayY: 0, period: 2.4 },
     reactive: { maxSpeed: 1.4, afterimages: [{ hp: 0.7, count: 2 }, { hp: 0.5, count: 3 }, { hp: 0.2, count: 4 }], hitSfx: 'mankatsuki_hurt' },
     enragedAt: 0.5,

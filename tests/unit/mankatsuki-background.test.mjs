@@ -80,7 +80,7 @@ test('test_mankatsuki_wall_samples_remain_in_cached_texture_and_keep_fixed_room_
       assert.ok(Object.values(row).every(Number.isInteger));
       assert.ok(row.x >= 0 && row.x < 256);
       assert.ok(row.y >= 0 && row.y < 128);
-      assert.ok(row.sideWidth >= 24 && row.sideWidth <= 146);
+      assert.ok(row.sideWidth >= 24 && row.sideWidth <= 60);
       assert.equal(row.sideWidth, mankatsukiWallRow(y, 0).sideWidth);
     }
   }
@@ -89,6 +89,24 @@ test('test_mankatsuki_wall_samples_remain_in_cached_texture_and_keep_fixed_room_
     const before = mankatsukiWallRow(100, time), after = mankatsukiWallRow(100, time + 1 / 60);
     const drift = Math.min(Math.abs(after.x - before.x), 256 - Math.abs(after.x - before.x));
     assert.ok(drift <= 2, 'wall projection drifts smoothly instead of jumping between frames');
+  }
+});
+
+test('test_mankatsuki_continuous_floor_keeps_all_party_feet_inside_wood_not_side_walls', () => {
+  for (const time of [0, 1, 4, 11, 100000]) {
+    for (const feetY of [104, 164, 190, 224]) {
+      for (let y = feetY - 4; y <= feetY + 4; y++) {
+        const row = mankatsukiWallRow(y, time);
+        assert.ok(row.sideWidth < 84 - 20, `entire foot/shadow area stays beyond the wall at y=${y}`);
+        assert.ok(480 - row.sideWidth > 84 + 20);
+      }
+    }
+  }
+  let previous = mankatsukiWallRow(88, 0).sideWidth;
+  for (let y = 89; y < 246; y++) {
+    const width = mankatsukiWallRow(y, 0).sideWidth;
+    assert.ok(width <= previous && previous - width <= 1, 'one continuous receding room edge, no local floor patches');
+    previous = width;
   }
 });
 
@@ -103,8 +121,9 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
     beginPath() { this.pathRect = null; },
     rect(...args) { this.pathRect = args; },
     clip() { this.clipRect = this.pathRect; },
-    moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
-    fill() { paints.push({ kind: 'face', alpha: this.globalAlpha, clip: this.clipRect }); },
+    moveTo(x, y) { this.points = [{ x, y }]; },
+    lineTo(x, y) { this.points.push({ x, y }); }, closePath() {}, stroke() {},
+    fill() { paints.push({ kind: 'face', alpha: this.globalAlpha, clip: this.clipRect, points: this.points }); },
     fillRect() { paints.push({ kind: 'rect', color: this.fillStyle, clip: this.clipRect }); },
   });
   const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
@@ -128,7 +147,9 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
   assert.equal(ctx.globalAlpha, 0.3);
   const normal = paints.filter(paint => paint.kind === 'face');
   assert.equal(normal.length, 72, 'only one central hourglass remains after removing the three ribbons');
-  for (const face of normal) assert.deepEqual(face.clip, [0, 0, 480, 167]);
+  for (const face of normal) assert.deepEqual(face.clip, [0, 0, 480, 246]);
+  assert.ok(normal.some(face => face.points.some(point => point.y > 167)), 'lower vortex continues beyond the old floor-row cutoff');
+  assert.ok(normal.every(face => face.clip[3] === 246), 'only the shared action-panel boundary clips the full-size vortex');
   assert.equal(paints[0].clip, outerClip);
   assert.equal(Math.min(...normal.map(paint => paint.alpha)), 0.82);
   assert.equal(normal.filter(paint => paint.alpha === 1).length, 36);
@@ -147,7 +168,7 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
     assert.equal(ctx.globalAlpha, 0.3);
     const quiet = paints.filter(paint => paint.kind === 'face');
     assert.equal(quiet.length, normal.length);
-    for (const face of quiet) assert.deepEqual(face.clip, [0, 0, 480, 167]);
+    for (const face of quiet) assert.deepEqual(face.clip, [0, 0, 480, 246]);
     assert.ok(quiet.every((paint, i) => paint.alpha < normal[i].alpha));
     assert.ok(Math.abs(Math.min(...quiet.map(paint => paint.alpha)) - 0.656) < 1e-12);
     assert.ok(quiet.every((paint, i) => Math.abs(paint.alpha - normal[i].alpha * 0.8) < 1e-12));
