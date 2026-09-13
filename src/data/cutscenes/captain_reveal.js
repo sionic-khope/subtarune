@@ -68,6 +68,7 @@ export const captain_reveal = Object.assign([
   { wait: 0.6 },
   { face: 'player', dir: 'down' },
   { nod: 'player', duration: 1.8, times: 3, depth: 4 },
+  N('용케 알아차렸구나 잘 하셨습니다.'),
   { bgm: 'captain_reveal' },
   { darkSmoke: { mode: 'swell', from: 'player', duration: 3.4, veil: 0.4 } },
   P('윽 으윽? 이게 뭐지?'),

@@ -39,6 +39,16 @@ test('captain reveal leaves the player intact and stops at the transformed stand
   assert.ok(nodes.some(node => node.remove === 'captain_shadow'));
 });
 
+test('test_captain_reveal_first_nod_waits_for_narration_before_music_and_smoke', () => {
+  const nodes = SCRIPTS.captain_reveal;
+  const nodIndex = nodes.findIndex(node => node.nod === 'player');
+  assert.ok(nodIndex >= 0);
+  assert.equal(nodes[nodIndex].duration, 1.8);
+  assert.deepEqual(nodes[nodIndex + 1], { voice: 'narrator', text: '* 용케 알아차렸구나 잘 하셨습니다.' });
+  assert.deepEqual(nodes[nodIndex + 2], { bgm: 'captain_reveal' });
+  assert.equal(nodes[nodIndex + 3].darkSmoke.mode, 'swell');
+});
+
 test('real reveal runner completes without moving a character into furnishings or retaining temporary offsets', () => {
   const sounds = [], music = [], seen = new Set();
   const queuedScripts = [], attackFrames = new Set(), departingShadow = [];
