@@ -64,6 +64,23 @@ BUILD127 공격음 확정: 사용자 ‘기존사운드 활용해도됨’에 �
 
 사용자 “산다…언더테일이나 델타룬 공식사운드랑 똑같이” 요청으로 구매 성공에 `shop_buy.mp3`를 사용한다. 원본은 UNDERTALE `snd_buyitem.wav`: [보관 저장소 고정 리비전](https://github.com/znm2500/Undertale-Engine-Ultra/blob/a0d77e3c57ef8c15aa12597893dec28d174021ae/sounds/snd_buyitem/snd_buyitem.wav). 배급사 공식 다운로드가 아닌 게임 음원 보관본이다. 잘라내기·합성·피치 변경 없이 `ffmpeg -i snd_buyitem.wav -codec:a libmp3lame -q:a 2 shop_buy.mp3`로 변환했다(약0.646초). `src/main.js loadSfxFiles` 등록, `Shop._feedback`의 구매 성공만 재생. 판매는 기존 `item`, 실패는 `cancel` 유지.
 
+## 영클전함 라운지 네 목소리 (BUILD148, 2026-09-14)
+
+비데·파크가디언 인형탈·파크가디언 본체는 `tools/audio/lounge148_voices.mjs`의 기본파/배음·두 공명 대역으로 만든 원본 비언어 모음 블립이다. 럭키가이는 사용자가 첫 합성안을 ‘디지털음 같다’고 평가하여 macOS 기본 한국어 Eddy TTS ‘헤’ 단음으로 교체했다. 외부 음원이나 실존 인물 녹음·목소리 복제는 사용하지 않았다. 비데는 사용자의 아스고어 같은 굵은 음색 요청을 낮고 둥근 비음으로 해석한 원본이며 아스고어 게임 샘플 복제는 아니다.
+
+| 파일 (`assets/audio/voices/`) | 음높이·방향 | 디코드 길이 / 평균·피크 dBFS |
+|---|---|---|
+| `warm_bidet.mp3` | 88→80Hz, 낮은 공명과 기본파를 강화한 굵은 비음 | 0.170초 / −19.8·−11.4 |
+| `lucky_guy.mp3` | 한국어 Eddy TTS ‘헤’ ×1.08, 장난스러운 짧은 발음 | 0.190초 / −20.5·−11.0 |
+| `park_guardian_costume.mp3` | 410→450Hz, 부드럽고 밝은 공주 음색 | 0.160초 / −17.6·−11.0 |
+| `park_guardian.mp3` | 104→96Hz, 인형탈 모습과 대비되는 매우 굵은 음색 | 0.175초 / −20.4·−10.5 |
+
+44.1kHz 모노·5ms 어택·25ms 릴리스·libmp3lame quality2. `VOICES`는 네 키를 `rate:1, level:0.85, cut:false`로 등록하고 원본보다20ms 긴 `minGap`을 둔다. 기존 `Object.keys(VOICES)` 사전 로딩과 `Sound.blip` 교차 페이드를 그대로 사용한다. 대사·이벤트 추가는 이 오디오 작업에 포함되지 않는다.
+
+사용자 청취 후 비데를122→112Hz에서88→80Hz로 내리고 공명을270/650Hz로 낮췄다. 목표 peak도0.30→0.27로 낮춰 RMS−20.00→−19.79dBFS로 유지했다. 럭키가이는 `say -v 'Eddy (한국어(한국))' -r 190`의 ‘헤’를1.08배 피치·속도로 올리고 앞0.19초·가벼운 압축·페이드·peak0.28 정규화로 만들었다. 정확한 필터와 원본 `lucky_guy-eddy-he.aiff`는 아래 출처 폴더에 보존한다. 파크가디언 두 음성은 WAV·MP3 바이트 그대로 유지했다.
+
+재생성: `node tools/audio/lounge148_voices.mjs`. 원본 AIFF·인코딩 전 WAV·실제 MP3 디코드 기반8회 반복 미리듣기·정확한 계수/해시/측정은 `assets/source/lounge148/audio/`에 있다. `all-voices-preview.wav`는 표 순서대로 재생한다. ffmpeg 전체 디코드에서7497/8379/7056/7717샘플, 무클리핑을 확인했다. 제작자의 주관적 청취 평가를 완료했다는 의미는 아니다.
+
 ## 마이야르호 라운지 NPC 목소리 (2026-09-13)
 
 사용자가 새로 만들도록 요청한 야꿀벌·마뱀이·박원숭은 실제 사람 녹음이나 음성 모델을 사용하지 않은 원본 비언어 캐릭터 블립이다. 생성기 `tools/audio/lounge_npc_voices.mjs`는 14개 사인 배음에 두 공명 대역을 입히고 음높이 변화·떨림을 더한다. 각 샘플은 6ms 어택·25ms 릴리스이며 44.1kHz 모노 PCM을 ffmpeg/libmp3lame quality 2로 변환한다. 재현은 `node tools/audio/lounge_npc_voices.mjs`.

@@ -6,10 +6,11 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
-  warm_bidet: { name: '따듯한비데', sheet: 'assets/sprites/warm_bidet.png', stillPivot: [64, 156] },
-  lucky_guy: { name: '럭키가이', sheet: 'assets/sprites/lucky.png', stillPivot: [32, 60] },
-  park_guardian_costume: { name: '파크가디언', sheet: 'assets/sprites/park_guardian_costume.png', stillPivot: [32, 60] },
-  park_guardian: { name: '파크가디언', sheet: 'assets/sprites/park_guardian.png', stillPivot: [32, 60] },
+  mini_mario: { name: '마리오', still: 'assets/sprites/mini_mario.png', stillScale: 0.5, stillPivot: [32, 60] },
+  warm_bidet: { name: '따듯한비데', voice: 'warm_bidet', sheet: 'assets/sprites/warm_bidet.png', stillPivot: [64, 156] },
+  lucky_guy: { name: '럭키가이', voice: 'lucky_guy', sheet: 'assets/sprites/lucky.png', stillPivot: [32, 60] },
+  park_guardian_costume: { name: '파크가디언', voice: 'park_guardian_costume', sheet: 'assets/sprites/park_guardian_costume.png', stillPivot: [32, 60] },
+  park_guardian: { name: '파크가디언', voice: 'park_guardian', sheet: 'assets/sprites/park_guardian.png', stillPivot: [32, 60] },
   youngcle: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle.png' },
   gajaeman_shadow: { name: '가재맨', voice: 'gajaeman_shadow', palette: 'hero', sheet: 'assets/sprites/gajaeman_shadow.png', stillPivot: [32, 61] },
   junhee_mankatsuki: { name: '만카츠키 쥰희', voice: 'junhee', palette: 'merchant', sheet: 'assets/sprites/junhee_mankatsuki.png', stillPivot: [32, 61] },

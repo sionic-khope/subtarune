@@ -1,0 +1,117 @@
+{
+  "origin": "Original harmonic vowels; lucky_guy uses built-in macOS Eddy Korean TTS. No recorded-person clone.",
+  "sampleRate": 44100,
+  "channels": 1,
+  "attackSeconds": 0.005,
+  "releaseSeconds": 0.025,
+  "encoder": "ffmpeg -f f32le -ar 44100 -ac 1 -i pipe:0 -map_metadata -1 -c:a libmp3lame -q:a 2",
+  "preview": "8 decoded blips, runtime level 0.85; sample duration + 20 ms between onsets",
+  "voices": [
+    {
+      "id": "warm_bidet",
+      "duration": 0.17,
+      "startHz": 88,
+      "endHz": 80,
+      "wobble": 1.8,
+      "vibratoHz": 18,
+      "formants": [
+        [
+          270,
+          130
+        ],
+        [
+          650,
+          200
+        ]
+      ],
+      "fundamental": 0.85,
+      "rolloff": 1.45,
+      "roughness": 0.16,
+      "peak": 0.2698315978050232,
+      "targetPeak": 0.27,
+      "requestedDuration": 0.17,
+      "decodedSamples": 7497,
+      "peakDb": -11.378143899149604,
+      "rmsDb": -19.787548809575814,
+      "sha256": "3472358e81e76d0a52dd9e2a1186f75df42b17a19af7259ed4aa01fd8bd536f1"
+    },
+    {
+      "id": "lucky_guy",
+      "duration": 0.19,
+      "peak": 0.2810877859592438,
+      "source": "lucky_guy-eddy-he.aiff",
+      "origin": "macOS built-in Korean Eddy TTS, nonverbal 헤; no recorded-person voice clone",
+      "sayArgs": [
+        "-v",
+        "Eddy (한국어(한국))",
+        "-r",
+        "190"
+      ],
+      "phoneme": "헤",
+      "filter": "asetrate=23814,aresample=44100,atrim=duration=0.19,acompressor=threshold=0.02:ratio=4:attack=0.3:release=40,afade=t=in:d=0.005,afade=t=out:st=0.165:d=0.025",
+      "targetPeak": 0.28,
+      "requestedDuration": 0.19,
+      "decodedSamples": 8379,
+      "peakDb": -11.023160505549363,
+      "rmsDb": -20.484144438962577,
+      "sourceSha256": "7552a9f85857404305d217ed55199acf2d1e944a2f1b6e008218ea84e00ea1c3",
+      "sha256": "4f99690e3f5f56db1d1ebcece7b8e1484a0353ea165ad5dce855d3feb27752ff"
+    },
+    {
+      "id": "park_guardian_costume",
+      "duration": 0.16,
+      "startHz": 410,
+      "endHz": 450,
+      "wobble": 5,
+      "vibratoHz": 7,
+      "formants": [
+        [
+          850,
+          250
+        ],
+        [
+          2250,
+          400
+        ]
+      ],
+      "fundamental": 0.5,
+      "rolloff": 1.6,
+      "roughness": 0,
+      "peak": 0.2803352177143097,
+      "targetPeak": 0.28,
+      "requestedDuration": 0.16,
+      "decodedSamples": 7056,
+      "peakDb": -11.046446792691178,
+      "rmsDb": -17.565292178906976,
+      "sha256": "1194c86b6e5fce9b776e2332e3828185dace892bc776969439c76174df0d3579"
+    },
+    {
+      "id": "park_guardian",
+      "duration": 0.17498866213151928,
+      "startHz": 104,
+      "endHz": 96,
+      "wobble": 1.8,
+      "vibratoHz": 15,
+      "formants": [
+        [
+          290,
+          120
+        ],
+        [
+          680,
+          180
+        ]
+      ],
+      "fundamental": 0.75,
+      "rolloff": 1.3,
+      "roughness": 0.21,
+      "peak": 0.30017971992492676,
+      "targetPeak": 0.3,
+      "requestedDuration": 0.175,
+      "decodedSamples": 7717,
+      "peakDb": -10.452373038804161,
+      "rmsDb": -20.385733124969963,
+      "sha256": "194369a9681b89eec5c6e258fd9d4f4220875ca53d3ed41244f501cd072bab99"
+    }
+  ]
+}
