@@ -1,0 +1,97 @@
+{
+  "poses": [
+    "smirk",
+    "laugh",
+    "greet",
+    "oh"
+  ],
+  "actor_size": [
+    192,
+    192
+  ],
+  "actor_source_cells": [
+    627,
+    627
+  ],
+  "actor_uniform_scale": 0.29984051036682613,
+  "actor_head_center_x": 96,
+  "actor_curl_top_y": 14,
+  "actor_source_head_centers": [
+    326,
+    294,
+    326,
+    294
+  ],
+  "actor_source_curl_tops": [
+    46,
+    46,
+    40,
+    40
+  ],
+  "actor_alpha_bounds": [
+    [
+      50,
+      14,
+      140,
+      177
+    ],
+    [
+      33,
+      14,
+      151,
+      176
+    ],
+    [
+      18,
+      14,
+      152,
+      169
+    ],
+    [
+      48,
+      14,
+      143,
+      169
+    ]
+  ],
+  "portrait_size": [
+    96,
+    96
+  ],
+  "portrait_threshold": 0.38,
+  "portrait_edge_rule": "Opaque silhouette edge is white, matching gfx.monoPortrait.",
+  "frame_size": [
+    288,
+    176
+  ],
+  "frame_source_crop": [
+    34,
+    96,
+    1571,
+    873
+  ],
+  "frame_fit_size": [
+    284,
+    144
+  ],
+  "frame_position": [
+    2,
+    16
+  ],
+  "frame_alpha_bbox": [
+    2,
+    16,
+    286,
+    160
+  ],
+  "frame_screen_rect": [
+    15,
+    29,
+    258,
+    119
+  ],
+  "frame_screen_alpha": 255,
+  "frame_underlay": "Opaque black screen baked beneath generated frame pixels; no runtime underlay required.",
+  "resampling": "NEAREST",
+  "palette_quantization": false
+}

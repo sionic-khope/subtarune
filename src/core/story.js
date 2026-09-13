@@ -28,6 +28,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
+  if (mapId === 'youngcle1') return flags.youngcle_intro_done ? 'storage_show' : null;
   if ((flags.captain_attack_started || flags.captain_attack_done) && isShipPursuitMap(mapId)) return SHIP_ASSAULT.bgm;
   if (mapId === 'maillard_captain' && (flags.captain_mankatsuki_defeated || flags.captain_aftermath_done)) return null;
   if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
@@ -236,3 +237,7 @@ QA_POINTS.push({ ...starboardCheckpoint, id: 'maillard_boarding', desc: '접현 
 QA_POINTS.push({ ...starboardCheckpoint, id: 'youngcle_bridge', desc: '영클 전함으로 이어지는 철교',
   map: 'youngcle_bridge', spawn: 'from_boarding',
   flags: { ...starboardCheckpoint.flags, maillard_boarding_departed: true }, party: [...starboardCheckpoint.party] });
+
+const bridgeCheckpoint = QA_POINTS.find(point => point.id === 'youngcle_bridge');
+QA_POINTS.push({ ...bridgeCheckpoint, id: 'youngcle1', desc: '영클 전함: TV 첫 방송',
+  map: 'youngcle1', spawn: 'from_bridge', flags: { ...bridgeCheckpoint.flags }, party: [...bridgeCheckpoint.party] });

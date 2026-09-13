@@ -39,6 +39,7 @@ import { MaillardArrival } from './scenes/maillard-arrival.js';
 import { ShipAssault } from './scenes/ship-assault.js';
 import { ShipPursuitAmbient } from './scenes/ship-pursuit-ambient.js';
 import { SHIP_ASSAULT } from './data/ship-assault.js';
+import { YOUNGCLE_TV_PORTRAITS } from './data/youngcle-tv.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
@@ -69,6 +70,7 @@ class Game {
     this.seaChase = null;
     this.maillardArrival = null;
     this.shipAssault = null;
+    this.tvBroadcast = null;
     this.shipPursuitAmbient = new ShipPursuitAmbient(this);
     this.captainAttackPending = false;
     this.sunrise = new MaillardSunrise(MAILLARD_SUNRISE);
@@ -132,7 +134,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -188,6 +190,7 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    this.finishTvBroadcast(true);
     this.battle?.cancelPendingBgm();
     this.shipPursuitAmbient?.stop();
     this.finishShipAssault(true);
@@ -395,6 +398,7 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    this.finishTvBroadcast(true);
     this.battle?.cancelPendingBgm();
     this.shipPursuitAmbient?.stop();
     this.finishShipAssault(true);
@@ -505,7 +509,7 @@ class Game {
   /** 초상화: assets/portraits/<name>.png (48x48) → 없으면 시트의 정면 얼굴 확대 → 없으면 문자 도트 얼굴 */
   makePortraits() {
     const out = {};
-    for (const name of new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])) {
+    for (const name of new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES), ...YOUNGCLE_TV_PORTRAITS])) {
       const c = makeCanvas(48, 48);
       const ctx = c.getContext('2d');
       ctx.imageSmoothingEnabled = false;
@@ -533,6 +537,7 @@ class Game {
     if (!MAPS[mapId]) { console.warn('[map] 없는 맵', mapId); return; }                        // 문/QA/스크립트가 잘못된 id 를 줘도 게임이 죽지 않는다 (2026-09-11 smoke)
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      this.finishTvBroadcast(true);
       this.finishShipAssault(true);
       this.captainAttackPending = false;
       this.darkSmoke = null;
@@ -678,6 +683,16 @@ class Game {
     this.shipAssault = null;
   }
 
+  /** TV cancellation releases the current runner before map/title/QA reconstructs actors. */
+  finishTvBroadcast(abort = false) {
+    if (abort && this.tvBroadcast) {
+      this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
+      this.textbox.close(); this.background = [];
+      this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };
+    }
+    this.tvBroadcast?.dispose(); this.tvBroadcast = null;
+  }
+
   /** The shop opens after its interaction script releases the dialogue runner. */
   openShop() { this.shopPending = true; }
 
@@ -794,6 +809,7 @@ class Game {
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
     this.shipAssault?.update(dt);
+    this.tvBroadcast?.update(dt);
     this.shipPursuitAmbient?.update(dt);
     if (this.shipAssault?.ocean) {
       if (this.dialogue.running) this.dialogue.update(dt, Input);
@@ -1020,7 +1036,10 @@ class Game {
     const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
-    for (const e of sorted) e.draw(ctx, cam);
+    for (const e of sorted) {
+      e.draw(ctx, cam);
+      if (e === this.tvBroadcast?.anchor) this.tvBroadcast.draw(ctx, cam);
+    }
     drawDarkSmoke(ctx, this, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
@@ -1211,7 +1230,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-13.138';
+export const BUILD = '2026-09-13.139';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

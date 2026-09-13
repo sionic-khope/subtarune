@@ -33,7 +33,7 @@ test('boarding keeps a square wooden deck with the same risen sea and iron exit'
   assert.ok(data.entities.filter(entity => entity.type === 'npc').every(entity => entity.unless === 'maillard_boarding_departed'));
 });
 
-test('bridge walk lasts about five seconds and stops at an inspectable ship entrance', () => {
+test('bridge walk lasts about five seconds and reaches the ship interior door', () => {
   const data = readMap('youngcle_bridge');
   const map = new TileMap(data);
   const entry = data.entities.find(entity => entity.id === 'youngcle_entrance');
@@ -41,9 +41,12 @@ test('bridge walk lasts about five seconds and stops at an inspectable ship entr
   assert.ok(travel >= 4.7 && travel <= 5.2, `${travel}s normal movement`);
   for (let x = 32; x <= 1280; x += 8) assert.equal(map.solidRect(x, 416, 24, 16), false);
   assert.equal(entry.solid, false);
-  assert.equal(entry.script, 'youngcle_entrance');
+  assert.equal(entry.type, 'door');
+  assert.equal(entry.to, 'youngcle1');
+  assert.equal(entry.spawn, 'from_bridge');
+  assert.equal(entry.interact, true);
   assert.deepEqual(youngcle_entrance.map(node => node.text), ['* 철 전함의 입구다.']);
-  assert.equal(data.entities.some(entity => entity.to && entity.to !== 'maillard_boarding'), false);
+  assert.deepEqual(data.entities.filter(entity => entity.to).map(entity => entity.to), ['maillard_boarding', 'youngcle1']);
   assert.equal(data.enter, undefined);
 });
 

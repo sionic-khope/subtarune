@@ -267,3 +267,19 @@ BUILD138 후속 ‘너무 하이톤…발소리같지않다’: 같은 오리지
 # 김은별컴퍼니 여성 게임 블립 (2026-09-13)
 
 사용자 ‘바보같은 목소리로…여자’ 요청. macOS 기본 한국어 여성 TTS Yuna로 ‘냐’ 한 음절을 `say -v Yuna -r 160`으로 생성했다. 실존 인물이나 사용자 제공 영상의 음성을 복제하지 않는다. 원본은 `assets/source/captain122/voice/yuna-nya.aiff`(22050Hz), 실행 파일은 `assets/audio/voices/eunbyeol.mp3`다. 첫 무음을 -38dB 기준으로 제거한 뒤1.12배 피치,44100Hz,0.17초,시작8ms/끝35ms 페이드,볼륨0.8로 가공했다. VOICES.eunbyeol은 rate1/level0.85/cut:false/minGap0.12로 전체 짧은 샘플을 재생한다. 밝고 둥글게 튀는 여성 블립 의도이며 말 전체를 읽는 TTS는 아니다. ffmpeg 디코드/peak -7.6dBFS 확인, 실제 대화의 AudioBuffer 로드·재생 연결을 확인했다. 주관적 목소리 인상은 사용자의 청취 피드백으로 조정한다.
+
+# 영클 TV 음성·전원 효과음 (BUILD139, 2026-09-13)
+
+- 사용자 지정 [Deltarune Voices SFX](https://www.youtube.com/watch?v=4wSPkpzSQQE), 업로더 Bailey,2022-05-21,메타데이터61초. 지정한38초의 영상 프레임에는 `QUEEN`이 표시된다. 실제 사람의 새 대사나 복제 음성이 아니라 영상에 실린 게임 음성 샘플이다.
+- `assets/audio/voices/youngcle.mp3`: 원본 포맷251에서 **38.10~38.26초(0.16초)**를 추출했다.36~42초 스펙트럼과 무음 검출에서38.098초 부근 발성 시작을 확인했다. mono44100Hz, 시작5ms/끝25ms페이드 외 원본 음량·스펙트럼 가공은 없다. 재생 시 `VOICES.youngcle.rate=0.96`으로 약0.71반음만 낮춘다. `cut:false`, `minGap:0.17`, `level:1`이며 기존 `Object.keys(VOICES)` 로더로 파일을 받아 대사 블립으로 쓴다. 긴 MP3 안에서 `currentTime`으로 찾지 않는다. 전체 새 문장을 말하게 만들거나 음성을 학습하지 않는다.
+- `assets/audio/sfx/youngcle_tv_on.mp3`: 외부 녹음 없이 ffmpeg로 만든 **0.78초** TV 전원음. 짧은 접점 클릭, 650~3600Hz로 제한한 낮은 잡음,210→506Hz로 올라가는 낮은 정현파를 합쳤다. 긴 고음 삐 소리를 넣지 않았다. `loadSfxFiles`에 등록하며 TV 켜짐 때 파일 전체를 한 번 재생한다. TV 꺼짐 소리나 BGM 파일은 추가하지 않았다.
+- 검증: 두 파일 mono44100Hz 전체 디코드 통과. 디코드 표본7056/34398개(0.16/0.78초), 평균/peak 음량은 영클−23.7/−15.7dBFS, TV−27.5/−7.9dBFS. 클리핑 없음. 음성 소스 선택은 영상 라벨·파형에 근거하며 주관적 청취 완료로 기록하지 않는다. 전체 원본 영상/오디오는 `/tmp/subtarune-youngcle139-*`에만 두며 배포물에는 짧은 가공본만 포함한다. 원본 게임 음성과 영상 권리는 각 권리자에게 있다.
+- SHA256: 영클 `a1611279df577d30cd94e4724fbc70523fbddcbe519421854919effdc74a05f1`, TV `30ac29325efffe6baa2bc99d7d02ead8a7856c108c8c00e77942fab5316f32c6`, 원본 webm `f2bc76d04e607b9d5d353868b4f0c3e6958e072653abcfe11ec35ae8f5d4111a`.
+
+재현 명령(출력 파일이 없는 상태에서 실행):
+
+```sh
+uvx --from yt-dlp yt-dlp --no-playlist -f bestaudio --write-info-json --output '/tmp/subtarune-youngcle139-source.%(ext)s' 'https://www.youtube.com/watch?v=4wSPkpzSQQE'
+ffmpeg -ss 38.10 -i /tmp/subtarune-youngcle139-source.webm -t 0.16 -ac 1 -ar 44100 -af 'afade=t=in:st=0:d=0.005,afade=t=out:st=0.135:d=0.025' -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/voices/youngcle.mp3
+ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_rate=44100:seed=139' -f lavfi -i 'aevalsrc=0.075*sin(2*PI*(210*t+190*t*t))*sin(PI*t/0.78)^2:s=44100:d=0.78' -filter_complex '[0:a]asplit=2[c][s];[c]atrim=duration=0.045,highpass=f=180,lowpass=f=2400,afade=t=out:st=0.005:d=0.04,volume=2.4,apad=whole_dur=0.78[click];[s]highpass=f=650,lowpass=f=3600,volume=0.9,afade=t=in:st=0.07:d=0.06,afade=t=out:st=0.22:d=0.56[static];[click][static][1:a]amix=inputs=3:normalize=0,afade=t=in:st=0:d=0.001,afade=t=out:st=0.69:d=0.09,alimiter=limit=0.7:level=false[out]' -map '[out]' -t 0.78 -ac 1 -ar 44100 -c:a libmp3lame -q:a 2 assets/audio/sfx/youngcle_tv_on.mp3
+```

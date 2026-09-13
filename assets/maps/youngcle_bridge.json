@@ -45,6 +45,11 @@
    "x": 164,
    "y": 416,
    "facing": "right"
+  },
+  "from_inside": {
+   "x": 1164,
+   "y": 416,
+   "facing": "left"
   }
  },
  "meta": {
@@ -75,14 +80,17 @@
    "sortY": 0
   },
   {
-   "type": "sign",
+   "type": "door",
    "id": "youngcle_entrance",
    "x": 1296,
    "y": 400,
-   "w": 40,
+   "w": 144,
    "h": 32,
    "solid": false,
-   "script": "youngcle_entrance"
+   "to": "youngcle1",
+   "spawn": "from_bridge",
+   "sfx": "plug",
+   "interact": true
   },
   {
    "type": "sign",

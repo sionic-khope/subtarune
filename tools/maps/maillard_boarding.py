@@ -69,6 +69,7 @@ def main() -> None:
         'spawns': {
             'start': {'x': 164, 'y': 416, 'facing': 'right'},
             'from_boarding': {'x': 164, 'y': 416, 'facing': 'right'},
+            'from_inside': {'x': 1164, 'y': 416, 'facing': 'left'},
         },
         'meta': {'connected': True},
         'entities': [
@@ -78,8 +79,9 @@ def main() -> None:
             {'type': 'prop', 'id': 'youngcle_entrance_image',
              'image': 'assets/props/youngcle_hull_entry.png', 'x': 976, 'y': -32,
              'w': 896, 'h': 717, 'solid': False, 'sortY': 0},
-            {'type': 'sign', 'id': 'youngcle_entrance', 'x': 1296, 'y': 400,
-             'w': 40, 'h': 32, 'solid': False, 'script': 'youngcle_entrance'},
+            {'type': 'door', 'id': 'youngcle_entrance', 'x': 1296, 'y': 400,
+             'w': 144, 'h': 32, 'solid': False, 'to': 'youngcle1', 'spawn': 'from_bridge',
+             'sfx': 'plug', 'interact': True},
             {'type': 'sign', 'id': 'youngcle_upper_hull', 'x': 1024, 'y': 384,
              'w': 352, 'h': 16, 'solid': True, 'script': 'youngcle_entrance'},
             {'type': 'sign', 'id': 'youngcle_lower_hull', 'x': 1024, 'y': 432,

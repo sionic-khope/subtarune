@@ -1,0 +1,169 @@
+{
+ "id": "youngcle1",
+ "name": "영클 전함 1",
+ "stage": "void_fallen",
+ "bgm": null,
+ "dim": 0.04,
+ "rows": [
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ"
+ ],
+ "enter": {
+  "script": "youngcle_intro",
+  "early": true
+ },
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/props/youngcle1_walls.png",
+  "assets/props/youngcle_tv_frame.png",
+  "assets/props/maillard_storage_door.png",
+  "assets/sprites/youngcle.png",
+  "assets/sprites/youngcle_tv_smirk.png",
+  "assets/sprites/youngcle_tv_laugh.png",
+  "assets/sprites/youngcle_tv_greet.png",
+  "assets/sprites/youngcle_tv_oh.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 660,
+   "y": 376,
+   "facing": "up"
+  },
+  "from_bridge": {
+   "x": 660,
+   "y": 376,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "player": [
+    660,
+    264
+   ],
+   "gyeongsub": [
+    596,
+    264
+   ],
+   "ppaman": [
+    724,
+    264
+   ],
+   "junhee": [
+    532,
+    232
+   ],
+   "yongjun": [
+    788,
+    232
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "youngcle_walls",
+   "image": "assets/props/youngcle1_walls.png",
+   "x": 0,
+   "y": 0,
+   "w": 1344,
+   "h": 576,
+   "solid": false,
+   "sortY": -1000
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_tv",
+   "image": "assets/props/youngcle_tv_frame.png",
+   "x": 528,
+   "y": 32,
+   "w": 288,
+   "h": 176,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_tv_screen",
+   "x": 624,
+   "y": 196,
+   "w": 96,
+   "h": 12,
+   "solid": false,
+   "script": "youngcle_tv_off"
+  },
+  {
+   "type": "npc",
+   "id": "youngcle_junhee",
+   "sprite": "junhee",
+   "x": 532,
+   "y": 232,
+   "facing": "up",
+   "wander": 0,
+   "solid": false,
+   "unless": "youngcle_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "youngcle_yongjun",
+   "sprite": "yongjun",
+   "x": 788,
+   "y": 232,
+   "facing": "up",
+   "wander": 0,
+   "solid": false,
+   "unless": "youngcle_intro_done"
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_right_door_image",
+   "image": "assets/props/maillard_storage_door.png",
+   "x": 1152,
+   "y": 48,
+   "w": 144,
+   "h": 144,
+   "scale": 1.5,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_right_door",
+   "x": 1184,
+   "y": 180,
+   "w": 80,
+   "h": 32,
+   "solid": false,
+   "script": "youngcle_right_door_pending"
+  },
+  {
+   "type": "door",
+   "id": "youngcle_to_bridge",
+   "x": 624,
+   "y": 496,
+   "w": 96,
+   "h": 24,
+   "to": "youngcle_bridge",
+   "spawn": "from_inside",
+   "sfx": "plug",
+   "interact": true
+  }
+ ]
+}

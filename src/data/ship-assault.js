@@ -10,7 +10,7 @@ export const SHIP_ASSAULT = Object.freeze({
     maillard_saloon: 'maillard_starboard',
     maillard_starboard: 'maillard_boarding',
     maillard_boarding: 'youngcle_bridge',
-    youngcle_bridge: null,
+    youngcle_bridge: 'youngcle1',
   },
   timing: { oceanFade: 1.8, reveal: 3.4, approach: 3, bridge: 2.2, returnFade: 1.1 },
   room: { period: 2.6, shakeTime: 0.55, shakeAmp: 4, dustCount: 20, dustLife: 2.1, gravity: 40 },
