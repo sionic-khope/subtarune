@@ -1,6 +1,6 @@
 /** Object region 5: one real tutorial shot, then a hit-based realtime sea chase. */
 export const BARON_SEA_CHASE = {
-  hitsToClear: 400,
+  hitsToClear: 280,
   fireCooldown: 0.18,
   bulletSpeed: 410,
   sailDuration: 1.8,

@@ -28,8 +28,8 @@ test('held fire is rapid while vertical movement stays in the playfield', () => 
   for (let i = 0; i < 120; i++) events.push(...m.update(1 / 60, input(['confirm', 'down'])));
   assert.ok(events.filter(e => e === 'shot').length >= 10);
   assert.equal(m.raftY, C.raft.maxY);
-  assert.equal(C.hitsToClear, 400);
-  assert.ok(C.hitsToClear * C.fireCooldown >= 70);
+  assert.equal(C.hitsToClear, 280);
+  assert.equal(C.fireCooldown, 0.18);
 });
 test('invulnerability prevents stacked hits; fifth hit starts drift then failure', () => {
   const m = fight();
@@ -108,8 +108,10 @@ test('aimed warning and breath share the captured heart target', () => {
   assert.ok(Math.abs(middle.y + middle.vy * timeToTarget - heart.y) < 0.001);
 });
 test('thirty percent remaining causes one roar and faster movement and attacks', () => {
-  const m = fight(); m.hits = 279; const before = m.attackInterval();
+  const m = fight(); m.hits = 194; const before = m.attackInterval();
+  assert.equal(impact(m).includes('enrage'), false); assert.equal(m.hits, 195);
   assert.ok(impact(m).includes('enrage')); assert.equal(m.enraged, true);
+  assert.equal(m.hits, 196);
   assert.ok(m.attackInterval() < before); assert.ok(C.enrage.moveMultiplier > 1);
   assert.equal(impact(m).includes('enrage'), false);
 });
@@ -121,12 +123,69 @@ test('breath warns at mouth before launching into open space', () => {
   assert.ok(m.attacks.every(a => a.x > C.raft.x + 100));
 });
 test('victory holds alive standoff and retry creates clean state', () => {
-  const m = fight(); m.hits = C.hitsToClear - 1;
+  const m = fight();
+  for (let hit = 1; hit < 280; hit++) {
+    assert.equal(impact(m).includes('clear'), false);
+    assert.equal(m.hits, hit); assert.equal(m.phase, 'fight');
+  }
   assert.ok(impact(m).includes('clear')); assert.equal(m.outcome, 'cleared');
+  assert.equal(m.hits, 280);
   const position = [m.raftY, m.bossX, m.bossY]; m.update(20, input(['up', 'confirm']));
   assert.deepEqual([m.raftY, m.bossX, m.bossY], position); assert.equal(m.attacks.length, 0);
   const retry = new SeaChaseModel();
   assert.equal(retry.playerHits, 0); assert.equal(retry.hits, 0);
+  assert.equal(retry.config.hitsToClear, 280);
   assert.equal(retry.enraged, false); assert.equal(retry.outcome, null);
   assert.equal(new SeaChaseModel({ cleared: true }).phase, 'cleared');
+  assert.equal(new SeaChaseModel({ cleared: true }).hits, 280);
+});
+
+test('test_sea_chase_boss_health_bar_uses_reduced_maximum_at_start_and_half_health', () => {
+  const m = fight(), fills = [];
+  const ctx = { save() {}, restore() {}, fillText() {}, fillRect: (...rect) => fills.push(rect) };
+  const scene = { model: m, particles: [], game: { textbox: { draw() {} } },
+    drawOcean() {}, drawBoss() {}, drawAttacks() {}, drawRaft() {}, drawPlayerHeart() {} };
+  for (const [hits, width] of [[0, 160], [140, 80], [279, 1]]) {
+    m.hits = hits; fills.length = 0;
+    BaronSeaChase.prototype.draw.call(scene, ctx);
+    assert.deepEqual(fills.filter(rect => rect[0] === 304 && rect[1] === 14).at(-1), [304, 14, width, 5]);
+  }
+});
+
+test('test_sea_chase_tutorial_and_repeated_fight_shots_and_hits_use_twenty_percent_lower_volume', () => {
+  const m = new SeaChaseModel(), sounds = [];
+  const scene = { model: m, particles: [], burst() {},
+    game: { sound: { sfx: (...args) => sounds.push(args), playBgm() {} }, textbox: { update() {} } } };
+  const update = (dt, controls = input()) => BaronSeaChase.prototype.update.call(scene, dt, controls);
+  m.setPhase('tutorial');
+  update(1 / 60, input(['confirm']));
+  for (let i = 0; i < 240 && m.phase !== 'fight'; i++) update(1 / 60);
+  assert.equal(m.phase, 'fight');
+  assert.deepEqual(sounds.slice(0, 2), [
+    ['cannon_puff', { volume: 0.4, rate: 1.45 }],
+    ['pop', { volume: 0.384, rate: 0.8 }],
+  ]);
+  sounds.length = 0;
+  for (let shot = 0; shot < 3; shot++) {
+    m.cooldown = 0; update(0.001, input(['confirm']));
+    m.projectiles = [{ x: m.bossX + C.boss.width * 0.5, y: m.bossY + C.boss.height * 0.5 }];
+    update(0.001);
+  }
+  assert.deepEqual(sounds, Array.from({ length: 3 }, () => [
+    ['cannon_puff', { volume: 0.4, rate: 1.45 }],
+    ['pop', { volume: 0.384, rate: 0.8 }],
+  ]).flat());
+});
+
+test('test_sea_chase_roars_breath_player_hurt_splash_and_music_keep_their_original_volume', () => {
+  const calls = [];
+  const scene = { particles: [], burst() {}, model: { phase: 'fight', playerHeart: () => ({ x: 0, y: 0 }),
+    update: () => ['roar', 'enrage', 'breath', 'player-hit', 'sinking', 'fight'] },
+    game: { sound: { sfx: (...args) => calls.push(args), playBgm: (...args) => calls.push(args) }, textbox: { show() {} } } };
+  BaronSeaChase.prototype.update.call(scene, 0.001, input());
+  assert.deepEqual(calls, [
+    ['baron_roar', { volume: 0.9 }], ['baron_roar', { volume: 0.9 }],
+    ['cannon_guard_breath', { volume: 0.72 }], ['hurt', { volume: 0.7 }],
+    ['splash', { volume: 0.8 }], ['baron_sea_battle', { volume: 0.6 }],
+  ]);
 });

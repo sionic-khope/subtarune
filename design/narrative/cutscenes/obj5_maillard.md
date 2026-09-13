@@ -14,4 +14,4 @@ Canon: Established. 2026-09-12 사용자 브리핑의 14개 대사를 그대로 
 
 미완료 클리어 세이브는 연출을 처음부터 재생한다. 완료 세이브는 갑판에 남으며 반복하지 않는다. 타이틀/리셋/맵 전환은 연출의 비동기 그림 로드를 취소하고 임시 장면을 정리한다. 기존 총·파티·승리 플래그를 지우지 않는다.
 
-검증: `tests/unit/maillard-arrival.test.mjs`, `tests/playtest/maillard.mjs`. 브라우저 테스트는 승리 상태만 fixture로 준비하고 이후 실제 C/X 키로 대사·전환·갑판 이동·이어하기를 확인한다. 400발 전투를 반복하지 않는다.
+검증: `tests/unit/maillard-arrival.test.mjs`, `tests/playtest/maillard.mjs`. 브라우저 테스트는 승리 상태만 fixture로 준비하고 이후 실제 C/X 키로 대사·전환·갑판 이동·이어하기를 확인한다. 바다 사격 전투 전체를 반복하지 않는다.

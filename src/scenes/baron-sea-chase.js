@@ -211,11 +211,11 @@ export class BaronSeaChase {
     for (const event of events) {
       if (event === 'dialogue-help') this.showLine(0);
       if (event === 'shot') {
-        this.game.sound.sfx('cannon_puff', { volume: 0.5, rate: 1.45 });
+        this.game.sound.sfx('cannon_puff', { volume: 0.4, rate: 1.45 });
         this.burst(CONFIG.raft.x + CONFIG.raft.gunX + CONFIG.raft.gunWidth, this.model.raftY + CONFIG.raft.gunY, '#fff5cf', 7);
       }
       if (event === 'hit' || event === 'tutorial-hit') {
-        this.game.sound.sfx('pop', { volume: 0.48, rate: 0.8 });
+        this.game.sound.sfx('pop', { volume: 0.384, rate: 0.8 });
         const impact = this.model.lastImpact; this.burst(impact.x, impact.y, '#ffcb77', 7);
       }
       if (event === 'roar') this.game.sound.sfx('baron_roar', { volume: 0.9 });
