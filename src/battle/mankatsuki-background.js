@@ -3,12 +3,9 @@ import { makeCanvas } from '../core/gfx.js';
 const TAU = Math.PI * 2;
 const SIDES = 12;
 const HEIGHTS = [0, 0.3, 0.35, 0.5, 0.65, 0.7, 1];
-const RIBBON_SIDES = 48;
-const RIBBONS = [
-  { radius: 470, speed: -0.308, tilt: 0.16, phase: 0, lift: 12, width: 50 },
-  { radius: 410, speed: 0.24, tilt: -0.29, phase: 1.8, lift: -34, width: 34 },
-  { radius: 520, speed: -0.19, tilt: 0.31, phase: 3.7, lift: 42, width: 42 },
-];
+const WALL_WIDTH = 256;
+const WALL_HEIGHT = 128;
+const WALL_INK = ['#10091d', '#1c0e30', '#30174d', '#482268', '#613581', '#392052'];
 const INK = {
   void: '#08050f',
   wood: ['#281b24', '#302029', '#251a23', '#32212a'],
@@ -16,6 +13,7 @@ const INK = {
   grain: '#49303b',
 };
 let floorCache;
+let wallCache;
 
 function polygon(ctx, points) {
   ctx.beginPath();
@@ -58,6 +56,45 @@ function buildFloor() {
   return canvas;
 }
 
+function buildWall() {
+  const canvas = makeCanvas(WALL_WIDTH * 2, WALL_HEIGHT), ctx = canvas.getContext('2d');
+  for (let y = 0; y < WALL_HEIGHT; y += 2) {
+    for (let x = 0; x < WALL_WIDTH; x += 2) {
+      const u = x / WALL_WIDTH * TAU, v = y / WALL_HEIGHT * TAU;
+      const wave = Math.sin(u * 4 + Math.sin(v * 2) * 2.4)
+        + Math.cos(v * 3 + Math.sin(u * 2) * 1.8);
+      const pigment = Math.min(WALL_INK.length - 1, Math.floor((wave + 2) * WALL_INK.length / 4));
+      ctx.fillStyle = WALL_INK[pigment];
+      ctx.fillRect(x, y, 2, 2);
+      ctx.fillRect(x + WALL_WIDTH, y, 2, 2);
+    }
+  }
+  return canvas;
+}
+
+/** Seamless texture coordinates drift continuously while the room's wall boundaries stay fixed. */
+export function mankatsukiWallRow(y, time) {
+  const wrap = (value, size) => ((value % size) + size) % size;
+  return {
+    x: Math.floor(wrap(time * 24 + Math.sin(y * 0.041 - time * 1.15) * 30 + Math.sin(y * 0.093 + time * 0.63) * 12, WALL_WIDTH)),
+    y: Math.floor(wrap(y * 0.65 + time * 8 + Math.sin(y * 0.027 + time * 0.72) * 12, WALL_HEIGHT)),
+    sideWidth: Math.round(146 - Math.max(0, y - 88) * 0.77),
+  };
+}
+
+function drawWalls(ctx, time, defending) {
+  ctx.globalAlpha = defending ? 0.62 : 1;
+  for (let y = 0; y < 246; y += 2) {
+    const row = mankatsukiWallRow(y, time);
+    if (y < 88) {
+      ctx.drawImage(wallCache, row.x, row.y, WALL_WIDTH, 1, 0, y, 480, 2);
+    } else {
+      ctx.drawImage(wallCache, row.x, row.y, WALL_WIDTH, 1, 0, y, row.sideWidth, 2);
+      ctx.drawImage(wallCache, WALL_WIDTH - row.x, row.y, WALL_WIDTH, 1, 480 - row.sideWidth, y, row.sideWidth, 2);
+    }
+  }
+}
+
 function project(x, y, z, focal = 720) {
   const scale = focal / (focal + z);
   return {
@@ -73,7 +110,7 @@ export function mankatsukiVortexPoint(height, angle, time) {
   const distance = Math.abs(level);
   const profile = distance <= 0.3 ? 7 + distance * 44 : 20.2 + Math.pow((distance - 0.3) / 0.7, 0.55) * 527;
   const radius = profile * (1 + Math.sin(time * 0.67 + level * 2.8) * 0.03 + Math.sin(angle * 3 + level * 4 - time * 0.43) * distance * 0.025);
-  const turn = angle + time * 0.768 + level * (0.65 + Math.sin(time * 0.61) * 0.6) + Math.sin(level * Math.PI) * Math.sin(time * 0.87) * 0.35;
+  const turn = angle + time * 3.84 + level * (0.65 + Math.sin(time * 0.61) * 0.6) + Math.sin(level * Math.PI) * Math.sin(time * 0.87) * 0.35;
   const bend = level * 34 * Math.sin(time * 0.53 + level * 1.9) + distance * distance * 24 * Math.sin(time * 0.37);
   return project(
     bend + Math.cos(turn) * radius,
@@ -83,20 +120,10 @@ export function mankatsukiVortexPoint(height, angle, time) {
   );
 }
 
-/** Broken ribbons orbit on separate tilted planes; the default retains the outer counter-rotation. */
-export function mankatsukiAuraPoint(height, angle, time, ribbon = 0) {
-  const band = RIBBONS[ribbon];
-  const turn = angle + time * band.speed + band.phase;
-  const radius = band.radius + Math.sin(angle * 3 + time * 0.31) * 16;
-  const x = Math.cos(turn) * radius;
-  const z = Math.sin(turn) * radius;
-  const tilt = band.tilt + Math.sin(time * 0.27 + band.phase) * 0.065;
-  return project(x, band.lift + height * band.width + x * tilt + Math.sin(angle * 2 - time * 0.49) * 18, z);
-}
-
-/** Projected purple hourglass and surrounding dark ribbon, below actors and the soul box. */
+/** A rotating purple hourglass inside drifting patterned walls, below actors and the soul box. */
 export function drawMankatsukiBackground(ctx, battle) {
   floorCache ??= buildFloor();
+  wallCache ??= buildWall();
   const time = battle.game.time;
   const defending = ['enemy-prep', 'bullets', 'board-close'].includes(battle.state);
   const breath = (Math.sin(time * 0.32) + 1) / 2;
@@ -106,28 +133,15 @@ export function drawMankatsukiBackground(ctx, battle) {
     `hsl(${hue + 7}, 49%, ${27 + breath * 3}%)`,
     `hsl(${hue - 8}, 52%, ${21 + breath * 2}%)`,
   ];
-  const aura = [INK.void, `hsl(${hue}, 38%, 11%)`, `hsl(${hue + 12}, 42%, ${17 + breath * 2}%)`];
   ctx.save();
   ctx.drawImage(floorCache, 0, 0);
+  drawWalls(ctx, time, defending);
   const faces = [];
   const addFace = (points, color, alpha) => faces.push({ points, color, alpha, z: points.reduce((sum, point) => sum + point.z, 0) / points.length });
   const rings = HEIGHTS.map(height => Array.from({ length: SIDES + 1 }, (_, side) => mankatsukiVortexPoint(height, side / SIDES * TAU, time)));
   for (let ring = 0; ring < HEIGHTS.length - 1; ring++) {
     for (let side = 0; side < SIDES; side++) {
       addFace([rings[ring][side], rings[ring][side + 1], rings[ring + 1][side + 1], rings[ring + 1][side]], purple[(side + ring) % purple.length], ring < 3 ? 1 : 0.6);
-    }
-  }
-  for (let ribbon = 0; ribbon < RIBBONS.length; ribbon++) {
-    const rows = Array.from({ length: 4 }, (_, stripe) => Array.from({ length: RIBBON_SIDES + 1 }, (_, side) => mankatsukiAuraPoint(stripe / 3 - 0.5, side / RIBBON_SIDES * TAU, time, ribbon)));
-    for (let side = 0; side < RIBBON_SIDES; side++) {
-      if ((side + ribbon * 3) % 13 < 3) continue;
-      for (let stripe = 0; stripe < 3; stripe++) {
-        const pigment = (side * 5 + stripe + ribbon) % 9;
-        addFace([
-          rows[stripe][side], rows[stripe][side + 1],
-          rows[stripe + 1][side + 1], rows[stripe + 1][side],
-        ], aura[pigment < 4 ? 0 : pigment < 7 ? 1 : 2], ribbon === 0 ? 0.88 : 0.76);
-      }
     }
   }
   faces.sort((a, b) => b.z - a.z);

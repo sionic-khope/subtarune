@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { drawMankatsukiBackground, mankatsukiVortexPoint, mankatsukiAuraPoint } from '../../src/battle/mankatsuki-background.js';
+import { drawMankatsukiBackground, mankatsukiVortexPoint, mankatsukiWallRow } from '../../src/battle/mankatsuki-background.js';
 import { BATTLE_BGS } from '../../src/battle/backgrounds.js';
 import { darkSmokeWaiter, drawDarkSmoke } from '../../src/ui/dark-smoke.js';
 
-test('test_mankatsuki_background_has_vertical_hourglass_and_independent_surrounding_rotation', () => {
+test('test_mankatsuki_background_has_vertical_hourglass_and_bounded_perspective', () => {
   assert.equal(typeof BATTLE_BGS.mankatsuki_vortex, 'function');
   const top = mankatsukiVortexPoint(0, 0, 0);
   const waist = mankatsukiVortexPoint(0.5, 0, 0);
@@ -14,7 +14,6 @@ test('test_mankatsuki_background_has_vertical_hourglass_and_independent_surround
   assert.ok(Math.abs(bottom.x - 240) > Math.abs(waist.x - 240) * 10);
   const turning = mankatsukiVortexPoint(0.28, 0, 2);
   assert.ok(turning.z > mankatsukiVortexPoint(0.28, 0, 0).z);
-  assert.ok(mankatsukiAuraPoint(0, 0, 2).z < mankatsukiAuraPoint(0, 0, 0).z);
   const front = mankatsukiVortexPoint(0.72, -Math.PI / 2, 0);
   const back = mankatsukiVortexPoint(0.72, Math.PI / 2, 0);
   assert.ok(front.y - 110 > back.y - 110, 'near lower face must foreshorten differently from far face');
@@ -28,8 +27,16 @@ test('test_mankatsuki_background_has_vertical_hourglass_and_independent_surround
 });
 
 test('test_mankatsuki_faster_rotation_preserves_narrow_waist_and_bounded_perspective', () => {
-  assert.ok(mankatsukiVortexPoint(0.5, 0, 1).z > 4.5, 'central point advances faster than the previous rotation');
-  assert.ok(mankatsukiAuraPoint(0, 0, 1).z < -130, 'outer ribbon counter-rotation also accelerates');
+  let previousTurn = 0;
+  for (let time = 0.25; time <= 10; time += 0.25) {
+    const point = mankatsukiVortexPoint(0.5, 0, time);
+    const focal = 720 + Math.sin(time * 0.39) * 18;
+    const x = (point.x - 240) * (focal + point.z) / focal;
+    const turn = Math.atan2(point.z, x);
+    const advance = (turn - previousTurn + Math.PI * 2) % (Math.PI * 2);
+    assert.ok(Math.abs(advance / 0.25 - 3.84) < 1e-10, 'waist rotates at five times BUILD133 speed without a phase reset');
+    previousTurn = turn;
+  }
   for (let time = 0; time <= 60; time += 0.25) {
     const waist = mankatsukiVortexPoint(0.5, 0, time);
     assert.ok(Math.abs(waist.x - 240) < 8);
@@ -66,17 +73,22 @@ test('test_smoke_room_purple_tint_ramps_with_veil_and_survives_mode_change', () 
   assert.equal(paints.length, 0);
 });
 
-test('test_mankatsuki_tilted_ribbons_stay_finite_across_long_running_motion', () => {
+test('test_mankatsuki_wall_samples_remain_in_cached_texture_and_keep_fixed_room_bounds', () => {
   for (const time of [0, 1, 4, 11, 100000]) {
-    const ribbons = [0, 1, 2].map(ribbon => mankatsukiAuraPoint(0, 0, time, ribbon));
-    assert.ok(Math.max(...ribbons.map(point => point.y)) - Math.min(...ribbons.map(point => point.y)) > 20);
-    for (let ribbon = 0; ribbon < 3; ribbon++) {
-      for (let side = 0; side < 24; side++) {
-        const point = mankatsukiAuraPoint(0.5, side / 24 * Math.PI * 2, time, ribbon);
-        assert.ok(Object.values(point).every(Number.isFinite));
-        assert.ok(point.z > -600, 'outer geometry remains away from the perspective singularity');
-      }
+    for (let y = 0; y < 246; y += 2) {
+      const row = mankatsukiWallRow(y, time);
+      assert.ok(Object.values(row).every(Number.isInteger));
+      assert.ok(row.x >= 0 && row.x < 256);
+      assert.ok(row.y >= 0 && row.y < 128);
+      assert.ok(row.sideWidth >= 24 && row.sideWidth <= 146);
+      assert.equal(row.sideWidth, mankatsukiWallRow(y, 0).sideWidth);
     }
+  }
+  assert.notDeepEqual(mankatsukiWallRow(100, 0), mankatsukiWallRow(100, 1));
+  for (let time = 0; time < 5; time += 1 / 60) {
+    const before = mankatsukiWallRow(100, time), after = mankatsukiWallRow(100, time + 1 / 60);
+    const drift = Math.min(Math.abs(after.x - before.x), 256 - Math.abs(after.x - before.x));
+    assert.ok(drift <= 2, 'wall projection drifts smoothly instead of jumping between frames');
   }
 });
 
@@ -84,7 +96,8 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
   let canvases = 0;
   const paints = [];
   const context = () => ({
-    globalAlpha: 1, save() {}, restore() {}, drawImage() {},
+    globalAlpha: 1, save() {}, restore() {},
+    drawImage(...args) { paints.push({ kind: 'image', alpha: this.globalAlpha, args }); },
     beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
     fill() { paints.push({ kind: 'face', alpha: this.globalAlpha }); },
     fillRect() { paints.push({ kind: 'rect', color: this.fillStyle }); },
@@ -103,7 +116,13 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
   paints.length = 0;
   drawMankatsukiBackground(ctx, { game: { time: 1 }, state: 'menu' });
   const normal = paints.filter(paint => paint.kind === 'face');
-  assert.ok(normal.length > 100 && normal.length < 440);
+  assert.equal(normal.length, 72, 'only one central hourglass remains after removing the three ribbons');
+  const walls = paints.filter(paint => paint.kind === 'image' && paint.args.length === 9);
+  assert.equal(walls.length, 202, 'wall scanline work stays bounded independently of elapsed time');
+  assert.ok(walls.every(paint => paint.alpha === 1));
+  assert.deepEqual(walls[0].args.slice(5), [0, 0, 480, 2]);
+  assert.deepEqual(walls[43].args.slice(5), [0, 86, 480, 2]);
+  assert.ok(walls.slice(44).every(({ args }) => args[5] === 0 || args[5] + args[7] === 480));
   assert.equal(paints.filter(paint => paint.kind === 'rect').length, 0);
   for (const state of ['enemy-prep', 'bullets', 'board-close']) {
     paints.length = 0;
@@ -111,7 +130,10 @@ test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_
     const quiet = paints.filter(paint => paint.kind === 'face');
     assert.equal(quiet.length, normal.length);
     assert.ok(quiet.every((paint, i) => paint.alpha < normal[i].alpha));
+    const quietWalls = paints.filter(paint => paint.kind === 'image' && paint.args.length === 9);
+    assert.equal(quietWalls.length, walls.length);
+    assert.ok(quietWalls.every(paint => paint.alpha === 0.62));
     assert.equal(paints.at(-1).color, 'rgba(4,2,9,0.38)');
   }
-  assert.equal(canvases, 1, 'wooden tiles are baked once, not rebuilt every frame');
+  assert.equal(canvases, 2, 'wooden floor and purple wall texture are each baked once');
 });

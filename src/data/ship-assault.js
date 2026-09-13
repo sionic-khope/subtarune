@@ -10,8 +10,8 @@ export const SHIP_ASSAULT = Object.freeze({
   ocean: { explosionPeriod: 1.75, explosionScale: 0.45, waterSpeed: 85, bobHeight: 1.4, bobRate: 1.9 },
   framing: {
     closeWidth: 340, closeCenter: [240, 115],
-    width: 172, enemyRatio: 1.5, maillardCenter: [114, 169], enemyCenter: [335, 91],
+    width: 144, enemyRatio: 2.5, maillardCenter: [90, 181], enemyCenter: [286, 92],
     enemyApproach: 10, bridgeWidth: 16,
-    maillardAnchor: [0.88, 0.64], enemyAnchor: [0.19, 0.85],
+    maillardAnchor: [0.88, 0.64], enemyAnchor: [0.22, 0.85],
   },
 });

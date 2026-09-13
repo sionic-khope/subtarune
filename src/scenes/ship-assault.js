@@ -86,10 +86,8 @@ export class ShipAssault {
     const reveal = this.beat === 'ocean' ? 0 : this.beat === 'reveal' ? smooth(this.beatTime / this.config.timing.reveal) : 1;
     const approach = ['bridge', 'return'].includes(this.beat) ? 1 : this.beat === 'approach' ? smooth(this.beatTime / this.config.timing.approach) : 0;
     const ratio = image => image ? image.height / image.width : 1;
-    // Keep both complete silhouettes above the dialogue even if the delivered art is tall.
-    const width = Math.min(f.width, 154 / (ratio(this.enemy) * f.enemyRatio));
-    const maillardWidth = lerp(f.closeWidth, width, reveal);
-    const enemyWidth = width * f.enemyRatio;
+    const maillardWidth = lerp(f.closeWidth, f.width, reveal);
+    const enemyWidth = f.width * f.enemyRatio;
     const bob = Math.sin(this.time * this.config.ocean.bobRate) * this.config.ocean.bobHeight;
     const rect = (cx, cy, w, image) => ({ x: Math.round(cx - w / 2), y: Math.round(cy - w * ratio(image) / 2 + bob), width: Math.round(w), height: Math.round(w * ratio(image)) });
     return {
