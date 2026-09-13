@@ -3,11 +3,13 @@ import {
   drawFactoryConsole,
   drawFactoryCrate,
   drawFactoryGate,
+  drawFactoryMoveArea,
   drawFactoryPressurePlate,
   drawFactorySign,
 } from './factory-puzzle-art.js';
 
 const TILE = 32;
+const pushLockedGames = new WeakSet();
 
 const aligned = (plate) => plate.orientation === plate.solution;
 const puzzleEntities = (game, puzzle) => game.entities.filter((entity) => entity.def?.puzzle === puzzle);
@@ -24,6 +26,8 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
 
     update(dt, input) {
       if (this.game.has(this.def.flag)) return;
+      const direction = ['left', 'right', 'up', 'down'].find((name) => input.down(name));
+      if (!direction) pushLockedGames.delete(this.game);
       this.pushCooldown = Math.max(0, this.pushCooldown - dt);
       if (this.slide) {
         this.slide.t = Math.min(this.slide.duration, this.slide.t + dt);
@@ -34,11 +38,11 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
         return;
       }
       if (this.pushCooldown > 0) return;
-      const direction = ['left', 'right', 'up', 'down'].find((name) => input.down(name));
-      if (!direction) return;
+      if (!direction || pushLockedGames.has(this.game)) return;
       const vectors = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] };
       const [dx, dy] = vectors[direction];
       if (!this.playerCanPush(dx, dy) || !this.targetIsFree(dx, dy)) return;
+      pushLockedGames.add(this.game);
       this.slide = {
         fromX: this.x, fromY: this.y, toX: this.x + dx * TILE, toY: this.y + dy * TILE,
         t: 0, duration: 0.14,
@@ -69,6 +73,10 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
 
     targetIsFree(dx, dy) {
       const rect = { x: this.x + dx * TILE, y: this.y + dy * TILE, w: this.w, h: this.h };
+      const area = puzzleEntities(this.game, this.def.puzzle)
+        .find((entity) => entity.def.type === 'factory_move_area');
+      if (area && (rect.x < area.x || rect.y < area.y
+        || rect.x + rect.w > area.x + area.w || rect.y + rect.h > area.y + area.h)) return false;
       if (this.game.map.solidRect(rect.x, rect.y, rect.w, rect.h)) return false;
       return !this.game.entities.some((entity) => entity !== this && entity !== this.game.player
         && entity.def?.type !== 'follower' && entity.solid && !entity.dead && entity.overlaps(rect));
@@ -79,6 +87,11 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
     draw(ctx, cam) {
       drawFactoryCrate(ctx, cam, this);
     }
+  }
+
+  class FactoryMoveArea extends Entity {
+    constructor(def, game) { super({ solid: false, ...def, sortY: def.sortY ?? -220 }, game); }
+    draw(ctx, cam) { drawFactoryMoveArea(ctx, cam, this); }
   }
 
   class FactoryPlate extends Entity {
@@ -200,6 +213,7 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
   }
 
   registerEntity('factory_crate', FactoryCrate);
+  registerEntity('factory_move_area', FactoryMoveArea);
   registerEntity('factory_plate', FactoryPlate);
   registerEntity('factory_console', FactoryConsole);
   registerEntity('factory_gate', FactoryGate);

@@ -27,7 +27,8 @@
  ],
  "preload": [
   "assets/tiles/youngcle_iron.png",
-  "assets/backdrops/youngcle_factory.png"
+  "assets/backdrops/youngcle_factory.png",
+  "assets/props/factory_crate145.png"
  ],
  "spawns": {
   "start": {
@@ -100,6 +101,12 @@
    160,
    48,
    224
+  ],
+  "moveArea": [
+   4,
+   5,
+   9,
+   7
   ]
  },
  "entities": [
@@ -138,6 +145,15 @@
    "y": 172,
    "w": 12,
    "h": 212
+  },
+  {
+   "type": "factory_move_area",
+   "id": "youngcle5_move_area",
+   "puzzle": "youngcle5_crates",
+   "x": 128,
+   "y": 160,
+   "w": 288,
+   "h": 224
   },
   {
    "type": "factory_sign",

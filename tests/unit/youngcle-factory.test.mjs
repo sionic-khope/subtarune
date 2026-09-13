@@ -56,6 +56,12 @@ const minimumPushes = (data) => {
     .map(({ x, y }) => [Math.floor((x + 14) / 32), Math.floor((y + 14) / 32)]);
   const targets = new Set(data.entities.filter(({ type }) => type === 'factory_plate')
     .map(({ x, y }) => `${Math.floor((x + 16) / 32)},${Math.floor((y + 16) / 32)}`));
+  const moveArea = data.entities.find(({ type }) => type === 'factory_move_area');
+  const crateCanOccupy = (x, y) => {
+    const [left, top] = [x * 32 + 2, y * 32 + 2];
+    return !moveArea || (left >= moveArea.x && top >= moveArea.y
+      && left + 28 <= moveArea.x + moveArea.w && top + 28 <= moveArea.y + moveArea.h);
+  };
   const spawn = data.spawns.left;
   const start = [Math.floor((spawn.x + 12) / 32), Math.floor((spawn.y + 8) / 32)];
   const states = [{ player: start, crates, pushes: 0 }];
@@ -83,7 +89,8 @@ const minimumPushes = (data) => {
       for (const [dx, dy] of directions) {
         const stand = `${x - dx},${y - dy}`;
         const destination = `${x + dx},${y + dy}`;
-        if (!reachable.has(stand) || blocked.has(destination) || crateKeys.has(destination)) continue;
+        if (!reachable.has(stand) || blocked.has(destination) || crateKeys.has(destination)
+          || !crateCanOccupy(x + dx, y + dy)) continue;
         const nextCrates = state.crates.map((crate, crateIndex) => crateIndex === index ? [x + dx, y + dy] : crate);
         states.push({ player: [x, y], crates: nextCrates, pushes: state.pushes + 1 });
       }
@@ -111,6 +118,10 @@ test('test_factory_route_connects_three_crate_rooms_and_keeps_factory_surface', 
     assert.equal(data.meta.puzzle, 'crate');
     assert.equal(data.entities.filter(entity => entity.type === 'factory_sign').length, 1);
     assert.equal(data.entities.filter(entity => entity.type === 'factory_console').length, 1);
+    assert.deepEqual(data.meta.moveArea, [4, 5, 9, 7]);
+    assert.equal(data.preload.includes('assets/props/factory_crate145.png'), true);
+    assert.equal(fs.existsSync('assets/props/factory_crate145.png'), true);
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_move_area').length, 1);
     assert.ok(data.entities.some(entity => entity.type === 'factory_bulkhead'));
     assert.ok(data.entities.filter(entity => entity.type === 'door').every(entity => entity.sfx === false && entity.interact === false));
   }
@@ -216,6 +227,58 @@ test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
   assert.equal(game.flags.youngcle5_crate_solved, true);
   assert.equal(gate.solid, false);
   assert.equal(game.saved, 1);
+});
+
+test('test_factory_one_direction_press_starts_only_one_adjacent_crate', () => {
+  // Arrange: the player's 24px width overlaps both 28px crates across their 4px gap.
+  const { game } = makeGame(readMap('youngcle5'));
+  const [crateA, crateB] = game.entities.filter(entity => entity.def.type === 'factory_crate');
+  [crateA.x, crateA.y] = [194, 258];
+  [crateB.x, crateB.y] = [226, 258];
+  [game.player.x, game.player.y] = [216, 286];
+  const heldUp = { down: direction => direction === 'up' };
+
+  // Act: both entities observe the same physical key press in the same update frame.
+  crateA.update(1 / 60, heldUp);
+  crateB.update(1 / 60, heldUp);
+
+  // Assert
+  assert.equal([crateA, crateB].filter(crate => crate.slide).length, 1,
+    'one direction press must select exactly one overlapping crate');
+});
+
+test('test_factory_held_direction_waits_for_release_before_another_push', () => {
+  // Arrange
+  const { game } = makeGame(readMap('youngcle3'));
+  const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
+  [game.player.x, game.player.y] = [crate.x - game.player.w, crate.y + 6];
+  const heldRight = { down: direction => direction === 'right' };
+
+  // Act: finish the first slide and enough cooldown while the same press remains held.
+  crate.update(1 / 60, heldRight);
+  crate.update(0.14, heldRight);
+  game.player.x = crate.x - game.player.w;
+  crate.update(0.24, heldRight);
+
+  // Assert
+  assert.deepEqual([crate.x, crate.y], [226, 290],
+    'holding one press must move the crate only one tile');
+  assert.equal(crate.slide, null);
+});
+
+test('test_factory_crate_cannot_leave_the_marked_move_area', () => {
+  // Arrange: put the crate at the marked area's left edge with the player on its right.
+  const { game } = makeGame(readMap('youngcle3'));
+  const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
+  [crate.x, crate.y] = [130, 290];
+  [game.player.x, game.player.y] = [crate.x + crate.w, crate.y + 6];
+
+  // Act
+  crate.update(1 / 60, { down: direction => direction === 'left' });
+
+  // Assert
+  assert.equal(crate.slide, null);
+  assert.deepEqual([crate.x, crate.y], [130, 290]);
 });
 
 test('test_reset_console_restores_every_unsolved_crate_without_trapping_party', () => {

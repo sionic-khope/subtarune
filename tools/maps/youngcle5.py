@@ -32,7 +32,8 @@ def build_map() -> dict[str, JsonValue]:
         "id": MAP_ID, "name": "영클 공장 복수 화물 검사실", "stage": "void_fallen",
         "bgm": "youngcle_factory", "backdrop": "youngcle_factory", "dim": 0.08,
         "rows": rows,
-        "preload": ["assets/tiles/youngcle_iron.png", "assets/backdrops/youngcle_factory.png"],
+        "preload": ["assets/tiles/youngcle_iron.png", "assets/backdrops/youngcle_factory.png",
+                    "assets/props/factory_crate145.png"],
         "spawns": {
             "start": {"x": 64, "y": 344, "facing": "right"},
             "left": {"x": 64, "y": 344, "facing": "right"},
@@ -44,7 +45,7 @@ def build_map() -> dict[str, JsonValue]:
                          "AR", "AR", "AR", "AR", "AR", "AR", "BU", "BU"],
             "crateStarts": [[162, 258], [226, 258]],
             "plates": [[384, 192], [384, 320]], "gate": [448, 160, 24, 224],
-            "landing": [480, 160, 48, 224],
+            "landing": [480, 160, 48, 224], "moveArea": [4, 5, 9, 7],
         },
         "entities": [
             {"type": "door", "id": "youngcle5_left", "x": 32, "y": 172, "w": 16, "h": 200,
@@ -55,6 +56,8 @@ def build_map() -> dict[str, JsonValue]:
              "w": 512, "h": 12},
             {"type": "factory_rail", "id": "youngcle5_rail_end", "x": 532, "y": 172,
              "w": 12, "h": 212},
+            {"type": "factory_move_area", "id": "youngcle5_move_area", "puzzle": PUZZLE,
+             "x": 128, "y": 160, "w": 288, "h": 224},
             {"type": "factory_sign", "id": "youngcle5_sign", "x": 96, "y": 208,
              "label": "2개", "icon": "!", "script": "youngcle5_crate_sign"},
             {"type": "factory_console", "id": "youngcle5_console", "puzzle": PUZZLE, "flag": FLAG,

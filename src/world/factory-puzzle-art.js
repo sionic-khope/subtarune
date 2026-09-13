@@ -19,6 +19,10 @@ export const FACTORY_ART_COLORS = Object.freeze({
   green: '#65f2d0',
   greenBright: '#b4fff4',
   plasma: '#e958ff',
+  moveOutline: '#6b5838',
+  moveDark: '#9c814d',
+  move: '#c9af72',
+  moveLight: '#ead7a2',
 });
 
 const C = FACTORY_ART_COLORS;
@@ -52,6 +56,11 @@ function drawSteppedBrace(ctx, x1, y1, x2, y2) {
 
 export function drawFactoryCrate(ctx, cam, entity) {
   const { x, y, w, h } = screenRect(cam, entity);
+  const image = entity.game?.propImages?.['assets/props/factory_crate145.png'];
+  if (image) {
+    ctx.drawImage(image, Math.round(x + w / 2 - image.width / 2), Math.round(y + h - image.height));
+    return;
+  }
   const frontW = w - 4;
 
   ctx.fillStyle = C.shadow;
@@ -77,6 +86,24 @@ export function drawFactoryCrate(ctx, cam, entity) {
   }
 }
 
+export function drawFactoryMoveArea(ctx, cam, entity) {
+  const { x, y, w, h } = screenRect(cam, entity);
+  ctx.fillStyle = C.moveOutline;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = C.move;
+  ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+  ctx.fillStyle = C.moveLight;
+  ctx.fillRect(x + 2, y + 2, w - 4, 2);
+  ctx.fillRect(x + 2, y + 2, 2, h - 4);
+  ctx.fillStyle = C.moveDark;
+  for (let line = 32; line < w; line += 32) ctx.fillRect(x + line - 1, y + 2, 2, h - 4);
+  for (let line = 32; line < h; line += 32) ctx.fillRect(x + 2, y + line - 1, w - 4, 2);
+  ctx.fillStyle = C.moveLight;
+  for (let row = 16; row < h; row += 32) {
+    for (let column = 16; column < w; column += 32) ctx.fillRect(x + column - 2, y + row - 2, 4, 4);
+  }
+}
+
 export function drawFactoryPressurePlate(ctx, cam, entity, pressed) {
   const { x, y, w, h } = screenRect(cam, entity);
   const state = pressed ? C.green : C.amber;
@@ -87,23 +114,23 @@ export function drawFactoryPressurePlate(ctx, cam, entity, pressed) {
   ctx.fillStyle = C.outline;
   ctx.fillRect(x, y, w, h);
   ctx.fillStyle = state;
-  ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+  ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
   ctx.fillStyle = C.recess;
-  ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+  ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
   ctx.fillStyle = pressed ? C.deep : C.body;
-  ctx.fillRect(x + 8, y + 8, w - 16, h - 16);
+  ctx.fillRect(x + 7, y + 7, w - 14, h - 14);
 
   const centerX = x + Math.floor(w / 2);
   const centerY = y + Math.floor(h / 2);
   ctx.fillStyle = stateBright;
-  ctx.fillRect(centerX - 2, centerY - 8, 4, 2);
-  ctx.fillRect(centerX - 5, centerY - 6, 10, 2);
-  ctx.fillRect(centerX - 8, centerY - 4, 4, 8);
-  ctx.fillRect(centerX + 4, centerY - 4, 4, 8);
-  ctx.fillRect(centerX - 5, centerY + 4, 10, 2);
-  ctx.fillRect(centerX - 2, centerY + 6, 4, 2);
-  for (const [cx, cy] of [[2, 2], [w - 5, 2], [2, h - 5], [w - 5, h - 5]]) {
-    ctx.fillRect(x + cx, y + cy, 3, 3);
+  ctx.fillRect(centerX - 2, centerY - 7, 4, 4);
+  ctx.fillRect(centerX - 7, centerY - 2, 4, 4);
+  ctx.fillRect(centerX + 3, centerY - 2, 4, 4);
+  ctx.fillRect(centerX - 2, centerY + 3, 4, 4);
+  ctx.fillStyle = C.pale;
+  for (const [cx, cy, sx, sy] of [[1, 1, 1, 1], [w - 2, 1, -1, 1], [1, h - 2, 1, -1], [w - 2, h - 2, -1, -1]]) {
+    ctx.fillRect(x + cx - (sx < 0 ? 6 : 0), y + cy, 7, 2);
+    ctx.fillRect(x + cx, y + cy - (sy < 0 ? 6 : 0), 2, 7);
   }
 }
 
