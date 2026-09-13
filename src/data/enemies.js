@@ -16,7 +16,7 @@ export const ENEMIES = {
     name: '만카츠키 쥰희', hp: 100, voice: 'junhee', money: 0, damage: 11,
     sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },
     actions: { attack: { src: 'assets/enemies/mankatsuki-attack.png', cols: 6, rows: 1, count: 6, fps: 8, px: 1 } },
-    pivot: [64, 119], scale: 1.45, dx: -36, dy: 34, board: [240, 160],
+    pivot: [64, 119], scale: 1.15, dx: -36, dy: 34, board: [240, 160],
     idle: { swayX: 0, swayY: 0, period: 2.4 },
     projectiles: {
       shuriken: 'assets/projectiles/mankatsuki-shuriken.png',
