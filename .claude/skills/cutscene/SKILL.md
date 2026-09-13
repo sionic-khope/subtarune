@@ -135,6 +135,8 @@ model: opus
 | `{ emerge:id, depth:370, duration:2.2 }` | 발 위치를 지면으로 삼아 아래에서 솟는다. 지면 아래 그림은 클리핑하며 페이드하지 않는다 |
 | `{ puff:id, offset:[0,18], duration:0.7 }` | 대상 소품 그림 위쪽 기준 작은 공기 구름 한 번. 소리는 별도 `{sfx:'cannon_puff'}` |
 | `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |
+| `{ nod:id, duration:1.8, times:3, depth:4 }` | 충돌 좌표는 그대로 둔 채 작게 숙이고 끄덕인다. 완료 시 회전/수직 그림 오프셋을 원복한다. |
+| `{ darkSmoke:{ mode:'swell'|'gather'|'cloak'|'transfer'|'veil', from:id, to?:id, duration, veil?:0.4 } }` / `{darkSmoke:null}` | 검은 픽셀 연기의 확산·응축·감싸기·대상 간 이동. duration만큼 기다린 뒤 모양을 유지한다. veil은 UI 아래 월드 어둠이며 새 모드에도 유지된다. 끝/타이틀/맵 전환에서는 null로 정리한다. |
 | `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |

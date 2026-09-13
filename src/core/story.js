@@ -27,6 +27,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
+  if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
   if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
   if (mapId === 'obj5' && flags.obj5_chase_cleared) return 'baron_sea_battle';
   if (mapId === 'obj5' && flags.obj5_chase_started) return 'baron_intro';

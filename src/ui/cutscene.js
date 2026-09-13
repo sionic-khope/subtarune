@@ -42,6 +42,7 @@ import { TILE } from '../world/tiles.js';
 import { freeSpot, SCREEN_W, SCREEN_H } from '../world/world.js';
 import { characterMotionWaiter } from '../world/character-motion.js';
 import { MusicCamera } from './music-camera.js';
+import { darkSmokeWaiter } from './dark-smoke.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -150,6 +151,22 @@ function parallel(game, nodes) {
 
 /** 노드 → waiter | null(컷신 명령 아님) */
 export function makeWaiter(game, node) {
+  if ('darkSmoke' in node) return darkSmokeWaiter(game, node.darkSmoke);
+  if (node.nod) {
+    const entity = findEntity(game, node.nod); if (!entity) return done;
+    const duration = node.duration ?? 1.4, count = node.times ?? 3;
+    const oldSpin = entity.spin || 0, oldY = entity.flyY || 0;
+    let time = 0;
+    return { update(dt) {
+      time = Math.min(duration, time + dt);
+      const bend = Math.max(0, Math.sin(time / duration * count * Math.PI * 2));
+      entity.spin = oldSpin + bend * 0.055;
+      entity.flyY = oldY + Math.round(bend * (node.depth ?? 3));
+      if (time < duration) return false;
+      entity.spin = oldSpin; entity.flyY = oldY;
+      return true;
+    } };
+  }
   if (node.musicCamera) return new MusicCamera(game, node.musicCamera);
   if (node.wait !== undefined) return timer(node.wait);
   if (node.emerge) {

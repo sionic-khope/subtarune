@@ -1,0 +1,26 @@
+{
+  "source": "raw-sheet.png",
+  "source_size": [
+    1246,
+    1263
+  ],
+  "background": "RGB minimum >120 and channel range <25; alpha only",
+  "background_pixels": 1019477,
+  "x_boundaries": [
+    120,
+    365,
+    610,
+    855,
+    1100
+  ],
+  "y_boundaries": [
+    0,
+    316,
+    632,
+    932,
+    1263
+  ],
+  "repacked_cell": 352,
+  "resampling": "none",
+  "morphology": "none"
+}

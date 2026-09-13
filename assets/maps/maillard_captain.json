@@ -24,6 +24,10 @@
   "                           ",
   "                           "
  ],
+ "enter": {
+  "script": "captain_reveal",
+  "flag": "captain_reveal_started"
+ },
  "preload": [
   "assets/tiles/maillard_deck.png",
   "assets/props/captain_walls.png",
@@ -44,6 +48,40 @@
   "connected": true
  },
  "entities": [
+  {
+   "type": "npc",
+   "id": "captain_junhee",
+   "sprite": "junhee",
+   "x": 620,
+   "y": 244,
+   "facing": "right",
+   "wander": 0,
+   "unless": "captain_reveal_done"
+  },
+  {
+   "type": "npc",
+   "id": "captain_mankatsuki",
+   "sprite": "junhee_mankatsuki",
+   "x": 420,
+   "y": 270,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1.5,
+   "requires": "captain_reveal_done"
+  },
+  {
+   "type": "npc",
+   "id": "captain_shadow",
+   "sprite": "gajaeman_shadow",
+   "x": 324,
+   "y": 284,
+   "facing": "right",
+   "wander": 0,
+   "hidden": true,
+   "solid": false,
+   "visualScale": 1.89,
+   "unless": "captain_reveal_done"
+  },
   {
    "type": "prop",
    "id": "captain_walls",

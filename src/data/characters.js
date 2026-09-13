@@ -6,6 +6,9 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  gajaeman_shadow: { name: '가재맨', voice: 'gajaeman_shadow', palette: 'hero', sheet: 'assets/sprites/gajaeman_shadow.png', stillPivot: [32, 61] },
+  junhee_mankatsuki: { name: '만카츠키 쥰희', voice: 'junhee', palette: 'merchant', sheet: 'assets/sprites/junhee_mankatsuki.png', stillPivot: [32, 61] },
+  junhee_point: { name: '쥰희', voice: 'junhee', still: 'assets/sprites/junhee_point.png', stillScale: 0.77, stillPivot: [32, 61] },
   eunbyeol: { name: '김은별컴퍼니', voice: 'eunbyeol', sheet: 'assets/sprites/eunbyeol.png' },
   expelled_viewer: { name: '악질맨', voice: 'expelled_viewer', still: 'assets/sprites/expelled-viewer.png', stillScale: 0.8, stillPivot: [48, 88] },
   expelled_viewer_down: { name: '악질맨', voice: 'expelled_viewer', still: 'assets/sprites/expelled-viewer-down.png', stillScale: 0.8, stillPivot: [48, 88] },

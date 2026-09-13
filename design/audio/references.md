@@ -1,5 +1,22 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 선장실 컴퓨터 공개·만카츠키 (2026-09-13, BUILD125)
+
+사용자 지정 두 영상의 ID·제목·업로더를 yt-dlp 메타데이터로 확인하고 포맷251 오디오 전체를 받았다. `captain_reveal`은 [ANOTHER HIM — Toby Fox](https://www.youtube.com/watch?v=XEdoMoV4D6k), `captain_mankatsuki`는 [I'm Very Bad — Toby Fox](https://www.youtube.com/watch?v=_km4FuXOCbs)다. 둘 다2018-11-17 업로드 메타데이터이며 표시 길이는48초/14초다. 전체를 `ffmpeg -i <source.webm> -map_metadata -1 -c:a libmp3lame -q:a 2 <output.mp3>`로 변환했다. 잘라내기·피치·속도·페이드·음량 변경 없이0초부터 재생한다.
+
+| 통합 이름 / 경로 | 디코드 길이·규격 | 평균 / peak |
+|---|---|---|
+| `captain_reveal` / `assets/audio/bgm/captain_reveal.mp3` |48.000000초,48kHz 스테레오,1,061,996바이트|−17.7 / 0.0dBFS|
+| `captain_mankatsuki` / `assets/audio/bgm/captain_mankatsuki.mp3` |13.714292초,48kHz 스테레오,273,932바이트|−22.4 / −5.5dBFS|
+| `captain_thunder` / `assets/audio/sfx/captain_thunder.mp3` |1.772018초,44.1kHz 모노|−20.8 / −5.3dBFS|
+| `captain_transform` / `assets/audio/sfx/captain_transform.mp3` |3.000000초,44.1kHz 스테레오|−22.0 / −4.2dBFS|
+
+천둥 충격은 DELTARUNE [snd_punchheavythunder](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_punchheavythunder/snd_punchheavythunder), 변신은 같은 리비전의 룰스 등장 효과음 [snd_rurus_appear](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_rurus_appear/snd_rurus_appear.ogg)를 전체 길이·원래 높이/속도/게인으로 MP3 변환했다. 게임 원본 샘플 보관 저장소이며 배급사 공식 다운로드 페이지는 아니다. 원본은 `assets/source/captain125/audio/`에 보존한다. `snd_punchheavythunder`는 기존 대포 발사 원본 `snd_chargeshot_fire`와 바이트가 동일하지만 이번 파일에는 대포용 음높이·잔향·시간 가공을 적용하지 않았다. SFX 두 이름을 로더에 등록하여 해당 장면 시작에서 한 번 재생한다. 날아가는 형섭의 몸 충격에는 기존 `baron_slam`을 재사용한다(위 바론 육중한 공격 출처). 파티 검 타격음은 사용하지 않는다.
+
+검은 그림자 목소리 `assets/audio/voices/gajaeman_shadow.mp3`는 기존 `hyungsub.mp3`의 바이트 그대로 복사본이다. 기존 사용자 지정 [가재맨 ‘넌 나가라’](https://www.youtube.com/watch?v=gKmv51EG5co)11.36초의0.26초 게임 블립을 재사용하며 새 대사나 실존인물 음성을 합성하지 않는다. 기존 형섭의rate0.92보다 살짝 낮은 `VOICES.gajaeman_shadow.rate:0.86`, `level:0.72`, `cut:true`, `minGap:0.07`로 연결한다. 원본 파일 peak0dBFS는 보존하고 런타임 레벨로 낮춘다.
+
+모든 새 실행 파일 ffprobe 규격·길이 확인과 ffmpeg 전체 디코드 검사를 통과했다. 실제 게임 재생 연결 검증·주관적 청취 평가는 이 파일 검증과 구분한다. 체크섬·재현 명령은 `assets/source/captain125/audio/README.md`에 기록한다.
+
 ## 강퇴폐기창고 인물·쇼·전투 (2026-09-13, BUILD119)
 
 지정한 두 영상의 전체 음원을 사용한다. `bgm/storage_show.mp3`는 [Queen — Toby Fox](https://www.youtube.com/watch?v=6XQv5CHmITA)(56.749896초), `bgm/storage_battle.mp3`는 [Cyber Battle (Solo) — Toby Fox](https://www.youtube.com/watch?v=10yw5Q0mPPw)(107.52초)다. `yt-dlp --no-playlist -f '251/bestaudio' --write-info-json`으로 영상 ID/제목/업로더를 확인하고 오디오 전용 원본을 받았다. `ffmpeg -i <source.webm> -map_metadata -1 -c:a libmp3lame -q:a 2 <output.mp3>`로 전체를 변환했으며 잘라내기·피치·속도·페이드·음량 변경은 없다. 전투곡은 기존 전투 규칙대로0초·페이드인 없이 시작한다. 박수는 기존 `maillard_applause`를 재사용한다.

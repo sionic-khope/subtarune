@@ -33,6 +33,14 @@ export const maillard_captain_enter = Object.assign([
   { fade: 'out', duration: 0.25 },
   { map: 'maillard_captain', spawn: 'start' },
   { fade: 'in', duration: 0.25 },
+  { action: game => {
+    const finishEntry = game.dialogue.onEnd;
+    game.dialogue.onEnd = () => {
+      finishEntry?.();
+      if (game.flags.captain_reveal_done) game.sound.playBgm('captain_mankatsuki', { volume: 0.45 });
+      game.runMapEnter();
+    };
+  } },
   { label: 'end' },
   { end: true },
 ], { silent: true });

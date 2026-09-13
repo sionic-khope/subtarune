@@ -2,6 +2,7 @@
 // 대사 한 글자마다 0.1초짜리 블립이 울린다 — 화자마다 음색이 다르다.
 
 export const VOICES = {
+  gajaeman_shadow: { freq: 520, wave: 'square', dur: 0.14, jitter: 40, gain: 0.24, cutoff: 2800, rate: 0.86, level: 0.72, cut: true, minGap: 0.07 },
   // freq: 기본 음높이, dur: 한 글자 사운드 길이(초), wave: 파형
   default: { freq: 520, wave: 'square',   dur: 0.10, jitter: 24, gain: 0.256, cutoff: 2600 },
   hero:    { freq: 620, wave: 'square',   dur: 0.10, jitter: 30, gain: 0.24, cutoff: 3000 },

@@ -35,6 +35,7 @@ import { maillard_chakgeom, maillard_tarts, maillard_wemix } from './cutscenes/m
 import { maillard_spring, maillard_shop, maillard_statue_arms_crossed, maillard_statue_laugh, maillard_statue_gesture } from './cutscenes/maillard_lounge.js';
 import { maillard_storage_enter } from './cutscenes/maillard_rooms.js';
 import { maillard_eunbyeol, maillard_captain_enter } from './cutscenes/captain_room.js';
+import { captain_reveal } from './cutscenes/captain_reveal.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 
@@ -58,6 +59,7 @@ export const SCRIPTS = {
   maillard_spring, maillard_shop, maillard_statue_arms_crossed, maillard_statue_laugh, maillard_statue_gesture,
   maillard_storage_enter,
   maillard_eunbyeol, maillard_captain_enter,
+  captain_reveal,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,

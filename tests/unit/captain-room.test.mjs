@@ -14,6 +14,7 @@ function fixture() {
     ctx: { measureText: text => ({ width: [...text].length * 16 }) },
     sound: { sfx() {}, blip() {} },
     setFlag(key, value) { this.flags[key] = value; },
+    runMapEnter() {},
   };
   game.map = new TileMap(readMap('maillard_saloon'));
   game.entities = game.map.def.entities.map(def => new Entity(def, game));
@@ -144,7 +145,7 @@ test('captain room keeps timber floors, broad clear center and one return to the
   assert.deepEqual([tiles.pxW, tiles.pxH], [864, 576]);
   assert.equal(room.bgm, 'maillard_lounge');
   assert.equal(room.backdrop, undefined);
-  assert.equal(room.enter, undefined);
+  assert.equal(room.enter.script, 'captain_reveal');
   assert.equal(room.meta.connected, true);
   const exit = room.entities.find(e => e.type === 'door');
   assert.equal(exit.to, 'maillard_saloon');
