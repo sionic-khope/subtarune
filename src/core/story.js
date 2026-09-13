@@ -205,5 +205,5 @@ for (const [id, desc] of [
   ['maillard_captain', '마이야르호 선장실'],
 ]) {
   QA_POINTS.push({ ...maillardLoungeCheckpoint, id, desc, map: id, spawn: 'start',
-    flags: { ...maillardLoungeCheckpoint.flags, ...(id === 'maillard_captain' ? { shop_yongjun_cialis: true, shop_yongjun_vaseline: true } : {}) }, party: [...maillardLoungeCheckpoint.party] });
+    flags: { ...maillardLoungeCheckpoint.flags, ...((id === 'maillard_saloon' || id === 'maillard_captain') ? { shop_yongjun_cialis: true, shop_yongjun_vaseline: true } : {}) }, party: [...maillardLoungeCheckpoint.party] });
 }

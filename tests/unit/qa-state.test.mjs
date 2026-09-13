@@ -71,10 +71,10 @@ test('test_qa_state_examples_obj0_has_buff_bananas_key_and_money', () => {
   assert.deepEqual(early, { inventory: ['보라색 코드 ?'], money: 0, attack: 1, hpBonus: 0 });
 });
 
-test('test_qa_state_captain_and_later_points_include_purchased_upgrades_and_cost', () => {
-  const captainIndex = QA_POINTS.findIndex((point) => point.id === 'maillard_captain');
-  assert.ok(captainIndex >= 0);
-  for (const point of QA_POINTS.slice(captainIndex)) {
+test('test_qa_state_saloon_and_later_points_include_purchased_upgrades_and_cost', () => {
+  const saloonIndex = QA_POINTS.findIndex((point) => point.id === 'maillard_saloon');
+  assert.ok(saloonIndex >= 0);
+  for (const point of QA_POINTS.slice(saloonIndex)) {
     const beforePurchase = derive({ ...point, flags: { ...point.flags, shop_yongjun_cialis: false, shop_yongjun_vaseline: false } });
     const state = derive(point);
     assert.equal(point.flags.shop_yongjun_cialis, true, point.id);
@@ -86,10 +86,10 @@ test('test_qa_state_captain_and_later_points_include_purchased_upgrades_and_cost
   }
 });
 
-test('test_qa_state_before_captain_keeps_optional_shop_upgrades_unpurchased', () => {
-  const captainIndex = QA_POINTS.findIndex((point) => point.id === 'maillard_captain');
-  assert.ok(captainIndex >= 0);
-  for (const point of QA_POINTS.slice(0, captainIndex)) {
+test('test_qa_state_before_saloon_keeps_optional_shop_upgrades_unpurchased', () => {
+  const saloonIndex = QA_POINTS.findIndex((point) => point.id === 'maillard_saloon');
+  assert.ok(saloonIndex >= 0);
+  for (const point of QA_POINTS.slice(0, saloonIndex)) {
     assert.equal(!!point.flags?.shop_yongjun_cialis, false, point.id);
     assert.equal(!!point.flags?.shop_yongjun_vaseline, false, point.id);
   }
