@@ -37,7 +37,7 @@ export const youngcle_intro = Object.assign([
   } },
   partyAt(264),
   { face: 'player', dir: 'up' }, { face: 'gyeongsub', dir: 'right' }, { face: 'ppaman', dir: 'left' },
-  P('와 여기가 훨빠 좋네 씨바 ㅋㅋ 저 좆같은 배 버리자.'),
+  P('와 여기가 훨빠 좋네 씨바 ㅋㅋ\n저 좆같은 배 버리자.'),
   close,
   { parallel: [JID, 'gyeongsub'].map(id => ({ emote: id, kind: 'stamp', labelText: '...', color: '#fff', size: 16, offsetY: -12, duration: 1.2, hold: 1 })) },
   G('어 빠맨아 일단 방금말은 사과해야할거같아'),
