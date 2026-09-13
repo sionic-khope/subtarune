@@ -1,24 +1,27 @@
 {
  "id": "youngcle3",
- "name": "영클 공장 압력실",
+ "name": "영클 공장 화물 연습실",
  "stage": "void_fallen",
  "bgm": "youngcle_factory",
  "backdrop": "youngcle_factory",
  "dim": 0.08,
+ "enter": {
+  "script": "youngcle3_crate_intro"
+ },
  "rows": [
   "!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!",
   "JJJJJJJJJJJJJJJJJJ",
   "JIIIIIIIIIIIIIIIIJ",
   "JIIIIIIIIIIIIIIIIJ",
   "JIIIIIIIIIIIIIIIIJ",
   "JIIIIIIIIIIIIIIIIJ",
   "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
   "JJJJJJJJJJJJJJJJJJ",
-  "!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!",
@@ -31,38 +34,46 @@
  ],
  "spawns": {
   "start": {
-   "x": 96,
-   "y": 248,
+   "x": 80,
+   "y": 280,
    "facing": "right"
   },
   "left": {
-   "x": 96,
-   "y": 248,
+   "x": 80,
+   "y": 280,
    "facing": "right"
   },
   "right": {
-   "x": 480,
-   "y": 248,
+   "x": 496,
+   "y": 280,
    "facing": "left"
   }
  },
  "meta": {
   "connected": true,
   "puzzle": "crate",
+  "difficulty": "tutorial",
   "pushes": 3,
-  "crateStart": [
-   192,
-   242
+  "solution": [
+   "R",
+   "R",
+   "U"
   ],
-  "plate": [
-   288,
-   240
+  "crateStart": [
+   194,
+   290
+  ],
+  "plates": [
+   [
+    256,
+    256
+   ]
   ],
   "gate": [
-   416,
-   192,
+   448,
+   160,
    24,
-   160
+   224
   ]
  },
  "entities": [
@@ -70,9 +81,9 @@
    "type": "door",
    "id": "youngcle3_left",
    "x": 32,
-   "y": 204,
+   "y": 172,
    "w": 16,
-   "h": 136,
+   "h": 200,
    "to": "youngcle2",
    "spawn": "top",
    "sfx": false,
@@ -82,7 +93,7 @@
    "type": "factory_rail",
    "id": "youngcle3_rail_top",
    "x": 32,
-   "y": 192,
+   "y": 160,
    "w": 512,
    "h": 12
   },
@@ -90,79 +101,96 @@
    "type": "factory_rail",
    "id": "youngcle3_rail_bottom",
    "x": 32,
-   "y": 340,
+   "y": 384,
    "w": 512,
    "h": 12
   },
   {
+   "type": "factory_sign",
+   "id": "youngcle3_sign",
+   "x": 96,
+   "y": 208,
+   "label": "상자",
+   "icon": "!",
+   "script": "youngcle3_crate_sign"
+  },
+  {
+   "type": "factory_console",
+   "id": "youngcle3_console",
+   "puzzle": "youngcle3_crate",
+   "flag": "youngcle3_crate_solved",
+   "x": 96,
+   "y": 328,
+   "resetCrates": true,
+   "script": "youngcle_crate_reset",
+   "solvedScript": "youngcle_crate_done"
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle3_bulkhead",
+   "x": 288,
+   "y": 288,
+   "w": 32,
+   "h": 64
+  },
+  {
    "type": "factory_wire",
    "id": "youngcle3_wire",
-   "puzzle": "crate",
+   "puzzle": "youngcle3_crate",
    "flag": "youngcle3_crate_solved",
    "points": [
     [
-     304,
-     256
+     272,
+     272
     ],
     [
      368,
-     256
+     272
     ],
     [
      368,
-     208
+     176
     ],
     [
-     416,
-     208
+     448,
+     176
     ]
    ]
   },
   {
    "type": "factory_plate",
    "id": "youngcle3_plate",
-   "puzzle": "crate",
+   "puzzle": "youngcle3_crate",
    "flag": "youngcle3_crate_solved",
-   "x": 288,
-   "y": 240
+   "x": 256,
+   "y": 256
   },
   {
    "type": "factory_crate",
    "id": "youngcle3_crate",
-   "puzzle": "crate",
+   "puzzle": "youngcle3_crate",
    "flag": "youngcle3_crate_solved",
-   "x": 192,
-   "y": 242,
-   "solvedX": 290,
-   "solvedY": 242
-  },
-  {
-   "type": "factory_console",
-   "id": "youngcle3_console",
-   "puzzle": "crate",
-   "flag": "youngcle3_crate_solved",
-   "x": 128,
-   "y": 200,
-   "resetCrate": true,
-   "script": "youngcle_crate_controls",
-   "solvedScript": "youngcle_crate_done"
+   "x": 194,
+   "y": 290,
+   "solvedX": 258,
+   "solvedY": 258
   },
   {
    "type": "factory_gate",
    "id": "youngcle3_gate",
    "flag": "youngcle3_crate_solved",
-   "x": 416,
-   "y": 192,
+   "x": 448,
+   "y": 160,
    "w": 24,
-   "h": 160
+   "h": 224
   },
   {
    "type": "door",
    "id": "youngcle3_right",
    "x": 528,
-   "y": 204,
+   "y": 172,
    "w": 16,
-   "h": 136,
+   "h": 200,
    "to": "youngcle4",
    "spawn": "left",
    "sfx": false,

@@ -22,119 +22,285 @@ const makeGame = (data, flags = {}) => {
   return { game, sounds, scripts };
 };
 
-test('test_youngcle2_route_has_one_bend_and_connected_factory_doors', () => {
-  const map2 = readMap('youngcle2'), map3 = readMap('youngcle3'), map4 = readMap('youngcle4');
+const push = (game, crate, direction) => {
+  const positions = {
+    left: [crate.x + crate.w, crate.y + 6],
+    right: [crate.x - game.player.w, crate.y + 6],
+    up: [crate.x + 2, crate.y + crate.h],
+    down: [crate.x + 2, crate.y - game.player.h],
+  };
+  [game.player.x, game.player.y] = positions[direction];
+  crate.update(1 / 60, { down: name => name === direction });
+  assert.ok(crate.slide, `${crate.id} should move ${direction}`);
+  crate.update(0.14, { down: () => false });
+  crate.update(0.08, { down: () => false });
+};
+
+const minimumPushes = (data) => {
+  const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const blocked = new Set();
+  for (let row = 0; row < data.rows.length; row += 1) {
+    for (let col = 0; col < data.rows[row].length; col += 1) {
+      if (data.rows[row][col] !== 'I') blocked.add(`${col},${row}`);
+    }
+  }
+  for (const entity of data.entities.filter(({ type }) => ['factory_bulkhead', 'factory_console', 'factory_sign', 'factory_gate'].includes(type))) {
+    for (let row = 0; row < data.rows.length; row += 1) {
+      for (let col = 0; col < data.rows[row].length; col += 1) {
+        const [cx, cy] = [col * 32 + 16, row * 32 + 16];
+        if (cx >= entity.x && cx < entity.x + entity.w && cy >= entity.y && cy < entity.y + entity.h) blocked.add(`${col},${row}`);
+      }
+    }
+  }
+  const crates = data.entities.filter(({ type }) => type === 'factory_crate')
+    .map(({ x, y }) => [Math.floor((x + 14) / 32), Math.floor((y + 14) / 32)]);
+  const targets = new Set(data.entities.filter(({ type }) => type === 'factory_plate')
+    .map(({ x, y }) => `${Math.floor((x + 16) / 32)},${Math.floor((y + 16) / 32)}`));
+  const spawn = data.spawns.left;
+  const start = [Math.floor((spawn.x + 12) / 32), Math.floor((spawn.y + 8) / 32)];
+  const states = [{ player: start, crates, pushes: 0 }];
+  const seen = new Set();
+  while (states.length) {
+    const state = states.shift();
+    const crateKeys = new Set(state.crates.map(([x, y]) => `${x},${y}`));
+    const stateKey = `${state.player.join(',')}|${[...crateKeys].sort().join(';')}`;
+    if (seen.has(stateKey)) continue;
+    seen.add(stateKey);
+    if ([...targets].every(target => crateKeys.has(target))) return state.pushes;
+    const reachable = new Set([state.player.join(',')]);
+    const walk = [state.player];
+    while (walk.length) {
+      const [x, y] = walk.shift();
+      for (const [dx, dy] of directions) {
+        const next = `${x + dx},${y + dy}`;
+        if (blocked.has(next) || crateKeys.has(next) || reachable.has(next)) continue;
+        reachable.add(next);
+        walk.push([x + dx, y + dy]);
+      }
+    }
+    for (let index = 0; index < state.crates.length; index += 1) {
+      const [x, y] = state.crates[index];
+      for (const [dx, dy] of directions) {
+        const stand = `${x - dx},${y - dy}`;
+        const destination = `${x + dx},${y + dy}`;
+        if (!reachable.has(stand) || blocked.has(destination) || crateKeys.has(destination)) continue;
+        const nextCrates = state.crates.map((crate, crateIndex) => crateIndex === index ? [x + dx, y + dy] : crate);
+        states.push({ player: [x, y], crates: nextCrates, pushes: state.pushes + 1 });
+      }
+    }
+  }
+  return null;
+};
+
+test('test_factory_route_connects_three_crate_rooms_and_keeps_factory_surface', () => {
+  // Arrange
+  const map2 = readMap('youngcle2');
+  const rooms = ['youngcle3', 'youngcle4', 'youngcle5'].map(readMap);
+
+  // Act
+  const exits = rooms.map(data => data.entities.find(entity => entity.id === `${data.id}_right`)?.to ?? null);
+
+  // Assert
   assert.deepEqual([map2.rows[0].length * 32, map2.rows.length * 32], [576, 960]);
   assert.deepEqual(map2.meta.route, [[3, 24], [10, 24], [10, 3]]);
-  assert.deepEqual(map2.entities.find(entity => entity.id === 'youngcle2_left'), {
-    type: 'door', id: 'youngcle2_left', x: 32, y: 716, w: 16, h: 136,
-    to: 'youngcle1', spawn: 'right', sfx: false, interact: false,
-  });
   assert.equal(map2.entities.find(entity => entity.id === 'youngcle2_top').to, 'youngcle3');
-  assert.equal(map3.entities.find(entity => entity.id === 'youngcle3_right').to, 'youngcle4');
-  assert.equal(map4.entities.some(entity => entity.type === 'door' && entity.to !== 'youngcle3'), false);
-  assert.ok(map2.rows.join('').includes('!'));
-  assert.ok(map3.rows.join('').includes('!'));
-  assert.ok(map4.rows.join('').includes('!'));
-  for (const data of [map2, map3, map4]) {
-    assert.ok(data.entities.some(entity => entity.type === 'factory_rail'));
-    assert.ok(data.entities.filter(entity => entity.type === 'door').every(entity => entity.sfx === false && entity.interact === false));
-  }
-  for (const data of [map2, map3, map4]) {
+  assert.deepEqual(exits, ['youngcle4', 'youngcle5', null]);
+  for (const data of rooms) {
     assert.equal(data.bgm, 'youngcle_factory');
     assert.equal(data.backdrop, 'youngcle_factory');
-    assert.ok(data.preload.includes('assets/backdrops/youngcle_factory.png'));
+    assert.equal(data.meta.puzzle, 'crate');
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_sign').length, 1);
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_console').length, 1);
+    assert.ok(data.entities.some(entity => entity.type === 'factory_bulkhead'));
+    assert.ok(data.entities.filter(entity => entity.type === 'door').every(entity => entity.sfx === false && entity.interact === false));
   }
 });
 
-test('test_crate_three_directional_pushes_open_gate_and_persist_solution', () => {
+test('test_reusable_circuit_entities_still_complete_when_every_plate_is_aligned', () => {
+  // Arrange
+  const data = {
+    id: 'circuit_fixture', rows: Array.from({ length: 8 }, () => 'IIIIIIII'),
+    entities: [
+      { type: 'factory_circuit', id: 'circuit_a', puzzle: 'fixture', flag: 'fixture_solved', x: 64, y: 64, orientation: 1, solution: 0 },
+      { type: 'factory_circuit', id: 'circuit_b', puzzle: 'fixture', flag: 'fixture_solved', x: 128, y: 64, orientation: 1, solution: 0, poweredBy: ['circuit_a'] },
+      { type: 'factory_wire', id: 'fixture_wire', puzzle: 'fixture', flag: 'fixture_solved', poweredBy: ['circuit_a', 'circuit_b'], points: [[32, 80], [192, 80]] },
+      { type: 'factory_gate', id: 'fixture_gate', flag: 'fixture_solved', x: 192, y: 32, w: 24, h: 160 },
+    ],
+  };
+  const { game, sounds } = makeGame(data);
+  const first = game.entities.find(entity => entity.id === 'circuit_a');
+  const second = game.entities.find(entity => entity.id === 'circuit_b');
+  const wire = game.entities.find(entity => entity.id === 'fixture_wire');
+  const gate = game.entities.find(entity => entity.id === 'fixture_gate');
+
+  // Act
+  first.interact();
+  second.interact();
+  gate.update();
+
+  // Assert
+  assert.equal(game.flags.fixture_solved, true);
+  assert.equal(wire.isLit(), true);
+  assert.equal(gate.solid, false);
+  assert.deepEqual(sounds, ['click', 'click', 'chime']);
+});
+
+test('test_factory_solutions_include_player_walkaround_and_match_difficulty_push_counts', () => {
+  // Arrange
+  const expected = { youngcle3: 3, youngcle4: 6, youngcle5: 16 };
+
+  // Act
+  const pushes = Object.fromEntries(Object.keys(expected).map(id => [id, minimumPushes(readMap(id))]));
+
+  // Assert
+  assert.deepEqual(pushes, expected);
+});
+
+test('test_tutorial_crate_requires_three_push_l_route_before_gate_opens', () => {
+  // Arrange
   const data = readMap('youngcle3');
   const { game, sounds } = makeGame(data);
   const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
   const gate = game.entities.find(entity => entity.id === 'youngcle3_gate');
-  const right = { down: name => name === 'right' };
-  const idle = { down: () => false };
-  for (let push = 0; push < 3; push++) {
-    game.player.x = crate.x - game.player.w;
-    game.player.y = crate.y + 6;
-    crate.update(1 / 60, right);
-    assert.ok(crate.slide);
-    crate.update(0.14, right);
-    crate.update(0.08, idle);
-  }
+
+  // Act
+  for (const direction of ['right', 'right', 'up']) push(game, crate, direction);
   gate.update();
+
+  // Assert
+  assert.deepEqual([crate.x, crate.y], [258, 258]);
   assert.equal(game.flags.youngcle3_crate_solved, true);
   assert.equal(gate.solid, false);
   assert.equal(sounds.filter(name => name === 'scrape').length, 3);
   assert.equal(game.saved, 1);
-
-  const restored = makeGame(data, { youngcle3_crate_solved: true }).game;
-  const restoredCrate = restored.entities.find(entity => entity.id === 'youngcle3_crate');
-  assert.deepEqual([restoredCrate.x, restoredCrate.y], [290, 242]);
-  assert.equal(restored.entities.find(entity => entity.id === 'youngcle3_gate').solid, false);
 });
 
-test('test_crate_console_resets_only_unfinished_room_state', () => {
-  const data = readMap('youngcle3');
-  const { game, scripts } = makeGame(data);
-  const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
-  const consoleEntity = game.entities.find(entity => entity.id === 'youngcle3_console');
-  game.player.x = crate.x - game.player.w;
-  game.player.y = crate.y + 6;
-  crate.update(1 / 60, { down: name => name === 'right' });
-  crate.update(0.14, { down: () => false });
-  assert.equal(crate.x, 224);
-  game.player.x = 194;
-  game.player.y = 244;
-  consoleEntity.interact();
-  assert.deepEqual([crate.x, crate.y], [192, 242]);
-  assert.equal(crate.overlaps(game.player.rect), false);
-  assert.deepEqual(scripts, ['youngcle_crate_controls']);
-  assert.equal(game.flags.youngcle3_crate_solved, undefined);
-});
-
-test('test_two_circuit_rotations_light_path_and_deactivate_plasma_gate', () => {
+test('test_medium_crate_requires_six_push_route_around_bulkhead', () => {
+  // Arrange
   const data = readMap('youngcle4');
-  const { game, sounds } = makeGame(data);
-  const first = game.entities.find(entity => entity.id === 'youngcle4_circuit_a');
-  const second = game.entities.find(entity => entity.id === 'youngcle4_circuit_b');
+  const { game } = makeGame(data);
+  const crate = game.entities.find(entity => entity.id === 'youngcle4_crate');
   const gate = game.entities.find(entity => entity.id === 'youngcle4_gate');
-  const sourceWire = game.entities.find(entity => entity.id === 'youngcle4_wire_source');
-  const middleWire = game.entities.find(entity => entity.id === 'youngcle4_wire_middle');
-  const breakerWire = game.entities.find(entity => entity.id === 'youngcle4_wire_breaker');
-  assert.equal(sourceWire.isLit(), true);
-  assert.equal(middleWire.isLit(), false);
-  assert.equal(breakerWire.isLit(), false);
-  first.interact();
-  assert.equal(first.orientation, 0);
-  assert.equal(game.flags.youngcle4_circuit_solved, undefined);
-  assert.equal(second.powered(), true);
-  assert.equal(middleWire.isLit(), true);
-  assert.equal(breakerWire.isLit(), false);
-  second.interact();
+
+  // Act
+  for (const direction of ['right', 'right', 'up', 'up', 'right', 'right']) push(game, crate, direction);
   gate.update();
+
+  // Assert
+  assert.deepEqual([crate.x, crate.y], [322, 226]);
   assert.equal(game.flags.youngcle4_circuit_solved, true);
   assert.equal(gate.solid, false);
-  assert.equal(breakerWire.isLit(), true);
-  assert.deepEqual(sounds, ['click', 'click', 'chime']);
-  assert.equal(game.saved, 1);
-
-  const restored = makeGame(data, { youngcle4_circuit_solved: true }).game;
-  assert.ok(restored.entities.filter(entity => entity.def.type === 'factory_circuit')
-    .every(entity => entity.orientation === entity.solution));
-  assert.equal(restored.entities.find(entity => entity.id === 'youngcle4_gate').solid, false);
 });
 
-test('test_factory_qa_checkpoints_preserve_derived_inventory_money_and_buffs', () => {
+test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
+  // Arrange
+  const data = readMap('youngcle5');
+  const { game } = makeGame(data);
+  const crateA = game.entities.find(entity => entity.id === 'youngcle5_crate_a');
+  const crateB = game.entities.find(entity => entity.id === 'youngcle5_crate_b');
+  const gate = game.entities.find(entity => entity.id === 'youngcle5_gate');
+
+  // Act: park A below the shared lane, send B through, then route A through the lower opening.
+  push(game, crateA, 'right');
+  push(game, crateA, 'down');
+  for (let count = 0; count < 5; count += 1) push(game, crateB, 'right');
+  assert.equal(game.flags.youngcle5_crate_solved, undefined);
+  push(game, crateA, 'down');
+  for (let count = 0; count < 6; count += 1) push(game, crateA, 'right');
+  for (let count = 0; count < 2; count += 1) push(game, crateB, 'up');
+  gate.update();
+
+  // Assert
+  assert.deepEqual([crateA.x, crateA.y], [386, 322]);
+  assert.deepEqual([crateB.x, crateB.y], [386, 194]);
+  assert.equal(game.flags.youngcle5_crate_solved, true);
+  assert.equal(gate.solid, false);
+  assert.equal(game.saved, 1);
+});
+
+test('test_reset_console_restores_every_unsolved_crate_without_trapping_party', () => {
+  // Arrange
+  const data = readMap('youngcle5');
+  const { game, scripts } = makeGame(data);
+  const crateA = game.entities.find(entity => entity.id === 'youngcle5_crate_a');
+  const crateB = game.entities.find(entity => entity.id === 'youngcle5_crate_b');
+  const consoleEntity = game.entities.find(entity => entity.id === 'youngcle5_console');
+  push(game, crateA, 'right');
+  push(game, crateA, 'down');
+  push(game, crateB, 'right');
+  game.player.x = crateA.start[0];
+  game.player.y = crateA.start[1];
+
+  // Act
+  consoleEntity.interact();
+
+  // Assert
+  assert.deepEqual([crateA.x, crateA.y], crateA.start);
+  assert.deepEqual([crateB.x, crateB.y], crateB.start);
+  assert.ok([crateA, crateB].every(crate => !crate.overlaps(game.player.rect)));
+  assert.deepEqual(scripts, ['youngcle_crate_reset']);
+  assert.equal(game.flags.youngcle5_crate_solved, undefined);
+});
+
+test('test_old_factory_flags_restore_new_crate_layouts_as_solved', () => {
+  // Arrange
+  const cases = [
+    ['youngcle3', 'youngcle3_crate_solved'],
+    ['youngcle4', 'youngcle4_circuit_solved'],
+  ];
+
+  for (const [id, flag] of cases) {
+    // Act
+    const game = makeGame(readMap(id), { [flag]: true }).game;
+    const crates = game.entities.filter(entity => entity.def.type === 'factory_crate');
+    const plates = game.entities.filter(entity => entity.def.type === 'factory_plate');
+
+    // Assert
+    assert.ok(plates.every(plate => crates.some(crate => plate.contains(crate))), id);
+    assert.equal(game.entities.find(entity => entity.id === `${id}_gate`).solid, false);
+  }
+});
+
+test('test_factory_signs_open_readable_scripts', () => {
+  // Arrange
+  const expected = {
+    youngcle3: 'youngcle3_crate_sign',
+    youngcle4: 'youngcle4_crate_sign',
+    youngcle5: 'youngcle5_crate_sign',
+  };
+
+  for (const [id, script] of Object.entries(expected)) {
+    const { game, scripts } = makeGame(readMap(id));
+    const sign = game.entities.find(entity => entity.def.type === 'factory_sign');
+
+    // Act
+    const handled = sign.interact();
+
+    // Assert
+    assert.equal(handled, true);
+    assert.deepEqual(scripts, [script]);
+  }
+});
+
+test('test_factory_qa_checkpoints_preserve_prior_solutions_and_derived_state', () => {
+  // Arrange
   const base = QA_POINTS.find(point => point.id === 'youngcle1');
-  for (const id of ['youngcle2', 'youngcle3', 'youngcle4']) {
+  const expectedFlags = {
+    youngcle3: {},
+    youngcle4: { youngcle3_crate_solved: true },
+    youngcle5: { youngcle3_crate_solved: true, youngcle4_circuit_solved: true },
+  };
+
+  // Act / Assert
+  for (const [id, priorFlags] of Object.entries(expectedFlags)) {
     const point = QA_POINTS.find(candidate => candidate.id === id);
     assert.ok(point);
     assert.deepEqual(point.party, base.party);
     assert.deepEqual(stateFromFlags(point.flags), stateFromFlags({
       ...base.flags,
       youngcle_intro_done: true,
-      ...(id === 'youngcle4' ? { youngcle3_crate_solved: true } : {}),
+      ...priorFlags,
     }));
+    for (const [flag, value] of Object.entries(priorFlags)) assert.equal(point.flags[flag], value);
   }
 });

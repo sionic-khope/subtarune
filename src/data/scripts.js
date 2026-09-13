@@ -45,6 +45,14 @@ import { shipPursuitBacktrack } from './scripts/ship-pursuit.js';
 import { youngcle_intro, youngcle_tv_off, youngcle_left_door_locked } from './cutscenes/youngcle_intro.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
+import {
+  youngcle3_crate_intro,
+  youngcle3_crate_sign,
+  youngcle4_crate_sign,
+  youngcle5_crate_sign,
+  youngcle_crate_done,
+  youngcle_crate_reset,
+} from './cutscenes/factory_puzzles.js';
 
 /**
  * 형섭 대사 vs 나레이션 (2026-09-10 확정)
@@ -79,9 +87,12 @@ export const SCRIPTS = {
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,
   chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
 
-  youngcle_crate_controls: [{ text: '* 철 상자를 처음 자리로 돌렸다.\n* 방향키로 밀어 발판에 올린다.', voice: 'narrator' }],
-  youngcle_crate_done: [{ text: '* 제어문은 이미 열려 있다.', voice: 'narrator' }],
-  youngcle_circuit_controls: [{ text: '* 회로판 앞에서 C를 눌러 선을 돌린다.', voice: 'narrator' }],
+  youngcle3_crate_intro,
+  youngcle3_crate_sign,
+  youngcle4_crate_sign,
+  youngcle5_crate_sign,
+  youngcle_crate_done,
+  youngcle_crate_reset,
 
   _chest_empty: [{ text: '* 상자는 비어 있다.', voice: 'narrator' }],
 

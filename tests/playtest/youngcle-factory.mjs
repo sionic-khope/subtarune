@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
-const shots = process.env.SHOT_DIR || '/tmp/youngcle-factory143';
+const shots = process.env.SHOT_DIR || '/tmp/youngcle-factory144';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -21,7 +21,7 @@ page.on('console', message => {
   if (message.type() === 'error' && !message.text().includes('Failed to load resource')) errors.push(message.text());
 });
 page.on('response', response => {
-  if (response.status() >= 400 && /youngcle_factory|youngcle[234]\.json/.test(response.url())) {
+  if (response.status() >= 400 && /youngcle_factory|youngcle[2345]\.json|factory-puzzle-art/.test(response.url())) {
     factoryResourceErrors.push(`${response.status()} ${response.url()}`);
   }
 });
@@ -29,167 +29,159 @@ page.on('response', response => {
 async function walkTo(x, y) {
   for (const [axis, target, positive, negative] of [['x', x, 'ArrowRight', 'ArrowLeft'], ['y', y, 'ArrowDown', 'ArrowUp']]) {
     const current = await page.evaluate(key => game.player[key], axis);
-    if (Math.abs(current - target) < 6) continue;
+    if (Math.abs(current - target) < 5) continue;
     const key = current < target ? positive : negative;
     await page.keyboard.down(key);
     try {
       await page.waitForFunction(({ axis: keyAxis, target: goal, increasing }) =>
-        increasing ? game.player[keyAxis] >= goal : game.player[keyAxis] <= goal,
-      { axis, target, increasing: current < target }, { timeout: 12000 });
+        increasing ? game.player[keyAxis] >= goal - 3 : game.player[keyAxis] <= goal + 3,
+      { axis, target, increasing: current < target }, { timeout: 8000 });
     } finally {
       await page.keyboard.up(key);
     }
   }
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(100);
 }
 
-async function captureBreakpoints(mapId, spawn) {
-  await page.evaluate(({ id, at }) => game.changeMap(id, at, true, { enter: false }), { id: mapId, at: spawn });
-  for (const [width, height] of [[375, 812], [768, 900], [1280, 900]]) {
-    await page.setViewportSize({ width, height });
-    await page.waitForTimeout(100);
-    await shot(`${mapId}-${width}`);
+async function pushOnce(crateId, direction) {
+  const key = { right: 'ArrowRight', left: 'ArrowLeft', up: 'ArrowUp', down: 'ArrowDown' }[direction];
+  const before = await page.evaluate(id => {
+    const crate = game.entities.find(entity => entity.id === id);
+    return [crate.x, crate.y];
+  }, crateId);
+  await page.keyboard.down(key);
+  try {
+    await page.waitForFunction(({ id, start }) => {
+      const crate = game.entities.find(entity => entity.id === id);
+      return crate.slide || crate.x !== start[0] || crate.y !== start[1];
+    }, { id: crateId, start: before }, { timeout: 3000 });
+  } finally {
+    await page.keyboard.up(key);
   }
+  await page.waitForFunction(id => !game.entities.find(entity => entity.id === id).slide, crateId);
+  await page.waitForTimeout(120);
+  const after = await page.evaluate(id => {
+    const crate = game.entities.find(entity => entity.id === id);
+    return [Math.round(crate.x), Math.round(crate.y)];
+  }, crateId);
+  check(`${crateId} ${direction} moves exactly one tile`, Math.abs(after[0] - before[0]) + Math.abs(after[1] - before[1]) === 32, { before, after });
 }
 
-async function captureControls(width, height) {
-  await page.setViewportSize({ width, height });
-  await page.evaluate(async () => {
-    const { QA_POINTS } = await import('/src/core/story.js');
-    game.devJump(QA_POINTS.find(point => point.id === 'youngcle3'));
-  });
-  await page.waitForFunction(() => game.mapId === 'youngcle3' && !game.transitioning);
-  await walkTo(132, 236);
-  await page.keyboard.press('ArrowUp', { delay: 30 });
-  await page.keyboard.press('KeyC');
-  await page.waitForFunction(() => game.dialogue.running);
+async function settleDialogueLine() {
+  await page.waitForFunction(() => game.dialogue.running && game.textbox.node?.text);
   await page.keyboard.press('KeyX');
   await page.waitForFunction(() => game.textbox.state === 'waiting');
-  check(`settled crate controls are visible at ${width}px`,
-    await page.evaluate(() => game.textbox.node?.text.includes('방향키')));
-  await shot(`crate-controls-${width}`);
+  const text = await page.evaluate(() => game.textbox.node.text);
   await page.keyboard.press('KeyC');
-  await page.waitForFunction(() => !game.dialogue.running);
+  await page.waitForTimeout(120);
+  return text;
+}
+
+async function probeClosedGate(mapId, spawn) {
+  await page.evaluate(({ map, at }) => game.changeMap(map, at, true, { enter: false }), { map: mapId, at: spawn });
+  await page.waitForFunction(id => game.mapId === id && !game.transitioning, mapId);
+  const results = [];
+  for (const y of [176, 272, 352]) {
+    await page.evaluate(targetY => { game.player.x = 416; game.player.y = targetY; }, y);
+    await page.keyboard.down('ArrowRight');
+    await page.waitForTimeout(350);
+    await page.keyboard.up('ArrowRight');
+    results.push(await page.evaluate(() => Math.round(game.player.x)));
+  }
+  return results;
 }
 
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8793'}/?qa=youngcle2`);
-  await page.waitForFunction(() => game?.player && game.mapId === 'youngcle2' && !game.transitioning);
-  await page.waitForTimeout(500);
-  const arrival = await page.evaluate(() => game.entities
-    .filter(entity => entity === game.player || entity.def.type === 'follower')
-    .map(entity => [Math.round(entity.x), Math.round(entity.y)]));
-  check('youngcle2 arrival separates the three-person party on the lower landing',
-    new Set(arrival.map(point => point.join(','))).size === 3, arrival);
-  check('factory BGM starts on the first factory map',
-    await page.evaluate(() => game.sound.bgmName === 'youngcle_factory'));
+  await page.goto(`${process.env.BASE_URL || 'http://localhost:8793'}/?qa=youngcle3`);
+  await page.waitForFunction(() => game?.player && game.mapId === 'youngcle3' && !game.transitioning);
   await page.evaluate(() => { window.__factoryBgm = game.sound.bgm; });
-  await shot('01-youngcle2-lower-arrival');
-  await walkTo(304, 784);
-  await shot('02-youngcle2-bend');
-  await page.keyboard.down('ArrowUp');
-  await page.waitForFunction(() => game.mapId === 'youngcle3' && !game.transitioning, { timeout: 15000 });
-  await page.keyboard.up('ArrowUp');
-  check('one-bend catwalk progresses upward into youngcle3 without C',
-    await page.evaluate(() => game.mapId === 'youngcle3'));
-  check('factory BGM continues without a new audio element',
-    await page.evaluate(() => game.sound.bgm === window.__factoryBgm));
-  await shot('03-youngcle3-unsolved');
-
-  await walkTo(132, 236);
-  await page.keyboard.press('ArrowUp', { delay: 30 });
-  await page.keyboard.press('KeyC');
-  await page.waitForFunction(() => game.dialogue.running);
-  check('crate console explains direction controls through the standard dialogue box',
-    await page.evaluate(() => game.textbox.node?.text.includes('방향키')));
-  await page.keyboard.press('KeyX');
-  await page.waitForFunction(() => game.textbox.state === 'waiting');
-  await shot('04-crate-controls');
-  await page.keyboard.press('KeyC');
+  const intro = [await settleDialogueLine(), await settleDialogueLine(), await settleDialogueLine()];
   await page.waitForFunction(() => !game.dialogue.running);
+  check('first entry explains the marked target and direction-key push',
+    intro.some(text => text.includes('표시된 데')) && intro.some(text => text.includes('방향키')), intro);
+  check('tutorial intro records a one-time flag', await page.evaluate(() => game.flags.youngcle3_crate_intro_seen === true));
+  await shot('01-tutorial-intro-complete');
 
-  await walkTo(166, 248);
+  const closed3 = await probeClosedGate('youngcle3', 'left');
+  check('tutorial gate blocks top middle and bottom lanes while unsolved', closed3.every(x => x < 430), closed3);
+  await page.evaluate(() => game.changeMap('youngcle3', 'left', true, { enter: false }));
+  await page.waitForFunction(() => game.mapId === 'youngcle3' && !game.transitioning);
+  await walkTo(160, 296);
+  await pushOnce('youngcle3_crate', 'right');
+  await pushOnce('youngcle3_crate', 'right');
+  await walkTo(220, 344);
+  await walkTo(260, 344);
+  await pushOnce('youngcle3_crate', 'up');
+  check('tutorial R R U solve opens its gate', await page.evaluate(() => game.flags.youngcle3_crate_solved && !game.entities.find(entity => entity.id === 'youngcle3_gate').solid));
+  await shot('02-tutorial-solved');
+
+  await walkTo(220, 360);
+  await walkTo(400, 360);
   await page.keyboard.down('ArrowRight');
-  await page.waitForFunction(() => game.entities.find(entity => entity.id === 'youngcle3_crate').slide);
-  await page.waitForTimeout(65);
-  await shot('05-crate-mid-slide');
-  await page.waitForFunction(() => game.flags.youngcle3_crate_solved, { timeout: 5000 });
+  await page.waitForFunction(() => game.mapId === 'youngcle4' && !game.transitioning, { timeout: 8000 });
   await page.keyboard.up('ArrowRight');
-  const crateSolved = await page.evaluate(() => {
-    const crate = game.entities.find(entity => entity.id === 'youngcle3_crate');
-    const plate = game.entities.find(entity => entity.id === 'youngcle3_plate');
-    const gate = game.entities.find(entity => entity.id === 'youngcle3_gate');
-    return { crate: [Math.round(crate.x), Math.round(crate.y)], plate: [plate.x, plate.y],
-      gateSolid: gate.solid, saved: JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)).flags.youngcle3_crate_solved };
-  });
-  check('three held-direction pushes place the cross-braced crate on the plate and open the full gate',
-    crateSolved.crate[0] === 288 && crateSolved.gateSolid === false, crateSolved);
-  check('crate solution is present in the autosave', crateSolved.saved === true, crateSolved);
-  await shot('06-crate-solved');
+  check('open tutorial gate and threshold allow direction-only travel into medium room', await page.evaluate(() => game.mapId === 'youngcle4'));
+  check('factory BGM keeps the same audio element through the first threshold', await page.evaluate(() => game.sound.bgm === window.__factoryBgm));
 
-  await walkTo(260, 306);
+  const closed4 = await probeClosedGate('youngcle4', 'left');
+  check('medium gate blocks top middle and bottom lanes while unsolved', closed4.every(x => x < 430), closed4);
+  await page.evaluate(() => game.changeMap('youngcle4', 'left', true, { enter: false }));
+  await page.waitForFunction(() => game.mapId === 'youngcle4' && !game.transitioning);
+  await walkTo(160, 296);
+  await pushOnce('youngcle4_crate', 'right');
+  await pushOnce('youngcle4_crate', 'right');
+  await walkTo(220, 360);
+  await walkTo(260, 360);
+  await pushOnce('youngcle4_crate', 'up');
+  await pushOnce('youngcle4_crate', 'up');
+  await walkTo(200, 232);
+  await pushOnce('youngcle4_crate', 'right');
+  await pushOnce('youngcle4_crate', 'right');
+  check('medium R R U U R R solve opens its gate', await page.evaluate(() => game.flags.youngcle4_circuit_solved && !game.entities.find(entity => entity.id === 'youngcle4_gate').solid));
+  await shot('03-medium-solved');
+
+  await walkTo(200, 360);
+  await walkTo(400, 360);
   await page.keyboard.down('ArrowRight');
-  await page.waitForFunction(() => game.mapId === 'youngcle4' && !game.transitioning, { timeout: 10000 });
+  await page.waitForFunction(() => game.mapId === 'youngcle5' && !game.transitioning, { timeout: 8000 });
   await page.keyboard.up('ArrowRight');
-  check('open youngcle3 threshold walks into youngcle4 without C',
-    await page.evaluate(() => game.mapId === 'youngcle4'));
-  check('the same factory BGM continues into youngcle4',
-    await page.evaluate(() => game.sound.bgm === window.__factoryBgm));
-  await shot('07-circuit-unsolved');
+  check('open medium gate and threshold allow direction-only travel into hard room', await page.evaluate(() => game.mapId === 'youngcle5'));
+  check('factory BGM keeps the same audio element through the second threshold', await page.evaluate(() => game.sound.bgm === window.__factoryBgm));
 
-  await walkTo(96, 306);
-  await walkTo(228, 306);
-  await walkTo(228, 276);
-  await page.keyboard.press('ArrowUp', { delay: 30 });
-  await page.keyboard.press('KeyC');
-  await page.waitForTimeout(180);
-  const partial = await page.evaluate(() => ({
-    middle: game.entities.find(entity => entity.id === 'youngcle4_wire_middle').isLit(),
-    breaker: game.entities.find(entity => entity.id === 'youngcle4_wire_breaker').isLit(),
+  const closed5 = await probeClosedGate('youngcle5', 'left');
+  check('hard gate blocks top middle and bottom lanes while unsolved', closed5.every(x => x < 430), closed5);
+  await page.evaluate(() => game.changeMap('youngcle5', 'left', true, { enter: false }));
+  await page.waitForFunction(() => game.mapId === 'youngcle5' && !game.transitioning);
+  await walkTo(64, 264);
+  await walkTo(120, 264);
+  await pushOnce('youngcle5_crate_a', 'right');
+  await walkTo(150, 220);
+  await walkTo(196, 220);
+  await pushOnce('youngcle5_crate_a', 'down');
+  await walkTo(196, 264);
+  await walkTo(198, 264);
+  await pushOnce('youngcle5_crate_b', 'right');
+  for (let count = 0; count < 4; count += 1) await pushOnce('youngcle5_crate_b', 'right');
+  check('one hard-room target does not open the gate', await page.evaluate(() => !game.flags.youngcle5_crate_solved));
+  await walkTo(196, 260);
+  await pushOnce('youngcle5_crate_a', 'down');
+  await walkTo(150, 328);
+  await pushOnce('youngcle5_crate_a', 'right');
+  for (let count = 0; count < 5; count += 1) await pushOnce('youngcle5_crate_a', 'right');
+  await walkTo(340, 298);
+  await walkTo(388, 298);
+  await pushOnce('youngcle5_crate_b', 'up');
+  await pushOnce('youngcle5_crate_b', 'up');
+  check('hard 16-push ordered solution opens only after both targets', await page.evaluate(() => game.flags.youngcle5_crate_solved && !game.entities.find(entity => entity.id === 'youngcle5_gate').solid));
+  await shot('04-hard-solved');
+
+  await page.evaluate(() => game.changeMap('youngcle5', 'left', true, { enter: false }));
+  await page.waitForFunction(() => game.mapId === 'youngcle5' && !game.transitioning);
+  check('hard solved return restores two occupied targets and open gate', await page.evaluate(() => {
+    const crates = game.entities.filter(entity => entity.def.type === 'factory_crate');
+    const plates = game.entities.filter(entity => entity.def.type === 'factory_plate');
+    return plates.every(plate => crates.some(crate => plate.contains(crate))) && !game.entities.find(entity => entity.id === 'youngcle5_gate').solid;
   }));
-  check('first rotated plate lights only the contiguous middle segment',
-    partial.middle === true && partial.breaker === false, partial);
-  await shot('08-circuit-partial');
-
-  await walkTo(324, 276);
-  await page.keyboard.press('ArrowUp', { delay: 30 });
-  await page.keyboard.press('KeyC');
-  await page.waitForFunction(() => game.flags.youngcle4_circuit_solved);
-  const circuitSolved = await page.evaluate(() => ({
-    breaker: game.entities.find(entity => entity.id === 'youngcle4_wire_breaker').isLit(),
-    gateSolid: game.entities.find(entity => entity.id === 'youngcle4_gate').solid,
-    onwardDoor: game.entities.some(entity => entity.def.type === 'door' && entity.def.to !== 'youngcle3'),
-  }));
-  check('second rotated plate lights the breaker and deactivates the plasma gate',
-    circuitSolved.breaker === true && circuitSolved.gateSolid === false, circuitSolved);
-  check('the final landing has no invented onward map or event', circuitSolved.onwardDoor === false, circuitSolved);
-  await shot('09-circuit-solved');
-  await walkTo(468, 248);
-  await shot('10-final-landing');
-
-  await walkTo(468, 306);
-  await page.keyboard.down('ArrowLeft');
-  await page.waitForFunction(() => game.mapId === 'youngcle3' && !game.transitioning, { timeout: 10000 });
-  await page.keyboard.up('ArrowLeft');
-  check('re-entered crate room restores solved crate and open gate',
-    await page.evaluate(() => game.entities.find(entity => entity.id === 'youngcle3_gate').solid === false
-      && Math.round(game.entities.find(entity => entity.id === 'youngcle3_crate').x) === 290));
-  await page.waitForTimeout(700);
-  await walkTo(448, 248);
-  await page.keyboard.down('ArrowRight');
-  await page.waitForFunction(() => game.mapId === 'youngcle4' && !game.transitioning, { timeout: 10000 });
-  await page.keyboard.up('ArrowRight');
-  check('re-entered circuit room restores aligned plates and open gate',
-    await page.evaluate(() => game.entities.find(entity => entity.id === 'youngcle4_gate').solid === false
-      && game.entities.filter(entity => entity.def.type === 'factory_circuit')
-        .every(entity => entity.orientation === entity.solution)));
-
-  await captureBreakpoints('youngcle2', 'left');
-  await captureBreakpoints('youngcle3', 'left');
-  await captureBreakpoints('youngcle4', 'landing');
-  await captureControls(375, 812);
-  await captureControls(768, 900);
-  await captureControls(1280, 900);
   check('no runtime errors or missing factory resources',
     errors.length === 0 && factoryResourceErrors.length === 0, { errors, factoryResourceErrors });
 } catch (error) {

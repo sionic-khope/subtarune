@@ -246,10 +246,15 @@ const youngcleCheckpoint = QA_POINTS.find(point => point.id === 'youngcle1');
 QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle2', desc: '영클 공장: 꺾인 철제 연결로',
   map: 'youngcle2', spawn: 'left',
   flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true }, party: [...youngcleCheckpoint.party] });
-QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle3', desc: '영클 공장: 상자 압력판 퍼즐',
+QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle3', desc: '영클 공장: 상자 밀기 튜토리얼',
   map: 'youngcle3', spawn: 'left',
   flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true }, party: [...youngcleCheckpoint.party] });
-QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle4', desc: '영클 공장: 회전 회로판 퍼즐',
+QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle4', desc: '영클 공장: 우회 상자 밀기',
   map: 'youngcle4', spawn: 'left',
   flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true, youngcle3_crate_solved: true },
+  party: [...youngcleCheckpoint.party] });
+QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle5', desc: '영클 공장: 두 상자 순서 퍼즐',
+  map: 'youngcle5', spawn: 'left',
+  flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true, youngcle3_crate_solved: true,
+    youngcle4_circuit_solved: true },
   party: [...youngcleCheckpoint.party] });

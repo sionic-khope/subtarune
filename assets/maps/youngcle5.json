@@ -1,0 +1,272 @@
+{
+ "id": "youngcle5",
+ "name": "영클 공장 복수 화물 검사실",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "backdrop": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "JJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 64,
+   "y": 344,
+   "facing": "right"
+  },
+  "left": {
+   "x": 64,
+   "y": 344,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 496,
+   "y": 280,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "puzzle": "crate",
+  "difficulty": "hard",
+  "pushes": 16,
+  "solution": [
+   "AR",
+   "AD",
+   "BR",
+   "BR",
+   "BR",
+   "BR",
+   "BR",
+   "AD",
+   "AR",
+   "AR",
+   "AR",
+   "AR",
+   "AR",
+   "AR",
+   "BU",
+   "BU"
+  ],
+  "crateStarts": [
+   [
+    162,
+    258
+   ],
+   [
+    226,
+    258
+   ]
+  ],
+  "plates": [
+   [
+    384,
+    192
+   ],
+   [
+    384,
+    320
+   ]
+  ],
+  "gate": [
+   448,
+   160,
+   24,
+   224
+  ],
+  "landing": [
+   480,
+   160,
+   48,
+   224
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle5_left",
+   "x": 32,
+   "y": 172,
+   "w": 16,
+   "h": 200,
+   "to": "youngcle4",
+   "spawn": "right",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle5_rail_top",
+   "x": 32,
+   "y": 160,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle5_rail_bottom",
+   "x": 32,
+   "y": 384,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle5_rail_end",
+   "x": 532,
+   "y": 172,
+   "w": 12,
+   "h": 212
+  },
+  {
+   "type": "factory_sign",
+   "id": "youngcle5_sign",
+   "x": 96,
+   "y": 208,
+   "label": "2개",
+   "icon": "!",
+   "script": "youngcle5_crate_sign"
+  },
+  {
+   "type": "factory_console",
+   "id": "youngcle5_console",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "x": 96,
+   "y": 328,
+   "resetCrates": true,
+   "script": "youngcle_crate_reset",
+   "solvedScript": "youngcle_crate_done"
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle5_bulkhead_top",
+   "x": 256,
+   "y": 192,
+   "w": 32,
+   "h": 64
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle5_bulkhead_middle",
+   "x": 256,
+   "y": 288,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle5_wire_top",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "points": [
+    [
+     400,
+     208
+    ],
+    [
+     424,
+     208
+    ],
+    [
+     424,
+     176
+    ],
+    [
+     448,
+     176
+    ]
+   ]
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle5_wire_bottom",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "points": [
+    [
+     400,
+     336
+    ],
+    [
+     424,
+     336
+    ],
+    [
+     424,
+     368
+    ],
+    [
+     448,
+     368
+    ]
+   ]
+  },
+  {
+   "type": "factory_plate",
+   "id": "youngcle5_plate_top",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "x": 384,
+   "y": 192
+  },
+  {
+   "type": "factory_plate",
+   "id": "youngcle5_plate_bottom",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "x": 384,
+   "y": 320
+  },
+  {
+   "type": "factory_crate",
+   "id": "youngcle5_crate_a",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "x": 162,
+   "y": 258,
+   "solvedX": 386,
+   "solvedY": 322
+  },
+  {
+   "type": "factory_crate",
+   "id": "youngcle5_crate_b",
+   "puzzle": "youngcle5_crates",
+   "flag": "youngcle5_crate_solved",
+   "x": 226,
+   "y": 258,
+   "solvedX": 386,
+   "solvedY": 194
+  },
+  {
+   "type": "factory_gate",
+   "id": "youngcle5_gate",
+   "flag": "youngcle5_crate_solved",
+   "x": 448,
+   "y": 160,
+   "w": 24,
+   "h": 224
+  }
+ ]
+}

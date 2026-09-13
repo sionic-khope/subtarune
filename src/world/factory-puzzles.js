@@ -1,3 +1,12 @@
+import {
+  drawFactoryBulkhead,
+  drawFactoryConsole,
+  drawFactoryCrate,
+  drawFactoryGate,
+  drawFactoryPressurePlate,
+  drawFactorySign,
+} from './factory-puzzle-art.js';
+
 const TILE = 32;
 
 const aligned = (plate) => plate.orientation === plate.solution;
@@ -39,12 +48,13 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
     }
 
     checkPlate() {
-      const plate = puzzleEntities(this.game, this.def.puzzle).find((entity) => entity.def.type === 'factory_plate');
-      if (plate?.contains(this)) {
-        this.game.setFlag(this.def.flag);
-        this.game.sound.sfx('click');
-        this.game.autosave();
-      }
+      const entities = puzzleEntities(this.game, this.def.puzzle);
+      const plates = entities.filter((entity) => entity.def.type === 'factory_plate');
+      const crates = entities.filter((entity) => entity.def.type === 'factory_crate');
+      if (plates.some((plate) => plate.contains(this))) this.game.sound.sfx('click');
+      if (!plates.length || !plates.every((plate) => crates.some((crate) => plate.contains(crate)))) return;
+      this.game.setFlag(this.def.flag);
+      this.game.autosave();
     }
 
     playerCanPush(dx, dy) {
@@ -67,17 +77,7 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
     reset() { [this.x, this.y] = this.start; this.slide = null; this.pushCooldown = 0; }
 
     draw(ctx, cam) {
-      const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
-      ctx.fillStyle = '#1a2635'; ctx.fillRect(x, y, this.w, this.h);
-      ctx.fillStyle = '#71849b'; ctx.fillRect(x + 2, y + 2, this.w - 4, this.h - 4);
-      ctx.fillStyle = '#43566e'; ctx.fillRect(x + 6, y + 6, this.w - 12, this.h - 12);
-      ctx.fillStyle = '#8da0b7';
-      for (let offset = 0; offset < 16; offset += 2) {
-        ctx.fillRect(x + 6 + offset, y + 6 + offset, 2, 2);
-        ctx.fillRect(x + 20 - offset, y + 6 + offset, 2, 2);
-      }
-      ctx.fillStyle = '#a8bad0';
-      for (const [ox, oy] of [[4, 4], [this.w - 6, 4], [4, this.h - 6], [this.w - 6, this.h - 6]]) ctx.fillRect(x + ox, y + oy, 2, 2);
+      drawFactoryCrate(ctx, cam, this);
     }
   }
 
@@ -85,10 +85,9 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
     constructor(def, game) { super({ solid: false, w: 32, h: 32, ...def, sortY: def.sortY ?? -200 }, game); }
     contains(crate) { return Math.abs(crate.cx - this.cx) < 5 && Math.abs(crate.cy - this.cy) < 5; }
     draw(ctx, cam) {
-      const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
-      ctx.fillStyle = '#1b2938'; ctx.fillRect(x, y, this.w, this.h);
-      ctx.fillStyle = this.game.has(this.def.flag) ? '#65f2d0' : '#d9a840'; ctx.fillRect(x + 4, y + 4, this.w - 8, this.h - 8);
-      ctx.fillStyle = '#25364a'; ctx.fillRect(x + 8, y + 8, this.w - 16, this.h - 16);
+      const pressed = puzzleEntities(this.game, this.def.puzzle)
+        .some((entity) => entity.def.type === 'factory_crate' && this.contains(entity));
+      drawFactoryPressurePlate(ctx, cam, this, pressed);
     }
   }
 
@@ -96,11 +95,12 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
     constructor(def, game) { super({ solid: true, w: 28, h: 24, ...def }, game); }
     interact() {
       if (this.game.has(this.def.flag)) { this.game.runScript(this.def.solvedScript); return true; }
-      if (this.def.resetCrate) {
-        const crate = puzzleEntities(this.game, this.def.puzzle).find((entity) => entity.def.type === 'factory_crate');
-        crate?.reset();
+      if (this.def.resetCrate || this.def.resetCrates) {
+        const crates = puzzleEntities(this.game, this.def.puzzle)
+          .filter((entity) => entity.def.type === 'factory_crate');
+        for (const crate of crates) crate.reset();
         for (const actor of this.game.entities.filter((entity) => entity === this.game.player || entity.def?.type === 'follower')) {
-          if (!crate?.overlaps(actor.rect)) continue;
+          if (!crates.some((crate) => crate.overlaps(actor.rect))) continue;
           [actor.x, actor.y] = freeSpot(this.game, actor, actor.x, actor.y, 64);
         }
         this.game.sound.sfx('click');
@@ -109,10 +109,7 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
       return true;
     }
     draw(ctx, cam) {
-      const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
-      ctx.fillStyle = '#1b2938'; ctx.fillRect(x, y, this.w, this.h);
-      ctx.fillStyle = '#71849b'; ctx.fillRect(x + 3, y + 3, this.w - 6, this.h - 6);
-      ctx.fillStyle = '#f0be45'; ctx.fillRect(x + 9, y + 7, 10, 10);
+      drawFactoryConsole(ctx, cam, this);
     }
   }
 
@@ -121,21 +118,19 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
     update() { this.sync(); }
     sync() { this.solid = !this.game.has(this.def.flag); }
     draw(ctx, cam) {
-      const x = Math.round(this.x - cam.x), y = Math.round(this.y - cam.y);
-      ctx.fillStyle = '#26384d'; ctx.fillRect(x - 4, y, 4, this.h); ctx.fillRect(x + this.w, y, 4, this.h);
-      if (!this.solid) {
-        ctx.fillStyle = '#65f2d0'; ctx.fillRect(x - 3, y + 4, 2, this.h - 8); ctx.fillRect(x + this.w + 1, y + 4, 2, this.h - 8);
-        return;
-      }
-      if (this.def.style === 'plasma') {
-        ctx.fillStyle = '#e958ff';
-        for (let line = 4; line < this.w; line += 8) ctx.fillRect(x + line, y, 2, this.h);
-      } else {
-        ctx.fillStyle = '#536a82'; ctx.fillRect(x, y, this.w, this.h);
-        ctx.fillStyle = '#27394e';
-        for (let line = 8; line < this.h; line += 16) ctx.fillRect(x, y + line, this.w, 4);
-      }
+      drawFactoryGate(ctx, cam, this, !this.solid);
     }
+  }
+
+  class FactoryBulkhead extends Entity {
+    constructor(def, game) { super({ solid: true, ...def }, game); }
+    draw(ctx, cam) { drawFactoryBulkhead(ctx, cam, this); }
+  }
+
+  class FactorySign extends Entity {
+    constructor(def, game) { super({ solid: true, w: 28, h: 20, ...def }, game); }
+    interact() { this.game.runScript(this.def.script); return true; }
+    draw(ctx, cam) { drawFactorySign(ctx, cam, this); }
   }
 
   class CircuitPlate extends Entity {
@@ -208,6 +203,8 @@ export function registerFactoryPuzzleEntities({ Entity, freeSpot, registerEntity
   registerEntity('factory_plate', FactoryPlate);
   registerEntity('factory_console', FactoryConsole);
   registerEntity('factory_gate', FactoryGate);
+  registerEntity('factory_bulkhead', FactoryBulkhead);
+  registerEntity('factory_sign', FactorySign);
   registerEntity('factory_circuit', CircuitPlate);
   registerEntity('factory_wire', FactoryWire);
   registerEntity('factory_rail', FactoryRail);
