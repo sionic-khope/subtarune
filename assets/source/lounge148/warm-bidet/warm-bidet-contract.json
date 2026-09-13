@@ -1,0 +1,330 @@
+{
+  "source": "assets/sprites/warm-bidet-v2/warm-bidet-walk.png",
+  "asset": "assets/sprites/warm_bidet.png",
+  "dimensions": [
+    512,
+    640
+  ],
+  "cell": [
+    128,
+    160
+  ],
+  "pivot": [
+    64,
+    156
+  ],
+  "rows": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "nearest_scale": 0.45,
+  "expected_body_screen_height": "280 * 0.45 / 2 * 1.43 = 90.09",
+  "frames": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_row": 0,
+      "source_pivot": [
+        128,
+        306
+      ],
+      "offset": [
+        6,
+        18
+      ],
+      "bbox": [
+        8,
+        25,
+        106,
+        155
+      ]
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_row": 0,
+      "source_pivot": [
+        128,
+        306
+      ],
+      "offset": [
+        6,
+        18
+      ],
+      "bbox": [
+        9,
+        25,
+        108,
+        155
+      ]
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_row": 0,
+      "source_pivot": [
+        128,
+        306
+      ],
+      "offset": [
+        6,
+        18
+      ],
+      "bbox": [
+        9,
+        25,
+        108,
+        155
+      ]
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_row": 0,
+      "source_pivot": [
+        128,
+        306
+      ],
+      "offset": [
+        6,
+        18
+      ],
+      "bbox": [
+        9,
+        25,
+        105,
+        155
+      ]
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_row": 3,
+      "source_pivot": [
+        106,
+        308
+      ],
+      "offset": [
+        16,
+        17
+      ],
+      "bbox": [
+        22,
+        19,
+        122,
+        155
+      ]
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_row": 3,
+      "source_pivot": [
+        106,
+        308
+      ],
+      "offset": [
+        16,
+        17
+      ],
+      "bbox": [
+        22,
+        19,
+        121,
+        155
+      ]
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_row": 3,
+      "source_pivot": [
+        106,
+        308
+      ],
+      "offset": [
+        16,
+        17
+      ],
+      "bbox": [
+        22,
+        19,
+        120,
+        155
+      ]
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_row": 3,
+      "source_pivot": [
+        106,
+        308
+      ],
+      "offset": [
+        16,
+        17
+      ],
+      "bbox": [
+        23,
+        19,
+        120,
+        155
+      ]
+    },
+    {
+      "row": 2,
+      "column": 0,
+      "source_row": 1,
+      "source_pivot": [
+        140,
+        300
+      ],
+      "offset": [
+        1,
+        21
+      ],
+      "bbox": [
+        6,
+        23,
+        98,
+        156
+      ]
+    },
+    {
+      "row": 2,
+      "column": 1,
+      "source_row": 1,
+      "source_pivot": [
+        140,
+        300
+      ],
+      "offset": [
+        1,
+        21
+      ],
+      "bbox": [
+        5,
+        23,
+        95,
+        156
+      ]
+    },
+    {
+      "row": 2,
+      "column": 2,
+      "source_row": 1,
+      "source_pivot": [
+        140,
+        300
+      ],
+      "offset": [
+        1,
+        21
+      ],
+      "bbox": [
+        6,
+        23,
+        97,
+        156
+      ]
+    },
+    {
+      "row": 2,
+      "column": 3,
+      "source_row": 1,
+      "source_pivot": [
+        140,
+        300
+      ],
+      "offset": [
+        1,
+        21
+      ],
+      "bbox": [
+        6,
+        24,
+        98,
+        156
+      ]
+    },
+    {
+      "row": 3,
+      "column": 0,
+      "source_row": 2,
+      "source_pivot": [
+        106,
+        300
+      ],
+      "offset": [
+        16,
+        21
+      ],
+      "bbox": [
+        28,
+        23,
+        120,
+        155
+      ]
+    },
+    {
+      "row": 3,
+      "column": 1,
+      "source_row": 2,
+      "source_pivot": [
+        106,
+        300
+      ],
+      "offset": [
+        16,
+        21
+      ],
+      "bbox": [
+        28,
+        23,
+        120,
+        156
+      ]
+    },
+    {
+      "row": 3,
+      "column": 2,
+      "source_row": 2,
+      "source_pivot": [
+        106,
+        300
+      ],
+      "offset": [
+        16,
+        21
+      ],
+      "bbox": [
+        28,
+        23,
+        121,
+        156
+      ]
+    },
+    {
+      "row": 3,
+      "column": 3,
+      "source_row": 2,
+      "source_pivot": [
+        106,
+        300
+      ],
+      "offset": [
+        16,
+        21
+      ],
+      "bbox": [
+        28,
+        23,
+        120,
+        156
+      ]
+    }
+  ]
+}

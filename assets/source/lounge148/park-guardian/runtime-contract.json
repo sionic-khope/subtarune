@@ -1,0 +1,518 @@
+[
+  {
+    "asset": "assets/sprites/park_guardian_costume.png",
+    "dimensions": [
+      256,
+      256
+    ],
+    "cell": 64,
+    "pivot": [
+      32,
+      60
+    ],
+    "rows": [
+      "down",
+      "up",
+      "left",
+      "right"
+    ],
+    "frames": [
+      {
+        "row": 0,
+        "column": 0,
+        "bbox": [
+          14,
+          6,
+          50,
+          60
+        ],
+        "art_height": 54
+      },
+      {
+        "row": 0,
+        "column": 1,
+        "bbox": [
+          14,
+          6,
+          50,
+          60
+        ],
+        "art_height": 54
+      },
+      {
+        "row": 0,
+        "column": 2,
+        "bbox": [
+          14,
+          6,
+          50,
+          60
+        ],
+        "art_height": 54
+      },
+      {
+        "row": 0,
+        "column": 3,
+        "bbox": [
+          14,
+          6,
+          50,
+          60
+        ],
+        "art_height": 54
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "bbox": [
+          14,
+          4,
+          50,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "bbox": [
+          13,
+          4,
+          50,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 1,
+        "column": 2,
+        "bbox": [
+          13,
+          4,
+          50,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 1,
+        "column": 3,
+        "bbox": [
+          13,
+          4,
+          50,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "bbox": [
+          16,
+          5,
+          47,
+          60
+        ],
+        "art_height": 55
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "bbox": [
+          16,
+          5,
+          48,
+          60
+        ],
+        "art_height": 55
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "bbox": [
+          16,
+          5,
+          47,
+          60
+        ],
+        "art_height": 55
+      },
+      {
+        "row": 2,
+        "column": 3,
+        "bbox": [
+          16,
+          5,
+          47,
+          60
+        ],
+        "art_height": 55
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "bbox": [
+          16,
+          4,
+          47,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "bbox": [
+          15,
+          4,
+          49,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 2,
+        "bbox": [
+          16,
+          4,
+          47,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 3,
+        "bbox": [
+          16,
+          4,
+          47,
+          60
+        ],
+        "art_height": 56
+      }
+    ]
+  },
+  {
+    "asset": "assets/sprites/park_guardian.png",
+    "dimensions": [
+      256,
+      256
+    ],
+    "cell": 64,
+    "pivot": [
+      32,
+      60
+    ],
+    "rows": [
+      "down",
+      "up",
+      "left",
+      "right"
+    ],
+    "frames": [
+      {
+        "row": 0,
+        "column": 0,
+        "bbox": [
+          18,
+          7,
+          45,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 0,
+        "column": 1,
+        "bbox": [
+          18,
+          7,
+          45,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 0,
+        "column": 2,
+        "bbox": [
+          18,
+          7,
+          45,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 0,
+        "column": 3,
+        "bbox": [
+          18,
+          7,
+          45,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "bbox": [
+          17,
+          7,
+          47,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "bbox": [
+          17,
+          7,
+          47,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 1,
+        "column": 2,
+        "bbox": [
+          17,
+          7,
+          47,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 1,
+        "column": 3,
+        "bbox": [
+          17,
+          7,
+          47,
+          60
+        ],
+        "art_height": 53
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "bbox": [
+          16,
+          5,
+          47,
+          60
+        ],
+        "art_height": 55
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "bbox": [
+          15,
+          4,
+          48,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "bbox": [
+          16,
+          5,
+          47,
+          60
+        ],
+        "art_height": 55
+      },
+      {
+        "row": 2,
+        "column": 3,
+        "bbox": [
+          17,
+          4,
+          46,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "bbox": [
+          15,
+          4,
+          48,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "bbox": [
+          15,
+          4,
+          48,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 2,
+        "bbox": [
+          15,
+          4,
+          48,
+          60
+        ],
+        "art_height": 56
+      },
+      {
+        "row": 3,
+        "column": 3,
+        "bbox": [
+          16,
+          4,
+          48,
+          60
+        ],
+        "art_height": 56
+      }
+    ]
+  },
+  {
+    "asset": "assets/enemies/park-guardian-costume-idle.png",
+    "dimensions": [
+      192,
+      192
+    ],
+    "cell": 96,
+    "pivot": [
+      48,
+      90
+    ],
+    "rows": [
+      "idle0,1",
+      "idle2,3"
+    ],
+    "frames": [
+      {
+        "row": 0,
+        "column": 0,
+        "bbox": [
+          23,
+          10,
+          73,
+          90
+        ],
+        "art_height": 80
+      },
+      {
+        "row": 0,
+        "column": 1,
+        "bbox": [
+          23,
+          11,
+          72,
+          90
+        ],
+        "art_height": 79
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "bbox": [
+          23,
+          11,
+          73,
+          90
+        ],
+        "art_height": 79
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "bbox": [
+          23,
+          10,
+          73,
+          90
+        ],
+        "art_height": 80
+      }
+    ]
+  },
+  {
+    "asset": "assets/enemies/park-guardian-idle.png",
+    "dimensions": [
+      192,
+      192
+    ],
+    "cell": 96,
+    "pivot": [
+      48,
+      90
+    ],
+    "rows": [
+      "idle0,1",
+      "idle2,3"
+    ],
+    "frames": [
+      {
+        "row": 0,
+        "column": 0,
+        "bbox": [
+          25,
+          10,
+          71,
+          90
+        ],
+        "art_height": 80
+      },
+      {
+        "row": 0,
+        "column": 1,
+        "bbox": [
+          25,
+          10,
+          71,
+          90
+        ],
+        "art_height": 80
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "bbox": [
+          25,
+          11,
+          70,
+          90
+        ],
+        "art_height": 79
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "bbox": [
+          25,
+          11,
+          70,
+          90
+        ],
+        "art_height": 79
+      }
+    ]
+  }
+]
