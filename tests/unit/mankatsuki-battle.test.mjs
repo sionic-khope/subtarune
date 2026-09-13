@@ -6,9 +6,9 @@ import { ENEMIES } from '../../src/data/enemies.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { Board, Soul } from '../../src/battle/bullets.js';
 
-test('mankatsuki has independent idle and attack sheets, 100 HP and no invented reward', () => {
+test('mankatsuki has independent idle and attack sheets, 130 HP and no invented reward', () => {
   const boss = ENEMIES.mankatsuki_junhee;
-  assert.equal(boss?.hp, 100);
+  assert.equal(boss?.hp, 130);
   assert.equal(boss.money, 0);
   assert.equal(boss.sheet.count, 4);
   assert.equal(boss.actions.attack.count, 6);

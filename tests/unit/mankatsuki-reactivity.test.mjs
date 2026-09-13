@@ -118,9 +118,27 @@ for (const cannon of [false, true]) {
   test(`${cannon ? 'cannon' : 'ordinary'} positive hit plays the boss hurt echo exactly once`, () => {
     const { battle, enemy, sounds } = fixture();
     if (cannon) battle.applyCannonDamage(enemy, 2); else battle.hitEnemy(enemy, null, 2);
-    assert.deepEqual(sounds, ['mankatsuki_hurt']);
+    assert.deepEqual(sounds, cannon ? ['mankatsuki_hurt'] : ['hit', 'damage', 'mankatsuki_hurt']);
   });
 }
+
+test('boss speech uses every line before repeating and never repeats across bag boundaries', () => {
+  const { battle, enemy } = fixture();
+  battle.modes = { enemy: 'bullets' };
+  battle.rnd = () => 0.61;
+  enemy.def = { ...enemy.def, lines: { ...enemy.def.lines, speakShuffle: true } };
+  const spoken = [];
+  const count = enemy.def.lines.speak.length;
+  for (let i = 0; i < count * 4; i++) {
+    battle.beginEnemyTurn();
+    spoken.push(battle.bubble.text);
+  }
+  for (let i = 1; i < spoken.length; i++) assert.notEqual(spoken[i], spoken[i - 1]);
+  for (let i = 0; i < spoken.length; i += count) assert.equal(new Set(spoken.slice(i, i + count)).size, count);
+  battle.beginRetry();
+  assert.deepEqual(enemy.speechBag, []);
+  assert.equal(enemy.lastSpeech, null);
+});
 
 test('zero damage and dead or dying enemies never play a hurt echo', () => {
   const { battle, enemy, sounds } = fixture();

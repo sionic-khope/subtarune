@@ -205,7 +205,89 @@ function taco(api, edge, o) {
   api.sfx?.('mankatsuki_clone');
 }
 
-/** Junhee's own teleport, rear-pig stampede, frying-pan flame, stock-chart and taco attacks. */
+function foodTaco(api, fromRight, o) {
+  const box = { ...api.box }, target = { x: api.soul.x, y: api.soul.y };
+  const from = { x: fromRight ? box.x + box.w + 16 : box.x - 16, y: target.y };
+  const warn = Math.max(0.55, o.warn ?? 0.7), flight = o.flight ?? 0.65, arc = 28;
+  api.emit({ shape: 'mankatsuki_food_taco', x: from.x, y: from.y, box, target, from,
+    image: api.images?.foodTaco, w: 32, h: 32, r: 9, warn, flight, life: warn + flight + 0.08,
+    steer(b) {
+      if (b.age >= warn && !b.launched) { b.launched = true; api.sfx?.('whoosh'); }
+      const u = clamp((b.age - warn) / flight, 0, 1);
+      b.x = from.x + (target.x - from.x) * u; b.y = from.y - Math.sin(u * Math.PI) * arc;
+      b.rot = (fromRight ? -1 : 1) * u * Math.PI;
+      if (u < 1 || b.burst) return;
+      b.burst = true; api.sfx?.('hit');
+      for (let i = 0; i < 4; i++) {
+        const angle = Math.PI / 4 + i * Math.PI / 2;
+        api.emit({ shape: 'mankatsuki_food_chip', x: target.x, y: target.y, r: 3,
+          vx: Math.cos(angle) * (o.chipSpeed ?? 58), vy: Math.sin(angle) * (o.chipSpeed ?? 58), life: 0.75,
+          hitShape(chip, soul) { return inArena(soul, box) && Math.hypot(soul.x - chip.x, soul.y - chip.y) <= 3 + Math.max(0, soul.r - 2); },
+          drawShape(ctx, chip) {
+            ctx.save(); clipArena(ctx, box); ctx.translate(Math.round(chip.x), Math.round(chip.y));
+            ctx.fillStyle = i % 2 ? '#75b84c' : '#efad45';
+            polygon(ctx, [{ x: -3, y: 3 }, { x: 0, y: -4 }, { x: 4, y: 3 }]); ctx.fill();
+            ctx.fillStyle = '#ffe4a0'; ctx.fillRect(-1, 0, 2, 2); ctx.restore();
+          } });
+      }
+    },
+    hitShape(b, soul) {
+      return b.age >= warn && b.age <= warn + flight && inArena(soul, box)
+        && Math.hypot(soul.x - b.x, soul.y - b.y) <= b.r + Math.max(0, soul.r - 2);
+    },
+    drawShape(ctx, b) {
+      ctx.save(); clipArena(ctx, box);
+      if (b.age < warn + flight) {
+        ctx.strokeStyle = '#ffd57d'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+        ctx.beginPath();
+        for (let i = 0; i <= 16; i++) {
+          const u = i / 16, x = from.x + (target.x - from.x) * u, y = from.y - Math.sin(u * Math.PI) * arc;
+          if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+        }
+        ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.arc(target.x, target.y, 15, 0, Math.PI * 2); ctx.stroke();
+      }
+      if (!b.burst && b.image) {
+        ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(b.rot);
+        ctx.drawImage(b.image, -16, -16, 32, 32);
+      }
+      ctx.restore();
+    } });
+}
+
+function motorcycle(api, fromRight, o) {
+  const box = { ...api.box }, lane = clamp(api.soul.y, box.y + 10, box.y + box.h - 10);
+  const from = fromRight ? box.x + box.w + 30 : box.x - 30, direction = fromRight ? -1 : 1;
+  const warn = Math.max(0.55, o.warn ?? 0.75), speed = o.speed ?? 280, flight = (box.w + 60) / speed;
+  api.emit({ shape: 'mankatsuki_motorcycle', x: from, y: lane, box, lane, direction,
+    image: api.images?.motorcycle, w: 60, h: 40, r: 0, warn, flight, life: warn + flight,
+    steer(b) {
+      if (b.age >= warn && !b.launched) { b.launched = true; api.sfx?.('rocket'); }
+      b.x = from + direction * clamp(b.age - warn, 0, flight) * speed;
+    },
+    hitShape(b, soul) {
+      if (b.age < warn || b.age >= warn + flight || !inArena(soul, box)) return false;
+      const dx = Math.max(0, Math.abs(soul.x - b.x) - 22), dy = Math.max(0, Math.abs(soul.y - lane) - 9);
+      return Math.hypot(dx, dy) <= Math.max(0, soul.r - 2);
+    },
+    drawShape(ctx, b) {
+      ctx.save(); clipArena(ctx, box);
+      if (b.age < warn) {
+        ctx.fillStyle = 'rgba(255,192,70,0.14)'; ctx.fillRect(box.x + 3, lane - 13, box.w - 6, 26);
+        ctx.strokeStyle = '#ffd57d'; ctx.lineWidth = 1; ctx.setLineDash([7, 5]);
+        ctx.beginPath(); ctx.moveTo(box.x + 3, lane); ctx.lineTo(box.x + box.w - 3, lane); ctx.stroke(); ctx.setLineDash([]);
+        const tip = fromRight ? box.x + box.w - 9 : box.x + 9;
+        polygon(ctx, [{ x: tip, y: lane }, { x: tip - direction * 10, y: lane - 6 }, { x: tip - direction * 10, y: lane + 6 }]);
+        ctx.fillStyle = '#ffd57d'; ctx.fill();
+      }
+      if (b.image) {
+        ctx.translate(Math.round(b.x), Math.round(lane)); ctx.scale(-direction, 1);
+        ctx.drawImage(b.image, -30, -20, 60, 40);
+      }
+      ctx.restore();
+    } });
+}
+
+/** Junhee's teleport, pig faces, flames, stocks, food and motorcycle attacks. */
 export const MANKATSUKI_PATTERNS = {
   mankatsuki_teleport: (o = {}) => {
     const events = [], duration = o.duration ?? 6.2, warn = Math.max(0.3, o.warn ?? 0.55);
@@ -278,6 +360,18 @@ export const MANKATSUKI_PATTERNS = {
     events.push({ at: duration - 0.15, run(api) { api.present?.(null); } });
     return timeline(duration, events);
   },
+  mankatsuki_food_taco: (o = {}) => {
+    const duration = o.duration ?? 6.6, events = [];
+    for (let wave = 0; wave < (o.waves ?? 4); wave++) events.push({ at: 0.15 + wave * (o.every ?? 1.25),
+      run(api) { api.present?.({ sheet: 'attack' }); foodTaco(api, wave % 2 === 0, o); } });
+    return timeline(duration, events);
+  },
+  mankatsuki_motorcycle: (o = {}) => {
+    const duration = o.duration ?? 6.6, events = [];
+    for (let wave = 0; wave < (o.waves ?? 4); wave++) events.push({ at: 0.15 + wave * (o.every ?? 1.35),
+      run(api) { api.present?.({ sheet: 'attack' }); motorcycle(api, wave % 2 === 0, o); } });
+    return timeline(duration, events);
+  },
   mankatsuki_taco_pan: (o = {}) => arranged(o.duration ?? 7.4, [
     { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_taco(o.taco) },
     { at: o.panAt ?? 0.65, pattern: MANKATSUKI_PATTERNS.mankatsuki_pan(o.pan ?? { waves: 3, every: 1.85 }) },
@@ -289,5 +383,9 @@ export const MANKATSUKI_PATTERNS = {
   mankatsuki_teleport_taco: (o = {}) => arranged(o.duration ?? 7.8, [
     { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_teleport(o.teleport ?? { waves: 6, every: 0.95, duration: 7.4 }) },
     { at: o.tacoAt ?? 1.1, pattern: MANKATSUKI_PATTERNS.mankatsuki_taco(o.taco ?? { waveGap: 2.8, stagger: 0.42 }) },
+  ]),
+  mankatsuki_food_motorcycle: (o = {}) => arranged(o.duration ?? 7.4, [
+    { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_food_taco(o.food ?? { waves: 4, every: 1.4 }) },
+    { at: o.motorcycleAt ?? 0.65, pattern: MANKATSUKI_PATTERNS.mankatsuki_motorcycle(o.motorcycle ?? { waves: 3, every: 1.8, warn: 0.8 }) },
   ]),
 };

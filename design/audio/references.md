@@ -237,7 +237,7 @@ yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 
 ```
 # 만카츠키 피격 목소리 (2026-09-13)
 
-사용자 ‘특유의 쥰희 목소리 어두운버전으로 에코음…맞았을때’ 요청. 기존 `assets/audio/voices/junhee.mp3`(위 기록의 Deltarune 수지 snd_txtsus)를 원본 그대로 낮춰 가공한 `assets/audio/sfx/mankatsuki_hurt.mp3`, mono44100Hz/0.392902초. 필터는 `asetrate=33075,aresample=44100,aecho=0.8:0.8:110|220:0.35|0.18,volume=0.8,afade=t=out:st=0.29:d=0.09`. 다른 캐릭터 음성이나 원본을 교체하지 않는다. 실제 양수 피해당 한 번, 실브라우저3타격3재생 확인. 주관적 청취 평가는 별도다.
+사용자 ‘특유의 쥰희 목소리 어두운버전으로 에코음…맞았을때’ 요청. 기존 `assets/audio/voices/junhee.mp3`(위 기록의 Deltarune 수지 snd_txtsus)를 원본 그대로 낮춰 가공한 `assets/audio/sfx/mankatsuki_hurt.mp3`, mono44100Hz/0.392902초. BUILD130 ‘기본 공격사운드도 같이’, ‘특유사운드 더 커야해’에 따라 기본 hit/damage를 유지하며 별도로 한 번 겹쳐 재생하고, 음성 게인을0.8→1.6(+6dB)로 올렸다. 필터는 `asetrate=33075,aresample=44100,aecho=0.8:0.8:110|220:0.35|0.18,volume=1.6,afade=t=out:st=0.29:d=0.09`. 다른 캐릭터 음성이나 원본을 교체하지 않는다. 실제 양수 피해당 한 번이며 주관적 청취 평가는 별도다.
 
 # 김은별컴퍼니 여성 게임 블립 (2026-09-13)
 

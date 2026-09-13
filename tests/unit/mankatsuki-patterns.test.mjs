@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { Bullet, PATTERNS } from '../../src/battle/bullets.js';
 import { MANKATSUKI_PATTERNS } from '../../src/battle/mankatsuki-patterns.js';
 import { ENEMIES } from '../../src/data/enemies.js';
@@ -8,7 +9,9 @@ const BOX = { x: 120, y: 134, w: 240, h: 160 };
 const SOUL = { x: 240, y: 214, r: 6 };
 const KEYS = ['mankatsuki_teleport', 'mankatsuki_stampede', 'mankatsuki_pan', 'mankatsuki_stocks', 'mankatsuki_taco'];
 const COMBOS = ['mankatsuki_taco_pan', 'mankatsuki_taco_stocks', 'mankatsuki_teleport_taco'];
-const ALL_KEYS = [...KEYS, ...COMBOS];
+const NEW_KEYS = ['mankatsuki_food_taco', 'mankatsuki_motorcycle'];
+const NEW_COMBO = 'mankatsuki_food_motorcycle';
+const ALL_KEYS = [...KEYS, ...NEW_KEYS, ...COMBOS, NEW_COMBO];
 const config = name => [...ENEMIES.mankatsuki_junhee.patterns, ...ENEMIES.mankatsuki_junhee.enragedPatterns].find(pattern => pattern.type === name);
 
 function simulate(name, random = 0.35, visit = () => {}) {
@@ -51,16 +54,18 @@ test('test_mankatsuki_normal_and_enraged_registered_patterns_warn_and_expire', (
 
 test('mankatsuki attack sounds fire once per action, not for every projectile', () => {
   for (const [pattern, cue, count] of [
-    [KEYS[0], 'whoosh', 6], [KEYS[1], 'baron_slam', 2],
-    [KEYS[2], 'rocket', 6], [KEYS[3], 'hit', 6],
+    [KEYS[0], 'whoosh', 7], [KEYS[1], 'baron_slam', 2],
+    [KEYS[2], 'rocket', 7], [KEYS[3], 'hit', 7],
     [KEYS[4], 'mankatsuki_clone', 9], [KEYS[4], 'whoosh', 9],
     [COMBOS[0], 'whoosh', 9], [COMBOS[0], 'rocket', 3],
     [COMBOS[1], 'whoosh', 9], [COMBOS[1], 'hit', 3], [COMBOS[2], 'whoosh', 12],
+    [NEW_KEYS[0], 'whoosh', 4], [NEW_KEYS[0], 'hit', 4], [NEW_KEYS[1], 'rocket', 4],
+    [NEW_COMBO, 'whoosh', 4], [NEW_COMBO, 'hit', 4], [NEW_COMBO, 'rocket', 3],
   ]) assert.equal(simulate(pattern).sounds.filter(sound => sound.name === cue).length, count, pattern);
 });
 
-test('test_mankatsuki_enraged_pool_has_three_arranged_taco_combinations', () => {
-  assert.deepEqual(ENEMIES.mankatsuki_junhee.enragedPatterns.map(pattern => pattern.type), COMBOS);
+test('test_mankatsuki_enraged_pool_adds_food_motorcycle_before_three_pig_face_combinations', () => {
+  assert.deepEqual(ENEMIES.mankatsuki_junhee.enragedPatterns.map(pattern => pattern.type), [NEW_COMBO, ...COMBOS]);
   for (const [name, tacoCount, companion, companionCount] of [
     [COMBOS[0], 9, 'mankatsuki_flame', 9], [COMBOS[1], 9, 'mankatsuki_stock', 3],
     [COMBOS[2], 6, 'mankatsuki_shuriken', 18],
@@ -72,11 +77,13 @@ test('test_mankatsuki_enraged_pool_has_three_arranged_taco_combinations', () => 
   }
 });
 
-test('test_mankatsuki_taco_is_fifth_pattern_with_separate_sheet_and_unchanged_boss_stats', () => {
+test('test_mankatsuki_keeps_pig_face_sheet_and_puts_food_and_motorcycle_early_at_130_hp', () => {
   const boss = ENEMIES.mankatsuki_junhee;
-  assert.deepEqual(boss.patterns.map(pattern => pattern.type), KEYS);
+  assert.deepEqual(boss.patterns.map(pattern => pattern.type), [KEYS[0], ...NEW_KEYS, ...KEYS.slice(1)]);
   assert.equal(boss.projectiles.taco, 'assets/projectiles/mankatsuki-taco.png');
-  assert.deepEqual([boss.hp, boss.damage, boss.scale], [100, 11, 1.15]);
+  assert.equal(boss.projectiles.foodTaco, 'assets/projectiles/mankatsuki-food-taco.png');
+  assert.equal(boss.projectiles.motorcycle, 'assets/projectiles/mankatsuki-motorcycle.png');
+  assert.deepEqual([boss.hp, boss.damage, boss.scale], [130, 11, 1.15]);
   const { emitted, poses } = simulate(KEYS[4]);
   assert.equal(emitted.length, 9);
   assert.ok(emitted.every(({ b }) => b.shape === 'mankatsuki_taco' && b.warn >= 0.7 && b.r === 12));
@@ -88,8 +95,8 @@ test('test_mankatsuki_pressure_increases_without_damage_or_warning_shortcuts', (
   assert.equal(boss.dx, -12);
   assert.ok(boss.lines.speak.includes('아 삼전사라고 삼전'));
   assert.ok(boss.lines.speak.includes('우욱 우욱 우욱 이거 빤쓰아녀유?'));
-  for (const [name, shape, count] of [[KEYS[0], 'mankatsuki_shuriken', 18], [KEYS[2], 'mankatsuki_flame', 18],
-    [KEYS[3], 'mankatsuki_stock', 6], [KEYS[4], 'mankatsuki_taco', 9]]) {
+  for (const [name, shape, count] of [[KEYS[0], 'mankatsuki_shuriken', 21], [KEYS[2], 'mankatsuki_flame', 21],
+    [KEYS[3], 'mankatsuki_stock', 7], [KEYS[4], 'mankatsuki_taco', 9]]) {
     assert.equal(simulate(name).emitted.filter(({ b }) => b.shape === shape).length, count);
     assert.ok(config(name).duration <= 6.8);
   }
@@ -141,6 +148,90 @@ test('test_mankatsuki_taco_locks_each_aim_and_hits_only_the_moving_face', () => 
   for (let i = 0; i < 150; i++) first.update(1 / 60, BOX);
   assert.equal(sounds.filter(name => name === 'whoosh').length, 1);
   assert.equal(first.hits({ x: first.x, y: first.y, r: 6 }), false, 'expired/recovering head is harmless');
+});
+
+test('test_mankatsuki_food_tacos_curve_to_locked_landings_and_burst_into_four_food_chips', () => {
+  const pattern = MANKATSUKI_PATTERNS.mankatsuki_food_taco(config(NEW_KEYS[0]));
+  const emitted = [], sounds = [], soul = { ...SOUL };
+  const api = { box: BOX, soul, emit(o) { emitted.push(new Bullet(o)); }, sfx(name) { sounds.push(name); } };
+  pattern.update(0.15, 0, api);
+  const taco = emitted[0];
+  assert.equal(taco.shape, 'mankatsuki_food_taco');
+  assert.ok(taco.warn >= 0.55);
+  assert.deepEqual(taco.target, { x: SOUL.x, y: SOUL.y });
+  soul.x -= 65; soul.y += 40;
+  taco.update(taco.warn - 0.01, BOX);
+  assert.equal(taco.hits({ x: taco.x, y: taco.y, r: 6 }), false);
+  taco.update(0.01 + taco.flight / 2, BOX);
+  assert.ok(taco.y < SOUL.y - 20, 'arc rises above the locked landing');
+  assert.equal(taco.hits({ x: taco.x, y: taco.y, r: 6 }), true);
+  assert.equal(taco.hits(SOUL), false, 'landing ring is not a damage area');
+  taco.update(taco.flight / 2 + 0.001, BOX);
+  assert.deepEqual({ x: taco.x, y: taco.y }, taco.target);
+  assert.equal(taco.target.x, SOUL.x, 'flight never homes after the warning');
+  assert.equal(emitted.filter(b => b.shape === 'mankatsuki_food_chip').length, 4);
+  taco.update(0.01, BOX);
+  assert.equal(emitted.length, 5, 'landing bursts only once');
+  assert.deepEqual(sounds, ['whoosh', 'hit']);
+  for (const chip of emitted.slice(1)) {
+    assert.ok(chip.life <= 0.75 && Math.hypot(chip.vx, chip.vy) <= 60);
+    chip.update(chip.life, BOX);
+    assert.equal(chip.out(BOX), true);
+  }
+  for (const [name, tacos, chips, motorcycles] of [[NEW_KEYS[0], 4, 16, 0], [NEW_COMBO, 4, 16, 3]]) {
+    const shapes = simulate(name).emitted.map(({ b }) => b.shape);
+    assert.equal(shapes.filter(shape => shape === 'mankatsuki_food_taco').length, tacos);
+    assert.equal(shapes.filter(shape => shape === 'mankatsuki_food_chip').length, chips);
+    assert.equal(shapes.filter(shape => shape === 'mankatsuki_motorcycle').length, motorcycles);
+    assert.equal(shapes.includes('mankatsuki_taco'), false);
+  }
+});
+
+test('test_mankatsuki_motorcycle_locks_lane_and_alternates_direction_with_a_narrow_hitbox', () => {
+  const pattern = MANKATSUKI_PATTERNS.mankatsuki_motorcycle(config(NEW_KEYS[1]));
+  const emitted = [], soul = { ...SOUL };
+  const api = { box: BOX, soul, emit(o) { emitted.push(new Bullet(o)); } };
+  pattern.update(0.15, 0, api);
+  const bike = emitted[0];
+  assert.ok(bike.warn >= 0.55);
+  assert.equal(bike.lane, SOUL.y);
+  assert.equal(bike.direction, -1);
+  assert.ok((9 + SOUL.r + 4) / 100 + 0.3 < bike.warn, 'enough warning to move out of the lane');
+  soul.y += 40;
+  pattern.update(1.5, 0, api);
+  assert.equal(emitted[1].direction, 1);
+  assert.equal(emitted[1].lane, soul.y);
+  bike.update(bike.warn - 0.01, BOX);
+  assert.equal(bike.hits(SOUL), false);
+  bike.update(0.01 + bike.flight / 2, BOX);
+  assert.equal(bike.y, SOUL.y, 'lane does not follow subsequent soul movement');
+  assert.equal(bike.hits(SOUL), true);
+  assert.equal(bike.hits({ ...SOUL, y: SOUL.y + 17 }), false, 'transparent space above/below is safe');
+  assert.equal(bike.hits({ ...SOUL, x: bike.x + 30 }), false, 'transparent leading margin is safe');
+  assert.equal(bike.hits({ ...SOUL, x: BOX.x + 10 }), false, 'warned lane is not a beam');
+});
+
+test('test_mankatsuki_food_and_motorcycle_draw_single_assets_and_flip_only_rightward_bikes', () => {
+  const foodPng = fs.readFileSync(ENEMIES.mankatsuki_junhee.projectiles.foodTaco);
+  const bikePng = fs.readFileSync(ENEMIES.mankatsuki_junhee.projectiles.motorcycle);
+  const foodImage = { width: foodPng.readUInt32BE(16), height: foodPng.readUInt32BE(20) };
+  const bikeImage = { width: bikePng.readUInt32BE(16), height: bikePng.readUInt32BE(20) };
+  assert.deepEqual(foodImage, { width: 64, height: 64 });
+  assert.deepEqual(bikeImage, { width: 96, height: 64 });
+  for (const name of NEW_KEYS) {
+    const pattern = MANKATSUKI_PATTERNS[name](config(name)), emitted = [], calls = [];
+    pattern.update(1.5, 0, { box: BOX, soul: SOUL,
+      images: { foodTaco: foodImage, motorcycle: bikeImage }, emit(o) { emitted.push(new Bullet(o)); } });
+    const ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); },
+      set(target, key, value) { target[key] = value; return true; } });
+    for (const b of emitted) {
+      calls.length = 0; b.draw(ctx);
+      const draw = calls.find(call => call[0] === 'drawImage');
+      assert.equal(draw.length, 6, 'whole single-image asset; no pig-face sheet frames');
+      assert.equal(draw[1], name === NEW_KEYS[0] ? foodImage : bikeImage);
+      if (name === NEW_KEYS[1]) assert.deepEqual(calls.find(call => call[0] === 'scale'), ['scale', -b.direction, 1]);
+    }
+  }
 });
 
 test('test_mankatsuki_taco_draws_four_sheet_frames_and_scoped_warning_before_lunge', () => {

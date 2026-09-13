@@ -267,8 +267,8 @@ export class Battle {
     const damage = Math.min(e.hp, dmg);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
     this.support?.onHit(e, damage, source);
+    if (sound) { this.sfx('hit'); this.sfx('damage'); }
     if (e.def.reactive?.hitSfx) this.sfx(e.def.reactive.hitSfx);
-    else if (sound) { this.sfx('hit'); this.sfx('damage'); }
     if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
     return damage;
   }
@@ -290,7 +290,15 @@ export class Battle {
     const defName = e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
     if (typeof create === 'function') { this.gimmick = create(this, { enemy: e }); this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); return; }   // 적 턴 미니게임 모드
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
-    const text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
+    let text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
+    if (lines.length && e.def.lines.speakShuffle) {
+      if (!e.speechBag?.length) e.speechBag = [...new Set(lines)];
+      const choices = e.speechBag.filter(line => line !== e.lastSpeech);
+      const pool = choices.length ? choices : e.speechBag;
+      text = pool[Math.floor(this.rnd() * pool.length)];
+      e.speechBag.splice(e.speechBag.indexOf(text), 1);
+      e.lastSpeech = text;
+    }
     this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.def.voice || 'narrator' };
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
@@ -379,7 +387,7 @@ export class Battle {
     this.disposeGimmick(); this.interlude = null; this.support?.reset(); this.cur = null;
     this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = [];
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; m.action = null; m.popup = null; m.pose = null; }
-    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; }
+    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null; }
     this.game.fadeTo(1, 0, undefined, 'black');
     this.game.sound.preloadBgm(this.cfg.bgm); this.sfx('battle_start'); this.game.shake = { time: 0.45, amp: 3 };
     this.retryT = RETRY_JINGLE;

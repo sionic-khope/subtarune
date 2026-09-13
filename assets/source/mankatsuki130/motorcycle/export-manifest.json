@@ -1,0 +1,20 @@
+{
+  "processor_metadata": "processed/pipeline-meta.json",
+  "resampling": "NEAREST",
+  "palette_quantization_png": false,
+  "cell_size": 96,
+  "frame_count": 1,
+  "runtime_size": [
+    96,
+    96
+  ],
+  "output_bounds": [
+    [
+      9,
+      26,
+      88,
+      70
+    ]
+  ],
+  "runtime_layout": "horizontal strip"
+}
