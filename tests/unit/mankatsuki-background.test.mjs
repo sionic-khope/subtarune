@@ -1,21 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mankatsukiVortexPoint } from '../../src/battle/mankatsuki-background.js';
+import { mankatsukiVortexPoint, mankatsukiAuraPoint } from '../../src/battle/mankatsuki-background.js';
 import { BATTLE_BGS } from '../../src/battle/backgrounds.js';
 import { darkSmokeWaiter, drawDarkSmoke } from '../../src/ui/dark-smoke.js';
 
-test('test_mankatsuki_background_registered_and_funnel_has_depth_and_rotation', () => {
+test('test_mankatsuki_background_has_vertical_hourglass_and_independent_surrounding_rotation', () => {
   assert.equal(typeof BATTLE_BGS.mankatsuki_vortex, 'function');
-  const near = mankatsukiVortexPoint(0, 0, 0);
-  const far = mankatsukiVortexPoint(1, 0, 0);
-  assert.ok(far.z > near.z);
-  assert.ok(Math.abs(near.x - 240) > Math.abs(far.x - 240) * 5);
-  assert.notDeepEqual(mankatsukiVortexPoint(0.4, 0.8, 0), mankatsukiVortexPoint(0.4, 0.8, 2));
+  const top = mankatsukiVortexPoint(0, 0, 0);
+  const waist = mankatsukiVortexPoint(0.5, 0, 0);
+  const bottom = mankatsukiVortexPoint(1, 0, 0);
+  assert.ok(top.y < waist.y && waist.y < bottom.y);
+  assert.ok(Math.abs(top.x - 240) > Math.abs(waist.x - 240) * 10);
+  assert.ok(Math.abs(bottom.x - 240) > Math.abs(waist.x - 240) * 10);
+  const turning = mankatsukiVortexPoint(0.28, 0, 2);
+  assert.ok(turning.z > mankatsukiVortexPoint(0.28, 0, 0).z);
+  assert.ok(mankatsukiAuraPoint(0, 0, 2).z < mankatsukiAuraPoint(0, 0, 0).z);
+  const front = mankatsukiVortexPoint(0.72, -Math.PI / 2, 0);
+  const back = mankatsukiVortexPoint(0.72, Math.PI / 2, 0);
+  assert.ok(front.y - 110 > back.y - 110, 'near lower face must foreshorten differently from far face');
   for (const time of [0, 4, 100000]) {
-    for (const depth of [0, 0.5, 1]) {
-      const point = mankatsukiVortexPoint(depth, Math.PI, time);
+    for (const height of [0, 0.5, 1]) {
+      const point = mankatsukiVortexPoint(height, Math.PI, time);
       assert.ok(Object.values(point).every(Number.isFinite));
-      assert.ok(point.z > 0);
+      assert.ok(point.z > -720);
     }
   }
 });

@@ -1,5 +1,7 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+BUILD127 공격음 확정: 사용자 ‘기존사운드 활용해도됨’에 따라 분신은 `mankatsuki_clone`, 표창 묶음은 `whoosh`, 돼지 낙하는 기존 묵직한 지면 충격 `baron_slam`(0.7초), 팬 분사는 `rocket`, 주가 레이저 활성화는 공식 `snd_laz_c` 기반 `hit`를 재사용한다. 예고 종료/실제 공격 시작에 동작당1회이며 개별 탄마다 겹쳐 울리지 않는다. 파일 변경·새 합성은 없고 원본 출처는 아래 기록을 따른다.
+
 ## 만카츠키 전투 (2026-09-13, BUILD126)
 
 사용자 지정 [THE WORLD REVOLVING — Toby Fox](https://www.youtube.com/watch?v=Z01Tsgwe2dQ), 영상ID `Z01Tsgwe2dQ`의 오디오 포맷251 전체를 `assets/audio/bgm/mankatsuki_battle.mp3`로 변환했다. yt-dlp 메타데이터 제목·업로더·2018-11-17 업로드·101초를 확인했다. 출력은 **101.052646초,48kHz 스테레오,2,520,140바이트**, 평균−13.3dBFS/peak0.0dBFS다. 잘라내기·속도·피치·페이드·음량 변경 없이 원본 전체를 사용하며 전투에서0초부터 재생한다.

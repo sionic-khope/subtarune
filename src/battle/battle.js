@@ -26,7 +26,7 @@ import { drawMosaicText } from '../ui/text-mosaic.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
-const PARTY_X = 84, PARTY_YS = { 1: [150], 2: [100, 200], 3: [70, 145, 220] };   // 세로 간격 75px — 셋이 패널(y 246) 위에 다 들어온다 (2026-09-10 사용자, HP 띠를 맨 아래로 빼면서 위로)
+const PARTY_X = 84, PARTY_YS = { 1: [190], 2: [164, 224], 3: [104, 164, 224] };
 const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244] };   // 큰 보스는 def.dx/dy 로 자리 보정(레드·블루: 위·아래로 엇갈리게)
 const ACTOR_SCALE = 0.66;            // 미리보기(0.25) 대비 (사용자 요청으로 10% 확대)
 const APPROACH_SPEED = 820, RETURN_SPEED = 700;   // px/s — "생각보다 빠르게"
@@ -441,6 +441,7 @@ export class Battle {
     const scale = (running ? def.run.scale : def.scale) * ACTOR_SCALE;
     const picking = ['menu', 'target', 'item', 'item-target'].includes(this.state) && m === this.members[this.memberIdx];
     const [px0, py] = act ? act.position : m.home; const px = px0 + (!act && picking ? 10 : 0);   // 차례인 멤버는 한 발 앞으로(델타룬)
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(px), Math.round(py + 2), 15, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.save(); ctx.translate(Math.round(px), Math.round(py)); if (mode === 'return') ctx.scale(-1, 1);
     ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
     ctx.restore();

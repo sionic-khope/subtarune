@@ -179,7 +179,7 @@ export const MANKATSUKI_PATTERNS = {
     for (let wave = 0; wave < 2; wave++) events.push({ at: 0.15 + wave * 3.35, run(api) {
       safeRight = wave ? !safeRight : api.rnd() >= 0.5;
       const warn = stampede(api, safeRight, o);
-      events.push({ at: 0.15 + wave * 3.35 + warn, run(api) { api.sfx?.('thud'); api.present?.({ sheet: 'attack' }); } });
+      events.push({ at: 0.15 + wave * 3.35 + warn, run(api) { api.sfx?.('baron_slam'); api.present?.({ sheet: 'attack' }); } });
       events.sort((a, b) => a.at - b.at);
     } });
     return timeline(duration, events);

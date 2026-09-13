@@ -45,6 +45,13 @@ test('test_mankatsuki_four_independent_registered_patterns_warn_and_expire', () 
   }
 });
 
+test('mankatsuki attack sounds fire once per action, not for every projectile', () => {
+  for (const [pattern, cue, count] of [
+    [KEYS[0], 'whoosh', 4], [KEYS[1], 'baron_slam', 2],
+    [KEYS[2], 'rocket', 4], [KEYS[3], 'hit', 4],
+  ]) assert.equal(simulate(pattern).sounds.filter(sound => sound.name === cue).length, count, pattern);
+});
+
 test('test_mankatsuki_teleports_actual_actor_above_and_below_with_clone_sound', () => {
   const { poses, sounds, emitted } = simulate(KEYS[0]);
   assert.ok(poses.some(({ pose }) => pose?.hidden));
