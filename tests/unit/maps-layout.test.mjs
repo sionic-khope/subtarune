@@ -11,7 +11,7 @@ import { TILE, PROBE_RANGE, CHAR_BOX, DIALOGUE_VISIBLE_H } from '../../src/core/
 
 const root = new URL('../../', import.meta.url).pathname;
 const CHAR_SCALE = Number(fs.readFileSync(root + 'src/world/world.js', 'utf-8').match(/export const CHAR_SCALE = ([\d.]+)/)[1]);
-const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M']);
+const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I']);
 const WALK = new Set([...ROAD, 'd']);
 const pngH = (p) => fs.readFileSync(root + p).readUInt32BE(20);
 const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8')).maps.map((id) => JSON.parse(fs.readFileSync(root + `assets/maps/${id}.json`, 'utf-8'))).filter((m) => m.rows);

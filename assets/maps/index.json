@@ -35,6 +35,8 @@
     "maillard_storage",
     "maillard_saloon",
     "maillard_captain",
-    "maillard_starboard"
+    "maillard_starboard",
+    "maillard_boarding",
+    "youngcle_bridge"
   ]
 }

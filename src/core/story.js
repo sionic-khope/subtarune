@@ -12,6 +12,7 @@
 // 새 스토리 비트 추가: STAGES 에 한 줄(id, 설명, 그 시점의 맵/스폰) → 스크립트에서 `{ stage:'id' }`.
 // ─────────────────────────────────────────────────────────────
 import { YONGJUN_SHOP } from '../data/shops.js';
+import { SHIP_ASSAULT, isShipPursuitMap } from '../data/ship-assault.js';
 
 export const STAGES = [
   { id: 'start',          desc: '새 게임(타이틀)',                         map: 'room',   spawn: 'bed' },
@@ -27,7 +28,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
-  if (flags.captain_attack_started && ['maillard_captain', 'maillard_saloon', 'maillard_starboard'].includes(mapId)) return 'youngcle_assault';
+  if ((flags.captain_attack_started || flags.captain_attack_done) && isShipPursuitMap(mapId)) return SHIP_ASSAULT.bgm;
   if (mapId === 'maillard_captain' && (flags.captain_mankatsuki_defeated || flags.captain_aftermath_done)) return null;
   if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
   if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
@@ -41,6 +42,7 @@ const PURSUIT_EXITS = { obj0: 'obj1', obj1: 'obj2', obj2: 'obj5', obj3: 'obj2', 
 
 /** 납치 추격 중에는 문으로 우회하거나 직전 구역으로 돌아갈 수 없다. */
 export function storyExitScript(mapId, destination, flags) {
+  if (flags.captain_attack_done && isShipPursuitMap(mapId) && SHIP_ASSAULT.pursuit[mapId] !== destination) return 'ship_pursuit_backtrack';
   if (!flags.obj4_abduction_done || flags.obj5_maillard_done) return undefined;
   if (Object.hasOwn(PURSUIT_EXITS, mapId) && PURSUIT_EXITS[mapId] !== destination) return 'chase_route_block';
   return undefined;
@@ -206,7 +208,8 @@ for (const [id, desc] of [
   ['maillard_captain', '마이야르호 선장실'],
 ]) {
   QA_POINTS.push({ ...maillardLoungeCheckpoint, id, desc, map: id, spawn: 'start',
-    flags: { ...maillardLoungeCheckpoint.flags, ...((id === 'maillard_saloon' || id === 'maillard_captain') ? { shop_yongjun_cialis: true, shop_yongjun_vaseline: true } : {}) }, party: [...maillardLoungeCheckpoint.party] });
+    flags: { ...maillardLoungeCheckpoint.flags, ...((id === 'maillard_saloon' || id === 'maillard_captain') ? { shop_yongjun_cialis: true, shop_yongjun_vaseline: true } : {}),
+      ...(id === 'maillard_captain' ? { maillard_eunbyeol_seen: true } : {}) }, party: [...maillardLoungeCheckpoint.party] });
 }
 
 const captainCheckpoint = QA_POINTS.find(point => point.id === 'maillard_captain');
@@ -225,3 +228,11 @@ QA_POINTS.push({ ...aftermathCheckpoint, id: 'maillard_starboard', desc: '마이
   map: 'maillard_starboard', spawn: 'from_saloon',
   flags: { ...aftermathCheckpoint.flags, captain_aftermath_done: true, captain_attack_started: true,
     captain_attack_done: true, maillard_starboard_open: true }, party: [...aftermathCheckpoint.party] });
+
+const starboardCheckpoint = QA_POINTS.find(point => point.id === 'maillard_starboard');
+QA_POINTS.push({ ...starboardCheckpoint, id: 'maillard_boarding', desc: '접현 광장: 쥰희·용준의 출발',
+  map: 'maillard_boarding', spawn: 'from_starboard',
+  flags: { ...starboardCheckpoint.flags }, party: [...starboardCheckpoint.party] });
+QA_POINTS.push({ ...starboardCheckpoint, id: 'youngcle_bridge', desc: '영클 전함으로 이어지는 철교',
+  map: 'youngcle_bridge', spawn: 'from_boarding',
+  flags: { ...starboardCheckpoint.flags, maillard_boarding_departed: true }, party: [...starboardCheckpoint.party] });

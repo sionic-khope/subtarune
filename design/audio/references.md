@@ -252,6 +252,8 @@ yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 
 ```
 # 영클 전함 습격 (2026-09-13)
 
+BUILD136 추가 사용자 ‘철갑판 걷는발소리 생성’ 요청: `tools/audio/iron_steps.mjs`에서 외부 샘플 없이 낮은 발뒤꿈치 충격, 짧은 고역 접촉음, 460/713/1127/1631Hz 감쇠 금속 공명을 합성했다. `iron_step_1.mp3`와 약8% 낮은2번을 실제 철판 보행에서 번갈아 재생한다. 각 원본 신호0.23초, mono44100Hz, 시작1.5ms/끝30ms 페이드, 전체 파일 재생이다. 물걸음 원본 루프·나무바닥은 변경하지 않는다. 합성 효과음이며 실제 철갑판 녹음이라고 주장하지 않는다.
+
 사용자 지정 [The Chase · Toby Fox](https://www.youtube.com/watch?v=hWWVWfQW1H4)를 `assets/audio/bgm/youngcle_assault.mp3`로 사용한다. `yt-dlp --no-playlist -f bestaudio -x --audio-format mp3 --audio-quality 3`으로 받은 전체33.882375초를 자르거나 피치 변경하지 않고 반복 재생한다. 용준이 선장실로 올라와 경고하는 시점에 시작하고, 바다 전함 공개·선장실 복귀·문 공사·오른쪽 갑판까지 같은 재생을 유지한다. 새 합성 대체곡은 쓰지 않는다. 생성 이미지와 함께 `assets/source/youngcle134/`에 출처를 연결한다.
 
 # 만카츠키 피격 목소리 (2026-09-13)

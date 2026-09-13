@@ -87,7 +87,7 @@ def main() -> None:
                  'requires': 'maillard_starboard_open'},
                 {'type': 'door', 'id': 'saloon_to_starboard', 'x': 824, 'y': 224,
                  'w': 40, 'h': 96, 'to': 'maillard_starboard', 'spawn': 'from_saloon',
-                 'sfx': 'plug', 'interact': True, 'requires': 'maillard_starboard_open',
+                 'sfx': 'plug', 'interact': False, 'requires': 'maillard_starboard_open',
                  'lockedScript': 'maillard_starboard_gate'},
                 {'type': 'npc', 'id': 'starboard_junhee', 'sprite': 'junhee',
                  'x': 740, 'y': 264, 'facing': 'right', 'wander': 0, 'solid': False,

@@ -16,7 +16,7 @@ test('saloon gate dispatch remains available until the visible construction comp
   assert.equal(data.enter.flag, undefined);
   const door = data.entities.find(entity => entity.id === 'saloon_to_starboard');
   assert.equal(door.requires, 'maillard_starboard_open');
-  assert.equal(door.interact, true);
+  assert.equal(door.interact, false);
 });
 
 test('right doorway is blocked before construction and reachable facing right after reload', () => {
@@ -34,18 +34,24 @@ test('right doorway is blocked before construction and reachable facing right af
   assert.match(image.image, /doorway_right\.png$/);
 });
 
-test('starboard door allows C transition only after its completion flag', () => {
+test('starboard portal allows transition only after its completion flag', () => {
   const definition = readMap('maillard_saloon').entities.find(entity => entity.id === 'saloon_to_starboard');
   assert.ok(definition);
   const transitions = [];
   const flags = {};
   const game = { mapId: 'maillard_saloon', flags, has: flag => !!flags[flag],
-    sound: { sfx() {} }, runScript: (_key, done) => done(), changeMap: (...args) => transitions.push(args) };
+    dialogue: { running: false }, sound: { sfx() {} },
+    runScript: (_key, done) => done(), changeMap: (...args) => transitions.push(args) };
+  game.player = new Entity({ x: 808, y: 264 }, game);
   const door = new Door(definition, game);
-  door.fire(() => {});
+  assert.equal(door.canInteract(), false);
+  door.update(1 / 60);
   assert.deepEqual(transitions, []);
+  game.player.x = 760;
+  door.update(0.5);
   flags.maillard_starboard_open = true;
-  door.fire(() => {});
+  game.player.x = 808;
+  door.update(1 / 60);
   assert.deepEqual(transitions, [['maillard_starboard', 'from_saloon']]);
 });
 
@@ -73,7 +79,7 @@ test('new deck keeps the risen Maillard sea backdrop and three-screen straight w
   assert.equal(data.followScreenY, 285);
   assert.equal(data.enter, undefined);
   assert.equal(data.entities.filter(entity => ['npc', 'enemy', 'trigger'].includes(entity.type)).length, 0);
-  assert.equal(data.entities.filter(entity => entity.type === 'door').length, 1);
+  assert.equal(data.entities.filter(entity => entity.type === 'door').length, 2);
   for (let x = 32; x <= 1480; x += 8) assert.equal(map.solidRect(x, 384, 24, 16), false);
   for (const [x, y] of [[0, 384], [1504, 384], [768, 336], [768, 448]]) assert.equal(map.solidRect(x, y, 24, 16), true);
   const camera = new Camera();

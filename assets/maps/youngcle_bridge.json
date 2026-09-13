@@ -1,0 +1,108 @@
+{
+ "stage": "void_fallen",
+ "bgm": "youngcle_assault",
+ "dim": 0,
+ "backdrop": "maillard_sunrise",
+ "sunrise": {
+  "animated": false
+ },
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/maillard_sunset.png",
+  "assets/props/maillard_sun.png",
+  "assets/backdrops/maillard_sea.png",
+  "assets/props/youngcle_entrance.png"
+ ],
+ "id": "youngcle_bridge",
+ "name": "철 전함으로 가는 다리",
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!",
+  "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!",
+  "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "followScreenY": 285,
+ "spawns": {
+  "start": {
+   "x": 164,
+   "y": 416,
+   "facing": "right"
+  },
+  "from_boarding": {
+   "x": 164,
+   "y": 416,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "bridge_to_boarding",
+   "x": 16,
+   "y": 384,
+   "w": 32,
+   "h": 96,
+   "to": "maillard_boarding",
+   "spawn": "from_bridge",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_entrance_image",
+   "image": "assets/props/youngcle_entrance.png",
+   "x": 1248,
+   "y": 256,
+   "w": 192,
+   "h": 192,
+   "solid": false,
+   "sortY": 0
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_entrance",
+   "x": 1264,
+   "y": 400,
+   "w": 32,
+   "h": 64,
+   "solid": false,
+   "script": "youngcle_entrance"
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_upper_hull",
+   "x": 1248,
+   "y": 256,
+   "w": 192,
+   "h": 144,
+   "solid": true,
+   "script": "youngcle_entrance"
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_lower_hull",
+   "x": 1248,
+   "y": 448,
+   "w": 192,
+   "h": 64,
+   "solid": true,
+   "script": "youngcle_entrance"
+  }
+ ]
+}

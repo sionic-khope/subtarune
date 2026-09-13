@@ -151,8 +151,9 @@ test('eunbyeol guidance frames the door and restores player tracking for the fol
 });
 
 test('captain confirmation cancels safely and only accepted entry has a black transition', () => {
-  const nodes = SCRIPTS.maillard_captain_enter;
-  assert.ok(nodes);
+  const script = SCRIPTS.maillard_captain_enter;
+  assert.ok(script);
+  const nodes = script.slice(1, script.findIndex(node => node.label === script[0].goto));
   assert.equal(nodes.filter(node => node.text).length, 4);
   assert.equal(nodes[0].text, '* 선장실 문이다.');
   const tokens = parseText(nodes[2].text);
@@ -166,6 +167,20 @@ test('captain confirmation cancels safely and only accepted entry has a black tr
   assert.deepEqual(nodes.filter(node => node.fade).map(node => node.fade), ['out', 'in']);
   assert.equal(nodes.find(node => node.map).map, 'maillard_captain');
   assert.equal(nodes.some(node => node.battle || node.bgm), false);
+});
+
+test('captain pursuit guard activates only after attack completion and selects the shared warning', () => {
+  const script = SCRIPTS.maillard_captain_enter;
+  const guard = script[0];
+  assert.equal(Boolean(guard.if({})), false);
+  assert.equal(Boolean(guard.if({ captain_attack_started: true })), false);
+  assert.equal(guard.if({ captain_attack_done: true }), true);
+  const branch = script.slice(script.findIndex(node => node.label === guard.goto) + 1);
+  assert.deepEqual(branch, [...SCRIPTS.ship_pursuit_backtrack, { end: true }]);
+  const game = fixture();
+  game.flags.captain_attack_done = true;
+  game.changeMap = () => assert.fail('Pursuit guard must not enter the captain room');
+  assert.deepEqual(play(game, script), [...SCRIPTS.ship_pursuit_backtrack]);
 });
 
 test('captain room keeps timber floors, broad clear center and one return to the path', () => {

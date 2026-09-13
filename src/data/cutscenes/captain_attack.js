@@ -68,10 +68,10 @@ export const captain_attack = Object.assign([
   { move: YONGJUN, px: game => [game.entities.find(e => e.id === 'captain_to_saloon').x + 24, game.map.pxH + 80], run: true },
   { remove: YONGJUN },
   P('형 저희도 빨리 가보죠'),
-  { action: game => game.finishShipAssault() },
   { camera: 'player' },
   { regroup: true },
   { set: { captain_attack_done: true } },
+  { action: game => game.finishShipAssault() },
   { label: 'end' },
   { end: true },
 ], { silent: true });

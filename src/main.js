@@ -37,6 +37,7 @@ import { Battle } from './battle/battle.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
 import { MaillardArrival } from './scenes/maillard-arrival.js';
 import { ShipAssault } from './scenes/ship-assault.js';
+import { ShipPursuitAmbient } from './scenes/ship-pursuit-ambient.js';
 import { SHIP_ASSAULT } from './data/ship-assault.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
@@ -68,6 +69,7 @@ class Game {
     this.seaChase = null;
     this.maillardArrival = null;
     this.shipAssault = null;
+    this.shipPursuitAmbient = new ShipPursuitAmbient(this);
     this.captainAttackPending = false;
     this.sunrise = new MaillardSunrise(MAILLARD_SUNRISE);
     this.settings = { textSpeed: 1, sound: true };
@@ -130,7 +132,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -186,6 +188,7 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    this.shipPursuitAmbient?.stop();
     this.finishShipAssault(true);
     this.captainAttackPending = false;
     this.darkSmoke = null;
@@ -391,6 +394,7 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    this.shipPursuitAmbient?.stop();
     this.finishShipAssault(true);
     this.captainAttackPending = false;
     this.darkSmoke = null;
@@ -465,6 +469,7 @@ class Game {
   /** 전투 시작 (컷신 {battle}) — 끝나면 endBattle → game.lastBattle = { win }. 필드·대화창은 그대로 두고 화면만 전투가 가져간다 */
   startBattle(cfg) {
     if (this.battle) return this.battle;
+    this.shipPursuitAmbient?.clear();
     this.player.moving = false; this.textbox.close?.();
     this.battle = new Battle(this, cfg);   // 에셋이 준비되면 Battle.load() 가 브금을 틀고 검은 화면을 걷는다(0.12s) — 0.45s 페이드 + 로딩 정지 동안 루드버스터 첫 0.6초가 지나가던 문제 (사용자 2026-09-10 '초반이 패스당한 느낌')
     return this.battle;
@@ -536,6 +541,7 @@ class Game {
       const completedCartEntry = mapId === MAILLARD_CART.map && this.has(MAILLARD_CART.completionFlag) && (!spawnId || spawnId === 'start' || spawnId === 'from_hold');
       const resolvedSpawnId = completedCartEntry ? MAILLARD_CART.landingSpawn : spawnId;
       this.mapId = mapId; this.entrySpawn = resolvedSpawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
+      this.shipPursuitAmbient?.resume();
       this.map = new TileMap({ ...def, rows: def.rows ? [...def.rows] : def.rows }, this.mapImages?.[mapId] || null);   // rows 는 복사 (tileSwaps 가 원본을 안 건드리게)
       for (const key of Object.keys(def.tileSwaps || {})) if (this.has(key)) this.applyTiles(key, false);   // 플래그가 선 타일 교체는 처음부터 적용
       this.map.bake();
@@ -633,6 +639,7 @@ class Game {
   /** Start from stable room anchors so old and interrupted saves resume the same attack. */
   startShipAssault() {
     this.finishShipAssault();
+    this.shipPursuitAmbient?.clear();
     this.captainAttackPending = false;
     const junhee = this.entities.find(e => e.id === 'captain_junhee_restored');
     const carpet = this.entities.find(e => e.id === 'captain_carpet');
@@ -663,7 +670,9 @@ class Game {
       this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
       this.textbox.close(); this.background = [];
     }
-    this.shipAssault?.dispose(); this.shipAssault = null;
+    if (!abort && this.shipAssault && this.shipPursuitAmbient) this.shipPursuitAmbient.adopt(this.shipAssault);
+    else this.shipAssault?.dispose();
+    this.shipAssault = null;
   }
 
   /** The shop opens after its interaction script releases the dialogue runner. */
@@ -735,6 +744,7 @@ class Game {
       }
     }
 
+    this.shipPursuitAmbient?.sync();
     if (this.state === 'title') {
       this.title.update(dt, Input);
       return;
@@ -781,6 +791,7 @@ class Game {
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
     this.shipAssault?.update(dt);
+    this.shipPursuitAmbient?.update(dt);
     if (this.shipAssault?.ocean) {
       if (this.dialogue.running) this.dialogue.update(dt, Input);
       return;
@@ -1035,6 +1046,7 @@ class Game {
     if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
     this.sysdialog.draw(ctx);
     this.shipAssault?.drawDust(ctx);
+    this.shipPursuitAmbient?.draw(ctx);
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
     if (this.prompt) this.drawPrompt(ctx);
@@ -1196,7 +1208,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-13.135';
+export const BUILD = '2026-09-13.136';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

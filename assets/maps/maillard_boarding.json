@@ -1,0 +1,135 @@
+{
+ "stage": "void_fallen",
+ "bgm": "youngcle_assault",
+ "dim": 0,
+ "backdrop": "maillard_sunrise",
+ "sunrise": {
+  "animated": false
+ },
+ "preload": [
+  "assets/tiles/maillard_deck.png",
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/maillard_sunset.png",
+  "assets/props/maillard_sun.png",
+  "assets/backdrops/maillard_sea.png"
+ ],
+ "id": "maillard_boarding",
+ "name": "마이야르호 접현 갑판",
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!MMMMMMMMMMMMMMMMMIIIJ",
+  "!MMMMMMMMMMMMMMMMMIIIJ",
+  "!MMMMMMMMMMMMMMMMMIIIJ",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!MMMMMMMMMMMM!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "enter": {
+  "script": "maillard_boarding_intro"
+ },
+ "spawns": {
+  "start": {
+   "x": 228,
+   "y": 432,
+   "facing": "right"
+  },
+  "from_starboard": {
+   "x": 228,
+   "y": 432,
+   "facing": "right"
+  },
+  "from_bridge": {
+   "x": 484,
+   "y": 432,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "player": [
+    356,
+    432
+   ],
+   "gyeongsub": [
+    292,
+    432
+   ],
+   "ppaman": [
+    228,
+    432
+   ],
+   "junhee": [
+    548,
+    400
+   ],
+   "yongjun": [
+    484,
+    464
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "boarding_to_starboard",
+   "x": 16,
+   "y": 384,
+   "w": 32,
+   "h": 96,
+   "to": "maillard_starboard",
+   "spawn": "from_boarding",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "boarding_to_bridge",
+   "x": 656,
+   "y": 384,
+   "w": 32,
+   "h": 96,
+   "to": "youngcle_bridge",
+   "spawn": "from_boarding",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "npc",
+   "id": "boarding_junhee",
+   "sprite": "junhee",
+   "x": 548,
+   "y": 400,
+   "facing": "right",
+   "wander": 0,
+   "solid": false,
+   "unless": "maillard_boarding_departed"
+  },
+  {
+   "type": "npc",
+   "id": "boarding_yongjun",
+   "sprite": "yongjun",
+   "x": 484,
+   "y": 464,
+   "facing": "right",
+   "wander": 0,
+   "solid": false,
+   "unless": "maillard_boarding_departed"
+  }
+ ]
+}

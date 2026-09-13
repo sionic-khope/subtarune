@@ -369,6 +369,8 @@ export class Player extends Character {
     super({ speed: TILE * 3.9 * 1.75, ...def }, game);
     this.slowMul = 1 / 1.75;              // X/Shift 를 누르면 천천히 (기본이 달리기)
     this.lastMove = 0;
+    this.stepSfxIndex = 0;
+    this.lastSfxStepAt = null;
   }
   /** 어떤 코드 경로로든 벽·solid 소품 안에 놓였으면(끼임) 가장 가까운 빈 칸으로 빠져나온다 — 영구 끼임 방지 안전장치 (2026-09-10) */
   unstick() {
@@ -409,11 +411,16 @@ export class Player extends Character {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
   }
-  /** 물결 고리: 발 딛는 프레임(1·3)으로 넘어가는 순간 중 지난 고리에서 STEP_DIST(80px) 이상 걸었을 때, 발밑 타일이 `step`(물 위 걷기 소리 정의)이면 발밑에 물결을 낸다.
-   *  소리는 여기서 내지 않는다 — 걷는 동안 Sound.walk 가 영상 루프를 이어 튼다(2026-09-12: 걸음마다 파일을 트는 방식은 전부 "끊긴다"). */
+  /** 발 접촉 프레임(1·3): stepSfx 재질음과 물결 거리는 독립적이다. 물의 소리는 기존 Sound.walk 루프만 사용한다. */
   footstep(prevFrame) {
     if (this.frame === prevFrame || (this.frame !== 1 && this.frame !== 3)) return;
     const cx = this.x + this.w / 2, fy = this.y + this.h - 1;
+    const surface = this.game.map?.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE))?.stepSfx;
+    if (surface && (!this.lastSfxStepAt || Math.hypot(cx - this.lastSfxStepAt[0], fy - this.lastSfxStepAt[1]) >= surface.distance)) {
+      this.game.sound?.sfx(surface.sounds[this.stepSfxIndex % surface.sounds.length], { volume: surface.volume });
+      this.stepSfxIndex++;
+      this.lastSfxStepAt = [cx, fy];
+    }
     if (this.lastStepAt && Math.hypot(cx - this.lastStepAt[0], fy - this.lastStepAt[1]) < STEP_DIST) return;
     if (!this.stepTile()) return;
     this.lastStepAt = [cx, fy];

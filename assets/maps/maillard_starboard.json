@@ -31,7 +31,8 @@
   "assets/tiles/maillard_deck.png",
   "assets/backdrops/maillard_sunset.png",
   "assets/props/maillard_sun.png",
-  "assets/backdrops/maillard_sea.png"
+  "assets/backdrops/maillard_sea.png",
+  "assets/props/blue_buff.png"
  ],
  "spawns": {
   "start": {
@@ -43,6 +44,11 @@
    "x": 164,
    "y": 384,
    "facing": "right"
+  },
+  "from_boarding": {
+   "x": 1348,
+   "y": 384,
+   "facing": "left"
   }
  },
  "meta": {
@@ -57,6 +63,35 @@
    "w": 32,
    "h": 96,
    "to": "maillard_saloon",
+   "spawn": "from_starboard",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "starboard_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 752,
+   "y": 356,
+   "w": 32,
+   "h": 12,
+   "ix": 748,
+   "iy": 324,
+   "solid": true,
+   "script": "maillard_spring"
+  },
+  {
+   "type": "door",
+   "id": "starboard_to_boarding",
+   "x": 1472,
+   "y": 352,
+   "w": 32,
+   "h": 96,
+   "to": "maillard_boarding",
    "spawn": "from_starboard",
    "sfx": false,
    "interact": false

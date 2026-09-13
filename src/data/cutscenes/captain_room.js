@@ -1,3 +1,5 @@
+import { shipPursuitBacktrack } from '../scripts/ship-pursuit.js';
+
 const E = text => ({ speaker: '김은별컴퍼니', voice: 'eunbyeol', text: '* ' + text });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* ' + text });
 const encouragement = E('제발 부탁드립니다. 간곡히 바라고있습니다. 응원할게요.');
@@ -23,6 +25,7 @@ export const maillard_eunbyeol = Object.assign([
 ], { silent: true });
 
 export const maillard_captain_enter = Object.assign([
+  { if: flags => flags.captain_attack_done, goto: 'pursuit' },
   { voice: 'narrator', text: '* 선장실 문이다.' },
   { voice: 'narrator', text: '* ... 여기로 들어가면 뭔가 어떤 사건이 벌어질거같다.' },
   { voice: 'narrator', text: '* 라운지를 다 둘러보셨나요? 상점에 {c=yellow}공격력/체력 증가 아이템{/c} 구입은 하셨나요? 라고 적혀있다' },
@@ -42,5 +45,8 @@ export const maillard_captain_enter = Object.assign([
     };
   } },
   { label: 'end' },
+  { end: true },
+  { label: 'pursuit' },
+  ...shipPursuitBacktrack,
   { end: true },
 ], { silent: true });

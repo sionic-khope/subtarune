@@ -114,6 +114,11 @@ registerTile('T', { name: 'tree', solid: true, art: TILE_ART.tree, drawOver: ','
 registerTile('D', { name: 'door', solid: false, art: TILE_ART.door });
 registerTile('M', { name: 'maillard_deck', solid: false,
   draw: (ctx) => { ctx.fillStyle = '#785132'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+for (const [char, solid] of [['I', false], ['J', true]]) {
+  registerTile(char, { name: 'youngcle_iron', solid,
+    stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
+    draw: (ctx) => { ctx.fillStyle = '#52647b'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+}
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
 registerTile('B', { name: 'bed', solid: false, art: TILE_ART.bed, drawOver: '.' });   // 침대 위로 올라갈 수 있음(눕기 연출)

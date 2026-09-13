@@ -127,7 +127,7 @@
    "to": "maillard_starboard",
    "spawn": "from_saloon",
    "sfx": "plug",
-   "interact": true,
+   "interact": false,
    "requires": "maillard_starboard_open",
    "lockedScript": "maillard_starboard_gate"
   },
