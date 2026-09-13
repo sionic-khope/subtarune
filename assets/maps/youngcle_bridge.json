@@ -12,7 +12,7 @@
   "assets/backdrops/maillard_sunset.png",
   "assets/props/maillard_sun.png",
   "assets/backdrops/maillard_sea.png",
-  "assets/props/youngcle_entrance.png"
+  "assets/props/youngcle_hull_entry.png"
  ],
  "id": "youngcle_bridge",
  "name": "철 전함으로 가는 다리",
@@ -31,7 +31,7 @@
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!",
   "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!",
-  "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!",
+  "!IIIIIIIIIIIIIIIIIIIIIIIIIIIIIII!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
  ],
  "followScreenY": 285,
@@ -66,41 +66,51 @@
   {
    "type": "prop",
    "id": "youngcle_entrance_image",
-   "image": "assets/props/youngcle_entrance.png",
-   "x": 1248,
-   "y": 256,
-   "w": 192,
-   "h": 192,
+   "image": "assets/props/youngcle_hull_entry.png",
+   "x": 976,
+   "y": -32,
+   "w": 896,
+   "h": 717,
    "solid": false,
    "sortY": 0
   },
   {
    "type": "sign",
    "id": "youngcle_entrance",
-   "x": 1264,
+   "x": 1296,
    "y": 400,
-   "w": 32,
-   "h": 64,
+   "w": 40,
+   "h": 32,
    "solid": false,
    "script": "youngcle_entrance"
   },
   {
    "type": "sign",
    "id": "youngcle_upper_hull",
-   "x": 1248,
-   "y": 256,
-   "w": 192,
-   "h": 144,
+   "x": 1024,
+   "y": 384,
+   "w": 352,
+   "h": 16,
    "solid": true,
    "script": "youngcle_entrance"
   },
   {
    "type": "sign",
    "id": "youngcle_lower_hull",
-   "x": 1248,
-   "y": 448,
-   "w": 192,
-   "h": 64,
+   "x": 1024,
+   "y": 432,
+   "w": 352,
+   "h": 80,
+   "solid": true,
+   "script": "youngcle_entrance"
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_back_wall",
+   "x": 1376,
+   "y": 384,
+   "w": 64,
+   "h": 128,
    "solid": true,
    "script": "youngcle_entrance"
   }

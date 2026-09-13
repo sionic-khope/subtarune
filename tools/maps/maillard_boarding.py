@@ -26,6 +26,7 @@ def main() -> None:
     bridge_rows = ['!' * 45 for _ in range(16)]
     for row in range(12, 15):
         bridge_rows[row] = '!' + 'I' * 43 + '!'
+    bridge_rows[14] = '!' + 'I' * 31 + '!' * 13
     common = {
         'stage': 'void_fallen', 'bgm': 'youngcle_assault', 'dim': 0,
         'backdrop': 'maillard_sunrise', 'sunrise': {'animated': False},
@@ -64,7 +65,7 @@ def main() -> None:
     bridge = {
         **common, 'id': 'youngcle_bridge', 'name': '철 전함으로 가는 다리',
         'rows': bridge_rows, 'followScreenY': 285,
-        'preload': [*common['preload'], 'assets/props/youngcle_entrance.png'],
+        'preload': [*common['preload'], 'assets/props/youngcle_hull_entry.png'],
         'spawns': {
             'start': {'x': 164, 'y': 416, 'facing': 'right'},
             'from_boarding': {'x': 164, 'y': 416, 'facing': 'right'},
@@ -75,14 +76,16 @@ def main() -> None:
              'w': 32, 'h': 96, 'to': 'maillard_boarding', 'spawn': 'from_bridge',
              'sfx': False, 'interact': False},
             {'type': 'prop', 'id': 'youngcle_entrance_image',
-             'image': 'assets/props/youngcle_entrance.png', 'x': 1248, 'y': 256,
-             'w': 192, 'h': 192, 'solid': False, 'sortY': 0},
-            {'type': 'sign', 'id': 'youngcle_entrance', 'x': 1264, 'y': 400,
-             'w': 32, 'h': 64, 'solid': False, 'script': 'youngcle_entrance'},
-            {'type': 'sign', 'id': 'youngcle_upper_hull', 'x': 1248, 'y': 256,
-             'w': 192, 'h': 144, 'solid': True, 'script': 'youngcle_entrance'},
-            {'type': 'sign', 'id': 'youngcle_lower_hull', 'x': 1248, 'y': 448,
-             'w': 192, 'h': 64, 'solid': True, 'script': 'youngcle_entrance'},
+             'image': 'assets/props/youngcle_hull_entry.png', 'x': 976, 'y': -32,
+             'w': 896, 'h': 717, 'solid': False, 'sortY': 0},
+            {'type': 'sign', 'id': 'youngcle_entrance', 'x': 1296, 'y': 400,
+             'w': 40, 'h': 32, 'solid': False, 'script': 'youngcle_entrance'},
+            {'type': 'sign', 'id': 'youngcle_upper_hull', 'x': 1024, 'y': 384,
+             'w': 352, 'h': 16, 'solid': True, 'script': 'youngcle_entrance'},
+            {'type': 'sign', 'id': 'youngcle_lower_hull', 'x': 1024, 'y': 432,
+             'w': 352, 'h': 80, 'solid': True, 'script': 'youngcle_entrance'},
+            {'type': 'sign', 'id': 'youngcle_back_wall', 'x': 1376, 'y': 384,
+             'w': 64, 'h': 128, 'solid': True, 'script': 'youngcle_entrance'},
         ],
     }
     index_path = Path('assets/maps/index.json')

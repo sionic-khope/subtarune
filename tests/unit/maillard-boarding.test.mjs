@@ -47,6 +47,31 @@ test('bridge walk lasts about five seconds and stops at an inspectable ship entr
   assert.equal(data.enter, undefined);
 });
 
+test('integrated ship hull keeps its gangway walkable and confines the bridge endpoint', () => {
+  const data = readMap('youngcle_bridge');
+  const map = new TileMap(data);
+  const hull = data.entities.find(entity => entity.id === 'youngcle_entrance_image');
+  assert.equal(hull.image, 'assets/props/youngcle_hull_entry.png');
+  assert.deepEqual([hull.x, hull.y, hull.w, hull.h], [976, -32, 896, 717]);
+  assert.ok(hull.x + hull.w > map.pxW && hull.y + hull.h > map.pxH);
+  assert.equal(data.preload.includes(hull.image), true);
+  assert.equal(data.preload.includes('assets/props/youngcle_entrance.png'), false);
+  assert.equal(data.rows[14].slice(32), '!'.repeat(13));
+  const colliders = data.entities.filter(entity => entity.solid === true).map(entity => new Entity(entity, {}));
+  const blocked = (x, y) => map.solidRect(x, y, 24, 16)
+    || colliders.some(entity => entity.overlaps({ x, y, w: 24, h: 16 }));
+  for (let x = 1000; x <= 1352; x += 8) {
+    assert.equal(blocked(x, 400), false);
+    assert.equal(blocked(x, 416), false);
+  }
+  assert.equal(blocked(1040, 392), true);
+  assert.equal(blocked(1040, 424), true);
+  assert.equal(blocked(1360, 416), true);
+  const entry = data.entities.find(entity => entity.id === 'youngcle_entrance');
+  assert.equal(blocked(entry.x - 32, 416), false);
+  assert.equal(new Entity(entry, {}).overlaps({ x: entry.x - 32 + 19.2, y: 416, w: 24, h: 16 }), true);
+});
+
 test('boarding cutscene preserves four lines, staggered dash exits and safe party control', t => {
   const warnings = t.mock.method(console, 'warn', () => {});
   const data = readMap('maillard_boarding');
