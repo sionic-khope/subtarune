@@ -76,7 +76,11 @@ export class Battle {
   static preload(game, enemyIds = []) {
     const ids = PARTY_ORDER.filter((id) => id === 'hyungsub' || game.party.includes(id));
     for (const id of ids) if (BATTLE_SPRITES[id]) { cached(FRAME_CACHE, id, () => loadActorFrames(BATTLE_SPRITES[id], BATTLE_PREVIEW.colorKey)); cached(IMAGE_CACHE, DOWN_SRC(id), () => loadImage(DOWN_SRC(id))); }
-    for (const eid of enemyIds) { const def = ENEMIES[eid]; if (!def) continue; const src = def.image || def.sheet?.src; cached(IMAGE_CACHE, src, () => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => resolve(null); im.src = src; })); }
+    for (const eid of enemyIds) {
+      const def = ENEMIES[eid]; if (!def) continue;
+      const sources = [def.image || def.sheet?.src, ...Object.values(def.actions || {}).map(action => action.src), ...Object.values(def.projectiles || {})];
+      for (const src of sources) cached(IMAGE_CACHE, src, () => loadImage(src));
+    }
   }
   constructor(game, cfg) {
     this.game = game; this.cfg = cfg;
@@ -104,6 +108,7 @@ export class Battle {
         ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),
         ...this.enemies.map(async (e) => {
           e.img = await cached(IMAGE_CACHE, e.def.image || e.def.sheet?.src, () => this.loadEnemyImage(e.def));
+          e.actionImages = Object.fromEntries(await Promise.all(Object.entries(e.def.actions || {}).map(async ([name, action]) => [name, await cached(IMAGE_CACHE, action.src, () => loadImage(action.src))])));
           e.projectiles = Object.fromEntries(await Promise.all(Object.entries(e.def.projectiles || {}).map(async ([key, src]) => [key, await cached(IMAGE_CACHE, src, () => loadImage(src))])));
         }),
       ]);
@@ -171,6 +176,7 @@ export class Battle {
     }
   }
   beginMenu() {
+    this.clearPatternPresentation();
     this.state = 'menu'; this.t = 0; this.plans = []; this.memberIdx = 0; this.menuIdx = 0;
     while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
     const live = this.living(); const e = live[Math.floor(this.rnd() * Math.max(1, live.length))]; const idle = e?.def.lines?.idle || [];
@@ -262,7 +268,9 @@ export class Battle {
     return damage;
   }
   applyCannonDamage(target, damage = BARON_CANNON.damage) { return this.hitEnemy(target, null, damage, { source: 'cannon', sound: false }); }
-  disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; }
+  disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.clearPatternPresentation(); }
+  /** A pattern may stage its actor without changing the ordinary battle home. */
+  clearPatternPresentation() { for (const enemy of this.enemies) enemy.patternPose = null; }
   useItem(m, name, by = m) {
     const def = ITEMS[name] || {}; const i = this.game.inventory.indexOf(name); if (i >= 0) this.game.inventory.splice(i, 1);
     if (def.heal) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + def.heal); if (m.down && m.hp > 0) m.down = false; m.popup = { t: 0, text: '+' + (m.hp - before), heal: true }; }
@@ -291,6 +299,7 @@ export class Battle {
     if ((!b || b.doneAt !== undefined) && this.t > PREP_OPEN && this.t - (b?.doneAt ?? 0) > PREP_HOLD) this.beginBullets();
   }
   beginBullets() {
+    this.clearPatternPresentation();
     this.patterns = this.living().map((e) => { const cfgs = e.def.patterns || [{ type: 'rain' }]; const c = cfgs[e.patternIdx++ % cfgs.length]; return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e }; });
     const [bw, bh] = this.boardSize();
     this.board.setTarget(bw, bh, 240, 214); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
@@ -302,9 +311,11 @@ export class Battle {
     const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: (name) => this.sfx(name) };
     let running = false;
     for (const pat of this.patterns) {
-      if (pat.t >= pat.p.duration) continue; running = true;
+      if (pat.t >= pat.p.duration) { pat.enemy.patternPose = null; continue; } running = true;
       api.emit = (o) => this.bullets.push(new Bullet({ ...o, dmg: o.dmg ?? pat.dmg }));
       api.images = pat.enemy?.projectiles;
+      api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
+      api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
       api.say = (text, hold = 2) => { this.bubble = { enemy: pat.enemy, text, shown: 0, t: 0, voice: pat.enemy?.def.voice || 'narrator', patternHold: hold }; };
       pat.p.update(pat.t, dt, api); pat.t += dt;
     }
@@ -320,7 +331,7 @@ export class Battle {
       if (this.soul.invuln <= 0 && b.hits(this.soul)) this.hurtParty(b.dmg);
     }
     this.bullets = this.bullets.filter((b) => !b.out(this.board));
-    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
+    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
   }
   hurtParty(dmg) {
     const alive = this.alive(); if (!alive.length) return;
@@ -436,24 +447,30 @@ export class Battle {
     if (m.popup) this.drawPopup(ctx, px, py - 70, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
   drawEnemy(ctx, e) {
-    if (e.dead) return;
-    const sh = e.def.sheet; const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(e.ox || 0), sy = Math.round(e.oy || 0);
-    if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, e.x, e.y - 60, e.popup.text, e.popup.t, '#fff'); return; }
+    const pose = e.patternPose;
+    if (e.dead || pose?.hidden) return;
+    const action = pose?.sheet && pose.sheet !== 'idle' ? e.def.actions?.[pose.sheet] : null;
+    const img = action ? e.actionImages?.[pose.sheet] : e.img, sh = action || e.def.sheet;
+    const x = pose?.x ?? e.x, y = pose?.y ?? e.y;
+    const scale = pose?.scale ?? e.def.scale ?? 1;
+    const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(pose ? 0 : e.ox || 0), sy = Math.round(pose ? 0 : e.oy || 0);
+    if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, x, y - 60, e.popup.text, e.popup.t, '#fff'); return; }
     ctx.save(); if (e.dying > 0) ctx.globalAlpha = Math.max(0, e.dying / 0.5);
-    if (e.img && sh && sh.count) {                             // 격자 시트(PR #14 규격): cols×rows 셀을 좌상→우상→좌하→우하 순서로 count 개, 셀 안 pivot(def.pivot) 을 (e.x, e.y) 에. px 1 = 원본 크기
-      const fw = Math.floor(e.img.width / sh.cols), fh = Math.floor(e.img.height / (sh.rows || 1)); const i = Math.floor(this.t * (sh.fps || 5.5)) % sh.count;
-      const s = (e.def.scale ?? 1) / (sh.px || 1), dw = Math.round(fw * s), dh = Math.round(fh * s); const [pvx, pvy] = e.def.pivot || [fw / 2, fh];
-      ctx.drawImage(e.img, (i % sh.cols) * fw, Math.floor(i / sh.cols) * fh, fw, fh, Math.round(e.x - pvx * s + sx), Math.round(e.y - pvy * s + sy), dw, dh);
-    } else if (e.img && sh) {                                  // 한 줄 시트(레거시, 2x): row 의 frames 열을 차례로, 발은 아래 가운데
-      const fw = Math.floor(e.img.width / sh.cols), fh = Math.floor(e.img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
-      const s = e.def.scale ?? 1, dw = Math.round(fw / 2 * s), dh = Math.round(fh / 2 * s);
-      ctx.drawImage(e.img, col * fw, sh.row * fh, fw, fh, Math.round(e.x - dw / 2 + sx), Math.round(e.y - dh + sy), dw, dh);
-    } else if (e.img) {                                          // 단일 PNG: 발 pivot 을 (e.x, e.y) 에 놓는다 (PR #7 가이드: 64×64, pivot 32,60 → 아래 4px 여백)
-      const s = e.def.scale ?? 1, dw = Math.round(e.img.width * s), dh = Math.round(e.img.height * s); const [pvx, pvy] = e.def.pivot || [e.img.width / 2, e.img.height];
-      ctx.drawImage(e.img, Math.round(e.x - pvx * s + sx), Math.round(e.y - pvy * s + sy), dw, dh);
-    } else { ctx.fillStyle = '#7a8'; ctx.fillRect(e.x - 20 + sx, e.y - 44 + sy, 40, 44); }
+    if (img && sh && sh.count) {
+      const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / (sh.rows || 1));
+      const i = pose?.frame === undefined ? Math.floor(this.t * (sh.fps || 5.5)) % sh.count : Math.max(0, Math.min(sh.count - 1, Math.floor(pose.frame)));
+      const s = scale / (sh.px || 1), dw = Math.round(fw * s), dh = Math.round(fh * s); const [pvx, pvy] = e.def.pivot || [fw / 2, fh];
+      ctx.drawImage(img, (i % sh.cols) * fw, Math.floor(i / sh.cols) * fh, fw, fh, Math.round(x - pvx * s + sx), Math.round(y - pvy * s + sy), dw, dh);
+    } else if (img && sh) {
+      const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
+      const dw = Math.round(fw / 2 * scale), dh = Math.round(fh / 2 * scale);
+      ctx.drawImage(img, col * fw, sh.row * fh, fw, fh, Math.round(x - dw / 2 + sx), Math.round(y - dh + sy), dw, dh);
+    } else if (img) {
+      const dw = Math.round(img.width * scale), dh = Math.round(img.height * scale); const [pvx, pvy] = e.def.pivot || [img.width / 2, img.height];
+      ctx.drawImage(img, Math.round(x - pvx * scale + sx), Math.round(y - pvy * scale + sy), dw, dh);
+    } else { ctx.fillStyle = '#7a8'; ctx.fillRect(x - 20 + sx, y - 44 + sy, 40, 44); }
     ctx.restore();
-    if (e.popup) this.drawPopup(ctx, e.x, e.y - 60, e.popup.text, e.popup.t, '#fff');
+    if (e.popup) this.drawPopup(ctx, x, y - 60, e.popup.text, e.popup.t, '#fff');
   }
   drawPopup(ctx, x, y, text, t, col) {
     ctx.save(); ctx.globalAlpha = t < 0.6 ? 1 : Math.max(0, 1 - (t - 0.6) / 0.3); ctx.fillStyle = col; ctx.textAlign = 'center';

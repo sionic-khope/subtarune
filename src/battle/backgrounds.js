@@ -6,9 +6,12 @@
 // ─────────────────────────────────────────────────────────────
 import { makeCanvas } from '../core/gfx.js';
 import { getTile, tileCanvas } from '../world/tiles.js';
+import { drawMankatsukiBackground } from './mankatsuki-background.js';
 export const BATTLE_BGS = {};
 /** 새 전투 배경 등록: fn(ctx, battle) — 480×360, 패널(y 246~)·HP 띠는 위에 덮인다 */
 export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
+
+registerBattleBg('mankatsuki_vortex', drawMankatsukiBackground);
 
 registerBattleBg('teal', (ctx, b) => {
   ctx.save(); ctx.globalAlpha = 0.16;

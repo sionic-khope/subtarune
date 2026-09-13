@@ -1,0 +1,36 @@
+{
+  "source": "raw-sheet.png",
+  "runtime": "assets/projectiles/mankatsuki-shuriken.png",
+  "dimensions": [
+    32,
+    32
+  ],
+  "pivot": [
+    16,
+    16
+  ],
+  "frame_count": 1,
+  "exporter": "assets/source/captain125/junhee_point/export.py",
+  "processor_metadata": "processed/pipeline-meta.json",
+  "crop_from_exported_frame": [
+    0,
+    0,
+    32,
+    32
+  ],
+  "opaque_bounds": [
+    2,
+    2,
+    30,
+    29
+  ],
+  "resampling": "NEAREST",
+  "palette_quantization": false,
+  "transparent_rgb": [
+    0,
+    0,
+    0
+  ],
+  "black_pixels_keyed": false,
+  "exterior_magenta_fringe_key": "R>G+12 and B>G+12, connected to transparent exterior only"
+}

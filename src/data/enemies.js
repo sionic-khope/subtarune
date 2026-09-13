@@ -12,6 +12,30 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  mankatsuki_junhee: {
+    name: '만카츠키 쥰희', hp: 100, voice: 'junhee', money: 0, damage: 11,
+    sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },
+    actions: { attack: { src: 'assets/enemies/mankatsuki-attack.png', cols: 6, rows: 1, count: 6, fps: 8, px: 1 } },
+    pivot: [64, 119], scale: 1.45, dx: -36, dy: 34, board: [240, 160],
+    idle: { swayX: 0, swayY: 0, period: 2.4 },
+    projectiles: {
+      shuriken: 'assets/projectiles/mankatsuki-shuriken.png',
+      pig: 'assets/projectiles/mankatsuki-pig.png',
+      pan: 'assets/projectiles/mankatsuki-pan.png',
+    },
+    patterns: [
+      { type: 'mankatsuki_teleport', duration: 6.2 },
+      { type: 'mankatsuki_stampede', duration: 7 },
+      { type: 'mankatsuki_pan', duration: 6 },
+      { type: 'mankatsuki_stocks', duration: 6.2 },
+    ],
+    lines: {
+      appear: '* 만카츠키 쥰희가 나타났다!',
+      idle: ['* 만카츠키 쥰희가 이쪽을 노려본다.'],
+      speak: ['케케케', '너희 죽는다, 탈출 그거 굳이 하셔야겠습니까?', '아 형님 너네 다 죽이겠습니다.'],
+      die: '* 만카츠키 쥰희가 쓰러졌다.',
+    },
+  },
   expelled_viewer: {
     name: '악질맨', hp: 66, voice: 'expelled_viewer', money: 666, damage: 11,
     sheet: { src: 'assets/sprites/expelled-viewer-dance.png', cols: 2, rows: 4, count: 8, fps: 5, px: 1 },

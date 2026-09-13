@@ -27,6 +27,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
+  if (mapId === 'maillard_captain' && flags.captain_mankatsuki_defeated) return 'maillard_lounge';
   if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
   if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
   if (mapId === 'obj5' && flags.obj5_chase_cleared) return 'baron_sea_battle';
@@ -89,6 +90,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'obj5_gun_taken', items: ['나무총'] },
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
+  { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.

@@ -50,6 +50,12 @@ export function drawDarkSmoke(ctx, game, cam) {
   ctx.fillStyle = '#030207';
   ctx.globalAlpha = smoke.veil;
   ctx.fillRect(-960, -720, 2400, 1800);
+  // Color blending preserves the planks' luminance and grain while the veil darkens the room.
+  ctx.globalCompositeOperation = 'color';
+  ctx.globalAlpha = clamp(smoke.veil / 0.4) * 0.85;
+  ctx.fillStyle = '#66349a';
+  ctx.fillRect(-960, -720, 2400, 1800);
+  ctx.globalCompositeOperation = 'source-over';
   for (const cloud of smoke.clouds) {
     const angle = cloud.angle + age * 0.5;
     let x, y, size = cloud.size, alpha = 0.65;

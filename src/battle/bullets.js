@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 import { BARON_PATTERNS } from './baron-patterns.js';
 import { VIEWER_PATTERNS } from './viewer-patterns.js';
+import { MANKATSUKI_PATTERNS } from './mankatsuki-patterns.js';
 
 export class Board {
   constructor() { this.x = 140; this.y = 150; this.w = 200; this.h = 150; this.target = null; this.open = 0; }
@@ -155,6 +156,7 @@ export class Bullet {
 export const PATTERNS = {
   ...BARON_PATTERNS,
   ...VIEWER_PATTERNS,
+  ...MANKATSUKI_PATTERNS,
   rain: (o = {}) => { const rate = o.rate ?? 0.18, speed = o.speed ?? 90, r = o.r ?? 4; let acc = 0;
     return { duration: o.duration ?? 4, update(t, dt, api) { acc += dt; while (acc >= rate) { acc -= rate; const b = api.box; api.emit({ x: b.x + 8 + api.rnd() * (b.w - 16), y: b.y - 12, vy: speed * (0.8 + api.rnd() * 0.4), r, shape: o.shape, kind: o.kind, spin: o.spin }); } } }; },
   aimed: (o = {}) => { const every = o.every ?? 0.6, speed = o.speed ?? 120, r = o.r ?? 5; let next = 0.4;

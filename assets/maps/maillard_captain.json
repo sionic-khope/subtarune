@@ -67,7 +67,9 @@
    "facing": "down",
    "wander": 0,
    "visualScale": 1.5,
-   "requires": "captain_reveal_done"
+   "requires": "captain_reveal_done",
+   "unless": "captain_mankatsuki_defeated",
+   "script": "captain_mankatsuki"
   },
   {
    "type": "npc",

@@ -156,8 +156,15 @@ export const captain_reveal = Object.assign([
   M('아 형님 너네 다 죽이겠습니다.'),
   { set: { captain_reveal_done: true } },
   { remove: 'captain_shadow' },
-  { action: game => { game.entities.find(entity => entity.id === 'captain_junhee').id = 'captain_mankatsuki'; } },
+  { action: game => {
+    const actor = game.entities.find(entity => entity.id === 'captain_junhee');
+    actor.id = 'captain_mankatsuki'; actor.def.script = 'captain_mankatsuki';
+  } },
   { camera: 'player' },
+  { action: game => {
+    const finishReveal = game.dialogue.onEnd;
+    game.dialogue.onEnd = () => { finishReveal?.(); game.runScript('captain_mankatsuki'); };
+  } },
   { label: 'end' },
   { end: true },
 ], { silent: true });

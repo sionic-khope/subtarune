@@ -39,10 +39,12 @@ test('captain reveal leaves the player intact and stops at the transformed stand
 
 test('real reveal runner completes without moving a character into furnishings or retaining temporary offsets', () => {
   const sounds = [], music = [], seen = new Set();
+  const queuedScripts = [];
   const game = {
     time: 0, flags: {}, background: [], ctx: { measureText: text => ({ width: [...text].length * 16 }) },
     sound: { sfx: id => sounds.push(id), playBgm: id => music.push(id), stopBgm() {}, preloadBgm() {}, blip() {} },
     setFlag(key, value = true) { this.flags[key] = value; },
+    runScript(key) { queuedScripts.push(key); },
     fadeTo(alpha, duration, callback) { callback(); },
   };
   game.map = new TileMap(room);
@@ -77,6 +79,7 @@ test('real reveal runner completes without moving a character into furnishings o
   assert.equal(game.dialogue.running, false);
   assert.equal(seen.size, SCRIPTS.captain_reveal.filter(node => node.text).length);
   assert.equal(game.flags.captain_reveal_done, true);
+  assert.deepEqual(queuedScripts, ['captain_mankatsuki']);
   assert.equal(game.darkSmoke, null);
   assert.equal(player.pose, null);
   assert.equal(player.spin || 0, 0);

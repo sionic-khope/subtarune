@@ -1,5 +1,13 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 만카츠키 전투 (2026-09-13, BUILD126)
+
+사용자 지정 [THE WORLD REVOLVING — Toby Fox](https://www.youtube.com/watch?v=Z01Tsgwe2dQ), 영상ID `Z01Tsgwe2dQ`의 오디오 포맷251 전체를 `assets/audio/bgm/mankatsuki_battle.mp3`로 변환했다. yt-dlp 메타데이터 제목·업로더·2018-11-17 업로드·101초를 확인했다. 출력은 **101.052646초,48kHz 스테레오,2,520,140바이트**, 평균−13.3dBFS/peak0.0dBFS다. 잘라내기·속도·피치·페이드·음량 변경 없이 원본 전체를 사용하며 전투에서0초부터 재생한다.
+
+분신 이동 `assets/audio/sfx/mankatsuki_clone.mp3`는 기존 DELTARUNE `snd_bomb` 가공본 `pop.mp3`의 첫0.36초(gain0.5,끝0.2초페이드)와 기존 합성 바람 `cannon_puff.mp3`0.28초(gain1.2)를 합친 짧은 연기 충격이다. **0.360000초,44.1kHz 모노,5,078바이트**, 평균−18.9dBFS/peak−4.1dBFS. 나루토 분신 연기의 짧은 ‘퐁’ 연출을 위한 기존 자산 조합이며 나루토 원본 녹음이나 음성은 사용하지 않았다. `loadSfxFiles`에 `mankatsuki_clone`을 등록하고 분신 출현/소멸 때 한 번 재생한다.
+
+수리검은 기존 `whoosh`(1.6초,합성 공기음)를 부채꼴 발사 묶음마다 낮은 음량으로 한 번, 화염 공격은 기존 `rocket`(1.5초,노이즈 스웰·크래클·저음)을 분사 시작마다 한 번 재사용할 수 있다. 둘은 이미 등록되어 있고 파일 수정은 없다. 기존 소스의 상세 제작법은 아래 옵젝영역1·오프닝 효과음 기록을 따른다. 모든 신규 파일 전체 디코드/규격 검사를 통과했으며 실제 전투 재생 연결과 주관적 청취 평가는 별도다. 출처·체크섬·재현 명령은 `assets/source/mankatsuki126/audio/README.md`에 보관한다.
+
 ## 선장실 컴퓨터 공개·만카츠키 (2026-09-13, BUILD125)
 
 사용자 지정 두 영상의 ID·제목·업로더를 yt-dlp 메타데이터로 확인하고 포맷251 오디오 전체를 받았다. `captain_reveal`은 [ANOTHER HIM — Toby Fox](https://www.youtube.com/watch?v=XEdoMoV4D6k), `captain_mankatsuki`는 [I'm Very Bad — Toby Fox](https://www.youtube.com/watch?v=_km4FuXOCbs)다. 둘 다2018-11-17 업로드 메타데이터이며 표시 길이는48초/14초다. 전체를 `ffmpeg -i <source.webm> -map_metadata -1 -c:a libmp3lame -q:a 2 <output.mp3>`로 변환했다. 잘라내기·피치·속도·페이드·음량 변경 없이0초부터 재생한다.
