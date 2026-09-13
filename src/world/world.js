@@ -11,6 +11,7 @@ import { registerFactoryPuzzleEntities } from './factory-puzzles.js';
 import { loopCharacterMotion, updateLoopCharacterMotion } from './character-motion.js';
 import { FONT } from '../ui/font.js';
 import { drawDoorOpening } from './door-transit.js';
+import { probeOverlaps } from './interaction.js';
 
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
@@ -446,7 +447,7 @@ export class Player extends Character {
     const [dx, dy] = DIRS[this.facing];
     const r = { x: this.x + dx * TILE * 0.6, y: this.y + dy * TILE * 0.6, w: this.w, h: this.h };
     // 장식 소품(러그·방석 등, script 없음)은 건너뛴다 — 안 그러면 그 위에 서서 밥상을 못 누른다
-    return this.game.entities.find((e) => e !== this && !e.dead && e.canInteract() && e.overlaps(r));
+    return this.game.entities.find((e) => e !== this && !e.dead && e.canInteract() && probeOverlaps(e, r));
   }
 }
 

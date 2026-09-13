@@ -126,7 +126,13 @@
    "w": 288,
    "h": 12,
    "solid": false,
-   "script": "youngcle_tv_off"
+   "script": "youngcle_tv_off",
+   "inspectRect": {
+    "x": 0,
+    "y": -164,
+    "w": 288,
+    "h": 176
+   }
   },
   {
    "type": "npc",

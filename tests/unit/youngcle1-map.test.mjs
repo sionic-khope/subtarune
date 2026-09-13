@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { TileMap, Entity, Door, Player, Sign } from '../../src/world/world.js';
+import { probeOverlaps } from '../../src/world/interaction.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 
@@ -98,6 +99,9 @@ for (const [position, x, y, reachable] of [
   ['left_edge', 516, 216, true],
   ['center', 660, 216, true],
   ['right_edge', 804, 216, true],
+  ['wall_stop_left', 528, 192, true],
+  ['wall_stop_center', 660, 192, true],
+  ['wall_stop_right', 792, 192, true],
   ['forward_limit', 660, 227, true],
   ['outside_left', 504, 216, false],
   ['outside_right', 816, 216, false],
@@ -138,4 +142,30 @@ test('test_youngcle1_upper_doors_require_C_then_route_right_or_report_left_locke
   assert.deepEqual(scripts, ['youngcle_left_door_locked']);
   assert.deepEqual(changes, [['youngcle2', 'left']]);
   assert.deepEqual(sounds, ['plug']);
+});
+
+test('test_youngcle1_inspect_rect_covers_full_TV_art_without_moving_collision_or_staging', () => {
+  const data = readMap('youngcle1');
+  const art = data.entities.find(e => e.id === 'youngcle_tv');
+  const screen = new Sign(data.entities.find(e => e.id === 'youngcle_tv_screen'), {});
+  for (const [x, y] of [[art.x, art.y], [art.x + art.w - 1, art.y],
+    [art.x, art.y + art.h - 1], [art.x + art.w - 1, art.y + art.h - 1]]) {
+    assert.equal(probeOverlaps(screen, { x, y, w: 1, h: 1 }), true);
+  }
+  assert.deepEqual(screen.rect, { x: 528, y: 196, w: 288, h: 12 });
+  assert.equal(screen.overlaps({ x: 600, y: 50, w: 1, h: 1 }), false);
+  assert.equal(screen.solid, false);
+});
+
+test('test_inspect_rect_follows_entity_motion_and_default_entities_keep_their_original_overlap', () => {
+  const entity = new Entity({ x: 100, y: 100, w: 20, h: 10,
+    inspectRect: { x: -10, y: -40, w: 40, h: 50 } }, {});
+  const point = { x: 91, y: 61, w: 1, h: 1 };
+  assert.equal(probeOverlaps(entity, point), true);
+  entity.x += 80;
+  assert.equal(probeOverlaps(entity, point), false);
+  assert.equal(probeOverlaps(entity, { ...point, x: point.x + 80 }), true);
+  const ordinary = new Entity({ x: 100, y: 100, w: 20, h: 10 }, {});
+  assert.equal(probeOverlaps(ordinary, point), false);
+  assert.equal(probeOverlaps(ordinary, ordinary.rect), true);
 });
