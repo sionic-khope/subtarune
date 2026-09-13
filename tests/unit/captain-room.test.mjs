@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { ScriptRunner, TextBox } from '../../src/ui/dialogue.js';
-import { TileMap } from '../../src/world/world.js';
+import { ScriptRunner, TextBox, parseText } from '../../src/ui/dialogue.js';
+import { Camera, Entity, TileMap } from '../../src/world/world.js';
 import { QA_POINTS } from '../../src/core/story.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
@@ -15,18 +15,30 @@ function fixture() {
     sound: { sfx() {}, blip() {} },
     setFlag(key, value) { this.flags[key] = value; },
   };
+  game.map = new TileMap(readMap('maillard_saloon'));
+  game.entities = game.map.def.entities.map(def => new Entity(def, game));
+  game.player = new Entity({ id: 'player', x: 404, y: 304 }, game);
+  game.entities.push(game.player,
+    new Entity({ id: 'gyeongsub', x: 356, y: 304 }, game),
+    new Entity({ id: 'ppaman', x: 452, y: 304 }, game));
+  game.camera = new Camera();
+  game.camera.map = game.map;
+  game.camera.target = game.player;
+  game.camera.snap();
   game.textbox = new TextBox(game.sound, {});
   game.dialogue = new ScriptRunner(game.textbox, game);
   return game;
 }
 
-function play(game, script) {
+function play(game, script, observe = () => {}) {
   const lines = new Set();
   game.dialogue.start(script);
   assert.equal(game.textbox.isOpen, true);
   for (let tick = 0; tick < 2000 && game.dialogue.running; tick++) {
     if (game.textbox.isOpen) lines.add(game.textbox.node);
+    observe(game);
     game.dialogue.update(0.025, { just: key => key === 'confirm' && tick % 4 === 0, down: () => false });
+    game.camera.follow(0.05);
   }
   assert.equal(game.dialogue.running, false);
   return [...lines];
@@ -84,10 +96,38 @@ test('grand door sits inside the widened upper-right wall and accepts an up-faci
   assert.equal(new TileMap(room).solidRect(628, 160, 24, 16), false);
 });
 
+test('eunbyeol guidance frames the door and restores player tracking for the following line', () => {
+  const game = fixture();
+  const lines = SCRIPTS.maillard_eunbyeol.filter(node => node.text);
+  const positions = game.entities.map(entity => [entity.x, entity.y]);
+  const door = game.entities.find(entity => entity.id === 'captain_door_image');
+  const targets = new Set();
+  play(game, SCRIPTS.maillard_eunbyeol, state => {
+    assert.deepEqual(state.entities.map(entity => [entity.x, entity.y]), positions);
+    if (!state.textbox.isOpen) return;
+    if (state.textbox.node === lines[4]) {
+      assert.equal(state.camera.target, door);
+      assert.equal(state.camera.locked, false);
+      targets.add('door');
+    }
+    if (state.textbox.node === lines[5]) {
+      assert.equal(state.camera.target, state.player);
+      assert.equal(state.camera.locked, false);
+      targets.add('player');
+    }
+  });
+  assert.deepEqual([...targets], ['door', 'player']);
+  assert.equal(game.camera.target, game.player);
+});
+
 test('captain confirmation cancels safely and only accepted entry has a black transition', () => {
   const nodes = SCRIPTS.maillard_captain_enter;
   assert.ok(nodes);
-  assert.equal(nodes.filter(node => node.text).length, 3);
+  assert.equal(nodes.filter(node => node.text).length, 4);
+  assert.equal(nodes[0].text, '* 선장실 문이다.');
+  const tokens = parseText(nodes[2].text);
+  assert.equal(tokens.filter(token => token.color === '#ffe066').map(token => token.ch).join(''), '공격력/체력 증가 아이템');
+  assert.equal(tokens.at(-1).color, null);
   const choice = nodes.find(node => node.choice).choice;
   assert.equal(choice.cancel, 1);
   assert.deepEqual(choice.options.map(option => option.label), ['네', '아니오']);
