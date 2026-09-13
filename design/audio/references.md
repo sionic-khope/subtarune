@@ -1,5 +1,15 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 영클 공장 구역 BGM (BUILD143, 2026-09-13)
+
+사용자 지정 [A CYBER'S WORLD? — Toby Fox](https://www.youtube.com/watch?v=In3y0C7mQvA&list=PLjj7CATn1HfUetet9LgdabEk9GsH7R2tI&index=6)를 `assets/audio/bgm/youngcle_factory.mp3`로 준비했다. `--no-playlist`로 영상 ID `In3y0C7mQvA` 하나만 받았고, YouTube 메타데이터의 제목·Toby Fox 채널·업로드2021-10-04·표시166초를 확인했다. 포맷251 전체를 libmp3lame quality2로 변환했으며 트리밍·음높이·속도·음량·페이드 변경은 없다. 영클전함2/3/4의 공통 BGM 이름은 `youngcle_factory`다. 기존 `preloadBgm`/`playBgm`이 파일 이름으로 경로를 구성하므로 새 로더 등록은 필요 없다.
+
+출력은 **166.153875초,48kHz 스테레오,4,057,004바이트**, SHA256 `ec322f815c9ea578efd0258631255d654799e9beb5b11233fe1c70a59e8b275a`. ffmpeg 전체 디코드 성공, 평균−13.7dBFS/peak0.0dBFS이며 원곡 음량을 임의 정규화하지 않았다. 오디오 자산 테스트6개 통과. 주관적 청취와 세 맵의 게임 내 전환 검증은 별도다. 원본 메타데이터는 DELTARUNE Chapter2 OST,작곡Toby Fox,권리Materia Music Inc./Royal Sciences LLC로 표시한다. 간결한 출처 기록은 `assets/source/youngcle-factory143/bgm-source.json`; 전체 다운로드 메타데이터는 임시 `/tmp/subtarune-factory143-source.info.json`에만 보관한다.
+
+```sh
+uvx --from yt-dlp yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/youngcle_factory.%(ext)s' 'https://www.youtube.com/watch?v=In3y0C7mQvA&list=PLjj7CATn1HfUetet9LgdabEk9GsH7R2tI&index=6'
+```
+
 ## 선장실 과거 기억 네 장면 (2026-09-13, BUILD131)
 
 사용자 지정 [Empty Town — Toby Fox](https://www.youtube.com/watch?v=p8jCS2nSMmI&list=PLwjEXrvFo-2B7iCX61eOThc_oGihi84l9&index=11), 영상 ID `p8jCS2nSMmI`의 포맷251 오디오 전체를 `assets/audio/bgm/captain_memories.mp3`로 변환했다. yt-dlp 메타데이터에서 제목 `Empty Town`, 업로더/채널 `Toby Fox`, 업로드2018-11-17, 표시 길이83초를 확인했다. 출력은 **83.478271초,48kHz 스테레오,1,211,180바이트**, 전체 디코드 평균−17.0dBFS/peak−4.8dBFS다. 트리밍·속도·음높이·페이드·음량 변경 없이 전체 원본을 사용한다. 원본 WebM 컨테이너 길이는83.501초이며 MP3 패딩/코덱 차이 외 시간 편집은 없다.

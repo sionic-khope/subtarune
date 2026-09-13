@@ -97,5 +97,31 @@ export const youngcle_intro = Object.assign([
   { label: 'end' }, { end: true },
 ], { silent: true });
 
-export const youngcle_tv_off = [{ voice: 'narrator', text: '* TV는 꺼져 있다.' }];
-export const youngcle_right_door_pending = [{ voice: 'narrator', text: '* 쥰희와 용준이 들어간 문이다.' }];
+export const youngcle_tv_off = Object.assign([
+  { if: flags => flags.youngcle_tv_gag_done, goto: 'repeat' },
+  { action: game => {
+    game.finishTvBroadcast();
+    game.tvBroadcast = new TvBroadcast(game, TV);
+  } },
+  { parallel: [{ camera: [21, 7], duration: 0.25 },
+    { zoom: 1.2, at: 'youngcle_tv', duration: 0.25 }] },
+  { action: game => game.tvBroadcast.setExpression('read') },
+  { action: game => game.tvBroadcast.power(true) },
+  { wait: TV.powerTime },
+  ...V('..오..', 'read'),
+  { action: game => game.tvBroadcast.setExpression('shock') },
+  { speaker: '영클', portrait: 'youngcle_tv_shock', voice: 'youngcle', text: '* 뭐 뭐노?!' },
+  close,
+  { action: game => game.tvBroadcast.setExpression('hide') },
+  { wait: 0.3 },
+  { action: game => game.tvBroadcast.power(false) },
+  { wait: TV.shutdownTime },
+  { action: game => game.finishTvBroadcast() },
+  { set: { youngcle_tv_gag_done: true } },
+  { parallel: [{ zoom: 1, duration: 0.25 }, { camera: 'player' }] },
+  { end: true },
+  { label: 'repeat' },
+  { voice: 'narrator', text: '* TV는 꺼져 있다.' },
+], { silent: true });
+
+export const youngcle_left_door_locked = [{ voice: 'narrator', text: '* 문은 잠겨 있다.' }];

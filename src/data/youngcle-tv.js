@@ -11,6 +11,9 @@ export const YOUNGCLE_TV = {
     bye: 'assets/illustrations/youngcle-tv-bye.png',
     yes: 'assets/illustrations/youngcle-tv-yes.png',
     surprise: 'assets/illustrations/youngcle-tv-surprise.png',
+    read: 'assets/illustrations/youngcle-tv-read.png',
+    shock: 'assets/illustrations/youngcle-tv-shock.png',
+    hide: 'assets/illustrations/youngcle-tv-hide.png',
   },
 };
 export const YOUNGCLE_TV_PORTRAITS = Object.keys(YOUNGCLE_TV.expressions).map(expression => `youngcle_tv_${expression}`);

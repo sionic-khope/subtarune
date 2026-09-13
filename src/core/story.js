@@ -241,3 +241,15 @@ QA_POINTS.push({ ...starboardCheckpoint, id: 'youngcle_bridge', desc: '영클 �
 const bridgeCheckpoint = QA_POINTS.find(point => point.id === 'youngcle_bridge');
 QA_POINTS.push({ ...bridgeCheckpoint, id: 'youngcle1', desc: '영클 전함: TV 첫 방송',
   map: 'youngcle1', spawn: 'from_bridge', flags: { ...bridgeCheckpoint.flags }, party: [...bridgeCheckpoint.party] });
+
+const youngcleCheckpoint = QA_POINTS.find(point => point.id === 'youngcle1');
+QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle2', desc: '영클 공장: 꺾인 철제 연결로',
+  map: 'youngcle2', spawn: 'left',
+  flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true }, party: [...youngcleCheckpoint.party] });
+QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle3', desc: '영클 공장: 상자 압력판 퍼즐',
+  map: 'youngcle3', spawn: 'left',
+  flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true }, party: [...youngcleCheckpoint.party] });
+QA_POINTS.push({ ...youngcleCheckpoint, id: 'youngcle4', desc: '영클 공장: 회전 회로판 퍼즐',
+  map: 'youngcle4', spawn: 'left',
+  flags: { ...youngcleCheckpoint.flags, youngcle_intro_done: true, youngcle3_crate_solved: true },
+  party: [...youngcleCheckpoint.party] });

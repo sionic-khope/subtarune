@@ -1,0 +1,30 @@
+{
+  "command": "uv run assets/source/youngcle143/export.py --check",
+  "isolated_root": "/tmp/youngcle143-check.7pIgNf",
+  "product_images_mutated_for_test": false,
+  "readonly_snapshot": {
+    "runtime_outputs": 7,
+    "total_files_including_source_artifacts": 31,
+    "content_sha256_unchanged": true,
+    "mtime_ns_unchanged": true
+  },
+  "records": [
+    {"case": "actual_current_pass", "exit_code": 0},
+    {"case": "isolated_current_pass", "exit_code": 0},
+    {
+      "case": "wrong_scene_rejected",
+      "fixture": "Isolated read scene replaced by the empty142 background plate.",
+      "exit_code": 1,
+      "stderr": "Pixel mismatch: assets/illustrations/youngcle-tv-read.png"
+    },
+    {
+      "case": "wrong_metadata_rejected",
+      "fixture": "Isolated export-meta.json replaced by an empty JSON object.",
+      "exit_code": 1,
+      "stderr": "Metadata mismatch: assets/source/youngcle143/export-meta.json"
+    },
+    {"case": "isolated_restored_pass", "exit_code": 0}
+  ],
+  "pixel_grid": {"portraits_integer_2x": true, "factory_integer_2x": true},
+  "provided_processor_qc": {"valid_frames": 3, "empty_frames": 0, "edge_touch_frames": 0, "paste_clamped_frames": 0}
+}

@@ -1,0 +1,222 @@
+{
+ "id": "youngcle4",
+ "name": "영클 공장 차단기실",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "backdrop": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "JJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 96,
+   "y": 248,
+   "facing": "right"
+  },
+  "left": {
+   "x": 96,
+   "y": 248,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 480,
+   "y": 248,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "puzzle": "circuit",
+  "plates": [
+   "youngcle4_circuit_a",
+   "youngcle4_circuit_b"
+  ],
+  "source": [
+   144,
+   256
+  ],
+  "breaker": [
+   400,
+   256
+  ],
+  "gate": [
+   416,
+   192,
+   24,
+   160
+  ],
+  "landing": [
+   448,
+   192,
+   64,
+   160
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle4_left",
+   "x": 32,
+   "y": 204,
+   "w": 16,
+   "h": 136,
+   "to": "youngcle3",
+   "spawn": "right",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle4_rail_top",
+   "x": 32,
+   "y": 192,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle4_rail_bottom",
+   "x": 32,
+   "y": 340,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle4_rail_end",
+   "x": 532,
+   "y": 204,
+   "w": 12,
+   "h": 136
+  },
+  {
+   "type": "factory_console",
+   "id": "youngcle4_console",
+   "puzzle": "circuit",
+   "flag": "youngcle4_circuit_solved",
+   "x": 96,
+   "y": 200,
+   "script": "youngcle_circuit_controls",
+   "solvedScript": "youngcle_circuit_controls"
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle4_wire_source",
+   "puzzle": "circuit",
+   "flag": "youngcle4_circuit_solved",
+   "source": true,
+   "points": [
+    [
+     144,
+     256
+    ],
+    [
+     224,
+     256
+    ]
+   ]
+  },
+  {
+   "type": "factory_circuit",
+   "id": "youngcle4_circuit_a",
+   "puzzle": "circuit",
+   "flag": "youngcle4_circuit_solved",
+   "x": 224,
+   "y": 240,
+   "orientation": 1,
+   "solution": 0
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle4_wire_middle",
+   "puzzle": "circuit",
+   "flag": "youngcle4_circuit_solved",
+   "poweredBy": [
+    "youngcle4_circuit_a"
+   ],
+   "points": [
+    [
+     256,
+     256
+    ],
+    [
+     320,
+     256
+    ]
+   ]
+  },
+  {
+   "type": "factory_circuit",
+   "id": "youngcle4_circuit_b",
+   "puzzle": "circuit",
+   "flag": "youngcle4_circuit_solved",
+   "x": 320,
+   "y": 240,
+   "orientation": 1,
+   "solution": 0,
+   "poweredBy": [
+    "youngcle4_circuit_a"
+   ]
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle4_wire_breaker",
+   "puzzle": "circuit",
+   "flag": "youngcle4_circuit_solved",
+   "poweredBy": [
+    "youngcle4_circuit_a",
+    "youngcle4_circuit_b"
+   ],
+   "points": [
+    [
+     352,
+     256
+    ],
+    [
+     400,
+     256
+    ],
+    [
+     400,
+     208
+    ],
+    [
+     416,
+     208
+    ]
+   ]
+  },
+  {
+   "type": "factory_gate",
+   "id": "youngcle4_gate",
+   "flag": "youngcle4_circuit_solved",
+   "style": "plasma",
+   "x": 416,
+   "y": 192,
+   "w": 24,
+   "h": 160
+  }
+ ]
+}

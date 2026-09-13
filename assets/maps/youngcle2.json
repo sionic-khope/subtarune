@@ -1,0 +1,136 @@
+{
+ "id": "youngcle2",
+ "name": "영클 공장 연결로",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "backdrop": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!JJJJJJJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "!!!!!!!JIIIIIJ!!!!",
+  "JJJJJJJJIIIIIJ!!!!",
+  "JIIIIIIIIIIIIJ!!!!",
+  "JIIIIIIIIIIIIJ!!!!",
+  "JIIIIIIIIIIIIJ!!!!",
+  "JIIIIIIIIIIIIJ!!!!",
+  "JIIIIIIIIIIIIJ!!!!",
+  "JJJJJJJJJJJJJJ!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 96,
+   "y": 784,
+   "facing": "right"
+  },
+  "left": {
+   "x": 96,
+   "y": 784,
+   "facing": "right"
+  },
+  "top": {
+   "x": 304,
+   "y": 80,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    3,
+    24
+   ],
+   [
+    10,
+    24
+   ],
+   [
+    10,
+    3
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle2_left",
+   "x": 32,
+   "y": 716,
+   "w": 16,
+   "h": 136,
+   "to": "youngcle1",
+   "spawn": "right",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle2_top",
+   "x": 268,
+   "y": 32,
+   "w": 136,
+   "h": 16,
+   "to": "youngcle3",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle2_rail_lower",
+   "x": 32,
+   "y": 704,
+   "w": 224,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle2_rail_bottom",
+   "x": 32,
+   "y": 852,
+   "w": 384,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle2_rail_left",
+   "x": 256,
+   "y": 32,
+   "w": 12,
+   "h": 672
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle2_rail_right",
+   "x": 404,
+   "y": 32,
+   "w": 12,
+   "h": 672
+  }
+ ]
+}

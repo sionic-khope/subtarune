@@ -1,0 +1,102 @@
+{
+  "character_generation": "exec-ed257363-01d8-4ab7-87e8-8da6e927544c.png",
+  "source_alpha": "RGB with baked checkerboard",
+  "checker_removal": "Border-connected neutral pixels with RGB spread<=40 and minimum>=35; enclosed eye/teeth/book-page whites retained.",
+  "removed_checker_pixels": 961350,
+  "shared_character_scale": 0.09316770186335403,
+  "resampling": "NEAREST",
+  "logical_character_size": [
+    128,
+    64
+  ],
+  "scene_size": [
+    258,
+    119
+  ],
+  "portrait_size": [
+    96,
+    96
+  ],
+  "poses": [
+    {
+      "pose": "read",
+      "source_cell": [
+        0,
+        0,
+        675,
+        724
+      ],
+      "source_bbox": [
+        76,
+        39,
+        556,
+        670
+      ],
+      "logical_bbox": [
+        38,
+        3,
+        83,
+        62
+      ],
+      "head_center_x": 64,
+      "exact_142_background_outside_foreground": true
+    },
+    {
+      "pose": "shock",
+      "source_cell": [
+        675,
+        0,
+        1360,
+        724
+      ],
+      "source_bbox": [
+        88,
+        39,
+        594,
+        683
+      ],
+      "logical_bbox": [
+        37,
+        2,
+        84,
+        62
+      ],
+      "head_center_x": 64,
+      "exact_142_background_outside_foreground": true
+    },
+    {
+      "pose": "hide",
+      "source_cell": [
+        1360,
+        0,
+        2172,
+        724
+      ],
+      "source_bbox": [
+        82,
+        65,
+        804,
+        683
+      ],
+      "logical_bbox": [
+        38,
+        4,
+        105,
+        62
+      ],
+      "head_center_x": 64,
+      "exact_142_background_outside_foreground": true
+    }
+  ],
+  "background_source": "../youngcle142/background-native.png",
+  "background_sha256": "179e35ccb383baf22fa695d94d8527e3190f069cbfa128f9c02dd179f6eaf8ac",
+  "factory_generation": "exec-c255c43e-cf74-4a38-b1cb-291e4119a4e8.png",
+  "factory_logical_size": [
+    240,
+    360
+  ],
+  "factory_output_size": [
+    480,
+    720
+  ]
+}

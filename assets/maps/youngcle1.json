@@ -42,7 +42,10 @@
   "assets/illustrations/youngcle-tv-shrug.png",
   "assets/illustrations/youngcle-tv-bye.png",
   "assets/illustrations/youngcle-tv-yes.png",
-  "assets/illustrations/youngcle-tv-surprise.png"
+  "assets/illustrations/youngcle-tv-surprise.png",
+  "assets/illustrations/youngcle-tv-read.png",
+  "assets/illustrations/youngcle-tv-shock.png",
+  "assets/illustrations/youngcle-tv-hide.png"
  ],
  "spawns": {
   "start": {
@@ -54,6 +57,16 @@
    "x": 660,
    "y": 376,
    "facing": "up"
+  },
+  "left": {
+   "x": 108,
+   "y": 228,
+   "facing": "down"
+  },
+  "right": {
+   "x": 1212,
+   "y": 228,
+   "facing": "down"
   }
  },
  "meta": {
@@ -138,6 +151,32 @@
   },
   {
    "type": "prop",
+   "id": "youngcle_left_door_image",
+   "image": "assets/props/maillard_storage_door.png",
+   "x": 48,
+   "y": 48,
+   "w": 144,
+   "h": 144,
+   "scale": 1.5,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "door",
+   "id": "youngcle_left_door",
+   "x": 80,
+   "y": 180,
+   "w": 80,
+   "h": 32,
+   "to": "youngcle1",
+   "spawn": "left",
+   "requires": "youngcle_left_door_open",
+   "lockedScript": "youngcle_left_door_locked",
+   "interact": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
    "id": "youngcle_right_door_image",
    "image": "assets/props/maillard_storage_door.png",
    "x": 1152,
@@ -149,14 +188,17 @@
    "sortY": -900
   },
   {
-   "type": "sign",
+   "type": "door",
    "id": "youngcle_right_door",
    "x": 1184,
    "y": 180,
    "w": 80,
    "h": 32,
-   "solid": false,
-   "script": "youngcle_right_door_pending"
+   "to": "youngcle2",
+   "spawn": "left",
+   "sfx": "plug",
+   "interact": true,
+   "solid": false
   },
   {
    "type": "door",

@@ -42,7 +42,7 @@ import { captain_attack } from './cutscenes/captain_attack.js';
 import { maillard_starboard_gate } from './cutscenes/maillard_starboard.js';
 import { maillard_boarding_intro, youngcle_entrance } from './cutscenes/maillard_boarding.js';
 import { shipPursuitBacktrack } from './scripts/ship-pursuit.js';
-import { youngcle_intro, youngcle_tv_off, youngcle_right_door_pending } from './cutscenes/youngcle_intro.js';
+import { youngcle_intro, youngcle_tv_off, youngcle_left_door_locked } from './cutscenes/youngcle_intro.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 
@@ -73,11 +73,15 @@ export const SCRIPTS = {
   maillard_starboard_gate,
   maillard_boarding_intro, youngcle_entrance,
   ship_pursuit_backtrack: shipPursuitBacktrack,
-  youngcle_intro, youngcle_tv_off, youngcle_right_door_pending,
+  youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,
   chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
+
+  youngcle_crate_controls: [{ text: '* 철 상자를 처음 자리로 돌렸다.\n* 방향키로 밀어 발판에 올린다.', voice: 'narrator' }],
+  youngcle_crate_done: [{ text: '* 제어문은 이미 열려 있다.', voice: 'narrator' }],
+  youngcle_circuit_controls: [{ text: '* 회로판 앞에서 C를 눌러 선을 돌린다.', voice: 'narrator' }],
 
   _chest_empty: [{ text: '* 상자는 비어 있다.', voice: 'narrator' }],
 

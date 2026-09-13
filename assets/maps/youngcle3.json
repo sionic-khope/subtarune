@@ -1,0 +1,172 @@
+{
+ "id": "youngcle3",
+ "name": "영클 공장 압력실",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "backdrop": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "JJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 96,
+   "y": 248,
+   "facing": "right"
+  },
+  "left": {
+   "x": 96,
+   "y": 248,
+   "facing": "right"
+  },
+  "right": {
+   "x": 480,
+   "y": 248,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "puzzle": "crate",
+  "pushes": 3,
+  "crateStart": [
+   192,
+   242
+  ],
+  "plate": [
+   288,
+   240
+  ],
+  "gate": [
+   416,
+   192,
+   24,
+   160
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle3_left",
+   "x": 32,
+   "y": 204,
+   "w": 16,
+   "h": 136,
+   "to": "youngcle2",
+   "spawn": "top",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle3_rail_top",
+   "x": 32,
+   "y": 192,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle3_rail_bottom",
+   "x": 32,
+   "y": 340,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle3_wire",
+   "puzzle": "crate",
+   "flag": "youngcle3_crate_solved",
+   "points": [
+    [
+     304,
+     256
+    ],
+    [
+     368,
+     256
+    ],
+    [
+     368,
+     208
+    ],
+    [
+     416,
+     208
+    ]
+   ]
+  },
+  {
+   "type": "factory_plate",
+   "id": "youngcle3_plate",
+   "puzzle": "crate",
+   "flag": "youngcle3_crate_solved",
+   "x": 288,
+   "y": 240
+  },
+  {
+   "type": "factory_crate",
+   "id": "youngcle3_crate",
+   "puzzle": "crate",
+   "flag": "youngcle3_crate_solved",
+   "x": 192,
+   "y": 242,
+   "solvedX": 290,
+   "solvedY": 242
+  },
+  {
+   "type": "factory_console",
+   "id": "youngcle3_console",
+   "puzzle": "crate",
+   "flag": "youngcle3_crate_solved",
+   "x": 128,
+   "y": 200,
+   "resetCrate": true,
+   "script": "youngcle_crate_controls",
+   "solvedScript": "youngcle_crate_done"
+  },
+  {
+   "type": "factory_gate",
+   "id": "youngcle3_gate",
+   "flag": "youngcle3_crate_solved",
+   "x": 416,
+   "y": 192,
+   "w": 24,
+   "h": 160
+  },
+  {
+   "type": "door",
+   "id": "youngcle3_right",
+   "x": 528,
+   "y": 204,
+   "w": 16,
+   "h": 136,
+   "to": "youngcle4",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
+  }
+ ]
+}

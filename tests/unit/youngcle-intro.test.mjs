@@ -8,7 +8,7 @@ import { makeWaiter } from '../../src/ui/cutscene.js';
 import { DotBubble } from '../../src/ui/bubble.js';
 import { TvBroadcast } from '../../src/world/tv-broadcast.js';
 import { YOUNGCLE_TV as TV } from '../../src/data/youngcle-tv.js';
-import { youngcle_intro } from '../../src/data/cutscenes/youngcle_intro.js';
+import { youngcle_intro, youngcle_tv_off } from '../../src/data/cutscenes/youngcle_intro.js';
 import { QA_POINTS, stateFromFlags, storyBgm } from '../../src/core/story.js';
 
 const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
@@ -163,4 +163,52 @@ test('test_youngcle_door_pan_keeps_zoomed_view_inside_room_and_door_visible', ()
   assert.ok(left >= 0);
   assert.ok(right <= game.map.pxW, `zoomed right edge ${right} exceeds room ${game.map.pxW}`);
   assert.ok(door.x >= left && door.x + door.w <= right);
+});
+
+test('test_youngcle_off_TV_reinteraction_runs_one_gag_then_stays_short_without_moving_party', () => {
+  const { game, sounds } = fixture();
+  game.flags.youngcle_intro_done = true;
+  const positions = new Map(['player', ...game.party].map(id => {
+    const actor = id === 'player' ? game.player : game.entities.find(entity => entity.id === id);
+    return [id, [actor.x, actor.y]];
+  }));
+  const shown = [], expressions = [], seenExpressions = new Set(), visibleExpressions = new Set(), phases = new Set();
+  game.dialogue.start(youngcle_tv_off);
+  for (let tick = 0; tick < 2000 && game.dialogue.running; tick++) {
+    game.time += 0.025; game.tvBroadcast?.update(0.025);
+    if (game.tvBroadcast) {
+      seenExpressions.add(game.tvBroadcast.expression); phases.add(game.tvBroadcast.phase);
+      if (game.tvBroadcast.phase !== 'off') visibleExpressions.add(game.tvBroadcast.expression);
+    }
+    game.dialogue.update(0.025, { just: key => key === 'confirm' && tick % 5 === 0 });
+    if (game.textbox.isOpen && shown.at(-1) !== game.textbox.node.text) {
+      shown.push(game.textbox.node.text);
+      expressions.push(game.tvBroadcast?.expression);
+    }
+  }
+  assert.deepEqual(shown, ['* ..오..', '* 뭐 뭐노?!']);
+  assert.deepEqual(expressions, ['read', 'shock']);
+  assert.deepEqual([...seenExpressions], ['smirk', 'read', 'shock', 'hide']);
+  assert.deepEqual([...visibleExpressions], ['read', 'shock', 'hide']);
+  assert.deepEqual([...phases], ['off', 'powering', 'on', 'shutting']);
+  assert.equal(game.flags.youngcle_tv_gag_done, true);
+  assert.equal(game.tvBroadcast, null);
+  assert.equal(game.zoom.s, 1);
+  assert.equal(game.camera.target, game.player);
+  assert.equal(sounds.filter(name => name === 'youngcle_tv_on').length, 1);
+  for (const [id, position] of positions) {
+    const actor = id === 'player' ? game.player : game.entities.find(entity => entity.id === id);
+    assert.deepEqual([actor.x, actor.y], position);
+  }
+
+  shown.length = 0;
+  game.dialogue.start(youngcle_tv_off);
+  for (let tick = 0; tick < 500 && game.dialogue.running; tick++) {
+    game.dialogue.update(0.025, { just: key => key === 'confirm' && tick % 5 === 0 });
+    if (game.textbox.isOpen && shown.at(-1) !== game.textbox.node.text) shown.push(game.textbox.node.text);
+  }
+  assert.deepEqual(shown, ['* TV는 꺼져 있다.']);
+  assert.equal(game.tvBroadcast, null);
+  assert.equal(sounds.filter(name => name === 'youngcle_tv_on').length, 1);
+  assert.equal(youngcle_tv_off.some(node => node.move || node.regroup || node.map), false);
 });

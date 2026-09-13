@@ -1011,6 +1011,13 @@ class Game {
     else if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
+    else if (MAPS[this.mapId]?.backdrop === 'youngcle_factory') {
+      const factory = this.propImages['assets/backdrops/youngcle_factory.png'];
+      if (factory) {
+        const offset = Math.min(factory.height - SCREEN_H, Math.max(0, Math.round(cam.y * 0.15)));
+        ctx.drawImage(factory, 0, offset, SCREEN_W, SCREEN_H, 0, 0, SCREEN_W, SCREEN_H);
+      }
+    }
     else if (MAPS[this.mapId]?.backdrop === 'maillard_sea') {
       const sea = this.propImages['assets/backdrops/maillard_sea.png'];
       ctx.fillStyle = '#075783';
@@ -1230,7 +1237,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-13.142';
+export const BUILD = '2026-09-13.143';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
