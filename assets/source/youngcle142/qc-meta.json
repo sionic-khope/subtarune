@@ -1,0 +1,92 @@
+{
+  "background_generation": "exec-6967b4d3-1a97-4d96-8b39-1a4e40804b2a.png",
+  "background_source_sha256": "cb99cc5b7915d3f5a11519e9bc2407ddc395b341a37e5a61585b242fdff630c0",
+  "character_source": "../youngcle140/logical-<pose>.png",
+  "logical_size": [
+    128,
+    64
+  ],
+  "native_size": [
+    258,
+    119
+  ],
+  "content_size": [
+    238,
+    119
+  ],
+  "content_position": [
+    10,
+    0
+  ],
+  "resampling": "NEAREST",
+  "mask_rule": "Warm skin/hair/white and cyan/green seeds; two local dark-outline growth passes; enclosed dark glyph pixels retained. Blue room and blue gesture marks excluded.",
+  "poses": [
+    {
+      "pose": "smirk",
+      "logical_foreground_pixels": 1955,
+      "native_foreground_pixels": 6732,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "laugh",
+      "logical_foreground_pixels": 3043,
+      "native_foreground_pixels": 10513,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "greet",
+      "logical_foreground_pixels": 2287,
+      "native_foreground_pixels": 7909,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "oh",
+      "logical_foreground_pixels": 2108,
+      "native_foreground_pixels": 7280,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "taunt",
+      "logical_foreground_pixels": 2921,
+      "native_foreground_pixels": 10117,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "shrug",
+      "logical_foreground_pixels": 2306,
+      "native_foreground_pixels": 7996,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "bye",
+      "logical_foreground_pixels": 2390,
+      "native_foreground_pixels": 8267,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "yes",
+      "logical_foreground_pixels": 2185,
+      "native_foreground_pixels": 7535,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    },
+    {
+      "pose": "surprise",
+      "logical_foreground_pixels": 2472,
+      "native_foreground_pixels": 8535,
+      "foreground_rgb_and_coordinates_identical": true,
+      "individual_background_matches_plate": true
+    }
+  ],
+  "outside_union_background_identical": true,
+  "union_native_foreground_pixels": 14871,
+  "shared_native_background_pixels": 15831,
+  "portraits_modified": false
+}
