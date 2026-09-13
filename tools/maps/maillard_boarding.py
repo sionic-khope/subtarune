@@ -81,7 +81,7 @@ def main() -> None:
              'w': 896, 'h': 717, 'solid': False, 'sortY': 0},
             {'type': 'door', 'id': 'youngcle_entrance', 'x': 1296, 'y': 400,
              'w': 144, 'h': 32, 'solid': False, 'to': 'youngcle1', 'spawn': 'from_bridge',
-             'sfx': 'plug', 'interact': True},
+             'sfx': False, 'interact': False},
             {'type': 'sign', 'id': 'youngcle_upper_hull', 'x': 1024, 'y': 384,
              'w': 352, 'h': 16, 'solid': True, 'script': 'youngcle_entrance'},
             {'type': 'sign', 'id': 'youngcle_lower_hull', 'x': 1024, 'y': 432,

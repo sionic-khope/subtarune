@@ -9,6 +9,7 @@ import { CHARACTERS } from '../data/characters.js';
 import { storyExitScript } from '../core/story.js';
 import { loopCharacterMotion, updateLoopCharacterMotion } from './character-motion.js';
 import { FONT } from '../ui/font.js';
+import { drawDoorOpening } from './door-transit.js';
 
 export const SCREEN_W = 480;
 export const SCREEN_H = 360;
@@ -286,6 +287,11 @@ export class Character extends Entity {
     if (!this.visible) return;
     ctx.save();
     const ride = this.game.ride;
+    if (this.doorTransit) {
+      const [x, y, w, h] = this.doorTransit.clip;
+      ctx.beginPath(); ctx.rect(Math.round(x - cam.x), Math.round(y - cam.y), w, h); ctx.clip();
+      ctx.translate(0, Math.round(this.doorTransit.offsetY));
+    }
     if (ride?.def.seatClipY !== undefined && (this === ride.rider || this.def.type === 'follower')) {
       const rim = Math.round(ride.drawY + ride.def.seatClipY - ride.jumpY - cam.y);
       ctx.beginPath(); ctx.rect(-SCREEN_W * 2, -SCREEN_H * 4, SCREEN_W * 5, rim + SCREEN_H * 4); ctx.clip();
@@ -605,6 +611,7 @@ export class Prop extends Entity {
       ctx.save(); ctx.translate(Math.round(cx), Math.round(cy)); ctx.rotate(this.spin); blit(-Math.round(this.iw / 2), -Math.round(this.ih / 2)); ctx.restore();
     } else if (this.image) blit(Math.round(this.drawX + fx - cam.x), Math.round(this.drawY + fy - cam.y) - Math.round(this.hopY || 0));   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
     else { ctx.fillStyle = 'rgba(255,0,255,0.5)'; ctx.fillRect(Math.round(this.x - cam.x), Math.round(this.y - cam.y), this.w, this.h); }
+    drawDoorOpening(ctx, this, cam);
   }
 }
 

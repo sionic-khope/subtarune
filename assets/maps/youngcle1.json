@@ -34,10 +34,15 @@
   "assets/props/youngcle_tv_frame.png",
   "assets/props/maillard_storage_door.png",
   "assets/sprites/youngcle.png",
-  "assets/sprites/youngcle_tv_smirk.png",
-  "assets/sprites/youngcle_tv_laugh.png",
-  "assets/sprites/youngcle_tv_greet.png",
-  "assets/sprites/youngcle_tv_oh.png"
+  "assets/illustrations/youngcle-tv-smirk.png",
+  "assets/illustrations/youngcle-tv-laugh.png",
+  "assets/illustrations/youngcle-tv-greet.png",
+  "assets/illustrations/youngcle-tv-oh.png",
+  "assets/illustrations/youngcle-tv-taunt.png",
+  "assets/illustrations/youngcle-tv-shrug.png",
+  "assets/illustrations/youngcle-tv-bye.png",
+  "assets/illustrations/youngcle-tv-yes.png",
+  "assets/illustrations/youngcle-tv-surprise.png"
  ],
  "spawns": {
   "start": {

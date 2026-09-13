@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // 머리 위 말풍선 "..." 연출 (재사용). 언더테일식: 흰 바탕·검은 1px 테두리·아래 꼬리, 점이 하나씩 짧은 간격으로 찍힌다.
-//   컷신 노드: { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 }  → 점이 다 찍히고 hold 만큼 머문 뒤 사라지며 다음 노드로
+//   컷신 노드: { bubble:'player'|id|[id,…], dots?:3, gap?:0.4, hold?:0.6 }  → 복수 대상도 같은 시계로 점이 찍히고 함께 사라진다
 //   game.bubble = new DotBubble();  main.js 가 update/draw 한다 (월드 좌표, 캐릭터 머리 위, 카메라 따라감).
 // 비율: 풍선 36×22(점 3개 기준, 점 4px 둥근 점·간격 4px), 꼬리 6px. 점은 풍선 정중앙 줄에 가운데 정렬. (2026-09-10: 점이 네모나고 커서 작게·둥글게, 풍선은 세로로 조금 길게)
 // ─────────────────────────────────────────────────────────────
@@ -20,9 +20,10 @@ export class DotBubble {
       if (this.timer <= 0) { this.phase = 'out'; this.fadeT = 0.12; }
     } else { this.fadeT -= dt; if (this.fadeT <= 0) { this.done = true; this.target = null; } }
   }
-  draw(ctx, cam) {
-    if (this.done || !this.target) return;
-    const t = this.target;
+  draw(ctx, cam, target = this.target) {
+    if (this.done || !target) return;
+    if (Array.isArray(target)) { for (const actor of target) this.draw(ctx, cam, actor); return; }
+    const t = target;
     const DOT = 4, GAP = 4, PAD = 8, H = 22, TAIL = 6, R = 5;
     const w = PAD * 2 + this.dots * DOT + (this.dots - 1) * GAP;
     // 스프라이트 머리 위: 히트박스 중심 x, 스프라이트 상단(발 기준 높이) 위 6px

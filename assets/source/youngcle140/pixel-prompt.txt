@@ -1,0 +1,15 @@
+Create a NEW nine-panel Youngcle TV expression/shot sheet in TRUE LOW RESOLUTION CHUNKY PIXEL ART. Image1 is the authoritative pixel-character identity/style reference. Image2 is ONLY reference for TV-wide poses/scene composition, NOT its smooth drawn rendering; reject its thin smooth curves and fine teeth.
+CRITICAL USER CORRECTION: current TV drawings became too smooth and lost funny annoying pixel charm. Use visibly LARGE SQUARE PIXEL CLUSTERS, stepped stair-case black outlines, a small FLAT 16-color palette and at most 2 shadow tones. It must look authored at128x64 LOGICAL PIXELS per panel then nearest-neighbor enlarged4x. No anti-alias, NO smooth outline, NO painting, NO gradient, NO texture/noise, no fine lines. Cartoon toddler-villain smug/annoying comedy, not sinister or horror. Funny asymmetrical pixel mouth/smirk, cheeks, head tilted, head poked at camera. No detailed realistic teeth; at most a single white block in a sneer.
+Identity: Youngcle one huge white central oval eye, pink head/skin, red cheek squares, red mouth, ONE tiny curly brown ahoge with NO otherhair, cyan shirt with green chestpixelpatch. EXACTLYONEeye; black glyph is expression insidewhiteeye. Preserve recognizable 139style. Never addnose/secondeye.
+Single coherent TV portrait/expressions atlas: exactly3columns x3rows, NINE equalLANDSCAPE panels. Wholeimage1536x768, each512x256, pixelgridlogical128x64 perpanel. Seamlessedge-to-edgeequalrectangles no gaps/frames/borders/labels. Every panel opaque darknavy/blue angular STEEL TV-STUDIO background drawnin samecoarsepixels. FullwideTVillustrations notsmallcenteredsprites. Bigface+upperbody occupies~70%height, withhead/curl insidepanel, body may intentionallycontinuebelowedge.
+Readlefttorightthenrows:
+1 smirk: crossedarms, headtiltedsideways, cocky crookedone-sidedpixelgrin, blackspiraleye.
+2 laugh: low-anglepointingatviewer withoversizedblockypixelfinger, headcocked, lopsidedmockinglaugh; eyeexactblack "ㅋ".
+3 greet: onehandwaving lazily, fake-polite slygrin, giantwhiteeyeexactblack "ㅎㅇ" sidebyside (Korean consonants HIEUH and IEUNG), fullylegible.
+4 oh: ironic surprisedface, chinpulledback, handsat chest, mouthcrookedO; eyeexactblack "오".
+5 taunt: mostannoying closepoint, tiltedhead, impishsneer oneblocktooth, eyeexactblack "ㅋ".
+6 shrug: palmsup, dismissiveweirdcrookedmouth, spiraleye.
+7 bye: dismissivepalmwave turnedslightlyaway, smirk; eyeexactblack "ㅂ" (ONLY BIEUP oneglyph).
+8 yes: smuglittleheadtilt, tinythumbup, sillyclosedmouthgrin; eyeexactblack "ㅇ" (ONLY IEUNG circle oneglyph).
+9 surprise: handsspread, headpulledback, comedicgasp; eyeexactblack "!" (singleexclamationmark).
+All9staticshots, noidle animation. A heavyupperlid may be a2pixelangledbar but mustneverobscure anyglyph. Funny/cheeky disrespectfullysmug ratherthanseriousmean. Sourceeyelettersmustbeperfect: spiral/ㅋ/ㅎㅇ/오/ㅋ/spiral/ㅂ/ㅇ/!. No textoutsideeye, nobubbles, nodialogueUI, nowatermarks. Keepthese nineexactlandscapecells, enoughsafeareaforwholehead/cowlick, cleanflatpixelcolor.

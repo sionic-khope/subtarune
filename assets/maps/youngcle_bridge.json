@@ -89,8 +89,8 @@
    "solid": false,
    "to": "youngcle1",
    "spawn": "from_bridge",
-   "sfx": "plug",
-   "interact": true
+   "sfx": false,
+   "interact": false
   },
   {
    "type": "sign",

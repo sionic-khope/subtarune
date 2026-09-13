@@ -1,0 +1,93 @@
+{
+  "accepted_generation": "exec-7ae486d9-89a8-4542-adb7-1cb19e02bc83.png",
+  "raw_sha256": "45b85f3aed65a5e3153b3fa459c59105d7388dad31463b20b0971928bc11fdde",
+  "panels": [
+    {
+      "pose": "smirk",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "laugh",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "greet",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "oh",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "taunt",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "shrug",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "bye",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "yes",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    },
+    {
+      "pose": "surprise",
+      "raw_panel_identical": true,
+      "logical_128x64": true,
+      "scene_opaque_258x119": true,
+      "source_palette_preserved": true,
+      "static": true,
+      "portrait_mono_96x96_integer_2x": true
+    }
+  ],
+  "visual_review": "Nine pixel scenes preserve skinny torsos and arms, large heads, distinct poses and backgrounds; eyes spiral/ㅋ/ㅎㅇ/오/ㅋ/spiral/ㅂ/ㅇ/! distinguishable at native258x119. Portraits use aligned48pixel mono canvas beforeinteger2x export.",
+  "previous_raws": [
+    "raw-draft1.png",
+    "raw-draft2.png",
+    "raw-draft3.png"
+  ]
+}

@@ -7,7 +7,6 @@ export class TvBroadcast {
     this.phase = 'off';
     this.expression = 'smirk';
     this.elapsed = 0;
-    this.time = 0;
     this.disposed = false;
   }
 
@@ -25,7 +24,7 @@ export class TvBroadcast {
   /** Progress without blocking player-independent dialogue typing. */
   update(dt) {
     if (this.disposed) return;
-    this.time += dt; this.elapsed += dt;
+    this.elapsed += dt;
     if (this.phase === 'powering' && this.elapsed >= this.config.powerTime) this.phase = 'on';
     if (this.phase === 'shutting' && this.elapsed >= this.config.shutdownTime) this.phase = 'off';
   }
@@ -37,7 +36,7 @@ export class TvBroadcast {
       y: Math.round((this.anchor.drawY ?? this.anchor.y) - cam.y + top), width, height };
   }
 
-  /** Clip CRT glow, scanlines and upper-body animation strictly inside the frame inset. */
+  /** Fill the frame inset with a still illustration; clip the CRT power transition inside it. */
   draw(ctx, cam) {
     if (this.disposed || this.phase === 'off' || !this.anchor) return;
     const r = this.screenRect(cam);
@@ -50,9 +49,7 @@ export class TvBroadcast {
     ctx.globalAlpha = 1; ctx.fillStyle = '#17283a'; ctx.fillRect(r.x, r.y, r.width, r.height);
     const image = this.game.propImages[this.config.expressions[this.expression]];
     if (image && this.phase !== 'powering') {
-      const bob = Math.round(Math.sin(this.time * (this.expression === 'laugh' ? 18 : 3)) * (this.expression === 'laugh' ? 2 : 1));
-      const size = Math.round(r.height * 1.05);
-      ctx.drawImage(image, Math.round(r.x + (r.width - size) / 2), r.y + bob, size, size);
+      ctx.drawImage(image, r.x, r.y, r.width, r.height);
     }
     ctx.fillStyle = '#c7f7ff';
     ctx.globalAlpha = this.phase === 'on' ? 0.06 : 0.65 * (1 - progress) + 0.1;

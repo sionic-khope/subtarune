@@ -31,7 +31,8 @@ def main() -> None:
         'preload': ['assets/tiles/youngcle_iron.png', 'assets/props/youngcle1_walls.png',
                     'assets/props/youngcle_tv_frame.png', 'assets/props/maillard_storage_door.png',
                     'assets/sprites/youngcle.png',
-                    *[f'assets/sprites/youngcle_tv_{pose}.png' for pose in ('smirk', 'laugh', 'greet', 'oh')]],
+                    *[f'assets/illustrations/youngcle-tv-{pose}.png'
+                      for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'bye', 'yes', 'surprise')]],
         'spawns': {
             'start': {'x': 660, 'y': 376, 'facing': 'up'},
             'from_bridge': {'x': 660, 'y': 376, 'facing': 'up'},

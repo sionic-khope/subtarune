@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { Entity, Character, Camera, TileMap } from '../../src/world/world.js';
 import { TextBox, ScriptRunner } from '../../src/ui/dialogue.js';
 import { makeWaiter } from '../../src/ui/cutscene.js';
+import { DotBubble } from '../../src/ui/bubble.js';
 import { TvBroadcast } from '../../src/world/tv-broadcast.js';
 import { YOUNGCLE_TV as TV } from '../../src/data/youngcle-tv.js';
 import { youngcle_intro } from '../../src/data/cutscenes/youngcle_intro.js';
@@ -16,7 +17,7 @@ const room = JSON.parse(readFileSync(new URL('../../assets/maps/youngcle1.json',
 function fixture() {
   const sounds = [], music = [];
   const game = { flags: {}, time: 0, party: ['gyeongsub', 'ppaman'], money: 1140, inventory: ['바나나'],
-    map: new TileMap(room), camera: new Camera(), zoom: { s: 1 }, background: [], propImages: {},
+    map: new TileMap(room), camera: new Camera(), zoom: { s: 1 }, background: [], propImages: {}, bubble: new DotBubble(),
     ctx: { measureText: text => ({ width: [...text].length * 16 }) },
     sound: { sfx: name => sounds.push(name), playBgm: name => music.push(name), preloadBgm() {}, blip() {} },
     setFlag(key, value) { this.flags[key] = value; },
@@ -39,7 +40,7 @@ test('test_youngcle_intro_runs_all_lines_with_delayed_party_entry_matched_TV_pos
   const shown = new Set(), phases = new Set();
   game.dialogue.start(youngcle_intro);
   for (let tick = 0; tick < 12000 && game.dialogue.running; tick++) {
-    game.time += 0.025; game.tvBroadcast?.update(0.025);
+    game.time += 0.025; game.tvBroadcast?.update(0.025); game.bubble.update(0.025);
     if (game.tvBroadcast) phases.add(game.tvBroadcast.phase);
     game.dialogue.update(0.025, { just: key => key === 'confirm' && tick % 5 === 0 });
     if (!game.textbox.isOpen) continue;
@@ -58,6 +59,7 @@ test('test_youngcle_intro_runs_all_lines_with_delayed_party_entry_matched_TV_pos
   assert.deepEqual([...shown], youngcle_intro.filter(node => node.text));
   assert.deepEqual([...phases], ['off', 'powering', 'on', 'shutting']);
   assert.equal(sounds.filter(name => name === 'youngcle_tv_on').length, 1);
+  assert.equal(sounds.filter(name => name === 'door').length, 2);
   assert.deepEqual(music, ['storage_show']);
   assert.equal(game.flags.youngcle_intro_done, true);
   assert.equal(game.tvBroadcast, null);
@@ -77,11 +79,29 @@ test('test_youngcle_intro_runs_all_lines_with_delayed_party_entry_matched_TV_pos
 });
 
 test('test_youngcle_intro_parallel_reactions_target_two_dots_then_all_five_exclamations', () => {
-  const dots = youngcle_intro.find(node => node.parallel?.some(child => child.kind === 'stamp'));
-  assert.deepEqual(dots.parallel.map(node => node.emote), ['youngcle_junhee', 'gyeongsub']);
+  const dots = youngcle_intro.find(node => node.bubble);
+  assert.deepEqual(dots.bubble, ['youngcle_junhee', 'gyeongsub']);
+  assert.equal(dots.dots, 3);
+  assert.equal(youngcle_intro.some(node => node.parallel?.some(child => child.kind === 'stamp')), false);
   const reaction = youngcle_intro.find(node => node.parallel?.some(child => child.kind === '!'));
   assert.deepEqual(reaction.parallel.map(node => node.emote), ['player', 'gyeongsub', 'ppaman', 'youngcle_junhee', 'youngcle_yongjun']);
   assert.equal(youngcle_intro.some(node => node.battle || node.join || node.map), false);
+});
+
+test('test_youngcle_departure_is_sequential_and_new_expressions_match_exact_lines', () => {
+  const entries = youngcle_intro.filter(node => node.doorTransit);
+  assert.deepEqual(entries.map(node => node.doorTransit.actor), ['youngcle_junhee', 'youngcle_yongjun']);
+  const first = youngcle_intro.indexOf(entries[0]), second = youngcle_intro.indexOf(entries[1]);
+  assert.equal(youngcle_intro[first + 1].remove, 'youngcle_junhee');
+  assert.equal(youngcle_intro[first + 2].wait, 0.3);
+  assert.equal(youngcle_intro[second + 1].remove, 'youngcle_yongjun');
+  assert.equal(entries[1].doorTransit.closeAfter, true);
+  for (const [text, pose] of [['긁혔나보노 ㅋㅋ', 'taunt'], ['그냥 ㅈㄴ부시고싶게 생겨서?', 'taunt'],
+    ['어 그건..', 'shrug'], ['ㅇㅇ', 'yes'], ['ㅂㅇ', 'bye'], ['오', 'oh'], ['경섭이형도 계셨네요 ㅎㅇㅎㅇ', 'greet']]) {
+    assert.equal(youngcle_intro.find(node => node.text === '* ' + text).portrait, 'youngcle_tv_' + pose);
+  }
+  assert.ok(TV.expressions.surprise);
+  assert.equal(youngcle_intro.some(node => node.portrait === 'youngcle_tv_surprise'), false);
 });
 
 test('test_TV_power_expands_then_draws_matching_pose_only_in_inset_and_restores_caller_clip', () => {

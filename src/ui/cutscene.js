@@ -43,6 +43,7 @@ import { freeSpot, SCREEN_W, SCREEN_H } from '../world/world.js';
 import { characterMotionWaiter } from '../world/character-motion.js';
 import { MusicCamera } from './music-camera.js';
 import { darkSmokeWaiter } from './dark-smoke.js';
+import { doorTransitWaiter } from '../world/door-transit.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -151,6 +152,10 @@ function parallel(game, nodes) {
 
 /** 노드 → waiter | null(컷신 명령 아님) */
 export function makeWaiter(game, node) {
+  if (node.doorTransit) {
+    const entry = node.doorTransit;
+    return doorTransitWaiter(game, findEntity(game, entry.actor), findEntity(game, entry.door), entry);
+  }
   if ('darkSmoke' in node) return darkSmokeWaiter(game, node.darkSmoke);
   if (node.nod) {
     const entity = findEntity(game, node.nod); if (!entity) return done;
@@ -349,7 +354,8 @@ export function makeWaiter(game, node) {
   }
   if (node.tiles) { game.applyTiles(node.tiles); return done; }
   if (node.bubble) {                                   // { bubble:'player'|id, dots?, gap?, hold? } — 머리 위 '...' 말풍선, 다 찍히고 사라질 때까지 기다림
-    const e = findEntity(game, node.bubble); if (!e) return done;
+    const e = Array.isArray(node.bubble) ? node.bubble.map(id => findEntity(game, id)).filter(Boolean) : findEntity(game, node.bubble);
+    if (!e || (Array.isArray(e) && !e.length)) return done;
     game.textbox.close(); game.bubble.start(e, node);
     return { update: () => game.bubble.done };
   }

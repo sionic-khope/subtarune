@@ -1,0 +1,252 @@
+{
+  "source_dimensions": [
+    1774,
+    887
+  ],
+  "source_mode": "RGB",
+  "scene_output_dimensions": [
+    258,
+    119
+  ],
+  "scene_resampling": "NEAREST",
+  "scene_logical_dimensions": [
+    128,
+    64
+  ],
+  "scene_background": "Original opaque navy scene retained; contain padding RGB[12,24,48].",
+  "scene_panels": [
+    {
+      "pose": "smirk",
+      "source_box": [
+        0,
+        0,
+        590,
+        295
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "laugh",
+      "source_box": [
+        592,
+        0,
+        1182,
+        295
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "greet",
+      "source_box": [
+        1184,
+        0,
+        1774,
+        295
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "oh",
+      "source_box": [
+        0,
+        297,
+        590,
+        590
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "taunt",
+      "source_box": [
+        592,
+        297,
+        1182,
+        590
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "shrug",
+      "source_box": [
+        1184,
+        297,
+        1774,
+        590
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "bye",
+      "source_box": [
+        0,
+        592,
+        590,
+        887
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "yes",
+      "source_box": [
+        592,
+        592,
+        1182,
+        887
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    },
+    {
+      "pose": "surprise",
+      "source_box": [
+        1184,
+        592,
+        1774,
+        887
+      ],
+      "uniform_scale": 1.859375,
+      "scaled_size": [
+        238,
+        119
+      ],
+      "position": [
+        10,
+        0
+      ]
+    }
+  ],
+  "portrait_source_boxes": [
+    [
+      204,
+      3,
+      407,
+      224
+    ],
+    [
+      851,
+      6,
+      1077,
+      243
+    ],
+    [
+      1368,
+      3,
+      1578,
+      233
+    ],
+    [
+      182,
+      298,
+      397,
+      521
+    ],
+    [
+      803,
+      298,
+      1047,
+      541
+    ],
+    [
+      1382,
+      298,
+      1585,
+      526
+    ],
+    [
+      222,
+      597,
+      437,
+      819
+    ],
+    [
+      780,
+      599,
+      986,
+      818
+    ],
+    [
+      1362,
+      598,
+      1559,
+      817
+    ]
+  ],
+  "portrait_dimensions": [
+    96,
+    96
+  ],
+  "portrait_resampling": "NEAREST",
+  "portrait_logical_face_maximum": 43,
+  "portrait_logical_canvas": [
+    48,
+    48
+  ],
+  "portrait_threshold": 0.38,
+  "portrait_background_removal": "Navy hue only inside separate face crops; never applied to full TV scenes.",
+  "portrait_edge_rule": "White silhouette edge as in gfx.monoPortrait",
+  "palette_quantization": false,
+  "animation_frames": 0
+}

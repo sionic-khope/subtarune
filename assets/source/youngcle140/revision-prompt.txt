@@ -1,0 +1,9 @@
+Edit this exact SIX-panel Youngcle TV illustration sheet. Preserve the exact 3columns x2rows grid, panel backgrounds, camera framing, body poses, cyan clothing, single curly brown hair, pink skin, red cheek marks, and pixel-illustration style. Change ONLY facial acting/design within the same single-eye identity.
+The current faces are too sweet and cheerfully friendly. User wants much more infuriating, smug, condescending, cheeky and dismissive (킹받고 띠꺼운 표정). Strong visible facial change, not subtle: crooked off-center sarcastic mouth, lifted one-sided sneer, smug chin-up expression, mocking curled lip, occasionally a small tooth-showing sideways grin. Add an angled heavy upper eyelid over the ONE white eye and/or a single cocked brow shape to express disdain, but do not cover or distort its glyph. Never add a second eye, realistic facial features, a nose, extra hair, scar, or facial accessory.
+Top-left spiral: visibly half-lidded arrogant sneer and narrow sideways grin.
+Top-middle ㅋ: loudly mocking someone, lopsided wide laugh with a tooth, not innocent happy.
+Top-right ㅎㅇ: disdainful fake-friendly greeting with a smug sideways smirk and cocked lid.
+Bottom-left 오: exaggerated sarcastic 'oh really?' face, pursed asymmetric open mouth and raised lid, not cute astonishment.
+Bottom-middle ㅋ: most obnoxious smug closeup, lip curled into pronounced one-sided toothy grin.
+Bottom-right spiral: dismissive 'whatever' sneer, lips skewed strongly toward one side.
+Preserve exact readable bold black eye marks: spiral / "ㅋ" / "ㅎㅇ" / "오" / "ㅋ" / spiral, in reading order. Keep both letters ofㅎㅇfullyvisible. Existing hand pointing, wave, crossedarms, shrugunchanged. Wholepanel background opaque blue. No extra labels, no speech bubbles or UI, no borders beyond existing panel boundaries. These are STATIC ILLUSTRATIONS, not animationframes.

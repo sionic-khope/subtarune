@@ -120,6 +120,7 @@ model: opus
 | `{ sfx:'chime'\|'confirm'\|'cancel'\|'door'\|'item'\|'open'\|'close' }` `{ sound:'thud' }` | 효과음 |
 | `{ spawn:{type,id,sprite,x,y,facing,script} }` `{ remove:id }` `{ show:id }` `{ hide:id }` | 엔티티 |
 | `{ map:'room', spawn:'bed' }` | 즉시 맵 교체 — 앞뒤에 `fade` 를 붙일 것 |
+| `{ doorTransit:{actor:id,door:propId,inset:[x,y,w,h],duration?:0.85,openDuration?:0.18,closeAfter?:false} }` | 위쪽 닫힌 문 통과. 안전한 문 앞 좌표에서 걷는 그림만 위로 이동해 열린 문틀에 가리고 문턱에서 기존 철컥음을 낸다. inset은 문 원본의 안쪽 문짝 영역이다. 마지막 후행자에 closeAfter를 주고 완료 뒤 remove한다. 충돌 좌표는 벽 안으로 옮기지 않는다. |
 | `{ zoom: 2.8, at:'tv'\|[x,y], offset?:[dx,dy], duration? }` / `{ zoom:1 }` | 2D 월드 줌인/아웃(UI 는 그대로). 3D 씬 진입 전환에 사용 |
 | `{ musicCamera:{src,at,duration,volume,offset,beats,introZoom,peakZoom,lowZoom,beatRelease,bounce} }` | 미리 디코드한 WAV 전체를 한 번 틀며 같은 AudioContext 시계로 박자 줌/바운스. 대화창은 닫고 기존 브금 위치를 보존했다가 끝나면 복구한다. Esc/QA 중단은 WAV·줌을 정리하며 브금을 되살리지 않는다. 설정 예: `src/data/storage-dance.js` |
 | `{ scene3d:'drawer', flag:'cord_found' }` | `src/scenes/<이름>.js` 의 WebGL 오버레이 씬. 끝나면 `{found}` → flag. 앞뒤에 `zoom` 을 붙인다 |
@@ -127,7 +128,7 @@ model: opus
 | `{ dialog:{title,text,button} }` `{ dialog:'press' }` `{ dialog:null }` | 윈도우식 오류창. press 는 0.35s 기다림 |
 | `{ vortex:{ at:'pc'\|[x,y], size, grow } }` `{ vortex:{size,grow} }` `{ vortex:null }` | 소용돌이(월드). 기다리지 않으므로 대사와 겹쳐 키운다 |
 | `{ join:'ppaman' }` `{ leave:'id' }` `{ regroup:true }` | 동료 가입/이탈/주인공 뒤 재정렬 (파티 시스템, STATE.md 참고) |
-| `{ bubble:'player'\|id, dots?:3, gap?:0.4, hold?:0.5 }` | 머리 위 `...` 말풍선(36×22, 4px 둥근 점이 하나씩). 끝나면 다음 노드 |
+| `{ bubble:'player'\|id\|[id1,id2], dots?:3, gap?:0.4, hold?:0.5 }` | 기존 머리 위 `...` 말풍선(36×22, 4px 둥근 점이 하나씩). 여러 대상은 배열로 주어 같은 시계로 동시에 표시한다. 끝나면 다음 노드 |
 | `{ raft:id, go:true \| jump:true \| until:'stop' }` | 뗏목 출발/점프/멈출 때까지 |
 | `{ prompt:text }` | C 로만 닫히는 안내 창 |
 | `{ emote:id, kind:'!'|'sweat', duration?, hold?, sfx? }` | 머리 위 느낌표/식은땀 |
@@ -142,6 +143,7 @@ model: opus
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |
 
 ## 연출 규칙 (완성도)
+- `...` 반응은 위 `bubble` 명령을 사용한다. 기존 장면(`obj1_cannon.js`)의 모습을 먼저 대조하고, 여러 대상이라는 이유로 `stamp` 글자나 새 말풍선을 대신 만들지 않는다. 기존 명령으로 표현할 수 없는 기능만 최소 확장한다. [BUILD139 실패 회고](../../../docs/postmortems/2026-09-13-open-entry-and-bubble.md)
 - 맵 NPC의 `hidden:true`는 최초 비표시, `visualScale`은 해당 개체만 확대한다. `zoom:0.8` 같은 줌아웃은 월드만 축소하며 대화창은 유지한다. `{fling}`은 소품과 캐릭터 모두 수평 이동·높이·회전을 표시한다.
 - 비트 사이에 `wait 0.3~0.8` 을 넣어 숨을 쉬게 한다. 대사 직후 바로 이동시키지 않는다.
 - 나레이션은 한 노드에 2줄 이내. `{w}` 로 리듬. 마지막 줄 뒤 `{w=0.6}` 여운.

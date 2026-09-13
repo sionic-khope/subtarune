@@ -1,25 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { TileMap, Entity, Door, Sign, Player } from '../../src/world/world.js';
+import { TileMap, Entity, Door } from '../../src/world/world.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 
-test('facing right at the bridge back wall enters the ship without turning around', () => {
+test('walking across the open bridge entrance enters silently without confirm or return bounce', () => {
   const data = readMap('youngcle_bridge');
-  const changes = [];
+  const changes = [], sounds = [];
   const game = { mapId: 'youngcle_bridge', flags: { captain_attack_done: true },
-    dialogue: { running: false }, sound: { sfx() {} }, changeMap: (...args) => changes.push(args) };
-  game.entities = data.entities.map(def => def.type === 'door' ? new Door(def, game)
-    : def.type === 'sign' ? new Sign(def, game) : new Entity(def, game));
-  for (const x of [1350.589, 1352]) {
-    const player = { x, y: 416, w: 24, h: 16, facing: 'right', game };
-    const target = Player.prototype.probe.call(player);
-    assert.equal(target?.id, 'youngcle_entrance', 'the forward probe must select the door before the hull inspection');
-    target.cooldown = 0;
-    target.interact();
-  }
-  assert.deepEqual(changes, [['youngcle1', 'from_bridge'], ['youngcle1', 'from_bridge']]);
+    dialogue: { running: false }, sound: { sfx: id => sounds.push(id) },
+    changeMap: (...args) => changes.push(args) };
+  const definition = data.entities.find(entity => entity.id === 'youngcle_entrance');
+  const door = new Door(definition, game);
+  game.player = new Entity({ ...data.spawns.from_inside, w: 24, h: 16 }, game);
+  for (let tick = 0; tick < 60; tick++) door.update(1 / 60);
+  assert.deepEqual(changes, [], 'returning to the bridge must not bounce into the ship');
+  game.player.x = definition.x - game.player.w;
+  game.player.facing = 'right';
+  door.update(1 / 60);
+  assert.deepEqual(changes, [], 'touching the threshold from outside must not trigger early');
+  game.player.x += 1;
+  assert.equal(new TileMap(data).solidRect(game.player.x, game.player.y, 24, 16), false);
+  door.update(1 / 60);
+  assert.deepEqual(changes, [['youngcle1', 'from_bridge']], 'walking in must transition without any confirm input');
+  for (let tick = 0; tick < 60; tick++) door.update(1 / 60);
+  assert.equal(changes.length, 1, 'remaining over the threshold must not repeat the transition');
+  assert.deepEqual(sounds, [], 'an already open entrance must not play the closed door sound');
+  assert.equal(door.canInteract(), false);
 });
 
 test('youngcle1 is a wide enclosed steel room with a central TV and northeast door', () => {
