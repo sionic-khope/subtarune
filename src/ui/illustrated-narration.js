@@ -6,9 +6,9 @@ export const ILLUSTRATED_NARRATION = Object.freeze({
   text: Object.freeze({ x: 48, y: 240, w: 384, h: 72 }),
   lineHeight: 24,
   maxLines: 3,
-  firstFade: 0.7,
-  fadeOut: 0.55,
-  fadeIn: 0.55,
+  firstFade: 2.8,
+  fadeOut: 1.4,
+  fadeIn: 2,
 });
 
 /** A retained illustration between TextBox nodes, with a black midpoint on card changes. */

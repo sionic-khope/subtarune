@@ -270,7 +270,7 @@ export function makeWaiter(game, node) {
     return { update: (dt) => (t += dt) >= dur };
   }
   if (node.camera !== undefined) return cameraPan(game, node);
-  if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
+  if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6, fadeIn: node.fadeIn ?? 0.5 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
   if (node.bgmPause !== undefined) { game.sound.pauseBgm(node.bgmPause || 0.3); return done; }
   if (node.bgmResume !== undefined) { game.sound.resumeBgm(node.bgmResume || 0.3); return done; }
   if (node.slide) {                                    // { slide:id, by:[dx,dy], duration?:0.6, sfx? } — 소품(대포 등)을 히트박스·그림 같이 미끄러뜨린다

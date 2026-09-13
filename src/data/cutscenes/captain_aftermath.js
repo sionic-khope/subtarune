@@ -1,5 +1,14 @@
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './captain_reveal.js';
 
+export const CAPTAIN_MEMORY_TIMING = Object.freeze({
+  enterFade: 2.6,
+  blackHold: 1.2,
+  musicFadeIn: 2.5,
+  returnHold: 0.6,
+  returnFade: 2,
+  musicFadeOut: 2,
+});
+
 const J = text => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* ' + text });
 const M = text => ({ speaker: '만카츠키 쥰희', portrait: 'junhee_mankatsuki', voice: 'junhee', text: '* ' + text });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* ' + text });
@@ -50,9 +59,10 @@ export const captain_aftermath = Object.assign([
   P('그리고?'),
   N('김형섭을 되찾아야한다.'),
   P('???'),
-  { fade: 'out', duration: 0.7 },
+  { fade: 'out', duration: CAPTAIN_MEMORY_TIMING.enterFade },
   { curtain: 'black' },
-  { bgm: 'captain_memories' },
+  { wait: CAPTAIN_MEMORY_TIMING.blackHold },
+  { bgm: 'captain_memories', fadeIn: CAPTAIN_MEMORY_TIMING.musicFadeIn },
   { fade: 'in', duration: 0 },
   ...memory('origin', [
     '과거에 김형섭이라는 인간은 방송을 하기 시작했고',
@@ -74,11 +84,12 @@ export const captain_aftermath = Object.assign([
   ]),
   { style: 'illustrated', image: 'hack', voice: 'narrator', imageExit: true,
     text: '그리고 만들어진 세상이 이거지.{n}그리고 김형섭이라는 인간은 지금{n}잠식되어서 사고가 멈춘 상황.' },
-  { fade: 'out', duration: 0.7 },
-  { bgm: null, fadeOut: 0.6 },
+  { fade: 'out', duration: 0 },
+  { bgm: null, fadeOut: CAPTAIN_MEMORY_TIMING.musicFadeOut },
+  { wait: CAPTAIN_MEMORY_TIMING.returnHold },
   { curtain: null },
   { camera: 'player' },
-  { fade: 'in', duration: 0.7 },
+  { fade: 'in', duration: CAPTAIN_MEMORY_TIMING.returnFade },
   { parallel: [
     { sfx: 'chime' },
     ...['ppaman', 'gyeongsub', 'captain_mankatsuki'].flatMap(id => [

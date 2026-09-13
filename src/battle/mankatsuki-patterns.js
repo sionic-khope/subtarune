@@ -98,9 +98,9 @@ function stampedePolygon(b) {
 function stampede(api, safeRight, o) {
   const box = { ...api.box }, safeSize = o.safeSize ?? 70;
   const travel = Math.hypot(box.w - 21, box.h - 21) / 110;
-  const warn = Math.max(o.warn ?? 2.2, travel + 0.35);
+  const warn = o.echo ? Math.max(0.3, o.echoWarn ?? 0.3) : Math.max(o.warn ?? 2.2, travel + 0.35);
   api.emit({ shape: 'mankatsuki_stampede', x: box.x + box.w / 2, y: box.y + box.h / 2, box, safeRight, safeSize,
-    image: api.images?.pig, r: 0, warn, fall: o.fall ?? 0.35, life: warn + (o.hit ?? 0.7),
+    image: api.images?.pig, r: 0, warn, echo: !!o.echo, fall: o.fall ?? 0.35, life: warn + (o.hit ?? 0.7),
     hitShape(b, soul) { return b.age >= b.warn && inArena(soul, box) && hitPolygon(soul, stampedePolygon(b)); },
     drawShape(ctx, b) {
       ctx.save(); clipArena(ctx, box); polygon(ctx, stampedePolygon(b));
@@ -205,10 +205,11 @@ function taco(api, edge, o) {
   api.sfx?.('mankatsuki_clone');
 }
 
-function foodTaco(api, fromRight, o) {
+function foodTaco(api, fromRight, o, wave = 0) {
   const box = { ...api.box }, target = { x: api.soul.x, y: api.soul.y };
   const from = { x: fromRight ? box.x + box.w + 16 : box.x - 16, y: target.y };
-  const warn = Math.max(0.55, o.warn ?? 0.7), flight = o.flight ?? 0.65, arc = 28;
+  const warn = Math.max(0.55, o.warn ?? 0.7), flight = o.flight ?? 0.65;
+  const arc = o.alternateArc && wave % 2 ? -28 : 28;
   api.emit({ shape: 'mankatsuki_food_taco', x: from.x, y: from.y, box, target, from,
     image: api.images?.foodTaco, w: 32, h: 32, r: 9, warn, flight, life: warn + flight + 0.08,
     steer(b) {
@@ -219,7 +220,7 @@ function foodTaco(api, fromRight, o) {
       if (u < 1 || b.burst) return;
       b.burst = true; api.sfx?.('hit');
       for (let i = 0; i < 4; i++) {
-        const angle = Math.PI / 4 + i * Math.PI / 2;
+        const angle = Math.PI / 4 + i * Math.PI / 2 + (o.alternateArc ? wave % 2 * Math.PI / 4 : 0);
         api.emit({ shape: 'mankatsuki_food_chip', x: target.x, y: target.y, r: 3,
           vx: Math.cos(angle) * (o.chipSpeed ?? 58), vy: Math.sin(angle) * (o.chipSpeed ?? 58), life: 0.75,
           hitShape(chip, soul) { return inArena(soul, box) && Math.hypot(soul.x - chip.x, soul.y - chip.y) <= 3 + Math.max(0, soul.r - 2); },
@@ -254,8 +255,9 @@ function foodTaco(api, fromRight, o) {
     } });
 }
 
-function motorcycle(api, fromRight, o) {
-  const box = { ...api.box }, lane = clamp(api.soul.y, box.y + 10, box.y + box.h - 10);
+function motorcycle(api, fromRight, o, wave = 0) {
+  const box = { ...api.box }, offsets = o.laneOffsets ?? [0];
+  const lane = clamp(api.soul.y + offsets[wave % offsets.length], box.y + 10, box.y + box.h - 10);
   const from = fromRight ? box.x + box.w + 30 : box.x - 30, direction = fromRight ? -1 : 1;
   const warn = Math.max(0.55, o.warn ?? 0.75), speed = o.speed ?? 280, flight = (box.w + 60) / speed;
   api.emit({ shape: 'mankatsuki_motorcycle', x: from, y: lane, box, lane, direction,
@@ -293,19 +295,24 @@ export const MANKATSUKI_PATTERNS = {
     const events = [], duration = o.duration ?? 6.2, warn = Math.max(0.3, o.warn ?? 0.55);
     for (let wave = 0; wave < (o.waves ?? 4); wave++) {
       const at = 0.1 + wave * (o.every ?? 1.2); let from, angle, pose;
+      const bursts = o.bursts ?? 1, burstGap = o.burstGap ?? 0.12;
       events.push({ at, run(api) { api.present?.({ hidden: true }); } });
       events.push({ at: at + 0.16, run(api) {
         const b = api.box, top = wave % 2 === 0;
-        const x = top ? b.x + b.w * (0.25 + api.rnd() * 0.5) : (wave % 4 === 1 ? b.x - 20 : b.x + b.w + 20);
-        pose = { x, y: top ? b.y - 4 : Math.min(308, b.y + b.h + 22), sheet: 'idle', scale: 0.65 };
-        from = { x, y: top ? b.y - 10 : b.y + b.h + 10 };
+        const x = top ? b.x + b.w * (0.25 + api.rnd() * 0.5) : (wave % 4 === 1 ? b.x + 18 : b.x + b.w + 18);
+        from = { x, y: top ? b.y - 10 : b.y + b.h * 0.42 };
+        pose = { x, y: from.y + 20, sheet: 'idle', scale: 0.45, flipX: x < b.x + b.w / 2 };
         angle = Math.atan2(api.soul.y - from.y, api.soul.x - from.x);
         api.present?.(pose); api.sfx?.('mankatsuki_clone'); smoke(api, x, pose.y - 25);
-        for (let ray = -1; ray <= 1; ray++) guide(api, from, { x: from.x + Math.cos(angle + ray * 0.34) * 500, y: from.y + Math.sin(angle + ray * 0.34) * 500 }, warn);
+        for (let burst = 0; burst < bursts; burst++) for (let ray = -1; ray <= 1; ray++) {
+          const aim = angle + ray * 0.34 + (burst ? (wave % 2 ? -1 : 1) * 0.14 : 0);
+          guide(api, from, { x: from.x + Math.cos(aim) * 500, y: from.y + Math.sin(aim) * 500 }, warn + burst * burstGap);
+        }
       } });
-      events.push({ at: at + 0.16 + warn, run(api) {
+      for (let burst = 0; burst < bursts; burst++) events.push({ at: at + 0.16 + warn + burst * burstGap, run(api) {
         api.present?.({ ...pose, sheet: 'attack' }); api.sfx?.('whoosh');
-        for (let ray = -1; ray <= 1; ray++) shuriken(api, from, angle + ray * 0.34, o.speed ?? 134, Math.min(2.6, duration - at - 0.16 - warn - 0.04));
+        for (let ray = -1; ray <= 1; ray++) shuriken(api, from, angle + ray * 0.34 + (burst ? (wave % 2 ? -1 : 1) * 0.14 : 0),
+          o.speed ?? 134, Math.min(2.6, duration - at - 0.16 - warn - burst * burstGap - 0.04));
       } });
     }
     events.push({ at: duration - 0.3, run(api) { api.present?.(null); } });
@@ -313,10 +320,15 @@ export const MANKATSUKI_PATTERNS = {
   },
   mankatsuki_stampede: (o = {}) => {
     const duration = o.duration ?? 7, events = []; let safeRight;
-    for (let wave = 0; wave < 2; wave++) events.push({ at: 0.15 + wave * 3.35, run(api) {
+    for (let wave = 0; wave < 2; wave++) events.push({ at: 0.15 + wave * (o.every ?? 3.35), run(api) {
       safeRight = wave ? !safeRight : api.rnd() >= 0.5;
       const warn = stampede(api, safeRight, o);
-      events.push({ at: 0.15 + wave * 3.35 + warn, run(api) { api.sfx?.('baron_slam'); api.present?.({ sheet: 'attack' }); } });
+      events.push({ at: 0.15 + wave * (o.every ?? 3.35) + warn, run(api) { api.sfx?.('baron_slam'); api.present?.({ sheet: 'attack' }); } });
+      if (o.echoDelay != null) {
+        const side = safeRight, strikeAt = 0.15 + wave * (o.every ?? 3.35) + warn + o.echoDelay;
+        events.push({ at: strikeAt - Math.max(0.3, o.echoWarn ?? 0.3), run(api) { stampede(api, side, { ...o, echo: true }); } });
+        events.push({ at: strikeAt, run(api) { api.sfx?.('baron_slam'); api.present?.({ sheet: 'attack' }); } });
+      }
       events.sort((a, b) => a.at - b.at);
     } });
     return timeline(duration, events);
@@ -353,23 +365,23 @@ export const MANKATSUKI_PATTERNS = {
   mankatsuki_taco: (o = {}) => {
     const duration = o.duration ?? 6.8, events = [];
     const edges = o.edges ?? [[0, 0.2], [0.55, 0], [1, 0.65], [1, 0.2], [0.45, 1], [0, 0.65]];
-    edges.forEach((edge, index) => {
-      const at = (o.start ?? 0.2) + Math.floor(index / 3) * (o.waveGap ?? 3.05) + index % 3 * (o.stagger ?? 0.46);
-      events.push({ at, run(api) { taco(api, edge, o); } });
-    });
+    for (let index = 0; index < (o.count ?? edges.length); index++) {
+      const offset = o.every != null ? index * o.every : Math.floor(index / 3) * (o.waveGap ?? 3.05) + index % 3 * (o.stagger ?? 0.46);
+      events.push({ at: (o.start ?? 0.2) + offset, run(api) { taco(api, edges[index % edges.length], o); } });
+    }
     events.push({ at: duration - 0.15, run(api) { api.present?.(null); } });
     return timeline(duration, events);
   },
   mankatsuki_food_taco: (o = {}) => {
     const duration = o.duration ?? 6.6, events = [];
     for (let wave = 0; wave < (o.waves ?? 4); wave++) events.push({ at: 0.15 + wave * (o.every ?? 1.25),
-      run(api) { api.present?.({ sheet: 'attack' }); foodTaco(api, wave % 2 === 0, o); } });
+      run(api) { api.present?.({ sheet: 'attack' }); foodTaco(api, wave % 2 === 0, o, wave); } });
     return timeline(duration, events);
   },
   mankatsuki_motorcycle: (o = {}) => {
     const duration = o.duration ?? 6.6, events = [];
     for (let wave = 0; wave < (o.waves ?? 4); wave++) events.push({ at: 0.15 + wave * (o.every ?? 1.35),
-      run(api) { api.present?.({ sheet: 'attack' }); motorcycle(api, wave % 2 === 0, o); } });
+      run(api) { api.present?.({ sheet: 'attack' }); motorcycle(api, wave % 2 === 0, o, wave); } });
     return timeline(duration, events);
   },
   mankatsuki_taco_pan: (o = {}) => arranged(o.duration ?? 7.4, [
@@ -388,4 +400,35 @@ export const MANKATSUKI_PATTERNS = {
     { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_food_taco(o.food ?? { waves: 4, every: 1.4 }) },
     { at: o.motorcycleAt ?? 0.65, pattern: MANKATSUKI_PATTERNS.mankatsuki_motorcycle(o.motorcycle ?? { waves: 3, every: 1.8, warn: 0.8 }) },
   ]),
+  mankatsuki_clone_crossfire: (o = {}) => {
+    const duration = o.duration ?? 7.2, events = [], count = clamp(o.clones ?? 2, 1, 3);
+    const warn = Math.max(0.3, o.warn ?? 0.7), stagger = o.stagger ?? 0.18, spread = o.spread ?? 0.3;
+    for (let wave = 0; wave < (o.waves ?? 4); wave++) {
+      const at = 0.15 + wave * (o.every ?? 1.1); let poses, shots;
+      events.push({ at, run(api) {
+        const b = api.box;
+        const anchors = wave % 2 ? [[0.22, -0.12], [0.78, -0.12], [1.04, 0.2]] : [[0.08, 0.25], [1.04, 0.45], [0.5, -0.12]];
+        shots = anchors.slice(0, count).map(([x, y]) => {
+          const from = { x: b.x + x * b.w, y: b.y + y * b.h };
+          return { from, angle: Math.atan2(api.soul.y - from.y, api.soul.x - from.x) };
+        });
+        poses = shots.map(({ from }) => ({ x: from.x, y: from.y + 20, scale: 0.45, sheet: 'idle', flipX: from.x < b.x + b.w / 2 }));
+        api.present?.({ hidden: true, clones: poses }); api.sfx?.('mankatsuki_clone');
+        shots.forEach(({ from, angle }, index) => {
+          smoke(api, from.x, from.y);
+          for (let ray = -1; ray <= 1; ray++) guide(api, from,
+            { x: from.x + Math.cos(angle + ray * spread) * 500, y: from.y + Math.sin(angle + ray * spread) * 500 }, warn + index * stagger);
+        });
+      } });
+      for (let index = 0; index < count; index++) events.push({ at: at + warn + index * stagger, run(api) {
+        const { from, angle } = shots[index];
+        poses = poses.map((pose, i) => i === index ? { ...pose, sheet: 'attack' } : pose);
+        api.present?.({ hidden: true, clones: poses }); api.sfx?.('whoosh');
+        for (let ray = -1; ray <= 1; ray++) shuriken(api, from, angle + ray * spread, o.speed ?? 134,
+          Math.min(2.6, duration - at - warn - index * stagger - 0.04));
+      } });
+    }
+    events.push({ at: duration - 0.15, run(api) { api.present?.(null); } });
+    return timeline(duration, events);
+  },
 };

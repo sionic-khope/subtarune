@@ -25,7 +25,7 @@ function fixture(hp = 100) {
 function render(battle, enemy) {
   const calls = [], stack = [];
   const ctx = { globalAlpha: 1, filter: 'none', save() { stack.push([this.globalAlpha, this.filter]); },
-    restore() { [this.globalAlpha, this.filter] = stack.pop(); },
+    restore() { [this.globalAlpha, this.filter] = stack.pop(); }, translate() {}, scale() {},
     drawImage(...args) { calls.push({ args, alpha: this.globalAlpha }); } };
   battle.drawEnemy(ctx, enemy);
   return calls;
@@ -47,6 +47,39 @@ for (const [hp, count] of [[100, 0], [71, 0], [70, 2], [51, 2], [50, 3], [21, 3]
     assert.equal(battle.living().length, 1);
   });
 }
+
+test('right-shifted boss keeps four distinct afterimages inside the screen', () => {
+  const { battle, enemy } = fixture(20);
+  enemy.x = 396 + ENEMIES.mankatsuki_junhee.dx;
+  assert.equal(enemy.x, 406);
+  const calls = render(battle, enemy);
+  const main = calls.at(-1);
+  assert.equal(calls.length, 5);
+  assert.equal(new Set(calls.map(call => call.args[5])).size, 5);
+  for (const call of calls) {
+    assert.ok(call.args[5] >= 0 && call.args[5] + call.args[7] <= 480);
+  }
+  assert.ok(calls.slice(0, -1).every(call => call.args[5] < main.args[5]));
+});
+
+test('pattern clones draw at most three visual copies while the real boss is hidden', () => {
+  const { battle, enemy } = fixture(20);
+  enemy.actionImages = { attack: { width: 768, height: 128 } };
+  enemy.patternPose = { hidden: true, clones: [
+    { x: 170, y: 140, scale: 0.45, sheet: 'attack', frame: 2, flipX: true },
+    { x: 260, y: 150, scale: 0.45, sheet: 'idle', frame: 1 },
+    { x: 360, y: 180, scale: 0.45, sheet: 'attack', frame: 4 },
+    { x: 220, y: 210, scale: 0.45, sheet: 'idle' },
+  ] };
+  const calls = render(battle, enemy);
+  assert.equal(calls.length, 3);
+  assert.deepEqual(calls.map(call => call.args[1]), [256, 128, 512]);
+  assert.ok(calls.every(call => call.alpha === 0.82));
+  assert.equal(enemy.hp, 20);
+  assert.equal(battle.living().length, 1);
+  enemy.patternPose = null;
+  assert.equal(render(battle, enemy).length, 5);
+});
 
 for (const pose of [{ hidden: true }, { sheet: 'attack' }, { x: 90, y: 130, sheet: 'idle', scale: 0.65 }]) {
   test(`pattern pose ${JSON.stringify(pose)} never has idle afterimages`, () => {

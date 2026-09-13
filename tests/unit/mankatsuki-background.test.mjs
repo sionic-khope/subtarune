@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mankatsukiVortexPoint, mankatsukiAuraPoint } from '../../src/battle/mankatsuki-background.js';
+import { drawMankatsukiBackground, mankatsukiVortexPoint, mankatsukiAuraPoint } from '../../src/battle/mankatsuki-background.js';
 import { BATTLE_BGS } from '../../src/battle/backgrounds.js';
 import { darkSmokeWaiter, drawDarkSmoke } from '../../src/ui/dark-smoke.js';
 
@@ -64,4 +64,54 @@ test('test_smoke_room_purple_tint_ramps_with_veil_and_survives_mode_change', () 
   paints.length = 0;
   drawDarkSmoke(ctx, game, { x: 0, y: 0 });
   assert.equal(paints.length, 0);
+});
+
+test('test_mankatsuki_tilted_ribbons_stay_finite_across_long_running_motion', () => {
+  for (const time of [0, 1, 4, 11, 100000]) {
+    const ribbons = [0, 1, 2].map(ribbon => mankatsukiAuraPoint(0, 0, time, ribbon));
+    assert.ok(Math.max(...ribbons.map(point => point.y)) - Math.min(...ribbons.map(point => point.y)) > 20);
+    for (let ribbon = 0; ribbon < 3; ribbon++) {
+      for (let side = 0; side < 24; side++) {
+        const point = mankatsukiAuraPoint(0.5, side / 24 * Math.PI * 2, time, ribbon);
+        assert.ok(Object.values(point).every(Number.isFinite));
+        assert.ok(point.z > -600, 'outer geometry remains away from the perspective singularity');
+      }
+    }
+  }
+});
+
+test('test_mankatsuki_threat_states_dim_background_and_reuse_floor_with_bounded_faces', (t) => {
+  let canvases = 0;
+  const paints = [];
+  const context = () => ({
+    globalAlpha: 1, save() {}, restore() {}, drawImage() {},
+    beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
+    fill() { paints.push({ kind: 'face', alpha: this.globalAlpha }); },
+    fillRect() { paints.push({ kind: 'rect', color: this.fillStyle }); },
+  });
+  const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement() {
+    canvases++;
+    return { getContext: context };
+  } } });
+  t.after(() => {
+    if (originalDocument) Object.defineProperty(globalThis, 'document', originalDocument);
+    else delete globalThis.document;
+  });
+  const ctx = context();
+  drawMankatsukiBackground(ctx, { game: { time: 1 }, state: 'menu' });
+  paints.length = 0;
+  drawMankatsukiBackground(ctx, { game: { time: 1 }, state: 'menu' });
+  const normal = paints.filter(paint => paint.kind === 'face');
+  assert.ok(normal.length > 100 && normal.length < 440);
+  assert.equal(paints.filter(paint => paint.kind === 'rect').length, 0);
+  for (const state of ['enemy-prep', 'bullets', 'board-close']) {
+    paints.length = 0;
+    drawMankatsukiBackground(ctx, { game: { time: 1 }, state });
+    const quiet = paints.filter(paint => paint.kind === 'face');
+    assert.equal(quiet.length, normal.length);
+    assert.ok(quiet.every((paint, i) => paint.alpha < normal[i].alpha));
+    assert.equal(paints.at(-1).color, 'rgba(4,2,9,0.38)');
+  }
+  assert.equal(canvases, 1, 'wooden tiles are baked once, not rebuilt every frame');
 });

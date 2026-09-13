@@ -11,11 +11,12 @@ const KEYS = ['mankatsuki_teleport', 'mankatsuki_stampede', 'mankatsuki_pan', 'm
 const COMBOS = ['mankatsuki_taco_pan', 'mankatsuki_taco_stocks', 'mankatsuki_teleport_taco'];
 const NEW_KEYS = ['mankatsuki_food_taco', 'mankatsuki_motorcycle'];
 const NEW_COMBO = 'mankatsuki_food_motorcycle';
-const ALL_KEYS = [...KEYS, ...NEW_KEYS, ...COMBOS, NEW_COMBO];
+const CLONE = 'mankatsuki_clone_crossfire';
+const ALL_KEYS = [...KEYS, ...NEW_KEYS, ...COMBOS, NEW_COMBO, CLONE];
 const config = name => [...ENEMIES.mankatsuki_junhee.patterns, ...ENEMIES.mankatsuki_junhee.enragedPatterns].find(pattern => pattern.type === name);
 
-function simulate(name, random = 0.35, visit = () => {}) {
-  const pattern = MANKATSUKI_PATTERNS[name](config(name));
+function simulate(name, random = 0.35, visit = () => {}, options = config(name)) {
+  const pattern = MANKATSUKI_PATTERNS[name](options);
   const emitted = [], poses = [], sounds = [], speech = [];
   let active = [], now = 0, maxActive = 0;
   const api = { box: BOX, soul: { ...SOUL }, actor: { x: 380, y: 210 }, rnd: () => random,
@@ -54,21 +55,22 @@ test('test_mankatsuki_normal_and_enraged_registered_patterns_warn_and_expire', (
 
 test('mankatsuki attack sounds fire once per action, not for every projectile', () => {
   for (const [pattern, cue, count] of [
-    [KEYS[0], 'whoosh', 7], [KEYS[1], 'baron_slam', 2],
-    [KEYS[2], 'rocket', 7], [KEYS[3], 'hit', 7],
-    [KEYS[4], 'mankatsuki_clone', 9], [KEYS[4], 'whoosh', 9],
-    [COMBOS[0], 'whoosh', 9], [COMBOS[0], 'rocket', 3],
-    [COMBOS[1], 'whoosh', 9], [COMBOS[1], 'hit', 3], [COMBOS[2], 'whoosh', 12],
-    [NEW_KEYS[0], 'whoosh', 4], [NEW_KEYS[0], 'hit', 4], [NEW_KEYS[1], 'rocket', 4],
-    [NEW_COMBO, 'whoosh', 4], [NEW_COMBO, 'hit', 4], [NEW_COMBO, 'rocket', 3],
+    [KEYS[0], 'whoosh', 14], [KEYS[1], 'baron_slam', 4],
+    [KEYS[2], 'rocket', 14], [KEYS[3], 'hit', 14],
+    [KEYS[4], 'mankatsuki_clone', 18], [KEYS[4], 'whoosh', 18],
+    [COMBOS[0], 'whoosh', 18], [COMBOS[0], 'rocket', 6],
+    [COMBOS[1], 'whoosh', 18], [COMBOS[1], 'hit', 6], [COMBOS[2], 'whoosh', 24],
+    [NEW_KEYS[0], 'whoosh', 8], [NEW_KEYS[0], 'hit', 8], [NEW_KEYS[1], 'rocket', 8],
+    [NEW_COMBO, 'whoosh', 8], [NEW_COMBO, 'hit', 8], [NEW_COMBO, 'rocket', 6],
+    [CLONE, 'whoosh', 8], [CLONE, 'mankatsuki_clone', 4],
   ]) assert.equal(simulate(pattern).sounds.filter(sound => sound.name === cue).length, count, pattern);
 });
 
 test('test_mankatsuki_enraged_pool_adds_food_motorcycle_before_three_pig_face_combinations', () => {
-  assert.deepEqual(ENEMIES.mankatsuki_junhee.enragedPatterns.map(pattern => pattern.type), [NEW_COMBO, ...COMBOS]);
+  assert.deepEqual(ENEMIES.mankatsuki_junhee.enragedPatterns.map(pattern => pattern.type), [NEW_COMBO, ...COMBOS, CLONE]);
   for (const [name, tacoCount, companion, companionCount] of [
-    [COMBOS[0], 9, 'mankatsuki_flame', 9], [COMBOS[1], 9, 'mankatsuki_stock', 3],
-    [COMBOS[2], 6, 'mankatsuki_shuriken', 18],
+    [COMBOS[0], 18, 'mankatsuki_flame', 18], [COMBOS[1], 18, 'mankatsuki_stock', 6],
+    [COMBOS[2], 12, 'mankatsuki_shuriken', 36],
   ]) {
     const { emitted } = simulate(name);
     assert.equal(emitted.filter(({ b }) => b.shape === 'mankatsuki_taco').length, tacoCount);
@@ -79,24 +81,24 @@ test('test_mankatsuki_enraged_pool_adds_food_motorcycle_before_three_pig_face_co
 
 test('test_mankatsuki_keeps_pig_face_sheet_and_puts_food_and_motorcycle_early_at_130_hp', () => {
   const boss = ENEMIES.mankatsuki_junhee;
-  assert.deepEqual(boss.patterns.map(pattern => pattern.type), [KEYS[0], ...NEW_KEYS, ...KEYS.slice(1)]);
+  assert.deepEqual(boss.patterns.map(pattern => pattern.type), [KEYS[0], ...NEW_KEYS, ...KEYS.slice(1), CLONE]);
   assert.equal(boss.projectiles.taco, 'assets/projectiles/mankatsuki-taco.png');
   assert.equal(boss.projectiles.foodTaco, 'assets/projectiles/mankatsuki-food-taco.png');
   assert.equal(boss.projectiles.motorcycle, 'assets/projectiles/mankatsuki-motorcycle.png');
   assert.deepEqual([boss.hp, boss.damage, boss.scale], [130, 11, 1.15]);
   const { emitted, poses } = simulate(KEYS[4]);
-  assert.equal(emitted.length, 9);
+  assert.equal(emitted.length, 18);
   assert.ok(emitted.every(({ b }) => b.shape === 'mankatsuki_taco' && b.warn >= 0.7 && b.r === 12));
   assert.equal(poses.at(-1).pose, null);
 });
 
 test('test_mankatsuki_pressure_increases_without_damage_or_warning_shortcuts', () => {
   const boss = ENEMIES.mankatsuki_junhee;
-  assert.equal(boss.dx, -12);
+  assert.equal(boss.dx, 10);
   assert.ok(boss.lines.speak.includes('아 삼전사라고 삼전'));
   assert.ok(boss.lines.speak.includes('우욱 우욱 우욱 이거 빤쓰아녀유?'));
-  for (const [name, shape, count] of [[KEYS[0], 'mankatsuki_shuriken', 21], [KEYS[2], 'mankatsuki_flame', 21],
-    [KEYS[3], 'mankatsuki_stock', 7], [KEYS[4], 'mankatsuki_taco', 9]]) {
+  for (const [name, shape, count] of [[KEYS[0], 'mankatsuki_shuriken', 42], [KEYS[2], 'mankatsuki_flame', 42],
+    [KEYS[3], 'mankatsuki_stock', 14], [KEYS[4], 'mankatsuki_taco', 18]]) {
     assert.equal(simulate(name).emitted.filter(({ b }) => b.shape === shape).length, count);
     assert.ok(config(name).duration <= 6.8);
   }
@@ -174,11 +176,11 @@ test('test_mankatsuki_food_tacos_curve_to_locked_landings_and_burst_into_four_fo
   assert.equal(emitted.length, 5, 'landing bursts only once');
   assert.deepEqual(sounds, ['whoosh', 'hit']);
   for (const chip of emitted.slice(1)) {
-    assert.ok(chip.life <= 0.75 && Math.hypot(chip.vx, chip.vy) <= 60);
+    assert.ok(chip.life <= 0.75 && Math.hypot(chip.vx, chip.vy) <= 90);
     chip.update(chip.life, BOX);
     assert.equal(chip.out(BOX), true);
   }
-  for (const [name, tacos, chips, motorcycles] of [[NEW_KEYS[0], 4, 16, 0], [NEW_COMBO, 4, 16, 3]]) {
+  for (const [name, tacos, chips, motorcycles] of [[NEW_KEYS[0], 8, 32, 0], [NEW_COMBO, 8, 32, 6]]) {
     const shapes = simulate(name).emitted.map(({ b }) => b.shape);
     assert.equal(shapes.filter(shape => shape === 'mankatsuki_food_taco').length, tacos);
     assert.equal(shapes.filter(shape => shape === 'mankatsuki_food_chip').length, chips);
@@ -198,9 +200,9 @@ test('test_mankatsuki_motorcycle_locks_lane_and_alternates_direction_with_a_narr
   assert.equal(bike.direction, -1);
   assert.ok((9 + SOUL.r + 4) / 100 + 0.3 < bike.warn, 'enough warning to move out of the lane');
   soul.y += 40;
-  pattern.update(1.5, 0, api);
+  pattern.update(0.8, 0, api);
   assert.equal(emitted[1].direction, 1);
-  assert.equal(emitted[1].lane, soul.y);
+  assert.equal(emitted[1].lane, soul.y + 26);
   bike.update(bike.warn - 0.01, BOX);
   assert.equal(bike.hits(SOUL), false);
   bike.update(0.01 + bike.flight / 2, BOX);
@@ -253,25 +255,44 @@ test('test_mankatsuki_taco_draws_four_sheet_frames_and_scoped_warning_before_lun
   assert.deepEqual(frames, [0, 1, 2, 3]);
 });
 
-test('test_mankatsuki_teleports_actual_actor_above_and_below_with_clone_sound', () => {
+test('test_mankatsuki_teleports_actual_actor_above_and_beside_arena_with_clone_sound', () => {
   const { poses, sounds, emitted } = simulate(KEYS[0]);
   assert.ok(poses.some(({ pose }) => pose?.hidden));
-  assert.ok(poses.some(({ pose }) => !pose?.hidden && pose?.y < BOX.y));
-  assert.ok(poses.some(({ pose }) => !pose?.hidden && pose?.y > BOX.y + BOX.h));
+  assert.ok(poses.some(({ pose }) => !pose?.hidden && pose?.y < BOX.y + 20));
+  assert.ok(poses.some(({ pose }) => !pose?.hidden && pose?.x > BOX.x + BOX.w));
+  assert.ok(poses.every(({ pose }) => !pose?.y || pose.y < 246));
   const arrivals = poses.filter(({ pose }) => pose && !pose.hidden && pose.sheet === 'idle');
   assert.equal(sounds.filter(({ name }) => name === 'mankatsuki_clone').length, arrivals.length);
   assert.ok(emitted.filter(({ b }) => b.shape === 'mankatsuki_shuriken').length >= 9);
 });
 
+test('test_mankatsuki_finishes_both_warned_fans_before_the_next_teleport', () => {
+  const boss = ENEMIES.mankatsuki_junhee;
+  for (const options of [boss.patterns[0], boss.enragedPatterns[3].teleport]) {
+    const { poses, sounds } = simulate(KEYS[0], 0.35, () => {}, options);
+    const departures = poses.filter(({ pose }) => pose?.hidden);
+    const arrivals = poses.filter(({ pose }) => pose?.sheet === 'idle');
+    const launches = sounds.filter(({ name }) => name === 'whoosh');
+    assert.equal(departures.length, options.waves);
+    for (let i = 0; i < arrivals.length; i++) {
+      const volley = launches.slice(i * 2, i * 2 + 2);
+      assert.equal(volley.length, 2);
+      assert.ok(volley[0].at - arrivals[i].at >= options.warn - 1 / 60);
+      assert.ok(volley[1].at < (departures[i + 1]?.at ?? options.duration));
+    }
+  }
+});
+
 test('test_mankatsuki_stampede_triangle_protects_full_soul_and_is_reachable', () => {
   const { emitted } = simulate(KEYS[1]);
   const waves = emitted.filter(({ b }) => b.shape === 'mankatsuki_stampede');
-  assert.equal(waves.length, 2);
-  assert.notEqual(waves[0].b.safeRight, waves[1].b.safeRight);
+  assert.equal(waves.length, 4);
+  assert.equal(waves[0].b.safeRight, waves[1].b.safeRight);
+  assert.notEqual(waves[0].b.safeRight, waves[2].b.safeRight);
   for (const { b } of waves) {
     const target = { x: b.safeRight ? BOX.x + BOX.w - 12 : BOX.x + 12, y: BOX.y + BOX.h - 12, r: 6 };
     const opposite = { x: b.safeRight ? BOX.x + 9 : BOX.x + BOX.w - 9, y: BOX.y + 9 };
-    assert.ok(Math.hypot(target.x - opposite.x, target.y - opposite.y) / 110 + 0.3 <= b.warn,
+    assert.ok(b.echo || Math.hypot(target.x - opposite.x, target.y - opposite.y) / 110 + 0.3 <= b.warn,
       'warning budgets travel from farthest corner plus reaction time');
     b.age = b.warn + 0.5;
     assert.equal(b.hits(target), false);
@@ -303,13 +324,49 @@ test('test_mankatsuki_does_not_call_other_enemy_pattern_factories', () => {
   }
 });
 
+test('test_mankatsuki_last_wave_completes_before_the_original_turn_duration', () => {
+  const boss = ENEMIES.mankatsuki_junhee;
+  for (const options of [...boss.patterns, ...boss.enragedPatterns]) {
+    const { emitted } = simulate(options.type, 0.35, () => {}, options);
+    for (const { at, b } of emitted) {
+      if (b.harmless) continue;
+      assert.ok(at + b.life <= options.duration + 0.07,
+        `${options.type}/${b.shape}: last hazard finishes at ${(at + b.life).toFixed(2)}, turn ${options.duration}`);
+      if (b.warn > 0) assert.ok(b.warn >= 0.3);
+      if (['mankatsuki_shuriken', 'mankatsuki_flame'].includes(b.shape))
+        assert.ok(b.life >= 1.45, `${options.type}: final projectile has time to cross the arena`);
+    }
+  }
+});
+
+test('test_mankatsuki_crossfire_relocates_two_then_three_visible_clones_and_warns_every_fan', () => {
+  const boss = ENEMIES.mankatsuki_junhee;
+  for (const options of [boss.patterns.at(-1), boss.enragedPatterns.at(-1)]) {
+    const { emitted, poses, sounds } = simulate(CLONE, 0.35, () => {}, options);
+    const arrivals = poses.filter(({ pose }) => pose?.clones?.every(clone => clone.sheet === 'idle'));
+    assert.equal(arrivals.length, 4);
+    assert.notDeepEqual(arrivals[0].pose.clones, arrivals[1].pose.clones);
+    assert.ok(poses.every(({ pose }) => !pose?.clones || pose.clones.length === options.clones));
+    assert.ok(poses.every(({ pose }) => !pose?.clones || pose.clones.every(clone => clone.y < 246 && clone.scale === 0.45)));
+    assert.equal(poses.at(-1).pose, null);
+    assert.equal(sounds.filter(({ name }) => name === 'whoosh').length, 4 * options.clones);
+    const stars = emitted.filter(({ b }) => b.shape === 'mankatsuki_shuriken');
+    assert.equal(stars.length, 12 * options.clones);
+    for (const { at } of stars) {
+      const arrival = arrivals.findLast(entry => entry.at <= at);
+      assert.ok(at - arrival.at >= options.warn - 1 / 60);
+    }
+  }
+});
+
 test('test_mankatsuki_each_timeline_has_a_continuously_reachable_path_at_100px_per_second', () => {
   const spacing = 5, dt = 0.05, points = [];
   for (let y = BOX.y + 10; y <= BOX.y + BOX.h - 10; y += spacing)
     for (let x = BOX.x + 10; x <= BOX.x + BOX.w - 10; x += spacing) points.push({ x, y, r: 6 });
   const width = Math.floor((BOX.w - 20) / spacing) + 1;
-  for (const name of ALL_KEYS) for (const random of [0.1, 0.9]) {
-    const pattern = MANKATSUKI_PATTERNS[name](config(name));
+  const boss = ENEMIES.mankatsuki_junhee;
+  for (const options of [...boss.patterns, ...boss.enragedPatterns]) for (const random of [0.1, 0.9]) {
+    const name = options.type, pattern = MANKATSUKI_PATTERNS[name](options);
     let active = [], reachable = new Set([points.findIndex((p) => p.x === SOUL.x && p.y === SOUL.y)]);
     assert.ok(!reachable.has(-1));
     const api = { box: BOX, soul: SOUL, rnd: () => random, emit(o) { active.push(new Bullet(o)); } };

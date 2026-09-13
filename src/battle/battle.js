@@ -469,7 +469,17 @@ export class Battle {
   }
   drawEnemy(ctx, e) {
     const pose = e.patternPose;
-    if (e.dead || pose?.hidden) return;
+    if (e.dead) return;
+    for (const clone of (pose?.clones || []).slice(0, 3)) {
+      if (clone.hidden) continue;
+      ctx.save();
+      ctx.globalAlpha *= 0.82;
+      if (clone.flipX) { ctx.translate(clone.x * 2, 0); ctx.scale(-1, 1); }
+      this.drawEnemy(ctx, { ...e, blink: 0, dying: 0, popup: null,
+        patternPose: { x: clone.x, y: clone.y, scale: clone.scale, sheet: clone.sheet, frame: clone.frame } });
+      ctx.restore();
+    }
+    if (pose?.hidden) return;
     const action = pose?.sheet && pose.sheet !== 'idle' ? e.def.actions?.[pose.sheet] : null;
     const img = action ? e.actionImages?.[pose.sheet] : e.img, sh = action || e.def.sheet;
     const x = pose?.x ?? e.x, y = pose?.y ?? e.y;
@@ -485,12 +495,14 @@ export class Battle {
       const left = Math.round(x - pvx * s + sx), top = Math.round(y - pvy * s + sy);
       const ghosts = !pose && e.hp > 0 ? (e.def.reactive?.afterimages || []).reduce((count, step) => e.hp / e.maxHp <= step.hp ? Math.max(count, step.count) : count, 0) : 0;
       if (ghosts) {
-        const spacing = Math.min(6, Math.max(0, SCREEN_W - left - dw) / ghosts);
+        const rightSpace = Math.max(0, SCREEN_W - left - dw);
+        const direction = rightSpace >= ghosts * 2 ? 1 : -1;
+        const spacing = Math.min(6, (direction > 0 ? rightSpace : Math.max(0, left)) / ghosts);
         ctx.save(); ctx.filter = 'brightness(0.5)';
         for (let ghost = ghosts; ghost > 0; ghost--) {
           const frame = Math.floor(Math.max(0, animationTime - ghost * 0.08) * (sh.fps || 5.5)) % sh.count;
           ctx.globalAlpha = 0.24 - ghost * 0.035;
-          ctx.drawImage(img, (frame % sh.cols) * fw, Math.floor(frame / sh.cols) * fh, fw, fh, left + Math.round(ghost * spacing), top, dw, dh);
+          ctx.drawImage(img, (frame % sh.cols) * fw, Math.floor(frame / sh.cols) * fh, fw, fh, left + direction * Math.round(ghost * spacing), top, dw, dh);
         }
         ctx.restore();
       }
