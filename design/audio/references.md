@@ -250,6 +250,10 @@ yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 
 ```sh
 yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/maillard_reveal.%(ext)s' 'https://www.youtube.com/watch?v=yfC8OU2YtNo'
 ```
+# 영클 전함 습격 (2026-09-13)
+
+사용자 지정 [The Chase · Toby Fox](https://www.youtube.com/watch?v=hWWVWfQW1H4)를 `assets/audio/bgm/youngcle_assault.mp3`로 사용한다. `yt-dlp --no-playlist -f bestaudio -x --audio-format mp3 --audio-quality 3`으로 받은 전체33.882375초를 자르거나 피치 변경하지 않고 반복 재생한다. 용준이 선장실로 올라와 경고하는 시점에 시작하고, 바다 전함 공개·선장실 복귀·문 공사·오른쪽 갑판까지 같은 재생을 유지한다. 새 합성 대체곡은 쓰지 않는다. 생성 이미지와 함께 `assets/source/youngcle134/`에 출처를 연결한다.
+
 # 만카츠키 피격 목소리 (2026-09-13)
 
 사용자 ‘특유의 쥰희 목소리 어두운버전으로 에코음…맞았을때’ 요청. 기존 `assets/audio/voices/junhee.mp3`(위 기록의 Deltarune 수지 snd_txtsus)를 원본 그대로 낮춰 가공한 `assets/audio/sfx/mankatsuki_hurt.mp3`, mono44100Hz/0.392902초. BUILD130 ‘기본 공격사운드도 같이’, ‘특유사운드 더 커야해’에 따라 기본 hit/damage를 유지하며 별도로 한 번 겹쳐 재생하고, 음성 게인을0.8→1.6(+6dB)로 올렸다. 필터는 `asetrate=33075,aresample=44100,aecho=0.8:0.8:110|220:0.35|0.18,volume=1.6,afade=t=out:st=0.29:d=0.09`. 다른 캐릭터 음성이나 원본을 교체하지 않는다. 실제 양수 피해당 한 번이며 주관적 청취 평가는 별도다.
