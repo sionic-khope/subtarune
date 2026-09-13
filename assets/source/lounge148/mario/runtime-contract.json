@@ -1,0 +1,33 @@
+{
+  "source": "assets/source/lounge148/mario/reference.png",
+  "asset": "assets/sprites/mini_mario.png",
+  "source_dimensions": [
+    400,
+    400
+  ],
+  "source_bbox": [
+    50,
+    0,
+    350,
+    400
+  ],
+  "dimensions": [
+    64,
+    64
+  ],
+  "bbox": [
+    11,
+    4,
+    53,
+    60
+  ],
+  "pivot": [
+    32,
+    60
+  ],
+  "stillScale": 0.5,
+  "world_height_at_character_scale_1_43": 40.04,
+  "colors_preserved": true,
+  "source_alpha_preserved": true,
+  "animation": "single supplied side pose"
+}

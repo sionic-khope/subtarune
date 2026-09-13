@@ -50,6 +50,7 @@ def main() -> None:
                'x': x, 'y': y, 'facing': facing, 'wander': 0, 'visualScale': scale}
               for sprite, x, y, facing, scale in (
                   ('warm_bidet', 116, 248, 'down', 1),
+                  ('mini_mario', 180, 344, 'right', 1),
                   ('lucky_guy', 436, 344, 'down', 1.79),
                   ('park_guardian_costume', 500, 248, 'down', 2.22),
               )],

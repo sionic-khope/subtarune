@@ -115,6 +115,16 @@
   },
   {
    "type": "npc",
+   "id": "mini_mario",
+   "sprite": "mini_mario",
+   "x": 180,
+   "y": 344,
+   "facing": "right",
+   "wander": 0,
+   "visualScale": 1
+  },
+  {
+   "type": "npc",
    "id": "lucky_guy",
    "sprite": "lucky_guy",
    "x": 436,

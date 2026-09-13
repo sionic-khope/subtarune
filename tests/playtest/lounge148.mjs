@@ -70,18 +70,22 @@ try {
     player: [game.player.x, game.player.y],
     party: game.party, npcs: game.entities.filter(entity => entity.def.type === 'npc').map(entity => entity.id),
     tvTop: game.entities.find(entity => entity.id === 'youngcle_tv').drawY - game.camera.y,
-    sprites: ['warm_bidet', 'lucky_guy', 'park_guardian_costume'].map(id =>
+    sprites: ['warm_bidet', 'mini_mario', 'lucky_guy', 'park_guardian_costume'].map(id =>
       ({ id, width: game.spriteOverrides[id]?.width, height: game.spriteOverrides[id]?.height })),
   }));
   check('central TV remains fully visible above the walking party', center.tvTop >= 0, center);
-  check('all available NPCs load their supplied four-direction sheets', center.sprites.every(sprite =>
-    sprite.width === (sprite.id === 'warm_bidet' ? 512 : 256)
-    && sprite.height === (sprite.id === 'warm_bidet' ? 640 : 256)), center.sprites);
+  const sheetSizes = { warm_bidet: [512, 640], mini_mario: [64, 64], lucky_guy: [256, 256], park_guardian_costume: [256, 256] };
+  check('all four NPCs load their supplied sheets or original still', center.sprites.length === 4 && center.sprites.every(sprite =>
+    sprite.width === sheetSizes[sprite.id][0] && sprite.height === sheetSizes[sprite.id][1]), center.sprites);
   const bodies = await page.evaluate(async () => {
     const { CHAR_SCALE } = await import('/src/world/world.js');
     return Object.fromEntries([game.player, ...game.entities.filter(entity => entity.def.type === 'npc')].map(entity => {
       const frame = entity.sprite.down[0];
-      const data = frame.getContext('2d').getImageData(0, 0, frame.width, frame.height).data;
+      const canvas = document.createElement('canvas');
+      canvas.width = frame.width; canvas.height = frame.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(frame, 0, 0);
+      const data = context.getImageData(0, 0, frame.width, frame.height).data;
       let top = frame.height, bottom = -1;
       for (let y = 0; y < frame.height; y++) {
         for (let x = 0; x < frame.width; x++) {
@@ -94,6 +98,7 @@ try {
   });
   const costumeRatio = bodies.park_guardian_costume / bodies.player;
   check('costume visible body is approximately 1.2 times Hyungsub', costumeRatio >= 1.15 && costumeRatio <= 1.25, { bodies, costumeRatio });
+  check('user-supplied Mini Mario stays compact at about 40 world pixels', bodies.mini_mario >= 39 && bodies.mini_mario <= 41, bodies.mini_mario);
   check('costume is the only Park Guardian actor', center.npcs.includes('park_guardian_costume') && !center.npcs.includes('park_guardian'), center.npcs);
   for (const [width, height] of [[1280, 900], [375, 812], [768, 1024]]) {
     await page.setViewportSize({ width, height });

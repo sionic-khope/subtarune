@@ -57,7 +57,7 @@ test('test_lounge_keeps_compact_iron_room_center_tv_and_available_idle_npcs', ()
   assert.equal(room.bgm, 'youngcle_factory');
   assert.equal(tv.image, 'assets/props/youngcle_tv_frame.png');
   assert.equal(tv.x + tv.w / 2, 320);
-  assert.deepEqual(npcs.map(npc => npc.sprite).sort(), ['warm_bidet', 'lucky_guy', 'park_guardian_costume'].sort());
+  assert.deepEqual(npcs.map(npc => npc.sprite).sort(), ['warm_bidet', 'mini_mario', 'lucky_guy', 'park_guardian_costume'].sort());
   assert.ok(npcs.every(npc => !npc.script && npc.wander === 0));
   assert.equal(room.enter, undefined);
   assert.ok(room.entities.every(entity => !['trigger', 'enemy'].includes(entity.type)));
