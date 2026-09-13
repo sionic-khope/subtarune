@@ -27,6 +27,21 @@ test('test_mankatsuki_background_has_vertical_hourglass_and_independent_surround
   }
 });
 
+test('test_mankatsuki_faster_rotation_preserves_narrow_waist_and_bounded_perspective', () => {
+  assert.ok(mankatsukiVortexPoint(0.5, 0, 1).z > 4.5, 'central point advances faster than the previous rotation');
+  assert.ok(mankatsukiAuraPoint(0, 0, 1).z < -130, 'outer ribbon counter-rotation also accelerates');
+  for (let time = 0; time <= 60; time += 0.25) {
+    const waist = mankatsukiVortexPoint(0.5, 0, time);
+    assert.ok(Math.abs(waist.x - 240) < 8);
+    assert.ok(Math.abs(waist.y - 110) < 2);
+    for (const height of [0, 0.3, 0.7, 1]) {
+      const point = mankatsukiVortexPoint(height, -Math.PI / 2, time);
+      assert.ok(Object.values(point).every(Number.isFinite));
+      assert.ok(point.z > -600, 'breathing stays well in front of the nearest projection limit');
+    }
+  }
+});
+
 test('test_smoke_room_purple_tint_ramps_with_veil_and_survives_mode_change', () => {
   const game = { time: 0, player: { x: 0, y: 0, w: 24, h: 16 }, entities: [] };
   const paints = [];

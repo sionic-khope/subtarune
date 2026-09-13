@@ -1,0 +1,59 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "../../captain125/mankatsuki_attack/raw-grid.png",
+  "prompt": "prompt-used.txt",
+  "source": "raw-sheet.png",
+  "grid": "raw-grid.png",
+  "processing": "processed/pipeline-meta.json",
+  "runtime": "assets/enemies/mankatsuki-attack.png",
+  "frames": 6,
+  "cell": 128,
+  "bounds": [
+    [
+      25,
+      39,
+      103,
+      122
+    ],
+    [
+      28,
+      39,
+      104,
+      121
+    ],
+    [
+      27,
+      40,
+      108,
+      123
+    ],
+    [
+      15,
+      43,
+      109,
+      122
+    ],
+    [
+      19,
+      39,
+      105,
+      122
+    ],
+    [
+      25,
+      38,
+      104,
+      122
+    ]
+  ],
+  "vertical_baseline_translation": [
+    0,
+    -1,
+    0,
+    0,
+    0,
+    0
+  ],
+  "resampling": "NEAREST",
+  "per_frame_resizing": false
+}

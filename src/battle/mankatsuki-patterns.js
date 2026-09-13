@@ -8,6 +8,15 @@ function timeline(duration, events) {
   } };
 }
 
+function arranged(duration, phases) {
+  return { duration, update(t, dt, api) {
+    for (const phase of phases) {
+      const local = t - phase.at;
+      if (local >= 0 && local < phase.pattern.duration) phase.pattern.update(local, dt, api);
+    }
+  } };
+}
+
 function clipArena(ctx, box) {
   ctx.beginPath(); ctx.rect(box.x + 3, box.y + 3, box.w - 6, box.h - 6); ctx.clip();
 }
@@ -137,6 +146,11 @@ function stock(api, rising, o) {
     const correction = (i % 2 ? 1 : -1) * (0.06 + api.rnd() * 0.1);
     points.push({ x: box.x + 4 + i / 6 * (box.w - 8), y: clamp(box.y + box.h * (trend + correction) + shift, box.y + 12, box.y + box.h - 12) });
   }
+  if (o.aim) {
+    const index = clamp(Math.round((api.soul.x - box.x - 4) / (box.w - 8) * 6), 0, 6);
+    const offset = api.soul.y - points[index].y;
+    for (const point of points) point.y = clamp(point.y + offset, box.y + 12, box.y + box.h - 12);
+  }
   api.emit({ shape: 'mankatsuki_stock', x: box.x + box.w / 2, y: box.y + box.h / 2, points, rising,
     r: 0, warn, life: warn + hit, thickness: o.thickness ?? 6,
     hitShape(b, soul) { return b.age >= b.warn && inArena(soul, box) && points.slice(1).some((p, i) => segmentDistance(soul, points[i], p) <= soul.r + b.thickness / 2); },
@@ -150,16 +164,57 @@ function stock(api, rising, o) {
     } });
 }
 
-/** Junhee's own teleport, rear-pig stampede, frying-pan flame and stock-chart attacks. */
+function taco(api, edge, o) {
+  const box = { ...api.box }, inset = o.inset ?? 22, size = o.size ?? 42, r = o.r ?? 12;
+  const from = { x: box.x + inset + edge[0] * (box.w - inset * 2), y: box.y + inset + edge[1] * (box.h - inset * 2) };
+  const target = { ...api.soul }, angle = Math.atan2(target.y - from.y, target.x - from.x);
+  const dx = Math.cos(angle), dy = Math.sin(angle), margin = size / 2;
+  const endX = dx > 0 ? box.x + box.w + margin : box.x - margin;
+  const endY = dy > 0 ? box.y + box.h + margin : box.y - margin;
+  const distance = Math.min(Math.abs(dx) > 0.0001 ? (endX - from.x) / dx : Infinity,
+    Math.abs(dy) > 0.0001 ? (endY - from.y) / dy : Infinity);
+  const speed = o.speed ?? 240, flight = distance / speed, warn = Math.max(0.7, o.warn ?? 0.85), recover = o.recover ?? 0.24;
+  const to = { x: from.x + dx * distance, y: from.y + dy * distance };
+  const sfx = api.sfx, present = api.present;
+  api.emit({ shape: 'mankatsuki_taco', x: from.x, y: from.y, box, target, from, to,
+    image: api.images?.taco, w: size, h: size, r, warn, flight, recover, life: warn + flight + recover,
+    steer(b) {
+      if (b.age >= warn && !b.launched) {
+        b.launched = true; sfx?.('whoosh'); present?.({ sheet: 'attack' });
+      }
+      const travel = clamp(b.age - warn, 0, flight) * speed;
+      b.x = from.x + dx * travel; b.y = from.y + dy * travel;
+    },
+    hitShape(b, soul) {
+      return b.age >= warn && b.age < warn + flight && inArena(soul, box)
+        && Math.hypot(soul.x - b.x, soul.y - b.y) <= r + Math.max(0, soul.r - 2);
+    },
+    drawShape(ctx, b) {
+      ctx.save(); clipArena(ctx, box);
+      if (b.age < warn) {
+        ctx.strokeStyle = 'rgba(255,142,176,0.15)'; ctx.lineWidth = r * 2;
+        ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+        ctx.strokeStyle = '#ffc2d6'; ctx.lineWidth = 1; ctx.setLineDash([4, 5]); ctx.stroke();
+        ctx.setLineDash([]); ctx.strokeRect(Math.round(target.x) - 4, Math.round(target.y) - 4, 8, 8);
+      }
+      const frame = b.age < warn * 0.45 ? 0 : b.age < warn ? 1 : b.age < warn + flight - recover ? 2 : 3;
+      if (b.image) ctx.drawImage(b.image, frame * 64, 0, 64, 64,
+        Math.round(b.x - size / 2), Math.round(b.y - size / 2), size, size);
+      ctx.restore();
+    } });
+  api.sfx?.('mankatsuki_clone');
+}
+
+/** Junhee's own teleport, rear-pig stampede, frying-pan flame, stock-chart and taco attacks. */
 export const MANKATSUKI_PATTERNS = {
   mankatsuki_teleport: (o = {}) => {
     const events = [], duration = o.duration ?? 6.2, warn = Math.max(0.3, o.warn ?? 0.55);
-    for (let wave = 0; wave < 4; wave++) {
-      const at = 0.1 + wave * 1.2; let from, angle, pose;
+    for (let wave = 0; wave < (o.waves ?? 4); wave++) {
+      const at = 0.1 + wave * (o.every ?? 1.2); let from, angle, pose;
       events.push({ at, run(api) { api.present?.({ hidden: true }); } });
       events.push({ at: at + 0.16, run(api) {
         const b = api.box, top = wave % 2 === 0;
-        const x = top ? b.x + b.w * (0.25 + api.rnd() * 0.5) : (wave === 1 ? b.x - 20 : b.x + b.w + 20);
+        const x = top ? b.x + b.w * (0.25 + api.rnd() * 0.5) : (wave % 4 === 1 ? b.x - 20 : b.x + b.w + 20);
         pose = { x, y: top ? b.y - 4 : Math.min(308, b.y + b.h + 22), sheet: 'idle', scale: 0.65 };
         from = { x, y: top ? b.y - 10 : b.y + b.h + 10 };
         angle = Math.atan2(api.soul.y - from.y, api.soul.x - from.x);
@@ -186,10 +241,11 @@ export const MANKATSUKI_PATTERNS = {
   },
   mankatsuki_pan: (o = {}) => {
     const events = [], duration = o.duration ?? 6, warn = Math.max(0.3, o.warn ?? 0.6);
-    for (let wave = 0; wave < 4; wave++) {
-      const at = 0.15 + wave * 1.1; let x;
+    const positions = o.positions ?? [0.23, 0.73, 0.43, 0.8];
+    for (let wave = 0; wave < (o.waves ?? 4); wave++) {
+      const at = 0.15 + wave * (o.every ?? 1.1); let x;
       events.push({ at, run(api) {
-        const b = api.box; x = b.x + b.w * [0.23, 0.73, 0.43, 0.8][wave];
+        const b = api.box; x = b.x + b.w * positions[wave % positions.length];
         api.present?.({ sheet: 'attack' });
         api.emit({ shape: 'mankatsuki_pan', x, y: b.y + b.h - 12, w: 60, h: 30, box: { ...b }, image: api.images?.pan,
           harmless: true, life: 1, r: 0, drawShape: drawIcon });
@@ -205,11 +261,33 @@ export const MANKATSUKI_PATTERNS = {
   mankatsuki_stocks: (o = {}) => {
     const duration = o.duration ?? 6.2, events = []; let firstRising;
     events.push({ at: 0, run(api) { firstRising = api.rnd() >= 0.5; api.say?.('형님 주식 그거 사셔야겠습니까', 2.8); } });
-    for (let wave = 0; wave < 4; wave++) {
-      const at = 0.6 + wave * 1.3;
+    for (let wave = 0; wave < (o.waves ?? 4); wave++) {
+      const at = 0.6 + wave * (o.every ?? 1.3);
       events.push({ at, run(api) { api.present?.({ sheet: 'attack' }); stock(api, wave % 2 ? !firstRising : firstRising, o); } });
       events.push({ at: at + Math.max(0.3, o.warn ?? 0.75), run(api) { api.sfx?.('hit'); } });
     }
     return timeline(duration, events);
   },
+  mankatsuki_taco: (o = {}) => {
+    const duration = o.duration ?? 6.8, events = [];
+    const edges = o.edges ?? [[0, 0.2], [0.55, 0], [1, 0.65], [1, 0.2], [0.45, 1], [0, 0.65]];
+    edges.forEach((edge, index) => {
+      const at = (o.start ?? 0.2) + Math.floor(index / 3) * (o.waveGap ?? 3.05) + index % 3 * (o.stagger ?? 0.46);
+      events.push({ at, run(api) { taco(api, edge, o); } });
+    });
+    events.push({ at: duration - 0.15, run(api) { api.present?.(null); } });
+    return timeline(duration, events);
+  },
+  mankatsuki_taco_pan: (o = {}) => arranged(o.duration ?? 7.4, [
+    { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_taco(o.taco) },
+    { at: o.panAt ?? 0.65, pattern: MANKATSUKI_PATTERNS.mankatsuki_pan(o.pan ?? { waves: 3, every: 1.85 }) },
+  ]),
+  mankatsuki_taco_stocks: (o = {}) => arranged(o.duration ?? 7.4, [
+    { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_taco(o.taco) },
+    { at: o.stocksAt ?? 0.35, pattern: MANKATSUKI_PATTERNS.mankatsuki_stocks(o.stocks ?? { waves: 3, every: 1.95, aim: true }) },
+  ]),
+  mankatsuki_teleport_taco: (o = {}) => arranged(o.duration ?? 7.8, [
+    { at: 0, pattern: MANKATSUKI_PATTERNS.mankatsuki_teleport(o.teleport ?? { waves: 6, every: 0.95, duration: 7.4 }) },
+    { at: o.tacoAt ?? 1.1, pattern: MANKATSUKI_PATTERNS.mankatsuki_taco(o.taco ?? { waveGap: 2.8, stagger: 0.42 }) },
+  ]),
 };

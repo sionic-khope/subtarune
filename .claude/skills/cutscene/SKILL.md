@@ -136,7 +136,7 @@ model: opus
 | `{ puff:id, offset:[0,18], duration:0.7 }` | 대상 소품 그림 위쪽 기준 작은 공기 구름 한 번. 소리는 별도 `{sfx:'cannon_puff'}` |
 | `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |
 | `{ nod:id, duration:1.8, times:3, depth:4 }` | 충돌 좌표는 그대로 둔 채 작게 숙이고 끄덕인다. 완료 시 회전/수직 그림 오프셋을 원복한다. |
-| `{ darkSmoke:{ mode:'swell'|'gather'|'cloak'|'transfer'|'veil', from:id, to?:id, duration, veil?:0.4 } }` / `{darkSmoke:null}` | 검은 픽셀 연기의 확산·응축·감싸기·대상 간 이동. duration만큼 기다린 뒤 모양을 유지한다. veil은 UI 아래 월드 어둠이며 새 모드에도 유지된다. 끝/타이틀/맵 전환에서는 null로 정리한다. |
+| `{ darkSmoke:{ mode:'swell'|'gather'|'cloak'|'transfer'|'veil', from:id, to?:id, duration, veil?:0.4, aura?:{at:id,colors:[]} } }` / `{darkSmoke:null}` | duration 동안 연기 변화. veil과 선택형 배우 오라는 모드 사이에 유지되고 오라는 배우를 따라간다. `aura:null`은 오라만, `darkSmoke:null`은 모두 해제한다. 장면에서 유지하기로 한 음영/오라는 불투명한 전환 뒤 정리하고 타이틀·맵 전환 시 잔재를 남기지 않는다. |
 | `{ tiles:'bridge_down' }` | 맵 `tileSwaps` 적용(다리 내려옴). 뒤에 `{set:{bridge_down:true}}` 로 플래그도 세운다 |
 | `{ parallel:[ ...노드 ] }` | 동시 실행 |
 | `{ async: 노드 }` | 기다리지 않고 진행 (배경 동작) |
@@ -169,4 +169,4 @@ model: opus
 2. 소리도 같은 영상에서: `ffmpeg -i <영상> -ss .. -t .. -c:a libmp3lame -q:a 3 assets/audio/sfx/<이름>.mp3` → `main.js loadSfxFiles` 목록 + `design/audio/references.md` 출처 한 줄.
 3. **`src/data/fx.js` 의 `FX` 에 한 줄** 등록(sheet·cols·rows·count·fps·sfx) → 컷신에서는 `{ boom: { ...FX.<이름>, at:'<대상id>'|[x,y], scale, offset:[dx,dy], hold } }` 로 쓴다(숫자를 컷신에 복사하지 않는다 — 여러 발이면 `{async:[{wait}, {boom}]}`)
    — **모든 캐릭터 위**에 한 번만 재생하고 사라진다. 그림이 없으면 소리만 나고 조용히 통과하므로 반드시 `tests/unit/fx.test.mjs`(레지스트리·띠 존재·칸 수·소리 로드 목록) 를 돌린다.
-4. 그 연출이 도는 맵 JSON 의 `preload` 에 시트 경로를 넣는다(첫 재생이 늦지 않게). 크기·타이밍은 중간 프레임 스크린샷으로 맞춘다(`scale`, `fps`, 앞뒤 `wait`).
+4. FX 레지스트리에 등록한 시트는 부팅 때 미리 로드된다. 등록하지 않은 시트는 맵 `preload`에 넣는다. `boom`의 `duration`은 그 시간 동안 프레임을 반복하고, `endScale/grow`는 시작 `scale`에서 목표 배율까지 grow초 동안 부드럽게 변화시킨다. 생략하면 기존 한 번 재생이다. 중간 프레임에서 크기·타이밍·잘림을 확인하고 맵 전환 시 정리되는지 검사한다.

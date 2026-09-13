@@ -6,6 +6,8 @@ import { storyBgm, QA_POINTS } from '../../src/core/story.js';
 import { ScriptRunner, TextBox } from '../../src/ui/dialogue.js';
 import { Camera, Character, Entity, TileMap } from '../../src/world/world.js';
 import { darkSmokeWaiter, drawDarkSmoke } from '../../src/ui/dark-smoke.js';
+import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
+import { makeWaiter } from '../../src/ui/cutscene.js';
 
 const room = JSON.parse(fs.readFileSync('assets/maps/maillard_captain.json', 'utf8'));
 
@@ -30,7 +32,7 @@ test('captain reveal leaves the player intact and stops at the transformed stand
   assert.equal(nodes.some(node => node.hide === 'player' || node.remove === 'player'), false);
   assert.ok(nodes.some(node => node.show === 'captain_shadow'));
   assert.ok(nodes.some(node => node.darkSmoke?.mode === 'gather' && node.darkSmoke.duration === 3));
-  assert.ok(nodes.some(node => node.darkSmoke?.mode === 'transfer' && node.darkSmoke.duration === 3));
+  assert.ok(nodes.some(node => node.darkSmoke?.mode === 'transfer' && node.darkSmoke.duration >= 4.5));
   assert.ok(nodes.some(node => node.pose === 'player' && node.to === 'lying'));
   assert.ok(nodes.some(node => node.pose === 'player' && node.to === 'stand'));
   assert.ok(nodes.some(node => node.set?.captain_reveal_done));
@@ -39,13 +41,14 @@ test('captain reveal leaves the player intact and stops at the transformed stand
 
 test('real reveal runner completes without moving a character into furnishings or retaining temporary offsets', () => {
   const sounds = [], music = [], seen = new Set();
-  const queuedScripts = [];
+  const queuedScripts = [], attackFrames = new Set(), departingShadow = [];
   const game = {
     time: 0, flags: {}, background: [], ctx: { measureText: text => ({ width: [...text].length * 16 }) },
     sound: { sfx: id => sounds.push(id), playBgm: id => music.push(id), stopBgm() {}, preloadBgm() {}, blip() {} },
     setFlag(key, value = true) { this.flags[key] = value; },
     runScript(key) { queuedScripts.push(key); },
     fadeTo(alpha, duration, callback) { callback(); },
+    characterMotions: CHARACTER_MOTIONS,
   };
   game.map = new TileMap(room);
   game.entities = room.entities.filter(def => !def.requires).map(def => new Entity({ ...def }, game));
@@ -66,6 +69,9 @@ test('real reveal runner completes without moving a character into furnishings o
     game.dialogue.update(0.025, { just: key => key === 'confirm' && tick % 5 === 0 });
     game.camera.follow(0.05);
     game.entities = game.entities.filter(entity => !entity.dead);
+    if (player.motion) attackFrames.add(player.motion.index);
+    const shadow = game.entities.find(entity => entity.id === 'captain_shadow');
+    if (player.pose === 'lying' && shadow?.visible) departingShadow.push({ x: shadow.x, cameraX: game.camera.x });
     if (game.textbox.isOpen) {
       seen.add(game.textbox.node);
       for (const entity of game.entities.filter(item => ['player', 'ppaman', 'gyeongsub', 'captain_junhee'].includes(item.id))) {
@@ -80,7 +86,13 @@ test('real reveal runner completes without moving a character into furnishings o
   assert.equal(seen.size, SCRIPTS.captain_reveal.filter(node => node.text).length);
   assert.equal(game.flags.captain_reveal_done, true);
   assert.deepEqual(queuedScripts, ['captain_mankatsuki']);
-  assert.equal(game.darkSmoke, null);
+  assert.equal(game.darkSmoke.mode, 'veil');
+  assert.equal(game.darkSmoke.veil, 0.4);
+  assert.equal(game.darkSmoke.aura.actor.id, 'captain_mankatsuki');
+  assert.deepEqual([...attackFrames], [0, 1, 2, 3]);
+  assert.ok(departingShadow.length > 100);
+  assert.ok(departingShadow.at(-1).x - departingShadow[0].x > 200);
+  assert.ok(departingShadow.at(-1).x - departingShadow.at(-1).cameraX > 480 + 50);
   assert.equal(player.pose, null);
   assert.equal(player.spin || 0, 0);
   assert.equal(player.flyY || 0, 0);
@@ -89,6 +101,43 @@ test('real reveal runner completes without moving a character into furnishings o
   assert.deepEqual(music, ['captain_reveal', 'captain_mankatsuki']);
   assert.equal(sounds.filter(id => id === 'captain_thunder').length, 1);
   assert.equal(sounds.filter(id => id === 'captain_transform').length, 1);
+});
+
+test('possession aura follows its actor through movement, sprite rename, and white-fade veil change', () => {
+  const actor = { id: 'junhee', x: 320, y: 280, w: 24, h: 16 };
+  const game = { time: 0, entities: [actor] };
+  darkSmokeWaiter(game, { mode: 'cloak', from: 'junhee', duration: 3.6, veil: 0.4,
+    aura: { at: 'junhee', colors: ['#52228c', '#9145d0', '#c17aff'] } }).update(3.6);
+  const aura = game.darkSmoke.aura;
+  actor.id = 'mankatsuki'; actor.x += 20; game.time = 5;
+  darkSmokeWaiter(game, { mode: 'veil', duration: 0.01, veil: 0.4 }).update(0.01);
+  assert.equal(game.darkSmoke.aura, aura);
+  const pigment = new Set();
+  drawDarkSmoke({ save() {}, restore() {}, fillRect() { pigment.add(this.fillStyle); } }, game, { x: 0, y: 0 });
+  for (const color of aura.colors) assert.ok(pigment.has(color));
+  darkSmokeWaiter(game, null);
+  assert.equal(game.darkSmoke, null);
+});
+
+test('captain formation uses the new animated sheet for eight seconds before standard battle entry', () => {
+  const nodes = SCRIPTS.captain_mankatsuki;
+  const formationIndex = nodes.findIndex(node => node.parallel?.some(child => child.boom));
+  const formation = nodes[formationIndex].parallel.find(node => node.boom);
+  assert.equal(formation.boom.sheet, 'assets/fx/mankatsuki-vortex.png');
+  assert.equal(nodes.slice(0, formationIndex).some(node => node.vortex), false);
+  const calls = [];
+  const game = { entities: [{ id: 'captain_mankatsuki', x: 420, y: 270, w: 24, h: 16 }],
+    sound: { sfx() {} }, playBoom: value => calls.push(value) };
+  const waiter = makeWaiter(game, formation);
+  assert.equal(waiter.update(5.8), false);
+  assert.equal(waiter.update(2.19), false);
+  assert.equal(waiter.update(0.02), true);
+  assert.equal(calls[0].duration, 8);
+  assert.equal(calls[0].grow, 5.8);
+  assert.ok(calls[0].endScale > calls[0].scale * 6);
+  const cleanup = nodes.findIndex(node => node.darkSmoke === null);
+  assert.ok(cleanup > nodes.findIndex(node => node.fade === 'out'));
+  assert.ok(cleanup < nodes.findIndex(node => node.battle));
 });
 
 test('dark clouds take the specified time, render opaque pigment rather than sparks, and release explicitly', () => {

@@ -7,6 +7,7 @@
 //   tests/unit/fx.test.mjs 가 파일 존재·칸 수·소리 이름을 검사한다.
 // ─────────────────────────────────────────────────────────────
 export const FX = {
+  mankatsuki_vortex: { sheet: 'assets/fx/mankatsuki-vortex.png', cols: 6, rows: 1, count: 6, fps: 10 },
   baron_emerge_wind: { sheet: 'assets/fx/baron_emerge_wind.png', cols: 2, rows: 3, count: 6, fps: 12, sfx: 'baron_eruption' },
   /** 폭발 — 사용자 지정 영상 `deltarune explosion greenscreen`(youtube o84vJH19toI) 에서 누끼(31프레임 85×128)와 오디오를 같이 딴 것.
    *  쓰인 곳: 청록숲2 쥰희 동상 벽(teal3_toolbox.js). 재생성은 design/audio/references.md 의 '동상 벽 폭발' 줄 참고 */

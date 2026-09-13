@@ -54,8 +54,8 @@ function buildFloor() {
   return canvas;
 }
 
-function project(x, y, z) {
-  const scale = 720 / (720 + z);
+function project(x, y, z, focal = 720) {
+  const scale = focal / (focal + z);
   return {
     x: 240 + x * scale,
     y: 110 + (y - z * 0.13) * scale,
@@ -67,14 +67,15 @@ function project(x, y, z) {
 export function mankatsukiVortexPoint(height, angle, time) {
   const level = height * 2 - 1;
   const distance = Math.abs(level);
-  const radius = distance <= 0.3 ? 7 + distance * 44 : 20.2 + Math.pow((distance - 0.3) / 0.7, 0.55) * 527;
-  const turn = angle + time * 0.48 + level * 0.2;
-  return project(Math.cos(turn) * radius, level * 170, Math.sin(turn) * radius);
+  const profile = distance <= 0.3 ? 7 + distance * 44 : 20.2 + Math.pow((distance - 0.3) / 0.7, 0.55) * 527;
+  const radius = profile * (1 + Math.sin(time * 0.95 + level * 1.7) * 0.022);
+  const turn = angle + time * 0.768 + level * (0.2 + Math.sin(time * 1.35) * 0.11);
+  return project(Math.cos(turn) * radius, level * 170, Math.sin(turn) * radius, 720 + Math.sin(time * 0.72) * 16);
 }
 
 /** The surrounding ribbon rotates independently, with its far and near arcs depth sorted. */
 export function mankatsukiAuraPoint(height, angle, time) {
-  const turn = angle - time * 0.22;
+  const turn = angle - time * 0.308;
   const radius = 470 + Math.sin(angle * 3) * 10;
   return project(Math.cos(turn) * radius, 20 + height * 52 + Math.sin(angle * 2) * 7, Math.sin(turn) * radius);
 }

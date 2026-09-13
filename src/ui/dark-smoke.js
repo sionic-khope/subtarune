@@ -15,13 +15,18 @@ function cloudLobe(ctx, x, y, radius) {
   }
 }
 
-/** Pixel-cloud cutscene waiter. Example: { darkSmoke: { mode:'transfer', from:'shadow', to:'host', duration:3 } }. */
+/** Pixel-cloud waiter; optional aura:{at,colors} stays attached across modes until explicitly cleared. */
 export function darkSmokeWaiter(game, definition) {
   if (!definition) { game.darkSmoke = null; return { update: () => true }; }
   const source = definition.from ? anchor(game, definition.from) : { x: 0, y: 0 };
   const target = definition.to ? anchor(game, definition.to) : source;
+  const aura = definition.aura === null ? null : definition.aura ? {
+    ...definition.aura,
+    actor: definition.aura.at === 'player' ? game.player : game.entities.find(entity => entity.id === definition.aura.at),
+    started: game.time,
+  } : game.darkSmoke?.aura;
   const smoke = {
-    ...definition, source, target, elapsed: 0, started: game.time,
+    ...definition, source, target, aura, elapsed: 0, started: game.time,
     duration: definition.duration ?? 2, previousVeil: game.darkSmoke?.veil ?? 0,
     veil: game.darkSmoke?.veil ?? 0,
     clouds: Array.from({ length: definition.mode === 'veil' ? 0 : 64 }, (_, index) => ({
@@ -85,11 +90,11 @@ export function drawDarkSmoke(ctx, game, cam) {
         break;
       }
       case 'cloak': {
-        const radius = (10 + cloud.radius * 25) * clamp(progress * 2);
+        const radius = (10 + cloud.radius * 25) * (0.3 + progress * 0.7);
         x = smoke.source.x + Math.cos(angle * 1.6) * radius;
         y = smoke.source.y + Math.sin(angle * 1.6) * radius * 1.3;
-        size *= 0.6 + clamp(progress * 2) * 0.4;
-        alpha *= clamp(progress * 2);
+        size *= 0.35 + progress * 0.8;
+        alpha *= progress;
         break;
       }
       default: continue;
@@ -111,6 +116,24 @@ export function drawDarkSmoke(ctx, game, cam) {
     ctx.globalAlpha = alpha;
     ctx.fillStyle = '#000';
     cloudLobe(ctx, px, py + radius * 0.15, radius);
+  }
+  if (smoke.aura?.actor && !smoke.aura.actor.dead) {
+    const { actor, colors, started } = smoke.aura;
+    const auraAge = game.time - started;
+    const strength = smooth(clamp(auraAge / 2.4));
+    const scale = Math.sqrt(actor.def?.visualScale || 1);
+    const cx = actor.x + actor.w / 2 - cam.x;
+    const cy = actor.y + actor.h - 28 * scale - cam.y;
+    for (let index = 0; index < 28; index++) {
+      const phase = (index / 28 + auraAge * 0.12) % 1;
+      const angle = phase * Math.PI * 2;
+      const radius = (30 + Math.sin(auraAge * 2 + index) * 4) * scale;
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius * 1.25;
+      ctx.globalAlpha = strength * (0.35 + (index % 3) * 0.16);
+      ctx.fillStyle = colors[index % colors.length];
+      cloudLobe(ctx, x, y, 5 + (index % 3) * 2);
+    }
   }
   ctx.restore();
 }

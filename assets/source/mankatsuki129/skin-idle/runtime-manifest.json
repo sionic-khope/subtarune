@@ -1,0 +1,45 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "../../captain125/mankatsuki_idle/raw-grid.png",
+  "prompt": "prompt-used.txt",
+  "source": "raw-sheet.png",
+  "grid": "raw-grid.png",
+  "processing": "processed/pipeline-meta.json",
+  "runtime": "assets/enemies/mankatsuki-idle.png",
+  "frames": 4,
+  "cell": 128,
+  "bounds": [
+    [
+      26,
+      44,
+      105,
+      123
+    ],
+    [
+      27,
+      51,
+      107,
+      123
+    ],
+    [
+      28,
+      41,
+      106,
+      123
+    ],
+    [
+      26,
+      43,
+      105,
+      122
+    ]
+  ],
+  "vertical_baseline_translation": [
+    1,
+    1,
+    1,
+    0
+  ],
+  "resampling": "NEAREST",
+  "per_frame_resizing": false
+}

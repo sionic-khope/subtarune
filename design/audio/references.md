@@ -235,6 +235,10 @@ yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 
 ```sh
 yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2 --ffmpeg-location /opt/homebrew/bin --output 'assets/audio/bgm/maillard_reveal.%(ext)s' 'https://www.youtube.com/watch?v=yfC8OU2YtNo'
 ```
+# 만카츠키 피격 목소리 (2026-09-13)
+
+사용자 ‘특유의 쥰희 목소리 어두운버전으로 에코음…맞았을때’ 요청. 기존 `assets/audio/voices/junhee.mp3`(위 기록의 Deltarune 수지 snd_txtsus)를 원본 그대로 낮춰 가공한 `assets/audio/sfx/mankatsuki_hurt.mp3`, mono44100Hz/0.392902초. 필터는 `asetrate=33075,aresample=44100,aecho=0.8:0.8:110|220:0.35|0.18,volume=0.8,afade=t=out:st=0.29:d=0.09`. 다른 캐릭터 음성이나 원본을 교체하지 않는다. 실제 양수 피해당 한 번, 실브라우저3타격3재생 확인. 주관적 청취 평가는 별도다.
+
 # 김은별컴퍼니 여성 게임 블립 (2026-09-13)
 
 사용자 ‘바보같은 목소리로…여자’ 요청. macOS 기본 한국어 여성 TTS Yuna로 ‘냐’ 한 음절을 `say -v Yuna -r 160`으로 생성했다. 실존 인물이나 사용자 제공 영상의 음성을 복제하지 않는다. 원본은 `assets/source/captain122/voice/yuna-nya.aiff`(22050Hz), 실행 파일은 `assets/audio/voices/eunbyeol.mp3`다. 첫 무음을 -38dB 기준으로 제거한 뒤1.12배 피치,44100Hz,0.17초,시작8ms/끝35ms 페이드,볼륨0.8로 가공했다. VOICES.eunbyeol은 rate1/level0.85/cut:false/minGap0.12로 전체 짧은 샘플을 재생한다. 밝고 둥글게 튀는 여성 블립 의도이며 말 전체를 읽는 TTS는 아니다. ffmpeg 디코드/peak -7.6dBFS 확인, 실제 대화의 AudioBuffer 로드·재생 연결을 확인했다. 주관적 목소리 인상은 사용자의 청취 피드백으로 조정한다.

@@ -263,8 +263,9 @@ export function makeWaiter(game, node) {
     if (!pos) pos = [game.camera.x + SCREEN_W / 2, game.camera.y + SCREEN_H / 2];
     if (b.offset) pos = [pos[0] + b.offset[0], pos[1] + b.offset[1]];
     if (b.sfx) game.sound.sfx(b.sfx, b.volume !== undefined ? { volume: b.volume } : undefined);
-    const fps = b.fps ?? 14, count = b.count ?? (b.cols * (b.rows ?? 1)), dur = count / fps + (b.hold ?? 0);
-    game.playBoom({ src: b.sheet, x: pos[0], y: pos[1], cols: b.cols, rows: b.rows ?? 1, count, fps, scale: b.scale ?? 1 });
+    const fps = b.fps ?? 14, count = b.count ?? (b.cols * (b.rows ?? 1)), dur = (b.duration ?? count / fps) + (b.hold ?? 0);
+    game.playBoom({ src: b.sheet, x: pos[0], y: pos[1], cols: b.cols, rows: b.rows ?? 1, count, fps, scale: b.scale ?? 1,
+      ...(b.duration !== undefined ? { duration: b.duration, endScale: b.endScale ?? b.scale ?? 1, grow: b.grow ?? b.duration } : {}) });
     let t = 0;
     return { update: (dt) => (t += dt) >= dur };
   }

@@ -1,0 +1,129 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "../../captain125/junhee_mankatsuki/raw-grid.png",
+  "prompt": "prompt-used.txt",
+  "source": "raw-sheet.png",
+  "grid": "raw-grid.png",
+  "processing": "processed/pipeline-meta.json",
+  "runtime": "assets/sprites/junhee_mankatsuki.png",
+  "frames": 16,
+  "cell": 64,
+  "bounds": [
+    [
+      5,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      6,
+      8,
+      58,
+      60
+    ],
+    [
+      7,
+      6,
+      56,
+      60
+    ],
+    [
+      7,
+      6,
+      56,
+      60
+    ],
+    [
+      7,
+      7,
+      56,
+      60
+    ],
+    [
+      8,
+      7,
+      56,
+      60
+    ],
+    [
+      7,
+      6,
+      57,
+      60
+    ],
+    [
+      7,
+      6,
+      56,
+      60
+    ],
+    [
+      7,
+      6,
+      56,
+      60
+    ],
+    [
+      7,
+      6,
+      56,
+      60
+    ]
+  ],
+  "vertical_baseline_translation": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "resampling": "NEAREST",
+  "per_frame_resizing": false
+}

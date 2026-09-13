@@ -1,4 +1,14 @@
+import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
+
 export const CHARACTER_MOTIONS = {
+  hyungsub: {
+    attack: {
+      src: BATTLE_SPRITES.hyungsub.src,
+      scale: 0.13,
+      colorKey: BATTLE_PREVIEW.colorKey,
+      frames: BATTLE_SPRITES.hyungsub.attack,
+    },
+  },
   expelled_viewer: {
     legraise: {
       src: 'assets/sprites/expelled-viewer-legraise.png',

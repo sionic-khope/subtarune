@@ -15,7 +15,7 @@ import { SysDialog } from './ui/sysdialog.js';
 import { Vortex } from './ui/vortex.js';
 import { BattlePreview } from './ui/battle-preview.js';
 import { DotBubble } from './ui/bubble.js';
-import { drawDarkSmoke } from './ui/dark-smoke.js';
+import { darkSmokeWaiter, drawDarkSmoke } from './ui/dark-smoke.js';
 import { TileMap, Camera, createEntity, freeSpot, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides } from './world/tiles.js';
 import { loadCharacterMotions } from './world/character-motion.js';
@@ -23,6 +23,8 @@ import { TORSO, LEGS, PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
 import { battleEntry } from './data/cutscenes/helpers.js';
+import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './data/cutscenes/captain_reveal.js';
+import { FX_SHEETS } from './data/fx.js';
 import L from './data/locale/ko.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm } from './core/story.js';
@@ -113,7 +115,7 @@ class Game {
         try { MAPS[id] = await (await fetch(`assets/maps/${id}.json?v=` + Date.now())).json(); } catch (e) { console.warn('[map] 로드 실패', id, e); }
       }));
     } catch {}
-    const propSrcs = new Set();
+    const propSrcs = new Set(FX_SHEETS);
     for (const m of Object.values(MAPS)) { for (const e of (m.entities || [])) if (e.image) propSrcs.add(e.image); for (const src of (m.preload || [])) propSrcs.add(src); }   // 엔티티 이미지 + 컷신에서 spawn 할 이미지(preload)
     await Promise.all([
       ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
@@ -121,7 +123,7 @@ class Game {
       loadTileOverrides(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -318,19 +320,22 @@ class Game {
     ctx.fillStyle = gd; ctx.fillRect(0, 170, SCREEN_W, 80); ctx.fillStyle = '#000'; ctx.fillRect(0, 250, SCREEN_W, SCREEN_H - 250);
   }
 
-  /** 한 번 재생하는 큰 이펙트 애니(컷신 {boom}): 가로(·세로) 프레임 띠를 그 자리에 한 바퀴만, 캐릭터 위에. 그림이 아직 없으면 조용히 넘어간다 */
-  playBoom({ src, x, y, cols, rows = 1, count, fps, scale = 1 }) {
+  /** 캐릭터 위 프레임 띠. duration 지정 시 반복하며, endScale/grow는 해당 초 동안 부드럽게 크기를 바꾼다. 기본은 한 번 재생. */
+  playBoom({ src, x, y, cols, rows = 1, count, fps, scale = 1, endScale = scale, grow, duration }) {
     const img = this.propImages[src];
-    const put = (image) => { if (image) this.booms.push({ img: image, x, y, cols, rows, count, fps, scale, t: 0 }); };
+    const put = (image) => { if (image) this.booms.push({ img: image, x, y, cols, rows, count, fps, scale, endScale, grow: grow ?? duration ?? count / fps, duration, t: 0 }); };
     if (img) put(img);
     else loadImageOptional(src).then((im) => { if (im) { this.propImages[src] = im; put(im); } else console.warn('[boom] 그림 없음', src); });
   }
   drawBooms(ctx, cam) {
     for (const b of this.booms) {
-      const i = Math.min(b.count - 1, Math.floor(b.t * b.fps));
+      const frame = Math.floor(b.t * b.fps);
+      const i = b.duration == null ? Math.min(b.count - 1, frame) : frame % b.count;
       const fw = b.img.width / b.cols, fh = b.img.height / b.rows;
       const sx = (i % b.cols) * fw, sy = Math.floor(i / b.cols) * fh;
-      const dw = Math.round(fw * b.scale), dh = Math.round(fh * b.scale);
+      const progress = b.grow > 0 ? Math.min(1, b.t / b.grow) : 1;
+      const scale = b.scale + (b.endScale - b.scale) * progress * progress * (3 - 2 * progress);
+      const dw = Math.round(fw * scale), dh = Math.round(fh * scale);
       ctx.drawImage(b.img, sx, sy, fw, fh, Math.round(b.x - cam.x - dw / 2), Math.round(b.y - cam.y - dh / 2), dw, dh);
     }
   }
@@ -508,6 +513,7 @@ class Game {
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
       this.darkSmoke = null;
+      this.booms = [];
       this.maillardArrival?.dispose(); this.maillardArrival = null;
       this.sunrise.dispose();
       this.seaChase?.dispose(); this.seaChase = null;
@@ -526,6 +532,10 @@ class Game {
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: spawn.facing ?? this.player?.facing ?? 'down' }, this);   // 스폰에 facing 을 주면 그 방향(QA 지점 등)
       this.entities.push(this.player);
       this.spawnParty();
+      if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_mankatsuki_defeated')) {
+        darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
+          aura: { at: 'captain_mankatsuki', colors: CAPTAIN_AURA_COLORS } }).update(0.01);
+      }
       // 문 위에서 스폰될 때 바로 되돌아가지 않도록 쿨다운
       for (const e of this.entities) if (e.cooldown !== undefined) e.cooldown = 0.6;
       this.camera.map = this.map;
@@ -699,7 +709,7 @@ class Game {
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
     if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
-    if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.t * b.fps < b.count); }
+    if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
 
     if (this.maillardArrival) {
@@ -1103,7 +1113,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-13.128';
+export const BUILD = '2026-09-13.129';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

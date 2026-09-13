@@ -4,6 +4,8 @@ const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', 
 const G = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* ' + text });
 const V = (text, speaker = '가재맨') => ({ speaker, voice: 'gajaeman_shadow', text: '* ' + text });
 const N = text => ({ voice: 'narrator', text: '* ' + text });
+export const CAPTAIN_AURA_COLORS = ['#52228c', '#9145d0', '#c17aff'];
+export const CAPTAIN_REVEAL_VEIL = 0.4;
 const PARTY = ['ppaman', 'player', 'gyeongsub'];
 const face = (ids, target) => ids.map(id => ({ face: id, dir: 'toward:' + target }));
 const surprise = (ids, jump = false) => ({ parallel: [
@@ -89,8 +91,14 @@ export const captain_reveal = Object.assign([
   J('???'),
   { darkSmoke: { mode: 'cloak', from: 'captain_shadow', duration: 3 } },
   { hide: 'captain_shadow' },
-  { darkSmoke: { mode: 'transfer', from: 'captain_shadow', to: 'captain_junhee', duration: 3 } },
-  { darkSmoke: { mode: 'cloak', from: 'captain_junhee', duration: 0.5 } },
+  ...face(PARTY, 'captain_junhee'),
+  { tremble: 'captain_junhee', duration: 120, amp: 2 },
+  { parallel: [
+    { darkSmoke: { mode: 'transfer', from: 'captain_shadow', to: 'captain_junhee', duration: 4.8,
+      aura: { at: 'captain_junhee', colors: CAPTAIN_AURA_COLORS } } },
+    { async: [{ sfx: 'whoosh' }, { wait: 2.4 }, { sfx: 'rumble' }] },
+  ] },
+  { darkSmoke: { mode: 'cloak', from: 'captain_junhee', duration: 1.8 } },
   { async: [
     { move: 'captain_junhee', by: [0, -6], speed: 16 },
     { move: 'captain_junhee', by: [0, 3], speed: 14 },
@@ -103,7 +111,7 @@ export const captain_reveal = Object.assign([
   { darkSmoke: { mode: 'gather', to: 'captain_shadow', duration: 1.6, veil: 0.32 } },
   { show: 'captain_shadow' },
   { face: 'captain_shadow', dir: 'right' },
-  { darkSmoke: { mode: 'cloak', from: 'captain_junhee', duration: 0.25 } },
+  { darkSmoke: { mode: 'cloak', from: 'captain_junhee', duration: 0.8 } },
   { camera: [19, 10.4], duration: 0.5 },
   { parallel: [
     { move: 'captain_shadow', rel: 'captain_helm', at: 'bottom', by: [-52, 80], run: true },
@@ -111,16 +119,24 @@ export const captain_reveal = Object.assign([
   ] },
   { face: 'player', dir: 'right' },
   { face: 'captain_shadow', dir: 'left' },
-  V('ㅋㅋ 의미없는짓을 하네'),
+  { wait: 0.3 },
+  { hop: 'player', by: [-9, 0], height: 0, duration: 0.18, sfx: false },
+  { parallel: [
+    { motion: 'player', name: 'attack', sfx: 'whoosh' },
+    { hop: 'player', by: [24, 0], height: 5, duration: 0.38, sfx: false },
+  ] },
+  { wait: 0.3 },
+  V('어이구야 날 막으려는건가? 의미없는짓을.. {c=yellow}요플래{/c}..'),
   { parallel: [
     { hop: 'player', by: [0, 88], height: 28, duration: 0.42, sfx: false },
     { shake: 0.42, amp: 6 },
     { sfx: 'baron_slam' },
   ] },
   { pose: 'player', to: 'lying' },
-  { darkSmoke: { mode: 'cloak', from: 'captain_shadow', duration: 1.2 } },
+  { wait: 0.5 },
+  { face: 'captain_shadow', dir: 'right' },
+  { move: 'captain_shadow', px: game => [game.map.pxW + 96, game.entities.find(entity => entity.id === 'captain_shadow').y], speed: 36 },
   { hide: 'captain_shadow' },
-  { darkSmoke: { mode: 'cloak', from: 'captain_junhee', duration: 0.3 } },
   { camera: 'player' },
   { parallel: [
     { move: 'ppaman', rel: 'player', at: 'left', by: [-36, 0], dash: true },
@@ -132,19 +148,22 @@ export const captain_reveal = Object.assign([
   { face: 'player', dir: 'up' },
   { nod: 'player', duration: 0.5, times: 1, depth: 2 },
   G('아 이거 어떡하냐'),
-  { camera: 'captain_junhee' },
+  ...gatherParty,
+  { camera: [13, 10], duration: 0.8 },
   { wait: 1 },
   { bgm: null, fadeOut: 0.15 },
   { sfx: 'captain_transform' },
-  { fade: 'white', duration: 0.25 },
-  { darkSmoke: null },
+  { tremble: 'captain_junhee', duration: 4.8, amp: 3 },
+  { darkSmoke: { mode: 'cloak', from: 'captain_junhee', duration: 3.6, veil: CAPTAIN_REVEAL_VEIL } },
+  { fade: 'white', duration: 0.5 },
   { action: game => {
     const actor = game.entities.find(entity => entity.id === 'captain_junhee');
     actor.setSprite('junhee_mankatsuki'); actor.def.visualScale = 1.5;
     actor.facing = 'down'; actor.jitter = null;
   } },
+  { darkSmoke: { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL } },
   { wait: 0.7 },
-  { fade: 'in', duration: 0.65 },
+  { fade: 'in', duration: 1 },
   { bgm: 'captain_mankatsuki' },
   M('케케케'),
   { camera: [13, 10], duration: 0.8 },
