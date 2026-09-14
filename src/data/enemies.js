@@ -14,7 +14,8 @@
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
   park_guardian: {
-    name: '파크가디언', hp: 57, damage: 16, money: 0, boss: true, support: 'park_strip', voice: 'park_guardian_costume',
+    // 승리 보상 500원 (2026-09-15 사용자). QA 지점은 STATE_FROM_FLAGS 의 park_guardian_won 규칙이 이 값을 그대로 유도한다
+    name: '파크가디언', hp: 57, damage: 16, money: 500, boss: true, support: 'park_strip', voice: 'park_guardian_costume',
     sheet: { src: 'assets/enemies/park-guardian-dance.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
     actions: {
       dance: { src: 'assets/enemies/park-guardian-dance.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },

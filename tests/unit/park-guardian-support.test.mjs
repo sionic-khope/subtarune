@@ -123,7 +123,7 @@ test('test_park_exposed_victory_and_all_down_keep_common_lifecycle', () => {
   b.hitEnemy(e, b.members[0], 100); assert.equal(e.hp, 0); assert.equal(e.dying, 0.5);
   e.dead = true; assert.equal(b.support.afterEnemyPhase(), null);
   b.actIdx = 0; b.actWait = 0; b.cur = null; b.plans = []; b.updateAct(0.1, none);
-  assert.equal(b.state, 'win'); assert.equal(b.game.money, 0);
+  assert.equal(b.state, 'win'); assert.equal(b.game.money, 500);
   const c = fixture(); intro(c); charge(c); expose(c);
   for (let i = 0; i < 3; i++) c.hurtParty(1000);
   assert.equal(c.state, 'lose'); assert.equal(c.interlude, null); assert.equal(c.gimmick, null);
