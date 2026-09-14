@@ -90,7 +90,7 @@ export const youngcle_lounge_plan_b = Object.assign([
   J('그런데?'),
   ...V('거기는 함정존임'),
   J('??? 아니 왜 무슨'),
-  ...V('라운지맵 왼쪽에 뻔하게 편하게 오는 천사문 있는데 왜 거길로감? ㅋㅋ ㅂㅅ임', 'taunt'),
+  ...V('라운지맵 왼쪽에 뻔하게 편하게 오는 천사문 있는데 왜 거길로감? ㅋㅋ ㅂㅅ임?', 'taunt'),
   close,
   { fade: 'out', duration: 0.65 },
   { action: game => setYoungcleDoorCutaway(game, true) },

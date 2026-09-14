@@ -1,5 +1,5 @@
 import { MAPS } from '../data/maps.js';
-import { SCREEN_H, SCREEN_W, TileMap } from '../world/world.js';
+import { CHAR_SCALE, drawEmote, SCREEN_H, SCREEN_W, TileMap } from '../world/world.js';
 
 export const YOUNGCLE_CAGE_IMAGE = 'assets/props/youngcle_electric_cage.png';
 export const YOUNGCLE_DOOR_WALLS = 'assets/props/youngcle1_walls.png';
@@ -16,6 +16,7 @@ export function setYoungcleDoorCutaway(game, visible) {
 export function youngcleCageDropWaiter(game, node) {
   const actors = (node.targets || []).map(id => game.entities.find(entity => entity.id === id)).filter(Boolean);
   if (!actors.length) return { update: () => true };
+  const remainingHeroes = [game.player, ...game.entities.filter(entity => entity.id === 'gyeongsub' || entity.id === 'ppaman')].filter(Boolean);
   const top = game.camera.y - 176;
   const cages = actors.map(actor => ({ actor, x: actor.x + actor.w / 2 - 48,
     y: top, hitY: actor.y - 126,
@@ -51,6 +52,10 @@ export function youngcleCageDropWaiter(game, node) {
       game.sound.stopBgm(node.fadeOut ?? 0.18);
       game.sound.sfx(node.impactSfx || 'thud', { volume: node.impactVolume ?? 0.82 });
       if (node.impactBodySfx) game.sound.sfx(node.impactBodySfx, { volume: node.impactBodyVolume ?? 0.56 });
+      if (remainingHeroes.length) {
+        for (const hero of remainingHeroes) hero.emote = { kind: '!', t: 0, life: 1 };
+        game.sound.sfx('chime');
+      }
       game.shake = { time: 0.52, amp: 6 };
       for (const { actor } of cages) actor.jitter = { t: 0.48, amp: 2 };
     }
@@ -91,6 +96,19 @@ export function drawYoungcleLoungeEffects(ctx, game, cam) {
       ctx.drawImage(image, Math.round(cage.x - cam.x), Math.round(cage.y - cam.y), 96, 160);
     }
     ctx.globalAlpha = 1;
+    ctx.save();
+    const zoom = game.zoom;
+    if (zoom.s < 0.9999) {
+      ctx.translate(SCREEN_W / 2, SCREEN_H / 2);
+      ctx.scale(zoom.s, zoom.s);
+      ctx.translate(-SCREEN_W / 2, -SCREEN_H / 2);
+    }
+    for (const hero of [game.player, ...game.entities.filter(entity => entity.id === 'gyeongsub' || entity.id === 'ppaman')]) {
+      if (hero?.emote?.kind !== '!') continue;
+      const height = Math.round(hero.sprite.fh / hero.sprite.px * CHAR_SCALE * (hero.def.visualScale || 1));
+      drawEmote(ctx, hero.emote, Math.round(hero.x + hero.w / 2 - cam.x), Math.round(hero.y + hero.h - height - cam.y));
+    }
+    ctx.restore();
   }
   if (!game.youngcleDoorCutaway) return;
   ctx.save();

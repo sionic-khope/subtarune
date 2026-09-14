@@ -17,12 +17,22 @@ const shot = async name => {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await page.screenshot({ path: path.join(shots, `${name}.png`) });
 };
+const shotCanvas = async name => {
+  const png = await page.evaluate(() => game.canvas.toDataURL('image/png').split(',')[1]);
+  fs.writeFileSync(path.join(shots, `${name}.png`), Buffer.from(png, 'base64'));
+};
 
 try {
   await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8799');
   await page.waitForFunction(() => window.game?.title);
   await page.evaluate(async () => {
     const { QA_POINTS } = await import('/src/core/story.js');
+    window.__youngcleQaSfx = [];
+    const playSfx = game.sound.sfx.bind(game.sound);
+    game.sound.sfx = (name, ...args) => {
+      window.__youngcleQaSfx.push(name);
+      return playSfx(name, ...args);
+    };
     game.devJump(QA_POINTS.find(point => point.id === 'youngcle6'));
     game.settings.textSpeed = 2;
   });
@@ -65,8 +75,13 @@ try {
       actors: ['youngcle6_junhee', 'youngcle6_yongjun'].map(id => {
         const actor = game.entities.find(entity => entity.id === id);
         return actor ? { id, x: actor.x, y: actor.y, visible: actor.visible,
-          jitter: !!actor.jitter, hopY: actor.hopY || 0 } : null;
+          jitter: !!actor.jitter, emote: actor.emote?.kind || null, hopY: actor.hopY || 0 } : null;
       }),
+      heroes: ['player', 'gyeongsub', 'ppaman'].map(id => {
+        const actor = id === 'player' ? game.player : game.entities.find(entity => entity.id === id);
+        return actor ? { id, emote: actor.emote?.kind || null } : null;
+      }),
+      sfx: window.__youngcleQaSfx || [],
       bgm: game.sound.bgmName || null,
       zoom: game.zoom.s,
       fade: game.fade.alpha,
@@ -93,10 +108,19 @@ try {
     if (state.cages) {
       cageSamples.push(state);
       const trailing = state.cages.every(cage => cage.trails.some(trail => trail.y < cage.y));
+      if (!seen.has('before-impact') && state.actors.every(actor => actor && !actor.jitter && !actor.emote)
+        && state.heroes.every(hero => hero?.emote === null) && state.cages.every(cage => cage.screenY > 0 && cage.screenY < 50)) {
+        seen.add('before-impact');
+        await shotCanvas('04b-cages-before-impact');
+      }
       if (!seen.has('trail') && trailing && state.cages.every(cage => cage.screenY > 20)) {
         seen.add('trail'); await shot('04-cages-afterimages');
       }
-      if (!seen.has('impact') && state.actors.every(actor => actor?.jitter)) { seen.add('impact'); await shot('05-cages-impact'); }
+      if (!seen.has('impact') && state.actors.every(actor => actor?.jitter)) { seen.add('impact'); await shotCanvas('05-cages-impact'); }
+    }
+    if (seen.has('impact') && !state.cages && !seen.has('cages-cleared')) {
+      seen.add('cages-cleared');
+      await shotCanvas('05b-cages-cleared');
     }
     if (state.done && !state.running) break;
     if (state.box === 'typing') await page.keyboard.press('KeyX');
@@ -118,9 +142,15 @@ try {
     bgm: game.sound.bgmName || null,
   }));
   check('two separate cages trail, impact, and carry both actors below the viewport',
-    seen.has('trail') && seen.has('impact') && cageSamples.some(sample => sample.actors.every(actor => actor.y > 360))
+    seen.has('trail') && seen.has('impact') && seen.has('cages-cleared') && cageSamples.some(sample => sample.actors.every(actor => actor.y > 360))
       && complete.cast.every(actor => actor && !actor.visible && actor.y > 360),
     { seen: [...seen], sampleCount: cageSamples.length, cast: complete.cast });
+  check('the exact cage impact gives only the three remaining heroes simultaneous exclamations with one chime',
+    seen.has('before-impact') && cageSamples.some(sample => sample.actors.every(actor => actor?.jitter && !actor.emote)
+      && sample.heroes.every(hero => hero?.emote === '!'))
+      && cageSamples.every(sample => !sample.actors.some(actor => actor?.emote))
+      && cageSamples.at(-1)?.sfx.filter(name => name === 'chime').length === 1,
+    { impact: cageSamples.find(sample => sample.actors.every(actor => actor?.jitter)), chimes: cageSamples.at(-1)?.sfx.filter(name => name === 'chime') });
   check('final line alone commits completion and restores three-person field state',
     complete.done && complete.tv === null && complete.cutaway === null && complete.cages === null
       && complete.zoom === 1 && complete.camera && complete.bgm === 'youngcle_factory'
@@ -128,6 +158,7 @@ try {
   check('all 46 requested dialogue nodes reach the final warning including adjacent repeats',
     lines.length === 46 && lines[7] === '* ?' && lines[8] === '* ?'
       && lines[13] === '* ㅇㅇ' && lines[33] === '* ㅇㅇ'
+      && lines[21] === '* 라운지맵 왼쪽에 뻔하게 편하게 오는 천사문 있는데 왜 거길로감? ㅋㅋ ㅂㅅ임?'
       && lines.at(-1) === '* 다음방이 걱정되는데 난..', lines);
   check('headbutt has visible anticipation contact and recoil frames',
     ['headbutt-before', 'headbutt-contact', 'headbutt-recoil'].every(key => seen.has(key)), [...seen]);
