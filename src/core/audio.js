@@ -27,6 +27,8 @@ export const VOICES = {
   warm_bidet: { freq: 84, wave: 'triangle', dur: 0.17, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.19 },
   ttuulla: { freq: 520, wave: 'triangle', dur: 0.18, jitter: 8, gain: 0.18, cutoff: 4200, rate: 1, level: 0.85, cut: false, minGap: 0.20 },
   lucky_guy: { freq: 190, wave: 'triangle', dur: 0.19, jitter: 8, gain: 0.18, cutoff: 2400, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.21 },
+  // 나람이 임시 합성 음색(사용자 지정 원음 오면 파일로 교체): 럭키가이보다 조금 높고 둥근 중저음
+  naram: { freq: 240, wave: 'triangle', dur: 0.16, jitter: 10, gain: 0.18, cutoff: 2600, glide: 15, rate: 1, level: 0.85, cut: false, minGap: 0.16 },
   park_guardian_costume: { freq: 430, wave: 'triangle', dur: 0.16, jitter: 8, gain: 0.18, cutoff: 2600, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.18, drive: 2.1, driveLevel: 0.64 },
   park_guardian: { freq: 100, wave: 'triangle', dur: 0.175, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.195 },
   red:       { freq: 150, wave: 'sine',     dur: 0.12, jitter: 3,  gain: 0.2,   cutoff: 900,  rate: 0.62, level: 1.2, cut: true, minGap: 0.10 },   // 레드(청록숲9 문지기) — 파일: 언더테일 snd_txt2(voices/red.mp3 = mystery 와 같은 클립)를 0.62 배로 깊게, 드문드문. 합성 사각파(2026-09-11 1차)는 '마음에 안 듦'

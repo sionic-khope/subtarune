@@ -12,6 +12,8 @@ export const CHARACTERS = {
   mini_mario: { name: '마리오', still: 'assets/sprites/mini_mario.png', stillScale: 0.5, stillPivot: [32, 60] },
   warm_bidet: { name: '따듯한비데', voice: 'warm_bidet', sheet: 'assets/sprites/warm_bidet.png', stillPivot: [64, 156] },
   lucky_guy: { name: '럭키가이', voice: 'lucky_guy', sheet: 'assets/sprites/lucky.png', stillPivot: [32, 60] },
+  // 나람이(2026-09-14 사용자 명명): 군복·웃는 얼굴·뚱뚱한 체형, OG 생성 4방향 시트(assets/source/naram-walk-v1). 정지 프레임은 앞뒤 0·좌우 1(계약). 아직 맵 배치·대사 없음
+  naram: { name: '나람이', voice: 'naram', sheet: 'assets/sprites/naram.png', stillPivot: [32, 60] },
   park_guardian_costume: { name: '파크가디언', voice: 'park_guardian_costume', sheet: 'assets/sprites/park_guardian_costume.png', stillPivot: [32, 60] },
   park_guardian: { name: '파크가디언', voice: 'park_guardian', sheet: 'assets/sprites/park_guardian.png', stillPivot: [32, 60] },
   youngcle: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle.png' },

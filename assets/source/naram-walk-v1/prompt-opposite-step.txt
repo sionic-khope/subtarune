@@ -1,0 +1,9 @@
+Correct only the LAST (fourth) COLUMN of BOTH rows in this exact8-frame pixel sprite sheet. Keep all other columns, the grid, character identity, fat torso/belly, head size/face/buzzcut, camouflage shirt, olive pants, black shoes and magenta background unchanged.
+
+Problem: column2 and column4 currently step with the SAME foot and arm. Column4 must be the OPPOSITE stride, not a second copy of column2.
+
+TOP ROW FRONT: in column4 ONLY, the shoe on the VIEWER'S LEFT must reach lower toward the bottom of the image while the shoe on the VIEWER'S RIGHT is lifted/higher; viewer-right arm reaches forward across belly while viewer-left arm hangs back. Keep smiling front face fixed, not mirrored. This must visibly oppose top-row column2.
+
+BOTTOM ROW BACK: in column4 ONLY, the shoe on the VIEWER'S RIGHT must reach lower toward the bottom of the image while the shoe on the VIEWER'S LEFT is lifted/higher; viewer-left arm reaches forward while viewer-right arm hangs back. Keep back of head facing away with NO FACE. This must visibly oppose bottom-row column2.
+
+Keep both feet contained, standing-equivalent body height, exact same character dimensions, cell camera and frame baseline as neighboring frames. Keep the same patch locations on the shirt and head/face orientation; change limbs' articulation, do not flip the whole person. FOUR columns by TWO rows on1536x1024, no extra directions/frames. Coarse pixel-art, no labels/grids/effects/weapon/battle. Solid #FF00FF background.

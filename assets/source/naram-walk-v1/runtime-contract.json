@@ -1,0 +1,391 @@
+{
+  "status": "asset-candidate-not-integrated",
+  "sheet": "final/sheet-transparent.png",
+  "rows": 4,
+  "columns": 4,
+  "cell": [
+    64,
+    64
+  ],
+  "sheet_size": [
+    256,
+    256
+  ],
+  "index_base": 0,
+  "pivot": [
+    32,
+    60
+  ],
+  "direction_order": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "animations": {
+    "down": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "durations_ms": [
+        150,
+        150,
+        150,
+        150
+      ],
+      "rest_frame": 0,
+      "loop": true
+    },
+    "up": {
+      "frames": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "durations_ms": [
+        150,
+        150,
+        150,
+        150
+      ],
+      "rest_frame": 4,
+      "loop": true
+    },
+    "left": {
+      "frames": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "durations_ms": [
+        150,
+        150,
+        150,
+        150
+      ],
+      "rest_frame": 9,
+      "loop": true
+    },
+    "right": {
+      "frames": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "durations_ms": [
+        150,
+        150,
+        150,
+        150
+      ],
+      "rest_frame": 13,
+      "loop": true
+    }
+  },
+  "sampling": "nearest",
+  "shared_raw_to_output_scale": 0.1590751445086705,
+  "left_right_rgba_identical": true,
+  "preserved_side_rgba_sha256": "9a0418736f071f436895f20cd6351ff96b43c2ea0ea210a4591881826b52fdc8",
+  "source_provenance": {
+    "down_up_columns_0_1_2": "standard/raw-sheet-clean.png from updown-attempt-1/raw.png",
+    "down_up_column_3": "step-standard/raw-sheet-clean.png from updown-step-fix-small/raw.png",
+    "left_right": "og-walk-test-20260914/pixel-final/sheet-transparent.png",
+    "crop": "source_box then trim_border=4 then crop_bbox; fixed shared scale; feet y=60, center x=32"
+  },
+  "initial_processor_qc": {
+    "standard": {
+      "trim_border": 4,
+      "frames": [
+        {
+          "source_box": [
+            0,
+            0,
+            384,
+            512
+          ],
+          "crop_bbox": [
+            99,
+            80,
+            342,
+            421
+          ]
+        },
+        {
+          "source_box": [
+            384,
+            0,
+            768,
+            512
+          ],
+          "crop_bbox": [
+            79,
+            80,
+            322,
+            426
+          ]
+        },
+        {
+          "source_box": [
+            768,
+            0,
+            1152,
+            512
+          ],
+          "crop_bbox": [
+            58,
+            80,
+            300,
+            421
+          ]
+        },
+        {
+          "source_box": [
+            1152,
+            0,
+            1536,
+            512
+          ],
+          "crop_bbox": [
+            36,
+            80,
+            277,
+            426
+          ]
+        },
+        {
+          "source_box": [
+            0,
+            512,
+            384,
+            1024
+          ],
+          "crop_bbox": [
+            99,
+            42,
+            342,
+            393
+          ]
+        },
+        {
+          "source_box": [
+            384,
+            512,
+            768,
+            1024
+          ],
+          "crop_bbox": [
+            81,
+            42,
+            321,
+            397
+          ]
+        },
+        {
+          "source_box": [
+            768,
+            512,
+            1152,
+            1024
+          ],
+          "crop_bbox": [
+            58,
+            42,
+            299,
+            393
+          ]
+        },
+        {
+          "source_box": [
+            1152,
+            512,
+            1536,
+            1024
+          ],
+          "crop_bbox": [
+            37,
+            42,
+            276,
+            397
+          ]
+        }
+      ],
+      "qc_summary": {
+        "frame_count": 8,
+        "valid_frame_count": 8,
+        "empty_count": 0,
+        "edge_touch_count": 0,
+        "paste_clamped_count": 0,
+        "body_scale_mean": 0.5110564020315957,
+        "output_subject_height_mean": 53.5,
+        "body_scale_cv": 0.016879521747954547,
+        "anchor_x_std": 0.06699421860455178,
+        "anchor_y_std": 0.027670169615754553,
+        "anchor_y_mean": 0.7849702380952381
+      },
+      "qc_config": {
+        "strict_qc": true,
+        "reject_edge_touch": false,
+        "allow_source_edge_touch": false,
+        "max_body_scale_cv": 0.08,
+        "max_anchor_y_std": 0.05,
+        "max_profile_scale_drift": null
+      }
+    },
+    "step-standard": {
+      "trim_border": 4,
+      "frames": [
+        {
+          "source_box": [
+            0,
+            0,
+            384,
+            512
+          ],
+          "crop_bbox": [
+            100,
+            81,
+            342,
+            421
+          ]
+        },
+        {
+          "source_box": [
+            384,
+            0,
+            768,
+            512
+          ],
+          "crop_bbox": [
+            79,
+            81,
+            320,
+            426
+          ]
+        },
+        {
+          "source_box": [
+            768,
+            0,
+            1152,
+            512
+          ],
+          "crop_bbox": [
+            58,
+            81,
+            298,
+            421
+          ]
+        },
+        {
+          "source_box": [
+            1152,
+            0,
+            1536,
+            512
+          ],
+          "crop_bbox": [
+            41,
+            81,
+            268,
+            429
+          ]
+        },
+        {
+          "source_box": [
+            0,
+            512,
+            384,
+            1024
+          ],
+          "crop_bbox": [
+            100,
+            42,
+            342,
+            391
+          ]
+        },
+        {
+          "source_box": [
+            384,
+            512,
+            768,
+            1024
+          ],
+          "crop_bbox": [
+            81,
+            42,
+            318,
+            391
+          ]
+        },
+        {
+          "source_box": [
+            768,
+            512,
+            1152,
+            1024
+          ],
+          "crop_bbox": [
+            58,
+            42,
+            298,
+            391
+          ]
+        },
+        {
+          "source_box": [
+            1152,
+            512,
+            1536,
+            1024
+          ],
+          "crop_bbox": [
+            36,
+            41,
+            271,
+            391
+          ]
+        }
+      ],
+      "qc_summary": {
+        "frame_count": 8,
+        "valid_frame_count": 8,
+        "empty_count": 0,
+        "edge_touch_count": 0,
+        "paste_clamped_count": 0,
+        "body_scale_mean": 0.5076867248538812,
+        "output_subject_height_mean": 53.875,
+        "body_scale_cv": 0.02030496257036609,
+        "anchor_x_std": 0.0743016757696755,
+        "anchor_y_std": 0.03155557327097008,
+        "anchor_y_mean": 0.7822420634920635
+      },
+      "qc_config": {
+        "strict_qc": true,
+        "reject_edge_touch": false,
+        "allow_source_edge_touch": false,
+        "max_body_scale_cv": 0.08,
+        "max_anchor_y_std": 0.05,
+        "max_profile_scale_drift": null
+      }
+    }
+  },
+  "final_geometry": {
+    "frame_count": 16,
+    "empty_count": 0,
+    "edge_touch_count": 0,
+    "paste_clamped_count": 0,
+    "binary_alpha": true
+  },
+  "not_requested": [
+    "combat",
+    "game-integration"
+  ],
+  "notes": "Initial processor QC and final export geometry are separate evidence. New front/back frames only receive magenta spill removal and NEAREST fixed scaling. Existing side RGBA pixels remain identical. Frame zero is front/back rest; side rest remains local frame one. Asset export is not game integration or gameplay QA."
+}
