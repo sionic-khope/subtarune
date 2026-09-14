@@ -112,18 +112,29 @@ export class Sound {
     if (missing.length) console.warn('[audio] 아직 디코드 안 된 음성:', missing.join(','));
   }
 
-  /** assets/audio/sfx/<name>.(mp3|ogg) 가 있으면 등록. 없는 건 조용히 합성 유지 */
+  /** 느린 회선에서 canplaythrough 를 기다리는 상한. 넘겨도 파일을 버리지 않고 등록만 한다 */
+  static SFX_PROBE_TIMEOUT = 8000;
+  /** assets/audio/sfx/<name>.(mp3|ogg) 가 있으면 등록. 없는 건 조용히 합성 유지.
+   *  2026-09-10: 이벤트가 안 오는 파일 하나가 부팅 전체를 멈추지 않게 8초 상한.
+   *  2026-09-15: github.io 첫 로드처럼 70여 개 mp3 가 느리게 오면 8초 안에 canplaythrough 가 안 온 파일이 통째로 버려져
+   *  그 세션 내내 합성음(다른 소리)이 났고 새로고침(캐시)하면 다시 들렸다. 상한을 넘겨도 요소를 등록해 두면 도착한 뒤부터
+   *  파일로 재생된다. 실제 404/디코드 실패(error)만 합성 폴백으로 남긴다. */
   async loadSfxFiles(names) {
     const probe = (src) => new Promise((resolve) => {
       const a = new Audio(); a.preload = 'auto';
-      const tm = setTimeout(() => resolve(null), 8000);   // 이벤트가 안 오는 파일 하나가 부팅 전체를 멈추지 않게 (2026-09-10)
-      a.oncanplaythrough = () => { clearTimeout(tm); resolve(a); };
-      a.onerror = () => { clearTimeout(tm); resolve(null); };
+      let done = false;
+      const settle = (value) => { if (done) return; done = true; clearTimeout(tm); resolve(value); };
+      const tm = setTimeout(() => settle(a), Sound.SFX_PROBE_TIMEOUT);
+      a.oncanplaythrough = () => settle(a);
+      a.onerror = () => settle(null);
       a.src = src;
     });
     await Promise.all(names.map(async (n) => {
       const a = (await probe(`assets/audio/sfx/${n}.mp3`)) || (await probe(`assets/audio/sfx/${n}.ogg`));
-      if (a) this.files[n] = a;
+      if (!a) return;
+      this.files[n] = a;
+      // 상한 뒤에 늦게 실패한 파일은 등록을 풀어 합성으로 돌아간다
+      a.onerror = () => { if (this.files[n] === a) delete this.files[n]; };
     }));
   }
 
