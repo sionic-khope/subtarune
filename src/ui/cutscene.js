@@ -45,6 +45,7 @@ import { MusicCamera } from './music-camera.js';
 import { darkSmokeWaiter } from './dark-smoke.js';
 import { doorTransitWaiter } from '../world/door-transit.js';
 import { youngcleCageDropWaiter } from '../scenes/youngcle-lounge-effects.js';
+import { editorUnionWaiter } from '../scenes/editor-union-effects.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -153,6 +154,7 @@ function parallel(game, nodes) {
 
 /** 노드 → waiter | null(컷신 명령 아님) */
 export function makeWaiter(game, node) {
+  if (node.editorUnion) return editorUnionWaiter(game, node.editorUnion);
   if (node.youngcleCageDrop) return youngcleCageDropWaiter(game, node.youngcleCageDrop);
   if (node.doorTransit) {
     const entry = node.doorTransit;

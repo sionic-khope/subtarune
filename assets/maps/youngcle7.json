@@ -1,0 +1,664 @@
+{
+ "id": "youngcle7",
+ "name": "영클 전함 편집노조 스테이지",
+ "stage": "void_fallen",
+ "bgm": null,
+ "dim": 0.68,
+ "rows": [
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIIIJJJJJ",
+  "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIJJJJJJJ",
+  "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIJJJJJJJ",
+  "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIJJJJJJJ",
+  "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIJJJJJJJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/props/editor_union_audience.png",
+  "assets/props/editor-union-crowd.png",
+  "assets/props/editor-union-glyphs.png",
+  "assets/props/editor-union-mushroom.png",
+  "assets/props/editor-union-speaker.png",
+  "assets/props/editor-union-truss.png",
+  "assets/props/editor-union-curtain.png",
+  "assets/props/editor-union-control.png",
+  "assets/props/editor-union-wall-panel.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 96,
+   "y": 480,
+   "facing": "right"
+  },
+  "left": {
+   "x": 96,
+   "y": 480,
+   "facing": "right"
+  },
+  "after_intro": {
+   "x": 400,
+   "y": 504,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "player": [
+    400,
+    504
+   ],
+   "gyeongsub": [
+    448,
+    504
+   ],
+   "ppaman": [
+    496,
+    504
+   ],
+   "park_guardian_costume": [
+    760,
+    416
+   ],
+   "warm_bidet": [
+    480,
+    416
+   ],
+   "ttuulla": [
+    620,
+    488
+   ],
+   "mini_mario": [
+    960,
+    488
+   ],
+   "editor_one": [
+    608,
+    448
+   ],
+   "editor_two": [
+    704,
+    448
+   ],
+   "editor_three": [
+    800,
+    448
+   ],
+   "editor_four": [
+    896,
+    448
+   ],
+   "upper_passage": [
+    964,
+    40
+   ],
+   "right_passage": [
+    1144,
+    480
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_0",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_1",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 76,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_2",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 152,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_3",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 228,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_4",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 304,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_5",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 128,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_6",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 128,
+   "y": 76,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_7",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 128,
+   "y": 152,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_8",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 128,
+   "y": 228,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_9",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 128,
+   "y": 304,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_10",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 1056,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_11",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 1056,
+   "y": 76,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_12",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 1056,
+   "y": 152,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_13",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 1056,
+   "y": 228,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_14",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 1056,
+   "y": 304,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_15",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 256,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_16",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 384,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_17",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 512,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_18",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 640,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_19",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 768,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_20",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 552,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_21",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 128,
+   "y": 552,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_wall_22",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 992,
+   "y": 324,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_speaker_0",
+   "image": "assets/props/editor-union-speaker.png",
+   "x": 256,
+   "y": 272,
+   "w": 64,
+   "h": 88,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_speaker_1",
+   "image": "assets/props/editor-union-speaker.png",
+   "x": 1088,
+   "y": 256,
+   "w": 64,
+   "h": 88,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_truss_2",
+   "image": "assets/props/editor-union-truss.png",
+   "x": 208,
+   "y": 0,
+   "w": 218,
+   "h": 112,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_truss_3",
+   "image": "assets/props/editor-union-truss.png",
+   "x": 432,
+   "y": 0,
+   "w": 218,
+   "h": 112,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_truss_4",
+   "image": "assets/props/editor-union-truss.png",
+   "x": 656,
+   "y": 0,
+   "w": 218,
+   "h": 112,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_curtain_5",
+   "image": "assets/props/editor-union-curtain.png",
+   "x": 128,
+   "y": 112,
+   "w": 96,
+   "h": 124,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_curtain_6",
+   "image": "assets/props/editor-union-curtain.png",
+   "x": 1088,
+   "y": 96,
+   "w": 96,
+   "h": 124,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage_decor_control_7",
+   "image": "assets/props/editor-union-control.png",
+   "x": 1088,
+   "y": 560,
+   "w": 96,
+   "h": 52,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_stand_structure_0",
+   "x": 212,
+   "y": 80,
+   "w": 696,
+   "h": 12,
+   "sortY": -920
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_stand_structure_1",
+   "x": 212,
+   "y": 92,
+   "w": 12,
+   "h": 180,
+   "sortY": -920
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_stand_structure_2",
+   "x": 896,
+   "y": 92,
+   "w": 12,
+   "h": 180,
+   "sortY": -920
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_stand_structure_3",
+   "x": 212,
+   "y": 272,
+   "w": 696,
+   "h": 16,
+   "sortY": -920
+  },
+  {
+   "type": "prop",
+   "id": "stage_audience",
+   "image": "assets/props/editor_union_audience.png",
+   "x": 224,
+   "y": 96,
+   "w": 672,
+   "h": 176,
+   "solid": false,
+   "sortY": -900,
+   "hidden": true,
+   "unless": "editor_union_stage_done"
+  },
+  {
+   "type": "prop",
+   "id": "stage_audience_ready",
+   "image": "assets/props/editor_union_audience.png",
+   "x": 224,
+   "y": 96,
+   "w": 672,
+   "h": 176,
+   "solid": false,
+   "sortY": -900,
+   "requires": "editor_union_stage_done"
+  },
+  {
+   "type": "sign",
+   "id": "stage_center",
+   "x": 600,
+   "y": 432,
+   "w": 1,
+   "h": 1,
+   "solid": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_rail_0",
+   "x": 32,
+   "y": 404,
+   "w": 288,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_rail_1",
+   "x": 32,
+   "y": 544,
+   "w": 288,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_rail_2",
+   "x": 320,
+   "y": 608,
+   "w": 672,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_rail_3",
+   "x": 992,
+   "y": 404,
+   "w": 192,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_rail_4",
+   "x": 992,
+   "y": 544,
+   "w": 192,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "stage_rail_5",
+   "x": 320,
+   "y": 304,
+   "w": 608,
+   "h": 12
+  },
+  {
+   "type": "npc",
+   "id": "park_guardian_costume",
+   "sprite": "park_guardian_costume",
+   "x": 760,
+   "y": 416,
+   "facing": "left",
+   "wander": 0,
+   "visualScale": 2.66,
+   "hidden": true,
+   "solid": false,
+   "unless": "editor_union_stage_done"
+  },
+  {
+   "type": "npc",
+   "id": "warm_bidet",
+   "sprite": "warm_bidet",
+   "x": 480,
+   "y": 416,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1,
+   "hidden": true,
+   "solid": false,
+   "unless": "editor_union_stage_done"
+  },
+  {
+   "type": "npc",
+   "id": "ttuulla",
+   "sprite": "ttuulla",
+   "x": 620,
+   "y": 488,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.79,
+   "hidden": true,
+   "solid": false,
+   "unless": "editor_union_stage_done"
+  },
+  {
+   "type": "npc",
+   "id": "mini_mario",
+   "sprite": "mini_mario",
+   "x": 960,
+   "y": 488,
+   "facing": "left",
+   "wander": 0,
+   "visualScale": 1,
+   "hidden": true,
+   "solid": false,
+   "unless": "editor_union_stage_done"
+  },
+  {
+   "type": "npc",
+   "id": "park_guardian_ready",
+   "sprite": "park_guardian_costume",
+   "x": 760,
+   "y": 416,
+   "facing": "left",
+   "wander": 0,
+   "visualScale": 2.66,
+   "solid": false,
+   "requires": "editor_union_stage_done",
+   "script": "editor_union_stage_wait"
+  },
+  {
+   "type": "trigger",
+   "id": "editor_union_stage_trigger",
+   "x": 464,
+   "y": 416,
+   "w": 80,
+   "h": 112,
+   "once": true,
+   "unless": "editor_union_stage_done",
+   "script": "editor_union_stage"
+  },
+  {
+   "type": "door",
+   "id": "youngcle7_left",
+   "x": 32,
+   "y": 448,
+   "w": 16,
+   "h": 64,
+   "to": "youngcle6",
+   "spawn": "from_stage",
+   "sfx": false,
+   "interact": false
+  }
+ ]
+}

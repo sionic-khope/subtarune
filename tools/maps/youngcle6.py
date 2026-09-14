@@ -33,11 +33,13 @@ def main() -> None:
                     'assets/props/youngcle_tv_frame.png', 'assets/props/sofa.png',
                     'assets/props/youngcle1_walls.png', 'assets/props/youngcle_angel_door145.png',
                     'assets/props/youngcle_electric_cage.png',
+                    'assets/props/maillard_storage_door.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png'
                       for pose in ('middle-finger', 'question', 'questions', 'facepalm')]],
         'spawns': {
             'start': {'x': 80, 'y': 304, 'facing': 'right'},
             'left': {'x': 80, 'y': 304, 'facing': 'right'},
+            'from_stage': {'x': 548, 'y': 240, 'facing': 'down'},
         },
         'meta': {'connected': True, 'stage': {
             'player': [308, 328], 'gyeongsub': [244, 328], 'ppaman': [372, 328],
@@ -71,6 +73,13 @@ def main() -> None:
              'unless': 'youngcle_lounge_plan_b_done'},
             {'type': 'door', 'id': 'youngcle6_left', 'x': 32, 'y': 288, 'w': 16, 'h': 64,
              'to': 'youngcle_cats', 'spawn': 'right', 'sfx': False, 'interact': False},
+            {'type': 'prop', 'id': 'youngcle6_stage_door_image',
+             'image': 'assets/props/maillard_storage_door.png',
+             'x': 512, 'y': 96, 'w': 96, 'h': 96, 'solid': False, 'sortY': -900},
+            {'type': 'door', 'id': 'youngcle6_to_stage', 'x': 528, 'y': 180, 'w': 64, 'h': 32,
+             'to': 'youngcle7', 'spawn': 'left', 'requires': 'youngcle_lounge_plan_b_done',
+             'lockedScript': 'youngcle_left_door_locked',
+             'sfx': 'plug', 'interact': True, 'solid': False},
         ],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

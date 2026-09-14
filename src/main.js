@@ -44,6 +44,7 @@ import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
 import { drawYoungcleLoungeEffects } from './scenes/youngcle-lounge-effects.js';
+import { clearEditorUnionStage, drawEditorUnionWorld, drawEditorUnionLight, drawEditorUnionLabels, drawEditorUnionOverlay } from './scenes/editor-union-effects.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -137,7 +138,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'editor_union_bam']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -688,6 +689,7 @@ class Game {
 
   /** TV cancellation releases the current runner before map/title/QA reconstructs actors. */
   finishTvBroadcast(abort = false) {
+    if (abort) clearEditorUnionStage(this, true);
     if (abort && this.tvBroadcast) {
       this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
       this.textbox.close(); this.background = [];
@@ -1058,10 +1060,12 @@ class Game {
     if (this.booms.length) this.drawBooms(ctx, cam);
     this.bubble.draw(ctx, cam);
     this.vortex.draw(ctx, cam);
+    drawEditorUnionWorld(ctx, this, cam);
     // 맵 JSON `dim: 0~1` — 살짝 어두운 공간(거실 등). 대화창/UI 는 어두워지지 않는다
     const dim = MAPS[this.mapId]?.dim;
     const light = MAPS[this.mapId]?.spotlight;
-    if (light) {
+    const stageLit = drawEditorUnionLight(ctx, this, cam);
+    if (!stageLit && light) {
       ctx.save(); ctx.translate(light.x - cam.x, light.y - cam.y); ctx.scale(1, light.ry / light.rx);
       const shade = ctx.createRadialGradient(0, 0, light.rx * 0.35, 0, 0, light.rx);
       shade.addColorStop(0, 'rgba(0,0,0,0)'); shade.addColorStop(1, `rgba(0,0,0,${dim || 0})`);
@@ -1070,7 +1074,8 @@ class Game {
       glow.addColorStop(0, `rgba(220,202,255,${light.alpha})`); glow.addColorStop(1, 'rgba(220,202,255,0)');
       ctx.fillStyle = glow; ctx.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2);
       ctx.restore();
-    } else if (dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
+    } else if (!stageLit && dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
+    drawEditorUnionLabels(ctx, this, cam);
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
@@ -1083,6 +1088,7 @@ class Game {
     this.shipPursuitAmbient?.draw(ctx);
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
+    drawEditorUnionOverlay(ctx, this);
     if (this.prompt) this.drawPrompt(ctx);
     if (this.mash) this.drawMash(ctx);
     if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
@@ -1242,7 +1248,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-14.152';
+export const BUILD = '2026-09-14.153';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

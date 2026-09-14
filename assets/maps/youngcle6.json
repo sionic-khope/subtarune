@@ -33,6 +33,7 @@
   "assets/props/youngcle1_walls.png",
   "assets/props/youngcle_angel_door145.png",
   "assets/props/youngcle_electric_cage.png",
+  "assets/props/maillard_storage_door.png",
   "assets/illustrations/youngcle-tv-middle-finger.png",
   "assets/illustrations/youngcle-tv-question.png",
   "assets/illustrations/youngcle-tv-questions.png",
@@ -48,6 +49,11 @@
    "x": 80,
    "y": 304,
    "facing": "right"
+  },
+  "from_stage": {
+   "x": 548,
+   "y": 240,
+   "facing": "down"
   }
  },
  "meta": {
@@ -212,6 +218,32 @@
    "spawn": "right",
    "sfx": false,
    "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "youngcle6_stage_door_image",
+   "image": "assets/props/maillard_storage_door.png",
+   "x": 512,
+   "y": 96,
+   "w": 96,
+   "h": 96,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "door",
+   "id": "youngcle6_to_stage",
+   "x": 528,
+   "y": 180,
+   "w": 64,
+   "h": 32,
+   "to": "youngcle7",
+   "spawn": "left",
+   "requires": "youngcle_lounge_plan_b_done",
+   "lockedScript": "youngcle_left_door_locked",
+   "sfx": "plug",
+   "interact": true,
+   "solid": false
   }
  ]
 }

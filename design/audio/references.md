@@ -64,6 +64,18 @@ BUILD127 공격음 확정: 사용자 ‘기존사운드 활용해도됨’에 �
 
 사용자 “산다…언더테일이나 델타룬 공식사운드랑 똑같이” 요청으로 구매 성공에 `shop_buy.mp3`를 사용한다. 원본은 UNDERTALE `snd_buyitem.wav`: [보관 저장소 고정 리비전](https://github.com/znm2500/Undertale-Engine-Ultra/blob/a0d77e3c57ef8c15aa12597893dec28d174021ae/sounds/snd_buyitem/snd_buyitem.wav). 배급사 공식 다운로드가 아닌 게임 음원 보관본이다. 잘라내기·합성·피치 변경 없이 `ffmpeg -i snd_buyitem.wav -codec:a libmp3lame -q:a 2 shop_buy.mp3`로 변환했다(약0.646초). `src/main.js loadSfxFiles` 등록, `Shop._feedback`의 구매 성공만 재생. 판매는 기존 `item`, 실패는 `cancel` 유지.
 
+## 편집노조 스테이지 (BUILD153, 2026-09-14)
+
+사용자 지정 [j69knNADinw](https://www.youtube.com/watch?v=j69knNADinw)의 포맷251 전체를 `bgm/editor_union_stage.mp3`로 변환했다. yt-dlp 메타데이터 제목은 `03. And Now For Today’s Sponsors…! (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 표시명은 `Toby Fox`다. 48kHz stereo,34.922813초,791732바이트,평균−13.6dBFS/peak−0.1dBFS. 자르기·피치·속도·볼륨·페이드 가공 없이 시작부터 전체 사용한다. 맵 진입은 무음이며 최초 인사 시점에서 시작하도록 사전 로드한다.
+
+마리오 점프는 [The Mushroom Kingdom의 Super Mario Bros.(NES) 음원 목록](https://themushroomkingdom.net/media/smb/wav)에 Deezer 제공 `Jump (small)`로 표시된 [원본 WAV](https://themushroomkingdom.net/sounds/wav/smb/smb_jump-small.wav)를 사용한다. 팬 보관본이며 Nintendo 공식 배포 페이지라고 주장하지 않는다. `sfx/mario_jump.mp3`는44.1kHz mono,0.590113초,평균−21.9dBFS/peak−10.9dBFS. 전체 길이·원래 피치/속도/음량을 유지한 MP3변환이다. 기존 DELTARUNE `jump`는 그대로 둔다.
+
+스포트라이트·착지·흙·박수·회복은 기존 `plug/chime/explosion/baron_slam/scrape/thud/maillard_applause/heal`을 재사용한다. 글자별 `editor_union_bam`은 기존 `fanfare`의0.90~1.32초 화음과 `baron_slam`의 앞0.42초를 각각0.65/0.55게인으로 섞고 짧게 감쇠한0.42초 효과음이다(44.1kHz mono,평균−18.5dBFS/peak−6.5dBFS).0.7초 글자 간격에 꼬리가 겹치지 않으며 원본 공용 파일은 유지한다. 비데와 파크 인형탈은148목소리를 유지하며 `VOICES.ttuulla`만150원본 Eddy ‘히히’ 블립에 등록했다(rate1/level0.85/cut:false/minGap0.20). 표시 화자 `뚜울라알라`는 voice키`ttuulla`를 쓴다. 새 실제 인물 목소리 복제는 없다.
+
+출처·정확한 변환 명령·원본과 결과 SHA256·장면별 음량 권장은 `assets/source/stage153/audio/README.md`, 뚜울라 제작 근거는 `assets/source/ttuulla150/audio/manifest.json`에 보존한다. 새 파일 ffprobe/전체 디코드 검증은 실제 게임 재생·주관적 청취 평가와 구분한다. 원본 권리는 각 권리자에게 있으며 출처 표기가 이용허락을 뜻하지 않는다.
+
+후속 ‘파크가디언 인형탈 목소리 악질맨 목소리마냥 게인도 좀’ 요청: 인형탈 원본 MP3·공주풍410→450Hz·0.16초 길이는 보존하고 디코드 시 한 번만 `0.64*tanh(2.1*sample)` 소프트 드라이브를 적용한다. `drive:2.1,driveLevel:0.64`는 `park_guardian_costume`에만 있고 rate1/level0.85/간격0.18은 유지한다. 실제7056표본 측정 평균−17.565→−15.484dBFS(+2.081dB), peak−11.046→−9.408dBFS, 클리핑0, 길이·영점 교차 유지. 악질맨의 낮은 톤 자체를 복제하지 않고 살짝 강한 질감과 게인만 보탰다. 파크 본체·비데·악질맨·다른 목소리는 변경하지 않는다.
+
 ## 영클전함 라운지 네 목소리 (BUILD148, 2026-09-14)
 
 비데·파크가디언 인형탈·파크가디언 본체는 `tools/audio/lounge148_voices.mjs`의 기본파/배음·두 공명 대역으로 만든 원본 비언어 모음 블립이다. 럭키가이는 사용자가 첫 합성안을 ‘디지털음 같다’고 평가하여 macOS 기본 한국어 Eddy TTS ‘헤’ 단음으로 교체했다. 외부 음원이나 실존 인물 녹음·목소리 복제는 사용하지 않았다. 비데는 사용자의 아스고어 같은 굵은 음색 요청을 낮고 둥근 비음으로 해석한 원본이며 아스고어 게임 샘플 복제는 아니다.

@@ -10,9 +10,11 @@ import { TvBroadcast } from '../../src/world/tv-broadcast.js';
 import { YOUNGCLE_TV as TV } from '../../src/data/youngcle-tv.js';
 import { youngcle_intro, youngcle_tv_off } from '../../src/data/cutscenes/youngcle_intro.js';
 import { QA_POINTS, stateFromFlags, storyBgm } from '../../src/core/story.js';
+import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
 
 const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
 const Game = runInNewContext(main.slice(main.indexOf('class Game {'), main.indexOf('// ── 부트')) + '\nGame;', {
+  clearEditorUnionStage,
   Input: { poll() {}, just: () => false }, TEXT_SPEEDS: { normal: { delay: 0.045 } },
 });
 const room = JSON.parse(readFileSync(new URL('../../assets/maps/youngcle1.json', import.meta.url)));

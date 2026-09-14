@@ -12,10 +12,11 @@ import { maillard_captain_enter } from '../../src/data/cutscenes/captain_room.js
 import { shipPursuitBacktrack } from '../../src/data/scripts/ship-pursuit.js';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
 import { captain_attack } from '../../src/data/cutscenes/captain_attack.js';
 
 const mainSource = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
-const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;');
+const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;', { clearEditorUnionStage });
 
 function fixture() {
   const sounds = [];

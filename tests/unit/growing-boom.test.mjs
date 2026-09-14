@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
 import { darkSmokeWaiter } from '../../src/ui/dark-smoke.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from '../../src/data/cutscenes/captain_reveal.js';
 
@@ -11,7 +12,7 @@ const room = JSON.parse(readFileSync(new URL('../../assets/maps/maillard_captain
 const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source.indexOf('// ── 부트')) + '\nGame;', {
   Input: { poll() {}, just: () => false }, TEXT_SPEEDS: [{ delay: 0.03 }],
   MAPS: { maillard_captain: room, other: { entities: [], spawns: { start: {} } } },
-  MAILLARD_CART: {}, darkSmokeWaiter, CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL,
+  MAILLARD_CART: {}, darkSmokeWaiter, CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL, clearEditorUnionStage,
   TileMap: class { bake() {} }, createEntity: definition => ({ ...definition, def: definition }),
 });
 

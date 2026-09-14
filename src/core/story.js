@@ -274,3 +274,12 @@ QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6_after_plan_b', desc: '영클 
   map: 'youngcle6', spawn: 'left',
   flags: { ...catsCheckpoint.flags, youngcle_lounge_plan_b_done: true },
   party: [...catsCheckpoint.party] });
+
+const planBCheckpoint = QA_POINTS.find(point => point.id === 'youngcle6_after_plan_b');
+QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7', desc: '영클 전함: 편집노조 스테이지 진입',
+  map: 'youngcle7', spawn: 'left', flags: { ...planBCheckpoint.flags },
+  party: [...planBCheckpoint.party] });
+QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7_after_intro', desc: '영클 전함: 편집노조 소개 이후',
+  map: 'youngcle7', spawn: 'after_intro',
+  flags: { ...planBCheckpoint.flags, editor_union_stage_done: true },
+  party: [...planBCheckpoint.party] });

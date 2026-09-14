@@ -1,0 +1,41 @@
+{
+  "base_bounds": [
+    30,
+    145,
+    2064,
+    620
+  ],
+  "alpha_threshold": 64,
+  "base_size": [
+    672,
+    176
+  ],
+  "base_interpolation": "NEAREST",
+  "atlas_row_bands": [
+    [
+      0,
+      297
+    ],
+    [
+      297,
+      590
+    ],
+    [
+      590,
+      888
+    ],
+    [
+      888,
+      1190
+    ]
+  ],
+  "atlas_cell": [
+    340,
+    320
+  ],
+  "atlas_padding": [
+    5,
+    8
+  ],
+  "atlas_regroup_resized": false
+}

@@ -25,8 +25,9 @@ export const VOICES = {
   youngcle:  { freq: 575, wave: 'triangle', dur: 0.16, jitter: 0, gain: 0.18, cutoff: 2200, rate: 0.96, level: 1, cut: false, minGap: 0.12 },
   expelled_viewer: { freq: 180, wave: 'sawtooth', dur: 0.135, jitter: 8, gain: 0.18, cutoff: 2800, rate: 1, level: 0.8, cut: false, minGap: 0.15 },
   warm_bidet: { freq: 84, wave: 'triangle', dur: 0.17, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.19 },
+  ttuulla: { freq: 520, wave: 'triangle', dur: 0.18, jitter: 8, gain: 0.18, cutoff: 4200, rate: 1, level: 0.85, cut: false, minGap: 0.20 },
   lucky_guy: { freq: 190, wave: 'triangle', dur: 0.19, jitter: 8, gain: 0.18, cutoff: 2400, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.21 },
-  park_guardian_costume: { freq: 430, wave: 'triangle', dur: 0.16, jitter: 8, gain: 0.18, cutoff: 2600, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.18 },
+  park_guardian_costume: { freq: 430, wave: 'triangle', dur: 0.16, jitter: 8, gain: 0.18, cutoff: 2600, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.18, drive: 2.1, driveLevel: 0.64 },
   park_guardian: { freq: 100, wave: 'triangle', dur: 0.175, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.195 },
   red:       { freq: 150, wave: 'sine',     dur: 0.12, jitter: 3,  gain: 0.2,   cutoff: 900,  rate: 0.62, level: 1.2, cut: true, minGap: 0.10 },   // 레드(청록숲9 문지기) — 파일: 언더테일 snd_txt2(voices/red.mp3 = mystery 와 같은 클립)를 0.62 배로 깊게, 드문드문. 합성 사각파(2026-09-11 1차)는 '마음에 안 듦'
   blue:      { freq: 118, wave: 'sine',     dur: 0.13, jitter: 2,  gain: 0.2,   cutoff: 800,  rate: 0.52, level: 1.25, cut: true, minGap: 0.13 },   // 블루 — 같은 클립을 더 깊게(0.52), 더 드문   // 박용준 — 파일 assets/audio/voices/yongjun.mp3(유튜브 쇼츠 LWx1CyyfvvI 시작 직후 0.34s '어?'), 없으면 이 합성
@@ -92,7 +93,17 @@ export class Sound {
     try {
       for (const [n, raw] of Object.entries(this.voiceRaw)) {
         if (this.voiceBuf[n]) continue;
-        try { this.voiceBuf[n] = await this.ctx.decodeAudioData(raw.slice(0)); } catch (e) { console.warn('[audio] 음성 디코드 실패', n, e); }
+        try {
+          const buffer = await this.ctx.decodeAudioData(raw.slice(0));
+          const voice = VOICES[n];
+          if (voice?.drive) {
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+              const samples = buffer.getChannelData(channel);
+              for (let i = 0; i < samples.length; i++) samples[i] = Math.tanh(samples[i] * voice.drive) * voice.driveLevel;
+            }
+          }
+          this.voiceBuf[n] = buffer;
+        } catch (e) { console.warn('[audio] 음성 디코드 실패', n, e); }
       }
     } finally { this._decoding = false; }
     const missing = Object.keys(this.voiceRaw).filter((n) => !this.voiceBuf[n]);

@@ -1,0 +1,37 @@
+{
+  "generator": "builtin imagegen",
+  "raw": "processed/raw-sheet.png",
+  "raw_identifier": "exec-c7c1667a-5075-445f-ba09-5fb914949286.png",
+  "dimensions": {
+    "speaker": [
+      64,
+      88
+    ],
+    "truss": [
+      218,
+      112
+    ],
+    "curtain": [
+      96,
+      124
+    ],
+    "control": [
+      96,
+      52
+    ]
+  },
+  "transparent_padding": [
+    0,
+    0
+  ],
+  "resize": "uniform contain with NEAREST",
+  "final_alpha_threshold": 64,
+  "wall_source": "native-wall-source.png",
+  "wall_crop": [
+    32,
+    24,
+    128,
+    76
+  ],
+  "wall_pixels_unchanged": true
+}

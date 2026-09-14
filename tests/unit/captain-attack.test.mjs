@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
 import { captain_attack as nodes } from '../../src/data/cutscenes/captain_attack.js';
 import { SHIP_ASSAULT } from '../../src/data/ship-assault.js';
 import { ShipAssault } from '../../src/scenes/ship-assault.js';
@@ -11,7 +12,7 @@ import { makeWaiter } from '../../src/ui/cutscene.js';
 
 const mainSource = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
 const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;', {
-  ShipAssault, SHIP_ASSAULT, freeSpot, SCREEN_H,
+  ShipAssault, SHIP_ASSAULT, freeSpot, SCREEN_H, clearEditorUnionStage,
 });
 
 test('test_captain_attack_preserves_user_dialogue_and_has_no_battle_reward_or_party_change', () => {

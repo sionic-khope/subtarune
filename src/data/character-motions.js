@@ -1,6 +1,30 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
 export const CHARACTER_MOTIONS = {
+  park_guardian_costume: {
+    bow: {
+      src: 'assets/sprites/park-guardian-bow.png',
+      scale: 27 / 60,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 8 }, (_, i) => ({ rect: [(i % 2) * 128, Math.floor(i / 2) * 128, 128, 128], pivot: [64, 119], duration: 0.18 })),
+    },
+  },
+  warm_bidet: {
+    axe_strike: {
+      src: 'assets/sprites/warm-bidet-axe-strike.png',
+      scale: 0.96,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [(i % 2) * 128, Math.floor(i / 2) * 128, 128, 128], pivot: [64, 119], duration: [0.22, 0.18, 0.38, 0.24][i] })),
+    },
+  },
+  ttuulla: {
+    burrow: {
+      src: 'assets/sprites/ttuulla-burrow.png',
+      scale: 26.5 / 75,
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [(i % 2) * 128, Math.floor(i / 2) * 128, 128, 128], pivot: [64, 119], duration: [0.24, 0.2, 0.2, 0.22][i] })),
+    },
+  },
   hyungsub: {
     attack: {
       src: BATTLE_SPRITES.hyungsub.src,
