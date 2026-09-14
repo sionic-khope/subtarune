@@ -1,0 +1,47 @@
+{
+  "size": [
+    256,
+    256
+  ],
+  "cell": [
+    64,
+    64
+  ],
+  "pivot": [
+    32,
+    61
+  ],
+  "rows": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "resampling": "NEAREST",
+  "frame_count": 16,
+  "changed_pixels_per_frame": [
+    249,
+    247,
+    244,
+    255,
+    0,
+    0,
+    0,
+    0,
+    229,
+    236,
+    232,
+    233,
+    231,
+    229,
+    232,
+    229
+  ],
+  "changed_pixels_total": 2846,
+  "outside_face_changed_pixels": 0,
+  "outside_face_changed": false,
+  "alpha_identical": true,
+  "back_row_identical": true,
+  "empty_frames": [],
+  "edge_touch_frames": []
+}
