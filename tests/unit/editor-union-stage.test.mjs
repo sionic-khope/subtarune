@@ -112,7 +112,10 @@ test('test_stage_preserves_user_dialogue_and_enters_requested_battle', () => {
   const text = nodes.filter(node => node.text).map(node => node.text);
   assert.equal(text[0], '* ㅁ..뭐지 여긴?');
   assert.equal(text.at(-1), '* 첫번째 시련!! 파크가디언을 이겨라!!! 들어와 ㅅㅂ새끼들아.');
-  for (const expected of ['* 반갑습니다 형님들~~~~~~~~', '* 인 면 견 ~', '* 편집노조다!', '* ㅋㅋ뒤졌다', '* 이따봐요 악덕사장']) assert.ok(text.includes(expected));
+  for (const expected of ['* 반갑습니다 형님들~~~~~~~~', '* 인 면 견 ~{w=0.7}{n}...{w=0.55} ...{w=0.55} ...', '* 편집노조다!', '* ㅋㅋ뒤졌다', '* 이따봐요 악덕사장']) assert.ok(text.includes(expected));
+  // 2026-09-15: 점 세 개는 별도 상자가 아니라 '인 면 견 ~' 상자 안에 이어 뜨고, 바로 다음 노드가 그 상자를 날린다
+  const nameIndex = nodes.findIndex(node => node.text?.startsWith('* 인 면 견 ~'));
+  assert.equal(nodes[nameIndex + 1].parallel?.some(child => child.editorUnion?.kind === 'box'), true);
   assert.deepEqual(nodes.find(node => node.battle).battle, { enemies: ['park_guardian'], bgm: 'park_guardian', bg: 'editor_union_stage', flag: 'park_guardian_won' });
   assert.equal(editor_union_stage_wait.find(node => node.text).text, text.at(-1));
   const glyphs = nodes.filter(node => node.editorUnion?.kind === 'glyph').map(node => node.editorUnion);

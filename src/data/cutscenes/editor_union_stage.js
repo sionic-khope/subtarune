@@ -98,9 +98,9 @@ export const editor_union_stage = Object.assign([
   K('그리고~ 저는 여기에 있는 여러분들의 불안감을 해소시켜주기위한'),
   K('제 이름은 바로 DJ ~'),
   P('인면견'),
-  K('인 면 견 ~'),
   { bgmPause: 0.12 },
-  K('... ... ... ?'),
+  // 2026-09-15 사용자: '인 면 견 ~' 뒤 같은 대화창 안에 ... ... ... 이 하나씩 뜨고, 그 상자를 통째로 날린다
+  K('인 면 견 ~{w=0.7}{n}...{w=0.55} ...{w=0.55} ...'),
   { parallel: [{ hop: PARK, height: 36, duration: 0.5, sfx: false },
     { editorUnion: { kind: 'box', duration: 0.78 } }, { sfx: 'explosion', volume: 0.65 }, { shake: 0.32, amp: 5 }] },
   K('아니아니 뭔 개소리임 저는 파크가디언입니다.'),
