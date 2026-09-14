@@ -1,0 +1,59 @@
+{
+  "asset": "assets/projectiles/park-cleaning-broom.png",
+  "dimensions": [
+    64,
+    128
+  ],
+  "bounds": [
+    17,
+    8,
+    47,
+    124
+  ],
+  "pivot": [
+    32,
+    124
+  ],
+  "maxEnvelope": [
+    44,
+    116
+  ],
+  "frames": 1,
+  "duration": "runtime movement",
+  "scale": 0.07723035952063914,
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "magentaPixels": 0,
+  "edgeTouch": false,
+  "removedChromaFringePixels": 22,
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-4bd2743ffe22d5b2/bin/python3",
+    "/Users/khope@sionic.ai/.codex/skills/generate2dsprite/scripts/generate2dsprite.py",
+    "process",
+    "--input",
+    "/private/tmp/subtarune-park157/assets/source/park157/cleaning/raw/broom.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/private/tmp/subtarune-park157/assets/source/park157/cleaning/broom",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.84",
+    "--align",
+    "center",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc"
+  ]
+}

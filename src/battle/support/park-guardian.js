@@ -16,7 +16,7 @@ export function createParkGuardianSupport(battle) {
   if (!enemy) return null;
   let unlocked = false, introduced = false, charge = 0, phase = 'costume', turns = 0, skipBoundary = false;
   let dogImage = null, emptyImage = null;
-  let costumeTurns = 0, ordinarySlots = 0, trialUsed = false;
+  let costumeTurns = 0, ordinarySlots = 0, trialCount = 0;
   const standing = () => battle.alive().find(m => m.id === 'ppaman' && m.hp > 0);
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   return {
@@ -27,7 +27,8 @@ export function createParkGuardianSupport(battle) {
     get turns() { return turns; },
     get costumeTurns() { return costumeTurns; },
     get ordinarySlots() { return ordinarySlots; },
-    get trialUsed() { return trialUsed; },
+    get trialUsed() { return trialCount > 0; },
+    get trialCount() { return trialCount; },
     get emptyImage() { return emptyImage; },
     get ready() { return unlocked && phase === 'costume' && charge === C.requiredHits && !!standing() && live(); },
     get hint() { return !standing() ? L.battle_strip_down : phase !== 'costume' ? L.battle_strip_exposed(turns) : L.battle_strip_wait(C.requiredHits - charge); },
@@ -37,7 +38,7 @@ export function createParkGuardianSupport(battle) {
     },
     reset() {
       unlocked = false; introduced = false; charge = 0; phase = 'costume'; turns = 0; skipBoundary = false;
-      costumeTurns = 0; ordinarySlots = 0; trialUsed = false;
+      costumeTurns = 0; ordinarySlots = 0; trialCount = 0;
       enemy.formDef = null; enemy.formImage = null; enemy.patternPose = null;
     },
     blocksDamage(target) { return target === enemy && phase !== 'dog'; },
@@ -45,8 +46,8 @@ export function createParkGuardianSupport(battle) {
     enemyModeFor(target) {
       if (target !== enemy || phase !== 'costume' || !live()) return null;
       costumeTurns++;
-      if (!trialUsed && costumeTurns === C.costumeSchedule.trialTurn) {
-        trialUsed = true;
+      if (costumeTurns === C.costumeSchedule.trialTurns[trialCount]) {
+        trialCount++;
         return 'park_witch_trial';
       }
       ordinarySlots++;
@@ -54,12 +55,22 @@ export function createParkGuardianSupport(battle) {
       enemy.patternIdx = (ordinarySlots - 1 - Math.floor(ordinarySlots / C.costumeSchedule.razmaEvery)) % enemy.def.patterns.length;
       return null;
     },
-    poseFor(target) { return target === enemy && phase === 'costume' ? { sheet: charge >= 9 ? 'adjust' : charge >= 6 ? 'slipping' : charge >= 3 ? 'loose' : 'dance' } : null; },
+    poseFor(target) {
+      if (target !== enemy || phase !== 'costume') return null;
+      const pose = target.patternPose;
+      if (pose) return pose.sheet === 'attack' ? { ...pose, sheet: charge >= 9 ? 'attackAdjust' : charge >= 6 ? 'attackSlipping' : charge >= 3 ? 'attackLoose' : 'attack' } : pose;
+      return { sheet: charge >= 9 ? 'adjust' : charge >= 6 ? 'slipping' : charge >= 3 ? 'loose' : 'dance' };
+    },
     onContact(target, damage, source) {
       if (target === enemy && live() && phase === 'costume' && damage > 0 && source === 'ordinary') charge = Math.min(C.requiredHits, charge + 1);
     },
     patternsFor(target) { return target === enemy && phase === 'dog' ? enemy.def.forms.dog.patterns : null; },
-    speechFor(target) { return target === enemy && phase === 'dog' ? enemy.def.forms.dog.lines.speak : null; },
+    speechFor(target) {
+      if (target !== enemy) return null;
+      if (phase === 'dog') return [enemy.def.forms.dog.lines.speak[C.exposedTurns - turns]];
+      const prep = enemy.def.patterns[enemy.patternIdx % enemy.def.patterns.length]?.prep;
+      return phase === 'costume' && prep ? [prep] : null;
+    },
     idleFor(target) { return target === enemy && phase === 'dog' ? [L.battle_strip_exposed(turns)] : null; },
     draw(ctx) { if (phase === 'dog' && !battle.gimmick && live()) drawParkCostume(ctx, emptyImage, enemy, 1); },
     action() {

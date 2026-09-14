@@ -1,0 +1,59 @@
+{
+  "asset": "assets/projectiles/park-cleaning-dustpan.png",
+  "dimensions": [
+    96,
+    64
+  ],
+  "bounds": [
+    8,
+    12,
+    88,
+    60
+  ],
+  "pivot": [
+    48,
+    60
+  ],
+  "maxEnvelope": [
+    84,
+    48
+  ],
+  "frames": 1,
+  "duration": "runtime movement",
+  "scale": 0.0761904761904762,
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "magentaPixels": 0,
+  "edgeTouch": false,
+  "removedChromaFringePixels": 7,
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-4bd2743ffe22d5b2/bin/python3",
+    "/Users/khope@sionic.ai/.codex/skills/generate2dsprite/scripts/generate2dsprite.py",
+    "process",
+    "--input",
+    "/private/tmp/subtarune-park157/assets/source/park157/cleaning/raw/dustpan.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/private/tmp/subtarune-park157/assets/source/park157/cleaning/dustpan",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.84",
+    "--align",
+    "center",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc"
+  ]
+}

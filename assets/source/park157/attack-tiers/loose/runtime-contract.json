@@ -1,0 +1,100 @@
+{
+  "tier": "loose",
+  "sheet": [
+    192,
+    288
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "frames": 6,
+  "columns": 2,
+  "pivot": [
+    48,
+    90
+  ],
+  "fps": 8,
+  "bounds": [
+    [
+      28,
+      14,
+      83,
+      90
+    ],
+    [
+      22,
+      17,
+      78,
+      90
+    ],
+    [
+      24,
+      13,
+      80,
+      90
+    ],
+    [
+      13,
+      15,
+      79,
+      90
+    ],
+    [
+      14,
+      15,
+      82,
+      90
+    ],
+    [
+      28,
+      13,
+      83,
+      90
+    ]
+  ],
+  "rawPixelScale": 0.25,
+  "scalePolicy": "128/raw-cell width from accepted anchor; no per-frame fit",
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "edgeTouch": 0,
+  "pasteClamping": 0,
+  "qcScope": "Each final96px frame: pre-paste extent, post-paste opaque bbox, baseline and binaryalpha assertions",
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-125d4214c4aa7ded/bin/python3",
+    "/Users/khope@sionic.ai/.codex/skills/generate2dsprite/scripts/generate2dsprite.py",
+    "process",
+    "--input",
+    "/private/tmp/subtarune-park157/assets/source/park157/attack-tiers/loose-raw.png",
+    "--target",
+    "asset",
+    "--mode",
+    "attack",
+    "--rows",
+    "3",
+    "--cols",
+    "2",
+    "--output-dir",
+    "/private/tmp/subtarune-park157/assets/source/park157/attack-tiers/loose/standard",
+    "--cell-size",
+    "128",
+    "--fit-scale",
+    "0.84",
+    "--align",
+    "feet",
+    "--shared-scale",
+    "--scale-strategy",
+    "preserve",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc",
+    "--max-body-scale-cv",
+    "0.08",
+    "--max-anchor-y-std",
+    "0.05"
+  ]
+}

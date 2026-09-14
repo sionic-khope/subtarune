@@ -326,6 +326,10 @@ BUILD138 후속 ‘너무 하이톤…발소리같지않다’: 같은 오리지
 
 사용자 ‘바보같은 목소리로…여자’ 요청. macOS 기본 한국어 여성 TTS Yuna로 ‘냐’ 한 음절을 `say -v Yuna -r 160`으로 생성했다. 실존 인물이나 사용자 제공 영상의 음성을 복제하지 않는다. 원본은 `assets/source/captain122/voice/yuna-nya.aiff`(22050Hz), 실행 파일은 `assets/audio/voices/eunbyeol.mp3`다. 첫 무음을 -38dB 기준으로 제거한 뒤1.12배 피치,44100Hz,0.17초,시작8ms/끝35ms 페이드,볼륨0.8로 가공했다. VOICES.eunbyeol은 rate1/level0.85/cut:false/minGap0.12로 전체 짧은 샘플을 재생한다. 밝고 둥글게 튀는 여성 블립 의도이며 말 전체를 읽는 TTS는 아니다. ffmpeg 디코드/peak -7.6dBFS 확인, 실제 대화의 AudioBuffer 로드·재생 연결을 확인했다. 주관적 목소리 인상은 사용자의 청취 피드백으로 조정한다.
 
+# 라즈마 비명·문장 원음 (BUILD157, 2026-09-14)
+
+BUILD157 라즈마 추가 원음: 사용자 지정 [라즈마 전라도](https://www.youtube.com/watch?v=r_rgJvc0_Cc), 표시 업로더 GOMES BARROS ADAUTO,2023-06-24. 원본0.55–1.60초 비명과1.94–4.50초 문장을 각각 `park_razma_scream.mp3`(1.05초), `park_razma_jeolla.mp3`(2.56초)로 추출했다. 음높이·속도 변경 없이 +2dB 입력 게인/짧은 경계 페이드/피크 리미터를 사용했다. 원본이 이미0dBFS를 넘어서 평균은 실제로0.38/0.09dB만 증가했고, 최종 디코드 피크−1.23/−0.92dBFS 및 full-scale 이상 표본0개다. 정확한 출처·ASR 한계·재현·해시는 `assets/source/park157/audio/README.md`에 있다. 공식 이용허락이나 사람의 직접 청취를 확인했다고 주장하지 않는다.
+
 # 영클 TV 음성·전원 효과음 (BUILD139, 2026-09-13)
 
 후속 음성 간격 수정(2026-09-13): 사용자 ‘살짝 끊긴다, 톤은 좋다’에 따라 아래139의 `minGap:0.17`만 **0.12**로 줄였다. 기본 TextBox 글자 간격45ms에서 실제 블립 시작 간격은180→135ms다.160ms 파일 뒤의 무음 간격을 제거하고 기존8ms 단선 교차 페이드로 다음 블립을 잇는다. **사용자가 지정한 `4wSPkpzSQQE`38.10~38.26초 원본 MP3·SHA256·rate0.96·level1은 그대로**이며 다른 Queen 음원으로 교체하지 않았다. 다른 화자·BGM·SFX·글자 속도도 유지한다.

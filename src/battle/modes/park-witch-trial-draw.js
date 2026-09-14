@@ -1,6 +1,7 @@
 import { PARK_WITCH_TRIAL as C } from '../../data/park-witch-trial.js';
 import { FONT } from '../../ui/font.js';
 import { menuTextLines } from '../../ui/menu-layout.js';
+import { BATTLE_BGS } from '../backgrounds.js';
 
 const clamp = n => Math.max(0, Math.min(1, n));
 const ease = n => 1 - (1 - clamp(n)) ** 3;
@@ -18,9 +19,10 @@ function text(ctx, value, x, y, width, highlight = '') {
   }
 }
 
-function judge(ctx, art, time) {
+function judge(ctx, art, phase, time) {
   if (!art.judge.image) return;
-  const frame = Math.floor(time * 4) % 4;
+  const hammer = phase === 'declare-effect' || phase === 'verdict';
+  const frame = hammer ? Math.min(3, Math.floor(time * 6)) : 0;
   ctx.drawImage(art.judge.image, frame % 2 * 128, Math.floor(frame / 2) * 128, 128, 128, 176, 6, 128, 128);
 }
 
@@ -55,41 +57,55 @@ function objection(ctx, state) {
 
 /** Render only; gameplay owns phase, selection, timer and all HP changes. */
 export function drawParkTrial(ctx, state) {
-  const { phase, phaseTime, elapsed, shown, remaining, verdict, art, soul, board } = state;
+  const { phase, phaseTime, shown, visibleChoices, choiceShown, remaining, verdict, art, soul, board, battle, copy, choices } = state;
   ctx.save(); ctx.imageSmoothingEnabled = false;
+  const transition = phase === 'enter' || phase === 'leave';
+  const opacity = phase === 'enter' ? ease(phaseTime / C.timing.enter) : phase === 'leave' ? 1 - ease(phaseTime / C.timing.leave) : 1;
+  ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 480, 360);
+  if (transition && battle?.cfg) {
+    BATTLE_BGS[battle.cfg.bg]?.(ctx, battle);
+    battle.support?.draw?.(ctx);
+    for (const enemy of battle.enemies) battle.drawEnemy(ctx, enemy);
+    for (const member of battle.members) battle.drawMember(ctx, member);
+    battle.drawHpStrip(ctx);
+  }
+  ctx.globalAlpha = opacity;
   ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 480, 360);
   ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
   const rect = phase === 'enter' ? board : C.board;
   ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
   ctx.strokeRect(Math.round(rect.x) + 1, Math.round(rect.y) + 1, Math.round(rect.w) - 2, Math.round(rect.h) - 2);
-  if (phase !== 'enter') judge(ctx, art, elapsed);
+  judge(ctx, art, phase, phaseTime);
   if (['opening', 'declaration', 'defeated'].includes(phase)) {
-    ctx.fillStyle = '#ffe066'; ctx.fillText(C.text.speaker, 24, 138);
-    text(ctx, C.text[phase].slice(0, Math.floor(shown)), 24, 166, 432);
-    ctx.font = SMALL; ctx.fillStyle = '#9a9ab0'; ctx.fillText(C.text.next, 386, 328);
+    battle.drawTextBox(ctx);
   }
   if (phase === 'declare-effect') {
     const kick = Math.round(Math.sin(phaseTime * 55) * (1 - phaseTime / C.timing.declaration) * 3);
     text(ctx, C.text.declaration, 32 + kick, 180, 416);
   }
-  if (phase === 'question') {
+  if (['read-question', 'choices', 'question'].includes(phase)) {
+    if (phase === 'question') {
     ctx.fillStyle = remaining <= 5 ? '#ff657b' : '#ffffff';
     ctx.fillText(`${Math.ceil(remaining)}`, 425, 18);
+    }
     ctx.fillStyle = '#ffe066'; ctx.fillText(C.text.speaker, 24, 132);
     ctx.font = SMALL;
-    text(ctx, C.text.question, 24, 154, 432, C.text.highlight);
-    C.choices.forEach((zone, i) => {
-      const active = soul.x >= zone.x && soul.x <= zone.x + zone.w && soul.y >= zone.y && soul.y <= zone.y + zone.h;
+    text(ctx, copy.summary, 24, 154, 432, copy.highlight);
+    if (phase === 'read-question') battle.drawTextBox(ctx);
+    choices.slice(0, visibleChoices).forEach((zone, i) => {
+      const active = phase === 'question' && soul.x >= zone.x && soul.x <= zone.x + zone.w && soul.y >= zone.y && soul.y <= zone.y + zone.h;
       ctx.strokeStyle = active ? '#ffe066' : '#595366'; ctx.lineWidth = active ? 3 : 2;
       ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
-      text(ctx, `${i + 1}. ${zone.text}`, zone.x + 9, zone.y + 8, zone.w - 18);
+      text(ctx, `${i + 1}. ${zone.text}`.slice(0, Math.floor(choiceShown[i])), zone.x + 9, zone.y + 8, zone.w - 18);
     });
-    ctx.fillStyle = '#9a9ab0'; ctx.fillText(C.text.controls, 118, 310);
-    soul.draw(ctx);
+    if (phase !== 'read-question') soul.draw(ctx);
   }
-  if (phase === 'verdict') {
+  if (phase === 'verdict' || phase === 'execution-roll') {
     ctx.fillStyle = '#ff657b'; ctx.textAlign = 'center'; ctx.font = FONT.replace(/^\d+px/, '28px');
-    ctx.fillText(C.text.verdicts[verdict], 240, 179);
+    const beatTime = phase === 'execution-roll' ? phaseTime % C.timing.executionBeat : phaseTime;
+    const stamp = 1 + 0.16 * (1 - clamp(beatTime / 0.12));
+    ctx.save(); ctx.translate(240, 179); ctx.scale(stamp, stamp);
+    ctx.fillText(C.text.verdicts[verdict], 0, 0); ctx.restore();
     soul.draw(ctx);
   }
   if (phase === 'sword' || phase === 'impact') {
@@ -108,6 +124,5 @@ export function drawParkTrial(ctx, state) {
     }
   }
   if (phase === 'objection' || phase === 'shatter') objection(ctx, state);
-  if (phase === 'leave') { ctx.globalAlpha = clamp(phaseTime / C.timing.leave); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 480, 360); }
   ctx.restore();
 }

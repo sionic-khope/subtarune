@@ -95,8 +95,10 @@ test('test_park_collision_exposes_only_at_contact_and_returns_member_home', () =
 test('test_park_two_complete_player_rounds_then_visible_rewear_and_repeat', () => {
   const b = fixture(), e = b.enemies[0]; intro(b); charge(b); expose(b);
   assert.equal(b.support.turns, 2); assert.equal(b.support.patternsFor(e)[0].type, 'park_dog_scratch');
+  b.beginEnemyTurn(); assert.equal(b.bubble.text, '아 보 보지마...'); assert.equal(b.bubble.voice, 'park_guardian');
   assert.equal(b.support.afterEnemyPhase(), null); assert.equal(b.support.turns, 2);
   b.hitEnemy(e, b.members[0], 2); assert.equal(b.support.afterEnemyPhase(), null); assert.equal(b.support.turns, 1);
+  b.beginEnemyTurn(); assert.equal(b.bubble.text, '아 시발 내 인형탈.');
   b.hitEnemy(e, b.members[0], 2); const rewear = b.support.afterEnemyPhase();
   assert.ok(rewear); assert.equal(b.support.phase, 'rewearing'); assert.equal(e.hp, 53);
   assert.equal(rewear.update(0.4, none), false); assert.equal(e.formDef, e.def.forms.dog);
@@ -173,6 +175,38 @@ test('test_park_scratch_rectangular_action_uses_its_own_stable_foot_pivot', () =
   assert.equal(draws[0][6], Math.round(e.y - 90 * e.def.scale));
 });
 
+test('test_park_attack_frames_follow_charge_tier_then_return_to_matching_idle', () => {
+  const b = fixture(), e = b.enemies[0], draws = [];
+  b.t = 0;
+  e.actionImages = Object.fromEntries(Object.entries(e.def.actions).map(([key, action]) => [key, { key, width: action.cols * 96, height: action.rows * 96 }]));
+  const ctx = { save() {}, restore() {}, fillText() {}, drawImage(...args) { draws.push(args); } };
+  const tiers = [[0, 'attack', 'dance'], [3, 'attackLoose', 'loose'], [6, 'attackSlipping', 'slipping'], [9, 'attackAdjust', 'adjust']];
+  for (const [hits, attack, idle] of tiers) {
+    b.support.reset(); charge(b, hits);
+    for (let frame = 0; frame < 6; frame++) {
+      const requested = { sheet: 'attack', frame, x: e.x + 2, y: e.y - 1 };
+      e.patternPose = requested; draws.length = 0; b.drawEnemy(ctx, e);
+      assert.equal(draws[0][0], e.actionImages[attack]);
+      assert.deepEqual(draws[0].slice(1, 5), [(frame % 2) * 96, Math.floor(frame / 2) * 96, 96, 96]);
+      assert.deepEqual(b.support.poseFor(e), { ...requested, sheet: attack });
+      assert.equal(e.patternPose, requested); assert.equal(requested.sheet, 'attack');
+      assert.equal(e.def.actions[attack].fps, e.def.actions.attack.fps);
+    }
+    b.clearPatternPresentation(); draws.length = 0; b.drawEnemy(ctx, e);
+    assert.equal(draws[0][0], e.actionImages[idle]); assert.equal(b.support.poseFor(e).sheet, idle);
+  }
+});
+
+test('test_park_tier_mapper_preserves_other_poses_and_never_maps_exposed_scratch', () => {
+  const b = fixture(), e = b.enemies[0]; charge(b, 9);
+  e.patternPose = { sheet: 'scratch', frame: 2, hidden: true };
+  assert.equal(b.support.poseFor(e), e.patternPose);
+  assert.equal(b.support.poseFor({ ...e }), null);
+  intro(b); expose(b); e.patternPose = { sheet: 'scratch', frame: 3 };
+  assert.equal(b.support.poseFor(e), null);
+  assert.equal(e.patternPose.sheet, 'scratch'); assert.equal(e.patternPose.frame, 3);
+});
+
 test('test_park_ppaman_and_shell_fly_together_then_return_from_offscreen_with_synced_sfx', () => {
   const b = fixture(), sounds = []; intro(b); charge(b);
   b.sfx = (name) => sounds.push(name);
@@ -212,18 +246,22 @@ test('test_park_interrupted_flight_clears_transforms_and_disposed_mode_cannot_em
 
 test('test_park_costume_schedule_counts_once_per_enemy_entry_with_trial_priority_and_ordinary_cycle', () => {
   const b = fixture(), e = b.enemies[0], selected = [];
-  for (let turn = 1; turn <= 13; turn++) {
+  for (let turn = 1; turn <= 18; turn++) {
     const mode = b.support.enemyModeFor(e);
     selected.push(mode || e.def.patterns[e.patternIdx].type);
   }
   assert.deepEqual(selected, [
     'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma', 'park_witch_trial',
-    'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma',
-    'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma',
+    'park_cleaning', 'park_rabbit_ears', 'park_obsessive_hearts', 'park_razma',
+    'park_witch_trial',
+    'park_pirate_fans', 'park_cleaning', 'park_rabbit_ears', 'park_razma',
+    'park_obsessive_hearts', 'park_pirate_fans', 'park_cleaning', 'park_razma',
   ]);
-  assert.equal(b.support.costumeTurns, 13); assert.equal(b.support.ordinarySlots, 12); assert.equal(b.support.trialUsed, true);
+  assert.equal(b.support.costumeTurns, 18); assert.equal(b.support.ordinarySlots, 16); assert.equal(b.support.trialUsed, true);
+  assert.equal(b.support.trialCount, 2);
   b.beginRetry();
   assert.equal(b.support.costumeTurns, 0); assert.equal(b.support.ordinarySlots, 0); assert.equal(b.support.trialUsed, false);
+  assert.equal(b.support.trialCount, 0);
   b.beginEnemyTurn(); assert.equal(b.support.costumeTurns, 1);
   b.beginBullets(); assert.equal(b.support.costumeTurns, 1);
   assert.equal(b.patterns[0].enemy, e);
@@ -254,16 +292,21 @@ test('test_enemy_mode_factory_opening_line_survives_initialization', () => {
   b.beginEnemyTurn(); assert.equal(b.text, '* 첫 대사'); assert.ok(b.gimmick);
 });
 
-test('test_park_begin_enemy_turn_routes_fourth_to_razma_and_fifth_to_trial_once', () => {
+test('test_park_begin_enemy_turn_routes_razma_two_trials_and_cleaning_prep', () => {
   const b = fixture(); let pauses = 0;
   b.game.sound.pauseBgm = () => pauses++;
   for (let turn = 1; turn <= 3; turn++) { b.beginEnemyTurn(); assert.equal(b.state, 'enemy-prep'); }
   b.beginEnemyTurn(); assert.equal(b.state, 'enemy-mode'); assert.equal(b.gimmick.snapshot.phase, 'expand');
   b.disposeGimmick();
   b.beginEnemyTurn(); assert.equal(b.state, 'enemy-mode'); assert.equal(b.gimmick.snapshot.phase, 'enter');
-  assert.equal(pauses, 1); assert.equal(b.support.costumeTurns, 5);
+  assert.equal(pauses, 0); assert.equal(b.support.costumeTurns, 5); assert.equal(b.support.trialCount, 1);
   b.disposeGimmick(); b.beginEnemyTurn();
-  assert.equal(b.state, 'enemy-prep'); assert.equal(b.support.costumeTurns, 6); assert.equal(pauses, 1);
+  assert.equal(b.state, 'enemy-prep'); assert.equal(b.support.costumeTurns, 6); assert.equal(pauses, 0);
+  assert.equal(b.bubble.text, '경섭이형 집좀 치우고 살아.');
+  for (let turn = 7; turn <= 10; turn++) { b.disposeGimmick(); b.beginEnemyTurn(); }
+  assert.equal(b.state, 'enemy-mode'); assert.equal(b.gimmick.snapshot.phase, 'enter');
+  assert.equal(b.support.costumeTurns, 10); assert.equal(b.support.trialCount, 2);
+  assert.equal(b.gimmick.snapshot.trialIndex, 1);
 });
 
 test('test_party_wide_penalty_hits_each_alive_once_and_preserves_previously_down_members', () => {

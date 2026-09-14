@@ -10,7 +10,8 @@ function run(type, opts = {}) {
   // Arrange: 결정적 난수 + 탄을 모으는 가짜 api
   const p = PATTERNS[type](opts); const out = []; let seed = 7;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-  const api = { box: BOX, soul: SOUL, rnd, emit: (o) => out.push(new Bullet(o)) };
+  const images = Object.fromEntries(Object.keys(ENEMIES.park_guardian.projectiles).map(key => [key, { key }]));
+  const api = { box: BOX, soul: SOUL, rnd, images, emit: (o) => out.push(new Bullet(o)) };
   // Act: duration 동안 60fps 로 돌린다
   const dt = 1 / 60; for (let t = 0; t < p.duration + 0.05; t += dt) p.update(t, dt, api);
   return { p, out };

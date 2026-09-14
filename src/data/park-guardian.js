@@ -2,7 +2,7 @@ const line = (speaker, portrait, text) => ({ speaker, portrait, voice: portrait,
 
 export const PARK_GUARDIAN = {
   requiredHits: 9, exposedTurns: 2,
-  costumeSchedule: { trialTurn: 5, razmaEvery: 4 },
+  costumeSchedule: { trialTurns: [5, 10], razmaEvery: 4 },
   strip: { windup: 0.55, rush: 0.42, impact: 0.1, flight: 0.85, offscreenHold: 0.15, return: 0.95, settle: 0.25,
     exitX: 550, flightLift: 100, flightSpin: Math.PI * 3, stepSeconds: 0.14 },
   rewearSeconds: 1.5,

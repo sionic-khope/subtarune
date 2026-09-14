@@ -21,16 +21,24 @@ export const ENEMIES = {
       loose: { src: 'assets/enemies/park-guardian-loose.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
       slipping: { src: 'assets/enemies/park-guardian-slipping.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
       attack: { src: 'assets/enemies/park-guardian-attack.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1 },
+      attackLoose: { src: 'assets/enemies/park-guardian-attack-loose.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1 },
+      attackSlipping: { src: 'assets/enemies/park-guardian-attack-slipping.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1 },
+      attackAdjust: { src: 'assets/enemies/park-guardian-attack-adjust.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1 },
       adjust: { src: 'assets/enemies/park-guardian-adjust.png', cols: 2, rows: 2, count: 4, fps: 6, px: 1 },
       scratch: { src: 'assets/enemies/park-guardian-scratch.png', cols: 2, rows: 2, count: 4, fps: 7, px: 1, pivot: [64, 90] },
     },
     pivot: [48, 90], scale: 1.35, dx: -12, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 0 },
-    patterns: [{ type: 'park_rabbit_ears' }, { type: 'park_obsessive_hearts' }, { type: 'park_pirate_fans' }],
+    patterns: [{ type: 'park_rabbit_ears' }, { type: 'park_obsessive_hearts' }, { type: 'park_pirate_fans' }, { type: 'park_cleaning', prep: '경섭이형 집좀 치우고 살아.' }],
+    projectiles: {
+      cleaningBag: 'assets/projectiles/park-cleaning-bag.png',
+      cleaningBroom: 'assets/projectiles/park-cleaning-broom.png',
+      cleaningDustpan: 'assets/projectiles/park-cleaning-dustpan.png',
+    },
     forms: {
       dog: {
         sheet: { src: 'assets/enemies/park-guardian-idle.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
         voice: 'park_guardian', patterns: [{ type: 'park_dog_scratch' }],
-        lines: { speak: ['아 잠깐만 인형탈 좀 입고...'] },
+        lines: { speak: ['아 보 보지마...', '아 시발 내 인형탈.'] },
       },
     },
     lines: {

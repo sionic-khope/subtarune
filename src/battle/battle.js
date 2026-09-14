@@ -310,8 +310,9 @@ export class Battle {
   boardSize() { const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
-    const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)]; const lines = this.support?.speechFor?.(e) || e.def.lines?.speak || [];
+    const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)];
     const defName = this.support?.enemyModeFor?.(e) || e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
+    const lines = this.support?.speechFor?.(e) || e.def.lines?.speak || [];
     if (typeof create === 'function') {
       this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText('');
       this.gimmick = create(this, { enemy: e }); return;
@@ -508,7 +509,7 @@ export class Battle {
     if (m.popup) this.drawPopup(ctx, px, py - 70, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
   drawEnemy(ctx, e) {
-    const pose = e.patternPose || this.support?.poseFor?.(e);
+    const pose = this.support?.poseFor?.(e) || e.patternPose;
     if (e.dead) return;
     for (const clone of (pose?.clones || []).slice(0, 3)) {
       if (clone.hidden) continue;

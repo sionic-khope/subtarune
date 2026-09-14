@@ -6,10 +6,11 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 /** One shared local rectangle drives both text-ribbon drawing and collision. */
 export function razmaLaserGeometry(shot, time) {
   const age = time - shot.at, fired = age >= C.shots.warning;
-  if (!shot.target || age < 0 || age >= C.shots.warning + C.shots.fire) return null;
+  const duration = shot.glitch ? C.shots.sweepFire : C.shots.fire;
+  if (!shot.target || age < 0 || age >= C.shots.warning + duration) return null;
   const dx = shot.target.x - C.origin.x, dy = shot.target.y - C.origin.y;
-  const angle = Math.atan2(dy || (dx ? 0 : 1), dx);
-  const length = fired ? Math.min(C.shots.length, (age - C.shots.warning) * C.shots.speed) : C.shots.length;
+  const angle = shot.angle ?? Math.atan2(dy || (dx ? 0 : 1), dx);
+  const length = fired && !shot.glitch ? Math.min(C.shots.length, (age - C.shots.warning) * C.shots.speed) : C.shots.length;
   return { x: C.origin.x, y: C.origin.y, angle, length, width: shot.glitch ? C.shots.glitchWidth : C.shots.width, fired, age };
 }
 
