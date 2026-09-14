@@ -1,0 +1,96 @@
+{
+  "asset": "assets/enemies/park-guardian-loose.png",
+  "source": "loose-raw.png",
+  "dimensions": [
+    192,
+    192
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "columns": 2,
+  "frames": 4,
+  "order": "row-major",
+  "pivot": [
+    48,
+    90
+  ],
+  "rawPixelScale": 0.1553398058252427,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        107,
+        80,
+        494,
+        590
+      ],
+      "bbox": [
+        19,
+        11,
+        79,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        170,
+        88,
+        505,
+        589
+      ],
+      "bbox": [
+        26,
+        12,
+        78,
+        90
+      ],
+      "height": 78,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        110,
+        64,
+        493,
+        570
+      ],
+      "bbox": [
+        9,
+        11,
+        68,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        145,
+        70,
+        515,
+        570
+      ],
+      "bbox": [
+        22,
+        12,
+        79,
+        90
+      ],
+      "height": 78,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

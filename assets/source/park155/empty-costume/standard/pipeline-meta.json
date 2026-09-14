@@ -1,0 +1,115 @@
+{
+  "target": "asset",
+  "mode": "idle",
+  "prompt": "",
+  "role": "",
+  "input": "/private/tmp/subtarune-park155/assets/source/park155/empty-costume-raw.png",
+  "threshold": 0,
+  "edge_threshold": 0,
+  "duration": 200,
+  "rows": 1,
+  "cols": 1,
+  "cell_size": 96,
+  "fit_scale": 0.84,
+  "trim_border": 0,
+  "edge_clean_depth": 0,
+  "align": "feet",
+  "shared_scale": true,
+  "scale_strategy": "fit",
+  "component_mode": "largest",
+  "component_padding": 0,
+  "min_component_area": 1,
+  "edge_touch_margin": 0,
+  "frame_labels": [
+    "idle-1"
+  ],
+  "frames": [
+    {
+      "grid": [
+        0,
+        0
+      ],
+      "source_box": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 116,
+      "selected_component_area": 419696,
+      "selected_component_bbox": [
+        348,
+        90,
+        952,
+        1191
+      ],
+      "crop_bbox": [
+        348,
+        90,
+        952,
+        1191
+      ],
+      "source_frame_size": [
+        1254,
+        1254
+      ],
+      "is_empty": false,
+      "subject_area": 419696,
+      "body_core_area": 419760,
+      "body_area_fraction": 0.2669352807856963,
+      "anchor_source": [
+        638.0,
+        1156.0
+      ],
+      "source_edge_touch": false,
+      "output_edge_touch": false,
+      "edge_touch": false,
+      "output_size": [
+        44,
+        80
+      ],
+      "paste_position": [
+        26,
+        9
+      ],
+      "paste_clamped": false,
+      "aligned_bbox": [
+        26,
+        9,
+        70,
+        89
+      ],
+      "source_to_output_scale": 0.0732425068119891,
+      "bbox_scale_applied": true,
+      "scale_strategy": "fit",
+      "scale_changed": true
+    }
+  ],
+  "edge_touch_frames": [],
+  "source_edge_touch_frames": [],
+  "output_edge_touch_frames": [],
+  "empty_frames": [],
+  "paste_clamped_frames": [],
+  "qc_summary": {
+    "frame_count": 1,
+    "valid_frame_count": 1,
+    "empty_count": 0,
+    "edge_touch_count": 0,
+    "paste_clamped_count": 0,
+    "body_scale_mean": 0.5166577985337067,
+    "output_subject_height_mean": 80.0,
+    "body_scale_cv": 0.0,
+    "anchor_x_std": 0.0,
+    "anchor_y_std": 0.0,
+    "anchor_y_mean": 0.9218500797448166
+  },
+  "qc_config": {
+    "strict_qc": true,
+    "reject_edge_touch": false,
+    "allow_source_edge_touch": false,
+    "max_body_scale_cv": null,
+    "max_anchor_y_std": null,
+    "max_profile_scale_drift": null
+  }
+}

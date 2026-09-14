@@ -1,0 +1,45 @@
+{
+  "asset": "assets/enemies/park-guardian-empty-costume.png",
+  "source": "empty-costume-raw.png",
+  "dimensions": [
+    96,
+    96
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "columns": 1,
+  "frames": 1,
+  "order": "row-major",
+  "pivot": [
+    48,
+    90
+  ],
+  "rawPixelScale": 0.07285974499089254,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        349,
+        95,
+        950,
+        1188
+      ],
+      "bbox": [
+        22,
+        10,
+        66,
+        90
+      ],
+      "height": 80,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

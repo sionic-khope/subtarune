@@ -192,21 +192,21 @@ export class Battle {
     this.clearPatternPresentation();
     this.state = 'menu'; this.t = 0; this.plans = []; this.memberIdx = 0; this.menuIdx = 0;
     while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
-    const live = this.living(); const e = live[Math.floor(this.rnd() * Math.max(1, live.length))]; const idle = e?.def.lines?.idle || [];
+    const live = this.living(); const e = live[Math.floor(this.rnd() * Math.max(1, live.length))]; const idle = this.support?.idleFor?.(e) || e?.def.lines?.idle || [];
     this.setText(idle.length ? idle[Math.floor(this.rnd() * idle.length)] : '');   // 잡담 문구는 행동 선택 화면([공격하기][아이템])과 같은 패널에 공존 (사용자 2026-09-10)
   }
   updateMenu(input) {
     if (this.memberIdx >= this.members.length) { this.beginAct(); return; }
     const buttonCount = this.support?.unlocked ? 3 : 2;
     if (input.just('left') || input.just('right')) { this.menuIdx = (this.menuIdx + (input.just('left') ? buttonCount - 1 : 1)) % buttonCount; this.sfx('menu'); }
-    if (this.menuIdx === 2 && (input.just('left') || input.just('right'))) this.setText(L.battle_cannon_wait(Math.max(0, BARON_CANNON.requiredHits - this.support.charge)));
+    if (this.menuIdx === 2 && (input.just('left') || input.just('right'))) this.setText(this.support.hint);
     if (input.just('confirm')) {
       this.sfx('confirm');
       if (this.menuIdx === 0) { this.state = 'target'; this.targetIdx = 0; this.t = 0; }
       else if (this.menuIdx === 2) {
         const action = this.support?.action();
         if (action) { this.plans = [action]; this.beginAct(); }
-        else this.setText(L.battle_cannon_wait(Math.max(0, BARON_CANNON.requiredHits - this.support.charge)));
+        else this.setText(this.support.hint);
       } else { const items = plainItems(this.game.inventory); if (!items.length) { this.setText(L.battle_no_items); this.state = 'text'; this.after = 'menu'; this.t = 0; } else { this.state = 'item'; this.itemIdx = 0; this.t = 0; } }
       return;
     }
@@ -282,9 +282,15 @@ export class Battle {
   }
   hitEnemy(e, by, dmg = this.game.attack || 1, { source = 'ordinary', sound = true } = {}) {
     if (!e || e.dead || e.dying > 0 || e.hp <= 0 || !(dmg > 0)) return 0;
+    this.support?.onContact?.(e, dmg, source);
+    if (this.support?.blocksDamage?.(e)) {
+      e.shake = 0.25; e.popup = { t: 0, text: L.battle_strip_blocked };
+      if (sound) this.sfx('hit');
+      return 0;
+    }
     const damage = Math.min(e.hp, dmg);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
-    this.support?.onHit(e, damage, source);
+    this.support?.onHit?.(e, damage, source);
     if (sound) { this.sfx('hit'); this.sfx('damage'); }
     if (e.def.reactive?.hitSfx) this.sfx(e.def.reactive.hitSfx);
     if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
@@ -304,7 +310,7 @@ export class Battle {
   boardSize() { const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
-    const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)]; const lines = e.def.lines?.speak || [];
+    const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)]; const lines = this.support?.speechFor?.(e) || e.def.lines?.speak || [];
     const defName = e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
     if (typeof create === 'function') { this.gimmick = create(this, { enemy: e }); this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); return; }   // 적 턴 미니게임 모드
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
@@ -317,7 +323,7 @@ export class Battle {
       e.speechBag.splice(e.speechBag.indexOf(text), 1);
       e.lastSpeech = text;
     }
-    this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.def.voice || 'narrator' };
+    this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.formDef?.voice || e.def.voice || 'narrator' };
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
     this.soul.center({ x: 240 - bw / 2, y: 214 - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
@@ -335,7 +341,7 @@ export class Battle {
       const enraged = !!e.def.enragedPatterns?.length && e.hp / e.maxHp <= e.def.enragedAt;
       if (enraged !== !!e.enraged) e.patternIdx = 0;
       e.enraged = enraged;
-      const cfgs = (enraged ? e.def.enragedPatterns : e.def.patterns) || [{ type: 'rain' }];
+      const cfgs = this.support?.patternsFor?.(e) || (enraged ? e.def.enragedPatterns : e.def.patterns) || [{ type: 'rain' }];
       const c = cfgs[e.patternIdx++ % cfgs.length];
       return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e };
     });
@@ -428,6 +434,7 @@ export class Battle {
     if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); return; }
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
     ctx.font = FONT; ctx.textBaseline = 'top';
+    this.support?.draw?.(ctx);
     for (const e of this.enemies) this.drawEnemy(ctx, e);
     const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
     for (const m of idle) this.drawMember(ctx, m);
@@ -472,7 +479,7 @@ export class Battle {
     if (m.popup) this.drawPopup(ctx, hx, hy - 48, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
   drawMember(ctx, m) {
-    if (!m.frames) return;
+    if (!m.frames || m.action?.hidden) return;
     if (m.down) { this.drawLying(ctx, m); return; }
     const act = m.action, posing = m.pose !== undefined && m.pose !== null && m.pose >= 0 && (!act || act.mode === 'idle');
     const mode = act ? act.mode : posing ? 'attack' : 'idle', running = mode === 'approach' || mode === 'return';
@@ -482,14 +489,15 @@ export class Battle {
     const scale = (running ? def.run.scale : def.scale) * ACTOR_SCALE;
     const picking = ['menu', 'target', 'item', 'item-target'].includes(this.state) && m === this.members[this.memberIdx];
     const [px0, py] = act ? act.position : m.home; const px = px0 + (!act && picking ? 10 : 0);   // 차례인 멤버는 한 발 앞으로(델타룬)
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(px), Math.round(py + 2), 15, 3, 0, 0, Math.PI * 2); ctx.fill();
+    if (!act?.airborne) { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(px), Math.round(py + 2), 15, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.save(); ctx.translate(Math.round(px), Math.round(py)); if (mode === 'return') ctx.scale(-1, 1);
+    if (act?.rotation) { ctx.translate(0, -30); ctx.rotate(act.rotation); ctx.translate(0, 30); }
     ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
     ctx.restore();
     if (m.popup) this.drawPopup(ctx, px, py - 70, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
   drawEnemy(ctx, e) {
-    const pose = e.patternPose;
+    const pose = e.patternPose || this.support?.poseFor?.(e);
     if (e.dead) return;
     for (const clone of (pose?.clones || []).slice(0, 3)) {
       if (clone.hidden) continue;
@@ -502,7 +510,7 @@ export class Battle {
     }
     if (pose?.hidden) return;
     const action = pose?.sheet && pose.sheet !== 'idle' ? e.def.actions?.[pose.sheet] : null;
-    const img = action ? e.actionImages?.[pose.sheet] : e.img, sh = action || e.def.sheet;
+    const img = action ? e.actionImages?.[pose.sheet] : e.formImage || e.img, sh = action || e.formDef?.sheet || e.def.sheet;
     const x = pose?.x ?? e.x, y = pose?.y ?? e.y;
     const scale = pose?.scale ?? e.def.scale ?? 1;
     const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(pose ? 0 : e.ox || 0), sy = Math.round(pose ? 0 : e.oy || 0);
@@ -512,7 +520,7 @@ export class Battle {
       const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / (sh.rows || 1));
       const animationTime = e.def.reactive ? e.animationTime || 0 : this.t;
       const i = pose?.frame === undefined ? Math.floor(animationTime * (sh.fps || 5.5)) % sh.count : Math.max(0, Math.min(sh.count - 1, Math.floor(pose.frame)));
-      const s = scale / (sh.px || 1), dw = Math.round(fw * s), dh = Math.round(fh * s); const [pvx, pvy] = e.def.pivot || [fw / 2, fh];
+      const s = scale / (sh.px || 1), dw = Math.round(fw * s), dh = Math.round(fh * s); const [pvx, pvy] = sh.pivot || e.def.pivot || [fw / 2, fh];
       const left = Math.round(x - pvx * s + sx), top = Math.round(y - pvy * s + sy);
       const ghosts = !pose && e.hp > 0 ? (e.def.reactive?.afterimages || []).reduce((count, step) => e.hp / e.maxHp <= step.hp ? Math.max(count, step.count) : count, 0) : 0;
       if (ghosts) {
@@ -573,6 +581,8 @@ export class Battle {
       P(1, 8, 4, 1, '#c9a52a'); P(3, 9, 2, 1, '#c9a52a'); P(2, 10, 2, 2, '#7a4f2e'); P(0, 9, 2, 2, '#7a4f2e');   // 날밑·손잡이
     } else if (kind === 'cannon') {
       P(1, 3, 10, 5, '#ddd'); P(8, 2, 4, 7, '#fff'); P(2, 8, 3, 3, '#999'); P(8, 8, 3, 3, '#999');
+    } else if (kind === 'strip') {
+      P(2, 0, 2, 5, '#da86b5'); P(8, 0, 2, 5, '#da86b5'); P(1, 5, 10, 6, '#ded5df'); P(4, 7, 4, 3, '#29202f');
     } else {
       P(2, 4, 8, 6, '#4cd964'); P(3, 3, 6, 1, '#4cd964'); P(1, 5, 1, 4, '#4cd964'); P(10, 5, 1, 4, '#4cd964');   // 빵 덩어리(초록)
       P(3, 3, 6, 1, '#8dffa8'); P(4, 5, 2, 1, '#2f8f44'); P(7, 6, 2, 1, '#2f8f44'); P(2, 10, 8, 1, '#2f8f44');   // 윤기·칼집
@@ -634,8 +644,8 @@ export class Battle {
         ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
         if (icon) this.drawIcon(ctx, icon, bx + 18, by + 4);
         if (icon) {
-          const step = Math.floor((bw - 12) / BARON_CANNON.requiredHits);
-          for (let i = 0; i < BARON_CANNON.requiredHits; i++) { ctx.fillStyle = i < this.support.charge ? '#ffe066' : '#45404d'; ctx.fillRect(bx + 6 + i * step, by + 20, step - 2, 2); }
+          const step = Math.floor((bw - 12) / this.support.requiredHits);
+          for (let i = 0; i < this.support.requiredHits; i++) { ctx.fillStyle = i < this.support.charge ? '#ffe066' : '#45404d'; ctx.fillRect(bx + 6 + i * step, by + 20, step - 2, 2); }
         }
         ctx.fillStyle = !enabled ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + (icon ? 32 : 18), by + 2); if (sel) this.heart(ctx, bx + 6, by + 6); bx += bw + 8; });
     } else if (this.state === 'target') {                          // 델타룬 FIGHT: 적 목록 + HP 바, 하트 커서

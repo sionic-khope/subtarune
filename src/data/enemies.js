@@ -13,6 +13,33 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  park_guardian: {
+    name: '파크가디언', hp: 57, damage: 16, money: 0, boss: true, support: 'park_strip', voice: 'park_guardian_costume',
+    sheet: { src: 'assets/enemies/park-guardian-dance.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+    actions: {
+      dance: { src: 'assets/enemies/park-guardian-dance.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+      loose: { src: 'assets/enemies/park-guardian-loose.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+      slipping: { src: 'assets/enemies/park-guardian-slipping.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+      attack: { src: 'assets/enemies/park-guardian-attack.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1 },
+      adjust: { src: 'assets/enemies/park-guardian-adjust.png', cols: 2, rows: 2, count: 4, fps: 6, px: 1 },
+      scratch: { src: 'assets/enemies/park-guardian-scratch.png', cols: 2, rows: 2, count: 4, fps: 7, px: 1, pivot: [64, 90] },
+    },
+    pivot: [48, 90], scale: 1.35, dx: -12, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    patterns: [{ type: 'park_rabbit_ears' }, { type: 'park_obsessive_hearts' }, { type: 'park_pirate_fans' }],
+    forms: {
+      dog: {
+        sheet: { src: 'assets/enemies/park-guardian-idle.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+        voice: 'park_guardian', patterns: [{ type: 'park_dog_scratch' }],
+        lines: { speak: ['아 잠깐만 인형탈 좀 입고...'] },
+      },
+    },
+    lines: {
+      appear: '* 파크가디언이 스테이지를 가로막았다.',
+      idle: ['* 파크가디언이 토끼 귀를 까딱인다.', '* 파크가디언이 인형탈의 주름을 편다.'],
+      speak: ['형섭아 나도 사랑해줘', '칠라스아트해줘 형섭아', '가재맨 해적지부 많이 사랑해주세요'],
+      die: '* 파크가디언이 쓰러졌다.',
+    },
+  },
   seopnyang: {
     name: '섭냥이', hp: 27, damage: 16, money: 90,
     sheet: { src: 'assets/enemies/seopnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },

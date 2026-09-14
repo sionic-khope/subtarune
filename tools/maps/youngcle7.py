@@ -19,6 +19,7 @@ MAP_ID: Final = 'youngcle7'
 WIDTH: Final = 38
 HEIGHT: Final = 20
 DONE: Final = 'editor_union_stage_done'
+WON: Final = 'park_guardian_won'
 
 
 def main() -> None:
@@ -37,7 +38,8 @@ def main() -> None:
             cells[row][col] = 'I'
     map_data = {
         'id': MAP_ID, 'name': '영클 전함 편집노조 스테이지', 'stage': 'void_fallen',
-        'bgm': None, 'dim': 0.68, 'rows': [''.join(row) for row in cells],
+        'bgm': None, 'battleBg': 'editor_union_stage', 'dim': 0.68,
+        'rows': [''.join(row) for row in cells],
         'preload': ['assets/tiles/youngcle_iron.png',
                     'assets/props/editor_union_audience.png',
                     'assets/props/editor-union-crowd.png',
@@ -49,6 +51,7 @@ def main() -> None:
             'start': {'x': 96, 'y': 480, 'facing': 'right'},
             'left': {'x': 96, 'y': 480, 'facing': 'right'},
             'after_intro': {'x': 400, 'y': 504, 'facing': 'right'},
+            'battle_ready': {'x': 730, 'y': 416, 'facing': 'right'},
         },
         'meta': {'connected': True, 'stage': {
             'player': [400, 504], 'gyeongsub': [448, 504], 'ppaman': [496, 504],
@@ -106,7 +109,11 @@ def main() -> None:
               )],
             {'type': 'npc', 'id': 'park_guardian_ready', 'sprite': 'park_guardian_costume',
              'x': 760, 'y': 416, 'facing': 'left', 'wander': 0, 'visualScale': 2.66,
-             'solid': False, 'requires': DONE, 'script': 'editor_union_stage_wait'},
+             'solid': False, 'requires': DONE, 'unless': WON,
+             'script': 'editor_union_stage_wait'},
+            {'type': 'npc', 'id': 'park_guardian_defeated', 'sprite': 'park_guardian',
+             'x': 760, 'y': 416, 'facing': 'left', 'wander': 0,
+             'solid': False, 'requires': WON},
             {'type': 'trigger', 'id': 'editor_union_stage_trigger',
              'x': 464, 'y': 416, 'w': 80, 'h': 112, 'once': True,
              'unless': DONE, 'script': 'editor_union_stage'},

@@ -1,0 +1,96 @@
+{
+  "asset": "assets/enemies/park-guardian-adjust.png",
+  "source": "adjust-raw.png",
+  "dimensions": [
+    192,
+    192
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "columns": 2,
+  "frames": 4,
+  "order": "row-major",
+  "pivot": [
+    48,
+    90
+  ],
+  "rawPixelScale": 0.14925373134328357,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        130,
+        76,
+        565,
+        591
+      ],
+      "bbox": [
+        24,
+        13,
+        89,
+        90
+      ],
+      "height": 77,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        115,
+        104,
+        525,
+        591
+      ],
+      "bbox": [
+        22,
+        17,
+        83,
+        90
+      ],
+      "height": 73,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        132,
+        48,
+        501,
+        577
+      ],
+      "bbox": [
+        24,
+        11,
+        79,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        166,
+        45,
+        491,
+        577
+      ],
+      "bbox": [
+        29,
+        11,
+        78,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

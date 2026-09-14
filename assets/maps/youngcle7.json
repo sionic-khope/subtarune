@@ -3,6 +3,7 @@
  "name": "영클 전함 편집노조 스테이지",
  "stage": "void_fallen",
  "bgm": null,
+ "battleBg": "editor_union_stage",
  "dim": 0.68,
  "rows": [
   "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
@@ -52,6 +53,11 @@
   "after_intro": {
    "x": 400,
    "y": 504,
+   "facing": "right"
+  },
+  "battle_ready": {
+   "x": 730,
+   "y": 416,
    "facing": "right"
   }
  },
@@ -621,7 +627,19 @@
    "visualScale": 2.66,
    "solid": false,
    "requires": "editor_union_stage_done",
+   "unless": "park_guardian_won",
    "script": "editor_union_stage_wait"
+  },
+  {
+   "type": "npc",
+   "id": "park_guardian_defeated",
+   "sprite": "park_guardian",
+   "x": 760,
+   "y": 416,
+   "facing": "left",
+   "wander": 0,
+   "solid": false,
+   "requires": "park_guardian_won"
   },
   {
    "type": "trigger",

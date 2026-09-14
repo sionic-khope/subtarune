@@ -29,14 +29,14 @@ function fixture(ids) {
   return { battle, sounds, stops, fades, ended, music };
 }
 
-test('test_boss_victory_metadata_marks_only_the_five_story_bosses', () => {
+test('test_boss_victory_metadata_marks_only_the_six_story_bosses', () => {
   assert.deepEqual(Object.keys(ENEMIES).filter(id => ENEMIES[id].boss),
-    ['mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);
+    ['park_guardian', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);
 });
 
 for (const [ids, boss] of [
   [['cs_red', 'cs_blue'], false], [['red', 'blue'], true], [['baron'], true],
-  [['mankatsuki_junhee'], true], [['expelled_viewer'], true], [['cs_red', 'red'], true],
+  [['mankatsuki_junhee'], true], [['expelled_viewer'], true], [['cs_red', 'red'], true], [['park_guardian'], true],
 ]) {
   test(`test_${ids.join('_')}_victory_keeps_reward_revive_confirmation_and_continuation`, () => {
     const { battle, sounds, stops, fades, ended } = fixture(ids);

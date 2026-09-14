@@ -107,14 +107,14 @@ test('test_stage_long_taunt_has_phrase_breaks_without_changing_words', () => {
   assert.equal(text.replaceAll('{n}', ''), '* 너디진따진짜ㅋㅋ형섭아나도사랑해줘짜ㅋㅋ형섭아나도사랑해줘짜ㅋㅋ형섭아나도사랑해줘짜ㅋㅋ형섭아나도사랑해줘');
 });
 
-test('test_stage_preserves_user_dialogue_and_stops_before_battle', () => {
+test('test_stage_preserves_user_dialogue_and_enters_requested_battle', () => {
   const nodes = flatten(editor_union_stage);
   const text = nodes.filter(node => node.text).map(node => node.text);
   assert.equal(text[0], '* ㅁ..뭐지 여긴?');
   assert.equal(text.at(-1), '* 첫번째 시련!! 파크가디언을 이겨라!!! 들어와 ㅅㅂ새끼들아.');
   for (const expected of ['* 반갑습니다 형님들~~~~~~~~', '* 인 면 견 ~', '* 편집노조다!', '* ㅋㅋ뒤졌다', '* 이따봐요 악덕사장']) assert.ok(text.includes(expected));
-  assert.ok(!nodes.some(node => node.battle));
-  assert.equal(editor_union_stage_wait[0].text, text.at(-1));
+  assert.deepEqual(nodes.find(node => node.battle).battle, { enemies: ['park_guardian'], bgm: 'park_guardian', bg: 'editor_union_stage', flag: 'park_guardian_won' });
+  assert.equal(editor_union_stage_wait.find(node => node.text).text, text.at(-1));
   const glyphs = nodes.filter(node => node.editorUnion?.kind === 'glyph').map(node => node.editorUnion);
   assert.deepEqual(glyphs.map(node => [node.index, node.duration]), [[0, 0.7], [1, 0.7], [2, 0.7], [3, 0.7]]);
   assert.ok(editor_union_stage.findIndex(node => node.set?.editor_union_stage_done) > editor_union_stage.findIndex(node => node.text === text.at(-1)));

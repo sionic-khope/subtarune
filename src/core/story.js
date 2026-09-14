@@ -95,6 +95,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
+  { flag: 'park_guardian_won', enemies: ['park_guardian'] },
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.
@@ -281,5 +282,9 @@ QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7', desc: '영클 전함: 편�
   party: [...planBCheckpoint.party] });
 QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7_after_intro', desc: '영클 전함: 편집노조 소개 이후',
   map: 'youngcle7', spawn: 'after_intro',
+  flags: { ...planBCheckpoint.flags, editor_union_stage_done: true },
+  party: [...planBCheckpoint.party] });
+QA_POINTS.push({ ...planBCheckpoint, id: 'park_guardian_battle', desc: '편집노조: 파크가디언 전투 직전 (C)',
+  map: 'youngcle7', spawn: 'battle_ready',
   flags: { ...planBCheckpoint.flags, editor_union_stage_done: true },
   party: [...planBCheckpoint.party] });

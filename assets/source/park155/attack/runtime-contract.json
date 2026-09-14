@@ -1,0 +1,130 @@
+{
+  "asset": "assets/enemies/park-guardian-attack.png",
+  "source": "attack-raw.png",
+  "dimensions": [
+    192,
+    288
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "columns": 2,
+  "frames": 6,
+  "order": "row-major",
+  "pivot": [
+    48,
+    90
+  ],
+  "rawPixelScale": 0.16806722689075632,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        109,
+        79,
+        386,
+        554
+      ],
+      "bbox": [
+        28,
+        10,
+        75,
+        90
+      ],
+      "height": 80,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        74,
+        109,
+        379,
+        554
+      ],
+      "bbox": [
+        24,
+        15,
+        75,
+        90
+      ],
+      "height": 75,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        62,
+        109,
+        340,
+        554
+      ],
+      "bbox": [
+        28,
+        15,
+        75,
+        90
+      ],
+      "height": 75,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        49,
+        87,
+        401,
+        528
+      ],
+      "bbox": [
+        17,
+        16,
+        76,
+        90
+      ],
+      "height": 74,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 4,
+      "sourceBox": [
+        36,
+        47,
+        385,
+        528
+      ],
+      "bbox": [
+        17,
+        9,
+        76,
+        90
+      ],
+      "height": 81,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 5,
+      "sourceBox": [
+        70,
+        57,
+        360,
+        528
+      ],
+      "bbox": [
+        28,
+        11,
+        77,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

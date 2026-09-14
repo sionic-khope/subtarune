@@ -1,0 +1,96 @@
+{
+  "asset": "assets/enemies/park-guardian-scratch.png",
+  "source": "scratch-raw.png",
+  "dimensions": [
+    256,
+    192
+  ],
+  "cell": [
+    128,
+    96
+  ],
+  "columns": 2,
+  "frames": 4,
+  "order": "row-major",
+  "pivot": [
+    64,
+    90
+  ],
+  "rawPixelScale": 0.16877637130801687,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        186,
+        97,
+        459,
+        567
+      ],
+      "bbox": [
+        39,
+        11,
+        85,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        175,
+        97,
+        468,
+        567
+      ],
+      "bbox": [
+        36,
+        11,
+        85,
+        90
+      ],
+      "height": 79,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        69,
+        68,
+        495,
+        540
+      ],
+      "bbox": [
+        14,
+        10,
+        86,
+        90
+      ],
+      "height": 80,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        175,
+        68,
+        454,
+        540
+      ],
+      "bbox": [
+        38,
+        10,
+        85,
+        90
+      ],
+      "height": 80,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

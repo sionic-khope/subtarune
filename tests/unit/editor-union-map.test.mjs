@@ -2,9 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { QA_POINTS, stateFromFlags } from '../../src/core/story.js';
+import { Entity, NPC, Player } from '../../src/world/world.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 const overlaps = (a, b) => a.x < b.x + b.w && a.x + 24 > b.x && a.y < b.y + b.h && a.y + 16 > b.y;
+
+test('test_stage_battle_ready_spawn_reaches_waiting_park_with_the_actual_C_probe', () => {
+  const map = readMap('youngcle7');
+  const game = { entities: [] };
+  const target = Object.assign(Object.create(NPC.prototype), new Entity(map.entities.find(entity => entity.id === 'park_guardian_ready'), game));
+  const player = Object.assign(Object.create(Player.prototype), new Entity(map.spawns.battle_ready, game));
+  game.entities = [target];
+  assert.equal(player.overlaps(target.rect), false, 'spawn keeps the player collision box outside the NPC');
+  assert.equal(player.probe(), target, 'C at the dedicated QA spawn must reach Park without another movement');
+});
 
 test('test_stage_entry_is_silent_and_center_trigger_is_separate_from_spawn', () => {
   const map = readMap('youngcle7');
@@ -46,6 +57,10 @@ test('test_stage_cast_is_hidden_before_entrances_and_only_park_remains_after', (
   assert.equal(after[0].sprite, 'park_guardian_costume');
   assert.equal(after[0].hidden, undefined);
   assert.equal(after[0].script, 'editor_union_stage_wait');
+  assert.equal(after[0].unless, 'park_guardian_won');
+  const defeated = cast.find(entity => entity.requires === 'park_guardian_won');
+  assert.equal(defeated.sprite, 'park_guardian');
+  assert.equal(defeated.script, undefined);
   assert.equal(map.entities.some(entity => entity.type === 'enemy'), false);
   assert.equal(map.entities.filter(entity => entity.type === 'door').length, 1);
   const audience = map.entities.find(entity => entity.id === 'stage_audience');
@@ -55,7 +70,7 @@ test('test_stage_cast_is_hidden_before_entrances_and_only_park_remains_after', (
   assert.equal(map.entities.filter(entity => entity.image === audience.image).length, 1);
 });
 
-test('test_stage_qa_inherits_plan_b_party_and_permanent_upgrades_without_starting_battle', () => {
+test('test_stage_qa_inherits_plan_b_party_and_permanent_upgrades_before_battle', () => {
   const prior = QA_POINTS.find(point => point.id === 'youngcle6_after_plan_b');
   const before = QA_POINTS.find(point => point.id === 'youngcle7');
   const after = QA_POINTS.find(point => point.id === 'youngcle7_after_intro');
@@ -69,6 +84,10 @@ test('test_stage_qa_inherits_plan_b_party_and_permanent_upgrades_without_startin
   }
   assert.equal(before.flags.editor_union_stage_done, undefined);
   assert.equal(after.flags.editor_union_stage_done, true);
+  const battle = QA_POINTS.find(point => point.id === 'park_guardian_battle');
+  assert.deepEqual(battle.flags, after.flags);
+  assert.equal(battle.spawn, 'battle_ready');
+  assert.deepEqual(battle.party, ['gyeongsub', 'ppaman']);
 });
 
 test('test_stage_editors_have_visible_iron_passages_without_crossing_audience_or_walls', () => {

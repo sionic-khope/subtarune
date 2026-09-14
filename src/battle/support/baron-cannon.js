@@ -1,13 +1,18 @@
 import { BARON_CANNON as C } from '../../data/baron-cannon.js';
 import L from '../../data/locale/ko.js';
+import { createParkGuardianSupport } from './park-guardian.js';
 
 /** Battle-local support controller; no story flag survives victory or retry. */
 export function createBattleSupport(battle) {
+  const park = createParkGuardianSupport(battle);
+  if (park) return park;
   if (!battle.enemies.some((e) => e.def.support === 'baron_cannon')) return null;
   let unlocked = false, introduced = false, charge = 0, sprite = null;
   return {
     get unlocked() { return unlocked; },
     get charge() { return charge; },
+    get requiredHits() { return C.requiredHits; },
+    get hint() { return L.battle_cannon_wait(Math.max(0, C.requiredHits - charge)); },
     get ready() { return unlocked && charge === C.requiredHits; },
     async load(loadImage) { sprite = await loadImage('assets/sprites/yongjun.png'); },
     reset() { unlocked = false; introduced = false; charge = 0; },

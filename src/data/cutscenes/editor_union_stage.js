@@ -1,6 +1,7 @@
 import { FX } from '../fx.js';
 import { beginEditorUnionStage, clearEditorUnionStage } from '../../scenes/editor-union-effects.js';
 import { loopCharacterMotion } from '../../world/character-motion.js';
+import { battleEntry } from './helpers.js';
 
 const PARK = 'park_guardian_costume', BIDET = 'warm_bidet', MOUSE = 'ttuulla', MARIO = 'mini_mario';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
@@ -20,10 +21,35 @@ const surprise = { parallel: PARTY.flatMap((id, i) => [
 ]) };
 const FINAL = '첫번째 시련!! 파크가디언을 이겨라!!! 들어와 ㅅㅂ새끼들아.';
 
-export const editor_union_stage_wait = Object.assign([K(FINAL)], { silent: true });
+const parkBattle = () => [
+  close,
+  ...battleEntry(['park_guardian'], 'park_guardian'),
+  { battle: { enemies: ['park_guardian'], bgm: 'park_guardian', bg: 'editor_union_stage', flag: 'park_guardian_won' } },
+  { if: flags => !flags.park_guardian_won, goto: 'finished' },
+  { bgm: null },
+  { action: game => {
+    for (const actor of game.entities) {
+      if (actor.id === PARK || actor.id === 'park_guardian_ready') actor.dead = true;
+    }
+  } },
+  { spawn: { type: 'npc', id: 'park_guardian_defeated', sprite: 'park_guardian',
+    x: 760, y: 416, facing: 'left', wander: 0, solid: false } },
+  { zoom: 1, duration: 0 },
+  { camera: 'player' },
+  { fade: 'in', duration: 0.35 },
+];
+
+export const editor_union_stage_wait = Object.assign([
+  { if: flags => flags.park_guardian_won, goto: 'finished' },
+  K(FINAL),
+  ...parkBattle(),
+  { label: 'finished' },
+  { end: true },
+], { silent: true });
 
 export const editor_union_stage = Object.assign([
-  { if: flags => flags.editor_union_stage_done, goto: 'finished' },
+  { if: flags => flags.park_guardian_won, goto: 'finished' },
+  { if: flags => flags.editor_union_stage_done, goto: 'battle' },
   { action: game => {
     beginEditorUnionStage(game);
     game.sound.stopBgm(0);
@@ -190,6 +216,8 @@ export const editor_union_stage = Object.assign([
     clearEditorUnionStage(game);
   } },
   { set: { editor_union_stage_done: true } },
+  { label: 'battle' },
+  ...parkBattle(),
   { label: 'finished' },
   { end: true },
 ], { silent: true });

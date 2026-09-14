@@ -1,5 +1,18 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 파크가디언 전투 (BUILD155, 2026-09-14)
+
+사용자 지정 [tlFnfEWZCtQ](https://www.youtube.com/watch?v=tlFnfEWZCtQ)의 오디오 포맷251 전체를 `assets/audio/bgm/park_guardian.mp3`로 변환했다. yt-dlp 메타데이터 제목은 `32. Cutie Mew Mew Magic (DELTARUNE Chapter 5 Soundtrack) - Toby Fox & @Cametek.CamelliaOfficial`, 업로더/채널 표시명은 `Toby Fox`, 게시일은2026-06-24, 표시 길이는185초다. 이는 해당 영상의 표시 메타데이터 기록이며 공식 배포·권리관계의 별도 검증을 뜻하지 않는다. 다른 영상이나 대체곡은 사용하지 않았다.
+
+MP3는 **184.682667초,48kHz 스테레오,4,208,444바이트**, SHA256 `5880e403139253ec56d4d7a60338f5d762e2c7008fb4df75bfdfa51a53aa5124`다. 전체 디코드 성공, 평균−17.0dBFS/peak−0.2dBFS. 잘라내기·음높이·속도·페이드·음량 변경 없이 libmp3lame quality2로 변환했다. `park_guardian` 이름은 기존 `src/core/audio.js`의 파일명 기반 `preloadBgm`/`playBgm`으로 로드되므로 새 로더 등록은 필요 없다. 전투 연결·실제 재생과 주관적 청취 검증은 자산 디코드 검사와 구분한다.
+
+원본 WebM SHA256는 `b98902b3004c57c5446fadf48f7010e64e7987287d3a7086584d5cc25d96a71e`다. 다운로드 원본과 전체 메타데이터는 임시 `/tmp/subtarune-park155-audio.X01M7I/`에 보관하며 배포에는 MP3만 포함한다. 원본 권리는 해당 권리자에게 있으며 출처 기록이 이용허락을 뜻하지 않는다.
+
+```sh
+uvx --from yt-dlp yt-dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f '251/bestaudio' --write-info-json -o '/tmp/subtarune-park155-audio.X01M7I/source.%(ext)s' 'https://www.youtube.com/watch?v=tlFnfEWZCtQ'
+ffmpeg -hide_banner -loglevel error -n -i /tmp/subtarune-park155-audio.X01M7I/source.webm -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/bgm/park_guardian.mp3
+```
+
 ## 영클 공장 구역 BGM (BUILD143, 2026-09-13)
 
 사용자 지정 [A CYBER'S WORLD? — Toby Fox](https://www.youtube.com/watch?v=In3y0C7mQvA&list=PLjj7CATn1HfUetet9LgdabEk9GsH7R2tI&index=6)를 `assets/audio/bgm/youngcle_factory.mp3`로 준비했다. `--no-playlist`로 영상 ID `In3y0C7mQvA` 하나만 받았고, YouTube 메타데이터의 제목·Toby Fox 채널·업로드2021-10-04·표시166초를 확인했다. 포맷251 전체를 libmp3lame quality2로 변환했으며 트리밍·음높이·속도·음량·페이드 변경은 없다. 영클전함2/3/4의 공통 BGM 이름은 `youngcle_factory`다. 기존 `preloadBgm`/`playBgm`이 파일 이름으로 경로를 구성하므로 새 로더 등록은 필요 없다.

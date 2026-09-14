@@ -1,0 +1,96 @@
+{
+  "asset": "assets/enemies/park-guardian-slipping.png",
+  "source": "slipping-raw.png",
+  "dimensions": [
+    192,
+    192
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "columns": 2,
+  "frames": 4,
+  "order": "row-major",
+  "pivot": [
+    48,
+    90
+  ],
+  "rawPixelScale": 0.1553398058252427,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        107,
+        128,
+        492,
+        590
+      ],
+      "bbox": [
+        19,
+        18,
+        79,
+        90
+      ],
+      "height": 72,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        125,
+        140,
+        494,
+        589
+      ],
+      "bbox": [
+        18,
+        20,
+        75,
+        90
+      ],
+      "height": 70,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        100,
+        90,
+        497,
+        569
+      ],
+      "bbox": [
+        15,
+        16,
+        77,
+        90
+      ],
+      "height": 74,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        121,
+        99,
+        491,
+        569
+      ],
+      "bbox": [
+        18,
+        17,
+        75,
+        90
+      ],
+      "height": 73,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}
