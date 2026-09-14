@@ -1,0 +1,37 @@
+{
+  "asset": "assets/illustrations/park-trial-glass.png",
+  "dimensions": [
+    512,
+    160
+  ],
+  "frames": 1,
+  "source": "glass-raw.png",
+  "sourceCrop": [
+    38,
+    214,
+    2061,
+    535
+  ],
+  "scale": 0.2491349480968858,
+  "offset": [
+    4,
+    40
+  ],
+  "bounds": [
+    4,
+    40,
+    508,
+    120
+  ],
+  "pivot": [
+    256,
+    80
+  ],
+  "resampling": "LANCZOS",
+  "nativeAlpha": true,
+  "binaryAlpha": false,
+  "preserveSourceCanvas": false,
+  "sourceCropIntent": "transparent exterior only",
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

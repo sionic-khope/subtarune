@@ -1,0 +1,96 @@
+{
+  "asset": "assets/enemies/park-guardian-judge.png",
+  "source": "guardian-judge-raw.png",
+  "dimensions": [
+    256,
+    256
+  ],
+  "cell": [
+    128,
+    128
+  ],
+  "columns": 2,
+  "frames": 4,
+  "order": "row-major",
+  "pivot": [
+    64,
+    116
+  ],
+  "rawPixelScale": 0.22176591375770022,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        96,
+        95,
+        540,
+        582
+      ],
+      "bbox": [
+        9,
+        8,
+        107,
+        116
+      ],
+      "height": 108,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        84,
+        96,
+        540,
+        582
+      ],
+      "bbox": [
+        8,
+        8,
+        109,
+        116
+      ],
+      "height": 108,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        140,
+        94,
+        540,
+        581
+      ],
+      "bbox": [
+        20,
+        8,
+        109,
+        116
+      ],
+      "height": 108,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        94,
+        94,
+        540,
+        581
+      ],
+      "bbox": [
+        9,
+        8,
+        108,
+        116
+      ],
+      "height": 108,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

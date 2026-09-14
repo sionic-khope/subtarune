@@ -1,5 +1,11 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 파크가디언 마녀재판 반론 (BUILD156, 2026-09-14)
+
+사용자 요청의 `それはおかしいよ！` 원음은 [마녀재판 컷인 보이스 게임 녹화](https://www.youtube.com/watch?v=eBt4Agp85HE&t=5s), 업로더 표시명 `マークGames`, 2025-11-15 영상의 **7.04–8.42초**다. 공식 채널/공식 허가 소재로 주장하지 않는다. 포맷251의5–11초 확인 구간만 받고, 일본어 자동자막·로컬 Whisper·파형으로 첫 반론 위치와 뒤 일반 대사 경계를 확인했다. 배포 파일 `sfx/park_trial_objection.mp3`는1.38초,48kHz stereo,29,732바이트, 평균−19.9dBFS/peak−3.8dBFS다. 시작8ms/끝25ms페이드·gain2배 외 피치/속도 변경은 없다. 원 녹화의 배경 음악/효과음 성분은分離하지 않았다. 전체 디코드/잘라낸 음성 자동전사를 확인했지만 사람의 청취 검수 완료로 기록하지 않는다. 정확한 명령·체크섬·확인 구간은 `assets/source/park156/audio/README.md`에 있다. 출처 기록은 이용허락 확인을 뜻하지 않는다.
+
+유리 파괴 `sfx/park_trial_shatter.mp3`는 원작 녹음이 아닌 새 오리지널 합성이다.0.74초의 밝은 노이즈 충격·27개 비정수 배음 파편 접촉·1000Hz하이패스로 구성했으며 외부 샘플/목소리 모사가 없다.44.1kHz mono,12,641바이트, 평균−23.0dBFS/peak−5.2dBFS.500Hz저역통과 뒤 평균은−54.2dBFS로 저음 킥이 아닌 고역 중심 감쇠를 확인했다. `node assets/source/park156/audio/synthesize-shatter.mjs`로 재현하며 체크섬·구조는 같은 오디오 README에 있다. 반론 후 시각 유리 파괴 시점에1회 재생한다.
+
 ## 파크가디언 전투 (BUILD155, 2026-09-14)
 
 사용자 지정 [tlFnfEWZCtQ](https://www.youtube.com/watch?v=tlFnfEWZCtQ)의 오디오 포맷251 전체를 `assets/audio/bgm/park_guardian.mp3`로 변환했다. yt-dlp 메타데이터 제목은 `32. Cutie Mew Mew Magic (DELTARUNE Chapter 5 Soundtrack) - Toby Fox & @Cametek.CamelliaOfficial`, 업로더/채널 표시명은 `Toby Fox`, 게시일은2026-06-24, 표시 길이는185초다. 이는 해당 영상의 표시 메타데이터 기록이며 공식 배포·권리관계의 별도 검증을 뜻하지 않는다. 다른 영상이나 대체곡은 사용하지 않았다.

@@ -1,0 +1,96 @@
+{
+  "asset": "assets/enemies/park-razma.png",
+  "source": "razma-raw.png",
+  "dimensions": [
+    256,
+    256
+  ],
+  "cell": [
+    128,
+    128
+  ],
+  "columns": 2,
+  "frames": 4,
+  "order": "row-major",
+  "pivot": [
+    64,
+    116
+  ],
+  "rawPixelScale": 0.16080402010050251,
+  "resampling": "NEAREST",
+  "alpha": "binary >=128",
+  "durationMs": 150,
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBox": [
+        25,
+        89,
+        521,
+        685
+      ],
+      "bbox": [
+        24,
+        20,
+        104,
+        116
+      ],
+      "height": 96,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 1,
+      "sourceBox": [
+        9,
+        89,
+        511,
+        685
+      ],
+      "bbox": [
+        24,
+        20,
+        105,
+        116
+      ],
+      "height": 96,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 2,
+      "sourceBox": [
+        25,
+        60,
+        528,
+        657
+      ],
+      "bbox": [
+        24,
+        20,
+        105,
+        116
+      ],
+      "height": 96,
+      "rootOffsetX": 0
+    },
+    {
+      "frame": 3,
+      "sourceBox": [
+        8,
+        60,
+        511,
+        657
+      ],
+      "bbox": [
+        23,
+        20,
+        104,
+        116
+      ],
+      "height": 96,
+      "rootOffsetX": 0
+    }
+  ],
+  "sourceEdgeTouch": 0,
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

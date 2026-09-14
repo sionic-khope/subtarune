@@ -16,6 +16,7 @@ export function createParkGuardianSupport(battle) {
   if (!enemy) return null;
   let unlocked = false, introduced = false, charge = 0, phase = 'costume', turns = 0, skipBoundary = false;
   let dogImage = null, emptyImage = null;
+  let costumeTurns = 0, ordinarySlots = 0, trialUsed = false;
   const standing = () => battle.alive().find(m => m.id === 'ppaman' && m.hp > 0);
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   return {
@@ -24,6 +25,9 @@ export function createParkGuardianSupport(battle) {
     get requiredHits() { return C.requiredHits; },
     get phase() { return phase; },
     get turns() { return turns; },
+    get costumeTurns() { return costumeTurns; },
+    get ordinarySlots() { return ordinarySlots; },
+    get trialUsed() { return trialUsed; },
     get emptyImage() { return emptyImage; },
     get ready() { return unlocked && phase === 'costume' && charge === C.requiredHits && !!standing() && live(); },
     get hint() { return !standing() ? L.battle_strip_down : phase !== 'costume' ? L.battle_strip_exposed(turns) : L.battle_strip_wait(C.requiredHits - charge); },
@@ -33,9 +37,23 @@ export function createParkGuardianSupport(battle) {
     },
     reset() {
       unlocked = false; introduced = false; charge = 0; phase = 'costume'; turns = 0; skipBoundary = false;
+      costumeTurns = 0; ordinarySlots = 0; trialUsed = false;
       enemy.formDef = null; enemy.formImage = null; enemy.patternPose = null;
     },
     blocksDamage(target) { return target === enemy && phase !== 'dog'; },
+    /** Called once at the start of an enemy turn; dog and support-action rounds do not count. */
+    enemyModeFor(target) {
+      if (target !== enemy || phase !== 'costume' || !live()) return null;
+      costumeTurns++;
+      if (!trialUsed && costumeTurns === C.costumeSchedule.trialTurn) {
+        trialUsed = true;
+        return 'park_witch_trial';
+      }
+      ordinarySlots++;
+      if (ordinarySlots % C.costumeSchedule.razmaEvery === 0) return 'park_razma';
+      enemy.patternIdx = (ordinarySlots - 1 - Math.floor(ordinarySlots / C.costumeSchedule.razmaEvery)) % enemy.def.patterns.length;
+      return null;
+    },
     poseFor(target) { return target === enemy && phase === 'costume' ? { sheet: charge >= 9 ? 'adjust' : charge >= 6 ? 'slipping' : charge >= 3 ? 'loose' : 'dance' } : null; },
     onContact(target, damage, source) {
       if (target === enemy && live() && phase === 'costume' && damage > 0 && source === 'ordinary') charge = Math.min(C.requiredHits, charge + 1);

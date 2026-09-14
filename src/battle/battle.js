@@ -311,8 +311,11 @@ export class Battle {
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
     const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)]; const lines = this.support?.speechFor?.(e) || e.def.lines?.speak || [];
-    const defName = e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
-    if (typeof create === 'function') { this.gimmick = create(this, { enemy: e }); this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); return; }   // 적 턴 미니게임 모드
+    const defName = this.support?.enemyModeFor?.(e) || e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
+    if (typeof create === 'function') {
+      this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText('');
+      this.gimmick = create(this, { enemy: e }); return;
+    }
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
     let text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
     if (lines.length && e.def.lines.speakShuffle) {
@@ -380,10 +383,18 @@ export class Battle {
   }
   hurtParty(dmg) {
     const alive = this.alive(); if (!alive.length) return;
-    const m = alive[Math.floor(this.rnd() * alive.length)];
-    m.hp = Math.max(0, m.hp - dmg); m.popup = { t: 0, text: String(dmg) };
+    this.applyPartyDamage([alive[Math.floor(this.rnd() * alive.length)]], dmg);
+  }
+  /** Unavoidable party-wide penalties hit every standing member once, independent of soul invulnerability. */
+  hurtAllParty(dmg) { this.applyPartyDamage(this.alive().filter(m => m.hp > 0), dmg); }
+  /** Shared HP/down/defeat path for random bullet hits and simultaneous party penalties. */
+  applyPartyDamage(members, dmg) {
+    if (!members.length) return;
+    for (const m of members) {
+      m.hp = Math.max(0, m.hp - dmg); m.popup = { t: 0, text: String(dmg) };
+      if (m.hp <= 0) { m.down = true; m.downTurns = 0; m.action = null; m.pose = null; }
+    }
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
-    if (m.hp <= 0) { m.down = true; m.downTurns = 0; m.action = null; m.pose = null; }   // 쓰러짐: 누워서 행동 불능 (afterEnemyPhase 가 라운드마다 세어 DOWN_TURNS 에 일으킨다)
     // 게임 오버는 셋(전원)이 다 쓰러졌을 때만 (사용자 2026-09-11)
     if (!this.alive().length) { this.disposeGimmick(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
   }

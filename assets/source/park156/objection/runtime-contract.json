@@ -1,0 +1,37 @@
+{
+  "asset": "assets/illustrations/park-trial-objection.png",
+  "dimensions": [
+    384,
+    320
+  ],
+  "frames": 1,
+  "source": "objection-raw.png",
+  "sourceCrop": [
+    0,
+    0,
+    1536,
+    1024
+  ],
+  "scale": 0.25,
+  "offset": [
+    0,
+    32
+  ],
+  "bounds": [
+    6,
+    32,
+    361,
+    288
+  ],
+  "pivot": [
+    192,
+    160
+  ],
+  "resampling": "LANCZOS",
+  "nativeAlpha": false,
+  "binaryAlpha": false,
+  "preserveSourceCanvas": true,
+  "sourceCropIntent": "authored hat/waist framing",
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}

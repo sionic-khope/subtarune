@@ -12,6 +12,8 @@
 import { createTimingAttack } from './modes/timing.js';
 import { createCannonGuard } from './modes/cannon-guard.js';
 import { createParkStrip } from './modes/park-strip.js';
+import { createParkRazma } from './modes/park-razma.js';
+import { createParkWitchTrial } from './modes/park-witch-trial.js';
 
 const MODES = { attack: new Map(), enemy: new Map() };
 export const NATIVE = 'native';                          // battle.js 가 직접 처리하는 기본 모드 표시
@@ -32,3 +34,5 @@ registerBattleMode('enemy', 'bullets', NATIVE);
 registerBattleMode('attack', 'timing', createTimingAttack);
 registerBattleMode('attack', 'cannon_guard', createCannonGuard);
 registerBattleMode('attack', 'park_strip', createParkStrip);
+registerBattleMode('enemy', 'park_razma', createParkRazma);
+registerBattleMode('enemy', 'park_witch_trial', createParkWitchTrial);

@@ -7,7 +7,7 @@ import { PARK_GUARDIAN as C } from '../../src/data/park-guardian.js';
 import { createBattleSupport } from '../../src/battle/support/baron-cannon.js';
 import { createParkStrip } from '../../src/battle/modes/park-strip.js';
 import { drawParkCostume } from '../../src/battle/support/park-guardian.js';
-import { getBattleMode } from '../../src/battle/modes.js';
+import { getBattleMode, registerBattleMode } from '../../src/battle/modes.js';
 
 const none = { just: () => false, down: () => false };
 const confirm = { just: k => k === 'confirm', down: () => false };
@@ -208,4 +208,84 @@ test('test_park_interrupted_flight_clears_transforms_and_disposed_mode_cannot_em
   b.gimmick = mode; b.beginRetry();
   assert.equal(plan.member.action, null); assert.equal(action.rotation, 0); assert.equal(action.hidden, false); assert.equal(action.airborne, false);
   assert.equal(mode.update(5, none), true); assert.equal(b.support.phase, 'costume');
+});
+
+test('test_park_costume_schedule_counts_once_per_enemy_entry_with_trial_priority_and_ordinary_cycle', () => {
+  const b = fixture(), e = b.enemies[0], selected = [];
+  for (let turn = 1; turn <= 13; turn++) {
+    const mode = b.support.enemyModeFor(e);
+    selected.push(mode || e.def.patterns[e.patternIdx].type);
+  }
+  assert.deepEqual(selected, [
+    'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma', 'park_witch_trial',
+    'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma',
+    'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma',
+  ]);
+  assert.equal(b.support.costumeTurns, 13); assert.equal(b.support.ordinarySlots, 12); assert.equal(b.support.trialUsed, true);
+  b.beginRetry();
+  assert.equal(b.support.costumeTurns, 0); assert.equal(b.support.ordinarySlots, 0); assert.equal(b.support.trialUsed, false);
+  b.beginEnemyTurn(); assert.equal(b.support.costumeTurns, 1);
+  b.beginBullets(); assert.equal(b.support.costumeTurns, 1);
+  assert.equal(b.patterns[0].enemy, e);
+});
+
+test('test_park_schedule_excludes_strip_dog_rewear_and_preserves_next_costume_slot', () => {
+  const b = fixture(), e = b.enemies[0]; intro(b);
+  for (let i = 0; i < 3; i++) b.support.enemyModeFor(e);
+  charge(b); const plan = b.support.action();
+  assert.equal(b.support.enemyModeFor(e), null); assert.equal(b.support.costumeTurns, 3);
+  assert.equal(b.support.expose(plan.target), true);
+  for (let i = 0; i < 3; i++) assert.equal(b.support.enemyModeFor(e), null);
+  b.support.afterEnemyPhase(); b.support.afterEnemyPhase(); const rewear = b.support.afterEnemyPhase();
+  assert.equal(b.support.enemyModeFor(e), null); rewear.update(2, none);
+  assert.equal(b.support.costumeTurns, 3); assert.equal(b.support.enemyModeFor(e), 'park_razma');
+  assert.equal(b.support.enemyModeFor(e), 'park_witch_trial');
+  assert.equal(b.support.enemyModeFor({}), null); assert.equal(b.support.costumeTurns, 5);
+  e.dead = true; assert.equal(b.support.enemyModeFor(e), null); assert.equal(b.support.costumeTurns, 5);
+});
+
+test('test_enemy_mode_factory_opening_line_survives_initialization', () => {
+  const b = fixture(); b.support = null; b.modes.enemy = 'park156_initialization_test';
+  registerBattleMode('enemy', b.modes.enemy, battle => {
+    assert.equal(battle.state, 'enemy-mode'); assert.equal(battle.t, 0);
+    battle.showLine({ speaker: '파크가디언', text: '* 첫 대사', voice: 'park_guardian_costume' });
+    return { update: () => false };
+  });
+  b.beginEnemyTurn(); assert.equal(b.text, '* 첫 대사'); assert.ok(b.gimmick);
+});
+
+test('test_park_begin_enemy_turn_routes_fourth_to_razma_and_fifth_to_trial_once', () => {
+  const b = fixture(); let pauses = 0;
+  b.game.sound.pauseBgm = () => pauses++;
+  for (let turn = 1; turn <= 3; turn++) { b.beginEnemyTurn(); assert.equal(b.state, 'enemy-prep'); }
+  b.beginEnemyTurn(); assert.equal(b.state, 'enemy-mode'); assert.equal(b.gimmick.snapshot.phase, 'expand');
+  b.disposeGimmick();
+  b.beginEnemyTurn(); assert.equal(b.state, 'enemy-mode'); assert.equal(b.gimmick.snapshot.phase, 'enter');
+  assert.equal(pauses, 1); assert.equal(b.support.costumeTurns, 5);
+  b.disposeGimmick(); b.beginEnemyTurn();
+  assert.equal(b.state, 'enemy-prep'); assert.equal(b.support.costumeTurns, 6); assert.equal(pauses, 1);
+});
+
+test('test_party_wide_penalty_hits_each_alive_once_and_preserves_previously_down_members', () => {
+  const b = fixture(), sounds = []; b.sfx = name => sounds.push(name);
+  b.members[0].hp = 80; b.members[1].hp = 20;
+  b.members[2].hp = 0; b.members[2].down = true; b.members[2].downTurns = 2;
+  b.soul.invuln = 100; b.state = 'enemy-mode';
+  b.hurtAllParty(30);
+  assert.deepEqual(b.members.map(m => m.hp), [50, 0, 0]);
+  assert.deepEqual(b.members.map(m => m.down), [false, true, true]);
+  assert.equal(b.members[1].downTurns, 0); assert.equal(b.members[2].downTurns, 2);
+  assert.equal(b.members[1].action, null); assert.equal(b.state, 'enemy-mode');
+  assert.deepEqual(sounds, ['hurt']); assert.equal(b.soul.hits, 1);
+});
+
+test('test_party_wide_lethal_penalty_enters_lose_once_and_retry_restores_party', () => {
+  const b = fixture(); let disposed = 0, stops = 0;
+  b.gimmick = { dispose() { disposed++; } }; b.game.sound.stopBgm = () => stops++;
+  b.members.forEach(m => { m.hp = 30; }); b.state = 'enemy-mode';
+  b.hurtAllParty(30); b.hurtAllParty(30);
+  assert.deepEqual(b.members.map(m => m.hp), [0, 0, 0]); assert.equal(b.state, 'lose');
+  assert.equal(disposed, 1); assert.equal(stops, 1); assert.equal(b.gimmick, null);
+  b.beginRetry(); assert.deepEqual(b.members.map(m => m.hp), [100, 100, 100]);
+  assert.ok(b.members.every(m => !m.down));
 });

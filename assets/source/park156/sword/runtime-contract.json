@@ -1,0 +1,37 @@
+{
+  "asset": "assets/projectiles/park-trial-sword.png",
+  "dimensions": [
+    96,
+    256
+  ],
+  "frames": 1,
+  "source": "sword-raw.png",
+  "sourceCrop": [
+    349,
+    83,
+    765,
+    1317
+  ],
+  "scale": 0.20097244732576985,
+  "offset": [
+    6,
+    4
+  ],
+  "bounds": [
+    6,
+    4,
+    90,
+    252
+  ],
+  "pivot": [
+    48,
+    252
+  ],
+  "resampling": "NEAREST",
+  "nativeAlpha": true,
+  "binaryAlpha": true,
+  "preserveSourceCanvas": false,
+  "sourceCropIntent": "transparent exterior only",
+  "outputEdgeTouch": 0,
+  "pasteClamping": 0
+}
