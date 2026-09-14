@@ -1,0 +1,38 @@
+{
+  "endpoint": "images/generations",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "medium"
+  },
+  "refs": [],
+  "elapsed_seconds": 29.6,
+  "usage": {
+    "input_tokens": 135,
+    "output_tokens": 1756,
+    "total_tokens": 1891,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 135
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789404912,
+  "outputs": [
+    {
+      "file": "icons/fire-raw.png",
+      "bytes": 837093,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

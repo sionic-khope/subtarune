@@ -114,6 +114,17 @@ BUILD127 공격음 확정: 사용자 ‘기존사운드 활용해도됨’에 �
 
 재생성: `node tools/audio/lounge148_voices.mjs`. 원본 AIFF·인코딩 전 WAV·실제 MP3 디코드 기반8회 반복 미리듣기·정확한 계수/해시/측정은 `assets/source/lounge148/audio/`에 있다. `all-voices-preview.wav`는 표 순서대로 재생한다. ffmpeg 전체 디코드에서7497/8379/7056/7717샘플, 무클리핑을 확인했다. 제작자의 주관적 청취 평가를 완료했다는 의미는 아니다.
 
+## 섭리오(스크린 속 2D 게임) BGM (2026-09-15)
+
+사용자 지정 두 곡. 둘 다 Toby Fox 공식 채널의 DELTARUNE Chapter 3+4 Soundtrack(2025-06-04 게시)에서 yt-dlp `bestaudio`(webm/opus)를 MP3 q2로 변환했으며 원본 전체 길이·피치·속도를 유지한다. 팬게임 비수익 사용이며 공식 이용허락을 주장하지 않는다.
+
+| 파일 | 출처 | 길이 | 용도 |
+|---|---|---|---|
+| `bgm/subrio_query.mp3` | [07. Query?](https://www.youtube.com/watch?v=2LkI2_NdoZE) | 28.56초 루프 | 스크린이 가운데로 잡히고 `SUBRIO` 로고가 천천히 뜰 때부터 직업 선택까지 |
+| `bgm/subrio_sword.mp3` | [33. SWORD](https://www.youtube.com/watch?v=KAtudLu42vA) | 136.93초 루프 | 화면이 밝아지며 2D 게임에 들어간 뒤 |
+
+원본 webm 은 `assets/source/subrio165/audio/`에 둔다.
+
 ## 마이야르호 라운지 NPC 목소리 (2026-09-13)
 
 사용자가 새로 만들도록 요청한 야꿀벌·마뱀이·박원숭은 실제 사람 녹음이나 음성 모델을 사용하지 않은 원본 비언어 캐릭터 블립이다. 생성기 `tools/audio/lounge_npc_voices.mjs`는 14개 사인 배음에 두 공명 대역을 입히고 음높이 변화·떨림을 더한다. 각 샘플은 6ms 어택·25ms 릴리스이며 44.1kHz 모노 PCM을 ffmpeg/libmp3lame quality 2로 변환한다. 재현은 `node tools/audio/lounge_npc_voices.mjs`.

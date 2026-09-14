@@ -1,0 +1,96 @@
+{
+  "asset": "assets/sprites/subrio_pantheon.png",
+  "cell": [
+    48,
+    48
+  ],
+  "grid": "2 cols x 4 rows, row-major: idle, walk1, walk2, walk3, jump, crouch, attack, guard",
+  "feetY": 44,
+  "scale": 0.09970674486803519,
+  "frameBounds": [
+    [
+      12,
+      10,
+      36,
+      44
+    ],
+    [
+      11,
+      10,
+      37,
+      44
+    ],
+    [
+      12,
+      10,
+      37,
+      44
+    ],
+    [
+      11,
+      10,
+      38,
+      44
+    ],
+    [
+      10,
+      14,
+      39,
+      44
+    ],
+    [
+      12,
+      17,
+      37,
+      44
+    ],
+    [
+      4,
+      14,
+      44,
+      44
+    ],
+    [
+      20,
+      15,
+      40,
+      44
+    ]
+  ],
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-0ae08e4d5ee51e19/bin/python3",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio165/pantheon/pantheon-raw.png",
+    "--target",
+    "player",
+    "--mode",
+    "idle",
+    "--rows",
+    "4",
+    "--cols",
+    "2",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio165/pantheon/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "feet",
+    "--scale-strategy",
+    "fit",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc",
+    "--allow-source-edge-touch"
+  ],
+  "model": "openai/gpt-image-2 via OpenGateway images/edits (single image field, identity ref)"
+}

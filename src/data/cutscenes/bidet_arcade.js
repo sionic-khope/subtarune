@@ -105,10 +105,18 @@ export const bidet_arcade = [
   { label: 'end' },
 ];
 
-/** 토관 조사: 연출 뒤에는 다음 세계 입구(아직 미구현), 그 전에는 그냥 토관 */
+/** 토관 조사: 연출 뒤에는 섭리오(스크린 속 2D 게임)로 들어간다 — 스크린이 화면 가운데로 잡히며 줌인 → 오버레이 씬. 그 전에는 그냥 토관 */
 export const bidet_pipe_enter = [
   { if: flags => !flags.bidet_arcade_done, goto: 'plain' },
-  { text: '* 비데가 들어간 토관이다.\n* 안쪽으로 이어지는 길은 아직 열리지 않았다.', voice: 'narrator' },
+  { text: '* 토관 안으로 몸을 밀어 넣었다.', voice: 'narrator' },
+  close,
+  { sfx: 'mario_pipe' },
+  { bgm: null, fadeOut: 0.8 },
+  { parallel: [{ camera: SCREEN, duration: 1.1 }, { zoom: 2.3, duration: 1.1 }] },
+  { wait: 0.4 },
+  { scene3d: 'subrio' },
+  { parallel: [{ camera: 'player', duration: 0.5 }, { zoom: 1, duration: 0.5 }] },
+  { bgm: 'youngcle_factory' },
   { end: true },
   { label: 'plain' },
   { text: '* 마리오 게임에 나올 법한 초록 토관이다.', voice: 'narrator' },

@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2",
+    "n": "1",
+    "size": "1024x1536",
+    "quality": "high"
+  },
+  "refs": [
+    "refs/ppaman-ref.png"
+  ],
+  "elapsed_seconds": 79.7,
+  "usage": {
+    "input_tokens": 1021,
+    "output_tokens": 5488,
+    "total_tokens": 6509,
+    "input_tokens_details": {
+      "image_tokens": 672,
+      "text_tokens": 349
+    },
+    "output_tokens_details": {
+      "image_tokens": 5488,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789404851,
+  "outputs": [
+    {
+      "file": "brand/brand-raw.png",
+      "bytes": 1491042,
+      "size": [
+        1024,
+        1536
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

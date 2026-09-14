@@ -1,0 +1,46 @@
+{
+  "asset": "assets/props/subrio_icon_clock.png",
+  "size": [
+    32,
+    32
+  ],
+  "bounds": [
+    5,
+    1,
+    27,
+    31
+  ],
+  "scale": 0.04103967168262654,
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-0ae08e4d5ee51e19/bin/python3",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio165/icons/clock-raw.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio165/icons/clock-standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "center",
+    "--scale-strategy",
+    "fit",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc"
+  ]
+}
