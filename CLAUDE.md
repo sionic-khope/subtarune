@@ -57,6 +57,8 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Collaboration Protocol
 
+스프라이트 생성/외형 편집은 `.claude/skills/subtarune-sprite-handoff/SKILL.md`의 Codex 제작 요청 절차를 따른다. Claude는 명세·코드·게임 통합을 소유하고, 연결된 이미지 생성 가능 Codex 작업에 제작을 맡긴다.
+
 사용자가 맡긴 구현·수정·문서화는 검수와 이미 승인된 메인 반영까지 진행한다. 파일마다 쓰기 승인을 반복하지 않는다. 기획만 요청한 경우에는 제안 범위로 끝낸다. 판단/권한/복구의 원본은 [공통 판단 기준](docs/development/quality-contract.md)이다. `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md`의 과거 템플릿 예시는 최신 프로젝트 실행 권한을 제한하지 않는다.
 
 > **First session?** If the project has no engine configured and no game concept,
