@@ -23,8 +23,8 @@ function simulation(type, dt = 1 / 60) {
   return { pattern, emitted, frames };
 }
 
-test('test_cats_register_normal_enemies_with_exact_hp_and_three_unique_attacks', () => {
-  for (const [id, hp, offset] of [['seopnyang', 27, 0], ['gyeongnyang', 30, 3]]) {
+test('test_cats_register_normal_enemies_with_exact_hp_damage_and_three_unique_attacks', () => {
+  for (const [id, hp, damage, offset] of [['seopnyang', 27, 16, 0], ['gyeongnyang', 30, 17, 3]]) {
     const enemy = ENEMIES[id];
     assert.ok(enemy, `${id}: registered`);
     assert.equal(enemy.hp, hp);
@@ -36,7 +36,7 @@ test('test_cats_register_normal_enemies_with_exact_hp_and_three_unique_attacks',
     assert.equal(enemy.idle.swayX, 0);
     assert.equal(enemy.idle.swayY, 0);
     assert.equal(enemy.sheet.count, 4);
-    assert.ok(enemy.damage >= 10 && enemy.damage <= 14);
+    assert.equal(enemy.damage, damage);
   }
 });
 

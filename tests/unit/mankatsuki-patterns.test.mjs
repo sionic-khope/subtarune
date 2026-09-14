@@ -87,7 +87,7 @@ test('test_mankatsuki_keeps_pig_face_sheet_and_puts_underpants_food_and_motorcyc
   assert.equal(boss.projectiles.taco, 'assets/projectiles/mankatsuki-taco.png');
   assert.equal(boss.projectiles.foodTaco, 'assets/projectiles/mankatsuki-food-taco.png');
   assert.equal(boss.projectiles.motorcycle, 'assets/projectiles/mankatsuki-motorcycle.png');
-  assert.deepEqual([boss.hp, boss.damage, boss.scale], [144, 11, 1.15]);
+  assert.deepEqual([boss.hp, boss.damage, boss.scale], [144, 16, 1.15]);
   const { emitted, poses } = simulate(KEYS[4]);
   assert.equal(emitted.length, 18);
   assert.ok(emitted.every(({ b }) => b.shape === 'mankatsuki_taco' && b.warn >= 0.7 && b.r === 12));

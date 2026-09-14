@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
   seopnyang: {
-    name: '섭냥이', hp: 27, damage: 11, money: 90,
+    name: '섭냥이', hp: 27, damage: 16, money: 90,
     sheet: { src: 'assets/enemies/seopnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
     pivot: [32, 60], scale: 1.4, idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [
@@ -27,7 +27,7 @@ export const ENEMIES = {
       speak: ['여기 내 자리다냥.', '꾹꾹 해주겠다냥.', '수염은 건드리지 마냥.'], die: '* 섭냥이가 발을 털고 물러났다.' },
   },
   gyeongnyang: {
-    name: '경냥이', hp: 30, damage: 12, money: 100,
+    name: '경냥이', hp: 30, damage: 17, money: 100,
     sheet: { src: 'assets/enemies/gyeongnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
     pivot: [32, 60], scale: 1.4, idle: { swayX: 0, swayY: 0, period: 2.4 },
     patterns: [
@@ -40,7 +40,7 @@ export const ENEMIES = {
       speak: ['이 실은 내 거다냥.', '한 번만 잡아 봐라냥.', '꼬리 조심하라냥.'], die: '* 경냥이가 장난감을 챙겨 물러났다.' },
   },
   mankatsuki_junhee: {
-    name: '만카츠키 쥰희', hp: 144, voice: 'junhee', money: 500, damage: 11,
+    name: '만카츠키 쥰희', hp: 144, voice: 'junhee', money: 500, damage: 16,
     boss: true, attackSfxVolume: 0.36,
     bgmDelay: 0.4,
     sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },
