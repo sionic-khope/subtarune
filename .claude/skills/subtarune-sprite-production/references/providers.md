@@ -11,13 +11,15 @@
 
 - **Codex 내장 이미지:** 해당 세션에서 실제 이미지 생성 도구를 확인한다. 설치된 generate2dsprite/pixel-character-sprites의 제작·처리 절차를 적용하되 공통 승인 계약은 유지한다. 호출 도구가 backend 모델·품질·usage를 숨기면 unknown으로 기록한다. Astra 같은 코딩/추론 모델 이름을 이미지 backend 이름이나 건당 비용으로 쓰지 않는다.
 - **OpenAI/Gemini 등 직접 API:** 사용자 선택 모델과 현재 공식 스키마를 사용한다. 이미지 한 장부터 명시된 비용 범위 내에서 입력/출력 계약을 확인한다. 모델마다 같은 seed/quality 이름이 같은 결과를 뜻하지 않는다.
-- **OpenGateway:** 아래 조사 메모는 탐색 출발점이며 배포 설정이 아니다. 실제 계정 가용성과 이미지 참조 요청이 확인된 다음에만 실행 경로로 선택한다.
+- **OpenGateway:** 아래 조사 메모는 탐색 출발점이며 배포 설정이 아니다. 실제 계정 가용성과 이미지 참조 요청이 확인된 다음에만 실행 경로로 선택한다. 실행기는 `tools/sprites/imagegen.py`(절차 [subtarune-imagegen](../../subtarune-imagegen/SKILL.md))이며 2026-09-14 사용자 확정으로 키가 있을 때의 기본 경로다.
 
 ## OpenGateway 조사 메모 · 2026-09-14
 
 [공개 모델 목록](https://opengateway.ai/models)의 기본 목록에서 `openai/gpt-image-1-mini`, `openai/gpt-image-1.5`, `openai/gpt-image-2`, `openai/gpt-image-2.5-flare`, `openai/gpt-image-2.5-sunburst`, `google/gemini-3.1-flash-image`, `google/gemini-3-pro-image`, `google/gemini-2.5-flash-image`의 이미지 출력 표시를 확인했다. 이후 사용자가 기존 OG 연결 시험을 승인하여 인증 `/v1/models`를 조회했고 `openai/gpt-image-2`의 `status:active`, `input:[text,image]`, `output:[image]`, `endpoints:[images_generations,images_edits]`를 확인했다. 이는 가용성 메타데이터이며 유료 생성/참고 이미지 보존의 성공 증거와는 다르다. FLUX나 Nano Banana2 Lite의 OG 가용성은 이 목록으로 확인되지 않았다.
 
 **주의:** [OG 이미지 문서](https://opengateway.ai/docs/reference/endpoints/images)는 non-stream `/v1/images/generations`와 텍스트 프롬프트를 설명하지만 참고 이미지/edit/mask 요청 필드를 명시하지 않는다. 공식 개요가 안내한 backend `/openapi`도 조사 때 HTTP404였다. 인증 모델 목록의 edits 표기와 OG의 OpenAI 호환 설명에 따라 표준 multipart를 시험할 수 있지만, 실제 HTTP 응답과 참조 결과를 관찰하기 전까지 해당 스키마는 미검증으로 표시한다. 임의 참조 필드를 만들어 성공했다고 기록하지 않는다.
+
+**실행기 (2026-09-14 저녁 추가):** `tools/sprites/imagegen.py`는 stdlib만 쓰는 OpenAI 호환 클라이언트다. `models --images`로 카탈로그를 조회하고, `generate`는 참조 없음→`POST /v1/images/generations`(JSON), `--ref`→`POST /v1/images/edits`(multipart `image[]`, `input_fidelity=high`)를 보낸다. 기본 모델 `openai/gpt-image-2`, base `https://apis.opengateway.ai/v1`, 키는 `OPENGATEWAY_API_KEY`(환경변수 → repo `.env` → `~/.hermes/.env`). 응답의 `b64_json`/`url` 둘 다 처리하고 `<out>.prompt.txt`/`<out>.meta.json`(usage, 키 없음)을 남긴다. 키는 환경변수·`.env`·`~/.hermes/.env` 다음으로 macOS 키체인 `og-api-key`(hermes `providers.og.key_cmd`와 동일)를 읽으며 2026-09-14 저녁 키체인 경로로 실측 동작했다. 첫 실행: `models --images` 10개 반환, `openai/gpt-image-2` 1024x1024 high 소품 1장 `images/generations` 성공(97.6s, usage input 179 / output 7,024 image tokens / total 7,203), 저장소 processor `tools/sprites/sheet_processor.py` strict-QC 통과(empty/edge/clamp 0), NEAREST export·이진 알파·마젠타 잔여 0. 증거 `assets/source/imagegen-test/README.md`. `images/edits` 참조 첨부는 아직 미실행이며 첫 참조 편집 작업에서 기록한다. 실결제액은 대시보드 로그로 확인한다.
 
 [OG 과금](https://opengateway.ai/docs/platform/billing)은 공급자 요금과 플랫폼 수수료를 구분하며 정확한 수수료는 로그인 후 표시한다. 가격은 해당 일자의 공개 표시와 실제 usage를 별도로 기록한다. Gemini2.5 Flash Image는 OG에 보여도 [Google 가격/종료 안내](https://ai.google.dev/gemini-api/docs/pricing)의 2026-10-02 종료 공지가 있으므로 신규 장기 경로의 기본값으로 삼지 않는다. 실행 시 최신 수명주기를 다시 확인한다.
 

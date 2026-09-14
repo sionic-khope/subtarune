@@ -1,6 +1,6 @@
 # 공통 이미지 제작 계약
 
-진입점은 [sprite-production 스킬](../../.claude/skills/subtarune-sprite-production/SKILL.md)이다. 이 문서는 공급자와 무관한 결과 기준이며 API의 실제 지원은 별도로 확인한다.
+진입점은 [sprite-production 스킬](../../.claude/skills/subtarune-sprite-production/SKILL.md)이다. 이 문서는 공급자와 무관한 결과 기준이며 API의 실제 지원은 별도로 확인한다. OpenGateway 호출·후처리 명령은 [subtarune-imagegen](../../.claude/skills/subtarune-imagegen/SKILL.md)이 실행기다.
 
 ## 생성 전에 남길 명세
 

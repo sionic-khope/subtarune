@@ -1,0 +1,33 @@
+{
+  "asset": "assets/source/imagegen-test/final.png (test only, not registered)",
+  "cell": [
+    32,
+    64
+  ],
+  "bounds": [
+    4,
+    2,
+    28,
+    62
+  ],
+  "pivot": [
+    16,
+    62
+  ],
+  "maxEnvelope": [
+    28,
+    60
+  ],
+  "rawBbox": [
+    383,
+    192,
+    628,
+    798
+  ],
+  "scale": 0.09900990099009901,
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "magentaPixels": 0,
+  "removedFringe": 20,
+  "edgeTouch": false
+}

@@ -10,7 +10,7 @@
 
 ## 이미지 API로 제작할 때
 
-[공급자 확인](../../subtarune-sprite-production/references/providers.md) 후 실제 실행 가능한 API 도구/스크립트에 같은 요청을 전달한다. 모델 ID·참조 파일·설정·과금 단위/상한은 요청별로 기록하고 비밀키는 결과/프롬프트에서 제외한다. 이 문서는 OG/OpenAI/Gemini 호출 스크립트를 새로 설치하거나 실행한 상태를 뜻하지 않는다. API 실행기 또는 필요한 참고 이미지 기능이 없으면 명세와 구체 부족 항목을 반환한다.
+[공급자 확인](../../subtarune-sprite-production/references/providers.md) 후 실제 실행 가능한 API 도구/스크립트에 같은 요청을 전달한다. OpenGateway는 `tools/sprites/imagegen.py`와 [subtarune-imagegen](../../subtarune-imagegen/SKILL.md)이 그 실행기다(2026-09-14 사용자 확정, 키가 있으면 기본 경로). 모델 ID·참조 파일·설정·과금 단위/상한은 요청별로 기록하고 비밀키는 결과/프롬프트에서 제외한다. 이 문서는 OG/OpenAI/Gemini 호출 스크립트를 새로 설치하거나 실행한 상태를 뜻하지 않는다. API 실행기 또는 필요한 참고 이미지 기능이 없으면 명세와 구체 부족 항목을 반환한다.
 
 호출 성공 뒤 raw만 있으면 `working`이다. 최종 시트 디코드·프레임·피벗·투명도·동작 검수가 끝나야 `ready`이며, 엔진 등록/실제 장면 확인 뒤에만 코딩 담당이 `integrated`로 올린다. 실패한 참고 이미지 업로드를 생략하고 text-only로 재시도하거나 다른 유료 모델로 자동 전환하지 않는다.
 

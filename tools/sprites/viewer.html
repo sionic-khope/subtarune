@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>섭타룬 스프라이트 뷰어</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 16px; background: #1e2130; color: #e6e6e6; font: 14px/1.5 -apple-system, "Galmuri11", sans-serif; }
+  h1 { font-size: 16px; margin: 0 0 8px; }
+  form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  input { background: #12141c; color: #e6e6e6; border: 1px solid #444; padding: 4px 6px; font: inherit; }
+  input[name=files] { min-width: 420px; }
+  label { display: flex; gap: 4px; align-items: center; }
+  .item { border: 1px solid #333; padding: 10px; margin-bottom: 12px; background: #171a26; }
+  .item header { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #aab; margin-bottom: 6px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+  .box { display: inline-block; background: #2a2d3c; }
+  .box.checker { background: repeating-conic-gradient(#3a3d4c 0 25%, #2a2d3c 0 50%) 0 0 / 16px 16px; }
+  img, canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  .cap { font-size: 11px; color: #99a; text-align: center; }
+  .err { color: #f88; }
+</style>
+</head>
+<body>
+<h1>섭타룬 스프라이트 뷰어 <span style="font-weight:normal;color:#99a;font-size:12px">NEAREST 확대 · 시트 재생 (row-major)</span></h1>
+<form id="f">
+  <label>dir <input name="dir" placeholder="assets/source/park157/cleaning" size="34"></label>
+  <label>files <input name="files" placeholder="a.png,b.png (비우면 dir 목록 시도)"></label>
+  <label>cell <input name="cell" placeholder="96x96" size="7"></label>
+  <label>fps <input name="fps" value="8" size="3"></label>
+  <label>scale <input name="scale" value="1,2,4" size="6"></label>
+  <label><input type="checkbox" name="checker" checked> 체커</label>
+  <button>보기</button>
+</form>
+<div id="out"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const f = document.getElementById('f');
+for (const el of f.elements) { if (el.name && q.has(el.name)) { if (el.type === 'checkbox') el.checked = q.get(el.name) !== '0'; else el.value = q.get(el.name); } }
+f.addEventListener('submit', e => { e.preventDefault(); const p = new URLSearchParams(); for (const el of f.elements) { if (!el.name) continue; p.set(el.name, el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value); } location.search = p.toString(); });
+
+const out = document.getElementById('out');
+const dir = (q.get('dir') || '').replace(/\/+$/, '');
+const scales = (q.get('scale') || '1,2,4').split(',').map(Number).filter(n => n > 0);
+const fps = Number(q.get('fps') || 8) || 8;
+const checker = q.get('checker') !== '0';
+const cell = (q.get('cell') || '').match(/^(\d+)x(\d+)$/);
+
+async function listDir(d) {
+  // python http.server / serve.py 의 디렉터리 목록 HTML에서 png 링크만 추출
+  const r = await fetch('/' + d + '/'); if (!r.ok) throw new Error('dir listing ' + r.status);
+  const html = await r.text();
+  return [...html.matchAll(/href="([^"?]+\.png)"/gi)].map(m => decodeURIComponent(m[1].split('/').pop()));
+}
+
+function block(img, s, label) {
+  const wrap = document.createElement('div');
+  const box = document.createElement('div'); box.className = 'box' + (checker ? ' checker' : '');
+  const el = img.cloneNode(); el.width = img.naturalWidth * s; el.height = img.naturalHeight * s; box.appendChild(el);
+  const cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = label;
+  wrap.append(box, cap); return wrap;
+}
+
+function animate(img, cw, ch, s) {
+  const cols = Math.floor(img.naturalWidth / cw), rows = Math.floor(img.naturalHeight / ch), n = cols * rows;
+  const wrap = document.createElement('div');
+  const box = document.createElement('div'); box.className = 'box' + (checker ? ' checker' : '');
+  const c = document.createElement('canvas'); c.width = cw * s; c.height = ch * s; box.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  let i = 0; const cap = document.createElement('div'); cap.className = 'cap';
+  const tick = () => { ctx.clearRect(0, 0, c.width, c.height); ctx.drawImage(img, (i % cols) * cw, Math.floor(i / cols) * ch, cw, ch, 0, 0, cw * s, ch * s); cap.textContent = `재생 ${s}× · 프레임 ${i + 1}/${n} · ${fps}fps`; i = (i + 1) % n; };
+  tick(); setInterval(tick, 1000 / fps);
+  wrap.append(box, cap); return wrap;
+}
+
+async function main() {
+  if (!dir) { out.innerHTML = '<p class="err">?dir=assets/source/&lt;작업&gt; 를 지정하세요.</p>'; return; }
+  let files = (q.get('files') || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!files.length) { try { files = await listDir(dir); } catch (e) { out.innerHTML = `<p class="err">${e.message} — files= 로 직접 지정하세요.</p>`; return; } }
+  for (const name of files) {
+    const item = document.createElement('div'); item.className = 'item'; out.appendChild(item);
+    const img = new Image(); img.src = '/' + dir + '/' + name + '?t=' + Date.now();
+    await new Promise(res => { img.onload = res; img.onerror = res; });
+    const header = document.createElement('header');
+    if (!img.naturalWidth) { header.innerHTML = `<span class="err">${name} 로드 실패</span>`; item.appendChild(header); continue; }
+    header.innerHTML = `<b>${name}</b><span>${img.naturalWidth}×${img.naturalHeight}</span>` + (cell ? `<span>셀 ${cell[1]}×${cell[2]} → ${Math.floor(img.naturalWidth / cell[1])}열×${Math.floor(img.naturalHeight / cell[2])}행</span>` : '');
+    item.appendChild(header);
+    const row = document.createElement('div'); row.className = 'row'; item.appendChild(row);
+    for (const s of scales) {
+      const big = img.naturalWidth * s > 1600 || img.naturalHeight * s > 1600;
+      if (big && s > 1) continue;
+      row.appendChild(block(img, s, `${s}×`));
+    }
+    if (cell && img.naturalWidth >= cell[1] && img.naturalHeight >= cell[2]) {
+      for (const s of scales.filter(s => cell[1] * s <= 800)) row.appendChild(animate(img, +cell[1], +cell[2], s));
+    }
+  }
+}
+main();
+</script>
+</body>
+</html>

@@ -20,6 +20,7 @@
 | 메뉴·선택지·전투 UI | [subtarune-ui](../../.claude/skills/subtarune-ui/SKILL.md) | `src/core/layout.js` |
 | 생성 스프라이트 요청·코드 연동 | [subtarune-sprite-handoff](../../.claude/skills/subtarune-sprite-handoff/SKILL.md) | 기존 `assets/source/`의 해당 자산 계약 |
 | 이미지 생성·모델/공급자 교체 | [subtarune-sprite-production](../../.claude/skills/subtarune-sprite-production/SKILL.md) | [공통 이미지 제작 계약](sprite-production.md) |
+| OpenGateway API 직접 생성(실행기) | [subtarune-imagegen](../../.claude/skills/subtarune-imagegen/SKILL.md) | [providers](../../.claude/skills/subtarune-sprite-production/references/providers.md), `~/.codex/skills/generate2dsprite/references/prompt-rules.md` |
 | 수정 검수·완료 판단 | [subtarune-verify](../../.claude/skills/subtarune-verify/SKILL.md) | 게임은 [회귀 검사표](regression-checks.md), 지침은 [사례 과제](casebook.md) |
 
 도구가 스킬을 자동 발견하지 못해도 위 파일을 직접 읽는다. `/enemy`, `$enemy` 같은 호출 표기는 실행 환경의 문법이며 절차의 원본은 동일하다. 모델 고정·특정 플러그인 설치는 이 계약의 전제가 아니다.
