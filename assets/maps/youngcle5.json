@@ -58,6 +58,8 @@
    "BR",
    "BR",
    "BR",
+   "BU",
+   "BU",
    "BR",
    "BR",
    "AD",
@@ -66,9 +68,7 @@
    "AR",
    "AR",
    "AR",
-   "AR",
-   "BU",
-   "BU"
+   "AR"
   ],
   "crateStarts": [
    [
@@ -192,6 +192,14 @@
    "id": "youngcle5_bulkhead_middle",
    "x": 256,
    "y": 288,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle5_bulkhead_plate",
+   "x": 384,
+   "y": 224,
    "w": 32,
    "h": 32
   },

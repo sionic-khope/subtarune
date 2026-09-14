@@ -51,14 +51,16 @@
   "connected": true,
   "puzzle": "crate",
   "difficulty": "medium",
-  "pushes": 6,
+  "pushes": 8,
   "solution": [
    "R",
    "R",
    "U",
-   "U",
    "R",
-   "R"
+   "R",
+   "R",
+   "U",
+   "U"
   ],
   "crateStart": [
    194,
@@ -66,8 +68,8 @@
   ],
   "plates": [
    [
-    320,
-    224
+    352,
+    192
    ]
   ],
   "gate": [
@@ -143,11 +145,19 @@
   },
   {
    "type": "factory_bulkhead",
-   "id": "youngcle4_bulkhead",
+   "id": "youngcle4_bulkhead_top",
    "x": 288,
-   "y": 256,
+   "y": 192,
    "w": 32,
-   "h": 96
+   "h": 64
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle4_bulkhead_bottom",
+   "x": 288,
+   "y": 288,
+   "w": 32,
+   "h": 64
   },
   {
    "type": "factory_wire",
@@ -156,15 +166,15 @@
    "flag": "youngcle4_circuit_solved",
    "points": [
     [
-     336,
-     240
+     368,
+     208
     ],
     [
-     384,
-     240
+     400,
+     208
     ],
     [
-     384,
+     400,
      176
     ],
     [
@@ -178,8 +188,8 @@
    "id": "youngcle4_plate",
    "puzzle": "youngcle4_crate",
    "flag": "youngcle4_circuit_solved",
-   "x": 320,
-   "y": 224
+   "x": 352,
+   "y": 192
   },
   {
    "type": "factory_crate",
@@ -188,8 +198,8 @@
    "flag": "youngcle4_circuit_solved",
    "x": 194,
    "y": 290,
-   "solvedX": 322,
-   "solvedY": 226
+   "solvedX": 354,
+   "solvedY": 194
   },
   {
    "type": "factory_gate",

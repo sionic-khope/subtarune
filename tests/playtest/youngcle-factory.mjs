@@ -157,16 +157,24 @@ try {
   await walkTo(160, 296);
   await pushOnce('youngcle4_crate', 'right');
   await pushOnce('youngcle4_crate', 'right');
+  // 2026-09-15: 위·아래 격벽 사이 row3 틈으로 통과 → 오른쪽 위 발판 (R R U R R R U U)
   await walkTo(220, 360);
   await walkTo(260, 360);
   await pushOnce('youngcle4_crate', 'up');
+  await walkTo(200, 330);
+  await walkTo(200, 264);
+  await pushOnce('youngcle4_crate', 'right');
+  await pushOnce('youngcle4_crate', 'right');
+  await pushOnce('youngcle4_crate', 'right');
+  await walkTo(330, 300);
+  await walkTo(356, 300);
   await pushOnce('youngcle4_crate', 'up');
-  await walkTo(200, 232);
-  await pushOnce('youngcle4_crate', 'right');
-  await pushOnce('youngcle4_crate', 'right');
-  check('medium R R U U R R solve opens its gate', await page.evaluate(() => game.flags.youngcle4_circuit_solved && !game.entities.find(entity => entity.id === 'youngcle4_gate').solid));
+  await pushOnce('youngcle4_crate', 'up');
+  check('medium R R U R R R U U solve opens its gate', await page.evaluate(() => game.flags.youngcle4_circuit_solved && !game.entities.find(entity => entity.id === 'youngcle4_gate').solid));
   await shot('03-medium-solved');
 
+  // 해결 뒤 플레이어는 col7 row3 — 아래 격벽(col5 row4~5)을 피해 맨 아랫줄로 내려간 뒤 왼쪽으로
+  await walkTo(356, 360);
   await walkTo(200, 360);
   await walkTo(400, 360);
   await page.keyboard.down('ArrowRight');
@@ -187,18 +195,25 @@ try {
   await pushOnce('youngcle5_crate_a', 'down');
   await walkTo(196, 264);
   await walkTo(198, 264);
+  // 2026-09-15: 위 발판 아래가 막혔으므로 B는 col6에서 두 칸 올린 뒤 row1을 따라 오른쪽으로
+  for (let count = 0; count < 3; count += 1) await pushOnce('youngcle5_crate_b', 'right');
+  await walkTo(292, 300);
+  await walkTo(324, 300);
+  await pushOnce('youngcle5_crate_b', 'up');
+  await pushOnce('youngcle5_crate_b', 'up');
+  // x292: col5 왼쪽 끝이라 row1 의 B(322~)와 겹치지 않고 위로 올라간다
+  await walkTo(292, 300);
+  await walkTo(292, 200);
   await pushOnce('youngcle5_crate_b', 'right');
-  for (let count = 0; count < 4; count += 1) await pushOnce('youngcle5_crate_b', 'right');
+  await pushOnce('youngcle5_crate_b', 'right');
   check('one hard-room target does not open the gate', await page.evaluate(() => !game.flags.youngcle5_crate_solved));
+  await walkTo(292, 264);
+  await walkTo(196, 264);
   await walkTo(196, 260);
   await pushOnce('youngcle5_crate_a', 'down');
   await walkTo(150, 328);
   await pushOnce('youngcle5_crate_a', 'right');
   for (let count = 0; count < 5; count += 1) await pushOnce('youngcle5_crate_a', 'right');
-  await walkTo(340, 298);
-  await walkTo(388, 298);
-  await pushOnce('youngcle5_crate_b', 'up');
-  await pushOnce('youngcle5_crate_b', 'up');
   const completion = [await settleDialogueLine(), await settleDialogueLine(), await settleDialogueLine(),
     await settleDialogueLine(), await settleDialogueLine()];
   await page.waitForFunction(() => !game.dialogue.running);

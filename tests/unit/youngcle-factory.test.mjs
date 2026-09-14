@@ -162,7 +162,7 @@ test('test_reusable_circuit_entities_still_complete_when_every_plate_is_aligned'
 
 test('test_factory_solutions_include_player_walkaround_and_match_difficulty_push_counts', () => {
   // Arrange
-  const expected = { youngcle3: 3, youngcle4: 6, youngcle5: 16 };
+  const expected = { youngcle3: 3, youngcle4: 8, youngcle5: 16 };
 
   // Act
   const pushes = Object.fromEntries(Object.keys(expected).map(id => [id, minimumPushes(readMap(id))]));
@@ -190,7 +190,7 @@ test('test_tutorial_crate_requires_three_push_l_route_before_gate_opens', () => 
   assert.equal(game.saved, 1);
 });
 
-test('test_medium_crate_requires_six_push_route_around_bulkhead', () => {
+test('test_medium_crate_requires_eight_push_route_through_the_bulkhead_gap', () => {
   // Arrange
   const data = readMap('youngcle4');
   const { game } = makeGame(data);
@@ -198,11 +198,12 @@ test('test_medium_crate_requires_six_push_route_around_bulkhead', () => {
   const gate = game.entities.find(entity => entity.id === 'youngcle4_gate');
 
   // Act
-  for (const direction of ['right', 'right', 'up', 'up', 'right', 'right']) push(game, crate, direction);
+  // 2026-09-15: 위·아래 격벽 사이 row3 틈으로 통과한 뒤 오른쪽 위 발판까지 — 방향 전환 3회
+  for (const direction of ['right', 'right', 'up', 'right', 'right', 'right', 'up', 'up']) push(game, crate, direction);
   gate.update();
 
   // Assert
-  assert.deepEqual([crate.x, crate.y], [322, 226]);
+  assert.deepEqual([crate.x, crate.y], [354, 194]);
   assert.equal(game.flags.youngcle4_circuit_solved, true);
   assert.equal(gate.solid, false);
 });
@@ -215,15 +216,16 @@ test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
   const crateB = game.entities.find(entity => entity.id === 'youngcle5_crate_b');
   const gate = game.entities.find(entity => entity.id === 'youngcle5_gate');
 
-  // Act: park A below the shared lane, send B through, then route A through the lower opening.
+  // Act: park A below the shared lane, lift B at col 6 (the cell under the top plate is walled since 2026-09-15), slide it right, then route A through the lower opening.
   push(game, crateA, 'right');
   push(game, crateA, 'down');
-  for (let count = 0; count < 5; count += 1) push(game, crateB, 'right');
+  for (let count = 0; count < 3; count += 1) push(game, crateB, 'right');
+  for (let count = 0; count < 2; count += 1) push(game, crateB, 'up');
+  for (let count = 0; count < 2; count += 1) push(game, crateB, 'right');
   assert.equal(game.flags.youngcle5_crate_solved, undefined);
   assert.deepEqual(scripts, []);
   push(game, crateA, 'down');
   for (let count = 0; count < 6; count += 1) push(game, crateA, 'right');
-  for (let count = 0; count < 2; count += 1) push(game, crateB, 'up');
   gate.update();
 
   // Assert
@@ -233,6 +235,28 @@ test('test_hard_room_requires_both_crates_on_distinct_targets', () => {
   assert.equal(gate.solid, false);
   assert.equal(game.saved, 1);
   assert.deepEqual(scripts, ['youngcle5_crate_complete']);
+});
+
+test('test_hard_room_blocks_lifting_crate_b_from_directly_under_the_top_plate', () => {
+  // Arrange: the obvious route (slide B all the way right, then lift) must stop at the new bulkhead so the player has to read the gap
+  const data = readMap('youngcle5');
+  const { game } = makeGame(data);
+  const crateB = game.entities.find(entity => entity.id === 'youngcle5_crate_b');
+
+  // Act
+  for (let count = 0; count < 5; count += 1) push(game, crateB, 'right');
+  const parked = [crateB.x, crateB.y];
+  // 막힌 밀기는 helper 대신 직접 시도: 아래에서 위를 보고 C
+  [game.player.x, game.player.y] = [crateB.x + 2, crateB.y + crateB.h];
+  game.player.facing = 'up';
+  crateB.interact(game.player);
+  crateB.update(0.14); crateB.update(0.08);
+
+  // Assert
+  assert.deepEqual(parked, [386, 258]);
+  assert.equal(crateB.slide, null, 'bulkhead under the top plate stops the lift');
+  assert.deepEqual([crateB.x, crateB.y], parked);
+  assert.equal(game.flags.youngcle5_crate_solved, undefined);
 });
 
 test('test_factory_final_completion_dialogue_uses_exact_lines_without_reward_nodes', () => {

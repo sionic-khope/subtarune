@@ -41,8 +41,8 @@ def build_map() -> dict[str, JsonValue]:
         },
         "meta": {
             "connected": True, "puzzle": "crate", "difficulty": "hard", "pushes": 16,
-            "solution": ["AR", "AD", "BR", "BR", "BR", "BR", "BR", "AD",
-                         "AR", "AR", "AR", "AR", "AR", "AR", "BU", "BU"],
+            "solution": ["AR", "AD", "BR", "BR", "BR", "BU", "BU", "BR", "BR", "AD",
+                         "AR", "AR", "AR", "AR", "AR", "AR"],
             "crateStarts": [[162, 258], [226, 258]],
             "plates": [[384, 192], [384, 320]], "gate": [448, 160, 24, 224],
             "landing": [480, 160, 48, 224], "moveArea": [4, 5, 9, 7],
@@ -66,6 +66,10 @@ def build_map() -> dict[str, JsonValue]:
             {"type": "factory_bulkhead", "id": "youngcle5_bulkhead_top", "x": 256, "y": 192,
              "w": 32, "h": 64},
             {"type": "factory_bulkhead", "id": "youngcle5_bulkhead_middle", "x": 256, "y": 288,
+             "w": 32, "h": 32},
+            # 2026-09-15 난이도 소폭 상향: 위 발판 바로 아래(col8,row2)를 막아 B를 col8에서 위로 올릴 수 없다.
+            # B는 col6에서 먼저 올린 뒤 row1을 따라 오른쪽으로 — 발판까지 밀고 나서야 갇힌 걸 알면 초기화 콘솔
+            {"type": "factory_bulkhead", "id": "youngcle5_bulkhead_plate", "x": 384, "y": 224,
              "w": 32, "h": 32},
             {"type": "factory_wire", "id": "youngcle5_wire_top", "puzzle": PUZZLE, "flag": FLAG,
              "points": [[400, 208], [424, 208], [424, 176], [448, 176]]},

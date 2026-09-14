@@ -237,12 +237,12 @@ const starboardCheckpoint = QA_POINTS.find(point => point.id === 'maillard_starb
 QA_POINTS.push({ ...starboardCheckpoint, id: 'maillard_boarding', desc: '접현 광장: 쥰희·용준의 출발',
   map: 'maillard_boarding', spawn: 'from_starboard',
   flags: { ...starboardCheckpoint.flags }, party: [...starboardCheckpoint.party] });
-QA_POINTS.push({ ...starboardCheckpoint, id: 'youngcle_bridge', desc: '영클 전함으로 이어지는 철교',
+QA_POINTS.push({ ...starboardCheckpoint, id: 'youngcle_bridge', desc: '엄청 대박인 배로 이어지는 철교',
   map: 'youngcle_bridge', spawn: 'from_boarding',
   flags: { ...starboardCheckpoint.flags, maillard_boarding_departed: true }, party: [...starboardCheckpoint.party] });
 
 const bridgeCheckpoint = QA_POINTS.find(point => point.id === 'youngcle_bridge');
-QA_POINTS.push({ ...bridgeCheckpoint, id: 'youngcle1', desc: '영클 전함: TV 첫 방송',
+QA_POINTS.push({ ...bridgeCheckpoint, id: 'youngcle1', desc: '엄청 대박인 배: TV 첫 방송',
   map: 'youngcle1', spawn: 'from_bridge', flags: { ...bridgeCheckpoint.flags }, party: [...bridgeCheckpoint.party] });
 
 const youngcleCheckpoint = QA_POINTS.find(point => point.id === 'youngcle1');
@@ -270,19 +270,19 @@ QA_POINTS.push({ ...finalFactoryCheckpoint, id: 'youngcle_cats', desc: '영클 �
   party: [...finalFactoryCheckpoint.party] });
 
 const catsCheckpoint = QA_POINTS.find(point => point.id === 'youngcle_cats');
-QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6', desc: '영클 전함: 중앙 TV 휴게실',
+QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6', desc: '엄청 대박인 배: 중앙 TV 휴게실',
   map: 'youngcle6', spawn: 'left', flags: { ...catsCheckpoint.flags },
   party: [...catsCheckpoint.party] });
-QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6_after_plan_b', desc: '영클 전함: 플랜B 납치 이후',
+QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6_after_plan_b', desc: '엄청 대박인 배: 플랜B 납치 이후',
   map: 'youngcle6', spawn: 'left',
   flags: { ...catsCheckpoint.flags, youngcle_lounge_plan_b_done: true },
   party: [...catsCheckpoint.party] });
 
 const planBCheckpoint = QA_POINTS.find(point => point.id === 'youngcle6_after_plan_b');
-QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7', desc: '영클 전함: 편집노조 스테이지 진입',
+QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7', desc: '엄청 대박인 배: 편집노조 스테이지 진입',
   map: 'youngcle7', spawn: 'left', flags: { ...planBCheckpoint.flags },
   party: [...planBCheckpoint.party] });
-QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7_after_intro', desc: '영클 전함: 편집노조 소개 이후',
+QA_POINTS.push({ ...planBCheckpoint, id: 'youngcle7_after_intro', desc: '엄청 대박인 배: 편집노조 소개 이후',
   map: 'youngcle7', spawn: 'after_intro',
   flags: { ...planBCheckpoint.flags, editor_union_stage_done: true },
   party: [...planBCheckpoint.party] });
