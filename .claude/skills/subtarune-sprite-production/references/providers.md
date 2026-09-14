@@ -19,6 +19,10 @@
 
 **주의:** [OG 이미지 문서](https://opengateway.ai/docs/reference/endpoints/images)는 non-stream `/v1/images/generations`와 텍스트 프롬프트를 설명하지만 참고 이미지/edit/mask 요청 필드를 명시하지 않는다. 공식 개요가 안내한 backend `/openapi`도 조사 때 HTTP404였다. 인증 모델 목록의 edits 표기와 OG의 OpenAI 호환 설명에 따라 표준 multipart를 시험할 수 있지만, 실제 HTTP 응답과 참조 결과를 관찰하기 전까지 해당 스키마는 미검증으로 표시한다. 임의 참조 필드를 만들어 성공했다고 기록하지 않는다.
 
+**같은 날 실제 시험 결과:** `openai/gpt-image-2`, medium,1536×1024,n1에서 `/v1/images/edits` multipart의 `image[]`는 HTTP400(`param:image`, `'image' is required.`)이었다. 사진과 스타일 예시를 한 PNG로 합친 **단일 `image` 파일 필드**로 바꾸자 HTTP200 PNG를 받았고, 같은 경로로 체형 수정도 성공했다. 좌우 이동 후보2장에 한정된 관찰이다. 복수 이미지/edit mask·다른 OG 모델·모든 캐릭터의 동일 품질까지 검증됐다는 뜻은 아니다. 일반 OpenAI 클라이언트의 배열 필드가 gateway에서도 같다고 가정하지 않는다.
+
+성공 응답의 실제 사용량은 최초 text679/image896/output-image1372, 수정 text624/image594/output-image1372였다. 당시 공개 단가 text-input$5/image-input$8/image-output$30 per1M으로 계산한 두 장 합계는$0.100755이다. 응답에 cost/job ID가 없고 대시보드가 로그인되지 않아 수수료 포함 청구액과 실패 요청 비용은 미확인이다. 이를 실결제액이나 다른 모델의 건당 가격으로 재사용하지 않는다.
+
 [OG 과금](https://opengateway.ai/docs/platform/billing)은 공급자 요금과 플랫폼 수수료를 구분하며 정확한 수수료는 로그인 후 표시한다. 가격은 해당 일자의 공개 표시와 실제 usage를 별도로 기록한다. Gemini2.5 Flash Image는 OG에 보여도 [Google 가격/종료 안내](https://ai.google.dev/gemini-api/docs/pricing)의 2026-10-02 종료 공지가 있으므로 신규 장기 경로의 기본값으로 삼지 않는다. 실행 시 최신 수명주기를 다시 확인한다.
 
 [요청 로그](https://opengateway.ai/docs/products/observability/logs)의 `job_id`와 `cost_usd`를 실제 응답/실행 시각·고유 session ID에 대조한다. `cost_usd`는 요청 전체 비용이며 모델 토큰 단가를 곱한 추정치와 구분한다. 로그 접근이 안 되면 응답 usage만 보존하고 수수료 포함 실결제액은 미확인으로 쓴다. 비용 문서의 예시 수수료를 실제 계정 수수료로 간주하지 않는다.
