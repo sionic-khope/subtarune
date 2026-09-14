@@ -7,7 +7,7 @@
 
 - **Engine**: Custom HTML5 Canvas 2D (no external engine)
 - **Language**: JavaScript ES2022 modules (no bundler, no TypeScript)
-- **Rendering**: Canvas 2D, internal 320x240, integer upscale, `imageSmoothingEnabled=false`
+- **Rendering**: Canvas 2D, logical 480×360 (`SCREEN_W`/`SCREEN_H` in [world.js](../../src/world/world.js)); `RENDER_SCALE=2` gives a 960×720 canvas in [main.js](../../src/main.js). Display sizing follows `pixelDisplayScale` in [gfx.js](../../src/core/gfx.js); `imageSmoothingEnabled=false`. Read these values before budgeting layout rather than copying old resolution comments.
 - **Physics**: AABB vs tile grid + entity boxes (`src/world/world.js` Character.moveBy)
 
 ## Input & Platform
@@ -21,6 +21,7 @@
 - **Gamepad Support**: Full (A=confirm, B=cancel/run, X/Y/Start=menu, D-pad/left stick move)
 - **Touch Support**: None (planned: on-screen D-pad)
 - **Platform Notes**: Audio requires a user gesture to unlock (boot overlay handles this)
+- **Dialogue voices**: Preserve user-approved sampled voices in `assets/audio/voices/`. [audio.js](../../src/core/audio.js) loads MP3/OGG with `loadVoiceFiles`, decodes after unlock, and uses the sample in `blip`; synth is the fallback when no decoded sample is available. Check the actual sample playback and character voice mapping before changing voice behavior.
 
 ## Naming Conventions
 
@@ -50,7 +51,6 @@
 - UI code mutating game state directly (go through `game.*` methods / script nodes)
 - Hardcoded UI strings in `src/ui` (use `src/data/locale/*.js`)
 - Per-frame tile loops (bake to offscreen canvas)
-- Audio files for dialogue blips (synth only, keep it zero-asset)
 
 ## Allowed Libraries / Addons
 

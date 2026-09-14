@@ -18,7 +18,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 ## 세션 시작 시 (필수)
 0. 개발·기획·검수의 모델 공통 기준은 [quality-contract](docs/development/quality-contract.md)다. 이 원본의 작업별 라우팅을 적용하며, 아래의 범용 스튜디오 템플릿보다 최신 사용자 확정과 이 프로젝트 계약을 우선한다.
 1. `docs/STATE.md` 를 읽는다 — 현재 상태, 파일 위치, 사용자가 확정한 규칙, 다음 할 일.
-2. 맵은 `/map`, 컷신은 `/cutscene`, 적·전투는 `/enemy`; 아이디어는 `/subtarune-design`, 메뉴는 `/subtarune-ui`, 생성 그림의 담당 전달은 `/subtarune-sprite-handoff`, 완료 검수는 `/subtarune-verify`를 적용한다. 실제 구현의 메인 반영은 `docs/STATE.md`의 “메인 반영·전투 확장 방향”을 따른다.
+2. 맵은 `/map`, 컷신은 `/cutscene`, 적·전투는 `/enemy`; 아이디어는 `/subtarune-design`, 메뉴는 `/subtarune-ui`, 이미지 생성/모델 교체는 `/subtarune-sprite-production`, 담당 전달은 `/subtarune-sprite-handoff`, 회귀 검수는 `/subtarune-verify`를 적용한다. 호출 문법이 없는 Fable 등은 [공통 진입점](docs/development/fable-handoff.md)에서 같은 원본을 직접 읽는다. 실제 구현의 메인 반영은 `docs/STATE.md`의 “메인 반영·전투 확장 방향”을 따른다.
 
 ## 작업 규율 (2026-09-10 버그 회고에서 확정 — 어기면 사용자가 곧바로 겪는다)
 - **맵 확장·분위기 변경**: 먼저 `.claude/skills/map/SKILL.md`의 “지역 자산 연속성”을 적용한다. 옛 지역 자산을 잘못 재사용하고 검증에서 놓친 [회고](docs/postmortems/2026-09-12-object-region-art.md)를 새 지역 작업·관련 리뷰 때 읽는다.
@@ -57,7 +57,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Collaboration Protocol
 
-스프라이트 생성/외형 편집은 `.claude/skills/subtarune-sprite-handoff/SKILL.md`의 Codex 제작 요청 절차를 따른다. Claude는 명세·코드·게임 통합을 소유하고, 연결된 이미지 생성 가능 Codex 작업에 제작을 맡긴다.
+스프라이트 생성/외형 편집은 `.claude/skills/subtarune-sprite-production/SKILL.md`의 모델 공통 결과 계약과 `subtarune-sprite-handoff`의 담당 전달 절차를 따른다. 코딩 담당은 명세·코드·게임 통합을 소유하며 연결된 Codex 또는 사용자가 선택한 이미지 API 경로로 제작한다. 실제 도구/참조 지원/비용 범위를 확인하기 전에는 호출 가능이나 제작 완료를 주장하지 않는다.
 
 사용자가 맡긴 구현·수정·문서화는 검수와 이미 승인된 메인 반영까지 진행한다. 파일마다 쓰기 승인을 반복하지 않는다. 기획만 요청한 경우에는 제안 범위로 끝낸다. 판단/권한/복구의 원본은 [공통 판단 기준](docs/development/quality-contract.md)이다. `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md`의 과거 템플릿 예시는 최신 프로젝트 실행 권한을 제한하지 않는다.
 

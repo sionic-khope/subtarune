@@ -88,8 +88,8 @@ model: opus
 | `# (웃음)` (쥰희) | `{ motion:'junhee', name:'laugh', sfx:'laugh_junhee' }` |
 | `# 도착하자마자 다른 곳에서 연출 (플레이어 안 보이게)` | 맵 `enter:{script, flag, early:true}` + 첫 노드 `{ camera:[tx,ty], duration:0.01 }` |
 | `# 브금 꺼졌다가 X 대사에 브금` | 맵 `bgm:'x', bgmFlag:'<enter flag>'` + 대사 직전 `{ bgm:'x' }` |
-| `# 선택지` | `{ choice:{ options:[{label, goto}], cancel } }` — 엔진이 다 뜬 뒤 0.4초 확정 잠금을 건다(연타 방지, 따로 delay 불필요). 테스트는 선택지 감지 후 500ms 기다렸다 조작 |
-| `# (전투시작)` | `{ sfx:'battle_start' }, { shake:0.45, amp:3 }, { vortex:{ at:'center', size:40, grow:0.9 } }, { zoom:1.9, at:'center', duration:0.55 }, { vortex:{ size:900, grow:0.5 } }, { fade:'out', duration:0.25 }, { wait:0.15 }, { vortex:null }, { battle:{ enemies:['cs_red','cs_blue'], bgm:'rude_buster', flag:'..._won' } }` 뒤에 `{ bgm:null }`·`{ zoom:1 }`·`{ camera:'player' }`·`{ fade:'in' }` (검게 빨려 들어가는 전환) |
+| `# 선택지` | `{ choice:{ options:[{label, goto}], cancel } }` — 완전 공개 후 확정 잠금은 [dialogue.js](../../../src/ui/dialogue.js)의 `CHOICE_LOCK`이 원본이다. 선택지 감지 후500ms 대기는 정상 조작 예시일 뿐이다. 공개 중/잠금 중 입력과 C를 누른 채 잠금이 풀리는 경계, 뗀 뒤 새 누름은 [입력 회귀 기준](../../../docs/development/regression-checks.md)에 따라 별도 검사한다. |
+| `# (전투시작)` | 현재 공통 진입은 [helpers.js](../../../src/data/cutscenes/helpers.js)의 `battleEntry(enemies, bgm)`를 재사용하고 `{ battle:{…} }`와 승리 뒤 노드는 호출 장면이 지정한다. [첫 CS 전투 튜토리얼](../../../src/data/cutscenes/teal3_toolbox.js)의 전투 뒤 `{ bgm:null }`·줌/카메라/페이드 복귀는 그 장면의 예시다. 다른 전투 뒤 음악 종료 기본값으로 복사하지 않으며, [장면별 음악 소유·시계 계약](../../../docs/development/staging.md)에 맞춰 유지/복귀/재큐를 선택한다. |
 | `# X가 건너뛴다 / 점프한다` | `{ hop:'id', by:[dx,dy], height:30, duration:0.55 }` (jump.mp3 자동, 포물선) |
 | `# 점프 (사운드)` | `{ sfx:'jump' }` (델타룬 점프음, 공용) |
 | `# 카메라가 X 로 클로즈업` | `{ parallel:[{camera:[tx,ty],duration}, {zoom:2, at:'id', offset:[0,-14]}] }` → 대사 → `{zoom:1}` `{camera:'player'}` (예 `void4_arrive`) |
