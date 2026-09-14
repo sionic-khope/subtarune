@@ -138,7 +138,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -1248,7 +1248,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-15.163';
+export const BUILD = '2026-09-15.164';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

@@ -75,9 +75,13 @@ test('test_stage_cast_is_hidden_before_entrances_and_only_park_remains_after', (
   assert.equal(after[0].unless, 'park_guardian_won');
   const defeated = cast.find(entity => entity.requires === 'park_guardian_won');
   assert.equal(defeated.sprite, 'park_guardian');
-  assert.equal(defeated.script, undefined);
+  assert.equal(defeated.script, 'park_guardian_aftermath');
   assert.equal(map.entities.some(entity => entity.type === 'enemy'), false);
-  assert.equal(map.entities.filter(entity => entity.type === 'door').length, 1);
+  // 왼쪽(휴게실 복귀) + 오른쪽 통로(연결로 youngcle8, 2026-09-15) 두 개. 위 통로는 문이 아니라 철창으로 막힌다
+  assert.equal(map.entities.filter(entity => entity.type === 'door').length, 2);
+  const grate = map.entities.find(entity => entity.id === 'youngcle7_grate');
+  assert.equal(grate.requires, 'park_guardian_aftermath_done');
+  assert.equal(grate.solid, true);
   const audience = map.entities.find(entity => entity.id === 'stage_audience');
   assert.equal(audience.hidden, undefined, 'seated crowd exists before the introduction');
   assert.equal(audience.unless, undefined, 'completion never removes the seated crowd');

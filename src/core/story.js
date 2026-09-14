@@ -98,6 +98,8 @@ export const STATE_FROM_FLAGS = [
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
   { flag: 'park_guardian_won', enemies: ['park_guardian'] },
+  // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
+  { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.
@@ -290,3 +292,15 @@ QA_POINTS.push({ ...planBCheckpoint, id: 'park_guardian_battle', desc: '편집�
   map: 'youngcle7', spawn: 'battle_ready',
   flags: { ...planBCheckpoint.flags, editor_union_stage_done: true },
   party: [...planBCheckpoint.party] });
+
+// 파크가디언 승리 후 연출 이후 (철창 닫힘, 오른쪽 통로 → youngcle8 → 비데 방 youngcle9)
+const parkWonCheckpoint = QA_POINTS.find(point => point.id === 'park_guardian_battle');
+const afterParkFlags = { ...parkWonCheckpoint.flags, park_guardian_won: true, park_guardian_aftermath_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'park_guardian_after', desc: '편집노조: 파크가디언 승리 후 (오른쪽 통로)',
+  map: 'youngcle7', spawn: 'after_intro', flags: { ...afterParkFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle8', desc: '엄청 대박인 배: 무대 뒤 연결로 (마나샘)',
+  map: 'youngcle8', spawn: 'left', flags: { ...afterParkFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle9', desc: '엄청 대박인 배: 비데 게임 스크린 방 (입장 연출)',
+  map: 'youngcle9', spawn: 'left', flags: { ...afterParkFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle9_after', desc: '엄청 대박인 배: 비데가 토관에 들어간 뒤',
+  map: 'youngcle9', spawn: 'inside', flags: { ...afterParkFlags, bidet_arcade_done: true }, party: [...parkWonCheckpoint.party] });

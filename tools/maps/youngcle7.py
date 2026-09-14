@@ -55,6 +55,8 @@ def main() -> None:
             'after_intro': {'x': 436, 'y': 481, 'facing': 'right'},
             # 파크(760,416) 앞에서 C 가 닿는 자리. y 를 8px 아래로 두어 2.66배 인형탈보다 앞에 그려진다(같은 y 면 주인공이 탈 뒤로 숨음)
             'battle_ready': {'x': 728, 'y': 424, 'facing': 'right'},
+            # 오른쪽 통로(연결로 youngcle8)에서 돌아올 때
+            'from_corridor': {'x': 1104, 'y': 472, 'facing': 'left'},
         },
         'meta': {'connected': True, 'stage': {
             'player': [400, 504], 'gyeongsub': [448, 504], 'ppaman': [496, 504],
@@ -114,12 +116,20 @@ def main() -> None:
              'x': 760, 'y': 416, 'facing': 'left', 'wander': 0, 'visualScale': 2.66,
              'solid': False, 'requires': DONE, 'unless': WON,
              'script': 'editor_union_stage_wait'},
+            # 승리 직후 본체가 남지만 후속 연출에서 억빠맨 박치기로 날아가므로 완료 뒤에는 없다
             {'type': 'npc', 'id': 'park_guardian_defeated', 'sprite': 'park_guardian',
              'x': 760, 'y': 416, 'facing': 'left', 'wander': 0,
-             'solid': False, 'requires': WON},
+             'solid': False, 'requires': WON, 'unless': 'park_guardian_aftermath_done',
+             'script': 'park_guardian_aftermath'},
             {'type': 'trigger', 'id': 'editor_union_stage_trigger',
              'x': 464, 'y': 416, 'w': 80, 'h': 112, 'once': True,
              'unless': DONE, 'script': 'editor_union_stage'},
+            # 파크가디언 승리 연출(2026-09-15): 위 통로(cols 29~32, x928~1056)를 철창이 내려와 막는다. 완료 뒤 재입장은 닫힌 채로 복원
+            {'type': 'prop', 'id': 'youngcle7_grate', 'image': 'assets/props/youngcle_grate.png',
+             'x': 928, 'y': 192, 'w': 128, 'h': 96, 'solid': True, 'requires': 'park_guardian_aftermath_done'},
+            # 오른쪽 통로(rows 13~16) 끝 → 연결로 youngcle8. 열린 통로라 C 없이 방향키로 통과
+            {'type': 'door', 'id': 'youngcle7_right', 'x': 1168, 'y': 416, 'w': 16, 'h': 128,
+             'to': 'youngcle8', 'spawn': 'left', 'sfx': False, 'interact': False},
             {'type': 'door', 'id': 'youngcle7_left', 'x': 32, 'y': 448, 'w': 16, 'h': 64,
              'to': 'youngcle6', 'spawn': 'from_stage', 'sfx': False, 'interact': False},
         ],

@@ -79,8 +79,10 @@ test('test_qa_state_saloon_and_later_points_include_purchased_upgrades_and_cost'
     const state = derive(point);
     assert.equal(point.flags.shop_yongjun_cialis, true, point.id);
     assert.equal(point.flags.shop_yongjun_vaseline, true, point.id);
-    assert.equal(state.attack, 3, point.id);
-    assert.equal(state.hpBonus, 40, point.id);
+    // 비데 방 버섯(bidet_arcade_done) 뒤에는 공격 +1·최대 HP +20 이 더해진다 (2026-09-15)
+    const mushroom = point.flags.bidet_arcade_done ? 1 : 0;
+    assert.equal(state.attack, 3 + mushroom, point.id);
+    assert.equal(state.hpBonus, 40 + mushroom * 20, point.id);
     assert.equal(state.money, beforePurchase.money - 20, point.id);
     assert.deepEqual(state.inventory, beforePurchase.inventory, point.id);
   }

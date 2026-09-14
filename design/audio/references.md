@@ -89,6 +89,8 @@ BUILD127 공격음 확정: 사용자 ‘기존사운드 활용해도됨’에 �
 
 마리오 점프는 [The Mushroom Kingdom의 Super Mario Bros.(NES) 음원 목록](https://themushroomkingdom.net/media/smb/wav)에 Deezer 제공 `Jump (small)`로 표시된 [원본 WAV](https://themushroomkingdom.net/sounds/wav/smb/smb_jump-small.wav)를 사용한다. 팬 보관본이며 Nintendo 공식 배포 페이지라고 주장하지 않는다. `sfx/mario_jump.mp3`는44.1kHz mono,0.590113초,평균−21.9dBFS/peak−10.9dBFS. 전체 길이·원래 피치/속도/음량을 유지한 MP3변환이다. 기존 DELTARUNE `jump`는 그대로 둔다.
 
+마리오 토관(2026-09-15 사용자 ‘토관에 들어갈 때 그 마리오 토관소리’)은 같은 목록의 `Pipe/Power-down`(`smb_pipe.wav`, 22.05kHz mono)을 `sfx/mario_pipe.mp3`(0.786초, 원래 피치·속도 유지)로 변환했다. 원본 WAV 사본은 `assets/source/bidet-room164/audio/`에 둔다. 팬 보관본이며 공식 배포라고 주장하지 않는다.
+
 스포트라이트·착지·흙·박수·회복은 기존 `plug/chime/explosion/baron_slam/scrape/thud/maillard_applause/heal`을 재사용한다. 글자별 `editor_union_bam`은 기존 `fanfare`의0.90~1.32초 화음과 `baron_slam`의 앞0.42초를 각각0.65/0.55게인으로 섞고 짧게 감쇠한0.42초 효과음이다(44.1kHz mono,평균−18.5dBFS/peak−6.5dBFS).0.7초 글자 간격에 꼬리가 겹치지 않으며 원본 공용 파일은 유지한다. 비데와 파크 인형탈은148목소리를 유지하며 `VOICES.ttuulla`만150원본 Eddy ‘히히’ 블립에 등록했다(rate1/level0.85/cut:false/minGap0.20). 표시 화자 `뚜울라알라`는 voice키`ttuulla`를 쓴다. 새 실제 인물 목소리 복제는 없다.
 
 출처·정확한 변환 명령·원본과 결과 SHA256·장면별 음량 권장은 `assets/source/stage153/audio/README.md`, 뚜울라 제작 근거는 `assets/source/ttuulla150/audio/manifest.json`에 보존한다. 새 파일 ffprobe/전체 디코드 검증은 실제 게임 재생·주관적 청취 평가와 구분한다. 원본 권리는 각 권리자에게 있으며 출처 표기가 이용허락을 뜻하지 않는다.

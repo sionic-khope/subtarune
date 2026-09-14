@@ -1,0 +1,63 @@
+{
+  "asset": "assets/props/bidet_screen.png",
+  "dimensions": [
+    256,
+    256
+  ],
+  "bounds": [
+    4,
+    4,
+    252,
+    252
+  ],
+  "pivot": [
+    128,
+    252
+  ],
+  "maxEnvelope": [
+    248,
+    248
+  ],
+  "rawBbox": [
+    59,
+    49,
+    965,
+    956
+  ],
+  "scale": 0.27342888643880925,
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "magentaPixels": 0,
+  "removedChromaFringePixels": 34,
+  "model": "openai/gpt-image-2 via OpenGateway",
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-62ab53d23f3cfd04/bin/python",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/bidet-room164/screen/screen-raw.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/bidet-room164/screen/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "center",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc"
+  ]
+}

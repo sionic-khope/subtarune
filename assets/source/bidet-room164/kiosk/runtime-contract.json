@@ -1,0 +1,63 @@
+{
+  "asset": "assets/props/bidet_kiosk.png",
+  "dimensions": [
+    64,
+    96
+  ],
+  "bounds": [
+    12,
+    4,
+    53,
+    94
+  ],
+  "pivot": [
+    32,
+    94
+  ],
+  "maxEnvelope": [
+    56,
+    90
+  ],
+  "rawBbox": [
+    271,
+    165,
+    798,
+    1309
+  ],
+  "scale": 0.07867132867132867,
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "magentaPixels": 0,
+  "removedChromaFringePixels": 5,
+  "model": "openai/gpt-image-2 via OpenGateway",
+  "command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-62ab53d23f3cfd04/bin/python",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/bidet-room164/kiosk/kiosk-raw.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/bidet-room164/kiosk/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "center",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc"
+  ]
+}

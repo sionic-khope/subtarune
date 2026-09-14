@@ -1,0 +1,137 @@
+{
+ "id": "youngcle8",
+ "name": "엄청 대박인 배 무대 뒤 연결로",
+ "stage": "void_fallen",
+ "bgm": "youngcle_factory",
+ "backdrop": "youngcle_factory",
+ "battleBg": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!JJJJJJ!!!!!!!!!!",
+  "!!!!!!!!!!JIIIIJ!!!!!!!!!!",
+  "JJJJJJJJJJJIIIIJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png",
+  "assets/props/blue_buff.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 80,
+   "y": 200,
+   "facing": "right"
+  },
+  "left": {
+   "x": 80,
+   "y": 200,
+   "facing": "right"
+  },
+  "right": {
+   "x": 752,
+   "y": 200,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    2,
+    6
+   ],
+   [
+    12,
+    6
+   ],
+   [
+    23,
+    6
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle8_left",
+   "x": 32,
+   "y": 160,
+   "w": 16,
+   "h": 96,
+   "to": "youngcle7",
+   "spawn": "from_corridor",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle8_right",
+   "x": 784,
+   "y": 160,
+   "w": 16,
+   "h": 96,
+   "to": "youngcle9",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle8_rail_0",
+   "x": 32,
+   "y": 256,
+   "w": 768,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle8_rail_1",
+   "x": 32,
+   "y": 148,
+   "w": 320,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle8_rail_2",
+   "x": 480,
+   "y": 148,
+   "w": 320,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle8_rail_3",
+   "x": 352,
+   "y": 84,
+   "w": 128,
+   "h": 12
+  },
+  {
+   "type": "prop",
+   "id": "youngcle8_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 400,
+   "y": 148,
+   "w": 32,
+   "h": 12,
+   "ix": 396,
+   "iy": 116,
+   "solid": true,
+   "script": "maillard_spring"
+  }
+ ]
+}

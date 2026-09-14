@@ -59,6 +59,11 @@
    "x": 728,
    "y": 424,
    "facing": "right"
+  },
+  "from_corridor": {
+   "x": 1104,
+   "y": 472,
+   "facing": "left"
   }
  },
  "meta": {
@@ -639,7 +644,9 @@
    "facing": "left",
    "wander": 0,
    "solid": false,
-   "requires": "park_guardian_won"
+   "requires": "park_guardian_won",
+   "unless": "park_guardian_aftermath_done",
+   "script": "park_guardian_aftermath"
   },
   {
    "type": "trigger",
@@ -651,6 +658,29 @@
    "once": true,
    "unless": "editor_union_stage_done",
    "script": "editor_union_stage"
+  },
+  {
+   "type": "prop",
+   "id": "youngcle7_grate",
+   "image": "assets/props/youngcle_grate.png",
+   "x": 928,
+   "y": 192,
+   "w": 128,
+   "h": 96,
+   "solid": true,
+   "requires": "park_guardian_aftermath_done"
+  },
+  {
+   "type": "door",
+   "id": "youngcle7_right",
+   "x": 1168,
+   "y": 416,
+   "w": 16,
+   "h": 128,
+   "to": "youngcle8",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
   },
   {
    "type": "door",
