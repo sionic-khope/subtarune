@@ -1,5 +1,7 @@
 # Context Management
 
+섭타룬의 현재 복구·handoff 원본은 [공통 판단 기준](../../docs/development/quality-contract.md)의 “시작과 복구”다. 아래 세션 파일이 실제 존재하면 함께 읽되 오래된 상태로 최신 요청을 덮어쓰지 않는다. 점진적으로 기록하는 방식은 유지하지만 승인된 작업의 각 절/파일마다 승인을 다시 받지는 않는다.
+
 Context is the most critical resource in a Claude Code session. Manage it actively.
 
 ## File-Backed State (Primary Strategy)

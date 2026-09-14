@@ -9,15 +9,17 @@ model: opus
 
 # Enemy (적·전투 추가)
 
+새 공격·보스 구성·난이도 조정은 [전투 판단](../../../docs/development/combat-design.md)을 먼저 적용한다. 현재 수치는 적 데이터와 해당 진행 상태가 기준이며 아래 초기 전투/자산 예시를 후반 적의 고정 규격으로 사용하지 않는다.
+
 본문은 `docs/battle/adding-enemies.md` — **먼저 읽는다**. 여기는 순서와 절대 규칙만.
 
 ## 순서
 1. `docs/STATE.md` 전투 항목 + `docs/battle/adding-enemies.md` 읽기.
-2. 스프라이트(`assets/enemies/<id>-battle-left.png` 64×64 pivot 32,60, 또는 대기 4프레임 격자 시트 `-battle-idle.png` 128×128 → `sheet:{cols:2,rows:2,count:4,fps:1000/180,px:1}`; 필드용 `-front.png` 48×48) — 사용자 PR 로 오는 게 기본, 오기 전엔 자리표시로 그려 두고 같은 파일명으로 덮는다.
+2. 승인 스프라이트와 실제 규격을 찾고 [스프라이트 전달](../subtarune-sprite-handoff/SKILL.md)을 적용한다. 그림이 없으면 필요한 동작·피벗·크기를 제작 담당에게 전달한다. 임시 폴백을 완성 자산으로 배포하지 않는다. 아래64px/48px는 초기 일반몹 예시이며 큰 보스의 규격은 해당 자산 계약을 따른다.
 3. `src/data/enemies.js` 항목: name/hp/image/pivot/scale/damage/money/idle/patterns/lines{appear, idle[], speak[], die}. 대사는 사용자 브리핑 **그대로**.
 4. 탄막: 먼저 `docs/battle/adding-enemies.md §3 고유성 규칙`을 적용한다. 기믹 원리는 참고하되 적의 신체/소지품/성격에서 **전용 동작·실루엣·예고·회피법**을 설계한다. 영역/대형/투사체/연쇄 등 회피 유형은 다양하게 만들고, 카탈로그를 그대로 재사용하지 않는다. 새 패턴은 등록 함수 + 계약 테스트로 연결한다. 빠른 탄·영역은 예고 ≥0.3s. 시트 대기 모션이 있으면 `idle sway 0`. 각 패턴의 예고/타격을 실제 화면으로 확인한다.
 5. 배치: 맵 생성기 `enemy` 엔티티(걸어다님·쫓아옴·표준 조우) 또는 컷신 `{battle}` 노드(intro 대사·flag).
-6. 기믹이 있으면 `src/battle/modes/<name>.js` 를 만들고 `modes.js` 에 등록, `{battle:{modes}}` 또는 `def.defense` 로 고른다. 엔진 상태 기계는 건드리지 않는다.
+6. 기믹이 있으면 `src/battle/modes/<name>.js`와 `modes.js`의 계약을 먼저 확인한다. 기존 계약이면 등록/선택으로 연결하고, 새로운 행동 종류가 실제로 필요할 때만 공개 계약과 관련 호출부를 최소 확장한다. 모드가 HP·승패·상태 문자열을 직접 덮어쓰지 않는다.
 7. 검증: `node --test tests/unit/*.test.mjs` → `CHROME_EXE=… node tests/playtest/enemy.mjs <id> [--attack=<mode>]` → 스크린샷 4장 Read → 필드 배치면 맵 플레이테스트에 조우 케이스 → `tools/dev/check.sh` → STATE.md → 커밋.
 
 ## 절대 규칙
@@ -29,7 +31,7 @@ model: opus
 ## 파티 쓰러짐·부활·게임 오버 (엔진 규칙, 2026-09-11 사용자 확정 — 적을 추가할 때 건드리지 않는다)
 - 탄막 피해는 서 있는 멤버 중 무작위(`hurtParty`). HP 0 → `down`: 누워서 행동 불능(메뉴·아이템 대상에서 건너뜀), 라운드(적 턴 끝 `afterEnemyPhase`)마다 회복 반짝임, `DOWN_TURNS`(3) 번째 라운드에 `REVIVE_RATIO`(반피)로 부활. 승리 시 쓰러진 멤버도 반피로 일어난다.
 - **게임 오버는 전원이 쓰러졌을 때만** → GAME OVER + [다시 도전하기] → 징글 뒤 같은 전투 처음부터(`beginRetry` → `load()`). 컷신 전투(튜토리얼)도 같은 경로.
-- 적 피해량(`damage`)을 정할 때 이 규칙을 전제로: 한 명이 두 번 맞고 쓰러지는 정도(10~14)가 표준 3인 파티 기준. 검증 `tests/playtest/battle_lose.mjs`.
+- 적 피해량(`damage`)은 해당 구간의 실제 파티 HP/강화/회복과 함께 판단한다. 초기10~14는 역사적 예시이며 현재 후반 적의 값이 아니다. 피해 벌칙과 패턴 난도를 구분한다. 검증 `tests/playtest/battle_lose.mjs`.
 
 ## 크기·배치·배경 (2026-09-11 포스트모텀 docs/postmortems/2026-09-11-teal9-boss-sizing.md)
 - **전투 그림은 480×360 안, 패널 윗선(y 246) 위에 전부** 들어와야 한다. 둘이면 각 ≤ 144px(96 셀 × 1.5), `def.dx/dy` 로 발을 144/246 에 두고 가로 40px 엇갈림. `tests/playtest/enemy.mjs` 가 그림 사각형을 재서 막는다 — 스크린샷에서 가장자리에 걸린 그림이 있으면 실패다.

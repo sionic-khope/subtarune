@@ -2,7 +2,7 @@
 
 ## 시작할 때
 
-1. `CLAUDE.md`와 `docs/STATE.md`를 읽는다. 두 파일이 게임 규칙·진행 상태의 공통 원본이다. `CLAUDE.md`의 `@경로`는 실제 파일 참조이므로 필요한 참조도 직접 연다.
+1. `CLAUDE.md`와 `docs/STATE.md`의 해당 작업 최신 항목을 읽는다. 개발·기획·검수는 [공통 판단 기준](docs/development/quality-contract.md)을 적용한다. `CLAUDE.md`의 `@경로`는 실제 파일 참조이므로 필요한 참조도 직접 연다.
 2. `git status --short --branch`와 최근 커밋을 확인한다. STATE의 날짜·“다음 할 일”에는 제작 이력이 섞여 있으므로, 이번 요청과 관련된 코드·맵·테스트와 대조한 뒤 현재 상태를 판단한다.
 3. 수정 경로의 상위 폴더에 있는 `CLAUDE.md`와 `.claude/rules/**/*.md` 중 frontmatter `paths`가 일치하는 규칙을 읽는다. 플러그인의 자동 주입 여부에 의존하지 않고 적용할 원본 경로를 확인한다.
 4. 아래 작업별 스킬을 읽고 시작한다. 표에 없는 작업은 `.claude/skills/*/SKILL.md`의 name/description으로 찾고, 선택한 본문과 필수 참조를 모두 읽는다.
@@ -13,6 +13,10 @@
 | 컷신·대사·카메라·이벤트 | `.claude/skills/cutscene/SKILL.md` |
 | 타일·기존 절차형 소품·영상 이펙트 | `.claude/skills/art/SKILL.md` |
 | 적 등록·전투·탄막 | `.claude/skills/enemy/SKILL.md` |
+| 아이디어·게임성·신규 기믹 기획 | `.claude/skills/subtarune-design/SKILL.md` |
+| 메뉴·아이템·선택지·전투 UI | `.claude/skills/subtarune-ui/SKILL.md` |
+| 스프라이트 제작 담당과 코드 통합 담당의 전달 | `.claude/skills/subtarune-sprite-handoff/SKILL.md` |
+| 요구 일치·실제 플레이·문서/스킬 검수 | `.claude/skills/subtarune-verify/SKILL.md` |
 
 ## Codex에서 해석하는 방법
 

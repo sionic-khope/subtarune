@@ -1,5 +1,7 @@
 # Agent Coordination Rules
 
+섭타룬 작업은 [공통 판단 기준](../../docs/development/quality-contract.md)의 권한·역할·작업별 스킬을 우선한다. 아래 모델명/조직 계층은 사용할 수 있는 경우의 도구 예시이며, 특정 모델 또는 모든 관리 계층의 실행을 요구하지 않는다. 위임할 때 담당 파일·요구·완료 조건·해당 원본 스킬을 전달하고 다른 작업자의 변경을 보존한다.
+
 1. **Vertical Delegation**: Leadership agents delegate to department leads, who
    delegate to specialists. Never skip a tier for complex decisions.
 2. **Horizontal Consultation**: Agents at the same tier may consult each other
