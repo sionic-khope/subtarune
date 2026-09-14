@@ -43,6 +43,7 @@ import { maillard_starboard_gate } from './cutscenes/maillard_starboard.js';
 import { maillard_boarding_intro, youngcle_entrance } from './cutscenes/maillard_boarding.js';
 import { shipPursuitBacktrack } from './scripts/ship-pursuit.js';
 import { youngcle_intro, youngcle_tv_off, youngcle_left_door_locked } from './cutscenes/youngcle_intro.js';
+import { youngcle_lounge_plan_b } from './cutscenes/youngcle_lounge.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -83,6 +84,7 @@ export const SCRIPTS = {
   maillard_boarding_intro, youngcle_entrance,
   ship_pursuit_backtrack: shipPursuitBacktrack,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
+  youngcle_lounge_plan_b,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,

@@ -1,0 +1,123 @@
+{
+  "background": "../youngcle142/background-native.png",
+  "background_sha256": "179e35ccb383baf22fa695d94d8527e3190f069cbfa128f9c02dd179f6eaf8ac",
+  "logical_size": [
+    128,
+    64
+  ],
+  "native_size": [
+    258,
+    119
+  ],
+  "content_size": [
+    238,
+    119
+  ],
+  "content_position": [
+    10,
+    0
+  ],
+  "resampling": "NEAREST only for runtime artifacts",
+  "chroma_key": "RGB Euclidean distance <190 from #FF00FF plus border-connected dark-magenta halo removed before bbox packaging",
+  "poses": [
+    {
+      "pose": "middle-finger",
+      "raw": "youngcle-middle-finger-exec-00523150-d4c5-4374-8dd3-6ac51dc1e4da.png",
+      "raw_sha256": "0387f02c34daebaa5f2bf90fbac1c8e5a4cbe87d22593edfe3262812dcd2c15e",
+      "raw_bbox": [
+        152,
+        47,
+        1084,
+        1181
+      ],
+      "logical_bbox": [
+        37,
+        0,
+        90,
+        64
+      ],
+      "intentional_waist_crop_at_logical_bottom": true,
+      "background_identical_outside_foreground": true
+    },
+    {
+      "pose": "question",
+      "raw": "youngcle-question-exec-1b235fbc-97bc-4361-b624-24476c628588.png",
+      "raw_sha256": "33caff8f0794c77a330655924abffc8dc2d96708b8d0beaaae702c4b1723e06b",
+      "raw_bbox": [
+        94,
+        75,
+        1238,
+        1139
+      ],
+      "logical_bbox": [
+        29,
+        0,
+        98,
+        64
+      ],
+      "intentional_waist_crop_at_logical_bottom": true,
+      "background_identical_outside_foreground": true
+    },
+    {
+      "pose": "questions",
+      "raw": "youngcle-questions-exec-3e928b13-863a-45bb-99b5-8556a578ebae.png",
+      "raw_sha256": "2679393263cda706ba510f827ac364399c5e4c67de390d937a9d16a0da08937f",
+      "raw_bbox": [
+        51,
+        53,
+        1273,
+        1184
+      ],
+      "logical_bbox": [
+        29,
+        0,
+        98,
+        64
+      ],
+      "intentional_waist_crop_at_logical_bottom": true,
+      "background_identical_outside_foreground": true
+    },
+    {
+      "pose": "facepalm",
+      "raw": "youngcle-facepalm-exec-1a7d0348-4f9b-40d2-8425-fb8502483d5c.png",
+      "raw_sha256": "8e0214fb047c7b6b1fd1ffde46d5ae84c5e7fe74d3526493bb475c416092ef33",
+      "raw_bbox": [
+        198,
+        37,
+        1170,
+        1190
+      ],
+      "logical_bbox": [
+        37,
+        0,
+        91,
+        64
+      ],
+      "intentional_waist_crop_at_logical_bottom": true,
+      "background_identical_outside_foreground": true
+    }
+  ],
+  "outside_union_foreground_matches_142_background": true,
+  "cage": {
+    "raw": "youngcle-electric-cage-exec-75ed7aac-5dda-40b8-969f-9667aab047be.png",
+    "raw_sha256": "f6b1e008a7a7e364b11c73c92d873acdad22829e9bc1e95fd531a128f08c46be",
+    "raw_has_alpha": true,
+    "raw_bbox": [
+      0,
+      65,
+      905,
+      1651
+    ],
+    "output_bbox": [
+      18,
+      7,
+      79,
+      144
+    ],
+    "output_size": [
+      96,
+      160
+    ],
+    "interior_transparency_preserved": true
+  }
+}

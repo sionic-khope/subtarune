@@ -43,6 +43,7 @@ import { YOUNGCLE_TV_PORTRAITS } from './data/youngcle-tv.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
+import { drawYoungcleLoungeEffects } from './scenes/youngcle-lounge-effects.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -71,6 +72,8 @@ class Game {
     this.maillardArrival = null;
     this.shipAssault = null;
     this.tvBroadcast = null;
+    this.youngcleDoorCutaway = null;
+    this.youngcleCages = null;
     this.shipPursuitAmbient = new ShipPursuitAmbient(this);
     this.captainAttackPending = false;
     this.sunrise = new MaillardSunrise(MAILLARD_SUNRISE);
@@ -691,6 +694,7 @@ class Game {
       this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };
     }
     this.tvBroadcast?.dispose(); this.tvBroadcast = null;
+    if (abort) { this.youngcleDoorCutaway = null; this.youngcleCages = null; }
   }
 
   /** The shop opens after its interaction script releases the dialogue runner. */
@@ -1070,6 +1074,7 @@ class Game {
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
+    drawYoungcleLoungeEffects(ctx, this, cam);
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
     if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
@@ -1237,7 +1242,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-14.149';
+export const BUILD = '2026-09-14.151';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

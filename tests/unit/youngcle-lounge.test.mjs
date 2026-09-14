@@ -35,8 +35,8 @@ test('test_lounge_is_reached_through_cat_corridor_and_returns_outside_portal', (
 test('test_lounge_qa_inherits_all_completed_puzzles_and_previous_party_upgrades', () => {
   // Given the last puzzle QA checkpoint.
   const prior = QA_POINTS.find(point => point.id === 'youngcle5');
-  // When selecting the single lounge checkpoint.
-  const points = QA_POINTS.filter(point => point.map === 'youngcle6');
+  // When selecting the lounge checkpoint immediately before Plan B.
+  const points = QA_POINTS.filter(point => point.id === 'youngcle6');
   // Then prior story, inventory derivation and completed puzzle flags survive.
   assert.equal(points.length, 1);
   const lounge = points[0];
@@ -50,27 +50,27 @@ test('test_lounge_qa_inherits_all_completed_puzzles_and_previous_party_upgrades'
   assert.equal(state.hpBonus, 40);
 });
 
-test('test_lounge_keeps_compact_iron_room_center_tv_and_available_idle_npcs', () => {
+test('test_lounge_keeps_compact_iron_room_center_tv_and_hides_idle_npcs_for_plan_b', () => {
   // Given the registered lounge map.
   const registered = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8')).maps;
   assert.ok(registered.includes('youngcle6'));
   const room = readMap('youngcle6');
   // When reading its visible room composition.
   const tv = room.entities.find(entity => entity.id === 'youngcle_tv');
-  const npcs = room.entities.filter(entity => entity.type === 'npc');
+  const gallery = room.entities.filter(entity => ['warm_bidet', 'mini_mario', 'lucky_guy', 'park_guardian_costume'].includes(entity.id));
   // Then it uses the current ship materials and leaves the center stage clear.
   assert.deepEqual([room.rows[0].length * 32, room.rows.length * 32], [640, 448]);
   assert.ok(room.rows.every(row => [...row].every(tile => ['I', 'J'].includes(tile))));
   assert.equal(room.bgm, 'youngcle_factory');
   assert.equal(tv.image, 'assets/props/youngcle_tv_frame.png');
   assert.equal(tv.x + tv.w / 2, 320);
-  assert.deepEqual(npcs.map(npc => npc.sprite).sort(), ['warm_bidet', 'mini_mario', 'lucky_guy', 'park_guardian_costume'].sort());
-  assert.ok(npcs.every(npc => !npc.script && npc.wander === 0));
-  assert.equal(room.enter, undefined);
+  assert.deepEqual(gallery.map(npc => npc.sprite).sort(), ['warm_bidet', 'mini_mario', 'lucky_guy', 'park_guardian_costume'].sort());
+  assert.ok(gallery.every(npc => npc.hidden && !npc.solid && !npc.script && npc.wander === 0));
+  assert.deepEqual(room.enter, { script: 'youngcle_lounge_plan_b', early: true });
   assert.ok(room.entities.every(entity => !['trigger', 'enemy'].includes(entity.type)));
   const stage = Object.values(room.meta.stage);
-  assert.equal(stage.length, 3);
+  assert.equal(stage.length, 5);
   for (const [x, y] of stage) {
-    assert.ok(npcs.every(npc => Math.hypot(npc.x - x, npc.y - y) >= 64));
+    assert.ok(gallery.every(npc => Math.hypot(npc.x - x, npc.y - y) >= 64));
   }
 });

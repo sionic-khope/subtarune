@@ -21,11 +21,22 @@
   "JIIIIIIIIIIIIIIIIIIJ",
   "JJJJJJJJJJJJJJJJJJJJ"
  ],
+ "enter": {
+  "script": "youngcle_lounge_plan_b",
+  "early": true
+ },
  "preload": [
   "assets/tiles/youngcle_iron.png",
   "assets/props/youngcle6_walls.png",
   "assets/props/youngcle_tv_frame.png",
-  "assets/props/sofa.png"
+  "assets/props/sofa.png",
+  "assets/props/youngcle1_walls.png",
+  "assets/props/youngcle_angel_door145.png",
+  "assets/props/youngcle_electric_cage.png",
+  "assets/illustrations/youngcle-tv-middle-finger.png",
+  "assets/illustrations/youngcle-tv-question.png",
+  "assets/illustrations/youngcle-tv-questions.png",
+  "assets/illustrations/youngcle-tv-facepalm.png"
  ],
  "spawns": {
   "start": {
@@ -44,15 +55,23 @@
   "stage": {
    "player": [
     308,
-    312
+    328
    ],
    "gyeongsub": [
     244,
-    312
+    328
    ],
    "ppaman": [
     372,
-    312
+    328
+   ],
+   "junhee": [
+    252,
+    244
+   ],
+   "yongjun": [
+    364,
+    244
    ]
   }
  },
@@ -78,6 +97,15 @@
    "h": 176,
    "solid": false,
    "sortY": -900
+  },
+  {
+   "type": "sign",
+   "id": "youngcle_tv_screen",
+   "x": 176,
+   "y": 188,
+   "w": 288,
+   "h": 12,
+   "solid": false
   },
   {
    "type": "prop",
@@ -111,7 +139,9 @@
    "y": 248,
    "facing": "down",
    "wander": 0,
-   "visualScale": 1
+   "visualScale": 1,
+   "hidden": true,
+   "solid": false
   },
   {
    "type": "npc",
@@ -121,7 +151,9 @@
    "y": 344,
    "facing": "right",
    "wander": 0,
-   "visualScale": 1
+   "visualScale": 1,
+   "hidden": true,
+   "solid": false
   },
   {
    "type": "npc",
@@ -131,7 +163,9 @@
    "y": 344,
    "facing": "down",
    "wander": 0,
-   "visualScale": 1.79
+   "visualScale": 1.79,
+   "hidden": true,
+   "solid": false
   },
   {
    "type": "npc",
@@ -141,7 +175,31 @@
    "y": 248,
    "facing": "down",
    "wander": 0,
-   "visualScale": 2.22
+   "visualScale": 2.22,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "youngcle6_junhee",
+   "sprite": "junhee",
+   "x": 252,
+   "y": 244,
+   "facing": "up",
+   "wander": 0,
+   "solid": false,
+   "unless": "youngcle_lounge_plan_b_done"
+  },
+  {
+   "type": "npc",
+   "id": "youngcle6_yongjun",
+   "sprite": "yongjun",
+   "x": 364,
+   "y": 244,
+   "facing": "up",
+   "wander": 0,
+   "solid": false,
+   "unless": "youngcle_lounge_plan_b_done"
   },
   {
    "type": "door",

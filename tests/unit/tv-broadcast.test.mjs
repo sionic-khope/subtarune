@@ -27,8 +27,8 @@ test('test_tv_still_illustrations_fill_the_same_inset_for_every_expression_and_e
   const { tv, game, ctx, calls } = fixture();
   const cam = { x: 20, y: 15 }, inset = [75, 64, 258, 119];
   tv.power(true); tv.update(TV.powerTime);
-  assert.deepEqual(Object.keys(TV.expressions), ['smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'bye', 'yes', 'surprise', 'read', 'shock', 'hide']);
-  assert.deepEqual(YOUNGCLE_TV_PORTRAITS, ['youngcle_tv_smirk', 'youngcle_tv_laugh', 'youngcle_tv_greet', 'youngcle_tv_oh', 'youngcle_tv_taunt', 'youngcle_tv_shrug', 'youngcle_tv_bye', 'youngcle_tv_yes', 'youngcle_tv_surprise', 'youngcle_tv_read', 'youngcle_tv_shock', 'youngcle_tv_hide']);
+  assert.deepEqual(Object.keys(TV.expressions), ['smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'bye', 'yes', 'surprise', 'read', 'shock', 'hide', 'middle_finger', 'question', 'questions', 'facepalm']);
+  assert.deepEqual(YOUNGCLE_TV_PORTRAITS, ['youngcle_tv_smirk', 'youngcle_tv_laugh', 'youngcle_tv_greet', 'youngcle_tv_oh', 'youngcle_tv_taunt', 'youngcle_tv_shrug', 'youngcle_tv_bye', 'youngcle_tv_yes', 'youngcle_tv_surprise', 'youngcle_tv_read', 'youngcle_tv_shock', 'youngcle_tv_hide', 'youngcle_tv_middle_finger', 'youngcle_tv_question', 'youngcle_tv_questions', 'youngcle_tv_facepalm']);
   for (const [expression, src] of Object.entries(TV.expressions)) {
     tv.setExpression(expression);
     let first;

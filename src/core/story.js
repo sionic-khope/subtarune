@@ -270,3 +270,7 @@ const catsCheckpoint = QA_POINTS.find(point => point.id === 'youngcle_cats');
 QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6', desc: '영클 전함: 중앙 TV 휴게실',
   map: 'youngcle6', spawn: 'left', flags: { ...catsCheckpoint.flags },
   party: [...catsCheckpoint.party] });
+QA_POINTS.push({ ...catsCheckpoint, id: 'youngcle6_after_plan_b', desc: '영클 전함: 플랜B 납치 이후',
+  map: 'youngcle6', spawn: 'left',
+  flags: { ...catsCheckpoint.flags, youngcle_lounge_plan_b_done: true },
+  party: [...catsCheckpoint.party] });

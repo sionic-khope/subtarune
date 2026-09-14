@@ -134,6 +134,7 @@ model: opus
 | `{ emote:id, kind:'!'|'sweat', duration?, hold?, sfx? }` | 머리 위 느낌표/식은땀 |
 | `{ hop:id, by, height?, duration? }` | 캐릭터 포물선 점프 |
 | `{ emerge:id, depth:370, duration:2.2 }` | 발 위치를 지면으로 삼아 아래에서 솟는다. 지면 아래 그림은 클리핑하며 페이드하지 않는다 |
+| `{ youngcleCageDrop:{targets:[id,id],sfx,impactSfx,impactBodySfx,fallDuration,impactHold,carryDuration} }` | 영클 휴게실 전용: 화면 위 철창 두 개가 잔상을 남기며 동시에 낙하·충돌한 뒤 대상을 화면 아래로 운반한다. 맵·Q·타이틀 중단 시 TV 정리와 함께 제거한다 |
 | `{ puff:id, offset:[0,18], duration:0.7 }` | 대상 소품 그림 위쪽 기준 작은 공기 구름 한 번. 소리는 별도 `{sfx:'cannon_puff'}` |
 | `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |
 | `{ nod:id, duration:1.8, times:3, depth:4 }` | 충돌 좌표는 그대로 둔 채 작게 숙이고 끄덕인다. 완료 시 회전/수직 그림 오프셋을 원복한다. |
