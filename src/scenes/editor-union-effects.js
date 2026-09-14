@@ -123,7 +123,7 @@ export function editorUnionWaiter(game, node) {
 
 /** World-space props share the exact actor camera and zoom transform. */
 export function drawEditorUnionWorld(ctx, game, cam) {
-  const audience = game.entities.find(actor => (actor.id === 'stage_audience' || actor.id === 'stage_audience_ready') && actor.visible);
+  const audience = game.entities.find(actor => actor.id === 'stage_audience' && actor.visible);
   const crowd = game.propImages[EDITOR_UNION_ART.crowd];
   if (game.mapId === 'youngcle7' && audience && crowd) {
     const cheering = (game.editorUnionStage?.cheerUntil ?? 0) > game.time;
@@ -164,6 +164,20 @@ export function drawEditorUnionWorld(ctx, game, cam) {
   }
 }
 
+function featheredWash(width, height) {
+  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  for (const [index, end] of [[width, 0], [0, height]].entries()) {
+    const gradient = ctx.createLinearGradient(0, 0, ...end);
+    for (const [stop, alpha] of [[0, 0], [0.12, 0.32], [0.3, 1], [0.7, 1], [0.88, 0.32], [1, 0]])
+      gradient.addColorStop(stop, `rgba(255,220,112,${alpha})`);
+    ctx.globalCompositeOperation = index === 0 ? 'source-over' : 'destination-in';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+  }
+  return canvas;
+}
+
 /** Lighting replaces this map's base dim layer, leaving dialogue and HUD untouched. */
 export function drawEditorUnionLight(ctx, game, cam) {
   if (game.mapId !== 'youngcle7') return false;
@@ -172,7 +186,7 @@ export function drawEditorUnionLight(ctx, game, cam) {
   const strength = stage?.spotlight ?? (game.has('editor_union_stage_done') ? 1 : 0);
   const reveal = stage?.reveal ?? (game.has('editor_union_stage_done') ? 1 : 0);
   const anchor = actorOf(game, 'stage_center');
-  const audience = actorOf(game, 'stage_audience') || actorOf(game, 'stage_audience_ready');
+  const audience = actorOf(game, 'stage_audience');
   const key = [dim.toFixed(3), strength.toFixed(3), reveal.toFixed(3)].join(':');
   let mask = game.editorUnionLightMask;
   if (!mask) {
@@ -187,22 +201,21 @@ export function drawEditorUnionLight(ctx, game, cam) {
     shade.fillRect(0, 0, mask.canvas.width, mask.canvas.height);
     shade.globalCompositeOperation = 'destination-out';
     if (strength && anchor) {
-      const x = anchor.x, y = anchor.y + 32;
-      const wash = shade.createLinearGradient(x - 304, 0, x + 304, 0);
-      wash.addColorStop(0, 'rgba(255,255,255,0)');
-      wash.addColorStop(0.12, `rgba(255,255,255,${strength * 0.72})`);
-      wash.addColorStop(0.24, `rgba(255,255,255,${strength * 0.94})`);
-      wash.addColorStop(0.76, `rgba(255,255,255,${strength * 0.94})`);
-      wash.addColorStop(0.88, `rgba(255,255,255,${strength * 0.72})`);
-      wash.addColorStop(1, 'rgba(255,255,255,0)');
-      shade.fillStyle = wash;
-      shade.fillRect(x - 304, y - 208, 608, 240);
+      mask.stageWash ||= featheredWash(720, 400);
+      shade.globalAlpha = strength * 0.94;
+      shade.drawImage(mask.stageWash, anchor.x - 360, anchor.y - 240);
     }
     if (reveal && audience) {
-      shade.fillStyle = `rgba(255,255,255,${reveal * 0.82})`;
-      shade.fillRect(audience.x - 16, audience.y - 8, 704, 192);
+      mask.crowdWash ||= featheredWash(896, 352);
+      shade.globalAlpha = reveal * 0.9;
+      shade.drawImage(mask.crowdWash, audience.x - 112, audience.y - 88);
     }
     shade.globalCompositeOperation = 'source-over';
+    if (strength && anchor) {
+      shade.globalAlpha = strength * 0.38;
+      shade.drawImage(mask.stageWash, anchor.x - 360, anchor.y - 240);
+    }
+    shade.globalAlpha = 1;
     mask.key = key;
   }
   ctx.drawImage(mask.canvas, -cam.x, -cam.y);

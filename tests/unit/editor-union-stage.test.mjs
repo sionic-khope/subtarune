@@ -64,6 +64,16 @@ test('test_stage_party_feet_clear_the_speaker_nameplate', () => {
   assert.ok(moves.every(node => node.by[1] <= 72));
 });
 
+test('test_stage_camera_reveal_never_spawns_or_shows_the_existing_audience', () => {
+  assert.ok(!flatten(editor_union_stage).some(node => node.show === 'stage_audience' || node.spawn?.id === 'stage_audience'));
+});
+
+test('test_stage_thanks_restarts_the_designated_music_after_the_editor_entrance_silence', () => {
+  const thanks = editor_union_stage.findIndex(node => node.text === '* 감사합니다 감사합니다 감사합니다.');
+  assert.equal(editor_union_stage[thanks - 1].bgm, 'editor_union_stage');
+  assert.ok(editor_union_stage.slice(0, thanks).some(node => node.bgm === null));
+});
+
 test('test_crowd_reveal_fits_the_entire_stands_and_party_above_dialogue', () => {
   const reveal = editor_union_stage.find(node => node.parallel?.some(part => part.editorUnion?.reveal === 1)).parallel;
   const camera = reveal.find(node => node.camera).camera;
@@ -171,7 +181,7 @@ test('test_stage_completed_entry_keeps_dark_periphery_and_other_maps_keep_their_
   } finally { globalThis.document = original; }
 });
 
-test('test_stage_light_fades_in_as_rectangular_washes_without_circular_shapes', () => {
+test('test_stage_light_feathers_both_axes_and_adds_warm_yellow_after_clearing_shade', () => {
   const cue = editor_union_stage.find(node => node.editorUnion?.kind === 'light');
   assert.equal(cue.editorUnion.spotlight, 1);
   assert.ok(cue.editorUnion.duration >= 0.8);
@@ -181,24 +191,36 @@ test('test_stage_light_fades_in_as_rectangular_washes_without_circular_shapes', 
   game.map = { pxW: 1216, pxH: 640 };
   game.entities.push(
     { id: 'stage_center', x: 400, y: 432 },
-    { id: 'stage_audience_ready', x: 224, y: 96 },
+    { id: 'stage_audience', x: 224, y: 96 },
   );
-  const fills = [], stops = [], gradients = [];
+  const draws = [], gradients = [];
   const shade = {
-    clearRect() {},
-    fillRect(...args) { fills.push(args); },
+    clearRect() {}, fillRect() {},
+    drawImage(...args) { draws.push({ args, mode: this.globalCompositeOperation, alpha: this.globalAlpha }); },
     createLinearGradient(...args) {
-      gradients.push(args);
-      return { addColorStop(...stop) { stops.push(stop); } };
+      const gradient = { args, stops: [], addColorStop(...stop) { this.stops.push(stop); } };
+      gradients.push(gradient);
+      return gradient;
     },
   };
   const original = globalThis.document;
-  globalThis.document = { createElement: () => ({ getContext: () => shade }) };
+  globalThis.document = { createElement: () => {
+    const context = { ...shade };
+    return { getContext: () => context };
+  } };
   try {
     drawEditorUnionLight({ drawImage() {} }, game, { x: 0, y: 0 });
-    assert.deepEqual(gradients, [[96, 0, 704, 0]]);
-    assert.deepEqual(stops.map(stop => stop[0]), [0, 0.12, 0.24, 0.76, 0.88, 1]);
-    assert.deepEqual(fills, [[0, 0, 1216, 640], [96, 256, 608, 240], [208, 88, 704, 192]]);
+    assert.deepEqual(gradients.map(gradient => gradient.args), [[0, 0, 720, 0], [0, 0, 0, 400], [0, 0, 896, 0], [0, 0, 0, 352]]);
+    for (const gradient of gradients) {
+      assert.deepEqual(gradient.stops[0], [0, 'rgba(255,220,112,0)']);
+      assert.deepEqual(gradient.stops.at(-1), [1, 'rgba(255,220,112,0)']);
+      assert.ok(gradient.stops.some(([, color]) => color === 'rgba(255,220,112,1)'));
+    }
+    assert.deepEqual(draws.map(draw => draw.mode), ['destination-out', 'destination-out', 'source-over']);
+    assert.equal(draws.at(-1).alpha, 0.38);
+    assert.equal(game.editorUnionLightMask.canvas.getContext('2d').globalAlpha, 1);
+    drawEditorUnionLight({ drawImage() {} }, game, { x: 20, y: 10 });
+    assert.equal(gradients.length, 4, 'camera movement reuses world-space feathered washes');
   } finally { globalThis.document = original; }
 });
 

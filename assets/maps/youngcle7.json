@@ -499,21 +499,7 @@
    "w": 672,
    "h": 176,
    "solid": false,
-   "sortY": -900,
-   "hidden": true,
-   "unless": "editor_union_stage_done"
-  },
-  {
-   "type": "prop",
-   "id": "stage_audience_ready",
-   "image": "assets/props/editor_union_audience.png",
-   "x": 224,
-   "y": 96,
-   "w": 672,
-   "h": 176,
-   "solid": false,
-   "sortY": -900,
-   "requires": "editor_union_stage_done"
+   "sortY": -900
   },
   {
    "type": "sign",

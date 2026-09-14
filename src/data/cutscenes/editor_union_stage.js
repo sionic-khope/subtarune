@@ -59,7 +59,6 @@ export const editor_union_stage = Object.assign([
   P('그래서 여긴 어디야?'),
   K('훗훗 여기로 말씀드릴거같으면'),
   close,
-  { show: 'stage_audience' },
   { parallel: [{ camera: [18, 13], duration: 1.2 }, { zoom: 0.48, duration: 1.2 },
     { editorUnion: { kind: 'light', dim: 0.68, reveal: 1, spotlight: 1, duration: 1.2 } }] },
   { wait: 0.18 },
@@ -133,6 +132,7 @@ export const editor_union_stage = Object.assign([
     const actor = game.entities.find(entity => entity.id === PARK);
     loopCharacterMotion(actor, game.characterMotions?.[PARK]?.bow);
   } },
+  { bgm: 'editor_union_stage', fadeIn: 0.3 },
   K('감사합니다 감사합니다 감사합니다.'),
   { wait: 1.5 },
   { action: game => { game.entities.find(entity => entity.id === PARK).motion = null; } },

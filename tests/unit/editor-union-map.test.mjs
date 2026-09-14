@@ -49,11 +49,10 @@ test('test_stage_cast_is_hidden_before_entrances_and_only_park_remains_after', (
   assert.equal(map.entities.some(entity => entity.type === 'enemy'), false);
   assert.equal(map.entities.filter(entity => entity.type === 'door').length, 1);
   const audience = map.entities.find(entity => entity.id === 'stage_audience');
-  assert.equal(audience.hidden, true);
-  assert.equal(audience.unless, 'editor_union_stage_done');
-  const revealedAudience = map.entities.find(entity => entity.id === 'stage_audience_ready');
-  assert.equal(revealedAudience.requires, 'editor_union_stage_done');
-  assert.equal(revealedAudience.hidden, undefined);
+  assert.equal(audience.hidden, undefined, 'seated crowd exists before the introduction');
+  assert.equal(audience.unless, undefined, 'completion never removes the seated crowd');
+  assert.equal(audience.requires, undefined);
+  assert.equal(map.entities.filter(entity => entity.image === audience.image).length, 1);
 });
 
 test('test_stage_qa_inherits_plan_b_party_and_permanent_upgrades_without_starting_battle', () => {
