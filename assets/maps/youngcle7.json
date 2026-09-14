@@ -51,13 +51,13 @@
    "facing": "right"
   },
   "after_intro": {
-   "x": 400,
-   "y": 504,
+   "x": 436,
+   "y": 481,
    "facing": "right"
   },
   "battle_ready": {
-   "x": 730,
-   "y": 416,
+   "x": 728,
+   "y": 424,
    "facing": "right"
   }
  },

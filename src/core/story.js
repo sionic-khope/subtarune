@@ -36,6 +36,8 @@ export function storyBgm(mapId, flags) {
   if (mapId === 'obj5' && flags.obj5_chase_cleared) return 'baron_sea_battle';
   if (mapId === 'obj5' && flags.obj5_chase_started) return 'baron_intro';
   if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5'].includes(mapId)) return 'baron_intro';
+  // 편집노조 소개가 끝나면 무대 곡이 계속 흐른다(컷신 마지막 재큐 뒤 정지 없음). QA 점프·이어하기도 같은 곡, 파크 승리 뒤에는 컷신이 끈 대로 무음
+  if (mapId === 'youngcle7' && flags.editor_union_stage_done && !flags.park_guardian_won) return 'editor_union_stage';
   return undefined;
 }
 

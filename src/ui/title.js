@@ -148,7 +148,7 @@ export class TitleScreen {
   _drawQa(ctx) {
     const q = this.qa, n = QA_POINTS.length, R = TitleScreen.QA_ROWS, ROW = 22;
     const bx = 40, by = 40, bw = SCREEN_W - 80, bh = SCREEN_H - 80, listY = 82;
-    ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = 'rgba(0,0,0,0.96)'; ctx.fillRect(bx, by, bw, bh);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
     ctx.fillStyle = '#ffe066'; ctx.fillText('QA 바로가기', bx + 20, 52);
@@ -158,7 +158,15 @@ export class TitleScreen {
     for (let k = 0; k < R; k++) {
       const i = q.top + k; if (i >= n) break;
       const pt = QA_POINTS[i], y = listY + k * ROW, on = i === q.i;
-      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(`${pt.id}  —  ${pt.desc}`, bx + 40, y);
+      // 긴 설명은 상자 오른쪽 여백 앞에서 말줄임 — 글자가 테두리에 걸려 잘린 채 보이지 않게 (2026-09-14 '마지막 QA 지점 화면 깨짐')
+      const maxW = bx + bw - 32 - (bx + 40);
+      let label = `${pt.id}  —  ${pt.desc}`;
+      if (ctx.measureText(label).width > maxW) {
+        let cut = label.length;
+        while (cut > 1 && ctx.measureText(label.slice(0, cut) + '…').width > maxW) cut--;
+        label = label.slice(0, cut) + '…';
+      }
+      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(label, bx + 40, y);
       if (on) drawHeart(ctx, bx + 24, y + 5);
     }
     ctx.restore();
@@ -280,7 +288,8 @@ export class TitleScreen {
     ctx.drawImage(this.logo, lx, ly, w, h);
     ctx.globalAlpha = 1;
 
-    if (this.phase === 'locked' && this.time > PROMPT_DELAY) {
+    // QA 목록이 열려 있으면 'C 를 눌러 시작' 을 그리지 않는다(상자 뒤로 비쳐 보이던 잔상)
+    if (this.phase === 'locked' && this.time > PROMPT_DELAY && !this.qa) {
       const period = this.leaving ? 0.08 : 0.9;
       const on = this.leaving ? Math.floor(this.time / period) % 2 === 0 : (this.time % period) < period * 0.6;
       const hasSave = this.game.hasSave();

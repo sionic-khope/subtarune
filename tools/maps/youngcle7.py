@@ -50,8 +50,11 @@ def main() -> None:
         'spawns': {
             'start': {'x': 96, 'y': 480, 'facing': 'right'},
             'left': {'x': 96, 'y': 480, 'facing': 'right'},
-            'after_intro': {'x': 400, 'y': 504, 'facing': 'right'},
-            'battle_ready': {'x': 730, 'y': 416, 'facing': 'right'},
+            # 소개 컷신이 끝난 자리(stage_center 기준 -104,+104 → 484,481)와 같은 줄. 소개 트리거(464~544)는 완료 뒤 죽지만
+            # 스폰-트리거 겹침 규칙(maps.test)을 지키려고 트리거 바로 왼쪽 436 에 둔다
+            'after_intro': {'x': 436, 'y': 481, 'facing': 'right'},
+            # 파크(760,416) 앞에서 C 가 닿는 자리. y 를 8px 아래로 두어 2.66배 인형탈보다 앞에 그려진다(같은 y 면 주인공이 탈 뒤로 숨음)
+            'battle_ready': {'x': 728, 'y': 424, 'facing': 'right'},
         },
         'meta': {'connected': True, 'stage': {
             'player': [400, 504], 'gyeongsub': [448, 504], 'ppaman': [496, 504],

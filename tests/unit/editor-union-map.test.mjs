@@ -17,6 +17,21 @@ test('test_stage_battle_ready_spawn_reaches_waiting_park_with_the_actual_C_probe
   assert.equal(player.probe(), target, 'C at the dedicated QA spawn must reach Park without another movement');
 });
 
+test('test_stage_qa_spawns_match_cutscene_end_and_draw_in_front_of_park', () => {
+  const map = readMap('youngcle7');
+  const center = map.entities.find(entity => entity.id === 'stage_center');
+  const park = map.entities.find(entity => entity.id === 'park_guardian_ready');
+  // 컷신 마지막 at('player', -104, 104): stage_center 하단 기준 발 위치 → 24×16 충돌 박스의 좌상단 (484,481). 소개 트리거(464~544)를 피해 같은 줄 바로 왼쪽
+  const trigger = map.entities.find(entity => entity.script === 'editor_union_stage');
+  const endX = center.x - 104 - 12, endY = center.y + center.h + 104 - 40 - 16;
+  assert.equal(map.spawns.after_intro.y, endY);
+  assert.ok(Math.abs(map.spawns.after_intro.x - endX) <= 64, 'after_intro stays within a step of the cutscene end');
+  assert.equal(overlaps(map.spawns.after_intro, trigger), false);
+  // 전투 직전 자리는 2.66배 인형탈보다 앞(y 정렬이 더 큼)에 서야 주인공이 탈 뒤로 숨지 않는다 (2026-09-14 QA 화면 깨짐)
+  assert.ok(map.spawns.battle_ready.y + 16 > park.y + 16, 'battle_ready sorts in front of Park');
+  assert.ok(map.spawns.battle_ready.x + 24 <= park.x, 'battle_ready collision box stays left of Park');
+});
+
 test('test_stage_entry_is_silent_and_center_trigger_is_separate_from_spawn', () => {
   const map = readMap('youngcle7');
   const trigger = map.entities.find(entity => entity.script === 'editor_union_stage');

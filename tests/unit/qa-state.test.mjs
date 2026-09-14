@@ -116,5 +116,8 @@ test('test_story_assault_bgm_survives_captain_saloon_and_deck_without_affecting_
   }
   assert.equal(storyBgm('maillard_captain', { captain_aftermath_done: true }), null);
   assert.equal(storyBgm('maillard_saloon', {}), undefined);
+  assert.equal(storyBgm('youngcle7', {}), undefined, '무대 소개 전에는 맵 기본(무음)');
+  assert.equal(storyBgm('youngcle7', { editor_union_stage_done: true }), 'editor_union_stage', '소개 뒤 QA/이어하기는 무대 곡을 이어 튼다');
+  assert.equal(storyBgm('youngcle7', { editor_union_stage_done: true, park_guardian_won: true }), undefined, '파크 승리 뒤에는 컷신이 끈 대로');
   assert.equal(storyBgm('maillard_lounge', { captain_attack_started: true }), undefined);
 });
