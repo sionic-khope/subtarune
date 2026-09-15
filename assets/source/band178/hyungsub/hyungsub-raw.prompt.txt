@@ -1,0 +1,10 @@
+# imagegen 2026-09-15 18:33:26
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1024  quality: high
+# refs: assets/source/band178/refs/hyungsub-ref.png
+
+Use case: precise-object-edit. The image just shown is the identity reference: left is the character's front view, right is his side view from our pixel-art RPG (black short hair, round glasses, big nose, NO mouth, white t-shirt and dark shorts). Keep his face identity exactly: black hair, round glasses, big nose, no mouth, white shirt, dark shorts.
+Produce a pixel-art sprite sheet of this character as the lead guitarist of a rock band on a concert stage: standing, FACING THE VIEWER, holding a red-and-white electric guitar on a strap, seen from the front like a rhythm game performer. EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512x512 cells, solid pure #FF00FF background, no text, no labels, no grid, no borders, no shadows, no stage.
+Style: clean 16-bit pixel art (one logical pixel is about 1/100 of the body height), flat colors with simple 2-tone shading, single dark outline, readable silhouette. Same body size and camera distance in all cells, feet on the same baseline, body and guitar fully inside the central 75% of each cell.
+Frames row-major: (1) idle, relaxed, right hand resting near the strings; (2) strum DOWN, the right arm swung down across the strings, mouth-less face calm; (3) strum UP, right arm raised after the stroke; (4) big power chord, head tilted back, guitar neck lifted higher.

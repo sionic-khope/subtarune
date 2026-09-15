@@ -1,0 +1,126 @@
+{
+ "id": "youngcle12",
+ "name": "엄청 대박인 배 무대 뒷편 대기실",
+ "stage": "void_fallen",
+ "bgm": null,
+ "backdrop": "youngcle_factory",
+ "battleBg": "youngcle_factory",
+ "dim": 0.18,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png",
+  "assets/props/editor-union-control.png",
+  "assets/props/editor-union-speaker.png",
+  "assets/props/editor-union-wall-panel.png",
+  "assets/sprites/ttuulla.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 72,
+   "y": 172,
+   "facing": "right"
+  },
+  "from_stairs": {
+   "x": 72,
+   "y": 172,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    2,
+    5
+   ],
+   [
+    17,
+    5
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle12_left",
+   "x": 32,
+   "y": 128,
+   "w": 16,
+   "h": 128,
+   "to": "youngcle11",
+   "spawn": "from_backstage",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "backstage_wall_0",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 96,
+   "y": 32,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "backstage_wall_1",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 352,
+   "y": 32,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "backstage_control",
+   "image": "assets/props/editor-union-control.png",
+   "x": 240,
+   "y": 116,
+   "w": 96,
+   "h": 52,
+   "solid": true,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "backstage_speaker",
+   "image": "assets/props/editor-union-speaker.png",
+   "x": 448,
+   "y": 72,
+   "w": 64,
+   "h": 88,
+   "solid": true,
+   "sortY": -900
+  },
+  {
+   "type": "npc",
+   "id": "ttuulla_back",
+   "sprite": "ttuulla",
+   "x": 544,
+   "y": 172,
+   "facing": "left",
+   "wander": 0,
+   "visualScale": 1.79,
+   "solid": true,
+   "script": "backstage_ttuulla"
+  }
+ ]
+}

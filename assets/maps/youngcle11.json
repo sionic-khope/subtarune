@@ -61,6 +61,11 @@
    "x": 400,
    "y": 700,
    "facing": "up"
+  },
+  "from_backstage": {
+   "x": 116,
+   "y": 304,
+   "facing": "down"
   }
  },
  "meta": {
@@ -124,6 +129,30 @@
    "h": 16,
    "to": "youngcle10",
    "spawn": "from_hall",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle11_stairs_l",
+   "x": 96,
+   "y": 224,
+   "w": 64,
+   "h": 16,
+   "to": "youngcle12",
+   "spawn": "from_stairs",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle11_stairs_r",
+   "x": 672,
+   "y": 224,
+   "w": 64,
+   "h": 16,
+   "to": "youngcle12",
+   "spawn": "from_stairs",
    "sfx": false,
    "interact": false
   },
@@ -286,8 +315,8 @@
    "type": "prop",
    "id": "stage11_speaker_0",
    "image": "assets/props/editor-union-speaker.png",
-   "x": 40,
-   "y": 300,
+   "x": 32,
+   "y": 344,
    "w": 64,
    "h": 88,
    "solid": true

@@ -415,6 +415,19 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `bgm/mike_board.mp3` | 유튜브 [YsZoTTl59hg](https://www.youtube.com/watch?v=YsZoTTl59hg) “04. MIKE, the BOARD, please! (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox”(Toby Fox 공식 채널, 포맷 251 → 44.1k 스테레오 q2) | 37s(음악은 32.8초까지, 뒤는 무음) | 뚜울라가 무대에서 뛰어내려 착지한 순간부터 “노래로 승부봅시다” 까지. `{ bgm: 'mike_board', volume 0.5, fadeIn 0.2, loopEnd 32.8, loopFade 0.12 }`(컷신 bgm 노드가 loopEnd/loopFade 를 넘긴다) |
 | `sfx/locker.mp3` | Deltarune `snd_locker`(TeamBlossomDevs 디컴파일, 같은 SHA; 원본 `assets/source/stage_hall177/audio/`) | 1.47s | 무대 불이 켜지는 “철컥!” |
 
+### 무대 리듬 게임 곡·영상 (BUILD178, 사용자 지정)
+
+리듬 게임은 곡의 **영상을 통째로** 튼다(TV 화면에 그리고 소리는 그 영상에서). yt-dlp 로 360p 이하 영상+오디오를 mp4 로 받아 `assets/video/` 에 두고, 차트는 `tools/rhythm/chart.py` 가 오디오 onset 으로 만든다(`assets/rhythm/<id>.json`).
+
+| 게임 파일 | 출처 | 길이 | 쓰임 |
+| --- | --- | --- | --- |
+| `video/noamtori.mp4` + `rhythm/noamtori.json` | 유튜브 [-IvdHDCBsps](https://www.youtube.com/watch?v=-IvdHDCBsps) “MD형섭 - 방가방가 노앰토리”(무언가가큰징징이, 360p mp4 4.0MB) | 88s | 첫 곡. 차트 166노트(홀드 51, 1.9/s), bpm 139.7 |
+| `video/bojipam.mp4` + `rhythm/bojipam.json` | 유튜브 [-c1t2MTk_q0](https://www.youtube.com/watch?v=-c1t2MTk_q0) “MC노라니 - 보지팜 (백업)”(노라니 백업, 360p mp4 6.6MB) | 133s | 두 번째 곡(게임 표기 ‘보X팜’). 차트 232노트(홀드 54, 1.7/s), bpm 126 |
+| 일렉 기타·툭툭·미스·지이잉 | 합성(`Sound.tone`: 톱니파 + 배음 스퀘어 / 90Hz 스퀘어 / 62Hz 톱니 / 110Hz 톱니 + 1.5kHz 사인 glide) | | GREAT 스트로크(작은별은 음정대로 C4·G4·A4), 노트 없는 데 누름, MISS, 곡 시작 전 앰프 지이잉 2초 |
+| 참고 영상 | 델타룬 3장 테나 리듬 게임 [103D6O-Wr_g](https://www.youtube.com/watch?v=103D6O-Wr_g) | | 두 칸 좌우·홀드·GREAT/MISS·인기 게이지 구성 참고 |
+
+받기: `uvx --from yt-dlp yt-dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f 'bestvideo[height<=360]+bestaudio/best[height<=360]' --merge-output-format mp4 -o '<id>.%(ext)s' <url>` → `assets/video/`. 차트: `/usr/bin/python3 tools/rhythm/chart.py assets/video/<id>.mp4 --title … --artist … --out assets/rhythm/<id>.json`.
+
 ### 결과창 (BUILD172, 원본 `assets/source/subrio172/audio/`, 같은 SHA)
 
 | 게임 파일 | 원본 | 길이 | 쓰임 |

@@ -326,3 +326,8 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle11', desc: '엄청 대박인
   map: 'youngcle11', spawn: 'from_below', flags: { ...afterSubrioFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'stage_hall_after', desc: '엄청 대박인 배: 무대 홀 연출 뒤 (불 켜진 무대, 뚜울라 대기)',
   map: 'youngcle11', spawn: 'from_below', flags: { ...afterSubrioFlags, stage_hall_intro_done: true, stage_hall_lit: true }, party: [...parkWonCheckpoint.party] });
+const hallDoneFlags = { ...afterSubrioFlags, stage_hall_intro_done: true, stage_hall_lit: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'backstage', desc: '엄청 대박인 배: 무대 뒷편 대기실 (뚜울라에게 C → 리듬 게임)',
+  map: 'youngcle12', spawn: 'from_stairs', flags: { ...hallDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'rhythm_stage', desc: '리듬 게임 직행 (밴드 낙하 → 사운드 체크 → 방가방가 노앰토리 → 보X팜)',
+  map: 'youngcle12', spawn: 'from_stairs', flags: { ...hallDoneFlags }, party: [...parkWonCheckpoint.party], script: 'rhythm_qa' });

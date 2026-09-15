@@ -61,6 +61,8 @@ def main() -> None:
             'start': {'x': 400, 'y': 700, 'facing': 'up'},
             # 윗길(youngcle10)에서 위로 올라올 때(홀 아래 가운데)
             'from_below': {'x': 400, 'y': 700, 'facing': 'up'},
+            # 대기실(youngcle12)에서 돌아올 때: 왼쪽 계단 아래
+            'from_backstage': {'x': 116, 'y': 304, 'facing': 'down'},
         },
         'meta': {'connected': True, 'route': [[12, 22], [12, 10], [3, 8], [12, 4]],
                  # 밴드 자리(2026-09-15 사용자: 경섭 드럼·형섭 기타·빠맨 보컬 — 스프라이트는 다시 만들 예정): 무대 위 왼쪽·가운데·오른쪽
@@ -70,6 +72,10 @@ def main() -> None:
             # 홀 아래 가운데 → 윗길(from_hall). 열린 통로라 C 없이 방향키로 통과
             {'type': 'door', 'id': 'youngcle11_down', 'x': 352, 'y': 752, 'w': 128, 'h': 16,
              'to': 'youngcle10', 'spawn': 'from_hall', 'sfx': False, 'interact': False},
+            # 양쪽 계단 꼭대기 → 무대 뒷편 대기실(youngcle12). 계단으로 올라가면 바로 대기실이 나온다(사용자). 연출의 뚜울라(NPC)는 문을 안 밟는다
+            *[{'type': 'door', 'id': f'youngcle11_stairs_{side}', 'x': x, 'y': 224, 'w': 64, 'h': 16,
+               'to': 'youngcle12', 'spawn': 'from_stairs', 'sfx': False, 'interact': False}
+              for side, x in (('l', 96), ('r', 672))],
             # 무대 가운데 기준물(연출 rel 용) + 어둠 속에 서 있는 뚜울라(연출에서 show, 연출 뒤엔 unless)
             {'type': 'sign', 'id': 'stage11_center', 'x': 416, 'y': 160, 'w': 1, 'h': 1, 'solid': False},
             {'type': 'npc', 'id': 'ttuulla', 'sprite': 'ttuulla', 'x': 416, 'y': 120, 'facing': 'down', 'wander': 0,
@@ -95,10 +101,10 @@ def main() -> None:
             *[{'type': 'prop', 'id': f'stage11_stairs_{index}', 'image': 'assets/props/stage_stairs.png',
                'x': x, 'y': 248, 'w': 64, 'h': 40, 'solid': False, 'sortY': -900}
               for index, x in enumerate((96, 672))],
-            # 홀 바닥 양옆 스피커(막힘)
+            # 홀 바닥 양옆 스피커(막힘) — 왼쪽은 대기실 복귀 스폰(116,304) 타일을 피해 아래로
             *[{'type': 'prop', 'id': f'stage11_speaker_{index}', 'image': 'assets/props/editor-union-speaker.png',
-               'x': x, 'y': 300, 'w': 64, 'h': 88, 'solid': True}
-              for index, x in enumerate((40, 728))],
+               'x': x, 'y': y, 'w': 64, 'h': 88, 'solid': True}
+              for index, (x, y) in enumerate(((32, 344), (728, 300)))],
             # 어둠 막: 무대 전체(커튼·트러스·무대 위 사람까지)를 검게 — 조명이 켜지는 연출 때 remove
             {'type': 'prop', 'id': 'stage11_dark', 'image': 'assets/props/stage_dark.png',
              'x': 96, 'y': 32, 'w': 640, 'h': 232, 'solid': False, 'sortY': 9000, 'unless': 'stage_hall_lit'},
