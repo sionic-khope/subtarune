@@ -19,7 +19,8 @@ PALETTES: Final = {
     'teal': dict(out=(4, 22, 22), ground=(36, 140, 130), dark=(20, 90, 86), top=(120, 230, 210), block=(60, 170, 160), light=(170, 245, 230), spark=(220, 255, 250), dot=(12, 60, 58)),
     'blue': dict(out=(6, 10, 30), ground=(48, 84, 190), dark=(26, 46, 120), top=(130, 170, 255), block=(70, 110, 215), light=(180, 205, 255), spark=(230, 240, 255), dot=(16, 28, 80)),
     # 1-4 보스 무대(사용자: 회색·쿠파성 느낌): 회색 돌벽돌, 윗면 밝은 회색, 블록은 어두운 성벽 돌
-    'castle': dict(out=(18, 16, 22), ground=(108, 108, 122), dark=(62, 62, 74), top=(158, 158, 172), block=(120, 120, 136), light=(186, 186, 202), spark=(214, 214, 226), dot=(44, 44, 54)),
+    # BUILD172: 벽돌 아틀라스(draw_castle_atlas) 전용 — ground 벽돌·dot 줄눈·dark 속 벽돌·block 성벽 돌·spark 못
+    'castle': dict(out=(16, 14, 20), ground=(112, 110, 124), dark=(58, 56, 68), top=(164, 162, 176), block=(92, 90, 106), light=(184, 182, 198), spark=(206, 204, 218), dot=(40, 38, 50)),
 }
 FLAG_RED: Final = (220, 50, 60)
 FLAG_WHITE: Final = (250, 245, 240)
@@ -51,9 +52,50 @@ def draw_atlas(p: dict) -> Canvas:
     return atlas
 
 
+def draw_castle_atlas(p: dict) -> Canvas:
+    """1-4 쿠파성 아틀라스(BUILD172 사용자: “스프라이트 자체도 회색 돌·용암 쿠파성 느낌으로”): 팔레트만 바꾼 풀 타일이 아니라
+    돌벽돌(회반죽 줄눈, 엇갈린 줄) 바닥·속, 쇠테를 두르고 못을 박은 성벽 돌 블록. 열 배치는 draw_atlas 와 같다(0 바닥 윗면, 1 속, 2 블록, 3·4 끝, 5·6 깃발)."""
+    atlas = Canvas(T * 7, T)
+    mortar, crack, iron, rivet = p['dot'], p['dark'], (52, 50, 62), p['spark']
+
+    def bricks(ox: int, oy: int, base, line, rows: tuple[int, ...], shift: bool) -> None:
+        """벽돌 줄: rows 는 각 줄의 위 y(4px 높이), 줄마다 세로 줄눈이 엇갈린다"""
+        for i, y in enumerate(rows):
+            atlas.rect(ox, oy + y, T, 4, base)
+            for x in ((8,) if (i + int(shift)) % 2 == 0 else (3, 12)):
+                atlas.rect(ox + x, oy + y, 1, 4, line)
+            atlas.rect(ox, oy + y + 4, T, 1, line)
+    # 0 바닥 윗면: 위 3px 밝은 돌 난간 + 검은 선, 아래는 회색 벽돌(줄눈), 하이라이트 점
+    atlas.rect(0, 0, T, T, p['ground']); atlas.rect(0, 0, T, 3, p['top']); atlas.rect(0, 3, T, 1, p['out'])
+    for x in (1, 6, 11): atlas.rect(x, 0, 2, 1, p['light'])
+    bricks(0, 4, p['ground'], mortar, (0, 5, 10), False)
+    atlas.rect(1, 5, 2, 1, p['light']); atlas.rect(9, 10, 2, 1, p['light']); atlas.rect(12, 6, 1, 2, crack)
+    # 1 바닥 속: 어두운 벽돌, 줄눈은 더 어둡게, 금 간 자국 하나
+    atlas.rect(T, 0, T, T, p['dark'])
+    bricks(T, 0, p['dark'], p['out'], (0, 5, 10), True)
+    atlas.rect(T + 4, 11, 1, 3, p['out']); atlas.rect(T + 5, 13, 2, 1, p['out'])
+    # 2 성벽 돌 블록: 쇠테 외곽(2px) + 돌 속 + 위·왼쪽 밝은 모서리 + 아래 그림자 + 네 귀퉁이 못
+    def block(ox: int, left_thick: bool = False, right_thick: bool = False) -> None:
+        atlas.rect(ox, 0, T, T, iron); atlas.rect(ox + 2, 2, T - 4, T - 4, p['block'])
+        atlas.rect(ox + 2, 2, T - 4, 2, p['light']); atlas.rect(ox + 2, 2, 2, T - 4, p['light']); atlas.rect(ox + 3, T - 4, T - 5, 2, p['dark'])
+        atlas.rect(ox + 6, 6, 4, 4, p['dark']); atlas.rect(ox + 7, 7, 2, 2, p['ground'])
+        for x, y in ((1, 1), (T - 3, 1), (1, T - 3), (T - 3, T - 3)): atlas.rect(ox + x, y, 2, 2, rivet)
+        if left_thick: atlas.rect(ox, 0, 3, T, p['out'])
+        if right_thick: atlas.rect(ox + T - 3, 0, 3, T, p['out'])
+    block(T * 2); block(T * 3, left_thick=True); block(T * 4, right_thick=True)
+    # 5·6 깃발(보스 무대엔 없지만 열 규약 유지)
+    atlas.rect(T * 5 + 6, 0, 4, T, p['out']); atlas.rect(T * 5 + 7, 0, 2, T, (200, 200, 220))
+    atlas.rect(T * 6 + 6, 4, 4, T - 4, p['out']); atlas.rect(T * 6 + 7, 4, 2, T - 4, (200, 200, 220))
+    atlas.rrect(T * 6 + 5, 0, 6, 6, (255, 230, 120), r=2)
+    for row in range(8):
+        w = 8 - row if row < 4 else row - 3
+        atlas.rect(T * 6 + 9, 4 + row, w, 1, FLAG_RED if row % 2 == 0 else FLAG_WHITE)
+    return atlas
+
+
 for name, palette in PALETTES.items():
     out = Path('assets/props') / ('subrio_tiles.png' if name == 'purple' else f'subrio_tiles_{name}.png')
-    draw_atlas(palette).save(out)
+    (draw_castle_atlas(palette) if name == 'castle' else draw_atlas(palette)).save(out)
     print('wrote', out, f'({T * 7}x{T})')
 # 창 투사체 24×6 (오른쪽 향함)
 spear: Final = Canvas(24, 6)

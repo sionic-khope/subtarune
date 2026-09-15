@@ -38,7 +38,8 @@ export function storyBgm(mapId, flags) {
   if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5'].includes(mapId)) return 'baron_intro';
   // 편집노조 소개가 끝나면 무대 곡이 계속 흐른다(컷신 마지막 재큐 뒤 정지 없음). QA 점프·이어하기도 같은 곡, 파크 승리 뒤에는 컷신이 끈 대로 무음
   if (mapId === 'youngcle7' && flags.editor_union_stage_done && !flags.park_guardian_won) return 'editor_union_stage';
-  // 비데 방: 입장 연출 전엔 무음, 연출이 시작되면 파크가디언 등장 곡이 깔리고 그 뒤로 계속(사용자 지시 2026-09-15)
+  // 비데 방: 입장 연출 전엔 무음, 연출이 시작되면 파크가디언 등장 곡이 깔리고 그 뒤로 계속(사용자 지시 2026-09-15). 보스전 뒤 귀환 연출(비데가 끌려감)부터는 다시 무음
+  if (mapId === 'youngcle9' && flags.subrio_after_done) return null;
   if (mapId === 'youngcle9' && flags.bidet_arcade_done) return 'editor_union_stage';
   return undefined;
 }
@@ -309,3 +310,6 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle9', desc: '엄청 대박인 
   map: 'youngcle9', spawn: 'left', flags: { ...afterParkFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle9_after', desc: '엄청 대박인 배: 비데가 토관에 들어간 뒤',
   map: 'youngcle9', spawn: 'inside', flags: { ...afterParkFlags, bidet_arcade_done: true }, party: [...parkWonCheckpoint.party] });
+// 섭리오 보스 격파 뒤 귀환 연출: 맵 enter(bidet_arcade)가 subrio_cleared 만 선 상태면 토관 귀환 → 비데 복직 요구 → 도트마리오가 비데를 들고 무대 철문 폭파
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'subrio_after', desc: '엄청 대박인 배: 섭리오 보스 격파 뒤 귀환 연출 (도트마리오 문 폭파)',
+  map: 'youngcle9', spawn: 'inside', flags: { ...afterParkFlags, bidet_arcade_done: true, subrio_cleared: true }, party: [...parkWonCheckpoint.party] });

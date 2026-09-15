@@ -38,6 +38,8 @@
 //  { curtain: 'black'|'white'|null }            맵을 완전히 가리는 막 (타이밍과 무관하게 새는 것 방지)
 //  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기
 //  { async: 노드 | [노드...] }                 기다리지 않고 다음으로 (배열이면 배경에서 순차 실행)
+//  주의: { action } { set } { if/goto } { label } { end } 는 ScriptRunner(dialogue.js)가 처리하는 노드라 parallel/async 배열 **안에서는 무시된다**(waiter 없음).
+//        배열 안에서 무언가를 만들어야 하면 밖에서 hidden 으로 spawn 해 두고 배열 안은 show/hop/sfx 만 (2026-09-15 마리오 낙하)
 // ─────────────────────────────────────────────────────────────
 import { TILE } from '../world/tiles.js';
 import { freeSpot, SCREEN_W, SCREEN_H } from '../world/world.js';

@@ -61,7 +61,7 @@ export const BOSS = { w: 72, h: 104, speed: 70, hp: 110, reach: 120, windup: 0.5
   spinWind: 1.0, spinTime: 0.9, spinRadius: 104, spinDamage: 7, spinRange: 170,
   vanish: 0.45, marker: 0.75, diveSpeed: 820, slam: 0.55, slamZoneW: 128, slamDamage: 10, teleFar: 250, teleFarTime: 1.2,
   recoverAfter: { swing: 0.8, spin: 1.6, slam: 1.8 },
-  jumpSpeed: 500, roar: 1.4, hitFlash: 0.25, hitCooldown: 0.2, chaseMax: 3.2, deathTime: 2.2, waterLife: 1.7 };
+  jumpSpeed: 500, jumpClear: 96, roar: 1.4, hitFlash: 0.25, hitCooldown: 0.2, chaseMax: 3.2, deathTime: 2.2, waterLife: 1.7 };
 /** 이 상태에서만 창·불·시계가 먹힌다(회복 틈·추격·포효·평타 예비, 착지 뒤). 오프닝(intro)엔 안 맞는다 */
 export const BOSS_VULNERABLE = new Set(['chase', 'recover', 'roar', 'windup', 'slam']);
 
@@ -73,6 +73,40 @@ export const BOSS_ENRAGE = { at: 0.5, windup: 0.35, spinWind: 0.65, marker: 0.5,
 // 회복 샘물(스테이지 중간·끝): 근처에서 C → 체력 가득. 도트마리오 버섯(보스전): 40초마다 오른쪽 벽 위에 나타나 던진다, 30 회복
 export const SPRING = { reach: 26 };
 export const MARIO_HEAL = { interval: 40, first: 32, heal: 30, walkIn: 1.6, hold: 0.7, walkOut: 1.4, mushroomGravity: 720 };
+/**
+ * 보스 격파 뒤 결과창(2026-09-15 사용자: “검은 화면에 클리어 → 플레이 시간 같은 콘솔식 결과 줄이 띠리리링 하며 차례로 → 마지막에 대각선 S+!! 도장, 사람이 읽을 시간”).
+ * 시각표(초): 제목 titleAt → 줄은 rowsFrom 부터 rowEvery 간격으로 나타나 count 동안 숫자가 올라감 → 마지막 줄 뒤 stampAfter 에 도장(stampTime 동안 내려찍힘)
+ * → skipAfter 뒤엔 C 로 넘길 수 있고 hold 뒤 저절로 검게(fade) 닫힌다. 등급은 항상 S+(사용자 원문).
+ */
+export const RESULT = { title: 'WORLD 1 CLEAR!', rank: 'S+', titleAt: 0.4, rowsFrom: 1.7, rowEvery: 0.8, count: 0.5, stampAfter: 1.0, stampTime: 0.32, skipAfter: 1.2, hold: 4.2, fade: 1.0 };
+export const RESULT_ROWS = [
+  { key: 'time', label: '클리어 시간', time: true },
+  { key: 'spears', label: '던진 창' },
+  { key: 'kills', label: '잡은 몬스터' },
+  { key: 'hits', label: '맞은 횟수' },
+  { key: 'falls', label: '낙사' },
+  { key: 'downs', label: '쓰러짐' },
+  { key: 'mushrooms', label: '먹은 버섯' },
+];
+export function makeStats() { return { time: 0, spears: 0, kills: 0, hits: 0, falls: 0, downs: 0, mushrooms: 0 }; }
+/** 시간은 mm:ss.d, 나머지는 정수 */
+export function formatStat(row, value) {
+  if (row.time) { const m = Math.floor(value / 60), sec = value - m * 60; return `${String(m).padStart(2, '0')}:${sec.toFixed(1).padStart(4, '0')}`; }
+  return String(Math.round(value));
+}
+/** 결과창 t초 시점의 보이는 값: 제목·줄(올라가는 숫자)·도장 진행도·넘김 가능·종료 */
+export function resultView(t, stats) {
+  const title = t >= RESULT.titleAt;
+  const rows = RESULT_ROWS.map((row, i) => {
+    const at = RESULT.rowsFrom + i * RESULT.rowEvery, k = Math.max(0, Math.min(1, (t - at) / RESULT.count));
+    const target = stats[row.key] || 0, value = row.time ? target * k : Math.round(target * k);
+    return { ...row, at, k, shown: t >= at, text: formatStat(row, value) };
+  });
+  const rowsEnd = RESULT.rowsFrom + (RESULT_ROWS.length - 1) * RESULT.rowEvery + RESULT.count;
+  const stampAt = rowsEnd + RESULT.stampAfter, stampEnd = stampAt + RESULT.stampTime;
+  const stamp = Math.max(0, Math.min(1, (t - stampAt) / RESULT.stampTime));
+  return { title, rows, rowsDone: t >= rowsEnd, stampAt, stamp, stampDone: t >= stampEnd, canSkip: t >= stampEnd + RESULT.skipAfter, finished: t >= stampEnd + RESULT.hold, rank: RESULT.rank };
+}
 // 타일 문자: '.' 빈칸, '=' 바닥 윗면, '#' 바닥 속, 'B' 떠 있는 블록, '[' 블록 왼쪽 끝, ']' 블록 오른쪽 끝, '|' 깃발 기둥(통과), 'F' 깃발 천(통과·목표)
 export const SOLID = new Set(['=', '#', 'B', '[', ']']);
 export const ATLAS_COLUMN = { '=': 0, '#': 1, B: 2, '[': 3, ']': 4, '|': 5, F: 6 };
@@ -143,8 +177,8 @@ export const BOSS_INTRO = {
   before: [PP('오 보스맵인가.'), GS('그런거 같아')],
   voice: [BD('후후후..')],
   after: [BD('편집노조 두번째 시험 도트마리오, 따뜻한비데 vs 요빠억이다 이새끼들아'), PP('들어와라 뚜벅이새끼야'), BD('날 이길수있을거라 생각하지마라')],
-  // 갈라지는 자리(발 x): 요플래·억빠맨 오른쪽, 경섭 왼쪽
-  split: { hyungsub: 336, ppaman: 372, gyeongsub: 104 },
+  // 갈라지는 자리(무대 가운데 기준 발 x 오프셋): 요플래·억빠맨 오른쪽, 경섭 왼쪽 (BUILD172 무대 36열 = 가운데 288)
+  split: { hyungsub: 150, ppaman: 190, gyeongsub: -140 },
   lookHold: 0.55, bannerHold: 1.0, startHold: 0.7,
 };
 
@@ -262,25 +296,27 @@ function stageBlue(b) {
 export function buildLevel(stage = 0) {
   const rows = 21;
   const def = STAGES[stage] || STAGES[0];
-  let cols, goal = null, spawnX = 64, bossSpawnX = 0, b;
+  let cols, goal = null, spawnX = 64, bossSpawnX = 0, b, arena = null;
   if (stage === 0) { cols = 100; b = makeBuilder(cols, rows, def.kinds); goal = stageTutorial(b); }
   else if (stage === 1) { cols = 420; b = makeBuilder(cols, rows, def.kinds); goal = stagePurple(b); }
   else if (stage === 2) { cols = 440; b = makeBuilder(cols, rows, def.kinds); goal = stageTeal(b); }
   else if (stage === 3) { cols = 470; b = makeBuilder(cols, rows, def.kinds); goal = stageBlue(b); }
   else {
-    // 1-4(사용자 2026-09-15): 마리오 쿠파성처럼 한 화면 안(29열 = 464px, 카메라 고정)에 발판. 양쪽 벽, 바닥 18행,
-    // 양옆 발판 14행(2~6·22~26열, 바닥에서 점프해 오름), 가운데 발판 10행(10~19열: 양옆 발판 끝(x112/x352)에서 틈 48px·높이 64px → 점프 83px 로 양쪽에서 건너뜀. 12~16열이던 땐 틈 80px 라 못 올라갔다 — 사용자 지적).
-    // 보스(몸 72×104, 머리 y184)는 가운데 발판 아래(y176)를 지나고 양옆 발판엔 막혀 x112~352 안에서만 움직인다. 보스 낙하 자리 x312 는 발판이 없는 열
-    cols = 29; b = makeBuilder(cols, rows, []);
-    b.ground(29, 18).wall(0, 1, 5).wall(28, 29, 5);
-    b.blocks(2, 5, 14).blocks(22, 5, 14).blocks(10, 10, 10);
+    // 1-4(사용자 2026-09-15): 마리오 쿠파성처럼 발판이 있는 무대. BUILD172 “너무 좁다” → 29열에서 36열(576px, 카메라가 살짝 따라감)로.
+    // 양쪽 벽, 바닥 18행, 양옆 발판 14행(2~6·29~33열, 바닥에서 점프해 오름), 가운데 발판 10행(10~25열: 양옆 발판 끝(x112/x464)에서 틈 48px·높이 64px → 점프 83px 로 양쪽에서 건너뜀).
+    // 보스(몸 72×104)는 가운데 발판 아래를 지나고 양옆 발판엔 막혀 arena.floor(x112~464) 안에서만 걷는다. 머리 위 6칸 안에 발판이 있으면 점프하지 않는다(발판에 머리 끼임 — 사용자 지적).
+    cols = 36; b = makeBuilder(cols, rows, []);
+    b.ground(36, 18).wall(0, 1, 5).wall(35, 36, 5);
+    b.blocks(2, 5, 14).blocks(29, 5, 14).blocks(10, 16, 10);
     // 보스 낙하 자리는 가운데(오프닝이 가운데 내려찍기로 등장시킨다; 하늘 낙하면 가운데 발판 위에 선다)
-    spawnX = 40; bossSpawnX = 232;
+    spawnX = 40; bossSpawnX = 288;
+    // floor: 바닥에서 순간이동 내려찍기 자리 범위(양옆 발판 아래 제외). overhang: 보스보다 앞에 다시 그리는 발판 띠(보스가 아래를 지날 때 머리가 발판 뒤로 들어가 보이게)
+    arena = { floor: [7 * TILE, (cols - 7) * TILE], overhang: [{ row: 10, x0: 10 * TILE, x1: 26 * TILE }] };
   }
   const { grid, enemies, springs } = b;
   const tiles = grid.map(row => row.join(''));
   // 레벨 아래는 뚫려 있다(구덩이에 빠지면 낙사 → 마지막 자리 위 하늘에서 재낙하). 양옆 밖은 빈칸
-  return { stage, def, cols, rows, tiles, width: cols * TILE, height: rows * TILE, goal, spawnX, bossSpawnX, enemies, springs,
+  return { stage, def, cols, rows, tiles, width: cols * TILE, height: rows * TILE, goal, spawnX, bossSpawnX, enemies, springs, arena,
     chatter: CHATTER[stage] || [], prompts: PROMPTS[stage] || [], stompDemo: def.tutorial ? STOMP_DEMO : null,
     solidAt: (tx, ty) => (ty < 0 || ty >= rows || tx < 0 || tx >= cols) ? false : SOLID.has(grid[ty][tx]) };
 }
@@ -707,7 +743,7 @@ export function stepBoss(level, boss, target, dt, events = []) {
     else if (boss.farT >= BOSS.teleFarTime) startSlam();
     else if (action === 'spin' && dist <= BOSS.spinRange && boss.grounded) { boss.lastAction = 'spin'; go('spinWind'); boss.spinHit = false; events.push({ type: 'bossSpinWind' }); }
     else if (action === 'swing' && dist <= BOSS.reach && sameLevel) { boss.lastAction = 'swing'; go('windup'); }
-    else if (boss.grounded && target.y + target.h < boss.y + boss.h - 40 && dist < 200 && boss.stateT > 0.4) { boss.vy = -BOSS.jumpSpeed; boss.grounded = false; events.push({ type: 'bossJump' }); }
+    else if (boss.grounded && target.y + target.h < boss.y + boss.h - 40 && dist < 200 && boss.stateT > 0.4 && !overlapsSolid(level, boss.x, boss.y - BOSS.jumpClear, boss.w, BOSS.jumpClear)) { boss.vy = -BOSS.jumpSpeed; boss.grounded = false; events.push({ type: 'bossJump' }); }
     else if (boss.stateT > BOSS.chaseMax) startSlam();
   }
   else if (boss.state === 'windup') { if (boss.stateT >= tm.windup) { go('swing'); boss.swingHit = false; events.push({ type: 'swing', facing: boss.facing }); } }
@@ -718,10 +754,10 @@ export function stepBoss(level, boss, target, dt, events = []) {
     physics = false;
     if (boss.stateT >= BOSS.vanish) {
       // 영역은 주인공 머리 위, 착지면은 주인공이 선 면(발 y). 발판을 통과해 그 면까지 미끄러져 내려온다(발판 위 주인공은 발판 위에서 맞는다).
-      // 바닥이면 양옆 발판 아래(머리가 걸림)를 피해 x112~352 안으로, 벽 안쪽으로도 조인다
+      // 바닥이면 양옆 발판 아래(머리가 걸림)를 피해 arena.floor 안으로, 벽 안쪽으로도 조인다
       const feetY = target.grounded ? target.y + target.h : landingY(level, target.x, target.x + target.w);
       let minX = TILE + boss.w / 2 + 4, maxX = level.width - TILE - boss.w / 2 - 4;
-      if (feetY >= level.height - 3 * TILE) { minX = Math.max(minX, 7 * TILE + boss.w / 2); maxX = Math.min(maxX, 22 * TILE - boss.w / 2); }
+      if (feetY >= level.height - 3 * TILE && level.arena) { minX = Math.max(minX, level.arena.floor[0] + boss.w / 2); maxX = Math.min(maxX, level.arena.floor[1] - boss.w / 2); }
       boss.hidden = true; boss.markerX = Math.round(Math.max(minX, Math.min(maxX, tx))); boss.markerY = feetY;
       boss.x = Math.round(boss.markerX - boss.w / 2); boss.y = -BOSS.h - 40; boss.vx = 0; boss.vy = 0;
       go('marker'); events.push({ type: 'bossMarker', x: boss.markerX, y: boss.markerY });

@@ -12,7 +12,8 @@ import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, springNear, makeBoss, stepBoss, hitBoss, hurtActor,
   bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZone, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
-  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, landingY, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
+  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, landingY, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H,
+  RESULT, makeStats, resultView } from './subrio-core.js';
 
 const FRAME = 10;
 const VIEW_X = FRAME, VIEW_Y = FRAME;
@@ -127,6 +128,8 @@ export function run(game, node = {}) {
       paused: false,
       // 보스전 도트마리오 버섯(40초마다 오른쪽 벽 위로), 오프닝 관광 카메라, 1-4 오프닝 연출(intro)·보스전 시작 여부(bossFight)·상단 배너
       mario: null, marioTimer: 0, mushrooms: [], flashRate: 1.1, intro: null, bossFight: false, banner: null,
+      // 결과창(보스 격파 뒤): 플레이 통계와 진행 상태
+      stats: makeStats(), result: null,
     };
     const escapesAtStart = game.escapes || 0;
     const say = (lines) => { for (const line of lines) state.chat.queue.push(line); };
@@ -163,7 +166,7 @@ export function run(game, node = {}) {
 
     // ── 진행 ──
     const startPlay = () => {
-      state.phase = 'play'; state.phaseT = 0;
+      state.phase = 'play'; state.phaseT = 0; state.stats = makeStats(); state.result = null;
       loadStage(0);
       // 오프닝: 세 명은 아직 안 떨어지고 카메라가 맵을 훑는다(5초) → 흰 페이드 → 낙하
       state.sub = 'opening'; state.subT = 0; state.flash = 0; state.flashRate = 1.1;
@@ -275,9 +278,28 @@ export function run(game, node = {}) {
       if (state.phase === 'play') updatePlay(dt, confirm);
     };
 
+    const updateResult = (dt, confirm) => {
+      const r = state.result; r.t += dt; state.fade = 1;
+      const view = resultView(r.t, state.stats);
+      if (view.title && !r.titleSfx) { r.titleSfx = true; sfx('levelup', 0.9); }
+      // 숫자가 올라가는 동안 메뉴 이동음이 빠르게(띠리리링), 다 차면 선택음
+      for (const row of view.rows) {
+        if (!row.shown || r.rowDone[row.key]) continue;
+        r.tick -= dt;
+        if (r.tick <= 0) { r.tick = 0.055; sfx('menumove', 0.5, 0, 1 + row.k * 0.6); }
+        if (row.k >= 1) { r.rowDone[row.key] = true; sfx('select', 0.6); }
+      }
+      if (view.stamp > 0 && !r.stampSfx) { r.stampSfx = true; sfx('orchhit', 0.9); sfx('impact', 0.6); state.shake = 0.35; }
+      if (view.stampDone && !r.shineSfx && r.t >= view.stampAt + RESULT.stampTime + 0.25) { r.shineSfx = true; sfx('great_shine', 0.55); }
+      if (!r.leaving && (view.finished || (view.canSkip && confirm))) { r.leaving = true; if (!view.finished) sfx('confirm', 0.6); }
+      if (r.leaving) { r.out = Math.min(1, (r.out || 0) + dt / RESULT.fade); if (r.out >= 1) finish(); }
+      r.view = view;
+    };
     const updatePlay = (dt, confirm) => {
       state.shake = Math.max(0, state.shake - dt);
       state.subT += dt;
+      if (state.sub === 'result') { updateResult(dt, confirm); return; }
+      if (state.sub !== 'opening' && state.sub !== 'victory') state.stats.time += dt;
       const level = state.level, leader = state.actors[0], def = level.def;
       if (state.sub === 'opening') {
         // 관광: 직업 선택 뒤의 흰 화면이 1초에 걷히며 카메라가 왼쪽에서 오른쪽으로 천천히(ease) → 5초 뒤 흰 페이드(1.4초) → 낙하 시작(밝아지는 데 1.4초)
@@ -299,7 +321,8 @@ export function run(game, node = {}) {
       state.fade = Math.max(0, state.fade - dt / CARD_FADE);
       if (state.sub === 'victory') {
         if (state.boss && state.subT >= BOSS.deathTime && !state.bossGone) { state.bossGone = true; sfx('vaporized', 0.8); sfx('won', 0.8); }
-        if (state.subT >= VICTORY_HOLD) { state.fade = Math.min(1, state.fade + dt / CARD_FADE); if (state.subT >= VICTORY_HOLD + 1.4) finish(); }
+        // 검게 → 결과창(브금은 끄고 결과 소리만)
+        if (state.subT >= VICTORY_HOLD) { state.fade = Math.min(1, state.fade + dt / CARD_FADE); if (state.subT >= VICTORY_HOLD + 1.2) { state.sub = 'result'; state.subT = 0; state.fade = 1; state.result = { t: 0, tick: 0, rowDone: {}, out: 0 }; game.sound.stopBgm(1.0); } }
       }
       const events = [];
       const wasGuard = leader.state === 'guard';
@@ -402,9 +425,10 @@ export function run(game, node = {}) {
       for (const event of events) {
         if (event.type === 'land') { const actor = state.actors.find(a => a.id === event.id); if (actor && !actor.dropped) { actor.dropped = true; if (actor === leader) state.leaderLandT = state.subT; sfx('item', 0.7); } }
         if (event.type === 'jump' && event.id === 'hyungsub') sfx('jump', 0.5);
+        if (event.type === 'fall' && event.id === HERO_ID) state.stats.falls += 1;
         if (event.type === 'chargeStart') sfx('pantheon_q_charge', 0.6, 1.1);
         if (event.type === 'attack' && event.id === 'hyungsub') {
-          const charged = event.charged;
+          const charged = event.charged; state.stats.spears += 1;
           state.spears.push({ x: event.x, y: event.y, vx: event.facing * (charged ? SPEAR.chargedSpeed : SPEAR.speed), life: charged ? SPEAR.chargedLife : SPEAR.life, facing: event.facing, charged });
           sfx(charged ? 'pantheon_q_throw' : 'pantheon_q_tap', charged ? 0.8 : 0.55, charged ? 0.9 : 0.5);
         }
@@ -420,7 +444,7 @@ export function run(game, node = {}) {
         }
         if (event.type === 'stun') { sfx('zilean_q_stun', 0.8, 2.0); const enemy = state.enemies.find(e => e.id === event.id); if (enemy) { state.fx.push({ kind: 'ring', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, t: 0, dur: 0.6, r0: 8, r1: 48, color: '255,235,120', width: 4 }); state.fx.push({ kind: 'ring', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, t: -0.12, dur: 0.6, r0: 6, r1: 40, color: '255,250,200', width: 2 }); } }
         if (event.type === 'stomp') { sfx('pop', 0.7); sfx('jump', 0.4); }
-        if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6);
+        if (event.type === 'enemyDead') { sfx('vaporized', 0.45, 0.6); state.stats.kills += 1; }
         if (event.type === 'bossLand') { sfx('thud', 0.9); state.shake = 0.35; }
         if (event.type === 'bossJump') sfx('wing', 0.35, 0, 0.7);
         if (event.type === 'swing') sfx('heavyswing', 0.8);
@@ -432,7 +456,7 @@ export function run(game, node = {}) {
         if (event.type === 'bossSpinWind') sfx('power', 0.8);
         if (event.type === 'bossSpin') { sfx('ultraswing', 0.9); state.shake = Math.max(state.shake, 0.2); }
         if (event.type === 'slowed') { state.notice = null; }
-        if (event.type === 'marioHeal') { sfx('item', 0.8); say([{ who: 'narrator', text: `도트마리오의 버섯! 체력이 ${MARIO_HEAL.heal} 회복되었다.` }]); }
+        if (event.type === 'marioHeal') { state.stats.mushrooms += 1; sfx('item', 0.8); say([{ who: 'narrator', text: `도트마리오의 버섯! 체력이 ${MARIO_HEAL.heal} 회복되었다.` }]); }
         if (event.type === 'water') { state.waters.push({ x: event.x, y: event.y, vx: event.vx, life: BOSS.waterLife, facing: event.facing }); sfx('splash', 0.5, 0, 1.3); }
         if (event.type === 'bossHit') sfx('hit', 0.7);
         if (event.type === 'bossImmune') sfx('knock', 0.45, 0.3, 1.3);
@@ -445,8 +469,8 @@ export function run(game, node = {}) {
           // RPG 체력이 깎인다(인게임 메뉴와 같은 값). 0 이면 쓰러졌다가 마지막 자리에서 체력 가득 재낙하(게임오버 없음)
           if (event.damage > 0 && event.id === HERO_ID) {
             game.partyHp[HERO_ID] = Math.max(0, game.hpOf(HERO_ID) - event.damage);
-            state.hpFlash = 0.5;
-            if (game.hpOf(HERO_ID) <= 0 && state.sub === 'run') { state.sub = 'dead'; state.subT = 0; state.control = false; leader.charge = 0; sfx('damage', 0.8); }
+            state.hpFlash = 0.5; state.stats.hits += 1;
+            if (game.hpOf(HERO_ID) <= 0 && state.sub === 'run') { state.stats.downs += 1; state.sub = 'dead'; state.subT = 0; state.control = false; leader.charge = 0; sfx('damage', 0.8); }
           }
         }
         if (event.type === 'bossDead') { state.sub = 'victory'; state.subT = 0; state.control = false; state.cleared = true; state.waters = []; sfx('explosion', 0.7); state.shake = 0.5; }
@@ -460,7 +484,7 @@ export function run(game, node = {}) {
       // 바닥에 떨어진 시계는 터지며 근처 적에 피해(같은 적에 둘이면 스턴)
       const burstEvents = [];
       burstClocks(clocksBefore.filter(c => c.dead), state.enemies, state.t, burstEvents);
-      for (const event of burstEvents) { if (event.type === 'stun') sfx('zilean_q_stun', 0.8, 2.0); else if (event.type === 'projectileHit') sfx('hit', 0.5, 0.4); else if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6); }
+      for (const event of burstEvents) { if (event.type === 'stun') sfx('zilean_q_stun', 0.8, 2.0); else if (event.type === 'projectileHit') sfx('hit', 0.5, 0.4); else if (event.type === 'enemyDead') { sfx('vaporized', 0.45, 0.6); state.stats.kills += 1; } }
       state.waters = updateProjectiles(level, state.waters, dt, WATER_W, WATER_H);
       state.shots = updateProjectiles(level, state.shots, dt, 14, 14, ENEMY.throwGravity);
       for (const p of [...state.fires, ...state.clocks, ...state.shots]) p.t += dt;
@@ -497,13 +521,13 @@ export function run(game, node = {}) {
         }
       }
       else if (it.step === 3) {
-        for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, BOSS_INTRO.split[actor.id]);
+        for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, centerX + BOSS_INTRO.split[actor.id]);
         // stepBoss 가 marker → dive → slam 을 진행한다. 착지 회복에 들어가면 서서 좌우를 둘러본다
         if (state.boss.state === 'recover') { state.boss.state = 'intro'; state.boss.stateT = 0; state.boss.facing = -1; it.step = 4; it.t = 0; }
       }
       else if (it.step === 4) {
         // 갈라지는 걸음은 둘러보는 동안 계속(자리에 닿을 때까지)
-        for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, BOSS_INTRO.split[actor.id]);
+        for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, centerX + BOSS_INTRO.split[actor.id]);
         if (it.t >= BOSS_INTRO.lookHold && state.boss.facing < 0) state.boss.facing = 1;
         if (it.t >= BOSS_INTRO.lookHold * 2) { state.boss.facing = -1; say(BOSS_INTRO.after); it.step = 5; it.intents = {}; }
       }
@@ -841,6 +865,36 @@ export function run(game, node = {}) {
       text(next.title, cx, cy - 30, { align: 'center', size: 34, color: '#ffffff' });
       text(next.name, cx, cy + 20, { align: 'center', color: next.boss ? '#ffb3b3' : next.wave[1].replace(/rgba\(([^)]+),[^,]+\)$/, 'rgb($1)') });
     };
+    // 결과창(BUILD172): 검은 화면, 제목이 팡 튀어나오고 줄마다 숫자가 올라간 뒤 오른쪽 아래에 빨간 S+!! 도장이 기울어져 내려찍힌다
+    const drawResult = () => {
+      const r = state.result, view = r.view || resultView(r.t, state.stats);
+      const cx = VIEW_X + VIEW_W / 2;
+      ctx.fillStyle = '#000'; ctx.fillRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
+      if (view.title) {
+        const k = Math.min(1, (r.t - RESULT.titleAt) / 0.3), pop = 1 + (1 - k) * 1.1, bounce = Math.round(Math.abs(Math.sin(r.t * 3)) * 3);
+        text(RESULT.title, cx, VIEW_Y + 24 - bounce, { align: 'center', size: Math.round(32 * pop), color: '#ffe066' });
+        ctx.fillStyle = '#c8c8dc'; ctx.fillRect(VIEW_X + 44, VIEW_Y + 72, VIEW_W - 88, 2);
+      }
+      view.rows.forEach((row, i) => {
+        if (!row.shown) return;
+        const y = VIEW_Y + 86 + i * 24;
+        ctx.globalAlpha = Math.min(1, (r.t - row.at) / 0.2);
+        text(row.label, VIEW_X + 64, y, { color: '#c8c8dc' });
+        text(row.text, VIEW_X + 296, y, { align: 'right', color: row.k >= 1 ? '#ffffff' : '#ffe066' });
+        ctx.globalAlpha = 1;
+      });
+      if (view.rowsDone) { ctx.fillStyle = '#c8c8dc'; ctx.fillRect(VIEW_X + 44, VIEW_Y + 258, VIEW_W - 88, 2); text('종합 평가', VIEW_X + 64, VIEW_Y + 276, { color: '#c8c8dc' }); }
+      if (view.stamp > 0) {
+        const ease = 1 - Math.pow(1 - view.stamp, 3), scale = 2.6 - 1.6 * ease;
+        ctx.save(); ctx.globalAlpha = Math.min(1, view.stamp * 1.6);
+        ctx.translate(VIEW_X + VIEW_W - 96, VIEW_Y + VIEW_H - 62); ctx.rotate(-0.3); ctx.scale(scale, scale);
+        ctx.strokeStyle = '#ff3b3b'; ctx.lineWidth = 4; ctx.strokeRect(-62, -30, 124, 60); ctx.lineWidth = 2; ctx.strokeRect(-55, -23, 110, 46);
+        ctx.font = FONT.replace(`${F.size}px`, '38px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ff3b3b'; ctx.fillText(`${view.rank}!!`, 0, 2);
+        ctx.restore();
+      }
+      if (view.canSkip && !r.leaving && Math.floor(r.t * 2) % 2 === 0) text('C  계속', cx, VIEW_Y + VIEW_H - 20, { align: 'center', color: '#8f8fa6', size: 12 });
+      if (r.out > 0) { ctx.fillStyle = `rgba(0,0,0,${r.out.toFixed(3)})`; ctx.fillRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H); }
+    };
     const drawFlagHint = () => {
       const level = state.level, leader = state.actors[0];
       if (!level.goal || state.sub !== 'run' || !atGoal(level, leader)) return;
@@ -930,6 +984,8 @@ export function run(game, node = {}) {
           if (state.boss) drawBossZones(state.boss);
           for (const enemy of state.enemies) drawEnemy(enemy);
           if (state.boss) drawBoss(state.boss);
+          // 가운데 발판 띠를 보스 위에 다시 그린다 — 보스가 발판 아래를 지날 때 큰 머리가 발판 뒤로 들어가 보인다(끼어 보이던 문제, BUILD172)
+          if (state.level.arena) for (const o of state.level.arena.overhang) ctx.drawImage(state.baked.canvas, o.x0, o.row * TILE, o.x1 - o.x0, TILE, o.x0 - state.cam + VIEW_X, o.row * TILE + VIEW_Y, o.x1 - o.x0, TILE);
           for (const actor of [...state.actors].reverse()) if (actor.active) drawActor(actor);
           drawMario();
           drawProjectiles();
@@ -952,6 +1008,7 @@ export function run(game, node = {}) {
         }
         if (state.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${state.fade})`; ctx.fillRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H); }
         if (state.sub === 'card' && state.fade >= 1) drawCard();
+        if (state.sub === 'result') drawResult();
         if (state.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${state.flash})`; ctx.fillRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H); }
       }
       ctx.restore();
@@ -968,7 +1025,7 @@ export function run(game, node = {}) {
     ov.fit(); addEventListener('resize', ov.fit);
     requestAnimationFrame(() => { ov.root.style.opacity = '1'; });
     raf = requestAnimationFrame(frame);
-    window.__subrio = { state, finish, loadStage, get level() { return state.level; }, get boss() { return state.boss; }, get phase() { return state.phase; },
+    window.__subrio = { state, finish, loadStage, get stats() { return state.stats; }, get level() { return state.level; }, get boss() { return state.boss; }, get phase() { return state.phase; },
       skipTo(phase) { if (phase === 'play') { state.phase = 'flash'; state.phaseT = 0.9; } else { state.phase = phase; state.phaseT = 0; } } };
   });
 }

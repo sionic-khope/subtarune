@@ -91,7 +91,7 @@ try {
   await page.waitForFunction(() => window.__subrio?.state.boss && window.__subrio.state.boss.state === 'marker', null, { timeout: 20000 }).catch(() => {}); await page.waitForTimeout(400); await cap('boss_intro_marker');
   await page.waitForFunction(() => window.__subrio?.state.intro?.step >= 5, null, { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(200);
   const split = await page.evaluate(() => { const st = window.__subrio.state; const by = Object.fromEntries(st.actors.map(a => [a.id, Math.round(a.x + a.w / 2)])); return { by, boss: [Math.round(st.boss.x + st.boss.w / 2), st.boss.state] }; });
-  check(split.boss[1] === 'intro' && Math.abs(split.boss[0] - 232) < 20 && split.by.gyeongsub < 160 && split.by.hyungsub > 280 && split.by.ppaman > 280, '가운데 내려찍기 뒤 경섭 왼쪽·요플래/억빠맨 오른쪽 ' + JSON.stringify(split)); await cap('boss_intro_split');
+  check(split.boss[1] === 'intro' && Math.abs(split.boss[0] - 288) < 20 && split.by.gyeongsub < 200 && split.by.hyungsub > 340 && split.by.ppaman > 340, '가운데 내려찍기 뒤 경섭 왼쪽·요플래/억빠맨 오른쪽 ' + JSON.stringify(split)); await cap('boss_intro_split');
   await page.waitForFunction(() => window.__subrio?.state.banner?.text === '보스전', null, { timeout: 25000 }).catch(() => {}); await page.waitForTimeout(200); await cap('boss_intro_banner');
   const banner = await page.evaluate(() => window.__subrio.state.banner?.text); check(banner === '보스전', '보스전 배너 ' + banner);
   await page.waitForFunction(() => window.__subrio?.state.banner?.text === 'START!!', null, { timeout: 6000 }).catch(() => {}); await page.waitForTimeout(150); await cap('boss_intro_start');
@@ -115,10 +115,22 @@ try {
   await page.waitForFunction(() => window.__subrio?.state.sub === 'victory', null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(300);
   s = await sub(); check(s.sub === 'victory' && s.cleared, '창 2방 → 격파 ' + JSON.stringify([s.sub, s.cleared])); await cap('boss_victory');
   await page.waitForFunction(() => window.__subrio?.state.bossGone, null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(200); await cap('boss_clear');
+  // 결과창(BUILD172): 검게 → WORLD 1 CLEAR! → 줄 7개가 차례로(숫자 올라감) → S+!! 도장 → C 로 넘김. 브금은 꺼진다
+  await page.waitForFunction(() => window.__subrio?.state.sub === 'result', null, { timeout: 12000 }).catch(() => {});
+  let r = await page.evaluate(() => { const st = window.__subrio?.state; return st && { sub: st.sub, bgm: game.sound.bgmName }; });
+  check(!!r && r.sub === 'result', '결과창 시작 ' + JSON.stringify(r));
+  await page.waitForTimeout(900); await cap('result_title');
+  await page.waitForFunction(() => window.__subrio?.state.result?.view?.rowsDone, null, { timeout: 12000 }).catch(() => {}); await cap('result_rows');
+  await page.waitForFunction(() => window.__subrio?.state.result?.view?.stampDone, null, { timeout: 6000 }).catch(() => {}); await page.waitForTimeout(150); await cap('result_stamp');
+  r = await page.evaluate(() => { const st = window.__subrio.state, v = st.result.view; return { rows: v?.rows.map(x => x.text), stamp: v?.stamp, rank: v?.rank, stats: st.stats, bgm: game.sound.bgmName }; });
+  check(!!r.rows && r.rows.length === 7 && r.stamp === 1 && r.rank === 'S+' && r.bgm === null, '결과 줄 7개·S+ 도장·브금 없음 ' + JSON.stringify(r));
+  check(r.stats.time > 10 && r.rows[0] === (() => { const m = Math.floor(r.stats.time / 60), s = r.stats.time - m * 60; return `${String(m).padStart(2, '0')}:${s.toFixed(1).padStart(4, '0')}`; })(), '클리어 시간 집계·표기 ' + JSON.stringify([r.stats.time, r.rows[0]]));
+  await page.waitForFunction(() => window.__subrio?.state.result?.view?.canSkip, null, { timeout: 6000 }).catch(() => {}); await page.keyboard.press('KeyC');
   await page.waitForFunction(() => !window.__subrio, null, { timeout: 15000 }).catch(() => {});
-  await page.waitForFunction(() => !game.dialogue.running, null, { timeout: 15000 }).catch(() => {}); await page.waitForTimeout(500);
-  const exit = await page.evaluate(() => ({ subrio: !!window.__subrio, cleared: game.flags.subrio_cleared, result: game.flags.subrio_result, zoom: Math.round(game.zoom.s * 100) / 100, bgm: game.sound.bgmName, visible: game.player.visible, x: Math.round(game.player.x) }));
-  check(!exit.subrio && exit.cleared === true && exit.result === 'found' && exit.zoom === 1 && exit.bgm === 'editor_union_stage' && exit.visible && exit.x < 330, '방 복귀·subrio_cleared·등장 곡 ' + JSON.stringify(exit)); await cap('room');
+  // 귀환 연출이 이어진다(bidet_pipe_enter → after): 토관에서 나오는 중, 무음 — 전체 흐름은 tests/playtest/subrio-after.mjs
+  await page.waitForFunction(() => game.player.visible, null, { timeout: 15000 }).catch(() => {}); await page.waitForTimeout(300);
+  const exit = await page.evaluate(() => ({ subrio: !!window.__subrio, cleared: game.flags.subrio_cleared, result: game.flags.subrio_result, running: game.dialogue.running, bgm: game.sound.bgmName, visible: game.player.visible, x: Math.round(game.player.x) }));
+  check(!exit.subrio && exit.cleared === true && exit.result === 'found' && exit.running && exit.bgm === null && exit.visible && exit.x < 380, '방 복귀·subrio_cleared·귀환 연출 시작(무음) ' + JSON.stringify(exit)); await cap('room');
 } catch (e) { fails += 1; console.log('CRASH', e.message); }
 check(errors.length === 0, 'pageerror 없음 ' + JSON.stringify(errors));
 console.log(`fails=${fails}`);

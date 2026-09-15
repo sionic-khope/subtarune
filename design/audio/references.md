@@ -400,5 +400,15 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/heavyswing.mp3` | `snd_heavyswing` | 1.04s | 평타(슬로우) |
 | 면역 땡 | 기존 `knock`(1.3배) | | 패턴 중 맞혔을 때 |
 
+### 결과창 (BUILD172, 원본 `assets/source/subrio172/audio/`, 같은 SHA)
+
+| 게임 파일 | 원본 | 길이 | 쓰임 |
+| --- | --- | --- | --- |
+| `sfx/levelup.mp3` | `snd_levelup` | 0.98s | 결과창 제목 WORLD 1 CLEAR!(띠리리링) |
+| `sfx/menumove.mp3` | `snd_menumove` | 0.02s | 줄의 숫자가 올라가는 동안 0.055초 간격(피치 1→1.6) |
+| `sfx/select.mp3` | `snd_select` | 0.19s | 숫자가 다 찼을 때 |
+| `sfx/orchhit.mp3` | `snd_orchhit` | 0.61s | S+!! 도장 내려찍힘(+ 기존 `impact`) |
+| `sfx/great_shine.mp3` | `snd_great_shine`(ogg) | 2.26s | 도장 뒤 반짝 |
+
 `snd_ghostappear`, `snd_quake_nes` 는 이 SHA 에 파일이 없어(14바이트) 못 썼다. 섭리오 BGM SWORD 는 원본 124~129.5초가 물소리·무음이라(사용자가 준 소스) `playBgm(loopEnd: 124, loopFade: 1.0)` 으로 123초부터 줄였다가 처음으로 되감는다(`src/core/audio.js`).
 

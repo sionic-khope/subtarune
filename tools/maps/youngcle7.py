@@ -48,7 +48,8 @@ def main() -> None:
                     'assets/props/editor-union-glyphs.png',
                     'assets/props/editor-union-mushroom.png',
                     *[f'assets/props/editor-union-{part}.png'
-                      for part in ('speaker', 'truss', 'curtain', 'control', 'wall-panel')]],
+                      for part in ('speaker', 'truss', 'curtain', 'control', 'wall-panel')],
+                    'assets/props/youngcle_angel_door145.png'],
         'spawns': {
             'start': {'x': 96, 'y': 480, 'facing': 'right'},
             'left': {'x': 96, 'y': 480, 'facing': 'right'},
@@ -129,6 +130,10 @@ def main() -> None:
             # 파크가디언 승리 연출(2026-09-15): 위 통로(cols 29~32, x928~1056)를 철창이 내려와 막는다. 완료 뒤 재입장은 닫힌 채로 복원
             {'type': 'prop', 'id': 'youngcle7_grate', 'image': 'assets/props/youngcle_grate.png',
              'x': 928, 'y': 192, 'w': 128, 'h': 96, 'solid': True, 'requires': 'park_guardian_aftermath_done'},
+            # 위 통로 꼭대기(cols 29~32 · rows 1~2)의 철문(2026-09-15 보스전 뒤 연출): 도트마리오가 비데를 들고 달려와 폭파한다 — 그 뒤엔 없다
+            {'type': 'prop', 'id': 'youngcle7_upper_door', 'image': 'assets/props/youngcle_angel_door145.png',
+             'x': 944, 'y': 64, 'w': 96, 'h': 32, 'ix': 944, 'iy': 0, 'solid': True, 'sortY': -900,
+             'unless': 'youngcle7_upper_door_blown'},
             # 오른쪽 통로(rows 13~16) 끝 → 연결로 youngcle8. 열린 통로라 C 없이 방향키로 통과
             {'type': 'door', 'id': 'youngcle7_right', 'x': 1168, 'y': 416, 'w': 16, 'h': 128,
              'to': 'youngcle8', 'spawn': 'left', 'sfx': False, 'interact': False},

@@ -143,3 +143,15 @@ test('test_stage_perimeter_equipment_leaves_actors_and_both_exit_passages_clear'
     }
   }
 });
+
+test('test_stage_upper_passage_has_an_iron_door_until_mario_blows_it_up', () => {
+  const map = readMap('youngcle7');
+  const door = map.entities.find(entity => entity.id === 'youngcle7_upper_door');
+  assert.equal(door.type, 'prop');
+  assert.equal(door.solid, true);
+  assert.equal(door.unless, 'youngcle7_upper_door_blown', '보스전 뒤 연출에서 폭파되면 다시 안 생긴다');
+  assert.ok(door.x >= 928 && door.x + door.w <= 1056, '위 통로(x928~1056) 안');
+  assert.equal(door.iy, 0);
+  assert.ok(door.y + door.h <= 96, '통로 꼭대기');
+  assert.ok(map.preload.includes(door.image));
+});
