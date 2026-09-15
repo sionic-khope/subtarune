@@ -11,7 +11,7 @@ import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, springNear, makeBoss, stepBoss, hitBoss, hurtActor,
-  bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZone, bossHookBox, bossTiming, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
+  bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZones, bossHookBox, bossTiming, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
   STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H,
   RESULT, makeStats, resultView } from './subrio-core.js';
 
@@ -453,6 +453,8 @@ export function run(game, node = {}) {
         if (event.type === 'bossVanish') { sfx('spearappear', 0.7); for (let i = 0; i < 10; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + Math.random() * state.boss.h, vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, t: 0, dur: 0.5, color: 'violet' }); }
         if (event.type === 'bossMarker') sfx('bell', 0.9);
         if (event.type === 'bossDive') sfx('wing', 0.9);
+        if (event.type === 'bossDiveExtra') sfx('wing', 0.8, 0, 1.06);
+        if (event.type === 'bossSlamExtra') { sfx('impact', 0.85); state.shake = Math.max(state.shake, 0.35); state.fx.push({ kind: 'ring', x: event.x, y: event.y, t: 0, dur: 0.5, r0: 20, r1: 90, color: '255,160,90', width: 4 }); for (let i = 0; i < 10; i++) state.fx.push({ kind: 'ember', x: event.x - 36 + Math.random() * 72, y: event.y - 4, vx: (Math.random() - 0.5) * 240, vy: -80 - Math.random() * 140, t: 0, dur: 0.5, color: 'dust' }); }
         if (event.type === 'bossSlam') { sfx('impact', 0.9); state.shake = 0.45; state.fx.push({ kind: 'ring', x: state.boss.x + state.boss.w / 2, y: state.boss.y + state.boss.h, t: 0, dur: 0.5, r0: 20, r1: 90, color: '255,160,90', width: 4 }); for (let i = 0; i < 12; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + state.boss.h - 4, vx: (Math.random() - 0.5) * 240, vy: -80 - Math.random() * 140, t: 0, dur: 0.5, color: 'dust' }); }
         if (event.type === 'bossSpinWind') sfx('power', 0.8);
         if (event.type === 'bossSpin') { sfx('ultraswing', 0.9); state.shake = Math.max(state.shake, 0.2); }
@@ -707,14 +709,30 @@ export function run(game, node = {}) {
         const cx = boss.x + boss.w / 2 - state.cam + VIEW_X, fy = boss.y + boss.h + VIEW_Y + 2, pulse = 0.55 + 0.35 * Math.abs(Math.sin(state.t * 8));
         ctx.strokeStyle = `rgba(255,230,120,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, fy, boss.w * 0.7, 8, 0, 0, Math.PI * 2); ctx.stroke();
       }
-      // 내려찍기 영역: 바닥에 빨간 띠 + 위에 화살표(띵 뒤 0.75초)
-      const zone = bossSlamZone(boss);
-      if (zone && (boss.state === 'marker' || boss.state === 'dive')) {
-        const floorY = zone.y + VIEW_Y, x = zone.x - state.cam + VIEW_X;
-        const pulse = 0.5 + 0.4 * Math.abs(Math.sin(state.t * 14));
-        ctx.fillStyle = `rgba(255,50,50,${(0.28 * pulse).toFixed(3)})`; ctx.fillRect(x, floorY - 10, zone.w, 10);
-        ctx.strokeStyle = `rgba(255,90,90,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.strokeRect(x + 1, floorY - 10, zone.w - 2, 10);
-        ctx.fillStyle = '#ff5c5c'; ctx.beginPath(); ctx.moveTo(x + zone.w / 2 - 8, floorY - 34); ctx.lineTo(x + zone.w / 2 + 8, floorY - 34); ctx.lineTo(x + zone.w / 2, floorY - 20); ctx.closePath(); ctx.fill();
+      // 내려찍기 영역: 바닥에 빨간 띠 + 위에 화살표(띵 뒤 0.75초). 격노 땐 그림자 자리 둘도 같이(각자 착지할 때까지)
+      if (boss.state === 'marker' || boss.state === 'dive' || boss.state === 'slam') {
+        for (const zone of bossSlamZones(boss)) {
+          if (zone.landed) continue;
+          const floorY = zone.y + VIEW_Y, x = zone.x - state.cam + VIEW_X;
+          const pulse = 0.5 + 0.4 * Math.abs(Math.sin(state.t * 14));
+          ctx.fillStyle = `rgba(255,50,50,${(0.28 * pulse).toFixed(3)})`; ctx.fillRect(x, floorY - 10, zone.w, 10);
+          ctx.strokeStyle = `rgba(255,90,90,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.strokeRect(x + 1, floorY - 10, zone.w - 2, 10);
+          ctx.fillStyle = '#ff5c5c'; ctx.beginPath(); ctx.moveTo(x + zone.w / 2 - 8, floorY - 34); ctx.lineTo(x + zone.w / 2 + 8, floorY - 34); ctx.lineTo(x + zone.w / 2, floorY - 20); ctx.closePath(); ctx.fill();
+        }
+      }
+    };
+    // 격노 그림자 내려찍기: 본체와 같은 낙하/착지 프레임을 보랏빛 반투명으로 그림자 자리에(비융·비융·비융 → 팟·팟·팟)
+    const drawBossGhosts = (boss) => {
+      if (!(boss.state === 'dive' || boss.state === 'slam')) return;
+      for (const zone of bossSlamZones(boss)) {
+        if (zone.main || !zone.started) continue;
+        const idx = zone.landed ? 1 : 0, img = bossSkillsImg.img;
+        const cx = Math.round(zone.x + zone.w / 2 - state.cam) + VIEW_X, feet = Math.round(zone.fallY + BOSS.h) + VIEW_Y;
+        ctx.save(); ctx.translate(cx, feet); if (boss.facing < 0) ctx.scale(-1, 1);
+        ctx.globalAlpha = 0.6; if ('filter' in ctx) ctx.filter = 'hue-rotate(200deg) saturate(2.2) brightness(0.9)';
+        if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (idx % 2) * BOSS_CELL[0], Math.floor(idx / 2) * BOSS_CELL[1], BOSS_CELL[0], BOSS_CELL[1], -BOSS_CELL[0] / 2, -BOSS_FEET, BOSS_CELL[0], BOSS_CELL[1]);
+        else { ctx.fillStyle = '#7050a0'; ctx.fillRect(-BOSS.w / 2, -BOSS.h, BOSS.w, BOSS.h); }
+        ctx.restore();
       }
     };
     const drawBoss = (boss) => {
@@ -1028,7 +1046,7 @@ export function run(game, node = {}) {
           drawSprings();
           if (state.boss) drawBossZones(state.boss);
           for (const enemy of state.enemies) drawEnemy(enemy);
-          if (state.boss) drawBoss(state.boss);
+          if (state.boss) { drawBossGhosts(state.boss); drawBoss(state.boss); }
           // 가운데 발판 띠를 보스 위에 다시 그린다 — 보스가 발판 아래를 지날 때 큰 머리가 발판 뒤로 들어가 보인다(끼어 보이던 문제, BUILD172)
           if (state.level.arena) for (const o of state.level.arena.overhang) ctx.drawImage(state.baked.canvas, o.x0, o.row * TILE, o.x1 - o.x0, TILE, o.x0 - state.cam + VIEW_X, o.row * TILE + VIEW_Y, o.x1 - o.x0, TILE);
           for (const actor of [...state.actors].reverse()) if (actor.active) drawActor(actor);

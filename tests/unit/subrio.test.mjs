@@ -5,7 +5,7 @@ import { buildLevel, makeActor, stepActor, moveBody, overlapsSolid, followerInte
   STAGES, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor, bossHitbox, bossFrame, rectsOverlap, brandThink, zileanThink, clockVelocity,
   makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, nearestTarget,
   TILE, STAND_H, CROUCH_H, VIEW_W, SPEAR, FIRE, CLOCK, ENEMY, BOSS, WATER_W, WATER_H, NO_INTENT,
-  BOSS_INTRO, RESULT, RESULT_ROWS, makeStats, formatStat, resultView, bossHookBox, hookActor, BOSS_PATTERN_ENRAGED } from '../../src/scenes/subrio-core.js';
+  BOSS_INTRO, RESULT, RESULT_ROWS, makeStats, formatStat, resultView, bossHookBox, hookActor, BOSS_PATTERN_ENRAGED, bossSlamZones } from '../../src/scenes/subrio-core.js';
 
 const NONE = NO_INTENT;
 const settle = (level, actor, frames = 60) => { for (let i = 0; i < frames; i++) stepActor(level, actor, NONE, 1 / 60); return actor; };
@@ -622,4 +622,46 @@ test('test_subrio_boss_hook_can_be_ducked_under_or_jumped_over', () => {
   const standing = makeActor('s', 330, 18 * TILE); assert.ok(rectsOverlap(box, standing), '서 있으면 닿는다');
   const ducking = { ...standing, h: CROUCH_H, y: 18 * TILE - CROUCH_H }; assert.equal(rectsOverlap(box, ducking), false, '앉으면 밑으로 피한다');
   const jumping = { ...standing, y: standing.y - 70 }; assert.equal(rectsOverlap(box, jumping), false, '점프하면 위로 피한다');
+});
+
+test('test_subrio_enraged_slam_drops_three_times_staggered_and_each_zone_hits', () => {
+  assert.equal(BOSS.hp, 135, 'BUILD173: 30초쯤 더 버티도록 체력 110 → 135 (회복 틈은 그대로)');
+  assert.deepEqual(BOSS.recoverAfter, { swing: 0.8, spin: 1.6, slam: 1.8, hook: 0.35 }, '회복 틈은 안 건드린다');
+  const level = buildLevel(4);
+  const hero = makeActor('h', level.width / 2, 18 * TILE); hero.grounded = true;
+  // 격노 전: 그림자 없음
+  const calm = makeBoss(120, 18 * TILE); calm.state = 'vanish'; calm.stateT = BOSS.vanish; calm.grounded = true;
+  stepBoss(level, calm, hero, 1 / 60, []); assert.equal(calm.state, 'marker'); assert.equal(calm.extraSlams.length, 0);
+  // 격노: 본체 자리 + 양옆 spread 그림자 둘, 착지면은 각자 자리의 바닥/발판
+  const boss = makeBoss(120, 18 * TILE); boss.state = 'vanish'; boss.stateT = BOSS.vanish; boss.grounded = true; boss.enraged = true;
+  const events = [];
+  stepBoss(level, boss, hero, 1 / 60, events);
+  assert.equal(boss.state, 'marker'); assert.equal(boss.extraSlams.length, BOSS.slamExtra);
+  const xs = boss.extraSlams.map(sh => sh.x).sort((a, b) => a - b);
+  assert.ok(xs[0] < boss.markerX && xs[1] > boss.markerX, `양옆 ${xs} 본체 ${boss.markerX}`);
+  assert.ok(boss.extraSlams.every(sh => Math.abs(sh.x - boss.markerX) >= BOSS.slamZoneW * 0.6), '본체 띠와 겹치지 않는다');
+  assert.ok(boss.extraSlams.every(sh => sh.x - BOSS.w / 2 >= TILE && sh.x + BOSS.w / 2 <= level.width - TILE), '벽 안쪽');
+  assert.deepEqual(boss.extraSlams.map(sh => sh.delay), [BOSS.slamStagger, BOSS.slamStagger * 2], '비융·비융·비융 순서로 늦게');
+  const marker = events.find(e => e.type === 'bossMarker'); assert.equal(marker.extras.length, 2);
+  // 낙하 → 본체 착지 → 그림자 둘이 차례로 착지(팟·팟·팟)
+  const timeline = [];
+  for (let i = 0; i < 200 && boss.state !== 'recover'; i++) { const ev = []; stepBoss(level, boss, hero, 1 / 60, ev); for (const e of ev) if (['bossDive', 'bossDiveExtra', 'bossSlam', 'bossSlamExtra'].includes(e.type)) timeline.push(e.type); }
+  assert.deepEqual(timeline.filter(t => t.startsWith('bossDive')), ['bossDive', 'bossDiveExtra', 'bossDiveExtra'], '비융 세 번');
+  assert.deepEqual(timeline.filter(t => t.startsWith('bossSlam')), ['bossSlam', 'bossSlamExtra', 'bossSlamExtra'], '팟 세 번, 본체가 먼저');
+  assert.equal(boss.extraSlams.length, 0, '회복 틈에 들어가면 그림자 정리');
+  // 그림자 띠 안의 주인공은 그 그림자가 착지하는 순간 피해
+  const boss2 = makeBoss(120, 18 * TILE); boss2.state = 'vanish'; boss2.stateT = BOSS.vanish; boss2.grounded = true; boss2.enraged = true;
+  stepBoss(level, boss2, hero, 1 / 60, []);
+  const shadow = boss2.extraSlams[0];
+  const victim = makeActor('v', shadow.x, shadow.y); victim.grounded = true; victim.invuln = 0;
+  const ev2 = [];
+  let hitAt = null;
+  for (let i = 0; i < 200 && boss2.state !== 'recover'; i++) {
+    stepBoss(level, boss2, hero, 1 / 60, ev2);
+    if (hitAt === null && bossAttackHero(boss2, victim, ev2)) hitAt = boss2.state;
+  }
+  assert.equal(hitAt, 'slam', '그림자 착지에 맞는다');
+  assert.ok(ev2.some(e => e.type === 'hurt' && e.id === 'v' && e.damage === BOSS.slamDamage));
+  const zonesNow = bossSlamZones({ ...boss2, state: 'slam', stateT: 0.1, markerX: 200, markerY: 288, extraSlams: [{ x: 400, y: 288, landed: false, started: true, fallY: -100, landedAt: null }], diveT: 0.2 });
+  assert.equal(zonesNow.length, 2); assert.equal(zonesNow[0].active, true); assert.equal(zonesNow[1].active, false, '아직 안 떨어진 그림자는 판정 없음');
 });

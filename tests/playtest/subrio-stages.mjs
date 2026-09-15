@@ -117,6 +117,17 @@ try {
   await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'recover', null, { timeout: 3000 }).catch(() => {});
   s = await sub(); check(s.boss && s.boss[1] === 'recover' && s.lead[0] < pullX0 && Math.abs(s.lead[0] - (s.boss[0] + 72 + 4)) < 10, '찌르기에 걸려 보스 앞(몸 오른쪽 끝 +4)까지 끌려온다 ' + JSON.stringify([pullX0, s.lead, s.boss]));
   await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'windup', null, { timeout: 4000 }).catch(() => {}); s = await sub(); check(s.boss && s.boss[1] === 'windup', '끌어당긴 뒤 곧바로 평타 예비 ' + JSON.stringify(s.boss)); await cap('boss_hook_swing');
+  // 격노 3연속 내려찍기(BUILD173): 영역 셋(본체 + 그림자 둘) → 비융·비융·비융 → 팟·팟·팟(그림자가 본체보다 늦게 착지)
+  await page.evaluate(() => { const st = window.__subrio.state, b = st.boss, l = st.actors[0]; Object.assign(b, { enraged: true, state: 'chase', stateT: 0.5, seq: 3, pulling: null, forceSwing: false, x: 300, vx: 0 }); Object.assign(l, { x: 288, y: 256, vx: 0, vy: 0, invuln: 3, hurtT: 0, slowT: 0, state: 'idle', charge: 0 }); });
+  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'marker', null, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(150); await cap('boss_triple_marker');
+  const marker = await page.evaluate(() => { const b = window.__subrio.state.boss; return { state: b.state, extras: b.extraSlams.map(sh => [sh.x, sh.y]), main: [b.markerX, b.markerY] }; });
+  check(marker.state === 'marker' && marker.extras.length === 2 && marker.extras.every(([x]) => Math.abs(x - marker.main[0]) >= 76), '격노 내려찍기 영역 셋 ' + JSON.stringify(marker));
+  await page.waitForFunction(() => { const b = window.__subrio?.state.boss; return b && b.state === 'slam' && b.extraSlams.some(sh => sh.started && !sh.landed); }, null, { timeout: 5000 }).catch(() => {}); await cap('boss_triple_falling');
+  await page.waitForFunction(() => { const b = window.__subrio?.state.boss; return b && b.state === 'slam' && b.extraSlams.length === 2 && b.extraSlams.every(sh => sh.landed); }, null, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(60); await cap('boss_triple_slam');
+  const landed = await page.evaluate(() => { const b = window.__subrio.state.boss; return { state: b.state, landed: b.extraSlams.map(sh => sh.landed), order: b.extraSlams.map(sh => sh.landedAt) }; });
+  check(landed.state === 'slam' && landed.landed.every(Boolean) && landed.order[0] < landed.order[1], '그림자 둘이 차례로 착지(팟·팟·팟) ' + JSON.stringify(landed));
+  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'recover', null, { timeout: 4000 }).catch(() => {});
+  await page.evaluate(() => { window.__subrio.state.boss.enraged = false; });
   // 에너지파 없음 확인 + 창 2방 격파
   s = await sub(); check(s.waters === 0, '물줄기(에너지파) 없음');
   await page.evaluate(() => { const st = window.__subrio.state; st.boss.hp = 2; st.boss.x = 300; st.boss.state = 'chase'; st.boss.stateT = 0; const l = st.actors[0]; l.x = 150; l.y = 250; l.facing = 1; l.invuln = 3; });

@@ -54,12 +54,14 @@ export const WATER_H = 8;
 // 따듯한비데 보스 수치(2026-09-15 기본값 — 사용자 지시로 조정). 창 12방, 도끼 내려찍기(예비 0.55초 → 휘두름 0.3초 → 회복 0.45초), 물줄기 3발
 // 2026-09-15 사용자: 섭리오 안 비데는 두 배(몸 72×104, 시트 224×192 셀), 에너지파 없음. 거슨 히든보스 참고 패턴 —
 //   평타(도끼 내려찍기, 맞으면 슬로우), 팽이 회전(1초 예비 + 주변 빨간 경고 원 → 좌우 한 바퀴), 순간이동 → 영역 표시(띵) → 위에서 미끄러져 내려찍기(휘융).
-//   난이도(사용자): 3~4분 싸워야 겨우 깨는 정도 → HP 110(공격력 1 기준), 패턴 피해 8~14
+//   난이도(사용자): 3~4분 싸워야 겨우 깨는 정도 → HP 110 → BUILD173 “30초 정도 더” 135(공격력 1 기준, 회복 틈은 그대로), 패턴 피해 8~14
 //   리듬(사용자): 계속 때릴 수 있는 게 아니라 패턴을 피한 뒤 때릴 틈이 생긴다 → 예비·회전·낙하 중엔 안 맞고(면역, 땡 소리), 패턴 뒤 회복 틈(recoverAfter)에 맞는다
-export const BOSS = { w: 72, h: 104, speed: 70, hp: 110, reach: 120, windup: 0.55, swing: 0.3, recover: 0.5,
+export const BOSS = { w: 72, h: 104, speed: 70, hp: 135, reach: 120, windup: 0.55, swing: 0.3, recover: 0.5,
   swingDamage: 8, touchDamage: 5, slowTime: 2.5,
   spinWind: 1.0, spinTime: 0.9, spinRadius: 136, spinDamage: 7, spinRange: 200, spinHeal: 6,
   vanish: 0.45, marker: 0.75, diveSpeed: 820, slam: 0.55, slamZoneW: 128, slamDamage: 10, teleFar: 250, teleFarTime: 1.2,
+  // 격노 후반 내려찍기(사용자): 한 번에 세 군데 — 주인공 자리 + 양옆 slamSpread 씩 그림자 둘이 slamStagger 씩 늦게 떨어진다(비융·비융·비융 → 팟·팟·팟)
+  slamExtra: 2, slamSpread: 150, slamStagger: 0.16,
   // 도끼 찌르기(사용자 2026-09-15): 예비 hookWind → 앞으로 hookReach 띠(hook 동안) → 닿은 주인공을 hookPull 동안 보스 앞까지 끌어당김(피해 hookDamage) → 이어서 평타
   hookWind: 0.5, hook: 0.28, hookReach: 190, hookH: 48, hookPull: 0.32, hookDamage: 5, hookRange: 260,
   recoverAfter: { swing: 0.8, spin: 1.6, slam: 1.8, hook: 0.35 },
@@ -683,7 +685,7 @@ export function enemyFrame(enemy) {
 export function makeBoss(footX, footY) {
   return { id: 'bidet', x: Math.round(footX - BOSS.w / 2), y: footY - BOSS.h, w: BOSS.w, h: BOSS.h, vx: 0, vy: 0, facing: -1, grounded: false,
     hp: BOSS.hp, maxHp: BOSS.hp, state: 'enter', stateT: 0, seq: 0, flash: 0, hitCooldown: 0, animT: 0, dead: false, deadT: 0,
-    hidden: false, markerX: null, farT: 0, spinHit: false, slamHit: false, swingHit: false, lastAction: 'swing', recoverFor: 0.5, immuneT: 0, enraged: false, pulling: null, forceSwing: false };
+    hidden: false, markerX: null, farT: 0, spinHit: false, slamHit: false, swingHit: false, lastAction: 'swing', recoverFor: 0.5, immuneT: 0, enraged: false, pulling: null, forceSwing: false, extraSlams: [], diveT: 0 };
 }
 /** 격노 여부에 따른 타이밍 */
 export function bossTiming(boss) {
@@ -704,6 +706,14 @@ export function bossSpinCircle(boss) {
 export function bossSlamZone(boss) {
   if (boss.markerX === null) return null;
   return { x: boss.markerX - BOSS.slamZoneW / 2, w: BOSS.slamZoneW, y: boss.markerY ?? 0 };
+}
+/** 본체 + 그림자 내려찍기 자리 전부. active: 지금 피해 판정 중(착지 0.2초), landed: 착지함, started/fallY: 그림자 낙하 그리기용 */
+export function bossSlamZones(boss) {
+  const zones = [];
+  const main = bossSlamZone(boss);
+  if (main) zones.push({ ...main, main: true, active: boss.state === 'slam' && boss.stateT < 0.2, landed: boss.state === 'slam', started: boss.state !== 'marker' });
+  for (const sh of boss.extraSlams || []) zones.push({ x: sh.x - BOSS.slamZoneW / 2, w: BOSS.slamZoneW, y: sh.y, main: false, active: sh.landed && boss.diveT - sh.landedAt < 0.2, landed: sh.landed, started: sh.started, fallY: sh.fallY });
+  return zones;
 }
 /** x 구간 아래에서 처음 만나는 막힌 행의 윗면 y(보스가 떨어져 닿을 면). 없으면 레벨 바닥 */
 export function landingY(level, x0, x1) {
@@ -735,6 +745,15 @@ export function stepBoss(level, boss, target, dt, events = []) {
   const go = (state) => { boss.state = state; boss.stateT = 0; if (state === 'recover') boss.recoverFor = (BOSS.recoverAfter[boss.lastAction] ?? BOSS.recover) * tm.recoverScale; };
   const nextAction = () => boss.forceSwing ? 'swing' : tm.pattern[boss.seq % tm.pattern.length];
   const startSlam = () => { boss.lastAction = 'slam'; go('vanish'); boss.farT = 0; events.push({ type: 'bossVanish' }); };
+  // 그림자 내려찍기: 본체 낙하 시작(diveT 0)부터 delay 뒤에 떨어지기 시작(비융), 착지면에 닿으면 팟 — 본체보다 늦게 착지한다(같은 속도·더 늦은 출발)
+  const stepExtraSlams = () => {
+    for (const sh of boss.extraSlams || []) {
+      if (sh.landed || boss.diveT < sh.delay) continue;
+      if (!sh.started) { sh.started = true; events.push({ type: 'bossDiveExtra', x: sh.x }); }
+      sh.fallY += tm.diveSpeed * dt;
+      if (sh.fallY + BOSS.h >= sh.y) { sh.fallY = sh.y - BOSS.h; sh.landed = true; sh.landedAt = boss.diveT; events.push({ type: 'bossSlamExtra', x: sh.x, y: sh.y }); }
+    }
+  };
   if (boss.dead) { boss.deadT += dt; }
   else if (boss.state === 'intro') { /* 오프닝: 서서 대사 중(씬이 facing 을 바꾼다) */ }
   else if (boss.state === 'enter') { if (boss.grounded) { go('roar'); events.push({ type: 'bossLand' }); } }
@@ -779,17 +798,27 @@ export function stepBoss(level, boss, target, dt, events = []) {
       if (feetY >= level.height - 3 * TILE && level.arena) { minX = Math.max(minX, level.arena.floor[0] + boss.w / 2); maxX = Math.min(maxX, level.arena.floor[1] - boss.w / 2); }
       boss.hidden = true; boss.markerX = Math.round(Math.max(minX, Math.min(maxX, tx))); boss.markerY = feetY;
       boss.x = Math.round(boss.markerX - boss.w / 2); boss.y = -BOSS.h - 40; boss.vx = 0; boss.vy = 0;
-      go('marker'); events.push({ type: 'bossMarker', x: boss.markerX, y: boss.markerY });
+      // 격노: 그림자 내려찍기 둘을 양옆(spread)에 더한다. 벽 안쪽으로 조이고 본체 자리와 겹치면 반대쪽으로. 착지면은 그 자리에서 처음 만나는 발판/바닥
+      boss.extraSlams = [];
+      if (boss.enraged) {
+        for (let i = 1; i <= BOSS.slamExtra; i++) {
+          const side = i % 2 === 1 ? 1 : -1;
+          let x = Math.round(Math.max(minX, Math.min(maxX, boss.markerX + side * BOSS.slamSpread * Math.ceil(i / 2))));
+          if (Math.abs(x - boss.markerX) < BOSS.slamZoneW * 0.6) x = Math.round(Math.max(minX, Math.min(maxX, boss.markerX - side * BOSS.slamSpread)));
+          boss.extraSlams.push({ x, y: landingY(level, x - boss.w / 2, x + boss.w / 2), delay: BOSS.slamStagger * i, fallY: -BOSS.h - 40, started: false, landed: false, landedAt: null });
+        }
+      }
+      go('marker'); events.push({ type: 'bossMarker', x: boss.markerX, y: boss.markerY, extras: boss.extraSlams.map(sh => sh.x) });
     }
   }
-  else if (boss.state === 'marker') { physics = false; if (boss.stateT >= tm.marker) { boss.hidden = false; boss.facing = Math.sign(dx) || boss.facing; boss.slamHit = false; go('dive'); events.push({ type: 'bossDive' }); } }
+  else if (boss.state === 'marker') { physics = false; if (boss.stateT >= tm.marker) { boss.hidden = false; boss.facing = Math.sign(dx) || boss.facing; boss.slamHit = false; boss.diveT = 0; go('dive'); events.push({ type: 'bossDive' }); } }
   else if (boss.state === 'dive') {
     physics = false;
     boss.vy = tm.diveSpeed; boss.vx = 0;
-    boss.y += boss.vy * dt;
+    boss.y += boss.vy * dt; boss.diveT += dt; stepExtraSlams();
     if (boss.y + boss.h >= boss.markerY) { boss.y = boss.markerY - boss.h; boss.grounded = true; boss.vy = 0; go('slam'); events.push({ type: 'bossSlam', x: boss.markerX }); }
   }
-  else if (boss.state === 'slam') { if (boss.stateT >= BOSS.slam) { boss.markerX = null; go('recover'); } }
+  else if (boss.state === 'slam') { boss.diveT += dt; stepExtraSlams(); if (boss.stateT >= BOSS.slam) { boss.markerX = null; boss.extraSlams = []; go('recover'); } }
   else if (boss.state === 'recover') { if (boss.stateT >= (boss.recoverFor ?? BOSS.recover)) { boss.seq += 1; go('chase'); } }
   if (physics) {
     const targetVx = move * tm.speed;
@@ -830,10 +859,14 @@ export function bossAttackHero(boss, hero, events = [], follower = false) {
   } else if (boss.state === 'hook') {
     const box = bossHookBox(boss);
     if (box && rectsOverlap(box, hero)) return once(() => hookActor(boss, hero, events, follower));
-  } else if (boss.state === 'slam' && boss.stateT < 0.2) {
-    const zone = bossSlamZone(boss);
-    const heroCx = hero.x + hero.w / 2, onGround = hero.y + hero.h >= boss.y + boss.h - 24;
-    if (zone && heroCx >= zone.x && heroCx <= zone.x + zone.w && onGround) return once(() => hurtActor(hero, bcx, events, dmg(BOSS.slamDamage), slow(0)));
+  } else if (boss.state === 'slam') {
+    // 본체는 착지 0.2초, 그림자는 각자 착지 0.2초 동안 그 띠 안(그 착지면 높이의 바닥)에 있으면 피해 — 한 번의 내려찍기에 한 번만(once)
+    const heroCx = hero.x + hero.w / 2;
+    for (const zone of bossSlamZones(boss)) {
+      if (!zone.active) continue;
+      const onGround = hero.y + hero.h >= zone.y - 24;
+      if (heroCx >= zone.x && heroCx <= zone.x + zone.w && onGround) return once(() => hurtActor(hero, bcx, events, dmg(BOSS.slamDamage), slow(0)));
+    }
   } else if ((boss.state === 'chase' || boss.state === 'recover' || boss.state === 'windup') && rectsOverlap(boss, hero)) {
     if (hurtActor(hero, bcx, events, dmg(BOSS.touchDamage), slow(0)) && boss.state === 'chase' && !follower) { boss.state = 'recover'; boss.stateT = 0; return true; }
   }
