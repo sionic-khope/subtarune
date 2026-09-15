@@ -248,3 +248,28 @@ test('test_crowd_cheers_move_only_the_48_atlas_busts_and_keep_their_source_frame
   assert.deepEqual(initial.slice(48).map(args => args.slice(2, 5)), [[62, 672, 10], [101, 672, 10], [145, 672, 11]]);
   assert.deepEqual([initial[0][6], initial[16][6], initial[32][6]], [124, 163, 208]);
 });
+
+test('test_park_aftermath_enter_script_is_noop_unless_only_the_win_is_saved_and_shows_the_grate', async () => {
+  const { park_guardian_aftermath_enter, park_guardian_aftermath } = await import('../../src/data/cutscenes/editor_union_stage.js');
+  const guard = park_guardian_aftermath_enter[0];
+  assert.equal(guard.goto, 'aftermath_end');
+  assert.equal(guard.if({ park_guardian_won: false }), true, '승리 전엔 아무것도 안 함');
+  assert.equal(guard.if({ park_guardian_won: true, park_guardian_aftermath_done: true }), true, '연출 뒤엔 아무것도 안 함');
+  assert.equal(guard.if({ park_guardian_won: true }), false, '승리만 저장됐으면 연출');
+  assert.ok(park_guardian_aftermath_enter.some(node => node.label === 'aftermath_end'));
+  // 박치기 직후 바로 날아가고(같은 parallel 에 흔들림), 소리는 whoosh 가 아니다
+  const dashIndex = park_guardian_aftermath.findIndex(node => node.move === 'ppaman' && node.dash);
+  const flingNode = park_guardian_aftermath.slice(dashIndex, dashIndex + 3).find(node => node.parallel?.some(part => part.fling));
+  assert.ok(flingNode, '대시 뒤 2노드 안에 fling');
+  const fling = flingNode.parallel.find(part => part.fling);
+  assert.equal(fling.sfx, 'fling_whistle');
+  assert.ok(flingNode.parallel.some(part => part.shake));
+  // 철창이 내려오는 동안 카메라가 위 통로(x928~1056)를 잡는다
+  const slideIndex = park_guardian_aftermath.findIndex(node => node.slide === 'youngcle7_grate');
+  const cam = park_guardian_aftermath.slice(0, slideIndex).reverse().find(node => node.parallel?.some(part => Array.isArray(part.camera)));
+  const camera = cam.parallel.find(part => Array.isArray(part.camera)).camera;
+  assert.ok(camera[0] * 32 >= 928 && camera[0] * 32 <= 1056, `카메라 x ${camera[0] * 32} 가 통로 위`);
+  assert.ok(camera[1] * 32 <= 288, '카메라 y 가 철창 도착 높이 안');
+  const backIndex = park_guardian_aftermath.findIndex((node, i) => i > slideIndex && node.parallel?.some(part => part.camera === 'player'));
+  assert.ok(backIndex > slideIndex, '쾅 뒤 카메라가 일행으로 돌아온다');
+});

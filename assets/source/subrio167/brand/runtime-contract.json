@@ -1,0 +1,97 @@
+{
+  "asset": "assets/sprites/subrio_brand.png",
+  "cell": [
+    64,
+    64
+  ],
+  "grid": "2 cols x 4 rows, row-major: idle, walk1, walk2, walk3, jump, crouch, fireball(attack), guard",
+  "feetY": 60,
+  "hover": 0,
+  "scale": 0.13636363636363635,
+  "frameBounds": [
+    [
+      19,
+      12,
+      47,
+      60
+    ],
+    [
+      14,
+      11,
+      42,
+      60
+    ],
+    [
+      20,
+      13,
+      49,
+      60
+    ],
+    [
+      11,
+      12,
+      41,
+      60
+    ],
+    [
+      19,
+      9,
+      50,
+      60
+    ],
+    [
+      11,
+      19,
+      42,
+      53
+    ],
+    [
+      15,
+      17,
+      64,
+      60
+    ],
+    [
+      0,
+      16,
+      42,
+      60
+    ]
+  ],
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "command": [
+    "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio167/brand/brand-raw.png",
+    "--target",
+    "player",
+    "--mode",
+    "idle",
+    "--rows",
+    "4",
+    "--cols",
+    "2",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio167/brand/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "feet",
+    "--scale-strategy",
+    "fit",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc",
+    "--allow-source-edge-touch"
+  ],
+  "model": "openai/gpt-image-2 via OpenGateway images/edits (single image field, identity ref)"
+}

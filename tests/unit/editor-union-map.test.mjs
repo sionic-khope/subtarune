@@ -36,7 +36,8 @@ test('test_stage_entry_is_silent_and_center_trigger_is_separate_from_spawn', () 
   const map = readMap('youngcle7');
   const trigger = map.entities.find(entity => entity.script === 'editor_union_stage');
   assert.equal(map.bgm, null);
-  assert.equal(map.enter, undefined);
+  // 입장 스크립트는 승리만 저장된 경우의 박치기·철창 연출 이어붙이기 전용 — 그 외엔 첫 노드에서 끝나므로 입장은 여전히 조용하다
+  assert.deepEqual(map.enter, { script: 'park_guardian_aftermath_enter' });
   assert.ok(map.dim >= 0.6);
   assert.ok([...map.rows.join('')].every(tile => 'IJ'.includes(tile)));
   assert.equal(trigger.unless, 'editor_union_stage_done');

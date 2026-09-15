@@ -43,7 +43,7 @@ def main() -> None:
                         cells[edge_row][edge_col] = 'J'
     map_data = {
         'id': MAP_ID, 'name': '엄청 대박인 배 무대 뒤 연결로', 'stage': 'void_fallen',
-        'bgm': 'youngcle_factory', 'backdrop': 'youngcle_factory',
+        'bgm': None, 'backdrop': 'youngcle_factory',
         'battleBg': 'youngcle_factory', 'dim': 0.08,
         'rows': [''.join(row) for row in cells],
         'preload': ['assets/tiles/youngcle_iron.png', 'assets/backdrops/youngcle_factory.png',

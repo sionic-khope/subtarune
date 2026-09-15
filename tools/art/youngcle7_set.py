@@ -68,3 +68,35 @@ pipe.rect(4, 4, 56, 4, (12, 40, 18))
 pipe.rect(10, 6, 44, 2, (8, 24, 12))
 pipe.save(Path('assets/props/mario_pipe.png'))
 print('wrote assets/props/mario_pipe.png 64 x 64')
+
+# ── 비데 방 재배치(BUILD167, 사용자 지시): 컨트롤러 아래 눕혀진 토관(왼쪽 입구, 오른쪽으로 거대 스크린에 연결) + 흰 테두리·검은 화면의 거대 스크린 ──
+PIPE_H_W: Final = 192
+PIPE_H_H: Final = 64
+pipe_h: Final = Canvas(PIPE_H_W, PIPE_H_H)
+# 몸통(오른쪽으로 길게): 위 밝은 띠·아래 어두운 띠
+pipe_h.rect(22, 8, PIPE_H_W - 22, 48, PIPE_DARK)
+pipe_h.rect(22, 10, PIPE_H_W - 22, 44, PIPE)
+pipe_h.rect(22, 12, PIPE_H_W - 22, 10, PIPE_LIGHT)
+pipe_h.rect(22, 44, PIPE_H_W - 22, 8, PIPE_DARK)
+# 왼쪽 입구 테두리(위아래로 더 넓음) + 안쪽 어두운 구멍
+pipe_h.rrect_outlined(0, 0, 24, PIPE_H_H, PIPE, PIPE_DARK, r=3)
+pipe_h.rect(3, 4, 6, PIPE_H_H - 8, PIPE_LIGHT)
+pipe_h.rect(9, 4, 9, PIPE_H_H - 8, PIPE)
+pipe_h.rect(4, 8, 8, PIPE_H_H - 16, (12, 40, 18))
+pipe_h.rect(5, 12, 5, PIPE_H_H - 24, (8, 24, 12))
+pipe_h.save(Path('assets/props/mario_pipe_h.png'))
+print('wrote assets/props/mario_pipe_h.png', PIPE_H_W, 'x', PIPE_H_H)
+
+SCREEN_W: Final = 576
+SCREEN_H: Final = 480
+screen: Final = Canvas(SCREEN_W, SCREEN_H)
+FRAME_W: Final = 14
+screen.rect(0, 0, SCREEN_W, SCREEN_H, (236, 236, 244))
+screen.rect(0, 0, SCREEN_W, 3, (255, 255, 255)); screen.rect(0, 0, 3, SCREEN_H, (255, 255, 255))
+screen.rect(0, SCREEN_H - 4, SCREEN_W, 4, (176, 176, 198)); screen.rect(SCREEN_W - 4, 0, 4, SCREEN_H, (176, 176, 198))
+screen.rect(FRAME_W - 2, FRAME_W - 2, SCREEN_W - FRAME_W * 2 + 4, 2, (140, 140, 166)); screen.rect(FRAME_W - 2, FRAME_W - 2, 2, SCREEN_H - FRAME_W * 2 + 4, (140, 140, 166))
+screen.rect(FRAME_W, SCREEN_H - FRAME_W, SCREEN_W - FRAME_W * 2 + 2, 2, (255, 255, 255)); screen.rect(SCREEN_W - FRAME_W, FRAME_W, 2, SCREEN_H - FRAME_W * 2 + 2, (255, 255, 255))
+screen.rect(FRAME_W, FRAME_W, SCREEN_W - FRAME_W * 2, SCREEN_H - FRAME_W * 2, (0, 0, 0))
+screen.rect(FRAME_W - 1, FRAME_W - 1, SCREEN_W - FRAME_W * 2 + 2, 1, (26, 26, 38)); screen.rect(FRAME_W - 1, FRAME_W - 1, 1, SCREEN_H - FRAME_W * 2 + 2, (26, 26, 38))
+screen.save(Path('assets/props/bidet_screen_big.png'))
+print('wrote assets/props/bidet_screen_big.png', SCREEN_W, 'x', SCREEN_H)

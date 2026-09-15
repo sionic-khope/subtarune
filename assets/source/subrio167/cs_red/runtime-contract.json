@@ -1,0 +1,73 @@
+{
+  "asset": "assets/sprites/subrio_cs_red.png",
+  "cell": [
+    48,
+    48
+  ],
+  "grid": "2 cols x 2 rows, row-major: walk A, walk B, stunned, defeated",
+  "feetY": 44,
+  "hover": 0,
+  "scale": 0.10932475884244373,
+  "frameBounds": [
+    [
+      9,
+      10,
+      42,
+      44
+    ],
+    [
+      4,
+      11,
+      37,
+      44
+    ],
+    [
+      2,
+      5,
+      35,
+      44
+    ],
+    [
+      0,
+      22,
+      48,
+      44
+    ]
+  ],
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "command": [
+    "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio167/cs_red/cs_red-raw.png",
+    "--target",
+    "player",
+    "--mode",
+    "idle",
+    "--rows",
+    "2",
+    "--cols",
+    "2",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio167/cs_red/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "feet",
+    "--scale-strategy",
+    "fit",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc",
+    "--allow-source-edge-touch"
+  ],
+  "model": "openai/gpt-image-2 via OpenGateway images/edits (single image field, identity ref)"
+}

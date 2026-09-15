@@ -2,7 +2,7 @@
  "id": "youngcle8",
  "name": "엄청 대박인 배 무대 뒤 연결로",
  "stage": "void_fallen",
- "bgm": "youngcle_factory",
+ "bgm": null,
  "backdrop": "youngcle_factory",
  "battleBg": "youngcle_factory",
  "dim": 0.08,

@@ -40,6 +40,8 @@ def main() -> None:
         'id': MAP_ID, 'name': '영클 전함 편집노조 스테이지', 'stage': 'void_fallen',
         'bgm': None, 'battleBg': 'editor_union_stage', 'dim': 0.68,
         'rows': [''.join(row) for row in cells],
+        # 파크 승리만 저장된 채 들어오면(QA 점프·이어하기) 박치기·철창 연출을 바로 잇는다
+        'enter': {'script': 'park_guardian_aftermath_enter'},
         'preload': ['assets/tiles/youngcle_iron.png',
                     'assets/props/editor_union_audience.png',
                     'assets/props/editor-union-crowd.png',

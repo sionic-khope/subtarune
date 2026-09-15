@@ -44,8 +44,8 @@ import { maillard_boarding_intro, youngcle_entrance } from './cutscenes/maillard
 import { shipPursuitBacktrack } from './scripts/ship-pursuit.js';
 import { youngcle_intro, youngcle_tv_off, youngcle_left_door_locked } from './cutscenes/youngcle_intro.js';
 import { youngcle_lounge_plan_b } from './cutscenes/youngcle_lounge.js';
-import { editor_union_stage, editor_union_stage_wait, park_guardian_aftermath } from './cutscenes/editor_union_stage.js';
-import { bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look } from './cutscenes/bidet_arcade.js';
+import { editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter } from './cutscenes/editor_union_stage.js';
+import { bidet_arcade, bidet_pipe_enter, bidet_pipe_look, bidet_screen_look, bidet_kiosk_look } from './cutscenes/bidet_arcade.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -87,8 +87,8 @@ export const SCRIPTS = {
   ship_pursuit_backtrack: shipPursuitBacktrack,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
-  editor_union_stage, editor_union_stage_wait, park_guardian_aftermath,
-  bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look,
+  editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,
+  bidet_arcade, bidet_pipe_enter, bidet_pipe_look, bidet_screen_look, bidet_kiosk_look,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,

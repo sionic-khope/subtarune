@@ -27,6 +27,9 @@
   "JJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIJJJJJJJ",
   "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ"
  ],
+ "enter": {
+  "script": "park_guardian_aftermath_enter"
+ },
  "preload": [
   "assets/tiles/youngcle_iron.png",
   "assets/props/editor_union_audience.png",

@@ -13,3 +13,9 @@
 | 복귀 | 카메라·줌 복귀, regroup, 플래그 | | 플레이어 | BGM 없음(승리 뒤 무음 유지) | 오른쪽 통로 문 → `youngcle8` |
 
 확인 방법: `?qa=park_guardian_battle`에서 `park_guardian_won`만 세운 devJump 뒤 본체에게 C → 5대사·철창 좌표(928,192)·본체 소멸·플래그. `?qa=park_guardian_after`는 완료 상태(철창 닫힘, 위로 못 감).
+
+## BUILD167 변경 (사용자 피드백 2)
+
+- 억빠맨 박치기 직후 **바로** 날아간다(쿵·흔들림과 같은 parallel). 날리는 소리는 whoosh 가 아니라 장면 전용 슬라이드 휘슬 `fling_whistle`(합성, 0.95초 상승음).
+- 철창이 내려오는 동안 **카메라가 위 통로로 이동**(중심 992,208·줌 1, 0.7초)해 철창(−64→192)이 화면 안에서 내려와 쾅 하는 것을 보여준 뒤 0.5초 후 일행에게 돌아온다. 철창 소품은 w/h 없이 spawn(그림이 히트박스를 따라 내려온다).
+- QA `park_guardian_after` 는 승리만 저장된 상태로 무대 앞에 서고, 맵 `enter`(`park_guardian_aftermath_enter`)가 이 연출을 바로 튼다. 철창 닫힌 뒤 지점은 `park_guardian_after_grate`.

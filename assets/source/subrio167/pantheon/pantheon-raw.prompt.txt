@@ -1,0 +1,11 @@
+# imagegen 2026-09-15 11:28:04
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1536  quality: high
+# refs: assets/source/subrio167/refs/hyungsub-ref.png
+
+Use case: precise-object-edit. The image just shown is the identity reference: left is the character's front view, right is his right-facing side view from our RPG (black short hair, round glasses, big nose, NO mouth, small white shirt and dark shorts). Keep his face identity: black hair, round glasses, big nose, no mouth.
+Produce a pixel-art side-view platformer sprite sheet of this character re-dressed as a spear-and-shield Spartan warrior: bronze crested helmet with a red plume over his black hair (glasses visible), bronze breastplate, red cape stub, round bronze shield on the left arm, a long spear in the right hand. EXACTLY 2 columns x 4 rows, 1024x1536 canvas, invisible equal 512x384 cells.
+Style (IMPORTANT, the previous version was too detailed): NES-era 8-bit pixel art with LOW detail. Big chunky pixels (one logical pixel is about 1/26 of the body height), flat fills of at most 5 colors per sprite, no shading gradients, no anti-aliasing, no tiny details or textures, a single dark outline. Readable silhouette first, like an original Super Mario Bros. or Mega Man enemy. Solid pure #FF00FF background, no text, labels, grid, borders or shadows.
+Chunky small body about 2 heads tall. Every frame faces RIGHT, same body size and camera distance in all cells, feet on the same baseline, body inside the central 65% of each cell, spear and shield fully inside the cell.
+Frames row-major: (1) idle standing, (2) walk step A, (3) walk step B, (4) walk step C, (5) jump with knees tucked, (6) crouching low, (7) spear thrown forward with the arm fully extended (spear still in hand, no detached projectile), (8) guarding behind the raised round shield.

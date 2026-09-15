@@ -3,14 +3,16 @@
 //   흐름: 오버레이 페이드인 → 검은 화면에 SUBRIO 로고가 천천히(Query? 브금) → 나레이션 4줄(한 글자씩, 나레이션 음성)
 //   → 직업 선택(창·불·시계 아이콘 하나씩 페이드인, 1P/2P/3P 포인터, 대사, 커서 이동 띡띡·선택 띠링) → 슈우웅 밝아지며 게임(SWORD 브금)
 //   → 세 명이 하늘에서 띠링 띠링 띠링 떨어짐 → 좌우/위 점프/아래 앉기/C 창/X 방패, 동료는 늦게 반응하는 AI 추종.
-//   스테이지(2026-09-15 사용자 확정): 1 보라 → 2 청록 → 3 파랑 섬, 깃발에 닿으면 STAGE CLEAR → 검은 화면 스테이지 카드 → 다음 섬에 다시 낙하.
-//   3 클리어 뒤 FINAL STAGE: 따듯한비데가 하늘에서 떨어져 보스전(도끼 내려찍기·물줄기, 창 12방). 이기면 CLEAR → 방으로 복귀(result.found → subrio_cleared).
-//   테두리는 사용자 지시대로 입체감 있는 흰색 베젤. Esc(title) 로 언제든 방으로 돌아온다(클리어 아님). 일반 적은 아직 없다.
+//   스테이지(2026-09-15 사용자 확정): 1-1 보라 → 1-2 청록 → 1-3 파랑 섬(각 3분 분량, CS 미니언), 깃발에 닿으면 STAGE CLEAR → 검은 카드 → 다음 섬에 다시 낙하.
+//   1-4: 따듯한비데가 하늘에서 떨어져 보스전(도끼 내려찍기·물줄기, 창 12방). 이기면 CLEAR → 방으로 복귀(result.found → subrio_cleared).
+//   체력·게임오버 없음(사용자 지시): 맞으면 튕겨나기만. 판테온 C 탭/차징 창·X 방패, 브랜드는 적이 보이면 6초마다 불(머리 위 게이지만), 질리언은 시계 둘씩 포물선(같은 적 둘 → 2초 스턴).
+//   테두리는 사용자 지시대로 입체감 있는 흰색 베젤. Esc(title) 로 언제든 방으로 돌아온다(클리어 아님).
 import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
-import { buildLevel, makeActor, stepActor, followerIntent, updateSpears, updateProjectiles, frameOf, cameraX, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor,
-  bossHitbox, bossFrame, rectsOverlap, STAGES, BOSS, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, SPEAR_SPEED, SPEAR_LIFE, WATER_W, WATER_H } from './subrio-core.js';
+import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor,
+  bossHitbox, bossFrame, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
+  STAGES, BOSS, SPEAR, FIRE, CLOCK, ENEMY, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
 
 const FRAME = 10;
 const VIEW_X = FRAME, VIEW_Y = FRAME;
@@ -38,8 +40,11 @@ const CHAR_DELAY = 0.05;
 const HOLD_AFTER_LINE = 2.4;
 const ICON_X = [96, 230, 364];
 const BOSS_SHEET = 'assets/sprites/subrio_bidet.png';
-const BOSS_CELL = [80, 64], BOSS_FEET = 60;
-const CLEAR_HOLD = 2.2, CARD_FADE = 0.5, CARD_HOLD = 1.9, BOSS_DELAY = 1.2, DEAD_HOLD = 1.6, VICTORY_HOLD = 3.6;
+const BOSS_CELL = [112, 96], BOSS_FEET = 90;
+const HERO_CELL = 64, HERO_FEET = 60;
+const ENEMY_SHEETS = { cs_red: 'assets/sprites/subrio_cs_red.png', cs_blue: 'assets/sprites/subrio_cs_blue.png' };
+const ENEMY_CELL = 48, ENEMY_FEET = 44;
+const CLEAR_HOLD = 2.2, CARD_FADE = 0.5, CARD_HOLD = 1.9, BOSS_DELAY = 1.2, VICTORY_HOLD = 3.6;
 const BOSS_APPEAR_LINE = '따듯한비데가 나타났다!';
 
 function loadImage(src) {
@@ -92,15 +97,15 @@ export function run(game, node = {}) {
     const icons = Object.fromEntries(CLASSES.map(c => [c.id, loadImage(c.icon)]));
     const spearImg = loadImage('assets/props/subrio_spear.png');
     const waterImg = loadImage('assets/props/subrio_water.png');
-    const hudImg = loadImage('assets/props/subrio_hud.png');
     const bossImg = loadImage(BOSS_SHEET);
+    const enemyImgs = Object.fromEntries(Object.entries(ENEMY_SHEETS).map(([type, src]) => [type, loadImage(src)]));
     const tileImgs = {};
     const tilesFor = (path) => { if (!tileImgs[path]) tileImgs[path] = loadImage(path); return tileImgs[path]; };
     const typer = new Typewriter(game.sound);
     const state = {
       phase: 'logo', t: 0, phaseT: 0, logoAlpha: 0, lineIndex: 0, icons: [0, 0, 0], cursors: [0, 0, 0], picked: [false, false, false],
-      cursorScript: null, flash: 0, actors: [], spears: [], waters: [], trail: [], control: false, cam: 0, exiting: false,
-      // 스테이지 진행: stage 번호, sub = drop(낙하) | run | clear | card | dead | victory, fade 검은 덮개, shake 흔들림, cleared 보스 격파
+      cursorScript: null, flash: 0, actors: [], spears: [], fires: [], clocks: [], waters: [], enemies: [], trail: [], control: false, cam: 0, exiting: false,
+      // 스테이지 진행: stage 번호, sub = drop(낙하) | run | clear | card | victory, fade 검은 덮개, shake 흔들림, cleared 보스 격파
       stage: 0, level: null, baked: null, sub: 'drop', subT: 0, fade: 0, shake: 0, boss: null, bossGone: false, cleared: false, notice: null, leaderLandT: 0,
     };
     // 스테이지 로드: 레벨·구운 타일·세 명 재배치(하늘에서 낙하). 보스 무대면 보스는 주인공 착지 뒤에 떨어진다
@@ -109,7 +114,8 @@ export function run(game, node = {}) {
       const level = buildLevel(index);
       state.level = level; state.baked = bakeLevel(level, level.def.fallback);
       tilesFor(level.def.tiles).done.then(img => { if (img && state.level === level) state.baked.paint(img); });
-      state.spears = []; state.waters = []; state.trail = []; state.cam = 0; state.boss = null; state.bossGone = false; state.notice = null; state.leaderLandT = 0;
+      state.spears = []; state.fires = []; state.clocks = []; state.waters = []; state.trail = []; state.cam = 0; state.boss = null; state.bossGone = false; state.notice = null; state.leaderLandT = 0;
+      state.enemies = level.enemies.map(spec => makeEnemy(spec.type, spec.x, spec.y));
       state.sub = 'drop'; state.subT = 0; state.control = false; state.dropWait = 1.9;
       const order = ['hyungsub', 'gyeongsub', 'ppaman'];
       state.actors = order.map((id, i) => {
@@ -119,14 +125,8 @@ export function run(game, node = {}) {
         return actor;
       });
     };
-    const respawnLeader = () => {
-      const leader = state.actors[0], level = state.level;
-      Object.assign(leader, { x: Math.round(level.spawnX - leader.w / 2), y: -40, vx: 0, vy: 0, hp: leader.maxHp, dead: false, hurtT: 0, invuln: 1.5, state: 'idle', grounded: false, dropped: false, facing: 1 });
-      state.waters = []; state.spears = [];
-      // 보스는 제자리로 돌아가 다시 포효(1.4초) — 낙하 중인 주인공을 때리지 않는다
-      if (state.boss && !state.boss.dead) Object.assign(state.boss, { x: Math.round(level.bossSpawnX - state.boss.w / 2), vx: 0, state: 'roar', stateT: 0, shot: 0 });
-      state.dropWait = 0.6;
-    };
+    // 짧게 자른 효과음(롤 위키 원음은 꼬리가 길다)
+    const sfx = (name, volume = 0.7, len = 0, rate = 1) => game.sound.sfx(name, { volume, len, rate });
     // 눌린 순간: 게임 루프가 프레임마다 채우는 Input.pressed(짧은 탭도 한 프레임은 남는다)와 held 의 상승 에지를 합친다 — 이 씬의 rAF 가 게임 poll 과 어긋나도 탭을 놓치지 않는다
     const prev = Object.create(null);
     const edge = (action) => { const down = Input.down(action) || !!Input.pressed[action]; const just = down && !prev[action]; prev[action] = down; return just; };
@@ -233,72 +233,115 @@ export function run(game, node = {}) {
       // 스테이지 카드: 검게 → 카드 → 다음 스테이지 로드 → 밝게 (그동안 물리는 멈춘다)
       if (state.sub === 'card') {
         if (state.subT < CARD_FADE) state.fade = state.subT / CARD_FADE;
-        else if (state.subT < CARD_FADE + CARD_HOLD) { state.fade = 1; if (!state.cardShown) { state.cardShown = true; game.sound.sfx('confirm', { volume: 0.7 }); } }
+        else if (state.subT < CARD_FADE + CARD_HOLD) { state.fade = 1; if (!state.cardShown) { state.cardShown = true; sfx('confirm', 0.7); } }
         else if (!state.cardLoaded) { state.cardLoaded = true; loadStage(state.stage + 1); state.fade = 1; state.sub = 'drop'; state.subT = 0; }
         return;
       }
       state.fade = Math.max(0, state.fade - dt / CARD_FADE);
       if (state.sub === 'victory') {
-        if (state.boss && state.subT >= BOSS.deathTime && !state.bossGone) { state.bossGone = true; game.sound.sfx('vaporized', { volume: 0.8 }); game.sound.sfx('won', { volume: 0.8 }); }
+        if (state.boss && state.subT >= BOSS.deathTime && !state.bossGone) { state.bossGone = true; sfx('vaporized', 0.8); sfx('won', 0.8); }
         if (state.subT >= VICTORY_HOLD) { state.fade = Math.min(1, state.fade + dt / CARD_FADE); if (state.subT >= VICTORY_HOLD + 1.4) finish(); }
       }
       const events = [];
+      const wasGuard = leader.state === 'guard';
       for (const [i, actor] of state.actors.entries()) {
         if (!actor.active) { if (state.subT >= actor.delay) actor.active = true; else continue; }
         let intent;
         if (i === 0) {
-          intent = state.control ? { left: held('left'), right: held('right'), jump: edge('up'), jumpHeld: held('up'), crouch: held('down'), attack: confirm, guard: held('cancel') } : NO_INTENT;
+          intent = state.control ? { left: held('left'), right: held('right'), jump: edge('up'), jumpHeld: held('up'), crouch: held('down'), attack: confirm, attackHeld: held('confirm'), guard: held('cancel') } : NO_INTENT;
         } else {
-          intent = state.control ? followerIntent(actor, state.trail, state.t, { reaction: 0.32 * i + 0.1, spacing: 34 * i }) : NO_INTENT;
+          intent = state.control ? followerIntent(actor, state.trail, state.t, { reaction: 0.32 * i + 0.1, spacing: 34 * i, level }) : NO_INTENT;
           const wantsMove = intent.left || intent.right;
           actor.blockedT = wantsMove && actor.grounded && Math.abs(actor.vx) < 6 ? (actor.blockedT || 0) + dt : 0;
         }
         const before = events.length;
         stepActor(level, actor, intent, dt, events);
         if (i === 0) state.trail.push({ t: state.t, x: actor.x, y: actor.y, facing: actor.facing, jumped: events.slice(before).some(e => e.type === 'jump') });
+        else if (events.slice(before).some(e => e.type === 'fall')) { actor.x = Math.round(leader.x - 30 * i); actor.y = -60; }
       }
       if (state.trail.length > 400) state.trail.splice(0, state.trail.length - 400);
+      if (!wasGuard && leader.state === 'guard') sfx('pantheon_e_up', 0.45, 0.7);
+      // 적·보스
+      const targets = [...state.enemies.filter(e => !e.dead), ...(state.boss && !state.boss.dead && state.boss.state !== 'enter' ? [state.boss] : [])];
+      if (state.control) {
+        const brand = state.actors.find(a => a.classId === 'brand'), zilean = state.actors.find(a => a.classId === 'zilean');
+        if (brand?.active) brandThink(brand, targets, dt, events);
+        if (zilean?.active) zileanThink(zilean, targets, dt, events);
+      }
+      for (const enemy of state.enemies) {
+        if (Math.abs(enemy.x - leader.x) > 900) continue;
+        stepEnemy(level, enemy, dt, events);
+        if (!enemy.dead) heroTouchesEnemy(leader, enemy, state.t, events);
+      }
+      state.enemies = state.enemies.filter(enemy => !enemy.dead || enemy.deadT < ENEMY.deathTime);
       // 보스: 주인공 착지 뒤 BOSS_DELAY 에 하늘에서 떨어진다
-      if (def.boss && !state.boss && leader.dropped && state.subT > (state.leaderLandT || 0) + BOSS_DELAY) state.boss = makeBoss(level.bossSpawnX, -40);
+      if (def.boss && !state.boss && leader.dropped && state.subT > (state.leaderLandT || 0) + BOSS_DELAY) state.boss = makeBoss(level.bossSpawnX, -60);
       if (state.boss) {
         const boss = state.boss;
         if (boss.state === 'windup' && boss.stateT === 0) boss.swingHit = false;
         stepBoss(level, boss, leader, dt, events);
         if (!boss.dead) {
-          // 창 → 보스
-          state.spears = state.spears.filter(spear => { if (rectsOverlap({ x: spear.x, y: spear.y, w: 24, h: 6 }, boss) && hitBoss(boss, events)) return false; return true; });
-          // 도끼 판정·몸통 접촉·물줄기 → 주인공 (방패로 그쪽을 보면 막힘)
           const box = bossHitbox(boss);
           if (box && !boss.swingHit && rectsOverlap(box, leader)) { boss.swingHit = true; hurtActor(leader, boss.x + boss.w / 2, events); }
           else if (boss.state !== 'enter' && boss.state !== 'roar' && rectsOverlap(boss, leader) && hurtActor(leader, boss.x + boss.w / 2, events) && boss.state === 'chase') { boss.state = 'recover'; boss.stateT = 0; }
         }
       }
+      // 투사체 → 적/보스 (공격력 1). 시계는 같은 적에 둘 맞으면 스턴
+      const hitTargets = (list, w, h, source) => list.filter(p => {
+        const rect = { x: p.x, y: p.y, w, h };
+        for (const enemy of state.enemies) {
+          if (enemy.dead || !rectsOverlap(rect, enemy)) continue;
+          damageEnemy(enemy, 1, source, state.t, events); events.push({ type: 'projectileHit', source }); return false;
+        }
+        if (state.boss && !state.boss.dead && rectsOverlap(rect, state.boss) && hitBoss(state.boss, events)) { events.push({ type: 'projectileHit', source }); return false; }
+        return true;
+      });
+      state.spears = hitTargets(state.spears, SPEAR.w, SPEAR.h, 'spear');
+      state.fires = hitTargets(state.fires, FIRE.w, FIRE.h, 'fire');
+      state.clocks = hitTargets(state.clocks, CLOCK.w, CLOCK.h, 'clock');
       state.waters = state.waters.filter(water => {
-        if (leader.invuln > 0 || leader.dead || !rectsOverlap({ x: water.x, y: water.y, w: WATER_W, h: WATER_H }, leader)) return true;
+        if (leader.invuln > 0 || !rectsOverlap({ x: water.x, y: water.y, w: WATER_W, h: WATER_H }, leader)) return true;
         hurtActor(leader, water.x + WATER_W / 2, events);
         return false;
       });
       for (const event of events) {
-        if (event.type === 'land') { const actor = state.actors.find(a => a.id === event.id); if (actor && !actor.dropped) { actor.dropped = true; if (actor === leader) state.leaderLandT = state.subT; game.sound.sfx('item', { volume: 0.7 }); } }
-        if (event.type === 'jump' && event.id === 'hyungsub') game.sound.sfx('jump', { volume: 0.5 });
-        if (event.type === 'attack' && event.id === 'hyungsub') { state.spears.push({ x: event.x, y: event.y, vx: event.facing * SPEAR_SPEED, life: SPEAR_LIFE, facing: event.facing }); game.sound.sfx('whoosh', { volume: 0.45, rate: 1.4 }); }
-        if (event.type === 'bossLand') { game.sound.sfx('thud', { volume: 0.9 }); state.shake = 0.35; state.notice = { text: BOSS_APPEAR_LINE, t: 0, hold: BOSS.roar + 0.6 }; }
-        if (event.type === 'bossJump') game.sound.sfx('mario_jump', { volume: 0.45, rate: 0.8 });
-        if (event.type === 'swing') game.sound.sfx('whoosh', { volume: 0.8, rate: 0.8 });
-        if (event.type === 'water') { state.waters.push({ x: event.x, y: event.y, vx: event.vx, life: BOSS.waterLife, facing: event.facing }); game.sound.sfx('splash', { volume: 0.5, rate: 1.3 }); }
-        if (event.type === 'bossHit') game.sound.sfx('hit', { volume: 0.7 });
-        if (event.type === 'block') game.sound.sfx('cannon_guard_block', { volume: 0.8 });
-        if (event.type === 'hurt') { game.sound.sfx('hurt', { volume: 0.8 }); state.shake = Math.max(state.shake, 0.18); }
-        if (event.type === 'dead') { state.sub = 'dead'; state.subT = 0; state.control = false; }
-        if (event.type === 'bossDead') { state.sub = 'victory'; state.subT = 0; state.control = false; state.cleared = true; state.waters = []; game.sound.sfx('explosion', { volume: 0.7 }); state.shake = 0.5; }
+        if (event.type === 'land') { const actor = state.actors.find(a => a.id === event.id); if (actor && !actor.dropped) { actor.dropped = true; if (actor === leader) state.leaderLandT = state.subT; sfx('item', 0.7); } }
+        if (event.type === 'jump' && event.id === 'hyungsub') sfx('jump', 0.5);
+        if (event.type === 'chargeStart') sfx('pantheon_q_charge', 0.6, 1.1);
+        if (event.type === 'attack' && event.id === 'hyungsub') {
+          const charged = event.charged;
+          state.spears.push({ x: event.x, y: event.y, vx: event.facing * (charged ? SPEAR.chargedSpeed : SPEAR.speed), life: charged ? SPEAR.chargedLife : SPEAR.life, facing: event.facing, charged });
+          sfx(charged ? 'pantheon_q_throw' : 'pantheon_q_tap', charged ? 0.8 : 0.55, charged ? 0.9 : 0.5);
+        }
+        if (event.type === 'fire') { state.fires.push({ x: event.x, y: event.y, vx: event.vx, life: FIRE.life, facing: event.facing, t: 0 }); sfx('ember', 0.8, 0.8); }
+        if (event.type === 'clock') { state.clocks.push({ x: event.x, y: event.y, vx: event.vx, vy: event.vy, life: 2.2, t: 0 }); if (event.index === 0) sfx('zilean_q_throw', 0.7, 1.3); }
+        if (event.type === 'projectileHit') sfx(event.source === 'spear' ? 'pantheon_q_hit' : 'hit', 0.6, 0.5);
+        if (event.type === 'stun') sfx('zilean_q_stun', 0.8, 2.0);
+        if (event.type === 'stomp') { sfx('pop', 0.7); sfx('jump', 0.4); }
+        if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6);
+        if (event.type === 'bossLand') { sfx('thud', 0.9); state.shake = 0.35; state.notice = { text: BOSS_APPEAR_LINE, t: 0, hold: BOSS.roar + 0.6 }; }
+        if (event.type === 'bossJump') sfx('mario_jump', 0.45, 0, 0.8);
+        if (event.type === 'swing') sfx('whoosh', 0.8, 0, 0.8);
+        if (event.type === 'water') { state.waters.push({ x: event.x, y: event.y, vx: event.vx, life: BOSS.waterLife, facing: event.facing }); sfx('splash', 0.5, 0, 1.3); }
+        if (event.type === 'bossHit') sfx('hit', 0.7);
+        if (event.type === 'block') sfx('pantheon_e_block', 0.8, 0.6);
+        if (event.type === 'hurt') { sfx('hurt', 0.8); state.shake = Math.max(state.shake, 0.18); }
+        if (event.type === 'bossDead') { state.sub = 'victory'; state.subT = 0; state.control = false; state.cleared = true; state.waters = []; sfx('explosion', 0.7); state.shake = 0.5; }
       }
-      state.spears = updateSpears(level, state.spears, dt);
+      state.spears = updateProjectiles(level, state.spears, dt, SPEAR.w, SPEAR.h);
+      state.fires = updateProjectiles(level, state.fires, dt, FIRE.w, FIRE.h);
+      const clocksBefore = state.clocks;
+      state.clocks = updateProjectiles(level, state.clocks, dt, CLOCK.w, CLOCK.h, CLOCK.gravity);
+      // 바닥에 떨어진 시계는 터지며 근처 적에 피해(같은 적에 둘이면 스턴)
+      const burstEvents = [];
+      burstClocks(clocksBefore.filter(c => c.dead), state.enemies, state.t, burstEvents);
+      for (const event of burstEvents) { if (event.type === 'stun') sfx('zilean_q_stun', 0.8, 2.0); else if (event.type === 'projectileHit') sfx('hit', 0.5, 0.4); else if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6); }
       state.waters = updateProjectiles(level, state.waters, dt, WATER_W, WATER_H);
+      for (const p of [...state.fires, ...state.clocks]) p.t += dt;
       if (state.notice) { state.notice.t += dt; if (state.notice.t > state.notice.hold) state.notice = null; }
       if (state.sub === 'drop' && leader.dropped && state.subT > state.leaderLandT + (state.dropWait ?? 1.9)) { state.sub = 'run'; state.control = true; }
-      if (state.sub === 'run' && reachedGoal(level, leader)) { state.sub = 'clear'; state.subT = 0; state.control = false; game.sound.sfx('fanfare', { volume: 0.8 }); }
+      if (state.sub === 'run' && reachedGoal(level, leader)) { state.sub = 'clear'; state.subT = 0; state.control = false; sfx('fanfare', 0.8); }
       if (state.sub === 'clear' && state.subT >= CLEAR_HOLD) { state.sub = 'card'; state.subT = 0; state.cardShown = false; state.cardLoaded = false; }
-      if (state.sub === 'dead' && state.subT >= DEAD_HOLD) { respawnLeader(); state.sub = 'drop'; state.subT = 0; state.leaderLandT = 0; }
       state.cam = cameraX(level, leader);
     };
 
@@ -347,16 +390,65 @@ export function run(game, node = {}) {
       else { ctx.fillStyle = '#5a5a66'; ctx.fillRect(-boss.w / 2, -boss.h, boss.w, boss.h); }
       ctx.restore();
     };
+    const drawEnemy = (enemy) => {
+      const img = enemyImgs[enemy.type]?.img;
+      const cx = Math.round(enemy.x + enemy.w / 2 - state.cam) + VIEW_X;
+      const feet = Math.round(enemy.y + enemy.h) + VIEW_Y;
+      if (cx < VIEW_X - 40 || cx > VIEW_X + VIEW_W + 40) return;
+      const frame = enemyFrame(enemy);
+      ctx.save();
+      ctx.translate(cx, feet);
+      if (enemy.facing > 0) ctx.scale(-1, 1);
+      if (enemy.flash > 0 && 'filter' in ctx) ctx.filter = 'brightness(2.6) saturate(0.2)';
+      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (frame % 2) * ENEMY_CELL, Math.floor(frame / 2) * ENEMY_CELL, ENEMY_CELL, ENEMY_CELL, -ENEMY_CELL / 2, -ENEMY_FEET, ENEMY_CELL, ENEMY_CELL);
+      else { ctx.fillStyle = enemy.type === 'cs_red' ? '#d43a3a' : '#3a6ad4'; ctx.fillRect(-enemy.w / 2, -enemy.h, enemy.w, enemy.h); }
+      ctx.restore();
+      // 스턴: 머리 위를 도는 노란 별 셋(시트의 별 위에 움직임을 얹는다)
+      if (enemy.stunT > 0) for (let i = 0; i < 3; i++) {
+        const a = state.t * 5 + i * 2.094;
+        ctx.fillStyle = '#ffe14a'; ctx.fillRect(Math.round(cx + Math.cos(a) * 11) - 1, Math.round(feet - enemy.h - 12 + Math.sin(a) * 3) - 1, 3, 3);
+      }
+    };
+    const drawGauge = (actor) => {
+      // 브랜드 쿨타임 게이지(사용자 지시: 머리 위에서 천천히 차는 흰 테두리·검은 배경 막대만, 글자 없음)
+      if (!(actor.fireCool > 0)) return;
+      const cx = Math.round(actor.x + actor.w / 2 - state.cam) + VIEW_X, top = Math.round(actor.y) + VIEW_Y - 20;
+      const w = 22, h = 5, fill = Math.round((w - 2) * (1 - actor.fireCool / FIRE.cooldown));
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#000'; ctx.fillRect(cx - w / 2, top, w, h);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(cx - w / 2 + 0.5, top + 0.5, w - 1, h - 1);
+      ctx.fillStyle = '#ff9a3d'; ctx.fillRect(cx - w / 2 + 1, top + 1, fill, h - 2);
+      ctx.globalAlpha = 1;
+    };
+    const drawProjectiles = () => {
+      for (const spear of state.spears) {
+        const img = spearImg.img; const sx = Math.round(spear.x - state.cam) + VIEW_X, sy = Math.round(spear.y) + VIEW_Y;
+        if (img && img.complete && img.naturalWidth) { ctx.save(); ctx.translate(sx + 12, sy + 3); if (spear.facing < 0) ctx.scale(-1, 1); if (spear.charged && 'filter' in ctx) ctx.filter = 'brightness(1.6)'; ctx.drawImage(img, -12, -3); ctx.restore(); }
+        else { ctx.fillStyle = '#e6d28c'; ctx.fillRect(sx, sy + 2, 20, 2); }
+        if (spear.charged) { ctx.fillStyle = 'rgba(255,240,180,0.5)'; ctx.fillRect(sx - spear.facing * 10, sy + 2, 10, 2); }
+      }
+      for (const fire of state.fires) {
+        const fx = Math.round(fire.x - state.cam) + VIEW_X, fy = Math.round(fire.y) + VIEW_Y, r = 5 + (Math.floor(fire.t * 20) % 2);
+        ctx.fillStyle = '#ff5a1e'; ctx.beginPath(); ctx.arc(fx + 6, fy + 6, r + 1, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(fx + 6 - fire.facing * 1, fy + 6, r - 2, 0, Math.PI * 2); ctx.fill();
+      }
+      for (const clock of state.clocks) {
+        const cx = Math.round(clock.x - state.cam) + VIEW_X + 6, cy = Math.round(clock.y) + VIEW_Y + 6, spin = clock.t * 9;
+        ctx.fillStyle = '#5a3a08'; ctx.beginPath(); ctx.arc(cx, cy, 6.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3a2404'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(spin) * 3, cy + Math.sin(spin) * 3); ctx.stroke();
+      }
+      for (const water of state.waters) {
+        const img = waterImg.img; const wx = Math.round(water.x - state.cam) + VIEW_X, wy = Math.round(water.y) + VIEW_Y;
+        if (img && img.complete && img.naturalWidth) { ctx.save(); ctx.translate(wx + WATER_W / 2, wy + WATER_H / 2); if (water.facing < 0) ctx.scale(-1, 1); ctx.drawImage(img, -WATER_W / 2, -WATER_H / 2); ctx.restore(); }
+        else { ctx.fillStyle = '#6ec0ff'; ctx.fillRect(wx, wy, WATER_W, WATER_H); }
+      }
+    };
     const drawHud = () => {
-      const level = state.level, leader = state.actors[0];
+      const level = state.level;
       state.actors.forEach((actor, i) => { const p = PLAYERS.find(q => q.id === actor.id); const cls = CLASSES.find(c => c.id === actor.classId); text(`${i + 1}P ${p.label} · ${cls.name}`, VIEW_X + 8, VIEW_Y + 6 + i * 16, { color: p.color }); });
       text(level.def.title, VIEW_X + VIEW_W - 8, VIEW_Y + 6, { align: 'right', color: '#fff' });
-      const hud = hudImg.img;
-      for (let i = 0; i < leader.maxHp; i++) {
-        const x = VIEW_X + VIEW_W - 8 - (leader.maxHp - i) * 12, y = VIEW_Y + 24;
-        if (hud && hud.complete && hud.naturalWidth) ctx.drawImage(hud, i < leader.hp ? 0 : 10, 0, 10, 9, x, y, 10, 9);
-        else { ctx.fillStyle = i < leader.hp ? '#eb3c50' : '#46465a'; ctx.fillRect(x, y, 9, 8); }
-      }
       const boss = state.boss;
       if (boss && boss.state !== 'enter' && !boss.dead) {
         const bw = 150, bx = VIEW_X + (VIEW_W - bw) / 2, by = VIEW_Y + 24;
@@ -379,13 +471,15 @@ export function run(game, node = {}) {
       const cx = Math.round(actor.x + actor.w / 2 - state.cam) + VIEW_X;
       const feet = Math.round(actor.y + actor.h) + VIEW_Y;
       // 무적 시간엔 깜빡인다(맞은 직후 0.35초는 계속 보임)
-      if (actor.invuln > 0 && actor.hurtT <= 0 && !actor.dead && Math.floor(state.t * 14) % 2 === 1) return;
+      if (actor.invuln > 0 && actor.hurtT <= 0 && Math.floor(state.t * 14) % 2 === 1) return;
       if (sheet && sheet.complete && sheet.naturalWidth) {
-        const sx = (frame % 2) * 48, sy = Math.floor(frame / 2) * 48;
+        const sx = (frame % 2) * HERO_CELL, sy = Math.floor(frame / 2) * HERO_CELL;
         ctx.save();
         ctx.translate(cx, feet);
         if (actor.facing < 0) ctx.scale(-1, 1);
-        ctx.drawImage(sheet, sx, sy, 48, 48, -24, -44, 48, 48);
+        // 차징: 창 끝이 점점 밝아진다
+        if (actor.state === 'charge' && 'filter' in ctx) ctx.filter = `brightness(${(1 + 0.6 * Math.min(1, actor.charge / SPEAR.chargeMax)).toFixed(2)})`;
+        ctx.drawImage(sheet, sx, sy, HERO_CELL, HERO_CELL, -HERO_CELL / 2, -HERO_FEET, HERO_CELL, HERO_CELL);
         ctx.restore();
       } else {
         const cls = CLASSES.find(c => c.id === actor.classId);
@@ -445,18 +539,11 @@ export function run(game, node = {}) {
           ctx.save(); ctx.translate(0, shakeY);
           drawBackdrop();
           ctx.drawImage(state.baked.canvas, state.cam, 0, VIEW_W, VIEW_H, VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
-          for (const spear of state.spears) {
-            const img = spearImg.img; const sx = Math.round(spear.x - state.cam) + VIEW_X, sy = Math.round(spear.y) + VIEW_Y;
-            if (img && img.complete && img.naturalWidth) { ctx.save(); ctx.translate(sx + 12, sy + 3); if (spear.facing < 0) ctx.scale(-1, 1); ctx.drawImage(img, -12, -3); ctx.restore(); }
-            else { ctx.fillStyle = '#e6d28c'; ctx.fillRect(sx, sy + 2, 20, 2); }
-          }
-          for (const water of state.waters) {
-            const img = waterImg.img; const wx = Math.round(water.x - state.cam) + VIEW_X, wy = Math.round(water.y) + VIEW_Y;
-            if (img && img.complete && img.naturalWidth) { ctx.save(); ctx.translate(wx + WATER_W / 2, wy + WATER_H / 2); if (water.facing < 0) ctx.scale(-1, 1); ctx.drawImage(img, -WATER_W / 2, -WATER_H / 2); ctx.restore(); }
-            else { ctx.fillStyle = '#6ec0ff'; ctx.fillRect(wx, wy, WATER_W, WATER_H); }
-          }
+          for (const enemy of state.enemies) drawEnemy(enemy);
           if (state.boss) drawBoss(state.boss);
           for (const actor of [...state.actors].reverse()) if (actor.active) drawActor(actor);
+          drawProjectiles();
+          for (const actor of state.actors) if (actor.active && actor.classId === 'brand') drawGauge(actor);
           ctx.restore();
           drawHud();
           if (state.sub === 'clear') text('STAGE CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 30, color: '#ffe066' });
@@ -486,7 +573,6 @@ export function run(game, node = {}) {
   });
 }
 
-const NO_INTENT = { left: false, right: false, jump: false, jumpHeld: false, crouch: false, attack: false, guard: false };
 
 /** 레벨을 한 번 구워 둔다(매 프레임 타일 루프 금지). 타일 그림이 늦게 오면 그때 다시 칠한다. fallback: [속, 윗면, 블록] 색 */
 function bakeLevel(level, fallback = ['#3e1c6e', '#6030a0', '#804cc4']) {

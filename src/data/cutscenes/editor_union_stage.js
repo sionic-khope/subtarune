@@ -31,19 +31,24 @@ const parkAftermath = () => [
   P('넌 니애미 따라가라'),
   close,
   { move: 'ppaman', rel: 'park_guardian_defeated', at: 'left', by: [-6, 0], dash: true },
+  // 박치기 즉시 날아간다(쿵과 흔들림은 같이). 날리는 소리는 장면 전용 슬라이드 휘슬 — whoosh 재사용 금지(사용자 피드백 2)
   { sfx: 'thud' },
-  { shake: 0.3, amp: 5 },
-  { fling: 'park_guardian_defeated', vx: 780, vup: 900, spin: 15, duration: 1.5, sfx: 'whoosh' },
-  { wait: 0.4 },
+  { parallel: [
+    { fling: 'park_guardian_defeated', vx: 780, vup: 900, spin: 15, duration: 1.5, sfx: 'fling_whistle' },
+    { shake: 0.3, amp: 5 },
+  ] },
   // 박치기한 억빠맨은 일행 옆으로 돌아온다
   { move: 'ppaman', rel: 'player', at: 'left', by: [-40, 0], run: true },
-  // 위 통로(x928~1056)에 철창이 천천히 내려와 쾅. 카메라는 통로와 일행이 같이 보이게 줌아웃
-  { parallel: [{ camera: [23, 10.5], duration: 0.8 }, { zoom: 0.66, duration: 0.8 }] },
-  { spawn: { type: 'prop', id: 'youngcle7_grate', image: 'assets/props/youngcle_grate.png', x: 928, y: -64, w: 128, h: 96, solid: true } },
+  // 위 통로(x928~1056)로 카메라를 옮겨 철창이 천천히 내려와 쾅 하는 것을 보여준다(중심 992,208 · 줌 1 → 통로 y-64~288 이 화면 안)
+  { parallel: [{ camera: [31, 6.5], duration: 0.7 }, { zoom: 1, duration: 0.7 }] },
+  // w/h 를 주지 않아야 그림이 히트박스(this.y)를 따라 내려온다(w/h 지정 소품은 def.iy 고정 → 167에서 안 보이던 원인). 히트박스는 그림 아래 40%
+  { spawn: { type: 'prop', id: 'youngcle7_grate', image: 'assets/props/youngcle_grate.png', x: 928, y: -64, solid: true } },
   { async: [{ sfx: 'rumble', volume: 0.7 }, { wait: 1.0 }, { sfx: 'rumble', volume: 0.7 }] },
   { slide: 'youngcle7_grate', by: [0, 256], duration: 2.4 },
   { sfx: 'baron_slam' },
   { shake: 0.45, amp: 6 },
+  { wait: 0.5 },
+  { parallel: [{ camera: 'player', duration: 0.6 }, { zoom: 1, duration: 0.6 }] },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6 })) },
   P('오 이런,, 위쪽길이 막혔네요 아마 저기 뚜울라 있을텐데'),
@@ -57,6 +62,11 @@ const parkAftermath = () => [
 ];
 
 export const park_guardian_aftermath = Object.assign([...parkAftermath(), { end: true }], { silent: true });
+/** 맵 입장(QA 점프·이어하기): 승리만 저장돼 있으면 박치기·철창 연출을 바로 잇는다. 그 외엔 아무것도 안 함 */
+export const park_guardian_aftermath_enter = Object.assign([
+  { if: flags => !flags.park_guardian_won || !!flags.park_guardian_aftermath_done, goto: 'aftermath_end' },
+  ...parkAftermath(),
+], { silent: true });
 
 const parkBattle = () => [
   close,

@@ -362,3 +362,24 @@ uvx --from yt-dlp yt-dlp --no-playlist -f bestaudio --write-info-json --output '
 ffmpeg -ss 38.10 -i /tmp/subtarune-youngcle139-source.webm -t 0.16 -ac 1 -ar 44100 -af 'afade=t=in:st=0:d=0.005,afade=t=out:st=0.135:d=0.025' -map_metadata -1 -c:a libmp3lame -q:a 2 assets/audio/voices/youngcle.mp3
 ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_rate=44100:seed=139' -f lavfi -i 'aevalsrc=0.075*sin(2*PI*(210*t+190*t*t))*sin(PI*t/0.78)^2:s=44100:d=0.78' -filter_complex '[0:a]asplit=2[c][s];[c]atrim=duration=0.045,highpass=f=180,lowpass=f=2400,afade=t=out:st=0.005:d=0.04,volume=2.4,apad=whole_dur=0.78[click];[s]highpass=f=650,lowpass=f=3600,volume=0.9,afade=t=in:st=0.07:d=0.06,afade=t=out:st=0.22:d=0.56[static];[click][static][1:a]amix=inputs=3:normalize=0,afade=t=in:st=0:d=0.001,afade=t=out:st=0.69:d=0.09,alimiter=limit=0.7:level=false[out]' -map '[out]' -t 0.78 -ac 1 -ar 44100 -c:a libmp3lame -q:a 2 assets/audio/sfx/youngcle_tv_on.mp3
 ```
+
+## 섭리오 직업 효과음 · 날리기 소리 (BUILD167, 2026-09-15)
+
+사용자 지시: 판테온 창(탭·차징·투척), 질리언 시계(달콤가득 질리언 스킨)와 스턴(질리언 공식). 원음은 League of Legends 공식 위키(wiki.leagueoflegends.com, `/en-us/images/<파일>.ogg`)의 스킬 SFX 파일이며 Riot Games 저작물(비수익 팬게임 용도). ffmpeg 로 mp3(44.1kHz mono, `-q:a 2`) 변환만 했고 원본 ogg 는 `assets/source/subrio167/audio/` 에 보존.
+
+| 게임 파일 | 원본(위키 파일명) | 길이 | 쓰임 |
+| --- | --- | --- | --- |
+| `sfx/zilean_q_throw.mp3` | `Zilean_SugarRush_Q_Ticking_SFX.ogg` | 3.65s(재생 1.3s) | 질리언 시계 둘 던질 때(달콤가득 질리언 Q) |
+| `sfx/zilean_q_stun.mp3` | `Zilean_Original_Q_Stun_SFX_0.ogg` | 3.48s(재생 2.0s) | 같은 적에 시계 둘 → 스턴(질리언 공식 Q 스턴) |
+| `sfx/pantheon_q_tap.mp3` | `Pantheon_Original_SFX_Q_Tap_cast_0.ogg` | 1.18s(0.5s) | C 탭 짧은 창 |
+| `sfx/pantheon_q_charge.mp3` | `Pantheon_Original_SFX_Q_OnCast_0_0.ogg` | 2.48s(1.1s) | C 꾹 차징 시작 |
+| `sfx/pantheon_q_throw.mp3` | `Pantheon_Original_SFX_Q_Missile_OnMissileLaunch_0.ogg` | 0.95s | 차징 창 투척 |
+| `sfx/pantheon_q_hit.mp3` | `Pantheon_Original_SFX_Q_Missile_hit_0.ogg` | 1.57s(0.5s) | 창 명중 |
+| `sfx/pantheon_e_up.mp3` | `Pantheon_Original_SFX_E_OnCast_0.ogg` | 2.07s(0.7s) | X 방패 올림 |
+| `sfx/pantheon_e_block.mp3` | `Pantheon_Original_SFX_E_block.ogg` | 1.61s(0.6s) | 방패로 막음 |
+| 브랜드 불 | 기존 `ember`(위키에 브랜드 Q SFX 파일 없음, 음성만) | | 6초마다 불덩이 |
+
+보존해 둔 참고: `Zilean_SugarRush_Q_Stun_SFX.ogg`, `Pantheon_Original_SFX_Q_Missile_missilecast_0.ogg`(미사용).
+
+**날리기(fling) 소리 지침(사용자 피드백 2: “ㅈㄴ 재사용하노”)**: `whoosh` 를 fling 기본값으로 쓰지 않는다. 장면마다 다른 소리를 고른다 — 파크가디언 박치기 `fling_whistle`(ffmpeg 합성 슬라이드 휘슬: `aevalsrc=sin(2*PI*t*(420+780*t))` 0.95초 + vibrato 11Hz), 비데가 마리오를 날릴 때 `cannon_puff`. 새 fling 은 새 소리를 만들거나 아직 안 쓴 소리를 고르고 여기 기록한다.
+

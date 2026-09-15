@@ -2,7 +2,7 @@
  "id": "youngcle9",
  "name": "엄청 대박인 배 게임 스크린 방",
  "stage": "void_fallen",
- "bgm": "youngcle_factory",
+ "bgm": null,
  "backdrop": "youngcle_factory",
  "battleBg": "youngcle_factory",
  "dim": 0.08,
@@ -35,9 +35,9 @@
  "preload": [
   "assets/tiles/youngcle_iron.png",
   "assets/backdrops/youngcle_factory.png",
-  "assets/props/bidet_screen.png",
+  "assets/props/bidet_screen_big.png",
   "assets/props/bidet_kiosk.png",
-  "assets/props/mario_pipe.png",
+  "assets/props/mario_pipe_h.png",
   "assets/props/editor-union-mushroom.png",
   "assets/props/editor-union-mushroom-green.png"
  ],
@@ -57,34 +57,40 @@
    "facing": "right"
   },
   "inside": {
-   "x": 320,
-   "y": 424,
+   "x": 240,
+   "y": 500,
    "facing": "right"
   }
  },
  "meta": {
   "connected": true,
   "screen": [
-   448,
-   96,
-   256,
-   256
+   528,
+   80,
+   576,
+   480
   ],
   "kiosk": [
-   400,
-   352,
+   368,
+   408,
    64,
    96
   ],
   "pipe": [
-   736,
    352,
-   64,
+   520,
+   192,
    64
   ],
+  "pipe_mouth": [
+   320,
+   528,
+   32,
+   56
+  ],
   "bidet": [
-   488,
-   300
+   480,
+   500
   ]
  },
  "entities": [
@@ -103,13 +109,13 @@
   {
    "type": "prop",
    "id": "bidet_screen",
-   "image": "assets/props/bidet_screen.png",
-   "x": 448,
-   "y": 340,
-   "w": 256,
-   "h": 12,
-   "ix": 448,
-   "iy": 96,
+   "image": "assets/props/bidet_screen_big.png",
+   "x": 528,
+   "y": 96,
+   "w": 576,
+   "h": 464,
+   "ix": 528,
+   "iy": 80,
    "solid": true,
    "sortY": -900,
    "script": "bidet_screen_look"
@@ -118,12 +124,12 @@
    "type": "prop",
    "id": "bidet_kiosk",
    "image": "assets/props/bidet_kiosk.png",
-   "x": 404,
-   "y": 432,
+   "x": 372,
+   "y": 488,
    "w": 56,
    "h": 16,
-   "ix": 400,
-   "iy": 352,
+   "ix": 368,
+   "iy": 408,
    "solid": true,
    "script": "bidet_kiosk_look"
   },
@@ -131,8 +137,8 @@
    "type": "npc",
    "id": "warm_bidet",
    "sprite": "warm_bidet",
-   "x": 488,
-   "y": 420,
+   "x": 480,
+   "y": 500,
    "facing": "down",
    "wander": 0,
    "solid": true,
@@ -141,22 +147,32 @@
   {
    "type": "prop",
    "id": "bidet_pipe",
-   "image": "assets/props/mario_pipe.png",
-   "x": 740,
-   "y": 400,
-   "w": 56,
-   "h": 16,
-   "ix": 736,
-   "iy": 352,
+   "image": "assets/props/mario_pipe_h.png",
+   "x": 400,
+   "y": 528,
+   "w": 144,
+   "h": 56,
+   "ix": 352,
+   "iy": 520,
    "solid": true,
+   "sortY": 600,
+   "script": "bidet_pipe_look"
+  },
+  {
+   "type": "trigger",
+   "id": "bidet_pipe_mouth",
+   "x": 320,
+   "y": 528,
+   "w": 32,
+   "h": 56,
    "script": "bidet_pipe_enter"
   },
   {
    "type": "npc",
    "id": "mini_mario",
    "sprite": "mini_mario",
-   "x": 756,
-   "y": 372,
+   "x": 336,
+   "y": 580,
    "facing": "left",
    "wander": 0,
    "solid": false,
@@ -168,7 +184,7 @@
    "id": "youngcle9_rail_0",
    "x": 96,
    "y": 84,
-   "w": 960,
+   "w": 400,
    "h": 12
   },
   {

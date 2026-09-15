@@ -38,6 +38,8 @@ export function storyBgm(mapId, flags) {
   if (flags.obj4_abduction_done && ['obj0', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5'].includes(mapId)) return 'baron_intro';
   // 편집노조 소개가 끝나면 무대 곡이 계속 흐른다(컷신 마지막 재큐 뒤 정지 없음). QA 점프·이어하기도 같은 곡, 파크 승리 뒤에는 컷신이 끈 대로 무음
   if (mapId === 'youngcle7' && flags.editor_union_stage_done && !flags.park_guardian_won) return 'editor_union_stage';
+  // 비데 방: 입장 연출 전엔 무음, 연출이 시작되면 파크가디언 등장 곡이 깔리고 그 뒤로 계속(사용자 지시 2026-09-15)
+  if (mapId === 'youngcle9' && flags.bidet_arcade_done) return 'editor_union_stage';
   return undefined;
 }
 
@@ -296,7 +298,10 @@ QA_POINTS.push({ ...planBCheckpoint, id: 'park_guardian_battle', desc: '편집�
 // 파크가디언 승리 후 연출 이후 (철창 닫힘, 오른쪽 통로 → youngcle8 → 비데 방 youngcle9)
 const parkWonCheckpoint = QA_POINTS.find(point => point.id === 'park_guardian_battle');
 const afterParkFlags = { ...parkWonCheckpoint.flags, park_guardian_won: true, park_guardian_aftermath_done: true };
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'park_guardian_after', desc: '편집노조: 파크가디언 승리 후 (오른쪽 통로)',
+// 승리 직후: 맵 enter(park_guardian_aftermath_enter)가 박치기·철창 연출을 바로 튼다
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'park_guardian_after', desc: '편집노조: 파크가디언 승리 후 연출 (박치기·철창)',
+  map: 'youngcle7', spawn: 'battle_ready', flags: { ...parkWonCheckpoint.flags, park_guardian_won: true }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'park_guardian_after_grate', desc: '편집노조: 철창 닫힌 뒤 (오른쪽 통로)',
   map: 'youngcle7', spawn: 'after_intro', flags: { ...afterParkFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle8', desc: '엄청 대박인 배: 무대 뒤 연결로 (마나샘)',
   map: 'youngcle8', spawn: 'left', flags: { ...afterParkFlags }, party: [...parkWonCheckpoint.party] });
