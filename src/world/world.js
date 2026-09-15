@@ -385,6 +385,8 @@ export class Player extends Character {
   }
   /** 어떤 코드 경로로든 벽·solid 소품 안에 놓였으면(끼임) 가장 가까운 빈 칸으로 빠져나온다 — 영구 끼임 방지 안전장치 (2026-09-10) */
   unstick() {
+    // 컷신이 이 틱에 걷게 한 경로(driven)는 그대로 둔다 — 뗏목에 걸어 올라타려면 용암(solid) 타일 위를 지나야 한다(BUILD190)
+    if (this.driven) { this.driven = false; return; }
     const g = this.game, map = g.map; if (!map) return;
     const inSolid = map.solidRect(this.x, this.y, this.w, this.h) || g.entities.some((o) => o !== this && o.solid && !o.dead && o.def?.type !== 'follower' && o.overlaps(this.rect));
     if (!inSolid) return;
@@ -634,6 +636,7 @@ export class Prop extends Entity {
  * 뗏목(재사용 기믹): 물 위 발판. 옆에 서서 C → 정해진 경로(route)를 따라 일직선으로 이동, 끝에서 내린다. 반대편에서 타면 되돌아온다.
  *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:171, flag?:'raft1',
  *     onBoard?:'스크립트', onBoardFlag?:'플래그',   // 처음 탈 때 출발하지 않고 컷신부터 (컷신이 { raft:id, go:true } 로 출발시킨다)
+ *     walkOn?:true,                                // C 를 누르면 태우지 않고 onBoard 컷신부터 — 컷신이 걸어서 올라타게 하고 { raft:id, board:true } 로 태운다(순간이동 금지, 2026-09-16 사용자)
  *     onArrive?:'스크립트', onArriveFlag?:'플래그', // 도착 직후 1회 컷신
  *     swim?:'ppaman',                              // 이 동료는 타지 않고 뗏목 뒤에서 얼굴만 내밀고 헤엄친다(Swimmer). 도착하면 뭍에 올라와 다시 동료
  *     jump?:true, jumpH?:64, jumpDur?:1.0 }        // C 점프(2블럭). **swim 동료가 뒤에 있을 때만** 된다 — 그 전 뗏목은 C 눌러도 안 됨 (2026-09-10 사용자 규칙)
@@ -674,8 +677,10 @@ export class Raft extends Prop {
   canInteract() { return true; }
   interact(player) {
     if (this.riding || this.game.ride) return true;
-    this.board(player);
     const bf = this.def.onBoardFlag || `${this.id}_boarded`;
+    // walkOn: 태우기 전에 컷신부터(컷신이 걸어서 올라타는 이동 뒤 { raft, board:true }) — 순간이동으로 올라타지 않게
+    if (this.def.walkOn && this.def.onBoard && !this.game.has(bf)) { this.solid = false; this.game.setFlag(bf); this.game.runScript(this.def.onBoard); return true; }   // 걸어 올라타는 동안 뗏목이 밀어내지 않게(도착하면 다시 solid)
+    this.board(player);
     if (this.def.onBoard && !this.game.has(bf)) { this.game.setFlag(bf); this.game.runScript(this.def.onBoard); return true; }   // 출발은 컷신이
     this.depart();
     return true;
@@ -788,7 +793,7 @@ export class Raft extends Prop {
       if (this.target !== end) { this.target += this.dir; this._carry(); return; }   // 중간 경유점: 멈추지 않고 다음 점으로
       this.at = this.target; this.game.flags[this.flagKey] = this.at;
       this.jumping = false; this.jumpY = 0; this._carry();                 // 공중에서 도착해도 먼저 뗏목 위로 내려놓고(점프 높이 0) 하차 자리를 찾는다 (2026-09-10 '도착할 때쯤 점프하면 맵 밖에 갇힘')
-      this.riding = false; this.moving = false; this.game.ride = null;
+      this.riding = false; this.moving = false; this.game.ride = null; if (this.def.walkOn) this.solid = true;
       if (this.def.passengerLookFacing) this.rider.facing = this.dirFacing;
       if (this.def.arriveSfx !== false) this.game.sound.sfx(this.def.arriveSfx || 'splash', { volume: 0.5 });
       this._disembark(dx, dy);

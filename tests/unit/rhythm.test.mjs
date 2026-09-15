@@ -44,10 +44,11 @@ test('test_rhythm_hold_release_is_success_and_full_hold_gets_full_bonus', () => 
   assert.equal(play2.score - b2, Math.round(RHYTHM.scoreGreat * 0.5)); assert.equal(play2.notes[2].status, 'hit');
 });
 
-test('test_rhythm_five_consecutive_misses_end_the_game', () => {
+test('test_rhythm_misses_count_but_do_not_end_the_game_by_streak', () => {
   const play = makePlay(chart);
   const ev = run(play, 0, 9.5);
-  assert.ok(ev.some(e => e.type === 'over')); assert.equal(play.over, true); assert.ok(play.missStreak >= RHYTHM.missLimit);
+  // BUILD190: 연속 미스 게임오버 없음 — 미스마다 파티 HP 를 깎는 건 씬(rhythm.js) 몫
+  assert.ok(!ev.some(e => e.type === 'over')); assert.equal(play.over, false); assert.equal(play.misses, 7); assert.equal(RHYTHM.missLimit, Infinity);
   const ok = makePlay(chart);
   for (const n of chart.notes) { stepPlay(ok, n.t, { press: { [n.lane]: true }, held: { [n.lane]: true } }); if (n.dur) stepPlay(ok, n.t + n.dur + 0.01, { held: { [n.lane]: true } }); }
   assert.equal(ok.over, false); assert.equal(ok.maxCombo, 7); assert.equal(ok.misses, 0);

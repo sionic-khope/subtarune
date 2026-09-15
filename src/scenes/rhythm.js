@@ -12,6 +12,8 @@
 //   관객 소리(BUILD187, 사용자 “휘파람 전자음 같다·진짜 박수·환호 자연스럽게”): 전부 실제 녹음(assets/source/crowd187) — 종류별 변형 2개 번갈아, 쿨다운, 속도 ±4%, 앞 환호 페이드, 곡 중엔 흥(excite)에 따라 커지는 바닥 루프(crowd_bed).
 //   사운드 체크(작은별)만 음정 일렉(c4/g4/a4). 노앰토리는 영상은 처음부터 틀고 노트만 18.2초 ‘만원 주면~’부터(chart.notesFrom, 사용자 정정).
 //   홀드는 꾹 누르다 떼면 성공(중간에 떼도 MISS 아님, 사용자 확정).
+//   피해(BUILD190 사용자 “5번 틀리면 실패가 아니라 틀릴 때마다 형섭·경섭·빠맨 체력 10씩, 전투 맞는 피해처럼 퍽 소리”): MISS 마다 파티 HP(game.partyHp, 전투와 같은 값) 10 씩,
+//   퍽(hit+damage) 소리·붉은 −10 팝업·흔들림, 아래 가운데 HP 띠 셋. 누구 하나 0 이 되면 “무대가 엉망이 됐다” → C 재도전(HP 는 곡 시작 값으로 복구).
 //   신호 품질(BUILD183 사용자 “리듬을 잘 맞춰야 노래가 나오고 못 맞추면 지직거리며 덜 나온다”): state.signal 0~1. GREAT +0.15, MISS −0.3(+‘지직’ 버스트·화면 찢김).
 //   노래 볼륨 = 0.25 + 0.75×signal, 잡음 루프 볼륨 = (1−signal)×0.35, 스크린엔 (1−signal) 만큼 노이즈 점·어둡게. 곡 시작·재도전 때 1.
 import { Input } from '../core/input.js';
@@ -45,6 +47,8 @@ const MIX = { song: 1.0, songGain: 1.1, scratch: 0.22, miss: 0.3, crowdInSong: 0
 const CROWD_VARIANTS = { applause: ['applause', 'applause_2'], cheer: ['crowd_cheer', 'crowd_cheer_2'], roar: ['crowd_roar', 'crowd_roar_2'] };
 const CROWD_COOLDOWN = { applause: 1.2, cheer: 2.5, roar: 4.0 };
 const SIGNAL = { great: 0.15, miss: 0.3, glitch: 0.35 };
+// MISS 피해: 파티 셋 HP −10(전투 HP 와 같은 값). HP 띠 색은 characters.js 의 hpColor 와 같다
+const MISS_DAMAGE = 10, HP_COLORS = { hyungsub: '#7fd0ff', gyeongsub: '#ff5c5c', ppaman: '#c9a3ff' };
 const PITCH_SFX = { 261.63: 'guitar_c4', 392: 'guitar_g4', 440: 'guitar_a4' };
 const HI_COLORS = ['255,110,190', '110,220,255', '255,225,110', '150,255,140'];
 // 세 곡(사용자 확정 순서): 방가방가 노앰토리 → 악질 시청자(-쥰희- 버전, oQ0P4mRV_wA) → 보X팜
@@ -146,6 +150,7 @@ export function run(game, node = {}) {
       stats: { score: 0, maxCombo: 0, songs: [] }, shake: 0, fx: [], flowers: [], holds: {}, chord: 0, beam: 0,
       hi: false, hiT: 0, lastBeat: -1, strobe: 0, confetti: [], sparks: [],
       signal: 1, glitch: 0, noise: null, coins: [], after: null, badge: 0,
+      hpAtStart: {}, hurt: {},
       crowdLast: { applause: -9, cheer: -9, roar: -9 }, crowdPick: { applause: 0, cheer: 0, roar: 0 }, crowdActive: [], bed: null, excite: 0,
       result: null,
     };
@@ -236,17 +241,32 @@ export function run(game, node = {}) {
     const startSong = () => {
       const v = state.videos?.[state.song];
       state.phase = 'play'; state.phaseT = 0; state.sideT = 0; state.clock = 0; state.fromClock = !v; state.video = v; state.signal = 1; state.glitch = 0;
-      startNoise(); applySignal(); startBed();
+      startNoise(); applySignal(); startBed(); saveHp();
       if (v) { v.currentTime = 0; v.play().catch(() => { v.muted = true; v.play().catch(() => { state.fromClock = true; }); }); }
     };
     const retry = () => {
       for (const lane of ['L', 'R']) stopHold(lane);
       state.play = makePlay(state.chart); state.over = false; state.judge = null; state.clock = 0; state.sideT = 0; state.lastCombo10 = 0; state.hi = false; state.lastBeat = -1; state.signal = 1; state.glitch = 0;
-      startNoise(); applySignal(); startBed();
+      startNoise(); applySignal(); startBed(); restoreHp(); saveHp();
       const v = state.video; if (v) { v.currentTime = 0; v.play().catch(() => {}); }
       sfx('confirm', 0.7);
     };
     const songTime = () => (state.video && !state.fromClock) ? state.video.currentTime : state.clock;
+    // 파티(형섭 + 동료) — 리듬 게임 피해는 전투 HP(game.partyHp) 를 그대로 깎는다
+    const partyIds = () => ['hyungsub', ...(game.party || [])].filter(id => BAND.some(b => b.id === id));
+    const hpOf = id => game.hpOf(id), maxHpOf = id => game.maxHpOf(id);
+    const saveHp = () => { state.hpAtStart = Object.fromEntries(partyIds().map(id => [id, hpOf(id)])); };
+    const restoreHp = () => { for (const [id, hp] of Object.entries(state.hpAtStart)) game.partyHp[id] = hp; };
+    // MISS 피해: 셋 다 −10, 퍽 소리, 붉은 −10 팝업, 잠깐 흔들림. 누구 하나 0 이면 무대 실패
+    const damageParty = () => {
+      let down = false;
+      for (const id of partyIds()) {
+        const hp = Math.max(0, hpOf(id) - MISS_DAMAGE); game.partyHp[id] = hp; if (hp <= 0) down = true;
+        const b = bandOf(id); if (b) { state.hurt[id] = 0.35; state.fx.push({ kind: 'dmg', x: b.x, y: STAND_Y - Math.round(b.draw * 0.95), t: 0, dur: 0.8, text: `-${MISS_DAMAGE}` }); }
+      }
+      sfx('hit', 0.8); sfx('damage', 0.5);
+      return down;
+    };
     // 결과창(사용자: “한 글자씩 주루루룩”): 줄마다 글자가 0.035초 간격으로 찍히며 틱 소리, 줄 사이 0.35초 쉼, 다 찍히면 C
     const startResult = () => {
       const lines = [{ text: '무대 끝!', x: SCREEN_W / 2, y: 56, size: 30, color: '#ffe066', align: 'center' }];
@@ -286,7 +306,7 @@ export function run(game, node = {}) {
       if (state.judge) { state.judgeT += dt; if (state.judgeT > 0.5) state.judge = null; }
       state.cheer = Math.max(0, state.cheer - dt);
       state.beam += dt;
-      for (const b of state.band) { if (b.animT > 0) { b.animT -= dt; if (b.animT <= 0) b.frame = 0; } }
+      for (const b of state.band) { if (b.animT > 0) { b.animT -= dt; if (b.animT <= 0) b.frame = 0; } if (state.hurt[b.id] > 0) state.hurt[b.id] -= dt; }
       state.fx = state.fx.filter(f => (f.t += dt) < f.dur);
       for (const fl of state.flowers) { fl.t += dt; if (fl.t < 0) continue; fl.x += fl.vx * dt; fl.vy += 520 * dt; fl.y += fl.vy * dt; }
       state.flowers = state.flowers.filter(fl => fl.y < 380 && fl.t < 4);
@@ -348,7 +368,14 @@ export function run(game, node = {}) {
             else { strum('tap'); if (e.note.pitch) sfx(PITCH_SFX[e.note.pitch], 0.7); }
           }
           if (e.type === 'holdEnd') { state.fx.push({ kind: 'ring', lane: e.lane, t: 0, dur: 0.3 }); stopHold(e.lane, false); state.signal = Math.min(1, state.signal + SIGNAL.great * 0.5); }
-          if (e.type === 'miss') { state.judge = { text: 'MISS', color: '#ff6a6a' }; state.judgeT = 0; sfx('guitar_dead', MIX.miss); if (e.why === 'release') stopHold(e.lane); if (state.phase === 'play') { state.signal = Math.max(0, state.signal - SIGNAL.miss); state.glitch = SIGNAL.glitch; sfx('static_burst', 0.55); } }
+          if (e.type === 'miss') {
+            state.judge = { text: 'MISS', color: '#ff6a6a' }; state.judgeT = 0; sfx('guitar_dead', MIX.miss); if (e.why === 'release') stopHold(e.lane);
+            if (state.phase === 'play') {
+              state.signal = Math.max(0, state.signal - SIGNAL.miss); state.glitch = SIGNAL.glitch; sfx('static_burst', 0.55);
+              // 틀릴 때마다 파티 HP −10(퍽). 누구 하나 0 → 게임오버(재도전)
+              if (damageParty() && !state.over) events.push({ type: 'over' });
+            }
+          }
           if (e.type === 'empty') { sfx('guitar_scratch', MIX.scratch); strum('tap'); }
           if (e.type === 'over') { state.over = true; for (const lane of ['L', 'R']) stopHold(lane); if (state.video) { try { state.video.pause(); } catch (err) { /* */ } } stopNoise(); stopBed(); sfx('damage', 0.8); state.shake = 0.5; }
         }
@@ -540,6 +567,18 @@ export function run(game, node = {}) {
         ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x, LANE_TOP, 12, 160); ctx.strokeStyle = '#6fb3ff'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, LANE_TOP + 0.5, 11, 159);
         const h = Math.round(156 * pop); ctx.fillStyle = pop > 0.66 ? '#7dff5a' : pop > 0.33 ? '#ffe066' : '#ff6a6a'; ctx.fillRect(x + 2, LANE_TOP + 158 - h, 8, h);
       }
+      // 파티 HP 띠(아래 가운데): 전투 HP 그대로, MISS 마다 줄어든다
+      if (state.phase === 'play' || state.phase === 'title') {
+        const ids = partyIds(), bw = 44, gap = 10, total = ids.length * bw + (ids.length - 1) * gap, x0 = Math.round(SCREEN_W / 2 - total / 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x0 - 6, SCREEN_H - 26, total + 12, 26);
+        ids.forEach((id, i) => {
+          const x = x0 + i * (bw + gap), hp = hpOf(id), max = maxHpOf(id), b = BAND.find(q => q.id === id);
+          text(b ? b.label : id, x, SCREEN_H - 24, { size: 9, color: HP_COLORS[id] || '#fff', shadow: false });
+          text(String(hp), x + bw, SCREEN_H - 24, { size: 9, color: state.hurt[id] > 0 ? '#ff4a4a' : '#fff', shadow: false, align: 'right' });
+          ctx.fillStyle = '#3a1a1a'; ctx.fillRect(x, SCREEN_H - 12, bw, 5);
+          ctx.fillStyle = state.hurt[id] > 0 ? '#ff4a4a' : (HP_COLORS[id] || '#fff'); ctx.fillRect(x, SCREEN_H - 12, Math.round(bw * hp / max), 5);
+        });
+      }
       ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, SCREEN_H - 24, 150, 24); ctx.fillRect(SCREEN_W - 150, SCREEN_H - 24, 150, 24);
       text(`${String(state.stats.score + (state.play?.score || 0)).padStart(6, '0')}`, 8, SCREEN_H - 20, { color: '#7dff5a', size: 15 });
       text('SCORE', 96, SCREEN_H - 17, { color: '#7dff5a', size: 10 });
@@ -555,11 +594,12 @@ export function run(game, node = {}) {
         if (img && img.complete && img.naturalWidth) {
           // 동작 프레임이 없을 땐 숨 쉬듯: 기본 자세에서 두 박 주기로 1px 만 오르내린다(사용자: 프레임이 바뀌는 건 너무 역동적)
           const idx = b.frame, dy = idx === 0 && b.landed ? Math.round(Math.sin(beat * Math.PI) * BREATH_PX) : 0;
-          const sx = (idx % 2) * CELL, sy = Math.floor(idx / 2) * CELL;
-          ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - D / 2), feet - Math.round(FEET * D / CELL) + dy, D, D);
+          const sx = (idx % 2) * CELL, sy = Math.floor(idx / 2) * CELL, hx = state.hurt[b.id] > 0 ? Math.round((Math.random() - 0.5) * 5) : 0;
+          ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - D / 2) + hx, feet - Math.round(FEET * D / CELL) + dy, D, D);
         } else { ctx.fillStyle = b.color; ctx.fillRect(b.x - 9, feet - 32, 18, 32); }
       }
       for (const f of state.fx) if (f.kind === 'dust') { const k = f.t / f.dur; ctx.fillStyle = `rgba(200,190,170,${(1 - k) * 0.7})`; for (let i = -3; i <= 3; i++) ctx.fillRect(f.x + i * 8 * (0.4 + k), f.y - 3 - k * 14, 3, 2); }
+      for (const f of state.fx) if (f.kind === 'dmg') { const k = f.t / f.dur; text(f.text, f.x, f.y - k * 22, { align: 'center', size: 14, color: '#ff4a4a', alpha: 1 - k * k }); }
     };
     const drawParticles = () => {
       for (const c of state.confetti) { const flat = Math.floor(c.t * 6 + c.seed) % 2; ctx.fillStyle = c.color; ctx.fillRect(Math.round(c.x), Math.round(c.y), flat ? 3 : 2, flat ? 2 : 3); }
@@ -660,7 +700,7 @@ export function run(game, node = {}) {
     // QA: 곡 안 특정 시각으로 건너뛰기(앞 노트는 판정 없이 지나간 것으로) — 하이라이트 확인용
     // Range 를 지원하지 않는 서버(python http.server)에선 영상 seek 이 안 되므로 그땐 시계 모드로 넘어가 시각만 맞춘다
     const seek = (t) => { const v = state.video; if (v && v.seekable && v.seekable.length && v.seekable.end(0) >= t) { try { v.currentTime = t; } catch (e) { /* */ } } else { state.fromClock = true; if (v) { try { v.pause(); } catch (e) { /* */ } } } state.clock = t; state.sideT = t; for (const n of state.play?.notes || []) if (n.status === 'wait' && n.t < t - 0.2) n.status = 'hit'; };
-    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, throwCoins, seek, applySignal, endSong, get play() { return state.play; }, songTime,
+    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, throwCoins, seek, applySignal, endSong, damageParty, hpOf, get play() { return state.play; }, songTime,
       skipTo(phase) { for (const b of state.band) { b.y = STAND_Y; b.landed = true; } state.talk = null; if (phase === 'soundcheck') startSoundcheck(); else if (phase === 'hype') startHype(); else if (phase === 'song') startTitle(0); } };
   });
 }

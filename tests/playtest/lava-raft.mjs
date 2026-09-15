@@ -1,5 +1,5 @@
-// 용광로 복도 + 용암 수로(BUILD189): QA youngcle13(배경·브금) → QA lava_raft: 오른쪽으로 걸어 트리거 → 컷신(형섭 탑승, 대사, 빠맨·경섭 용암에, 출발)
-//   → 자동 점프(낮은 것 한 번, 높은 것 2단)로 오른쪽 구간 도착 → 두 번째 뗏목에 C → 위 구간 도착. 실행: tests/playtest/run.sh lava-raft
+// 용광로 복도 + 용암 수로(BUILD190): QA youngcle13(배경·브금) → QA lava_raft: 뗏목 옆에서 C → 컷신(형섭 걸어서 탑승, 왼쪽 시선, 빠맨·경섭 걸어가 용암에, 출발)
+//   → 자동 점프(하늘색 한 번, 붉은 2단)로 한 줄 수로 오른쪽 끝 도착. 실행: tests/playtest/run.sh lava-raft
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -38,36 +38,39 @@ try {
   const cor = await page.evaluate(() => { const g = window.game; const s = g.sound; const names = JSON.stringify([s.bgmName, s.currentBgm, s.bgmId, s.bgm && (s.bgm.name || s.bgm.src), s.current]); return { map: g.mapId, tile: g.map?.rows?.[8]?.[2], bgm: names.includes('pandora_palace') }; });
   check(cor.map === 'youngcle13' && cor.tile === 'F', '용광로 복도(차콜·파랑 철 바닥 F) ' + JSON.stringify(cor));
   console.log('bgm check', JSON.stringify(cor));
-  // ② 용암 수로: 오른쪽으로 걸어가면 뗏목 앞 트리거 → 컷신
+  // ② 용암 수로: 오른쪽으로 걸어가 뗏목 옆에서 C → 컷신(형섭이 걸어서 올라탐)
   await page.goto('http://localhost:8000/?qa=lava_raft');
   await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle14' && !window.game.dialogue.running, null, { timeout: 25000 });
   await page.waitForTimeout(800); await cap('entrance');
   await page.keyboard.down('ArrowRight');
-  await page.waitForFunction(() => window.game.dialogue.running, null, { timeout: 12000 }).catch(() => {});
-  await page.keyboard.up('ArrowRight');
-  await page.waitForFunction(() => !!window.game.ride, null, { timeout: 6000 }).catch(() => {});
-  await page.waitForTimeout(600); await cap('intro'); let s = await st();
-  check(s.dialogue && s.ride === 'raft14a' && s.raftA && s.raftA.riding && !s.raftA.moving, '뗏목 앞 트리거 → 형섭이 먼저 뗏목에 탄 채 대사 ' + JSON.stringify([s.dialogue, s.ride, s.raftA]));
-  // 대사를 넘기며 빠맨이 먼저 용암에 들어가는지(치이익) 본다
-  for (let i = 0; i < 30; i++) { s = await st(); if (!s.dialogue) break; if (s.raftA.swimmers.includes('ppaman_swim') && !s.raftA.swimmers.includes('gyeongsub_swim')) { await cap('ppaman_in'); break; } await advance(); }
-  s = await st(); check(s.raftA.swimmers.includes('ppaman_swim') && !s.raftA.swimmers.includes('gyeongsub_swim'), '억빠맨이 먼저 용암에(경섭은 아직) ' + JSON.stringify(s.raftA.swimmers));
+  await page.waitForFunction(() => window.game.player.x >= 340, null, { timeout: 12000 }).catch(() => {});
+  await page.waitForTimeout(700); await page.keyboard.up('ArrowRight');
+  let s = await st(); check(!s.dialogue && !s.ride && s.px >= 340, '뗏목 옆까지 걸어와도 저절로 이벤트가 시작되지 않는다(C 로 시작) ' + JSON.stringify([s.dialogue, s.ride, s.px]));
+  const p0 = await page.evaluate(() => [Math.round(window.game.player.x), Math.round(window.game.player.y)]);
+  await pressC();
+  await page.waitForFunction(() => window.game.dialogue.running, null, { timeout: 6000 }).catch(() => {});
+  // 형섭이 걸어서 올라타는 중간 프레임(순간이동 아님): 대사 첫 줄이 뜨기 전 위치가 부두와 뗏목 사이
+  const walked = await page.evaluate(() => new Promise(resolve => { const g = window.game; const xs = []; const t0 = performance.now(); const tick = () => { xs.push(Math.round(g.player.x)); if (g.ride || performance.now() - t0 > 3000) resolve(xs); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); }));
+  const steps = new Set(walked).size;
+  check(steps >= 4, '형섭이 뗏목까지 걸어서 올라탄다(x 가 여러 단계로 변함) ' + JSON.stringify([p0, walked.slice(0, 3), walked.slice(-2), steps]));
+  await page.waitForTimeout(400); await cap('intro'); s = await st();
+  check(s.dialogue && s.ride === 'raft14a' && s.raftA && s.raftA.riding && !s.raftA.moving, '탑승 뒤 대사(출발 전) ' + JSON.stringify([s.dialogue, s.ride, s.raftA]));
+  // ‘경섭이형 이거 저희 들어가야겠죠’ ~ ‘너가 먼저 들어가’ 동안 요플래는 왼쪽(둘)을 본다
+  let leftOk = null;
+  for (let i = 0; i < 30; i++) { s = await st(); if (!s.dialogue) break; if ((s.text || '').includes('너가 먼저 들어가') && !(s.text || '').includes('라니까')) { leftOk = await page.evaluate(() => window.game.player.facing); await cap('look_left'); break; } await advance(); }
+  check(leftOk === 'left', '“너가 먼저 들어가”까지 요플래가 왼쪽을 본다 ' + JSON.stringify(leftOk));
+  // 빠맨이 걸어가서 뛰어드는지: 헤엄 시작 전 빠맨 동료의 x 가 부두 가장자리(≥ 330)까지 갔는지
+  let ppX = null;
+  for (let i = 0; i < 30; i++) { s = await st(); if (!s.dialogue) break; if (s.raftA.swimmers.includes('ppaman_swim')) break; ppX = await page.evaluate(() => { const e = window.game.entities.find(e => e.id === 'ppaman' && e.def?.type === 'follower' && !e.dead); return e ? Math.round(e.x) : null; }); await advance(); }
+  await cap('ppaman_in'); s = await st();
+  check(s.raftA.swimmers.includes('ppaman_swim') && !s.raftA.swimmers.includes('gyeongsub_swim') && ppX !== null && ppX >= 330, '억빠맨이 부두 가장자리까지 걸어가 먼저 용암에(경섭은 아직) ' + JSON.stringify([s.raftA.swimmers, ppX]));
   for (let i = 0; i < 30; i++) { s = await st(); if (!s.dialogue) break; await advance(); }
   await page.waitForFunction(() => { const r = window.game.entities.find(e => e.id === 'raft14a'); return r && r.moving; }, null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(500); await cap('depart'); s = await st();
   check(!s.dialogue && s.raftA.moving && s.raftA.swimmers.length === 2 && s.dj, '대사 끝 → 둘 다 용암에서 헤엄, 2단 점프 켜짐, 출발 ' + JSON.stringify([s.raftA.moving, s.raftA.swimmers, s.dj]));
-  // ③ 오른쪽 구간 자동 점프
-  const rideA = await autoRide('raft14a'); await page.waitForTimeout(500); await cap('landing'); s = await st();
-  check(!rideA.riding && s.fa === 1 && !s.ride, '오른쪽 구간 도착(빔·벽을 점프로) ' + JSON.stringify([rideA, s.fa, s.px, s.py]));
-  // ④ 두 번째 뗏목(위로): 옆에 서서 C
-  await page.evaluate(() => { const g = window.game; const b = g.entities.find(e => e.id === 'raft14b'); g.player.x = b.x + 12; g.player.y = b.y + b.h + 2; g.player.facing = 'up'; });
-  await page.waitForTimeout(200);
-  console.log('before C', JSON.stringify(await page.evaluate(() => { const g = window.game; const t = g.player.probe(); return { probe: t && t.id, state: g.state, ride: g.ride && g.ride.id, dlg: g.dialogue.running, trans: g.transitioning, p: [g.player.x, g.player.y, g.player.facing] }; })));
-  await pressC();
-  await page.waitForFunction(() => { const r = window.game.entities.find(e => e.id === 'raft14b'); return r && r.riding; }, null, { timeout: 5000 }).catch(() => {});
-  s = await st(); check(s.ride === 'raft14b' && s.raftB.riding, '두 번째 뗏목 탑승·출발(위로) ' + JSON.stringify([s.ride, s.raftB]));
-  await page.waitForTimeout(1200); await cap('up');
-  const rideB = await autoRide('raft14b'); await page.waitForTimeout(500); await cap('top'); s = await st();
-  check(!rideB.riding && s.fb === 1 && s.py < 120, '위 구간 도착(다른 조합의 함정) ' + JSON.stringify([rideB, s.fb, s.px, s.py]));
+  // ③ 한 줄 수로 자동 점프(하늘색 = 한 번, 붉은 = 2단)
+  const ride = await autoRide('raft14a'); await page.waitForTimeout(600); await cap('landing'); s = await st();
+  check(!ride.riding && s.fa === 1 && !s.ride && s.px > 1560, '오른쪽 끝 착지(빔·돌을 점프로) ' + JSON.stringify([ride, s.fa, s.px, s.py]));
 } catch (e) { fails += 1; console.log('CRASH', e.message); }
 check(errors.length === 0, 'pageerror 없음 ' + JSON.stringify(errors));
 console.log(`fails=${fails}`);

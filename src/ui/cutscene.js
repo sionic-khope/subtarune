@@ -78,7 +78,8 @@ function mover(game, node) {
   else if (node.px) { [tx, ty] = typeof node.px === 'function' ? node.px(game) : node.px; }   // px:(game)=>[x,y] — 맵 meta 처럼 부팅 뒤에야 있는 값은 함수로(모듈 로드 때 MAPS.<json맵> 은 아직 없다, 2026-09-11)
   else if (node.by) { tx = e.x + node.by[0] * TILE / 16; ty = e.y + node.by[1] * TILE / 16; }   // by 는 16px 단위
   else return done;
-  [tx, ty] = freeSpot(game, e, tx, ty);
+  // exact: 목표를 빈 칸으로 옮기지 않는다 — 뗏목 위(용암 타일 위) 승객 자리처럼 일부러 막힌 칸으로 걸어갈 때(BUILD190). 기본은 가장 가까운 빈 칸
+  if (!node.exact) [tx, ty] = freeSpot(game, e, tx, ty);
   const speed = (node.speed ?? (node.dash ? 190 : node.run ? 110 : 60)) * TILE / 16;   // dash: 질주(380px/s)
   const fast = node.run || node.dash;
   const passenger = node.carry ? findEntity(game, node.carry.id) : null;
@@ -375,9 +376,10 @@ export function makeWaiter(game, node) {
   }
   if (node.join) { game.joinParty(node.join); return done; }          // { join:'ppaman' } 동료 가입(맵의 같은 id NPC 는 사라짐)
   if (node.leave) { game.leaveParty(node.leave); return done; }
-  if (node.raft) {                                     // { raft:id, go:true } 출발 / { raft:id, jump:true } 점프(컷신용 강제) / { raft:id, until:'stop'|'land' } 멈출/착지할 때까지 / { raft:id, swim:id } 동료를 물에 / { raft:id, hold:bool } 정지 / { raft:id, holdAt:'apex'|x } 정점·x 에서 정지 / { raft:id, awaitJump:true } C 기다려 점프(공중이면 2단)
+  if (node.raft) {                                     // { raft:id, go:true } 출발 / { raft:id, board:true } 태우기 / { raft:id, jump:true } 점프(컷신용 강제) / { raft:id, until:'stop'|'land' } 멈출/착지할 때까지 / { raft:id, swim:id } 동료를 물에 / { raft:id, hold:bool } 정지 / { raft:id, holdAt:'apex'|x } 정점·x 에서 정지 / { raft:id, awaitJump:true } C 기다려 점프(공중이면 2단)
     const r = findEntity(game, node.raft); if (!r) return done;
     if (node.go) { r.depart(); return done; }
+    if (node.board) { if (!r.riding) r.board(game.player); return done; }                   // 걸어서 올라탄 뒤 태우기(walkOn 뗏목)
     if (node.jump) { r.jump(true); return done; }
     if (node.swim) { r.addSwimmer(node.swim); return done; }                                   // 동료 한 명을 지금 물에 (뗏목 옆/아래에서 헤엄)
     if ('hold' in node) { r.hold = !!node.hold; if (!r.hold) r.moving = true; return done; }   // 제자리 정지/해제 (공중 포함)

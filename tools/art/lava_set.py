@@ -2,9 +2,9 @@
 """용광로 구역 세트(BUILD188, 사용자 2026-09-15: “엄창배 배경에 용광로마냥 용암 느낌, 발판은 차콜 철 + 파란색이 공존”):
 - tiles/youngcle_iron_blue.png : 기존 youngcle_iron 타일을 차콜로 눌러 밝은 픽셀(리벳·모서리)에 파란 기운 — 바닥·벽 공용(맵 글자 'k' 바닥 / 'K' 는 desk 라 벽은 'X')
 - tiles/lava.png               : 용암(뗏목으로만 건넘) — 검붉은 바탕에 주황 균열·노란 불씨
-- props/plasma_beam_v.png      : 세로 플라즈마 빔(뗏목 물길을 가로지름), 3프레임 가로 시트 40×160 (anim cols 3)
-- props/plasma_beam_h.png      : 가로 플라즈마 빔, 3프레임 세로 시트 160×40 → 가로로 이어 붙여 480×40 (cols 3)
-- props/lava_wall.png          : 굳은 용암 벽(2단 점프로만 넘음) 40×64, props/lava_wall_low.png 낮은 벽 28×36
+- props/plasma_beam_v.png      : 낮은 플라즈마 빔(하늘색, C 한 번) 40×96 3프레임 가로 시트 (anim cols 3)
+- props/plasma_beam_high.png   : 높은 플라즈마 빔(붉은 자홍, 공중에서 C 한 번 더) 40×96 3프레임
+- props/lava_wall.png          : 높은 굳은 용암 벽(붉은 균열, 2단 점프) 40×64, props/lava_wall_low.png 낮은 벽 28×36
 실행: /usr/bin/python3 tools/art/lava_set.py"""
 from pathlib import Path
 import sys
@@ -39,39 +39,33 @@ for _ in range(6):
     x, y = int(rng.integers(0, 31)), int(rng.integers(0, 31)); c.px(x, y, hexc('#ffd24a')); c.px(x + 1, y, hexc('#ffb02a'))
 c.save(OUT_T / 'lava.png')
 
-# 3) 플라즈마 빔 세로(40×160, 3프레임 → 120×160)
-def beam_v(frame: int) -> Canvas:
-    b = Canvas(40, 160)
+# 3) 플라즈마 빔(한 줄 수로 96px 높이, 3프레임 가로 시트 120×96): 낮은 빔 = 하늘색·가는 줄(C 한 번), 높은 빔 = 붉은 자홍·굵은 두 줄(공중에서 C 한 번 더) — 한눈에 구분(사용자)
+def beam_v(frame: int, high: bool) -> Canvas:
+    b = Canvas(40, 96)
     post = hexc('#3a3f4a'); rim = hexc('#7d8798')
-    for y in (0, 148):
-        b.rrect_outlined(8, y, 24, 12, post, rim, r=3); b.rect(14, y + 4, 12, 4, hexc('#8fe3ff'))
-    core = [hexc('#dff9ff'), hexc('#8fe3ff'), hexc('#4fc3ff')][frame]
-    glow = [hexc('#4fc3ff'), hexc('#2f8fd6'), hexc('#8fe3ff')][frame]
-    for y in range(12, 148):
-        wob = 1 if ((y // 6) + frame) % 3 == 0 else 0
-        b.rect(17 + wob, y, 6 - wob, 1, glow); b.rect(19, y, 2, 1, core)
-        if (y + frame * 5) % 14 == 0: b.rect(13 + wob, y, 14, 1, glow)
+    lamp = hexc('#ff5a8a') if high else hexc('#8fe3ff')
+    for y in (0, 84):
+        b.rrect_outlined(8, y, 24, 12, post, rim, r=3); b.rect(14, y + 4, 12, 4, lamp)
+    if high:
+        core = [hexc('#ffe1ec'), hexc('#ff7ab0'), hexc('#ff3d7a')][frame]
+        glow = [hexc('#ff3d7a'), hexc('#c4104c'), hexc('#ff7ab0')][frame]
+        for y in range(12, 84):
+            wob = 1 if ((y // 5) + frame) % 3 == 0 else 0
+            b.rect(12 + wob, y, 7, 1, glow); b.rect(21 - wob, y, 7, 1, glow)
+            b.rect(14 + wob, y, 3, 1, core); b.rect(23 - wob, y, 3, 1, core)
+            if (y + frame * 5) % 12 == 0: b.rect(10, y, 20, 1, glow)
+    else:
+        core = [hexc('#dff9ff'), hexc('#8fe3ff'), hexc('#4fc3ff')][frame]
+        glow = [hexc('#4fc3ff'), hexc('#2f8fd6'), hexc('#8fe3ff')][frame]
+        for y in range(12, 84):
+            wob = 1 if ((y // 6) + frame) % 3 == 0 else 0
+            b.rect(17 + wob, y, 6 - wob, 1, glow); b.rect(19, y, 2, 1, core)
+            if (y + frame * 5) % 14 == 0: b.rect(13 + wob, y, 14, 1, glow)
     return b
-sheet = Image.new('RGBA', (120, 160), (0, 0, 0, 0))
-for i in range(3): sheet.paste(beam_v(i).image(), (i * 40, 0))
-sheet.save(OUT_P / 'plasma_beam_v.png')
-
-# 4) 플라즈마 빔 가로(160×40, 3프레임 → 480×40)
-def beam_h(frame: int) -> Canvas:
-    b = Canvas(160, 40)
-    post = hexc('#3a3f4a'); rim = hexc('#7d8798')
-    for x in (0, 148):
-        b.rrect_outlined(x, 8, 12, 24, post, rim, r=3); b.rect(x + 4, 14, 4, 12, hexc('#8fe3ff'))
-    core = [hexc('#dff9ff'), hexc('#8fe3ff'), hexc('#4fc3ff')][frame]
-    glow = [hexc('#4fc3ff'), hexc('#2f8fd6'), hexc('#8fe3ff')][frame]
-    for x in range(12, 148):
-        wob = 1 if ((x // 6) + frame) % 3 == 0 else 0
-        b.rect(x, 17 + wob, 1, 6 - wob, glow); b.rect(x, 19, 1, 2, core)
-        if (x + frame * 5) % 14 == 0: b.rect(x, 13 + wob, 1, 14, glow)
-    return b
-sheet = Image.new('RGBA', (480, 40), (0, 0, 0, 0))
-for i in range(3): sheet.paste(beam_h(i).image(), (i * 160, 0))
-sheet.save(OUT_P / 'plasma_beam_h.png')
+for name, high in (('plasma_beam_v', False), ('plasma_beam_high', True)):
+    sheet = Image.new('RGBA', (120, 96), (0, 0, 0, 0))
+    for i in range(3): sheet.paste(beam_v(i, high).image(), (i * 40, 0))
+    sheet.save(OUT_P / f'{name}.png')
 
 # 5) 굳은 용암 벽(높음 40×64, 낮음 28×36): 검은 현무암 덩어리 + 주황 균열
 def wall(w: int, h: int, seed: int) -> Canvas:

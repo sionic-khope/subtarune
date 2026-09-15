@@ -70,18 +70,24 @@ try {
   await autoPlay(3); await page.waitForTimeout(60); await cap('highlight');
   const hl = await page.evaluate(() => { const r = window.__rhythm.state; return { hi: r.hi, confetti: r.confetti.length, cheer: Math.round(r.cheer * 100) / 100, sparks: r.sparks.length, hl: r.chart.highlights }; });
   check(hl.hi === true && hl.confetti > 20 && hl.cheer > 0, '코러스 하이라이트: 색종이·관객 환호 ' + JSON.stringify(hl));
-  // 손을 놓으면 MISS 가 쌓여 신호가 나빠진다 → ‘● 연결 안 됨’ 배지(최상위) → 5연속 MISS → 게임오버 → C 재도전
+  // 손을 놓으면 MISS 가 쌓여 신호가 나빠진다 → ‘● 연결 안 됨’ 배지(최상위) → HP 가 0 이 되는 멤버 → 게임오버 → C 재도전
   await page.waitForFunction(() => { const r = window.__rhythm.state; return r.signal < 0.6 && !r.over; }, null, { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(350); await cap('badge');
   const bd = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, badge: Math.round(r.badge * 100) / 100, over: r.over }; });
   check(bd.badge > 0.5 && bd.signal < 0.6, '신호가 나쁘면 “연결 안 됨” 배지가 뜬다 ' + JSON.stringify(bd));
-  await page.waitForFunction(() => window.__rhythm.state.over, null, { timeout: 15000 }).catch(() => {});
+  // MISS 마다 파티 HP −10(BUILD190): 미스가 쌓이면 HP 가 줄고, 누구 하나 0 이면 게임오버
+  await page.waitForFunction(() => window.__rhythm.state.play.misses >= 3, null, { timeout: 15000 }).catch(() => {});
+  const hpMid = await page.evaluate(() => { const r = window.__rhythm; return { misses: r.state.play.misses, start: r.state.hpAtStart, hp: ['hyungsub', 'gyeongsub', 'ppaman'].map(id => r.hpOf(id)), fx: r.state.fx.filter(f => f.kind === 'dmg').length }; });
+  check(['hyungsub', 'gyeongsub', 'ppaman'].every((id, i) => hpMid.hp[i] === hpMid.start[id] - 10 * hpMid.misses) && hpMid.hp.every(h => h > 0), '미스마다 형섭·경섭·빠맨 HP −10(곡 시작 HP 기준, −10 팝업) ' + JSON.stringify(hpMid));
+  await page.waitForFunction(() => window.__rhythm.state.over, null, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(300); await cap('over');
-  s = await st(); check(s.over === true, '5연속 MISS 게임오버 ' + JSON.stringify([s.over, s.misses]));
+  s = await st(); const hpOver = await page.evaluate(() => ['hyungsub', 'gyeongsub', 'ppaman'].map(id => window.__rhythm.hpOf(id)));
+  check(s.over === true && hpOver.some(h => h === 0), 'HP 가 0 이 된 멤버가 생기면 게임오버 ' + JSON.stringify([s.over, s.misses, hpOver]));
   const sig = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, noise: !!r.noise, vol: r.video ? Math.round(r.video.volume * 100) / 100 : null }; });
   check(sig.signal < 0.4 && !sig.noise && (sig.vol === null || sig.vol < 0.6), '미스가 쌓이면 신호 품질이 떨어져 노래가 작아진다(게임오버 땐 잡음 정지) ' + JSON.stringify(sig));
   await pressC(); await page.waitForTimeout(500);
-  s = await st(); check(s.over === false && s.combo === 0 && s.time < 3, '재도전: 곡 처음부터 ' + JSON.stringify([s.over, s.combo, s.time]));
+  s = await st(); const hpRetry = await page.evaluate(() => ['hyungsub', 'gyeongsub', 'ppaman'].map(id => window.__rhythm.hpOf(id)));
+  check(s.over === false && s.combo === 0 && s.time < 3 && hpRetry.every(h => h > 50), '재도전: 곡 처음부터, HP 는 곡 시작 값으로 복구 ' + JSON.stringify([s.over, s.combo, s.time, hpRetry]));
   await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.notesFrom - 0.5));
   await autoPlay(4); s = await st(); check(s.max >= 3, '재도전 뒤에도 연주 ' + JSON.stringify([s.max]));
   const sig2 = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, noise: !!r.noise && r.noise.loop, noiseVol: r.noise ? Math.round(r.noise.volume * 100) / 100 : null }; });
