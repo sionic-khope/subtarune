@@ -6,39 +6,77 @@
 # ─── How to run ───
 # /usr/bin/python3 tools/art/subrio_set.py   (루트에서)
 # ──────────────────
-"""섭리오(스크린 속 2D 플랫포머) 타일·투사체: 첫 방송 플랫폼 섬(보라 허공)을 단순화한 16px 타일 아틀라스와 창."""
+"""섭리오(스크린 속 2D 플랫포머) 타일·투사체·HUD: 스테이지 1~3 보라·청록·파랑 팔레트의 16px 타일 아틀라스(7칸), 창, 물줄기, 하트."""
 from pathlib import Path
 from typing import Final
 
 from painter import Canvas
 
-OUT: Final = (14, 5, 26)
-GROUND: Final = (96, 48, 160)
-GROUND_DARK: Final = (62, 28, 110)
-GROUND_TOP: Final = (170, 110, 235)
-BLOCK: Final = (128, 76, 196)
-BLOCK_LIGHT: Final = (205, 160, 255)
 T: Final = 16
-# 아틀라스 열: 0 바닥 윗면, 1 바닥 속, 2 떠 있는 블록, 3 블록 왼쪽 끝, 4 블록 오른쪽 끝, 5 깃발 기둥
-atlas: Final = Canvas(T * 6, T)
-# 0 바닥 윗면: 위 2px 밝은 풀 띠 + 어두운 외곽
-atlas.rect(0, 0, T, T, GROUND); atlas.rect(0, 0, T, 3, GROUND_TOP); atlas.rect(0, 3, T, 1, OUT)
-for x in (2, 7, 12): atlas.rect(x, 1, 2, 1, (230, 200, 255))
-atlas.rect(4, 9, 3, 2, GROUND_DARK); atlas.rect(11, 12, 3, 2, GROUND_DARK)
-# 1 바닥 속: 어두운 보라에 점 무늬
-atlas.rect(T, 0, T, T, GROUND_DARK)
-for (x, y) in ((3, 4), (9, 2), (13, 9), (6, 12), (1, 10)): atlas.rect(T + x, y, 2, 2, (44, 18, 80))
-# 2 떠 있는 블록: 밝은 윗면·어두운 아랫면·외곽
-atlas.rrect_outlined(T * 2, 0, T, T, BLOCK, OUT, r=2); atlas.rect(T * 2 + 2, 2, T - 4, 3, BLOCK_LIGHT); atlas.rect(T * 2 + 2, T - 4, T - 4, 2, GROUND_DARK)
-# 3·4 블록 끝(같은 모양, 한쪽 외곽만 두껍게)
-atlas.rrect_outlined(T * 3, 0, T, T, BLOCK, OUT, r=2); atlas.rect(T * 3 + 2, 2, T - 4, 3, BLOCK_LIGHT); atlas.rect(T * 3, 0, 2, T, OUT)
-atlas.rrect_outlined(T * 4, 0, T, T, BLOCK, OUT, r=2); atlas.rect(T * 4 + 2, 2, T - 4, 3, BLOCK_LIGHT); atlas.rect(T * 4 + T - 2, 0, 2, T, OUT)
-# 5 기둥
-atlas.rect(T * 5 + 6, 0, 4, T, OUT); atlas.rect(T * 5 + 7, 0, 2, T, (200, 200, 220))
-atlas.save(Path('assets/props/subrio_tiles.png'))
+# 팔레트: 밖(외곽선)·바닥·바닥 속·바닥 윗면(풀)·블록·블록 밝은 면·반짝이·속 점무늬
+PALETTES: Final = {
+    'purple': dict(out=(14, 5, 26), ground=(96, 48, 160), dark=(62, 28, 110), top=(170, 110, 235), block=(128, 76, 196), light=(205, 160, 255), spark=(230, 200, 255), dot=(44, 18, 80)),
+    'teal': dict(out=(4, 22, 22), ground=(36, 140, 130), dark=(20, 90, 86), top=(120, 230, 210), block=(60, 170, 160), light=(170, 245, 230), spark=(220, 255, 250), dot=(12, 60, 58)),
+    'blue': dict(out=(6, 10, 30), ground=(48, 84, 190), dark=(26, 46, 120), top=(130, 170, 255), block=(70, 110, 215), light=(180, 205, 255), spark=(230, 240, 255), dot=(16, 28, 80)),
+}
+FLAG_RED: Final = (220, 50, 60)
+FLAG_WHITE: Final = (250, 245, 240)
+
+
+def draw_atlas(p: dict) -> Canvas:
+    """아틀라스 열: 0 바닥 윗면, 1 바닥 속, 2 떠 있는 블록, 3 블록 왼쪽 끝, 4 블록 오른쪽 끝, 5 깃발 기둥, 6 깃발 천(기둥 꼭대기)"""
+    atlas = Canvas(T * 7, T)
+    # 0 바닥 윗면: 위 2px 밝은 풀 띠 + 어두운 외곽
+    atlas.rect(0, 0, T, T, p['ground']); atlas.rect(0, 0, T, 3, p['top']); atlas.rect(0, 3, T, 1, p['out'])
+    for x in (2, 7, 12): atlas.rect(x, 1, 2, 1, p['spark'])
+    atlas.rect(4, 9, 3, 2, p['dark']); atlas.rect(11, 12, 3, 2, p['dark'])
+    # 1 바닥 속: 어두운 색에 점 무늬
+    atlas.rect(T, 0, T, T, p['dark'])
+    for (x, y) in ((3, 4), (9, 2), (13, 9), (6, 12), (1, 10)): atlas.rect(T + x, y, 2, 2, p['dot'])
+    # 2 떠 있는 블록: 밝은 윗면·어두운 아랫면·외곽
+    atlas.rrect_outlined(T * 2, 0, T, T, p['block'], p['out'], r=2); atlas.rect(T * 2 + 2, 2, T - 4, 3, p['light']); atlas.rect(T * 2 + 2, T - 4, T - 4, 2, p['dark'])
+    # 3·4 블록 끝(같은 모양, 한쪽 외곽만 두껍게)
+    atlas.rrect_outlined(T * 3, 0, T, T, p['block'], p['out'], r=2); atlas.rect(T * 3 + 2, 2, T - 4, 3, p['light']); atlas.rect(T * 3, 0, 2, T, p['out'])
+    atlas.rrect_outlined(T * 4, 0, T, T, p['block'], p['out'], r=2); atlas.rect(T * 4 + 2, 2, T - 4, 3, p['light']); atlas.rect(T * 4 + T - 2, 0, 2, T, p['out'])
+    # 5 기둥
+    atlas.rect(T * 5 + 6, 0, 4, T, p['out']); atlas.rect(T * 5 + 7, 0, 2, T, (200, 200, 220))
+    # 6 깃발 천: 기둥 꼭대기 공(밝음) + 오른쪽으로 펄럭이는 빨강·흰 삼각기
+    atlas.rect(T * 6 + 6, 4, 4, T - 4, p['out']); atlas.rect(T * 6 + 7, 4, 2, T - 4, (200, 200, 220))
+    atlas.rrect(T * 6 + 5, 0, 6, 6, (255, 230, 120), r=2)
+    for row in range(8):
+        w = 8 - row if row < 4 else row - 3
+        atlas.rect(T * 6 + 9, 4 + row, w, 1, FLAG_RED if row % 2 == 0 else FLAG_WHITE)
+    return atlas
+
+
+for name, palette in PALETTES.items():
+    out = Path('assets/props') / ('subrio_tiles.png' if name == 'purple' else f'subrio_tiles_{name}.png')
+    draw_atlas(palette).save(out)
+    print('wrote', out, f'({T * 7}x{T})')
 # 창 투사체 24×6 (오른쪽 향함)
 spear: Final = Canvas(24, 6)
 spear.rect(0, 2, 18, 2, (120, 80, 40)); spear.rect(0, 2, 18, 1, (170, 120, 70))
 spear.rect(16, 1, 6, 4, (210, 170, 90)); spear.rect(20, 2, 4, 2, (240, 220, 150)); spear.rect(0, 1, 3, 4, (190, 40, 40))
 spear.save(Path('assets/props/subrio_spear.png'))
-print('wrote assets/props/subrio_tiles.png (96x16) and assets/props/subrio_spear.png (24x6)')
+# 비데의 물줄기 투사체 14×8 (오른쪽 향함): 하늘색 물방울 덩어리 + 흰 하이라이트
+water: Final = Canvas(14, 8)
+water.rrect(0, 1, 12, 6, (70, 150, 240), r=2); water.rrect(2, 0, 12, 6, (110, 190, 255), r=2)
+water.rect(4, 1, 5, 1, (230, 250, 255)); water.rect(10, 2, 2, 1, (230, 250, 255)); water.rect(0, 5, 3, 2, (40, 100, 200))
+water.save(Path('assets/props/subrio_water.png'))
+# HUD 하트 2칸(가득·빈) 10×9
+hud: Final = Canvas(20, 9)
+def heart(c: Canvas, x: int, fill, line) -> None:
+    rows = ['.XX..XX.', 'XXXXXXXX', 'XXXXXXXX', 'XXXXXXXX', '.XXXXXX.', '..XXXX..', '...XX...']
+    for y, row in enumerate(rows):
+        for i, ch in enumerate(row):
+            if ch == 'X': c.px(x + i + 1, y + 1, fill)
+    for y, row in enumerate(rows):
+        for i, ch in enumerate(row):
+            if ch != 'X': continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                yy, xx = y + dy, i + dx
+                if yy < 0 or yy >= len(rows) or xx < 0 or xx >= 8 or rows[yy][xx] != 'X': c.px(x + xx + 1, yy + 1, line)
+heart(hud, 0, (235, 60, 80), (60, 10, 20)); hud.rect(3, 2, 2, 1, (255, 170, 180))
+heart(hud, 10, (70, 70, 90), (30, 30, 40))
+hud.save(Path('assets/props/subrio_hud.png'))
+print('wrote assets/props/subrio_spear.png (24x6), subrio_water.png (14x8), subrio_hud.png (20x9)')

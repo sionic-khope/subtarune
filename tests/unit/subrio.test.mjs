@@ -138,3 +138,111 @@ test('test_subrio_move_body_stops_horizontally_at_step_and_reports_floor', () =>
   const drop = moveBody(level, { x: 5 * TILE, y: 10 * TILE, w: 12, h: 24 }, 0, 200);
   assert.equal(drop.floor, true);
 });
+
+// ── 스테이지 1~3·보스 (2026-09-15 사용자 확정: 보라·청록·파랑 → 마지막 비데 보스전) ──
+import { STAGES, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor, bossHitbox, bossFrame, rectsOverlap, updateProjectiles, BOSS, HERO_HP, WATER_W, WATER_H } from '../../src/scenes/subrio-core.js';
+
+/** 오른쪽만 보고 달리는 봇: 앞이 막히거나 발밑 앞이 낭떠러지면 점프. 사람이 할 수 있는 지형인지의 하한 검사 */
+function botIntent(level, actor, memo) {
+  const footRow = Math.floor((actor.y + actor.h) / TILE);
+  const aheadCol = Math.floor((actor.x + actor.w + 3) / TILE);
+  const groundAhead = level.solidAt(aheadCol, footRow) || level.solidAt(aheadCol, footRow + 1) || level.solidAt(aheadCol, footRow + 2);
+  memo.stuck = actor.grounded && Math.abs(actor.vx) < 5 && memo.lastX === actor.x ? memo.stuck + 1 : 0;
+  memo.lastX = actor.x;
+  const jump = actor.grounded && (!groundAhead || memo.stuck > 6);
+  return { ...NONE, right: true, jump, jumpHeld: true };
+}
+function botRun(stage) {
+  const level = buildLevel(stage);
+  const actor = makeActor('bot', level.spawnX, 200);
+  const memo = { stuck: 0, lastX: 0 };
+  const events = [];
+  let falls = 0;
+  for (let i = 0; i < 60 * 90; i++) {
+    const before = events.length;
+    stepActor(level, actor, botIntent(level, actor, memo), 1 / 60, events);
+    if (events.slice(before).some(e => e.type === 'fall')) falls += 1;
+    if (reachedGoal(level, actor)) return { reached: true, t: i / 60, falls };
+  }
+  return { reached: false, t: 90, falls, x: actor.x };
+}
+
+test('test_subrio_stage_list_is_purple_teal_blue_then_bidet_boss', () => {
+  assert.deepEqual(STAGES.map(s => s.id), ['purple', 'teal', 'blue', 'boss']);
+  assert.deepEqual(STAGES.map(s => s.title), ['STAGE 1', 'STAGE 2', 'STAGE 3', 'FINAL STAGE']);
+  assert.equal(STAGES[3].boss, true);
+  assert.ok(STAGES[1].tiles.includes('teal') && STAGES[2].tiles.includes('blue'));
+  for (const stage of [0, 1, 2]) { const level = buildLevel(stage); assert.ok(level.goal, `stage ${stage} 깃발`); assert.equal(level.tiles[level.goal.y / TILE][level.goal.col], 'F'); }
+  const arena = buildLevel(3);
+  assert.equal(arena.goal, null); assert.ok(arena.bossSpawnX > arena.spawnX);
+  assert.equal(arena.solidAt(0, 10), true, '왼쪽 벽'); assert.equal(arena.solidAt(43, 10), true, '오른쪽 벽');
+});
+
+test('test_subrio_each_stage_is_clearable_by_a_run_and_jump_bot_without_falling', () => {
+  for (const stage of [0, 1, 2]) {
+    const result = botRun(stage);
+    assert.equal(result.reached, true, `stage ${stage} 봇이 깃발까지 못 감 (x=${result.x})`);
+    assert.equal(result.falls, 0, `stage ${stage} 봇이 떨어짐`);
+    assert.ok(result.t < 60, `stage ${stage} 60초 안`);
+  }
+});
+
+test('test_subrio_hurt_knocks_back_costs_a_heart_and_guard_facing_the_source_blocks', () => {
+  const level = buildLevel(3);
+  const hero = settle(level, makeActor('p', 200, 288));
+  const events = [];
+  // 오른쪽에서 온 피해: 왼쪽으로 튕기고 하트 하나
+  assert.equal(hurtActor(hero, hero.x + 40, events), true);
+  assert.equal(hero.hp, HERO_HP - 1); assert.ok(hero.vx < 0 && hero.vy < 0); assert.equal(hero.state, 'hurt');
+  assert.equal(hurtActor(hero, hero.x + 40, events), false, '무적 시간 안에는 안 맞는다');
+  for (let i = 0; i < 100; i++) stepActor(level, hero, NONE, 1 / 60);
+  assert.equal(hero.invuln, 0);
+  // 방패로 오른쪽을 보고 막으면 오른쪽 피해는 막힌다, 뒤에서 오면 맞는다
+  stepActor(level, hero, { ...NONE, guard: true }, 1 / 60); hero.facing = 1;
+  assert.equal(hurtActor(hero, hero.x + 40, events), false); assert.equal(hero.hp, HERO_HP - 1);
+  assert.ok(events.some(e => e.type === 'block'));
+  assert.equal(hurtActor(hero, hero.x - 40, events), true); assert.equal(hero.hp, HERO_HP - 2);
+  hero.hp = 1; hero.invuln = 0;
+  hurtActor(hero, hero.x - 40, events);
+  assert.equal(hero.dead, true); assert.ok(events.some(e => e.type === 'dead'));
+});
+
+test('test_subrio_boss_lands_roars_chases_swings_in_reach_and_sprays_three_waters_when_far', () => {
+  const level = buildLevel(3);
+  const hero = settle(level, makeActor('p', 200, 288));
+  const boss = makeBoss(level.bossSpawnX, 100);
+  const events = [];
+  for (let i = 0; i < 50; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  assert.ok(events.some(e => e.type === 'bossLand')); assert.equal(boss.state, 'roar');
+  for (let i = 0; i < 100; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  assert.equal(boss.state, 'chase'); assert.equal(boss.facing, -1, '주인공 쪽(왼쪽)을 본다');
+  const startX = boss.x;
+  let swung = false;
+  for (let i = 0; i < 60 * 8 && !swung; i++) { stepBoss(level, boss, hero, 1 / 60, events); swung = events.some(e => e.type === 'swing'); }
+  assert.ok(swung, '사거리 안에 들어오면 휘두른다'); assert.ok(boss.x < startX);
+  assert.equal(boss.state, 'swing');
+  const box = bossHitbox(boss);
+  assert.ok(box && box.x + box.w <= boss.x + 4 && rectsOverlap(box, hero), '도끼 판정이 주인공 쪽 앞에 있고 주인공에 닿는다');
+  assert.equal(bossFrame(boss), 5);
+  // 주인공을 멀리 옮기면 추격이 길어지다 물줄기 3발
+  hero.x = boss.x - 300;
+  const before = events.length;
+  for (let i = 0; i < 60 * 5; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  const waters = events.slice(before).filter(e => e.type === 'water');
+  assert.ok(waters.length >= 3, `물줄기 ${waters.length}`); assert.ok(waters.every(w => w.vx < 0));
+  const list = waters.slice(0, 3).map(w => ({ x: w.x, y: w.y, vx: w.vx, life: BOSS.waterLife }));
+  const moved = updateProjectiles(level, list, 0.5, WATER_W, WATER_H);
+  assert.equal(moved.length, 3); assert.ok(moved[0].x < waters[0].x - 100);
+});
+
+test('test_subrio_boss_takes_one_hit_per_spear_with_cooldown_and_dies_at_zero', () => {
+  const boss = makeBoss(400, 288);
+  const events = [];
+  assert.equal(hitBoss(boss, events), true); assert.equal(boss.hp, BOSS.hp - 1);
+  assert.equal(hitBoss(boss, events), false, '연속 판정 방지');
+  assert.equal(bossFrame(boss), 7, '맞은 직후 아픈 프레임');
+  boss.hitCooldown = 0; boss.hp = 1;
+  assert.equal(hitBoss(boss, events), true);
+  assert.equal(boss.dead, true); assert.equal(boss.state, 'dead'); assert.ok(events.some(e => e.type === 'bossDead'));
+  assert.equal(hitBoss(boss, events), false);
+});

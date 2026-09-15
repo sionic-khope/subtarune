@@ -1,0 +1,96 @@
+{
+  "asset": "assets/sprites/subrio_bidet.png",
+  "cell": [
+    80,
+    64
+  ],
+  "grid": "2 cols x 4 rows, row-major: idle, walkA, walkB, jump, windup, swing, spray, hurt",
+  "feetY": 60,
+  "scale": 0.14743589743589744,
+  "frameBounds": [
+    [
+      22,
+      14,
+      55,
+      60
+    ],
+    [
+      13,
+      17,
+      48,
+      60
+    ],
+    [
+      25,
+      17,
+      60,
+      60
+    ],
+    [
+      13,
+      23,
+      46,
+      60
+    ],
+    [
+      18,
+      15,
+      54,
+      60
+    ],
+    [
+      10,
+      28,
+      65,
+      60
+    ],
+    [
+      22,
+      26,
+      78,
+      60
+    ],
+    [
+      3,
+      23,
+      64,
+      60
+    ]
+  ],
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "command": [
+    "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio166/bidet/bidet-raw.png",
+    "--target",
+    "player",
+    "--mode",
+    "idle",
+    "--rows",
+    "4",
+    "--cols",
+    "2",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio166/bidet/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "feet",
+    "--scale-strategy",
+    "fit",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc",
+    "--allow-source-edge-touch"
+  ],
+  "model": "openai/gpt-image-2 via OpenGateway images/edits (single image field, identity ref refs/bidet-ref.png)"
+}

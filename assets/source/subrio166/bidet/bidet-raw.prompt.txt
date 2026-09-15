@@ -1,0 +1,10 @@
+# imagegen 2026-09-15 10:55:17
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1536  quality: high
+# refs: assets/source/subrio166/bidet/refs/bidet-ref.png
+
+Use case: precise-object-edit. The image just shown is the identity reference: left is the character's front view, right is his right-facing side view from our RPG (spiky black hair, stern face with a small mouth, dark grey plate armor with red trim, big spiked grey pauldrons, and a huge two-bladed battle axe with a red gem, held in one hand). Keep his identity exactly: spiky black hair, dark grey armor with red trim, spiked pauldrons, the giant double-bladed axe.
+Produce a pixel-art side-view platformer BOSS sprite sheet of this character. EXACTLY 2 columns x 4 rows, 1024x1536 canvas, invisible equal 512x384 cells, solid pure #FF00FF background, no text, labels, grid, borders or shadows.
+Classic 8-bit platformer proportions but bulkier than a hero: chunky body about 2.5 heads tall, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as the reference. Every frame faces RIGHT, same body size and camera distance in all cells, feet on the same baseline, body inside the central 65% of each cell, the axe fully inside the cell.
+Frames row-major: (1) idle standing with the axe resting on his shoulder, (2) walk step A, (3) walk step B, (4) jump with knees tucked, (5) axe raised high overhead with both hands (wind-up), (6) axe swung down in front of him, blade near the ground (attack), (7) leaning forward and firing a strong horizontal jet of light-blue water from his open palm toward the right, (8) flinching hurt pose, leaning back with eyes shut.

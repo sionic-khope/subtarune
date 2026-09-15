@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2",
+    "n": "1",
+    "size": "1024x1536",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/subrio166/bidet/refs/bidet-ref.png"
+  ],
+  "elapsed_seconds": 85.5,
+  "usage": {
+    "input_tokens": 1044,
+    "output_tokens": 5488,
+    "total_tokens": 6532,
+    "input_tokens_details": {
+      "image_tokens": 672,
+      "text_tokens": 372
+    },
+    "output_tokens_details": {
+      "image_tokens": 5488,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789437314,
+  "outputs": [
+    {
+      "file": "assets/source/subrio166/bidet/bidet-raw.png",
+      "bytes": 1507724,
+      "size": [
+        1024,
+        1536
+      ],
+      "revised_prompt": null
+    }
+  ]
+}
