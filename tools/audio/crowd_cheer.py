@@ -6,7 +6,8 @@
 # ─── How to run ───
 # /usr/bin/python3 tools/audio/crowd_cheer.py   (루트에서) → assets/audio/sfx/crowd_cheer.mp3, crowd_roar.mp3
 # ──────────────────
-"""리듬 게임 관객 환호(BUILD180, 사용자: “박수소리 좀더 락 같은, 리믹스 노이즈도”): 대역통과 노이즈 함성(느린 랜덤 진폭) + 박수 임펄스 무리 + 휘파람 두 개를 섞은 2.6초 환호.
+"""(BUILD187 이후 안 씀 — 사용자 “휘파람이 전자음 같다”: crowd_cheer/crowd_roar/applause 는 실제 녹음으로 교체됨, design/audio/references.md 참고. 생성기는 보관.)
+리듬 게임 관객 환호(BUILD180, 사용자: “박수소리 좀더 락 같은, 리믹스 노이즈도”): 대역통과 노이즈 함성(느린 랜덤 진폭) + 박수 임펄스 무리 + 휘파람 두 개를 섞은 2.6초 환호.
 crowd_roar 는 같은 재료의 긴 함성(4초, 콤보 50 이상·곡 끝)."""
 from pathlib import Path
 import subprocess

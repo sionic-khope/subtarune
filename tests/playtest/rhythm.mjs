@@ -100,6 +100,17 @@ try {
   check(t2.song === 1 && t2.title === '악질 시청자' && t2.cheer > 0, '둘째 곡 악질 시청자(-쥰희- 버전) 제목 카드 + 관객 환호 ' + JSON.stringify(t2));
   const n3 = await page.evaluate(() => window.__rhythm.state.charts.map(c => c && c.title));
   check(n3.length === 3 && n3[2] === '보X팜', '세 곡 순서: 노앰토리 → 악질 시청자 → 보X팜 ' + JSON.stringify(n3));
+  // 마지막 곡을 끝낸 셈 치면(song=2) 기립 환호 → 결과창이 한 글자씩 찍힌다(사용자) → 다 찍히면 C 계속
+  await page.evaluate(() => { const r = window.__rhythm; r.state.song = 2; r.state.phase = 'play'; r.endSong(); });
+  await page.waitForFunction(() => window.__rhythm.state.phase === 'result', null, { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(1200); await cap('result_typing');
+  const rt = await page.evaluate(() => { const r = window.__rhythm.state.result; return r ? { line: r.line, shown: r.shown, done: r.done, lines: r.lines.length } : null; });
+  check(rt && !rt.done && (rt.line > 0 || rt.shown > 0), '결과창이 한 글자씩 찍히는 중 ' + JSON.stringify(rt));
+  await page.waitForFunction(() => window.__rhythm.state.result?.done, null, { timeout: 15000 }).catch(() => {});
+  await cap('result'); const rt2 = await page.evaluate(() => window.__rhythm.state.result?.done);
+  check(rt2 === true, '결과창 다 찍힘 → C 계속 ' + JSON.stringify(rt2));
+  const cr = await page.evaluate(() => ({ active: window.__rhythm.state.crowdActive.length, bed: !!window.__rhythm.state.bed }));
+  console.log('crowd layer', JSON.stringify(cr));
   await page.evaluate(() => window.__rhythm.finish(true));
   await page.waitForFunction(() => !window.__rhythm, null, { timeout: 5000 }).catch(() => {});
   // 씬이 끝나면 공연 뒤 연출(검은 화면 나레이션)로 이어진다 — 상세는 stage-after-show 플레이테스트

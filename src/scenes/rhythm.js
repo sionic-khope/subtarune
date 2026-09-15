@@ -8,7 +8,8 @@
 //   하이라이트(코러스, chart.highlights — 보X팜 마지막 ‘보x 존나 팔고~’ 등): 들어가는 순간 함성·꽃·양옆 불꽃, 구간 내내 색색 컬러 빔·박자 스트로브·색종이·
 //   바닥 원 펄스·관객 점프, 마디마다 불꽃, 16박마다 환호, 끝나면 박수.
 //   양옆 패드(경섭 드럼 | 빠맨 보컬)도 가운데와 같은 두 칸짜리 기둥이고 알아서 친다(사용자 확정): 자동 노트가 판정선에 닿으면 반짝 + 드럼·노래 애니.
-//   소리(BUILD183 사용자 최종 확정 “소리 없애고 리듬으로만”): 곡 중 GREAT·홀드는 소리 없음(반짝만). 노트 없는 데 누르면 긁기 0.22, MISS 는 데드 노트(툭) 0.3, 영상 1.0, 관객 소리는 곡 중 0.6배.
+//   소리(BUILD183 사용자 최종 확정 “소리 없애고 리듬으로만”): 곡 중 GREAT·홀드는 소리 없음(반짝만). 노트 없는 데 누르면 긁기 0.22, MISS 는 데드 노트(툭) 0.3, 영상 1.0(+WebAudio 게인 1.1), 관객 소리는 곡 중 0.6배.
+//   관객 소리(BUILD187, 사용자 “휘파람 전자음 같다·진짜 박수·환호 자연스럽게”): 전부 실제 녹음(assets/source/crowd187) — 종류별 변형 2개 번갈아, 쿨다운, 속도 ±4%, 앞 환호 페이드, 곡 중엔 흥(excite)에 따라 커지는 바닥 루프(crowd_bed).
 //   사운드 체크(작은별)만 음정 일렉(c4/g4/a4). 노앰토리는 영상은 처음부터 틀고 노트만 18.2초 ‘만원 주면~’부터(chart.notesFrom, 사용자 정정).
 //   홀드는 꾹 누르다 떼면 성공(중간에 떼도 MISS 아님, 사용자 확정).
 //   신호 품질(BUILD183 사용자 “리듬을 잘 맞춰야 노래가 나오고 못 맞추면 지직거리며 덜 나온다”): state.signal 0~1. GREAT +0.15, MISS −0.3(+‘지직’ 버스트·화면 찢김).
@@ -38,7 +39,11 @@ const NOTE_RGB = '92,226,208', LINE_RGB = '86,204,222';
 const SIDE = { drums: { x: 100, w: 80, rgb: '255,111,168', label: '경섭' }, vocal: { x: 300, w: 80, rgb: '125,255,90', label: '빠맨' } };
 const sideHalf = (sd, lane) => ({ x: lane === 'R' ? sd.x + sd.w / 2 : sd.x, w: sd.w / 2 });
 // 믹스: 노래가 주인공. 곡 중 기타 소리는 없다(리듬으로만)
-const MIX = { song: 1.0, scratch: 0.22, miss: 0.3, crowdInSong: 0.6, songFloor: 0.25, staticMax: 0.35 };
+// song: 요소 볼륨(최대 1) — 사용자 “노래 10% 더” 는 WebAudio 게인(songGain)으로 1.1배. bed: 곡 중 깔리는 관객 웅성·박수 바닥 소리의 최대치
+const MIX = { song: 1.0, songGain: 1.1, scratch: 0.22, miss: 0.3, crowdInSong: 0.6, songFloor: 0.25, staticMax: 0.35, bed: 0.22 };
+// 환호를 자연스럽게(사용자): 같은 소리 재발동 최소 간격, 변형 샘플을 번갈아, 재생 속도 ±4%, 새 환호가 시작되면 앞 환호는 서서히 줄인다
+const CROWD_VARIANTS = { applause: ['applause', 'applause_2'], cheer: ['crowd_cheer', 'crowd_cheer_2'], roar: ['crowd_roar', 'crowd_roar_2'] };
+const CROWD_COOLDOWN = { applause: 1.2, cheer: 2.5, roar: 4.0 };
 const SIGNAL = { great: 0.15, miss: 0.3, glitch: 0.35 };
 const PITCH_SFX = { 261.63: 'guitar_c4', 392: 'guitar_g4', 440: 'guitar_a4' };
 const HI_COLORS = ['255,110,190', '110,220,255', '255,225,110', '150,255,140'];
@@ -141,9 +146,16 @@ export function run(game, node = {}) {
       stats: { score: 0, maxCombo: 0, songs: [] }, shake: 0, fx: [], flowers: [], holds: {}, chord: 0, beam: 0,
       hi: false, hiT: 0, lastBeat: -1, strobe: 0, confetti: [], sparks: [],
       signal: 1, glitch: 0, noise: null, coins: [], after: null, badge: 0,
+      crowdLast: { applause: -9, cheer: -9, roar: -9 }, crowdPick: { applause: 0, cheer: 0, roar: 0 }, crowdActive: [], bed: null, excite: 0,
+      result: null,
     };
     const charts = SONGS.map(src => fetch(src).then(r => r.json()).catch(() => null));
-    const makeVideo = (src) => { const v = document.createElement('video'); v.src = src; v.preload = 'auto'; v.playsInline = true; v.volume = MIX.song; v.style.display = 'none'; document.body.appendChild(v); return v; };
+    const makeVideo = (src) => {
+      const v = document.createElement('video'); v.src = src; v.preload = 'auto'; v.playsInline = true; v.volume = MIX.song; v.style.display = 'none'; document.body.appendChild(v);
+      // 노래를 WebAudio 게인(1.1)으로 — 요소 볼륨은 1 이 상한이라(사용자 “노래 10% 더”). 컨텍스트가 아직 없으면(잠금 해제 전) 요소 볼륨만
+      try { const ac = sound.ctx; if (ac) { const src = ac.createMediaElementSource(v); const g = ac.createGain(); g.gain.value = MIX.songGain; src.connect(g); g.connect(ac.destination); } } catch (e) { /* 이미 연결됐거나 지원 안 함 */ }
+      return v;
+    };
     Promise.all(charts).then(list => { state.charts = list; state.videos = list.map(c => c && c.video ? makeVideo(c.video) : null); });
 
     const prev = Object.create(null);
@@ -159,7 +171,7 @@ export function run(game, node = {}) {
     };
     const finish = (found) => {
       if (state.exiting) return; state.exiting = true;
-      stopNoise();
+      stopNoise(); stopBed(); for (const c of state.crowdActive) { try { c.a.pause(); c.a.src = ''; } catch (e) { /* */ } }
       for (const lane of ['L', 'R']) stopHold(lane);
       for (const v of state.videos) if (v) { try { v.pause(); } catch (e) { /* */ } v.remove(); }
       ov.root.style.transition = 'opacity 0.6s ease'; ov.root.style.opacity = '0';
@@ -169,15 +181,34 @@ export function run(game, node = {}) {
     const strum = (kind = 'tap') => { const h = bandOf('hyungsub'); h.frame = kind === 'hold' ? 3 : (h.frame === 1 ? 2 : 1); h.animT = kind === 'hold' ? 0.6 : 0.22; };
     const drumHit = () => { const d = bandOf('gyeongsub'); d.frame = 1 + Math.floor(Math.random() * 3); d.animT = 0.18; };
     const sing = () => { const v = bandOf('ppaman'); v.frame = 1 + Math.floor(Math.random() * 3); v.animT = 0.3; };
+    // 관객 소리 한 번: 종류별 쿨다운·변형 번갈아·속도 ±4%·앞 환호는 서서히 줄임. 길이 len(초) 뒤 자연 종료
+    const crowdSfx = (kind, volume, force = false) => {
+      const now = state.t;
+      if (!force && now - state.crowdLast[kind] < CROWD_COOLDOWN[kind]) return null;
+      state.crowdLast[kind] = now;
+      const names = CROWD_VARIANTS[kind], name = names[state.crowdPick[kind] % names.length]; state.crowdPick[kind] += 1;
+      const rate = 0.96 + Math.random() * 0.08;
+      const a = sfx(name, Math.min(1, volume), 0, rate) || sfx(names[0], Math.min(1, volume), 0, rate);
+      if (a && typeof a === 'object') {
+        // 같은 종류의 앞 소리는 0.6초에 걸쳐 줄인다(겹쳐 쿵 하지 않게)
+        for (const c of state.crowdActive) if (c.kind === kind && c.a !== a) c.fade = 0.6;
+        state.crowdActive.push({ kind, a, fade: 0, t: 0 });
+      }
+      return a;
+    };
     const cheer = (level) => {
       state.cheer = level >= 4 ? 7 : level >= 3 ? 3.4 : level >= 2 ? 2.4 : 1.6; state.cheerBig = level >= 2;
+      state.excite = Math.min(1, state.excite + (level >= 3 ? 0.5 : level >= 2 ? 0.3 : 0.15));
       const m = state.phase === 'play' && level < 4 ? MIX.crowdInSong : 1;
-      // 4 = 곡이 끝났을 때의 기립 환호(사용자: “더 크게 오래”): 함성 두 번 겹침 + 박수 길게
-      if (level >= 4) { sfx('crowd_roar', 0.95); sfx('applause', 0.75); state.flash = 0.6; setTimeout(() => { if (!state.exiting) { sfx('crowd_roar', 0.8); sfx('crowd_cheer', 0.6); } }, 1500); setTimeout(() => { if (!state.exiting) sfx('applause', 0.7); }, 3200); }
-      else if (level >= 3) { sfx('crowd_roar', 0.75 * m); sfx('applause', 0.6 * m); state.flash = 0.4; }
-      else if (level >= 2) { sfx('crowd_cheer', 0.7 * m); sfx('applause', 0.5 * m); }
-      else sfx('applause', 0.6 * m);
+      // 4 = 곡이 끝났을 때의 기립 환호(사용자: “더 크게 오래”): 함성이 겹치며 이어지고 박수가 길게 남는다
+      if (level >= 4) { crowdSfx('roar', 0.95, true); crowdSfx('applause', 0.75, true); state.flash = 0.6; setTimeout(() => { if (!state.exiting) { crowdSfx('roar', 0.8, true); crowdSfx('cheer', 0.6, true); } }, 1400); setTimeout(() => { if (!state.exiting) crowdSfx('applause', 0.7, true); }, 3200); }
+      else if (level >= 3) { crowdSfx('roar', 0.75 * m); crowdSfx('applause', 0.55 * m); state.flash = 0.4; }
+      else if (level >= 2) { crowdSfx('cheer', 0.65 * m); crowdSfx('applause', 0.45 * m); }
+      else crowdSfx('applause', 0.55 * m);
     };
+    // 곡 중 바닥 소리(관객 웅성·산발 박수 루프): 흥(excite)이 오를수록 커지고 천천히 가라앉는다 — 환호가 뚝뚝 끊기지 않게 잇는 층
+    const startBed = () => { stopBed(); const a = sfx('crowd_bed', 0); if (a && typeof a === 'object') { a.loop = true; state.bed = a; } };
+    const stopBed = () => { const a = state.bed; if (!a) return; state.bed = null; let v = a.volume; const step = () => { v -= 0.03; if (v <= 0.01) { try { a.pause(); a.src = ''; } catch (e) { /* */ } } else { a.volume = Math.max(0, v); setTimeout(step, 60); } }; step(); };
     // 무대 양옆 불꽃(파이로) + 위에서 떨어지는 색종이 — 하이라이트·환호 연출
     const pyro = (n = 12) => { for (const sx of [64, 416]) for (let i = 0; i < n; i++) state.sparks.push({ x: sx + (Math.random() - 0.5) * 10, y: 270, vx: (Math.random() - 0.5) * 90, vy: -(170 + Math.random() * 150), t: 0, dur: 0.55 + Math.random() * 0.35 }); };
     const confetti = (n) => { for (let i = 0; i < n; i++) state.confetti.push({ x: Math.random() * SCREEN_W, y: -6 - Math.random() * 30, vy: 55 + Math.random() * 70, t: Math.random() * 6, color: i % 5 === 4 ? '#ffffff' : FLOWER_COLORS[i % FLOWER_COLORS.length], seed: Math.random() * 7 }); };
@@ -205,28 +236,48 @@ export function run(game, node = {}) {
     const startSong = () => {
       const v = state.videos?.[state.song];
       state.phase = 'play'; state.phaseT = 0; state.sideT = 0; state.clock = 0; state.fromClock = !v; state.video = v; state.signal = 1; state.glitch = 0;
-      startNoise(); applySignal();
+      startNoise(); applySignal(); startBed();
       if (v) { v.currentTime = 0; v.play().catch(() => { v.muted = true; v.play().catch(() => { state.fromClock = true; }); }); }
     };
     const retry = () => {
       for (const lane of ['L', 'R']) stopHold(lane);
       state.play = makePlay(state.chart); state.over = false; state.judge = null; state.clock = 0; state.sideT = 0; state.lastCombo10 = 0; state.hi = false; state.lastBeat = -1; state.signal = 1; state.glitch = 0;
-      startNoise(); applySignal();
+      startNoise(); applySignal(); startBed();
       const v = state.video; if (v) { v.currentTime = 0; v.play().catch(() => {}); }
       sfx('confirm', 0.7);
     };
     const songTime = () => (state.video && !state.fromClock) ? state.video.currentTime : state.clock;
+    // 결과창(사용자: “한 글자씩 주루루룩”): 줄마다 글자가 0.035초 간격으로 찍히며 틱 소리, 줄 사이 0.35초 쉼, 다 찍히면 C
+    const startResult = () => {
+      const lines = [{ text: '무대 끝!', x: SCREEN_W / 2, y: 56, size: 30, color: '#ffe066', align: 'center' }];
+      state.stats.songs.forEach((sg, i) => {
+        lines.push({ text: sg.title, x: 70, y: 112 + i * 44, size: F.size, color: '#ffe066', align: 'left' });
+        lines.push({ text: `SCORE ${sg.score}   MAX COMBO ${sg.maxCombo}   ${sg.grade}`, x: 70, y: 132 + i * 44, size: F.size, color: '#fff', align: 'left' });
+      });
+      lines.push({ text: `총점 ${state.stats.score}`, x: SCREEN_W / 2, y: 262, size: 18, color: '#7dff5a', align: 'center' });
+      state.phase = 'result'; state.phaseT = 0; state.result = { lines, line: 0, shown: 0, timer: 0, gap: 0, done: false };
+      sfx('won', 0.8);
+    };
+    const updateResult = (dt) => {
+      const r = state.result; if (!r || r.done) return;
+      if (r.gap > 0) { r.gap -= dt; return; }
+      r.timer += dt;
+      while (r.timer >= 0.035 && !r.done) {
+        r.timer -= 0.035; r.shown += 1; sound.blip('narrator');
+        if (r.shown >= r.lines[r.line].text.length) { r.line += 1; r.shown = 0; r.gap = 0.35; if (r.line >= r.lines.length) { r.done = true; sfx('great_shine', 0.5); } break; }
+      }
+    };
     const endSong = () => {
       for (const lane of ['L', 'R']) stopHold(lane, false);
       const p = state.play; state.stats.songs.push({ title: state.chart.title, score: p.score, maxCombo: p.maxCombo, grade: grade(p) });
       state.stats.score += p.score; state.stats.maxCombo = Math.max(state.stats.maxCombo, p.maxCombo);
       if (state.video) { try { state.video.pause(); } catch (e) { /* */ } }
-      stopNoise(); state.signal = 1; state.hi = false;
+      stopNoise(); state.signal = 1; state.hi = false; setTimeout(stopBed, 2500);
       // 기립 환호(크게·오래) + 꽃·동전·불꽃·색종이 → 잠시 즐긴 뒤 대사/결과
       state.phase = 'ovation'; state.phaseT = 0;
       cheer(4); throwFlowers(36); throwCoins(28); pyro(30); confetti(80);
       const idx = state.song;
-      state.after = idx < SONGS.length - 1 ? () => startTalk(TALK_AFTER[idx], () => startTitle(idx + 1)) : () => { state.phase = 'result'; state.phaseT = 0; sfx('won', 0.8); };
+      state.after = idx < SONGS.length - 1 ? () => startTalk(TALK_AFTER[idx], () => startTitle(idx + 1)) : startResult;
     };
 
     const update = (dt) => {
@@ -250,6 +301,11 @@ export function run(game, node = {}) {
       for (const sp of state.sparks) { sp.t += dt; sp.vy += 420 * dt; sp.x += sp.vx * dt; sp.y += sp.vy * dt; }
       state.sparks = state.sparks.filter(sp => sp.t < sp.dur);
       state.strobe = Math.max(0, state.strobe - dt * 2.2); state.glitch = Math.max(0, state.glitch - dt);
+      // 관객 소리 층: 줄이기로 표시된 앞 환호를 서서히 줄이고, 흥은 천천히 식으며 바닥 루프 볼륨을 따라간다
+      for (const c of state.crowdActive) { c.t += dt; if (c.fade > 0) { c.a.volume = Math.max(0, c.a.volume - dt / c.fade); if (c.a.volume <= 0.01) { try { c.a.pause(); c.a.src = ''; } catch (e) { /* */ } c.done = true; } } if (c.a.ended || c.a.paused && c.t > 0.5) c.done = true; }
+      state.crowdActive = state.crowdActive.filter(c => !c.done);
+      state.excite = Math.max(0, state.excite - dt * (state.hi ? 0.02 : 0.08));
+      if (state.bed) state.bed.volume = Math.min(1, MIX.bed * (0.25 + 0.75 * state.excite) * (state.phase === 'play' ? 1 : 0.6));
       // 배지: 곡 중 신호가 나쁘면 스르륵 나타나고 회복하면 사라진다
       const wantBadge = state.phase === 'play' && !state.over && state.signal < BADGE_SHOW;
       state.badge = Math.max(0, Math.min(1, state.badge + (wantBadge ? dt * 4 : -dt * 3)));
@@ -294,7 +350,7 @@ export function run(game, node = {}) {
           if (e.type === 'holdEnd') { state.fx.push({ kind: 'ring', lane: e.lane, t: 0, dur: 0.3 }); stopHold(e.lane, false); state.signal = Math.min(1, state.signal + SIGNAL.great * 0.5); }
           if (e.type === 'miss') { state.judge = { text: 'MISS', color: '#ff6a6a' }; state.judgeT = 0; sfx('guitar_dead', MIX.miss); if (e.why === 'release') stopHold(e.lane); if (state.phase === 'play') { state.signal = Math.max(0, state.signal - SIGNAL.miss); state.glitch = SIGNAL.glitch; sfx('static_burst', 0.55); } }
           if (e.type === 'empty') { sfx('guitar_scratch', MIX.scratch); strum('tap'); }
-          if (e.type === 'over') { state.over = true; for (const lane of ['L', 'R']) stopHold(lane); if (state.video) { try { state.video.pause(); } catch (err) { /* */ } } stopNoise(); sfx('damage', 0.8); state.shake = 0.5; }
+          if (e.type === 'over') { state.over = true; for (const lane of ['L', 'R']) stopHold(lane); if (state.video) { try { state.video.pause(); } catch (err) { /* */ } } stopNoise(); stopBed(); sfx('damage', 0.8); state.shake = 0.5; }
         }
         // 하이라이트(코러스): 들어가는 순간 함성·꽃·불꽃·색종이, 구간 내내 관객 점프·색종이·마디 첫 박 스트로브+불꽃, 16박마다 환호, 나오면 박수
         const hiIdx = state.phase === 'play' ? highlightAt(state.chart, time) : -1;
@@ -310,7 +366,7 @@ export function run(game, node = {}) {
             const bar = ((bi % 4) + 4) % 4 === 0;
             state.strobe = bar ? 0.45 : Math.max(state.strobe, 0.18);
             if (bar) pyro(8);
-            if (((bi % 16) + 16) % 16 === 8) sfx('crowd_cheer', 0.4 * MIX.crowdInSong);
+            if (((bi % 16) + 16) % 16 === 8) crowdSfx('cheer', 0.45 * MIX.crowdInSong);
           }
         }
         if (state.phase === 'play') applySignal();
@@ -326,7 +382,7 @@ export function run(game, node = {}) {
         }
         return;
       }
-      if (state.phase === 'result') { if (confirm && state.phaseT > 0.8) finish(true); }
+      if (state.phase === 'result') { updateResult(dt); const r = state.result; if (confirm) { if (r && !r.done) { r.line = r.lines.length; r.done = true; } else if (state.phaseT > 0.8) finish(true); } }
     };
 
     // ── 그리기 ──
@@ -573,10 +629,12 @@ export function run(game, node = {}) {
     const drawResult = () => {
       if (state.phase !== 'result') return;
       ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-      text('무대 끝!', SCREEN_W / 2, 60, { align: 'center', size: 30, color: '#ffe066' });
-      state.stats.songs.forEach((s, i) => { text(`${s.title}`, 70, 120 + i * 40, { color: '#ffe066' }); text(`SCORE ${s.score}   MAX COMBO ${s.maxCombo}   ${s.grade}`, 70, 140 + i * 40, { color: '#fff' }); });
-      text(`총점 ${state.stats.score}`, SCREEN_W / 2, 240, { align: 'center', size: 18, color: '#7dff5a' });
-      if (state.phaseT > 0.8 && Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, SCREEN_H - 40, { align: 'center', color: '#8f8fa6', size: 12 });
+      const r = state.result; if (!r) return;
+      r.lines.forEach((l, i) => {
+        const shown = i < r.line || r.done ? l.text.length : i === r.line ? r.shown : 0;
+        if (shown > 0) text(l.text.slice(0, shown), l.x, l.y, { align: l.align, size: l.size, color: l.color });
+      });
+      if (r.done && Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, SCREEN_H - 40, { align: 'center', color: '#8f8fa6', size: 12 });
     };
     // 최상위 레이어: ‘● 연결 안 됨’ 배지(왼쪽 아래 관객석 위·SCORE 바 바로 위 — 기둥·스크린과 안 겹치게, 사용자 “옮겨”), 빨간 점 깜빡임
     const drawBadge = () => {
