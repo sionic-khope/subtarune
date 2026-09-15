@@ -59,8 +59,12 @@ try {
   await page.waitForFunction(() => window.__rhythm.state.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(1200); await cap('tv_on');
   s = await st(); check(s.phase === 'play' && (s.video || s.fromClock), 'TV 켜지며 곡 시작(영상 또는 시계) ' + JSON.stringify([s.phase, s.video, s.fromClock, s.tvOn]));
-  await autoPlay(9); await page.waitForTimeout(100); await cap('play');
+  await autoPlay(4); await page.waitForTimeout(100); await cap('play');
+  // 노앰토리 첫 하이라이트(5.7초~)에 들어가면 색종이·불꽃·관객 점프·스트로브(BUILD181)
+  await autoPlay(5); await page.waitForTimeout(60); await cap('highlight');
   s = await st(); check(s.score > 0 && s.max >= 5 && s.time > 5, '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다 ' + JSON.stringify([s.score, s.max, s.time, s.misses]));
+  const hl = await page.evaluate(() => { const r = window.__rhythm.state; return { hi: r.hi, confetti: r.confetti.length, cheer: Math.round(r.cheer * 100) / 100, sparks: r.sparks.length, hl: r.chart.highlights }; });
+  check(hl.hi === true && hl.confetti > 20 && hl.cheer > 0, '코러스 하이라이트: 색종이·관객 환호 ' + JSON.stringify(hl));
   // 손을 놓으면 5연속 MISS → 게임오버 → C 재도전
   await page.waitForFunction(() => window.__rhythm.state.over, null, { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(300); await cap('over');

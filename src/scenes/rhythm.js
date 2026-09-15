@@ -1,26 +1,33 @@
-// 무대 리듬 게임 오버레이 씬(BUILD180 개편) — 2026-09-15 사용자 브리핑(델타룬 3장 테나 리듬 게임 참고 https://www.youtube.com/watch?v=103D6O-Wr_g).
+// 무대 리듬 게임 오버레이 씬(BUILD181 델타룬 UI 정렬) — 2026-09-15 사용자 브리핑(델타룬 3장 테나 리듬 게임 참고 https://www.youtube.com/watch?v=103D6O-Wr_g).
 // 컷신 노드 { scene3d: 'rhythm', flag } 로 실행. 규칙은 rhythm-core.js(순수), 여기는 진행·그리기·소리·입력·영상.
-//   화면: 생성 배경 `rhythm_backdrop.png`(위 가운데 매달린 꺼진 대형 스크린, 좌우 스포트라이트·스피커 스택, 바닥 조명 웅덩이) 위에
-//   반투명 리듬 칸 셋(경섭 드럼 | 형섭 ←/→ 두 칸 | 빠맨 보컬)이 스크린을 타고 내려온다. 밴드는 절반 크기로 무대 뒤쪽에 서고 관객(생성 띠, 2프레임)이 맨 아래.
-//   흐름: 페이드인 → 셋이 왼쪽부터 떨어져 자리 → 대사 → 사운드 체크(작은별, 음정별 일렉 샘플) → 룰 대사(‘죽습니다’) → ‘관객 여러분들 즐길 준비되셨나요?’ → 함성·박수·꽃 →
+//   화면(델타룬 참고 이미지 기준): 생성 배경 `rhythm_backdrop.png`(매달린 스크린, 좌우 스포트라이트·스피커) 위에 가운데 리듬 기둥 하나(왼쪽 반 ←, 오른쪽 반 →),
+//   청록 노트 막대와 흰 박자선이 같이 내려오고 콤보 숫자는 기둥 안에 크게. 밴드는 델타룬 비율(드럼 세트 크게·사람 작게, 셋이 무대 폭에 넓게)로 서고
+//   발밑에 바닥 스포트라이트 원이 위아래로 떠다닌다. 관객(생성 띠, 2프레임)은 맨 아래.
+//   흐름: 페이드인 → 셋이 왼쪽부터 떨어져 자리 → 대사 → 사운드 체크(작은별) → 룰 대사(‘죽습니다’) → ‘관객 여러분들 즐길 준비되셨나요?’ → 함성·박수·꽃·불꽃 →
 //   노래방식 제목 + 앰프 피드백 → 스크린 켜지며 영상·플레이 → 대사 → 두 번째 곡 → 결과.
+//   하이라이트(코러스, chart.highlights — 보X팜 마지막 ‘보x 존나 팔고~’ 등): 들어가는 순간 함성·꽃·양옆 불꽃, 구간 내내 색색 컬러 빔·박자 스트로브·색종이·
+//   바닥 원 펄스·관객 점프, 마디마다 불꽃, 16박마다 환호, 끝나면 박수.
 //   소리(전부 샘플): GREAT 는 고게인 파워코드(E/A 번갈아), 홀드는 누르는 동안 sustain 이 쭈욱, 노트 없는 데 누르면 긁기, MISS 는 팜뮤트 척, 콤보 10 박수·20 환호·50 함성.
 import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
-import { makePlay, stepPlay, finished, sideHits, visibleNotes, grade, RHYTHM, TWINKLE } from './rhythm-core.js';
+import { makePlay, stepPlay, finished, sideHits, visibleNotes, grade, beatAt, highlightAt, RHYTHM, TWINKLE } from './rhythm-core.js';
 
 const BAND = [
-  { id: 'gyeongsub', label: '경섭', color: '#ff6fa8', sheet: 'assets/sprites/band_gyeongsub.png', x: 150, voice: 'gyeongsub' },
-  { id: 'hyungsub', label: '형섭', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, voice: 'hyungsub' },
-  { id: 'ppaman', label: '빠맨', color: '#7dff5a', sheet: 'assets/sprites/band_ppaman.png', x: 330, voice: 'ppaman' },
+  // draw = 화면 크기(px, 128 셀 기준). 델타룬 비율(사용자 참고 이미지 실측: 사람 키 ≈ 화면 높이 15%, 드럼 세트 ≈ 19%·사람의 2.5배 폭, 셋이 무대 폭 15/46/78% 자리)
+  { id: 'gyeongsub', label: '경섭', color: '#ff6fa8', sheet: 'assets/sprites/band_gyeongsub.png', x: 112, draw: 76, voice: 'gyeongsub' },
+  { id: 'hyungsub', label: '형섭', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 64, voice: 'hyungsub' },
+  { id: 'ppaman', label: '빠맨', color: '#7dff5a', sheet: 'assets/sprites/band_ppaman.png', x: 372, draw: 66, voice: 'ppaman' },
 ];
 const BACKDROP = 'assets/props/rhythm_backdrop.png', AUDIENCE = 'assets/props/rhythm_audience.png';
-const CELL = 128, DRAW = 64, FEET = 122, STAND_Y = 284;
+const CELL = 128, FEET = 122, STAND_Y = 288;
 // 생성 배경 속 스크린(측정값): 영상은 여기에
 const TV = { x: 106, y: 34, w: 264, h: 148 };
-const LANE_TOP = 42, RECEPTOR_Y = 200;
-const LANE_BOX = { drums: { x: 116, w: 50 }, L: { x: 194, w: 44 }, R: { x: 242, w: 44 }, vocal: { x: 314, w: 50 } };
+// 델타룬식 리듬 기둥: 가운데 하나, 왼쪽 반 = ←, 오른쪽 반 = →. 흰 박자선이 노트와 함께 내려오고 콤보는 기둥 안에 크게
+const LANE_TOP = 24, RECEPTOR_Y = 204, LANE = { x: 190, w: 100 };
+const HALF = { L: { x: LANE.x, w: LANE.w / 2 }, R: { x: LANE.x + LANE.w / 2, w: LANE.w / 2 } };
+const NOTE_RGB = '92,226,208', LINE_RGB = '86,204,222';
+const HI_COLORS = ['255,110,190', '110,220,255', '255,225,110', '150,255,140'];
 const SONGS = ['assets/rhythm/noamtori.json', 'assets/rhythm/bojipam.json'];
 const CHAR_DELAY = 0.032;
 const SPEAKERS = { gyeongsub: { label: '경섭', color: '#ff6fa8' }, ppaman: { label: '억빠맨', color: '#c9a3ff' }, ttuulla: { label: '뚜울라알라', color: '#ffd166' } };
@@ -104,6 +111,7 @@ export function run(game, node = {}) {
       talk: null, chart: null, play: null, song: 0, video: null, videos: [], clock: 0, fromClock: false,
       judge: null, judgeT: 0, cheer: 0, cheerBig: false, lastCombo10: 0, sideT: 0, tvOn: 0, title: null, hum: 0, over: false, flash: 0,
       stats: { score: 0, maxCombo: 0, songs: [] }, shake: 0, fx: [], flowers: [], holds: {}, chord: 0, beam: 0,
+      hi: false, hiT: 0, lastBeat: -1, strobe: 0, confetti: [], sparks: [],
     };
     const charts = SONGS.map(src => fetch(src).then(r => r.json()).catch(() => null));
     const makeVideo = (src) => { const v = document.createElement('video'); v.src = src; v.preload = 'auto'; v.playsInline = true; v.volume = 0.85; v.style.display = 'none'; document.body.appendChild(v); return v; };
@@ -131,6 +139,9 @@ export function run(game, node = {}) {
       else if (level >= 2) { sfx('crowd_cheer', 0.7); sfx('applause', 0.5); }
       else sfx('applause', 0.6);
     };
+    // 무대 양옆 불꽃(파이로) + 위에서 떨어지는 색종이 — 하이라이트·환호 연출
+    const pyro = (n = 12) => { for (const sx of [64, 416]) for (let i = 0; i < n; i++) state.sparks.push({ x: sx + (Math.random() - 0.5) * 10, y: 270, vx: (Math.random() - 0.5) * 90, vy: -(170 + Math.random() * 150), t: 0, dur: 0.55 + Math.random() * 0.35 }); };
+    const confetti = (n) => { for (let i = 0; i < n; i++) state.confetti.push({ x: Math.random() * SCREEN_W, y: -6 - Math.random() * 30, vy: 55 + Math.random() * 70, t: Math.random() * 6, color: i % 5 === 4 ? '#ffffff' : FLOWER_COLORS[i % FLOWER_COLORS.length], seed: Math.random() * 7 }); };
     const throwFlowers = (n = 14) => { for (let i = 0; i < n; i++) state.flowers.push({ x: 40 + Math.random() * 400, y: 356, vx: (Math.random() - 0.5) * 60 + (240 - (40 + Math.random() * 400)) * 0.35, vy: -(230 + Math.random() * 120), t: -Math.random() * 0.8, color: FLOWER_COLORS[i % FLOWER_COLORS.length], spin: Math.random() * 6 }); };
 
     const startTalk = (lines, next) => { state.phase = 'talk'; state.talk = { lines, i: 0, next }; const l = lines[0]; typer.start(l.text, l.who); if (l.shake) state.shake = 0.5; };
@@ -140,11 +151,12 @@ export function run(game, node = {}) {
       const l = tk.lines[tk.i]; typer.start(l.text, l.who); if (l.shake) state.shake = 0.5;
     };
     const startSoundcheck = () => { state.phase = 'soundcheck'; state.phaseT = 0; state.chart = TWINKLE; state.play = makePlay(TWINKLE); state.clock = 0; state.judge = null; };
-    const startHype = () => { state.phase = 'hype'; state.phaseT = 0; cheer(3); throwFlowers(18); };
+    const startHype = () => { state.phase = 'hype'; state.phaseT = 0; cheer(3); throwFlowers(18); pyro(24); confetti(40); };
     const startTitle = (index) => {
       const chart = state.charts?.[index];
       if (!chart) { finish(true); return; }
       state.song = index; state.chart = chart; state.play = makePlay(chart); state.phase = 'title'; state.phaseT = 0; state.title = { k: 0 }; state.hum = 0; state.tvOn = 0; state.over = false; state.judge = null; state.lastCombo10 = 0;
+      state.hi = false; state.lastBeat = -1; state.confetti = []; state.sparks = [];
     };
     const startSong = () => {
       const v = state.videos?.[state.song];
@@ -153,7 +165,7 @@ export function run(game, node = {}) {
     };
     const retry = () => {
       for (const lane of ['L', 'R']) stopHold(lane);
-      state.play = makePlay(state.chart); state.over = false; state.judge = null; state.clock = 0; state.sideT = 0; state.lastCombo10 = 0;
+      state.play = makePlay(state.chart); state.over = false; state.judge = null; state.clock = 0; state.sideT = 0; state.lastCombo10 = 0; state.hi = false; state.lastBeat = -1;
       const v = state.video; if (v) { v.currentTime = 0; v.play().catch(() => {}); }
       sfx('confirm', 0.7);
     };
@@ -163,7 +175,7 @@ export function run(game, node = {}) {
       const p = state.play; state.stats.songs.push({ title: state.chart.title, score: p.score, maxCombo: p.maxCombo, grade: grade(p) });
       state.stats.score += p.score; state.stats.maxCombo = Math.max(state.stats.maxCombo, p.maxCombo);
       if (state.video) { try { state.video.pause(); } catch (e) { /* */ } }
-      cheer(3); throwFlowers(20);
+      cheer(3); throwFlowers(20); pyro(24); state.hi = false;
       if (state.song === 0) startTalk(TALK3, () => startTitle(1));
       else { state.phase = 'result'; state.phaseT = 0; sfx('won', 0.8); }
     };
@@ -178,6 +190,11 @@ export function run(game, node = {}) {
       state.fx = state.fx.filter(f => (f.t += dt) < f.dur);
       for (const fl of state.flowers) { fl.t += dt; if (fl.t < 0) continue; fl.x += fl.vx * dt; fl.vy += 520 * dt; fl.y += fl.vy * dt; }
       state.flowers = state.flowers.filter(fl => fl.y < 380 && fl.t < 4);
+      for (const c of state.confetti) { c.t += dt; c.y += c.vy * dt; c.x += Math.sin(c.t * 3 + c.seed) * 22 * dt; }
+      state.confetti = state.confetti.filter(c => c.y < SCREEN_H + 4);
+      for (const sp of state.sparks) { sp.t += dt; sp.vy += 420 * dt; sp.x += sp.vx * dt; sp.y += sp.vy * dt; }
+      state.sparks = state.sparks.filter(sp => sp.t < sp.dur);
+      state.strobe = Math.max(0, state.strobe - dt * 2.2);
       const confirm = edge('confirm');
       if (edge('title')) { finish(false); return; }
       if (state.phase === 'drop') {
@@ -218,6 +235,23 @@ export function run(game, node = {}) {
           if (e.type === 'empty') { sfx('guitar_scratch', 0.6); strum('tap'); }
           if (e.type === 'over') { state.over = true; for (const lane of ['L', 'R']) stopHold(lane); if (state.video) { try { state.video.pause(); } catch (err) { /* */ } } sfx('damage', 0.8); state.shake = 0.5; }
         }
+        // 하이라이트(코러스): 들어가는 순간 함성·꽃·불꽃·색종이, 구간 내내 관객 점프·색종이·마디 첫 박 스트로브+불꽃, 16박마다 환호, 나오면 박수
+        const hiIdx = state.phase === 'play' ? highlightAt(state.chart, time) : -1;
+        if (hiIdx >= 0 && !state.hi) { state.hiT = 0; state.lastBeat = -1; cheer(3); throwFlowers(16); pyro(22); confetti(60); }
+        else if (hiIdx < 0 && state.hi) cheer(1);
+        state.hi = hiIdx >= 0;
+        if (state.hi) {
+          state.hiT += dt; state.cheer = Math.max(state.cheer, 0.6);
+          if (state.confetti.length < 120) confetti(2);
+          const bi = Math.floor(beatAt(state.chart, time).beat);
+          if (bi !== state.lastBeat) {
+            state.lastBeat = bi;
+            const bar = ((bi % 4) + 4) % 4 === 0;
+            state.strobe = bar ? 0.45 : Math.max(state.strobe, 0.18);
+            if (bar) pyro(8);
+            if (((bi % 16) + 16) % 16 === 8) sfx('crowd_cheer', 0.4);
+          }
+        }
         const c10 = Math.floor(state.play.combo / 10);
         if (c10 > state.lastCombo10 && state.play.combo > 0) { state.lastCombo10 = c10; cheer(c10 >= 5 ? 3 : c10 >= 2 ? 2 : 1); if (c10 >= 3) throwFlowers(6); }
         if (state.play.combo === 0) state.lastCombo10 = 0;
@@ -236,9 +270,9 @@ export function run(game, node = {}) {
     // ── 그리기 ──
     const text = (str, x, y, { color = '#fff', align = 'left', size = F.size, shadow = true, alpha = 1 } = {}) => {
       ctx.font = size === F.size ? FONT : FONT.replace(`${F.size}px`, `${size}px`);
-      ctx.textBaseline = 'top'; ctx.textAlign = align; ctx.globalAlpha = alpha;
+      const ga = ctx.globalAlpha; ctx.textBaseline = 'top'; ctx.textAlign = align; ctx.globalAlpha = ga * alpha;
       if (shadow) { ctx.fillStyle = '#000'; ctx.fillText(str, Math.round(x) + 1, Math.round(y) + 1); }
-      ctx.fillStyle = color; ctx.fillText(str, Math.round(x), Math.round(y)); ctx.globalAlpha = 1;
+      ctx.fillStyle = color; ctx.fillText(str, Math.round(x), Math.round(y)); ctx.globalAlpha = ga;
     };
     const drawBackdrop = () => {
       const img = backdrop.img;
@@ -258,60 +292,86 @@ export function run(game, node = {}) {
         text(state.chart.title, SCREEN_W / 2, TV.y + 44, { align: 'center', size: 24, color: '#ffe066', alpha: k });
         text(`- ${state.chart.artist} -`, SCREEN_W / 2, TV.y + 84, { align: 'center', size: 14, color: '#ffffff', alpha: k });
       }
-      // 스포트라이트 빔이 천천히 흔들린다(플레이·환호 때 밝게)
-      const live = state.phase === 'play' || state.cheer > 0 || state.phase === 'hype';
-      const a = live ? 0.16 : 0.05;
-      for (const [ox, dir] of [[40, 1], [440, -1]]) {
-        const sway = Math.sin(state.beam * (live ? 1.6 : 0.5) + dir) * 40;
-        const g = ctx.createLinearGradient(ox, 40, 240 + sway, 300); g.addColorStop(0, `rgba(255,220,150,${a})`); g.addColorStop(1, 'rgba(255,220,150,0)');
+      // 스포트라이트 빔이 천천히 흔들린다(플레이·환호 때 밝게, 하이라이트 땐 색색으로 크게 빠르게)
+      const live = state.phase === 'play' || state.cheer > 0 || state.phase === 'hype', hi = state.hi;
+      const a = hi ? 0.28 : live ? 0.16 : 0.05;
+      const bar = hi && state.chart ? beatAt(state.chart, songTime()).bar : 0;
+      for (const [ox, dir, j] of [[40, 1, 0], [440, -1, 1]]) {
+        const sway = Math.sin(state.beam * (hi ? 2.8 : live ? 1.6 : 0.5) + dir) * (hi ? 70 : 40);
+        const rgb = hi ? HI_COLORS[(((bar + j) % HI_COLORS.length) + HI_COLORS.length) % HI_COLORS.length] : '255,220,150';
+        const g = ctx.createLinearGradient(ox, 40, 240 + sway, 300); g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, `rgba(${rgb},0)`);
         ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(ox - 6, 44); ctx.lineTo(ox + 6, 44); ctx.lineTo(240 + sway + dir * 90, 300); ctx.lineTo(240 + sway - dir * 30, 300); ctx.closePath(); ctx.fill();
       }
+      // 마디 첫 박마다 위 트러스 조명이 번쩍(하이라이트)
+      if (state.strobe > 0) { ctx.fillStyle = `rgba(255,255,255,${(state.strobe * 0.22).toFixed(3)})`; ctx.fillRect(0, 0, SCREEN_W, 130); }
       if (state.flash > 0) { ctx.fillStyle = `rgba(255,240,200,${(state.flash * 0.35).toFixed(3)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
     };
-    const laneColor = { drums: '255,111,168', L: '79,216,255', R: '79,216,255', vocal: '125,255,90' };
+    // 바닥 스포트라이트 원(델타룬 참고 이미지): 연주자 발밑 밝은 타원이 위아래로 천천히 떠다니고, 하이라이트 땐 박자에 맞춰 색색으로 펄스
+    const drawPools = () => {
+      const bt = state.hi && state.chart ? beatAt(state.chart, songTime()) : null;
+      state.band.forEach((b, i) => {
+        const bob = Math.sin(state.t * 1.15 + i * 2.1) * 6, pulse = bt ? 1 + 0.22 * (1 - bt.phase) : 1;
+        const rgb = bt ? HI_COLORS[(((bt.bar + i) % HI_COLORS.length) + HI_COLORS.length) % HI_COLORS.length] : '175,195,255';
+        const cx = b.x, cy = STAND_Y - 5 + bob, rx = b.draw * 0.6 * pulse, ry = 12 * pulse;
+        ctx.fillStyle = `rgba(${rgb},${bt ? 0.12 : 0.07})`; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 1.5, ry * 1.5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(${rgb},${bt ? 0.3 : 0.18})`; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+      });
+    };
     const drawLanes = () => {
       if (!(state.phase === 'soundcheck' || state.phase === 'play' || state.phase === 'title')) return;
-      const inPlay = state.phase !== 'title';
+      const inPlay = state.phase !== 'title', h = RECEPTOR_Y - LANE_TOP + 16, span = RECEPTOR_Y - LANE_TOP, cx = LANE.x + LANE.w / 2;
       ctx.globalAlpha = state.phase === 'title' ? state.title.k * 0.7 : 1;
-      for (const [key, box] of Object.entries(LANE_BOX)) {
-        ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(box.x, LANE_TOP, box.w, RECEPTOR_Y - LANE_TOP + 18);
-        ctx.strokeStyle = `rgba(${laneColor[key]},0.9)`; ctx.lineWidth = 2; ctx.strokeRect(box.x + 1, LANE_TOP + 1, box.w - 2, RECEPTOR_Y - LANE_TOP + 16);
-        ctx.fillStyle = `rgba(${laneColor[key]},0.95)`; ctx.fillRect(box.x + 4, RECEPTOR_Y - 1, box.w - 8, 3);
-        ctx.fillStyle = `rgba(${laneColor[key]},0.22)`; ctx.fillRect(box.x + 4, RECEPTOR_Y - 10, box.w - 8, 20);
+      // 기둥(검정) — 델타룬처럼 가운데 하나
+      ctx.fillStyle = 'rgba(0,0,0,0.84)'; ctx.fillRect(LANE.x, LANE_TOP, LANE.w, h);
+      const time = inPlay ? songTime() : 0;
+      if (inPlay) {
+        // 콤보: 기둥 안 큰 회색 숫자 + COMBO(노트 뒤), GREAT 마다 살짝 튄다
+        if (state.play.combo >= 2) {
+          const bump = state.judge && state.judge.text !== 'MISS' ? Math.max(0, 1 - state.judgeT * 4) * 4 : 0;
+          text(String(state.play.combo), cx, RECEPTOR_Y - 104 - bump, { align: 'center', size: 40, color: 'rgba(255,255,255,0.2)', shadow: false });
+          text('COMBO', cx, RECEPTOR_Y - 58, { align: 'center', size: 14, color: 'rgba(255,255,255,0.2)', shadow: false });
+        }
+        // 흰 박자선이 노트와 같이 내려온다(마디 첫 박은 굵게)
+        const bt = beatAt(state.chart, time);
+        for (let b = Math.floor(bt.beat); ; b++) {
+          const k = ((state.chart.offset || 0) + b * bt.len - time) / RHYTHM.approach;
+          if (k > 1) break;
+          if (k < 0) continue;
+          const bar = ((b % 4) + 4) % 4 === 0, y = Math.round(RECEPTOR_Y - k * span);
+          ctx.fillStyle = `rgba(255,255,255,${bar ? 0.7 : 0.32})`; ctx.fillRect(LANE.x + 2, y, LANE.w - 4, bar ? 2 : 1);
+        }
       }
-      text('경섭', LANE_BOX.drums.x + LANE_BOX.drums.w / 2, LANE_TOP - 16, { align: 'center', color: '#ff6fa8', size: 13 });
-      text('형섭', (LANE_BOX.L.x + LANE_BOX.R.x + LANE_BOX.R.w) / 2, LANE_TOP - 16, { align: 'center', color: '#4fd8ff', size: 13 });
-      text('빠맨', LANE_BOX.vocal.x + LANE_BOX.vocal.w / 2, LANE_TOP - 16, { align: 'center', color: '#7dff5a', size: 13 });
-      text('◀', LANE_BOX.L.x + LANE_BOX.L.w / 2, RECEPTOR_Y + 4, { align: 'center', color: '#9fe8ff', size: 11, shadow: false });
-      text('▶', LANE_BOX.R.x + LANE_BOX.R.w / 2, RECEPTOR_Y + 4, { align: 'center', color: '#9fe8ff', size: 11, shadow: false });
+      ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(cx, LANE_TOP, 1, h);
+      const glow = state.hi ? 0.7 + 0.3 * Math.abs(Math.sin(state.t * 6)) : 0.95;
+      ctx.fillStyle = `rgba(${LINE_RGB},${glow})`; ctx.fillRect(LANE.x, LANE_TOP, 2, h); ctx.fillRect(LANE.x + LANE.w - 2, LANE_TOP, 2, h);
+      // 판정선: 가로 굵은 선 + 반칸마다 빈 노트 자리(누르는 동안 밝게)
+      ctx.fillStyle = `rgba(${LINE_RGB},0.95)`; ctx.fillRect(LANE.x, RECEPTOR_Y + 8, LANE.w, 3);
+      for (const lane of ['L', 'R']) {
+        const hf = HALF[lane], on = inPlay && held(lane === 'L' ? 'left' : 'right');
+        ctx.strokeStyle = `rgba(${NOTE_RGB},${on ? 0.95 : 0.4})`; ctx.lineWidth = on ? 2 : 1; ctx.strokeRect(hf.x + 5.5, RECEPTOR_Y - 5.5, hf.w - 11, 11);
+      }
+      text('◀', HALF.L.x + HALF.L.w / 2, RECEPTOR_Y + 13, { align: 'center', color: '#9fe8ff', size: 10, shadow: false });
+      text('▶', HALF.R.x + HALF.R.w / 2, RECEPTOR_Y + 13, { align: 'center', color: '#9fe8ff', size: 10, shadow: false });
       ctx.globalAlpha = 1;
       if (!inPlay) return;
-      const time = songTime(), span = RECEPTOR_Y - LANE_TOP;
-      for (const [key, list] of [['drums', state.chart.side?.drums || []], ['vocal', state.chart.side?.vocal || []]]) {
-        const box = LANE_BOX[key];
-        for (const t of list) { const k = (t - time) / RHYTHM.approach; if (k < 0 || k > 1.05) continue; const y = RECEPTOR_Y - k * span; ctx.fillStyle = `rgba(${laneColor[key]},${(0.55 + 0.4 * (1 - k)).toFixed(2)})`; ctx.fillRect(box.x + 8, Math.round(y) - 4, box.w - 16, 8); }
-      }
       for (const { note, k, kEnd } of visibleNotes(state.play, time)) {
-        const box = LANE_BOX[note.lane];
+        const hf = HALF[note.lane], nx = hf.x + 5, nw = hf.w - 10;
         const y = RECEPTOR_Y - k * span, yEnd = RECEPTOR_Y - kEnd * span;
-        const dead = note.status === 'miss', col = dead ? '110,110,120' : laneColor[note.lane];
+        const dead = note.status === 'miss', col = dead ? '110,110,120' : NOTE_RGB, holding = note.status === 'holding';
         if (note.dur) {
-          // 홀드: 굵은 꼬리(테두리 + 눈금) + 머리·꼬리 바. 누르는 중엔 밝게
-          const top = Math.max(LANE_TOP, yEnd), bottom = Math.min(RECEPTOR_Y, note.status === 'holding' ? RECEPTOR_Y : y);
-          ctx.fillStyle = `rgba(${col},${note.status === 'holding' ? 0.75 : 0.42})`; ctx.fillRect(box.x + 10, Math.round(top), box.w - 20, Math.max(0, Math.round(bottom - top)));
-          ctx.strokeStyle = `rgba(255,255,255,${note.status === 'holding' ? 0.9 : 0.6})`; ctx.lineWidth = 1; ctx.strokeRect(box.x + 10.5, Math.round(top) + 0.5, box.w - 21, Math.max(0, Math.round(bottom - top)));
-          for (let yy = Math.round(top) + 6; yy < bottom - 4; yy += 8) { ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(box.x + 14, yy, box.w - 28, 1); }
-          ctx.fillStyle = `rgba(${col},0.95)`; ctx.fillRect(box.x + 6, Math.round(yEnd) - 4, box.w - 12, 8);
+          // 홀드: 머리에서 위로 뻗은 굵은 꼬리(누르는 중엔 밝게·흰 테두리) + 끝 막대
+          const top = Math.max(LANE_TOP, yEnd), bottom = Math.min(RECEPTOR_Y + 5, holding ? RECEPTOR_Y : y), th = Math.max(0, Math.round(bottom - top));
+          ctx.fillStyle = `rgba(${col},${holding ? 0.8 : 0.45})`; ctx.fillRect(nx + 4, Math.round(top), nw - 8, th);
+          ctx.strokeStyle = holding ? 'rgba(255,255,255,0.95)' : `rgba(${col},0.9)`; ctx.lineWidth = 1; ctx.strokeRect(nx + 4.5, Math.round(top) + 0.5, nw - 9, th);
+          ctx.fillStyle = `rgba(${col},0.95)`; ctx.fillRect(nx, Math.round(yEnd) - 4, nw, 8);
         }
         if (note.status === 'wait' || note.status === 'miss') {
-          ctx.fillStyle = `rgba(${col},0.98)`; ctx.fillRect(box.x + 5, Math.round(y) - 6, box.w - 10, 12);
-          ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillRect(box.x + 8, Math.round(y) - 3, box.w - 16, 3);
-          if (note.dur) text('HOLD', box.x + box.w / 2, Math.round(y) - 5, { align: 'center', size: 9, color: '#001a22', shadow: false });
+          ctx.fillStyle = `rgba(${col},0.98)`; ctx.fillRect(nx, Math.round(y) - 5, nw, 10);
+          ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(nx, Math.round(y) - 5, nw, 2);
         }
       }
-      for (const f of state.fx) if (f.kind === 'ring') { const box = LANE_BOX[f.lane], k = f.t / f.dur; ctx.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(2)})`; ctx.lineWidth = 2; ctx.strokeRect(box.x + 2 - k * 6, RECEPTOR_Y - 8 - k * 6, box.w - 4 + k * 12, 16 + k * 12); }
-      if (state.judge) { const k = state.judgeT / 0.5; text(state.judge.text, SCREEN_W / 2, 112 - k * 14, { align: 'center', size: 18, color: state.judge.color, alpha: 1 - k * 0.6 }); }
-      if (state.play.combo >= 2) text(`${state.play.combo} COMBO`, SCREEN_W / 2, 140, { align: 'center', size: 13, color: '#ffffff' });
+      for (const f of state.fx) if (f.kind === 'ring') { const hf = HALF[f.lane], k = f.t / f.dur; ctx.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(2)})`; ctx.lineWidth = 2; ctx.strokeRect(hf.x + 5 - k * 6, RECEPTOR_Y - 5 - k * 6, hf.w - 10 + k * 12, 10 + k * 12); }
+      if (state.judge) { const k = state.judgeT / 0.5; text(state.judge.text, cx, RECEPTOR_Y - 34 - k * 10, { align: 'center', size: 16, color: state.judge.color, alpha: 1 - k * 0.6 }); }
     };
     const drawMeters = () => {
       if (!(state.phase === 'soundcheck' || state.phase === 'play' || state.phase === 'title' || state.phase === 'hype')) return;
@@ -329,15 +389,17 @@ export function run(game, node = {}) {
     };
     const drawBand = () => {
       for (const b of state.band) {
-        const img = sheets[b.id].img, feet = Math.round(b.y);
+        const img = sheets[b.id].img, feet = Math.round(b.y), D = b.draw;
         if (img && img.complete && img.naturalWidth) {
           const idx = b.frame, sx = (idx % 2) * CELL, sy = Math.floor(idx / 2) * CELL;
-          ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - DRAW / 2), feet - Math.round(FEET * DRAW / CELL), DRAW, DRAW);
+          ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - D / 2), feet - Math.round(FEET * D / CELL), D, D);
         } else { ctx.fillStyle = b.color; ctx.fillRect(b.x - 9, feet - 32, 18, 32); }
       }
       for (const f of state.fx) if (f.kind === 'dust') { const k = f.t / f.dur; ctx.fillStyle = `rgba(200,190,170,${(1 - k) * 0.7})`; for (let i = -3; i <= 3; i++) ctx.fillRect(f.x + i * 8 * (0.4 + k), f.y - 3 - k * 14, 3, 2); }
     };
-    const drawFlowers = () => {
+    const drawParticles = () => {
+      for (const c of state.confetti) { const flat = Math.floor(c.t * 6 + c.seed) % 2; ctx.fillStyle = c.color; ctx.fillRect(Math.round(c.x), Math.round(c.y), flat ? 3 : 2, flat ? 2 : 3); }
+      for (const sp of state.sparks) { const k = sp.t / sp.dur; ctx.fillStyle = k < 0.35 ? '#fff6c8' : k < 0.7 ? '#ffc04a' : '#ff7a3c'; ctx.fillRect(Math.round(sp.x), Math.round(sp.y), 2, 2); if (k < 0.5) ctx.fillRect(Math.round(sp.x), Math.round(sp.y) + 2, 1, 2); }
       for (const fl of state.flowers) {
         if (fl.t < 0) continue;
         const x = Math.round(fl.x), y = Math.round(fl.y), r = fl.t * 8 + fl.spin;
@@ -396,8 +458,8 @@ export function run(game, node = {}) {
     const draw = () => {
       ctx.save();
       if (state.shake > 0) ctx.translate(Math.round((Math.random() - 0.5) * 6), Math.round((Math.random() - 0.5) * 4));
-      drawBackdrop(); drawLanes(); drawBand(); drawAudience(); drawFlowers(); drawMeters();
-      if (state.phase === 'soundcheck' && state.phaseT < 3) text('← →  사운드 체크: 떨어지는 칸에 맞춰 누르세요', SCREEN_W / 2, 236, { align: 'center', size: 12, color: '#ffe066' });
+      drawBackdrop(); drawPools(); drawLanes(); drawBand(); drawAudience(); drawParticles(); drawMeters();
+      if (state.phase === 'soundcheck' && state.phaseT < 3) text('← →  사운드 체크: 떨어지는 칸에 맞춰 누르세요', SCREEN_W / 2, 8, { align: 'center', size: 12, color: '#ffe066' });
       drawTalk(); drawOver(); drawResult();
       ctx.restore();
     };
@@ -407,7 +469,7 @@ export function run(game, node = {}) {
     ov.fit(); addEventListener('resize', ov.fit);
     requestAnimationFrame(() => { ov.root.style.opacity = '1'; });
     raf = requestAnimationFrame(frame);
-    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, get play() { return state.play; }, songTime,
+    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, get play() { return state.play; }, songTime,
       skipTo(phase) { for (const b of state.band) { b.y = STAND_Y; b.landed = true; } state.talk = null; if (phase === 'soundcheck') startSoundcheck(); else if (phase === 'hype') startHype(); else if (phase === 'song') startTitle(0); } };
   });
 }

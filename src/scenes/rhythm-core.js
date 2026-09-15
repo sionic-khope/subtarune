@@ -90,6 +90,19 @@ export function visibleNotes(play, time) {
   return out;
 }
 
+/** 박자 위치: beat = 곡 시작 박자 기준 실수 박 번호(음수 가능), bar = 4박 마디 번호, phase = 박 안 0~1. 흰 박자선·조명 펄스용 */
+export function beatAt(chart, time) {
+  const len = 60 / (chart.bpm || 120), beat = (time - (chart.offset || 0)) / len;
+  return { len, beat, bar: Math.floor(beat / 4), phase: beat - Math.floor(beat) };
+}
+
+/** 하이라이트(코러스) 구간 번호(없으면 -1). chart.highlights = [[start, end], …] (chart.py 가 에너지로 뽑음) */
+export function highlightAt(chart, time) {
+  const list = chart.highlights || [];
+  for (let i = 0; i < list.length; i++) if (time >= list[i][0] && time < list[i][1]) return i;
+  return -1;
+}
+
 /** 결과 등급(인기 + 정확도) */
 export function grade(play) {
   const total = play.greats + play.misses;

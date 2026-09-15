@@ -10,6 +10,7 @@
 - 탭 노트: onset 을 1/2 박으로 양자화, 0.2초 안 겹침은 버림(밀도 ≤ 초당 2.5), 칸은 스펙트럼 무게중심(높은 소리 R, 낮은 소리 L)으로 — 멜로디 흐름을 따라 좌우가 갈린다.
 - 홀드 노트: 다음 onset 까지 1.25박 이상 비고 그 사이 에너지가 유지되면 hold(길이 = 간격 − 0.5박, 0.4초 이상).
 - 사이드(자동 연출): drums = 저역(<150Hz) onset, vocal = 중역(200~2000Hz) onset 을 0.35초 간격으로 솎음.
+- 하이라이트(코러스, BUILD181 사용자 요청 ‘마지막 코러스 같은 데서 파티클·무대 이펙트·관객 환호’): 박자별 (총 RMS + 보컬 대역) 을 2마디로 평활해 최대의 78% 이상이 6초 이상 이어지는 구간(2초 이내 틈은 합침). `highlights: [[start, end], …]`
 numpy 만 쓴다(librosa 없음). 오디오는 ffmpeg 로 22.05kHz 모노 wav 로 뽑아 읽는다."""
 from __future__ import annotations
 
@@ -102,11 +103,44 @@ def centroid(mag: np.ndarray, i: int) -> float:
     return float((freqs * m).sum() / (m.sum() + 1e-9))
 
 
+def find_highlights(rms: np.ndarray, mag: np.ndarray, fps: float, beat: float, phase: float, duration: float, level: float, min_len: float) -> list[list[float]]:
+    """코러스 후보: 박자별 (총 RMS 정규화 + 중역 300~3000Hz 보컬 대역 정규화)/2 를 2마디(8박)로 평활, 최대의 `level` 이상이 `min_len` 초 이상 이어지는 구간.
+    2초 이내 틈은 합친다. 곡이 강하게 압축돼 있어 총 에너지만으로는 차이가 작고, 보컬 대역이 코러스에서 뚜렷이 오른다."""
+    n_beats = int((duration - phase) / beat)
+    if n_beats < 16: return []
+    freqs = np.fft.rfftfreq(N_FFT, 1 / SR)
+    voc = mag[:, (freqs >= 300) & (freqs < 3000)].mean(axis=1)
+    def per_beat(arr: np.ndarray) -> np.ndarray:
+        out = []
+        for b in range(n_beats):
+            s0 = int((phase + b * beat) * fps); s1 = max(s0 + 1, int((phase + (b + 1) * beat) * fps))
+            out.append(arr[s0:min(s1, len(arr))].mean() if s0 < len(arr) else 0.0)
+        return np.array(out)
+    pe, pv = per_beat(rms), per_beat(voc)
+    mix = 0.5 * pe / (pe.max() + 1e-9) + 0.5 * pv / (pv.max() + 1e-9)
+    smooth = np.convolve(mix, np.ones(8) / 8, mode='same')
+    norm = smooth / (smooth.max() + 1e-9)
+    segs: list[list[float]] = []
+    start = None
+    for b in range(n_beats):
+        hot = norm[b] >= level
+        if hot and start is None: start = b
+        if (not hot or b == n_beats - 1) and start is not None:
+            end = b if not hot else b + 1
+            segs.append([phase + start * beat, phase + end * beat]); start = None
+    merged: list[list[float]] = []
+    for s0, s1 in segs:
+        if merged and s0 - merged[-1][1] <= 2.0: merged[-1][1] = s1
+        else: merged.append([s0, s1])
+    return [[round(max(2.0, s0), 2), round(min(s1, duration - 0.3), 2)] for s0, s1 in merged if s1 - s0 >= min_len]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('media'); ap.add_argument('--title', required=True); ap.add_argument('--artist', required=True)
     ap.add_argument('--out', required=True); ap.add_argument('--video'); ap.add_argument('--max-per-sec', type=float, default=2.5)
     ap.add_argument('--delta', type=float, default=0.9)
+    ap.add_argument('--hi-level', type=float, default=0.78); ap.add_argument('--hi-min', type=float, default=6.0)
     a = ap.parse_args()
     x = load_mono(Path(a.media))
     duration = len(x) / SR
@@ -149,13 +183,15 @@ def main() -> None:
             if s1 > s0 and rms[s0:s1].mean() > 0.35 * rms[max(0, s0 - 2):s0 + 3].max():
                 n['dur'] = round(max(0.4, gap - 0.5 * beat), 3)
     for n in notes: n.pop('i', None)
+    highlights = find_highlights(rms, mag, fps, beat, phase, duration, a.hi_level, a.hi_min)
     drums = [round(i / fps, 3) for i in pick_peaks(flux(mag, 0, 150), 0.2, 0.8) if 1.0 < i / fps < duration - 0.5]
     vocal = [round(i / fps, 3) for i in pick_peaks(flux(mag, 200, 2000), 0.35, 0.9) if 1.0 < i / fps < duration - 0.5]
     chart = {'id': Path(a.out).stem, 'title': a.title, 'artist': a.artist, 'video': a.video or f'assets/video/{Path(a.media).name}',
-             'duration': round(duration, 2), 'bpm': bpm, 'offset': round(phase, 3), 'notes': notes, 'side': {'drums': drums, 'vocal': vocal}}
+             'duration': round(duration, 2), 'bpm': bpm, 'offset': round(phase, 3), 'notes': notes, 'side': {'drums': drums, 'vocal': vocal}, 'highlights': highlights}
     Path(a.out).write_text(json.dumps(chart, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
     holds = sum(1 for n in notes if 'dur' in n)
     print(f"{a.out}: {duration:.1f}s bpm {bpm} notes {len(notes)} (holds {holds}, {len(notes) / duration:.2f}/s) drums {len(drums)} vocal {len(vocal)}")
+    print('  highlights', ' '.join(f'{s0:.1f}-{s1:.1f}' for s0, s1 in highlights))
 
 
 if __name__ == '__main__':

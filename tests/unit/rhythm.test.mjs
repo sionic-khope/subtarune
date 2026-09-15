@@ -68,3 +68,19 @@ test('test_rhythm_side_hits_visible_notes_and_tutorial_chart', () => {
     assert.ok(c.notes.length / c.duration <= 2.5, '밀도 ≤ 2.5/s');
   }
 });
+
+test('test_rhythm_beat_grid_and_highlight_lookup', async () => {
+  const { beatAt, highlightAt } = await import('../../src/scenes/rhythm-core.js');
+  const chart = { bpm: 120, offset: 0.5, highlights: [[10, 20], [30, 40]] };
+  const b = beatAt(chart, 0.5 + 6 * 0.5 + 0.1);
+  assert.equal(b.len, 0.5); assert.equal(Math.floor(b.beat), 6); assert.equal(b.bar, 1); assert.ok(Math.abs(b.phase - 0.2) < 1e-9);
+  assert.equal(highlightAt(chart, 9.9), -1); assert.equal(highlightAt(chart, 10), 0); assert.equal(highlightAt(chart, 19.99), 0); assert.equal(highlightAt(chart, 20), -1); assert.equal(highlightAt(chart, 35), 1);
+  assert.equal(highlightAt({}, 5), -1);
+  for (const id of ['noamtori', 'bojipam']) {
+    const c = JSON.parse(fs.readFileSync(new URL(`../../assets/rhythm/${id}.json`, import.meta.url), 'utf8'));
+    assert.ok(c.highlights.length >= 1 && c.highlights.every(([s, e]) => e - s >= 6 && e <= c.duration), `${id} 하이라이트 ${JSON.stringify(c.highlights)}`);
+  }
+  const boj = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/bojipam.json', import.meta.url), 'utf8'));
+  const last = boj.highlights[boj.highlights.length - 1];
+  assert.ok(last[0] > boj.duration * 0.6, '보X팜 마지막 코러스 하이라이트가 곡 후반에 있다 ' + JSON.stringify(last));
+});
