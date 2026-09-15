@@ -23,7 +23,14 @@ export const AFTER_SHOW = [
   { text: '* 성공적으로 공연을 마쳤다.', voice: 'narrator' },
   close,
   { map: 'youngcle11', spawn: 'on_stage' },
-  { spawn: { type: 'npc', id: SHOW_MOUSE, sprite: 'ttuulla', x: 416, y: 112, facing: 'down', wander: 0, visualScale: 1.79, solid: false } },
+  // 대기 뚜울라(ttuulla_wait)는 맵에서 unless rhythm_stage_done 으로 빠지지만, 혹시 남아 있으면 지운다(겹침·‘땅 파고도 남는’ 버그)
+  { remove: 'ttuulla_wait' },
+  { spawn: { type: 'npc', id: SHOW_MOUSE, sprite: 'ttuulla', x: 416, y: 92, facing: 'down', wander: 0, visualScale: 1.79, solid: false } },
+  // 검은 막 뒤에서 셋을 좌·중·우로 벌려 세운다(스폰 직후엔 따라오는 동료가 주인공 뒤에 한 줄로 겹친다)
+  { async: [{ move: 'gyeongsub', px: [344, 218], run: true }] },
+  { async: [{ move: 'ppaman', px: [488, 218], run: true }] },
+  { move: 'player', px: [416, 212], run: true },
+  { wait: 0.6 },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   { fade: 'out', duration: 0 },
   { curtain: null },

@@ -116,8 +116,9 @@ def main() -> None:
             {'type': 'npc', 'id': 'ttuulla', 'sprite': 'ttuulla', 'x': 416, 'y': 120, 'facing': 'down', 'wander': 0,
              'visualScale': 1.79, 'hidden': True, 'solid': False, 'unless': 'stage_hall_intro_done'},
             # 연출 뒤 재입장: 무대 가운데에서 기다리는 뚜울라(리듬 게임 브리핑 뒤 여기서 승부가 시작된다)
+            # 공연(리듬 게임)이 끝나면 사라진다 — 공연 뒤 연출의 ttuulla_show 와 겹쳐 ‘땅 파고 사라졌는데 뚜울라가 남는’ 버그(BUILD188 포스트모텀)
             {'type': 'npc', 'id': 'ttuulla_wait', 'sprite': 'ttuulla', 'x': 416, 'y': 105, 'facing': 'down', 'wander': 0,
-             'visualScale': 1.79, 'solid': False, 'requires': 'stage_hall_intro_done'},
+             'visualScale': 1.79, 'solid': False, 'requires': 'stage_hall_intro_done', 'unless': 'rhythm_stage_done'},
             # 벽 패널(위 벽), 꺼진 조명 트러스 셋(무대 위 벽)
             *[{'type': 'prop', 'id': f'stage11_wall_{index}', 'image': 'assets/props/editor-union-wall-panel.png',
                'x': x, 'y': 0, 'w': 128, 'h': 76, 'solid': False, 'sortY': -980}

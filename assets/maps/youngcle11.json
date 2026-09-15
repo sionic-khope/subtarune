@@ -459,7 +459,8 @@
    "wander": 0,
    "visualScale": 1.79,
    "solid": false,
-   "requires": "stage_hall_intro_done"
+   "requires": "stage_hall_intro_done",
+   "unless": "rhythm_stage_done"
   },
   {
    "type": "prop",
