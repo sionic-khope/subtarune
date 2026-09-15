@@ -82,8 +82,8 @@ const TALK4 = [
 ];
 const TALK_AFTER = [TALK3, TALK4];
 const HUM = 2.2, TITLE_IN = 1.0, HYPE = 3.2, OVATION = 3.0;
-// 둥가둥가: 시트에 groove 4프레임(셀 4~7: 다운·업·왼쪽·오른쪽)이 있으면 한 박마다 다운/업만 번갈아(사용자 “너무 역동적” → 반박 순환·좌우 흔들기 제거), 없으면 프레임 0 을 위아래로
-const GROOVE = [4, 5];
+// 둥가둥가(사용자 최종: “숨 쉬듯이” — 프레임을 바꾸면 역동적으로 보여서 groove 프레임(셀 4~7)은 안 쓴다): 기본 자세 그대로 두 박에 한 번 1px 내려앉았다 올라온다
+const BREATH_PX = 1;
 const FLOWER_COLORS = ['#ff7bd1', '#ffd166', '#ff5c5c', '#c9a3ff', '#7dff5a'];
 
 function loadImage(src) {
@@ -549,16 +549,12 @@ export function run(game, node = {}) {
     // 지금 박(곡 중엔 차트 박자, 아니면 126bpm 느낌으로 흐르는 박)
     const beatNow = () => (state.chart && state.phase === 'play' ? beatAt(state.chart, songTime()).beat : state.t * 2.1);
     const drawBand = () => {
-      const beat = beatNow(), step = Math.floor(beat), phase = beat - Math.floor(beat);
+      const beat = beatNow();
       for (const b of state.band) {
         const img = sheets[b.id].img, feet = Math.round(b.y), D = b.draw;
         if (img && img.complete && img.naturalWidth) {
-          // 동작 프레임이 없을 땐 둥가둥가(사용자: 가만히 있을 때도 리듬 타듯): groove 프레임 순환, 시트에 없으면 위아래 바운스
-          let idx = b.frame, dy = 0;
-          if (idx === 0 && b.landed) {
-            if (img.naturalHeight >= CELL * 4) { idx = GROOVE[((step % 2) + 2) % 2]; dy = 0; }
-            else dy = -Math.round(Math.abs(Math.sin(beat * Math.PI * 0.5)) * 2);
-          }
+          // 동작 프레임이 없을 땐 숨 쉬듯: 기본 자세에서 두 박 주기로 1px 만 오르내린다(사용자: 프레임이 바뀌는 건 너무 역동적)
+          const idx = b.frame, dy = idx === 0 && b.landed ? Math.round(Math.sin(beat * Math.PI) * BREATH_PX) : 0;
           const sx = (idx % 2) * CELL, sy = Math.floor(idx / 2) * CELL;
           ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - D / 2), feet - Math.round(FEET * D / CELL) + dy, D, D);
         } else { ctx.fillStyle = b.color; ctx.fillRect(b.x - 9, feet - 32, 18, 32); }
@@ -587,10 +583,10 @@ export function run(game, node = {}) {
       const img = audienceImg.img, cheering = state.cheer > 0;
       const bob = cheering ? Math.round(Math.abs(Math.sin(state.t * 9)) * 4) : 0;
       if (img && img.complete && img.naturalWidth) {
-        // 세로 조각(32px)마다 어긋난 위상으로 ±1px 천천히 출렁(가만히 있을 때, 사용자 “너무 역동적” 뒤 절반 속도·진폭). 환호 땐 다 같이 점프
+        // 세로 조각(32px)마다 어긋난 위상으로 1px 만 천천히 숨 쉬듯(가만히 있을 때). 환호 땐 다 같이 점프
         const fh = img.naturalHeight / 2, sy = cheering ? fh : 0, slices = 15, sw = img.naturalWidth / slices, dw = SCREEN_W / slices, beat = beatNow();
         for (let i = 0; i < slices; i++) {
-          const idle = Math.round(Math.sin(beat * Math.PI * 0.5 + i * 0.85) * 1.2);
+          const idle = Math.sin(beat * Math.PI * 0.5 + i * 0.85) > 0 ? 1 : 0;
           ctx.drawImage(img, i * sw, sy, sw, fh, Math.round(i * dw), SCREEN_H - 84 - (cheering ? bob : idle), Math.ceil(dw), 90);
         }
         return;
