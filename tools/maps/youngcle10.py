@@ -74,8 +74,9 @@ def main() -> None:
              'to': 'youngcle11', 'spawn': 'from_below', 'sfx': False, 'interact': False},
             *[{'type': 'factory_rail', 'id': f'youngcle10_rail_{index}',
                'x': x, 'y': y, 'w': width, 'h': 12}
+              # 난간은 통로 입구(위 cols 10~13 = x320~448, 마나샘 주머니 x480~608, 아래 cols 10~13)를 비워 둔다 — 입구를 가로지르던 것 수정(2026-09-15 스크린샷)
               for index, (x, y, width) in enumerate((
-                  (32, 288, 704), (32, 148, 416), (608, 148, 128), (480, 84, 128),
+                  (32, 148, 288), (608, 148, 128), (32, 288, 288), (448, 288, 288), (480, 84, 128),
               ))],
             # 마나샘(연결로 youngcle8 과 같은 파란 샘): C 로 파티 HP 가득
             {'type': 'prop', 'id': 'youngcle10_spring', 'image': 'assets/props/blue_buff.png',

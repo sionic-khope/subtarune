@@ -32,13 +32,13 @@ export const stage_hall_intro = [
   { bgm: null },
   // 페이드인과 함께 일행이 아래 문에서 걸어 들어온다
   { parallel: [
-    { move: 'player', rel: DOOR, at: 'top', by: [0, -104] },
-    { move: 'gyeongsub', rel: DOOR, at: 'top', by: [-44, -64] },
-    { move: 'ppaman', rel: DOOR, at: 'top', by: [44, -64] },
+    { move: 'player', rel: DOOR, at: 'top', by: [0, -200] },
+    { move: 'gyeongsub', rel: DOOR, at: 'top', by: [-44, -160] },
+    { move: 'ppaman', rel: DOOR, at: 'top', by: [44, -160] },
   ] },
   { wait: 0.2 },
-  // 어두운 무대 쪽으로 카메라(무대 640px 이 다 보이게 줌 0.75)
-  { parallel: [{ camera: [13, 5], duration: 1.3 }, { zoom: 0.75, duration: 1.3 }] },
+  // 어두운 무대 쪽으로 카메라 — 무대와 일행이 한 화면에(줌 0.75 = 640×480, 위로 맵 밖이 안 보이게 중심 y320)
+  { parallel: [{ camera: [13, 9.5], duration: 1.3 }, { zoom: 0.75, duration: 1.3 }] },
   { wait: 0.4 },
   P('무 무대..?뭐지'),
   close,
@@ -61,7 +61,7 @@ export const stage_hall_intro = [
   T('안녕하십니까 악덕사장형님들'),
   close,
   // 점프하면서 무대 가운데에서 밑(홀 바닥, 일행 바로 앞)으로 — 일행은 뒷걸음질. 착지에 브금
-  { parallel: [{ hop: MOUSE, by: [0, 176], height: 72, duration: 0.7, sfx: 'jump' }, ...backstep] },
+  { parallel: [{ hop: MOUSE, by: [0, 176], height: 72, duration: 0.7, sfx: 'jump' }, ...backstep, { camera: [13, 9], duration: 0.7 }] },
   { sfx: 'thud' },
   { face: MOUSE, dir: 'down' },
   HALL_BGM,
@@ -80,23 +80,26 @@ export const stage_hall_intro = [
   // 브금이 꺼지고 일행 ...
   { bgm: null, fadeOut: 0.6 },
   { bubble: PARTY, dots: 3, gap: 0.35, hold: 0.7 },
-  { ...P('뭐라는거야 개발병신새끼 야차까 지금 걍 씨발년아 들어ㅇ..'), cut: 2.2 },
+  { ...P('뭐라는거야 개발병신새끼 야차까 지금 걍 씨발년아 들어ㅇ..'), cut: 1.45 },
   T('워워워 먼저 올라가서 기다리고 있겠습니다 행님덜~'),
   T('아 맞다. 그리고 이걸 구경하러온 관객들도 여기 많이 모여있습니다'),
   T('들어와주세요 ~~!'),
   close,
   // 관객 입장: 카메라가 아래 입구 쪽으로 → 파크가디언·비데·도트마리오·엑스트라들이 문에서 차례로 걸어 들어와 아래쪽을 채운다(박수) → 줄을 친다
+  ...PARTY.map(id => ({ face: id, dir: 'down' })),
   { parallel: [{ camera: [13, 17], duration: 0.8 }, { zoom: 0.7, duration: 0.8 }] },
   spawnCrowd,
   { sfx: 'door' },
+  { async: [{ sfx: 'crowd', volume: 0.7 }, { sfx: 'rumble', volume: 0.6 }, { wait: 1.6 }, { sfx: 'rumble', volume: 0.6 }, { wait: 1.8 }, { sfx: 'rumble', volume: 0.5 }] },
   ...crowdIds.map((id, i) => ({ async: [{ wait: i * CROWD_GAP }, { show: id }, { move: id, px: crowdSpot(id), run: true }] })),
   { wait: CROWD_N * CROWD_GAP + 2.6 },
   crowdSettle,
   { spawn: { type: 'prop', id: 'stage11_rope_l', image: 'assets/props/stage_rope_l.png', x: 32, y: 500, w: 352, h: 12, ix: 32, iy: 494, solid: true, sortY: 520 } },
   { spawn: { type: 'prop', id: 'stage11_rope_r', image: 'assets/props/stage_rope_r.png', x: 416, y: 500, w: 384, h: 12, ix: 416, iy: 494, solid: true, sortY: 520 } },
-  { sfx: 'maillard_applause', volume: 0.5 },
+  { sfx: 'crowd_cheer', volume: 0.7 },
   { wait: 0.6 },
-  { parallel: [{ camera: [13, 5], duration: 0.9 }, { zoom: 0.75, duration: 0.9 }] },
+  ...PARTY.map(id => ({ face: id, dir: 'up' })),
+  { parallel: [{ camera: [13, 9], duration: 0.9 }, { zoom: 0.75, duration: 0.9 }] },
   // 빠르게 오른쪽 계단으로 올라가 무대 가운데로 도망간다
   { move: MOUSE, rel: STAIRS_R, at: 'bottom', by: [0, 6], dash: true },
   { move: MOUSE, rel: STAIRS_R, at: 'top', by: [0, -12], dash: true },

@@ -1,0 +1,4 @@
+Pixel-art seamless texture set for a concert hall in a 16-bit RPG, EXACTLY 2 columns x 1 row, 1024x512 canvas, invisible equal 512x512 cells, no text, no labels, no grid, no borders.
+Cell 1: a dark stage floor of black-stained wooden planks seen from above (top-down), subtle plank seams and a few scuffs, very dark with faint warm highlights, seamlessly tileable.
+Cell 2: a deep maroon concert-hall carpet seen from above (top-down), fine diamond pattern in a slightly lighter maroon, seamlessly tileable.
+Flat colors, single-pixel detail, no gradients.

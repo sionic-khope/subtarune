@@ -126,8 +126,19 @@ def main() -> None:
         if abs(q - t) > 0.09: q = t
         if q - last_t < 1 / a.max_per_sec: continue
         if q < 1.0 or q > duration - 0.8: continue
-        notes.append({'t': round(q, 3), 'lane': 'R' if centroid(mag, i) > 1400 else 'L', 'i': i})
+        notes.append({'t': round(q, 3), 'c': centroid(mag, i), 'i': i})
         last_t = q
+    # 좌우 배분: 무게중심을 곡 전체 중앙값으로 나눠 절반씩(높은 소리 R), 같은 칸 3연속을 넘으면 강제로 반대 칸 — 한쪽 칸에만 쏟아지지 않게(사용자 지적)
+    med = float(np.median([n['c'] for n in notes])) if notes else 0.0
+    run = 0; last_lane = None
+    for n in notes:
+        lane = 'R' if n['c'] > med else 'L'
+        if lane == last_lane:
+            run += 1
+            if run >= 3: lane = 'L' if lane == 'R' else 'R'; run = 0
+        else: run = 0
+        n['lane'] = lane; last_lane = lane
+        n.pop('c', None)
     # 홀드: 다음 노트까지 1.25박 이상 비고 그 사이 에너지 유지
     rms = np.sqrt(np.convolve(x * x, np.ones(HOP) / HOP, mode='same'))[::HOP]
     for k, n in enumerate(notes):

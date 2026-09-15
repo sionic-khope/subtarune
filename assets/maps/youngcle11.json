@@ -41,6 +41,8 @@
  "preload": [
   "assets/tiles/youngcle_iron.png",
   "assets/backdrops/youngcle_factory.png",
+  "assets/props/hall_carpet.png",
+  "assets/props/stage_floor.png",
   "assets/props/stage_front.png",
   "assets/props/stage_stairs.png",
   "assets/props/stage_valance.png",
@@ -320,6 +322,28 @@
   }
  },
  "entities": [
+  {
+   "type": "prop",
+   "id": "stage11_floor",
+   "image": "assets/props/stage_floor.png",
+   "x": 96,
+   "y": 64,
+   "w": 640,
+   "h": 192,
+   "solid": false,
+   "sortY": -996
+  },
+  {
+   "type": "prop",
+   "id": "hall11_carpet",
+   "image": "assets/props/hall_carpet.png",
+   "x": 32,
+   "y": 288,
+   "w": 768,
+   "h": 480,
+   "solid": false,
+   "sortY": -997
+  },
   {
    "type": "door",
    "id": "youngcle11_down",

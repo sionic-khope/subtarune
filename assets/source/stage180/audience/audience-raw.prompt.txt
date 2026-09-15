@@ -1,0 +1,9 @@
+# imagegen 2026-09-15 19:11:55
+# endpoint: images/generations
+# model: openai/gpt-image-2
+# size: 1024x1024  quality: high
+
+Pixel-art concert audience strip for a rhythm game, seen from BEHIND the crowd looking toward the stage: the backs of many heads and raised shoulders of a dense crowd, silhouetted dark blue-purple against a dark hall, a few with hats, glow sticks and raised arms. EXACTLY 1 column x 2 rows, 1024x512 canvas, invisible equal 1024x256 cells, no text, no labels, no grid, no borders.
+Row 1: the crowd standing calmly, arms down, slight variety in head height.
+Row 2: the SAME crowd in the same positions cheering: many arms raised, some heads tilted, glow sticks up.
+16-bit style, single dark outline, flat 2-tone shading, the crowd fills each cell edge to edge horizontally, the top 30% of each cell is empty transparent-looking solid pure #FF00FF background above the heads (the crowd occupies the lower 70%), and the crowd bottom edge is cut flat at the cell bottom.

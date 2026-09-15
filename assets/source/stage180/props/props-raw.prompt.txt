@@ -1,0 +1,8 @@
+# imagegen 2026-09-15 19:05:46
+# endpoint: images/generations
+# model: openai/gpt-image-2
+# size: 1024x1536  quality: high
+
+Pixel-art prop sheet for a concert-hall backstage green room in a 16-bit RPG (32-pixel tile scale, single dark outline, flat colors with simple 2-tone shading, top-down 3/4 view like an SNES RPG). EXACTLY 2 columns x 3 rows, 1024x1536 canvas, invisible equal 512x512 cells, each prop centered in its cell on a solid pure #FF00FF background, no text, no labels, no grid, no borders, no shadows on the ground.
+Cells row-major: (1) a makeup vanity: a table with a mirror framed by round warm light bulbs, small bottles on the table; (2) a rolling clothes rack hung with colorful stage costumes and a feather boa; (3) a worn dark-red leather two-seat couch, seen from the front-top; (4) a closed black electric-guitar hard case standing upright, leaning slightly, with silver latches; (5) three stacked round black drum hard cases with silver rims; (6) a doorway to the stage: a dark opening framed by parted heavy red velvet curtains with gold tiebacks and a small "STAGE" arrow sign above (arrow only, no letters).
+Each prop fully inside the central 80% of its cell, same pixel scale across all cells.

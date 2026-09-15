@@ -66,7 +66,7 @@ def main() -> None:
         # 입장 연출(뚜울라 등장, 무대 불 켜짐)은 페이드가 걷히기 전에 시작(early) — 걸어 들어오는 모습이 페이드인과 겹친다
         'enter': {'script': 'stage_hall_intro', 'early': True},
         'rows': [''.join(row) for row in cells],
-        'preload': ['assets/tiles/youngcle_iron.png', 'assets/backdrops/youngcle_factory.png',
+        'preload': ['assets/tiles/youngcle_iron.png', 'assets/backdrops/youngcle_factory.png', 'assets/props/hall_carpet.png', 'assets/props/stage_floor.png',
                     'assets/props/stage_front.png', 'assets/props/stage_stairs.png', 'assets/props/stage_valance.png',
                     'assets/props/stage_truss_off.png', 'assets/props/stage_dark.png',
                     'assets/props/editor-union-curtain.png', 'assets/props/editor-union-speaker.png',
@@ -85,6 +85,11 @@ def main() -> None:
                  'stage': {'center': [416, 160], 'left_stairs': [96, 256], 'right_stairs': [672, 256],
                            'drums': [256, 184], 'guitar': [416, 196], 'vocal': [576, 184], 'ttuulla': [416, 120]}},
         'entities': [
+            # 바닥 그림(BUILD180 생성 텍스처): 무대는 검은 판자, 홀은 마룬 카펫 — 타일 위에 깔리는 큰 소품(막힘 없음)
+            {'type': 'prop', 'id': 'stage11_floor', 'image': 'assets/props/stage_floor.png',
+             'x': 96, 'y': 64, 'w': 640, 'h': 192, 'solid': False, 'sortY': -996},
+            {'type': 'prop', 'id': 'hall11_carpet', 'image': 'assets/props/hall_carpet.png',
+             'x': 32, 'y': 288, 'w': 768, 'h': 480, 'solid': False, 'sortY': -997},
             # 홀 아래 가운데 → 윗길(from_hall). 열린 통로라 C 없이 방향키로 통과
             {'type': 'door', 'id': 'youngcle11_down', 'x': 352, 'y': 752, 'w': 128, 'h': 16,
              'to': 'youngcle10', 'spawn': 'from_hall', 'sfx': False, 'interact': False},

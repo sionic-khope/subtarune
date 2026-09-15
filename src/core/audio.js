@@ -422,7 +422,7 @@ export class Sound {
       const a = f.cloneNode(); a.volume = Math.min(1, volume); a.playbackRate = rate;
       if (from > 0) { try { a.currentTime = from; } catch {} }
       if (len > 0) setTimeout(() => { a.pause(); a.src = ''; }, (len / rate) * 1000);
-      a.play().catch(() => {}); return;
+      a.play().catch(() => {}); return a;   // 파일 소리는 요소를 돌려준다 — 홀드 기타처럼 도중에 멈춰야 하는 소리용(rhythm.js)
     }
     switch (name) {
       case 'menu':    this.tone({ freq: 760, wave: 'square', dur: 0.06, gain: 0.224 }); break;

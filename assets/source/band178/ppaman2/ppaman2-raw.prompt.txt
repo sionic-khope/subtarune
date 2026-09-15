@@ -1,0 +1,10 @@
+# imagegen 2026-09-15 19:14:11
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1024  quality: high
+# refs: assets/source/band178/refs/ppaman-ref.png
+
+Use case: precise-object-edit. The image just shown is the identity reference: left is the character's front view, right is his side view from our pixel-art RPG (a chubby round blue bear with a light-blue muzzle, small round ears, pink inner ears, black bead eyes, a white belly patch, a tiny mouth). Keep his identity exactly: blue bear, light-blue muzzle, round ears, white belly, small calm face.
+Produce a pixel-art sprite sheet of this character as the lead vocalist of a rock band on a concert stage: standing FACING THE VIEWER, holding a black microphone with a silver head in one paw. IMPORTANT: NO wide-open mouth in any frame — keep the mouth tiny or closed; show singing through body language only (mic held close to the muzzle, eyes closed, a paw raised, a head tilt, a lean). EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512x512 cells, solid pure #FF00FF background, no text, no labels, no grid, no borders, no shadows, no stage.
+Style: clean 16-bit pixel art (one logical pixel is about 1/100 of the body height), flat colors with simple 2-tone shading, single dark outline, readable silhouette. Same body size and camera distance in all cells, feet on the same baseline, body and microphone fully inside the central 75% of each cell.
+Frames row-major: (1) idle, mic held at chest height; (2) singing softly, mic close to the muzzle, eyes closed; (3) singing with the free paw raised high, head tilted slightly; (4) big moment, leaning back a little, mic up, eyes closed, tiny mouth.

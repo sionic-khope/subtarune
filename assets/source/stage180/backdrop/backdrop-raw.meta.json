@@ -1,0 +1,38 @@
+{
+  "endpoint": "images/generations",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [],
+  "elapsed_seconds": 124.2,
+  "usage": {
+    "input_tokens": 232,
+    "output_tokens": 5488,
+    "total_tokens": 5720,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 232
+    },
+    "output_tokens_details": {
+      "image_tokens": 5488,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789466643,
+  "outputs": [
+    {
+      "file": "assets/source/stage180/backdrop/backdrop-raw.png",
+      "bytes": 1763334,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

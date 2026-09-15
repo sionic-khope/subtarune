@@ -46,6 +46,13 @@ try {
   check(sc.greats >= 5 && sc.max >= 5, '작은별 7음을 키로 쳐서 GREAT·콤보 ' + JSON.stringify(sc));
   await page.waitForFunction(() => window.__rhythm.state.phase === 'talk', null, { timeout: 6000 }).catch(() => {});
   await talkThrough(4);
+  // ‘관객 여러분들 즐길 준비되셨나요?’ → 함성·박수·꽃(hype) → ‘처음곡은 방가방가 노앰토리~’
+  await page.waitForFunction(() => window.__rhythm.state.phase === 'hype', null, { timeout: 6000 }).catch(() => {});
+  await page.waitForTimeout(700); await cap('hype');
+  s = await st(); const hype = await page.evaluate(() => ({ cheer: window.__rhythm.state.cheer, flowers: window.__rhythm.state.flowers.length }));
+  check(s.phase === 'hype' && hype.cheer > 0 && hype.flowers > 5, '관객 함성·꽃 던지기 ' + JSON.stringify([s.phase, hype]));
+  await page.waitForFunction(() => window.__rhythm.state.phase === 'talk', null, { timeout: 8000 }).catch(() => {});
+  await talkThrough(1);
   await page.waitForFunction(() => window.__rhythm.state.phase === 'title', null, { timeout: 6000 }).catch(() => {});
   await page.waitForTimeout(900); await cap('title');
   s = await st(); check(s.phase === 'title' && s.title === '방가방가 노앰토리', '노래방식 제목 카드(방가방가 노앰토리) ' + JSON.stringify([s.phase, s.title]));

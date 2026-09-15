@@ -423,8 +423,12 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | --- | --- | --- | --- |
 | `video/noamtori.mp4` + `rhythm/noamtori.json` | 유튜브 [-IvdHDCBsps](https://www.youtube.com/watch?v=-IvdHDCBsps) “MD형섭 - 방가방가 노앰토리”(무언가가큰징징이, 360p mp4 4.0MB) | 88s | 첫 곡. 차트 166노트(홀드 51, 1.9/s), bpm 139.7 |
 | `video/bojipam.mp4` + `rhythm/bojipam.json` | 유튜브 [-c1t2MTk_q0](https://www.youtube.com/watch?v=-c1t2MTk_q0) “MC노라니 - 보지팜 (백업)”(노라니 백업, 360p mp4 6.6MB) | 133s | 두 번째 곡(게임 표기 ‘보X팜’). 차트 232노트(홀드 54, 1.7/s), bpm 126 |
-| 일렉 기타·툭툭·미스·지이잉 | 합성(`Sound.tone`: 톱니파 + 배음 스퀘어 / 90Hz 스퀘어 / 62Hz 톱니 / 110Hz 톱니 + 1.5kHz 사인 glide) | | GREAT 스트로크(작은별은 음정대로 C4·G4·A4), 노트 없는 데 누름, MISS, 곡 시작 전 앰프 지이잉 2초 |
+| `sfx/guitar_{c4,g4,a4,pc_e,pc_a,mute,scratch,feedback,sustain}.mp3` | 물리 모델 합성 `tools/audio/guitar.py`(Karplus-Strong 현 → 고게인 tanh 디스토션 → 캐비닛 로우패스 → 짧은 룸; 파워코드는 근음+5도+옥타브 디튠) — 사용자 “게인 세고 리얼한 일렉” | 0.07~3.2s | 작은별 음정(C4·G4·A4), GREAT 파워코드 E/A 번갈아, MISS 팜뮤트 척, 노트 없는 데 긁기, 곡 시작 전 피드백 지이이잉, 홀드 누르는 동안 sustain(떼면 씬이 줄여 끊음) |
+| `sfx/crowd_cheer.mp3`, `sfx/crowd_roar.mp3` | 합성 `tools/audio/crowd_cheer.py`(대역 노이즈 함성 + 박수 임펄스 무리 + 휘파람) — 사용자 “박수소리 좀더 락 같은, 리믹스 노이즈” | 2.6s / 4.0s | 콤보 20 환호 / 콤보 50·곡 끝·‘관객 여러분들 즐길 준비되셨나요?’ 함성 |
+| `sfx/applause.mp3`, `sfx/crowd.mp3` | Deltarune `snd_applause`, `snd_crowd.ogg`(디컴파일, 같은 SHA; 원본 `assets/source/stage_hall177/audio/`) | 1.7s / 14.8s | 콤보 10 박수·환호에 겹침 / 홀 관객 입장 웅성웅성 |
 | 참고 영상 | 델타룬 3장 테나 리듬 게임 [103D6O-Wr_g](https://www.youtube.com/watch?v=103D6O-Wr_g) | | 두 칸 좌우·홀드·GREAT/MISS·인기 게이지 구성 참고 |
+
+생성 그림(BUILD180, OpenGateway gpt-image-2, `assets/source/stage180/`): 리듬 무대 배경 `props/rhythm_backdrop.png`(480×360, 스크린 106,34 264×148 측정값), 관객 띠 `props/rhythm_audience.png`(480×180, 위 평소·아래 환호), 대기실 소품 `props/backstage_*.png`, 무대 판자·마룬 카펫 `props/stage_floor.png`·`hall_carpet.png`·`backstage_carpet.png`. 억빠맨 보컬 시트는 입을 안 벌리는 버전으로 재생성(`band178/ppaman2`).
 
 받기: `uvx --from yt-dlp yt-dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f 'bestvideo[height<=360]+bestaudio/best[height<=360]' --merge-output-format mp4 -o '<id>.%(ext)s' <url>` → `assets/video/`. 차트: `/usr/bin/python3 tools/rhythm/chart.py assets/video/<id>.mp4 --title … --artist … --out assets/rhythm/<id>.json`.
 
