@@ -1,0 +1,10 @@
+# imagegen 2026-09-15 22:12:19
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1024  quality: high
+# refs: assets/source/band178/ppaman2/ppaman2-raw.png
+
+Use case: precise-object-edit. The image just shown is the existing pixel-art sprite sheet of this character from our game: the vocalist, a chubby round blue bear with a light-blue muzzle, small round ears with pink inner ears, black bead eyes, a white belly patch, a tiny closed mouth, holding a black microphone with a silver head. Keep his identity, the microphone, pixel style, body size and camera distance EXACTLY like the reference. IMPORTANT: NO wide-open mouth in any frame — keep the mouth tiny or closed.
+Produce a NEW sprite sheet of the SAME character in the SAME style: an idle groove cycle — he is waiting between songs and bobbing to the beat ("doong-ga doong-ga"), mic held at chest height, relaxed. FACING THE VIEWER. EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512x512 cells, solid pure #FF00FF background, no text, no labels, no grid, no borders, no shadows, no stage.
+Style: clean 16-bit pixel art (one logical pixel is about 1/100 of the body height), flat colors with simple 2-tone shading, single dark outline. Same body size in all cells, feet on the same baseline, fully inside the central 75% of each cell.
+Frames row-major: (1) beat DOWN — knees slightly bent, body a little lower, head dipped forward; (2) beat UP — standing tall, head up, slightly on his toes, ears perked; (3) sway LEFT — weight on his left foot, head tilted left with a small nod; (4) sway RIGHT — weight on his right foot, head tilted right, the mirror of frame 3.

@@ -331,3 +331,8 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'backstage', desc: '엄청 대박인 
   map: 'youngcle12', spawn: 'from_stairs', flags: { ...hallDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'rhythm_stage', desc: '리듬 게임 직행 (밴드 낙하 → 사운드 체크 → 방가방가 노앰토리 → 보X팜)',
   map: 'youngcle12', spawn: 'from_stairs', flags: { ...hallDoneFlags }, party: [...parkWonCheckpoint.party], script: 'rhythm_qa' });
+// 공연 뒤 연출(검은 화면 나레이션 → 무대 위 대사 → 오른쪽 벽 뚫림 → 뚜울라 땅 파고 퇴장) / 뚫린 오른쪽 복도
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'stage_after_show', desc: '엄청 대박인 배: 공연 뒤 연출 (나레이션 → 무대 위 → 오른쪽 길)',
+  map: 'youngcle12', spawn: 'from_stairs', flags: { ...hallDoneFlags, rhythm_stage_done: true }, party: [...parkWonCheckpoint.party], script: 'after_show_qa' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle13', desc: '엄청 대박인 배: 무대 오른쪽 복도 (영클형 쪽, 끝은 잠긴 철문)',
+  map: 'youngcle13', spawn: 'left', flags: { ...hallDoneFlags, rhythm_stage_done: true, stage_show_done: true }, party: [...parkWonCheckpoint.party] });

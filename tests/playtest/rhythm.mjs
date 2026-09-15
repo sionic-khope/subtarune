@@ -70,7 +70,11 @@ try {
   await autoPlay(3); await page.waitForTimeout(60); await cap('highlight');
   const hl = await page.evaluate(() => { const r = window.__rhythm.state; return { hi: r.hi, confetti: r.confetti.length, cheer: Math.round(r.cheer * 100) / 100, sparks: r.sparks.length, hl: r.chart.highlights }; });
   check(hl.hi === true && hl.confetti > 20 && hl.cheer > 0, '코러스 하이라이트: 색종이·관객 환호 ' + JSON.stringify(hl));
-  // 손을 놓으면 5연속 MISS → 게임오버 → C 재도전
+  // 손을 놓으면 MISS 가 쌓여 신호가 나빠진다 → ‘● 연결 안 됨’ 배지(최상위) → 5연속 MISS → 게임오버 → C 재도전
+  await page.waitForFunction(() => { const r = window.__rhythm.state; return r.signal < 0.6 && !r.over; }, null, { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(350); await cap('badge');
+  const bd = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, badge: Math.round(r.badge * 100) / 100, over: r.over }; });
+  check(bd.badge > 0.5 && bd.signal < 0.6, '신호가 나쁘면 “연결 안 됨” 배지가 뜬다 ' + JSON.stringify(bd));
   await page.waitForFunction(() => window.__rhythm.state.over, null, { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(300); await cap('over');
   s = await st(); check(s.over === true, '5연속 MISS 게임오버 ' + JSON.stringify([s.over, s.misses]));
@@ -82,11 +86,26 @@ try {
   await autoPlay(4); s = await st(); check(s.max >= 3, '재도전 뒤에도 연주 ' + JSON.stringify([s.max]));
   const sig2 = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, noise: !!r.noise && r.noise.loop, noiseVol: r.noise ? Math.round(r.noise.volume * 100) / 100 : null }; });
   check(sig2.signal >= 0.99 && sig2.noise && sig2.noiseVol === 0, '잘 맞추면 신호 1 — 노래 온전, 잡음 0 ' + JSON.stringify(sig2));
+  // 곡이 끝나면 기립 환호(크게·오래) + 꽃·동전 → ‘너무 감동적인 곡이군요...’ / ‘이제 이게 끝이 아닙니다.’ → 보X팜 제목 때도 환호
+  await page.evaluate(() => window.__rhythm.endSong());
+  await page.waitForTimeout(400); await cap('ovation');
+  const ov = await page.evaluate(() => { const r = window.__rhythm.state; return { phase: r.phase, cheer: Math.round(r.cheer * 10) / 10, coins: r.coins.length, flowers: r.flowers.length }; });
+  check(ov.phase === 'ovation' && ov.cheer > 5 && ov.coins > 10 && ov.flowers > 20, '곡 끝 기립 환호·동전·꽃 ' + JSON.stringify(ov));
+  await page.waitForFunction(() => window.__rhythm.state.phase === 'talk', null, { timeout: 8000 }).catch(() => {});
+  const t3 = await page.evaluate(() => { const r = window.__rhythm.state; return r.talk ? r.talk.lines.slice(0, 2).map(l => l.text) : null; });
+  check(t3 && t3[0] === '너무 감동적인 곡이군요...' && t3[1] === '환상적인 연주네요~', '곡 뒤 대사(감동적/환상적/끝이 아닙니다/다음곡/이 노래가/전설의 악질 시청자) ' + JSON.stringify(t3));
+  await talkThrough(6);
+  await page.waitForFunction(() => window.__rhythm.state.phase === 'title', null, { timeout: 8000 }).catch(() => {});
+  const t2 = await page.evaluate(() => { const r = window.__rhythm.state; return { song: r.song, title: r.chart?.title, cheer: Math.round(r.cheer * 10) / 10 }; });
+  check(t2.song === 1 && t2.title === '악질 시청자' && t2.cheer > 0, '둘째 곡 악질 시청자(-쥰희- 버전) 제목 카드 + 관객 환호 ' + JSON.stringify(t2));
+  const n3 = await page.evaluate(() => window.__rhythm.state.charts.map(c => c && c.title));
+  check(n3.length === 3 && n3[2] === '보X팜', '세 곡 순서: 노앰토리 → 악질 시청자 → 보X팜 ' + JSON.stringify(n3));
   await page.evaluate(() => window.__rhythm.finish(true));
   await page.waitForFunction(() => !window.__rhythm, null, { timeout: 5000 }).catch(() => {});
-  await page.waitForFunction(() => !game.dialogue.running, null, { timeout: 8000 }).catch(() => {});
-  const back = await page.evaluate(() => ({ map: game.mapId, done: game.flags.rhythm_stage_done === true, rhythm: !!window.__rhythm, videos: document.querySelectorAll('video').length }));
-  check(back.map === 'youngcle12' && back.done && !back.rhythm && back.videos === 0, '씬 종료 → 대기실·플래그·영상 정리 ' + JSON.stringify(back));
+  // 씬이 끝나면 공연 뒤 연출(검은 화면 나레이션)로 이어진다 — 상세는 stage-after-show 플레이테스트
+  await page.waitForFunction(() => game.dialogue.running && game.curtain === 'black', null, { timeout: 8000 }).catch(() => {});
+  const back = await page.evaluate(() => ({ done: game.flags.rhythm_stage_done === true, rhythm: !!window.__rhythm, videos: document.querySelectorAll('video').length, curtain: game.curtain, text: game.textbox.node?.text?.slice(0, 20) }));
+  check(back.done && !back.rhythm && back.videos === 0 && back.curtain === 'black', '씬 종료 → 플래그·영상 정리 → 검은 화면 나레이션 ' + JSON.stringify(back));
 } catch (e) { fails += 1; console.log('CRASH', e.message); }
 check(errors.length === 0, 'pageerror 없음 ' + JSON.stringify(errors));
 console.log(`fails=${fails}`);

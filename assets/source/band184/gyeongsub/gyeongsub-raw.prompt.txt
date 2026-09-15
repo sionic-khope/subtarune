@@ -1,0 +1,10 @@
+# imagegen 2026-09-15 22:15:22
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1024  quality: high
+# refs: assets/source/band184/gyeongsub/ref-small.png
+
+Use case: precise-object-edit. The image just shown is the existing pixel-art sprite sheet of this character from our game: the drummer (long black hair past the shoulders, thin round glasses, purple sweater with a small pink square logo, no mouth) sitting behind a dark-green drum kit (bass drum with a white pixel logo, snare, tom, hi-hat, crash cymbal). Keep his identity, outfit, the drum kit, pixel style, body size and camera distance EXACTLY like the reference.
+Produce a NEW sprite sheet of the SAME character in the SAME style: an idle groove cycle — he is waiting between songs and bobbing to the beat ("doong-ga doong-ga") while seated at the kit, drumsticks held loosely, NOT hitting the drums. FACING THE VIEWER. EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512x512 cells, solid pure #FF00FF background, no text, no labels, no grid, no borders, no shadows, no stage.
+Style: clean 16-bit pixel art (one logical pixel is about 1/100 of the body height), flat colors with simple 2-tone shading, single dark outline. Same body and kit size in all cells, kit on the same baseline, fully inside the central 75% of each cell.
+Frames row-major: (1) beat DOWN — head dipped forward, shoulders dropped, sticks resting low; (2) beat UP — head up, shoulders raised, sticks lifted a little; (3) sway LEFT — upper body leaning left, head tilted left with a small nod; (4) sway RIGHT — upper body leaning right, head tilted right, the mirror of frame 3.

@@ -46,6 +46,10 @@ def main() -> None:
             cells[row][col] = 'I'
     for col in (3, 4, 21, 22):
         cells[8][col] = 'I'
+    # 공연 뒤 뚫리는 무대 오른쪽 길(BUILD185 사용자: “무대 오른쪽에 길 뚫어주고”): rows 4~5 · cols 23~24 → youngcle13. 뚫리기 전엔 벽 소품(stage11_right_wall)이 막는다
+    for row in (4, 5):
+        for col in (23, 24):
+            cells[row][col] = 'I'
     for row in range(9, 24):
         for col in range(1, WIDTH - 1):
             cells[row][col] = 'I'
@@ -77,6 +81,10 @@ def main() -> None:
             'from_below': {'x': 400, 'y': 700, 'facing': 'up'},
             # 대기실(youngcle12)에서 돌아올 때: 왼쪽 계단 아래
             'from_backstage': {'x': 116, 'y': 304, 'facing': 'down'},
+            # 공연 뒤 연출: 무대 가운데(밴드 자리 앞)
+            'on_stage': {'x': 416, 'y': 200, 'facing': 'down'},
+            # 오른쪽 길(youngcle13)에서 돌아올 때
+            'from_right': {'x': 696, 'y': 160, 'facing': 'left'},
         },
         'meta': {'connected': True, 'route': [[12, 22], [12, 10], [3, 8], [12, 4]],
                  'crowd': [{'id': f'crowd_{i}', 'sprite': sprite, 'scale': scale, 'x': x, 'y': y}
@@ -97,6 +105,12 @@ def main() -> None:
             *[{'type': 'door', 'id': f'youngcle11_stairs_{side}', 'x': x, 'y': 224, 'w': 64, 'h': 16,
                'to': 'youngcle12', 'spawn': 'from_stairs', 'sfx': False, 'interact': False}
               for side, x in (('l', 96), ('r', 672))],
+            # 무대 오른쪽 길: 공연 뒤(stage_show_done) 문이 열린다. 그 전엔 벽 판이 막고(unless), 연출이 remove 로 뚫는다
+            {'type': 'door', 'id': 'youngcle11_right', 'x': 784, 'y': 128, 'w': 16, 'h': 64,
+             'to': 'youngcle13', 'spawn': 'left', 'sfx': False, 'interact': False, 'requires': 'stage_show_done', 'lockedScript': 'stage_right_locked'},
+            {'type': 'prop', 'id': 'stage11_right_wall', 'image': 'assets/props/editor-union-wall-panel.png',
+             'x': 736, 'y': 128, 'w': 64, 'h': 64, 'ix': 736, 'iy': 116, 'solid': True, 'sortY': 200, 'unless': 'stage_show_done'},
+            {'type': 'sign', 'id': 'stage11_right_gate', 'x': 752, 'y': 160, 'w': 1, 'h': 1, 'solid': False},
             # 무대 가운데 기준물(연출 rel 용) + 어둠 속에 서 있는 뚜울라(연출에서 show, 연출 뒤엔 unless)
             {'type': 'sign', 'id': 'stage11_center', 'x': 416, 'y': 160, 'w': 1, 'h': 1, 'solid': False},
             {'type': 'npc', 'id': 'ttuulla', 'sprite': 'ttuulla', 'x': 416, 'y': 120, 'facing': 'down', 'wander': 0,

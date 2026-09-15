@@ -426,10 +426,13 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/guitar_{c4,g4,a4,pc_e,pc_a,mute,scratch,feedback,sustain}.mp3` | 물리 모델 합성 `tools/audio/guitar.py`(Karplus-Strong 현 → 고게인 tanh 디스토션 → 캐비닛 로우패스 → 짧은 룸; 파워코드는 근음+5도+옥타브 디튠) — 사용자 “게인 세고 리얼한 일렉” | 0.07~3.2s | 작은별 음정(C4·G4·A4), GREAT 파워코드 E/A 번갈아, MISS 팜뮤트 척, 노트 없는 데 긁기, 곡 시작 전 피드백 지이이잉, 홀드 누르는 동안 sustain(떼면 씬이 줄여 끊음) |
 | `sfx/guitar_dead.mp3` | 합성 `tools/audio/guitar.py`(로우패스 노이즈 + 70Hz 툭) | 0.1s | 리듬 MISS(음정 없음). BUILD183 사용자 확정 “곡 중 소리 없애고 리듬으로만” — `guitar_pc_e/a`·`guitar_mute`·`guitar_sustain`·`guitar_lead_*` 는 삭제, 작은별 음정 `guitar_c4/g4/a4` 만 사운드 체크에 남음 |
 | `sfx/static_loop.mp3`, `sfx/static_burst.mp3` | 합성 `tools/audio/static.py`(대역 노이즈 800~6000Hz + 크래클 임펄스, 루프는 끝 크로스페이드) — 사용자 “못 맞추면 노래가 지직거리면서 덜 나온다” | 1.95s 루프 / 0.22s | 곡 동안 신호 품질(1−signal)에 비례해 잡음, MISS 순간 지직 |
+| `assets/video/akjil.mp4` | 사용자 지정 [oQ0P4mRV_wA](https://www.youtube.com/watch?v=oQ0P4mRV_wA) ‘악질 시청자’ -쥰희- 버전, yt-dlp 360p 이하 mp4(vp9 240×358 + aac), 편집 없음 | 77.6s | 리듬 둘째 곡(차트 `assets/rhythm/akjil.json`, 하이라이트 4.0~29.9·35.1~44.8초) |
 | `assets/video/noamtori.mp4` | 원본 유튜브 -IvdHDCBsps 전체(BUILD183 복원 — 영상은 안 자르고 노트만 18.2초부터) | 87.8s | 리듬 첫 곡 |
 | `sfx/crowd_cheer.mp3`, `sfx/crowd_roar.mp3` | 합성 `tools/audio/crowd_cheer.py`(대역 노이즈 함성 + 박수 임펄스 무리 + 휘파람) — 사용자 “박수소리 좀더 락 같은, 리믹스 노이즈” | 2.6s / 4.0s | 콤보 20 환호 / 콤보 50·곡 끝·‘관객 여러분들 즐길 준비되셨나요?’ 함성 |
 | `sfx/applause.mp3`, `sfx/crowd.mp3` | Deltarune `snd_applause`, `snd_crowd.ogg`(디컴파일, 같은 SHA; 원본 `assets/source/stage_hall177/audio/`) | 1.7s / 14.8s | 콤보 10 박수·환호에 겹침 / 홀 관객 입장 웅성웅성 |
 | 참고 영상 | 델타룬 3장 테나 리듬 게임 [103D6O-Wr_g](https://www.youtube.com/watch?v=103D6O-Wr_g) | | 두 칸 좌우·홀드·GREAT/MISS·인기 게이지 구성 참고 |
+
+생성 그림(BUILD184, gpt-image-2, `assets/source/band184/`): 밴드 둥가둥가 4프레임(다운·업·왼쪽·오른쪽) — 참조는 기존 raw 시트를 512 로 NEAREST 축소(1.1MB 원본은 HTTP 413), `process.py` 가 기존 `band_*.png` 아래에 붙여 256×512.
 
 생성 그림(BUILD180, OpenGateway gpt-image-2, `assets/source/stage180/`): 리듬 무대 배경 `props/rhythm_backdrop.png`(480×360, 스크린 106,34 264×148 측정값), 관객 띠 `props/rhythm_audience.png`(480×180, 위 평소·아래 환호), 대기실 소품 `props/backstage_*.png`, 무대 판자·마룬 카펫 `props/stage_floor.png`·`hall_carpet.png`·`backstage_carpet.png`. 억빠맨 보컬 시트는 입을 안 벌리는 버전으로 재생성(`band178/ppaman2`).
 

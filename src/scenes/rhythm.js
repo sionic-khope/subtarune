@@ -4,7 +4,7 @@
 //   청록 노트 막대와 흰 박자선이 같이 내려오고 콤보 숫자는 기둥 안에 크게. 밴드는 델타룬 비율(드럼 세트 크게·사람 작게, 셋이 무대 폭에 넓게)로 서고
 //   발밑에 바닥 스포트라이트 원이 위아래로 떠다닌다. 관객(생성 띠, 2프레임)은 맨 아래.
 //   흐름: 페이드인 → 셋이 왼쪽부터 떨어져 자리 → 대사 → 사운드 체크(작은별) → 룰 대사(‘죽습니다’) → ‘관객 여러분들 즐길 준비되셨나요?’ → 함성·박수·꽃·불꽃 →
-//   노래방식 제목 + 앰프 피드백 → 스크린 켜지며 영상·플레이 → 대사 → 두 번째 곡 → 결과.
+//   노래방식 제목 + 앰프 피드백 → 스크린 켜지며 영상·플레이 → 기립 환호 → 대사 → 둘째 곡(악질 시청자) → 대사 → 셋째 곡(보X팜) → 결과.
 //   하이라이트(코러스, chart.highlights — 보X팜 마지막 ‘보x 존나 팔고~’ 등): 들어가는 순간 함성·꽃·양옆 불꽃, 구간 내내 색색 컬러 빔·박자 스트로브·색종이·
 //   바닥 원 펄스·관객 점프, 마디마다 불꽃, 16박마다 환호, 끝나면 박수.
 //   양옆 패드(경섭 드럼 | 빠맨 보컬)도 가운데와 같은 두 칸짜리 기둥이고 알아서 친다(사용자 확정): 자동 노트가 판정선에 닿으면 반짝 + 드럼·노래 애니.
@@ -19,17 +19,19 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { makePlay, stepPlay, finished, sideHits, sideTime, visibleNotes, grade, beatAt, highlightAt, RHYTHM, TWINKLE } from './rhythm-core.js';
 
 const BAND = [
-  // draw = 화면 크기(px, 128 셀 기준). 델타룬 비율(사용자 참고 이미지 실측: 사람 키 ≈ 화면 높이 15%, 드럼 세트 ≈ 19%·사람의 2.5배 폭, 셋이 무대 폭 15/46/78% 자리)
-  { id: 'gyeongsub', label: '경섭', color: '#ff6fa8', sheet: 'assets/sprites/band_gyeongsub.png', x: 112, draw: 76, voice: 'gyeongsub' },
-  { id: 'hyungsub', label: '형섭', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 64, voice: 'hyungsub' },
-  { id: 'ppaman', label: '빠맨', color: '#7dff5a', sheet: 'assets/sprites/band_ppaman.png', x: 372, draw: 66, voice: 'ppaman' },
+  // draw = 화면 크기(px, 128 셀 기준). 델타룬 비율(사람 키 ≈ 화면 높이 15%, 드럼 ≈ 19%)에서 사용자 요청으로 15% 키움(BUILD185), 셋이 무대 폭 15/46/78% 자리
+  { id: 'gyeongsub', label: '경섭', color: '#ff6fa8', sheet: 'assets/sprites/band_gyeongsub.png', x: 112, draw: 87, voice: 'gyeongsub' },
+  { id: 'hyungsub', label: '형섭', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 74, voice: 'hyungsub' },
+  { id: 'ppaman', label: '빠맨', color: '#7dff5a', sheet: 'assets/sprites/band_ppaman.png', x: 372, draw: 76, voice: 'ppaman' },
 ];
 const BACKDROP = 'assets/props/rhythm_backdrop.png', AUDIENCE = 'assets/props/rhythm_audience.png';
-const CELL = 128, FEET = 122, STAND_Y = 288;
+// 신호가 나쁠 때 최상위에 뜨는 ‘● 연결 안 됨’ 배지(사용자 참고 이미지 느낌: 연분홍 알약 + 소용돌이 아이콘 + 빨간 점, 글자는 폰트로)
+const BADGE = 'assets/props/ui_badge_disconnected.png', BADGE_SHOW = 0.6;
+const CELL = 128, FEET = 122, STAND_Y = 290;
 // 생성 배경 속 스크린(측정값): 영상은 여기에
 const TV = { x: 106, y: 34, w: 264, h: 148 };
 // 델타룬식 리듬 기둥: 가운데 하나, 왼쪽 반 = ←, 오른쪽 반 = →. 흰 박자선이 노트와 함께 내려오고 콤보는 기둥 안에 크게
-const LANE_TOP = 24, RECEPTOR_Y = 204, LANE = { x: 190, w: 100 };
+const LANE_TOP = 20, RECEPTOR_Y = 198, LANE = { x: 190, w: 100 };
 const HALF = { L: { x: LANE.x, w: LANE.w / 2 }, R: { x: LANE.x + LANE.w / 2, w: LANE.w / 2 } };
 const NOTE_RGB = '92,226,208', LINE_RGB = '86,204,222';
 // 양옆 자동 패드(경섭 드럼·빠맨 보컬): 가운데와 같은 두 칸짜리 기둥(각 40px 반칸)
@@ -40,7 +42,8 @@ const MIX = { song: 1.0, scratch: 0.22, miss: 0.3, crowdInSong: 0.6, songFloor: 
 const SIGNAL = { great: 0.15, miss: 0.3, glitch: 0.35 };
 const PITCH_SFX = { 261.63: 'guitar_c4', 392: 'guitar_g4', 440: 'guitar_a4' };
 const HI_COLORS = ['255,110,190', '110,220,255', '255,225,110', '150,255,140'];
-const SONGS = ['assets/rhythm/noamtori.json', 'assets/rhythm/bojipam.json'];
+// 세 곡(사용자 확정 순서): 방가방가 노앰토리 → 악질 시청자(-쥰희- 버전, oQ0P4mRV_wA) → 보X팜
+const SONGS = ['assets/rhythm/noamtori.json', 'assets/rhythm/akjil.json', 'assets/rhythm/bojipam.json'];
 const CHAR_DELAY = 0.032;
 const SPEAKERS = { gyeongsub: { label: '경섭', color: '#ff6fa8' }, ppaman: { label: '억빠맨', color: '#c9a3ff' }, ttuulla: { label: '뚜울라알라', color: '#ffd166' } };
 const TALK1 = [
@@ -55,13 +58,27 @@ const TALK2 = [
   { who: 'ttuulla', text: '{r}죽습니다{/}', shake: true },
   { who: 'ttuulla', text: '관객 여러분들 즐길 준비되셨나요?' },
 ];
-const TALK2B = [{ who: 'ttuulla', text: '자 그럼 시작해봅시다. 처음곡은 {y}방가방가 노앰토리{/}~' }];
+// cheer: 노래 제목을 공개하는 줄엔 관객 박수·환호(사용자: “노래 제목 공개할 때마다 박수도”)
+const TALK2B = [{ who: 'ttuulla', text: '자 그럼 시작해봅시다. 처음곡은 {y}방가방가 노앰토리{/}~', cheer: 2 }];
+// 곡 사이 대사(사용자 원문): 첫 곡 뒤 → 악질 시청자, 둘째 곡 뒤 → 보X팜. 제목 줄은 노란색 + 박수
 const TALK3 = [
-  { who: 'ttuulla', text: '정말 감동적인곡이군요... 하지만 이게 끝이 아닙니다.' },
-  { who: 'ttuulla', text: '두번째곡... 바로 가볼까요?' },
-  { who: 'ttuulla', text: '바로 {y}보X팜{/} 입니다~~' },
+  { who: 'ttuulla', text: '너무 감동적인 곡이군요...' },
+  { who: 'ttuulla', text: '환상적인 연주네요~' },
+  { who: 'ttuulla', text: '이제 이게 끝이 아닙니다.' },
+  { who: 'ttuulla', text: '이어서 다음곡 가보겠습니다' },
+  { who: 'ttuulla', text: '아 이 노래가 나오나요?' },
+  { who: 'ttuulla', text: '전설의 {y}악질 시청자{/}', cheer: 2 },
 ];
-const HUM = 2.2, TITLE_IN = 1.0, HYPE = 3.2;
+const TALK4 = [
+  { who: 'ttuulla', text: '캬 완벽한 곡이긴하네요 다시들어도,' },
+  { who: 'ttuulla', text: '저의 최애곡이기도합니다' },
+  { who: 'ttuulla', text: '어쨌든 여러분들 아쉽겠지만 이제 마지막 곡입니다' },
+  { who: 'ttuulla', text: '노라니의 {y}보x팜{/}!!', cheer: 3 },
+];
+const TALK_AFTER = [TALK3, TALK4];
+const HUM = 2.2, TITLE_IN = 1.0, HYPE = 3.2, OVATION = 3.0;
+// 둥가둥가: 시트에 groove 4프레임(셀 4~7: 다운·업·왼쪽·오른쪽)이 있으면 반박마다 이 순서로, 없으면 프레임 0 을 위아래로
+const GROOVE = [4, 5, 6, 5, 4, 5, 7, 5];
 const FLOWER_COLORS = ['#ff7bd1', '#ffd166', '#ff5c5c', '#c9a3ff', '#7dff5a'];
 
 function loadImage(src) {
@@ -112,7 +129,7 @@ export function run(game, node = {}) {
     const ctx = ov.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     const sheets = Object.fromEntries(BAND.map(b => [b.id, loadImage(b.sheet)]));
-    const backdrop = loadImage(BACKDROP), audienceImg = loadImage(AUDIENCE);
+    const backdrop = loadImage(BACKDROP), audienceImg = loadImage(AUDIENCE), badgeImg = loadImage(BADGE);
     const typer = new Typewriter(game.sound);
     const sound = game.sound;
     const sfx = (name, volume = 0.7, len = 0, rate = 1, pitch = false) => sound.sfx(name, { volume, len, rate, pitch });
@@ -123,7 +140,7 @@ export function run(game, node = {}) {
       judge: null, judgeT: 0, cheer: 0, cheerBig: false, lastCombo10: 0, sideT: 0, tvOn: 0, title: null, hum: 0, over: false, flash: 0,
       stats: { score: 0, maxCombo: 0, songs: [] }, shake: 0, fx: [], flowers: [], holds: {}, chord: 0, beam: 0,
       hi: false, hiT: 0, lastBeat: -1, strobe: 0, confetti: [], sparks: [],
-      signal: 1, glitch: 0, noise: null,
+      signal: 1, glitch: 0, noise: null, coins: [], after: null, badge: 0,
     };
     const charts = SONGS.map(src => fetch(src).then(r => r.json()).catch(() => null));
     const makeVideo = (src) => { const v = document.createElement('video'); v.src = src; v.preload = 'auto'; v.playsInline = true; v.volume = MIX.song; v.style.display = 'none'; document.body.appendChild(v); return v; };
@@ -153,22 +170,27 @@ export function run(game, node = {}) {
     const drumHit = () => { const d = bandOf('gyeongsub'); d.frame = 1 + Math.floor(Math.random() * 3); d.animT = 0.18; };
     const sing = () => { const v = bandOf('ppaman'); v.frame = 1 + Math.floor(Math.random() * 3); v.animT = 0.3; };
     const cheer = (level) => {
-      state.cheer = level >= 3 ? 3.4 : level >= 2 ? 2.4 : 1.6; state.cheerBig = level >= 2;
-      const m = state.phase === 'play' ? MIX.crowdInSong : 1;
-      if (level >= 3) { sfx('crowd_roar', 0.75 * m); sfx('applause', 0.6 * m); state.flash = 0.4; }
+      state.cheer = level >= 4 ? 7 : level >= 3 ? 3.4 : level >= 2 ? 2.4 : 1.6; state.cheerBig = level >= 2;
+      const m = state.phase === 'play' && level < 4 ? MIX.crowdInSong : 1;
+      // 4 = 곡이 끝났을 때의 기립 환호(사용자: “더 크게 오래”): 함성 두 번 겹침 + 박수 길게
+      if (level >= 4) { sfx('crowd_roar', 0.95); sfx('applause', 0.75); state.flash = 0.6; setTimeout(() => { if (!state.exiting) { sfx('crowd_roar', 0.8); sfx('crowd_cheer', 0.6); } }, 1500); setTimeout(() => { if (!state.exiting) sfx('applause', 0.7); }, 3200); }
+      else if (level >= 3) { sfx('crowd_roar', 0.75 * m); sfx('applause', 0.6 * m); state.flash = 0.4; }
       else if (level >= 2) { sfx('crowd_cheer', 0.7 * m); sfx('applause', 0.5 * m); }
       else sfx('applause', 0.6 * m);
     };
     // 무대 양옆 불꽃(파이로) + 위에서 떨어지는 색종이 — 하이라이트·환호 연출
     const pyro = (n = 12) => { for (const sx of [64, 416]) for (let i = 0; i < n; i++) state.sparks.push({ x: sx + (Math.random() - 0.5) * 10, y: 270, vx: (Math.random() - 0.5) * 90, vy: -(170 + Math.random() * 150), t: 0, dur: 0.55 + Math.random() * 0.35 }); };
     const confetti = (n) => { for (let i = 0; i < n; i++) state.confetti.push({ x: Math.random() * SCREEN_W, y: -6 - Math.random() * 30, vy: 55 + Math.random() * 70, t: Math.random() * 6, color: i % 5 === 4 ? '#ffffff' : FLOWER_COLORS[i % FLOWER_COLORS.length], seed: Math.random() * 7 }); };
+    // 동전 던지기(사용자): 관객석에서 무대로 포물선, 무대 바닥에 한 번 튀며 ‘팅’
+    const throwCoins = (n = 16) => { for (let i = 0; i < n; i++) { const x0 = 40 + Math.random() * 400; state.coins.push({ x: x0, y: 356, vx: (Math.random() - 0.5) * 50 + (240 - x0) * 0.4, vy: -(260 + Math.random() * 130), t: -Math.random() * 1.2, floor: STAND_Y - 14 + Math.random() * 12, bounced: 0, spin: Math.random() * 6 }); } };
     const throwFlowers = (n = 14) => { for (let i = 0; i < n; i++) state.flowers.push({ x: 40 + Math.random() * 400, y: 356, vx: (Math.random() - 0.5) * 60 + (240 - (40 + Math.random() * 400)) * 0.35, vy: -(230 + Math.random() * 120), t: -Math.random() * 0.8, color: FLOWER_COLORS[i % FLOWER_COLORS.length], spin: Math.random() * 6 }); };
 
-    const startTalk = (lines, next) => { state.phase = 'talk'; state.talk = { lines, i: 0, next }; const l = lines[0]; typer.start(l.text, l.who); if (l.shake) state.shake = 0.5; };
+    const talkLine = (l) => { typer.start(l.text, l.who); if (l.shake) state.shake = 0.5; if (l.cheer) { cheer(l.cheer); throwFlowers(l.cheer >= 3 ? 14 : 8); if (l.cheer >= 3) pyro(12); } };
+    const startTalk = (lines, next) => { state.phase = 'talk'; state.talk = { lines, i: 0, next }; talkLine(lines[0]); };
     const advanceTalk = () => {
       const tk = state.talk; tk.i += 1;
       if (tk.i >= tk.lines.length) { state.talk = null; tk.next(); return; }
-      const l = tk.lines[tk.i]; typer.start(l.text, l.who); if (l.shake) state.shake = 0.5;
+      talkLine(tk.lines[tk.i]);
     };
     const startSoundcheck = () => { state.phase = 'soundcheck'; state.phaseT = 0; state.chart = TWINKLE; state.play = makePlay(TWINKLE); state.clock = 0; state.judge = null; };
     const startHype = () => { state.phase = 'hype'; state.phaseT = 0; cheer(3); throwFlowers(18); pyro(24); confetti(40); };
@@ -177,6 +199,8 @@ export function run(game, node = {}) {
       if (!chart) { finish(true); return; }
       state.song = index; state.chart = chart; state.play = makePlay(chart); state.phase = 'title'; state.phaseT = 0; state.title = { k: 0 }; state.hum = 0; state.tvOn = 0; state.over = false; state.judge = null; state.lastCombo10 = 0;
       state.hi = false; state.lastBeat = -1; state.confetti = []; state.sparks = [];
+      // 두 번째 곡부터는 제목 카드가 뜰 때 관객 환호(사용자: 보X팜 시작할 때 환호)
+      if (index >= 1) { cheer(3); throwFlowers(14); pyro(16); }
     };
     const startSong = () => {
       const v = state.videos?.[state.song];
@@ -197,10 +221,12 @@ export function run(game, node = {}) {
       const p = state.play; state.stats.songs.push({ title: state.chart.title, score: p.score, maxCombo: p.maxCombo, grade: grade(p) });
       state.stats.score += p.score; state.stats.maxCombo = Math.max(state.stats.maxCombo, p.maxCombo);
       if (state.video) { try { state.video.pause(); } catch (e) { /* */ } }
-      stopNoise(); state.signal = 1;
-      cheer(3); throwFlowers(20); pyro(24); state.hi = false;
-      if (state.song === 0) startTalk(TALK3, () => startTitle(1));
-      else { state.phase = 'result'; state.phaseT = 0; sfx('won', 0.8); }
+      stopNoise(); state.signal = 1; state.hi = false;
+      // 기립 환호(크게·오래) + 꽃·동전·불꽃·색종이 → 잠시 즐긴 뒤 대사/결과
+      state.phase = 'ovation'; state.phaseT = 0;
+      cheer(4); throwFlowers(36); throwCoins(28); pyro(30); confetti(80);
+      const idx = state.song;
+      state.after = idx < SONGS.length - 1 ? () => startTalk(TALK_AFTER[idx], () => startTitle(idx + 1)) : () => { state.phase = 'result'; state.phaseT = 0; sfx('won', 0.8); };
     };
 
     const update = (dt) => {
@@ -213,11 +239,20 @@ export function run(game, node = {}) {
       state.fx = state.fx.filter(f => (f.t += dt) < f.dur);
       for (const fl of state.flowers) { fl.t += dt; if (fl.t < 0) continue; fl.x += fl.vx * dt; fl.vy += 520 * dt; fl.y += fl.vy * dt; }
       state.flowers = state.flowers.filter(fl => fl.y < 380 && fl.t < 4);
+      for (const c of state.coins) {
+        c.t += dt; if (c.t < 0) continue;
+        c.x += c.vx * dt; c.vy += 560 * dt; c.y += c.vy * dt;
+        if (c.y >= c.floor && c.vy > 0 && c.bounced < 2) { c.y = c.floor; c.vy = -c.vy * 0.38; c.vx *= 0.6; c.bounced += 1; if (c.bounced === 1) sound.tone({ freq: 1900 + Math.random() * 900, wave: 'triangle', dur: 0.07, gain: 0.1 }); }
+      }
+      state.coins = state.coins.filter(c => c.t < 5 && c.y < 380);
       for (const c of state.confetti) { c.t += dt; c.y += c.vy * dt; c.x += Math.sin(c.t * 3 + c.seed) * 22 * dt; }
       state.confetti = state.confetti.filter(c => c.y < SCREEN_H + 4);
       for (const sp of state.sparks) { sp.t += dt; sp.vy += 420 * dt; sp.x += sp.vx * dt; sp.y += sp.vy * dt; }
       state.sparks = state.sparks.filter(sp => sp.t < sp.dur);
       state.strobe = Math.max(0, state.strobe - dt * 2.2); state.glitch = Math.max(0, state.glitch - dt);
+      // 배지: 곡 중 신호가 나쁘면 스르륵 나타나고 회복하면 사라진다
+      const wantBadge = state.phase === 'play' && !state.over && state.signal < BADGE_SHOW;
+      state.badge = Math.max(0, Math.min(1, state.badge + (wantBadge ? dt * 4 : -dt * 3)));
       const confirm = edge('confirm');
       if (edge('title')) { finish(false); return; }
       if (state.phase === 'drop') {
@@ -234,6 +269,7 @@ export function run(game, node = {}) {
       }
       if (state.phase === 'talk') { typer.update(dt); if (confirm) { if (!typer.done) typer.skip(); else advanceTalk(); } return; }
       if (state.phase === 'hype') { if (state.phaseT >= HYPE) startTalk(TALK2B, () => startTitle(0)); return; }
+      if (state.phase === 'ovation') { if (state.phaseT >= OVATION && state.after) { const f = state.after; state.after = null; f(); } return; }
       if (state.phase === 'title') {
         state.title.k = Math.min(1, state.phaseT / TITLE_IN);
         if (state.phaseT >= TITLE_IN && !state.hum) { state.hum = 1; sfx('guitar_feedback', 0.7); }
@@ -310,7 +346,10 @@ export function run(game, node = {}) {
         const k = state.tvOn, h = Math.max(2, Math.round(TV.h * k));
         ctx.save(); ctx.beginPath(); ctx.rect(TV.x, TV.y + (TV.h - h) / 2, TV.w, h); ctx.clip();
         const jx = state.glitch > 0 ? Math.round((Math.random() - 0.5) * 10 * state.glitch / SIGNAL.glitch) : 0;
-        try { ctx.drawImage(v, TV.x + jx, TV.y, TV.w, TV.h); } catch (e) { ctx.fillStyle = '#123'; ctx.fillRect(TV.x, TV.y, TV.w, TV.h); }
+        // 영상 비율 유지: 세로 영상(악질 시청자 -쥰희- 버전 240×358)은 가운데 필러박스
+        const vw = v.videoWidth || TV.w, vh = v.videoHeight || TV.h, fit = Math.min(TV.w / vw, TV.h / vh), dw = Math.round(vw * fit), dh = Math.round(vh * fit), dx = TV.x + Math.round((TV.w - dw) / 2), dy = TV.y + Math.round((TV.h - dh) / 2);
+        ctx.fillStyle = '#050508'; ctx.fillRect(TV.x, TV.y, TV.w, TV.h);
+        try { ctx.drawImage(v, dx + jx, dy, dw, dh); } catch (e) { ctx.fillStyle = '#123'; ctx.fillRect(TV.x, TV.y, TV.w, TV.h); }
         // 신호가 나쁠수록 화면이 어두워지고 노이즈 점·가로 찢김이 낀다(MISS 직후 진하게)
         const bad = 1 - state.signal;
         if (bad > 0.001 || state.glitch > 0) {
@@ -318,7 +357,7 @@ export function run(game, node = {}) {
           const dots = Math.round(bad * 260 + (state.glitch > 0 ? 120 : 0));
           for (let i = 0; i < dots; i++) { const g = 120 + Math.floor(Math.random() * 135); ctx.fillStyle = `rgba(${g},${g},${g},0.7)`; ctx.fillRect(TV.x + Math.floor(Math.random() * TV.w), TV.y + Math.floor(Math.random() * TV.h), 1 + Math.floor(Math.random() * 3), 1); }
           const tears = Math.round(bad * 4 + (state.glitch > 0 ? 3 : 0));
-          for (let i = 0; i < tears; i++) { const ty = TV.y + Math.floor(Math.random() * TV.h), th = 2 + Math.floor(Math.random() * 4), sx = Math.round((Math.random() - 0.5) * 24); try { ctx.drawImage(v, 0, (ty - TV.y) / TV.h * v.videoHeight, v.videoWidth, th / TV.h * v.videoHeight, TV.x + sx, ty, TV.w, th); } catch (e) { /* */ } ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(TV.x, ty, TV.w, 1); }
+          for (let i = 0; i < tears; i++) { const ty = dy + Math.floor(Math.random() * dh), th = 2 + Math.floor(Math.random() * 4), sx = Math.round((Math.random() - 0.5) * 24); try { ctx.drawImage(v, 0, (ty - dy) / dh * vh, vw, th / dh * vh, dx + sx, ty, dw, th); } catch (e) { /* */ } ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(TV.x, ty, TV.w, 1); }
         }
         ctx.restore();
         if (k < 1) { ctx.fillStyle = `rgba(255,255,255,${(1 - k) * 0.8})`; ctx.fillRect(TV.x, TV.y + TV.h / 2 - 1, TV.w, 2); }
@@ -438,7 +477,7 @@ export function run(game, node = {}) {
       if (state.judge) { const k = state.judgeT / 0.5; text(state.judge.text, cx, RECEPTOR_Y - 34 - k * 10, { align: 'center', size: 16, color: state.judge.color, alpha: 1 - k * 0.6 }); }
     };
     const drawMeters = () => {
-      if (!(state.phase === 'soundcheck' || state.phase === 'play' || state.phase === 'title' || state.phase === 'hype')) return;
+      if (!(state.phase === 'soundcheck' || state.phase === 'play' || state.phase === 'title' || state.phase === 'hype' || state.phase === 'ovation')) return;
       const pop = state.play?.pop ?? RHYTHM.popStart;
       for (const [x, label] of [[74, 'POPU'], [390, 'LARITY']]) {
         text(label, label === 'POPU' ? x + 12 : x + 4, LANE_TOP - 16, { color: '#6fb3ff', size: 10, align: label === 'POPU' ? 'right' : 'left' });
@@ -451,12 +490,21 @@ export function run(game, node = {}) {
       text('MAX COMBO', SCREEN_W - 96, SCREEN_H - 17, { color: '#7dff5a', size: 10, align: 'right' });
       text(`${String(Math.max(state.stats.maxCombo, state.play?.maxCombo || 0)).padStart(6, '0')}`, SCREEN_W - 8, SCREEN_H - 20, { color: '#7dff5a', size: 15, align: 'right' });
     };
+    // 지금 박(곡 중엔 차트 박자, 아니면 126bpm 느낌으로 흐르는 박)
+    const beatNow = () => (state.chart && state.phase === 'play' ? beatAt(state.chart, songTime()).beat : state.t * 2.1);
     const drawBand = () => {
+      const beat = beatNow(), half = Math.floor(beat * 2), phase = beat - Math.floor(beat);
       for (const b of state.band) {
         const img = sheets[b.id].img, feet = Math.round(b.y), D = b.draw;
         if (img && img.complete && img.naturalWidth) {
-          const idx = b.frame, sx = (idx % 2) * CELL, sy = Math.floor(idx / 2) * CELL;
-          ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - D / 2), feet - Math.round(FEET * D / CELL), D, D);
+          // 동작 프레임이 없을 땐 둥가둥가(사용자: 가만히 있을 때도 리듬 타듯): groove 프레임 순환, 시트에 없으면 위아래 바운스
+          let idx = b.frame, dy = 0;
+          if (idx === 0 && b.landed) {
+            if (img.naturalHeight >= CELL * 4) { idx = GROOVE[((half % 8) + 8) % 8]; dy = phase < 0.5 ? 1 : 0; }
+            else dy = -Math.round(Math.abs(Math.sin(beat * Math.PI)) * 3);
+          }
+          const sx = (idx % 2) * CELL, sy = Math.floor(idx / 2) * CELL;
+          ctx.drawImage(img, sx, sy, CELL, CELL, Math.round(b.x - D / 2), feet - Math.round(FEET * D / CELL) + dy, D, D);
         } else { ctx.fillStyle = b.color; ctx.fillRect(b.x - 9, feet - 32, 18, 32); }
       }
       for (const f of state.fx) if (f.kind === 'dust') { const k = f.t / f.dur; ctx.fillStyle = `rgba(200,190,170,${(1 - k) * 0.7})`; for (let i = -3; i <= 3; i++) ctx.fillRect(f.x + i * 8 * (0.4 + k), f.y - 3 - k * 14, 3, 2); }
@@ -464,6 +512,13 @@ export function run(game, node = {}) {
     const drawParticles = () => {
       for (const c of state.confetti) { const flat = Math.floor(c.t * 6 + c.seed) % 2; ctx.fillStyle = c.color; ctx.fillRect(Math.round(c.x), Math.round(c.y), flat ? 3 : 2, flat ? 2 : 3); }
       for (const sp of state.sparks) { const k = sp.t / sp.dur; ctx.fillStyle = k < 0.35 ? '#fff6c8' : k < 0.7 ? '#ffc04a' : '#ff7a3c'; ctx.fillRect(Math.round(sp.x), Math.round(sp.y), 2, 2); if (k < 0.5) ctx.fillRect(Math.round(sp.x), Math.round(sp.y) + 2, 1, 2); }
+      for (const c of state.coins) {
+        if (c.t < 0) continue;
+        const x = Math.round(c.x), y = Math.round(c.y), thin = Math.floor(c.t * 10 + c.spin) % 3 === 0;
+        ctx.fillStyle = '#b8860b'; ctx.fillRect(x - 2, y - 2, thin ? 2 : 5, 5);
+        ctx.fillStyle = '#ffd84a'; ctx.fillRect(x - 1, y - 1, thin ? 1 : 3, 3);
+        ctx.fillStyle = '#fff7c0'; ctx.fillRect(x - 1, y - 1, 1, 1);
+      }
       for (const fl of state.flowers) {
         if (fl.t < 0) continue;
         const x = Math.round(fl.x), y = Math.round(fl.y), r = fl.t * 8 + fl.spin;
@@ -476,8 +531,12 @@ export function run(game, node = {}) {
       const img = audienceImg.img, cheering = state.cheer > 0;
       const bob = cheering ? Math.round(Math.abs(Math.sin(state.t * 9)) * 4) : 0;
       if (img && img.complete && img.naturalWidth) {
-        const fh = img.naturalHeight / 2, sy = cheering ? fh : 0;
-        ctx.drawImage(img, 0, sy, img.naturalWidth, fh, 0, SCREEN_H - 84 - bob, SCREEN_W, 90);
+        // 세로 조각(32px)마다 박자에 어긋난 위상으로 출렁여 관객 한 명 한 명이 둥가둥가 하는 느낌(가만히 있을 때). 환호 땐 다 같이 점프
+        const fh = img.naturalHeight / 2, sy = cheering ? fh : 0, slices = 15, sw = img.naturalWidth / slices, dw = SCREEN_W / slices, beat = beatNow();
+        for (let i = 0; i < slices; i++) {
+          const idle = Math.round(Math.sin(beat * Math.PI + i * 0.85) * 2 + (i % 2 ? 1 : 0));
+          ctx.drawImage(img, i * sw, sy, sw, fh, Math.round(i * dw), SCREEN_H - 84 - (cheering ? bob : idle), Math.ceil(dw), 90);
+        }
         return;
       }
       for (let i = 0; i < 20; i++) {
@@ -519,12 +578,23 @@ export function run(game, node = {}) {
       text(`총점 ${state.stats.score}`, SCREEN_W / 2, 240, { align: 'center', size: 18, color: '#7dff5a' });
       if (state.phaseT > 0.8 && Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, SCREEN_H - 40, { align: 'center', color: '#8f8fa6', size: 12 });
     };
+    // 최상위 레이어: ‘● 연결 안 됨’ 배지(스크린 오른쪽 위, 빨간 점 깜빡임)
+    const drawBadge = () => {
+      if (state.badge <= 0) return;
+      const img = badgeImg.img, x = TV.x + TV.w - 94, y = TV.y + 6 - Math.round((1 - state.badge) * 6);
+      ctx.globalAlpha = state.badge;
+      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, x, y);
+      else { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x, y, 88, 20); }
+      if (Math.floor(state.t * 2) % 2 === 0) { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x + 21, y + 8, 5, 5); ctx.fillStyle = '#f0a9a3'; ctx.fillRect(x + 22, y + 9, 3, 3); }
+      text('연결 안 됨', x + 30, y + 4, { color: '#b3261e', size: 11, shadow: false });
+      ctx.globalAlpha = 1;
+    };
     const draw = () => {
       ctx.save();
       if (state.shake > 0) ctx.translate(Math.round((Math.random() - 0.5) * 6), Math.round((Math.random() - 0.5) * 4));
       drawBackdrop(); drawPools(); drawLanes(); drawBand(); drawAudience(); drawParticles(); drawMeters();
       if (state.phase === 'soundcheck' && state.phaseT < 3) text('← →  사운드 체크: 떨어지는 칸에 맞춰 누르세요', SCREEN_W / 2, 8, { align: 'center', size: 12, color: '#ffe066' });
-      drawTalk(); drawOver(); drawResult();
+      drawTalk(); drawOver(); drawResult(); drawBadge();
       ctx.restore();
     };
 
@@ -536,7 +606,7 @@ export function run(game, node = {}) {
     // QA: 곡 안 특정 시각으로 건너뛰기(앞 노트는 판정 없이 지나간 것으로) — 하이라이트 확인용
     // Range 를 지원하지 않는 서버(python http.server)에선 영상 seek 이 안 되므로 그땐 시계 모드로 넘어가 시각만 맞춘다
     const seek = (t) => { const v = state.video; if (v && v.seekable && v.seekable.length && v.seekable.end(0) >= t) { try { v.currentTime = t; } catch (e) { /* */ } } else { state.fromClock = true; if (v) { try { v.pause(); } catch (e) { /* */ } } } state.clock = t; state.sideT = t; for (const n of state.play?.notes || []) if (n.status === 'wait' && n.t < t - 0.2) n.status = 'hit'; };
-    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, seek, applySignal, get play() { return state.play; }, songTime,
+    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, throwCoins, seek, applySignal, endSong, get play() { return state.play; }, songTime,
       skipTo(phase) { for (const b of state.band) { b.y = STAND_Y; b.landed = true; } state.talk = null; if (phase === 'soundcheck') startSoundcheck(); else if (phase === 'hype') startHype(); else if (phase === 'song') startTitle(0); } };
   });
 }

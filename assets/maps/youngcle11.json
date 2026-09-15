@@ -14,10 +14,10 @@
   "!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "!!JJJJJJJJJJJJJJJJJJJJJJ!!",
   "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
-  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
-  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
-  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
-  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJJJ",
+  "!!JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "!!JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "!!JIIIIIIIIIIIIIIIIIIIIJJJ",
   "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
   "JJJIIJJJJJJJJJJJJJJJJIIJJJ",
   "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
@@ -70,6 +70,16 @@
    "x": 116,
    "y": 304,
    "facing": "down"
+  },
+  "on_stage": {
+   "x": 416,
+   "y": 200,
+   "facing": "down"
+  },
+  "from_right": {
+   "x": 696,
+   "y": 160,
+   "facing": "left"
   }
  },
  "meta": {
@@ -379,6 +389,43 @@
    "spawn": "from_stairs",
    "sfx": false,
    "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle11_right",
+   "x": 784,
+   "y": 128,
+   "w": 16,
+   "h": 64,
+   "to": "youngcle13",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false,
+   "requires": "stage_show_done",
+   "lockedScript": "stage_right_locked"
+  },
+  {
+   "type": "prop",
+   "id": "stage11_right_wall",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 736,
+   "y": 128,
+   "w": 64,
+   "h": 64,
+   "ix": 736,
+   "iy": 116,
+   "solid": true,
+   "sortY": 200,
+   "unless": "stage_show_done"
+  },
+  {
+   "type": "sign",
+   "id": "stage11_right_gate",
+   "x": 752,
+   "y": 160,
+   "w": 1,
+   "h": 1,
+   "solid": false
   },
   {
    "type": "sign",

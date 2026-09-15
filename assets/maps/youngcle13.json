@@ -1,0 +1,103 @@
+{
+ "id": "youngcle13",
+ "name": "무대 오른쪽 복도",
+ "stage": "void_fallen",
+ "bgm": null,
+ "backdrop": "youngcle_factory",
+ "battleBg": "youngcle_factory",
+ "dim": 0.3,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "JJJJJJJJJJJJJJJJJJJJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/props/editor-union-wall-panel.png"
+ ],
+ "spawns": {
+  "left": {
+   "x": 56,
+   "y": 176,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    2,
+    5
+   ],
+   [
+    21,
+    5
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle13_left",
+   "x": 32,
+   "y": 128,
+   "w": 16,
+   "h": 128,
+   "to": "youngcle11",
+   "spawn": "from_right",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "corridor13_wall_0",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 64,
+   "y": 52,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "corridor13_wall_1",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 320,
+   "y": 52,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "corridor13_wall_2",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 576,
+   "y": 52,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "sign",
+   "id": "corridor13_end",
+   "x": 720,
+   "y": 144,
+   "w": 16,
+   "h": 96,
+   "solid": true,
+   "text": "* 굳게 잠긴 철문.\n* 안쪽에서 낮은 기계음이 들린다."
+  }
+ ]
+}

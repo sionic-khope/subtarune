@@ -65,7 +65,7 @@ test('test_rhythm_side_hits_visible_notes_and_tutorial_chart', () => {
   assert.equal(TWINKLE.notes.length, 7); assert.ok(TWINKLE.notes[6].dur > 0, '마지막 “별”은 홀드');
   assert.deepEqual(TWINKLE.notes.map(n => n.lane), ['L', 'L', 'R', 'R', 'R', 'R', 'L']);
   assert.ok(TWINKLE.notes.every(n => LANES.includes(n.lane) && n.pitch > 200));
-  for (const id of ['noamtori', 'bojipam']) {
+  for (const id of ['noamtori', 'akjil', 'bojipam']) {
     const c = JSON.parse(fs.readFileSync(new URL(`../../assets/rhythm/${id}.json`, import.meta.url), 'utf8'));
     assert.ok(c.notes.length > 100 && c.duration > 60 && fs.existsSync(new URL(`../../${c.video}`, import.meta.url)), `${id} 차트·영상`);
     assert.ok(c.notes.every((n, i) => LANES.includes(n.lane) && (i === 0 || n.t >= c.notes[i - 1].t)), '노트는 시간순·L/R');
