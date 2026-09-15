@@ -21,6 +21,20 @@ JsonValue = Union[str, int, float, bool, None, list["JsonValue"], dict[str, "Jso
 MAP_ID: Final = 'youngcle11'
 WIDTH: Final = 26
 HEIGHT: Final = 26
+# 관객(BUILD179, 사용자 아이디어): 입장 연출에서 뚜울라가 부르면 아래 문에서 걸어 들어와 홀 아래쪽(rows 16~22)을 채운다. 파크가디언·비데·도트마리오 + 엑스트라.
+# 연출 뒤 재입장은 여기 자리 그대로(requires). 4줄 × 7칸, 살짝 흔들린 자리. 줄(stage11_rope) 아래로는 못 내려간다
+CROWD_SPRITES: Final = (
+    ('park_guardian_costume', 1.6), ('warm_bidet', 1.0), ('mini_mario', 1.0), ('lucky_guy', 1.0), ('naram', 1.0), ('eunbyeol', 1.0), ('expelled_viewer', 1.0),
+    ('yakulbeol', 1.0), ('mabaem', 1.0), ('parkwonsung', 1.0), ('yerim', 1.0), ('chakgeom', 1.0), ('parang', 1.0), ('norang', 1.0),
+    ('wemix', 1.0), ('seopnyang', 1.0), ('gyeongnyang', 1.0), ('lucky_guy', 1.0), ('naram', 1.0), ('parang', 1.0), ('norang', 1.0),
+    ('eunbyeol', 1.0), ('yakulbeol', 1.0), ('mabaem', 1.0), ('chakgeom', 1.0), ('yerim', 1.0), ('expelled_viewer', 1.0), ('wemix', 1.0),
+)
+CROWD_SPOTS: Final = [
+    (100 + col * 96 + ((row * 37 + col * 53) % 21 - 10), 548 + row * 50 + ((row * 29 + col * 17) % 13 - 6))
+    for row in range(4) for col in range(7)
+]
+# 줄 사이 32px 틈(x384~416)은 관객 하나(crowd_3)가 정확히 막고 선다
+CROWD_SPOTS[3] = (404, 540)
 
 
 def main() -> None:
@@ -56,7 +70,7 @@ def main() -> None:
                     'assets/props/stage_front.png', 'assets/props/stage_stairs.png', 'assets/props/stage_valance.png',
                     'assets/props/stage_truss_off.png', 'assets/props/stage_dark.png',
                     'assets/props/editor-union-curtain.png', 'assets/props/editor-union-speaker.png',
-                    'assets/props/editor-union-wall-panel.png', 'assets/sprites/ttuulla.png'],
+                    'assets/props/editor-union-wall-panel.png', 'assets/sprites/ttuulla.png', 'assets/props/stage_rope_l.png', 'assets/props/stage_rope_r.png'],
         'spawns': {
             'start': {'x': 400, 'y': 700, 'facing': 'up'},
             # 윗길(youngcle10)에서 위로 올라올 때(홀 아래 가운데)
@@ -65,6 +79,8 @@ def main() -> None:
             'from_backstage': {'x': 116, 'y': 304, 'facing': 'down'},
         },
         'meta': {'connected': True, 'route': [[12, 22], [12, 10], [3, 8], [12, 4]],
+                 'crowd': [{'id': f'crowd_{i}', 'sprite': sprite, 'scale': scale, 'x': x, 'y': y}
+                           for i, ((sprite, scale), (x, y)) in enumerate(zip(CROWD_SPRITES, CROWD_SPOTS))],
                  # 밴드 자리(2026-09-15 사용자: 경섭 드럼·형섭 기타·빠맨 보컬 — 스프라이트는 다시 만들 예정): 무대 위 왼쪽·가운데·오른쪽
                  'stage': {'center': [416, 160], 'left_stairs': [96, 256], 'right_stairs': [672, 256],
                            'drums': [256, 184], 'guitar': [416, 196], 'vocal': [576, 184], 'ttuulla': [416, 120]}},
@@ -105,6 +121,13 @@ def main() -> None:
             *[{'type': 'prop', 'id': f'stage11_speaker_{index}', 'image': 'assets/props/editor-union-speaker.png',
                'x': x, 'y': y, 'w': 64, 'h': 88, 'solid': True}
               for index, (x, y) in enumerate(((32, 344), (728, 300)))],
+            # 관객(연출 뒤 재입장용, 연출 중엔 컷신이 같은 id 로 spawn 해 걸어 들어온다) + 관객석 줄(막힘)
+            *[{'type': 'npc', 'id': f'crowd_{i}', 'sprite': sprite, 'x': x, 'y': y, 'facing': 'up', 'wander': 0,
+               'visualScale': scale, 'solid': True, 'requires': 'stage_hall_intro_done'}
+              for i, ((sprite, scale), (x, y)) in enumerate(zip(CROWD_SPRITES, CROWD_SPOTS))],
+            *[{'type': 'prop', 'id': f'stage11_rope_{side}', 'image': f'assets/props/stage_rope_{side}.png',
+               'x': x, 'y': 500, 'w': w, 'h': 12, 'ix': x, 'iy': 494, 'solid': True, 'sortY': 520, 'requires': 'stage_hall_intro_done'}
+              for side, x, w in (('l', 32, 352), ('r', 416, 384))],
             # 어둠 막: 무대 전체(커튼·트러스·무대 위 사람까지)를 검게 — 조명이 켜지는 연출 때 remove
             {'type': 'prop', 'id': 'stage11_dark', 'image': 'assets/props/stage_dark.png',
              'x': 96, 'y': 32, 'w': 640, 'h': 232, 'solid': False, 'sortY': 9000, 'unless': 'stage_hall_lit'},

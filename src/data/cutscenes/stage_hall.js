@@ -2,8 +2,22 @@
 // 맵 `enter`(early) 로 한 번 실행되고 `stage_hall_intro_done` 으로 재입장 반복 없음. 끝나면 무대 불은 켜진 채(`stage_hall_lit`, 어둠 막은 unless) 뚜울라가 무대 가운데에서 기다린다(`ttuulla_wait`).
 // 좌표는 전부 기준물 상대: 아래 문(youngcle11_down)·무대 가운데(stage11_center)·오른쪽 계단(stage11_stairs_1).
 import { beginEditorUnionStage } from '../../scenes/editor-union-effects.js';
+import { MAPS } from '../maps.js';
 const MOUSE = 'ttuulla', CENTER = 'stage11_center', DARK = 'stage11_dark', DOOR = 'youngcle11_down', STAIRS_R = 'stage11_stairs_1';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
+// 관객(사용자 아이디어, BUILD179): 맵 meta.crowd(자리표·시트)를 읽어 아래 문 앞에 숨겨 만든 뒤 0.2초 간격으로 차례로 걸어 들어와 자리를 채운다.
+// 자리는 tools/maps/youngcle11.py 가 원본(재입장용 requires NPC 와 같은 id·자리). 다 들어오면 막힘으로 바꾸고 줄(stage11_rope_l/r)을 친다
+const CROWD_N = 28, CROWD_GAP = 0.2;
+const crowdIds = Array.from({ length: CROWD_N }, (_, i) => `crowd_${i}`);
+const spawnCrowd = { action: game => {
+  const door = game.entities.find(e => e.id === DOOR);
+  for (const c of MAPS.youngcle11?.meta?.crowd || []) {
+    if (game.entities.some(e => e.id === c.id && !e.dead)) continue;
+    game.spawn({ type: 'npc', id: c.id, sprite: c.sprite, x: door ? door.x + door.w / 2 - 12 : 404, y: door ? door.y - 24 : 728, facing: 'up', wander: 0, solid: false, hidden: true, visualScale: c.scale });
+  }
+} };
+const crowdSpot = (id) => () => { const c = (MAPS.youngcle11?.meta?.crowd || []).find(x => x.id === id); return c ? [c.x, c.y] : [404, 600]; };
+const crowdSettle = { action: game => { for (const e of game.entities) if (e.id?.startsWith('crowd_')) { e.solid = true; e.facing = 'up'; } } };
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* ' + text });
 const G = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* ' + text });
 const T = text => ({ speaker: '뚜울라알라', portrait: MOUSE, voice: MOUSE, text: '* ' + text });
@@ -68,7 +82,21 @@ export const stage_hall_intro = [
   { bubble: PARTY, dots: 3, gap: 0.35, hold: 0.7 },
   { ...P('뭐라는거야 개발병신새끼 야차까 지금 걍 씨발년아 들어ㅇ..'), cut: 2.2 },
   T('워워워 먼저 올라가서 기다리고 있겠습니다 행님덜~'),
+  T('아 맞다. 그리고 이걸 구경하러온 관객들도 여기 많이 모여있습니다'),
+  T('들어와주세요 ~~!'),
   close,
+  // 관객 입장: 카메라가 아래 입구 쪽으로 → 파크가디언·비데·도트마리오·엑스트라들이 문에서 차례로 걸어 들어와 아래쪽을 채운다(박수) → 줄을 친다
+  { parallel: [{ camera: [13, 17], duration: 0.8 }, { zoom: 0.7, duration: 0.8 }] },
+  spawnCrowd,
+  { sfx: 'door' },
+  ...crowdIds.map((id, i) => ({ async: [{ wait: i * CROWD_GAP }, { show: id }, { move: id, px: crowdSpot(id), run: true }] })),
+  { wait: CROWD_N * CROWD_GAP + 2.6 },
+  crowdSettle,
+  { spawn: { type: 'prop', id: 'stage11_rope_l', image: 'assets/props/stage_rope_l.png', x: 32, y: 500, w: 352, h: 12, ix: 32, iy: 494, solid: true, sortY: 520 } },
+  { spawn: { type: 'prop', id: 'stage11_rope_r', image: 'assets/props/stage_rope_r.png', x: 416, y: 500, w: 384, h: 12, ix: 416, iy: 494, solid: true, sortY: 520 } },
+  { sfx: 'maillard_applause', volume: 0.5 },
+  { wait: 0.6 },
+  { parallel: [{ camera: [13, 5], duration: 0.9 }, { zoom: 0.75, duration: 0.9 }] },
   // 빠르게 오른쪽 계단으로 올라가 무대 가운데로 도망간다
   { move: MOUSE, rel: STAIRS_R, at: 'bottom', by: [0, 6], dash: true },
   { move: MOUSE, rel: STAIRS_R, at: 'top', by: [0, -12], dash: true },
@@ -82,4 +110,6 @@ export const stage_hall_intro = [
   { regroup: true },
   { set: { stage_hall_intro_done: true, stage_hall_lit: true } },
   { label: 'end' },
+  // 연출 뒤 아래 문으로 다시 들어오면(관객·줄 뒤) 무대 앞으로 옮긴다 — 관객 사이를 지나온 셈
+  { action: game => { if (game.flags.stage_hall_intro_done && game.player.y > 470) { game.player.x = 404; game.player.y = 330; game.player.facing = 'up'; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap?.(); } } },
 ];

@@ -71,3 +71,17 @@ for y in range(232):
 Path(OUT / 'stage_dark.png').parent.mkdir(exist_ok=True)
 dark.save(OUT / 'stage_dark.png')
 print('wrote stage_front(512x32) stage_stairs(64x40) stage_valance(640x48) stage_truss_off(218x40) stage_dark(640x232)')
+
+# 관객석 줄(BUILD179): 홀을 가로지르는 붉은 줄 + 검은 기둥 두 조각(왼쪽 352, 오른쪽 384) — 가운데 32px 틈은 관객 하나가 막고 선다(맵 연결 검사는 소품만 본다)
+def rope(width: int, path: str) -> None:
+    c = Canvas(width, 16)
+    for x in range(0, width, 96):
+        c.rect(x, 0, 6, 16, (30, 30, 38)); c.rect(x + 1, 0, 2, 16, (70, 70, 84)); c.rect(x, 0, 6, 2, (110, 110, 126))
+        span = min(90, width - x - 6)
+        for i in range(1, span):
+            sag = int(3 * (1 - abs(i - 45) / 45) ** 2 * 2)
+            c.rect(x + 6 + i, 4 + sag, 1, 3, (190, 40, 50)); c.px(x + 6 + i, 4 + sag, (230, 90, 100))
+    c.rect(width - 6, 0, 6, 16, (30, 30, 38)); c.rect(width - 5, 0, 2, 16, (70, 70, 84))
+    c.save(OUT / path)
+rope(352, 'stage_rope_l.png'); rope(384, 'stage_rope_r.png')
+print('wrote stage_rope_l(352x16) stage_rope_r(384x16)')

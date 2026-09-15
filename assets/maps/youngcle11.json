@@ -49,7 +49,9 @@
   "assets/props/editor-union-curtain.png",
   "assets/props/editor-union-speaker.png",
   "assets/props/editor-union-wall-panel.png",
-  "assets/sprites/ttuulla.png"
+  "assets/sprites/ttuulla.png",
+  "assets/props/stage_rope_l.png",
+  "assets/props/stage_rope_r.png"
  ],
  "spawns": {
   "start": {
@@ -87,6 +89,204 @@
     12,
     4
    ]
+  ],
+  "crowd": [
+   {
+    "id": "crowd_0",
+    "sprite": "park_guardian_costume",
+    "scale": 1.6,
+    "x": 90,
+    "y": 542
+   },
+   {
+    "id": "crowd_1",
+    "sprite": "warm_bidet",
+    "scale": 1.0,
+    "x": 197,
+    "y": 546
+   },
+   {
+    "id": "crowd_2",
+    "sprite": "mini_mario",
+    "scale": 1.0,
+    "x": 283,
+    "y": 550
+   },
+   {
+    "id": "crowd_3",
+    "sprite": "lucky_guy",
+    "scale": 1.0,
+    "x": 404,
+    "y": 540
+   },
+   {
+    "id": "crowd_4",
+    "sprite": "naram",
+    "scale": 1.0,
+    "x": 476,
+    "y": 545
+   },
+   {
+    "id": "crowd_5",
+    "sprite": "eunbyeol",
+    "scale": 1.0,
+    "x": 583,
+    "y": 549
+   },
+   {
+    "id": "crowd_6",
+    "sprite": "expelled_viewer",
+    "scale": 1.0,
+    "x": 669,
+    "y": 553
+   },
+   {
+    "id": "crowd_7",
+    "sprite": "yakulbeol",
+    "scale": 1.0,
+    "x": 106,
+    "y": 595
+   },
+   {
+    "id": "crowd_8",
+    "sprite": "mabaem",
+    "scale": 1.0,
+    "x": 192,
+    "y": 599
+   },
+   {
+    "id": "crowd_9",
+    "sprite": "parkwonsung",
+    "scale": 1.0,
+    "x": 299,
+    "y": 603
+   },
+   {
+    "id": "crowd_10",
+    "sprite": "yerim",
+    "scale": 1.0,
+    "x": 385,
+    "y": 594
+   },
+   {
+    "id": "crowd_11",
+    "sprite": "chakgeom",
+    "scale": 1.0,
+    "x": 492,
+    "y": 598
+   },
+   {
+    "id": "crowd_12",
+    "sprite": "parang",
+    "scale": 1.0,
+    "x": 578,
+    "y": 602
+   },
+   {
+    "id": "crowd_13",
+    "sprite": "norang",
+    "scale": 1.0,
+    "x": 685,
+    "y": 593
+   },
+   {
+    "id": "crowd_14",
+    "sprite": "wemix",
+    "scale": 1.0,
+    "x": 101,
+    "y": 648
+   },
+   {
+    "id": "crowd_15",
+    "sprite": "seopnyang",
+    "scale": 1.0,
+    "x": 187,
+    "y": 652
+   },
+   {
+    "id": "crowd_16",
+    "sprite": "gyeongnyang",
+    "scale": 1.0,
+    "x": 294,
+    "y": 643
+   },
+   {
+    "id": "crowd_17",
+    "sprite": "lucky_guy",
+    "scale": 1.0,
+    "x": 380,
+    "y": 647
+   },
+   {
+    "id": "crowd_18",
+    "sprite": "naram",
+    "scale": 1.0,
+    "x": 487,
+    "y": 651
+   },
+   {
+    "id": "crowd_19",
+    "sprite": "parang",
+    "scale": 1.0,
+    "x": 573,
+    "y": 642
+   },
+   {
+    "id": "crowd_20",
+    "sprite": "norang",
+    "scale": 1.0,
+    "x": 680,
+    "y": 646
+   },
+   {
+    "id": "crowd_21",
+    "sprite": "eunbyeol",
+    "scale": 1.0,
+    "x": 96,
+    "y": 701
+   },
+   {
+    "id": "crowd_22",
+    "sprite": "yakulbeol",
+    "scale": 1.0,
+    "x": 203,
+    "y": 692
+   },
+   {
+    "id": "crowd_23",
+    "sprite": "mabaem",
+    "scale": 1.0,
+    "x": 289,
+    "y": 696
+   },
+   {
+    "id": "crowd_24",
+    "sprite": "chakgeom",
+    "scale": 1.0,
+    "x": 396,
+    "y": 700
+   },
+   {
+    "id": "crowd_25",
+    "sprite": "yerim",
+    "scale": 1.0,
+    "x": 482,
+    "y": 704
+   },
+   {
+    "id": "crowd_26",
+    "sprite": "expelled_viewer",
+    "scale": 1.0,
+    "x": 589,
+    "y": 695
+   },
+   {
+    "id": "crowd_27",
+    "sprite": "wemix",
+    "scale": 1.0,
+    "x": 675,
+    "y": 699
+   }
   ],
   "stage": {
    "center": [
@@ -330,6 +530,370 @@
    "w": 64,
    "h": 88,
    "solid": true
+  },
+  {
+   "type": "npc",
+   "id": "crowd_0",
+   "sprite": "park_guardian_costume",
+   "x": 90,
+   "y": 542,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.6,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_1",
+   "sprite": "warm_bidet",
+   "x": 197,
+   "y": 546,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_2",
+   "sprite": "mini_mario",
+   "x": 283,
+   "y": 550,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_3",
+   "sprite": "lucky_guy",
+   "x": 404,
+   "y": 540,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_4",
+   "sprite": "naram",
+   "x": 476,
+   "y": 545,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_5",
+   "sprite": "eunbyeol",
+   "x": 583,
+   "y": 549,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_6",
+   "sprite": "expelled_viewer",
+   "x": 669,
+   "y": 553,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_7",
+   "sprite": "yakulbeol",
+   "x": 106,
+   "y": 595,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_8",
+   "sprite": "mabaem",
+   "x": 192,
+   "y": 599,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_9",
+   "sprite": "parkwonsung",
+   "x": 299,
+   "y": 603,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_10",
+   "sprite": "yerim",
+   "x": 385,
+   "y": 594,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_11",
+   "sprite": "chakgeom",
+   "x": 492,
+   "y": 598,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_12",
+   "sprite": "parang",
+   "x": 578,
+   "y": 602,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_13",
+   "sprite": "norang",
+   "x": 685,
+   "y": 593,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_14",
+   "sprite": "wemix",
+   "x": 101,
+   "y": 648,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_15",
+   "sprite": "seopnyang",
+   "x": 187,
+   "y": 652,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_16",
+   "sprite": "gyeongnyang",
+   "x": 294,
+   "y": 643,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_17",
+   "sprite": "lucky_guy",
+   "x": 380,
+   "y": 647,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_18",
+   "sprite": "naram",
+   "x": 487,
+   "y": 651,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_19",
+   "sprite": "parang",
+   "x": 573,
+   "y": 642,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_20",
+   "sprite": "norang",
+   "x": 680,
+   "y": 646,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_21",
+   "sprite": "eunbyeol",
+   "x": 96,
+   "y": 701,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_22",
+   "sprite": "yakulbeol",
+   "x": 203,
+   "y": 692,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_23",
+   "sprite": "mabaem",
+   "x": 289,
+   "y": 696,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_24",
+   "sprite": "chakgeom",
+   "x": 396,
+   "y": 700,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_25",
+   "sprite": "yerim",
+   "x": 482,
+   "y": 704,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_26",
+   "sprite": "expelled_viewer",
+   "x": 589,
+   "y": 695,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_27",
+   "sprite": "wemix",
+   "x": 675,
+   "y": 699,
+   "facing": "up",
+   "wander": 0,
+   "visualScale": 1.0,
+   "solid": true,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "prop",
+   "id": "stage11_rope_l",
+   "image": "assets/props/stage_rope_l.png",
+   "x": 32,
+   "y": 500,
+   "w": 352,
+   "h": 12,
+   "ix": 32,
+   "iy": 494,
+   "solid": true,
+   "sortY": 520,
+   "requires": "stage_hall_intro_done"
+  },
+  {
+   "type": "prop",
+   "id": "stage11_rope_r",
+   "image": "assets/props/stage_rope_r.png",
+   "x": 416,
+   "y": 500,
+   "w": 384,
+   "h": 12,
+   "ix": 416,
+   "iy": 494,
+   "solid": true,
+   "sortY": 520,
+   "requires": "stage_hall_intro_done"
   },
   {
    "type": "prop",

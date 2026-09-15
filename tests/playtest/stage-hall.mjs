@@ -14,7 +14,8 @@ const info = () => page.evaluate(() => {
   return { map: game.mapId, running: game.dialogue.running, tb: game.textbox.state, bgm: game.sound.bgmName ?? null, zoom: Math.round(game.zoom.s * 100) / 100,
     cam: [Math.round(game.camera.x), Math.round(game.camera.y)], player: [Math.round(game.player.x), Math.round(game.player.y), game.player.facing],
     mouse: ent('ttuulla'), wait: ent('ttuulla_wait'), dark: !!ent('stage11_dark'), spot: Math.round((game.editorUnionStage?.spotlight ?? 0) * 100) / 100,
-    done: game.flags.stage_hall_intro_done === true, lit: game.flags.stage_hall_lit === true, fade: Math.round(game.fade.alpha * 100) / 100 };
+    done: game.flags.stage_hall_intro_done === true, lit: game.flags.stage_hall_lit === true, fade: Math.round(game.fade.alpha * 100) / 100,
+    crowd: game.entities.filter(e => e.id?.startsWith('crowd_') && !e.dead).map(e => [Math.round(e.x), Math.round(e.y), e.visible, e.solid]), rope: !!game.entities.find(e => e.id === 'stage11_rope_l' && !e.dead) };
 });
 const runUntil = async (cond, label, maxMs = 40000, extra = 0) => {
   const t0 = Date.now();
@@ -37,6 +38,9 @@ try {
   const lit = await runUntil(s => !s.dark && !!s.mouse && s.mouse[2], 'lights_on', 15000, 350); check(!!lit && lit.spot > 0, '철컥 → 어둠 막 제거·스포트라이트·뚜울라 보임 ' + JSON.stringify(lit && [lit.dark, lit.spot, lit.mouse]));
   const down = await runUntil(s => !!s.mouse && s.mouse[1] > 270 && s.bgm === 'mike_board', 'mouse_down', 20000, 100); check(!!down && down.player[1] > front.player[1] + 10, '점프해 내려옴·일행 뒷걸음질·브금 ' + JSON.stringify(down && [down.mouse, down.player, down.bgm]));
   const talk = await runUntil(s => s.bgm === null && !s.dark && !!s.mouse && s.mouse[1] > 270, 'bgm_off', 60000, 0); check(!!talk, '“노래로 승부” 뒤 브금 꺼짐 ' + JSON.stringify(talk && [talk.bgm]));
+  // 관객 입장: 뚜울라가 부르면 28명이 아래 문에서 차례로 걸어 들어와 아래쪽을 채우고, 줄이 쳐진다
+  const crowdIn = await runUntil(s => s.crowd.length >= 28 && s.crowd.filter(c => c[2]).length >= 6, 'crowd_in', 40000, 200); check(!!crowdIn && crowdIn.cam[1] > 250, '관객이 문에서 걸어 들어온다(카메라 아래) ' + JSON.stringify(crowdIn && [crowdIn.crowd.length, crowdIn.cam]));
+  const crowdSet = await runUntil(s => s.rope && s.crowd.length >= 28 && s.crowd.every(c => c[2] && c[3] && c[1] >= 520), 'crowd_settled', 30000, 0); check(!!crowdSet, '관객 28명이 아래쪽 자리에 서고(막힘) 줄이 쳐진다 ' + JSON.stringify(crowdSet && [crowdSet.crowd.length, crowdSet.rope]));
   const flee = await runUntil(s => !!s.mouse && s.mouse[1] < 130 && Math.abs(s.mouse[0] - 404) < 14, 'flee', 30000, 150); check(!!flee, '계단으로 올라가 무대 가운데로 ' + JSON.stringify(flee?.mouse));
   const back = await runUntil(s => !s.running, 'done', 30000, 300);
   check(!!back && back.done && back.lit && back.zoom === 1 && back.bgm === null && !back.dark, '연출 끝: 플래그·줌 1·무음·무대 밝음 ' + JSON.stringify(back && [back.done, back.lit, back.zoom, back.bgm, back.dark]));
@@ -46,6 +50,7 @@ try {
   await page.waitForTimeout(500);
   const again = await info(); await cap('reentry');
   check(!again.running && !again.dark && !!again.wait && again.wait[2] && !again.mouse, '재입장: 연출 없음·무대 밝음·뚜울라 대기 ' + JSON.stringify([again.running, again.dark, again.wait, again.mouse]));
+  check(again.crowd.length === 28 && again.rope && again.player[1] < 400, '재입장: 관객 28명·줄 그대로, 아래 문에서 들어와도 무대 앞으로 ' + JSON.stringify([again.crowd.length, again.rope, again.player]));
 } catch (e) { fails += 1; console.log('CRASH', e.message); }
 check(errors.length === 0, 'pageerror 없음 ' + JSON.stringify(errors));
 console.log(`fails=${fails}`);
