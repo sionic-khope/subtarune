@@ -69,7 +69,7 @@ test('test_rhythm_side_hits_visible_notes_and_tutorial_chart', () => {
     const c = JSON.parse(fs.readFileSync(new URL(`../../assets/rhythm/${id}.json`, import.meta.url), 'utf8'));
     assert.ok(c.notes.length > 100 && c.duration > 60 && fs.existsSync(new URL(`../../${c.video}`, import.meta.url)), `${id} 차트·영상`);
     assert.ok(c.notes.every((n, i) => LANES.includes(n.lane) && (i === 0 || n.t >= c.notes[i - 1].t)), '노트는 시간순·L/R');
-    assert.ok(c.notes.length / c.duration <= 2.5, '밀도 ≤ 2.5/s');
+    assert.ok(c.notes.length / (c.duration - (c.notesFrom || 0)) <= 4 && c.notes.every((n, i) => i === 0 || n.t - c.notes[i - 1].t >= 0.19), '드럼 패드 밀도 ≤ 4/s, 간격 ≥ 0.2s (BUILD186: 플레이어가 드럼 onset 을 친다)');
   }
 });
 

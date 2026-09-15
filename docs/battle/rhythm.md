@@ -2,6 +2,10 @@
 
 2026-09-15 사용자 브리핑. 델타룬 3장 테나 리듬 게임 참고. 구현 `src/scenes/rhythm.js`(오버레이 씬, `{ scene3d: 'rhythm', flag: 'rhythm_stage_done' }`) + `src/scenes/rhythm-core.js`(순수 규칙, `tests/unit/rhythm.test.mjs`).
 
+## BUILD186 — 형섭이 드럼 패드를 친다 (사용자 확정)
+- “경섭이가 하는 드럼 리듬패드를 그대로 형섭이가 쓰는 게 더 재밌다” → `chart.py` 가 **드럼 onset(저역 <150Hz, 0.2초 간격, 무게중심 L/R)** 을 플레이어 노트로 쓰고(같은 홀드 규칙), 원래 멜로디 노트는 경섭 자동 패드로 보낸다. 밀도: 노앰토리 3.3/s(232), 악질 2.0/s(154), 보X팜 2.9/s(385). 단위 테스트 상한 4/s·간격 0.2s.
+- 둥가둥가는 한 박마다 다운/업만(반박 순환·좌우 흔들기 제거), 관객 출렁임 ±1px 반 속도(“너무 역동적”).
+
 ## BUILD185 — 세 곡·곡 사이 대사·밴드 15% 확대·세로 영상 (사용자)
 - `SONGS` = noamtori → **akjil(악질 시청자, -쥰희- 버전, 240×358 세로 영상 → 스크린 안 필러박스)** → bojipam. `TALK_AFTER[i]` 가 i번째 곡 뒤 대사, 제목 줄 `cheer` 로 박수/함성·꽃(3이면 불꽃도). 둘째 곡부터 제목 카드에서 환호.
 - 밴드 draw 87/74/76(+15%), 발 y290, 기둥 LANE_TOP 20·판정선 198. 곡 뒤 흐름은 design/narrative/cutscenes/stage_rhythm.md BUILD185 절.

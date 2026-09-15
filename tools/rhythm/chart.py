@@ -8,7 +8,8 @@
 # /usr/bin/python3 tools/rhythm/chart.py assets/video/bojipam.mp4 --title "보X팜" --artist "MC노라니" --out assets/rhythm/bojipam.json
 # ──────────────────
 """리듬 게임 차트 생성기(BUILD178): 곡(영상) 오디오에서 onset(스펙트럼 플럭스)을 뽑아 박자 격자에 맞춰 가운데 두 칸(L/R) 노트를 만든다.
-- 탭 노트: onset 을 1/2 박으로 양자화, 0.2초 안 겹침은 버림(밀도 ≤ 초당 2.5), 칸은 스펙트럼 무게중심(높은 소리 R, 낮은 소리 L)으로 — 멜로디 흐름을 따라 좌우가 갈린다.
+- (BUILD186 사용자 확정) 플레이어 노트 = 드럼 onset(저역 <150Hz, 0.2초 간격, 무게중심 L/R) 그대로 + 같은 홀드 규칙. 아래 멜로디 노트는 경섭 자동 패드가 된다.
+- 탭 노트(멜로디, 이제 경섭 패드): onset 을 1/2 박으로 양자화, 0.2초 안 겹침은 버림(밀도 ≤ 초당 2.5), 칸은 스펙트럼 무게중심(높은 소리 R, 낮은 소리 L)으로 — 멜로디 흐름을 따라 좌우가 갈린다.
 - 홀드 노트: 다음 onset 까지 1.25박 이상 비고 그 사이 에너지가 유지되면 hold(길이 = 간격 − 0.5박, 0.4초 이상).
 - 사이드(자동 연주, 두 칸씩): drums = 저역(<150Hz) onset, vocal = 중역(200~2000Hz) onset 을 0.35초 간격으로 솎음, 칸은 무게중심으로 L/R. `--start` 로 노트 시작 시각(영상은 안 자름).
 - 하이라이트(코러스, BUILD181 사용자 요청 ‘마지막 코러스 같은 데서 파티클·무대 이펙트·관객 환호’): 박자별 (총 RMS + 보컬 대역) 을 2마디로 평활해 최대의 78% 이상이 6초 이상 이어지는 구간(2초 이내 틈은 합침). `highlights: [[start, end], …]`
@@ -198,6 +199,17 @@ def main() -> None:
     drums = [{'t': round(i / fps, 3), 'c': centroid(mag, i)} for i in pick_peaks(flux(mag, 0, 150), 0.2, 0.8) if lo < i / fps < duration - 0.5]
     vocal = [{'t': round(i / fps, 3), 'c': centroid(mag, i)} for i in pick_peaks(flux(mag, 200, 2000), 0.35, 0.9) if lo < i / fps < duration - 0.5]
     assign_lanes(drums); assign_lanes(vocal)
+    # 사용자 확정(BUILD186): “경섭 드럼 패드 떨어지는 걸 형섭이 그대로 쓰는 게 더 재밌다” — 드럼 onset 이 플레이어(형섭) 노트, 원래 멜로디 노트는 경섭 자동 패드로
+    melody = [{'t': n['t'], 'lane': n['lane']} for n in notes]
+    notes = [{'t': d['t'], 'lane': d['lane']} for d in drums]
+    for k, n in enumerate(notes):
+        nxt = notes[k + 1]['t'] if k + 1 < len(notes) else duration
+        gap = nxt - n['t']
+        if gap >= 1.25 * beat:
+            s0, s1 = int(n['t'] * fps), int(min(len(rms) - 1, (n['t'] + gap - 0.5 * beat) * fps))
+            if s1 > s0 and rms[s0:s1].mean() > 0.35 * rms[max(0, s0 - 2):s0 + 3].max():
+                n['dur'] = round(max(0.4, gap - 0.5 * beat), 3)
+    drums = melody
     chart = {'id': Path(a.out).stem, 'title': a.title, 'artist': a.artist, 'video': a.video or f'assets/video/{Path(a.media).name}',
              'duration': round(duration, 2), 'notesFrom': round(a.start, 2), 'bpm': bpm, 'offset': round(phase, 3), 'notes': notes, 'side': {'drums': drums, 'vocal': vocal}, 'highlights': highlights}
     Path(a.out).write_text(json.dumps(chart, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
