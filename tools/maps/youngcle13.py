@@ -51,7 +51,7 @@ def main() -> None:
         'bgm': 'pandora_palace', 'backdrop': 'youngcle_furnace',
         'battleBg': 'youngcle_factory', 'dim': 0.3,
         'rows': [''.join(row) for row in cells],
-        'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/backdrops/youngcle_furnace.png'],
+        'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/backdrops/youngcle_furnace.png'],
         'spawns': {
             'left': {'x': 56, 'y': 280, 'facing': 'right'},
             # 용암 뗏목 맵(youngcle14)에서 돌아올 때: 위 복도 오른쪽 끝

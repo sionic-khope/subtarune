@@ -1,5 +1,5 @@
 // 용광로 복도 + 용암 수로(BUILD190): QA youngcle13(배경·브금) → QA lava_raft: 뗏목 옆에서 C → 컷신(형섭 걸어서 탑승, 왼쪽 시선, 빠맨·경섭 걸어가 용암에, 출발)
-//   → 자동 점프(하늘색 한 번, 붉은 2단)로 한 줄 수로 오른쪽 끝 도착. 실행: tests/playtest/run.sh lava-raft
+//   → 자동 점프(하늘색 한 번, 붉은 2단)로 오른쪽 끝 도착 → 두 번째 뗏목 C(걸어서 탑승) → 세로 수로 완주 → 철문. 실행: tests/playtest/run.sh lava-raft
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -23,7 +23,7 @@ const autoRide = (id) => page.evaluate((id) => new Promise(resolve => {
     if (!r || !r.riding || performance.now() - t0 > 40000) return resolve({ riding: !!r?.riding, sweeps: r?.sweeps, hits: r?.hits });
     const ax = r.axis, sgn = r.dirSign, pos = ax === 'x' ? r.x : r.y;
     // 점프 거리: 높은 것(clear ≥ 72, 2단)은 일찍(가로 125 / 세로 115), 낮은 것은 정점이 벽 가운데를 지나게(가로 100 / 세로 76)
-    const near = (e) => ((e.def.clear || 0) >= 72 ? (ax === 'y' ? 115 : 125) : (ax === 'y' ? 76 : 100));
+    const near = (e) => ((e.def.clear || 0) >= 72 ? (ax === 'y' ? 95 : 125) : (ax === 'y' ? 76 : 100));
     const ahead = g.entities.filter(e => e.def?.obstacle && !e.dead && e.pulseOn !== false).map(e => ({ e, d: sgn * ((ax === 'x' ? e.x : e.y) - pos) })).filter(o => o.d > 0 && o.d < near(o.e)).sort((a, b) => a.d - b.d)[0];
     if ((ahead || r.blocked) && !r.jumping && performance.now() - last > 600) { last = performance.now(); const w = ahead ? ahead.e : r.blocked; r.jump(true); if ((w.def.clear || 0) >= 72) setTimeout(() => r.jump(true), 380); }
     requestAnimationFrame(tick);
@@ -71,6 +71,20 @@ try {
   // ③ 한 줄 수로 자동 점프(하늘색 = 한 번, 붉은 = 2단)
   const ride = await autoRide('raft14a'); await page.waitForTimeout(600); await cap('landing'); s = await st();
   check(!ride.riding && s.fa === 1 && !s.ride && s.px > 1560, '오른쪽 끝 착지(빔·돌을 점프로) ' + JSON.stringify([ride, s.fa, s.px, s.py]));
+  // ④ 위로 가는 두 번째 뗏목: 아래에 서서 C → 걸어서 타고(즉석 walkOn) 동료도 걸어가 뛰어든다 → 세로 수로 완주 → 위 착지
+  await page.evaluate(() => { const g = window.game; const b = g.entities.find(e => e.id === 'raft14b'); g.player.x = b.x + 16; g.player.y = b.y + b.h + 2; g.player.facing = 'up'; });
+  await page.waitForTimeout(200);
+  const walkedB = await page.evaluate(() => new Promise(resolve => { const g = window.game; const fire = (type) => { const ev = new KeyboardEvent(type, { key: 'c', code: 'KeyC', bubbles: true }); window.dispatchEvent(ev); document.dispatchEvent(ev); }; fire('keydown'); setTimeout(() => fire('keyup'), 60); const ys = []; const t0 = performance.now(); const tick = () => { ys.push(Math.round(g.player.y)); if (g.ride || performance.now() - t0 > 3000) resolve(ys); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); }));
+  check(new Set(walkedB).size >= 4, '두 번째 뗏목도 걸어서 올라탄다 ' + JSON.stringify([walkedB.slice(0, 2), walkedB.slice(-2), new Set(walkedB).size]));
+  await page.waitForFunction(() => { const r = window.game.entities.find(e => e.id === 'raft14b'); return r && r.moving; }, null, { timeout: 12000 }).catch(() => {});
+  await page.waitForTimeout(300); await cap('up'); s = await st();
+  check(s.ride === 'raft14b' && s.raftB && s.raftB.riding && s.dj, '두 번째 뗏목 출발(위로), 동료 헤엄 ' + JSON.stringify([s.ride, s.raftB]));
+  const swimB = await page.evaluate(() => window.game.entities.find(e => e.id === 'raft14b').swimmers.filter(x => !x.dead).map(x => x.id));
+  check(swimB.length === 2, '경섭·빠맨이 걸어가 뛰어들어 뗏목 아래에서 헤엄 ' + JSON.stringify(swimB));
+  const rideB = await autoRide('raft14b'); await page.waitForTimeout(600); await cap('top'); s = await st();
+  check(!rideB.riding && s.fb === 1 && s.py < 110, '세로 수로 완주(낮은 돌 → 붉은 높은 빔) → 위 착지 ' + JSON.stringify([rideB, s.fb, s.px, s.py]));
+  const door = await page.evaluate(() => !!window.game.entities.find(e => e.id === 'lava14_end_door' && !e.dead && e.image));
+  check(door, '위 착지 끝에 잠긴 철문이 보인다 ' + JSON.stringify(door));
 } catch (e) { fails += 1; console.log('CRASH', e.message); }
 check(errors.length === 0, 'pageerror 없음 ' + JSON.stringify(errors));
 console.log(`fails=${fails}`);

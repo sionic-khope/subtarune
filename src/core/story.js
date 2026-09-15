@@ -337,5 +337,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'stage_after_show', desc: '엄청 대
 const showDoneFlags = { ...hallDoneFlags, rhythm_stage_done: true, stage_show_done: true };
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle13', desc: '용광로 복도 (무대 오른쪽 → 오른쪽 → 위 → 오른쪽 → 입구)',
   map: 'youngcle13', spawn: 'left', flags: { ...showDoneFlags }, party: [...parkWonCheckpoint.party] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft', desc: '용암 수로: 입구 → 뗏목 옆에서 C → 컷신(형섭 걸어서 탑승·빠맨/경섭 용암에) → 한 줄 오른쪽',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft', desc: '용암 수로: 입구 → 뗏목 옆에서 C → 컷신(형섭 걸어서 탑승·빠맨/경섭 용암에) → 오른쪽 구간',
   map: 'youngcle14', spawn: 'left', flags: { ...showDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft_up', desc: '용암 수로: 위로 가는 두 번째 뗏목 앞(착지 바닥)',
+  map: 'youngcle14', spawn: 'landing', flags: { ...showDoneFlags, lava_raft_intro_done: true, raft14a_boarded: true, double_jump: true, raft_raft14a: 1 }, party: [...parkWonCheckpoint.party] });

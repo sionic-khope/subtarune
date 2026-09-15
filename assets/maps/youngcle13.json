@@ -26,6 +26,7 @@
  ],
  "preload": [
   "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_wall.png",
   "assets/backdrops/youngcle_furnace.png"
  ],
  "spawns": {

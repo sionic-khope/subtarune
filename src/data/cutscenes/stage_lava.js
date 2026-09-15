@@ -21,6 +21,9 @@ const enterLava = (id, slot) => [
   { wait: 0.8 },
 ];
 
+/** 위 착지 끝 잠긴 철문(다음 지역은 다음 브리핑) */
+export const lava_end_door = [{ text: '* 굳게 잠긴 철문.\n* 틈으로 뜨거운 바람이 새어 나온다.', voice: 'narrator' }];
+
 export const lava_raft_intro = [
   // (형섭이 뗏목에 먼저 탐): 걸어서 올라탄다 — 순간이동 금지(사용자)
   { move: 'player', px: seatPx, exact: true },

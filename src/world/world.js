@@ -680,10 +680,25 @@ export class Raft extends Prop {
     const bf = this.def.onBoardFlag || `${this.id}_boarded`;
     // walkOn: 태우기 전에 컷신부터(컷신이 걸어서 올라타는 이동 뒤 { raft, board:true }) — 순간이동으로 올라타지 않게
     if (this.def.walkOn && this.def.onBoard && !this.game.has(bf)) { this.solid = false; this.game.setFlag(bf); this.game.runScript(this.def.onBoard); return true; }   // 걸어 올라타는 동안 뗏목이 밀어내지 않게(도착하면 다시 solid)
+    if (this.def.walkOn) { this.solid = false; this.game.runScript(this.walkOnScript()); return true; }   // 컷신 없는 뗏목도 걸어서 타고 동료도 걸어가 뛰어든다(순간이동 금지)
     this.board(player);
     if (this.def.onBoard && !this.game.has(bf)) { this.game.setFlag(bf); this.game.runScript(this.def.onBoard); return true; }   // 출발은 컷신이
     this.depart();
     return true;
+  }
+  /** 걸어서 타는 즉석 스크립트(walkOn, 컷신 없을 때): 주인공이 승객 자리까지 걷고 → 태움 → 헤엄칠 동료가 차례로 물가까지 걸어가 뛰어듦(용암이면 치이익) → 출발 */
+  walkOnScript() {
+    const id = this.id, r = this, game = this.game, vertical = this.axis === 'y', lava = !!this.def.lava;
+    const seat = (g) => { const p = g.player; return [r.x + r.w / 2 - p.w / 2, r.y + r.h * 0.68 - p.h]; };
+    const nodes = [{ move: 'player', px: seat, exact: true }, { raft: id, board: true }];
+    this.swimIds.filter((sid) => game.party?.includes(sid)).forEach((sid, slot) => {
+      // 물가: 가로 물길은 뗏목 왼쪽 아래 부두 끝, 세로 물길(위로 가는 구간)은 뗏목 바로 아래 바닥
+      const edge = () => (vertical ? [r.x + 2 + slot * 30, r.y + r.h + 22] : [r.x - 30 - slot * 4, r.y + r.h - 6]);
+      const hopBy = vertical ? [0, -16] : [16 + slot * 15, 8];
+      nodes.push({ move: sid, px: edge }, { face: sid, dir: vertical ? 'up' : 'right' }, { wait: 0.2 }, { hop: sid, by: hopBy, sfx: lava ? 'sizzle' : 'splash', keep: true }, { raft: id, swim: sid }, { wait: 0.35 });
+    });
+    nodes.push({ raft: id, go: true }, { end: true });
+    return nodes;
   }
   /** 올라타기만 (출발 안 함) */
   board(player) {

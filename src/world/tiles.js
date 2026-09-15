@@ -120,11 +120,11 @@ for (const [char, solid] of [['I', false], ['J', true]]) {
     draw: (ctx) => { ctx.fillStyle = '#52647b'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 }
 // 용광로 구역(BUILD188): 차콜 철 + 파란 기운 바닥/벽(assets/tiles/youngcle_iron_blue.png), 용암(뗏목으로만 건넌다)
-for (const [char, solid] of [['F', false], ['G', true]]) {
-  registerTile(char, { name: 'youngcle_iron_blue', solid,
-    stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
-    draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
-}
+registerTile('F', { name: 'youngcle_iron_blue', solid: false,
+  stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
+  draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+// 벽은 바닥과 다른 그림(어두운 판) — 같은 그림이면 용암 위아래 띠가 길처럼 보인다(BUILD191 사용자)
+registerTile('G', { name: 'youngcle_iron_blue_wall', solid: true, draw: (ctx) => { ctx.fillStyle = '#151a22'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('L', { name: 'lava', solid: true, draw: (ctx) => { ctx.fillStyle = '#7a1a08'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
