@@ -1,0 +1,10 @@
+# imagegen 2026-09-15 14:00:24
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1536  quality: high
+# refs: assets/source/subrio169/bidet_skills/refs/bidet-ref.png
+
+Use case: precise-object-edit. The image just shown is the identity and style reference: left is this exact pixel-art boss standing idle (spiky black hair, dark grey plate armor with red trim, big spiked grey pauldrons, a huge two-bladed battle axe with a red gem), right is his axe-swing frame. Keep the identical character, colors, pixel size and camera distance.
+Produce a NEW sprite sheet of the same character with his boss-fight skill poses. EXACTLY 2 columns x 4 rows, 1024x1536 canvas, invisible equal 512x384 cells, solid pure #FF00FF background, no text, labels, grid, borders or shadows, no motion lines.
+Same NES-style low-detail pixel art as the reference: chunky pixels, flat limited shades, dark stepped outlines. Every frame faces RIGHT, same body size and camera distance as the reference, body inside the central 70% of each cell, the axe fully inside the cell.
+Frames row-major: (1) diving down from the air: body vertical, legs tucked, the axe held straight DOWN below him with the blade pointing at the ground, (2) slam landing: crouched low on one knee, the axe blade planted into the ground in front of him, (3) spin attack A: body twisted, both arms holding the axe straight out to the RIGHT at shoulder height, (4) spin attack B: turned further, the axe straight out BEHIND him to the LEFT at shoulder height, (5) spin attack C: facing the camera mid-turn, the axe held out horizontally across in front of him, (6) vanishing: same idle pose but the body drawn as a dark translucent silhouette with a few small sparkles, teleport effect, (7) spin wind-up: crouched with knees bent, the axe held low and back with both hands, ready to whirl, (8) heavy overhead slam wind-up: the axe raised straight up over his head with both hands, standing tall.

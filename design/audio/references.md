@@ -384,3 +384,21 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 **날리기(fling) 소리 지침(사용자 피드백 2: “ㅈㄴ 재사용하노”)**: `whoosh` 를 fling 기본값으로 쓰지 않는다. 장면마다 다른 소리를 고른다 — 파크가디언 박치기 **`wing`**([Deltarune snd_wing](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_wing/snd_wing), 디컴파일 자료, 원본 `assets/source/subrio169/audio/snd_wing.wav` SHA256 `33501074b8436b2ccdd827fe2b7027c6b2a3d2c874820b30f6ccf1ecae2c4725`, 0.469초 그대로 mp3 변환), 비데가 마리오를 날릴 때 `cannon_puff`. BUILD167의 합성 휘슬 `fling_whistle` 은 사용자가 “이상한 소리”라 해서 삭제(2026-09-15 포스트모텀 `docs/postmortems/2026-09-15-cutscene-sound-coverage.md`). 새 fling 은 합성하지 말고 공식 파일에서 고른다(`snd_bombfall` 도 받아 두었다, 미사용).
 
 섭리오 스테이지 클리어(깃발 C, 몬스터 0)는 사용자 지시로 전투 승리음 `won`(언더테일 snd_victor) 을 쓴다(BUILD168, 전엔 합성 `fanfare`). 몬스터가 남아 있을 때의 C 는 `error`.
+
+## 섭리오 보스전 공식 효과음 (BUILD170, 2026-09-15 “거슨전 띵 휘융 공식 사운드”)
+
+[TeamBlossomDevs/DeltaruneDecomp_beta](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/tree/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds) 디컴파일 자료의 원본 wav 를 그대로 mp3(44.1k mono q2)로 바꿨다. 원본은 `assets/source/subrio169/audio/`. 이 SHA 의 목록엔 거슨(4장) 전용 소리가 없어 같은 용도의 공식 소리를 골랐다.
+
+| 게임 파일 | 원본 | 길이 | 쓰임 |
+| --- | --- | --- | --- |
+| `sfx/bell.mp3` | `snd_bell` | 0.47s | 순간이동 뒤 영역 표시(띵) |
+| `sfx/spearappear.mp3` | `snd_spearappear` | 0.54s | 보스가 사라질 때 |
+| `sfx/wing.mp3` | `snd_wing` | 0.47s | 위에서 미끄러져 내려올 때(휘융) · 파크가디언 날리기 |
+| `sfx/impact.mp3` | `snd_impact` | 0.62s | 내려찍기 착지 |
+| `sfx/power.mp3` | `snd_power` | 0.71s | 팽이 회전 예비(빨간 원) |
+| `sfx/ultraswing.mp3` | `snd_ultraswing` | 1.09s | 팽이 회전 |
+| `sfx/heavyswing.mp3` | `snd_heavyswing` | 1.04s | 평타(슬로우) |
+| 면역 땡 | 기존 `knock`(1.3배) | | 패턴 중 맞혔을 때 |
+
+`snd_ghostappear`, `snd_quake_nes` 는 이 SHA 에 파일이 없어(14바이트) 못 썼다. 섭리오 BGM SWORD 는 원본 124~129.5초가 물소리·무음이라(사용자가 준 소스) `playBgm(loopEnd: 124, loopFade: 1.0)` 으로 123초부터 줄였다가 처음으로 되감는다(`src/core/audio.js`).
+

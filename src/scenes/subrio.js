@@ -10,9 +10,9 @@
 import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
-import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, makeBoss, stepBoss, hitBoss, hurtActor,
-  bossHitbox, bossFrame, bossBob, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
-  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
+import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, springNear, makeBoss, stepBoss, hitBoss, hurtActor,
+  bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZone, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
+  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, MARIO_HEAL, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
 
 const FRAME = 10;
 const VIEW_X = FRAME, VIEW_Y = FRAME;
@@ -40,7 +40,13 @@ const CHAR_DELAY = 0.05;
 const HOLD_AFTER_LINE = 2.4;
 const ICON_X = [96, 230, 364];
 const BOSS_SHEET = 'assets/sprites/subrio_bidet.png';
+const BOSS_SKILLS_SHEET = 'assets/sprites/subrio_bidet_skills.png';
 const BOSS_CELL = [224, 192], BOSS_FEET = 180;
+const MARIO_STILL = 'assets/sprites/mini_mario.png';
+const MUSHROOM = 'assets/props/editor-union-mushroom.png';
+const SPRING_SHEET = 'assets/props/subrio_spring.png';
+// 오프닝(사용자): 첫 스테이지에 떨어지기 전 5초 동안 맵을 관광하듯 카메라가 흐르고 SUBRIO 로고 + 전투 승리음, 그 뒤 긴 흰 페이드
+const OPENING_TOUR = 5.0, OPENING_FADE = 1.4;
 const HERO_CELL = 64, HERO_FEET = 60;
 const CLEAR_HOLD = 2.2, CARD_FADE = 0.5, CARD_HOLD = 1.9, BOSS_DELAY = 1.2, VICTORY_HOLD = 3.6, DEAD_HOLD = 1.6;
 const HERO_ID = 'hyungsub';
@@ -100,6 +106,10 @@ export function run(game, node = {}) {
     const spearImg = loadImage('assets/props/subrio_spear.png');
     const waterImg = loadImage('assets/props/subrio_water.png');
     const bossImg = loadImage(BOSS_SHEET);
+    const bossSkillsImg = loadImage(BOSS_SKILLS_SHEET);
+    const marioImg = loadImage(MARIO_STILL);
+    const mushroomImg = loadImage(MUSHROOM);
+    const springImg = loadImage(SPRING_SHEET);
     const enemyImgs = {};
     const enemyImg = (type) => { const src = (MONSTERS[type] || MONSTERS.cs_red).sheet; if (!enemyImgs[src]) enemyImgs[src] = loadImage(src); return enemyImgs[src].img; };
     const tileImgs = {};
@@ -115,6 +125,8 @@ export function run(game, node = {}) {
       chat: { queue: [], line: null, holdT: 0 }, fired: new Set(), fx: [], teamAttack: true, totemHit: false, demo: null, demoDone: false,
       // 인게임 메뉴(Tab/V): 열린 동안 섭리오는 멈추고 오버레이를 숨겨 게임 메뉴가 보이게 한다
       paused: false,
+      // 보스전 도트마리오 버섯(40초마다 오른쪽 벽 위로), 오프닝 관광 카메라
+      mario: null, marioTimer: 0, mushrooms: [], flashRate: 1.1,
     };
     const escapesAtStart = game.escapes || 0;
     const say = (lines) => { for (const line of lines) state.chat.queue.push(line); };
@@ -127,7 +139,7 @@ export function run(game, node = {}) {
       tilesFor(level.def.tiles).done.then(img => { if (img && state.level === level) state.baked.paint(img); });
       state.spears = []; state.fires = []; state.clocks = []; state.waters = []; state.trail = []; state.cam = 0; state.boss = null; state.bossGone = false; state.notice = null; state.leaderLandT = 0;
       state.enemies = level.enemies.map(spec => makeEnemy(spec.type, spec.x, spec.y, -1, spec));
-      state.chat = { queue: [], line: null, holdT: 0 }; state.fired = new Set(); state.fx = [];
+      state.chat = { queue: [], line: null, holdT: 0 }; state.fired = new Set(); state.fx = []; state.mario = null; state.marioTimer = 0; state.mushrooms = []; state.shots = [];
       // 1-0 에선 요플래가 토템을 먼저 때리기 전까지 동료가 공격하지 않는다
       state.teamAttack = !level.def.tutorial; state.totemHit = false; state.demo = null; state.demoDone = false;
       state.sub = 'drop'; state.subT = 0; state.control = false; state.dropWait = 1.9;
@@ -150,8 +162,13 @@ export function run(game, node = {}) {
     const startPlay = () => {
       state.phase = 'play'; state.phaseT = 0;
       loadStage(0);
+      // 오프닝: 세 명은 아직 안 떨어지고 카메라가 맵을 훑는다(5초) → 흰 페이드 → 낙하
+      state.sub = 'opening'; state.subT = 0; state.flash = 0; state.flashRate = 1.1;
+      for (const actor of state.actors) actor.active = false;
       game.sound.stopBgm(0.2);
-      game.sound.playBgm('subrio_sword', { volume: 0.42 });
+      // SWORD 원본은 124~129.5초가 물소리·무음(사용자가 준 소스) → 123초부터 1초 줄였다가 처음으로 되감아 끊김 없이 돈다(마지막 악절은 버림)
+      game.sound.playBgm('subrio_sword', { volume: 0.42, loopEnd: 124.0, loopFade: 1.0 });
+      sfx('won', 0.85);
     };
     // 끝: 보스를 이겼으면 found → 컷신 flag(subrio_cleared). Esc 는 found 없이 방으로
     const finish = () => {
@@ -256,10 +273,19 @@ export function run(game, node = {}) {
     };
 
     const updatePlay = (dt, confirm) => {
-      state.flash = Math.max(0, state.flash - dt * 1.1);
       state.shake = Math.max(0, state.shake - dt);
       state.subT += dt;
       const level = state.level, leader = state.actors[0], def = level.def;
+      if (state.sub === 'opening') {
+        // 관광: 직업 선택 뒤의 흰 화면이 1초에 걷히며 카메라가 왼쪽에서 오른쪽으로 천천히(ease) → 5초 뒤 흰 페이드(1.4초) → 낙하 시작(밝아지는 데 1.4초)
+        const k = Math.min(1, state.subT / OPENING_TOUR), ease = k * k * (3 - 2 * k);
+        state.cam = Math.round(Math.min(level.width - VIEW_W, 880) * ease);
+        if (state.subT < OPENING_TOUR) state.flash = Math.max(0, state.flash - dt * 1.2);
+        else state.flash = Math.min(1, (state.subT - OPENING_TOUR) / OPENING_FADE);
+        if (state.subT >= OPENING_TOUR + OPENING_FADE) { state.sub = 'drop'; state.subT = 0; state.flash = 1; state.flashRate = 1 / OPENING_FADE; }
+        return;
+      }
+      state.flash = Math.max(0, state.flash - dt * state.flashRate);
       // 스테이지 카드: 검게 → 카드 → 다음 스테이지 로드 → 밝게 (그동안 물리는 멈춘다)
       if (state.sub === 'card') {
         if (state.subT < CARD_FADE) state.fade = state.subT / CARD_FADE;
@@ -284,9 +310,17 @@ export function run(game, node = {}) {
         if (fire) { state.fired.add(trig.id); say(trig.lines); }
       }
       updateChat(dt);
+      // 회복 샘물: 근처에서 C → 체력 가득(창은 안 나간다)
+      const nearSpring = state.sub === 'run' && springNear(level, leader);
+      let attackNow = confirm, attackHeldNow = held('confirm');
+      if (nearSpring && confirm) {
+        attackNow = false; attackHeldNow = false;
+        game.partyHp[HERO_ID] = game.maxHpOf(HERO_ID); state.hpFlash = 0; sfx('heal', 0.8);
+        state.fx.push({ kind: 'ring', x: nearSpring.x, y: nearSpring.y, t: 0, dur: 0.6, r0: 6, r1: 30, color: '150,220,255', width: 3 });
+        if (!chatBusy()) say([{ who: 'narrator', text: '샘물을 마셨다. 체력이 회복되었다!' }]);
+      }
       // 깃발: 근처에서 C → 몬스터가 남았으면 알려주고, 다 잡았으면 클리어(창은 안 나간다)
       const nearFlag = state.sub === 'run' && !def.boss && atGoal(level, leader);
-      let attackNow = confirm, attackHeldNow = held('confirm');
       if (nearFlag && confirm) {
         attackNow = false; attackHeldNow = false;
         const left = remainingEnemies(state.enemies);
@@ -323,7 +357,7 @@ export function run(game, node = {}) {
       const demoActor = state.demo ? state.actors.find(a => a.classId === 'brand') : null;
       for (const enemy of state.enemies) {
         if (Math.abs(enemy.x - leader.x) > 900) continue;
-        stepEnemy(level, enemy, dt, events);
+        stepEnemy(level, enemy, dt, events, leader);
         if (!enemy.dead && !state.demo) heroTouchesEnemy(leader, enemy, state.t, events);
         if (!enemy.dead && demoActor && enemy.demo) heroTouchesEnemy(demoActor, enemy, state.t, events);
       }
@@ -332,13 +366,9 @@ export function run(game, node = {}) {
       if (def.boss && !state.boss && leader.dropped && state.subT > (state.leaderLandT || 0) + BOSS_DELAY) state.boss = makeBoss(level.bossSpawnX, -60);
       if (state.boss) {
         const boss = state.boss;
-        if (boss.state === 'windup' && boss.stateT === 0) boss.swingHit = false;
         stepBoss(level, boss, leader, dt, events);
-        if (!boss.dead) {
-          const box = bossHitbox(boss);
-          if (box && !boss.swingHit && rectsOverlap(box, leader)) { boss.swingHit = true; hurtActor(leader, boss.x + boss.w / 2, events, DAMAGE.bossSwing); }
-          else if (boss.state !== 'enter' && boss.state !== 'roar' && rectsOverlap(boss, leader) && hurtActor(leader, boss.x + boss.w / 2, events, DAMAGE.bossTouch) && boss.state === 'chase') { boss.state = 'recover'; boss.stateT = 0; }
-        }
+        if (!boss.dead) bossAttackHero(boss, leader, events);
+        updateMario(dt, events);
       }
       // 투사체 → 적/보스 (공격력 1). 시계는 같은 적에 둘 맞으면 스턴
       const hitTargets = (list, w, h, source) => list.filter(p => {
@@ -356,6 +386,12 @@ export function run(game, node = {}) {
       state.waters = state.waters.filter(water => {
         if (leader.invuln > 0 || !rectsOverlap({ x: water.x, y: water.y, w: WATER_W, h: WATER_H }, leader)) return true;
         hurtActor(leader, water.x + WATER_W / 2, events, DAMAGE.water);
+        return false;
+      });
+      // 레드·블루가 던진 것(불덩이·돌): 주인공에 닿으면 피해, 방패로 막힘
+      state.shots = state.shots.filter(shot => {
+        if (leader.invuln > 0 || !rectsOverlap({ x: shot.x, y: shot.y, w: shot.w, h: shot.h }, leader)) return true;
+        hurtActor(leader, shot.x + shot.w / 2, events, shot.damage);
         return false;
       });
       for (const event of events) {
@@ -382,10 +418,20 @@ export function run(game, node = {}) {
         if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6);
         if (event.type === 'bossLand') { sfx('thud', 0.9); state.shake = 0.35; state.notice = { text: BOSS_APPEAR_LINE, t: 0, hold: BOSS.roar + 0.6 }; }
         if (event.type === 'bossJump') sfx('mario_jump', 0.45, 0, 0.8);
-        if (event.type === 'bossLeap') sfx('mario_jump', 0.6, 0, 0.6);
-        if (event.type === 'swing') sfx('whoosh', 0.8, 0, 0.8);
+        if (event.type === 'swing') sfx('heavyswing', 0.8);
+        // 거슨전 참고 패턴 소리(전부 델타룬 공식): 순간이동 spearappear, 영역 표시 bell(띵), 낙하 wing(휘융), 착지 impact, 회전 예비 power, 회전 ultraswing
+        if (event.type === 'bossVanish') { sfx('spearappear', 0.7); for (let i = 0; i < 10; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + Math.random() * state.boss.h, vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, t: 0, dur: 0.5, color: 'violet' }); }
+        if (event.type === 'bossMarker') sfx('bell', 0.9);
+        if (event.type === 'bossDive') sfx('wing', 0.9);
+        if (event.type === 'bossSlam') { sfx('impact', 0.9); state.shake = 0.45; state.fx.push({ kind: 'ring', x: state.boss.x + state.boss.w / 2, y: state.boss.y + state.boss.h, t: 0, dur: 0.5, r0: 20, r1: 90, color: '255,160,90', width: 4 }); for (let i = 0; i < 12; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + state.boss.h - 4, vx: (Math.random() - 0.5) * 240, vy: -80 - Math.random() * 140, t: 0, dur: 0.5, color: 'dust' }); }
+        if (event.type === 'bossSpinWind') sfx('power', 0.8);
+        if (event.type === 'bossSpin') { sfx('ultraswing', 0.9); state.shake = Math.max(state.shake, 0.2); }
+        if (event.type === 'slowed') { state.notice = null; }
+        if (event.type === 'marioHeal') { sfx('item', 0.8); say([{ who: 'narrator', text: `도트마리오의 버섯! 체력이 ${MARIO_HEAL.heal} 회복되었다.` }]); }
         if (event.type === 'water') { state.waters.push({ x: event.x, y: event.y, vx: event.vx, life: BOSS.waterLife, facing: event.facing }); sfx('splash', 0.5, 0, 1.3); }
         if (event.type === 'bossHit') sfx('hit', 0.7);
+        if (event.type === 'bossImmune') sfx('knock', 0.45, 0.3, 1.3);
+        if (event.type === 'enemyThrow') { state.shots.push({ x: event.x, y: event.y, vx: event.vx, vy: event.vy, w: event.w, h: event.h, life: 2.6, damage: event.damage, kind: event.kind, t: 0 }); sfx(event.kind === 'red' ? 'ember' : 'pop', 0.6, 0.5); }
         if (event.type === 'block') sfx('pantheon_e_block', 0.8, 0.6);
         if (event.type === 'hurt') {
           sfx('hurt', 0.8); state.shake = Math.max(state.shake, 0.18);
@@ -409,7 +455,8 @@ export function run(game, node = {}) {
       burstClocks(clocksBefore.filter(c => c.dead), state.enemies, state.t, burstEvents);
       for (const event of burstEvents) { if (event.type === 'stun') sfx('zilean_q_stun', 0.8, 2.0); else if (event.type === 'projectileHit') sfx('hit', 0.5, 0.4); else if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6); }
       state.waters = updateProjectiles(level, state.waters, dt, WATER_W, WATER_H);
-      for (const p of [...state.fires, ...state.clocks]) p.t += dt;
+      state.shots = updateProjectiles(level, state.shots, dt, 14, 14, ENEMY.throwGravity);
+      for (const p of [...state.fires, ...state.clocks, ...state.shots]) p.t += dt;
       if (state.notice) { state.notice.t += dt; if (state.notice.t > state.notice.hold) state.notice = null; }
       for (const f of state.fx) { f.t += dt; if (f.kind === 'ember') { f.vy += 90 * dt; f.x += f.vx * dt; f.y += f.vy * dt; } }
       state.fx = state.fx.filter(f => f.t < f.dur);
@@ -423,6 +470,44 @@ export function run(game, node = {}) {
       if (state.sub === 'drop' && leader.dropped && state.subT > state.leaderLandT + (state.dropWait ?? 1.9)) { state.sub = 'run'; state.control = true; state.dropWait = 1.9; }
       if (state.sub === 'clear' && state.subT >= CLEAR_HOLD) { state.sub = 'card'; state.subT = 0; state.cardShown = false; state.cardLoaded = false; }
       state.cam = cameraX(level, leader);
+    };
+    // 보스전 도트마리오: 40초마다 오른쪽 벽 위(x464, y80)로 천천히 걸어 들어와 주인공 쪽으로 버섯을 던지고 다시 나간다. 버섯을 먹으면 30 회복
+    const updateMario = (dt, events) => {
+      const level = state.level, leader = state.actors[0];
+      if (state.sub !== 'run' || !state.boss || state.boss.dead) return;
+      const wallTop = 5 * TILE, edgeX = level.width + 24, standX = level.width - 12;
+      if (!state.mario) {
+        state.marioTimer += dt;
+        if (state.marioTimer >= (state.marioCount ? MARIO_HEAL.interval : MARIO_HEAL.first)) { state.marioTimer = 0; state.marioCount = (state.marioCount || 0) + 1; state.mario = { phase: 'in', t: 0, x: edgeX, y: wallTop, facing: -1 }; }
+      } else {
+        const m = state.mario; m.t += dt;
+        if (m.phase === 'in') { m.x = edgeX + (standX - edgeX) * Math.min(1, m.t / MARIO_HEAL.walkIn); if (m.t >= MARIO_HEAL.walkIn) { m.phase = 'throw'; m.t = 0; } }
+        else if (m.phase === 'throw') {
+          if (m.t >= 0.35 && !m.thrown) {
+            m.thrown = true;
+            const sx = m.x - 10, sy = m.y - 20, dx = leader.x + leader.w / 2 - sx, dy = leader.y - sy;
+            const v = clockVelocity(dx, dy);
+            state.mushrooms.push({ x: sx - 12, y: sy - 12, vx: v.vx, vy: v.vy, life: 8, t: 0 });
+            sfx('mario_jump', 0.5, 0, 1.1);
+          }
+          if (m.t >= MARIO_HEAL.hold + 0.35) { m.phase = 'out'; m.t = 0; m.facing = 1; }
+        }
+        else if (m.phase === 'out') { m.x = standX + (edgeX - standX) * Math.min(1, m.t / MARIO_HEAL.walkOut); if (m.t >= MARIO_HEAL.walkOut) state.mario = null; }
+      }
+      // 버섯: 포물선으로 날아와 땅에 멈추고, 주인공이 닿으면 회복
+      for (const mush of state.mushrooms) {
+        mush.t += dt;
+        if (!mush.landed) {
+          mush.vy += MARIO_HEAL.mushroomGravity * dt;
+          const nx = mush.x + mush.vx * dt, ny = mush.y + mush.vy * dt;
+          const solidBelow = level.solidAt(Math.floor((nx + 12) / TILE), Math.floor((ny + 24) / TILE));
+          if (solidBelow && mush.vy > 0) { mush.landed = true; mush.y = Math.floor((ny + 24) / TILE) * TILE - 24; mush.vx = 0; mush.vy = 0; }
+          else { mush.x = nx; mush.y = ny; }
+        }
+        if (rectsOverlap({ x: mush.x, y: mush.y, w: 24, h: 24 }, leader)) { mush.dead = true; game.partyHp[HERO_ID] = Math.min(game.maxHpOf(HERO_ID), game.hpOf(HERO_ID) + MARIO_HEAL.heal); events.push({ type: 'marioHeal' }); }
+        if (mush.t > mush.life || mush.y > level.height) mush.dead = true;
+      }
+      state.mushrooms = state.mushrooms.filter(m => !m.dead);
     };
     // 위치 대사: 한 글자씩 → 다 찍히면 CHAT_HOLD 뒤 다음 줄, 줄이 없으면 상자를 닫는다
     const updateChat = (dt) => {
@@ -490,19 +575,73 @@ export function run(game, node = {}) {
       }
       ctx.fillStyle = def.wave[2]; ctx.fillRect(VIEW_X, baseY + 2, VIEW_W, 12);
     };
+    const drawBossZones = (boss) => {
+      // 회전 예비: 보스 주변 빨간 원이 1초 동안 커지며 깜빡인다(경고). 회전 중엔 밝은 원
+      if (boss.state === 'spinWind' || boss.state === 'spin') {
+        const c = bossSpinCircle(boss), cx = c.x - state.cam + VIEW_X, cy = c.y + VIEW_Y;
+        const k = boss.state === 'spinWind' ? Math.min(1, boss.stateT / BOSS.spinWind) : 1;
+        const pulse = boss.state === 'spinWind' ? 0.45 + 0.35 * Math.abs(Math.sin(boss.stateT * 12)) : 0.85;
+        ctx.fillStyle = `rgba(255,60,60,${(0.18 * pulse).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(cx, cy + c.r * 0.35, c.r * k, c.r * 0.5 * k, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = `rgba(255,80,80,${pulse.toFixed(3)})`; ctx.lineWidth = boss.state === 'spin' ? 3 : 2; ctx.beginPath(); ctx.ellipse(cx, cy + c.r * 0.35, c.r * k, c.r * 0.5 * k, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      // 회복 틈(때릴 차례): 발밑에 노란 고리가 숨 쉬듯 — 이때만 창·불·시계가 먹힌다
+      if (boss.state === 'recover' || (boss.state === 'slam' && boss.stateT >= 0.2)) {
+        const cx = boss.x + boss.w / 2 - state.cam + VIEW_X, fy = boss.y + boss.h + VIEW_Y + 2, pulse = 0.55 + 0.35 * Math.abs(Math.sin(state.t * 8));
+        ctx.strokeStyle = `rgba(255,230,120,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, fy, boss.w * 0.7, 8, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      // 내려찍기 영역: 바닥에 빨간 띠 + 위에 화살표(띵 뒤 0.75초)
+      const zone = bossSlamZone(boss);
+      if (zone && (boss.state === 'marker' || boss.state === 'dive')) {
+        const floorY = zone.y + VIEW_Y, x = zone.x - state.cam + VIEW_X;
+        const pulse = 0.5 + 0.4 * Math.abs(Math.sin(state.t * 14));
+        ctx.fillStyle = `rgba(255,50,50,${(0.28 * pulse).toFixed(3)})`; ctx.fillRect(x, floorY - 10, zone.w, 10);
+        ctx.strokeStyle = `rgba(255,90,90,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.strokeRect(x + 1, floorY - 10, zone.w - 2, 10);
+        ctx.fillStyle = '#ff5c5c'; ctx.beginPath(); ctx.moveTo(x + zone.w / 2 - 8, floorY - 34); ctx.lineTo(x + zone.w / 2 + 8, floorY - 34); ctx.lineTo(x + zone.w / 2, floorY - 20); ctx.closePath(); ctx.fill();
+      }
+    };
     const drawBoss = (boss) => {
-      const img = bossImg.img;
+      if (boss.hidden) return;
+      const frame = bossFrame(boss);
+      const img = frame >= 100 ? bossSkillsImg.img : bossImg.img, idx = frame >= 100 ? frame - 100 : frame;
       const cx = Math.round(boss.x + boss.w / 2 - state.cam) + VIEW_X;
       const feet = Math.round(boss.y + boss.h) + VIEW_Y;
       // 격파 뒤엔 깜빡이며 사라진다
       if (boss.dead && (boss.deadT >= BOSS.deathTime || Math.floor(boss.deadT * 12) % 2 === 1)) return;
-      const frame = bossFrame(boss);
       ctx.save();
       ctx.translate(cx, feet - bossBob(boss));
-      if (boss.facing > 0) ctx.scale(-1, 1);
+      // 시트는 오른쪽을 본다 → 왼쪽을 볼 때 반전(전엔 반대로 뒤집어 늘 오른쪽만 보던 버그 — 2026-09-15)
+      if (boss.facing < 0) ctx.scale(-1, 1);
+      if (boss.state === 'vanish') ctx.globalAlpha = Math.max(0.1, 1 - boss.stateT / BOSS.vanish);
       if (boss.flash > 0 && 'filter' in ctx) ctx.filter = 'brightness(2.6) saturate(0.2)';
-      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (frame % 2) * BOSS_CELL[0], Math.floor(frame / 2) * BOSS_CELL[1], BOSS_CELL[0], BOSS_CELL[1], -BOSS_CELL[0] / 2, -BOSS_FEET, BOSS_CELL[0], BOSS_CELL[1]);
+      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (idx % 2) * BOSS_CELL[0], Math.floor(idx / 2) * BOSS_CELL[1], BOSS_CELL[0], BOSS_CELL[1], -BOSS_CELL[0] / 2, -BOSS_FEET, BOSS_CELL[0], BOSS_CELL[1]);
       else { ctx.fillStyle = '#5a5a66'; ctx.fillRect(-boss.w / 2, -boss.h, boss.w, boss.h); }
+      ctx.restore();
+    };
+    const drawSprings = () => {
+      const img = springImg.img, leader = state.actors[0];
+      for (const sp of state.level.springs) {
+        const x = Math.round(sp.x - state.cam) + VIEW_X, y = Math.round(sp.y) + VIEW_Y;
+        if (x < VIEW_X - 40 || x > VIEW_X + VIEW_W + 40) continue;
+        const f = Math.floor(state.t * 3) % 2;
+        if (img && img.complete && img.naturalWidth) ctx.drawImage(img, f * 32, 0, 32, 24, x - 16, y - 24, 32, 24);
+        else { ctx.fillStyle = '#4c9af0'; ctx.fillRect(x - 12, y - 14, 24, 14); }
+        if (state.sub === 'run' && springNear(state.level, leader) === sp) {
+          const hy = y - 40 + Math.round(Math.sin(state.t * 4) * 2);
+          ctx.fillStyle = '#000'; ctx.fillRect(x - 9, hy - 9, 18, 16); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(x - 8.5, hy - 8.5, 17, 15);
+          text('C', x, hy - 7, { align: 'center', color: '#8ce27a', shadow: false });
+        }
+      }
+    };
+    const drawMario = () => {
+      const m = state.mario, img = marioImg.img;
+      for (const mush of state.mushrooms) {
+        const mi = mushroomImg.img, x = Math.round(mush.x - state.cam) + VIEW_X, y = Math.round(mush.y) + VIEW_Y;
+        if (mi && mi.complete && mi.naturalWidth) ctx.drawImage(mi, x, y - (mush.landed ? Math.round(Math.abs(Math.sin(mush.t * 5)) * 3) : 0), 24, 24); else { ctx.fillStyle = '#e04040'; ctx.fillRect(x, y, 24, 24); }
+      }
+      if (!m) return;
+      const x = Math.round(m.x - state.cam) + VIEW_X, feet = Math.round(m.y) + VIEW_Y - (m.phase !== 'throw' ? Math.round(Math.abs(Math.sin(m.t * 10)) * 3) : 0);
+      ctx.save(); ctx.translate(x, feet); if (m.facing > 0) ctx.scale(-1, 1);
+      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, 64, 64, -16, -30, 32, 32); else { ctx.fillStyle = '#e03030'; ctx.fillRect(-8, -28, 16, 28); }
       ctx.restore();
     };
     const drawFlame = (x, y, size, seed) => {
@@ -521,7 +660,7 @@ export function run(game, node = {}) {
       const cw = kind.cell, ch = kind.cellH || kind.cell, cols = kind.static ? (kind.frames || 2) : 2;
       ctx.save();
       ctx.translate(cx, feet);
-      if (enemy.facing > 0 && !kind.static) ctx.scale(-1, 1);
+      if (enemy.facing < 0 && !kind.static) ctx.scale(-1, 1);
       if (enemy.flash > 0 && 'filter' in ctx) ctx.filter = 'brightness(2.6) saturate(0.2)';
       if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (frame % cols) * cw, kind.static ? 0 : Math.floor(frame / 2) * ch, cw, ch, -cw / 2, -kind.feet, cw, ch);
       else { ctx.fillStyle = enemy.type === 'cs_blue' || enemy.type === 'blue' ? '#3a6ad4' : enemy.type === 'totem' ? '#a06a3a' : '#d43a3a'; ctx.fillRect(-enemy.w / 2, -enemy.h, enemy.w, enemy.h); }
@@ -558,7 +697,7 @@ export function run(game, node = {}) {
           ctx.fillStyle = `rgba(${f.color},${(a * 0.18).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0, Math.PI * 2); ctx.fill();
         } else if (f.kind === 'ember') {
           const x = Math.round(f.x - state.cam) + VIEW_X, y = Math.round(f.y) + VIEW_Y, sz = k < 0.5 ? 3 : 2;
-          ctx.fillStyle = k < 0.4 ? '#ffd24a' : k < 0.75 ? '#ff7a2a' : '#8a3a1a'; ctx.fillRect(x, y, sz, sz);
+          ctx.fillStyle = f.color === 'dust' ? (k < 0.5 ? '#c8b89a' : '#7a6a58') : f.color === 'violet' ? (k < 0.5 ? '#e0a0ff' : '#8040b0') : k < 0.4 ? '#ffd24a' : k < 0.75 ? '#ff7a2a' : '#8a3a1a'; ctx.fillRect(x, y, sz, sz);
         }
       }
     };
@@ -595,6 +734,12 @@ export function run(game, node = {}) {
         ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#3a2404'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(spin) * 3, cy + Math.sin(spin) * 3); ctx.stroke();
+      }
+      for (const shot of state.shots) {
+        // 레드: 불덩이(주황 원 + 꼬리), 블루: 파란 돌(각진 덩어리)
+        const sx = Math.round(shot.x - state.cam) + VIEW_X + 7, sy = Math.round(shot.y) + VIEW_Y + 7;
+        if (shot.kind === 'red') { ctx.fillStyle = '#ff4a1e'; ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(sx - Math.sign(shot.vx) * 1, sy - 1, 3 + (Math.floor(shot.t * 20) % 2), 0, Math.PI * 2); ctx.fill(); }
+        else { ctx.fillStyle = '#2a3e78'; ctx.fillRect(sx - 7, sy - 6, 14, 12); ctx.fillStyle = '#4c7ad8'; ctx.fillRect(sx - 5, sy - 5, 8, 6); ctx.fillStyle = '#9fd0ff'; ctx.fillRect(sx - 3, sy - 4, 3, 2); }
       }
       for (const water of state.waters) {
         const img = waterImg.img; const wx = Math.round(water.x - state.cam) + VIEW_X, wy = Math.round(water.y) + VIEW_Y;
@@ -651,8 +796,9 @@ export function run(game, node = {}) {
         ctx.save();
         ctx.translate(cx, feet);
         if (actor.facing < 0) ctx.scale(-1, 1);
-        // 차징: 창 끝이 점점 밝아진다
+        // 차징: 창 끝이 점점 밝아진다. 슬로우: 푸르게
         if (actor.state === 'charge' && 'filter' in ctx) ctx.filter = `brightness(${(1 + 0.6 * Math.min(1, actor.charge / SPEAR.chargeMax)).toFixed(2)})`;
+        else if (actor.slowT > 0 && 'filter' in ctx) ctx.filter = 'hue-rotate(160deg) saturate(1.6) brightness(0.9)';
         ctx.drawImage(sheet, sx, sy, HERO_CELL, HERO_CELL, -HERO_CELL / 2, -HERO_FEET, HERO_CELL, HERO_CELL);
         ctx.restore();
       } else {
@@ -661,6 +807,7 @@ export function run(game, node = {}) {
         ctx.fillRect(cx - 6, feet - actor.h, 12, actor.h);
         ctx.fillStyle = '#000'; ctx.fillRect(cx + (actor.facing > 0 ? 2 : -5), feet - actor.h + 5, 3, 3);
       }
+      if (actor.slowT > 0) text('SLOW', cx, feet - actor.h - 30, { align: 'center', color: '#7fd7ff' });
     };
     // top: 플레이 중 위치 대사는 HUD 아래(위쪽)에 띄워 바닥의 캐릭터·적을 가리지 않는다
     const drawBox = (speaker, body, color = '#fff', top = false) => {
@@ -715,15 +862,23 @@ export function run(game, node = {}) {
           drawBackdrop();
           ctx.drawImage(state.baked.canvas, state.cam, 0, VIEW_W, VIEW_H, VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
           drawPrompts();
+          drawSprings();
+          if (state.boss) drawBossZones(state.boss);
           for (const enemy of state.enemies) drawEnemy(enemy);
           if (state.boss) drawBoss(state.boss);
           for (const actor of [...state.actors].reverse()) if (actor.active) drawActor(actor);
+          drawMario();
           drawProjectiles();
           drawFx();
           for (const actor of state.actors) if (actor.active) drawGauge(actor);
           drawFlagHint();
           ctx.restore();
-          drawHud();
+          if (state.sub === 'opening') {
+            // 관광 오프닝: 로고가 크게, 아래에 부제. HUD 는 아직 없다
+            const cx = VIEW_X + VIEW_W / 2, bounce = Math.round(Math.abs(Math.sin(state.subT * 3)) * 4);
+            text('SUBRIO', cx, VIEW_Y + 70 - bounce, { align: 'center', size: 52, color: '#ffffff' });
+            text('~ 엄청 대박인 배 · 게임 속 게임 ~', cx, VIEW_Y + 134, { align: 'center', color: '#ffe066' });
+          } else drawHud();
           if (state.sub === 'clear') text('STAGE CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 30, color: '#ffe066' });
           if (state.sub === 'dead') text('쓰러졌다...', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 24, color: '#ff8a8a' });
           if (state.sub === 'victory' && state.bossGone) text('CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 36, color: '#ffe066' });

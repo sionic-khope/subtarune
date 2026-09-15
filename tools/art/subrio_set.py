@@ -99,3 +99,16 @@ def draw_totem(c: Canvas, ox: int, hit: bool) -> None:
 draw_totem(totem, 0, False); draw_totem(totem, 32, True)
 totem.save(Path('assets/props/subrio_totem.png'))
 print('wrote assets/props/subrio_totem.png (64x48)')
+# 회복 샘물(스테이지 중간·끝, C 로 체력 가득) 32×24 ×2 프레임: 돌 받침 + 파란 물 + 반짝임(프레임마다 자리 다름)
+spring: Final = Canvas(64, 24)
+def draw_spring(c: Canvas, ox: int, alt: bool) -> None:
+    STONE, STONE_D, WATER, WATER_L, OUTS = (150, 150, 170), (90, 90, 110), (70, 150, 240), (150, 210, 255), (30, 30, 46)
+    c.rrect_outlined(ox + 2, 10, 28, 14, STONE, OUTS, r=3); c.rect(ox + 4, 20, 24, 2, STONE_D)
+    c.rrect(ox + 5, 12, 22, 7, WATER, r=2); c.rect(ox + 7, 12, 18, 1, WATER_L)
+    # 솟는 물줄기
+    c.rect(ox + 15, 4, 2, 9, WATER); c.rect(ox + 15, 3, 2, 1, WATER_L)
+    for dx, dy in ((-4, 6), (4, 5), (-6, 9), (6, 9)) if not alt else ((-5, 4), (5, 7), (-3, 9), (7, 10)):
+        c.px(ox + 16 + dx, dy, WATER_L)
+draw_spring(spring, 0, False); draw_spring(spring, 32, True)
+spring.save(Path('assets/props/subrio_spring.png'))
+print('wrote assets/props/subrio_spring.png (64x24)')

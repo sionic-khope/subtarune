@@ -21,6 +21,8 @@ export const KNOCK_VY = 240;
 export const ATTACK_POWER = 1;
 // 주인공이 받는 피해(RPG 체력 기준, 최대 150~180): 몬스터 접촉·보스 도끼·보스 몸·물줄기
 export const DAMAGE = { touch: 6, bossSwing: 12, bossTouch: 8, water: 6 };
+export const SLOW_MOVE = 0.5;
+export const SLOW_JUMP = 0.85;
 // 판테온 창: 탭이면 짧은 창, chargeMin 이상 누르면 차징(이동 절반) → 놓으면 빠르고 오래 가는 강창
 export const SPEAR = { speed: 380, life: 1.1, chargedSpeed: 600, chargedLife: 2.4, chargeMin: 0.28, chargeMax: 1.0, cooldown: 0.42, w: 24, h: 6 };
 export const SPEAR_SPEED = SPEAR.speed;
@@ -30,7 +32,7 @@ export const FIRE = { range: 230, dy: 64, cooldown: 6, speed: 260, life: 1.3, w:
 // 질리언 시계: 적이 보이면 두 개를 pair 간격으로 포물선으로, 1.2초마다. 같은 적에 둘 다 맞으면(stunWindow 안) 2초 스턴
 export const CLOCK = { range: 220, dy: 96, cooldown: 1.2, pair: 0.2, gravity: 720, w: 12, h: 12, stunWindow: 1.6, stun: 2.0, flightMin: 0.45, flightMax: 0.85, burst: 22 };
 // 몬스터 공통: 좌우로 걷다 벽·낭떠러지에서 돈다. 밟기·창·불·시계 모두 1씩(시계 둘 = 스턴이 죽음보다 먼저 오게 HP 는 3 이상). 몸에 닿으면 주인공이 튕긴다
-export const ENEMY = { w: 16, h: 24, speed: 40, hp: 3, stompBounce: 300, deathTime: 1.1, hitFlash: 0.2, burn: 2.0 };
+export const ENEMY = { w: 16, h: 24, speed: 40, hp: 3, stompBounce: 300, deathTime: 1.1, hitFlash: 0.2, burn: 2.0, throwGravity: 520 };
 // 종류별 수치·시트(2×2: 걷기 A·B, 스턴, 쓰러짐). hop: 주기적으로 작게 뛴다(칼날부리). static: 움직이지 않는 표적(토템)
 export const MONSTERS = {
   cs_red: { name: '레드 CS', w: 16, h: 24, speed: 40, hp: 3, sheet: 'assets/sprites/subrio_cs_red.png', cell: 48, feet: 44 },
@@ -39,19 +41,34 @@ export const MONSTERS = {
   raptor: { name: '칼날부리', w: 18, h: 26, speed: 70, hp: 3, hop: 1.1, sheet: 'assets/sprites/subrio_raptor.png', cell: 48, feet: 44 },
   wolf: { name: '늑대', w: 30, h: 24, speed: 92, hp: 3, sheet: 'assets/sprites/subrio_wolf.png', cell: 64, feet: 60 },
   gromp: { name: '두꺼비', w: 32, h: 34, speed: 28, hp: 4, sheet: 'assets/sprites/subrio_gromp.png', cell: 64, feet: 60 },
-  krug: { name: '크루그', w: 30, h: 40, speed: 24, hp: 5, sheet: 'assets/sprites/subrio_krug.png', cell: 64, feet: 60 },
+  krug: { name: '돌거북', w: 30, h: 40, speed: 24, hp: 5, sheet: 'assets/sprites/subrio_krug.png', cell: 64, feet: 60 },
   scuttle: { name: '바위게', w: 36, h: 26, speed: 56, hp: 3, sheet: 'assets/sprites/subrio_scuttle.png', cell: 64, feet: 60 },
   cannon: { name: '대포 미니언', w: 26, h: 36, speed: 34, hp: 4, sheet: 'assets/sprites/subrio_cannon.png', cell: 64, feet: 60 },
-  red: { name: '레드', w: 40, h: 60, speed: 46, hp: 6, sheet: 'assets/sprites/subrio_red.png', cell: 96, feet: 90 },
-  blue: { name: '블루', w: 44, h: 64, speed: 36, hp: 7, sheet: 'assets/sprites/subrio_blue.png', cell: 96, feet: 90 },
+  // 레드·블루(사용자: 체력 2배, 던지는 패턴): 주인공이 range 안이면 interval 마다 포물선으로 던진다(레드 불덩이·블루 돌)
+  red: { name: '레드', w: 40, h: 60, speed: 46, hp: 12, sheet: 'assets/sprites/subrio_red.png', cell: 96, feet: 90, throw: { interval: 2.2, range: 300, speed: 230, damage: 8 } },
+  blue: { name: '블루', w: 44, h: 64, speed: 36, hp: 14, sheet: 'assets/sprites/subrio_blue.png', cell: 96, feet: 90, throw: { interval: 2.6, range: 320, speed: 210, damage: 9 } },
   totem: { name: '훈련 토템', w: 16, h: 32, speed: 0, hp: 8, static: true, sheet: 'assets/props/subrio_totem.png', cell: 32, cellH: 48, feet: 44, frames: 2 },
 };
 export const WATER_W = 14;
 export const WATER_H = 8;
 // 따듯한비데 보스 수치(2026-09-15 기본값 — 사용자 지시로 조정). 창 12방, 도끼 내려찍기(예비 0.55초 → 휘두름 0.3초 → 회복 0.45초), 물줄기 3발
-// 2026-09-15 사용자: 섭리오 안 비데는 지금보다 두 배(몸 112px, 시트 224×192 셀), 에너지파(물줄기) 없음 → 멀면 주인공 쪽으로 도약(leap)
-export const BOSS = { w: 72, h: 104, speed: 70, hp: 12, reach: 120, windup: 0.55, swing: 0.3, recover: 0.5, leapVx: 260, leapVy: 520, leapCooldown: 2.4,
+// 2026-09-15 사용자: 섭리오 안 비데는 두 배(몸 72×104, 시트 224×192 셀), 에너지파 없음. 거슨 히든보스 참고 패턴 —
+//   평타(도끼 내려찍기, 맞으면 슬로우), 팽이 회전(1초 예비 + 주변 빨간 경고 원 → 좌우 한 바퀴), 순간이동 → 영역 표시(띵) → 위에서 미끄러져 내려찍기(휘융).
+//   난이도(사용자): 3~4분 싸워야 겨우 깨는 정도 → HP 110(공격력 1 기준), 패턴 피해 8~14
+//   리듬(사용자): 계속 때릴 수 있는 게 아니라 패턴을 피한 뒤 때릴 틈이 생긴다 → 예비·회전·낙하 중엔 안 맞고(면역, 땡 소리), 패턴 뒤 회복 틈(recoverAfter)에 맞는다
+export const BOSS = { w: 72, h: 104, speed: 70, hp: 110, reach: 120, windup: 0.55, swing: 0.3, recover: 0.5,
+  swingDamage: 8, touchDamage: 5, slowTime: 2.5,
+  spinWind: 1.0, spinTime: 0.9, spinRadius: 104, spinDamage: 7, spinRange: 170,
+  vanish: 0.45, marker: 0.75, diveSpeed: 820, slam: 0.55, slamZoneW: 128, slamDamage: 10, teleFar: 250, teleFarTime: 1.2,
+  recoverAfter: { swing: 0.8, spin: 1.6, slam: 1.8 },
   jumpSpeed: 500, roar: 1.4, hitFlash: 0.25, hitCooldown: 0.2, chaseMax: 3.2, deathTime: 2.2, waterLife: 1.7 };
+/** 이 상태에서만 창·불·시계가 먹힌다(회복 틈·추격·포효·평타 예비, 착지 뒤) */
+export const BOSS_VULNERABLE = new Set(['chase', 'recover', 'roar', 'windup', 'slam']);
+/** 행동 순서(seq 로 순환): 평타·평타·회전·내려찍기·평타·회전·내려찍기 */
+export const BOSS_PATTERN = ['swing', 'swing', 'spin', 'slam', 'swing', 'spin', 'slam'];
+// 회복 샘물(스테이지 중간·끝): 근처에서 C → 체력 가득. 도트마리오 버섯(보스전): 40초마다 오른쪽 벽 위에 나타나 던진다, 30 회복
+export const SPRING = { reach: 26 };
+export const MARIO_HEAL = { interval: 40, first: 32, heal: 30, walkIn: 1.6, hold: 0.7, walkOut: 1.4, mushroomGravity: 720 };
 // 타일 문자: '.' 빈칸, '=' 바닥 윗면, '#' 바닥 속, 'B' 떠 있는 블록, '[' 블록 왼쪽 끝, ']' 블록 오른쪽 끝, '|' 깃발 기둥(통과), 'F' 깃발 천(통과·목표)
 export const SOLID = new Set(['=', '#', 'B', '[', ']']);
 export const ATLAS_COLUMN = { '=': 0, '#': 1, B: 2, '[': 3, ']': 4, '|': 5, F: 6 };
@@ -101,7 +118,7 @@ export const CHATTER = {
     { id: 'flag', at: 390, lines: [PP('거의 다 왔어요')] },
   ],
   3: [
-    { id: 'start', at: 4, lines: [PP('숲이다 ㅋㅋ 크루그 단단해요'), GS('대포 미니언은 좀 세네')] },
+    { id: 'start', at: 4, lines: [PP('숲이다 ㅋㅋ 돌거북 단단해요'), GS('대포 미니언은 좀 세네')] },
     { id: 'stun', at: 200, lines: [GS('오 나 스턴 개잘넣지 않냐')] },
     { id: 'aim2', at: 300, lines: [PP('경섭이형 시계 좀 ㅋㅋ'), GS('허허 재밌다')] },
     { id: 'redblue', see: ['red', 'blue'], lines: [PP('레드 블루다!! 저거 잡으면 끝이에요')] },
@@ -122,13 +139,13 @@ export const TOTEM_HIT_LINES = [PP('나도 때려야지 씨발롬 다뒤저라 �
  */
 function makeBuilder(cols, rows, kinds = ['cs_red']) {
   const grid = Array.from({ length: rows }, () => Array(cols).fill('.'));
-  const enemies = [];
+  const enemies = [], springs = [];
   let cursor = 0, lastTop = 18, lastStart = 0, kindIndex = 0;
   // 'A'/'B' 자리표시자는 그 섬의 kinds 를 순서대로 돈다(균등 배분). 구체 종류를 적으면 그대로
   const resolve = (type) => (type === 'A' || type === 'B') ? kinds[kindIndex++ % kinds.length] : type;
   const put = (type, col, top, extra = {}) => enemies.push({ type: resolve(type), x: col * TILE + 8, y: top * TILE, ...extra });
   const b = {
-    grid, enemies,
+    grid, enemies, springs,
     get cursor() { return cursor; },
     /** 땅 len 칸(윗면 top). walkers: 땅 시작 기준 열에 몬스터 [type, at, extra?] */
     ground(len, top, walkers = []) {
@@ -145,6 +162,8 @@ function makeBuilder(cols, rows, kinds = ['cs_red']) {
       return b;
     },
     wall(from, to, top) { for (let c = from; c < to; c++) for (let r = top; r < rows; r++) grid[r][c] = '#'; return b; },
+    /** 마지막 땅 시작 기준 offset 열에 회복 샘물(발 기준) */
+    spring(offset) { springs.push({ x: (lastStart + offset) * TILE + 8, y: lastTop * TILE }); return b; },
     /** 마지막 땅 위 offset 열에 깃발(기둥 4 + 천) */
     flag(offset) {
       const col = lastStart + offset, top = lastTop;
@@ -174,11 +193,11 @@ function stagePurple(b) {
   b.ground(8, 16).gap(3).ground(30, 18, [[R, 6], [U, 14], [R, 22]]).blocks(10, 5, 13).blocks(20, 4, 11);
   b.gap(2).ground(18, 18, [[R, 9]]).blocks(4, 3, 15).blocks(11, 3, 13);
   b.ground(6, 17).ground(6, 16).ground(6, 15).gap(3).ground(20, 15, [[U, 5], [R, 14]]);
-  b.gap(4).ground(28, 18, [[R, 8], [R, 20]]).blocks(6, 4, 14, [[U, 1]]).blocks(16, 4, 12);
+  b.gap(4).ground(28, 18, [[R, 8], [R, 20]]).blocks(6, 4, 14, [[U, 1]]).blocks(16, 4, 12).spring(14);
   b.gap(3).ground(24, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 6, 14);
   b.ground(6, 17).ground(6, 16).gap(3).ground(26, 16, [[R, 8], [R, 18]]).blocks(10, 4, 12);
   b.gap(3).ground(30, 18, [[R, 6], [U, 12], [R, 20], [U, 26]]).blocks(8, 5, 14).blocks(18, 5, 12, [[R, 2]]);
-  b.gap(4).ground(34, 18, [[R, 8], [R, 16]]);
+  b.gap(4).ground(34, 18, [[R, 8], [R, 16]]).spring(22);
   return b.flag(26);
 }
 
@@ -192,12 +211,12 @@ function stageTeal(b) {
   // 블록 징검다리: 땅 끝(offset 14)에서 틈 3 → 블록 3칸(같은 높이) → 틈 3 → 블록 3칸(한 칸 위) → 틈 3 → 블록 3칸 → 틈 3 → 땅(내려감)
   b.blocks(17, 3, 16).blocks(23, 3, 15).blocks(29, 3, 15);
   b.gap(21).ground(24, 18, [[U, 6], [R, 14], [R, 20]]).blocks(8, 5, 14, [[U, 2]]);
-  b.gap(3).ground(8, 17).ground(6, 15).ground(6, 13).gap(4).ground(20, 18, [[R, 4], [U, 10], [R, 16]]).blocks(6, 4, 14).blocks(13, 4, 12);
+  b.gap(3).ground(8, 17).ground(6, 15).ground(6, 13).gap(4).ground(20, 18, [[R, 4], [U, 10], [R, 16]]).blocks(6, 4, 14).blocks(13, 4, 12).spring(2);
   b.gap(4).ground(28, 18, [[R, 6], [R, 12], [U, 20]]).blocks(4, 3, 15).blocks(11, 3, 13).blocks(18, 3, 11, [[R, 1]]);
   b.gap(3).ground(6, 16).gap(3).ground(6, 16).gap(3).ground(22, 18, [[U, 8], [R, 16]]).blocks(10, 4, 14);
   b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).gap(4).ground(24, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 6, 14, [[U, 2]]);
   b.gap(4).ground(30, 18, [[R, 8], [R, 14], [U, 22]]).blocks(6, 5, 14).blocks(16, 5, 12).blocks(24, 3, 15);
-  b.gap(3).ground(34, 18, [[R, 8]]);
+  b.gap(3).ground(34, 18, [[R, 8]]).spring(22);
   return b.flag(26);
 }
 
@@ -211,13 +230,13 @@ function stageBlue(b) {
   b.ground(6, 16).gap(4).ground(12, 16, [[U, 6]]);
   b.gap(4).blocks(12 + 4, 3, 16).blocks(12 + 10, 3, 15).blocks(12 + 16, 3, 15).blocks(12 + 22, 3, 14);
   b.gap(21).ground(22, 18, [[R, 4], [R, 10], [U, 16]]).blocks(6, 5, 14, [[R, 2]]).blocks(14, 4, 11);
-  b.gap(4).ground(6, 17).ground(6, 15).ground(6, 13).gap(5).ground(24, 18, [[U, 4], [R, 10], [R, 16], [U, 20]]).blocks(6, 4, 14).blocks(14, 4, 12).blocks(19, 3, 9);
+  b.gap(4).ground(6, 17).ground(6, 15).ground(6, 13).gap(5).ground(24, 18, [[U, 4], [R, 10], [R, 16], [U, 20]]).blocks(6, 4, 14).blocks(14, 4, 12).blocks(19, 3, 9).spring(1);
   b.gap(4).ground(26, 18, [[R, 5], [U, 11], [R, 17], [R, 22]]).blocks(4, 3, 15).blocks(10, 3, 13).blocks(16, 3, 11, [[U, 1]]).blocks(21, 3, 9);
   b.gap(4).ground(6, 16).gap(4).ground(6, 16).gap(4).ground(6, 16).gap(3).ground(22, 18, [[R, 6], [R, 18]]).blocks(8, 5, 14);
   b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).ground(6, 13).gap(5).ground(26, 18, [[R, 4], [U, 10], [R, 16], [U, 22]]).blocks(8, 6, 14, [[U, 2]]).blocks(18, 4, 11);
   b.gap(4).ground(30, 18, [[R, 6], [R, 12], [U, 18], [R, 24]]).blocks(5, 4, 14).blocks(13, 4, 12).blocks(21, 4, 10, [[R, 1]]);
-  // 마지막 평지: 레드·블루(사용자: 1-3 마지막 쪽)
-  b.gap(4).ground(34, 18, [['red', 6], ['blue', 16]]);
+  // 마지막 평지: 레드·블루(사용자: 1-3 마지막 쪽) + 깃발 앞 샘물
+  b.gap(4).ground(34, 18, [['red', 6], ['blue', 16]]).spring(22);
   return b.flag(26);
 }
 
@@ -242,10 +261,10 @@ export function buildLevel(stage = 0) {
     b.blocks(2, 5, 14).blocks(22, 5, 14).blocks(12, 5, 10);
     spawnX = 40; bossSpawnX = 312;
   }
-  const { grid, enemies } = b;
+  const { grid, enemies, springs } = b;
   const tiles = grid.map(row => row.join(''));
   // 레벨 아래는 뚫려 있다(구덩이에 빠지면 낙사 → 마지막 자리 위 하늘에서 재낙하). 양옆 밖은 빈칸
-  return { stage, def, cols, rows, tiles, width: cols * TILE, height: rows * TILE, goal, spawnX, bossSpawnX, enemies,
+  return { stage, def, cols, rows, tiles, width: cols * TILE, height: rows * TILE, goal, spawnX, bossSpawnX, enemies, springs,
     chatter: CHATTER[stage] || [], prompts: PROMPTS[stage] || [], stompDemo: def.tutorial ? STOMP_DEMO : null,
     solidAt: (tx, ty) => (ty < 0 || ty >= rows || tx < 0 || tx >= cols) ? false : SOLID.has(grid[ty][tx]) };
 }
@@ -259,6 +278,11 @@ export function atGoal(level, actor) {
 }
 /** 남은 몬스터 수(살아 있는 것) */
 export function remainingEnemies(enemies) { return enemies.filter(e => !e.dead).length; }
+/** 주인공 근처의 회복 샘물(없으면 null) */
+export function springNear(level, actor) {
+  const cx = actor.x + actor.w / 2, feet = actor.y + actor.h;
+  return level.springs.find(sp => Math.abs(sp.x - cx) <= SPRING.reach && Math.abs(sp.y - feet) <= 20) || null;
+}
 
 /** 사각형이 막힌 타일과 겹치는가 */
 export function overlapsSolid(level, x, y, w, h) {
@@ -317,7 +341,7 @@ export const NO_INTENT = { left: false, right: false, jump: false, jumpHeld: fal
 export function makeActor(id, footX, footY, facing = 1) {
   return { id, x: Math.round(footX - BODY_W / 2), y: footY - STAND_H, w: BODY_W, h: STAND_H, vx: 0, vy: 0, facing,
     grounded: false, crouch: false, state: 'idle', stateT: 0, cooldown: 0, animT: 0, jumpCut: false, landed: false,
-    invuln: 0, hurtT: 0, charge: 0, fireCool: 0, clockCool: 0, secondClock: 0, safeX: footX };
+    invuln: 0, hurtT: 0, charge: 0, fireCool: 0, clockCool: 0, secondClock: 0, safeX: footX, slowT: 0 };
 }
 
 /**
@@ -330,6 +354,8 @@ export function stepActor(level, actor, intent, dt, events = []) {
   actor.cooldown = Math.max(0, actor.cooldown - dt);
   actor.stateT += dt;
   actor.invuln = Math.max(0, (actor.invuln || 0) - dt);
+  actor.slowT = Math.max(0, (actor.slowT || 0) - dt);
+  const slow = actor.slowT > 0 ? SLOW_MOVE : 1;
   // 맞은 직후에는 조작이 먹지 않는다(넉백만 물리로 진행)
   if (actor.hurtT > 0) { actor.hurtT = Math.max(0, actor.hurtT - dt); intent = NO_INTENT; actor.charge = 0; }
   const guarding = intent.guard && actor.grounded;
@@ -354,10 +380,10 @@ export function stepActor(level, actor, intent, dt, events = []) {
   const canMove = !guarding && !actor.crouch;
   const dir = canMove ? (intent.right ? 1 : 0) - (intent.left ? 1 : 0) : 0;
   if (dir && !charging) actor.facing = dir;
-  const target = dir * MOVE_SPEED * (charging ? 0.5 : 1);
+  const target = dir * MOVE_SPEED * (charging ? 0.5 : 1) * slow;
   actor.vx += (target - actor.vx) * Math.min(1, dt * (actor.grounded ? 14 : 7));
   if (Math.abs(actor.vx) < 2 && !dir) actor.vx = 0;
-  if (intent.jump && actor.grounded && !guarding) { actor.vy = -JUMP_SPEED; actor.grounded = false; actor.jumpCut = false; events.push({ type: 'jump', id: actor.id }); }
+  if (intent.jump && actor.grounded && !guarding) { actor.vy = -JUMP_SPEED * (actor.slowT > 0 ? SLOW_JUMP : 1); actor.grounded = false; actor.jumpCut = false; events.push({ type: 'jump', id: actor.id }); }
   if (!intent.jumpHeld && actor.vy < -120 && !actor.jumpCut) { actor.vy *= 0.55; actor.jumpCut = true; }
   actor.vy = Math.min(MAX_FALL, actor.vy + GRAVITY * dt);
   const hit = moveBody(level, actor, actor.vx * dt, actor.vy * dt);
@@ -438,7 +464,7 @@ export function rectsOverlap(a, b) {
  * 주인공 피격(체력 없음 → 튕겨나기만). fromX: 피해가 온 쪽의 x(가드 방향 판정). 방패로 그쪽을 보고 있으면 막고 살짝 밀린다.
  * 무적 시간 안이면 무시. 반환: 실제로 맞았는가
  */
-export function hurtActor(actor, fromX, events = [], damage = 0) {
+export function hurtActor(actor, fromX, events = [], damage = 0, slow = 0) {
   if (actor.invuln > 0) return false;
   const cx = actor.x + actor.w / 2;
   const dir = Math.sign(fromX - cx) || actor.facing;
@@ -451,6 +477,7 @@ export function hurtActor(actor, fromX, events = [], damage = 0) {
   actor.vx = -dir * KNOCK_VX; actor.vy = -KNOCK_VY; actor.grounded = false;
   actor.h = STAND_H; actor.crouch = false;
   actor.state = 'hurt'; actor.stateT = 0;
+  if (slow > 0) { actor.slowT = slow; events.push({ type: 'slowed', id: actor.id }); }
   events.push({ type: 'hurt', id: actor.id, damage });
   return true;
 }
@@ -531,14 +558,24 @@ export function makeEnemy(type, footX, footY, dir = -1, extra = {}) {
     hp: extra.hp ?? kind.hp, maxHp: extra.hp ?? kind.hp, grounded: false, stunT: 0, flash: 0, burnT: 0, animT: 0, hopT: 0, dead: false, deadT: 0, clockHits: [], demo: !!extra.demo };
 }
 
-/** 몬스터 한 프레임: 걷다 벽·낭떠러지에서 돌고(칼날부리는 주기적으로 작게 뛴다), 스턴이면 서 있고, 토템은 제자리, 죽으면 통과하며 떨어진다 */
-export function stepEnemy(level, enemy, dt, events = []) {
+/** 몬스터 한 프레임: 걷다 벽·낭떠러지에서 돌고(칼날부리는 주기적으로 작게 뛴다), 스턴이면 서 있고, 토템은 제자리, 죽으면 통과하며 떨어진다.
+ * target 이 있고 kind.throw 가 있으면(레드·블루) 사거리 안에서 interval 마다 포물선 투사체를 던진다(events: enemyThrow) */
+export function stepEnemy(level, enemy, dt, events = [], target = null) {
   const kind = enemy.kind || MONSTERS[enemy.type] || MONSTERS.cs_red;
   enemy.flash = Math.max(0, enemy.flash - dt);
   enemy.burnT = Math.max(0, (enemy.burnT || 0) - dt);
   enemy.animT += dt;
   if (enemy.dead) { enemy.deadT += dt; enemy.vy += GRAVITY * dt; enemy.y += enemy.vy * dt; enemy.x += enemy.vx * dt; return events; }
   if (enemy.stunT > 0) { enemy.stunT = Math.max(0, enemy.stunT - dt); if (enemy.stunT === 0) events.push({ type: 'stunEnd', id: enemy.id }); }
+  if (kind.throw && target && enemy.stunT === 0) {
+    enemy.throwT = (enemy.throwT || 0) + dt;
+    const dx = target.x + target.w / 2 - (enemy.x + enemy.w / 2), dy = target.y + target.h / 2 - (enemy.y + 10);
+    if (Math.abs(dx) <= kind.throw.range && enemy.throwT >= kind.throw.interval) {
+      enemy.throwT = 0; enemy.dir = Math.sign(dx) || enemy.dir;
+      const flight = Math.max(0.5, Math.min(1.0, Math.abs(dx) / kind.throw.speed));
+      events.push({ type: 'enemyThrow', id: enemy.id, kind: enemy.type, x: enemy.x + enemy.w / 2 - 7, y: enemy.y + 4, vx: dx / flight, vy: (dy - 0.5 * ENEMY.throwGravity * flight * flight) / flight, w: 14, h: 14, damage: kind.throw.damage });
+    }
+  }
   // 시범용 미니언(demo)은 제자리(걸어서 화면 밖으로 나가 버리던 문제 — 2026-09-15)
   const walking = !kind.static && !enemy.demo && enemy.stunT === 0 && enemy.grounded;
   if (walking && pitAhead(level, enemy, enemy.dir, 2)) enemy.dir = -enemy.dir;
@@ -588,7 +625,8 @@ export function enemyFrame(enemy) {
 /** 보스 생성(발 기준). 하늘에서 떨어져 착지하면 포효 → 추격 */
 export function makeBoss(footX, footY) {
   return { id: 'bidet', x: Math.round(footX - BOSS.w / 2), y: footY - BOSS.h, w: BOSS.w, h: BOSS.h, vx: 0, vy: 0, facing: -1, grounded: false,
-    hp: BOSS.hp, maxHp: BOSS.hp, state: 'enter', stateT: 0, seq: 0, flash: 0, hitCooldown: 0, animT: 0, shot: 0, dead: false, deadT: 0 };
+    hp: BOSS.hp, maxHp: BOSS.hp, state: 'enter', stateT: 0, seq: 0, flash: 0, hitCooldown: 0, animT: 0, dead: false, deadT: 0,
+    hidden: false, markerX: null, farT: 0, spinHit: false, slamHit: false, swingHit: false, lastAction: 'swing', recoverFor: 0.5, immuneT: 0 };
 }
 
 /** 휘두르는 동안 도끼 판정 사각형(앞쪽 100px). 그 외엔 null */
@@ -596,60 +634,139 @@ export function bossHitbox(boss) {
   if (boss.state !== 'swing') return null;
   return { x: boss.facing > 0 ? boss.x + boss.w - 10 : boss.x - 90, y: boss.y + 16, w: 100, h: boss.h - 16 };
 }
+/** 회전 공격(spin) 판정: 보스 중심 원. 경고(spinWind) 중에도 같은 원을 빨갛게 그린다 */
+export function bossSpinCircle(boss) {
+  return { x: boss.x + boss.w / 2, y: boss.y + boss.h * 0.55, r: BOSS.spinRadius };
+}
+/** 내려찍기 영역(marker 부터 slam 까지): 착지면(markerY, 발판 위면 발판) 위 빨간 띠 */
+export function bossSlamZone(boss) {
+  if (boss.markerX === null) return null;
+  return { x: boss.markerX - BOSS.slamZoneW / 2, w: BOSS.slamZoneW, y: boss.markerY ?? 0 };
+}
+/** x 구간 아래에서 처음 만나는 막힌 행의 윗면 y(보스가 떨어져 닿을 면). 없으면 레벨 바닥 */
+export function landingY(level, x0, x1) {
+  const c0 = Math.floor(x0 / TILE), c1 = Math.floor((x1 - 0.01) / TILE);
+  for (let r = 0; r < level.rows; r++) for (let c = c0; c <= c1; c++) if (level.solidAt(c, r)) return r * TILE;
+  return level.height;
+}
+function circleHits(circle, rect) {
+  const nx = Math.max(rect.x, Math.min(circle.x, rect.x + rect.w)), ny = Math.max(rect.y, Math.min(circle.y, rect.y + rect.h));
+  return (nx - circle.x) ** 2 + (ny - circle.y) ** 2 <= circle.r * circle.r;
+}
 
 /**
- * 보스 한 프레임. target: 주인공. 상태: enter(낙하) → roar → chase(다가감·같은 높이 사거리 안이면 windup, 위에 있으면 점프, 오래 못 잡으면 spray)
- * → windup → swing → recover → (세 번에 한 번 spray) … dead 는 서 있기만. events: bossLand/bossJump/swing/water
+ * 보스 한 프레임. target: 주인공.
+ * enter(낙하) → roar → chase → [BOSS_PATTERN 순] swing: 사거리 안이면 windup → swing(맞으면 슬로우) → recover
+ *   spin: 170px 안이면 spinWind(1초, 빨간 원 경고) → spin(0.9초, 원 안 판정) → recover
+ *   slam: vanish(0.45초, 사라짐) → marker(0.75초, 주인공 머리 위로 순간이동 + 바닥 빨간 띠 + 띵) → dive(위에서 미끄러져 내려옴, 휘융) → slam(0.55초, 띠 안 판정·쿵) → recover
+ * 추격 중 주인공이 250px 넘게 1.2초 떨어져 있으면 바로 slam 패턴. dead 는 서 있기만.
+ * events: bossLand/bossJump/swing/bossSpinWind/bossSpin/bossVanish/bossMarker/bossDive/bossSlam
  */
 export function stepBoss(level, boss, target, dt, events = []) {
   boss.stateT += dt; boss.animT += dt;
-  boss.flash = Math.max(0, boss.flash - dt); boss.hitCooldown = Math.max(0, boss.hitCooldown - dt);
+  boss.flash = Math.max(0, boss.flash - dt); boss.hitCooldown = Math.max(0, boss.hitCooldown - dt); boss.immuneT = Math.max(0, (boss.immuneT || 0) - dt);
   const cx = boss.x + boss.w / 2, tx = target.x + target.w / 2;
   const dx = tx - cx, dist = Math.abs(dx);
   const sameLevel = target.y + target.h > boss.y + 8 && target.y < boss.y + boss.h;
-  let move = 0;
-  const go = (state) => { boss.state = state; boss.stateT = 0; };
+  let move = 0, physics = true;
+  const go = (state) => { boss.state = state; boss.stateT = 0; if (state === 'recover') boss.recoverFor = BOSS.recoverAfter[boss.lastAction] ?? BOSS.recover; };
+  const nextAction = () => BOSS_PATTERN[boss.seq % BOSS_PATTERN.length];
+  const startSlam = () => { boss.lastAction = 'slam'; go('vanish'); boss.farT = 0; events.push({ type: 'bossVanish' }); };
   if (boss.dead) { boss.deadT += dt; }
   else if (boss.state === 'enter') { if (boss.grounded) { go('roar'); events.push({ type: 'bossLand' }); } }
   else if (boss.state === 'roar') { if (boss.stateT >= BOSS.roar) go('chase'); }
   else if (boss.state === 'chase') {
     boss.facing = Math.sign(dx) || boss.facing;
     move = boss.facing;
-    boss.leapCool = Math.max(0, (boss.leapCool || 0) - dt);
-    if (dist <= BOSS.reach && sameLevel) go('windup');
+    const action = nextAction();
+    boss.farT = dist > BOSS.teleFar ? boss.farT + dt : 0;
+    if (action === 'slam') startSlam();
+    else if (boss.farT >= BOSS.teleFarTime) startSlam();
+    else if (action === 'spin' && dist <= BOSS.spinRange && boss.grounded) { boss.lastAction = 'spin'; go('spinWind'); boss.spinHit = false; events.push({ type: 'bossSpinWind' }); }
+    else if (action === 'swing' && dist <= BOSS.reach && sameLevel) { boss.lastAction = 'swing'; go('windup'); }
     else if (boss.grounded && target.y + target.h < boss.y + boss.h - 40 && dist < 200 && boss.stateT > 0.4) { boss.vy = -BOSS.jumpSpeed; boss.grounded = false; events.push({ type: 'bossJump' }); }
-    // 에너지파 대신: 오래 못 잡으면 주인공 쪽으로 크게 도약(착지 쿵)
-    else if (boss.grounded && boss.stateT > BOSS.chaseMax && dist > BOSS.reach * 1.5 && boss.leapCool === 0) { boss.vy = -BOSS.leapVy; boss.vx = boss.facing * BOSS.leapVx; boss.grounded = false; boss.leaping = true; boss.leapCool = BOSS.leapCooldown; boss.stateT = 0; events.push({ type: 'bossLeap' }); }
+    else if (boss.stateT > BOSS.chaseMax) startSlam();
   }
-  else if (boss.state === 'windup') { if (boss.stateT >= BOSS.windup) { go('swing'); events.push({ type: 'swing', facing: boss.facing }); } }
+  else if (boss.state === 'windup') { if (boss.stateT >= BOSS.windup) { go('swing'); boss.swingHit = false; events.push({ type: 'swing', facing: boss.facing }); } }
   else if (boss.state === 'swing') { if (boss.stateT >= BOSS.swing) go('recover'); }
-  else if (boss.state === 'recover') { if (boss.stateT >= BOSS.recover) { boss.seq += 1; go('chase'); } }
-  const targetVx = move * BOSS.speed;
-  if (!boss.leaping) boss.vx += (targetVx - boss.vx) * Math.min(1, dt * (boss.grounded ? 12 : 5));
-  if (!move && !boss.leaping && Math.abs(boss.vx) < 2) boss.vx = 0;
-  boss.vy = Math.min(MAX_FALL, boss.vy + GRAVITY * dt);
-  const wasGrounded = boss.grounded;
-  const hit = moveBody(level, boss, boss.vx * dt, boss.vy * dt);
-  if (hit.x) boss.vx = 0;
-  if (hit.floor) { boss.grounded = true; boss.vy = 0; }
-  else if (hit.ceiling) boss.vy = 0;
-  else boss.grounded = false;
-  if (boss.leaping && boss.grounded && !wasGrounded) { boss.leaping = false; boss.vx = 0; events.push({ type: 'bossLand' }); }
+  else if (boss.state === 'spinWind') { if (boss.stateT >= BOSS.spinWind) { go('spin'); events.push({ type: 'bossSpin' }); } }
+  else if (boss.state === 'spin') { if (boss.stateT >= BOSS.spinTime) go('recover'); }
+  else if (boss.state === 'vanish') {
+    physics = false;
+    if (boss.stateT >= BOSS.vanish) {
+      // 영역은 주인공 머리 위이되 무대 벽 위로 떨어지지 않게 몸이 벽 안쪽(16px 벽 + 여유 4px)에 들어오도록 조인다
+      const minX = TILE + boss.w / 2 + 4, maxX = level.width - TILE - boss.w / 2 - 4;
+      boss.hidden = true; boss.markerX = Math.max(minX, Math.min(maxX, tx)); boss.x = Math.round(boss.markerX - boss.w / 2); boss.y = -BOSS.h - 40; boss.vx = 0; boss.vy = 0;
+      boss.markerY = landingY(level, boss.x, boss.x + boss.w);
+      go('marker'); events.push({ type: 'bossMarker', x: boss.markerX, y: boss.markerY });
+    }
+  }
+  else if (boss.state === 'marker') { physics = false; if (boss.stateT >= BOSS.marker) { boss.hidden = false; boss.facing = Math.sign(dx) || boss.facing; boss.slamHit = false; go('dive'); events.push({ type: 'bossDive' }); } }
+  else if (boss.state === 'dive') {
+    physics = false;
+    boss.vy = BOSS.diveSpeed; boss.vx = 0;
+    const hit = moveBody(level, boss, 0, boss.vy * dt);
+    if (hit.floor) { boss.grounded = true; boss.vy = 0; go('slam'); events.push({ type: 'bossSlam', x: boss.markerX }); }
+    else if (boss.y > level.height) { boss.y = level.height - boss.h; boss.grounded = true; go('slam'); events.push({ type: 'bossSlam', x: boss.markerX }); }
+  }
+  else if (boss.state === 'slam') { if (boss.stateT >= BOSS.slam) { boss.markerX = null; go('recover'); } }
+  else if (boss.state === 'recover') { if (boss.stateT >= (boss.recoverFor ?? BOSS.recover)) { boss.seq += 1; go('chase'); } }
+  if (physics) {
+    const targetVx = move * BOSS.speed;
+    boss.vx += (targetVx - boss.vx) * Math.min(1, dt * (boss.grounded ? 12 : 5));
+    if (!move && Math.abs(boss.vx) < 2) boss.vx = 0;
+    boss.vy = Math.min(MAX_FALL, boss.vy + GRAVITY * dt);
+    const hit = moveBody(level, boss, boss.vx * dt, boss.vy * dt);
+    if (hit.x) boss.vx = 0;
+    if (hit.floor) { boss.grounded = true; boss.vy = 0; }
+    else if (hit.ceiling) boss.vy = 0;
+    else boss.grounded = false;
+  }
   return events;
 }
 
-/** 창·불·시계가 보스에 맞았을 때(공격력 1). 짧은 무적으로 한 투사체에 두 번 안 맞는다. 반환: 맞았는가 */
+/**
+ * 보스 공격이 주인공에 닿는가(한 동작에 한 번). swing: 도끼 사각형(슬로우), spin: 원, slam: 착지 순간 띠 안. 닿으면 hurtActor 호출
+ */
+export function bossAttackHero(boss, hero, events = []) {
+  if (boss.dead || boss.hidden) return false;
+  const bcx = boss.x + boss.w / 2;
+  if (boss.state === 'swing' && !boss.swingHit) {
+    const box = bossHitbox(boss);
+    if (box && rectsOverlap(box, hero)) { boss.swingHit = true; return hurtActor(hero, bcx, events, BOSS.swingDamage, BOSS.slowTime); }
+  } else if (boss.state === 'spin' && !boss.spinHit) {
+    if (circleHits(bossSpinCircle(boss), hero)) { boss.spinHit = true; return hurtActor(hero, bcx, events, BOSS.spinDamage); }
+  } else if (boss.state === 'slam' && !boss.slamHit && boss.stateT < 0.2) {
+    const zone = bossSlamZone(boss);
+    const heroCx = hero.x + hero.w / 2, onGround = hero.y + hero.h >= boss.y + boss.h - 24;
+    if (zone && heroCx >= zone.x && heroCx <= zone.x + zone.w && onGround) { boss.slamHit = true; return hurtActor(hero, bcx, events, BOSS.slamDamage); }
+  } else if ((boss.state === 'chase' || boss.state === 'recover' || boss.state === 'windup') && rectsOverlap(boss, hero)) {
+    if (hurtActor(hero, bcx, events, BOSS.touchDamage) && boss.state === 'chase') { boss.state = 'recover'; boss.stateT = 0; return true; }
+  }
+  return false;
+}
+
+/** 창·불·시계가 보스에 맞았을 때(공격력 1). 패턴 중(예비·회전·사라짐·낙하)엔 면역(땡, bossImmune) — 피한 뒤 회복 틈에 때린다. 짧은 무적으로 한 투사체에 두 번 안 맞는다 */
 export function hitBoss(boss, events = []) {
-  if (boss.dead || boss.hitCooldown > 0) return false;
+  if (boss.dead || boss.hidden || boss.hitCooldown > 0) return false;
+  if (!BOSS_VULNERABLE.has(boss.state) || (boss.state === 'slam' && boss.stateT < 0.2)) { if (boss.immuneT === 0) { boss.immuneT = 0.25; events.push({ type: 'bossImmune' }); } return false; }
   boss.hp -= ATTACK_POWER; boss.flash = BOSS.hitFlash; boss.hitCooldown = BOSS.hitCooldown;
   events.push({ type: 'bossHit', hp: boss.hp });
-  if (boss.hp <= 0) { boss.dead = true; boss.state = 'dead'; boss.stateT = 0; boss.deadT = 0; boss.vx = 0; events.push({ type: 'bossDead' }); }
+  if (boss.hp <= 0) { boss.dead = true; boss.state = 'dead'; boss.stateT = 0; boss.deadT = 0; boss.vx = 0; boss.hidden = false; boss.markerX = null; events.push({ type: 'bossDead' }); }
   return true;
 }
 
-/** 보스 시트 2×4: 0 idle, 1~2 walk, 3 jump, 4 windup, 5 swing, 6 (물줄기 프레임, 미사용), 7 hurt. 걷기는 idle 을 사이에 끼운 4박(1·0·2·0)으로 부드럽게 */
+/**
+ * 보스 프레임. 본 시트 2×4(0 idle, 1~2 walk, 3 jump, 4 windup, 5 swing, 6 미사용, 7 hurt)는 0~7,
+ * 스킬 시트 2×4(0 dive, 1 slam, 2 spinA, 3 spinB, 4 spinC, 5 vanish, 6 spinWind, 7 overhead)는 100~107 로 돌려준다
+ */
 export function bossFrame(boss) {
   if (boss.dead) return 7;
+  if (boss.state === 'vanish') return 105;
+  if (boss.state === 'dive') return 100;
+  if (boss.state === 'slam') return 101;
+  if (boss.state === 'spinWind') return 106;
+  if (boss.state === 'spin') return 102 + Math.floor(boss.stateT / BOSS.spinTime * 6) % 3;
   if (boss.flash > 0 && boss.state !== 'swing' && boss.state !== 'windup') return 7;
   if (boss.state === 'enter' || (!boss.grounded && boss.state === 'chase')) return 3;
   if (boss.state === 'windup') return 4;

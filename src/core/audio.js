@@ -305,7 +305,11 @@ export class Sound {
     if (this._preBgm[name]) return;
     const a = new Audio(`assets/audio/bgm/${name}.mp3`); a.preload = 'auto'; a.load(); this._preBgm[name] = a;
   }
-  playBgm(name, { loop = true, volume = 0.35, fadeIn = 0.5 } = {}) {
+  /**
+   * loopEnd(초): 원본 꼬리가 무음·잡음이면(섭리오 SWORD 마지막 5초 물소리, 사용자 2026-09-15) 그 앞에서 loopFade 동안 줄였다가
+   * 처음으로 되감아 다시 키운다 — 끊김 없이 조기 종료. timeupdate(약 4Hz)로 감시하므로 loopFade 는 0.5초 이상
+   */
+  playBgm(name, { loop = true, volume = 0.35, fadeIn = 0.5, loopEnd = 0, loopFade = 0.8 } = {}) {
     volume = Math.min(volume, 0.4);
     if (this.bgm && this.bgmName === name) return;
     this.stopBgm(0.4);
@@ -316,6 +320,15 @@ export class Sound {
     a.play().catch((error) => console.warn('[audio] BGM 자동 재생 대기', error));
     this.bgm = a; this.bgmName = name; this.bgmVolume = volume;
     this._ramp(a, this.muted ? 0 : volume, fadeIn);
+    if (loopEnd > 0) {
+      a.addEventListener('timeupdate', () => {
+        if (a !== this.bgm || a._looping) return;
+        if (a.currentTime >= loopEnd - loopFade) {
+          a._looping = true;
+          this._ramp(a, 0, loopFade, () => { try { a.currentTime = 0; } catch {} a._looping = false; if (a === this.bgm) this._ramp(a, this.muted ? 0 : this.bgmVolume, loopFade); });
+        }
+      });
+    }
   }
   stopBgm(fade = 0.8) {
     const a = this.bgm; if (!a) return;
