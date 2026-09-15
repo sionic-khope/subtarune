@@ -578,10 +578,10 @@ export function run(game, node = {}) {
       text(`총점 ${state.stats.score}`, SCREEN_W / 2, 240, { align: 'center', size: 18, color: '#7dff5a' });
       if (state.phaseT > 0.8 && Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, SCREEN_H - 40, { align: 'center', color: '#8f8fa6', size: 12 });
     };
-    // 최상위 레이어: ‘● 연결 안 됨’ 배지(스크린 오른쪽 위, 빨간 점 깜빡임)
+    // 최상위 레이어: ‘● 연결 안 됨’ 배지(왼쪽 아래 관객석 위·SCORE 바 바로 위 — 기둥·스크린과 안 겹치게, 사용자 “옮겨”), 빨간 점 깜빡임
     const drawBadge = () => {
       if (state.badge <= 0) return;
-      const img = badgeImg.img, x = TV.x + TV.w - 94, y = TV.y + 6 - Math.round((1 - state.badge) * 6);
+      const img = badgeImg.img, x = 8, y = SCREEN_H - 24 - 26 + Math.round((1 - state.badge) * 6);
       ctx.globalAlpha = state.badge;
       if (img && img.complete && img.naturalWidth) ctx.drawImage(img, x, y);
       else { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x, y, 88, 20); }
