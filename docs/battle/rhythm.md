@@ -2,6 +2,10 @@
 
 2026-09-15 사용자 브리핑. 델타룬 3장 테나 리듬 게임 참고. 구현 `src/scenes/rhythm.js`(오버레이 씬, `{ scene3d: 'rhythm', flag: 'rhythm_stage_done' }`) + `src/scenes/rhythm-core.js`(순수 규칙, `tests/unit/rhythm.test.mjs`).
 
+## BUILD190 — 숨 쉬듯 대기·판정 완화·낙하 속도 (사용자)
+- 대기 동작: “전투 대기마냥 미세하게” — 프레임 교체 없이 기본 자세가 두 박 주기로 1px 오르내림, 관객 띠도 0/1px. 생성한 groove 프레임(셀 4~7)은 시트에 보관만.
+- `RHYTHM.great` 0.12→0.16, `late` 0.16→0.2(판정 후하게), `approach` 1.5→1.15(노트가 약 30% 빨리 떨어져 간격이 넓어짐, 차트·난이도는 동일). “너무 넓히지 말고 적당히”.
+
 ## BUILD187 — 노래 +10%·진짜 관객 녹음·환호 자연화·결과창 타자 (사용자)
 - **노래 볼륨**: 요소 볼륨은 1 이 상한이라 영상을 WebAudio `MediaElementSource → Gain(1.1)` 로 보낸다(컨텍스트가 없으면 요소 볼륨만). 신호 품질 볼륨(0.25~1)은 그대로 요소 쪽.
 - **관객 소리 전부 실제 녹음**(“휘파람 합성이 전자음 같다, ㄹㅇ 박수”): 출처·구간은 design/audio/references.md. roar/cheer/applause 각 2변형 + `crowd_bed`(8초 루프).
