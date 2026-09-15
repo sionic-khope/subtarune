@@ -5,7 +5,7 @@ import { buildLevel, makeActor, stepActor, moveBody, overlapsSolid, followerInte
   STAGES, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor, bossHitbox, bossFrame, rectsOverlap, brandThink, zileanThink, clockVelocity,
   makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, nearestTarget,
   TILE, STAND_H, CROUCH_H, VIEW_W, SPEAR, FIRE, CLOCK, ENEMY, BOSS, WATER_W, WATER_H, NO_INTENT,
-  BOSS_INTRO, RESULT, RESULT_ROWS, makeStats, formatStat, resultView } from '../../src/scenes/subrio-core.js';
+  BOSS_INTRO, RESULT, RESULT_ROWS, makeStats, formatStat, resultView, bossHookBox, hookActor, BOSS_PATTERN_ENRAGED } from '../../src/scenes/subrio-core.js';
 
 const NONE = NO_INTENT;
 const settle = (level, actor, frames = 60) => { for (let i = 0; i < frames; i++) stepActor(level, actor, NONE, 1 / 60); return actor; };
@@ -375,7 +375,7 @@ test('test_subrio_boss_pattern_cycles_swing_spin_and_teleport_slam_with_zones', 
   const boss = makeBoss(level.bossSpawnX, GROUND); boss.grounded = true; boss.state = 'roar';
   const events = [];
   const run = (frames, cond) => { for (let i = 0; i < frames; i++) { stepBoss(level, boss, hero, 1 / 60, events); bossAttackHero(boss, hero, events); if (cond && cond()) return true; } return false; };
-  assert.deepEqual(BOSS_PATTERN.slice(0, 4), ['swing', 'swing', 'spin', 'slam']);
+  assert.deepEqual(BOSS_PATTERN.slice(0, 4), ['swing', 'hook', 'spin', 'slam'], '평타·찌르기·회전·내려찍기(BUILD172 찌르기 추가)');
   // 1·2번째 행동: 평타(도끼) — 맞으면 슬로우
   hero.invuln = 0;
   assert.ok(run(60 * 10, () => events.some(e => e.type === 'swing')), '첫 행동 평타');
@@ -383,6 +383,8 @@ test('test_subrio_boss_pattern_cycles_swing_spin_and_teleport_slam_with_zones', 
   assert.ok(hero.slowT > 0);
   // 3번째: 회전 — 1초 경고(빨간 원) 뒤 회전, 원 안이면 피해
   hero.invuln = 0; hero.hurtT = 0; hero.slowT = 0;
+  // 2번째 행동(찌르기)은 별도 테스트 — 여기선 회전으로 건너뛴다
+  Object.assign(boss, { seq: BOSS_PATTERN.indexOf('spin'), state: 'chase', stateT: 0.5, pulling: null, forceSwing: false });
   assert.ok(run(60 * 12, () => boss.state === 'spinWind'), '회전 예비'); const windT0 = boss.stateT;
   const circle = bossSpinCircle(boss); assert.equal(circle.r, BOSS.spinRadius);
   assert.ok(run(60 * 2, () => boss.state === 'spin'), '1초 뒤 회전'); assert.ok(events.some(e => e.type === 'bossSpinWind') && events.some(e => e.type === 'bossSpin'));
@@ -527,13 +529,17 @@ test('test_subrio_boss_arena_is_wider_with_reachable_center_platform_and_boss_fl
   assert.equal(level.solidAt(6, 14), true); assert.equal(level.solidAt(7, 14), false); assert.equal(level.solidAt(29, 14), true); assert.equal(level.solidAt(28, 14), false);
   assert.equal(level.solidAt(10, 10), true); assert.equal(level.solidAt(25, 10), true); assert.equal(level.solidAt(9, 10), false); assert.equal(level.solidAt(26, 10), false);
   assert.deepEqual(level.arena.floor, [7 * TILE, 29 * TILE]);
-  assert.deepEqual(level.arena.overhang, [{ row: 10, x0: 10 * TILE, x1: 26 * TILE }]);
+  assert.deepEqual(level.arena.overhang, [{ row: 10, x0: 10 * TILE, x1: 15 * TILE }, { row: 10, x0: 21 * TILE, x1: 26 * TILE }]);
+  for (let col = 15; col <= 20; col++) assert.equal(level.solidAt(col, 10), false, `가운데(15~20열)는 하늘이 트여 있다 ${col}`);
+  assert.equal(level.solidAt(14, 10), true); assert.equal(level.solidAt(21, 10), true);
   assert.equal(level.bossSpawnX, level.width / 2);
   // 오프닝에서 갈라지는 자리는 가운데 기준 오프셋: 요플래·억빠맨은 가운데 발판 끝(x416)과 오른쪽 발판(x464) 사이 바닥, 경섭은 왼쪽 틈
   const cx = level.width / 2;
-  const right = cx + BOSS_INTRO.split.hyungsub; assert.ok(right > 26 * TILE && right < 29 * TILE, `hyungsub 는 오른쪽 틈 ${right}`);
-  const far = cx + BOSS_INTRO.split.ppaman; assert.ok(far > 29 * TILE && far < 34 * TILE, `ppaman 은 오른쪽 발판 아래 ${far}`);
-  const left = cx + BOSS_INTRO.split.gyeongsub; assert.ok(left > 7 * TILE && left < 10 * TILE, `gyeongsub 는 왼쪽 틈 ${left}`);
+  for (const id of ['hyungsub', 'ppaman']) { const x = cx + BOSS_INTRO.split[id]; assert.ok(x > cx + BOSS.slamZoneW / 2 + 40 && x < level.arena.floor[1], `${id} 는 내려찍기 띠 밖 오른쪽 바닥 ${x}`); }
+  const left = cx + BOSS_INTRO.split.gyeongsub; assert.ok(left < cx - BOSS.slamZoneW / 2 - 40 && left > level.arena.floor[0], `gyeongsub 는 띠 밖 왼쪽 바닥 ${left}`);
+  // 먼저 가운데로 모이는 자리는 셋이 겹치지 않게 벌어져 있고 전부 내려찍기 띠 안
+  const gatherXs = ['hyungsub', 'gyeongsub', 'ppaman'].map(id => cx + BOSS_INTRO.gather[id]).sort((a, b) => a - b);
+  assert.ok(gatherXs[1] - gatherXs[0] >= 24 && gatherXs[2] - gatherXs[1] >= 24); assert.ok(gatherXs.every(x => Math.abs(x - cx) <= BOSS.slamZoneW / 2));
   // 내려찍기 자리 클램프: 바닥이면 양옆 발판 아래를 피한다
   const boss = makeBoss(60, 18 * TILE); boss.state = 'vanish'; boss.stateT = BOSS.vanish; boss.grounded = true;
   const hero = makeActor('h', 40, 18 * TILE); hero.grounded = true;
@@ -545,16 +551,75 @@ test('test_subrio_boss_arena_is_wider_with_reachable_center_platform_and_boss_fl
 
 test('test_subrio_boss_does_not_jump_when_a_platform_is_over_its_head', () => {
   const level = buildLevel(4);
-  const under = makeBoss(level.width / 2, 18 * TILE); under.state = 'chase'; under.stateT = 1; under.grounded = true;
-  const above = makeActor('h', level.width / 2, 10 * TILE); above.grounded = true;
+  // 가운데 왼쪽 발판(10~14열) 아래 바닥에 선 보스, 주인공은 그 발판 위
+  const under = makeBoss(12.5 * TILE, 18 * TILE); under.state = 'chase'; under.stateT = 1; under.grounded = true; under.seq = 0;
+  const above = makeActor('h', 12.5 * TILE, 10 * TILE); above.grounded = true;
   const events = [];
   for (let i = 0; i < 30; i++) stepBoss(level, under, above, 1 / 60, events);
   assert.ok(!events.some(event => event.type === 'bossJump'), '가운데 발판 아래에선 뛰지 않는다(머리 끼임)');
   assert.ok(overlapsSolid(level, under.x, under.y - BOSS.jumpClear, under.w, BOSS.jumpClear), '머리 위 6칸 안에 발판');
   // 같은 자리라도 머리 위가 트여 있으면(발판 없는 평지) 뛴다
   const flat = { ...level, solidAt: (tx, ty) => ty >= 18 && tx >= 0 && tx < level.cols };
-  const open = makeBoss(level.width / 2, 18 * TILE); open.state = 'chase'; open.stateT = 1; open.grounded = true;
+  const open = makeBoss(12.5 * TILE, 18 * TILE); open.state = 'chase'; open.stateT = 1; open.grounded = true; open.seq = 0;
   const openEvents = [];
   for (let i = 0; i < 30; i++) stepBoss(flat, open, above, 1 / 60, openEvents);
   assert.ok(openEvents.some(event => event.type === 'bossJump'), '위가 트여 있으면 뛴다');
+});
+
+test('test_subrio_boss_hook_thrusts_forward_and_pulls_the_hero_to_its_front_then_swings', () => {
+  const level = buildLevel(4);
+  assert.ok(BOSS_PATTERN.includes('hook') && BOSS_PATTERN_ENRAGED.includes('hook'), '평소·격노 패턴 둘 다 찌르기가 있다');
+  const boss = makeBoss(200, 18 * TILE); boss.state = 'chase'; boss.stateT = 1; boss.grounded = true; boss.seq = BOSS_PATTERN.indexOf('hook');
+  const hero = makeActor('h', 200 + 150, 18 * TILE); hero.grounded = true; hero.facing = -1;
+  const events = [];
+  stepBoss(level, boss, hero, 1 / 60, events);
+  assert.equal(boss.state, 'hookWind', '사정거리 안·같은 높이면 찌르기 예비'); assert.ok(events.some(e => e.type === 'bossHookWind'));
+  assert.equal(bossHookBox(boss), null, '예비 중엔 판정 없음'); assert.ok(bossHookBox(boss, true).w === BOSS.hookReach);
+  for (let i = 0; i < 40 && boss.state === 'hookWind'; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  assert.equal(boss.state, 'hook'); assert.ok(events.some(e => e.type === 'bossHook'));
+  const box = bossHookBox(boss); assert.ok(box.x >= boss.x + boss.w - 8 && box.w === BOSS.hookReach, '앞으로 뻗는 띠');
+  assert.ok(rectsOverlap(box, hero), '150px 앞의 주인공에 닿는다');
+  assert.equal(bossAttackHero(boss, hero, events), true);
+  assert.ok(events.some(e => e.type === 'bossHooked') && events.some(e => e.type === 'hurt' && e.damage === BOSS.hookDamage), '끌려가며 피해');
+  const startX = hero.x;
+  for (let i = 0; i < 30 && boss.state !== 'recover'; i++) { stepBoss(level, boss, hero, 1 / 60, events); stepActor(level, hero, NO_INTENT, 1 / 60); }
+  assert.equal(boss.state, 'recover');
+  assert.ok(hero.x < startX - 60 && Math.abs(hero.x - (boss.x + boss.w + 4)) <= 6, `보스 앞까지 끌려온다 ${hero.x} vs ${boss.x + boss.w + 4}`);
+  assert.equal(boss.forceSwing, true, '끌어당긴 뒤엔 평타');
+  for (let i = 0; i < 60 && boss.state === 'recover'; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  for (let i = 0; i < 5 && boss.state === 'chase'; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  assert.equal(boss.state, 'windup', '회복 뒤 곧바로 평타 예비');
+  // 방패로 마주 보면 막힌다(끌리지 않음)
+  const boss2 = makeBoss(200, 18 * TILE); boss2.state = 'hook'; boss2.stateT = 0; boss2.grounded = true; boss2.facing = 1;
+  const guard = makeActor('g', 300, 18 * TILE); guard.grounded = true; guard.facing = -1; guard.state = 'guard';
+  const ev2 = [];
+  assert.equal(hookActor(boss2, guard, ev2), false); assert.ok(ev2.some(e => e.type === 'block')); assert.equal(boss2.pulling, null);
+  // 동료는 슬로우만
+  const mate = makeActor('m', 300, 18 * TILE); mate.grounded = true;
+  const ev3 = [];
+  hookActor(boss2, mate, ev3, true); assert.ok(ev3.some(e => e.type === 'slowed')); assert.equal(boss2.pulling, null);
+});
+
+test('test_subrio_boss_spin_is_wider_and_heals_the_boss_when_it_hits_the_hero', () => {
+  assert.ok(BOSS.spinRadius >= 130 && BOSS.spinRange >= 190, '회전베기 범위가 넓다');
+  const boss = makeBoss(288, 18 * TILE); boss.state = 'spin'; boss.stateT = 0.3; boss.grounded = true; boss.hp = 50;
+  const hero = makeActor('h', 288 + 110, 18 * TILE); hero.grounded = true;
+  const events = [];
+  assert.equal(bossAttackHero(boss, hero, events), true, '110px 밖도 회전 반경 안');
+  assert.equal(boss.hp, 50 + BOSS.spinHeal); assert.ok(events.some(e => e.type === 'bossHeal' && e.amount === BOSS.spinHeal));
+  boss.hp = boss.maxHp; boss.hitIds = new Set(); boss.stateT = 0.5;
+  const hero2 = makeActor('h2', 288 + 90, 18 * TILE); hero2.grounded = true;
+  bossAttackHero(boss, hero2, events); assert.equal(boss.hp, boss.maxHp, '최대치를 넘지 않는다');
+  boss.hitIds = new Set(); boss.stateT = 0.6;
+  const mate = makeActor('m', 288 - 90, 18 * TILE); mate.grounded = true;
+  const before = boss.hp; boss.hp = 40; const ev2 = [];
+  bossAttackHero(boss, mate, ev2, true); assert.equal(boss.hp, 40, '동료에게 맞은 건 회복 없음'); assert.ok(!ev2.some(e => e.type === 'bossHeal'));
+});
+
+test('test_subrio_boss_hook_can_be_ducked_under_or_jumped_over', () => {
+  const boss = makeBoss(200, 18 * TILE); boss.state = 'hook'; boss.stateT = 0; boss.grounded = true; boss.facing = 1;
+  const box = bossHookBox(boss);
+  const standing = makeActor('s', 330, 18 * TILE); assert.ok(rectsOverlap(box, standing), '서 있으면 닿는다');
+  const ducking = { ...standing, h: CROUCH_H, y: 18 * TILE - CROUCH_H }; assert.equal(rectsOverlap(box, ducking), false, '앉으면 밑으로 피한다');
+  const jumping = { ...standing, y: standing.y - 70 }; assert.equal(rectsOverlap(box, jumping), false, '점프하면 위로 피한다');
 });

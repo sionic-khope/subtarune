@@ -11,8 +11,8 @@ import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, springNear, makeBoss, stepBoss, hitBoss, hurtActor,
-  bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZone, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
-  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, landingY, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H,
+  bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZone, bossHookBox, bossTiming, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
+  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H,
   RESULT, makeStats, resultView } from './subrio-core.js';
 
 const FRAME = 10;
@@ -341,7 +341,8 @@ export function run(game, node = {}) {
       let attackNow = confirm, attackHeldNow = held('confirm');
       if (nearSpring && confirm) {
         attackNow = false; attackHeldNow = false;
-        game.partyHp[HERO_ID] = game.maxHpOf(HERO_ID); state.hpFlash = 0; sfx('heal', 0.8);
+        const healed = game.maxHpOf(HERO_ID) - game.hpOf(HERO_ID);
+        game.partyHp[HERO_ID] = game.maxHpOf(HERO_ID); state.hpFlash = 0; sfx('heal', 0.8); if (healed > 0) healFx(leader, healed);
         state.fx.push({ kind: 'ring', x: nearSpring.x, y: nearSpring.y, t: 0, dur: 0.6, r0: 6, r1: 30, color: '150,220,255', width: 3 });
         if (!chatBusy()) say([{ who: 'narrator', text: '샘물을 마셨다. 체력이 회복되었다!' }]);
       }
@@ -456,9 +457,13 @@ export function run(game, node = {}) {
         if (event.type === 'bossSpinWind') sfx('power', 0.8);
         if (event.type === 'bossSpin') { sfx('ultraswing', 0.9); state.shake = Math.max(state.shake, 0.2); }
         if (event.type === 'slowed') { state.notice = null; }
-        if (event.type === 'marioHeal') { state.stats.mushrooms += 1; sfx('item', 0.8); say([{ who: 'narrator', text: `도트마리오의 버섯! 체력이 ${MARIO_HEAL.heal} 회복되었다.` }]); }
+        if (event.type === 'marioHeal') { state.stats.mushrooms += 1; sfx('heal', 0.7); healFx(leader, MARIO_HEAL.heal); }
         if (event.type === 'water') { state.waters.push({ x: event.x, y: event.y, vx: event.vx, life: BOSS.waterLife, facing: event.facing }); sfx('splash', 0.5, 0, 1.3); }
         if (event.type === 'bossHit') sfx('hit', 0.7);
+        if (event.type === 'bossHeal') { sfx('heal', 0.45, 0, 0.8); healFx(state.boss, event.amount); }
+        if (event.type === 'bossHookWind') sfx('power', 0.5, 0, 1.4);
+        if (event.type === 'bossHook') sfx('chain_extend', 0.9);
+        if (event.type === 'bossHooked') { sfx('weaponpull', 0.8); state.shake = Math.max(state.shake, 0.15); }
         if (event.type === 'bossImmune') sfx('knock', 0.45, 0.3, 1.3);
         // 격노(체력 절반): 붉어지고 패턴이 빨라진다 + 억빠맨 한 줄(사용자)
         if (event.type === 'bossEnrage') { sfx('power', 0.9); state.shake = 0.35; say([BOSS_ENRAGE.line]); for (let i = 0; i < 14; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + Math.random() * state.boss.h, vx: (Math.random() - 0.5) * 120, vy: -60 - Math.random() * 90, t: 0, dur: 0.6 }); }
@@ -501,7 +506,9 @@ export function run(game, node = {}) {
       if (state.sub === 'drop' && !def.boss && leader.dropped && state.subT > state.leaderLandT + (state.dropWait ?? 1.9)) { state.sub = 'run'; state.control = true; state.dropWait = 1.9; }
       if (state.banner) { state.banner.t += dt; if (state.banner.t > state.banner.hold) state.banner = null; }
       if (state.sub === 'clear' && state.subT >= CLEAR_HOLD) { state.sub = 'card'; state.subT = 0; state.cardShown = false; state.cardLoaded = false; }
-      state.cam = cameraX(level, leader);
+      // 카메라: 보스 무대는 부드럽게 따라가고 오프닝 동안은 무대 가운데에 고정(셋이 모이고 갈라지는 구도)
+      const camTarget = state.intro ? Math.round((level.width - VIEW_W) / 2) : cameraX(level, leader);
+      state.cam = def.boss ? Math.round(state.cam + (camTarget - state.cam) * Math.min(1, dt * 7)) : camTarget;
     };
     // 1-4 오프닝(사용자 브리핑 원문): 0 대사 두 줄 → 1 비데 목소리 → 2 가운데 영역 표시(띵)·모두 양옆으로 → 3 낙하·착지 → 4 좌우 둘러봄 → 5 대사 세 줄
     //   → 6 ‘보스전’(빨간 글씨) → 7 START!!(파앗) + 비데 사라짐 → 패턴 시작·조작·브금
@@ -509,14 +516,18 @@ export function run(game, node = {}) {
     const updateIntro = (dt, events) => {
       const level = state.level, it = state.intro; it.t += dt;
       const centerX = level.width / 2;
-      if (it.step === 0) { say(BOSS_INTRO.before); it.step = 1; }
-      else if (it.step === 1) { if (!chatBusy()) { say(BOSS_INTRO.voice); it.step = 2; } }
+      // 사용자(2026-09-15): 대사하는 동안 셋이 가운데로 걸어가 모이고 → ‘후후후..’ → 가운데 바닥 내려찍기 영역(띵) → 양옆으로 흩어진다(왼쪽에서 바로 퍼지지 않는다)
+      const gather = () => { for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, centerX + BOSS_INTRO.gather[actor.id]); };
+      const gathered = () => state.actors.every(actor => it.intents[actor.id] === NO_INTENT);
+      if (it.step === 0) { say(BOSS_INTRO.before); it.step = 1; gather(); }
+      else if (it.step === 1) { gather(); if (!chatBusy() && gathered()) { say(BOSS_INTRO.voice); it.step = 2; it.t = 0; } }
       else if (it.step === 2) {
-        if (!chatBusy()) {
-          // 비데는 아직 안 보이고, 가운데에 영역 표시(띵) → 모두 양옆으로 갈라진다
+        gather();
+        if (!chatBusy() && it.t >= BOSS_INTRO.tension) {
+          // 비데는 아직 안 보이고, 셋이 모인 가운데 바닥에 영역 표시(띵) → 모두 양옆으로 갈라진다
           const boss = makeBoss(centerX, -60);
           boss.hidden = true; boss.state = 'marker'; boss.stateT = 0; boss.lastAction = 'slam'; boss.markerX = centerX; boss.x = Math.round(centerX - boss.w / 2); boss.y = -boss.h - 40;
-          boss.markerY = landingY(level, boss.x, boss.x + boss.w);
+          boss.markerY = level.height - 3 * TILE;
           state.boss = boss; sfx('bell', 0.9); it.step = 3; it.t = 0;
         }
       }
@@ -587,6 +598,10 @@ export function run(game, node = {}) {
       state.mushrooms = state.mushrooms.filter(m => !m.dead);
     };
     // 위치 대사: 한 글자씩 → 다 찍히면 CHAT_HOLD 뒤 다음 줄, 줄이 없으면 상자를 닫는다
+    const healFx = (actor, amount) => {
+      state.fx.push({ kind: 'float', x: actor.x + actor.w / 2, y: actor.y - 10, text: `+${amount}`, color: '#7dff8a', t: 0, dur: 1.0 });
+      state.fx.push({ kind: 'aura', actor, seed: Math.random() * Math.PI * 2, t: 0, dur: 0.8 });
+    };
     const updateChat = (dt) => {
       const chat = state.chat;
       if (!chat.line) { if (!chat.queue.length) return; chat.line = chat.queue.shift(); chatTyper.start(chat.line.text, WHO[chat.line.who]?.voice || 'narrator'); chat.holdT = 0; }
@@ -653,6 +668,22 @@ export function run(game, node = {}) {
       ctx.fillStyle = def.wave[2]; ctx.fillRect(VIEW_X, baseY + 2, VIEW_W, 12);
     };
     const drawBossZones = (boss) => {
+      if (boss.state === 'hookWind' || boss.state === 'hook' || (boss.state === 'hookPull' && boss.pulling)) {
+        const box = bossHookBox(boss, true), bx = box.x - state.cam + VIEW_X, by = box.y + VIEW_Y, midY = by + box.h / 2;
+        const fromX = boss.facing > 0 ? bx : bx + box.w, toX = boss.facing > 0 ? bx + box.w : bx;
+        if (boss.state === 'hookWind') {
+          const pulse = 0.4 + 0.4 * Math.abs(Math.sin(boss.stateT * 14)), k = Math.min(1, boss.stateT / bossTiming(boss).hookWind);
+          ctx.fillStyle = `rgba(255,60,60,${(0.16 * pulse).toFixed(3)})`; ctx.fillRect(Math.min(fromX, toX), by, box.w * k, box.h);
+          ctx.strokeStyle = `rgba(255,80,80,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.strokeRect(Math.min(fromX, toX) + 0.5, by + 0.5, box.w * k, box.h);
+        } else if (boss.state === 'hook') {
+          const k = Math.min(1, boss.stateT / 0.1);
+          ctx.strokeStyle = 'rgba(255,120,90,0.95)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(fromX, midY); ctx.lineTo(fromX + (toX - fromX) * k, midY); ctx.stroke();
+          ctx.strokeStyle = 'rgba(255,230,200,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fromX, midY); ctx.lineTo(fromX + (toX - fromX) * k, midY); ctx.stroke();
+        } else {
+          const p = boss.pulling, px = p.x + p.w / 2 - state.cam + VIEW_X, py = p.y + p.h / 2 + VIEW_Y;
+          ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = '#d8d8e6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fromX, midY); ctx.lineTo(px, py); ctx.stroke(); ctx.restore();
+        }
+      }
       // 회전 예비: 보스 주변 빨간 원이 1초 동안 커지며 깜빡인다(경고). 회전 중엔 밝은 원
       if (boss.state === 'spinWind' || boss.state === 'spin') {
         const c = bossSpinCircle(boss), cx = c.x - state.cam + VIEW_X, cy = c.y + VIEW_Y;
@@ -783,6 +814,17 @@ export function run(game, node = {}) {
           ctx.strokeStyle = `rgba(${f.color},${a.toFixed(3)})`; ctx.lineWidth = f.width * (1 - k * 0.6) + 0.5;
           ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
           ctx.fillStyle = `rgba(${f.color},${(a * 0.18).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0, Math.PI * 2); ctx.fill();
+        } else if (f.kind === 'float') {
+          const x = f.x - state.cam + VIEW_X, y = f.y + VIEW_Y - k * 26;
+          ctx.globalAlpha = 1 - Math.max(0, (k - 0.6) / 0.4); text(f.text, x, y, { align: 'center', color: f.color, size: 14 }); ctx.globalAlpha = 1;
+        } else if (f.kind === 'aura') {
+          const a = f.actor, cx = a.x + a.w / 2 - state.cam + VIEW_X, cy = a.y + a.h / 2 + VIEW_Y;
+          ctx.globalAlpha = 1 - k;
+          for (let i = 0; i < 12; i++) {
+            const ang = f.seed + i * Math.PI / 6 + k * 5, rx = a.w / 2 + 8 + k * 10, ry = a.h / 2 + 6 + k * 8;
+            ctx.fillStyle = i % 2 ? '#b8ffbf' : '#5ee87a'; ctx.fillRect(Math.round(cx + Math.cos(ang) * rx), Math.round(cy + Math.sin(ang) * ry - k * 14), 2, 2);
+          }
+          ctx.globalAlpha = 1;
         } else if (f.kind === 'ember') {
           const x = Math.round(f.x - state.cam) + VIEW_X, y = Math.round(f.y) + VIEW_Y, sz = k < 0.5 ? 3 : 2;
           ctx.fillStyle = f.color === 'dust' ? (k < 0.5 ? '#c8b89a' : '#7a6a58') : f.color === 'violet' ? (k < 0.5 ? '#e0a0ff' : '#8040b0') : k < 0.4 ? '#ffd24a' : k < 0.75 ? '#ff7a2a' : '#8a3a1a'; ctx.fillRect(x, y, sz, sz);
@@ -932,7 +974,10 @@ export function run(game, node = {}) {
       const bx = VIEW_X + 14, by = top ? VIEW_Y + 94 : VIEW_Y + VIEW_H - 84, bw = VIEW_W - 28, bh = 72;
       ctx.fillStyle = '#000'; ctx.fillRect(bx, by, bw, bh);
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-      if (speaker) { ctx.fillStyle = '#000'; ctx.fillRect(bx + 8, by - 20, 64, 22); ctx.strokeRect(bx + 9, by - 19, 62, 20); text(speaker, bx + 40, by - 17, { align: 'center', shadow: false, color }); }
+      if (speaker) {
+        ctx.font = FONT; const lw = Math.max(64, Math.ceil(ctx.measureText(speaker).width) + 18);
+        ctx.fillStyle = '#000'; ctx.fillRect(bx + 8, by - 20, lw, 22); ctx.strokeRect(bx + 9, by - 19, lw - 2, 20); text(speaker, bx + 8 + lw / 2, by - 17, { align: 'center', shadow: false, color });
+      }
       const lines = wrap(body, bw - 40);
       lines.forEach((line, i) => text('* ' + line, bx + 16, by + 12 + i * 20, { color: '#fff', shadow: false }));
     };
@@ -999,7 +1044,7 @@ export function run(game, node = {}) {
             text('SUBRIO', cx, VIEW_Y + 70 - bounce, { align: 'center', size: 52, color: '#ffffff' });
             text('~ 엄청 대박인 배 · 게임 속 게임 ~', cx, VIEW_Y + 134, { align: 'center', color: '#ffe066' });
           } else drawHud();
-          if (state.banner) { const b = state.banner, pop = b.t < 0.15 ? 1 + (0.15 - b.t) * 3 : 1; text(b.text, VIEW_X + VIEW_W / 2, VIEW_Y + 52, { align: 'center', size: Math.round(b.size * pop), color: b.color }); }
+          if (state.banner) { const b = state.banner, pop = b.t < 0.15 ? 1 + (0.15 - b.t) * 3 : 1; text(b.text, VIEW_X + VIEW_W / 2, VIEW_Y + 84, { align: 'center', size: Math.round(b.size * pop), color: b.color }); }
           if (state.sub === 'clear') text('STAGE CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 30, color: '#ffe066' });
           if (state.sub === 'dead') text('쓰러졌다...', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 24, color: '#ff8a8a' });
           if (state.sub === 'victory' && state.bossGone) text('CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 36, color: '#ffe066' });

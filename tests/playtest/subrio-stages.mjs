@@ -108,6 +108,15 @@ try {
   await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'swing', null, { timeout: 15000 }).catch(() => {}); await page.waitForTimeout(150);
   s = await sub(); check(s.lead[2] === 'guard', '방패 자세로 막기 ' + JSON.stringify(s.lead)); await cap('boss_guard');
   await page.keyboard.up('KeyX');
+  // 도끼 찌르기(BUILD172): 150px 앞의 주인공을 예비(빨간 띠) → 찌르기 → 보스 앞까지 끌어당김 → 곧 평타
+  await page.evaluate(() => { const st = window.__subrio.state, b = st.boss, l = st.actors[0]; Object.assign(b, { state: 'chase', stateT: 0.5, seq: 1, pulling: null, forceSwing: false, x: 200, facing: 1, vx: 0 }); Object.assign(l, { x: 350, y: 256, vx: 0, vy: 0, invuln: 0, hurtT: 0, slowT: 0, state: 'idle', charge: 0 }); });
+  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'hookWind', null, { timeout: 4000 }).catch(() => {}); await page.waitForTimeout(200); await cap('boss_hook_wind');
+  s = await sub(); check(s.boss && s.boss[1] === 'hookWind', '찌르기 예비 ' + JSON.stringify(s.boss));
+  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'hookPull', null, { timeout: 4000 }).catch(() => {}); await page.waitForTimeout(120); await cap('boss_hook_pull');
+  s = await sub(); const pullX0 = s.lead[0];
+  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'recover', null, { timeout: 3000 }).catch(() => {});
+  s = await sub(); check(s.boss && s.boss[1] === 'recover' && s.lead[0] < pullX0 && Math.abs(s.lead[0] - (s.boss[0] + 72 + 4)) < 10, '찌르기에 걸려 보스 앞(몸 오른쪽 끝 +4)까지 끌려온다 ' + JSON.stringify([pullX0, s.lead, s.boss]));
+  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'windup', null, { timeout: 4000 }).catch(() => {}); s = await sub(); check(s.boss && s.boss[1] === 'windup', '끌어당긴 뒤 곧바로 평타 예비 ' + JSON.stringify(s.boss)); await cap('boss_hook_swing');
   // 에너지파 없음 확인 + 창 2방 격파
   s = await sub(); check(s.waters === 0, '물줄기(에너지파) 없음');
   await page.evaluate(() => { const st = window.__subrio.state; st.boss.hp = 2; st.boss.x = 300; st.boss.state = 'chase'; st.boss.stateT = 0; const l = st.actors[0]; l.x = 150; l.y = 250; l.facing = 1; l.invuln = 3; });

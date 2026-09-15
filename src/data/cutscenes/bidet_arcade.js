@@ -4,7 +4,7 @@
 // BUILD167 재배치(사용자 지시): 스크린은 방 오른쪽의 거대한 2D 화면(흰 테두리·검은 화면), 토관은 컨트롤러 아래에 눕혀져 왼쪽 입구로 걸어 들어간다.
 // 브금: 방에 들어올 땐 없고 이 연출이 시작되면 파크가디언 등장 곡(editor_union_stage)이 나온다(사용자 지시).
 import { FX } from '../fx.js';
-const BIDET = 'warm_bidet', MARIO = 'mini_mario', PIPE = 'bidet_pipe', SCREEN = 'bidet_screen', DOOR = 'youngcle7_upper_door';
+const BIDET = 'warm_bidet', MARIO = 'mini_mario', PIPE = 'bidet_pipe', SCREEN = 'bidet_screen', GRATE = 'youngcle7_grate';
 // 토관 입구(그림 x352~376, 몸은 x376 부터). rel 'left' 는 몸 왼쪽에서 24px 앞(x352) → 입구 안은 +12(x364), 입구 앞은 -28(x324)
 const MOUTH_IN = { rel: PIPE, at: 'left', by: [12, 0] };
 const MOUTH_OUT = { rel: PIPE, at: 'left', by: [-28, 0] };
@@ -28,9 +28,9 @@ const mushroomThrow = (id, image, label, color) => [
 
 /**
  * 보스 격파 뒤 귀환 연출(2026-09-15 사용자 원문). 결과창이 닫히면 토관에서 셋이 차례로 나온다(브금 꺼진 채) → “별거없네요 ㅋㅋ” → 안 보이는 비데 “... 기 기다려..” →
- * 모두 느낌표·왼쪽을 봄 → 비데가 왼쪽 아래에서 걸어와 복직·반값 → 공격 이유(영클형) → “그야.. 가ㅈ..” 말이 끊기며 도트마리오가 비데 머리 위로 떨어짐 →
- * “어 도트마리오” → 마리오가 비데를 번쩍 들어 머리 위에 올리고 왼쪽 문으로 질주 → 연결로(youngcle8)를 가로질러 → 무대(youngcle7) 위 통로의 철창을 뛰어넘어
- * 꼭대기 철문(`youngcle7_upper_door`)을 폭파(폭발 이펙트 + 폭발음, 문이 날아감) → 둘 다 뚫린 문 위로 사라짐 → 카메라 주인공 → “오 뭐지.. 일단 뭐 이어서 가보죠” → 조작.
+ * 모두 느낌표·오른쪽을 봄 → 비데가 오른쪽 아래(스크린 아래)에서 걸어와 복직·반값 → 공격 이유(영클형) → “그야.. 가ㅈ..” 말이 끊기며 도트마리오가 비데 머리 위로 떨어짐 →
+ * “어 도트마리오” → 마리오가 비데를 번쩍 들어 머리 위에 올리고 왼쪽 문으로 질주 → 연결로(youngcle8)를 가로질러 → 무대(youngcle7) 위 통로로 달려 올라가
+ * 길을 막은 **철창(`youngcle7_grate`)을 폭파**(폭발 이펙트 + 폭발음, 철창이 날아감 → `youngcle7_grate_blown`) → 둘 다 뚫린 통로 위로 사라짐 → 카메라 주인공 → “오 뭐지.. 일단 뭐 이어서 가보죠” → 조작.
  * 토관 C 뒤(bidet_pipe_enter)와 QA 진입(bidet_arcade enter, subrio_cleared 만 선 상태) 둘 다 이 노드를 쓴다. 끝나면 subrio_after_done(방 브금은 그 뒤로 무음).
  * 캐릭터 몸은 24×16: 마리오 그림 키 ~30px → 머리 위 = y-30, 비데 머리 위 = y-77(입장 연출과 같은 값). 다른 맵의 마리오·비데는 spawn 으로 새로 만든다.
  */
@@ -63,11 +63,11 @@ const subrioAfter = () => [
   B('... 기 기다려..'),
   close,
   { parallel: PARTY.map((id, i) => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6, ...(i === 0 ? { sfx: 'chime' } : {}) })) },
-  ...PARTY.map(id => ({ face: id, dir: 'left' })),
-  // 비데가 왼쪽 아래(방 구석)에서 일행 왼쪽까지 걸어온다
-  bidetSpawn(112, 640, 'right'),
-  { move: BIDET, rel: 'player', at: 'left', by: [-100, 14] },
-  { face: BIDET, dir: 'right' },
+  ...PARTY.map(id => ({ face: id, dir: 'right' })),
+  // 비데가 오른쪽 아래(스크린 아래 바닥)에서 토관 앞 일행의 오른쪽까지 걸어온다(사용자: 오른쪽에서)
+  bidetSpawn(1000, 648, 'left'),
+  { move: BIDET, rel: 'player', at: 'right', by: [90, 66] },
+  { face: BIDET, dir: 'left' },
   B('기 기다려...'),
   P('머야 ㅂㅅ아 꺼저'),
   B('그 그래서 나 복직 시켜주냐 반값 할게'),
@@ -102,7 +102,7 @@ const subrioAfter = () => [
   { camera: MARIO },
   { fade: 'in', duration: 0.3 },
   { move: MARIO, rel: 'youngcle8_left', at: 'right', by: [-4, 0], dash: true, carry: CARRY, shake: 2 },
-  // 무대(youngcle7) 오른쪽 통로 → 위 통로 → 철창(y192~288)을 뛰어넘어 → 꼭대기 철문 앞
+  // 무대(youngcle7) 오른쪽 통로 → 위 통로 입구 → 철창(x928~1056·y192~288) 바로 아래에 멈춤
   { fade: 'out', duration: 0.3 },
   { map: 'youngcle7', spawn: 'from_corridor' },
   ...PARTY.map(id => ({ hide: id })),
@@ -110,19 +110,18 @@ const subrioAfter = () => [
   { camera: MARIO },
   { fade: 'in', duration: 0.3 },
   { move: MARIO, px: [968, 330], dash: true, carry: CARRY, shake: 2 },
-  { move: MARIO, px: [968, 304], dash: true, carry: CARRY, shake: 2 },
-  { parallel: [{ hop: MARIO, by: [0, -150], height: 70, duration: 0.55, sfx: 'mario_jump' }, { hop: BIDET, by: [0, -150], height: 70, duration: 0.55, sfx: false }] },
-  // 문 아래(발 y176)에 멈춰 문이 가려지지 않게(비데 그림은 머리 위 77px)
-  { move: MARIO, px: [968, 160], dash: true, carry: CARRY, shake: 2 },
-  // 철문 폭파: 폭발 이펙트(사용자 지정 델타룬 폭발) + 폭발음 + 흔들림 + 문이 빙글 날아감. 그 뒤로 맵에 문이 없다(youngcle7_upper_door_blown)
+  { move: MARIO, px: [968, 308], dash: true, carry: CARRY, shake: 2 },
+  { wait: 0.15 },
+  // 철창 폭파(사용자: 문이 아니라 철창): 폭발 이펙트(사용자 지정 델타룬 폭발) + 폭발음 + 흔들림 + 철창이 빙글 날아감. 그 뒤로 맵에 철창이 없다(youngcle7_grate_blown)
   { parallel: [
-    { boom: { ...FX.explosion, at: DOOR, scale: 1.8, offset: [0, -30] } },
+    { boom: { ...FX.explosion, at: GRATE, scale: 2.0, offset: [0, 0] } },
     { shake: 0.6, amp: 8 },
-    { fling: DOOR, vx: 40, vup: 720, spin: 9, duration: 1.3, sfx: false },
+    { fling: GRATE, vx: 30, vup: 760, spin: 8, duration: 1.3, sfx: false },
   ] },
-  { set: { youngcle7_upper_door_blown: true } },
-  // 둘 다 뚫린 문 위로 뛰어 사라진다
-  { parallel: [{ hop: MARIO, by: [0, -190], height: 30, duration: 0.5, sfx: 'mario_jump', keep: true }, { hop: BIDET, by: [0, -190], height: 30, duration: 0.5, sfx: false, keep: true }] },
+  { set: { youngcle7_grate_blown: true } },
+  // 뚫린 통로를 달려 올라가 위로 사라진다
+  { move: MARIO, px: [968, 64], dash: true, carry: CARRY, shake: 2 },
+  { parallel: [{ hop: MARIO, by: [0, -140], height: 30, duration: 0.45, sfx: 'mario_jump', keep: true }, { hop: BIDET, by: [0, -140], height: 30, duration: 0.45, sfx: false, keep: true }] },
   { remove: MARIO }, { remove: BIDET },
   { wait: 0.5 },
   // 카메라를 비데 방의 주인공에게 — 셋은 토관 입구 앞에 그대로
@@ -252,6 +251,7 @@ export const bidet_arcade = [
 const FOLLOWERS = ['gyeongsub', 'ppaman'];
 export const bidet_pipe_enter = [
   { if: flags => !flags.bidet_arcade_done, goto: 'plain' },
+  { if: flags => flags.subrio_cleared, goto: 'cleared' },
   { text: '* 컨트롤러 아래 눕혀진 초록 토관.\n* 오른쪽 끝이 거대한 스크린 속으로 이어진다.', voice: 'narrator' },
   { text: '* 토관 안으로 들어갈까?', voice: 'narrator',
     choice: { options: [{ label: '들어간다', goto: 'enter' }, { label: '그만둔다', goto: 'stay' }], cancel: 1 } },
@@ -289,6 +289,9 @@ export const bidet_pipe_enter = [
   { end: true },
   { label: 'stay' },
   { text: '* 일단 그만두었다.', voice: 'narrator' },
+  { end: true },
+  { label: 'cleared' },
+  { text: '* 컨트롤러 아래 눕혀진 초록 토관.\n* 스크린 속 승부는 끝났다. 다시 들어갈 이유는 없다.', voice: 'narrator' },
   { end: true },
   { label: 'plain' },
   { text: '* 마리오 게임에 나올 법한 초록 토관이 눕혀져 있다.\n* 왼쪽 입구가 열려 있고 오른쪽은 스크린 안으로 이어진다.', voice: 'narrator' },

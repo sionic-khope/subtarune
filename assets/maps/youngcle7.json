@@ -40,8 +40,7 @@
   "assets/props/editor-union-truss.png",
   "assets/props/editor-union-curtain.png",
   "assets/props/editor-union-control.png",
-  "assets/props/editor-union-wall-panel.png",
-  "assets/props/youngcle_angel_door145.png"
+  "assets/props/editor-union-wall-panel.png"
  ],
  "spawns": {
   "start": {
@@ -672,21 +671,8 @@
    "w": 128,
    "h": 96,
    "solid": true,
-   "requires": "park_guardian_aftermath_done"
-  },
-  {
-   "type": "prop",
-   "id": "youngcle7_upper_door",
-   "image": "assets/props/youngcle_angel_door145.png",
-   "x": 944,
-   "y": 64,
-   "w": 96,
-   "h": 32,
-   "ix": 944,
-   "iy": 0,
-   "solid": true,
-   "sortY": -900,
-   "unless": "youngcle7_upper_door_blown"
+   "requires": "park_guardian_aftermath_done",
+   "unless": "youngcle7_grate_blown"
   },
   {
    "type": "door",
