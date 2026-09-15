@@ -400,6 +400,14 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/heavyswing.mp3` | `snd_heavyswing` | 1.04s | 평타(슬로우) |
 | 면역 땡 | 기존 `knock`(1.3배) | | 패턴 중 맞혔을 때 |
 
+### 섭리오 보스전 브금 — Chaos King (BUILD174, 사용자 지정)
+
+| 게임 파일 | 출처 | 길이 | 쓰임 |
+| --- | --- | --- | --- |
+| `bgm/chaos_king.mp3` | 유튜브 [u5wyfl-OfFQ](https://www.youtube.com/watch?v=u5wyfl-OfFQ) “30. Chaos King (DELTARUNE Chapter 1 Soundtrack) - Toby Fox”(Toby Fox 공식 채널, 포맷 251 → 44.1k 스테레오 q2) | 111s(음악은 104~106.5초에 여운 뒤 무음) | 1-4 오프닝 START!! 부터 보스전 내내. `playBgm('chaos_king', { volume: 0.45, loopEnd: 104.0, loopFade: 0.8 })` — 104초에서 0.8초 줄이고 처음으로 되감아 끊김 없이 돈다(SWORD 와 같은 방식). 1-0~1-3 은 그대로 SWORD |
+
+받기: `uvx --from yt-dlp yt-dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f '251/bestaudio' -o 'chaos_king.%(ext)s' 'https://www.youtube.com/watch?v=u5wyfl-OfFQ'` → `ffmpeg -i chaos_king.webm -ar 44100 -ac 2 -q:a 2 assets/audio/bgm/chaos_king.mp3`.
+
 ### 결과창 (BUILD172, 원본 `assets/source/subrio172/audio/`, 같은 SHA)
 
 | 게임 파일 | 원본 | 길이 | 쓰임 |

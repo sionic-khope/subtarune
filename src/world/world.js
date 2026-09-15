@@ -3,6 +3,7 @@
 // 엔티티 종류 추가: registerEntity('type', class extends Entity)
 // ─────────────────────────────────────────────────────────────
 import { makeCanvas, artToCanvas, flipH, mulberry32 } from '../core/gfx.js';
+import { steadyFacing } from './facing.js';
 import { TILE, getTile, tileCanvas } from './tiles.js';
 import { TORSO, LEGS, WALK_CYCLE, PALETTES } from '../data/art.js';
 import { CHARACTERS } from '../data/characters.js';
@@ -968,7 +969,8 @@ export class Follower extends Character {
       if (dist > 1) {
         const step = Math.min(dist, p.speed * dt * 1.05);
         this.x += (dx / dist) * step; this.y += (dy / dist) * step;
-        this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+        // 대각선 발자국에서 축이 프레임마다 뒤집혀 좌/위·우/아래로 떨리지 않게(steadyFacing, BUILD174)
+        this.facing = steadyFacing(this.facing, dx, dy);
       }
     }
     this.moving = Math.hypot(this.x - startX, this.y - startY) > 0.3;

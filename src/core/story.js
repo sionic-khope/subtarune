@@ -311,5 +311,14 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle9', desc: '엄청 대박인 
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle9_after', desc: '엄청 대박인 배: 비데가 토관에 들어간 뒤',
   map: 'youngcle9', spawn: 'inside', flags: { ...afterParkFlags, bidet_arcade_done: true }, party: [...parkWonCheckpoint.party] });
 // 섭리오 보스 격파 뒤 귀환 연출: 맵 enter(bidet_arcade)가 subrio_cleared 만 선 상태면 토관 귀환 → 비데 복직 요구 → 도트마리오가 비데를 들고 무대 철문 폭파
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'subrio_after', desc: '엄청 대박인 배: 섭리오 보스 격파 뒤 귀환 연출 (도트마리오 문 폭파)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'subrio_after', desc: '엄청 대박인 배: 섭리오 보스 격파 뒤 귀환 연출 (도트마리오 철창 폭파)',
   map: 'youngcle9', spawn: 'inside', flags: { ...afterParkFlags, bidet_arcade_done: true, subrio_cleared: true }, party: [...parkWonCheckpoint.party] });
+// 섭리오 1-4 따듯한비데 보스전 직행(사용자: Q 메뉴에서 바로): 방에 서자마자 지점 스크립트가 토관 진입 흐름으로 4스테이지를 연다
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'subrio_boss', desc: '섭리오: 1-4 따듯한비데 보스전 직행',
+  map: 'youngcle9', spawn: 'inside', flags: { ...afterParkFlags, bidet_arcade_done: true }, party: [...parkWonCheckpoint.party], script: 'subrio_boss_qa' });
+// 귀환 연출 뒤: 철창이 뚫린 무대 위 통로 → 윗길(마나샘). 다음 지역은 다음 브리핑
+const afterSubrioFlags = { ...afterParkFlags, bidet_arcade_done: true, subrio_cleared: true, subrio_after_done: true, youngcle7_grate_blown: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle7_after_subrio', desc: '편집노조 무대: 철창 폭파 뒤 (위 통로 열림)',
+  map: 'youngcle7', spawn: 'from_corridor', flags: { ...afterSubrioFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle10', desc: '엄청 대박인 배: 무대 위 윗길 (마나샘)',
+  map: 'youngcle10', spawn: 'from_stage', flags: { ...afterSubrioFlags }, party: [...parkWonCheckpoint.party] });

@@ -96,7 +96,7 @@ try {
   const banner = await page.evaluate(() => window.__subrio.state.banner?.text); check(banner === '보스전', '보스전 배너 ' + banner);
   await page.waitForFunction(() => window.__subrio?.state.banner?.text === 'START!!', null, { timeout: 6000 }).catch(() => {}); await page.waitForTimeout(150); await cap('boss_intro_start');
   await page.waitForFunction(() => window.__subrio?.state.bossFight && window.__subrio.state.control, null, { timeout: 6000 }).catch(() => {});
-  s = await sub(); const fightBgm = await page.evaluate(() => game.sound.bgmName); check(s.sub === 'run' && s.control && fightBgm === 'subrio_sword', 'START!! 뒤 조작·브금 ' + JSON.stringify([s.sub, fightBgm]));
+  s = await sub(); const fightBgm = await page.evaluate(() => game.sound.bgmName); check(s.sub === 'run' && s.control && fightBgm === 'chaos_king', 'START!! 뒤 조작·보스전 브금 Chaos King ' + JSON.stringify([s.sub, fightBgm]));
   await page.waitForFunction(() => ['chase', 'recover', 'windup', 'swing', 'spinWind'].includes(window.__subrio?.state.boss?.state), null, { timeout: 12000 }).catch(() => {});
   s = await sub(); check(!!s.boss, '첫 패턴 뒤 추격 ' + JSON.stringify(s.boss)); await cap('boss_roar');
   await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; l.x = Math.max(120, st.boss.x - 100); l.y = 250; });
@@ -128,6 +128,20 @@ try {
   check(landed.state === 'slam' && landed.landed.every(Boolean) && landed.order[0] < landed.order[1], '그림자 둘이 차례로 착지(팟·팟·팟) ' + JSON.stringify(landed));
   await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'recover', null, { timeout: 4000 }).catch(() => {});
   await page.evaluate(() => { window.__subrio.state.boss.enraged = false; });
+  // 쓰러짐 → 재도전(BUILD174): 브금 꺼짐 → '쓰러졌다... / 재도전 C' → C → 무대 새로 로드(보스 하나, 오프닝 없음) → 낙하 뒤 START!! + Chaos King
+  await page.evaluate(() => { const st = window.__subrio.state; game.partyHp.hyungsub = 1; st.actors[0].invuln = 0; st.actors[0].hurtT = 0; });
+  await page.evaluate(() => { const st = window.__subrio.state; st.stats.downs += 1; st.sub = 'dead'; st.subT = 0; st.control = false; game.sound.stopBgm(1.0); });
+  await page.waitForFunction(() => window.__subrio?.state.sub === 'retry', null, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(250); await cap('boss_retry_prompt');
+  s = await sub(); const retryBgm = await page.evaluate(() => game.sound.bgmName ?? null);
+  check(s.sub === 'retry' && !s.control && retryBgm === null, '쓰러지면 재도전 대기(브금 없음) ' + JSON.stringify([s.sub, retryBgm]));
+  await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => window.__subrio?.state.sub === 'drop', null, { timeout: 3000 }).catch(() => {});
+  s = await sub(); const afterC = await page.evaluate(() => ({ boss: !!window.__subrio.state.boss, intro: !!window.__subrio.state.intro, hp: game.hpOf('hyungsub'), max: game.maxHpOf('hyungsub') }));
+  check(s.sub === 'drop' && !afterC.boss && afterC.hp === afterC.max, 'C → 무대 새로 낙하(보스 없음·체력 가득) ' + JSON.stringify([s.sub, afterC]));
+  await page.waitForFunction(() => window.__subrio?.state.bossFight && window.__subrio.state.control && !window.__subrio.state.intro, null, { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(120); await cap('boss_retry_start');
+  s = await sub(); const restart = await page.evaluate(() => ({ banner: window.__subrio.state.banner?.text, bgm: game.sound.bgmName ?? null, intro: !!window.__subrio.state.intro, bosses: window.__subrio.state.boss ? 1 : 0, hp: window.__subrio.state.boss?.hp, enraged: window.__subrio.state.boss?.enraged }));
+  check(s.sub === 'run' && s.control && !restart.intro && restart.bosses === 1 && restart.hp === 135 && restart.enraged === false && restart.bgm === 'chaos_king' && restart.banner === 'START!!', '낙하 뒤 오프닝 없이 START!!·보스 하나 새로·Chaos King ' + JSON.stringify(restart));
+  await page.waitForFunction(() => ['marker', 'dive', 'slam', 'recover', 'chase'].includes(window.__subrio?.state.boss?.state), null, { timeout: 6000 }).catch(() => {});
   // 에너지파 없음 확인 + 창 2방 격파
   s = await sub(); check(s.waters === 0, '물줄기(에너지파) 없음');
   await page.evaluate(() => { const st = window.__subrio.state; st.boss.hp = 2; st.boss.x = 300; st.boss.state = 'chase'; st.boss.stateT = 0; const l = st.actors[0]; l.x = 150; l.y = 250; l.facing = 1; l.invuln = 3; });

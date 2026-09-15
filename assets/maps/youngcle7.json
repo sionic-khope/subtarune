@@ -67,6 +67,11 @@
    "x": 1104,
    "y": 472,
    "facing": "left"
+  },
+  "from_upper": {
+   "x": 976,
+   "y": 80,
+   "facing": "down"
   }
  },
  "meta": {
@@ -673,6 +678,20 @@
    "solid": true,
    "requires": "park_guardian_aftermath_done",
    "unless": "youngcle7_grate_blown"
+  },
+  {
+   "type": "door",
+   "id": "youngcle7_up",
+   "x": 928,
+   "y": 32,
+   "w": 128,
+   "h": 16,
+   "to": "youngcle10",
+   "spawn": "from_stage",
+   "sfx": false,
+   "interact": false,
+   "requires": "youngcle7_grate_blown",
+   "lockedScript": "youngcle7_up_locked"
   },
   {
    "type": "door",

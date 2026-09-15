@@ -45,7 +45,7 @@ import { shipPursuitBacktrack } from './scripts/ship-pursuit.js';
 import { youngcle_intro, youngcle_tv_off, youngcle_left_door_locked } from './cutscenes/youngcle_intro.js';
 import { youngcle_lounge_plan_b } from './cutscenes/youngcle_lounge.js';
 import { editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter } from './cutscenes/editor_union_stage.js';
-import { bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look } from './cutscenes/bidet_arcade.js';
+import { bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look, subrio_boss_qa } from './cutscenes/bidet_arcade.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -88,11 +88,13 @@ export const SCRIPTS = {
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,
-  bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look,
+  bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look, subrio_boss_qa,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,
   chase_route_block: Object.assign([{ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형 지금 이럴때가 아니에요.' }], { silent: true }),
+  // 무대 위 통로 꼭대기 문(윗길 youngcle10): 철창이 폭파되기 전엔 잠김(철창이 길도 막고 있어 보통은 닿지 못한다)
+  youngcle7_up_locked: Object.assign([{ voice: 'narrator', text: '* 위 통로는 철창으로 막혀 있다.' }], { silent: true }),
 
   youngcle3_crate_intro,
   youngcle3_crate_sign,

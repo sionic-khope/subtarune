@@ -176,6 +176,28 @@ export function run(game, node = {}) {
       game.sound.playBgm('subrio_sword', { volume: 0.42, loopEnd: 124.0, loopFade: 1.0 });
       sfx('won', 0.85);
     };
+    // QA 직행(노드 subrioStage — `stage` 는 ScriptRunner 의 스토리 단계 노드라 쓰면 안 된다): 로고·직업 선택·관광 없이 그 스테이지 낙하부터. 보스 무대면 브금은 loadStage 가 끈다(오프닝 뒤 START!! 에서 SWORD)
+    const jumpToStage = (index) => {
+      state.phase = 'play'; state.phaseT = 0; state.stats = makeStats(); state.result = null;
+      loadStage(index); state.flash = 0;
+      if (!STAGES[index].boss) game.sound.playBgm('subrio_sword', { volume: 0.42, loopEnd: 124.0, loopFade: 1.0 });
+    };
+    // 보스전 재도전(사용자 2026-09-15: 쓰러지면 재도전 버튼 → C 로 다시. 오프닝이 또 뜨고 보스가 둘로 보이던 버그): 무대를 새로 로드(보스·마리오·슬로우 전부 초기화, 체력 가득)하고
+    // 낙하 뒤 오프닝 대신 START!! 로 바로 들어간다(retryStart). 통계(쓰러짐·시간)는 이어진다
+    const retryBoss = () => {
+      loadStage(state.stage);
+      game.partyHp[HERO_ID] = game.maxHpOf(HERO_ID); state.hpFlash = 0;
+      state.retryStart = true; sfx('confirm', 0.7);
+    };
+    const startBossDirect = () => {
+      const level = state.level, boss = makeBoss(level.width / 2, level.height - 3 * TILE);
+      boss.hidden = true; boss.state = 'vanish'; boss.stateT = BOSS.vanish; boss.lastAction = 'slam'; boss.seq = 3;
+      state.boss = boss; state.retryStart = false;
+      state.banner = { text: 'START!!', color: '#ffe066', size: 36, t: 0, hold: 1.4 };
+      state.flash = 1; state.flashRate = 1 / 0.5; sfx('bell', 0.9); sfx('spearappear', 0.8);
+      state.sub = 'run'; state.control = true; state.bossFight = true; state.intro = null;
+      game.sound.playBgm('chaos_king', { volume: 0.45, loopEnd: 104.0, loopFade: 0.8 });
+    };
     // 끝: 보스를 이겼으면 found → 컷신 flag(subrio_cleared). Esc 는 found 없이 방으로
     const finish = () => {
       if (state.exiting) return; state.exiting = true;
@@ -299,6 +321,8 @@ export function run(game, node = {}) {
       state.shake = Math.max(0, state.shake - dt);
       state.subT += dt;
       if (state.sub === 'result') { updateResult(dt, confirm); return; }
+      // 재도전 대기: 전부 멈춘 채 C 만 받는다
+      if (state.sub === 'retry') { if (confirm) retryBoss(); return; }
       if (state.sub !== 'opening' && state.sub !== 'victory') state.stats.time += dt;
       const level = state.level, leader = state.actors[0], def = level.def;
       if (state.sub === 'opening') {
@@ -391,7 +415,10 @@ export function run(game, node = {}) {
       }
       state.enemies = state.enemies.filter(enemy => !enemy.dead || enemy.deadT < ENEMY.deathTime);
       // 1-4: 세 명이 다 떨어지면 오프닝 연출(대사 → 가운데 내려찍기 → 둘러봄 → 대사 → 보스전/START!!) → 그 뒤 패턴
-      if (def.boss && state.sub === 'drop' && !state.intro && state.actors.every(a => a.dropped) && state.subT > state.leaderLandT + 0.8) { state.sub = 'intro'; state.intro = { step: 0, t: 0, intents: {} }; state.control = false; }
+      if (def.boss && state.sub === 'drop' && !state.intro && state.actors.every(a => a.dropped) && state.subT > state.leaderLandT + 0.8) {
+        if (state.retryStart) startBossDirect();
+        else { state.sub = 'intro'; state.intro = { step: 0, t: 0, intents: {} }; state.control = false; }
+      }
       if (state.sub === 'intro') updateIntro(dt, events);
       if (state.boss) {
         const boss = state.boss;
@@ -477,7 +504,7 @@ export function run(game, node = {}) {
           if (event.damage > 0 && event.id === HERO_ID) {
             game.partyHp[HERO_ID] = Math.max(0, game.hpOf(HERO_ID) - event.damage);
             state.hpFlash = 0.5; state.stats.hits += 1;
-            if (game.hpOf(HERO_ID) <= 0 && state.sub === 'run') { state.stats.downs += 1; state.sub = 'dead'; state.subT = 0; state.control = false; leader.charge = 0; sfx('damage', 0.8); }
+            if (game.hpOf(HERO_ID) <= 0 && state.sub === 'run') { state.stats.downs += 1; state.sub = 'dead'; state.subT = 0; state.control = false; leader.charge = 0; sfx('damage', 0.8); if (def.boss) game.sound.stopBgm(1.0); }
           }
         }
         if (event.type === 'bossDead') { state.sub = 'victory'; state.subT = 0; state.control = false; state.cleared = true; state.waters = []; sfx('explosion', 0.7); state.shake = 0.5; }
@@ -499,7 +526,8 @@ export function run(game, node = {}) {
       for (const f of state.fx) { f.t += dt; if (f.kind === 'ember') { f.vy += 90 * dt; f.x += f.vx * dt; f.y += f.vy * dt; } }
       state.fx = state.fx.filter(f => f.t < f.dur);
       state.hpFlash = Math.max(0, (state.hpFlash || 0) - dt);
-      if (state.sub === 'dead' && state.subT >= DEAD_HOLD) {
+      if (state.sub === 'dead' && state.subT >= DEAD_HOLD && def.boss) { state.sub = 'retry'; state.subT = 0; }
+      else if (state.sub === 'dead' && state.subT >= DEAD_HOLD) {
         game.partyHp[HERO_ID] = game.maxHpOf(HERO_ID);
         Object.assign(leader, { x: Math.round(Math.max(16, leader.safeX - 40) - leader.w / 2), y: -60, vx: 0, vy: 0, hurtT: 0, invuln: 1.5, state: 'idle', grounded: false, dropped: false, charge: 0 });
         state.waters = []; state.sub = 'drop'; state.subT = 0; state.leaderLandT = 0; state.dropWait = 0.6;
@@ -509,7 +537,7 @@ export function run(game, node = {}) {
       if (state.banner) { state.banner.t += dt; if (state.banner.t > state.banner.hold) state.banner = null; }
       if (state.sub === 'clear' && state.subT >= CLEAR_HOLD) { state.sub = 'card'; state.subT = 0; state.cardShown = false; state.cardLoaded = false; }
       // 카메라: 보스 무대는 부드럽게 따라가고 오프닝 동안은 무대 가운데에 고정(셋이 모이고 갈라지는 구도)
-      const camTarget = state.intro ? Math.round((level.width - VIEW_W) / 2) : cameraX(level, leader);
+      const camTarget = state.intro ? Math.round((level.width - VIEW_W) / 2) : cameraX(level, leader, state.boss);
       state.cam = def.boss ? Math.round(state.cam + (camTarget - state.cam) * Math.min(1, dt * 7)) : camTarget;
     };
     // 1-4 오프닝(사용자 브리핑 원문): 0 대사 두 줄 → 1 비데 목소리 → 2 가운데 영역 표시(띵)·모두 양옆으로 → 3 낙하·착지 → 4 좌우 둘러봄 → 5 대사 세 줄
@@ -557,7 +585,8 @@ export function run(game, node = {}) {
       else if (it.step === 7) {
         if (it.t >= BOSS_INTRO.startHold) {
           state.sub = 'run'; state.control = true; state.bossFight = true; state.intro = null;
-          game.sound.playBgm('subrio_sword', { volume: 0.42, loopEnd: 124.0, loopFade: 1.0 });
+          // 보스전 브금은 델타룬 Chaos King(사용자 지정, BUILD174). OST 판은 104초부터 여운·무음이라 104초에서 0.8초 줄이고 처음으로 되감는다
+          game.sound.playBgm('chaos_king', { volume: 0.45, loopEnd: 104.0, loopFade: 0.8 });
         }
       }
     };
@@ -964,7 +993,7 @@ export function run(game, node = {}) {
     };
     const drawActor = (actor) => {
       const sheet = sheets[actor.classId]?.img;
-      const frame = state.sub === 'dead' && actor === state.actors[0] ? 5 : frameOf(actor);
+      const frame = (state.sub === 'dead' || state.sub === 'retry') && actor === state.actors[0] ? 5 : frameOf(actor);
       const cx = Math.round(actor.x + actor.w / 2 - state.cam) + VIEW_X;
       const feet = Math.round(actor.y + actor.h) + VIEW_Y;
       // 무적 시간엔 깜빡인다(맞은 직후 0.35초는 계속 보임)
@@ -1064,7 +1093,16 @@ export function run(game, node = {}) {
           } else drawHud();
           if (state.banner) { const b = state.banner, pop = b.t < 0.15 ? 1 + (0.15 - b.t) * 3 : 1; text(b.text, VIEW_X + VIEW_W / 2, VIEW_Y + 84, { align: 'center', size: Math.round(b.size * pop), color: b.color }); }
           if (state.sub === 'clear') text('STAGE CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 30, color: '#ffe066' });
-          if (state.sub === 'dead') text('쓰러졌다...', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 24, color: '#ff8a8a' });
+          if (state.sub === 'dead' || state.sub === 'retry') text('쓰러졌다...', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 24, color: '#ff8a8a' });
+          if (state.sub === 'retry') {
+            // 재도전 버튼: 흰 테두리 상자 + C 키 표시(테두리가 깜빡인다)
+            const cx = VIEW_X + VIEW_W / 2, by = VIEW_Y + VIEW_H / 2 + 2;
+            ctx.fillStyle = '#000'; ctx.fillRect(cx - 72, by, 144, 34);
+            ctx.strokeStyle = Math.floor(state.subT * 2.5) % 2 === 0 ? '#ffe066' : '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(cx - 71, by + 1, 142, 32);
+            text('재도전', cx - 16, by + 9, { align: 'center', color: '#fff' });
+            ctx.fillStyle = '#000'; ctx.fillRect(cx + 26, by + 8, 18, 18); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(cx + 26.5, by + 8.5, 17, 17);
+            text('C', cx + 35, by + 10, { align: 'center', color: '#ffe066', shadow: false });
+          }
           if (state.sub === 'victory' && state.bossGone) text('CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 36, color: '#ffe066' });
           if (state.notice) drawBox(null, state.notice.text);
           else drawChat();
@@ -1086,6 +1124,7 @@ export function run(game, node = {}) {
       raf = requestAnimationFrame(frame);
     };
     ov.fit(); addEventListener('resize', ov.fit);
+    if (node.subrioStage !== undefined && STAGES[node.subrioStage]) jumpToStage(node.subrioStage);
     requestAnimationFrame(() => { ov.root.style.opacity = '1'; });
     raf = requestAnimationFrame(frame);
     window.__subrio = { state, finish, loadStage, get stats() { return state.stats; }, get level() { return state.level; }, get boss() { return state.boss; }, get phase() { return state.phase; },

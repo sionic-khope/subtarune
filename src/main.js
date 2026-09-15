@@ -233,7 +233,7 @@ class Game {
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
-  devJump({ map, spawn, stage, flags, party, inventory, money }) {
+  devJump({ map, spawn, stage, flags, party, inventory, money, script }) {
     this.resetState();                               // 이전 세이브·이전 QA 지점 상태를 버리고 깨끗이 (섞이면 동료/플래그가 어긋난다)
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
     if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
@@ -246,7 +246,8 @@ class Game {
     this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)
     this.changeMap(map, spawn || 'start', true, { enter: false });
     this.autosave();                                 // 바로가기 직후 '이어하기' 도 이 지점을 연다 (도착 스크립트 전이라 플래그가 안 서 있고, 이어하기 때 스크립트가 처음부터 돈다)
-    this.runMapEnter();
+    // 지점 전용 스크립트(예: 섭리오 보스전 직행)가 있으면 도착 스크립트 대신 그것을 튼다
+    if (script) this.runScript(script); else this.runMapEnter();
   }
 
   /** 낙석 등에 맞음: 붉은 섬광 + 흔들림 + 소리, 레인 왼쪽으로 밀려남(체력 없음 — 진행만 되돌림), 잠깐 무적. 동료는 뒤로 재정렬 */
@@ -1251,7 +1252,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-15.173';
+export const BUILD = '2026-09-15.175';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

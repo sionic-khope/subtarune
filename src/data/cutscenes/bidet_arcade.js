@@ -297,6 +297,25 @@ export const bidet_pipe_enter = [
   { text: '* 마리오 게임에 나올 법한 초록 토관이 눕혀져 있다.\n* 왼쪽 입구가 열려 있고 오른쪽은 스크린 안으로 이어진다.', voice: 'narrator' },
 ];
 
+/** QA `subrio_boss`(Q 메뉴): 비데 방에서 바로 1-4 따듯한비데 보스전. 진입·복귀는 토관 C 와 같고, 이기면 귀환 연출까지 이어진다 */
+export const subrio_boss_qa = Object.assign([
+  { hide: 'player' },
+  ...FOLLOWERS.map(id => ({ hide: id })),
+  { bgm: null },
+  { parallel: [{ camera: SCREEN, duration: 0.6 }, { zoom: 0.9, duration: 0.6 }] },
+  { scene3d: 'subrio', flag: 'subrio_cleared', subrioStage: 4 },
+  { if: flags => flags.subrio_cleared && !flags.subrio_after_done, goto: 'after' },
+  { show: 'player' },
+  ...FOLLOWERS.map(id => ({ show: id })),
+  { move: 'player', ...MOUTH_OUT, run: true },
+  { face: 'player', dir: 'left' },
+  { regroup: true },
+  { parallel: [{ camera: 'player', duration: 0.5 }, { zoom: 1, duration: 0.5 }] },
+  { end: true },
+  { label: 'after' },
+  ...subrioAfter(),
+], { silent: true });
+
 export const bidet_screen_look = [
   { text: '* 방 오른쪽을 통째로 차지한 거대한 화면.\n* 흰 테두리 안은 아직 새까맣다.', voice: 'narrator' },
 ];

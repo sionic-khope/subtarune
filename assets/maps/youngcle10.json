@@ -1,0 +1,129 @@
+{
+ "id": "youngcle10",
+ "name": "엄청 대박인 배 무대 위 윗길",
+ "stage": "void_fallen",
+ "bgm": null,
+ "backdrop": "youngcle_factory",
+ "battleBg": "youngcle_factory",
+ "dim": 0.08,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!JJJJJJ!!!!",
+  "!!!!!!!!!!!!!!JIIIIJ!!!!",
+  "JJJJJJJJJJJJJJJIIIIJJJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJIIIIJJJJJJJJJJ",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JJJJJJ!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png",
+  "assets/props/blue_buff.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 368,
+   "y": 440,
+   "facing": "up"
+  },
+  "from_stage": {
+   "x": 368,
+   "y": 440,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    11,
+    14
+   ],
+   [
+    11,
+    6
+   ],
+   [
+    2,
+    6
+   ],
+   [
+    22,
+    6
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle10_down",
+   "x": 320,
+   "y": 496,
+   "w": 128,
+   "h": 16,
+   "to": "youngcle7",
+   "spawn": "from_upper",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle10_rail_0",
+   "x": 32,
+   "y": 288,
+   "w": 704,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle10_rail_1",
+   "x": 32,
+   "y": 148,
+   "w": 416,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle10_rail_2",
+   "x": 608,
+   "y": 148,
+   "w": 128,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle10_rail_3",
+   "x": 480,
+   "y": 84,
+   "w": 128,
+   "h": 12
+  },
+  {
+   "type": "prop",
+   "id": "youngcle10_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 528,
+   "y": 148,
+   "w": 32,
+   "h": 12,
+   "ix": 524,
+   "iy": 116,
+   "solid": true,
+   "script": "maillard_spring"
+  }
+ ]
+}

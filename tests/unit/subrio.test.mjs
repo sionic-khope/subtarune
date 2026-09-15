@@ -5,7 +5,7 @@ import { buildLevel, makeActor, stepActor, moveBody, overlapsSolid, followerInte
   STAGES, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor, bossHitbox, bossFrame, rectsOverlap, brandThink, zileanThink, clockVelocity,
   makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, nearestTarget,
   TILE, STAND_H, CROUCH_H, VIEW_W, SPEAR, FIRE, CLOCK, ENEMY, BOSS, WATER_W, WATER_H, NO_INTENT,
-  BOSS_INTRO, RESULT, RESULT_ROWS, makeStats, formatStat, resultView, bossHookBox, hookActor, BOSS_PATTERN_ENRAGED, bossSlamZones } from '../../src/scenes/subrio-core.js';
+  BOSS_INTRO, RESULT, RESULT_ROWS, makeStats, formatStat, resultView, bossHookBox, hookActor, BOSS_PATTERN_ENRAGED, bossSlamZones, BOSS_ART } from '../../src/scenes/subrio-core.js';
 
 const NONE = NO_INTENT;
 const settle = (level, actor, frames = 60) => { for (let i = 0; i < frames; i++) stepActor(level, actor, NONE, 1 / 60); return actor; };
@@ -664,4 +664,96 @@ test('test_subrio_enraged_slam_drops_three_times_staggered_and_each_zone_hits', 
   assert.ok(ev2.some(e => e.type === 'hurt' && e.id === 'v' && e.damage === BOSS.slamDamage));
   const zonesNow = bossSlamZones({ ...boss2, state: 'slam', stateT: 0.1, markerX: 200, markerY: 288, extraSlams: [{ x: 400, y: 288, landed: false, started: true, fallY: -100, landedAt: null }], diveT: 0.2 });
   assert.equal(zonesNow.length, 2); assert.equal(zonesNow[0].active, true); assert.equal(zonesNow[1].active, false, '아직 안 떨어진 그림자는 판정 없음');
+});
+
+// 2026-09-15 사용자 "여기있을땐 깨지는데": 보스가 양옆 발판(무대 밖) 위에 서면 몸이 무대 경계에서 잘려 보인다.
+// 시트 실측 돌출은 몸 중심 기준 좌 105 · 우 106 — 몸(72)만 무대 안이어선 부족하다.
+test('test_subrio_boss_slam_does_not_land_on_the_outer_side_platforms', () => {
+  const level = buildLevel(4);
+  const band = level.arena.floor;
+  for (const [name, heroFootX, platRow] of [['왼쪽', 3 * TILE, 14], ['오른쪽', 32 * TILE, 14]]) {
+    const hero = makeActor('h', heroFootX, platRow * TILE); hero.grounded = true;
+    const boss = makeBoss(level.bossSpawnX, GROUND); boss.grounded = true; boss.state = 'vanish'; boss.stateT = BOSS.vanish; boss.lastAction = 'slam';
+    stepBoss(level, boss, hero, 1 / 60, []);
+    assert.equal(boss.state, 'marker');
+    assert.ok(boss.markerX >= band[0] + BOSS.w / 2 && boss.markerX <= band[1] - BOSS.w / 2,
+      `${name} 발판 위 주인공이어도 내려찍기 자리는 무대 안 ${boss.markerX}`);
+    assert.equal(boss.markerY, GROUND, `${name} 발판이 아니라 무대 바닥으로 내려온다 ${boss.markerY}`);
+  }
+});
+
+test('test_subrio_enraged_ghost_slams_stay_inside_the_arena_band', () => {
+  const level = buildLevel(4);
+  const band = level.arena.floor;
+  // 주인공이 무대 끝(벽 쪽)에 붙어 있어도 본체·그림자 셋 다 무대 안에서 떨어진다 — 그림자도 같은 224px 셀로 그린다
+  for (const heroFootX of [TILE + 12, 12 * TILE, level.width - TILE - 12]) {
+    const hero = makeActor('h', heroFootX, GROUND); hero.grounded = true;
+    const boss = makeBoss(level.bossSpawnX, GROUND); boss.grounded = true; boss.enraged = true;
+    boss.state = 'vanish'; boss.stateT = BOSS.vanish; boss.lastAction = 'slam';
+    stepBoss(level, boss, hero, 1 / 60, []);
+    const xs = [boss.markerX, ...boss.extraSlams.map(sh => sh.x)];
+    assert.equal(xs.length, 1 + BOSS.slamExtra);
+    for (const x of xs) assert.ok(x >= band[0] + BOSS.w / 2 && x <= band[1] - BOSS.w / 2, `주인공 ${heroFootX} 일 때 내려찍기 자리 ${x} 가 무대 안`);
+  }
+});
+
+test('test_subrio_boss_slam_still_lands_on_the_middle_platform_under_the_hero', () => {
+  const level = buildLevel(4);
+  // 가운데 발판(10~14열, 10행)은 무대 안이므로 그 위 주인공은 그대로 발판 위에서 맞는다
+  const hero = makeActor('h', 12 * TILE, 10 * TILE); hero.grounded = true;
+  const boss = makeBoss(level.bossSpawnX, GROUND); boss.grounded = true; boss.state = 'vanish'; boss.stateT = BOSS.vanish; boss.lastAction = 'slam';
+  stepBoss(level, boss, hero, 1 / 60, []);
+  assert.equal(boss.markerY, 10 * TILE, '가운데 발판 위 착지는 그대로');
+});
+
+test('test_subrio_camera_keeps_the_whole_boss_inside_the_view', () => {
+  const level = buildLevel(4);
+  const band = level.arena.floor, camMax = level.width - VIEW_W;
+  let near = 0, far = 0;
+  for (const bossFootX of [band[0] + BOSS.w / 2, level.width / 2, band[1] - BOSS.w / 2]) {
+    for (let heroFootX = TILE + 8; heroFootX < level.width - TILE; heroFootX += 8) {
+      const boss = makeBoss(bossFootX, GROUND); boss.grounded = true; boss.state = 'chase';
+      const hero = makeActor('h', heroFootX, GROUND); hero.grounded = true;
+      const cam = cameraX(level, hero, boss), heroOnly = cameraX(level, hero);
+      assert.ok(cam >= 0 && cam <= camMax, `카메라는 레벨 안 ${cam}`);
+      const bw = boss.x + boss.w / 2, hw = hero.x + hero.w / 2;
+      const bc = bw - cam, hc = hw - cam;
+      assert.ok(hc >= 0 && hc <= VIEW_W, `주인공은 늘 화면 안 (보스 ${bossFootX} 주인공 ${heroFootX} cam ${cam} 중심 ${hc})`);
+      const cut = Math.max(0, BOSS_ART.l - bc, bc + BOSS_ART.r - VIEW_W);
+      const cutBefore = Math.max(0, BOSS_ART.l - (bw - heroOnly), (bw - heroOnly) + BOSS_ART.r - VIEW_W);
+      assert.ok(cut <= cutBefore, `잘림이 예전 카메라보다 늘지 않는다 ${cut} <= ${cutBefore}`);
+      // 보스가 추격을 유지하는 거리(teleFar 안)에선 그림이 통째로 화면 안이다. 그보다 멀면 1.2초 안에 주인공 위로 순간이동한다
+      if (Math.abs(bw - hw) <= BOSS.teleFar) { near += 1;
+        assert.equal(cut, 0, `추격 거리에선 보스가 통째로 보인다 (보스 ${bossFootX} 주인공 ${heroFootX} cam ${cam} 중심 ${bc})`);
+      } else far += 1;
+    }
+  }
+  assert.ok(near > 0 && far > 0, `가까운 경우·먼 경우 모두 검사 ${near}/${far}`);
+});
+
+test('test_subrio_camera_without_a_boss_is_unchanged', () => {
+  const level = buildLevel(1);
+  const hero = makeActor('p', 1000, GROUND);
+  assert.equal(cameraX(level, hero, null), cameraX(level, hero));
+});
+
+test('test_subrio_platform_slam_hits_only_actors_standing_on_that_surface', () => {
+  // 발판 위에 떨어진 내려찍기는 발판 아래(바닥) 주인공을 못 맞힌다(구석 발판 아래에서 이유 없이 맞던 것). 그 발판 위는 맞는다
+  const slam = makeBoss(5 * TILE, 14 * TILE); slam.state = 'slam'; slam.stateT = 0.05; slam.markerX = 5 * TILE; slam.markerY = 14 * TILE; slam.grounded = true;
+  const under = makeActor('u', 5 * TILE, 18 * TILE); under.grounded = true; under.invuln = 0;
+  assert.equal(bossAttackHero(slam, under, []), false, '발판 아래 주인공은 안 맞는다');
+  const onTop = makeActor('t', 5 * TILE, 14 * TILE); onTop.grounded = true; onTop.invuln = 0;
+  assert.equal(bossAttackHero(slam, onTop, []), true, '그 발판 위 주인공은 맞는다');
+});
+
+test('test_subrio_guard_block_sound_event_is_rate_limited_while_touching', () => {
+  const level = buildLevel(1);
+  const hero = settle(level, makeActor('h', 200, GROUND)); hero.facing = 1; hero.state = 'guard';
+  const events = [];
+  for (let i = 0; i < 10; i++) hurtActor(hero, hero.x + 40, events, 5);
+  assert.equal(events.filter(e => e.type === 'block').length, 1, '닿은 채 막아도 block 은 한 번');
+  assert.equal(events.filter(e => e.type === 'hurt').length, 0);
+  for (let i = 0; i < 24; i++) stepActor(level, hero, { ...NONE, guard: true }, 1 / 60);
+  hurtActor(hero, hero.x + 40, events, 5);
+  assert.equal(events.filter(e => e.type === 'block').length, 2, '0.3초 뒤엔 다시 알린다');
 });

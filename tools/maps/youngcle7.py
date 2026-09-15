@@ -59,6 +59,8 @@ def main() -> None:
             'battle_ready': {'x': 728, 'y': 424, 'facing': 'right'},
             # 오른쪽 통로(연결로 youngcle8)에서 돌아올 때
             'from_corridor': {'x': 1104, 'y': 472, 'facing': 'left'},
+            # 위 통로 꼭대기 문(윗길 youngcle10)에서 내려올 때
+            'from_upper': {'x': 976, 'y': 80, 'facing': 'down'},
         },
         'meta': {'connected': True, 'stage': {
             'player': [400, 504], 'gyeongsub': [448, 504], 'ppaman': [496, 504],
@@ -131,6 +133,10 @@ def main() -> None:
             {'type': 'prop', 'id': 'youngcle7_grate', 'image': 'assets/props/youngcle_grate.png',
              'x': 928, 'y': 192, 'w': 128, 'h': 96, 'solid': True, 'requires': 'park_guardian_aftermath_done',
              'unless': 'youngcle7_grate_blown'},
+            # 위 통로 꼭대기(rows 1) → 윗길 youngcle10(BUILD173). 철창이 폭파된 뒤(youngcle7_grate_blown)에만 열린다 — 그 전엔 철창이 물리적으로도 막는다
+            {'type': 'door', 'id': 'youngcle7_up', 'x': 928, 'y': 32, 'w': 128, 'h': 16,
+             'to': 'youngcle10', 'spawn': 'from_stage', 'sfx': False, 'interact': False,
+             'requires': 'youngcle7_grate_blown', 'lockedScript': 'youngcle7_up_locked'},
             # 오른쪽 통로(rows 13~16) 끝 → 연결로 youngcle8. 열린 통로라 C 없이 방향키로 통과
             {'type': 'door', 'id': 'youngcle7_right', 'x': 1168, 'y': 416, 'w': 16, 'h': 128,
              'to': 'youngcle8', 'spawn': 'left', 'sfx': False, 'interact': False},

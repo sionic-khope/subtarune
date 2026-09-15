@@ -15,6 +15,8 @@ export const STAND_H = 32;
 export const CROUCH_H = 20;
 export const BODY_W = 16;
 export const HURT_TIME = 0.35;
+/** 방패로 막았을 때 block 사건(소리) 최소 간격 */
+export const BLOCK_REPEAT = 0.3;
 export const INVULN_TIME = 1.0;
 export const KNOCK_VX = 190;
 export const KNOCK_VY = 240;
@@ -66,6 +68,12 @@ export const BOSS = { w: 72, h: 104, speed: 70, hp: 135, reach: 120, windup: 0.5
   hookWind: 0.5, hook: 0.28, hookReach: 190, hookH: 48, hookPull: 0.32, hookDamage: 5, hookRange: 260,
   recoverAfter: { swing: 0.8, spin: 1.6, slam: 1.8, hook: 0.35 },
   jumpSpeed: 500, jumpClear: 96, roar: 1.4, hitFlash: 0.25, hitCooldown: 0.2, chaseMax: 3.2, deathTime: 2.2, waterLife: 1.7 };
+// 보스 그림은 몸(72×104)보다 훨씬 넓다 — 시트 프레임 실측 최대 돌출(중심 기준 왼쪽 105 · 오른쪽 106: 도끼 찌르기·회전)에 3px 여유.
+// 카메라와 순간이동 자리를 이 값으로 잡아야 무대 가장자리에서 몸이 잘려 보이지 않는다(2026-09-15 사용자 "여기있을땐 깨지는데").
+export const BOSS_ART = { l: 108, r: 109 };
+/** 보스 때문에 카메라를 당길 때도 주인공은 화면 가장자리에서 이만큼 안쪽에 남는다(주인공 우선) */
+const CAM_HERO_EDGE = 56;
+
 /** 이 상태에서만 창·불·시계가 먹힌다(회복 틈·추격·포효·평타 예비, 착지 뒤). 오프닝(intro)엔 안 맞는다 */
 export const BOSS_VULNERABLE = new Set(['chase', 'recover', 'roar', 'windup', 'slam']);
 
@@ -73,10 +81,11 @@ export const BOSS_VULNERABLE = new Set(['chase', 'recover', 'roar', 'windup', 's
 export const BOSS_PATTERN = ['swing', 'hook', 'spin', 'slam', 'swing', 'spin', 'hook', 'slam'];
 /** 격노(체력 절반, 사용자): 붉어지고 더 어려운 패턴 — 특수기 비중↑, 예비·회복 짧아짐, 걸음·낙하 빨라짐 */
 export const BOSS_PATTERN_ENRAGED = ['hook', 'spin', 'slam', 'hook', 'swing', 'slam', 'spin', 'hook'];
+// BUILD174: 격노 완화 요청은 사용자가 철회(“방어 쓰니까 쉽네, 안 내려도 될 듯”) — 값 그대로
 export const BOSS_ENRAGE = { at: 0.5, windup: 0.35, spinWind: 0.65, marker: 0.5, hookWind: 0.32, recoverScale: 0.6, speed: 95, diveSpeed: 1000, line: { who: 'ppaman', text: '거의 다 왔어요 족쳐' } };
 // 회복 샘물(스테이지 중간·끝): 근처에서 C → 체력 가득. 도트마리오 버섯(보스전): 40초마다 오른쪽 벽 위에 나타나 던진다, 30 회복
 export const SPRING = { reach: 26 };
-export const MARIO_HEAL = { interval: 40, first: 32, heal: 30, walkIn: 1.6, hold: 0.7, walkOut: 1.4, mushroomGravity: 720 };
+export const MARIO_HEAL = { interval: 40, first: 32, heal: 50, walkIn: 1.6, hold: 0.7, walkOut: 1.4, mushroomGravity: 720 };
 /**
  * 보스 격파 뒤 결과창(2026-09-15 사용자: “검은 화면에 클리어 → 플레이 시간 같은 콘솔식 결과 줄이 띠리리링 하며 차례로 → 마지막에 대각선 S+!! 도장, 사람이 읽을 시간”).
  * 시각표(초): 제목 titleAt → 줄은 rowsFrom 부터 rowEvery 간격으로 나타나 count 동안 숫자가 올라감 → 마지막 줄 뒤 stampAfter 에 도장(stampTime 동안 내려찍힘)
@@ -417,6 +426,7 @@ export function stepActor(level, actor, intent, dt, events = []) {
   const slow = actor.slowT > 0 ? SLOW_MOVE : 1;
   // 맞은 직후에는 조작이 먹지 않는다(넉백만 물리로 진행)
   if (actor.hurtT > 0) { actor.hurtT = Math.max(0, actor.hurtT - dt); intent = NO_INTENT; actor.charge = 0; }
+  actor.blockT = Math.max(0, (actor.blockT || 0) - dt);
   const guarding = intent.guard && actor.grounded;
   const crouching = !guarding && intent.crouch && actor.grounded;
   const targetH = crouching ? CROUCH_H : STAND_H;
@@ -528,7 +538,9 @@ export function hurtActor(actor, fromX, events = [], damage = 0, slow = 0) {
   const cx = actor.x + actor.w / 2;
   const dir = Math.sign(fromX - cx) || actor.facing;
   if (actor.state === 'guard' && dir === actor.facing) {
-    actor.vx = -dir * 90;
+    // 막힘은 0.3초에 한 번만 알린다(보스 몸에 닿은 채 막으면 매 프레임 block 이 나 소리가 겹치던 버그, BUILD174)
+    if ((actor.blockT || 0) > 0) return false;
+    actor.blockT = BLOCK_REPEAT; actor.vx = -dir * 90;
     events.push({ type: 'block', id: actor.id });
     return false;
   }
@@ -793,9 +805,16 @@ export function stepBoss(level, boss, target, dt, events = []) {
     if (boss.stateT >= BOSS.vanish) {
       // 영역은 주인공 머리 위, 착지면은 주인공이 선 면(발 y). 발판을 통과해 그 면까지 미끄러져 내려온다(발판 위 주인공은 발판 위에서 맞는다).
       // 바닥이면 양옆 발판 아래(머리가 걸림)를 피해 arena.floor 안으로, 벽 안쪽으로도 조인다
-      const feetY = target.grounded ? target.y + target.h : landingY(level, target.x, target.x + target.w);
+      let feetY = target.grounded ? target.y + target.h : landingY(level, target.x, target.x + target.w);
       let minX = TILE + boss.w / 2 + 4, maxX = level.width - TILE - boss.w / 2 - 4;
-      if (feetY >= level.height - 3 * TILE && level.arena) { minX = Math.max(minX, level.arena.floor[0] + boss.w / 2); maxX = Math.min(maxX, level.arena.floor[1] - boss.w / 2); }
+      const groundY = level.height - 3 * TILE;
+      if (level.arena) {
+        const bandMin = level.arena.floor[0] + boss.w / 2, bandMax = level.arena.floor[1] - boss.w / 2;
+        // 주인공이 양옆 발판(arena.floor 밖) 위면 보스는 거기 내려앉지 않는다 — 몸이 무대 밖으로 잘려 보인다(2026-09-15 사용자). 무대 안 바닥으로 내려찍는다
+        if (feetY < groundY && (tx < bandMin || tx > bandMax)) feetY = groundY;
+        // 본체도 격노 그림자도 무대 안(arena.floor)에서만 떨어진다 — 같은 224px 셀로 그리므로 밖이면 똑같이 잘린다
+        minX = Math.max(minX, bandMin); maxX = Math.min(maxX, bandMax);
+      }
       boss.hidden = true; boss.markerX = Math.round(Math.max(minX, Math.min(maxX, tx))); boss.markerY = feetY;
       boss.x = Math.round(boss.markerX - boss.w / 2); boss.y = -BOSS.h - 40; boss.vx = 0; boss.vy = 0;
       // 격노: 그림자 내려찍기 둘을 양옆(spread)에 더한다. 벽 안쪽으로 조이고 본체 자리와 겹치면 반대쪽으로. 착지면은 그 자리에서 처음 만나는 발판/바닥
@@ -864,8 +883,9 @@ export function bossAttackHero(boss, hero, events = [], follower = false) {
     const heroCx = hero.x + hero.w / 2;
     for (const zone of bossSlamZones(boss)) {
       if (!zone.active) continue;
-      const onGround = hero.y + hero.h >= zone.y - 24;
-      if (heroCx >= zone.x && heroCx <= zone.x + zone.w && onGround) return once(() => hurtActor(hero, bcx, events, dmg(BOSS.slamDamage), slow(0)));
+      // 그 띠의 착지면 위에 선 주인공만(발판 위에 떨어진 내려찍기는 발판 아래 주인공을 못 맞힌다, 떨어져 내려가면 피한다)
+      const onSurface = Math.abs(hero.y + hero.h - zone.y) <= 24;
+      if (heroCx >= zone.x && heroCx <= zone.x + zone.w && onSurface) return once(() => hurtActor(hero, bcx, events, dmg(BOSS.slamDamage), slow(0)));
     }
   } else if ((boss.state === 'chase' || boss.state === 'recover' || boss.state === 'windup') && rectsOverlap(boss, hero)) {
     if (hurtActor(hero, bcx, events, dmg(BOSS.touchDamage), slow(0)) && boss.state === 'chase' && !follower) { boss.state = 'recover'; boss.stateT = 0; return true; }
@@ -883,7 +903,7 @@ export function bossHookBox(boss, any = false) {
 export function hookActor(boss, hero, events = [], follower = false) {
   if (hero.invuln > 0) return false;
   const bcx = boss.x + boss.w / 2, cx = hero.x + hero.w / 2, dir = Math.sign(bcx - cx) || hero.facing;
-  if (hero.state === 'guard' && dir === hero.facing) { hero.vx = -dir * 90; events.push({ type: 'block', id: hero.id }); return false; }
+  if (hero.state === 'guard' && dir === hero.facing) { if ((hero.blockT || 0) > 0) return false; hero.blockT = BLOCK_REPEAT; hero.vx = -dir * 90; events.push({ type: 'block', id: hero.id }); return false; }
   if (follower) return hurtActor(hero, bcx, events, 0, BOSS.slowTime);
   hero.invuln = 0.6; hero.hurtT = BOSS.hookPull + 0.15; hero.charge = 0; hero.vx = 0; hero.vy = 0;
   hero.h = STAND_H; hero.crouch = false; hero.state = 'hurt'; hero.stateT = 0;
@@ -927,7 +947,20 @@ export function bossBob(boss) {
   return boss.state === 'chase' && boss.grounded ? Math.round(Math.abs(Math.sin(boss.animT * 7 * Math.PI / 2)) * 3) : 0;
 }
 
-/** 카메라 x: 주인공이 화면 40% 지점에 오도록, 레벨 밖으로 나가지 않게 */
-export function cameraX(level, actor) {
-  return Math.max(0, Math.min(level.width - VIEW_W, Math.round(actor.x + actor.w / 2 - VIEW_W * 0.4)));
+/**
+ * 카메라 x: 주인공이 화면 40% 지점에 오도록, 레벨 밖으로 나가지 않게.
+ * boss 를 주면(보스전) 보스 그림(BOSS_ART)이 무대 좌우로 잘리지 않게 카메라를 당긴다.
+ * 둘이 멀어 함께 담을 수 없으면 주인공이 우선이다(주인공은 늘 화면 안 CAM_HERO_EDGE 안쪽).
+ */
+export function cameraX(level, actor, boss = null) {
+  const hc = actor.x + actor.w / 2;
+  let cam = Math.round(hc - VIEW_W * 0.4);
+  if (boss && !boss.dead && !boss.hidden) {
+    const bc = boss.x + boss.w / 2;
+    cam = Math.min(cam, bc - BOSS_ART.l);
+    cam = Math.max(cam, bc + BOSS_ART.r - VIEW_W);
+    cam = Math.min(cam, hc - CAM_HERO_EDGE);
+    cam = Math.max(cam, hc + CAM_HERO_EDGE - VIEW_W);
+  }
+  return Math.max(0, Math.min(level.width - VIEW_W, Math.round(cam)));
 }
