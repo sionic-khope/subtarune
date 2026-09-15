@@ -85,15 +85,17 @@ test('test_rhythm_beat_grid_and_highlight_lookup', async () => {
     assert.ok(c.highlights.length >= 1 && c.highlights.every(([s, e]) => e - s >= 6 && e <= c.duration), `${id} 하이라이트 ${JSON.stringify(c.highlights)}`);
   }
   const noam = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/noamtori.json', import.meta.url), 'utf8'));
-  assert.ok(noam.duration < 72 && noam.duration > 65 && noam.notes.every(n => n.t >= 1.0), '노앰토리 영상은 18.2초(만원 주면~)부터 잘라둔 69.6초짜리(seek 불필요) ' + noam.duration);
-  assert.ok(noam.key && typeof noam.key.root === 'number' && noam.key.root >= 0 && noam.key.root < 12 && noam.key.name, '곡 키(근음 pitch class) ' + JSON.stringify(noam.key));
-  const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
+  assert.ok(noam.duration > 85 && noam.notesFrom > 18 && noam.notesFrom < 19 && noam.notes.every(n => n.t >= noam.notesFrom + 0.8) && noam.highlights.every(([s]) => s >= noam.notesFrom + 4), '노앰토리 영상은 전체(87.8초)를 틀고 노트만 18.2초(만원 주면~)부터 ' + JSON.stringify([noam.duration, noam.notesFrom]));
+  const { sideTime } = await import('../../src/scenes/rhythm-core.js');
+  const objChart = { side: { drums: [{ t: 0.5, lane: 'L' }, { t: 1.5, lane: 'R' }], vocal: [{ t: 2.2, lane: 'R' }] } };
+  assert.deepEqual(sideHits(objChart, 0, 1.6).drums.map(it => [sideTime(it), it.lane]), [[0.5, 'L'], [1.5, 'R']], '양옆 패드도 두 칸({t, lane})');
   for (const id of ['noamtori', 'bojipam']) {
     const c = JSON.parse(fs.readFileSync(new URL(`../../assets/rhythm/${id}.json`, import.meta.url), 'utf8'));
-    const midi = (hz) => Math.round(69 + 12 * Math.log2(hz / 440));
-    assert.ok(c.notes.every(n => n.pitch >= 140 && n.pitch <= 600), `${id} 노트마다 멜로디 pitch(D3~D5)`);
-    assert.ok(c.notes.every(n => SCALES[c.key.mode].includes((((midi(n.pitch) - c.key.root) % 12) + 12) % 12)), `${id} pitch 가 곡 키(${c.key.name}) 음계 안`);
-    assert.ok(new Set(c.notes.map(n => n.pitch)).size >= 6, `${id} 멜로디가 여러 음을 오간다`);
+    for (const key of ['drums', 'vocal']) {
+      const lanes = c.side[key].map(it => it.lane);
+      assert.ok(lanes.every(l => l === 'L' || l === 'R') && lanes.includes('L') && lanes.includes('R'), `${id} ${key} 두 칸 배분`);
+      assert.ok(c.side[key].every(it => it.t >= (c.notesFrom || 0) + 0.8), `${id} ${key} 도 notesFrom 뒤`);
+    }
   }
   const boj = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/bojipam.json', import.meta.url), 'utf8'));
   const last = boj.highlights[boj.highlights.length - 1];

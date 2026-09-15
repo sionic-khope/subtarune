@@ -9,7 +9,7 @@ const errors = []; page.on('pageerror', e => errors.push(e.message));
 let fails = 0;
 const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'rhythm_' + n + '.png') }); };
-const st = () => page.evaluate(() => { const r = window.__rhythm; if (!r) return null; const s = r.state; return { phase: s.phase, landed: s.band.map(b => b.landed), talk: s.talk && s.talk.i, combo: s.play?.combo ?? null, max: s.play?.maxCombo ?? null, score: s.play?.score ?? null, misses: s.play?.misses ?? null, over: s.over, song: s.song, title: s.chart?.title, time: Math.round(r.songTime() * 100) / 100, video: !!s.video, fromClock: s.fromClock, tvOn: s.tvOn, pop: s.play ? Math.round(s.play.pop * 100) / 100 : null, start: s.chart?.start || 0, key: s.chart?.key?.name }; });
+const st = () => page.evaluate(() => { const r = window.__rhythm; if (!r) return null; const s = r.state; return { phase: s.phase, landed: s.band.map(b => b.landed), talk: s.talk && s.talk.i, combo: s.play?.combo ?? null, max: s.play?.maxCombo ?? null, score: s.play?.score ?? null, misses: s.play?.misses ?? null, over: s.over, song: s.song, title: s.chart?.title, time: Math.round(r.songTime() * 100) / 100, video: !!s.video, fromClock: s.fromClock, tvOn: s.tvOn, pop: s.play ? Math.round(s.play.pop * 100) / 100 : null, notesFrom: s.chart?.notesFrom || 0 }; });
 const pressC = async () => { await page.keyboard.press('KeyC'); await page.waitForTimeout(140); };
 const talkThrough = async (maxLines) => { for (let i = 0; i < maxLines * 3; i++) { const s = await st(); if (!s || s.phase !== 'talk') return; await pressC(); await page.waitForTimeout(80); } };
 // 노트가 판정선(±0.08초)에 올 때 키를 누르는 자동 연주기(홀드는 누른 채 유지)
@@ -59,8 +59,12 @@ try {
   await page.waitForFunction(() => window.__rhythm.state.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(1200); await cap('tv_on');
   s = await st(); check(s.phase === 'play' && (s.video || s.fromClock), 'TV 켜지며 곡 시작(영상 또는 시계) ' + JSON.stringify([s.phase, s.video, s.fromClock, s.tvOn]));
+  // 노앰토리는 영상은 처음부터, 노트는 18.2초(‘만원 주면~’)부터 — 그 전엔 세 기둥 다 비어 있다
+  await page.waitForTimeout(1500); s = await st(); const early = await page.evaluate(() => ({ notes: window.__rhythm.play.notes.filter(n => n.status !== 'wait').length, t: window.__rhythm.songTime() }));
+  check(s.notesFrom > 18 && early.notes === 0 && early.t < s.notesFrom, '노트는 notesFrom(18.2초) 전엔 하나도 안 떨어진다 ' + JSON.stringify([s.notesFrom, early]));
+  await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.notesFrom - 0.5));
   await autoPlay(6); await page.waitForTimeout(100); await cap('play');
-  s = await st(); check(s.score > 0 && s.max >= 5 && s.time > s.start + 4 && s.key === 'Dm', '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다(영상은 18.2초 ‘만원 주면~’부터 잘라둠), 키 Dm ' + JSON.stringify([s.score, s.max, s.time, s.start, s.key, s.misses]));
+  s = await st(); check(s.score > 0 && s.max >= 5 && s.time > s.notesFrom + 4, '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다 ' + JSON.stringify([s.score, s.max, s.time, s.notesFrom, s.misses]));
   // 하이라이트(코러스) 구간으로 건너뛰면 색종이·불꽃·관객 점프·스트로브(BUILD181)
   await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.highlights[0][0] - 0.8));
   await autoPlay(3); await page.waitForTimeout(60); await cap('highlight');
@@ -70,9 +74,14 @@ try {
   await page.waitForFunction(() => window.__rhythm.state.over, null, { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(300); await cap('over');
   s = await st(); check(s.over === true, '5연속 MISS 게임오버 ' + JSON.stringify([s.over, s.misses]));
+  const sig = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, noise: !!r.noise, vol: r.video ? Math.round(r.video.volume * 100) / 100 : null }; });
+  check(sig.signal < 0.4 && !sig.noise && (sig.vol === null || sig.vol < 0.6), '미스가 쌓이면 신호 품질이 떨어져 노래가 작아진다(게임오버 땐 잡음 정지) ' + JSON.stringify(sig));
   await pressC(); await page.waitForTimeout(500);
-  s = await st(); check(s.over === false && s.combo === 0 && s.time < s.start + 3, '재도전: 곡 시작점부터 ' + JSON.stringify([s.over, s.combo, s.time, s.start]));
+  s = await st(); check(s.over === false && s.combo === 0 && s.time < 3, '재도전: 곡 처음부터 ' + JSON.stringify([s.over, s.combo, s.time]));
+  await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.notesFrom - 0.5));
   await autoPlay(4); s = await st(); check(s.max >= 3, '재도전 뒤에도 연주 ' + JSON.stringify([s.max]));
+  const sig2 = await page.evaluate(() => { const r = window.__rhythm.state; return { signal: Math.round(r.signal * 100) / 100, noise: !!r.noise && r.noise.loop, noiseVol: r.noise ? Math.round(r.noise.volume * 100) / 100 : null }; });
+  check(sig2.signal >= 0.99 && sig2.noise && sig2.noiseVol === 0, '잘 맞추면 신호 1 — 노래 온전, 잡음 0 ' + JSON.stringify(sig2));
   await page.evaluate(() => window.__rhythm.finish(true));
   await page.waitForFunction(() => !window.__rhythm, null, { timeout: 5000 }).catch(() => {});
   await page.waitForFunction(() => !game.dialogue.running, null, { timeout: 8000 }).catch(() => {});

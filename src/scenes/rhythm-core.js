@@ -1,5 +1,5 @@
 // 리듬 게임 규칙(순수, DOM 없음) — 2026-09-15 사용자 브리핑: 델타룬 3장 테나 리듬 게임 참고. 가운데 두 칸(L/R = 키보드 ←/→)만 유저가 치고
-// 양옆(경섭 드럼·빠맨 보컬)은 자동. 노트는 탭·홀드 두 종류, 판정은 GREAT/MISS 둘, 콤보가 쌓인다. 5번 연속 MISS 면 게임오버(재시도). 인기(POPU/LARITY)는 GREAT 로 차고 MISS 로 준다.
+// 양옆(경섭 드럼·빠맨 보컬)도 두 칸씩이고 자동으로 친다(사용자 확정). 노트는 탭·홀드 두 종류, 판정은 GREAT/MISS 둘, 콤보가 쌓인다. 5번 연속 MISS 면 게임오버(재시도). 인기(POPU/LARITY)는 GREAT 로 차고 MISS 로 준다.
 // 홀드(BUILD182 사용자 확정): 머리를 맞히고 꾹 누르다 떼면 성공 — 중간에 떼도 MISS 가 아니다. 끝까지 누르면 보너스 전부, 일찍 떼면 누른 비율만큼(최소 절반).
 export const LANES = ['L', 'R'];
 export const RHYTHM = {
@@ -75,10 +75,13 @@ export function finished(play, time) {
   return time >= (play.chart.duration ?? 0) && play.notes.every(n => n.status !== 'wait' && n.status !== 'holding');
 }
 
-/** 자동 사이드 레인(드럼·보컬): (prev, time] 사이에 지나간 자동 노트 시각들 — 그리기·애니 트리거용 */
+/** 사이드 노트 시각(항목이 숫자면 그대로, {t, lane} 이면 t) */
+export const sideTime = (it) => (typeof it === 'number' ? it : it.t);
+
+/** 자동 사이드 레인(드럼·보컬, 두 칸씩): (prev, time] 사이에 지나간 자동 노트들(숫자 또는 {t, lane}) — 판정선 반짝·애니 트리거용 */
 export function sideHits(chart, prev, time) {
   const out = { drums: [], vocal: [] };
-  for (const key of ['drums', 'vocal']) for (const t of chart.side?.[key] || []) if (t > prev && t <= time) out[key].push(t);
+  for (const key of ['drums', 'vocal']) for (const it of chart.side?.[key] || []) { const t = sideTime(it); if (t > prev && t <= time) out[key].push(it); }
   return out;
 }
 

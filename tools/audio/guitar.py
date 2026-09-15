@@ -118,9 +118,6 @@ def write(name: str, y: np.ndarray, fade: float = 0.03) -> None:
 write('guitar_c4', note(261.63, 0.7))
 write('guitar_g4', note(392.0, 0.7))
 write('guitar_a4', note(440.0, 0.7))
-write('guitar_pc_e', power_chord(164.81, 0.42))
-write('guitar_pc_a', power_chord(220.0, 0.42))
-write('guitar_mute', mute(82.41, 0.12), fade=0.02)
 write('guitar_scratch', scratch(0.07), fade=0.01)
 write('guitar_feedback', feedback(2.2), fade=0.25)
 
@@ -133,11 +130,11 @@ def sustain(root: float, dur: float) -> np.ndarray:
     return amp(x + bloom, gain=30)
 
 
-write('guitar_sustain', sustain(164.81, 3.2), fade=0.3)
 
 
 # ── BUILD182: 노래와 어울리는 리듬 기타 — 사용자 “기타 소리가 노래랑 안 조화롭고 너무 시끄럽다”
-# MISS 는 음정 없는 데드 노트(툭). chug(팜뮤트 척)는 만들어 뒀지만 지금은 안 쓴다(GREAT 는 아래 멜로디 리드).
+# 사용자 최종 확정 “곡 중엔 소리 없애고 리듬으로만”: 곡 중 GREAT·홀드 소리는 없다. 남는 소리 = 사운드 체크 음정(c4/g4/a4), 긁기(빈 입력), 데드 노트(MISS), 피드백(제목).
+# power_chord/mute/sustain/chug/lead 생성기는 남겨두되 파일은 안 만든다(파일 삭제됨).
 def chug(root: float, dur: float) -> np.ndarray:
     parts = [string(root * m, dur, decay=0.965, brightness=0.8, pick=1.0) for m in (1.0, 1.5)]
     x = sum(parts) / 2
@@ -158,14 +155,10 @@ def dead(dur: float) -> np.ndarray:
 write('guitar_dead', dead(0.1), fade=0.015)
 
 
-# 멜로디 리드(BUILD182 사용자 “음이 노래 음이랑 아예 똑같이 같이 가는 게 좋다”): 차트 노트의 pitch(보컬 음높이 추적)로 씬이 이조해 튼다.
-# 기준음 A2/A3/A4 세 벌을 두고 가장 가까운 것을 골라 playbackRate ±6반음 안에서만 늘리므로 음색·길이가 고르다.
+# (보관) 리드 음 생성기 — 지금은 안 씀
 def lead(freq: float, dur: float) -> np.ndarray:
     x = string(freq, dur, decay=0.997, brightness=0.5, pick=0.95)
     x = x + 0.3 * string(freq * 2.003, dur, decay=0.994, brightness=0.6)
     return amp(x, gain=18, cab=3200)
 
 
-write('guitar_lead_a2', lead(110.0, 0.55))
-write('guitar_lead_a3', lead(220.0, 0.55))
-write('guitar_lead_a4', lead(440.0, 0.55))
