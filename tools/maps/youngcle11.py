@@ -54,20 +54,24 @@ def main() -> None:
                     'assets/props/stage_front.png', 'assets/props/stage_stairs.png', 'assets/props/stage_valance.png',
                     'assets/props/stage_truss_off.png', 'assets/props/stage_dark.png',
                     'assets/props/editor-union-curtain.png', 'assets/props/editor-union-speaker.png',
-                    'assets/props/editor-union-wall-panel.png'],
+                    'assets/props/editor-union-wall-panel.png', 'assets/sprites/ttuulla.png'],
         'spawns': {
             'start': {'x': 400, 'y': 700, 'facing': 'up'},
             # 윗길(youngcle10)에서 위로 올라올 때(홀 아래 가운데)
             'from_below': {'x': 400, 'y': 700, 'facing': 'up'},
         },
         'meta': {'connected': True, 'route': [[12, 22], [12, 10], [3, 8], [12, 4]],
-                 'stage': {'center': [416, 160], 'left_stairs': [96, 256], 'right_stairs': [672, 256]}},
+                 # 밴드 자리(2026-09-15 사용자: 경섭 드럼·형섭 기타·빠맨 보컬 — 스프라이트는 다시 만들 예정): 무대 위 왼쪽·가운데·오른쪽
+                 'stage': {'center': [416, 160], 'left_stairs': [96, 256], 'right_stairs': [672, 256],
+                           'drums': [256, 184], 'guitar': [416, 196], 'vocal': [576, 184], 'ttuulla': [416, 120]}},
         'entities': [
             # 홀 아래 가운데 → 윗길(from_hall). 열린 통로라 C 없이 방향키로 통과
             {'type': 'door', 'id': 'youngcle11_down', 'x': 352, 'y': 752, 'w': 128, 'h': 16,
              'to': 'youngcle10', 'spawn': 'from_hall', 'sfx': False, 'interact': False},
-            # 무대 가운데 기준물(연출 rel 용)
+            # 무대 가운데 기준물(연출 rel 용) + 어둠 속에 서 있는 뚜울라(연출에서 show, 연출 뒤엔 unless)
             {'type': 'sign', 'id': 'stage11_center', 'x': 416, 'y': 160, 'w': 1, 'h': 1, 'solid': False},
+            {'type': 'npc', 'id': 'ttuulla', 'sprite': 'ttuulla', 'x': 416, 'y': 120, 'facing': 'down', 'wander': 0,
+             'visualScale': 1.79, 'hidden': True, 'solid': False, 'unless': 'stage_hall_intro_done'},
             # 벽 패널(위 벽), 꺼진 조명 트러스 셋(무대 위 벽)
             *[{'type': 'prop', 'id': f'stage11_wall_{index}', 'image': 'assets/props/editor-union-wall-panel.png',
                'x': x, 'y': 0, 'w': 128, 'h': 76, 'solid': False, 'sortY': -980}

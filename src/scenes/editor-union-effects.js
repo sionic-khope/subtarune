@@ -33,9 +33,14 @@ function headPoint(actor) {
   return [actor.x + actor.w / 2, actor.y + actor.h - (pivot - neutralTops.get(image)) * scale];
 }
 
-/** Scene-local presentation state; gameplay and rewards remain script commands. */
-export function beginEditorUnionStage(game) {
-  game.editorUnionStage = { dim: 0.78, spotlight: 0, reveal: 0, cheerUntil: 0, glyph: null, glyphs: [], box: null, mushroom: null, dirt: null };
+/** 무대 조명이 있는 맵: 스포트라이트 기준물(anchor), 관객 소품(audience), 끝난 뒤 유지 플래그(doneFlag)와 어두움. youngcle11(무대 홀, BUILD177)은 관객 없이 기준물만 */
+const STAGE_MAPS = {
+  youngcle7: { anchor: 'stage_center', audience: 'stage_audience', doneFlag: 'editor_union_stage_done', dim: 0.78, doneDim: 0.68 },
+  youngcle11: { anchor: 'stage11_center', audience: null, doneFlag: 'stage_hall_lit', dim: 0.22, doneDim: 0.22 },
+};
+/** Scene-local presentation state; gameplay and rewards remain script commands. dim 은 맵마다(무대 홀은 0.22 에서 시작) */
+export function beginEditorUnionStage(game, { dim } = {}) {
+  game.editorUnionStage = { dim: dim ?? STAGE_MAPS[game.mapId]?.dim ?? 0.78, spotlight: 0, reveal: 0, cheerUntil: 0, glyph: null, glyphs: [], box: null, mushroom: null, dirt: null };
 }
 
 /** Called before map, title, and QA reconstruction so a waiter never owns stale actors. */
@@ -180,13 +185,13 @@ function featheredWash(width, height) {
 
 /** Lighting replaces this map's base dim layer, leaving dialogue and HUD untouched. */
 export function drawEditorUnionLight(ctx, game, cam) {
-  if (game.mapId !== 'youngcle7') return false;
-  const stage = game.editorUnionStage;
-  const dim = stage?.dim ?? (game.has('editor_union_stage_done') ? 0.68 : 0.78);
-  const strength = stage?.spotlight ?? (game.has('editor_union_stage_done') ? 1 : 0);
-  const reveal = stage?.reveal ?? (game.has('editor_union_stage_done') ? 1 : 0);
-  const anchor = actorOf(game, 'stage_center');
-  const audience = actorOf(game, 'stage_audience');
+  const cfg = STAGE_MAPS[game.mapId]; if (!cfg) return false;
+  const stage = game.editorUnionStage, done = game.has(cfg.doneFlag);
+  const dim = stage?.dim ?? (done ? cfg.doneDim : cfg.dim);
+  const strength = stage?.spotlight ?? (done ? 1 : 0);
+  const reveal = stage?.reveal ?? (done ? 1 : 0);
+  const anchor = actorOf(game, cfg.anchor);
+  const audience = cfg.audience ? actorOf(game, cfg.audience) : null;
   const key = [dim.toFixed(3), strength.toFixed(3), reveal.toFixed(3)].join(':');
   let mask = game.editorUnionLightMask;
   if (!mask) {

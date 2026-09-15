@@ -44,7 +44,8 @@
   "assets/props/stage_dark.png",
   "assets/props/editor-union-curtain.png",
   "assets/props/editor-union-speaker.png",
-  "assets/props/editor-union-wall-panel.png"
+  "assets/props/editor-union-wall-panel.png",
+  "assets/sprites/ttuulla.png"
  ],
  "spawns": {
   "start": {
@@ -90,6 +91,22 @@
    "right_stairs": [
     672,
     256
+   ],
+   "drums": [
+    256,
+    184
+   ],
+   "guitar": [
+    416,
+    196
+   ],
+   "vocal": [
+    576,
+    184
+   ],
+   "ttuulla": [
+    416,
+    120
    ]
   }
  },
@@ -114,6 +131,19 @@
    "w": 1,
    "h": 1,
    "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "ttuulla",
+   "sprite": "ttuulla",
+   "x": 416,
+   "y": 120,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1.79,
+   "hidden": true,
+   "solid": false,
+   "unless": "stage_hall_intro_done"
   },
   {
    "type": "prop",
