@@ -138,7 +138,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'fling_whistle', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -849,6 +849,8 @@ class Game {
       return;
     }
     if (this.battle) { this.battle.update(dt, Input); if (this.dialogue.running) this.dialogue.update(dt, Input); return; }   // 전투 중: 전투 + 컷신 대기자만
+    // 오버레이 씬(섭리오) 안에서 Tab/V 로 연 인게임 메뉴: 컷신이 scene3d 노드에서 기다리는 중이라 여기서 메뉴만 돌린다 (씬은 멈춰 있음)
+    if (this.scene3d && this.state === 'menu') { this.updateMenu(); return; }
     if (this.dialogue.running) {
       this.dialogue.update(dt, Input);
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
@@ -880,6 +882,7 @@ class Game {
    */
   doEscape() {
     this.state = 'field'; this.menu = null; this.sound.sfx('close');
+    this.escapes = (this.escapes || 0) + 1;   // 오버레이 씬(섭리오)이 열려 있으면 이 값이 바뀐 것을 보고 씬을 접는다
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
     this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null; this.booms = [];
@@ -1248,7 +1251,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-15.168';
+export const BUILD = '2026-09-15.169';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
@@ -1271,7 +1274,8 @@ await game.load();
 
 let last = performance.now();
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
+  // rAF 의 now 는 프레임 시작 시각이라 load 직후 잡은 performance.now() 보다 앞설 수 있다 → 첫 프레임 dt 가 음수가 되어 걷기 프레임이 -1 로 떨어지고 그리기가 죽는다(2026-09-15 비데 방 입장 이동)
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
   last = now;
   game.dt = dt;
   game.update(dt);

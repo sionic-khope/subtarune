@@ -36,7 +36,7 @@ try {
   check(!!chat0.line && chat0.team === false, '1-0 착지 대사·동료 공격 잠김 ' + JSON.stringify(chat0)); await cap('s0_chat');
   await page.waitForTimeout(2600); const chat1 = await page.evaluate(() => window.__subrio.state.chat.line?.text); check(chat1 !== chat0.line, '대사가 시간이 지나면 다음 줄로 ' + JSON.stringify([chat0.line, chat1]));
   // 밟기 시범: 트리거 열까지 옮기면 억빠맨이 혼자 나가 밟는다
-  await page.evaluate(() => { const st = window.__subrio.state; st.chat = { queue: [], line: null, holdT: 0 }; st.actors.forEach((a, i) => { a.x = 46 * 16 + 4 - i * 30; a.y = 200; }); });
+  await page.evaluate(() => { const st = window.__subrio.state; st.chat = { queue: [], line: null, holdT: 0 }; st.actors.forEach((a, i) => { a.x = 50 * 16 + 4 - i * 30; a.y = 200; }); });
   await page.waitForFunction(() => window.__subrio.state.demo !== null, null, { timeout: 6000 }).catch(() => {});
   const demoStarted = await page.evaluate(() => !!window.__subrio.state.demo); check(demoStarted, '밟기 시범 시작(모두 정지)');
   const stomped = await page.waitForFunction(() => window.__subrio.state.enemies.find(e => e.demo)?.dead === true || window.__subrio.state.enemies.every(e => !e.demo), null, { timeout: 25000 }).then(() => true).catch(() => false);
@@ -56,8 +56,23 @@ try {
   await page.keyboard.down('KeyC'); await page.waitForTimeout(600); s = await sub(); const charging = s.lead[2] === 'charge'; await cap('charge'); await page.keyboard.up('KeyC'); await page.waitForTimeout(80); s = await sub();
   check(charging && s.spears.includes(true), '차징 창 ' + JSON.stringify([charging, s.spears]));
   await page.waitForTimeout(700); await page.keyboard.press('KeyC'); await page.waitForTimeout(80); s = await sub(); check(s.spears.includes(false), '탭 창 ' + JSON.stringify(s.spears));
+  // 체력: 미니언에 닿으면 RPG 체력이 깎이고 인게임 메뉴(Tab)에서도 같은 값
+  const hp0 = await page.evaluate(() => game.hpOf('hyungsub'));
+  await page.evaluate(() => { const st = window.__subrio.state; st.teamAttack = false; const l = st.actors[0]; l.invuln = 0; l.hurtT = 0; const e = st.enemies.find(en => !en.dead); e.x = l.x + 4; e.y = l.y; e.vy = 0; e.stunT = 0; e.hp = 99; });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => { window.__subrio.state.teamAttack = true; });
+  const hp1 = await page.evaluate(() => game.hpOf('hyungsub'));
+  const dbg = await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; const e = st.enemies.find(en => en.hp === 99 || en.hp === 98) || st.enemies[0]; return { l: [Math.round(l.x), Math.round(l.y), l.state, l.invuln, l.hurtT, l.grounded, Math.round(l.vy)], e: [Math.round(e.x), Math.round(e.y), e.dead, e.hp, e.stunT, e.type], sub: st.sub, demo: !!st.demo, control: st.control, party: game.partyHp.hyungsub }; });
+  check(hp1 < hp0, `맞으면 체력이 깎인다 ${hp0} → ${hp1} ` + JSON.stringify(dbg)); await cap('hp_hit');
+  await page.keyboard.press('Tab'); await page.waitForTimeout(400);
+  const menu = await page.evaluate(() => ({ state: game.state, paused: window.__subrio.state.paused, overlay: document.getElementById('subrio')?.style.opacity }));
+  check(menu.state === 'menu' && menu.paused && menu.overlay === '0', 'Tab 으로 인게임 메뉴가 열리고 섭리오는 멈춤 ' + JSON.stringify(menu)); await cap('menu');
+  await page.keyboard.press('KeyX'); await page.waitForTimeout(500);
+  const resumed = await page.evaluate(() => ({ state: game.state, paused: window.__subrio.state.paused, overlay: document.getElementById('subrio')?.style.opacity }));
+  check(resumed.state !== 'menu' && !resumed.paused && resumed.overlay === '1', '메뉴를 닫으면 재개 ' + JSON.stringify(resumed));
+  await page.evaluate(() => { const st = window.__subrio.state; const e = st.enemies.find(en => !en.dead); e.x = st.actors[0].x + 150; e.hp = 3; });
   // 미니언을 일행 앞에 옮기면 브랜드 불·질리언 시계가 자동으로 나간다
-  await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; const e = st.enemies[0]; e.x = l.x + 150; e.y = l.y; e.vy = 0; e.dir = -1; });
+  await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; const e = st.enemies.find(en => !en.dead); e.x = l.x + 150; e.y = l.y; e.vy = 0; e.dir = -1; });
   await page.waitForFunction(() => { const st = window.__subrio.state; return st.fires.length > 0 || st.actors.some(a => a.classId === 'brand' && a.fireCool > 0); }, null, { timeout: 6000 }).catch(() => {});
   s = await sub(); check(s.fires > 0 || (await page.evaluate(() => window.__subrio.state.actors.find(a => a.classId === 'brand').fireCool > 0)), '브랜드 불 발사·게이지 ' + JSON.stringify([s.fires])); await cap('brand_fire');
   await page.waitForFunction(() => window.__subrio.state.clocks.length > 0 || window.__subrio.state.enemies.some(e => e.clockHits.length > 0 || e.stunT > 0 || e.dead), null, { timeout: 6000 }).catch(() => {});
@@ -75,12 +90,14 @@ try {
   await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'swing', null, { timeout: 15000 }).catch(() => {}); await page.waitForTimeout(80);
   s = await sub(); check(s.boss && s.boss[1] === 'swing', '보스 도끼 휘두름 ' + JSON.stringify(s.boss)); await cap('boss_swing');
   await page.waitForTimeout(600);
-  await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; l.invuln = 0; l.hurtT = 0; l.x = st.boss.x - 60; l.y = 200; l.facing = 1; });
+  await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; l.invuln = 0; l.hurtT = 0; l.x = Math.max(120, st.boss.x - 90); l.y = 250; l.facing = 1; });
   await page.keyboard.down('KeyX');
   await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'swing', null, { timeout: 15000 }).catch(() => {}); await page.waitForTimeout(150);
   s = await sub(); check(s.lead[2] === 'guard', '방패 자세로 막기 ' + JSON.stringify(s.lead)); await cap('boss_guard');
   await page.keyboard.up('KeyX');
-  await page.evaluate(() => { const st = window.__subrio.state; st.boss.hp = 2; st.boss.x = 300; st.boss.state = 'chase'; st.boss.stateT = 0; const l = st.actors[0]; l.x = 150; l.y = 200; l.facing = 1; l.invuln = 3; });
+  // 에너지파 없음 확인 + 창 2방 격파
+  s = await sub(); check(s.waters === 0, '물줄기(에너지파) 없음');
+  await page.evaluate(() => { const st = window.__subrio.state; st.boss.hp = 2; st.boss.x = 300; st.boss.state = 'chase'; st.boss.stateT = 0; const l = st.actors[0]; l.x = 150; l.y = 250; l.facing = 1; l.invuln = 3; });
   await page.waitForTimeout(500); await page.keyboard.press('KeyC'); await page.waitForTimeout(600); await page.keyboard.press('KeyC');
   await page.waitForFunction(() => window.__subrio?.state.sub === 'victory', null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(300);
   s = await sub(); check(s.sub === 'victory' && s.cleared, '창 2방 → 격파 ' + JSON.stringify([s.sub, s.cleared])); await cap('boss_victory');

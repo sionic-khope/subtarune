@@ -381,6 +381,6 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 보존해 둔 참고: `Zilean_SugarRush_Q_Stun_SFX.ogg`, `Pantheon_Original_SFX_Q_Missile_missilecast_0.ogg`(미사용).
 
-**날리기(fling) 소리 지침(사용자 피드백 2: “ㅈㄴ 재사용하노”)**: `whoosh` 를 fling 기본값으로 쓰지 않는다. 장면마다 다른 소리를 고른다 — 파크가디언 박치기 `fling_whistle`(ffmpeg 합성 슬라이드 휘슬: `aevalsrc=sin(2*PI*t*(420+780*t))` 0.95초 + vibrato 11Hz), 비데가 마리오를 날릴 때 `cannon_puff`. 새 fling 은 새 소리를 만들거나 아직 안 쓴 소리를 고르고 여기 기록한다.
+**날리기(fling) 소리 지침(사용자 피드백 2: “ㅈㄴ 재사용하노”)**: `whoosh` 를 fling 기본값으로 쓰지 않는다. 장면마다 다른 소리를 고른다 — 파크가디언 박치기 **`wing`**([Deltarune snd_wing](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/sounds/snd_wing/snd_wing), 디컴파일 자료, 원본 `assets/source/subrio169/audio/snd_wing.wav` SHA256 `33501074b8436b2ccdd827fe2b7027c6b2a3d2c874820b30f6ccf1ecae2c4725`, 0.469초 그대로 mp3 변환), 비데가 마리오를 날릴 때 `cannon_puff`. BUILD167의 합성 휘슬 `fling_whistle` 은 사용자가 “이상한 소리”라 해서 삭제(2026-09-15 포스트모텀 `docs/postmortems/2026-09-15-cutscene-sound-coverage.md`). 새 fling 은 합성하지 말고 공식 파일에서 고른다(`snd_bombfall` 도 받아 두었다, 미사용).
 
 섭리오 스테이지 클리어(깃발 C, 몬스터 0)는 사용자 지시로 전투 승리음 `won`(언더테일 snd_victor) 을 쓴다(BUILD168, 전엔 합성 `fanfare`). 몬스터가 남아 있을 때의 C 는 `error`.

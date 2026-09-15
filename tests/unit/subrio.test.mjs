@@ -90,9 +90,9 @@ test('test_subrio_spear_tap_throws_short_spear_and_holding_c_charges_then_throws
   const strong = ev2.find(event => event.type === 'attack');
   assert.ok(strong && strong.charged === true, '놓으면 강창');
   let spears = [{ x: strong.x, y: strong.y, vx: strong.facing * SPEAR.chargedSpeed, life: SPEAR.chargedLife }];
-  for (let i = 0; i < 45; i++) spears = updateSpears(buildLevel(4), spears, 1 / 60);
-  assert.equal(spears.length, 1); assert.ok(spears[0].x > strong.x + 400, '강창은 0.75초에 400px 넘게 간다');
-  const wall = [{ x: 42 * TILE - 30, y: 10 * TILE, vx: 380, life: 1.1 }];
+  for (let i = 0; i < 40; i++) spears = updateSpears(buildLevel(1), spears, 1 / 60);
+  assert.equal(spears.length, 1); assert.ok(spears[0].x > strong.x + 350, '강창은 0.67초에 350px 넘게 간다(1-1 계단에 박히기 직전)');
+  const wall = [{ x: 28 * TILE - 30, y: 8 * TILE, vx: 380, life: 1.1 }];
   assert.equal(updateSpears(buildLevel(4), wall, 0.1).length, 0, '막힌 타일(무대 벽)에 박히면 사라진다');
 });
 
@@ -178,7 +178,11 @@ test('test_subrio_stage_list_is_tutorial_twitch_chzzk_forest_then_bidet_boss', (
   assert.ok(tutorial.prompts.length === 3 && tutorial.stompDemo, '조작 팻말 3개·밟기 시범');
   const arena = buildLevel(4);
   assert.equal(arena.goal, null); assert.ok(arena.bossSpawnX > arena.spawnX); assert.equal(arena.enemies.length, 0);
-  assert.equal(arena.solidAt(0, 10), true, '왼쪽 벽'); assert.equal(arena.solidAt(43, 10), true, '오른쪽 벽');
+  assert.ok(arena.width - VIEW_W <= 4, '1-4 는 한 화면(카메라 고정)');
+  assert.equal(arena.solidAt(0, 10), true, '왼쪽 벽'); assert.equal(arena.solidAt(28, 10), true, '오른쪽 벽');
+  assert.equal(arena.solidAt(4, 14), true, '왼쪽 발판'); assert.equal(arena.solidAt(24, 14), true, '오른쪽 발판'); assert.equal(arena.solidAt(14, 10), true, '가운데 발판');
+  assert.equal(arena.solidAt(Math.floor(arena.bossSpawnX / TILE), 14), false, '보스 낙하 열엔 발판이 없다'); assert.equal(arena.solidAt(Math.floor(arena.bossSpawnX / TILE), 10), false);
+  assert.equal(arena.solidAt(14, 11), false); assert.equal(arena.solidAt(14, 17), false);
 });
 
 test('test_subrio_each_stage_is_clearable_by_a_run_and_jump_bot_without_falling_in_under_150s', () => {
@@ -286,9 +290,9 @@ test('test_subrio_zilean_lobs_two_clocks_in_an_arc_and_two_hits_on_the_same_enem
   assert.equal(enemy.stunT, 0); assert.ok(ev2.some(e => e.type === 'stunEnd'));
 });
 
-test('test_subrio_boss_lands_roars_chases_swings_in_reach_and_sprays_three_waters_when_far', () => {
+test('test_subrio_boss_lands_roars_chases_swings_in_reach_and_leaps_when_far', () => {
   const level = buildLevel(4);
-  const hero = settle(level, makeActor('p', 200, GROUND));
+  const hero = settle(level, makeActor('p', 150, GROUND));
   const boss = makeBoss(level.bossSpawnX, 100);
   const events = [];
   for (let i = 0; i < 50; i++) stepBoss(level, boss, hero, 1 / 60, events);
@@ -301,16 +305,16 @@ test('test_subrio_boss_lands_roars_chases_swings_in_reach_and_sprays_three_water
   assert.ok(swung, '사거리 안에 들어오면 휘두른다'); assert.ok(boss.x < startX);
   assert.equal(boss.state, 'swing');
   const box = bossHitbox(boss);
-  assert.ok(box && box.x + box.w <= boss.x + 6 && rectsOverlap(box, hero), '도끼 판정이 주인공 쪽 앞에 있고 주인공에 닿는다');
+  assert.ok(box && box.x + box.w <= boss.x + 10 && rectsOverlap(box, hero), '도끼 판정이 주인공 쪽 앞에 있고 주인공에 닿는다');
   assert.equal(bossFrame(boss), 5);
-  hero.x = boss.x - 300;
-  const before = events.length;
-  for (let i = 0; i < 60 * 5; i++) stepBoss(level, boss, hero, 1 / 60, events);
-  const waters = events.slice(before).filter(e => e.type === 'water');
-  assert.ok(waters.length >= 3, `물줄기 ${waters.length}`); assert.ok(waters.every(w => w.vx < 0));
-  const list = waters.slice(0, 3).map(w => ({ x: w.x, y: w.y, vx: w.vx, life: BOSS.waterLife }));
-  const moved = updateProjectiles(level, list, 0.5, WATER_W, WATER_H);
-  assert.equal(moved.length, 3); assert.ok(moved[0].x < waters[0].x - 100);
+  // 물줄기(에너지파) 없음: 주인공이 반대편으로 가면 그쪽으로 따라오고, 발판 아래를 지나며, 물 사건은 한 번도 없다
+  hero.x = 20; hero.y = GROUND - STAND_H;
+  boss.x = 300;
+  for (let i = 0; i < 60 * 6; i++) stepBoss(level, boss, hero, 1 / 60, events);
+  assert.equal(events.some(e => e.type === 'water'), false, '에너지파(물줄기)는 없다');
+  assert.ok(boss.x < 200, `주인공 쪽(왼쪽)으로 따라온다 x=${Math.round(boss.x)}`);
+  assert.equal(boss.y + boss.h, GROUND, '가운데 발판 아래를 지나 바닥에 서 있다');
+  assert.ok(typeof bossFrame(boss) === 'number');
 });
 
 test('test_subrio_boss_takes_one_damage_per_hit_with_cooldown_and_dies_at_zero', () => {
@@ -339,4 +343,24 @@ test('test_subrio_clock_that_lands_near_an_enemy_bursts_and_two_bursts_stun', as
   const falling = [{ x: 300, y: GROUND - 20, vx: 0, vy: 300, life: 2 }];
   const left = updateProjectiles(level, falling, 0.1, CLOCK.w, CLOCK.h, CLOCK.gravity);
   assert.equal(left.length, 0); assert.equal(falling[0].hitSolid, true);
+});
+
+test('test_subrio_hurt_reports_damage_amount_per_source_and_demo_minion_stays_put', () => {
+  const level = buildLevel(4);
+  const hero = settle(level, makeActor('p', 150, GROUND));
+  const events = [];
+  hurtActor(hero, hero.x + 40, events, 12);
+  assert.equal(events.find(e => e.type === 'hurt').damage, 12, '피해량이 사건에 실린다');
+  const walker = makeEnemy('cs_blue', 240, GROUND);
+  const side = settle(level, makeActor('s', 240 - 14, GROUND));
+  const ev2 = [];
+  heroTouchesEnemy(side, walker, 2, ev2);
+  assert.equal(ev2.find(e => e.type === 'hurt').damage, 6, '몬스터 접촉은 6');
+  // 시범용 미니언은 걷지 않는다
+  const tutorial = buildLevel(0);
+  const spec = tutorial.enemies.find(e => e.demo);
+  const demo = makeEnemy(spec.type, spec.x, spec.y, -1, spec);
+  for (let i = 0; i < 120; i++) stepEnemy(tutorial, demo, 1 / 60);
+  assert.equal(demo.x, Math.round(spec.x - demo.w / 2), '제자리'); assert.equal(demo.hp, 1);
+  assert.equal(Math.floor(spec.x / TILE), 56, '화면 가운데쯤(56열)');
 });

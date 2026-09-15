@@ -18,7 +18,8 @@ ROOT: Final = Path(__file__).resolve().parent
 GAME: Final = ROOT.parents[2]
 PROCESSOR: Final = GAME / "tools/sprites/sheet_processor.py"
 # name: (cell, feet, body_target)
-JOBS: Final = {"raptor": (48, 44, 30), "wolf": (48, 44, 26), "gromp": (48, 44, 28), "krug": (48, 44, 32), "scuttle": (48, 44, 24), "cannon": (48, 44, 34), "red": (64, 60, 46), "blue": (64, 60, 48)}
+# 2026-09-15 사용자: 바위게·두꺼비·골렘·레드·블루는 미니언(몸 34px)보다 크게
+JOBS: Final = {"raptor": (48, 44, 32), "wolf": (64, 60, 32), "gromp": (64, 60, 42), "krug": (64, 60, 48), "scuttle": (64, 60, 34), "cannon": (64, 60, 44), "red": (96, 90, 72), "blue": (96, 90, 76)}
 
 
 def clean_alpha(pixels: np.ndarray) -> np.ndarray:

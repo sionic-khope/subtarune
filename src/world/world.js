@@ -271,7 +271,9 @@ export class Character extends Entity {
     const pivot = CHARACTERS[this.def.sprite]?.stillPivot;
     const drawScale = CHAR_SCALE * visualScale / this.sprite.px;
     const sx = Math.round(this.x + this.w / 2 - (pivot ? pivot[0] * drawScale : dw / 2) - cam.x) + jx;
-    const sy = Math.round(this.y + this.h - (pivot ? pivot[1] * drawScale : dh) - cam.y);
+    // walkBob(characters.js): 걷기 프레임 차이가 작은 시트(비데)는 걸을 때 몸을 2px 들썩여 미끄러지는 느낌을 줄인다(2026-09-15 사용자)
+    const bob = this.moving && CHARACTERS[this.def.sprite]?.walkBob ? Math.round(Math.abs(Math.sin(this.animPhase * Math.PI / 2)) * 2) : 0;
+    const sy = Math.round(this.y + this.h - (pivot ? pivot[1] * drawScale : dh) - cam.y) - bob;
     if (this.pose === 'lying') {           // 침대에 누움: 정면 스프라이트를 90도 눕힘 (머리가 위쪽)
       ctx.save();
       ctx.translate(Math.round(this.x + this.w / 2 - cam.x), Math.round(this.y + this.h / 2 - cam.y));

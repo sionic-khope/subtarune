@@ -28,9 +28,10 @@ try {
   await page.goto('http://localhost:8000/?qa=youngcle9');
   await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle9' && !game.transitioning, null, { timeout: 20000 });
   await page.waitForTimeout(500);
-  const enter = await info(); check(enter.running && enter.bgm === null, '입장 0.5초: 연출은 시작했지만 아직 무음(준비시간) ' + JSON.stringify([enter.running, enter.bgm])); await cap('enter');
-  await page.waitForTimeout(2000);
-  const cue = await info(); check(cue.bgm === 'editor_union_stage', '입장 2.5초: 파크가디언 등장 곡이 1.5초 페이드인으로 들어옴 ' + JSON.stringify([cue.bgm]));
+  const enter = await info(); check(enter.running && enter.bgm === null, '입장 0.5초: 연출은 시작했지만 아직 무음(일행이 걸어 들어오는 중) ' + JSON.stringify([enter.running, enter.bgm])); await cap('enter');
+  const walked = await runUntil(s => s.player[0] >= 130, 'walk_in', 8000, 0); check(!!walked && walked.bgm === null && walked.zoom === 1, '일행이 문에서 걸어 들어올 때까지 카메라·곡 그대로 ' + JSON.stringify(walked && [walked.player, walked.bgm, walked.zoom]));
+  const cam = await runUntil(s => s.zoom <= 0.8, 'camera_to_bidet', 8000, 0); check(!!cam, '그 다음 카메라가 비데 쪽으로');
+  const cue = await runUntil(s => s.bgm === 'editor_union_stage', 'cue', 8000, 0); check(!!cue, '카메라 뒤 등장 곡 시작(3초 페이드인)');
   const out = await runUntil(s => s.mario && s.mario[2] > 20, 'mario_out', 40000, 0); check(!!out && out.mario[0] < 420, '마리오가 토관 입구(x336)에서 튀어나온다 ' + JSON.stringify(out?.mario));
   const head = await runUntil(s => s.mario && s.mario[1] <= 430 && s.mario[2] === 0, 'mario_head', 20000, 200); check(!!head && head.mario[0] === 480 && head.mario[1] === 423, '비데 머리 위(480,423) 착지 ' + JSON.stringify(head?.mario));
   const zoom = await runUntil(s => s.zoom <= 0.52, 'screen_zoomout', 20000, 900); check(!!zoom, '거대 스크린 줌아웃 0.5 ' + JSON.stringify(zoom && [zoom.zoom]));

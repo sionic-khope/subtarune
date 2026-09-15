@@ -27,13 +27,18 @@ const mushroomThrow = (id, image, label, color) => [
 
 export const bidet_arcade = [
   { if: flags => flags.bidet_arcade_done, goto: 'end' },
-  // 입장: 들어가자마자가 아니라 1.5초 숨 고른 뒤 등장 곡이 1.5초 페이드인으로 깔린다(2026-09-15 사용자: “들어가자마자 나오는 건 아니고” —
-  // docs/postmortems/2026-09-15-cue-lead-in.md). 그 사이 카메라가 먼저 잡히고, 곡이 들어오면 비데가 화들짝 놀라 왼쪽(주인공 쪽)을 본다
-  talkCamera,
-  { wait: 0.9 },
-  { bgm: 'editor_union_stage', fadeIn: 1.5 },
-  { wait: 0.6 },
-  { parallel: [{ emote: BIDET, kind: '!', duration: 1.0, hold: 0.2 }, { hop: BIDET, height: 14, duration: 0.3, sfx: false }] },
+  // 입장(2026-09-15 사용자 재지시, docs/postmortems/2026-09-15-cue-lead-in.md): 일행이 문에서 몇 걸음 걸어 들어온 뒤 → 카메라가 비데 쪽으로 돌아가고 →
+  // 등장 곡이 3초 페이드인으로 천천히 깔린다 → 비데가 화들짝(느낌표 + chime). 들어가자마자 곡·카메라가 튀지 않는다
+  { parallel: [
+    { move: 'player', rel: 'youngcle9_left', at: 'right', by: [96, 0] },
+    { move: 'gyeongsub', rel: 'youngcle9_left', at: 'right', by: [56, -8] },
+    { move: 'ppaman', rel: 'youngcle9_left', at: 'right', by: [24, 8] },
+  ] },
+  { wait: 0.3 },
+  { parallel: [{ camera: [12, 15], duration: 1.1 }, { zoom: 0.75, duration: 1.1 }] },
+  { bgm: 'editor_union_stage', fadeIn: 3.0 },
+  { wait: 0.8 },
+  { parallel: [{ emote: BIDET, kind: '!', duration: 1.0, hold: 0.2, sfx: 'chime' }, { hop: BIDET, height: 14, duration: 0.3, sfx: false }] },
   { face: BIDET, dir: 'left' },
   B('오 왔군'),
   close,

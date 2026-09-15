@@ -31,10 +31,10 @@ const parkAftermath = () => [
   P('넌 니애미 따라가라'),
   close,
   { move: 'ppaman', rel: 'park_guardian_defeated', at: 'left', by: [-6, 0], dash: true },
-  // 박치기 즉시 날아간다(쿵과 흔들림은 같이). 날리는 소리는 장면 전용 슬라이드 휘슬 — whoosh 재사용 금지(사용자 피드백 2)
+  // 박치기 즉시 날아간다(쿵과 흔들림은 같이). 날리는 소리는 델타룬 공식 snd_wing(`wing`) — 합성 휘슬은 “이상한 소리”라 폐기(2026-09-15)
   { sfx: 'thud' },
   { parallel: [
-    { fling: 'park_guardian_defeated', vx: 780, vup: 900, spin: 15, duration: 1.5, sfx: 'fling_whistle' },
+    { fling: 'park_guardian_defeated', vx: 780, vup: 900, spin: 15, duration: 1.5, sfx: 'wing' },
     { shake: 0.3, amp: 5 },
   ] },
   // 박치기한 억빠맨은 일행 옆으로 돌아온다
@@ -50,7 +50,8 @@ const parkAftermath = () => [
   { wait: 0.5 },
   { parallel: [{ camera: 'player', duration: 0.6 }, { zoom: 1, duration: 0.6 }] },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
-  { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6 })) },
+  // 느낌표엔 소리(다른 장면과 같은 chime — 2026-09-15 “느낌표 쓸 때 사운드 안 먹여 있네”)
+  { parallel: PARTY.map((id, i) => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6, ...(i === 0 ? { sfx: 'chime' } : {}) })) },
   P('오 이런,, 위쪽길이 막혔네요 아마 저기 뚜울라 있을텐데'),
   G('오른쪽에 비데부터 보고오란 소리겠지'),
   P('뭐가 꿍꿍이가 있는것같지만 일단 가보시죠'),

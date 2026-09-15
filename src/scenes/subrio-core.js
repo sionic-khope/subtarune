@@ -2,7 +2,7 @@
 // 조작(2026-09-15 사용자 브리핑): 좌우 이동, 위 점프, 아래 앉기, C 창(탭 = 짧은 창, 꾹 누르면 차징 → 놓으면 강한 창), X 방패.
 // 구성(2026-09-15 사용자 확정): 월드 1 — 1-0 튜토리얼 → 1-1 트위치(보라)·1-2 치지직(청록)·1-3 숲(파랑), 각 3분 분량에 방송 플랫폼 섬의 롤 몬스터들
 // (CS·칼날부리·늑대·두꺼비·크루그·바위게·대포 미니언, 1-3 끝엔 레드·블루) → 1-4 따듯한비데 보스전. 깃발은 몬스터를 다 잡은 뒤 C 로 클리어.
-// 체력·게임오버 없음(사용자 지시): 맞으면 튕겨나기만 한다. 이 게임 전용 공격력 = 1(창·불·시계·밟기 모두 1). 보스는 12.
+// 체력(2026-09-15 사용자 재지시): 맞으면 RPG 체력(game.partyHp)이 깎인다. 0이 되면 게임오버 없이 쓰러졌다가 마지막 자리에서 체력 가득 재낙하. 이 게임 전용 공격력 = 1(창·불·시계·밟기 모두 1). 보스는 12.
 export const TILE = 16;
 export const VIEW_W = 460;
 export const VIEW_H = 340;
@@ -19,6 +19,8 @@ export const INVULN_TIME = 1.0;
 export const KNOCK_VX = 190;
 export const KNOCK_VY = 240;
 export const ATTACK_POWER = 1;
+// 주인공이 받는 피해(RPG 체력 기준, 최대 150~180): 몬스터 접촉·보스 도끼·보스 몸·물줄기
+export const DAMAGE = { touch: 6, bossSwing: 12, bossTouch: 8, water: 6 };
 // 판테온 창: 탭이면 짧은 창, chargeMin 이상 누르면 차징(이동 절반) → 놓으면 빠르고 오래 가는 강창
 export const SPEAR = { speed: 380, life: 1.1, chargedSpeed: 600, chargedLife: 2.4, chargeMin: 0.28, chargeMax: 1.0, cooldown: 0.42, w: 24, h: 6 };
 export const SPEAR_SPEED = SPEAR.speed;
@@ -33,21 +35,23 @@ export const ENEMY = { w: 16, h: 24, speed: 40, hp: 3, stompBounce: 300, deathTi
 export const MONSTERS = {
   cs_red: { name: '레드 CS', w: 16, h: 24, speed: 40, hp: 3, sheet: 'assets/sprites/subrio_cs_red.png', cell: 48, feet: 44 },
   cs_blue: { name: '블루 CS', w: 16, h: 24, speed: 40, hp: 3, sheet: 'assets/sprites/subrio_cs_blue.png', cell: 48, feet: 44 },
-  raptor: { name: '칼날부리', w: 16, h: 20, speed: 70, hp: 3, hop: 1.1, sheet: 'assets/sprites/subrio_raptor.png', cell: 48, feet: 44 },
-  wolf: { name: '늑대', w: 22, h: 18, speed: 92, hp: 3, sheet: 'assets/sprites/subrio_wolf.png', cell: 48, feet: 44 },
-  gromp: { name: '두꺼비', w: 22, h: 20, speed: 28, hp: 4, sheet: 'assets/sprites/subrio_gromp.png', cell: 48, feet: 44 },
-  krug: { name: '크루그', w: 20, h: 24, speed: 24, hp: 5, sheet: 'assets/sprites/subrio_krug.png', cell: 48, feet: 44 },
-  scuttle: { name: '바위게', w: 22, h: 16, speed: 56, hp: 3, sheet: 'assets/sprites/subrio_scuttle.png', cell: 48, feet: 44 },
-  cannon: { name: '대포 미니언', w: 18, h: 26, speed: 34, hp: 4, sheet: 'assets/sprites/subrio_cannon.png', cell: 48, feet: 44 },
-  red: { name: '레드', w: 26, h: 32, speed: 46, hp: 6, sheet: 'assets/sprites/subrio_red.png', cell: 64, feet: 60 },
-  blue: { name: '블루', w: 26, h: 32, speed: 36, hp: 7, sheet: 'assets/sprites/subrio_blue.png', cell: 64, feet: 60 },
+  // 사용자(2026-09-15): 바위게·두꺼비·골렘·레드·블루는 최소한 미니언보다 커야 한다 → 몸 높이 30~76px, 셀 64/96
+  raptor: { name: '칼날부리', w: 18, h: 26, speed: 70, hp: 3, hop: 1.1, sheet: 'assets/sprites/subrio_raptor.png', cell: 48, feet: 44 },
+  wolf: { name: '늑대', w: 30, h: 24, speed: 92, hp: 3, sheet: 'assets/sprites/subrio_wolf.png', cell: 64, feet: 60 },
+  gromp: { name: '두꺼비', w: 32, h: 34, speed: 28, hp: 4, sheet: 'assets/sprites/subrio_gromp.png', cell: 64, feet: 60 },
+  krug: { name: '크루그', w: 30, h: 40, speed: 24, hp: 5, sheet: 'assets/sprites/subrio_krug.png', cell: 64, feet: 60 },
+  scuttle: { name: '바위게', w: 36, h: 26, speed: 56, hp: 3, sheet: 'assets/sprites/subrio_scuttle.png', cell: 64, feet: 60 },
+  cannon: { name: '대포 미니언', w: 26, h: 36, speed: 34, hp: 4, sheet: 'assets/sprites/subrio_cannon.png', cell: 64, feet: 60 },
+  red: { name: '레드', w: 40, h: 60, speed: 46, hp: 6, sheet: 'assets/sprites/subrio_red.png', cell: 96, feet: 90 },
+  blue: { name: '블루', w: 44, h: 64, speed: 36, hp: 7, sheet: 'assets/sprites/subrio_blue.png', cell: 96, feet: 90 },
   totem: { name: '훈련 토템', w: 16, h: 32, speed: 0, hp: 8, static: true, sheet: 'assets/props/subrio_totem.png', cell: 32, cellH: 48, feet: 44, frames: 2 },
 };
 export const WATER_W = 14;
 export const WATER_H = 8;
 // 따듯한비데 보스 수치(2026-09-15 기본값 — 사용자 지시로 조정). 창 12방, 도끼 내려찍기(예비 0.55초 → 휘두름 0.3초 → 회복 0.45초), 물줄기 3발
-export const BOSS = { w: 40, h: 60, speed: 64, hp: 12, reach: 76, windup: 0.55, swing: 0.3, recover: 0.45, sprayTime: 1.1, shots: [0.15, 0.45, 0.75],
-  waterSpeed: 240, waterLife: 1.7, jumpSpeed: 500, roar: 1.4, hitFlash: 0.25, hitCooldown: 0.2, chaseMax: 3.2, deathTime: 2.2 };
+// 2026-09-15 사용자: 섭리오 안 비데는 지금보다 두 배(몸 112px, 시트 224×192 셀), 에너지파(물줄기) 없음 → 멀면 주인공 쪽으로 도약(leap)
+export const BOSS = { w: 72, h: 104, speed: 70, hp: 12, reach: 120, windup: 0.55, swing: 0.3, recover: 0.5, leapVx: 260, leapVy: 520, leapCooldown: 2.4,
+  jumpSpeed: 500, roar: 1.4, hitFlash: 0.25, hitCooldown: 0.2, chaseMax: 3.2, deathTime: 2.2, waterLife: 1.7 };
 // 타일 문자: '.' 빈칸, '=' 바닥 윗면, '#' 바닥 속, 'B' 떠 있는 블록, '[' 블록 왼쪽 끝, ']' 블록 오른쪽 끝, '|' 깃발 기둥(통과), 'F' 깃발 천(통과·목표)
 export const SOLID = new Set(['=', '#', 'B', '[', ']']);
 export const ATLAS_COLUMN = { '=': 0, '#': 1, B: 2, '[': 3, ']': 4, '|': 5, F: 6 };
@@ -73,35 +77,42 @@ const PP = (text) => ({ who: 'ppaman', text });
 const GS = (text) => ({ who: 'gyeongsub', text });
 export const CHATTER = {
   0: [
-    { id: 'land', at: 2, lines: [PP('오 이게머야 ㅋㅋㅋ'), GS('ㅋㅋ 저기로 가야되는거같은데'), PP('와 개쩔어요 개재밌다 ㅋㅋ')] },
+    { id: 'land', at: 0, lines: [PP('오 이게머야 ㅋㅋㅋ'), GS('ㅋㅋ 저기로 가야되는거같은데'), PP('와 개쩔어요 개재밌다 ㅋㅋ')] },
     { id: 'jump', at: 30, lines: [PP('점프해서 넘어가시죠')] },
-    { id: 'totem', at: 84, lines: [PP('형섭이형 저거 한번 때려보세요')] },
+    { id: 'totem', at: 78, lines: [PP('형섭이형 저거 한번 때려보세요')] },
+    { id: 'cleared', when: 'cleared', lines: [PP('다 잡았으면 깃발 앞에서 C 누르면 넘어간대요'), GS('가자')] },
   ],
   1: [
     { id: 'start', at: 4, lines: [PP('오 미니언이네요'), GS('오 대박이다'), PP('다 뒤져라 ㅋㅋㅋ')] },
     { id: 'stun', at: 60, lines: [GS('내가 스턴 넣을게')] },
-    { id: 'charge', at: 150, lines: [PP('형 창 꾹 누르면 세게 나가요')] },
-    { id: 'raptor', at: 250, lines: [GS('저 새 뭐야 ㅋㅋ 칼날부리네')] },
-    { id: 'flag', at: 340, lines: [PP('깃발 보이네요 다 잡아야 넘어간대요')] },
+    { id: 'aim', at: 110, lines: [PP('경섭이형 시계좀 잘맞춰봐요'), GS('... 노력하고있어')] },
+    { id: 'charge', at: 160, lines: [PP('형 창 꾹 누르면 세게 나가요')] },
+    { id: 'brand', at: 215, lines: [PP('브랜드 성능좋네요')] },
+    { id: 'raptor', see: ['raptor'], lines: [GS('저 새 뭐야 ㅋㅋ 칼날부리네')] },
+    { id: 'spear', at: 300, lines: [PP('창던져서 창녀만들죠 창녀요플래')] },
+    { id: 'flag', at: 350, lines: [PP('깃발 보이네요 다 잡아야 넘어간대요')] },
   ],
   2: [
     { id: 'start', at: 4, lines: [GS('여긴 치지직이네'), PP('늑대 조심하세요 빨라요')] },
-    { id: 'scuttle', at: 120, lines: [PP('바위게 ㅋㅋㅋ 귀엽네')] },
-    { id: 'stun', at: 240, lines: [GS('시계 두 개 맞으면 멈춰 그때 때려')] },
-    { id: 'flag', at: 380, lines: [PP('거의 다 왔어요')] },
+    { id: 'invite', at: 70, lines: [PP('시크큐티kr 1초대좀')] },
+    { id: 'scuttle', see: ['scuttle'], lines: [PP('바위게 ㅋㅋㅋ 귀엽네')] },
+    { id: 'fun', at: 190, lines: [GS('허허 재밌다')] },
+    { id: 'stun', at: 260, lines: [GS('시계 두 개 맞으면 멈춰 그때 때려')] },
+    { id: 'flag', at: 390, lines: [PP('거의 다 왔어요')] },
   ],
   3: [
     { id: 'start', at: 4, lines: [PP('숲이다 ㅋㅋ 크루그 단단해요'), GS('대포 미니언은 좀 세네')] },
     { id: 'stun', at: 200, lines: [GS('오 나 스턴 개잘넣지 않냐')] },
-    { id: 'redblue', at: 400, lines: [PP('레드 블루다!! 저거 잡으면 끝이에요')] },
-    { id: 'flag', at: 450, lines: [GS('ㅋㅋ 다 잡고 깃발 가자')] },
+    { id: 'aim2', at: 300, lines: [PP('경섭이형 시계 좀 ㅋㅋ'), GS('허허 재밌다')] },
+    { id: 'redblue', see: ['red', 'blue'], lines: [PP('레드 블루다!! 저거 잡으면 끝이에요')] },
+    { id: 'flag', when: 'cleared', lines: [GS('ㅋㅋ 다 잡았다 깃발 가자')] },
   ],
   4: [],
 };
 /** 1-0 조작 안내 팻말: 월드 x(열) 위에 큰 노란 글씨 */
-export const PROMPTS = { 0: [{ at: 8, text: '← → 움직여라!' }, { at: 34, text: '↑ 점프해라!' }, { at: 76, text: 'C 적을 공격해라!  (꾹 누르면 차징)' }] };
+export const PROMPTS = { 0: [{ at: 8, text: '← → 움직여라!' }, { at: 34, text: '↑ 점프해라!' }, { at: 72, text: 'C 적을 공격해라!  (꾹 누르면 차징)' }] };
 /** 1-0 밟기 시범: 주인공이 열 at 을 지나면 모두 멈추고 억빠맨이 혼자 나가 약한 미니언(HP1)을 밟아 죽인다 */
-export const STOMP_DEMO = { at: 46, enemyCol: 58, before: [PP('잠깐 저거 한번 밟아볼게요')], after: [PP('오 밟아서도 죽일수있네요 ㅋㅋ'), GS('ㅋㅋ 개웃기네')] };
+export const STOMP_DEMO = { at: 50, enemyCol: 56, before: [PP('잠깐 저거 한번 밟아볼게요')], after: [PP('오 밟아서도 죽일수있네요 ㅋㅋ'), GS('ㅋㅋ 개웃기네')] };
 /** 1-0 토템을 주인공이 처음 때린 뒤: 동료 공격 해제 + 대사 */
 export const TOTEM_HIT_LINES = [PP('나도 때려야지 씨발롬 다뒤저라 ㅋㅋㅋ'), GS('ㅋㅋ 내꺼 두번 맞추면 스턴도됨')];
 
@@ -150,7 +161,7 @@ const R = 'A', U = 'B';
 function stageTutorial(b) {
   // 1-0: 착지 평지(움직여라) → 3칸 틈(점프해라) → 밟기 시범용 약한 미니언(HP1) → 훈련 토템(공격해라) → 깃발
   b.ground(40, 18);
-  b.gap(3).ground(52, 18, [['cs_red', STOMP_DEMO.enemyCol - 43, { hp: 1, demo: true }], ['totem', 86 - 43]]);
+  b.gap(3).ground(52, 18, [['cs_red', STOMP_DEMO.enemyCol - 43, { hp: 1, demo: true }], ['totem', 82 - 43]]);
   return b.flag(48);
 }
 
@@ -173,11 +184,11 @@ function stagePurple(b) {
 
 function stageTeal(b) {
   // 1-2: 틈 3~4칸, 오르내리는 계단, 블록 징검다리, 블록 위 미니언
-  b.ground(22, 18, [[R, 12], [U, 18]]);
-  b.ground(6, 16).gap(3).ground(14, 18, [[R, 6]]).blocks(5, 3, 14);
+  b.ground(22, 18, [[R, 12]]);
+  b.ground(6, 16).gap(3).ground(14, 18).blocks(5, 3, 14);
   b.gap(4).ground(6, 18).ground(6, 17).ground(6, 16).ground(6, 15).gap(3).ground(18, 15, [[U, 4], [R, 12]]).blocks(5, 4, 12, [[R, 1]]);
-  b.gap(4).ground(20, 18, [[R, 5], [U, 13]]).blocks(4, 3, 15).blocks(10, 4, 13);
-  b.ground(6, 16).gap(3).ground(14, 16, [[R, 7]]);
+  b.gap(4).ground(20, 18, [[R, 5]]).blocks(4, 3, 15).blocks(10, 4, 13);
+  b.ground(6, 16).gap(3).ground(14, 16);
   // 블록 징검다리: 땅 끝(offset 14)에서 틈 3 → 블록 3칸(같은 높이) → 틈 3 → 블록 3칸(한 칸 위) → 틈 3 → 블록 3칸 → 틈 3 → 땅(내려감)
   b.blocks(17, 3, 16).blocks(23, 3, 15).blocks(29, 3, 15);
   b.gap(21).ground(24, 18, [[U, 6], [R, 14], [R, 20]]).blocks(8, 5, 14, [[U, 2]]);
@@ -186,23 +197,23 @@ function stageTeal(b) {
   b.gap(3).ground(6, 16).gap(3).ground(6, 16).gap(3).ground(22, 18, [[U, 8], [R, 16]]).blocks(10, 4, 14);
   b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).gap(4).ground(24, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 6, 14, [[U, 2]]);
   b.gap(4).ground(30, 18, [[R, 8], [R, 14], [U, 22]]).blocks(6, 5, 14).blocks(16, 5, 12).blocks(24, 3, 15);
-  b.gap(3).ground(34, 18, [[R, 8], [U, 16]]);
+  b.gap(3).ground(34, 18, [[R, 8]]);
   return b.flag(26);
 }
 
 function stageBlue(b) {
   // 1-3: 틈 4칸, 내려가는 틈 5칸, 높은 블록 탑, 미니언 촘촘
-  b.ground(20, 18, [[R, 8], [U, 14]]);
-  b.gap(4).ground(14, 18, [[R, 6]]).blocks(4, 3, 14).blocks(9, 3, 12);
+  b.ground(20, 18, [[R, 8]]);
+  b.gap(4).ground(14, 18).blocks(4, 3, 14).blocks(9, 3, 12);
   b.ground(6, 16).ground(6, 14).gap(3).ground(12, 14, [[U, 5]]);
-  b.gap(5).ground(18, 17, [[R, 4], [R, 10]]).blocks(4, 4, 13).blocks(11, 4, 11, [[U, 1]]);
-  b.gap(3).ground(8, 17).ground(6, 15).gap(4).ground(20, 18, [[R, 5], [U, 11], [R, 16]]).blocks(4, 3, 15).blocks(10, 3, 12).blocks(15, 3, 9);
+  b.gap(5).ground(18, 17, [[R, 4]]).blocks(4, 4, 13).blocks(11, 4, 11);
+  b.gap(3).ground(8, 17).ground(6, 15).gap(4).ground(20, 18, [[R, 5], [R, 16]]).blocks(4, 3, 15).blocks(10, 3, 12).blocks(15, 3, 9);
   b.ground(6, 16).gap(4).ground(12, 16, [[U, 6]]);
   b.gap(4).blocks(12 + 4, 3, 16).blocks(12 + 10, 3, 15).blocks(12 + 16, 3, 15).blocks(12 + 22, 3, 14);
   b.gap(21).ground(22, 18, [[R, 4], [R, 10], [U, 16]]).blocks(6, 5, 14, [[R, 2]]).blocks(14, 4, 11);
   b.gap(4).ground(6, 17).ground(6, 15).ground(6, 13).gap(5).ground(24, 18, [[U, 4], [R, 10], [R, 16], [U, 20]]).blocks(6, 4, 14).blocks(14, 4, 12).blocks(19, 3, 9);
   b.gap(4).ground(26, 18, [[R, 5], [U, 11], [R, 17], [R, 22]]).blocks(4, 3, 15).blocks(10, 3, 13).blocks(16, 3, 11, [[U, 1]]).blocks(21, 3, 9);
-  b.gap(4).ground(6, 16).gap(4).ground(6, 16).gap(4).ground(6, 16).gap(3).ground(22, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 5, 14, [[R, 2]]);
+  b.gap(4).ground(6, 16).gap(4).ground(6, 16).gap(4).ground(6, 16).gap(3).ground(22, 18, [[R, 6], [R, 18]]).blocks(8, 5, 14);
   b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).ground(6, 13).gap(5).ground(26, 18, [[R, 4], [U, 10], [R, 16], [U, 22]]).blocks(8, 6, 14, [[U, 2]]).blocks(18, 4, 11);
   b.gap(4).ground(30, 18, [[R, 6], [R, 12], [U, 18], [R, 24]]).blocks(5, 4, 14).blocks(13, 4, 12).blocks(21, 4, 10, [[R, 1]]);
   // 마지막 평지: 레드·블루(사용자: 1-3 마지막 쪽)
@@ -223,11 +234,13 @@ export function buildLevel(stage = 0) {
   else if (stage === 2) { cols = 440; b = makeBuilder(cols, rows, def.kinds); goal = stageTeal(b); }
   else if (stage === 3) { cols = 470; b = makeBuilder(cols, rows, def.kinds); goal = stageBlue(b); }
   else {
-    cols = 44; b = makeBuilder(cols, rows, []);
-    // 블록은 13행: 보스(키 60)가 아래로 지나갈 수 있고(틈 64px) 주인공(점프 83px)은 올라갈 수 있다
-    b.ground(44, 18).wall(0, 2, 6).wall(42, 44, 6);
-    b.blocks(10, 4, 13).blocks(30, 4, 13);
-    spawnX = 72; bossSpawnX = 560;
+    // 1-4(사용자 2026-09-15): 마리오 쿠파성처럼 한 화면 안(29열 = 464px, 카메라 고정)에 발판. 양쪽 벽, 바닥 18행,
+    // 양옆 발판 14행(2~6·22~26열, 바닥에서 점프해 오름), 가운데 발판 10행(12~16열, 옆 발판에서 건너뜀).
+    // 보스(몸 72×104, 머리 y184)는 가운데 발판 아래(y176)를 지나고 양옆 발판엔 막혀 x112~352 안에서만 움직인다. 보스 낙하 자리 x312 는 발판이 없는 열
+    cols = 29; b = makeBuilder(cols, rows, []);
+    b.ground(29, 18).wall(0, 1, 5).wall(28, 29, 5);
+    b.blocks(2, 5, 14).blocks(22, 5, 14).blocks(12, 5, 10);
+    spawnX = 40; bossSpawnX = 312;
   }
   const { grid, enemies } = b;
   const tiles = grid.map(row => row.join(''));
@@ -425,7 +438,7 @@ export function rectsOverlap(a, b) {
  * 주인공 피격(체력 없음 → 튕겨나기만). fromX: 피해가 온 쪽의 x(가드 방향 판정). 방패로 그쪽을 보고 있으면 막고 살짝 밀린다.
  * 무적 시간 안이면 무시. 반환: 실제로 맞았는가
  */
-export function hurtActor(actor, fromX, events = []) {
+export function hurtActor(actor, fromX, events = [], damage = 0) {
   if (actor.invuln > 0) return false;
   const cx = actor.x + actor.w / 2;
   const dir = Math.sign(fromX - cx) || actor.facing;
@@ -438,7 +451,7 @@ export function hurtActor(actor, fromX, events = []) {
   actor.vx = -dir * KNOCK_VX; actor.vy = -KNOCK_VY; actor.grounded = false;
   actor.h = STAND_H; actor.crouch = false;
   actor.state = 'hurt'; actor.stateT = 0;
-  events.push({ type: 'hurt', id: actor.id });
+  events.push({ type: 'hurt', id: actor.id, damage });
   return true;
 }
 
@@ -526,7 +539,8 @@ export function stepEnemy(level, enemy, dt, events = []) {
   enemy.animT += dt;
   if (enemy.dead) { enemy.deadT += dt; enemy.vy += GRAVITY * dt; enemy.y += enemy.vy * dt; enemy.x += enemy.vx * dt; return events; }
   if (enemy.stunT > 0) { enemy.stunT = Math.max(0, enemy.stunT - dt); if (enemy.stunT === 0) events.push({ type: 'stunEnd', id: enemy.id }); }
-  const walking = !kind.static && enemy.stunT === 0 && enemy.grounded;
+  // 시범용 미니언(demo)은 제자리(걸어서 화면 밖으로 나가 버리던 문제 — 2026-09-15)
+  const walking = !kind.static && !enemy.demo && enemy.stunT === 0 && enemy.grounded;
   if (walking && pitAhead(level, enemy, enemy.dir, 2)) enemy.dir = -enemy.dir;
   enemy.vx = walking ? enemy.dir * kind.speed : 0;
   enemy.facing = enemy.dir;
@@ -559,7 +573,7 @@ export function heroTouchesEnemy(hero, enemy, now, events = []) {
   const stomp = hero.vy > 0 && hero.y + hero.h < enemy.y + enemy.h * 0.6;
   if (stomp) { damageEnemy(enemy, ATTACK_POWER, 'stomp', now, events); hero.vy = -ENEMY.stompBounce; hero.grounded = false; events.push({ type: 'stomp', id: enemy.id }); return true; }
   if (enemy.stunT > 0) return false;
-  return hurtActor(hero, enemy.x + enemy.w / 2, events);
+  return hurtActor(hero, enemy.x + enemy.w / 2, events, DAMAGE.touch);
 }
 
 /** 몬스터 시트 2×2: 0~1 걷기, 2 스턴, 3 쓰러짐. 토템(2칸): 0 서 있음, 1 맞은 직후 */
@@ -577,10 +591,10 @@ export function makeBoss(footX, footY) {
     hp: BOSS.hp, maxHp: BOSS.hp, state: 'enter', stateT: 0, seq: 0, flash: 0, hitCooldown: 0, animT: 0, shot: 0, dead: false, deadT: 0 };
 }
 
-/** 휘두르는 동안 도끼 판정 사각형(앞쪽 56px). 그 외엔 null */
+/** 휘두르는 동안 도끼 판정 사각형(앞쪽 100px). 그 외엔 null */
 export function bossHitbox(boss) {
   if (boss.state !== 'swing') return null;
-  return { x: boss.facing > 0 ? boss.x + boss.w - 6 : boss.x - 50, y: boss.y + 12, w: 56, h: boss.h - 12 };
+  return { x: boss.facing > 0 ? boss.x + boss.w - 10 : boss.x - 90, y: boss.y + 16, w: 100, h: boss.h - 16 };
 }
 
 /**
@@ -601,30 +615,26 @@ export function stepBoss(level, boss, target, dt, events = []) {
   else if (boss.state === 'chase') {
     boss.facing = Math.sign(dx) || boss.facing;
     move = boss.facing;
+    boss.leapCool = Math.max(0, (boss.leapCool || 0) - dt);
     if (dist <= BOSS.reach && sameLevel) go('windup');
-    else if (boss.grounded && target.y + target.h < boss.y + boss.h - 40 && dist < 140 && boss.stateT > 0.4) { boss.vy = -BOSS.jumpSpeed; boss.grounded = false; events.push({ type: 'bossJump' }); }
-    else if (boss.stateT > BOSS.chaseMax && dist < 340 && dist > BOSS.reach * 1.5) go('spray');
+    else if (boss.grounded && target.y + target.h < boss.y + boss.h - 40 && dist < 200 && boss.stateT > 0.4) { boss.vy = -BOSS.jumpSpeed; boss.grounded = false; events.push({ type: 'bossJump' }); }
+    // 에너지파 대신: 오래 못 잡으면 주인공 쪽으로 크게 도약(착지 쿵)
+    else if (boss.grounded && boss.stateT > BOSS.chaseMax && dist > BOSS.reach * 1.5 && boss.leapCool === 0) { boss.vy = -BOSS.leapVy; boss.vx = boss.facing * BOSS.leapVx; boss.grounded = false; boss.leaping = true; boss.leapCool = BOSS.leapCooldown; boss.stateT = 0; events.push({ type: 'bossLeap' }); }
   }
   else if (boss.state === 'windup') { if (boss.stateT >= BOSS.windup) { go('swing'); events.push({ type: 'swing', facing: boss.facing }); } }
   else if (boss.state === 'swing') { if (boss.stateT >= BOSS.swing) go('recover'); }
-  else if (boss.state === 'recover') { if (boss.stateT >= BOSS.recover) { boss.seq += 1; go(boss.seq % 3 === 2 ? 'spray' : 'chase'); if (boss.state === 'spray') boss.shot = 0; } }
-  else if (boss.state === 'spray') {
-    if (boss.stateT < 0.05) boss.facing = Math.sign(dx) || boss.facing;
-    while (boss.shot < BOSS.shots.length && boss.stateT >= BOSS.shots[boss.shot]) {
-      boss.shot += 1;
-      events.push({ type: 'water', x: boss.facing > 0 ? boss.x + boss.w + 2 : boss.x - WATER_W - 2, y: boss.y + 20, vx: boss.facing * BOSS.waterSpeed, facing: boss.facing });
-    }
-    if (boss.stateT >= BOSS.sprayTime) { boss.seq += 1; boss.shot = 0; go('chase'); }
-  }
+  else if (boss.state === 'recover') { if (boss.stateT >= BOSS.recover) { boss.seq += 1; go('chase'); } }
   const targetVx = move * BOSS.speed;
-  boss.vx += (targetVx - boss.vx) * Math.min(1, dt * (boss.grounded ? 12 : 5));
-  if (!move && Math.abs(boss.vx) < 2) boss.vx = 0;
+  if (!boss.leaping) boss.vx += (targetVx - boss.vx) * Math.min(1, dt * (boss.grounded ? 12 : 5));
+  if (!move && !boss.leaping && Math.abs(boss.vx) < 2) boss.vx = 0;
   boss.vy = Math.min(MAX_FALL, boss.vy + GRAVITY * dt);
+  const wasGrounded = boss.grounded;
   const hit = moveBody(level, boss, boss.vx * dt, boss.vy * dt);
   if (hit.x) boss.vx = 0;
   if (hit.floor) { boss.grounded = true; boss.vy = 0; }
   else if (hit.ceiling) boss.vy = 0;
   else boss.grounded = false;
+  if (boss.leaping && boss.grounded && !wasGrounded) { boss.leaping = false; boss.vx = 0; events.push({ type: 'bossLand' }); }
   return events;
 }
 
@@ -637,16 +647,19 @@ export function hitBoss(boss, events = []) {
   return true;
 }
 
-/** 보스 시트 2×4: 0 idle, 1~2 walk, 3 jump, 4 windup, 5 swing, 6 spray, 7 hurt */
+/** 보스 시트 2×4: 0 idle, 1~2 walk, 3 jump, 4 windup, 5 swing, 6 (물줄기 프레임, 미사용), 7 hurt. 걷기는 idle 을 사이에 끼운 4박(1·0·2·0)으로 부드럽게 */
 export function bossFrame(boss) {
   if (boss.dead) return 7;
   if (boss.flash > 0 && boss.state !== 'swing' && boss.state !== 'windup') return 7;
   if (boss.state === 'enter' || (!boss.grounded && boss.state === 'chase')) return 3;
   if (boss.state === 'windup') return 4;
   if (boss.state === 'swing') return 5;
-  if (boss.state === 'spray') return 6;
-  if (boss.state === 'chase') return 1 + Math.floor(boss.animT * 6) % 2;
+  if (boss.state === 'chase') return [1, 0, 2, 0][Math.floor(boss.animT * 7) % 4];
   return 0;
+}
+/** 걷는 동안 위아래로 살짝 들썩이는 양(px) — 미끄러지는 느낌을 줄인다 */
+export function bossBob(boss) {
+  return boss.state === 'chase' && boss.grounded ? Math.round(Math.abs(Math.sin(boss.animT * 7 * Math.PI / 2)) * 3) : 0;
 }
 
 /** 카메라 x: 주인공이 화면 40% 지점에 오도록, 레벨 밖으로 나가지 않게 */

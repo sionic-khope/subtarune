@@ -1,36 +1,36 @@
 {
   "asset": "assets/sprites/subrio_scuttle.png",
   "cell": [
-    48,
-    48
+    64,
+    64
   ],
   "grid": "2x2 row-major: walkA, walkB, stunned, defeated",
-  "feetY": 44,
-  "scale": 0.0963855421686747,
+  "feetY": 60,
+  "scale": 0.13654618473895583,
   "frameBounds": [
     [
-      13,
-      20,
-      42,
-      44
+      17,
+      26,
+      58,
+      60
     ],
     [
-      6,
-      19,
-      36,
-      44
-    ],
-    [
-      13,
-      12,
-      41,
-      43
-    ],
-    [
-      8,
+      7,
       25,
-      34,
-      44
+      49,
+      60
+    ],
+    [
+      16,
+      15,
+      56,
+      60
+    ],
+    [
+      10,
+      33,
+      47,
+      60
     ]
   ],
   "sampling": "NEAREST",

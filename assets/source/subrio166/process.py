@@ -4,7 +4,7 @@
 # dependencies = ["pillow", "numpy"]
 # ///
 # How to run: /usr/bin/python3 assets/source/subrio166/process.py   (루트에서)
-"""섭리오 보스 따듯한비데: OG(gpt-image-2, edits·단일 image 참조) 2×4 시트를 processor 크로마키 정리 뒤 시트 공통 배율로 112×96 셀(발 y90, idle 몸 64px — 167에서 주인공 1.4배에 맞춰 키움)에 NEAREST 배치."""
+"""섭리오 보스 따듯한비데: OG(gpt-image-2, edits·단일 image 참조) 2×4 시트를 processor 크로마키 정리 뒤 시트 공통 배율로 224×192 셀(발 y180, idle 몸 128px — 169에서 사용자 지시로 두 배)에 NEAREST 배치."""
 from pathlib import Path
 from typing import Final
 import json
@@ -17,10 +17,10 @@ from PIL import Image
 ROOT: Final = Path(__file__).resolve().parent
 GAME: Final = ROOT.parents[2]
 PROCESSOR: Final = GAME / "tools/sprites/sheet_processor.py"
-CELL_W: Final = 112
-CELL_H: Final = 96
-FEET: Final = 90
-BODY_TARGET: Final = 64
+CELL_W: Final = 224
+CELL_H: Final = 192
+FEET: Final = 180
+BODY_TARGET: Final = 128
 NAME: Final = "bidet"
 
 

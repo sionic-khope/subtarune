@@ -262,7 +262,7 @@ test('test_park_aftermath_enter_script_is_noop_unless_only_the_win_is_saved_and_
   const flingNode = park_guardian_aftermath.slice(dashIndex, dashIndex + 3).find(node => node.parallel?.some(part => part.fling));
   assert.ok(flingNode, '대시 뒤 2노드 안에 fling');
   const fling = flingNode.parallel.find(part => part.fling);
-  assert.equal(fling.sfx, 'fling_whistle');
+  assert.equal(fling.sfx, 'wing', '날리기는 델타룬 공식 snd_wing');
   assert.ok(flingNode.parallel.some(part => part.shake));
   // 철창이 내려오는 동안 카메라가 위 통로(x928~1056)를 잡는다
   const slideIndex = park_guardian_aftermath.findIndex(node => node.slide === 'youngcle7_grate');

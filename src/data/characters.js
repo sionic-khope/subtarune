@@ -10,7 +10,7 @@ export const CHARACTERS = {
   seopnyang: { name: '섭냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/seopnyang_front.png', stillPivot: [24, 44] },
   gyeongnyang: { name: '경냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/gyeongnyang_front.png', stillPivot: [24, 44] },
   mini_mario: { name: '마리오', still: 'assets/sprites/mini_mario.png', stillScale: 0.5, stillPivot: [32, 60] },
-  warm_bidet: { name: '따듯한비데', voice: 'warm_bidet', sheet: 'assets/sprites/warm_bidet.png', stillPivot: [64, 156] },
+  warm_bidet: { name: '따듯한비데', voice: 'warm_bidet', sheet: 'assets/sprites/warm_bidet.png', stillPivot: [64, 156], walkBob: true },
   lucky_guy: { name: '럭키가이', voice: 'lucky_guy', sheet: 'assets/sprites/lucky.png', stillPivot: [32, 60] },
   // 나람이(2026-09-14 사용자 명명): 군복·웃는 얼굴·뚱뚱한 체형, OG 생성 4방향 시트(assets/source/naram-walk-v1). 정지 프레임은 앞뒤 0·좌우 1(계약). 아직 맵 배치·대사 없음
   naram: { name: '나람이', voice: 'naram', sheet: 'assets/sprites/naram.png', stillPivot: [32, 60] },

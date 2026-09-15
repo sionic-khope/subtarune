@@ -1,36 +1,36 @@
 {
   "asset": "assets/sprites/subrio_wolf.png",
   "cell": [
-    48,
-    48
+    64,
+    64
   ],
   "grid": "2x2 row-major: walkA, walkB, stunned, defeated",
-  "feetY": 44,
-  "scale": 0.10655737704918032,
+  "feetY": 60,
+  "scale": 0.13114754098360656,
   "frameBounds": [
     [
-      6,
-      18,
-      48,
-      44
-    ],
-    [
-      1,
-      17,
-      43,
-      44
-    ],
-    [
-      6,
-      10,
-      44,
-      44
+      9,
+      29,
+      61,
+      60
     ],
     [
       4,
-      21,
-      41,
-      44
+      27,
+      56,
+      60
+    ],
+    [
+      9,
+      19,
+      57,
+      60
+    ],
+    [
+      8,
+      32,
+      53,
+      60
     ]
   ],
   "sampling": "NEAREST",

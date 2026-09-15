@@ -1,36 +1,36 @@
 {
   "asset": "assets/sprites/subrio_red.png",
   "cell": [
-    64,
-    64
+    96,
+    96
   ],
   "grid": "2x2 row-major: walkA, walkB, stunned, defeated",
-  "feetY": 60,
-  "scale": 0.13529411764705881,
+  "feetY": 90,
+  "scale": 0.21176470588235294,
   "frameBounds": [
     [
-      13,
-      14,
-      55,
-      60
+      19,
+      18,
+      84,
+      90
     ],
     [
       2,
-      14,
-      50,
-      60
+      18,
+      77,
+      90
     ],
     [
-      11,
-      9,
-      54,
-      60
+      15,
+      10,
+      82,
+      90
     ],
     [
-      2,
-      27,
-      55,
-      60
+      0,
+      39,
+      84,
+      90
     ]
   ],
   "sampling": "NEAREST",

@@ -1,36 +1,36 @@
 {
   "asset": "assets/sprites/subrio_cannon.png",
   "cell": [
-    48,
-    48
+    64,
+    64
   ],
   "grid": "2x2 row-major: walkA, walkB, stunned, defeated",
-  "feetY": 44,
-  "scale": 0.10149253731343283,
+  "feetY": 60,
+  "scale": 0.13134328358208955,
   "frameBounds": [
     [
-      9,
-      10,
-      45,
-      44
+      13,
+      16,
+      60,
+      60
     ],
     [
-      4,
-      10,
-      42,
-      44
+      7,
+      16,
+      56,
+      60
     ],
     [
-      9,
-      4,
-      45,
-      44
+      13,
+      8,
+      60,
+      60
     ],
     [
-      4,
-      18,
-      37,
-      44
+      5,
+      26,
+      47,
+      60
     ]
   ],
   "sampling": "NEAREST",

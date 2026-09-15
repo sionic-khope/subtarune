@@ -1,36 +1,36 @@
 {
   "asset": "assets/sprites/subrio_krug.png",
   "cell": [
-    48,
-    48
+    64,
+    64
   ],
   "grid": "2x2 row-major: walkA, walkB, stunned, defeated",
-  "feetY": 44,
-  "scale": 0.07901234567901234,
+  "feetY": 60,
+  "scale": 0.11851851851851852,
   "frameBounds": [
     [
-      14,
+      17,
       12,
-      38,
-      35
-    ],
-    [
-      9,
-      21,
-      34,
-      44
-    ],
-    [
-      14,
-      16,
-      39,
-      44
+      53,
+      46
     ],
     [
       10,
-      30,
-      34,
-      44
+      26,
+      47,
+      60
+    ],
+    [
+      17,
+      18,
+      54,
+      60
+    ],
+    [
+      11,
+      38,
+      47,
+      60
     ]
   ],
   "sampling": "NEAREST",
