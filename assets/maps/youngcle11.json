@@ -376,7 +376,8 @@
    "to": "youngcle12",
    "spawn": "from_stairs",
    "sfx": false,
-   "interact": false
+   "interact": false,
+   "unless": "stage_show_done"
   },
   {
    "type": "door",
@@ -388,7 +389,8 @@
    "to": "youngcle12",
    "spawn": "from_stairs",
    "sfx": false,
-   "interact": false
+   "interact": false,
+   "unless": "stage_show_done"
   },
   {
    "type": "door",

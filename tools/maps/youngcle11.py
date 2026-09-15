@@ -102,8 +102,9 @@ def main() -> None:
             {'type': 'door', 'id': 'youngcle11_down', 'x': 352, 'y': 752, 'w': 128, 'h': 16,
              'to': 'youngcle10', 'spawn': 'from_hall', 'sfx': False, 'interact': False},
             # 양쪽 계단 꼭대기 → 무대 뒷편 대기실(youngcle12). 계단으로 올라가면 바로 대기실이 나온다(사용자). 연출의 뚜울라(NPC)는 문을 안 밟는다
+            # 공연이 끝나면(stage_show_done) 대기실 워프는 사라진다 — 오른쪽 길로 가다 계단을 밟으면 대기실로 끌려가던 버그(BUILD190 사용자)
             *[{'type': 'door', 'id': f'youngcle11_stairs_{side}', 'x': x, 'y': 224, 'w': 64, 'h': 16,
-               'to': 'youngcle12', 'spawn': 'from_stairs', 'sfx': False, 'interact': False}
+               'to': 'youngcle12', 'spawn': 'from_stairs', 'sfx': False, 'interact': False, 'unless': 'stage_show_done'}
               for side, x in (('l', 96), ('r', 672))],
             # 무대 오른쪽 길: 공연 뒤(stage_show_done) 문이 열린다. 그 전엔 벽 판이 막고(unless), 연출이 remove 로 뚫는다
             {'type': 'door', 'id': 'youngcle11_right', 'x': 784, 'y': 128, 'w': 16, 'h': 64,

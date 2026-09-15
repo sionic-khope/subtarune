@@ -64,6 +64,11 @@ try {
   await page.waitForFunction(() => window.game.flags.stage_show_done === true, null, { timeout: 12000 }).catch(() => {});
   await cap('after'); s = await st();
   check(s.flag && !s.show && !s.dialogue && s.mice.length === 0, '뚜울라가 땅 파고 사라지고(남는 뚜울라 없음) stage_show_done ' + JSON.stringify([s.flag, s.show, s.dialogue, s.mice]));
+  // ②-b 공연 뒤엔 계단 꼭대기를 밟아도 대기실로 안 간다(BUILD190 사용자 버그 신고)
+  await page.evaluate(() => { const g = window.game; g.player.x = 700; g.player.y = 210; });
+  await page.keyboard.down('ArrowDown'); await page.waitForTimeout(900); await page.keyboard.up('ArrowDown');
+  await page.waitForTimeout(400); s = await st();
+  check(s.map === 'youngcle11', '공연 뒤 오른쪽 계단을 내려가도 대기실로 워프하지 않는다 ' + JSON.stringify([s.map, s.px, s.py]));
   // ③ 오른쪽 길로 걸어가면 복도(youngcle13)
   await page.evaluate(() => { const g = window.game; g.player.x = 740; g.player.y = 160; });
   await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1800); await page.keyboard.up('ArrowRight');

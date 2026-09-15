@@ -540,6 +540,8 @@ export class Trigger extends Entity {
     if (!entering || this.running || this.cooldown > 0) return;
     if (this.game.dialogue.running || this.game.transitioning) return;
     if (this.def.once && this.game.has(this.def.flag)) return;
+    // unless 플래그가 맵에 있는 동안 켜져도(같은 맵 컷신) 그 뒤로는 안 밟힌다 — 공연 뒤 무대 계단이 대기실로 워프하던 버그(BUILD190)
+    if (this.def.unless && this.game.has(this.def.unless)) return;
     if (this.def.flag) this.game.setFlag(this.def.flag);
     this.running = true;
     this.fire(() => { this.running = false; this.cooldown = Trigger.COOLDOWN; });
