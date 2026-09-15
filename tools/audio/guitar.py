@@ -134,3 +134,38 @@ def sustain(root: float, dur: float) -> np.ndarray:
 
 
 write('guitar_sustain', sustain(164.81, 3.2), fade=0.3)
+
+
+# ── BUILD182: 노래와 어울리는 리듬 기타 — 사용자 “기타 소리가 노래랑 안 조화롭고 너무 시끄럽다”
+# MISS 는 음정 없는 데드 노트(툭). chug(팜뮤트 척)는 만들어 뒀지만 지금은 안 쓴다(GREAT 는 아래 멜로디 리드).
+def chug(root: float, dur: float) -> np.ndarray:
+    parts = [string(root * m, dur, decay=0.965, brightness=0.8, pick=1.0) for m in (1.0, 1.5)]
+    x = sum(parts) / 2
+    t = np.linspace(0, dur, len(x), endpoint=False)
+    x = x * np.exp(-t * 14)
+    return amp(x, gain=26, cab=2600)
+
+
+def dead(dur: float) -> np.ndarray:
+    rng = np.random.default_rng(11)
+    n = int(SR * dur)
+    t = np.linspace(0, dur, n, endpoint=False)
+    noise = onepole_lp(rng.uniform(-1, 1, n), 1400) * np.exp(-t * 38)
+    thump = np.sin(2 * np.pi * 70 * t) * np.exp(-t * 30) * 0.8
+    return amp(noise + thump, gain=12, cab=2000)
+
+
+write('guitar_dead', dead(0.1), fade=0.015)
+
+
+# 멜로디 리드(BUILD182 사용자 “음이 노래 음이랑 아예 똑같이 같이 가는 게 좋다”): 차트 노트의 pitch(보컬 음높이 추적)로 씬이 이조해 튼다.
+# 기준음 A2/A3/A4 세 벌을 두고 가장 가까운 것을 골라 playbackRate ±6반음 안에서만 늘리므로 음색·길이가 고르다.
+def lead(freq: float, dur: float) -> np.ndarray:
+    x = string(freq, dur, decay=0.997, brightness=0.5, pick=0.95)
+    x = x + 0.3 * string(freq * 2.003, dur, decay=0.994, brightness=0.6)
+    return amp(x, gain=18, cab=3200)
+
+
+write('guitar_lead_a2', lead(110.0, 0.55))
+write('guitar_lead_a3', lead(220.0, 0.55))
+write('guitar_lead_a4', lead(440.0, 0.55))

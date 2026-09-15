@@ -1,11 +1,12 @@
 // 리듬 게임 규칙(순수, DOM 없음) — 2026-09-15 사용자 브리핑: 델타룬 3장 테나 리듬 게임 참고. 가운데 두 칸(L/R = 키보드 ←/→)만 유저가 치고
 // 양옆(경섭 드럼·빠맨 보컬)은 자동. 노트는 탭·홀드 두 종류, 판정은 GREAT/MISS 둘, 콤보가 쌓인다. 5번 연속 MISS 면 게임오버(재시도). 인기(POPU/LARITY)는 GREAT 로 차고 MISS 로 준다.
+// 홀드(BUILD182 사용자 확정): 머리를 맞히고 꾹 누르다 떼면 성공 — 중간에 떼도 MISS 가 아니다. 끝까지 누르면 보너스 전부, 일찍 떼면 누른 비율만큼(최소 절반).
 export const LANES = ['L', 'R'];
 export const RHYTHM = {
   approach: 1.5,        // 노트가 위에서 판정선까지 내려오는 시간(초)
   great: 0.12,          // ±이 안에 누르면 GREAT
   late: 0.16,           // 이만큼 지나면 MISS
-  holdRelease: 0.15,    // 홀드는 끝나기 이만큼 전부터는 떼어도 된다
+  holdRelease: 0.15,    // (참고) 홀드 끝 여유 — 이제 떼는 시점은 판정에 안 쓰이고 보너스 비율에만 반영
   missLimit: 5,         // 연속 MISS 게임오버
   popGreat: 0.022, popMiss: 0.07, popStart: 0.45,
   scoreGreat: 100,
@@ -34,7 +35,7 @@ function miss(play, note, events, why) {
 
 /**
  * 한 틱. input: { press: { L, R }(눌린 순간), held: { L, R } }. 반환: 사건 배열
- * great(탭/홀드 시작), holdEnd(홀드 완주), miss(why: late|early|release), empty(노트 없는데 누름 — 툭툭 긋는 소리), over
+ * great(탭/홀드 시작), holdEnd(홀드 끝 — early: true 면 일찍 뗌, 그래도 성공), miss(why: late), empty(노트 없는데 누름 — 툭툭 긋는 소리), over
  */
 export function stepPlay(play, time, input = {}) {
   const events = [];
@@ -58,7 +59,11 @@ export function stepPlay(play, time, input = {}) {
     else if (n.status === 'holding') {
       const end = n.t + n.dur;
       if (time >= end) { n.status = 'hit'; play.score += Math.round(RHYTHM.scoreGreat * 0.5); events.push({ type: 'holdEnd', lane: n.lane, note: n }); }
-      else if (!held[n.lane] && time < end - RHYTHM.holdRelease) miss(play, n, events, 'release');
+      else if (!held[n.lane]) {
+        // 꾹 누르다 뗐으면 성공(사용자 확정). 보너스는 누른 비율만큼(최소 절반)
+        const ratio = Math.max(0.5, Math.min(1, (time - n.t) / Math.max(0.001, n.dur)));
+        n.status = 'hit'; play.score += Math.round(RHYTHM.scoreGreat * 0.5 * ratio); events.push({ type: 'holdEnd', lane: n.lane, note: n, early: true });
+      }
     }
     if (n.t - time > RHYTHM.approach + 1) break;
   }

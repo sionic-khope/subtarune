@@ -9,7 +9,7 @@ const errors = []; page.on('pageerror', e => errors.push(e.message));
 let fails = 0;
 const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'rhythm_' + n + '.png') }); };
-const st = () => page.evaluate(() => { const r = window.__rhythm; if (!r) return null; const s = r.state; return { phase: s.phase, landed: s.band.map(b => b.landed), talk: s.talk && s.talk.i, combo: s.play?.combo ?? null, max: s.play?.maxCombo ?? null, score: s.play?.score ?? null, misses: s.play?.misses ?? null, over: s.over, song: s.song, title: s.chart?.title, time: Math.round(r.songTime() * 100) / 100, video: !!s.video, fromClock: s.fromClock, tvOn: s.tvOn, pop: s.play ? Math.round(s.play.pop * 100) / 100 : null }; });
+const st = () => page.evaluate(() => { const r = window.__rhythm; if (!r) return null; const s = r.state; return { phase: s.phase, landed: s.band.map(b => b.landed), talk: s.talk && s.talk.i, combo: s.play?.combo ?? null, max: s.play?.maxCombo ?? null, score: s.play?.score ?? null, misses: s.play?.misses ?? null, over: s.over, song: s.song, title: s.chart?.title, time: Math.round(r.songTime() * 100) / 100, video: !!s.video, fromClock: s.fromClock, tvOn: s.tvOn, pop: s.play ? Math.round(s.play.pop * 100) / 100 : null, start: s.chart?.start || 0, key: s.chart?.key?.name }; });
 const pressC = async () => { await page.keyboard.press('KeyC'); await page.waitForTimeout(140); };
 const talkThrough = async (maxLines) => { for (let i = 0; i < maxLines * 3; i++) { const s = await st(); if (!s || s.phase !== 'talk') return; await pressC(); await page.waitForTimeout(80); } };
 // 노트가 판정선(±0.08초)에 올 때 키를 누르는 자동 연주기(홀드는 누른 채 유지)
@@ -59,10 +59,11 @@ try {
   await page.waitForFunction(() => window.__rhythm.state.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(1200); await cap('tv_on');
   s = await st(); check(s.phase === 'play' && (s.video || s.fromClock), 'TV 켜지며 곡 시작(영상 또는 시계) ' + JSON.stringify([s.phase, s.video, s.fromClock, s.tvOn]));
-  await autoPlay(4); await page.waitForTimeout(100); await cap('play');
-  // 노앰토리 첫 하이라이트(5.7초~)에 들어가면 색종이·불꽃·관객 점프·스트로브(BUILD181)
-  await autoPlay(5); await page.waitForTimeout(60); await cap('highlight');
-  s = await st(); check(s.score > 0 && s.max >= 5 && s.time > 5, '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다 ' + JSON.stringify([s.score, s.max, s.time, s.misses]));
+  await autoPlay(6); await page.waitForTimeout(100); await cap('play');
+  s = await st(); check(s.score > 0 && s.max >= 5 && s.time > s.start + 4 && s.key === 'Dm', '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다(영상은 18.2초 ‘만원 주면~’부터 잘라둠), 키 Dm ' + JSON.stringify([s.score, s.max, s.time, s.start, s.key, s.misses]));
+  // 하이라이트(코러스) 구간으로 건너뛰면 색종이·불꽃·관객 점프·스트로브(BUILD181)
+  await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.highlights[0][0] - 0.8));
+  await autoPlay(3); await page.waitForTimeout(60); await cap('highlight');
   const hl = await page.evaluate(() => { const r = window.__rhythm.state; return { hi: r.hi, confetti: r.confetti.length, cheer: Math.round(r.cheer * 100) / 100, sparks: r.sparks.length, hl: r.chart.highlights }; });
   check(hl.hi === true && hl.confetti > 20 && hl.cheer > 0, '코러스 하이라이트: 색종이·관객 환호 ' + JSON.stringify(hl));
   // 손을 놓으면 5연속 MISS → 게임오버 → C 재도전
@@ -70,7 +71,7 @@ try {
   await page.waitForTimeout(300); await cap('over');
   s = await st(); check(s.over === true, '5연속 MISS 게임오버 ' + JSON.stringify([s.over, s.misses]));
   await pressC(); await page.waitForTimeout(500);
-  s = await st(); check(s.over === false && s.combo === 0 && s.time < 3, '재도전: 곡 처음부터 ' + JSON.stringify([s.over, s.combo, s.time]));
+  s = await st(); check(s.over === false && s.combo === 0 && s.time < s.start + 3, '재도전: 곡 시작점부터 ' + JSON.stringify([s.over, s.combo, s.time, s.start]));
   await autoPlay(4); s = await st(); check(s.max >= 3, '재도전 뒤에도 연주 ' + JSON.stringify([s.max]));
   await page.evaluate(() => window.__rhythm.finish(true));
   await page.waitForFunction(() => !window.__rhythm, null, { timeout: 5000 }).catch(() => {});

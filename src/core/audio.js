@@ -415,11 +415,13 @@ export class Sound {
   }
 
   /** 효과음. from/len(초) 을 주면 파일의 그 구간만 재생한다 — 걸음 소리처럼 한 파일에 여러 개가 이어져 있을 때 (2026-09-12) */
-  sfx(name, { volume = 0.9, rate = 1, from = 0, len = 0 } = {}) {
+  sfx(name, { volume = 0.9, rate = 1, from = 0, len = 0, pitch = false } = {}) {
     if (this.muted || !name) return;
     const f = this.files[name];
     if (f) {
       const a = f.cloneNode(); a.volume = Math.min(1, volume); a.playbackRate = rate;
+      // pitch: rate 로 음정까지 바꾼다(기본은 브라우저가 음정을 보존) — 리듬 기타 척을 곡 키로 이조할 때
+      if (pitch) { a.preservesPitch = false; a.mozPreservesPitch = false; }
       if (from > 0) { try { a.currentTime = from; } catch {} }
       if (len > 0) setTimeout(() => { a.pause(); a.src = ''; }, (len / rate) * 1000);
       a.play().catch(() => {}); return a;   // 파일 소리는 요소를 돌려준다 — 홀드 기타처럼 도중에 멈춰야 하는 소리용(rhythm.js)

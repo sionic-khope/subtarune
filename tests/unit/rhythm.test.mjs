@@ -23,21 +23,25 @@ test('test_rhythm_press_with_no_note_is_empty_and_does_not_break_combo', () => {
   assert.deepEqual(ev.map(e => e.type), ['empty']); assert.equal(play.combo, 1);
 });
 
-test('test_rhythm_hold_must_be_kept_until_near_the_end', () => {
+test('test_rhythm_hold_release_is_success_and_full_hold_gets_full_bonus', () => {
   const play = makePlay(chart);
   stepPlay(play, 1.0, { press: { L: true } }); stepPlay(play, 2.0, { press: { R: true } });
   let ev = stepPlay(play, 3.0, { press: { L: true }, held: { L: true } });
   assert.equal(ev[0].type, 'great'); assert.equal(play.notes[2].status, 'holding');
   ev = stepPlay(play, 3.5, { held: { L: true } }); assert.equal(ev.length, 0);
+  const before = play.score;
   ev = stepPlay(play, 3.6, { held: { L: false } });
-  assert.ok(ev.some(e => e.type === 'miss' && e.why === 'release'), '일찍 떼면 MISS');
+  assert.ok(ev.some(e => e.type === 'holdEnd' && e.early), '꾹 누르다 일찍 떼도 성공(holdEnd early)');
+  assert.ok(!ev.some(e => e.type === 'miss'), '일찍 떼도 MISS 아님'); assert.equal(play.notes[2].status, 'hit'); assert.equal(play.missStreak, 0);
+  assert.equal(play.score - before, Math.round(RHYTHM.scoreGreat * 0.5 * 0.6), '보너스는 누른 비율(0.6)만큼');
   const play2 = makePlay(chart);
   stepPlay(play2, 1.0, { press: { L: true } }); stepPlay(play2, 2.0, { press: { R: true } });
   stepPlay(play2, 3.0, { press: { L: true }, held: { L: true } });
-  stepPlay(play2, 3.9, { held: { L: false } });
-  const end = stepPlay(play2, 4.01, { held: { L: false } });
-  assert.ok(end.some(e => e.type === 'holdEnd'), '끝나기 0.15초 전부터는 떼어도 완주');
-  assert.equal(play2.notes[2].status, 'hit');
+  stepPlay(play2, 3.9, { held: { L: true } });
+  const b2 = play2.score;
+  const end = stepPlay(play2, 4.01, { held: { L: true } });
+  assert.ok(end.some(e => e.type === 'holdEnd' && !e.early), '끝까지 누르면 완주');
+  assert.equal(play2.score - b2, Math.round(RHYTHM.scoreGreat * 0.5)); assert.equal(play2.notes[2].status, 'hit');
 });
 
 test('test_rhythm_five_consecutive_misses_end_the_game', () => {
@@ -79,6 +83,17 @@ test('test_rhythm_beat_grid_and_highlight_lookup', async () => {
   for (const id of ['noamtori', 'bojipam']) {
     const c = JSON.parse(fs.readFileSync(new URL(`../../assets/rhythm/${id}.json`, import.meta.url), 'utf8'));
     assert.ok(c.highlights.length >= 1 && c.highlights.every(([s, e]) => e - s >= 6 && e <= c.duration), `${id} 하이라이트 ${JSON.stringify(c.highlights)}`);
+  }
+  const noam = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/noamtori.json', import.meta.url), 'utf8'));
+  assert.ok(noam.duration < 72 && noam.duration > 65 && noam.notes.every(n => n.t >= 1.0), '노앰토리 영상은 18.2초(만원 주면~)부터 잘라둔 69.6초짜리(seek 불필요) ' + noam.duration);
+  assert.ok(noam.key && typeof noam.key.root === 'number' && noam.key.root >= 0 && noam.key.root < 12 && noam.key.name, '곡 키(근음 pitch class) ' + JSON.stringify(noam.key));
+  const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
+  for (const id of ['noamtori', 'bojipam']) {
+    const c = JSON.parse(fs.readFileSync(new URL(`../../assets/rhythm/${id}.json`, import.meta.url), 'utf8'));
+    const midi = (hz) => Math.round(69 + 12 * Math.log2(hz / 440));
+    assert.ok(c.notes.every(n => n.pitch >= 140 && n.pitch <= 600), `${id} 노트마다 멜로디 pitch(D3~D5)`);
+    assert.ok(c.notes.every(n => SCALES[c.key.mode].includes((((midi(n.pitch) - c.key.root) % 12) + 12) % 12)), `${id} pitch 가 곡 키(${c.key.name}) 음계 안`);
+    assert.ok(new Set(c.notes.map(n => n.pitch)).size >= 6, `${id} 멜로디가 여러 음을 오간다`);
   }
   const boj = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/bojipam.json', import.meta.url), 'utf8'));
   const last = boj.highlights[boj.highlights.length - 1];
