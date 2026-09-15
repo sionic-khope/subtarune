@@ -334,5 +334,10 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'rhythm_stage', desc: '리듬 게임 
 // 공연 뒤 연출(검은 화면 나레이션 → 무대 위 대사 → 오른쪽 벽 뚫림 → 뚜울라 땅 파고 퇴장) / 뚫린 오른쪽 복도
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'stage_after_show', desc: '엄청 대박인 배: 공연 뒤 연출 (나레이션 → 무대 위 → 오른쪽 길)',
   map: 'youngcle12', spawn: 'from_stairs', flags: { ...hallDoneFlags, rhythm_stage_done: true }, party: [...parkWonCheckpoint.party], script: 'after_show_qa' });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle13', desc: '엄청 대박인 배: 무대 오른쪽 복도 (영클형 쪽, 끝은 잠긴 철문)',
-  map: 'youngcle13', spawn: 'left', flags: { ...hallDoneFlags, rhythm_stage_done: true, stage_show_done: true }, party: [...parkWonCheckpoint.party] });
+const showDoneFlags = { ...hallDoneFlags, rhythm_stage_done: true, stage_show_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle13', desc: '용광로 복도 (무대 오른쪽 → 오른쪽 → 위 → 오른쪽 → 입구)',
+  map: 'youngcle13', spawn: 'left', flags: { ...showDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft', desc: '용암 수로: 입구 → 뗏목 앞 컷신(형섭 먼저 탑승·빠맨/경섭 용암에) → 오른쪽 구간',
+  map: 'youngcle14', spawn: 'left', flags: { ...showDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft_up', desc: '용암 수로: 위로 올라가는 구간(두 번째 뗏목 앞)',
+  map: 'youngcle14', spawn: 'landing', flags: { ...showDoneFlags, lava_raft_intro_done: true, double_jump: true, raft_raft14a: 1 }, party: [...parkWonCheckpoint.party] });

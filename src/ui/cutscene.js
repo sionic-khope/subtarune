@@ -187,11 +187,12 @@ export function makeWaiter(game, node) {
     e.visible = true; e.emerge = { depth, progress: 0 }; let t = 0;
     return { update(dt) { t += dt; const progress = Math.min(1, t / duration); e.emerge.progress = node.ease === 'out' ? 1 - (1 - progress) ** 3 : progress; if (t >= duration) { e.emerge = null; return true; } return false; } };
   }
-  if (node.puff) {
+  if (node.puff) {                                     // { puff:id, offset?:[dx,dy], duration?:0.7, color?:'#222', size?:8 } 머리 위 연기 세 덩이
     const e = findEntity(game, node.puff); if (!e) return done;
     const [dx, dy] = node.offset || [0, -20], duration = node.duration ?? 0.7;
     const x = (e.drawX ?? e.x) + (e.iw ?? e.w) / 2 + dx, y = (e.drawY ?? e.y) + dy;
-    const parts = [-4, 0, 4].map((offset) => ({ x: x + offset, y, a: 1, color: '#dbd1e6', ang: 1, size: offset ? 5 : 8 }));
+    const color = node.color || '#dbd1e6', big = node.size || 8;   // color: 검은 연기(용암 치이익) 등
+    const parts = [-4, 0, 4].map((offset) => ({ x: x + offset, y, a: 1, color, ang: 1, size: offset ? Math.round(big * 0.6) : big }));
     game.sparks = parts; let t = 0;
     return { update(dt) { t += dt; for (const p of parts) { p.y -= dt * 24; p.a = Math.max(0, 1 - t / duration); } if (t >= duration) { if (game.sparks === parts) game.sparks = null; return true; } return false; } };
   }

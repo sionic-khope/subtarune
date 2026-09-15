@@ -138,7 +138,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -1021,8 +1021,9 @@ class Game {
     else if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
-    else if (MAPS[this.mapId]?.backdrop === 'youngcle_factory') {
-      const factory = this.propImages['assets/backdrops/youngcle_factory.png'];
+    else if (MAPS[this.mapId]?.backdrop === 'youngcle_factory' || MAPS[this.mapId]?.backdrop === 'youngcle_furnace') {
+      // 엄청대박인배 공장 / 용광로 변주(BUILD189, youngcle13·14): 같은 그리기, 그림만 다르다
+      const factory = this.propImages[`assets/backdrops/${MAPS[this.mapId].backdrop}.png`];
       if (factory) {
         const offset = Math.min(factory.height - SCREEN_H, Math.max(0, Math.round(cam.y * 0.15)));
         ctx.drawImage(factory, 0, offset, SCREEN_W, SCREEN_H, 0, 0, SCREEN_W, SCREEN_H);
@@ -1252,7 +1253,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-15.188';
+export const BUILD = '2026-09-15.189';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

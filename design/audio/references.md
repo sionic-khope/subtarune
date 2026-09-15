@@ -428,12 +428,16 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/static_loop.mp3`, `sfx/static_burst.mp3` | 합성 `tools/audio/static.py`(대역 노이즈 800~6000Hz + 크래클 임펄스, 루프는 끝 크로스페이드) — 사용자 “못 맞추면 노래가 지직거리면서 덜 나온다” | 1.95s 루프 / 0.22s | 곡 동안 신호 품질(1−signal)에 비례해 잡음, MISS 순간 지직 |
 | `assets/video/akjil.mp4` | 사용자 지정 [oQ0P4mRV_wA](https://www.youtube.com/watch?v=oQ0P4mRV_wA) ‘악질 시청자’ -쥰희- 버전, yt-dlp 360p 이하 mp4(vp9 240×358 + aac), 편집 없음 | 77.6s | 리듬 둘째 곡(차트 `assets/rhythm/akjil.json`, 하이라이트 4.0~29.9·35.1~44.8초) |
 | `assets/video/noamtori.mp4` | 원본 유튜브 -IvdHDCBsps 전체(BUILD183 복원 — 영상은 안 자르고 노트만 18.2초부터) | 87.8s | 리듬 첫 곡 |
+| `bgm/pandora_palace.mp3` | 사용자 지정 [q-5cXVcCOUs](https://www.youtube.com/watch?v=q-5cXVcCOUs) — yt-dlp 메타데이터 제목 `Pandora Palace`, 업로더 `Toby Fox`, 표시 길이 100초. 포맷251 전체를 mp3 q2 로 변환, 편집 없음(`assets/source/bgm188/` 메타) | 99.6s | 용광로 복도·용암 수로(youngcle13/14) 브금 |
+| `sfx/sizzle.mp3` | 합성(numpy: 하이패스 노이즈 급붙음 + 크래클, 1.1초 감쇠) | 1.1s | 용암에 들어갈 때 치이익(컷신·뗏목 탑승) |
 | `sfx/crowd_roar.mp3`, `sfx/crowd_roar_2.mp3`, `sfx/crowd_bed.mp3` | 유튜브 [K7zvbp2hbkk](https://www.youtube.com/watch?v=K7zvbp2hbkk) “Heavy Cheering & Applause with Large Indoor Crowd in Convention Hall” (Sound Ideas - Topic) 0.4~5.4s / 7~12s / 15~23s(끝 0.4s 크로스페이드 루프), loudnorm −16 LUFS, 원본 `assets/source/crowd187/audio/` — BUILD187 사용자 “휘파람 합성이 전자음 같다, 진짜 박수·환호” 로 합성본(`tools/audio/crowd_cheer.py`) 교체 | 5s / 5s / 8s 루프 | 콤보 50·곡 끝·하이라이트 함성 / 변형 / 곡 중 흥에 따라 커지는 바닥 소리 |
 | `sfx/crowd_cheer.mp3`, `sfx/crowd_cheer_2.mp3` | 유튜브 [barWV7RWkq0](https://www.youtube.com/watch?v=barWV7RWkq0) “Applause Crowd Cheering sound effect” (ParadoxMirror) 1~4.6s / 13~16.6s, loudnorm | 3.6s ×2 | 콤보 20·하이라이트 16박마다 환호(번갈아) |
 | `sfx/applause.mp3` | 유튜브 [zsrWXMfEogY](https://www.youtube.com/watch?v=zsrWXMfEogY) “Audience Clapping Sound Effects (no copyright)” 0.2~3.6s — 박수만(BUILD187, Deltarune snd_applause 에서 교체; 원본은 `stage_hall177/audio/`) | 3.4s | 콤보 10 박수·제목 공개·환호에 겹침 |
 | `sfx/applause_2.mp3` | 유튜브 [xiG2xO-4Y-s](https://www.youtube.com/watch?v=xiG2xO-4Y-s) “Audience Cheering And Clapping Sound Effect” (SoundEffectsFactory) 6.5~9.8s(박수 위주 구간) | 3.3s | 박수 변형 |
 | `sfx/crowd.mp3` | Deltarune `snd_crowd.ogg`(디컴파일, 같은 SHA; 원본 `assets/source/stage_hall177/audio/`) | 14.8s | 홀 관객 입장 웅성웅성 |
 | 참고 영상 | 델타룬 3장 테나 리듬 게임 [103D6O-Wr_g](https://www.youtube.com/watch?v=103D6O-Wr_g) | | 두 칸 좌우·홀드·GREAT/MISS·인기 게이지 구성 참고 |
+
+생성 그림(BUILD189, gpt-image-2, `assets/source/lava188/`): 용광로 배경 `backdrops/youngcle_furnace.png`(기존 youngcle_factory 를 참조로 용광로·용암·파란 패널, 1024×1536 → 480×720). 타일·소품은 `tools/art/lava_set.py`(차콜+파랑 철 타일 재색, 용암 타일, 플라즈마 빔 v/h 3프레임, 굳은 용암 벽 2종).
 
 생성 그림(BUILD184, gpt-image-2, `assets/source/band184/`): 밴드 둥가둥가 4프레임(다운·업·왼쪽·오른쪽) — 참조는 기존 raw 시트를 512 로 NEAREST 축소(1.1MB 원본은 HTTP 413), `process.py` 가 기존 `band_*.png` 아래에 붙여 256×512.
 

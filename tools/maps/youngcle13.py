@@ -6,8 +6,9 @@
 # ─── How to run ───
 # Run from the repository root: uv run tools/maps/youngcle13.py [--check]
 # ──────────────────
-"""무대 홀(youngcle11) 무대 오른쪽에서 뚫리는 복도(BUILD185, 사용자 2026-09-15: “자 저기 오른쪽 문이 있을겁니다 … 저기로 쭉 따라가시면 영클형을 만날 수 있을겁니다”).
-왼쪽에서 들어와 오른쪽으로 쭉 가는 어두운 철제 복도. 오른쪽 끝은 다음 브리핑(영클형)까지 잠긴 문."""
+"""무대 홀(youngcle11) 무대 오른쪽에서 뚫려 이어지는 용광로 복도(BUILD189, 사용자 2026-09-15 경로: “오른쪽 갔다가 오른쪽 쭉 갔다 윗길 갔다 오른쪽 갔다 입구”).
+배경은 엄청대박인배 파이프에 용광로·용암 기운(youngcle_furnace), 바닥·벽은 차콜 철 + 파란 기운(F/G). 브금 Pandora Palace(사용자 지정 q-5cXVcCOUs).
+왼쪽 아래에서 들어와 오른쪽으로 쭉 → 세로 통로로 올라가 → 다시 오른쪽 → 오른쪽 끝 입구(youngcle14 용암 뗏목)."""
 from __future__ import annotations
 
 import json
@@ -18,47 +19,52 @@ from typing import Final, Union
 JsonValue = Union[str, int, float, bool, None, list["JsonValue"], dict[str, "JsonValue"]]
 
 MAP_ID: Final = 'youngcle13'
-WIDTH: Final = 24
-HEIGHT: Final = 12
+WIDTH: Final = 36
+HEIGHT: Final = 16
 
 
 def main() -> None:
-    """Write the stage-right corridor or check its generator output and map registration."""
+    """Write the furnace corridor or check its generator output and map registration."""
     cells = [['!'] * WIDTH for _ in range(HEIGHT)]
-    # 가로 복도 rows 4~7, cols 1~22
-    for row in range(4, 8):
-        for col in range(1, WIDTH - 1):
-            cells[row][col] = 'I'
+    # 아래 복도 rows 7~10 · cols 1~20 → 세로 통로 rows 2~10 · cols 17~20 → 위 복도 rows 2~5 · cols 17~34
+    for row in range(7, 11):
+        for col in range(1, 21):
+            cells[row][col] = 'F'
+    for row in range(2, 11):
+        for col in range(17, 21):
+            cells[row][col] = 'F'
+    for row in range(2, 6):
+        for col in range(17, WIDTH - 1):
+            cells[row][col] = 'F'
     for row in range(HEIGHT):
         for col in range(WIDTH):
-            if cells[row][col] != 'I':
+            if cells[row][col] != 'F':
                 continue
             for delta_row in (-1, 0, 1):
                 for delta_col in (-1, 0, 1):
                     edge_row, edge_col = row + delta_row, col + delta_col
                     if (0 <= edge_row < HEIGHT and 0 <= edge_col < WIDTH
                             and cells[edge_row][edge_col] == '!'):
-                        cells[edge_row][edge_col] = 'J'
+                        cells[edge_row][edge_col] = 'G'
     map_data = {
-        'id': MAP_ID, 'name': '무대 오른쪽 복도', 'stage': 'void_fallen',
-        'bgm': None, 'backdrop': 'youngcle_factory',
+        'id': MAP_ID, 'name': '용광로 복도', 'stage': 'void_fallen',
+        'bgm': 'pandora_palace', 'backdrop': 'youngcle_furnace',
         'battleBg': 'youngcle_factory', 'dim': 0.3,
         'rows': [''.join(row) for row in cells],
-        'preload': ['assets/props/editor-union-wall-panel.png'],
+        'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/backdrops/youngcle_furnace.png'],
         'spawns': {
-            'left': {'x': 56, 'y': 176, 'facing': 'right'},
+            'left': {'x': 56, 'y': 280, 'facing': 'right'},
+            # 용암 뗏목 맵(youngcle14)에서 돌아올 때: 위 복도 오른쪽 끝
+            'from_right': {'x': 1064, 'y': 120, 'facing': 'left'},
         },
-        'meta': {'connected': True, 'route': [[2, 5], [21, 5]]},
+        'meta': {'connected': True, 'route': [[2, 8], [18, 8], [18, 3], [33, 3]]},
         'entities': [
             # 왼쪽 끝 → 무대 홀(from_right). 열린 통로라 방향키로 통과
-            {'type': 'door', 'id': 'youngcle13_left', 'x': 32, 'y': 128, 'w': 16, 'h': 128,
+            {'type': 'door', 'id': 'youngcle13_left', 'x': 32, 'y': 224, 'w': 16, 'h': 128,
              'to': 'youngcle11', 'spawn': 'from_right', 'sfx': False, 'interact': False},
-            *[{'type': 'prop', 'id': f'corridor13_wall_{index}', 'image': 'assets/props/editor-union-wall-panel.png',
-               'x': x, 'y': 52, 'w': 128, 'h': 76, 'solid': False, 'sortY': -980}
-              for index, x in enumerate((64, 320, 576))],
-            # 오른쪽 끝: 다음 지역(영클형)은 다음 브리핑
-            {'type': 'sign', 'id': 'corridor13_end', 'x': 720, 'y': 144, 'w': 16, 'h': 96, 'solid': True,
-             'text': '* 굳게 잠긴 철문.\n* 안쪽에서 낮은 기계음이 들린다.'},
+            # 위 복도 오른쪽 끝 → 용암 뗏목 방(입구)
+            {'type': 'door', 'id': 'youngcle13_right', 'x': 1104, 'y': 64, 'w': 16, 'h': 128,
+             'to': 'youngcle14', 'spawn': 'left', 'sfx': False, 'interact': False},
         ],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

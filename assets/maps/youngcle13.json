@@ -1,33 +1,43 @@
 {
  "id": "youngcle13",
- "name": "무대 오른쪽 복도",
+ "name": "용광로 복도",
  "stage": "void_fallen",
- "bgm": null,
- "backdrop": "youngcle_factory",
+ "bgm": "pandora_palace",
+ "backdrop": "youngcle_furnace",
  "battleBg": "youngcle_factory",
  "dim": 0.3,
  "rows": [
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "JJJJJJJJJJJJJJJJJJJJJJJJ",
-  "JIIIIIIIIIIIIIIIIIIIIIIJ",
-  "JIIIIIIIIIIIIIIIIIIIIIIJ",
-  "JIIIIIIIIIIIIIIIIIIIIIIJ",
-  "JIIIIIIIIIIIIIIIIIIIIIIJ",
-  "JJJJJJJJJJJJJJJJJJJJJJJJ",
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!"
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!GGGGGGGGGGGGGGGGGGGG",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
+  "GGGGGGGGGGGGGGGGGFFFFGGGGGGGGGGGGGGG",
+  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "GGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
  ],
  "preload": [
-  "assets/props/editor-union-wall-panel.png"
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/backdrops/youngcle_furnace.png"
  ],
  "spawns": {
   "left": {
    "x": 56,
-   "y": 176,
+   "y": 280,
    "facing": "right"
+  },
+  "from_right": {
+   "x": 1064,
+   "y": 120,
+   "facing": "left"
   }
  },
  "meta": {
@@ -35,11 +45,19 @@
   "route": [
    [
     2,
-    5
+    8
    ],
    [
-    21,
-    5
+    18,
+    8
+   ],
+   [
+    18,
+    3
+   ],
+   [
+    33,
+    3
    ]
   ]
  },
@@ -48,7 +66,7 @@
    "type": "door",
    "id": "youngcle13_left",
    "x": 32,
-   "y": 128,
+   "y": 224,
    "w": 16,
    "h": 128,
    "to": "youngcle11",
@@ -57,47 +75,16 @@
    "interact": false
   },
   {
-   "type": "prop",
-   "id": "corridor13_wall_0",
-   "image": "assets/props/editor-union-wall-panel.png",
-   "x": 64,
-   "y": 52,
-   "w": 128,
-   "h": 76,
-   "solid": false,
-   "sortY": -980
-  },
-  {
-   "type": "prop",
-   "id": "corridor13_wall_1",
-   "image": "assets/props/editor-union-wall-panel.png",
-   "x": 320,
-   "y": 52,
-   "w": 128,
-   "h": 76,
-   "solid": false,
-   "sortY": -980
-  },
-  {
-   "type": "prop",
-   "id": "corridor13_wall_2",
-   "image": "assets/props/editor-union-wall-panel.png",
-   "x": 576,
-   "y": 52,
-   "w": 128,
-   "h": 76,
-   "solid": false,
-   "sortY": -980
-  },
-  {
-   "type": "sign",
-   "id": "corridor13_end",
-   "x": 720,
-   "y": 144,
+   "type": "door",
+   "id": "youngcle13_right",
+   "x": 1104,
+   "y": 64,
    "w": 16,
-   "h": 96,
-   "solid": true,
-   "text": "* 굳게 잠긴 철문.\n* 안쪽에서 낮은 기계음이 들린다."
+   "h": 128,
+   "to": "youngcle14",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
   }
  ]
 }

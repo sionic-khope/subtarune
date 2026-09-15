@@ -1,0 +1,382 @@
+{
+ "id": "youngcle14",
+ "name": "용암 수로",
+ "stage": "void_fallen",
+ "bgm": "pandora_palace",
+ "backdrop": "youngcle_furnace",
+ "battleBg": "youngcle_factory",
+ "dim": 0.3,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GGGGGGGGGGG",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFFFG",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFFFG",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GGGLLLLLLGG",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLLLLG!",
+  "!!!!!!!!!!!GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGLLLLLLG!",
+  "GGGGGGGGGGGGLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLGGLLLLLLGG",
+  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFFG",
+  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFFG",
+  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFFG",
+  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFFG",
+  "GGGGGGGGGGGGLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLGGGGGGGGGG",
+  "!!!!!!!!!!!GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/lava.png",
+  "assets/backdrops/youngcle_furnace.png",
+  "assets/props/raft.png",
+  "assets/props/plasma_beam_v.png",
+  "assets/props/plasma_beam_h.png",
+  "assets/props/lava_wall.png",
+  "assets/props/lava_wall_low.png"
+ ],
+ "spawns": {
+  "left": {
+   "x": 56,
+   "y": 748,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 1640,
+   "y": 748,
+   "facing": "up"
+  },
+  "top": {
+   "x": 1700,
+   "y": 56,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    2,
+    23
+   ],
+   [
+    11,
+    23
+   ]
+  ],
+  "raftA": [
+   392,
+   710,
+   1536
+  ],
+  "raftB": [
+   1684,
+   664,
+   104
+  ],
+  "checkpointsA": [
+   {
+    "x": 392,
+    "y": 710
+   },
+   {
+    "x": 800,
+    "y": 710
+   },
+   {
+    "x": 1060,
+    "y": 710
+   },
+   {
+    "x": 1330,
+    "y": 710
+   }
+  ],
+  "checkpointsB": [
+   {
+    "x": 1684,
+    "y": 664
+   },
+   {
+    "x": 1684,
+    "y": 500
+   },
+   {
+    "x": 1684,
+    "y": 320
+   }
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle14_left",
+   "x": 32,
+   "y": 704,
+   "w": 16,
+   "h": 128,
+   "to": "youngcle13",
+   "spawn": "from_right",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "trigger",
+   "id": "lava_raft_trigger",
+   "x": 300,
+   "y": 704,
+   "w": 16,
+   "h": 128,
+   "script": "lava_raft_intro",
+   "once": true,
+   "flag": "lava_raft_intro_done"
+  },
+  {
+   "type": "raft",
+   "id": "raft14a",
+   "image": "assets/props/raft.png",
+   "x": 392,
+   "y": 710,
+   "route": [
+    [
+     1536,
+     710
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "jumpH2": 96,
+   "swim": [
+    "ppaman",
+    "gyeongsub"
+   ],
+   "swimAt": "below",
+   "lava": true,
+   "boardSfx": "sizzle",
+   "arriveSfx": "thud",
+   "checkpoints": [
+    {
+     "x": 392,
+     "y": 710
+    },
+    {
+     "x": 800,
+     "y": 710
+    },
+    {
+     "x": 1060,
+     "y": 710
+    },
+    {
+     "x": 1330,
+     "y": 710
+    }
+   ],
+   "disembarkPartyGap": 40
+  },
+  {
+   "type": "prop",
+   "id": "beam_a1",
+   "image": "assets/props/plasma_beam_v.png",
+   "x": 700,
+   "y": 672,
+   "w": 40,
+   "h": 160,
+   "ix": 700,
+   "iy": 672,
+   "sortY": 672,
+   "solid": true,
+   "obstacle": true,
+   "clear": 40,
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 10
+   },
+   "pulse": {
+    "on": 1.8,
+    "off": 1.0
+   }
+  },
+  {
+   "type": "prop",
+   "id": "wall_a1",
+   "image": "assets/props/lava_wall.png",
+   "x": 950,
+   "y": 702,
+   "w": 40,
+   "h": 64,
+   "ix": 950,
+   "iy": 698,
+   "sortY": 742,
+   "solid": true,
+   "obstacle": true,
+   "clear": 72,
+   "sweep": true
+  },
+  {
+   "type": "prop",
+   "id": "beam_a2",
+   "image": "assets/props/plasma_beam_v.png",
+   "x": 1200,
+   "y": 672,
+   "w": 40,
+   "h": 160,
+   "ix": 1200,
+   "iy": 672,
+   "sortY": 672,
+   "solid": true,
+   "obstacle": true,
+   "clear": 80,
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 10
+   },
+   "pulse": {
+    "on": 1.3,
+    "off": 1.3,
+    "phase": 0.6
+   }
+  },
+  {
+   "type": "prop",
+   "id": "wall_a2",
+   "image": "assets/props/lava_wall_low.png",
+   "x": 1400,
+   "y": 712,
+   "w": 28,
+   "h": 36,
+   "ix": 1400,
+   "iy": 696,
+   "sortY": 742,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "raft",
+   "id": "raft14b",
+   "image": "assets/props/raft.png",
+   "x": 1684,
+   "y": 664,
+   "route": [
+    [
+     1684,
+     104
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "jumpH2": 96,
+   "swim": [
+    "ppaman",
+    "gyeongsub"
+   ],
+   "swimAt": "below",
+   "lava": true,
+   "boardSfx": "sizzle",
+   "arriveSfx": "thud",
+   "checkpoints": [
+    {
+     "x": 1684,
+     "y": 664
+    },
+    {
+     "x": 1684,
+     "y": 500
+    },
+    {
+     "x": 1684,
+     "y": 320
+    }
+   ],
+   "disembarkPartyGap": 40
+  },
+  {
+   "type": "prop",
+   "id": "wall_b1",
+   "image": "assets/props/lava_wall_low.png",
+   "x": 1698,
+   "y": 540,
+   "w": 28,
+   "h": 36,
+   "ix": 1698,
+   "iy": 524,
+   "sortY": 570,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "beam_b1",
+   "image": "assets/props/plasma_beam_h.png",
+   "x": 1664,
+   "y": 360,
+   "w": 160,
+   "h": 40,
+   "ix": 1664,
+   "iy": 360,
+   "sortY": 360,
+   "solid": true,
+   "obstacle": true,
+   "clear": 40,
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 10
+   },
+   "oscillate": {
+    "dx": 40,
+    "period": 2.2
+   }
+  },
+  {
+   "type": "prop",
+   "id": "beam_b2",
+   "image": "assets/props/plasma_beam_h.png",
+   "x": 1664,
+   "y": 180,
+   "w": 160,
+   "h": 40,
+   "ix": 1664,
+   "iy": 180,
+   "sortY": 180,
+   "solid": true,
+   "obstacle": true,
+   "clear": 80,
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 10
+   },
+   "pulse": {
+    "on": 1.2,
+    "off": 1.4,
+    "phase": 0.3
+   }
+  },
+  {
+   "type": "sign",
+   "id": "lava14_end",
+   "x": 1856,
+   "y": 32,
+   "w": 16,
+   "h": 64,
+   "solid": true,
+   "text": "* 잠긴 철문.\n* 뜨거운 바람이 틈으로 새어 나온다."
+  }
+ ]
+}

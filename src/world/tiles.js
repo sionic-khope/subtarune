@@ -119,6 +119,13 @@ for (const [char, solid] of [['I', false], ['J', true]]) {
     stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
     draw: (ctx) => { ctx.fillStyle = '#52647b'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 }
+// 용광로 구역(BUILD188): 차콜 철 + 파란 기운 바닥/벽(assets/tiles/youngcle_iron_blue.png), 용암(뗏목으로만 건넌다)
+for (const [char, solid] of [['F', false], ['G', true]]) {
+  registerTile(char, { name: 'youngcle_iron_blue', solid,
+    stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
+    draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+}
+registerTile('L', { name: 'lava', solid: true, draw: (ctx) => { ctx.fillStyle = '#7a1a08'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
 registerTile('B', { name: 'bed', solid: false, art: TILE_ART.bed, drawOver: '.' });   // 침대 위로 올라갈 수 있음(눕기 연출)

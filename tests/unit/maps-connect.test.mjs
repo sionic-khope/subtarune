@@ -7,7 +7,7 @@ import path from 'node:path';
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/maps/index.json'), 'utf8')).maps;
 // unless 소품(이기면 사라지는 거대한 문 등)은 길을 영구히 막지 않으므로 막힘에서 뺀다
-const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I']);
+const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', 'F']);
 for (const id of idx) {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, `assets/maps/${id}.json`), 'utf8'));
   if (!m.rows) continue;
@@ -19,8 +19,9 @@ for (const id of idx) {
     const s = m.spawns.start || Object.values(m.spawns)[0]; const start = [Math.floor(s.y / 32), Math.floor(s.x / 32)];
     const stations = (m.entities || []).filter(e => e.type === 'raft' && e.route?.length).map(e =>
       [[e.x, e.y], ...e.route].flatMap(([x, y]) => {
-        const row = Math.floor((y + (e.h || 40) * 0.68) / 32);
-        return [[row, Math.floor(x / 32) - 1], [row, Math.ceil((x + (e.w || 56)) / 32)]];
+        const row = Math.floor((y + (e.h || 40) * 0.68) / 32), cx = Math.floor((x + (e.w || 56) / 2) / 32);
+        // 가로 물길: 뗏목 좌우 / 세로 물길(용암 수로 BUILD189): 뗏목 위아래로 내린다
+        return [[row, Math.floor(x / 32) - 1], [row, Math.ceil((x + (e.w || 56)) / 32)], [Math.floor(y / 32) - 1, cx], [Math.ceil((y + (e.h || 40)) / 32), cx]];
       }).filter(([r, c]) => ok(r, c)));
     const seen = new Set([start.join(',')]); const q = [start];
     while (q.length) {
