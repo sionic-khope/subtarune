@@ -408,6 +408,13 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 받기: `uvx --from yt-dlp yt-dlp --no-playlist --js-runtimes node:/opt/homebrew/bin/node -f '251/bestaudio' -o 'chaos_king.%(ext)s' 'https://www.youtube.com/watch?v=u5wyfl-OfFQ'` → `ffmpeg -i chaos_king.webm -ar 44100 -ac 2 -q:a 2 assets/audio/bgm/chaos_king.mp3`.
 
+### 무대 홀 입장 연출 (BUILD177, 사용자 지정)
+
+| 게임 파일 | 출처 | 길이 | 쓰임 |
+| --- | --- | --- | --- |
+| `bgm/mike_board.mp3` | 유튜브 [YsZoTTl59hg](https://www.youtube.com/watch?v=YsZoTTl59hg) “04. MIKE, the BOARD, please! (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox”(Toby Fox 공식 채널, 포맷 251 → 44.1k 스테레오 q2) | 37s(음악은 32.8초까지, 뒤는 무음) | 뚜울라가 무대에서 뛰어내려 착지한 순간부터 “노래로 승부봅시다” 까지. `{ bgm: 'mike_board', volume 0.5, fadeIn 0.2, loopEnd 32.8, loopFade 0.12 }`(컷신 bgm 노드가 loopEnd/loopFade 를 넘긴다) |
+| `sfx/locker.mp3` | Deltarune `snd_locker`(TeamBlossomDevs 디컴파일, 같은 SHA; 원본 `assets/source/stage_hall177/audio/`) | 1.47s | 무대 불이 켜지는 “철컥!” |
+
 ### 결과창 (BUILD172, 원본 `assets/source/subrio172/audio/`, 같은 SHA)
 
 | 게임 파일 | 원본 | 길이 | 쓰임 |

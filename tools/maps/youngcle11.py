@@ -49,6 +49,8 @@ def main() -> None:
         'id': MAP_ID, 'name': '엄청 대박인 배 무대 홀', 'stage': 'void_fallen',
         'bgm': None, 'backdrop': 'youngcle_factory',
         'battleBg': 'youngcle_factory', 'dim': 0.22,
+        # 입장 연출(뚜울라 등장, 무대 불 켜짐)은 페이드가 걷히기 전에 시작(early) — 걸어 들어오는 모습이 페이드인과 겹친다
+        'enter': {'script': 'stage_hall_intro', 'early': True},
         'rows': [''.join(row) for row in cells],
         'preload': ['assets/tiles/youngcle_iron.png', 'assets/backdrops/youngcle_factory.png',
                     'assets/props/stage_front.png', 'assets/props/stage_stairs.png', 'assets/props/stage_valance.png',
@@ -72,6 +74,9 @@ def main() -> None:
             {'type': 'sign', 'id': 'stage11_center', 'x': 416, 'y': 160, 'w': 1, 'h': 1, 'solid': False},
             {'type': 'npc', 'id': 'ttuulla', 'sprite': 'ttuulla', 'x': 416, 'y': 120, 'facing': 'down', 'wander': 0,
              'visualScale': 1.79, 'hidden': True, 'solid': False, 'unless': 'stage_hall_intro_done'},
+            # 연출 뒤 재입장: 무대 가운데에서 기다리는 뚜울라(리듬 게임 브리핑 뒤 여기서 승부가 시작된다)
+            {'type': 'npc', 'id': 'ttuulla_wait', 'sprite': 'ttuulla', 'x': 416, 'y': 105, 'facing': 'down', 'wander': 0,
+             'visualScale': 1.79, 'solid': False, 'requires': 'stage_hall_intro_done'},
             # 벽 패널(위 벽), 꺼진 조명 트러스 셋(무대 위 벽)
             *[{'type': 'prop', 'id': f'stage11_wall_{index}', 'image': 'assets/props/editor-union-wall-panel.png',
                'x': x, 'y': 0, 'w': 128, 'h': 76, 'solid': False, 'sortY': -980}
@@ -96,7 +101,7 @@ def main() -> None:
               for index, x in enumerate((40, 728))],
             # 어둠 막: 무대 전체(커튼·트러스·무대 위 사람까지)를 검게 — 조명이 켜지는 연출 때 remove
             {'type': 'prop', 'id': 'stage11_dark', 'image': 'assets/props/stage_dark.png',
-             'x': 96, 'y': 32, 'w': 640, 'h': 232, 'solid': False, 'sortY': 9000},
+             'x': 96, 'y': 32, 'w': 640, 'h': 232, 'solid': False, 'sortY': 9000, 'unless': 'stage_hall_lit'},
         ],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

@@ -6,6 +6,10 @@
  "backdrop": "youngcle_factory",
  "battleBg": "youngcle_factory",
  "dim": 0.22,
+ "enter": {
+  "script": "stage_hall_intro",
+  "early": true
+ },
  "rows": [
   "!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "!!JJJJJJJJJJJJJJJJJJJJJJ!!",
@@ -144,6 +148,18 @@
    "hidden": true,
    "solid": false,
    "unless": "stage_hall_intro_done"
+  },
+  {
+   "type": "npc",
+   "id": "ttuulla_wait",
+   "sprite": "ttuulla",
+   "x": 416,
+   "y": 105,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1.79,
+   "solid": false,
+   "requires": "stage_hall_intro_done"
   },
   {
    "type": "prop",
@@ -295,7 +311,8 @@
    "w": 640,
    "h": 232,
    "solid": false,
-   "sortY": 9000
+   "sortY": 9000,
+   "unless": "stage_hall_lit"
   }
  ]
 }

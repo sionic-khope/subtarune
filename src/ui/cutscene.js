@@ -10,7 +10,7 @@
 //  { camera: [tx,ty] | 'player' | id, duration?: 1 }   카메라 팬 / 다시 따라가기
 //  { fade: 'in'|'out'|'white', duration?: 0.5 }     white = 하얗게. 'in' 은 현재 색에서 걷힘
 //  { shake: 0.4, amp?: 3 }                    화면 흔들림
-//  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
+//  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening', volume?, fadeIn?, loopEnd?, loopFade? } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3 (loopEnd: 그 초에서 loopFade 동안 줄이고 처음으로 되감기 — 뒤가 무음인 소스)
 //  { bgmPause: 0.3 } / { bgmResume: 0.3 }         브금을 재생 위치 그대로 잠깐 멈췄다 이어 튼다(정적 개그 뒤 '이어서')
 //  { slide: id, by:[dx,dy], duration?: 0.6, sfx? }  소품을 미끄러뜨린다(히트박스+그림 같이, 걷기 애니 없음) — 대포 밀기. by 는 픽셀
 //  { scale: id, to: 0.15, duration?: 0.5 }  캐릭터 그림 배율(visualScale)을 to 까지 서서히(토관에 빨려 들어가며 몸이 줄어듦). 끝나면 hide 뒤 { scale:id, to:1, duration:0 } 로 되돌린다
@@ -282,7 +282,7 @@ export function makeWaiter(game, node) {
     return { update: (dt) => (t += dt) >= dur };
   }
   if (node.camera !== undefined) return cameraPan(game, node);
-  if ('bgm' in node) { if (node.bgm) game.sound.playBgm(node.bgm, { volume: node.volume ?? 0.6, fadeIn: node.fadeIn ?? 0.5 }); else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
+  if ('bgm' in node) { if (node.bgm) { const opts = { volume: node.volume ?? 0.6, fadeIn: node.fadeIn ?? 0.5 }; if (node.loopEnd !== undefined) { opts.loopEnd = node.loopEnd; opts.loopFade = node.loopFade; } game.sound.playBgm(node.bgm, opts); } else game.sound.stopBgm(node.fadeOut ?? node.fade ?? 0.8); return done; }
   if (node.bgmPause !== undefined) { game.sound.pauseBgm(node.bgmPause || 0.3); return done; }
   if (node.bgmResume !== undefined) { game.sound.resumeBgm(node.bgmResume || 0.3); return done; }
   if (node.slide) {                                    // { slide:id, by:[dx,dy], duration?:0.6, sfx? } — 소품(대포 등)을 히트박스·그림 같이 미끄러뜨린다
