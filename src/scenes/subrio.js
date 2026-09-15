@@ -12,7 +12,7 @@ import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, springNear, makeBoss, stepBoss, hitBoss, hurtActor,
   bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZone, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
-  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, MARIO_HEAL, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
+  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, landingY, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
 
 const FRAME = 10;
 const VIEW_X = FRAME, VIEW_Y = FRAME;
@@ -53,7 +53,7 @@ const HERO_ID = 'hyungsub';
 const BOSS_APPEAR_LINE = '따듯한비데가 나타났다!';
 // 위치 대사: 한 줄이 다 찍힌 뒤 CHAT_HOLD 초 있다가 다음 줄(C 불필요). 화자 색은 직업 선택 포인터 색과 같다
 const CHAT_HOLD = 1.7;
-const WHO = { ppaman: { label: '억빠맨', color: '#c9a3ff', voice: 'ppaman' }, gyeongsub: { label: '경섭', color: '#ff5c5c', voice: 'gyeongsub' }, hyungsub: { label: '요플래', color: '#7fd0ff', voice: 'hyungsub' }, narrator: { label: null, color: '#fff', voice: 'narrator' } };
+const WHO = { ppaman: { label: '억빠맨', color: '#c9a3ff', voice: 'ppaman' }, gyeongsub: { label: '경섭', color: '#ff5c5c', voice: 'gyeongsub' }, hyungsub: { label: '요플래', color: '#7fd0ff', voice: 'hyungsub' }, bidet: { label: '따듯한비데', color: '#ffb3b3', voice: 'warm_bidet' }, narrator: { label: null, color: '#fff', voice: 'narrator' } };
 
 function loadImage(src) {
   const img = new Image();
@@ -125,8 +125,8 @@ export function run(game, node = {}) {
       chat: { queue: [], line: null, holdT: 0 }, fired: new Set(), fx: [], teamAttack: true, totemHit: false, demo: null, demoDone: false,
       // 인게임 메뉴(Tab/V): 열린 동안 섭리오는 멈추고 오버레이를 숨겨 게임 메뉴가 보이게 한다
       paused: false,
-      // 보스전 도트마리오 버섯(40초마다 오른쪽 벽 위로), 오프닝 관광 카메라
-      mario: null, marioTimer: 0, mushrooms: [], flashRate: 1.1,
+      // 보스전 도트마리오 버섯(40초마다 오른쪽 벽 위로), 오프닝 관광 카메라, 1-4 오프닝 연출(intro)·보스전 시작 여부(bossFight)·상단 배너
+      mario: null, marioTimer: 0, mushrooms: [], flashRate: 1.1, intro: null, bossFight: false, banner: null,
     };
     const escapesAtStart = game.escapes || 0;
     const say = (lines) => { for (const line of lines) state.chat.queue.push(line); };
@@ -140,6 +140,9 @@ export function run(game, node = {}) {
       state.spears = []; state.fires = []; state.clocks = []; state.waters = []; state.trail = []; state.cam = 0; state.boss = null; state.bossGone = false; state.notice = null; state.leaderLandT = 0;
       state.enemies = level.enemies.map(spec => makeEnemy(spec.type, spec.x, spec.y, -1, spec));
       state.chat = { queue: [], line: null, holdT: 0 }; state.fired = new Set(); state.fx = []; state.mario = null; state.marioTimer = 0; state.mushrooms = []; state.shots = [];
+      state.intro = null; state.bossFight = false; state.banner = null;
+      // 1-4: 들어가면 브금이 꺼진다(사용자). 오프닝 뒤 START!! 에서 다시 켠다
+      if (level.def.boss) game.sound.stopBgm(0.6);
       // 1-0 에선 요플래가 토템을 먼저 때리기 전까지 동료가 공격하지 않는다
       state.teamAttack = !level.def.tutorial; state.totemHit = false; state.demo = null; state.demoDone = false;
       state.sub = 'drop'; state.subT = 0; state.control = false; state.dropWait = 1.9;
@@ -332,7 +335,8 @@ export function run(game, node = {}) {
       for (const [i, actor] of state.actors.entries()) {
         if (!actor.active) { if (state.subT >= actor.delay) actor.active = true; else continue; }
         let intent;
-        if (state.demo) intent = state.demo.intents[actor.classId] || NO_INTENT;
+        const scripted = state.demo?.intents || state.intro?.intents;
+        if (scripted) intent = scripted[actor.id] || scripted[actor.classId] || NO_INTENT;
         else if (i === 0) {
           intent = state.control ? { left: held('left'), right: held('right'), jump: edge('up'), jumpHeld: held('up'), crouch: held('down'), attack: attackNow, attackHeld: attackHeldNow, guard: held('cancel') } : NO_INTENT;
         } else {
@@ -362,13 +366,14 @@ export function run(game, node = {}) {
         if (!enemy.dead && demoActor && enemy.demo) heroTouchesEnemy(demoActor, enemy, state.t, events);
       }
       state.enemies = state.enemies.filter(enemy => !enemy.dead || enemy.deadT < ENEMY.deathTime);
-      // 보스: 주인공 착지 뒤 BOSS_DELAY 에 하늘에서 떨어진다
-      if (def.boss && !state.boss && leader.dropped && state.subT > (state.leaderLandT || 0) + BOSS_DELAY) state.boss = makeBoss(level.bossSpawnX, -60);
+      // 1-4: 세 명이 다 떨어지면 오프닝 연출(대사 → 가운데 내려찍기 → 둘러봄 → 대사 → 보스전/START!!) → 그 뒤 패턴
+      if (def.boss && state.sub === 'drop' && !state.intro && state.actors.every(a => a.dropped) && state.subT > state.leaderLandT + 0.8) { state.sub = 'intro'; state.intro = { step: 0, t: 0, intents: {} }; state.control = false; }
+      if (state.sub === 'intro') updateIntro(dt, events);
       if (state.boss) {
         const boss = state.boss;
         stepBoss(level, boss, leader, dt, events);
-        if (!boss.dead) bossAttackHero(boss, leader, events);
-        updateMario(dt, events);
+        if (!boss.dead && state.sub === 'run') { bossAttackHero(boss, leader, events); for (const f of state.actors.slice(1)) if (f.active) bossAttackHero(boss, f, events, true); }
+        if (state.sub === 'run') updateMario(dt, events);
       }
       // 투사체 → 적/보스 (공격력 1). 시계는 같은 적에 둘 맞으면 스턴
       const hitTargets = (list, w, h, source) => list.filter(p => {
@@ -416,8 +421,8 @@ export function run(game, node = {}) {
         if (event.type === 'stun') { sfx('zilean_q_stun', 0.8, 2.0); const enemy = state.enemies.find(e => e.id === event.id); if (enemy) { state.fx.push({ kind: 'ring', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, t: 0, dur: 0.6, r0: 8, r1: 48, color: '255,235,120', width: 4 }); state.fx.push({ kind: 'ring', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, t: -0.12, dur: 0.6, r0: 6, r1: 40, color: '255,250,200', width: 2 }); } }
         if (event.type === 'stomp') { sfx('pop', 0.7); sfx('jump', 0.4); }
         if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6);
-        if (event.type === 'bossLand') { sfx('thud', 0.9); state.shake = 0.35; state.notice = { text: BOSS_APPEAR_LINE, t: 0, hold: BOSS.roar + 0.6 }; }
-        if (event.type === 'bossJump') sfx('mario_jump', 0.45, 0, 0.8);
+        if (event.type === 'bossLand') { sfx('thud', 0.9); state.shake = 0.35; }
+        if (event.type === 'bossJump') sfx('wing', 0.35, 0, 0.7);
         if (event.type === 'swing') sfx('heavyswing', 0.8);
         // 거슨전 참고 패턴 소리(전부 델타룬 공식): 순간이동 spearappear, 영역 표시 bell(띵), 낙하 wing(휘융), 착지 impact, 회전 예비 power, 회전 ultraswing
         if (event.type === 'bossVanish') { sfx('spearappear', 0.7); for (let i = 0; i < 10; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + Math.random() * state.boss.h, vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, t: 0, dur: 0.5, color: 'violet' }); }
@@ -431,6 +436,8 @@ export function run(game, node = {}) {
         if (event.type === 'water') { state.waters.push({ x: event.x, y: event.y, vx: event.vx, life: BOSS.waterLife, facing: event.facing }); sfx('splash', 0.5, 0, 1.3); }
         if (event.type === 'bossHit') sfx('hit', 0.7);
         if (event.type === 'bossImmune') sfx('knock', 0.45, 0.3, 1.3);
+        // 격노(체력 절반): 붉어지고 패턴이 빨라진다 + 억빠맨 한 줄(사용자)
+        if (event.type === 'bossEnrage') { sfx('power', 0.9); state.shake = 0.35; say([BOSS_ENRAGE.line]); for (let i = 0; i < 14; i++) state.fx.push({ kind: 'ember', x: state.boss.x + Math.random() * state.boss.w, y: state.boss.y + Math.random() * state.boss.h, vx: (Math.random() - 0.5) * 120, vy: -60 - Math.random() * 90, t: 0, dur: 0.6 }); }
         if (event.type === 'enemyThrow') { state.shots.push({ x: event.x, y: event.y, vx: event.vx, vy: event.vy, w: event.w, h: event.h, life: 2.6, damage: event.damage, kind: event.kind, t: 0 }); sfx(event.kind === 'red' ? 'ember' : 'pop', 0.6, 0.5); }
         if (event.type === 'block') sfx('pantheon_e_block', 0.8, 0.6);
         if (event.type === 'hurt') {
@@ -467,9 +474,55 @@ export function run(game, node = {}) {
         state.waters = []; state.sub = 'drop'; state.subT = 0; state.leaderLandT = 0; state.dropWait = 0.6;
         if (state.boss && !state.boss.dead) Object.assign(state.boss, { x: Math.round(level.bossSpawnX - state.boss.w / 2), vx: 0, state: 'roar', stateT: 0, shot: 0 });
       }
-      if (state.sub === 'drop' && leader.dropped && state.subT > state.leaderLandT + (state.dropWait ?? 1.9)) { state.sub = 'run'; state.control = true; state.dropWait = 1.9; }
+      if (state.sub === 'drop' && !def.boss && leader.dropped && state.subT > state.leaderLandT + (state.dropWait ?? 1.9)) { state.sub = 'run'; state.control = true; state.dropWait = 1.9; }
+      if (state.banner) { state.banner.t += dt; if (state.banner.t > state.banner.hold) state.banner = null; }
       if (state.sub === 'clear' && state.subT >= CLEAR_HOLD) { state.sub = 'card'; state.subT = 0; state.cardShown = false; state.cardLoaded = false; }
       state.cam = cameraX(level, leader);
+    };
+    // 1-4 오프닝(사용자 브리핑 원문): 0 대사 두 줄 → 1 비데 목소리 → 2 가운데 영역 표시(띵)·모두 양옆으로 → 3 낙하·착지 → 4 좌우 둘러봄 → 5 대사 세 줄
+    //   → 6 ‘보스전’(빨간 글씨) → 7 START!!(파앗) + 비데 사라짐 → 패턴 시작·조작·브금
+    const walkTo = (actor, targetX) => { const dx = targetX - (actor.x + actor.w / 2); return Math.abs(dx) > 6 ? { ...NO_INTENT, right: dx > 0, left: dx < 0 } : NO_INTENT; };
+    const updateIntro = (dt, events) => {
+      const level = state.level, it = state.intro; it.t += dt;
+      const centerX = level.width / 2;
+      if (it.step === 0) { say(BOSS_INTRO.before); it.step = 1; }
+      else if (it.step === 1) { if (!chatBusy()) { say(BOSS_INTRO.voice); it.step = 2; } }
+      else if (it.step === 2) {
+        if (!chatBusy()) {
+          // 비데는 아직 안 보이고, 가운데에 영역 표시(띵) → 모두 양옆으로 갈라진다
+          const boss = makeBoss(centerX, -60);
+          boss.hidden = true; boss.state = 'marker'; boss.stateT = 0; boss.lastAction = 'slam'; boss.markerX = centerX; boss.x = Math.round(centerX - boss.w / 2); boss.y = -boss.h - 40;
+          boss.markerY = landingY(level, boss.x, boss.x + boss.w);
+          state.boss = boss; sfx('bell', 0.9); it.step = 3; it.t = 0;
+        }
+      }
+      else if (it.step === 3) {
+        for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, BOSS_INTRO.split[actor.id]);
+        // stepBoss 가 marker → dive → slam 을 진행한다. 착지 회복에 들어가면 서서 좌우를 둘러본다
+        if (state.boss.state === 'recover') { state.boss.state = 'intro'; state.boss.stateT = 0; state.boss.facing = -1; it.step = 4; it.t = 0; }
+      }
+      else if (it.step === 4) {
+        // 갈라지는 걸음은 둘러보는 동안 계속(자리에 닿을 때까지)
+        for (const actor of state.actors) it.intents[actor.id] = walkTo(actor, BOSS_INTRO.split[actor.id]);
+        if (it.t >= BOSS_INTRO.lookHold && state.boss.facing < 0) state.boss.facing = 1;
+        if (it.t >= BOSS_INTRO.lookHold * 2) { state.boss.facing = -1; say(BOSS_INTRO.after); it.step = 5; it.intents = {}; }
+      }
+      else if (it.step === 5) { if (!chatBusy()) { state.banner = { text: '보스전', color: '#ff4a4a', size: 30, t: 0, hold: 9 }; sfx('power', 0.7); it.step = 6; it.t = 0; } }
+      else if (it.step === 6) {
+        if (it.t >= BOSS_INTRO.bannerHold) {
+          // START!! 파앗 — 흰 번쩍 + 비데가 사라지며 첫 패턴(순간이동 내려찍기)
+          state.banner = { text: 'START!!', color: '#ffe066', size: 36, t: 0, hold: 1.4 };
+          state.flash = 1; state.flashRate = 1 / 0.5; sfx('bell', 0.9); sfx('spearappear', 0.8);
+          const boss = state.boss; boss.state = 'vanish'; boss.stateT = 0; boss.lastAction = 'slam'; boss.seq = 3;
+          it.step = 7; it.t = 0;
+        }
+      }
+      else if (it.step === 7) {
+        if (it.t >= BOSS_INTRO.startHold) {
+          state.sub = 'run'; state.control = true; state.bossFight = true; state.intro = null;
+          game.sound.playBgm('subrio_sword', { volume: 0.42, loopEnd: 124.0, loopFade: 1.0 });
+        }
+      }
     };
     // 보스전 도트마리오: 40초마다 오른쪽 벽 위(x464, y80)로 천천히 걸어 들어와 주인공 쪽으로 버섯을 던지고 다시 나간다. 버섯을 먹으면 30 회복
     const updateMario = (dt, events) => {
@@ -583,6 +636,16 @@ export function run(game, node = {}) {
         const pulse = boss.state === 'spinWind' ? 0.45 + 0.35 * Math.abs(Math.sin(boss.stateT * 12)) : 0.85;
         ctx.fillStyle = `rgba(255,60,60,${(0.18 * pulse).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(cx, cy + c.r * 0.35, c.r * k, c.r * 0.5 * k, 0, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = `rgba(255,80,80,${pulse.toFixed(3)})`; ctx.lineWidth = boss.state === 'spin' ? 3 : 2; ctx.beginPath(); ctx.ellipse(cx, cy + c.r * 0.35, c.r * k, c.r * 0.5 * k, 0, 0, Math.PI * 2); ctx.stroke();
+        // 회전 중: 도끼가 지나간 자리에 붉은 잔상 호(세 겹, 뒤로 갈수록 옅게)가 보스 둘레를 돈다(사용자)
+        if (boss.state === 'spin') {
+          const a = (boss.stateT / BOSS.spinTime) * Math.PI * 2 * (boss.facing < 0 ? -1 : 1);
+          for (let i = 0; i < 3; i++) {
+            const lag = i * 0.45, alpha = 0.55 - i * 0.16;
+            ctx.strokeStyle = `rgba(255,70,50,${alpha.toFixed(2)})`; ctx.lineWidth = 12 - i * 3; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.ellipse(cx, cy, c.r * 0.92, c.r * 0.46, 0, a - lag - 0.9, a - lag, false); ctx.stroke();
+          }
+          ctx.lineCap = 'butt';
+        }
       }
       // 회복 틈(때릴 차례): 발밑에 노란 고리가 숨 쉬듯 — 이때만 창·불·시계가 먹힌다
       if (boss.state === 'recover' || (boss.state === 'slam' && boss.stateT >= 0.2)) {
@@ -613,6 +676,7 @@ export function run(game, node = {}) {
       if (boss.facing < 0) ctx.scale(-1, 1);
       if (boss.state === 'vanish') ctx.globalAlpha = Math.max(0.1, 1 - boss.stateT / BOSS.vanish);
       if (boss.flash > 0 && 'filter' in ctx) ctx.filter = 'brightness(2.6) saturate(0.2)';
+      else if (boss.enraged && 'filter' in ctx) ctx.filter = 'sepia(0.55) saturate(4.2) hue-rotate(-28deg) brightness(1.05)';
       if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (idx % 2) * BOSS_CELL[0], Math.floor(idx / 2) * BOSS_CELL[1], BOSS_CELL[0], BOSS_CELL[1], -BOSS_CELL[0] / 2, -BOSS_FEET, BOSS_CELL[0], BOSS_CELL[1]);
       else { ctx.fillStyle = '#5a5a66'; ctx.fillRect(-boss.w / 2, -boss.h, boss.w, boss.h); }
       ctx.restore();
@@ -762,12 +826,12 @@ export function run(game, node = {}) {
       // 남은 몬스터(사용자: 오른쪽 상단, 다 잡아야 깃발에서 C 로 클리어)
       if (!level.def.boss) { const left = remainingEnemies(state.enemies); text(`남은 몬스터 ${left}`, VIEW_X + VIEW_W - 8, VIEW_Y + 24, { align: 'right', color: left === 0 ? '#8ce27a' : '#ffd166' }); }
       const boss = state.boss;
-      if (boss && boss.state !== 'enter' && !boss.dead) {
+      if (boss && state.bossFight && !boss.dead) {
         const bw = 150, bx = VIEW_X + (VIEW_W - bw) / 2, by = VIEW_Y + 24;
         text(STAGES[4].name, VIEW_X + VIEW_W / 2, VIEW_Y + 6, { align: 'center', color: '#ffb3b3' });
         ctx.fillStyle = '#000'; ctx.fillRect(bx - 1, by - 1, bw + 2, 8);
         ctx.fillStyle = '#5a1020'; ctx.fillRect(bx, by, bw, 6);
-        ctx.fillStyle = '#ff3b4a'; ctx.fillRect(bx, by, Math.round(bw * boss.hp / boss.maxHp), 6);
+        ctx.fillStyle = boss.enraged ? (Math.floor(state.t * 6) % 2 ? '#ff2a2a' : '#ff6a3a') : '#ff3b4a'; ctx.fillRect(bx, by, Math.round(bw * boss.hp / boss.maxHp), 6);
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(bx - 0.5, by - 0.5, bw + 1, 7);
       }
     };
@@ -879,6 +943,7 @@ export function run(game, node = {}) {
             text('SUBRIO', cx, VIEW_Y + 70 - bounce, { align: 'center', size: 52, color: '#ffffff' });
             text('~ 엄청 대박인 배 · 게임 속 게임 ~', cx, VIEW_Y + 134, { align: 'center', color: '#ffe066' });
           } else drawHud();
+          if (state.banner) { const b = state.banner, pop = b.t < 0.15 ? 1 + (0.15 - b.t) * 3 : 1; text(b.text, VIEW_X + VIEW_W / 2, VIEW_Y + 52, { align: 'center', size: Math.round(b.size * pop), color: b.color }); }
           if (state.sub === 'clear') text('STAGE CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 30, color: '#ffe066' });
           if (state.sub === 'dead') text('쓰러졌다...', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 24, color: '#ff8a8a' });
           if (state.sub === 'victory' && state.bossGone) text('CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 36, color: '#ffe066' });

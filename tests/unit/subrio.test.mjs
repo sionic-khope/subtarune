@@ -181,7 +181,9 @@ test('test_subrio_stage_list_is_tutorial_twitch_chzzk_forest_then_bidet_boss', (
   assert.ok(arena.width - VIEW_W <= 4, '1-4 는 한 화면(카메라 고정)');
   assert.equal(arena.solidAt(0, 10), true, '왼쪽 벽'); assert.equal(arena.solidAt(28, 10), true, '오른쪽 벽');
   assert.equal(arena.solidAt(4, 14), true, '왼쪽 발판'); assert.equal(arena.solidAt(24, 14), true, '오른쪽 발판'); assert.equal(arena.solidAt(14, 10), true, '가운데 발판');
-  assert.equal(arena.solidAt(Math.floor(arena.bossSpawnX / TILE), 14), false, '보스 낙하 열엔 발판이 없다'); assert.equal(arena.solidAt(Math.floor(arena.bossSpawnX / TILE), 10), false);
+  assert.equal(arena.solidAt(10, 10), true, '가운데 발판은 10열부터(옆 발판 끝 x112 에서 틈 48px)'); assert.equal(arena.solidAt(9, 10), false);
+  assert.equal(arena.bossSpawnX, 232, '보스는 가운데(오프닝 내려찍기)');
+  assert.equal(arena.solidAt(19, 10), true, '가운데 발판은 19열까지(오른쪽 발판 끝 x352 에서 틈 48px)'); assert.equal(arena.solidAt(20, 10), false);
   assert.equal(arena.solidAt(14, 11), false); assert.equal(arena.solidAt(14, 17), false);
 });
 
@@ -292,11 +294,9 @@ test('test_subrio_zilean_lobs_two_clocks_in_an_arc_and_two_hits_on_the_same_enem
 
 test('test_subrio_boss_lands_roars_chases_swings_in_reach_and_leaps_when_far', () => {
   const level = buildLevel(4);
-  const hero = settle(level, makeActor('p', 150, GROUND));
-  const boss = makeBoss(level.bossSpawnX, 100);
+  const hero = settle(level, makeActor('p', 60, GROUND));
+  const boss = makeBoss(level.bossSpawnX, GROUND); boss.grounded = true; boss.state = 'roar';
   const events = [];
-  for (let i = 0; i < 50; i++) stepBoss(level, boss, hero, 1 / 60, events);
-  assert.ok(events.some(e => e.type === 'bossLand')); assert.equal(boss.state, 'roar');
   for (let i = 0; i < 100; i++) stepBoss(level, boss, hero, 1 / 60, events);
   assert.equal(boss.state, 'chase'); assert.equal(boss.facing, -1, '주인공 쪽(왼쪽)을 본다');
   const startX = boss.x;
@@ -322,7 +322,7 @@ test('test_subrio_boss_takes_one_damage_per_hit_with_cooldown_and_dies_at_zero',
   const events = [];
   assert.equal(hitBoss(boss, events), true); assert.equal(boss.hp, BOSS.hp - 1);
   assert.equal(hitBoss(boss, events), false, '연속 판정 방지');
-  assert.equal(bossFrame(boss), 7, '맞은 직후 아픈 프레임');
+  assert.ok(boss.flash > 0, '맞은 직후 번쩍(프레임은 그대로 — 땀방울 프레임 안 씀)');
   boss.hitCooldown = 0; boss.hp = 1;
   assert.equal(hitBoss(boss, events), true);
   assert.equal(boss.dead, true); assert.equal(boss.state, 'dead'); assert.ok(events.some(e => e.type === 'bossDead'));
@@ -371,7 +371,7 @@ import { BOSS_PATTERN, bossAttackHero, bossSpinCircle, bossSlamZone, springNear,
 test('test_subrio_boss_pattern_cycles_swing_spin_and_teleport_slam_with_zones', () => {
   const level = buildLevel(4);
   const hero = settle(level, makeActor('p', 150, GROUND));
-  const boss = makeBoss(level.bossSpawnX, 100);
+  const boss = makeBoss(level.bossSpawnX, GROUND); boss.grounded = true; boss.state = 'roar';
   const events = [];
   const run = (frames, cond) => { for (let i = 0; i < frames; i++) { stepBoss(level, boss, hero, 1 / 60, events); bossAttackHero(boss, hero, events); if (cond && cond()) return true; } return false; };
   assert.deepEqual(BOSS_PATTERN.slice(0, 4), ['swing', 'swing', 'spin', 'slam']);
@@ -390,7 +390,8 @@ test('test_subrio_boss_pattern_cycles_swing_spin_and_teleport_slam_with_zones', 
   hero.invuln = 0; hero.hurtT = 0;
   assert.ok(run(60 * 6, () => boss.state === 'marker'), '순간이동 뒤 영역 표시'); assert.equal(boss.hidden, true);
   const zone = bossSlamZone(boss); assert.ok(zone && Math.abs(zone.x + zone.w / 2 - (hero.x + hero.w / 2)) < 2, '영역은 주인공 머리 위');
-  assert.ok(run(60 * 3, () => boss.state === 'slam'), '미끄러져 내려와 착지'); assert.equal(boss.hidden, false);
+  assert.ok(run(60 * 3, () => { if (boss.state === 'dive') { hero.invuln = 0; hero.hurtT = 0; } return boss.state === 'slam'; }), '미끄러져 내려와 착지'); assert.equal(boss.hidden, false);
+  assert.equal(boss.y + boss.h, hero.y + hero.h, '주인공이 선 면(바닥)에 내려온다 — 발판을 통과');
   assert.ok(events.some(e => e.type === 'bossMarker') && events.some(e => e.type === 'bossDive') && events.some(e => e.type === 'bossSlam'));
   assert.ok(events.filter(e => e.type === 'hurt').some(e => e.damage === BOSS.slamDamage), '띠 안에 서 있던 주인공은 내려찍기 피해');
   assert.equal(events.some(e => e.type === 'water'), false);
@@ -452,4 +453,48 @@ test('test_subrio_boss_slam_marker_stays_inside_the_arena_walls', () => {
   for (let i = 0; i < 60 * 4 && boss.state !== 'slam'; i++) stepBoss(level, boss, hero, 1 / 60, events);
   assert.equal(boss.state, 'slam'); assert.equal(boss.y + boss.h, boss.markerY, '영역 표시한 착지면에 내려온다');
   assert.ok([14 * TILE, GROUND].includes(boss.markerY), '벽 위(80)가 아니라 발판(224) 또는 바닥(288)');
+});
+
+test('test_subrio_stage_1_4_uses_grey_castle_tiles_silences_bgm_and_has_the_intro_script', async () => {
+  const { BOSS_INTRO } = await import('../../src/scenes/subrio-core.js');
+  assert.ok(STAGES[4].tiles.includes('castle'), '회색 쿠파성 타일');
+  assert.equal(BOSS_INTRO.before.length, 2); assert.equal(BOSS_INTRO.voice[0].who, 'bidet'); assert.equal(BOSS_INTRO.after.length, 3);
+  assert.ok(BOSS_INTRO.split.gyeongsub < 232 && BOSS_INTRO.split.hyungsub > 232 && BOSS_INTRO.split.ppaman > 232, '경섭 왼쪽, 요플래·억빠맨 오른쪽');
+  const level = buildLevel(4);
+  const hero = settle(level, makeActor('p', 150, GROUND));
+  const boss = makeBoss(232, GROUND); boss.grounded = true; boss.state = 'intro';
+  for (let i = 0; i < 60; i++) stepBoss(level, boss, hero, 1 / 60);
+  assert.equal(boss.state, 'intro'); assert.equal(boss.x, 232 - 36, '오프닝 동안 제자리');
+  assert.equal(hitBoss(boss), false, '오프닝엔 안 맞는다');
+});
+
+test('test_subrio_boss_hits_slow_followers_without_hp_and_center_platform_is_reachable_from_the_side', () => {
+  const level = buildLevel(4);
+  const follower = settle(level, makeActor('gyeongsub', 200, GROUND));
+  const boss = makeBoss(232, GROUND); boss.grounded = true; boss.state = 'spin'; boss.stateT = 0.1;
+  const events = [];
+  assert.equal(bossAttackHero(boss, follower, events, true), true);
+  const hurt = events.find(e => e.type === 'hurt'); assert.equal(hurt.damage, 0, '동료는 체력이 안 깎인다'); assert.ok(follower.slowT > 0, '동료도 슬로우');
+  assert.equal(bossAttackHero(boss, follower, events, true), false, '같은 동작엔 한 번');
+  // 옆 발판(14행 위, x100)에서 오른쪽으로 꾹 점프 → 가운데 발판(10행) 위에 선다
+  const hero = makeActor('p', 92, 14 * TILE); hero.grounded = true;
+  for (let i = 0; i < 20; i++) stepActor(level, hero, NONE, 1 / 60);
+  for (let i = 0; i < 8; i++) stepActor(level, hero, { ...NONE, right: true }, 1 / 60);
+  assert.equal(hero.y + hero.h, 14 * TILE, '옆 발판 위(끝에서 달리는 중)');
+  let landed = false;
+  for (let i = 0; i < 90; i++) { stepActor(level, hero, { ...NONE, right: true, jump: i === 0, jumpHeld: true }, 1 / 60); if (hero.grounded && hero.y + hero.h === 10 * TILE) { landed = true; break; } }
+  assert.equal(landed, true, `가운데 발판에 착지 (x=${Math.round(hero.x)}, feet=${hero.y + hero.h})`);
+});
+
+test('test_subrio_boss_enrages_at_half_hp_with_faster_timings_and_a_ppaman_line', async () => {
+  const { bossTiming, BOSS_ENRAGE, BOSS_PATTERN_ENRAGED } = await import('../../src/scenes/subrio-core.js');
+  const boss = makeBoss(232, GROUND); boss.state = 'chase';
+  const events = [];
+  const normal = bossTiming(boss);
+  while (boss.hp > boss.maxHp * 0.5) { boss.hitCooldown = 0; hitBoss(boss, events); }
+  assert.equal(boss.enraged, true); assert.equal(events.filter(e => e.type === 'bossEnrage').length, 1, '격노는 한 번');
+  const fast = bossTiming(boss);
+  assert.ok(fast.windup < normal.windup && fast.spinWind < normal.spinWind && fast.marker < normal.marker && fast.speed > normal.speed);
+  assert.equal(fast.pattern, BOSS_PATTERN_ENRAGED); assert.ok(BOSS_PATTERN_ENRAGED.filter(a => a !== 'swing').length > BOSS_PATTERN.filter(a => a !== 'swing').length, '특수기 비중이 는다');
+  assert.equal(BOSS_ENRAGE.line.text, '거의 다 왔어요 족쳐'); assert.equal(BOSS_ENRAGE.line.who, 'ppaman');
 });

@@ -82,13 +82,26 @@ try {
   for (const next of [2, 3, 4]) {
     await toGoal(next === 2); s = await sub(); check(s.sub === 'clear', `stage ${next} 깃발 → clear ` + JSON.stringify([s.stage, s.sub]));
     await page.waitForFunction(() => window.__subrio?.state.sub === 'card' && window.__subrio.state.fade >= 1, null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(250); await cap('card' + next);
-    await page.waitForFunction((n) => window.__subrio?.state.stage === n && window.__subrio.state.control, next, { timeout: 14000 }).catch(() => {});
-    s = await sub(); check(s.stage === next && s.control, `stage ${next + 1} 로드·조작 ` + JSON.stringify([s.stage, s.control, s.enemies])); await cap('s' + (next + 1));
+    await page.waitForFunction((n) => window.__subrio?.state.stage === n && (window.__subrio.state.control || window.__subrio.state.sub === 'intro'), next, { timeout: 16000 }).catch(() => {});
+    s = await sub(); check(s.stage === next && (s.control || s.sub === 'intro'), `stage ${next + 1} 로드 ` + JSON.stringify([s.stage, s.control, s.sub, s.enemies])); await cap('s' + (next + 1));
   }
-  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'roar', null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(250);
-  s = await sub(); check(s.boss && s.boss[1] === 'roar', '보스 착지·포효 ' + JSON.stringify(s.boss)); await cap('boss_roar');
-  await page.waitForFunction(() => window.__subrio?.state.boss?.state === 'swing', null, { timeout: 15000 }).catch(() => {}); await page.waitForTimeout(80);
-  s = await sub(); check(s.boss && s.boss[1] === 'swing', '보스 도끼 휘두름 ' + JSON.stringify(s.boss)); await cap('boss_swing');
+  // 1-4 오프닝: 브금 꺼짐 → 세 명 낙하 → 대사 → 가운데 내려찍기(모두 양옆) → 둘러봄 → 대사 → 보스전 → START!!
+  await page.waitForFunction(() => window.__subrio?.state.sub === 'intro', null, { timeout: 12000 }).catch(() => {});
+  const introBgm = await page.evaluate(() => game.sound.bgmName ?? null); check((await sub()).sub === 'intro' && introBgm === null, '1-4 오프닝 시작·브금 꺼짐 ' + JSON.stringify([introBgm]));
+  await page.waitForFunction(() => window.__subrio?.state.boss && window.__subrio.state.boss.state === 'marker', null, { timeout: 20000 }).catch(() => {}); await page.waitForTimeout(400); await cap('boss_intro_marker');
+  await page.waitForFunction(() => window.__subrio?.state.intro?.step >= 5, null, { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(200);
+  const split = await page.evaluate(() => { const st = window.__subrio.state; const by = Object.fromEntries(st.actors.map(a => [a.id, Math.round(a.x + a.w / 2)])); return { by, boss: [Math.round(st.boss.x + st.boss.w / 2), st.boss.state] }; });
+  check(split.boss[1] === 'intro' && Math.abs(split.boss[0] - 232) < 20 && split.by.gyeongsub < 160 && split.by.hyungsub > 280 && split.by.ppaman > 280, '가운데 내려찍기 뒤 경섭 왼쪽·요플래/억빠맨 오른쪽 ' + JSON.stringify(split)); await cap('boss_intro_split');
+  await page.waitForFunction(() => window.__subrio?.state.banner?.text === '보스전', null, { timeout: 25000 }).catch(() => {}); await page.waitForTimeout(200); await cap('boss_intro_banner');
+  const banner = await page.evaluate(() => window.__subrio.state.banner?.text); check(banner === '보스전', '보스전 배너 ' + banner);
+  await page.waitForFunction(() => window.__subrio?.state.banner?.text === 'START!!', null, { timeout: 6000 }).catch(() => {}); await page.waitForTimeout(150); await cap('boss_intro_start');
+  await page.waitForFunction(() => window.__subrio?.state.bossFight && window.__subrio.state.control, null, { timeout: 6000 }).catch(() => {});
+  s = await sub(); const fightBgm = await page.evaluate(() => game.sound.bgmName); check(s.sub === 'run' && s.control && fightBgm === 'subrio_sword', 'START!! 뒤 조작·브금 ' + JSON.stringify([s.sub, fightBgm]));
+  await page.waitForFunction(() => ['chase', 'recover', 'windup', 'swing', 'spinWind'].includes(window.__subrio?.state.boss?.state), null, { timeout: 12000 }).catch(() => {});
+  s = await sub(); check(!!s.boss, '첫 패턴 뒤 추격 ' + JSON.stringify(s.boss)); await cap('boss_roar');
+  await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; l.x = Math.max(120, st.boss.x - 100); l.y = 250; });
+  await page.waitForFunction(() => ['windup', 'swing'].includes(window.__subrio?.state.boss?.state), null, { timeout: 30000 }).catch(() => {}); await page.waitForTimeout(60);
+  s = await sub(); check(s.boss && ['windup', 'swing'].includes(s.boss[1]), '보스 도끼 휘두름 ' + JSON.stringify(s.boss)); await cap('boss_swing');
   await page.waitForTimeout(600);
   await page.evaluate(() => { const st = window.__subrio.state; const l = st.actors[0]; l.invuln = 0; l.hurtT = 0; l.x = Math.max(120, st.boss.x - 90); l.y = 250; l.facing = 1; });
   await page.keyboard.down('KeyX');
