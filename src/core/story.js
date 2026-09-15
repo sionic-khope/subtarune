@@ -322,3 +322,5 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle7_after_subrio', desc: '편�
   map: 'youngcle7', spawn: 'from_corridor', flags: { ...afterSubrioFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle10', desc: '엄청 대박인 배: 무대 위 윗길 (마나샘)',
   map: 'youngcle10', spawn: 'from_stage', flags: { ...afterSubrioFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle11', desc: '엄청 대박인 배: 무대 홀 (불 꺼진 무대, 리듬 게임 예정)',
+  map: 'youngcle11', spawn: 'from_below', flags: { ...afterSubrioFlags }, party: [...parkWonCheckpoint.party] });

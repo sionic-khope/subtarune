@@ -7,11 +7,11 @@
  "battleBg": "youngcle_factory",
  "dim": 0.08,
  "rows": [
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!JJJJJJ!!!!",
-  "!!!!!!!!!!!!!!JIIIIJ!!!!",
-  "JJJJJJJJJJJJJJJIIIIJJJJJ",
+  "!!!!!!!!!JJJJJJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJ!!!!!!!!!",
+  "!!!!!!!!!JIIIIJJJJJJ!!!!",
+  "!!!!!!!!!JIIIIJIIIIJ!!!!",
+  "JJJJJJJJJJIIIIJIIIIJJJJJ",
   "JIIIIIIIIIIIIIIIIIIIIIIJ",
   "JIIIIIIIIIIIIIIIIIIIIIIJ",
   "JIIIIIIIIIIIIIIIIIIIIIIJ",
@@ -40,6 +40,11 @@
    "x": 368,
    "y": 440,
    "facing": "up"
+  },
+  "from_hall": {
+   "x": 368,
+   "y": 88,
+   "facing": "down"
   }
  },
  "meta": {
@@ -60,6 +65,10 @@
    [
     22,
     6
+   ],
+   [
+    11,
+    2
    ]
   ]
  },
@@ -73,6 +82,18 @@
    "h": 16,
    "to": "youngcle7",
    "spawn": "from_upper",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle10_up",
+   "x": 320,
+   "y": 32,
+   "w": 128,
+   "h": 16,
+   "to": "youngcle11",
+   "spawn": "from_below",
    "sfx": false,
    "interact": false
   },

@@ -7,7 +7,7 @@
 # Run from the repository root: uv run tools/maps/youngcle10.py [--check]
 # ──────────────────
 """편집노조 무대(youngcle7) 위 통로 꼭대기에서 올라오는 윗길(2026-09-15 사용자: “스테이지 위로 갔을 때 마나샘 있는 윗길 맵”).
-아래 가운데 입구에서 올라와 가로로 긴 철제 통로를 만나고, 통로 위쪽 주머니에 마나샘이 하나 있다. 양 끝은 아직 어디로도 이어지지 않는다(다음 브리핑)."""
+아래 가운데 입구에서 올라와 가로로 긴 철제 통로를 만나고, 통로 위쪽 주머니에 마나샘이 하나 있다. 가운데 위로 세로 통로가 이어져 무대 홀(youngcle11)로 올라간다. 양 끝은 아직 어디로도 이어지지 않는다."""
 from __future__ import annotations
 
 import json
@@ -30,6 +30,10 @@ def main() -> None:
         for col in range(1, WIDTH - 1):
             cells[row][col] = 'I'
     for row in range(9, HEIGHT - 1):
+        for col in range(10, 14):
+            cells[row][col] = 'I'
+    # 위로 올라가는 세로 통로 cols 10~13 rows 1~4(row 1 에 무대 홀로 올라가는 문)
+    for row in range(1, 5):
         for col in range(10, 14):
             cells[row][col] = 'I'
     # 마나샘 주머니: 통로 위쪽으로 두 칸 들어간 작은 공간(오른쪽)
@@ -57,12 +61,17 @@ def main() -> None:
             'start': {'x': 368, 'y': 440, 'facing': 'up'},
             # 무대 위 통로 꼭대기 문에서 올라올 때(세로 통로 아래쪽)
             'from_stage': {'x': 368, 'y': 440, 'facing': 'up'},
+            # 무대 홀(youngcle11)에서 내려올 때(세로 통로 위쪽)
+            'from_hall': {'x': 368, 'y': 88, 'facing': 'down'},
         },
-        'meta': {'connected': True, 'route': [[11, 14], [11, 6], [2, 6], [22, 6]]},
+        'meta': {'connected': True, 'route': [[11, 14], [11, 6], [2, 6], [22, 6], [11, 2]]},
         'entities': [
             # 세로 통로 맨 아래 → 무대 위 통로 꼭대기(from_upper). 열린 통로라 C 없이 방향키로 통과
             {'type': 'door', 'id': 'youngcle10_down', 'x': 320, 'y': 496, 'w': 128, 'h': 16,
              'to': 'youngcle7', 'spawn': 'from_upper', 'sfx': False, 'interact': False},
+            # 세로 통로 꼭대기 → 무대 홀(from_below)
+            {'type': 'door', 'id': 'youngcle10_up', 'x': 320, 'y': 32, 'w': 128, 'h': 16,
+             'to': 'youngcle11', 'spawn': 'from_below', 'sfx': False, 'interact': False},
             *[{'type': 'factory_rail', 'id': f'youngcle10_rail_{index}',
                'x': x, 'y': y, 'w': width, 'h': 12}
               for index, (x, y, width) in enumerate((

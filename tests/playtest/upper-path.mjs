@@ -40,6 +40,23 @@ try {
   await page.waitForTimeout(200); await page.keyboard.press('KeyC'); await page.waitForTimeout(600); await cap('spring');
   const hp = await page.evaluate(() => ({ hp: game.hpOf('hyungsub'), max: game.maxHpOf('hyungsub'), tb: game.textbox.state }));
   check(hp.hp === hp.max, '마나샘 C → HP 가득 ' + JSON.stringify(hp));
+  // 회복 안내창을 닫는다(열린 채면 이동이 막힌다)
+  for (let i = 0; i < 6 && await page.evaluate(() => game.dialogue.running || game.textbox.state !== 'closed'); i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(250); }
+  // 2b) 윗길 세로 통로 → 무대 홀(youngcle11): 어둠 막·계단·커튼이 있고 무음, 아래 문으로 다시 윗길
+  await page.evaluate(() => { game.player.x = 368; game.player.y = 140; game.player.facing = 'up'; });
+  await page.waitForTimeout(800);
+  const upHall = await holdUntil('ArrowUp', () => game.mapId === 'youngcle11' && !game.transitioning, 8000);
+  await page.waitForTimeout(400); await cap('hall');
+  const hall = await page.evaluate(() => ({ map: game.mapId, bgm: game.sound.bgmName ?? null, dark: !!game.entities.find(e => e.id === 'stage11_dark'), stairs: game.entities.filter(e => e.id?.startsWith('stage11_stairs')).length, valance: !!game.entities.find(e => e.id === 'stage11_valance'), player: [Math.round(game.player.x), Math.round(game.player.y)] }));
+  check(upHall && hall.map === 'youngcle11' && hall.bgm === null && hall.dark && hall.stairs === 2 && hall.valance, '위 문 → 무대 홀(어둠 막·계단 둘·커튼·무음) ' + JSON.stringify(hall));
+  await page.evaluate(() => { game.player.x = 116; game.player.y = 300; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); });
+  await page.waitForTimeout(300);
+  const climbed = await holdUntil('ArrowUp', () => game.player.y < 200, 6000);
+  check(climbed, '왼쪽 계단으로 무대에 올라간다 ' + JSON.stringify(await page.evaluate(() => [Math.round(game.player.x), Math.round(game.player.y)]))); await cap('hall_stage');
+  await page.evaluate(() => { game.player.x = 400; game.player.y = 700; });
+  await page.waitForTimeout(800);
+  const backDown = await holdUntil('ArrowDown', () => game.mapId === 'youngcle10' && !game.transitioning, 8000);
+  await page.waitForTimeout(300); check(backDown && (await page.evaluate(() => game.mapId)) === 'youngcle10', '홀 아래 문 → 윗길');
   // 3) 철창이 안 뚫린 상태: 위 문은 잠김(내레이션)
   await page.goto('http://localhost:8000/?qa=park_guardian_after_grate');
   await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle7' && !game.transitioning && !game.dialogue.running, null, { timeout: 20000 });

@@ -1,0 +1,271 @@
+{
+ "id": "youngcle11",
+ "name": "엄청 대박인 배 무대 홀",
+ "stage": "void_fallen",
+ "bgm": null,
+ "backdrop": "youngcle_factory",
+ "battleBg": "youngcle_factory",
+ "dim": 0.22,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!JJJJJJJJJJJJJJJJJJJJJJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "!!JIIIIIIIIIIIIIIIIIIIIJ!!",
+  "JJJIIJJJJJJJJJJJJJJJJIIJJJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JIIIIIIIIIIIIIIIIIIIIIIIIJ",
+  "JJJJJJJJJJJJJJJJJJJJJJJJJJ",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron.png",
+  "assets/backdrops/youngcle_factory.png",
+  "assets/props/stage_front.png",
+  "assets/props/stage_stairs.png",
+  "assets/props/stage_valance.png",
+  "assets/props/stage_truss_off.png",
+  "assets/props/stage_dark.png",
+  "assets/props/editor-union-curtain.png",
+  "assets/props/editor-union-speaker.png",
+  "assets/props/editor-union-wall-panel.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 400,
+   "y": 700,
+   "facing": "up"
+  },
+  "from_below": {
+   "x": 400,
+   "y": 700,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    12,
+    22
+   ],
+   [
+    12,
+    10
+   ],
+   [
+    3,
+    8
+   ],
+   [
+    12,
+    4
+   ]
+  ],
+  "stage": {
+   "center": [
+    416,
+    160
+   ],
+   "left_stairs": [
+    96,
+    256
+   ],
+   "right_stairs": [
+    672,
+    256
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle11_down",
+   "x": 352,
+   "y": 752,
+   "w": 128,
+   "h": 16,
+   "to": "youngcle10",
+   "spawn": "from_hall",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "sign",
+   "id": "stage11_center",
+   "x": 416,
+   "y": 160,
+   "w": 1,
+   "h": 1,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "stage11_wall_0",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 0,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage11_wall_1",
+   "image": "assets/props/editor-union-wall-panel.png",
+   "x": 704,
+   "y": 0,
+   "w": 128,
+   "h": 76,
+   "solid": false,
+   "sortY": -980
+  },
+  {
+   "type": "prop",
+   "id": "stage11_truss_0",
+   "image": "assets/props/stage_truss_off.png",
+   "x": 100,
+   "y": 0,
+   "w": 218,
+   "h": 40,
+   "solid": false,
+   "sortY": -960
+  },
+  {
+   "type": "prop",
+   "id": "stage11_truss_1",
+   "image": "assets/props/stage_truss_off.png",
+   "x": 307,
+   "y": 0,
+   "w": 218,
+   "h": 40,
+   "solid": false,
+   "sortY": -960
+  },
+  {
+   "type": "prop",
+   "id": "stage11_truss_2",
+   "image": "assets/props/stage_truss_off.png",
+   "x": 514,
+   "y": 0,
+   "w": 218,
+   "h": 40,
+   "solid": false,
+   "sortY": -960
+  },
+  {
+   "type": "prop",
+   "id": "stage11_valance",
+   "image": "assets/props/stage_valance.png",
+   "x": 96,
+   "y": 36,
+   "w": 640,
+   "h": 48,
+   "solid": false,
+   "sortY": -940
+  },
+  {
+   "type": "prop",
+   "id": "stage11_curtain_0",
+   "image": "assets/props/editor-union-curtain.png",
+   "x": 96,
+   "y": 64,
+   "w": 96,
+   "h": 124,
+   "solid": false,
+   "sortY": -930
+  },
+  {
+   "type": "prop",
+   "id": "stage11_curtain_1",
+   "image": "assets/props/editor-union-curtain.png",
+   "x": 640,
+   "y": 64,
+   "w": 96,
+   "h": 124,
+   "solid": false,
+   "sortY": -930
+  },
+  {
+   "type": "prop",
+   "id": "stage11_front",
+   "image": "assets/props/stage_front.png",
+   "x": 160,
+   "y": 256,
+   "w": 512,
+   "h": 32,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "stage11_stairs_0",
+   "image": "assets/props/stage_stairs.png",
+   "x": 96,
+   "y": 248,
+   "w": 64,
+   "h": 40,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "stage11_stairs_1",
+   "image": "assets/props/stage_stairs.png",
+   "x": 672,
+   "y": 248,
+   "w": 64,
+   "h": 40,
+   "solid": false,
+   "sortY": -900
+  },
+  {
+   "type": "prop",
+   "id": "stage11_speaker_0",
+   "image": "assets/props/editor-union-speaker.png",
+   "x": 40,
+   "y": 300,
+   "w": 64,
+   "h": 88,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "stage11_speaker_1",
+   "image": "assets/props/editor-union-speaker.png",
+   "x": 728,
+   "y": 300,
+   "w": 64,
+   "h": 88,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "stage11_dark",
+   "image": "assets/props/stage_dark.png",
+   "x": 96,
+   "y": 32,
+   "w": 640,
+   "h": 232,
+   "solid": false,
+   "sortY": 9000
+  }
+ ]
+}
