@@ -8,7 +8,7 @@
 # ──────────────────
 """따듯한비데의 게임 스크린 방 (2026-09-15 사용자 브리핑, BUILD167 재배치): 왼쪽에 키오스크형 컨트롤러와 그 오른쪽의 비데,
 컨트롤러 아래에 왼쪽 입구가 열린 눕힌 토관, 토관이 오른쪽으로 이어지는 거대한 2D 스크린(576×480, 흰 테두리·검은 화면)이 방 오른쪽을 차지한다.
-토관은 왼쪽에서 걸어 들어가면(트리거) 섭리오로 간다. 입장 연출은 `bidet_arcade`. 브금은 연출 전엔 없고 연출부터 `editor_union_stage`."""
+토관 입구 앞에서 C 를 누르면 '들어갈까?' 선택 뒤 섭리오로 간다. 입장 연출은 `bidet_arcade`. 브금은 연출 전엔 없고 연출부터 `editor_union_stage`."""
 from __future__ import annotations
 
 import json
@@ -51,7 +51,7 @@ def main() -> None:
             'inside': {'x': 240, 'y': 500, 'facing': 'right'},
         },
         'meta': {'connected': True, 'screen': [528, 80, 576, 480], 'kiosk': [368, 408, 64, 96],
-                 'pipe': [352, 520, 192, 64], 'pipe_mouth': [320, 528, 32, 56], 'bidet': [480, 500]},
+                 'pipe': [352, 520, 192, 64], 'pipe_mouth': [352, 528, 24, 56], 'bidet': [480, 500]},
         'entities': [
             {'type': 'door', 'id': 'youngcle9_left', 'x': 32, 'y': 352, 'w': 16, 'h': 128,
              'to': 'youngcle8', 'spawn': 'right', 'sfx': False, 'interact': False},
@@ -66,12 +66,10 @@ def main() -> None:
             {'type': 'npc', 'id': 'warm_bidet', 'sprite': 'warm_bidet', 'x': 480, 'y': 500,
              'facing': 'down', 'wander': 0, 'solid': True, 'unless': DONE},
             # 컨트롤러 아래에 눕힌 토관(192×64): 왼쪽 입구가 열려 있고 오른쪽 끝이 스크린 안으로 들어간다. 그림은 스크린보다 앞
-            # 몸(막힘)은 입구 안쪽 x400 부터 — 입구 x352~400 은 연출·진입에서 걸어 들어가는 자리
+            # 몸(막힘·C 히트박스)은 입구 안쪽 x376 부터 — 입구 그림 x352~376 은 연출·진입에서 걸어 들어가는 자리.
+            # 입구 앞에서 C → 연출 뒤엔 '들어갈까?' 선택 → 섭리오 / 그 전엔 토관 설명 (사용자 지시 2026-09-15: 상호작용해야 들어감)
             {'type': 'prop', 'id': 'bidet_pipe', 'image': 'assets/props/mario_pipe_h.png',
-             'x': 400, 'y': 528, 'w': 144, 'h': 56, 'ix': 352, 'iy': 520, 'solid': True, 'sortY': 600,
-             'script': 'bidet_pipe_look'},
-            # 토관 입구: 왼쪽에서 걸어 들어가면 섭리오(연출 뒤) / 그 전엔 토관 설명
-            {'type': 'trigger', 'id': 'bidet_pipe_mouth', 'x': 320, 'y': 528, 'w': 32, 'h': 56,
+             'x': 376, 'y': 528, 'w': 168, 'h': 56, 'ix': 352, 'iy': 520, 'solid': True, 'sortY': 600,
              'script': 'bidet_pipe_enter'},
             # 토관 입구 안에 숨어 있다가 연출에서 튀어나온다 — 걸어서 닿는 자리(입구 앞)여야 연결 검사를 통과한다
             {'type': 'npc', 'id': 'mini_mario', 'sprite': 'mini_mario', 'x': 336, 'y': 580,

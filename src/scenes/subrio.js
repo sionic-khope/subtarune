@@ -10,9 +10,9 @@
 import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
-import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, reachedGoal, makeBoss, stepBoss, hitBoss, hurtActor,
+import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, makeBoss, stepBoss, hitBoss, hurtActor,
   bossHitbox, bossFrame, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
-  STAGES, BOSS, SPEAR, FIRE, CLOCK, ENEMY, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
+  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, SPEAR, FIRE, CLOCK, ENEMY, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H } from './subrio-core.js';
 
 const FRAME = 10;
 const VIEW_X = FRAME, VIEW_Y = FRAME;
@@ -42,10 +42,11 @@ const ICON_X = [96, 230, 364];
 const BOSS_SHEET = 'assets/sprites/subrio_bidet.png';
 const BOSS_CELL = [112, 96], BOSS_FEET = 90;
 const HERO_CELL = 64, HERO_FEET = 60;
-const ENEMY_SHEETS = { cs_red: 'assets/sprites/subrio_cs_red.png', cs_blue: 'assets/sprites/subrio_cs_blue.png' };
-const ENEMY_CELL = 48, ENEMY_FEET = 44;
 const CLEAR_HOLD = 2.2, CARD_FADE = 0.5, CARD_HOLD = 1.9, BOSS_DELAY = 1.2, VICTORY_HOLD = 3.6;
 const BOSS_APPEAR_LINE = '따듯한비데가 나타났다!';
+// 위치 대사: 한 줄이 다 찍힌 뒤 CHAT_HOLD 초 있다가 다음 줄(C 불필요). 화자 색은 직업 선택 포인터 색과 같다
+const CHAT_HOLD = 1.7;
+const WHO = { ppaman: { label: '억빠맨', color: '#c9a3ff', voice: 'ppaman' }, gyeongsub: { label: '경섭', color: '#ff5c5c', voice: 'gyeongsub' }, hyungsub: { label: '요플래', color: '#7fd0ff', voice: 'hyungsub' }, narrator: { label: null, color: '#fff', voice: 'narrator' } };
 
 function loadImage(src) {
   const img = new Image();
@@ -98,16 +99,22 @@ export function run(game, node = {}) {
     const spearImg = loadImage('assets/props/subrio_spear.png');
     const waterImg = loadImage('assets/props/subrio_water.png');
     const bossImg = loadImage(BOSS_SHEET);
-    const enemyImgs = Object.fromEntries(Object.entries(ENEMY_SHEETS).map(([type, src]) => [type, loadImage(src)]));
+    const enemyImgs = {};
+    const enemyImg = (type) => { const src = (MONSTERS[type] || MONSTERS.cs_red).sheet; if (!enemyImgs[src]) enemyImgs[src] = loadImage(src); return enemyImgs[src].img; };
     const tileImgs = {};
     const tilesFor = (path) => { if (!tileImgs[path]) tileImgs[path] = loadImage(path); return tileImgs[path]; };
     const typer = new Typewriter(game.sound);
+    const chatTyper = new Typewriter(game.sound);
     const state = {
       phase: 'logo', t: 0, phaseT: 0, logoAlpha: 0, lineIndex: 0, icons: [0, 0, 0], cursors: [0, 0, 0], picked: [false, false, false],
       cursorScript: null, flash: 0, actors: [], spears: [], fires: [], clocks: [], waters: [], enemies: [], trail: [], control: false, cam: 0, exiting: false,
       // 스테이지 진행: stage 번호, sub = drop(낙하) | run | clear | card | victory, fade 검은 덮개, shake 흔들림, cleared 보스 격파
       stage: 0, level: null, baked: null, sub: 'drop', subT: 0, fade: 0, shake: 0, boss: null, bossGone: false, cleared: false, notice: null, leaderLandT: 0,
+      // 위치 대사 큐·연출(fx)·튜토리얼 상태(동료 공격 해제 여부·밟기 시범)
+      chat: { queue: [], line: null, holdT: 0 }, fired: new Set(), fx: [], teamAttack: true, totemHit: false, demo: null, demoDone: false,
     };
+    const say = (lines) => { for (const line of lines) state.chat.queue.push(line); };
+    const chatBusy = () => !!state.chat.line || state.chat.queue.length > 0;
     // 스테이지 로드: 레벨·구운 타일·세 명 재배치(하늘에서 낙하). 보스 무대면 보스는 주인공 착지 뒤에 떨어진다
     const loadStage = (index) => {
       state.stage = index;
@@ -115,7 +122,10 @@ export function run(game, node = {}) {
       state.level = level; state.baked = bakeLevel(level, level.def.fallback);
       tilesFor(level.def.tiles).done.then(img => { if (img && state.level === level) state.baked.paint(img); });
       state.spears = []; state.fires = []; state.clocks = []; state.waters = []; state.trail = []; state.cam = 0; state.boss = null; state.bossGone = false; state.notice = null; state.leaderLandT = 0;
-      state.enemies = level.enemies.map(spec => makeEnemy(spec.type, spec.x, spec.y));
+      state.enemies = level.enemies.map(spec => makeEnemy(spec.type, spec.x, spec.y, -1, spec));
+      state.chat = { queue: [], line: null, holdT: 0 }; state.fired = new Set(); state.fx = [];
+      // 1-0 에선 요플래가 토템을 먼저 때리기 전까지 동료가 공격하지 않는다
+      state.teamAttack = !level.def.tutorial; state.totemHit = false; state.demo = null; state.demoDone = false;
       state.sub = 'drop'; state.subT = 0; state.control = false; state.dropWait = 1.9;
       const order = ['hyungsub', 'gyeongsub', 'ppaman'];
       state.actors = order.map((id, i) => {
@@ -244,11 +254,26 @@ export function run(game, node = {}) {
       }
       const events = [];
       const wasGuard = leader.state === 'guard';
+      // 위치 대사 트리거 + 큐 진행
+      for (const trig of level.chatter) if (!state.fired.has(trig.id) && leader.x + leader.w / 2 >= trig.at * TILE) { state.fired.add(trig.id); say(trig.lines); }
+      updateChat(dt);
+      // 깃발: 근처에서 C → 몬스터가 남았으면 알려주고, 다 잡았으면 클리어(창은 안 나간다)
+      const nearFlag = state.sub === 'run' && !def.boss && atGoal(level, leader);
+      let attackNow = confirm, attackHeldNow = held('confirm');
+      if (nearFlag && confirm) {
+        attackNow = false; attackHeldNow = false;
+        const left = remainingEnemies(state.enemies);
+        if (left > 0) { if (!chatBusy()) say([{ who: 'narrator', text: `아직 몬스터가 ${left}마리 남았다. 다 잡아야 넘어갈 수 있다.` }]); sfx('error', 0.6); }
+        else { state.sub = 'clear'; state.subT = 0; state.control = false; state.chat = { queue: [], line: null, holdT: 0 }; sfx('won', 0.85); }
+      }
+      // 1-0 밟기 시범: 모두 멈추고 억빠맨 혼자 나가 약한 미니언을 밟는다
+      updateDemo(dt);
       for (const [i, actor] of state.actors.entries()) {
         if (!actor.active) { if (state.subT >= actor.delay) actor.active = true; else continue; }
         let intent;
-        if (i === 0) {
-          intent = state.control ? { left: held('left'), right: held('right'), jump: edge('up'), jumpHeld: held('up'), crouch: held('down'), attack: confirm, attackHeld: held('confirm'), guard: held('cancel') } : NO_INTENT;
+        if (state.demo) intent = state.demo.intents[actor.classId] || NO_INTENT;
+        else if (i === 0) {
+          intent = state.control ? { left: held('left'), right: held('right'), jump: edge('up'), jumpHeld: held('up'), crouch: held('down'), attack: attackNow, attackHeld: attackHeldNow, guard: held('cancel') } : NO_INTENT;
         } else {
           intent = state.control ? followerIntent(actor, state.trail, state.t, { reaction: 0.32 * i + 0.1, spacing: 34 * i, level }) : NO_INTENT;
           const wantsMove = intent.left || intent.right;
@@ -262,16 +287,18 @@ export function run(game, node = {}) {
       if (state.trail.length > 400) state.trail.splice(0, state.trail.length - 400);
       if (!wasGuard && leader.state === 'guard') sfx('pantheon_e_up', 0.45, 0.7);
       // 적·보스
-      const targets = [...state.enemies.filter(e => !e.dead), ...(state.boss && !state.boss.dead && state.boss.state !== 'enter' ? [state.boss] : [])];
-      if (state.control) {
+      const targets = [...state.enemies.filter(e => !e.dead && !e.demo), ...(state.boss && !state.boss.dead && state.boss.state !== 'enter' ? [state.boss] : [])];
+      if (state.control && state.teamAttack) {
         const brand = state.actors.find(a => a.classId === 'brand'), zilean = state.actors.find(a => a.classId === 'zilean');
         if (brand?.active) brandThink(brand, targets, dt, events);
         if (zilean?.active) zileanThink(zilean, targets, dt, events);
       }
+      const demoActor = state.demo ? state.actors.find(a => a.classId === 'brand') : null;
       for (const enemy of state.enemies) {
         if (Math.abs(enemy.x - leader.x) > 900) continue;
         stepEnemy(level, enemy, dt, events);
-        if (!enemy.dead) heroTouchesEnemy(leader, enemy, state.t, events);
+        if (!enemy.dead && !state.demo) heroTouchesEnemy(leader, enemy, state.t, events);
+        if (!enemy.dead && demoActor && enemy.demo) heroTouchesEnemy(demoActor, enemy, state.t, events);
       }
       state.enemies = state.enemies.filter(enemy => !enemy.dead || enemy.deadT < ENEMY.deathTime);
       // 보스: 주인공 착지 뒤 BOSS_DELAY 에 하늘에서 떨어진다
@@ -291,9 +318,9 @@ export function run(game, node = {}) {
         const rect = { x: p.x, y: p.y, w, h };
         for (const enemy of state.enemies) {
           if (enemy.dead || !rectsOverlap(rect, enemy)) continue;
-          damageEnemy(enemy, 1, source, state.t, events); events.push({ type: 'projectileHit', source }); return false;
+          damageEnemy(enemy, 1, source, state.t, events); events.push({ type: 'projectileHit', source, x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, enemyType: enemy.type, byLeader: source === 'spear' }); return false;
         }
-        if (state.boss && !state.boss.dead && rectsOverlap(rect, state.boss) && hitBoss(state.boss, events)) { events.push({ type: 'projectileHit', source }); return false; }
+        if (state.boss && !state.boss.dead && rectsOverlap(rect, state.boss) && hitBoss(state.boss, events)) { events.push({ type: 'projectileHit', source, x: state.boss.x + state.boss.w / 2, y: state.boss.y + state.boss.h }); return false; }
         return true;
       });
       state.spears = hitTargets(state.spears, SPEAR.w, SPEAR.h, 'spear');
@@ -315,8 +342,15 @@ export function run(game, node = {}) {
         }
         if (event.type === 'fire') { state.fires.push({ x: event.x, y: event.y, vx: event.vx, life: FIRE.life, facing: event.facing, t: 0 }); sfx('ember', 0.8, 0.8); }
         if (event.type === 'clock') { state.clocks.push({ x: event.x, y: event.y, vx: event.vx, vy: event.vy, life: 2.2, t: 0 }); if (event.index === 0) sfx('zilean_q_throw', 0.7, 1.3); }
-        if (event.type === 'projectileHit') sfx(event.source === 'spear' ? 'pantheon_q_hit' : 'hit', 0.6, 0.5);
-        if (event.type === 'stun') sfx('zilean_q_stun', 0.8, 2.0);
+        if (event.type === 'projectileHit') {
+          sfx(event.source === 'spear' ? 'pantheon_q_hit' : 'hit', 0.6, 0.5);
+          // 시계: 땅에 노란 오오라 파장 피융(0.5초). 불: 맞은 자리에 불꽃 튐(불타는 건 적 위에 그림)
+          if (event.source === 'clock' && event.x !== undefined) state.fx.push({ kind: 'ring', x: event.x, y: event.y, t: 0, dur: 0.5, r0: 6, r1: 26, color: '255,225,90', width: 3 });
+          if (event.source === 'fire' && event.x !== undefined) for (let i = 0; i < 6; i++) state.fx.push({ kind: 'ember', x: event.x, y: event.y - 10, vx: (Math.random() - 0.5) * 120, vy: -60 - Math.random() * 90, t: 0, dur: 0.45 + Math.random() * 0.3 });
+          // 1-0: 요플래가 토템을 처음 때리면 동료 공격 해제 + 대사
+          if (event.enemyType === 'totem' && event.byLeader && !state.totemHit) { state.totemHit = true; state.teamAttack = true; say(TOTEM_HIT_LINES); }
+        }
+        if (event.type === 'stun') { sfx('zilean_q_stun', 0.8, 2.0); const enemy = state.enemies.find(e => e.id === event.id); if (enemy) { state.fx.push({ kind: 'ring', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, t: 0, dur: 0.6, r0: 8, r1: 48, color: '255,235,120', width: 4 }); state.fx.push({ kind: 'ring', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h, t: -0.12, dur: 0.6, r0: 6, r1: 40, color: '255,250,200', width: 2 }); } }
         if (event.type === 'stomp') { sfx('pop', 0.7); sfx('jump', 0.4); }
         if (event.type === 'enemyDead') sfx('vaporized', 0.45, 0.6);
         if (event.type === 'bossLand') { sfx('thud', 0.9); state.shake = 0.35; state.notice = { text: BOSS_APPEAR_LINE, t: 0, hold: BOSS.roar + 0.6 }; }
@@ -329,6 +363,8 @@ export function run(game, node = {}) {
         if (event.type === 'bossDead') { state.sub = 'victory'; state.subT = 0; state.control = false; state.cleared = true; state.waters = []; sfx('explosion', 0.7); state.shake = 0.5; }
       }
       state.spears = updateProjectiles(level, state.spears, dt, SPEAR.w, SPEAR.h);
+      // 불덩이 꼬리: 지나간 자리에 작은 불씨가 흩날린다(더 불답게)
+      for (const fire of state.fires) if (Math.random() < 0.9) state.fx.push({ kind: 'ember', x: fire.x + 6 - fire.facing * 6, y: fire.y + 6, vx: -fire.facing * (20 + Math.random() * 40), vy: -30 - Math.random() * 50, t: 0, dur: 0.3 + Math.random() * 0.25 });
       state.fires = updateProjectiles(level, state.fires, dt, FIRE.w, FIRE.h);
       const clocksBefore = state.clocks;
       state.clocks = updateProjectiles(level, state.clocks, dt, CLOCK.w, CLOCK.h, CLOCK.gravity);
@@ -339,10 +375,46 @@ export function run(game, node = {}) {
       state.waters = updateProjectiles(level, state.waters, dt, WATER_W, WATER_H);
       for (const p of [...state.fires, ...state.clocks]) p.t += dt;
       if (state.notice) { state.notice.t += dt; if (state.notice.t > state.notice.hold) state.notice = null; }
+      for (const f of state.fx) { f.t += dt; if (f.kind === 'ember') { f.vy += 90 * dt; f.x += f.vx * dt; f.y += f.vy * dt; } }
+      state.fx = state.fx.filter(f => f.t < f.dur);
       if (state.sub === 'drop' && leader.dropped && state.subT > state.leaderLandT + (state.dropWait ?? 1.9)) { state.sub = 'run'; state.control = true; }
-      if (state.sub === 'run' && reachedGoal(level, leader)) { state.sub = 'clear'; state.subT = 0; state.control = false; sfx('fanfare', 0.8); }
       if (state.sub === 'clear' && state.subT >= CLEAR_HOLD) { state.sub = 'card'; state.subT = 0; state.cardShown = false; state.cardLoaded = false; }
       state.cam = cameraX(level, leader);
+    };
+    // 위치 대사: 한 글자씩 → 다 찍히면 CHAT_HOLD 뒤 다음 줄, 줄이 없으면 상자를 닫는다
+    const updateChat = (dt) => {
+      const chat = state.chat;
+      if (!chat.line) { if (!chat.queue.length) return; chat.line = chat.queue.shift(); chatTyper.start(chat.line.text, WHO[chat.line.who]?.voice || 'narrator'); chat.holdT = 0; }
+      chatTyper.update(dt);
+      if (chatTyper.done) { chat.holdT += dt; if (chat.holdT >= CHAT_HOLD) chat.line = null; }
+    };
+    // 1-0 밟기 시범 상태기계: lines1 → walk(억빠맨이 미니언 쪽으로) → jump(밟기) → lines2 → return → 끝
+    const updateDemo = (dt) => {
+      const level = state.level, leader = state.actors[0];
+      const demo = level.stompDemo;
+      if (!demo || state.demoDone) return;
+      const brand = state.actors.find(a => a.classId === 'brand');
+      const target = state.enemies.find(e => e.demo);
+      if (!state.demo) {
+        if (state.sub !== 'run' || leader.x + leader.w / 2 < demo.at * TILE || !brand?.active || !target || target.dead) { if (target?.dead) state.demoDone = true; return; }
+        state.demo = { phase: 'lines1', t: 0, intents: {} }; state.control = false; say(demo.before); return;
+      }
+      const d = state.demo; d.t += dt;
+      const dx = target ? (target.x + target.w / 2) - (brand.x + brand.w / 2) : 0;
+      d.intents = {};
+      if (d.phase === 'lines1') { if (!chatBusy()) d.phase = 'walk'; }
+      else if (d.phase === 'walk') { d.intents.brand = { ...NO_INTENT, right: dx > 0, left: dx < 0 }; if (Math.abs(dx) <= 30 && brand.grounded) { d.phase = 'jump'; d.jumped = false; } }
+      else if (d.phase === 'jump') {
+        d.intents.brand = { ...NO_INTENT, right: dx > 0, left: dx < 0, jump: !d.jumped, jumpHeld: true }; d.jumped = true;
+        if (!target || target.dead) { d.phase = 'lines2'; d.intents.brand = NO_INTENT; say(demo.after); }
+        else if (brand.grounded && d.t > 1.2 && Math.abs(dx) > 30) d.phase = 'walk';
+      }
+      else if (d.phase === 'lines2') { if (!chatBusy()) d.phase = 'return'; }
+      else if (d.phase === 'return') {
+        const back = (leader.x + leader.w / 2 + 40) - (brand.x + brand.w / 2);
+        d.intents.brand = { ...NO_INTENT, left: back < -6, right: back > 6 };
+        if (Math.abs(back) <= 6 || d.t > 8) { state.demo = null; state.demoDone = true; state.control = true; }
+      }
     };
 
     // ── 그리기 ──
@@ -390,19 +462,29 @@ export function run(game, node = {}) {
       else { ctx.fillStyle = '#5a5a66'; ctx.fillRect(-boss.w / 2, -boss.h, boss.w, boss.h); }
       ctx.restore();
     };
+    const drawFlame = (x, y, size, seed) => {
+      // 작은 불꽃 한 송이: 주황 바깥 + 노란 속, 프레임마다 흔들린다
+      const flick = Math.floor((state.t * 18 + seed) % 3);
+      ctx.fillStyle = '#ff5a1e'; ctx.beginPath(); ctx.moveTo(x - size, y); ctx.lineTo(x, y - size * (1.8 + flick * 0.25)); ctx.lineTo(x + size, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.moveTo(x - size * 0.5, y); ctx.lineTo(x + (flick - 1) * 0.6, y - size * (1.0 + flick * 0.15)); ctx.lineTo(x + size * 0.5, y); ctx.closePath(); ctx.fill();
+    };
     const drawEnemy = (enemy) => {
-      const img = enemyImgs[enemy.type]?.img;
+      const kind = enemy.kind || MONSTERS[enemy.type] || MONSTERS.cs_red;
+      const img = enemyImg(enemy.type);
       const cx = Math.round(enemy.x + enemy.w / 2 - state.cam) + VIEW_X;
       const feet = Math.round(enemy.y + enemy.h) + VIEW_Y;
-      if (cx < VIEW_X - 40 || cx > VIEW_X + VIEW_W + 40) return;
+      if (cx < VIEW_X - 60 || cx > VIEW_X + VIEW_W + 60) return;
       const frame = enemyFrame(enemy);
+      const cw = kind.cell, ch = kind.cellH || kind.cell, cols = kind.static ? (kind.frames || 2) : 2;
       ctx.save();
       ctx.translate(cx, feet);
-      if (enemy.facing > 0) ctx.scale(-1, 1);
+      if (enemy.facing > 0 && !kind.static) ctx.scale(-1, 1);
       if (enemy.flash > 0 && 'filter' in ctx) ctx.filter = 'brightness(2.6) saturate(0.2)';
-      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (frame % 2) * ENEMY_CELL, Math.floor(frame / 2) * ENEMY_CELL, ENEMY_CELL, ENEMY_CELL, -ENEMY_CELL / 2, -ENEMY_FEET, ENEMY_CELL, ENEMY_CELL);
-      else { ctx.fillStyle = enemy.type === 'cs_red' ? '#d43a3a' : '#3a6ad4'; ctx.fillRect(-enemy.w / 2, -enemy.h, enemy.w, enemy.h); }
+      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, (frame % cols) * cw, kind.static ? 0 : Math.floor(frame / 2) * ch, cw, ch, -cw / 2, -kind.feet, cw, ch);
+      else { ctx.fillStyle = enemy.type === 'cs_blue' || enemy.type === 'blue' ? '#3a6ad4' : enemy.type === 'totem' ? '#a06a3a' : '#d43a3a'; ctx.fillRect(-enemy.w / 2, -enemy.h, enemy.w, enemy.h); }
       ctx.restore();
+      // 불타는 중(브랜드 불에 맞음): 몸 위에 불꽃 셋이 일렁인다
+      if (enemy.burnT > 0 && !enemy.dead) for (let i = 0; i < 3; i++) drawFlame(cx - enemy.w / 2 + 3 + i * (enemy.w - 6) / 2 + Math.sin(state.t * 13 + i) * 2, feet - enemy.h * (0.35 + 0.3 * ((i + Math.floor(state.t * 6)) % 2)), 4 + (i % 2), i * 7);
       // 스턴: 머리 위를 도는 노란 별 셋(시트의 별 위에 움직임을 얹는다)
       if (enemy.stunT > 0) for (let i = 0; i < 3; i++) {
         const a = state.t * 5 + i * 2.094;
@@ -410,15 +492,43 @@ export function run(game, node = {}) {
       }
     };
     const drawGauge = (actor) => {
-      // 브랜드 쿨타임 게이지(사용자 지시: 머리 위에서 천천히 차는 흰 테두리·검은 배경 막대만, 글자 없음)
-      if (!(actor.fireCool > 0)) return;
+      // 쿨타임 게이지(사용자 지시: 머리 위에서 천천히 차는 흰 테두리·검은 배경 막대만, 글자 없음). 브랜드 불 6초(주황)·질리언 시계 1.2초(하늘색). 판테온은 없음
+      const spec = actor.classId === 'brand' ? [actor.fireCool, FIRE.cooldown, '#ff9a3d'] : actor.classId === 'zilean' ? [actor.clockCool, CLOCK.cooldown, '#7fd7ff'] : null;
+      if (!spec || !(spec[0] > 0)) return;
       const cx = Math.round(actor.x + actor.w / 2 - state.cam) + VIEW_X, top = Math.round(actor.y) + VIEW_Y - 20;
-      const w = 22, h = 5, fill = Math.round((w - 2) * (1 - actor.fireCool / FIRE.cooldown));
+      const w = 22, h = 5, fill = Math.round((w - 2) * (1 - spec[0] / spec[1]));
       ctx.globalAlpha = 0.85;
       ctx.fillStyle = '#000'; ctx.fillRect(cx - w / 2, top, w, h);
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(cx - w / 2 + 0.5, top + 0.5, w - 1, h - 1);
-      ctx.fillStyle = '#ff9a3d'; ctx.fillRect(cx - w / 2 + 1, top + 1, fill, h - 2);
+      ctx.fillStyle = spec[2]; ctx.fillRect(cx - w / 2 + 1, top + 1, fill, h - 2);
       ctx.globalAlpha = 1;
+    };
+    const drawFx = () => {
+      for (const f of state.fx) {
+        const k = Math.max(0, Math.min(1, f.t / f.dur));
+        if (f.kind === 'ring') {
+          if (f.t < 0) continue;
+          const r = f.r0 + (f.r1 - f.r0) * (1 - (1 - k) * (1 - k)), a = (1 - k) * 0.9;
+          const x = f.x - state.cam + VIEW_X, y = f.y + VIEW_Y;
+          ctx.strokeStyle = `rgba(${f.color},${a.toFixed(3)})`; ctx.lineWidth = f.width * (1 - k * 0.6) + 0.5;
+          ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = `rgba(${f.color},${(a * 0.18).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0, Math.PI * 2); ctx.fill();
+        } else if (f.kind === 'ember') {
+          const x = Math.round(f.x - state.cam) + VIEW_X, y = Math.round(f.y) + VIEW_Y, sz = k < 0.5 ? 3 : 2;
+          ctx.fillStyle = k < 0.4 ? '#ffd24a' : k < 0.75 ? '#ff7a2a' : '#8a3a1a'; ctx.fillRect(x, y, sz, sz);
+        }
+      }
+    };
+    const drawChat = () => {
+      const chat = state.chat; if (!chat.line) return;
+      const who = WHO[chat.line.who] || WHO.narrator;
+      drawBox(who.label, chatTyper.visible, who.color, true);
+    };
+    const drawPrompts = () => {
+      for (const prompt of state.level.prompts) {
+        const x = prompt.at * TILE - state.cam + VIEW_X; if (x < VIEW_X - 240 || x > VIEW_X + VIEW_W + 240) continue;
+        text(prompt.text, x, VIEW_Y + 168 + Math.round(Math.sin(state.t * 3) * 2), { align: 'center', size: 20, color: '#ffe066' });
+      }
     };
     const drawProjectiles = () => {
       for (const spear of state.spears) {
@@ -428,9 +538,13 @@ export function run(game, node = {}) {
         if (spear.charged) { ctx.fillStyle = 'rgba(255,240,180,0.5)'; ctx.fillRect(sx - spear.facing * 10, sy + 2, 10, 2); }
       }
       for (const fire of state.fires) {
-        const fx = Math.round(fire.x - state.cam) + VIEW_X, fy = Math.round(fire.y) + VIEW_Y, r = 5 + (Math.floor(fire.t * 20) % 2);
-        ctx.fillStyle = '#ff5a1e'; ctx.beginPath(); ctx.arc(fx + 6, fy + 6, r + 1, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(fx + 6 - fire.facing * 1, fy + 6, r - 2, 0, Math.PI * 2); ctx.fill();
+        // 불덩이: 앞이 둥글고 뒤로 길게 타는 꼬리 + 흔들리는 노란 속 (시계와 확실히 다르게)
+        const fx = Math.round(fire.x - state.cam) + VIEW_X + 6, fy = Math.round(fire.y) + VIEW_Y + 6, flick = Math.floor(fire.t * 24) % 3, d = fire.facing;
+        ctx.fillStyle = '#c8321a'; ctx.beginPath(); ctx.ellipse(fx - d * 8, fy, 12, 5 + flick, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff5a1e'; ctx.beginPath(); ctx.ellipse(fx - d * 4, fy, 10, 6, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffa030'; ctx.beginPath(); ctx.arc(fx + d * 1, fy, 5 + (flick === 1 ? 1 : 0), 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffe66a'; ctx.beginPath(); ctx.arc(fx + d * 2, fy - 1 + (flick === 2 ? 1 : 0), 3, 0, Math.PI * 2); ctx.fill();
+        drawFlame(fx - d * 2, fy - 4, 3, 5); drawFlame(fx - d * 8, fy - 2, 2, 11);
       }
       for (const clock of state.clocks) {
         const cx = Math.round(clock.x - state.cam) + VIEW_X + 6, cy = Math.round(clock.y) + VIEW_Y + 6, spin = clock.t * 9;
@@ -448,11 +562,13 @@ export function run(game, node = {}) {
     const drawHud = () => {
       const level = state.level;
       state.actors.forEach((actor, i) => { const p = PLAYERS.find(q => q.id === actor.id); const cls = CLASSES.find(c => c.id === actor.classId); text(`${i + 1}P ${p.label} · ${cls.name}`, VIEW_X + 8, VIEW_Y + 6 + i * 16, { color: p.color }); });
-      text(level.def.title, VIEW_X + VIEW_W - 8, VIEW_Y + 6, { align: 'right', color: '#fff' });
+      text(`${level.def.title} ${level.def.name}`, VIEW_X + VIEW_W - 8, VIEW_Y + 6, { align: 'right', color: '#fff' });
+      // 남은 몬스터(사용자: 오른쪽 상단, 다 잡아야 깃발에서 C 로 클리어)
+      if (!level.def.boss) { const left = remainingEnemies(state.enemies); text(`남은 몬스터 ${left}`, VIEW_X + VIEW_W - 8, VIEW_Y + 24, { align: 'right', color: left === 0 ? '#8ce27a' : '#ffd166' }); }
       const boss = state.boss;
       if (boss && boss.state !== 'enter' && !boss.dead) {
         const bw = 150, bx = VIEW_X + (VIEW_W - bw) / 2, by = VIEW_Y + 24;
-        text(STAGES[3].name, VIEW_X + VIEW_W / 2, VIEW_Y + 6, { align: 'center', color: '#ffb3b3' });
+        text(STAGES[4].name, VIEW_X + VIEW_W / 2, VIEW_Y + 6, { align: 'center', color: '#ffb3b3' });
         ctx.fillStyle = '#000'; ctx.fillRect(bx - 1, by - 1, bw + 2, 8);
         ctx.fillStyle = '#5a1020'; ctx.fillRect(bx, by, bw, 6);
         ctx.fillStyle = '#ff3b4a'; ctx.fillRect(bx, by, Math.round(bw * boss.hp / boss.maxHp), 6);
@@ -464,6 +580,13 @@ export function run(game, node = {}) {
       const cx = VIEW_X + VIEW_W / 2, cy = VIEW_Y + VIEW_H / 2;
       text(next.title, cx, cy - 30, { align: 'center', size: 34, color: '#ffffff' });
       text(next.name, cx, cy + 20, { align: 'center', color: next.boss ? '#ffb3b3' : next.wave[1].replace(/rgba\(([^)]+),[^,]+\)$/, 'rgb($1)') });
+    };
+    const drawFlagHint = () => {
+      const level = state.level, leader = state.actors[0];
+      if (!level.goal || state.sub !== 'run' || !atGoal(level, leader)) return;
+      const x = level.goal.x - state.cam + VIEW_X, y = level.goal.y + VIEW_Y - 14 + Math.round(Math.sin(state.t * 4) * 2);
+      ctx.fillStyle = '#000'; ctx.fillRect(x - 9, y - 9, 18, 16); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(x - 8.5, y - 8.5, 17, 15);
+      text('C', x, y - 7, { align: 'center', color: '#ffe066', shadow: false });
     };
     const drawActor = (actor) => {
       const sheet = sheets[actor.classId]?.img;
@@ -488,13 +611,14 @@ export function run(game, node = {}) {
         ctx.fillStyle = '#000'; ctx.fillRect(cx + (actor.facing > 0 ? 2 : -5), feet - actor.h + 5, 3, 3);
       }
     };
-    const drawBox = (speaker, body, color = '#fff') => {
-      const bx = VIEW_X + 14, by = VIEW_Y + VIEW_H - 84, bw = VIEW_W - 28, bh = 72;
+    // top: 플레이 중 위치 대사는 HUD 아래(위쪽)에 띄워 바닥의 캐릭터·적을 가리지 않는다
+    const drawBox = (speaker, body, color = '#fff', top = false) => {
+      const bx = VIEW_X + 14, by = top ? VIEW_Y + 78 : VIEW_Y + VIEW_H - 84, bw = VIEW_W - 28, bh = 72;
       ctx.fillStyle = '#000'; ctx.fillRect(bx, by, bw, bh);
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-      if (speaker) { ctx.fillStyle = '#000'; ctx.fillRect(bx + 8, by - 20, 64, 22); ctx.strokeRect(bx + 9, by - 19, 62, 20); text(speaker, bx + 40, by - 17, { align: 'center', shadow: false }); }
+      if (speaker) { ctx.fillStyle = '#000'; ctx.fillRect(bx + 8, by - 20, 64, 22); ctx.strokeRect(bx + 9, by - 19, 62, 20); text(speaker, bx + 40, by - 17, { align: 'center', shadow: false, color }); }
       const lines = wrap(body, bw - 40);
-      lines.forEach((line, i) => text('* ' + line, bx + 16, by + 12 + i * 20, { color, shadow: false }));
+      lines.forEach((line, i) => text('* ' + line, bx + 16, by + 12 + i * 20, { color: '#fff', shadow: false }));
     };
     const wrap = (str, width) => {
       ctx.font = FONT;
@@ -539,16 +663,20 @@ export function run(game, node = {}) {
           ctx.save(); ctx.translate(0, shakeY);
           drawBackdrop();
           ctx.drawImage(state.baked.canvas, state.cam, 0, VIEW_W, VIEW_H, VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
+          drawPrompts();
           for (const enemy of state.enemies) drawEnemy(enemy);
           if (state.boss) drawBoss(state.boss);
           for (const actor of [...state.actors].reverse()) if (actor.active) drawActor(actor);
           drawProjectiles();
-          for (const actor of state.actors) if (actor.active && actor.classId === 'brand') drawGauge(actor);
+          drawFx();
+          for (const actor of state.actors) if (actor.active) drawGauge(actor);
+          drawFlagHint();
           ctx.restore();
           drawHud();
           if (state.sub === 'clear') text('STAGE CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 30, color: '#ffe066' });
           if (state.sub === 'victory' && state.bossGone) text('CLEAR!', VIEW_X + VIEW_W / 2, VIEW_Y + VIEW_H / 2 - 40, { align: 'center', size: 36, color: '#ffe066' });
           if (state.notice) drawBox(null, state.notice.text);
+          else drawChat();
         }
         if (state.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${state.fade})`; ctx.fillRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H); }
         if (state.sub === 'card' && state.fade >= 1) drawCard();

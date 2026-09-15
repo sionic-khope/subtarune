@@ -80,3 +80,22 @@ heart(hud, 0, (235, 60, 80), (60, 10, 20)); hud.rect(3, 2, 2, 1, (255, 170, 180)
 heart(hud, 10, (70, 70, 90), (30, 30, 40))
 hud.save(Path('assets/props/subrio_hud.png'))
 print('wrote assets/props/subrio_spear.png (24x6), subrio_water.png (14x8), subrio_hud.png (20x9)')
+# 훈련 토템(1-0 튜토리얼 표적) 32×48 셀 2칸: 0 서 있음, 1 맞은 순간(살짝 기울고 눈 감음). 발 y44, 나무 기둥 + 짚 얼굴 + 붉은 띠
+totem: Final = Canvas(64, 48)
+def draw_totem(c: Canvas, ox: int, hit: bool) -> None:
+    WOOD, WOOD_D, WOOD_L, STRAW, ROPE, OUT2 = (150, 100, 52), (96, 62, 30), (196, 146, 84), (222, 190, 96), (190, 50, 50), (40, 24, 12)
+    tilt = 2 if hit else 0
+    c.rect(ox + 10 + tilt, 10, 12, 34, OUT2); c.rect(ox + 11 + tilt, 11, 10, 32, WOOD); c.rect(ox + 12 + tilt, 11, 3, 32, WOOD_L); c.rect(ox + 18 + tilt, 11, 2, 32, WOOD_D)
+    c.rect(ox + 6, 40, 20, 4, OUT2); c.rect(ox + 7, 41, 18, 2, WOOD_D)
+    # 짚 머리(둥근 덩어리)와 얼굴
+    c.rrect_outlined(ox + 6 + tilt, 2, 20, 16, STRAW, OUT2, r=4)
+    if hit:
+        c.rect(ox + 10 + tilt, 8, 4, 1, OUT2); c.rect(ox + 18 + tilt, 8, 4, 1, OUT2); c.rect(ox + 13 + tilt, 12, 6, 2, OUT2)
+    else:
+        c.rect(ox + 10 + tilt, 7, 3, 3, OUT2); c.rect(ox + 19 + tilt, 7, 3, 3, OUT2); c.rect(ox + 13 + tilt, 12, 6, 1, OUT2)
+    # 붉은 띠 + 팔 막대
+    c.rect(ox + 8 + tilt, 20, 16, 4, ROPE); c.rect(ox + 8 + tilt, 24, 16, 1, OUT2)
+    c.rect(ox + 2 + tilt, 26, 28, 3, OUT2); c.rect(ox + 3 + tilt, 27, 26, 1, WOOD_L)
+draw_totem(totem, 0, False); draw_totem(totem, 32, True)
+totem.save(Path('assets/props/subrio_totem.png'))
+print('wrote assets/props/subrio_totem.png (64x48)')

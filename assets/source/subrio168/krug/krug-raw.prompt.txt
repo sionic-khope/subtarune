@@ -1,0 +1,11 @@
+# imagegen 2026-09-15 12:51:49
+# endpoint: images/edits
+# model: openai/gpt-image-2
+# size: 1024x1024  quality: high
+# refs: assets/source/subrio168/refs/krug-ref.png
+
+Use case: precise-object-edit. The image just shown is the identity reference: left is the monster's front view, right is its right-facing side view from our RPG: a stone golem made of stacked grey rocks with glowing eyes (League of Legends Krug). Keep its identity: grey stacked rocks, stubby rock arms, glowing eyes.
+Produce a pixel-art side-view platformer ENEMY sprite sheet of this monster, like a Goomba-class walker. EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512x512 cells.
+Style (IMPORTANT): NES-era 8-bit pixel art with LOW detail. Big chunky pixels (one logical pixel is about 1/24 of the body height), flat fills of at most 5 colors per sprite, no shading gradients, no anti-aliasing, no tiny details, a single dark outline. Readable silhouette first, like an original Super Mario Bros. enemy. Solid pure #FF00FF background, no text, labels, grid, borders or shadows.
+Chunky body about 1.4 heads tall, blocky. Every frame faces RIGHT, same body size and camera distance in all cells, feet on the same baseline, body inside the central 65% of each cell.
+Frames row-major: (1) walk step A, (2) walk step B, (3) stunned: standing dizzy with eyes as spirals and three small yellow stars circling above the head, (4) defeated: lying on its back / flipped over.

@@ -11,18 +11,19 @@ const settle = (level, actor, frames = 60) => { for (let i = 0; i < frames; i++)
 const GROUND = 18 * TILE;
 
 test('test_subrio_level_has_left_landing_ground_pits_and_floating_blocks', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   assert.equal(level.tiles.length, level.rows);
   assert.ok(level.tiles.every(row => row.length === level.cols));
   assert.equal(level.solidAt(2, 18), true, '왼쪽 착지 평지');
   assert.equal(level.solidAt(2, 17), false);
   assert.equal(level.solidAt(5, level.rows), false, '레벨 아래는 뚫려 있다(낙사)');
-  assert.ok(level.enemies.length >= 20, '1-1 에 CS 미니언이 여럿');
+  assert.ok(level.enemies.length >= 20, '1-1 에 몬스터가 여럿');
+  assert.deepEqual([...new Set(level.enemies.map(e => e.type))].sort(), ['cs_red', 'gromp', 'raptor'], '1-1 트위치: CS·칼날부리·두꺼비 균등 배분');
   assert.ok(level.enemies.every(e => level.solidAt(Math.floor(e.x / TILE), e.y / TILE) && !level.solidAt(Math.floor(e.x / TILE), e.y / TILE - 1)), '미니언은 전부 바닥 윗면 위에 선다');
 });
 
 test('test_subrio_actor_falls_lands_and_stops_at_ground_top', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   const actor = makeActor('p', 40, 200);
   const events = [];
   for (let i = 0; i < 90; i++) stepActor(level, actor, NONE, 1 / 60, events);
@@ -32,7 +33,7 @@ test('test_subrio_actor_falls_lands_and_stops_at_ground_top', () => {
 });
 
 test('test_subrio_jump_rises_then_lands_and_short_tap_jumps_lower', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   const full = settle(level, makeActor('a', 40, GROUND));
   const tap = settle(level, makeActor('b', 40, GROUND));
   let fullPeak = full.y, tapPeak = tap.y;
@@ -50,7 +51,7 @@ test('test_subrio_jump_rises_then_lands_and_short_tap_jumps_lower', () => {
 });
 
 test('test_subrio_crouch_shrinks_body_and_blocks_movement_guard_blocks_movement', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   const actor = settle(level, makeActor('p', 40, GROUND));
   const x0 = actor.x;
   for (let i = 0; i < 10; i++) stepActor(level, actor, { ...NONE, crouch: true, right: true }, 1 / 60);
@@ -65,7 +66,7 @@ test('test_subrio_crouch_shrinks_body_and_blocks_movement_guard_blocks_movement'
 });
 
 test('test_subrio_spear_tap_throws_short_spear_and_holding_c_charges_then_throws_a_long_fast_one', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   const tapper = settle(level, makeActor('p', 40, GROUND));
   const events = [];
   stepActor(level, tapper, { ...NONE, attack: true, attackHeld: true }, 1 / 60, events);
@@ -82,21 +83,21 @@ test('test_subrio_spear_tap_throws_short_spear_and_holding_c_charges_then_throws
   const ev2 = [];
   stepActor(level, charger, { ...NONE, attack: true, attackHeld: true }, 1 / 60, ev2);
   for (let i = 0; i < 36; i++) stepActor(level, charger, { ...NONE, attackHeld: true, right: true }, 1 / 60, ev2);
-  assert.equal(charger.state, 'charge'); assert.equal(frameOf(charger), 6);
+  assert.equal(charger.state, 'charge'); assert.equal(frameOf(charger), 8, '차징은 창을 뒤로 든 5행 프레임'); assert.equal(frameOf({ ...charger, classId: 'brand' }), 6);
   assert.ok(ev2.some(event => event.type === 'chargeStart'));
   assert.ok(Math.abs(charger.vx) < 80, '차징 중엔 느리다');
   stepActor(level, charger, { ...NONE, right: true }, 1 / 60, ev2);
   const strong = ev2.find(event => event.type === 'attack');
   assert.ok(strong && strong.charged === true, '놓으면 강창');
   let spears = [{ x: strong.x, y: strong.y, vx: strong.facing * SPEAR.chargedSpeed, life: SPEAR.chargedLife }];
-  for (let i = 0; i < 45; i++) spears = updateSpears(buildLevel(3), spears, 1 / 60);
+  for (let i = 0; i < 45; i++) spears = updateSpears(buildLevel(4), spears, 1 / 60);
   assert.equal(spears.length, 1); assert.ok(spears[0].x > strong.x + 400, '강창은 0.75초에 400px 넘게 간다');
   const wall = [{ x: 42 * TILE - 30, y: 10 * TILE, vx: 380, life: 1.1 }];
-  assert.equal(updateSpears(buildLevel(3), wall, 0.1).length, 0, '막힌 타일(무대 벽)에 박히면 사라진다');
+  assert.equal(updateSpears(buildLevel(4), wall, 0.1).length, 0, '막힌 타일(무대 벽)에 박히면 사라진다');
 });
 
 test('test_subrio_follower_trails_the_leader_with_delay_jumps_when_leader_jumped_and_jumps_at_cliffs', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   const follower = { x: 40, y: GROUND - STAND_H, w: 16, h: STAND_H, vy: 0, grounded: true, blockedT: 0 };
   const trail = [];
   for (let t = 0; t <= 1.0; t += 0.1) trail.push({ t, x: 40 + t * 100, y: GROUND - STAND_H, facing: 1, jumped: t > 0.85 });
@@ -117,7 +118,7 @@ test('test_subrio_follower_trails_the_leader_with_delay_jumps_when_leader_jumped
 });
 
 test('test_subrio_camera_follows_leader_inside_level_bounds', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   assert.equal(cameraX(level, makeActor('p', 30, GROUND)), 0);
   assert.equal(cameraX(level, makeActor('p', level.width - 10, GROUND)), level.width - VIEW_W);
   const mid = cameraX(level, makeActor('p', 1000, GROUND));
@@ -125,7 +126,7 @@ test('test_subrio_camera_follows_leader_inside_level_bounds', () => {
 });
 
 test('test_subrio_move_body_stops_horizontally_at_step_and_reports_floor', () => {
-  const level = buildLevel();
+  const level = buildLevel(1);
   const body = { x: 30 * TILE - 24, y: GROUND - STAND_H, w: 16, h: STAND_H };
   assert.equal(overlapsSolid(level, body.x, body.y, body.w, body.h), false, '출발 위치는 비어 있다');
   const hit = moveBody(level, body, 40, 0);
@@ -157,31 +158,40 @@ function botRun(stage) {
   return { reached: false, t: 150, falls, x: actor.x };
 }
 
-test('test_subrio_stage_list_is_world_1_purple_teal_blue_then_bidet_boss', () => {
-  assert.deepEqual(STAGES.map(s => s.id), ['purple', 'teal', 'blue', 'boss']);
-  assert.deepEqual(STAGES.map(s => s.title), ['1-1', '1-2', '1-3', '1-4']);
-  assert.equal(STAGES[3].boss, true);
-  for (const stage of [0, 1, 2]) {
+test('test_subrio_stage_list_is_tutorial_twitch_chzzk_forest_then_bidet_boss', () => {
+  assert.deepEqual(STAGES.map(s => s.id), ['tutorial', 'purple', 'teal', 'blue', 'boss']);
+  assert.deepEqual(STAGES.map(s => s.title), ['1-0', '1-1', '1-2', '1-3', '1-4']);
+  assert.deepEqual(STAGES.map(s => s.name), ['튜토리얼', '트위치', '치지직', '숲', '따듯한비데']);
+  assert.equal(STAGES[4].boss, true); assert.equal(STAGES[0].tutorial, true);
+  for (const stage of [1, 2, 3]) {
     const level = buildLevel(stage);
     assert.ok(level.goal, `stage ${stage} 깃발`); assert.equal(level.tiles[level.goal.y / TILE][level.goal.col], 'F');
     assert.ok(level.cols >= 400, `stage ${stage} 는 3분 분량(400열 이상)`);
+    assert.ok(level.chatter.length >= 3, `stage ${stage} 위치 대사`);
   }
-  const arena = buildLevel(3);
+  const forest = buildLevel(3);
+  const lastTwo = forest.enemies.slice(-2).map(e => e.type).sort();
+  assert.deepEqual(lastTwo, ['blue', 'red'], '1-3 마지막 쪽에 레드·블루');
+  const tutorial = buildLevel(0);
+  assert.equal(tutorial.enemies.filter(e => e.type === 'totem').length, 1, '1-0 훈련 토템');
+  assert.equal(tutorial.enemies.find(e => e.demo)?.hp, 1, '밟기 시범용 약한 미니언');
+  assert.ok(tutorial.prompts.length === 3 && tutorial.stompDemo, '조작 팻말 3개·밟기 시범');
+  const arena = buildLevel(4);
   assert.equal(arena.goal, null); assert.ok(arena.bossSpawnX > arena.spawnX); assert.equal(arena.enemies.length, 0);
   assert.equal(arena.solidAt(0, 10), true, '왼쪽 벽'); assert.equal(arena.solidAt(43, 10), true, '오른쪽 벽');
 });
 
 test('test_subrio_each_stage_is_clearable_by_a_run_and_jump_bot_without_falling_in_under_150s', () => {
-  for (const stage of [0, 1, 2]) {
+  for (const stage of [0, 1, 2, 3]) {
     const result = botRun(stage);
     assert.equal(result.reached, true, `stage ${stage} 봇이 깃발까지 못 감 (x=${result.x})`);
     assert.equal(result.falls, 0, `stage ${stage} 봇이 떨어짐`);
-    assert.ok(result.t > 40 && result.t < 150, `stage ${stage} 달리기만으로 40~150초 (${result.t.toFixed(1)}s)`);
+    if (stage > 0) assert.ok(result.t > 40 && result.t < 150, `stage ${stage} 달리기만으로 40~150초 (${result.t.toFixed(1)}s)`);
   }
 });
 
 test('test_subrio_hurt_knocks_back_without_hp_and_guard_facing_the_source_blocks', () => {
-  const level = buildLevel(3);
+  const level = buildLevel(4);
   const hero = settle(level, makeActor('p', 200, GROUND));
   const events = [];
   assert.equal(hero.hp, undefined, '체력 없음');
@@ -197,13 +207,17 @@ test('test_subrio_hurt_knocks_back_without_hp_and_guard_facing_the_source_blocks
 });
 
 test('test_subrio_cs_minion_walks_turns_at_ledges_takes_two_hits_and_is_stomped', () => {
-  const level = buildLevel();
-  const spec = level.enemies[0];
+  const level = buildLevel(1);
+  const spec = level.enemies.find(e => e.type === 'cs_red');
   const enemy = makeEnemy(spec.type, spec.x, spec.y);
   const events = [];
   for (let i = 0; i < 60; i++) stepEnemy(level, enemy, 1 / 60, events);
   assert.equal(enemy.grounded, true); assert.equal(enemy.y + enemy.h, spec.y);
   assert.ok(enemy.x < spec.x - 20, '왼쪽으로 걷는다');
+  // 토템은 제자리, 칼날부리는 주기적으로 뛴다, 불에 맞으면 2초 불탄다
+  const totem = makeEnemy('totem', 400, GROUND); for (let i = 0; i < 60; i++) stepEnemy(level, totem, 1 / 60); assert.equal(totem.x, 400 - 8); assert.equal(totem.hp, 8);
+  const raptor = makeEnemy('raptor', 300, GROUND); let hopped = false; for (let i = 0; i < 120; i++) { stepEnemy(level, raptor, 1 / 60); if (raptor.vy < -100) hopped = true; } assert.equal(hopped, true, '칼날부리 hop');
+  damageEnemy(raptor, 1, 'fire', 0); assert.equal(raptor.burnT, ENEMY.burn);
   let turned = false;
   for (let i = 0; i < 60 * 20 && !turned; i++) { stepEnemy(level, enemy, 1 / 60, events); if (enemy.dir === 1) turned = true; }
   assert.equal(turned, true, '벽이나 낭떠러지에서 돈다');
@@ -242,7 +256,7 @@ test('test_subrio_brand_fires_at_a_visible_enemy_once_per_six_seconds', () => {
 });
 
 test('test_subrio_zilean_lobs_two_clocks_in_an_arc_and_two_hits_on_the_same_enemy_stun_it_for_two_seconds', () => {
-  const level = buildLevel(3);
+  const level = buildLevel(4);
   const zilean = makeActor('gyeongsub', 300, GROUND);
   const enemy = makeEnemy('cs_red', 440, GROUND);
   const events = [];
@@ -273,7 +287,7 @@ test('test_subrio_zilean_lobs_two_clocks_in_an_arc_and_two_hits_on_the_same_enem
 });
 
 test('test_subrio_boss_lands_roars_chases_swings_in_reach_and_sprays_three_waters_when_far', () => {
-  const level = buildLevel(3);
+  const level = buildLevel(4);
   const hero = settle(level, makeActor('p', 200, GROUND));
   const boss = makeBoss(level.bossSpawnX, 100);
   const events = [];
@@ -313,7 +327,7 @@ test('test_subrio_boss_takes_one_damage_per_hit_with_cooldown_and_dies_at_zero',
 
 test('test_subrio_clock_that_lands_near_an_enemy_bursts_and_two_bursts_stun', async () => {
   const { burstClocks } = await import('../../src/scenes/subrio-core.js');
-  const level = buildLevel(3);
+  const level = buildLevel(4);
   const enemy = makeEnemy('cs_red', 300, GROUND);
   // 바닥에 닿은 시계(hitSolid)가 적 발치 20px 안에 떨어지면 피해, 먼 것은 무시
   const near = { x: 300 + 14, y: GROUND - 8, hitSolid: true, dead: true }, far = { x: 400, y: GROUND - 8, hitSolid: true, dead: true }, expired = { x: 300, y: GROUND - 8, hitSolid: false, dead: true };

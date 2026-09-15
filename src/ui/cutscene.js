@@ -13,6 +13,7 @@
 //  { sfx: 'chime' }  { sound: 'thud' }  { bgm: 'opening' } / { bgm: null, fadeOut: 1 }   assets/audio/bgm/<name>.mp3
 //  { bgmPause: 0.3 } / { bgmResume: 0.3 }         브금을 재생 위치 그대로 잠깐 멈췄다 이어 튼다(정적 개그 뒤 '이어서')
 //  { slide: id, by:[dx,dy], duration?: 0.6, sfx? }  소품을 미끄러뜨린다(히트박스+그림 같이, 걷기 애니 없음) — 대포 밀기. by 는 픽셀
+//  { scale: id, to: 0.15, duration?: 0.5 }  캐릭터 그림 배율(visualScale)을 to 까지 서서히(토관에 빨려 들어가며 몸이 줄어듦). 끝나면 hide 뒤 { scale:id, to:1, duration:0 } 로 되돌린다
 //  { mash: { target:100, push:[id…], tremble:id } }   C 연타 미니게임: 가운데 안내 창(C 키가 눌리는 애니 + 게이지에 불씨가 찬다, 누를 때마다 ember). push 는 미는 걷기 애니, tremble 은 부들부들. target 번이면 끝
 //  { fire: { at:id, dx, dy, spread, rate, grow } } / { fire:null }   캐릭터·소품에 불이 붙어 커진다(기다리지 않음, game.flameEmitters) / 전부 끈다
 //  대사 노드 옵션 { cut: 1.4 }                   찍히는 중이라도 그 시간에 말이 끊기고 다음으로 (C/X 로 못 넘김) — 말하다 날아가는 연출
@@ -287,6 +288,12 @@ export function makeWaiter(game, node) {
     const [dx, dy] = node.by || [0, 0], dur = node.duration ?? 0.6, sx = e.x, sy = e.y, six = e.def.ix ?? e.x, siy = e.def.iy ?? e.y; let t = 0;
     if (node.sfx) game.sound.sfx(node.sfx);
     return { update(dt) { t = Math.min(dur, t + dt); const k = dur > 0 ? t / dur : 1; e.x = Math.round(sx + dx * k); e.y = Math.round(sy + dy * k); if (e.def.ix !== undefined) { e.def.ix = Math.round(six + dx * k); e.def.iy = Math.round(siy + dy * k); } return t >= dur; } };
+  }
+  if (node.scale) {                                    // { scale:id, to:0.15, duration?:0.5 } — 캐릭터 그림 배율을 서서히 바꾼다(발 기준 유지). def.visualScale 을 직접 움직인다
+    const e = findEntity(game, node.scale); if (!e) return done;
+    const dur = node.duration ?? 0.5, from = e.def.visualScale ?? 1, to = node.to ?? 1; let t = 0;
+    if (dur <= 0) { e.def.visualScale = to; return done; }
+    return { update(dt) { t = Math.min(dur, t + dt); const k = t / dur; e.def.visualScale = from + (to - from) * k; return t >= dur; } };
   }
   if (node.fade) {
     let finished = false;

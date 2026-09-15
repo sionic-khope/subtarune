@@ -1,0 +1,12 @@
+{
+  "asset": "assets/sprites/subrio_pantheon.png",
+  "row5": "frame 8 = charge (spear pulled back), frame 9 empty",
+  "scale": 0.10619469026548672,
+  "bounds": [
+    4,
+    12,
+    64,
+    60
+  ],
+  "note": "height-matched to the attack frame (48px)"
+}

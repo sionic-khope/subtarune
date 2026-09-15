@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/subrio168/refs/scuttle-ref.png"
+  ],
+  "elapsed_seconds": 123.8,
+  "usage": {
+    "input_tokens": 882,
+    "output_tokens": 7024,
+    "total_tokens": 7906,
+    "input_tokens_details": {
+      "image_tokens": 560,
+      "text_tokens": 322
+    },
+    "output_tokens_details": {
+      "image_tokens": 7024,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789444433,
+  "outputs": [
+    {
+      "file": "assets/source/subrio168/scuttle/scuttle-raw.png",
+      "bytes": 926834,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

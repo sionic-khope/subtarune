@@ -1,0 +1,72 @@
+{
+  "asset": "assets/sprites/subrio_scuttle.png",
+  "cell": [
+    48,
+    48
+  ],
+  "grid": "2x2 row-major: walkA, walkB, stunned, defeated",
+  "feetY": 44,
+  "scale": 0.0963855421686747,
+  "frameBounds": [
+    [
+      13,
+      20,
+      42,
+      44
+    ],
+    [
+      6,
+      19,
+      36,
+      44
+    ],
+    [
+      13,
+      12,
+      41,
+      43
+    ],
+    [
+      8,
+      25,
+      34,
+      44
+    ]
+  ],
+  "sampling": "NEAREST",
+  "binaryAlpha": true,
+  "command": [
+    "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/tools/sprites/sheet_processor.py",
+    "process",
+    "--input",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio168/scuttle/scuttle-raw.png",
+    "--target",
+    "player",
+    "--mode",
+    "idle",
+    "--rows",
+    "2",
+    "--cols",
+    "2",
+    "--output-dir",
+    "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/subrio168/scuttle/standard",
+    "--cell-size",
+    "256",
+    "--fit-scale",
+    "0.9",
+    "--align",
+    "feet",
+    "--scale-strategy",
+    "fit",
+    "--component-mode",
+    "largest",
+    "--component-padding",
+    "0",
+    "--trim-border",
+    "0",
+    "--strict-qc",
+    "--allow-source-edge-touch"
+  ],
+  "model": "openai/gpt-image-2 via OpenGateway images/edits (identity ref refs/<name>-ref.png)"
+}

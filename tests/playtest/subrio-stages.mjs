@@ -10,23 +10,47 @@ const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } 
 const cap = async n => { await page.waitForTimeout(60); await page.screenshot({ path: path.join(shots, 'subrio_' + n + '.png') }); };
 const sub = () => page.evaluate(() => { const st = window.__subrio?.state; if (!st) return null; const l = st.actors[0]; const b = st.boss;
   return { stage: st.stage, sub: st.sub, control: st.control, lead: l && [Math.round(l.x), Math.round(l.y), l.state, Math.round(l.charge * 100) / 100], boss: b && [Math.round(b.x), b.state, b.hp], enemies: st.enemies.length, alive: st.enemies.filter(e => !e.dead).length, stunned: st.enemies.filter(e => e.stunT > 0).length, spears: st.spears.map(s => s.charged), fires: st.fires.length, clocks: st.clocks.length, waters: st.waters.length, cleared: st.cleared, hp: l?.hp }; });
-const toGoal = async () => {
-  await page.evaluate(() => { const st = window.__subrio.state; const g = window.__subrio.level.goal; st.actors.forEach((a, i) => { a.x = g.x - 70 - i * 30; a.y = 200; }); st.enemies = []; });
-  await page.keyboard.down('ArrowRight');
+// 깃발 클리어: 몬스터를 다 없앤 뒤 깃발 앞에서 C (남아 있으면 안 됨을 먼저 확인)
+const toGoal = async (expectBlockedFirst = false) => {
+  await page.evaluate(() => { const st = window.__subrio.state; const g = window.__subrio.level.goal; st.actors.forEach((a, i) => { a.x = g.x - 8 - i * 30; a.y = 200; }); st.demoDone = true; st.demo = null; st.control = true; });
+  await page.waitForTimeout(500);
+  if (expectBlockedFirst) { await page.keyboard.press('KeyC'); await page.waitForTimeout(300); const s = await sub(); check(s.sub === 'run', '몬스터가 남아 있으면 깃발 C 로 못 넘어감 ' + JSON.stringify([s.sub, s.alive])); }
+  await page.evaluate(() => { const st = window.__subrio.state; st.enemies = []; });
+  await page.waitForTimeout(200); await page.keyboard.press('KeyC');
   await page.waitForFunction(() => window.__subrio?.state.sub === 'clear', null, { timeout: 8000 }).catch(() => {});
-  await page.keyboard.up('ArrowRight');
 };
 try {
   await page.goto('http://localhost:8000/?qa=youngcle9_after');
   await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle9' && !game.transitioning, null, { timeout: 20000 });
   await page.waitForTimeout(900);
-  await page.evaluate(() => { game.player.x = 280; game.player.y = 560; game.player.facing = 'right'; });
-  await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight');
-  await page.waitForFunction(() => game.dialogue.running, null, { timeout: 5000 }); await page.waitForTimeout(700); await page.keyboard.press('KeyC');
+  await page.evaluate(() => { game.player.x = 356; game.player.y = 556; game.player.facing = 'right'; });
+  await page.waitForTimeout(150); await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => game.dialogue.running, null, { timeout: 5000 });
+  for (let i = 0; i < 150 && !(await page.evaluate(() => !!window.__subrio)); i++) { const tb = await page.evaluate(() => game.textbox.state); if (tb === 'waiting' || tb === 'choice') { await page.waitForTimeout(150); await page.keyboard.press('KeyC'); } await page.waitForTimeout(120); }
   await page.waitForFunction(() => !!window.__subrio, null, { timeout: 15000 });
   await page.evaluate(() => window.__subrio.skipTo('play'));
   await page.waitForFunction(() => window.__subrio?.state.control, null, { timeout: 10000 });
-  let s = await sub(); check(s.stage === 0 && s.hp === undefined && s.enemies >= 20, '1-1 시작, 체력 없음, 미니언 존재 ' + JSON.stringify([s.stage, s.enemies])); await cap('s1');
+  let s = await sub(); check(s.stage === 0 && s.hp === undefined && s.enemies === 2, '1-0 튜토리얼 시작, 체력 없음, 시범 미니언+토템 ' + JSON.stringify([s.stage, s.enemies])); await cap('s0');
+  // 1-0: 착지 대사가 뜨고(C 없이 시간이 지나면 넘어감), 동료는 토템을 때리기 전까지 공격하지 않는다
+  const chat0 = await page.evaluate(() => { const st = window.__subrio.state; return { line: st.chat.line?.text, queue: st.chat.queue.length, team: st.teamAttack }; });
+  check(!!chat0.line && chat0.team === false, '1-0 착지 대사·동료 공격 잠김 ' + JSON.stringify(chat0)); await cap('s0_chat');
+  await page.waitForTimeout(2600); const chat1 = await page.evaluate(() => window.__subrio.state.chat.line?.text); check(chat1 !== chat0.line, '대사가 시간이 지나면 다음 줄로 ' + JSON.stringify([chat0.line, chat1]));
+  // 밟기 시범: 트리거 열까지 옮기면 억빠맨이 혼자 나가 밟는다
+  await page.evaluate(() => { const st = window.__subrio.state; st.chat = { queue: [], line: null, holdT: 0 }; st.actors.forEach((a, i) => { a.x = 46 * 16 + 4 - i * 30; a.y = 200; }); });
+  await page.waitForFunction(() => window.__subrio.state.demo !== null, null, { timeout: 6000 }).catch(() => {});
+  const demoStarted = await page.evaluate(() => !!window.__subrio.state.demo); check(demoStarted, '밟기 시범 시작(모두 정지)');
+  const stomped = await page.waitForFunction(() => window.__subrio.state.enemies.find(e => e.demo)?.dead === true || window.__subrio.state.enemies.every(e => !e.demo), null, { timeout: 25000 }).then(() => true).catch(() => false);
+  await cap('s0_stomp'); check(stomped, '억빠맨이 미니언을 밟아 죽인다');
+  await page.waitForFunction(() => window.__subrio.state.demoDone && window.__subrio.state.control, null, { timeout: 25000 }).catch(() => {});
+  check(await page.evaluate(() => window.__subrio.state.demoDone && window.__subrio.state.control), '시범 뒤 조작 복귀');
+  // 토템: 요플래가 창으로 때리면 동료 공격 해제
+  await page.evaluate(() => { const st = window.__subrio.state; const t = st.enemies.find(e => e.type === 'totem'); const l = st.actors[0]; l.x = t.x - 90; l.y = 200; l.facing = 1; st.actors[1].x = l.x - 30; st.actors[2].x = l.x - 60; st.chat = { queue: [], line: null, holdT: 0 }; });
+  await page.waitForTimeout(600); await page.keyboard.press('KeyC');
+  await page.waitForFunction(() => window.__subrio.state.teamAttack, null, { timeout: 6000 }).catch(() => {});
+  await cap('s0_totem'); check(await page.evaluate(() => window.__subrio.state.teamAttack && window.__subrio.state.totemHit), '토템 명중 → 동료 공격 해제');
+  await toGoal(true);
+  await page.waitForFunction(() => window.__subrio?.state.stage === 1 && window.__subrio.state.control, null, { timeout: 14000 }).catch(() => {});
+  s = await sub(); check(s.stage === 1 && s.enemies >= 20, '1-1 트위치 시작 ' + JSON.stringify([s.stage, s.enemies])); await cap('s1');
   const enemies0 = s.enemies;
   // 차징 창: C 를 0.6초 누르면 charge 상태, 놓으면 charged 창
   await page.keyboard.down('KeyC'); await page.waitForTimeout(600); s = await sub(); const charging = s.lead[2] === 'charge'; await cap('charge'); await page.keyboard.up('KeyC'); await page.waitForTimeout(80); s = await sub();
@@ -40,8 +64,8 @@ try {
   s = await sub(); await cap('zilean_clock'); check(s.clocks > 0 || s.stunned > 0 || s.alive < enemies0, '질리언 시계 ' + JSON.stringify([s.clocks, s.stunned, s.alive, enemies0]));
   const stunned = await page.waitForFunction(() => window.__subrio.state.enemies.some(e => e.stunT > 0), null, { timeout: 8000 }).then(() => true).catch(() => false);
   await cap('stun'); s = await sub(); check(stunned || s.alive < enemies0, '시계 둘 맞아 스턴(또는 격파) ' + JSON.stringify([stunned, s.alive, enemies0]));
-  for (const next of [1, 2, 3]) {
-    await toGoal(); s = await sub(); check(s.sub === 'clear', `stage ${next} 깃발 → clear ` + JSON.stringify([s.stage, s.sub]));
+  for (const next of [2, 3, 4]) {
+    await toGoal(next === 2); s = await sub(); check(s.sub === 'clear', `stage ${next} 깃발 → clear ` + JSON.stringify([s.stage, s.sub]));
     await page.waitForFunction(() => window.__subrio?.state.sub === 'card' && window.__subrio.state.fade >= 1, null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(250); await cap('card' + next);
     await page.waitForFunction((n) => window.__subrio?.state.stage === n && window.__subrio.state.control, next, { timeout: 14000 }).catch(() => {});
     s = await sub(); check(s.stage === next && s.control, `stage ${next + 1} 로드·조작 ` + JSON.stringify([s.stage, s.control, s.enemies])); await cap('s' + (next + 1));

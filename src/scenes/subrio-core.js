@@ -1,7 +1,8 @@
 // 섭리오(스크린 속 2D 플랫포머)의 순수 규칙: 레벨·충돌·이동·점프·앉기·창(탭/차징)·불·시계·적·보스·따라오기. DOM/캔버스 없음 → tests/unit/subrio.test.mjs 가 직접 검사한다.
 // 조작(2026-09-15 사용자 브리핑): 좌우 이동, 위 점프, 아래 앉기, C 창(탭 = 짧은 창, 꾹 누르면 차징 → 놓으면 강한 창), X 방패.
-// 구성(2026-09-15 사용자 확정): 월드 1 — 1-1 보라·1-2 청록·1-3 파랑 섬(각 3분 분량, CS 미니언이 걸어 다님) → 1-4 따듯한비데 보스전.
-// 체력·게임오버 없음(사용자 지시): 맞으면 튕겨나기만 한다. 이 게임 전용 공격력 = 1(창·불·시계 모두 1). 적 CS 는 2, 보스는 12.
+// 구성(2026-09-15 사용자 확정): 월드 1 — 1-0 튜토리얼 → 1-1 트위치(보라)·1-2 치지직(청록)·1-3 숲(파랑), 각 3분 분량에 방송 플랫폼 섬의 롤 몬스터들
+// (CS·칼날부리·늑대·두꺼비·크루그·바위게·대포 미니언, 1-3 끝엔 레드·블루) → 1-4 따듯한비데 보스전. 깃발은 몬스터를 다 잡은 뒤 C 로 클리어.
+// 체력·게임오버 없음(사용자 지시): 맞으면 튕겨나기만 한다. 이 게임 전용 공격력 = 1(창·불·시계·밟기 모두 1). 보스는 12.
 export const TILE = 16;
 export const VIEW_W = 460;
 export const VIEW_H = 340;
@@ -26,8 +27,22 @@ export const SPEAR_LIFE = SPEAR.life;
 export const FIRE = { range: 230, dy: 64, cooldown: 6, speed: 260, life: 1.3, w: 12, h: 12 };
 // 질리언 시계: 적이 보이면 두 개를 pair 간격으로 포물선으로, 1.2초마다. 같은 적에 둘 다 맞으면(stunWindow 안) 2초 스턴
 export const CLOCK = { range: 220, dy: 96, cooldown: 1.2, pair: 0.2, gravity: 720, w: 12, h: 12, stunWindow: 1.6, stun: 2.0, flightMin: 0.45, flightMax: 0.85, burst: 22 };
-// CS 미니언: 좌우로 걷다 벽·낭떠러지에서 돈다. 밟기·창·불·시계 모두 1씩, 3번 맞으면 쓰러진다(시계 둘 = 스턴이 죽음보다 먼저 오게). 몸에 닿으면 주인공이 튕긴다
-export const ENEMY = { w: 16, h: 24, speed: 40, hp: 3, stompBounce: 300, deathTime: 1.1, hitFlash: 0.2 };
+// 몬스터 공통: 좌우로 걷다 벽·낭떠러지에서 돈다. 밟기·창·불·시계 모두 1씩(시계 둘 = 스턴이 죽음보다 먼저 오게 HP 는 3 이상). 몸에 닿으면 주인공이 튕긴다
+export const ENEMY = { w: 16, h: 24, speed: 40, hp: 3, stompBounce: 300, deathTime: 1.1, hitFlash: 0.2, burn: 2.0 };
+// 종류별 수치·시트(2×2: 걷기 A·B, 스턴, 쓰러짐). hop: 주기적으로 작게 뛴다(칼날부리). static: 움직이지 않는 표적(토템)
+export const MONSTERS = {
+  cs_red: { name: '레드 CS', w: 16, h: 24, speed: 40, hp: 3, sheet: 'assets/sprites/subrio_cs_red.png', cell: 48, feet: 44 },
+  cs_blue: { name: '블루 CS', w: 16, h: 24, speed: 40, hp: 3, sheet: 'assets/sprites/subrio_cs_blue.png', cell: 48, feet: 44 },
+  raptor: { name: '칼날부리', w: 16, h: 20, speed: 70, hp: 3, hop: 1.1, sheet: 'assets/sprites/subrio_raptor.png', cell: 48, feet: 44 },
+  wolf: { name: '늑대', w: 22, h: 18, speed: 92, hp: 3, sheet: 'assets/sprites/subrio_wolf.png', cell: 48, feet: 44 },
+  gromp: { name: '두꺼비', w: 22, h: 20, speed: 28, hp: 4, sheet: 'assets/sprites/subrio_gromp.png', cell: 48, feet: 44 },
+  krug: { name: '크루그', w: 20, h: 24, speed: 24, hp: 5, sheet: 'assets/sprites/subrio_krug.png', cell: 48, feet: 44 },
+  scuttle: { name: '바위게', w: 22, h: 16, speed: 56, hp: 3, sheet: 'assets/sprites/subrio_scuttle.png', cell: 48, feet: 44 },
+  cannon: { name: '대포 미니언', w: 18, h: 26, speed: 34, hp: 4, sheet: 'assets/sprites/subrio_cannon.png', cell: 48, feet: 44 },
+  red: { name: '레드', w: 26, h: 32, speed: 46, hp: 6, sheet: 'assets/sprites/subrio_red.png', cell: 64, feet: 60 },
+  blue: { name: '블루', w: 26, h: 32, speed: 36, hp: 7, sheet: 'assets/sprites/subrio_blue.png', cell: 64, feet: 60 },
+  totem: { name: '훈련 토템', w: 16, h: 32, speed: 0, hp: 8, static: true, sheet: 'assets/props/subrio_totem.png', cell: 32, cellH: 48, feet: 44, frames: 2 },
+};
 export const WATER_W = 14;
 export const WATER_H = 8;
 // 따듯한비데 보스 수치(2026-09-15 기본값 — 사용자 지시로 조정). 창 12방, 도끼 내려찍기(예비 0.55초 → 휘두름 0.3초 → 회복 0.45초), 물줄기 3발
@@ -37,33 +52,77 @@ export const BOSS = { w: 40, h: 60, speed: 64, hp: 12, reach: 76, windup: 0.55, 
 export const SOLID = new Set(['=', '#', 'B', '[', ']']);
 export const ATLAS_COLUMN = { '=': 0, '#': 1, B: 2, '[': 3, ']': 4, '|': 5, F: 6 };
 
-/** 스테이지 목록: 순서대로 진행. 색은 하늘 그라데이션(위→아래)·물결 두 겹·물결 바닥 띠·타일 그림이 늦게 올 때의 폴백 */
+const PURPLE = { tiles: 'assets/props/subrio_tiles.png', sky: ['#0c0416', '#2a1048', '#120620', '#05020a'], wave: ['rgba(98,44,170,0.55)', 'rgba(190,130,255,0.5)', 'rgba(150,90,230,0.22)'], fallback: ['#3e1c6e', '#6030a0', '#804cc4'] };
+const TEAL = { tiles: 'assets/props/subrio_tiles_teal.png', sky: ['#02100f', '#0b3d3a', '#06201e', '#020908'], wave: ['rgba(30,140,130,0.55)', 'rgba(120,235,215,0.5)', 'rgba(60,180,170,0.22)'], fallback: ['#145a56', '#248c82', '#3caaa0'] };
+const BLUE = { tiles: 'assets/props/subrio_tiles_blue.png', sky: ['#030818', '#0e2a6a', '#071638', '#02050f'], wave: ['rgba(40,90,210,0.55)', 'rgba(140,180,255,0.5)', 'rgba(80,120,230,0.22)'], fallback: ['#1a2e78', '#3054be', '#466ed7'] };
+/** 스테이지 목록: 순서대로 진행. 이름은 사용자 확정(1-1 트위치·1-2 치지직·1-3 숲). kinds: 그 섬에 나오는 몬스터(빌더의 A/B 자리에 순서대로) */
 export const STAGES = [
-  { id: 'purple', title: '1-1', name: '보라 섬', tiles: 'assets/props/subrio_tiles.png', sky: ['#0c0416', '#2a1048', '#120620', '#05020a'],
-    wave: ['rgba(98,44,170,0.55)', 'rgba(190,130,255,0.5)', 'rgba(150,90,230,0.22)'], fallback: ['#3e1c6e', '#6030a0', '#804cc4'] },
-  { id: 'teal', title: '1-2', name: '청록 섬', tiles: 'assets/props/subrio_tiles_teal.png', sky: ['#02100f', '#0b3d3a', '#06201e', '#020908'],
-    wave: ['rgba(30,140,130,0.55)', 'rgba(120,235,215,0.5)', 'rgba(60,180,170,0.22)'], fallback: ['#145a56', '#248c82', '#3caaa0'] },
-  { id: 'blue', title: '1-3', name: '파랑 섬', tiles: 'assets/props/subrio_tiles_blue.png', sky: ['#030818', '#0e2a6a', '#071638', '#02050f'],
-    wave: ['rgba(40,90,210,0.55)', 'rgba(140,180,255,0.5)', 'rgba(80,120,230,0.22)'], fallback: ['#1a2e78', '#3054be', '#466ed7'] },
-  { id: 'boss', title: '1-4', name: '따듯한비데', tiles: 'assets/props/subrio_tiles_blue.png', sky: ['#05030f', '#1a1440', '#0a0a2a', '#020208'],
-    wave: ['rgba(60,70,200,0.5)', 'rgba(150,160,255,0.45)', 'rgba(90,100,230,0.2)'], fallback: ['#1a2e78', '#3054be', '#466ed7'], boss: true },
+  { id: 'tutorial', title: '1-0', name: '튜토리얼', ...PURPLE, tutorial: true, kinds: ['cs_red'] },
+  { id: 'purple', title: '1-1', name: '트위치', ...PURPLE, kinds: ['cs_red', 'raptor', 'gromp'] },
+  { id: 'teal', title: '1-2', name: '치지직', ...TEAL, kinds: ['cs_blue', 'wolf', 'scuttle'] },
+  { id: 'blue', title: '1-3', name: '숲', ...BLUE, kinds: ['krug', 'cannon', 'cs_red', 'cs_blue'] },
+  { id: 'boss', title: '1-4', name: '따듯한비데', tiles: BLUE.tiles, sky: ['#05030f', '#1a1440', '#0a0a2a', '#020208'],
+    wave: ['rgba(60,70,200,0.5)', 'rgba(150,160,255,0.45)', 'rgba(90,100,230,0.2)'], fallback: BLUE.fallback, boss: true, kinds: [] },
 ];
+
+/**
+ * 위치 대사(사용자 2026-09-15): 주인공이 열(at) 을 지나면 아래 상자에 화자별로 뜨고 시간이 지나면 다음 줄로 넘어간다(C 불필요).
+ * who: ppaman(억빠맨)·gyeongsub(경섭)·hyungsub(요플래)·narrator. 1-0 은 튜토리얼 대본, 1-1~1-3 은 자유 대사
+ */
+const PP = (text) => ({ who: 'ppaman', text });
+const GS = (text) => ({ who: 'gyeongsub', text });
+export const CHATTER = {
+  0: [
+    { id: 'land', at: 2, lines: [PP('오 이게머야 ㅋㅋㅋ'), GS('ㅋㅋ 저기로 가야되는거같은데'), PP('와 개쩔어요 개재밌다 ㅋㅋ')] },
+    { id: 'jump', at: 30, lines: [PP('점프해서 넘어가시죠')] },
+    { id: 'totem', at: 84, lines: [PP('형섭이형 저거 한번 때려보세요')] },
+  ],
+  1: [
+    { id: 'start', at: 4, lines: [PP('오 미니언이네요'), GS('오 대박이다'), PP('다 뒤져라 ㅋㅋㅋ')] },
+    { id: 'stun', at: 60, lines: [GS('내가 스턴 넣을게')] },
+    { id: 'charge', at: 150, lines: [PP('형 창 꾹 누르면 세게 나가요')] },
+    { id: 'raptor', at: 250, lines: [GS('저 새 뭐야 ㅋㅋ 칼날부리네')] },
+    { id: 'flag', at: 340, lines: [PP('깃발 보이네요 다 잡아야 넘어간대요')] },
+  ],
+  2: [
+    { id: 'start', at: 4, lines: [GS('여긴 치지직이네'), PP('늑대 조심하세요 빨라요')] },
+    { id: 'scuttle', at: 120, lines: [PP('바위게 ㅋㅋㅋ 귀엽네')] },
+    { id: 'stun', at: 240, lines: [GS('시계 두 개 맞으면 멈춰 그때 때려')] },
+    { id: 'flag', at: 380, lines: [PP('거의 다 왔어요')] },
+  ],
+  3: [
+    { id: 'start', at: 4, lines: [PP('숲이다 ㅋㅋ 크루그 단단해요'), GS('대포 미니언은 좀 세네')] },
+    { id: 'stun', at: 200, lines: [GS('오 나 스턴 개잘넣지 않냐')] },
+    { id: 'redblue', at: 400, lines: [PP('레드 블루다!! 저거 잡으면 끝이에요')] },
+    { id: 'flag', at: 450, lines: [GS('ㅋㅋ 다 잡고 깃발 가자')] },
+  ],
+  4: [],
+};
+/** 1-0 조작 안내 팻말: 월드 x(열) 위에 큰 노란 글씨 */
+export const PROMPTS = { 0: [{ at: 8, text: '← → 움직여라!' }, { at: 34, text: '↑ 점프해라!' }, { at: 76, text: 'C 적을 공격해라!  (꾹 누르면 차징)' }] };
+/** 1-0 밟기 시범: 주인공이 열 at 을 지나면 모두 멈추고 억빠맨이 혼자 나가 약한 미니언(HP1)을 밟아 죽인다 */
+export const STOMP_DEMO = { at: 46, enemyCol: 58, before: [PP('잠깐 저거 한번 밟아볼게요')], after: [PP('오 밟아서도 죽일수있네요 ㅋㅋ'), GS('ㅋㅋ 개웃기네')] };
+/** 1-0 토템을 주인공이 처음 때린 뒤: 동료 공격 해제 + 대사 */
+export const TOTEM_HIT_LINES = [PP('나도 때려야지 씨발롬 다뒤저라 ㅋㅋㅋ'), GS('ㅋㅋ 내꺼 두번 맞추면 스턴도됨')];
 
 /**
  * 레벨 빌더: 커서를 오른쪽으로 옮기며 땅·틈·블록·적·깃발을 놓는다.
  * 지형 규칙(점프 83px·체공 0.67초·이동 136px/s): 같은 높이 틈 4칸까지, 내려가는 틈 5칸까지, 오르막 단차 4칸까지.
  */
-function makeBuilder(cols, rows) {
+function makeBuilder(cols, rows, kinds = ['cs_red']) {
   const grid = Array.from({ length: rows }, () => Array(cols).fill('.'));
   const enemies = [];
-  let cursor = 0, lastTop = 18, lastStart = 0;
+  let cursor = 0, lastTop = 18, lastStart = 0, kindIndex = 0;
+  // 'A'/'B' 자리표시자는 그 섬의 kinds 를 순서대로 돈다(균등 배분). 구체 종류를 적으면 그대로
+  const resolve = (type) => (type === 'A' || type === 'B') ? kinds[kindIndex++ % kinds.length] : type;
+  const put = (type, col, top, extra = {}) => enemies.push({ type: resolve(type), x: col * TILE + 8, y: top * TILE, ...extra });
   const b = {
     grid, enemies,
     get cursor() { return cursor; },
-    /** 땅 len 칸(윗면 top). walkers: 땅 시작 기준 열에 CS 를 놓는다 */
+    /** 땅 len 칸(윗면 top). walkers: 땅 시작 기준 열에 몬스터 [type, at, extra?] */
     ground(len, top, walkers = []) {
       for (let c = cursor; c < cursor + len && c < cols; c++) { grid[top][c] = '='; for (let r = top + 1; r < rows; r++) grid[r][c] = '#'; }
-      for (const [type, at] of walkers) enemies.push({ type, x: (cursor + at) * TILE + 8, y: top * TILE });
+      for (const [type, at, extra] of walkers) put(type, cursor + at, top, extra);
       lastStart = cursor; lastTop = top; cursor += len; return b;
     },
     gap(len) { cursor += len; return b; },
@@ -71,7 +130,7 @@ function makeBuilder(cols, rows) {
     blocks(offset, len, row, walkers = []) {
       const from = lastStart + offset, to = from + len;
       for (let c = from; c < to && c < cols; c++) grid[row][c] = c === from ? '[' : c === to - 1 ? ']' : 'B';
-      for (const [type, at] of walkers) enemies.push({ type, x: (from + at) * TILE + 8, y: row * TILE });
+      for (const [type, at, extra] of walkers) put(type, from + at, row, extra);
       return b;
     },
     wall(from, to, top) { for (let c = from; c < to; c++) for (let r = top; r < rows; r++) grid[r][c] = '#'; return b; },
@@ -86,7 +145,14 @@ function makeBuilder(cols, rows) {
   return b;
 }
 
-const R = 'cs_red', U = 'cs_blue';
+const R = 'A', U = 'B';
+
+function stageTutorial(b) {
+  // 1-0: 착지 평지(움직여라) → 3칸 틈(점프해라) → 밟기 시범용 약한 미니언(HP1) → 훈련 토템(공격해라) → 깃발
+  b.ground(40, 18);
+  b.gap(3).ground(52, 18, [['cs_red', STOMP_DEMO.enemyCol - 43, { hp: 1, demo: true }], ['totem', 86 - 43]]);
+  return b.flag(48);
+}
 
 function stagePurple(b) {
   // 1-1: 평지 위주, 미니언은 한 마리씩. 틈은 2~3칸, 단차 1~2
@@ -139,7 +205,8 @@ function stageBlue(b) {
   b.gap(4).ground(6, 16).gap(4).ground(6, 16).gap(4).ground(6, 16).gap(3).ground(22, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 5, 14, [[R, 2]]);
   b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).ground(6, 13).gap(5).ground(26, 18, [[R, 4], [U, 10], [R, 16], [U, 22]]).blocks(8, 6, 14, [[U, 2]]).blocks(18, 4, 11);
   b.gap(4).ground(30, 18, [[R, 6], [R, 12], [U, 18], [R, 24]]).blocks(5, 4, 14).blocks(13, 4, 12).blocks(21, 4, 10, [[R, 1]]);
-  b.gap(4).ground(34, 18, [[R, 8], [U, 14], [R, 20]]);
+  // 마지막 평지: 레드·블루(사용자: 1-3 마지막 쪽)
+  b.gap(4).ground(34, 18, [['red', 6], ['blue', 16]]);
   return b.flag(26);
 }
 
@@ -151,26 +218,34 @@ export function buildLevel(stage = 0) {
   const rows = 21;
   const def = STAGES[stage] || STAGES[0];
   let cols, goal = null, spawnX = 64, bossSpawnX = 0, b;
-  if (stage === 1) { cols = 440; b = makeBuilder(cols, rows); goal = stageTeal(b); }
-  else if (stage === 2) { cols = 470; b = makeBuilder(cols, rows); goal = stageBlue(b); }
-  else if (stage === 3) {
-    cols = 44; b = makeBuilder(cols, rows);
+  if (stage === 0) { cols = 100; b = makeBuilder(cols, rows, def.kinds); goal = stageTutorial(b); }
+  else if (stage === 1) { cols = 420; b = makeBuilder(cols, rows, def.kinds); goal = stagePurple(b); }
+  else if (stage === 2) { cols = 440; b = makeBuilder(cols, rows, def.kinds); goal = stageTeal(b); }
+  else if (stage === 3) { cols = 470; b = makeBuilder(cols, rows, def.kinds); goal = stageBlue(b); }
+  else {
+    cols = 44; b = makeBuilder(cols, rows, []);
     // 블록은 13행: 보스(키 60)가 아래로 지나갈 수 있고(틈 64px) 주인공(점프 83px)은 올라갈 수 있다
     b.ground(44, 18).wall(0, 2, 6).wall(42, 44, 6);
     b.blocks(10, 4, 13).blocks(30, 4, 13);
     spawnX = 72; bossSpawnX = 560;
-  } else { cols = 420; b = makeBuilder(cols, rows); goal = stagePurple(b); }
+  }
   const { grid, enemies } = b;
   const tiles = grid.map(row => row.join(''));
   // 레벨 아래는 뚫려 있다(구덩이에 빠지면 낙사 → 마지막 자리 위 하늘에서 재낙하). 양옆 밖은 빈칸
   return { stage, def, cols, rows, tiles, width: cols * TILE, height: rows * TILE, goal, spawnX, bossSpawnX, enemies,
+    chatter: CHATTER[stage] || [], prompts: PROMPTS[stage] || [], stompDemo: def.tutorial ? STOMP_DEMO : null,
     solidAt: (tx, ty) => (ty < 0 || ty >= rows || tx < 0 || tx >= cols) ? false : SOLID.has(grid[ty][tx]) };
 }
 
-/** 주인공 몸 중심이 깃발 기둥을 지나면 스테이지 클리어 */
+/** 주인공 몸 중심이 깃발 기둥을 지나면(또는 그 근처 ±24px) — 클리어는 몬스터를 다 잡고 C */
 export function reachedGoal(level, actor) {
   return !!level.goal && actor.x + actor.w / 2 >= level.goal.x;
 }
+export function atGoal(level, actor) {
+  return !!level.goal && Math.abs(actor.x + actor.w / 2 - level.goal.x) <= 24;
+}
+/** 남은 몬스터 수(살아 있는 것) */
+export function remainingEnemies(enemies) { return enemies.filter(e => !e.dead).length; }
 
 /** 사각형이 막힌 타일과 겹치는가 */
 export function overlapsSolid(level, x, y, w, h) {
@@ -296,9 +371,10 @@ export function stepActor(level, actor, intent, dt, events = []) {
   return events;
 }
 
-/** 시트 2×4 프레임 번호: 0 idle, 1~3 walk, 4 jump, 5 crouch, 6 attack(차징도), 7 guard. 맞으면 점프 프레임 */
+/** 시트 2×4(+판테온 5행) 프레임 번호: 0 idle, 1~3 walk, 4 jump, 5 crouch, 6 attack, 7 guard, 8 charge(창을 뒤로 든 자세, 판테온만). 맞으면 점프 프레임 */
 export function frameOf(actor) {
-  if (actor.state === 'attack' || actor.state === 'charge') return 6;
+  if (actor.state === 'charge') return actor.classId === 'pantheon' || !actor.classId ? 8 : 6;
+  if (actor.state === 'attack') return 6;
   if (actor.state === 'guard') return 7;
   if (actor.state === 'crouch') return 5;
   if (actor.state === 'jump' || actor.state === 'hurt') return 4;
@@ -435,22 +511,26 @@ function emitClock(actor, target, events, index) {
   events.push({ type: 'clock', id: actor.id, index, x: sx - CLOCK.w / 2, y: sy - CLOCK.h / 2, vx: v.vx, vy: v.vy });
 }
 
-/** CS 미니언 생성(발 기준). 왼쪽으로 걷기 시작 */
-export function makeEnemy(type, footX, footY, dir = -1) {
-  return { id: `${type}_${Math.round(footX)}`, type, x: Math.round(footX - ENEMY.w / 2), y: footY - ENEMY.h, w: ENEMY.w, h: ENEMY.h, vx: 0, vy: 0, dir, facing: dir,
-    hp: ENEMY.hp, grounded: false, stunT: 0, flash: 0, animT: 0, dead: false, deadT: 0, clockHits: [] };
+/** 몬스터 생성(발 기준). 종류별 크기·속도·HP(spec.hp 로 덮어쓰기 가능). 왼쪽으로 걷기 시작 */
+export function makeEnemy(type, footX, footY, dir = -1, extra = {}) {
+  const kind = MONSTERS[type] || MONSTERS.cs_red;
+  return { id: `${type}_${Math.round(footX)}`, type, kind, x: Math.round(footX - kind.w / 2), y: footY - kind.h, w: kind.w, h: kind.h, vx: 0, vy: 0, dir, facing: dir,
+    hp: extra.hp ?? kind.hp, maxHp: extra.hp ?? kind.hp, grounded: false, stunT: 0, flash: 0, burnT: 0, animT: 0, hopT: 0, dead: false, deadT: 0, clockHits: [], demo: !!extra.demo };
 }
 
-/** 미니언 한 프레임: 걷다 벽·낭떠러지에서 돌고, 스턴이면 서 있고, 죽으면 통과하며 떨어진다 */
+/** 몬스터 한 프레임: 걷다 벽·낭떠러지에서 돌고(칼날부리는 주기적으로 작게 뛴다), 스턴이면 서 있고, 토템은 제자리, 죽으면 통과하며 떨어진다 */
 export function stepEnemy(level, enemy, dt, events = []) {
+  const kind = enemy.kind || MONSTERS[enemy.type] || MONSTERS.cs_red;
   enemy.flash = Math.max(0, enemy.flash - dt);
+  enemy.burnT = Math.max(0, (enemy.burnT || 0) - dt);
   enemy.animT += dt;
   if (enemy.dead) { enemy.deadT += dt; enemy.vy += GRAVITY * dt; enemy.y += enemy.vy * dt; enemy.x += enemy.vx * dt; return events; }
   if (enemy.stunT > 0) { enemy.stunT = Math.max(0, enemy.stunT - dt); if (enemy.stunT === 0) events.push({ type: 'stunEnd', id: enemy.id }); }
-  const walking = enemy.stunT === 0 && enemy.grounded;
+  const walking = !kind.static && enemy.stunT === 0 && enemy.grounded;
   if (walking && pitAhead(level, enemy, enemy.dir, 2)) enemy.dir = -enemy.dir;
-  enemy.vx = walking ? enemy.dir * ENEMY.speed : 0;
+  enemy.vx = walking ? enemy.dir * kind.speed : 0;
   enemy.facing = enemy.dir;
+  if (kind.hop && walking) { enemy.hopT += dt; if (enemy.hopT >= kind.hop) { enemy.hopT = 0; enemy.vy = -260; enemy.grounded = false; } }
   enemy.vy = Math.min(MAX_FALL, enemy.vy + GRAVITY * dt);
   const hit = moveBody(level, enemy, enemy.vx * dt, enemy.vy * dt);
   if (hit.x) enemy.dir = -enemy.dir;
@@ -462,6 +542,7 @@ export function stepEnemy(level, enemy, dt, events = []) {
 export function damageEnemy(enemy, amount, source, now, events = []) {
   if (enemy.dead) return false;
   enemy.hp -= amount; enemy.flash = ENEMY.hitFlash;
+  if (source === 'fire') enemy.burnT = ENEMY.burn;
   if (source === 'clock') {
     enemy.clockHits = enemy.clockHits.filter(t => now - t <= CLOCK.stunWindow);
     enemy.clockHits.push(now);
@@ -481,8 +562,10 @@ export function heroTouchesEnemy(hero, enemy, now, events = []) {
   return hurtActor(hero, enemy.x + enemy.w / 2, events);
 }
 
-/** 미니언 시트 2×2: 0~1 걷기, 2 스턴, 3 쓰러짐 */
+/** 몬스터 시트 2×2: 0~1 걷기, 2 스턴, 3 쓰러짐. 토템(2칸): 0 서 있음, 1 맞은 직후 */
 export function enemyFrame(enemy) {
+  const kind = enemy.kind || MONSTERS[enemy.type];
+  if (kind?.static) return enemy.flash > 0 ? 1 : 0;
   if (enemy.dead) return 3;
   if (enemy.stunT > 0) return 2;
   return Math.floor(enemy.animT * 6) % 2;

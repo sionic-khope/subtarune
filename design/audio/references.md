@@ -383,3 +383,4 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 **날리기(fling) 소리 지침(사용자 피드백 2: “ㅈㄴ 재사용하노”)**: `whoosh` 를 fling 기본값으로 쓰지 않는다. 장면마다 다른 소리를 고른다 — 파크가디언 박치기 `fling_whistle`(ffmpeg 합성 슬라이드 휘슬: `aevalsrc=sin(2*PI*t*(420+780*t))` 0.95초 + vibrato 11Hz), 비데가 마리오를 날릴 때 `cannon_puff`. 새 fling 은 새 소리를 만들거나 아직 안 쓴 소리를 고르고 여기 기록한다.
 
+섭리오 스테이지 클리어(깃발 C, 몬스터 0)는 사용자 지시로 전투 승리음 `won`(언더테일 snd_victor) 을 쓴다(BUILD168, 전엔 합성 `fanfare`). 몬스터가 남아 있을 때의 C 는 `error`.

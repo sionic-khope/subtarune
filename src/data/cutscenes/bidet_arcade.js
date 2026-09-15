@@ -3,7 +3,12 @@
 // 좌표는 전부 기준물 상대(`rel`): 비데 NPC(warm_bidet, 128×160 시트·발 피벗 64,156)·키오스크·토관 입구(트리거)·스크린.
 // BUILD167 재배치(사용자 지시): 스크린은 방 오른쪽의 거대한 2D 화면(흰 테두리·검은 화면), 토관은 컨트롤러 아래에 눕혀져 왼쪽 입구로 걸어 들어간다.
 // 브금: 방에 들어올 땐 없고 이 연출이 시작되면 파크가디언 등장 곡(editor_union_stage)이 나온다(사용자 지시).
-const BIDET = 'warm_bidet', MARIO = 'mini_mario', MOUTH = 'bidet_pipe_mouth', SCREEN = 'bidet_screen';
+const BIDET = 'warm_bidet', MARIO = 'mini_mario', PIPE = 'bidet_pipe', SCREEN = 'bidet_screen';
+// 토관 입구(그림 x352~376, 몸은 x376 부터). rel 'left' 는 몸 왼쪽에서 24px 앞(x352) → 입구 안은 +12(x364), 입구 앞은 -28(x324)
+const MOUTH_IN = { rel: PIPE, at: 'left', by: [12, 0] };
+const MOUTH_OUT = { rel: PIPE, at: 'left', by: [-28, 0] };
+// 들어가는 동안만 토관 몸의 막힘을 끈다(컷신 move 도 막힌 소품 앞에서 멈춘다)
+const pipeSolid = (on) => ({ action: game => { const pipe = game.entities.find(e => e.id === PIPE); if (pipe) pipe.solid = on; } });
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* ' + text });
 const G = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* ' + text });
@@ -22,9 +27,12 @@ const mushroomThrow = (id, image, label, color) => [
 
 export const bidet_arcade = [
   { if: flags => flags.bidet_arcade_done, goto: 'end' },
-  // 입장: 브금 없던 방에 등장 곡이 깔리고, 비데가 화들짝 놀라 왼쪽(주인공 쪽)을 본다
-  { bgm: 'editor_union_stage', fadeIn: 0.3 },
+  // 입장: 들어가자마자가 아니라 1.5초 숨 고른 뒤 등장 곡이 1.5초 페이드인으로 깔린다(2026-09-15 사용자: “들어가자마자 나오는 건 아니고” —
+  // docs/postmortems/2026-09-15-cue-lead-in.md). 그 사이 카메라가 먼저 잡히고, 곡이 들어오면 비데가 화들짝 놀라 왼쪽(주인공 쪽)을 본다
   talkCamera,
+  { wait: 0.9 },
+  { bgm: 'editor_union_stage', fadeIn: 1.5 },
+  { wait: 0.6 },
   { parallel: [{ emote: BIDET, kind: '!', duration: 1.0, hold: 0.2 }, { hop: BIDET, height: 14, duration: 0.3, sfx: false }] },
   { face: BIDET, dir: 'left' },
   B('오 왔군'),
@@ -92,12 +100,17 @@ export const bidet_arcade = [
   { parallel: [{ fling: MARIO, vx: -680, vup: 860, spin: 16, duration: 1.4, sfx: 'cannon_puff' }, { shake: 0.25, amp: 4 }] },
   B('다 상관없다 들어와라'),
   close,
-  // 빠르게 눕힌 토관 입구(왼쪽)로 가서 오른쪽으로 뛰어들어간다 — 마리오 토관 소리
-  { move: BIDET, rel: MOUTH, at: 'left', by: [-24, 0], run: true },
+  // 빠르게 눕힌 토관 입구(왼쪽)로 가서 오른쪽으로 들어간다 — 마리오 토관 소리와 함께 몸이 빨려 들어가듯 줄어든다(사용자 지시)
+  { move: BIDET, ...MOUTH_OUT, run: true },
   { face: BIDET, dir: 'right' },
   { sfx: 'mario_pipe' },
-  { move: BIDET, rel: MOUTH, at: 'center', by: [28, 0], run: true },
+  pipeSolid(false),
+  { parallel: [{ move: BIDET, ...MOUTH_IN, run: true }, { scale: BIDET, to: 0.12, duration: 0.55 }] },
   { hide: BIDET },
+  { scale: BIDET, to: 1, duration: 0 },
+  // 숨긴 채 두면 입구 자리에서 C 프로브를 가로채 토관과 상호작용이 안 된다 → 아예 제거(재입장 땐 unless 로 안 생김)
+  { remove: BIDET },
+  pipeSolid(true),
   { wait: 0.4 },
   P('뭐 일단 부딪혀보는거 아니겠습니까 들어가시죠'),
   close,
@@ -108,18 +121,25 @@ export const bidet_arcade = [
 ];
 
 /**
- * 토관 입구 트리거(왼쪽에서 걸어 들어감): 연출 뒤에는 일행이 토관 안으로 들어가고 카메라가 거대 스크린으로 잡히며 → 섭리오 오버레이 씬
- * (보스 격파로 끝나면 subrio_cleared). 돌아오면 입구로 나와 등장 곡 복귀. 연출 전에는 토관 설명만.
+ * 토관 앞에서 C(토관 소품 script): 연출 뒤에는 ‘들어갈까?’ 선택 → 들어가면 주인공이 입구로 들어가며 몸이 줄어들고 일행이 숨은 뒤
+ * 카메라가 거대 스크린으로 잡히며 → 섭리오 오버레이 씬(보스 격파로 끝나면 subrio_cleared). 돌아오면 입구로 나와 등장 곡 복귀. 연출 전에는 토관 설명만.
  */
 const FOLLOWERS = ['gyeongsub', 'ppaman'];
 export const bidet_pipe_enter = [
   { if: flags => !flags.bidet_arcade_done, goto: 'plain' },
+  { text: '* 컨트롤러 아래 눕혀진 초록 토관.\n* 오른쪽 끝이 거대한 스크린 속으로 이어진다.', voice: 'narrator' },
+  { text: '* 토관 안으로 들어갈까?', voice: 'narrator',
+    choice: { options: [{ label: '들어간다', goto: 'enter' }, { label: '그만둔다', goto: 'stay' }], cancel: 1 } },
+  { label: 'enter' },
   { text: '* 토관 안으로 몸을 밀어 넣었다.', voice: 'narrator' },
   close,
+  { move: 'player', ...MOUTH_OUT, run: true },
   { face: 'player', dir: 'right' },
   { sfx: 'mario_pipe' },
-  { move: 'player', rel: MOUTH, at: 'center', by: [36, 0], run: true },
+  pipeSolid(false),
+  { parallel: [{ move: 'player', ...MOUTH_IN, run: true }, { scale: 'player', to: 0.12, duration: 0.55 }] },
   { hide: 'player' },
+  { scale: 'player', to: 1, duration: 0 },
   ...FOLLOWERS.map(id => ({ hide: id })),
   { bgm: null, fadeOut: 0.8 },
   { parallel: [{ camera: SCREEN, duration: 1.1 }, { zoom: 0.9, duration: 1.1 }] },
@@ -127,18 +147,18 @@ export const bidet_pipe_enter = [
   { scene3d: 'subrio', flag: 'subrio_cleared' },
   { show: 'player' },
   ...FOLLOWERS.map(id => ({ show: id })),
-  { move: 'player', rel: MOUTH, at: 'left', by: [-12, 0], run: true },
+  { move: 'player', ...MOUTH_OUT, run: true },
+  pipeSolid(true),
   { face: 'player', dir: 'left' },
   { regroup: true },
   { parallel: [{ camera: 'player', duration: 0.5 }, { zoom: 1, duration: 0.5 }] },
   { bgm: 'editor_union_stage' },
   { end: true },
+  { label: 'stay' },
+  { text: '* 일단 그만두었다.', voice: 'narrator' },
+  { end: true },
   { label: 'plain' },
   { text: '* 마리오 게임에 나올 법한 초록 토관이 눕혀져 있다.\n* 왼쪽 입구가 열려 있고 오른쪽은 스크린 안으로 이어진다.', voice: 'narrator' },
-];
-
-export const bidet_pipe_look = [
-  { text: '* 컨트롤러 아래에 눕혀진 초록 토관.\n* 오른쪽 끝이 거대한 스크린 속으로 사라진다.', voice: 'narrator' },
 ];
 
 export const bidet_screen_look = [
