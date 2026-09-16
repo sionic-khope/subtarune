@@ -1,0 +1,300 @@
+{
+ "raw": "assets/source/obangsun149/raw-sheet.png",
+ "cols": 4,
+ "rows": 4,
+ "cell": 96,
+ "fit": 0.92,
+ "scale": 0.2983783783783784,
+ "feet_y": 90,
+ "cells": [
+  {
+   "bbox": [
+    51,
+    16,
+    267,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    84
+   ],
+   "paste": [
+    16,
+    6
+   ]
+  },
+  {
+   "bbox": [
+    49,
+    14,
+    265,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    85
+   ],
+   "paste": [
+    16,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    51,
+    16,
+    267,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    84
+   ],
+   "paste": [
+    16,
+    6
+   ]
+  },
+  {
+   "bbox": [
+    50,
+    14,
+    266,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    85
+   ],
+   "paste": [
+    16,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    70,
+    10,
+    269,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    59,
+    86
+   ],
+   "paste": [
+    18,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    60,
+    7,
+    266,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    61,
+    87
+   ],
+   "paste": [
+    17,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    68,
+    8,
+    269,
+    299
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    87
+   ],
+   "paste": [
+    18,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    70,
+    5,
+    266,
+    301
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    58,
+    88
+   ],
+   "paste": [
+    19,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    49,
+    9,
+    244,
+    300
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    58,
+    87
+   ],
+   "paste": [
+    19,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    45,
+    8,
+    246,
+    300
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    87
+   ],
+   "paste": [
+    18,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    48,
+    9,
+    246,
+    300
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    59,
+    87
+   ],
+   "paste": [
+    18,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    46,
+    8,
+    246,
+    300
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    87
+   ],
+   "paste": [
+    18,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    49,
+    12,
+    267,
+    284
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    65,
+    81
+   ],
+   "paste": [
+    15,
+    9
+   ]
+  },
+  {
+   "bbox": [
+    49,
+    11,
+    265,
+    284
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    81
+   ],
+   "paste": [
+    16,
+    9
+   ]
+  },
+  {
+   "bbox": [
+    49,
+    12,
+    267,
+    284
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    65,
+    81
+   ],
+   "paste": [
+    15,
+    9
+   ]
+  },
+  {
+   "bbox": [
+    50,
+    8,
+    266,
+    284
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    82
+   ],
+   "paste": [
+    16,
+    8
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

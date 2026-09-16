@@ -9,9 +9,9 @@ test('test_ship_control_intro_spots_match_map_meta', () => {
   const m = src.match(/const SPOT = (\{[^}]*\})/);
   assert.ok(m, 'SPOT 상수가 있어야 한다');
   const spot = Function(`return ${m[1]}`)();
-  assert.deepEqual(spot, { junhee: map.meta.junhee, yongjun: map.meta.yongjun, ycEnter: map.meta.ycEnter, ycStand: map.meta.ycStand });
+  assert.deepEqual(spot, { junhee: map.meta.junhee, yongjun: map.meta.yongjun, ycEnter: map.meta.ycEnter, ycStand: map.meta.ycStand, cageDrop: map.meta.cageDrop });
   const ids = new Set(map.entities.map((e) => e.id));
   for (const id of ['ship_junhee', 'ship_yongjun', 'ship_youngcle', 'ship_obangsun', 'ship_naram', 'ship_cage', 'ship_cage_open', 'ship_cannon', 'ship_logo']) assert.ok(ids.has(id), `${id} 가 맵에 없다`);
   assert.equal(map.enter?.script, 'ship_control_intro');
-  for (const src of ['assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/lava_cage_open.png']) assert.ok(map.preload.includes(src) && fs.existsSync(src), `${src} preload·존재`);
+  for (const src of ['assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png']) assert.ok(map.preload.includes(src) && fs.existsSync(src), `${src} preload·존재`);
 });

@@ -471,3 +471,4 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 - **엄청대박인배 철문(BUILD201, youngcle19)**: 예를 고르면 `locker`(철컥, 기존 파일) 한 번. 다리길·조종실 브금은 지역 브금 `pandora_palace` 그대로(사용자 지정 없음 — 바꾸려면 말씀).
 - **조종실 입장 연출(BUILD202)**: 대포 드르르륵 `scrape`, 발사 `boom` + 연기 `cannon_puff`, 벽 충돌 `impact`, 영클 상승 `rocket`, 하강 `ember`+`whoosh`(세 번), 버튼 `click`, 철창 `chain_extend`/`thud`/`locker`, 전투 시작 `battle_start` — 전부 기존 파일(내가 고름). 브금은 영클 테마 `storage_show`. 오방순 목소리 = `voices/obangsun.mp3`(BUILD149 Yuna 낮춘 ‘흐에에에’).
+- **나람 목소리(BUILD203)**: 사용자 “뚱뚱한 목소리를 가진 쥰희 느낌, 같은 목소리는 쓰지 말고 비슷하게 새로” → `voices/naram.mp3` = 쥰희 `voices/junhee.mp3`(델타룬 snd_txtsus)를 ffmpeg 로 -3반음(asetrate 0.84)·tempo 1.08·lowpass 2600·bass +5dB·loudnorm 한 변형(0.135초). 쥰희 파일은 그대로. `VOICES.naram` rate 1·cut true·minGap 0.08.

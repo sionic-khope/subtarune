@@ -1,0 +1,300 @@
+{
+ "raw": "assets/source/youngcle-hover-v2/hover-raw.png",
+ "cols": 4,
+ "rows": 4,
+ "cell": 112,
+ "fit": 0.9,
+ "scale": 0.499009900990099,
+ "feet_y": 104,
+ "cells": [
+  {
+   "bbox": [
+    37,
+    21,
+    206,
+    206
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    84,
+    92
+   ],
+   "paste": [
+    14,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    26,
+    15,
+    196,
+    212
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    85,
+    98
+   ],
+   "paste": [
+    14,
+    6
+   ]
+  },
+  {
+   "bbox": [
+    10,
+    25,
+    213,
+    206
+   ],
+   "edge_touch": false,
+   "components": 4,
+   "scaled": [
+    101,
+    90
+   ],
+   "paste": [
+    5,
+    14
+   ]
+  },
+  {
+   "bbox": [
+    28,
+    29,
+    223,
+    209
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    97,
+    90
+   ],
+   "paste": [
+    7,
+    14
+   ]
+  },
+  {
+   "bbox": [
+    39,
+    19,
+    207,
+    205
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    84,
+    93
+   ],
+   "paste": [
+    14,
+    11
+   ]
+  },
+  {
+   "bbox": [
+    27,
+    13,
+    198,
+    214
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    85,
+    100
+   ],
+   "paste": [
+    13,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    12,
+    23,
+    215,
+    207
+   ],
+   "edge_touch": false,
+   "components": 4,
+   "scaled": [
+    101,
+    92
+   ],
+   "paste": [
+    5,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    29,
+    30,
+    225,
+    212
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    98,
+    91
+   ],
+   "paste": [
+    7,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    38,
+    16,
+    199,
+    195
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    80,
+    89
+   ],
+   "paste": [
+    16,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    24,
+    13,
+    183,
+    207
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    79,
+    97
+   ],
+   "paste": [
+    16,
+    7
+   ]
+  },
+  {
+   "bbox": [
+    22,
+    21,
+    210,
+    200
+   ],
+   "edge_touch": false,
+   "components": 4,
+   "scaled": [
+    94,
+    89
+   ],
+   "paste": [
+    9,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    18,
+    27,
+    206,
+    206
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    94,
+    89
+   ],
+   "paste": [
+    9,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    38,
+    12,
+    200,
+    197
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    81,
+    92
+   ],
+   "paste": [
+    16,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    27,
+    8,
+    186,
+    210
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    79,
+    101
+   ],
+   "paste": [
+    16,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    26,
+    19,
+    216,
+    203
+   ],
+   "edge_touch": false,
+   "components": 5,
+   "scaled": [
+    95,
+    92
+   ],
+   "paste": [
+    9,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    24,
+    27,
+    214,
+    211
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    95,
+    92
+   ],
+   "paste": [
+    9,
+    12
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

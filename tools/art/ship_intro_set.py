@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""조종실 입장 연출(youngcle20, BUILD202 사용자 브리핑) 소품·이펙트.
-- props/ship_cannon.png     : 96×48 벽에서 드르르륵 나오는 강철 대포(오른쪽을 향함, 포구 오른쪽 끝)
-- props/ship_cannonball.png : 28×28 큰 검은 포탄(사용자 “포탄 좀 크게 검은 동그라미”)
-- fx/cannon_smoke.png       : 6프레임 띠 6×(64×64) 발사 연기(회색 뭉게구름이 커지며 옅어짐) — {boom} 노드
+"""조종실 입장 연출(youngcle20, BUILD202~203) 이펙트·장식(캐릭터·대포·철창 같은 그림은 gpt-image-2 생성 — assets/source/ship-cannon-v1, ship-cage-v1).
+- props/ship_cannonball.png : 64×64 거대한 검은 포탄(사용자 “동그랗고 거대한 동그라미, 타코(쥰희) 몸보다 커야 해” — 쥰희 46px)
+- fx/cannon_smoke.png       : 6프레임 띠 6×(64×64) 발사 연기(회색 뭉게구름이 커지며 옅어짐) — {boom scale 2.2}
 - props/ship_floor_logo.png : 128×128 바닥 강철 원판 + 영클 얼굴 양각(사용자 “화면 중앙엔 영클 얼굴로 박혀 있는 철 색깔 로고”) — 걷는 장식
-- props/lava_cage_open.png  : 136×360 밧줄 철창의 문 열린 그림(가운데 살 두 개가 위로 올라감)
 실행: /usr/bin/python3 tools/art/ship_intro_set.py"""
 from pathlib import Path
 import sys
@@ -18,27 +16,18 @@ IRON, IRON_D, IRON_L, IRON_HI = hexc('#3a4556'), hexc('#151a22'), hexc('#5c6a7e'
 GLOW, RED, YEL, BLACK = hexc('#60f4e0'), hexc('#ff4a4a'), hexc('#ffd23f'), (14, 14, 18)
 
 
-def cannon() -> None:
-    c = Canvas(96, 48)
-    c.rrect_outlined(0, 8, 40, 40, IRON, IRON_D, r=4); c.rect(2, 10, 36, 2, IRON_HI)          # 벽 쪽 받침(궤도 상자)
-    for y in (20, 30, 40): c.rect(4, y, 32, 2, IRON_D)
-    c.rrect_outlined(28, 14, 64, 26, IRON_L, IRON_D, r=6); c.rect(32, 16, 56, 3, IRON_HI)       # 포신
-    c.rect(32, 34, 56, 3, IRON_D)
-    for x in (44, 62): c.rect(x, 14, 4, 26, IRON_D); c.rect(x + 1, 15, 2, 24, IRON)              # 포신 띠
-    c.rrect_outlined(82, 10, 14, 34, IRON, IRON_D, r=4); c.rect(88, 16, 6, 22, BLACK)            # 포구
-    c.rrect_outlined(36, 4, 18, 12, IRON, IRON_D, r=3); c.rect(40, 7, 10, 3, RED); c.rect(42, 8, 3, 1, hexc('#ffb0b0'))   # 위 표시등
-    c.rect(20, 38, 12, 10, IRON_D); c.rect(22, 40, 8, 6, IRON_L)                                  # 바퀴
-    c.save(PROPS / 'ship_cannon.png')
-
-
 def cannonball() -> None:
-    b = Canvas(28, 28)
-    for x in range(28):
-        for y in range(28):
-            d = ((x - 13.5) ** 2 + (y - 13.5) ** 2) ** 0.5
-            if d <= 13: b.px(x, y, BLACK if d > 4.5 or x > 12 or y > 12 else hexc('#3d3d48'))
-            if d <= 13 and d > 12: b.px(x, y, (0, 0, 0))
-    b.rect(8, 7, 3, 2, hexc('#5a5a68')); b.rect(7, 9, 2, 2, hexc('#5a5a68'))                    # 하이라이트
+    D = 64
+    b = Canvas(D, D)
+    for x in range(D):
+        for y in range(D):
+            d = ((x - 31.5) ** 2 + (y - 31.5) ** 2) ** 0.5
+            if d <= 31: b.px(x, y, (0, 0, 0) if d > 29.5 else BLACK)
+    for x in range(D):                                                                     # 왼쪽 위 둥근 하이라이트
+        for y in range(D):
+            d = ((x - 22) ** 2 + (y - 20) ** 2) ** 0.5
+            if 6 <= d <= 9 and x < 26 and y < 24: b.px(x, y, hexc('#5a5a68'))
+    b.rect(17, 17, 4, 3, hexc('#6c6c7a')); b.rect(15, 20, 3, 3, hexc('#6c6c7a'))
     b.save(PROPS / 'ship_cannonball.png')
 
 
@@ -89,17 +78,6 @@ def floor_logo() -> None:
     c.save(PROPS / 'ship_floor_logo.png')
 
 
-def cage_open() -> None:
-    src = np.array(Image.open(PROPS / 'lava_cage.png').convert('RGBA'))
-    im = src.copy()
-    top, bot = 200, 360
-    # 가운데 살 둘(x 66·98)을 지우고(문이 열림) 위로 올린 짧은 살을 윗판 아래에 남긴다
-    for x0 in (66, 98):
-        im[top + 12:bot - 16, x0:x0 + 5] = (0, 0, 0, 0)
-        im[top + 12:top + 30, x0:x0 + 5] = src[top + 12:top + 30, x0:x0 + 5]
-    Image.fromarray(im, 'RGBA').save(PROPS / 'lava_cage_open.png')
-
-
 if __name__ == '__main__':
-    cannon(); cannonball(); smoke(); floor_logo(); cage_open()
+    cannonball(); smoke(); floor_logo()
     print('wrote ship intro set')

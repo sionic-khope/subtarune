@@ -32,8 +32,8 @@
   "assets/sprites/youngcle_hover.png",
   "assets/props/ship_cannonball.png",
   "assets/fx/cannon_smoke.png",
-  "assets/props/lava_cage.png",
-  "assets/props/lava_cage_open.png",
+  "assets/props/ship_cage.png",
+  "assets/props/ship_cage_open.png",
   "assets/illustrations/youngcle-tv-smirk.png",
   "assets/illustrations/youngcle-tv-laugh.png",
   "assets/illustrations/youngcle-tv-taunt.png",
@@ -67,15 +67,15 @@
   ],
   "cage": [
    600,
-   12
+   184
   ],
   "junhee": [
    486,
-   262
+   278
   ],
   "yongjun": [
    436,
-   318
+   334
   ],
   "ycEnter": [
    470,
@@ -84,7 +84,8 @@
   "ycStand": [
    556,
    300
-  ]
+  ],
+  "cageDrop": 396
  },
  "enter": {
   "script": "ship_control_intro"
@@ -348,7 +349,7 @@
    "id": "ship_junhee",
    "sprite": "junhee",
    "x": 486,
-   "y": 262,
+   "y": 278,
    "facing": "up",
    "wander": 0,
    "solid": false
@@ -358,7 +359,7 @@
    "id": "ship_yongjun",
    "sprite": "yongjun",
    "x": 436,
-   "y": 318,
+   "y": 334,
    "facing": "up",
    "wander": 0,
    "solid": false
@@ -367,12 +368,12 @@
    "type": "prop",
    "id": "ship_cannon",
    "image": "assets/props/ship_cannon.png",
-   "x": -64,
-   "y": 246,
-   "w": 96,
-   "h": 48,
-   "ix": -64,
-   "iy": 246,
+   "x": -144,
+   "y": 242,
+   "w": 176,
+   "h": 69,
+   "ix": -144,
+   "iy": 242,
    "solid": false,
    "hidden": true,
    "sortY": 1000000000
@@ -391,13 +392,13 @@
   {
    "type": "prop",
    "id": "ship_cage",
-   "image": "assets/props/lava_cage.png",
+   "image": "assets/props/ship_cage.png",
    "x": 600,
-   "y": -400,
-   "w": 136,
-   "h": 360,
+   "y": -212,
+   "w": 100,
+   "h": 188,
    "ix": 600,
-   "iy": -400,
+   "iy": -212,
    "solid": false,
    "hidden": true,
    "sortY": 374
@@ -405,13 +406,13 @@
   {
    "type": "prop",
    "id": "ship_cage_open",
-   "image": "assets/props/lava_cage_open.png",
+   "image": "assets/props/ship_cage_open.png",
    "x": 600,
-   "y": 12,
-   "w": 136,
-   "h": 360,
+   "y": 184,
+   "w": 100,
+   "h": 188,
    "ix": 600,
-   "iy": 12,
+   "iy": 184,
    "solid": false,
    "hidden": true,
    "sortY": 374
@@ -420,8 +421,8 @@
    "type": "npc",
    "id": "ship_obangsun",
    "sprite": "obangsun",
-   "x": 636,
-   "y": 332,
+   "x": 614,
+   "y": 342,
    "facing": "down",
    "wander": 0,
    "solid": false,
@@ -431,8 +432,8 @@
    "type": "npc",
    "id": "ship_naram",
    "sprite": "naram_giant",
-   "x": 682,
-   "y": 332,
+   "x": 660,
+   "y": 342,
    "facing": "down",
    "wander": 0,
    "solid": false,

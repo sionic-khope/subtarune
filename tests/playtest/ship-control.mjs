@@ -36,30 +36,30 @@ try {
   // ③ 대포: 카메라 왼쪽 벽, 대포 슬라이드(scrape) → 발사(boom·연기) → 포탄 → 쥰희 벽(900)·진동·impact → 꾸엑 → 눕기
   const out = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cannon'); return c && c.visible && c.x >= 8; }, 6000);
   s = await st(); await cap('03_cannon');
-  check(out && s.camx === 0 && s.cannon.x === 8, '왼쪽 벽에서 대포가 드르르륵 나온다(x8, 카메라 왼쪽 끝) ' + JSON.stringify([s.camx, s.cannon]));
+  check(out && s.camx >= 0 && s.camx <= 40 && s.cannon.x === 8, '왼쪽 벽에서 대포가 드르르륵 나온다(x8, 카메라가 왼쪽 벽에서 천천히 흐름) ' + JSON.stringify([s.camx, s.cannon]));
   const smoked = await waitFor(() => window.game.booms.length > 0, 5000);
   await page.waitForTimeout(60); await cap('04_fire'); s = await st();
   check(smoked && s.booms >= 1 && !!s.ball1, '발사: 연기 이펙트 + 포탄 생성 ' + JSON.stringify([s.ball1, s.booms]));
   s = await untilText('꾸엑'); await cap('05_junhee_wall');
-  check(s && s.j.x === 900 && s.j.y === 262 && !s.ball1, '쥰희가 오른쪽 벽(900)까지 날아가 쾅, 포탄 사라짐, “꾸엑” ' + JSON.stringify([s?.j, s?.ball1]));
+  check(s && s.j.x === 900 && s.j.y === 278 && !s.ball1, '쥰희가 오른쪽 벽(900)까지 날아가 쾅, 포탄 사라짐, “꾸엑” ' + JSON.stringify([s?.j, s?.ball1]));
   const sfx1 = await page.evaluate(() => window.__sfx.slice());
   check(['scrape', 'boom', 'cannon_puff', 'impact'].every(n => sfx1.includes(n)), '대포 소리: 드르르륵·발사·연기·충격 ' + JSON.stringify(sfx1.filter(n => ['scrape', 'boom', 'cannon_puff', 'impact'].includes(n))));
   await advance();
   s = await untilText('어?! 형'); check(s && s.j.pose === 'lying', '쥰희 기절(눕기) → 용준 “어?! 형 !!!” ' + JSON.stringify([s?.j?.pose, s?.speaker]));
   await advance();
-  const hit2 = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_yongjun'); return y && y.x >= 900; }, 6000);
-  await page.waitForTimeout(600); s = await st(); await cap('06_yongjun_wall');
+  const hit2 = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_yongjun'); return y && y.x >= 900 && y.pose === 'lying'; }, 9000);
+  await page.waitForTimeout(300); s = await st(); await cap('06_yongjun_wall');
   check(hit2 && s.yj.x === 900 && s.yj.pose === 'lying' && !s.ball2, '용준도 가운데서 온 포탄에 맞아 쥰희 옆에 쓰러짐(900, 눕기), 포탄 사라짐 ' + JSON.stringify([s.yj, s.ball2]));
   // ④ 셋 가운데로 → 영클 ㅋㅋ → 브금 → 앞으로 내려오고 뒷걸음
   s = await untilText('ㅋㅋ'); check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_laugh' && s.px === 468 && s.py === 330, '셋이 가운데(468,330)로 → 영클 “ㅋㅋ”(웃는 초상) ' + JSON.stringify([s?.px, s?.py, s?.portrait]));
   await advance();
-  const ycIn = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && y.visible && y.y >= 236; }, 6000);
-  await page.waitForTimeout(400); s = await st(); await cap('07_youngcle_enter');
+  const ycIn = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && y.visible && y.y >= 236; }, 14000);
+  await page.waitForTimeout(2400); s = await st(); await cap('07_youngcle_enter');
   check(ycIn && s.yc.x === 470 && s.yc.y === 236 && s.bgm.includes('storage_show') && s.py === 370 && s.pf === 'up', '영클이 앞으로 내려오고(470,236) 브금 storage_show, 일행 뒷걸음(y370)·위를 봄 ' + JSON.stringify([s.yc, s.bgm, s.py, s.pf]));
   s = await untilText('반갑노'); check(!!s, '“반갑노 게이들아”');
   s = await untilText('출구를 알고있다'); await advance(); await page.waitForTimeout(300); s = await st();
   check(s.emotes.every(Boolean), '“출구를 알고있다” 뒤 모두 느낌표 ' + JSON.stringify(s.emotes));
-  s = await untilText('김형섭 아니지'); check(s && s.portrait === 'youngcle_tv_glare', '“너 김형섭 아니지?” 째려보는 초상 ' + s?.portrait);
+  s = await untilText('김형섭 아니지'); await page.waitForTimeout(400); await cap('08a_glare'); check(s && s.portrait === 'youngcle_tv_glare', '“너 김형섭 아니지?” 째려보는 초상 ' + s?.portrait);
   s = await untilText('악당'); await cap('08_akdang');
   check(s && (s.text || '').includes('{c=red}악당{/c}'), '“악당” 빨간 글자 ' + JSON.stringify(s?.text));
   s = await untilText('보라색 코드'); await advance(); await page.waitForTimeout(300); s = await st();
@@ -68,18 +68,18 @@ try {
   // ⑤ 영클 상승 → 일행 왼쪽(400,292)·오른쪽 봄 → 영클 오른쪽(556,300)에서 훅훅훅 하강(ember·whoosh)
   const up = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && (!y.visible || y.y < 0); }, 5000);
   check(up, '영클이 하늘로 쭉 올라가 사라짐');
-  const descended = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && y.visible && y.y >= 300 && y.x === 556; }, 12000);
-  await page.waitForTimeout(300); s = await st(); await cap('09_youngcle_right');
+  const descended = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && y.visible && y.y >= 300 && y.x === 556; }, 24000);
+  await page.waitForTimeout(2400); s = await st(); await cap('09_youngcle_right');
   const sfx2 = await page.evaluate(() => window.__sfx.slice());
-  check(descended && s.px === 400 && s.pf === 'right' && s.yc.f === 'left' && sfx2.filter(n => n === 'ember').length >= 3 && sfx2.includes('rocket'), '일행 중앙 살짝 왼쪽(400)에서 오른쪽 봄, 영클 오른쪽(556,300)에서 왼쪽 보며 세 번 훅훅훅(ember×3)·상승 rocket ' + JSON.stringify([s.px, s.pf, s.yc, sfx2.filter(n => n === 'ember').length]));
-  s = await untilText('편집▩조'); check(!!s, '“편집▩조”(노 모자이크)');
+  check(descended && s.px === 400 && s.pf === 'right' && s.yc.f === 'left' && sfx2.filter(n => n === 'ember').length >= 3 && sfx2.includes('rocket'), '일행 중앙 살짝 왼쪽(400)에서 오른쪽 봄, 영클 오른쪽(556,300)으로 끊김 없이 천천히 내려와 착지(ember·whoosh)·상승 rocket ' + JSON.stringify([s.px, s.pf, s.yc, sfx2.filter(n => n === 'ember').length]));
+  s = await untilText('편집노조'); const mosaic = await page.evaluate(() => (window.game.textbox.tokens || []).filter(t => t.mosaic).map(t => t.ch).join('')); check(!!s && mosaic === '노', '“편집노조”의 노만 모자이크(text-mosaic) ' + JSON.stringify(mosaic));
   s = await untilText('나와라'); check(s && s.portrait === 'youngcle_tv_taunt', '“나와라”'); await advance();
   // ⑥ 버튼 → 철창 하강(chain_extend·흔들림) → 착지 → 문 열림(locker) → 오방순(556,236)·나람(556,364) 걸어 나와 왼쪽 봄
   const swing = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage'); return c && c.visible && c.def.oscillate; }, 3000);
   await page.waitForTimeout(900); await cap('10_cage_drop');
-  const landed = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage_open'); return c && c.visible; }, 8000);
+  const landed = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage_open'); return c && c.visible; }, 12000);
   s = await st(); await cap('11_cage_open');
-  check(swing && landed && s.open.y === 12 && (!s.cage || !s.cage.v), '철창이 흔들리며 내려와(chain_extend) 착지 → 문 열린 철창(y12) ' + JSON.stringify([swing, landed, s.open, s.cage]));
+  check(swing && landed && s.open.y === 184 && (!s.cage || !s.cage.v), '철창이 흔들리며 내려와(chain_extend) 착지 → 문 열린 철창(y184) ' + JSON.stringify([swing, landed, s.open, s.cage]));
   const outTwo = await waitFor(() => { const g = window.game; const o = g.entities.find(x => x.id === 'ship_obangsun'), n = g.entities.find(x => x.id === 'ship_naram'); return o && n && o.x === 556 && o.y === 236 && n.x === 556 && n.y === 364; }, 20000);
   await page.waitForTimeout(300); s = await st(); await cap('12_experiments');
   check(outTwo && s.ob.f === 'left' && s.nr.f === 'left' && s.yc.f === 'left', '오방순(위 556,236)·나람(아래 556,364)이 천천히 걸어 나와 영클과 함께 왼쪽을 봄 ' + JSON.stringify([s.ob, s.nr]));
