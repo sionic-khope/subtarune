@@ -37,8 +37,8 @@ const TV = { x: 106, y: 34, w: 264, h: 148 };
 const LANE_TOP = 20, RECEPTOR_Y = 198, LANE = { x: 190, w: 100 };
 const HALF = { L: { x: LANE.x, w: LANE.w / 2 }, R: { x: LANE.x + LANE.w / 2, w: LANE.w / 2 } };
 const NOTE_RGB = '92,226,208', LINE_RGB = '86,204,222';
-// GREAT 빔(BUILD195, 사용자 “타이밍 맞게 누르면 패드가 꺼지는 게 아니라 노랗게 세로로 빔이 삐용 쏴지는 이펙트”): 판정선에서 그 칸 위로 노란 빔이 자라 올라갔다가 떨어져 나가 사라진다
-const BEAM = { dur: 0.34, rgb: '255,224,102', core: '255,244,180' };
+// GREAT 빔(BUILD195, 사용자 “타이밍 맞게 누르면 패드가 꺼지는 게 아니라 노랗게 세로로 빔이 삐용 쏴지는 이펙트” → “지금 너무 길잖아”): 판정 칸이 노랗게 켜지고 그 위로 짧은 빔(rise px)이 튀었다 사라진다. 기둥 끝까지 가는 긴 빔은 뺐다
+const BEAM = { dur: 0.28, rise: 90, rgb: '255,224,102', core: '255,244,180' };   // 사용자 “적당히 길게”: 기둥 절반쯤(판정선 위 90px)
 // 양옆 자동 패드(경섭 드럼·빠맨 보컬): 가운데와 같은 두 칸짜리 기둥(각 40px 반칸)
 const SIDE = { drums: { x: 100, w: 80, rgb: '255,111,168', label: '경섭' }, vocal: { x: 300, w: 80, rgb: '125,255,90', label: '빠맨' } };
 const sideHalf = (sd, lane) => ({ x: lane === 'R' ? sd.x + sd.w / 2 : sd.x, w: sd.w / 2 });
@@ -571,16 +571,15 @@ export function run(game, node = {}) {
           ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(nx, Math.round(y) - 5, nw, 2);
         }
       }
-      // GREAT 빔: 머리가 판정선에서 기둥 꼭대기로 쏘아 올라가고 꼬리는 판정선에서 따라간다(앞 0.3 은 판정선이 번쩍)
+      // GREAT 빔: 판정 칸이 노랗게 켜지고(1-k 로 꺼짐), 칸 위로 짧은 노란 빔이 rise 만큼 튀어 올랐다 사라진다 — 칸 안에서만 짧게
       for (const f of state.fx) if (f.kind === 'beam') {
         const hf = HALF[f.lane], k = f.t / f.dur, a = 1 - k, mid = hf.x + hf.w / 2;
-        const headY = Math.max(LANE_TOP, RECEPTOR_Y - k * (RECEPTOR_Y - LANE_TOP) * 1.4);
-        const tailY = Math.min(RECEPTOR_Y + 4, headY + 60 + k * 170);
-        const w = Math.max(6, Math.round((hf.w - 14) * (1 - k * 0.6))), h = Math.max(0, Math.round(tailY - headY));
-        ctx.fillStyle = `rgba(${BEAM.rgb},${(0.38 * a).toFixed(2)})`; ctx.fillRect(Math.round(mid - w / 2), Math.round(headY), w, h);
+        ctx.fillStyle = `rgba(${BEAM.rgb},${(0.9 * a).toFixed(2)})`; ctx.fillRect(hf.x + 5, RECEPTOR_Y - 5, hf.w - 10, 10);
+        const headY = RECEPTOR_Y - 5 - k * BEAM.rise, tailY = RECEPTOR_Y - 5 - k * BEAM.rise * 0.45, h = Math.max(2, Math.round(tailY - headY) + 4);
+        const w = Math.max(4, Math.round((hf.w - 14) * (1 - k * 0.5)));
+        ctx.fillStyle = `rgba(${BEAM.rgb},${(0.45 * a).toFixed(2)})`; ctx.fillRect(Math.round(mid - w / 2), Math.round(headY), w, h);
         ctx.fillStyle = `rgba(${BEAM.core},${(0.9 * a).toFixed(2)})`; ctx.fillRect(Math.round(mid - w / 4), Math.round(headY), Math.round(w / 2), h);
-        ctx.fillStyle = `rgba(255,255,255,${(0.95 * a).toFixed(2)})`; ctx.fillRect(Math.round(mid) - 1, Math.round(headY), 3, Math.min(16, h));
-        if (k < 0.3) { ctx.fillStyle = `rgba(${BEAM.rgb},${(0.85 * (1 - k / 0.3)).toFixed(2)})`; ctx.fillRect(hf.x + 5, RECEPTOR_Y - 6, hf.w - 10, 12); }
+        ctx.fillStyle = `rgba(255,255,255,${(0.9 * a).toFixed(2)})`; ctx.fillRect(Math.round(mid) - 1, Math.round(headY), 3, Math.min(6, h));
       }
       ctx.restore();
       for (const f of state.fx) if (f.kind === 'ring') { const hf = HALF[f.lane], k = f.t / f.dur; ctx.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(2)})`; ctx.lineWidth = 2; ctx.strokeRect(hf.x + 5 - k * 6, RECEPTOR_Y - 5 - k * 6, hf.w - 10 + k * 12, 10 + k * 12); }
