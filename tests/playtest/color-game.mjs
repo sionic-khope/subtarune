@@ -125,9 +125,9 @@ try {
   await advance();
   await page.waitForFunction(() => { const tv = window.game.entities.find(e => e.id === 'youngcle_tv'); return tv && tv.y > 40; }, null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(500); await cap('tv_center'); m = await g();
-  check(m.tv && m.tv.x === 294 && m.tv.y > 40, 'TV 가 천천히 다섯의 가운데(412) 위로 내려온다 ' + JSON.stringify(m.tv));
+  check(m.tv && m.tv.x === 383 && m.tv.y > 40, 'TV 가 천천히 가운데로 내려온다 ' + JSON.stringify(m.tv));
   m = await untilText('인정하마'); check(!!m && m.bgm.includes('storage_show'), '영클 “큭.. 그래 인정하마” + 영클 브금 ' + JSON.stringify([m?.text, m?.bgm]));
-  const around = await g(); check(around.junhee.facing === 'up' && around.junhee.x === 312 && around.junhee.y === 288 && around.px === 356 && around.py === 288, '모두 TV 아래 한 줄로 모여 위를 본다(쥰희 312·형섭 356 — 주인공은 아래 입구 x320~416 안) ' + JSON.stringify([around.junhee, around.px, around.py]));
+  const around = await g(); check(around.junhee.facing === 'up' && around.junhee.x === 360 && around.junhee.y === 288 && around.px === 456 && around.py === 288, '모두 TV 아래 한 줄로 모여 위를 본다(쥰희 360·형섭 456 — 주인공은 아래 문 기둥 x448~544 안) ' + JSON.stringify([around.junhee, around.px, around.py]));
   await cap('gather');
   m = await untilText('얼굴보면'); check(!!m, '“뭐 일단 이제 얼굴보면 되겠군”');
   m = await untilText('이따보자'); check(!!m, '“왼쪽으로갔다가 올라오면 됨 이따보자 ㅂㅇ”');

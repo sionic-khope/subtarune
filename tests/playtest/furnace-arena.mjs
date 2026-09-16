@@ -38,9 +38,11 @@ try {
   await page.waitForTimeout(5400); await cap('walk_done');
   const walk = await page.evaluate(() => window.__walk);
   const leg1 = walk.filter(f => f[0][1] > 376);
-  check(leg1.length > 10 && leg1.every(f => f[0][0] === 356 && f[0][2] === 'up' && f[1][0] === 356 && f[2][0] === 356), '문(울타리 3번 칸 아래)에서 한 줄로 곧장 위로 걸어 들어온다(x 356 그대로, 위를 보며) ' + JSON.stringify([leg1.length, leg1[Math.floor(leg1.length / 2)]]));
-  const diag = []; for (let k = 1; k < walk.length; k++) for (let m = 0; m < 3; m++) { const a = walk[k - 1][m], b = walk[k][m]; if (Math.abs(a[0] - b[0]) >= 1 && (m === 0 || a[2] !== 'up' || Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]))) diag.push([k, m, a, b]); }   // 형섭은 x 가 한 번도 안 변하고, 동료는 위를 보며 벌어지는 완만한 부채꼴만(옆을 보고 걷거나 옆이 더 큰 구간이 있으면 실패)
-  check(walk.length > 100 && diag.length === 0 && walk.every(f => f.every(p => p[2] === 'up')), '입장 걸음 ' + walk.length + '표본: 형섭 일직선·동료는 위를 본 채 벌어짐, 옆 걸음 0 ' + JSON.stringify(diag.slice(0, 3)));
+  check(leg1.length > 10 && leg1.every(f => f[0][0] === 484 && f[0][2] === 'up' && f[1][0] === 484 && f[2][0] === 484), '가운데 문에서 한 줄로 곧장 위로 걸어 들어온다(x 484 그대로, 위를 보며) ' + JSON.stringify([leg1.length, leg1[Math.floor(leg1.length / 2)]]));
+  const dirSeq = m => walk.map(f => f[m][2]).filter((d, k, arr) => k === 0 || d !== arr[k - 1]).join('>');
+  check(dirSeq(0) === 'up>left>up' && dirSeq(1) === 'up>left>up' && dirSeq(2) === 'up>left>up', '앞으로 → 옆으로 → 앞으로(셋 다 위>왼쪽>위) ' + JSON.stringify([dirSeq(0), dirSeq(1), dirSeq(2)]));
+  const diag = []; for (let k = 1; k < walk.length; k++) for (let m = 0; m < 3; m++) { const a = walk[k - 1][m], b = walk[k][m]; if (a[2] === b[2] && Math.abs(a[0] - b[0]) >= 1 && Math.abs(a[1] - b[1]) >= 1) diag.push([k, m, a, b]); }   // 같은 방향을 본 채 두 축이 같이 움직이면 대각선(모퉁이에서 방향이 바뀌는 한 표본은 제외)
+  check(walk.length > 100 && diag.length === 0, '입장 걸음 ' + walk.length + '표본: 대각선 구간 0 ' + JSON.stringify(diag.slice(0, 3)));
   const rowEnd = walk[walk.length - 1];
   check(rowEnd[0][0] === 356 && rowEnd[1][0] === 312 && rowEnd[2][0] === 400 && rowEnd.every(p => p[1] === 288 && p[2] === 'up'), '울타리 3번 칸 앞 한 줄(경섭·형섭·빠맨)로 서서 위를 본다 ' + JSON.stringify(rowEnd));
   check(s.dialogue && !s.bgm.includes('pandora') && !s.bgm.includes('storage_show'), '연출 시작: 브금 꺼짐 ' + s.bgm);
@@ -53,7 +55,7 @@ try {
   await page.waitForFunction(() => { const tv = window.game.entities.find(e => e.id === 'youngcle_tv'); return tv && tv.y > -60 && tv.y < 100; }, null, { timeout: 8000 }).catch(() => {});
   await cap('tv_down'); s = await st();
   check(s.tv && s.tv.y > -60 && s.tv.y < 110 && s.tv.fold < 0.5 && s.tv.arm === 22 && inView(s, { x: s.tv.x, y: s.tv.y, w: 236, h: 144 }), 'TV 가 접힌 채 모니터암(프레임에 붙음)을 타고 내려오는 중(화면 안) ' + JSON.stringify([s.tv, s.camy]));
-  s = await untilText('반갑노'); check(!!s && s.tv.phase === 'on' && s.tv.expr === 'greet' && s.tv.fold === 1 && s.tv.x === 250 && s.tv.y === 100 && s.bgm.includes('storage_show') && s.camx >= 220 && s.camx <= 300, 'TV 가 일행 앞 가운데에서 펼쳐져 켜지고 “반갑노 게이들아”(인사) + 영클 브금(카메라 가운데) ' + JSON.stringify([s?.tv, s?.bgm]));
+  s = await untilText('반갑노'); check(!!s && s.tv.phase === 'on' && s.tv.expr === 'greet' && s.tv.fold === 1 && s.tv.x === 250 && s.tv.y === 100 && s.bgm.includes('storage_show') && s.camx >= 100 && s.camx <= 160, 'TV 가 일행 앞·화면 가운데(카메라 x368)에서 펼쳐져 켜지고 “반갑노 게이들아”(인사) + 영클 브금(카메라 가운데) ' + JSON.stringify([s?.tv, s?.bgm]));
   await cap('greet');
   s = await untilText('이걸 보시라'); check(!!s, '“먼저 이걸 보시라!”'); await advance();
   // 철창이 덜렁 내려와 흔들린다(카메라 위)
@@ -66,7 +68,7 @@ try {
   s = await untilText('좆같은 영클'); check(!!s, '쥰희 “이 좆같은 영클”'); await advance(); await page.waitForTimeout(500); s = await st();
   check(s.junhee && s.junhee.facing === 'left', '쥰희가 왼쪽(TV)을 보며 철창을 찬다 ' + JSON.stringify(s.junhee)); await cap('kick');
   s = await untilText('느금마'); check(!!s, '쥰희 “느금마”');
-  s = await untilText('조작 패널이 보이는가'); check(!!s && s.tv.x === 250 && s.tv.y === 100 && s.tv.fold === 1 && s.camx >= 220 && s.camx <= 300, 'TV 가 접혔다 일행 앞으로 다시 내려와 규칙 설명(카메라 가운데) ' + JSON.stringify([s?.tv, s?.camx])); await cap('rules');
+  s = await untilText('조작 패널이 보이는가'); check(!!s && s.tv.x === 250 && s.tv.y === 100 && s.tv.fold === 1 && s.camx >= 100 && s.camx <= 160, 'TV 가 접혔다 일행 앞으로 다시 내려와 규칙 설명(카메라 가운데) ' + JSON.stringify([s?.tv, s?.camx])); await cap('rules');
   s = await untilText('밧줄은 내려갈거고'); check(!!s, '“저 밧줄은 내려갈거고”'); await advance(); await page.waitForTimeout(700); s = await st(); check(s.camy < 60, '밧줄로 카메라 이동 ' + s.camy);
   s = await untilText('오홍홍홍'); check(!!s, '“패널을 잡으렴 게이들아 오홍홍홍”');
   for (let i = 0; i < 30; i++) { s = await st(); if (!s.dialogue) break; await advance(); }

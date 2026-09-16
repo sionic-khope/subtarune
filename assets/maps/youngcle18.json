@@ -22,9 +22,9 @@
   "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
   "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
   "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
-  "GGGGGGGGGGFFFGGGGGGGGGGGGGGGGG",
-  "!!!!!!!!!GFFFG!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!GHHHG!!!!!!!!!!!!!!!!"
+  "GGGGGGGGGGGGGGFFFGGGGGGGGGGGGG",
+  "!!!!!!!!!!!!!GFFFG!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!GHHHG!!!!!!!!!!!!"
  ],
  "preload": [
   "assets/tiles/youngcle_iron_blue.png",
@@ -48,12 +48,12 @@
  ],
  "spawns": {
   "bottom": {
-   "x": 356,
+   "x": 484,
    "y": 488,
    "facing": "up"
   },
   "front": {
-   "x": 356,
+   "x": 484,
    "y": 296,
    "facing": "up"
   },
@@ -67,11 +67,11 @@
   "connected": true,
   "route": [
    [
-    11,
+    15,
     16
    ],
    [
-    11,
+    15,
     9
    ]
   ],
@@ -98,7 +98,7 @@
   {
    "type": "door",
    "id": "youngcle18_bottom",
-   "x": 320,
+   "x": 448,
    "y": 566,
    "w": 96,
    "h": 10,
