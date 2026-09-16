@@ -2,14 +2,13 @@
 """용광로 광장 세트(BUILD196, 사용자 2026-09-16 브리핑): 짧은 철 울타리·조작 패널·밧줄 달린 철창(쥰희·용준)·TV 모니터암.
 - props/iron_fence_short.png : 32×22 짧은 철 울타리 한 칸(가로로 ------- 이어 붙인다)
 - props/control_panel.png    : 64×40 버튼 조작 패널(캐릭터보다 두 칸 넓음, 노란 테두리 + 색 버튼 4개 + 작은 화면)
-- props/lava_cage.png        : 96×360 밧줄(위 200px) + 기존 전기 철창(youngcle_electric_cage.png, 96×160) — 새장처럼 천장에서 내려와 좌우로 흔들린다
+- props/lava_cage.png        : 136×360 밧줄(위 200px) + 넓은 새장 철창(두 명, 강철 + 청록 발광 살) — 천장에서 내려와 좌우로 흔들린다
 - props/tv_arm.png           : 12×320 TV 모니터암(관절 세 개) — 영클 TV 프레임 위에 붙어 같이 내려온다
 실행: /usr/bin/python3 tools/art/furnace_arena_set.py"""
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from painter import Canvas, hexc
-from PIL import Image, ImageDraw
 
 OUT = Path('assets/props')
 IRON, IRON_D, IRON_L, IRON_HI = hexc('#3a4556'), hexc('#151a22'), hexc('#5c6a7e'), hexc('#8fa0b6')
@@ -39,17 +38,23 @@ p.rect(14, 22, 8, 2, hexc('#60f4e0'))
 p.rect(0, 36, 64, 4, IRON_D); p.rect(0, 36, 64, 1, hexc('#ffd23f'))            # 아래 노란 줄
 p.save(OUT / 'control_panel.png')
 
-# 3) 밧줄 + 철창 96×360 (PIL 합성: 기존 전기 철창 그림을 그대로 아래에)
-cage = Image.open('assets/props/youngcle_electric_cage.png').convert('RGBA')
-im = Image.new('RGBA', (96, 200 + cage.height), (0, 0, 0, 0))
-d = ImageDraw.Draw(im)
-for y in range(0, 200):
-    tone = (150, 112, 62) if (y // 3) % 2 == 0 else (120, 88, 48)
-    d.rectangle([45, y, 50, y], fill=tone)
-    d.point((45, y), fill=(88, 64, 34)); d.point((50, y), fill=(88, 64, 34))
-d.rectangle([40, 192, 55, 199], fill=(60, 68, 82)); d.rectangle([41, 193, 54, 194], fill=(120, 132, 150))   # 고리
-im.alpha_composite(cage, (0, 200))
-im.save(OUT / 'lava_cage.png')
+# 3) 밧줄 + 철창 136×360: 두 명이 들어가게 넓은 새장 철창(기존 전기 철창 96 은 좁아 둘이 삐져나왔다 — 사용자 “철창이 더 넓어야지”). 같은 팔레트(강철 + 청록 발광 살)
+CW, CH, ROPE = 136, 160, 200
+c = Canvas(CW, ROPE + CH)
+MET, MET_D, MET_L, GLOW, GLOW_D = hexc('#3a4556'), hexc('#1b2130'), hexc('#6b7a90'), hexc('#60f4e0'), hexc('#2fb8ad')
+for y in range(0, ROPE):                                     # 밧줄(꼬임)
+    tone = hexc('#967038') if (y // 3) % 2 == 0 else hexc('#785830')
+    c.rect(CW // 2 - 3, y, 6, 1, tone); c.px(CW // 2 - 3, y, hexc('#58402a')); c.px(CW // 2 + 2, y, hexc('#58402a'))
+c.rrect_outlined(CW // 2 - 10, ROPE - 12, 20, 14, MET_L, MET_D, r=4)           # 고리
+c.rect(CW // 2 - 4, ROPE - 8, 8, 6, MET_D)
+top, bot = ROPE, ROPE + CH
+c.rrect_outlined(0, top, CW, 14, MET, MET_D, r=3); c.rect(4, top + 6, CW - 8, 3, GLOW); c.rect(4, top + 5, CW - 8, 1, GLOW_D)      # 윗판
+c.rrect_outlined(0, bot - 16, CW, 16, MET, MET_D, r=3); c.rect(4, bot - 9, CW - 8, 3, GLOW); c.rect(4, bot - 10, CW - 8, 1, GLOW_D)  # 바닥판
+for x in (2, CW - 10):                                       # 굵은 기둥 둘
+    c.rect(x, top + 12, 8, CH - 26, MET); c.rect(x, top + 12, 2, CH - 26, MET_L); c.rect(x + 6, top + 12, 2, CH - 26, MET_D); c.rect(x + 3, top + 14, 2, CH - 30, GLOW)
+for x in (34, 66, 98):                                       # 발광 살 셋(사이 32px — 둘이 안에 서 있어도 보인다)
+    c.rect(x, top + 12, 5, CH - 26, MET_D); c.rect(x + 1, top + 14, 3, CH - 30, GLOW); c.rect(x + 2, top + 14, 1, CH - 30, hexc('#bffff6'))
+c.save(OUT / 'lava_cage.png')
 
 # 4) TV 모니터암 12×320: 어두운 금속 막대 + 관절 셋
 a = Canvas(12, 320)

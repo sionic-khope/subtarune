@@ -21,8 +21,10 @@ WIDTH: Final = 30
 HEIGHT: Final = 18
 T: Final = 32
 POOL_C0, POOL_C1, POOL_R0, POOL_R1 = 8, 21, 2, 7      # 용암 웅덩이 cols 8~21 · rows 2~7
-CAGE_X, CAGE_Y = 15 * T - 48, 7 * T + 20 - 360        # 철창 그림(밧줄 200 + 철창 160) 최종 위치: 철창 밑이 용암 위 y244
-TV_X, TV_Y = 15 * T - 144, 3 * T + 4                  # 영클 TV 최종 위치(일행 앞, 화면 위쪽) — 연출이 여기서 360 위에 두고 내린다
+CAGE_X, CAGE_Y = 520, 7 * T + 20 - 360                # 철창 그림(밧줄 200 + 철창 160, 136 폭) 최종 위치: 웅덩이 오른쪽 부분, 철창 밑이 용암 위 y244
+TV_X, TV_Y = 672, 110                                 # 영클 TV 홈(웅덩이 오른쪽 끝, 사용자 “오른쪽 끝에 세워두는 게 맞는 듯”) — 연출이 360 위에 접어 두고 내린다
+TV_SCALE = 0.82                                       # 모니터 살짝 작게(youngcle-tv.js YOUNGCLE_TV_ARENA.scale 과 같은 값)
+ARM_DX, ARM_DY = 112, -298                            # 모니터암: TV 가운데 위, 프레임 안으로 22px 겹쳐 끊겨 보이지 않게
 
 
 def main() -> None:
@@ -62,8 +64,9 @@ def main() -> None:
         'spawns': {
             'bottom': {'x': 15 * T - 12, 'y': 15 * T + 8, 'facing': 'up'},
             'front': {'x': 15 * T - 12, 'y': 9 * T + 8, 'facing': 'up'},
+            'right': {'x': 24 * T, 'y': 10 * T, 'facing': 'up'},
         },
-        'meta': {'connected': True, 'route': [[15, 16], [15, 9]], 'pool': [POOL_C0, POOL_R0, POOL_C1, POOL_R1], 'cage': [CAGE_X, CAGE_Y], 'tv': [TV_X, TV_Y]},
+        'meta': {'connected': True, 'route': [[15, 16], [15, 9]], 'pool': [POOL_C0, POOL_R0, POOL_C1, POOL_R1], 'cage': [CAGE_X, CAGE_Y], 'tv': [TV_X, TV_Y], 'tvScale': TV_SCALE},
         'enter': {'script': 'furnace_arena_intro'},
         'entities': [
             {'type': 'door', 'id': 'youngcle18_bottom', 'x': 14 * T, 'y': HEIGHT * T - 10, 'w': 96, 'h': 10,
@@ -73,15 +76,15 @@ def main() -> None:
              'x': 6 * T, 'y': 8 * T + 14, 'w': 64, 'h': 22, 'ix': 6 * T, 'iy': 8 * T - 4, 'solid': True},
             *fences,
             # 밧줄 철창(쥰희·용준): 연출 전엔 숨김. 최종 위치에 두고 연출이 위로 올렸다 내린다
-            {'type': 'prop', 'id': 'lava_cage', 'image': 'assets/props/lava_cage.png', 'x': CAGE_X, 'y': CAGE_Y, 'w': 96, 'h': 360,
-             'ix': CAGE_X, 'iy': CAGE_Y, 'solid': False, 'hidden': True, 'sortY': CAGE_Y + 362},
-            {'type': 'npc', 'id': 'arena_junhee', 'sprite': 'junhee', 'x': CAGE_X + 14, 'y': CAGE_Y + 330, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
-            {'type': 'npc', 'id': 'arena_yongjun', 'sprite': 'yongjun', 'x': CAGE_X + 56, 'y': CAGE_Y + 330, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
-            # 영클 TV(방송 앵커 id 는 youngcle-tv.js 의 'youngcle_tv') + 모니터암: 천장 위(화면 밖)에서 대기
-            {'type': 'prop', 'id': 'youngcle_tv_arm', 'image': 'assets/props/tv_arm.png', 'x': TV_X + 138, 'y': TV_Y - 360 - 320, 'w': 12, 'h': 320,
-             'ix': TV_X + 138, 'iy': TV_Y - 360 - 320, 'solid': False, 'sortY': 9999},
-            {'type': 'prop', 'id': 'youngcle_tv', 'image': 'assets/props/youngcle_tv_frame.png', 'x': TV_X, 'y': TV_Y - 360, 'w': 288, 'h': 176,
-             'ix': TV_X, 'iy': TV_Y - 360, 'solid': False, 'sortY': 10000},
+            {'type': 'prop', 'id': 'lava_cage', 'image': 'assets/props/lava_cage.png', 'x': CAGE_X, 'y': CAGE_Y, 'w': 136, 'h': 360,
+             'ix': CAGE_X, 'iy': CAGE_Y, 'solid': False, 'hidden': True, 'sortY': CAGE_Y + 362, 'carry': ['arena_junhee', 'arena_yongjun']},
+            {'type': 'npc', 'id': 'arena_junhee', 'sprite': 'junhee', 'x': CAGE_X + 18, 'y': CAGE_Y + 330, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
+            {'type': 'npc', 'id': 'arena_yongjun', 'sprite': 'yongjun', 'x': CAGE_X + 80, 'y': CAGE_Y + 330, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
+            # 영클 TV(방송 앵커 id 는 youngcle-tv.js 의 'youngcle_tv') + 모니터암: 천장 위(화면 밖)에서 대기. 그리기 순서는 아랫변 기준(sortY 없음) — 연출 뒤 대기 중인 TV 앞을 지나가도 캐릭터가 가려지지 않는다(사용자)
+            {'type': 'prop', 'id': 'youngcle_tv_arm', 'image': 'assets/props/tv_arm.png', 'x': TV_X + ARM_DX, 'y': TV_Y - 360 + ARM_DY, 'w': 12, 'h': 320,
+             'ix': TV_X + ARM_DX, 'iy': TV_Y - 360 + ARM_DY, 'solid': False},
+            {'type': 'prop', 'id': 'youngcle_tv', 'image': 'assets/props/youngcle_tv_frame.png', 'x': TV_X, 'y': TV_Y - 360, 'w': 236, 'h': 144, 'scale': TV_SCALE, 'foldX': 0.06,
+             'ix': TV_X, 'iy': TV_Y - 360, 'solid': False},
         ],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

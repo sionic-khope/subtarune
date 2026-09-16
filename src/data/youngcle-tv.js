@@ -20,4 +20,6 @@ export const YOUNGCLE_TV = {
     facepalm: 'assets/illustrations/youngcle-tv-facepalm.png',
   },
 };
+// 용광로 광장(BUILD197): 프레임 소품 def.scale 0.82 와 같은 배율로 화면 안쪽을 그린다(모니터를 살짝 작게)
+export const YOUNGCLE_TV_ARENA = { ...YOUNGCLE_TV, scale: 0.82 };
 export const YOUNGCLE_TV_PORTRAITS = Object.keys(YOUNGCLE_TV.expressions).map(expression => `youngcle_tv_${expression}`);

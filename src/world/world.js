@@ -609,9 +609,12 @@ export class Prop extends Entity {
   update(dt) {
     const o = this.def.oscillate; if (!o) return;
     if (this.base === undefined) { this.base = { x: this.x, y: this.y, ix: this.def.ix ?? this.x, iy: this.def.iy ?? this.y }; this.osT = 0; }
+    const px = this.x, py = this.y;
     this.osT += dt; const k = Math.sin((this.osT / (o.period || 3) + (o.phase || 0)) * Math.PI * 2);
     const ox = Math.round((o.dx || 0) * k), oy = Math.round((o.dy || 0) * k);
     this.x = this.base.x + ox; this.y = this.base.y + oy; this.def.ix = this.base.ix + ox; this.def.iy = this.base.iy + oy;
+    // carry: 이 소품이 흔들릴 때 같이 실려 움직이는 엔티티(밧줄 철창 속 쥰희·용준 — 사용자 “철창 움직임에 맞춰서 좌우 데롱데롱”)
+    if (this.def.carry) for (const id of this.def.carry) { const e = this.game.entities.find((c) => c.id === id && !c.dead); if (e) { e.x += this.x - px; e.y += this.y - py; } }
   }
   get drawX() { return this.def.w === undefined ? this.x : (this.def.ix ?? this.def.x); }
   get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : (this.def.iy ?? this.def.y); }
@@ -627,6 +630,9 @@ export class Prop extends Entity {
     if (this.image && this.spin) {                    // 날아가며 회전(컷신 {hop spin}/{fling})
       const cx = this.drawX + fx - cam.x + this.iw / 2, cy = this.drawY + fy - cam.y - (this.hopY || 0) + this.ih / 2;
       ctx.save(); ctx.translate(Math.round(cx), Math.round(cy)); ctx.rotate(this.spin); blit(-Math.round(this.iw / 2), -Math.round(this.ih / 2)); ctx.restore();
+    } else if (this.image && (this.def.foldX ?? 1) < 1) {   // 접힌 화면(컷신 {fold}): 가운데 기준으로 폭만 줄여 그린다 — 영클 TV 가 접혀 내려와 펼쳐진다(BUILD197)
+      const dw = Math.max(2, Math.round(this.iw * this.def.foldX)), dx = Math.round(this.drawX + fx - cam.x + (this.iw - dw) / 2);
+      ctx.drawImage(this.image, fi * fw, 0, fw, this.image.height, dx, Math.round(this.drawY + fy - cam.y) - Math.round(this.hopY || 0), dw, this.ih);
     } else if (this.image) blit(Math.round(this.drawX + fx - cam.x), Math.round(this.drawY + fy - cam.y) - Math.round(this.hopY || 0));   // hopY: 컷신 {hop} 으로 소품도 날아간다(동상 펑펑)
     else { ctx.fillStyle = 'rgba(255,0,255,0.5)'; ctx.fillRect(Math.round(this.x - cam.x), Math.round(this.y - cam.y), this.w, this.h); }
     if (pulseOff) ctx.restore();

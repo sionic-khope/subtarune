@@ -56,6 +56,11 @@
    "x": 468,
    "y": 296,
    "facing": "up"
+  },
+  "right": {
+   "x": 768,
+   "y": 320,
+   "facing": "up"
   }
  },
  "meta": {
@@ -77,13 +82,14 @@
    7
   ],
   "cage": [
-   432,
+   520,
    -116
   ],
   "tv": [
-   336,
-   100
-  ]
+   672,
+   110
+  ],
+  "tvScale": 0.82
  },
  "enter": {
   "script": "furnace_arena_intro"
@@ -285,21 +291,25 @@
    "type": "prop",
    "id": "lava_cage",
    "image": "assets/props/lava_cage.png",
-   "x": 432,
+   "x": 520,
    "y": -116,
-   "w": 96,
+   "w": 136,
    "h": 360,
-   "ix": 432,
+   "ix": 520,
    "iy": -116,
    "solid": false,
    "hidden": true,
-   "sortY": 246
+   "sortY": 246,
+   "carry": [
+    "arena_junhee",
+    "arena_yongjun"
+   ]
   },
   {
    "type": "npc",
    "id": "arena_junhee",
    "sprite": "junhee",
-   "x": 446,
+   "x": 538,
    "y": 214,
    "facing": "down",
    "wander": 0,
@@ -310,7 +320,7 @@
    "type": "npc",
    "id": "arena_yongjun",
    "sprite": "yongjun",
-   "x": 488,
+   "x": 600,
    "y": 214,
    "facing": "down",
    "wander": 0,
@@ -321,27 +331,27 @@
    "type": "prop",
    "id": "youngcle_tv_arm",
    "image": "assets/props/tv_arm.png",
-   "x": 474,
-   "y": -580,
+   "x": 784,
+   "y": -548,
    "w": 12,
    "h": 320,
-   "ix": 474,
-   "iy": -580,
-   "solid": false,
-   "sortY": 9999
+   "ix": 784,
+   "iy": -548,
+   "solid": false
   },
   {
    "type": "prop",
    "id": "youngcle_tv",
    "image": "assets/props/youngcle_tv_frame.png",
-   "x": 336,
-   "y": -260,
-   "w": 288,
-   "h": 176,
-   "ix": 336,
-   "iy": -260,
-   "solid": false,
-   "sortY": 10000
+   "x": 672,
+   "y": -250,
+   "w": 236,
+   "h": 144,
+   "scale": 0.82,
+   "foldX": 0.06,
+   "ix": 672,
+   "iy": -250,
+   "solid": false
   }
  ]
 }

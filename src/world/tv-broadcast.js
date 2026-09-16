@@ -31,9 +31,11 @@ export class TvBroadcast {
 
   /** The frame and screen share world coordinates and the caller's camera/zoom transform. */
   screenRect(cam) {
-    const [left, top, width, height] = this.config.inset;
-    return { x: Math.round((this.anchor.drawX ?? this.anchor.x) - cam.x + left),
-      y: Math.round((this.anchor.drawY ?? this.anchor.y) - cam.y + top), width, height };
+    // config.scale: 프레임 소품이 def.scale 로 작게 그려질 때 화면 안쪽도 같이(용광로 광장 0.82). anchor.def.foldX: 접힌 정도(가운데 기준으로 폭만 줄어든다)
+    const s = this.config.scale ?? 1, fold = this.anchor.def?.foldX ?? 1;
+    const [left, top, width, height] = this.config.inset.map((v) => v * s);
+    const x = (this.anchor.drawX ?? this.anchor.x) - cam.x + left, y = (this.anchor.drawY ?? this.anchor.y) - cam.y + top;
+    return { x: Math.round(x + width * (1 - fold) / 2), y: Math.round(y), width: Math.max(1, Math.round(width * fold)), height: Math.round(height) };
   }
 
   /** Fill the frame inset with a still illustration; clip the CRT power transition inside it. */
