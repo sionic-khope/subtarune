@@ -14,11 +14,11 @@ const PARTY = ['player', 'gyeongsub', 'ppaman'];
 // 일행은 울타리 5번 칸(x432) 앞에 서고 철창은 웅덩이 오른쪽 끝(x552, 136 폭)에 매달려 TV_FRONT 와 겹치지 않는다. TV 는 0.82 배, 접힌 채(foldX 0.06) 내려와 펼쳐진다(갤럭시 폴드)
 // TV 그림 폭 236(0.82 배). 일행은 울타리 3번 칸(x352~384, 가운데 368) 앞 — 앞자리 TV 250~486 은 그 위, 조롱 TV 316~552 는 철창(552~)에 붙어 더 높이(사용자 “움직이는 곳 차이가 별로 없다” → 자리를 66px·56px 벌림), 대기 690 은 철창 오른쪽
 const TV_FRONT = [250, 100], TV_HOME = [704, 110], TV_LEFT = [316, 44], TV_FOLDED = 0.06, ARM_DX = 112, ARM_DY = -298;
-// 색깔 게임 뒤(사용자 브리핑): TV 가 웅덩이 가운데(x480)로 내려오고 모두 그 아래 모여 본다. 쥰희·용준은 폭발로 철창에서 튀어나와 울타리 앞 바닥에 선다
-const TV_CENTER = [383, 96], GATHER_Y = 40;
-// 주인공은 아래 문 기둥(x448~544) 안(468)에 서야 연출 뒤 그대로 내려가 나갈 수 있다
-const GATHER = { player: 36, gyeongsub: -8, ppaman: 80, [JID]: -60, [YID]: 124 };
-const CAM_GATHER = { camera: [15, 6.4], duration: 0.7 };
+// 색깔 게임 뒤(사용자 브리핑): TV 가 가운데(모인 다섯의 가운데 x412, 카메라도 거기)로 내려오고 모두 그 아래 모여 본다. 쥰희·용준은 폭발로 철창에서 튀어나와 울타리 앞 바닥에 선다
+const TV_CENTER = [294, 96], GATHER_Y = 40;
+// 주인공은 아래 문 기둥(x320~416, BUILD199c 에서 울타리 3번 칸 아래로 옮김) 안(356)에 서야 연출 뒤 그대로 내려가 나갈 수 있다. 다섯이 44 간격(쥰희·형섭·경섭·빠맨·용준), TV 는 그 가운데(412) 위
+const GATHER = { player: -64, gyeongsub: -20, ppaman: 24, [JID]: -108, [YID]: 68 };
+const CAM_GATHER = { camera: [12.9, 6.4], duration: 0.7 };
 // 철창 낙하·탈출: 둘이 내려앉는 울타리 앞 바닥(y≈284)이 대화창 위 230px 안에 들어오게 카메라를 아래로(레이아웃 예산)
 const CAM_DROP = { camera: [17.5, 10.2], duration: 0.6 };
 const CAGE_DROP = 280;
@@ -57,16 +57,13 @@ export const furnace_arena_intro = Object.assign([
   { if: flags => flags.furnace_arena_intro_done, goto: 'seen' },
   { action: game => { game.finishTvBroadcast(); game.tvBroadcast = new TvBroadcast(game, TV); game.sound.preloadBgm(TV.bgm); } },
   { bgm: null, fadeOut: 0.2 },
-  // 캐릭터들이 천천히 들어오고 느낌표 — 문 기둥을 따라 한 줄로 똑바로 걸어 들어온다(axis:'y': x 는 문 자리 그대로. 울타리 3번 칸이 왼쪽에 있어도 대각선으로 가지 않는다, 사용자 “왜 대각선으로 갔다가 위로 가냐”)
-  //   한 줄 간격 44(맵 전환 직후 빠맨이 경섭 뒤 24px 에 겹쳐 있어 0.3초 늦게 출발시켜 벌린다). 맨 뒤 빠맨의 발판(y464~480)이 문 기둥 줄(row 15)에 안 걸리게 앞줄은 128
+  // 캐릭터들이 천천히 들어오고 느낌표 — 문(울타리 3번 칸 바로 아래, BUILD199c)에서 한 줄로 곧장 위로 걸어 들어온다(꺾임·대각선 없음, 사용자 “왜 대각선으로 갔다가 위로 가냐 / 자연스럽지가 않아”)
+  //   한 줄 간격 44(맵 전환 직후 빠맨이 경섭 뒤 24px 에 겹쳐 있어 0.3초 늦게 출발시켜 벌린다). 맨 뒤 빠맨의 발판(y464~480)이 문 줄(row 15)에 안 걸리게 앞줄은 128
   { parallel: PARTY.map((id, i) => [{ wait: [0, 0, 0.3][i] }, { move: id, rel: STAND, at: 'bottom', by: [0, 128 + 44 * i], axis: 'y', speed: 35 }]) },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   bang(PARTY),
-  // 후에 용암쪽 앞으로 온다 — 각자 ㄱ자로: 제 줄에서 왼쪽으로 걸어 자리 잡고 → 바로 울타리 앞까지 위로(먼저 자리 잡은 쪽이 남을 기다리지 않는다)
-  { parallel: PARTY.map((id, i) => [
-    { move: id, rel: STAND, at: 'bottom', by: [[0, -44, 44][i], 0], axis: 'x', speed: 60 },
-    { move: id, rel: STAND, at: 'bottom', by: [[0, -44, 44][i], 40], speed: 60 },
-  ]) },
+  // 후에 용암쪽 앞으로 온다 — 형섭은 그대로 위로, 경섭·빠맨은 위를 보며 양옆으로 벌어져 울타리 앞에 한 줄(동료 추종처럼 완만한 부채꼴, 옆을 보고 걷는 구간 없음)
+  { parallel: PARTY.map((id, i) => ({ move: id, rel: STAND, at: 'bottom', by: [[0, -44, 44][i], 40], speed: 60 })) },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   P('와 ㅈㄴ 무섭네요'),
   G('그렇네..'),

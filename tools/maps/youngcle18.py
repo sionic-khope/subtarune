@@ -22,21 +22,24 @@ HEIGHT: Final = 18
 T: Final = 32
 POOL_C0, POOL_C1, POOL_R0, POOL_R1 = 8, 21, 2, 7      # 용암 웅덩이 cols 8~21 · rows 2~7
 CAGE_X, CAGE_Y = 552, 7 * T + 20 - 360                # 철창 그림(밧줄 200 + 철창 160, 136 폭) 최종 위치: 웅덩이 오른쪽 끝(일행 앞 TV 와 안 겹침, BUILD199), 철창 밑이 용암 위 y244
-TV_X, TV_Y = 704, 110                                 # 영클 TV 대기 자리(오른쪽 끝, 사용자 “살짝 오른쪽에서 팔짱 끼고 대기”) — 인사·규칙은 연출이 일행 앞(335,100)으로 옮겨 내린다
+TV_X, TV_Y = 704, 110                                 # 영클 TV 대기 자리(오른쪽 끝, 사용자 “살짝 오른쪽에서 팔짱 끼고 대기”) — 인사·규칙은 연출이 일행 앞(250,100)으로 옮겨 내린다
 TV_SCALE = 0.82                                       # 모니터 살짝 작게(youngcle-tv.js YOUNGCLE_TV_ARENA.scale 과 같은 값)
 ARM_DX, ARM_DY = 112, -298                            # 모니터암: TV 가운데 위, 프레임 안으로 22px 겹쳐 끊겨 보이지 않게
+DOOR_C0 = 10                                          # 아래 입구 cols 10~12(x320~416): 울타리 3번 칸(x352~384) 바로 아래 — 일행이 문에서 서는 자리까지 일직선
+DOOR_X = (DOOR_C0 + 1) * T + 4                        # 스폰 x(356): 24px 발판이 입구 가운데(368)·울타리 3번 칸 가운데와 같은 축
 
 
 def main() -> None:
     cells = [['!'] * WIDTH for _ in range(HEIGHT)]
-    # 광장 바닥 rows 8~14 · cols 1~28, 아래 가운데 입구 rows 15~17 · cols 14~16(맨 아랫줄은 가장자리 출입구 H)
+    # 광장 바닥 rows 8~14 · cols 1~28, 아래 입구 rows 15~17 · cols 10~12(맨 아랫줄은 가장자리 출입구 H)
+    #   입구는 도착 연출에서 일행이 서는 울타리 3번 칸(col 11) 바로 아래 — 문에서 그 자리까지 꺾지 않고 곧장 위로 걸어 들어온다(BUILD199c, 사용자 “왜 대각선으로 갔다가 위로 가냐 / 자연스럽지가 않아”)
     for row in range(8, 15):
         for col in range(1, WIDTH - 1):
             cells[row][col] = 'F'
     for row in range(15, HEIGHT):
-        for col in range(14, 17):
+        for col in range(DOOR_C0, DOOR_C0 + 3):
             cells[row][col] = 'F'
-    for col in range(14, 17): cells[HEIGHT - 1][col] = 'H'
+    for col in range(DOOR_C0, DOOR_C0 + 3): cells[HEIGHT - 1][col] = 'H'
     for row in range(POOL_R0, POOL_R1 + 1):
         for col in range(POOL_C0, POOL_C1 + 1):
             cells[row][col] = 'L'
@@ -62,14 +65,14 @@ def main() -> None:
                     'assets/props/youngcle_tv_frame.png', 'assets/props/tv_arm.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'yes', 'question')]],
         'spawns': {
-            'bottom': {'x': 15 * T - 12, 'y': 15 * T + 8, 'facing': 'up'},
-            'front': {'x': 15 * T - 12, 'y': 9 * T + 8, 'facing': 'up'},
+            'bottom': {'x': DOOR_X, 'y': 15 * T + 8, 'facing': 'up'},
+            'front': {'x': DOOR_X, 'y': 9 * T + 8, 'facing': 'up'},
             'right': {'x': 24 * T, 'y': 10 * T, 'facing': 'up'},
         },
-        'meta': {'connected': True, 'route': [[15, 16], [15, 9]], 'pool': [POOL_C0, POOL_R0, POOL_C1, POOL_R1], 'cage': [CAGE_X, CAGE_Y], 'tv': [TV_X, TV_Y], 'tvScale': TV_SCALE},
+        'meta': {'connected': True, 'route': [[DOOR_C0 + 1, 16], [DOOR_C0 + 1, 9]], 'pool': [POOL_C0, POOL_R0, POOL_C1, POOL_R1], 'cage': [CAGE_X, CAGE_Y], 'tv': [TV_X, TV_Y], 'tvScale': TV_SCALE},
         'enter': {'script': 'furnace_arena_intro'},
         'entities': [
-            {'type': 'door', 'id': 'youngcle18_bottom', 'x': 14 * T, 'y': HEIGHT * T - 10, 'w': 96, 'h': 10,
+            {'type': 'door', 'id': 'youngcle18_bottom', 'x': DOOR_C0 * T, 'y': HEIGHT * T - 10, 'w': 96, 'h': 10,
              'to': 'youngcle17', 'spawn': 'top', 'sfx': False, 'interact': False},
             # 조작 패널: 울타리 살짝 왼쪽 옆·앞(캐릭터보다 두 칸 넓음). C → 색깔 기억 게임(1인칭 씬 colorgame, BUILD198 사용자 브리핑) — 페이드 뒤 바로 시작
             {'type': 'prop', 'id': 'lava_panel', 'image': 'assets/props/control_panel.png',
