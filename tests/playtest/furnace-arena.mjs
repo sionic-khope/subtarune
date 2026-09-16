@@ -32,7 +32,17 @@ try {
   await page.evaluate(() => { const snd = window.game.sound; window.__sfx = []; const orig = snd.sfx.bind(snd); snd.sfx = (name, opts) => { window.__sfx.push(name); return orig(name, opts); }; });
   // ② 도착 연출: 브금 꺼짐, 천천히 들어오고 느낌표
   await page.waitForFunction(() => window.game.dialogue.running, null, { timeout: 8000 }).catch(() => {});
-  await page.waitForTimeout(2600); await cap('enter'); s = await st();
+  // 걸어 들어오는 길에 대각선이 없어야 한다(사용자 “왜 대각선으로 한번 갔다가 위로 가냐”): 7초 동안 셋의 자리를 50ms 마다 기록해 매 구간이 한 축으로만 움직였는지 본다
+  await page.evaluate(() => { window.__walk = []; const g = window.game; const ids = ['player', 'gyeongsub', 'ppaman']; const rec = () => window.__walk.push(ids.map(id => { const e = id === 'player' ? g.player : g.entities.find(x => x.id === id); return [Math.round(e.x), Math.round(e.y), e.facing]; })); rec(); window.__walkTimer = setInterval(rec, 50); setTimeout(() => clearInterval(window.__walkTimer), 7000); });
+  await page.waitForTimeout(1800); await cap('enter'); s = await st();
+  await page.waitForTimeout(5400); await cap('walk_done');
+  const walk = await page.evaluate(() => window.__walk);
+  const leg1 = walk.filter(f => f[0][1] > 376);
+  check(leg1.length > 10 && leg1.every(f => f[0][0] === 468 && f[0][2] === 'up' && f[1][0] === 468 && f[2][0] === 468), '문 기둥을 따라 한 줄로 똑바로 걸어 들어온다(x 468 그대로, 위를 보며) ' + JSON.stringify([leg1.length, leg1[Math.floor(leg1.length / 2)]]));
+  const diag = []; for (let k = 1; k < walk.length; k++) for (let m = 0; m < 3; m++) { const a = walk[k - 1][m], b = walk[k][m]; if (a[2] === b[2] && Math.abs(a[0] - b[0]) >= 1 && Math.abs(a[1] - b[1]) >= 1) diag.push([k, m, a, b]); }   // 같은 방향을 본 채 두 축이 같이 움직이면 대각선(ㄱ자 모서리에서 방향이 바뀌는 한 표본은 제외)
+  check(walk.length > 100 && diag.length === 0, '입장 걸음 ' + walk.length + '표본: 대각선 구간 0 ' + JSON.stringify(diag.slice(0, 3)));
+  const rowEnd = walk[walk.length - 1];
+  check(rowEnd[0][0] === 356 && rowEnd[1][0] === 312 && rowEnd[2][0] === 400 && rowEnd.every(p => p[1] === 288 && p[2] === 'up'), '울타리 3번 칸 앞 한 줄(경섭·형섭·빠맨)로 서서 위를 본다 ' + JSON.stringify(rowEnd));
   check(s.dialogue && !s.bgm.includes('pandora') && !s.bgm.includes('storage_show'), '연출 시작: 브금 꺼짐 ' + s.bgm);
   s = await untilText('무섭네요'); check(!!s, '억빠맨 “와 ㅈㄴ 무섭네요”');
   const chimes = await page.evaluate(() => window.__sfx.filter(n => n === 'chime').length);

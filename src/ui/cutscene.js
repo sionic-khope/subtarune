@@ -3,7 +3,8 @@
 // waiter = { update(dt, input) → true(끝) }
 //
 //  { wait: 1.0 }                              초 단위 대기
-//  { move: 'player'|id, to:[tx,ty] | px:[x,y] | by:[dx,dy] | rel:'소품id', at:'bottom'|'top'|'left'|'right', by:[dx,dy], speed?: 60, run?: true, dash?: true }  — 소품 앞 연출은 rel 로(누른 위치 무관), 도착 지점은 끼임 자동 보정
+//  { move: 'player'|id, to:[tx,ty] | px:[x,y] | by:[dx,dy] | rel:'소품id', at:'bottom'|'top'|'left'|'right', by:[dx,dy], axis?:'x'|'y', speed?: 60, run?: true, dash?: true }  — 소품 앞 연출은 rel 로(누른 위치 무관), 도착 지점은 끼임 자동 보정
+//    axis:'y' 는 x 를 지금 자리에 두고 위아래로만, axis:'x' 는 좌우로만 — 기준물이 옆에 있어도 대각선으로 걷지 않게(ㄱ자 두 번으로 나눈다, 2026-09-16 용광로 입장)
 //                                             속도 기준(16px 단위/초 → 실제 px/s): 걷기 60(120) · run 110(220) · dash 190(380, 숨으러 뛰어가기 같은 "빨리") — 브리핑에 '빨리·달려·급히'가 있으면 run/dash 중 하나를 반드시 넣는다(2026-09-11 사용자)
 //                                             걸어서 이동(충돌 무시). to=타일, px=픽셀, by=상대 픽셀
 //  { face: id, dir: 'up'|'down'|'left'|'right' | 'toward:'+id }
@@ -37,7 +38,7 @@
 //  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
 //  { motion: id, name: 'laugh', sfx?: 'laugh_junhee' } 캐릭터별 등록 동작을 한 번 재생 후 복귀
 //  { curtain: 'black'|'white'|null }            맵을 완전히 가리는 막 (타이밍과 무관하게 새는 것 방지)
-//  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기
+//  { parallel: [ ...노드 ] }                  동시에 실행, 전부 끝날 때까지 대기. 가지가 배열이면 그 가지만 순차(각자 ㄱ자로 걷기 등)
 //  { async: 노드 | [노드...] }                 기다리지 않고 다음으로 (배열이면 배경에서 순차 실행)
 //  주의: { action } { set } { if/goto } { label } { end } 는 ScriptRunner(dialogue.js)가 처리하는 노드라 parallel/async 배열 **안에서는 무시된다**(waiter 없음).
 //        배열 안에서 무언가를 만들어야 하면 밖에서 hidden 으로 spawn 해 두고 배열 안은 show/hop/sfx 만 (2026-09-15 마리오 낙하)
@@ -74,6 +75,7 @@ function mover(game, node) {
     else if (at === 'left') { tx = t.x - e.w; ty = t.y + t.h / 2 - e.h / 2; }
     else { tx = t.x + t.w; ty = t.y + t.h / 2 - e.h / 2; }
     tx = Math.round(tx + bx); ty = Math.round(ty + by);
+    if (node.axis === 'y') tx = e.x; else if (node.axis === 'x') ty = e.y;   // 한 축만 목표로(대각선 금지)
   }
   else if (node.to) { tx = node.to[0] * TILE + TILE * 0.125; ty = node.to[1] * TILE + TILE * 0.5; }
   else if (node.px) { [tx, ty] = typeof node.px === 'function' ? node.px(game) : node.px; }   // px:(game)=>[x,y] — 맵 meta 처럼 부팅 뒤에야 있는 값은 함수로(모듈 로드 때 MAPS.<json맵> 은 아직 없다, 2026-09-11)
@@ -153,7 +155,7 @@ function sequence(game, nodes) {
 }
 
 function parallel(game, nodes) {
-  const ws = nodes.map((n) => makeWaiter(game, n)).filter(Boolean);
+  const ws = nodes.map((n) => (Array.isArray(n) ? sequence(game, n) : makeWaiter(game, n))).filter(Boolean);
   return { update(dt, input) { let all = true; for (const w of ws) if (!w.done) { if (w.update(dt, input)) w.done = true; else all = false; } return all; } };
 }
 
