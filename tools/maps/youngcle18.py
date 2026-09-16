@@ -8,7 +8,7 @@
 # ──────────────────
 """용광로 광장(BUILD196, 사용자 브리핑): 가운데 아래에서 올라오면 가로로 넓은 방. 가운데 위엔 용암 용광로 웅덩이, 그 앞을 짧은 철 울타리가 ------- 막고,
 울타리 살짝 왼쪽 옆·앞에 캐릭터보다 두 칸 넓은 조작 패널. 도착 연출 `furnace_arena_intro`(브금 꺼짐 → 천천히 들어옴 → 느낌표 → 용암 앞 → 영클 TV 가 모니터암을 타고 내려옴 → 밧줄 철창(쥰희·용준) 덜렁 → 규칙 설명).
-철창·TV·쥰희·용준은 맵 엔티티로 두고(숨김) 연출이 위치를 잡아 내린다. 노란 패널 이벤트는 다음 브리핑."""
+철창·TV·쥰희·용준은 맵 엔티티로 두고(숨김) 연출이 위치를 잡아 내린다. 패널(C) → 색깔 기억 게임 씬(src/scenes/colorgame.js, BUILD198)."""
 from __future__ import annotations
 
 import json
@@ -71,9 +71,9 @@ def main() -> None:
         'entities': [
             {'type': 'door', 'id': 'youngcle18_bottom', 'x': 14 * T, 'y': HEIGHT * T - 10, 'w': 96, 'h': 10,
              'to': 'youngcle17', 'spawn': 'top', 'sfx': False, 'interact': False},
-            # 조작 패널: 울타리 살짝 왼쪽 옆·앞(캐릭터보다 두 칸 넓음). 노란 패널 이벤트는 다음 브리핑 — 지금은 대사 없음
+            # 조작 패널: 울타리 살짝 왼쪽 옆·앞(캐릭터보다 두 칸 넓음). C → 색깔 기억 게임(1인칭 씬 colorgame, BUILD198 사용자 브리핑) — 페이드 뒤 바로 시작
             {'type': 'prop', 'id': 'lava_panel', 'image': 'assets/props/control_panel.png',
-             'x': 6 * T, 'y': 8 * T + 14, 'w': 64, 'h': 22, 'ix': 6 * T, 'iy': 8 * T - 4, 'solid': True},
+             'x': 6 * T, 'y': 8 * T + 14, 'w': 64, 'h': 22, 'ix': 6 * T, 'iy': 8 * T - 4, 'solid': True, 'script': 'furnace_panel'},
             *fences,
             # 밧줄 철창(쥰희·용준): 연출 전엔 숨김. 최종 위치에 두고 연출이 위로 올렸다 내린다
             {'type': 'prop', 'id': 'lava_cage', 'image': 'assets/props/lava_cage.png', 'x': CAGE_X, 'y': CAGE_Y, 'w': 136, 'h': 360,

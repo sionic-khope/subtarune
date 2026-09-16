@@ -459,3 +459,10 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 `snd_ghostappear`, `snd_quake_nes` 는 이 SHA 에 파일이 없어(14바이트) 못 썼다. 섭리오 BGM SWORD 는 원본 124~129.5초가 물소리·무음이라(사용자가 준 소스) `playBgm(loopEnd: 124, loopFade: 1.0)` 으로 123초부터 줄였다가 처음으로 되감는다(`src/core/audio.js`).
 
+
+### 용광로 색깔 기억 게임 (BUILD198, 2026-09-16)
+
+- **영클 TV 호출 음성** `sfx/color_{red,orange,yellow,green,blue,navy,purple,heart,nasdf,pi,legend,ngaita}.mp3`: 사용자 “RED ~ GREEN ~ 하면서 1초에 하나씩, 기계음 같이 / 약간 기계음, 마이크로 한 듯한 느낌, 남자 굵은 로봇 목소리”. 실존 인물 음성이 아니라 macOS `say` 합성(영어 Zarvox = 깊은 남자 로봇 음성, rate 175; 한국어 단어 하트·레전드·응아잇어는 Yuna 를 0.78배로 낮춰 길이는 되돌림) → ffmpeg 한 사슬(highpass 220·lowpass 3800·acrusher 9bit mix 0.3·tremolo 38Hz·aecho 25ms·loudnorm I −15·앞뒤 무음 제거) → 모노 44.1kHz mp3 q4, 0.46~0.84초. 생성기 `tools/audio/color_voices.py`(음성 이름·비율은 인자). 평균 −15dBFS 내외. 참고 영상 `-FfZmCpW0PE`(가재맨 공포 게임, 2022-08-08, 1902초)의 9:30~11:10 오디오(포맷 251)를 받아 로컬 faster-whisper(small, en) 로 원작 호출 구조(yellow → yellow blue → … 0.75초 간격 누적)만 확인했고 그 음성은 쓰지 않았다(스트리머 목소리가 겹침).
+- **마지막 판 카메라 영상** `assets/video/gajaeman_cam.mp4`: 사용자 지정 같은 영상의 **12:58.4~13:02.4**(사용자 “12분 58초~13분 2초”; 12:58.0~12:58.35 는 게임 화면 전환 프레임이라 0.4초 뒤부터) 웹캠 얼빡 구간. 포맷 135(480p avc1)+251 을 구간만 받아 `crop=480:480:230:0,scale=240:240`, 30fps, 무음(-an), libx264 crf 26, 4.000초, 25,551바이트. 게임에서 소리 없이 반복(`muted loop`). 팬게임 비수익 사용, 이용허락 확인을 뜻하지 않는다. 전체 영상은 저장하지 않았다.
+- **폭발 “꾸와아앙”** `sfx/furnace_blast.mp3` = DELTARUNE `snd_punchheavythunder` 전체(1.772초, 무가공) — 사용자 “폭발음 말고 쿠와아앙, 막타 칠 때 나는 소리, 더 긴 것” → 후보 57개를 `~/Downloads/deltarune_impact_candidates/` 에 두고 사용자가 **“snd_punchheavythunder 가 맞음”** 으로 확정. `snd_bigcut` 은 “아니긴 했는데 저장은 해줘” → `sfx/bigcut.mp3` 보존(미사용). 원본·SHA·후보 분석은 `assets/source/furnace198/audio/README.md`. 기존 `captain_thunder.mp3` 와 같은 원본.
+- 형섭 손 `props/hand_point.png`·`hand_press.png`(44×56, `tools/art/furnace_memory_set.py`), 폭발 그림은 기존 `assets/fx/explosion.png`.

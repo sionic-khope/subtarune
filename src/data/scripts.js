@@ -49,7 +49,7 @@ import { bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look, su
 import { stage_hall_intro } from './cutscenes/stage_hall.js';
 import { backstage_ttuulla, rhythm_qa, after_show_qa, stage_right_locked } from './cutscenes/stage_rhythm.js';
 import { lava_raft_intro } from './cutscenes/stage_lava.js';
-import { furnace_arena_intro } from './cutscenes/furnace_arena.js';
+import { furnace_arena_intro, furnace_panel, furnace_color_qa } from './cutscenes/furnace_arena.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -95,7 +95,7 @@ export const SCRIPTS = {
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,
   bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look, subrio_boss_qa,
-  stage_hall_intro, backstage_ttuulla, rhythm_qa, after_show_qa, stage_right_locked, lava_raft_intro, furnace_arena_intro,
+  stage_hall_intro, backstage_ttuulla, rhythm_qa, after_show_qa, stage_right_locked, lava_raft_intro, furnace_arena_intro, furnace_panel, furnace_color_qa,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,

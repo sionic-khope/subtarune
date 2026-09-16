@@ -357,3 +357,5 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle18', desc: '용광로 광장
   map: 'youngcle18', spawn: 'bottom', flags: { ...crateDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle18_after', desc: '용광로 광장: 연출 뒤 (패널 앞, 철창 매달림)',
   map: 'youngcle18', spawn: 'front', flags: { ...crateDoneFlags, furnace_arena_intro_done: true }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'furnace_color', desc: '색깔 기억 게임 직행 (1인칭 패널 · 영클 TV 색 호출 8판)',
+  map: 'youngcle18', spawn: 'front', flags: { ...crateDoneFlags, furnace_arena_intro_done: true }, party: [...parkWonCheckpoint.party], script: 'furnace_color_qa' });

@@ -5,12 +5,19 @@
 // TV 는 맵 소품 youngcle_tv(방송 앵커) + youngcle_tv_arm 을 slide 로 같이 움직인다(위로 들어갔다 나왔다 자유롭게). 노란 패널 이벤트는 다음 브리핑.
 import { TvBroadcast } from '../../world/tv-broadcast.js';
 import { YOUNGCLE_TV_ARENA as TV } from '../youngcle-tv.js';
+import { FX } from '../fx.js';
 
 const JID = 'arena_junhee', YID = 'arena_yongjun', CAGE = 'lava_cage', TVID = 'youngcle_tv', ARM = 'youngcle_tv_arm';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 // 맵 좌표(tools/maps/youngcle18.py): TV 홈 = 웅덩이 오른쪽 끝(사용자 “오른쪽 끝에 세워두는 게 맞는 듯” — 인사·규칙·대기 전부 여기), 조롱 때만 철창 왼쪽(쥰희가 왼쪽을 보며 찬다).
 // 철창은 웅덩이 오른쪽 부분(x520, 136 폭)에 매달려 화면 오른쪽 위에서 보이며 내려온다. TV 는 0.82 배, 접힌 채(foldX 0.06) 내려와 펼쳐진다(갤럭시 폴드)
 const TV_HOME = [672, 110], TV_LEFT = [272, 60], TV_FOLDED = 0.06, ARM_DX = 112, ARM_DY = -298;
+// 색깔 게임 뒤(사용자 브리핑): TV 가 웅덩이 가운데(x480)로 내려오고 모두 그 아래 모여 본다. 쥰희·용준은 폭발로 철창에서 튀어나와 울타리 앞 바닥에 선다
+const TV_CENTER = [383, 96], GATHER_Y = 40;
+const GATHER = { player: -60, gyeongsub: -104, ppaman: -16, [JID]: -150, [YID]: 30 };
+const CAM_GATHER = { camera: [15, 6.4], duration: 0.7 };
+// 철창 낙하·탈출: 둘이 내려앉는 울타리 앞 바닥(y≈284)이 대화창 위 230px 안에 들어오게 카메라를 아래로(레이아웃 예산)
+const CAM_DROP = { camera: [17.5, 10.2], duration: 0.6 };
 const CAGE_DROP = 280;
 const J = text => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* ' + text });
 const Y = text => ({ speaker: '박용준', portrait: 'yongjun', voice: 'yongjun', text: '* ' + text });
@@ -143,8 +150,9 @@ export const furnace_arena_intro = Object.assign([
   { set: { furnace_arena_intro_done: true } },
   { regroup: true },
   { end: true },
-  // 다시 들어올 때: 철창·쥰희·용준은 그대로 매달려 있고 TV 는 오른쪽에서 켜진 채 대기, 영클 브금
+  // 다시 들어올 때: 철창·쥰희·용준은 그대로 매달려 있고 TV 는 오른쪽에서 켜진 채 대기, 영클 브금. 색깔 게임까지 끝났으면 철창은 없고 둘은 울타리 앞, TV 는 떠났다
   { label: 'seen' },
+  { if: flags => flags.furnace_aftermath_done, goto: 'after' },
   { action: game => {
     for (const id of [CAGE, JID, YID]) { const e = ent(game, id); if (e) e.visible = true; }
     const c = ent(game, CAGE); if (c) { c.def.oscillate = { dx: 10, period: 2.4 }; c.base = undefined; }
@@ -155,4 +163,85 @@ export const furnace_arena_intro = Object.assign([
   } },
   { bgm: TV.bgm },
   { end: true },
+  { label: 'after' },
+  { remove: CAGE },
+  { action: game => {
+    const f = ent(game, FENCE);
+    for (const id of [JID, YID]) { const e = ent(game, id); if (e) { e.visible = true; setPos(e, f.x + f.w / 2 + GATHER[id] - e.w / 2, f.y + f.h + GATHER_Y); e.facing = 'down'; } }
+    game.finishTvBroadcast();
+  } },
+  { end: true },
+], { silent: true });
+
+const gather = (id) => ({ move: id, rel: FENCE, at: 'bottom', by: [GATHER[id], GATHER_Y], speed: 70 });
+const AFTERMATH = [
+  // 돌아온 광장: 철창은 날아가 위에(안 보임), TV 도 올라가 있다(꺼짐). 브금 없음
+  { action: game => {
+    for (const id of [CAGE, JID, YID]) { const e = ent(game, id); if (e) { setPos(e, e.x, e.y - 360); e.visible = true; } }
+    const c = ent(game, CAGE); if (c) { c.def.oscillate = null; c.base = undefined; }
+    game.finishTvBroadcast(); game.tvBroadcast = new TvBroadcast(game, TV); game.sound.preloadBgm(TV.bgm);
+  } },
+  tvPlace(TV_CENTER),
+  { bgm: null },
+  { fade: 'in', duration: 0.6 },
+  P('...'),
+  close,
+  { face: 'ppaman', dir: 'right' },
+  { wait: 0.5 },
+  CAM_DROP,
+  // 철창이 떨어지며 폭발(꾸와아앙) — 철창은 날아가 사라지고 둘은 바깥(울타리 앞 바닥)으로 튀어나온다
+  { parallel: [CAGE, JID, YID].map(id => ({ slide: id, by: [0, 360], duration: 0.4 })) },
+  { async: [{ boom: { ...FX.explosion, at: CAGE, scale: 2.2, offset: [0, 170], sfx: 'furnace_blast' } }] },
+  { parallel: [{ shake: 0.7, amp: 7 }, { sfx: 'explosion', volume: 0.5 }, { wait: 0.25 }] },
+  { parallel: [
+    { fling: CAGE, vx: 30, vup: 420, spin: 4, duration: 1.1, sfx: false },
+    { hop: JID, by: [-6, 70], height: 44, duration: 0.55, sfx: false },
+    { hop: YID, by: [42, 70], height: 44, duration: 0.55, sfx: false },
+  ] },
+  { face: JID, dir: 'down' }, { face: YID, dir: 'down' },
+  { wait: 0.4 },
+  Y('어? 살 살았다!!!'),
+  close,
+  { motion: JID, name: 'laugh', sfx: 'laugh_junhee' },
+  J('으하하 이몸 부활이다.'),
+  close,
+  // 천천히 영클 TV 가 가운데로 내려오고 모두 그쪽으로 모여서 본다
+  CAM_GATHER,
+  { parallel: [tvDown(3.0)[0], ...[...PARTY, JID, YID].map(gather)] },
+  ...[...PARTY, JID, YID].map(id => ({ face: id, dir: 'up' })),
+  tvDown()[1],
+  ...tvOn,
+  { bgm: TV.bgm },
+  ...V('큭.. 그래 인정하마', 'facepalm'),
+  ...V('뭐 일단 이제 얼굴보면 되겠군', 'smirk'),
+  ...V('왼쪽으로갔다가 올라오면 됨 이따보자 ㅂㅇ', 'bye'),
+  // 나간다: 꺼지고 접혀 올라감, 브금도 꺼짐
+  ...tvOff, { bgm: null, fadeOut: 0.8 }, ...tvUp(),
+  { camera: 'player' },
+  { set: { furnace_aftermath_done: true } },
+  { regroup: true },
+];
+// 조작 패널(C) → 색깔 기억 게임(1인칭 씬 src/scenes/colorgame.js, BUILD198 사용자 브리핑 “패널 상호작용하면 페이드인되면서 바로 시작”).
+// 검게 → 씬이 스스로 페이드인(용광로 1인칭·TV 가 천천히 가운데로 내려옴) → 끝나면 맵으로 페이드인. 게임 뒤 연출·튜토리얼은 다음 브리핑.
+// 게임을 통과(폭발)하면 — 사용자 브리핑 원문: 페이드아웃되며 화면이 돌아옴 → 억빠맨 “...” → 오른쪽 보고 카메라 전환 → 철창이 떨어지며 폭발, 용준·쥰희가 바깥으로
+//   → 용준 “어? 살 살았다!!!” → 쥰희 “으하하 이몸 부활이다.”(쥰희 웃음) → 영클 TV 가 천천히 가운데로 내려오고 모두 모여 봄 → “큭.. 그래 인정하마 / 뭐 일단 이제 얼굴보면 되겠군 / 왼쪽으로갔다가 올라오면 됨 이따보자 ㅂㅇ” → 나감.
+export const furnace_panel = Object.assign([
+  { sfx: 'click' },
+  { fade: 'out', duration: 0.5 },
+  { scene3d: 'colorgame', flag: 'furnace_color_done' },
+  { if: flags => !flags.furnace_color_done || flags.furnace_aftermath_done, goto: 'back' },
+  ...AFTERMATH,
+  { end: true },
+  { label: 'back' },
+  { fade: 'in', duration: 0.5 },
+], { silent: true });
+/** QA `furnace_color`: 패널 앞에 서자마자 색깔 게임 씬으로(뒤 연출도 그대로) */
+export const furnace_color_qa = Object.assign([
+  { fade: 'out', duration: 0.3 },
+  { scene3d: 'colorgame', flag: 'furnace_color_done' },
+  { if: flags => !flags.furnace_color_done || flags.furnace_aftermath_done, goto: 'back' },
+  ...AFTERMATH,
+  { end: true },
+  { label: 'back' },
+  { fade: 'in', duration: 0.5 },
 ], { silent: true });

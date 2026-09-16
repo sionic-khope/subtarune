@@ -117,7 +117,8 @@
    "h": 22,
    "ix": 192,
    "iy": 252,
-   "solid": true
+   "solid": true,
+   "script": "furnace_panel"
   },
   {
    "type": "prop",
