@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-16
 
+**BUILD206 — 포탄이 벽을 뚫지 않는다 + 오방순 보이스폰트 짧게(포스트모텀 #19 22·23번)**: 포탄은 사람 왼쪽(8px 겹침)에 붙어 **같은 dx** 로 밀고 가 벽 앞(x844~908, 벽 928)에서 사람과 같이 부딪힌 뒤 `fling`(vx -320, vup 460)으로 튕겨 사라진다. 사람은 거의 직선(hop 4px)으로 밀리고 부딪힌 뒤 카메라 쪽을 본다. 오방순 목소리 = ‘흐’ 0.13초·minGap 0.09·cut(짧게 여러 번). 검증: `ship-control`(포탄 오른쪽 끝 최대 ≈908 ≤ 928, 벽 앞 900, 눕기) fails 0, 프레임(옆에서 밀기·벽·튕김).
+
 **BUILD205 — 조종실 연출 정정 2차(포스트모텀 #19 15~21번)**: ① 포탄이 쥰희와 함께 벽까지 날아간다(spawn 소품에 `ix/iy` — 없으면 slide 가 그림을 못 옮겨 “공기포”). ② 소리: 발사 `cannon_guard_fire`+`boom`, 맞음 `thud`(평타음 hit 제거). ③ 영클 대기 모션 차분하게(`hover.frames [0,1]`, 2.5fps, bob 1). ④ 노 모자이크 block 2. ⑤ 철창은 카메라(`CAGE_CAM` [15.5,8.9]) 안에서 오방순·나람을 **태운 채**(carry) 내려온다 — 엔진 `Prop.update` 의 oscillate 를 ‘현재 위치 + 오프셋’ 방식으로 고치고 탑승자는 흔들리는 동안 프레임 이동량으로 따라간다(광장 철창의 들어 올려 떨어뜨리기는 예전대로). ⑥ 오방순 `rowOrder ['down','left','right','up']`. ⑦ 오방순 대사 `{n}` 으로 `\ _ / !!!!` 아랫줄, 목소리 클립 0.62초·minGap 0.5. ⑧ 영클 대사 “김형섭에서 파생된 착한 자아”. 검증: 단위 1749, `ship-control`(철창 화면 안·탑승·행 구분·줄바꿈·모자이크 block·수정 대사)·`color-game`·`furnace-arena`·`ship-bridge` fails 0, 프레임(철창 하강·오방순 대사·모자이크).
 
 **BUILD204 — 생성 모델 gpt-image-2.5-sunburst 로 교체(사용자 “2.5 안 쏘?”)**: 비행 장치 시트로 gpt-image-2 / 2.5-flare / 2.5-sunburst 를 같은 프롬프트로 비교(`assets/source/youngcle-hover-v3/`) → flare 는 눈동자 단순·몸 작음·번개 낙서라 반려, **sunburst 채택**(소용돌이 눈·탈것 음영·불꽃). 그 뒤 전투 대기(`youngcle-hover-battle-v2`)·벽 대포(`ship-cannon-v2`, 176×83, 포구 y38 → CANNON y236)·철창(`ship-cage-v2`, 100×178, 착지 y194)·glare(`youngcle-glare-v3`)·거대 나람(`naram-giant-v2`)도 sunburst 로 다시 생성해 교체. `tools/sprites/imagegen.py` 기본 모델 = 2.5-sunburst(스킬 문서 갱신). 검증: 단위 1749, `ship-control`·`ship-bridge` fails 0, 프레임(대포·대치·글레어 초상).

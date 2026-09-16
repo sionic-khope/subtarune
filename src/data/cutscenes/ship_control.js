@@ -34,21 +34,24 @@ const settle = id => [
   { parallel: [{ hop: id, by: [0, 0], height: 6, duration: 0.36, sfx: false }, { sfx: 'whoosh', volume: 0.4 }] }, { wait: 0.12 },
   { parallel: [{ hop: id, by: [0, 0], height: 3, duration: 0.3, sfx: false }, { sfx: 'whoosh', volume: 0.3 }] },
 ];
-/** 포탄이 보이게 날아가(카메라가 포탄을 따라감) 맞는 순간 사람을 밀고 오른쪽 벽까지 쭉 — 벽에서 진동·충격음, 포탄은 사라진다 */
-const shoot = (ballId, targetId, fromCx, targetCx, toY) => [
+/** 포탄이 보이게 날아가(카메라가 포탄을 따라감) 맞는 순간 사람을 밀고 오른쪽 벽까지 쭉 — 포탄은 벽(x928)에 닿는 자리(864)에서 사람과 같이 부딪히고(진동·충격음), 튕겨 날아가 사라진다(사용자 “벽을 뚫냐”) */
+const shoot = (ballId, targetId, ballX0, targetX, toY) => {
+  const hitX = targetX - BALL + 8;                       // 포탄이 사람 왼쪽에 닿는 자리(8px 겹침) — 위에 덮이지 않고 옆에서 민다
+  return [
   { camera: ballId },
-  { slide: ballId, by: [targetCx - fromCx, 0], duration: 0.6 },
+  { slide: ballId, by: [hitX - ballX0, 0], duration: 0.6 },
   { parallel: [{ sfx: 'thud' }, { shake: 0.12, amp: 3 }] },
   { wait: 0.1 },
   { camera: targetId },
-  { parallel: [
-    { hop: targetId, by: [WALL_X - (targetCx - 12), toY], height: 22, duration: 0.55, sfx: false },
-    { slide: ballId, by: [WALL_X - (targetCx - 12) + 24, toY], duration: 0.55 },
+  { parallel: [                                          // 둘이 같은 거리만큼 같이 밀려간다: 사람은 벽 앞(900), 포탄은 그 왼쪽(844~908, 벽 928 안)
+    { hop: targetId, by: [WALL_X - targetX, toY], height: 4, duration: 0.55, sfx: false },
+    { slide: ballId, by: [WALL_X - targetX, toY], duration: 0.55 },
   ] },
-  { remove: ballId },
-  { parallel: [{ shake: 0.5, amp: 8 }, { sfx: 'impact' }, { tremble: targetId, duration: 0.45, amp: 3 }] },
-  { wait: 0.6 },
-];
+  { parallel: [{ shake: 0.5, amp: 8 }, { sfx: 'impact' }, { tremble: targetId, duration: 0.45, amp: 3 },
+    { fling: ballId, vx: -320, vup: 460, spin: 5, duration: 0.9, sfx: false }] },                 // 벽에 맞고 튕겨 위로 날아가 사라짐
+  { face: targetId, dir: 'down' },
+  { wait: 0.4 },
+]; };
 const partyTo = (spots, opts = {}) => ({ parallel: PARTY.map((id, i) => ({ move: id, px: spots[i], exact: true, ...opts })) });
 
 export const ship_control_intro = Object.assign([
@@ -87,7 +90,7 @@ export const ship_control_intro = Object.assign([
   { async: [smoke(MUZZLE)] }, { async: [{ shake: 0.35, amp: 5 }] }, { sfx: 'cannon_guard_fire' }, { sfx: 'boom', volume: 0.7 },
   ball(BALL1, MUZZLE[0] + 10, MUZZLE[1]),
   { wait: 0.15 },
-  ...shoot(BALL1, JID, MUZZLE[0] + 10, M().junhee[0] + 12, 0),
+  ...shoot(BALL1, JID, MUZZLE[0] + 10 - BALL / 2, M().junhee[0], 0),
   J('꾸엑'),
   close,
   { wait: 0.3 },
@@ -100,7 +103,7 @@ export const ship_control_intro = Object.assign([
   close,
   { wait: 0.5 },
   ball(BALL2, 200, M().yongjun[1] + 8 - 16),
-  ...shoot(BALL2, YID, 200, M().yongjun[0] + 12, -4),
+  ...shoot(BALL2, YID, 200 - BALL / 2, M().yongjun[0], -4),
   { wait: 0.3 },
   { pose: YID, to: 'lying' },
   { wait: 1.0 },

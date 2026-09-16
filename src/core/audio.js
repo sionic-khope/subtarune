@@ -27,8 +27,8 @@ export const VOICES = {
   warm_bidet: { freq: 84, wave: 'triangle', dur: 0.17, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.19 },
   ttuulla: { freq: 520, wave: 'triangle', dur: 0.18, jitter: 8, gain: 0.18, cutoff: 4200, rate: 1, level: 0.85, cut: false, minGap: 0.20 },
   // 오방순(BUILD202 조종실 첫 대사): voices/obangsun.mp3 = macOS Yuna 를 -5 반음 낮춘 ‘흐에에에’ 0.25초(사용자 “목소리 굵은 여자가 흐어어 하는 보이스폰트”, assets/source/obangsun149/audio/manifest.json 의 runtime 값)
-  //   BUILD205 “목소리 더 허어어 길게”: 클립을 0.62초(obangsun-full.wav 앞부분)로 늘리고 minGap 0.5 — 글자마다 짧게 끊기지 않고 흐어어 하고 늘어진다
-  obangsun: { freq: 300, wave: 'triangle', dur: 0.2, jitter: 8, gain: 0.18, cutoff: 3800, rate: 1, level: 0.85, cut: false, minGap: 0.5 },
+  //   BUILD206 사용자 “보이스폰트니까 그냥 흐 하나로, 더 짧게 끊어서 여러 번”: 클립 0.13초(‘흐’ 한 음절), 글자마다 짧게 반복(minGap 0.09, cut)
+  obangsun: { freq: 300, wave: 'triangle', dur: 0.12, jitter: 8, gain: 0.18, cutoff: 3800, rate: 1, level: 0.9, cut: true, minGap: 0.09 },
   lucky_guy: { freq: 190, wave: 'triangle', dur: 0.19, jitter: 8, gain: 0.18, cutoff: 2400, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.21 },
   // 나람이 임시 합성 음색(사용자 지정 원음 오면 파일로 교체): 럭키가이보다 조금 높고 둥근 중저음
   // 나람(BUILD203 사용자 “뚱뚱한 목소리를 가진 쥰희 느낌, 같은 목소리는 쓰지 말고 비슷하게 새로”): voices/naram.mp3 = 쥰희 클립(snd_txtsus)을 -3반음 낮추고 굵게(lowpass·bass) 만든 변형. 합성음이던 예전 값은 파일 없을 때 폴백

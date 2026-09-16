@@ -41,14 +41,18 @@ try {
   await page.waitForTimeout(60); await cap('04_fire'); s = await st();
   check(smoked && s.booms >= 1 && !!s.ball1, '발사: 연기 이펙트 + 포탄 생성 ' + JSON.stringify([s.ball1, s.booms]));
   s = await untilText('꾸엑'); await cap('05_junhee_wall');
-  check(s && s.j.x === 900 && s.j.y === 278 && !s.ball1, '쥰희가 오른쪽 벽(900)까지 날아가 쾅, 포탄 사라짐, “꾸엑” ' + JSON.stringify([s?.j, s?.ball1]));
+  check(s && s.j.x === 900 && s.j.y === 278, '쥰희가 오른쪽 벽(900)까지 날아가 쾅, “꾸엑” ' + JSON.stringify([s?.j, s?.ball1]));
   const sfx1 = await page.evaluate(() => window.__sfx.slice());
   check(['scrape', 'boom', 'cannon_puff', 'impact'].every(n => sfx1.includes(n)), '대포 소리: 드르르륵·발사·연기·충격 ' + JSON.stringify(sfx1.filter(n => ['scrape', 'boom', 'cannon_puff', 'impact'].includes(n))));
   await advance();
-  s = await untilText('어?! 형'); check(s && s.j.pose === 'lying', '쥰희 기절(눕기) → 용준 “어?! 형 !!!” ' + JSON.stringify([s?.j?.pose, s?.speaker]));
+  s = await untilText('어?! 형'); check(s && s.j.pose === 'lying' && !s.ball1, '쥰희 기절(눕기), 포탄은 벽에 튕겨 사라짐 → 용준 “어?! 형 !!!” ' + JSON.stringify([s?.j?.pose, s?.ball1, s?.speaker]));
   await advance();
+  // 포탄은 벽을 뚫지 않는다: 날아가는 동안 오른쪽 끝이 벽(928)을 넘지 않는지 50ms 마다 본다
+  await page.evaluate(() => { window.__ballMax = 0; window.__bt = setInterval(() => { const b = window.game.entities.find(x => x.id === 'ship_ball2' && !x.dead); if (b) window.__ballMax = Math.max(window.__ballMax, (b.def.ix ?? b.x) + (b.flyX || 0) + 64); }, 50); });
   const hit2 = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_yongjun'); return y && y.x >= 900 && y.pose === 'lying'; }, 9000);
-  await page.waitForTimeout(300); s = await st(); await cap('06_yongjun_wall');
+  await page.waitForTimeout(1200); s = await st(); await cap('06_yongjun_wall');
+  const ballMax = await page.evaluate(() => { clearInterval(window.__bt); return window.__ballMax; });
+  check(ballMax > 880 && ballMax <= 928, '포탄이 사람을 벽 앞까지 밀고(오른쪽 끝 ≈908) 벽(928)을 넘지 않는다 ' + ballMax);
   check(hit2 && s.yj.x === 900 && s.yj.pose === 'lying' && !s.ball2, '용준도 가운데서 온 포탄에 맞아 쥰희 옆에 쓰러짐(900, 눕기), 포탄 사라짐 ' + JSON.stringify([s.yj, s.ball2]));
   // ④ 셋 가운데로 → 영클 ㅋㅋ → 브금 → 앞으로 내려오고 뒷걸음
   s = await untilText('ㅋㅋ'); check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_laugh' && s.px === 468 && s.py === 330, '셋이 가운데(468,330)로 → 영클 “ㅋㅋ”(웃는 초상) ' + JSON.stringify([s?.px, s?.py, s?.portrait]));
