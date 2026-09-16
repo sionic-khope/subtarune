@@ -267,6 +267,8 @@ const AFTERMATH = [
 //   → 용준 “어? 살 살았다!!!” → 쥰희 “으하하 이몸 부활이다.”(쥰희 웃음) → 영클 TV 가 천천히 가운데로 내려오고 모두 모여 봄 → 째려보며 “ㅇㅋ.. 인정해주겠음 / 근데 이제 다음은 없음 / 난 꼭.. 세상을 / 뭐 이런말 필요없나 곧 보자고.”(정정) → 나감
 //   → 웅덩이 가운데에 다리가 하나씩 철컥철컥 → 앞 울타리 세 칸 사라짐 → 쥰희가 빠르게 뛰쳐 나가고 용준 “형 형 기다려요 같이가요” 따라감 → 주인공 쪽으로 포커스.
 export const furnace_panel = Object.assign([
+  // 게임을 한 번 통과했으면(다리가 놓인 뒤) 패널을 다시 만져도 게임으로 들어가지 않는다(사용자 2026-09-16 “다리 생기고 나서 또 조종 패널 만지면 색깔 게임으로 가지는데 고쳐”) — 대사 없이 그대로
+  { if: flags => flags.furnace_color_done, goto: 'used' },
   { sfx: 'click' },
   { fade: 'out', duration: 0.5 },
   { scene3d: 'colorgame', flag: 'furnace_color_done' },
@@ -275,6 +277,8 @@ export const furnace_panel = Object.assign([
   { end: true },
   { label: 'back' },
   { fade: 'in', duration: 0.5 },
+  { end: true },
+  { label: 'used' },
 ], { silent: true });
 /** QA `furnace_color`: 패널 앞에 서자마자 색깔 게임 씬으로(뒤 연출도 그대로) */
 export const furnace_color_qa = Object.assign([

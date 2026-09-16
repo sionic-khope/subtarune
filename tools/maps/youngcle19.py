@@ -9,7 +9,7 @@
 """엄청대박인배 다리길(BUILD201, 사용자 브리핑 “위로 가면 위로 쭉 가는 다리길 + 거대한 철문이 앞에 딱 붙어 있는 거 하나, C 누르면 ‘엄청대박인배 조종실 이라고 적혀있다, 들어갈까?’ 예/아니오”).
 광장(youngcle18) 위 통로에서 올라오면 용암 위로 트러스 난간이 달린 철 다리(타일 N, 3칸 폭)가 화면 두 배 넘게 곧장 위로 이어지고,
 끝에 선체 벽(강판·배관·경고 띠·명판)과 거대한 철문(ship_gate)이 다리에 딱 붙어 있다. 철문은 소품(script ship_gate) — C → 예 → 조종실(youngcle20).
-그림: tools/art/ship_bridge_set.py. 아래 출입구는 가장자리 칸 H, 문 트리거는 맵 끝 10px."""
+그림: tools/art/ship_bridge_set.py. 아래 출입구는 가장자리 칸 H, 문 트리거는 맵 끝 10px. 브금 없음(사용자 “엄청대박인배 입구에선 브금도 꺼져야지”)."""
 from __future__ import annotations
 
 import json
@@ -45,7 +45,7 @@ def main() -> None:
     deck_px = (HEIGHT - DECK_R0) * T                                    # 난간 길이(ship_bridge_set.DECK_ROWS × 32 = 768)
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 다리길', 'stage': 'void_fallen',
-        'bgm': 'pandora_palace', 'backdrop': 'youngcle_furnace',
+        'bgm': None, 'backdrop': 'youngcle_furnace',
         'battleBg': 'youngcle_factory', 'dim': 0.3,
         'rows': [''.join(r) for r in cells],
         'preload': ['assets/tiles/youngcle_bridge_deck.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/tiles/lava.png',

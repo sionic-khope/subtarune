@@ -24,10 +24,17 @@ try {
   await page.waitForTimeout(500);
   let s = await st();
   check(s.bridgeTiles.every(t => t === 'FFF') && s.fences.every(f => !f), '광장 재입장: 다리 자리 타일 F·앞 울타리 3칸 없음 ' + JSON.stringify([s.bridgeTiles, s.fences]));
+  // 게임을 통과한 뒤 조작 패널을 다시 만져도 색깔 게임으로 들어가지 않는다(사용자 지적)
+  await hold('ArrowLeft', () => window.game.player.x <= 214, 8000);
+  await page.keyboard.press('ArrowUp'); await page.waitForTimeout(150);
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(900);
+  const panel = await page.evaluate(() => ({ scene: !!window.game.scene3d, dialogue: window.game.dialogue.running, map: window.game.mapId, fade: window.game.fade?.alpha ?? 0, px: Math.round(window.game.player.x), facing: window.game.player.facing }));
+  check(!panel.scene && !panel.dialogue && panel.map === 'youngcle18' && !(panel.fade > 0.5), '패널 앞에서 C: 색깔 게임 재진입 없음·대사 없음·화면 그대로 ' + JSON.stringify(panel));
+  await hold('ArrowRight', () => window.game.player.x >= 484, 8000);
   await hold('ArrowUp', () => window.game.mapId === 'youngcle19', 15000);
   s = await st(); check(s.map === 'youngcle19' && s.px === 228 && s.py === 904 && s.facing === 'up', '위 통로 끝 → 다리길 아래 스폰(228,904) ' + JSON.stringify([s.map, s.px, s.py]));
   await page.waitForTimeout(700); await cap('01_bridge_bottom'); s = await st();
-  check(s.tile === 'N' && s.gate && s.hull && s.rails && s.bgm.includes('pandora_palace') && s.party.every(Boolean), '다리 바닥 N·철문·선체 벽·난간·브금·동료 ' + JSON.stringify([s.tile, s.gate, s.hull, s.rails, s.bgm]));
+  check(s.tile === 'N' && s.gate && s.hull && s.rails && !s.bgm.includes('pandora_palace') && s.party.every(Boolean), '다리 바닥 N·철문·선체 벽·난간·브금 없음(사용자)·동료 ' + JSON.stringify([s.tile, s.gate, s.hull, s.rails, s.bgm]));
   // ② 다리 위로 쭉: 철문 히트박스(밑변 192)에 막혀 y192 에서 선다
   const t0 = Date.now();
   await hold('ArrowUp', () => window.game.player.y <= 196, 20000);
@@ -51,32 +58,28 @@ try {
   await page.keyboard.press('KeyC'); await page.waitForTimeout(250);
   for (let i = 0; i < 40 && (await st()).box !== 'choice'; i++) await page.waitForTimeout(100);
   await page.waitForTimeout(200); await page.keyboard.press('KeyC');
-  await page.waitForFunction(() => window.game.mapId === 'youngcle20' && !window.game.dialogue.running && !window.game.transitioning, null, { timeout: 8000 }).catch(() => {});
-  await page.waitForTimeout(800); s = await st();
-  check(s.map === 'youngcle20' && s.px === 468 && s.py === 488 && s.facing === 'up' && s.party.every(Boolean), '예 → 조종실 철문 앞 스폰(468,488) 동료 함께 ' + JSON.stringify([s.map, s.px, s.py, s.party]));
-  await cap('04_control_room');
-  // ⑤ 영클 비행 장치: 순찰로 움직이고(자리·방향 바뀜), 서 있어도 프레임이 돈다(hover), 6px 떠 있다
-  const yc = () => page.evaluate(() => { const e = window.game.entities.find(x => x.id === 'ship_youngcle'); return e ? { x: Math.round(e.x), y: Math.round(e.y), facing: e.facing, frame: e.frame, sprite: e.def.sprite, hover: !!(e.hoverT > 0), moving: e.moving, solid: e.solid } : null; });
-  const y1 = await yc(); await page.waitForTimeout(1200); const y2 = await yc();
-  check(y1 && y2 && y1.sprite === 'youngcle_hover' && (y1.x !== y2.x || y1.y !== y2.y) && y2.hover && !y2.solid, '영클 비행 장치가 순찰 중(자리 바뀜·hover 시계) ' + JSON.stringify([y1, y2]));
-  const props = await page.evaluate(() => ['ship_main_screen', 'ship_helm', 'ship_holo', 'ship_console_0', 'ship_console_7', 'ship_rack_0', 'ship_rack_5', 'ship_reactor', 'ship_tv', 'ship_strip_0'].map(id => !!window.game.entities.find(x => x.id === id && !x.dead)));
-  check(props.every(Boolean), '조종실 소품(대형 화면·조타 콘솔·홀로그램 탁자·콘솔 8·서버 랙 6·반응로·TV·유도등) ' + JSON.stringify(props));
-  await page.waitForTimeout(1500); await cap('05_control_room_2');
-  // 대사 중엔(선택지 등) 순찰이 멈추고 그래도 hover 프레임은 돈다 — 조작 없이 hover 만 확인: 순찰을 잠시 끄고 프레임 변화를 본다
-  const idle = await page.evaluate(async () => { const e = window.game.entities.find(x => x.id === 'ship_youngcle'); const saved = e.def.patrol; e.def.patrol = null; const f0 = e.frame, t0 = e.hoverT;
-    await new Promise(r => setTimeout(r, 400)); const out = { moving: e.moving, frameChanged: e.frame !== f0 || e.animPhase > 0.5, hoverAdvanced: e.hoverT > t0 }; e.def.patrol = saved; return out; });
-  check(!idle.moving && idle.frameChanged && idle.hoverAdvanced, '서 있어도 불꽃 프레임·오르내림이 돈다 ' + JSON.stringify(idle));
-  // ⑥ 가운데로 올라가면 홀로그램 탁자(y294~322)에 막힌다 → 옆으로 돌아 조타 콘솔 앞까지
-  await hold('ArrowUp', () => window.game.player.y <= 326, 6000);
-  s = await st(); check(s.py >= 320 && s.py <= 326 && s.px === 468, '가운데 홀로그램 탁자에 막힘(y≈322) ' + JSON.stringify([s.px, s.py]));
-  await cap('06_holo_block');
-  await hold('ArrowLeft', () => window.game.player.x <= 380, 5000);
+  await page.waitForFunction(() => window.game.mapId === 'youngcle20', null, { timeout: 8000 }).catch(() => {});
+  // 예 → 조종실 도착과 함께 입장 연출이 바로 시작돼야 한다(사용자 “들어왔는데 이벤트 연출도 안 나옴” — 철문 스크립트가 맵을 바꾸는 동안엔 도착 스크립트가 건너뛰어졌다 → {map, enter:true})
+  const intro = await page.waitForFunction(() => window.game.mapId === 'youngcle20' && window.game.dialogue.running && window.game.player.emote, null, { timeout: 6000 }).then(() => true).catch(() => false);
+  s = await st(); check(s.map === 'youngcle20' && intro && s.party.every(Boolean) && !s.bgm.includes('pandora'), '예 → 조종실 도착과 함께 입장 연출 시작(느낌표), 동료 함께, 브금 없음 ' + JSON.stringify([s.map, intro, s.party, s.bgm]));
+  const untilText = async (needle, max = 30) => { for (let i = 0; i < max; i++) { const t = await page.evaluate(() => window.game.textbox.node?.text || ''); if (t.includes(needle)) return true; if (!(await page.evaluate(() => window.game.dialogue.running))) { await page.waitForTimeout(300); continue; } await page.keyboard.press('KeyC'); await page.waitForTimeout(250); } return false; };
+  check(await untilText('어서 나와라'), '연출이 진행된다(쥰희 “어서 나와라 …”)'); await cap('04_control_room');
+  // ⑤ 이후 동선은 연출 뒤 상태(QA ship_control_after): 영클은 로고 오른쪽(556,300)에서 왼쪽을 보고 떠 있고 서 있어도 프레임이 돈다(hover)
+  await page.goto('http://localhost:8000/?qa=ship_control_after');
+  await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle20' && !window.game.dialogue.running, null, { timeout: 25000 });
+  await page.waitForTimeout(500);
+  const yc = () => page.evaluate(() => { const e = window.game.entities.find(x => x.id === 'ship_youngcle'); return e ? { x: Math.round(e.x), y: Math.round(e.y), facing: e.facing, frame: e.frame, phase: e.animPhase, hoverT: e.hoverT || 0, sprite: e.def.sprite, v: e.visible } : null; });
+  const y1 = await yc(); await page.waitForTimeout(700); const y2 = await yc();
+  check(y1 && y2 && y1.sprite === 'youngcle_hover' && y1.v && y1.x === 556 && y1.y === 300 && y1.facing === 'left' && y2.hoverT > y1.hoverT && y2.phase > y1.phase, '영클 비행 장치: 로고 오른쪽에서 왼쪽 보며 떠 있고 서 있어도 불꽃 프레임·오르내림이 돈다 ' + JSON.stringify([y1, y2]));
+  const props = await page.evaluate(() => ['ship_main_screen', 'ship_helm', 'ship_holo', 'ship_logo', 'ship_console_0', 'ship_console_5', 'ship_rack_0', 'ship_rack_4', 'ship_reactor', 'ship_tv'].map(id => !!window.game.entities.find(x => x.id === id && !x.dead)));
+  const strips = await page.evaluate(() => window.game.entities.filter(x => /ship_strip/.test(x.id || '')).length);
+  check(props.every(Boolean) && strips === 0, '조종실 소품(대형 화면·조타 콘솔·홀로그램 탁자·바닥 로고·콘솔 6·서버 랙 5·반응로·TV), 연두 유도등 없음 ' + JSON.stringify([props, strips]));
+  await page.waitForTimeout(800); await cap('05_control_room_2');
+  // ⑥ 가운데(로고, 걷는 장식)를 지나 조타 콘솔 앞(y≈122)까지 곧장 — 대치 중인 영클·오방순·나람은 막지 않는다
   await hold('ArrowUp', () => window.game.player.y <= 126, 8000);
-  s = await st(); check(s.py >= 120 && s.py <= 126 && s.px <= 404, '왼쪽 통로로 돌아 조타 콘솔 앞(y≈122)까지 ' + JSON.stringify([s.px, s.py]));
+  s = await st(); check(s.py >= 120 && s.py <= 126 && s.px === 468, '가운데 로고를 지나 조타 콘솔 앞(y≈122) ' + JSON.stringify([s.px, s.py]));
   await cap('07_helm');
   // ⑦ 아래로 나가면 다리길 철문 앞(228,232) 아래를 봄 → 다리 아래 끝까지 → 광장 위 통로(484,40)
-  await hold('ArrowDown', () => window.game.player.y >= 420, 8000);
-  await hold('ArrowRight', () => window.game.player.x >= 468, 5000);
   await hold('ArrowDown', () => window.game.mapId === 'youngcle19', 15000);
   s = await st(); check(s.map === 'youngcle19' && s.px === 228 && s.py === 232 && s.facing === 'down', '조종실 아래로 나가면 철문 앞(228,232) ' + JSON.stringify([s.map, s.px, s.py, s.facing]));
   await page.waitForTimeout(500); await cap('08_back_gate');

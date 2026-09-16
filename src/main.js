@@ -646,6 +646,8 @@ class Game {
       if (onEnd) onEnd();
       if (this.mapId === 'maillard_captain' && this.has('captain_aftermath_done') && !this.has('captain_attack_done')) this.captainAttackPending = true;
       this.autosave();
+      // 스크립트 안에서 { map, enter:true } 로 바꾼 맵의 도착 스크립트는 이 스크립트가 끝난 뒤 이어서(대사 중엔 runMapEnter 가 건너뛴다 — 철문 → 조종실 입장 연출, BUILD202)
+      if (this.pendingMapEnter) { const next = this.pendingMapEnter; this.pendingMapEnter = null; if (next === this.mapId) this.runMapEnter(next); }
     });
   }
 

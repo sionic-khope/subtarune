@@ -185,3 +185,6 @@ model: opus
 3. **`src/data/fx.js` 의 `FX` 에 한 줄** 등록(sheet·cols·rows·count·fps·sfx) → 컷신에서는 `{ boom: { ...FX.<이름>, at:'<대상id>'|[x,y], scale, offset:[dx,dy], hold } }` 로 쓴다(숫자를 컷신에 복사하지 않는다 — 여러 발이면 `{async:[{wait}, {boom}]}`)
    — **모든 캐릭터 위**에 한 번만 재생하고 사라진다. 그림이 없으면 소리만 나고 조용히 통과하므로 반드시 `tests/unit/fx.test.mjs`(레지스트리·띠 존재·칸 수·소리 로드 목록) 를 돌린다.
 4. FX 레지스트리에 등록한 시트는 부팅 때 미리 로드된다. 등록하지 않은 시트는 맵 `preload`에 넣는다. `boom`의 `duration`은 그 시간 동안 프레임을 반복하고, `endScale/grow`는 시작 `scale`에서 목표 배율까지 grow초 동안 부드럽게 변화시킨다. 생략하면 기존 한 번 재생이다. 중간 프레임에서 크기·타이밍·잘림을 확인하고 맵 전환 시 정리되는지 검사한다.
+
+## 스크립트 안에서 맵을 바꾸고 그 맵의 도착 연출을 이어가기 (BUILD202b)
+`{ map:'youngcle20', spawn:'gate', enter:true }` — 대사 중엔 `runMapEnter` 가 도착 스크립트를 건너뛰므로(문·QA 는 괜찮지만 선택지 → `{map}` 흐름은 안 나온다), `enter:true` 를 주면 이 스크립트가 끝난 뒤 그 맵의 `enter` 가 이어진다. 철문 “들어갈까? 예” → 조종실 입장 연출이 그 예. 검증은 실제 문 경로로(QA 바로가기는 `runMapEnter` 를 따로 불러 문제가 안 보인다).

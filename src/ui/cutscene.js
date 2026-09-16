@@ -33,7 +33,7 @@
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
 //  { hop:..., spin?:2, keep?:true } 소품도 날린다(빙글 회전, 끼임 보정 생략)   { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { fling:id, vx, vup, spin?, gravity?, duration?, sfx? } 속도·중력으로 튀어나가 사라짐(동상 펑)   { emote:id, kind:'!'|'sweat', duration?, hold?, sfx? } 머리 위 느낌표/식은땀('!' 은 기본 chime, 동시 여러 명이면 한 번)   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
-//  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
+//  { map: 'room', spawn: 'bed', enter?: true } 즉시 맵 교체 (앞뒤로 fade 를 붙일 것). enter:true 면 이 스크립트가 끝난 뒤 그 맵의 도착 스크립트(enter)를 이어서 돌린다 — 대사 중엔 도착 스크립트가 건너뛰어지므로(철문 → 조종실 연출, BUILD202)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
 //  { pose: id, to: 'lying'|'stand' }           누움(옆으로 눕힌 스프라이트)/일어남
 //  { motion: id, name: 'laugh', sfx?: 'laugh_junhee' } 캐릭터별 등록 동작을 한 번 재생 후 복귀
@@ -328,7 +328,7 @@ export function makeWaiter(game, node) {
   if (node.show) { const e = findEntity(game, node.show); if (e) { e.visible = true; if (e._solidBeforeHide !== undefined) { e.solid = e._solidBeforeHide; delete e._solidBeforeHide; } } return done; }
   if (node.hide) { const e = findEntity(game, node.hide); if (e) { e.visible = false; if (e._solidBeforeHide === undefined) e._solidBeforeHide = e.solid; e.solid = false; } return done; }   // 안 보이는 것은 막지도 않는다 (2026-09-10 미로 출구에서 숨긴 NPC 가 길을 막았음)
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
-  if (node.map) { game.changeMap(node.map, node.spawn, true); return done; }
+  if (node.map) { game.changeMap(node.map, node.spawn, true); if (node.enter) game.pendingMapEnter = node.map; return done; }
   if (node.spawn) { game.spawn(node.spawn); return done; }
   if ('curtain' in node) { game.curtain = node.curtain; return done; }
   if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }

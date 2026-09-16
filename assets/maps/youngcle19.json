@@ -2,7 +2,7 @@
  "id": "youngcle19",
  "name": "엄청대박인배 다리길",
  "stage": "void_fallen",
- "bgm": "pandora_palace",
+ "bgm": null,
  "backdrop": "youngcle_furnace",
  "battleBg": "youngcle_factory",
  "dim": 0.3,

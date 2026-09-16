@@ -7,7 +7,6 @@
 - props/ship_holo_table.png  : 3프레임 띠 3×(96×72) — 홀로그램 탁자(전함 실루엣이 깜빡이며 떠 있음), anim {cols:3, fps:5}
 - props/ship_tv.png          : 2프레임 띠 2×(80×72) — 과학 느낌 TV(둥근 화면·안테나·색 띠 ↔ 지직), anim {cols:2, fps:6}
 - props/ship_reactor.png     : 2프레임 띠 2×(96×120) — 옆 벽 반응로(유리관 속 보라·청록 핵이 맥동), anim {cols:2, fps:2}
-- props/ship_floor_strip.png : 128×8 바닥 청록 유도등(장식, 히트박스 윗변 2px) / ship_floor_strip_v.png 8×128
 실행: /usr/bin/python3 tools/art/ship_control_set.py"""
 from pathlib import Path
 import sys
@@ -168,17 +167,6 @@ def reactor() -> None:
     strip(frames, 96, 120, 'ship_reactor.png')
 
 
-def floor_strips() -> None:
-    s = Canvas(128, 8)
-    s.rect(0, 2, 128, 4, IRON_D); s.rect(0, 3, 128, 2, GLOW_D)
-    for x in range(4, 128, 16): s.rect(x, 3, 8, 2, GLOW)
-    s.save(PROPS / 'ship_floor_strip.png')
-    v = Canvas(8, 128)
-    v.rect(2, 0, 4, 128, IRON_D); v.rect(3, 0, 2, 128, GLOW_D)
-    for y in range(4, 128, 16): v.rect(3, y, 2, 8, GLOW)
-    v.save(PROPS / 'ship_floor_strip_v.png')
-
-
 if __name__ == '__main__':
-    main_screen(); console(); helm(); server_rack(); holo_table(); tv(); reactor(); floor_strips()
+    main_screen(); console(); helm(); server_rack(); holo_table(); tv(); reactor()
     print('wrote ship control set')
