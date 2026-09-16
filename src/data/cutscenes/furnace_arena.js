@@ -22,6 +22,14 @@ const CAM_GATHER = { camera: [15, 6.4], duration: 0.7 };
 // 철창 낙하·탈출: 둘이 내려앉는 울타리 앞 바닥(y≈284)이 대화창 위 230px 안에 들어오게 카메라를 아래로(레이아웃 예산)
 const CAM_DROP = { camera: [17.5, 10.2], duration: 0.6 };
 const CAGE_DROP = 280;
+// 길(사용자 2026-09-16 정정 “그래 인정할테니 길을 만들어주마”): 웅덩이 가운데 문 기둥 줄(cols 14~16)에 다리 판 6장이 앞(row 7)부터 하나씩 철컥 내려앉고, 그 줄의 용암 타일이 바닥(F)이 된다.
+//   앞 울타리 세 칸(cols 14~16)이 바닥으로 철컥 내려가 없어진다. 판은 맵에 40px 위에 숨어 있다(tools/maps/youngcle18.py BRIDGE_DROP). 위 통로(rows 0~1)는 열어 둔 채 — 다음 맵은 다음 브리핑
+const BRIDGE = [0, 1, 2, 3, 4, 5].map(i => `lava_bridge_${i}`), BRIDGE_DROP = 40, BRIDGE_COLS = [14, 15, 16], BRIDGE_ROWS = [2, 3, 4, 5, 6, 7];
+const FENCE_GAP = ['lava_fence_6', 'lava_fence_7', 'lava_fence_8'];
+const CAM_BRIDGE = { camera: [15.5, 5.2], duration: 0.7 };
+const openBridge = { action: game => { for (const r of BRIDGE_ROWS) for (const c of BRIDGE_COLS) game.map.setTile(c, r, 'F'); } };
+// 쥰희·용준이 다리 앞(x484)으로 갔다가 다리를 건너 위로 사라진다(맵 밖 px)
+const runOut = (id) => [{ move: id, rel: BRIDGE[0], at: 'bottom', by: [0, 48], dash: true }, { move: id, px: [484, -60], dash: true, exact: true }, { hide: id }];
 const J = text => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* ' + text });
 const Y = text => ({ speaker: '박용준', portrait: 'yongjun', voice: 'yongjun', text: '* ' + text });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* ' + text });
@@ -176,10 +184,12 @@ export const furnace_arena_intro = Object.assign([
   { bgm: TV.bgm },
   { end: true },
   { label: 'after' },
-  { remove: CAGE },
+  { remove: CAGE }, ...FENCE_GAP.map(id => ({ remove: id })),
   { action: game => {
-    const f = ent(game, FENCE);
-    for (const id of [JID, YID]) { const e = ent(game, id); if (e) { e.visible = true; setPos(e, f.x + f.w / 2 + GATHER[id] - e.w / 2, f.y + f.h + GATHER_Y); e.facing = 'down'; } }
+    // 둘은 다리를 건너 떠났고, 다리는 놓여 있고(판 + 걷는 타일), 앞 울타리 세 칸은 없다
+    for (const id of [JID, YID]) { const e = ent(game, id); if (e) e.visible = false; }
+    for (const id of BRIDGE) { const e = ent(game, id); if (e) { e.visible = true; setPos(e, e.x, e.y + BRIDGE_DROP); } }
+    for (const r of BRIDGE_ROWS) for (const c of BRIDGE_COLS) game.map.setTile(c, r, 'F');
     game.finishTvBroadcast();
   } },
   { end: true },
@@ -224,19 +234,35 @@ const AFTERMATH = [
   tvDown()[1],
   ...tvOn,
   { bgm: TV.bgm },
-  ...V('큭.. 그래 인정하마', 'facepalm'),
-  ...V('뭐 일단 이제 얼굴보면 되겠군', 'smirk'),
-  ...V('왼쪽으로갔다가 올라오면 됨 이따보자 ㅂㅇ', 'bye'),
+  // 사용자 2026-09-16 정정(“왼쪽 갔다 올라오면 됨”을 바꿈): 한 줄
+  ...V('그래 인정할테니 길을 만들어주마. 이따보자 ㅇㅇ', 'smirk'),
   // 나간다: 꺼지고 접혀 올라감, 브금도 꺼짐
   ...tvOff, { bgm: null, fadeOut: 0.8 }, ...tvUp(),
-  { camera: 'player' },
+  // 길: 웅덩이 가운데에 다리가 앞에서부터 하나씩 철컥철컥 놓이고(카메라는 웅덩이 가운데) 그 줄이 걷는 바닥이 된다
+  CAM_BRIDGE,
+  { wait: 0.3 },
+  ...BRIDGE.flatMap(id => [{ show: id }, { slide: id, by: [0, BRIDGE_DROP], duration: 0.18, sfx: 'locker' }, { wait: 0.16 }]),
+  openBridge,
+  { wait: 0.4 },
+  // 앞 울타리 세 칸이 바닥으로 철컥 내려가 없어진다
+  { parallel: FENCE_GAP.map(id => ({ slide: id, by: [0, 16], duration: 0.3, sfx: 'thud' })) },
+  ...FENCE_GAP.map(id => ({ remove: id })),
+  { wait: 0.4 },
+  // 쥰희가 빠르게 뛰쳐 나가고(다리를 건너 위로), 용준이 “형 형 기다려요 같이가요” 하고 따라간다
+  ...runOut(JID),
+  Y('형 형 기다려요 같이가요'),
+  close,
+  ...runOut(YID),
+  // 주인공 쪽으로 포커스
+  { camera: 'player', duration: 0.6 },
   { set: { furnace_aftermath_done: true } },
   { regroup: true },
 ];
 // 조작 패널(C) → 색깔 기억 게임(1인칭 씬 src/scenes/colorgame.js, BUILD198 사용자 브리핑 “패널 상호작용하면 페이드인되면서 바로 시작”).
 // 검게 → 씬이 스스로 페이드인(용광로 1인칭·TV 가 천천히 가운데로 내려옴) → 끝나면 맵으로 페이드인. 게임 뒤 연출·튜토리얼은 다음 브리핑.
 // 게임을 통과(폭발)하면 — 사용자 브리핑 원문: 페이드아웃되며 화면이 돌아옴 → 억빠맨 “...” → 오른쪽 보고 카메라 전환 → 철창이 떨어지며 폭발, 용준·쥰희가 바깥으로
-//   → 용준 “어? 살 살았다!!!” → 쥰희 “으하하 이몸 부활이다.”(쥰희 웃음) → 영클 TV 가 천천히 가운데로 내려오고 모두 모여 봄 → “큭.. 그래 인정하마 / 뭐 일단 이제 얼굴보면 되겠군 / 왼쪽으로갔다가 올라오면 됨 이따보자 ㅂㅇ” → 나감.
+//   → 용준 “어? 살 살았다!!!” → 쥰희 “으하하 이몸 부활이다.”(쥰희 웃음) → 영클 TV 가 천천히 가운데로 내려오고 모두 모여 봄 → “그래 인정할테니 길을 만들어주마. 이따보자 ㅇㅇ”(정정) → 나감
+//   → 웅덩이 가운데에 다리가 하나씩 철컥철컥 → 앞 울타리 세 칸 사라짐 → 쥰희가 빠르게 뛰쳐 나가고 용준 “형 형 기다려요 같이가요” 따라감 → 주인공 쪽으로 포커스.
 export const furnace_panel = Object.assign([
   { sfx: 'click' },
   { fade: 'out', duration: 0.5 },

@@ -27,6 +27,8 @@ TV_SCALE = 0.82                                       # 모니터 살짝 작게(
 ARM_DX, ARM_DY = 112, -298                            # 모니터암: TV 가운데 위, 프레임 안으로 22px 겹쳐 끊겨 보이지 않게
 DOOR_C0 = 14                                          # 아래 가운데 입구 cols 14~16(x448~544)
 DOOR_X = (DOOR_C0 + 1) * T + 4                        # 스폰 x(484): 24px 발판이 입구 가운데(496)에 오게
+BRIDGE_C0 = DOOR_C0                                   # 용암 다리 cols 14~16(문 기둥 줄 그대로 위로), rows 7→2 한 줄에 판 하나(iron_bridge_plank 96×32)
+BRIDGE_DROP = 40                                      # 연출 전 판은 40px 위에 숨어 있다가 철컥 내려앉는다(furnace_arena.js BRIDGE_DROP 과 같은 값)
 
 
 def main() -> None:
@@ -40,6 +42,9 @@ def main() -> None:
         for col in range(DOOR_C0, DOOR_C0 + 3):
             cells[row][col] = 'F'
     for col in range(DOOR_C0, DOOR_C0 + 3): cells[HEIGHT - 1][col] = 'H'
+    # 위 출구(BUILD199c 사용자 “길을 만들어주마”): 색 게임 뒤 연출이 웅덩이 가운데(cols 14~16)에 다리를 놓는다(연출이 L → F 로 바꿈). 그 위 rows 0~1 은 열어 둔 통로(row 0 은 가장자리 H) — 다음 맵은 다음 브리핑
+    for col in range(BRIDGE_C0, BRIDGE_C0 + 3):
+        cells[1][col] = 'F'; cells[0][col] = 'H'
     for row in range(POOL_R0, POOL_R1 + 1):
         for col in range(POOL_C0, POOL_C1 + 1):
             cells[row][col] = 'L'
@@ -62,7 +67,7 @@ def main() -> None:
         'rows': [''.join(r) for r in cells],
         'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/tiles/lava.png',
                     'assets/backdrops/youngcle_furnace.png', 'assets/props/iron_fence_short.png', 'assets/props/control_panel.png', 'assets/props/lava_cage.png',
-                    'assets/props/youngcle_tv_frame.png', 'assets/props/tv_arm.png',
+                    'assets/props/youngcle_tv_frame.png', 'assets/props/tv_arm.png', 'assets/props/iron_bridge_plank.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'yes', 'question')]],
         'spawns': {
             'bottom': {'x': DOOR_X, 'y': 15 * T + 8, 'facing': 'up'},
@@ -78,6 +83,10 @@ def main() -> None:
             {'type': 'prop', 'id': 'lava_panel', 'image': 'assets/props/control_panel.png',
              'x': 6 * T, 'y': 8 * T + 14, 'w': 64, 'h': 22, 'ix': 6 * T, 'iy': 8 * T - 4, 'solid': True, 'script': 'furnace_panel'},
             *fences,
+            # 용암 다리 판 6장(앞 row 7 → 멀리 row 2): 연출 전엔 숨김, 40px 위에서 철컥 내려앉는다. 바닥 그림이라 캐릭터 아래(sortY 아주 작게)
+            *[{'type': 'prop', 'id': f'lava_bridge_{i}', 'image': 'assets/props/iron_bridge_plank.png', 'x': BRIDGE_C0 * T, 'y': row * T - BRIDGE_DROP, 'w': 96, 'h': 32,
+               'ix': BRIDGE_C0 * T, 'iy': row * T - BRIDGE_DROP, 'solid': False, 'hidden': True, 'sortY': -100000000}
+              for i, row in enumerate(range(POOL_R1, POOL_R0 - 1, -1))],
             # 밧줄 철창(쥰희·용준): 연출 전엔 숨김. 최종 위치에 두고 연출이 위로 올렸다 내린다
             {'type': 'prop', 'id': 'lava_cage', 'image': 'assets/props/lava_cage.png', 'x': CAGE_X, 'y': CAGE_Y, 'w': 136, 'h': 360,
              'ix': CAGE_X, 'iy': CAGE_Y, 'solid': False, 'hidden': True, 'sortY': CAGE_Y + 362, 'carry': ['arena_junhee', 'arena_yongjun']},

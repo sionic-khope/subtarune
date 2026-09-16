@@ -6,7 +6,9 @@
 //   흐름: (브금 꺼진 채) 페이드인 — 쥰희 철창만 데롱데롱 → TV 드르르륵 내려옴 → 켜지며 영클 먼저(튜토리얼 대사 원문: ㅎㅇ / 튜토리얼 따위는 필요없고 / 부르는 색깔 그대로 / 제한시간안에 그를 살려라 / 준비~~ / 시작~~~!)
 //   → 2초 뒤 화면 꺼짐 → 1판부터: TV 가 색을 로봇 음성과 함께 1초에 하나씩 보여줌(화면은 그 색, 가운데 글자; 그동안 버튼은 꺼져 있어 눌리지 않는다) → 마지막 색이 꺼지면 바로 ‘GO!’ 와 함께 버튼이 켜지고 입력 차례
 //   (제한 시간은 모든 판 같음 = 철창이 실시간으로 천천히 내려감; 틀린 색을 누르면 실패가 아니라 철창이 더 빨리 내려갈 뿐; 시간을 넘기면 처음부터 — 사용자 2026-09-16 규칙) → 순서대로 누르면 철창이 드르륵 올라가고 다음 판
-//   → 8판(광기): 이상한 말(하트·nasdf·pi·레전드·응아잇어)을 빠르게 섞어 계속 말하고 오른쪽 아래 카메라가 나온다 → 3초 뒤 느낌표 버튼이 좌우로 역동적으로 움직인다 → 누르면 딸깍.. 삐요오오오옹
+//   → 판 통과: 성공 효과음 + 준비 쿨다운 2초(다음 판 번호) → 다음 판(사용자 “성공 효과음과 함께 준비시간 2초”)
+//   → 8판(광기, 사용자 정정): 빨·초·노는 보통처럼 → 파랑에서 버벅(끊긴 호출·영클 웃는 화면) → 화면이 꺼진 채 …(오른쪽 아래 카메라 페이드인) → 폭주(이상한 말을 0.3초 간격으로 계속, 치이이익 잡음, 화면 찢김)
+//   → 폭주 4초 뒤 느낌표 버튼이 좌우로 역동적으로 움직인다 → 누르면 잡음 끊기고 딸깍.. 삐요오오오옹
 //   → 주변 폭발(꾸와아앙 = 델타룬 `furnace_blast`, 사용자가 고르는 중 — assets/source/furnace198/audio/README.md) → TV 켜지며 영클 “오 ㅅㅂ 이게 머노 / 정지 정지 장비를 정지 / 안대잔아 씨바”(폭발 계속) → 쥰희 “하하 꼴좋다 쓰레기색기” → 큰 폭발, 철창이 삐요옹 위로 날아감 → 페이드아웃 → 맵(뒤는 furnace_panel 컷신).
 //   시간 초과면 철창이 용암에 풍덩 빠지는 연출(가속 낙하 → 치이익·불티·용암에 잠김) → TIME OVER + ‘C 재시도’ → 그 판부터 다시(사용자 2026-09-16 최종: “실패하면 그 단계부터”, “풍덩 빠지는 연출, 재시도 C”).
 //   Esc 로 나감(브금 복귀). 마우스: 형섭 손이 커서를 따라다니고 클릭하면 검지가 눌린다(사용자 “형섭 손 같은 게 눌러지는 것”).
@@ -14,7 +16,7 @@
 import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
-import { COLORS, STAGES, RULES, makeRound, stepRound, pressRound, passRound, passReady, answerProgress, wordOf } from './colorgame-core.js';
+import { COLORS, STAGES, RULES, makeRound, stepRound, pressRound, passRound, passReady, answerProgress, wordOf, chaosPhase } from './colorgame-core.js';
 import { YOUNGCLE_TV } from '../data/youngcle-tv.js';
 
 const ASSETS = {
@@ -53,9 +55,9 @@ const HAND = { tipX: 18, tipY: 2, press: 0.2 };
 const BANG = { r: 24, cx: 240, y: 118, swing: 150, speed: 2.9 };   // 느낌표 버튼: 좌우로 역동적으로
 const BLAST = { cols: 31, fw: 85, fh: 128, fps: 20, every: 0.3 };
 const TALKBOX = { x: 16, y: 260, w: 448, h: 92 };
-const CLEAR_HOLD = 1.15, GO_FLASH = 0.6, POWER_ON = 0.8, COUNTDOWN = 2.0, FLICKER = 0.09, CHAR_DELAY = 0.035;
+const CLEAR_HOLD = 1.15, GO_FLASH = 0.6, POWER_ON = 0.8, COUNTDOWN = 2.0, FLICKER = 0.09, CHAR_DELAY = 0.035, STUTTER_HOLD = 0.22, LAUGH_HOLD = 0.38;
 const PLUNGE = { sink: 40, depth: 200, accel: 900, embers: 40 };   // 풍덩: 철창 밑이 용암 면(farY+sink) 아래로 depth 만큼 잠기면 끝
-const MIX = { voice: 0.95, click: 0.55, tone: 0.22, blast: 0.5, bigBlast: 0.95 };
+const MIX = { voice: 0.95, click: 0.55, tone: 0.22, blast: 0.5, bigBlast: 0.95, hiss: 0.45 };
 
 function loadImage(src) {
   const img = new Image();
@@ -104,12 +106,10 @@ export function run(game, node = {}) {
     const sound = game.sound;
     const sfx = (name, volume = 0.7, rate = 1) => sound.sfx(name, { volume, rate });
     const voiceNames = STAGES.flat().filter((id, i, a) => a.indexOf(id) === i).map(id => `color_${id}`);
-    sound.loadSfxFiles([...voiceNames, 'furnace_blast']).catch(() => {});
+    sound.loadSfxFiles([...voiceNames, 'furnace_blast', 'static_loop']).catch(() => {});
     const typer = new Typewriter(sound);
-    // 카메라 영상(마지막 판): 소리 없이 반복
-    const cam = document.createElement('video');
-    cam.src = RULES.camVideo; cam.loop = true; cam.muted = true; cam.playsInline = true; cam.preload = 'auto'; cam.style.display = 'none';
-    document.body.appendChild(cam);
+    // 카메라(마지막 판 오른쪽 아래): 사용자 지정 클립을 15fps PNG 띠로 그린다 — <video> 는 H.264 가 없는 브라우저에서 검게만 나왔다(사용자 “검은 화면밖에 안 보여”)
+    const camStrip = loadImage(RULES.camStrip.src);
 
     const state = {
       t: 0, phase: 'enter', phaseT: 0, exiting: false,
@@ -118,7 +118,7 @@ export function run(game, node = {}) {
       buttons: COLORS.map(() => ({ lit: 0, down: 0 })),
       mouse: { x: -100, y: -100, inside: false }, hand: { press: 0 },
       cage: { drop: 0, target: 0, jolt: 0, fly: 0, flyV: 0 }, portrait: { kind: 'idle', t: 0 }, flash: 0, shake: 0, go: 0, active: 0,
-      camAlpha: 0, camOn: false, embers: [], bubbles: [], lavaT: 0, glitch: 0,
+      camAlpha: 0, camOn: false, camT: 0, embers: [], bubbles: [], lavaT: 0, glitch: 0, rampage: false, hiss: null, tvJolt: 0,
       bang: null, blasts: [], blasting: false, blastT: 0, blowup: null,
     };
     const prev = Object.create(null);
@@ -126,26 +126,25 @@ export function run(game, node = {}) {
 
     const finish = (found) => {
       if (state.exiting) return; state.exiting = true;
-      try { cam.pause(); } catch (e) { /* */ } cam.remove();
+      stopHiss();
       // 통과(폭발)로 나가면 뒤 컷신이 브금을 잡는다. Esc 로 나가면 맵 브금 복귀
       if (!found) sound.resumeBgm(0.6);
       ov.root.style.transition = 'opacity 0.6s ease'; ov.root.style.opacity = '0';
       setTimeout(() => { cancelAnimationFrame(raf); removeEventListener('resize', ov.fit); ov.root.remove(); delete window.__colorgame; resolve({ found }); }, 620);
     };
     const setScreen = (kind, extra = {}) => { state.screen = { kind, ...extra }; state.screenT = 0; };
-    const camShow = (on) => {
-      state.camOn = on;
-      if (on) { try { cam.currentTime = 0; } catch (e) { /* */ } cam.play().catch(() => {}); sfx('static_burst', 0.4); }
-    };
+    const camShow = (on) => { state.camOn = on; if (on) { state.camT = 0; sfx('static_burst', 0.4); } };
+    // 폭주 잡음(치이이익): static_loop 를 돌리다 느낌표를 누르거나 나갈 때 끊는다
+    const stopHiss = () => { const a = state.hiss; if (!a) return; state.hiss = null; try { a.pause(); a.src = ''; } catch (e) { /* */ } };
+    const startHiss = () => { stopHiss(); const a = sound.sfx('static_loop', { volume: MIX.hiss }); if (a && typeof a === 'object') { a.loop = true; state.hiss = a; } };
     // 대사(영클/쥰희): C 나 클릭으로 넘긴다. face 가 있으면 TV 에 그 그림
     const talkLine = (l) => { typer.start(l.text, SPEAKERS[l.who].voice); if (l.face) { state.face = l.face; setScreen('face'); } };
     const startTalk = (lines, next) => { state.phase = 'talk'; state.phaseT = 0; state.talk = { lines, i: 0, next }; talkLine(lines[0]); };
     const advanceTalk = () => { const tk = state.talk; tk.i += 1; if (tk.i >= tk.lines.length) { state.talk = null; tk.next(); return; } talkLine(tk.lines[tk.i]); };
     // 판 시작: TV 가 색을 부르기 시작한다. 마지막 판이면 카메라
     const startStage = (stage) => {
-      state.stage = stage; state.round = makeRound(stage); state.over = null; state.phase = 'round'; state.phaseT = 0; state.bang = null;
+      state.stage = stage; state.round = makeRound(stage); state.over = null; state.phase = 'round'; state.phaseT = 0; state.bang = null; state.rampage = false;
       setScreen('dark'); state.portrait = { kind: 'idle', t: 0 };
-      if (state.round.chaos && !state.camOn) camShow(true);
     };
     // 재시도(C): 철창을 위로 되돌리고 실패한 그 판부터(사용자 “실패하면 그 단계부터”)
     const retry = () => { sfx('chain_extend', 0.6); state.cage.drop = 0; state.cage.target = 0; state.cage.fly = 0; state.cage.flyV = 0; state.cage.sunk = false; startStage(state.stage); };
@@ -185,6 +184,7 @@ export function run(game, node = {}) {
     const passNow = () => {
       const r = passRound(state.round); if (r.type !== 'pass') return r;
       state.bang = null; state.phase = 'blowup'; state.phaseT = 0; state.blowup = { whistle: false, blast: false, tv: false };
+      stopHiss(); state.rampage = false;
       setScreen('dark'); sfx('click', 0.8); state.hand.press = HAND.press;
       return r;
     };
@@ -212,6 +212,8 @@ export function run(game, node = {}) {
       for (const b of state.buttons) { b.lit = Math.max(0, b.lit - dt); b.down = Math.max(0, b.down - dt); }
       state.portrait.t += dt; state.cage.jolt = Math.max(0, state.cage.jolt - dt);
       state.camAlpha = Math.max(0, Math.min(1, state.camAlpha + (state.camOn ? dt / MONITOR.fade : -dt * 2)));
+      if (state.camOn) state.camT += dt;
+      state.tvJolt = Math.max(0, state.tvJolt - dt);
       // 철창: 입력 차례엔 제한 시간에 정비례해 실시간으로 내려가고(틀리면 더 빨리), 통과하면 드르륵 위로 되돌아간다
       if (state.cage.target > state.cage.drop) state.cage.drop = state.cage.target;
       else state.cage.drop += (state.cage.target - state.cage.drop) * Math.min(1, dt * 3);
@@ -256,21 +258,30 @@ export function run(game, node = {}) {
         const round = state.round;
         for (const e of stepRound(round, dt)) {
           if (e.type === 'call') {
-            const w = wordOf(e.id);
-            setScreen(w.kind === 'color' ? 'color' : 'noise', { id: e.id, hold: Math.min(RULES.callHold, round.gap - 0.12) });
+            const w = wordOf(e.id), gap = state.rampage ? round.gap : RULES.callGap;
+            setScreen(w.kind === 'color' ? 'color' : 'noise', { id: e.id, hold: Math.min(RULES.callHold, gap - 0.12) });
             sfx(`color_${e.id}`, MIX.voice);
             if (w.kind === 'noise') state.glitch = 0.3;
+            if (state.rampage) { state.glitch = 0.5; state.tvJolt = 0.15; }
           }
+          // 광기 판: 버벅(끊긴 호출이 불규칙하게 반복, 화면·TV 떨림) → 영클 웃는 화면 → 꺼짐 …(카메라 페이드인) → 폭주(치이이익 잡음)
+          if (e.type === 'stutter') { setScreen('stutter', { id: e.id, k: e.k, hold: STUTTER_HOLD }); sound.sfx(`color_${e.id}`, { volume: MIX.voice, rate: 0.85 + Math.random() * 0.4, len: 0.16 + Math.random() * 0.22 }); state.glitch = 0.3; state.tvJolt = 0.25; }
+          if (e.type === 'laugh') { state.face = 'laugh'; setScreen('face', { hold: LAUGH_HOLD }); sfx('static_burst', 0.3); }
+          if (e.type === 'off') { setScreen('dead'); sfx('click', 0.6); camShow(true); }
+          if (e.type === 'rampage') { state.rampage = true; startHiss(); sfx('sizzle', 0.6); sfx('static_burst', 0.5); state.shake = 0.4; state.glitch = 0.6; }
           if (e.type === 'answer') { setScreen('answer'); state.go = GO_FLASH; sfx('confirm', 0.5); }
           if (e.type === 'timeout') fail('timeout');
         }
-        // 호출 색은 hold 만큼 켜졌다가 잠깐 꺼진다(같은 색 연속 구분)
-        if ((state.screen.kind === 'color' || state.screen.kind === 'noise') && state.screenT >= state.screen.hold) setScreen('dark');
+        // 호출 색·버벅·웃는 화면은 hold 만큼 켜졌다가 잠깐 꺼진다(같은 색 연속 구분)
+        const sk = state.screen.kind;
+        if ((sk === 'color' || sk === 'noise' || sk === 'stutter' || (sk === 'face' && state.screen.hold)) && state.screenT >= state.screen.hold) setScreen(state.rampage || round.t < (round.offAt ?? Infinity) ? 'dark' : 'dead');
         state.cage.target = answerProgress(round);
         if (passReady(round) && !state.bang) { state.bang = { t: 0 }; sfx('pop', 0.6); }
         return;
       }
-      if (state.phase === 'clear') { if (state.phaseT >= CLEAR_HOLD) startStage(state.stage + 1); return; }
+      if (state.phase === 'clear') { if (state.phaseT >= CLEAR_HOLD) { state.phase = 'ready'; state.phaseT = 0; setScreen('ready'); } return; }
+      // 준비 쿨다운(사용자 “성공 효과음과 함께 준비시간 2초 쿨다운”): 다음 판 번호를 보여 주고 2초 뒤 호출 시작
+      if (state.phase === 'ready') { if (state.phaseT >= RULES.clearReady) startStage(state.stage + 1); return; }
       if (state.phase === 'plunge') {
         const r = cageRect(), surface = POOL.farY + PLUNGE.sink;
         if (!state.cage.splashed && r.y + r.h >= surface) splash();
@@ -358,7 +369,8 @@ export function run(game, node = {}) {
       else { ctx.strokeStyle = '#60f4e0'; ctx.strokeRect(r.x, r.y + 160, r.w, 128); }
       if (sinking) ctx.restore();
     };
-    const tvRect = () => { const w = Math.round(288 * TV.scale), h = Math.round(176 * TV.scale); return { x: Math.round(TV.cx - w / 2), y: Math.round(state.tvY), w, h }; };
+    // TV 떨림: 버벅·폭주 호출 때 프레임이 ±2px, 폭주 중엔 늘 ±1px
+    const tvRect = () => { const w = Math.round(288 * TV.scale), h = Math.round(176 * TV.scale), j = state.tvJolt > 0 ? 2 : state.rampage ? 1 : 0; return { x: Math.round(TV.cx - w / 2 + (j ? (Math.random() - 0.5) * 2 * j : 0)), y: Math.round(state.tvY + (j ? (Math.random() - 0.5) * 2 * j : 0)), w, h }; };
     const screenRect = () => { const r = tvRect(), [ix, iy, iw, ih] = TV.inset; return { x: r.x + Math.round(ix * TV.scale), y: r.y + Math.round(iy * TV.scale), w: Math.round(iw * TV.scale), h: Math.round(ih * TV.scale) }; };
     const drawFace = (r, key) => { const f = faces[key]; if (ready(f)) ctx.drawImage(f.img, r.x, r.y, r.w, r.h); };
     const drawScreen = () => {
@@ -380,6 +392,23 @@ export function run(game, node = {}) {
         ctx.fillStyle = COLORS[(flick * 3 + s.id.length) % COLORS.length].dark; ctx.fillRect(r.x, r.y, r.w, r.h);
         for (let i = 0; i < 6; i++) { const y = r.y + ((state.t * 260 + i * 17) % r.h); ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(r.x, Math.round(y), r.w, 2); }
         text(wordOf(s.id).label, r.x + r.w / 2 + Math.round((Math.random() - 0.5) * 4), r.y + r.h / 2 - 16, { align: 'center', size: 32, color: '#fff' });
+      } else if (s.kind === 'stutter') {
+        // 버벅: 색이 켜졌다 꺼졌다 하고 글자가 끊긴다(BL- / BLU- / B-BLUE), 검은 줄이 지나간다
+        const c = wordOf(s.id), on = Math.floor(state.screenT / 0.05) % 3 !== 2, cut = [1, 2, 3, 2, 4, 1, 3, 2, 5, 3][s.k % 10];
+        ctx.fillStyle = on ? c.hex : c.dark; ctx.fillRect(r.x, r.y, r.w, r.h);
+        for (let i = 0; i < 3; i++) { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(r.x, r.y + Math.floor(Math.random() * r.h), r.w, 3); }
+        text((s.k % 3 === 2 ? c.en[0] + '-' : '') + c.en.slice(0, cut), r.x + r.w / 2 + Math.round((Math.random() - 0.5) * 6), r.y + r.h / 2 - 16 + Math.round((Math.random() - 0.5) * 4), { align: 'center', size: 32, color: '#fff' });
+      } else if (s.kind === 'dead') {
+        // 꺼진 화면 … (광기 판, 폭주 직전)
+        ctx.fillStyle = '#020305'; ctx.fillRect(r.x, r.y, r.w, r.h);
+        if (Math.floor(state.screenT * 1.5) % 2 === 0) text('. . .', r.x + r.w / 2, r.y + r.h / 2 - 12, { align: 'center', size: 24, color: '#262d3a', shadow: false });
+      } else if (s.kind === 'ready') {
+        // 준비 쿨다운: 다음 판 번호 + 준비… + 차오르는 띠
+        ctx.fillStyle = '#0a0f16'; ctx.fillRect(r.x, r.y, r.w, r.h);
+        text(`ROUND ${state.stage + 2}`, r.x + r.w / 2, r.y + r.h / 2 - 30, { align: 'center', size: 24, color: '#ffe066' });
+        if (Math.floor(state.phaseT * 3) % 2 === 0) text('준비...', r.x + r.w / 2, r.y + r.h / 2 + 2, { align: 'center', size: 20, color: '#cfd8e6' });
+        const k = Math.min(1, state.phaseT / RULES.clearReady);
+        ctx.fillStyle = '#1f2a3a'; ctx.fillRect(r.x + 8, r.y + r.h - 9, r.w - 16, 4); ctx.fillStyle = '#60f4e0'; ctx.fillRect(r.x + 8, r.y + r.h - 9, Math.round((r.w - 16) * k), 4);
       } else if (s.kind === 'answer' || s.kind === 'dark') {
         ctx.fillStyle = '#0a0f16'; ctx.fillRect(r.x, r.y, r.w, r.h);
         if (state.round && s.kind === 'answer' && state.go > 0) {
@@ -400,6 +429,8 @@ export function run(game, node = {}) {
           if (state.round.speed > 1) text(`x${state.round.speed.toFixed(1)}`, r.x + r.w - 8, r.y + r.h - 28, { align: 'right', color: '#ff4a4a' });
         } else if (state.round && state.phase === 'round' && Math.floor(state.screenT * 4) % 2 === 0) text('. . .', r.x + r.w / 2, r.y + r.h / 2 - 12, { align: 'center', size: 24, color: '#4a5568', shadow: false });
       }
+      // 폭주: 화면이 찢긴다(밝은 띠가 아무 데나)
+      if (state.rampage && s.kind !== 'face') for (let i = 0; i < 3; i++) { ctx.fillStyle = `rgba(255,255,255,${0.15 + Math.random() * 0.25})`; ctx.fillRect(r.x, r.y + Math.floor(Math.random() * r.h), r.w, 2 + Math.floor(Math.random() * 5)); }
       ctx.fillStyle = 'rgba(255,255,255,0.05)'; for (let y = r.y; y < r.y + r.h; y += 3) ctx.fillRect(r.x, y, r.w, 1);
       ctx.restore();
     };
@@ -460,7 +491,7 @@ export function run(game, node = {}) {
       if (state.camAlpha > 0) {
         ctx.globalAlpha = state.camAlpha;
         ctx.fillStyle = '#000'; ctx.fillRect(vx, vy, vw, vh);
-        if (cam.readyState >= 2) { try { ctx.drawImage(cam, vx, vy, vw, vh); } catch (e) { /* */ } }
+        if (ready(camStrip)) { const cs = RULES.camStrip, f = Math.floor(state.camT * cs.fps) % cs.frames; ctx.drawImage(camStrip.img, (f % cs.cols) * cs.size, Math.floor(f / cs.cols) * cs.size, cs.size, cs.size, vx, vy, vw, vh); }
         ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let y = vy; y < vy + vh; y += 3) ctx.fillRect(vx, y, vw, 1);
         if (Math.floor(state.t * 2) % 2 === 0) { ctx.fillStyle = '#ff2b2b'; ctx.fillRect(vx + 4, vy + 4, 5, 5); }
         ctx.globalAlpha = 1;
@@ -509,11 +540,15 @@ export function run(game, node = {}) {
     window.__colorgame = {
       state, finish, retry, press: (id) => press(COLORS.findIndex(c => c.id === id)), clickAt, buttonRect, buttonCenter, hitButton, monitorRect: () => ({ ...MONITOR }), tvRect, screenRect, cageRect,
       bangPos: () => (state.bang ? bangPos(state.bang.t) : null), passNow, talkbox: { ...TALKBOX },
-      get round() { return state.round; }, get cam() { return cam; }, get typer() { return typer; },
+      get round() { return state.round; }, get typer() { return typer; }, get hiss() { return !!state.hiss; },
+      get cam() { const cs = RULES.camStrip; return { on: state.camOn, t: state.camT, ready: ready(camStrip), frame: Math.floor(state.camT * cs.fps) % cs.frames }; },
+      chaosPhase: () => chaosPhase(state.round),
+      // 모니터 칸의 평균 밝기(0~255) — 카메라 그림이 실제로 그려지는지(검은 화면이 아닌지) 재는 용도
+      monitorMean() { const m = MONITOR, d = ctx.getImageData(m.x + 3, m.y + 3, m.w - 6, m.h - 6).data; let sum = 0; for (let i = 0; i < d.length; i += 4) sum += d[i] + d[i + 1] + d[i + 2]; return sum / (d.length / 4) / 3; },
       skipTo(stage) { state.talk = null; state.tvY = TV.restY; state.tvOn = 1; startStage(stage); },
       // 호출 단계를 건너뛰고 바로 입력 차례로(정답 확인용) / 느낌표를 바로 띄움
       answerNow() { const r = state.round; if (!r || r.status !== 'calling' || r.chaos) return; r.next = r.calls.length; r.t = r.answerAt; },
-      bangNow() { const r = state.round; if (r && r.chaos) r.t = Math.max(r.t, RULES.chaosPassAt); },
+      bangNow() { const r = state.round; if (r && r.chaos) r.t = Math.max(r.t, r.passAt); },
     };
   });
 }

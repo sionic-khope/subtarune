@@ -53,6 +53,14 @@ export class TileMap {
     return getTile(this.rows[ty][tx] ?? ' ');
   }
 
+  /** 타일 한 칸을 바꾼다(연출로 길이 생길 때 — 용광로 다리 BUILD199c). 다음 draw 에서 한 번 다시 굽는다 */
+  setTile(tx, ty, ch) {
+    if (this.image || ty < 0 || ty >= this.h || tx < 0 || tx >= this.w) return;
+    const row = this.rows[ty]; if (row[tx] === ch) return;
+    this.rows[ty] = row.slice(0, tx) + ch + row.slice(tx + 1);
+    this.canvas = null;
+  }
+
   /** 픽셀 사각형이 막힌 타일과 겹치는지 */
   solidRect(x, y, w, h) {
     if (this.image) return this._imageSolid(x, y, w, h);
