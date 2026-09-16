@@ -11,7 +11,7 @@ let fails = 0;
 const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'color_' + n + '.png') }); };
 const pressC = async () => { await page.keyboard.press('KeyC'); await page.waitForTimeout(160); };
-const st = () => page.evaluate(() => { const c = window.__colorgame; if (!c) return null; const s = c.state, r = s.round; return { phase: s.phase, stage: s.stage, tvY: Math.round(s.tvY), tvOn: s.tvOn, screen: s.screen.kind, screenId: s.screen.id || null, face: s.face, talk: s.talk ? { i: s.talk.i, n: s.talk.lines.length, text: s.talk.lines[s.talk.i].text, who: s.talk.lines[s.talk.i].who } : null, round: r ? { status: r.status, i: r.i, n: r.expected.length, chaos: r.chaos, gap: r.gap, t: Math.round(r.t * 100) / 100, loops: r.loops, speed: r.speed, wrongs: r.wrongs, expected: r.expected } : null, over: s.over, go: s.go > 0, active: s.active, btnDown: s.buttons.map(b => b.down > 0), sunk: !!s.cage.sunk, splashed: !!s.cage.splashed, cageY: c.cageRect().y, cageDrop: Math.round(s.cage.drop * 100) / 100, cageFly: Math.round(s.cage.fly), camOn: s.camOn, camAlpha: Math.round(s.camAlpha * 100) / 100, camReady: c.cam.ready, camFrame: c.cam.frame, hiss: c.hiss, rampage: s.rampage, chaosPhase: c.chaosPhase(), bang: c.bangPos(), blasting: s.blasting, blasts: s.blasts.length, hand: s.mouse.inside, press: s.hand.press > 0 }; });
+const st = () => page.evaluate(() => { const c = window.__colorgame; if (!c) return null; const s = c.state, r = s.round; return { phase: s.phase, stage: s.stage, tvY: Math.round(s.tvY), tvOn: s.tvOn, screen: s.screen.kind, screenId: s.screen.id || null, face: s.face, talk: s.talk ? { i: s.talk.i, n: s.talk.lines.length, text: s.talk.lines[s.talk.i].text, who: s.talk.lines[s.talk.i].who } : null, round: r ? { status: r.status, i: r.i, n: r.expected.length, chaos: r.chaos, gap: r.gap, t: Math.round(r.t * 100) / 100, loops: r.loops, speed: r.speed, wrongs: r.wrongs, expected: r.expected } : null, over: s.over, go: s.go > 0, active: s.active, btnDown: s.buttons.map(b => b.down > 0), sunk: !!s.cage.sunk, splashed: !!s.cage.splashed, cageY: c.cageRect().y, cageDrop: Math.round(s.cage.drop * 100) / 100, cageFly: Math.round(s.cage.fly), camOn: s.camOn, camAlpha: Math.round(s.camAlpha * 100) / 100, camReady: c.cam.ready, camFrame: c.cam.frame, white: Math.round(s.white * 100) / 100, confirm: c.confirm ? c.confirm.sel : null, hiss: c.hiss, rampage: s.rampage, chaosPhase: c.chaosPhase(), bang: c.bangPos(), blasting: s.blasting, blasts: s.blasts.length, hand: s.mouse.inside, press: s.hand.press > 0 }; });
 const g = () => page.evaluate(() => { const g = window.game; const e = id => g.entities.find(x => x.id === id && !x.dead); const tv = e('youngcle_tv'), cage = e('lava_cage'), j = e('arena_junhee'), y = e('arena_yongjun');
   return { map: g.mapId, dialogue: g.dialogue.running, text: g.textbox.node?.text?.slice(0, 50), px: Math.round(g.player.x), py: Math.round(g.player.y), camx: Math.round(g.camera.x), camy: Math.round(g.camera.y),
     tv: tv ? { x: Math.round(tv.x), y: Math.round(tv.y), phase: g.tvBroadcast?.phase, expr: g.tvBroadcast?.expression } : null, cage: cage ? { x: Math.round(cage.x), y: Math.round(cage.y), visible: cage.visible } : null,
@@ -27,9 +27,21 @@ const waitPhase = (phase, timeout = 8000) => page.waitForFunction((p) => window.
 try {
   await page.goto('http://localhost:8000/?qa=furnace_color');
   await page.waitForFunction(() => !!window.__colorgame, null, { timeout: 25000 });
+  // ⓪ Esc → “바탕화면으로 돌아가시겠습니까?” 예/아니오(사용자): 기본은 아니오, 왼쪽으로 예 → C 로 나가면 씬이 끝나고 맵 브금 복귀. 그 뒤 다시 들어와 이어서 검사
+  await page.waitForTimeout(600); await page.keyboard.press('Escape'); await page.waitForTimeout(150); let s = await st(); await cap('quit_confirm');
+  check(s.confirm === 1, 'Esc → 확인 상자(기본 아니오) ' + JSON.stringify(s.confirm));
+  const tvBefore = s.tvY; await page.waitForTimeout(400); s = await st();
+  check(s.confirm === 1 && s.tvY === tvBefore, '상자가 열린 동안 게임이 멈춘다(TV 안 내려옴) ' + JSON.stringify([s.tvY, tvBefore]));
+  await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(100); s = await st(); check(s.confirm === 0, '← 로 예 선택');
+  await pressC(); await page.waitForFunction(() => !window.__colorgame, null, { timeout: 3000 }).catch(() => {});
+  await page.waitForFunction(() => !window.game.dialogue.running && !window.game.transitioning, null, { timeout: 5000 }).catch(() => {});
+  const quit = await page.evaluate(() => [!window.__colorgame, window.game.mapId, window.game.dialogue.running, !!document.getElementById('colorgame')]);
+  check(quit[0] && quit[1] === 'youngcle18' && !quit[2] && !quit[3], '예 → 씬이 끝나 광장으로(오버레이 제거, 조작 복귀) ' + JSON.stringify(quit));
+  await page.goto('http://localhost:8000/?qa=furnace_color');
+  await page.waitForFunction(() => !!window.__colorgame, null, { timeout: 25000 });
   // ① 페이드인 뒤 TV 가 천천히 내려온다(중간 프레임) — 브금은 멈춤
   await page.waitForFunction(() => { const s = window.__colorgame.state; return s.phase === 'drop' && s.tvY > -150 && s.tvY < -20; }, null, { timeout: 8000 }).catch(() => {});
-  await cap('tv_down'); let s = await st();
+  await cap('tv_down'); s = await st();
   check(s.phase === 'drop' && s.tvY < 0, 'TV 가 위에서 천천히 내려오는 중 ' + JSON.stringify([s.phase, s.tvY]));
   const bgm = await page.evaluate(() => [window.game.sound.bgmName, !!window.game.sound.paused]);
   check(!bgm[0], '씬 동안 맵 브금 꺼짐(일시정지) ' + JSON.stringify(bgm));
@@ -45,6 +57,11 @@ try {
   await page.waitForFunction(() => { const s = window.__colorgame.state; return s.phase === 'round' && s.screen.kind === 'color' && s.screen.id === 'red'; }, null, { timeout: 6000 }).catch(() => {});
   await cap('call_red'); s = await st();
   check(s.phase === 'round' && s.stage === 0 && s.screen === 'color' && s.screenId === 'red', '1판: TV 화면이 빨강 + RED 글자 ' + JSON.stringify([s.phase, s.stage, s.screen, s.screenId]));
+  // 판 중 Esc: 상자가 뜨고 판 시간이 멈춘다 → X(아니오) 로 닫으면 이어서
+  await page.keyboard.press('Escape'); await page.waitForTimeout(120); s = await st(); const tHold = s.round.t; await page.waitForTimeout(400); s = await st();
+  check(s.confirm === 1 && s.round.t === tHold, '판 중 Esc → 상자, 판 시간 멈춤 ' + JSON.stringify([s.confirm, tHold, s.round.t]));
+  await page.keyboard.press('KeyX'); await page.waitForTimeout(300); s = await st();
+  check(s.confirm === null && s.phase === 'round' && s.round.t > tHold, 'X → 닫히고 판이 이어진다 ' + JSON.stringify([s.confirm, s.phase, s.round.t]));
   const voices = await page.evaluate(() => ['color_red', 'color_navy', 'color_ngaita', 'furnace_blast'].map(n => !!window.game.sound.files[n]));
   check(voices.every(Boolean), '로봇 음성·폭발음 파일 로드 ' + JSON.stringify(voices));
   // 호출 중엔 버튼이 꺼져 있어 눌러도 아무 일도 없다(전에 누른 게 무시돼 다음 색이 틀렸다고 나오던 것)
@@ -65,10 +82,12 @@ try {
   check(s.cageDrop < dropMid, '통과하면 철창이 다시 위로 ' + JSON.stringify([dropMid, s.cageDrop]));
   await cap('clear');
   // 통과 뒤 준비 쿨다운 2초(사용자 “성공 효과음과 함께 준비시간 2초”): 다음 판 번호를 보여 주고 나서 2판
-  check(await waitPhase('ready', 3000), '통과 뒤 준비 쿨다운'); const readyAt = Date.now(); await page.waitForTimeout(300); await cap('ready'); s = await st();
+  check(await waitPhase('ready', 3000), '통과 뒤 준비 쿨다운'); await page.waitForTimeout(300); await cap('ready'); s = await st();
   check(s.phase === 'ready' && s.screen === 'ready' && s.stage === 0, '준비 화면(ROUND 2) ' + JSON.stringify([s.phase, s.screen]));
+  // 준비가 2초 가는지는 씬의 시계(phaseT)로 잰다(브라우저 폴링 지연과 무관)
+  let readyMax = 0; for (let i = 0; i < 60; i++) { const x = await page.evaluate(() => [window.__colorgame.state.phase, window.__colorgame.state.phaseT]); if (x[0] === 'ready') readyMax = Math.max(readyMax, x[1]); else if (x[0] === 'round') break; await page.waitForTimeout(60); }
   // ⑤ 2판: 틀린 색을 누르면 실패가 아니라 철창이 더 빨리 내려갈 뿐, 맞는 색부터 이어서 통과
-  check(await waitPhase('round', 4000), '2판 시작'); s = await st(); check(s.stage === 1 && Date.now() - readyAt >= 1600, '준비 2초 뒤 2판 ' + JSON.stringify([s.stage, Date.now() - readyAt]));
+  check(await waitPhase('round', 4000), '2판 시작'); s = await st(); check(s.stage === 1 && readyMax >= 1.7, '준비 2초 뒤 2판 ' + JSON.stringify([s.stage, Math.round(readyMax * 100) / 100]));
   await page.evaluate(() => window.__colorgame.answerNow()); await page.waitForTimeout(100);
   const d0 = (await st()).cageDrop;
   await clickColor('blue'); s = await st();
@@ -93,9 +112,10 @@ try {
   // ⑦ 8판(광기): 빨·초·노는 보통처럼 → 파랑에서 버벅(끊긴 호출 + 영클 웃는 화면) → 화면 꺼짐 …(카메라 페이드인) → 폭주(0.3초 간격 반복 + 치이익) → 느낌표는 폭주 4초 뒤
   await page.evaluate(() => window.__colorgame.skipTo(7)); await page.waitForTimeout(600); s = await st();
   check(s.round && s.round.chaos && s.chaosPhase === 'normal' && s.screen === 'color' && s.screenId === 'red' && !s.camOn, '광기 판 시작: RED 는 보통처럼, 카메라는 아직 ' + JSON.stringify([s.chaosPhase, s.screen, s.screenId, s.camOn]));
-  const kinds = new Set(), faces = new Set();
-  for (let i = 0; i < 60; i++) { const x = await st(); kinds.add(x.screen); if (x.screen === 'face') faces.add(x.face); if (x.chaosPhase === 'off') break; await page.waitForTimeout(100); }
+  const kinds = new Set(), faces = new Set(); let camEarly = null;
+  for (let i = 0; i < 60; i++) { const x = await st(); kinds.add(x.screen); if (x.screen === 'face') faces.add(x.face); if (x.chaosPhase === 'stutter' && x.camOn && camEarly === null) camEarly = x.round.t; if (x.chaosPhase === 'off') break; await page.waitForTimeout(100); }
   check(kinds.has('stutter') && faces.has('laugh'), '파랑에서 버벅이고 영클이 한 번씩 웃는 화면 ' + JSON.stringify([[...kinds], [...faces]]));
+  check(camEarly !== null && camEarly >= 5.5 && camEarly < 6.6, '카메라는 화면이 꺼지기 1초 전(버벅 중, 5.6초)부터 페이드인 ' + JSON.stringify(camEarly));
   await page.waitForFunction(() => window.__colorgame.chaosPhase() === 'off', null, { timeout: 6000 }).catch(() => {});
   await page.waitForTimeout(1200); await cap('chaos_off'); s = await st();
   check(s.chaosPhase === 'off' && s.screen === 'dead' && s.camOn && s.camAlpha > 0.4 && s.camReady && s.bang === null, '화면이 꺼진 채 … 오른쪽 아래 카메라가 페이드인(느낌표 아직) ' + JSON.stringify([s.chaosPhase, s.screen, s.camOn, s.camAlpha, s.camReady]));
@@ -117,13 +137,16 @@ try {
   check(await waitPhase('talk', 6000), '폭발 뒤 TV 켜지며 영클 대사'); await page.waitForTimeout(400); s = await st();
   const bl = await page.evaluate(() => window.__colorgame.state.talk.lines.map(l => `${l.who}:${l.text}`));
   check(bl[0] === 'youngcle:오 ㅅㅂ 이게 머노' && bl[1] === 'youngcle:정지 정지 장비를 정지' && bl[2] === 'youngcle:안대잔아 씨바' && bl[3] === 'junhee:하하 꼴좋다 쓰레기색기', '폭발 대사 원문 ' + JSON.stringify(bl));
-  check(s.blasting && s.blasts > 0 && s.face === 'shock', '대사 동안 주변 폭발이 계속 ' + JSON.stringify([s.blasting, s.blasts, s.face]));
+  check(s.blasting && s.blasts > 0 && s.face === 'surprise', '대사 동안 주변 폭발이 계속, 영클은 느낌표만 있는 surprise 얼굴(19책 shock 아님) ' + JSON.stringify([s.blasting, s.blasts, s.face]));
   await cap('blowup');
   for (let i = 0; i < 10; i++) { s = await st(); if (!s || s.phase !== 'talk') break; await pressC(); await page.waitForTimeout(60); }
   check(await waitPhase('boomcage', 3000), '쥰희 대사 뒤 큰 폭발'); await page.waitForTimeout(700); s = await st();
   check(s.cageFly < -30, '철창이 위로 날아간다 ' + JSON.stringify(s.cageFly)); await cap('cage_fly');
-  await page.waitForFunction(() => !window.__colorgame, null, { timeout: 8000 }).catch(() => {});
-  check(!(await page.evaluate(() => !!window.__colorgame)), '씬이 끝나 맵으로');
+  // 더 오래 폭발하며 화면이 천천히 하얘진다: 큰 폭발 2.5초 뒤엔 반쯤 하얗고 아직 폭발 중, 씬은 5초 넘게 더 간다
+  const boomAt = Date.now(); await page.waitForTimeout(1800); s = await st(); await cap('whiteout');
+  check(s.phase === 'boomcage' && s.blasting && s.white > 0.2 && s.white < 0.8, '큰 폭발 뒤 계속 폭발하며 화면이 천천히 하얘지는 중 ' + JSON.stringify([s.phase, s.blasting, s.white, s.blasts]));
+  await page.waitForFunction(() => !window.__colorgame, null, { timeout: 12000 }).catch(() => {});
+  check(!(await page.evaluate(() => !!window.__colorgame)) && Date.now() - boomAt >= 4500, '다 하얘진 뒤 씬이 끝나 맵으로(큰 폭발 뒤 5초 이상) ' + JSON.stringify(Date.now() - boomAt));
   // ⑨ 광장 복귀 연출: 억빠맨 … → 오른쪽 → 철창 낙하 폭발 → 둘 탈출 → 대사 → TV 가운데 → 대사 → 퇴장
   await page.waitForFunction(() => window.game.dialogue.running, null, { timeout: 8000 }).catch(() => {});
   let m = await g(); check(m.flags.color && m.dialogue, '통과 플래그 + 복귀 연출 시작 ' + JSON.stringify(m.flags));
@@ -140,7 +163,9 @@ try {
   await page.waitForFunction(() => { const tv = window.game.entities.find(e => e.id === 'youngcle_tv'); return tv && tv.y > 40; }, null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(500); await cap('tv_center'); m = await g();
   check(m.tv && m.tv.x === 383 && m.tv.y > 40, 'TV 가 천천히 가운데로 내려온다 ' + JSON.stringify(m.tv));
-  m = await untilText('길을 만들어주마'); check(!!m && m.bgm.includes('storage_show'), '영클 “그래 인정할테니 길을 만들어주마. 이따보자 ㅇㅇ” + 영클 브금 ' + JSON.stringify([m?.text, m?.bgm]));
+  m = await untilText('인정해주겠음'); check(!!m && m.bgm.includes('storage_show') && m.tv?.expr === 'glare', '영클(째려보는 glare) “ㅇㅋ.. 인정해주겠음” + 영클 브금 ' + JSON.stringify([m?.text, m?.bgm, m?.tv?.expr]));
+  await cap('glare');
+  for (const [needle, expr] of [['다음은 없음', 'glare'], ['난 꼭', 'glare'], ['곧 보자고', 'shrug']]) { m = await untilText(needle); check(!!m && m.tv?.expr === expr, `영클 “${needle}” (${expr}) ` + JSON.stringify([m?.text, m?.tv?.expr])); }
   const around = await g(); check(around.junhee.facing === 'up' && around.junhee.x === 360 && around.junhee.y === 288 && around.px === 456 && around.py === 288, '모두 TV 아래 한 줄로 모여 위를 본다(쥰희 360·형섭 456 — 주인공은 아래 문 기둥 x448~544 안) ' + JSON.stringify([around.junhee, around.px, around.py]));
   await cap('gather');
   // 다리: TV 가 떠난 뒤 웅덩이 가운데(cols 14~16)에 판 6장이 앞에서부터 하나씩 철컥 내려앉고 그 줄이 걷는 바닥이 된다 → 앞 울타리 세 칸이 내려가 없어진다

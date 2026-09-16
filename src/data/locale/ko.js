@@ -14,6 +14,8 @@ export default {
   escape_title: '비상탈출',
   escape_go: '탈출',
   escape_cancel: '취소',
+  // 색깔 게임(1인칭 씬) Esc — 사용자 2026-09-16 “바탕화면으로 돌아가시겠습니까? 확인 버튼 뜨고 예/아니오 눌러야 가게”
+  colorgame_quit: '바탕화면으로 돌아가시겠습니까?', colorgame_yes: '예', colorgame_no: '아니오', colorgame_quit_controls: '←→ 선택 · C 확인 · X 취소',
   setting_text_speed: '대사 속도',
   setting_sound: '사운드',
   on: '켬', off: '끔',

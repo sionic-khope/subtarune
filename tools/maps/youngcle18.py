@@ -68,7 +68,7 @@ def main() -> None:
         'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/tiles/lava.png',
                     'assets/backdrops/youngcle_furnace.png', 'assets/props/iron_fence_short.png', 'assets/props/control_panel.png', 'assets/props/lava_cage.png',
                     'assets/props/youngcle_tv_frame.png', 'assets/props/tv_arm.png', 'assets/props/iron_bridge_plank.png',
-                    *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'yes', 'question')]],
+                    *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'yes', 'question', 'glare')]],
         'spawns': {
             'bottom': {'x': DOOR_X, 'y': 15 * T + 8, 'facing': 'up'},
             'front': {'x': DOOR_X, 'y': 9 * T + 8, 'facing': 'up'},

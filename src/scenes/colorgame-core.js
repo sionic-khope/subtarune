@@ -41,7 +41,8 @@ export const CHAOS = {
   normal: 3,                       // 앞 세 색(빨·초·노)은 보통 판처럼 callGap 으로
   // 넷째 색(파랑)에서 버벅: 끊긴 호출이 불규칙하게 반복(at, 초 — 버벅 시작 기준) + 사이사이 영클 웃는 화면(laughAt). dur 뒤 화면이 꺼진다
   stutter: { id: 'blue', at: [0, 0.34, 0.58, 0.74, 1.12, 1.6, 1.74, 1.84, 2.3, 2.6], laughAt: [0.92, 2.0, 2.45], dur: 3.0 },
-  off: 1.7,                        // 화면이 꺼진 채 … (그동안 오른쪽 아래 카메라가 페이드인)
+  off: 1.7,                        // 화면이 꺼진 채 …
+  camLead: 1.0,                    // 오른쪽 아래 카메라는 화면이 꺼지기 이만큼 전(버벅 중)부터 페이드인 — 사용자 “얼굴 1초만 더 빨리 뜨게”
   gap: 0.3,                        // 폭주 호출 간격(0.5 → 더 빠르게)
   passAfter: 4.0,                  // 폭주 시작 뒤 느낌표 버튼까지(더 늦게)
 };
@@ -66,7 +67,7 @@ export function makeRound(stage) {
     s.at.forEach((d, k) => script.push({ at: stutterAt + d, type: 'stutter', id: s.id, k }));
     s.laughAt.forEach(d => script.push({ at: stutterAt + d, type: 'laugh' }));
     const offAt = stutterAt + s.dur, rampageAt = offAt + CHAOS.off;
-    script.push({ at: offAt, type: 'off' }, { at: rampageAt, type: 'rampage' });
+    script.push({ at: offAt - CHAOS.camLead, type: 'cam' }, { at: offAt, type: 'off' }, { at: rampageAt, type: 'rampage' });
     script.sort((a, b) => a.at - b.at);
     Object.assign(round, { script, scriptI: 0, stutterAt, offAt, rampageAt, passAt: rampageAt + CHAOS.passAfter });
   }
@@ -80,7 +81,7 @@ export function chaosPhase(round) {
 }
 
 /** 시간을 흘린다. 이벤트: {type:'call', id, index, kind} 호출 시작 / {type:'answer'} 입력 차례 / {type:'timeout'} 시간 초과.
- *  광기 판: script 이벤트 {type:'stutter', id, k} {type:'laugh'} {type:'off'} {type:'rampage'} 를 시각대로 내고, rampageAt 뒤엔 calls 를 처음부터 계속 반복한다 */
+ *  광기 판: script 이벤트 {type:'stutter', id, k} {type:'laugh'} {type:'cam'}(카메라 페이드인) {type:'off'} {type:'rampage'} 를 시각대로 내고, rampageAt 뒤엔 calls 를 처음부터 계속 반복한다 */
 export function stepRound(round, dt) {
   const ev = [];
   if (round.status === 'calling') {

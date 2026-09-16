@@ -59,6 +59,7 @@ test('test_colorgame_chaos_stage_calls_three_normally_then_stutters_goes_dark_an
   assert.ok(st.filter(e => e.type === 'stutter').length >= 6 && st.filter(e => e.type === 'stutter').every(e => e.id === 'blue'), '파랑에서 버벅');
   assert.ok(st.filter(e => e.type === 'laugh').length >= 2, '영클이 한 번씩 웃는 화면');
   assert.ok(!st.some(e => e.type === 'call' || e.type === 'off'), '버벅 동안 보통 호출·꺼짐 없음');
+  const cam = st.find(e => e.type === 'cam'); assert.ok(cam && Math.abs(cam.at - (round.offAt - CHAOS.camLead)) < 1e-9 && CHAOS.camLead === 1.0, '카메라는 화면이 꺼지기 1초 전(버벅 중)에 페이드인 시작');
   // ③ 화면 꺼짐 … (off) — 아무 호출도 없다
   const off = runUntil(round, () => round.t >= round.rampageAt - 0.02, 5);
   assert.deepEqual(off.map(e => e.type), ['off']); assert.equal(chaosPhase(round), 'off');

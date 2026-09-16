@@ -18,6 +18,7 @@ export const YOUNGCLE_TV = {
     question: 'assets/illustrations/youngcle-tv-question.png',
     questions: 'assets/illustrations/youngcle-tv-questions.png',
     facepalm: 'assets/illustrations/youngcle-tv-facepalm.png',
+    glare: 'assets/illustrations/youngcle-tv-glare.png',   // 째려봄(BUILD200, tools/art/youngcle_glare_set.py — smirk 바탕)
   },
 };
 // 용광로 광장(BUILD197): 프레임 소품 def.scale 0.82 와 같은 배율로 화면 안쪽을 그린다(모니터를 살짝 작게)
