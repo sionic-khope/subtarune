@@ -67,7 +67,7 @@
   ],
   "cage": [
    600,
-   184
+   194
   ],
   "junhee": [
    486,
@@ -369,11 +369,11 @@
    "id": "ship_cannon",
    "image": "assets/props/ship_cannon.png",
    "x": -144,
-   "y": 242,
+   "y": 236,
    "w": 176,
-   "h": 69,
+   "h": 83,
    "ix": -144,
-   "iy": 242,
+   "iy": 236,
    "solid": false,
    "hidden": true,
    "sortY": 1000000000
@@ -394,11 +394,11 @@
    "id": "ship_cage",
    "image": "assets/props/ship_cage.png",
    "x": 600,
-   "y": -212,
+   "y": -202,
    "w": 100,
-   "h": 188,
+   "h": 178,
    "ix": 600,
-   "iy": -212,
+   "iy": -202,
    "solid": false,
    "hidden": true,
    "sortY": 374
@@ -408,11 +408,11 @@
    "id": "ship_cage_open",
    "image": "assets/props/ship_cage_open.png",
    "x": 600,
-   "y": 184,
+   "y": 194,
    "w": 100,
-   "h": 188,
+   "h": 178,
    "ix": 600,
-   "iy": 184,
+   "iy": 194,
    "solid": false,
    "hidden": true,
    "sortY": 374

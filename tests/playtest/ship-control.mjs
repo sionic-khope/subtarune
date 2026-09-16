@@ -79,7 +79,7 @@ try {
   await page.waitForTimeout(900); await cap('10_cage_drop');
   const landed = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage_open'); return c && c.visible; }, 12000);
   s = await st(); await cap('11_cage_open');
-  check(swing && landed && s.open.y === 184 && (!s.cage || !s.cage.v), '철창이 흔들리며 내려와(chain_extend) 착지 → 문 열린 철창(y184) ' + JSON.stringify([swing, landed, s.open, s.cage]));
+  check(swing && landed && s.open.y === 194 && (!s.cage || !s.cage.v), '철창이 흔들리며 내려와(chain_extend) 착지 → 문 열린 철창(y194) ' + JSON.stringify([swing, landed, s.open, s.cage]));
   const outTwo = await waitFor(() => { const g = window.game; const o = g.entities.find(x => x.id === 'ship_obangsun'), n = g.entities.find(x => x.id === 'ship_naram'); return o && n && o.x === 556 && o.y === 236 && n.x === 556 && n.y === 364; }, 20000);
   await page.waitForTimeout(300); s = await st(); await cap('12_experiments');
   check(outTwo && s.ob.f === 'left' && s.nr.f === 'left' && s.yc.f === 'left', '오방순(위 556,236)·나람(아래 556,364)이 천천히 걸어 나와 영클과 함께 왼쪽을 봄 ' + JSON.stringify([s.ob, s.nr]));

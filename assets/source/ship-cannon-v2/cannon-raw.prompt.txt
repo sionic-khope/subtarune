@@ -1,0 +1,10 @@
+# imagegen 2026-09-16 19:54:56
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/ship-cannon-v2/ref.png
+
+Single pixel art game prop, one image, 1536x1024 canvas, solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels.
+A massive futuristic wall-mounted spaceship cannon seen from the side, pointing RIGHT: a long heavy steel barrel with three thick reinforcement rings, a wide flared muzzle with vent slots at the right end, a dark breech block with hydraulic pistons and a rail base on the left end that slides out of a wall, glowing cyan energy stripes along the barrel, a small red warning light on top, yellow-black hazard chevrons on the base. Dark blue-grey steel like the reference console (Image1 shows the ship's control console palette: dark steel #3a4556, darker #151a22, light steel #8fa0b6, cyan glow #60f4e0, yellow #ffd23f, red #ff4a4a). Menacing, chunky, cool.
+The cannon fills about 85% of the canvas width and is vertically centered; nothing touches the canvas edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, crisp pixels, no anti-aliasing, no blur, same sparse logical pixel density as Image1.

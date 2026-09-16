@@ -25,8 +25,8 @@ DOOR_C0: Final = 13                                   # 아래 출입구 cols 13
 SPAWN_X: Final = WIDTH * T // 2 - 12                  # 24px 발판이 가운데(480)에 오게 → 468
 LOGO_X, LOGO_Y = 416, 236                             # 바닥 강철 로고 128×128(가운데 480,300) — 연출 기준점
 JUNHEE, YONGJUN = (486, 278), (436, 334)              # 입장 때 쥰희·용준이 서 있는 자리(로고 위, 앞을 봄). 대포 포탄 궤도(y274)는 왼쪽 콘솔 두 줄 사이(y228~340)를 지난다
-CANNON = (-144, 242)                                  # 왼쪽 벽 속 대포(176×69, gpt-image-2 ship-cannon-v1) 대기 자리 → 연출이 +152 꺼낸다(포구 가운데 y274 = 쥰희 몸 가운데)
-CAGE_W, CAGE_H = 100, 188                             # 철창 그림(gpt-image-2 ship-cage-v1: 사슬 + 작은 철창)
+CANNON = (-144, 236)                                  # 왼쪽 벽 속 대포(176×83, gpt-image-2.5-sunburst ship-cannon-v2, 포구 가운데 y38) 대기 자리 → 연출이 +152 꺼낸다(포구 가운데 y274 = 쥰희 몸 가운데)
+CAGE_W, CAGE_H = 100, 178                             # 철창 그림(gpt-image-2.5-sunburst ship-cage-v2: 사슬 + 작은 철창)
 CAGE = (600, 372 - CAGE_H)                            # 착지 자리(철창 밑 y372, 영클 오른쪽 뒤)
 CAGE_DROP = CAGE[1] + CAGE_H + 24                     # 화면 위(y -212)에서 내려오는 거리(396)
 YC_ENTER, YC_STAND = (470, 236), (556, 300)          # 영클 첫 등장 자리(일행 앞) · 다시 내려와 서는 자리(로고 오른쪽, 왼쪽을 봄)
@@ -68,7 +68,7 @@ def main() -> None:
         {'type': 'npc', 'id': 'ship_junhee', 'sprite': 'junhee', 'x': JUNHEE[0], 'y': JUNHEE[1], 'facing': 'up', 'wander': 0, 'solid': False},
         {'type': 'npc', 'id': 'ship_yongjun', 'sprite': 'yongjun', 'x': YONGJUN[0], 'y': YONGJUN[1], 'facing': 'up', 'wander': 0, 'solid': False},
         # 왼쪽 벽 속 대포(연출이 드르르륵 꺼내 쏜다) — 벽 안에 숨어 있다
-        {'type': 'prop', 'id': 'ship_cannon', 'image': P + 'ship_cannon.png', 'x': CANNON[0], 'y': CANNON[1], 'w': 176, 'h': 69, 'ix': CANNON[0], 'iy': CANNON[1], 'solid': False, 'hidden': True, 'sortY': 1000000000},
+        {'type': 'prop', 'id': 'ship_cannon', 'image': P + 'ship_cannon.png', 'x': CANNON[0], 'y': CANNON[1], 'w': 176, 'h': 83, 'ix': CANNON[0], 'iy': CANNON[1], 'solid': False, 'hidden': True, 'sortY': 1000000000},
         # 영클(비행 장치): 천장 위에서 대기, 연출이 내려온다
         {'type': 'npc', 'id': 'ship_youngcle', 'sprite': 'youngcle_hover', 'x': YC_ENTER[0], 'y': -80, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
         # 밧줄 철창(닫힘 → 착지 뒤 문 열린 그림으로 교체) + 안의 오방순·나람(거대)

@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/youngcle-hover-battle-v2/idle-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.86,
+ "scale": 0.2815345268542199,
+ "feet_y": 118,
+ "cells": [
+  {
+   "bbox": [
+    80,
+    77,
+    430,
+    444
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    99,
+    103
+   ],
+   "paste": [
+    15,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    80,
+    77,
+    432,
+    468
+   ],
+   "edge_touch": false,
+   "components": 4,
+   "scaled": [
+    99,
+    110
+   ],
+   "paste": [
+    14,
+    8
+   ]
+  },
+  {
+   "bbox": [
+    80,
+    77,
+    430,
+    444
+   ],
+   "edge_touch": false,
+   "components": 5,
+   "scaled": [
+    99,
+    103
+   ],
+   "paste": [
+    15,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    69,
+    79,
+    428,
+    444
+   ],
+   "edge_touch": false,
+   "components": 7,
+   "scaled": [
+    101,
+    103
+   ],
+   "paste": [
+    13,
+    15
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

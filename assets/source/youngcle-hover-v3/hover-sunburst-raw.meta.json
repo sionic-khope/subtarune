@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/youngcle-hover-v3/ref.png"
+  ],
+  "elapsed_seconds": 42.0,
+  "usage": {
+    "input_tokens": 986,
+    "output_tokens": 1756,
+    "total_tokens": 2742,
+    "input_tokens_details": {
+      "image_tokens": 528,
+      "text_tokens": 458
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789555959,
+  "outputs": [
+    {
+      "file": "assets/source/youngcle-hover-v3/hover-sunburst-raw.png",
+      "bytes": 1134003,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

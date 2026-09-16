@@ -1,0 +1,300 @@
+{
+ "raw": "assets/source/naram-giant-v2/walk-raw.png",
+ "cols": 4,
+ "rows": 4,
+ "cell": 96,
+ "fit": 0.92,
+ "scale": 0.3806896551724138,
+ "feet_y": 90,
+ "cells": [
+  {
+   "bbox": [
+    25,
+    20,
+    231,
+    242
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    78,
+    85
+   ],
+   "paste": [
+    9,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    27,
+    20,
+    230,
+    246
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    77,
+    86
+   ],
+   "paste": [
+    9,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    25,
+    20,
+    231,
+    242
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    78,
+    85
+   ],
+   "paste": [
+    9,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    25,
+    20,
+    224,
+    244
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    76,
+    85
+   ],
+   "paste": [
+    10,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    25,
+    11,
+    231,
+    237
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    78,
+    86
+   ],
+   "paste": [
+    9,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    24,
+    11,
+    226,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    77,
+    88
+   ],
+   "paste": [
+    10,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    25,
+    11,
+    231,
+    237
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    78,
+    86
+   ],
+   "paste": [
+    9,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    29,
+    11,
+    232,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    77,
+    88
+   ],
+   "paste": [
+    9,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    39,
+    9,
+    216,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    67,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    41,
+    9,
+    219,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    68,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    39,
+    9,
+    216,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    67,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    41,
+    9,
+    215,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    66,
+    88
+   ],
+   "paste": [
+    15,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    35,
+    8,
+    211,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    67,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    35,
+    8,
+    213,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    68,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    35,
+    8,
+    211,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    67,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  },
+  {
+   "bbox": [
+    34,
+    8,
+    214,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    69,
+    88
+   ],
+   "paste": [
+    14,
+    2
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

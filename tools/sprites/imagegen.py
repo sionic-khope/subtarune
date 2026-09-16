@@ -29,7 +29,7 @@ from pathlib import Path
 
 DEFAULT_BASE = "https://apis.opengateway.ai/v1"
 # 2026-09-14 인증 /v1/models 조회에서 status:active, endpoints:[images_generations, images_edits] 확인된 모델(providers.md)
-DEFAULT_MODEL = "openai/gpt-image-2"
+DEFAULT_MODEL = "openai/gpt-image-2.5-sunburst"   # 2026-09-16 사용자 “2.5 안 쏘?” → 2.5-sunburst 기본(flare 는 눈 소용돌이·비율이 약해 반려)
 KEY_VAR = "OPENGATEWAY_API_KEY"
 REPO = Path(__file__).resolve().parents[2]
 ENV_CANDIDATES = (REPO / ".env", Path.home() / ".hermes" / ".env")

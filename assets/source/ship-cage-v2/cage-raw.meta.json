@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1536",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/ship-cage-v2/ref.png"
+  ],
+  "elapsed_seconds": 25.1,
+  "usage": {
+    "input_tokens": 554,
+    "output_tokens": 1372,
+    "total_tokens": 1926,
+    "input_tokens_details": {
+      "image_tokens": 275,
+      "text_tokens": 279
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789556090,
+  "outputs": [
+    {
+      "file": "assets/source/ship-cage-v2/cage-raw.png",
+      "bytes": 1195089,
+      "size": [
+        1024,
+        1536
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

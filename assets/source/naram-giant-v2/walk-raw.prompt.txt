@@ -1,0 +1,10 @@
+# imagegen 2026-09-16 19:55:03
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/naram-giant-v2/ref.png
+
+Pixel art 4-direction walking sprite sheet of ONE character, EXACTLY 4 columns x 4 rows, 1024x1024 canvas, invisible equal 256px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The character is the man in the reference image (Image1, a 4x4 walking sheet): same olive-green military uniform with the same colours, same short dark hair, same big friendly smiling face with closed happy eyes, same black boots. Make him MUCH BIGGER and MUCH FATTER than the reference: a huge round belly that stretches the uniform, chubby round cheeks, thick heavy arms, short stubby legs, a wide low silhouette like a giant round dumpling; the body fills about 85% of the cell height and 80% of the cell width.
+Row order top to bottom: row 1 facing DOWN (toward the viewer, face visible), row 2 facing UP (back of the head, no face), row 3 facing LEFT (side view walking left), row 4 facing RIGHT (side view walking right). Each row has 4 walking frames left to right: neutral standing, left foot forward, neutral standing, right foot forward; the belly and arms swing slightly with the step. Keep feet rooted on the same baseline and the same scale in every cell; nothing touches the cell edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur.

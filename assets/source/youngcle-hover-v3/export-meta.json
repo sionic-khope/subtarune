@@ -1,0 +1,300 @@
+{
+ "raw": "assets/source/youngcle-hover-v3/hover-sunburst-raw.png",
+ "cols": 4,
+ "rows": 4,
+ "cell": 112,
+ "fit": 0.9,
+ "scale": 0.4707964601769911,
+ "feet_y": 104,
+ "cells": [
+  {
+   "bbox": [
+    36,
+    19,
+    221,
+    213
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    91
+   ],
+   "paste": [
+    12,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    36,
+    12,
+    220,
+    224
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    100
+   ],
+   "paste": [
+    13,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    15,
+    19,
+    240,
+    213
+   ],
+   "edge_touch": false,
+   "components": 3,
+   "scaled": [
+    106,
+    91
+   ],
+   "paste": [
+    3,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    35,
+    25,
+    241,
+    214
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    97,
+    89
+   ],
+   "paste": [
+    8,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    36,
+    21,
+    221,
+    213
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    90
+   ],
+   "paste": [
+    12,
+    14
+   ]
+  },
+  {
+   "bbox": [
+    36,
+    13,
+    220,
+    224
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    99
+   ],
+   "paste": [
+    13,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    15,
+    21,
+    241,
+    213
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    106,
+    90
+   ],
+   "paste": [
+    3,
+    14
+   ]
+  },
+  {
+   "bbox": [
+    19,
+    24,
+    221,
+    214
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    95,
+    89
+   ],
+   "paste": [
+    8,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    36,
+    18,
+    221,
+    213
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    92
+   ],
+   "paste": [
+    12,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    35,
+    10,
+    220,
+    220
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    99
+   ],
+   "paste": [
+    12,
+    5
+   ]
+  },
+  {
+   "bbox": [
+    15,
+    18,
+    240,
+    213
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    106,
+    92
+   ],
+   "paste": [
+    3,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    35,
+    24,
+    238,
+    214
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    96,
+    89
+   ],
+   "paste": [
+    8,
+    15
+   ]
+  },
+  {
+   "bbox": [
+    36,
+    18,
+    221,
+    213
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    92
+   ],
+   "paste": [
+    12,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    36,
+    10,
+    220,
+    224
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    87,
+    101
+   ],
+   "paste": [
+    13,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    15,
+    18,
+    241,
+    213
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    106,
+    92
+   ],
+   "paste": [
+    3,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    14,
+    22,
+    221,
+    214
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    97,
+    90
+   ],
+   "paste": [
+    7,
+    14
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}
