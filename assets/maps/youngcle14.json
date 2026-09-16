@@ -7,35 +7,36 @@
  "battleBg": "youngcle_factory",
  "dim": 0.3,
  "rows": [
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GGGGGGGGG",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFG",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFG",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GGGLLLGGG",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!",
-  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGLLLGGG",
-  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFG",
-  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFG",
-  "GFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFG",
-  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
-  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFH",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFH",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFFH",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GGGLLLGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!GLLLG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGLLLGGG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLFFFFFFFG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
  ],
  "preload": [
   "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_solid.png",
   "assets/tiles/lava.png",
   "assets/backdrops/youngcle_furnace.png",
   "assets/props/raft.png",
@@ -45,8 +46,7 @@
   "assets/props/lava_wall_low.png",
   "assets/tiles/youngcle_iron_blue_wall.png",
   "assets/props/plasma_beam_v_h.png",
-  "assets/props/plasma_beam_high_h.png",
-  "assets/props/iron_door.png"
+  "assets/props/plasma_beam_high_h.png"
  ],
  "spawns": {
   "left": {
@@ -61,7 +61,12 @@
   },
   "top": {
    "x": 1700,
-   "y": 56,
+   "y": 112,
+   "facing": "right"
+  },
+  "top_end": {
+   "x": 3300,
+   "y": 112,
    "facing": "right"
   }
  },
@@ -85,7 +90,12 @@
   "raftB": [
    1748,
    600,
-   104
+   168
+  ],
+  "raftC": [
+   1896,
+   70,
+   3104
   ],
   "checkpoints": [
    {
@@ -118,6 +128,24 @@
     "x": 1748,
     "y": 440
    }
+  ],
+  "checkpointsC": [
+   {
+    "x": 1896,
+    "y": 70
+   },
+   {
+    "x": 2226,
+    "y": 70
+   },
+   {
+    "x": 2560,
+    "y": 70
+   },
+   {
+    "x": 2830,
+    "y": 70
+   }
   ]
  },
  "entities": [
@@ -132,16 +160,6 @@
    "spawn": "from_right",
    "sfx": false,
    "interact": false
-  },
-  {
-   "type": "sign",
-   "id": "lava14_hint",
-   "x": 320,
-   "y": 632,
-   "w": 24,
-   "h": 16,
-   "solid": true,
-   "text": "* 하늘색 빔·낮은 돌은 C 한 번.\n* 붉은 빔·높은 돌은 공중에서 C 한 번 더."
   },
   {
    "type": "raft",
@@ -304,7 +322,7 @@
    "route": [
     [
      1748,
-     104
+     168
     ]
    ],
    "speed": 171,
@@ -350,12 +368,12 @@
    "id": "beam_b_high1",
    "image": "assets/props/plasma_beam_high_h.png",
    "x": 1728,
-   "y": 230,
+   "y": 300,
    "w": 96,
    "h": 40,
    "ix": 1664,
-   "iy": 230,
-   "sortY": 230,
+   "iy": 300,
+   "sortY": 300,
    "solid": true,
    "obstacle": true,
    "clear": 80,
@@ -371,17 +389,127 @@
    }
   },
   {
+   "type": "raft",
+   "id": "raft14c",
+   "image": "assets/props/raft.png",
+   "x": 1896,
+   "y": 70,
+   "route": [
+    [
+     3104,
+     70
+    ]
+   ],
+   "speed": 171,
+   "jump": true,
+   "jumpH2": 96,
+   "swim": [
+    "ppaman",
+    "gyeongsub"
+   ],
+   "swimAt": "below",
+   "lava": true,
+   "boardSfx": false,
+   "arriveSfx": "thud",
+   "walkOn": true,
+   "checkpoints": [
+    {
+     "x": 1896,
+     "y": 70
+    },
+    {
+     "x": 2226,
+     "y": 70
+    },
+    {
+     "x": 2560,
+     "y": 70
+    },
+    {
+     "x": 2830,
+     "y": 70
+    }
+   ],
+   "disembarkPartyGap": 40
+  },
+  {
    "type": "prop",
-   "id": "lava14_end_door",
-   "image": "assets/props/iron_door.png",
-   "x": 1856,
-   "y": 44,
-   "w": 32,
-   "h": 52,
-   "ix": 1852,
-   "iy": 40,
+   "id": "wall_c_high1",
+   "image": "assets/props/lava_wall.png",
+   "x": 2144,
+   "y": 62,
+   "w": 40,
+   "h": 64,
+   "ix": 2144,
+   "iy": 38,
+   "sortY": 102,
    "solid": true,
-   "script": "lava_end_door"
+   "obstacle": true,
+   "clear": 72,
+   "sweep": true
+  },
+  {
+   "type": "prop",
+   "id": "beam_c_high1",
+   "image": "assets/props/plasma_beam_high.png",
+   "x": 2424,
+   "y": 64,
+   "w": 40,
+   "h": 96,
+   "ix": 2424,
+   "iy": 0,
+   "sortY": 64,
+   "solid": true,
+   "obstacle": true,
+   "clear": 80,
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 10
+   },
+   "oscillate": {
+    "dx": 24,
+    "period": 2.2
+   }
+  },
+  {
+   "type": "prop",
+   "id": "wall_c_low1",
+   "image": "assets/props/lava_wall_low.png",
+   "x": 2704,
+   "y": 72,
+   "w": 40,
+   "h": 36,
+   "ix": 2704,
+   "iy": 60,
+   "sortY": 102,
+   "solid": true,
+   "obstacle": true
+  },
+  {
+   "type": "prop",
+   "id": "beam_c_low1",
+   "image": "assets/props/plasma_beam_v.png",
+   "x": 2964,
+   "y": 64,
+   "w": 40,
+   "h": 96,
+   "ix": 2964,
+   "iy": 64,
+   "sortY": 64,
+   "solid": true,
+   "obstacle": true,
+   "clear": 40,
+   "sweep": true,
+   "anim": {
+    "cols": 3,
+    "fps": 10
+   },
+   "pulse": {
+    "on": 1.6,
+    "off": 1.1,
+    "phase": 0.3
+   }
   }
  ]
 }

@@ -38,6 +38,11 @@ try {
   let s = await st(); check(s && s.landed.every(Boolean), '밴드 셋이 차례로 떨어져 자리를 잡는다 ' + JSON.stringify(s?.landed));
   await page.waitForFunction(() => window.__rhythm.state.phase === 'talk', null, { timeout: 5000 }).catch(() => {});
   await page.waitForTimeout(400); await cap('talk1');
+  // 사운드 체크 대사 다음 줄 = 조작 안내 ‘키보드 왼쪽 오른쪽 두개로 … ← →’(BUILD192)
+  const arrowLine = await page.evaluate(() => { const tk = window.__rhythm.state.talk; return tk ? tk.lines.findIndex(l => l.text.includes('왼쪽 오른쪽') && l.text.includes('←') && l.text.includes('→')) : -1; });
+  check(arrowLine === 4, '사운드 체크 대사 다음에 ← → 조작 안내 줄 ' + JSON.stringify(arrowLine));
+  for (let i = 0; i < 12; i++) { const ti = await page.evaluate(() => window.__rhythm.state.talk?.i); if (ti === 4 || ti == null) break; await pressC(); await page.waitForTimeout(60); }
+  await page.waitForTimeout(1700); await cap('talk_arrows');
   await talkThrough(4);
   await page.waitForFunction(() => window.__rhythm.state.phase === 'soundcheck', null, { timeout: 5000 }).catch(() => {});
   s = await st(); check(s.phase === 'soundcheck' && s.title === '사운드 체크', '대사 뒤 사운드 체크(작은별) ' + JSON.stringify([s.phase, s.title]));
@@ -65,6 +70,15 @@ try {
   await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.notesFrom - 0.5));
   await autoPlay(6); await page.waitForTimeout(100); await cap('play');
   s = await st(); check(s.score > 0 && s.max >= 5 && s.time > s.notesFrom + 4, '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다 ' + JSON.stringify([s.score, s.max, s.time, s.notesFrom, s.misses]));
+  // C 일시정지(BUILD192): 영상·곡 시각이 멈추고, 다시 C 로 이어서
+  await pressC(); await page.waitForTimeout(300); await cap('pause');
+  const pz = await page.evaluate(() => { const r = window.__rhythm; return { paused: r.state.paused, vpaused: r.state.video && !r.state.fromClock ? r.state.video.paused : null, t: r.songTime() }; });
+  await page.waitForTimeout(500);
+  const pz2 = await page.evaluate(() => ({ t: window.__rhythm.songTime(), paused: window.__rhythm.state.paused }));
+  check(pz.paused && pz2.paused && pz.vpaused !== false && Math.abs(pz2.t - pz.t) < 0.05, 'C 로 일시정지: 영상·곡 시각이 멈춘다 ' + JSON.stringify([pz, pz2]));
+  await pressC(); await page.waitForTimeout(500);
+  const pz3 = await page.evaluate(() => { const r = window.__rhythm; return { t: r.songTime(), paused: r.state.paused, vpaused: r.state.video && !r.state.fromClock ? r.state.video.paused : null }; });
+  check(!pz3.paused && pz3.t > pz2.t + 0.2 && pz3.vpaused !== true, '다시 C 로 이어서 ' + JSON.stringify(pz3));
   // 하이라이트(코러스) 구간으로 건너뛰면 색종이·불꽃·관객 점프·스트로브(BUILD181)
   await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.highlights[0][0] - 0.8));
   await autoPlay(3); await page.waitForTimeout(60); await cap('highlight');
@@ -79,6 +93,9 @@ try {
   await page.waitForFunction(() => window.__rhythm.state.play.misses >= 3, null, { timeout: 15000 }).catch(() => {});
   const hpMid = await page.evaluate(() => { const r = window.__rhythm; return { misses: r.state.play.misses, start: r.state.hpAtStart, hp: ['hyungsub', 'gyeongsub', 'ppaman'].map(id => r.hpOf(id)), fx: r.state.fx.filter(f => f.kind === 'dmg').length }; });
   check(['hyungsub', 'gyeongsub', 'ppaman'].every((id, i) => hpMid.hp[i] === hpMid.start[id] - 10 * hpMid.misses) && hpMid.hp.every(h => h > 0), '미스마다 형섭·경섭·빠맨 HP −10(곡 시작 HP 기준, −10 팝업) ' + JSON.stringify(hpMid));
+  // 피해 소리는 맞는 소리(damage)만, 검 소리(hit)는 없다(BUILD192)
+  const dmgSfx = await page.evaluate(() => { const g = window.game; const calls = []; const orig = g.sound.sfx.bind(g.sound); g.sound.sfx = (n, o) => { calls.push([n, o && o.volume]); return orig(n, o); }; window.__rhythm.damageParty(); g.sound.sfx = orig; return calls; });
+  check(dmgSfx.some(([n, v]) => n === 'damage' && v <= 0.45) && !dmgSfx.some(([n]) => n === 'hit'), 'MISS 피해 소리는 맞는 소리(damage, 살짝 작게)만 — 검 소리(hit) 없음 ' + JSON.stringify(dmgSfx));
   await page.waitForFunction(() => window.__rhythm.state.over, null, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(300); await cap('over');
   s = await st(); const hpOver = await page.evaluate(() => ['hyungsub', 'gyeongsub', 'ppaman'].map(id => window.__rhythm.hpOf(id)));

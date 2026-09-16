@@ -26,19 +26,22 @@ HEIGHT: Final = 16
 def main() -> None:
     """Write the furnace corridor or check its generator output and map registration."""
     cells = [['!'] * WIDTH for _ in range(HEIGHT)]
-    # 아래 복도 rows 7~10 · cols 1~20 → 세로 통로 rows 2~10 · cols 17~20 → 위 복도 rows 2~5 · cols 17~34
+    # 아래 복도 rows 7~10 · cols 0~20(왼쪽 가장자리까지 열린 통로 = 무대 홀에서 오는 입구) → 세로 통로 rows 2~10 · cols 17~20 → 위 복도 rows 2~5 · cols 17~35(오른쪽 가장자리까지 열림 = 용암 수로 입구).
+    # 입구·출구를 벽 타일로 막지 않는다(사용자 2026-09-16 “포탈이 벽 블럭으로 막혀 있으면 어떡하냐”): 가장자리 칸은 바닥 그림의 막힌 출입구 타일 'H'(맵 규칙 ‘사방 막힘’ 유지), 문 트리거는 그 안쪽 칸
     for row in range(7, 11):
-        for col in range(1, 21):
+        for col in range(0, 21):
             cells[row][col] = 'F'
+        cells[row][0] = 'H'
     for row in range(2, 11):
         for col in range(17, 21):
             cells[row][col] = 'F'
     for row in range(2, 6):
-        for col in range(17, WIDTH - 1):
+        for col in range(17, WIDTH):
             cells[row][col] = 'F'
+        cells[row][WIDTH - 1] = 'H'
     for row in range(HEIGHT):
         for col in range(WIDTH):
-            if cells[row][col] != 'F':
+            if cells[row][col] not in ('F', 'H'):
                 continue
             for delta_row in (-1, 0, 1):
                 for delta_col in (-1, 0, 1):
@@ -51,7 +54,7 @@ def main() -> None:
         'bgm': 'pandora_palace', 'backdrop': 'youngcle_furnace',
         'battleBg': 'youngcle_factory', 'dim': 0.3,
         'rows': [''.join(row) for row in cells],
-        'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/backdrops/youngcle_furnace.png'],
+        'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/backdrops/youngcle_furnace.png'],
         'spawns': {
             'left': {'x': 56, 'y': 280, 'facing': 'right'},
             # 용암 뗏목 맵(youngcle14)에서 돌아올 때: 위 복도 오른쪽 끝

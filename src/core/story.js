@@ -341,3 +341,5 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft', desc: '용암 수로: �
   map: 'youngcle14', spawn: 'left', flags: { ...showDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft_up', desc: '용암 수로: 위로 가는 두 번째 뗏목 앞(착지 바닥)',
   map: 'youngcle14', spawn: 'landing', flags: { ...showDoneFlags, lava_raft_intro_done: true, raft14a_boarded: true, double_jump: true, raft_raft14a: 1 }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft_top', desc: '용암 수로: 위 착지에서 다시 오른쪽으로 가는 세 번째 뗏목 앞',
+  map: 'youngcle14', spawn: 'top', flags: { ...showDoneFlags, lava_raft_intro_done: true, raft14a_boarded: true, double_jump: true, raft_raft14a: 1, raft_raft14b: 1 }, party: [...parkWonCheckpoint.party] });

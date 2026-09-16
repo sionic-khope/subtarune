@@ -50,7 +50,7 @@ try {
   const wanted = new Map([
     ['* ㅁ..뭐지 여긴?', 'light-on'],
     ['* 저희들의 스테이지~ 입니다.', 'wide-audience'],
-    ['* 저희 영클전함에는 여기로 빨려들어온 거의 모든 시청자들을 전부 모아놨습니다.', 'later-dialogue'],
+    ['* 저희 엄청 대박인 배에는 여기로 빨려들어온 거의 모든 시청자들을 전부 모아놨습니다.', 'later-dialogue'],
     ['* 편집노조다!', 'union-introduction'],
     ['* 감사합니다 감사합니다 감사합니다.', 'thanks'],
   ]);
@@ -101,7 +101,8 @@ try {
     await page.waitForTimeout(70);
   }
   state = await snapshot();
-  check('control restored with persistent crowd and music', state.done && !state.running && state.busts === 48 && state.bgm === 'editor_union_stage', state);
+  // 무대 소개가 끝나면 바로 파크가디언 전투로 넘어간다(BUILD165+) — 전투 브금이 켜진 채 소개 연출이 끝난 것도 정상
+  check('intro ends with the crowd still seated (control back, or handed over to the park guardian battle)', state.done && state.busts === 48 && ((!state.running && state.bgm === 'editor_union_stage') || state.bgm === 'park_guardian'), state);
   await capture('control-restored');
   for (const name of wanted.values()) check(`captured ${name}`, captured.has(name));
   const feather = await page.evaluate(() => {
@@ -112,6 +113,9 @@ try {
       top: [0, 16, 48, 100].map(y => pixel(360, y)[3]), bottom: [399, 383, 351, 299].map(y => pixel(360, y)[3]) };
   });
   check('warm light feathers to transparent on all four sides', ['left', 'right', 'top', 'bottom'].every(side => feather[side][0] < 2 && feather[side].every((alpha, i, values) => i === 0 || alpha > values[i - 1])) && feather.center[0] > feather.center[1] && feather.center[1] > feather.center[2], feather);
+  // 소개 뒤엔 파크가디언 전투가 이어져 대사가 계속 돈다(BUILD165+) — 재입장 검사는 전투가 끝난 QA(철창 닫힌 뒤)에서 새로 연다
+  await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:8874'}/?qa=park_guardian_after_grate`);
+  await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle7' && !game.dialogue.running, null, { timeout: 30000 });
   await page.evaluate(() => { game.changeMap('youngcle6', 'from_stage', true, { enter: false }); game.changeMap('youngcle7', 'after_intro', true, { enter: false }); });
   await page.waitForFunction(() => game.mapId === 'youngcle7' && !game.dialogue.running);
   state = await snapshot();
@@ -119,6 +123,15 @@ try {
   await capture('completed-reentry');
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(600); await page.keyboard.up('ArrowUp');
   await capture('completed-reentry-approach');
+  // 파크가디언 승리 후 박치기(BUILD192): ‘넌 니애미 따라가라’ 뒤 카메라가 억빠맨을 따라가 박치기하러 달려가는 게 화면 안에 보인다(주인공 고정이면 화면 밖 — 사용자)
+  await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:8874'}/?qa=park_guardian_after`);
+  await page.waitForFunction(() => window.game && window.game.dialogue && window.game.dialogue.running, null, { timeout: 25000 });
+  let kickLine = false;
+  for (let i = 0; i < 40; i++) { const t = await page.evaluate(() => game.textbox.node?.text || ''); if (t.includes('니애미')) { kickLine = true; break; } await page.keyboard.press('KeyC'); await page.waitForTimeout(160); }
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(120); await page.keyboard.press('KeyC');
+  const kick = await page.evaluate(() => new Promise(resolve => { const out = []; const t0 = performance.now(); const tick = () => { const p = game.entities.find(e => e.id === 'ppaman' && !e.dead); out.push({ px: p ? Math.round(p.x) : null, camx: Math.round(game.camera.x), inView: !!p && p.x >= game.camera.x && p.x + p.w <= game.camera.x + 480, target: game.camera.target?.id }); if (performance.now() - t0 > 700) resolve(out); else setTimeout(tick, 100); }; tick(); }));
+  await capture('park-headbutt');
+  check('camera follows ppaman for the headbutt', kickLine && kick.length > 3 && kick.every(k => k.inView) && kick.some(k => k.target === 'ppaman'), { kickLine, kick });
   check('browser has no runtime errors', errors.length === 0, errors);
 } finally {
   fs.writeFileSync(path.join(shots, 'report.json'), JSON.stringify({ checks, errors, captured: [...captured] }, null, 2));

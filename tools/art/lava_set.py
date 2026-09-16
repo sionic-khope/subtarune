@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """용광로 구역 세트(BUILD188, 사용자 2026-09-15: “엄창배 배경에 용광로마냥 용암 느낌, 발판은 차콜 철 + 파란색이 공존”):
 - tiles/youngcle_iron_blue.png : 기존 youngcle_iron 타일을 차콜로 눌러 밝은 픽셀(리벳·모서리)에 파란 기운 — 바닥(F)
+- tiles/youngcle_iron_blue_solid.png : 가장자리 출입구 칸(H) — 바닥과 같은 그림, 막힘(BUILD192)
 - tiles/youngcle_iron_blue_wall.png : 벽(G) — 훨씬 어둡고 위 테두리가 밝은 판(길처럼 안 보이게)
 - tiles/lava.png               : 용암(뗏목으로만 건넘) — 검붉은 바탕에 주황 균열·노란 불씨
 - props/plasma_beam_v.png      : 낮은 플라즈마 빔(하늘색, C 한 번) 40×96 3프레임 가로 시트 (anim cols 3)
 - props/plasma_beam_high.png   : 높은 빔 = 같은 유닛을 위로 한 층 더 쌓은 2층 게이트 40×160(붉은) → 2단 점프, 3프레임
-- props/iron_door.png          : 잠긴 철문 40×56(위 착지 끝)
 - props/lava_wall.png          : 높은 돌 = 덩어리 둘을 쌓음 40×76(위는 달아오름) → 2단 점프, props/lava_wall_low.png 낮은 돌 = 덩어리 하나 40×36 → 한 번
 실행: /usr/bin/python3 tools/art/lava_set.py"""
 from pathlib import Path
@@ -25,7 +25,9 @@ dark = src.copy(); dark[:, :, :3] *= 0.55
 blue = dark.copy(); blue[:, :, 0] *= 0.75; blue[:, :, 2] = np.minimum(255, blue[:, :, 2] * 1.35 + 30)
 mask = (lum >= thr)[:, :, None]
 out = np.where(mask, blue, dark); out[:, :, 3] = src[:, :, 3]
-Image.fromarray(out.clip(0, 255).astype(np.uint8), 'RGBA').save(OUT_T / 'youngcle_iron_blue.png')
+_floor = Image.fromarray(out.clip(0, 255).astype(np.uint8), 'RGBA'); _floor.save(OUT_T / 'youngcle_iron_blue.png')
+# 가장자리 출입구 칸(H): 같은 그림, 막힘(BUILD192)
+_floor.save(OUT_T / 'youngcle_iron_blue_solid.png')
 
 # 1b) 벽 타일(G): 바닥(F)과 같은 그림을 쓰면 용암 위아래 띠가 길처럼 보인다(사용자 “밑길은 왜 있는 거고”) → 훨씬 어두운 판 + 위쪽 밝은 테두리 + 가운데 격자
 wall = out.copy(); wall[:, :, :3] *= 0.42
@@ -90,14 +92,5 @@ def tier(b: Canvas, y0: int, seed: int, hot: bool) -> None:
 low = Canvas(40, 36); tier(low, 0, 2, False); low.save(OUT_P / 'lava_wall_low.png')
 high = Canvas(40, 76); tier(high, 40, 1, False); tier(high, 4, 3, True); high.rect(0, 0, 40, 4, hexc('#ff7a1a')); high.save(OUT_P / 'lava_wall.png')
 
-# 6) 잠긴 철문(40×56): 위 착지 오른쪽 끝 — 다음 지역이 아직 없다는 걸 보이게(안 보이는 표지판만 두면 막다른 길로 보인다, 2026-09-16 사용자)
-d = Canvas(40, 56)
-d.rrect_outlined(0, 0, 40, 56, hexc('#2c3340'), hexc('#0e1116'), r=3)
-d.rect(3, 3, 34, 3, hexc('#4e5a6b')); d.rect(3, 50, 34, 3, hexc('#1a1f27'))
-for yy in range(8, 48, 8): d.rect(4, yy, 32, 1, hexc('#1d232c'))
-for xx in (8, 30): 
-    for yy in (10, 26, 42): d.rect(xx, yy, 2, 2, hexc('#6f7c90'))
-d.rect(18, 24, 6, 8, hexc('#0e1116')); d.rect(19, 25, 4, 3, hexc('#ff7a1a'))
-d.rect(12, 20, 16, 2, hexc('#c93f0c')); d.rect(12, 34, 16, 2, hexc('#c93f0c'))
-d.save(OUT_P / 'iron_door.png')
+# (잠긴 철문은 사용자가 거부해 삭제 — 2026-09-16 “만들라고 요청한 적도 없는데”. 다음 맵이 없으면 통로를 열어 두고 소품을 지어내지 않는다)
 print('wrote lava set')

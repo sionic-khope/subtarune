@@ -74,6 +74,16 @@ test('test_rhythm_side_hits_visible_notes_and_tutorial_chart', () => {
   }
 });
 
+test('test_rhythm_text_sizes_are_bitmap_multiples_of_8', () => {
+  // 네오둥근모(16px 비트맵 폰트)는 RENDER_SCALE 2 에서 8 의 배수(8·16·24·32·40)만 정수 배로 찍혀 선명하다 — 9~15·18·20 은 뭉개진다(BUILD192 사용자 “체력바·이름·스코어 폰트가 뭉개져”)
+  const src = fs.readFileSync(new URL('../../src/scenes/rhythm.js', import.meta.url), 'utf8');
+  const sizes = [...src.matchAll(/size: (\d+)/g)].map(m => Number(m[1]));
+  assert.ok(sizes.length >= 5, '크기 지정이 있다');
+  assert.deepEqual(sizes.filter(n => n % 8 !== 0), [], '8 의 배수가 아닌 글자 크기');
+  assert.ok(src.includes("text: '키보드 왼쪽 오른쪽 두개로 리듬을 맞출수있습니다 {y}←\\u00a0→{/}'"), '사운드 체크 직전 조작 안내 줄(사용자 원문, 화살표 둘은 붙어서 줄바꿈)');
+  assert.ok(!src.includes("sfx('hit'"), 'MISS 피해에 검 소리(hit) 없음');
+});
+
 test('test_rhythm_beat_grid_and_highlight_lookup', async () => {
   const { beatAt, highlightAt } = await import('../../src/scenes/rhythm-core.js');
   const chart = { bpm: 120, offset: 0.5, highlights: [[10, 20], [30, 40]] };

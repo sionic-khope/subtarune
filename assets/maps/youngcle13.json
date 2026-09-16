@@ -9,15 +9,15 @@
  "rows": [
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!GGGGGGGGGGGGGGGGGGGG",
-  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
-  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
-  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
-  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFG",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFH",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFH",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFH",
+  "!!!!!!!!!!!!!!!!GFFFFFFFFFFFFFFFFFFH",
   "GGGGGGGGGGGGGGGGGFFFFGGGGGGGGGGGGGGG",
-  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
-  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
-  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
-  "GFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
+  "HFFFFFFFFFFFFFFFFFFFFG!!!!!!!!!!!!!!",
   "GGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
@@ -27,6 +27,7 @@
  "preload": [
   "assets/tiles/youngcle_iron_blue.png",
   "assets/tiles/youngcle_iron_blue_wall.png",
+  "assets/tiles/youngcle_iron_blue_solid.png",
   "assets/backdrops/youngcle_furnace.png"
  ],
  "spawns": {

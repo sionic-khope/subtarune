@@ -67,7 +67,7 @@ export const youngcle_intro = Object.assign([
   ...V('어쨋든 여러분들 환영합니다.', 'greet'),
   ...V('여기로 말할 것 같으면....'),
   { sfx: 'editor_union_bam' },
-  ...V('크크 {c=yellow}엄청 대박인 배{/c}다!', 'laugh'),
+  ...V('크크크 {c=yellow}엄청 대박인 배{/c}다!', 'laugh'),
   J('센스 구린데'),
   ...V('엄마가 청소년인 사람 대가리를 박살낼 배!!!', 'taunt'),
   close,

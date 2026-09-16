@@ -48,6 +48,8 @@ const CROWD_VARIANTS = { applause: ['applause', 'applause_2'], cheer: ['crowd_ch
 const CROWD_COOLDOWN = { applause: 1.2, cheer: 2.5, roar: 4.0 };
 const SIGNAL = { great: 0.15, miss: 0.3, glitch: 0.35 };
 // MISS 피해: 파티 셋 HP −10(전투 HP 와 같은 값). HP 띠 색은 characters.js 의 hpColor 와 같다
+// 아래 HUD 띠(28px): 왼쪽 SCORE · 가운데 파티 HP(이름 32 + 숫자 24 = 56 ≤ hpW) · 오른쪽 MAX COMBO. 글자는 전부 기본 16px
+const HUD = { h: 28, hpW: 58, hpGap: 8 };
 const MISS_DAMAGE = 10, HP_COLORS = { hyungsub: '#7fd0ff', gyeongsub: '#ff5c5c', ppaman: '#c9a3ff' };
 const PITCH_SFX = { 261.63: 'guitar_c4', 392: 'guitar_g4', 440: 'guitar_a4' };
 const HI_COLORS = ['255,110,190', '110,220,255', '255,225,110', '150,255,140'];
@@ -60,6 +62,8 @@ const TALK1 = [
   { who: 'ppaman', text: '제.. 제가 노래해요?' },
   { who: 'gyeongsub', text: 'ㅋㅋㅋㅋ 노래실력 본다 형이 또 노래랑 일가견이 있는데 카인노래방이..' },
   { who: 'ttuulla', text: '자 형님들  준비 되셨습니까? 일단 뭐 사운드 체크 해보십시요' },
+  // 조작 안내(사용자 2026-09-16): 사운드 체크 직전 한 줄, 화살표는 노란색. 두 화살표 사이는 nbsp — 줄이 넘어갈 때 둘이 같이 넘어간다
+  { who: 'ttuulla', text: '키보드 왼쪽 오른쪽 두개로 리듬을 맞출수있습니다 {y}←\u00a0→{/}' },
 ];
 const TALK2 = [
   { who: 'ttuulla', text: '자 룰을 알려드리겠습니다 여러분들이 최고의 무대를 만들어주셔야합니다' },
@@ -152,7 +156,7 @@ export function run(game, node = {}) {
       signal: 1, glitch: 0, noise: null, coins: [], after: null, badge: 0,
       hpAtStart: {}, hurt: {},
       crowdLast: { applause: -9, cheer: -9, roar: -9 }, crowdPick: { applause: 0, cheer: 0, roar: 0 }, crowdActive: [], bed: null, excite: 0,
-      result: null,
+      result: null, paused: false,
     };
     const charts = SONGS.map(src => fetch(src).then(r => r.json()).catch(() => null));
     const makeVideo = (src) => {
@@ -252,29 +256,37 @@ export function run(game, node = {}) {
       sfx('confirm', 0.7);
     };
     const songTime = () => (state.video && !state.fromClock) ? state.video.currentTime : state.clock;
+    // 일시정지: 영상(=차트 시계)·잡음 루프·관객 바닥 루프를 멈추고 홀드를 놓는다. 다시 C 로 이어서
+    const setPaused = (on) => {
+      state.paused = on;
+      const v = state.video && !state.fromClock ? state.video : null, loops = [state.noise, state.bed].filter(Boolean);
+      if (on) { for (const lane of ['L', 'R']) stopHold(lane); if (v) { try { v.pause(); } catch (e) { /* */ } } for (const a of loops) { try { a.pause(); } catch (e) { /* */ } } }
+      else { if (v) v.play().catch(() => {}); for (const a of loops) { try { a.play().catch(() => {}); } catch (e) { /* */ } } }
+      sfx('confirm', 0.5);
+    };
     // 파티(형섭 + 동료) — 리듬 게임 피해는 전투 HP(game.partyHp) 를 그대로 깎는다
     const partyIds = () => ['hyungsub', ...(game.party || [])].filter(id => BAND.some(b => b.id === id));
     const hpOf = id => game.hpOf(id), maxHpOf = id => game.maxHpOf(id);
     const saveHp = () => { state.hpAtStart = Object.fromEntries(partyIds().map(id => [id, hpOf(id)])); };
     const restoreHp = () => { for (const [id, hp] of Object.entries(state.hpAtStart)) game.partyHp[id] = hp; };
-    // MISS 피해: 셋 다 −10, 퍽 소리, 붉은 −10 팝업, 잠깐 흔들림. 누구 하나 0 이면 무대 실패
+    // MISS 피해: 셋 다 −10, 맞는 소리(damage)만 살짝 작게 — 검 소리(hit)는 겹쳐서 뺐다(사용자 2026-09-16), 붉은 −10 팝업, 잠깐 흔들림. 누구 하나 0 이면 무대 실패
     const damageParty = () => {
       let down = false;
       for (const id of partyIds()) {
         const hp = Math.max(0, hpOf(id) - MISS_DAMAGE); game.partyHp[id] = hp; if (hp <= 0) down = true;
         const b = bandOf(id); if (b) { state.hurt[id] = 0.35; state.fx.push({ kind: 'dmg', x: b.x, y: STAND_Y - Math.round(b.draw * 0.95), t: 0, dur: 0.8, text: `-${MISS_DAMAGE}` }); }
       }
-      sfx('hit', 0.8); sfx('damage', 0.5);
+      sfx('damage', 0.4);
       return down;
     };
     // 결과창(사용자: “한 글자씩 주루루룩”): 줄마다 글자가 0.035초 간격으로 찍히며 틱 소리, 줄 사이 0.35초 쉼, 다 찍히면 C
     const startResult = () => {
-      const lines = [{ text: '무대 끝!', x: SCREEN_W / 2, y: 56, size: 30, color: '#ffe066', align: 'center' }];
+      const lines = [{ text: '무대 끝!', x: SCREEN_W / 2, y: 56, size: 32, color: '#ffe066', align: 'center' }];
       state.stats.songs.forEach((sg, i) => {
         lines.push({ text: sg.title, x: 70, y: 112 + i * 44, size: F.size, color: '#ffe066', align: 'left' });
         lines.push({ text: `SCORE ${sg.score}   MAX COMBO ${sg.maxCombo}   ${sg.grade}`, x: 70, y: 132 + i * 44, size: F.size, color: '#fff', align: 'left' });
       });
-      lines.push({ text: `총점 ${state.stats.score}`, x: SCREEN_W / 2, y: 262, size: 18, color: '#7dff5a', align: 'center' });
+      lines.push({ text: `총점 ${state.stats.score}`, x: SCREEN_W / 2, y: 262, size: 24, color: '#7dff5a', align: 'center' });
       state.phase = 'result'; state.phaseT = 0; state.result = { lines, line: 0, shown: 0, timer: 0, gap: 0, done: false };
       sfx('won', 0.8);
     };
@@ -355,6 +367,8 @@ export function run(game, node = {}) {
       if (state.phase === 'soundcheck' || state.phase === 'play') {
         if (state.phase === 'play' && state.tvOn > 0 && state.tvOn < 1) state.tvOn = Math.min(1, state.tvOn + dt / 0.5);
         if (state.over) { if (confirm) retry(); return; }
+        if (state.paused) { if (confirm) setPaused(false); return; }
+        if (confirm) { setPaused(true); return; }
         if (state.fromClock || state.phase === 'soundcheck') state.clock += dt;
         const time = songTime();
         const input = { press: { L: edge('left'), R: edge('right') }, held: { L: held('left'), R: held('right') } };
@@ -448,7 +462,7 @@ export function run(game, node = {}) {
         const k = state.title?.k ?? 1;
         ctx.fillStyle = '#050508'; ctx.fillRect(TV.x, TV.y, TV.w, TV.h);
         text(state.chart.title, SCREEN_W / 2, TV.y + 44, { align: 'center', size: 24, color: '#ffe066', alpha: k });
-        text(`- ${state.chart.artist} -`, SCREEN_W / 2, TV.y + 84, { align: 'center', size: 14, color: '#ffffff', alpha: k });
+        text(`- ${state.chart.artist} -`, SCREEN_W / 2, TV.y + 84, { align: 'center', color: '#ffffff', alpha: k });
       }
       // 스포트라이트 빔이 천천히 흔들린다(플레이·환호 때 밝게, 하이라이트 땐 색색으로 크게 빠르게)
       const live = state.phase === 'play' || state.cheer > 0 || state.phase === 'hype', hi = state.hi;
@@ -500,7 +514,7 @@ export function run(game, node = {}) {
         ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(sd.x + sd.w / 2, LANE_TOP, 1, h);
         ctx.fillStyle = `rgba(${sd.rgb},0.9)`; ctx.fillRect(sd.x, LANE_TOP, 2, h); ctx.fillRect(sd.x + sd.w - 2, LANE_TOP, 2, h); ctx.fillRect(sd.x, RECEPTOR_Y + 8, sd.w, 3);
         for (const lane of ['L', 'R']) { const hf = sideHalf(sd, lane); ctx.strokeStyle = `rgba(${sd.rgb},0.4)`; ctx.lineWidth = 1; ctx.strokeRect(hf.x + 5.5, RECEPTOR_Y - 4.5, hf.w - 11, 9); }
-        text(sd.label, sd.x + sd.w / 2, LANE_TOP - 15, { align: 'center', color: `rgb(${sd.rgb})`, size: 12 });
+        text(sd.label, sd.x + sd.w / 2, LANE_TOP - 18, { align: 'center', color: `rgb(${sd.rgb})` });
         if (!inPlay) continue;
         clipTo(sd.x, sd.w);
         for (const it of state.chart.side?.[key] || []) {
@@ -512,7 +526,7 @@ export function run(game, node = {}) {
         for (const f of state.fx) if (f.kind === 'sidering' && f.lane === key) { const hf = sideHalf(sd, f.half), k = f.t / f.dur; ctx.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(2)})`; ctx.lineWidth = 2; ctx.strokeRect(hf.x + 5 - k * 5, RECEPTOR_Y - 4 - k * 5, hf.w - 10 + k * 10, 8 + k * 10); }
         ctx.restore();
       }
-      text('형섭', cx, LANE_TOP - 15, { align: 'center', color: '#4fd8ff', size: 12 });
+      text('형섭', cx, LANE_TOP - 18, { align: 'center', color: '#4fd8ff' });
       // 기둥(검정) — 델타룬처럼 가운데 하나
       ctx.fillStyle = 'rgba(0,0,0,0.84)'; ctx.fillRect(LANE.x, LANE_TOP, LANE.w, h);
       if (inPlay) {
@@ -520,7 +534,7 @@ export function run(game, node = {}) {
         if (state.play.combo >= 2) {
           const bump = state.judge && state.judge.text !== 'MISS' ? Math.max(0, 1 - state.judgeT * 4) * 4 : 0;
           text(String(state.play.combo), cx, RECEPTOR_Y - 104 - bump, { align: 'center', size: 40, color: 'rgba(255,255,255,0.2)', shadow: false });
-          text('COMBO', cx, RECEPTOR_Y - 58, { align: 'center', size: 14, color: 'rgba(255,255,255,0.2)', shadow: false });
+          text('COMBO', cx, RECEPTOR_Y - 58, { align: 'center', color: 'rgba(255,255,255,0.2)', shadow: false });
         }
         // 흰 박자선이 노트와 같이 내려온다(마디 첫 박은 굵게)
         beatLines(LANE.x, LANE.w);
@@ -534,8 +548,8 @@ export function run(game, node = {}) {
         const hf = HALF[lane], on = inPlay && held(lane === 'L' ? 'left' : 'right');
         ctx.strokeStyle = `rgba(${NOTE_RGB},${on ? 0.95 : 0.4})`; ctx.lineWidth = on ? 2 : 1; ctx.strokeRect(hf.x + 5.5, RECEPTOR_Y - 5.5, hf.w - 11, 11);
       }
-      text('◀', HALF.L.x + HALF.L.w / 2, RECEPTOR_Y + 13, { align: 'center', color: '#9fe8ff', size: 10, shadow: false });
-      text('▶', HALF.R.x + HALF.R.w / 2, RECEPTOR_Y + 13, { align: 'center', color: '#9fe8ff', size: 10, shadow: false });
+      text('◀', HALF.L.x + HALF.L.w / 2, RECEPTOR_Y + 13, { align: 'center', color: '#9fe8ff', shadow: false });
+      text('▶', HALF.R.x + HALF.R.w / 2, RECEPTOR_Y + 13, { align: 'center', color: '#9fe8ff', shadow: false });
       ctx.globalAlpha = 1;
       if (!inPlay) return;
       clipTo(LANE.x, LANE.w);
@@ -563,27 +577,26 @@ export function run(game, node = {}) {
       if (!(state.phase === 'soundcheck' || state.phase === 'play' || state.phase === 'title' || state.phase === 'hype' || state.phase === 'ovation')) return;
       const pop = state.play?.pop ?? RHYTHM.popStart;
       for (const [x, label] of [[74, 'POPU'], [390, 'LARITY']]) {
-        text(label, label === 'POPU' ? x + 12 : x + 4, LANE_TOP - 16, { color: '#6fb3ff', size: 10, align: label === 'POPU' ? 'right' : 'left' });
+        text(label, label === 'POPU' ? x + 12 : x + 4, LANE_TOP - 18, { color: '#6fb3ff', align: label === 'POPU' ? 'right' : 'left' });
         ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x, LANE_TOP, 12, 160); ctx.strokeStyle = '#6fb3ff'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, LANE_TOP + 0.5, 11, 159);
         const h = Math.round(156 * pop); ctx.fillStyle = pop > 0.66 ? '#7dff5a' : pop > 0.33 ? '#ffe066' : '#ff6a6a'; ctx.fillRect(x + 2, LANE_TOP + 158 - h, 8, h);
       }
-      // 파티 HP 띠(아래 가운데): 전투 HP 그대로, MISS 마다 줄어든다
+      // 아래 HUD 띠 한 줄(28px): 왼쪽 SCORE · 가운데 파티 HP(전투 HP 그대로, MISS 마다 줄어든다) · 오른쪽 MAX COMBO. 글자는 전부 기본 16px(작게 쓰면 뭉개진다)
+      ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, SCREEN_H - HUD.h, SCREEN_W, HUD.h);
       if (state.phase === 'play' || state.phase === 'title') {
-        const ids = partyIds(), bw = 44, gap = 10, total = ids.length * bw + (ids.length - 1) * gap, x0 = Math.round(SCREEN_W / 2 - total / 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x0 - 6, SCREEN_H - 26, total + 12, 26);
+        const ids = partyIds(), bw = HUD.hpW, gap = HUD.hpGap, total = ids.length * bw + (ids.length - 1) * gap, x0 = Math.round(SCREEN_W / 2 - total / 2);
         ids.forEach((id, i) => {
           const x = x0 + i * (bw + gap), hp = hpOf(id), max = maxHpOf(id), b = BAND.find(q => q.id === id);
-          text(b ? b.label : id, x, SCREEN_H - 24, { size: 9, color: HP_COLORS[id] || '#fff', shadow: false });
-          text(String(hp), x + bw, SCREEN_H - 24, { size: 9, color: state.hurt[id] > 0 ? '#ff4a4a' : '#fff', shadow: false, align: 'right' });
-          ctx.fillStyle = '#3a1a1a'; ctx.fillRect(x, SCREEN_H - 12, bw, 5);
-          ctx.fillStyle = state.hurt[id] > 0 ? '#ff4a4a' : (HP_COLORS[id] || '#fff'); ctx.fillRect(x, SCREEN_H - 12, Math.round(bw * hp / max), 5);
+          text(b ? b.label : id, x, SCREEN_H - HUD.h + 1, { color: HP_COLORS[id] || '#fff', shadow: false });
+          text(String(hp), x + bw, SCREEN_H - HUD.h + 1, { color: state.hurt[id] > 0 ? '#ff4a4a' : '#fff', shadow: false, align: 'right' });
+          ctx.fillStyle = '#3a1a1a'; ctx.fillRect(x, SCREEN_H - 9, bw, 5);
+          ctx.fillStyle = state.hurt[id] > 0 ? '#ff4a4a' : (HP_COLORS[id] || '#fff'); ctx.fillRect(x, SCREEN_H - 9, Math.round(bw * hp / max), 5);
         });
       }
-      ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, SCREEN_H - 24, 150, 24); ctx.fillRect(SCREEN_W - 150, SCREEN_H - 24, 150, 24);
-      text(`${String(state.stats.score + (state.play?.score || 0)).padStart(6, '0')}`, 8, SCREEN_H - 20, { color: '#7dff5a', size: 15 });
-      text('SCORE', 96, SCREEN_H - 17, { color: '#7dff5a', size: 10 });
-      text('MAX COMBO', SCREEN_W - 96, SCREEN_H - 17, { color: '#7dff5a', size: 10, align: 'right' });
-      text(`${String(Math.max(state.stats.maxCombo, state.play?.maxCombo || 0)).padStart(6, '0')}`, SCREEN_W - 8, SCREEN_H - 20, { color: '#7dff5a', size: 15, align: 'right' });
+      text(`${String(state.stats.score + (state.play?.score || 0)).padStart(6, '0')}`, 8, SCREEN_H - 22, { color: '#7dff5a' });
+      text('SCORE', 64, SCREEN_H - 22, { color: '#7dff5a' });
+      text('MAX COMBO', SCREEN_W - 64, SCREEN_H - 22, { color: '#7dff5a', align: 'right' });
+      text(`${String(Math.max(state.stats.maxCombo, state.play?.maxCombo || 0)).padStart(6, '0')}`, SCREEN_W - 8, SCREEN_H - 22, { color: '#7dff5a', align: 'right' });
     };
     // 지금 박(곡 중엔 차트 박자, 아니면 126bpm 느낌으로 흐르는 박)
     const beatNow = () => (state.chart && state.phase === 'play' ? beatAt(state.chart, songTime()).beat : state.t * 2.1);
@@ -599,7 +612,7 @@ export function run(game, node = {}) {
         } else { ctx.fillStyle = b.color; ctx.fillRect(b.x - 9, feet - 32, 18, 32); }
       }
       for (const f of state.fx) if (f.kind === 'dust') { const k = f.t / f.dur; ctx.fillStyle = `rgba(200,190,170,${(1 - k) * 0.7})`; for (let i = -3; i <= 3; i++) ctx.fillRect(f.x + i * 8 * (0.4 + k), f.y - 3 - k * 14, 3, 2); }
-      for (const f of state.fx) if (f.kind === 'dmg') { const k = f.t / f.dur; text(f.text, f.x, f.y - k * 22, { align: 'center', size: 14, color: '#ff4a4a', alpha: 1 - k * k }); }
+      for (const f of state.fx) if (f.kind === 'dmg') { const k = f.t / f.dur; text(f.text, f.x, f.y - k * 22, { align: 'center', color: '#ff4a4a', alpha: 1 - k * k }); }
     };
     const drawParticles = () => {
       for (const c of state.confetti) { const flat = Math.floor(c.t * 6 + c.seed) % 2; ctx.fillStyle = c.color; ctx.fillRect(Math.round(c.x), Math.round(c.y), flat ? 3 : 2, flat ? 2 : 3); }
@@ -649,7 +662,7 @@ export function run(game, node = {}) {
         for (const word of seg.text.split(' ')) {
           const w = ctx.measureText(word + ' ').width;
           if (x + w > bx + bw - 16 && x > bx + 16 + dx) { x = bx + 16 + dx; y += 20; }
-          text(word + ' ', x, y, { color: seg.color || '#fff', shadow: false, size: seg.color === '#ff4a4a' ? 18 : F.size }); x += w;
+          text(word + ' ', x, y, { color: seg.color || '#fff', shadow: false, size: seg.color === '#ff4a4a' ? 24 : F.size }); x += w;
         }
       }
     };
@@ -657,10 +670,16 @@ export function run(game, node = {}) {
     const drawOver = () => {
       if (!state.over) return;
       ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-      text('무대가 엉망이 됐다...', SCREEN_W / 2, 120, { align: 'center', size: 20, color: '#ff8a8a' });
+      text('무대가 엉망이 됐다...', SCREEN_W / 2, 120, { align: 'center', size: 24, color: '#ff8a8a' });
       const cx = SCREEN_W / 2, by = 160;
       ctx.fillStyle = '#000'; ctx.fillRect(cx - 72, by, 144, 34); ctx.strokeStyle = Math.floor(state.t * 2.5) % 2 === 0 ? '#ffe066' : '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(cx - 71, by + 1, 142, 32);
       text('재도전', cx - 16, by + 9, { align: 'center' }); ctx.fillStyle = '#000'; ctx.fillRect(cx + 26, by + 8, 18, 18); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(cx + 26.5, by + 8.5, 17, 17); text('C', cx + 35, by + 10, { align: 'center', color: '#ffe066', shadow: false });
+    };
+    const drawPause = () => {
+      if (!state.paused) return;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      text('일시 정지', SCREEN_W / 2, 132, { align: 'center', size: 24, color: '#ffe066' });
+      if (Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, 172, { align: 'center', color: '#8f8fa6' });
     };
     const drawResult = () => {
       if (state.phase !== 'result') return;
@@ -670,25 +689,24 @@ export function run(game, node = {}) {
         const shown = i < r.line || r.done ? l.text.length : i === r.line ? r.shown : 0;
         if (shown > 0) text(l.text.slice(0, shown), l.x, l.y, { align: l.align, size: l.size, color: l.color });
       });
-      if (r.done && Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, SCREEN_H - 40, { align: 'center', color: '#8f8fa6', size: 12 });
+      if (r.done && Math.floor(state.t * 2) % 2 === 0) text('C  계속', SCREEN_W / 2, SCREEN_H - 40, { align: 'center', color: '#8f8fa6' });
     };
     // 최상위 레이어: ‘● 연결 안 됨’ 배지(왼쪽 아래 관객석 위·SCORE 바 바로 위 — 기둥·스크린과 안 겹치게, 사용자 “옮겨”), 빨간 점 깜빡임
     const drawBadge = () => {
       if (state.badge <= 0) return;
-      const img = badgeImg.img, x = 8, y = SCREEN_H - 24 - 26 + Math.round((1 - state.badge) * 6);
+      const img = badgeImg.img, x = 8, y = SCREEN_H - HUD.h - 30 + Math.round((1 - state.badge) * 6);
       ctx.globalAlpha = state.badge;
       if (img && img.complete && img.naturalWidth) ctx.drawImage(img, x, y);
-      else { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x, y, 88, 20); }
-      if (Math.floor(state.t * 2) % 2 === 0) { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x + 21, y + 8, 5, 5); ctx.fillStyle = '#f0a9a3'; ctx.fillRect(x + 22, y + 9, 3, 3); }
-      text('연결 안 됨', x + 30, y + 4, { color: '#b3261e', size: 11, shadow: false });
+      else { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x, y, 108, 24); }
+      if (Math.floor(state.t * 2) % 2 === 0) { ctx.fillStyle = '#fbe4e2'; ctx.fillRect(x + 23, y + 10, 5, 5); ctx.fillStyle = '#f0a9a3'; ctx.fillRect(x + 24, y + 11, 3, 3); }
+      text('연결 안 됨', x + 30, y + 4, { color: '#b3261e', shadow: false });
       ctx.globalAlpha = 1;
     };
     const draw = () => {
       ctx.save();
       if (state.shake > 0) ctx.translate(Math.round((Math.random() - 0.5) * 6), Math.round((Math.random() - 0.5) * 4));
       drawBackdrop(); drawPools(); drawLanes(); drawBand(); drawAudience(); drawParticles(); drawMeters();
-      if (state.phase === 'soundcheck' && state.phaseT < 3) text('← →  사운드 체크: 떨어지는 칸에 맞춰 누르세요', SCREEN_W / 2, 8, { align: 'center', size: 12, color: '#ffe066' });
-      drawTalk(); drawOver(); drawResult(); drawBadge();
+      drawPause(); drawTalk(); drawOver(); drawResult(); drawBadge();
       ctx.restore();
     };
 
@@ -700,7 +718,7 @@ export function run(game, node = {}) {
     // QA: 곡 안 특정 시각으로 건너뛰기(앞 노트는 판정 없이 지나간 것으로) — 하이라이트 확인용
     // Range 를 지원하지 않는 서버(python http.server)에선 영상 seek 이 안 되므로 그땐 시계 모드로 넘어가 시각만 맞춘다
     const seek = (t) => { const v = state.video; if (v && v.seekable && v.seekable.length && v.seekable.end(0) >= t) { try { v.currentTime = t; } catch (e) { /* */ } } else { state.fromClock = true; if (v) { try { v.pause(); } catch (e) { /* */ } } } state.clock = t; state.sideT = t; for (const n of state.play?.notes || []) if (n.status === 'wait' && n.t < t - 0.2) n.status = 'hit'; };
-    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, throwCoins, seek, applySignal, endSong, damageParty, hpOf, get play() { return state.play; }, songTime,
+    window.__rhythm = { state, finish, startTitle, startSong, retry, cheer, pyro, confetti, throwCoins, seek, applySignal, endSong, damageParty, hpOf, setPaused, get play() { return state.play; }, songTime,
       skipTo(phase) { for (const b of state.band) { b.y = STAND_Y; b.landed = true; } state.talk = null; if (phase === 'soundcheck') startSoundcheck(); else if (phase === 'hype') startHype(); else if (phase === 'song') startTitle(0); } };
   });
 }

@@ -48,7 +48,7 @@ import { editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, p
 import { bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look, subrio_boss_qa } from './cutscenes/bidet_arcade.js';
 import { stage_hall_intro } from './cutscenes/stage_hall.js';
 import { backstage_ttuulla, rhythm_qa, after_show_qa, stage_right_locked } from './cutscenes/stage_rhythm.js';
-import { lava_raft_intro, lava_end_door } from './cutscenes/stage_lava.js';
+import { lava_raft_intro } from './cutscenes/stage_lava.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -92,7 +92,7 @@ export const SCRIPTS = {
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,
   bidet_arcade, bidet_pipe_enter, bidet_screen_look, bidet_kiosk_look, subrio_boss_qa,
-  stage_hall_intro, backstage_ttuulla, rhythm_qa, after_show_qa, stage_right_locked, lava_raft_intro, lava_end_door,
+  stage_hall_intro, backstage_ttuulla, rhythm_qa, after_show_qa, stage_right_locked, lava_raft_intro,
   storage_viewer,
   storage_viewer_defeated,
   maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair,
