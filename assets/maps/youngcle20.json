@@ -401,7 +401,11 @@
    "iy": -202,
    "solid": false,
    "hidden": true,
-   "sortY": 374
+   "sortY": 374,
+   "carry": [
+    "ship_obangsun",
+    "ship_naram"
+   ]
   },
   {
    "type": "prop",
@@ -421,8 +425,8 @@
    "type": "npc",
    "id": "ship_obangsun",
    "sprite": "obangsun",
-   "x": 614,
-   "y": 342,
+   "x": 612,
+   "y": -54,
    "facing": "down",
    "wander": 0,
    "solid": false,
@@ -432,8 +436,8 @@
    "type": "npc",
    "id": "ship_naram",
    "sprite": "naram_giant",
-   "x": 660,
-   "y": 342,
+   "x": 652,
+   "y": -54,
    "facing": "down",
    "wander": 0,
    "solid": false,

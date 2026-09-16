@@ -18,13 +18,15 @@ export const CHARACTERS = {
   naram_giant: { name: '나람이', voice: 'naram', sheet: 'assets/sprites/naram_giant.png', stillPivot: [48, 90] },
   // 오방순(BUILD149 자산, BUILD202 조종실 실험체로 첫 등장): 큰 얼굴·붉은 장식·땋은 머리 64px 셀(pivot 32,61). 목소리 = Yuna 낮춘 ‘흐에에에’ voices/obangsun.mp3
   //   BUILD203 “오방순 너무 작고” → 같은 raw(assets/source/obangsun149/raw-sheet.png)를 96px 셀로 다시 뽑은 obangsun_big.png(필드 48px, 발 y90). 64px 원본은 보존
-  obangsun: { name: '오방순', voice: 'obangsun', sheet: 'assets/sprites/obangsun_big.png', stillPivot: [48, 90] },
+  //   raw 행 순서는 down/left/right/up(BUILD205 사용자 “걸음거리 좌우 구분 못함” — 엔진 기본 down/up/left/right 로 읽어 옆·뒤가 뒤섞였다)
+  obangsun: { name: '오방순', voice: 'obangsun', sheet: 'assets/sprites/obangsun_big.png', rowOrder: ['down', 'left', 'right', 'up'], stillPivot: [48, 90] },
   park_guardian_costume: { name: '파크가디언', voice: 'park_guardian_costume', sheet: 'assets/sprites/park_guardian_costume.png', stillPivot: [32, 60] },
   park_guardian: { name: '파크가디언', voice: 'park_guardian', sheet: 'assets/sprites/park_guardian.png', stillPivot: [32, 60] },
   youngcle: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle.png' },
   // 영클 비행 장치(BUILD203, gpt-image-2 재생성 4방향 시트 assets/source/youngcle-hover-v2 — 승인 걷기 시트 + 사용자 참고 이미지 탈것; 112px 셀 = 필드 56px, 발(꼭지) y104).
   //   hover: 서 있어도 불꽃·번개 프레임이 돌고 6px 떠서 2px 오르내린다(world.js Character). 손으로 그린 v1(tools/art/youngcle_hover_set.py)은 사용자 반려로 폐기(postmortem 2026-09-16-ship-control-intro)
-  youngcle_hover: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_hover.png', stillPivot: [56, 104], hover: { fps: 8, lift: 6, bob: 2, period: 1.4 } },
+  //   기본 모션은 차분하게(사용자 “너무 역동적”): 서 있을 땐 중립·불꽃 두 프레임만 2.5fps, 1px 오르내림 2.6초 주기
+  youngcle_hover: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_hover.png', stillPivot: [56, 104], hover: { fps: 2.5, frames: [0, 1], lift: 6, bob: 1, period: 2.6 } },
   gajaeman_shadow: { name: '가재맨', voice: 'gajaeman_shadow', palette: 'hero', sheet: 'assets/sprites/gajaeman_shadow.png', stillPivot: [32, 61] },
   junhee_mankatsuki: { name: '만카츠키 쥰희', voice: 'junhee', palette: 'merchant', sheet: 'assets/sprites/junhee_mankatsuki.png', stillPivot: [32, 61] },
   junhee_point: { name: '쥰희', voice: 'junhee', still: 'assets/sprites/junhee_point.png', stillScale: 0.77, stillPivot: [32, 61] },

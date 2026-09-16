@@ -62,6 +62,7 @@ try {
   s = await untilText('김형섭 아니지'); await page.waitForTimeout(400); await cap('08a_glare'); check(s && s.portrait === 'youngcle_tv_glare', '“너 김형섭 아니지?” 째려보는 초상 ' + s?.portrait);
   s = await untilText('악당'); await cap('08_akdang');
   check(s && (s.text || '').includes('{c=red}악당{/c}'), '“악당” 빨간 글자 ' + JSON.stringify(s?.text));
+  s = await untilText('김형섭에서 파생된'); check(!!s, '영클 “김형섭에서 파생된 착한 자아”(수정 대사)');
   s = await untilText('보라색 코드'); await advance(); await page.waitForTimeout(300); s = await st();
   check(s.emotes[0], '“보라색 코드” 뒤 요플래 느낌표 ' + JSON.stringify(s.emotes));
   s = await untilText('갖고있나보군'); await advance();
@@ -72,11 +73,15 @@ try {
   await page.waitForTimeout(2400); s = await st(); await cap('09_youngcle_right');
   const sfx2 = await page.evaluate(() => window.__sfx.slice());
   check(descended && s.px === 400 && s.pf === 'right' && s.yc.f === 'left' && sfx2.filter(n => n === 'ember').length >= 3 && sfx2.includes('rocket'), '일행 중앙 살짝 왼쪽(400)에서 오른쪽 봄, 영클 오른쪽(556,300)으로 끊김 없이 천천히 내려와 착지(ember·whoosh)·상승 rocket ' + JSON.stringify([s.px, s.pf, s.yc, sfx2.filter(n => n === 'ember').length]));
-  s = await untilText('편집노조'); const mosaic = await page.evaluate(() => (window.game.textbox.tokens || []).filter(t => t.mosaic).map(t => t.ch).join('')); check(!!s && mosaic === '노', '“편집노조”의 노만 모자이크(text-mosaic) ' + JSON.stringify(mosaic));
+  s = await untilText('편집노조'); const mosaic = await page.evaluate(() => (window.game.textbox.tokens || []).filter(t => t.mosaic).map(t => [t.ch, t.mosaic])); await page.waitForTimeout(1500); await cap('09a_mosaic'); check(!!s && JSON.stringify(mosaic) === '[["노",2]]', '“편집노조”의 노만 약한 모자이크(block 2) ' + JSON.stringify(mosaic));
   s = await untilText('나와라'); check(s && s.portrait === 'youngcle_tv_taunt', '“나와라”'); await advance();
   // ⑥ 버튼 → 철창 하강(chain_extend·흔들림) → 착지 → 문 열림(locker) → 오방순(556,236)·나람(556,364) 걸어 나와 왼쪽 봄
-  const swing = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage'); return c && c.visible && c.def.oscillate; }, 3000);
-  await page.waitForTimeout(900); await cap('10_cage_drop');
+  const swing = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage'); return c && c.visible && c.def.oscillate; }, 5000);
+  await page.waitForTimeout(1500); await cap('10_cage_drop');
+  // 철창은 카메라 안에서, 오방순·나람을 태운 채 내려온다(사용자 “갑자기 생기는 느낌”, “뚫리면서 나오는 느낌”)
+  const ride = await page.evaluate(() => { const g = window.game; const c = g.entities.find(x => x.id === 'ship_cage'), o = g.entities.find(x => x.id === 'ship_obangsun'), n = g.entities.find(x => x.id === 'ship_naram');
+    return { cx: Math.round(c.x), cy: Math.round(c.y), camx: Math.round(g.camera.x), camy: Math.round(g.camera.y), inView: c.x >= g.camera.x && c.x + 100 <= g.camera.x + 480 && c.y + 178 > g.camera.y, ov: o.visible, nv: n.visible, oInside: o.x > c.x && o.x < c.x + 100 && o.y > c.y && o.y < c.y + 178, nInside: n.x > c.x && n.x < c.x + 100 && n.y > c.y && n.y < c.y + 178 }; });
+  check(ride.inView && ride.ov && ride.nv && ride.oInside && ride.nInside, '내려오는 철창이 화면 안에 있고 오방순·나람이 그 안에 타고 있다 ' + JSON.stringify(ride));
   const landed = await waitFor(() => { const c = window.game.entities.find(x => x.id === 'ship_cage_open'); return c && c.visible; }, 12000);
   s = await st(); await cap('11_cage_open');
   check(swing && landed && s.open.y === 194 && (!s.cage || !s.cage.v), '철창이 흔들리며 내려와(chain_extend) 착지 → 문 열린 철창(y194) ' + JSON.stringify([swing, landed, s.open, s.cage]));
@@ -85,8 +90,11 @@ try {
   check(outTwo && s.ob.f === 'left' && s.nr.f === 'left' && s.yc.f === 'left', '오방순(위 556,236)·나람(아래 556,364)이 천천히 걸어 나와 영클과 함께 왼쪽을 봄 ' + JSON.stringify([s.ob, s.nr]));
   const nrSize = await page.evaluate(() => { const n = window.game.entities.find(x => x.id === 'ship_naram'); return [n.sprite.fw, n.def.sprite]; });
   check(nrSize[0] === 96 && nrSize[1] === 'naram_giant', '나람은 거대 시트(96px 셀) ' + JSON.stringify(nrSize));
+  const obRows = await page.evaluate(() => { const s = window.game.entities.find(x => x.id === 'ship_obangsun').sprite; const d = c => c.toDataURL(); return { lr: d(s.left[0]) !== d(s.right[0]), ud: d(s.up[0]) !== d(s.down[0]), lu: d(s.left[0]) !== d(s.up[0]) }; });
+  check(obRows.lr && obRows.ud && obRows.lu, '오방순 시트 행: 왼쪽·오른쪽·위·아래가 서로 다른 그림(rowOrder) ' + JSON.stringify(obRows));
   s = await untilText('방순아 나람아'); check(!!s, '“자 방순아 나람아. 갈까”');
-  s = await untilText('흐어어어'); check(s && s.speaker === '오방순' && s.portrait === 'obangsun', '오방순 “흐어어어, …” ' + JSON.stringify([s?.speaker, s?.portrait]));
+  s = await untilText('흐어어어'); const twoLines = await page.evaluate(() => (window.game.textbox.tokens || []).some(t => t.ch === '\n')); await page.waitForTimeout(1200); await cap('12a_obangsun_line');
+  check(s && s.speaker === '오방순' && s.portrait === 'obangsun' && twoLines, '오방순 “흐어어어, …” — \\ _ / 는 아랫줄 ' + JSON.stringify([s?.speaker, s?.portrait, twoLines]));
   s = await untilText('히요오오옹'); check(s && s.speaker === '나람이', '나람 “아이구 형님들 …”');
   s = await untilText('즐'); check(s && s.portrait === 'youngcle_tv_taunt', '영클 “즐”'); await cap('13_jeul');
   await advance();

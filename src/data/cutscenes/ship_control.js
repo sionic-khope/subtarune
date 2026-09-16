@@ -11,6 +11,7 @@ const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const SPOT = { junhee: [486, 278], yongjun: [436, 334], ycEnter: [470, 236], ycStand: [556, 300], cageDrop: 396 };
 const M = () => SPOT;
 const LOGO_CAM = [14.5, 8.9];                              // 바닥 로고(480,300)가 화면 가운데
+const CAGE_CAM = [15.5, 8.9];                              // 일행(348~424)과 철창(600~700)이 한 화면에(x256~736) — 철창이 화면 밖에서 내려오면 ‘갑자기 생기는’ 느낌(사용자)
 const WALL_X = 900;                                        // 오른쪽 벽 앞(히트박스 x, 벽 928)
 const BALL = 64;                                           // 포탄 지름(쥰희 몸 46px 보다 크게 — 사용자 “타코 몸보다 커야 해”)
 const MUZZLE = [8 + 176 - 28, 274];                        // 대포(176×69)가 다 나왔을 때 포구(x 156, 포구 가운데 y274)
@@ -25,7 +26,7 @@ const V = (text, expression = 'smirk') => ({ speaker: '영클', portrait: `young
 const close = { action: game => game.textbox.close() };
 const bang = ids => ({ parallel: ids.map(id => ({ emote: id, kind: '!', duration: 1.1, hold: 0.45 })) });
 const face = (ids, dir) => ids.map(id => ({ face: id, dir }));
-const ball = (id, cx, cy) => ({ spawn: { type: 'prop', id, image: 'assets/props/ship_cannonball.png', x: cx - BALL / 2, y: cy - BALL / 2, w: BALL, h: BALL, solid: false, sortY: 1000000000 } });
+const ball = (id, cx, cy) => ({ spawn: { type: 'prop', id, image: 'assets/props/ship_cannonball.png', x: cx - BALL / 2, y: cy - BALL / 2, w: BALL, h: BALL, ix: cx - BALL / 2, iy: cy - BALL / 2, solid: false, sortY: 1000000000 } });   // ix/iy 필수 — 없으면 slide 가 그림을 못 옮긴다(BUILD205 사용자 지적)
 const smoke = at => ({ boom: { sheet: 'assets/fx/cannon_smoke.png', at, cols: 6, count: 6, fps: 12, scale: 2.2, sfx: 'cannon_puff' } });
 /** 착지 훙 훙 훙: 비행 장치가 제자리에서 세 번 작게 떴다 내려앉는다(사용자 “착지 훙 훙 훙 정도 모션”) */
 const settle = id => [
@@ -37,7 +38,7 @@ const settle = id => [
 const shoot = (ballId, targetId, fromCx, targetCx, toY) => [
   { camera: ballId },
   { slide: ballId, by: [targetCx - fromCx, 0], duration: 0.6 },
-  { parallel: [{ sfx: 'hit' }, { shake: 0.12, amp: 3 }] },
+  { parallel: [{ sfx: 'thud' }, { shake: 0.12, amp: 3 }] },
   { wait: 0.1 },
   { camera: targetId },
   { parallel: [
@@ -83,7 +84,7 @@ export const ship_control_intro = Object.assign([
   { wait: 0.7 },
   { parallel: [{ zoom: 1, duration: 0.9 }, { camera: [8, 8.6], duration: 0.9 }] },
   { wait: 0.4 },
-  { async: [smoke(MUZZLE)] }, { async: [{ shake: 0.35, amp: 5 }] }, { sfx: 'boom' },
+  { async: [smoke(MUZZLE)] }, { async: [{ shake: 0.35, amp: 5 }] }, { sfx: 'cannon_guard_fire' }, { sfx: 'boom', volume: 0.7 },
   ball(BALL1, MUZZLE[0] + 10, MUZZLE[1]),
   { wait: 0.15 },
   ...shoot(BALL1, JID, MUZZLE[0] + 10, M().junhee[0] + 12, 0),
@@ -154,7 +155,7 @@ export const ship_control_intro = Object.assign([
   P('자 잠깐 영클형 뭔가 잘못 알고계신것 같..'),
   V('따까리새끼는 닥치샘 ㅇㅇ 내말이맞음', 'glare'),
   V('나에게 이러한 지능을 부여해주시고, 모두를 여기로 모을수있게 도와준 사람이 있음.'),
-  V('그리고 그분이 자기는 형섭이형에게 파생된 착한 자아고 나쁜 자아가 열쇠를 갖고있다했음'),
+  V('그리고 그분이 자기는 김형섭에서 파생된 착한 자아고 나쁜 자아가 열쇠를 갖고있다했음'),
   P('애초에 그 열쇠란게 뭔데요?'),
   V('보라색 코드'),
   close,
@@ -180,7 +181,7 @@ export const ship_control_intro = Object.assign([
   ...settle(YC),
   { wait: 0.9 },
   V('뭐 나혼자 싸우진 않을거임'),
-  { ...V('이미 너네 전투패턴은 편집노조 애들과의 전투에서 다 배웠다 이거야'), mosaic: { text: '노', block: 4 } },   // ‘노’만 모자이크(악질맨 말풍선과 같은 text-mosaic)
+  { ...V('이미 너네 전투패턴은 편집노조 애들과의 전투에서 다 배웠다 이거야'), mosaic: { text: '노', block: 2 } },   // ‘노’만 모자이크(악질맨 말풍선과 같은 text-mosaic; 대화창 글꼴엔 block 4 가 너무 강해 2)
   V('그리고 나의 실험체 두명하고 같이 싸울거임 ㅇㅇ'),
   P('???'),
   V('나와라', 'taunt'),
@@ -188,8 +189,10 @@ export const ship_control_intro = Object.assign([
   { wait: 0.5 },
   // ⑦ 버튼 → 하늘에서 철창이 천천히 데롱데롱 내려와 영클 뒤에 착지 → 문이 열리고 오방순(위)·나람(아래)이 천천히 걸어 나온다
   { sfx: 'click' },
-  { wait: 0.6 },
-  { show: CAGE },
+  { camera: CAGE_CAM, duration: 1.0 },
+  { wait: 0.3 },
+  // 오방순·나람은 철창 안에 탄 채(carry) 함께 내려온다 — 문이 열린 뒤 갑자기 나타나는 게 아니라(사용자)
+  { show: OB }, { show: NR }, { show: CAGE },
   // 사슬에 매달려 내려온다: 처음엔 좀 빠르게 흔들리며(데롱데롱), 바닥 가까이선 느려지고, 닿으면 살짝 튀었다 가라앉는다(사용자 “철창 내려오는 것도 부자연스럽다”)
   { action: game => { const c = game.entities.find(x => x.id === CAGE); if (c) c.def.oscillate = { dx: 5, period: 1.9 }; } },
   { slide: CAGE, by: [0, Math.round(M().cageDrop * 0.62)], duration: 1.7, sfx: 'chain_extend' },
@@ -199,8 +202,7 @@ export const ship_control_intro = Object.assign([
   { parallel: [{ sfx: 'thud' }, { shake: 0.22, amp: 3 }, { hop: CAGE, by: [0, 0], height: 5, duration: 0.3, sfx: false, keep: true }] },
   { wait: 0.9 },
   { hide: CAGE }, { show: CAGE_OPEN }, { sfx: 'locker' },
-  { show: OB }, { show: NR },
-  { wait: 0.6 },
+  { wait: 0.8 },
   { parallel: [
     [{ move: OB, px: [614, 392], exact: true, speed: 40 }, { move: OB, px: [600, 392], exact: true, speed: 40 }, { move: OB, px: [600, 236], exact: true, speed: 40 }, { move: OB, px: [556, 236], exact: true, speed: 40 }],
     [{ wait: 0.6 }, { move: NR, px: [660, 392], exact: true, speed: 40 }, { move: NR, px: [556, 392], exact: true, speed: 40 }, { move: NR, px: [556, 364], exact: true, speed: 40 }],
@@ -208,7 +210,7 @@ export const ship_control_intro = Object.assign([
   ...face([OB, NR, YC], 'left'),
   { wait: 0.8 },
   V('자 방순아 나람아. 갈까'),
-  O('흐어어어, 이 이중인격 씨발롬들 흐어어어 \\ _ / !!!!'),
+  O('흐어어어, 이 이중인격 씨발롬들 흐어어어{n}\\ _ / !!!!'),   // \ _ / 는 잘리지 않게 아랫줄에(사용자)
   NA('아이구 형님들 잘 좀 부탁드리겠습니다 히요오오옹'),
   P('싸울수밖에 없겠네요.'),
   G('영클아 우리가 이기면 우리 얘기를 들어주는거다'),

@@ -244,7 +244,7 @@ export class Character extends Entity {
     const hover = CHARACTERS[this.def?.sprite]?.hover;
     if (hover) this.hoverT = (this.hoverT || 0) + dt;
     if (!this.moving) {
-      if (hover) { this.animPhase += dt * (hover.fps || fps); this.frame = Math.floor(this.animPhase) % 4; return; }
+      if (hover) { this.animPhase += dt * (hover.fps || fps); const seq = hover.frames; this.frame = seq ? seq[Math.floor(this.animPhase) % seq.length] : Math.floor(this.animPhase) % 4; return; }   // frames: 서 있을 때 쓰는 프레임만(번개 프레임 제외 — 기본 모션이 너무 역동적, BUILD205)
       this.frame = 0; this.animPhase = 0; return;
     }
     this.animPhase += dt * fps;
@@ -635,14 +635,26 @@ export class Prop extends Entity {
   }
   /** 움직이는 소품: def.oscillate = { dx?, dy?, period, phase? } — 기준 위치에서 사인파로 왕복(움직이는 벽 등). 히트박스와 그림이 같이 움직인다 */
   update(dt) {
-    const o = this.def.oscillate; if (!o) return;
-    if (this.base === undefined) { this.base = { x: this.x, y: this.y, ix: this.def.ix ?? this.x, iy: this.def.iy ?? this.y }; this.osT = 0; }
-    const px = this.x, py = this.y;
-    this.osT += dt; const k = Math.sin((this.osT / (o.period || 3) + (o.phase || 0)) * Math.PI * 2);
-    const ox = Math.round((o.dx || 0) * k), oy = Math.round((o.dy || 0) * k);
-    this.x = this.base.x + ox; this.y = this.base.y + oy; this.def.ix = this.base.ix + ox; this.def.iy = this.base.iy + oy;
-    // carry: 이 소품이 흔들릴 때 같이 실려 움직이는 엔티티(밧줄 철창 속 쥰희·용준 — 사용자 “철창 움직임에 맞춰서 좌우 데롱데롱”)
-    if (this.def.carry) for (const id of this.def.carry) { const e = this.game.entities.find((c) => c.id === id && !c.dead); if (e) { e.x += this.x - px; e.y += this.y - py; } }
+    const o = this.def.oscillate; let carrying = !!o;
+    if (o) {
+      // 흔들림은 '현재 위치 − 직전 흔들림 오프셋'을 기준으로 얹는다 — 고정 기준점을 쓰면 컷신 slide 로 내려오는 동안 매 프레임 제자리로 되돌아가 튀고, 탑승자가 튕겨 나갔다(BUILD205 조종실 철창)
+      if (!this.osOff) { this.osOff = { x: 0, y: 0 }; this.osT = 0; }
+      const bx = this.x - this.osOff.x, by = this.y - this.osOff.y, bix = (this.def.ix ?? this.x) - this.osOff.x, biy = (this.def.iy ?? this.y) - this.osOff.y;
+      this.osT += dt; const k = Math.sin((this.osT / (o.period || 3) + (o.phase || 0)) * Math.PI * 2);
+      const ox = Math.round((o.dx || 0) * k), oy = Math.round((o.dy || 0) * k);
+      this.x = bx + ox; this.y = by + oy; this.def.ix = bix + ox; this.def.iy = biy + oy;
+      this.osOff = { x: ox, y: oy };
+    } else if (this.osOff) {                              // 흔들림이 끝나면 오프셋을 걷어 제자리로(탑승자도 같이)
+      this.x -= this.osOff.x; this.y -= this.osOff.y; if (this.def.ix !== undefined) { this.def.ix -= this.osOff.x; this.def.iy -= this.osOff.y; }
+      this.osOff = null; carrying = true;
+    }
+    // carry: 흔들리는 동안 이 소품이 움직인 만큼(흔들림 + 그 사이 slide 이동) 같이 실려 움직이는 엔티티(밧줄 철창 속 쥰희·용준, 조종실 철창 속 오방순·나람).
+    //   흔들리지 않을 때의 이동(광장 철창을 들어 올려 떨어뜨리기)은 태우지 않는다 — 옛 동작 그대로(색깔 게임 뒤 연출이 그 위에 짜여 있다)
+    if (this.def.carry && carrying) {
+      const last = this.lastPos || { x: this.x, y: this.y }; const dx = this.x - last.x, dy = this.y - last.y;
+      if (dx || dy) for (const id of this.def.carry) { const e = this.game.entities.find((c) => c.id === id && !c.dead); if (e) { e.x += dx; e.y += dy; } }
+    }
+    this.lastPos = { x: this.x, y: this.y };
   }
   get drawX() { return this.def.w === undefined ? this.x : (this.def.ix ?? this.def.x); }
   get drawY() { return this.def.w === undefined ? this.y + this.h - this.ih : (this.def.iy ?? this.def.y); }

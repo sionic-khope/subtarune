@@ -72,10 +72,11 @@ def main() -> None:
         # 영클(비행 장치): 천장 위에서 대기, 연출이 내려온다
         {'type': 'npc', 'id': 'ship_youngcle', 'sprite': 'youngcle_hover', 'x': YC_ENTER[0], 'y': -80, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
         # 밧줄 철창(닫힘 → 착지 뒤 문 열린 그림으로 교체) + 안의 오방순·나람(거대)
-        {'type': 'prop', 'id': 'ship_cage', 'image': P + 'ship_cage.png', 'x': CAGE[0], 'y': CAGE[1] - CAGE_DROP, 'w': CAGE_W, 'h': CAGE_H, 'ix': CAGE[0], 'iy': CAGE[1] - CAGE_DROP, 'solid': False, 'hidden': True, 'sortY': CAGE[1] + CAGE_H + 2},
+        # 철창은 오방순·나람을 태운 채(carry) 화면 위에서 내려온다 — 둘은 철창 안 시작 자리(철창 바닥판 위)에 숨어 있다가 연출이 보여 준다
+        {'type': 'prop', 'id': 'ship_cage', 'image': P + 'ship_cage.png', 'x': CAGE[0], 'y': CAGE[1] - CAGE_DROP, 'w': CAGE_W, 'h': CAGE_H, 'ix': CAGE[0], 'iy': CAGE[1] - CAGE_DROP, 'solid': False, 'hidden': True, 'sortY': CAGE[1] + CAGE_H + 2, 'carry': ['ship_obangsun', 'ship_naram']},
         {'type': 'prop', 'id': 'ship_cage_open', 'image': P + 'ship_cage_open.png', 'x': CAGE[0], 'y': CAGE[1], 'w': CAGE_W, 'h': CAGE_H, 'ix': CAGE[0], 'iy': CAGE[1], 'solid': False, 'hidden': True, 'sortY': CAGE[1] + CAGE_H + 2},
-        {'type': 'npc', 'id': 'ship_obangsun', 'sprite': 'obangsun', 'x': CAGE[0] + 14, 'y': CAGE[1] + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
-        {'type': 'npc', 'id': 'ship_naram', 'sprite': 'naram_giant', 'x': CAGE[0] + 60, 'y': CAGE[1] + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
+        {'type': 'npc', 'id': 'ship_obangsun', 'sprite': 'obangsun', 'x': CAGE[0] + 12, 'y': CAGE[1] - CAGE_DROP + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
+        {'type': 'npc', 'id': 'ship_naram', 'sprite': 'naram_giant', 'x': CAGE[0] + 52, 'y': CAGE[1] - CAGE_DROP + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
     ]
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 조종실', 'stage': 'void_fallen',
