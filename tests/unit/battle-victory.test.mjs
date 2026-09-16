@@ -29,9 +29,9 @@ function fixture(ids) {
   return { battle, sounds, stops, fades, ended, music };
 }
 
-test('test_boss_victory_metadata_marks_only_the_six_story_bosses', () => {
+test('test_boss_victory_metadata_marks_only_the_seven_story_bosses', () => {
   assert.deepEqual(Object.keys(ENEMIES).filter(id => ENEMIES[id].boss),
-    ['park_guardian', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);
+    ['youngcle_hover', 'park_guardian', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);   // youngcle_hover: 조종실 보스(BUILD207)
 });
 
 for (const [ids, boss] of [

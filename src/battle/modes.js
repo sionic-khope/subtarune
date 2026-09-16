@@ -14,6 +14,9 @@ import { createCannonGuard } from './modes/cannon-guard.js';
 import { createParkStrip } from './modes/park-strip.js';
 import { createParkRazma } from './modes/park-razma.js';
 import { createParkWitchTrial } from './modes/park-witch-trial.js';
+import { createYoungcleCage } from './modes/youngcle-cage.js';
+import { createYoungcleIdea } from './modes/youngcle-idea.js';
+import { createYoungcleFinale, createYoungcleSkip } from './modes/youngcle-finale.js';
 
 const MODES = { attack: new Map(), enemy: new Map() };
 export const NATIVE = 'native';                          // battle.js 가 직접 처리하는 기본 모드 표시
@@ -36,3 +39,7 @@ registerBattleMode('attack', 'cannon_guard', createCannonGuard);
 registerBattleMode('attack', 'park_strip', createParkStrip);
 registerBattleMode('enemy', 'park_razma', createParkRazma);
 registerBattleMode('enemy', 'park_witch_trial', createParkWitchTrial);
+registerBattleMode('enemy', 'youngcle_cage', createYoungcleCage);
+registerBattleMode('attack', 'youngcle_idea', createYoungcleIdea);
+registerBattleMode('enemy', 'youngcle_finale', createYoungcleFinale);
+registerBattleMode('enemy', 'youngcle_skip', createYoungcleSkip);

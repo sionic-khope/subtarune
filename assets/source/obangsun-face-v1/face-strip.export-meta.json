@@ -1,0 +1,48 @@
+{
+ "raw": "assets/source/obangsun-face-v1/face-raw.png",
+ "cols": 2,
+ "rows": 1,
+ "cell": 112,
+ "fit": 0.94,
+ "scale": 0.12115074798619102,
+ "feet_y": 108,
+ "cells": [
+  {
+   "bbox": [
+    40,
+    91,
+    728,
+    960
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    83,
+    105
+   ],
+   "paste": [
+    14,
+    3
+   ]
+  },
+  {
+   "bbox": [
+    40,
+    91,
+    728,
+    960
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    83,
+    105
+   ],
+   "paste": [
+    14,
+    3
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/obangsun-battle-v1/ref.png"
+  ],
+  "elapsed_seconds": 38.6,
+  "usage": {
+    "input_tokens": 862,
+    "output_tokens": 1756,
+    "total_tokens": 2618,
+    "input_tokens_details": {
+      "image_tokens": 544,
+      "text_tokens": 318
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789571120,
+  "outputs": [
+    {
+      "file": "assets/source/obangsun-battle-v1/idle-raw.png",
+      "bytes": 1082889,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# imagegen 2026-09-17 00:23:00
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/ppaman-ball-v1/ref.png
+
+Pixel art sprite sheet, EXACTLY 2 columns x 1 row, 1536x1024 canvas, invisible equal 768px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The character is the blue bear mascot in the reference image (Image1: front view and side view): round blue plush bear with a pale cream muzzle and belly, pink inner ears, black button nose. LEFT cell: the bear crouched and curling into a ball, arms and legs tucked, cheeks puffed, funny determined face (transition pose). RIGHT cell: a perfectly round PURPLE bouncy ball (violet #8a5cf5 with a lighter highlight and a dark outline) with only the bear's face in the middle of the ball (eyes, cream muzzle, black nose, pink inner ears sticking out slightly at the top). Both centered, same size, filling about 70% of the cell; nothing touches the cell edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur.

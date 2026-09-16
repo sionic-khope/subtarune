@@ -133,11 +133,13 @@ export class Battle {
   // ── 유틸 ──
   alive() { return this.members.filter((m) => !m.down); }
   living() { return this.enemies.filter((e) => !e.dead); }
+  /** 때릴 수 있는 적(def.untargetable 제외 — 오방순·나람은 공격 전용, BUILD207). 승리 판정·공격 대상은 이걸 쓴다 */
+  targets() { return this.living().filter((e) => !e.def.untargetable); }
   /** Explicit enemy metadata selects the boss victory transition, including mixed encounters. */
   get bossBattle() { return this.enemies.some(e => e.def.boss === true); }
-  setText(t) { this.text = stripTags(t); this.textT = 0; this.shown = 0; this.speaker = null; this.portrait = null; this.voice = 'narrator'; }
+  setText(t) { this.text = stripTags(t); this.textT = 0; this.shown = 0; this.speaker = null; this.portrait = null; this.voice = 'narrator'; this.lineMosaic = null; }
   /** 대사 한 줄: 문자열이면 나레이션, 객체면 화자 이름·초상화·목소리 */
-  showLine(l) { if (typeof l === 'string') { this.setText(l); return; } this.setText(l.text); this.speaker = l.speaker || null; this.portrait = l.portrait || null; this.voice = l.voice || 'narrator'; }
+  showLine(l) { if (typeof l === 'string') { this.setText(l); return; } this.setText(l.text); this.speaker = l.speaker || null; this.portrait = l.portrait || null; this.voice = l.voice || 'narrator'; this.lineMosaic = l.mosaic || null; }   // mosaic:{text,block} 는 그 글자만 모자이크(보지→지, BUILD208)
   get typed() { return this.shown >= this.text.length; }
   /** 전투 문구 타자: 22ms 마다 한 글자, 글자마다 나레이션 블립(띠리리링) */
   typeText(dt) {
@@ -162,6 +164,7 @@ export class Battle {
       }
       const idle = e.def.idle || { swayX: 7, swayY: 2, period: 2.8 }; const ph = this.t * Math.PI * 2 / (idle.period || 2.8) + i * 1.9;   // 기본 모션: 좌우로 천천히(사용자: 정적인 느낌 없애기), 살짝 위아래
       e.ox = Math.sin(ph) * (idle.swayX ?? 7); e.oy = -Math.abs(Math.sin(ph * 2)) * (idle.swayY ?? 2); });
+    this.support?.update?.(dt);                                                             // 지원 모듈 시계(영클 회피 이동 등, BUILD207)
     this.board.update(dt); this.typeText(dt);
     this.fx = this.fx.filter((f) => { f.t += dt; if (f.t > 0) f.y += f.vy * dt; return f.t < f.life; });
     if (this.interlude) {
@@ -215,7 +218,7 @@ export class Battle {
     }
   }
   updateTarget(input) {
-    const list = this.living(); if (!list.length) { this.state = 'menu'; return; }
+    const list = this.targets(); if (!list.length) { this.state = 'menu'; return; }
     if (input.just('left') || input.just('up')) { this.targetIdx = (this.targetIdx + list.length - 1) % list.length; this.sfx('menu'); }
     if (input.just('right') || input.just('down')) { this.targetIdx = (this.targetIdx + 1) % list.length; this.sfx('menu'); }
     if (input.just('cancel')) { this.sfx('cancel'); this.state = 'menu'; return; }
@@ -256,7 +259,7 @@ export class Battle {
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
-      if (!this.living().length) {
+      if (!this.targets().length) {
         this.standUpAll();
         const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
         this.game.money = (this.game.money || 0) + gain;
@@ -271,7 +274,7 @@ export class Battle {
     const plan = this.plans[this.actIdx++];
     if (plan.member.down) return;
     if (plan.type === 'item') { this.useItem(plan.target || plan.member, plan.name, plan.member); this.actWait = 0.6; return; }
-    let target = plan.target; if (target.dead || target.dying > 0) target = this.living()[0]; if (!target) return;
+    let target = plan.target; if (target.dead || target.dying > 0) target = this.targets()[0]; if (!target) return;
     plan.target = target;
     const modeName = plan.mode || plan.member.attackMode || this.modes.attack; const create = getBattleMode('attack', modeName);
     if (typeof create === 'function') { this.gimmick = create(this, { plan, member: plan.member, target }); this.cur = { plan, gimmick: true }; return; }
@@ -283,12 +286,13 @@ export class Battle {
   hitEnemy(e, by, dmg = this.game.attack || 1, { source = 'ordinary', sound = true } = {}) {
     if (!e || e.dead || e.dying > 0 || e.hp <= 0 || !(dmg > 0)) return 0;
     this.support?.onContact?.(e, dmg, source);
-    if (this.support?.blocksDamage?.(e)) {
-      e.shake = 0.25; e.popup = { t: 0, text: L.battle_strip_blocked };
-      if (sound) this.sfx('hit');
+    if (this.support?.blocksDamage?.(e, source)) {
+      e.shake = 0.25; e.popup = { t: 0, text: this.support.blockText?.(e) || L.battle_strip_blocked };   // 영클은 '피했다'(BUILD207)
+      if (sound) this.sfx(this.support.blockSfx?.(e) || 'hit');
       return 0;
     }
-    const damage = Math.min(e.hp, dmg);
+    const adjusted = this.support?.adjustDamage?.(e, dmg, source) ?? dmg;                 // 방심한 영클은 1, 아이디어는 3(BUILD208)
+    const damage = Math.min(e.hp, adjusted);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
     this.support?.onHit?.(e, damage, source);
     if (sound) { this.sfx('hit'); this.sfx('damage'); }
@@ -345,10 +349,12 @@ export class Battle {
       const enraged = !!e.def.enragedPatterns?.length && e.hp / e.maxHp <= e.def.enragedAt;
       if (enraged !== !!e.enraged) e.patternIdx = 0;
       e.enraged = enraged;
-      const cfgs = this.support?.patternsFor?.(e) || (enraged ? e.def.enragedPatterns : e.def.patterns) || [{ type: 'rain' }];
+      const fromSupport = this.support?.patternsFor ? this.support.patternsFor(e) : undefined;
+      if (Array.isArray(fromSupport) && fromSupport.length === 0) return null;                 // 지원 모듈이 [] 를 주면 이번 턴은 쉰다(조종실 실험체, BUILD207). null/undefined 는 예전대로 기본 패턴
+      const cfgs = fromSupport || (enraged ? e.def.enragedPatterns : e.def.patterns) || [{ type: 'rain' }];
       const c = cfgs[e.patternIdx++ % cfgs.length];
       return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e };
-    });
+    }).filter(Boolean);
     const [bw, bh] = this.boardSize();
     this.board.setTarget(bw, bh, 240, 214); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
     this.bubble = null;                                        // 말풍선은 탄막이 시작되면 사라진다(델타룬) — 상자 위를 가려 탄막을 숨기지 않게
@@ -361,10 +367,11 @@ export class Battle {
       if (pat.t >= pat.p.duration) { pat.enemy.patternPose = null; continue; } running = true;
       const volume = pat.enemy.def.attackSfxVolume;
       const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: name => this.sfx(name, { volume }) };
-      api.emit = (o) => this.bullets.push(new Bullet({ ...o, dmg: o.dmg ?? pat.dmg }));
+      api.emit = (o) => { const made = new Bullet({ ...o, dmg: o.dmg ?? pat.dmg }); this.bullets.push(made); return made; };   // 만든 탄을 돌려준다(패턴이 얼굴·몸통 탄을 계속 움직일 수 있게, BUILD207)
       api.images = pat.enemy?.projectiles;
       api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
       api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
+      api.shake = (time, amp) => { this.game.shake = { time, amp }; };
       api.say = (text, hold = 2) => { this.bubble = { enemy: pat.enemy, text, shown: 0, t: 0, voice: pat.enemy?.def.voice || 'narrator', patternHold: hold }; };
       pat.p.update(pat.t, dt, api); pat.t += dt;
     }
@@ -595,6 +602,9 @@ export class Battle {
       P(1, 3, 10, 5, '#ddd'); P(8, 2, 4, 7, '#fff'); P(2, 8, 3, 3, '#999'); P(8, 8, 3, 3, '#999');
     } else if (kind === 'strip') {
       P(2, 0, 2, 5, '#da86b5'); P(8, 0, 2, 5, '#da86b5'); P(1, 5, 10, 6, '#ded5df'); P(4, 7, 4, 3, '#29202f');
+    } else if (kind === 'idea') {                                                   // 억빠맨 얼굴(파란 곰·크림 주둥이) + 전구(BUILD208)
+      P(0, 3, 8, 8, '#4a5ec8'); P(0, 2, 2, 2, '#4a5ec8'); P(6, 2, 2, 2, '#4a5ec8'); P(1, 3, 1, 1, '#f3a6c4'); P(6, 3, 1, 1, '#f3a6c4'); P(2, 7, 4, 3, '#f3e6c8'); P(3, 8, 2, 1, '#29202f'); P(2, 5, 1, 1, '#111'); P(5, 5, 1, 1, '#111');
+      P(9, 1, 3, 3, '#ffe066'); P(10, 0, 1, 1, '#ffe066'); P(9, 4, 3, 1, '#c9a52a'); P(10, 5, 1, 1, '#9a7a1a');
     } else {
       P(2, 4, 8, 6, '#4cd964'); P(3, 3, 6, 1, '#4cd964'); P(1, 5, 1, 4, '#4cd964'); P(10, 5, 1, 4, '#4cd964');   // 빵 덩어리(초록)
       P(3, 3, 6, 1, '#8dffa8'); P(4, 5, 2, 1, '#2f8f44'); P(7, 6, 2, 1, '#2f8f44'); P(2, 10, 8, 1, '#2f8f44');   // 윤기·칼집
@@ -611,7 +621,12 @@ export class Battle {
       const face = this.portrait && this.game.portraits?.[this.portrait]; if (face) { ctx.drawImage(face, 30, 258, 48, 48); tx = 90; }
     }
     ctx.fillStyle = '#fff';
-    this.wrapText(ctx, this.text.slice(0, this.shown), 440 - (tx - 20) - 14).slice(0, 3).forEach((line, i) => ctx.fillText(line, tx, 254 + i * LH));
+    this.wrapText(ctx, this.text.slice(0, this.shown), 440 - (tx - 20) - 14).slice(0, 3).forEach((line, i) => {
+      const y = 254 + i * LH, mo = this.lineMosaic;
+      if (!mo || !line.includes(mo.text)) { ctx.fillText(line, tx, y); return; }
+      let x = tx; const parts = line.split(mo.text);
+      parts.forEach((part, k) => { ctx.fillText(part, x, y); x += ctx.measureText(part).width; if (k < parts.length - 1) { drawMosaicText(ctx, mo.text, x, y, mo.block); x += ctx.measureText(mo.text).width; } });
+    });
   }
   /** 단어 단위 줄바꿈(현재 폰트 기준) — '\n' 은 그대로 줄을 나눈다 */
   wrapText(ctx, text, maxW) {
@@ -661,7 +676,7 @@ export class Battle {
         }
         ctx.fillStyle = !enabled ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + (icon ? 32 : 18), by + 2); if (sel) this.heart(ctx, bx + 6, by + 6); bx += bw + 8; });
     } else if (this.state === 'target') {                          // 델타룬 FIGHT: 적 목록 + HP 바, 하트 커서
-      this.living().forEach((e, i) => { const y = row(i), sel = i === this.targetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, 54, y);
+      this.targets().forEach((e, i) => { const y = row(i), sel = i === this.targetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, 54, y);
         this.hpBar(ctx, 250, y + 4, 90, e.hp, e.maxHp, '#4cd964', '#7a1b1b'); ctx.fillStyle = '#fff'; ctx.fillText(`${e.hp}/${e.maxHp}`, 350, y); });
     } else if (this.state === 'item') {                            // 델타룬 ITEM: 2열 격자
       const items = plainItems(this.game.inventory), page = Math.floor(this.itemIdx / 6) * 6;

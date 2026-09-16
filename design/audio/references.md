@@ -472,3 +472,11 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 - **엄청대박인배 철문(BUILD201, youngcle19)**: 예를 고르면 `locker`(철컥, 기존 파일) 한 번. 다리길·조종실 브금은 지역 브금 `pandora_palace` 그대로(사용자 지정 없음 — 바꾸려면 말씀).
 - **조종실 입장 연출(BUILD202)**: 대포 드르르륵 `scrape`, 발사 `boom` + 연기 `cannon_puff`, 벽 충돌 `impact`, 영클 상승 `rocket`, 하강 `ember`+`whoosh`(세 번), 버튼 `click`, 철창 `chain_extend`/`thud`/`locker`, 전투 시작 `battle_start` — 전부 기존 파일(내가 고름). 브금은 영클 테마 `storage_show`. 오방순 목소리 = `voices/obangsun.mp3`(BUILD149 Yuna 낮춘 ‘흐에에에’).
 - **나람 목소리(BUILD203)**: 사용자 “뚱뚱한 목소리를 가진 쥰희 느낌, 같은 목소리는 쓰지 말고 비슷하게 새로” → `voices/naram.mp3` = 쥰희 `voices/junhee.mp3`(델타룬 snd_txtsus)를 ffmpeg 로 -3반음(asetrate 0.84)·tempo 1.08·lowpass 2600·bass +5dB·loudnorm 한 변형(0.135초). 쥰희 파일은 그대로. `VOICES.naram` rate 1·cut true·minGap 0.08.
+
+
+## 조종실 전투 (BUILD207~208, 2026-09-17)
+
+- `bgm/youngcle_battle.mp3`: 사용자 지정 [XR2QQMfeJbg](https://www.youtube.com/watch?v=XR2QQMfeJbg) — yt-dlp 메타데이터 제목 “32. Attack of the Killer Queen (DELTARUNE Chapter 2 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 표시 124초. 포맷 251 전체를 mp3 로 변환, 편집 없음(123.9초, `assets/source/youngcle-battle-bgm/`). 조종실 전투 브금. 퀴즈 폭언 뒤·피날레에서 `stopBgm` 으로 꺼지고, 퀴즈 뒤 “니앰” 다음에 다시 켠다.
+- `sfx/queen_kieek.mp3`(1.15초): 델타룬 `snd_queenhowl_b`(TeamBlossomDevs/DeltaruneDecomp_beta 저장소 `sounds/` 커밋 154f9a97, ogg → mp3 q2, 편집 없음). 사용자 “영클이 맞으면 끼엑! 소리 … 퀸에 놀라는 소리”. 나람 볼 충돌·오방순 충돌·점프슬램에서 영클 놀람 소리.
+- `sfx/laser_pew.mp3`(0.2초)·`sfx/laser_fire.mp3`(1.1초)·`sfx/laser_charge_tick.mp3`(0.35초): 외부 녹음 없이 ffmpeg lavfi 합성(1800Hz 감쇠 정현파+비브라토 / 220Hz FM+잡음 / 90→600Hz 스윕). 선회 레이저 ‘삐용’, 철창 레이저 발사, 차징 틱. 사용자 지정 소리가 아니므로 교체 가능.
+- 재사용: 쿠와아아앙 = `furnace_blast`(snd_punchheavythunder), 나람 내려찍기 = `baron_slam`, 점프 = `jump`.

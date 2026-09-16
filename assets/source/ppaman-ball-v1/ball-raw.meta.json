@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/ppaman-ball-v1/ref.png"
+  ],
+  "elapsed_seconds": 29.4,
+  "usage": {
+    "input_tokens": 1036,
+    "output_tokens": 1372,
+    "total_tokens": 2408,
+    "input_tokens_details": {
+      "image_tokens": 768,
+      "text_tokens": 268
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789572179,
+  "outputs": [
+    {
+      "file": "assets/source/ppaman-ball-v1/ball-raw.png",
+      "bytes": 1291657,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

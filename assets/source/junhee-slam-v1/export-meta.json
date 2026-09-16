@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/junhee-slam-v1/slam-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 96,
+ "fit": 0.9,
+ "scale": 0.19570815450643775,
+ "feet_y": 90,
+ "cells": [
+  {
+   "bbox": [
+    31,
+    152,
+    497,
+    365
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    91,
+    42
+   ],
+   "paste": [
+    2,
+    48
+   ]
+  },
+  {
+   "bbox": [
+    63,
+    152,
+    468,
+    365
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    79,
+    42
+   ],
+   "paste": [
+    8,
+    48
+   ]
+  },
+  {
+   "bbox": [
+    58,
+    132,
+    462,
+    383
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    79,
+    49
+   ],
+   "paste": [
+    8,
+    41
+   ]
+  },
+  {
+   "bbox": [
+    87,
+    0,
+    432,
+    437
+   ],
+   "edge_touch": true,
+   "components": 1,
+   "scaled": [
+    68,
+    86
+   ],
+   "paste": [
+    14,
+    4
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

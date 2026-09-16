@@ -42,3 +42,11 @@ model: opus
 - **바론**(PR #15, LoL 바론 모티브 보스): 필드 정면 `assets/enemies/baron-front.png` 160×160(앵커 80,148, `CHARACTERS.baron` 등록됨, 1.43배 229px — 대화 중 보이는 높이 230 꽉 참이라 카메라를 화자별로) / 전투 `assets/enemies/baron-battle-idle.png` 512×512 2×2 셀 256 240ms → `sheet:{cols:2,rows:2,count:4,fps:1000/240,px:1}, pivot:[128,238]`. **축소·자동 크기 정규화 금지**(보스 규격). 전투 패널 위 246px 안에 들어오는지 `enemy.mjs` 그림 사각형으로 확인하고 `dy`·`scale` 로 맞춘다.
 - **용준·쥰희 나무 대포**(PR #15): `assets/props/wooden_cannon.png` 128×128 3/4 정지 1장(바닥 앵커 64,119) — 무기 단독 자산, 발사·반동 애니 없음(필요하면 `/art` 로 띠 추가).
 - **동료 HP 0 쓰러짐**(PR #17): `assets/battle/down/<id>.png` 96×96(기준점 48,89) — 새 동료가 생기면 같은 규격으로 한 장 추가하면 `drawLying` 이 자동으로 쓴다(없으면 눕힌 프레임 폴백).
+
+## 지원 모듈(전투 공략 기믹) 훅 — 조종실 전투(BUILD207~208)가 기준 사례
+- 전투 `cfg` 의 적 def `support:'<이름>'` → `src/battle/support/baron-cannon.js` 의 `createBattleSupport` 가 디스패치(park → baron → youngcle_ship). 구현 예: `support/youngcle-ship.js`, 데이터는 `src/data/youngcle-battle.js`(대사·수치 전부 데이터로, 코드에 문자열 금지). 브리핑 원문은 `design/narrative/cutscenes/<전투>.md`.
+- 훅: `load/reset`, `enemyModeFor(e)`(턴마다 1회, 적 턴 모드 이름 또는 null), `patternsFor(e)`(`[]` 면 그 턴 탄막 없음, null 이면 def.patterns), `blocksDamage(e, source)`·`blockText/blockSfx`(피함), `adjustDamage(e, dmg, source)`, `onContact(e, dmg, source)`(맞기 전), `onHit(e, dmg, source)`, `update(dt)`, `afterEnemyPhase()`(막간 `{update, draw}` interlude 반환), `button {label, icon, enabled}` + `hint` + `action()`(→ `{type:'support', mode, member, target, idea}` 공격 모드 플랜), `idleFor(e)`.
+- 적 def `untargetable:true` 면 `battle.targets()` 에서 빠져 대상 목록·승리 판정에 안 들어간다(hp 는 검사용 1). `actions.<이름>` 시트는 `e.patternPose = {sheet, frame, x, y, hidden}` 로 쓴다. `api.emit` 은 Bullet 인스턴스를 반환하므로 얼굴·몸통 탄은 붙잡아 두고(`keep`) 움직인다.
+- 모드 등록 `registerBattleMode('attack'|'enemy', 이름, create)`(`src/battle/modes.js`). 공격 모드는 `{update(dt,input)→끝나면 true, draw(ctx), dispose(), snapshot, fullscreen}`; `fullscreen:true` 면 장면·텍스트 상자·HP 띠까지 직접 그린다. 전투 안 대사는 `support/talk.js` `createTalk(battle, lines)`(C 로 넘김) + `battle.showLine({speaker, portrait, voice, text, mosaic})`.
+- 확대(클로즈업)는 `translate(240,180) → scale → translate(-fx,-fy)` 한 번만. 초점은 `240/zoom ≤ fx ≤ 480-240/zoom`(세로도 같이) 로 클램프해야 장면 밖 검은 부분이 안 보인다.
+- 플레이테스트 헬퍼: 공격 모드 안 대사 단계(`gimmick.snapshot.phase` 가 talk 류)에서도 C 를 눌러 줘야 다음 턴으로 간다(`tests/playtest/youngcle-battle.mjs` 의 `untilMenu`).

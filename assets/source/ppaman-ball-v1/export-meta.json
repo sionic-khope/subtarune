@@ -1,0 +1,48 @@
+{
+ "raw": "assets/source/ppaman-ball-v1/ball-raw.png",
+ "cols": 2,
+ "rows": 1,
+ "cell": 96,
+ "fit": 0.9,
+ "scale": 0.12151898734177216,
+ "feet_y": 90,
+ "cells": [
+  {
+   "bbox": [
+    64,
+    165,
+    701,
+    876
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    77,
+    86
+   ],
+   "paste": [
+    9,
+    4
+   ]
+  },
+  {
+   "bbox": [
+    33,
+    182,
+    726,
+    885
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    84,
+    85
+   ],
+   "paste": [
+    6,
+    5
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/naram-battle-v1/idle-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.86,
+ "scale": 0.2565967365967366,
+ "feet_y": 118,
+ "cells": [
+  {
+   "bbox": [
+    94,
+    49,
+    427,
+    473
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    85,
+    109
+   ],
+   "paste": [
+    21,
+    9
+   ]
+  },
+  {
+   "bbox": [
+    82,
+    44,
+    425,
+    473
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    88,
+    110
+   ],
+   "paste": [
+    20,
+    8
+   ]
+  },
+  {
+   "bbox": [
+    94,
+    45,
+    427,
+    468
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    85,
+    109
+   ],
+   "paste": [
+    21,
+    9
+   ]
+  },
+  {
+   "bbox": [
+    79,
+    57,
+    425,
+    468
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    89,
+    105
+   ],
+   "paste": [
+    20,
+    13
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

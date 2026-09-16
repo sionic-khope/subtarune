@@ -1,11 +1,14 @@
 import { BARON_CANNON as C } from '../../data/baron-cannon.js';
 import L from '../../data/locale/ko.js';
 import { createParkGuardianSupport } from './park-guardian.js';
+import { createYoungcleShipSupport } from './youngcle-ship.js';
 
 /** Battle-local support controller; no story flag survives victory or retry. */
 export function createBattleSupport(battle) {
   const park = createParkGuardianSupport(battle);
   if (park) return park;
+  const ship = createYoungcleShipSupport(battle);
+  if (ship) return ship;
   if (!battle.enemies.some((e) => e.def.support === 'baron_cannon')) return null;
   let unlocked = false, introduced = false, charge = 0, sprite = null;
   return {

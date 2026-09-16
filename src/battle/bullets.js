@@ -18,6 +18,7 @@ import { MANKATSUKI_PATTERNS } from './mankatsuki-patterns.js';
 import { CAT_PATTERNS } from './cat-patterns.js';
 import { PARK_GUARDIAN_PATTERNS } from './park-guardian-patterns.js';
 import { PARK_CLEANING_PATTERNS } from './patterns/park-cleaning.js';
+import { YOUNGCLE_PATTERNS } from './youngcle-patterns.js';
 
 export class Board {
   constructor() { this.x = 140; this.y = 150; this.w = 200; this.h = 150; this.target = null; this.open = 0; }
@@ -163,6 +164,7 @@ export const PATTERNS = {
   ...CAT_PATTERNS,
   ...PARK_GUARDIAN_PATTERNS,
   ...PARK_CLEANING_PATTERNS,
+  ...YOUNGCLE_PATTERNS,
   rain: (o = {}) => { const rate = o.rate ?? 0.18, speed = o.speed ?? 90, r = o.r ?? 4; let acc = 0;
     return { duration: o.duration ?? 4, update(t, dt, api) { acc += dt; while (acc >= rate) { acc -= rate; const b = api.box; api.emit({ x: b.x + 8 + api.rnd() * (b.w - 16), y: b.y - 12, vy: speed * (0.8 + api.rnd() * 0.4), r, shape: o.shape, kind: o.kind, spin: o.spin }); } } }; },
   aimed: (o = {}) => { const every = o.every ?? 0.6, speed = o.speed ?? 120, r = o.r ?? 5; let next = 0.4;

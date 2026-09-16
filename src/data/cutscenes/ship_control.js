@@ -4,6 +4,9 @@
 //   → 주인공 셋 가운데로 → 영클 “ㅋㅋ”(브금) 천천히 내려와 착지 훙훙훙, 일행 뒷걸음 → 대사 → 영클이 하늘로 쭉 → 일행 중앙 살짝 왼쪽에서 오른쪽을 봄 → 영클이 오른쪽에서 천천히 세 단 내려와 훙훙훙(불·엔진)
 //   → 대사 → “나와라”: 버튼 → 철창이 데롱데롱 내려와 착지 → 문 열림 → 오방순(위)·나람(아래, 거대) 천천히 걸어 나옴 → 대사 → “즐” → 전투 시작 연출(전투 자체는 다음 명령).
 //   페이싱 원칙(사용자 2026-09-16 “인간이 읽을 때 너무 진행이 빠른 것들 안 된다”): 동작 뒤엔 반드시 숨 고르기(wait ≥0.5), 이동은 느리게, 큰 동작 앞뒤엔 페이드.
+import { battleEntry } from './helpers.js';
+
+const BATTLE = { enemies: ['obangsun', 'youngcle_hover', 'naram_giant'], bgm: 'youngcle_battle', bg: 'youngcle_factory' };   // 사용자 지정 브금 XR2QQMfeJbg
 const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'ship_obangsun', NR = 'ship_naram';
 const CAGE = 'ship_cage', CAGE_OPEN = 'ship_cage_open', CANNON = 'ship_cannon', BALL1 = 'ship_ball1', BALL2 = 'ship_ball2';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
@@ -220,12 +223,9 @@ export const ship_control_intro = Object.assign([
   V('즐', 'taunt'),
   close,
   { wait: 0.5 },
-  // ⑧ 전투 시작 연출(표준 조우 진입과 같은 그림) — 전투 자체는 다음 명령. 지금은 화면이 돌아오고 대치 상태로 남는다
-  { sfx: 'battle_start' }, { bgm: null, fadeOut: 0.2 }, { shake: 0.45, amp: 3 },
-  { vortex: { at: 'center', size: 40, grow: 0.9 } },
-  { zoom: 1.9, at: 'center', duration: 0.55 },
-  { vortex: { size: 900, grow: 0.5 } },
-  { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
+  // ⑧ 전투(BUILD207): 표준 조우 진입 → 영클(hp 40, 피함) + 오방순·나람(공격 전용). 이기는 기믹은 다음 명령 — 끝나면 대치 상태로
+  ...battleEntry(BATTLE.enemies, BATTLE.bgm),
+  { battle: BATTLE },
   { zoom: 1, duration: 0.01 },
   { set: { ship_intro_done: true } },
   { camera: 'player' },
@@ -244,4 +244,10 @@ export const ship_control_intro = Object.assign([
     const cannon = e(CANNON); if (cannon) cannon.dead = true;
   } },
   { bgm: 'storage_show' },
+], { silent: true });
+/** QA `ship_battle`: 조종실에 서자마자 바로 전투 */
+export const ship_battle_qa = Object.assign([
+  { fade: 'out', duration: 0.2 },
+  { battle: BATTLE },
+  { fade: 'in', duration: 0.4 },
 ], { silent: true });

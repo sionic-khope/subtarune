@@ -1,0 +1,48 @@
+{
+ "raw": "assets/source/youngcle-surprise-v1/surprise-raw.png",
+ "cols": 2,
+ "rows": 1,
+ "cell": 128,
+ "fit": 0.86,
+ "scale": 0.15636363636363637,
+ "feet_y": 118,
+ "cells": [
+  {
+   "bbox": [
+    100,
+    166,
+    699,
+    870
+   ],
+   "edge_touch": false,
+   "components": 8,
+   "scaled": [
+    94,
+    110
+   ],
+   "paste": [
+    17,
+    8
+   ]
+  },
+  {
+   "bbox": [
+    68,
+    167,
+    670,
+    870
+   ],
+   "edge_touch": false,
+   "components": 10,
+   "scaled": [
+    94,
+    110
+   ],
+   "paste": [
+    17,
+    8
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

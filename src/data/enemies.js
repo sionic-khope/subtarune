@@ -13,6 +13,32 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  // ── 엄청대박인배 조종실(BUILD207 사용자 브리핑): 영클(비행 장치, hp 40, 맞으면 피함) + 실험체 오방순·나람(공격 전용, 때릴 수 없음). 지원 모듈 youngcle_ship 이 턴마다 패턴 하나를 고른다.
+  //    브금 youngcle_battle(사용자 지정 XR2QQMfeJbg). 전투 대기 시트는 전부 gpt-image-2.5-sunburst(assets/source/*-battle-*). 피해 기믹은 다음 명령
+  youngcle_hover: {
+    name: '영클', hp: 10, damage: 14, money: 0, boss: true, support: 'youngcle_ship', voice: 'youngcle',
+    sheet: { src: 'assets/enemies/youngcle-hover-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
+    actions: { surprise: { src: 'assets/enemies/youngcle-surprise.png', cols: 2, rows: 1, count: 2, fps: 4, px: 1, pivot: [64, 118] } },   // 놀람(뒤를 봄·끼엑): 아이디어·피날레
+    pivot: [64, 118], scale: 1, dx: -34, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 3, period: 2.2 },
+    patterns: [{ type: 'youngcle_orbit_laser' }],
+    lines: { appear: '* 영클이 비행 장치 위에서 내려다본다.', idle: ['* 영클의 비행 장치가 웅웅거린다.'], die: '* 영클이 물러났다.', speak: ['ㅋㅋ', '즐'] },
+  },
+  obangsun: {
+    name: '오방순', hp: 1, untargetable: true, damage: 12, money: 0, voice: 'obangsun',
+    sheet: { src: 'assets/enemies/obangsun-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
+    pivot: [64, 118], scale: 0.9, dx: 40, dy: 6, idle: { swayX: 0, swayY: 0 },
+    patterns: [{ type: 'obangsun_rays' }],
+    projectiles: { face_closed: 'assets/enemies/obangsun-face-closed.png', face_open: 'assets/enemies/obangsun-face-open.png' },
+    lines: { appear: '* 오방순이 옆에 섰다.', idle: ['* 오방순의 머리 장식이 흔들린다.'], die: '* 오방순이 물러났다.', speak: ['흐어어어'] },
+  },
+  naram_giant: {
+    name: '나람이', hp: 1, untargetable: true, damage: 14, money: 0, voice: 'naram',
+    sheet: { src: 'assets/enemies/naram-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
+    pivot: [64, 118], scale: 0.9, dx: 40, dy: -6, idle: { swayX: 0, swayY: 0 },
+    patterns: [{ type: 'naram_slam' }],
+    projectiles: { naram: 'assets/sprites/naram_giant.png' },
+    lines: { appear: '* 나람이가 옆에 섰다.', idle: ['* 나람이가 배를 두드린다.'], die: '* 나람이가 물러났다.', speak: ['히요오오옹'] },
+  },
   park_guardian: {
     // 승리 보상 500원 (2026-09-15 사용자). QA 지점은 STATE_FROM_FLAGS 의 park_guardian_won 규칙이 이 값을 그대로 유도한다
     name: '파크가디언', hp: 57, damage: 16, money: 500, boss: true, support: 'park_strip', voice: 'park_guardian_costume',
