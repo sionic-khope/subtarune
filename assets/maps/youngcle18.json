@@ -63,6 +63,23 @@
    "x": 768,
    "y": 320,
    "facing": "up"
+  },
+  "top": {
+   "x": 484,
+   "y": 40,
+   "facing": "down"
+  }
+ },
+ "tileSwaps": {
+  "furnace_aftermath_done": {
+   "rows": {
+    "2": "!!!!!!!GLLLLLLFFFLLLLLG!!!!!!!",
+    "3": "!!!!!!!GLLLLLLFFFLLLLLG!!!!!!!",
+    "4": "!!!!!!!GLLLLLLFFFLLLLLG!!!!!!!",
+    "5": "!!!!!!!GLLLLLLFFFLLLLLG!!!!!!!",
+    "6": "!!!!!!!GLLLLLLFFFLLLLLG!!!!!!!",
+    "7": "GGGGGGGGLLLLLLFFFLLLLLGGGGGGGG"
+   }
   }
  },
  "meta": {
@@ -106,6 +123,18 @@
    "h": 10,
    "to": "youngcle17",
    "spawn": "top",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle18_top",
+   "x": 448,
+   "y": 0,
+   "w": 96,
+   "h": 10,
+   "to": "youngcle19",
+   "spawn": "bottom",
    "sfx": false,
    "interact": false
   },
@@ -204,7 +233,8 @@
    "h": 14,
    "ix": 448,
    "iy": 242,
-   "solid": true
+   "solid": true,
+   "unless": "furnace_aftermath_done"
   },
   {
    "type": "prop",
@@ -216,7 +246,8 @@
    "h": 14,
    "ix": 480,
    "iy": 242,
-   "solid": true
+   "solid": true,
+   "unless": "furnace_aftermath_done"
   },
   {
    "type": "prop",
@@ -228,7 +259,8 @@
    "h": 14,
    "ix": 512,
    "iy": 242,
-   "solid": true
+   "solid": true,
+   "unless": "furnace_aftermath_done"
   },
   {
    "type": "prop",

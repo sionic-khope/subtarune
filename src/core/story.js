@@ -359,3 +359,11 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle18_after', desc: '용광로 
   map: 'youngcle18', spawn: 'front', flags: { ...crateDoneFlags, furnace_arena_intro_done: true }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'furnace_color', desc: '색깔 기억 게임 직행 (1인칭 패널 · 영클 TV 색 호출 8판)',
   map: 'youngcle18', spawn: 'front', flags: { ...crateDoneFlags, furnace_arena_intro_done: true }, party: [...parkWonCheckpoint.party], script: 'furnace_color_qa' });
+// 색깔 게임·다리 연출 뒤(BUILD201): 광장 위 통로 → 다리길(철문 C → 예/아니오) → 조종실(영클 비행 장치)
+const furnaceDoneFlags = { ...crateDoneFlags, furnace_arena_intro_done: true, furnace_color_done: true, furnace_aftermath_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'furnace_after', desc: '용광로 광장: 다리 놓인 뒤 (위 통로 앞)',
+  map: 'youngcle18', spawn: 'front', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_bridge', desc: '엄청대박인배 다리길 (용암 위 다리 → 거대한 철문 C)',
+  map: 'youngcle19', spawn: 'bottom', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control', desc: '엄청대박인배 조종실 (영클 비행 장치 순찰)',
+  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });

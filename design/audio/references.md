@@ -468,3 +468,5 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 - **색깔 게임 광기 판 잡음/다리 소리(BUILD200, 내가 고름)**: 폭주 치이이익 = `sfx/sizzle.mp3` + `sfx/static_loop.mp3` 루프(0.45), 버벅·웃음 = `static_burst`, 꺼짐 = `click`; 뒤 연출 다리 판 철컥 = `sfx/locker.mp3`, 울타리 내려감 = `sfx/thud.mp3`.
 - **폭발 “꾸와아앙”** `sfx/furnace_blast.mp3` = DELTARUNE `snd_punchheavythunder` 전체(1.772초, 무가공) — 사용자 “폭발음 말고 쿠와아앙, 막타 칠 때 나는 소리, 더 긴 것” → 후보 57개를 `~/Downloads/deltarune_impact_candidates/` 에 두고 사용자가 **“snd_punchheavythunder 가 맞음”** 으로 확정. `snd_bigcut` 은 “아니긴 했는데 저장은 해줘” → `sfx/bigcut.mp3` 보존(미사용). 원본·SHA·후보 분석은 `assets/source/furnace198/audio/README.md`. 기존 `captain_thunder.mp3` 와 같은 원본.
 - 형섭 손 `props/hand_point.png`·`hand_press.png`(44×56, `tools/art/furnace_memory_set.py`), 폭발 그림은 기존 `assets/fx/explosion.png`.
+
+- **엄청대박인배 철문(BUILD201, youngcle19)**: 예를 고르면 `locker`(철컥, 기존 파일) 한 번. 다리길·조종실 브금은 지역 브금 `pandora_palace` 그대로(사용자 지정 없음 — 바꾸려면 말씀).

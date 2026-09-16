@@ -131,6 +131,10 @@ registerTile('H', { name: 'youngcle_iron_blue_solid', solid: false,
   stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
   draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('L', { name: 'lava', solid: true, draw: (ctx) => { ctx.fillStyle = '#7a1a08'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+// 엄청대박인배 다리길(BUILD201, youngcle19): 용암 위 다리 바닥(걷는다) — 용광로 바닥 + 위아래 쇠 테두리·리벳(tools/art/ship_bridge_set.py). 광장 다리 판과 같은 무늬
+registerTile('N', { name: 'youngcle_bridge_deck', solid: false,
+  stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
+  draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
 registerTile('B', { name: 'bed', solid: false, art: TILE_ART.bed, drawOver: '.' });   // 침대 위로 올라갈 수 있음(눕기 연출)

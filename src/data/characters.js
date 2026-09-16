@@ -17,6 +17,8 @@ export const CHARACTERS = {
   park_guardian_costume: { name: '파크가디언', voice: 'park_guardian_costume', sheet: 'assets/sprites/park_guardian_costume.png', stillPivot: [32, 60] },
   park_guardian: { name: '파크가디언', voice: 'park_guardian', sheet: 'assets/sprites/park_guardian.png', stillPivot: [32, 60] },
   youngcle: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle.png' },
+  // 영클 비행 장치(BUILD201, tools/art/youngcle_hover_set.py — 승인 걷기 시트의 상체 + 참고 이미지 색의 접시형 탈것). hover: 서 있어도 불꽃 프레임이 돌고 6px 떠서 2px 오르내린다(world.js Character)
+  youngcle_hover: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_hover.png', hover: { fps: 8, lift: 6, bob: 2, period: 1.4 } },
   gajaeman_shadow: { name: '가재맨', voice: 'gajaeman_shadow', palette: 'hero', sheet: 'assets/sprites/gajaeman_shadow.png', stillPivot: [32, 61] },
   junhee_mankatsuki: { name: '만카츠키 쥰희', voice: 'junhee', palette: 'merchant', sheet: 'assets/sprites/junhee_mankatsuki.png', stillPivot: [32, 61] },
   junhee_point: { name: '쥰희', voice: 'junhee', still: 'assets/sprites/junhee_point.png', stillScale: 0.77, stillPivot: [32, 61] },

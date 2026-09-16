@@ -1,0 +1,422 @@
+{
+ "id": "youngcle20",
+ "name": "엄청대박인배 조종실",
+ "stage": "void_fallen",
+ "bgm": "pandora_palace",
+ "battleBg": "youngcle_factory",
+ "dim": 0.12,
+ "rows": [
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GGGGGGGGGGGGGHHHHGGGGGGGGGGGGG"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_wall.png",
+  "assets/tiles/youngcle_iron_blue_solid.png",
+  "assets/sprites/youngcle_hover.png"
+ ],
+ "spawns": {
+  "gate": {
+   "x": 468,
+   "y": 488,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    14,
+    15
+   ],
+   [
+    14,
+    4
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle20_bottom",
+   "x": 416,
+   "y": 566,
+   "w": 128,
+   "h": 10,
+   "to": "youngcle19",
+   "spawn": "gate",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "ship_main_screen",
+   "image": "assets/props/ship_main_screen.png",
+   "x": 352,
+   "y": 62,
+   "w": 256,
+   "h": 2,
+   "ix": 352,
+   "iy": 0,
+   "solid": false,
+   "sortY": -900,
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_helm",
+   "image": "assets/props/ship_helm.png",
+   "x": 336,
+   "y": 66,
+   "w": 288,
+   "h": 56,
+   "ix": 336,
+   "iy": 66,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_rack_0",
+   "image": "assets/props/ship_server_rack.png",
+   "x": 64,
+   "y": 64,
+   "w": 48,
+   "h": 24,
+   "ix": 64,
+   "iy": 0,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_rack_1",
+   "image": "assets/props/ship_server_rack.png",
+   "x": 112,
+   "y": 64,
+   "w": 48,
+   "h": 24,
+   "ix": 112,
+   "iy": 0,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_rack_2",
+   "image": "assets/props/ship_server_rack.png",
+   "x": 160,
+   "y": 64,
+   "w": 48,
+   "h": 24,
+   "ix": 160,
+   "iy": 0,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_rack_3",
+   "image": "assets/props/ship_server_rack.png",
+   "x": 752,
+   "y": 64,
+   "w": 48,
+   "h": 24,
+   "ix": 752,
+   "iy": 0,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_rack_4",
+   "image": "assets/props/ship_server_rack.png",
+   "x": 800,
+   "y": 64,
+   "w": 48,
+   "h": 24,
+   "ix": 800,
+   "iy": 0,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_rack_5",
+   "image": "assets/props/ship_server_rack.png",
+   "x": 848,
+   "y": 64,
+   "w": 48,
+   "h": 24,
+   "ix": 848,
+   "iy": 0,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_holo",
+   "image": "assets/props/ship_holo_table.png",
+   "x": 432,
+   "y": 294,
+   "w": 96,
+   "h": 28,
+   "ix": 432,
+   "iy": 250,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_0",
+   "image": "assets/props/ship_console.png",
+   "x": 96,
+   "y": 204,
+   "w": 128,
+   "h": 24,
+   "ix": 96,
+   "iy": 180,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_1",
+   "image": "assets/props/ship_console.png",
+   "x": 224,
+   "y": 204,
+   "w": 128,
+   "h": 24,
+   "ix": 224,
+   "iy": 180,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_2",
+   "image": "assets/props/ship_console.png",
+   "x": 608,
+   "y": 204,
+   "w": 128,
+   "h": 24,
+   "ix": 608,
+   "iy": 180,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_3",
+   "image": "assets/props/ship_console.png",
+   "x": 736,
+   "y": 204,
+   "w": 128,
+   "h": 24,
+   "ix": 736,
+   "iy": 180,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_4",
+   "image": "assets/props/ship_console.png",
+   "x": 96,
+   "y": 364,
+   "w": 128,
+   "h": 24,
+   "ix": 96,
+   "iy": 340,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_5",
+   "image": "assets/props/ship_console.png",
+   "x": 224,
+   "y": 364,
+   "w": 128,
+   "h": 24,
+   "ix": 224,
+   "iy": 340,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_6",
+   "image": "assets/props/ship_console.png",
+   "x": 608,
+   "y": 364,
+   "w": 128,
+   "h": 24,
+   "ix": 608,
+   "iy": 340,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_console_7",
+   "image": "assets/props/ship_console.png",
+   "x": 736,
+   "y": 364,
+   "w": 128,
+   "h": 24,
+   "ix": 736,
+   "iy": 340,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_strip_0",
+   "image": "assets/props/ship_floor_strip_v.png",
+   "x": 372,
+   "y": 130,
+   "w": 8,
+   "h": 2,
+   "ix": 372,
+   "iy": 130,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "ship_strip_1",
+   "image": "assets/props/ship_floor_strip_v.png",
+   "x": 596,
+   "y": 130,
+   "w": 8,
+   "h": 2,
+   "ix": 596,
+   "iy": 130,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "ship_strip_2",
+   "image": "assets/props/ship_floor_strip_v.png",
+   "x": 372,
+   "y": 400,
+   "w": 8,
+   "h": 2,
+   "ix": 372,
+   "iy": 400,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "ship_strip_3",
+   "image": "assets/props/ship_floor_strip_v.png",
+   "x": 596,
+   "y": 400,
+   "w": 8,
+   "h": 2,
+   "ix": 596,
+   "iy": 400,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "ship_reactor",
+   "image": "assets/props/ship_reactor.png",
+   "x": 32,
+   "y": 496,
+   "w": 96,
+   "h": 24,
+   "ix": 32,
+   "iy": 400,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 2
+   }
+  },
+  {
+   "type": "prop",
+   "id": "ship_tv",
+   "image": "assets/props/ship_tv.png",
+   "x": 848,
+   "y": 488,
+   "w": 80,
+   "h": 24,
+   "ix": 848,
+   "iy": 440,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 6
+   }
+  },
+  {
+   "type": "npc",
+   "id": "ship_youngcle",
+   "sprite": "youngcle_hover",
+   "x": 372,
+   "y": 150,
+   "facing": "right",
+   "wander": 0,
+   "solid": false,
+   "speed": 70,
+   "patrol": [
+    [
+     372,
+     150
+    ],
+    [
+     572,
+     150
+    ],
+    [
+     700,
+     280
+    ],
+    [
+     572,
+     420
+    ],
+    [
+     372,
+     420
+    ],
+    [
+     240,
+     280
+    ]
+   ]
+  }
+ ]
+}

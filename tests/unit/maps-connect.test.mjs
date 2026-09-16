@@ -7,7 +7,7 @@ import path from 'node:path';
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/maps/index.json'), 'utf8')).maps;
 // unless 소품(이기면 사라지는 거대한 문 등)은 길을 영구히 막지 않으므로 막힘에서 뺀다
-const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', 'H', 'F']);
+const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', 'H', 'F', 'N']);
 for (const id of idx) {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, `assets/maps/${id}.json`), 'utf8'));
   if (!m.rows) continue;
@@ -56,7 +56,10 @@ for (const id of idx) {
   if (!m.meta?.connected) continue;
   test(`${id}: start 스폰에서 보행·탈것으로 모든 스폰·문·적에 닿는다`, () => {
     const seen = reachable();
-    const reach = (x, y) => seen.has(`${Math.floor(y / 32)},${Math.floor(x / 32)}`);
+    // tileSwaps 로 열리는 길(용광로 광장: 연출이 놓는 다리 → 위 통로·문, BUILD201) 뒤의 스폰·문은 그 플래그 상태에서 닿으면 된다
+    const swapStates = Object.keys(m.tileSwaps || {}).map((flag) => reachable(flag));
+    const reachIn = (sets, x, y) => sets.some((s) => s.has(`${Math.floor(y / 32)},${Math.floor(x / 32)}`));
+    const reach = (x, y) => reachIn([seen, ...swapStates], x, y);
     const bad = [];
     for (const [name, sp] of Object.entries(m.spawns)) if (!reach(sp.x, sp.y)) bad.push(`spawn ${name}`);
     for (const e of m.entities || []) {
@@ -65,9 +68,9 @@ for (const id of idx) {
         if (!reach(e.x, e.y)) bad.push(`${e.type} ${e.id}`);
       }
       if (e.type === 'door') {
-        const doorSeen = e.requires ? reachable(e.requires) : seen;
+        const doorSets = e.requires ? [reachable(e.requires)] : [seen, ...swapStates];
         const cy = e.y + (e.h || 32) / 2, cx = e.x + (e.w || 8) / 2;
-        if (![cx - 20, cx, cx + 20].some(x => doorSeen.has(`${Math.floor(cy / 32)},${Math.floor(x / 32)}`))) bad.push(`door→${e.to}`);
+        if (![cx - 20, cx, cx + 20].some(x => reachIn(doorSets, x, cy))) bad.push(`door→${e.to}`);
       }
     }
     assert.deepEqual(bad, [], `닿지 않음: ${bad.join(', ')}`);

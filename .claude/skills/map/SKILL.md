@@ -30,6 +30,9 @@ model: opus
 - “다음 맵으로 바로 이동”하는 문 트리거는 **가장자리 칸의 맵 끝 쪽 10px**(`x: 0` 또는 `x: pxW - 10`, `w: 10`). 안쪽 칸에 두면 보이는 끝보다 한 칸 앞에서 넘어가 보인다. `maps.test` 가 H 위의 문을 검사한다.
 - 다음 맵이 아직 없으면 통로만 열어 두고 문·소품·대사를 지어내지 않는다. 그 자리에서 만들어진 세이브가 다음 빌드의 문 위에서 시작할 수 있으므로, 새 문을 놓으면 “그 자리 세이브 → 이어하기” 를 돌린다(`tests/playtest/continue-save.mjs`).
 - 용어: “문이 열린다”(C 로 여는 문) ≠ “바로 이동”(밟으면 넘어감). 브리핑의 표현대로 구현한다.
+- **C 로 묻고 들어가는 문**(“C 누르면 ‘…이라고 적혀있다, 들어갈까?’ 예/아니오”, BUILD201 철문): `door` 가 아니라 **소품 + script** — 대사 노드에 `choice {예/아니오, cancel:1}` → 예 라벨에서 `{action: textbox.close}` → sfx → `{fade:'out'}` → `{map, spawn}` → `{fade:'in'}`. 예 `src/data/cutscenes/ship_gate.js`. 돌아오는 쪽은 보통 밟는 문(가장자리 H).
+- **연출이 여는 통로**(플래그 뒤에만 걷는 타일): 맵 `tileSwaps.<플래그>` 로 그 상태를 선언하면 재입장·이어하기에 열린 채 로드되고, `maps-connect` 도 그 상태에서 닿는 스폰·문을 통과시킨다. 연출이 치우는 소품은 `unless:<플래그>`. 예 `youngcle18.py`(다리 L→F, 울타리 3칸).
+- **문 앞에 서면 카메라 위 ≈20px 는 잘린다**(주인공 중심): 문 위 벽에 붙인 명판은 안 보인다 — 글자는 문 그림 안(윗부분)에.
 
 ## 맵 찍기 지침 (2026-09-11 사용자 "어떤 맵·어떤 도트·어떤 브금·뭘 신경 쓰고·어떤 이벤트를 색다르게" — 특정 맵에 갇히지 않는 일반 지침)
 
@@ -41,6 +44,7 @@ model: opus
 | 허공(보라, void1~11) | `x/X` 땅, `y` 절벽, `o/O` 물, `Z` 걸어 나가는 바닥 | `wind`(void1) → `scarlet`(void5~9) → `lancer`(void11) | 보라 불 원경, 꽃·바위·버튼·표지판·뗏목·낙석(void_set/void10_set) | `void9.py`, `void10.py`(미로), `void11.py`, `rockfall_map.py` |
 | 청록숲(teal1~) | `t/u` 땅, `w` 잔풀, `n` 낙엽, `v` 절벽, `o/O` 물, **`m` 숲 바닥(막힘, 길 둘레 2칸 — 나무는 그 위에만)** | `weird_birds`(teal1) → `hopes`(teal2~) | 검은 수풀 원경(backdrop `teal_bush`), 동상·나무(`tree_teal`/`tree_forest`)·풀숲·폭포·뗏목(teal_set) | `teal.py`, `teal5.py`(물길·계단), `teal6.py`(정글) |
 | 옵젝영역(obj0~) | `a/A` 얕은 물(걸을 수 있음, `step:'water_step'` 발소리+물결), `j` 수련잎, **`c` 숲 바닥(막힘, 물 둘레 2칸)**, `V` 절벽 | `wind`(휘잉 바람) | 원경 `obj_forest`(초록 덤불 + 보라 먼 층), 나무 `tree_obj`/`tree_obj_purple`(넷에 하나) (obj_set) | `obj0.py`(일직선) |
+| 용광로·엄청대박인배(youngcle13~20) | `F` 철판 바닥, `G` 벽, `H` 가장자리 출입구, `L` 용암(막힘), **`N` 용암 위 철 다리 바닥**(BUILD201) | `pandora_palace` | 원경 `youngcle_furnace`, 다리 판·트러스 난간·선체 벽·거대 철문(ship_bridge_set), 조종실 콘솔·화면·서버 랙·홀로그램 탁자·반응로·TV(ship_control_set, anim 띠) | `youngcle18.py`(광장), `youngcle19.py`(다리길), `youngcle20.py`(조종실) |
 | 다음 지역 | 새 타일 세트(`tools/art/<지역>_set.py`) + `registerTile` 폴백 색 | 새 브금은 `design/audio/references.md` 에 출처 | 원경 한 장(`backdrop`) | 생성기 새로 |
 
 **동선 모양 카탈로그**(브리핑의 한 단어 → 구조): 일직선 통로(teal1) · ㄱ자/계단식(teal_east, teal6) · 광장+위로 가는 길(teal2) · 아래→위 오르막+공터(teal3) · 뱀길(void9) · 미로(void10, 뒤로 물러나는 backtracker) · 물길 일직선+계단(teal5) · **정글**(구불구불한 본길 + 목 3칸으로 붙은 주머니 캠프에 몹, 길 가장자리 나무 빽빽, teal6). 폭은 3칸, 도입 여유 8타일, 타이밍 장애물 간격 ≥512px.
@@ -148,6 +152,7 @@ model: opus
    - **거대 소품**(나무 등): 그림은 크고 히트박스는 밑동만(`x,y,w,h` 작게 + `ix,iy` 그림 위치). y-정렬로 위쪽 캐릭터는 잎에 가려진다. 예 `tree_big.png` 240×264.
    - **낙석 레인**: `{ "type":"rockfall","image":"assets/props/rock.png","x":레인중심,"ground":길 맨 아랫줄 y(250),"period":2.0,"offset":…,"warn":0.8,"fall":0.4,"rest":0.45 }` — 입구에서 8타일 뒤 첫 레인, **5타일 간격**, 리듬은 offset. 맵엔 `dim:0.3` 을 줘서 스포트라이트(바위 폭 40px 의 평행 기둥)가 보이게. 바위는 화면 위에서 길 전체를 쓸고 내려오니 길은 3줄 그대로. 소리 없음. 예 `void5/6/7`.
    - 위험 구간 맵은 **화면 두세 배 이상** 길게(void5 30열·void6 48열·void7 60열). 짧으면 '들어가자마자' 느낌이 난다. 낙석 맵은 손으로 쓰지 말고 `/usr/bin/python3 tools/maps/rockfall_map.py <id> --rocks n --entry top|left --exit down|right --prev … --next … --tail 14 --props '[…]'` 로 뽑는다(정확한 명령은 `tools/maps/rockfall_maps.sh`, `--check` 로 재현 확인). 낙석만 있으면 심심하다는 피드백(2026-09-10) → 꼬리 길에 **소품 상호작용 이벤트 1개씩**(꽃·표지판·바위 같은 짧은 개그, `rock_events.js`).
+   - **나는 NPC**(탈것·비행 장치, BUILD201 영클): `{ type:'npc', sprite:'youngcle_hover', patrol:[[x,y]…], speed:70, solid:false }` — 경유점을 충돌 없이 돌고 방향은 자동. 시트 캐릭터에 `CHARACTERS.<id>.hover {fps, lift, bob, period}` 를 주면 서 있어도 프레임이 돌고 떠서 오르내린다(그림자는 땅). 순찰 경로는 통로·소품 사이(y 정렬은 발 기준이라 큰 소품 뒤로 지나가면 가려진다).
    - 동료가 될 NPC: `{ type:'npc', id:'<캐릭터id>', sprite:'<캐릭터id>', unless:'<id>_joined', script:'…' }` — id 가 캐릭터 id 와 같아야 `{join}` 이 NPC 를 치운다. 동료는 벽·소품과 충돌하지 않으니 통로 폭은 신경 안 써도 됨.
    - 새 맵/이벤트마다 `src/core/story.js QA_POINTS` 에 바로가기(직전 지점)를 추가하고 스폰에 `facing` 을 준다. 이벤트 뒤 상태로 바로 가야 하면 `flags:{…}`.
    - 맵 옵션 `backdrop`(원경), `tileSwaps`(플래그로 행 교체), `preload`(컷신 spawn 이미지) — `docs/STATE.md` '맵 연출 옵션'. **도트 밀도**: 요청 없는 소품은 델타룬식 최소 디테일(외곽선+한두 색).

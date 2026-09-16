@@ -57,9 +57,13 @@ def main() -> None:
                     r, c = row + dr, col + dc
                     if 0 <= r < HEIGHT and 0 <= c < WIDTH and cells[r][c] == '!':
                         cells[r][c] = 'G'
+    # 다리 앞 세 칸(cols 14~16)은 연출이 치우고, 연출 뒤 다시 들어오면 아예 안 나온다(unless) — 다리 → 위 통로가 열린 채로 로드
     fences = [{'type': 'prop', 'id': f'lava_fence_{i}', 'image': 'assets/props/iron_fence_short.png',
-               'x': col * T, 'y': (POOL_R1 + 1) * T - 6, 'w': 32, 'h': 14, 'ix': col * T, 'iy': (POOL_R1 + 1) * T - 14, 'solid': True}
+               'x': col * T, 'y': (POOL_R1 + 1) * T - 6, 'w': 32, 'h': 14, 'ix': col * T, 'iy': (POOL_R1 + 1) * T - 14, 'solid': True,
+               **({'unless': 'furnace_aftermath_done'} if BRIDGE_C0 <= col < BRIDGE_C0 + 3 else {})}
               for i, col in enumerate(range(POOL_C0, POOL_C1 + 1))]
+    # 연출 뒤(furnace_aftermath_done) 다시 들어오면 다리 자리 L → F 로 로드된다(tileSwaps) — 위 문은 그 플래그가 있어야 열린다(BUILD201 다리길 youngcle19)
+    swapped = {str(row): ''.join('F' if BRIDGE_C0 <= col < BRIDGE_C0 + 3 else cells[row][col] for col in range(WIDTH)) for row in range(POOL_R0, POOL_R1 + 1)}
     map_data = {
         'id': MAP_ID, 'name': '용광로 광장', 'stage': 'void_fallen',
         'bgm': None, 'backdrop': 'youngcle_furnace',
@@ -73,12 +77,17 @@ def main() -> None:
             'bottom': {'x': DOOR_X, 'y': 15 * T + 8, 'facing': 'up'},
             'front': {'x': DOOR_X, 'y': 9 * T + 8, 'facing': 'up'},
             'right': {'x': 24 * T, 'y': 10 * T, 'facing': 'up'},
+            'top': {'x': DOOR_X, 'y': 1 * T + 8, 'facing': 'down'},
         },
+        'tileSwaps': {'furnace_aftermath_done': {'rows': swapped}},
         'meta': {'connected': True, 'route': [[DOOR_C0 + 1, 16], [DOOR_C0 + 1, 9]], 'pool': [POOL_C0, POOL_R0, POOL_C1, POOL_R1], 'cage': [CAGE_X, CAGE_Y], 'tv': [TV_X, TV_Y], 'tvScale': TV_SCALE},
         'enter': {'script': 'furnace_arena_intro'},
         'entities': [
             {'type': 'door', 'id': 'youngcle18_bottom', 'x': DOOR_C0 * T, 'y': HEIGHT * T - 10, 'w': 96, 'h': 10,
              'to': 'youngcle17', 'spawn': 'top', 'sfx': False, 'interact': False},
+            # 위 출입구(다리 위 통로 끝) → 다리길(youngcle19). 연출이 다리를 놓기 전엔 용암이 막는다(tileSwaps 가 연출 뒤 상태를 로드)
+            {'type': 'door', 'id': 'youngcle18_top', 'x': BRIDGE_C0 * T, 'y': 0, 'w': 96, 'h': 10,
+             'to': 'youngcle19', 'spawn': 'bottom', 'sfx': False, 'interact': False},
             # 조작 패널: 울타리 살짝 왼쪽 옆·앞(캐릭터보다 두 칸 넓음). C → 색깔 기억 게임(1인칭 씬 colorgame, BUILD198 사용자 브리핑) — 페이드 뒤 바로 시작
             {'type': 'prop', 'id': 'lava_panel', 'image': 'assets/props/control_panel.png',
              'x': 6 * T, 'y': 8 * T + 14, 'w': 64, 'h': 22, 'ix': 6 * T, 'iy': 8 * T - 4, 'solid': True, 'script': 'furnace_panel'},

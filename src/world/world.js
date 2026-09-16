@@ -240,7 +240,13 @@ export class Character extends Entity {
     this.speed = def.speed ?? TILE * 3.8;
   }
   animate(dt, fps = 8) {
-    if (!this.moving) { this.frame = 0; this.animPhase = 0; return; }
+    // hover(characters.js): 비행 장치 캐릭터는 서 있어도 불꽃·번개 프레임이 계속 돌고, hoverT 로 오르내린다(BUILD201 영클)
+    const hover = CHARACTERS[this.def?.sprite]?.hover;
+    if (hover) this.hoverT = (this.hoverT || 0) + dt;
+    if (!this.moving) {
+      if (hover) { this.animPhase += dt * (hover.fps || fps); this.frame = Math.floor(this.animPhase) % 4; return; }
+      this.frame = 0; this.animPhase = 0; return;
+    }
     this.animPhase += dt * fps;
     this.frame = Math.floor(this.animPhase) % 4;
   }
@@ -292,9 +298,12 @@ export class Character extends Entity {
       return;
     }
     // 발밑 그림자 — 정지 그림(still: 몹·문지기)은 그림 안에 밑동이 있어 긴 그림자 막대가 '떠 있는' 느낌을 준다(사용자 2026-09-11) → 생략
-    if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * 0.25), sy + dh - 2, Math.round(dw * 0.5), 3); }
-    blit(img, sx, sy, dw, dh);
-    if (emote) drawEmote(ctx, emote, sx + Math.round(dw / 2), emote.anchor === 'feet' ? Math.round(this.y + this.h - cam.y) : sy);
+    // hover(characters.js): 비행 장치는 그림을 lift 만큼 띄우고 살짝 오르내리며, 그림자는 발 자리(땅)에 조금 넓게 남는다(BUILD201 영클)
+    const hover = CHARACTERS[this.def.sprite]?.hover;
+    const lift = hover ? Math.round((hover.lift ?? 6) + Math.sin((this.hoverT || 0) * Math.PI * 2 / (hover.period ?? 1.4)) * (hover.bob ?? 2)) : 0;
+    if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * (hover ? 0.2 : 0.25)), sy + dh - 2, Math.round(dw * (hover ? 0.6 : 0.5)), 3); }
+    blit(img, sx, sy - lift, dw, dh);
+    if (emote) drawEmote(ctx, emote, sx + Math.round(dw / 2), emote.anchor === 'feet' ? Math.round(this.y + this.h - cam.y) : sy - lift);
   }
   draw(ctx, cam) {
     if (!this.visible) return;
@@ -481,6 +490,7 @@ export class NPC extends Character {
     // 컷신 이동(cutscene move)이 이 틱에 걷기 프레임을 진행시켰으면(driven) 정지 처리로 덮지 않는다 — 전에는 매 틱 frame 이 0 으로 돌아가 NPC(쥰희·용준)가 미끄러지듯 움직였다 (PR #13 지침, 2026-09-11)
     if (this.driven) { this.driven = false; return; }
     if (this.game.dialogue.running) { this.moving = false; this.animate(dt); return; }
+    if (this.def.patrol?.length) { this.patrolStep(dt); this.animate(dt, 6); return; }
     const startX = this.x, startY = this.y;
     if (this.wander > 0) {
       this.wanderTimer -= dt;
@@ -502,6 +512,16 @@ export class NPC extends Character {
     }
     this.moving = this.x !== startX || this.y !== startY;
     this.animate(dt, 6);
+  }
+  /** 순찰(def.patrol = [[x,y],…] 히트박스 좌표, def.speed px/s 기본 80): 경유점을 차례로 돌고 끝나면 처음으로. 나는 캐릭터용이라 충돌 없이 곧장 간다(BUILD201 영클 비행 장치) */
+  patrolStep(dt) {
+    const pts = this.def.patrol; this.patrolI = this.patrolI ?? 0;
+    const [tx, ty] = pts[this.patrolI]; const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy);
+    const step = (this.def.speed ?? 80) * dt;
+    if (dist <= step) { this.x = tx; this.y = ty; this.patrolI = (this.patrolI + 1) % pts.length; }
+    else { this.x += dx / dist * step; this.y += dy / dist * step; }
+    if (dist > 0.5) this.facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+    this.moving = true;
   }
   interact(player) {
     const key = typeof this.def.script === 'function' ? this.def.script(this.game.flags) : this.def.script;
