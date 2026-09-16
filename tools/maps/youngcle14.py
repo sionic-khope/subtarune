@@ -7,7 +7,7 @@
 # Run from the repository root: uv run tools/maps/youngcle14.py [--check]
 # ──────────────────
 """용암 수로(BUILD192): 입구에서 오른쪽으로 걸으면 용암 위 뗏목. 수로는 한 줄(3칸 96px). 구간 ① 오른쪽 → 착지 → 구간 ② 좁은 세로 수로로 위로 → 위 착지 → 구간 ③ 다시 오른쪽(사용자 2026-09-16: “위로 가는 용암 퍼즐 후에 오른쪽으로 가는 용암길도”) → 오른쪽 끝 통로로 용광로 화물 검사실 1(youngcle15, BUILD193).
-입구·출구는 벽으로 막지 않는다: 통로가 맵 가장자리까지 이어져 열려 보이고(가장자리 칸은 바닥 그림의 막힌 출입구 타일 'H' — 맵 규칙 ‘사방 막힘’ 유지) 문 트리거는 그 안쪽 칸에 있다(사용자: “출구 포탈이나 입구 포탈이 벽 블럭으로 막혀 있으면 어떡하냐”).
+입구·출구는 벽으로 막지 않는다: 통로가 맵 가장자리까지 이어져 열려 보이고 가장자리 칸(걷는 출입구 타일 'H')까지 걸어 들어가면 맵 끝 10px 의 문 트리거가 넘긴다(BUILD194)(사용자: “출구 포탈이나 입구 포탈이 벽 블럭으로 막혀 있으면 어떡하냐”).
 형섭이 뗏목을 타고 경섭·빠맨은 뗏목 아래 용암에서 헤엄친다(swimAt below). 함정 디자인 규칙(사용자: 2단 점프인지 그림으로 알아야): 한 덩어리/한 층 = C 한 번, 같은 것을 두 개 쌓은 것(달아오른 위 덩어리·2층 빔 게이트) = 공중에서 C 한 번 더.
 뗏목 옆에서 C → 컷신 lava_raft_intro(형섭이 걸어서 올라탐 → 대사 → 빠맨·경섭이 걸어가 용암에 → 출발). 2단 점프 플래그는 컷신이 준다."""
 from __future__ import annotations
@@ -126,7 +126,7 @@ def main() -> None:
         'meta': {'connected': True, 'route': [[2, 21], [10, 21]], 'raft': [RAFT_X0, RAFT_Y, RAFT_X1], 'raftB': [RAFT_B_X, RAFT_B_Y0, RAFT_B_Y1], 'raftC': [RAFT_C_X0, RAFT_C_Y, RAFT_C_X1], 'checkpoints': checkpoints, 'checkpointsB': checkpoints_b, 'checkpointsC': checkpoints_c},
         'entities': [
             # 입구(왼쪽) → 용광로 복도(from_right)
-            {'type': 'door', 'id': 'youngcle14_left', 'x': 32, 'y': 640, 'w': 16, 'h': 96,
+            {'type': 'door', 'id': 'youngcle14_left', 'x': 0, 'y': 640, 'w': 10, 'h': 96,
              'to': 'youngcle13', 'spawn': 'from_right', 'sfx': False, 'interact': False},
             # 뗏목(오른쪽으로 한 줄): 옆에서 C → walkOn 컷신이 걸어서 태우고 출발시킨다. 용암: 물방울 주황, 탑승 소리 치이익
             {'type': 'raft', 'id': 'raft14a', 'image': 'assets/props/raft.png', 'x': RAFT_X0, 'y': RAFT_Y, 'route': [[RAFT_X1, RAFT_Y]], 'speed': 171,
@@ -147,8 +147,8 @@ def main() -> None:
             {'type': 'raft', 'id': 'raft14c', 'image': 'assets/props/raft.png', 'x': RAFT_C_X0, 'y': RAFT_C_Y, 'route': [[RAFT_C_X1, RAFT_C_Y]], 'speed': 171,
              'jump': True, 'jumpH2': 96, 'swim': ['ppaman', 'gyeongsub'], 'swimAt': 'below', 'lava': True, 'boardSfx': False, 'arriveSfx': 'thud',
              'walkOn': True, 'checkpoints': checkpoints_c, 'disembarkPartyGap': 40},
-            # 끝 착지 오른쪽 → 용광로 화물 검사실 1(youngcle15, BUILD193). 가장자리 칸(col 107)은 H, 트리거는 안쪽 칸
-            {'type': 'door', 'id': 'youngcle14_right', 'x': 106 * T, 'y': 2 * T, 'w': 16, 'h': 96,
+            # 끝 착지 오른쪽 → 용광로 화물 검사실 1(youngcle15, BUILD193). 가장자리 칸(col 107)은 걷는 H, 트리거는 맵 끝 10px(끝까지 걸어가야 넘어간다, BUILD194)
+            {'type': 'door', 'id': 'youngcle14_right', 'x': WIDTH * T - 10, 'y': 2 * T, 'w': 10, 'h': 96,
              'to': 'youngcle15', 'spawn': 'left', 'sfx': False, 'interact': False},
             wall_high('wall_c_high1', RAFT_C_X0 + 248, RAFT_C_Y - 8),
             beam('beam_c_high1', RAFT_C_X0 + 528, True, oscillate={'dx': 24, 'period': 2.2}, top=LANE_C_TOP),

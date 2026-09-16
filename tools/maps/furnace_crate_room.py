@@ -1,6 +1,6 @@
 """용광로 화물 검사실 공용 생성기(BUILD193, youngcle15·16): 영클 공장 상자 밀기 메커니즘(youngcle3~5, factory_* 엔티티)을 용광로 구역(youngcle_furnace 배경·차콜/파랑 철 바닥 F·벽 G·Pandora Palace)에서 3상자로 더 어렵게.
 방 구조는 youngcle5 와 같다: 바닥 rows 5~11 · cols 1~16, 운반 구역 cols 4~12 × rows 5~11(288×224, 베이지), 안내판 (3,6)·초기화 콘솔 (3,10), 차단문 col 14, 착지 cols 15~16.
-출입구는 벽으로 막지 않는다: 가장자리 칸(col 0 / col 17, rows 7~9)은 바닥 그림의 막힌 타일 H, 문 트리거는 그 안쪽 칸(BUILD192 규칙).
+출입구는 벽으로 막지 않는다: 가장자리 칸(col 0 / col 17, rows 7~9)은 걷는 출입구 타일 H, 문 트리거는 그 칸의 맵 끝 쪽 10px(끝까지 걸어가야 넘어간다, BUILD194).
 배치는 9×7 ASCII(운반 구역): ',' 바닥 · '#' 격벽 · 'X' 발판 · 'C' 상자. 최소 밀기·해법은 tools/maps/crate_solver.py 로 잰 값을 넣는다(단위 테스트가 같은 규칙으로 다시 센다)."""
 from __future__ import annotations
 
@@ -64,13 +64,13 @@ def build_room(*, map_id: str, name: str, layout: list[str], pushes: int, soluti
     # 출입구(rows 7~9): 왼쪽은 언제나, 오른쪽은 다음 맵이 없어도 열린 통로(다음 브리핑)
     for row in (7, 8, 9): rows[row][0] = 'H'; rows[row][WIDTH - 1] = 'H'
     entities: list[dict] = [
-        {'type': 'door', 'id': f'{map_id}_left', 'x': 32, 'y': 224, 'w': 16, 'h': 96,
+        {'type': 'door', 'id': f'{map_id}_left', 'x': 0, 'y': 224, 'w': 10, 'h': 96,
          'to': prev_map, 'spawn': prev_spawn, 'sfx': False, 'interact': False},
         {'type': 'factory_rail', 'id': f'{map_id}_rail_top', 'x': 32, 'y': 160, 'w': 512, 'h': 12},
         {'type': 'factory_rail', 'id': f'{map_id}_rail_bottom', 'x': 32, 'y': 384, 'w': 512, 'h': 12},
     ]
     if next_map:
-        entities.append({'type': 'door', 'id': f'{map_id}_right', 'x': 528, 'y': 224, 'w': 16, 'h': 96,
+        entities.append({'type': 'door', 'id': f'{map_id}_right', 'x': WIDTH * 32 - 10, 'y': 224, 'w': 10, 'h': 96,
                          'to': next_map, 'spawn': next_spawn, 'sfx': False, 'interact': False})
     entities += [
         {'type': 'factory_move_area', 'id': f'{map_id}_move_area', 'puzzle': puzzle, 'x': 128, 'y': 160, 'w': 288, 'h': 224},

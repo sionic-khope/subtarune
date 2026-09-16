@@ -537,10 +537,12 @@ export class Trigger extends Entity {
     const p = this.game.player;
     const over = !!p && p.overlaps(this.rect);
     if (this.cooldown > 0) this.cooldown -= dt;
-    const entering = over && !this.inside;
-    this.inside = over;
-    if (!entering || this.running || this.cooldown > 0) return;
+    if (!over) { this.inside = false; return; }
+    if (this.inside || this.running || this.cooldown > 0) return;
+    // 아직 밟을 수 없는 상태(대사·맵 전환 페이드)면 '안에 있음'으로 적지 않는다 — 끝나는 순간 발동한다.
+    // 이전엔 페이드 중에 '안에 있음'만 기록하고 넘어가서, 이어하기로 문 자리에서 시작한 세이브(이전 빌드에서 수로 끝 벽에 서 있다 저장 → 새 빌드에서 그 자리에 문이 생김)는 걸어 나갔다 들어오기 전엔 영영 안 열렸다(BUILD194 사용자 “다음 맵이 안 가져”)
     if (this.game.dialogue.running || this.game.transitioning) return;
+    this.inside = true;
     if (this.def.once && this.game.has(this.def.flag)) return;
     // unless 플래그가 맵에 있는 동안 켜져도(같은 맵 컷신) 그 뒤로는 안 밟힌다 — 공연 뒤 무대 계단이 대기실로 워프하던 버그(BUILD190)
     if (this.def.unless && this.game.has(this.def.unless)) return;

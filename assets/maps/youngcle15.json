@@ -142,9 +142,9 @@
   {
    "type": "door",
    "id": "youngcle15_left",
-   "x": 32,
+   "x": 0,
    "y": 224,
-   "w": 16,
+   "w": 10,
    "h": 96,
    "to": "youngcle14",
    "spawn": "top_end",
@@ -170,9 +170,9 @@
   {
    "type": "door",
    "id": "youngcle15_right",
-   "x": 528,
+   "x": 566,
    "y": 224,
-   "w": 16,
+   "w": 10,
    "h": 96,
    "to": "youngcle16",
    "spawn": "left",

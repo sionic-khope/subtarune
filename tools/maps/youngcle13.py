@@ -27,7 +27,7 @@ def main() -> None:
     """Write the furnace corridor or check its generator output and map registration."""
     cells = [['!'] * WIDTH for _ in range(HEIGHT)]
     # 아래 복도 rows 7~10 · cols 0~20(왼쪽 가장자리까지 열린 통로 = 무대 홀에서 오는 입구) → 세로 통로 rows 2~10 · cols 17~20 → 위 복도 rows 2~5 · cols 17~35(오른쪽 가장자리까지 열림 = 용암 수로 입구).
-    # 입구·출구를 벽 타일로 막지 않는다(사용자 2026-09-16 “포탈이 벽 블럭으로 막혀 있으면 어떡하냐”): 가장자리 칸은 바닥 그림의 막힌 출입구 타일 'H'(맵 규칙 ‘사방 막힘’ 유지), 문 트리거는 그 안쪽 칸
+    # 입구·출구를 벽 타일로 막지 않는다(사용자 2026-09-16 “포탈이 벽 블럭으로 막혀 있으면 어떡하냐”): 가장자리 칸은 걷는 출입구 타일 'H'(맵 밖은 엔진이 막음), 문 트리거는 그 칸의 맵 끝 쪽 10px — 끝까지 걸어가야 넘어간다(BUILD194 “포탈을 끝으로”)
     for row in range(7, 11):
         for col in range(0, 21):
             cells[row][col] = 'F'
@@ -63,10 +63,10 @@ def main() -> None:
         'meta': {'connected': True, 'route': [[2, 8], [18, 8], [18, 3], [33, 3]]},
         'entities': [
             # 왼쪽 끝 → 무대 홀(from_right). 열린 통로라 방향키로 통과
-            {'type': 'door', 'id': 'youngcle13_left', 'x': 32, 'y': 224, 'w': 16, 'h': 128,
+            {'type': 'door', 'id': 'youngcle13_left', 'x': 0, 'y': 224, 'w': 10, 'h': 128,
              'to': 'youngcle11', 'spawn': 'from_right', 'sfx': False, 'interact': False},
             # 위 복도 오른쪽 끝 → 용암 뗏목 방(입구)
-            {'type': 'door', 'id': 'youngcle13_right', 'x': 1104, 'y': 64, 'w': 16, 'h': 128,
+            {'type': 'door', 'id': 'youngcle13_right', 'x': WIDTH * 32 - 10, 'y': 64, 'w': 10, 'h': 128,
              'to': 'youngcle14', 'spawn': 'left', 'sfx': False, 'interact': False},
         ],
     }

@@ -148,9 +148,9 @@
   {
    "type": "door",
    "id": "youngcle16_left",
-   "x": 32,
+   "x": 0,
    "y": 224,
-   "w": 16,
+   "w": 10,
    "h": 96,
    "to": "youngcle15",
    "spawn": "landing",

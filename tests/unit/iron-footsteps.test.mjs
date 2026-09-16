@@ -30,7 +30,7 @@ function walk(player, { seconds = 2, direction = 1, slow = false } = {}) {
 }
 
 test('test_iron_step_metadata_is_exclusive_to_iron_and_separate_from_water', () => {
-  assert.deepEqual(allTiles().filter(tile => tile.stepSfx).map(tile => tile.char), ['I', 'J', 'F']);
+  assert.deepEqual(allTiles().filter(tile => tile.stepSfx).map(tile => tile.char), ['I', 'J', 'F', 'H']);
   for (const char of ['I', 'J']) assert.equal(getTile(char).step, undefined);
   assert.equal(getTile('a').step, WATER_WALK);
 });

@@ -125,8 +125,11 @@ registerTile('F', { name: 'youngcle_iron_blue', solid: false,
   draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 // 벽은 바닥과 다른 그림(어두운 판) — 같은 그림이면 용암 위아래 띠가 길처럼 보인다(BUILD191 사용자)
 registerTile('G', { name: 'youngcle_iron_blue_wall', solid: true, draw: (ctx) => { ctx.fillStyle = '#151a22'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
-// 가장자리 출입구 칸: 바닥과 같은 그림이지만 막힘(void10 의 'Z' 와 같은 방식) — 통로가 벽으로 닫혀 보이지 않게 하면서 맵 규칙 '사방 막힘' 을 지킨다(BUILD192 사용자 “포탈이 벽 블럭으로 막혀 있으면”). 문 트리거는 바로 안쪽 칸
-registerTile('H', { name: 'youngcle_iron_blue_solid', solid: true, draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
+// 가장자리 출입구 칸: 바닥과 같은 그림이고 **걷는다** — 맵 밖은 tileAt() 이 ' '(막힘)를 돌려주므로 떨어질 수 없다. 문 트리거는 이 칸의 맵 끝 쪽 10px 에 두어 끝까지 걸어가야 넘어간다
+// (BUILD192 “포탈이 벽 블럭으로 막혀 있으면” → BUILD194 “포탈을 끝으로 둬야지, 다 도달하기 전에 이동되게 한 블럭 당기냐”: 막힌 칸이던 때는 그 앞 칸에서 이동돼 한 칸 일찍 넘어가는 것으로 보였다)
+registerTile('H', { name: 'youngcle_iron_blue_solid', solid: false,
+  stepSfx: { sounds: ['iron_step_1', 'iron_step_2'], volume: 0.35, distance: 24 },
+  draw: (ctx) => { ctx.fillStyle = '#2f3a4a'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('L', { name: 'lava', solid: true, draw: (ctx) => { ctx.fillStyle = '#7a1a08'; ctx.fillRect(0, 0, ART_PX, ART_PX); } });
 registerTile('S', { name: 'sign', solid: true, art: TILE_ART.sign, drawOver: ',' });
 registerTile('C', { name: 'chest', solid: true, art: TILE_ART.chest, drawOver: '.' });
