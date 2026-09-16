@@ -14,6 +14,10 @@ export const CHARACTERS = {
   lucky_guy: { name: '럭키가이', voice: 'lucky_guy', sheet: 'assets/sprites/lucky.png', stillPivot: [32, 60] },
   // 나람이(2026-09-14 사용자 명명): 군복·웃는 얼굴·뚱뚱한 체형, OG 생성 4방향 시트(assets/source/naram-walk-v1). 정지 프레임은 앞뒤 0·좌우 1(계약). 아직 맵 배치·대사 없음
   naram: { name: '나람이', voice: 'naram', sheet: 'assets/sprites/naram.png', stillPivot: [32, 60] },
+  // 거대·뚱뚱 나람(BUILD202 사용자 “나람 스프라이트 더 거대하고 뚱뚱하게 재구성”): OG gpt-image-2 재생성 4방향 시트(assets/source/naram-giant-v1, 96px 셀 → 필드 48px, 발 y90). 조종실 실험체
+  naram_giant: { name: '나람이', voice: 'naram', sheet: 'assets/sprites/naram_giant.png', stillPivot: [48, 90] },
+  // 오방순(BUILD149 자산, BUILD202 조종실 실험체로 첫 등장): 큰 얼굴·붉은 장식·땋은 머리 64px 셀(pivot 32,61). 목소리 = Yuna 낮춘 ‘흐에에에’ voices/obangsun.mp3
+  obangsun: { name: '오방순', voice: 'obangsun', sheet: 'assets/sprites/obangsun.png', stillPivot: [32, 61] },
   park_guardian_costume: { name: '파크가디언', voice: 'park_guardian_costume', sheet: 'assets/sprites/park_guardian_costume.png', stillPivot: [32, 60] },
   park_guardian: { name: '파크가디언', voice: 'park_guardian', sheet: 'assets/sprites/park_guardian.png', stillPivot: [32, 60] },
   youngcle: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle.png' },

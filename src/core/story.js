@@ -365,5 +365,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'furnace_after', desc: '용광로 광
   map: 'youngcle18', spawn: 'front', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_bridge', desc: '엄청대박인배 다리길 (용암 위 다리 → 거대한 철문 C)',
   map: 'youngcle19', spawn: 'bottom', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control', desc: '엄청대박인배 조종실 (영클 비행 장치 순찰)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control', desc: '엄청대박인배 조종실 입장 연출 (대포 → 쥰희·용준 → 영클 → 철창·오방순·나람 → 전투 시작)',
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control_after', desc: '조종실: 연출 뒤 대치 상태 (전투는 다음 명령)',
+  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true }, party: [...parkWonCheckpoint.party] });

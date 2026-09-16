@@ -470,3 +470,4 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 - 형섭 손 `props/hand_point.png`·`hand_press.png`(44×56, `tools/art/furnace_memory_set.py`), 폭발 그림은 기존 `assets/fx/explosion.png`.
 
 - **엄청대박인배 철문(BUILD201, youngcle19)**: 예를 고르면 `locker`(철컥, 기존 파일) 한 번. 다리길·조종실 브금은 지역 브금 `pandora_palace` 그대로(사용자 지정 없음 — 바꾸려면 말씀).
+- **조종실 입장 연출(BUILD202)**: 대포 드르르륵 `scrape`, 발사 `boom` + 연기 `cannon_puff`, 벽 충돌 `impact`, 영클 상승 `rocket`, 하강 `ember`+`whoosh`(세 번), 버튼 `click`, 철창 `chain_extend`/`thud`/`locker`, 전투 시작 `battle_start` — 전부 기존 파일(내가 고름). 브금은 영클 테마 `storage_show`. 오방순 목소리 = `voices/obangsun.mp3`(BUILD149 Yuna 낮춘 ‘흐에에에’).

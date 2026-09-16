@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/naram-giant-v1/ref.png"
+  ],
+  "elapsed_seconds": 142.1,
+  "usage": {
+    "input_tokens": 1367,
+    "output_tokens": 7024,
+    "total_tokens": 8391,
+    "input_tokens_details": {
+      "image_tokens": 1024,
+      "text_tokens": 343
+    },
+    "output_tokens_details": {
+      "image_tokens": 7024,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789550689,
+  "outputs": [
+    {
+      "file": "assets/source/naram-giant-v1/walk-raw.png",
+      "bytes": 1179412,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

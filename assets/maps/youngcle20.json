@@ -2,7 +2,7 @@
  "id": "youngcle20",
  "name": "엄청대박인배 조종실",
  "stage": "void_fallen",
- "bgm": "pandora_palace",
+ "bgm": null,
  "battleBg": "youngcle_factory",
  "dim": 0.12,
  "rows": [
@@ -29,7 +29,18 @@
   "assets/tiles/youngcle_iron_blue.png",
   "assets/tiles/youngcle_iron_blue_wall.png",
   "assets/tiles/youngcle_iron_blue_solid.png",
-  "assets/sprites/youngcle_hover.png"
+  "assets/sprites/youngcle_hover.png",
+  "assets/props/ship_cannonball.png",
+  "assets/fx/cannon_smoke.png",
+  "assets/props/lava_cage.png",
+  "assets/props/lava_cage_open.png",
+  "assets/illustrations/youngcle-tv-smirk.png",
+  "assets/illustrations/youngcle-tv-laugh.png",
+  "assets/illustrations/youngcle-tv-taunt.png",
+  "assets/illustrations/youngcle-tv-glare.png",
+  "assets/illustrations/youngcle-tv-shrug.png",
+  "assets/illustrations/youngcle-tv-yes.png",
+  "assets/illustrations/youngcle-tv-question.png"
  ],
  "spawns": {
   "gate": {
@@ -49,7 +60,34 @@
     14,
     4
    ]
+  ],
+  "logo": [
+   416,
+   236
+  ],
+  "cage": [
+   600,
+   12
+  ],
+  "junhee": [
+   486,
+   262
+  ],
+  "yongjun": [
+   436,
+   318
+  ],
+  "ycEnter": [
+   470,
+   236
+  ],
+  "ycStand": [
+   556,
+   300
   ]
+ },
+ "enter": {
+  "script": "ship_control_intro"
  },
  "entities": [
   {
@@ -145,11 +183,11 @@
    "type": "prop",
    "id": "ship_rack_3",
    "image": "assets/props/ship_server_rack.png",
-   "x": 752,
+   "x": 736,
    "y": 64,
    "w": 48,
    "h": 24,
-   "ix": 752,
+   "ix": 736,
    "iy": 0,
    "solid": true,
    "anim": {
@@ -161,11 +199,11 @@
    "type": "prop",
    "id": "ship_rack_4",
    "image": "assets/props/ship_server_rack.png",
-   "x": 800,
+   "x": 784,
    "y": 64,
    "w": 48,
    "h": 24,
-   "ix": 800,
+   "ix": 784,
    "iy": 0,
    "solid": true,
    "anim": {
@@ -175,30 +213,42 @@
   },
   {
    "type": "prop",
-   "id": "ship_rack_5",
-   "image": "assets/props/ship_server_rack.png",
-   "x": 848,
-   "y": 64,
-   "w": 48,
+   "id": "ship_tv",
+   "image": "assets/props/ship_tv.png",
+   "x": 840,
+   "y": 138,
+   "w": 80,
    "h": 24,
-   "ix": 848,
-   "iy": 0,
+   "ix": 840,
+   "iy": 90,
    "solid": true,
    "anim": {
     "cols": 2,
-    "fps": 3
+    "fps": 6
    }
+  },
+  {
+   "type": "prop",
+   "id": "ship_logo",
+   "image": "assets/props/ship_floor_logo.png",
+   "x": 416,
+   "y": 236,
+   "w": 128,
+   "h": 2,
+   "ix": 416,
+   "iy": 236,
+   "solid": false
   },
   {
    "type": "prop",
    "id": "ship_holo",
    "image": "assets/props/ship_holo_table.png",
-   "x": 432,
-   "y": 294,
+   "x": 232,
+   "y": 144,
    "w": 96,
    "h": 28,
-   "ix": 432,
-   "iy": 250,
+   "ix": 232,
+   "iy": 100,
    "solid": true,
    "anim": {
     "cols": 3,
@@ -209,11 +259,11 @@
    "type": "prop",
    "id": "ship_console_0",
    "image": "assets/props/ship_console.png",
-   "x": 96,
+   "x": 64,
    "y": 204,
    "w": 128,
    "h": 24,
-   "ix": 96,
+   "ix": 64,
    "iy": 180,
    "solid": true
   },
@@ -221,11 +271,11 @@
    "type": "prop",
    "id": "ship_console_1",
    "image": "assets/props/ship_console.png",
-   "x": 224,
+   "x": 192,
    "y": 204,
    "w": 128,
    "h": 24,
-   "ix": 224,
+   "ix": 192,
    "iy": 180,
    "solid": true
   },
@@ -233,72 +283,48 @@
    "type": "prop",
    "id": "ship_console_2",
    "image": "assets/props/ship_console.png",
-   "x": 608,
-   "y": 204,
+   "x": 64,
+   "y": 364,
    "w": 128,
    "h": 24,
-   "ix": 608,
-   "iy": 180,
+   "ix": 64,
+   "iy": 340,
    "solid": true
   },
   {
    "type": "prop",
    "id": "ship_console_3",
    "image": "assets/props/ship_console.png",
-   "x": 736,
-   "y": 204,
+   "x": 192,
+   "y": 364,
    "w": 128,
    "h": 24,
-   "ix": 736,
-   "iy": 180,
+   "ix": 192,
+   "iy": 340,
    "solid": true
   },
   {
    "type": "prop",
    "id": "ship_console_4",
    "image": "assets/props/ship_console.png",
-   "x": 96,
-   "y": 364,
+   "x": 672,
+   "y": 444,
    "w": 128,
    "h": 24,
-   "ix": 96,
-   "iy": 340,
+   "ix": 672,
+   "iy": 420,
    "solid": true
   },
   {
    "type": "prop",
    "id": "ship_console_5",
    "image": "assets/props/ship_console.png",
-   "x": 224,
-   "y": 364,
+   "x": 800,
+   "y": 444,
    "w": 128,
    "h": 24,
-   "ix": 224,
-   "iy": 340,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "ship_console_6",
-   "image": "assets/props/ship_console.png",
-   "x": 608,
-   "y": 364,
-   "w": 128,
-   "h": 24,
-   "ix": 608,
-   "iy": 340,
-   "solid": true
-  },
-  {
-   "type": "prop",
-   "id": "ship_console_7",
-   "image": "assets/props/ship_console.png",
-   "x": 736,
-   "y": 364,
-   "w": 128,
-   "h": 24,
-   "ix": 736,
-   "iy": 340,
+   "ix": 800,
+   "iy": 420,
    "solid": true
   },
   {
@@ -366,57 +392,99 @@
    }
   },
   {
+   "type": "npc",
+   "id": "ship_junhee",
+   "sprite": "junhee",
+   "x": 486,
+   "y": 262,
+   "facing": "up",
+   "wander": 0,
+   "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "ship_yongjun",
+   "sprite": "yongjun",
+   "x": 436,
+   "y": 318,
+   "facing": "up",
+   "wander": 0,
+   "solid": false
+  },
+  {
    "type": "prop",
-   "id": "ship_tv",
-   "image": "assets/props/ship_tv.png",
-   "x": 848,
-   "y": 488,
-   "w": 80,
-   "h": 24,
-   "ix": 848,
-   "iy": 440,
-   "solid": true,
-   "anim": {
-    "cols": 2,
-    "fps": 6
-   }
+   "id": "ship_cannon",
+   "image": "assets/props/ship_cannon.png",
+   "x": -64,
+   "y": 246,
+   "w": 96,
+   "h": 48,
+   "ix": -64,
+   "iy": 246,
+   "solid": false,
+   "hidden": true,
+   "sortY": 1000000000
   },
   {
    "type": "npc",
    "id": "ship_youngcle",
    "sprite": "youngcle_hover",
-   "x": 372,
-   "y": 150,
-   "facing": "right",
+   "x": 470,
+   "y": -80,
+   "facing": "down",
    "wander": 0,
    "solid": false,
-   "speed": 70,
-   "patrol": [
-    [
-     372,
-     150
-    ],
-    [
-     572,
-     150
-    ],
-    [
-     700,
-     280
-    ],
-    [
-     572,
-     420
-    ],
-    [
-     372,
-     420
-    ],
-    [
-     240,
-     280
-    ]
-   ]
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_cage",
+   "image": "assets/props/lava_cage.png",
+   "x": 600,
+   "y": -400,
+   "w": 136,
+   "h": 360,
+   "ix": 600,
+   "iy": -400,
+   "solid": false,
+   "hidden": true,
+   "sortY": 374
+  },
+  {
+   "type": "prop",
+   "id": "ship_cage_open",
+   "image": "assets/props/lava_cage_open.png",
+   "x": 600,
+   "y": 12,
+   "w": 136,
+   "h": 360,
+   "ix": 600,
+   "iy": 12,
+   "solid": false,
+   "hidden": true,
+   "sortY": 374
+  },
+  {
+   "type": "npc",
+   "id": "ship_obangsun",
+   "sprite": "obangsun",
+   "x": 636,
+   "y": 332,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "ship_naram",
+   "sprite": "naram_giant",
+   "x": 682,
+   "y": 332,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true
   }
  ]
 }
