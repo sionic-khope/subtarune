@@ -474,9 +474,13 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 - **나람 목소리(BUILD203)**: 사용자 “뚱뚱한 목소리를 가진 쥰희 느낌, 같은 목소리는 쓰지 말고 비슷하게 새로” → `voices/naram.mp3` = 쥰희 `voices/junhee.mp3`(델타룬 snd_txtsus)를 ffmpeg 로 -3반음(asetrate 0.84)·tempo 1.08·lowpass 2600·bass +5dB·loudnorm 한 변형(0.135초). 쥰희 파일은 그대로. `VOICES.naram` rate 1·cut true·minGap 0.08.
 
 
-## 조종실 전투 (BUILD207~208, 2026-09-17)
+## 조종실 전투 (BUILD207~209, 2026-09-17)
 
-- `bgm/youngcle_battle.mp3`: 사용자 지정 [XR2QQMfeJbg](https://www.youtube.com/watch?v=XR2QQMfeJbg) — yt-dlp 메타데이터 제목 “32. Attack of the Killer Queen (DELTARUNE Chapter 2 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 표시 124초. 포맷 251 전체를 mp3 로 변환, 편집 없음(123.9초, `assets/source/youngcle-battle-bgm/`). 조종실 전투 브금. 퀴즈 폭언 뒤·피날레에서 `stopBgm` 으로 꺼지고, 퀴즈 뒤 “니앰” 다음에 다시 켠다.
-- `sfx/queen_kieek.mp3`(1.15초): 델타룬 `snd_queenhowl_b`(TeamBlossomDevs/DeltaruneDecomp_beta 저장소 `sounds/` 커밋 154f9a97, ogg → mp3 q2, 편집 없음). 사용자 “영클이 맞으면 끼엑! 소리 … 퀸에 놀라는 소리”. 나람 볼 충돌·오방순 충돌·점프슬램에서 영클 놀람 소리.
-- `sfx/laser_pew.mp3`(0.2초)·`sfx/laser_fire.mp3`(1.1초)·`sfx/laser_charge_tick.mp3`(0.35초): 외부 녹음 없이 ffmpeg lavfi 합성(1800Hz 감쇠 정현파+비브라토 / 220Hz FM+잡음 / 90→600Hz 스윕). 선회 레이저 ‘삐용’, 철창 레이저 발사, 차징 틱. 사용자 지정 소리가 아니므로 교체 가능.
-- 재사용: 쿠와아아앙 = `furnace_blast`(snd_punchheavythunder), 나람 내려찍기 = `baron_slam`, 점프 = `jump`.
+- `bgm/youngcle_battle.mp3`: 사용자 지정 [XR2QQMfeJbg](https://www.youtube.com/watch?v=XR2QQMfeJbg) — yt-dlp 메타데이터 제목 “32. Attack of the Killer Queen (DELTARUNE Chapter 2 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 표시 124초. 포맷 251 전체를 mp3 로 변환, 편집 없음(123.9초, `assets/source/youngcle-battle-bgm/`). 퀴즈 폭언 뒤(1.4초 페이드아웃)·피날레에서 꺼지고, 퀴즈 뒤 “니앰” 다음에 다시 켠다.
+- **사용자 원칙(2026-09-17) “웬만해선 델타룬 사운드 재사용”** — 아래는 전부 [TeamBlossomDevs/DeltaruneDecomp_beta](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta) `sounds/`(커밋 154f9a97) ogg → mp3 q2, 표시한 것 외 편집 없음. BUILD207 의 ffmpeg 합성(laser_pew/laser_fire/laser_charge_tick)과 `snd_queenhowl_b`(queen_kieek)는 폐기.
+  - `sfx/queen_hoot.mp3`(0.84초) = `snd_queen_hoot_0` — 영클 놀람(사용자 “퀸 호오 소리”). 나람 볼 충돌·오방순 충돌·점프슬램. 다른 호오(`snd_queen_hoot_1/2`, `snd_queen_gasp`, `snd_queen_woah/woo`)는 `~/Downloads/deltarune_impact_candidates/` 에 후보로.
+  - `sfx/punch.mp3`(1.92초) = `snd_punchmed` — 나람 볼·오방순이 영클과 부딪힐 때(사용자 “부딪힐 때 파도소리 실화냐” → 합성 `boom` 폐기).
+  - `sfx/laser_charge.mp3`(1.31초) = `snd_chargeshot_charge` — 철창 잠김 때 + 발사 1.3초 전. `sfx/laser_blast.mp3`(1.77초) = `snd_chargeshot_fire` — 발사 순간. `sfx/laser_beam.mp3`(3.4초) = `snd_dtrans_drone` 앞 3.4초(0.05 페이드인, 2.9초부터 0.5 페이드아웃, volume 1.4) — 3초 지속 빔(사용자 “뿅 쏘고 끝이 아니라 3초 정도”). 막판 틱 = 기존 `spearappear`(snd_spearappear), 철창 잠김 철컥 = 기존 `locker`(snd_locker).
+  - `sfx/laser_zap.mp3`(0.56초) = `snd_laz_c` — 선회 레이저 볼트.
+  - 재사용: 영클 피함 = `hit`(검 소리, 사용자 “그냥 검소리만”; 합성 `whoosh` 는 “파도소리”라 금지), 나람 점프 `jump`, 착지 `baron_slam`, 나람 볼 타격 `impact`, 돌진 `heavyswing`, 억빠맨 상자 진입 `wing`, 오방순 도약 `jump`, 쿠와아아앙 `furnace_blast`(snd_punchheavythunder), 연타 `menumove`, 철창 부서짐 `pop`.
+- `sfx/obangsun_wail.mp3`(1.5초): 사용자 지정 [유튜브 쇼츠 Z-3eiWvwJQ8](https://www.youtube.com/shorts/Z-3eiWvwJQ8)(“불효자는 웁니다”, 업로더 오방순) 44.55~46.05초, 끝 0.12초 페이드 — 오방순 광선 패턴 ‘흐어어어~’ 마다. 구간은 파형·음정 분석으로 골랐고 다른 후보 4개는 `assets/source/obangsun-voice-v2/`.

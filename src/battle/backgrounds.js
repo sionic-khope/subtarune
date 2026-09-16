@@ -28,6 +28,12 @@ registerBattleBg('youngcle_factory', (ctx, battle) => {
     g.fillStyle = 'rgba(0,0,0,0.40)'; g.fillRect(0, 0, 480, 360);
   }
   ctx.drawImage(factoryCache, 0, 0);
+  // BUILD209: 벽 양옆 플라즈마 배관 유닛(gpt ship-conduit-v1, 플라즈마 픽셀이 굴러가는 3프레임) + 벽 아래 케이블을 따라 흐르는 플라즈마 구슬
+  const unit = battle.game.propImages['assets/props/ship_conduit.png'], t = battle.t;
+  if (unit) { const fw = unit.width / 3, fi = Math.floor(t * 4) % 3, h = 84, w = Math.round(fw * h / unit.height); ctx.save(); ctx.globalAlpha = 0.75; ctx.drawImage(unit, fi * fw, 0, fw, unit.height, 6, 4, w, h); ctx.drawImage(unit, fi * fw, 0, fw, unit.height, 474 - w, 4, w, h); ctx.restore(); }
+  ctx.save(); ctx.strokeStyle = '#0d1219'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, 90); ctx.lineTo(480, 90); ctx.stroke(); ctx.strokeStyle = 'rgba(96,244,224,0.35)'; ctx.lineWidth = 1; ctx.stroke();
+  for (let i = 0; i < 4; i++) { const x = ((t * 70 + i * 120) % 500) - 10; for (let k = 3; k >= 0; k--) { ctx.fillStyle = k ? 'rgba(96,244,224,0.35)' : '#60f4e0'; ctx.fillRect(Math.round(x - k * 6) - 2, 88, 4, 4); } }
+  ctx.restore();
 });
 
 registerBattleBg('teal', (ctx, b) => {

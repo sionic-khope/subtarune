@@ -391,7 +391,9 @@ export class Battle {
   }
   hurtParty(dmg) {
     const alive = this.alive(); if (!alive.length) return;
-    this.applyPartyDamage([alive[Math.floor(this.rnd() * alive.length)]], dmg);
+    const adjusted = this.support?.partyDamage?.(dmg) ?? dmg;                    // 조종실 전투: 맞을 때마다 +10(support/youngcle-ship.js)
+    this.applyPartyDamage([alive[Math.floor(this.rnd() * alive.length)]], adjusted);
+    this.support?.onPartyHurt?.(adjusted);
   }
   /** Unavoidable party-wide penalties hit every standing member once, independent of soul invulnerability. */
   hurtAllParty(dmg) { this.applyPartyDamage(this.alive().filter(m => m.hp > 0), dmg); }
@@ -437,18 +439,21 @@ export class Battle {
     this.game.sound.preloadBgm(this.cfg.bgm); this.sfx('battle_start'); this.game.shake = { time: 0.45, amp: 3 };
     this.retryT = RETRY_JINGLE;
   }
-  finish(win) {
+  /** 전투 끝. `{ white: true }` 면 흰 화면을 그대로 유지한 채 넘어간다(점프슬램 뒤 전투 기본 화면이 잠깐 보이던 것 — 사용자 2026-09-17) */
+  finish(win, { white = false } = {}) {
     if (this.state === 'ending') return;
     this.cancelPendingBgm();
     this.disposeGimmick(); this.interlude = null;
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
-    this.result = { win }; this.state = 'ending';
+    this.result = { win }; this.state = 'ending'; this.whiteout = white;
+    if (white) { this.game.fadeTo(1, 0, undefined, 'white'); this.game.endBattle(this.result); return; }
     this.game.fadeTo(1, win && this.bossBattle ? BOSS_VICTORY_FADE : 0.35, () => this.game.endBattle(this.result), 'black');
   }
 
   // ── 그리기 ──
   draw(ctx) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    if (this.whiteout) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); return; }   // 흰 화면 유지(피날레)
     if (this.state === 'retry') return;                             // 징글 동안 검은 화면(표준 조우의 검은 화면과 같다)
     if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); return; }
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)

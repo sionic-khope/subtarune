@@ -69,11 +69,11 @@ try {
   await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle20' && !window.game.dialogue.running, null, { timeout: 25000 });
   await page.waitForTimeout(500);
   const yc = () => page.evaluate(() => { const e = window.game.entities.find(x => x.id === 'ship_youngcle'); return e ? { x: Math.round(e.x), y: Math.round(e.y), facing: e.facing, frame: e.frame, phase: e.animPhase, hoverT: e.hoverT || 0, sprite: e.def.sprite, v: e.visible } : null; });
-  const y1 = await yc(); await page.waitForTimeout(700); const y2 = await yc();
-  check(y1 && y2 && y1.sprite === 'youngcle_hover' && y1.v && y1.x === 556 && y1.y === 300 && y1.facing === 'left' && y2.hoverT > y1.hoverT && y2.phase > y1.phase, '영클 비행 장치: 로고 오른쪽에서 왼쪽 보며 떠 있고 서 있어도 불꽃 프레임·오르내림이 돈다 ' + JSON.stringify([y1, y2]));
-  const props = await page.evaluate(() => ['ship_main_screen', 'ship_helm', 'ship_holo', 'ship_logo', 'ship_console_0', 'ship_console_5', 'ship_rack_0', 'ship_rack_4', 'ship_reactor', 'ship_tv'].map(id => !!window.game.entities.find(x => x.id === id && !x.dead)));
+  const y1 = await yc(); const down = await page.evaluate(() => { const e = window.game.entities.find(x => x.id === 'ship_youngcle_down'); return e ? { v: e.visible, x: Math.round(e.x), img: !!e.image } : null; });
+  check(y1 && !y1.v && down && down.v && down.img, '전투 뒤(BUILD209): 영클 NPC 는 숨고 얼굴 박힌 영클 소품이 로고 오른쪽에 보인다 ' + JSON.stringify([y1, down]));
+  const props = await page.evaluate(() => ['ship_main_screen', 'ship_helm', 'ship_holo', 'ship_logo', 'ship_console_0', 'ship_console_5', 'ship_conduit_l', 'ship_conduit_r', 'ship_trunk_l', 'ship_trunk_r', 'ship_plasma_0', 'ship_plasma_5', 'ship_reactor', 'ship_tv'].map(id => !!window.game.entities.find(x => x.id === id && !x.dead)));
   const strips = await page.evaluate(() => window.game.entities.filter(x => /ship_strip/.test(x.id || '')).length);
-  check(props.every(Boolean) && strips === 0, '조종실 소품(대형 화면·조타 콘솔·홀로그램 탁자·바닥 로고·콘솔 6·서버 랙 5·반응로·TV), 연두 유도등 없음 ' + JSON.stringify([props, strips]));
+  check(props.every(Boolean) && strips === 0, '조종실 소품(대형 화면·조타 콘솔·홀로그램 탁자·바닥 로고·콘솔 6·플라즈마 배관 2·케이블 트렁크 2·플라즈마 케이블 6·반응로·TV), 연두 유도등 없음 ' + JSON.stringify([props, strips]));
   await page.waitForTimeout(800); await cap('05_control_room_2');
   // ⑥ 가운데(로고, 걷는 장식)를 지나 조타 콘솔 앞(y≈122)까지 곧장 — 대치 중인 영클·오방순·나람은 막지 않는다
   await hold('ArrowUp', () => window.game.player.y <= 126, 8000);

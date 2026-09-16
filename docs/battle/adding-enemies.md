@@ -101,3 +101,15 @@ registerBattleMode('attack', 'dance', createDanceAttack);
 - [ ] 필드 배치면 그 맵 플레이테스트에 조우 케이스 추가 (teal4.mjs 참고: 조우·승리·돈·영구 제거·브금 복귀)
 - [ ] 대사는 사용자 브리핑 그대로, 의심 오타는 보고에 표시
 - [ ] `docs/STATE.md` 갱신, `tools/dev/check.sh` 통과, 커밋
+
+## 6. 조종실 전투에서 다시 확정된 규칙 (2026-09-17, 포스트모텀 #20)
+| 규칙 | 근거 | 구현 위치 |
+|---|---|---|
+| 상자 안 캐릭터 탄은 흰색 간소화 도트 | 사용자 “이미 여러 번 지적” | `youngcle-patterns.js whiteSprite` |
+| 모든 패턴은 예고(조준선·착지 표식·내려오는 철창·깜빡이는 띠) + 조작 기믹은 설명 대사 | “유저가 준비할 시간” | 각 패턴 `aim`/`mark` 탄, `youngcle-cage.js drop`, `youngcle-battle.js idea1.ready` |
+| 난이도는 델타룬 보스 기준(회피 축 2개 이상, 지속 위험, 연타 35회) + 피격마다 공격력 +10 | “전반적으로 너무 쉬워” | `youngcle-patterns.js`, `YOUNGCLE_CAGE`, `support.partyDamage` |
+| 소리는 델타룬 재사용 우선, 합성·whoosh 금지 | “웬만해선 델타룬 사운드 재사용”, “파도소리” | `design/audio/references.md` 조종실 항목 |
+| 텍스트는 상자 안(줄바꿈·글꼴 축소), 상자는 열리고 내용은 나타난다 | “UI 깨짐”, “뿅 나오는 게 어딨어” | `youngcle-idea.js ideaQuiz(wrapLines, REVEAL)` |
+| ‘...’ 은 말풍선, 브금은 페이드아웃 | “말풍선 ...을 말한 건데” | `ideaQuiz dots` |
+| 흰 화면 끝은 전투 화면 재노출 금지 | “다시 전투 기본 화면 나왔다가 페이드아웃” | `battle.finish(win, {white})` |
+

@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/obangsun-battle-v3/idle-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.86,
+ "scale": 0.25018181818181817,
+ "feet_y": 118,
+ "cells": [
+  {
+   "bbox": [
+    117,
+    41,
+    433,
+    481
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    79,
+    110
+   ],
+   "paste": [
+    24,
+    8
+   ]
+  },
+  {
+   "bbox": [
+    75,
+    43,
+    411,
+    480
+   ],
+   "edge_touch": false,
+   "components": 10,
+   "scaled": [
+    84,
+    109
+   ],
+   "paste": [
+    22,
+    9
+   ]
+  },
+  {
+   "bbox": [
+    117,
+    29,
+    433,
+    468
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    79,
+    110
+   ],
+   "paste": [
+    24,
+    8
+   ]
+  },
+  {
+   "bbox": [
+    80,
+    30,
+    419,
+    468
+   ],
+   "edge_touch": false,
+   "components": 9,
+   "scaled": [
+    85,
+    110
+   ],
+   "paste": [
+    22,
+    8
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

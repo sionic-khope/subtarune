@@ -1,0 +1,10 @@
+# imagegen 2026-09-17 01:36:21
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/ship-conduit-v1/ref.png
+
+Pixel art sprite sheet of TWO separate wall-mounted props for a sci-fi spaceship control room, side by side in a 1536x1024 canvas with a clear magenta gap between them, no grid, no labels, no text. Solid pure #FF00FF magenta background everywhere, no floor, no shadows.
+LEFT prop (tall, about 45% of the canvas width): a vertical PLASMA CONDUIT unit — a dark steel frame (colours #3a4556, #5c6a7e, highlight #8fa0b6) holding three thick transparent glass tubes side by side, each tube filled with glowing cyan-to-purple plasma (#60f4e0, #bffff6, #8a63b5, #c9a6ff) with bright plasma blobs at different heights; thick black cable bundles with orange and yellow connectors (#ffd23f) snake out of the top of the frame and are bolted to the frame with steel clamps; a yellow-black warning stripe at the bottom; a few small blinking indicator lights (green #5ee36a, red #ff4a4a). The unit stands on a small steel base plate.
+RIGHT prop (wide, about 45% of the canvas width): a horizontal heavy CABLE TRUNK — a long bundle of eight thick black and dark-grey cables with thin cyan light strips running along them, held by three steel clamps, with a small junction box in the middle that has a tiny dark screen showing a cyan waveform, and a couple of loose cable ends with orange connectors hanging down.
+View: straight-on front view with a slight top-down tilt like a 3/4 top-down RPG (both props are seen as if hanging on the back wall). Style: match the reference image (Image1: the game's existing reactor and server rack props) — chunky retro pixel art, coarse pixel clusters, flat limited shades, dark stepped outlines, same sparse pixel density, crisp pixels, no anti-aliasing, no blur.

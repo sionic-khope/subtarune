@@ -1,0 +1,11 @@
+# imagegen 2026-09-17 01:36:21
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/youngcle-faceplant-v1/ref.png
+
+Pixel art of ONE character in ONE pose, single image, 1024x1024 canvas, no grid, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no shadows.
+The character is the one in the reference image (Image1: left part = side view facing left, right part = front view): a small boy with a big round peach-pink head, one huge white cyclops eye, red cheeks, a single brown curly hair strand, blue t-shirt with a small green chest badge, who normally sits in a hovering saucer pod (grey-green top plate, purple band, lime-green bowl, yellow cone tip, two gold rocket boosters).
+Pose: he has crash-landed HEAD-FIRST into a steel floor. He is upside down: his big round head is buried in the floor up to the cheeks so only the back and top of the head and the brown curly strand show through a ragged hole; his blue-shirt torso and two short arms stick straight up in the air, and his short legs kick upward. A small round piece of cracked steel floor plate (dark grey, about as wide as the character) is part of the drawing under him, with radial cracks and a few metal shards around the hole. The saucer pod lies tipped over on its side right next to him, boosters puffing two small grey smoke clouds. Three little yellow dizzy stars circle above his feet.
+View: 3/4 top-down like a retro RPG field sprite (seen from slightly above and in front). The whole drawing fills about 70% of the canvas, centered, nothing touches the edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1 (do not add fine detail), crisp pixels, no anti-aliasing, no blur.

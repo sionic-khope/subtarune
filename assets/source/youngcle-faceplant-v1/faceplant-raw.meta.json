@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/youngcle-faceplant-v1/ref.png"
+  ],
+  "elapsed_seconds": 34.8,
+  "usage": {
+    "input_tokens": 909,
+    "output_tokens": 1756,
+    "total_tokens": 2665,
+    "input_tokens_details": {
+      "image_tokens": 512,
+      "text_tokens": 397
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789576580,
+  "outputs": [
+    {
+      "file": "assets/source/youngcle-faceplant-v1/faceplant-raw.png",
+      "bytes": 949433,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

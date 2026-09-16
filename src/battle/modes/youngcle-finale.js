@@ -17,7 +17,7 @@ export function createYoungcleFinale(battle) {
   loadImg(K.junhee).then(i => { img = i; });
   const setPhase = (p) => { phase = p; pt = 0; };
   const scene = (ctx) => { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 480, 360); BATTLE_BGS[battle.cfg.bg]?.(ctx, battle); ctx.font = FONT; ctx.textBaseline = 'top'; for (const e of battle.enemies) battle.drawEnemy(ctx, e); for (const m of battle.members) battle.drawMember(ctx, m); };
-  const drawJunhee = (ctx) => { if (!img) { ctx.fillStyle = '#f4a6b4'; ctx.fillRect(J.x - 16, J.y - 28, 32, 28); return; } const fw = img.width / 2, fh = img.height / 2, w = fw, h = fh; ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(img, (J.frame % 2) * fw, Math.floor(J.frame / 2) * fh, fw, fh, Math.round(J.x - w / 2), Math.round(J.y - h), w, h); ctx.restore(); };
+  const drawJunhee = (ctx) => { if (!img) { ctx.fillStyle = '#f4a6b4'; ctx.fillRect(J.x - 16, J.y - 28, 32, 28); return; } const fw = img.width / 2, fh = img.height / 2, w = fw, h = fh; ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(J.x), Math.round(J.y)); ctx.scale(-1, 1); ctx.drawImage(img, (J.frame % 2) * fw, Math.floor(J.frame / 2) * fh, fw, fh, Math.round(-w / 2), -h, w, h); ctx.restore(); };   // 시트는 오른쪽으로 기어가는 그림 → 좌우 반전(왼쪽으로, 영클 뒤통수 쪽에서)
   return {
     fullscreen: true,
     get snapshot() { return { phase, step, junhee: { x: Math.round(J.x), y: Math.round(J.y), frame: J.frame }, white: Math.round(white * 100) / 100, zoom: Math.round(zoom * 100) / 100, kieek, boomed }; },
@@ -33,7 +33,7 @@ export function createYoungcleFinale(battle) {
       }
       if (phase === 'crouch') { if (pt > 0.7) { setPhase('jump'); J.frame = 3; slam = createTalk(battle, [K.slam]); battle.sfx('jump', { volume: 0.9 }); } return false; }
       if (phase === 'jump') {                                     // 슬로우모션: 장면은 0.35배, 대사는 그대로
-        const sdt = dt * 0.35; const from = { x: K.startX + K.crawlStep * K.crawlSteps, y: K.ground }, to = { x: yc.x - 10, y: yc.y - 40 };
+        const sdt = dt * 0.35; const from = { x: K.startX + K.crawlStep * K.crawlSteps, y: K.ground }, to = { x: yc.x + 16, y: yc.y - 44 };   // 뒤통수(오른쪽 뒤)로 덩크
         const k = Math.min(1, pt * 0.35 / 1.1); J.x = from.x + (to.x - from.x) * k; J.y = from.y + (to.y - from.y) * k - 150 * k * (1 - k);
         zoom = 1 + k * 1.4;
         if (!kieek && k > 0.15) { kieek = true; battle.sfx(C.sfx.kieek); yc.patternPose = { sheet: 'surprise', frame: 1 }; }
@@ -41,7 +41,7 @@ export function createYoungcleFinale(battle) {
         if (k >= 1) { setPhase('white'); }
         return false;
       }
-      if (phase === 'white') { if (!boomed) { boomed = true; battle.sfx(C.sfx.boom); battle.game.shake = { time: 0.6, amp: 8 }; } white = Math.min(1, pt / 0.25); if (pt > 3.2) { setPhase('end'); battle.finish(true); } return false; }
+      if (phase === 'white') { if (!boomed) { boomed = true; battle.sfx(C.sfx.boom); battle.game.shake = { time: 0.6, amp: 8 }; } white = Math.min(1, pt / 0.25); if (pt > 3.2) { setPhase('end'); battle.finish(true, { white: true }); } return false; }
       return false;
     },
     draw(ctx) {

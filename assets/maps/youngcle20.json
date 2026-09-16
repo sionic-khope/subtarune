@@ -34,6 +34,9 @@
   "assets/fx/cannon_smoke.png",
   "assets/props/ship_cage.png",
   "assets/props/ship_cage_open.png",
+  "assets/props/ship_conduit.png",
+  "assets/props/ship_cable_trunk.png",
+  "assets/props/ship_youngcle_down.png",
   "assets/illustrations/youngcle-tv-smirk.png",
   "assets/illustrations/youngcle-tv-laugh.png",
   "assets/illustrations/youngcle-tv-taunt.png",
@@ -134,94 +137,250 @@
   },
   {
    "type": "prop",
-   "id": "ship_rack_0",
-   "image": "assets/props/ship_server_rack.png",
-   "x": 64,
-   "y": 64,
-   "w": 48,
+   "id": "ship_conduit_l",
+   "image": "assets/props/ship_conduit.png",
+   "x": 218,
+   "y": 108,
+   "w": 98,
    "h": 24,
-   "ix": 64,
+   "ix": 218,
    "iy": 0,
    "solid": true,
    "anim": {
-    "cols": 2,
-    "fps": 3
+    "cols": 3,
+    "fps": 5
    }
   },
   {
    "type": "prop",
-   "id": "ship_rack_1",
-   "image": "assets/props/ship_server_rack.png",
-   "x": 112,
-   "y": 64,
-   "w": 48,
+   "id": "ship_conduit_r",
+   "image": "assets/props/ship_conduit.png",
+   "x": 628,
+   "y": 108,
+   "w": 98,
    "h": 24,
-   "ix": 112,
+   "ix": 628,
    "iy": 0,
    "solid": true,
    "anim": {
-    "cols": 2,
-    "fps": 3
+    "cols": 3,
+    "fps": 5
    }
   },
   {
    "type": "prop",
-   "id": "ship_rack_2",
-   "image": "assets/props/ship_server_rack.png",
-   "x": 160,
+   "id": "ship_trunk_l",
+   "image": "assets/props/ship_cable_trunk.png",
+   "x": 40,
    "y": 64,
-   "w": 48,
-   "h": 24,
-   "ix": 160,
+   "w": 168,
+   "h": 32,
+   "ix": 40,
    "iy": 0,
    "solid": true,
    "anim": {
-    "cols": 2,
-    "fps": 3
-   }
+    "cols": 3,
+    "fps": 6
+   },
+   "scale": 0.7777777777777778
   },
   {
    "type": "prop",
-   "id": "ship_rack_3",
-   "image": "assets/props/ship_server_rack.png",
-   "x": 736,
+   "id": "ship_trunk_r",
+   "image": "assets/props/ship_cable_trunk.png",
+   "x": 742,
    "y": 64,
-   "w": 48,
-   "h": 24,
-   "ix": 736,
+   "w": 168,
+   "h": 32,
+   "ix": 742,
    "iy": 0,
    "solid": true,
    "anim": {
-    "cols": 2,
-    "fps": 3
-   }
+    "cols": 3,
+    "fps": 6
+   },
+   "scale": 0.7777777777777778
   },
   {
-   "type": "prop",
-   "id": "ship_rack_4",
-   "image": "assets/props/ship_server_rack.png",
-   "x": 784,
-   "y": 64,
-   "w": 48,
-   "h": 24,
-   "ix": 784,
-   "iy": 0,
-   "solid": true,
-   "anim": {
-    "cols": 2,
-    "fps": 3
-   }
+   "type": "ship_plasma",
+   "id": "ship_plasma_0",
+   "x": 206,
+   "y": 60,
+   "points": [
+    [
+     206,
+     60
+    ],
+    [
+     216,
+     60
+    ],
+    [
+     216,
+     120
+    ],
+    [
+     262,
+     120
+    ]
+   ],
+   "color": "cyan",
+   "speed": 90,
+   "count": 3
+  },
+  {
+   "type": "ship_plasma",
+   "id": "ship_plasma_1",
+   "x": 744,
+   "y": 60,
+   "points": [
+    [
+     744,
+     60
+    ],
+    [
+     734,
+     60
+    ],
+    [
+     734,
+     120
+    ],
+    [
+     686,
+     120
+    ]
+   ],
+   "color": "cyan",
+   "speed": 90,
+   "count": 3
+  },
+  {
+   "type": "ship_plasma",
+   "id": "ship_plasma_2",
+   "x": 266,
+   "y": 130,
+   "points": [
+    [
+     266,
+     130
+    ],
+    [
+     266,
+     156
+    ],
+    [
+     332,
+     156
+    ],
+    [
+     332,
+     122
+    ]
+   ],
+   "color": "purple",
+   "speed": 70,
+   "count": 3
+  },
+  {
+   "type": "ship_plasma",
+   "id": "ship_plasma_3",
+   "x": 680,
+   "y": 130,
+   "points": [
+    [
+     680,
+     130
+    ],
+    [
+     680,
+     156
+    ],
+    [
+     626,
+     156
+    ],
+    [
+     626,
+     122
+    ]
+   ],
+   "color": "purple",
+   "speed": 70,
+   "count": 3
+  },
+  {
+   "type": "ship_plasma",
+   "id": "ship_plasma_4",
+   "x": 262,
+   "y": 130,
+   "points": [
+    [
+     262,
+     130
+    ],
+    [
+     250,
+     130
+    ],
+    [
+     250,
+     470
+    ],
+    [
+     100,
+     470
+    ],
+    [
+     100,
+     496
+    ]
+   ],
+   "color": "cyan",
+   "speed": 120,
+   "count": 3
+  },
+  {
+   "type": "ship_plasma",
+   "id": "ship_plasma_5",
+   "x": 690,
+   "y": 130,
+   "points": [
+    [
+     690,
+     130
+    ],
+    [
+     700,
+     130
+    ],
+    [
+     700,
+     400
+    ],
+    [
+     760,
+     400
+    ],
+    [
+     760,
+     420
+    ]
+   ],
+   "color": "purple",
+   "speed": 110,
+   "count": 3
   },
   {
    "type": "prop",
    "id": "ship_tv",
    "image": "assets/props/ship_tv.png",
    "x": 840,
-   "y": 138,
+   "y": 150,
    "w": 80,
    "h": 24,
    "ix": 840,
-   "iy": 90,
+   "iy": 102,
    "solid": true,
    "anim": {
     "cols": 2,
@@ -327,6 +486,19 @@
    "ix": 800,
    "iy": 420,
    "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "ship_youngcle_down",
+   "image": "assets/props/ship_youngcle_down.png",
+   "x": 530,
+   "y": 322,
+   "w": 136,
+   "h": 2,
+   "ix": 530,
+   "iy": 222,
+   "solid": false,
+   "hidden": true
   },
   {
    "type": "prop",

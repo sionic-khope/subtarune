@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/ship-conduit-v1/ref.png"
+  ],
+  "elapsed_seconds": 34.9,
+  "usage": {
+    "input_tokens": 1230,
+    "output_tokens": 1372,
+    "total_tokens": 2602,
+    "input_tokens_details": {
+      "image_tokens": 800,
+      "text_tokens": 430
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789576579,
+  "outputs": [
+    {
+      "file": "assets/source/ship-conduit-v1/conduit-raw.png",
+      "bytes": 1369169,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

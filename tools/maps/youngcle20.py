@@ -30,6 +30,19 @@ CAGE_W, CAGE_H = 100, 178                             # 철창 그림(gpt-image-
 CAGE = (600, 372 - CAGE_H)                            # 착지 자리(철창 밑 y372, 영클 오른쪽 뒤)
 CAGE_DROP = CAGE[1] + CAGE_H + 24                     # 화면 위(y -212)에서 내려오는 거리(396)
 YC_ENTER, YC_STAND = (470, 236), (556, 300)          # 영클 첫 등장 자리(일행 앞) · 다시 내려와 서는 자리(로고 오른쪽, 왼쪽을 봄)
+YC_DOWN = (YC_STAND[0] - 26, YC_STAND[1] - 78)        # 전투 뒤 얼굴 박힌 영클 소품(136×110, gpt youngcle-faceplant-v1) — 서 있던 자리에 엎어져 있다
+CONDUIT_L, CONDUIT_R = (218, 0), (628, 0)             # 플라즈마 배관 유닛(98×132): 앞 벽, 조타 콘솔 양옆
+TRUNK_SCALE = 168 / 216                               # 케이블 트렁크 원본 216×123 → 168×96
+TRUNK_W = 168
+TRUNK_L, TRUNK_R = (40, 0), (742, 0)                  # 케이블 트렁크(가로): 앞 벽 양끝(서버 랙 자리)
+PLASMA_LINES = [                                      # 플라즈마 케이블(맵 좌표 폴리라인): 트렁크 → 배관 유닛 → 조타 콘솔 / 반응로 / 오른쪽 콘솔
+    ([(206, 60), (216, 60), (216, 120), (262, 120)], 'cyan', 90),
+    ([(744, 60), (734, 60), (734, 120), (686, 120)], 'cyan', 90),
+    ([(266, 130), (266, 156), (332, 156), (332, 122)], 'purple', 70),
+    ([(680, 130), (680, 156), (626, 156), (626, 122)], 'purple', 70),
+    ([(262, 130), (250, 130), (250, 470), (100, 470), (100, 496)], 'cyan', 120),
+    ([(690, 130), (700, 130), (700, 400), (760, 400), (760, 420)], 'purple', 110),
+]
 
 
 def prop(id_: str, image: str, x: int, y: int, w: int, h: int, iy: int, **extra) -> dict:
@@ -51,9 +64,15 @@ def main() -> None:
         # 앞 벽: 대형 화면(레이더, 3프레임) — 벽걸이 장식, 그 아래 조타 콘솔(히트박스 통째)
         {'type': 'prop', 'id': 'ship_main_screen', 'image': P + 'ship_main_screen.png', 'x': 352, 'y': 62, 'w': 256, 'h': 2, 'ix': 352, 'iy': 0, 'solid': False, 'sortY': -900, 'anim': {'cols': 3, 'fps': 4}},
         prop('ship_helm', P + 'ship_helm.png', 336, 66, 288, 56, 66),
-        # 서버 랙(앞 벽 양옆, LED 2프레임) + 오른쪽 위 과학 TV(색 띠 ↔ 지직 2프레임)
-        *[prop(f'ship_rack_{i}', P + 'ship_server_rack.png', x, 64, 48, 24, 0, anim={'cols': 2, 'fps': 3}) for i, x in enumerate((64, 112, 160, 736, 784))],
-        prop('ship_tv', P + 'ship_tv.png', 840, 138, 80, 24, 90, anim={'cols': 2, 'fps': 6}),
+        # BUILD209(사용자 “더 웅장한 배선이랑 플라즈마들 움직이는 맵”): 앞 벽 양옆에 플라즈마 배관 유닛(98×132, 플라즈마가 흐르는 3프레임) + 굵은 케이블 트렁크(가로, 3프레임), 그 사이를 잇는 플라즈마 케이블(ship_plasma 엔티티 — 구슬이 흘러간다)
+        prop('ship_conduit_l', P + 'ship_conduit.png', CONDUIT_L[0], CONDUIT_L[1] + 108, 98, 24, CONDUIT_L[1], anim={'cols': 3, 'fps': 5}),
+        prop('ship_conduit_r', P + 'ship_conduit.png', CONDUIT_R[0], CONDUIT_R[1] + 108, 98, 24, CONDUIT_R[1], anim={'cols': 3, 'fps': 5}),
+        prop('ship_trunk_l', P + 'ship_cable_trunk.png', TRUNK_L[0], 64, TRUNK_W, 32, TRUNK_L[1], anim={'cols': 3, 'fps': 6}, scale=TRUNK_SCALE),
+        prop('ship_trunk_r', P + 'ship_cable_trunk.png', TRUNK_R[0], 64, TRUNK_W, 32, TRUNK_R[1], anim={'cols': 3, 'fps': 6}, scale=TRUNK_SCALE),
+        *[{'type': 'ship_plasma', 'id': f'ship_plasma_{i}', 'x': pts[0][0], 'y': pts[0][1], 'points': pts, 'color': color, 'speed': speed, 'count': 3}
+          for i, (pts, color, speed) in enumerate(PLASMA_LINES)],
+        # 오른쪽 위 과학 TV(색 띠 ↔ 지직 2프레임)
+        prop('ship_tv', P + 'ship_tv.png', 840, 150, 80, 24, 102, anim={'cols': 2, 'fps': 6}),
         # 화면 중앙 바닥: 영클 얼굴 양각 강철 로고(연출의 기준점, 걷는 장식) — 사용자 “화면 중앙엔 영클 얼굴로 박혀 있는 철 색깔 로고”
         {'type': 'prop', 'id': 'ship_logo', 'image': P + 'ship_floor_logo.png', 'x': LOGO_X, 'y': LOGO_Y, 'w': 128, 'h': 2, 'ix': LOGO_X, 'iy': LOGO_Y, 'solid': False},
         # 왼쪽 위 홀로그램 탁자(전함 실루엣 3프레임): 탁자 몸통만 막는다
@@ -61,6 +80,8 @@ def main() -> None:
         # 왼쪽 콘솔 두 줄(2×2) + 오른쪽 아래 콘솔 둘 — 가운데·오른쪽은 연출(대포·철창 착지)을 위해 비워 둔다
         *[prop(f'ship_console_{i}', P + 'ship_console.png', x, y + 24, 128, 24, y)
           for i, (x, y) in enumerate([(64, 180), (192, 180), (64, 340), (192, 340), (672, 420), (800, 420)])],
+        # 전투 뒤 얼굴 박힌 영클(연출이 보여 준다) — 걷는 장식(막지 않음)
+        {'type': 'prop', 'id': 'ship_youngcle_down', 'image': P + 'ship_youngcle_down.png', 'x': YC_DOWN[0], 'y': YC_DOWN[1] + 100, 'w': 136, 'h': 2, 'ix': YC_DOWN[0], 'iy': YC_DOWN[1], 'solid': False, 'hidden': True},
         # 왼쪽 아래 반응로(핵 맥동 2프레임)
         prop('ship_reactor', P + 'ship_reactor.png', 32, 496, 96, 24, 400, anim={'cols': 2, 'fps': 2}),
         # ── 입장 연출 배우(ship_control_intro 가 자리를 잡는다) ──
@@ -83,7 +104,7 @@ def main() -> None:
         'bgm': None, 'battleBg': 'youngcle_factory', 'dim': 0.12,
         'rows': [''.join(r) for r in cells],
         'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/sprites/youngcle_hover.png',
-                    'assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png',
+                    'assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png', 'assets/props/ship_conduit.png', 'assets/props/ship_cable_trunk.png', 'assets/props/ship_youngcle_down.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'taunt', 'glare', 'shrug', 'yes', 'question')]],
         'spawns': {
             'gate': {'x': SPAWN_X, 'y': 15 * T + 8, 'facing': 'up'},

@@ -7,7 +7,7 @@
 import { battleEntry } from './helpers.js';
 
 const BATTLE = { enemies: ['obangsun', 'youngcle_hover', 'naram_giant'], bgm: 'youngcle_battle', bg: 'youngcle_factory' };   // 사용자 지정 브금 XR2QQMfeJbg
-const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'ship_obangsun', NR = 'ship_naram';
+const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'ship_obangsun', NR = 'ship_naram', YC_DOWN = 'ship_youngcle_down';
 const CAGE = 'ship_cage', CAGE_OPEN = 'ship_cage_open', CANNON = 'ship_cannon', BALL1 = 'ship_ball1', BALL2 = 'ship_ball2';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 // 자리 상수는 tools/maps/youngcle20.py(JUNHEE·YONGJUN·YC_ENTER·YC_STAND) 와 같은 값 — 맵 JSON 은 비동기 로드라 여기서 직접 둔다(tests/unit/ship-control.test.mjs 가 대조)
@@ -226,6 +226,8 @@ export const ship_control_intro = Object.assign([
   // ⑧ 전투(BUILD207): 표준 조우 진입 → 영클(hp 40, 피함) + 오방순·나람(공격 전용). 이기는 기믹은 다음 명령 — 끝나면 대치 상태로
   ...battleEntry(BATTLE.enemies, BATTLE.bgm),
   { battle: BATTLE },
+  // 점프슬램 뒤: 영클은 바닥에 얼굴이 박힌 채(gpt youngcle-faceplant-v1 소품), 오방순은 탈주해 없다(사용자 2026-09-17)
+  { action: game => { const e = id => game.entities.find(x => x.id === id && !x.dead); const yc = e(YC); if (yc) yc.visible = false; const ob = e(OB); if (ob) ob.visible = false; const down = e(YC_DOWN); if (down) down.visible = true; const nr = e(NR); if (nr) { nr.x = 632; nr.y = 380; nr.facing = 'left'; } } },
   { zoom: 1, duration: 0.01 },
   { set: { ship_intro_done: true } },
   { camera: 'player' },
@@ -238,7 +240,7 @@ export const ship_control_intro = Object.assign([
     const e = id => game.entities.find(x => x.id === id && !x.dead);
     const put = (id, x, y, dir, extra = {}) => { const a = e(id); if (!a) return; a.x = x; a.y = y; a.facing = dir; a.visible = true; Object.assign(a, extra); };
     put(JID, WALL_X, M().junhee[1], 'left', { pose: 'lying' }); put(YID, WALL_X, M().yongjun[1] - 4, 'left', { pose: 'lying' });
-    put(YC, M().ycStand[0], M().ycStand[1], 'left'); put(OB, 556, 236, 'left'); put(NR, 556, 364, 'left');
+    put(NR, 632, 380, 'left'); const yc = e(YC); if (yc) yc.visible = false; const ob = e(OB); if (ob) ob.visible = false; const down = e(YC_DOWN); if (down) down.visible = true;   // 영클 얼굴 박힘 소품, 오방순 탈주
     const cage = e(CAGE); if (cage) cage.dead = true;
     const open = e(CAGE_OPEN); if (open) open.visible = true;
     const cannon = e(CANNON); if (cannon) cannon.dead = true;

@@ -12,7 +12,7 @@ const DODGE = { time: 0.55, dx: 46, dy: 10 };
 
 export function createYoungcleShipSupport(battle) {
   if (!battle.enemies.some(e => e.def.support === 'youngcle_ship')) return null;
-  let turn = -1, dodge = null, hits = 0, charge = 0, ideaIdx = 0, unlocked = false, introduced = false, distracted = false, distractedHits = 0, finalePending = false, obangsunGone = false, lastSource = 'ordinary';
+  let turn = -1, dodge = null, hits = 0, charge = 0, ideaIdx = 0, unlocked = false, introduced = false, distracted = false, distractedHits = 0, finalePending = false, obangsunGone = false, lastSource = 'ordinary', partyHits = 0;
   const yc = () => battle.enemies.find(e => e.id === 'youngcle_hover');
   const order = () => ['obangsun_rays', 'naram_slam', 'youngcle_cage', 'youngcle_orbit_laser'].filter(p => !(obangsunGone && p === 'obangsun_rays'));
   const current = () => { const o = order(); return o[((turn % o.length) + o.length) % o.length]; };
@@ -24,7 +24,11 @@ export function createYoungcleShipSupport(battle) {
     get ready() { return ready(); },
     get hint() { return L.battle_idea_wait(Math.max(0, C.ideaHits - charge)); },
     get button() { return { label: L.battle_idea, icon: 'idea', enabled: ready() }; },
-    reset() { turn = -1; dodge = null; hits = 0; charge = 0; ideaIdx = 0; unlocked = false; introduced = false; distracted = false; distractedHits = 0; finalePending = false; obangsunGone = false; },
+    reset() { turn = -1; dodge = null; hits = 0; charge = 0; ideaIdx = 0; unlocked = false; introduced = false; distracted = false; distractedHits = 0; finalePending = false; obangsunGone = false; partyHits = 0; },
+    get partyHits() { return partyHits; },
+    /** 탄에 맞을 때마다 적 공격력 +10(사용자 2026-09-17 “공격력도 맞을때마다 10씩”): 첫 피격 기본, 둘째 +10, 셋째 +20 … 재도전이면 처음부터 */
+    partyDamage(dmg) { return dmg + C.damageStep * partyHits; },
+    onPartyHurt() { partyHits++; },
     async load() {},
     /** 적 턴 모드: 피날레 > 방심 뒤 건너뛰기 > 철창 레이저 > 기본 탄막 */
     enemyModeFor() {
@@ -37,7 +41,7 @@ export function createYoungcleShipSupport(battle) {
     blocksDamage(e, source) { if (e.def.untargetable) return true; if (e.id !== 'youngcle_hover') return false; return !(source === 'idea' || distracted); },
     adjustDamage(e, dmg, source) { if (e.id !== 'youngcle_hover') return dmg; if (source === 'idea') return C.ideaDamage; if (distracted) return C.distractedDamage; return dmg; },
     blockText(e) { return e.id === 'youngcle_hover' ? L.battle_dodged : L.battle_strip_blocked; },
-    blockSfx(e) { return e.id === 'youngcle_hover' ? 'whoosh' : 'hit'; },
+    blockSfx() { return 'hit'; },   // 피할 때도 검 소리만(사용자: “파도소리(whoosh) 싫다, 검소리만”)
     onContact(e, dmg, source) {
       lastSource = source;
       if (e.id !== 'youngcle_hover' || source !== 'ordinary') return;

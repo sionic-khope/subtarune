@@ -19,7 +19,7 @@ export const ENEMIES = {
     name: '영클', hp: 10, damage: 14, money: 0, boss: true, support: 'youngcle_ship', voice: 'youngcle',
     sheet: { src: 'assets/enemies/youngcle-hover-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },
     actions: { surprise: { src: 'assets/enemies/youngcle-surprise.png', cols: 2, rows: 1, count: 2, fps: 4, px: 1, pivot: [64, 118] } },   // 놀람(뒤를 봄·끼엑): 아이디어·피날레
-    pivot: [64, 118], scale: 1, dx: -34, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 3, period: 2.2 },
+    pivot: [64, 118], scale: 0.9, dx: -34, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 3, period: 2.2 },   // 0.9 = 사용자 “10퍼 작게”(BUILD209, 3/4 시점·비웃는 v2 시트)
     patterns: [{ type: 'youngcle_orbit_laser' }],
     lines: { appear: '* 영클이 비행 장치 위에서 내려다본다.', idle: ['* 영클의 비행 장치가 웅웅거린다.'], die: '* 영클이 물러났다.', speak: ['ㅋㅋ', '즐'] },
   },

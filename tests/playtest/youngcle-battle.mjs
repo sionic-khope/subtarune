@@ -22,14 +22,16 @@ const skipIntro = async () => { for (let i = 0; i < 12; i++) { const s = await s
 // 세 명 모두 [공격하기] → 영클
 const attackAll = async () => { for (let i = 0; i < 3; i++) { const s = await st(); if (!s || s.state !== 'menu') break; if (s.menuIdx !== 0) { for (let k = 0; k < 3 && (await st()).menuIdx !== 0; k++) await press('ArrowRight'); } await press('KeyC'); await press('KeyC'); await page.waitForTimeout(150); } };
 // 적 턴이 끝나 행동 선택으로 돌아올 때까지: 막간 대사(interlude)나 텍스트는 C 로 넘기고, 철창 모드는 ←→ 연타 뒤 위로 피한다
-const untilMenu = async (ms = 60000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const s = await st(); if (!s) return null; if (s.state === 'menu' && !s.interlude) return s; if (s.interlude || s.state === 'text' || (s.state === 'act' && TALK_PHASES.includes(s.gimmick?.phase))) { await press('KeyC', 320); continue; } if (s.state === 'enemy-mode' && s.gimmick && s.gimmick.progress !== undefined && !s.gimmick.broken) { await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(60); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(60); continue; } if (s.state === 'enemy-mode' && s.gimmick?.broken && !s.gimmick.fired) { await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp'); continue; } await page.waitForTimeout(250); } return await st(); };
-const TALK_PHASES = ['talk', 'talk2', 'insult', 'dots', 'berserk', 'after', 'look'];
+let cageShots = 0, beamSeen = 0;
+const untilMenu = async (ms = 60000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const s = await st(); if (!s) return null; if (s.state === 'menu' && !s.interlude) return s; if (s.interlude || s.state === 'text' || (s.state === 'act' && TALK_PHASES.includes(s.gimmick?.phase))) { await press('KeyC', 320); continue; } if (s.state === 'enemy-mode' && s.gimmick && s.gimmick.progress !== undefined && !s.gimmick.broken) { if (cageShots === 0 && !s.gimmick.locked) { cageShots++; await cap('06a_cage_incoming'); } if (cageShots === 1 && s.gimmick.locked && s.gimmick.progress > 0.4) { cageShots++; await cap('06b_cage_charge'); } await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(60); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(60); continue; } if (s.state === 'enemy-mode' && s.gimmick?.broken && !s.gimmick.fired) { await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp'); continue; }
+  if (s.state === 'enemy-mode' && s.gimmick?.fired && s.gimmick.beamLeft > 1.5 && cageShots === 2) { cageShots++; await cap('06c_cage_beam'); beamSeen = s.gimmick.beamLeft; } await page.waitForTimeout(250); } return await st(); };
+const TALK_PHASES = ['talk', 'talk2', 'ready', 'insult', 'berserk', 'after', 'look'];
 const useIdea = async () => { for (let k = 0; k < 4 && (await st()).menuIdx !== 2; k++) await press('ArrowRight'); await press('KeyC'); };
 const talkThrough = async (until, ms = 30000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const s = await st(); if (!s) return null; if (until(s)) return s; await press('KeyC', 300); } return await st(); };
 try {
   await page.goto('http://localhost:8000/?qa=ship_battle');
   await page.waitForFunction(() => window.game && window.game.battle && window.game.battle.state === 'intro', null, { timeout: 30000 });
-  await page.evaluate(() => { const snd = window.game.sound; window.__sfx = []; const orig = snd.sfx.bind(snd); snd.sfx = (name, opts) => { window.__sfx.push(name); return orig(name, opts); }; });
+  await page.evaluate(() => { const snd = window.game.sound; window.__sfx = []; const orig = snd.sfx.bind(snd); snd.sfx = (name, opts) => { window.__sfx.push(name); return orig(name, opts); }; const b = window.game.battle; window.__hurt = []; const oh = b.applyPartyDamage.bind(b); b.applyPartyDamage = (ms, d) => { window.__hurt.push(d); return oh(ms, d); }; });
   await page.waitForTimeout(700); await cap('01_intro');
   let s = await st();
   check(s.living.length === 3 && JSON.stringify(s.targets) === '["youngcle_hover"]' && s.yc.hp === 10, '적 셋, 때릴 수 있는 건 영클(hp 10)뿐 ' + JSON.stringify([s.living, s.targets, s.yc.hp]));
@@ -46,6 +48,7 @@ try {
   check(s.current === 'obangsun_rays' && s.shapes.includes('ray') && s.shapes.includes('flame') && faceOpen && (s.bubble || '').includes('흐어어어'), '턴 1 오방순: 얼굴·광선·불덩이·입 벌림·흐어어어 ' + JSON.stringify([s.current, s.shapes, faceOpen, s.bubble]));
   await page.keyboard.down('ArrowDown');
   const inter = await page.waitForFunction(() => !!window.game.battle.interlude, null, { timeout: 25000 }).then(() => true).catch(() => false); await page.keyboard.up('ArrowDown');
+  const hurtLog = await page.evaluate(() => window.__hurt.slice()); check(hurtLog.every((d, i) => d === 14 + 10 * i), '맞을 때마다 공격력 +10 ' + JSON.stringify(hurtLog));
   await page.waitForTimeout(400); s = await st(); await cap('04_interlude');
   check(inter && (s.text || '').includes('안맞는다'), '적 턴 뒤 막간 대사 “후후후 안맞는다 게이들아” ' + JSON.stringify([inter, s.text]));
   s = await talkThrough(x => (x.text || '').includes('아이디어가 추가')); await cap('05_idea_added');
@@ -55,6 +58,7 @@ try {
   // ② 라운드 2·3 → 스택 9 → 아이디어 1(나람 볼)
   for (let r = 0; r < 2; r++) { await attackAll(); s = await untilMenu(); }
   check(s?.charge === 9 && s.ready, '9대 때려 아이디어 사용 가능 ' + JSON.stringify([s?.charge, s?.ready, s?.turn]));
+  check(beamSeen > 1.5, '철창 레이저가 3초 이어진다 ' + JSON.stringify([beamSeen]));
   await useIdea();
   await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.hits !== undefined, null, { timeout: 5000 }).catch(() => {});
   s = await talkThrough(x => x.gimmick?.phase === 'talk2');
@@ -72,23 +76,26 @@ try {
   await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'impact', null, { timeout: 12000 }).catch(() => {});
   await page.waitForTimeout(200); s = await st(); await cap('09_naram_launch');
   const sfxA = await page.evaluate(() => window.__sfx.slice());
-  check(s?.gimmick?.hits >= 5 && s.yc.hp === 7 && sfxA.includes('queen_kieek') && sfxA.includes('baron_slam'), '나람볼 5번 → 쿠왕 → 영클 끼엑, hp 7 ' + JSON.stringify([s?.gimmick?.hits, s?.yc?.hp, sfxA.filter(n => ['queen_kieek', 'baron_slam'].includes(n)).length]));
+  check(s?.gimmick?.hits >= 5 && s.yc.hp === 7 && sfxA.includes('queen_hoot') && sfxA.includes('punch') && !sfxA.includes('whoosh') && !sfxA.includes('boom'), '나람볼 5번 → 쿠왕 → 영클 호오·펀치, hp 7 (파도소리 없음) ' + JSON.stringify([s?.gimmick?.hits, s?.yc?.hp, sfxA.filter(n => ['queen_hoot', 'punch', 'whoosh', 'boom'].includes(n))]));
   s = await untilMenu(); check(s?.state === 'menu' && s.charge === 0 && s.ideaIdx === 1, '아이디어 1 뒤 스택 0, 다음은 아이디어 2 ' + JSON.stringify([s?.charge, s?.ideaIdx]));
   // ③ 라운드 ×3 → 아이디어 2(퀴즈)
-  for (let r = 0; r < 3; r++) { await attackAll(); s = await untilMenu(); }
-  check(s?.ready, '다시 9대 → 아이디어 2 가능 ' + JSON.stringify([s?.charge, s?.ready]));
+  for (let r = 0; r < 6 && !(await st())?.ready; r++) { await attackAll(); s = await untilMenu(); }
+  check(s?.ready, '다시 9대 → 아이디어 2 가능 ' + JSON.stringify([s?.charge, s?.ready, s?.party]));
   await useIdea();
-  s = await talkThrough(x => x.gimmick?.phase === 'quiz'); await cap('10_quiz');
-  check(s?.gimmick?.phase === 'quiz' && s.gimmick.zones?.length === 2, '아이디어 2: 퀴즈 상자(위 문제, 아래 좌우 칸) ' + JSON.stringify(s?.gimmick?.q));
-  const answers = [1, 0, 0, 0];
+  s = await talkThrough(x => x.gimmick?.phase === 'quiz'); await page.waitForTimeout(250); await cap('10a_quiz_reveal'); await page.waitForTimeout(700); await cap('10_quiz'); s = await st();
+  check(s?.gimmick?.phase === 'quiz' && s.gimmick.zones?.length === 2 && s.gimmick.zones[0].w >= 140, '아이디어 2: 퀴즈 상자(폭 320, 위 문제, 아래 좌우 칸) ' + JSON.stringify([s?.gimmick?.q, s?.gimmick?.zones?.[0]?.w]));
+  const answers = [0, 0, 0, 0];   // 컴퓨터 사기 / 김디삼 / 행복맨 / 똥이든성배 부정선거(사용자 정정)
   for (let qi = 0; qi < 4; qi++) {
     const g = (await st()).gimmick; if (!g || g.phase !== 'quiz') break;
+    await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.revealed, null, { timeout: 4000 }).catch(() => {});
     const z = g.zones[answers[qi]]; const tx = z.x + z.w / 2, ty = z.y + z.h / 2;
     for (let i = 0; i < 60; i++) { const q = (await st()).gimmick; const dx = tx - q.soul.x, dy = ty - q.soul.y; if (Math.abs(dx) < 6 && Math.abs(dy) < 6) break; const kx = dx > 4 ? 'ArrowRight' : dx < -4 ? 'ArrowLeft' : null, ky = dy > 4 ? 'ArrowDown' : dy < -4 ? 'ArrowUp' : null; if (kx) await page.keyboard.down(kx); if (ky) await page.keyboard.down(ky); await page.waitForTimeout(60); if (kx) await page.keyboard.up(kx); if (ky) await page.keyboard.up(ky); }
     await press('KeyC', 250);
   }
   s = await st(); check(s?.gimmick?.phase === 'insult' || s?.gimmick?.q === 4, '4문제 정답 → 폭언 단계 ' + JSON.stringify([s?.gimmick?.phase, s?.gimmick?.q]));
-  s = await talkThrough(x => x.gimmick?.phase === 'closeup'); await page.waitForTimeout(1200); await cap('11_closeup'); s = await st();
+  s = await talkThrough(x => x.gimmick?.phase === 'dots', 15000); await page.waitForTimeout(1500); await cap('11a_dots'); s = await st();
+  check(s?.gimmick?.phase === 'dots' && !s.text, '폭언 뒤 억빠맨 빼고 모두 머리 위 “...” 말풍선(대사 상자 없음) ' + JSON.stringify([s?.gimmick?.phase, s?.text]));
+  await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'closeup', null, { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(1200); await cap('11_closeup'); s = await st();
   check(s?.gimmick?.phase === 'closeup' && !s.bgm.includes('youngcle_battle'), '폭언 → 브금 꺼짐 → 모두 ... → 오방순 클로즈업 ' + JSON.stringify([s?.gimmick?.phase, s?.bgm]));
   await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'berserk', null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(600); await cap('12_berserk');
@@ -98,8 +105,8 @@ try {
   check(s?.gimmick?.phase === 'after' && s.yc.hp === 4 && s.obGone && !s.living.includes('obangsun'), '오방순 발작 → 영클 충돌 hp 4 → 탈주 ' + JSON.stringify([s?.gimmick?.phase, s?.yc?.hp, s?.obGone, s?.living]));
   s = await untilMenu(); check(s?.state === 'menu' && s.ideaIdx === 2 && s.bgm.includes('youngcle_battle'), '“니앰” 뒤 다음 턴, 브금 복귀 ' + JSON.stringify([s?.ideaIdx, s?.bgm]));
   // ④ 라운드 ×3 → 아이디어 3(보지) → 방심 → 적 턴 건너뜀 → 3대 × 1 → hp 1
-  for (let r = 0; r < 3; r++) { await attackAll(); s = await untilMenu(); }
-  check(s?.ready && !s.living.includes('obangsun'), '아이디어 3 가능(오방순 없이 패턴 순환) ' + JSON.stringify([s?.charge, s?.ready, s?.current]));
+  for (let r = 0; r < 6 && !(await st())?.ready; r++) { await attackAll(); s = await untilMenu(); }
+  check(s?.ready && !s.living.includes('obangsun'), '아이디어 3 가능(오방순 없이 패턴 순환) ' + JSON.stringify([s?.charge, s?.ready, s?.current, s?.party]));
   await useIdea();
   s = await talkThrough(x => (x.text || '').includes('보지'), 20000); await page.waitForTimeout(300); await cap('14_boji_mosaic');
   const mo = await page.evaluate(() => window.game.battle.lineMosaic); check(mo && mo.text === '지', '경섭 “보지?” — 지 모자이크 ' + JSON.stringify(mo));
@@ -115,7 +122,7 @@ try {
   const fin = await waitState('enemy-mode', 20000); s = await st();
   check(fin && (s.text || '').includes('피해절감'), '피날레: “ㅋㅋ 이럴줄알고 뒤통수에 피해절감 방어막…” ' + JSON.stringify([fin, s?.text]));
   s = await talkThrough(x => x.gimmick?.phase === 'crawl', 20000); await page.waitForTimeout(1500); await cap('17_junhee_crawl'); s = await st();
-  check(s?.gimmick?.phase === 'crawl' && !s.bgm.includes('youngcle_battle'), '브금 꺼지고 쥰희가 기어 나온다 ' + JSON.stringify([s?.gimmick, s?.bgm]));
+  check(s?.gimmick?.phase === 'crawl' && !s.bgm.includes('youngcle_battle') && s.gimmick.junhee.x > s.yc.x, '브금 꺼지고 쥰희가 오른쪽(영클 뒤)에서 기어 나온다 ' + JSON.stringify([s?.gimmick, s?.bgm, s?.yc?.x]));
   await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'jump', null, { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(900); s = await st(); await cap('18_jump_slam');
   check(s?.gimmick?.phase === 'jump' && (s.text || '').includes('마이야르 점프슬램') && s.gimmick.kieek && s.yc.pose?.[2] === 'surprise' && s.gimmick.zoom > 1.2, '점프슬램: 대사·슬로우·영클 놀람(끼엑)·확대 ' + JSON.stringify([s?.gimmick, s?.text]));
@@ -125,6 +132,7 @@ try {
   const sfxZ = await page.evaluate(() => window.__sfx.slice(-30));
   await page.waitForTimeout(800); await cap('20_back_to_map');
   check(ended && sfxZ.includes('furnace_blast'), '쿠와아아앙 → 흰 화면 → 전투 끝 → 맵 ' + JSON.stringify([ended, sfxZ.includes('furnace_blast')]));
+  const hurtAll = await page.evaluate(() => window.__hurt.slice()); check(hurtAll.length >= 2 && hurtAll.every((d, i) => d === 14 + 10 * i), '맞을 때마다 적 공격력 +10(전투 내내) ' + JSON.stringify(hurtAll));
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('CRASH', e.message); await cap('crash'); }
 console.log('fails=' + fails);
