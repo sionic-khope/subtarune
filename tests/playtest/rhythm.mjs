@@ -46,7 +46,11 @@ try {
   await talkThrough(4);
   await page.waitForFunction(() => window.__rhythm.state.phase === 'soundcheck', null, { timeout: 5000 }).catch(() => {});
   s = await st(); check(s.phase === 'soundcheck' && s.title === '사운드 체크', '대사 뒤 사운드 체크(작은별) ' + JSON.stringify([s.phase, s.title]));
+  // GREAT 마다 그 칸에서 노란 세로 빔이 쏘아진다(BUILD195): 자동 연주 동안 beam fx 가 생기는지 세고, 하나를 직접 띄워 프레임을 찍는다
+  const beamCount = page.evaluate(() => new Promise(resolve => { let n = 0, last = null; const t0 = performance.now(); const tick = () => { const b = window.__rhythm.state.fx.filter(f => f.kind === 'beam'); if (b.length && b[0] !== last) { n += 1; last = b[0]; } if (performance.now() - t0 > 7000) resolve(n); else requestAnimationFrame(tick); }; tick(); }));
   await autoPlay(8.5); await page.waitForTimeout(200); await cap('soundcheck');
+  const beams = await beamCount;
+  check(beams >= 4, 'GREAT 마다 노란 세로 빔 이펙트가 쏘아진다 ' + JSON.stringify(beams));
   s = await st(); const sc = await page.evaluate(() => { const p = window.__rhythm.state; return { greats: p.play?.greats, misses: p.play?.misses, max: p.play?.maxCombo, phase: p.phase }; });
   check(sc.greats >= 5 && sc.max >= 5, '작은별 7음을 키로 쳐서 GREAT·콤보 ' + JSON.stringify(sc));
   await page.waitForFunction(() => window.__rhythm.state.phase === 'talk', null, { timeout: 6000 }).catch(() => {});
@@ -68,7 +72,7 @@ try {
   await page.waitForTimeout(1500); s = await st(); const early = await page.evaluate(() => ({ notes: window.__rhythm.play.notes.filter(n => n.status !== 'wait').length, t: window.__rhythm.songTime() }));
   check(s.notesFrom > 18 && early.notes === 0 && early.t < s.notesFrom, '노트는 notesFrom(18.2초) 전엔 하나도 안 떨어진다 ' + JSON.stringify([s.notesFrom, early]));
   await page.evaluate(() => window.__rhythm.seek(window.__rhythm.state.chart.notesFrom - 0.5));
-  await autoPlay(6); await page.waitForTimeout(100); await cap('play');
+  await autoPlay(6); await page.evaluate(() => { const r = window.__rhythm.state; r.fx.push({ kind: 'beam', lane: 'L', t: 0.05, dur: 0.34 }, { kind: 'beam', lane: 'R', t: 0.16, dur: 0.34 }); }); await page.waitForTimeout(30); await cap('play');
   s = await st(); check(s.score > 0 && s.max >= 5 && s.time > s.notesFrom + 4, '자동 연주로 점수·콤보가 오르고 곡 시각이 흐른다 ' + JSON.stringify([s.score, s.max, s.time, s.notesFrom, s.misses]));
   // C 일시정지(BUILD192): 영상·곡 시각이 멈추고, 다시 C 로 이어서
   await pressC(); await page.waitForTimeout(300); await cap('pause');
