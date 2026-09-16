@@ -1,0 +1,347 @@
+{
+ "id": "youngcle18",
+ "name": "용광로 광장",
+ "stage": "void_fallen",
+ "bgm": null,
+ "backdrop": "youngcle_furnace",
+ "battleBg": "youngcle_factory",
+ "dim": 0.3,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!GGGGGGGGGGGGGGGG!!!!!!!",
+  "!!!!!!!GLLLLLLLLLLLLLLG!!!!!!!",
+  "!!!!!!!GLLLLLLLLLLLLLLG!!!!!!!",
+  "!!!!!!!GLLLLLLLLLLLLLLG!!!!!!!",
+  "!!!!!!!GLLLLLLLLLLLLLLG!!!!!!!",
+  "!!!!!!!GLLLLLLLLLLLLLLG!!!!!!!",
+  "GGGGGGGGLLLLLLLLLLLLLLGGGGGGGG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFFFFFFFFFFFFFG",
+  "GGGGGGGGGGGGGGFFFGGGGGGGGGGGGG",
+  "!!!!!!!!!!!!!GFFFG!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!GHHHG!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_wall.png",
+  "assets/tiles/youngcle_iron_blue_solid.png",
+  "assets/tiles/lava.png",
+  "assets/backdrops/youngcle_furnace.png",
+  "assets/props/iron_fence_short.png",
+  "assets/props/control_panel.png",
+  "assets/props/lava_cage.png",
+  "assets/props/youngcle_tv_frame.png",
+  "assets/props/tv_arm.png",
+  "assets/illustrations/youngcle-tv-smirk.png",
+  "assets/illustrations/youngcle-tv-laugh.png",
+  "assets/illustrations/youngcle-tv-greet.png",
+  "assets/illustrations/youngcle-tv-oh.png",
+  "assets/illustrations/youngcle-tv-taunt.png",
+  "assets/illustrations/youngcle-tv-shrug.png",
+  "assets/illustrations/youngcle-tv-yes.png",
+  "assets/illustrations/youngcle-tv-question.png"
+ ],
+ "spawns": {
+  "bottom": {
+   "x": 468,
+   "y": 488,
+   "facing": "up"
+  },
+  "front": {
+   "x": 468,
+   "y": 296,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    15,
+    16
+   ],
+   [
+    15,
+    9
+   ]
+  ],
+  "pool": [
+   8,
+   2,
+   21,
+   7
+  ],
+  "cage": [
+   432,
+   -116
+  ],
+  "tv": [
+   336,
+   100
+  ]
+ },
+ "enter": {
+  "script": "furnace_arena_intro"
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle18_bottom",
+   "x": 448,
+   "y": 566,
+   "w": 96,
+   "h": 10,
+   "to": "youngcle17",
+   "spawn": "top",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "lava_panel",
+   "image": "assets/props/control_panel.png",
+   "x": 192,
+   "y": 270,
+   "w": 64,
+   "h": 22,
+   "ix": 192,
+   "iy": 252,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_0",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 256,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 256,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_1",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 288,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 288,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_2",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 320,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 320,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_3",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 352,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 352,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_4",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 384,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 384,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_5",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 416,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 416,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_6",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 448,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 448,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_7",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 480,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 480,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_8",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 512,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 512,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_9",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 544,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 544,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_10",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 576,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 576,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_11",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 608,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 608,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_12",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 640,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 640,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_fence_13",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 672,
+   "y": 250,
+   "w": 32,
+   "h": 14,
+   "ix": 672,
+   "iy": 242,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lava_cage",
+   "image": "assets/props/lava_cage.png",
+   "x": 432,
+   "y": -116,
+   "w": 96,
+   "h": 360,
+   "ix": 432,
+   "iy": -116,
+   "solid": false,
+   "hidden": true,
+   "sortY": 246
+  },
+  {
+   "type": "npc",
+   "id": "arena_junhee",
+   "sprite": "junhee",
+   "x": 446,
+   "y": 214,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "arena_yongjun",
+   "sprite": "yongjun",
+   "x": 488,
+   "y": 214,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_tv_arm",
+   "image": "assets/props/tv_arm.png",
+   "x": 474,
+   "y": -580,
+   "w": 12,
+   "h": 320,
+   "ix": 474,
+   "iy": -580,
+   "solid": false,
+   "sortY": 9999
+  },
+  {
+   "type": "prop",
+   "id": "youngcle_tv",
+   "image": "assets/props/youngcle_tv_frame.png",
+   "x": 336,
+   "y": -260,
+   "w": 288,
+   "h": 176,
+   "ix": 336,
+   "iy": -260,
+   "solid": false,
+   "sortY": 10000
+  }
+ ]
+}

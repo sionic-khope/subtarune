@@ -6,7 +6,7 @@
 # ─── How to run ───
 # Run from the repository root: uv run tools/maps/youngcle16.py [--check]
 # ──────────────────
-"""용광로 화물 검사실 2(BUILD193): youngcle15 다음. 3상자 퍼즐, 최소 31회(두 방 중 더 어렵다). 오른쪽 끝은 열린 통로(다음 맵은 다음 브리핑).
+"""용광로 화물 검사실 2(BUILD193): youngcle15 다음. 3상자 퍼즐, 최소 31회(두 방 중 더 어렵다). 오른쪽 통로 → 용광로 마나샘 갈림길(youngcle17, BUILD196).
 가운데 격벽 기둥(col 8)이 방을 둘로 나누고 상자는 row 5·row 10 두 통로로만 건넌다. 발판 셋은 오른쪽 아래 주머니(col 12, rows 8~10) 세로: 위 발판부터 채워야 하고, 상자마다 아래 통로로 내려갔다 오른쪽 벽을 타고 올라간다."""
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ SOLUTION = ['AR', 'AR', 'AD', 'AD', 'AD', 'AD', 'AR', 'AR', 'AR', 'AR', 'AR', 'A
 
 def main() -> None:
     data = build_room(map_id=MAP_ID, name='용광로 화물 검사실 2', layout=LAYOUT, pushes=31, solution=SOLUTION, difficulty='hardest',
-                      prev_map='youngcle15', prev_spawn='landing', next_map=None, next_spawn=None)
+                      prev_map='youngcle15', prev_spawn='landing', next_map='youngcle17', next_spawn='left')
     output = Path(f'assets/maps/{MAP_ID}.json')
     index_path = Path('assets/maps/index.json')
     index = json.loads(index_path.read_text(encoding='utf-8'))

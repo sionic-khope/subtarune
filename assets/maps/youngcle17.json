@@ -1,0 +1,108 @@
+{
+ "id": "youngcle17",
+ "name": "용광로 마나샘 갈림길",
+ "stage": "void_fallen",
+ "bgm": "pandora_palace",
+ "backdrop": "youngcle_furnace",
+ "battleBg": "youngcle_factory",
+ "dim": 0.3,
+ "rows": [
+  "!!!!!!!!GHHHG!!!!!!!!!",
+  "!!!!!!!!GFFFG!!!!!!!!!",
+  "!!!!!!!!GFFFG!!!!!!!!!",
+  "!!!!!!!!GFFFG!!!!!!!!!",
+  "!!!!!!!!GFFFG!!!!!!!!!",
+  "!!!!!!!!GFFFGGGGG!!!!!",
+  "!!!!!!!!GFFFFFFFG!!!!!",
+  "!!!!!!!!GFFFFFFFG!!!!!",
+  "!!!!!!!!GFFFGGGGG!!!!!",
+  "!!!!!!!!GFFFG!!!!!!!!!",
+  "!!!!!!!!GFFFG!!!!!!!!!",
+  "GGGGGGGGGFFFG!!!!!!!!!",
+  "HFFFFFFFFFFFG!!!!!!!!!",
+  "HFFFFFFFFFFFG!!!!!!!!!",
+  "HFFFFFFFFFFFG!!!!!!!!!",
+  "GGGGGGGGGGGGG!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_wall.png",
+  "assets/tiles/youngcle_iron_blue_solid.png",
+  "assets/backdrops/youngcle_furnace.png",
+  "assets/props/blue_buff.png"
+ ],
+ "spawns": {
+  "left": {
+   "x": 56,
+   "y": 416,
+   "facing": "right"
+  },
+  "top": {
+   "x": 324,
+   "y": 56,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    13
+   ],
+   [
+    10,
+    13
+   ],
+   [
+    10,
+    1
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle17_left",
+   "x": 0,
+   "y": 384,
+   "w": 10,
+   "h": 96,
+   "to": "youngcle16",
+   "spawn": "landing",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "door",
+   "id": "youngcle17_top",
+   "x": 288,
+   "y": 0,
+   "w": 96,
+   "h": 10,
+   "to": "youngcle18",
+   "spawn": "bottom",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "prop",
+   "id": "youngcle17_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 456,
+   "y": 212,
+   "w": 32,
+   "h": 12,
+   "ix": 452,
+   "iy": 180,
+   "solid": true,
+   "script": "maillard_spring"
+  }
+ ]
+}

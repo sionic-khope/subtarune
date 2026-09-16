@@ -60,7 +60,8 @@ for (const id of idx) {
     const bad = [];
     for (const [name, sp] of Object.entries(m.spawns)) if (!reach(sp.x, sp.y)) bad.push(`spawn ${name}`);
     for (const e of m.entities || []) {
-      if (e.type === 'enemy' || e.type === 'npc') {
+      // hidden npc 는 연출 전용 배우(용광로 광장의 철창 속 쥰희·용준처럼 용암 위) — 걸어서 닿을 필요 없다
+      if (e.type === 'enemy' || (e.type === 'npc' && !e.hidden)) {
         if (!reach(e.x, e.y)) bad.push(`${e.type} ${e.id}`);
       }
       if (e.type === 'door') {

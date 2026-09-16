@@ -516,7 +516,7 @@ test('test_furnace_crate_rooms_follow_the_room_contract_and_their_solutions_open
   // Act / Assert
   assert.equal(lava.entities.find(entity => entity.id === 'youngcle14_right')?.to, 'youngcle15');
   assert.equal(rooms[0].entities.find(entity => entity.id === 'youngcle15_right')?.to, 'youngcle16');
-  assert.equal(rooms[1].entities.some(entity => entity.id === 'youngcle16_right'), false, '두 번째 방 오른쪽은 열린 통로(다음 브리핑)');
+  assert.equal(rooms[1].entities.find(entity => entity.id === 'youngcle16_right')?.to, 'youngcle17', '두 번째 방 오른쪽 → 마나샘 갈림길(BUILD196)');
   for (const data of rooms) {
     assert.equal(data.bgm, 'pandora_palace');
     assert.equal(data.backdrop, 'youngcle_furnace');

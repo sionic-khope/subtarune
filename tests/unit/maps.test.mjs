@@ -30,19 +30,20 @@ for (const id of index.maps) {
     });
     test(`${id}: 타일맵 사방이 막힘`, () => {
       const top = m.rows[0], bottom = m.rows[m.rows.length - 1];
-      assert.ok([...top].every((c) => SOLID_CHARS.has(c)), '윗줄 뚫림');
-      assert.ok([...bottom].every((c) => SOLID_CHARS.has(c)), '아랫줄 뚫림');
+      assert.ok([...top].every((c) => SOLID_CHARS.has(c) || EDGE_OPEN.has(c)), '윗줄 뚫림');
+      assert.ok([...bottom].every((c) => SOLID_CHARS.has(c) || EDGE_OPEN.has(c)), '아랫줄 뚫림');
       assert.ok(m.rows.every((r) => (SOLID_CHARS.has(r[0]) || EDGE_OPEN.has(r[0])) && (SOLID_CHARS.has(r[r.length - 1]) || EDGE_OPEN.has(r[r.length - 1]))), '옆줄 뚫림');
     });
     test(`${id}: 가장자리 출입구(H)를 덮는 문은 맵 끝에 닿는다 — 끝까지 걸어가야 넘어간다(BUILD194 사용자 “포탈을 끝으로”)`, () => {
-      const W = m.rows[0].length * TILE;
+      const W = m.rows[0].length * TILE, Hpx = m.rows.length * TILE;
       for (const e of (m.entities || []).filter((e) => e.type === 'door' && e.interact !== true)) {
         const c0 = Math.floor(e.x / TILE), c1 = Math.floor((e.x + (e.w || 32) - 1) / TILE), r0 = Math.floor(e.y / TILE), r1 = Math.floor((e.y + (e.h || 32) - 1) / TILE);
         let onEdgeOpen = false;
         for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (EDGE_OPEN.has(m.rows[r]?.[c])) onEdgeOpen = true;
         if (!onEdgeOpen) continue;
-        assert.ok(e.x === 0 || e.x + (e.w || 32) === W, `문 ${e.id} 이 가장자리 출입구 칸 위인데 맵 끝(0 또는 ${W})에 닿지 않음: x ${e.x} w ${e.w}`);
-        assert.ok((e.w || 32) <= 16, `문 ${e.id} 은 끝 쪽 10~16px 만 — 그 앞 칸에서 미리 넘어가지 않게`);
+        const side = e.x === 0 || e.x + (e.w || 32) === W, vert = e.y === 0 || e.y + (e.h || 32) === Hpx;
+        assert.ok(side || vert, `문 ${e.id} 이 가장자리 출입구 칸 위인데 맵 끝(x 0/${W} 또는 y 0/${Hpx})에 닿지 않음: ${e.x},${e.y} ${e.w}×${e.h}`);
+        assert.ok(side ? (e.w || 32) <= 16 : (e.h || 32) <= 16, `문 ${e.id} 은 끝 쪽 10~16px 만 — 그 앞 칸에서 미리 넘어가지 않게`);
       }
     });
   }

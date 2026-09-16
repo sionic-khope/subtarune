@@ -349,3 +349,11 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle15', desc: '용광로 화물
   map: 'youngcle15', spawn: 'left', flags: { ...lavaDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle16', desc: '용광로 화물 검사실 2: 상자 셋 (최소 31회)',
   map: 'youngcle16', spawn: 'left', flags: { ...lavaDoneFlags, youngcle15_crate_solved: true }, party: [...parkWonCheckpoint.party] });
+// 용광로 마나샘 갈림길·광장(BUILD196): 검사실 둘을 푼 상태
+const crateDoneFlags = { ...lavaDoneFlags, youngcle15_crate_solved: true, youngcle16_crate_solved: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle17', desc: '용광로 마나샘 갈림길 (오른쪽 → 가운데 위, 마나샘)',
+  map: 'youngcle17', spawn: 'left', flags: { ...crateDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle18', desc: '용광로 광장 도착 연출 (영클 TV·밧줄 철창·규칙)',
+  map: 'youngcle18', spawn: 'bottom', flags: { ...crateDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle18_after', desc: '용광로 광장: 연출 뒤 (패널 앞, 철창 매달림)',
+  map: 'youngcle18', spawn: 'front', flags: { ...crateDoneFlags, furnace_arena_intro_done: true }, party: [...parkWonCheckpoint.party] });
