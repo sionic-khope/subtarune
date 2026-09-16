@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { COLORS, NOISE, STAGES, RULES, makeRound, stepRound, pressRound, passRound, passReady, answerProgress, wordOf } from '../../src/scenes/colorgame-core.js';
+import { COLORS, NOISE, STAGES, SEQUENCE, RULES, makeRound, stepRound, pressRound, passRound, passReady, answerProgress, wordOf } from '../../src/scenes/colorgame-core.js';
 
 const colorIds = new Set(COLORS.map(c => c.id)), noiseIds = new Set(NOISE.map(n => n.id));
 const runUntil = (round, pred, max = 60) => { const ev = []; for (let t = 0; t < max; t += 1 / 60) { ev.push(...stepRound(round, 1 / 60)); if (pred(ev, round)) break; } return ev; };
@@ -10,8 +10,10 @@ const runUntil = (round, pred, max = 60) => { const ev = []; for (let t = 0; t <
 test('test_colorgame_stages_grow_to_eight_and_only_the_last_mixes_noise_words', () => {
   assert.equal(STAGES.length, 8);
   assert.deepEqual(COLORS.map(c => c.ko), ['빨', '주', '노', '초', '파', '남', '보']);
-  for (let i = 0; i < 7; i++) { assert.ok(STAGES[i].length >= 1); assert.ok(STAGES[i].every(id => colorIds.has(id)), `stage ${i + 1} 는 색만`); if (i) assert.ok(STAGES[i].length >= STAGES[i - 1].length); }
-  assert.deepEqual(STAGES[0], ['red']); assert.deepEqual(STAGES[1], ['red', 'green']);
+  // 1~7판: 앞 판 순서 그대로 + 색 하나(사용자 “전 단계랑 이어져서 하나 추가”)
+  for (let i = 0; i < 7; i++) { assert.equal(STAGES[i].length, i + 1); assert.ok(STAGES[i].every(id => colorIds.has(id)), `stage ${i + 1} 는 색만`); if (i) assert.deepEqual(STAGES[i].slice(0, i), STAGES[i - 1]); }
+  assert.deepEqual(STAGES[0], ['red']); assert.deepEqual(STAGES[1], ['red', 'green']); assert.deepEqual(STAGES[2], ['red', 'green', 'yellow']); assert.deepEqual(STAGES[6], SEQUENCE);
+  assert.equal(new Set(SEQUENCE).size, 7, '일곱 색이 한 번씩');
   const last = STAGES[7];
   assert.ok(last.filter(id => noiseIds.has(id)).length >= 5, '마지막 판엔 사용자 원문의 이상한 말이 섞인다');
   assert.ok(last.every(id => colorIds.has(id) || noiseIds.has(id)));
@@ -41,6 +43,7 @@ test('test_colorgame_chaos_stage_babbles_faster_in_a_loop_and_only_the_exclamati
   assert.ok(round.chaos); assert.equal(round.gap, RULES.chaosGap);
   assert.ok(round.gap < RULES.callGap);
   assert.ok(STAGES[7].filter(id => colorIds.has(id)).length >= 6);
+  assert.deepEqual(STAGES[7].filter(id => colorIds.has(id)).slice(0, 7), SEQUENCE, '광기 판도 7판 순서로 시작');
   // 3초 뒤 느낌표 버튼(사용자 “한 3초 정도 지나서”)
   runUntil(round, () => round.t >= 2.9, 3);
   assert.equal(passReady(round), false);

@@ -12,8 +12,8 @@ const PARTY = ['player', 'gyeongsub', 'ppaman'];
 // 맵 좌표(tools/maps/youngcle18.py): 인사·규칙은 TV 가 **일행 앞 가운데**(TV_FRONT, 사용자 2026-09-16 “이때는 가운데에 뜨는 게 맞지”)로 내려오고,
 // 조롱 때만 철창 왼쪽(TV_LEFT, 쥰희가 왼쪽을 보며 찬다), 마지막 팔짱 대기만 오른쪽 끝(TV_HOME, 사용자 “살짝 오른쪽에서 대기”).
 // 일행은 울타리 5번 칸(x432) 앞에 서고 철창은 웅덩이 오른쪽 끝(x552, 136 폭)에 매달려 TV_FRONT 와 겹치지 않는다. TV 는 0.82 배, 접힌 채(foldX 0.06) 내려와 펼쳐진다(갤럭시 폴드)
-// TV 그림 폭 236(0.82 배): 앞자리 300~536 은 철창(552~)과 안 겹치고 일행 가운데(432) 위. 대기 690 은 철창 오른쪽
-const TV_FRONT = [300, 100], TV_HOME = [690, 110], TV_LEFT = [300, 60], TV_FOLDED = 0.06, ARM_DX = 112, ARM_DY = -298;
+// TV 그림 폭 236(0.82 배). 일행은 울타리 3번 칸(x352~384, 가운데 368) 앞 — 앞자리 TV 250~486 은 그 위, 조롱 TV 316~552 는 철창(552~)에 붙어 더 높이(사용자 “움직이는 곳 차이가 별로 없다” → 자리를 66px·56px 벌림), 대기 690 은 철창 오른쪽
+const TV_FRONT = [250, 100], TV_HOME = [704, 110], TV_LEFT = [316, 44], TV_FOLDED = 0.06, ARM_DX = 112, ARM_DY = -298;
 // 색깔 게임 뒤(사용자 브리핑): TV 가 웅덩이 가운데(x480)로 내려오고 모두 그 아래 모여 본다. 쥰희·용준은 폭발로 철창에서 튀어나와 울타리 앞 바닥에 선다
 const TV_CENTER = [383, 96], GATHER_Y = 40;
 // 주인공은 아래 문 기둥(x448~544) 안(468)에 서야 연출 뒤 그대로 내려가 나갈 수 있다
@@ -33,7 +33,8 @@ const V = (text, expression = 'smirk') => [
 const close = { action: game => game.textbox.close() };
 const ent = (game, id) => game.entities.find(e => e.id === id && !e.dead);
 const bang = ids => ({ parallel: ids.map(id => ({ emote: id, kind: '!', duration: 1.1, hold: 0.45 })) });
-const FENCE = 'lava_fence_5';   // 울타리 왼쪽 가운데 칸(x416~448) — 일행 자리의 기준물(앞에 TV, 오른쪽에 철창이 한 화면에)
+const FENCE = 'lava_fence_5';   // 울타리 5번 칸(x416~448) — 게임 뒤 모임 자리의 기준물(주인공이 아래 문 기둥 안에 서게)
+const STAND = 'lava_fence_3';   // 울타리 3번 칸(x352~384) — 도착 연출에서 일행이 서는 자리(앞에 TV, 오른쪽에 철창이 한 화면에)
 const setPos = (e, x, y) => { e.x = x; e.y = y; if (e.def.ix !== undefined) { e.def.ix = x; e.def.iy = y; } };
 // TV: (x,y) 최종 자리의 360px 위(화면 밖)에 접힌 프레임·모니터암(프레임 안으로 22px 겹침)을 두고 드르르륵 내려온 뒤 펼쳐진다 / 접혀서 올라간다
 const tvPlace = ([x, y]) => ({ action: game => { const tv = ent(game, TVID), arm = ent(game, ARM); setPos(tv, x, y - 360); tv.def.foldX = TV_FOLDED; setPos(arm, x + ARM_DX, y - 360 + ARM_DY); } });
@@ -48,7 +49,7 @@ const tvUp = (dur = 0.9) => [
 const tvOn = [{ action: game => game.tvBroadcast.power(true) }, { wait: TV.powerTime }];
 const tvOff = [close, { action: game => game.tvBroadcast.power(false) }, { wait: TV.shutdownTime }];
 // 카메라: 일행(왼쪽 아래) + 오른쪽 끝 TV / 철창이 화면 오른쪽 위에서 내려옴 / 철창 + 왼쪽 TV(조롱) / 밧줄
-const CAM_PARTY = { camera: [16, 6.6], duration: 0.6 }, CAM_CAGE = { camera: [15.5, 4.8], duration: 0.6 }, CAM_MOCK = { camera: [15.6, 4.5], duration: 0.6 }, CAM_ROPE = { camera: [19.4, 2.4], duration: 0.5 }, CAM_PARK = { camera: [20.4, 6.6], duration: 0.6 };
+const CAM_PARTY = { camera: [15, 6.6], duration: 0.6 }, CAM_CAGE = { camera: [15.5, 4.8], duration: 0.6 }, CAM_MOCK = { camera: [16.6, 4.2], duration: 0.6 }, CAM_ROPE = { camera: [19.4, 2.4], duration: 0.5 }, CAM_PARK = { camera: [20.4, 6.6], duration: 0.6 };
 // 좌우 데롱데롱: 철창 소품이 흔들리고 carry(쥰희·용준)가 같이 실려 움직인다
 const cageSway = { action: game => { const c = ent(game, CAGE); if (c) { c.def.oscillate = { dx: 10, period: 2.4 }; c.base = undefined; } } };
 
@@ -57,11 +58,11 @@ export const furnace_arena_intro = Object.assign([
   { action: game => { game.finishTvBroadcast(); game.tvBroadcast = new TvBroadcast(game, TV); game.sound.preloadBgm(TV.bgm); } },
   { bgm: null, fadeOut: 0.2 },
   // 캐릭터들이 천천히 들어오고 느낌표
-  { parallel: PARTY.map((id, i) => ({ move: id, rel: FENCE, at: 'bottom', by: [[0, -44, 44][i], 136], speed: 35 })) },
+  { parallel: PARTY.map((id, i) => ({ move: id, rel: STAND, at: 'bottom', by: [[0, -44, 44][i], 136], speed: 35 })) },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   bang(PARTY),
   // 후에 용암쪽 앞으로 온다
-  { parallel: PARTY.map((id, i) => ({ move: id, rel: FENCE, at: 'bottom', by: [[0, -44, 44][i], 40], speed: 60 })) },
+  { parallel: PARTY.map((id, i) => ({ move: id, rel: STAND, at: 'bottom', by: [[0, -44, 44][i], 40], speed: 60 })) },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   P('와 ㅈㄴ 무섭네요'),
   G('그렇네..'),

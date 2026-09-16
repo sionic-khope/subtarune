@@ -86,7 +86,7 @@
    -116
   ],
   "tv": [
-   690,
+   704,
    110
   ],
   "tvScale": 0.82
@@ -332,11 +332,11 @@
    "type": "prop",
    "id": "youngcle_tv_arm",
    "image": "assets/props/tv_arm.png",
-   "x": 802,
+   "x": 816,
    "y": -548,
    "w": 12,
    "h": 320,
-   "ix": 802,
+   "ix": 816,
    "iy": -548,
    "solid": false
   },
@@ -344,13 +344,13 @@
    "type": "prop",
    "id": "youngcle_tv",
    "image": "assets/props/youngcle_tv_frame.png",
-   "x": 690,
+   "x": 704,
    "y": -250,
    "w": 236,
    "h": 144,
    "scale": 0.82,
    "foldX": 0.06,
-   "ix": 690,
+   "ix": 704,
    "iy": -250,
    "solid": false
   }

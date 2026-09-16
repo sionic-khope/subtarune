@@ -11,7 +11,7 @@ let fails = 0;
 const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'color_' + n + '.png') }); };
 const pressC = async () => { await page.keyboard.press('KeyC'); await page.waitForTimeout(160); };
-const st = () => page.evaluate(() => { const c = window.__colorgame; if (!c) return null; const s = c.state, r = s.round; return { phase: s.phase, stage: s.stage, tvY: Math.round(s.tvY), tvOn: s.tvOn, screen: s.screen.kind, screenId: s.screen.id || null, face: s.face, talk: s.talk ? { i: s.talk.i, n: s.talk.lines.length, text: s.talk.lines[s.talk.i].text, who: s.talk.lines[s.talk.i].who } : null, round: r ? { status: r.status, i: r.i, n: r.expected.length, chaos: r.chaos, t: Math.round(r.t * 100) / 100, loops: r.loops, speed: r.speed, wrongs: r.wrongs } : null, over: s.over, go: s.go > 0, active: s.active, btnDown: s.buttons.map(b => b.down > 0), cageDrop: Math.round(s.cage.drop * 100) / 100, cageFly: Math.round(s.cage.fly), camOn: s.camOn, camAlpha: Math.round(s.camAlpha * 100) / 100, camPlaying: !c.cam.paused, bang: c.bangPos(), blasting: s.blasting, blasts: s.blasts.length, hand: s.mouse.inside, press: s.hand.press > 0 }; });
+const st = () => page.evaluate(() => { const c = window.__colorgame; if (!c) return null; const s = c.state, r = s.round; return { phase: s.phase, stage: s.stage, tvY: Math.round(s.tvY), tvOn: s.tvOn, screen: s.screen.kind, screenId: s.screen.id || null, face: s.face, talk: s.talk ? { i: s.talk.i, n: s.talk.lines.length, text: s.talk.lines[s.talk.i].text, who: s.talk.lines[s.talk.i].who } : null, round: r ? { status: r.status, i: r.i, n: r.expected.length, chaos: r.chaos, t: Math.round(r.t * 100) / 100, loops: r.loops, speed: r.speed, wrongs: r.wrongs, expected: r.expected } : null, over: s.over, go: s.go > 0, active: s.active, btnDown: s.buttons.map(b => b.down > 0), sunk: !!s.cage.sunk, splashed: !!s.cage.splashed, cageY: c.cageRect().y, cageDrop: Math.round(s.cage.drop * 100) / 100, cageFly: Math.round(s.cage.fly), camOn: s.camOn, camAlpha: Math.round(s.camAlpha * 100) / 100, camPlaying: !c.cam.paused, bang: c.bangPos(), blasting: s.blasting, blasts: s.blasts.length, hand: s.mouse.inside, press: s.hand.press > 0 }; });
 const g = () => page.evaluate(() => { const g = window.game; const e = id => g.entities.find(x => x.id === id && !x.dead); const tv = e('youngcle_tv'), cage = e('lava_cage'), j = e('arena_junhee'), y = e('arena_yongjun');
   return { map: g.mapId, dialogue: g.dialogue.running, text: g.textbox.node?.text?.slice(0, 50), px: Math.round(g.player.x), py: Math.round(g.player.y), camx: Math.round(g.camera.x), camy: Math.round(g.camera.y),
     tv: tv ? { x: Math.round(tv.x), y: Math.round(tv.y), phase: g.tvBroadcast?.phase, expr: g.tvBroadcast?.expression } : null, cage: cage ? { x: Math.round(cage.x), y: Math.round(cage.y), visible: cage.visible } : null,
@@ -71,17 +71,22 @@ try {
   await clickColor('blue'); s = await st();
   check(s.phase === 'round' && s.round.status === 'answer' && s.round.speed === 1.5 && s.round.wrongs === 1 && s.round.i === 0, '틀린 색 → 판은 계속, 철창 속도 ×1.5 ' + JSON.stringify([s.phase, s.round]));
   await page.waitForTimeout(600); await cap('wrong'); const d1 = (await st()).cageDrop;
-  check(d1 - d0 > 0.6 * 1.5 / 7 * 0.9, '빨라진 철창 ' + JSON.stringify([d0, d1]));
+  check(d1 - d0 > 0.6 * 1.5 / 12 * 0.9, '빨라진 철창 ' + JSON.stringify([d0, d1]));
   await clickColor('red'); await clickColor('green'); s = await st();
   check(s.phase === 'clear' && s.stage === 1, '틀린 뒤에도 빨강·초록 순서대로 누르면 통과 ' + JSON.stringify([s.phase, s.stage]));
-  // ⑥ 시간 초과(모든 판 7초 동일): 철창이 실시간으로 끝까지 내려가고 TIME OVER 뒤 저절로 1판부터
-  check(await waitPhase('round', 4000), '3판 시작'); s = await st(); check(s.stage === 2, '3판 ' + s.stage);
+  // ⑥ 시간 초과(모든 판 12초 동일): 철창이 실시간으로 끝까지 내려가고 → 용암에 풍덩 → TIME OVER + C 재시도 → 그 판부터
+  check(await waitPhase('round', 4000), '3판 시작'); s = await st(); check(s.stage === 2 && JSON.stringify(s.round.expected) === '["red","green","yellow"]', '3판 = 2판 + 노랑(이어서 하나 추가) ' + JSON.stringify([s.stage, s.round.expected]));
   await page.evaluate(() => window.__colorgame.answerNow()); await page.waitForTimeout(3000); s = await st();
-  check(s.round && s.round.status === 'answer' && s.cageDrop > 0.35 && s.cageDrop < 0.55, '시간에 정비례해 철창이 내려간다(3초/7초) ' + JSON.stringify([s.round?.status, s.cageDrop]));
+  check(s.round && s.round.status === 'answer' && s.cageDrop > 0.18 && s.cageDrop < 0.34, '시간에 정비례해 철창이 내려간다(3초/12초) ' + JSON.stringify([s.round?.status, s.cageDrop]));
   await cap('timer');
-  check(await waitPhase('fail', 5000), '시간 초과'); s = await st(); check(s.over === 'timeout', 'TIME OVER ' + s.over);
-  await page.waitForFunction(() => window.__colorgame.state.phase === 'round' && window.__colorgame.state.stage === 0, null, { timeout: 4000 }).catch(() => {});
-  s = await st(); check(s.phase === 'round' && s.stage === 0, 'C 없이 저절로 1판부터 다시 ' + JSON.stringify([s.phase, s.stage]));
+  check(await waitPhase('plunge', 11000), '시간 초과 → 철창이 용암으로 떨어진다'); const y0 = (await st()).cageY;
+  await page.waitForFunction(() => window.__colorgame.state.cage.splashed, null, { timeout: 4000 }).catch(() => {});
+  await page.waitForTimeout(120); await cap('plunge'); s = await st();
+  check(s.phase === 'plunge' && s.splashed && s.cageY > y0 + 40 && s.over === 'timeout', '풍덩(치이익·불티) 하며 잠기는 중 ' + JSON.stringify([s.phase, s.splashed, y0, s.cageY]));
+  check(await waitPhase('fail', 5000), 'TIME OVER + C 재시도'); await page.waitForTimeout(400); await cap('timeover'); s = await st();
+  check(s.sunk, '철창이 용암에 잠겨 안 보인다 ' + JSON.stringify(s.sunk));
+  await pressC(); await page.waitForTimeout(200); s = await st();
+  check(s.phase === 'round' && s.stage === 2 && !s.sunk && s.cageDrop === 0 && s.cageY < 0, 'C → 실패한 3판부터 다시, 철창은 위로 ' + JSON.stringify([s.phase, s.stage, s.sunk, s.cageDrop, s.cageY]));
   // ⑦ 8판(광기): 카메라가 페이드인, 이상한 말이 반복되고 3초 뒤 느낌표 버튼이 좌우로
   await page.evaluate(() => window.__colorgame.skipTo(7)); await page.waitForTimeout(2200); s = await st();
   check(s.round && s.round.chaos && s.camOn && s.camAlpha > 0.5 && s.camPlaying, '광기 판: 오른쪽 아래 모니터에 얼빡 카메라 페이드인·영상 재생 ' + JSON.stringify([s.camOn, s.camAlpha, s.camPlaying]));
