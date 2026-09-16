@@ -19,4 +19,11 @@
 ## 구현 메모
 - 엔진: `Raft.dropColor`(용암 주황 물방울), 뗏목 `walkOn`(C → 컷신이 걸어서 태움, `{ raft, board:true }`), 세로 물길 쓸림(`axis`/`dirSign`, 지금은 안 씀), 펄스 장애물 `pulse:{on,off,phase}`(꺼진 동안 안 막고 흐리게), `puff` 노드 `color/size`.
 - 포스트모텀: docs/postmortems/2026-09-16-lava-raft-naturalness.md
-- 다음 지역(구간 ③ 끝, 열린 통로 너머)은 다음 브리핑. 문·소품·대사를 미리 지어내지 않는다.
+- 구간 ③ 끝 통로 → **용광로 화물 검사실 1·2**(youngcle15·16, BUILD193): 영클 공장 상자 밀기 메커니즘(youngcle3~5) 그대로, 3상자·발판 3. 최소 25회 → 31회(youngcle5 는 16회). 생성기 `tools/maps/furnace_crate_room.py` + `youngcle15.py`/`youngcle16.py`(`meta.layout` 9×7 ASCII, `meta.solution`), 솔버 `tools/maps/crate_solver.py`.
+
+| 방 | 배치(운반 구역 9×7, `#` 격벽 · `X` 발판 · `C` 상자) | 핵심 | 최소 |
+| --- | --- | --- | --- |
+| youngcle15 | 발판 셋이 오른쪽 위 주머니(col 12 rows 5~7) 세로, 격벽 (10,5)(10,6)·(11,8)(11,9) | 주머니 입구는 row 7 한 줄 → 맨 위 발판부터, 마지막 상자는 아래에서 기둥을 타고 위로 | 25 |
+| youngcle16 | 가운데 격벽 기둥 col 8(row 5·row 10 만 통로), 발판 셋 오른쪽 아래 주머니(col 12 rows 8~10), 주머니 위·중간에 짧은 격벽 | 상자마다 아래 통로로 내려갔다 오른쪽 벽을 타고 올라감, 위 발판부터 | 31 |
+
+- 완료 대사 없음(차단문 열림으로 끝), 안내판 두 줄. youngcle16 오른쪽은 열린 통로 — 다음 맵은 다음 브리핑. 문·소품·대사를 미리 지어내지 않는다.

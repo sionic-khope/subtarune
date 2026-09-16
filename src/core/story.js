@@ -343,3 +343,9 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft_up', desc: '용암 수로:
   map: 'youngcle14', spawn: 'landing', flags: { ...showDoneFlags, lava_raft_intro_done: true, raft14a_boarded: true, double_jump: true, raft_raft14a: 1 }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'lava_raft_top', desc: '용암 수로: 위 착지에서 다시 오른쪽으로 가는 세 번째 뗏목 앞',
   map: 'youngcle14', spawn: 'top', flags: { ...showDoneFlags, lava_raft_intro_done: true, raft14a_boarded: true, double_jump: true, raft_raft14a: 1, raft_raft14b: 1 }, party: [...parkWonCheckpoint.party] });
+// 용광로 화물 검사실(BUILD193): 용암 수로를 다 건넌 상태. 3상자 퍼즐 두 방(25회 → 31회)
+const lavaDoneFlags = { ...showDoneFlags, lava_raft_intro_done: true, raft14a_boarded: true, double_jump: true, raft_raft14a: 1, raft_raft14b: 1, raft_raft14c: 1 };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle15', desc: '용광로 화물 검사실 1: 상자 셋 (최소 25회)',
+  map: 'youngcle15', spawn: 'left', flags: { ...lavaDoneFlags }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'youngcle16', desc: '용광로 화물 검사실 2: 상자 셋 (최소 31회)',
+  map: 'youngcle16', spawn: 'left', flags: { ...lavaDoneFlags, youngcle15_crate_solved: true }, party: [...parkWonCheckpoint.party] });

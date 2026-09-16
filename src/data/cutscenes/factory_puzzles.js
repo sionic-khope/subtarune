@@ -34,6 +34,17 @@ export const youngcle5_crate_sign = [
   { text: '* 상자를 향해 C를 누르면 한 칸씩 민다.\n* 초기화 장치는 두 상자를 함께 되돌린다.', voice: 'narrator' },
 ];
 
+// 용광로 화물 검사실(youngcle15·16, BUILD193): 3상자. 완료 대사는 없다(브리핑에 없는 대사를 지어내지 않는다) — 차단문이 열리는 것으로 끝
+export const youngcle15_crate_sign = [
+  { text: '* [화물 검사 1]\n* 상자 세 개를 표식 세 곳에 하나씩.', voice: 'narrator' },
+  { text: '* 상자를 향해 C를 누르면 한 칸씩 민다.\n* 초기화 장치는 세 상자를 함께 되돌린다.', voice: 'narrator' },
+];
+
+export const youngcle16_crate_sign = [
+  { text: '* [화물 검사 2]\n* 상자 세 개를 표식 세 곳에 하나씩.', voice: 'narrator' },
+  { text: '* 상자를 향해 C를 누르면 한 칸씩 민다.\n* 격벽 사이 통로는 두 줄뿐이다.', voice: 'narrator' },
+];
+
 export const youngcle5_crate_complete = [
   PP('* ...'),
   GS('* 빠맨아 왜?'),

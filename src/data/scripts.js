@@ -57,6 +57,8 @@ import {
   youngcle4_crate_sign,
   youngcle5_crate_sign,
   youngcle5_crate_complete,
+  youngcle15_crate_sign,
+  youngcle16_crate_sign,
   youngcle_crate_done,
   youngcle_crate_reset,
 } from './cutscenes/factory_puzzles.js';
@@ -105,6 +107,8 @@ export const SCRIPTS = {
   youngcle4_crate_sign,
   youngcle5_crate_sign,
   youngcle5_crate_complete,
+  youngcle15_crate_sign,
+  youngcle16_crate_sign,
   youngcle_crate_done,
   youngcle_crate_reset,
 

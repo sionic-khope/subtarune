@@ -40,19 +40,23 @@ const push = (game, crate, direction) => {
   crate.update(0.08);
 };
 
+// 최소 밀기 횟수(tools/maps/crate_solver.py 와 같은 규칙): 바닥은 I(공장)·F(용광로), 격벽·콘솔·안내판·차단문은 막힘, 상자는 운반 구역 안에서만.
+// 플레이어 위치는 도달 영역의 대표 칸으로 정규화하고, 발판이 아닌 모서리 칸(어느 축으로도 밀 수 없는 칸)은 죽은 칸으로 가지치기 — 3상자 방(BUILD193)도 몇 초 안에 끝난다
 const minimumPushes = (data) => {
   const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
   const blocked = new Set();
-  for (let row = 0; row < data.rows.length; row += 1) {
-    for (let col = 0; col < data.rows[row].length; col += 1) {
-      if (data.rows[row][col] !== 'I') blocked.add(`${col},${row}`);
+  const H = data.rows.length, W = data.rows[0].length;
+  for (let row = 0; row < H; row += 1) {
+    for (let col = 0; col < W; col += 1) {
+      if (!'IF'.includes(data.rows[row][col])) blocked.add(`${col},${row}`);
     }
   }
   for (const entity of data.entities.filter(({ type }) => ['factory_bulkhead', 'factory_console', 'factory_sign', 'factory_gate'].includes(type))) {
-    for (let row = 0; row < data.rows.length; row += 1) {
-      for (let col = 0; col < data.rows[row].length; col += 1) {
+    const w = entity.w ?? 28, h = entity.h ?? 24;
+    for (let row = 0; row < H; row += 1) {
+      for (let col = 0; col < W; col += 1) {
         const [cx, cy] = [col * 32 + 16, row * 32 + 16];
-        if (cx >= entity.x && cx < entity.x + entity.w && cy >= entity.y && cy < entity.y + entity.h) blocked.add(`${col},${row}`);
+        if (cx >= entity.x && cx < entity.x + w && cy >= entity.y && cy < entity.y + h) blocked.add(`${col},${row}`);
       }
     }
   }
@@ -66,37 +70,47 @@ const minimumPushes = (data) => {
     return !moveArea || (left >= moveArea.x && top >= moveArea.y
       && left + 28 <= moveArea.x + moveArea.w && top + 28 <= moveArea.y + moveArea.h);
   };
-  const spawn = data.spawns.left;
-  const start = [Math.floor((spawn.x + 12) / 32), Math.floor((spawn.y + 8) / 32)];
-  const states = [{ player: start, crates, pushes: 0 }];
-  const seen = new Set();
-  while (states.length) {
-    const state = states.shift();
-    const crateKeys = new Set(state.crates.map(([x, y]) => `${x},${y}`));
-    const stateKey = `${state.player.join(',')}|${[...crateKeys].sort().join(';')}`;
-    if (seen.has(stateKey)) continue;
-    seen.add(stateKey);
-    if ([...targets].every(target => crateKeys.has(target))) return state.pushes;
-    const reachable = new Set([state.player.join(',')]);
-    const walk = [state.player];
+  const occupiable = (x, y) => x >= 0 && y >= 0 && x < W && y < H && !blocked.has(`${x},${y}`) && crateCanOccupy(x, y);
+  const dead = new Set();
+  for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) {
+    if (!occupiable(x, y) || targets.has(`${x},${y}`)) continue;
+    const horizontal = occupiable(x - 1, y) && occupiable(x + 1, y), vertical = occupiable(x, y - 1) && occupiable(x, y + 1);
+    if (!horizontal && !vertical) dead.add(`${x},${y}`);
+  }
+  const reachOf = ([px, py], crateKeys) => {
+    const reach = new Set([`${px},${py}`]); const walk = [[px, py]]; let min = py * 1000 + px;
     while (walk.length) {
       const [x, y] = walk.shift();
       for (const [dx, dy] of directions) {
-        const next = `${x + dx},${y + dy}`;
-        if (blocked.has(next) || crateKeys.has(next) || reachable.has(next)) continue;
-        reachable.add(next);
-        walk.push([x + dx, y + dy]);
+        const nx = x + dx, ny = y + dy, next = `${nx},${ny}`;
+        if (blocked.has(next) || crateKeys.has(next) || reach.has(next)) continue;
+        reach.add(next); walk.push([nx, ny]); min = Math.min(min, ny * 1000 + nx);
       }
     }
+    return { reach, min };
+  };
+  const spawn = data.spawns.left;
+  const start = [Math.floor((spawn.x + 12) / 32), Math.floor((spawn.y + 8) / 32)];
+  const first = reachOf(start, new Set(crates.map(([x, y]) => `${x},${y}`)));
+  const states = [{ reach: first.reach, min: first.min, crates, pushes: 0 }];
+  const seen = new Set([`${first.min}|${crates.map(c => c.join(',')).sort().join(';')}`]);
+  while (states.length) {
+    const state = states.shift();
+    const crateKeys = new Set(state.crates.map(([x, y]) => `${x},${y}`));
+    if ([...targets].every(target => crateKeys.has(target))) return state.pushes;
     for (let index = 0; index < state.crates.length; index += 1) {
       const [x, y] = state.crates[index];
       for (const [dx, dy] of directions) {
         const stand = `${x - dx},${y - dy}`;
         const destination = `${x + dx},${y + dy}`;
-        if (!reachable.has(stand) || blocked.has(destination) || crateKeys.has(destination)
+        if (!state.reach.has(stand) || blocked.has(destination) || crateKeys.has(destination) || dead.has(destination)
           || !crateCanOccupy(x + dx, y + dy)) continue;
         const nextCrates = state.crates.map((crate, crateIndex) => crateIndex === index ? [x + dx, y + dy] : crate);
-        states.push({ player: [x, y], crates: nextCrates, pushes: state.pushes + 1 });
+        const next = reachOf([x, y], new Set(nextCrates.map(([cx, cy]) => `${cx},${cy}`)));
+        const key = `${next.min}|${nextCrates.map(c => c.join(',')).sort().join(';')}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        states.push({ reach: next.reach, min: next.min, crates: nextCrates, pushes: state.pushes + 1 });
       }
     }
   }
@@ -162,7 +176,7 @@ test('test_reusable_circuit_entities_still_complete_when_every_plate_is_aligned'
 
 test('test_factory_solutions_include_player_walkaround_and_match_difficulty_push_counts', () => {
   // Arrange
-  const expected = { youngcle3: 3, youngcle4: 8, youngcle5: 16 };
+  const expected = { youngcle3: 3, youngcle4: 8, youngcle5: 16, youngcle15: 25, youngcle16: 31 };
 
   // Act
   const pushes = Object.fromEntries(Object.keys(expected).map(id => [id, minimumPushes(readMap(id))]));
@@ -490,5 +504,47 @@ test('test_factory_qa_checkpoints_preserve_prior_solutions_and_derived_state', (
       ...priorFlags,
     }));
     for (const [flag, value] of Object.entries(priorFlags)) assert.equal(point.flags[flag], value);
+  }
+});
+
+test('test_furnace_crate_rooms_follow_the_room_contract_and_their_solutions_open_the_gates', () => {
+  // Arrange: 용광로 화물 검사실(BUILD193) — 같은 메커니즘, 용광로 구역 자산, 3상자. 해법(meta.solution)을 엔진 상자로 그대로 밀어 본다
+  const lava = readMap('youngcle14');
+  const rooms = ['youngcle15', 'youngcle16'].map(readMap);
+  const directionOf = { R: 'right', L: 'left', U: 'up', D: 'down' };
+
+  // Act / Assert
+  assert.equal(lava.entities.find(entity => entity.id === 'youngcle14_right')?.to, 'youngcle15');
+  assert.equal(rooms[0].entities.find(entity => entity.id === 'youngcle15_right')?.to, 'youngcle16');
+  assert.equal(rooms[1].entities.some(entity => entity.id === 'youngcle16_right'), false, '두 번째 방 오른쪽은 열린 통로(다음 브리핑)');
+  for (const data of rooms) {
+    assert.equal(data.bgm, 'pandora_palace');
+    assert.equal(data.backdrop, 'youngcle_furnace');
+    assert.equal(data.meta.puzzle, 'crate');
+    assert.deepEqual(data.meta.moveArea, [4, 5, 9, 7]);
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_crate').length, 3);
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_plate').length, 3);
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_sign').length, 1);
+    assert.equal(data.entities.filter(entity => entity.type === 'factory_console').length, 1);
+    assert.ok(data.entities.some(entity => entity.type === 'factory_bulkhead'));
+    assert.ok(data.preload.includes('assets/props/factory_crate145.png'));
+    assert.ok(data.entities.filter(entity => entity.type === 'door').every(entity => entity.sfx === false && entity.interact === false));
+    assert.ok([7, 8, 9].every(row => data.rows[row][0] === 'H' && data.rows[row][17] === 'H'), '출입구 가장자리는 바닥 그림의 막힌 타일');
+    assert.ok(data.meta.pushes > 16, 'youngcle5(16회)보다 어렵다');
+    assert.equal(data.meta.solution.length, data.meta.pushes);
+    const { game } = makeGame(data);
+    const gate = game.entities.find(entity => entity.id === `${data.id}_gate`);
+    const crateOf = letter => game.entities.find(entity => entity.id === `${data.id}_crate_${letter.toLowerCase()}`);
+    for (const move of data.meta.solution.slice(0, -1)) push(game, crateOf(move[0]), directionOf[move[1]]);
+    assert.equal(game.flags[`${data.id}_crate_solved`], undefined, '마지막 한 번 전엔 안 풀림');
+    const last = data.meta.solution.at(-1);
+    push(game, crateOf(last[0]), directionOf[last[1]]);
+    gate.update();
+    assert.equal(game.flags[`${data.id}_crate_solved`], true);
+    assert.equal(gate.solid, false);
+    for (const crate of game.entities.filter(entity => entity.def?.type === 'factory_crate')) {
+      assert.deepEqual([crate.x, crate.y], [crate.def.solvedX, crate.def.solvedY], `${crate.id} 는 해법 끝에 solvedX/Y 자리`);
+    }
+    assert.equal(SCRIPTS[`${data.id}_crate_sign`] !== undefined, true);
   }
 });

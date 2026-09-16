@@ -433,6 +433,18 @@
    "disembarkPartyGap": 40
   },
   {
+   "type": "door",
+   "id": "youngcle14_right",
+   "x": 3392,
+   "y": 64,
+   "w": 16,
+   "h": 96,
+   "to": "youngcle15",
+   "spawn": "left",
+   "sfx": false,
+   "interact": false
+  },
+  {
    "type": "prop",
    "id": "wall_c_high1",
    "image": "assets/props/lava_wall.png",

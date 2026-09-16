@@ -1,0 +1,389 @@
+{
+ "id": "youngcle16",
+ "name": "용광로 화물 검사실 2",
+ "stage": "void_fallen",
+ "bgm": "pandora_palace",
+ "backdrop": "youngcle_furnace",
+ "battleBg": "youngcle_factory",
+ "dim": 0.3,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "GGGGGGGGGGGGGGGGGG",
+  "GFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFG",
+  "HFFFFFFFFFFFFFFFFH",
+  "HFFFFFFFFFFFFFFFFH",
+  "HFFFFFFFFFFFFFFFFH",
+  "GFFFFFFFFFFFFFFFFG",
+  "GFFFFFFFFFFFFFFFFG",
+  "GGGGGGGGGGGGGGGGGG",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_wall.png",
+  "assets/tiles/youngcle_iron_blue_solid.png",
+  "assets/backdrops/youngcle_furnace.png",
+  "assets/props/factory_crate145.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 64,
+   "y": 256,
+   "facing": "right"
+  },
+  "left": {
+   "x": 64,
+   "y": 256,
+   "facing": "right"
+  },
+  "landing": {
+   "x": 496,
+   "y": 256,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "puzzle": "crate",
+  "difficulty": "hardest",
+  "pushes": 31,
+  "solution": [
+   "AR",
+   "AR",
+   "AD",
+   "AD",
+   "AD",
+   "AD",
+   "AR",
+   "AR",
+   "AR",
+   "AR",
+   "AR",
+   "AU",
+   "AU",
+   "BR",
+   "BD",
+   "BD",
+   "BD",
+   "BR",
+   "BR",
+   "BR",
+   "BR",
+   "BR",
+   "BU",
+   "CR",
+   "CR",
+   "CD",
+   "CR",
+   "CR",
+   "CR",
+   "CR",
+   "CR"
+  ],
+  "layout": [
+   ",,,,,,,,,",
+   ",C,,#,,,,",
+   ",,C,#,##,",
+   ",,,,#,,,X",
+   ",C,,#,##X",
+   ",,,,,,,,X",
+   ",,,,#,,,,"
+  ],
+  "crateStarts": [
+   [
+    162,
+    194
+   ],
+   [
+    194,
+    226
+   ],
+   [
+    162,
+    290
+   ]
+  ],
+  "plates": [
+   [
+    384,
+    256
+   ],
+   [
+    384,
+    288
+   ],
+   [
+    384,
+    320
+   ]
+  ],
+  "gate": [
+   448,
+   160,
+   24,
+   224
+  ],
+  "landing": [
+   480,
+   160,
+   48,
+   224
+  ],
+  "moveArea": [
+   4,
+   5,
+   9,
+   7
+  ]
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "youngcle16_left",
+   "x": 32,
+   "y": 224,
+   "w": 16,
+   "h": 96,
+   "to": "youngcle15",
+   "spawn": "landing",
+   "sfx": false,
+   "interact": false
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle16_rail_top",
+   "x": 32,
+   "y": 160,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_rail",
+   "id": "youngcle16_rail_bottom",
+   "x": 32,
+   "y": 384,
+   "w": 512,
+   "h": 12
+  },
+  {
+   "type": "factory_move_area",
+   "id": "youngcle16_move_area",
+   "puzzle": "youngcle16_crates",
+   "x": 128,
+   "y": 160,
+   "w": 288,
+   "h": 224
+  },
+  {
+   "type": "factory_sign",
+   "id": "youngcle16_sign",
+   "x": 96,
+   "y": 208,
+   "label": "3개",
+   "icon": "!",
+   "script": "youngcle16_crate_sign"
+  },
+  {
+   "type": "factory_console",
+   "id": "youngcle16_console",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 96,
+   "y": 328,
+   "resetCrates": true,
+   "script": "youngcle_crate_reset",
+   "solvedScript": "youngcle_crate_done"
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle16_bulkhead_1",
+   "x": 256,
+   "y": 192,
+   "w": 32,
+   "h": 128
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle16_bulkhead_2",
+   "x": 256,
+   "y": 352,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle16_bulkhead_3",
+   "x": 320,
+   "y": 224,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle16_bulkhead_4",
+   "x": 320,
+   "y": 288,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle16_bulkhead_5",
+   "x": 352,
+   "y": 224,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_bulkhead",
+   "id": "youngcle16_bulkhead_6",
+   "x": 352,
+   "y": 288,
+   "w": 32,
+   "h": 32
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle16_wire_1",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "points": [
+    [
+     400,
+     272
+    ],
+    [
+     424,
+     272
+    ],
+    [
+     424,
+     176
+    ],
+    [
+     448,
+     176
+    ]
+   ]
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle16_wire_2",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "points": [
+    [
+     400,
+     304
+    ],
+    [
+     424,
+     304
+    ],
+    [
+     424,
+     272
+    ],
+    [
+     448,
+     272
+    ]
+   ]
+  },
+  {
+   "type": "factory_wire",
+   "id": "youngcle16_wire_3",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "points": [
+    [
+     400,
+     336
+    ],
+    [
+     424,
+     336
+    ],
+    [
+     424,
+     368
+    ],
+    [
+     448,
+     368
+    ]
+   ]
+  },
+  {
+   "type": "factory_plate",
+   "id": "youngcle16_plate_1",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 384,
+   "y": 256
+  },
+  {
+   "type": "factory_plate",
+   "id": "youngcle16_plate_2",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 384,
+   "y": 288
+  },
+  {
+   "type": "factory_plate",
+   "id": "youngcle16_plate_3",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 384,
+   "y": 320
+  },
+  {
+   "type": "factory_crate",
+   "id": "youngcle16_crate_a",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 162,
+   "y": 194,
+   "solvedX": 386,
+   "solvedY": 258
+  },
+  {
+   "type": "factory_crate",
+   "id": "youngcle16_crate_b",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 194,
+   "y": 226,
+   "solvedX": 386,
+   "solvedY": 290
+  },
+  {
+   "type": "factory_crate",
+   "id": "youngcle16_crate_c",
+   "puzzle": "youngcle16_crates",
+   "flag": "youngcle16_crate_solved",
+   "x": 162,
+   "y": 290,
+   "solvedX": 386,
+   "solvedY": 322
+  },
+  {
+   "type": "factory_gate",
+   "id": "youngcle16_gate",
+   "flag": "youngcle16_crate_solved",
+   "x": 448,
+   "y": 160,
+   "w": 24,
+   "h": 224
+  }
+ ]
+}
