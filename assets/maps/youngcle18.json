@@ -82,11 +82,11 @@
    7
   ],
   "cage": [
-   520,
+   552,
    -116
   ],
   "tv": [
-   672,
+   690,
    110
   ],
   "tvScale": 0.82
@@ -292,11 +292,11 @@
    "type": "prop",
    "id": "lava_cage",
    "image": "assets/props/lava_cage.png",
-   "x": 520,
+   "x": 552,
    "y": -116,
    "w": 136,
    "h": 360,
-   "ix": 520,
+   "ix": 552,
    "iy": -116,
    "solid": false,
    "hidden": true,
@@ -310,7 +310,7 @@
    "type": "npc",
    "id": "arena_junhee",
    "sprite": "junhee",
-   "x": 538,
+   "x": 570,
    "y": 214,
    "facing": "down",
    "wander": 0,
@@ -321,7 +321,7 @@
    "type": "npc",
    "id": "arena_yongjun",
    "sprite": "yongjun",
-   "x": 600,
+   "x": 632,
    "y": 214,
    "facing": "down",
    "wander": 0,
@@ -332,11 +332,11 @@
    "type": "prop",
    "id": "youngcle_tv_arm",
    "image": "assets/props/tv_arm.png",
-   "x": 784,
+   "x": 802,
    "y": -548,
    "w": 12,
    "h": 320,
-   "ix": 784,
+   "ix": 802,
    "iy": -548,
    "solid": false
   },
@@ -344,13 +344,13 @@
    "type": "prop",
    "id": "youngcle_tv",
    "image": "assets/props/youngcle_tv_frame.png",
-   "x": 672,
+   "x": 690,
    "y": -250,
    "w": 236,
    "h": 144,
    "scale": 0.82,
    "foldX": 0.06,
-   "ix": 672,
+   "ix": 690,
    "iy": -250,
    "solid": false
   }

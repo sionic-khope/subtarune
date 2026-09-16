@@ -20,8 +20,8 @@ WORDS: dict[str, tuple[str, str]] = {
     'blue': ('en', 'BLUE!'), 'navy': ('en', 'NAVY!'), 'purple': ('en', 'PURPLE!'),
     'heart': ('ko', '하트!'), 'nasdf': ('en', 'nasdf!'), 'pi': ('en', 'pi!'), 'legend': ('ko', '레전드!'), 'ngaita': ('ko', '응아잇어!'),
 }
-# 마이크·로봇 질감: (한국어만 피치 다운) → PA 대역 제한 → 비트크러시(기계) → 38Hz 떨림(로봇 버즈) → 25ms 방 에코(마이크·스피커) → 라우드니스 정규화 → 앞뒤 무음 제거
-MIC = ('highpass=f=220,lowpass=f=3800,acrusher=bits=9:mode=log:aa=1:mix=0.3,tremolo=f=38:d=0.28,aecho=0.8:0.55:25:0.28,'
+# 마이크·로봇 질감: (한국어만 피치 다운) → PA 대역 제한 → 비트크러시(기계) → 38Hz 떨림(로봇 버즈) → 25ms 방 에코(마이크·스피커) → 70/150/240ms 홀 에코(사용자 “에코도 좀 추가”) → 라우드니스 정규화 → 앞뒤 무음 제거
+MIC = ('highpass=f=220,lowpass=f=3800,acrusher=bits=9:mode=log:aa=1:mix=0.3,tremolo=f=38:d=0.28,aecho=0.8:0.55:25:0.28,aecho=0.8:0.75:70|150|240:0.42|0.28|0.16,'
        'loudnorm=I=-15:TP=-1.5:LRA=6,'
        'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.02,areverse,'
        'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.06,areverse,afade=t=in:d=0.008')

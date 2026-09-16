@@ -11,7 +11,7 @@ let fails = 0;
 const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'color_' + n + '.png') }); };
 const pressC = async () => { await page.keyboard.press('KeyC'); await page.waitForTimeout(160); };
-const st = () => page.evaluate(() => { const c = window.__colorgame; if (!c) return null; const s = c.state, r = s.round; return { phase: s.phase, stage: s.stage, tvY: Math.round(s.tvY), tvOn: s.tvOn, screen: s.screen.kind, screenId: s.screen.id || null, face: s.face, talk: s.talk ? { i: s.talk.i, n: s.talk.lines.length, text: s.talk.lines[s.talk.i].text, who: s.talk.lines[s.talk.i].who } : null, round: r ? { status: r.status, i: r.i, n: r.expected.length, chaos: r.chaos, t: Math.round(r.t * 100) / 100, loops: r.loops } : null, over: s.over, cageDrop: Math.round(s.cage.drop * 100) / 100, cageFly: Math.round(s.cage.fly), camOn: s.camOn, camAlpha: Math.round(s.camAlpha * 100) / 100, camPlaying: !c.cam.paused, bang: c.bangPos(), blasting: s.blasting, blasts: s.blasts.length, hand: s.mouse.inside, press: s.hand.press > 0 }; });
+const st = () => page.evaluate(() => { const c = window.__colorgame; if (!c) return null; const s = c.state, r = s.round; return { phase: s.phase, stage: s.stage, tvY: Math.round(s.tvY), tvOn: s.tvOn, screen: s.screen.kind, screenId: s.screen.id || null, face: s.face, talk: s.talk ? { i: s.talk.i, n: s.talk.lines.length, text: s.talk.lines[s.talk.i].text, who: s.talk.lines[s.talk.i].who } : null, round: r ? { status: r.status, i: r.i, n: r.expected.length, chaos: r.chaos, t: Math.round(r.t * 100) / 100, loops: r.loops, speed: r.speed, wrongs: r.wrongs } : null, over: s.over, go: s.go > 0, active: s.active, btnDown: s.buttons.map(b => b.down > 0), cageDrop: Math.round(s.cage.drop * 100) / 100, cageFly: Math.round(s.cage.fly), camOn: s.camOn, camAlpha: Math.round(s.camAlpha * 100) / 100, camPlaying: !c.cam.paused, bang: c.bangPos(), blasting: s.blasting, blasts: s.blasts.length, hand: s.mouse.inside, press: s.hand.press > 0 }; });
 const g = () => page.evaluate(() => { const g = window.game; const e = id => g.entities.find(x => x.id === id && !x.dead); const tv = e('youngcle_tv'), cage = e('lava_cage'), j = e('arena_junhee'), y = e('arena_yongjun');
   return { map: g.mapId, dialogue: g.dialogue.running, text: g.textbox.node?.text?.slice(0, 50), px: Math.round(g.player.x), py: Math.round(g.player.y), camx: Math.round(g.camera.x), camy: Math.round(g.camera.y),
     tv: tv ? { x: Math.round(tv.x), y: Math.round(tv.y), phase: g.tvBroadcast?.phase, expr: g.tvBroadcast?.expression } : null, cage: cage ? { x: Math.round(cage.x), y: Math.round(cage.y), visible: cage.visible } : null,
@@ -22,6 +22,7 @@ const untilText = async (needle, max = 30) => { for (let i = 0; i < max; i++) { 
 // 오버레이(480×360) 좌표 → 브라우저 좌표
 const css = (x, y) => page.evaluate(([x, y]) => { const r = document.getElementById('colorgame').getBoundingClientRect(); return { x: r.left + x * r.width / 480, y: r.top + y * r.height / 360 }; }, [x, y]);
 const clickColor = async (id) => { const r = await page.evaluate((id) => { const c = window.__colorgame; const i = ['red', 'orange', 'yellow', 'green', 'blue', 'navy', 'purple'].indexOf(id); return c.buttonRect(i); }, id); const p = await css(r.x + r.w / 2, r.y + r.h / 2); await page.mouse.move(p.x, p.y); await page.waitForTimeout(60); await page.mouse.click(p.x, p.y); await page.waitForTimeout(120); };
+const RULES_CALL = 1.0;
 const waitPhase = (phase, timeout = 8000) => page.waitForFunction((p) => window.__colorgame && window.__colorgame.state.phase === p, phase, { timeout }).then(() => true).catch(() => false);
 try {
   await page.goto('http://localhost:8000/?qa=furnace_color');
@@ -46,8 +47,13 @@ try {
   check(s.phase === 'round' && s.stage === 0 && s.screen === 'color' && s.screenId === 'red', '1판: TV 화면이 빨강 + RED 글자 ' + JSON.stringify([s.phase, s.stage, s.screen, s.screenId]));
   const voices = await page.evaluate(() => ['color_red', 'color_navy', 'color_ngaita', 'furnace_blast'].map(n => !!window.game.sound.files[n]));
   check(voices.every(Boolean), '로봇 음성·폭발음 파일 로드 ' + JSON.stringify(voices));
-  // ④ 입력 차례: 손이 마우스를 따라오고 빨강을 누르면 통과, 철창은 위로
+  // 호출 중엔 버튼이 꺼져 있어 눌러도 아무 일도 없다(전에 누른 게 무시돼 다음 색이 틀렸다고 나오던 것)
+  const early = await page.evaluate(() => { const c = window.__colorgame; const r = c.press('red'); return { r: r.type, down: c.state.buttons[0].down, status: c.round.status, i: c.round.i }; });
+  check(early.r === 'ignored' && early.down === 0 && early.i === 0, '호출 중 누른 버튼은 무시되고 내려앉지도 않는다 ' + JSON.stringify(early));
+  // ④ 입력 차례: 마지막 색이 꺼지면 바로 GO! 와 함께 버튼이 켜진다. 손이 마우스를 따라오고 빨강을 누르면 통과, 철창은 위로
   await page.waitForFunction(() => window.__colorgame.round && window.__colorgame.round.status === 'answer', null, { timeout: 5000 }).catch(() => {});
+  s = await st(); check(s.round.status === 'answer' && s.go && s.round.t < RULES_CALL + 1.0, '마지막 호출 뒤 1초 안에 GO! 입력 차례 ' + JSON.stringify([s.go, s.round.t]));
+  await page.waitForTimeout(150); await cap('go');
   const r0 = await page.evaluate(() => window.__colorgame.buttonRect(0)); const p0 = await css(r0.x + r0.w / 2, r0.y + r0.h / 2);
   await page.mouse.move(p0.x - 40, p0.y - 30); await page.waitForTimeout(200); await cap('hand'); s = await st();
   check(s.hand === true, '형섭 손이 마우스를 따라온다 ' + JSON.stringify(s.hand));
@@ -58,22 +64,27 @@ try {
   await page.waitForTimeout(700); s = await st();
   check(s.cageDrop < dropMid, '통과하면 철창이 다시 위로 ' + JSON.stringify([dropMid, s.cageDrop]));
   await cap('clear');
-  // ⑤ 2판: 틀린 색을 누르면 WRONG → C 로 1판부터 다시
+  // ⑤ 2판: 틀린 색을 누르면 실패가 아니라 철창이 더 빨리 내려갈 뿐, 맞는 색부터 이어서 통과
   check(await waitPhase('round', 4000), '2판 시작'); s = await st(); check(s.stage === 1, '2판 ' + s.stage);
   await page.evaluate(() => window.__colorgame.answerNow()); await page.waitForTimeout(100);
+  const d0 = (await st()).cageDrop;
   await clickColor('blue'); s = await st();
-  check(s.phase === 'fail' && s.over === 'wrong', '틀린 색 → WRONG ' + JSON.stringify([s.phase, s.over]));
-  await page.waitForTimeout(700); await cap('wrong');
-  await pressC(); s = await st(); check(s.phase === 'round' && s.stage === 0, 'C → 1판부터 다시 ' + JSON.stringify([s.phase, s.stage]));
-  // ⑥ 시간 초과: 철창이 끝까지 내려가고 TIME OVER
+  check(s.phase === 'round' && s.round.status === 'answer' && s.round.speed === 1.5 && s.round.wrongs === 1 && s.round.i === 0, '틀린 색 → 판은 계속, 철창 속도 ×1.5 ' + JSON.stringify([s.phase, s.round]));
+  await page.waitForTimeout(600); await cap('wrong'); const d1 = (await st()).cageDrop;
+  check(d1 - d0 > 0.6 * 1.5 / 7 * 0.9, '빨라진 철창 ' + JSON.stringify([d0, d1]));
+  await clickColor('red'); await clickColor('green'); s = await st();
+  check(s.phase === 'clear' && s.stage === 1, '틀린 뒤에도 빨강·초록 순서대로 누르면 통과 ' + JSON.stringify([s.phase, s.stage]));
+  // ⑥ 시간 초과(모든 판 7초 동일): 철창이 실시간으로 끝까지 내려가고 TIME OVER 뒤 저절로 1판부터
+  check(await waitPhase('round', 4000), '3판 시작'); s = await st(); check(s.stage === 2, '3판 ' + s.stage);
   await page.evaluate(() => window.__colorgame.answerNow()); await page.waitForTimeout(3000); s = await st();
-  check(s.round && s.round.status === 'answer' && s.cageDrop > 0.5, '시간이 갈수록 철창이 내려간다 ' + JSON.stringify([s.round?.status, s.cageDrop]));
+  check(s.round && s.round.status === 'answer' && s.cageDrop > 0.35 && s.cageDrop < 0.55, '시간에 정비례해 철창이 내려간다(3초/7초) ' + JSON.stringify([s.round?.status, s.cageDrop]));
   await cap('timer');
-  check(await waitPhase('fail', 4000), '시간 초과'); s = await st(); check(s.over === 'timeout', 'TIME OVER ' + s.over);
-  await pressC();
+  check(await waitPhase('fail', 5000), '시간 초과'); s = await st(); check(s.over === 'timeout', 'TIME OVER ' + s.over);
+  await page.waitForFunction(() => window.__colorgame.state.phase === 'round' && window.__colorgame.state.stage === 0, null, { timeout: 4000 }).catch(() => {});
+  s = await st(); check(s.phase === 'round' && s.stage === 0, 'C 없이 저절로 1판부터 다시 ' + JSON.stringify([s.phase, s.stage]));
   // ⑦ 8판(광기): 카메라가 페이드인, 이상한 말이 반복되고 3초 뒤 느낌표 버튼이 좌우로
   await page.evaluate(() => window.__colorgame.skipTo(7)); await page.waitForTimeout(2200); s = await st();
-  check(s.round && s.round.chaos && s.camOn && s.camAlpha > 0.5 && s.camPlaying, '광기 판: 오른쪽 아래 카메라 페이드인·영상 재생 ' + JSON.stringify([s.camOn, s.camAlpha, s.camPlaying]));
+  check(s.round && s.round.chaos && s.camOn && s.camAlpha > 0.5 && s.camPlaying, '광기 판: 오른쪽 아래 모니터에 얼빡 카메라 페이드인·영상 재생 ' + JSON.stringify([s.camOn, s.camAlpha, s.camPlaying]));
   check(s.bang === null, '3초 전엔 느낌표 없음');
   await page.waitForFunction(() => !!window.__colorgame.bangPos(), null, { timeout: 4000 }).catch(() => {});
   const b1 = await page.evaluate(() => window.__colorgame.bangPos()); await page.waitForTimeout(250); const b2 = await page.evaluate(() => window.__colorgame.bangPos());

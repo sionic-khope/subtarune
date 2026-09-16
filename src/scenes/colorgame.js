@@ -4,10 +4,12 @@
 //   영클 TV 가 모니터암을 타고 천천히 가운데로 내려온다(여기서 색을 보여준다). 아래 78px 는 조작 콘솔: 왼쪽 아래 김형섭 얼굴(스타크래프트 초상 칸), 빨·주·노·초·파·남·보 버튼 7개(마우스로 누른다),
 //   오른쪽 아래 카메라 모니터(마지막 판에만 페이드인 — 사용자 지정 영상 12:58~13:02 얼빡 구간을 소리 없이 정사각형으로 반복).
 //   흐름: (브금 꺼진 채) 페이드인 — 쥰희 철창만 데롱데롱 → TV 드르르륵 내려옴 → 켜지며 영클 먼저(튜토리얼 대사 원문: ㅎㅇ / 튜토리얼 따위는 필요없고 / 부르는 색깔 그대로 / 제한시간안에 그를 살려라 / 준비~~ / 시작~~~!)
-//   → 2초 뒤 화면 꺼짐 → 1판부터: TV 가 색을 로봇 음성과 함께 1초에 하나씩 보여줌(화면은 그 색, 가운데 글자) → 입력 차례(제한 시간 = 철창이 천천히 내려감) → 순서대로 누르면 철창이 드르륵 올라가고 다음 판
+//   → 2초 뒤 화면 꺼짐 → 1판부터: TV 가 색을 로봇 음성과 함께 1초에 하나씩 보여줌(화면은 그 색, 가운데 글자; 그동안 버튼은 꺼져 있어 눌리지 않는다) → 마지막 색이 꺼지면 바로 ‘GO!’ 와 함께 버튼이 켜지고 입력 차례
+//   (제한 시간은 모든 판 같음 = 철창이 실시간으로 천천히 내려감; 틀린 색을 누르면 실패가 아니라 철창이 더 빨리 내려갈 뿐; 시간을 넘기면 처음부터 — 사용자 2026-09-16 규칙) → 순서대로 누르면 철창이 드르륵 올라가고 다음 판
 //   → 8판(광기): 이상한 말(하트·nasdf·pi·레전드·응아잇어)을 빠르게 섞어 계속 말하고 오른쪽 아래 카메라가 나온다 → 3초 뒤 느낌표 버튼이 좌우로 역동적으로 움직인다 → 누르면 딸깍.. 삐요오오오옹
 //   → 주변 폭발(꾸와아앙 = 델타룬 `furnace_blast`, 사용자가 고르는 중 — assets/source/furnace198/audio/README.md) → TV 켜지며 영클 “오 ㅅㅂ 이게 머노 / 정지 정지 장비를 정지 / 안대잔아 씨바”(폭발 계속) → 쥰희 “하하 꼴좋다 쓰레기색기” → 큰 폭발, 철창이 삐요옹 위로 날아감 → 페이드아웃 → 맵(뒤는 furnace_panel 컷신).
-//   틀리거나 시간 초과면 실패 → C 로 1판부터 다시. Esc 로 나감(브금 복귀). 마우스: 형섭 손이 커서를 따라다니고 클릭하면 검지가 눌린다(사용자 “형섭 손 같은 게 눌러지는 것”).
+//   시간 초과면 TIME OVER 잠깐 뒤 저절로 1판부터(‘다시’ 안내 없음, 사용자). Esc 로 나감(브금 복귀). 마우스: 형섭 손이 커서를 따라다니고 클릭하면 검지가 눌린다(사용자 “형섭 손 같은 게 눌러지는 것”).
+//   콘솔: 버튼은 글자 없는 동그라미 7개, 오른쪽 아래 모니터에 김형섭 얼굴(스타크래프트 초상) — 마지막 판엔 그 모니터에 얼빡 카메라가 페이드인. 철창은 작게(0.5배) 멀리 걸어 두고 내려가는 게 실시간으로 보이게(사용자).
 import { Input } from '../core/input.js';
 import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
@@ -37,21 +39,20 @@ const TALK_BLOWUP = [
   { who: 'youngcle', face: 'shock', text: '안대잔아 씨바' },
   { who: 'junhee', text: '하하 꼴좋다 쓰레기색기' },
 ];
-// 레이아웃: 위 282px 용광로 / 아래 78px 콘솔(초상 68 · 버튼 7 × 36 · 카메라 92)
+// 레이아웃: 위 282px 용광로 / 아래 78px 콘솔(동그라미 버튼 7 · 오른쪽 아래 모니터 72×72 = 김형섭 초상, 마지막 판엔 얼빡 카메라)
 const SCENE_H = 282;
 const CONSOLE = { y: 282, h: 78 };
-const BTN = { x0: 86, y: 296, w: 36, h: 34, gap: 6 };
-const PORTRAIT = { x: 8, y: 286, w: 68, h: 70 };
-const CAM = { x: 382, y: 262, w: 92, h: 92, fade: 1.8 };
+const BTN = { cx0: 58, step: 48, cy: 320, r: 17 };
+const MONITOR = { x: 400, y: 284, w: 72, h: 72, fade: 1.8 };
 const TV = { scale: 0.75, cx: 240, restY: 26, startY: -230, dropDur: 3.4, inset: YOUNGCLE_TV.inset };   // 프레임 288×176 → 216×132, 화면 inset [15,29,258,119]
 const POOL = { farY: 168, nearY: 262, farX0: 118, farX1: 362 };
 const FENCE = { y: 246, scale: 1.5 };
-const CAGE = { x: 356, y0: -70, scale: 0.8, drop: 44, sway: 6, period: 2.6 };   // 136×360 → 109×288, 철창 밑 y0+288=218 → 제한 시간이 다 되면 용암(262)에 닿는다
+const CAGE = { x: 392, y0: -66, scale: 0.5, drop: 84, sway: 4, period: 2.6 };   // 136×360 → 68×180(멀리 작게), 철창 밑 y0+180=114 → 제한 시간이 다 되면 84px 내려가 용암 한가운데(198)에 잠긴다
 const HAND = { tipX: 18, tipY: 2, press: 0.2 };
 const BANG = { r: 24, cx: 240, y: 118, swing: 150, speed: 2.9 };   // 느낌표 버튼: 좌우로 역동적으로
 const BLAST = { cols: 31, fw: 85, fh: 128, fps: 20, every: 0.3 };
 const TALKBOX = { x: 16, y: 260, w: 448, h: 92 };
-const CLEAR_HOLD = 1.15, POWER_ON = 0.8, COUNTDOWN = 2.0, FLICKER = 0.09, CHAR_DELAY = 0.035;
+const CLEAR_HOLD = 1.15, FAIL_HOLD = 1.4, GO_FLASH = 0.6, POWER_ON = 0.8, COUNTDOWN = 2.0, FLICKER = 0.09, CHAR_DELAY = 0.035;
 const MIX = { voice: 0.95, click: 0.55, tone: 0.22, blast: 0.5, bigBlast: 0.95 };
 
 function loadImage(src) {
@@ -86,8 +87,9 @@ class Typewriter {
   get visible() { return this.text.slice(0, this.shown); }
 }
 const easeOut = k => 1 - Math.pow(1 - k, 3);
-const buttonRect = (i) => ({ x: BTN.x0 + i * (BTN.w + BTN.gap), y: BTN.y, w: BTN.w, h: BTN.h });
-const hitButton = (x, y) => { for (let i = 0; i < COLORS.length; i++) { const r = buttonRect(i); if (x >= r.x - 2 && x < r.x + r.w + 2 && y >= r.y - 2 && y < r.y + r.h + 2) return i; } return -1; };
+const buttonCenter = (i) => ({ x: BTN.cx0 + i * BTN.step, y: BTN.cy });
+const buttonRect = (i) => { const c = buttonCenter(i); return { x: c.x - BTN.r, y: c.y - BTN.r, w: BTN.r * 2, h: BTN.r * 2 }; };
+const hitButton = (x, y) => { for (let i = 0; i < COLORS.length; i++) { const c = buttonCenter(i); if (Math.hypot(x - c.x, y - c.y) <= BTN.r + 3) return i; } return -1; };
 const bangPos = (t) => ({ x: BANG.cx + Math.sin(t * BANG.speed) * BANG.swing, y: BANG.y + Math.sin(t * BANG.speed * 2.3) * 10 });
 
 export function run(game, node = {}) {
@@ -113,7 +115,7 @@ export function run(game, node = {}) {
       stage: 0, round: null, over: null, wins: 0,
       buttons: COLORS.map(() => ({ lit: 0, down: 0 })),
       mouse: { x: -100, y: -100, inside: false }, hand: { press: 0 },
-      cage: { drop: 0, target: 0, jolt: 0, fly: 0, flyV: 0 }, portrait: { kind: 'idle', t: 0 }, flash: 0, shake: 0,
+      cage: { drop: 0, target: 0, jolt: 0, fly: 0, flyV: 0 }, portrait: { kind: 'idle', t: 0 }, flash: 0, shake: 0, go: 0, active: 0,
       camAlpha: 0, camOn: false, embers: [], bubbles: [], lavaT: 0, glitch: 0,
       bang: null, blasts: [], blasting: false, blastT: 0, blowup: null,
     };
@@ -143,27 +145,32 @@ export function run(game, node = {}) {
       setScreen('dark'); state.portrait = { kind: 'idle', t: 0 };
       if (state.round.chaos && !state.camOn) camShow(true);
     };
-    const retry = () => { sfx('confirm', 0.6); state.camOn = false; state.camAlpha = 0; state.cage.drop = 0; state.cage.target = 0; startStage(0); };
+    const retry = () => { state.camOn = false; state.camAlpha = 0; state.cage.drop = 0; state.cage.target = 0; startStage(0); };
+    // 시간 초과: 잠깐 TIME OVER → 저절로 처음부터(사용자 “다시가 나오는 게 아니고 처음부터”)
     const fail = (why) => {
-      state.over = why; state.phase = 'fail'; state.phaseT = 0; state.face = 'laugh'; setScreen('face');
+      state.over = why; state.phase = 'fail'; state.phaseT = 0; state.face = 'laugh'; setScreen('face'); state.active = 0;
       sfx('error', 0.8); state.flash = 0.5; state.shake = 0.45; state.portrait = { kind: 'bad', t: 0 };
-      if (why === 'timeout') { state.cage.jolt = 0.5; sfx('chain_extend', 0.6); }
+      state.cage.jolt = 0.5; sfx('chain_extend', 0.6);
     };
     // 판 통과: 철창이 드르륵 위로 되돌아간다(사용자 “한 라운드 클리어마다 다시 위로”)
     const clearStage = () => {
       sfx('great_shine', 0.55); state.face = 'yes'; setScreen('face'); state.phase = 'clear'; state.phaseT = 0; state.cage.target = 0;
       if (state.cage.drop > 0.08) sfx('chain_extend', 0.45);
     };
+    // 버튼: 입력 차례에만 살아 있다(호출 중엔 꺼진 채 눌리지 않음 — 그 전에 누른 게 무시돼 다음 색이 틀렸다고 나오던 것). 틀리면 실패가 아니라 철창이 빨라진다
     const press = (i) => {
       const c = COLORS[i]; if (!c) return null;
-      const b = state.buttons[i]; b.down = 0.14; state.hand.press = HAND.press;
+      state.hand.press = HAND.press;
+      if (!state.round || state.phase !== 'round' || state.round.status !== 'answer') return { type: 'ignored' };
+      const b = state.buttons[i]; b.down = 0.14;
       sfx('click', MIX.click);
-      if (!state.round || state.phase !== 'round') return { type: 'ignored' };
       const r = pressRound(state.round, c.id);
       if (r.type === 'ok' || r.type === 'clear') {
         b.lit = 0.4; sound.tone({ freq: c.tone, wave: 'square', dur: 0.16, gain: MIX.tone, cutoff: 2600 }); state.portrait = { kind: 'ok', t: 0 };
         if (r.type === 'clear') clearStage();
-      } else if (r.type === 'wrong') fail('wrong');
+      } else if (r.type === 'wrong') {
+        sfx('error', 0.55); state.flash = 0.3; state.shake = 0.2; state.portrait = { kind: 'bad', t: 0 }; state.cage.jolt = 0.35; sfx('chain_extend', 0.5);
+      }
       return r;
     };
     // 광기 판 느낌표 버튼: 딸깍.. 삐요오오오오옹 → 폭발 → TV 켜지며 영클 대사 → 쥰희 → 큰 폭발·철창 날아감 → 페이드아웃
@@ -196,9 +203,11 @@ export function run(game, node = {}) {
       state.hand.press = Math.max(0, state.hand.press - dt);
       for (const b of state.buttons) { b.lit = Math.max(0, b.lit - dt); b.down = Math.max(0, b.down - dt); }
       state.portrait.t += dt; state.cage.jolt = Math.max(0, state.cage.jolt - dt);
-      state.camAlpha = Math.max(0, Math.min(1, state.camAlpha + (state.camOn ? dt / CAM.fade : -dt * 2)));
-      // 철창: 입력 차례엔 제한 시간만큼 천천히 내려가고, 통과하면 위로 되돌아간다
-      state.cage.drop += (state.cage.target - state.cage.drop) * Math.min(1, dt * (state.cage.target > state.cage.drop ? 6 : 3));
+      state.camAlpha = Math.max(0, Math.min(1, state.camAlpha + (state.camOn ? dt / MONITOR.fade : -dt * 2)));
+      // 철창: 입력 차례엔 제한 시간에 정비례해 실시간으로 내려가고(틀리면 더 빨리), 통과하면 드르륵 위로 되돌아간다
+      if (state.cage.target > state.cage.drop) state.cage.drop = state.cage.target;
+      else state.cage.drop += (state.cage.target - state.cage.drop) * Math.min(1, dt * 3);
+      state.go = Math.max(0, state.go - dt); state.active = Math.max(0, Math.min(1, state.active + (state.round && state.round.status === 'answer' && state.phase === 'round' ? dt * 5 : -dt * 5)));
       if (state.cage.flyV) { state.cage.flyV += 900 * dt; state.cage.fly -= state.cage.flyV * dt; }
       // 용암 불티·거품
       if (Math.random() < dt * 6) state.embers.push({ x: POOL.farX0 + Math.random() * (POOL.farX1 - POOL.farX0), y: POOL.nearY - Math.random() * 60, vy: -(18 + Math.random() * 22), t: 0, dur: 1.4 + Math.random() * 1.2 });
@@ -244,7 +253,7 @@ export function run(game, node = {}) {
             sfx(`color_${e.id}`, MIX.voice);
             if (w.kind === 'noise') state.glitch = 0.3;
           }
-          if (e.type === 'answer') { setScreen('answer'); sfx('confirm', 0.35); }
+          if (e.type === 'answer') { setScreen('answer'); state.go = GO_FLASH; sfx('confirm', 0.5); }
           if (e.type === 'timeout') fail('timeout');
         }
         // 호출 색은 hold 만큼 켜졌다가 잠깐 꺼진다(같은 색 연속 구분)
@@ -254,7 +263,7 @@ export function run(game, node = {}) {
         return;
       }
       if (state.phase === 'clear') { if (state.phaseT >= CLEAR_HOLD) startStage(state.stage + 1); return; }
-      if (state.phase === 'fail') { if (confirm && state.phaseT > 0.5) retry(); return; }
+      if (state.phase === 'fail') { if (state.phaseT >= FAIL_HOLD) retry(); return; }
       if (state.phase === 'blowup') {
         const b = state.blowup, t = state.phaseT;
         if (t >= 0.45 && !b.whistle) { b.whistle = true; whistle(1.5, 320, 1500); }
@@ -264,7 +273,7 @@ export function run(game, node = {}) {
       }
       if (state.phase === 'boomcage') {
         const t = state.phaseT, b = state.blowup;
-        if (!b.big) { b.big = true; const cx = CAGE.x + 55, cy = CAGE.y0 + 250; blast(cx, cy, 1.6, MIX.bigBlast); blast(cx - 40, cy - 40, 1.2); blast(cx + 30, cy + 20, 1.1); state.shake = 0.8; state.flash = 0.6; }
+        if (!b.big) { b.big = true; const cx = CAGE.x + 34, cy = CAGE.y0 + 140; blast(cx, cy, 1.4, MIX.bigBlast); blast(cx - 30, cy - 30, 1.0); blast(cx + 24, cy + 16, 0.9); state.shake = 0.8; state.flash = 0.6; }
         if (t >= 0.35 && !b.fly) { b.fly = true; state.cage.flyV = 120; whistle(0.7, 520, 1700, 0.18); }
         if (t >= 1.5 && !b.out) { b.out = true; ov.root.style.transition = 'opacity 0.8s ease'; ov.root.style.opacity = '0'; }
         if (t >= 2.4) finish(true);
@@ -322,10 +331,10 @@ export function run(game, node = {}) {
       return { x: Math.round(CAGE.x + sway), y: Math.round(CAGE.y0 + state.cage.drop * CAGE.drop + jolt + state.cage.fly), w: Math.round(136 * CAGE.scale), h: Math.round(360 * CAGE.scale) };
     };
     const drawCage = () => {
-      const r = cageRect(), s = CAGE.scale, floorY = r.y + r.h - 13;
+      const r = cageRect(), s = CAGE.scale, floorY = r.y + r.h - Math.round(16 * s);
       if (r.y + r.h < -20) return;
       // 안의 둘(정면 정지 프레임) → 철창 그림이 앞에 덮인다
-      const who = [[img.junhee, 92, 90, r.x + 4], [img.yongjun, 68, 88, r.x + 54]];
+      const who = [[img.junhee, 92, 90, r.x + 1], [img.yongjun, 68, 88, r.x + 30]];
       for (const [h, fw, fh, sx] of who) if (ready(h)) ctx.drawImage(h.img, 0, 0, fw, fh, Math.round(sx), Math.round(floorY - fh * s), Math.round(fw * s), Math.round(fh * s));
       if (ready(img.cage)) ctx.drawImage(img.cage.img, r.x, r.y, r.w, r.h);
       else { ctx.strokeStyle = '#60f4e0'; ctx.strokeRect(r.x, r.y + 160, r.w, 128); }
@@ -354,7 +363,11 @@ export function run(game, node = {}) {
         text(wordOf(s.id).label, r.x + r.w / 2 + Math.round((Math.random() - 0.5) * 4), r.y + r.h / 2 - 16, { align: 'center', size: 32, color: '#fff' });
       } else if (s.kind === 'answer' || s.kind === 'dark') {
         ctx.fillStyle = '#0a0f16'; ctx.fillRect(r.x, r.y, r.w, r.h);
-        if (state.round && s.kind === 'answer') {
+        if (state.round && s.kind === 'answer' && state.go > 0) {
+          // 입력 차례 시작 신호(사용자 “언제부터 눌러야 하는지 불친절”): 화면이 하얗게 번쩍이며 GO!
+          ctx.fillStyle = Math.floor(state.go / 0.1) % 2 === 0 ? '#e8f6ff' : '#ffe066'; ctx.fillRect(r.x, r.y, r.w, r.h);
+          text('GO!', r.x + r.w / 2, r.y + r.h / 2 - 20, { align: 'center', size: 40, color: '#111' , shadow: false });
+        } else if (state.round && s.kind === 'answer') {
           const n = state.round.expected.length, gap = Math.min(22, Math.floor((r.w - 16) / n)), x0 = r.x + r.w / 2 - (n - 1) * gap / 2;
           for (let i = 0; i < n; i++) {
             const done = i < state.round.i, cx = Math.round(x0 + i * gap), cy = r.y + r.h / 2 + 12;
@@ -364,7 +377,8 @@ export function run(game, node = {}) {
           text(`${state.round.i} / ${n}`, r.x + r.w / 2, r.y + 10, { align: 'center', size: 24, color: '#ffe066' });
           const k = 1 - answerProgress(state.round);
           ctx.fillStyle = '#1f2a3a'; ctx.fillRect(r.x + 8, r.y + r.h - 9, r.w - 16, 4);
-          ctx.fillStyle = k < 0.3 ? '#ff4a4a' : '#60f4e0'; ctx.fillRect(r.x + 8, r.y + r.h - 9, Math.round((r.w - 16) * k), 4);
+          ctx.fillStyle = k < 0.3 || state.round.speed > 1 ? '#ff4a4a' : '#60f4e0'; ctx.fillRect(r.x + 8, r.y + r.h - 9, Math.round((r.w - 16) * k), 4);
+          if (state.round.speed > 1) text(`x${state.round.speed.toFixed(1)}`, r.x + r.w - 8, r.y + r.h - 28, { align: 'right', color: '#ff4a4a' });
         } else if (state.round && state.phase === 'round' && Math.floor(state.screenT * 4) % 2 === 0) text('. . .', r.x + r.w / 2, r.y + r.h / 2 - 12, { align: 'center', size: 24, color: '#4a5568', shadow: false });
       }
       ctx.fillStyle = 'rgba(255,255,255,0.05)'; for (let y = r.y; y < r.y + r.h; y += 3) ctx.fillRect(r.x, y, r.w, 1);
@@ -401,32 +415,35 @@ export function run(game, node = {}) {
       ctx.fillStyle = '#20262f'; ctx.fillRect(0, CONSOLE.y, SCREEN_W, CONSOLE.h);
       ctx.fillStyle = '#ffd23f'; ctx.fillRect(0, CONSOLE.y, SCREEN_W, 2); ctx.fillStyle = '#ffe27a'; ctx.fillRect(0, CONSOLE.y + 2, SCREEN_W, 1);
       ctx.fillStyle = '#151a22'; ctx.fillRect(0, SCREEN_H - 4, SCREEN_W, 4);
-      for (const x of [BTN.x0 - 8, BTN.x0 + 7 * (BTN.w + BTN.gap) + 2]) { ctx.fillStyle = '#4a5568'; ctx.fillRect(x, CONSOLE.y + 10, 3, 3); ctx.fillRect(x, SCREEN_H - 14, 3, 3); }
+      for (const x of [BTN.cx0 - BTN.r - 12, MONITOR.x - 12]) { ctx.fillStyle = '#4a5568'; ctx.fillRect(x, CONSOLE.y + 10, 3, 3); ctx.fillRect(x, SCREEN_H - 14, 3, 3); }
+      // 동그라미 버튼 7개(글자 없음): 호출 중엔 꺼져 어둡고, 입력 차례에 켜진다. 누르면 내려앉고 맞으면 환하게
+      const live = state.active;
       COLORS.forEach((c, i) => {
-        const b = state.buttons[i], r = buttonRect(i), down = b.down > 0 ? 3 : 0;
-        ctx.fillStyle = '#0f131a'; ctx.fillRect(r.x - 2, r.y - 2, r.w + 4, r.h + 4);
-        ctx.fillStyle = c.dark; ctx.fillRect(r.x, r.y + 3, r.w, r.h - 3);
-        ctx.fillStyle = c.hex; ctx.fillRect(r.x, r.y + down, r.w, r.h - 4 - down);
-        ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(r.x + 3, r.y + 2 + down, r.w - 6, 4);
-        if (b.lit > 0) { ctx.globalAlpha = Math.min(1, b.lit / 0.4) * 0.6; ctx.fillStyle = '#fff'; ctx.fillRect(r.x, r.y + down, r.w, r.h - 4 - down); ctx.globalAlpha = Math.min(1, b.lit / 0.4) * 0.35; ctx.fillStyle = c.hex; ctx.fillRect(r.x - 6, r.y - 6, r.w + 12, r.h + 12); ctx.globalAlpha = 1; }
-        text(c.ko, r.x + r.w / 2, r.y + r.h + 4, { align: 'center', color: '#cfd8e6' });
+        const b = state.buttons[i], p = buttonCenter(i), down = b.down > 0 ? 2 : 0, r = BTN.r;
+        ctx.fillStyle = '#0f131a'; ctx.beginPath(); ctx.arc(p.x, p.y + 3, r + 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = c.dark; ctx.beginPath(); ctx.arc(p.x, p.y + 3, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = c.hex; ctx.beginPath(); ctx.arc(p.x, p.y + down, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(0,0,0,${0.55 * (1 - live)})`; ctx.beginPath(); ctx.arc(p.x, p.y + down, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(255,255,255,${0.1 + 0.25 * live})`; ctx.beginPath(); ctx.arc(p.x - r * 0.3, p.y + down - r * 0.35, r * 0.4, 0, Math.PI * 2); ctx.fill();
+        if (b.lit > 0) { ctx.globalAlpha = Math.min(1, b.lit / 0.4) * 0.6; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y + down, r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = Math.min(1, b.lit / 0.4) * 0.35; ctx.fillStyle = c.hex; ctx.beginPath(); ctx.arc(p.x, p.y, r + 8, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
       });
-      const p = PORTRAIT, pr = state.portrait;
+      // 오른쪽 아래 모니터: 김형섭 초상(스타크래프트 초상 칸) — 마지막 판엔 얼빡 카메라 영상이 그 위로 페이드인(소리 없이 반복)
+      const m = MONITOR, pr = state.portrait;
       const shake = pr.kind === 'bad' && pr.t < 0.5 ? Math.round(Math.sin(pr.t * 60) * 2) : 0, bounce = pr.kind === 'ok' && pr.t < 0.18 ? -2 : 0;
-      ctx.fillStyle = '#0f131a'; ctx.fillRect(p.x - 2, p.y - 2, p.w + 4, p.h + 4);
-      ctx.fillStyle = '#39465a'; ctx.fillRect(p.x, p.y, p.w, p.h); ctx.fillStyle = '#0b1420'; ctx.fillRect(p.x + 3, p.y + 3, p.w - 6, 52);
-      if (ready(img.portrait)) ctx.drawImage(img.portrait.img, p.x + 10 + shake, p.y + 5 + bounce, 48, 48);
-      if (pr.kind === 'bad' && pr.t < 0.6) { ctx.fillStyle = 'rgba(255,40,40,0.35)'; ctx.fillRect(p.x + 3, p.y + 3, p.w - 6, 52); }
-      ctx.fillStyle = '#1b2230'; ctx.fillRect(p.x + 3, p.y + 55, p.w - 6, 12);
-      text('김형섭', p.x + p.w / 2, p.y + 53, { align: 'center', color: '#ffe066', shadow: false });
+      ctx.fillStyle = '#0f131a'; ctx.fillRect(m.x - 2, m.y - 2, m.w + 4, m.h + 4);
+      ctx.fillStyle = '#39465a'; ctx.fillRect(m.x, m.y, m.w, m.h);
+      const vx = m.x + 3, vy = m.y + 3, vw = m.w - 6, vh = m.h - 6;
+      ctx.fillStyle = '#0b1420'; ctx.fillRect(vx, vy, vw, vh);
+      if (ready(img.portrait)) ctx.drawImage(img.portrait.img, m.x + 12 + shake, m.y + 4 + bounce, 48, 48);
+      if (pr.kind === 'bad' && pr.t < 0.6) { ctx.fillStyle = 'rgba(255,40,40,0.35)'; ctx.fillRect(vx, vy, vw, vh); }
+      ctx.fillStyle = '#1b2230'; ctx.fillRect(vx, m.y + 53, vw, 14);
+      text('김형섭', m.x + m.w / 2, m.y + 52, { align: 'center', color: '#ffe066', shadow: false });
       if (state.camAlpha > 0) {
-        const c = CAM; ctx.globalAlpha = state.camAlpha;
-        ctx.fillStyle = '#0f131a'; ctx.fillRect(c.x - 2, c.y - 2, c.w + 4, c.h + 4); ctx.fillStyle = '#2a3140'; ctx.fillRect(c.x, c.y, c.w, c.h);
-        const vx = c.x + 4, vy = c.y + 4, vw = c.w - 8, vh = c.h - 8;
+        ctx.globalAlpha = state.camAlpha;
         ctx.fillStyle = '#000'; ctx.fillRect(vx, vy, vw, vh);
         if (cam.readyState >= 2) { try { ctx.drawImage(cam, vx, vy, vw, vh); } catch (e) { /* */ } }
         ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let y = vy; y < vy + vh; y += 3) ctx.fillRect(vx, y, vw, 1);
-        if (Math.floor(state.t * 2) % 2 === 0) { ctx.fillStyle = '#ff2b2b'; ctx.fillRect(vx + 5, vy + 5, 5, 5); }
+        if (Math.floor(state.t * 2) % 2 === 0) { ctx.fillStyle = '#ff2b2b'; ctx.fillRect(vx + 4, vy + 4, 5, 5); }
         ctx.globalAlpha = 1;
       }
     };
@@ -441,9 +458,8 @@ export function run(game, node = {}) {
     const drawHud = () => {
       if (state.round && state.phase === 'round') text(`ROUND ${state.stage + 1} / ${STAGES.length}`, 8, 6, { color: '#ffe066' });
       if (state.phase === 'fail') {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 96, SCREEN_W, 78);
-        text(state.over === 'timeout' ? 'TIME OVER' : 'WRONG', SCREEN_W / 2, 104, { align: 'center', size: 32, color: '#ff4a4a' });
-        if (Math.floor(state.t * 2) % 2 === 0) text('C  다시', SCREEN_W / 2, 146, { align: 'center', color: '#cfd8e6' });
+        ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 100, SCREEN_W, 52);
+        text('TIME OVER', SCREEN_W / 2, 108, { align: 'center', size: 32, color: '#ff4a4a' });
       }
       if (state.flash > 0) { ctx.fillStyle = `rgba(255,${state.blasting ? 160 : 40},40,${Math.min(0.5, state.flash)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
     };
@@ -471,7 +487,7 @@ export function run(game, node = {}) {
     raf = requestAnimationFrame(frame);
     // QA 훅: 상태 읽기·버튼 누르기(색 id)·판 건너뛰기·호출 생략·느낌표 위치·통과
     window.__colorgame = {
-      state, finish, retry, press: (id) => press(COLORS.findIndex(c => c.id === id)), clickAt, buttonRect, hitButton, camRect: () => ({ ...CAM }), tvRect, screenRect, cageRect,
+      state, finish, retry, press: (id) => press(COLORS.findIndex(c => c.id === id)), clickAt, buttonRect, buttonCenter, hitButton, monitorRect: () => ({ ...MONITOR }), tvRect, screenRect, cageRect,
       bangPos: () => (state.bang ? bangPos(state.bang.t) : null), passNow, talkbox: { ...TALKBOX },
       get round() { return state.round; }, get cam() { return cam; }, get typer() { return typer; },
       skipTo(stage) { state.talk = null; state.tvY = TV.restY; state.tvOn = 1; startStage(stage); },

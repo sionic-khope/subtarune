@@ -30,7 +30,7 @@
 //  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
-//  { hop:..., spin?:2, keep?:true } 소품도 날린다(빙글 회전, 끼임 보정 생략)   { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { fling:id, vx, vup, spin?, gravity?, duration?, sfx? } 속도·중력으로 튀어나가 사라짐(동상 펑)   { emote:id, kind:'!'|'sweat', duration?, hold? } 머리 위 느낌표/식은땀   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
+//  { hop:..., spin?:2, keep?:true } 소품도 날린다(빙글 회전, 끼임 보정 생략)   { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { fling:id, vx, vup, spin?, gravity?, duration?, sfx? } 속도·중력으로 튀어나가 사라짐(동상 펑)   { emote:id, kind:'!'|'sweat', duration?, hold?, sfx? } 머리 위 느낌표/식은땀('!' 은 기본 chime, 동시 여러 명이면 한 번)   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed' }              즉시 맵 교체 (앞뒤로 fade 를 붙일 것)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -216,8 +216,14 @@ export function makeWaiter(game, node) {
   }
   if (node.emote) {                                    // { emote:id, kind:'!'|'sweat', duration?:1.0, hold?:0.5, sfx? } 머리 위 이모트. hold 만큼 기다리고 다음으로(이모트는 duration 동안 남는다)
     const e = findEntity(game, node.emote); if (!e) return done;
-    e.emote = { kind: node.kind || '!', text: node.labelText, color: node.color, size: node.size, anchor: node.anchor, offsetY: node.offsetY, t: 0, life: node.duration ?? 1.0 };
-    if (node.sfx) game.sound.sfx(node.sfx);
+    const kind = node.kind || '!';
+    e.emote = { kind, text: node.labelText, color: node.color, size: node.size, anchor: node.anchor, offsetY: node.offsetY, t: 0, life: node.duration ?? 1.0 };
+    // 느낌표는 기본으로 띠링(chime) — 안 적어서 무음이던 연출이 반복됨(사용자 2026-09-16 “느낌표에 왜 자꾸 소리 안 내냐”). 여러 명이 동시에(parallel) 띄우면 0.1초 안엔 한 번만. sfx:false 로 끌 수 있다
+    const sfxName = node.sfx === undefined ? (kind === '!' ? 'chime' : null) : node.sfx;
+    if (sfxName) {
+      const now = performance.now();
+      if (sfxName !== 'chime' || !(game._lastEmoteChime > now - 100)) { game._lastEmoteChime = now; game.sound.sfx(sfxName); }
+    }
     let t = 0; return { update: (dt) => { t += dt; return t >= (node.hold ?? 0.5); } };
   }   // (sfx 키를 같이 쓰므로 { sfx } 분기보다 앞에)
   if (node.pulse) {                                    // { pulse:'red', times?:3, every?:0.4 } 화면이 붉게 번쩍번쩍(사이렌 — 청록숲9 레드). 낙석 피격의 hurt 오버레이를 재사용, 대사 중에도 돈다({async} 로)

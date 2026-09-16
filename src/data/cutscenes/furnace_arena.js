@@ -9,12 +9,15 @@ import { FX } from '../fx.js';
 
 const JID = 'arena_junhee', YID = 'arena_yongjun', CAGE = 'lava_cage', TVID = 'youngcle_tv', ARM = 'youngcle_tv_arm';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
-// 맵 좌표(tools/maps/youngcle18.py): TV 홈 = 웅덩이 오른쪽 끝(사용자 “오른쪽 끝에 세워두는 게 맞는 듯” — 인사·규칙·대기 전부 여기), 조롱 때만 철창 왼쪽(쥰희가 왼쪽을 보며 찬다).
-// 철창은 웅덩이 오른쪽 부분(x520, 136 폭)에 매달려 화면 오른쪽 위에서 보이며 내려온다. TV 는 0.82 배, 접힌 채(foldX 0.06) 내려와 펼쳐진다(갤럭시 폴드)
-const TV_HOME = [672, 110], TV_LEFT = [272, 60], TV_FOLDED = 0.06, ARM_DX = 112, ARM_DY = -298;
+// 맵 좌표(tools/maps/youngcle18.py): 인사·규칙은 TV 가 **일행 앞 가운데**(TV_FRONT, 사용자 2026-09-16 “이때는 가운데에 뜨는 게 맞지”)로 내려오고,
+// 조롱 때만 철창 왼쪽(TV_LEFT, 쥰희가 왼쪽을 보며 찬다), 마지막 팔짱 대기만 오른쪽 끝(TV_HOME, 사용자 “살짝 오른쪽에서 대기”).
+// 일행은 울타리 5번 칸(x432) 앞에 서고 철창은 웅덩이 오른쪽 끝(x552, 136 폭)에 매달려 TV_FRONT 와 겹치지 않는다. TV 는 0.82 배, 접힌 채(foldX 0.06) 내려와 펼쳐진다(갤럭시 폴드)
+// TV 그림 폭 236(0.82 배): 앞자리 300~536 은 철창(552~)과 안 겹치고 일행 가운데(432) 위. 대기 690 은 철창 오른쪽
+const TV_FRONT = [300, 100], TV_HOME = [690, 110], TV_LEFT = [300, 60], TV_FOLDED = 0.06, ARM_DX = 112, ARM_DY = -298;
 // 색깔 게임 뒤(사용자 브리핑): TV 가 웅덩이 가운데(x480)로 내려오고 모두 그 아래 모여 본다. 쥰희·용준은 폭발로 철창에서 튀어나와 울타리 앞 바닥에 선다
 const TV_CENTER = [383, 96], GATHER_Y = 40;
-const GATHER = { player: -60, gyeongsub: -104, ppaman: -16, [JID]: -150, [YID]: 30 };
+// 주인공은 아래 문 기둥(x448~544) 안(468)에 서야 연출 뒤 그대로 내려가 나갈 수 있다
+const GATHER = { player: 36, gyeongsub: -8, ppaman: 80, [JID]: -60, [YID]: 124 };
 const CAM_GATHER = { camera: [15, 6.4], duration: 0.7 };
 // 철창 낙하·탈출: 둘이 내려앉는 울타리 앞 바닥(y≈284)이 대화창 위 230px 안에 들어오게 카메라를 아래로(레이아웃 예산)
 const CAM_DROP = { camera: [17.5, 10.2], duration: 0.6 };
@@ -30,22 +33,22 @@ const V = (text, expression = 'smirk') => [
 const close = { action: game => game.textbox.close() };
 const ent = (game, id) => game.entities.find(e => e.id === id && !e.dead);
 const bang = ids => ({ parallel: ids.map(id => ({ emote: id, kind: '!', duration: 1.1, hold: 0.45 })) });
-const FENCE = 'lava_fence_8';   // 울타리 가운데(살짝 오른쪽) 칸 — 일행 자리의 기준물(오른쪽 끝 TV 와 한 화면에)
+const FENCE = 'lava_fence_5';   // 울타리 왼쪽 가운데 칸(x416~448) — 일행 자리의 기준물(앞에 TV, 오른쪽에 철창이 한 화면에)
 const setPos = (e, x, y) => { e.x = x; e.y = y; if (e.def.ix !== undefined) { e.def.ix = x; e.def.iy = y; } };
 // TV: (x,y) 최종 자리의 360px 위(화면 밖)에 접힌 프레임·모니터암(프레임 안으로 22px 겹침)을 두고 드르르륵 내려온 뒤 펼쳐진다 / 접혀서 올라간다
 const tvPlace = ([x, y]) => ({ action: game => { const tv = ent(game, TVID), arm = ent(game, ARM); setPos(tv, x, y - 360); tv.def.foldX = TV_FOLDED; setPos(arm, x + ARM_DX, y - 360 + ARM_DY); } });
-const tvDown = (dur = 2.0) => [
+const tvDown = (dur = 1.6) => [
   { parallel: [{ slide: TVID, by: [0, 360], duration: dur, sfx: 'rumble' }, { slide: ARM, by: [0, 360], duration: dur }] },
   { fold: TVID, to: 1, duration: 0.55, sfx: 'plug' },
 ];
-const tvUp = (dur = 1.1) => [
+const tvUp = (dur = 0.9) => [
   { fold: TVID, to: TV_FOLDED, duration: 0.45, sfx: 'click' },
   { parallel: [{ slide: TVID, by: [0, -360], duration: dur, sfx: 'rumble' }, { slide: ARM, by: [0, -360], duration: dur }] },
 ];
 const tvOn = [{ action: game => game.tvBroadcast.power(true) }, { wait: TV.powerTime }];
 const tvOff = [close, { action: game => game.tvBroadcast.power(false) }, { wait: TV.shutdownTime }];
 // 카메라: 일행(왼쪽 아래) + 오른쪽 끝 TV / 철창이 화면 오른쪽 위에서 내려옴 / 철창 + 왼쪽 TV(조롱) / 밧줄
-const CAM_PARTY = { camera: [21, 6.6], duration: 0.6 }, CAM_CAGE = { camera: [13.5, 4.8], duration: 0.6 }, CAM_MOCK = { camera: [14.5, 4.5], duration: 0.6 }, CAM_ROPE = { camera: [18.5, 2.4], duration: 0.5 };
+const CAM_PARTY = { camera: [16, 6.6], duration: 0.6 }, CAM_CAGE = { camera: [15.5, 4.8], duration: 0.6 }, CAM_MOCK = { camera: [15.6, 4.5], duration: 0.6 }, CAM_ROPE = { camera: [19.4, 2.4], duration: 0.5 }, CAM_PARK = { camera: [20.4, 6.6], duration: 0.6 };
 // 좌우 데롱데롱: 철창 소품이 흔들리고 carry(쥰희·용준)가 같이 실려 움직인다
 const cageSway = { action: game => { const c = ent(game, CAGE); if (c) { c.def.oscillate = { dx: 10, period: 2.4 }; c.base = undefined; } } };
 
@@ -67,8 +70,8 @@ export const furnace_arena_intro = Object.assign([
   bang(PARTY),
   // 위에서 티비가 천천히 드르르륵 모니터암처럼 내려오고(접힌 채) — 캐릭터들은 뒷걸음(위를 본 채 미끄러져 물러남) — 내려온 뒤 펼쳐진다
   CAM_PARTY,
-  tvPlace(TV_HOME),
-  { parallel: [tvDown(2.2)[0], ...PARTY.map(id => ({ slide: id, by: [0, 36], duration: 1.3 }))] },
+  tvPlace(TV_FRONT),
+  { parallel: [tvDown(1.8)[0], ...PARTY.map(id => ({ slide: id, by: [0, 36], duration: 1.3 }))] },
   tvDown()[1],
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
   ...tvOn,
@@ -103,7 +106,7 @@ export const furnace_arena_intro = Object.assign([
   ...tvOff, ...tvUp(),
   tvPlace(TV_LEFT),
   CAM_MOCK,
-  ...tvDown(1.6),
+  ...tvDown(1.3),
   ...tvOn,
   ...V('혀어엉 살려줘요홍홍홍홍', 'taunt'),
   ...V('불쌍한 우리 친구들', 'smirk'),
@@ -121,11 +124,11 @@ export const furnace_arena_intro = Object.assign([
   { bubble: [JID, YID], dots: 3, gap: 0.3, hold: 0.7 },
   J('느금마'),
   ...V('자 그럼 이제 너희에게 규칙을 알려주겠다.', 'smirk'),
-  // 티비가 접히고 다시 주인공쪽으로 카메라, 티비가 오른쪽 끝(홈)으로 다시 내려온다
+  // 티비가 접히고 다시 주인공쪽으로 카메라, 티비가 일행 앞으로 다시 내려온다
   ...tvOff, ...tvUp(),
   CAM_PARTY,
-  tvPlace(TV_HOME),
-  ...tvDown(1.6),
+  tvPlace(TV_FRONT),
+  ...tvDown(1.3),
   ...tvOn,
   ...V('옆에 조작 패널이 보이는가? 나랑 게임하나 할거다'),
   ...V('바로 색깔을 기억해라 ~~ 파피플레이타임2 해봤으면 기억날거임 ㅇㅇ', 'laugh'),
@@ -140,12 +143,14 @@ export const furnace_arena_intro = Object.assign([
   P('..네'),
   ...V('ㅋㅋ', 'laugh'),
   ...V('그럼 준비가 되면 패널을 잡으렴 게이들아 오홍홍홍', 'taunt'),
-  // 영클 티비가 접히고 살짝 오른쪽에서 팔짱 끼고 대기(smirk = 팔짱 포즈), 주인공으로 돌아옴
+  // 영클 티비가 접히고 살짝 오른쪽(오른쪽 끝)에서 팔짱 끼고 대기(smirk = 팔짱 포즈) — 카메라가 따라갔다가 주인공으로 돌아옴
   ...tvOff, ...tvUp(),
   tvPlace(TV_HOME),
+  CAM_PARK,
   { action: game => game.tvBroadcast.setExpression('smirk') },
-  ...tvDown(1.4),
+  ...tvDown(1.2),
   ...tvOn,
+  { wait: 0.4 },
   { camera: 'player' },
   { set: { furnace_arena_intro_done: true } },
   { regroup: true },
