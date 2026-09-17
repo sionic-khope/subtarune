@@ -24,9 +24,9 @@ export const ENEMIES = {
     projectiles: { warship: 'assets/props/youngcle-warship.png' },   // youngcle_ship: 유도 함선(흰 도트)
     lines: { appear: '* 영클이 비행 장치 위에서 내려다본다.', idle: ['* 영클의 비행 장치가 웅웅거린다.'], die: '* 영클이 물러났다.', speak: ['ㅋㅋ', '즐', '죽어라 게이야', '후후후후'] },   // ‘죽어라 게이야’·‘후후후후’ 추가(사용자 2026-09-17 “ㅋㅋ만 있지 말고”)
   },
-  // 변신 영클(BUILD214, TV 머리·긴 팔다리 — gpt youngcle-tvform-v2 → enemies/youngcle-tvform-battle-idle.png 256 셀, 키 ≈230px): 공격 버튼이 없어 때릴 수 없다 — [승부하기(VS)][코인벌기][아이템](support/youngcle-tvform.js)
+  // 변신 영클(BUILD214/215, TV 머리·굵은 팔다리 — gpt youngcle-tvform-v3 → enemies/youngcle-tvform-battle-idle.png 256 셀, 키 ≈230px): 보통 [공격하기][아이템], 적 턴은 코인 패턴 6종(코인 = 회복, support/youngcle-tvform.js). hp 120 ≈ 평타 한 대 5 × 셋 → 8라운드(6패턴을 다 본다)
   youngcle_tvform: {
-    name: '영클', hp: 30, damage: 15, money: 0, boss: true, support: 'youngcle_tvform', voice: 'youngcle',
+    name: '영클', hp: 120, damage: 15, money: 0, boss: true, support: 'youngcle_tvform', voice: 'youngcle',
     sheet: { src: 'assets/enemies/youngcle-tvform-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 160, px: 1 },
     pivot: [128, 246], scale: 1, dx: -14, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 2, period: 2.4 },
     patterns: [{ type: 'coin_lasers' }],

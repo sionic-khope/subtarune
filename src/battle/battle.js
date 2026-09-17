@@ -198,7 +198,7 @@ export class Battle {
     const live = this.living(); const e = live[Math.floor(this.rnd() * Math.max(1, live.length))]; const idle = this.support?.idleFor?.(e) || e?.def.lines?.idle || [];
     this.setText(idle.length ? idle[Math.floor(this.rnd() * idle.length)] : '');   // 잡담 문구는 행동 선택 화면([공격하기][아이템])과 같은 패널에 공존 (사용자 2026-09-10)
   }
-  /** 행동 창 버튼 목록: 지원 모듈이 buttons() 를 주면 그대로(변신 영클: [승부하기(VS)][코인벌기][아이템], BUILD214), 아니면 [공격하기][아이템] + 해금된 지원 버튼(아이디어·대포) */
+  /** 행동 창 버튼 목록: 지원 모듈이 buttons() 를 주면 그대로(kind fight/item/support), 아니면 [공격하기][아이템] + 해금된 지원 버튼(아이디어·대포) */
   menuButtons() {
     const custom = this.support?.buttons?.(); if (custom) return custom;
     const list = [{ label: L.battle_fight, kind: 'fight', enabled: true }, { label: L.battle_item, kind: 'item', enabled: true }];
@@ -216,7 +216,7 @@ export class Battle {
       if (btn.kind === 'fight') { this.state = 'target'; this.targetIdx = 0; this.t = 0; }
       else if (btn.kind === 'support') {
         const action = this.support?.action(btn.id);
-        if (action?.type === 'text') { this.setText(action.text); this.state = 'text'; this.after = 'menu'; this.t = 0; }   // 승부하기: 규칙 전엔 문구만
+        if (action?.type === 'text') { this.setText(action.text); this.state = 'text'; this.after = 'menu'; this.t = 0; }   // 문구만 보여 주고 메뉴로
         else if (action) { this.plans = [action]; this.beginAct(); }
         else this.setText(this.support.hint);
       } else { const items = plainItems(this.game.inventory); if (!items.length) { this.setText(L.battle_no_items); this.state = 'text'; this.after = 'menu'; this.t = 0; } else { this.state = 'item'; this.itemIdx = 0; this.t = 0; } }
@@ -282,7 +282,7 @@ export class Battle {
     }
     const plan = this.plans[this.actIdx++];
     if (plan.member.down) return;
-    if (plan.type === 'skip') { this.actWait = 0.25; return; }   // 코인벌기(BUILD214): 이 턴은 넘기고 적 턴에 코인 패턴
+    if (plan.type === 'skip') { this.actWait = 0.25; return; }   // 턴 넘기기(지원 버튼)
     if (plan.type === 'item') { this.useItem(plan.target || plan.member, plan.name, plan.member); this.actWait = 0.6; return; }
     let target = plan.target; if (target.dead || target.dying > 0) target = this.targets()[0]; if (!target) return;
     plan.target = target;
@@ -399,7 +399,7 @@ export class Battle {
     }
     for (const b of this.bullets) {
       b.update(dt, this.board);
-      if (b.pickup) { if (!b.taken && Math.hypot(b.x - this.soul.x, b.y - this.soul.y) <= b.r + this.soul.r) { b.taken = true; this.support?.onPickup?.(b); } continue; }   // 코인(BUILD214): 닿으면 줍는다, 피해 없음
+      if (b.pickup) { if (!b.taken && Math.hypot(b.x - this.soul.x, b.y - this.soul.y) <= b.r + this.soul.r) { b.taken = true; this.support?.onPickup?.(b); } continue; }   // 줍는 탄(코인, BUILD214/215): 닿으면 support.onPickup(회복), 피해 없음
       if (this.soul.invuln <= 0 && b.hits(this.soul)) this.hurtParty(b.dmg);
     }
     this.bullets = this.bullets.filter((b) => !b.taken && !b.out(this.board));
@@ -673,8 +673,6 @@ export class Battle {
     ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top';
   }
   roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); }
-  /** VS 로고 배지(승부하기 버튼, BUILD214): 빨간 사각에 흰 VS */
-  drawVsBadge(ctx, x, y) { ctx.save(); ctx.fillStyle = '#d92b2b'; ctx.fillRect(x, y, 22, 14); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, 21, 13); const f = ctx.font; ctx.font = f.replace(/^\d+px/, '11px'); ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('VS', x + 3, y + 1); ctx.font = f; ctx.restore(); }
   hpBar(ctx, x, y, w, hp, max, col, bg) { ctx.fillStyle = bg; ctx.fillRect(x, y, w, 9); ctx.fillStyle = col; ctx.fillRect(x, y, Math.round(w * hp / max), 9); }
   /** 행동 선택 패널(y 246~318, 델타룬 전투 참고):
    *  menu   — 위 두 줄 잡담 문구 + 아랫줄 현재 멤버 이름과 [공격하기][아이템] 상자 버튼(글자보다 넓게)
@@ -689,16 +687,14 @@ export class Battle {
       const by = 292; ctx.fillStyle = '#ffe066'; ctx.fillText(m.name, 36, by + 2);                    // 누구 차례인지
       let bx = 36 + Math.ceil(ctx.measureText(m.name).width) + 16;
       const buttons = this.menuButtons();
-      buttons.forEach(({ label, enabled, icon, vs }, k) => { const wide = icon || vs; const bw = Math.ceil(ctx.measureText(label).width) + (wide ? 44 : 30), bh = icon ? 24 : 20; const sel = this.menuIdx === k;
+      buttons.forEach(({ label, enabled, icon }, k) => { const bw = Math.ceil(ctx.measureText(label).width) + (icon ? 44 : 30), bh = icon ? 24 : 20; const sel = this.menuIdx === k;
         ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
         if (icon) this.drawIcon(ctx, icon, bx + 18, by + 4);
-        if (vs) this.drawVsBadge(ctx, bx + 6, by + 3);                                            // 승부하기(VS 로고, BUILD214)
         if (icon && this.support?.requiredHits) {
           const step = Math.floor((bw - 12) / this.support.requiredHits);
           for (let i = 0; i < this.support.requiredHits; i++) { ctx.fillStyle = i < this.support.charge ? '#ffe066' : '#45404d'; ctx.fillRect(bx + 6 + i * step, by + 20, step - 2, 2); }
         }
-        ctx.fillStyle = !enabled ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + (wide ? 32 : 18), by + 2); if (sel) this.heart(ctx, bx + 6, by + 6); bx += bw + 8; });
-      if (this.support?.hud) { ctx.textAlign = 'right'; ctx.fillStyle = '#ffe066'; ctx.fillText(this.support.hud, 444, by + 2); ctx.textAlign = 'left'; }   // 코인 수(BUILD214)
+        ctx.fillStyle = !enabled ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + (icon ? 32 : 18), by + 2); if (sel) this.heart(ctx, bx + 6, by + 6); bx += bw + 8; });
     } else if (this.state === 'target') {                          // 델타룬 FIGHT: 적 목록 + HP 바, 하트 커서
       this.targets().forEach((e, i) => { const y = row(i), sel = i === this.targetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, 54, y);
         this.hpBar(ctx, 250, y + 4, 90, e.hp, e.maxHp, '#4cd964', '#7a1b1b'); ctx.fillStyle = '#fff'; ctx.fillText(`${e.hp}/${e.maxHp}`, 350, y); });
