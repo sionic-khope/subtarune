@@ -8,6 +8,8 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { BUILD } from '../main.js';
 import L from '../data/locale/ko.js';
 import { QA_POINTS } from '../core/story.js';
+// 메뉴에 보이는 QA 지점: hidden 은 뺀다(?qa= 주소로는 그대로 간다 — 재입장 검사용 대치 상태 같은 것)
+const QA_MENU = QA_POINTS.filter(p => !p.hidden);
 
 const GLYPHS = {
   s: [
@@ -140,13 +142,13 @@ export class TitleScreen {
   static QA_ROWS = 8;      // 한 번에 보이는 줄 수 (22px × 8 = 176px, 상자 안)
   /** QA 목록: 커서가 창 밖으로 나가면 창(top)을 민다 — 목록이 길어져도 상자 밖으로 안 나간다 (2026-09-10 '밑이 뚫린다') */
   _qaScroll() {
-    const q = this.qa, n = QA_POINTS.length, R = TitleScreen.QA_ROWS;
+    const q = this.qa, n = QA_MENU.length, R = TitleScreen.QA_ROWS;
     if (q.i < q.top) q.top = q.i;
     if (q.i >= q.top + R) q.top = q.i - R + 1;
     q.top = Math.max(0, Math.min(q.top, Math.max(0, n - R)));
   }
   _drawQa(ctx) {
-    const q = this.qa, n = QA_POINTS.length, R = TitleScreen.QA_ROWS, ROW = 22;
+    const q = this.qa, n = QA_MENU.length, R = TitleScreen.QA_ROWS, ROW = 22;
     const bx = 40, by = 40, bw = SCREEN_W - 80, bh = SCREEN_H - 80, listY = 82;
     ctx.fillStyle = 'rgba(0,0,0,0.96)'; ctx.fillRect(bx, by, bw, bh);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
@@ -157,7 +159,7 @@ export class TitleScreen {
     ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, listY - 4, bw - 4, R * ROW + 4); ctx.clip();   // 목록은 창 안에서만
     for (let k = 0; k < R; k++) {
       const i = q.top + k; if (i >= n) break;
-      const pt = QA_POINTS[i], y = listY + k * ROW, on = i === q.i;
+      const pt = QA_MENU[i], y = listY + k * ROW, on = i === q.i;
       // 긴 설명은 상자 오른쪽 여백 앞에서 말줄임 — 글자가 테두리에 걸려 잘린 채 보이지 않게 (2026-09-14 '마지막 QA 지점 화면 깨짐')
       const maxW = bx + bw - 32 - (bx + 40);
       let label = `${pt.id}  —  ${pt.desc}`;
@@ -232,10 +234,10 @@ export class TitleScreen {
       return;
     }
     if (this.qa) {                                                 // QA 바로가기 목록
-      if (input.just('up')) { this.qa.i = (this.qa.i + QA_POINTS.length - 1) % QA_POINTS.length; this._qaScroll(); this.game.sound.sfx('menu'); }
-      if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_POINTS.length; this._qaScroll(); this.game.sound.sfx('menu'); }
+      if (input.just('up')) { this.qa.i = (this.qa.i + QA_MENU.length - 1) % QA_MENU.length; this._qaScroll(); this.game.sound.sfx('menu'); }
+      if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_MENU.length; this._qaScroll(); this.game.sound.sfx('menu'); }
       if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
-      if (input.just('confirm')) { const pt = QA_POINTS[this.qa.i]; this._leave(() => { this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
+      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; this._leave(() => { this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
       return;
     }
     if (input.just('qa')) { this.qa = { i: 0, top: 0 }; this.game.sound.sfx('menu'); return; }

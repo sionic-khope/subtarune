@@ -31,3 +31,4 @@
 - 대사 원문 그대로. 편집노조는 `편집▩조`(노 모자이크), 악당은 `{c=red}`. 영클 초상은 TV 표정 그림(smirk 기본, ㅋㅋ/훗훗훗 laugh, 째려봄 glare, 나와라/즐 taunt).
 - 전투 시작 연출은 표준 조우 진입 그림(battle_start·브금 끔·진동·소용돌이·줌·검게)까지. 전투는 다음 명령 — 지금은 화면이 돌아오고 대치 상태(`ship_intro_done`)로 남는다. 재입장 `after` 라벨이 같은 상태를 복원.
 - 내가 고른 것: 브금 `storage_show`(영클 테마), 대포 소리 scrape/boom/cannon_puff/impact, 엔진 ember/whoosh, 버튼 click. 바꾸려면 말씀.
+- 정정(2026-09-17 사용자 “용준이 대포 쏠 때도 효과음 나야지”): 용준 쪽 포탄은 대포 그림 없이 가운데서 날아오지만 발사음(`cannon_guard_fire`·`boom`)은 쥰희 때와 같이 난다.

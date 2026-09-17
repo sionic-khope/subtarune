@@ -54,6 +54,8 @@ try {
   const ballMax = await page.evaluate(() => { clearInterval(window.__bt); return window.__ballMax; });
   check(ballMax > 880 && ballMax <= 928, '포탄이 사람을 벽 앞까지 밀고(오른쪽 끝 ≈908) 벽(928)을 넘지 않는다 ' + ballMax);
   check(hit2 && s.yj.x === 900 && s.yj.pose === 'lying' && !s.ball2, '용준도 가운데서 온 포탄에 맞아 쥰희 옆에 쓰러짐(900, 눕기), 포탄 사라짐 ' + JSON.stringify([s.yj, s.ball2]));
+  const sfxY = await page.evaluate(() => window.__sfx.slice());
+  check(sfxY.filter(n => n === 'cannon_guard_fire').length >= 2 && sfxY.filter(n => n === 'boom').length >= 2, '용준 쪽 포탄도 발사 소리(cannon_guard_fire·boom 두 번째) — 2026-09-17 사용자 ' + JSON.stringify([sfxY.filter(n => n === 'cannon_guard_fire').length, sfxY.filter(n => n === 'boom').length]));
   // ④ 셋 가운데로 → 영클 ㅋㅋ → 브금 → 앞으로 내려오고 뒷걸음
   s = await untilText('ㅋㅋ'); check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_laugh' && s.px === 468 && s.py === 330, '셋이 가운데(468,330)로 → 영클 “ㅋㅋ”(웃는 초상) ' + JSON.stringify([s?.px, s?.py, s?.portrait]));
   await advance();

@@ -369,11 +369,13 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_bridge', desc: '엄청대박인
   map: 'youngcle19', spawn: 'bottom', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control', desc: '엄청대박인배 조종실 입장 연출 (대포 → 쥰희·용준 → 영클 → 철창·오방순·나람 → 전투 시작)',
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control_after', desc: '조종실: 보스전·가재맨 연출 뒤 대치 상태(변신 영클)',
-  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_tvform_battle', desc: '변신 영클 전투 직행 (편집노조 흡수 인트로 → 공격 버튼 소멸·VS 승부하기 → 코인벌기 6패턴)',
-  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party], script: 'ship_tvform_battle_qa' });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_aftermath', desc: '조종실 보스전 뒤 연출 직행 (쥰희 웃음 → 영클 “안돼” → 어둠·가재맨 → 영클 변신 → 전투 시작 연출)',
-  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true }, party: [...parkWonCheckpoint.party] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_battle', desc: '조종실 전투 직행 (영클 hp40 피함 · 오방순 광선 · 나람 내려찍기 · 철창 레이저 · 선회 레이저)',
+// 조종실 QA 순서 = 실제 진행 순서(2026-09-17 사용자 “영클 전투 끝나고 머리 박힌 이후 그 지점을 넣어야지”): 입장 연출 → 보스전 → 머리 박힌 직후(후속 연출 전부) → 변신 영클 전투.
+//   변신 영클과 대치만 하는 상태(아무 대사도 안 걸린다)는 메뉴에서 숨긴다(hidden) — ?qa=ship_control_after 주소와 재입장 플레이테스트에서만 쓴다
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_battle', desc: '조종실 보스전 직행 (영클 hp40 피함 · 오방순 광선 · 나람 내려찍기 · 철창 레이저 · 선회 레이저 → 이기면 후속 연출)',
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true }, party: [...parkWonCheckpoint.party], script: 'ship_battle_qa' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_aftermath', desc: '조종실 보스전 끝·영클 머리 박힌 직후 (쥰희 웃음 → 영클 “안돼” → 어둠·가재맨 → 영클 변신 → 변신 영클 전투)',
+  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_tvform_battle', desc: '변신 영클 전투 직행 (편집노조 흡수 인트로 → 코인 패턴 ↔ 특별 4종: 섭리오·리듬·마녀재판·팽이)',
+  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party], script: 'ship_tvform_battle_qa' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control_after', desc: '조종실: 후속 연출 다 본 뒤 변신 영클과 대치(재입장 검사용)', hidden: true,
+  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party] });

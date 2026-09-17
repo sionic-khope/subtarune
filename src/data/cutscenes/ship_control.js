@@ -293,12 +293,13 @@ export const ship_control_intro = Object.assign([
   { wait: 0.3 },
   { pose: JID, to: 'lying' },
   { wait: 0.9 },
-  // ④ 용준: 카메라 가운데로 → “어?! 형 !!!” → 가운데서 날아온 포탄(대포 연출 없이)에 맞아 쥰희 옆에 쓰러짐
+  // ④ 용준: 카메라 가운데로 → “어?! 형 !!!” → 가운데서 날아온 포탄(대포 연출 없이, 발사 소리는 쥰희 때와 같이 — 2026-09-17 사용자 “용준이 대포 쏠 때도 효과음”)에 맞아 쥰희 옆에 쓰러짐
   { camera: LOGO_CAM, duration: 0.9 },
   { wait: 0.4 },
   Y('어?! 형 !!!'),
   close,
   { wait: 0.5 },
+  { sfx: 'cannon_guard_fire' }, { sfx: 'boom', volume: 0.7 },
   ball(BALL2, 200, M().yongjun[1] + 8 - 16),
   ...shoot(BALL2, YID, 200 - BALL / 2, M().yongjun[0], -4),
   { wait: 0.3 },
