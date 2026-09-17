@@ -6,3 +6,5 @@
 - export: `../youngcle-hover-battle-v1/export.py idle-raw.png 2 2 176 0.9 idle-2x2.png 170 largest`(배율 0.3253, `idle-2x2.export-meta.json`) → 4프레임을 4행에 같게 깔아 `assets/sprites/youngcle_tenna.png`(704×704, 176px 셀 = 필드 88px, 발 y170).
 - 연결: `characters.js youngcle_tenna`, 대기 루프는 `character-motions.js youngcle_tenna.idle`(scale 0.5, 0.14s/프레임) — 컷신 `ship_control.js tennaForm()` 이 `setSprite` + `loopCharacterMotion`. 초상화는 기존 `youngcle_tv_*`(TV 속 얼굴) 그대로.
 - 옷 색은 참조(빨간 연미복)를 따랐다 — 파란 티셔츠로 바꾸려면 재생성.
+
+**반려(2026-09-17, BUILD212)**: 사용자 “테나랑 너무 똑같은데 내가 원한 건 테나는 그냥 3D 질감만 참고용이었음, 크기도 두 배는 거대해야, 팔 돌리기가 그게 아님(테나 전투 gif 참고)” → `../youngcle-tvform-v2/` 로 교체. `assets/sprites/youngcle_tenna.png` 삭제. 원본·프롬프트는 기록용으로 보존.

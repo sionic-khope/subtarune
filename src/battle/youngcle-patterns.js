@@ -137,4 +137,115 @@ export const YOUNGCLE_PATTERNS = {
       pending = pending.filter(q => { if (t < q.at) return true; api.sfx?.('laser_zap', { volume: 0.5 }); q.fire(); return false; });   // 더블 탭: 같은 줄로 한 발 더
     } };
   },
+
+  /** 오방순(BUILD213 사용자 “파크가디언 라즈마마냥 흐어어어어 빔”): 상자 위쪽 가운데로 흰 얼굴이 내려오고, 입에서 소울을 겨눈 굵은 빔 — 조준 점선 0.6초(laser_charge) → 흐어어어어어(사용자 목소리) + 빔(laser_zap, 0.7초).
+   *  둘째·넷째 빔은 3초 동안 소울을 천천히(34°/s) 따라 도는 스윕(laser_beam). 피하는 법 = 점선 밖으로, 스윕은 계속 돌아 따돌리기(빔 회전보다 소울이 빠르다) */
+  obangsun_beam: (o = {}) => {
+    const dur = o.duration ?? 11.6, faceR = o.faceR ?? 34, warn = o.warn ?? 0.6, fire = o.fire ?? 0.7, sweepFire = o.sweepFire ?? 3.0, turn = (o.turnDeg ?? 34) * Math.PI / 180, width = o.width ?? 18, sweepWidth = o.sweepWidth ?? 22, extend = o.extend ?? 780;
+    const shots = o.shots ?? [{ at: 1.2 }, { at: 3.1, sweep: true }, { at: 6.8 }, { at: 8.4, sweep: true }];
+    let face = null, beams = [], si = 0;
+    return { duration: dur, update(t, dt, api) {
+      const b = api.box, fx = b.x + b.w / 2, fy = b.y + 6 + faceR, mx = fx, my = fy + faceR * 0.55;   // 얼굴은 상자 위쪽 가운데, 빔은 입에서
+      if (!face) {
+        face = keep(api, { x: fx, y: fy, r: 0, harmless: true, life: dur + 0.2, shape: 'obangsun_face', open: false, images: api.images, box: { ...b },
+          drawShape: (ctx, f) => { const img = whiteSprite(f.images?.[f.open ? 'face_open' : 'face_closed']); ctx.save(); clipBox(ctx, f.box); ctx.imageSmoothingEnabled = false;
+            const k = Math.min(1, f.age / 0.6), ease = 1 - Math.pow(1 - k, 3), yy = f.y - (1 - ease) * (faceR * 2 + 12);   // 등장: 위에서 내려온다
+            if (img) { const s = (faceR * 2) / Math.max(img.width, img.height), w = Math.round(img.width * s), h = Math.round(img.height * s); ctx.drawImage(img, Math.round(f.x - w / 2), Math.round(yy - h / 2), w, h); }
+            else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, yy, faceR, 0, TAU); ctx.stroke(); }
+            ctx.restore(); } });
+        api.sfx?.('obangsun_wail', { volume: 0.6 });
+      }
+      while (si < shots.length && t >= shots[si].at) {
+        const sh = shots[si++], ang = Math.atan2(api.soul.y - my, api.soul.x - mx);
+        const bm = keep(api, { x: mx, y: my, r: 0, kind: 'red', shape: 'obeam', life: warn + (sh.sweep ? sweepFire : fire) + 0.05, angle: ang, len: 0, width: sh.sweep ? sweepWidth : width, warn, sweep: !!sh.sweep, fired: false, box: { ...b },
+          hitShape: (q, soul) => q.fired && distToSegment(soul.x, soul.y, q.x, q.y, q.x + Math.cos(q.angle) * q.len, q.y + Math.sin(q.angle) * q.len) <= q.width / 2 + soul.r - 2,
+          drawShape: (ctx, q) => { ctx.save(); clipBox(ctx, q.box); ctx.lineCap = 'round'; const L = q.fired ? q.len : 520, ex = q.x + Math.cos(q.angle) * L, ey = q.y + Math.sin(q.angle) * L;
+            if (!q.fired) { if (Math.floor(q.age * 12) % 2 === 0) { ctx.strokeStyle = '#ff6a6a'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]); } }
+            else { const wob = 1 + 0.12 * Math.sin(q.age * 40); ctx.strokeStyle = 'rgba(255,60,60,0.35)'; ctx.lineWidth = q.width + 14; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.strokeStyle = 'rgba(255,60,60,0.95)'; ctx.lineWidth = q.width * wob; ctx.stroke(); ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, q.width * 0.35); ctx.stroke(); }
+            ctx.restore(); } });
+        beams.push(bm); api.sfx?.('laser_charge', { volume: 0.5 });
+      }
+      for (const q of beams) {
+        if (!q.fired && q.age >= warn) { q.fired = true; api.say?.('흐어어어어어', 0.6); api.sfx?.('obangsun_wail', { volume: 1 }); api.sfx?.(q.sweep ? 'laser_beam' : 'laser_zap', { volume: q.sweep ? 0.7 : 0.8 }); }
+        if (q.fired) { q.len = Math.min(520, q.len + extend * dt); if (q.sweep) { const want = Math.atan2(api.soul.y - q.y, api.soul.x - q.x); let da = want - q.angle; while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU; q.angle += Math.max(-turn * dt, Math.min(turn * dt, da)); } }
+      }
+      beams = beams.filter(q => q.age < q.life);
+      face.open = beams.some(q => q.fired);
+    } };
+  },
+
+  /** 나람(BUILD213 사용자 “탱크 몰고 와서 뭔가 쏘고 그걸 피하는 패턴”): 흰 탱크(gpt naram-tank-v1, 탄 사이에 나람이 포탑에 앉음)가 오른쪽에서 굴러 들어와 멈추고 8발 —
+   *  홀수 발은 포물선 포탄(소울 자리에 고리 예고 → 0.8초 뒤 폭발(explosion) + 파편 6), 짝수 발은 소울 높이에 예고선 0.4초 → 바닥과 나란히 빠른 직사 포탄. 다 쏘면 굴러 나간다. 피하는 법 = 고리에서 멀리 + 예고선 위아래로 */
+  naram_tank: (o = {}) => {
+    const dur = o.duration ?? 11.2, roll = o.roll ?? 1.8, scale = o.scale ?? 0.9, shots = o.shots ?? [2.4, 3.3, 4.2, 5.1, 6.0, 6.9, 7.8, 8.7], leave = o.leave ?? 9.5, flight = o.flight ?? 0.8, frags = o.frags ?? 6, fragSpeed = o.fragSpeed ?? 150, shellSpeed = o.shellSpeed ?? 420, lineWarn = o.lineWarn ?? 0.4;
+    let tank = null, si = 0, stopX = 0, startX = 0, fireT = -1, pending = [];
+    const shellDraw = (ctx, q) => { ctx.save(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(Math.round(q.x), Math.round(q.y), 9, 5, q.tilt || 0, 0, TAU); ctx.fill(); ctx.restore(); };
+    return { duration: dur, update(t, dt, api) {
+      const b = api.box, floor = b.y + b.h - 4, img = whiteSprite(api.images?.tank);
+      if (!tank) {
+        startX = b.x + b.w + 34; stopX = b.x + b.w * 0.7;   // 상자 밖 40px 너머의 탄은 바로 지워진다(엔진) — 34 에서 출발
+        tank = keep(api, { x: startX, y: floor, r: 0, harmless: true, life: dur + 0.2, shape: 'tank', frame: 0, box: { ...b },
+          drawShape: (ctx, n) => { ctx.save(); clipBox(ctx, n.box); ctx.imageSmoothingEnabled = false;
+            if (img) { const fw = img.width / 2, fh = img.height / 2, w = Math.round(fw * scale), h = Math.round(fh * scale); ctx.drawImage(img, (n.frame % 2) * fw, Math.floor(n.frame / 2) * fh, fw, fh, Math.round(n.x - w / 2), Math.round(n.y - h), w, h); }
+            else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(n.x - 30, n.y - 30, 60, 30); }
+            ctx.restore(); } });
+        api.sfx?.('scrape', { volume: 0.35 });
+      }
+      const barrel = () => ({ x: tank.x - 40 * scale, y: tank.y - 40 * scale });   // 포구(왼쪽)
+      if (t < roll) { tank.x = startX + (stopX - startX) * (t / roll); tank.frame = Math.floor(t * 6) % 2; }
+      else if (t < leave) { tank.x = stopX; tank.frame = fireT >= 0 && t - fireT < 0.15 ? 2 : fireT >= 0 && t - fireT < 0.4 ? 3 : 0; }
+      else { const k = Math.min(1, (t - leave) / 1.4); tank.x = stopX + (startX + 4 - stopX) * k; tank.frame = Math.floor(t * 6) % 2; }   // 상자 밖(클립)으로 굴러 나가 안 보인다
+      while (si < shots.length && t >= shots[si]) {
+        const idx = si++, bp = barrel(); fireT = t; api.sfx?.('cannon_guard_fire', { volume: 0.7 }); api.shake?.(0.12, 2);
+        if (idx % 2 === 0) {                                     // 포물선 포탄: 소울 자리(상자 안)에 고리 예고, flight 뒤 폭발
+          const tx = Math.max(b.x + 24, Math.min(b.x + b.w - 24, api.soul.x)), ty = Math.max(b.y + 24, Math.min(b.y + b.h - 12, api.soul.y));
+          api.emit({ x: tx, y: ty, r: 0, harmless: true, life: flight, shape: 'mark', box: { ...b }, drawShape: (ctx, m) => { ctx.save(); clipBox(ctx, m.box); const on = Math.floor(m.age * 8) % 2 === 0; ctx.strokeStyle = on ? '#ff5050' : '#ffb0b0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(m.x, m.y, 20, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.moveTo(m.x - 6, m.y); ctx.lineTo(m.x + 6, m.y); ctx.moveTo(m.x, m.y - 6); ctx.lineTo(m.x, m.y + 6); ctx.stroke(); ctx.restore(); } });
+          api.emit({ x: bp.x, y: bp.y, r: 5, harmless: true, life: flight, shape: 'shell', kind: 'white', from: { ...bp }, to: { x: tx, y: ty }, tilt: Math.atan2(ty - bp.y, tx - bp.x),
+            steer: (q) => { const k = Math.min(1, q.age / flight); q.x = q.from.x + (q.to.x - q.from.x) * k; q.y = q.from.y + (q.to.y - q.from.y) * k - 70 * Math.sin(Math.PI * k); }, drawShape: shellDraw });
+          pending.push({ at: t + flight, x: tx, y: ty });
+        } else {                                                 // 직사: 소울 높이에 예고선 → 바닥과 나란히 빠른 포탄
+          const y = Math.max(b.y + 10, Math.min(b.y + b.h - 10, api.soul.y));
+          api.emit({ x: b.x + 4, y, shape: 'hline', len: b.w - 8, harmless: true, life: lineWarn, r: 1 });
+          pending.push({ at: t + lineWarn, line: true, y, x: Math.min(bp.x, b.x + b.w - 8) });
+        }
+      }
+      pending = pending.filter(q => { if (t < q.at) return true;
+        if (q.line) api.emit({ x: q.x, y: q.y, vx: -shellSpeed, vy: 0, r: 6, kind: 'white', shape: 'shell', drawShape: shellDraw });
+        else { api.sfx?.('explosion', { volume: 0.7 }); api.shake?.(0.2, 4);
+          api.emit({ x: q.x, y: q.y, r: 20, kind: 'orange', shape: 'blast', life: 0.28, drawShape: (ctx, s) => { const k = s.age / 0.28; ctx.save(); ctx.fillStyle = `rgba(255,150,60,${0.8 * (1 - k)})`; ctx.beginPath(); ctx.arc(Math.round(s.x), Math.round(s.y), 8 + 18 * k, 0, TAU); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore(); } });
+          for (let i = 0; i < frags; i++) { const a = i / frags * TAU + api.rnd() * 0.4; api.emit({ x: q.x, y: q.y, vx: Math.cos(a) * fragSpeed, vy: Math.sin(a) * fragSpeed, r: 4, kind: 'orange', shape: 'flame', drawShape: drawFlame }); } }
+        return false; });
+    } };
+  },
+
+  /** 영클(BUILD213 사용자 “함선을 날려서 함선이 주인공 따라다니는(유도탄, 부딪히면 피해) + 안 따라다니는 고정 지점 레이저”): 영클이 상자 오른쪽 위에 떠서 엄청대박인배(흰 도트 `props/youngcle-warship.png`, wing 소리)를 날린다 —
+   *  함선은 소울을 천천히(85px/s, 1.7rad/s) 따라오며 부딪히면 피해, 6초 뒤 사라짐(마지막 0.3초 무해·반투명). 5.2초에 두 번째. 그 사이 1.4초마다 고정 자리 십자 레이저(가로+세로 띠, 예고 0.7초 → 0.3초, laser_charge/laser_zap). 피하는 법 = 함선을 계속 따돌리며 예고 띠 밖으로 */
+  youngcle_ship: (o = {}) => {
+    const dur = o.duration ?? 10.8, speed = o.speed ?? 85, turn = o.turn ?? 1.7, life = o.life ?? 6.0, launches = o.launches ?? [0.9, 5.2], beams = o.beams ?? [1.6, 3.0, 4.4, 5.8, 7.2, 8.6], warn = o.warn ?? 0.7, hit = o.hit ?? 0.3, thick = o.thick ?? 24, shipW = o.shipW ?? 72;
+    let li = 0, bi = 0, pending = [];
+    return { duration: dur, update(t, dt, api) {
+      const b = api.box, hx = b.x + b.w + 40, hy = b.y - 6 + Math.sin(t * 2.4) * 3;
+      if (t < dur - 0.3) api.present?.({ x: hx, y: hy + 44 }); else api.present?.(null);
+      const img = whiteSprite(api.images?.warship, 0.32);   // 함선은 어두운 남색이라 문턱을 낮춰 흰 면이 남게
+      while (li < launches.length && t >= launches[li]) {
+        li++; api.sfx?.('wing', { volume: 0.9 }); api.say?.('후후후', 0.4);
+        const sx = b.x + b.w - 12, sy = b.y + 22, dx = api.soul.x - sx, dy = api.soul.y - sy, d = Math.hypot(dx, dy) || 1;
+        api.emit({ x: sx, y: sy, vx: dx / d * speed, vy: dy / d * speed, r: 13, kind: 'white', shape: 'warship', life, box: { ...b },
+          steer: (q, dt2) => { const ang = Math.atan2(q.vy, q.vx), want = Math.atan2(api.soul.y - q.y, api.soul.x - q.x); let da = want - ang; while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU; const na = ang + Math.max(-turn * dt2, Math.min(turn * dt2, da)); q.vx = Math.cos(na) * speed; q.vy = Math.sin(na) * speed; if (q.age > life - 0.3) q.harmless = true; },
+          drawShape: (ctx, q) => { ctx.save(); clipBox(ctx, q.box); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(q.x), Math.round(q.y)); const a = Math.atan2(q.vy, q.vx);
+            if (Math.cos(a) < 0) { ctx.scale(-1, 1); ctx.rotate(Math.PI - a); } else ctx.rotate(a);   // 그림은 오른쪽을 보는 함선 — 왼쪽으로 갈 땐 뒤집는다
+            ctx.globalAlpha = q.harmless ? 0.5 : 1;
+            if (img) { const s = shipW / img.width, w = Math.round(img.width * s), h = Math.round(img.height * s); ctx.drawImage(img, -w / 2, -h / 2, w, h); } else { ctx.fillStyle = '#fff'; ctx.fillRect(-30, -10, 60, 20); }
+            if (Math.floor(q.age * 10) % 2 === 0) { ctx.fillStyle = '#ffb0b0'; ctx.fillRect(-shipW / 2 - 10, -2, 8, 4); }   // 엔진 불
+            ctx.restore(); } });
+      }
+      while (bi < beams.length && t >= beams[bi]) {
+        bi++; api.sfx?.('laser_charge', { volume: 0.4 }); pending.push(t + warn);
+        const x = b.x + 8 + api.rnd() * Math.max(1, b.w - 16 - thick), y = b.y + 8 + api.rnd() * Math.max(1, b.h - 16 - thick);
+        api.emit({ zone: true, shape: 'beam', x: b.x + 2, y, w: b.w - 4, h: thick, warn, life: warn + hit, r: 0, kind: 'red' });
+        api.emit({ zone: true, shape: 'beam', x, y: b.y + 2, w: thick, h: b.h - 4, warn, life: warn + hit, r: 0, kind: 'red' });
+      }
+      pending = pending.filter(at => { if (t < at) return true; api.sfx?.('laser_zap', { volume: 0.7 }); return false; });
+    } };
+  },
 };

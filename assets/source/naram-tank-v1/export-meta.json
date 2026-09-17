@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/naram-tank-v1/tank-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 96,
+ "fit": 0.9,
+ "scale": 0.18804123711340204,
+ "feet_y": 90,
+ "cells": [
+  {
+   "bbox": [
+    27,
+    55,
+    495,
+    464
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    88,
+    77
+   ],
+   "paste": [
+    4,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    27,
+    55,
+    495,
+    464
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    88,
+    77
+   ],
+   "paste": [
+    4,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    10,
+    54,
+    495,
+    457
+   ],
+   "edge_touch": false,
+   "components": 2,
+   "scaled": [
+    91,
+    76
+   ],
+   "paste": [
+    2,
+    14
+   ]
+  },
+  {
+   "bbox": [
+    19,
+    55,
+    500,
+    462
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    90,
+    77
+   ],
+   "paste": [
+    3,
+    13
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

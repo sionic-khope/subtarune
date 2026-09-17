@@ -88,9 +88,9 @@ try {
   check(transform && !s.bgm.includes('captain_reveal') && s.yc.sprite === 'youngcle_powerup' && s.smoke?.mode === 'cloak', '변신 준비: 브금 끊김·변신음·연기 감싸기(힘 받는 자세) ' + JSON.stringify([transform, s.bgm, s.yc.sprite, s.smoke]));
   const blast = await waitFor(() => window.__sfx.includes('furnace_blast'), 8000);
   await page.waitForTimeout(650); await cap('13_white');
-  const tenna = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && y.def.sprite === 'youngcle_tenna' && y.motion?.loop; }, 6000);
+  const tenna = await waitFor(() => { const y = window.game.entities.find(x => x.id === 'ship_youngcle'); return y && y.def.sprite === 'youngcle_tvform' && y.motion?.loop; }, 6000);
   await page.waitForTimeout(2300); s = await st(); await cap('14_tenna');
-  check(blast && tenna && s.yc.v && s.smoke?.veil >= 0.3 && s.smoke.aura === 'ship_youngcle', '쿠와아앙 → 흰 화면 → TV 머리 영클(youngcle_tenna, 팔 풍차 루프)·보라 음영·오라 유지 ' + JSON.stringify([blast, tenna, s.yc, s.smoke]));
+  check(blast && tenna && s.yc.v && s.smoke?.veil >= 0.3 && s.smoke.aura === 'ship_youngcle', '쿠와아앙 → 흰 화면 → TV 머리 영클(youngcle_tvform, 팔 풍차 루프)·보라 음영·오라 유지 ' + JSON.stringify([blast, tenna, s.yc, s.smoke]));
   s = await untilText('너희를 족치고'); await cap('15_tenna_line');
   check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_taunt' && s.bgm.includes('captain_mankatsuki'), '변신 뒤 “너희를 족치고 난 집에가겠음” + I\'m Very Bad ' + JSON.stringify([s?.speaker, s?.bgm]));
   s = await untilText('느금마'); check(s && s.speaker === '억빠맨', '억빠맨 “느금마”'); await advance();
@@ -99,13 +99,13 @@ try {
   await page.waitForTimeout(700); await cap('16_battle_start');
   const done = await waitFor(() => !window.game.dialogue.running && window.game.flags.ship_aftermath_done, 12000);
   await page.waitForTimeout(900); s = await st(); await cap('17_after');
-  check(started && done && s.flag && s.yc.v && s.yc.sprite === 'youngcle_tenna' && s.yc.loop && s.j.x === 300 && !s.down.v && !s.gj.v && s.smoke?.veil >= 0.3 && s.bgm.includes('captain_mankatsuki'),
+  check(started && done && s.flag && s.yc.v && s.yc.sprite === 'youngcle_tvform' && s.yc.loop && s.j.x === 300 && !s.down.v && !s.gj.v && s.smoke?.veil >= 0.3 && s.bgm.includes('captain_mankatsuki'),
     '전투 시작 연출 뒤 대치 상태: 변신 영클(팔 풍차)·쥰희 뒤·소품 없음·보라 음영·플래그·브금 ' + JSON.stringify([started, done, s.flag, s.yc, s.j, s.smoke, s.bgm]));
   // ⑧ 재입장(ship_control_after): 변신 영클과 대치 상태 그대로
   await page.goto('http://localhost:8000/?qa=ship_control_after');
   await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle20', null, { timeout: 25000 });
   await page.waitForTimeout(1500); s = await st(); await cap('18_reenter');
-  check(!s.dialogue && s.yc?.v && s.yc.sprite === 'youngcle_tenna' && s.yc.loop && s.j?.x === 300 && !s.j.pose && !s.down?.v && !s.ob?.v && !s.nr?.v && !s.gj?.v && s.smoke?.veil >= 0.3 && s.bgm.includes('captain_mankatsuki'),
+  check(!s.dialogue && s.yc?.v && s.yc.sprite === 'youngcle_tvform' && s.yc.loop && s.j?.x === 300 && !s.j.pose && !s.down?.v && !s.ob?.v && !s.nr?.v && !s.gj?.v && s.smoke?.veil >= 0.3 && s.bgm.includes('captain_mankatsuki'),
     '재입장: 변신 영클(556,300)·쥰희 일행 뒤·오방순·나람·가재맨 없음·보라 음영·I\'m Very Bad ' + JSON.stringify([s.yc, s.j, s.down, s.smoke, s.bgm]));
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('CRASH', e.message); await cap('crash'); }

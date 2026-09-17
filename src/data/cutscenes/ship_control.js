@@ -64,7 +64,7 @@ const partyTo = (spots, opts = {}) => ({ parallel: PARTY.map((id, i) => ({ move:
 
 
 // ── ⑨ 보스전 뒤 연출(BUILD211) ────────────────────────────────────────────────────────
-const SCENE_CAM = LOGO_CAM;                               // 일행(348~424)·쥰희(484)·얼굴 박힌 영클(530~666)이 한 화면(x240~720)
+const SCENE_CAM = [14.5, 8.0];                            // 일행(348~424)·쥰희(484)·얼굴 박힌 영클(530~666)이 한 화면(x240~720), 위로 조금(y92~452) — 변신 영클(229px)의 TV 머리까지 보이게
 const GJ_CAM = [14.5, 5.6];                               // 가재맨(가운데 위, y≈90~134)과 일행(y268~340)이 한 화면(y15~375)
 const GJV = text => ({ speaker: '가재맨', voice: 'gajaeman_shadow', text: '* ' + text });   // 선장실과 같이 초상화 없음
 const ALL = [...PARTY, JID];
@@ -96,11 +96,11 @@ const rise = steps => ({ action: game => {
   if (!yc || !def) return;
   loopCharacterMotion(yc, { ...def, frames: steps.map(([frame, duration]) => ({ ...def.frames[frame], duration })) });
 } });
-/** 변신: TV 머리·긴 팔다리 영클(테나 참조) + 팔 풍차 대기 루프 */
+/** 변신: TV 머리·긴 팔다리 영클(youngcle_tvform, 테나는 질감 참고만) + 테나 전투 대기 같은 팔 원 그리기 루프 */
 const tennaForm = game => {
   const yc = game.entities.find(x => x.id === YC && !x.dead); if (!yc) return;
-  yc.setSprite('youngcle_tenna'); yc.def.visualScale = 1; yc.facing = 'down'; yc.jitter = null; yc.visible = true;
-  const idle = game.characterMotions?.youngcle_tenna?.idle; if (idle) loopCharacterMotion(yc, idle); else yc.motion = null;
+  yc.setSprite('youngcle_tvform'); yc.def.visualScale = 1; yc.facing = 'down'; yc.jitter = null; yc.visible = true;
+  const idle = game.characterMotions?.youngcle_tvform?.idle; if (idle) loopCharacterMotion(yc, idle); else yc.motion = null;
 };
 /** 표준 전투 진입 연출의 보이는 부분(helpers.battleEntry 와 같은 값) — 변신 영클과의 전투는 다음 명령이라 적 preload 없이 연출만 하고 대치 상태로 돌아온다 */
 const ENTRY_FX = [

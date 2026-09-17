@@ -18,7 +18,7 @@ test('test_ship_control_intro_spots_match_map_meta', () => {
   assert.deepEqual(Function(`return ${after[1]}`)().gajaeman, map.meta.gajaeman);
   const gj = map.entities.find((e) => e.id === 'ship_gajaeman');
   assert.equal(gj.sprite, 'gajaeman_shadow'); assert.ok(gj.hidden, '가재맨은 연출 전엔 숨긴다');
-  for (const src of ['assets/sprites/gajaeman_shadow.png', 'assets/sprites/youngcle_powerup.png', 'assets/sprites/youngcle_tenna.png']) assert.ok(map.preload.includes(src) && fs.existsSync(src), `${src} preload·존재`);
+  for (const src of ['assets/sprites/gajaeman_shadow.png', 'assets/sprites/youngcle_powerup.png', 'assets/sprites/youngcle_tvform.png']) assert.ok(map.preload.includes(src) && fs.existsSync(src), `${src} preload·존재`);
   assert.equal(map.enter?.script, 'ship_control_intro');
   for (const src of ['assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png']) assert.ok(map.preload.includes(src) && fs.existsSync(src), `${src} preload·존재`);
 });

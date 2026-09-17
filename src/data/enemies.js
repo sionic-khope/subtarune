@@ -21,6 +21,7 @@ export const ENEMIES = {
     actions: { surprise: { src: 'assets/enemies/youngcle-surprise.png', cols: 2, rows: 1, count: 2, fps: 4, px: 1, pivot: [64, 118] } },   // 놀람(뒤를 봄·끼엑): 아이디어·피날레
     pivot: [64, 118], scale: 0.9, dx: -34, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 3, period: 2.2 },   // 0.9 = 사용자 “10퍼 작게”(BUILD209, 3/4 시점·비웃는 v2 시트)
     patterns: [{ type: 'youngcle_orbit_laser' }],
+    projectiles: { warship: 'assets/props/youngcle-warship.png' },   // youngcle_ship: 유도 함선(흰 도트)
     lines: { appear: '* 영클이 비행 장치 위에서 내려다본다.', idle: ['* 영클의 비행 장치가 웅웅거린다.'], die: '* 영클이 물러났다.', speak: ['ㅋㅋ', '즐', '죽어라 게이야', '후후후후'] },   // ‘죽어라 게이야’·‘후후후후’ 추가(사용자 2026-09-17 “ㅋㅋ만 있지 말고”)
   },
   obangsun: {
@@ -36,7 +37,7 @@ export const ENEMIES = {
     sheet: { src: 'assets/enemies/naram-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
     pivot: [64, 118], scale: 0.9, dx: 40, dy: -6, idle: { swayX: 0, swayY: 0 },
     patterns: [{ type: 'naram_slam' }],
-    projectiles: { naram: 'assets/sprites/naram_giant.png' },
+    projectiles: { naram: 'assets/sprites/naram_giant.png', tank: 'assets/sprites/naram_tank.png' },   // naram_tank: gpt naram-tank-v1(흰 도트)
     lines: { appear: '* 나람이가 옆에 섰다.', idle: ['* 나람이가 배를 두드린다.'], die: '* 나람이가 물러났다.', speak: ['히요오오옹'] },
   },
   park_guardian: {

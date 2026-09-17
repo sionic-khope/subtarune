@@ -116,7 +116,7 @@ try {
   await page.goto('http://localhost:8000/?qa=ship_control_after');
   await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle20' && !window.game.dialogue.running, null, { timeout: 25000 });
   await page.waitForTimeout(800); s = await st(); await cap('16_reenter');
-  check(!s.dialogue && s.j?.x === 300 && !s.j.pose && s.yj?.pose === 'lying' && s.yc?.v && s.yc.sprite === 'youngcle_tenna' && s.yc.loop && !s.down?.v && !s.ob?.v && !s.nr?.v && s.open?.v && !s.cannon && !s.cage, '재입장: 변신 영클(팔 풍차)·쥰희 일행 뒤·용준 벽 앞에 누움·소품/오방순/나람 없음·철창 열림·대포 없음 ' + JSON.stringify([s.j, s.yc, s.down, s.ob, s.nr, s.open, s.cannon, s.cage]));
+  check(!s.dialogue && s.j?.x === 300 && !s.j.pose && s.yj?.pose === 'lying' && s.yc?.v && s.yc.sprite === 'youngcle_tvform' && s.yc.loop && !s.down?.v && !s.ob?.v && !s.nr?.v && s.open?.v && !s.cannon && !s.cage, '재입장: 변신 영클(팔 풍차)·쥰희 일행 뒤·용준 벽 앞에 누움·소품/오방순/나람 없음·철창 열림·대포 없음 ' + JSON.stringify([s.j, s.yc, s.down, s.ob, s.nr, s.open, s.cannon, s.cage]));
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('CRASH', e.message); await cap('crash'); }
 console.log('fails=' + fails);

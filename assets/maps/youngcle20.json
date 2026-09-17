@@ -41,7 +41,7 @@
   "assets/props/ship_floor_logo.png",
   "assets/sprites/gajaeman_shadow.png",
   "assets/sprites/youngcle_powerup.png",
-  "assets/sprites/youngcle_tenna.png",
+  "assets/sprites/youngcle_tvform.png",
   "assets/illustrations/youngcle-tv-smirk.png",
   "assets/illustrations/youngcle-tv-laugh.png",
   "assets/illustrations/youngcle-tv-taunt.png",
@@ -633,7 +633,8 @@
    "facing": "down",
    "wander": 0,
    "solid": false,
-   "hidden": true
+   "hidden": true,
+   "visualScale": 2.0
   }
  ]
 }

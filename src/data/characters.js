@@ -27,9 +27,9 @@ export const CHARACTERS = {
   //   hover: 서 있어도 불꽃·번개 프레임이 돌고 6px 떠서 2px 오르내린다(world.js Character). 손으로 그린 v1(tools/art/youngcle_hover_set.py)은 사용자 반려로 폐기(postmortem 2026-09-16-ship-control-intro)
   //   기본 모션은 차분하게(사용자 “너무 역동적”): 서 있을 땐 중립·불꽃 두 프레임만 2.5fps, 1px 오르내림 2.6초 주기
   youngcle_hover: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_hover.png', stillPivot: [56, 104], hover: { fps: 2.5, frames: [0, 1], lift: 6, bob: 1, period: 2.6 } },
-  // 영클 변신형(BUILD211 보스전 뒤 연출, gpt-image-2.5-sunburst youngcle-tenna-v1): 사용자 참조(델타룬 테나)처럼 팔다리가 길고 TV 머리(화면에 영클 얼굴), 3D 풍 음영. 176px 셀 = 필드 88px(발 y170).
-  //   서 있는 동작은 시트가 아니라 character-motions.js youngcle_tenna.idle(팔 풍차 4프레임 루프) — 컷신이 loopCharacterMotion 으로 건다. 시트 4행은 같은 4프레임(걷지 않는다)
-  youngcle_tenna: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_tenna.png', stillPivot: [88, 170] },
+  // 영클 변신형(BUILD211 보스전 뒤 연출, gpt-image-2.5-sunburst youngcle-tvform-v2): 영클 옷·색 그대로(파란 티·초록 배지·남색 반바지)에 팔다리만 길어지고 TV 머리(화면에 영클 얼굴), 3D 풍 음영(델타룬 테나는 질감 참고만 — 사용자 “테나랑 너무 똑같다”).
+  //   크기는 보이는 영역(대화 중 230px) 안 최대치 ≈ 파티 5배(사용자 “두 배는 거대해야”): 320px 셀 = 필드 160px(발 y312). 서 있는 동작은 character-motions.js youngcle_tvform.idle(테나 전투 대기처럼 앞으로 뻗은 팔이 작은 원을 그림) — 컷신이 loopCharacterMotion 으로 건다. 시트 4행은 같은 4프레임
+  youngcle_tvform: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_tvform.png', stillPivot: [160, 312] },
   // 영클 힘 받는 자세(BUILD211, gpt youngcle-powerup-v1): 포드 없이 바닥에 웅크림 → 무릎 → 노려봄 → 포효, 4단계(128px 셀 = 필드 64px, 발 y122). 단계는 character-motions.js youngcle_powerup.rise 프레임을 컷신이 골라 건다
   youngcle_powerup: { name: '영클', voice: 'youngcle', sheet: 'assets/sprites/youngcle_powerup.png', stillPivot: [64, 122] },
   gajaeman_shadow: { name: '가재맨', voice: 'gajaeman_shadow', palette: 'hero', sheet: 'assets/sprites/gajaeman_shadow.png', stillPivot: [32, 61] },

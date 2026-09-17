@@ -100,7 +100,7 @@ def main() -> None:
         {'type': 'npc', 'id': 'ship_obangsun', 'sprite': 'obangsun', 'x': CAGE[0] + 12, 'y': CAGE[1] - CAGE_DROP + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
         {'type': 'npc', 'id': 'ship_naram', 'sprite': 'naram_giant', 'x': CAGE[0] + 52, 'y': CAGE[1] - CAGE_DROP + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
         # 보스전 뒤 연출(BUILD211): 가재맨 그림자 — 컷신 ship_control.js 가 연기를 모은 뒤 show 한다
-        {'type': 'npc', 'id': 'ship_gajaeman', 'sprite': 'gajaeman_shadow', 'x': GAJAEMAN[0], 'y': GAJAEMAN[1], 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
+        {'type': 'npc', 'id': 'ship_gajaeman', 'sprite': 'gajaeman_shadow', 'x': GAJAEMAN[0], 'y': GAJAEMAN[1], 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True, 'visualScale': 2.0},   # 2배(사용자 “가재맨 왤캐 작아”)
     ]
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 조종실', 'stage': 'void_fallen',
@@ -108,7 +108,7 @@ def main() -> None:
         'rows': [''.join(r) for r in cells],
         'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/sprites/youngcle_hover.png',
                     'assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png', 'assets/props/ship_conduit.png', 'assets/props/ship_cable_trunk.png', 'assets/props/ship_youngcle_down.png', 'assets/backdrops/ship_battle_wall.png', 'assets/props/ship_floor_logo.png',
-                    'assets/sprites/gajaeman_shadow.png', 'assets/sprites/youngcle_powerup.png', 'assets/sprites/youngcle_tenna.png',
+                    'assets/sprites/gajaeman_shadow.png', 'assets/sprites/youngcle_powerup.png', 'assets/sprites/youngcle_tvform.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'taunt', 'glare', 'shrug', 'yes', 'question')]],
         'spawns': {
             'gate': {'x': SPAWN_X, 'y': 15 * T + 8, 'facing': 'up'},

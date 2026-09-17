@@ -1,0 +1,10 @@
+# imagegen 2026-09-17 19:26:29
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/naram-tank-v1/ref.png
+
+Pixel art sprite sheet of ONE character driving a small tank, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The character is the one in the reference image (Image1, a 4-direction walking sheet): a very fat, round-bellied man with a big smiling face, short dark hair, wearing a green camouflage army t-shirt and dark trousers. He sits in the open top hatch of a small chunky cartoon army tank, his upper body and grinning face sticking out of the turret hatch, one hand holding the hatch rim. The tank is olive-green with a round turret, a long straight gun barrel pointing LEFT, a low boxy hull, and wide dark treads with visible track segments. Side view, the tank faces LEFT (barrel to the left).
+4 frames in reading order (top-left, top-right, bottom-left, bottom-right): frame 1 rolling, treads in phase A; frame 2 rolling, treads in phase B (track segments shifted); frame 3 FIRING - barrel pushed back into the turret, a big yellow-orange muzzle flash star at the barrel tip, the man's mouth wide open shouting; frame 4 recoil - the whole tank tilted slightly back on its rear treads, a small grey smoke puff at the barrel tip, the man's face squished by the jolt. Same scale, the tank at the same horizontal position and the treads on the same baseline in every cell; the tank and man fill about 80% of the cell width, centered; nothing touches the cell edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur.

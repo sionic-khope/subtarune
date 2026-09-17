@@ -78,13 +78,13 @@ export const CHARACTER_MOTIONS = {
       ],
     },
   },
-  // 영클 변신형(BUILD211): 팔을 풍차처럼 돌리는 대기 루프(사용자 “델타룬의 테나 참고해서 팔을 돌리는 인게임 모션”). 시트는 이미 투명이라 colorKey 는 안 걸린다. scale 0.5 = assets/sprites 2x 시트와 같은 크기(176 셀 → 126px)
-  youngcle_tenna: {
+  // 영클 변신형(BUILD211/212): 테나 전투 대기(사용자 GIF)처럼 웅크린 채 앞으로 뻗은 팔이 작은 원을 그리고 몸이 들썩이는 루프. 시트는 이미 투명이라 colorKey 는 안 걸린다. scale 0.5 = assets/sprites 2x 시트와 같은 크기(320 셀 → 229px)
+  youngcle_tvform: {
     idle: {
-      src: 'assets/sprites/youngcle_tenna.png',
+      src: 'assets/sprites/youngcle_tvform.png',
       scale: 0.5,
       colorKey: { rMin: 256, gMax: -1, bMin: 256 },
-      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [i * 176, 0, 176, 176], pivot: [88, 170], duration: 0.14 })),
+      frames: Array.from({ length: 4 }, (_, i) => ({ rect: [i * 320, 0, 320, 320], pivot: [160, 312], duration: 0.16 })),
     },
   },
   // 영클 힘 받는 4단계(BUILD211): 웅크림 → 무릎·주먹 → 노려봄 → 포효. 컷신(ship_control.js)이 단계별로 프레임을 골라 loopCharacterMotion 에 건다(떨림은 두 프레임을 빠르게 번갈아)

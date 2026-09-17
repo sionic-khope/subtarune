@@ -7,14 +7,14 @@ import L from '../../data/locale/ko.js';
 import { YOUNGCLE_BATTLE as C } from '../../data/youngcle-battle.js';
 import { createTalk } from './talk.js';
 
-const OWNER = { obangsun_rays: 'obangsun', naram_slam: 'naram_giant', youngcle_orbit_laser: 'youngcle_hover' };
+const OWNER = { obangsun_rays: 'obangsun', naram_slam: 'naram_giant', youngcle_orbit_laser: 'youngcle_hover', obangsun_beam: 'obangsun', naram_tank: 'naram_giant', youngcle_ship: 'youngcle_hover' };   // BUILD213: 셋 다 전용 패턴 하나씩 더(사용자)
 const DODGE = { time: 0.55, dx: 46, dy: 10 };
 
 export function createYoungcleShipSupport(battle) {
   if (!battle.enemies.some(e => e.def.support === 'youngcle_ship')) return null;
   let turn = -1, dodge = null, hits = 0, charge = 0, ideaIdx = 0, unlocked = false, introduced = false, distracted = false, distractedHits = 0, finalePending = false, obangsunGone = false, lastSource = 'ordinary', partyHits = 0, distractedTurns = 0;
   const yc = () => battle.enemies.find(e => e.id === 'youngcle_hover');
-  const order = () => ['obangsun_rays', 'naram_slam', 'youngcle_cage', 'youngcle_orbit_laser'].filter(p => !(obangsunGone && p === 'obangsun_rays'));
+  const order = () => ['obangsun_rays', 'naram_slam', 'youngcle_cage', 'youngcle_orbit_laser', 'obangsun_beam', 'naram_tank', 'youngcle_ship'].filter(p => !(obangsunGone && OWNER[p] === 'obangsun'));   // 7턴 순환, 오방순이 탈주하면 오방순 패턴은 빠진다
   const current = () => { const o = order(); return o[((turn % o.length) + o.length) % o.length]; };
   const ready = () => unlocked && charge >= C.ideaHits && ideaIdx < 3 && !distracted && !finalePending;
   return {
