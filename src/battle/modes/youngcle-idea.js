@@ -25,10 +25,10 @@ export function createYoungcleIdea(battle, { plan, member, target }) {
 
 /** 아이디어 1: 나람 볼 튕기기 — 타원 경기장(BUILD210 사용자: 상자보다 1.5배 넓게·동그라미). “잠시만요!” 뒤 억빠맨이 천천히 걸어 들어가 공으로 변신 → 나람이 굴러 들어와 멈춤 → 조작 설명 → 게임.
  *  C 돌진은 팽이처럼 잠깐 돌고 원래대로. 2대 맞히면 영클 말풍선 “가만히 둘가보냐” + 경기장 둘레를 돌며 2초마다 삐용 긴 레이저(맞으면 억빠맨 15).
- *  5대째: 쿠왕!! → 무거운 소리(furnace_blast) + 나람 볼이 높은 포물선으로 천천히 날아가 영클에게 펑! */
+ *  5대째: 경기장이 닫히면서 억빠맨 공이 자동으로 뛰어올라 덤블링하며 제자리로 돌아와 변신 해제(exit) → 쿠왕!! → 무거운 소리(furnace_blast) + 나람 볼이 높은 포물선으로 천천히 날아가 영클에게 펑!(경기장이 없어 피격이 보인다, 사용자 2026-09-17) */
 function ideaBall(battle, member, yc) {
   const K = C.idea1, A = K.arena, T = K.taunt, S = K.spin, naram = battle.enemies.find(e => e.id === 'naram_giant' && !e.dead);
-  let phase = 'talk', talk = createTalk(battle, K.before), t = 0, pt = 0, disposed = false, hits = 0, dashT = 0, cool = 0, gameT = 0, flash = 0, fxT = 0, shout = '', open = 0, spinT = 0, taunted = false, orbitT = 0, shotT = 0, aim = null, lasers = [], hurtCool = 0, ycFrozen = null, ycFrom = null;
+  let phase = 'talk', talk = createTalk(battle, K.before), t = 0, pt = 0, disposed = false, hits = 0, dashT = 0, cool = 0, gameT = 0, flash = 0, fxT = 0, shout = '', open = 0, spinT = 0, taunted = false, orbitT = 0, shotT = 0, aim = null, lasers = [], hurtCool = 0, ycFrozen = null, ycFrom = null, jumpFrom = null, landed = false, ballDone = false;
   let ballImg = null, naramImg = null; loadImg('assets/sprites/ppaman_ball.png').then(i => { ballImg = i; }); loadImg('assets/sprites/naram_giant.png').then(i => { naramImg = i; });
   const ENTRY = { x: A.cx - A.rx * 0.45, y: A.cy };
   const P = { x: member.home[0], y: member.home[1], vx: 0, vy: 0, r: K.ball.r, morph: 0, rot: 0 }, N = { x: 0, y: 0, vx: 0, vy: 0, r: K.naram.r, rot: 0, on: false };
@@ -45,7 +45,7 @@ function ideaBall(battle, member, yc) {
   const distSeg = (px, py, ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1, k = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2)); return Math.hypot(px - (ax + dx * k), py - (ay + dy * k)); };
   const finishHit = () => { battle.sfx(C.sfx.kieek); battle.sfx(C.sfx.punch, { volume: 0.9 }); battle.game.shake = { time: 0.5, amp: 7 }; battle.hitEnemy(yc, member, C.ideaDamage, { source: 'idea', sound: false }); yc.patternPose = { ...ycFrozen, sheet: 'surprise', frame: 1 }; shout = '펑!'; };
   return {
-    get snapshot() { return { phase, hits, ball: { x: Math.round(P.x), y: Math.round(P.y), vx: Math.round(P.vx), vy: Math.round(P.vy), rot: Math.round(P.rot * 10) / 10 }, naram: { x: Math.round(N.x), y: Math.round(N.y), on: N.on }, dash: dashT > 0, spinning: spinT > 0, taunted, lasers: lasers.length, arena: { ...A }, ycHp: yc.hp, ppamanHp: member.hp }; },
+    get snapshot() { return { phase, hits, open: Math.round(open * 100) / 100, ballDone, ball: { x: Math.round(P.x), y: Math.round(P.y), vx: Math.round(P.vx), vy: Math.round(P.vy), rot: Math.round(P.rot * 10) / 10 }, naram: { x: Math.round(N.x), y: Math.round(N.y), on: N.on }, dash: dashT > 0, spinning: spinT > 0, taunted, lasers: lasers.length, arena: { ...A }, ycHp: yc.hp, ppamanHp: member.hp }; },
     update(dt, input) {
       if (disposed) return true; t += dt; pt += dt; if (cool > 0) cool -= dt; if (flash > 0) flash -= dt; if (fxT > 0) fxT -= dt; if (hurtCool > 0) hurtCool -= dt; tickBubble(dt);
       if (phase === 'talk') { if (talk.update(dt, input)) { setPhase('enter'); battle.setText(''); action.mode = 'approach'; action.hidden = true; } return false; }
@@ -76,7 +76,7 @@ function ideaBall(battle, member, yc) {
           const ux = dx / d, uy = dy / d;
           if (dashT > 0 && cool <= 0) { hits++; cool = 0.45; flash = 0.2; battle.sfx('impact', { volume: 0.8 }); battle.game.shake = { time: 0.12, amp: 3 }; N.vx = ux * K.naram.knock; N.vy = uy * K.naram.knock; P.vx = -ux * 140; P.vy = -uy * 140; dashT = 0;
             if (hits === T.at && !taunted) { taunted = true; say(T.text); orbitT = 0; shotT = 0; }
-            if (hits >= K.hits) { setPhase('launch'); shout = '쿠왕!!'; battle.sfx(C.sfx.boom, { volume: 1 }); battle.game.shake = { time: 0.6, amp: 8 }; N.from = { x: N.x, y: N.y }; ycFrom = ycPos(); ycFrozen = { x: yc.x, y: yc.y }; lasers = []; aim = null; battle.bubble = null; } }
+            if (hits >= K.hits) { setPhase('exit'); battle.sfx('jump', { volume: 0.7 }); jumpFrom = { x: P.x, y: P.y }; N.vx = 0; N.vy = 0; dashT = 0; spinT = 0; ycFrom = ycPos(); ycFrozen = { x: yc.x, y: yc.y }; lasers = []; aim = null; battle.bubble = null; } }
           else { P.x = N.x - ux * (N.r + P.r + 1); P.y = N.y - uy * (N.r + P.r + 1); P.vx = -ux * 90; P.vy = -uy * 90; }
         }
         // 영클: 2대 뒤 경기장 둘레를 돌며 2초마다 조준선 → 긴 레이저(삐용). 맞으면 억빠맨 15
@@ -92,13 +92,23 @@ function ideaBall(battle, member, yc) {
         if (gameT > K.maxSeconds) { setPhase('revert'); if (naram) naram.patternPose = null; N.on = false; yc.patternPose = null; battle.bubble = null; }
         return false;
       }
-      if (phase === 'launch') {                                 // 무게감: 1.6초 동안 높은 포물선으로 천천히 날아가 영클에게(영클은 0.5초 동안 원래 자리로 돌아온다)
+      if (phase === 'exit') {                                   // 5대째: 영클은 0.5초 동안 제자리로, 경기장은 닫히고, 억빠맨 공은 자동으로 뛰어올라 덤블링하며 제자리(발 20px 위)로 → 착지(thud) → 변신 해제 → 잠깐 숨 고르고 쿠왕
+        if (ycFrom) { const kk = Math.min(1, pt / 0.5); yc.patternPose = { x: ycFrom.x + (ycFrozen.x - ycFrom.x) * kk, y: ycFrom.y + (ycFrozen.y - ycFrom.y) * kk }; if (kk >= 1) { ycFrom = null; yc.patternPose = { ...ycFrozen }; } }
+        const J = K.exitJump, k = Math.min(1, pt / J.time), e = k * k * (3 - 2 * k);
+        if (!landed) { P.x = jumpFrom.x + (member.home[0] - jumpFrom.x) * e; P.y = jumpFrom.y + (member.home[1] - 20 - jumpFrom.y) * e - J.height * Math.sin(Math.PI * k); P.rot += J.spin * dt; }
+        N.rot -= 2 * dt; open = Math.max(0, 1 - Math.max(0, pt - 0.15) / 0.5);
+        if (k >= 1 && !landed) { landed = true; P.rot = 0; P.x = member.home[0]; P.y = member.home[1] - 20; battle.sfx('thud', { volume: 0.5 }); }
+        if (landed) P.morph = Math.max(0, 1 - (pt - J.time) / J.morph);
+        if (landed && P.morph <= 0 && !ballDone) { ballDone = true; action.hidden = false; member.action = null; }
+        if (pt >= J.time + J.morph + J.pause) { setPhase('launch'); shout = '쿠왕!!'; battle.sfx(C.sfx.boom, { volume: 1 }); battle.game.shake = { time: 0.6, amp: 8 }; N.from = { x: N.x, y: N.y }; }
+        return false; }
+      if (phase === 'launch') {                                 // 무게감: 1.6초 동안 높은 포물선으로 천천히 날아가 영클에게(경기장은 이미 닫혀 있어 피격이 보인다)
         if (ycFrom) { const kk = Math.min(1, pt / 0.5); yc.patternPose = { x: ycFrom.x + (ycFrozen.x - ycFrom.x) * kk, y: ycFrom.y + (ycFrozen.y - ycFrom.y) * kk }; if (kk >= 1) { ycFrom = null; yc.patternPose = { ...ycFrozen }; } }
         const k = Math.min(1, pt / 1.6), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; const g = ycFrozen || ycPos(); const tx = g.x - 20, ty = g.y - 56;
         const arcH = Math.max(40, Math.min(150, (N.from.y + ty) / 2 - 36));   // 포물선 꼭대기가 화면 위로 안 나가게
         N.x = N.from.x + (tx - N.from.x) * e; N.y = N.from.y + (ty - N.from.y) * e - arcH * Math.sin(Math.PI * e); N.rot += 9 * dt;
         if (k >= 1) { setPhase('impact'); finishHit(); fxT = 0.6; } return false; }
-      if (phase === 'impact') { if (pt > 1.2) { setPhase('revert'); N.on = false; if (naram) naram.patternPose = null; } return false; }
+      if (phase === 'impact') { if (pt > 1.2) { N.on = false; if (naram) naram.patternPose = null; yc.patternPose = null; if (ballDone) setPhase('done'); else setPhase('revert'); } return false; }   // 억빠맨은 exit 에서 이미 제자리 — 바로 끝(revert 는 시간 초과 때 걸어 돌아오는 길)
       if (phase === 'revert') { P.morph = Math.max(0, 1 - pt / 0.5); if (pt > 0.5 && action.mode !== 'return') { action.mode = 'return'; action.elapsed = 0; yc.patternPose = null; }
         if (action.mode === 'return') { const k = Math.min(1, (pt - 0.5) / 1.1); action.position = [P.x + (member.home[0] - P.x) * k, P.y + 20 + (member.home[1] - P.y - 20) * k]; action.elapsed += dt * 0.55; open = Math.max(0, 1 - Math.max(0, pt - 0.6) / 0.4); }
         if (pt > 1.7) { action.hidden = false; member.action = null; setPhase('done'); } return false; }
@@ -110,17 +120,22 @@ function ideaBall(battle, member, yc) {
       const walker = () => { if (action.mode === 'approach' || action.mode === 'return') { action.hidden = false; battle.drawMember(ctx, member); action.hidden = true; } };
       if (phase === 'talk') { battle.drawTextBox(ctx); return; }
       if (phase === 'talk2' || phase === 'ready') { drawArena(); ctx.save(); arenaPath(ctx); ctx.clip(); if (N.on) drawNaramBall(ctx, whiteSprite(naramImg), N.x, N.y, N.r, N.rot); drawBall(ctx, ballImg, 1, P.x, P.y, P.r * 2 + 10); ctx.restore(); battle.drawTextBox(ctx); return; }
-      if (['enter', 'morph', 'come', 'game', 'launch', 'impact', 'revert'].includes(phase)) {
+      if (['enter', 'morph', 'come', 'game', 'exit', 'launch', 'impact', 'revert'].includes(phase)) {
         drawArena();
         ctx.save(); arenaPath(ctx); ctx.clip();
         if (N.on && (phase === 'game' || phase === 'come')) drawNaramBall(ctx, whiteSprite(naramImg), N.x, N.y, N.r, N.rot);
-        if (phase !== 'enter' && !(phase === 'revert' && P.morph <= 0)) { ctx.save(); ctx.translate(Math.round(P.x), Math.round(P.y)); ctx.rotate(P.rot); drawBall(ctx, ballImg, P.morph < 0.5 ? 0 : 1, 0, 0, P.r * 2 + 10); ctx.restore(); }
+        if (phase !== 'enter' && phase !== 'exit' && !ballDone && !(phase === 'revert' && P.morph <= 0)) { ctx.save(); ctx.translate(Math.round(P.x), Math.round(P.y)); ctx.rotate(P.rot); drawBall(ctx, ballImg, P.morph < 0.5 ? 0 : 1, 0, 0, P.r * 2 + 10); ctx.restore(); }
         if (dashT > 0 || spinT > 0) { ctx.strokeStyle = 'rgba(200,170,255,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(P.x, P.y, P.r + 6, 0, TAU); ctx.stroke(); }
         if (aim) { ctx.save(); ctx.strokeStyle = 'rgba(255,90,90,0.9)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(aim.x, aim.y); ctx.lineTo(aim.x + aim.ux * 520, aim.y + aim.uy * 520); ctx.stroke(); ctx.restore(); }
         for (const L of lasers) { ctx.save(); ctx.translate(Math.round(L.x), Math.round(L.y)); ctx.rotate(Math.atan2(L.uy, L.ux)); ctx.fillStyle = 'rgba(255,80,80,0.4)'; ctx.fillRect(-T.len - 4, -6, T.len + 8, 12); ctx.fillStyle = '#ff4a4a'; ctx.fillRect(-T.len, -3, T.len, 6); ctx.fillStyle = '#fff'; ctx.fillRect(-T.len + 6, -1, T.len - 10, 2); ctx.restore(); }
         if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash * 3})`; ctx.fillRect(0, 0, 480, 360); }
         ctx.restore();
         walker();
+        if (phase === 'exit') {                                 // 경기장 밖(닫히는 중): 멈춘 나람(원색), 덤블링하며 돌아오는 억빠맨 공, 제자리로 돌아오는 영클은 경기장 앞에
+          if (N.on) drawNaramBall(ctx, naramImg, N.x, N.y, N.r, N.rot);
+          if (!ballDone) { ctx.save(); ctx.translate(Math.round(P.x), Math.round(P.y)); ctx.rotate(P.rot); drawBall(ctx, ballImg, P.morph < 0.5 ? 0 : 1, 0, 0, P.r * 2 + 10); ctx.restore(); }
+          battle.drawEnemy(ctx, yc);
+        }
         if (taunted && phase === 'game') battle.drawEnemy(ctx, yc);   // 선회 중엔 경기장 앞에
         if (phase === 'launch' || phase === 'impact') { if (phase === 'launch') drawNaramBall(ctx, naramImg, N.x, N.y, N.r, N.rot); if (fxT > 0) { const k = 1 - fxT / 0.6, g = ycFrozen || ycPos(); ctx.strokeStyle = `rgba(255,220,120,${1 - k})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(g.x - 20, g.y - 56, 14 + k * 60, 0, TAU); ctx.stroke(); } }
         ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';

@@ -24,6 +24,7 @@ export const YOUNGCLE_BATTLE = {
     arena: { cx: 240, cy: 192, rx: 180, ry: 118 },   // 타원 경기장(사용자: 상자보다 1.5배 넓게, 동그라미)
     taunt: { at: 2, text: '가만히 둘가보냐', every: 2.0, aim: 0.25, speed: 250, len: 80, damage: 15, rev: 0.3 },   // 2대 맞히면 영클 말풍선 + 선회하며 2초마다 삐용 긴 레이저(맞으면 15)
     spin: { time: 0.45, rate: 24 },                     // C 돌진: 팽이처럼 잠깐 돌고 원래대로
+    exitJump: { time: 0.85, height: 80, spin: 14, morph: 0.3, pause: 0.25 },   // 5대째: 경기장이 닫히는 동안 억빠맨 공이 자동으로 뛰어올라 덤블링하며 제자리로(사용자 2026-09-17 “동그라미 때문에 영클 맞는 게 안 보인다”) → 착지·변신 해제 → 그 뒤에 쿠왕
     ball: { accel: 320, friction: 0.55, maxSpeed: 230, dash: 360, dashTime: 0.26, r: 16 },
     naram: { speed: 120, r: 22, knock: 280 },
   },

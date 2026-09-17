@@ -102,11 +102,11 @@ export const YOUNGCLE_PATTERNS = {
     } };
   },
 
-  /** 영클: 비행 장치로 상자 둘레를 시계 방향으로 빙글빙글 돌며 소울을 겨눈 레이저 볼트 — 조준선(빨간 점선) 0.22초 뒤 발사, 두 번째·세 번째 연발은 3갈래. 삐용 / 후후후. 피하는 법 = 조준선이 뜨면 옆으로 */
+  /** 영클: 비행 장치로 상자 둘레를 시계 방향으로 빙글빙글 돌며 소울을 겨눈 레이저 볼트 — 조준선(빨간 점선) 0.2초 뒤 **조준선 그대로** 발사(BUILD212: 전엔 조준 뒤에도 계속 돌아 발사 위치가 최대 100px 어긋났다 — “이상하게 날아가서 너무 쉽다”), 같은 줄로 0.22초 뒤 한 발 더(더블 탭). 3·5갈래 섞음. 삐용 / 후후후. 피하는 법 = 조준선이 뜨면 옆으로, 바로 되돌아오지 말 것 */
   youngcle_orbit_laser: (o = {}) => {
-    const dur = o.duration ?? 10.8, speed = o.speed ?? 290, rev = o.rev ?? 0.55, aimT = o.aim ?? 0.2;   // BUILD210 난도 2배: 20발(3·5갈래 섞음), 볼트 290, 더 빨리 돈다
+    const dur = o.duration ?? 10.8, speed = o.speed ?? 330, rev = o.rev ?? 0.55, aimT = o.aim ?? 0.2, dbl = o.double ?? 0.22;   // BUILD210 난도 2배: 20발(3·5갈래 섞음), 더 빨리 돈다. BUILD212: 볼트 330, 볼리마다 같은 줄로 두 번(더블 탭)
     const shots = o.shots ?? [0.7, 1.0, 1.3, 1.6, 2.9, 3.2, 3.5, 4.6, 4.9, 5.2, 5.5, 6.6, 6.9, 7.2, 8.1, 8.4, 8.7, 9.0, 9.3, 9.6], laughs = o.laughs ?? [2.1, 4.1, 6.1, 7.8];
-    let si = 0, li = 0, aim = null;
+    let si = 0, li = 0, aim = null, pending = [];
     const boltDraw = (ctx, q) => { ctx.save(); ctx.translate(Math.round(q.x), Math.round(q.y)); ctx.rotate(Math.atan2(q.vy, q.vx));
       for (let i = 3; i >= 1; i--) { ctx.fillStyle = `rgba(255,70,70,${0.12 * (4 - i)})`; ctx.fillRect(-12 - i * 9, -3, 12, 6); }   // 꼬리
       ctx.fillStyle = 'rgba(255,80,80,0.45)'; ctx.fillRect(-14, -6, 28, 12);                                                     // 후광
@@ -121,17 +121,20 @@ export const YOUNGCLE_PATTERNS = {
       const start = (ux, uy) => { let sx = x, sy = y; for (let k = 0; k < 80 && !inside(sx, sy); k++) { sx += ux * 4; sy += uy * 4; } return [sx, sy]; };   // 상자 안쪽까지 끌어당겨 출발(상자 밖 40px 너머의 탄은 바로 지워진다)
       if (!aim && si < shots.length && t >= shots[si] - aimT) {
         const dx = api.soul.x - x, dy = api.soul.y - y, d = Math.hypot(dx, dy) || 1; aim = { ux: dx / d, uy: dy / d };
-        const [sx, sy] = start(aim.ux, aim.uy);
+        const [sx, sy] = start(aim.ux, aim.uy); aim.sx = sx; aim.sy = sy;   // 볼트는 이 조준선(출발점 포함)을 그대로 따라간다
         api.emit({ x: sx, y: sy, r: 0, harmless: true, life: aimT, shape: 'aim', ex: sx + aim.ux * 400, ey: sy + aim.uy * 400, box: { ...b },
           drawShape: (ctx, q) => { ctx.save(); clipBox(ctx, q.box); ctx.strokeStyle = 'rgba(255,90,90,0.9)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(q.ex, q.ey); ctx.stroke(); ctx.setLineDash([]); ctx.restore(); } });
       }
       while (si < shots.length && t >= shots[si]) {
         const idx = si; si++; api.sfx?.('laser_zap', { volume: 0.8 });
-        const base = aim || (() => { const dx = api.soul.x - x, dy = api.soul.y - y, d = Math.hypot(dx, dy) || 1; return { ux: dx / d, uy: dy / d }; })(); aim = null;
+        const base = aim || (() => { const dx = api.soul.x - x, dy = api.soul.y - y, d = Math.hypot(dx, dy) || 1; const [sx, sy] = start(dx / d, dy / d); return { ux: dx / d, uy: dy / d, sx, sy }; })(); aim = null;
         const angles = idx % 4 === 3 ? [-0.5, -0.25, 0, 0.25, 0.5] : idx % 2 === 1 ? [-0.3, 0, 0.3] : [0];
-        for (const da of angles) { const a0 = Math.atan2(base.uy, base.ux) + da, ux = Math.cos(a0), uy = Math.sin(a0); const [sx, sy] = start(ux, uy);
-          api.emit({ x: sx, y: sy, vx: ux * speed, vy: uy * speed, r: 4, kind: 'red', shape: 'bolt', drawShape: boltDraw }); }
+        const bolts = angles.map(da => { const a0 = Math.atan2(base.uy, base.ux) + da; return { ux: Math.cos(a0), uy: Math.sin(a0) }; });
+        const da0 = v => Math.abs(v.ux - base.ux) < 1e-6 && Math.abs(v.uy - base.uy) < 1e-6;   // 가운데 볼트는 조준선 출발점 그대로, 갈래는 같은 각도로 상자 안쪽에서
+        const fire = () => { for (const v of bolts) { const [sx, sy] = da0(v) ? [base.sx, base.sy] : start(v.ux, v.uy); api.emit({ x: sx, y: sy, vx: v.ux * speed, vy: v.uy * speed, r: 4, kind: 'red', shape: 'bolt', drawShape: boltDraw }); } };
+        fire(); pending.push({ at: t + dbl, fire });
       }
+      pending = pending.filter(q => { if (t < q.at) return true; api.sfx?.('laser_zap', { volume: 0.5 }); q.fire(); return false; });   // 더블 탭: 같은 줄로 한 발 더
     } };
   },
 };

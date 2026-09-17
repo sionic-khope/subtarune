@@ -17,7 +17,7 @@ export function createYoungcleFinale(battle) {
   loadImg(K.junhee).then(i => { img = i; });
   const setPhase = (p) => { phase = p; pt = 0; };
   const scene = (ctx) => { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 480, 360); BATTLE_BGS[battle.cfg.bg]?.(ctx, battle); ctx.font = FONT; ctx.textBaseline = 'top'; for (const e of battle.enemies) battle.drawEnemy(ctx, e); for (const m of battle.members) battle.drawMember(ctx, m); };
-  const drawJunhee = (ctx) => { if (!img) { ctx.fillStyle = '#f4a6b4'; ctx.fillRect(J.x - 16, J.y - 28, 32, 28); return; } const fw = img.width / 2, fh = img.height / 2, w = fw, h = fh; ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(J.x), Math.round(J.y)); ctx.scale(-1, 1); ctx.drawImage(img, (J.frame % 2) * fw, Math.floor(J.frame / 2) * fh, fw, fh, Math.round(-w / 2), -h, w, h); ctx.restore(); };   // 시트는 오른쪽으로 기어가는 그림 → 좌우 반전(왼쪽으로, 영클 뒤통수 쪽에서)
+  const drawJunhee = (ctx) => { if (!img) { ctx.fillStyle = '#f4a6b4'; ctx.fillRect(J.x - 16, J.y - 28, 32, 28); return; } const fw = img.width / 2, fh = img.height / 2, w = fw, h = fh; ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(J.x), Math.round(J.y)); ctx.drawImage(img, (J.frame % 2) * fw, Math.floor(J.frame / 2) * fh, fw, fh, Math.round(-w / 2), -h, w, h); ctx.restore(); };   // 시트(junhee-slam-v1)는 왼쪽을 보며 기어가는 그림 — 오른쪽에서 왼쪽으로 오니 반전 없이 그대로(BUILD212 사용자 “오른쪽에서 왼쪽으로 기어나오는데 방향도 덩크 방향도 좌우반전해야지” — BUILD210 의 scale(-1,1) 이 오른쪽을 보게 만들고 있었다)
   return {
     fullscreen: true,
     get snapshot() { return { phase, step, junhee: { x: Math.round(J.x), y: Math.round(J.y), frame: J.frame }, white: Math.round(white * 100) / 100, zoom: Math.round(zoom * 100) / 100, kieek, boomed }; },

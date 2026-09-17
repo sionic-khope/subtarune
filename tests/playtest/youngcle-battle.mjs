@@ -87,7 +87,11 @@ try {
   }
   check(spinSeen, 'C 돌진 때 팽이처럼 돈다(spinning)');
   check(!!tauntState && tauntState.bubble === '가만히 둘가보냐' && tauntState.pose, '2대 맞히면 영클 말풍선 “가만히 둘가보냐” + 선회 시작 ' + JSON.stringify(tauntState));
-  await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'launch', null, { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(700); await cap('09a_naram_arc');
+  // 5대째: 경기장이 닫히는 동안 억빠맨 공이 자동으로 뛰어올라 덤블링하며 돌아오고(exit), 동그라미가 꺼진 뒤에야 나람이 날아간다(BUILD212 사용자 “동그라미 때문에 영클 맞는 게 안 보인다”)
+  await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'exit', null, { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(380); s = await st(); await cap('09_ball_exit');
+  check(s?.gimmick?.phase === 'exit' && s.gimmick.open < 1 && !s.gimmick.ballDone, '5대째: 경기장이 닫히는 동안 억빠맨 공이 자동으로 뛰어올라 덤블링하며 돌아온다 ' + JSON.stringify([s?.gimmick?.phase, s?.gimmick?.open, s?.gimmick?.ball]));
+  await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'launch', null, { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(700); s = await st(); await cap('09a_naram_arc');
+  check(s?.gimmick?.phase === 'launch' && s.gimmick.open === 0 && s.gimmick.ballDone, '동그라미가 꺼지고 억빠맨이 제자리에 선 뒤에 나람이 영클에게 날아간다(경기장이 안 가린다) ' + JSON.stringify([s?.gimmick?.open, s?.gimmick?.ballDone]));
   await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.phase === 'impact', null, { timeout: 12000 }).catch(() => {});
   await page.waitForTimeout(200); s = await st(); await cap('09_naram_launch');
   const sfxA = await page.evaluate(() => window.__sfx.slice());
