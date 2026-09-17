@@ -13,6 +13,8 @@ import { createTimingAttack } from './modes/timing.js';
 import { createCannonGuard } from './modes/cannon-guard.js';
 import { createParkStrip } from './modes/park-strip.js';
 import { createParkRazma } from './modes/park-razma.js';
+import { createTvformIntro } from './modes/youngcle-tvform-intro.js';
+import { createCoinMaze } from './modes/coin-maze.js';
 import { createParkWitchTrial } from './modes/park-witch-trial.js';
 import { createYoungcleCage } from './modes/youngcle-cage.js';
 import { createYoungcleIdea } from './modes/youngcle-idea.js';
@@ -43,3 +45,5 @@ registerBattleMode('enemy', 'youngcle_cage', createYoungcleCage);
 registerBattleMode('attack', 'youngcle_idea', createYoungcleIdea);
 registerBattleMode('enemy', 'youngcle_finale', createYoungcleFinale);
 registerBattleMode('enemy', 'youngcle_skip', createYoungcleSkip);
+registerBattleMode('enemy', 'tvform_intro', createTvformIntro);   // 변신 영클 인트로(편집노조 흡수·파워업, BUILD214)
+registerBattleMode('enemy', 'coin_maze', createCoinMaze);          // 코인벌기 미로(a/b)

@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/youngcle-tvform-v3/idle-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 256,
+ "fit": 0.92,
+ "scale": 0.5000424628450106,
+ "feet_y": 246,
+ "cells": [
+  {
+   "bbox": [
+    91,
+    28,
+    484,
+    485
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    197,
+    229
+   ],
+   "paste": [
+    30,
+    17
+   ]
+  },
+  {
+   "bbox": [
+    33,
+    19,
+    483,
+    485
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    225,
+    233
+   ],
+   "paste": [
+    15,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    32,
+    14,
+    484,
+    485
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    226,
+    236
+   ],
+   "paste": [
+    15,
+    10
+   ]
+  },
+  {
+   "bbox": [
+    95,
+    14,
+    483,
+    485
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    194,
+    236
+   ],
+   "paste": [
+    31,
+    10
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

@@ -94,10 +94,13 @@ try {
   s = await untilText('너희를 족치고'); await cap('15_tenna_line');
   check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_taunt' && s.bgm.includes('captain_mankatsuki'), '변신 뒤 “너희를 족치고 난 집에가겠음” + I\'m Very Bad ' + JSON.stringify([s?.speaker, s?.bgm]));
   s = await untilText('느금마'); check(s && s.speaker === '억빠맨', '억빠맨 “느금마”'); await advance();
-  // ⑦ 전투 시작 연출(battle_start·소용돌이·줌·검게) → 대치 상태·플래그
+  // ⑦ 전투 시작 연출(battle_start·소용돌이·줌·검게) → 변신 영클 전투(BUILD214, 내용은 tvform-battle.mjs) — 여기선 전투가 뜨면 바로 끝내고 대치 상태·플래그만 본다
   const started = await waitFor(() => window.__sfx.includes('battle_start'), 5000);
   await page.waitForTimeout(700); await cap('16_battle_start');
-  const done = await waitFor(() => !window.game.dialogue.running && window.game.flags.ship_aftermath_done, 12000);
+  const battleUp = await waitFor(() => window.game.battle && window.game.battle.state !== 'load' && window.game.battle.enemies.some(e => e.id === 'youngcle_tvform'), 15000);
+  check(battleUp, '전투 시작 연출 뒤 변신 영클(youngcle_tvform) 전투가 뜬다');
+  if (battleUp) await page.evaluate(() => window.game.battle.finish(true));
+  const done = await waitFor(() => !window.game.battle && !window.game.dialogue.running && window.game.flags.ship_aftermath_done, 15000);
   await page.waitForTimeout(900); s = await st(); await cap('17_after');
   check(started && done && s.flag && s.yc.v && s.yc.sprite === 'youngcle_tvform' && s.yc.loop && s.j.x === 300 && !s.down.v && !s.gj.v && s.smoke?.veil >= 0.3 && s.bgm.includes('captain_mankatsuki'),
     '전투 시작 연출 뒤 대치 상태: 변신 영클(팔 풍차)·쥰희 뒤·소품 없음·보라 음영·플래그·브금 ' + JSON.stringify([started, done, s.flag, s.yc, s.j, s.smoke, s.bgm]));

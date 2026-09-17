@@ -7,3 +7,5 @@
 - v1(`../youngcle-tvform-v1/`, 풍차 팔)은 옷·정체성은 맞았으나 동작이 달라 폐기(원본 보존).
 - export: `../youngcle-hover-battle-v1/export.py idle-raw.png 2 2 320 0.95 idle-2x2.png 312 largest` → 4행에 같게 깔아 `assets/sprites/youngcle_tvform.png`(1280×1280, 320px 셀 = 필드 160px, 발 y312, 그려지는 키 ≈229px = 대화 중 보이는 영역(230) 최대치).
 - 연결: `characters.js youngcle_tvform`, 루프 `character-motions.js youngcle_tvform.idle`(0.16s×4), 컷신 `ship_control.js tennaForm()`. 카메라 `SCENE_CAM [14.5, 8.0]` 으로 TV 머리까지 화면 안.
+
+**반려(2026-09-17)**: “너무 얇아 팔다리가, 징그러워” → `../youngcle-tvform-v3/`(테나 전투 GIF 비율: 굵고 둥근 팔다리) 로 교체. 원본 보존.

@@ -41,6 +41,7 @@ export default {
   battle_strip_rewear: '* 파크가디언이 인형탈을 끌어올려 다시 쓴다.',
   battle_strip_blocked: '막힘',
   battle_dodged: '피했다',
+  battle_duel: '승부하기', battle_coins: '코인벌기', battle_coins_hud: (n) => `코인 ${n}`,   // 변신 영클 전투(BUILD214)
   battle_idea: '아이디어', battle_idea_wait: (n) => `* 억빠맨이 생각 중이다.\n영클을 ${n}대 더 때리면 떠오를 것 같다.`,
   battle_cage_mash: '연타',
   battle_cage_incoming: '철창이 내려온다!',

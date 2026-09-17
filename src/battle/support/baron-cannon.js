@@ -2,6 +2,7 @@ import { BARON_CANNON as C } from '../../data/baron-cannon.js';
 import L from '../../data/locale/ko.js';
 import { createParkGuardianSupport } from './park-guardian.js';
 import { createYoungcleShipSupport } from './youngcle-ship.js';
+import { createYoungcleTvformSupport } from './youngcle-tvform.js';
 
 /** Battle-local support controller; no story flag survives victory or retry. */
 export function createBattleSupport(battle) {
@@ -9,6 +10,8 @@ export function createBattleSupport(battle) {
   if (park) return park;
   const ship = createYoungcleShipSupport(battle);
   if (ship) return ship;
+  const tv = createYoungcleTvformSupport(battle);
+  if (tv) return tv;
   if (!battle.enemies.some((e) => e.def.support === 'baron_cannon')) return null;
   let unlocked = false, introduced = false, charge = 0, sprite = null;
   return {

@@ -8,8 +8,10 @@ import { battleEntry } from './helpers.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './captain_reveal.js';
 import { FX } from '../fx.js';
 import { loopCharacterMotion } from '../../world/character-motion.js';
+import { TVFORM_BATTLE as TV } from '../youngcle-tvform-battle.js';
 
 const BATTLE = { enemies: ['obangsun', 'youngcle_hover', 'naram_giant'], bgm: 'youngcle_battle', bg: 'youngcle_bridge' };   // 사용자 지정 브금 XR2QQMfeJbg
+const TVFORM = { enemies: ['youngcle_tvform'], bgm: TV.bgm, bg: 'youngcle_bridge', intro: [TV.intro.line] };   // 변신 영클 전투(BUILD214): 사용자 지정 브금 ttz22bFLZqQ, 첫 대사 “편집노조의 힘을 얕보지마라” 뒤 편집노조 흡수 인트로
 const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'ship_obangsun', NR = 'ship_naram', YC_DOWN = 'ship_youngcle_down', GJ = 'ship_gajaeman';
 const CAGE = 'ship_cage', CAGE_OPEN = 'ship_cage_open', CANNON = 'ship_cannon', BALL1 = 'ship_ball1', BALL2 = 'ship_ball2';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
@@ -102,14 +104,6 @@ const tennaForm = game => {
   yc.setSprite('youngcle_tvform'); yc.def.visualScale = 1; yc.facing = 'down'; yc.jitter = null; yc.visible = true;
   const idle = game.characterMotions?.youngcle_tvform?.idle; if (idle) loopCharacterMotion(yc, idle); else yc.motion = null;
 };
-/** 표준 전투 진입 연출의 보이는 부분(helpers.battleEntry 와 같은 값) — 변신 영클과의 전투는 다음 명령이라 적 preload 없이 연출만 하고 대치 상태로 돌아온다 */
-const ENTRY_FX = [
-  { sfx: 'battle_start' }, { bgm: null, fadeOut: 0.2 }, { shake: 0.45, amp: 3 },
-  { vortex: { at: 'center', size: 40, grow: 0.9 } },
-  { zoom: 1.9, at: 'center', duration: 0.55 },
-  { vortex: { size: 900, grow: 0.5 } },
-  { fade: 'out', duration: 0.25 }, { wait: 0.15 }, { vortex: null },
-];
 const AFTERMATH = [
   { action: placeAftermath },   // 재입장·QA(after 라벨)로 들어와도 같은 자리에서 시작한다
   { zoom: 1, duration: 0.01 },
@@ -245,10 +239,13 @@ const AFTERMATH = [
   P('느금마'),
   close,
   { wait: 0.5 },
-  // (전투 시작 연출!) — 변신 영클과의 전투는 다음 명령: 연출만 하고 대치 상태로 돌아온다
-  ...ENTRY_FX,
-  { zoom: 1, duration: 0.01 },
+  // (전투 시작 연출!) → 변신 영클 전투(BUILD214: 편집노조 흡수 인트로 → [승부하기][코인벌기]). 승부하기 규칙은 다음 브리핑 — 전투에서 돌아오면 대치 상태
   { set: { ship_aftermath_done: true } },
+  ...battleEntry(TVFORM.enemies, TVFORM.bgm),
+  { darkSmoke: null },
+  { battle: TVFORM },
+  { zoom: 1, duration: 0.01 },
+  { darkSmoke: { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL, aura: { at: YC, colors: CAPTAIN_AURA_COLORS } } },
   { camera: 'player' },
   { bgm: 'captain_mankatsuki', fadeIn: 1.2 },
   { fade: 'in', duration: 0.6 },
@@ -445,6 +442,13 @@ export const ship_control_intro = Object.assign([
   { action: game => { placeAftermath(game); const e = id => game.entities.find(x => x.id === id && !x.dead); const j = e(JID); if (j) { j.x = AFTER.junheeBack[0]; j.y = AFTER.junheeBack[1]; j.facing = 'right'; } const down = e(YC_DOWN); if (down) down.visible = false; riseForm(game); tennaForm(game); } },
   { darkSmoke: { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL, aura: { at: YC, colors: CAPTAIN_AURA_COLORS } } },
   { bgm: 'captain_mankatsuki' },
+], { silent: true });
+/** QA `ship_tvform_battle`: 변신 영클 전투 직행(인트로 대사 → 편집노조 흡수 → 승부하기·코인벌기) */
+export const ship_tvform_battle_qa = Object.assign([
+  { fade: 'out', duration: 0.2 },
+  { darkSmoke: null },
+  { battle: TVFORM },
+  { fade: 'in', duration: 0.4 },
 ], { silent: true });
 /** QA `ship_battle`: 조종실에 서자마자 바로 전투 → 이어서 보스전 뒤 연출(ship_control_intro 의 after 라벨이 이어 돌린다) */
 export const ship_battle_qa = Object.assign([

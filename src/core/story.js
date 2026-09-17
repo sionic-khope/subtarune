@@ -371,6 +371,8 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control', desc: '엄청대박�
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control_after', desc: '조종실: 보스전·가재맨 연출 뒤 대치 상태(변신 영클)',
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_tvform_battle', desc: '변신 영클 전투 직행 (편집노조 흡수 인트로 → 공격 버튼 소멸·VS 승부하기 → 코인벌기 6패턴)',
+  map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party], script: 'ship_tvform_battle_qa' });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_aftermath', desc: '조종실 보스전 뒤 연출 직행 (쥰희 웃음 → 영클 “안돼” → 어둠·가재맨 → 영클 변신 → 전투 시작 연출)',
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_battle', desc: '조종실 전투 직행 (영클 hp40 피함 · 오방순 광선 · 나람 내려찍기 · 철창 레이저 · 선회 레이저)',
