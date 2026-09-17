@@ -107,7 +107,7 @@ registerBattleMode('attack', 'dance', createDanceAttack);
 |---|---|---|
 | 상자 안 캐릭터 탄은 흰색 간소화 도트 | 사용자 “이미 여러 번 지적” | `youngcle-patterns.js whiteSprite` |
 | 모든 패턴은 예고(조준선·착지 표식·내려오는 철창·깜빡이는 띠) + 조작 기믹은 설명 대사 | “유저가 준비할 시간” | 각 패턴 `aim`/`mark` 탄, `youngcle-cage.js drop`, `youngcle-battle.js idea1.ready` |
-| 난이도는 델타룬 보스 기준(회피 축 2개 이상, 지속 위험, 연타 35회) + 피격마다 공격력 +10 | “전반적으로 너무 쉬워” | `youngcle-patterns.js`, `YOUNGCLE_CAGE`, `support.partyDamage` |
+| 난이도는 델타룬 보스 기준(회피 축 2개 이상, 지속 위험, 연타 50회 — 난도는 회피 불가(따라오는 빔)가 아니라 조작량으로) + 공격당 15 고정(피격마다 +10 계단은 “ㅈㄴ 어렵네”로 2026-09-17 폐기 — 난도는 피해량이 아니라 패턴·조작량으로) | “전반적으로 너무 쉬워” | `youngcle-patterns.js`, `YOUNGCLE_CAGE`, `support.partyDamage` |
 | 소리는 델타룬 재사용 우선, 합성·whoosh 금지 | “웬만해선 델타룬 사운드 재사용”, “파도소리” | `design/audio/references.md` 조종실 항목 |
 | 텍스트는 상자 안(줄바꿈·글꼴 축소), 상자는 열리고 내용은 나타난다 | “UI 깨짐”, “뿅 나오는 게 어딨어” | `youngcle-idea.js ideaQuiz(wrapLines, REVEAL)` |
 | ‘...’ 은 말풍선, 브금은 페이드아웃 | “말풍선 ...을 말한 건데” | `ideaQuiz dots` |

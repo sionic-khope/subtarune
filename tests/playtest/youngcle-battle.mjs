@@ -26,8 +26,8 @@ let cageShots = 0, beamSeen = 0, promptSeen = false, bands = [];
 const heal = () => page.evaluate(() => { for (const m of window.game.battle.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; } });
 let godMode = false; const god = () => page.evaluate(() => { const b = window.game.battle; if (b && b.soul) b.soul.invuln = 5; });
 const untilMenu = async (ms = 60000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const s = await st(); if (!s) return null; if (godMode && (s.state === 'bullets' || s.state === 'enemy-mode')) await god(); if (s.state === 'menu' && !s.interlude) { await heal(); return s; } if (s.interlude || s.state === 'text' || (s.state === 'act' && TALK_PHASES.includes(s.gimmick?.phase))) { await press('KeyC', 320); continue; } if (s.state === 'enemy-mode' && s.gimmick && s.gimmick.progress !== undefined && !s.gimmick.broken) { if (cageShots === 0 && !s.gimmick.locked) { cageShots++; await cap('06a_cage_incoming'); } if (cageShots === 1 && s.gimmick.locked && !s.gimmick.mashOpen) { cageShots++; await cap('06a2_cage_prompt'); promptSeen = true; }
-    if (cageShots === 2 && s.gimmick.locked && s.gimmick.progress > 0.4) { cageShots++; await cap('06b_cage_charge'); } await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(60); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(60); continue; } if (s.state === 'enemy-mode' && s.gimmick?.broken && !s.gimmick.fired) { await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp'); continue; }
-  if (s.state === 'enemy-mode' && s.gimmick?.fired && s.gimmick.beamLeft > 0) { bands.push(s.gimmick.bandY); if (s.gimmick.beamLeft > 1.5 && cageShots === 3) { cageShots++; await cap('06c_cage_beam'); beamSeen = s.gimmick.beamLeft; } if (s.gimmick.beamLeft < 1.2 && cageShots === 4) { cageShots++; await cap('06d_cage_beam_sweep'); } } await page.waitForTimeout(250); } return await st(); };
+    if (cageShots === 2 && s.gimmick.locked && s.gimmick.progress > 0.4) { cageShots++; await cap('06b_cage_charge'); } for (let m = 0; m < 3; m++) { await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(35); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(35); } continue; } if (s.state === 'enemy-mode' && s.gimmick?.broken && !s.gimmick.fired) { await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp'); continue; }
+  if (s.state === 'enemy-mode' && s.gimmick?.fired && s.gimmick.beamLeft > 0) { bands.push(s.gimmick.bandY); if (s.gimmick.beamLeft > 1.5 && cageShots === 3) { cageShots++; await cap('06c_cage_beam'); beamSeen = s.gimmick.beamLeft; } if (s.gimmick.beamLeft < 1.2 && cageShots === 4) { cageShots++; await cap('06d_cage_beam_late'); } } await page.waitForTimeout(250); } return await st(); };
 const TALK_PHASES = ['talk', 'talk2', 'ready', 'insult', 'berserk', 'after', 'look'];
 const BG_CHECK = () => page.evaluate(() => window.game.battle?.cfg?.bg);
 const useIdea = async () => { for (let k = 0; k < 4 && (await st()).menuIdx !== 2; k++) await press('ArrowRight'); await press('KeyC'); };
@@ -53,7 +53,7 @@ try {
   check(s.current === 'obangsun_rays' && s.shapes.includes('ray') && s.shapes.includes('flame') && faceOpen && (s.bubble || '').includes('흐어어어'), '턴 1 오방순: 얼굴·광선·불덩이·입 벌림·흐어어어 ' + JSON.stringify([s.current, s.shapes, faceOpen, s.bubble]));
   await page.keyboard.down('ArrowDown');
   const inter = await page.waitForFunction(() => !!window.game.battle.interlude, null, { timeout: 25000 }).then(() => true).catch(() => false); await page.keyboard.up('ArrowDown');
-  const hurtLog = await page.evaluate(() => window.__hurt.slice()); check(hurtLog.every((d, i) => i === 0 || d - hurtLog[i - 1] === 10), '맞을 때마다 공격력 +10 ' + JSON.stringify(hurtLog));
+  const hurtLog = await page.evaluate(() => window.__hurt.slice()); check(hurtLog.every(d => d === 15), '피격 피해는 공격당 15 고정(계단 폐기, BUILD212) ' + JSON.stringify(hurtLog));
   await page.waitForTimeout(400); s = await st(); await cap('04_interlude');
   check(inter && (s.text || '').includes('안맞는다'), '적 턴 뒤 막간 대사 “후후후 안맞는다 게이들아” ' + JSON.stringify([inter, s.text]));
   s = await talkThrough(x => (x.text || '').includes('아이디어가 추가')); await cap('05_idea_added');
@@ -66,7 +66,7 @@ try {
   check(s?.charge === 9 && s.ready, '9대 때려 아이디어 사용 가능 ' + JSON.stringify([s?.charge, s?.ready, s?.turn]));
   check(beamSeen > 1.5, '철창 레이저가 3초 이어진다 ' + JSON.stringify([beamSeen]));
   check(promptSeen, '잠긴 뒤 “좌우로 연타해라!” 안내가 먼저(연타 UI 는 나중에)');
-  check(bands.length >= 3 && Math.max(...bands) - Math.min(...bands) > 40, '빔이 위아래로 쓸고 지나간다 ' + JSON.stringify([Math.min(...bands), Math.max(...bands), bands.length]));
+  check(bands.length >= 3 && Math.max(...bands) - Math.min(...bands) <= 1, '빔은 갇힌 자리 한 영역에 고정(BUILD212: 스윕 제거) ' + JSON.stringify([Math.min(...bands), Math.max(...bands), bands.length]));
   await useIdea();
   await page.waitForFunction(() => window.game.battle.gimmick?.snapshot?.hits !== undefined, null, { timeout: 5000 }).catch(() => {});
   s = await talkThrough(x => x.gimmick?.phase === 'enter'); await page.waitForTimeout(1000); await cap('07a_ball_walk'); s = await st();
@@ -147,7 +147,7 @@ try {
   const sfxZ = await page.evaluate(() => window.__sfx.slice(-30));
   await page.waitForTimeout(800); await cap('20_back_to_map');
   check(ended && sfxZ.includes('furnace_blast'), '쿠와아아앙 → 흰 화면 → 전투 끝 → 맵 ' + JSON.stringify([ended, sfxZ.includes('furnace_blast')]));
-  const hurtAll = await page.evaluate(() => window.__hurt.slice()); check(hurtAll.every((d, i) => [12, 14].includes(d - 10 * i)), '피격 피해 = 기본 + 10×피격 수(첫 적 턴에 맞은 만큼; 계단 규칙 자체는 tests/unit/youngcle-ship-damage.test.mjs) ' + JSON.stringify(hurtAll));
+  const hurtAll = await page.evaluate(() => window.__hurt.slice()); check(hurtAll.every(d => d === 15), '피격 피해는 공격당 15 고정(계단 없음, BUILD212 사용자 정정) ' + JSON.stringify(hurtAll));
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('CRASH', e.message); await cap('crash'); }
 console.log('fails=' + fails);

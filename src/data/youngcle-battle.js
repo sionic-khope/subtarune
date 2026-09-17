@@ -9,7 +9,7 @@ const NA = (text) => ({ speaker: '나람이', portrait: 'naram', voice: 'naram',
 const J = (text) => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* ' + text });
 
 export const YOUNGCLE_BATTLE = {
-  hp: 10, ideaHits: 9, ideaRollback: 6, ideaDamage: 3, distractedDamage: 1, distractedHits: 3, damageStep: 10,
+  hp: 10, ideaHits: 9, ideaRollback: 6, ideaDamage: 3, distractedDamage: 1, distractedHits: 3, damageStep: 0,   // 2026-09-17 사용자 “공격당 15씩만 달게하기로 했잖아” — 피격마다 +10 계단(BUILD209) 폐기, 모든 적 damage 15 고정
   sfx: { kieek: 'queen_hoot', punch: 'punch', boom: 'furnace_blast' },   // 놀람 = 델타룬 snd_queen_hoot_0(사용자 “퀸 호오”), 충돌 = snd_punchmed, 쿠와아아앙 = snd_punchheavythunder
   intro: [
     YC('후후후 안맞는다 게이들아', 'laugh'), YC('평생 공격들 피해주면서'), YC('나람이의 몸통박치기와 방순이의 음.. 그냥 사나운공격들 맞으면서'), YC('두려움에 떨다 죽어라 악당들', 'taunt'),

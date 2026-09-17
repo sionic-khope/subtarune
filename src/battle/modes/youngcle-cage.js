@@ -6,7 +6,10 @@
 import L from '../../data/locale/ko.js';
 import { FONT } from '../../ui/font.js';
 
-export const YOUNGCLE_CAGE = { drop: 0.9, prompt: 1.3, charge: 8.0, required: 35, band: 60, cage: 56, fire: 3.0, after: 0.9, stand: [394, 148], orbGap: 26, sweep: 62, sweepHz: 0.55 };   // sweep: 빔이 위아래로 쓸고 지나가는 폭(px), 발사 2초 전부터 띠가 흔들리기 시작(예고)   // prompt: “좌우로 연타해라!” 가 보이는 시간(연타는 페이드인 0.3초 뒤부터 센다)
+// required: 좌우 번갈아 누르는 횟수(BUILD212 사용자 “좌우 카운트를 높여서 난이도를 올려” 35 → 50; 연타 창 7.7초 = 초당 6.5회)
+// 빔은 갇힌 자리의 띠(band 60px) 한 영역에만 고정으로 쏜다 — BUILD210 의 상하 스윕은 “움직이면 절대 못 피한다”(사용자 2026-09-17) 로 제거
+// prompt: “좌우로 연타해라!” 가 보이는 시간(연타는 페이드인 0.3초 뒤부터 센다)
+export const YOUNGCLE_CAGE = { drop: 0.9, prompt: 1.3, charge: 8.0, required: 50, band: 60, cage: 56, fire: 3.0, after: 0.9, stand: [394, 148], orbGap: 26 };
 
 export function createYoungcleCage(battle, { enemy }) {
   const C = YOUNGCLE_CAGE, board = battle.board, soul = battle.soul, TAU = Math.PI * 2;
@@ -16,7 +19,8 @@ export function createYoungcleCage(battle, { enemy }) {
   let t = 0, progress = 0, last = null, locked = false, broken = false, brokeAt = 0, fired = false, hit = false, done = false, ticks = -1, disposed = false, chargeSfx = false, flash = 0, sparks = [], smoke = [], recoil = 0;
   const lockAt = C.drop, mashAt = lockAt + 0.3, fireAt = lockAt + C.charge, endAt = fireAt + C.fire;
   const chargeT = () => Math.max(0, t - lockAt);
-  const bandY = () => { const s0 = fireAt - 2.0; if (t < s0) return cage.y; const amp = Math.min(1, (t - s0) / 2.0) * C.sweep; return cage.y + Math.sin((t - s0) * C.sweepHz * TAU) * amp; };   // 띠 중심: 발사 2초 전부터 점점 크게 위아래로
+  // 띠 중심 = 갇힌 자리(고정). 부수고 띠 밖으로 나가면 안 맞는다
+  const bandY = () => cage.y;
   battle.sfx('locker', { volume: 0.9 });
   return {
     get snapshot() { return { t, progress, locked, bandY: Math.round(bandY()), mashOpen: locked && t >= mashAt, broken, brokeAt, fired, hit, done, soul: { x: soul.x, y: soul.y }, cage: { ...cage }, band: C.band, beamLeft: fired ? Math.max(0, endAt - t) : null, ycPose: yc.patternPose ? [Math.round(yc.patternPose.x), Math.round(yc.patternPose.y)] : null }; },
