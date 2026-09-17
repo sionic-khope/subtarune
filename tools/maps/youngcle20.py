@@ -31,6 +31,7 @@ CAGE = (600, 372 - CAGE_H)                            # 착지 자리(철창 밑
 CAGE_DROP = CAGE[1] + CAGE_H + 24                     # 화면 위(y -212)에서 내려오는 거리(396)
 YC_ENTER, YC_STAND = (470, 236), (556, 300)          # 영클 첫 등장 자리(일행 앞) · 다시 내려와 서는 자리(로고 오른쪽, 왼쪽을 봄)
 YC_DOWN = (YC_STAND[0] - 26, YC_STAND[1] - 78)        # 전투 뒤 얼굴 박힌 영클 소품(136×110, gpt youngcle-faceplant-v1) — 서 있던 자리에 엎어져 있다
+GAJAEMAN = (468, 118)                                 # 보스전 뒤 연출(BUILD211): 가재맨 그림자가 앞 벽 대형 화면 앞(가운데 위)에 연기에서 나타나는 자리
 CONDUIT_L, CONDUIT_R = (218, 0), (628, 0)             # 플라즈마 배관 유닛(98×132): 앞 벽, 조타 콘솔 양옆
 TRUNK_SCALE = 168 / 216                               # 케이블 트렁크 원본 216×123 → 168×96
 TRUNK_W = 168
@@ -69,7 +70,7 @@ def main() -> None:
         prop('ship_conduit_r', P + 'ship_conduit.png', CONDUIT_R[0], CONDUIT_R[1] + 108, 98, 24, CONDUIT_R[1], anim={'cols': 3, 'fps': 5}),
         prop('ship_trunk_l', P + 'ship_cable_trunk.png', TRUNK_L[0], 64, TRUNK_W, 32, TRUNK_L[1], anim={'cols': 3, 'fps': 6}, scale=TRUNK_SCALE),
         prop('ship_trunk_r', P + 'ship_cable_trunk.png', TRUNK_R[0], 64, TRUNK_W, 32, TRUNK_R[1], anim={'cols': 3, 'fps': 6}, scale=TRUNK_SCALE),
-        *[{'type': 'ship_plasma', 'id': f'ship_plasma_{i}', 'x': pts[0][0], 'y': pts[0][1], 'points': pts, 'color': color, 'speed': speed, 'count': 3}
+        *[{'type': 'ship_plasma', 'id': f'ship_plasma_{i}', 'x': pts[0][0], 'y': pts[0][1], 'points': [list(p) for p in pts], 'color': color, 'speed': speed, 'count': 3}
           for i, (pts, color, speed) in enumerate(PLASMA_LINES)],
         # 오른쪽 위 과학 TV(색 띠 ↔ 지직 2프레임)
         prop('ship_tv', P + 'ship_tv.png', 840, 150, 80, 24, 102, anim={'cols': 2, 'fps': 6}),
@@ -98,6 +99,8 @@ def main() -> None:
         {'type': 'prop', 'id': 'ship_cage_open', 'image': P + 'ship_cage_open.png', 'x': CAGE[0], 'y': CAGE[1], 'w': CAGE_W, 'h': CAGE_H, 'ix': CAGE[0], 'iy': CAGE[1], 'solid': False, 'hidden': True, 'sortY': CAGE[1] + CAGE_H + 2},
         {'type': 'npc', 'id': 'ship_obangsun', 'sprite': 'obangsun', 'x': CAGE[0] + 12, 'y': CAGE[1] - CAGE_DROP + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
         {'type': 'npc', 'id': 'ship_naram', 'sprite': 'naram_giant', 'x': CAGE[0] + 52, 'y': CAGE[1] - CAGE_DROP + CAGE_H - 30, 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
+        # 보스전 뒤 연출(BUILD211): 가재맨 그림자 — 컷신 ship_control.js 가 연기를 모은 뒤 show 한다
+        {'type': 'npc', 'id': 'ship_gajaeman', 'sprite': 'gajaeman_shadow', 'x': GAJAEMAN[0], 'y': GAJAEMAN[1], 'facing': 'down', 'wander': 0, 'solid': False, 'hidden': True},
     ]
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 조종실', 'stage': 'void_fallen',
@@ -105,11 +108,12 @@ def main() -> None:
         'rows': [''.join(r) for r in cells],
         'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/sprites/youngcle_hover.png',
                     'assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png', 'assets/props/ship_conduit.png', 'assets/props/ship_cable_trunk.png', 'assets/props/ship_youngcle_down.png', 'assets/backdrops/ship_battle_wall.png', 'assets/props/ship_floor_logo.png',
+                    'assets/sprites/gajaeman_shadow.png', 'assets/sprites/youngcle_powerup.png', 'assets/sprites/youngcle_tenna.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'taunt', 'glare', 'shrug', 'yes', 'question')]],
         'spawns': {
             'gate': {'x': SPAWN_X, 'y': 15 * T + 8, 'facing': 'up'},
         },
-        'meta': {'connected': True, 'route': [[DOOR_C0 + 1, 15], [DOOR_C0 + 1, 4]], 'logo': [LOGO_X, LOGO_Y], 'cage': list(CAGE), 'junhee': list(JUNHEE), 'yongjun': list(YONGJUN), 'ycEnter': list(YC_ENTER), 'ycStand': list(YC_STAND), 'cageDrop': CAGE_DROP},
+        'meta': {'connected': True, 'route': [[DOOR_C0 + 1, 15], [DOOR_C0 + 1, 4]], 'logo': [LOGO_X, LOGO_Y], 'cage': list(CAGE), 'junhee': list(JUNHEE), 'yongjun': list(YONGJUN), 'ycEnter': list(YC_ENTER), 'ycStand': list(YC_STAND), 'cageDrop': CAGE_DROP, 'gajaeman': list(GAJAEMAN)},
         'enter': {'script': 'ship_control_intro'},
         'entities': entities,
     }

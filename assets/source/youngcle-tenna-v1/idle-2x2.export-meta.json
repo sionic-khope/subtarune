@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/youngcle-tenna-v1/idle-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 176,
+ "fit": 0.9,
+ "scale": 0.32525667351129367,
+ "feet_y": 170,
+ "cells": [
+  {
+   "bbox": [
+    107,
+    17,
+    449,
+    488
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    111,
+    153
+   ],
+   "paste": [
+    32,
+    17
+   ]
+  },
+  {
+   "bbox": [
+    26,
+    17,
+    449,
+    488
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    138,
+    153
+   ],
+   "paste": [
+    19,
+    17
+   ]
+  },
+  {
+   "bbox": [
+    129,
+    1,
+    449,
+    488
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    104,
+    158
+   ],
+   "paste": [
+    36,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    153,
+    17,
+    460,
+    488
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    100,
+    153
+   ],
+   "paste": [
+    38,
+    17
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

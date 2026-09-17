@@ -39,6 +39,9 @@
   "assets/props/ship_youngcle_down.png",
   "assets/backdrops/ship_battle_wall.png",
   "assets/props/ship_floor_logo.png",
+  "assets/sprites/gajaeman_shadow.png",
+  "assets/sprites/youngcle_powerup.png",
+  "assets/sprites/youngcle_tenna.png",
   "assets/illustrations/youngcle-tv-smirk.png",
   "assets/illustrations/youngcle-tv-laugh.png",
   "assets/illustrations/youngcle-tv-taunt.png",
@@ -90,7 +93,11 @@
    556,
    300
   ],
-  "cageDrop": 396
+  "cageDrop": 396,
+  "gajaeman": [
+   468,
+   118
+  ]
  },
  "enter": {
   "script": "ship_control_intro"
@@ -612,6 +619,17 @@
    "sprite": "naram_giant",
    "x": 652,
    "y": -54,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "ship_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": 468,
+   "y": 118,
    "facing": "down",
    "wander": 0,
    "solid": false,

@@ -13,7 +13,7 @@ const pressC = async () => { await page.keyboard.press('KeyC'); await page.waitF
 const key = () => page.evaluate(() => `${window.game.dialogue.i}:${window.game.textbox.node?.text ?? ''}`);
 const advance = async () => { const before = await key(); for (let i = 0; i < 4; i++) { await pressC(); const now = await key(); const running = await page.evaluate(() => window.game.dialogue.running); if (now !== before || !running) return; } };
 const st = () => page.evaluate(() => { const g = window.game; const e = id => g.entities.find(x => x.id === id && !x.dead);
-  const ent = id => { const a = e(id); return a ? { x: Math.round(a.x), y: Math.round(a.y), v: a.visible, f: a.facing, pose: a.pose || null } : null; };
+  const ent = id => { const a = e(id); return a ? { x: Math.round(a.x), y: Math.round(a.y), v: a.visible, f: a.facing, pose: a.pose || null, sprite: a.def.sprite, loop: !!a.motion?.loop } : null; };
   return { map: g.mapId, dialogue: g.dialogue.running, text: g.textbox.node?.text?.slice(0, 70), speaker: g.textbox.node?.speaker, portrait: g.textbox.node?.portrait, px: Math.round(g.player.x), py: Math.round(g.player.y), pf: g.player.facing,
     camx: Math.round(g.camera.x), camy: Math.round(g.camera.y), bgm: JSON.stringify([g.sound.bgmName, g.sound.currentBgm, g.sound.bgmId]),
     j: ent('ship_junhee'), yj: ent('ship_yongjun'), yc: ent('ship_youngcle'), ob: ent('ship_obangsun'), nr: ent('ship_naram'), down: ent('ship_youngcle_down'), cage: ent('ship_cage'), open: ent('ship_cage_open'), cannon: ent('ship_cannon'), ball1: ent('ship_ball1'), ball2: ent('ship_ball2'),
@@ -108,14 +108,15 @@ try {
   // 전투 내용은 youngcle-battle.mjs 가 검사한다 — 여기선 전투가 뜨면 점프슬램 끝(흰 화면 유지)으로 바로 끝내고 맵 상태만 본다
   const battleUp = await waitFor(() => window.game.battle && window.game.battle.state !== 'ending', 12000);
   if (battleUp) await page.evaluate(() => window.game.battle.finish(true, { white: true }));
-  const done = await waitFor(() => !window.game.battle && !window.game.dialogue.running && window.game.flags.ship_intro_done, 12000);
-  await page.waitForTimeout(600); s = await st(); await cap('15_after');
-  check(started && done && s.flag && !s.yc.v && s.down?.v && !s.ob.v && s.nr.y === 380 && s.j.pose === 'lying' && s.bgm.includes('storage_show'), '전투 뒤: 영클은 바닥에 얼굴 박힘(소품), 오방순 탈주, 나람 옆에·플래그·브금 ' + JSON.stringify([started, done, s.flag, s.yc, s.down, s.ob, s.bgm]));
-  // ⑧ 재입장: 연출 없이 같은 대치 상태
+  // 전투 뒤에는 보스전 뒤 연출(BUILD211, ship-aftermath.mjs 가 전부 검사)이 이어진다 — 여기선 그 첫 박자(쥰희 웃음)까지만: 오방순·나람 없음, 얼굴 박힌 영클 옆에 쥰희
+  const done = await waitFor(() => !window.game.battle && window.game.dialogue.running && window.game.flags.ship_intro_done && window.__sfx.includes('laugh_junhee'), 15000);
+  await page.waitForTimeout(400); s = await st(); await cap('15_after');
+  check(started && done && s.flag && !s.yc.v && s.down?.v && !s.ob.v && !s.nr.v && s.j.x === 484 && !s.j.pose && s.j.f === 'right', '전투 뒤: 영클은 바닥에 얼굴 박힘(소품), 오방순·나람 없음, 쥰희가 그 옆에 서서 웃음(연출 시작)·플래그 ' + JSON.stringify([started, done, s.flag, s.yc, s.down, s.ob, s.nr, s.j]));
+  // ⑧ 재입장(연출 다 본 뒤): 변신 영클(TV 머리)과 대치 상태, 쥰희는 일행 뒤, 소품·오방순·나람 없음
   await page.goto('http://localhost:8000/?qa=ship_control_after');
   await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle20' && !window.game.dialogue.running, null, { timeout: 25000 });
   await page.waitForTimeout(800); s = await st(); await cap('16_reenter');
-  check(!s.dialogue && s.j?.x === 900 && s.j.pose === 'lying' && s.yj?.pose === 'lying' && !s.yc?.v && s.down?.v && !s.ob?.v && s.nr?.v && s.open?.v && !s.cannon && !s.cage, '재입장: 쥰희·용준 벽 앞에 누움, 영클 얼굴 박힘, 오방순 없음, 나람, 철창 열림, 대포 없음 ' + JSON.stringify([s.j, s.yc, s.down, s.ob, s.open, s.cannon, s.cage]));
+  check(!s.dialogue && s.j?.x === 300 && !s.j.pose && s.yj?.pose === 'lying' && s.yc?.v && s.yc.sprite === 'youngcle_tenna' && s.yc.loop && !s.down?.v && !s.ob?.v && !s.nr?.v && s.open?.v && !s.cannon && !s.cage, '재입장: 변신 영클(팔 풍차)·쥰희 일행 뒤·용준 벽 앞에 누움·소품/오방순/나람 없음·철창 열림·대포 없음 ' + JSON.stringify([s.j, s.yc, s.down, s.ob, s.nr, s.open, s.cannon, s.cage]));
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('CRASH', e.message); await cap('crash'); }
 console.log('fails=' + fails);

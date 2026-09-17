@@ -476,6 +476,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 ## 조종실 전투 (BUILD207~209, 2026-09-17)
 
+- 조종실 보스전 뒤 연출(BUILD211, `ship_control.js AFTERMATH`): **새 소리 없음** — 선장실 만카츠키 연출과 같은 파일 재사용: `captain_thunder`, `bgm/captain_reveal`(ANOTHER HIM), `captain_transform`, `furnace_blast`(쿠와아앙, snd_punchheavythunder), `bgm/captain_mankatsuki`(I'm Very Bad, 변신 뒤·재입장), `laugh_junhee`, `whoosh`/`rumble`(연기·소용돌이), `battle_start`(전투 시작 연출), 느낌표 `chime`.
 - `bgm/youngcle_battle.mp3`: 사용자 지정 [XR2QQMfeJbg](https://www.youtube.com/watch?v=XR2QQMfeJbg) — yt-dlp 메타데이터 제목 “32. Attack of the Killer Queen (DELTARUNE Chapter 2 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 표시 124초. 포맷 251 전체를 mp3 로 변환, 편집 없음(123.9초, `assets/source/youngcle-battle-bgm/`). 퀴즈 폭언 뒤(1.4초 페이드아웃)·피날레에서 꺼지고, 퀴즈 뒤 “니앰” 다음에 다시 켠다.
 - **사용자 원칙(2026-09-17) “웬만해선 델타룬 사운드 재사용”** — 아래는 전부 [TeamBlossomDevs/DeltaruneDecomp_beta](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta) `sounds/`(커밋 154f9a97) ogg → mp3 q2, 표시한 것 외 편집 없음. BUILD207 의 ffmpeg 합성(laser_pew/laser_fire/laser_charge_tick)과 `snd_queenhowl_b`(queen_kieek)는 폐기.
   - `sfx/queen_hoot.mp3`(0.84초) = `snd_queen_hoot_0` — 영클 놀람(사용자 “퀸 호오 소리”). 나람 볼 충돌·오방순 충돌·점프슬램. 다른 호오(`snd_queen_hoot_1/2`, `snd_queen_gasp`, `snd_queen_woah/woo`)는 `~/Downloads/deltarune_impact_candidates/` 에 후보로.

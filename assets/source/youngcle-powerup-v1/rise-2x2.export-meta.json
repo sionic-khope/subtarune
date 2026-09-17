@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/youngcle-powerup-v1/powerup-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.85,
+ "scale": 0.24340044742729305,
+ "feet_y": 122,
+ "cells": [
+  {
+   "bbox": [
+    147,
+    137,
+    404,
+    467
+   ],
+   "edge_touch": false,
+   "components": 6,
+   "scaled": [
+    63,
+    80
+   ],
+   "paste": [
+    33,
+    42
+   ]
+  },
+  {
+   "bbox": [
+    97,
+    76,
+    367,
+    523
+   ],
+   "edge_touch": false,
+   "components": 13,
+   "scaled": [
+    66,
+    109
+   ],
+   "paste": [
+    31,
+    13
+   ]
+  },
+  {
+   "bbox": [
+    135,
+    44,
+    425,
+    442
+   ],
+   "edge_touch": false,
+   "components": 10,
+   "scaled": [
+    71,
+    97
+   ],
+   "paste": [
+    29,
+    25
+   ]
+  },
+  {
+   "bbox": [
+    52,
+    6,
+    419,
+    442
+   ],
+   "edge_touch": false,
+   "components": 18,
+   "scaled": [
+    89,
+    106
+   ],
+   "paste": [
+    19,
+    16
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

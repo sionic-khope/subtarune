@@ -1,0 +1,10 @@
+# imagegen 2026-09-17 16:19:18
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/youngcle-powerup-v1/ref.png
+
+Pixel art sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The character is the one in the reference image (Image1, a 4-direction walking sheet): a small boy with a big round peach-pink head, ONE huge white cyclops eye with a black pupil, red cheeks, a tiny mouth, a single brown curly hair strand on top, blue t-shirt with a small green chest badge, navy shorts, short legs with dark shoes. No vehicle in this drawing.
+Pose: he is on a floor gathering dark power. View: three-quarter view turned toward the viewer's lower-left (retro RPG field sprite, seen slightly from above). 4 frames in reading order showing a slow build-up: frame 1 crouched on both knees with one hand on the floor, head hanging down; frame 2 kneeling on one knee, both fists clenched at his sides, head still down, shoulders raised; frame 3 kneeling upright, fists clenched, head lifted so the huge eye glares at the viewer with a dark violet glowing pupil, teeth gritted; frame 4 half-standing in a low wide crouch, arms spread down and out with clawed hands, mouth open in a shout, the eye glowing dark violet. Thin wisps of dark violet smoke (deep purple, NOT magenta) rise from his shoulders and back in every frame, bigger in each frame. Same scale and the same feet baseline in every cell; the figure fills about 70% of the cell height, centered; nothing touches the cell edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur.
