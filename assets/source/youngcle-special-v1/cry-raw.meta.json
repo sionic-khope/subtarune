@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/youngcle-special-v1/ref-tv.png"
+  ],
+  "elapsed_seconds": 47.4,
+  "usage": {
+    "input_tokens": 1321,
+    "output_tokens": 1756,
+    "total_tokens": 3077,
+    "input_tokens_details": {
+      "image_tokens": 1024,
+      "text_tokens": 297
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789653162,
+  "outputs": [
+    {
+      "file": "assets/source/youngcle-special-v1/cry-raw.png",
+      "bytes": 1097277,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

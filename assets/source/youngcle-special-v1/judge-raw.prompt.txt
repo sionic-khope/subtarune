@@ -1,0 +1,10 @@
+# imagegen 2026-09-17 22:52:35
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/youngcle-special-v1/ref-judge.png
+
+Pixel art sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The reference image has two parts. LEFT part (Image1) is the CHARACTER: a boy with a boxy grey CRT television as his head showing his own face on the screen (peach-pink round face, one huge cyclops eye with a spiral pupil, red cheeks, a curly brown hair strand), a blue t-shirt with a green chest badge, thick rounded peach-skin arms. RIGHT part (Image2) is a POSE and COMPOSITION reference of another character as a courtroom judge (bust shot behind a wooden bench with a gavel) - copy only the composition and framing.
+Draw the TV-headed boy as a COURTROOM JUDGE: bust shot behind a tall wooden judge's bench, wearing a white curly judge's wig on top of the TV and a black robe over the blue t-shirt, holding a wooden gavel in his right hand. 4 frames in reading order (top-left, top-right, bottom-left, bottom-right): frame 1 idle, stern smug face, gavel resting; frame 2 gavel raised high; frame 3 gavel slammed down on the bench with impact lines; frame 4 SHOCKED - the huge eye wide, mouth open in a gasp, the gavel slipping out of his hand and falling toward his own TV head. Same scale and the same bench position in every cell; the figure fills about 85% of the cell; nothing touches the cell edges.
+Style: chunky retro pixel art with smooth pseudo-3D shading on the TV and skin, flat limited shades, dark stepped outlines, crisp pixels, no anti-aliasing, no blur.

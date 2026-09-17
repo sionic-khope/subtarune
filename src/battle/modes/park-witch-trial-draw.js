@@ -1,4 +1,4 @@
-import { PARK_WITCH_TRIAL as C } from '../../data/park-witch-trial.js';
+import { PARK_WITCH_TRIAL as PARK } from '../../data/park-witch-trial.js';
 import { FONT } from '../../ui/font.js';
 import { menuTextLines } from '../../ui/menu-layout.js';
 import { BATTLE_BGS } from '../backgrounds.js';
@@ -22,12 +22,12 @@ function text(ctx, value, x, y, width, highlight = '') {
 function judge(ctx, art, phase, time) {
   if (!art.judge.image) return;
   const hammer = phase === 'declare-effect' || phase === 'verdict';
-  const frame = hammer ? Math.min(3, Math.floor(time * 6)) : 0;
+  const frame = (phase === 'shock' || phase === 'gavel') ? 3 : hammer ? Math.min(3, Math.floor(time * 6)) : 0;   // 3 = 놀라 망치를 놓치는 프레임(영클)
   ctx.drawImage(art.judge.image, frame % 2 * 128, Math.floor(frame / 2) * 128, 128, 128, 176, 6, 128, 128);
 }
 
 function objection(ctx, state) {
-  const { art, phase, phaseTime } = state;
+  const { art, phase, phaseTime } = state; const C = state.C || PARK;
   const progress = phase === 'objection' ? ease(phaseTime / 0.42) : 1;
   const offset = -520 * (1 - progress);
   if (art.glass.image) {
@@ -57,7 +57,7 @@ function objection(ctx, state) {
 
 /** Render only; gameplay owns phase, selection, timer and all HP changes. */
 export function drawParkTrial(ctx, state) {
-  const { phase, phaseTime, shown, visibleChoices, choiceShown, remaining, verdict, art, soul, board, battle, copy, choices } = state;
+  const { phase, phaseTime, shown, visibleChoices, choiceShown, remaining, verdict, art, soul, board, battle, copy, choices } = state; const C = state.C || PARK;
   ctx.save(); ctx.imageSmoothingEnabled = false;
   const transition = phase === 'enter' || phase === 'leave';
   const opacity = phase === 'enter' ? ease(phaseTime / C.timing.enter) : phase === 'leave' ? 1 - ease(phaseTime / C.timing.leave) : 1;
@@ -76,7 +76,16 @@ export function drawParkTrial(ctx, state) {
   ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
   ctx.strokeRect(Math.round(rect.x) + 1, Math.round(rect.y) + 1, Math.round(rect.w) - 2, Math.round(rect.h) - 2);
   judge(ctx, art, phase, phaseTime);
-  if (['opening', 'declaration', 'defeated'].includes(phase)) {
+  if (art.victim?.image && ['read-question', 'choices', 'question', 'verdict', 'execution-roll', 'sword', 'impact', 'objection', 'shatter', 'shock', 'gavel'].includes(phase)) {   // 피해자(울고 있는 파크가디언)가 죄목 대사에 맞춰 천천히 페이드인, 훌쩍이며 흔들림
+    const a = phase === 'read-question' ? ease(phaseTime / (C.victimFade ?? 1.2)) : 1, img = art.victim.image;
+    ctx.save(); ctx.globalAlpha = a; ctx.drawImage(img, 348 + Math.round(Math.sin(state.elapsed * 9) * 2), 30, img.width, img.height); ctx.restore();
+  }
+  if (phase === 'gavel') {                                   // 망치가 떨어져 TV 머리에 쿵
+    const k = clamp(phaseTime / (C.timing.gavel ?? 0.7)), gx = 214, gy = 10 + 40 * k * k;
+    ctx.save(); ctx.translate(gx, gy); ctx.rotate(1.2 * k); ctx.fillStyle = '#7a4a1e'; ctx.fillRect(-4, -18, 8, 36); ctx.fillStyle = '#a8703c'; ctx.fillRect(-14, -26, 28, 12); ctx.restore();
+    if (state.gavelHit) { ctx.fillStyle = '#ff657b'; ctx.textAlign = 'center'; ctx.fillText(`-${C.gavelDamage}`, 240, 6); ctx.textAlign = 'left'; }
+  }
+  if (['opening', 'declaration', 'defeated', 'shock'].includes(phase)) {
     battle.drawTextBox(ctx);
   }
   if (phase === 'declare-effect') {

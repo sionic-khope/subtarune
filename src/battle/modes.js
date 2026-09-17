@@ -15,6 +15,7 @@ import { createParkStrip } from './modes/park-strip.js';
 import { createParkRazma } from './modes/park-razma.js';
 import { createTvformIntro } from './modes/youngcle-tvform-intro.js';
 import { createCoinMaze } from './modes/coin-maze.js';
+import { createTvformSpecial } from './modes/tvform-special.js';
 import { createParkWitchTrial } from './modes/park-witch-trial.js';
 import { createYoungcleCage } from './modes/youngcle-cage.js';
 import { createYoungcleIdea } from './modes/youngcle-idea.js';
@@ -47,3 +48,4 @@ registerBattleMode('enemy', 'youngcle_finale', createYoungcleFinale);
 registerBattleMode('enemy', 'youngcle_skip', createYoungcleSkip);
 registerBattleMode('enemy', 'tvform_intro', createTvformIntro);   // 변신 영클 인트로(편집노조 흡수·파워업, BUILD214)
 registerBattleMode('enemy', 'coin_maze', createCoinMaze);          // 코인벌기 미로(a/b)
+registerBattleMode('enemy', 'tvform_special', createTvformSpecial);   // 변신 영클 특별 패턴 4종(섭리오·리듬·마녀재판·팽이 배틀, BUILD216)

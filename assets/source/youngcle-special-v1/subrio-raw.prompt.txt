@@ -1,0 +1,10 @@
+# imagegen 2026-09-17 22:52:31
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/youngcle-special-v1/ref-subrio.png
+
+Pixel art side-view sprite sheet of ONE character for a retro 2D platformer, EXACTLY 3 columns x 2 rows, 1536x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The reference image has two parts. LEFT part (Image1) is the CHARACTER: a giant boy with a boxy grey CRT television as his head showing his own face on the screen (peach-pink round face, one huge cyclops eye with a spiral pupil, red cheeks, a curly brown hair strand), a blue t-shirt with a green chest badge, navy shorts, thick rounded peach-skin arms and legs, big dark shoes. RIGHT part (Image2) is the SIZE and PIXEL DENSITY reference: a tiny platformer hero sprite sheet - make the character in this SAME coarse, low-resolution platformer pixel density (few pixels, flat shades, dark outline), just taller than that hero.
+Draw the character in pure SIDE VIEW facing LEFT, 6 frames in reading order (top-left to bottom-right): frame 1 walking (left leg forward), frame 2 walking (right leg forward), frame 3 FIRING - standing, the front arm stretched straight out to the left with a glowing red-white laser bolt leaving the hand, TV screen face grinning; frame 4 OVERLOAD - standing stiff, arms out, the TV screen showing static noise and sparks/lightning bursting from the TV, smoke; frame 5 COLLAPSED - fallen flat on his back on the ground (head to the left), the TV screen dark with little dizzy stars above, legs up slightly; frame 6 GETTING UP - kneeling on one knee pushing off the ground, screen flickering back on. Same scale in every cell; feet on the same baseline for standing frames; the whole figure fills about 70% of the cell height; nothing touches the cell edges.
+Style: chunky low-resolution retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, crisp pixels, no anti-aliasing, no blur.

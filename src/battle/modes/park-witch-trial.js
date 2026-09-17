@@ -1,7 +1,9 @@
-import { PARK_WITCH_TRIAL as C } from '../../data/park-witch-trial.js';
+import { PARK_WITCH_TRIAL as PARK } from '../../data/park-witch-trial.js';
 import { drawParkTrial } from './park-witch-trial-draw.js';
 
-export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.support?.trialCount ?? 1) - 1) } = {}) {
+/** 마녀재판. config 를 주면 그 데이터(대사·자산·재판관)로 같은 규칙을 돈다 — 영클의 마녀재판(BUILD216, data/youngcle-special.js): 3번 선택 → 소레와 오카시요! → ‘호옥!’ → 망치를 놓쳐 자기 머리에 맞고(gavelDamage) 피해 */
+export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.support?.trialCount ?? 1) - 1), config = null } = {}) {
+  const C = config || PARK;
   const sound = battle.game.sound, art = {};
   const trial = C.cases[trialIndex];
   const copy = { ...C.text, ...trial };
@@ -30,11 +32,12 @@ export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.
     cueBuffer = buffer; cueReady = true;
   }).catch(error => { assetError = String(error); });
   battle.setText('');
-  const speak = text => battle.showLine({ speaker: C.text.speaker, portrait: 'park_guardian_costume', voice: 'park_guardian_costume', text });
+  const speak = text => battle.showLine({ speaker: C.text.speaker, portrait: C.text.portrait || 'park_guardian_costume', voice: C.text.voice || 'park_guardian_costume', text });
   const showCharge = () => speak(chargeLines[dialogueIndex]);
-  const dialogue = () => ['opening', 'declaration', 'defeated', 'read-question'].includes(phase);
-  const change = next => { phase = next; phaseTime = 0; shown = 0; readHold = 0; if (next === 'read-question') showCharge(); else if (dialogue()) speak(copy[next]); else battle.setText(''); };
-  const line = () => phase === 'verdict' ? C.text.verdicts[verdict] : ['opening', 'declaration', 'defeated'].includes(phase) ? copy[phase] : null;
+  const dialogue = () => ['opening', 'declaration', 'defeated', 'read-question', 'shock'].includes(phase);
+  let gavelHit = false;
+  const change = next => { phase = next; phaseTime = 0; shown = 0; readHold = 0; if (next === 'read-question') showCharge(); else if (next === 'shock') battle.showLine(C.text.shock); else if (dialogue()) speak(copy[next]); else battle.setText(''); };
+  const line = () => phase === 'verdict' ? C.text.verdicts[verdict] : ['opening', 'declaration', 'defeated'].includes(phase) ? copy[phase] : phase === 'shock' ? (C.text.shock?.text || '') : null;
   const finish = () => { change('done'); restoreBoard(); };
   const select = index => {
     choice = index;
@@ -45,7 +48,7 @@ export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.
   };
   return {
     fullscreen: true,
-    get snapshot() { return { phase, phaseTime, elapsed, choice, remaining, trialIndex, dialogueIndex, chargeLines, currentSpeech: dialogue() ? battle.text : line(), damageApplied, disposed, shown: dialogue() ? battle.shown : shown, visibleChoices, choiceShown: choiceShown.map(Math.floor), choiceTextLengths, currentChoice, readHold, textLength: dialogue() ? battle.text.length : line()?.length ?? 0, verdict, executionBeats, assetsReady: ready(), assetError, objectionAudio: cue ? { elapsed: cue.elapsed } : null, heart: { x: battle.soul.x, y: battle.soul.y } }; },
+    get snapshot() { return { phase, phaseTime, elapsed, choice, remaining, trialIndex, dialogueIndex, chargeLines, currentSpeech: dialogue() ? battle.text : line(), damageApplied, disposed, shown: dialogue() ? battle.shown : shown, visibleChoices, choiceShown: choiceShown.map(Math.floor), choiceTextLengths, currentChoice, readHold, textLength: dialogue() ? battle.text.length : line()?.length ?? 0, verdict, executionBeats, assetsReady: ready(), assetError, objectionAudio: cue ? { elapsed: cue.elapsed } : null, heart: { x: battle.soul.x, y: battle.soul.y }, choiceTexts: choices.map(z => z.text), gavelHit }; },
     update(dt, input) {
       if (disposed || phase === 'done') return true;
       const delta = Math.max(0, dt);
@@ -70,6 +73,7 @@ export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.
           if (shown < value.length) battle.shown = value.length;
           else if (phase === 'opening') change('declaration');
           else if (phase === 'declaration') { change('declare-effect'); battle.sfx('thud', { volume: 0.8 }); }
+          else if (phase === 'shock') change('gavel');   // 영클: 놀라서 망치를 놓친다 → 머리에 맞음
           else change('leave');
         }
       } else if (phase === 'declare-effect' && phaseTime >= C.timing.declaration) {
@@ -83,7 +87,7 @@ export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.
         const length = choiceTextLengths[currentChoice], previous = Math.floor(choiceShown[currentChoice]);
         if (choiceShown[currentChoice] < length) {
           choiceShown[currentChoice] = Math.min(length, choiceShown[currentChoice] + delta / C.timing.character);
-          if (Math.floor(choiceShown[currentChoice]) > previous) sound.blip('park_guardian_costume');
+          if (Math.floor(choiceShown[currentChoice]) > previous) sound.blip(C.text.voice || 'park_guardian_costume');
         } else {
           choiceHold += delta;
           const last = currentChoice === choices.length - 1;
@@ -109,11 +113,15 @@ export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.
         battle.sfx('hit'); battle.hurtAllParty(C.damage);
       } else if (phase === 'impact' && phaseTime >= C.timing.impact) change('leave');
       else if (phase === 'objection' && phaseTime >= C.timing.objection && (!cue || cue.elapsed >= cueBuffer.duration)) { change('shatter'); battle.sfx('park_trial_shatter'); }
-      else if (phase === 'shatter' && phaseTime >= C.timing.shatter) change('defeated');
+      else if (phase === 'shatter' && phaseTime >= C.timing.shatter) change(C.gavelDamage ? 'shock' : 'defeated');
+      else if (phase === 'gavel') {                            // 망치가 손에서 떨어져 TV 머리에 쿵(0.7s) → 재판관 피해
+        if (!gavelHit && phaseTime >= (C.timing.gavel ?? 0.7)) { gavelHit = true; battle.sfx('thud'); battle.game.shake = { time: 0.3, amp: 5 }; const judgeEnemy = battle.living()[0]; if (judgeEnemy) battle.hitEnemy(judgeEnemy, null, C.gavelDamage, { source: 'special', sound: true }); }
+        if (phaseTime >= (C.timing.gavel ?? 0.7) + 1.1) change('leave');
+      }
       else if (phase === 'leave' && phaseTime >= C.timing.leave) finish();
       return phase === 'done';
     },
-    draw(ctx) { drawParkTrial(ctx, { phase, phaseTime, elapsed, shown, visibleChoices, choiceShown, remaining, verdict, choice, art, copy, choices, soul: battle.soul, board: battle.board, battle }); },
+    draw(ctx) { drawParkTrial(ctx, { phase, phaseTime, elapsed, shown, visibleChoices, choiceShown, remaining, verdict, choice, art, copy, choices, soul: battle.soul, board: battle.board, battle, C, gavelHit }); },
     dispose() {
       if (disposed) return;
       disposed = true; cue?.stop(); cue = null; restoreBoard();

@@ -1,0 +1,10 @@
+# imagegen 2026-09-17 22:52:34
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/youngcle-special-v1/ref-park.png
+
+Pixel art of ONE character, single image, 1024x1024 canvas, no grid, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+The character is the one in the reference image (Image1, a 4-direction walking sheet): copy this character's identity, costume and colors exactly.
+Pose: standing facing the viewer, CRYING pitifully - eyes squeezed shut with big streams of tears, mouth wobbling open, both fists rubbing the eyes, shoulders hunched, a few tear drops flying. Full body, the figure fills about 80% of the canvas height, centered; nothing touches the edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur.
