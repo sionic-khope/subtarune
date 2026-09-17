@@ -6,7 +6,7 @@
 //   페이싱 원칙(사용자 2026-09-16 “인간이 읽을 때 너무 진행이 빠른 것들 안 된다”): 동작 뒤엔 반드시 숨 고르기(wait ≥0.5), 이동은 느리게, 큰 동작 앞뒤엔 페이드.
 import { battleEntry } from './helpers.js';
 
-const BATTLE = { enemies: ['obangsun', 'youngcle_hover', 'naram_giant'], bgm: 'youngcle_battle', bg: 'youngcle_factory' };   // 사용자 지정 브금 XR2QQMfeJbg
+const BATTLE = { enemies: ['obangsun', 'youngcle_hover', 'naram_giant'], bgm: 'youngcle_battle', bg: 'youngcle_bridge' };   // 사용자 지정 브금 XR2QQMfeJbg
 const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'ship_obangsun', NR = 'ship_naram', YC_DOWN = 'ship_youngcle_down';
 const CAGE = 'ship_cage', CAGE_OPEN = 'ship_cage_open', CANNON = 'ship_cannon', BALL1 = 'ship_ball1', BALL2 = 'ship_ball2';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];

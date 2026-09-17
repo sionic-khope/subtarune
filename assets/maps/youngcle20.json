@@ -3,7 +3,7 @@
  "name": "엄청대박인배 조종실",
  "stage": "void_fallen",
  "bgm": null,
- "battleBg": "youngcle_factory",
+ "battleBg": "youngcle_bridge",
  "dim": 0.12,
  "rows": [
   "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
@@ -37,6 +37,8 @@
   "assets/props/ship_conduit.png",
   "assets/props/ship_cable_trunk.png",
   "assets/props/ship_youngcle_down.png",
+  "assets/backdrops/ship_battle_wall.png",
+  "assets/props/ship_floor_logo.png",
   "assets/illustrations/youngcle-tv-smirk.png",
   "assets/illustrations/youngcle-tv-laugh.png",
   "assets/illustrations/youngcle-tv-taunt.png",

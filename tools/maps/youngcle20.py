@@ -101,10 +101,10 @@ def main() -> None:
     ]
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 조종실', 'stage': 'void_fallen',
-        'bgm': None, 'battleBg': 'youngcle_factory', 'dim': 0.12,
+        'bgm': None, 'battleBg': 'youngcle_bridge', 'dim': 0.12,
         'rows': [''.join(r) for r in cells],
         'preload': ['assets/tiles/youngcle_iron_blue.png', 'assets/tiles/youngcle_iron_blue_wall.png', 'assets/tiles/youngcle_iron_blue_solid.png', 'assets/sprites/youngcle_hover.png',
-                    'assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png', 'assets/props/ship_conduit.png', 'assets/props/ship_cable_trunk.png', 'assets/props/ship_youngcle_down.png',
+                    'assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png', 'assets/props/ship_conduit.png', 'assets/props/ship_cable_trunk.png', 'assets/props/ship_youngcle_down.png', 'assets/backdrops/ship_battle_wall.png', 'assets/props/ship_floor_logo.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'taunt', 'glare', 'shrug', 'yes', 'question')]],
         'spawns': {
             'gate': {'x': SPAWN_X, 'y': 15 * T + 8, 'facing': 'up'},

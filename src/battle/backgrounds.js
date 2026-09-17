@@ -15,7 +15,7 @@ export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
 registerBattleBg('mankatsuki_vortex', drawMankatsukiBackground);
 registerBattleBg('editor_union_stage', drawParkGuardianBackground);
 
-let factoryCache = null;
+let factoryCache = null, bridgeCache = null;
 registerBattleBg('youngcle_factory', (ctx, battle) => {
   if (!factoryCache) {
     factoryCache = makeCanvas(480, 360);
@@ -28,11 +28,31 @@ registerBattleBg('youngcle_factory', (ctx, battle) => {
     g.fillStyle = 'rgba(0,0,0,0.40)'; g.fillRect(0, 0, 480, 360);
   }
   ctx.drawImage(factoryCache, 0, 0);
-  // BUILD209: 벽 양옆 플라즈마 배관 유닛(gpt ship-conduit-v1, 플라즈마 픽셀이 굴러가는 3프레임) + 벽 아래 케이블을 따라 흐르는 플라즈마 구슬
-  const unit = battle.game.propImages['assets/props/ship_conduit.png'], t = battle.t;
-  if (unit) { const fw = unit.width / 3, fi = Math.floor(t * 4) % 3, h = 84, w = Math.round(fw * h / unit.height); ctx.save(); ctx.globalAlpha = 0.75; ctx.drawImage(unit, fi * fw, 0, fw, unit.height, 6, 4, w, h); ctx.drawImage(unit, fi * fw, 0, fw, unit.height, 474 - w, 4, w, h); ctx.restore(); }
-  ctx.save(); ctx.strokeStyle = '#0d1219'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, 90); ctx.lineTo(480, 90); ctx.stroke(); ctx.strokeStyle = 'rgba(96,244,224,0.35)'; ctx.lineWidth = 1; ctx.stroke();
-  for (let i = 0; i < 4; i++) { const x = ((t * 70 + i * 120) % 500) - 10; for (let k = 3; k >= 0; k--) { ctx.fillStyle = k ? 'rgba(96,244,224,0.35)' : '#60f4e0'; ctx.fillRect(Math.round(x - k * 6) - 2, 88, 4, 4); } }
+});
+
+/** 조종실 전투 배경(BUILD210 사용자 “배경 더 웅장하게, 맵 가운데 영클 얼굴 발판, 바닥도”): gpt-image-2.5-sunburst 로 만든 앞 벽(케이블 다발·플라즈마 배관·대형 레이더 모니터, assets/backdrops/ship_battle_wall.png 480×320 의 윗부분)
+ *  + 조종실 철판 바닥(youngcle_iron_blue 타일) 가운데에 영클 얼굴 강철 로고(맵과 같은 ship_floor_logo.png) + 벽·바닥 이음새 케이블을 따라 흐르는 플라즈마 구슬 + 바닥 가장자리 어둡게 */
+registerBattleBg('youngcle_bridge', (ctx, battle) => {
+  const FLOOR = 100, WALL_Y = -40;
+  if (!bridgeCache) {
+    bridgeCache = makeCanvas(480, 360);
+    const g = bridgeCache.getContext('2d'); g.imageSmoothingEnabled = false;
+    const wall = battle.game.propImages['assets/backdrops/ship_battle_wall.png'], tile = battle.game.propImages['assets/tiles/youngcle_iron_blue.png'], logo = battle.game.propImages['assets/props/ship_floor_logo.png'];
+    g.fillStyle = '#0b0f16'; g.fillRect(0, 0, 480, 360);
+    if (wall) { g.save(); g.beginPath(); g.rect(0, 0, 480, FLOOR); g.clip(); g.drawImage(wall, 0, WALL_Y, 480, 320); g.restore(); }
+    if (tile) { g.fillStyle = g.createPattern(tile, 'repeat'); g.fillRect(0, FLOOR, 480, 360 - FLOOR); } else { g.fillStyle = '#232a36'; g.fillRect(0, FLOOR, 480, 360 - FLOOR); }
+    g.fillStyle = 'rgba(0,0,0,0.30)'; g.fillRect(0, FLOOR, 480, 360 - FLOOR);
+    if (logo) { g.save(); g.globalAlpha = 0.92; g.drawImage(logo, 240 - 78, 150, 156, 156); g.restore(); }   // 가운데 영클 얼굴 발판
+    const vg = g.createLinearGradient(0, FLOOR, 0, 360); vg.addColorStop(0, 'rgba(0,0,0,0.35)'); vg.addColorStop(0.25, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.35)'); g.fillStyle = vg; g.fillRect(0, FLOOR, 480, 360 - FLOOR);   // 벽 밑 그늘·아래 어둡게
+    g.fillStyle = '#0d1219'; g.fillRect(0, FLOOR - 3, 480, 6); g.fillStyle = '#2a3442'; g.fillRect(0, FLOOR - 1, 480, 2);   // 이음새 케이블
+    for (const x of [24, 456]) { g.fillStyle = '#0d1219'; g.fillRect(x - 3, FLOOR, 6, 260); g.fillStyle = '#2a3442'; g.fillRect(x - 1, FLOOR, 2, 260); }   // 바닥 양옆 케이블
+    factoryCache = factoryCache || null;
+  }
+  ctx.drawImage(bridgeCache, 0, 0);
+  const t = battle.t;
+  ctx.save();
+  for (let i = 0; i < 5; i++) { const x = ((t * 80 + i * 100) % 500) - 10; for (let k = 3; k >= 0; k--) { ctx.fillStyle = k ? 'rgba(96,244,224,0.35)' : '#60f4e0'; ctx.fillRect(Math.round(x - k * 6) - 2, FLOOR - 2, 4, 4); } }   // 이음새를 따라 흐르는 플라즈마
+  for (const x of [24, 456]) { const y = FLOOR + ((t * 60 + x) % 260); for (let k = 3; k >= 0; k--) { ctx.fillStyle = k ? 'rgba(201,166,255,0.35)' : '#c9a6ff'; ctx.fillRect(x - 2, Math.round(y - k * 6), 4, 4); } }      // 양옆 케이블은 보라 구슬
   ctx.restore();
 });
 

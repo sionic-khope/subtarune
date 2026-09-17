@@ -12,7 +12,7 @@ const DODGE = { time: 0.55, dx: 46, dy: 10 };
 
 export function createYoungcleShipSupport(battle) {
   if (!battle.enemies.some(e => e.def.support === 'youngcle_ship')) return null;
-  let turn = -1, dodge = null, hits = 0, charge = 0, ideaIdx = 0, unlocked = false, introduced = false, distracted = false, distractedHits = 0, finalePending = false, obangsunGone = false, lastSource = 'ordinary', partyHits = 0;
+  let turn = -1, dodge = null, hits = 0, charge = 0, ideaIdx = 0, unlocked = false, introduced = false, distracted = false, distractedHits = 0, finalePending = false, obangsunGone = false, lastSource = 'ordinary', partyHits = 0, distractedTurns = 0;
   const yc = () => battle.enemies.find(e => e.id === 'youngcle_hover');
   const order = () => ['obangsun_rays', 'naram_slam', 'youngcle_cage', 'youngcle_orbit_laser'].filter(p => !(obangsunGone && p === 'obangsun_rays'));
   const current = () => { const o = order(); return o[((turn % o.length) + o.length) % o.length]; };
@@ -24,7 +24,7 @@ export function createYoungcleShipSupport(battle) {
     get ready() { return ready(); },
     get hint() { return L.battle_idea_wait(Math.max(0, C.ideaHits - charge)); },
     get button() { return { label: L.battle_idea, icon: 'idea', enabled: ready() }; },
-    reset() { turn = -1; dodge = null; hits = 0; charge = 0; ideaIdx = 0; unlocked = false; introduced = false; distracted = false; distractedHits = 0; finalePending = false; obangsunGone = false; partyHits = 0; },
+    reset() { turn = -1; dodge = null; hits = 0; charge = 0; ideaIdx = 0; unlocked = false; introduced = false; distracted = false; distractedHits = 0; finalePending = false; obangsunGone = false; partyHits = 0; distractedTurns = 0; },
     get partyHits() { return partyHits; },
     /** 탄에 맞을 때마다 적 공격력 +10(사용자 2026-09-17 “공격력도 맞을때마다 10씩”): 첫 피격 기본, 둘째 +10, 셋째 +20 … 재도전이면 처음부터 */
     partyDamage(dmg) { return dmg + C.damageStep * partyHits; },
@@ -34,7 +34,11 @@ export function createYoungcleShipSupport(battle) {
     enemyModeFor() {
       turn++;
       if (finalePending) return 'youngcle_finale';
-      if (distracted) return 'youngcle_skip';
+      if (distracted) {                                      // 방심 턴: 첫 적 턴은 건너뛰고(공격 3대 기회), 그다음 적 턴은 공격을 안 했어도 피날레(사용자: 점프슬램은 피해보다 전투를 끝내는 연출)
+        distractedTurns++;
+        if (distractedTurns >= 2) { distracted = false; const e = yc(); if (e) e.patternPose = null; finalePending = true; return 'youngcle_finale'; }
+        return 'youngcle_skip';
+      }
       return current() === 'youngcle_cage' ? 'youngcle_cage' : null;
     },
     patternsFor(e) { const cur = current(); return e.id === OWNER[cur] ? [{ type: cur }] : []; },
@@ -63,7 +67,7 @@ export function createYoungcleShipSupport(battle) {
     },
     rollback() { ideaIdx = Math.max(0, ideaIdx - 1); charge = C.ideaRollback; },          // 퀴즈 실패: 같은 아이디어를 다시, 스택 9 → 6
     obangsunLeft() { obangsunGone = true; },
-    setDistracted(v) { distracted = !!v; distractedHits = 0; },
+    setDistracted(v) { distracted = !!v; distractedHits = 0; distractedTurns = 0; },
     update(dt) {
       const e = yc();
       if (distracted && e && !e.patternPose) e.patternPose = { sheet: 'surprise', frame: 0 };   // 방심: 뒤를 본 채(메뉴가 pose 를 지워도 다시)

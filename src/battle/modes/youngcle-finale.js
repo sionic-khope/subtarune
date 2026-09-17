@@ -34,7 +34,7 @@ export function createYoungcleFinale(battle) {
       if (phase === 'crouch') { if (pt > 0.7) { setPhase('jump'); J.frame = 3; slam = createTalk(battle, [K.slam]); battle.sfx('jump', { volume: 0.9 }); } return false; }
       if (phase === 'jump') {                                     // 슬로우모션: 장면은 0.35배, 대사는 그대로
         const sdt = dt * 0.35; const from = { x: K.startX + K.crawlStep * K.crawlSteps, y: K.ground }, to = { x: yc.x + 16, y: yc.y - 44 };   // 뒤통수(오른쪽 뒤)로 덩크
-        const k = Math.min(1, pt * 0.35 / 1.1); J.x = from.x + (to.x - from.x) * k; J.y = from.y + (to.y - from.y) * k - 150 * k * (1 - k);
+        const k = Math.min(1, pt * 0.35 / 1.1); J.x = from.x + (to.x - from.x) * k; J.y = from.y + (to.y - from.y) * k - 110 * Math.sin(Math.PI * k);   // 위에서 솟았다 내리꽂는 덩크
         zoom = 1 + k * 1.4;
         if (!kieek && k > 0.15) { kieek = true; battle.sfx(C.sfx.kieek); yc.patternPose = { sheet: 'surprise', frame: 1 }; }
         slam.update(sdt, input);

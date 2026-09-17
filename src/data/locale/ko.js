@@ -44,6 +44,7 @@ export default {
   battle_idea: '아이디어', battle_idea_wait: (n) => `* 억빠맨이 생각 중이다.\n영클을 ${n}대 더 때리면 떠오를 것 같다.`,
   battle_cage_mash: '연타',
   battle_cage_incoming: '철창이 내려온다!',
+  battle_cage_prompt: '좌우로 연타해라!',
   battle_park_razma_loading: '라즈마 소환 준비 중...',
   battle_park_razma_asset_error: '라즈마 그림을 불러오지 못했습니다.',
   battle_cannon_guard_hint: '↑ ↓  브레스 막기', battle_cannon_guard_seconds: (n) => `${n}초`, battle_cannon_guard_charging: '차징',

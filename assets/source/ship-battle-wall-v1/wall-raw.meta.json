@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/ship-battle-wall-v1/ref.png"
+  ],
+  "elapsed_seconds": 34.7,
+  "usage": {
+    "input_tokens": 1371,
+    "output_tokens": 1372,
+    "total_tokens": 2743,
+    "input_tokens_details": {
+      "image_tokens": 1024,
+      "text_tokens": 347
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789609421,
+  "outputs": [
+    {
+      "file": "assets/source/ship-battle-wall-v1/wall-raw.png",
+      "bytes": 1835306,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}
