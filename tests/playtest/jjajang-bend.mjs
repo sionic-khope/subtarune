@@ -1,4 +1,4 @@
-// 짜장 굽이 길(BUILD227): 토리이 길 오른쪽 문 → 굽이 길(my_castle_town 시작) → 위·오른쪽·밑·오른쪽 → 돌 조사(청소부 두 마디 → 청소부가 다가가 줍는다 → 돌을 얻었다) → 위로 → 검은 소나무 숲(브금 이어짐).
+// 짜장 굽이 길(BUILD227): 토리이 길 오른쪽 문 → 굽이 길(my_castle_town 시작) → 위·오른쪽·밑·오른쪽 → 돌 조사(청소부 두 마디 → 청소부가 다가가 줍는다 → 돌을 얻었다) → 위로 → 곧은 길(브금 이어짐).
 //   실행: tests/playtest/run.sh jjajang-bend
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
@@ -51,9 +51,9 @@ try {
   check(use.ok && use.after === use.before - 5 && !use.inv.includes('돌'), '돌을 쓰면 HP 가 5 줄어든다 ' + JSON.stringify(use));
   const t1 = (await st()).t;
   check(await go('ArrowRight', 'g.player.x >= 50 * 32 + 4', 20000), '오른쪽으로');
-  const up = await go('ArrowUp', "g.mapId === 'jjajang_pines'", 30000);
-  await page.waitForTimeout(800); s = await st(); await cap('07_pines_from_south');
-  check(up && s.map === 'jjajang_pines' && s.py >= 18 * 32 && s.follower, '위 가장자리 → 검은 소나무 숲 아래 입구 ' + JSON.stringify(s));
+  const up = await go('ArrowUp', "g.mapId === 'jjajang_walk'", 30000);
+  await page.waitForTimeout(800); s = await st(); await cap('07_walk_from_west');
+  check(up && s.map === 'jjajang_walk' && s.follower, '위 가장자리 → 곧은 길 왼쪽 입구 ' + JSON.stringify(s));
   check(s.bgm === 'my_castle_town' && s.t > t1, `맵을 옮겨도 브금이 다시 재생되지 않고 이어진다 (${t1} → ${s.t})`);
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }

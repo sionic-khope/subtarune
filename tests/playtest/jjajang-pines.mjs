@@ -16,11 +16,10 @@ try {
   await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_pines' && !window.game.dialogue.running, null, { timeout: 30000 });
   await page.waitForTimeout(700);
   let s = await st(); await cap('01_enter');
-  check(s.map === 'jjajang_pines' && s.follower && s.party.includes('janitor') && s.py >= 18 * 32, '아래 입구에서 시작, 청소부 동행 ' + JSON.stringify(s));
+  check(s.map === 'jjajang_pines' && s.follower && s.party.includes('janitor') && s.py >= 16 * 32 && s.px < 3 * 32, '왼쪽 입구에서 시작, 청소부 동행 ' + JSON.stringify(s));
   check(s.bgm === 'my_castle_town', '브금 my_castle_town ' + s.bgm);
   const t1 = s.t;
-  check(await go('ArrowUp', 'g.player.y <= 16 * 32 + 8', 12000), '입구 줄기를 올라와');
-  check(await go('ArrowRight', 'g.player.x >= 12 * 32 - 2', 12000), '오른쪽으로');
+  check(await go('ArrowRight', 'g.player.x >= 12 * 32 + 2', 12000), '오른쪽으로');
   check(await go('ArrowUp', 'g.player.y <= 4 * 32 + 8', 12000), '위로');
   await cap('02_top');
   check(await go('ArrowLeft', 'g.player.x <= 4 * 32 + 6', 12000), '왼쪽으로');

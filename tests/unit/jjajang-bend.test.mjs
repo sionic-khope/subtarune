@@ -51,7 +51,7 @@ test('test_bend_rock_script_lines_pickup_and_item', () => {
 test('test_bend_doors_bgm_qa_and_join_sfx', () => {
   const west = map.entities.find(e => e.id === 'bend_torii_door'), north = map.entities.find(e => e.id === 'bend_pines_door');
   assert.deepEqual([west.to, west.spawn, west.x, west.w], ['jjajang_torii', 'from_east', 0, 10]);
-  assert.deepEqual([north.to, north.spawn, north.y, north.h], ['jjajang_pines', 'from_south', 0, 10]);
+  assert.deepEqual([north.to, north.spawn, north.y, north.h], ['jjajang_walk', 'from_west', 0, 10], '위 가장자리 문 → 곧은 길');
   assert.equal(map.bgm, 'my_castle_town');
   assert.equal(storyBgm('jjajang_bend', { torii_janitor_joined: true }), 'my_castle_town', '다음 맵(굽이 길)부터');
   assert.equal(storyBgm('jjajang_torii', { torii_janitor_joined: true }), 'wise_words');

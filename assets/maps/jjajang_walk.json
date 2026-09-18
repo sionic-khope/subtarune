@@ -1,0 +1,169 @@
+{
+ "id": "jjajang_walk",
+ "name": "짜장 곧은 길",
+ "stage": "ship_sinking_done",
+ "bgm": "my_castle_town",
+ "dim": 0.08,
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "&$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&",
+  "&$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 40,
+   "y": 166,
+   "facing": "right"
+  },
+  "start": {
+   "x": 40,
+   "y": 166,
+   "facing": "right"
+  },
+  "from_east": {
+   "x": 1568,
+   "y": 166,
+   "facing": "left"
+  },
+  "before_pause": {
+   "x": 680,
+   "y": 166,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    5
+   ],
+   [
+    50,
+    5
+   ]
+  ],
+  "role": "굽이 길 → 오른쪽으로 쭉 → 검은 소나무 숲. 중간(25~26열)에서 청소부 “천천히 걷기” 연출(jjajang_walk_pause). 브금 my_castle_town 이어짐",
+  "pause": [
+   25,
+   26
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_7",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 100,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 52,
+   "iy": 183,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_8",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 356,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 310,
+   "iy": 236,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_9",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 612,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 524,
+   "iy": 193,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_10",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 932,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 914,
+   "iy": 223,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_11",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1220,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 1172,
+   "iy": 183,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_12",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1508,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 1462,
+   "iy": 236,
+   "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "walk_pause_trigger",
+   "x": 800,
+   "y": 160,
+   "w": 64,
+   "h": 64,
+   "once": true,
+   "flag": "jjajang_walk_started",
+   "unless": "jjajang_walk_done",
+   "script": "jjajang_walk_pause"
+  },
+  {
+   "type": "door",
+   "id": "walk_bend_door",
+   "x": 0,
+   "y": 160,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_bend",
+   "spawn": "from_north",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "walk_pines_door",
+   "x": 1654,
+   "y": 160,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_pines",
+   "spawn": "from_west",
+   "sfx": false
+  }
+ ]
+}

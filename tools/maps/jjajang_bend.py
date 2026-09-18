@@ -9,7 +9,7 @@
 """짜장 굽이 길(jjajang_bend, BUILD227 사용자 브리핑 2026-09-18):
 "지금 청소부 만난 맵 다음 맵 가지기 전에 하나 더 넣을 거야. 꾸불꾸불 길이야 같은 디자인으로 위로 갔다가 오른쪽으로 갔다가 밑으로 갔다가 오른쪽으로 갔다가 위로 갔다가,
 중간에 가다가 돌 하나 있고 돌 상호작용하면 청소부: 허허 볼품없는 돌이라네 / 청소부: 누군가는 이걸 품어줘야지 / 청소부가 돌로 다가가 주움 / 돌을 얻었다. 체력회복 -5 아이템 / 그러고 끝"
-- 토리이 길 오른쪽 문 → 왼쪽 가장자리(40~41행)로 들어와 위(2~3열) → 오른쪽(8~9행) → 아래(24~25열) → 오른쪽(32~33행) → 위(50~51열)로 위 가장자리까지 → 검은 소나무 숲(jjajang_pines, 아래 입구). 길 총 길이 약 141칸(1차 67칸의 2배 — 사용자 “지금보다 두 배는 더 길게”).
+- 토리이 길 오른쪽 문 → 왼쪽 가장자리(40~41행)로 들어와 위(2~3열) → 오른쪽(8~9행) → 아래(24~25열) → 오른쪽(32~33행) → 위(50~51열)로 위 가장자리까지 → 짜장 곧은 길(jjajang_walk) → 검은 소나무 숲. 길 총 길이 약 141칸(1차 67칸의 2배 — 사용자 “지금보다 두 배는 더 길게”).
 - 디자인은 검은 소나무 숲과 같다: 검은 숲 '@', 에코 발소리 길 '$', 검은 소나무 소품(assets/source/jjajang-pines-v1), dim 0.08, 시야 오버레이 없음. 브금 my_castle_town(“다음 맵부터” = 이 맵부터).
 - 돌: 두 번째 가로 다리(32~33행)의 윗줄 38열에 놓인 소품(gpt-image, assets/source/jjajang-rock-v1). 조사하면 `jjajang_rock` 컷신, 주운 뒤엔 `unless jjajang_rock_taken` 으로 사라진다. 아랫줄로는 지나갈 수 있다."""
 from __future__ import annotations
@@ -87,7 +87,7 @@ def build_map() -> dict[str, object]:
     }
     door_north = {
         'type': 'door', 'id': 'bend_pines_door', 'x': LEG5_COLS[0] * TILE, 'y': 0, 'w': 2 * TILE, 'h': 10,
-        'to': 'jjajang_pines', 'spawn': 'from_south', 'sfx': False,
+        'to': 'jjajang_walk', 'spawn': 'from_west', 'sfx': False,
     }
     return {
         'id': MAP_ID,
@@ -104,7 +104,7 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[1, ENTRY_ROWS[0]], [LEG1_COLS[0], LEG2_ROWS[0]], [LEG3_COLS[0], LEG4_ROWS[1]], [LEG5_COLS[0], 1]],
-            'role': '토리이 길 → (위·오른쪽·밑·오른쪽·위) 굽이 길 → 검은 소나무 숲. 두 번째 가로 다리에 돌(청소부가 줍는다, 체력회복 -5). 브금 my_castle_town 시작',
+            'role': '토리이 길 → (위·오른쪽·밑·오른쪽·위) 굽이 길 → 곧은 길 → 검은 소나무 숲. 두 번째 가로 다리에 돌(청소부가 줍는다, 체력회복 -5). 브금 my_castle_town 시작',
             'rock': list(ROCK_CELL),
         },
         'entities': [*pines, rock, door_west, door_north],
