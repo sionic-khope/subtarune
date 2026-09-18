@@ -5,7 +5,7 @@ import fs from 'node:fs';
 const SCREEN_W = 480, SCREEN_H = 360, TILE = 32;
 const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y', 'Z', 'v', 'm', 'c', 'V', 'Y', 'o', 'O', '!', 'J', 'G', 'L', '@']);
 // 가장자리 출입구 칸(H, BUILD194): 걷는 바닥이지만 맵 밖은 엔진이 막는다(tileAt 밖 = ' '). 테두리에 있어도 '뚫림'이 아니다 — 대신 그 칸을 덮는 문 트리거가 맵 끝에 닿아야 한다(아래 검사)
-const EDGE_OPEN = new Set(['H']);
+const EDGE_OPEN = new Set(['H', '&']);   // & = 짜장섬 길 가장자리 출입구(BUILD225)
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 const PW = 24, PH = 16;   // 주인공 히트박스 (스폰 x,y = 히트박스 왼쪽 위)
 const solidAt = (m, x, y) => { const c = Math.floor(x / TILE), r = Math.floor(y / TILE); if (r < 0 || r >= m.rows.length || c < 0 || c >= m.rows[0].length) return true; return SOLID_CHARS.has(m.rows[r][c]); };

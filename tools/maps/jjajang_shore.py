@@ -40,9 +40,12 @@ def tree(tree_id: str, col: int, row: int, variant: int) -> dict[str, object]:
 
 def build_map() -> dict[str, object]:
     rows = [['@'] * WIDTH for _ in range(HEIGHT)]
-    for row in range(FOREST_EDGE_ROW, BEACH_TOP_ROW):
+    # 길은 숲 입구(7행)에서 위 가장자리(0행)까지 이어진다(BUILD225: 위쪽 짜장숲으로 이동) — 0~6행은 입구 그림자에 완전히 잠긴다
+    for row in range(0, BEACH_TOP_ROW):
         for col in range(PATH_LEFT, PATH_RIGHT + 1):
             rows[row][col] = '%'
+    for col in range(PATH_LEFT, PATH_RIGHT + 1):
+        rows[0][col] = '&'   # 가장자리 출입구 칸(맵 스킬: 걷는 출입구 타일)
     for col, coast_row in enumerate(COASTLINE_ROWS):
         if 0 < col < WIDTH - 1:
             for row in range(BEACH_TOP_ROW, coast_row):
@@ -57,14 +60,15 @@ def build_map() -> dict[str, object]:
         (2, 15), (7, 16), (12, 16), (17, 15),
         (4, 19), (7, 20), (12, 20), (15, 19),
         (2, 23), (6, 23), (13, 23), (17, 23),
-        (0, 1), (2, 2), (4, 1), (6, 2), (8, 1), (10, 2), (12, 1), (14, 2), (16, 1), (18, 2),
-        (0, 4), (2, 5), (4, 4), (6, 5), (8, 4), (10, 5), (12, 4), (14, 5), (16, 4), (18, 5),
+        # 길 위쪽(0~6행)이 열리면서 8·10열 나무는 7·12열로(히트박스가 길을 침범하지 않게, BUILD225)
+        (0, 1), (2, 2), (4, 1), (6, 2), (7, 1), (12, 2), (12, 1), (14, 2), (16, 1), (18, 2),
+        (0, 4), (2, 5), (4, 4), (6, 5), (7, 4), (12, 5), (12, 4), (14, 5), (16, 4), (18, 5),
     ]
     # 숲 입구 그림자(2026-09-18 사용자 “위에 뭔가 그림자 진 입구처럼”): 길 위쪽 7~11행 위에 위로 갈수록 검게 잠기는 그라데이션 아치. 걷는 칸을 막지 않고(solid False) 캐릭터 위에 그려져 요플래가 위로 갈수록 그늘에 잠긴다
     entrance_shade = {
         'type': 'prop', 'id': 'jjajang_forest_entrance_shade', 'image': 'assets/props/jjajang_entrance_shade.png',
-        'x': PATH_LEFT * TILE - 16, 'y': FOREST_EDGE_ROW * TILE, 'w': 0, 'h': 0,
-        'ix': PATH_LEFT * TILE - 16, 'iy': FOREST_EDGE_ROW * TILE, 'solid': False, 'sortY': 1000000000,
+        'x': PATH_LEFT * TILE - 16, 'y': 0, 'w': 0, 'h': 0,
+        'ix': PATH_LEFT * TILE - 16, 'iy': 0, 'solid': False, 'sortY': 1000000000,
     }
     trees = [tree(f'jjajang_tree_{index + 1}', col, row, index % 3 + 1)
              for index, (col, row) in enumerate(tree_cells)]
@@ -83,6 +87,8 @@ def build_map() -> dict[str, object]:
         'solid': False,
         'oscillate': {'dx': 3, 'dy': 1, 'period': 1.8 + index % 3 * 0.25, 'phase': (index % 4) * 0.17},
     } for index, (col, row_offset) in enumerate(wave_cells)]
+    # 위 가장자리 10px 를 밟으면 짜장숲(jjajang_forest)으로(맵 스킬: 가장자리 칸의 맵 끝 쪽 10px)
+    forest_door = {'type': 'door', 'id': 'shore_forest_door', 'x': PATH_LEFT * TILE, 'y': 0, 'w': 2 * TILE, 'h': 10, 'to': 'jjajang_forest', 'spawn': 'from_shore', 'sfx': False}
     return {
         'id': MAP_ID,
         'name': '짜장섬 해안',
@@ -93,17 +99,18 @@ def build_map() -> dict[str, object]:
         'spawns': {
             'washed_up': {'x': 10 * TILE - 8, 'y': 28 * TILE + 12, 'facing': 'up'},
             'start': {'x': 10 * TILE - 8, 'y': 28 * TILE + 12, 'facing': 'up'},
+            'forest_top': {'x': 10 * TILE - 8, 'y': 1 * TILE + 16, 'facing': 'down'},
         },
         'enter': {'script': 'jjajang_shore_arrival', 'early': True},
         'meta': {
             'connected': True,
-            'route': [[10, 28], [10, 7]],
+            'route': [[10, 28], [10, 1]],
             'forestEntranceRow': FOREST_EDGE_ROW,
             'seaRows': [min(COASTLINE_ROWS), HEIGHT - 1],
             'coastlineRows': list(COASTLINE_ROWS),
-            'role': '요플래 단독 해안 도착과 짜장숲 입구 예고; 다음 지역 이동 없음',
+            'role': '요플래 단독 해안 도착; 위쪽 그림자 입구 → 짜장숲(jjajang_forest)',
         },
-        'entities': [*trees, *foam, entrance_shade],
+        'entities': [*trees, *foam, entrance_shade, forest_door],
     }
 
 

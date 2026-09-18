@@ -190,4 +190,6 @@ registerTile('b', { name: 'bridge_purple', solid: false, draw: flat('#8a6238') }
 registerTile('s', { name: 'stairs_purple', solid: false, draw: flat('#5e2f98') });   // 위 발판으로 오르는 계단
 registerTile('@', { name: 'jjajang_forest_black', solid: true, draw: flat('#060707') });
 registerTile('%', { name: 'jjajang_path_black', solid: false, draw: flat('#242726') });
+// 짜장섬 길의 가장자리 출입구 칸(용광로 H 와 같은 역할): 그림은 길과 같고, 맵 끝 10px 문을 밟아 다음 맵으로(BUILD225 해안 ↔ 짜장숲)
+registerTile('&', { name: 'jjajang_path_edge', solid: false, draw: flat('#242726') });
 registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });

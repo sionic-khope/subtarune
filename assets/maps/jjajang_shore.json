@@ -5,13 +5,13 @@
  "bgm": "jjajang_shore",
  "dim": 0.08,
  "rows": [
-  "@@@@@@@@@@@@@@@@@@@@",
-  "@@@@@@@@@@@@@@@@@@@@",
-  "@@@@@@@@@@@@@@@@@@@@",
-  "@@@@@@@@@@@@@@@@@@@@",
-  "@@@@@@@@@@@@@@@@@@@@",
-  "@@@@@@@@@@@@@@@@@@@@",
-  "@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@&&@@@@@@@@@",
+  "@@@@@@@@@%%@@@@@@@@@",
+  "@@@@@@@@@%%@@@@@@@@@",
+  "@@@@@@@@@%%@@@@@@@@@",
+  "@@@@@@@@@%%@@@@@@@@@",
+  "@@@@@@@@@%%@@@@@@@@@",
+  "@@@@@@@@@%%@@@@@@@@@",
   "@@@@@@@@@%%@@@@@@@@@",
   "@@@@@@@@@%%@@@@@@@@@",
   "@@@@@@@@@%%@@@@@@@@@",
@@ -51,6 +51,11 @@
    "x": 312,
    "y": 908,
    "facing": "up"
+  },
+  "forest_top": {
+   "x": 312,
+   "y": 48,
+   "facing": "down"
   }
  },
  "enter": {
@@ -66,7 +71,7 @@
    ],
    [
     10,
-    7
+    1
    ]
   ],
   "forestEntranceRow": 7,
@@ -96,7 +101,7 @@
    30,
    30
   ],
-  "role": "요플래 단독 해안 도착과 짜장숲 입구 예고; 다음 지역 이동 없음"
+  "role": "요플래 단독 해안 도착; 위쪽 그림자 입구 → 짜장숲(jjajang_forest)"
  },
  "entities": [
   {
@@ -546,11 +551,11 @@
    "id": "jjajang_tree_35",
    "image": "assets/props/jjajang_tree_2.png",
    "scale": 2,
-   "x": 279,
+   "x": 247,
    "y": 150,
    "w": 18,
    "h": 10,
-   "ix": 256,
+   "ix": 224,
    "iy": 32,
    "solid": true
   },
@@ -559,11 +564,11 @@
    "id": "jjajang_tree_36",
    "image": "assets/props/jjajang_tree_3.png",
    "scale": 2,
-   "x": 343,
+   "x": 407,
    "y": 182,
    "w": 18,
    "h": 10,
-   "ix": 320,
+   "ix": 384,
    "iy": 64,
    "solid": true
   },
@@ -676,11 +681,11 @@
    "id": "jjajang_tree_45",
    "image": "assets/props/jjajang_tree_3.png",
    "scale": 2,
-   "x": 279,
+   "x": 247,
    "y": 246,
    "w": 18,
    "h": 10,
-   "ix": 256,
+   "ix": 224,
    "iy": 128,
    "solid": true
   },
@@ -689,11 +694,11 @@
    "id": "jjajang_tree_46",
    "image": "assets/props/jjajang_tree_1.png",
    "scale": 2,
-   "x": 343,
+   "x": 407,
    "y": 278,
    "w": 18,
    "h": 10,
-   "ix": 320,
+   "ix": 384,
    "iy": 160,
    "solid": true
   },
@@ -906,13 +911,24 @@
    "id": "jjajang_forest_entrance_shade",
    "image": "assets/props/jjajang_entrance_shade.png",
    "x": 272,
-   "y": 224,
+   "y": 0,
    "w": 0,
    "h": 0,
    "ix": 272,
-   "iy": 224,
+   "iy": 0,
    "solid": false,
    "sortY": 1000000000
+  },
+  {
+   "type": "door",
+   "id": "shore_forest_door",
+   "x": 288,
+   "y": 0,
+   "w": 64,
+   "h": 10,
+   "to": "jjajang_forest",
+   "spawn": "from_shore",
+   "sfx": false
   }
  ]
 }
