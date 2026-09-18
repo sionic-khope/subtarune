@@ -11,7 +11,7 @@ export const YOUNGCLE_SPECIAL = {
   hp: 200,                                              // 사용자 “영클 피는 200으로”
   // 공통 도입·복귀
   // 도입(테나 보스전 참고): 가운데로 점프 → 춤추며 한마디(말풍선) → 춤추는 그대로 TV 얼굴로 확대(face = 패턴 자세 기준 TV 화면 가운데, screenR = 화면 반지름) → TV 화면 안에서 지지직 → 가로선에서 펼쳐지며 켜짐(on)
-  intro: { jump: 0.55, dance: 2.2, zoom: 1.0, on: 0.45, center: [240, 236], face: [-2, -176], screenR: [36, 28], zoomTo: 8.5 },
+  intro: { jump: 0.55, dance: 2.2, zoom: 1.0, on: 0.45, center: [240, 242], face: [-2, -176], screenR: [36, 28], zoomTo: 8.5 },
   // 마무리: 게임 화면이 가로선으로 접히며 꺼짐(off) → 지지직 걷히며 축소(zoomout) → 제자리로 점프(back)
   outro: { off: 0.35, zoomout: 0.7, back: 0.45 },
   sfx: { noise: 'static_burst', noiseLoop: 'static_loop', dance: 'menumove' },

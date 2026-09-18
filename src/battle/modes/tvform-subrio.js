@@ -138,7 +138,10 @@ export function createSubrioGame(battle, yc, K) {
           for (const a of actors) {
             if (!a.active || a.invuln > 0) continue;
             if (!rectsOverlap({ x: a.x, y: a.y, w: a.w, h: a.h }, beam)) continue;
-            hurtActor(a, ycX, []);
+            // 실제로 맞았을 때만 한 번(hurtActor 가 무적을 건다). 방패로 막으면(false·block) 피해 없음 — 2026-09-18 사용자 “한 대만 맞는 거라고, 방어할 때 왜 안 막히냐”(막힌 채 매 프레임 15씩 들어가 즉사하던 버그)
+            const ev = []; const hit = hurtActor(a, ycX, ev);
+            if (ev.some(e => e.type === 'block')) battle.sfx('pantheon_e_up', { volume: 0.45 });
+            if (!hit) continue;
             // 파티 피해는 조작하는 요플래가 맞았을 때만(동료는 원작처럼 튕겨나기만 한다)
             if (a === hero) battle.hurtParty(K.lasers.damage);
           }

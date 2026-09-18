@@ -19,7 +19,7 @@ export function tickBubble(battle, dt) {
 
 export function createYoungcleTvformSupport(battle) {
   if (!battle.enemies.some(e => e.def.support === 'youngcle_tvform')) return null;
-  let coinIdx = 0, openingShown = false, pending = null, mazeCount = 0, turn = -1, healed = 0, specialIdx = 0;
+  let coinIdx = 0, openingShown = false, pending = null, mazeCount = 0, turn = -1, healed = 0, specialIdx = 0, lastTaunt = null;
   const MAZES = { coin_maze_a: 'a', coin_maze_b: 'b' };
   const self = {
     mazeVariant: 'a', specialKind: null,
@@ -29,11 +29,12 @@ export function createYoungcleTvformSupport(battle) {
     get isSpecialTurn() { return turn % 2 === 1; },
     get current() { return C.coinOrder[(coinIdx - 1 + C.coinOrder.length) % C.coinOrder.length]; },
     get mazeCount() { return mazeCount; },
-    /** 이번 특별 패턴의 한마디(춤추며 말풍선) */
-    get specialLine() { return C.lines[this.specialKind] || null; },
-    lineFor(name) { return C.lines[name] || null; },
-    /** 적 턴 준비 말풍선(엔진 경로: 코인 탄막): 이번 패턴에 맞는 한마디 — 미로·특별은 모드 안에서 sayBubble 로 먼저 띄운다 */
-    speechFor() { const line = C.lines[this.current]; return line ? [line] : null; },
+    /** 특별 패턴(TV 로 넘어갈 때)엔 말풍선 없음 */
+    get specialLine() { return null; },
+    /** 말풍선 문구: 미로는 사용자 문장 그대로, 그 외 코인 패턴은 잡담 중 직전과 다른 것 */
+    lineFor(name) { if (/^coin_maze/.test(name)) return C.mazeLine; const pool = C.taunts.filter(t => t !== lastTaunt); const pick = pool[Math.floor(battle.rnd() * pool.length)]; lastTaunt = pick; return pick; },
+    /** 적 턴 준비 말풍선(엔진 경로: 코인 탄막) — 미로는 모드 안에서 sayBubble 로 먼저 띄운다 */
+    speechFor() { return [this.lineFor(this.current)]; },
     get unlocked() { return false; },
     get hint() { return ''; },
     reset() { coinIdx = 0; openingShown = false; pending = null; mazeCount = 0; turn = -1; healed = 0; specialIdx = 0; this.specialKind = null; },

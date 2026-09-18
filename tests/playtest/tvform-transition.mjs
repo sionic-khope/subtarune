@@ -26,7 +26,8 @@ try {
   // ① 코인 레이저(엔진 경로): 준비 말풍선에 패턴 대사
   await attackRound();
   const prep = await waitFor(() => window.game.battle.state === 'enemy-prep' && window.game.battle.bubble, 15000); await page.waitForTimeout(500); await cap('01_lasers_bubble');
-  let s = await st(); check(prep && (s.bubble || '').includes('레이저'), '코인 레이저 턴: 말풍선에 패턴 대사 ' + JSON.stringify(s?.bubble));
+  const TAUNTS = ['후후후', 'ㅋㅋ', '즐', '이건 다 파악했음', 'ㅈ밥년들'];
+  let s = await st(); check(prep && TAUNTS.includes(s.bubble), '코인 레이저 턴: 말풍선에 영클 잡담(사용자 문장) ' + JSON.stringify(s?.bubble));
   await page.evaluate(() => { window.game.battle.soul.invuln = 30; });
   await untilMenu(40000);
   // ② 미로: 한마디 먼저 → 미로
@@ -43,7 +44,7 @@ try {
   await attackRound();
   const jump = await waitFor(() => window.game.battle.gimmick?.snapshot?.kind === 'trial' && window.game.battle.gimmick.snapshot.phase === 'jump', 15000); await page.waitForTimeout(250); await cap('04_jump');
   const danceOk = await phaseShot('dance', 900, '05_dance_bubble'); s = await st();
-  check(jump && danceOk && (s.bubble || '').includes('재판') && s.gimmick?.ycPose && Math.abs(s.gimmick.ycPose[0] - 240) < 10, '점프 → 가운데서 춤 + 패턴 대사 말풍선 ' + JSON.stringify([s?.bubble, s?.gimmick?.ycPose]));
+  check(jump && danceOk && s.bubble === null && s.gimmick?.ycPose && Math.abs(s.gimmick.ycPose[0] - 240) < 10, '점프 → 가운데서 춤(TV 로 넘어갈 땐 말풍선 없음) ' + JSON.stringify([s?.bubble, s?.gimmick?.ycPose]));
   const zoomMid = await phaseShot('zoom', 420, '06_zoom_mid'); const poseA = (await st())?.gimmick?.ycPose;
   await page.waitForTimeout(160); const poseB = (await st())?.gimmick?.ycPose; await page.waitForTimeout(300); await cap('07_zoom_static');
   check(zoomMid && poseA && poseB && (poseA[0] !== poseB[0] || poseA[1] !== poseB[1]), '확대 중에도 춤(자세가 계속 움직인다) ' + JSON.stringify([poseA, poseB]));

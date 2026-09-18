@@ -28,11 +28,13 @@ export const ENEMIES = {
   youngcle_tvform: {
     name: '영클', hp: 200, damage: 15, money: 1000, boss: true, support: 'youngcle_tvform', voice: 'youngcle',   // 승리 보상 1000원(2026-09-17 사용자)
     sheet: { src: 'assets/enemies/youngcle-tvform-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 160, px: 1 },
-    pivot: [128, 246], scale: 1, dx: -14, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 2, period: 2.4 },
+    // dy 66: 발을 y242(패널 위 4px)에 — 시트 머리 위 여백 10px 라 머리 위가 화면 안 6px(사용자 2026-09-18 “전투 위치 높아서 잘린다”)
+    pivot: [128, 246], scale: 1, dx: -14, dy: 66, board: [240, 160], idle: { swayX: 0, swayY: 2, period: 2.4 },
     patterns: [{ type: 'coin_lasers' }],
     projectiles: { warship: 'assets/props/youngcle-warship.png' },
-    // 잡담(행동 선택 중 위 두 줄)에 영클 한마디 — ‘후후후·즐·ㅈ밥이노ㅋ’(2026-09-17 사용자). 적 턴 말풍선은 패턴별 대사(youngcle-tvform-battle.js lines)
-    lines: { appear: '* 변신한 영클이 내려다본다.', idle: ['* 영클의 TV 화면이 지직거린다.', '* 영클: 후후후', '* 영클: 즐', '* 영클: ㅈ밥이노ㅋ'], die: '* 영클이 물러났다.', speak: ['ㅋㅋ', '즐', '죽어라 게이야', '후후후후', '후후후', 'ㅈ밥이노ㅋ'] },
+    // 영클 대사는 적 턴 말풍선(youngcle-tvform-battle.js taunts·mazeLine)에서만 — 행동 선택 잡담엔 넣지 않는다(사용자 2026-09-18 “공격하기 누르는 화면에 영클: 즐을 넣냐”)
+    // 잡담은 나레이션체(사용자 2026-09-18 “억빠맨이 영클을 향해 패드립했다 효과는 없었다 이런 식”). speak 는 말풍선 예비(실제 말풍선은 support.speechFor → youngcle-tvform-battle.js taunts)
+    lines: { appear: '* 변신한 영클이 내려다본다.', idle: ['* 영클의 TV 화면이 지직거린다.', '* 억빠맨이 영클을 향해 패드립했다. 효과는 없었다.'], die: '* 영클이 물러났다.', speak: ['후후후', 'ㅋㅋ', '즐', '이건 다 파악했음', 'ㅈ밥년들'] },
   },
   obangsun: {
     name: '오방순', hp: 1, untargetable: true, damage: 15, money: 0, voice: 'obangsun',
