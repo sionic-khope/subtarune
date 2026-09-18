@@ -400,5 +400,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_sinking', desc: '요플래 수�
   map: 'ship_lounge', spawn: 'castle_approach', flags: { ...shipCastleDoneFlags }, party: [...parkWonCheckpoint.party], script: 'ship_sinking' });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_shore', desc: '짜장섬 해안 · 요플래 단독 조작 · 위쪽 숲 입구',
   map: 'jjajang_shore', spawn: 'washed_up', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_forest', desc: '짜장숲 세로 통로 (해안 위, 초록숲0 브금) · 다음 맵 브리핑 대기',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_forest', desc: '짜장숲 세로 통로 (해안 위, 초록숲0 브금) · 위로 가면 토리이 길',
   map: 'jjajang_forest', spawn: 'from_shore', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii', desc: '짜장 토리이 길 (두 칸 위 → 오른쪽, 토리이 3개, 원형 시야) · 오른쪽 끝 다음 맵 브리핑 대기',
+  map: 'jjajang_torii', spawn: 'from_forest', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });

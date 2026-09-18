@@ -1,0 +1,431 @@
+{
+ "id": "jjajang_torii",
+ "name": "짜장 토리이 길",
+ "stage": "ship_sinking_done",
+ "bgm": "wind",
+ "dim": 0,
+ "vision": {
+  "radius": 125,
+  "edge": 205,
+  "noise": 0.6
+ },
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&",
+  "@@@@@@@@@$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&",
+  "@@@@@@@@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@&&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_forest": {
+   "x": 312,
+   "y": 396,
+   "facing": "up"
+  },
+  "start": {
+   "x": 312,
+   "y": 396,
+   "facing": "up"
+  },
+  "from_east": {
+   "x": 1440,
+   "y": 272,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    10,
+    12
+   ],
+   [
+    10,
+    8
+   ],
+   [
+    46,
+    8
+   ]
+  ],
+  "role": "짜장숲 다음: 두 칸 위 → 오른쪽 직선 길, 대각선 토리이 3개, 주인공 중심 원형 시야(vision). 오른쪽 끝 다음 맵은 브리핑 대기",
+  "torii": [
+   {
+    "col": 16,
+    "nearBase": [
+     528,
+     322
+    ]
+   },
+   {
+    "col": 28,
+    "nearBase": [
+     912,
+     322
+    ]
+   },
+   {
+    "col": 40,
+    "nearBase": [
+     1296,
+     322
+    ]
+   }
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_tree_1",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 23,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 0,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_2",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 119,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 96,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_3",
+   "image": "assets/props/jjajang_tree_3.png",
+   "scale": 2,
+   "x": 215,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 192,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_4",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 311,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 288,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_5",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 407,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 384,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_6",
+   "image": "assets/props/jjajang_tree_3.png",
+   "scale": 2,
+   "x": 791,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 768,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_7",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 1175,
+   "y": 118,
+   "w": 18,
+   "h": 10,
+   "ix": 1152,
+   "iy": 0,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_8",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 55,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 32,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_9",
+   "image": "assets/props/jjajang_tree_3.png",
+   "scale": 2,
+   "x": 151,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 128,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_10",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 247,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 224,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_11",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 343,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 320,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_12",
+   "image": "assets/props/jjajang_tree_3.png",
+   "scale": 2,
+   "x": 439,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 416,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_13",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 823,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 800,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_14",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 1207,
+   "y": 214,
+   "w": 18,
+   "h": 10,
+   "ix": 1184,
+   "iy": 96,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_15",
+   "image": "assets/props/jjajang_tree_3.png",
+   "scale": 2,
+   "x": 55,
+   "y": 470,
+   "w": 18,
+   "h": 10,
+   "ix": 32,
+   "iy": 352,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_16",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 151,
+   "y": 470,
+   "w": 18,
+   "h": 10,
+   "ix": 128,
+   "iy": 352,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_17",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 247,
+   "y": 470,
+   "w": 18,
+   "h": 10,
+   "ix": 224,
+   "iy": 352,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_18",
+   "image": "assets/props/jjajang_tree_3.png",
+   "scale": 2,
+   "x": 439,
+   "y": 470,
+   "w": 18,
+   "h": 10,
+   "ix": 416,
+   "iy": 352,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_19",
+   "image": "assets/props/jjajang_tree_1.png",
+   "scale": 2,
+   "x": 823,
+   "y": 470,
+   "w": 18,
+   "h": 10,
+   "ix": 800,
+   "iy": 352,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_tree_20",
+   "image": "assets/props/jjajang_tree_2.png",
+   "scale": 2,
+   "x": 1207,
+   "y": 470,
+   "w": 18,
+   "h": 10,
+   "ix": 1184,
+   "iy": 352,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_1_back",
+   "image": "assets/props/jjajang_torii_back.png",
+   "x": 655,
+   "y": 232,
+   "w": 24,
+   "h": 22,
+   "ix": 647,
+   "iy": 158,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_1_front",
+   "image": "assets/props/jjajang_torii_front.png",
+   "x": 516,
+   "y": 322,
+   "w": 24,
+   "h": 24,
+   "ix": 471,
+   "iy": 37,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_2_back",
+   "image": "assets/props/jjajang_torii_back.png",
+   "x": 1039,
+   "y": 232,
+   "w": 24,
+   "h": 22,
+   "ix": 1031,
+   "iy": 158,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_2_front",
+   "image": "assets/props/jjajang_torii_front.png",
+   "x": 900,
+   "y": 322,
+   "w": 24,
+   "h": 24,
+   "ix": 855,
+   "iy": 37,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_3_back",
+   "image": "assets/props/jjajang_torii_back.png",
+   "x": 1423,
+   "y": 232,
+   "w": 24,
+   "h": 22,
+   "ix": 1415,
+   "iy": 158,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_3_front",
+   "image": "assets/props/jjajang_torii_front.png",
+   "x": 1284,
+   "y": 322,
+   "w": 24,
+   "h": 24,
+   "ix": 1239,
+   "iy": 37,
+   "solid": true
+  },
+  {
+   "type": "door",
+   "id": "torii_forest_door",
+   "x": 288,
+   "y": 438,
+   "w": 64,
+   "h": 10,
+   "to": "jjajang_forest",
+   "spawn": "from_north",
+   "sfx": false
+  }
+ ]
+}

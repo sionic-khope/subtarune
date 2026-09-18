@@ -398,6 +398,37 @@ class Game {
     ctx.globalAlpha = 1; ctx.textAlign = 'left';
   }
   /** 얕은 물 발소리 물결 고리(옵젝영역): 발밑에서 타원 고리가 퍼지며 옅어진다 — 맵 위·캐릭터 아래 */
+  /** 주인공 중심 원형 시야 + 바깥 노이즈 어둠 (맵 `vision`). 화면 좌표로 그린다(ctx 는 이미 cam 만큼 이동한 상태가 아니라 -cam 을 직접 뺀다) */
+  drawVision(ctx, cam, vision) {
+    const p = this.player; if (!p) return;
+    const cx = p.x + p.w / 2 - cam.x, cy = p.y + p.h / 2 - cam.y;
+    const radius = vision.radius ?? 150, edge = vision.edge ?? 250, density = vision.noise ?? 0.55;
+    if (!this.visionNoise) {
+      // 결정적 노이즈 판 3장(2px 알갱이): 매 0.12초 교대해 알갱이가 자글거린다
+      let seed = 1234567;
+      const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+      this.visionNoise = [0, 1, 2].map(() => {
+        const c = document.createElement('canvas'); c.width = SCREEN_W; c.height = SCREEN_H; const g = c.getContext('2d'); g.fillStyle = '#000';
+        for (let y = 0; y < SCREEN_H; y += 2) for (let x = 0; x < SCREEN_W; x += 2) if (rand() < density) g.fillRect(x, y, 2, 2);
+        return c;
+      });
+      const buf = document.createElement('canvas'); buf.width = SCREEN_W; buf.height = SCREEN_H; this.visionBuf = buf;
+    }
+    const b = this.visionBuf.getContext('2d');
+    b.clearRect(0, 0, SCREEN_W, SCREEN_H);
+    // 알갱이: radius*0.85 안에서 0 → edge 에서 1 로 차오른다(자글거리는 노이즈가 어둠을 채운다)
+    b.drawImage(this.visionNoise[Math.floor(performance.now() / 120) % 3], 0, 0);
+    const grain = b.createRadialGradient(cx, cy, radius * 0.85, cx, cy, edge);
+    grain.addColorStop(0, 'rgba(0,0,0,0)'); grain.addColorStop(1, 'rgba(0,0,0,1)');
+    b.globalCompositeOperation = 'destination-in'; b.fillStyle = grain; b.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    b.globalCompositeOperation = 'source-over';
+    // 매끈한 어둠은 알갱이 밑에 옅게(edge 에서 0.45) 깔리고, edge*1.2 부터는 완전히 검다
+    const shade = b.createRadialGradient(cx, cy, radius, cx, cy, edge * 1.2);
+    shade.addColorStop(0, 'rgba(0,0,0,0)'); shade.addColorStop(0.62, 'rgba(0,0,0,0.45)'); shade.addColorStop(1, 'rgba(0,0,0,1)');
+    b.globalCompositeOperation = 'destination-over'; b.fillStyle = shade; b.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    b.globalCompositeOperation = 'source-over';
+    ctx.drawImage(this.visionBuf, 0, 0);
+  }
   emitRipple(x, y) { this.ripples.push({ x, y, t: 0, dur: 0.6 }); }
   drawRipples(ctx, cam) {
     if (!this.ripples.length) return;
@@ -1158,6 +1189,10 @@ class Game {
       ctx.fillStyle = glow; ctx.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2);
       ctx.restore();
     } else if (!stageLit && dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
+    // 맵 JSON `vision: { radius, edge, noise }` — 주인공 중심 원형 시야(BUILD226 짜장 토리이 길, 사용자 “주인공 기준 3분의 2 원만 보이고 겉으로 갈수록 노이즈 어둠이 차게”):
+    //   radius 까지 맑고 edge 에서 완전히 검다. 그 사이엔 거친 알갱이(noise)가 바깥으로 갈수록 짙게 차오른다. 대화창/UI 는 어두워지지 않는다
+    const vision = MAPS[this.mapId]?.vision;
+    if (!stageLit && vision) this.drawVision(ctx, cam, vision);
     drawEditorUnionLabels(ctx, this, cam);
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);

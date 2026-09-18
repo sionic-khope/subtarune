@@ -79,7 +79,7 @@
     1
    ]
   ],
-  "role": "짜장숲 세로 통로(초록숲0 브금 wind); 위쪽 다음 맵은 브리핑 대기 — 통로만 열림"
+  "role": "짜장숲 세로 통로(초록숲0 브금 wind); 위 가장자리 문 → 짜장 토리이 길(jjajang_torii)"
  },
  "entities": [
   {
@@ -1547,6 +1547,17 @@
    "h": 10,
    "to": "jjajang_shore",
    "spawn": "forest_top",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "forest_torii_door",
+   "x": 288,
+   "y": 0,
+   "w": 64,
+   "h": 10,
+   "to": "jjajang_torii",
+   "spawn": "from_forest",
    "sfx": false
   }
  ]
