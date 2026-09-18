@@ -101,6 +101,9 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await line('보라색 코드', 'castle_07b_door_cord_line');
   const rush = await beat('field_rush', 'castle_08_offscreen_rush');
   check('Gajaeman rush begins on the field overlay', rush.fullFrame === false);
+  check('the slam shows a bottom caption from Ppaman', !!await until(() => game.textbox.node?.text?.includes('앗!') && game.textbox.node?.speaker === '억빠맨', 8000));
+  await shot('castle_08b_slam_caption');
+  check('that caption clears itself with no input at all', !!await until(() => !game.textbox.node?.text?.includes('앗!'), 4000));
   await beat('field_window', 'castle_09_window_break');
   const impact = await page.evaluate(() => { const carrier = game.entities.find(entity => entity.id === 'ship_castle_gajaeman'); return { reactions: ['lounge_junhee', 'lounge_yongjun', 'lounge_youngcle', 'ppaman', 'gyeongsub'].map(id => { const e = game.entities.find(x => x.id === id); return { id, facing: e.facing, emote: e.emote?.kind }; }),
     carrier: { x: carrier.x, y: carrier.y, visualScale: carrier.def.visualScale }, player: { x: game.player.x, y: game.player.y },
@@ -132,10 +135,13 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
     const tick = () => {
       const scene = game.shipCastle;
       if (scene && !scene.disposed) {
-        const veil = scene.snapshot().veil;
+        const snapshot = scene.snapshot();
+        const veil = snapshot.veil;
         window.__castleVeil.max = Math.max(window.__castleVeil.max, veil);
         if (veil >= 0.99) { window.__castleVeil.closed = true; window.__castleVeil.bgmDuringVeil = game.sound.bgmName; }
         if (window.__castleVeil.closed && veil <= 0.01 && scene.beat === 'sky_tug') window.__castleVeil.reopened = true;
+        if (snapshot.castleLanded && !window.__castleVeil.landedAt) window.__castleVeil.landedAt = performance.now();
+        if (snapshot.beamsFired > 0 && !window.__castleVeil.firstBeamAt) window.__castleVeil.firstBeamAt = performance.now();
       }
       requestAnimationFrame(tick);
     };
@@ -175,13 +181,19 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   check('the actual inventory loses every purple cord at theft', await until(() => game.flags.ship_castle_cord_stolen && !game.inventory.includes('보라색 코드 ?'), 5000));
   const revealStart = await beat('castle_reveal', 'castle_16a_reveal_gather_starts');
   check('the reveal opens on a gathering point with no castle yet', revealStart.geometry.phase.gather < 1 && revealStart.geometry.castle.width <= 12, JSON.stringify({ phase: revealStart.geometry.phase, castle: revealStart.geometry.castle }));
-  await page.waitForTimeout(1300);
-  await shot('castle_16b_gather_point');
+  check('Yoplait leaves from the centre of the sky and travels right', await page.evaluate(() => {
+    const { flyFrom, flyTo } = game.shipCastle.config.ocean;
+    return Math.abs(flyFrom[0] - 240) <= 20 && flyTo[0] > flyFrom[0] + 60;
+  }), JSON.stringify(await page.evaluate(() => game.shipCastle.config.ocean.flyFrom.concat(game.shipCastle.config.ocean.flyTo))));
   await page.waitForTimeout(2600);
-  await shot('castle_16c_slow_emerge');
+  await shot('castle_16b_gather_building');
+  const gathering = await page.evaluate(() => game.shipCastle.snapshot());
+  check('the gathering runs long before any castle exists', gathering.geometry.phase.gather < 1 && gathering.geometry.phase.gather > revealStart.geometry.phase.gather && gathering.geometry.castle.width <= 12, JSON.stringify(gathering.geometry.phase));
+  await page.waitForTimeout(2300);
+  await shot('castle_16c_burst_out');
   const emerging = await page.evaluate(() => game.shipCastle.snapshot());
-  check('the castle grows out of that point while it still hangs above the sea', emerging.geometry.castle.width > revealStart.geometry.castle.width * 6 && emerging.geometry.phase.lift > 0 && emerging.castleLanded === false, JSON.stringify({ phase: emerging.geometry.phase, castle: emerging.geometry.castle }));
-  await page.waitForTimeout(1700);
+  check('the castle bursts out of that point while it still hangs above the sea', emerging.geometry.castle.width > revealStart.geometry.castle.width * 6 && emerging.geometry.phase.lift > 0 && emerging.castleLanded === false, JSON.stringify({ phase: emerging.geometry.phase, castle: emerging.geometry.castle }));
+  await page.waitForTimeout(1000);
   await shot('castle_16d_dropping');
   check('the castle lands on the water with exactly one heavy impact', !!await until(() => game.shipCastle?.snapshot().castleLanded === true, 6000)
     && await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'furnace_blast').length === 1));
@@ -190,7 +202,7 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   const landed = await page.evaluate(() => game.shipCastle.snapshot());
   check('waves roll out along the waterline while the fleet rides them', landed.geometry.wave > 0 && landed.geometry.wave < 1 && landed.geometry.phase.lift === 0
     && landed.geometry.phase.landed === true
-    && landed.geometry.castle.y + landed.geometry.castle.height === 200, JSON.stringify({ wave: landed.geometry.wave, castle: landed.geometry.castle }));
+    && Math.abs((landed.geometry.castle.y + landed.geometry.castle.height - 200) / landed.geometry.castle.height - 0.1) < 0.02, JSON.stringify({ wave: landed.geometry.wave, castle: landed.geometry.castle }));
   check('one burst cue, never a repeating loop', await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'boom').length === 1));
   check('reveal completes before dialogue', !!await until(() => game.shipCastle?.elapsed >= game.shipCastle.config.timing.castleReveal - 0.1, 10000));
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -198,7 +210,8 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await page.setViewportSize({ width: 1000, height: 780 });
   const reveal = await page.evaluate(() => game.shipCastle.snapshot());
   check('whole castle projection is at least six warship widths', reveal.castleToWarship >= 6 && reveal.geometry.castle.width >= reveal.geometry.warship.width * 6, JSON.stringify(reveal.geometry));
-  check('whole castle is above both ships and all silhouettes clear the dialogue budget', reveal.geometry.castle.y >= 0 && reveal.geometry.castle.y + reveal.geometry.castle.height < reveal.geometry.warship.y && [reveal.geometry.castle, reveal.geometry.warship, reveal.geometry.maillard].every(rect => rect.x >= 0 && rect.x + rect.width <= 480 && rect.y + rect.height <= 230), JSON.stringify(reveal.geometry));
+  check('whole castle towers over both ships and all silhouettes clear the dialogue budget', reveal.geometry.castle.y >= 0 && reveal.geometry.castle.y < reveal.geometry.warship.y && [reveal.geometry.castle, reveal.geometry.warship, reveal.geometry.maillard].every(rect => rect.x >= 0 && rect.x + rect.width <= 480 && rect.y + rect.height <= 230), JSON.stringify(reveal.geometry));
+  check('the resting castle stands a tenth under the waterline', Math.abs((reveal.geometry.castle.y + reveal.geometry.castle.height - 200) / reveal.geometry.castle.height - 0.1) < 0.02, JSON.stringify(reveal.geometry.castle));
   await line('저 저게뭐노');
   await line('씨발 저게 뭐야!!!', 'castle_17_reveal_dialogue');
   await line('요 요플래!!!!');
@@ -214,7 +227,11 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await page.waitForTimeout(500);
   await shot('castle_18c_splash_settles');
   await beat('castle_attack');
-  await page.waitForTimeout(850);
+  await page.waitForTimeout(600);
+  await shot('castle_19a_castle_rests_before_any_beam');
+  const beforeBeam = await page.evaluate(() => ({ beams: game.shipCastle.snapshot().beamsFired, wave: game.shipCastle.snapshot().geometry.wave }));
+  check('the castle sits on settled water before the first beam', beforeBeam.beams === 0 && beforeBeam.wave >= 1, JSON.stringify(beforeBeam));
+  await page.waitForTimeout(250);
   await shot('castle_19_castle_attack_charge');
   await page.waitForTimeout(450);
   await shot('castle_19b_castle_attack_beam');
@@ -229,10 +246,16 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   JSON.stringify({ retreat: fleeing.geometry.retreat, start: retreatStart.geometry.warship.x, now: fleeing.geometry.warship.x }));
   await beat('final_hold', 'castle_21_transition_hold');
   check('required field and ocean sounds were emitted through the real audio API', await page.evaluate(() => ['bell', 'wing', 'park_trial_shatter', 'explosion', 'maillard_water_lift', 'power', 'rumble', 'boom', 'laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.includes(name))), JSON.stringify(await page.evaluate(() => window.__shipCastleQA)));
+  const beamTiming = await page.evaluate(() => ({ landedAt: window.__castleVeil.landedAt, firstBeamAt: window.__castleVeil.firstBeamAt }));
+  check('the beams only start well after the castle landed and its waves rolled out', beamTiming.landedAt > 0 && beamTiming.firstBeamAt > beamTiming.landedAt + 1500, JSON.stringify({ ...beamTiming, gapMs: Math.round(beamTiming.firstBeamAt - beamTiming.landedAt) }));
   check('three isolated charged beams do not retrigger during dialogue holds', await page.evaluate(() => ['laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.filter(cue => cue === name).length === 3)));
   check('glass impact and castle BGM each have exactly one owner and cue', await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'park_trial_shatter').length === 1 && window.__shipCastleQA.bgm.filter(entry => entry.name === 'ship_castle').length === 1));
+  check('a black fade starts closing the retreat before the sea scene', !!await until(() => game.fade?.alpha >= 0.3, 6000));
+  await shot('castle_21b_outro_fade_mid');
+  check('that fade reaches full black between the two scenes', !!await until(() => game.fade?.alpha >= 0.95, 4000));
   check('castle completion and theft flags persist into the queued sinking continuation', !!await until(() => game.flags.ship_castle_done && game.flags.ship_castle_cord_stolen, 10000));
   check('castle surface hands off without cancelling the sinking script', !!await until(() => !game.shipCastle && game.shipMemory?.beat === 'underwater_enter' && game.dialogue.running, 10000));
+  check('the underwater scene opens by fading back in', !!await until(() => game.fade?.alpha <= 0.1 && game.shipMemory, 8000));
   await page.waitForTimeout(1200);
   await shot('castle_22_underwater_sinking');
   const sinkingStart = await page.evaluate(() => ({ depth: game.shipMemory.sinkDepth, bgm: game.sound.bgmName, loop: game.sound.bgm?.loop }));

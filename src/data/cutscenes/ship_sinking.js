@@ -2,6 +2,7 @@ import {
   SHIP_MEMORY,
   SHIP_MEMORY_PANEL_BEAT_DURATION,
 } from '../ship-memory.js';
+import { SHIP_CASTLE } from '../ship-castle.js';
 
 const N = text => ({ voice: 'narrator', speed: 0.58, text: `* ${text}` });
 const Y = text => ({ speaker: '요플래', portrait: 'hyungsub', voice: 'hyungsub', speed: 0.58, text: `* ${text}` });
@@ -11,6 +12,7 @@ const close = { action: game => game.textbox.close() };
 export const ship_sinking = Object.assign([
   { if: flags => flags.ship_sinking_done, goto: 'end' },
   { action: game => game.startShipMemory() },
+  { fade: 'in', duration: SHIP_CASTLE.timing.sinkFadeIn },
   { wait: SHIP_MEMORY.timing.preTextDelay },
   N('...'),
   N('... ... ... 가재맨'),

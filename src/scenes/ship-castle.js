@@ -161,6 +161,14 @@ export class ShipCastle {
     }
     if (this.beat === 'castle_reveal') {
       const reveal = this.elapsed / this.config.timing.castleReveal;
+      if (reveal < this.config.ocean.castleGatherAt) {
+        const pulse = Math.floor(this.elapsed / 0.55);
+        if (pulse !== this.flarePhase) {
+          this.flarePhase = pulse;
+          this.game.shake = { time: 0.16, amp: 1 + Math.round(reveal / this.config.ocean.castleGatherAt * 3) };
+          if (pulse === 0) this.game.sound.sfx('rumble', { volume: 0.4 });
+        }
+      }
       if (!this.popPlayed && reveal >= this.config.ocean.castlePopAt) {
         this.popPlayed = true;
         this.game.sound.sfx('boom', { volume: 0.7 });

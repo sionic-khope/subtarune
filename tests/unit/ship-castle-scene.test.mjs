@@ -76,7 +76,10 @@ test('test_ship_castle_reveal_projects_whole_castle_at_six_times_warship_width',
   assert.ok(castle.width / warship.width >= 5.95);
   assert.ok(castle.x >= 0 && castle.x + castle.width <= 480);
   assert.ok(castle.y >= 0 && castle.y + castle.height <= 360);
-  assert.ok(castle.y + castle.height <= warship.y && castle.y + castle.height <= maillard.y);
+  assert.ok(castle.y < warship.y && castle.y < maillard.y, 'the castle towers over the fleet');
+  assert.ok(Math.abs((castle.y + castle.height - SHIP_CASTLE.ocean.waterline) / castle.height - SHIP_CASTLE.ocean.castleSubmerge) < 0.02,
+    'only about a tenth of the castle rests under the waterline');
+  assert.ok(castle.y + castle.height <= 230);
   assert.ok(warship.y + warship.height <= 230 && maillard.y + maillard.height <= 230);
   assert.ok(SHIP_CASTLE.timing.castleHold >= 0.8);
   assert.equal(snapshot.skyScaleRatio, 1.89);
@@ -86,7 +89,7 @@ test('test_ship_castle_reveal_projects_whole_castle_at_six_times_warship_width',
   });
 });
 
-test('test_ship_castle_reveal_gathers_then_emerges_slowly_then_drops_onto_the_water', () => {
+test('test_ship_castle_reveal_gathers_long_then_bursts_out_then_drops_onto_the_water', () => {
   const propImages = Object.fromEntries(Object.values(SHIP_CASTLE.images).map(path => [path, pngSize(path)]));
   const { ocean, timing } = SHIP_CASTLE;
   const game = makeGame(propImages);
@@ -106,15 +109,17 @@ test('test_ship_castle_reveal_gathers_then_emerges_slowly_then_drops_onto_the_wa
     });
     assert.ok(geometry.castle.y >= 0, `castle left the frame at step ${step}`);
   }
-  const seeded = samples.find(sample => sample.reveal >= ocean.castleGatherAt);
+  const seeded = [...samples].reverse().find(sample => sample.reveal < ocean.castleGatherAt);
   const emerged = samples.find(sample => sample.reveal >= ocean.castleEmergeAt);
   const last = samples[samples.length - 1];
+  assert.ok(timing.castleReveal * ocean.castleGatherAt >= 4, 'the gathering must take its time before anything appears');
+  assert.ok(timing.castleReveal * (ocean.castleEmergeAt - ocean.castleGatherAt) <= 2.2, 'the castle must burst out, not creep out');
   assert.ok(seeded.width <= Math.round(ocean.castleSeed * ocean.castleProjectionWidth) + 1, 'gather phase shows only a point');
-  assert.ok(emerged.width > seeded.width * 8, 'the castle grows out of that point');
+  assert.ok(emerged.width > seeded.width * 8, 'the castle bursts out of that point');
   assert.ok(Math.max(...samples.map(sample => sample.width)) > last.width, 'it swells past its settled size');
-  assert.ok(samples.filter(sample => sample.reveal <= ocean.castleDropAt).every(sample => sample.lift === ocean.castleHover), 'it hangs above the sea until the drop');
+  assert.equal(samples.find(sample => sample.reveal >= ocean.castleEmergeAt).lift, 0, 'it lands the moment it finishes bursting out, never hovers');
   assert.equal(last.lift, 0);
-  assert.equal(last.bottom, ocean.waterline);
+  assert.ok(Math.abs((last.bottom - ocean.waterline) / last.width - ocean.castleSubmerge) < 0.02, 'it rests a tenth under the water');
   assert.equal(new Set(samples.map(sample => sample.shipX)).size, 1);
   assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'boom').length, 1);
   assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'furnace_blast').length, 1);

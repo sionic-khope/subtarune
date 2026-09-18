@@ -70,6 +70,8 @@ export const ship_castle = Object.assign([
     facing: 'right', hidden: false, solid: false, wander: 0, visualScale: 1.89 } },
   beat('field_rush'),
   { move: GAJAEMAN, px: game => [game.player.x - 18, game.player.y], exact: true, speed: 420 },
+  { ...P('앗!'), cut: T.rushCut },
+  close,
   { parallel: [
     ...REACTORS.map(id => ({ emote: id, kind: '!', duration: 1.9, hold: 0.45 })),
     ...face(REACTORS, 'right'),
@@ -126,6 +128,7 @@ export const ship_castle = Object.assign([
   { wait: T.retreat },
   beat('final_hold'),
   { wait: T.finalHold },
+  { fade: 'out', duration: T.outroFade },
   { action: game => game.finishShipCastle(false) },
   { set: { ship_castle_done: true } },
   queueUnderwater,

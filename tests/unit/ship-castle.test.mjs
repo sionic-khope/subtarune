@@ -13,6 +13,7 @@ test('test_ship_castle_requested_dialogue_preserves_ordered_presentation_beats',
   assert.deepEqual(texts, [
     '여기임', '생각보다 ㅈㄴ 크네', 'ㅇㅇ', '그럼 여기에 그 코드를 꼽으면 될까요?', 'ㅇㅇ', '그럼 부탁드립니다.',
     '긴 여정의 끝을 얘기하는 문이다.', '나는 {c=yellow}보라색 코드{/c}를 꺼내 문에 갖다대기 시작했다.',
+    '앗!',
     '오 이게 뭐노', '요플래!!!',
     '후후후 마음데로 될줄알았나.', 'ㅋㅋ이제 제대로 하는건가.', '저 저게뭐노', '씨발 저게 뭐야!!!', '요 요플래!!!!',
     '일 일단 후퇴다 다시 돌아오자.\n저건 이길수없음', '큭 꼭 살아만 있어라 요플래',
@@ -34,6 +35,11 @@ test('test_ship_castle_requested_dialogue_preserves_ordered_presentation_beats',
   const carriedMoves = ship_castle.filter(node => node.carry?.id === 'player');
   assert.equal(gajaeman.visualScale, 1.89);
   assert.deepEqual(carriedMoves.map(node => node.px), [[622, 150], [900, 150]]);
+  const slam = ship_castle.find(node => node.text === '* 앗!');
+  const rush = ship_castle.findIndex(node => node.shipCastleBeat === 'field_rush');
+  assert.equal(slam.speaker, '억빠맨');
+  assert.ok(slam.cut > 0 && slam.cut <= 1.2, 'the slam caption closes itself without input');
+  assert.ok(ship_castle.indexOf(slam) > rush && ship_castle.indexOf(slam) < ship_castle.findIndex(node => node.shipCastleBeat === 'field_window'));
 });
 
 test('test_ship_castle_lounge_map_owns_real_proximity_trigger_and_right_window', () => {

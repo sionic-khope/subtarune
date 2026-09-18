@@ -67,22 +67,22 @@ export const shipCastleCamera = scene => {
   return null;
 };
 
-/** Gather to a point, grow out of it slowly, swell and burst, then drop onto the water. */
+/** Gather long to a point, burst out of it at full size and land on the sea in the same move. */
 export const castlePhase = (ocean, reveal) => {
-  const { castleSeed, castleShrink, castleGrow, castleGatherAt, castleEmergeAt, castleDropAt, castleLandAt, castleHover } = ocean;
+  const { castleSeed, castleGrow, castleGatherAt, castleEmergeAt, castleLandAt, castleHover } = ocean;
   if (reveal <= castleGatherAt) {
     return { gather: clamp(reveal / castleGatherAt), scale: castleSeed, lift: castleHover, drop: 0, landed: false };
   }
   if (reveal <= castleEmergeAt) {
-    const grow = smooth((reveal - castleGatherAt) / (castleEmergeAt - castleGatherAt));
-    return { gather: 1, scale: castleSeed + grow * (castleShrink - castleSeed), lift: castleHover, drop: 0, landed: false };
-  }
-  if (reveal <= castleDropAt) {
-    return { gather: 1, scale: castleShrink, lift: castleHover, drop: 0, landed: false };
-  }
-  if (reveal <= castleLandAt) {
-    const drop = clamp((reveal - castleDropAt) / (castleLandAt - castleDropAt));
-    return { gather: 1, scale: castleShrink + (1 - castleShrink) * drop, lift: castleHover * (1 - drop * drop), drop, landed: false };
+    const step = (reveal - castleGatherAt) / (castleEmergeAt - castleGatherAt);
+    const burst = 1 - Math.pow(1 - step, 3);
+    return {
+      gather: 1,
+      scale: castleSeed + burst * (1 - castleSeed),
+      lift: castleHover * (1 - step) * (1 - step),
+      drop: step,
+      landed: false,
+    };
   }
   const settle = clamp((reveal - castleLandAt) / (1 - castleLandAt));
   return { gather: 1, scale: 1 + Math.sin(settle * Math.PI) * (castleGrow - 1), lift: 0, drop: 1, landed: true };
@@ -122,7 +122,8 @@ export const shipCastleGeometry = scene => {
   const centerX = 240;
   const castleWidth = config.ocean.castleWidth * scale * phase.scale;
   const seedY = config.ocean.waterline - config.ocean.castleHover - config.ocean.castleSeedLift;
-  const settledY = config.ocean.waterline - phase.lift - castleWidth * ratio(images.castle) / 2;
+  const castleHeight = castleWidth * ratio(images.castle);
+  const settledY = config.ocean.waterline + castleHeight * config.ocean.castleSubmerge - phase.lift - castleHeight / 2;
   const anchor = beat === 'castle_reveal' && reveal <= config.ocean.castleEmergeAt
     ? smooth(clamp((reveal - config.ocean.castleGatherAt) / (config.ocean.castleEmergeAt - config.ocean.castleGatherAt)))
     : 1;
@@ -506,7 +507,7 @@ const drawSkyActors = (ctx, scene) => {
 /** Power streaming inward to one bright point before anything of the castle exists. */
 const drawGatherPoint = (ctx, scene, x, y, gather, fade = 1) => {
   if (gather <= 0 || fade <= 0) return;
-  const pull = Math.max(0, 1 - gather);
+  const pull = Math.pow(Math.max(0, 1 - gather), 1.8);
   ctx.save();
   const glow = ctx.createRadialGradient(x, y, 1, x, y, 12 + gather * 48);
   glow.addColorStop(0, `rgba(255,238,255,${(0.45 + gather * 0.55) * fade})`);
@@ -514,17 +515,27 @@ const drawGatherPoint = (ctx, scene, x, y, gather, fade = 1) => {
   glow.addColorStop(1, 'rgba(120,30,190,0)');
   ctx.fillStyle = glow;
   ctx.fillRect(x - 80, y - 80, 160, 160);
-  for (let index = 0; index < 44; index++) {
+  for (let index = 0; index < 56; index++) {
     const angle = index * 2.399 + scene.time * 0.8;
-    const span = (16 + index % 9 * 15) * (0.22 + pull * 1.3);
-    const streak = Math.max(1, Math.round(3 + pull * 8));
-    ctx.globalAlpha = (0.34 + gather * 0.5) * fade;
+    const span = (16 + index % 9 * 15) * (0.2 + pull * 1.35);
+    const streak = Math.max(1, Math.round(3 + pull * 9));
+    ctx.globalAlpha = (0.32 + gather * 0.55) * fade;
     ctx.fillStyle = index % 3 ? '#c46cff' : '#f3d8ff';
     ctx.fillRect(Math.round(x + Math.cos(angle) * span), Math.round(y + Math.sin(angle) * span * 0.82), streak, 2);
   }
+  if (gather > 0.55) {
+    const rush = (gather - 0.55) / 0.45;
+    for (let index = 0; index < 26; index++) {
+      const angle = index * 1.71 - scene.time * 2.6;
+      const span = (10 + index % 6 * 9) * (1.3 - rush);
+      ctx.globalAlpha = rush * fade;
+      ctx.fillStyle = index % 2 ? '#ffffff' : '#e7b6ff';
+      ctx.fillRect(Math.round(x + Math.cos(angle) * span), Math.round(y + Math.sin(angle) * span * 0.8), Math.max(1, Math.round(2 + rush * 3)), 2);
+    }
+  }
   ctx.globalAlpha = fade;
   ctx.fillStyle = '#ffffff';
-  const core = Math.max(2, Math.round(2 + gather * 7));
+  const core = Math.max(2, Math.round(2 + gather * gather * 11));
   ctx.fillRect(Math.round(x - core / 2), Math.round(y - core / 2), core, core);
   ctx.restore();
 };
@@ -579,8 +590,11 @@ const drawCastle = (ctx, scene, geometry) => {
     drawAura(ctx, pointX, pointY, ['#06020a', '#57136f', '#d278ff'], scene.time, rect.width * 0.45 + 12);
   }
   ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, SCREEN_W, scene.config.ocean.waterline);
+  ctx.clip();
   ctx.globalAlpha = scene.beat === 'castle_reveal'
-    ? clamp((reveal - scene.config.ocean.castleGatherAt) / 0.12) : 1;
+    ? clamp((reveal - scene.config.ocean.castleGatherAt) / 0.06) : 1;
   if (scene.images.castle) ctx.drawImage(scene.images.castle, rect.x, rect.y, rect.width, rect.height);
   else {
     ctx.fillStyle = '#12051e'; ctx.fillRect(rect.x + rect.width * 0.18, rect.y + rect.height * 0.16, rect.width * 0.64, rect.height * 0.84);
@@ -750,7 +764,10 @@ const drawOceanFrame = (ctx, scene) => {
     drawSkyActors(ctx, scene);
   }
   if (scene.beat === 'castle_reveal') {
-    drawFlyAcross(ctx, scene, clamp(scene.elapsed / (scene.config.timing.castleReveal + scene.config.timing.castleHold)), 0.34);
+    const landedAt = scene.config.timing.castleReveal * scene.config.ocean.castleLandAt;
+    const span = scene.config.timing.castleReveal - landedAt + scene.config.timing.castleHold;
+    const flight = (scene.elapsed - landedAt) / span;
+    if (flight > 0) drawFlyAcross(ctx, scene, clamp(flight), 0.34);
   }
   if (scene.beat === 'yoplait_fall') drawFall(ctx, scene);
   if (scene.beat === 'castle_attack' || scene.beat === 'retreat') drawBeams(ctx, scene, geometry);
