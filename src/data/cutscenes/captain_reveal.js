@@ -72,7 +72,7 @@ export const captain_reveal = Object.assign([
   { bgm: 'captain_reveal' },
   { darkSmoke: { mode: 'swell', from: 'player', duration: 3.4, veil: 0.4 } },
   P('윽 으윽? 이게 뭐지?'),
-  J('본색을 들어내셨군?'),
+  J('본색을 드러내셨군?'),   // 맞춤법 들어내다 → 드러내다(2026-09-18 사용자)
   N('몸에서 무언가가 나오기 시작한다'),
   N('윽 이건.. 뭐지..'),
   { camera: [13, 10], duration: 0.7 },
@@ -170,7 +170,7 @@ export const captain_reveal = Object.assign([
   { camera: [13, 10], duration: 0.8 },
   ...gatherParty,
   P('만 만카츠키??'),
-  M('너희 죽는다, 탈출 그거 굳이 하셔야겠습니까?'),
+  M('너희 죽는다, 탈출 그거 꼭 하셔야겠습니까?'),   // ‘굳이’ → ‘꼭’(2026-09-18 사용자 디테일 수정)
   M('마이야르마이야르마이야르마이야르마이야르마이야르마이야르마이야르'),
   P('미친 저새끼 죽여야겠다.'),
   M('아 형님 너네 다 죽이겠습니다.'),
