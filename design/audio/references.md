@@ -506,7 +506,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
   - 재사용: 영클 피함 = `hit`(검 소리, 사용자 “그냥 검소리만”; 합성 `whoosh` 는 “파도소리”라 금지), 나람 점프 `jump`, 착지 `baron_slam`, 나람 볼 타격 `impact`, 돌진 `heavyswing`, 억빠맨 상자 진입 `wing`, 오방순 도약 `jump`, 쿠와아아앙 `furnace_blast`(snd_punchheavythunder), 연타 `menumove`, 철창 부서짐 `pop`.
 - `sfx/obangsun_wail.mp3`(1.5초): 사용자 지정 [유튜브 쇼츠 Z-3eiWvwJQ8](https://www.youtube.com/shorts/Z-3eiWvwJQ8)(“불효자는 웁니다”, 업로더 오방순) 44.55~46.05초, 끝 0.12초 페이드 — 오방순 광선 패턴 ‘흐어어어~’ 마다. 구간은 파형·음정 분석으로 골랐고 다른 후보 4개는 `assets/source/obangsun-voice-v2/`.
 
-| **청소부** 대사 음색 (BUILD226) | 형섭 `voices/hyungsub.mp3` 변형(사용자 “형섭 목소리에서 할아버지 느낌으로, 거슨 목소리 델타룬 참고”) | `voices/janitor.mp3` | **적용됨** — ffmpeg -5반음·lowpass 2400·bass·tremolo 34Hz, 0.35s. 재현 명령 `assets/source/janitor-v1/README.md`. 실존 음성 합성 없음 |
+| **청소부** 대사 음색 (BUILD226) | 델타룬 `library/sfx/snd_dadtxt` 변형(사용자 3차 “형섭 느낌 빼고 델타룬 거슨에서 살짝 변형” — 거슨 4장 원음 미확보라 임시) | `voices/janitor.mp3` | **임시 적용** — ffmpeg -2.6반음·lowpass 2300·tremolo 26Hz. 거슨 원음(snd_txtgerson 계열 ogg)이 오면 교체. 재현 명령 `assets/source/janitor-v1/README.md` |
 
 | **청소부 등장** 브금 (BUILD226 토리이 길 이벤트) | 사용자 지정 [JkEhQ3qJubU](https://www.youtube.com/watch?v=JkEhQ3qJubU) | `bgm/wise_words.mp3` | **적용됨** — yt-dlp 메타: `56. Wise words (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 Toby Fox, 20250604, 47초. bestaudio(webm) 전체를 MP3 q2 로 변환, 트리밍·피치 변경 없음. 원본 `assets/source/janitor-v1/audio/wise_words_src.webm` |
 | **청소부 합류 이후** 브금 (토리이 길·다음 맵들) | 사용자 지정 [RKQUblO-iCs](https://www.youtube.com/watch?v=RKQUblO-iCs) | `bgm/my_castle_town.mp3` | **적용됨** — `3. My Castle Town (DELTARUNE Chapter 2 Soundtrack) - Toby Fox`, 20250525, 131초. 같은 변환. `storyBgm`: `torii_janitor_joined` 이면 짜장 맵들에서 같은 이름 → 맵 이동 때 다시 재생되지 않음 |
