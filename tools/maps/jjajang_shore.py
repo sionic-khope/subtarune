@@ -60,6 +60,12 @@ def build_map() -> dict[str, object]:
         (0, 1), (2, 2), (4, 1), (6, 2), (8, 1), (10, 2), (12, 1), (14, 2), (16, 1), (18, 2),
         (0, 4), (2, 5), (4, 4), (6, 5), (8, 4), (10, 5), (12, 4), (14, 5), (16, 4), (18, 5),
     ]
+    # 숲 입구 그림자(2026-09-18 사용자 “위에 뭔가 그림자 진 입구처럼”): 길 위쪽 7~11행 위에 위로 갈수록 검게 잠기는 그라데이션 아치. 걷는 칸을 막지 않고(solid False) 캐릭터 위에 그려져 요플래가 위로 갈수록 그늘에 잠긴다
+    entrance_shade = {
+        'type': 'prop', 'id': 'jjajang_forest_entrance_shade', 'image': 'assets/props/jjajang_entrance_shade.png',
+        'x': PATH_LEFT * TILE - 16, 'y': FOREST_EDGE_ROW * TILE, 'w': 0, 'h': 0,
+        'ix': PATH_LEFT * TILE - 16, 'iy': FOREST_EDGE_ROW * TILE, 'solid': False, 'sortY': 1000000000,
+    }
     trees = [tree(f'jjajang_tree_{index + 1}', col, row, index % 3 + 1)
              for index, (col, row) in enumerate(tree_cells)]
     wave_cells = [(1, 0), (2, 0), (6, 1), (7, 1), (11, 0), (12, 0), (16, 1), (17, 1)]
@@ -97,7 +103,7 @@ def build_map() -> dict[str, object]:
             'coastlineRows': list(COASTLINE_ROWS),
             'role': '요플래 단독 해안 도착과 짜장숲 입구 예고; 다음 지역 이동 없음',
         },
-        'entities': [*trees, *foam],
+        'entities': [*trees, *foam, entrance_shade],
     }
 
 

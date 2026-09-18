@@ -900,6 +900,19 @@
     "period": 2.05,
     "phase": 0.51
    }
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_forest_entrance_shade",
+   "image": "assets/props/jjajang_entrance_shade.png",
+   "x": 272,
+   "y": 224,
+   "w": 0,
+   "h": 0,
+   "ix": 272,
+   "iy": 224,
+   "solid": false,
+   "sortY": 1000000000
   }
  ]
 }
