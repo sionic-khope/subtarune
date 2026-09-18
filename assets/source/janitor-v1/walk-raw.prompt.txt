@@ -1,0 +1,14 @@
+# imagegen 2026-09-18 17:14:37
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/janitor-v1/walk-ref.png
+
+Production pixel-art overworld walking spritesheet for ONE character named 청소부 (the Janitor), the SUBTARUNE game version of the man in the reference. Image1 LEFT part is the exact CHARACTER IDENTITY (a hand-drawn illustration); Image1 RIGHT part is PIXEL DENSITY reference only - do not copy that character, his clothes or colours.
+EXACTLY 4 columns x 4 rows of full-body sprites on a 1024x1024 canvas, invisible equal 256px square cells, no grid lines, no text, no labels. Row1 FRONT facing the viewer, row2 LEFT profile walking left, row3 RIGHT profile walking right, row4 BACK facing away (no face, no glasses, only the back of the red bandana knot and the back of the red shirt). Same single character in all 16 cells.
+Identity to preserve: a short, stout, pale-skinned middle-aged man with a big round head and wide jowly cheeks, sparse dark stubble dots on cheeks and chin, thin rectangular glasses with pale lenses, small round nose, small calm mouth, a bright RED bandana (do-rag) covering the whole head and tied in a knot at the back right side, a bright red short-sleeved t-shirt with one small black emblem on the left chest, dark navy short trousers, bare pale arms and legs, plain dark shoes (feet are not visible in the reference; complete them simply).
+Make him only a LITTLE frailer than the reference: slightly narrower shoulders, a bit thinner arms and legs, a small tired slouch of the head - just a touch, he must still read as the same stout man with a round belly. No extra props, no broom, no weapon.
+Walking: in each row column1 is neutral standing with feet together and arms relaxed, column2 the left foot steps forward with the right arm swinging forward, column3 neutral passing pose, column4 the right foot steps forward with the left arm forward (a genuine opposite stride to column2, not a copy). Steps are short and a little shuffling for a tired man, but feet clearly alternate. Belly stays round in every frame.
+Style: true low-resolution game pixel art, whole character about 30 pixels wide and 46 pixels tall at logical scale, drawn as coarse sparse pixel clusters with an enlarged nearest-neighbour look, square chunky pixels, dark stepped outline, small flat palette with at most 2 shade steps, same sparse logical pixel density as the right part of Image1. Not a detailed painting, no anti-aliasing, no gradients, no soft shading.
+Lock the same head size, body scale and camera distance in every cell, centred body root and a shared foot baseline across all cells, pose changes only in limbs. Each figure inside the central 60-70 percent of its cell with ample padding, nothing cropped, nothing touching cell edges.
+Background: flat pure #FF00FF magenta everywhere, uniform, no shadows, no ground, no border, no watermark, no effects, no speech.

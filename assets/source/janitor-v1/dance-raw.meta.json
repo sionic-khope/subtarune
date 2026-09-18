@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/janitor-v1/dance-ref.png"
+  ],
+  "elapsed_seconds": 38.7,
+  "usage": {
+    "input_tokens": 1954,
+    "output_tokens": 1756,
+    "total_tokens": 3710,
+    "input_tokens_details": {
+      "image_tokens": 1452,
+      "text_tokens": 502
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789719470,
+  "outputs": [
+    {
+      "file": "assets/source/janitor-v1/dance-raw.png",
+      "bytes": 1019300,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

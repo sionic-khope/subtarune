@@ -7,6 +7,8 @@
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
   choimis: { name: '최미스', sheet: 'assets/sprites/choimis.png', stillPivot: [64, 120] },
+  // 청소부(BUILD226 사용자 그림 등록: 붉은 두건·안경·수염·붉은 셔츠, “조금만 더 허약한 섭타룬 버전”): gpt-image-2.5-sunburst 4×4 걷기 시트 → 128px 셀(assets/source/janitor-v1). 목소리는 형섭 샘플을 할아버지 느낌으로 낮춘 janitor.mp3(델타룬 거슨 참고)
+  janitor: { name: '청소부', voice: 'janitor', sheet: 'assets/sprites/janitor.png', stillPivot: [64, 120] },
   ttuulla: { name: '뚜울라', voice: 'ttuulla', sheet: 'assets/sprites/ttuulla.png', stillPivot: [32, 60] },
   seopnyang: { name: '섭냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/seopnyang_front.png', stillPivot: [24, 44] },
   gyeongnyang: { name: '경냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/gyeongnyang_front.png', stillPivot: [24, 44] },

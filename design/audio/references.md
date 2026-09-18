@@ -505,3 +505,5 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
   - `sfx/laser_zap.mp3`(0.56초) = `snd_laz_c` — 선회 레이저 볼트.
   - 재사용: 영클 피함 = `hit`(검 소리, 사용자 “그냥 검소리만”; 합성 `whoosh` 는 “파도소리”라 금지), 나람 점프 `jump`, 착지 `baron_slam`, 나람 볼 타격 `impact`, 돌진 `heavyswing`, 억빠맨 상자 진입 `wing`, 오방순 도약 `jump`, 쿠와아아앙 `furnace_blast`(snd_punchheavythunder), 연타 `menumove`, 철창 부서짐 `pop`.
 - `sfx/obangsun_wail.mp3`(1.5초): 사용자 지정 [유튜브 쇼츠 Z-3eiWvwJQ8](https://www.youtube.com/shorts/Z-3eiWvwJQ8)(“불효자는 웁니다”, 업로더 오방순) 44.55~46.05초, 끝 0.12초 페이드 — 오방순 광선 패턴 ‘흐어어어~’ 마다. 구간은 파형·음정 분석으로 골랐고 다른 후보 4개는 `assets/source/obangsun-voice-v2/`.
+
+| **청소부** 대사 음색 (BUILD226) | 형섭 `voices/hyungsub.mp3` 변형(사용자 “형섭 목소리에서 할아버지 느낌으로, 거슨 목소리 델타룬 참고”) | `voices/janitor.mp3` | **적용됨** — ffmpeg -5반음·lowpass 2400·bass·tremolo 34Hz, 0.35s. 재현 명령 `assets/source/janitor-v1/README.md`. 실존 음성 합성 없음 |

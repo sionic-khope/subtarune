@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/janitor-v1/dance-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.86,
+ "scale": 0.2576271186440678,
+ "feet_y": 118,
+ "cells": [
+  {
+   "bbox": [
+    34,
+    110,
+    497,
+    432
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    119,
+    83
+   ],
+   "paste": [
+    4,
+    35
+   ]
+  },
+  {
+   "bbox": [
+    52,
+    104,
+    486,
+    432
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    112,
+    85
+   ],
+   "paste": [
+    8,
+    33
+   ]
+  },
+  {
+   "bbox": [
+    34,
+    104,
+    506,
+    418
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    122,
+    81
+   ],
+   "paste": [
+    3,
+    37
+   ]
+  },
+  {
+   "bbox": [
+    48,
+    102,
+    498,
+    416
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    116,
+    81
+   ],
+   "paste": [
+    6,
+    37
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}
