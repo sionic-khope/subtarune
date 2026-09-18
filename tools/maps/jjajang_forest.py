@@ -7,7 +7,7 @@
 # Run from repository root: /usr/bin/python3 tools/maps/jjajang_forest.py [--check]
 # ──────────────────
 """짜장숲(jjajang_forest, BUILD225 사용자 “초록숲0 맵 브금을 쓰며 짜장맵 타일이 가운데로 이어져서 세로로 살짝 긴 맵 하나”):
-해안(jjajang_shore) 위 숲 입구에서 이어지는 세로 통로. 짜장섬 타일 그대로(검은 숲 '@', 검은 길 '%', 나무 소품 3종 ×2 배율), 브금은 옵젝영역0(초록숲0)의 'wind'.
+해안(jjajang_shore) 위 숲 입구에서 이어지는 세로 통로. 짜장섬 타일 그대로(검은 숲 '@', 나무 소품 3종 ×2 배율), 길은 '$'(그림은 해안 '%'와 같고 발소리만 옵젝영역0 물걸음 에코 — BUILD226 사용자 “그 숲부터는 발소리도 오브제맵 발소리”), 브금은 옵젝영역0(초록숲0)의 'wind'.
 아래 가장자리 = 해안으로 돌아가는 문, 위 가장자리 = 다음 맵 자리(통로만 열어 두고 문·소품·대사는 두지 않는다 — 브리핑 대기). 내용은 다음 브리핑에서 채운다."""
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def build_map() -> dict[str, object]:
     rows = [['@'] * WIDTH for _ in range(HEIGHT)]
     for row in range(HEIGHT):
         for col in range(PATH_LEFT, PATH_RIGHT + 1):
-            rows[row][col] = '%'
+            rows[row][col] = '$'
     for col in range(PATH_LEFT, PATH_RIGHT + 1):
         rows[0][col] = '&'
         rows[HEIGHT - 1][col] = '&'

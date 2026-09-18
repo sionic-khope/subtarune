@@ -192,4 +192,8 @@ registerTile('@', { name: 'jjajang_forest_black', solid: true, draw: flat('#0607
 registerTile('%', { name: 'jjajang_path_black', solid: false, draw: flat('#242726') });
 // 짜장섬 길의 가장자리 출입구 칸(용광로 H 와 같은 역할): 그림은 길과 같고, 맵 끝 10px 문을 밟아 다음 맵으로(BUILD225 해안 ↔ 짜장숲)
 registerTile('&', { name: 'jjajang_path_edge', solid: false, draw: flat('#242726') });
+// 짜장숲부터의 길(BUILD226 사용자 “그 숲부터는 발소리도 오브제맵 발소리 써줄 수 있나”): 그림은 해안 길과 같고 발소리만 옵젝영역0 얕은 물의 에코 걸음 루프(WATER_WALK).
+// 물이 아니라 검은 흙길이라 물결 고리는 내지 않는다(ripple false — Character.footstep). 해안('%')은 그대로 무음
+const FOREST_STEP = { ...WATER_WALK, ripple: false };
+registerTile('$', { name: 'jjajang_path_echo', solid: false, step: FOREST_STEP, draw: flat('#242726') });
 registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });

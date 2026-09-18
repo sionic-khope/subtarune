@@ -21,6 +21,13 @@ try {
   await page.waitForTimeout(900); let s = await st(); await cap('02_forest_arrive');
   check(crossed && s.map === 'jjajang_forest' && s.party === 0, '해안 위 그림자 입구를 올라가면 짜장숲으로(단독) ' + JSON.stringify(s));
   check(s.bgm === 'wind', '짜장숲 브금은 초록숲0(옵젝영역0)의 wind ' + JSON.stringify(s.bgm));
+  const shoreStep = await page.evaluate(() => ({ starts: game.sound.walkStarts || 0, ripples: game.ripples.length }));
+  check(shoreStep.starts === 0, '해안 길에서는 걸음 루프가 켜지지 않는다(숲부터) ' + JSON.stringify(shoreStep));
+  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(900);
+  const forestStep = await page.evaluate(() => ({ starts: game.sound.walkStarts || 0, state: game.sound.walkState, ripples: game.ripples.length, tile: game.map.tileAt(Math.floor((game.player.x + game.player.w / 2) / 32), Math.floor((game.player.y + game.player.h - 1) / 32))?.name }));
+  await page.keyboard.up('ArrowUp'); await page.waitForTimeout(200);
+  check(forestStep.starts >= 1 && forestStep.tile === 'jjajang_path_echo', '짜장숲 길에서는 옵젝영역0 물걸음 에코 루프가 켜진다 ' + JSON.stringify(forestStep));
+  check(forestStep.ripples === 0, '흙길이라 물결 고리는 없다 ' + JSON.stringify(forestStep.ripples));
   const up = await walk('ArrowUp', () => window.game.player.y < 3 * 32, 20000);
   s = await st(); await cap('03_forest_top');
   check(up && s.map === 'jjajang_forest', '길을 따라 위 가장자리까지 걸어 올라갈 수 있다(다음 맵 없음) ' + JSON.stringify([s.px, s.py]));

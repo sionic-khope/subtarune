@@ -454,9 +454,10 @@ export class Player extends Character {
       this.lastSfxStepAt = [cx, fy];
     }
     if (this.lastStepAt && Math.hypot(cx - this.lastStepAt[0], fy - this.lastStepAt[1]) < STEP_DIST) return;
-    if (!this.stepTile()) return;
+    const step = this.stepTile();
+    if (!step) return;
     this.lastStepAt = [cx, fy];
-    this.game.emitRipple?.(cx, fy - 2);
+    if (step.ripple !== false) this.game.emitRipple?.(cx, fy - 2);
   }
   /** 발밑 타일의 `step`(물 위 걷기 소리 정의, src/data/footsteps.js WATER_WALK) 또는 null */
   stepTile() { const cx = this.x + this.w / 2, fy = this.y + this.h - 1; return this.game.map?.tileAt?.(Math.floor(cx / TILE), Math.floor(fy / TILE))?.step || null; }
