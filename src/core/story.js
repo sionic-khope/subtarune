@@ -22,7 +22,8 @@ export const STAGES = [
   { id: 'cord_found',     desc: '티비 서랍에서 보라색 코드 ? 획득',           map: 'living', spawn: 'from_hall' },
   { id: 'void_fallen',    desc: '방송 중 코드 에러 → 소용돌이 → 보라색 땅에 추락', map: 'void',   spawn: 'fall' },
   { id: 'ship_ending_done', desc: '변신 영클 승리 뒤 통로 공개 · 라운지로', map: 'youngcle20', spawn: 'from_lounge' },
-  // 다음 비트는 사용자 브리핑 후 여기에 추가 (예: cord_plugged)
+  { id: 'ship_castle_done', desc: '가재맨의 성 출현 · 요플래 바다 추락', map: 'ship_lounge', spawn: 'castle_approach' },
+  { id: 'ship_sinking_done', desc: '가재맨 기억 회상 뒤 짜장섬 해안에 홀로 도착', map: 'jjajang_shore', spawn: 'washed_up' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -92,7 +93,7 @@ export class Story {
  * 새 아이템·컷신 전투·버프를 만들면 여기 한 줄 — tests/unit/qa-state.test.mjs 가 스크립트의 inventory.push / battle flag 와 대조한다.
  */
 export const STATE_FROM_FLAGS = [
-  { flag: 'cord_found',     items: ['보라색 코드 ?'] },                                     // 인트로 티비 서랍(3D) — scripts.js
+  { flag: 'cord_found',     items: ['보라색 코드 ?'], unless: 'ship_castle_cord_stolen' },
   { flag: 'lever_taken',    items: ['열쇠?'] },                                             // 허공4 레버 열쇠 — void4_key.js
   { flag: 'chest9_opened',  items: ['먼지'], with: 'ppaman_joined' },                       // 허공9 빈 상자(빠맨과 함께일 때만) — void9_events.js
   { flag: 'teal3_cs_won',   items: ['바나나', '바나나'], enemies: ['cs_red', 'cs_blue'] },   // 청록숲3 첫 전투 + 상자 바나나 2 — teal3_toolbox.js
@@ -116,7 +117,7 @@ export const STATE_FROM_FLAGS = [
 export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } = {}) {
   const out = { inventory: [], money: 0, attack: 1, hpBonus: 0 };
   for (const r of STATE_FROM_FLAGS) {
-    if (!flags[r.flag] || (r.with && !flags[r.with])) continue;
+    if (!flags[r.flag] || (r.with && !flags[r.with]) || (r.unless && flags[r.unless])) continue;
     if (r.items) out.inventory.push(...r.items);
     if (r.enemies) for (const id of r.enemies) out.money += enemyMoney(id);
     if (r.attack !== undefined) out.attack = r.attack;
@@ -135,7 +136,9 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 
 /** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
-export const partyFromFlags = (flags) => PARTY_FLAGS.filter(([f]) => flags?.[f]).map(([, id]) => id);
+export const partyFromFlags = (flags) => flags?.ship_sinking_done
+  ? []
+  : PARTY_FLAGS.filter(([flag]) => flags?.[flag]).map(([, id]) => id);
 
 /**
  * QA 바로가기 지점 (URL ?qa=<id> 또는 타이틀에서 Q). 그 지점까지의 스토리 단계를 채우고 맵/스폰으로 보낸다.
@@ -389,3 +392,11 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_manhole', desc: '조종실 열�
   map: 'youngcle20', spawn: 'from_lounge', flags: { ...shipWonFlags, ship_ending_done: true, ship_manhole_open: true }, party: [...parkWonCheckpoint.party] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_lounge', desc: '엄청대박인배 메인 라운지 · 편집자들과 보라색 문',
   map: 'ship_lounge', spawn: 'from_control', flags: { ...shipWonFlags, ship_ending_done: true, ship_manhole_open: true }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_castle', desc: '라운지 보라색 문 앞 · 실제 접근으로 가재맨 성 연출 시작',
+  map: 'ship_lounge', spawn: 'castle_approach', flags: { ...shipWonFlags, ship_ending_done: true, ship_manhole_open: true }, party: [...parkWonCheckpoint.party] });
+const shipCastleDoneFlags = { ...shipWonFlags, ship_ending_done: true, ship_manhole_open: true,
+  ship_castle_started: true, ship_castle_cord_stolen: true, ship_castle_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_sinking', desc: '요플래 수중 침강 · 가재맨 기억 5장면 · 짜장섬 해안 도착',
+  map: 'ship_lounge', spawn: 'castle_approach', flags: { ...shipCastleDoneFlags }, party: [...parkWonCheckpoint.party], script: 'ship_sinking' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_shore', desc: '짜장섬 해안 · 요플래 단독 조작 · 위쪽 숲 입구',
+  map: 'jjajang_shore', spawn: 'washed_up', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });

@@ -20,9 +20,9 @@ WIDTH: Final = 24
 HEIGHT: Final = 36
 P: Final = 'assets/props/'
 NPCS: Final = (
-    ('youngcle', 'youngcle', 488, 264, 'left'),
-    ('junhee', 'junhee', 244, 330, 'right'),
-    ('yongjun', 'yongjun', 220, 432, 'down'),
+    ('youngcle', 'youngcle', 286, 276, 'down'),
+    ('junhee', 'junhee', 370, 258, 'down'),
+    ('yongjun', 'yongjun', 454, 276, 'down'),
     ('naram', 'naram_giant', 220, 650, 'right'),
     ('obangsun', 'obangsun', 252, 708, 'left'),
     ('ttuulla', 'ttuulla', 548, 476, 'left'),
@@ -51,6 +51,12 @@ def main() -> None:
         {'type': 'prop', 'id': 'ship_lounge_grand_door', 'image': P + 'ship_lounge_grand_door.png',
          'x': 304, 'y': 184, 'w': 160, 'h': 24, 'ix': 304, 'iy': 16,
          'solid': True, 'sortY': 0, 'script': 'ship_lounge_door'},
+        {'type': 'prop', 'id': 'ship_lounge_window', 'image': P + 'ship_lounge_window.png',
+         'x': 660, 'y': 184, 'w': 76, 'h': 24, 'ix': 640, 'iy': 40,
+         'solid': True, 'sortY': 0},
+        {'type': 'trigger', 'id': 'ship_castle_trigger', 'x': 312, 'y': 322, 'w': 144, 'h': 96,
+         'once': True, 'flag': 'ship_castle_started', 'unless': 'ship_castle_done',
+         'script': 'ship_castle'},
         {'type': 'prop', 'id': 'ship_lounge_ladder', 'image': P + 'ship_lounge_ladder.png',
          'x': 352, 'y': 1088, 'w': 64, 'h': 24, 'ix': 352, 'iy': 1024,
          'solid': True, 'script': 'ship_lounge_return'},
@@ -85,7 +91,10 @@ def main() -> None:
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 라운지', 'stage': 'ship_ending_done',
         'bgm': 'ship_lounge', 'dim': 0.06, 'rows': [''.join(row) for row in cells],
-        'spawns': {'from_control': {'x': 372, 'y': 900, 'facing': 'up'}},
+        'spawns': {
+            'from_control': {'x': 372, 'y': 900, 'facing': 'up'},
+            'castle_approach': {'x': 372, 'y': 470, 'facing': 'up'},
+        },
         'meta': {'connected': True, 'route': [[11, 28], [11, 7]],
                  'role': '보스전 뒤 휴식, 좌우 대화 공간과 위쪽 보라 문'},
         'entities': entities,

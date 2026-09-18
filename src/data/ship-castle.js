@@ -1,0 +1,55 @@
+export const SHIP_CASTLE = Object.freeze({
+  bgm: 'ship_castle',
+  images: Object.freeze({
+    castle: 'assets/props/gajaeman_castle.png',
+    cord: 'assets/props/purple_cord.png',
+    window: 'assets/props/ship_lounge_window.png',
+    maillard: 'assets/props/maillard-ship.png',
+    warship: 'assets/props/youngcle-warship.png',
+  }),
+  timing: Object.freeze({
+    floatHold: 2,
+    doorHold: 2,
+    oceanRise: 1.8,
+    skyTug: 2.2,
+    oppositeAura: 1.4,
+    vortexGather: 2.3,
+    vortexBurst: 0.9,
+    castleReveal: 3.4,
+    castleHold: 0.8,
+    fall: 2.2,
+    attack: 2.6,
+    retreat: 4.2,
+    finalHold: 1.2,
+  }),
+  field: Object.freeze({
+    floatHeight: 18,
+    auraRadius: 35,
+    cordWidth: 28,
+    shardCount: 22,
+  }),
+  sky: Object.freeze({
+    actorScale: 1.75,
+    gajaemanCanonicalScale: 1.89,
+    gajaemanGrip: Object.freeze([-20, -46]),
+    yoplaitGrip: Object.freeze([14, -36]),
+  }),
+  ocean: Object.freeze({
+    waterSpeed: 78,
+    bobHeight: 1.4,
+    bobRate: 1.9,
+    maillardWidth: 144,
+    warshipWidth: 360,
+    bridgeWidth: 16,
+    castleWidth: 2160,
+    castleProjectionWidth: 330,
+    beamCount: 5,
+  }),
+});
+
+export const SHIP_CASTLE_BEATS = Object.freeze([
+  'field_float', 'field_walk', 'field_rush', 'field_window',
+  'ocean_rise', 'sky_tug', 'sky_opposite_aura', 'vortex_gather',
+  'vortex_burst', 'castle_reveal', 'yoplait_fall', 'castle_attack',
+  'retreat', 'final_hold',
+]);

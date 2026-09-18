@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const SCREEN_W = 480, SCREEN_H = 360, TILE = 32;
-const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y', 'Z', 'v', 'm', 'c', 'V', 'Y', 'o', 'O', '!', 'J', 'G', 'L']);
+const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', 'y', 'Z', 'v', 'm', 'c', 'V', 'Y', 'o', 'O', '!', 'J', 'G', 'L', '@']);
 // 가장자리 출입구 칸(H, BUILD194): 걷는 바닥이지만 맵 밖은 엔진이 막는다(tileAt 밖 = ' '). 테두리에 있어도 '뚫림'이 아니다 — 대신 그 칸을 덮는 문 트리거가 맵 끝에 닿아야 한다(아래 검사)
 const EDGE_OPEN = new Set(['H']);
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));

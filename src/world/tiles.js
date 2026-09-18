@@ -188,3 +188,6 @@ registerTile('Y', { name: 'water_shallow_edge', solid: true, draw: flat('#1a5561
 registerTile('V', { name: 'cliff_obj', solid: true, draw: flat('#0b2412') });
 registerTile('b', { name: 'bridge_purple', solid: false, draw: flat('#8a6238') });   // 레버로 내려오는 다리 (tileSwaps 로 ' ' → 'b')
 registerTile('s', { name: 'stairs_purple', solid: false, draw: flat('#5e2f98') });   // 위 발판으로 오르는 계단
+registerTile('@', { name: 'jjajang_forest_black', solid: true, draw: flat('#060707') });
+registerTile('%', { name: 'jjajang_path_black', solid: false, draw: flat('#242726') });
+registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });

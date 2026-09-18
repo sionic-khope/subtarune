@@ -39,6 +39,9 @@ import { MaillardArrival } from './scenes/maillard-arrival.js';
 import { ShipAssault } from './scenes/ship-assault.js';
 import { ShipPursuitAmbient } from './scenes/ship-pursuit-ambient.js';
 import { SHIP_ASSAULT } from './data/ship-assault.js';
+import { ShipCastle } from './scenes/ship-castle.js';
+import { SHIP_CASTLE } from './data/ship-castle.js';
+import { ShipMemory } from './scenes/ship-memory.js';
 import { YOUNGCLE_TV_PORTRAITS } from './data/youngcle-tv.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
@@ -72,6 +75,8 @@ class Game {
     this.seaChase = null;
     this.maillardArrival = null;
     this.shipAssault = null;
+    this.shipCastle = null;
+    this.shipMemory = null;
     this.tvBroadcast = null;
     this.youngcleDoorCutaway = null;
     this.youngcleCages = null;
@@ -130,6 +135,7 @@ class Game {
     } catch {}
     const propSrcs = new Set(FX_SHEETS);
     for (const src of Object.values(SHIP_ASSAULT.images)) propSrcs.add(src);
+    for (const src of Object.values(SHIP_CASTLE.images)) propSrcs.add(src);
     for (const m of Object.values(MAPS)) { for (const e of (m.entities || [])) if (e.image) propSrcs.add(e.image); for (const src of (m.preload || [])) propSrcs.add(src); }   // 엔티티 이미지 + 컷신에서 spawn 할 이미지(preload)
     await Promise.all([
       ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
@@ -198,6 +204,8 @@ class Game {
     this.battle?.cancelPendingBgm();
     this.shipPursuitAmbient?.stop();
     this.finishShipAssault(true);
+    this.finishShipCastle(true);
+    this.finishShipMemory(true);
     this.captainAttackPending = false;
     this.darkSmoke = null;
     this.musicCamera?.dispose();
@@ -407,6 +415,8 @@ class Game {
     this.battle?.cancelPendingBgm();
     this.shipPursuitAmbient?.stop();
     this.finishShipAssault(true);
+    this.finishShipCastle(true);
+    this.finishShipMemory(true);
     this.captainAttackPending = false;
     this.darkSmoke = null;
     this.musicCamera?.dispose();
@@ -544,6 +554,8 @@ class Game {
     const go = () => {
       this.finishTvBroadcast(true);
       this.finishShipAssault(true);
+      this.finishShipCastle(true);
+      this.finishShipMemory(true);
       this.captainAttackPending = false;
       this.darkSmoke = null;
       this.booms = [];
@@ -690,6 +702,42 @@ class Game {
     this.shipAssault = null;
   }
 
+  /** Start the castle presentation without moving or replacing field actors. */
+  startShipCastle() {
+    this.finishShipCastle(false);
+    this.shipPursuitAmbient?.clear();
+    this.shipCastle = new ShipCastle(this);
+    return this.shipCastle;
+  }
+
+  /** Release the castle surface; abort additionally cancels its active script runner. */
+  finishShipCastle(abort = false) {
+    if (abort && this.shipCastle) {
+      this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
+      this.textbox.close(); this.background = [];
+    }
+    this.shipCastle?.dispose();
+    this.shipCastle = null;
+  }
+
+  /** Hand the active script from the castle surface to the underwater memory surface. */
+  startShipMemory() {
+    this.finishShipCastle(false);
+    this.finishShipMemory(false);
+    this.shipMemory = new ShipMemory(this);
+    return this.shipMemory;
+  }
+
+  /** Release memory visuals; abort additionally cancels an interrupted script runner. */
+  finishShipMemory(abort = false) {
+    if (abort && this.shipMemory) {
+      this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
+      this.textbox.close(); this.background = [];
+    }
+    this.shipMemory?.dispose();
+    this.shipMemory = null;
+  }
+
   /** TV cancellation releases the current runner before map/title/QA reconstructs actors. */
   finishTvBroadcast(abort = false) {
     if (abort) clearEditorUnionStage(this, true);
@@ -818,9 +866,19 @@ class Game {
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
     this.background = this.background.filter((w) => !w.update(dt, Input));
     this.shipAssault?.update(dt);
+    this.shipCastle?.update(dt);
+    this.shipMemory?.update(dt);
     this.tvBroadcast?.update(dt);
     this.shipPursuitAmbient?.update(dt);
     if (this.shipAssault?.ocean) {
+      if (this.dialogue.running) this.dialogue.update(dt, Input);
+      return;
+    }
+    if (this.shipCastle?.fullFrame) {
+      if (this.dialogue.running) this.dialogue.update(dt, Input);
+      return;
+    }
+    if (this.shipMemory?.fullFrame) {
       if (this.dialogue.running) this.dialogue.update(dt, Input);
       return;
     }
@@ -985,6 +1043,24 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
+    if (this.shipCastle?.fullFrame) {
+      ctx.save();
+      if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
+      this.shipCastle.draw(ctx);
+      ctx.restore();
+      this.textbox.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
+    if (this.shipMemory?.fullFrame) {
+      ctx.save();
+      if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
+      this.shipMemory.draw(ctx);
+      ctx.restore();
+      this.textbox.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
     if (this.maillardArrival) {
       ctx.save();
       if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
@@ -1093,6 +1169,7 @@ class Game {
     this.sysdialog.draw(ctx);
     this.shipAssault?.drawDust(ctx);
     this.shipPursuitAmbient?.draw(ctx);
+    this.shipCastle?.draw(ctx);
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);
     drawEditorUnionOverlay(ctx, this);
@@ -1255,7 +1332,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-18.223';
+export const BUILD = '2026-09-18.224';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

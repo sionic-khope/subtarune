@@ -18,6 +18,9 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
   }, { id, offset });
   await open({ qa: 'ship_lounge' });
   check('QA enters lounge', !!await until(() => window.game?.mapId === 'ship_lounge' && !game.transitioning && !game.dialogue.running, 20000));
+  await fixture('suppress-followup-castle-event', 'This lounge regression inspects the existing room interactions; the dedicated ship-castle scenario owns the real proximity trigger.', () => {
+    game.setFlag('ship_castle_started');
+  });
   await press('KeyX');
   await page.waitForTimeout(250);
   await shot('lounge_01_arrival');
@@ -30,9 +33,15 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
     return [':', ';', '/'].every(key => getTile(key).override?.naturalWidth === 32);
   }));
   await page.keyboard.down('ArrowUp');
-  const top = await until(() => game.player.y < 230, 10000);
+  check('actual up key traverses the unobstructed central promenade', !!await until(() => game.player.y < 440, 10000));
   await page.keyboard.up('ArrowUp');
-  check('actual up key traverses whole central aisle', !!top, String(await page.evaluate(() => game.player.y)));
+  await page.keyboard.down('ArrowLeft');
+  check('actual left key takes the staged doorway bypass', !!await until(() => game.player.x < 230, 3000));
+  await page.keyboard.up('ArrowLeft');
+  await page.keyboard.down('ArrowUp');
+  const top = await until(() => game.player.y < 230, 5000);
+  await page.keyboard.up('ArrowUp');
+  check('real walking routes around the staged trio and reaches the door', !!top, JSON.stringify(await page.evaluate(() => ({ x: game.player.x, y: game.player.y }))));
   await shot('lounge_02_top');
   for (const offset of [-64, 0, 64]) {
     await stand('ship_lounge_grand_door', offset);
@@ -106,6 +115,10 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
     await shot('lounge_08_reentry');
   }
   check('lounge selected BGM is active', !!await until(() => game.sound.bgmName === 'ship_lounge' && game.sound.bgm?.currentTime > 0, 8000));
+  await fixture('restore-pre-castle-save-state', 'Remove only the lounge-test suppression flag before checking the ordinary pre-event save and Continue flow.', () => {
+    game.setFlag('ship_castle_started', false);
+    game.autosave();
+  });
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('subtarune.save.v1')));
   check('normal map entry saves lounge and ending flags', saved?.map === 'ship_lounge' && saved?.flags?.ship_ending_done, JSON.stringify(saved));
   await open();

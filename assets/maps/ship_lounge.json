@@ -47,6 +47,11 @@
    "x": 372,
    "y": 900,
    "facing": "up"
+  },
+  "castle_approach": {
+   "x": 372,
+   "y": 470,
+   "facing": "up"
   }
  },
  "meta": {
@@ -77,6 +82,31 @@
    "solid": true,
    "sortY": 0,
    "script": "ship_lounge_door"
+  },
+  {
+   "type": "prop",
+   "id": "ship_lounge_window",
+   "image": "assets/props/ship_lounge_window.png",
+   "x": 660,
+   "y": 184,
+   "w": 76,
+   "h": 24,
+   "ix": 640,
+   "iy": 40,
+   "solid": true,
+   "sortY": 0
+  },
+  {
+   "type": "trigger",
+   "id": "ship_castle_trigger",
+   "x": 312,
+   "y": 322,
+   "w": 144,
+   "h": 96,
+   "once": true,
+   "flag": "ship_castle_started",
+   "unless": "ship_castle_done",
+   "script": "ship_castle"
   },
   {
    "type": "prop",
@@ -344,9 +374,9 @@
    "type": "npc",
    "id": "lounge_youngcle",
    "sprite": "youngcle",
-   "x": 488,
-   "y": 264,
-   "facing": "left",
+   "x": 286,
+   "y": 276,
+   "facing": "down",
    "wander": 0,
    "script": "ship_lounge_youngcle",
    "visualScale": 2,
@@ -356,9 +386,9 @@
    "type": "npc",
    "id": "lounge_junhee",
    "sprite": "junhee",
-   "x": 244,
-   "y": 330,
-   "facing": "right",
+   "x": 370,
+   "y": 258,
+   "facing": "down",
    "wander": 0,
    "script": "ship_lounge_junhee",
    "requires": "ship_ending_done"
@@ -367,8 +397,8 @@
    "type": "npc",
    "id": "lounge_yongjun",
    "sprite": "yongjun",
-   "x": 220,
-   "y": 432,
+   "x": 454,
+   "y": 276,
    "facing": "down",
    "wander": 0,
    "script": "ship_lounge_yongjun",

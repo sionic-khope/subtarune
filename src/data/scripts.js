@@ -54,6 +54,9 @@ import { ship_gate } from './cutscenes/ship_gate.js';
 import { ship_control_intro, ship_battle_qa, ship_tvform_battle_qa } from './cutscenes/ship_control.js';
 import { ship_tvform_ending, ship_manhole } from './cutscenes/ship_ending.js';
 import { shipLoungeScripts } from './cutscenes/ship_lounge.js';
+import { ship_castle } from './cutscenes/ship_castle.js';
+import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
+import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -78,6 +81,9 @@ export const HS = (text, extra = {}) => ({ speaker: '형섭', portrait: 'hyungsu
 
 export const SCRIPTS = {
   opening,
+  ship_castle,
+  ...shipSinkingScripts,
+  ...jjajangShoreScripts,
   obj4_baron_intro,
   obj4_baron_abduction,
   obj5_chase,

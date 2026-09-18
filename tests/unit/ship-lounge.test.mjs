@@ -14,10 +14,10 @@ test('ship lounge provides a tall room after the control-room ending', () => {
   assert.ok(m.rows[0].length >= 20 && m.rows[0].length <= 28);
 });
 
-test('ship lounge keeps the main aisle clear from arrival to the grand door', () => {
+test('test_ship_lounge_main_aisle_stays_clear_until_staged_castle_approach', () => {
   const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
   const blockers = m.entities.filter(e => e.solid !== false && ['prop', 'npc'].includes(e.type));
-  for (let y = 224; y <= m.spawns.from_control.y; y += 16) {
+  for (let y = 432; y <= m.spawns.from_control.y; y += 16) {
     assert.ok('/:;'.includes(m.rows[Math.floor(y / 32)][11]));
     assert.ok(!blockers.some(e => 352 < e.x + (e.w || 24) && 416 > e.x && y < e.y + (e.h || 16) && y + 16 > e.y), `aisle obstructed at ${y}`);
   }
@@ -26,6 +26,9 @@ test('ship lounge keeps the main aisle clear from arrival to the grand door', ()
   assert.ok(door.y < 224);
   assert.equal(door.script, 'ship_lounge_door');
   assert.equal(m.entities.filter(e => e.type === 'door').length, 0, 'both entrance and locked door require deliberate C interaction');
+  const trio = ['lounge_youngcle', 'lounge_junhee', 'lounge_yongjun'].map(id => m.entities.find(entity => entity.id === id));
+  assert.ok(trio.every(entity => entity.y < 300));
+  assert.ok(trio.some(entity => entity.x >= 352 && entity.x < 416));
 });
 
 test('ship lounge reuses current approved NPC identities and a healing spring', () => {
