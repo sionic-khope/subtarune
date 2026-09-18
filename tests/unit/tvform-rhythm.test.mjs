@@ -1,6 +1,6 @@
 // 변신 영클 특별 패턴 2 리듬(BUILD217) 순수 로직 검사:
 //   1) 차트 구간 자르기(pickWindow)가 [start, start+seconds] 안의 노트만 순서대로 주고 칸을 그대로 옮긴다(루프로 되감긴 사본 포함)
-//   2) 생성된 멜로디 차트(assets/rhythm/tvtime.json)가 규격에 맞다 — 칸 L/R, 시간 오름차순, 최소 간격 0.16초, 어느 2초 창에도 7개 이하(≤3.5/s)
+//   2) 생성된 멜로디 차트(assets/rhythm/tvtime.json)가 박자 격자 위에 있다 — 148bpm 1/4박 격자, 칸 L/R, 최소 간격 0.18초, 2초 창 6개 이하(≤3/s)
 //   3) 가짜 battle 로 한 판: 노트를 다 놓치면 MISS 마다 파티 15 피해 → 시큰둥, 다 맞히면 “영클이 감동한다!” → 우는 그림 → 10 피해
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,31 +25,60 @@ const makeInput = (state = {}) => ({ down: (k) => !!state[k], just: (k) => !!sta
 const K = { ...S.rhythm, chartWait: 0.2, chartData: chartData(2.6) };
 
 test('test_pick_window_keeps_only_notes_inside_the_window_in_order', () => {
-  const song = { duration: 20, notes: [{ t: 1, lane: 'L' }, { t: 5.5, lane: 'R' }, { t: 9.9, lane: 'L' }, { t: 10.4, lane: 'R' }, { t: 19.5, lane: 'L' }] };
+  const song = { duration: 20, notes: [{ t: 1, lane: 'L', pitch: 60 }, { t: 5.5, lane: 'R', pitch: 67 }, { t: 9.9, lane: 'L', pitch: 62 }, { t: 10.4, lane: 'R' }, { t: 19.5, lane: 'L' }] };
   const w = pickWindow(song, 5, 5);
-  assert.deepEqual(w, [{ t: 5.5, lane: 'R' }, { t: 9.9, lane: 'L' }]);
+  assert.deepEqual(w, [{ t: 5.5, lane: 'R', pitch: 67 }, { t: 9.9, lane: 'L', pitch: 62 }], '음높이(MIDI)도 같이 들고 온다');
   // 창이 곡 끝을 넘어가면 되감긴 사본(t + duration)도 같이 잡는다
   const wrapped = pickWindow(song, 19, 5);
   assert.deepEqual(wrapped.map((n) => n.t), [19.5, 21]);
   assert.deepEqual(pickWindow(song, 100, 5), []);
 });
 
-test('test_generated_melody_chart_is_well_formed_and_within_density', () => {
+test('test_generated_melody_chart_is_quantized_to_the_beat_grid', () => {
   const c = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
   assert.equal(c.title, "It's Tv Time!"); assert.equal(c.artist, 'Deltarune');
   assert.ok(!c.video, '영상 없는 곡');
+  assert.equal(c.bpm, 148, `bpm ${c.bpm}`);
   assert.ok(c.duration > 170 && c.duration < 173, `길이 ${c.duration}`);
-  assert.ok(c.notes.length > 200, `노트 ${c.notes.length}`);
+  assert.ok(c.notes.length > 300, `노트 ${c.notes.length}`);
   assert.ok(c.notes.every((n) => n.lane === 'L' || n.lane === 'R'), '칸은 L/R');
-  let minGap = Infinity;
+  // 격자는 다듬는 용도다(사용자 “노래랑 아예 똑같아야 한다”): 대부분 1/4 박 위에 있되,
+  // 노래가 당겨지거나 밀린 자리는 격자를 벗어나 소리 난 자리를 지킨다 — 그래서 격자 밖도 조금은 있어야 한다.
+  const quarter = 60 / c.bpm / 4;
+  let offGrid = 0, quarters = 0, minGap = Infinity;
+  for (const n of c.notes) {
+    const k = Math.round((n.t - c.offset) / quarter), d = Math.abs(n.t - (c.offset + k * quarter));
+    if (d > 0.002) offGrid += 1;
+    else if (((k % 2) + 2) % 2 === 1) quarters += 1;
+  }
+  assert.ok(offGrid <= c.notes.length * 0.25, `격자 밖 노트 ${offGrid}개 — 4분의 1 이하`);
+  assert.ok(offGrid > 0, '전부 격자에 붙이면 노래와 어긋난다 — 격자 밖 노트가 있어야 한다');
+  assert.ok(quarters < c.notes.length / 2, `1/4 박 노트 ${quarters}개 — 절반 미만이어야 한다`);
   for (let i = 1; i < c.notes.length; i++) { const d = c.notes[i].t - c.notes[i - 1].t; assert.ok(d > 0, '시간 오름차순'); minGap = Math.min(minGap, d); }
-  assert.ok(minGap >= 0.16 - 1e-6, `최소 간격 ${minGap}`);
-  assert.ok(c.notes.length / c.duration <= 3.5, `밀도 ${(c.notes.length / c.duration).toFixed(2)}/s`);
+  assert.ok(minGap >= 0.18 - 1e-6, `최소 간격 ${minGap}`);
+  assert.ok(c.notes.length / c.duration <= 3, `밀도 ${(c.notes.length / c.duration).toFixed(2)}/s`);
   for (let i = 0; i < c.notes.length; i++) {
     const inWin = c.notes.filter((n) => n.t > c.notes[i].t - 2 && n.t <= c.notes[i].t).length;
-    assert.ok(inWin <= 7, `2초 창 안 ${inWin}개`);
+    assert.ok(inWin <= 6, `2초 창 안 ${inWin}개`);
   }
   assert.ok((c.side.drums || []).length > 100 && (c.side.vocal || []).length > 100, '양옆 자동 패드');
+});
+
+test('test_generated_melody_chart_carries_varied_pitches_per_window', () => {
+  const c = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
+  assert.ok(c.notes.every((n) => Number.isInteger(n.pitch) && n.pitch > 40 && n.pitch < 100), '모든 노트에 MIDI 음높이');
+  // 사용자 “저번엔 다 같은 음으로 넣어서”: 어느 15초 구간을 잘라도 음이 여러 개여야 하고 한 음이 40% 를 넘지 않아야 한다
+  let worstDistinct = 99, worstShare = 0;
+  for (let s0 = 0; s0 + 15 < c.duration; s0 += 1) {
+    const win = c.notes.filter((n) => n.t >= s0 && n.t < s0 + 15).map((n) => n.pitch);
+    if (win.length < 10) continue;
+    const counts = new Map();
+    for (const p of win) counts.set(p, (counts.get(p) || 0) + 1);
+    worstDistinct = Math.min(worstDistinct, counts.size);
+    worstShare = Math.max(worstShare, Math.max(...counts.values()) / win.length);
+  }
+  assert.ok(worstDistinct >= 5, `15초 창 최소 음 종류 ${worstDistinct}`);
+  assert.ok(worstShare <= 0.4, `15초 창 한 음 최대 점유율 ${(worstShare * 100).toFixed(0)}%`);
 });
 
 /** 한 판 돌리기. hit=true 면 다음 노트를 제때 누른다 */

@@ -16,9 +16,15 @@ import { sayBubble, tickBubble } from '../support/youngcle-tvform.js';
 export const YOUNGCLE_TRIAL = {
   ...PARK,
   timing: { ...PARK.timing, gavel: 0.7 },
+  // 선택지 상자는 4줄까지(B 의 3번 “너네엄마가 사장이였어도 잘랐을거다 꼬라지를 봐라”가 네 줄) — 높이 58 → 84, 하트 시작점은 상자 아래(346)
+  choices: PARK.choices.map(z => ({ ...z, h: 84 })),
+  start: { x: 240, y: 346 },
   text: { ...PARK.text, speaker: S.trial.speaker, portrait: S.trial.portrait, voice: S.trial.voice, opening: S.trial.opening, declaration: S.trial.declaration, highlight: S.trial.highlight, shock: S.trial.shock, defeated: '' },
   assets: { ...PARK.assets, judge: S.trial.assets.judge, victim: S.trial.assets.victim },
-  cases: [{ summary: S.trial.summary, chargeLines: S.trial.chargeLines, choices: S.trial.choices, highlight: S.trial.highlight }],
+  cases: [
+    { summary: S.trial.summary, chargeLines: S.trial.chargeLines, choices: S.trial.choices, highlight: S.trial.highlight },
+    { summary: S.trial.b.summary, chargeLines: S.trial.b.chargeLines, choices: S.trial.b.choices, highlight: S.trial.b.highlight, victim: S.trial.b.victim },
+  ],
   gavelDamage: S.trial.gavelDamage, victimFade: S.trial.victimFade,
 };
 
@@ -26,11 +32,12 @@ const ease = k => { const c = Math.max(0, Math.min(1, k)); return c * c * (3 - 2
 const FULL = new Set(['zoom', 'on', 'game', 'off', 'zoomout']);
 
 export function createTvformSpecial(battle, { enemy }) {
-  const kind = battle.support?.specialKind || S.order[0], yc = enemy, I = S.intro, O = S.outro, home = { x: yc.x, y: yc.y };
+  const kind = battle.support?.specialKind || S.order[0], variant = battle.support?.specialVariant || 'a', yc = enemy, I = S.intro, O = S.outro, home = { x: yc.x, y: yc.y };
   let phase = 'jump', pt = 0, game = null, disposed = false, noised = false, jumped = false, lastBeat = -1, danceT = 0, said = false, last = null;
   const setPhase = (p) => { phase = p; pt = 0; };
   battle.board.setTarget(440, 72, 240, 282); battle.setText('');
-  const makeGame = () => kind === 'subrio' ? createSubrioGame(battle, yc, S.subrio) : kind === 'rhythm' ? createRhythmGame(battle, yc, S.rhythm) : kind === 'ball' ? createBallDuel(battle, yc, S.ball) : createParkWitchTrial(battle, { trialIndex: 0, config: YOUNGCLE_TRIAL });
+  // 섭리오·마녀재판은 A/B 두 판(support.specialVariant): 섭리오 B = 가로로 긴 치지직 맵·내려찍기(tvform-subrio.js), 재판 B = 따뜻한비데 부당해고(cases[1])
+  const makeGame = () => kind === 'subrio' ? createSubrioGame(battle, yc, S.subrio, { variant }) : kind === 'rhythm' ? createRhythmGame(battle, yc, S.rhythm) : kind === 'ball' ? createBallDuel(battle, yc, S.ball) : createParkWitchTrial(battle, { trialIndex: variant === 'b' ? 1 : 0, config: YOUNGCLE_TRIAL });
   // 춤: 박자마다 들썩, 좌우로 흔들 — 확대되는 동안에도 이어진다(사용자 “가운데서 춤추고 있는 화면이 확대돼야”)
   const dancePose = (time) => ({ x: I.center[0] + Math.sin(time * 9) * 6, y: I.center[1] - Math.abs(Math.sin(time * 9.8)) * 12 });
   const stepDance = (dt) => { danceT += dt; yc.patternPose = dancePose(danceT); const beat = Math.floor(danceT / 0.32); if (beat !== lastBeat) { lastBeat = beat; battle.sfx(S.sfx.dance, { volume: 0.35 }); } };
@@ -64,7 +71,7 @@ export function createTvformSpecial(battle, { enemy }) {
   return {
     get fullscreen() { return FULL.has(phase); },
     get hpStrip() { return phase === 'game' && kind !== 'trial'; },
-    get snapshot() { return { kind, phase, pt: Math.round(pt * 100) / 100, game: game?.snapshot || null, ycPose: yc.patternPose ? [Math.round(yc.patternPose.x), Math.round(yc.patternPose.y)] : null, bubble: battle.bubble?.text || null }; },
+    get snapshot() { return { kind, variant, phase, pt: Math.round(pt * 100) / 100, game: game?.snapshot || null, ycPose: yc.patternPose ? [Math.round(yc.patternPose.x), Math.round(yc.patternPose.y)] : null, bubble: battle.bubble?.text || null }; },
     update(dt, input) {
       if (disposed) return true;
       pt += dt;

@@ -40,15 +40,19 @@ try {
   await page.evaluate(() => { window.game.battle.soul.invuln = 60; });
   await untilMenu(45000);
   // ③ 특별(재판): 점프 → 춤+말풍선 → 확대(춤 유지·지지직) → 켜짐 → 게임 → 꺼짐 → 축소 → 복귀
+  // 영클 hp 를 10으로: 재판의 망치 10 피해로 쓰러지면 특별 패턴 뒤 승리로 이어져야 한다(2026-09-18 사용자 “특별 패턴에서 쓰러트렸는데 전투 안 끝나는 버그”)
   await page.evaluate(() => { const sp = window.game.battle.support; sp.turn = 0; sp.specialIdx = 2; });
   await attackRound();
   const jump = await waitFor(() => window.game.battle.gimmick?.snapshot?.kind === 'trial' && window.game.battle.gimmick.snapshot.phase === 'jump', 15000); await page.waitForTimeout(250); await cap('04_jump');
+  await page.evaluate(() => { window.game.battle.enemies[0].hp = 10; });   // 특별 패턴이 시작된 뒤 hp 10 → 망치 10 으로 쓰러진다
   const danceOk = await phaseShot('dance', 900, '05_dance_bubble'); s = await st();
-  check(jump && danceOk && s.bubble === null && s.gimmick?.ycPose && Math.abs(s.gimmick.ycPose[0] - 240) < 10, '점프 → 가운데서 춤(TV 로 넘어갈 땐 말풍선 없음) ' + JSON.stringify([s?.bubble, s?.gimmick?.ycPose]));
+  check(jump && danceOk && s.bubble === '후후 이것도 대처할 수 있을까' && s.gimmick?.ycPose && Math.abs(s.gimmick.ycPose[0] - 240) < 10, '점프 → 가운데서 춤 + “후후 이것도 대처할 수 있을까” ' + JSON.stringify([s?.bubble, s?.gimmick?.ycPose]));
   const zoomMid = await phaseShot('zoom', 420, '06_zoom_mid'); const poseA = (await st())?.gimmick?.ycPose;
   await page.waitForTimeout(160); const poseB = (await st())?.gimmick?.ycPose; await page.waitForTimeout(300); await cap('07_zoom_static');
   check(zoomMid && poseA && poseB && (poseA[0] !== poseB[0] || poseA[1] !== poseB[1]), '확대 중에도 춤(자세가 계속 움직인다) ' + JSON.stringify([poseA, poseB]));
-  const onOk = await phaseShot('on', 180, '08_tv_on'); check(onOk, 'TV 켜짐(가로선에서 펼쳐짐)');
+  // 켜짐(on) 단계는 0.45초라 촘촘히 읽으며 지나가는 단계를 모은다
+  const seen = new Set(); let onShot = false; for (let i = 0; i < 200; i++) { const ph = (await st())?.gimmick?.phase; if (ph) seen.add(ph); if (ph === 'on' && !onShot) { onShot = true; await page.waitForTimeout(120); await cap('08_tv_on'); } if (ph === 'game' || ph === 'off') break; await page.waitForTimeout(25); }
+  check(seen.has('on'), 'TV 켜짐(가로선에서 펼쳐짐) ' + JSON.stringify([...seen]));
   const gameOk = await phaseShot('game', 300, '09_game'); check(gameOk && (await st())?.gimmick?.phase === 'game' && (await st())?.gimmick?.game, '게임 시작(재판)');
   // 재판 진행: 3번 선택 → 호옥 → 망치 → 끝
   await page.evaluate(() => { window.game.battle.soul.invuln = 60; });
@@ -59,7 +63,8 @@ try {
   const offOk = await phaseShot('off', 150, '10_tv_off'); check(offOk, '게임 끝 → 화면이 접히며 꺼짐');
   const outOk = await phaseShot('zoomout', 300, '11_zoomout'); check(outOk, '지지직 걷히며 축소');
   const backOk = await phaseShot('back', 200, '12_back'); check(backOk, '제자리로 점프');
-  const menu = await untilMenu(20000); check(menu?.state === 'menu' && menu.gimmick === null, '전환 뒤 메뉴로 ' + JSON.stringify([menu?.state]));
+  const won = await waitFor(() => window.game.battle.state === 'win', 15000); s = await st(); await cap('13_win');
+  check(won && s.ycHp === 0 && (s.text || '').includes('1000'), '특별 패턴 피해로 쓰러뜨리면 전환 뒤 곧바로 승리(1000원) ' + JSON.stringify([s?.state, s?.ycHp, s?.text]));
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }
 console.log('fails=' + fails); await browser.close(); process.exit(fails ? 1 : 0);

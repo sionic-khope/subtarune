@@ -20,24 +20,25 @@ export function tickBubble(battle, dt) {
 export function createYoungcleTvformSupport(battle) {
   if (!battle.enemies.some(e => e.def.support === 'youngcle_tvform')) return null;
   let coinIdx = 0, openingShown = false, pending = null, mazeCount = 0, turn = -1, healed = 0, specialIdx = 0, lastTaunt = null;
+  const visits = {};   // 종류별 방문 횟수 — 섭리오·마녀재판은 두 번째 방문부터 B 판(2026-09-18 사용자 “각각 두 번째 패턴”)과 번갈아
   const MAZES = { coin_maze_a: 'a', coin_maze_b: 'b' };
   const self = {
-    mazeVariant: 'a', specialKind: null,
+    mazeVariant: 'a', specialKind: null, specialVariant: 'a',
     get turn() { return turn; }, get coinIdx() { return coinIdx; }, get healed() { return healed; }, get specialIdx() { return specialIdx; },
     // QA·플레이테스트용: 다음 적 턴을 원하는 특별 패턴으로 보내려면 turn(짝수) 과 specialIdx 를 맞춘다
     set turn(v) { turn = v; }, set specialIdx(v) { specialIdx = v; }, set coinIdx(v) { coinIdx = v; },
     get isSpecialTurn() { return turn % 2 === 1; },
     get current() { return C.coinOrder[(coinIdx - 1 + C.coinOrder.length) % C.coinOrder.length]; },
     get mazeCount() { return mazeCount; },
-    /** 특별 패턴(TV 로 넘어갈 때)엔 말풍선 없음 */
-    get specialLine() { return null; },
+    /** 특별 패턴(TV 로 넘어갈 때) 춤추며 한마디 — 사용자 문장 */
+    get specialLine() { return C.specialLine || null; },
     /** 말풍선 문구: 미로는 사용자 문장 그대로, 그 외 코인 패턴은 잡담 중 직전과 다른 것 */
     lineFor(name) { if (/^coin_maze/.test(name)) return C.mazeLine; const pool = C.taunts.filter(t => t !== lastTaunt); const pick = pool[Math.floor(battle.rnd() * pool.length)]; lastTaunt = pick; return pick; },
     /** 적 턴 준비 말풍선(엔진 경로: 코인 탄막) — 미로는 모드 안에서 sayBubble 로 먼저 띄운다 */
     speechFor() { return [this.lineFor(this.current)]; },
     get unlocked() { return false; },
     get hint() { return ''; },
-    reset() { coinIdx = 0; openingShown = false; pending = null; mazeCount = 0; turn = -1; healed = 0; specialIdx = 0; this.specialKind = null; },
+    reset() { coinIdx = 0; openingShown = false; pending = null; mazeCount = 0; turn = -1; healed = 0; specialIdx = 0; this.specialKind = null; this.specialVariant = 'a'; for (const k of Object.keys(visits)) delete visits[k]; },
     async load() {},
     /** 인트로 대사가 끝나면 한 번: 편집노조 흡수·파워업 모드 */
     openingMode() { if (openingShown) return null; openingShown = true; return 'tvform_intro'; },
@@ -45,7 +46,7 @@ export function createYoungcleTvformSupport(battle) {
     /** 적 턴: 일반(코인 6종 순환) → 특별(4종 순환, BUILD216) 번갈아. 일반은 미로면 모드, 나머지는 탄막 */
     enemyModeFor() {
       turn++;
-      if (turn % 2 === 1) { this.specialKind = SP.order[specialIdx % SP.order.length]; specialIdx++; return 'tvform_special'; }
+      if (turn % 2 === 1) { this.specialKind = SP.order[specialIdx % SP.order.length]; specialIdx++; visits[this.specialKind] = (visits[this.specialKind] || 0) + 1; this.specialVariant = (SP.variants || []).includes(this.specialKind) && visits[this.specialKind] % 2 === 0 ? 'b' : 'a'; return 'tvform_special'; }
       const name = C.coinOrder[coinIdx % C.coinOrder.length]; coinIdx++;
       if (MAZES[name]) { this.mazeVariant = MAZES[name]; mazeCount++; return 'coin_maze'; }
       return null;

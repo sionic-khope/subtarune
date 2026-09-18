@@ -125,3 +125,88 @@ test('test_companions_attack_the_downed_youngcle_and_share_the_hit_counter', () 
   assert.equal(b.yc.hp, 200 - snap.damageDealt);
   assert.ok(b.sfxLog.includes(K.mateSfx.fire) || b.sfxLog.includes(K.mateSfx.clock), '동료 공격 소리가 난다');
 });
+
+// ── B 판(가로로 긴 치지직 맵 + 내려찍기) ──
+const Bk = K.b;
+const makeB = () => { const b = fakeBattle(); return { b, g: createSubrioGame(b, b.yc, K, { variant: 'b' }) }; };
+const toPhase = (g, want, limit, inp) => runUntil(g, s => s.phase === want, limit, inp);
+
+test('test_variant_b_map_is_long_and_teal_and_camera_follows_hero', () => {
+  assert.equal(Bk.rows.length, 22); assert.ok(Bk.rows.every(r => r.length === 72), '72칸 가로 긴 맵');
+  assert.ok(Bk.rows[20].startsWith('#====') && /^#=+#$/.test(Bk.rows[20]), '바닥');
+  assert.ok(Bk.theme.tiles.includes('teal'), '치지직(1-2 teal) 타일');
+  const { g } = makeB();
+  assert.equal(g.snapshot.variant, 'b');
+  assert.equal(g.snapshot.cam, 0, '왼쪽 끝에서는 카메라가 0');
+  // 오른쪽으로 한참 달리면 카메라가 따라 흐른다(가로로 긴 맵)
+  toPhase(g, 'vanish', 12);
+  runUntil(g, () => false, 4, input({ right: true }));
+  assert.ok(g.snapshot.cam > 100, `카메라가 요플래를 따라 흐른다 (cam ${g.snapshot.cam})`);
+  assert.ok(g.snapshot.cam <= 72 * 16 - 480, '맵 끝을 넘지 않는다');
+});
+
+test('test_variant_b_marker_follows_hero_then_locks_before_the_slam', () => {
+  const { g } = makeB();
+  toPhase(g, 'marker', 12);
+  const first = g.snapshot;
+  assert.ok(first.marker, '영역 표시가 뜬다');
+  assert.ok(Math.abs(first.marker.x - (first.hero.x + 8)) <= 4, `영역은 요플래 자리에 잡힌다 ${JSON.stringify([first.marker.x, first.hero.x])}`);
+  // 표시 동안 오른쪽으로 달린다: markerTrack 까지는 따라오다 굳는다
+  const right = input({ right: true });
+  const step = 1 / 60; let t = 0;
+  while (g.snapshot.phase === 'marker' && t < Bk.markerTrack + 0.02) { g.update(step, right); t += step; }
+  const locked = g.snapshot.marker.x;
+  while (g.snapshot.phase === 'marker' && t < 2) { g.update(step, right); t += step; }
+  assert.equal(g.snapshot.phase, 'dive', '표시가 끝나면 하늘에서 떨어진다');
+  assert.equal(g.snapshot.yc.x, locked, '굳은 자리로 내려찍는다(따라오다 멈춘다)');
+  assert.ok(g.snapshot.hero.x > first.hero.x + 20, '그 사이 요플래는 옆으로 피했다');
+});
+
+test('test_variant_b_slam_hits_a_standing_hero_once_and_the_shield_blocks_it', () => {
+  // 가만히 서 있으면 맞는다 — 한 번의 내려찍기에 한 번만
+  const { b, g } = makeB();
+  toPhase(g, 'slam', 14);
+  runUntil(g, s => s.phase !== 'slam', 2);
+  assert.deepEqual(b.hurt, [Bk.slamDamage], `가만히 서 있으면 ${Bk.slamDamage} 피해 한 번`);
+  assert.equal(g.snapshot.slams, 1);
+  // 방패(X)를 들고 있으면 막힌다
+  const { b: b2, g: g2 } = makeB();
+  toPhase(g2, 'marker', 14);
+  runUntil(g2, s => s.phase !== 'slam' && s.slams >= 1, 4, input({ cancel: true }));
+  assert.deepEqual(b2.hurt, [], '방패로 막으면 파티 피해가 없다');
+});
+
+test('test_variant_b_stumbles_after_n_slams_then_the_same_attack_window', () => {
+  const { b, g } = makeB();
+  // 계속 오른쪽으로 달려 내려찍기를 피한다
+  const right = input({ right: true });
+  toPhase(g, 'stumble', 40, right);
+  assert.equal(g.snapshot.slams, Bk.slams, `${Bk.slams}번 내려찍고 발을 헛디딘다`);
+  assert.ok(b.sfxLog.filter(n => n === Bk.vanishSfx).length >= Bk.slams, '사라지는 지지직이 매번 난다');
+  assert.ok(b.sfxLog.includes(Bk.markerSfx) && b.sfxLog.includes(Bk.slamSfx), '영역 표시음·착지음');
+  toPhase(g, 'down', 3, right);
+  assert.equal(g.snapshot.yc.frame, 4, '넘어진 프레임');
+  // A 판과 같은 공격 타이밍: 창 연타로 5대마다 1 피해
+  let frame = 0;
+  const step = 1 / 60; let t = 0;
+  while (g.snapshot.phase === 'down' && t < 12) { g.update(step, input(frame % 8 === 0 ? { 'just:confirm': true } : {})); frame++; t += step; }
+  const snap = g.snapshot;
+  assert.ok(snap.hits > 0, `쓰러진 동안 ${snap.hits}타`);
+  assert.equal(snap.damageDealt, Math.min(K.down.maxDamage, Math.floor(snap.hits / K.down.hitsPerDamage)), '5대마다 1 피해');
+  assert.equal(b.yc.hp, 200 - snap.damageDealt);
+  runUntil(g, s => s.phase === 'done', 4);
+  assert.equal(g.snapshot.phase, 'done');
+});
+
+test('test_variant_b_youngcle_turns_to_face_the_hero', () => {
+  const { g } = makeB();
+  // 영클은 요플래 오른쪽(ycEnterX 356 > heroSpawn 96)에 떨어지므로 왼쪽을 본다 — 시트 기본 방향이라 뒤집지 않는다
+  toPhase(g, 'vanish', 12);
+  assert.equal(g.snapshot.yc.facing, -1, '요플래가 왼쪽에 있으면 왼쪽을 본다');
+  // 영역이 굳은 뒤에도 계속 오른쪽으로 달리면 요플래가 내려찍는 자리보다 오른쪽에 선다 → 돌아본다
+  const right = input({ right: true });
+  toPhase(g, 'dive', 4, right);
+  const s2 = g.snapshot;
+  assert.ok(s2.hero.x + 8 > s2.yc.x, '요플래가 내려찍는 자리 오른쪽으로 빠져나갔다');
+  assert.equal(s2.yc.facing, 1, '오른쪽에 있으면 오른쪽을 본다(그릴 때만 뒤집는다)');
+});

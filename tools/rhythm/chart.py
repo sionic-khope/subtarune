@@ -7,7 +7,7 @@
 # /usr/bin/python3 tools/rhythm/chart.py assets/video/noamtori.mp4 --title "방가방가 노앰토리" --artist "무언가가큰징징이" --start 18.2 --out assets/rhythm/noamtori.json
 # /usr/bin/python3 tools/rhythm/chart.py assets/video/bojipam.mp4 --title "보X팜" --artist "MC노라니" --out assets/rhythm/bojipam.json
 # --- BUILD217 tvform battle bgm (melody notes) ---
-# /usr/bin/python3 tools/rhythm/chart.py assets/audio/bgm/youngcle_tvform_battle.mp3 --title "It's Tv Time!" --artist "Deltarune" --player melody --no-video --out assets/rhythm/tvtime.json
+# /usr/bin/python3 tools/rhythm/chart.py assets/audio/bgm/youngcle_tvform_battle.mp3 --title "It's Tv Time!" --artist "Deltarune" --player melody --no-video --min-gap 0.18 --max-per-sec 3 --out assets/rhythm/tvtime.json
 # ──────────────────
 """리듬 게임 차트 생성기(BUILD178): 곡(영상) 오디오에서 onset(스펙트럼 플럭스)을 뽑아 박자 격자에 맞춰 가운데 두 칸(L/R) 노트를 만든다.
 - (BUILD186 사용자 확정) 플레이어 노트 = 드럼 onset(저역 <150Hz, 0.2초 간격, 무게중심 L/R) 그대로 + 같은 홀드 규칙. 아래 멜로디 노트는 경섭 자동 패드가 된다.
@@ -15,8 +15,11 @@
 - 홀드 노트: 다음 onset 까지 1.25박 이상 비고 그 사이 에너지가 유지되면 hold(길이 = 간격 − 0.5박, 0.4초 이상).
 - 사이드(자동 연주, 두 칸씩): drums = 저역(<150Hz) onset, vocal = 중역(200~2000Hz) onset 을 0.35초 간격으로 솎음, 칸은 무게중심으로 L/R. `--start` 로 노트 시작 시각(영상은 안 자름).
 - 하이라이트(코러스, BUILD181 사용자 요청 ‘마지막 코러스 같은 데서 파티클·무대 이펙트·관객 환호’): 박자별 (총 RMS + 보컬 대역) 을 2마디로 평활해 최대의 78% 이상이 6초 이상 이어지는 구간(2초 이내 틈은 합침). `highlights: [[start, end], …]`
-- `--player melody`(BUILD217 사용자 “멜로디에 맞게 떨어지는 거야”): 플레이어 노트를 드럼 대신 멜로디 대역(--mel-lo~--mel-hi, 기본 300~4000Hz) 스펙트럼 플럭스 onset 으로 만든다.
-  박자 격자에 양자화하지 않고 onset 시각 그대로 쓴다(멜로디가 기준). 최소 간격 --min-gap(0.16초), 밀도 --max-per-sec(3.5/초, 2초 창) 상한, 칸은 무게중심. 사이드(드럼·보컬)은 그대로.
+- `--player melody`(BUILD217 사용자 “멜로디 맞춰서 패드가 떨어져야 한다 · 지금은 박자가 안 맞잖아”): 플레이어 노트를 노래(리드) 가락으로 만든다.
+  ① bpm·첫 박을 곡 전체 콤 필터로 0.01 해상도까지 다시 재고 10초 창마다 드리프트를 확인한다(자기상관만으로는 홉 단위라 bpm 이 3~4 씩 묶인다).
+  ② 후보 = 리드 대역(--mel-lo~--mel-hi) 온셋 + 음정(조화곱, 300~2500Hz)이 한 반음 이상 바뀌어 70ms 이상 유지되는 지점.
+  ③ 격자(1/2·1/4 박)는 분석 흔들림을 다듬는 데만 — 격자점이 --snap(25ms) 안이면 붙이고, 노래가 격자 밖이면 소리 난 자리를 그대로 둔다(버리지 않는다). 최소 간격 --min-gap, 밀도 --max-per-sec(2초 창).
+  ④ 칸은 가락 방향: 앞 음보다 높으면 R, 낮으면 L, 같으면 번갈아. 사이드(드럼·보컬)은 그대로.
 - `--no-video`: 음원만 있는 곡(전투 브금) — video 필드를 빼고 쓴다.
 numpy 만 쓴다(librosa 없음). 오디오는 ffmpeg 로 22.05kHz 모노 wav 로 뽑아 읽는다."""
 from __future__ import annotations
@@ -125,6 +128,82 @@ def assign_lanes(items: list[dict]) -> None:
         n.pop('c', None)
 
 
+def refine_bpm(env: np.ndarray, coarse: float, span: float = 4.0, step: float = 0.01) -> tuple[float, float]:
+    """콤 필터로 bpm·첫 박 위상을 곡 전체에서 정밀하게 고른다(BUILD217).
+    자기상관은 홉(11.6ms) 단위라 lag 하나에 bpm 이 3~4 씩 묶인다 — 여기서는 박 위치의 온셋 세기 합이 최대인 bpm 을 0.01 해상도로 찾는다.
+    템포가 일정한 곡이면 맞는 bpm 에서만 곡 끝까지 박이 어긋나지 않아 점수가 확 솟는다."""
+    fps = SR / HOP
+    t = np.arange(len(env)) / fps
+    e = (env - env.mean()) / (env.std() + 1e-9)
+    dur = len(env) / fps
+    best = (-1e9, coarse, 0.0)
+    for bpm in np.arange(coarse - span, coarse + span, step):
+        beat = 60 / bpm
+        for phase in np.arange(0, beat, 0.004):
+            bt = np.arange(phase, dur, beat)
+            sc = float(np.interp(bt, t, e).mean())
+            if sc > best[0]: best = (sc, float(bpm), float(phase))
+    return round(best[1], 3), round(best[2], 4)
+
+
+def drift_check(env: np.ndarray, bpm: float, phase: float, window: float = 10.0) -> float:
+    """창(기본 10초)마다 국소 최적 위상을 다시 재서 격자가 밀리는지 본다. 반음(1/2박) 어긋남은 접어 두고 순수 드리프트만 ms 로 돌려준다."""
+    fps = SR / HOP
+    t = np.arange(len(env)) / fps
+    e = (env - env.mean()) / (env.std() + 1e-9)
+    beat, dur, worst = 60 / bpm, len(env) / fps, 0.0
+    for w in np.arange(0, dur - window, window):
+        best = (-1e9, 0.0)
+        for ph in np.arange(0, beat, 0.002):
+            bt = np.arange(w + ph, w + window, beat)
+            sc = float(np.interp(bt, t, e).mean())
+            if sc > best[0]: best = (sc, float(ph))
+        # 창 시작 기준 위상으로 맞춰 비교한다(창이 박의 배수에서 시작하지 않는다)
+        rel = (best[1] - ((phase - w) % beat)) % (beat / 2)
+        if rel > beat / 4: rel -= beat / 2
+        worst = max(worst, abs(rel))
+    return worst * 1000
+
+
+def lead_pitch(x: np.ndarray, lo_hz: float = 250.0, hi_hz: float = 2000.0, n_fft: int = 2048) -> np.ndarray:
+    """리드(노래) 음정을 프레임마다 MIDI 번호로. 음이 안 잡히는 프레임은 NaN.
+    BUILD217 사용자 “저번엔 다 같은 음으로 들어갔다”: 한 음으로 뭉개지지 않게 —
+      ① 스펙트럼 바닥(주파수축 중앙값)을 빼서 드론·잡음을 죽이고 ② 조화곱(배음 4개)으로 기음을 고르고
+      ③ 포물선 보간으로 반음보다 곱게 ④ 5프레임(약 58ms) 중앙값 ⑤ 봉우리가 대역 에너지에 비해 약한(비음정) 프레임은 버린다."""
+    win = np.hanning(n_fft).astype(np.float32)
+    n = 1 + max(0, (len(x) - n_fft) // HOP)
+    frames = np.lib.stride_tricks.as_strided(x, shape=(n, n_fft), strides=(x.strides[0] * HOP, x.strides[0]))
+    mag = np.abs(np.fft.rfft(frames * win, axis=1)).astype(np.float32)
+    binhz = SR / n_fft
+    lo_i, hi_i = int(lo_hz / binhz), int(hi_hz / binhz)
+    band = mag[:, lo_i:hi_i * 4 if hi_i * 4 < mag.shape[1] else mag.shape[1]]
+    floor = np.median(mag[:, lo_i:hi_i], axis=1, keepdims=True)
+    clean = np.log1p(np.maximum(mag - floor, 0.0))
+    hps = clean[:, lo_i:hi_i].copy()
+    for h in (2, 3, 4):
+        idx = (np.arange(lo_i, hi_i) * h).clip(0, mag.shape[1] - 1)
+        hps += clean[:, idx]
+    k = hps.argmax(axis=1)
+    rows = np.arange(n)
+    a0 = hps[rows, np.maximum(k - 1, 0)]; b0 = hps[rows, k]; c0 = hps[rows, np.minimum(k + 1, hps.shape[1] - 1)]
+    den = a0 - 2 * b0 + c0
+    d = np.where(np.abs(den) > 1e-9, 0.5 * (a0 - c0) / np.where(den == 0, 1e-9, den), 0.0).clip(-0.5, 0.5)
+    f0 = (lo_i + k + d) * binhz
+    midi = 69 + 12 * np.log2(np.maximum(f0, 1) / 440.0)
+    # 음정다움: 기음 근처 세기 / 대역 평균. 낮으면 타악·잡음이라 음을 안 쓴다
+    peak = mag[rows, (lo_i + k).clip(0, mag.shape[1] - 1)]
+    tonal = peak / (band.mean(axis=1) + 1e-9)
+    midi = np.where(tonal >= 3.0, midi, np.nan)
+    pad = 2
+    mm = np.pad(midi, (pad, pad), mode='edge')
+    wins = np.lib.stride_tricks.sliding_window_view(mm, 5)
+    ok = ~np.isnan(wins).all(axis=1)
+    out = np.full(len(wins), np.nan)
+    with np.errstate(invalid='ignore'):
+        out[ok] = np.nanmedian(wins[ok], axis=1)
+    return out
+
+
 def find_highlights(rms: np.ndarray, mag: np.ndarray, fps: float, beat: float, phase: float, duration: float, level: float, min_len: float) -> list[list[float]]:
     """코러스 후보: 박자별 (총 RMS 정규화 + 중역 300~3000Hz 보컬 대역 정규화)/2 를 2마디(8박)로 평활, 최대의 `level` 이상이 `min_len` 초 이상 이어지는 구간.
     2초 이내 틈은 합친다. 곡이 강하게 압축돼 있어 총 에너지만으로는 차이가 작고, 보컬 대역이 코러스에서 뚜렷이 오른다."""
@@ -167,6 +246,8 @@ def main() -> None:
     ap.add_argument('--no-video', action='store_true', help='write without the video field (mp3-only song)')
     ap.add_argument('--mel-lo', type=float, default=300.0); ap.add_argument('--mel-hi', type=float, default=4000.0)
     ap.add_argument('--mel-delta', type=float, default=0.8); ap.add_argument('--min-gap', type=float, default=0.16)
+    ap.add_argument('--soft-delta', type=float, default=0.3, help='여린 온셋 문턱 — 음정만 바뀌는 자리를 여기서 고른다')
+    ap.add_argument('--snap', type=float, default=0.025, help='격자에 붙이는 최대 거리(초). 이보다 멀면 소리 난 자리를 그대로 둔다')
     ap.add_argument('--start', type=float, default=0.0, help='노트가 떨어지기 시작하는 곡 시각(초). 영상은 처음부터 틀고 이 앞엔 노트가 없다(노앰토리 18.2 = ‘만원 주면~’)')
     a = ap.parse_args()
     x = load_mono(Path(a.media))
@@ -210,18 +291,86 @@ def main() -> None:
     assign_lanes(drums); assign_lanes(vocal)
     # 사용자 확정(BUILD186): “경섭 드럼 패드 떨어지는 걸 형섭이 그대로 쓰는 게 더 재밌다” — 드럼 onset 이 플레이어(형섭) 노트, 원래 멜로디 노트는 경섭 자동 패드로
     if a.player == 'melody':
+        # BUILD217 사용자 “멜로디 맞춰서 패드가 떨어져야 한다 · 지금은 박자가 안 맞잖아”:
+        #   ① 곡 전체로 bpm·첫 박을 정밀하게 다시 재고(콤 필터 + 드리프트 검사)
+        #   ② 리드 대역 온셋 + 음정이 한 반음 이상 바뀌어 70ms 이상 유지되는 지점을 후보로 모아
+        #   ③ 1/2 박 격자에 붙인다(1/2 에서 60ms 넘게 떨어졌는데 1/4 박에는 25ms 안이면 1/4 박, 어디에도 안 붙으면 버린다)
+        bpm, phase = refine_bpm(full, bpm)
+        beat = 60 / bpm
+        drift = drift_check(full, bpm, phase)
+        half, quarter = beat / 2, beat / 4
+        midi = lead_pitch(x, a.mel_lo, min(a.mel_hi, 2500.0))
+        def pitch_at(t: float) -> float:
+            i = int(t * fps); seg = midi[max(0, i):min(len(midi), i + 7)]
+            seg = seg[~np.isnan(seg)]
+            return float(np.median(seg)) if len(seg) else float('nan')
+        def stable_after(t: float) -> bool:
+            i = int(t * fps); k = int(0.070 * fps); seg = midi[i:i + k]
+            if len(seg) < k or np.isnan(seg).any(): return False
+            return (seg.max() - seg.min()) <= 1.0
         mel_env = flux(mag, a.mel_lo, a.mel_hi)
+        onsets = [i / fps for i in pick_peaks(mel_env, 0.12, a.mel_delta)]
+        # 여린 온셋까지 다 모은 목록 — 노트는 반드시 이 중 하나(실제로 소리가 난 자리)에만 놓는다.
+        # 음정만 바뀌는 자리(이어 부르는 가락)는 여린 온셋 중에서 고른다: 허공에 노트를 만들지 않는다.
+        soft = [i / fps for i in pick_peaks(mel_env, 0.12, a.soft_delta)]
+        extra, prev_p, prev_t = [], 0.0, -9.0
+        if onsets:
+            p0 = pitch_at(onsets[0])
+            prev_p = 0.0 if np.isnan(p0) else p0
+        changes = []
+        for i in range(6, len(midi) - 6):
+            t = i / fps
+            seg6 = midi[i:i + 6]; seg6 = seg6[~np.isnan(seg6)]
+            if len(seg6) < 4: continue
+            pp = float(np.median(seg6))
+            if abs(pp - prev_p) >= 1.0 and stable_after(t):
+                if t - prev_t > 0.12: changes.append(t); prev_t = t
+                prev_p = pp
+        for ch in changes:
+            near = [o for o in soft if abs(o - ch) <= 0.06]
+            if not near: continue
+            o = min(near, key=lambda q: abs(q - ch))
+            if all(abs(o - q) > 0.06 for q in onsets) and all(abs(o - q) > 0.06 for q in extra): extra.append(o)
+        cands = sorted(onsets + extra)
+        raw = [abs(t - (phase + round((t - phase) / half) * half)) for t in cands]
+        # BUILD217 사용자 “노래랑 아예 똑같아야 한다니까, 음만 다른 거지”:
+        #   격자는 분석 흔들림을 다듬는 데만 쓴다 — 격자점이 --snap(25ms) 안에 있으면 붙이고,
+        #   노래가 격자 밖(당김음·스윙·앞꾸밈)이면 실제 소리 난 자리를 그대로 둔다. 격자에서 멀다고 노트를 버리지 않는다.
+        kept, snapped, quarters = [], 0, 0
+        for t in cands:
+            if t < max(1.0, a.start + 0.8) or t > duration - 0.8: continue
+            th = phase + round((t - phase) / half) * half; dh = abs(t - th)
+            tq = phase + round((t - phase) / quarter) * quarter; dq = abs(t - tq)
+            if dh <= a.snap: q, d = th, dh; snapped += 1
+            elif dq <= a.snap: q, d = tq, dq; snapped += 1; quarters += 1
+            else: q, d = t, 0.0
+            pp = pitch_at(t)
+            if np.isnan(pp): continue
+            kept.append({'t': round(q, 3), 'raw': t, 'd': d, 'p': pp})
+        # 같은 자리 중복·최소 간격·밀도(2초 창) 정리
         picked: list[dict] = []
         window, cap = 2.0, int(a.max_per_sec * 2.0)
-        for i in pick_peaks(mel_env, a.min_gap, a.mel_delta):
-            t = i / fps
-            if t < max(1.0, a.start + 0.8) or t > duration - 0.8: continue
-            if picked and t - picked[-1]['t'] < a.min_gap: continue
-            if sum(1 for q in picked if q['t'] > t - window) >= cap: continue
-            picked.append({'t': round(t, 3), 'c': centroid(mag, i)})
-        assign_lanes(picked)
+        for n in kept:
+            if picked and n['t'] - picked[-1]['t'] < a.min_gap: continue
+            if sum(1 for q in picked if q['t'] > n['t'] - window) >= cap: continue
+            picked.append(n)
+        # 칸: 앞 음보다 높으면 R, 낮으면 L, 같으면 번갈아
+        last_p, last_lane = None, 'L'
+        for n in picked:
+            if last_p is None or abs(n['p'] - last_p) < 0.5: lane = 'R' if last_lane == 'L' else 'L'
+            else: lane = 'R' if n['p'] > last_p else 'L'
+            n['lane'] = lane; last_lane = lane; last_p = n['p']
         drums = [{'t': d['t'], 'lane': d['lane']} for d in drums]
-        notes = [{'t': n['t'], 'lane': n['lane']} for n in picked]
+        notes = [{'t': n['t'], 'lane': n['lane'], 'pitch': int(round(n['p']))} for n in picked]
+        names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        print(f'  bpm {bpm} (첫 박 {phase:.4f}s, 10초 창 드리프트 최대 {drift:.1f}ms)')
+        print(f'  후보 {len(cands)} → 살린 것 {len(kept)} (격자에 붙인 것 {snapped}, 그중 1/4박 {quarters}; 나머지는 소리 난 자리 그대로) → 간격·밀도 정리 {len(picked)}')
+        print(f'  옮긴 거리: 평균 {np.mean([n["d"] for n in kept]) * 1000:.1f}ms, 최대 {max(n["d"] for n in kept) * 1000:.1f}ms (격자까지 거리 평균 {np.mean(raw) * 1000:.1f}ms)')
+        print(f'  노트 = 실제 소리 난 자리와의 차이: 평균 {np.mean([abs(n["t"] - n["raw"]) for n in picked]) * 1000:.1f}ms, 최대 {max(abs(n["t"] - n["raw"]) for n in picked) * 1000:.1f}ms')
+        print('  표본 20개(시각 · MIDI · 음이름 · 칸):')
+        for n in picked[40:60]:
+            mp = int(round(n['p']))
+            print(f"    {n['t']:7.3f}s  midi {mp:3d}  {names[mp % 12]}{mp // 12 - 1}  {n['lane']}")
     else:
         melody = [{'t': n['t'], 'lane': n['lane']} for n in notes]
         notes = [{'t': d['t'], 'lane': d['lane']} for d in drums]

@@ -19,7 +19,8 @@ export function createParkWitchTrial(battle, { trialIndex = Math.max(0, (battle.
   let verdict = 0, executionBeats = 0, cue = null, cueBuffer = null, cueReady = typeof Image === 'undefined', assetError = null;
   const restoreBoard = () => { Object.assign(battle.board, oldBoard); };
   const ready = () => cueReady && Object.values(art).every(item => item.ready);
-  for (const [key, src] of Object.entries(C.assets)) {
+  // 피해자 그림은 사건별로 바꿀 수 있다(trial.victim — 영클 재판 B 의 따뜻한비데, BUILD220)
+  for (const [key, src] of Object.entries({ ...C.assets, ...(trial.victim ? { victim: trial.victim } : {}) })) {
     const item = art[key] = { image: null, ready: typeof Image === 'undefined' };
     if (typeof Image !== 'undefined') {
       const image = new Image();

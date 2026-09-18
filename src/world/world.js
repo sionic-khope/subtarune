@@ -646,6 +646,9 @@ export class Prop extends Entity {
       this.x = bx + ox; this.y = by + oy; this.def.ix = bix + ox; this.def.iy = biy + oy;
       this.osOff = { x: ox, y: oy };
     } else if (this.osOff) {                              // 흔들림이 끝나면 오프셋을 걷어 제자리로(탑승자도 같이)
+      // 탑승자는 오프셋 걷는 만큼만 같이 움직인다 — 이 프레임 직전에 컷신이 setPos 로 소품을 옮겼어도(광장 복귀: 철창을 360 올리고 흔들림 끔) 그 이동을 태우지 않는다.
+      //   옛 코드는 lastPos(옮기기 전) 기준 차이를 통째로 태워 쥰희·용준이 720 위(용암)에 남았다(2026-09-18 사용자 “성공 후에 쥰희랑 용준이 안 뜨는 버그”, QA 지점은 흔들림을 안 거쳐 못 잡음)
+      this.lastPos = { x: this.x, y: this.y };
       this.x -= this.osOff.x; this.y -= this.osOff.y; if (this.def.ix !== undefined) { this.def.ix -= this.osOff.x; this.def.iy -= this.osOff.y; }
       this.osOff = null; carrying = true;
     }

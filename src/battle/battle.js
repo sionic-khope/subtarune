@@ -268,16 +268,7 @@ export class Battle {
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
-      if (!this.targets().length) {
-        this.standUpAll();
-        const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
-        this.game.money = (this.game.money || 0) + gain;
-        this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain));
-        this.cancelPendingBgm();
-        this.game.sound.stopBgm(this.bossBattle ? BOSS_VICTORY_FADE : 0.3);
-        if (!this.bossBattle) this.sfx('won');
-        return;
-      }
+      if (!this.targets().length) { this.beginWin(); return; }
       this.beginEnemyTurn(); return;
     }
     const plan = this.plans[this.actIdx++];
@@ -425,7 +416,18 @@ export class Battle {
     if (!this.alive().length) { this.disposeGimmick(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
   }
   /** 라운드 경계(적 턴 끝): 쓰러진 동료마다 회복 이펙트(초록 반짝임 + heal 음), DOWN_TURNS 번째 라운드에 반피로 일어난다 — 사용자 2026-09-11 '한 턴마다 회복 이펙트, 3턴 지나면 반피 부활' */
+  /** 승리: 돈·문구·브금 정리 → win 상태. 행동 단계 끝과 적 턴 끝(특별 패턴 피해로 쓰러뜨린 경우 — 2026-09-18 사용자 “특별 패턴에서 쓰러트렸는데 전투 안 끝나는 버그”) 양쪽에서 부른다 */
+  beginWin() {
+    this.standUpAll();
+    const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
+    this.game.money = (this.game.money || 0) + gain;
+    this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain));
+    this.cancelPendingBgm();
+    this.game.sound.stopBgm(this.bossBattle ? BOSS_VICTORY_FADE : 0.3);
+    if (!this.bossBattle) this.sfx('won');
+  }
   afterEnemyPhase() {
+    if (!this.targets().length) { this.bullets = []; this.bubble = null; this.board.setTarget(440, 72, 240, 282); this.beginWin(); return; }
     const up = [];
     for (const m of this.members) {
       if (!m.down) continue;

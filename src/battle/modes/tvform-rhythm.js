@@ -28,7 +28,7 @@ export function pickWindow(chart, start, seconds) {
   const out = [], dur = chart?.duration || 0, end = start + seconds;
   for (const n of chart?.notes || []) {
     for (const t of (dur > 0 ? [n.t, n.t + dur] : [n.t])) {
-      if (t >= start && t <= end) out.push({ t: Math.round(t * 1000) / 1000, lane: n.lane });
+      if (t >= start && t <= end) out.push({ t: Math.round(t * 1000) / 1000, lane: n.lane, pitch: n.pitch });
     }
   }
   return out.sort((a, b) => a.t - b.t);
@@ -53,17 +53,42 @@ export function createRhythmGame(battle, yc, K) {
   let cryImg = null, cryRed = null, tears = [], cried = false, moved = false, flashRed = 0;
   let wrap = 0, lastRaw = null;
   let sparks = [], confetti = [], flowers = [], hi = false, lastBeat = -1, lastC10 = 0, strobe = 0, cheer = 0;
+  let lastTonePitch = null, crowdLast = { applause: -9, cheer: -9, roar: -9 }, crowdPick = { applause: 0, cheer: 0, roar: 0 };
   let faceImg = null;
   loadImg(K.cry.image).then((i) => { cryImg = i; cryRed = tint(i, '#ff4a4a'); });
   loadImg(K.face.src).then((i) => { faceImg = i; });
   if (!song && typeof fetch === 'function') {
     try { fetch(K.chart).then((r) => r.json()).then((c) => { if (c && c.notes) song = c; }).catch(() => {}); } catch (e) { /* fetch 없는 환경(단위 테스트)은 예비 격자로 */ }
   }
-  const rawTime = () => (sound?.bgm && Number.isFinite(sound.bgm.currentTime) && !sound.bgm.paused) ? sound.bgm.currentTime : clock;
+  // 브금 시계. currentTime 은 '스피커로 나가려고 보낸 지점'이라 실제로 귀에 닿는 소리보다 앞서 있다(출력 버퍼).
+  //   그 차이(K.latency 초)를 빼야 노트가 판정선에 닿는 순간과 들리는 가락이 겹친다.
+  //   맞추는 법: 노트가 소리보다 늦게 오면 latency 를 줄이고, 먼저 오면 늘린다(0.01 씩).
+  const rawTime = () => ((sound?.bgm && Number.isFinite(sound.bgm.currentTime) && !sound.bgm.paused) ? sound.bgm.currentTime : clock) - (K.latency || 0);
   // 브금이 처음으로 되감기면(loop) 노트 시각이 어긋난다 — 되감긴 만큼 더해 시계를 계속 앞으로만 가게 한다
   const tick = () => { const raw = rawTime(); if (lastRaw !== null && raw < lastRaw - 1 && song?.duration) wrap += song.duration; lastRaw = raw; };
   const now = () => rawTime() + wrap;
   const setPhase = (p) => { phase = p; pt = 0; };
+  // 맞출 때마다 그 노트의 멜로디 음(MIDI)을 일렉 소리로 — 곡 위에 얹히게 짧고 작게(사용자 “멜로디 버전을 일렉화한 음”)
+  const midiFreq = (n) => 440 * Math.pow(2, (n - 69) / 12);
+  const playTone = (pitch) => {
+    if (!pitch || !sound.tone) return;
+    lastTonePitch = pitch; const T = K.tone;
+    sound.tone({ freq: midiFreq(pitch), wave: T.wave, dur: T.dur, gain: T.gain, cutoff: T.cutoff });
+  };
+  // 관객 환호(원본 무대와 같은 녹음 — 종류별 쿨다운, 변형 번갈아). 곡 중엔 노래를 안 덮게 작게
+  const crowd = (kind, volume) => {
+    if (clock - crowdLast[kind] < K.cheerCooldown[kind]) return;
+    crowdLast[kind] = clock;
+    const names = K.cheerSfx[kind], name = names[crowdPick[kind] % names.length]; crowdPick[kind] += 1;
+    battle.sfx(name, { volume: Math.min(1, volume) });
+  };
+  const cheerAt = (level) => {
+    cheer = level >= 3 ? 3.4 : level >= 2 ? 2.4 : 1.6;
+    const m = phase === 'play' ? K.cheerMix : 1;
+    if (level >= 3) { crowd('roar', 0.75 * m); crowd('applause', 0.55 * m); }
+    else if (level >= 2) { crowd('cheer', 0.65 * m); crowd('applause', 0.45 * m); }
+    else crowd('applause', 0.55 * m);
+  };
   // 불티(GREAT 노란 이펙트)·무대 양옆 파이로·꽃·색종이 — 원본 무대와 같은 연출
   const spark = (x, y, n = 8) => { for (let i = 0; i < n; i++) sparks.push({ x, y, vx: (battle.rnd() - 0.5) * 150, vy: -(70 + battle.rnd() * 150), t: 0, dur: 0.3 + battle.rnd() * 0.3 }); };
   const pyro = (n = 8) => { for (const sx of [64, 416]) for (let i = 0; i < n; i++) sparks.push({ x: sx + (battle.rnd() - 0.5) * 10, y: 270, vx: (battle.rnd() - 0.5) * 90, vy: -(170 + battle.rnd() * 150), t: 0, dur: 0.55 + battle.rnd() * 0.35 }); };
@@ -97,7 +122,8 @@ export function createRhythmGame(battle, yc, K) {
       const nx = play ? play.notes.find((n) => n.status === 'wait') : null;
       return { kind: 'rhythm', phase, pt: Math.round(pt * 100) / 100, notes: chart?.notes.length ?? 0, greats: play?.greats ?? 0, misses: play?.misses ?? 0,
         combo: play?.combo ?? 0, start: Math.round(start * 100) / 100, time: now(), cried, judge: judge?.text || null,
-        next: nx ? nx.t : null, nextLane: nx ? nx.lane : null, chartLoaded: !!song, melody: !!chart?.melody, moved };
+        next: nx ? nx.t : null, nextLane: nx ? nx.lane : null, nextPitch: nx ? (nx.pitch ?? null) : null,
+        chartLoaded: !!song, melody: !!chart?.melody, moved, lastTonePitch, latency: K.latency ?? 0, cheer: Math.round(cheer * 100) / 100 };
     },
     update(dt, input) {
       if (disposed) return true;
@@ -128,7 +154,7 @@ export function createRhythmGame(battle, yc, K) {
         for (const e of events) {
           if (e.type === 'great') { judge = { text: 'GREAT!', color: '#7dffb0' }; judgeT = 0; strum();
             fx.push({ kind: 'ring', lane: e.lane, t: 0, dur: 0.35 }, { kind: 'beam', lane: e.lane, t: 0, dur: ST.BEAM.dur });
-            const hf = ST.HALF[e.lane]; spark(hf.x + hf.w / 2, ST.RECEPTOR_Y - 2); }
+            const hf = ST.HALF[e.lane]; spark(hf.x + hf.w / 2, ST.RECEPTOR_Y - 2); playTone(e.note.pitch); }
           else if (e.type === 'miss') {
             judge = { text: 'MISS', color: '#ff6a6a' }; judgeT = 0; battle.sfx(K.missSfx, { volume: 0.8 }); battle.hurtParty(K.missDamage);
             for (const b of band) hurt[b.id] = 0.35;
@@ -140,9 +166,11 @@ export function createRhythmGame(battle, yc, K) {
         if (side.vocal.length) { anim('ppaman', 1 + Math.floor(battle.rnd() * 3), 0.3); for (const it of side.vocal) fx.push({ kind: 'sidering', lane: 'vocal', half: it.lane || 'L', t: 0, dur: 0.3 }); }
         // 콤보 10 마다 양옆 불꽃·꽃(원본 무대의 환호), 코러스 구간이면 색 조명·마디 스트로브·색종이
         const c10 = Math.floor(play.combo / 10);
-        if (c10 > lastC10 && play.combo > 0) { lastC10 = c10; pyro(6); throwFlowers(4); cheer = 1.6; }
+        if (c10 > lastC10 && play.combo > 0) { lastC10 = c10; pyro(6); throwFlowers(4); cheerAt(c10 >= 5 ? 3 : c10 >= 2 ? 2 : 1); }
         if (play.combo === 0) lastC10 = 0;
+        const wasHi = hi;
         hi = song ? highlightAt(song, time - wrap) >= 0 : false;
+        if (hi && !wasHi) { cheerAt(3); throwFlowers(10); pyro(10); }
         if (hi) {
           cheer = Math.max(cheer, 0.6);
           if (confetti.length < 90) snow(2);
@@ -154,7 +182,7 @@ export function createRhythmGame(battle, yc, K) {
       }
       if (phase === 'after') {                                  // 노트가 멈추고 잠깐 — 그 뒤 판정
         if (pt >= K.afterHold) {
-          if (play.misses < K.cryUnder) { moved = true; battle.setText(K.movedText); battle.sfx('great_shine', { volume: 0.5 }); setPhase('moved'); }
+          if (play.misses < K.cryUnder) { moved = true; battle.setText(K.movedText); battle.sfx('great_shine', { volume: 0.5 }); cheerAt(3); throwFlowers(12); setPhase('moved'); }
           else { battle.setText(K.sourText); setPhase('sour'); }
         }
         return false;
@@ -168,7 +196,7 @@ export function createRhythmGame(battle, yc, K) {
           battle.sfx('damage', { volume: 0.9 });
           battle.game.shake = { time: 0.35, amp: 5 };
           battle.hitEnemy(yc, null, K.cryDamage, { source: 'special', sound: true });
-          pyro(10); throwFlowers(8); cheer = 2.0;
+          pyro(10); throwFlowers(8); cheerAt(2);
           for (let i = 0; i < 40; i++) tears.push({ x: 240 + (battle.rnd() - 0.5) * 60, y: 210, vx: (battle.rnd() - 0.5) * 260, vy: -120 - battle.rnd() * 180, t: 0 });
         }
         for (const d of tears) { d.t += dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 420 * dt; }
