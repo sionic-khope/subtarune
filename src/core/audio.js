@@ -33,8 +33,8 @@ export const VOICES = {
   // 나람이 임시 합성 음색(사용자 지정 원음 오면 파일로 교체): 럭키가이보다 조금 높고 둥근 중저음
   // 나람(BUILD203 사용자 “뚱뚱한 목소리를 가진 쥰희 느낌, 같은 목소리는 쓰지 말고 비슷하게 새로”): voices/naram.mp3 = 쥰희 클립(snd_txtsus)을 -3반음 낮추고 굵게(lowpass·bass) 만든 변형. 합성음이던 예전 값은 파일 없을 때 폴백
   naram: { freq: 200, wave: 'sawtooth', dur: 0.11, jitter: 50, gain: 0.2, cutoff: 900, glide: 80, rate: 1, level: 0.9, cut: true, minGap: 0.08 },
-  // 청소부(BUILD227 사용자 “목소리 싫어 거슨하고 비슷하게 하라고”): voices/janitor.mp3 = 델타룬 4장 거슨 웃음 원음(유튜브 WiNn1mjmBlw “Gerson (Old Man) Laughing Sound Effect”)의 한 음절 ‘하’ 0.15초(0.462s~)를 그대로 자른 블립. 살짝만 낮춰(rate 0.96) 글자마다 끊어 낸다. 형섭·snd_dadtxt 기반 1~3차본은 폐기
-  janitor: { freq: 260, wave: 'square', dur: 0.15, jitter: 30, gain: 0.22, cutoff: 1800, rate: 0.96, level: 0.85, cut: true, minGap: 0.085 },
+  // 청소부(BUILD227 사용자 “거슨 목소리에서 톤다운만 살짝 반키 먹여서”): voices/janitor.mp3 = 델타룬 4장 거슨 웃음 원음(유튜브 WiNn1mjmBlw)의 ‘하’ 한 음절 0.15초를 피치 변경 없이 자른 블립. 재생 rate 0.9439 = 정확히 반키(-1 semitone) 톤다운, 글자마다 끊어 낸다
+  janitor: { freq: 260, wave: 'square', dur: 0.15, jitter: 30, gain: 0.22, cutoff: 1800, rate: 0.9439, level: 0.85, cut: true, minGap: 0.085 },
   park_guardian_costume: { freq: 430, wave: 'triangle', dur: 0.16, jitter: 8, gain: 0.18, cutoff: 2600, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.18, drive: 2.1, driveLevel: 0.64 },
   park_guardian: { freq: 100, wave: 'triangle', dur: 0.175, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.195 },
   red:       { freq: 150, wave: 'sine',     dur: 0.12, jitter: 3,  gain: 0.2,   cutoff: 900,  rate: 0.62, level: 1.2, cut: true, minGap: 0.10 },   // 레드(청록숲9 문지기) — 파일: 언더테일 snd_txt2(voices/red.mp3 = mystery 와 같은 클립)를 0.62 배로 깊게, 드문드문. 합성 사각파(2026-09-11 1차)는 '마음에 안 듦'

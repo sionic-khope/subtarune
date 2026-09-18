@@ -19,7 +19,7 @@ OpenGateway `openai/gpt-image-2.5-sunburst`, images/edits(참조 1장), quality 
 ```
 ffmpeg -ss 0.462 -t 0.15 -i audio/yt_WiNn1mjmBlw.webm -af "afade=t=in:st=0:d=0.004,afade=t=out:st=0.115:d=0.035,volume=1.5,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
 ```
-`VOICES.janitor` rate 0.96(살짝만 낮춤)·cut·minGap 0.085. 이전 1~3차본(형섭 변형, snd_dadtxt 변형)은 폐기. 게임 원본 텍스트음(snd_txtgerson 계열 ogg)이 들어오면 같은 자리에 교체한다.
+`VOICES.janitor` rate 0.9439 = 정확히 반키(-1 semitone) 톤다운(사용자 “톤다운만 살짝 반키 먹여서”)·cut·minGap 0.085. 이전 1~3차본(형섭 변형, snd_dadtxt 변형)은 폐기. 게임 원본 텍스트음(snd_txtgerson 계열 ogg)이 들어오면 같은 자리에 교체한다.
 
 ## 걷기 시트 2차 (지팡이)
 사용자 “왜 화면이 밝아지고 나선 지팡이 안 짚고 있냐”: 지팡이 짚은 4방향 걷기 시트를 새로 생성(`walk-cane.prompt.txt`, 참조 `walk-cane-ref.png` = 정면 프레임 + 지팡이 옆모습 raw, raw `walk-cane-raw.png` 4×4, 행 down/left/right/up). export `youngcle-hover-battle-v1/export.py walk-cane-raw.png 4 4 128 0.72 walk-cane-rawrows.png 120 largest`(배율 0.4114) → 행 재배열 → `assets/sprites/janitor.png`(정면 가시 89px). 실루엣 `janitor_shadow.png` = 이 시트를 검게(`build_shadow.py`). 이전 지팡이 없는 시트는 `janitor-walk-128.png`.
