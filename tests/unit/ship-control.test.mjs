@@ -9,7 +9,7 @@ test('test_ship_control_intro_spots_match_map_meta', () => {
   const m = src.match(/const SPOT = (\{[^}]*\})/);
   assert.ok(m, 'SPOT 상수가 있어야 한다');
   const spot = Function(`return ${m[1]}`)();
-  assert.deepEqual(spot, { junhee: map.meta.junhee, yongjun: map.meta.yongjun, ycEnter: map.meta.ycEnter, ycStand: map.meta.ycStand, cageDrop: map.meta.cageDrop });
+  assert.deepEqual(spot, { junhee: map.meta.junhee, yongjun: map.meta.yongjun, ycEnter: map.meta.ycEnter, ycStand: map.meta.ycStand, tvStand: map.meta.tvStand, cageDrop: map.meta.cageDrop });
   const ids = new Set(map.entities.map((e) => e.id));
   for (const id of ['ship_junhee', 'ship_yongjun', 'ship_youngcle', 'ship_obangsun', 'ship_naram', 'ship_cage', 'ship_cage_open', 'ship_cannon', 'ship_logo', 'ship_youngcle_down', 'ship_gajaeman']) assert.ok(ids.has(id), `${id} 가 맵에 없다`);
   // 보스전 뒤 연출(BUILD211): 가재맨 자리는 컷신 AFTER.gajaeman 과 맵 meta.gajaeman 이 같아야 하고, 변신·힘 받는 시트는 맵이 미리 읽는다

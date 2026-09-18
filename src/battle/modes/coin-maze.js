@@ -2,6 +2,7 @@
 //   상자(240×214)에 12×10 미로(완전 미로 — 시드 DFS, 항상 풀린다). 왼쪽 위 입구에서 시작, 오른쪽 아래 출구에 코인. 3.2초마다 가로(a)/세로(b) 레이저 띠가 예고 뒤 지나간다(맞으면 피해).
 //   코인에 닿으면 코인 +1 하고 끝, maxSeconds 지나면 놓친 채 끝. 소울은 벽을 못 지나간다(칸 단위 축별 충돌).
 import { TVFORM_BATTLE as C } from '../../data/youngcle-tvform-battle.js';
+import { sayBubble, tickBubble } from '../support/youngcle-tvform.js';
 import { drawCoin } from '../coin-patterns.js';
 const TAU = Math.PI * 2;
 
@@ -36,6 +37,8 @@ export function solveMaze(m) {
 }
 
 export function createCoinMaze(battle, { enemy }) {
+  // 사용자 2026-09-17 “미로도 바로 나오는 게 아니라 ‘후후 탈출할수있을까?’ 하고 나오게”: 말풍선이 다 찍힌 뒤 0.9초(엔진 준비 시간과 같다) 지나야 미로가 열린다
+  let pre = true, preHold = 0, said = false;
   const K = C.maze, sup = battle.support, variant = sup?.mazeVariant || 'a', board = battle.board, soul = battle.soul;
   const [bw, bh] = [240, 214]; board.setTarget(bw, bh, 240, 214); board.snap();
   const b = board.rect, cell = K.cell, ox = Math.round(b.x + (b.w - K.cols * cell) / 2), oy = Math.round(b.y + (b.h - K.rows * cell) / 2);
@@ -60,9 +63,15 @@ export function createCoinMaze(battle, { enemy }) {
     if (soul.invuln > 0) soul.invuln -= dt;
   };
   return {
-    get snapshot() { return { t, got, done, open: Math.round(open * 100) / 100, variant, soul: { x: Math.round(soul.x), y: Math.round(soul.y) }, coin: { x: Math.round(coin.x), y: Math.round(coin.y) }, lasers: lasers.map(l => ({ axis: l.axis, at: Math.round(l.pos), fired: l.age >= K.laserWarn })), solve: solveMaze(maze) }; },
+    get snapshot() { return { pre, t, got, done, open: Math.round(open * 100) / 100, variant, soul: { x: Math.round(soul.x), y: Math.round(soul.y) }, coin: { x: Math.round(coin.x), y: Math.round(coin.y) }, lasers: lasers.map(l => ({ axis: l.axis, at: Math.round(l.pos), fired: l.age >= K.laserWarn })), solve: solveMaze(maze) }; },
     update(dt, input) {
       if (disposed) return true;
+      if (pre) {
+        if (!said) { said = true; sayBubble(battle, enemy, sup?.lineFor?.('coin_maze_' + variant) || '후후 탈출할수있을까?'); }
+        if (tickBubble(battle, dt)) preHold += dt;
+        if (preHold >= 0.9) { pre = false; battle.bubble = null; }
+        return false;
+      }
       t += dt; open = Math.min(1, t / 0.6); coin.t += dt;
       if (t < 0.6) return false;
       if (!got) moveSoul(dt, input);

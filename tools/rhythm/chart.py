@@ -6,6 +6,8 @@
 # ─── How to run ───
 # /usr/bin/python3 tools/rhythm/chart.py assets/video/noamtori.mp4 --title "방가방가 노앰토리" --artist "무언가가큰징징이" --start 18.2 --out assets/rhythm/noamtori.json
 # /usr/bin/python3 tools/rhythm/chart.py assets/video/bojipam.mp4 --title "보X팜" --artist "MC노라니" --out assets/rhythm/bojipam.json
+# --- BUILD217 tvform battle bgm (melody notes) ---
+# /usr/bin/python3 tools/rhythm/chart.py assets/audio/bgm/youngcle_tvform_battle.mp3 --title "It's Tv Time!" --artist "Deltarune" --player melody --no-video --out assets/rhythm/tvtime.json
 # ──────────────────
 """리듬 게임 차트 생성기(BUILD178): 곡(영상) 오디오에서 onset(스펙트럼 플럭스)을 뽑아 박자 격자에 맞춰 가운데 두 칸(L/R) 노트를 만든다.
 - (BUILD186 사용자 확정) 플레이어 노트 = 드럼 onset(저역 <150Hz, 0.2초 간격, 무게중심 L/R) 그대로 + 같은 홀드 규칙. 아래 멜로디 노트는 경섭 자동 패드가 된다.
@@ -13,6 +15,9 @@
 - 홀드 노트: 다음 onset 까지 1.25박 이상 비고 그 사이 에너지가 유지되면 hold(길이 = 간격 − 0.5박, 0.4초 이상).
 - 사이드(자동 연주, 두 칸씩): drums = 저역(<150Hz) onset, vocal = 중역(200~2000Hz) onset 을 0.35초 간격으로 솎음, 칸은 무게중심으로 L/R. `--start` 로 노트 시작 시각(영상은 안 자름).
 - 하이라이트(코러스, BUILD181 사용자 요청 ‘마지막 코러스 같은 데서 파티클·무대 이펙트·관객 환호’): 박자별 (총 RMS + 보컬 대역) 을 2마디로 평활해 최대의 78% 이상이 6초 이상 이어지는 구간(2초 이내 틈은 합침). `highlights: [[start, end], …]`
+- `--player melody`(BUILD217 사용자 “멜로디에 맞게 떨어지는 거야”): 플레이어 노트를 드럼 대신 멜로디 대역(--mel-lo~--mel-hi, 기본 300~4000Hz) 스펙트럼 플럭스 onset 으로 만든다.
+  박자 격자에 양자화하지 않고 onset 시각 그대로 쓴다(멜로디가 기준). 최소 간격 --min-gap(0.16초), 밀도 --max-per-sec(3.5/초, 2초 창) 상한, 칸은 무게중심. 사이드(드럼·보컬)은 그대로.
+- `--no-video`: 음원만 있는 곡(전투 브금) — video 필드를 빼고 쓴다.
 numpy 만 쓴다(librosa 없음). 오디오는 ffmpeg 로 22.05kHz 모노 wav 로 뽑아 읽는다."""
 from __future__ import annotations
 
@@ -158,6 +163,10 @@ def main() -> None:
     ap.add_argument('--out', required=True); ap.add_argument('--video'); ap.add_argument('--max-per-sec', type=float, default=2.5)
     ap.add_argument('--delta', type=float, default=0.9)
     ap.add_argument('--hi-level', type=float, default=0.78); ap.add_argument('--hi-min', type=float, default=6.0)
+    ap.add_argument('--player', choices=['drums', 'melody'], default='drums', help='player note source: drums = low-band onsets (default, BUILD186), melody = lead-band onsets (BUILD217)')
+    ap.add_argument('--no-video', action='store_true', help='write without the video field (mp3-only song)')
+    ap.add_argument('--mel-lo', type=float, default=300.0); ap.add_argument('--mel-hi', type=float, default=4000.0)
+    ap.add_argument('--mel-delta', type=float, default=0.8); ap.add_argument('--min-gap', type=float, default=0.16)
     ap.add_argument('--start', type=float, default=0.0, help='노트가 떨어지기 시작하는 곡 시각(초). 영상은 처음부터 틀고 이 앞엔 노트가 없다(노앰토리 18.2 = ‘만원 주면~’)')
     a = ap.parse_args()
     x = load_mono(Path(a.media))
@@ -200,21 +209,39 @@ def main() -> None:
     vocal = [{'t': round(i / fps, 3), 'c': centroid(mag, i)} for i in pick_peaks(flux(mag, 200, 2000), 0.35, 0.9) if lo < i / fps < duration - 0.5]
     assign_lanes(drums); assign_lanes(vocal)
     # 사용자 확정(BUILD186): “경섭 드럼 패드 떨어지는 걸 형섭이 그대로 쓰는 게 더 재밌다” — 드럼 onset 이 플레이어(형섭) 노트, 원래 멜로디 노트는 경섭 자동 패드로
-    melody = [{'t': n['t'], 'lane': n['lane']} for n in notes]
-    notes = [{'t': d['t'], 'lane': d['lane']} for d in drums]
-    for k, n in enumerate(notes):
-        nxt = notes[k + 1]['t'] if k + 1 < len(notes) else duration
-        gap = nxt - n['t']
-        if gap >= 1.25 * beat:
-            s0, s1 = int(n['t'] * fps), int(min(len(rms) - 1, (n['t'] + gap - 0.5 * beat) * fps))
-            if s1 > s0 and rms[s0:s1].mean() > 0.35 * rms[max(0, s0 - 2):s0 + 3].max():
-                n['dur'] = round(max(0.4, gap - 0.5 * beat), 3)
-    drums = melody
+    if a.player == 'melody':
+        mel_env = flux(mag, a.mel_lo, a.mel_hi)
+        picked: list[dict] = []
+        window, cap = 2.0, int(a.max_per_sec * 2.0)
+        for i in pick_peaks(mel_env, a.min_gap, a.mel_delta):
+            t = i / fps
+            if t < max(1.0, a.start + 0.8) or t > duration - 0.8: continue
+            if picked and t - picked[-1]['t'] < a.min_gap: continue
+            if sum(1 for q in picked if q['t'] > t - window) >= cap: continue
+            picked.append({'t': round(t, 3), 'c': centroid(mag, i)})
+        assign_lanes(picked)
+        drums = [{'t': d['t'], 'lane': d['lane']} for d in drums]
+        notes = [{'t': n['t'], 'lane': n['lane']} for n in picked]
+    else:
+        melody = [{'t': n['t'], 'lane': n['lane']} for n in notes]
+        notes = [{'t': d['t'], 'lane': d['lane']} for d in drums]
+        for k, n in enumerate(notes):
+            nxt = notes[k + 1]['t'] if k + 1 < len(notes) else duration
+            gap = nxt - n['t']
+            if gap >= 1.25 * beat:
+                s0, s1 = int(n['t'] * fps), int(min(len(rms) - 1, (n['t'] + gap - 0.5 * beat) * fps))
+                if s1 > s0 and rms[s0:s1].mean() > 0.35 * rms[max(0, s0 - 2):s0 + 3].max():
+                    n['dur'] = round(max(0.4, gap - 0.5 * beat), 3)
+        drums = melody
     chart = {'id': Path(a.out).stem, 'title': a.title, 'artist': a.artist, 'video': a.video or f'assets/video/{Path(a.media).name}',
              'duration': round(duration, 2), 'notesFrom': round(a.start, 2), 'bpm': bpm, 'offset': round(phase, 3), 'notes': notes, 'side': {'drums': drums, 'vocal': vocal}, 'highlights': highlights}
+    if a.no_video: chart.pop('video')
     Path(a.out).write_text(json.dumps(chart, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
     holds = sum(1 for n in notes if 'dur' in n)
-    print(f"{a.out}: {duration:.1f}s bpm {bpm} notes {len(notes)} (holds {holds}, {len(notes) / duration:.2f}/s) drums {len(drums)} vocal {len(vocal)}")
+    print(f"{a.out}: {duration:.1f}s bpm {bpm} notes {len(notes)} (holds {holds}, {len(notes) / duration:.2f}/s) drums {len(drums)} vocal {len(vocal)} player {a.player}")
+    per10: dict[int, int] = {}
+    for n in notes: per10[int(n['t'] // 10) * 10] = per10.get(int(n['t'] // 10) * 10, 0) + 1
+    print('  notes/10s ' + ' '.join(f"{k}:{per10.get(k, 0)}" for k in range(0, int(duration) + 1, 10)))
     print('  highlights', ' '.join(f'{s0:.1f}-{s1:.1f}' for s0, s1 in highlights))
     print(f"  notesFrom {a.start}")
 

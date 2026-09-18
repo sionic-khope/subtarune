@@ -4,6 +4,19 @@
 import { TVFORM_BATTLE as C } from '../../data/youngcle-tvform-battle.js';
 import { YOUNGCLE_SPECIAL as SP } from '../../data/youngcle-special.js';
 
+/** 적 턴 모드 안에서 영클 말풍선(엔진 준비 단계 말풍선과 같은 그림·타자·목소리) — battle.bubble 을 직접 세운다. at 을 주면 적 자리 대신 그 좌표 기준(가운데서 춤출 때) */
+export function sayBubble(battle, enemy, text, at = null) {
+  const e = at ? { x: at.x, y: at.y, dead: false } : enemy;
+  battle.bubble = { enemy: e, text, shown: 0, t: 0, voice: enemy?.formDef?.voice || enemy?.def?.voice || 'narrator' };
+}
+/** 말풍선 타자 진행(엔진과 같은 0.03초/글자, 글자마다 목소리 블립). 다 찍혔으면 true */
+export function tickBubble(battle, dt) {
+  const b = battle.bubble; if (!b) return true;
+  b.t += dt; const n = Math.min(b.text.length, Math.floor(b.t / 0.03));
+  for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ') battle.game.sound.blip(b.voice);
+  b.shown = n; return n >= b.text.length;
+}
+
 export function createYoungcleTvformSupport(battle) {
   if (!battle.enemies.some(e => e.def.support === 'youngcle_tvform')) return null;
   let coinIdx = 0, openingShown = false, pending = null, mazeCount = 0, turn = -1, healed = 0, specialIdx = 0;
@@ -11,9 +24,16 @@ export function createYoungcleTvformSupport(battle) {
   const self = {
     mazeVariant: 'a', specialKind: null,
     get turn() { return turn; }, get coinIdx() { return coinIdx; }, get healed() { return healed; }, get specialIdx() { return specialIdx; },
+    // QA·플레이테스트용: 다음 적 턴을 원하는 특별 패턴으로 보내려면 turn(짝수) 과 specialIdx 를 맞춘다
+    set turn(v) { turn = v; }, set specialIdx(v) { specialIdx = v; }, set coinIdx(v) { coinIdx = v; },
     get isSpecialTurn() { return turn % 2 === 1; },
     get current() { return C.coinOrder[(coinIdx - 1 + C.coinOrder.length) % C.coinOrder.length]; },
     get mazeCount() { return mazeCount; },
+    /** 이번 특별 패턴의 한마디(춤추며 말풍선) */
+    get specialLine() { return C.lines[this.specialKind] || null; },
+    lineFor(name) { return C.lines[name] || null; },
+    /** 적 턴 준비 말풍선(엔진 경로: 코인 탄막): 이번 패턴에 맞는 한마디 — 미로·특별은 모드 안에서 sayBubble 로 먼저 띄운다 */
+    speechFor() { const line = C.lines[this.current]; return line ? [line] : null; },
     get unlocked() { return false; },
     get hint() { return ''; },
     reset() { coinIdx = 0; openingShown = false; pending = null; mazeCount = 0; turn = -1; healed = 0; specialIdx = 0; this.specialKind = null; },

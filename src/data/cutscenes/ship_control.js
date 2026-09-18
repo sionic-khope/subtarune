@@ -16,7 +16,7 @@ const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'shi
 const CAGE = 'ship_cage', CAGE_OPEN = 'ship_cage_open', CANNON = 'ship_cannon', BALL1 = 'ship_ball1', BALL2 = 'ship_ball2';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 // 자리 상수는 tools/maps/youngcle20.py(JUNHEE·YONGJUN·YC_ENTER·YC_STAND) 와 같은 값 — 맵 JSON 은 비동기 로드라 여기서 직접 둔다(tests/unit/ship-control.test.mjs 가 대조)
-const SPOT = { junhee: [486, 278], yongjun: [436, 334], ycEnter: [470, 236], ycStand: [556, 300], cageDrop: 396 };
+const SPOT = { junhee: [486, 278], yongjun: [436, 334], ycEnter: [470, 236], ycStand: [556, 300], tvStand: [556, 324], cageDrop: 396 };   // tvStand: 변신 영클(TV 머리)은 24px 아래 — 카메라 위쪽(y120)에 머리가 안 잘리게(2026-09-17 사용자)
 const M = () => SPOT;
 // 보스전 뒤 연출(BUILD211, 사용자 브리핑 design/narrative/cutscenes/ship_aftermath.md) 자리: 일행은 전투 전 자리(로고 왼쪽), 쥰희는 얼굴 박힌 영클 옆, 가재맨은 앞 벽 대형 화면 앞(맵 meta.gajaeman 과 같은 값)
 const AFTER = { party: [[400, 292], [348, 268], [348, 324]], junhee: [484, 316], junheeBack: [300, 300], gajaeman: [468, 118] };
@@ -101,7 +101,8 @@ const rise = steps => ({ action: game => {
 /** 변신: TV 머리·긴 팔다리 영클(youngcle_tvform, 테나는 질감 참고만) + 테나 전투 대기 같은 팔 원 그리기 루프 */
 const tennaForm = game => {
   const yc = game.entities.find(x => x.id === YC && !x.dead); if (!yc) return;
-  yc.setSprite('youngcle_tvform'); yc.def.visualScale = 1; yc.facing = 'down'; yc.jitter = null; yc.visible = true;
+  // 크기 0.85(229px → 195px)·자리 tvStand(사용자 “화면에 잘린다, 위치 낮추고 크기 15% 줄이자”) — 흰 화면 아래에서 바뀌므로 튀지 않는다
+  yc.setSprite('youngcle_tvform'); yc.def.visualScale = 0.85; yc.x = M().tvStand[0]; yc.y = M().tvStand[1]; yc.facing = 'down'; yc.jitter = null; yc.visible = true;
   const idle = game.characterMotions?.youngcle_tvform?.idle; if (idle) loopCharacterMotion(yc, idle); else yc.motion = null;
 };
 const AFTERMATH = [
@@ -237,6 +238,13 @@ const AFTERMATH = [
   { bgm: 'captain_mankatsuki', fadeIn: 1.2 },
   V('너희를 족치고 난 집에가겠음', 'taunt'),
   P('느금마'),
+  // 2차전 진입 대사 추가(2026-09-17 사용자 원문 “느금마 이 대사만 있는 게 아니라”): 억빠맨 → 영클 → 경섭 → 억빠맨 → 쥰희(일행 뒤) → 영클
+  P('와 ㅈㄴ 징그럽다.'),
+  V('아까보단 더 힘좀 써야할거임'),
+  G('일단 저거먼저 어떻게 하고 생각하자.'),
+  P('쥰희야 너도 저랬다 기억안나냐'),
+  J('안남'),
+  V('육체까지 강력해진 나의 힘을 받아라', 'taunt'),
   close,
   { wait: 0.5 },
   // (전투 시작 연출!) → 변신 영클 전투(BUILD214: 편집노조 흡수 인트로 → [승부하기][코인벌기]). 승부하기 규칙은 다음 브리핑 — 전투에서 돌아오면 대치 상태

@@ -1,5 +1,5 @@
 // 변신 영클 전투(BUILD214/215): QA ship_tvform_battle → “편집노조의 힘을 얕보지마라” → 편집노조 넷 유령이 돌며 얼굴로 흡수(spin) → 띠리리리링·오라(charge, power) → 보통 메뉴 [공격하기][아이템]
-//   → 공격 → 적 턴 코인 패턴 6종 순환(사방 레이저 → 미로 a → 뿌리기 → 회전 바퀴 → 미로 b → 유도 함선): 각 턴 코인 하나(후반), 봇은 코인이 뜨면 소울을 옮겨 먹는다(무적) → 서 있는 동료 모두 +30 회복(HP 를 미리 깎아 두고 잰다). 실행: tests/playtest/run.sh tvform-battle
+//   → 공격 → 적 턴 코인 패턴 6종 순환(사방 레이저 → 미로 a → 뿌리기 → 회전 바퀴 → 미로 b → 유도 함선): 각 턴 코인 하나(후반), 봇은 코인이 뜨면 소울을 옮겨 먹는다(무적) → 서 있는 동료 모두 +5 회복(HP 를 미리 깎아 두고 잰다). 실행: tests/playtest/run.sh tvform-battle
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -41,7 +41,8 @@ try {
   const expectShapes = { coin_lasers: ['aim', 'bolt', 'coin'], coin_rain: ['junk', 'coin', 'fake_coin'], coin_spokes: ['spokes', 'coin'], coin_ships: ['warship', 'coin'] };
   const results = []; let hpBefore = null;
   for (let turn = 0; turn < 6; turn++) {
-    // 세 명 다 공격(대상 하나): [공격하기] → 대상 → C, ×3
+    // 세 명 다 공격(대상 하나): [공격하기] → 대상 → C, ×3. BUILD216 뒤로 적 턴이 일반 ↔ 특별 번갈아 — 여기선 코인 패턴만 보려고 turn 을 홀수로 맞춰 다음 턴을 일반(짝수)으로 만든다
+    await page.evaluate(() => { window.game.battle.support.turn = 1; });
     for (let m = 0; m < 3; m++) { await press('KeyC', 300); await press('KeyC', 350); }
     const started = await waitFor(() => { const b = window.game.battle; return b.state === 'bullets' || (b.state === 'enemy-mode' && b.gimmick?.snapshot?.variant); }, 20000);
     await page.evaluate(() => { for (const m of window.game.battle.members) m.hp = Math.max(1, m.maxHp - 60); });   // 회복을 재기 위해 미리 깎는다
@@ -59,14 +60,14 @@ try {
       await page.waitForTimeout(120);
     }
     await waitFor(() => ['menu', 'win'].includes(window.game.battle.state), 8000); s = await st();
-    const healedNow = s.members.every((hp, i) => hp >= hpBefore[i] + 30);
+    const healedNow = s.members.every((hp, i) => hp >= hpBefore[i] + 5);   // 코인 회복 +5(BUILD218 사용자 “코인 회복량 5로 하향”)
     results.push({ name, started, healedNow, members: s.members, seen: [...seen], text: s.text });
     const want = expectShapes[name]; const shapesOk = name?.startsWith('coin_maze') ? true : (want || []).every(x => seen.has(x));
-    check(started && healedNow && shapesOk && s.healed === turn + 1 && (s.text || '').includes('회복'), `적 턴 ${turn + 1}: ${name} — 탄 ${JSON.stringify([...seen])}, 코인 먹고 모두 +30 ${JSON.stringify([hpBefore, s.members])} “${s.text}”`);
+    check(started && healedNow && shapesOk && s.healed === turn + 1 && (s.text || '').includes('회복'), `적 턴 ${turn + 1}: ${name} — 탄 ${JSON.stringify([...seen])}, 코인 먹고 모두 +5 ${JSON.stringify([hpBefore, s.members])} “${s.text}”`);
     if (s.state === 'win') break;
   }
   check(results.map(r => r.name).join(',') === 'coin_lasers,coin_maze_a,coin_rain,coin_spokes,coin_maze_b,coin_ships', '코인 패턴 6종 순환 순서 ' + results.map(r => r.name).join(','));
-  s = await st(); check(s.enemies[0].hp < 120, '공격이 들어간다(영클 hp 120 에서 줄어듦) ' + JSON.stringify(s.enemies));
+  s = await st(); check(s.enemies[0].hp < 200, '공격이 들어간다(영클 hp 200 에서 줄어듦) ' + JSON.stringify(s.enemies));
   const sfxAll = await page.evaluate(() => window.__sfx.slice());
   check(!sfxAll.includes('whoosh') && !sfxAll.includes('boom'), '합성 whoosh/boom 없음');
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));

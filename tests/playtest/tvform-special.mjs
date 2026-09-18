@@ -1,7 +1,7 @@
 // 변신 영클 특별 패턴 4종(BUILD216): QA ship_tvform_battle → 인트로 넘김 → 적 턴이 일반(코인) → 특별 순으로 번갈아 —
 //   특별 1 섭리오(점프·춤·TV 확대 → 정사각 맵 → 도트 영클 레이저 → 과부하로 쓰러짐 → 7초 동안 창으로 때리기 5대=1 피해 → 일어남 → 지지직 복귀)
 //   특별 2 리듬(패드 삐용 → 브금 박자 노트 15초, 봇이 맞춤 → 3회 미만이면 우는 영클 10 피해)  특별 3 마녀재판(3번 “임금체불은 안했다” → 소레와 오카시요 → 호옥! → 망치 낙하 10 피해)
-//   특별 4 팽이 배틀(무방비일 때 5번 맞히면 10 피해). 실행: tests/playtest/run.sh tvform-special
+//   특별 4 팽이 배틀(무방비일 때 10번 맞히면 10 피해, 자세한 검사는 tests/playtest/tvform-ball.mjs). 실행: tests/playtest/run.sh tvform-special
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -44,16 +44,18 @@ try {
   // 봇: 쓰러진 동안 C 연타(창) — 요플래는 왼쪽에 서 있고 창이 오른쪽으로 날아가 몸에 맞는다
   const t0 = Date.now(); while (Date.now() - t0 < 7200) { const g = (await st())?.gimmick?.game; if (!g || g.phase !== 'down') break; await page.keyboard.down('KeyC'); await page.waitForTimeout(40); await page.keyboard.up('KeyC'); await page.waitForTimeout(70); }
   s = await st(); await cap('05_subrio_hits'); console.log('subrio down snapshot', JSON.stringify(s.gimmick?.game));
-  const gotUp = await waitFor(() => ['getup', 'done'].includes(window.game.battle.gimmick?.snapshot?.game?.phase) || window.game.battle.gimmick?.snapshot?.phase === 'outro', 10000);
+  const gotUp = await waitFor(() => ['getup', 'done'].includes(window.game.battle.gimmick?.snapshot?.game?.phase) || ['off', 'zoomout', 'back', 'done'].includes(window.game.battle.gimmick?.snapshot?.phase), 10000);
   check(gotUp && s.gimmick.game.hits >= 10 && s.gimmick.game.damageDealt >= 2 && s.ycHp === hpBefore - s.gimmick.game.damageDealt, `쓰러진 7초 동안 창으로 ${s.gimmick?.game?.hits}타 → 피해 ${s.gimmick?.game?.damageDealt}(5타당 1, 영클 hp ${hpBefore}→${s.ycHp}) → 다시 일어남`);
-  const outro = await waitFor(() => window.game.battle.gimmick?.snapshot?.phase === 'outro', 8000); await page.waitForTimeout(300); await cap('06_noise_back');
+  const outro = await waitFor(() => ['off', 'zoomout', 'back', 'done'].includes(window.game.battle.gimmick?.snapshot?.phase), 8000); await page.waitForTimeout(300); await cap('06_noise_back');
   check(outro, '지지직 노이즈로 원상복구');
   await untilMenu(30000); await attackRound(); await untilMenu();   // 일반 코인 턴
   // ── 특별 2 리듬 ──
   await attackRound();
   const rh = await waitFor(() => window.game.battle.gimmick?.snapshot?.game?.kind === 'rhythm', 15000);
   s = await st(); check(rh && s.special === 'rhythm', '특별 2: 리듬 화면 ' + JSON.stringify([s.special, s.gimmick?.game?.phase]));
-  await page.waitForTimeout(400); const sfxA = await page.evaluate(() => window.__sfx.slice(-30)); check(sfxA.includes('bell'), '패드 삐용(bell) 뒤 등장 ' + JSON.stringify(sfxA.slice(-6)));
+  // 패드 삐용은 TV 가 켜지는 연출(on)이 끝나고 게임이 돌기 시작할 때 난다 — 시간 대신 소리를 기다린다
+  const bell = await waitFor(() => (window.__sfx || []).slice(-40).includes('bell'), 8000);
+  const sfxA = await page.evaluate(() => window.__sfx.slice(-30)); check(bell, '패드 삐용(bell) 뒤 등장 ' + JSON.stringify(sfxA.slice(-6)));
   await page.waitForTimeout(1200); await cap('07_rhythm_pads');
   const hp2 = s.ycHp;
   // 봇: 다음 노트 시각에 맞춰 레인 키
@@ -89,13 +91,19 @@ try {
   s = await st(); check(bl && s.special === 'ball', '특별 4: 팽이 배틀(영클 거대 공) ' + JSON.stringify([s.special]));
   const hp4 = s.ycHp; let clashSeen = false, shot4 = false;
   const t2 = Date.now();
-  while (Date.now() - t2 < 40000) { const g = await page.evaluate(() => window.game.battle.gimmick?.snapshot?.game || null); if (!g || g.kind !== 'ball' || g.phase !== 'game') break; await god();
+  while (Date.now() - t2 < 56000) { const g = await page.evaluate(() => window.game.battle.gimmick?.snapshot?.game || null); if (!g || g.kind !== 'ball' || g.phase !== 'game') break; await god();
     if (g.clash) clashSeen = true;
-    if (!g.yc.dashing && !g.yc.tele && !g.clash) { await page.evaluate(({ x, y }) => { const q = window.__ballP; }, {}); await page.evaluate(({ x, y }) => { const b = window.game.battle; b.soul.x = x; b.soul.y = y; }, { x: g.yc.x, y: g.yc.y }); await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(60); await page.keyboard.up('ArrowLeft'); await page.keyboard.press('KeyC'); if (!shot4) { shot4 = true; await page.waitForTimeout(150); await cap('16_ball_duel'); } }
-    await page.waitForTimeout(90); }
+    const dx = g.yc.x - g.ball.x, dy = g.yc.y - g.ball.y, dist = Math.hypot(dx, dy), keys = [];
+    if (dx < -8) keys.push('ArrowLeft'); else if (dx > 8) keys.push('ArrowRight');
+    if (dy < -8) keys.push('ArrowUp'); else if (dy > 8) keys.push('ArrowDown');
+    for (const k of keys) await page.keyboard.down(k);
+    await page.waitForTimeout(45);
+    for (const k of keys) await page.keyboard.up(k);
+    if (!g.yc.dashing && !g.clash && !g.ball.dashing && dist < 92) { await page.keyboard.press('KeyC'); if (!shot4) { shot4 = true; await page.waitForTimeout(150); await cap('16_ball_duel'); } }
+    await page.waitForTimeout(35); }
   const fin = await waitFor(() => ['finish', 'done'].includes(window.game.battle.gimmick?.snapshot?.game?.phase) || window.game.battle.gimmick?.snapshot?.phase !== 'game', 8000); s = await st(); await cap('17_ball_end');
   const ballHits = s.gimmick?.game?.hits ?? (await page.evaluate(() => window.__lastBallHits || 0));
-  check(fin && (s.ycHp <= hp4 - 10 || ballHits >= 5), `팽이 배틀: 무방비일 때 맞혀 5히트 → 10 피해(hp ${hp4}→${s.ycHp}, hits ${ballHits})`);
+  check(fin && (s.ycHp <= hp4 - 10 || ballHits >= 10), `팽이 배틀: 무방비일 때 맞혀 10히트 → 10 피해(hp ${hp4}→${s.ycHp}, hits ${ballHits})`);
   const order = await page.evaluate(() => window.game.battle.support.specialIdx);
   check(order === 4, '특별 4종이 일반 턴과 번갈아 한 번씩 나왔다 ' + order);
   check(errors.length === 0, '페이지 오류 없음 ' + JSON.stringify(errors.slice(0, 3)));

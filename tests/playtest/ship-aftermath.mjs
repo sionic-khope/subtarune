@@ -93,7 +93,10 @@ try {
   check(blast && tenna && s.yc.v && s.smoke?.veil >= 0.3 && s.smoke.aura === 'ship_youngcle', '쿠와아앙 → 흰 화면 → TV 머리 영클(youngcle_tvform, 팔 풍차 루프)·보라 음영·오라 유지 ' + JSON.stringify([blast, tenna, s.yc, s.smoke]));
   s = await untilText('너희를 족치고'); await cap('15_tenna_line');
   check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_taunt' && s.bgm.includes('captain_mankatsuki'), '변신 뒤 “너희를 족치고 난 집에가겠음” + I\'m Very Bad ' + JSON.stringify([s?.speaker, s?.bgm]));
-  s = await untilText('느금마'); check(s && s.speaker === '억빠맨', '억빠맨 “느금마”'); await advance();
+  s = await untilText('느금마'); check(s && s.speaker === '억빠맨', '억빠맨 “느금마”');
+  // 2차전 진입 대사 6줄(BUILD218 사용자 원문): 억빠맨 → 영클 → 경섭 → 억빠맨 → 쥰희 → 영클
+  for (const [key, who] of [['징그럽다', '억빠맨'], ['힘좀 써야할거임', '영클'], ['저거먼저', '경섭'], ['기억안나냐', '억빠맨'], ['안남', '쥰희'], ['육체까지', '영클']]) { s = await untilText(key); check(s && s.speaker === who, `2차전 진입 대사 ${who} “${key}”`); }
+  await advance();
   // ⑦ 전투 시작 연출(battle_start·소용돌이·줌·검게) → 변신 영클 전투(BUILD214, 내용은 tvform-battle.mjs) — 여기선 전투가 뜨면 바로 끝내고 대치 상태·플래그만 본다
   const started = await waitFor(() => window.__sfx.includes('battle_start'), 5000);
   await page.waitForTimeout(700); await cap('16_battle_start');

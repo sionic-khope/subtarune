@@ -1,21 +1,46 @@
-// 특별 패턴 1 — 섭리오를 전투로 재구성(BUILD216 사용자 브리핑): TV 화면 속 정사각 맵(480×352, 발판 2단), 요플래(판테온 창)만 조작. 도트 영클(gpt subrio_youngcle.png)이 오른쪽에서 천천히 걸어와
-//   왼쪽으로 레이저를 천천히 쏜다(바닥·발판 1단·2단 높이 중 하나, 예고 0.6초 → 0.5초 빔). 약 12초 뒤 과부하(불꽃·지지직)로 쓰러지면 7초 동안 때릴 수 있다(창·밟기, 5대마다 1 피해·최대 10, ‘공격해라!’ 화살표).
-//   다시 일어나면 끝(지지직 복귀는 tvform-special.js). 규칙은 scenes/subrio-core.js(순수)를 그대로 쓴다.
-import { TILE, SOLID, ATLAS_COLUMN, makeActor, stepActor, updateSpears, frameOf, rectsOverlap, hurtActor, SPEAR } from '../../scenes/subrio-core.js';
-const HERO_CELL = 64, HERO_FEET = 60, YC_CELL = 64, YC_FEET = 60, OX = 0, OY = 4;
+// 특별 패턴 1 — 섭리오를 전투로 재구성(BUILD216 사용자 브리핑 + 2026-09-18 보정). TV 화면 속 정사각 맵(480×352, 발판 2단).
+//   원작 섭리오(scenes/subrio.js)처럼 요플래(판테온)·경섭(질리언)·억빠맨(브랜드) 셋이 0.55초 간격으로 하늘에서 떨어지고,
+//   대장이 착지한 뒤 1.9초를 기다렸다가 조작이 열린다. 조작은 요플래만, 나머지 둘은 followerIntent 로 늦게 따라온다.
+//   도트 영클(subrio_youngcle.png — 시트가 이미 왼쪽을 본다. scale(-1,1) 로 뒤집으면 등지고 쏜다)은 걸어 들어오지 않고
+//   오른쪽 하늘에서 쿵 떨어진다(착지 소리 + 화면 흔들림). 1.9배로 그려 원작 1-4 보스(104px) 급 덩치가 된다.
+//   레이저: 점선 예고 → 영클 손끝의 총구 섬광과 함께 0.12초 동안 왼쪽 벽까지 뻗어 나간다 → 유지 → 페이드. 닿으면 15 피해.
+//   12초 뒤 과부하(불꽃) → 7초 동안 쓰러짐('공격해라!'): 요플래의 창·밟기와 억빠맨의 불·경섭의 시계가 같은 카운터로 쌓여 5대마다 1 피해(최대 10).
+//   규칙(이동·점프·창·추종·불·시계)은 전부 scenes/subrio-core.js(순수) 를 그대로 쓴다.
+import { TILE, SOLID, ATLAS_COLUMN, makeActor, stepActor, updateSpears, updateProjectiles, frameOf, rectsOverlap, hurtActor,
+  followerIntent, brandThink, zileanThink, NO_INTENT, SPEAR, FIRE, CLOCK } from '../../scenes/subrio-core.js';
+
+const CELL = 64, FEET = 60, OX = 0, OY = 4;
 const SKY = ['#0c0416', '#2a1048', '#120620', '#05020a'];
+// 원작 직업 배정(scenes/subrio.js PLAYERS): 요플래=판테온(창), 경섭=질리언(시계), 억빠맨=브랜드(불). 떨어지는 순서도 이 순서다
+const PARTY = [
+  { id: 'hyungsub', classId: 'pantheon', sheet: 'assets/sprites/subrio_pantheon.png', color: '#d9a441' },
+  { id: 'gyeongsub', classId: 'zilean', sheet: 'assets/sprites/subrio_zilean.png', color: '#ffd166' },
+  { id: 'ppaman', classId: 'brand', sheet: 'assets/sprites/subrio_brand.png', color: '#ff7a3d' },
+];
 const loadImg = (src) => new Promise(r => { if (typeof Image === 'undefined') return r(null); const im = new Image(); im.onload = () => r(im); im.onerror = () => r(null); im.src = src; });
 
 export function createSubrioGame(battle, yc, K) {
   const rows = K.rows, cols = rows[0].length;
   const level = { cols, rows: rows.length, tiles: rows, width: cols * TILE, height: rows.length * TILE, goal: null, spawnX: K.heroSpawn, enemies: [], springs: [], arena: null,
     solidAt: (tx, ty) => (ty < 0 || ty >= rows.length || tx < 0 || tx >= cols) ? false : SOLID.has(rows[ty][tx]) };
-  const groundY = rows.findIndex(r => /^#=+#$/.test(r)) * TILE;   // 바닥(벽 사이가 전부 '=' 인 첫 줄)
-  const hero = makeActor('hyungsub', K.heroSpawn, groundY, 1); hero.classId = 'pantheon';
-  const imgs = { hero: null, yc: null, tiles: null, spear: null }; let baked = null;
-  loadImg('assets/sprites/subrio_pantheon.png').then(i => { imgs.hero = i; }); loadImg('assets/sprites/subrio_youngcle.png').then(i => { imgs.yc = i; });
-  loadImg('assets/props/subrio_tiles.png').then(i => { imgs.tiles = i; baked = null; }); loadImg('assets/props/subrio_spear.png').then(i => { imgs.spear = i; });
-  let t = 0, phase = 'walkin', pt = 0, spears = [], lasers = [], nextLaser = K.lasers.first, hits = 0, damageDealt = 0, hitCool = 0, disposed = false, sparks = [], ycX = K.ycEnterFrom, ycFrame = 0, flash = 0;
+  // 바닥(벽 사이가 전부 '=' 인 첫 줄)
+  const groundY = rows.findIndex(r => /^#=+#$/.test(r)) * TILE;
+  const SC = K.yc.scale, ycX = K.ycStand, originX = ycX - K.yc.muzzleDx;
+  const actors = PARTY.map((p, i) => {
+    const a = makeActor(p.id, K.heroSpawn + i * K.drop.spacing, K.drop.from, 1);
+    a.classId = p.classId; a.delay = i * K.drop.delay; a.active = false; a.dropped = false; a.blockedT = 0;
+    return a;
+  });
+  const hero = actors[0];
+  const imgs = { yc: null, tiles: null, spear: null, sheets: {} };
+  let baked = null;
+  for (const p of PARTY) loadImg(p.sheet).then(i => { imgs.sheets[p.classId] = i; });
+  loadImg('assets/sprites/subrio_youngcle.png').then(i => { imgs.yc = i; });
+  loadImg('assets/props/subrio_tiles.png').then(i => { imgs.tiles = i; baked = null; });
+  loadImg('assets/props/subrio_spear.png').then(i => { imgs.spear = i; });
+  let t = 0, phase = 'drop', pt = 0, spears = [], fires = [], clocks = [], lasers = [], nextLaser = K.lasers.first;
+  let hits = 0, damageDealt = 0, hitCool = 0, disposed = false, sparks = [], ycFrame = 0, flash = 0;
+  let trail = [], leaderLandT = 0, ycY = K.ycDrop.from, ycVy = 0, ycDropped = false, ycLandT = 0;
   const setPhase = (p) => { phase = p; pt = 0; };
   const bake = () => {
     const c = document.createElement('canvas'); c.width = level.width; c.height = level.height; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -23,80 +48,227 @@ export function createSubrioGame(battle, yc, K) {
       if (imgs.tiles) g.drawImage(imgs.tiles, col * TILE, 0, TILE, TILE, x * TILE, r * TILE, TILE, TILE); else { g.fillStyle = ch === '#' ? '#3e1c6e' : '#6030a0'; g.fillRect(x * TILE, r * TILE, TILE, TILE); } }
     baked = c;
   };
-  const downRect = () => ({ x: ycX - 34, y: groundY - 26, w: 68, h: 26 });
+  // 쓰러진 영클의 몸통(시트 4번 프레임 내용 범위를 배율만큼 키운 것)
+  const downRect = () => ({ x: ycX - K.yc.bodyDx * SC, y: ycY - K.yc.bodyDy * SC, w: K.yc.bodyDx * 2 * SC, h: K.yc.bodyDy * SC });
   const hitOnce = () => {
     hits++; hitCool = K.down.hitCooldown; flash = 0.08; battle.sfx(K.hitSfx, { volume: 0.5 });
     if (hits % K.down.hitsPerDamage === 0 && damageDealt < K.down.maxDamage) { damageDealt++; battle.hitEnemy(yc, null, 1, { source: 'special', sound: true }); }
   };
+  // 레이저가 지금 뻗어 있는 구간(총구 → 왼쪽). fire 초 동안 왼쪽으로 자라고 그 뒤로는 벽까지 유지된다
+  const beamRect = (l) => {
+    const k = Math.min(1, (l.age - K.lasers.warn) / K.lasers.fire), x1 = originX - (originX - TILE) * k;
+    return { x: x1, y: l.y - K.lasers.thick / 2, w: originX - x1, h: K.lasers.thick };
+  };
+  const puff = (x, y, n, color) => { for (let i = 0; i < n; i++) sparks.push({ x: x + (battle.rnd() - 0.5) * 70, y: y - battle.rnd() * 14, vy: -30 - battle.rnd() * 70, life: 0.35 + battle.rnd() * 0.3, color }); };
   return {
-    get snapshot() { return { kind: 'subrio', phase, t: Math.round(t * 100) / 100, hits, damageDealt, hero: { x: Math.round(hero.x), y: Math.round(hero.y), grounded: hero.grounded, invuln: hero.invuln > 0 }, yc: { x: Math.round(ycX), frame: ycFrame }, lasers: lasers.map(l => ({ y: Math.round(l.y), fired: l.fired })), spears: spears.length, down: downRect() }; },
+    get snapshot() {
+      return { kind: 'subrio', phase, t: Math.round(t * 100) / 100, hits, damageDealt,
+        hero: { x: Math.round(hero.x), y: Math.round(hero.y), grounded: hero.grounded, invuln: hero.invuln > 0 },
+        party: actors.map(a => ({ id: a.id, x: Math.round(a.x), y: Math.round(a.y), dropped: !!a.dropped })),
+        yc: { x: Math.round(ycX), y: Math.round(ycY), frame: ycFrame }, ycDropped,
+        lasers: lasers.map(l => ({ y: Math.round(l.y), fired: l.fired, x1: Math.round(l.fired ? beamRect(l).x : originX), x2: Math.round(originX) })),
+        spears: spears.length, fires: fires.length, clocks: clocks.length, down: downRect() };
+    },
     update(dt, input) {
       if (disposed) return true;
       t += dt; pt += dt; if (flash > 0) flash -= dt; hitCool = Math.max(0, hitCool - dt);
-      const intent = { left: input.down('left'), right: input.down('right'), jump: input.just('up'), jumpHeld: input.down('up'), crouch: input.down('down'), attack: input.just('confirm'), attackHeld: input.down('confirm'), guard: input.down('cancel') };
-      const events = []; stepActor(level, hero, intent, dt, events);
-      for (const e of events) {
-        if (e.type === 'attack') { spears.push({ x: e.x, y: e.y, vx: e.facing * (e.charged ? SPEAR.chargedSpeed : SPEAR.speed), life: e.charged ? SPEAR.chargedLife : SPEAR.life, facing: e.facing, charged: e.charged }); battle.sfx('weaponpull', { volume: 0.35 }); }
-        else if (e.type === 'jump') battle.sfx('jump', { volume: 0.45 });
+      // 낙하 중에는 아무도 조작하지 않는다(원작: 대장 착지 + dropWait 뒤에 control 이 열린다)
+      const control = phase !== 'drop';
+      const events = [];
+      for (const [i, a] of actors.entries()) {
+        if (!a.active) { if (t >= a.delay) a.active = true; else continue; }
+        let intent = NO_INTENT;
+        if (i === 0) {
+          if (control) intent = { left: input.down('left'), right: input.down('right'), jump: input.just('up'), jumpHeld: input.down('up'), crouch: input.down('down'), attack: input.just('confirm'), attackHeld: input.down('confirm'), guard: input.down('cancel') };
+        } else if (control) {
+          intent = followerIntent(a, trail, t, { reaction: K.follow.reaction * i + K.follow.base, spacing: K.follow.spacing * i, level });
+          // 목표가 벽 너머면(대장이 왼쪽 끝에 서 있으면 뒷사람 자리는 벽 안쪽이다) 밀지 않는다 — 막힌 채 계속 뛰어오르던 문제
+          const wall = (intent.left && a.x <= TILE + 4) || (intent.right && a.x + a.w >= level.width - TILE - 4);
+          if (wall) { intent.left = false; intent.right = false; intent.jump = false; intent.jumpHeld = !a.grounded && a.vy < 0; }
+          const wants = intent.left || intent.right;
+          a.blockedT = wants && a.grounded && Math.abs(a.vx) < 6 ? (a.blockedT || 0) + dt : 0;
+        }
+        const before = events.length;
+        stepActor(level, a, intent, dt, events);
+        if (i === 0) trail.push({ t, x: a.x, y: a.y, facing: a.facing, jumped: events.slice(before).some(e => e.type === 'jump') });
       }
-      if (phase === 'down') hero.cooldown = Math.min(hero.cooldown, K.down.hitCooldown);   // 쓰러진 동안은 연타
+      if (trail.length > 400) trail.splice(0, trail.length - 400);
+      // 쓰러진 동안은 연타가 먹히게 창 쿨을 줄인다
+      if (phase === 'down') hero.cooldown = Math.min(hero.cooldown, K.down.hitCooldown);
+      // 동료 공격은 영클이 쓰러져 있을 때만(레이저 단계의 영클은 무적이라 때릴 것이 없다)
+      if (phase === 'down') {
+        const targets = [{ ...downRect(), vx: 0, dead: false }];
+        const brand = actors.find(a => a.classId === 'brand'), zil = actors.find(a => a.classId === 'zilean');
+        if (brand && brand.active) brandThink(brand, targets, dt, events);
+        if (zil && zil.active) zileanThink(zil, targets, dt, events);
+      }
+      for (const e of events) {
+        if (e.type === 'land') { const a = actors.find(x => x.id === e.id); if (a && !a.dropped) { a.dropped = true; if (a === hero) leaderLandT = t; battle.sfx(K.drop.sfx, { volume: 0.7 }); } }
+        else if (e.type === 'attack' && e.id === hero.id) { spears.push({ x: e.x, y: e.y, vx: e.facing * (e.charged ? SPEAR.chargedSpeed : SPEAR.speed), life: e.charged ? SPEAR.chargedLife : SPEAR.life, facing: e.facing, charged: e.charged }); battle.sfx('weaponpull', { volume: 0.35 }); }
+        else if (e.type === 'jump' && e.id === hero.id) battle.sfx('jump', { volume: 0.45 });
+        else if (e.type === 'fire') { fires.push({ x: e.x, y: e.y, vx: e.vx, life: FIRE.life, facing: e.facing, t: 0 }); battle.sfx(K.mateSfx.fire, { volume: 0.55 }); }
+        else if (e.type === 'clock') { clocks.push({ x: e.x, y: e.y, vx: e.vx, vy: e.vy, life: 2.2, t: 0 }); if (e.index === 0) battle.sfx(K.mateSfx.clock, { volume: 0.5 }); }
+      }
       spears = updateSpears(level, spears, dt);
-      if (phase === 'walkin') { ycX = K.ycEnterFrom + (K.ycStand - K.ycEnterFrom) * Math.min(1, pt / K.walkIn); ycFrame = Math.floor(pt * 6) % 2; if (pt >= K.walkIn) setPhase('lasers'); }
+      fires = updateProjectiles(level, fires, dt, FIRE.w, FIRE.h);
+      clocks = updateProjectiles(level, clocks, dt, CLOCK.w, CLOCK.h, CLOCK.gravity);
+      for (const p of fires) p.t += dt;
+      for (const p of clocks) p.t += dt;
+      if (phase === 'drop') {
+        ycFrame = 1;
+        if (hero.dropped && actors.every(a => a.dropped) && t >= leaderLandT + K.drop.wait) setPhase('ycdrop');
+      }
+      else if (phase === 'ycdrop') {
+        // 맵을 뚫고 밖에서 들어오는 기분: 오른쪽 하늘에서 그대로 떨어져 쿵
+        if (!ycDropped) {
+          ycVy += K.ycDrop.gravity * dt; ycY += ycVy * dt; ycFrame = 1;
+          if (ycY >= groundY) {
+            ycY = groundY; ycVy = 0; ycDropped = true; ycLandT = t; ycFrame = 0;
+            battle.sfx(K.ycDrop.sfx, { volume: 0.9 }); battle.game.shake = { time: K.ycDrop.shake.time, amp: K.ycDrop.shake.amp };
+            puff(ycX, groundY, 16, '#cdbde8');
+          }
+        } else if (t >= ycLandT + K.ycDrop.wait) { setPhase('lasers'); nextLaser = K.lasers.first; }
+      }
       else if (phase === 'lasers') {
-        if (t >= nextLaser && t < K.lasers.until) { nextLaser += K.lasers.every; const h = K.lasers.heights[Math.floor(battle.rnd() * K.lasers.heights.length)]; lasers.push({ y: groundY - h, age: 0, fired: false }); battle.sfx(K.laserSfx.warn, { volume: 0.5 }); }
-        for (const l of lasers) { l.age += dt; if (!l.fired && l.age >= K.lasers.warn) { l.fired = true; battle.sfx(K.laserSfx.fire, { volume: 0.8 }); } }
+        if (pt >= nextLaser && pt < K.lasers.until) { nextLaser += K.lasers.every; const h = K.lasers.heights[Math.floor(battle.rnd() * K.lasers.heights.length)]; lasers.push({ y: groundY - h, age: 0, fired: false }); battle.sfx(K.laserSfx.warn, { volume: 0.5 }); }
+        for (const l of lasers) { l.age += dt; if (!l.fired && l.age >= K.lasers.warn) { l.fired = true; battle.sfx(K.laserSfx.fire, { volume: 0.8 }); puff(originX, l.y + 8, 4, '#ffb3b3'); } }
         ycFrame = lasers.some(l => l.age >= K.lasers.warn - 0.15 && l.age < K.lasers.warn + K.lasers.beam) ? 2 : 0;
-        for (const l of lasers) if (l.fired && l.age < K.lasers.warn + K.lasers.beam && hero.invuln <= 0) {
-          const beam = { x: TILE, y: l.y - K.lasers.thick / 2, w: ycX - 24 - TILE, h: K.lasers.thick };
-          if (rectsOverlap({ x: hero.x, y: hero.y, w: hero.w, h: hero.h }, beam)) { hurtActor(hero, ycX, []); battle.hurtParty(K.lasers.damage); }
+        for (const l of lasers) if (l.fired && l.age < K.lasers.warn + K.lasers.beam) {
+          const beam = beamRect(l);
+          for (const a of actors) {
+            if (!a.active || a.invuln > 0) continue;
+            if (!rectsOverlap({ x: a.x, y: a.y, w: a.w, h: a.h }, beam)) continue;
+            hurtActor(a, ycX, []);
+            // 파티 피해는 조작하는 요플래가 맞았을 때만(동료는 원작처럼 튕겨나기만 한다)
+            if (a === hero) battle.hurtParty(K.lasers.damage);
+          }
         }
         lasers = lasers.filter(l => l.age < K.lasers.warn + K.lasers.beam);
-        if (t >= K.overload.at) { setPhase('overload'); ycFrame = 3; battle.sfx(K.overloadSfx); battle.game.shake = { time: 0.3, amp: 3 }; }
+        if (pt >= K.overload.at) { setPhase('overload'); ycFrame = 3; battle.sfx(K.overloadSfx); battle.game.shake = { time: 0.3, amp: 3 }; }
       }
-      else if (phase === 'overload') { ycFrame = 3; if (battle.rnd() < 0.6) sparks.push({ x: ycX + (battle.rnd() - 0.5) * 50, y: groundY - 56 + battle.rnd() * 40, vy: -40 - battle.rnd() * 60, life: 0.4 }); if (pt >= K.overload.sparks) { setPhase('down'); ycFrame = 4; battle.sfx(K.downSfx); battle.game.shake = { time: 0.35, amp: 5 }; } }
+      else if (phase === 'overload') {
+        ycFrame = 3;
+        if (battle.rnd() < 0.6) sparks.push({ x: ycX + (battle.rnd() - 0.5) * 50 * SC, y: groundY - 56 * SC + battle.rnd() * 40 * SC, vy: -40 - battle.rnd() * 60, life: 0.4, color: null });
+        if (pt >= K.overload.sparks) { setPhase('down'); ycFrame = 4; battle.sfx(K.downSfx); battle.game.shake = { time: 0.35, amp: 5 }; puff(ycX, groundY, 10, '#cdbde8'); }
+      }
       else if (phase === 'down') {
-        ycFrame = 4; const body = downRect();
+        ycFrame = 4;
+        const body = downRect();
         for (const sp of spears) if (!sp.dead && rectsOverlap({ x: sp.x, y: sp.y, w: SPEAR.w, h: SPEAR.h }, body)) { sp.dead = true; hitOnce(); }
-        spears = spears.filter(sp => !sp.dead);
+        for (const f of fires) if (!f.dead && rectsOverlap({ x: f.x, y: f.y, w: FIRE.w, h: FIRE.h }, body)) { f.dead = true; hitOnce(); }
+        for (const c of clocks) if (!c.dead && rectsOverlap({ x: c.x, y: c.y, w: CLOCK.w, h: CLOCK.h }, body)) { c.dead = true; hitOnce(); }
+        spears = spears.filter(sp => !sp.dead); fires = fires.filter(f => !f.dead); clocks = clocks.filter(c => !c.dead);
         if (hero.vy > 0 && hitCool <= 0 && rectsOverlap({ x: hero.x, y: hero.y + hero.h - 6, w: hero.w, h: 10 }, body)) { hero.vy = -300; hitOnce(); }
         if (pt >= K.down.seconds) { setPhase('getup'); ycFrame = 5; battle.sfx(K.getupSfx, { volume: 0.7 }); }
       }
       else if (phase === 'getup') { ycFrame = 5; if (pt >= K.getup) setPhase('done'); }
-      for (const s of sparks) { s.y += s.vy * dt; s.life -= dt; } sparks = sparks.filter(s => s.life > 0);
+      for (const s of sparks) { s.y += s.vy * dt; s.life -= dt; }
+      sparks = sparks.filter(s => s.life > 0);
       return phase === 'done';
     },
     draw(ctx) {
       ctx.save(); ctx.imageSmoothingEnabled = false;
       const g = ctx.createLinearGradient(0, 0, 0, 360); g.addColorStop(0, SKY[0]); g.addColorStop(0.3, SKY[1]); g.addColorStop(0.55, SKY[2]); g.addColorStop(1, SKY[3]); ctx.fillStyle = g; ctx.fillRect(0, 0, 480, 360);
       for (let x = 0; x < 480; x += 6) { const h = 14 + 9 * Math.sin(x * 0.05 + t * 2.1) * Math.sin(x * 0.013 - t * 0.7) + 5 * Math.sin(x * 0.21 + t * 5.3); ctx.fillStyle = 'rgba(98,44,170,0.45)'; ctx.fillRect(x, Math.round(150 - h), 6, Math.round(h) + 20); }
-      if (!baked) bake(); ctx.drawImage(baked, OX, OY);
-      // 레이저: 예고(깜빡이는 점선) → 빔(빨간 띠 + 흰 심)
-      for (const l of lasers) { const y = Math.round(l.y) + OY, x1 = Math.round(ycX - 24) + OX;
-        if (!l.fired) { if (Math.floor(l.age * 12) % 2 === 0) { ctx.strokeStyle = 'rgba(255,90,90,0.9)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(TILE + OX, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([]); } }
-        else { const k = 1 - (l.age - K.lasers.warn) / K.lasers.beam; ctx.fillStyle = 'rgba(255,60,60,0.35)'; ctx.fillRect(TILE + OX, y - K.lasers.thick / 2 - 6, x1 - TILE, K.lasers.thick + 12); ctx.fillStyle = `rgba(255,60,60,${0.5 + 0.45 * k})`; ctx.fillRect(TILE + OX, y - K.lasers.thick / 2, x1 - TILE, K.lasers.thick); ctx.fillStyle = '#fff'; ctx.fillRect(TILE + OX, y - 2, x1 - TILE, 4); } }
-      // 도트 영클(시트는 오른쪽을 본다 → 왼쪽을 보게 뒤집는다)
-      const feet = groundY + OY, cx = Math.round(ycX) + OX;
-      if (imgs.yc) { ctx.save(); ctx.translate(cx, feet); ctx.scale(-1, 1); if (phase === 'overload' && Math.floor(t * 20) % 2) ctx.translate(2, 0); ctx.drawImage(imgs.yc, (ycFrame % 3) * YC_CELL, Math.floor(ycFrame / 3) * YC_CELL, YC_CELL, YC_CELL, -YC_CELL / 2, -YC_FEET, YC_CELL, YC_CELL); ctx.restore(); }
-      else { ctx.fillStyle = '#9ad'; ctx.fillRect(cx - 16, feet - 56, 32, 56); }
-      for (const s of sparks) { ctx.fillStyle = s.life > 0.2 ? '#ffe066' : '#fff'; ctx.fillRect(Math.round(s.x) + OX, Math.round(s.y) + OY, 3, 3); }
-      if (phase === 'down') {                                   // ‘공격해라!’ 화살표(위아래로 튐) + 남은 시간
-        const ay = feet - 60 - Math.abs(Math.sin(t * 6)) * 8; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(cx - 10, ay - 14); ctx.lineTo(cx + 10, ay - 14); ctx.lineTo(cx, ay); ctx.closePath(); ctx.fill();
-        ctx.font = '14px "Galmuri11", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(K.down.arrowText, cx, ay - 34); ctx.fillStyle = '#fff'; ctx.fillText(`${Math.max(0, Math.ceil(K.down.seconds - pt))}`, cx, ay - 52); ctx.textAlign = 'left';
+      if (!baked) bake();
+      ctx.drawImage(baked, OX, OY);
+      // 레이저 예고: 깜빡이는 점선(총구에서 왼쪽 벽까지)
+      for (const l of lasers) {
+        if (l.fired) continue;
+        if (Math.floor(l.age * 12) % 2) continue;
+        const y = Math.round(l.y) + OY;
+        ctx.strokeStyle = 'rgba(255,90,90,0.9)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+        ctx.beginPath(); ctx.moveTo(TILE + OX, y); ctx.lineTo(originX + OX, y); ctx.stroke(); ctx.setLineDash([]);
+      }
+      const feet = Math.round(ycY) + OY, cx = Math.round(ycX) + OX;
+      // 도트 영클: 시트가 왼쪽을 보고 그려져 있다 — 그대로 그려야 파티 쪽(왼쪽)을 향한다
+      if (imgs.yc) {
+        const cut = ycFrame === 2 ? K.yc.flashCut : 0;
+        ctx.save(); ctx.translate(cx, feet); ctx.scale(SC, SC);
+        if (phase === 'overload' && Math.floor(t * 20) % 2) ctx.translate(2, 0);
+        ctx.drawImage(imgs.yc, (ycFrame % 3) * CELL + cut, Math.floor(ycFrame / 3) * CELL, CELL - cut, CELL, -CELL / 2 + cut, -FEET, CELL - cut, CELL);
+        ctx.restore();
+      } else { ctx.fillStyle = '#9ad'; ctx.fillRect(cx - 16 * SC, feet - 50 * SC, 32 * SC, 50 * SC); }
+      // 발사된 레이저: 총구 섬광 + 왼쪽으로 뻗어 나가는 빔(끝머리가 밝다) → 유지 → 페이드
+      for (const l of lasers) {
+        if (!l.fired) continue;
+        const life = l.age - K.lasers.warn, total = K.lasers.beam, y = Math.round(l.y) + OY;
+        const fade = life > total - 0.15 ? Math.max(0, (total - life) / 0.15) : 1;
+        const b = beamRect(l), x1 = Math.round(b.x) + OX, x2 = Math.round(originX) + OX, half = K.lasers.thick / 2;
+        ctx.save(); ctx.globalAlpha = fade;
+        ctx.fillStyle = 'rgba(255,60,60,0.3)'; ctx.fillRect(x1, y - half - 6, x2 - x1, K.lasers.thick + 12);
+        ctx.fillStyle = 'rgba(255,70,70,0.9)'; ctx.fillRect(x1, y - half, x2 - x1, K.lasers.thick);
+        ctx.fillStyle = '#fff'; ctx.fillRect(x1, y - 2, x2 - x1, 4);
+        // 뻗어 나가는 동안은 앞머리가 굵고 하얗다
+        if (life < K.lasers.fire) { ctx.fillStyle = '#fff'; ctx.fillRect(x1 - 3, y - half - 4, 8, K.lasers.thick + 8); }
+        if (life < K.lasers.fire + 0.12) {
+          const a2 = Math.max(0, 1 - life / (K.lasers.fire + 0.12));
+          const fx = Math.round(ycX + (K.yc.fistX - CELL / 2) * SC) + OX, fy = Math.round(ycY + (K.yc.fistY - FEET) * SC) + OY;
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = `rgba(255,80,80,${(0.75 * a2).toFixed(3)})`; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(x2, y); ctx.stroke();
+          ctx.strokeStyle = `rgba(255,255,255,${(0.9 * a2).toFixed(3)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(x2, y); ctx.stroke();
+          ctx.lineCap = 'butt';
+        }
+        const burst = Math.max(0, 1 - life / 0.22);
+        if (burst > 0) {
+          const r = 8 + 16 * burst;
+          ctx.fillStyle = `rgba(255,120,120,${(0.55 * burst).toFixed(3)})`; ctx.beginPath(); ctx.arc(x2, y, r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x2, y, r * 0.42, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = `rgba(255,255,255,${(0.9 * burst).toFixed(3)})`; ctx.fillRect(x2 - r, y - 2, r * 2, 4); ctx.fillRect(x2 - 2, y - r, 4, r * 2);
+        }
+        ctx.restore();
+      }
+      for (const s of sparks) { ctx.fillStyle = s.color || (s.life > 0.2 ? '#ffe066' : '#fff'); ctx.fillRect(Math.round(s.x) + OX, Math.round(s.y) + OY, 3, 3); }
+      // ‘공격해라!’ 화살표(위아래로 튐) + 남은 시간
+      if (phase === 'down') {
+        const ay = feet - K.yc.bodyDy * SC - 22 - Math.abs(Math.sin(t * 6)) * 8;
+        ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(cx - 10, ay - 14); ctx.lineTo(cx + 10, ay - 14); ctx.lineTo(cx, ay); ctx.closePath(); ctx.fill();
+        ctx.font = '14px "Galmuri11", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(K.down.arrowText, cx, ay - 34); ctx.fillStyle = '#fff'; ctx.fillText(`${Math.max(0, Math.ceil(K.down.seconds - pt))}`, cx, ay - 52); ctx.textAlign = 'left';
       }
       // 창
-      for (const sp of spears) { const sx = Math.round(sp.x) + OX, sy = Math.round(sp.y) + OY; if (imgs.spear) { ctx.save(); ctx.translate(sx + 12, sy + 3); if (sp.facing < 0) ctx.scale(-1, 1); ctx.drawImage(imgs.spear, -12, -3); ctx.restore(); } else { ctx.fillStyle = '#e6d28c'; ctx.fillRect(sx, sy + 2, 20, 2); } }
-      // 요플래(판테온)
-      const frame = frameOf(hero), hx = Math.round(hero.x + hero.w / 2) + OX, hf = Math.round(hero.y + hero.h) + OY;
-      if (!(hero.invuln > 0 && hero.hurtT <= 0 && Math.floor(t * 14) % 2 === 1)) {
-        if (imgs.hero) { ctx.save(); ctx.translate(hx, hf); if (hero.facing < 0) ctx.scale(-1, 1); ctx.drawImage(imgs.hero, (frame % 2) * HERO_CELL, Math.floor(frame / 2) * HERO_CELL, HERO_CELL, HERO_CELL, -HERO_CELL / 2, -HERO_FEET, HERO_CELL, HERO_CELL); ctx.restore(); }
-        else { ctx.fillStyle = '#d9a441'; ctx.fillRect(hx - 6, hf - hero.h, 12, hero.h); }
+      for (const sp of spears) { const sx = Math.round(sp.x) + OX, sy = Math.round(sp.y) + OY;
+        if (imgs.spear) { ctx.save(); ctx.translate(sx + 12, sy + 3); if (sp.facing < 0) ctx.scale(-1, 1); ctx.drawImage(imgs.spear, -12, -3); ctx.restore(); }
+        else { ctx.fillStyle = '#e6d28c'; ctx.fillRect(sx, sy + 2, 20, 2); } }
+      // 억빠맨의 불덩이(앞이 둥글고 뒤로 타는 꼬리) — 원작 subrio.js 와 같은 모양
+      for (const f of fires) {
+        const fx = Math.round(f.x) + OX + 6, fy = Math.round(f.y) + OY + 6, flick = Math.floor(f.t * 24) % 3, d = f.facing;
+        ctx.fillStyle = '#c8321a'; ctx.beginPath(); ctx.ellipse(fx - d * 8, fy, 12, 5 + flick, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff5a1e'; ctx.beginPath(); ctx.ellipse(fx - d * 4, fy, 10, 6, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffa030'; ctx.beginPath(); ctx.arc(fx + d, fy, 5 + (flick === 1 ? 1 : 0), 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffe66a'; ctx.beginPath(); ctx.arc(fx + d * 2, fy - 1 + (flick === 2 ? 1 : 0), 3, 0, Math.PI * 2); ctx.fill();
       }
-      // 명중·피해 표시(오른쪽 위)
+      // 경섭의 시계(포물선)
+      for (const c of clocks) {
+        const kx = Math.round(c.x) + OX + 6, ky = Math.round(c.y) + OY + 6, spin = c.t * 9;
+        ctx.fillStyle = '#5a3a08'; ctx.beginPath(); ctx.arc(kx, ky, 6.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(kx, ky, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(kx, ky, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3a2404'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(kx, ky); ctx.lineTo(kx + Math.cos(spin) * 3, ky + Math.sin(spin) * 3); ctx.stroke();
+      }
+      // 동료 먼저, 요플래를 맨 앞에
+      for (let i = actors.length - 1; i >= 0; i--) drawActor(ctx, actors[i]);
       ctx.font = '14px "Galmuri11", sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillStyle = '#ffe066';
       if (phase === 'down' || phase === 'getup') ctx.fillText(`${hits}타 · 피해 ${damageDealt}/${K.down.maxDamage}`, 468, 8);
       ctx.fillStyle = '#c9c9d9'; ctx.textAlign = 'left'; ctx.fillText('←→ 이동 · ↑ 점프 · C 창', 12, 8);
       if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash * 4})`; ctx.fillRect(0, 0, 480, 360); }
       ctx.restore();
+      function drawActor(c2, a) {
+        if (!a.active) return;
+        if (a.invuln > 0 && a.hurtT <= 0 && Math.floor(t * 14) % 2 === 1) return;
+        const sheet = imgs.sheets[a.classId], frame = frameOf(a);
+        const ax = Math.round(a.x + a.w / 2) + OX, af = Math.round(a.y + a.h) + OY;
+        if (sheet) {
+          c2.save(); c2.translate(ax, af);
+          // 시트는 오른쪽을 본다 — 걷는 쪽이 왼쪽이면 뒤집는다
+          if (a.facing < 0) c2.scale(-1, 1);
+          c2.drawImage(sheet, (frame % 2) * CELL, Math.floor(frame / 2) * CELL, CELL, CELL, -CELL / 2, -FEET, CELL, CELL);
+          c2.restore();
+        } else {
+          c2.fillStyle = PARTY.find(p => p.classId === a.classId)?.color || '#fff';
+          c2.fillRect(ax - 6, af - a.h, 12, a.h);
+        }
+      }
     },
     dispose() { disposed = true; },
   };

@@ -471,7 +471,7 @@ export class Battle {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (this.whiteout) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); return; }   // 흰 화면 유지(피날레)
     if (this.state === 'retry') return;                             // 징글 동안 검은 화면(표준 조우의 검은 화면과 같다)
-    if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); return; }
+    if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); if (this.gimmick.hpStrip) this.drawHpStrip(ctx); return; }   // 전체 화면 게임(변신 영클 특별 패턴)도 HP 띠는 맨 아래(hpStrip)
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
     ctx.font = FONT; ctx.textBaseline = 'top';
     this.support?.draw?.(ctx);

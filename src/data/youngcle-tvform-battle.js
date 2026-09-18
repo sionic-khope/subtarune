@@ -19,8 +19,13 @@ export const TVFORM_BATTLE = {
   },
   // 코인 패턴 6종 순환(적 턴마다 하나, 코인은 후반에)
   coinOrder: ['coin_lasers', 'coin_maze_a', 'coin_rain', 'coin_spokes', 'coin_maze_b', 'coin_ships'],
-  coin: { r: 7, sfx: 'item', heal: 30 },                // 먹으면 서 있는 동료 모두 +30(BUILD215)
+  coin: { r: 7, sfx: 'item', heal: 5 },                 // 먹으면 서 있는 동료 모두 +5(BUILD215 30 → 2026-09-17 사용자 “코인 회복량 5로 하향”)
   healed: (n) => `* 코인을 먹었다! 모두 HP ${n} 회복.`,
+  // 적 턴 말풍선: 패턴마다 맞는 한마디(2026-09-17 사용자 “대사마다 특정 거에 맞는 대사”, 미로 원문 “후후 탈출할수있을까?”). 미로·특별은 모드 안에서 먼저 띄운 뒤 패턴이 나온다. 미로 외 문구는 내가 쓴 것 — 바꾸려면 말씀
+  lines: {
+    coin_lasers: '사방에서 레이저다 ㅋㅋ', coin_maze_a: '후후 탈출할수있을까?', coin_maze_b: '후후 탈출할수있을까?', coin_rain: '비처럼 쏟아진다 ㅋ', coin_spokes: '빙글빙글 돌아봐라 ㅋㅋ', coin_ships: '함선 출격이다 게이야',
+    subrio: '섭리오 한 판 뜨자 ㅋ', rhythm: '박자 맞출 수 있겠냐 ㅋ', trial: '재판을 시작하겠다 ㅋㅋ', ball: '팽이 배틀이다 덤벼라',
+  },
   lasers: { duration: 11, first: 0.9, every: 0.85, warn: 0.45, speed: 300, thick: 6, coinAt: 7.2, coinSpeed: 22 },          // 사방 레이저 + 중후반 아주 느린 코인
   rain: { duration: 11, first: 0.8, every: 0.16, speed: 140, coinAt: 7.0, coinSpeed: 34 },                                   // 위에서 뭔가 잔뜩 뿌림 + 후반 천천히 떨어지는 코인(가짜 코인 셋 섞임)
   spokes: { duration: 11.5, spokes: 4, rev: 0.22, thick: 5, coinAt: 6.5, orbitR: 62, orbitRev: 0.18 },                        // 회전 레이저 바퀴 + 후반 테두리를 도는 코인
