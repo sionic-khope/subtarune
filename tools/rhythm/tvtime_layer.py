@@ -120,21 +120,10 @@ def main(
     chart: Path = Path("assets/rhythm/tvtime.json"),
     output: Path = Path("assets/audio/sfx/tvtime_melody.ogg"),
 ) -> None:
-    """Extract the user's existing BGM harmonic layer and refine its existing note times."""
+    """Rebuild the keyed audio asset without changing the independently authored lead chart."""
     original_chart = Chart.model_validate_json(chart.read_text(encoding="utf-8"))
     samples = decode(source)
     processed = harmonic_layer(samples)
-    source_notes = original_chart.sourceNotes or original_chart.notes
-    original = np.array([note.sourceT if note.sourceT is not None else note.t for note in source_notes])
-    corrected = np.round(refine_times(processed, original), 6)
-    selected = select_attack_indices(corrected)
-    notes = []
-    for position, index in enumerate(selected):
-        note = source_notes[index]
-        time = float(corrected[index])
-        next_time = float(corrected[selected[position + 1]]) if position + 1 < len(selected) else len(samples) / RATE
-        notes.append(note.model_copy(update={"t": time, "sourceT": float(original[index]),
-                                             "soundDur": round(min(1.65, next_time - time - 0.012), 6)}))
     output.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(RATE), "-ac", "1",
                     "-i", "pipe:0", "-ar", "48000", "-c:a", "libopus", "-b:a", "112k", str(output)],
@@ -144,17 +133,11 @@ def main(
         "source": source.as_posix(), "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
         "asset": output.as_posix(), "sampleRate": RATE, "codec": "opus", "sourceSamples": len(samples),
         "decodedSamples": len(decoded), "duration": len(decoded) / RATE,
-        "originalNotes": len(source_notes), "retainedNotes": len(notes), "removedNotes": len(source_notes) - len(notes),
         "fftSize": FFT, "hopSamples": HOP, "frameTime": "center", "timeShift": 0,
-        "maxCorrectionMs": round(float(np.max(np.abs(corrected - original))) * 1000, 3),
-        "medianCorrectionMs": round(float(np.median(np.abs(corrected - original))) * 1000, 3),
-        "envelopeMedianDistanceBeforeMs": envelope_distance(processed, original[selected]),
-        "envelopeMedianDistanceAfterMs": envelope_distance(processed, corrected[selected]),
         "decodedPeak": round(float(np.max(np.abs(decoded))), 6),
         "method": "phase-preserving HPSS harmonic midrange; not an isolated lead transcription",
     }
-    result = original_chart.model_copy(update={"notes": notes, "sourceNotes": source_notes})
-    payload = result.model_dump(exclude_none=True)
+    payload = original_chart.model_dump(exclude_none=True)
     payload["melodyLayer"] = metrics
     chart.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     typer.echo(json.dumps(metrics, indent=2))

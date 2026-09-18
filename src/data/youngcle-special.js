@@ -123,7 +123,7 @@ export const YOUNGCLE_SPECIAL = {
     // 매달린 스크린에 비치는 것(사용자 “뒤에 있는 TV를 영클 TV로 바꾸면 되지 않을까”): 전투 아이들 시트에서 TV 머리만 잘라 화면에 채운다
     face: { src: 'assets/enemies/youngcle-tvform-battle-idle.png', cols: 2, rows: 2, cell: 256, fps: 6.25, crop: [45, 6, 160, 94], glow: 0.08 },
     // 차트를 못 읽었을 때만 쓰는 예비 격자(16박 패턴, 5박마다 하나 쉼)
-    chartWait: 3.0, minNotes: 6, bpm: 148.0, offset: 0.176,
+    chartWait: 3.0, bpm: 148.0, offset: 0.176,
     pattern: ['L', 'R', 'L', 'R', 'L', 'L', 'R', 'R', 'L', 'R', 'R', 'L', 'L', 'R', 'L', 'R'], skipEvery: 5,
     cry: { rise: 0.6, wobble: 1.4, burst: 0.9, scale: 0.7, flash: 0.45, image: 'assets/illustrations/youngcle-cry.png' } },
   // 3 마녀재판: 파크가디언 재판(data/park-witch-trial.js) 규칙·타이밍 그대로, 대사·자산만 영클

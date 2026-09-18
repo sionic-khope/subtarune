@@ -1,6 +1,6 @@
 // 변신 영클 특별 패턴 2 리듬(BUILD217) 순수 로직 검사:
 //   1) 차트 구간 자르기(pickWindow)가 [start, start+seconds] 안의 노트만 순서대로 주고 칸을 그대로 옮긴다(루프로 되감긴 사본 포함)
-//   2) 원음과 같은 시간축의 harmonic attack 차트, 칸 L/R, 최소 간격 0.18초, 2초 창 6개 이하(≤3/s)
+//   2) 독립 주선율 악보와 같은 음 순서·쉼표·반복음, 고정 밀도로 멜로디를 자르지 않는다
 //   3) 가짜 battle 로 한 판: 노트를 다 놓치면 MISS 마다 파티 15 피해 → 시큰둥, 다 맞히면 “영클이 감동한다!” → 우는 그림 → 10 피해
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -52,6 +52,38 @@ test('source phrase duration is retained without turning taps into hold notes', 
   assert.equal(w[0].dur, undefined);
 });
 
+test('test_loaded_sparse_melody_preserves_rests_instead_of_inventing_grid_notes', () => {
+  for (const count of [0, 1, 5]) {
+    const b = fakeBattle(), song = chartData(3, count, 0.5);
+    const g = createRhythmGame(b, b.yc, { ...K, chartData: song });
+    for (let i = 0; i < 40; i++) g.update(1 / 60, makeInput());
+    assert.equal(g.snapshot.notes, count, `a valid ${count}-note phrase must stay sparse`);
+    assert.equal(g.snapshot.melody, true, 'source chart remains authoritative during rests');
+    g.dispose();
+  }
+});
+
+test('test_melody_revision_preserves_gyeongsub_ppaman_and_selected_bgm', () => {
+  const c = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
+  const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+  assert.equal(hash(JSON.stringify(c.side.drums)), 'e8858d9253ea03cc2dba23488ae7b7cad149d7b3ff61d570eaefa3fc29a913d8');
+  assert.equal(hash(JSON.stringify(c.side.vocal)), '05c92a516ab392144790af35c9b6255c8064b216d87734796c54d437ea11447e');
+  assert.equal(hash(fs.readFileSync(new URL('../../assets/audio/bgm/youngcle_tvform_battle.mp3', import.meta.url))),
+    'a08813f422c7ab18d154730ad80c619be927e7797c7a4bc8efad000428385d57');
+});
+
+test('test_center_chart_matches_independent_chorus_notes_and_rests', () => {
+  const reference = JSON.parse(fs.readFileSync(new URL('../../assets/source/tvtime-rhythm/reference-lead.json', import.meta.url), 'utf8'));
+  const chart = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
+  const notes = chart.notes.filter(n => n.t >= reference.start && n.t <= reference.end);
+  assert.equal(notes.length, reference.notes.length, 'no missing lead heads or invented taps during the chorus rests');
+  for (const [i, expected] of reference.notes.entries()) {
+    assert.equal(notes[i].pitch, expected.pitch, `lead pitch at ${expected.t}s`);
+    assert.equal(notes[i].lane, expected.lane, `melody direction at ${expected.t}s`);
+    assert.ok(Math.abs(notes[i].t - expected.t) <= 0.04, `lead attack ${expected.t}s rendered at ${notes[i].t}s`);
+  }
+});
+
 test('reading the BGM loop boundary before the next frame never rewinds note time', () => {
   const b = fakeBattle();
   b.game.sound.bgm = { currentTime: 59.99, paused: false };
@@ -93,50 +125,54 @@ test('late MP3 duration correction rebases already prepared next-loop notes', ()
   g.dispose();
 });
 
-test('test_generated_melody_chart_uses_source_attacks_and_preserves_playability', () => {
+test('test_generated_melody_chart_preserves_source_score_and_safe_audio_durations', () => {
   const c = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
+  const scoreBytes = fs.readFileSync(new URL('../../assets/source/tvtime-rhythm/lead-score.json', import.meta.url));
+  const score = JSON.parse(scoreBytes);
   assert.equal(c.title, "It's Tv Time!"); assert.equal(c.artist, 'Deltarune');
   assert.ok(!c.video, '영상 없는 곡');
   assert.equal(c.bpm, 148, `bpm ${c.bpm}`);
   assert.ok(c.duration > 170 && c.duration < 173, `길이 ${c.duration}`);
-  assert.ok(c.notes.length > 300, `노트 ${c.notes.length}`);
+  assert.deepEqual(c.notes.flatMap(n => n.scoreBeats), score.notes.map(n => n.beat), 'every authored tone remains represented exactly once');
+  assert.equal(c.leadChart.scoreNotes, score.notes.length);
+  assert.equal(c.leadChart.groupedOrnaments, score.notes.length - c.notes.length);
   assert.ok(c.notes.every((n) => n.lane === 'L' || n.lane === 'R'), '칸은 L/R');
   const source = fs.readFileSync(new URL('../../assets/audio/bgm/youngcle_tvform_battle.mp3', import.meta.url));
   assert.equal(createHash('sha256').update(source).digest('hex'), c.melodyLayer.sourceSha256);
   assert.equal(c.melodyLayer.frameTime, 'center');
   assert.equal(c.melodyLayer.sourceSamples, c.melodyLayer.decodedSamples);
   assert.equal(c.melodyLayer.decodedSamples / c.melodyLayer.sampleRate, c.duration);
-  assert.ok(c.melodyLayer.envelopeMedianDistanceAfterMs < c.melodyLayer.envelopeMedianDistanceBeforeMs);
-  assert.ok(c.notes.every(n => Math.abs(n.t - n.sourceT) <= 0.060001));
+  assert.equal(createHash('sha256').update(scoreBytes).digest('hex'), c.leadChart.scoreSha256);
+  assert.equal(c.leadChart.sourceSha256, c.melodyLayer.sourceSha256);
+  assert.ok(c.notes.every(n => Math.abs(n.t - n.sourceT) <= 0.025001), 'fine alignment must not chase unrelated accompaniment');
   assert.ok(c.notes.every((n, i) => n.soundDur > 0 && n.soundDur <= 1.65 &&
     n.t + n.soundDur <= (c.notes[i + 1]?.t ?? c.duration) - 0.011));
   assert.ok(c.notes.some(n => n.soundDur > 0.4), '긴 멜로디 구간을 150ms 삑 소리로 자르지 않는다');
-  let minGap = Infinity;
-  for (let i = 1; i < c.notes.length; i++) { const d = c.notes[i].t - c.notes[i - 1].t; assert.ok(d > 0, '시간 오름차순'); minGap = Math.min(minGap, d); }
-  assert.ok(minGap >= 0.18 - 1e-6, `최소 간격 ${minGap}`);
-  assert.ok(c.notes.length / c.duration <= 3, `밀도 ${(c.notes.length / c.duration).toFixed(2)}/s`);
-  for (let i = 0; i < c.notes.length; i++) {
-    const inWin = c.notes.filter((n) => n.t > c.notes[i].t - 2 && n.t <= c.notes[i].t).length;
-    assert.ok(inWin <= 6, `2초 창 안 ${inWin}개`);
-  }
+  assert.ok(c.notes.every((n, i) => i === 0 || n.t > c.notes[i - 1].t), 'source alignment cannot reorder or merge adjacent melody heads');
+  assert.ok(c.notes.some((n, i) => i > 0 && n.t - c.notes[i - 1].t < 0.18), 'real fast melody heads survive the former minimum-gap deletion');
   assert.ok((c.side.drums || []).length > 100 && (c.side.vocal || []).length > 100, '양옆 자동 패드');
 });
 
-test('test_generated_melody_chart_carries_varied_pitches_per_window', () => {
+test('test_generated_melody_chart_follows_authored_pitches_including_repeated_notes', () => {
   const c = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
+  const score = JSON.parse(fs.readFileSync(new URL('../../assets/source/tvtime-rhythm/lead-score.json', import.meta.url), 'utf8'));
   assert.ok(c.notes.every((n) => Number.isInteger(n.pitch) && n.pitch > 40 && n.pitch < 100), '모든 노트에 MIDI 음높이');
-  // 사용자 “저번엔 다 같은 음으로 넣어서”: 어느 15초 구간을 잘라도 음이 여러 개여야 하고 한 음이 40% 를 넘지 않아야 한다
-  let worstDistinct = 99, worstShare = 0;
-  for (let s0 = 0; s0 + 15 < c.duration; s0 += 1) {
-    const win = c.notes.filter((n) => n.t >= s0 && n.t < s0 + 15).map((n) => n.pitch);
-    if (win.length < 10) continue;
-    const counts = new Map();
-    for (const p of win) counts.set(p, (counts.get(p) || 0) + 1);
-    worstDistinct = Math.min(worstDistinct, counts.size);
-    worstShare = Math.max(worstShare, Math.max(...counts.values()) / win.length);
+  const scoreByBeat = new Map(score.notes.map(n => [n.beat, n]));
+  for (const note of c.notes) {
+    const original = scoreByBeat.get(note.beat);
+    assert.equal(note.pitch, original.pitch, 'every playable lead pitch follows the independent score');
+    assert.equal(note.section, original.section);
+    const expectedTime = original.beat * 60 / 148 + score.anchors.find(a => a.section === original.section).offset;
+    assert.ok(Math.abs(note.sourceT - expectedTime) < 0.000001, `source beat at ${note.t}s`);
+    let previous = original;
+    for (const beat of note.scoreBeats.slice(1)) {
+      const ornament = scoreByBeat.get(beat);
+      assert.equal(ornament.section, original.section);
+      assert.ok(ornament.duration < 0.2 && Math.abs(ornament.beat - previous.beat - previous.duration) <= 0.050001,
+        'only contiguous grace ornaments join an attack, never ordinary sixteenths or rests');
+      previous = ornament;
+    }
   }
-  assert.ok(worstDistinct >= 5, `15초 창 최소 음 종류 ${worstDistinct}`);
-  assert.ok(worstShare <= 0.4, `15초 창 한 음 최대 점유율 ${(worstShare * 100).toFixed(0)}%`);
 });
 
 /** 한 판 돌리기. hit=true 면 다음 노트를 제때 누른다 */

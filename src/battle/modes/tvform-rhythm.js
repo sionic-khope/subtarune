@@ -119,7 +119,8 @@ export function createRhythmGame(battle, yc, K) {
     start = now() + K.lead;
     chartPeriod = loopDuration();
     let notes = song ? pickWindow({ ...song, duration: loopDuration() }, start, K.seconds) : [];
-    const melody = notes.length >= (K.minNotes ?? 6);
+    // A loaded melody may legitimately rest; only a missing chart needs fallback notes.
+    const melody = Array.isArray(song?.notes);
     if (!melody) notes = gridNotes(start);
     chart = {
       notes, bpm: melody ? (song.bpm || K.bpm) : K.bpm, offset: melody ? (song.offset || 0) : K.offset,
