@@ -1,0 +1,5 @@
+# Generated beach sand
+
+Built-in imagegen, exact underlying model/usage cost unavailable. Reference: imagegen black-v2 palette-preview.png for muted game texture style only. Original generation: exec-99c8b45d-df57-4912-868a-4a76de8f0d13.png. Runtime export uses whole-image NEAREST reduction, no recolor.
+
+Create one seamless square top-down pixel-art BEACH SAND texture tile for a 32px-tile retro JRPG. Single texture covering the entire square, fully opaque. Muted warm beige/ochre sand, low contrast and sparse 1-2 pixel grain clusters, gentle irregular variation, calm clean walkable background not too busy. Match the chunky pixel density and muted natural palette of the attached forest game reference, but this is sandy beach ground not forest. No plants, rocks, shells, water, borders, seams, paths, footprints, text, checkerboard or transparency. Must tile on all four edges. It should look like a nearest-neighbor enlarged 32x32 logical pixel tile, not high-resolution photographic noise. No lighting gradient or visible central motif.

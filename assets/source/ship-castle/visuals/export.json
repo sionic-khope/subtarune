@@ -1,0 +1,250 @@
+{
+  "backend": "built-in image_gen",
+  "model": "unknown",
+  "usageCost": "unknown",
+  "resampling": "NEAREST",
+  "paletteQuantization": false,
+  "alpha": "clear values below 8 only, otherwise preserve actual alpha; no RGB key",
+  "anchor": "props bottom-center, 2px safety margin",
+  "memoryPanels": "opaque full composition, aspect fit centered on black canvas; no crop",
+  "references": [
+    {
+      "path": "assets/source/ship-castle/visuals/gajaeman-castle-reference.png",
+      "sha256": "8e84fcc848877918f2b2e2e4f5ddc2565f0d875657b14b1d361f2283d1275087"
+    },
+    {
+      "path": "assets/source/ship-castle/visuals/memory-character-reference.png",
+      "sha256": "a033231a5558250a571a0e9b80db8b86731044b149c134f6222b0630e4ff3ef6"
+    },
+    {
+      "path": "assets/source/ship-castle/visuals/memory-yellow-style-reference.png",
+      "sha256": "f28e4523771334ef2462a8523fd0e144925cc6ef713343a22dfb10e746396f45"
+    }
+  ],
+  "exports": [
+    {
+      "source": "assets/source/ship-castle/visuals/purple-cord-raw.png",
+      "source_size": [
+        1536,
+        1024
+      ],
+      "source_sha256": "79a9b8045e586c283e68f3e8c176af7a88b5dc14af3e6db6ec92c6d954a8109d",
+      "output": "assets/props/purple_cord.png",
+      "output_size": [
+        48,
+        32
+      ],
+      "output_sha256": "89cc9f9d4f7afbbade2b09a9ad094300a128010d8e343ddbab6db63ed583ddbf",
+      "source_bounds": [
+        144,
+        223,
+        1411,
+        808
+      ],
+      "content_size": [
+        44,
+        20
+      ],
+      "placement": [
+        2,
+        10
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/lounge-window-raw.png",
+      "source_size": [
+        1024,
+        1536
+      ],
+      "source_sha256": "9976f19d7010ae28ba241e781dc713a7e0cc3577ff620902881ffb42f137976a",
+      "output": "assets/props/ship_lounge_window.png",
+      "output_size": [
+        96,
+        144
+      ],
+      "output_sha256": "bf3aea5e29a37fea0d586ac8089da1dd0a2ce384099df1d207c03a45b92a9e77",
+      "source_bounds": [
+        309,
+        50,
+        864,
+        1498
+      ],
+      "content_size": [
+        54,
+        140
+      ],
+      "placement": [
+        21,
+        2
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/gajaeman-castle-corrected-raw.png",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_sha256": "63dc54679e73f820decb73840b38aea597606bde10310067b437cc3729cb9d63",
+      "output": "assets/props/gajaeman_castle.png",
+      "output_size": [
+        768,
+        768
+      ],
+      "output_sha256": "51d94eb316526ffa2dbd43e074301ea643867634c491c86a1bc689148714ee9c",
+      "source_bounds": [
+        5,
+        0,
+        1251,
+        1254
+      ],
+      "content_size": [
+        759,
+        764
+      ],
+      "placement": [
+        4,
+        2
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/gajaeman-memory-1-corrected-raw.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "94cec1dc321e3e074c59c61792934936a720dee0492b0ba6d109e4f0355286ca",
+      "output": "assets/illustrations/gajaeman-memory-1.png",
+      "output_size": [
+        384,
+        216
+      ],
+      "output_sha256": "ba835a90b31e1ad6994a585f09dee4ada32e258d84a86a73fcfdb770e6c2e920",
+      "source_bounds": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "content_size": [
+        384,
+        216
+      ],
+      "placement": [
+        0,
+        0
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/gajaeman-memory-2-corrected-raw.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "151a1871e49305d62268457286b5188befe2ea4392b55f240cf9dd84d40c3743",
+      "output": "assets/illustrations/gajaeman-memory-2.png",
+      "output_size": [
+        384,
+        216
+      ],
+      "output_sha256": "596375e0463922c2c9a1ca3b9dc57f98519f75526e42586c4780e85c3e3c7043",
+      "source_bounds": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "content_size": [
+        384,
+        216
+      ],
+      "placement": [
+        0,
+        0
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/gajaeman-memory-3-corrected-raw.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "64cfdc423ad3990e554ba9b4165f64d2e67c44d009778d37b1f826c3222327af",
+      "output": "assets/illustrations/gajaeman-memory-3.png",
+      "output_size": [
+        384,
+        216
+      ],
+      "output_sha256": "2f473edb26d5c2e1ac0124875425a56deb6e3445e677c22913789a4599bcf349",
+      "source_bounds": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "content_size": [
+        384,
+        216
+      ],
+      "placement": [
+        0,
+        0
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/gajaeman-memory-4-corrected-raw.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "fbb528cab32e6ed6359c6064efd136060da87e988f25c677d74ff5c2463507a0",
+      "output": "assets/illustrations/gajaeman-memory-4.png",
+      "output_size": [
+        384,
+        216
+      ],
+      "output_sha256": "6360436167af4c19e8bb51cdf45d8292590a68337197cd4c75feb9ba53794f9f",
+      "source_bounds": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "content_size": [
+        384,
+        216
+      ],
+      "placement": [
+        0,
+        0
+      ]
+    },
+    {
+      "source": "assets/source/ship-castle/visuals/gajaeman-memory-5-corrected-raw.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "42b00ff7f0f2f7746cbbe816845c3887e2be76d8e48279ab36da68bc158df8d7",
+      "output": "assets/illustrations/gajaeman-memory-5.png",
+      "output_size": [
+        384,
+        216
+      ],
+      "output_sha256": "5419f92ce72a26659d8f39444b1c3345d46cb9456052eec9ceaa0bc789186db2",
+      "source_bounds": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "content_size": [
+        384,
+        216
+      ],
+      "placement": [
+        0,
+        0
+      ]
+    }
+  ]
+}

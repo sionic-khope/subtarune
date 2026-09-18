@@ -1,5 +1,15 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 침몰 기억·짜장숲 해변 (2026-09-18)
+
+- `bgm/ship_sinking.mp3`: 사용자 지정 [P89rxnT7lKw](https://www.youtube.com/watch?v=P89rxnT7lKw), yt-dlp 조회 `Lost Girl`, 업로더 Toby Fox, 업로드20211004. 포맷251 전체를 MP3 q2로 변환(80.000000초, 48kHz stereo), 트리밍·속도·피치·음량 변경 없음.
+- `bgm/jjajang_shore.mp3`: **Waves Sound Effect — Alexander / Orange Free Sounds**, [원본 페이지](https://orangefreesounds.com/waves-sound-effect/), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). 사용자 ‘파도만’ 요청에 맞춰 loopable 파도 효과음 원본 MP3 그대로 사용(83.252188초, 44.1kHz stereo), 새 멜로디·합성·편집 없음. 저자·제목·라이선스·변경 없음 표시를 배포 출처에 유지한다.
+- 두 파일의 전체 디코드 검사 통과. 재현·체크섬·기존 물소리 재사용 판단은 `assets/source/ship-memory/audio/README.md`. 소스 검사와 게임 큐·청감 검증은 구분한다.
+
+## 엄청대박인배 납치·성 출현 연출 (2026-09-18)
+
+- `bgm/ship_castle.mp3`: 사용자 지정 [TBVteb9Z6ps](https://www.youtube.com/watch?v=TBVteb9Z6ps), 조회 제목 `38. BURNING EYES (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 표시명 Toby Fox, 업로드20250604. 포맷251 전체를 MP3 q2로 변환했다(69.334792초, 48kHz stereo, 1,649,084바이트). 구간 편집·피치·속도·음량·새 페이드 가공 없음. 전체 디코드 검사 통과; 재현 명령·SHA-256은 `assets/source/ship-castle/audio/README.md`. 출처 기록이 이용허락 확인을 뜻하지 않는다.
+
 ## 엄청대박인배 라운지 (2026-09-18)
 
 - `bgm/ship_lounge.mp3`: 사용자 지정 [GrCp8AHdgEM](https://www.youtube.com/watch?v=GrCp8AHdgEM), 조회 제목 `14. Welcome to the Green Room (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 Toby Fox, 업로드 20250604. 포맷 251 전체를 MP3 q2로 변환했다(95.004458초, 48kHz stereo). 구간 편집·피치·속도 변경·음량 정규화 없음. 전체 디코드 검사 통과; 출처·재현 명령·SHA-256은 `assets/source/ship-lounge/audio/README.md`. 출처 기록이 이용허락 확인을 뜻하지 않는다.

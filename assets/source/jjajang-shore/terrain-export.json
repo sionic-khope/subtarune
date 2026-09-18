@@ -1,0 +1,51 @@
+{
+  "sourceRoot": "assets/source/jjajang-shore",
+  "sourceSha256": {
+    "black-v2/palette-preview.png": "81b9b307ac0f37e98225f3b7f18ad10f84971fbc103476ab3acbdf4150864ed7",
+    "sand-raw.png": "820089633ab796a6218f0f05d8de5dafbc7501109d68a7f727bbd6e7576a2a04"
+  },
+  "patches": [
+    [
+      "jjajang_forest_black",
+      "black-v2/palette-preview.png",
+      [
+        640,
+        32,
+        742,
+        134
+      ]
+    ],
+    [
+      "jjajang_path_black",
+      "black-v2/palette-preview.png",
+      [
+        650,
+        400,
+        752,
+        502
+      ]
+    ],
+    [
+      "jjajang_sand",
+      "sand-raw.png",
+      [
+        0,
+        0,
+        1254,
+        1254
+      ]
+    ]
+  ],
+  "outputSize": [
+    32,
+    32
+  ],
+  "resampling": "NEAREST",
+  "recolor": false,
+  "cropFit": false,
+  "outputSha256": {
+    "jjajang_forest_black": "8c9713aac0254e4f751b74ace6f786391ccc7a1afc667ad3614aa39ee5e04c7c",
+    "jjajang_path_black": "4fcdd302ba5a6eb112efd4db1c89780cf9c0d3a074cd6929f308f24fed6462d5",
+    "jjajang_sand": "77c4ba160461bf796ebc6a5dd2ae5f66097d0ac3e9ec86f6ec3caa2d954c9dfa"
+  }
+}
