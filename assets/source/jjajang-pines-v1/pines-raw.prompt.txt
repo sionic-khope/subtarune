@@ -1,0 +1,10 @@
+# imagegen 2026-09-18 18:19:56
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/jjajang-pines-v1/pine-ref.png
+
+Pixel art prop sheet of FOUR different dark pine trees for a dark top-down 2D RPG forest, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no ground, no shadows.
+Image1 shows the existing forest trees of this map (three small round pixel trees): match their PIXEL DENSITY, outline style and 3/4 top-down game view, but do NOT copy their shape or colours.
+Each cell holds ONE tree, larger than the reference trees and much darker: an old gnarled pine (soshiki-style bonsai-like pine) with a twisting, crooked trunk and dynamic branches that bend and reach sideways, with clumps of needle foliage at the branch ends. Colours: near-black and very dark green-grey silhouette tones (dark charcoal trunk, foliage in very dark green with a faint slightly lighter rim so the shape reads on a black background), dark stepped outline. The four trees differ in silhouette: one leaning left, one leaning right, one tall and twisting, one wide with a low heavy branch. Each tree's trunk base is at the bottom centre of its cell; each tree fills about 85% of the cell height and is centred; nothing touches the cell edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (at most 3 tones per material), crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

@@ -39,8 +39,9 @@
 | 브금 | `{bgm:'wise_words'}` = 사용자 링크 JkEhQ3qJubU(“56. Wise words (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox”, 47초 루프) | `assets/audio/bgm/wise_words.mp3` |
 | 대사 | 원문 그대로, 청소부 = 청소부 목소리(janitor)·시트 얼굴 초상, 나레이션 = narrator | |
 | 합류 문구 | `* 영문은 모르겠지만 {c=yellow}청소부가 동료가 되었다{/c}`(기존 “억빠맨이 동료가 되었다” 형식, 조사 이→가) | |
-| 동료 | `{join:'janitor'}` + `torii_janitor_joined` 플래그. `PARTY_ORDER` 에 janitor, `partyFromFlags`: 침몰 뒤 + 이 플래그 → ['janitor'] | hp 70(잠정)·노란색 |
-| 합류 이후 브금(추가 지시 “청소부가 동료가 된 이후부터 RKQUblO-iCs”, “다음 맵으로 갔을 때 브금 다시 재생 ㄴㄴ”) | 컷신 끝 `{bgm:'my_castle_town'}` + `storyBgm`: `torii_janitor_joined` 이면 `jjajang_torii`·다음 맵(`JJAJANG_AFTER_JOIN_MAPS`)이 같은 이름을 돌려줘 `playBgm` 이 같은 곡을 이어 튼다(재시작 없음) | `bgm/my_castle_town.mp3` 131초 루프 |
+| 동료 | `{join:'janitor'}` + `torii_janitor_joined` 플래그. `PARTY_ORDER` 에 janitor, `partyFromFlags`: 침몰 뒤 + 이 플래그 → ['janitor'] | hp 100(사용자)·노란색 |
+| 합류 이후 브금(“청소부가 동료가 된 이후부터 RKQUblO-iCs” → 정정 “아니다 그냥 다음 맵부터 나게 해줘”, “다음 맵으로 갔을 때 브금 다시 재생 ㄴㄴ”) | 컷신은 `wise_words` 를 그대로 두고, `storyBgm`: 합류 뒤 토리이 길 = `wise_words`, `jjajang_pines` 부터 = `my_castle_town`(`JJAJANG_AFTER_JOIN_MAPS`); 같은 이름은 `playBgm` 이 이어 튼다(재시작 없음) | `bgm/my_castle_town.mp3` 131초 루프 |
+| 실루엣은 지팡이를 짚고 천천히(추가 지시) | `janitor_shadow.png` right 행 = gpt-image 지팡이 걷기(검게), `move speed 44` | 걷기 60 보다 느림 |
 | 인게임 전투는 허약 모습 | `BATTLE_SPRITES.janitor` = `assets/battle/janitor.png`(대기 4·공격 4)·`janitor-run.png`·`down/janitor.png` — 깃발 없는 허약 청소부. 깃발·댄스 시트(`assets/enemies/janitor-stance-*`, `janitor-dance.png`)는 ‘청소부(전투)’ 전용으로 남겨 둠 | |
 
 QA: `jjajang_torii_event`(두 번째 토리이 직전) / `jjajang_torii_joined`(합류 뒤, 동료 청소부). 검사: `tests/unit/jjajang-torii.test.mjs`, `tests/playtest/jjajang-torii-janitor.mjs`.

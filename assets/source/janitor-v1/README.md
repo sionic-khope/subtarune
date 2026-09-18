@@ -17,9 +17,9 @@ OpenGateway `openai/gpt-image-2.5-sunburst`, images/edits(참조 1장), quality 
 ## 목소리
 `audio/janitor.mp3` → `assets/audio/voices/janitor.mp3`. 형섭 샘플(`hyungsub.mp3`, 가재맨 '넌' 0.26s)을 ffmpeg 로 변형:
 ```
-ffmpeg -i assets/audio/voices/hyungsub.mp3 -af "asetrate=48000*0.75,aresample=48000,highpass=f=110,lowpass=f=2400,tremolo=f=34:d=0.4,bass=g=4:f=180,volume=1.6,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
+ffmpeg -i assets/audio/voices/hyungsub.mp3 -af "asetrate=48000*0.68,aresample=48000,highpass=f=100,lowpass=f=1900,tremolo=f=28:d=0.55,bass=g=5:f=170,volume=1.7,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
 ```
--5반음·저역·떨림으로 할아버지 느낌(거슨처럼 낮고 갈라진 소리). 0.35s, peak -0.4dB. `VOICES.janitor` rate 0.9·cut·minGap 0.09.
+-7반음·저역·떨림으로 할아버지 느낌(거슨처럼 낮고 갈라진 소리; 1차 -5반음에서 사용자 “쫌만 더 늙은 느낌” 으로 더 낮춤). 0.38s. `VOICES.janitor` rate 0.86·cut·minGap 0.1.
 
 ## 등록
 `src/data/characters.js janitor`(이름 청소부, voice janitor, sheet janitor.png, stillPivot [64,120]). 전투 시트는 적/아군 정의(enemies.js)가 브리핑되면 `sheet`/`dance` 로 연결한다 — 사용자 “실제 인게임 전투에서는 코사크 댄스”, 전투폼 이동·대사 때는 stance-left/right.

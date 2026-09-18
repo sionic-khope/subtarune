@@ -196,4 +196,12 @@ registerTile('&', { name: 'jjajang_path_edge', solid: false, draw: flat('#242726
 // 물이 아니라 검은 흙길이라 물결 고리는 내지 않는다(ripple false — Character.footstep). 해안('%')은 그대로 무음
 const FOREST_STEP = { ...WATER_WALK, ripple: false };
 registerTile('$', { name: 'jjajang_path_echo', solid: false, step: FOREST_STEP, draw: flat('#242726') });
+// 짜장 소나무 숲 공터의 풀숲(BUILD226 사용자 “거기 중간에 풀숲하고 적당히 정사각형의 공간”): 길 바닥 위에 어두운 풀잎 다발, 걸을 수 있고 발소리는 길과 같다
+const thicket = (ctx) => {
+  ctx.fillStyle = '#242726'; ctx.fillRect(0, 0, ART_PX, ART_PX);
+  const blades = [[1, 9, 2, 6], [3, 6, 2, 9], [6, 10, 2, 5], [8, 4, 2, 11], [11, 8, 2, 7], [13, 11, 2, 4], [5, 12, 1, 3], [10, 13, 1, 2]];
+  for (const [x, y, w, h] of blades) { ctx.fillStyle = (x + y) % 3 ? '#1e3a22' : '#2c5230'; ctx.fillRect(x, y, w, h); }
+  ctx.fillStyle = '#16281a'; ctx.fillRect(2, 14, 12, 1);
+};
+registerTile('"', { name: 'jjajang_thicket', solid: false, step: FOREST_STEP, draw: thicket });
 registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });

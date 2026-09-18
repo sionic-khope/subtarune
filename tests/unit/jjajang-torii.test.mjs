@@ -48,8 +48,7 @@ test('test_torii_janitor_beats_in_order_bgm_off_footsteps_question_shadow_fade_s
   assert.ok(torii_janitor[shadowWalk].footsteps === true, '실루엣은 발소리를 내며 걸어온다');
   assert.ok(firstLine < bang && bang < turn && turn < fadeOut && fadeOut < janitorIn && janitorIn < fadeIn && fadeIn < bgmOn && bgmOn < hello && hello < join && join < flag);
   assert.equal(torii_janitor[0].if({ torii_janitor_joined: true }), true, '합류 뒤엔 다시 돌지 않는다');
-  const after = idx(n => n.bgm === 'my_castle_town');
-  assert.ok(after > flag, '동료가 된 뒤부터 My Castle Town');
+  assert.equal(idx(n => n.bgm === 'my_castle_town'), -1, 'My Castle Town 은 컷신이 아니라 다음 맵부터(storyBgm)');
 });
 
 test('test_torii_janitor_party_rules_and_qa_points', () => {
@@ -58,7 +57,8 @@ test('test_torii_janitor_party_rules_and_qa_points', () => {
   assert.deepEqual(partyFromFlags({ ship_sinking_done: true, torii_janitor_joined: true }), ['janitor']);
   assert.deepEqual(partyFromFlags({ void11_done: true, ppaman_joined: true, torii_janitor_joined: true }), ['gyeongsub', 'ppaman'], '침몰 전엔 청소부가 없다');
   assert.equal(CHARACTERS.janitor.hpColor, '#ffd84a');
-  assert.equal(storyBgm('jjajang_torii', { torii_janitor_joined: true }), 'my_castle_town', '합류 뒤 토리이 길 브금');
+  assert.equal(storyBgm('jjajang_torii', { torii_janitor_joined: true }), 'wise_words', '합류 뒤 토리이 길은 컷신 곡 그대로');
+  assert.equal(storyBgm('jjajang_pines', { torii_janitor_joined: true }), 'my_castle_town', 'My Castle Town 은 다음 맵부터');
   assert.equal(storyBgm('jjajang_torii', {}), undefined, '합류 전엔 맵 기본(wind)');
   assert.equal(storyBgm('jjajang_forest', { torii_janitor_joined: true }), undefined, '이전 맵(숲)은 그대로');
   assert.ok(CHARACTERS.janitor.hp > 0 && CHARACTERS.janitor.sheet && CHARACTERS.janitor_shadow.sheet);

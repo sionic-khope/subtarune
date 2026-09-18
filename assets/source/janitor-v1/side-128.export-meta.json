@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/janitor-v1/side-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.72,
+ "scale": 0.20122270742358078,
+ "feet_y": 120,
+ "cells": [
+  {
+   "bbox": [
+    144,
+    30,
+    414,
+    480
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    54,
+    91
+   ],
+   "paste": [
+    37,
+    29
+   ]
+  },
+  {
+   "bbox": [
+    117,
+    30,
+    388,
+    480
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    55,
+    91
+   ],
+   "paste": [
+    37,
+    29
+   ]
+  },
+  {
+   "bbox": [
+    144,
+    24,
+    414,
+    482
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    54,
+    92
+   ],
+   "paste": [
+    37,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    118,
+    24,
+    388,
+    482
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    54,
+    92
+   ],
+   "paste": [
+    37,
+    28
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

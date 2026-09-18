@@ -303,7 +303,9 @@ export class Character extends Entity {
     // hover(characters.js): 비행 장치는 그림을 lift 만큼 띄우고 살짝 오르내리며, 그림자는 발 자리(땅)에 조금 넓게 남는다(BUILD201 영클)
     const hover = CHARACTERS[this.def.sprite]?.hover;
     const lift = hover ? Math.round((hover.lift ?? 6) + Math.sin((this.hoverT || 0) * Math.PI * 2 / (hover.period ?? 1.4)) * (hover.bob ?? 2)) : 0;
-    if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * (hover ? 0.2 : 0.25)), sy + dh - 2, Math.round(dw * (hover ? 0.6 : 0.5)), 3); }
+    // 그림자는 그림 밑변이 아니라 **발 자리(pivot)** 에 — 128px 셀 시트(최미스·청소부 pivot y120)처럼 발 아래 여백이 있는 시트는 막대가 발보다 아래 떠서 '떠 있는' 느낌이었다(사용자 2026-09-18 “모든 스프라이트마다 아래 그림자가 져서 떠 있는 기분 … 고쳐”)
+    const feetY = sy + (pivot ? Math.round(pivot[1] * drawScale) : dh);
+    if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * (hover ? 0.2 : 0.25)), feetY - 2, Math.round(dw * (hover ? 0.6 : 0.5)), 3); }
     blit(img, sx, sy - lift, dw, dh);
     if (emote) drawEmote(ctx, emote, sx + Math.round(dw / 2), emote.anchor === 'feet' ? Math.round(this.y + this.h - cam.y) : sy - lift);
   }

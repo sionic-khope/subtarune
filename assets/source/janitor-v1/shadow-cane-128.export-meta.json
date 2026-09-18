@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/janitor-v1/shadow-cane-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.72,
+ "scale": 0.20479999999999998,
+ "feet_y": 120,
+ "cells": [
+  {
+   "bbox": [
+    109,
+    38,
+    403,
+    486
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    92
+   ],
+   "paste": [
+    34,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    107,
+    37,
+    408,
+    487
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    62,
+    92
+   ],
+   "paste": [
+    33,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    102,
+    29,
+    403,
+    475
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    62,
+    91
+   ],
+   "paste": [
+    33,
+    29
+   ]
+  },
+  {
+   "bbox": [
+    107,
+    29,
+    415,
+    475
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    63,
+    91
+   ],
+   "paste": [
+    32,
+    29
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

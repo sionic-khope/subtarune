@@ -62,7 +62,7 @@ try {
   await line('청소부가 동료가 되었다', '07_join_line');
   check(await until(() => window.game.party.includes('janitor') && window.game.flags.torii_janitor_joined && !window.game.dialogue.running, 8000), '청소부가 동료가 되고 플래그가 선다');
   const after = await page.evaluate(() => ({ party: [...game.party], npc: game.entities.some(e => e.id === 'janitor' && !e.dead && e.def?.type === 'npc'), follower: game.entities.some(e => e.def?.type === 'follower' && !e.dead), bgm: game.sound.bgmName, hp: game.partyHp?.janitor }));
-  check(after.party.length === 1 && !after.npc && after.follower && after.bgm === 'my_castle_town', '맵의 청소부 NPC 는 사라지고 동료가 따라온다, 합류 뒤 브금 my_castle_town ' + JSON.stringify(after));
+  check(after.party.length === 1 && !after.npc && after.follower && after.bgm === 'wise_words', '맵의 청소부 NPC 는 사라지고 동료가 따라온다, 토리이 길에선 wise_words 유지 ' + JSON.stringify(after));
   await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1400); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(300);
   await cap('08_following');
   await press('KeyV'); await page.waitForTimeout(500); await cap('09_menu'); await press('KeyX');

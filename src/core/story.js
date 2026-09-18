@@ -29,9 +29,11 @@ export const STAGES = [
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
-// 짜장섬: 청소부(허약)가 동료가 된 뒤부터는 사용자 지정 곡 my_castle_town(RKQUblO-iCs)이 토리이 길과 그 다음 맵들에서 이어진다 — 맵을 옮겨도 같은 이름이라 playBgm 이 다시 틀지 않는다(BUILD226 “다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
-export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_torii', 'jjajang_pines'];
+// 짜장섬: 청소부(허약) 합류 컷신이 튼 wise_words 는 토리이 길에 남고, 사용자 지정 곡 my_castle_town(RKQUblO-iCs)은 **다음 맵(검은 소나무 숲)부터**(BUILD226 사용자 “아니다 그냥 다음 맵부터 나게 해줘”).
+//   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
+export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_pines'];
 export function storyBgm(mapId, flags) {
+  if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   if (flags.torii_janitor_joined && JJAJANG_AFTER_JOIN_MAPS.includes(mapId)) return 'my_castle_town';
   if (mapId === 'youngcle20' && (flags.ship_tvform_won || flags.ship_ending_done)) return null;
   if (mapId === 'youngcle1') return flags.youngcle_intro_done ? 'storage_show' : null;
@@ -410,5 +412,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii', desc: '짜장 토리
   map: 'jjajang_torii', spawn: 'from_forest', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii_event', desc: '토리이 길 · 두 번째 토리이 직전 (오른쪽으로 걸으면 청소부 이벤트)',
   map: 'jjajang_torii', spawn: 'before_janitor', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii_joined', desc: '토리이 길 · 청소부(허약) 합류 뒤 (오른쪽 끝 다음 맵 브리핑 대기)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii_joined', desc: '토리이 길 · 청소부(허약) 합류 뒤 (오른쪽 끝 → 검은 소나무 숲)',
   map: 'jjajang_torii', spawn: 'after_janitor', flags: { ...shipCastleDoneFlags, ship_sinking_done: true, torii_janitor_started: true, torii_janitor_joined: true }, party: ['janitor'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_pines', desc: '검은 소나무 숲 (굽이 길 → 가운데 공터 → 오른쪽) · 공터 몹 이벤트 브리핑 대기',
+  map: 'jjajang_pines', spawn: 'from_west', flags: { ...shipCastleDoneFlags, ship_sinking_done: true, torii_janitor_started: true, torii_janitor_joined: true }, party: ['janitor'] });

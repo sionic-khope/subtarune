@@ -1,0 +1,42 @@
+{
+ "scale": 0.345,
+ "darken": [
+  0.24,
+  0.3,
+  0.26
+ ],
+ "pines": [
+  {
+   "file": "assets/props/jjajang_pine_1.png",
+   "size": [
+    141,
+    157
+   ],
+   "baseX": 100
+  },
+  {
+   "file": "assets/props/jjajang_pine_2.png",
+   "size": [
+    135,
+    159
+   ],
+   "baseX": 30
+  },
+  {
+   "file": "assets/props/jjajang_pine_3.png",
+   "size": [
+    108,
+    167
+   ],
+   "baseX": 60
+  },
+  {
+   "file": "assets/props/jjajang_pine_4.png",
+   "size": [
+    167,
+    146
+   ],
+   "baseX": 58
+  }
+ ]
+}

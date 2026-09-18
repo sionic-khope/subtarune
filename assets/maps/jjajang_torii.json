@@ -68,7 +68,7 @@
     8
    ]
   ],
-  "role": "짜장숲 다음: 두 칸 위 → 오른쪽 직선 길, 대각선 토리이 3개, 주인공 중심 원형 시야(vision). 오른쪽 끝 다음 맵은 브리핑 대기",
+  "role": "짜장숲 다음: 두 칸 위 → 오른쪽 직선 길, 대각선 토리이 3개, 주인공 중심 원형 시야(vision), 두 번째 토리이 뒤 청소부 합류. 오른쪽 끝 → 검은 소나무 숲",
   "torii": [
    {
     "col": 16,
@@ -447,6 +447,17 @@
    "h": 10,
    "to": "jjajang_forest",
    "spawn": "from_north",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "torii_pines_door",
+   "x": 1526,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_pines",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

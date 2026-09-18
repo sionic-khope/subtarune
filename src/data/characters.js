@@ -8,8 +8,8 @@
 export const CHARACTERS = {
   choimis: { name: '최미스', sheet: 'assets/sprites/choimis.png', stillPivot: [64, 120] },
   // 청소부(BUILD226 사용자 그림 등록: 붉은 두건·안경·수염·붉은 셔츠, “조금만 더 허약한 섭타룬 버전”): gpt-image-2.5-sunburst 4×4 걷기 시트 → 128px 셀(assets/source/janitor-v1). 목소리는 형섭 샘플을 할아버지 느낌으로 낮춘 janitor.mp3(델타룬 거슨 참고)
-  // 허약 청소부는 토리이 길 이벤트 뒤 동료(hp·색은 사용자 미지정: 잠정 70·노란색 = “청소부(노란색)이 동료가 되었다”). 전투 시트 assets/battle/janitor*.png(허약 모습) — 깃발·댄스 시트는 ‘청소부(전투)’용으로 따로 둔다
-  janitor: { name: '청소부', voice: 'janitor', sheet: 'assets/sprites/janitor.png', stillPivot: [64, 120], hp: 70, hpColor: '#ffd84a', partyName: '청소부', partyDesc: '저기~까지 데려다 줘야 한다.' },
+  // 허약 청소부는 토리이 길 이벤트 뒤 동료(hp 100 = 사용자 “hp는 100으로”, 노란색 = “청소부(노란색)이 동료가 되었다”). 전투 시트 assets/battle/janitor*.png(허약 모습) — 깃발·댄스 시트는 ‘청소부(전투)’용으로 따로 둔다
+  janitor: { name: '청소부', voice: 'janitor', sheet: 'assets/sprites/janitor.png', stillPivot: [64, 120], hp: 100, hpColor: '#ffd84a', partyName: '청소부', partyDesc: '저기~까지 데려다 줘야 한다.' },
   // 청소부 검은 실루엣(같은 걷기 시트를 검게 칠한 것) — 토리이 길에서 요플래 뒤로 걸어오는 형체
   janitor_shadow: { name: '???', sheet: 'assets/sprites/janitor_shadow.png', stillPivot: [64, 120] },
   ttuulla: { name: '뚜울라', voice: 'ttuulla', sheet: 'assets/sprites/ttuulla.png', stillPivot: [32, 60] },

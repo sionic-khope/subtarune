@@ -1,6 +1,6 @@
 // 짜장 토리이 길 — 두 번째 토리이를 지나면 청소부(허약) 합류 이벤트 (BUILD226 사용자 브리핑 2026-09-18, 원문·구현표는 design/narrative/cutscenes/jjajang_torii.md)
 //   브금 끔 → 멈춘 뒤 1초 → 뒤에서 또 다른 걸음소리 → 요플래 머리 위 ? → 청소부 검은 실루엣이 발소리 내며 요플래 뒤까지 걸어옴 → 나레이션 3줄 → 요플래 ! → 뒤돌아봄
-//   → 페이드아웃/인 사이에 실루엣이 청소부로 바뀜 → 브금 wise_words → 대사 → “영문은 모르겠지만 청소부가 동료가 되었다” → 합류 → 브금 my_castle_town(이후 맵까지 이어짐)
+//   → 페이드아웃/인 사이에 실루엣이 청소부로 바뀜 → 브금 wise_words → 대사 → “영문은 모르겠지만 청소부가 동료가 되었다” → 합류(wise_words 유지, my_castle_town 은 다음 맵부터)
 const N = text => ({ voice: 'narrator', text: `* ${text}` });
 const C = text => ({ speaker: '청소부', portrait: 'janitor', voice: 'janitor', text: `* ${text}` });
 const PLAYER = 'player';
@@ -20,7 +20,8 @@ export const torii_janitor = [
   // 그 뒤로 다시: 검은 실루엣이 발소리를 내며 길을 따라 요플래 뒤까지
   { spawn: { type: 'npc', id: SHADOW, sprite: 'janitor_shadow', x: 760, y: 294, facing: 'right', hidden: false, solid: false, wander: 0 } },
   { action: game => { const s = find(game, SHADOW); if (s) { s.x = game.player.x - 330; s.y = game.player.y; } } },
-  { move: SHADOW, px: game => [game.player.x - 44, game.player.y], exact: true, speed: 62, footsteps: true },
+  // 지팡이를 짚은 검은 형체가 천천히(사용자 “걸음 좀만 더 천천히”): 걷기(60)보다 느린 44
+  { move: SHADOW, px: game => [game.player.x - 44, game.player.y], exact: true, speed: 44, footsteps: true },
   { face: SHADOW, dir: 'right' },
   N('거기 너'),
   N('지금 뭐하는 짓 인가'),
@@ -54,8 +55,7 @@ export const torii_janitor = [
   N('영문은 모르겠지만 {c=yellow}청소부가 동료가 되었다{/c}'),
   { join: JANITOR },
   { set: { torii_janitor_joined: true } },
-  // 동료가 된 이후부터의 곡(사용자 RKQUblO-iCs “My Castle Town”). 맵 브금도 storyBgm 이 같은 이름을 돌려줘 다음 맵에서 끊기지 않는다
-  { bgm: 'my_castle_town', fadeIn: 1.2 },
+  // wise_words 는 토리이 길에 그대로 남는다. my_castle_town(RKQUblO-iCs)은 다음 맵부터(storyBgm, 사용자 “그냥 다음 맵부터 나게 해줘”)
   { face: PLAYER, dir: 'right' },
   { label: 'end' },
   { end: true },
