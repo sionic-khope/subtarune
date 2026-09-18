@@ -20,6 +20,7 @@ import { createParkWitchTrial } from './modes/park-witch-trial.js';
 import { createYoungcleCage } from './modes/youngcle-cage.js';
 import { createYoungcleIdea } from './modes/youngcle-idea.js';
 import { createYoungcleFinale, createYoungcleSkip } from './modes/youngcle-finale.js';
+import { createThrowAttack } from './modes/throw.js';
 
 const MODES = { attack: new Map(), enemy: new Map() };
 export const NATIVE = 'native';                          // battle.js 가 직접 처리하는 기본 모드 표시
@@ -36,6 +37,7 @@ export const getBattleMode = (kind, name) => MODES[kind]?.get(name) ?? null;
 export const listBattleModes = () => ({ attack: [...MODES.attack.keys()], enemy: [...MODES.enemy.keys()] });
 
 registerBattleMode('attack', 'rush', NATIVE);
+registerBattleMode('attack', 'throw', createThrowAttack);   // 제자리 던지기(청소부 지팡이, BUILD227)
 registerBattleMode('enemy', 'bullets', NATIVE);
 registerBattleMode('attack', 'timing', createTimingAttack);
 registerBattleMode('attack', 'cannon_guard', createCannonGuard);

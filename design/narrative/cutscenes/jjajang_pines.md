@@ -18,19 +18,20 @@
 
 | 원문 | 구현 | 값 |
 |---|---|---|
-| 풀숲 더 울창하게 | `tiles.js` `"` 타일: rng 풀잎 14~18개 두 겹·variants 3, 공터 8×8 전체 풀숲(가운데 길도 덮임) | |
+| 풀숲 더 울창하게(정정 “겉에 있는 걸 울창하게, 가운데 공간은 놔둬야지”) | `tiles.js` `"` 타일: rng 풀잎 14~18개 두 겹·variants 3. 공터 둘레 한 칸만 풀숲, 가운데 6×6 은 비움 | |
 | 가운데로 가면 브금 끔 → 연출 | 트리거 37~38열×10~11행(once, `pines_center_started`) → `pines_center` 컷신 `{bgm:null}` | |
 | ???: ~~.. 디짐 → 느낌표 → 청소부 대사 | `{speaker:'???', voice:'mystery'}` → `{emote:'!'}` → 청소부 원문 | |
 | 아짐키야 1~4 스프라이트 | gpt-image-2.5-sunburst 춤 시트 4장(사진의 왼쪽 끝·가운데 후드·오른쪽 끝·오른쪽 둘째, `assets/source/ajimkiya-v1`) → 전투 `assets/enemies/ajimkiyaN-dance.png`(2×2 128 셀), 필드 `assets/props/ajimkiyaN-dance.png`(4×1 64 셀 anim) | |
-| 딱 나오면서 “가재맨 애미뒤짐” + 영상 구간 | 공터 네 귀퉁이에 소품 넷 spawn → `sfx ajimkiya_line`(영상 0.0~2.6초, 잠정 구간) + `{speaker:'아짐키야', voice:'none'}` | 구간이 다르면 초만 알려 주면 다시 자름 |
+| 딱 나오면서 “가재맨 애미뒤짐” + 영상 구간(정정 “사람 목소리를 인식하라고”) | 공터 네 귀퉁이에 소품 넷(128px, 요플래의 약 2배) spawn → `sfx ajimkiya_line` = 음성 인식(whisper)으로 찾은 실제 가창 “가재맨 애미 뒤짐” 4.40~6.80초 + `{speaker:'아짐키야', voice:'none'}` | 인식 결과: 가재맨@4.48 애미@5.72 뒤짐@6.10 |
 | 요플래: .. | `N('..')` | |
-| 노래 쭉 + 맵 빙글빙글 + 춤 22초 | `{bgm:'ajimkiya_song'}`(영상 전체 71초) → 새 DSL `{worldSpin:0.9}`(맵 전체가 화면 가운데 축으로 회전, `main.js`) → `{wait:22}` → `{worldSpin:0}` → 전투 | 춤은 소품 anim(6fps) |
+| 노래 쭉 + 맵 빙글빙글 + 춤 22초(정정 “한 바퀴만 돌고 아짐키야 애들이 돌아야지”, “전투 들어갈 때 이펙트·소리”) | `{bgm:'ajimkiya_song'}` → `{worldSpin:1.2, turns:1}`(맵 딱 한 바퀴 약 5.2초 뒤 원위치) → 넷이 제자리에서 회전(`spinRate 5`)하며 춤 → 22초에 `battleEntry`(표준 조우 소리·소용돌이·줌) → 전투 | |
 | 전투 | `{battle:{enemies:[아짐키야1~4], bgm:'jjajang_battle', flag:'pines_ajimkiya_won', memberDamage:{janitor:1}, memberIntro:{janitor:[3줄]}}}` | |
-| 패턴 셋 | `src/battle/ajimkiya-patterns.js`: `ajimkiya_spew`(상자 아래 흰 2톤 네 명이 춤추며 글자를 위로 뿜음), `ajimkiya_rain`(글자 비), `ajimkiya_dance`(흰 2톤 무용수가 상자 안을 출렁이며 가로지름, 몸에 닿으면 피해) | 글자 = ‘가재맨애미뒤짐’ 한 자씩 |
+| 패턴 셋(정정 “너무 어렵잖아 일반몹이라고”) | `src/battle/ajimkiya-patterns.js`: `ajimkiya_spew`(상자 아래 흰 2톤 네 명이 춤추며 0.55초에 한 글자씩 느리게 위로 뿜음), `ajimkiya_rain`(글자 비 0.36초 간격·느림), `ajimkiya_dance`(1.5초에 한 명씩 느리게 가로지름). `soloPattern`: 말풍선을 띄운 한 명만 탄막 | 글자 = ‘가재맨애미뒤짐’ 한 자씩, 판정 반지름 5 |
 | 일반몹 전투 브금(짜장맵부터) | `bgm/jjajang_battle.mp3` = QvoQVCBqegU “Rakuichi Buster”(Toby Fox); `Game.encounterBgm()`: jjajang 맵이면 이 곡 | |
 | 공격 대사 + 사운드 | `lines.speak ['가재맨ㅇㅁ뒤짐~','땡개땡개~ ㅇㅁ뒤짐~']`, `voice:'none'`, `speakSfx:'ajimkiya_line'`(말풍선과 함께 재생) | |
 | 첫 청소부 턴 대사 | `cfg.memberIntro.janitor` — 청소부 첫 차례에 3줄(C 로 넘김) 뒤 메뉴 | 웃음 없음 |
-| 청소부 데미지 1·지팡이 던지기 | `cfg.memberDamage.janitor = 1`, 전투 시트 지팡이판(대기·달리기·지팡이 던지기 공격) 재생성 | |
-| 체력 8씩·10원 | `hp: 8`, money 4+2+2+2 = 10 (`STATE_FROM_FLAGS pines_ajimkiya_won`) | 피해 5 는 미지정(잠정) |
+| 청소부 데미지 1·지팡이 던지기(정정 “달려가서가 아니라 제자리에서”) | `cfg.memberDamage.janitor = 1`, `characters.js janitor.attackMode 'throw'` → 새 공격 모드 `modes/throw.js`(제자리에서 공격 프레임 + 지팡이가 포물선으로 날아가 닿으면 피해). 전투 시트 지팡이판 | |
+| 체력 8씩·10원 | `hp: 8`, money 4+2+2+2 = 10 (`STATE_FROM_FLAGS pines_ajimkiya_won`). 전투 배율 1.05·2×2 배치(정정 “캐릭터 크기 더 키워”) | 피해 5 는 미지정(잠정) |
+| 청소부 체력 100(정정 “100으로 하라고 했잖아”) | `characters.js janitor.noHpBonus` — 앞서 얻은 파티 최대 HP 보너스(+60)를 청소부에겐 안 붙임 → 전투 표시 100 | |
 
 QA `jjajang_pines_center`(공터 직전). 검사: `tests/unit/jjajang-pines-center.test.mjs`, `tests/playtest/jjajang-pines-center.mjs`.

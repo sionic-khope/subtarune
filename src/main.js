@@ -490,7 +490,7 @@ class Game {
   }
 
   /** 최대 HP = 캐릭터 기본 + 버프(hpBonus, 레드·블루 버프 +20 — 청록숲9) */
-  maxHpOf(id) { return (CHARACTERS[id]?.hp ?? 100) + (this.hpBonus || 0); }
+  maxHpOf(id) { return (CHARACTERS[id]?.hp ?? 100) + (CHARACTERS[id]?.noHpBonus ? 0 : (this.hpBonus || 0)); }   // noHpBonus: 청소부(BUILD227)
   /** 현재 HP (전투 밖): partyHp 에 없으면 최대 */
   hpOf(id) { const max = this.maxHpOf(id); return Math.max(0, Math.min(max, this.partyHp[id] ?? max)); }
   /** 메뉴에서 힐템 사용: 인벤토리에서 빼고 partyHp 회복 (2026-09-10) */
@@ -892,7 +892,10 @@ class Game {
     this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt);
     // 컷신 footsteps 오버라이드: 주인공 update 가 대화 중 돌지 않아도 이 구역 걸음 루프를 매 프레임 살려 둔다(BUILD226 “뒤에서 또 다른 걸음소리”)
     if (this.footstepsOverride) this.sound?.walk?.(this.footstepsOverride);
-    if (this.worldSpin?.speed) this.worldSpin.angle += this.worldSpin.speed * dt;   // 컷신 { worldSpin }
+    if (this.worldSpin?.speed) {   // 컷신 { worldSpin, turns }: turns 바퀴를 돌면 멈추고 원위치
+      this.worldSpin.angle += this.worldSpin.speed * dt;
+      if (this.worldSpin.turns && this.worldSpin.angle >= Math.PI * 2 * this.worldSpin.turns) this.worldSpin = null;
+    }
     if (this.hurt > 0) this.hurt -= dt;
     if (this.invuln > 0) this.invuln -= dt;
     for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }

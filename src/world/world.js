@@ -649,6 +649,7 @@ export class Prop extends Entity {
   }
   /** 움직이는 소품: def.oscillate = { dx?, dy?, period, phase? } — 기준 위치에서 사인파로 왕복(움직이는 벽 등). 히트박스와 그림이 같이 움직인다 */
   update(dt) {
+    if (this.spinRate) this.spin = (this.spin || 0) + this.spinRate * dt;   // 제자리 회전(아짐키야 춤, 컷신 action 이 spinRate 를 준다)
     const o = this.def.oscillate; let carrying = !!o;
     if (o) {
       // 흔들림은 '현재 위치 − 직전 흔들림 오프셋'을 기준으로 얹는다 — 고정 기준점을 쓰면 컷신 slide 로 내려오는 동안 매 프레임 제자리로 되돌아가 튀고, 탑승자가 튕겨 나갔다(BUILD205 조종실 철창)

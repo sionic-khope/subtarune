@@ -58,6 +58,9 @@ try {
   check(await until(() => window.game.battle.state === 'menu' && window.game.battle.memberIdx === 1, 4000), '대사 뒤 청소부 메뉴');
   await press('KeyC'); await until(() => window.game.battle.state === 'target', 3000); await press('KeyC');
   check(await until(() => window.game.battle.state === 'act', 4000), '행동 시작');
+  const throwing = await until(() => { const b = window.game.battle; return b.gimmick && b.members[1].pose !== null && b.members[1].pose !== undefined && !b.members[1].action; }, 8000);
+  check(throwing, '청소부는 달려가지 않고 제자리에서 던진다(throw 모드)');
+  await page.waitForTimeout(150); await cap('05b_throw');
   const hpAfter = await until(() => { const b = window.game.battle; return b.enemies.some(e => e.hp < 8) && b.enemies.every(e => e.hp >= 8 - (window.game.attack || 1) - 1); }, 12000);
   const hp = await page.evaluate(() => game.battle.enemies.map(e => e.hp));
   check(hpAfter, '요플래 공격 + 청소부 지팡이 1 이 들어간다 ' + JSON.stringify(hp));
@@ -66,7 +69,7 @@ try {
   check(await until(() => window.game.battle.state === 'bullets' && window.game.battle.bullets.length > 3, 8000), '탄막이 나온다');
   await page.waitForTimeout(900); await cap('06_pattern');
   const pat = await page.evaluate(() => game.battle.patterns.map(p => p.enemy.def.patterns[(p.enemy.patternIdx - 1 + 3) % 3].type));
-  check(pat.length === 4, '네 명이 각각 패턴을 낸다 ' + JSON.stringify(pat));
+  check(pat.length === 1, '말풍선을 띄운 한 명만 패턴을 낸다(일반몹 난이도) ' + JSON.stringify(pat));
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }
 console.log('fails=' + fails); await browser.close(); process.exit(fails ? 1 : 0);

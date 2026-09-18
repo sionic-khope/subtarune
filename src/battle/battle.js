@@ -27,7 +27,7 @@ import { drawMosaicText } from '../ui/text-mosaic.js';
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
 const PARTY_X = 84, PARTY_YS = { 1: [190], 2: [164, 224], 3: [104, 164, 224] };
-const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244], 4: [120, 236, 120, 236] };   // 4명은 2×2(아짐키야, def.dx 로 좌우 열을 벌린다, BUILD227)   // 큰 보스는 def.dx/dy 로 자리 보정(레드·블루: 위·아래로 엇갈리게)
+const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244], 4: [110, 246, 110, 246] };   // 4명은 2×2(아짐키야, def.dx 로 좌우 열을 벌린다, BUILD227)   // 큰 보스는 def.dx/dy 로 자리 보정(레드·블루: 위·아래로 엇갈리게)
 const ACTOR_SCALE = 0.66;            // 미리보기(0.25) 대비 (사용자 요청으로 10% 확대)
 const APPROACH_SPEED = 820, RETURN_SPEED = 700;   // px/s — "생각보다 빠르게"
 const ATTACK_SPEEDUP = 1.35;         // 공격 모션 재생 배속
@@ -90,7 +90,7 @@ export class Battle {
     this.members = ids.map((id, i) => {
       const ch = CHARACTERS[id]; const max = game.maxHpOf ? game.maxHpOf(id) : (ch.hp ?? 100);   // 최대 HP = 기본 + 버프(레드·블루 버프 +20, game.hpBonus)
       const name = i === 0 && game.has?.('void_fallen') ? '요플래' : (ch.partyName || ch.name);
-      return { id, name, maxHp: max, hp: Math.max(1, Math.min(max, game.partyHp?.[id] ?? max)), home: [PARTY_X, ys[i]], frames: null, action: null, popup: null, down: false, downTurns: 0 };
+      return { id, name, maxHp: max, hp: Math.max(1, Math.min(max, game.partyHp?.[id] ?? max)), home: [PARTY_X, ys[i]], frames: null, action: null, popup: null, down: false, downTurns: 0, attackMode: CHARACTERS[id]?.attackMode };   // attackMode: 동료별 공격 방식(청소부 throw)
     });
     const eys = ENEMY_YS[cfg.enemies.length] || ENEMY_YS[3];
     this.enemies = cfg.enemies.map((id, i) => { const def = ENEMIES[id]; return { id, def, name: def.name, hp: def.hp, maxHp: def.hp, x: ENEMY_X + (def.dx || 0), y: eys[i] + (def.dy || 0), img: null, dead: false, dying: 0, shake: 0, blink: 0, popup: null, patternIdx: 0, animationTime: 0 }; });
@@ -358,7 +358,9 @@ export class Battle {
   }
   beginBullets() {
     this.clearPatternPresentation();
+    const solo = this.bubble?.enemy;   // def.soloPattern: 말풍선을 띄운 적만 탄막을 낸다(아짐키야 넷이 동시에 쏘면 너무 어렵다, BUILD227)
     this.patterns = this.living().map((e) => {
+      if (e.def.soloPattern && solo && e !== solo) return null;
       const enraged = !!e.def.enragedPatterns?.length && e.hp / e.maxHp <= e.def.enragedAt;
       if (enraged !== !!e.enraged) e.patternIdx = 0;
       e.enraged = enraged;

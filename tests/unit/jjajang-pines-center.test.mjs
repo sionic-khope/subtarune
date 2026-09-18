@@ -12,9 +12,10 @@ import { getTile } from '../../src/world/tiles.js';
 
 const map = JSON.parse(readFileSync(new URL('../../assets/maps/jjajang_pines.json', import.meta.url), 'utf8'));
 
-test('test_pines_plaza_is_all_thicket_with_centre_trigger', () => {
+test('test_pines_plaza_rim_is_thicket_with_centre_trigger', () => {
   const [c0, c1, r0, r1] = map.meta.plaza;
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) assert.equal(map.rows[r][c], '"', `plaza ${c},${r}`);
+  for (let c = c0; c <= c1; c++) { assert.equal(map.rows[r0][c], '"'); assert.equal(map.rows[r1][c], '"'); }
+  for (let r = r0 + 1; r < r1; r++) for (let c = c0 + 1; c < c1; c++) assert.equal(map.rows[r][c], '$', `centre ${c},${r} 비움`);
   assert.equal(getTile('"').variants, 3, '풀숲은 칸마다 다른 모양');
   const trigger = map.entities.find(e => e.type === 'trigger');
   assert.deepEqual({ script: trigger.script, once: trigger.once, flag: trigger.flag, unless: trigger.unless }, { script: 'pines_center', once: true, flag: 'pines_center_started', unless: 'pines_ajimkiya_won' });
@@ -28,11 +29,15 @@ test('test_pines_center_script_order', () => {
   const bang = idx(n => n.emote === 'player' && n.kind === '!'), janitor = idx(n => n.speaker === '청소부' && n.text.includes('허허 이게 무슨소린가.'));
   const spawns = pines_center.map((n, i) => (n.spawn && AJIMKIYA.includes(n.spawn.id) ? i : -1)).filter(i => i >= 0);
   const clip = idx(n => n.sfx === 'ajimkiya_line'), line = idx(n => n.speaker === '아짐키야' && n.text === '* 가재맨 애미뒤짐' && n.voice === 'none');
-  const dots = idx(n => n.text === '* ..' && !n.speaker), song = idx(n => n.bgm === 'ajimkiya_song'), spinOn = idx(n => n.worldSpin === 0.9);
-  const wait = idx(n => n.wait === 22), spinOff = idx(n => n.worldSpin === 0), battle = idx(n => n.battle);
-  assert.ok(bgmOff >= 0 && bgmOff < who && who < bang && bang < janitor && janitor < spawns[0] && spawns[3] < clip && clip < line && line < dots && dots < song && song < spinOn && spinOn < wait && wait < spinOff && spinOff < battle, '순서');
+  const dots = idx(n => n.text === '* ..' && !n.speaker), song = idx(n => n.bgm === 'ajimkiya_song'), spinOn = idx(n => n.worldSpin === 1.2 && n.turns === 1);
+  const dancersSpin = idx(n => String(n.action).includes('spinRate = 5')), entry = idx(n => n.sfx === 'battle_start'), battle = idx(n => n.battle);
+  const waits = pines_center.filter(n => typeof n.wait === 'number' && pines_center.indexOf(n) > song).reduce((sum, n) => sum + n.wait, 0);
+  assert.ok(bgmOff >= 0 && bgmOff < who && who < bang && bang < janitor && janitor < spawns[0] && spawns[3] < clip && clip < line && line < dots && dots < song && song < spinOn && spinOn < dancersSpin && dancersSpin < entry && entry < battle, '순서');
+  assert.ok(Math.abs(waits - 22) < 0.5, '노래는 22초 뒤 전투(사용자)');
+  assert.ok(entry > 0, '전투 진입 이펙트·소리(battleEntry)');
   assert.equal(spawns.length, 4);
   assert.ok(pines_center[spawns[0]].spawn.anim.cols === 4 && pines_center[spawns[0]].spawn.image.includes('ajimkiya1-dance'), '춤추는 소품');
+  assert.equal(pines_center[spawns[0]].spawn.y - pines_center[spawns[0]].spawn.iy, 118, '128px 그림(요플래의 약 2배)');
   const b = pines_center[battle].battle;
   assert.deepEqual(b.enemies, AJIMKIYA); assert.equal(b.bgm, 'jjajang_battle'); assert.equal(b.flag, 'pines_ajimkiya_won');
   assert.deepEqual(b.memberDamage, { janitor: 1 });
@@ -49,8 +54,9 @@ test('test_ajimkiya_enemies_hp8_money10_patterns_lines_clip', () => {
     assert.equal(e.hp, 8); money += e.money;
     assert.deepEqual(e.patterns.map(p => p.type), ['ajimkiya_spew', 'ajimkiya_rain', 'ajimkiya_dance']);
     assert.deepEqual(e.lines.speak, ['가재맨ㅇㅁ뒤짐~', '땡개땡개~ ㅇㅁ뒤짐~']);
-    assert.equal(e.lines.speakSfx, 'ajimkiya_line'); assert.equal(e.voice, 'none');
+    assert.equal(e.lines.speakSfx, 'ajimkiya_line'); assert.equal(e.voice, 'none'); assert.equal(e.soloPattern, true, '말한 한 명만 탄막');
     assert.ok(e.sheet.src === `assets/enemies/${id}-dance.png` && e.sheet.count === 4);
+    assert.ok(e.scale >= 1, '전투 스프라이트 크게(사용자 “캐릭터 크기 더 키워”)');
     assert.deepEqual(Object.keys(e.projectiles), ['d1', 'd2', 'd3', 'd4']);
   }
   assert.equal(money, 10, '이기면 10원');
@@ -65,11 +71,11 @@ test('test_ajimkiya_patterns_emit_glyph_bullets_and_dancers', () => {
   const spew = run('ajimkiya_spew', 3);
   assert.ok(spew.some(b => b.harmless && b.life > 5), '상자 아래 무용수 무대(무해)');
   const glyphs = spew.filter(b => !b.harmless);
-  assert.ok(glyphs.length >= 8 && glyphs.every(b => b.vy < 0 && b.y > box.y + box.h && typeof b.drawShape === 'function'), '글자가 아래에서 위로 뿜어진다');
+  assert.ok(glyphs.length >= 3 && glyphs.length <= 6 && glyphs.every(b => b.vy < 0 && b.y > box.y + box.h && typeof b.drawShape === 'function'), '글자가 아래에서 위로 드문드문 뿜어진다(일반몹 난이도)');
   const rain = run('ajimkiya_rain', 2);
-  assert.ok(rain.length >= 10 && rain.every(b => b.vy > 0 && b.y < box.y), '글자 비');
-  const dance = run('ajimkiya_dance', 3);
-  assert.ok(dance.length >= 3 && dance.every(b => typeof b.steer === 'function' && typeof b.hitShape === 'function' && Math.abs(b.vx) > 0), '무용수가 가로지른다');
+  assert.ok(rain.length >= 4 && rain.length <= 8 && rain.every(b => b.vy > 0 && b.y < box.y), '글자 비(일반몹 난이도)');
+  const dance = run('ajimkiya_dance', 4.5);
+  assert.ok(dance.length >= 2 && dance.length <= 4 && dance.every(b => typeof b.steer === 'function' && typeof b.hitShape === 'function' && Math.abs(b.vx) > 0), '무용수가 드문드문 가로지른다(일반몹 난이도)');
 });
 
 test('test_pines_center_bgm_rules_and_qa', () => {
