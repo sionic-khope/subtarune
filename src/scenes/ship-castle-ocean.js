@@ -11,31 +11,81 @@ const rectAt = (cx, cy, width, image) => ({
   height: Math.round(width * ratio(image)),
 });
 
-/** One continuous camera push from the fleet's right window to the airborne pair. */
+/** The pair climbs on its own; the camera then pushes the WHOLE ocean frame in around them.
+    Their sprite scale barely changes — everything else swells and drifts down past the frame. */
 export const shipCastleAscent = scene => {
-  const { timing } = scene.config;
-  const { ocean } = scene.config;
+  const { timing, ocean, sky } = scene.config;
   const rising = scene.beat === 'ocean_rise';
   const progress = rising ? smooth(clamp(scene.elapsed / timing.oceanRise)) : 1;
-  const zoom = rising ? smooth(clamp((scene.pushTime || 0) / timing.oceanPush)) : 1;
+  const zoom = rising ? Math.pow(clamp((scene.pushTime || 0) / timing.oceanPush), 1.9) : 1;
+  if (!rising) {
+    return {
+      progress, zoom,
+      x: 242,
+      bottom: ocean.skyBottom,
+      scale: sky.actorScale,
+      horizon: ocean.nearHorizon + 440,
+      camera: 1,
+      focusY: ocean.skyBottom - ocean.focusLift,
+    };
+  }
   const [riseX, riseY] = ocean.riseFrom;
-  const lifted = riseY - progress * (riseY - ocean.riseTop);
+  const bottom = riseY - progress * (riseY - ocean.riseTop);
   return {
     progress, zoom,
-    x: riseX + (242 - riseX) * zoom,
-    bottom: lifted + (ocean.skyBottom - lifted) * zoom,
-    scale: 0.08 + progress * 0.06 + zoom * (scene.config.sky.actorScale - 0.14),
-    horizon: ocean.nearHorizon + zoom * 440,
+    x: riseX,
+    bottom,
+    scale: ocean.dotScale + progress * ocean.dotGrow,
+    horizon: ocean.nearHorizon,
+    camera: 1 + zoom * (ocean.cameraZoom - 1),
+    focusY: bottom - ocean.focusLift,
   };
 };
 
-/** Punchy scale-in: the castle settles, shrinks, swells, then the burst holds its final size. */
-const castlePulse = (ocean, reveal) => {
-  if (reveal >= 0.8) return 1;
-  if (reveal < 0.08) return 0.94;
-  if (reveal < 0.3) return 0.94 + (ocean.castleShrink - 0.94) * smooth((reveal - 0.08) / 0.22);
-  if (reveal < ocean.castlePopAt) return ocean.castleShrink + (ocean.castleGrow - ocean.castleShrink) * smooth((reveal - 0.3) / (ocean.castlePopAt - 0.3));
-  return ocean.castleGrow + (1 - ocean.castleGrow) * smooth((reveal - ocean.castlePopAt) / (0.8 - ocean.castlePopAt));
+/** Camera transform applied to a whole full-frame beat: scale everything about one point. */
+export const shipCastleCamera = scene => {
+  if (scene.beat === 'yoplait_fall') {
+    const { fallZoom: peak, flyTo } = scene.config.ocean;
+    return {
+      z: 1 + smooth(clamp(scene.elapsed / scene.config.timing.fall / 0.34)) * (peak - 1),
+      x: flyTo[0] + 6,
+      y: flyTo[1] + 56,
+    };
+  }
+  if (scene.beat === 'ocean_rise') {
+    const ascent = shipCastleAscent(scene);
+    const { ocean, sky } = scene.config;
+    return {
+      z: ascent.camera,
+      x: ascent.x,
+      y: ascent.focusY,
+      panX: (242 - ascent.x) * ascent.zoom,
+      panY: (ocean.skyBottom - 5 - ascent.bottom) * ascent.zoom,
+      ink: ascent.scale / sky.actorScale,
+    };
+  }
+  return null;
+};
+
+/** Gather to a point, grow out of it slowly, swell and burst, then drop onto the water. */
+export const castlePhase = (ocean, reveal) => {
+  const { castleSeed, castleShrink, castleGrow, castleGatherAt, castleEmergeAt, castleDropAt, castleLandAt, castleHover } = ocean;
+  if (reveal <= castleGatherAt) {
+    return { gather: clamp(reveal / castleGatherAt), scale: castleSeed, lift: castleHover, drop: 0, landed: false };
+  }
+  if (reveal <= castleEmergeAt) {
+    const grow = smooth((reveal - castleGatherAt) / (castleEmergeAt - castleGatherAt));
+    return { gather: 1, scale: castleSeed + grow * (castleShrink - castleSeed), lift: castleHover, drop: 0, landed: false };
+  }
+  if (reveal <= castleDropAt) {
+    return { gather: 1, scale: castleShrink, lift: castleHover, drop: 0, landed: false };
+  }
+  if (reveal <= castleLandAt) {
+    const drop = clamp((reveal - castleDropAt) / (castleLandAt - castleDropAt));
+    return { gather: 1, scale: castleShrink + (1 - castleShrink) * drop, lift: castleHover * (1 - drop * drop), drop, landed: false };
+  }
+  const settle = clamp((reveal - castleLandAt) / (1 - castleLandAt));
+  return { gather: 1, scale: 1 + Math.sin(settle * Math.PI) * (castleGrow - 1), lift: 0, drop: 1, landed: true };
 };
 
 /** Project castle and connected ships through one scale for rendering and QA. */
@@ -48,22 +98,38 @@ export const shipCastleGeometry = scene => {
   if (!wide) {
     const ascent = shipCastleAscent(scene);
     const scale = config.ocean.nearScale;
-    const maillard = rectAt(config.ocean.nearMaillard[0], config.ocean.nearMaillard[1] + ascent.zoom * 440, config.ocean.maillardWidth * scale, images.maillard);
-    const warship = rectAt(config.ocean.nearWarship[0], config.ocean.nearWarship[1] + ascent.zoom * 440, config.ocean.warshipWidth * scale, images.warship);
-    return { wide, scale, castle: null, maillard, warship, hop, retreat: 0, ascent };
+    const maillard = rectAt(config.ocean.nearMaillard[0], config.ocean.nearMaillard[1], config.ocean.maillardWidth * scale, images.maillard);
+    const warship = rectAt(config.ocean.nearWarship[0], config.ocean.nearWarship[1], config.ocean.warshipWidth * scale, images.warship);
+    const projectY = value => ascent.focusY + (value - ascent.focusY) * ascent.camera;
+    const screen = {
+      zoom: ascent.camera,
+      horizon: projectY(ascent.horizon),
+      warshipBottom: projectY(warship.y + warship.height),
+      maillardBottom: projectY(maillard.y + maillard.height),
+      pairScale: ascent.scale * ascent.camera,
+    };
+    return { wide, scale, castle: null, maillard, warship, hop, retreat: 0, ascent, screen };
   }
   const scale = config.ocean.castleProjectionWidth / config.ocean.castleWidth;
-  const reveal = beat === 'castle_reveal' ? smooth(elapsed / config.timing.castleReveal) : 1;
-  const pulse = castlePulse(config.ocean, reveal);
+  const reveal = beat === 'castle_reveal' ? clamp(elapsed / config.timing.castleReveal) : 1;
+  const phase = castlePhase(config.ocean, reveal);
+  const landedAt = config.timing.castleReveal * config.ocean.castleLandAt;
+  const wave = beat === 'castle_reveal' ? clamp((elapsed - landedAt) / config.ocean.castleWaveSpan) : 1;
+  const swell = wave > 0 && wave < 1 ? Math.sin(wave * Math.PI * 3.4) * 7 * (1 - wave) : 0;
   const retreat = beat === 'retreat'
-    ? smooth(elapsed / config.timing.retreat) * 58
-    : beat === 'final_hold' ? 58 : 0;
+    ? Math.pow(clamp(elapsed / config.timing.retreat), 1.7) * config.ocean.retreatDistance
+    : beat === 'final_hold' ? config.ocean.retreatDistance : 0;
   const centerX = 240;
-  const castleWidth = config.ocean.castleWidth * scale * pulse;
-  const castle = rectAt(centerX, config.ocean.waterline - castleWidth * ratio(images.castle) / 2, castleWidth, images.castle);
-  const warship = rectAt(centerX + 290 * scale - retreat, 212 - hop, config.ocean.warshipWidth * scale, images.warship);
-  const maillard = rectAt(centerX - 150 * scale - retreat, 220 - hop, config.ocean.maillardWidth * scale, images.maillard);
-  return { wide, scale, castle, maillard, warship, hop, retreat, pulse };
+  const castleWidth = config.ocean.castleWidth * scale * phase.scale;
+  const seedY = config.ocean.waterline - config.ocean.castleHover - config.ocean.castleSeedLift;
+  const settledY = config.ocean.waterline - phase.lift - castleWidth * ratio(images.castle) / 2;
+  const anchor = beat === 'castle_reveal' && reveal <= config.ocean.castleEmergeAt
+    ? smooth(clamp((reveal - config.ocean.castleGatherAt) / (config.ocean.castleEmergeAt - config.ocean.castleGatherAt)))
+    : 1;
+  const castle = rectAt(centerX, seedY + (settledY - seedY) * anchor, castleWidth, images.castle);
+  const warship = rectAt(centerX + 290 * scale - retreat, 212 - hop + swell, config.ocean.warshipWidth * scale, images.warship);
+  const maillard = rectAt(centerX - 150 * scale - retreat, 220 - hop - swell, config.ocean.maillardWidth * scale, images.maillard);
+  return { wide, scale, castle, maillard, warship, hop, retreat, pulse: phase.scale, phase, wave, reveal };
 };
 
 const bridge = geometry => {
@@ -103,7 +169,31 @@ const drawShip = (ctx, scene, image, rect, flip = false) => {
   ctx.fillRect(Math.round(rect.x + rect.width * 0.2), Math.round(rect.y + rect.height * 0.92), Math.round(rect.width * 0.58), 1);
 };
 
+/** Hard wake and funnel smoke while the linked pair runs from the beams. */
+const drawFleeWake = (ctx, scene, rect, strength) => {
+  if (strength <= 0) return;
+  ctx.save();
+  for (let i = 0; i < 9; i++) {
+    const age = (scene.sailTime * 1.5 + i / 9) % 1;
+    ctx.globalAlpha = (1 - age) * 0.8 * strength;
+    ctx.fillStyle = i % 3 ? '#ffffff' : '#bfe9f5';
+    ctx.fillRect(Math.round(rect.x + rect.width + age * 64), Math.round(rect.y + rect.height * (0.62 + i % 4 * 0.12)), Math.round(12 + age * 26), 2);
+  }
+  for (let i = 0; i < 7; i++) {
+    const age = (scene.sailTime * 0.9 + i / 7) % 1;
+    ctx.globalAlpha = (1 - age) * 0.5 * strength;
+    ctx.fillStyle = i % 2 ? '#5b6672' : '#8d98a4';
+    const size = Math.max(1, Math.round(5 - age * 3));
+    ctx.fillRect(Math.round(rect.x + rect.width * 0.62 + age * 30), Math.round(rect.y - 4 - age * 22), size, size);
+  }
+  ctx.restore();
+};
+
 const drawOceanShips = (ctx, scene, geometry) => {
+  const fleeing = ['retreat', 'final_hold'].includes(scene.beat)
+    ? (scene.beat === 'final_hold' ? 1 : clamp(scene.elapsed / scene.config.timing.retreat * 2)) : 0;
+  drawFleeWake(ctx, scene, geometry.warship, fleeing);
+  drawFleeWake(ctx, scene, geometry.maillard, fleeing);
   drawShip(ctx, scene, scene.images.warship, geometry.warship, true);
   drawShip(ctx, scene, scene.images.maillard, geometry.maillard);
   drawBridge(ctx, geometry, Math.max(2, Math.round(scene.config.ocean.bridgeWidth * geometry.scale)));
@@ -120,17 +210,39 @@ const drawCharacter = (ctx, sprite, x, bottom, direction, scale, rotation = 0) =
   ctx.restore();
 };
 
-const drawCord = (ctx, scene, from, to) => {
+const drawCord = (ctx, scene, from, to, unit = 1) => {
   const image = scene.images.cord;
   const dx = to[0] - from[0], dy = to[1] - from[1], length = Math.hypot(dx, dy);
+  const thickness = Math.max(1, 12 * unit);
   ctx.save();
   ctx.translate(from[0], from[1]); ctx.rotate(Math.atan2(dy, dx));
-  if (image) ctx.drawImage(image, 0, -6, length, 12);
-  else { ctx.strokeStyle = '#bd62ff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(length, 0); ctx.stroke(); }
+  if (image) ctx.drawImage(image, 0, -thickness / 2, length, thickness);
+  else { ctx.strokeStyle = '#bd62ff'; ctx.lineWidth = Math.max(1, 5 * unit); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(length, 0); ctx.stroke(); }
   ctx.restore();
 };
 
 const SKY_BEATS = ['sky_tug', 'sky_opposite_aura', 'vortex_gather', 'vortex_burst'];
+
+/** Foreground clouds that sweep down past the camera while it climbs, bridging into the close-up. */
+const drawRiseClouds = (ctx, scene, strength) => {
+  if (strength <= 0) return;
+  ctx.save();
+  for (let i = 0; i < 6; i++) {
+    const y = ((i * 97 + scene.airTime * (96 + i % 3 * 42)) % 500) - 84;
+    const x = (i * 179) % 580 - 82;
+    ctx.globalAlpha = 0.66 * strength;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x, Math.round(y), 88 + i % 3 * 34, 14);
+    ctx.fillRect(x + 22, Math.round(y - 12), 46 + i % 3 * 20, 15);
+  }
+  ctx.fillStyle = '#eaf7ff';
+  for (let i = 0; i < 12; i++) {
+    const y = ((i * 61 + scene.airTime * 214) % 450) - 48;
+    ctx.globalAlpha = 0.34 * strength;
+    ctx.fillRect((i * 149) % 470, Math.round(y), 1, 12 + i % 3 * 7);
+  }
+  ctx.restore();
+};
 
 const drawSky = (ctx, scene) => {
   const sky = ctx.createLinearGradient(0, 0, 0, SCREEN_H);
@@ -180,14 +292,97 @@ const drawSea = (ctx, scene, horizon) => {
   ctx.restore();
 };
 
-const drawAura = (ctx, x, y, colors, time, radius = 38) => {
+const drawAura = (ctx, x, y, colors, time, radius = 38, unit = 1) => {
   ctx.save();
   for (let i = 0; i < 20; i++) {
     const angle = i * 2.4 + time * (i % 2 ? 1 : -1);
     const length = radius * (0.5 + ((i * 17) % 10) / 10);
     ctx.globalAlpha = 0.45 + i % 3 * 0.12;
     ctx.fillStyle = colors[i % colors.length];
-    ctx.fillRect(Math.round(x + Math.cos(angle) * length), Math.round(y + Math.sin(angle) * length), 3 + i % 3, 3 + i % 2);
+    ctx.fillRect(Math.round(x + Math.cos(angle) * length), Math.round(y + Math.sin(angle) * length),
+      Math.max(1, Math.round((3 + i % 3) * unit)), Math.max(1, Math.round((3 + i % 2) * unit)));
+  }
+  ctx.restore();
+};
+
+/** Gajaeman side: heavy black gas plumes, a dark haze and purple sparks curling around him. */
+const drawDarkAura = (ctx, x, y, scene, power, unit) => {
+  if (power <= 0) return;
+  const u = Math.max(0.12, unit);
+  const time = scene.time;
+  ctx.save();
+  const haze = ctx.createRadialGradient(x, y, 3 * u, x, y, 74 * u);
+  haze.addColorStop(0, `rgba(10,2,18,${0.62 * power})`);
+  haze.addColorStop(0.55, `rgba(28,8,44,${0.34 * power})`);
+  haze.addColorStop(1, 'rgba(28,8,44,0)');
+  ctx.fillStyle = haze;
+  ctx.fillRect(x - 80 * u, y - 80 * u, 160 * u, 160 * u);
+  for (let i = 0; i < 22; i++) {
+    const age = (time * 0.55 + i / 22) % 1;
+    const angle = i * 2.399 + time * 0.6;
+    const reach = (13 + age * 64) * u;
+    const size = Math.max(1, Math.round((16 - age * 9) * u * (0.7 + power * 0.5)));
+    const px = Math.round(x + Math.cos(angle) * reach);
+    const py = Math.round(y + Math.sin(angle) * reach * 0.82 - age * 20 * u);
+    ctx.globalAlpha = (0.78 - age * 0.6) * power;
+    ctx.fillStyle = i % 3 ? '#07030d' : '#241036';
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = i % 2 ? '#3d1458' : '#150720';
+    ctx.fillRect(px + Math.round(size * 0.4), py - Math.round(size * 0.35), Math.max(1, Math.round(size * 0.6)), Math.max(1, Math.round(size * 0.6)));
+  }
+  for (let i = 0; i < 18; i++) {
+    const angle = i * 1.7 - time * 2.1;
+    const reach = (18 + (i % 5) * 11) * u;
+    ctx.globalAlpha = (0.5 + i % 3 * 0.16) * power;
+    ctx.fillStyle = i % 4 ? '#b558ff' : '#e9b6ff';
+    ctx.fillRect(Math.round(x + Math.cos(angle) * reach), Math.round(y + Math.sin(angle) * reach * 0.86),
+      Math.max(1, Math.round(3 * u)), Math.max(1, Math.round(3 * u)));
+  }
+  ctx.restore();
+};
+
+/** Yoplait side: white-gold core glow, radiating shafts, rising sparks and a pulsing ring. */
+const drawLightAura = (ctx, x, y, scene, power, unit) => {
+  if (power <= 0) return;
+  const u = Math.max(0.12, unit);
+  const time = scene.time;
+  const pulse = 0.72 + Math.abs(Math.sin(time * 3.2)) * 0.28;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const glow = ctx.createRadialGradient(x, y, 2 * u, x, y, 88 * u * pulse);
+  glow.addColorStop(0, `rgba(255,255,255,${0.9 * power})`);
+  glow.addColorStop(0.35, `rgba(255,232,150,${0.5 * power})`);
+  glow.addColorStop(1, 'rgba(255,232,150,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(x - 98 * u, y - 98 * u, 196 * u, 196 * u);
+  ctx.restore();
+  ctx.save();
+  for (let i = 0; i < 16; i++) {
+    const angle = i * (Math.PI * 2 / 16) + time * 0.9;
+    const inner = 12 * u;
+    const outer = (48 + ((i * 13) % 9) * 8) * u * pulse;
+    ctx.globalAlpha = (0.32 + i % 3 * 0.2) * power;
+    ctx.strokeStyle = i % 3 ? '#fff6cf' : '#ffffff';
+    ctx.lineWidth = Math.max(1, (i % 2 ? 3 : 2) * u);
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(angle) * inner, y + Math.sin(angle) * inner);
+    ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 0.66 * power;
+  ctx.strokeStyle = '#ffeaa0';
+  ctx.lineWidth = Math.max(1, 2 * u);
+  ctx.beginPath();
+  ctx.arc(x, y, (30 + pulse * 20) * u, 0, Math.PI * 2);
+  ctx.stroke();
+  for (let i = 0; i < 20; i++) {
+    const age = (time * 0.85 + i / 20) % 1;
+    const sway = Math.sin(time * 2 + i) * 7 * u;
+    ctx.globalAlpha = (1 - age) * power;
+    ctx.fillStyle = i % 3 ? '#ffffff' : '#ffe06a';
+    ctx.fillRect(Math.round(x + Math.cos(i * 2.1) * (10 + i % 6 * 8) * u + sway),
+      Math.round(y + (26 - age * 74) * u),
+      Math.max(1, Math.round(2 * u)), Math.max(1, Math.round((3 + i % 2 * 2) * u)));
   }
   ctx.restore();
 };
@@ -252,6 +447,19 @@ const drawFlyAcross = (ctx, scene, progress, scale) => {
 const drawSkyActors = (ctx, scene) => {
   const rising = scene.beat === 'ocean_rise';
   const ascent = shipCastleAscent(scene);
+  const ink = ascent.scale / scene.config.sky.actorScale;
+  const clash = ['sky_opposite_aura', 'vortex_gather', 'vortex_burst'].includes(scene.beat);
+  const power = scene.beat === 'sky_opposite_aura'
+    ? smooth(scene.elapsed / scene.config.timing.oppositeAura)
+    : clash ? 1 : 0;
+  const flare = 0.74 + Math.abs(Math.sin(scene.time * 3.2)) * 0.26;
+  if (clash) {
+    ctx.save();
+    ctx.globalAlpha = 0.34 * power;
+    ctx.fillStyle = '#0a1226';
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.restore();
+  }
   const burst = scene.beat === 'vortex_burst' ? smooth(scene.elapsed / scene.config.timing.vortexBurst) : 0;
   const tug = burst || rising ? 0 : Math.sin(scene.time * 3.2) * 4;
   const spread = 53 * ascent.scale / scene.config.sky.actorScale;
@@ -268,9 +476,13 @@ const drawSkyActors = (ctx, scene) => {
   const gripScale = actorScale / 1.75;
   const gajaemanGrip = [gx + gajaemanGripX * gripScale, gy + gajaemanGripY * gripScale];
   const yoplaitGrip = [yx + yoplaitGripX * gripScale, yy + yoplaitGripY * gripScale];
+  drawDarkAura(ctx, gx, gy - 26 * actorScale, scene, rising ? 0.55 : power * flare, ink * (rising ? 1.5 : flare));
   drawVortex(ctx, scene, gx, gy - 25);
-  drawAura(ctx, gx, gy - 25 * actorScale, ['#1b071f', '#6f258d', '#d677ff'], scene.time, rising ? 4 + ascent.zoom * 28 : scene.beat === 'vortex_gather' ? 40 + smooth(scene.elapsed / scene.config.timing.vortexGather) * 48 : 32);
-  if (['sky_opposite_aura', 'vortex_gather', 'vortex_burst'].includes(scene.beat)) drawAura(ctx, yx, yy - 25, ['#ffe35d', '#63e8ff', '#ffffff'], -scene.time, 45);
+  if (!rising) {
+    drawAura(ctx, gx, gy - 25 * actorScale, ['#1b071f', '#6f258d', '#d677ff'], scene.time,
+      scene.beat === 'vortex_gather' ? 40 + smooth(scene.elapsed / scene.config.timing.vortexGather) * 48 : 32, ink);
+  }
+  if (clash && hurl <= 0) drawLightAura(ctx, yx, yy - 26 * actorScale, scene, power * flare, ink * flare);
   drawCharacter(ctx, scene.actors.gajaeman, gx, gy, 'right', gajaemanScale, burst ? 0 : tug * 0.006);
   if (hurl > 0) {
     ctx.save();
@@ -288,15 +500,87 @@ const drawSkyActors = (ctx, scene) => {
     ctx.restore();
   }
   drawCharacter(ctx, scene.actors.yoplait, yx, yy, 'left', actorScale, hurl * Math.PI * 7 - (burst ? 0 : tug * 0.006));
-  if (!rising || ascent.zoom > 0.45) drawCord(ctx, scene, gajaemanGrip, burst ? [gajaemanGrip[0] + 34, gajaemanGrip[1] + 3] : yoplaitGrip);
+  if (!rising || ascent.zoom > 0.45) drawCord(ctx, scene, gajaemanGrip, burst ? [gajaemanGrip[0] + 34 * ink, gajaemanGrip[1] + 3] : yoplaitGrip, ink);
+};
+
+/** Power streaming inward to one bright point before anything of the castle exists. */
+const drawGatherPoint = (ctx, scene, x, y, gather, fade = 1) => {
+  if (gather <= 0 || fade <= 0) return;
+  const pull = Math.max(0, 1 - gather);
+  ctx.save();
+  const glow = ctx.createRadialGradient(x, y, 1, x, y, 12 + gather * 48);
+  glow.addColorStop(0, `rgba(255,238,255,${(0.45 + gather * 0.55) * fade})`);
+  glow.addColorStop(0.4, `rgba(190,80,255,${0.44 * gather * fade})`);
+  glow.addColorStop(1, 'rgba(120,30,190,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(x - 80, y - 80, 160, 160);
+  for (let index = 0; index < 44; index++) {
+    const angle = index * 2.399 + scene.time * 0.8;
+    const span = (16 + index % 9 * 15) * (0.22 + pull * 1.3);
+    const streak = Math.max(1, Math.round(3 + pull * 8));
+    ctx.globalAlpha = (0.34 + gather * 0.5) * fade;
+    ctx.fillStyle = index % 3 ? '#c46cff' : '#f3d8ff';
+    ctx.fillRect(Math.round(x + Math.cos(angle) * span), Math.round(y + Math.sin(angle) * span * 0.82), streak, 2);
+  }
+  ctx.globalAlpha = fade;
+  ctx.fillStyle = '#ffffff';
+  const core = Math.max(2, Math.round(2 + gather * 7));
+  ctx.fillRect(Math.round(x - core / 2), Math.round(y - core / 2), core, core);
+  ctx.restore();
+};
+
+/** Landing shock: crests rolling out both ways along the waterline plus a spray curtain. */
+const drawLandingWaves = (ctx, scene, geometry) => {
+  const age = geometry.wave;
+  if (age <= 0 || age >= 1) return;
+  const { waterline } = scene.config.ocean;
+  const baseX = geometry.castle.x + geometry.castle.width / 2;
+  const foot = geometry.castle.width * 0.34;
+  ctx.save();
+  for (let side = -1; side <= 1; side += 2) {
+    for (let ring = 0; ring < 4; ring++) {
+      const local = age - ring * 0.11;
+      if (local <= 0) continue;
+      const x = baseX + side * (foot + local * 330);
+      const height = Math.max(1, Math.round((17 - ring * 3) * (1 - local)));
+      ctx.globalAlpha = (1 - local) * 0.85;
+      ctx.fillStyle = ring % 2 ? '#dff6ff' : '#9fd8e8';
+      ctx.fillRect(Math.round(x - 27), Math.round(waterline + 3 + ring * 4 - height), 54, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(Math.round(x - 15), Math.round(waterline + 1 + ring * 4 - height), 30, 2);
+    }
+  }
+  for (let index = 0; index < 36; index++) {
+    const side = index % 2 ? 1 : -1;
+    const reach = (16 + index % 8 * 17) * age * 2.4;
+    const lift = Math.sin(age * Math.PI) * (44 + index % 6 * 19) - age * age * 44;
+    ctx.globalAlpha = 1 - age;
+    ctx.fillStyle = index % 3 ? '#ffffff' : '#cdefff';
+    ctx.fillRect(Math.round(baseX + side * (foot * 0.9 + reach)), Math.round(waterline - lift), 2, 4);
+  }
+  ctx.restore();
 };
 
 const drawCastle = (ctx, scene, geometry) => {
   const rect = geometry.castle;
-  const reveal = scene.beat === 'castle_reveal'
-    ? smooth(scene.elapsed / scene.config.timing.castleReveal) : 1;
+  const reveal = geometry.reveal;
+  const phase = geometry.phase;
+  const pointX = rect.x + rect.width * 0.5;
+  const pointY = rect.y + rect.height * 0.5;
+  const seedY = scene.config.ocean.waterline - scene.config.ocean.castleHover - scene.config.ocean.castleSeedLift;
+  if (scene.beat === 'castle_reveal' && phase.gather < 1) {
+    drawGatherPoint(ctx, scene, 240, seedY, phase.gather);
+    return;
+  }
+  if (scene.beat === 'castle_reveal') {
+    const { castleGatherAt, castleEmergeAt } = scene.config.ocean;
+    const glowFade = clamp((castleEmergeAt - reveal) / (castleEmergeAt - castleGatherAt));
+    drawGatherPoint(ctx, scene, 240, seedY, 0.98, glowFade);
+    drawAura(ctx, pointX, pointY, ['#06020a', '#57136f', '#d278ff'], scene.time, rect.width * 0.45 + 12);
+  }
   ctx.save();
-  ctx.globalAlpha = scene.beat === 'castle_reveal' ? clamp((reveal - 0.08) / 0.72) : 1;
+  ctx.globalAlpha = scene.beat === 'castle_reveal'
+    ? clamp((reveal - scene.config.ocean.castleGatherAt) / 0.12) : 1;
   if (scene.images.castle) ctx.drawImage(scene.images.castle, rect.x, rect.y, rect.width, rect.height);
   else {
     ctx.fillStyle = '#12051e'; ctx.fillRect(rect.x + rect.width * 0.18, rect.y + rect.height * 0.16, rect.width * 0.64, rect.height * 0.84);
@@ -304,26 +588,14 @@ const drawCastle = (ctx, scene, geometry) => {
   }
   ctx.restore();
   if (scene.beat === 'castle_reveal') {
-    const pointX = rect.x + rect.width * 0.5;
-    const pointY = Math.max(22, rect.y + rect.height * 0.06);
-    drawAura(ctx, pointX, pointY + 42, ['#06020a', '#57136f', '#d278ff'], scene.time, 12 + (1 - reveal) * 32);
-    ctx.fillStyle = '#020104'; ctx.fillRect(Math.round(pointX - 2), Math.round(pointY - 4), 5, 8);
-    ctx.save();
-    ctx.globalAlpha = 1 - reveal;
-    ctx.fillStyle = '#b84aff';
-    for (let index = 0; index < 28; index++) {
-      const spread = 18 + reveal * 50 + index % 5 * 5;
-      const angle = index * 2.21 + scene.time * 2;
-      ctx.fillRect(Math.round(pointX + Math.cos(angle) * spread), Math.round(pointY + Math.sin(angle) * spread * 0.65), 3, 9);
-    }
-    ctx.restore();
     drawCastlePop(ctx, scene, rect, reveal);
+    drawLandingWaves(ctx, scene, geometry);
   }
 };
 
 /** One white flash, two shockwave rings and scattering bricks when the castle finishes forming. */
 const drawCastlePop = (ctx, scene, rect, reveal) => {
-  const age = clamp((reveal - scene.config.ocean.castlePopAt) / 0.26);
+  const age = clamp((reveal - scene.config.ocean.castlePopAt) / 0.08);
   if (age <= 0 || age >= 1) return;
   const cx = rect.x + rect.width / 2;
   const cy = rect.y + rect.height * 0.52;
@@ -336,10 +608,10 @@ const drawCastlePop = (ctx, scene, rect, reveal) => {
   ctx.globalAlpha = 1 - age;
   ctx.strokeStyle = '#f6e2ff';
   ctx.lineWidth = Math.max(1, Math.round(6 * (1 - age)));
-  ctx.beginPath(); ctx.arc(cx, cy, 24 + age * 205, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 20 + age * 132, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = '#b74aff';
   ctx.lineWidth = Math.max(1, Math.round(3 * (1 - age)));
-  ctx.beginPath(); ctx.arc(cx, cy, 8 + age * 148, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 8 + age * 96, 0, Math.PI * 2); ctx.stroke();
   for (let i = 0; i < 44; i++) {
     const angle = i * 2.4;
     const reach = (44 + i % 7 * 24) * age;
@@ -386,13 +658,6 @@ const drawSplash = (ctx, x, y, age, scale = 1) => {
     }
     ctx.restore();
   }
-};
-
-/** Camera push onto the falling speck so the splash reads close instead of as a distant dot. */
-const fallZoom = scene => {
-  const { fallZoom: peak, flyTo } = scene.config.ocean;
-  const z = 1 + smooth(clamp(scene.elapsed / scene.config.timing.fall / 0.34)) * (peak - 1);
-  return { z, x: flyTo[0] + 6, y: flyTo[1] + 56 };
 };
 
 /** Loud white column, ring and droplets so the sea entry reads as a splash, not a ripple. */
@@ -448,22 +713,25 @@ const drawFall = (ctx, scene) => {
     ctx.restore();
     drawCharacter(ctx, scene.actors.yoplait, fallX(k), fallY(k), 'down', 0.34, k * Math.PI * 9);
   }
-  drawWaterImpact(ctx, sx + 9, waterline + 40, clamp((progress - 0.72) / 0.28), 1 / fallZoom(scene).z);
+  drawWaterImpact(ctx, sx + 9, waterline + 40, clamp((progress - 0.72) / 0.28), 1 / shipCastleCamera(scene).z);
 };
 
 /** Short black veil: closes the finished camera push, opens the close-up struggle.
     Music, clouds and scene clocks keep running underneath, so nothing restarts across it. */
 export const shipCastleVeil = scene => {
-  const { veilOut, veilIn, oceanPush } = scene.config.timing;
+  const { veilOut, veilIn, oceanPush, fallVeilOut, fallVeilIn } = scene.config.timing;
   if (scene.beat === 'ocean_rise') return clamp(((scene.pushTime || 0) - (oceanPush - veilOut)) / veilOut);
   if (scene.beat === 'sky_tug') return 1 - clamp(scene.elapsed / veilIn);
+  if (scene.beat === 'castle_reveal' && scene.veilClosing) return clamp((scene.veilClock || 0) / fallVeilOut);
+  if (scene.beat === 'yoplait_fall') return 1 - clamp(scene.elapsed / fallVeilIn);
   return 0;
 };
 
 const drawOceanFrame = (ctx, scene) => {
-  const zoom = scene.beat === 'yoplait_fall' ? fallZoom(scene) : null;
+  const zoom = shipCastleCamera(scene);
   ctx.save();
   if (zoom) {
+    if (zoom.panX || zoom.panY) ctx.translate(zoom.panX, zoom.panY);
     ctx.translate(zoom.x, zoom.y);
     ctx.scale(zoom.z, zoom.z);
     ctx.translate(-zoom.x, -zoom.y);
@@ -475,7 +743,7 @@ const drawOceanFrame = (ctx, scene) => {
     return;
   }
   const geometry = shipCastleGeometry(scene);
-  drawSea(ctx, scene, geometry.ascent?.horizon ?? scene.config.ocean.waterline);
+  drawSea(ctx, scene, geometry.ascent ? geometry.ascent.horizon : scene.config.ocean.waterline);
   if (geometry.castle) drawCastle(ctx, scene, geometry);
   drawOceanShips(ctx, scene, geometry);
   if (scene.beat === 'ocean_rise') {
@@ -492,6 +760,10 @@ const drawOceanFrame = (ctx, scene) => {
 /** Draw the current full-frame ocean or sky beat without owning narrative timing. */
 export const drawShipCastleOcean = (ctx, scene) => {
   drawOceanFrame(ctx, scene);
+  if (scene.beat === 'ocean_rise') {
+    const ascent = shipCastleAscent(scene);
+    drawRiseClouds(ctx, scene, clamp((ascent.zoom - 0.12) / 0.45));
+  }
   const veil = shipCastleVeil(scene);
   if (veil <= 0) return;
   ctx.save();

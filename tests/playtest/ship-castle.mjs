@@ -103,13 +103,17 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   check('Gajaeman rush begins on the field overlay', rush.fullFrame === false);
   await beat('field_window', 'castle_09_window_break');
   const impact = await page.evaluate(() => { const carrier = game.entities.find(entity => entity.id === 'ship_castle_gajaeman'); return { reactions: ['lounge_junhee', 'lounge_yongjun', 'lounge_youngcle', 'ppaman', 'gyeongsub'].map(id => { const e = game.entities.find(x => x.id === id); return { id, facing: e.facing, emote: e.emote?.kind }; }),
-    carrier: { x: carrier.x, y: carrier.y, visualScale: carrier.def.visualScale }, player: { x: game.player.x, y: game.player.y } }; });
+    carrier: { x: carrier.x, y: carrier.y, visualScale: carrier.def.visualScale }, player: { x: game.player.x, y: game.player.y },
+    shake: game.shake ? { ...game.shake } : null, sfx: window.__shipCastleQA.sfx.slice(-4) }; });
+  check('the pane impact fires glass and explosion together with a hard shake', impact.sfx.includes('park_trial_shatter') && impact.sfx.includes('explosion') && impact.shake?.amp >= 8, JSON.stringify({ shake: impact.shake, sfx: impact.sfx }));
+  await page.waitForTimeout(220);
+  await shot('castle_09b_window_shards');
   check('all five witnesses face right with exclamation marks at impact', impact.reactions.every(actor => actor.facing === 'right' && actor.emote === '!'), JSON.stringify(impact.reactions));
   check('enlarged Gajaeman carries Yoplait upward through the pane before it breaks', impact.carrier.visualScale === 1.89 && impact.carrier.y === 150 && impact.player.y === 150 && impact.player.x >= 640, JSON.stringify(impact));
   const ocean = await beat('ocean_rise', 'castle_10_ocean_rise');
   const castleBgm = await page.evaluate(() => ({ name: game.sound.bgmName, src: game.sound.bgm?.src, loop: game.sound.bgm?.loop,
     request: window.__shipCastleQA.bgm.find(entry => entry.name === 'ship_castle') }));
-  check('specified full-track BGM starts non-looping only after the window exit', castleBgm.name === 'ship_castle' && castleBgm.src.endsWith('/assets/audio/bgm/ship_castle.mp3') && castleBgm.loop === false && castleBgm.request?.options?.loop === false, JSON.stringify(castleBgm));
+  check('specified full-track BGM starts non-looping on the window impact and is still running at sea', castleBgm.name === 'ship_castle' && castleBgm.src.endsWith('/assets/audio/bgm/ship_castle.mp3') && castleBgm.loop === false && castleBgm.request?.options?.loop === false, JSON.stringify(castleBgm));
   check('ocean presentation takes over the full frame', ocean.fullFrame === true);
   check('establishing view starts with two complete connected ships and tiny airborne actors', ocean.geometry.maillard.y + ocean.geometry.maillard.height < 360 && ocean.geometry.warship.y + ocean.geometry.warship.height < 360 && ocean.ascent.scale < 0.15, JSON.stringify(ocean));
   await page.waitForTimeout(1000);
@@ -142,7 +146,8 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await page.waitForTimeout(1700);
   await shot('castle_10d_zoom_push_mid');
   const ascending = await page.evaluate(() => game.shipCastle.snapshot());
-  check('camera gradually enlarges actors while horizon and fleet move down', ascending.ascent.scale > establishing.ascent.scale * 3 && ascending.ascent.scale < 1.4 && ascending.ascent.horizon > establishing.ascent.horizon && ascending.geometry.warship.y > establishing.geometry.warship.y, JSON.stringify(ascending.ascent));
+  check('the camera pushes the whole frame in while the pair itself stays a dot', ascending.geometry.screen.zoom > establishing.geometry.screen.zoom * 2 && ascending.geometry.screen.horizon > establishing.geometry.screen.horizon && ascending.geometry.screen.warshipBottom > establishing.geometry.screen.warshipBottom, JSON.stringify({ before: establishing.geometry.screen, after: ascending.geometry.screen }));
+  check('the pair never becomes a full-size sprite before the veil', ascending.ascent.scale < 0.2 && ascending.geometry.screen.pairScale > establishing.geometry.screen.pairScale && ascending.geometry.screen.pairScale < 1, JSON.stringify(ascending.geometry.screen));
   await page.waitForTimeout(1500);
   await shot('castle_10e_zoom_push_near');
   check('a black veil closes over the finished push', !!await until(() => game.shipCastle?.snapshot().veil > 0.2, 4000));
@@ -154,7 +159,9 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   check('scene clocks keep running under the veil so clouds never restart', veil.scroll > 0 && !!await until(() => game.shipCastle?.snapshot().veil === 0, 4000), JSON.stringify(veil));
   await shot('castle_11_sky_tug');
   await line('후후후 마음데로 될줄알았나.', 'castle_12_gajaeman_line');
-  await beat('sky_opposite_aura', 'castle_13_opposite_aura');
+  await beat('sky_opposite_aura');
+  await page.waitForTimeout(1150);
+  await shot('castle_13_opposite_aura');
   await line('ㅋㅋ이제 제대로 하는건가.', 'castle_13b_second_gajaeman_line');
   await beat('vortex_gather');
   await page.waitForTimeout(1800);
@@ -166,18 +173,26 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await shot('castle_15b_yoplait_hurled_to_the_sea');
   check('burst leaves the cord with Gajaeman', burst.cordOwner === 'gajaeman');
   check('the actual inventory loses every purple cord at theft', await until(() => game.flags.ship_castle_cord_stolen && !game.inventory.includes('보라색 코드 ?'), 5000));
-  const revealStart = await beat('castle_reveal', 'castle_16a_reveal_appears');
-  await page.waitForTimeout(1150);
-  await shot('castle_16b_reveal_shrunk');
-  const shrunk = await page.evaluate(() => game.shipCastle.snapshot());
-  check('the castle first pulls in smaller than the size it appeared at', shrunk.geometry.castle.width < revealStart.geometry.castle.width && shrunk.castlePopped === false, JSON.stringify({ first: revealStart.geometry.castle, shrunk: shrunk.geometry.castle }));
-  await page.waitForTimeout(760);
-  await shot('castle_16c_reveal_pop');
-  const popped = await page.evaluate(() => game.shipCastle.snapshot());
-  check('the castle swells past its settled size and then bursts', popped.geometry.castle.width > shrunk.geometry.castle.width && popped.castlePopped === true, JSON.stringify(popped.geometry.castle));
+  const revealStart = await beat('castle_reveal', 'castle_16a_reveal_gather_starts');
+  check('the reveal opens on a gathering point with no castle yet', revealStart.geometry.phase.gather < 1 && revealStart.geometry.castle.width <= 12, JSON.stringify({ phase: revealStart.geometry.phase, castle: revealStart.geometry.castle }));
+  await page.waitForTimeout(1300);
+  await shot('castle_16b_gather_point');
+  await page.waitForTimeout(2600);
+  await shot('castle_16c_slow_emerge');
+  const emerging = await page.evaluate(() => game.shipCastle.snapshot());
+  check('the castle grows out of that point while it still hangs above the sea', emerging.geometry.castle.width > revealStart.geometry.castle.width * 6 && emerging.geometry.phase.lift > 0 && emerging.castleLanded === false, JSON.stringify({ phase: emerging.geometry.phase, castle: emerging.geometry.castle }));
+  await page.waitForTimeout(1700);
+  await shot('castle_16d_dropping');
+  check('the castle lands on the water with exactly one heavy impact', !!await until(() => game.shipCastle?.snapshot().castleLanded === true, 6000)
+    && await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'furnace_blast').length === 1));
+  await page.waitForTimeout(240);
+  await shot('castle_16e_landing_waves');
+  const landed = await page.evaluate(() => game.shipCastle.snapshot());
+  check('waves roll out along the waterline while the fleet rides them', landed.geometry.wave > 0 && landed.geometry.wave < 1 && landed.geometry.phase.lift === 0
+    && landed.geometry.phase.landed === true
+    && landed.geometry.castle.y + landed.geometry.castle.height === 200, JSON.stringify({ wave: landed.geometry.wave, castle: landed.geometry.castle }));
   check('one burst cue, never a repeating loop', await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'boom').length === 1));
-  check('every castle silhouette keeps its base on the waterline while it pulses', popped.geometry.castle.y + popped.geometry.castle.height === revealStart.geometry.castle.y + revealStart.geometry.castle.height, JSON.stringify({ popped: popped.geometry.castle, first: revealStart.geometry.castle }));
-  check('reveal zooms out before dialogue', !!await until(() => game.shipCastle?.elapsed >= game.shipCastle.config.timing.castleReveal - 0.1, 6000));
+  check('reveal completes before dialogue', !!await until(() => game.shipCastle?.elapsed >= game.shipCastle.config.timing.castleReveal - 0.1, 10000));
   await page.setViewportSize({ width: 1280, height: 900 });
   await shot('castle_16_whole_castle_1280');
   await page.setViewportSize({ width: 1000, height: 780 });
@@ -187,6 +202,8 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await line('저 저게뭐노');
   await line('씨발 저게 뭐야!!!', 'castle_17_reveal_dialogue');
   await line('요 요플래!!!!');
+  check('a longer fade carries the wide shot into the sea fall', !!await until(() => game.shipCastle?.snapshot().veil > 0.5, 3000));
+  await shot('castle_17b_fall_fade');
   await beat('yoplait_fall');
   await shot('castle_18a_fall_start_same_fleet');
   await page.waitForTimeout(900);
@@ -203,11 +220,15 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await shot('castle_19b_castle_attack_beam');
   await line('일 일단 후퇴다 다시 돌아오자.\n저건 이길수없음', 'castle_19c_retreat_long_line');
   await line('큭 꼭 살아만 있어라 요플래');
-  await beat('retreat', 'castle_20_retreat');
+  const retreatStart = await beat('retreat', 'castle_20_retreat');
   await page.waitForTimeout(2800);
   await shot('castle_20b_retreat_mid');
+  const fleeing = await page.evaluate(() => game.shipCastle.snapshot());
+  check('the linked pair runs far and fast while the beams chase them', fleeing.geometry.retreat > 80 && fleeing.geometry.warship.x < 200
+    && Math.abs((fleeing.geometry.warship.x - fleeing.geometry.maillard.x) - (retreatStart.geometry.warship.x - retreatStart.geometry.maillard.x)) <= 1,
+  JSON.stringify({ retreat: fleeing.geometry.retreat, start: retreatStart.geometry.warship.x, now: fleeing.geometry.warship.x }));
   await beat('final_hold', 'castle_21_transition_hold');
-  check('required field and ocean sounds were emitted through the real audio API', await page.evaluate(() => ['bell', 'wing', 'park_trial_shatter', 'maillard_water_lift', 'power', 'rumble', 'boom', 'laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.includes(name))), JSON.stringify(await page.evaluate(() => window.__shipCastleQA)));
+  check('required field and ocean sounds were emitted through the real audio API', await page.evaluate(() => ['bell', 'wing', 'park_trial_shatter', 'explosion', 'maillard_water_lift', 'power', 'rumble', 'boom', 'laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.includes(name))), JSON.stringify(await page.evaluate(() => window.__shipCastleQA)));
   check('three isolated charged beams do not retrigger during dialogue holds', await page.evaluate(() => ['laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.filter(cue => cue === name).length === 3)));
   check('glass impact and castle BGM each have exactly one owner and cue', await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'park_trial_shatter').length === 1 && window.__shipCastleQA.bgm.filter(entry => entry.name === 'ship_castle').length === 1));
   check('castle completion and theft flags persist into the queued sinking continuation', !!await until(() => game.flags.ship_castle_done && game.flags.ship_castle_cord_stolen, 10000));

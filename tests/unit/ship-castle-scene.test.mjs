@@ -86,27 +86,40 @@ test('test_ship_castle_reveal_projects_whole_castle_at_six_times_warship_width',
   });
 });
 
-test('test_ship_castle_reveal_shrinks_then_swells_then_pops_once_without_moving_the_fleet', () => {
+test('test_ship_castle_reveal_gathers_then_emerges_slowly_then_drops_onto_the_water', () => {
   const propImages = Object.fromEntries(Object.values(SHIP_CASTLE.images).map(path => [path, pngSize(path)]));
+  const { ocean, timing } = SHIP_CASTLE;
   const game = makeGame(propImages);
   const scene = new ShipCastle(game);
   scene.setBeat('castle_reveal');
-  const widths = [];
-  const ships = [];
-  for (let step = 0; step < 40; step++) {
-    scene.update(SHIP_CASTLE.timing.castleReveal / 40);
+  const steps = 70;
+  const samples = [];
+  for (let step = 0; step < steps; step++) {
+    scene.update(timing.castleReveal / steps);
     const geometry = scene.snapshot().geometry;
-    widths.push(geometry.castle.width);
-    ships.push(geometry.warship.x);
+    samples.push({
+      reveal: geometry.reveal,
+      width: geometry.castle.width,
+      lift: geometry.phase.lift,
+      bottom: geometry.castle.y + geometry.castle.height,
+      shipX: geometry.warship.x,
+    });
     assert.ok(geometry.castle.y >= 0, `castle left the frame at step ${step}`);
-    assert.equal(geometry.castle.y + geometry.castle.height, SHIP_CASTLE.ocean.waterline);
   }
-  const smallest = Math.min(...widths), largest = Math.max(...widths);
-  assert.ok(smallest < widths[0] && largest > widths[widths.length - 1]);
-  assert.ok(widths.indexOf(smallest) < widths.indexOf(largest));
-  assert.equal(new Set(ships).size, 1);
+  const seeded = samples.find(sample => sample.reveal >= ocean.castleGatherAt);
+  const emerged = samples.find(sample => sample.reveal >= ocean.castleEmergeAt);
+  const last = samples[samples.length - 1];
+  assert.ok(seeded.width <= Math.round(ocean.castleSeed * ocean.castleProjectionWidth) + 1, 'gather phase shows only a point');
+  assert.ok(emerged.width > seeded.width * 8, 'the castle grows out of that point');
+  assert.ok(Math.max(...samples.map(sample => sample.width)) > last.width, 'it swells past its settled size');
+  assert.ok(samples.filter(sample => sample.reveal <= ocean.castleDropAt).every(sample => sample.lift === ocean.castleHover), 'it hangs above the sea until the drop');
+  assert.equal(last.lift, 0);
+  assert.equal(last.bottom, ocean.waterline);
+  assert.equal(new Set(samples.map(sample => sample.shipX)).size, 1);
   assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'boom').length, 1);
+  assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'furnace_blast').length, 1);
   assert.equal(scene.snapshot().castlePopped, true);
+  assert.equal(scene.snapshot().castleLanded, true);
 });
 
 test('test_ship_castle_ocean_rise_holds_the_wide_fleet_until_the_reaction_lines_release_it', () => {
@@ -114,14 +127,19 @@ test('test_ship_castle_ocean_rise_holds_the_wide_fleet_until_the_reaction_lines_
   scene.setBeat('ocean_rise');
   for (let step = 0; step < 20; step++) scene.update(0.1);
   const held = scene.snapshot().ascent;
+  const heldScreen = scene.snapshot().geometry.screen;
   assert.equal(scene.snapshot().ascentHeld, true);
   assert.equal(held.zoom, 0);
   assert.ok(held.scale < 0.15 && held.bottom < 253);
   scene.beginAscent();
   for (let step = 0; step < 20; step++) scene.update(0.1);
   const pushed = scene.snapshot().ascent;
+  const pushedScreen = scene.snapshot().geometry.screen;
   assert.equal(scene.snapshot().ascentHeld, false);
-  assert.ok(pushed.zoom > 0.3 && pushed.scale > held.scale * 3 && pushed.horizon > held.horizon);
+  assert.ok(pushed.zoom > 0.3 && pushed.camera > held.camera * 2);
+  assert.ok(pushed.scale < 0.2, 'the pair itself must stay a dot while the camera moves');
+  assert.ok(pushedScreen.horizon > heldScreen.horizon && pushedScreen.warshipBottom > heldScreen.warshipBottom);
+  assert.ok(pushedScreen.pairScale > heldScreen.pairScale && pushedScreen.pairScale < SHIP_CASTLE.sky.actorScale);
   assert.equal(scene.snapshot().veil, 0);
   for (let step = 0; step < 15; step++) scene.update(0.1);
   assert.equal(scene.snapshot().veil, 1);
@@ -145,7 +163,8 @@ test('test_ship_castle_retreat_keeps_connected_ships_together_and_abort_releases
   scene.setBeat('retreat');
   for (let elapsed = 0; elapsed < SHIP_CASTLE.timing.retreat; elapsed += 0.1) scene.update(0.1);
   const after = scene.snapshot().geometry;
-  assert.equal(before.warship.x - before.maillard.x, after.warship.x - after.maillard.x);
+  assert.ok(Math.abs((before.warship.x - before.maillard.x) - (after.warship.x - after.maillard.x)) <= 1, 'the gangway keeps the pair locked together while they flee');
+  assert.ok(before.warship.x - after.warship.x >= SHIP_CASTLE.ocean.retreatDistance - 1, 'they must actually run the full distance');
   assert.equal(scene.beamIndex - attackBeams, SHIP_CASTLE.ocean.beamSchedule.retreat.length);
   assert.equal(SHIP_CASTLE.ocean.beamCount, SHIP_CASTLE.ocean.beamSchedule.castle_attack.length + SHIP_CASTLE.ocean.beamSchedule.retreat.length);
   scene.dispose();

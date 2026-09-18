@@ -71,7 +71,7 @@ export const ship_castle = Object.assign([
   beat('field_rush'),
   { move: GAJAEMAN, px: game => [game.player.x - 18, game.player.y], exact: true, speed: 420 },
   { parallel: [
-    ...REACTORS.map(id => ({ emote: id, kind: '!', duration: 1.1, hold: 0.45 })),
+    ...REACTORS.map(id => ({ emote: id, kind: '!', duration: 1.9, hold: 0.45 })),
     ...face(REACTORS, 'right'),
   ] },
   { move: GAJAEMAN, px: [622, 150], exact: true, speed: 330, track: true,
@@ -113,6 +113,8 @@ export const ship_castle = Object.assign([
   J('씨발 저게 뭐야!!!'),
   P('요 요플래!!!!'),
   close,
+  { action: game => game.shipCastle?.closeVeil() },
+  { wait: T.fallVeilOut },
   beat('yoplait_fall'),
   { wait: T.fall },
   beat('castle_attack'),

@@ -39,6 +39,10 @@ export class ShipCastle {
     this.pushTime = 0;
     this.ascentHeld = true;
     this.popPlayed = false;
+    this.flarePhase = -1;
+    this.landPlayed = false;
+    this.veilClosing = false;
+    this.veilClock = 0;
     this.model = { scroll: 0, completed: true, phase: 'cleared', phaseTime: 0 };
     this.images = Object.fromEntries(Object.entries(config.images).map(([key, path]) => [key, game.propImages?.[path] || null]));
     this.actors = {
@@ -46,12 +50,12 @@ export class ShipCastle {
       gajaeman: characterSprite('gajaeman_shadow', game.spriteOverrides?.gajaeman_shadow),
     };
     this.shards = Array.from({ length: config.field.shardCount }, (_, index) => ({
-      x: 4 + index % 6 * 5,
-      y: 76 + index % 4 * 7,
-      vx: 34 + index % 5 * 9,
-      vy: -48 - index % 7 * 8,
+      x: 2 + index % 9 * 6,
+      y: 70 + index % 6 * 9,
+      vx: 96 + index % 7 * 34,
+      vy: -104 - index % 9 * 22,
       spin: index * 0.41,
-      size: 1 + index % 3,
+      size: 1 + index % 4,
       tint: index % 3 ? '#d8edff' : '#91b5dd',
     }));
     game.sound.preloadBgm(config.bgm);
@@ -71,14 +75,20 @@ export class ShipCastle {
     this.beamCue = -1;
     this.splashPlayed = false;
     this.popPlayed = false;
+    this.flarePhase = -1;
+    this.landPlayed = false;
+    this.veilClosing = false;
+    this.veilClock = 0;
     if (name === 'ocean_rise') {
       this.pushTime = 0;
       this.ascentHeld = true;
     }
     if (name === 'field_window') {
       this._resetShards();
-      this.game.sound.sfx('park_trial_shatter', { volume: 0.7 });
-      this.game.shake = { time: 0.3, amp: 4 };
+      this.game.sound.sfx('park_trial_shatter', { volume: 0.9 });
+      this.game.sound.sfx('explosion', { volume: 0.8 });
+      this.game.shake = { time: 0.55, amp: 9 };
+      this._startMusic();
     }
     if (name === 'ocean_rise') this._startMusic();
     const cue = ENTRY_SOUNDS[name];
@@ -93,6 +103,14 @@ export class ShipCastle {
     this.passive = true;
   }
 
+  /** Start the long fade that carries the wide castle shot into the sea fall. */
+  closeVeil() {
+    if (this.disposed) return this;
+    this.veilClosing = true;
+    this.veilClock = 0;
+    return this;
+  }
+
   /** Hold the wide fleet framing until the authored reaction lines end, then start the push. */
   beginAscent() {
     if (this.disposed) return this;
@@ -101,15 +119,16 @@ export class ShipCastle {
   }
 
   _startMusic() {
-    if (this.game.sound.bgmName !== this.config.bgm) this.game.sound.playBgm(this.config.bgm, { loop: false, volume: 0.48, fadeIn: 2 });
+    if (this.game.sound.bgmName !== this.config.bgm) this.game.sound.playBgm(this.config.bgm, { loop: false, volume: 0.48, fadeIn: 0.2 });
     this.ownsBgm = true;
   }
 
   _resetShards() {
     this.shards.forEach((shard, index) => {
-      shard.x = 4 + index % 6 * 5;
-      shard.y = 76 + index % 4 * 7;
-      shard.vy = -48 - index % 7 * 8;
+      shard.x = 2 + index % 9 * 6;
+      shard.y = 70 + index % 6 * 9;
+      shard.vx = 96 + index % 7 * 34;
+      shard.vy = -104 - index % 9 * 22;
     });
   }
 
@@ -120,11 +139,12 @@ export class ShipCastle {
     this.elapsed += dt;
     if (['ocean_rise', 'sky_tug', 'sky_opposite_aura', 'vortex_gather', 'vortex_burst'].includes(this.beat)) this.airTime += dt;
     if (this.beat === 'ocean_rise' && !this.ascentHeld) this.pushTime += dt;
+    if (this.veilClosing) this.veilClock += dt;
     this.sailTime += dt;
     this.scroll += dt * this.config.ocean.waterSpeed;
     this.model.scroll = this.scroll;
     this.model.phaseTime = this.elapsed;
-    if (this.beat === 'field_window') {
+    if (this.beat === 'field_window' && this.elapsed >= this.config.field.impactHold) {
       for (const shard of this.shards) {
         shard.x += shard.vx * dt;
         shard.y += shard.vy * dt;
@@ -132,11 +152,25 @@ export class ShipCastle {
         shard.spin += dt * 7;
       }
     }
-    if (this.beat === 'castle_reveal' && !this.popPlayed
-      && smooth(this.elapsed / this.config.timing.castleReveal) >= this.config.ocean.castlePopAt) {
-      this.popPlayed = true;
-      this.game.sound.sfx('boom', { volume: 0.7 });
-      this.game.shake = { time: 0.3, amp: 5 };
+    if (this.beat === 'sky_opposite_aura' || this.beat === 'vortex_gather') {
+      const phase = Math.floor(this.time * 3.2 / Math.PI + 0.5);
+      if (phase !== this.flarePhase) {
+        this.flarePhase = phase;
+        this.game.shake = { time: 0.12, amp: 1 };
+      }
+    }
+    if (this.beat === 'castle_reveal') {
+      const reveal = this.elapsed / this.config.timing.castleReveal;
+      if (!this.popPlayed && reveal >= this.config.ocean.castlePopAt) {
+        this.popPlayed = true;
+        this.game.sound.sfx('boom', { volume: 0.7 });
+        this.game.shake = { time: 0.3, amp: 5 };
+      }
+      if (!this.landPlayed && reveal >= this.config.ocean.castleLandAt) {
+        this.landPlayed = true;
+        this.game.sound.sfx('furnace_blast', { volume: 0.9 });
+        this.game.shake = { time: 0.7, amp: 11 };
+      }
     }
     if (this.beat === 'yoplait_fall' && !this.splashPlayed && this.elapsed >= this.config.timing.fall * 0.72) {
       this.splashPlayed = true;
@@ -182,6 +216,7 @@ export class ShipCastle {
       ascentHeld: this.ascentHeld,
       veil: shipCastleVeil(this),
       castlePopped: this.popPlayed,
+      castleLanded: this.landPlayed,
       castleToWarship: geometry?.castle ? this.config.ocean.castleWidth / this.config.ocean.warshipWidth : null,
       skyScaleRatio: this.config.sky.gajaemanCanonicalScale,
       skyGrips: {

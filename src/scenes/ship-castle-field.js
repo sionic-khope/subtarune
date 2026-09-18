@@ -1,4 +1,42 @@
-import { CHAR_SCALE } from '../world/world.js';
+import { CHAR_SCALE, SCREEN_W, SCREEN_H } from '../world/world.js';
+
+const clamp = value => Math.max(0, Math.min(1, value));
+
+/** White blow-out plus a radial glass burst on the frame where the pane gives way. */
+const drawImpactFlash = (ctx, point, age) => {
+  const fade = clamp(1 - age);
+  if (fade <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = fade * 0.82;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+  ctx.globalAlpha = fade;
+  const cx = point.x, cy = Math.round((point.y + point.bottom) / 2);
+  for (let i = 0; i < 26; i++) {
+    const angle = i * (Math.PI * 2 / 26);
+    const inner = 8 + age * 44;
+    const outer = inner + 26 + i % 4 * 12;
+    ctx.strokeStyle = i % 3 ? '#ffffff' : '#bfe3ff';
+    ctx.lineWidth = Math.max(1, Math.round(4 * fade));
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
+    ctx.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
+    ctx.stroke();
+  }
+  ctx.restore();
+};
+
+/** Streaks dragged behind the charging shadow so the rush reads fast, not a slide. */
+const drawRushLines = (ctx, x, y, time) => {
+  ctx.save();
+  ctx.fillStyle = '#c8b6ff';
+  for (let i = 0; i < 10; i++) {
+    const age = (time * 2.6 + i / 10) % 1;
+    ctx.globalAlpha = (1 - age) * 0.55;
+    ctx.fillRect(Math.round(x - 30 - age * 130), Math.round(y - 42 + i % 5 * 17), 26 + i % 3 * 16, 2);
+  }
+  ctx.restore();
+};
 
 const actorPoint = (game, match, fallback) => {
   const actor = game.entities.find(entity => match(entity.id || ''));
@@ -93,7 +131,9 @@ export const drawShipCastleField = (ctx, scene) => {
 
   if (beat === 'field_rush' || beat === 'field_window') {
     const gajaeman = actorPoint(game, id => id.includes('gajaeman'), { x: beat === 'field_rush' ? 24 : window.x, y: window.y, bottom: window.bottom });
-    drawSmoke(ctx, gajaeman.x, Math.round((gajaeman.y + gajaeman.bottom) / 2), time);
+    const middle = Math.round((gajaeman.y + gajaeman.bottom) / 2);
+    if (beat === 'field_rush') drawRushLines(ctx, gajaeman.x, middle, time);
+    drawSmoke(ctx, gajaeman.x, middle, time);
   }
 
   if (beat === 'field_window') {
@@ -105,5 +145,6 @@ export const drawShipCastleField = (ctx, scene) => {
       ctx.fillRect(-shard.size, -1, shard.size * 2, 2);
       ctx.restore();
     }
+    drawImpactFlash(ctx, window, scene.elapsed / config.field.impactFlash);
   }
 };
