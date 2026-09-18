@@ -18,7 +18,8 @@ test('test_items_every_entry_has_kind_and_desc_and_plain_has_heal', () => {
   for (const [n, d] of Object.entries(ITEMS)) {
     assert.ok(d.kind === 'key' || d.kind === 'plain', `${n}: kind`);
     assert.ok(typeof d.desc === 'string' && d.desc.length > 0, `${n}: desc`);
-    if (d.kind === 'plain') assert.ok(Number.isInteger(d.heal) && d.heal > 0, `${n}: 그냥 아이템은 heal 필요`);
+    // heal 은 0 이 아닌 정수 — 음수는 사용자가 지정한 돌(체력회복 -5, BUILD227)만
+    if (d.kind === 'plain') assert.ok(Number.isInteger(d.heal) && (d.heal > 0 || n === '돌'), `${n}: 그냥 아이템은 heal 필요`);
   }
 });
 test('test_items_legacy_categories_dust_heals_1_cord_and_keys_are_key', () => {

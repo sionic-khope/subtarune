@@ -31,7 +31,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 // 짜장섬: 청소부(허약) 합류 컷신이 튼 wise_words 는 토리이 길에 남고, 사용자 지정 곡 my_castle_town(RKQUblO-iCs)은 **다음 맵(검은 소나무 숲)부터**(BUILD226 사용자 “아니다 그냥 다음 맵부터 나게 해줘”).
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
-export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_pines'];
+export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_pines'];
 export function storyBgm(mapId, flags) {
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   if (flags.torii_janitor_joined && JJAJANG_AFTER_JOIN_MAPS.includes(mapId)) return 'my_castle_town';
@@ -107,6 +107,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'obj2_banana_taken', items: ['바나나'] },                                          // 옵젝영역2 광장 바나나 — obj2_events.js
   { flag: 'obj4_baron_won', enemies: ['baron'] },
   { flag: 'obj5_gun_taken', items: ['나무총'] },
+  { flag: 'jjajang_rock_taken', items: ['돌'] },                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
@@ -414,5 +415,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii_event', desc: '토리�
   map: 'jjajang_torii', spawn: 'before_janitor', flags: { ...shipCastleDoneFlags, ship_sinking_done: true }, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_torii_joined', desc: '토리이 길 · 청소부(허약) 합류 뒤 (오른쪽 끝 → 검은 소나무 숲)',
   map: 'jjajang_torii', spawn: 'after_janitor', flags: { ...shipCastleDoneFlags, ship_sinking_done: true, torii_janitor_started: true, torii_janitor_joined: true }, party: ['janitor'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_bend', desc: '짜장 굽이 길 (위→오른쪽→아래→오른쪽→위) · 길 위의 돌(청소부가 줍는다)',
+  map: 'jjajang_bend', spawn: 'from_west', flags: { ...shipCastleDoneFlags, ship_sinking_done: true, torii_janitor_started: true, torii_janitor_joined: true }, party: ['janitor'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_pines', desc: '검은 소나무 숲 (굽이 길 → 가운데 공터 → 오른쪽) · 공터 몹 이벤트 브리핑 대기',
-  map: 'jjajang_pines', spawn: 'from_west', flags: { ...shipCastleDoneFlags, ship_sinking_done: true, torii_janitor_started: true, torii_janitor_joined: true }, party: ['janitor'] });
+  map: 'jjajang_pines', spawn: 'from_south', flags: { ...shipCastleDoneFlags, ship_sinking_done: true, torii_janitor_started: true, torii_janitor_joined: true, jjajang_rock_taken: true }, party: ['janitor'] });

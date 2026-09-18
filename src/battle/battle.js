@@ -312,7 +312,8 @@ export class Battle {
   clearPatternPresentation() { for (const enemy of this.enemies) enemy.patternPose = null; }
   useItem(m, name, by = m) {
     const def = ITEMS[name] || {}; const i = this.game.inventory.indexOf(name); if (i >= 0) this.game.inventory.splice(i, 1);
-    if (def.heal) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + def.heal); if (m.down && m.hp > 0) m.down = false; m.popup = { t: 0, text: '+' + (m.hp - before), heal: true }; }
+    // 음수 회복(돌 -5): 1 밑으로는 안 내려가고 빨간 숫자로 뜬다
+    if (def.heal) { const before = m.hp; m.hp = Math.max(def.heal < 0 ? Math.min(1, m.hp) : 0, Math.min(m.maxHp, m.hp + def.heal)); if (m.down && m.hp > 0) m.down = false; const diff = m.hp - before; m.popup = { t: 0, text: (diff >= 0 ? '+' : '') + diff, heal: diff >= 0 }; }
     this.sfx('heal'); this.setText(`* ${by.name} 이(가) ${m.name} 에게 ${name} 을(를) 썼다.`);
   }
 

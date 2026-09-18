@@ -10,7 +10,7 @@
 "그 다음 맵은 다시 펼쳐지는데 나무 스프라이트 뭔가 검은 색깔 좀 더 큰 나무가 조금씩 존재하는 방식으로 나뭇가지도 역동적이게 생겼고 뭔가 꾸불꾸불한 소나무 느낌으로 배치해 주며
 오른쪽으로 갔다가 위로 좀 올라갔다가 왼쪽으로 좀 갔다가 아래로 내려갔다가 가운데쯤 오른쪽으로 쭉 가는 길, 거기 중간에 풀숲하고 적당히 정사각형의 공간 만들어 줘 거기서 몹 이벤트 하나 만들 거라서 일단
 그리고 그 뒤에 오른쪽 길도 더 만들어 주고" / "다음 맵도 그 브금(my_castle_town)".
-- 토리이 길 오른쪽 문에서 왼쪽 가장자리로 들어와(16~17행) 오른쪽 → 위(12~13열) → 왼쪽(4~5행) → 아래(4~5열) → 가운데(10~11행)에서 오른쪽 끝까지. 위 다리와 가운데 길은 12~13열에서 교차한다.
+- 짜장 굽이 길(jjajang_bend) 위 가장자리에서 아래 입구(1~2열)로 올라와 16~17행에서 오른쪽 → 위(12~13열) → 왼쪽(4~5행) → 아래(4~5열) → 가운데(10~11행)에서 오른쪽 끝까지. 위 다리와 가운데 길은 12~13열에서 교차한다.
 - 공터: 34~41열 × 7~14행 정사각형(가운데 길이 관통), 둘레는 풀숲 타일 '"'(걸을 수 있음), 안쪽 6×6 은 비어 있음 — 몹 이벤트 자리(브리핑 대기). 오른쪽 끝은 통로만 열림(다음 맵 대기).
 - 소나무: gpt-image-2.5-sunburst 4종을 검은 실루엣 톤으로 후처리(assets/source/jjajang-pines-v1), 기존 짜장 나무보다 크고 드문드문. 히트박스는 밑동 한 칸(24×12)만.
 - 시야 오버레이 없음(“다시 펼쳐지는데”), dim 0.08. 발소리는 숲과 같은 '$' 에코."""
@@ -31,6 +31,7 @@ TOP_ROWS: Final = (4, 5)
 DOWN_COLS: Final = (4, 5)
 ROAD_ROWS: Final = (10, 11)
 PLAZA: Final = (34, 41, 7, 14)   # col0, col1, row0, row1 (포함)
+SOUTH_COLS: Final = (1, 2)
 # assets/source/jjajang-pines-v1/runtime-contract.json (배율 0.345): (파일, 폭, 높이, 밑동 x)
 PINES: Final = (
     ('assets/props/jjajang_pine_1.png', 141, 157, 100),
@@ -43,7 +44,7 @@ PINE_CELLS: Final = (
     (17, 5), (24, 6), (31, 5), (45, 5), (54, 6), (60, 5),
     (2, 8), (9, 8), (20, 7), (27, 8), (48, 7), (58, 8),
     (3, 13), (8, 13), (22, 15), (30, 15), (50, 16), (60, 15),
-    (5, 20), (16, 20), (28, 20), (40, 19), (56, 20),
+    (6, 20), (16, 20), (28, 20), (40, 19), (56, 20),
 )
 
 
@@ -76,17 +77,21 @@ def build_map() -> dict[str, object]:
             edge = row in (r0, r1) or col in (c0, c1)
             on_road = row in ROAD_ROWS
             rows[row][col] = '$' if (on_road or not edge) else '"'
+    # 굽이 길(jjajang_bend)의 위 가장자리에서 올라오는 아래 입구: 1~2열, 입구 길(16~17행) 아래로 맵 끝까지. 왼쪽 가장자리는 막는다(BUILD227)
+    path(range(SOUTH_COLS[0], SOUTH_COLS[1] + 1), range(ENTRY_ROWS[1] + 1, HEIGHT))
     for row in ENTRY_ROWS:
-        rows[row][0] = '&'
+        rows[row][0] = '@'
+    for col in SOUTH_COLS:
+        rows[HEIGHT - 1][col] = '&'
     for row in ROAD_ROWS:
         rows[row][WIDTH - 1] = '&'
     pines = [p for p in (pine(i, col, row) for i, (col, row) in enumerate(PINE_CELLS)) if p]
     for p in pines:
         col, row = (p['x'] + 12) // TILE, (p['y'] + 6) // TILE
         assert rows[row][col] == '@', f'소나무 밑동이 길 위: {col},{row}'
-    door_west = {
-        'type': 'door', 'id': 'pines_torii_door', 'x': 0, 'y': ENTRY_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
-        'to': 'jjajang_torii', 'spawn': 'from_east', 'sfx': False,
+    door_south = {
+        'type': 'door', 'id': 'pines_bend_door', 'x': SOUTH_COLS[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': 2 * TILE, 'h': 10,
+        'to': 'jjajang_bend', 'spawn': 'from_north', 'sfx': False,
     }
     return {
         'id': MAP_ID,
@@ -96,17 +101,17 @@ def build_map() -> dict[str, object]:
         'dim': 0.08,
         'rows': [''.join(row) for row in rows],
         'spawns': {
-            'from_west': {'x': 1 * TILE + 8, 'y': ENTRY_ROWS[0] * TILE + 6, 'facing': 'right'},
-            'start': {'x': 1 * TILE + 8, 'y': ENTRY_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'from_south': {'x': SOUTH_COLS[0] * TILE + 20, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
+            'start': {'x': SOUTH_COLS[0] * TILE + 20, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
             'plaza': {'x': 37 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
         },
         'meta': {
             'connected': True,
-            'route': [[1, ENTRY_ROWS[0]], [UP_COLS[0], TOP_ROWS[0]], [DOWN_COLS[0], ROAD_ROWS[0]], [WIDTH - 2, ROAD_ROWS[0]]],
-            'role': '토리이 길 다음: 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 다음 맵 대기. 브금 my_castle_town 이어짐',
+            'route': [[SOUTH_COLS[0], HEIGHT - 3], [UP_COLS[0], TOP_ROWS[0]], [DOWN_COLS[0], ROAD_ROWS[0]], [WIDTH - 2, ROAD_ROWS[0]]],
+            'role': '굽이 길 다음: 아래 입구 → 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 다음 맵 대기. 브금 my_castle_town 이어짐',
             'plaza': list(PLAZA),
         },
-        'entities': [*pines, door_west],
+        'entities': [*pines, door_south],
     }
 
 

@@ -1,0 +1,223 @@
+{
+ "id": "jjajang_bend",
+ "name": "짜장 굽이 길",
+ "stage": "ship_sinking_done",
+ "bgm": "my_castle_town",
+ "dim": 0.08,
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@&&@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@",
+  "@@$$$$$$$$$$$$@@@@@@@@@@$$@@@@",
+  "@@$$$$$$$$$$$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$@@@@@@@@@@$$@@@@",
+  "@@$$@@@@@@@@$$$$$$$$$$$$$$@@@@",
+  "@@$$@@@@@@@@$$$$$$$$$$$$$$@@@@",
+  "@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "&$$$@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "&$$$@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 40,
+   "y": 646,
+   "facing": "right"
+  },
+  "start": {
+   "x": 40,
+   "y": 646,
+   "facing": "right"
+  },
+  "from_north": {
+   "x": 788,
+   "y": 48,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    20
+   ],
+   [
+    2,
+    6
+   ],
+   [
+    12,
+    17
+   ],
+   [
+    24,
+    1
+   ]
+  ],
+  "role": "토리이 길 → (위·오른쪽·밑·오른쪽·위) 굽이 길 → 검은 소나무 숲. 두 번째 가로 다리에 돌(청소부가 줍는다, 체력회복 -5). 브금 my_castle_town 시작",
+  "rock": [
+   18,
+   16
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_1",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 228,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 140,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_2",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 260,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 242,
+   "iy": 511,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_3",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 548,
+   "y": 306,
+   "w": 24,
+   "h": 12,
+   "ix": 500,
+   "iy": 151,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_4",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 580,
+   "y": 722,
+   "w": 24,
+   "h": 12,
+   "ix": 534,
+   "iy": 588,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_5",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 708,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 620,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_7",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 516,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_8",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 196,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 150,
+   "iy": 44,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_9",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 868,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 780,
+   "iy": 513,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_10",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 292,
+   "y": 530,
+   "w": 24,
+   "h": 12,
+   "ix": 274,
+   "iy": 383,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_rock",
+   "image": "assets/props/jjajang_rock.png",
+   "scale": 2,
+   "x": 582,
+   "y": 528,
+   "w": 20,
+   "h": 12,
+   "ix": 572,
+   "iy": 504,
+   "solid": true,
+   "script": "jjajang_rock",
+   "unless": "jjajang_rock_taken"
+  },
+  {
+   "type": "door",
+   "id": "bend_torii_door",
+   "x": 0,
+   "y": 640,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_torii",
+   "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "bend_pines_door",
+   "x": 768,
+   "y": 0,
+   "w": 64,
+   "h": 10,
+   "to": "jjajang_pines",
+   "spawn": "from_south",
+   "sfx": false
+  }
+ ]
+}

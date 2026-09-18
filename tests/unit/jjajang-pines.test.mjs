@@ -11,12 +11,13 @@ const rows = map.rows;
 const walk = (c, r) => rows[r]?.[c] === '$' || rows[r]?.[c] === '"' || rows[r]?.[c] === '&';
 
 test('test_pines_road_winds_right_up_left_down_then_straight_right', () => {
-  assert.ok([16, 17].every(r => [...Array(14).keys()].every(c => walk(c, r))), '왼쪽 가장자리에서 오른쪽으로');
+  assert.ok([18, 19, 20, 21].every(r => walk(1, r) && walk(2, r)), '아래 입구(1~2열)에서 올라온다');
+  assert.ok([16, 17].every(r => [...Array(13).keys()].map(c => c + 1).every(c => walk(c, r))), '16~17행에서 오른쪽으로');
   assert.ok([...Array(14).keys()].slice(4).every(r => walk(12, r) && walk(13, r)), '12~13열로 위로');
   assert.ok([4, 5].every(r => [...Array(10).keys()].map(c => c + 4).every(c => walk(c, r))), '4~5행으로 왼쪽으로');
   assert.ok([...Array(8).keys()].map(r => r + 4).every(r => walk(4, r) && walk(5, r)), '4~5열로 아래로');
   assert.ok([10, 11].every(r => [...Array(60).keys()].map(c => c + 4).every(c => walk(c, r))), '가운데 10~11행으로 오른쪽 끝까지');
-  assert.equal(rows[10][63], '&'); assert.equal(rows[16][0], '&');
+  assert.equal(rows[10][63], '&'); assert.equal(rows[21][1], '&'); assert.equal(rows[16][0], '@', '왼쪽 가장자리는 막힘');
   assert.ok(!walk(2, 10) && !walk(20, 16) && !walk(30, 4), '길 밖은 숲');
 });
 
@@ -41,11 +42,11 @@ test('test_pines_props_stand_off_the_road_and_doors_link_both_ways', () => {
     assert.equal(rows[r][c], '@', `소나무 밑동 ${c},${r} 은 숲 칸`);
     assert.ok(p.ix >= 0 && p.iy >= 0, '그림이 맵 안');
   }
-  const west = map.entities.find(e => e.type === 'door');
-  assert.deepEqual([west.to, west.spawn, west.x, west.w], ['jjajang_torii', 'from_east', 0, 10]);
+  const south = map.entities.find(e => e.type === 'door');
+  assert.deepEqual([south.to, south.spawn, south.y, south.h], ['jjajang_bend', 'from_north', 22 * 32 - 10, 10], '아래 가장자리 문 → 굽이 길 위');
   const east = torii.entities.find(e => e.id === 'torii_pines_door');
-  assert.deepEqual([east.to, east.spawn, east.w], ['jjajang_pines', 'from_west', 10]);
-  assert.ok(map.spawns.from_west.x > 10 && map.spawns.from_west.y >= 16 * 32);
+  assert.deepEqual([east.to, east.spawn, east.w], ['jjajang_bend', 'from_west', 10], '토리이 길 오른쪽 문은 굽이 길로');
+  assert.ok(map.spawns.from_south.y >= 18 * 32 && map.spawns.from_south.facing === 'up');
 });
 
 test('test_pines_bgm_and_qa_point', () => {

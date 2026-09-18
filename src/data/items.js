@@ -12,6 +12,8 @@ export const ITEMS = {
   '보라색 코드 ?': { kind: 'key', desc: '방송 중 서랍에서 찾은 보라색 코드. 뭔가 에러가 났었다.' },   // 인트로 티비 서랍(3D) — src/data/scripts.js
   '낡은 열쇠':     { kind: 'key', desc: '상자에서 나온 낡은 열쇠.' },                                    // 인트로 상자 — src/data/scripts.js
   '열쇠?':         { kind: 'key', desc: '억빠맨이 뽑아 온 레버. 열쇠로 쓴다.' },                         // 허공4 잠긴 문 — void4_key.js
+  // 짜장 굽이 길에서 청소부가 주운 돌(BUILD227 사용자 “돌을 얻었다. 체력회복 -5 아이템”): 쓰면 HP 가 5 줄어든다(1 밑으로는 안 내려감)
+  '돌':            { kind: 'plain', heal: -5, desc: '볼품없는 돌. HP -5 회복.' },
   '먼지':          { kind: 'plain', heal: 1, desc: '상자 안에 있던 먼지. HP 1 회복.' },                  // 허공9 빈 상자 — void9_events.js (사용자: 먼지는 hp 1 회복)
   '바나나':        { kind: 'plain', heal: 30, desc: '포타슘. HP 30 회복.' },                              // 청록숲3 상자 2개, 청록숲4 버튼/껍질 — teal3_toolbox.js, teal4_events.js
 };

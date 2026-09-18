@@ -1,0 +1,300 @@
+{
+ "raw": "assets/source/janitor-v1/walk-cane-raw.png",
+ "cols": 4,
+ "rows": 4,
+ "cell": 128,
+ "fit": 0.72,
+ "scale": 0.4114285714285714,
+ "feet_y": 120,
+ "cells": [
+  {
+   "bbox": [
+    59,
+    27,
+    204,
+    243
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    89
+   ],
+   "paste": [
+    34,
+    31
+   ]
+  },
+  {
+   "bbox": [
+    59,
+    27,
+    204,
+    245
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    90
+   ],
+   "paste": [
+    34,
+    30
+   ]
+  },
+  {
+   "bbox": [
+    59,
+    27,
+    209,
+    243
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    62,
+    89
+   ],
+   "paste": [
+    33,
+    31
+   ]
+  },
+  {
+   "bbox": [
+    59,
+    27,
+    204,
+    245
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    90
+   ],
+   "paste": [
+    34,
+    30
+   ]
+  },
+  {
+   "bbox": [
+    48,
+    18,
+    184,
+    242
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    56,
+    92
+   ],
+   "paste": [
+    36,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    46,
+    18,
+    191,
+    242
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    92
+   ],
+   "paste": [
+    34,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    52,
+    18,
+    187,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    56,
+    92
+   ],
+   "paste": [
+    36,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    52,
+    18,
+    198,
+    241
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    92
+   ],
+   "paste": [
+    34,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    63,
+    17,
+    202,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    57,
+    92
+   ],
+   "paste": [
+    35,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    53,
+    17,
+    201,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    61,
+    92
+   ],
+   "paste": [
+    34,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    62,
+    16,
+    200,
+    239
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    57,
+    92
+   ],
+   "paste": [
+    36,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    56,
+    17,
+    201,
+    240
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    92
+   ],
+   "paste": [
+    34,
+    28
+   ]
+  },
+  {
+   "bbox": [
+    55,
+    14,
+    190,
+    224
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    56,
+    86
+   ],
+   "paste": [
+    36,
+    34
+   ]
+  },
+  {
+   "bbox": [
+    52,
+    13,
+    191,
+    226
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    57,
+    88
+   ],
+   "paste": [
+    35,
+    32
+   ]
+  },
+  {
+   "bbox": [
+    52,
+    13,
+    190,
+    224
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    57,
+    87
+   ],
+   "paste": [
+    36,
+    33
+   ]
+  },
+  {
+   "bbox": [
+    53,
+    13,
+    191,
+    226
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    57,
+    88
+   ],
+   "paste": [
+    36,
+    32
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

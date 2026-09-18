@@ -1,0 +1,4 @@
+Pixel art game prop: ONE plain, unremarkable grey rock for a dark top-down 2D RPG forest path, single object only, 1024x1024 canvas, solid pure #FF00FF magenta background everywhere, no ground, no shadow, no scenery, no text, no border.
+Image1 shows the forest trees of this map: match their PIXEL DENSITY, outline style and 3/4 top-down game view; do not copy the trees.
+The rock is a small lumpy boulder about as wide as it is tall, slightly flattened, dull grey with a darker grey underside and one or two small chips; nothing special about it - no moss, no face, no glow, no runes. It sits with a flat base at the bottom centre.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (3 greys plus a dark stepped outline), crisp square pixels, no anti-aliasing, no blur, no gradients. The rock fills about 60% of the canvas and is centred; nothing touches the canvas edges.

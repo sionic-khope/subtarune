@@ -14,7 +14,7 @@
   대들보가 길 위를 가로지른다 — 길 안에 놓지 않는다. 깊이: 먼 기둥대(back)는 캐릭터 뒤, 대들보+가까운 기둥(front)은 캐릭터 앞.
 - 시야: 맵 `vision`(주인공 중심 반지름 125 맑음 → 205 까지 노이즈 알갱이가 차오르고 246 부터 완전히 검음) — src/main.js drawVision.
 - 이벤트: 두 번째 토리이를 지나면(35~36열 트리거) 청소부(허약) 합류 컷신 `torii_janitor`(src/data/cutscenes/jjajang_torii.js). 스폰 before_janitor/after_janitor 는 QA 지점용.
-- 오른쪽 끝 10px 문 → 검은 소나무 숲(jjajang_pines). 브금은 숲과 같은 wind, 청소부 합류 뒤엔 storyBgm 이 my_castle_town."""
+- 오른쪽 끝 10px 문 → 짜장 굽이 길(jjajang_bend) → 검은 소나무 숲. 브금은 숲과 같은 wind, 청소부 합류 뒤엔 storyBgm 이 my_castle_town."""
 from __future__ import annotations
 
 import json
@@ -94,10 +94,10 @@ def build_map() -> dict[str, object]:
         'type': 'trigger', 'id': 'torii_janitor_trigger', 'x': 35 * TILE, 'y': ROAD_TOP * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
         'once': True, 'flag': 'torii_janitor_started', 'unless': 'torii_janitor_joined', 'script': 'torii_janitor',
     }
-    # 오른쪽 끝 → 검은 소나무 숲(jjajang_pines, BUILD226 다음 맵)
+    # 오른쪽 끝 → 짜장 굽이 길(jjajang_bend, BUILD227) → 검은 소나무 숲
     door_east = {
         'type': 'door', 'id': 'torii_pines_door', 'x': WIDTH * TILE - 10, 'y': ROAD_TOP * TILE, 'w': 10, 'h': 2 * TILE,
-        'to': 'jjajang_pines', 'spawn': 'from_west', 'sfx': False,
+        'to': 'jjajang_bend', 'spawn': 'from_west', 'sfx': False,
     }
     door_back = {
         'type': 'door', 'id': 'torii_forest_door', 'x': STUB_LEFT * TILE, 'y': HEIGHT * TILE - 10, 'w': 2 * TILE, 'h': 10,
@@ -121,7 +121,7 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[10, HEIGHT - 2], [10, ROAD_TOP], [WIDTH - 2, ROAD_TOP]],
-            'role': '짜장숲 다음: 두 칸 위 → 오른쪽 직선 길, 대각선 토리이 3개, 주인공 중심 원형 시야(vision), 두 번째 토리이 뒤 청소부 합류. 오른쪽 끝 → 검은 소나무 숲',
+            'role': '짜장숲 다음: 두 칸 위 → 오른쪽 직선 길, 대각선 토리이 3개, 주인공 중심 원형 시야(vision), 두 번째 토리이 뒤 청소부 합류. 오른쪽 끝 → 짜장 굽이 길',
             'torii': [{'col': col, 'nearBase': [col * TILE + 16, (ROAD_BOTTOM + 1) * TILE + 2]} for col in TORII_COLS],
         },
         'entities': [*trees, *gates, janitor_trigger, door_back, door_east],

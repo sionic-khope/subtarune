@@ -15,11 +15,14 @@ OpenGateway `openai/gpt-image-2.5-sunburst`, images/edits(참조 1장), quality 
 참조 원본: `reference.png`(사용자 그림), `gerson-pose-ref.png`(델타룬 거슨, 자세만), `gerson-dance-ref.gif` + `gerson-dance-contact.png`(루리웹 700058/17735 의 gif, 자세만). 거슨의 색·등껍질·망치·스카프는 쓰지 않는다.
 
 ## 목소리
-사용자 3차 지시 “형섭 느낌 빼고 델타룬 거슨에서 살짝 변형 비슷하게”. 거슨(4장) 텍스트 음성 원음은 확보하지 못했다(TeamBlossomDevs 디컴파일 chapter3/chapter4 브랜치는 README 뿐, The Sounds Resource 4장 팩은 봇 차단). 그래서 **임시**로 델타룬 공식 저음 텍스트음 `assets/library/sfx/snd_dadtxt.mp3` 를 거슨풍으로 변형했다:
+사용자 4차 “목소리 싫어 거슨하고 비슷하게 하라고”: **델타룬 4장 거슨 원음**을 쓴다. 디컴파일 저장소엔 4장 텍스트음이 없어 유튜브 클립 [WiNn1mjmBlw](https://www.youtube.com/watch?v=WiNn1mjmBlw) “Gerson (Old Man) Laughing Sound Effect (Deltarune Chapter 4)”(업로더 Simon Demon, 2025-06-06, 3초)의 두 번째 ‘하’ 음절을 그대로 잘랐다(원본 `audio/yt_WiNn1mjmBlw.webm`):
 ```
-ffmpeg -i assets/library/sfx/snd_dadtxt.mp3 -af "asetrate=44100*0.86,aresample=44100,highpass=f=90,lowpass=f=2300,tremolo=f=26:d=0.4,bass=g=3:f=160,volume=1.4,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
+ffmpeg -ss 0.462 -t 0.15 -i audio/yt_WiNn1mjmBlw.webm -af "afade=t=in:st=0:d=0.004,afade=t=out:st=0.115:d=0.035,volume=1.5,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
 ```
-`VOICES.janitor` rate 0.95·cut·minGap 0.09. 거슨 원음(ogg)이 `audio/` 에 오면 같은 필터 체인(피치만 재조정)으로 교체한다. 이전 형섭 기반 1·2차본은 폐기.
+`VOICES.janitor` rate 0.96(살짝만 낮춤)·cut·minGap 0.085. 이전 1~3차본(형섭 변형, snd_dadtxt 변형)은 폐기. 게임 원본 텍스트음(snd_txtgerson 계열 ogg)이 들어오면 같은 자리에 교체한다.
+
+## 걷기 시트 2차 (지팡이)
+사용자 “왜 화면이 밝아지고 나선 지팡이 안 짚고 있냐”: 지팡이 짚은 4방향 걷기 시트를 새로 생성(`walk-cane.prompt.txt`, 참조 `walk-cane-ref.png` = 정면 프레임 + 지팡이 옆모습 raw, raw `walk-cane-raw.png` 4×4, 행 down/left/right/up). export `youngcle-hover-battle-v1/export.py walk-cane-raw.png 4 4 128 0.72 walk-cane-rawrows.png 120 largest`(배율 0.4114) → 행 재배열 → `assets/sprites/janitor.png`(정면 가시 89px). 실루엣 `janitor_shadow.png` = 이 시트를 검게(`build_shadow.py`). 이전 지팡이 없는 시트는 `janitor-walk-128.png`.
 
 ## 등록
 `src/data/characters.js janitor`(이름 청소부, voice janitor, sheet janitor.png, stillPivot [64,120]). 전투 시트는 적/아군 정의(enemies.js)가 브리핑되면 `sheet`/`dance` 로 연결한다 — 사용자 “실제 인게임 전투에서는 코사크 댄스”, 전투폼 이동·대사 때는 stance-left/right.

@@ -498,8 +498,9 @@ class Game {
     const def = ITEMS[name]; if (!def?.heal) return false;
     const i = this.inventory.indexOf(name); if (i < 0) return false;
     this.inventory.splice(i, 1);
-    const max = this.maxHpOf(id); this.partyHp[id] = Math.min(max, this.hpOf(id) + def.heal);
-    this.sound.sfx('heal'); this.autosave();
+    // 음수 회복(돌 -5)은 1 밑으로 내리지 않고, 회복음 대신 피격음
+    const max = this.maxHpOf(id); this.partyHp[id] = Math.max(1, Math.min(max, this.hpOf(id) + def.heal));
+    this.sound.sfx(def.heal < 0 ? 'hurt' : 'heal'); this.autosave();
     return true;
   }
 
@@ -1268,7 +1269,7 @@ class Game {
           const heal = row.index === null ? null : ITEMS[row.label]?.heal;
           if (heal) {
             ctx.fillStyle = selected ? '#ffe066' : '#fff';
-            drawMenuText(ctx, `HP +${heal}`, x + 254, ry, 94);
+            drawMenuText(ctx, `HP ${heal > 0 ? '+' : ''}${heal}`, x + 254, ry, 94);
           }
         });
         ctx.fillStyle = '#9a9ab0';
