@@ -13,4 +13,4 @@ test('test_party_drops_leader_unknown_and_duplicates', () => {
   assert.deepEqual(normalizeParty(undefined), []);
   assert.deepEqual(fullParty(['ppaman', 'gyeongsub']), ['hyungsub', 'gyeongsub', 'ppaman']);
 });
-test('test_party_order_constant_is_gyeongsub_then_ppaman', () => { assert.deepEqual(PARTY_ORDER, ['gyeongsub', 'ppaman']); });
+test('test_party_order_constant_is_gyeongsub_then_ppaman_then_janitor', () => { assert.deepEqual(PARTY_ORDER, ['gyeongsub', 'ppaman', 'janitor']); });

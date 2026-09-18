@@ -29,6 +29,19 @@ export const BATTLE_SPRITES = {
       frame([1192, 512, 344, 512], [118, 433], 0.22),
     ],
   },
+  // 청소부(허약, BUILD226 동료): gpt-image-2.5-sunburst 4장(대기·달리기·공격·쓰러짐)을 형섭 규격으로 포장 — assets/source/janitor-v1/export_battle.py, battle-contract.json.
+  //   깃발·코사크 댄스 시트(assets/enemies/janitor-stance-*, janitor-dance)는 ‘청소부(전투)’ 전용이라 여기 쓰지 않는다
+  janitor: {
+    src: 'assets/battle/janitor.png', scale: 0.25,
+    run: run('janitor', 0.1864, [[398, 488], [364, 490], [403, 474], [364, 477]]),
+    idle: idle([192, 500]),
+    attack: [
+      frame([0, 512, 384, 512], [192, 500], 0.18),
+      frame([384, 512, 384, 512], [191, 500], 0.12),
+      frame([768, 512, 384, 512], [191, 500], 0.16),
+      frame([1152, 512, 384, 512], [192, 500], 0.20),
+    ],
+  },
   ppaman: {
     src: 'assets/battle/ppaman.png', scale: 0.25,
     run: run('ppaman', 0.211, [[402, 487], [295, 479], [405, 406], [289, 406]]),

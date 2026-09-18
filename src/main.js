@@ -887,6 +887,8 @@ class Game {
     }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
     this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt);
+    // 컷신 footsteps 오버라이드: 주인공 update 가 대화 중 돌지 않아도 이 구역 걸음 루프를 매 프레임 살려 둔다(BUILD226 “뒤에서 또 다른 걸음소리”)
+    if (this.footstepsOverride) this.sound?.walk?.(this.footstepsOverride);
     if (this.hurt > 0) this.hurt -= dt;
     if (this.invuln > 0) this.invuln -= dt;
     for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }

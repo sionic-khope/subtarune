@@ -52,6 +52,7 @@ import { doorTransitWaiter } from '../world/door-transit.js';
 import { shipHatchWaiter } from '../world/ship-hatch.js';
 import { youngcleCageDropWaiter } from '../scenes/youngcle-lounge-effects.js';
 import { editorUnionWaiter } from '../scenes/editor-union-effects.js';
+import { WATER_WALK } from '../data/footsteps.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -102,12 +103,14 @@ function mover(game, node) {
       if (dist < 0.5) {
         e.x = tx; e.y = ty; e.moving = false; e.animate?.(dt);
         syncPassenger();
+        if (node.footsteps) game.footstepsOverride = null;   // move footsteps:true — 걷는 동안 걸음 루프를 켜 둔다(실루엣 발소리)
         if (e === game.player) e.trail = [];   // 동료가 옛 발자국으로 되돌아가지 않게
         return true;
       }
       const step = Math.min(dist, speed * dt);
       e.x += (dx / dist) * step; e.y += (dy / dist) * step;
       e.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      if (node.footsteps) game.footstepsOverride = WATER_WALK;
       e.moving = true; e.animate?.(dt, fast ? 14 : 8); e.driven = true;   // driven: 이 틱은 컷신이 걷기 프레임을 진행시켰다 — NPC.update 의 대화 중 정지 처리가 프레임을 0 으로 덮지 않게 (PR #13 지침, 2026-09-11)
       syncPassenger();
       if (node.track) { game.camera.target = e; game.camera.locked = false; game.camera.snap(); }
@@ -334,6 +337,10 @@ export function makeWaiter(game, node) {
   if (node.hide) { const e = findEntity(game, node.hide); if (e) { e.visible = false; if (e._solidBeforeHide === undefined) e._solidBeforeHide = e.solid; e.solid = false; } return done; }   // 안 보이는 것은 막지도 않는다 (2026-09-10 미로 출구에서 숨긴 NPC 가 길을 막았음)
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
   if (node.map) { game.changeMap(node.map, node.spawn, true); if (node.enter) game.pendingMapEnter = node.map; return done; }
+  if (node.footsteps !== undefined && !node.move) {   // { footsteps: 초 } 주인공이 서 있어도 이 구역 걸음 루프(WATER_WALK)를 초 동안 튼다 — “뒤에서 또 다른 걸음소리”(BUILD226)
+    let t = 0; game.footstepsOverride = WATER_WALK;
+    return { update: (dt) => { t += dt; if (t >= node.footsteps) { game.footstepsOverride = null; return true; } return false; } };
+  }
   if (node.spawn) { game.spawn(node.spawn); return done; }
   if ('curtain' in node) { game.curtain = node.curtain; return done; }
   if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }

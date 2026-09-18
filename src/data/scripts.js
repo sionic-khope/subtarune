@@ -57,6 +57,7 @@ import { shipLoungeScripts } from './cutscenes/ship_lounge.js';
 import { ship_castle } from './cutscenes/ship_castle.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
+import { torii_janitor } from './cutscenes/jjajang_torii.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -84,6 +85,7 @@ export const SCRIPTS = {
   ship_castle,
   ...shipSinkingScripts,
   ...jjajangShoreScripts,
+  torii_janitor,
   obj4_baron_intro,
   obj4_baron_abduction,
   obj5_chase,

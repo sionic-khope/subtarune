@@ -13,6 +13,7 @@
 - 토리이 3개: gpt-image-2.5-sunburst 로 만든 대각선 3/4 시점 문(assets/source/jjajang-torii-v1). 가까운 기둥은 길 아래 칸(row 10), 먼 기둥은 길 위 칸(row 7)에 서고
   대들보가 길 위를 가로지른다 — 길 안에 놓지 않는다. 깊이: 먼 기둥대(back)는 캐릭터 뒤, 대들보+가까운 기둥(front)은 캐릭터 앞.
 - 시야: 맵 `vision`(주인공 중심 반지름 125 맑음 → 205 까지 노이즈 알갱이가 차오르고 246 부터 완전히 검음) — src/main.js drawVision.
+- 이벤트: 두 번째 토리이를 지나면(35~36열 트리거) 청소부(허약) 합류 컷신 `torii_janitor`(src/data/cutscenes/jjajang_torii.js). 스폰 before_janitor/after_janitor 는 QA 지점용.
 - 오른쪽 끝은 다음 맵 자리(통로만 열림, 문 없음 — 브리핑 대기). 브금은 숲과 같은 wind(지정 없음, 같은 구역 이어짐)."""
 from __future__ import annotations
 
@@ -88,6 +89,11 @@ def build_map() -> dict[str, object]:
                 continue
             tree_cells.append((col, row))
     trees = [tree(f'jjajang_tree_{index + 1}', col, row, index % 3 + 1) for index, (col, row) in enumerate(tree_cells)]
+    # 두 번째 토리이(28열, 그림은 34열까지)를 지나면 청소부 이벤트(BUILD226): 35~36열 길 전체를 덮는 트리거, 한 번만
+    janitor_trigger = {
+        'type': 'trigger', 'id': 'torii_janitor_trigger', 'x': 35 * TILE, 'y': ROAD_TOP * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
+        'once': True, 'flag': 'torii_janitor_started', 'unless': 'torii_janitor_joined', 'script': 'torii_janitor',
+    }
     door_back = {
         'type': 'door', 'id': 'torii_forest_door', 'x': STUB_LEFT * TILE, 'y': HEIGHT * TILE - 10, 'w': 2 * TILE, 'h': 10,
         'to': 'jjajang_forest', 'spawn': 'from_north', 'sfx': False,
@@ -98,12 +104,14 @@ def build_map() -> dict[str, object]:
         'stage': 'ship_sinking_done',
         'bgm': 'wind',
         'dim': 0,
-        'vision': {'radius': 125, 'edge': 205, 'noise': 0.6},
+        'vision': {'radius': 125, 'edge': 205, 'noise': 0.5},
         'rows': [''.join(row) for row in rows],
         'spawns': {
             'from_forest': {'x': 10 * TILE - 8, 'y': (HEIGHT - 2) * TILE + 12, 'facing': 'up'},
             'start': {'x': 10 * TILE - 8, 'y': (HEIGHT - 2) * TILE + 12, 'facing': 'up'},
             'from_east': {'x': (WIDTH - 3) * TILE, 'y': ROAD_TOP * TILE + 16, 'facing': 'left'},
+            'before_janitor': {'x': 32 * TILE + 8, 'y': ROAD_TOP * TILE + 6, 'facing': 'right'},
+            'after_janitor': {'x': 38 * TILE + 8, 'y': ROAD_TOP * TILE + 6, 'facing': 'right'},
         },
         'meta': {
             'connected': True,
@@ -111,7 +119,7 @@ def build_map() -> dict[str, object]:
             'role': '짜장숲 다음: 두 칸 위 → 오른쪽 직선 길, 대각선 토리이 3개, 주인공 중심 원형 시야(vision). 오른쪽 끝 다음 맵은 브리핑 대기',
             'torii': [{'col': col, 'nearBase': [col * TILE + 16, (ROAD_BOTTOM + 1) * TILE + 2]} for col in TORII_COLS],
         },
-        'entities': [*trees, *gates, door_back],
+        'entities': [*trees, *gates, janitor_trigger, door_back],
     }
 
 

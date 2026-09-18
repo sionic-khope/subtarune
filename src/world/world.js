@@ -372,6 +372,14 @@ export function drawEmote(ctx, em, cx, top) {
     ctx.fillStyle = '#d6ecff'; ctx.fillRect(x - 1, y + 3, 1, 2);
     return;
   }
+  if (em.kind === '?') {
+    // 물음표(BUILD226 청소부 이벤트 “물음표? 연출”): 2px 도트 고리·꼬리·점, 검은 1px 테두리 위 흰색. '!' 와 같은 튀어오름
+    const pop = Math.min(1, t / 0.12), y = top - 23 - Math.round(6 * Math.sin(pop * Math.PI / 2)), x = cx - 5;
+    const dots = [[1, 0], [2, 0], [3, 0], [0, 1], [4, 1], [4, 2], [3, 3], [2, 4], [2, 5], [2, 7]];
+    ctx.fillStyle = '#000'; for (const [dx, dy] of dots) ctx.fillRect(x + dx * 2 - 1, y + dy * 2 - 1, 4, 4);
+    ctx.fillStyle = '#fff'; for (const [dx, dy] of dots) ctx.fillRect(x + dx * 2, y + dy * 2, 2, 2);
+    return;
+  }
   const pop = Math.min(1, t / 0.12), y = top - 22 - Math.round(6 * Math.sin(pop * Math.PI / 2)), x = cx - 3;   // '!'
   ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 8, 12); ctx.fillRect(x - 1, y + 13, 8, 5);
   ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 6, 10); ctx.fillRect(x, y + 14, 6, 3);
@@ -436,7 +444,8 @@ export class Player extends Character {
     this.animate(dt, input.down('cancel') ? 8 : 12);
     if (this.moving) { this.recordTrail(); this.footstep(prevFrame); }
     // 물 위 걷기 소리(영상 루프): 걷는 동안 이어 틀고, 멈추면 다음 걸음 직전에 끊는다 — audio.js walk (2026-09-12)
-    this.game.sound?.walk?.(this.moving ? this.stepTile() : null);
+    // footstepsOverride: 컷신이 “뒤에서 들리는 걸음소리”처럼 주인공이 서 있어도 이 구역 걸음 루프를 켜 둔다({ footsteps } 노드·move footsteps, BUILD226 청소부 이벤트)
+    this.game.sound?.walk?.(this.game.footstepsOverride || (this.moving ? this.stepTile() : null));
 
     // 밟는 트리거
     for (const e of this.game.entities) {

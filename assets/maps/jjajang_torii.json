@@ -7,7 +7,7 @@
  "vision": {
   "radius": 125,
   "edge": 205,
-  "noise": 0.6
+  "noise": 0.5
  },
  "rows": [
   "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
@@ -40,6 +40,16 @@
    "x": 1440,
    "y": 272,
    "facing": "left"
+  },
+  "before_janitor": {
+   "x": 1032,
+   "y": 262,
+   "facing": "right"
+  },
+  "after_janitor": {
+   "x": 1224,
+   "y": 262,
+   "facing": "right"
   }
  },
  "meta": {
@@ -415,6 +425,18 @@
    "ix": 1239,
    "iy": 37,
    "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "torii_janitor_trigger",
+   "x": 1120,
+   "y": 256,
+   "w": 64,
+   "h": 64,
+   "once": true,
+   "flag": "torii_janitor_started",
+   "unless": "torii_janitor_joined",
+   "script": "torii_janitor"
   },
   {
    "type": "door",

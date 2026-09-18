@@ -1,0 +1,10 @@
+# imagegen 2026-09-18 18:05:37
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/janitor-v1/battle-ref.png
+
+Pixel art running sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1536x1024 canvas, invisible equal 768x512 cells.
+The character is the pixel man in Image1 (LEFT = his right-facing side view, RIGHT = his front view; exact CHARACTER IDENTITY: short stout pale old man, big round jowly head, sparse dark stubble dots, thin rectangular glasses, small nose, calm tired mouth, bright RED bandana covering the head knotted at the back, bright red short-sleeved t-shirt with one small black chest emblem, dark navy shorts, plain dark shoes, slightly frail slouching build). Keep his identity, colours, pixel density and chunky proportions exactly. This is his FRAIL everyday form: no flag, no pole, no weapon, no props.
+Running toward the viewer's RIGHT in every cell (3/4 view, face visible): a tired shuffling jog with short steps and weakly pumping arms. 4 frames in reading order: frame 1 left foot forward touching the ground; frame 2 passing pose with feet together; frame 3 right foot forward touching the ground; frame 4 passing pose slightly lifted. Same scale and feet on the same baseline in every cell; the figure fills about 80% of the cell height and is centered in its cell; nothing touches the cell edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur, no motion lines, no effects. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no grid lines, no labels, no text.
