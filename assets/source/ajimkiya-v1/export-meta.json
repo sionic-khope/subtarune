@@ -1,0 +1,84 @@
+{
+ "raw": "assets/source/ajimkiya-v1/ajimkiya4-raw.png",
+ "cols": 2,
+ "rows": 2,
+ "cell": 128,
+ "fit": 0.86,
+ "scale": 0.23272727272727273,
+ "feet_y": 118,
+ "cells": [
+  {
+   "bbox": [
+    64,
+    40,
+    507,
+    497
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    103,
+    106
+   ],
+   "paste": [
+    12,
+    12
+   ]
+  },
+  {
+   "bbox": [
+    131,
+    24,
+    390,
+    497
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    60,
+    110
+   ],
+   "paste": [
+    34,
+    8
+   ]
+  },
+  {
+   "bbox": [
+    42,
+    30,
+    494,
+    479
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    105,
+    104
+   ],
+   "paste": [
+    11,
+    14
+   ]
+  },
+  {
+   "bbox": [
+    111,
+    15,
+    387,
+    479
+   ],
+   "edge_touch": false,
+   "components": 1,
+   "scaled": [
+    64,
+    108
+   ],
+   "paste": [
+    32,
+    10
+   ]
+  }
+ ],
+ "sampling": "NEAREST, one scale per sheet, binary alpha >=128"
+}

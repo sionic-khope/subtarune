@@ -197,11 +197,16 @@ registerTile('&', { name: 'jjajang_path_edge', solid: false, draw: flat('#242726
 const FOREST_STEP = { ...WATER_WALK, ripple: false };
 registerTile('$', { name: 'jjajang_path_echo', solid: false, step: FOREST_STEP, draw: flat('#242726') });
 // 짜장 소나무 숲 공터의 풀숲(BUILD226 사용자 “거기 중간에 풀숲하고 적당히 정사각형의 공간”): 길 바닥 위에 어두운 풀잎 다발, 걸을 수 있고 발소리는 길과 같다
-const thicket = (ctx) => {
-  ctx.fillStyle = '#242726'; ctx.fillRect(0, 0, ART_PX, ART_PX);
-  const blades = [[1, 9, 2, 6], [3, 6, 2, 9], [6, 10, 2, 5], [8, 4, 2, 11], [11, 8, 2, 7], [13, 11, 2, 4], [5, 12, 1, 3], [10, 13, 1, 2]];
-  for (const [x, y, w, h] of blades) { ctx.fillStyle = (x + y) % 3 ? '#1e3a22' : '#2c5230'; ctx.fillRect(x, y, w, h); }
-  ctx.fillStyle = '#16281a'; ctx.fillRect(2, 14, 12, 1);
+// 더 울창하게(BUILD227 사용자 “가운데 풀숲 더 울창하게”): 칸마다 다른 풀잎 14~18개가 두 겹으로, 아래는 어두운 덤불 띠. variants 3 으로 칸마다 모양이 다르다
+const thicket = (ctx, rng) => {
+  ctx.fillStyle = '#1b2a1e'; ctx.fillRect(0, 0, ART_PX, ART_PX);
+  const count = 14 + Math.floor(rng() * 5);
+  for (let i = 0; i < count; i++) {
+    const x = Math.floor(rng() * ART_PX), h = 5 + Math.floor(rng() * 9), y = ART_PX - h - Math.floor(rng() * 3), w = 1 + Math.floor(rng() * 2);
+    ctx.fillStyle = i % 3 === 0 ? '#2c5230' : i % 3 === 1 ? '#1e3a22' : '#356338'; ctx.fillRect(x, y, w, h);
+  }
+  ctx.fillStyle = '#122016'; ctx.fillRect(0, ART_PX - 2, ART_PX, 2);
+  for (let i = 0; i < 4; i++) { const x = Math.floor(rng() * ART_PX); ctx.fillStyle = '#3f7a44'; ctx.fillRect(x, 2 + Math.floor(rng() * 6), 1, 2); }
 };
-registerTile('"', { name: 'jjajang_thicket', solid: false, step: FOREST_STEP, draw: thicket });
+registerTile('"', { name: 'jjajang_thicket', solid: false, step: FOREST_STEP, variants: 3, draw: thicket });
 registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });

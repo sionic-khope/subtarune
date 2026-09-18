@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/ajimkiya-v1/dance-ref.png"
+  ],
+  "elapsed_seconds": 42.1,
+  "usage": {
+    "input_tokens": 824,
+    "output_tokens": 1756,
+    "total_tokens": 2580,
+    "input_tokens_details": {
+      "image_tokens": 480,
+      "text_tokens": 344
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789734101,
+  "outputs": [
+    {
+      "file": "assets/source/ajimkiya-v1/ajimkiya3-raw.png",
+      "bytes": 1078827,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

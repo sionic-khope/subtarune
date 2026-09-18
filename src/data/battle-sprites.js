@@ -29,16 +29,16 @@ export const BATTLE_SPRITES = {
       frame([1192, 512, 344, 512], [118, 433], 0.22),
     ],
   },
-  // 청소부(허약, BUILD226 동료): gpt-image-2.5-sunburst 4장(대기·달리기·공격·쓰러짐)을 형섭 규격으로 포장 — assets/source/janitor-v1/export_battle.py, battle-contract.json.
-  //   깃발·코사크 댄스 시트(assets/enemies/janitor-stance-*, janitor-dance)는 ‘청소부(전투)’ 전용이라 여기 쓰지 않는다
+  // 청소부(허약, BUILD226 동료 → BUILD227 지팡이판): gpt-image-2.5-sunburst 4장(지팡이 짚은 대기·지팡이 든 달리기·지팡이 던지기 공격·쓰러짐)을 형섭 규격으로 포장 — assets/source/janitor-v1/export_battle.py battle-cane-, battle-cane-contract.json.
+  //   공격 = 지팡이를 던진다(사용자 “그냥 지팡이 던지는 거임”), 피해는 전투 cfg.memberDamage 로(아짐키야전 1). 깃발·코사크 댄스 시트는 ‘청소부(전투)’ 전용
   janitor: {
     src: 'assets/battle/janitor.png', scale: 0.25,
-    run: run('janitor', 0.1864, [[398, 488], [364, 490], [403, 474], [364, 477]]),
-    idle: idle([192, 500]),
+    run: run('janitor', 0.1879, [[424, 488], [363, 488], [430, 481], [362, 481]]),
+    idle: idle([191, 500]),
     attack: [
-      frame([0, 512, 384, 512], [192, 500], 0.18),
-      frame([384, 512, 384, 512], [191, 500], 0.12),
-      frame([768, 512, 384, 512], [191, 500], 0.16),
+      frame([0, 512, 384, 512], [191, 500], 0.18),
+      frame([384, 512, 384, 512], [192, 500], 0.14),
+      frame([768, 512, 384, 512], [192, 500], 0.16),
       frame([1152, 512, 384, 512], [192, 500], 0.20),
     ],
   },

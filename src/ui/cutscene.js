@@ -341,6 +341,7 @@ export function makeWaiter(game, node) {
     let t = 0; game.footstepsOverride = WATER_WALK;
     return { update: (dt) => { t += dt; if (t >= node.footsteps) { game.footstepsOverride = null; return true; } return false; } };
   }
+  if (node.worldSpin !== undefined) { game.worldSpin = node.worldSpin ? { speed: node.worldSpin, angle: game.worldSpin?.angle || 0 } : null; return done; }   // { worldSpin: rad/s } 맵 전체가 화면 가운데를 축으로 빙글빙글(0 이면 멈추고 원위치, BUILD227 아짐키야)
   if (node.spawn) { game.spawn(node.spawn); return done; }
   if ('curtain' in node) { game.curtain = node.curtain; return done; }
   if (node.caption) { game.caption = { text: node.caption, time: 0, duration: node.duration ?? 3.2 }; return done; }

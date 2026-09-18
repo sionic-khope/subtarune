@@ -20,14 +20,10 @@ test('test_pines_road_winds_right_up_left_down_then_straight_right', () => {
   assert.ok(!walk(2, 10) && !walk(20, 16) && !walk(30, 4), '길 밖은 숲');
 });
 
-test('test_pines_plaza_is_square_with_thicket_rim_and_open_centre', () => {
+test('test_pines_plaza_is_square_and_all_thicket', () => {
   const [c0, c1, r0, r1] = map.meta.plaza;
   assert.equal(c1 - c0, r1 - r0, '정사각형');
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
-    const rim = r === r0 || r === r1 || c === c0 || c === c1;
-    const expected = (r === 10 || r === 11) ? '$' : rim ? '"' : '$';
-    assert.equal(rows[r][c], expected, `plaza ${c},${r}`);
-  }
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) assert.equal(rows[r][c], '"', `plaza ${c},${r} 는 울창한 풀숲(BUILD227)`);
   assert.ok(rows.every((row, r) => [...row].every((ch, c) => ch !== '"' || (c >= c0 && c <= c1 && r >= r0 && r <= r1))), '풀숲은 공터 안에만');
   assert.equal(getTile('"').solid, false); assert.equal(getTile('"').step.ripple, false);
 });

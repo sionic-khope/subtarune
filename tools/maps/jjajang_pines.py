@@ -11,7 +11,7 @@
 오른쪽으로 갔다가 위로 좀 올라갔다가 왼쪽으로 좀 갔다가 아래로 내려갔다가 가운데쯤 오른쪽으로 쭉 가는 길, 거기 중간에 풀숲하고 적당히 정사각형의 공간 만들어 줘 거기서 몹 이벤트 하나 만들 거라서 일단
 그리고 그 뒤에 오른쪽 길도 더 만들어 주고" / "다음 맵도 그 브금(my_castle_town)".
 - 짜장 곧은 길(jjajang_walk) 오른쪽 문에서 왼쪽 가장자리(16~17행)로 들어와 오른쪽 → 위(12~13열) → 왼쪽(4~5행) → 아래(4~5열) → 가운데(10~11행)에서 오른쪽 끝까지. 위 다리와 가운데 길은 12~13열에서 교차한다.
-- 공터: 34~41열 × 7~14행 정사각형(가운데 길이 관통), 둘레는 풀숲 타일 '"'(걸을 수 있음), 안쪽 6×6 은 비어 있음 — 몹 이벤트 자리(브리핑 대기). 오른쪽 끝은 통로만 열림(다음 맵 대기).
+- 공터: 34~41열 × 7~14행 정사각형 전체가 울창한 풀숲 타일 '"'(걸을 수 있음). 한가운데 트리거 → 아짐키야 조우 컷신 pines_center(src/data/cutscenes/jjajang_pines.js). 오른쪽 끝은 통로만 열림(다음 맵 대기).
 - 소나무: gpt-image-2.5-sunburst 4종을 검은 실루엣 톤으로 후처리(assets/source/jjajang-pines-v1), 기존 짜장 나무보다 크고 드문드문. 히트박스는 밑동 한 칸(24×12)만.
 - 시야 오버레이 없음(“다시 펼쳐지는데”), dim 0.08. 발소리는 숲과 같은 '$' 에코."""
 from __future__ import annotations
@@ -71,11 +71,10 @@ def build_map() -> dict[str, object]:
     path(range(DOWN_COLS[0], DOWN_COLS[1] + 1), range(TOP_ROWS[0], ROAD_ROWS[1] + 1))  # 아래로
     path(range(DOWN_COLS[0], WIDTH), range(ROAD_ROWS[0], ROAD_ROWS[1] + 1))            # 가운데쯤 오른쪽으로 쭉
     c0, c1, r0, r1 = PLAZA
+    # 공터 전체가 울창한 풀숲(BUILD227 사용자 “가운데 풀숲 더 울창하게”): 가운데 길도 풀에 덮인다(걸을 수 있음)
     for row in range(r0, r1 + 1):
         for col in range(c0, c1 + 1):
-            edge = row in (r0, r1) or col in (c0, c1)
-            on_road = row in ROAD_ROWS
-            rows[row][col] = '$' if (on_road or not edge) else '"'
+            rows[row][col] = '"'
     for row in ENTRY_ROWS:
         rows[row][0] = '&'
     for row in ROAD_ROWS:
@@ -84,6 +83,11 @@ def build_map() -> dict[str, object]:
     for p in pines:
         col, row = (p['x'] + 12) // TILE, (p['y'] + 6) // TILE
         assert rows[row][col] == '@', f'소나무 밑동이 길 위: {col},{row}'
+    # 공터 한가운데(37~38열 × 10~11행)에 닿으면 아짐키야 조우(BUILD227): 브금 끔 → 연출 → 22초 춤 → 전투
+    center_trigger = {
+        'type': 'trigger', 'id': 'pines_center_trigger', 'x': 37 * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
+        'once': True, 'flag': 'pines_center_started', 'unless': 'pines_ajimkiya_won', 'script': 'pines_center',
+    }
     door_west = {
         'type': 'door', 'id': 'pines_walk_door', 'x': 0, 'y': ENTRY_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_walk', 'spawn': 'from_east', 'sfx': False,
@@ -94,11 +98,13 @@ def build_map() -> dict[str, object]:
         'stage': 'ship_sinking_done',
         'bgm': 'my_castle_town',
         'dim': 0.08,
+        # 컷신에서 spawn 하는 소품 그림은 부팅 때 preload 목록으로 미리 읽는다(아짐키야 넷 춤 스트립, BUILD227)
+        'preload': [f'assets/props/ajimkiya{i}-dance.png' for i in (1, 2, 3, 4)],
         'rows': [''.join(row) for row in rows],
         'spawns': {
             'from_west': {'x': 1 * TILE + 8, 'y': ENTRY_ROWS[0] * TILE + 6, 'facing': 'right'},
             'start': {'x': 1 * TILE + 8, 'y': ENTRY_ROWS[0] * TILE + 6, 'facing': 'right'},
-            'plaza': {'x': 37 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'before_center': {'x': 31 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
         },
         'meta': {
             'connected': True,
@@ -106,7 +112,7 @@ def build_map() -> dict[str, object]:
             'role': '곧은 길 다음: 왼쪽 입구 → 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 다음 맵 대기. 브금 my_castle_town 이어짐',
             'plaza': list(PLAZA),
         },
-        'entities': [*pines, door_west],
+        'entities': [*pines, center_trigger, door_west],
     }
 
 

@@ -27,7 +27,7 @@ import { drawMosaicText } from '../ui/text-mosaic.js';
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
 const PARTY_X = 84, PARTY_YS = { 1: [190], 2: [164, 224], 3: [104, 164, 224] };
-const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244] };   // 큰 보스는 def.dx/dy 로 자리 보정(레드·블루: 위·아래로 엇갈리게)
+const ENEMY_X = 396, ENEMY_YS = { 1: [176], 2: [120, 236], 3: [92, 168, 244], 4: [120, 236, 120, 236] };   // 4명은 2×2(아짐키야, def.dx 로 좌우 열을 벌린다, BUILD227)   // 큰 보스는 def.dx/dy 로 자리 보정(레드·블루: 위·아래로 엇갈리게)
 const ACTOR_SCALE = 0.66;            // 미리보기(0.25) 대비 (사용자 요청으로 10% 확대)
 const APPROACH_SPEED = 820, RETURN_SPEED = 700;   // px/s — "생각보다 빠르게"
 const ATTACK_SPEEDUP = 1.35;         // 공격 모션 재생 배속
@@ -179,7 +179,8 @@ export class Battle {
       case 'target': return this.updateTarget(input);
       case 'item': return this.updateItem(input);
       case 'item-target': return this.updateItemTarget(input);
-      case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; } if (this.typed && this.t > 0.5 && (input.just('confirm') || this.t > 1.8)) { this.state = this.after || 'menu'; this.t = 0; } return;
+      case 'text': if (input.just('confirm') && !this.typed) { this.shown = this.text.length; return; }
+        if (this.typed && this.t > 0.5 && (input.just('confirm') || (this.t > 1.8 && !this.speaker))) { if (this.turnLines?.length) { this.showLine(this.turnLines.shift()); this.t = 0; return; } this.state = this.after || 'menu'; this.t = 0; } return;
       case 'act': return this.updateAct(dt, input);
       case 'enemy-mode': if (this.gimmick && this.gimmick.update(dt, input) && this.state === 'enemy-mode') { this.disposeGimmick(); this.afterEnemyPhase(); } return;
       case 'enemy-prep': return this.updatePrep(dt, input);
@@ -253,7 +254,10 @@ export class Battle {
   nextMember() {
     this.memberIdx++; while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
     this.menuIdx = 0; this.state = 'menu'; this.t = 0;
-    if (this.memberIdx >= this.members.length) this.beginAct();
+    if (this.memberIdx >= this.members.length) { this.beginAct(); return; }
+    // cfg.memberIntro[id]: 그 동료의 첫 차례가 오면 대사를 먼저(청소부 “뭐 뭐라고? 공격을 하라고?”, BUILD227) → 끝나면 그 동료의 메뉴
+    const member = this.members[this.memberIdx], intro = this.cfg.memberIntro?.[member.id];
+    if (intro?.length && !member.introShown) { member.introShown = true; this.turnLines = [...intro]; this.showLine(this.turnLines.shift()); this.after = 'menu'; this.state = 'text'; this.t = 0; }
   }
 
   // ── 행동 실행 ──
@@ -262,7 +266,8 @@ export class Battle {
     if (this.cur?.gimmick) { if (this.gimmick.update(dt, input)) { this.disposeGimmick(); this.cur = null; this.actWait = BETWEEN_ACTS; } return; }
     if (this.cur) {
       const { plan, action } = this.cur;
-      if (action.mode === 'attack' && !this.cur.hit && action.elapsed >= HIT_AT) { this.cur.hit = true; this.hitEnemy(plan.target, plan.member); }
+      // cfg.memberDamage: 이번 전투만 특정 동료의 공격 피해(청소부 지팡이 던지기 1, BUILD227)
+      if (action.mode === 'attack' && !this.cur.hit && action.elapsed >= HIT_AT) { this.cur.hit = true; this.hitEnemy(plan.target, plan.member, this.cfg.memberDamage?.[plan.member.id] ?? (this.game.attack || 1)); }
       if (action.mode === 'idle') { this.cur = null; this.actWait = BETWEEN_ACTS; }
       return;
     }
@@ -339,6 +344,7 @@ export class Battle {
       e.lastSpeech = text;
     }
     this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.formDef?.voice || e.def.voice || 'narrator' };
+    if (e.def.lines?.speakSfx) this.sfx(e.def.lines.speakSfx);   // 말풍선과 함께 트는 소리(아짐키야 ‘가재맨 애미 뒤짐’ 클립, BUILD227) — 목소리는 'none'
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
     this.soul.center({ x: 240 - bw / 2, y: 214 - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
@@ -346,7 +352,7 @@ export class Battle {
   }
   updatePrep(dt, input) {
     const b = this.bubble;
-    if (b) { b.t += dt; const n = Math.min(b.text.length, Math.floor(b.t / BUBBLE_CPS)); for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ') this.game.sound.blip(b.voice); b.shown = n; if (n >= b.text.length && b.doneAt === undefined) b.doneAt = this.t; }
+    if (b) { b.t += dt; const n = Math.min(b.text.length, Math.floor(b.t / BUBBLE_CPS)); for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ' && b.voice !== 'none') this.game.sound.blip(b.voice); b.shown = n; if (n >= b.text.length && b.doneAt === undefined) b.doneAt = this.t; }
     if (this.t > PREP_OPEN) this.soul.update(dt, input, this.board);                          // 준비 시간 동안 소울을 미리 움직일 수 있다
     if ((!b || b.doneAt !== undefined) && this.t > PREP_OPEN && this.t - (b?.doneAt ?? 0) > PREP_HOLD) this.beginBullets();
   }
@@ -385,7 +391,7 @@ export class Battle {
     if (this.bubble?.patternHold) {
       const b = this.bubble; b.t += dt;
       const n = Math.min(b.text.length, Math.floor(b.t / BUBBLE_CPS));
-      for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ') this.game.sound.blip(b.voice);
+      for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ' && b.voice !== 'none') this.game.sound.blip(b.voice);
       b.shown = n;
       if (b.t > b.text.length * BUBBLE_CPS + b.patternHold) this.bubble = null;
     }
