@@ -55,6 +55,8 @@ export const torii_janitor = [
   { motion: JANITOR, name: 'laugh', sfx: 'laugh_janitor' },
   C('일단 이 늙은이 저기까지만 좀 데려다 줄 수 있는가?'),
   C('응? 저기가 어디냐고? 뭐 저기~까지 저기~'),
+  // “저기~” 뒤에 한 번 더 웃고 다음 대사로(사용자 “저기~가 저기지 한 뒤에 웃음 한번 하고 다음 대사 가게”)
+  { motion: JANITOR, name: 'laugh', sfx: 'laugh_janitor' },
   // 동료 합류 효과음 — 억빠맨·경섭 합류와 같은 소리(사용자 “동료가 되었습니다일 때 효과음도 넣고”)
   { sfx: 'item' },
   N('영문은 모르겠지만 {c=yellow}청소부가 동료가 되었다{/c}'),
