@@ -1,6 +1,6 @@
 export const DEFAULT_BASE_URL = 'http://localhost:8000/';
 // Add a scenario only after every navigation uses the shared harness URL.
-export const BASE_URL_SCENARIOS = new Set(['battle_lose', 'battle_bgm', 'tvform-rhythm', 'tvform-subrio-b', 'tvform-subrio', 'tvform-subrio-guard', 'ship-lounge', 'ship-ending', 'ship-castle', 'jjajang-shore', 'sinking-shore']);
+export const BASE_URL_SCENARIOS = new Set(['battle_lose', 'battle_bgm', 'tvform-rhythm', 'tvform-subrio-b', 'tvform-subrio', 'tvform-subrio-guard', 'ship-lounge', 'ship-ending', 'ship-castle', 'jjajang-shore', 'sinking-shore', 'choimis']);
 
 /** Validate CLI names before using them as file paths. */
 export function selectScenarios(args, available) {

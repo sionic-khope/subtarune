@@ -1,0 +1,74 @@
+{
+  "provider": "Codex built-in image_gen",
+  "model": "unknown",
+  "usage": "unknown",
+  "cost": "unknown",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "rawSha256": "94006810ecc10bd134a65aeae1e3950c839d6af153cf57fd2db54a3e045262f5",
+  "method": "Equal quadrant crop and NEAREST32x32; no color, alpha, seam or palette edits",
+  "tiles": [
+    {
+      "name": "ship_lounge_floor",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "1f007b5f39ef260a2001d5e005aef282aa0827b4b7813b8e63f92070d069979e",
+      "runtime": true
+    },
+    {
+      "name": "ship_lounge_floor_alt",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "d8816ff9e02c10c52687664db6e75804736e1dd0bfdf2a6b9e7009278555950b",
+      "runtime": true
+    },
+    {
+      "name": "ship_lounge_runner",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "1131eb071174a53f09b5d6a640402df2a6d1b44f9855a5278e8073a289d6633a",
+      "runtime": true
+    },
+    {
+      "name": "carpet_b_candidate",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "b92bbb29fc46698a98b0604668562697eb00353803d4e3631803a39058cdbefe",
+      "runtime": false
+    }
+  ]
+}

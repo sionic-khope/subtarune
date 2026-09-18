@@ -344,6 +344,8 @@ export function run(game, node = {}) {
       const wantBadge = state.phase === 'play' && !state.over && state.signal < BADGE_SHOW;
       state.badge = Math.max(0, Math.min(1, state.badge + (wantBadge ? dt * 4 : -dt * 3)));
       const confirm = edge('confirm');
+      // 자동재생이 막혀 영상이 음소거로 켜진 경우(노트는 내려오는데 노래가 없음 — 2026-09-18 사용자): 키를 누르는 순간 음소거를 풀고 다시 재생한다
+      if (state.video && state.video.muted && !state.fromClock && (confirm || Input.down('left') || Input.down('right'))) { state.video.muted = false; state.video.play().catch(() => {}); }
       if (edge('title')) { finish(false); return; }
       if (state.phase === 'drop') {
         let all = true;

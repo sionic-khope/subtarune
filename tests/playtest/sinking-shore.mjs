@@ -16,10 +16,15 @@ await runScenario({ name: 'sinking-shore', launchOptions: { args: ['--autoplay-p
   await open({ qa: 'ship_sinking' });
   check('QA starts registered sinking script', !!await until(() => game.shipMemory?.snapshot().beat === 'underwater_enter'
     && game.dialogue.running && game.sound.bgmName === 'ship_sinking', 20000));
+  const start = await page.evaluate(() => game.shipMemory.snapshot());
+  await shot('sinking_00_start');
   await page.waitForTimeout(2500);
   const midSink = await page.evaluate(() => ({ ...game.shipMemory.snapshot(), hasText: !!game.textbox.node?.text }));
   check('underwater center descent has rays and moving bubbles before narration', midSink.sinkY > 174
     && midSink.sinkY < 226 && midSink.bubbles.length === 22 && !midSink.hasText, JSON.stringify(midSink));
+  check('sinking is faster on screen and uses a smaller sideways actor', midSink.actor.y - start.actor.y >= 9
+    && midSink.actor.angle < -1.18 && midSink.actor.angle > -1.26
+    && midSink.actor.width < 90 && midSink.actor.height < 100, JSON.stringify({ start: start.actor, mid: midSink.actor }));
   await shot('sinking_01_center_descent');
 
   const expectedNarration = [
@@ -49,16 +54,42 @@ await runScenario({ name: 'sinking-shore', launchOptions: { args: ['--autoplay-p
       return snapshot?.beat === expected && snapshot.imagesReady === 5 && snapshot.panel === expected;
     }, beat, { timeout: 8000 }).then(() => true, () => false);
     check(`${beat} image decodes with all five assets ready`, decoded);
-    await page.waitForTimeout(5400);
+    await page.waitForTimeout(650);
+    await shot(`sinking_memory_${number}_out_mid`);
+    await page.waitForTimeout(950);
+    const black = await page.evaluate(() => game.shipMemory.snapshot());
+    check(`${beat} reaches a full black midpoint before changing image`, black.transition?.phase === 'black', JSON.stringify(black.transition));
+    await shot(`sinking_memory_${number}_black`);
+    await page.waitForTimeout(1400);
+    await shot(`sinking_memory_${number}_in_mid`);
+    await page.waitForTimeout(1400);
     const panel = await page.evaluate(() => game.shipMemory.snapshot());
     check(`${beat} completes a slow fade through black`, panel.transition?.phase === 'panel'
       && panel.transition.alpha === 1 && panel.previousPanel !== panel.panel, JSON.stringify(panel));
+    check(`${beat} uses unchanged native pixels without a crop`, await page.evaluate(() => {
+      const scene = game.shipMemory;
+      const image = scene.panelImage(scene.panelIndex);
+      const rect = scene.config.panelRect;
+      return image.width === rect.w && image.height === rect.h && rect.x === 48 && rect.y === 14;
+    }));
+    if (number === 3) await page.setViewportSize({ width: 768, height: 768 });
     await shot(`sinking_memory_${number}`);
+    if (number === 3) await page.setViewportSize({ width: 1000, height: 780 });
   }
 
   check('fifth memory returns to the underwater tableau', !!await until(() => game.shipMemory?.snapshot().beat === 'underwater_return', 15000));
-  await page.waitForTimeout(5200);
+  await page.waitForTimeout(700);
+  await shot('sinking_return_out_mid');
+  await page.waitForTimeout(2400);
+  await shot('sinking_return_in_mid');
+  await page.waitForTimeout(2100);
   await shot('sinking_07_underwater_return');
+  const returned = await page.evaluate(() => game.shipMemory.snapshot());
+  await page.waitForTimeout(1500);
+  const returning = await page.evaluate(() => game.shipMemory.snapshot());
+  check('camera follows ongoing descent after long narration and five panels', returning.sinkY > returned.sinkY + 10
+    && returning.cameraDepth > returned.cameraDepth + 10 && Math.abs(returning.actor.y - returned.actor.y) <= 2
+    && returning.actor.y >= 185 && returning.actor.y <= 193, JSON.stringify({ returned, returning }));
   const heroOne = await readWaitingLine();
   check('Yoplait first resolve line is exact', heroOne?.speaker === '요플래' && heroOne.text === '* ... 그럼에도', JSON.stringify(heroOne));
   await acceptLine();

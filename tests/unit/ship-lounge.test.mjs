@@ -14,6 +14,34 @@ test('ship lounge provides a tall room after the control-room ending', () => {
   assert.ok(m.rows[0].length >= 20 && m.rows[0].length <= 28);
 });
 
+test('test_ship_lounge_npcs_respond_without_repositioning', () => {
+  const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+  for (const npc of m.entities.filter(entity => entity.type === 'npc')) {
+    const script = shipLoungeScripts[npc.script];
+    assert.ok(script[0].text || script[0].hop, `${npc.id} responds immediately`);
+    assert.ok(script.every(node => !node.move && !node.parallel && !node.wait && !node.action && !node.regroup), npc.id);
+  }
+  const mario = shipLoungeScripts.ship_lounge_mini_mario;
+  const hops = mario.filter(node => node.hop === 'lounge_mini_mario');
+  assert.equal(hops.length, 1, 'C answers with exactly one hop and nothing else');
+  assert.ok(mario.every(node => !node.text && !node.chat && !node.move && !node.remove), 'no dialogue and no walking');
+  const [dx, dy] = hops[0].by || [0, 0];
+  assert.equal(Math.abs(dx) + Math.abs(dy), 0, 'the hop lands where it started');
+  assert.ok((hops[0].height ?? 0) > 0, 'the hop rises far enough to see');
+});
+
+test('test_ship_lounge_reuses_approved_scale_and_seating_without_cactus', () => {
+  const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+  const prior = JSON.parse(fs.readFileSync('assets/maps/youngcle6.json', 'utf8'));
+  const park = m.entities.find(entity => entity.id === 'lounge_park_guardian');
+  assert.equal(park.visualScale, prior.entities.find(entity => entity.sprite === 'park_guardian_costume').visualScale);
+  assert.ok(m.entities.every(entity => entity.image !== 'assets/props/plant.png'));
+  assert.equal(m.entities.filter(entity => entity.image === 'assets/props/backstage_couch.png').length, 4);
+  const backstage = JSON.parse(fs.readFileSync('assets/maps/youngcle12.json', 'utf8'));
+  assert.equal(m.entities.find(entity => entity.id === 'lounge_ttuulla').visualScale,
+    backstage.entities.find(entity => entity.id === 'ttuulla_back').visualScale);
+});
+
 test('test_ship_lounge_main_aisle_stays_clear_until_staged_castle_approach', () => {
   const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
   const blockers = m.entities.filter(e => e.solid !== false && ['prop', 'npc'].includes(e.type));
@@ -29,6 +57,19 @@ test('test_ship_lounge_main_aisle_stays_clear_until_staged_castle_approach', () 
   const trio = ['lounge_youngcle', 'lounge_junhee', 'lounge_yongjun'].map(id => m.entities.find(entity => entity.id === id));
   assert.ok(trio.every(entity => entity.y < 300));
   assert.ok(trio.some(entity => entity.x >= 352 && entity.x < 416));
+});
+
+test('test_ship_lounge_back_wall_is_mirrored_and_never_blocks_the_top_row', () => {
+  const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+  const wall = m.entities.filter(e => e.type === 'prop' && e.iy < 200 && e.iy + 24 < e.y + e.h);
+  const centres = wall.map(e => e.ix + { 'ship_lounge_grand_door': 80, 'ship_lounge_window_0': 48, 'ship_lounge_window_1': 48, 'lounge_conduit_0': 49, 'lounge_conduit_1': 49 }[e.id]).sort((a, b) => a - b);
+  assert.equal(centres.length, 5, 'door, two windows and two plasma conduits decorate the back wall');
+  centres.forEach((c, i) => assert.equal(c + centres[centres.length - 1 - i], m.rows[0].length * 32, `wall prop ${i} is mirrored`));
+  for (const id of ['ship_lounge_window_0', 'ship_lounge_window_1']) {
+    const w = m.entities.find(e => e.id === id);
+    assert.equal(w.solid, false, `${id} must not block the walkable row under the wall`);
+    assert.ok(w.y + w.h <= 192, `${id} stays inside the wall band`);
+  }
 });
 
 test('ship lounge reuses current approved NPC identities and a healing spring', () => {

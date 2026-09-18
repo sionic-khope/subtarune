@@ -4,7 +4,7 @@ import {
   SHIP_MEMORY_BEATS,
 } from '../data/ship-memory.js';
 import { SCREEN_H, SCREEN_W, characterSprite } from '../world/world.js';
-import { drawShipMemoryUnderwater } from './ship-memory-water.js';
+import { drawShipMemoryUnderwater, shipMemoryActorPose } from './ship-memory-water.js';
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => {
@@ -90,14 +90,16 @@ export class ShipMemory {
     if (this.disposed) return;
     this.time += dt;
     this.elapsed += dt;
-    this.sinkDepth = Math.min(
-      this.config.underwater.maxSink,
-      this.sinkDepth + dt * this.config.underwater.sinkSpeed,
-    );
+    this.sinkDepth += dt * this.config.underwater.sinkSpeed;
     for (const bubble of this.bubbles) {
       bubble.y -= bubble.speed * dt;
       if (bubble.y < -8) bubble.y += SCREEN_H + 16;
     }
+  }
+
+  get cameraDepth() {
+    const { maxSink } = this.config.underwater;
+    return this.sinkDepth - maxSink * (1 - Math.exp(-this.sinkDepth / maxSink));
   }
 
   panelImage(index) {
@@ -175,6 +177,8 @@ export class ShipMemory {
       disposed: this.disposed,
       imagesReady: Object.keys(this.images).length,
       sinkY: this.config.underwater.yoplaitStartY + this.sinkDepth,
+      cameraDepth: this.cameraDepth,
+      actor: shipMemoryActorPose(this),
       bubbles: this.bubbles.map(bubble => [
         Math.round(bubble.x + Math.sin(this.time * 0.75 + bubble.phase) * 4),
         Math.round(bubble.y),

@@ -6,6 +6,7 @@ export const shipLoungeScripts = {
       choice: { options: [{ label: '예', goto: 'yes' }, { label: '아니오', goto: 'no' }], cancel: 1 } },
     { label: 'yes' },
     { action: game => game.textbox.close() },
+    { bgm: null, fadeOut: 0.4 },
     { fade: 'out', duration: 0.5 },
     { map: 'youngcle20', spawn: 'from_lounge', enter: true },
     { fade: 'in', duration: 0.5 },
@@ -47,24 +48,6 @@ export const shipLoungeScripts = {
     { speaker: '파크가디언', portrait: 'park_guardian', voice: 'park_guardian_costume', text: '* 훗훗... 여기선 안 싸워요.{n}* 라운지는 다 같이 쓰는 거라구요.' },
   ],
   ship_lounge_mini_mario: [
-    { speaker: '마리오', voice: 'narrator', text: '* 안녕하세요!{n}* 볼일 있으면 쉬엄쉬엄 하세요.' },
+    { hop: 'lounge_mini_mario', by: [0, 0], height: 24, duration: 0.5, keep: true },
   ],
 };
-
-for (const [id, side, anchor] of [
-  ['youngcle', 'left'], ['junhee', 'right'], ['yongjun', 'right'],
-  ['naram', 'right'], ['obangsun', 'right'], ['ttuulla', 'left'],
-  ['warm_bidet', 'left'], ['park_guardian', 'right'], ['mini_mario', 'left'],
-  ['spring', 'left', 'ship_lounge_spring'],
-]) {
-  const npc = anchor || `lounge_${id}`, sign = side === 'left' ? -1 : 1;
-  shipLoungeScripts[`ship_lounge_${id}`].unshift(
-    { parallel: ['player', 'gyeongsub', 'ppaman'].map((actor, i) => [
-      { move: actor, rel: npc, at: side, by: [sign * (56 + i * 56), 0], axis: 'x', speed: 80 },
-      { move: actor, rel: npc, at: side, by: [sign * (56 + i * 56), 0], axis: 'y', speed: 80 },
-      { face: actor, dir: `toward:${npc}` },
-    ]) },
-    { face: npc, dir: 'toward:player' },
-    { wait: 0.5 },
-  );
-}

@@ -1,5 +1,4 @@
 import { CAPTAIN_REVEAL_VEIL, CAPTAIN_AURA_COLORS } from './captain_reveal.js';
-import { loopCharacterMotion } from '../../world/character-motion.js';
 
 const YC = 'ship_youngcle', J = 'ship_junhee', Y = 'ship_yongjun', HATCH = 'ship_logo';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
@@ -32,8 +31,7 @@ function prepareEnding(game) {
   }
   const yc = entity(game, YC);
   yc.setSprite('youngcle_tvform'); yc.def.visualScale = 0.85;
-  const motion = game.characterMotions?.youngcle_tvform?.idle;
-  if (motion) loopCharacterMotion(yc, motion);
+  yc.motion = null; yc.moving = false; yc.frame = 0;
   for (const id of [Y, 'ship_youngcle_down', 'ship_obangsun', 'ship_naram', 'ship_gajaeman', 'ship_cannon', 'ship_cage', 'ship_cage_open']) {
     const actor = entity(game, id); if (actor) actor.visible = false;
   }
@@ -59,6 +57,8 @@ export const ship_tvform_ending = Object.assign([
   { darkSmoke: { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL, aura: { at: YC, colors: CAPTAIN_AURA_COLORS } } },
   { fade: 'in', duration: 0.65 },
   { ...V('으윽...'), portrait: 'youngcle_tv_glare' }, close,
+  { tremble: YC, duration: 1.1, amp: 2 }, { wait: 1.1 },
+  { wait: 0.5 },
   { sfx: 'white' }, { fade: 'white', duration: 0.6 },
   { action: game => {
     const yc = entity(game, YC); yc.motion = null; yc.setSprite('youngcle'); yc.def.visualScale = 2; yc.facing = 'left';
@@ -116,8 +116,10 @@ export const ship_manhole = Object.assign([
   { if: f => !f.ship_ending_done, goto: 'hatch_end' },
   { text: '* 내려갈까?', voice: 'narrator', choice: { options: [{ label: '예', goto: 'hatch_down' }, { label: '아니오', goto: 'hatch_end' }], cancel: 1 } },
   { label: 'hatch_down' }, close,
+  { action: game => game.sound.preloadBgm('ship_lounge') },
   { sfx: 'iron_step_1' }, { fade: 'out', duration: 0.5 },
   { map: 'ship_lounge', spawn: 'from_control', enter: true },
   { camera: 'player' }, { fade: 'in', duration: 0.7 },
+  { wait: 1.5 }, { bgm: 'ship_lounge', fadeIn: 1.2 },
   { label: 'hatch_end' }, { end: true },
 ], { silent: true });

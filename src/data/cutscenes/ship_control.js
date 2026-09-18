@@ -43,6 +43,21 @@ const bang = ids => ({ parallel: ids.map(id => ({ emote: id, kind: '!', duration
 const face = (ids, dir) => ids.map(id => ({ face: id, dir }));
 const ball = (id, cx, cy) => ({ spawn: { type: 'prop', id, image: 'assets/props/ship_cannonball.png', x: cx - BALL / 2, y: cy - BALL / 2, w: BALL, h: BALL, ix: cx - BALL / 2, iy: cy - BALL / 2, solid: false, sortY: 1000000000 } });   // ix/iy 필수 — 없으면 slide 가 그림을 못 옮긴다(BUILD205 사용자 지적)
 const smoke = at => ({ boom: { sheet: 'assets/fx/cannon_smoke.png', at, cols: 6, count: 6, fps: 12, scale: 2.2, sfx: 'cannon_puff' } });
+/** 회복 버섯(섭리오 마리오 버섯 그림 24px) 소품 — 쥰희 손에서 던져 포물선으로 날아가 닿으면 사라진다(fling) */
+const MUSH = 24;
+const mush = (id, cx, cy) => ({ spawn: { type: 'prop', id, image: 'assets/props/editor-union-mushroom.png', x: cx - MUSH / 2, y: cy - MUSH / 2, w: MUSH, h: MUSH, ix: cx - MUSH / 2, iy: cy - MUSH / 2, solid: false, sortY: 1000000000 } });
+/** 쥰희가 버섯 하나를 던져 한 명이 체력 전부 회복(2026-09-18 사용자 “쥰희가 버섯 세 개를 던져서 형섭 경섭 빠맨이 회복하는 연출, 체력 전부 회복”): 포물선 0.42초(vup 357·중력 1700 → 제자리 높이로 착지) → 초록 연기 + 회복 소리 + partyHp 최대 */
+const healToss = (who, [tx], i) => {
+  const sx = AFTER.junheeBack[0] + 16, sy = AFTER.junheeBack[1] - 26, dur = 0.42, id = `ship_mushroom_${i}`, key = who === 'player' ? 'hyungsub' : who;
+  return [
+    mush(id, sx, sy),
+    { fling: id, vx: Math.round((tx - sx) / dur), vup: 357, duration: dur, spin: 5, sfx: 'jump' },
+    { async: [{ puff: who, color: '#b6ff9c', offset: [0, -24], duration: 0.6 }] },
+    { sfx: 'heal' },
+    { action: game => { game.partyHp[key] = game.maxHpOf(key); } },
+    { wait: 0.2 },
+  ];
+};
 /** 착지 훙 훙 훙: 비행 장치가 제자리에서 세 번 작게 떴다 내려앉는다(사용자 “착지 훙 훙 훙 정도 모션”) */
 const settle = id => [
   { parallel: [{ hop: id, by: [0, 0], height: 10, duration: 0.42, sfx: false }, { sfx: 'whoosh', volume: 0.5 }] }, { wait: 0.12 },
@@ -249,6 +264,13 @@ const AFTERMATH = [
   G('일단 저거먼저 어떻게 하고 생각하자.'),
   P('쥰희야 너도 저랬다 기억안나냐'),
   J('안남'),
+  // 회복 연출(2026-09-18 사용자 추가): 쥰희가 버섯 세 개 → 형섭·경섭·빠맨 체력 전부 회복 → 억빠맨 “오 나이스.”
+  J('야 너네들 이거 하나씩 먹어라.'),
+  close,
+  { face: JID, dir: 'right' },
+  ...healToss('player', AFTER.party[0], 0), ...healToss('gyeongsub', AFTER.party[1], 1), ...healToss('ppaman', AFTER.party[2], 2),
+  { wait: 0.3 },
+  P('오 나이스.'),
   V('육체까지 강력해진 나의 힘을 받아라', 'taunt'),
   close,
   { wait: 0.5 },

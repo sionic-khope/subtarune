@@ -7,7 +7,9 @@
 # Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh
 # Run from repository root: uv run tools/maps/ship_lounge.py [--check]
 # ──────────────────
-"""Generate the tall ship lounge: central promenade and side conversation pockets."""
+"""엄청대박인배 라운지(BUILD225). 24x36 세로 방: 가운데 보라 융단 통로(cols 10~13), 위쪽 가운데 웅장한 보라 문, 좌우에 소파·탁자 대화 구역과 샘물·홀로 탁자.
+뒷벽 소품은 x=384 기준 좌우 대칭이다 — 현창(ix 40 / 632) · 플라즈마 배관(ix 176 / 494) · 문(ix 304). 서로 겹치지 않게 사이를 40/30px 띄운다(BUILD225 사용자 "라운지맵 전반적으로 너무 이상").
+NPC 는 소파·탁자 그림 위에 겹쳐 서지 않는다(발 y 를 소품 그림 아래끝보다 내린다). 영클·쥰희·용준 셋은 성 이벤트 연출 자리라 통로 위쪽(y<300)에 남는다."""
 from __future__ import annotations
 
 import json
@@ -23,12 +25,12 @@ NPCS: Final = (
     ('youngcle', 'youngcle', 286, 276, 'down'),
     ('junhee', 'junhee', 370, 258, 'down'),
     ('yongjun', 'yongjun', 454, 276, 'down'),
-    ('naram', 'naram_giant', 220, 650, 'right'),
-    ('obangsun', 'obangsun', 252, 708, 'left'),
-    ('ttuulla', 'ttuulla', 548, 476, 'left'),
-    ('warm_bidet', 'warm_bidet', 548, 676, 'left'),
-    ('park_guardian', 'park_guardian_costume', 188, 868, 'right'),
-    ('mini_mario', 'mini_mario', 556, 916, 'left'),
+    ('naram', 'naram_giant', 228, 532, 'left'),
+    ('obangsun', 'obangsun', 132, 604, 'right'),
+    ('ttuulla', 'ttuulla', 478, 576, 'left'),
+    ('warm_bidet', 'warm_bidet', 486, 796, 'left'),
+    ('park_guardian', 'park_guardian_costume', 248, 964, 'right'),
+    ('mini_mario', 'mini_mario', 568, 1008, 'left'),
 )
 
 
@@ -51,9 +53,10 @@ def main() -> None:
         {'type': 'prop', 'id': 'ship_lounge_grand_door', 'image': P + 'ship_lounge_grand_door.png',
          'x': 304, 'y': 184, 'w': 160, 'h': 24, 'ix': 304, 'iy': 16,
          'solid': True, 'sortY': 0, 'script': 'ship_lounge_door'},
-        {'type': 'prop', 'id': 'ship_lounge_window', 'image': P + 'ship_lounge_window.png',
-         'x': 660, 'y': 184, 'w': 76, 'h': 24, 'ix': 640, 'iy': 40,
-         'solid': True, 'sortY': 0},
+        *[{'type': 'prop', 'id': f'ship_lounge_window_{i}', 'image': P + 'ship_lounge_window.png',
+           'x': x + 20, 'y': 176, 'w': 76, 'h': 16, 'ix': x, 'iy': 40,
+           'solid': False, 'sortY': 0}
+          for i, x in enumerate((40, 632))],
         {'type': 'trigger', 'id': 'ship_castle_trigger', 'x': 312, 'y': 322, 'w': 144, 'h': 96,
          'once': True, 'flag': 'ship_castle_started', 'unless': 'ship_castle_done',
          'script': 'ship_castle'},
@@ -61,30 +64,29 @@ def main() -> None:
          'x': 352, 'y': 1088, 'w': 64, 'h': 24, 'ix': 352, 'iy': 1024,
          'solid': True, 'script': 'ship_lounge_return'},
         {'type': 'prop', 'id': 'ship_lounge_spring', 'image': P + 'blue_buff.png',
-         'x': 548, 'y': 804, 'w': 32, 'h': 12, 'ix': 544, 'iy': 772,
+         'x': 652, 'y': 756, 'w': 32, 'h': 12, 'ix': 648, 'iy': 724,
          'solid': True, 'anim': {'cols': 3, 'fps': 4}, 'script': 'ship_lounge_spring'},
-        *[{'type': 'prop', 'id': f'lounge_sofa_{i}', 'image': P + 'sofa.png',
-           'x': x + 6, 'y': y + 30, 'w': 88, 'h': 18, 'ix': x, 'iy': y, 'solid': True}
-          for i, (x, y) in enumerate(((104, 288), (540, 340), (104, 544), (536, 572), (104, 784)))],
+        *[{'type': 'prop', 'id': f'lounge_sofa_{i}', 'image': P + 'backstage_couch.png',
+           'x': x, 'y': y + 58, 'w': 96, 'h': 40, 'ix': x, 'iy': y, 'solid': True}
+          for i, (x, y) in enumerate(((104, 368), (548, 368), (104, 768), (548, 592)))],
         *[{'type': 'prop', 'id': f'lounge_table_{i}', 'image': P + 'table_low.png',
            'x': x + 4, 'y': y + 20, 'w': 72, 'h': 26, 'ix': x, 'iy': y, 'solid': True}
-          for i, (x, y) in enumerate(((108, 350), (544, 400), (108, 604)))],
-        *[{'type': 'prop', 'id': f'lounge_plant_{i}', 'image': P + 'plant.png',
-           'x': x + 8, 'y': y + 34, 'w': 20, 'h': 14, 'ix': x, 'iy': y, 'solid': True}
-          for i, (x, y) in enumerate(((64, 250), (670, 250), (64, 720), (670, 720), (200, 1016), (536, 1016)))],
+          for i, (x, y) in enumerate(((112, 480), (556, 480), (556, 704)))],
         *[{'type': 'prop', 'id': f'lounge_conduit_{i}', 'image': P + 'ship_conduit.png',
            'x': x, 'y': 128, 'w': 98, 'h': 24, 'ix': x, 'iy': 20, 'solid': True,
            'anim': {'cols': 3, 'fps': 5}}
-          for i, x in enumerate((104, 566))],
+          for i, x in enumerate((176, 494))],
         {'type': 'prop', 'id': 'lounge_holo', 'image': P + 'ship_holo_table.png',
-         'x': 532, 'y': 980, 'w': 96, 'h': 28, 'ix': 532, 'iy': 936,
+         'x': 548, 'y': 944, 'w': 96, 'h': 28, 'ix': 548, 'iy': 900,
          'solid': True, 'anim': {'cols': 3, 'fps': 5}},
         {'type': 'prop', 'id': 'lounge_tv', 'image': P + 'ship_tv.png',
-         'x': 80, 'y': 980, 'w': 80, 'h': 24, 'ix': 80, 'iy': 932,
+         'x': 112, 'y': 720, 'w': 80, 'h': 24, 'ix': 112, 'iy': 672,
          'solid': True, 'anim': {'cols': 2, 'fps': 6}},
         *[{'type': 'npc', 'id': f'lounge_{id_}', 'sprite': sprite, 'x': x, 'y': y,
            'facing': facing, 'wander': 0, 'script': f'ship_lounge_{id_}',
            **({'visualScale': 2} if id_ == 'youngcle' else {}),
+           **({'visualScale': 2.22} if id_ == 'park_guardian' else {}),
+           **({'visualScale': 1.79} if id_ == 'ttuulla' else {}),
            **({'requires': 'ship_ending_done'} if id_ in ('youngcle', 'junhee', 'yongjun') else {})}
           for id_, sprite, x, y, facing in NPCS],
     ]

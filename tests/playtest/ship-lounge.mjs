@@ -8,16 +8,34 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
     }
     check('dialogue returns control', await page.evaluate(() => !game.dialogue.running));
   };
-  const stand = async (id, offset = 0) => fixture(`approach-${id}-${offset}`, 'Place player just below this interaction for a C probe test; the central aisle is walked separately.', ({ id, offset }) => {
+  const stand = async (id, offset = 0) => fixture(`approach-${id}-${offset}`, 'Prepare a C probe below the target, or left of tiny Mario so the hop is visible; the central aisle is walked separately.', ({ id, offset }) => {
     const e = game.entities.find(e => e.id === id);
     game.player.x = e.x + e.w / 2 - game.player.w / 2 + offset;
     const bottom = e.y + e.h + 56 >= game.map.pxH;
     game.player.y = bottom ? e.y - game.player.h - 8 : e.y + e.h + 8;
     game.player.facing = bottom ? 'down' : 'up';
+    if (id === 'lounge_mini_mario') {
+      game.player.x = e.x - game.player.w - 8;
+      game.player.y = e.y;
+      game.player.facing = 'right';
+    }
     game.camera.snap();
   }, { id, offset });
   await open({ qa: 'ship_lounge' });
   check('QA enters lounge', !!await until(() => window.game?.mapId === 'ship_lounge' && !game.transitioning && !game.dialogue.running, 20000));
+  await until(() => game.sound.bgm?.currentTime > 0.2 && game.sound.bgm.volume >= 0.39, 5000);
+  const qaAudio = await page.evaluate(() => ({ name: game.sound.bgmName, time: game.sound.bgm?.currentTime, volume: game.sound.bgm?.volume, paused: game.sound.bgm?.paused, muted: game.sound.muted }));
+  check('direct QA lounge has playing audible music', qaAudio.name === 'ship_lounge' && qaAudio.time > 0 && qaAudio.volume >= 0.39 && qaAudio.paused === false && !qaAudio.muted, JSON.stringify(qaAudio));
+  await press('KeyX');
+  const decoded = await page.evaluate(async () => {
+    const response = await fetch('assets/audio/bgm/ship_lounge.mp3');
+    const buffer = await game.sound.ctx.decodeAudioData(await response.arrayBuffer());
+    const samples = buffer.getChannelData(0);
+    let energy = 0;
+    for (const sample of samples) energy += sample * sample;
+    return { status: response.status, duration: buffer.duration, rms: Math.sqrt(energy / samples.length) };
+  });
+  check('selected complete 95-second source decodes with nonzero signal', decoded.status === 200 && decoded.duration > 94 && decoded.duration < 96 && decoded.rms > 0.01, JSON.stringify(decoded));
   await fixture('suppress-followup-castle-event', 'This lounge regression inspects the existing room interactions; the dedicated ship-castle scenario owns the real proximity trigger.', () => {
     game.setFlag('ship_castle_started');
   });
@@ -32,6 +50,30 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
     const { getTile } = await import('/src/world/tiles.js');
     return [':', ';', '/'].every(key => getTile(key).override?.naturalWidth === 32);
   }));
+  const drawn = await page.evaluate(async () => {
+    const { CHAR_SCALE } = await import('/src/world/world.js');
+    const box = e => {
+      if (e.def.type === 'npc') {
+        const k = CHAR_SCALE * (e.def.visualScale || 1) / e.sprite.px;
+        const w = Math.round(e.sprite.fw * k), h = Math.round(e.sprite.fh * k);
+        return { id: e.id, x: Math.round(e.x + e.w / 2 - w / 2), y: Math.round(e.y + e.h - h), w, h };
+      }
+      const frames = e.def.anim?.cols || 1, scale = e.def.scale || 1, img = e.image || e.img;
+      const w = Math.round(img.naturalWidth / frames * scale), h = Math.round(img.naturalHeight * scale);
+      return { id: e.id, x: e.def.ix ?? e.def.x, y: e.def.iy ?? e.def.y, w, h };
+    };
+    return game.entities.filter(e => ['npc', 'prop'].includes(e.def.type)).map(box);
+  });
+  const hits = [];
+  for (let i = 0; i < drawn.length; i++) for (const b of drawn.slice(i + 1)) {
+    const a = drawn[i];
+    const pair = [a.id, b.id].sort().join('/');
+    if (pair === 'lounge_youngcle/ship_lounge_grand_door') continue;
+    if (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y) hits.push(`${a.id}/${b.id}`);
+  }
+  check('no lounge sprite is drawn on top of another prop or NPC', hits.length === 0, hits.join(' '));
+  const wall = drawn.filter(e => e.y + e.h <= 208).map(e => Math.round(e.x + e.w / 2)).sort((a, b) => a - b);
+  check('back wall decoration is mirrored about the room centre', wall.length === 5 && wall.every((c, i) => c + wall[wall.length - 1 - i] === 768), JSON.stringify(wall));
   await page.keyboard.down('ArrowUp');
   check('actual up key traverses the unobstructed central promenade', !!await until(() => game.player.y < 440, 10000));
   await page.keyboard.up('ArrowUp');
@@ -43,6 +85,21 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
   await page.keyboard.up('ArrowUp');
   check('real walking routes around the staged trio and reaches the door', !!top, JSON.stringify(await page.evaluate(() => ({ x: game.player.x, y: game.player.y }))));
   await shot('lounge_02_top');
+  for (const [side, key, x] of [['left', 'ArrowLeft', 64], ['right', 'ArrowRight', 688]]) {
+    await fixture(`walk-${side}-start`, 'Return to the ordinary arrival position to walk the outer lounge pockets with actual arrow keys.', () => {
+      game.player.x = 372; game.player.y = 900; game.camera.snap();
+    });
+    await page.keyboard.down(key);
+    check(`${side} lounge pocket reached by walking`, !!await page.waitForFunction(({ x, side }) => side === 'left' ? game.player.x <= x : game.player.x >= x, { x, side }, { timeout: 5000 }));
+    await page.keyboard.up(key);
+    await shot(`lounge_${side}_lower`);
+    for (const [zone, y] of [['middle', 620], ['upper', 400]]) {
+      await page.keyboard.down('ArrowUp');
+      check(`${side} ${zone} route remains walkable`, !!await page.waitForFunction(y => game.player.y <= y, y, { timeout: 6000 }));
+      await page.keyboard.up('ArrowUp');
+      await shot(`lounge_${side}_${zone}`);
+    }
+  }
   for (const offset of [-64, 0, 64]) {
     await stand('ship_lounge_grand_door', offset);
     await press('KeyC');
@@ -52,22 +109,51 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
   }
   for (const id of loaded.npc) {
     await stand(id);
+    const before = await page.evaluate(id => {
+      const npc = game.entities.find(e => e.id === id);
+      return { player: [game.player.x, game.player.y], npc: [npc.x, npc.y] };
+    }, id);
+    if (id === 'lounge_mini_mario') {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        await page.evaluate(() => {
+          window.loungeHop = { peaks: 0, text: false, wasUp: false, height: 0, frames: 0 };
+          const observe = () => {
+            const state = window.loungeHop;
+            const npc = game.entities.find(e => e.id === 'lounge_mini_mario');
+            const up = (npc.hopY || 0) > 0;
+            if (up && !state.wasUp) state.peaks++;
+            state.wasUp = up;
+            state.height = Math.max(state.height, npc.hopY || 0);
+            state.text ||= !!game.textbox.node?.text && game.dialogue.running;
+            if (++state.frames < 65) requestAnimationFrame(observe);
+          };
+          requestAnimationFrame(observe);
+        });
+        await press('KeyC');
+        check(`Mario hop ${attempt} starts immediately`, !!await until(() => game.entities.find(e => e.id === 'lounge_mini_mario').hopY > 0, 350));
+        if (attempt === 1) {
+          await until(() => game.entities.find(e => e.id === 'lounge_mini_mario').hopY > 22, 400);
+          await shot('lounge_mario_hop');
+        }
+        await until(() => window.loungeHop.frames >= 65, 2000);
+        const result = await page.evaluate(() => window.loungeHop);
+        check(`Mario hop ${attempt} is one jump with no dialogue`, result.peaks === 1 && result.height > 20 && !result.text, JSON.stringify(result));
+        check(`Mario hop ${attempt} returns control in place`, await page.evaluate(before => {
+          const npc = game.entities.find(e => e.id === 'lounge_mini_mario');
+          return !game.dialogue.running && !npc.hopY && JSON.stringify({ player: [game.player.x, game.player.y], npc: [npc.x, npc.y] }) === JSON.stringify(before);
+        }, before));
+      }
+      continue;
+    }
     await press('KeyC');
     check(`${id} talks through real C input`, !!await until(() => game.dialogue.running, 1500));
-    await until(() => !!game.textbox.node?.text, 6000);
+    check(`${id} starts text immediately`, !!await until(() => !!game.textbox.node?.text, 250));
+    check(`${id} keeps approached coordinates`, await page.evaluate(({ id, before }) => {
+      const npc = game.entities.find(e => e.id === id);
+      return JSON.stringify({ player: [game.player.x, game.player.y], npc: [npc.x, npc.y] }) === JSON.stringify(before);
+    }, { id, before }));
     await press('KeyC');
     await page.waitForTimeout(150);
-    const framing = await page.evaluate(async id => {
-      const { CHAR_SCALE } = await import('/src/world/world.js');
-      const actors = [game.player, ...['gyeongsub', 'ppaman', id].map(id => game.entities.find(e => e.id === id))];
-      const boxes = actors.map(e => {
-        const scale = CHAR_SCALE * (e.def.visualScale || 1) / e.sprite.px;
-        const w = Math.round(e.sprite.fw * scale), h = Math.round(e.sprite.fh * scale);
-        return { x: Math.round(e.x + e.w / 2 - w / 2), y: Math.round(e.y + e.h - h), w, h };
-      });
-      return { boxes, overlap: boxes.some((a, i) => boxes.slice(i + 1).some(b => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y)) };
-    }, id);
-    check(`${id} conversation sprites remain separate`, !framing.overlap, JSON.stringify(framing));
     await shot(id);
     await finish();
   }
@@ -101,6 +187,8 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
   check('yes returns to safe control-room spawn', !!await until(() => game.mapId === 'youngcle20' && !game.transitioning && !game.dialogue.running, 10000));
   await page.waitForTimeout(800);
   check('return does not bounce or replay ending', await page.evaluate(() => game.mapId === 'youngcle20' && !game.dialogue.running && game.flags.ship_ending_done));
+  const returnedAudio = await page.evaluate(() => ({ name: game.sound.bgmName ?? null, time: game.sound.bgm?.currentTime ?? null, volume: game.sound.bgm?.volume ?? null }));
+  check('ladder return restores intentional control-room silence', returnedAudio.name === null && returnedAudio.time === null, JSON.stringify(returnedAudio));
   await shot('lounge_07_control_return');
   const hatch = await page.evaluate(() => game.entities.find(e => e.def.script === 'ship_manhole_enter')?.id || game.entities.find(e => e.def.script?.includes('manhole'))?.id);
   check('control-room opened hatch remains interactive', !!hatch, hatch || 'no hatch');
@@ -114,7 +202,11 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
     check('hatch permits reentry', !!await until(() => game.mapId === 'ship_lounge' && !game.dialogue.running && !game.transitioning, 10000));
     await shot('lounge_08_reentry');
   }
-  check('lounge selected BGM is active', !!await until(() => game.sound.bgmName === 'ship_lounge' && game.sound.bgm?.currentTime > 0, 8000));
+  await until(() => game.sound.bgm?.currentTime > 0.2 && game.sound.bgm.volume >= 0.39, 8000);
+  const reentryAudio = await page.evaluate(() => ({ name: game.sound.bgmName ?? null, time: game.sound.bgm?.currentTime ?? null, volume: game.sound.bgm?.volume ?? null, paused: game.sound.bgm?.paused ?? null, muted: game.sound.muted }));
+  await page.waitForTimeout(400);
+  const reentryTime = await page.evaluate(() => game.sound.bgm?.currentTime ?? null);
+  check('lounge reentry music plays audibly and advances', reentryAudio.name === 'ship_lounge' && reentryAudio.volume >= 0.39 && reentryAudio.paused === false && !reentryAudio.muted && reentryTime > reentryAudio.time + 0.2, JSON.stringify({ before: reentryAudio, after: reentryTime }));
   await fixture('restore-pre-castle-save-state', 'Remove only the lounge-test suppression flag before checking the ordinary pre-event save and Continue flow.', () => {
     game.setFlag('ship_castle_started', false);
     game.autosave();

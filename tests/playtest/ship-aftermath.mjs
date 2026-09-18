@@ -95,7 +95,14 @@ try {
   check(s && s.speaker === '영클' && s.portrait === 'youngcle_tv_taunt' && s.bgm.includes('captain_mankatsuki'), '변신 뒤 “너희를 족치고 난 집에가겠음” + I\'m Very Bad ' + JSON.stringify([s?.speaker, s?.bgm]));
   s = await untilText('느금마'); check(s && s.speaker === '억빠맨', '억빠맨 “느금마”');
   // 2차전 진입 대사 6줄(BUILD218 사용자 원문): 억빠맨 → 영클 → 경섭 → 억빠맨 → 쥰희 → 영클
-  for (const [key, who] of [['징그럽다', '억빠맨'], ['힘좀 써야할거임', '영클'], ['저거먼저', '경섭'], ['기억안나냐', '억빠맨'], ['안남', '쥰희'], ['육체까지', '영클']]) { s = await untilText(key); check(s && s.speaker === who, `2차전 진입 대사 ${who} “${key}”`); }
+  // HP 를 깎아 두고 회복 연출(쥰희 버섯 세 개 → 전부 회복)을 잰다
+  await page.evaluate(() => { for (const id of ['hyungsub', 'gyeongsub', 'ppaman']) window.game.partyHp[id] = 10; });
+  for (const [key, who] of [['징그럽다', '억빠맨'], ['힘좀 써야할거임', '영클'], ['저거먼저', '경섭'], ['기억안나냐', '억빠맨'], ['안남', '쥰희'], ['하나씩 먹어라', '쥰희']]) { s = await untilText(key, 60); check(s && s.speaker === who, `2차전 진입 대사 ${who} “${key}”`); }
+  await advance(); await page.waitForTimeout(260); await cap('15b_mushroom');   // 첫 버섯이 날아가는 중(0.42초 비행)
+  s = await untilText('오 나이스', 60); check(s && s.speaker === '억빠맨', '2차전 진입 대사 억빠맨 “오 나이스”'); await cap('15c_nice');
+  const healed = await page.evaluate(() => ['hyungsub', 'gyeongsub', 'ppaman'].map(id => [window.game.hpOf(id), window.game.maxHpOf(id)]));
+  check(healed.every(([hp, max]) => hp === max), '버섯 세 개로 형섭·경섭·빠맨 체력 전부 회복 ' + JSON.stringify(healed));
+  s = await untilText('육체까지'); check(s && s.speaker === '영클', '2차전 진입 대사 영클 “육체까지”');
   await advance();
   // ⑦ 전투 시작 연출(battle_start·소용돌이·줌·검게) → 변신 영클 전투(BUILD214, 내용은 tvform-battle.mjs) — 여기선 전투가 뜨면 바로 끝내고 대치 상태·플래그만 본다
   const started = await waitFor(() => window.__sfx.includes('battle_start'), 5000);
@@ -103,10 +110,10 @@ try {
   const battleUp = await waitFor(() => window.game.battle && window.game.battle.state !== 'load' && window.game.battle.enemies.some(e => e.id === 'youngcle_tvform'), 15000);
   check(battleUp, '전투 시작 연출 뒤 변신 영클(youngcle_tvform) 전투가 뜬다');
   if (battleUp) await page.evaluate(() => window.game.battle.finish(true));
-  const done = await waitFor(() => !window.game.battle && !window.game.dialogue.running && window.game.flags.ship_aftermath_done, 15000);
+  // BUILD223(Codex) 뒤: 실제 승리는 ship_tvform_won 플래그 → 전투가 닫히며 ship_tvform_ending(원래 모습으로 풀림 → 맨홀)이 바로 이어진다(자세한 검사는 ship-ending.mjs)
+  const done = await waitFor(() => !window.game.battle && window.game.flags.ship_tvform_won && window.game.dialogue.running, 15000);
   await page.waitForTimeout(900); s = await st(); await cap('17_after');
-  check(started && done && s.flag && s.yc.v && s.yc.sprite === 'youngcle_tvform' && s.yc.loop && s.j.x === 300 && !s.down.v && !s.gj.v && s.smoke?.veil >= 0.3 && s.bgm.includes('captain_mankatsuki'),
-    '전투 시작 연출 뒤 대치 상태: 변신 영클(팔 풍차)·쥰희 뒤·소품 없음·보라 음영·플래그·브금 ' + JSON.stringify([started, done, s.flag, s.yc, s.j, s.smoke, s.bgm]));
+  check(started && done && s.flag && s.dialogue, '전투 승리 뒤 곧바로 승리 후 연출(ship_tvform_ending)이 이어진다 ' + JSON.stringify([started, done, s.flag, s.dialogue]));
   // ⑧ 재입장(ship_control_after): 변신 영클과 대치 상태 그대로
   await page.goto('http://localhost:8000/?qa=ship_control_after');
   await page.waitForFunction(() => window.game && window.game.mapId === 'youngcle20', null, { timeout: 25000 });

@@ -123,8 +123,27 @@ test('test_ship_memory_underwater_uses_soft_continuous_depth_and_gentle_pose', (
   assert.ok(ctx.fills.some(fill => fill.color === depth && fill.args.join(',') === '0,0,480,360'));
   assert.equal(ctx.fills.some(fill => fill.args.join(',') === '0,0,480,222'), false);
   assert.ok(ctx.paths.some(path => path.filter.includes('blur') && path.composite === 'screen'));
-  assert.ok(ctx.rotations.some(angle => angle < -0.04 && angle > -0.18));
+  assert.ok(ctx.rotations.some(angle => angle < -1.18 && angle > -1.26));
   assert.ok(ctx.translations.some(([x]) => Math.abs(x - 240) <= SHIP_MEMORY.underwater.driftX));
+});
+
+test('test_ship_memory_continues_descending_after_camera_has_settled', () => {
+  const { game } = makeGame();
+  const scene = new ShipMemory(game);
+  scene.update(40);
+  const before = scene.snapshot();
+  scene.update(10);
+  const after = scene.snapshot();
+  assert.equal(after.sinkY - before.sinkY, 80);
+  assert.ok(after.cameraDepth > before.cameraDepth + 79);
+  assert.ok(Math.abs(after.actor.y - before.actor.y) <= 3);
+  assert.ok(after.actor.width < 60 && after.actor.height < 85);
+});
+
+test('test_ship_memory_panels_keep_native_pixels_and_approved_illustration_anchor', () => {
+  assert.deepEqual(SHIP_MEMORY.panelRect, { x: 48, y: 14, w: 384, h: 216 });
+  assert.equal(SHIP_MEMORY.timing.fadeOut, 1.4);
+  assert.equal(SHIP_MEMORY.timing.fadeIn, 2);
 });
 
 test('test_ship_memory_panels_fade_through_black_and_never_form_a_collage', () => {

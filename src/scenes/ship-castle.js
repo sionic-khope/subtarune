@@ -1,7 +1,7 @@
 import { SHIP_CASTLE as DEFAULT_CONFIG, SHIP_CASTLE_BEATS } from '../data/ship-castle.js';
 import { characterSprite } from '../world/world.js';
 import { drawShipCastleField } from './ship-castle-field.js';
-import { drawShipCastleOcean, shipCastleGeometry } from './ship-castle-ocean.js';
+import { drawShipCastleOcean, shipCastleGeometry, shipCastleAscent, shipCastleVeil } from './ship-castle-ocean.js';
 
 const FULL_FRAME_BEATS = new Set([
   'ocean_rise', 'sky_tug', 'sky_opposite_aura', 'vortex_gather',
@@ -9,13 +9,13 @@ const FULL_FRAME_BEATS = new Set([
   'retreat', 'final_hold',
 ]);
 
+const smooth = value => { const k = Math.max(0, Math.min(1, value)); return k * k * (3 - 2 * k); };
+
 const ENTRY_SOUNDS = Object.freeze({
   field_rush: ['wing', 0.9],
   ocean_rise: ['maillard_water_lift', 0.55],
   yoplait_fall: ['wing', 0.72],
   castle_reveal: ['mankatsuki_clone', 0.8],
-  castle_attack: ['laser_charge', 0.8],
-  retreat: ['laser_charge', 0.76],
 });
 
 export class ShipCastle {
@@ -34,6 +34,11 @@ export class ShipCastle {
     this.passive = completed;
     this.ownsBgm = false;
     this.beamFired = false;
+    this.beamCue = -1;
+    this.airTime = 0;
+    this.pushTime = 0;
+    this.ascentHeld = true;
+    this.popPlayed = false;
     this.model = { scroll: 0, completed: true, phase: 'cleared', phaseTime: 0 };
     this.images = Object.fromEntries(Object.entries(config.images).map(([key, path]) => [key, game.propImages?.[path] || null]));
     this.actors = {
@@ -42,7 +47,7 @@ export class ShipCastle {
     };
     this.shards = Array.from({ length: config.field.shardCount }, (_, index) => ({
       x: 4 + index % 6 * 5,
-      y: 8 + index % 4 * 7,
+      y: 76 + index % 4 * 7,
       vx: 34 + index % 5 * 9,
       vy: -48 - index % 7 * 8,
       spin: index * 0.41,
@@ -63,8 +68,18 @@ export class ShipCastle {
     this.elapsed = 0;
     this.beamClock = 0;
     this.beamFired = false;
+    this.beamCue = -1;
     this.splashPlayed = false;
-    if (name === 'field_window') this._resetShards();
+    this.popPlayed = false;
+    if (name === 'ocean_rise') {
+      this.pushTime = 0;
+      this.ascentHeld = true;
+    }
+    if (name === 'field_window') {
+      this._resetShards();
+      this.game.sound.sfx('park_trial_shatter', { volume: 0.7 });
+      this.game.shake = { time: 0.3, amp: 4 };
+    }
     if (name === 'ocean_rise') this._startMusic();
     const cue = ENTRY_SOUNDS[name];
     if (cue) this.game.sound.sfx(cue[0], { volume: cue[1] });
@@ -78,15 +93,22 @@ export class ShipCastle {
     this.passive = true;
   }
 
+  /** Hold the wide fleet framing until the authored reaction lines end, then start the push. */
+  beginAscent() {
+    if (this.disposed) return this;
+    this.ascentHeld = false;
+    return this;
+  }
+
   _startMusic() {
-    if (this.game.sound.bgmName !== this.config.bgm) this.game.sound.playBgm(this.config.bgm, { loop: false, volume: 0.4, fadeIn: 1.2 });
+    if (this.game.sound.bgmName !== this.config.bgm) this.game.sound.playBgm(this.config.bgm, { loop: false, volume: 0.48, fadeIn: 2 });
     this.ownsBgm = true;
   }
 
   _resetShards() {
     this.shards.forEach((shard, index) => {
       shard.x = 4 + index % 6 * 5;
-      shard.y = 8 + index % 4 * 7;
+      shard.y = 76 + index % 4 * 7;
       shard.vy = -48 - index % 7 * 8;
     });
   }
@@ -96,6 +118,8 @@ export class ShipCastle {
     if (this.disposed) return;
     this.time += dt;
     this.elapsed += dt;
+    if (['ocean_rise', 'sky_tug', 'sky_opposite_aura', 'vortex_gather', 'vortex_burst'].includes(this.beat)) this.airTime += dt;
+    if (this.beat === 'ocean_rise' && !this.ascentHeld) this.pushTime += dt;
     this.sailTime += dt;
     this.scroll += dt * this.config.ocean.waterSpeed;
     this.model.scroll = this.scroll;
@@ -108,22 +132,30 @@ export class ShipCastle {
         shard.spin += dt * 7;
       }
     }
+    if (this.beat === 'castle_reveal' && !this.popPlayed
+      && smooth(this.elapsed / this.config.timing.castleReveal) >= this.config.ocean.castlePopAt) {
+      this.popPlayed = true;
+      this.game.sound.sfx('boom', { volume: 0.7 });
+      this.game.shake = { time: 0.3, amp: 5 };
+    }
     if (this.beat === 'yoplait_fall' && !this.splashPlayed && this.elapsed >= this.config.timing.fall * 0.72) {
       this.splashPlayed = true;
       this.game.sound.sfx('maillard_splash', { volume: 0.9 });
     }
     if (this.beat === 'castle_attack' || this.beat === 'retreat') {
-      this.beamClock += dt;
-      if (!this.beamFired && this.beamClock >= 0.36) {
+      const schedule = this.config.ocean.beamSchedule[this.beat];
+      const cue = schedule.findLastIndex(start => this.elapsed >= start);
+      if (cue !== this.beamCue && cue >= 0) {
+        this.beamCue = cue;
+        this.beamFired = false;
+        this.game.sound.sfx('laser_charge', { volume: this.beat === 'retreat' ? 0.24 : 0.35 });
+      }
+      this.beamClock = cue < 0 ? -1 : this.elapsed - schedule[cue];
+      if (cue >= 0 && !this.beamFired && this.beamClock >= this.config.ocean.beamCharge) {
         this.beamFired = true;
         this.beamIndex++;
-        this.game.sound.sfx('laser_beam', { volume: 0.74 });
+        this.game.sound.sfx('laser_beam', { volume: this.beat === 'retreat' ? 0.22 : 0.38 });
         this.game.shake = { time: 0.18, amp: 2 };
-      }
-      if (this.beamClock >= 0.86) {
-        this.beamClock -= 0.86;
-        this.beamFired = false;
-        this.game.sound.sfx('laser_charge', { volume: 0.64 });
       }
     }
   }
@@ -137,7 +169,7 @@ export class ShipCastle {
 
   /** Return geometry and state used by regression tests without mutating the scene. */
   snapshot() {
-    const geometry = this.fullFrame && !['sky_tug', 'sky_opposite_aura', 'vortex_gather', 'vortex_burst', 'yoplait_fall'].includes(this.beat)
+    const geometry = this.fullFrame && !['sky_tug', 'sky_opposite_aura', 'vortex_gather', 'vortex_burst'].includes(this.beat)
       ? shipCastleGeometry(this) : null;
     return {
       beat: this.beat,
@@ -145,6 +177,11 @@ export class ShipCastle {
       fullFrame: this.fullFrame,
       passive: this.passive,
       geometry,
+      ascent: shipCastleAscent(this),
+      beamsFired: this.beamIndex,
+      ascentHeld: this.ascentHeld,
+      veil: shipCastleVeil(this),
+      castlePopped: this.popPlayed,
       castleToWarship: geometry?.castle ? this.config.ocean.castleWidth / this.config.ocean.warshipWidth : null,
       skyScaleRatio: this.config.sky.gajaemanCanonicalScale,
       skyGrips: {

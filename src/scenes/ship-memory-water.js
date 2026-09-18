@@ -1,7 +1,8 @@
 import { CHAR_SCALE, SCREEN_H, SCREEN_W } from '../world/world.js';
 
 const drawRays = (ctx, scene, alpha) => {
-  const { rayBlur, rayCount, surfaceY } = scene.config.underwater;
+  const { rayBlur, rayCount } = scene.config.underwater;
+  const surfaceY = Math.max(-40, scene.config.underwater.surfaceY - scene.cameraDepth * 0.4);
   const colors = scene.config.colors;
   const sourceDrift = Math.sin(scene.time * 0.16) * 10;
   const sourceX = SCREEN_W / 2 + sourceDrift;
@@ -48,7 +49,8 @@ const drawBubbles = (ctx, scene, alpha) => {
   ctx.fillStyle = scene.config.colors.bubble;
   for (const bubble of scene.bubbles) {
     const x = Math.round(bubble.x + Math.sin(scene.time * 0.75 + bubble.phase) * 4);
-    const y = Math.round(bubble.y);
+    const travel = scene.cameraDepth * (0.45 + bubble.size * 0.2);
+    const y = Math.round(((bubble.y - travel + 8) % (SCREEN_H + 16) + SCREEN_H + 16) % (SCREEN_H + 16) - 8);
     ctx.globalAlpha = alpha * (0.28 + bubble.size * 0.12);
     ctx.fillRect(x, y, bubble.size, bubble.size);
     if (bubble.size > 1) ctx.fillRect(x + 1, y - 1, 1, 1);
@@ -56,19 +58,26 @@ const drawBubbles = (ctx, scene, alpha) => {
   ctx.restore();
 };
 
-const drawYoplait = (ctx, scene, alpha) => {
+export const shipMemoryActorPose = scene => {
   const sprite = scene.yoplait;
-  const image = sprite.down?.[0];
-  if (!image) return;
   const water = scene.config.underwater;
   const width = Math.round(sprite.fw / sprite.px * CHAR_SCALE * water.actorScale);
   const height = Math.round(sprite.fh / sprite.px * CHAR_SCALE * water.actorScale);
   const x = Math.round(SCREEN_W / 2 + Math.sin(scene.time * water.driftRate) * water.driftX);
-  const y = Math.round(water.yoplaitStartY + scene.sinkDepth + Math.sin(scene.time * 0.19) * water.actorBob);
+  const y = Math.round(water.yoplaitStartY + scene.sinkDepth - scene.cameraDepth
+    + Math.sin(scene.time * 0.19) * water.actorBob);
+  const angle = water.actorTilt + Math.sin(scene.time * water.actorRockRate) * water.actorRock;
+  return { x, y, width, height, angle };
+};
+
+const drawYoplait = (ctx, scene, alpha) => {
+  const image = scene.yoplait.down?.[0];
+  if (!image) return;
+  const { x, y, width, height, angle } = shipMemoryActorPose(scene);
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.translate(x, y);
-  ctx.rotate(water.actorTilt + Math.sin(scene.time * water.actorRockRate) * water.actorRock);
+  ctx.rotate(angle);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(image, -Math.round(width / 2), -Math.round(height / 2), width, height);
   ctx.restore();
@@ -77,7 +86,7 @@ const drawYoplait = (ctx, scene, alpha) => {
 /** Draw the continuous underwater field, softened sunlight, bubbles, and sinking actor. */
 export const drawShipMemoryUnderwater = (ctx, scene, alpha = 1) => {
   const colors = scene.config.colors;
-  const surfaceY = scene.config.underwater.surfaceY;
+  const surfaceY = Math.round(scene.config.underwater.surfaceY - scene.cameraDepth * 0.4);
   const depth = ctx.createLinearGradient(0, 0, 0, SCREEN_H);
   depth.addColorStop(0, colors.surface);
   depth.addColorStop(0.16, colors.upper);
