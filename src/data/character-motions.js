@@ -96,6 +96,20 @@ export const CHARACTER_MOTIONS = {
       frames: Array.from({ length: 4 }, (_, i) => ({ rect: [i * 128, 0, 128, 128], pivot: [64, 122], duration: 0.5 })),
     },
   },
+  // 청소부 호탕한 웃음(BUILD227 사용자 “얼굴 올려서, 쥰희 웃음마냥”): gpt-image-2.5-sunburst 2×2 raw 그대로(마젠타 색키), 발 밑변 pivot·배율은 assets/source/janitor-v1/laugh-contract.json. 소리는 델타룬 거슨 웃음 원음 laugh_janitor
+  janitor: {
+    laugh: {
+      src: 'assets/sprites/janitor-laugh.png',
+      scale: 0.1076,
+      colorKey: { rMin: 150, gMax: 110, bMin: 150 },
+      frames: [
+        { rect: [0, 0, 512, 512], pivot: [244, 463], duration: 0.24 },
+        { rect: [512, 0, 512, 512], pivot: [244, 463], duration: 0.30 },
+        { rect: [0, 512, 512, 512], pivot: [244, 463], duration: 0.24 },
+        { rect: [512, 512, 512, 512], pivot: [244, 463], duration: 0.32 },
+      ],
+    },
+  },
   junhee: {
     laugh: {
       src: 'assets/sprites/junhee-laugh.png',

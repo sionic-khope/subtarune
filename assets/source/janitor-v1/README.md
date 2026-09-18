@@ -30,3 +30,6 @@ ffmpeg -ss 0.462 -t 0.15 -i audio/yt_WiNn1mjmBlw.webm -af "afade=t=in:st=0:d=0.0
 ## 검수
 - 걷기: 16프레임 비어 있지 않음, 셀 경계 접촉 0, 2·4열 반대 보폭, 뒷모습 얼굴 없음(`preview-walk-2x.png`, `preview-size-compare.png`).
 - 전투폼: 4프레임 왼쪽 3/4, 깃발 셀 안(`preview-stance-2x.png`). 댄스: 차기/모으기 교대(`preview-dance-3x.png`). 1·3번 차는 다리가 같은 쪽으로 보이는 한계(4프레임 루프로는 읽힘).
+
+## 웃음 (BUILD227)
+사용자 “청소부 웃음도 만들어줘 약간 호탕하게 웃는 느낌이고 얼굴 올려서, 쥰희 웃음마냥”: `laugh.prompt.txt`(참조 `laugh-ref.png` = 지팡이 정면 프레임 4배) → `laugh-raw.png`(2×2 512 셀, 얼굴 들고 눈 감고 크게 웃음, 손은 배·지팡이 유지) 를 raw 그대로 `assets/sprites/janitor-laugh.png` 로 두고 `CHARACTER_MOTIONS.janitor.laugh` 가 마젠타 색키로 쓴다(pivot·scale 은 `laugh-contract.json`). 소리 `assets/audio/sfx/laugh_janitor.mp3` = 거슨 웃음 클립 앞 1.6초.

@@ -58,7 +58,14 @@ try {
   check(janitor && janitor.facing === 'right' && Math.abs(janitor.x - shadowEnd.x) < 4, '청소부는 실루엣 자리에 오른쪽(요플래 쪽)을 보고 선다 ' + JSON.stringify(janitor));
   check(await until(() => window.game.sound.bgmName === 'wise_words', 4000), '브금이 wise_words 로 바뀐다');
   await line('어이', '06_hello');
-  for (const t of ['젊은이 안녕한가', '아 아빠..?', '잘안들린다네', '라이부? 유투브?', '아무 기억도 안난단', '어이구 힘들구먼', '...', '젊은이 반갑네', '나는 인사했다.', '익숙한 얼굴인데', '닮은거 같구려', '어떻게 오게됐당가', '나도 모르니까', '데려다 줄 수 있는가', '저기~까지 저기~']) await line(t);
+  for (const t of ['젊은이 안녕한가', '아 아빠..?', '잘안들린다네', '라이부? 유투브?', '아무 기억도 안난단', '어이구 힘들구먼', '...', '젊은이 반갑네', '나는 인사했다.', '익숙한 얼굴인데']) await line(t);
+  await line('닮은거 같구려');
+  // 껄껄 뒤 호탕한 웃음: 얼굴 든 웃음 모션 + 거슨 웃음 원음
+  const laughed = await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000);
+  await page.waitForTimeout(260); await cap('06b_laugh');
+  const laughSfx = await page.evaluate(() => (window.__shipQA?.sfx || []).length);
+  check(laughed, '껄껄 뒤에 청소부가 얼굴을 들고 웃는다(모션)');
+  for (const t of ['어떻게 오게됐당가', '나도 모르니까', '데려다 줄 수 있는가', '저기~까지 저기~']) await line(t);
   await line('청소부가 동료가 되었다', '07_join_line');
   check(await until(() => window.game.party.includes('janitor') && window.game.flags.torii_janitor_joined && !window.game.dialogue.running, 8000), '청소부가 동료가 되고 플래그가 선다');
   const after = await page.evaluate(() => ({ party: [...game.party], npc: game.entities.some(e => e.id === 'janitor' && !e.dead && e.def?.type === 'npc'), follower: game.entities.some(e => e.def?.type === 'follower' && !e.dead), bgm: game.sound.bgmName, hp: game.partyHp?.janitor }));

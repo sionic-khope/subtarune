@@ -31,13 +31,14 @@ try {
   check(crossed && s.map === 'jjajang_bend' && s.follower, '토리이 길 오른쪽 문 → 굽이 길, 청소부 동행 ' + JSON.stringify(s));
   check(s.bgm === 'my_castle_town', '이 맵부터 my_castle_town ' + s.bgm);
   check(await go('ArrowRight', 'g.player.x >= 2 * 32 + 4', 8000), '입구에서 길로');
-  check(await go('ArrowUp', 'g.player.y <= 6 * 32 + 8', 12000), '위로');
-  check(await go('ArrowRight', 'g.player.x >= 12 * 32 + 4', 12000), '오른쪽으로'); await cap('02_top_leg');
-  check(await go('ArrowDown', 'g.player.y >= 16 * 32 + 2', 12000), '밑으로');
+  check(await go('ArrowUp', 'g.player.y <= 8 * 32 + 8', 20000), '위로');
+  check(await go('ArrowRight', 'g.player.x >= 24 * 32 + 4', 20000), '오른쪽으로'); await cap('02_top_leg');
+  check(await go('ArrowDown', 'g.player.y >= 32 * 32 + 2', 20000), '밑으로');
   // 돌: 윗줄(16행)을 따라 오른쪽으로 걷다가 돌에 막힌 자리에서 C
-  await go('ArrowRight', 'g.player.x >= 18 * 32 + 6 - 25', 8000, false);
+  await go('ArrowRight', 'g.player.x >= 38 * 32 + 6 - 25', 20000, true);
+  await go('ArrowRight', 'g.player.x >= 38 * 32 + 6 - 25', 6000, false);
   await page.waitForTimeout(250); s = await st(); await cap('03_at_rock');
-  check(s.rock && s.px < 18 * 32 + 6, '윗줄에서는 돌에 막힌다 ' + JSON.stringify([s.px, s.py]));
+  check(s.rock && s.px < 38 * 32 + 6, '윗줄에서는 돌에 막힌다 ' + JSON.stringify([s.px, s.py]));
   await press('KeyC');
   await line('허허 볼품없는 돌이라네', '04_line');
   await line('누군가는 이걸 품어줘야지');
@@ -49,8 +50,8 @@ try {
   const use = await page.evaluate(() => { const g = window.game; const before = g.hpOf('hyungsub'); const ok = g.useItemOn('돌', 'hyungsub'); return { ok, before, after: g.hpOf('hyungsub'), inv: [...g.inventory] }; });
   check(use.ok && use.after === use.before - 5 && !use.inv.includes('돌'), '돌을 쓰면 HP 가 5 줄어든다 ' + JSON.stringify(use));
   const t1 = (await st()).t;
-  check(await go('ArrowRight', 'g.player.x >= 24 * 32 + 4', 12000), '오른쪽으로');
-  const up = await go('ArrowUp', "g.mapId === 'jjajang_pines'", 20000);
+  check(await go('ArrowRight', 'g.player.x >= 50 * 32 + 4', 20000), '오른쪽으로');
+  const up = await go('ArrowUp', "g.mapId === 'jjajang_pines'", 30000);
   await page.waitForTimeout(800); s = await st(); await cap('07_pines_from_south');
   check(up && s.map === 'jjajang_pines' && s.py >= 18 * 32 && s.follower, '위 가장자리 → 검은 소나무 숲 아래 입구 ' + JSON.stringify(s));
   check(s.bgm === 'my_castle_town' && s.t > t1, `맵을 옮겨도 브금이 다시 재생되지 않고 이어진다 (${t1} → ${s.t})`);

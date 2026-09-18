@@ -15,9 +15,9 @@
 | 원문 | 구현 | 값 |
 |---|---|---|
 | 합류 효과음 | `torii_janitor` 합류 문구 직전 `{sfx:'item'}`(억빠맨·경섭 합류와 같은 소리) | |
-| 토리이 길과 소나무 숲 사이 굽이 길 | `tools/maps/jjajang_bend.py` 30×24. 왼쪽 가장자리(20~21행) → 위(2~3열) → 오른쪽(6~7행) → 밑(12~13열) → 오른쪽(16~17행) → 위(24~25열) 위 가장자리 | 토리이 길 오른쪽 문 → `from_west`, 위 가장자리 문 → 소나무 숲 아래 입구(`from_south`, 소나무 숲의 왼쪽 문은 제거) |
+| 토리이 길과 소나무 숲 사이 굽이 길(“지금보다 두 배는 더 길게” 반영) | `tools/maps/jjajang_bend.py` 56×44. 왼쪽 가장자리(40~41행) → 위(2~3열) → 오른쪽(8~9행) → 밑(24~25열) → 오른쪽(32~33행) → 위(50~51열) 위 가장자리, 길 141칸(1차 67칸의 2배) | 토리이 길 오른쪽 문 → `from_west`, 위 가장자리 문 → 소나무 숲 아래 입구(`from_south`, 소나무 숲의 왼쪽 문은 제거) |
 | 같은 디자인 | 검은 숲 '@'·에코 길 '$'·검은 소나무 소품 10그루, dim 0.08, 시야 오버레이 없음 | 브금 `my_castle_town` 이 이 맵부터(정정 “다음 맵부터”) |
-| 돌 | gpt-image 회색 돌(`assets/source/jjajang-rock-v1`) 을 두 번째 가로 다리 윗줄(18열 16행)에 `solid`·`script:'jjajang_rock'`·`unless:'jjajang_rock_taken'` | 아랫줄로 지나갈 수 있음 |
+| 돌 | gpt-image 회색 돌(`assets/source/jjajang-rock-v1`) 을 두 번째 가로 다리 윗줄(38열 32행)에 `solid`·`script:'jjajang_rock'`·`unless:'jjajang_rock_taken'` | 아랫줄로 지나갈 수 있음 |
 | 대사 → 청소부가 다가가 줍는다 → 돌을 얻었다 | `jjajang_rock`(`src/data/cutscenes/jjajang_bend.js`): 두 마디 → 동료 청소부가 돌 왼쪽으로 걸어감(speed 40) → 돌 제거 → `item` 효과음 → 인벤토리 `돌` → “{c=yellow}돌{/c}을 얻었다.” → 플래그 → `regroup` | |
 | 체력회복 -5 아이템 | `ITEMS['돌'] = { kind:'plain', heal:-5 }`. 메뉴 사용은 HP 1 밑으로 안 내려가고 피격음, 전투 사용은 빨간 `-5` 팝업. 메뉴 표시 `HP -5`. QA 는 `STATE_FROM_FLAGS jjajang_rock_taken → 돌` | |
 

@@ -1,0 +1,11 @@
+# imagegen 2026-09-18 20:33:18
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/janitor-v1/laugh-ref.png
+
+Create a 2x2 sprite sheet, EXACTLY FOUR full-body frames of ONE character doing one short hearty LAUGH animation for a Deltarune-like pixel RPG. 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+Image1 is the exact CHARACTER IDENTITY (front view): a short stout pale old man, big round jowly head, sparse dark stubble dots, thin rectangular glasses, small nose, bright RED bandana covering the head knotted at the back, bright red short-sleeved t-shirt with one small black chest emblem, dark navy shorts, plain dark shoes, slightly frail hunched build, leaning on a simple WOODEN WALKING CANE in one hand. Preserve his identity, colours, pixel density and chunky proportions exactly, and keep the cane planted beside him in every frame.
+ALL FOUR frames face front, with the head tilted BACK looking UP, cheeks raised so the eyes are squeezed shut behind the glasses (only closed-eye creases), a big open cheerful laughing mouth - an exuberant hearty HA HA belly laugh, not angry, not crying. His free hand rests on his belly; the cane hand keeps the cane planted; feet stay planted in the same positions. Reading order upper-left, upper-right, lower-left, lower-right: 1 warm open-mouth chuckle with the head raised; 2 the head tips back a little more with the mouth wide and the shoulders raised; 3 the belly-laugh peak, head furthest back, mouth widest; 4 settling back toward frame 1 with the mouth still open in a smile. Small vertical shoulder and belly bounce only, no walking, no rotating, no arm waving, no floating marks, no speech bubbles.
+Maintain the same anatomical scale, palette, camera, body centre and feet baseline in every cell. Whole subject within the central 70% of each cell, generous margins, nothing clipped.
+Style: hard square pixels, low-resolution logical art about 46 pixels tall per character enlarged with a nearest-neighbour look, coarse sparse pixel clusters, flat limited shades, dark stepped outline, same pixel density as Image1, no gradients, no blur, no anti-aliasing.

@@ -9,9 +9,9 @@
 """짜장 굽이 길(jjajang_bend, BUILD227 사용자 브리핑 2026-09-18):
 "지금 청소부 만난 맵 다음 맵 가지기 전에 하나 더 넣을 거야. 꾸불꾸불 길이야 같은 디자인으로 위로 갔다가 오른쪽으로 갔다가 밑으로 갔다가 오른쪽으로 갔다가 위로 갔다가,
 중간에 가다가 돌 하나 있고 돌 상호작용하면 청소부: 허허 볼품없는 돌이라네 / 청소부: 누군가는 이걸 품어줘야지 / 청소부가 돌로 다가가 주움 / 돌을 얻었다. 체력회복 -5 아이템 / 그러고 끝"
-- 토리이 길 오른쪽 문 → 왼쪽 가장자리(20~21행)로 들어와 위(2~3열) → 오른쪽(6~7행) → 아래(12~13열) → 오른쪽(16~17행) → 위(24~25열)로 위 가장자리까지 → 검은 소나무 숲(jjajang_pines, 아래 입구).
+- 토리이 길 오른쪽 문 → 왼쪽 가장자리(40~41행)로 들어와 위(2~3열) → 오른쪽(8~9행) → 아래(24~25열) → 오른쪽(32~33행) → 위(50~51열)로 위 가장자리까지 → 검은 소나무 숲(jjajang_pines, 아래 입구). 길 총 길이 약 141칸(1차 67칸의 2배 — 사용자 “지금보다 두 배는 더 길게”).
 - 디자인은 검은 소나무 숲과 같다: 검은 숲 '@', 에코 발소리 길 '$', 검은 소나무 소품(assets/source/jjajang-pines-v1), dim 0.08, 시야 오버레이 없음. 브금 my_castle_town(“다음 맵부터” = 이 맵부터).
-- 돌: 두 번째 가로 다리(16~17행)의 윗줄 18열에 놓인 소품(gpt-image, assets/source/jjajang-rock-v1). 조사하면 `jjajang_rock` 컷신, 주운 뒤엔 `unless jjajang_rock_taken` 으로 사라진다. 아랫줄로는 지나갈 수 있다."""
+- 돌: 두 번째 가로 다리(32~33행)의 윗줄 38열에 놓인 소품(gpt-image, assets/source/jjajang-rock-v1). 조사하면 `jjajang_rock` 컷신, 주운 뒤엔 `unless jjajang_rock_taken` 으로 사라진다. 아랫줄로는 지나갈 수 있다."""
 from __future__ import annotations
 
 import json
@@ -20,23 +20,26 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'jjajang_bend'
-WIDTH: Final = 30
-HEIGHT: Final = 24
+WIDTH: Final = 56
+HEIGHT: Final = 44
 TILE: Final = 32
-ENTRY_ROWS: Final = (20, 21)
+ENTRY_ROWS: Final = (40, 41)
 LEG1_COLS: Final = (2, 3)
-LEG2_ROWS: Final = (6, 7)
-LEG3_COLS: Final = (12, 13)
-LEG4_ROWS: Final = (16, 17)
-LEG5_COLS: Final = (24, 25)
-ROCK_CELL: Final = (18, 16)
+LEG2_ROWS: Final = (8, 9)
+LEG3_COLS: Final = (24, 25)
+LEG4_ROWS: Final = (32, 33)
+LEG5_COLS: Final = (50, 51)
+ROCK_CELL: Final = (38, 32)
 PINES: Final = (
     ('assets/props/jjajang_pine_1.png', 141, 157, 100),
     ('assets/props/jjajang_pine_2.png', 135, 159, 30),
     ('assets/props/jjajang_pine_3.png', 108, 167, 60),
     ('assets/props/jjajang_pine_4.png', 167, 146, 58),
 )
-PINE_CELLS: Final = ((7, 12), (8, 20), (17, 9), (18, 22), (22, 12), (27, 8), (16, 5), (6, 5), (27, 20), (9, 16))
+PINE_CELLS: Final = (
+    (7, 14), (8, 26), (9, 36), (14, 12), (16, 22), (19, 30), (13, 42), (20, 5), (30, 12), (31, 22), (36, 5), (40, 14),
+    (44, 26), (46, 12), (54, 8), (54, 24), (33, 40), (44, 42), (55, 38), (6, 5), (28, 28), (42, 36), (19, 38),
+)
 
 
 def pine(index: int, col: int, row: int) -> dict[str, object] | None:

@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/janitor-v1/laugh-ref.png"
+  ],
+  "elapsed_seconds": 37.2,
+  "usage": {
+    "input_tokens": 837,
+    "output_tokens": 1756,
+    "total_tokens": 2593,
+    "input_tokens_details": {
+      "image_tokens": 345,
+      "text_tokens": 492
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789731196,
+  "outputs": [
+    {
+      "file": "assets/source/janitor-v1/laugh-raw.png",
+      "bytes": 994152,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

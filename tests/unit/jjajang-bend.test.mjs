@@ -13,22 +13,25 @@ const rows = map.rows;
 const walk = (c, r) => ['$', '&'].includes(rows[r]?.[c]);
 
 test('test_bend_road_goes_up_right_down_right_up', () => {
-  assert.equal(rows[20][0], '&'); assert.ok(walk(1, 20) && walk(1, 21), '왼쪽 가장자리 입구');
-  assert.ok([...Array(16).keys()].map(r => r + 6).every(r => walk(2, r) && walk(3, r)), '위로(2~3열)');
-  assert.ok([6, 7].every(r => [...Array(12).keys()].map(c => c + 2).every(c => walk(c, r))), '오른쪽으로(6~7행)');
-  assert.ok([...Array(12).keys()].map(r => r + 6).every(r => walk(12, r) && walk(13, r)), '밑으로(12~13열)');
-  assert.ok([16, 17].every(r => [...Array(14).keys()].map(c => c + 12).every(c => walk(c, r))), '오른쪽으로(16~17행)');
-  assert.ok([...Array(18).keys()].every(r => walk(24, r) && walk(25, r)), '위로(24~25열) 위 가장자리까지');
-  assert.equal(rows[0][24], '&');
-  assert.ok(!walk(8, 12) && !walk(18, 10) && !walk(27, 20), '길 밖은 숲');
+  assert.equal(rows[40][0], '&'); assert.ok(walk(1, 40) && walk(1, 41), '왼쪽 가장자리 입구');
+  assert.ok([...Array(34).keys()].map(r => r + 8).every(r => walk(2, r) && walk(3, r)), '위로(2~3열)');
+  assert.ok([8, 9].every(r => [...Array(24).keys()].map(c => c + 2).every(c => walk(c, r))), '오른쪽으로(8~9행)');
+  assert.ok([...Array(26).keys()].map(r => r + 8).every(r => walk(24, r) && walk(25, r)), '밑으로(24~25열)');
+  assert.ok([32, 33].every(r => [...Array(28).keys()].map(c => c + 24).every(c => walk(c, r))), '오른쪽으로(32~33행)');
+  assert.ok([...Array(34).keys()].every(r => walk(50, r) && walk(51, r)), '위로(50~51열) 위 가장자리까지');
+  assert.equal(rows[0][50], '&');
+  assert.ok(!walk(8, 20) && !walk(38, 20) && !walk(53, 40), '길 밖은 숲');
+  // 사용자 “지금보다 두 배는 더 길게”: 길 칸 수 ≈ 1차(67칸 × 2폭)의 두 배
+  const roadTiles = rows.reduce((n, row) => n + [...row].filter(ch => ch === '$' || ch === '&').length, 0);
+  assert.ok(roadTiles >= 2 * 134 * 0.95, `길 칸 수 ${roadTiles} (1차 134 의 2배 이상)`);
 });
 
 test('test_bend_rock_sits_on_the_second_right_leg_and_leaves_a_lane', () => {
   const rock = map.entities.find(e => e.id === 'jjajang_rock');
   assert.deepEqual({ script: rock.script, unless: rock.unless, solid: rock.solid, image: rock.image }, { script: 'jjajang_rock', unless: 'jjajang_rock_taken', solid: true, image: 'assets/props/jjajang_rock.png' });
   const c = Math.floor((rock.x + rock.w / 2) / 32), r0 = Math.floor(rock.y / 32), r1 = Math.floor((rock.y + rock.h - 1) / 32);
-  assert.deepEqual([c, r0, r1], [18, 16, 16], '두 번째 가로 다리 윗줄 한 칸만 막는다');
-  assert.ok(walk(18, 17), '아랫줄로 지나갈 수 있다');
+  assert.deepEqual([c, r0, r1], [38, 32, 32], '두 번째 가로 다리 윗줄 한 칸만 막는다');
+  assert.ok(walk(38, 33), '아랫줄로 지나갈 수 있다');
   assert.equal(rock.iy + 18 * rock.scale, rock.y + rock.h, '그림 밑변 = 히트박스 밑변');
 });
 

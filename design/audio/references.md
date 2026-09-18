@@ -510,3 +510,4 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 | **청소부 등장** 브금 (BUILD226 토리이 길 이벤트) | 사용자 지정 [JkEhQ3qJubU](https://www.youtube.com/watch?v=JkEhQ3qJubU) | `bgm/wise_words.mp3` | **적용됨** — yt-dlp 메타: `56. Wise words (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 Toby Fox, 20250604, 47초. bestaudio(webm) 전체를 MP3 q2 로 변환, 트리밍·피치 변경 없음. 원본 `assets/source/janitor-v1/audio/wise_words_src.webm` |
 | **청소부 합류 이후** 브금 (토리이 길·다음 맵들) | 사용자 지정 [RKQUblO-iCs](https://www.youtube.com/watch?v=RKQUblO-iCs) | `bgm/my_castle_town.mp3` | **적용됨** — `3. My Castle Town (DELTARUNE Chapter 2 Soundtrack) - Toby Fox`, 20250525, 131초. 같은 변환. `storyBgm`: `torii_janitor_joined` 이면 짜장 맵들에서 같은 이름 → 맵 이동 때 다시 재생되지 않음 |
+| **청소부 웃음** 효과음 (BUILD227) | 같은 거슨 웃음 클립 [WiNn1mjmBlw](https://www.youtube.com/watch?v=WiNn1mjmBlw) | `sfx/laugh_janitor.mp3` | **적용됨** — 앞 1.6초 그대로(끝 0.15초 페이드), 웃음 모션과 같이 재생. 원본 webm 은 `assets/source/janitor-v1/audio/` |
