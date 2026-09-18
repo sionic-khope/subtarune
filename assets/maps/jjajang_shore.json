@@ -54,7 +54,7 @@
   },
   "forest_top": {
    "x": 312,
-   "y": 48,
+   "y": 320,
    "facing": "down"
   }
  },
@@ -925,7 +925,7 @@
    "x": 288,
    "y": 0,
    "w": 64,
-   "h": 10,
+   "h": 216,
    "to": "jjajang_forest",
    "spawn": "from_shore",
    "sfx": false

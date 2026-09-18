@@ -68,7 +68,9 @@ test('test_jjajang_shore_is_south_sea_wide_beach_and_one_blocked_forest_path', (
   assert.equal(map.rows.slice(25, 30).some(row => row.includes('%')), false);
   assert.ok([...map.rows[6]].every((tile, col) => (col === 9 || col === 10 ? tile === '%' : tile === '@')));
   const doors = map.entities.filter(entity => entity.type === 'door');
-  assert.deepEqual(doors.map(d => [d.to, d.spawn, d.y, d.h]), [['jjajang_forest', 'from_shore', 0, 10]], '위 가장자리 10px 문 하나 → 짜장숲');
+  assert.deepEqual(doors.map(d => [d.to, d.spawn, d.y, d.h]), [['jjajang_forest', 'from_shore', 0, 216]], '그림자의 검은 구간(0~223px) 전체가 문 → 그늘에 들어서면 바로 짜장숲');
+  assert.ok(map.spawns.forest_top.y >= doors[0].h && map.spawns.forest_top.y < 11 * 32, '숲에서 돌아오는 자리는 문 아래 그늘의 옅은 쪽(재진입 없음)');
+  assert.equal(map.spawns.forest_top.facing, 'down');
   assert.equal(map.entities.find(entity => entity.id === 'jjajang_forest_entrance_shade')?.iy, 0, '입구 그림자가 0행부터 길을 덮는다');
   assert.equal(map.entities.some(entity => entity.type === 'npc' || entity.type === 'follower'), false);
   assert.ok(map.entities.filter(entity => entity.id.startsWith('jjajang_tree_')).every(entity => entity.scale === 2));

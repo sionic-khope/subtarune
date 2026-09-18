@@ -16,6 +16,9 @@ HEIGHT: Final = 35
 TILE: Final = 32
 PATH_LEFT: Final = 9
 PATH_RIGHT: Final = 10
+# 숲 문 높이: 입구 그림자의 불투명 구간(0~223px) 안쪽. 숲에서 돌아오는 스폰은 이 아래(문과 겹치지 않게)
+SHADE_DOOR_H: Final = 7 * 32 - 8
+# 돌아오는 스폰은 그림자 그라데이션의 옅은 쪽(y 320): 검은 구간 바로 아래(232)는 그늘에 잠겨 안 보였다
 FOREST_EDGE_ROW: Final = 7
 BEACH_TOP_ROW: Final = 25
 SEA_TOP_ROW: Final = 30
@@ -88,7 +91,9 @@ def build_map() -> dict[str, object]:
         'oscillate': {'dx': 3, 'dy': 1, 'period': 1.8 + index % 3 * 0.25, 'phase': (index % 4) * 0.17},
     } for index, (col, row_offset) in enumerate(wave_cells)]
     # 위 가장자리 10px 를 밟으면 짜장숲(jjajang_forest)으로(맵 스킬: 가장자리 칸의 맵 끝 쪽 10px)
-    forest_door = {'type': 'door', 'id': 'shore_forest_door', 'x': PATH_LEFT * TILE, 'y': 0, 'w': 2 * TILE, 'h': 10, 'to': 'jjajang_forest', 'spawn': 'from_shore', 'sfx': False}
+    # 숲 문은 그림자의 완전히 검은 구간(0~223px) 전체를 덮는다(2026-09-18 사용자 “여기서 다음 짜장맵 가져야 되는 거 아니냐”):
+    # 그늘에 발을 들이는 순간 짜장숲으로 넘어가고, 캄캄한 구간을 200px 더 걷지 않는다
+    forest_door = {'type': 'door', 'id': 'shore_forest_door', 'x': PATH_LEFT * TILE, 'y': 0, 'w': 2 * TILE, 'h': SHADE_DOOR_H, 'to': 'jjajang_forest', 'spawn': 'from_shore', 'sfx': False}
     return {
         'id': MAP_ID,
         'name': '짜장섬 해안',
@@ -99,7 +104,7 @@ def build_map() -> dict[str, object]:
         'spawns': {
             'washed_up': {'x': 10 * TILE - 8, 'y': 28 * TILE + 12, 'facing': 'up'},
             'start': {'x': 10 * TILE - 8, 'y': 28 * TILE + 12, 'facing': 'up'},
-            'forest_top': {'x': 10 * TILE - 8, 'y': 1 * TILE + 16, 'facing': 'down'},
+            'forest_top': {'x': 10 * TILE - 8, 'y': SHADE_DOOR_H + 104, 'facing': 'down'},
         },
         'enter': {'script': 'jjajang_shore_arrival', 'early': True},
         'meta': {

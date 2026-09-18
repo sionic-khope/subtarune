@@ -34,6 +34,8 @@ for (const id of index.maps) {
       assert.ok([...bottom].every((c) => SOLID_CHARS.has(c) || EDGE_OPEN.has(c)), '아랫줄 뚫림');
       assert.ok(m.rows.every((r) => (SOLID_CHARS.has(r[0]) || EDGE_OPEN.has(r[0])) && (SOLID_CHARS.has(r[r.length - 1]) || EDGE_OPEN.has(r[r.length - 1]))), '옆줄 뚫림');
     });
+    // 완전히 검은 입구 그림자 아래 문은 그늘에 들어서는 순간 넘어간다(BUILD226 사용자 “여기서 다음 짜장맵 가져야 되는 거 아니냐”) — 캄캄한 구간을 더 걷게 하지 않는다. 맵 끝에 닿아야 하는 규칙은 그대로
+    const SHADED_DOORS = new Set(['shore_forest_door']);
     test(`${id}: 가장자리 출입구(H)를 덮는 문은 맵 끝에 닿는다 — 끝까지 걸어가야 넘어간다(BUILD194 사용자 “포탈을 끝으로”)`, () => {
       const W = m.rows[0].length * TILE, Hpx = m.rows.length * TILE;
       for (const e of (m.entities || []).filter((e) => e.type === 'door' && e.interact !== true)) {
@@ -43,6 +45,7 @@ for (const id of index.maps) {
         if (!onEdgeOpen) continue;
         const side = e.x === 0 || e.x + (e.w || 32) === W, vert = e.y === 0 || e.y + (e.h || 32) === Hpx;
         assert.ok(side || vert, `문 ${e.id} 이 가장자리 출입구 칸 위인데 맵 끝(x 0/${W} 또는 y 0/${Hpx})에 닿지 않음: ${e.x},${e.y} ${e.w}×${e.h}`);
+        if (SHADED_DOORS.has(e.id)) continue;
         assert.ok(side ? (e.w || 32) <= 16 : (e.h || 32) <= 16, `문 ${e.id} 은 끝 쪽 10~16px 만 — 그 앞 칸에서 미리 넘어가지 않게`);
       }
     });

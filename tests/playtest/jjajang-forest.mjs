@@ -26,7 +26,7 @@ try {
   check(up && s.map === 'jjajang_forest', '길을 따라 위 가장자리까지 걸어 올라갈 수 있다(다음 맵 없음) ' + JSON.stringify([s.px, s.py]));
   const back = await walk('ArrowDown', () => window.game.mapId === 'jjajang_shore', 30000);
   await page.waitForTimeout(700); s = await st(); await cap('04_back_to_shore');
-  check(back && s.map === 'jjajang_shore' && s.py < 4 * 32, '아래 가장자리로 내려가면 해안 위(forest_top)로 돌아온다 ' + JSON.stringify(s));
+  check(back && s.map === 'jjajang_shore' && s.py >= 216 && s.py < 11 * 32, '아래 가장자리로 내려가면 해안 그림자 아래(forest_top)로 돌아온다 ' + JSON.stringify(s));
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }
 console.log('fails=' + fails); await browser.close(); process.exit(fails ? 1 : 0);
