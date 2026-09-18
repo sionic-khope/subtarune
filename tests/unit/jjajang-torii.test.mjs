@@ -50,9 +50,8 @@ test('test_torii_janitor_beats_in_order_bgm_off_footsteps_question_shadow_fade_s
   assert.equal(torii_janitor[0].if({ torii_janitor_joined: true }), true, '합류 뒤엔 다시 돌지 않는다');
   assert.equal(idx(n => n.bgm === 'my_castle_town'), -1, 'My Castle Town 은 컷신이 아니라 다음 맵부터(storyBgm)');
   const laughs = torii_janitor.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' ? i : -1)).filter(i => i >= 0);
-  assert.equal(laughs.length, 3, '껄껄 두 번 + 저기~ 뒤 한 번 = 웃음 모션 세 번');
-  for (const i of laughs) { assert.ok(/껄껄|저기~까지 저기~/.test(torii_janitor[i - 1].text || ''), '껄껄·저기~ 대사 바로 뒤'); assert.equal(torii_janitor[i].sfx, 'laugh_janitor'); }
-  assert.ok(torii_janitor[laughs[2] + 1].sfx === 'item' && torii_janitor[laughs[2] + 2].text?.includes('동료가 되었다'), '마지막 웃음 뒤 바로 합류 문구');
+  assert.equal(laughs.length, 2, '웃음은 껄껄 옆에만 두 번(사용자 “왜 세 번이나 넣어, 껄껄 옆에만”)');
+  for (const i of laughs) { assert.ok(torii_janitor[i - 1].text?.includes('껄껄'), '껄껄 대사 바로 뒤'); assert.equal(torii_janitor[i].sfx, 'laugh_janitor'); }
 });
 
 test('test_torii_janitor_party_rules_and_qa_points', () => {

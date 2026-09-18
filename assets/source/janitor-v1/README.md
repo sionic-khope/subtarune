@@ -15,11 +15,11 @@ OpenGateway `openai/gpt-image-2.5-sunburst`, images/edits(참조 1장), quality 
 참조 원본: `reference.png`(사용자 그림), `gerson-pose-ref.png`(델타룬 거슨, 자세만), `gerson-dance-ref.gif` + `gerson-dance-contact.png`(루리웹 700058/17735 의 gif, 자세만). 거슨의 색·등껍질·망치·스카프는 쓰지 않는다.
 
 ## 목소리
-사용자 4차 “목소리 싫어 거슨하고 비슷하게 하라고”: **델타룬 4장 거슨 원음**을 쓴다. 디컴파일 저장소엔 4장 텍스트음이 없어 유튜브 클립 [WiNn1mjmBlw](https://www.youtube.com/watch?v=WiNn1mjmBlw) “Gerson (Old Man) Laughing Sound Effect (Deltarune Chapter 4)”(업로더 Simon Demon, 2025-06-06, 3초)의 두 번째 ‘하’ 음절을 그대로 잘랐다(원본 `audio/yt_WiNn1mjmBlw.webm`):
+사용자 “거슨하고 비슷하게” → “거슨 목소리가 이게 아닌데”(웃음 음절이 아니라 **말할 때 나는 텍스트음**). 디컴파일 저장소엔 4장 텍스트음이 없어 유튜브 효과음 클립 [VHS-OAgYyJM](https://www.youtube.com/watch?v=VHS-OAgYyJM) “Deltarune sound effects: weapon throw (damage-Mr. Gerson’s talking)”(Esperanza Platinum-Soundtrack Keeper, 2026-08-11)에서 3.345~4.36초의 말하는 소리(0.1초 간격 블립 10회)를 찾아 첫 블립 하나를 그대로 잘랐다(원본 `audio/yt_VHS-OAgYyJM.webm`, 분석용 `gerson_talk_16k.wav`):
 ```
-ffmpeg -ss 0.462 -t 0.15 -i audio/yt_WiNn1mjmBlw.webm -af "afade=t=in:st=0:d=0.004,afade=t=out:st=0.115:d=0.035,volume=1.5,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
+ffmpeg -ss 3.345 -t 0.105 -i audio/yt_VHS-OAgYyJM.webm -af "afade=t=in:st=0:d=0.003,afade=t=out:st=0.085:d=0.02,volume=1.3,alimiter=limit=0.95:level=false" -ac 1 -ar 44100 -map_metadata -1 -c:a libmp3lame -q:a 2 audio/janitor.mp3
 ```
-`VOICES.janitor` rate 0.9439 = 정확히 반키(-1 semitone) 톤다운(사용자 “톤다운만 살짝 반키 먹여서”)·cut·minGap 0.085. 이전 1~3차본(형섭 변형, snd_dadtxt 변형)은 폐기. 게임 원본 텍스트음(snd_txtgerson 계열 ogg)이 들어오면 같은 자리에 교체한다.
+`VOICES.janitor` rate 0.9439(반키 톤다운)·cut·minGap 0.08. 이전 본(형섭 변형, snd_dadtxt 변형, 거슨 웃음 음절)은 전부 폐기. 게임 원본 텍스트음 ogg 가 들어오면 같은 자리에 교체한다.
 
 ## 걷기 시트 2차 (지팡이)
 사용자 “왜 화면이 밝아지고 나선 지팡이 안 짚고 있냐”: 지팡이 짚은 4방향 걷기 시트를 새로 생성(`walk-cane.prompt.txt`, 참조 `walk-cane-ref.png` = 정면 프레임 + 지팡이 옆모습 raw, raw `walk-cane-raw.png` 4×4, 행 down/left/right/up). export `youngcle-hover-battle-v1/export.py walk-cane-raw.png 4 4 128 0.72 walk-cane-rawrows.png 120 largest`(배율 0.4114) → 행 재배열 → `assets/sprites/janitor.png`(정면 가시 89px). 실루엣 `janitor_shadow.png` = 이 시트를 검게(`build_shadow.py`). 이전 지팡이 없는 시트는 `janitor-walk-128.png`.
