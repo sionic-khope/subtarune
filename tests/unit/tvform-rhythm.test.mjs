@@ -1,10 +1,11 @@
 // 변신 영클 특별 패턴 2 리듬(BUILD217) 순수 로직 검사:
 //   1) 차트 구간 자르기(pickWindow)가 [start, start+seconds] 안의 노트만 순서대로 주고 칸을 그대로 옮긴다(루프로 되감긴 사본 포함)
-//   2) 생성된 멜로디 차트(assets/rhythm/tvtime.json)가 박자 격자 위에 있다 — 148bpm 1/4박 격자, 칸 L/R, 최소 간격 0.18초, 2초 창 6개 이하(≤3/s)
+//   2) 원음과 같은 시간축의 harmonic attack 차트, 칸 L/R, 최소 간격 0.18초, 2초 창 6개 이하(≤3/s)
 //   3) 가짜 battle 로 한 판: 노트를 다 놓치면 MISS 마다 파티 15 피해 → 시큰둥, 다 맞히면 “영클이 감동한다!” → 우는 그림 → 10 피해
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import { createRhythmGame, pickWindow } from '../../src/battle/modes/tvform-rhythm.js';
 import { YOUNGCLE_SPECIAL as S } from '../../src/data/youngcle-special.js';
 
@@ -31,10 +32,68 @@ test('test_pick_window_keeps_only_notes_inside_the_window_in_order', () => {
   // 창이 곡 끝을 넘어가면 되감긴 사본(t + duration)도 같이 잡는다
   const wrapped = pickWindow(song, 19, 5);
   assert.deepEqual(wrapped.map((n) => n.t), [19.5, 21]);
-  assert.deepEqual(pickWindow(song, 100, 5), []);
+  assert.deepEqual(pickWindow(song, 100, 5), [{ t: 101, lane: 'L', pitch: 60 }], '여러 번 루프해도 실제 곡 구간');
 });
 
-test('test_generated_melody_chart_is_quantized_to_the_beat_grid', () => {
+test('paused BGM freezes the chart clock instead of switching to mode elapsed time', () => {
+  const b = fakeBattle();
+  b.game.sound.bgm = { currentTime: 44, paused: true };
+  const g = createRhythmGame(b, b.yc, K);
+  for (let i = 0; i < 120; i++) g.update(1 / 60, makeInput());
+  assert.equal(g.snapshot.time, 44);
+  assert.equal(g.snapshot.clockSource, 'bgm');
+  assert.equal(g.snapshot.latency, 0);
+  g.dispose();
+});
+
+test('source phrase duration is retained without turning taps into hold notes', () => {
+  const w = pickWindow({ duration: 20, notes: [{ t: 4, lane: 'L', pitch: 60, soundDur: 0.8 }] }, 3, 1.5);
+  assert.equal(w[0].soundDur, 0.5);
+  assert.equal(w[0].dur, undefined);
+});
+
+test('reading the BGM loop boundary before the next frame never rewinds note time', () => {
+  const b = fakeBattle();
+  b.game.sound.bgm = { currentTime: 59.99, paused: false };
+  const g = createRhythmGame(b, b.yc, K);
+  const before = g.snapshot.time;
+  b.game.sound.bgm.currentTime = 0.01;
+  assert.equal(g.snapshot.time, 60.01);
+  assert.ok(g.snapshot.time > before);
+  g.update(1 / 60, makeInput());
+  assert.equal(g.snapshot.time, 60.01, 'the same wrap is counted only once');
+  g.dispose();
+});
+
+test('MP3 media duration, not decoded sample length, is the loop period for both notes and clock', () => {
+  const b = fakeBattle();
+  b.game.sound.bgm = { currentTime: 59.8, duration: 60.22, paused: false };
+  const g = createRhythmGame(b, b.yc, K);
+  for (let i = 0; i < 40; i++) g.update(1 / 60, makeInput());
+  assert.equal(g.snapshot.next, 62.82, 'first 2.6s note after the actual 60.22s media loop');
+  b.game.sound.bgm.currentTime = 60.2;
+  assert.equal(g.snapshot.time, 60.2);
+  b.game.sound.bgm.currentTime = 0.01;
+  assert.equal(g.snapshot.time, 60.23);
+  g.dispose();
+});
+
+test('late MP3 duration correction rebases already prepared next-loop notes', () => {
+  const b = fakeBattle();
+  b.game.sound.bgm = { currentTime: 59.8, duration: 60, paused: false };
+  const g = createRhythmGame(b, b.yc, K);
+  for (let i = 0; i < 40; i++) g.update(1 / 60, makeInput());
+  assert.equal(g.snapshot.next, 62.6);
+  b.game.sound.bgm.duration = 60.22;
+  b.game.sound.bgm.currentTime = 60.1;
+  assert.ok(Math.abs(g.snapshot.next - 62.82) < 1e-8);
+  b.game.sound.bgm.currentTime = 0.01;
+  assert.equal(g.snapshot.time, 60.23);
+  assert.ok(Math.abs(g.snapshot.next - g.snapshot.loopDuration - 2.6) < 1e-8);
+  g.dispose();
+});
+
+test('test_generated_melody_chart_uses_source_attacks_and_preserves_playability', () => {
   const c = JSON.parse(fs.readFileSync(new URL('../../assets/rhythm/tvtime.json', import.meta.url), 'utf8'));
   assert.equal(c.title, "It's Tv Time!"); assert.equal(c.artist, 'Deltarune');
   assert.ok(!c.video, '영상 없는 곡');
@@ -42,18 +101,17 @@ test('test_generated_melody_chart_is_quantized_to_the_beat_grid', () => {
   assert.ok(c.duration > 170 && c.duration < 173, `길이 ${c.duration}`);
   assert.ok(c.notes.length > 300, `노트 ${c.notes.length}`);
   assert.ok(c.notes.every((n) => n.lane === 'L' || n.lane === 'R'), '칸은 L/R');
-  // 격자는 다듬는 용도다(사용자 “노래랑 아예 똑같아야 한다”): 대부분 1/4 박 위에 있되,
-  // 노래가 당겨지거나 밀린 자리는 격자를 벗어나 소리 난 자리를 지킨다 — 그래서 격자 밖도 조금은 있어야 한다.
-  const quarter = 60 / c.bpm / 4;
-  let offGrid = 0, quarters = 0, minGap = Infinity;
-  for (const n of c.notes) {
-    const k = Math.round((n.t - c.offset) / quarter), d = Math.abs(n.t - (c.offset + k * quarter));
-    if (d > 0.002) offGrid += 1;
-    else if (((k % 2) + 2) % 2 === 1) quarters += 1;
-  }
-  assert.ok(offGrid <= c.notes.length * 0.25, `격자 밖 노트 ${offGrid}개 — 4분의 1 이하`);
-  assert.ok(offGrid > 0, '전부 격자에 붙이면 노래와 어긋난다 — 격자 밖 노트가 있어야 한다');
-  assert.ok(quarters < c.notes.length / 2, `1/4 박 노트 ${quarters}개 — 절반 미만이어야 한다`);
+  const source = fs.readFileSync(new URL('../../assets/audio/bgm/youngcle_tvform_battle.mp3', import.meta.url));
+  assert.equal(createHash('sha256').update(source).digest('hex'), c.melodyLayer.sourceSha256);
+  assert.equal(c.melodyLayer.frameTime, 'center');
+  assert.equal(c.melodyLayer.sourceSamples, c.melodyLayer.decodedSamples);
+  assert.equal(c.melodyLayer.decodedSamples / c.melodyLayer.sampleRate, c.duration);
+  assert.ok(c.melodyLayer.envelopeMedianDistanceAfterMs < c.melodyLayer.envelopeMedianDistanceBeforeMs);
+  assert.ok(c.notes.every(n => Math.abs(n.t - n.sourceT) <= 0.060001));
+  assert.ok(c.notes.every((n, i) => n.soundDur > 0 && n.soundDur <= 1.65 &&
+    n.t + n.soundDur <= (c.notes[i + 1]?.t ?? c.duration) - 0.011));
+  assert.ok(c.notes.some(n => n.soundDur > 0.4), '긴 멜로디 구간을 150ms 삑 소리로 자르지 않는다');
+  let minGap = Infinity;
   for (let i = 1; i < c.notes.length; i++) { const d = c.notes[i].t - c.notes[i - 1].t; assert.ok(d > 0, '시간 오름차순'); minGap = Math.min(minGap, d); }
   assert.ok(minGap >= 0.18 - 1e-6, `최소 간격 ${minGap}`);
   assert.ok(c.notes.length / c.duration <= 3, `밀도 ${(c.notes.length / c.duration).toFixed(2)}/s`);

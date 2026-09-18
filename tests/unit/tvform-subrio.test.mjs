@@ -1,6 +1,6 @@
 // 특별 패턴 1 섭리오(2026-09-18 사용자 보정) 순수 로직 검사:
 //   ① 원작처럼 요플래 → 경섭 → 억빠맨 순으로 하늘에서 떨어지고, 셋이 다 착지하고 1.9초 뒤에야 도트 영클이 하늘에서 쿵 떨어진다(걸어오지 않는다).
-//   ② 레이저는 영클 총구에서 왼쪽으로 뻗는다(맞으면 15 피해).  ③ 그릴 때 영클 시트를 뒤집지 않는다(시트가 이미 왼쪽을 본다 — 뒤집으면 등지고 쏜다) + 1.9배.
+//   ② 레이저는 영클 총구에서 왼쪽으로 뻗는다(맞으면 15 피해).  ③ 시트 기본 왼쪽 방향 유지 + 기존 1.9배의 1.5배.
 //   ④ 쓰러진 동안에는 요플래가 때리지 않아도 억빠맨의 불·경섭의 시계가 같은 카운터로 쌓인다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -98,7 +98,8 @@ test('test_youngcle_sprite_is_drawn_facing_left_and_scaled', async () => {
     const yc = draws.find(d => (d.src || '').includes('subrio_youngcle'));
     assert.ok(yc, '도트 영클을 그렸다');
     assert.ok(yc.sx > 0, `영클 시트는 그대로 그려야 왼쪽(파티 쪽)을 본다 — scale x ${yc.sx}`);
-    assert.equal(yc.sx, K.yc.scale, `1.9배로 크게 그린다 (${yc.sx})`);
+    assert.ok(Math.abs(yc.sx / 1.9 - 1.5) < 1e-10, '기존 크기의 1.5배');
+    assert.ok(K.ycStand + 32 * yc.sx <= 480 - 16, '커진 셀의 오른쪽 끝도 벽 안쪽');
     // 요플래: 시트는 오른쪽을 보므로 왼쪽으로 걸으면 뒤집힌다
     const hero = draws.find(d => (d.src || '').includes('subrio_pantheon'));
     assert.ok(hero && hero.sx > 0, '오른쪽을 보고 있으면 그대로');
@@ -181,21 +182,90 @@ test('test_variant_b_stumbles_after_n_slams_then_the_same_attack_window', () => 
   // 계속 오른쪽으로 달려 내려찍기를 피한다
   const right = input({ right: true });
   toPhase(g, 'stumble', 40, right);
-  assert.equal(g.snapshot.slams, Bk.slams, `${Bk.slams}번 내려찍고 발을 헛디딘다`);
-  assert.ok(b.sfxLog.filter(n => n === Bk.vanishSfx).length >= Bk.slams, '사라지는 지지직이 매번 난다');
+  assert.equal(g.snapshot.slams, 13, '2·2·3·3·3 연속 낙하 뒤 발을 헛디딘다');
+  assert.equal(g.snapshot.wave, 5);
+  assert.ok(b.sfxLog.filter(n => n === Bk.vanishSfx).length >= 13, '사라지는 지지직이 매번 난다');
   assert.ok(b.sfxLog.includes(Bk.markerSfx) && b.sfxLog.includes(Bk.slamSfx), '영역 표시음·착지음');
   toPhase(g, 'down', 3, right);
   assert.equal(g.snapshot.yc.frame, 4, '넘어진 프레임');
+  g.update(1 / 60, input());
+  assert.ok(g.snapshot.yc.x - g.snapshot.cam - 32 * K.yc.scale >= -1, '반격 중 커진 영클 왼쪽이 잘리지 않는다');
+  assert.ok(g.snapshot.yc.x - g.snapshot.cam + 32 * K.yc.scale <= 481, '반격 중 커진 영클 오른쪽이 잘리지 않는다');
   // A 판과 같은 공격 타이밍: 창 연타로 5대마다 1 피해
   let frame = 0;
   const step = 1 / 60; let t = 0;
   while (g.snapshot.phase === 'down' && t < 12) { g.update(step, input(frame % 8 === 0 ? { 'just:confirm': true } : {})); frame++; t += step; }
   const snap = g.snapshot;
+  assert.ok(Math.abs(t - 7) < 0.04, '공격 창은 원래의 7초를 유지한다');
   assert.ok(snap.hits > 0, `쓰러진 동안 ${snap.hits}타`);
   assert.equal(snap.damageDealt, Math.min(K.down.maxDamage, Math.floor(snap.hits / K.down.hitsPerDamage)), '5대마다 1 피해');
   assert.equal(b.yc.hp, 200 - snap.damageDealt);
   runUntil(g, s => s.phase === 'done', 4);
   assert.equal(g.snapshot.phase, 'done');
+});
+
+test('test_variant_b_all_drops_are_warned_locked_and_keep_a_walkable_gap', () => {
+  const { b, g } = makeB();
+  toPhase(g, 'marker', 12);
+  assert.ok(Math.abs(g.snapshot.yc.scale / 1.9 - 1.5) < 1e-10, 'B도 같은 배율');
+  const started = g.snapshot.t;
+  runUntil(g, s => s.t >= started + Bk.markerTrack + 0.05, 1);
+  const locked = g.snapshot.markers.map(m => ({ x: m.x, y: m.y }));
+  assert.equal(locked.length, 2, '첫 연속 낙하의 두 자리가 함께 예고된다');
+  assert.equal(Math.abs(locked[1].x - locked[0].x) - Bk.slamW, 64, '16px 배우가 설 수 있는 64px 틈');
+  const impactTimes = [];
+  let lastSlams = 0;
+  for (let i = 0; i < 400 && g.snapshot.wave === 0; i++) {
+    g.update(1 / 60, input({ cancel: true }));
+    const s = g.snapshot;
+    if (s.wave === 0) assert.deepEqual(s.markers.map(m => ({ x: m.x, y: m.y })), locked, '연속 공격 중에는 조준을 바꾸지 않는다');
+    if (s.slams !== lastSlams) { impactTimes.push(s.t); lastSlams = s.slams; }
+  }
+  assert.equal(impactTimes.length, 2, '두 번 모두 실제 착지한다');
+  assert.ok(impactTimes[0] - started >= 0.9, '첫 타 전 충분한 예고');
+  assert.ok(impactTimes[1] - impactTimes[0] >= 0.7, '낙하는 시간차로 분리된다');
+  assert.deepEqual(b.hurt, [], '첫 연속 공격도 방패로 막힌다');
+});
+
+test('test_variant_b_warning_response_walks_out_at_real_actor_speed_without_damage', () => {
+  for (const [spawn, dt] of [[24, 1 / 60], [96, 1 / 60], [568, 1 / 60], [1128, 1 / 60], [24, 0.05], [1128, 0.05]]) {
+    const b = fakeBattle();
+    const config = { ...K, drop: { ...K.drop, spacing: spawn > 1000 ? -44 : 44 }, b: { ...Bk, heroSpawn: spawn } };
+    const g = createSubrioGame(b, b.yc, config, { variant: 'b' });
+    let target = null, seenWave = -1, warnedAt = 0;
+    for (let frame = 0; frame < 50 / dt && !['stumble', 'down'].includes(g.snapshot.phase); frame++) {
+      const s = g.snapshot;
+      if (s.phase === 'marker' && s.wave !== seenWave) { seenWave = s.wave; warnedAt = s.t; target = null; }
+      if (s.markers.length && target === null && s.t - warnedAt >= Bk.markerTrack + 0.1) {
+        target = (s.markers[0].x + s.markers[1].x) / 2;
+      }
+      const delta = target === null ? 0 : target - (s.hero.x + 8);
+      g.update(dt, input({ left: delta < -3, right: delta > 3 }));
+    }
+    assert.equal(g.snapshot.wave, 5, `spawn ${spawn}: 전 파동을 실제 이동으로 통과`);
+    assert.equal(g.snapshot.slams, 13);
+    assert.deepEqual(b.hurt, [], `spawn ${spawn}: 잠금 뒤 예고를 읽고 틈으로 걸어가면 무피격`);
+  }
+});
+
+test('test_variant_b_walls_are_not_permanent_safe_spots', () => {
+  for (const spawn of [24, 1128]) {
+    const b = fakeBattle();
+    const config = { ...K, drop: { ...K.drop, spacing: spawn > 1000 ? -44 : 44 }, b: { ...Bk, heroSpawn: spawn } };
+    const g = createSubrioGame(b, b.yc, config, { variant: 'b' });
+    runUntil(g, () => b.hurt.length > 0, 14);
+    assert.deepEqual(b.hurt, [15], `spawn ${spawn}: 벽에 가만히 있으면 고정 피해 15`);
+  }
+});
+
+test('test_variant_b_counter_camera_keeps_the_hero_visible_when_running_away', () => {
+  const { g } = makeB();
+  toPhase(g, 'down', 40);
+  for (let frame = 0; frame < 300; frame++) {
+    g.update(1 / 60, input({ right: true }));
+    const s = g.snapshot;
+    assert.ok(s.hero.x - s.cam >= 0 && s.hero.x + 16 - s.cam <= 480, '반격을 포기하고 멀리 달려도 조종 캐릭터는 화면 안');
+  }
 });
 
 test('test_variant_b_youngcle_turns_to_face_the_hero', () => {

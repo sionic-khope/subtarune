@@ -45,14 +45,22 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
   let hits = 0, damageDealt = 0, hitCool = 0, disposed = false, sparks = [], ycFrame = 0, flash = 0;
   let trail = [], leaderLandT = 0, ycY = K.ycDrop.from, ycVy = 0, ycDropped = false, ycLandT = 0;
   let ycX = B ? B.ycEnterX : K.ycStand, ycFacing = -1, ycVisible = true, cam = 0;
-  let slams = 0, marker = null, slamHit = false;
+  let slams = 0, wave = 0, dropIndex = 0, markers = [], marker = null, slamHit = false;
   const setPhase = (p) => { phase = p; pt = 0; };
   // B 판: 지지직 하며 사라진다(원작 비데 vanish 를 TV 답게 static_burst 로)
   const startVanish = () => { setPhase('vanish'); battle.sfx(B.vanishSfx, { volume: 0.8 }); puff(ycX, ycY, 12, '#9ad8ff', 50); };
   // 총구(주먹) 위치 — A 판 레이저가 여기서 나간다
   const originX = () => ycX - K.yc.muzzleDx;
   // 카메라: 원작 cameraX 와 같은 규칙(주인공이 화면 40% 자리)이되 전체 화면 480 기준. A 판은 맵이 480 이라 항상 0
-  const camX = () => Math.max(0, Math.min(level.width - VIEW, Math.round(hero.x + hero.w / 2 - VIEW * 0.4)));
+  const camX = () => {
+    let x = hero.x + hero.w / 2 - VIEW * 0.4;
+    if (B && ['stumble', 'down', 'getup'].includes(phase)) {
+      const left = Math.max(ycX + CELL * SC / 2 - VIEW, hero.x + hero.w + TILE - VIEW);
+      const right = Math.min(ycX - CELL * SC / 2, hero.x - TILE);
+      if (left <= right) x = Math.max(left, Math.min(right, x));
+    }
+    return Math.max(0, Math.min(level.width - VIEW, Math.round(x)));
+  };
   const sx = (x) => Math.round(x - cam) + OX;
   const bake = () => {
     const c = document.createElement('canvas'); c.width = level.width; c.height = level.height; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -75,18 +83,25 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
   };
   const puff = (x, y, n, color, spread = 70) => { for (let i = 0; i < n; i++) sparks.push({ x: x + (battle.rnd() - 0.5) * spread, y: y - battle.rnd() * 14, vy: -30 - battle.rnd() * 70, life: 0.35 + battle.rnd() * 0.3, color }); };
   // B 판 내려찍기 영역: 요플래가 선 면 위에 slamW 폭. 표시 동안 앞쪽은 따라오다 lock 뒤 굳는다(가만히 서 있으면 맞는다)
-  const aimMarker = () => {
-    const feetY = hero.grounded ? hero.y + hero.h : landingY(level, hero.x, hero.x + hero.w);
-    const half = B.slamW / 2, cx = Math.max(TILE + half, Math.min(level.width - TILE - half, hero.x + hero.w / 2));
-    return { x: cx - half, w: B.slamW, y: feetY, cx };
+  const aimMarkers = () => {
+    const half = B.slamW / 2, margin = Math.max(TILE + half, CELL * SC / 2);
+    const cx = Math.max(margin, Math.min(level.width - margin, hero.x + hero.w / 2));
+    const offsets = B.waves[wave].offsets;
+    const mirror = offsets.some(dx => cx + dx < margin || cx + dx > level.width - margin) ? -1 : 1;
+    return offsets.map(dx => {
+      const target = cx + dx * mirror;
+      const y = dx === 0 && hero.grounded ? hero.y + hero.h : landingY(level, target - hero.w / 2, target + hero.w / 2);
+      return { x: target - half, w: B.slamW, y, cx: target };
+    });
   };
   return {
     get snapshot() {
-      return { kind: 'subrio', variant, phase, t: Math.round(t * 100) / 100, hits, damageDealt, slams, ycVisible, cam,
+      return { kind: 'subrio', variant, phase, t: Math.round(t * 100) / 100, hits, damageDealt, slams, wave, dropIndex, ycVisible, cam,
         hero: { x: Math.round(hero.x), y: Math.round(hero.y), grounded: hero.grounded, invuln: hero.invuln > 0 },
         party: actors.map(a => ({ id: a.id, x: Math.round(a.x), y: Math.round(a.y), dropped: !!a.dropped })),
-        yc: { x: Math.round(ycX), y: Math.round(ycY), frame: ycFrame, facing: ycFacing }, ycDropped,
+        yc: { x: Math.round(ycX), y: Math.round(ycY), frame: ycFrame, facing: ycFacing, scale: SC }, ycDropped,
         marker: marker ? { x: Math.round(marker.cx), y: Math.round(marker.y) } : null,
+        markers: markers.map((m, i) => ({ x: m.cx, y: m.y, w: m.w, order: i + 1, active: i === dropIndex, done: i < dropIndex })),
         lasers: lasers.map(l => ({ y: Math.round(l.y), fired: l.fired, x1: Math.round(l.fired ? beamRect(l).x : originX()), x2: Math.round(originX()) })),
         spears: spears.length, fires: fires.length, clocks: clocks.length, down: downRect() };
     },
@@ -170,12 +185,12 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
       }
       else if (phase === 'vanish') {
         ycFrame = 0;
-        if (pt >= B.vanish) { ycVisible = false; marker = aimMarker(); setPhase('marker'); battle.sfx(B.markerSfx, { volume: 0.85 }); }
+        if (pt >= B.vanish) { ycVisible = false; dropIndex = 0; markers = aimMarkers(); marker = markers[0]; setPhase('marker'); battle.sfx(B.markerSfx, { volume: 0.85 }); }
       }
       else if (phase === 'marker') {
         // 영역 표시: 앞쪽 track 초는 요플래를 따라오다 굳는다 → 가만히 서 있으면 그대로 맞는다
-        if (pt < B.markerTrack) marker = aimMarker();
-        if (pt >= B.marker) {
+        if (dropIndex === 0 && pt < B.markerTrack) { markers = aimMarkers(); marker = markers[0]; }
+        if (pt >= (dropIndex === 0 ? B.marker : B.waves[wave].gap)) {
           ycX = marker.cx; ycY = -CELL * SC; ycVisible = true; slamHit = false; ycFrame = 1;
           ycFacing = hero.x + hero.w / 2 > ycX ? 1 : -1;
           setPhase('dive'); battle.sfx(B.diveSfx, { volume: 0.9 });
@@ -203,9 +218,14 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
           }
         }
         if (pt >= B.slam) {
-          marker = null;
-          if (slams >= B.slams) { setPhase('stumble'); battle.sfx(B.stumbleSfx, { volume: 0.8 }); }
-          else startVanish();
+          if (dropIndex + 1 < markers.length) {
+            dropIndex++; marker = markers[dropIndex]; ycVisible = false; setPhase('marker');
+            battle.sfx(B.vanishSfx, { volume: 0.6 });
+          } else {
+            marker = null; markers = []; wave++;
+            if (wave >= B.waves.length) { setPhase('stumble'); battle.sfx(B.stumbleSfx, { volume: 0.8 }); }
+            else startVanish();
+          }
         }
       }
       else if (phase === 'stumble') {
@@ -251,10 +271,12 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
         ctx.beginPath(); ctx.moveTo(sx(TILE), y); ctx.lineTo(sx(originX()), y); ctx.stroke(); ctx.setLineDash([]);
       }
       // B 내려찍기 영역(원작 비데와 같은 표시): 바닥 띠는 캐릭터 밑에 깔고, 화살표는 서 있는 요플래에 가리지 않게 맨 위에 따로 그린다
-      if (marker) {
-        const mx = sx(marker.x), my = Math.round(marker.y) + OY, pulse = 0.5 + 0.4 * Math.abs(Math.sin(t * 14));
-        ctx.fillStyle = `rgba(255,50,50,${(0.3 * pulse).toFixed(3)})`; ctx.fillRect(mx, my - 10, marker.w, 10);
-        ctx.strokeStyle = `rgba(255,90,90,${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.strokeRect(mx + 1, my - 10, marker.w - 2, 10);
+      for (const [i, m] of markers.entries()) {
+        if (i < dropIndex || markers.slice(dropIndex, i).some(p => p.cx === m.cx)) continue;
+        const mx = sx(m.x), my = Math.round(m.y) + OY, pulse = 0.5 + 0.4 * Math.abs(Math.sin(t * 14));
+        const color = i === dropIndex ? '255,50,50' : '255,186,70';
+        ctx.fillStyle = `rgba(${color},${(0.3 * pulse).toFixed(3)})`; ctx.fillRect(mx, my - 10, m.w, 10);
+        ctx.strokeStyle = `rgba(${color},${pulse.toFixed(3)})`; ctx.lineWidth = 2; ctx.strokeRect(mx + 1, my - 10, m.w - 2, 10);
       }
       const feet = Math.round(ycY) + OY, cx = sx(ycX);
       // 도트 영클: 시트가 왼쪽을 보고 그려져 있다 — 요플래가 오른쪽에 있을 때만 뒤집는다
@@ -301,7 +323,7 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
       for (const s of sparks) { ctx.fillStyle = s.color || (s.life > 0.2 ? '#ffe066' : '#fff'); ctx.fillRect(sx(s.x), Math.round(s.y) + OY, 3, 3); }
       // ‘공격해라!’ 화살표(위아래로 튐) + 남은 시간
       if (phase === 'down') {
-        const ay = feet - K.yc.bodyDy * SC - 22 - Math.abs(Math.sin(t * 6)) * 8;
+        const ay = Math.max(82, feet - K.yc.bodyDy * SC - 22 - Math.abs(Math.sin(t * 6)) * 8);
         ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(cx - 10, ay - 14); ctx.lineTo(cx + 10, ay - 14); ctx.lineTo(cx, ay); ctx.closePath(); ctx.fill();
         ctx.font = '14px "Galmuri11", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
         ctx.fillText(K.down.arrowText, cx, ay - 34); ctx.fillStyle = '#fff'; ctx.fillText(`${Math.max(0, Math.ceil(K.down.seconds - pt))}`, cx, ay - 52); ctx.textAlign = 'left';
@@ -329,10 +351,12 @@ export function createSubrioGame(battle, yc, K, { variant = 'a' } = {}) {
       // 동료 먼저, 요플래를 맨 앞에
       for (let i = actors.length - 1; i >= 0; i--) drawActor(ctx, actors[i]);
       // 내려찍기 예고 화살표: 서 있는 사람 머리 위에서 내려꽂히듯 튄다
-      if (marker) {
-        const ax = sx(marker.x) + marker.w / 2, ay = Math.round(marker.y) + OY - 58 - Math.abs(Math.sin(t * 12)) * 8;
-        ctx.fillStyle = '#ff5c5c'; ctx.beginPath(); ctx.moveTo(ax - 10, ay - 16); ctx.lineTo(ax + 10, ay - 16); ctx.lineTo(ax, ay); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillRect(ax - 2, ay - 30, 4, 12);
+      for (const [i, m] of markers.entries()) {
+        if (i < dropIndex || markers.slice(dropIndex, i).some(p => p.cx === m.cx)) continue;
+        const ax = sx(m.cx), ay = Math.round(m.y) + OY - 58 - Math.abs(Math.sin(t * 12)) * 8;
+        ctx.fillStyle = i === dropIndex ? '#ff5c5c' : '#ffba46'; ctx.beginPath(); ctx.moveTo(ax - 10, ay - 16); ctx.lineTo(ax + 10, ay - 16); ctx.lineTo(ax, ay); ctx.closePath(); ctx.fill();
+        ctx.font = '14px "Galmuri11", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#fff';
+        ctx.fillText(markers.flatMap((p, n) => n >= dropIndex && p.cx === m.cx ? [n + 1] : []).join('·'), ax, ay - 20);
       }
       ctx.font = '14px "Galmuri11", sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillStyle = '#ffe066';
       if (phase === 'down' || phase === 'getup') ctx.fillText(`${hits}타 · 피해 ${damageDealt}/${K.down.maxDamage}`, 468, 8);

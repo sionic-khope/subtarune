@@ -43,15 +43,16 @@ export const YOUNGCLE_SPECIAL = {
       '#============================#',
       '#============================#',
     ],
-    heroSpawn: 64, ycStand: 424,
+    heroSpawn: 64, ycStand: 372,
     // 원작 섭리오처럼 셋이 하늘에서 0.55초 간격으로 떨어진다(spacing = 서로 벌어진 거리). 대장이 착지하고 wait 초 뒤 조작이 열린다
     drop: { from: -40, spacing: 44, delay: 0.55, wait: 1.9, sfx: 'item' },
     follow: { reaction: 0.32, base: 0.1, spacing: 34 },
     // 도트 영클: 걸어오지 않고 오른쪽 하늘에서 쿵(사용자 “맵 뚫고 밖에서 나오는 기분”). 착지 뒤 wait 초 있다가 레이저
     ycDrop: { from: -90, gravity: 2000, wait: 0.5, sfx: 'thud', shake: { time: 0.4, amp: 6 } },
-    // 그리기 배율 1.9배(내용 높이 약 95px — 원작 1-4 보스 104px 급). muzzleDx = 총구(주먹) x 오프셋, bodyDx/bodyDy = 쓰러진 몸통 반너비·높이(셀 단위, 배율이 곱해진다)
+    // 두 판 모두 기존 1.9배의 1.5배. 오른쪽 자리는 커진 셀 전체가 벽 안에 들어오게 조정한다.
+    // muzzleDx = 총구(주먹) x 오프셋, bodyDx/bodyDy = 쓰러진 몸통 반너비·높이(셀 단위, 배율이 곱해진다)
     //   fistX/fistY = 시트 안 주먹 위치(셀 좌표), flashCut = 시트에 그려진 총구 불꽃을 잘라 낼 x(레이저 높이가 매번 달라 손 위치의 불꽃과 어긋나 보였다 — 섬광은 코드로 그린다)
-    yc: { scale: 1.9, muzzleDx: 14, bodyDx: 29, bodyDy: 35, fistX: 28, fistY: 31, flashCut: 23 },
+    yc: { scale: 2.85, muzzleDx: 21, bodyDx: 29, bodyDy: 35, fistX: 28, fistY: 31, flashCut: 23 },
     // 레이저(왼쪽으로): 바닥 높이·발판 1단 높이·2단 높이 중 하나. 예고 0.6초 → 0.12초 동안 총구에서 왼쪽 벽까지 뻗고 → 0.5초 유지·페이드. 12초 동안(레이저 단계 기준)
     lasers: { first: 1.0, every: 1.45, warn: 0.6, fire: 0.12, beam: 0.5, thick: 14, until: 12.0, heights: [16, 96, 160], damage: 15 },
     overload: { at: 12.6, sparks: 1.2 },               // 과부하(불꽃·연기) 1.2초 뒤 쓰러짐
@@ -63,7 +64,7 @@ export const YOUNGCLE_SPECIAL = {
     mateSfx: { fire: 'ember', clock: 'zilean_q_throw' },
     // B 판(2026-09-18 사용자 “섭리오 두번째패턴은 가로로 긴맵(치지직 맵)에 영클이 그 비데 사라졌다가 위에서 내려찍는 패턴마냥 여러번 하는거 그거 피하는거고
     //   그러다가 발헛딛여서 공격할타이밍 있게하는거”): 72×22 타일(1152×352) 가로 긴 맵 — 바닥 20행, 발판 15행 셋·11행 둘, 카메라가 요플래를 따라간다.
-    //   자산은 원작 1-2 치지직(teal) 것을 그대로. 영클은 사라짐 → 영역 표시 → 낙하 → 내려찍기를 slams 번 하고 마지막에 발을 헛디뎌 넘어진다.
+    //   자산은 원작 1-2 치지직(teal) 것을 그대로. 영클은 사라짐 → 여러 영역 표시 → 연속 낙하를 waves 순서대로 하고 마지막에 발을 헛디뎌 넘어진다.
     b: {
       rows: [
         '#......................................................................#',
@@ -91,10 +92,17 @@ export const YOUNGCLE_SPECIAL = {
       ],
       theme: { tiles: 'assets/props/subrio_tiles_teal.png', sky: ['#02100f', '#0b3d3a', '#06201e', '#020908'], wave: 'rgba(30,140,130,0.45)', fallback: ['#145a56', '#248c82'] },
       heroSpawn: 96, ycEnterX: 356,
-      // 원작 따듯한비데 수치 그대로: 사라짐 0.45 → 영역 표시 0.75(앞 0.3초는 요플래를 따라오다 굳는다 — 가만히 서 있으면 맞는다)
-      //   → 820px/s 로 낙하 → 내려찍기 0.55(앞 0.2초가 판정, 그 띠의 착지면 위 24px 안에 있을 때만). 띠 폭 128
-      vanish: 0.45, marker: 0.75, markerTrack: 0.3, diveSpeed: 820, slam: 0.55, slamPose: 0.25, hitWindow: 0.2, surface: 24,
-      slamW: 128, slamDamage: 15, slams: 5, stumble: 0.9, shake: { time: 0.45, amp: 7 },
+      // 두 착지 위치를 처음부터 예고한다. 224px 간격 - 160px 띠 = 64px 탈출 틈이며, 벽 끝도 띠 안에 든다.
+      // 후반에는 첫 자리로 한 번 더 돌아온다. 다음 낙하 사이 간격도 바꿔 일정한 좌우 왕복만으로 피하지 못하게 한다.
+      vanish: 0.45, marker: 1.1, markerTrack: 0.3, diveSpeed: 820, slam: 0.32, slamPose: 0.25, hitWindow: 0.2, surface: 24,
+      slamW: 160, slamDamage: 15, stumble: 0.9, shake: { time: 0.45, amp: 7 },
+      waves: [
+        { offsets: [0, 224], gap: 0.22 },
+        { offsets: [0, -224], gap: 0.12 },
+        { offsets: [0, 224, 0], gap: 0.18 },
+        { offsets: [0, -224, 0], gap: 0.1 },
+        { offsets: [0, 224, 0], gap: 0.12 },
+      ],
       vanishSfx: 'static_burst', markerSfx: 'bell', diveSfx: 'wing', slamSfx: 'impact', stumbleSfx: 'knock',
     },
   },
@@ -104,11 +112,10 @@ export const YOUNGCLE_SPECIAL = {
   rhythm: { chart: 'assets/rhythm/tvtime.json', title: "It's Tv Time!", artist: 'Deltarune',
     lead: 2.0, seconds: 15, missDamage: 15, cryUnder: 3, cryDamage: 10, afterHold: 2.0,
     padSfx: 'bell', missSfx: 'damage', emptySfx: 'guitar_scratch',
-    // 재생 지연 보정(초): bgm.currentTime 은 출력 버퍼만큼 실제 들리는 소리보다 앞선다. 노트 시각과 비교할 때 이만큼 뺀다.
-    //   귀로 맞추는 값 — 노트가 소리보다 늦게 오면 줄이고, 먼저 오면 늘린다(0.01 단위).
-    latency: 0.06,
-    // 맞출 때마다 그 노트의 멜로디 음(차트의 pitch = MIDI)을 일렉 소리로. 브금 아래에 깔리게 짧고 작게
-    tone: { wave: 'square', dur: 0.15, gain: 0.35, cutoff: 4200 },
+    // Device-specific manual calibration only. Source-aligned chart and HTML BGM share zero time.
+    latency: 0,
+    // Key the original harmonic phrase with an electric edge instead of guessed MIDI square blips.
+    instrument: { src: 'assets/audio/sfx/tvtime_melody.ogg', gain: 0.46, drive: 2.2, attack: 0.006, release: 0.035 },
     // 관객 환호(원본 무대와 같은 녹음): 콤보 10마다·코러스 들어갈 때·감동할 때. 곡 중엔 cheerMix 만큼 줄인다
     cheerSfx: { applause: ['applause', 'applause_2'], cheer: ['crowd_cheer', 'crowd_cheer_2'], roar: ['crowd_roar', 'crowd_roar_2'] },
     cheerCooldown: { applause: 1.2, cheer: 2.5, roar: 4.0 }, cheerMix: 0.6,
