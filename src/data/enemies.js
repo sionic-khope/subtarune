@@ -88,16 +88,16 @@ export const ENEMIES = {
       die: '* 파크가디언이 쓰러졌다.',
     },
   },
-  // 아짐키야 4인조(BUILD227 사용자 브리핑: 소나무 숲 공터, 체력 8씩, 이기면 10원, 공격 대사 ‘가재맨ㅇㅁ뒤짐~’·‘땡개땡개~ ㅇㅁ뒤짐~’ + 영상 소리, 패턴 = 글자 뿜기·글자 비·역동적 춤).
+  // 아짐키야 3인조(BUILD227 사용자 브리핑: 소나무 숲 공터, 체력 8씩, 이기면 10원(4+3+3), 넷 → 셋으로 정정, 공격 대사 ‘가재맨ㅇㅁ뒤짐~’·‘땡개땡개~ ㅇㅁ뒤짐~’ + 영상 소리, 패턴 = 글자 뿜기·글자 비·역동적 춤).
   //   춤 시트 assets/source/ajimkiya-v1(gpt-image-2.5-sunburst, 사진의 네 사람). 목소리 'none' + speakSfx 클립. 피해 5 는 미지정(잠정)
-  ...Object.fromEntries(['ajimkiya1', 'ajimkiya2', 'ajimkiya3', 'ajimkiya4'].map((id, i) => [id, {
-    name: '아짐키야' + (i + 1), hp: 8, damage: 5, money: [4, 2, 2, 2][i], voice: 'none', soloPattern: true,
+  ...Object.fromEntries(['ajimkiya1', 'ajimkiya2', 'ajimkiya3'].map((id, i) => [id, {
+    name: '아짐키야' + (i + 1), hp: 8, damage: 5, money: [4, 3, 3][i], voice: 'none', soloPattern: true,
     sheet: { src: `assets/enemies/${id}-dance.png`, cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
-    pivot: [64, 118], scale: 1.05, dx: [-78, -78, 32, 32][i], dy: [4, 6, 4, 6][i], idle: { swayX: 0, swayY: 2, period: 1.2 },   // 2×2 배치(ENEMY_YS[4] 와 짝): 1·2 왼쪽 열, 3·4 오른쪽 열. 배율 1.05 = 사용자 “캐릭터 크기 더 키워”
-    projectiles: { d1: 'assets/enemies/ajimkiya1-dance.png', d2: 'assets/enemies/ajimkiya2-dance.png', d3: 'assets/enemies/ajimkiya3-dance.png', d4: 'assets/enemies/ajimkiya4-dance.png' },
+    pivot: [64, 118], scale: 1.05, dx: [-62, 28, -62][i], dy: [0, 0, 0][i], idle: { swayX: 0, swayY: 2, period: 1.2 },   // 셋: 위·아래는 왼쪽 열, 가운데는 오른쪽 열로 엇갈리게(겹침 방지). 배율 1.05 = 사용자 “캐릭터 크기 더 키워”
+    projectiles: { d1: 'assets/enemies/ajimkiya1-dance.png', d2: 'assets/enemies/ajimkiya2-dance.png', d3: 'assets/enemies/ajimkiya3-dance.png' },
     patterns: [{ type: 'ajimkiya_spew' }, { type: 'ajimkiya_rain' }, { type: 'ajimkiya_dance' }],
     // appear/idle/die 는 엔진 형식상 필요한 최소 나레이션(사용자 미지정): 등장은 첫 줄만 4인조 문구, 나머지는 한 줄씩
-    lines: { appear: i === 0 ? '* 아짐키야 4인조가 춤추며 나타났다!' : '* 아짐키야' + (i + 1) + '도 춤춘다.', idle: ['* 아짐키야들이 춤을 멈추지 않는다.'], speak: ['가재맨ㅇㅁ뒤짐~', '땡개땡개~ ㅇㅁ뒤짐~'], speakSfx: 'ajimkiya_line', die: '* 아짐키야' + (i + 1) + '이(가) 춤을 멈췄다.' },
+    lines: { appear: i === 0 ? '* 아짐키야 3인조가 춤추며 나타났다!' : '* 아짐키야' + (i + 1) + '도 춤춘다.', idle: ['* 아짐키야들이 춤을 멈추지 않는다.'], speak: ['가재맨ㅇㅁ뒤짐~', '땡개땡개~ ㅇㅁ뒤짐~'], speakSfx: 'ajimkiya_line', die: '* 아짐키야' + (i + 1) + '이(가) 춤을 멈췄다.' },
   }])),
   seopnyang: {
     name: '섭냥이', hp: 27, damage: 16, money: 90,

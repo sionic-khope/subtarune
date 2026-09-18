@@ -29,13 +29,17 @@ test('test_pines_center_script_order', () => {
   const bang = idx(n => n.emote === 'player' && n.kind === '!'), janitor = idx(n => n.speaker === '청소부' && n.text.includes('허허 이게 무슨소린가.'));
   const spawns = pines_center.map((n, i) => (n.spawn && AJIMKIYA.includes(n.spawn.id) ? i : -1)).filter(i => i >= 0);
   const clip = idx(n => n.sfx === 'ajimkiya_line'), line = idx(n => n.speaker === '아짐키야' && n.text === '* 가재맨 애미뒤짐' && n.voice === 'none');
-  const dots = idx(n => n.text === '* ..' && !n.speaker), song = idx(n => n.bgm === 'ajimkiya_song'), spinOn = idx(n => n.worldSpin === 1.2 && n.turns === 1);
+  const dots = idx(n => n.text === '* ..' && !n.speaker), song = idx(n => n.bgm === 'ajimkiya_song');
+  const hides = pines_center.map((n, i) => (n.hide && AJIMKIYA.includes(n.hide) ? i : -1)).filter(i => i >= 0);
+  const hopPar = idx(n => Array.isArray(n.parallel) && n.parallel.every(branch => Array.isArray(branch) && branch.some(x => x.hop && AJIMKIYA.includes(x.hop)) && branch.some(x => x.show)));
   const dancersSpin = idx(n => String(n.action).includes('spinRate = 5')), entry = idx(n => n.sfx === 'battle_start'), battle = idx(n => n.battle);
   const waits = pines_center.filter(n => typeof n.wait === 'number' && pines_center.indexOf(n) > song).reduce((sum, n) => sum + n.wait, 0);
-  assert.ok(bgmOff >= 0 && bgmOff < who && who < bang && bang < janitor && janitor < spawns[0] && spawns[3] < clip && clip < line && line < dots && dots < song && song < spinOn && spinOn < dancersSpin && dancersSpin < entry && entry < battle, '순서');
+  assert.ok(bgmOff >= 0 && bgmOff < who && who < bang && bang < janitor && janitor < spawns[0] && spawns[2] < hides[0] && hides[2] < hopPar && hopPar < clip && clip < line && line < dots && dots < song && song < dancersSpin && dancersSpin < entry && entry < battle, '순서: 숨겨 두고 → 점프하며 나타남 → 대사');
+  assert.equal(hides.length, 3, '셋 다 숨겨 뒀다가');
+  assert.equal(idx(n => n.worldSpin !== undefined), -1, '화면은 돌지 않는다(사용자)');
   assert.ok(Math.abs(waits - 22) < 0.5, '노래는 22초 뒤 전투(사용자)');
   assert.ok(entry > 0, '전투 진입 이펙트·소리(battleEntry)');
-  assert.equal(spawns.length, 4);
+  assert.equal(spawns.length, 3, '아짐키야 셋(사용자 “3마리로”)');
   assert.ok(pines_center[spawns[0]].spawn.anim.cols === 4 && pines_center[spawns[0]].spawn.image.includes('ajimkiya1-dance'), '춤추는 소품');
   assert.equal(pines_center[spawns[0]].spawn.y - pines_center[spawns[0]].spawn.iy, 118, '128px 그림(요플래의 약 2배)');
   const b = pines_center[battle].battle;
@@ -57,7 +61,7 @@ test('test_ajimkiya_enemies_hp8_money10_patterns_lines_clip', () => {
     assert.equal(e.lines.speakSfx, 'ajimkiya_line'); assert.equal(e.voice, 'none'); assert.equal(e.soloPattern, true, '말한 한 명만 탄막');
     assert.ok(e.sheet.src === `assets/enemies/${id}-dance.png` && e.sheet.count === 4);
     assert.ok(e.scale >= 1, '전투 스프라이트 크게(사용자 “캐릭터 크기 더 키워”)');
-    assert.deepEqual(Object.keys(e.projectiles), ['d1', 'd2', 'd3', 'd4']);
+    assert.deepEqual(Object.keys(e.projectiles), ['d1', 'd2', 'd3']);
   }
   assert.equal(money, 10, '이기면 10원');
   assert.equal(stateFromFlags({ pines_ajimkiya_won: true }, { enemyMoney: id => ENEMIES[id].money }).money, 10);

@@ -5,7 +5,7 @@ import { FONT } from '../ui/font.js';
 import { whiteSprite } from './youngcle-patterns.js';
 
 export const AJIMKIYA_TEXT = '가재맨애미뒤짐';
-const DANCERS = ['d1', 'd2', 'd3', 'd4'];
+const DANCERS = ['d1', 'd2', 'd3'];   // 셋(사용자 “3마리로”)
 
 /** 글자 탄 — 흰 글자 한 자, rot 만큼 기울어 날아간다 */
 const glyph = (ch) => ({
@@ -24,7 +24,7 @@ const drawDancer = (ctx, img, frame, x, y, size) => {
 };
 
 export const AJIMKIYA_PATTERNS = {
-  // 상자 아래에 네 명(작은 흰 도트)이 춤추며 글자를 위로 뿜는다
+  // 상자 아래에 세 명(작은 흰 도트)이 춤추며 글자를 위로 뿜는다
   ajimkiya_spew: (o = {}) => {
     // 일반몹 난이도(사용자 “너무 어렵잖아 일반몹이라고”): 0.55초에 한 글자, 느리게, 낮게
     const every = o.every ?? 0.55, speed = o.speed ?? 105, duration = o.duration ?? 4.6, size = o.size ?? 34; let next = 0.6, n = 0, stage = false;
@@ -35,14 +35,14 @@ export const AJIMKIYA_PATTERNS = {
         api.emit({ x: b.x, y: b.y + b.h, r: 1, harmless: true, life: duration + 0.8, drawShape(ctx, self) {
           DANCERS.forEach((key, i) => {
             const img = whiteSprite(api.images?.[key], 0.45); const frame = (Math.floor(self.age * 5) + i) % 4;
-            const cx = b.x + b.w * (i + 0.5) / 4, bob = Math.abs(Math.sin(self.age * 6 + i * 1.3)) * 4;
+            const cx = b.x + b.w * (i + 0.5) / DANCERS.length, bob = Math.abs(Math.sin(self.age * 6 + i * 1.3)) * 4;
             drawDancer(ctx, img, frame, cx, b.y + b.h + 6 + size - bob, size);
           });
         } });
       }
       if (t < next) return; next += every;
-      const i = n % 4, ch = AJIMKIYA_TEXT[n % AJIMKIYA_TEXT.length]; n++;
-      const sx = b.x + b.w * (i + 0.5) / 4 + (api.rnd() - 0.5) * 18;
+      const i = n % DANCERS.length, ch = AJIMKIYA_TEXT[n % AJIMKIYA_TEXT.length]; n++;
+      const sx = b.x + b.w * (i + 0.5) / DANCERS.length + (api.rnd() - 0.5) * 18;
       api.emit({ ...glyph(ch), x: sx, y: b.y + b.h + 4, vx: (api.rnd() - 0.5) * 40, vy: -speed * (0.85 + api.rnd() * 0.3), ay: 70, spin: (api.rnd() - 0.5) * 3 });
     } };
   },
@@ -57,12 +57,12 @@ export const AJIMKIYA_PATTERNS = {
       }
     } };
   },
-  // 네 명이 상자 안을 좌우로 역동적으로 가로지르며 춤춘다(위아래로 출렁) — 몸에 닿으면 피해
+  // 세 명이 상자 안을 좌우로 역동적으로 가로지르며 춤춘다(위아래로 출렁) — 몸에 닿으면 피해
   ajimkiya_dance: (o = {}) => {
     const duration = o.duration ?? 4.8, every = o.every ?? 1.5, speed = o.speed ?? 82, size = o.size ?? 34; let next = 0.4, n = 0;
     return { duration, update(t, dt, api) {
       if (t < next) return; next += every;
-      const b = api.box, i = n % 4, dir = n % 2 ? -1 : 1, key = DANCERS[i]; n++;
+      const b = api.box, i = n % DANCERS.length, dir = n % 2 ? -1 : 1, key = DANCERS[i]; n++;
       const y0 = b.y + 18 + api.rnd() * (b.h - 36), amp = 16 + api.rnd() * 14, freq = 3.5 + api.rnd() * 2, half = size / 2;
       api.emit({ x: dir > 0 ? b.x - 22 : b.x + b.w + 22, y: y0, vx: dir * speed * (0.85 + api.rnd() * 0.3), r: 11, kind: 'white',
         steer(self) { self.y = y0 + Math.sin(self.age * freq) * amp; },

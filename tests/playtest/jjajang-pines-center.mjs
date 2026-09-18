@@ -34,19 +34,20 @@ try {
   await line('~~.. 디짐', '01_who');
   check(await until(() => window.game.player.emote?.kind === '!', 4000), '요플래 느낌표');
   await line('허허 이게 무슨소린가.');
-  check(await until(() => ['ajimkiya1', 'ajimkiya2', 'ajimkiya3', 'ajimkiya4'].every(id => window.game.entities.some(e => e.id === id && !e.dead)), 4000), '아짐키야 넷이 나온다');
+  const hopped = await until(() => { const p = window.game.entities.find(e => e.id === 'ajimkiya1' && !e.dead); return p && p.visible !== false && (p.hopY || 0) > 8; }, 5000);
+  check(hopped, '아짐키야가 풀숲에서 점프하며 나타난다'); await cap('01b_hop');
+  check(await until(() => ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'].every(id => window.game.entities.some(e => e.id === id && !e.dead && e.visible !== false)), 5000), '아짐키야 셋이 나온다');
   await line('가재맨 애미뒤짐', '02_ajimkiya');
   check(await page.evaluate(() => window.__qa.sfx.includes('ajimkiya_line')), '“가재맨 애미뒤짐” 클립이 대사와 함께 난다');
   await line('..');
-  check(await until(() => window.game.sound.bgmName === 'ajimkiya_song' && window.game.worldSpin?.speed > 0, 4000), '노래가 흐르고 맵이 돌기 시작한다');
+  check(await until(() => window.game.sound.bgmName === 'ajimkiya_song' && window.game.entities.some(e => e.id === 'ajimkiya1' && e.spinRate > 0), 4000), '노래가 흐르고 아짐키야들이 돌기 시작한다');
   await page.waitForTimeout(2500); await cap('03_spinning');
-  const angle1 = await page.evaluate(() => window.game.worldSpin?.angle || 0);
-  check(angle1 > 1.5, `맵이 돌고 있다 (angle ${angle1.toFixed(2)})`);
+  const spun = await page.evaluate(() => ({ angle: window.game.entities.find(e => e.id === 'ajimkiya2')?.spin || 0, world: !!window.game.worldSpin }));
+  check(spun.angle > 3 && !spun.world, `아짐키야만 돌고 화면은 안 돈다 (spin ${spun.angle.toFixed(1)})`);
   check(await until(() => !!window.game.battle, 30000), '22초 뒤 전투로 들어간다');
-  check(await page.evaluate(() => !window.game.worldSpin || !window.game.worldSpin.speed), '전투 전에 회전이 멈춘다');
   check(await until(() => window.game.battle && window.game.battle.state === 'menu', 20000), '전투 메뉴');
   const b0 = await page.evaluate(() => ({ bgm: game.sound.bgmName, enemies: game.battle.enemies.map(e => ({ id: e.id || e.def?.name, hp: e.hp, max: e.maxHp })), members: game.battle.members.map(m => m.id) }));
-  check(b0.bgm === 'jjajang_battle' && b0.enemies.length === 4 && b0.enemies.every(e => e.max === 8) && b0.members[1] === 'janitor', '짜장 전투 브금, 아짐키야 넷 체력 8, 청소부 파티 ' + JSON.stringify(b0));
+  check(b0.bgm === 'jjajang_battle' && b0.enemies.length === 3 && b0.enemies.every(e => e.max === 8) && b0.members[1] === 'janitor', '짜장 전투 브금, 아짐키야 셋 체력 8, 청소부 파티 ' + JSON.stringify(b0));
   await cap('04_battle');
   // 요플래: 공격하기 → 첫 적 선택 → 청소부 차례 대사
   await press('KeyC'); await until(() => window.game.battle.state === 'target', 3000); await press('KeyC');
