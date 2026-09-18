@@ -1,5 +1,6 @@
 import { SCREEN_W, SCREEN_H, CHAR_SCALE } from '../world/world.js';
 import { FONT } from '../ui/font.js';
+import { FX } from '../data/fx.js';
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const k = clamp(value); return k * k * (3 - 2 * k); };
@@ -419,8 +420,45 @@ const drawVortex = (ctx, scene, x, y) => {
       ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer);
       ctx.stroke();
     }
+    // 충격파 고리 두 겹이 터진 점에서 화면 밖으로 퍼진다
+    for (let ring = 0; ring < 2; ring++) {
+      const k = clamp(burst * 1.25 - ring * 0.18);
+      if (k <= 0) continue;
+      const radius = 24 + k * 300;
+      ctx.globalAlpha = (1 - k) * 0.8;
+      ctx.strokeStyle = ring ? '#c657ff' : '#ffffff';
+      ctx.lineWidth = ring ? 3 : 5;
+      ctx.beginPath();
+      ctx.ellipse(x, y, radius, radius * 0.7, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    // 보라 파편이 사방으로 튀어 중력에 떨어진다(인덱스 기반이라 프레임마다 같은 궤적)
+    const debris = scene.config.sky.burstDebris;
+    const t = scene.elapsed;
+    for (let i = 0; i < debris; i++) {
+      const angle = i * Math.PI * 2 / debris + i % 3 * 0.21;
+      const speed = 210 + i % 5 * 46;
+      const px = x + Math.cos(angle) * speed * t;
+      const py = y + Math.sin(angle) * speed * 0.75 * t + 260 * t * t;
+      const size = 3 + i % 3 * 2;
+      ctx.globalAlpha = 1 - burst * 0.6;
+      ctx.fillStyle = i % 2 ? '#8d32bd' : '#f3d3ff';
+      ctx.fillRect(Math.round(px - size / 2), Math.round(py - size / 2), size, size);
+    }
   }
   ctx.restore();
+};
+
+/** The user's Deltarune explosion clip, all frames spread over the burst beat, at the point the cord snapped. */
+const drawBurstSheet = (ctx, scene, x, bottom) => {
+  const image = scene.images.explosion;
+  if (!image) return;
+  const fx = FX.explosion;
+  const frame = Math.min(fx.count - 1, Math.floor(scene.elapsed * fx.count / scene.config.timing.vortexBurst));
+  const fw = image.width / fx.cols, fh = image.height / fx.rows;
+  const scale = scene.config.sky.burstScale;
+  const w = Math.round(fw * scale), h = Math.round(fh * scale);
+  ctx.drawImage(image, frame * fw, 0, fw, fh, Math.round(x - w / 2), Math.round(bottom - h * 0.78), w, h);
 };
 
 const flyPoint = (scene, progress, bob = 0) => {
@@ -466,8 +504,9 @@ const drawSkyActors = (ctx, scene) => {
   const spread = 53 * ascent.scale / scene.config.sky.actorScale;
   const gx = ascent.x - spread + tug, gy = ascent.bottom;
   const hurl = burst ? 1 - Math.pow(1 - burst, 2.6) : 0;
-  const hurlX = offset => ascent.x + spread + offset * 190;
-  const hurlY = offset => ascent.bottom - Math.sin(offset * Math.PI * 0.6) * 34 + offset * offset * 300;
+  const hurlX = offset => ascent.x + spread + offset * scene.config.sky.burstFling;
+  const hurlY = offset => ascent.bottom - Math.sin(offset * Math.PI * 0.6) * 46 + offset * offset * 340;
+  const spin = Math.PI * scene.config.sky.burstSpin;
   const yx = hurl ? hurlX(hurl) : ascent.x + spread - tug;
   const yy = hurl ? hurlY(hurl) : ascent.bottom;
   const actorScale = ascent.scale;
@@ -484,24 +523,36 @@ const drawSkyActors = (ctx, scene) => {
       scene.beat === 'vortex_gather' ? 40 + smooth(scene.elapsed / scene.config.timing.vortexGather) * 48 : 32, ink);
   }
   if (clash && hurl <= 0) drawLightAura(ctx, yx, yy - 26 * actorScale, scene, power * flare, ink * flare);
+  if (burst > 0) drawBurstSheet(ctx, scene, ascent.x, ascent.bottom);
   drawCharacter(ctx, scene.actors.gajaeman, gx, gy, 'right', gajaemanScale, burst ? 0 : tug * 0.006);
   if (hurl > 0) {
     ctx.save();
-    for (let i = 5; i >= 1; i--) {
-      const ghost = Math.max(0, hurl - i * 0.06);
-      ctx.globalAlpha = 0.34 - i * 0.055;
-      drawCharacter(ctx, scene.actors.yoplait, hurlX(ghost), hurlY(ghost), 'left', actorScale, ghost * Math.PI * 7);
+    for (let i = 7; i >= 1; i--) {
+      const ghost = Math.max(0, hurl - i * 0.05);
+      ctx.globalAlpha = 0.36 - i * 0.045;
+      drawCharacter(ctx, scene.actors.yoplait, hurlX(ghost), hurlY(ghost), 'left', actorScale, ghost * spin);
     }
     ctx.globalAlpha = 0.55;
     ctx.fillStyle = '#ffffff';
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 14; i++) {
       const ghost = Math.max(0, hurl - 0.05 - i * 0.02);
-      ctx.fillRect(Math.round(hurlX(ghost) - 30 - i * 4), Math.round(hurlY(ghost) - 34 - i * 5), 15 + i % 3 * 8, 1);
+      ctx.fillRect(Math.round(hurlX(ghost) - 30 - i * 4), Math.round(hurlY(ghost) - 34 - i * 4), 15 + i % 3 * 8, 1);
     }
     ctx.restore();
   }
-  drawCharacter(ctx, scene.actors.yoplait, yx, yy, 'left', actorScale, hurl * Math.PI * 7 - (burst ? 0 : tug * 0.006));
+  drawCharacter(ctx, scene.actors.yoplait, yx, yy, 'left', actorScale, hurl * spin - (burst ? 0 : tug * 0.006));
   if (!rising || ascent.zoom > 0.45) drawCord(ctx, scene, gajaemanGrip, burst ? [gajaemanGrip[0] + 34 * ink, gajaemanGrip[1] + 3] : yoplaitGrip, ink);
+  if (burst > 0) {
+    // 터지는 순간 흰 섬광이 화면을 덮었다가 걷힌다
+    const flash = Math.max(0, 1 - scene.elapsed / scene.config.sky.burstFlash);
+    if (flash > 0) {
+      ctx.save();
+      ctx.globalAlpha = flash * 0.9;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      ctx.restore();
+    }
+  }
 };
 
 /** Power streaming inward to one bright point before anything of the castle exists. */

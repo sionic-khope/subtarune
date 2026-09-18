@@ -99,6 +99,17 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   check('backstepping blockers have no rendered-body overlap with Yoplait', path.blockers.every(actor => !overlaps(path.player.bounds, actor.bounds)), JSON.stringify(path));
   await line('긴 여정의 끝을 얘기하는 문이다.', 'castle_07_door_narration');
   await line('보라색 코드', 'castle_07b_door_cord_line');
+  await page.evaluate(() => {
+    const log = window.__shipCastleQA;
+    const ids = ['lounge_junhee', 'lounge_yongjun', 'lounge_youngcle', 'ppaman', 'gyeongsub'];
+    log.turn = [];
+    const tick = () => {
+      const facings = ids.map(id => game.entities.find(entity => entity.id === id)?.facing);
+      log.turn.push({ x: game.player.x, right: facings.filter(dir => dir === 'right').length, facings, caption: !!game.textbox.node?.text?.includes('앗!') });
+      if (log.turn.length < 1500 && game.shipCastle && game.shipCastle.beat !== 'ocean_rise') requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
   const rush = await beat('field_rush', 'castle_08_offscreen_rush');
   check('Gajaeman rush begins on the field overlay', rush.fullFrame === false);
   check('the slam shows a bottom caption from Ppaman', !!await until(() => game.textbox.node?.text?.includes('앗!') && game.textbox.node?.speaker === '억빠맨', 8000));
@@ -112,6 +123,12 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await page.waitForTimeout(220);
   await shot('castle_09b_window_shards');
   check('all five witnesses face right with exclamation marks at impact', impact.reactions.every(actor => actor.facing === 'right' && actor.emote === '!'), JSON.stringify(impact.reactions));
+  const turn = await page.evaluate(() => window.__shipCastleQA.turn);
+  const captionFrames = turn.filter(sample => sample.caption);
+  const slamX = captionFrames[0]?.x;
+  const firstRight = turn.find(sample => sample.right > 0);
+  check('during the centre slam caption the five still look at Yoplait, none right yet', captionFrames.length > 0 && captionFrames.every(sample => sample.right === 0 && sample.facings.every(dir => dir === 'down' || dir === 'up')), JSON.stringify(captionFrames[0]));
+  check('the five turn right only once Gajaeman is already dragging Yoplait to the right', !!firstRight && slamX != null && firstRight.x >= slamX + 20 && firstRight.right === 5, JSON.stringify({ slamX, firstRight }));
   check('enlarged Gajaeman carries Yoplait upward through the pane before it breaks', impact.carrier.visualScale === 1.89 && impact.carrier.y === 150 && impact.player.y === 150 && impact.player.x >= 640, JSON.stringify(impact));
   const ocean = await beat('ocean_rise', 'castle_10_ocean_rise');
   const castleBgm = await page.evaluate(() => ({ name: game.sound.bgmName, src: game.sound.bgm?.src, loop: game.sound.bgm?.loop,
@@ -169,12 +186,17 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await page.waitForTimeout(1150);
   await shot('castle_13_opposite_aura');
   await line('ㅋㅋ이제 제대로 하는건가.', 'castle_13b_second_gajaeman_line');
+  await line('하지만...', 'castle_13c_gajaeman_but_line');
   await beat('vortex_gather');
   await page.waitForTimeout(1800);
   await shot('castle_14_vortex_gather');
   const burst = await beat('vortex_burst');
-  await page.waitForTimeout(280);
+  await page.waitForTimeout(90);
+  await shot('castle_15a_vortex_burst_flash');
+  await page.waitForTimeout(190);
   await shot('castle_15_vortex_burst');
+  const burstAudio = await page.evaluate(() => ({ explosion: window.__shipCastleQA.sfx.filter(name => name === 'explosion').length, wing: window.__shipCastleQA.sfx.includes('wing'), shake: game.shake ? { ...game.shake } : null }));
+  check('the burst fires the explosion clip on top of the whoosh with a hard shake', burstAudio.explosion >= 2 && burstAudio.wing && burstAudio.shake?.amp >= 12, JSON.stringify(burstAudio));
   await page.waitForTimeout(240);
   await shot('castle_15b_yoplait_hurled_to_the_sea');
   check('burst leaves the cord with Gajaeman', burst.cordOwner === 'gajaeman');

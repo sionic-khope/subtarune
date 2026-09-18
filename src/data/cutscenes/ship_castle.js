@@ -72,12 +72,12 @@ export const ship_castle = Object.assign([
   { move: GAJAEMAN, px: game => [game.player.x - 18, game.player.y], exact: true, speed: 420 },
   { ...P('앗!'), cut: T.rushCut },
   close,
+  { parallel: REACTORS.map(id => ({ emote: id, kind: '!', duration: 1.9, hold: 0.45 })) },
   { parallel: [
-    ...REACTORS.map(id => ({ emote: id, kind: '!', duration: 1.9, hold: 0.45 })),
-    ...face(REACTORS, 'right'),
+    { move: GAJAEMAN, px: [622, 150], exact: true, speed: 330, track: true,
+      carry: { id: PLAYER, offset: [18, 0], facing: 'right' } },
+    [{ wait: T.rushTurn }, ...face(REACTORS, 'right')],
   ] },
-  { move: GAJAEMAN, px: [622, 150], exact: true, speed: 330, track: true,
-    carry: { id: PLAYER, offset: [18, 0], facing: 'right' } },
   beat('field_window'),
   { move: GAJAEMAN, px: [900, 150], exact: true, speed: 380, track: true,
     carry: { id: PLAYER, offset: [18, 0], facing: 'right' } },
@@ -97,12 +97,13 @@ export const ship_castle = Object.assign([
   { sfx: 'power' },
   { wait: T.oppositeAura },
   GJ('ㅋㅋ이제 제대로 하는건가.'),
+  GJ('하지만...'),
   close,
   beat('vortex_gather'),
   { sfx: 'rumble' },
   { wait: T.vortexGather },
   beat('vortex_burst'),
-  { parallel: [{ sfx: 'wing' }, { shake: 0.65, amp: 8 }] },
+  { parallel: [{ sfx: 'explosion', volume: 0.9 }, { sfx: 'wing' }, { shake: 0.85, amp: 12 }] },
   { action: game => {
     game.inventory = game.inventory.filter(item => item !== '보라색 코드 ?');
     game.setFlag('ship_castle_cord_stolen');
