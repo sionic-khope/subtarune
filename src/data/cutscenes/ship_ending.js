@@ -117,7 +117,8 @@ export const ship_manhole = Object.assign([
   { text: '* 내려갈까?', voice: 'narrator', choice: { options: [{ label: '예', goto: 'hatch_down' }, { label: '아니오', goto: 'hatch_end' }], cancel: 1 } },
   { label: 'hatch_down' }, close,
   { action: game => game.sound.preloadBgm('ship_lounge') },
-  { sfx: 'iron_step_1' }, { fade: 'out', duration: 0.5 },
+  // 라운지로 내려갈 때 페이드아웃 0.5 → 1.0초(2026-09-18 사용자 “라운지 들어올 때 페이드아웃도 살짝만 0.5초 더”)
+  { sfx: 'iron_step_1' }, { fade: 'out', duration: 1.0 },
   { map: 'ship_lounge', spawn: 'from_control', enter: true },
   { camera: 'player' }, { fade: 'in', duration: 0.7 },
   { wait: 1.5 }, { bgm: 'ship_lounge', fadeIn: 1.2 },

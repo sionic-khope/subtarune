@@ -48,6 +48,7 @@ export const shipLoungeScripts = {
     { speaker: '파크가디언', portrait: 'park_guardian', voice: 'park_guardian_costume', text: '* 훗훗... 여기선 안 싸워요.{n}* 라운지는 다 같이 쓰는 거라구요.' },
   ],
   ship_lounge_mini_mario: [
-    { hop: 'lounge_mini_mario', by: [0, 0], height: 24, duration: 0.5, keep: true },
+    // 마리오 점프 소리(2026-09-18 사용자 “마리오 점프는 마리오 점프 소리가 나야지”): 기존 sfx/mario_jump.mp3(SMB Jump small)
+    { hop: 'lounge_mini_mario', by: [0, 0], height: 24, duration: 0.5, keep: true, sfx: 'mario_jump' },
   ],
 };

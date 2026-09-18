@@ -25,6 +25,7 @@ test('test_ship_lounge_npcs_respond_without_repositioning', () => {
   const hops = mario.filter(node => node.hop === 'lounge_mini_mario');
   assert.equal(hops.length, 1, 'C answers with exactly one hop and nothing else');
   assert.ok(mario.every(node => !node.text && !node.chat && !node.move && !node.remove), 'no dialogue and no walking');
+  assert.ok(hops.every(node => node.sfx === 'mario_jump'), '마리오 점프는 마리오 점프 소리(mario_jump) — 2026-09-18 사용자');
   const [dx, dy] = hops[0].by || [0, 0];
   assert.equal(Math.abs(dx) + Math.abs(dy), 0, 'the hop lands where it started');
   assert.ok((hops[0].height ?? 0) > 0, 'the hop rises far enough to see');
