@@ -1,0 +1,163 @@
+{
+  "backend": "built-in image_gen",
+  "model": "unknown",
+  "usageCost": "unknown",
+  "resampling": "NEAREST",
+  "paletteQuantization": false,
+  "floorAlpha": "full-bleed RGB retained; alpha forced opaque",
+  "doorAlpha": "preserved; no chromakey or RGB black key",
+  "doorPivot": [
+    80,
+    192
+  ],
+  "doorCanvas": [
+    160,
+    192
+  ],
+  "ladderPivot": [
+    32,
+    96
+  ],
+  "ladderCanvas": [
+    64,
+    96
+  ],
+  "ladderAlpha": "alpha below 8 cleared, remaining generated alpha preserved",
+  "ladderSourceBounds": [
+    246,
+    162,
+    778,
+    1348
+  ],
+  "ladderContentSize": [
+    41,
+    92
+  ],
+  "tileCell": [
+    32,
+    32
+  ],
+  "rawTileCell": [
+    627,
+    627
+  ],
+  "files": [
+    {
+      "path": "assets/source/ship-lounge/visuals/floors-raw.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        5,
+        252
+      ],
+      "sha256": "9d8a54e705132cd8154fdc5afea4bfc72e85b79e2fc7dd08ceb0817ecd46b3b6"
+    },
+    {
+      "path": "assets/source/ship-lounge/visuals/grand-door-raw.png",
+      "size": [
+        1145,
+        1374
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sha256": "9855affc0a1640790d15767d08b25e61570c8cc1ad8bc80539ce113a6c4c7e2e"
+    },
+    {
+      "path": "assets/source/ship-lounge/visuals/ladder-raw.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "sha256": "cdccd329517931ea81482602e30b84eeaa94c3fbbbccfbf72da9c92bb6cbb8c3"
+    },
+    {
+      "path": "assets/tiles/ship_lounge_floor.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "sha256": "1ffd02976fcf40d1646585e6f072c7f2488767ba4a1f2af724fe13e98538132d"
+    },
+    {
+      "path": "assets/tiles/ship_lounge_floor_alt.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "sha256": "58c499adb6f6bc9819e96dfd9cd5a873989d6bec2c52004a75343f35625cd46d"
+    },
+    {
+      "path": "assets/tiles/ship_lounge_runner.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "sha256": "ae54ed28020c97f1c4044908d347223cb7902a1df3a3759b7c48e8b7174a535c"
+    },
+    {
+      "path": "assets/tiles/ship_lounge_runner_trim.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "sha256": "461addee0b8c7c96eaced54a2b37fecb15884ab9a7ff3c177addbe627a229745"
+    },
+    {
+      "path": "assets/props/ship_lounge_grand_door.png",
+      "size": [
+        160,
+        192
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sha256": "0c5f2d91c2eae861a948c1427c281cb3845d5f36c481c39c6e30164e831fa26e"
+    },
+    {
+      "path": "assets/props/ship_lounge_ladder.png",
+      "size": [
+        64,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "sha256": "354495e65ed6bf1c13c787c0312cb4174f0cb1cc0612ff2dca37b0806dc23987"
+    }
+  ]
+}

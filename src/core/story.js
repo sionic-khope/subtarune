@@ -21,6 +21,7 @@ export const STAGES = [
   { id: 'living_entered', desc: '거실 첫 진입 컷신(엄마 없음)',              map: 'living', spawn: 'from_hall' },
   { id: 'cord_found',     desc: '티비 서랍에서 보라색 코드 ? 획득',           map: 'living', spawn: 'from_hall' },
   { id: 'void_fallen',    desc: '방송 중 코드 에러 → 소용돌이 → 보라색 땅에 추락', map: 'void',   spawn: 'fall' },
+  { id: 'ship_ending_done', desc: '변신 영클 승리 뒤 통로 공개 · 라운지로', map: 'youngcle20', spawn: 'from_lounge' },
   // 다음 비트는 사용자 브리핑 후 여기에 추가 (예: cord_plugged)
 ];
 
@@ -28,6 +29,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 export function storyBgm(mapId, flags) {
+  if (mapId === 'youngcle20' && (flags.ship_tvform_won || flags.ship_ending_done)) return null;
   if (mapId === 'youngcle1') return flags.youngcle_intro_done ? 'storage_show' : null;
   // 조종실: 보스전 뒤 연출(가재맨 → 영클 변신)이 끝나면 선장실 변신 뒤와 같은 곡이 흐른다(BUILD211)
   if (mapId === 'youngcle20' && flags.ship_aftermath_done) return 'captain_mankatsuki';
@@ -103,6 +105,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
   { flag: 'park_guardian_won', enemies: ['park_guardian'] },
+  { flag: 'ship_tvform_won', enemies: ['youngcle_tvform'] },
   // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
   { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
 ];
@@ -379,3 +382,10 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_tvform_battle', desc: '변신 �
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party], script: 'ship_tvform_battle_qa' });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_control_after', desc: '조종실: 후속 연출 다 본 뒤 변신 영클과 대치(재입장 검사용)', hidden: true,
   map: 'youngcle20', spawn: 'gate', flags: { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true }, party: [...parkWonCheckpoint.party] });
+const shipWonFlags = { ...furnaceDoneFlags, ship_intro_done: true, ship_aftermath_done: true, ship_tvform_won: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_ending', desc: '변신 영클 승리 후 (원래 모습 → 맨홀 → 용준 복귀 → 세 명 내려감)',
+  map: 'youngcle20', spawn: 'gate', flags: { ...shipWonFlags }, party: [...parkWonCheckpoint.party], script: 'ship_tvform_ending' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_manhole', desc: '조종실 열린 맨홀 · C 내려갈까?',
+  map: 'youngcle20', spawn: 'from_lounge', flags: { ...shipWonFlags, ship_ending_done: true, ship_manhole_open: true }, party: [...parkWonCheckpoint.party] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'ship_lounge', desc: '엄청대박인배 메인 라운지 · 편집자들과 보라색 문',
+  map: 'ship_lounge', spawn: 'from_control', flags: { ...shipWonFlags, ship_ending_done: true, ship_manhole_open: true }, party: [...parkWonCheckpoint.party] });

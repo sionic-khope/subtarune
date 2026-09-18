@@ -13,6 +13,7 @@ import { registerShipFxEntities } from './ship-fx.js';
 import { loopCharacterMotion, updateLoopCharacterMotion } from './character-motion.js';
 import { FONT } from '../ui/font.js';
 import { drawDoorOpening } from './door-transit.js';
+import { drawShipHatch } from './ship-hatch.js';
 import { probeOverlaps } from './interaction.js';
 
 export const SCREEN_W = 480;
@@ -666,6 +667,7 @@ export class Prop extends Entity {
   canInteract() { return !!this.def.script; }
   draw(ctx, cam) {
     if (!this.visible) return;
+    if (this.def.shipHatch && this.image) { drawShipHatch(ctx, this, cam); return; }
     const fx = this.flyX || 0, fy = this.flyY || 0;    // 컷신 {hop}/{fling} 로 밀려난 그림 위치(히트박스 지정 소품은 def.ix 를 따르므로 따로)
     const cols = this.anim?.cols || 1, fw = this.image ? this.image.width / cols : 0, fi = cols > 1 ? Math.floor(performance.now() / 1000 * (this.anim.fps || 8)) % cols : 0;
     const blit = (dx, dy) => ctx.drawImage(this.image, fi * fw, 0, fw, this.image.height, dx, dy, this.iw, this.ih);

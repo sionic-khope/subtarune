@@ -76,7 +76,7 @@ def main() -> None:
         # 오른쪽 위 과학 TV(색 띠 ↔ 지직 2프레임)
         prop('ship_tv', P + 'ship_tv.png', 840, 150, 80, 24, 102, anim={'cols': 2, 'fps': 6}),
         # 화면 중앙 바닥: 영클 얼굴 양각 강철 로고(연출의 기준점, 걷는 장식) — 사용자 “화면 중앙엔 영클 얼굴로 박혀 있는 철 색깔 로고”
-        {'type': 'prop', 'id': 'ship_logo', 'image': P + 'ship_floor_logo.png', 'x': LOGO_X, 'y': LOGO_Y, 'w': 128, 'h': 2, 'ix': LOGO_X, 'iy': LOGO_Y, 'solid': False},
+        {'type': 'prop', 'id': 'ship_logo', 'image': P + 'ship_floor_logo.png', 'x': LOGO_X, 'y': LOGO_Y, 'w': 128, 'h': 128, 'ix': LOGO_X, 'iy': LOGO_Y, 'solid': False, 'sortY': 0, 'shipHatch': 'ship_manhole_open', 'script': 'ship_manhole'},
         # 왼쪽 위 홀로그램 탁자(전함 실루엣 3프레임): 탁자 몸통만 막는다
         prop('ship_holo', P + 'ship_holo_table.png', 232, 144, 96, 28, 100, anim={'cols': 3, 'fps': 5}),
         # 왼쪽 콘솔 두 줄(2×2) + 오른쪽 아래 콘솔 둘 — 가운데·오른쪽은 연출(대포·철창 착지)을 위해 비워 둔다
@@ -113,6 +113,7 @@ def main() -> None:
                     *[f'assets/illustrations/youngcle-tv-{pose}.png' for pose in ('smirk', 'laugh', 'taunt', 'glare', 'shrug', 'yes', 'question')]],
         'spawns': {
             'gate': {'x': SPAWN_X, 'y': 15 * T + 8, 'facing': 'up'},
+            'from_lounge': {'x': SPAWN_X, 'y': 384, 'facing': 'down'},
         },
         'meta': {'connected': True, 'route': [[DOOR_C0 + 1, 15], [DOOR_C0 + 1, 4]], 'logo': [LOGO_X, LOGO_Y], 'cage': list(CAGE), 'junhee': list(JUNHEE), 'yongjun': list(YONGJUN), 'ycEnter': list(YC_ENTER), 'ycStand': list(YC_STAND), 'tvStand': list(TV_STAND), 'cageDrop': CAGE_DROP, 'gajaeman': list(GAJAEMAN)},
         'enter': {'script': 'ship_control_intro'},

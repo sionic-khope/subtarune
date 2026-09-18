@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const KNOWN = new Set(['type', 'id', 'image', 'x', 'y', 'w', 'h', 'ix', 'iy', 'scale', 'foldX', 'carry', 'solid', 'script', 'sortY', 'unless', 'requires', 'obstacle', 'oscillate', 'interact', 'flag', 'emptyScript', 'lockedScript', 'to', 'spawn', 'sfx', 'sprite', 'facing', 'wander', 'route', 'speed', 'jump', 'swim', 'onBoard', 'onArrive', 'stops', 'checkpoints', 'swimAt', 'clear', 'sweep', 'anim', 'period', 'offset', 'range', 'ground', 'top', 'warn', 'fall', 'rest', 'raft', 'slot', 'once', 'dir', 'name', 'text', 'items', 'tiles', 'when', 'lanes', 'tileSwaps', 'visible', 'hidden', 'cooldown', 'noFace', 'walkable', 'auto', 'from', 'stage', 'label', 'motion', 'lift', 'pulse', 'lava', 'boardSfx', 'arriveSfx', 'jumpH2', 'disembarkPartyGap']);
+KNOWN.add('shipHatch');
 const pngSize = (path) => { const b = fs.readFileSync(path); assert.equal(b.toString('ascii', 1, 4), 'PNG', `${path} 는 PNG 가 아님`); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }; };
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 for (const id of index.maps) {
@@ -14,6 +15,13 @@ for (const id of index.maps) {
   if (!props.length) continue;
   test(`${id}: 소품 키는 엔진이 아는 것만`, () => {
     for (const e of props) for (const k of Object.keys(e)) assert.ok(KNOWN.has(k), `${id}.${e.id || e.image}: 모르는 키 '${k}' (scale 대신 imageScale 같은 오타?)`);
+    for (const e of props.filter(e => e.shipHatch !== undefined)) {
+      assert.equal(typeof e.shipHatch, 'string', `${id}.${e.id}: 맨홀 열림 플래그 이름`);
+      assert.ok(e.shipHatch.length > 0);
+      assert.equal(e.solid, false);
+      assert.equal(e.w, 128); assert.equal(e.h, 128);
+      assert.ok(e.image && e.script, `${id}.${e.id}: 원래 뚜껑 그림과 C 상호작용`);
+    }
   });
   test(`${id}: 소품 그림과 히트박스가 맞물림`, () => {
     for (const e of props) {

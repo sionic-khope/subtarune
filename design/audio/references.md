@@ -1,5 +1,9 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 엄청대박인배 라운지 (2026-09-18)
+
+- `bgm/ship_lounge.mp3`: 사용자 지정 [GrCp8AHdgEM](https://www.youtube.com/watch?v=GrCp8AHdgEM), 조회 제목 `14. Welcome to the Green Room (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 Toby Fox, 업로드 20250604. 포맷 251 전체를 MP3 q2로 변환했다(95.004458초, 48kHz stereo). 구간 편집·피치·속도 변경·음량 정규화 없음. 전체 디코드 검사 통과; 출처·재현 명령·SHA-256은 `assets/source/ship-lounge/audio/README.md`. 출처 기록이 이용허락 확인을 뜻하지 않는다.
+
 ## 파크가디언 마녀재판 반론 (BUILD156, 2026-09-14)
 
 사용자 요청의 `それはおかしいよ！` 원음은 [마녀재판 컷인 보이스 게임 녹화](https://www.youtube.com/watch?v=eBt4Agp85HE&t=5s), 업로더 표시명 `マークGames`, 2025-11-15 영상의 **7.04–8.42초**다. 공식 채널/공식 허가 소재로 주장하지 않는다. 포맷251의5–11초 확인 구간만 받고, 일본어 자동자막·로컬 Whisper·파형으로 첫 반론 위치와 뒤 일반 대사 경계를 확인했다. 배포 파일 `sfx/park_trial_objection.mp3`는1.38초,48kHz stereo,29,732바이트, 평균−19.9dBFS/peak−3.8dBFS다. 시작8ms/끝25ms페이드·gain2배 외 피치/속도 변경은 없다. 원 녹화의 배경 음악/효과음 성분은分離하지 않았다. 전체 디코드/잘라낸 음성 자동전사를 확인했지만 사람의 청취 검수 완료로 기록하지 않는다. 정확한 명령·체크섬·확인 구간은 `assets/source/park156/audio/README.md`에 있다. 출처 기록은 이용허락 확인을 뜻하지 않는다.

@@ -1,0 +1,438 @@
+{
+ "id": "ship_lounge",
+ "name": "엄청대박인배 라운지",
+ "stage": "ship_ending_done",
+ "bgm": "ship_lounge",
+ "dim": 0.06,
+ "rows": [
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "G;;;;;;;;;////;;;;;;;;;G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G;;;;;;;;;;;;;;;;;;;;;;G",
+  "GGGGGGGGGGGGGGGGGGGGGGGG"
+ ],
+ "spawns": {
+  "from_control": {
+   "x": 372,
+   "y": 900,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    11,
+    28
+   ],
+   [
+    11,
+    7
+   ]
+  ],
+  "role": "보스전 뒤 휴식, 좌우 대화 공간과 위쪽 보라 문"
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "ship_lounge_grand_door",
+   "image": "assets/props/ship_lounge_grand_door.png",
+   "x": 304,
+   "y": 184,
+   "w": 160,
+   "h": 24,
+   "ix": 304,
+   "iy": 16,
+   "solid": true,
+   "sortY": 0,
+   "script": "ship_lounge_door"
+  },
+  {
+   "type": "prop",
+   "id": "ship_lounge_ladder",
+   "image": "assets/props/ship_lounge_ladder.png",
+   "x": 352,
+   "y": 1088,
+   "w": 64,
+   "h": 24,
+   "ix": 352,
+   "iy": 1024,
+   "solid": true,
+   "script": "ship_lounge_return"
+  },
+  {
+   "type": "prop",
+   "id": "ship_lounge_spring",
+   "image": "assets/props/blue_buff.png",
+   "x": 548,
+   "y": 804,
+   "w": 32,
+   "h": 12,
+   "ix": 544,
+   "iy": 772,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "script": "ship_lounge_spring"
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_0",
+   "image": "assets/props/sofa.png",
+   "x": 110,
+   "y": 318,
+   "w": 88,
+   "h": 18,
+   "ix": 104,
+   "iy": 288,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_1",
+   "image": "assets/props/sofa.png",
+   "x": 546,
+   "y": 370,
+   "w": 88,
+   "h": 18,
+   "ix": 540,
+   "iy": 340,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_2",
+   "image": "assets/props/sofa.png",
+   "x": 110,
+   "y": 574,
+   "w": 88,
+   "h": 18,
+   "ix": 104,
+   "iy": 544,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_3",
+   "image": "assets/props/sofa.png",
+   "x": 542,
+   "y": 602,
+   "w": 88,
+   "h": 18,
+   "ix": 536,
+   "iy": 572,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_4",
+   "image": "assets/props/sofa.png",
+   "x": 110,
+   "y": 814,
+   "w": 88,
+   "h": 18,
+   "ix": 104,
+   "iy": 784,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_table_0",
+   "image": "assets/props/table_low.png",
+   "x": 112,
+   "y": 370,
+   "w": 72,
+   "h": 26,
+   "ix": 108,
+   "iy": 350,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_table_1",
+   "image": "assets/props/table_low.png",
+   "x": 548,
+   "y": 420,
+   "w": 72,
+   "h": 26,
+   "ix": 544,
+   "iy": 400,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_table_2",
+   "image": "assets/props/table_low.png",
+   "x": 112,
+   "y": 624,
+   "w": 72,
+   "h": 26,
+   "ix": 108,
+   "iy": 604,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_plant_0",
+   "image": "assets/props/plant.png",
+   "x": 72,
+   "y": 284,
+   "w": 20,
+   "h": 14,
+   "ix": 64,
+   "iy": 250,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_plant_1",
+   "image": "assets/props/plant.png",
+   "x": 678,
+   "y": 284,
+   "w": 20,
+   "h": 14,
+   "ix": 670,
+   "iy": 250,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_plant_2",
+   "image": "assets/props/plant.png",
+   "x": 72,
+   "y": 754,
+   "w": 20,
+   "h": 14,
+   "ix": 64,
+   "iy": 720,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_plant_3",
+   "image": "assets/props/plant.png",
+   "x": 678,
+   "y": 754,
+   "w": 20,
+   "h": 14,
+   "ix": 670,
+   "iy": 720,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_plant_4",
+   "image": "assets/props/plant.png",
+   "x": 208,
+   "y": 1050,
+   "w": 20,
+   "h": 14,
+   "ix": 200,
+   "iy": 1016,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_plant_5",
+   "image": "assets/props/plant.png",
+   "x": 544,
+   "y": 1050,
+   "w": 20,
+   "h": 14,
+   "ix": 536,
+   "iy": 1016,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_conduit_0",
+   "image": "assets/props/ship_conduit.png",
+   "x": 104,
+   "y": 128,
+   "w": 98,
+   "h": 24,
+   "ix": 104,
+   "iy": 20,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "lounge_conduit_1",
+   "image": "assets/props/ship_conduit.png",
+   "x": 566,
+   "y": 128,
+   "w": 98,
+   "h": 24,
+   "ix": 566,
+   "iy": 20,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "lounge_holo",
+   "image": "assets/props/ship_holo_table.png",
+   "x": 532,
+   "y": 980,
+   "w": 96,
+   "h": 28,
+   "ix": 532,
+   "iy": 936,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "lounge_tv",
+   "image": "assets/props/ship_tv.png",
+   "x": 80,
+   "y": 980,
+   "w": 80,
+   "h": 24,
+   "ix": 80,
+   "iy": 932,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 6
+   }
+  },
+  {
+   "type": "npc",
+   "id": "lounge_youngcle",
+   "sprite": "youngcle",
+   "x": 488,
+   "y": 264,
+   "facing": "left",
+   "wander": 0,
+   "script": "ship_lounge_youngcle",
+   "visualScale": 2,
+   "requires": "ship_ending_done"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_junhee",
+   "sprite": "junhee",
+   "x": 244,
+   "y": 330,
+   "facing": "right",
+   "wander": 0,
+   "script": "ship_lounge_junhee",
+   "requires": "ship_ending_done"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_yongjun",
+   "sprite": "yongjun",
+   "x": 220,
+   "y": 432,
+   "facing": "down",
+   "wander": 0,
+   "script": "ship_lounge_yongjun",
+   "requires": "ship_ending_done"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_naram",
+   "sprite": "naram_giant",
+   "x": 220,
+   "y": 650,
+   "facing": "right",
+   "wander": 0,
+   "script": "ship_lounge_naram"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_obangsun",
+   "sprite": "obangsun",
+   "x": 252,
+   "y": 708,
+   "facing": "left",
+   "wander": 0,
+   "script": "ship_lounge_obangsun"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_ttuulla",
+   "sprite": "ttuulla",
+   "x": 548,
+   "y": 476,
+   "facing": "left",
+   "wander": 0,
+   "script": "ship_lounge_ttuulla"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_warm_bidet",
+   "sprite": "warm_bidet",
+   "x": 548,
+   "y": 676,
+   "facing": "left",
+   "wander": 0,
+   "script": "ship_lounge_warm_bidet"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_park_guardian",
+   "sprite": "park_guardian_costume",
+   "x": 188,
+   "y": 868,
+   "facing": "right",
+   "wander": 0,
+   "script": "ship_lounge_park_guardian"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_mini_mario",
+   "sprite": "mini_mario",
+   "x": 556,
+   "y": 916,
+   "facing": "left",
+   "wander": 0,
+   "script": "ship_lounge_mini_mario"
+  }
+ ]
+}

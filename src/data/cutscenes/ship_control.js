@@ -9,9 +9,14 @@ import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './captain_reveal.js';
 import { FX } from '../fx.js';
 import { loopCharacterMotion } from '../../world/character-motion.js';
 import { TVFORM_BATTLE as TV } from '../youngcle-tvform-battle.js';
+import { restoreShipEnding } from './ship_ending.js';
 
 const BATTLE = { enemies: ['obangsun', 'youngcle_hover', 'naram_giant'], bgm: 'youngcle_battle', bg: 'youngcle_bridge' };   // 사용자 지정 브금 XR2QQMfeJbg
-const TVFORM = { enemies: ['youngcle_tvform'], bgm: TV.bgm, bg: 'youngcle_bridge', intro: [TV.intro.line] };   // 변신 영클 전투(BUILD214): 사용자 지정 브금 ttz22bFLZqQ, 첫 대사 “편집노조의 힘을 얕보지마라” 뒤 편집노조 흡수 인트로
+const TVFORM = { enemies: ['youngcle_tvform'], bgm: TV.bgm, bg: 'youngcle_bridge', intro: [TV.intro.line], flag: 'ship_tvform_won' };
+const queueEnding = { action: game => {
+  const previous = game.dialogue.onEnd;
+  game.dialogue.onEnd = () => { previous?.(); game.runScript('ship_tvform_ending'); };
+} };
 const YC = 'ship_youngcle', JID = 'ship_junhee', YID = 'ship_yongjun', OB = 'ship_obangsun', NR = 'ship_naram', YC_DOWN = 'ship_youngcle_down', GJ = 'ship_gajaeman';
 const CAGE = 'ship_cage', CAGE_OPEN = 'ship_cage_open', CANNON = 'ship_cannon', BALL1 = 'ship_ball1', BALL2 = 'ship_ball2';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
@@ -252,6 +257,7 @@ const AFTERMATH = [
   ...battleEntry(TVFORM.enemies, TVFORM.bgm),
   { darkSmoke: null },
   { battle: TVFORM },
+  { if: flags => flags.ship_tvform_won, goto: 'tvending' },
   { zoom: 1, duration: 0.01 },
   { darkSmoke: { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL, aura: { at: YC, colors: CAPTAIN_AURA_COLORS } } },
   { camera: 'player' },
@@ -260,6 +266,8 @@ const AFTERMATH = [
 ];
 
 export const ship_control_intro = Object.assign([
+  { if: flags => flags.ship_ending_done, goto: 'finished' },
+  { if: flags => flags.ship_tvform_won, goto: 'tvending' },
   { if: flags => flags.ship_intro_done, goto: 'after' },
   { action: game => { game.sound.preloadBgm('storage_show'); } },
   // ① 입장: 조금 걸어 들어와 느낌표, 숨 고르기
@@ -451,13 +459,23 @@ export const ship_control_intro = Object.assign([
   { action: game => { placeAftermath(game); const e = id => game.entities.find(x => x.id === id && !x.dead); const j = e(JID); if (j) { j.x = AFTER.junheeBack[0]; j.y = AFTER.junheeBack[1]; j.facing = 'right'; } const down = e(YC_DOWN); if (down) down.visible = false; riseForm(game); tennaForm(game); } },
   { darkSmoke: { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL, aura: { at: YC, colors: CAPTAIN_AURA_COLORS } } },
   { bgm: 'captain_mankatsuki' },
+  { end: true },
+  { label: 'finished' },
+  { action: restoreShipEnding },
+  { darkSmoke: null },
+  { camera: 'player' },
+  { end: true },
+  { label: 'tvending' }, queueEnding, { end: true },
 ], { silent: true });
 /** QA `ship_tvform_battle`: 변신 영클 전투 직행(인트로 대사 → 편집노조 흡수 → 승부하기·코인벌기) */
 export const ship_tvform_battle_qa = Object.assign([
   { fade: 'out', duration: 0.2 },
   { darkSmoke: null },
   { battle: TVFORM },
+  { if: flags => flags.ship_tvform_won, goto: 'tvending' },
   { fade: 'in', duration: 0.4 },
+  { end: true },
+  { label: 'tvending' }, queueEnding, { end: true },
 ], { silent: true });
 /** QA `ship_battle`: 조종실에 서자마자 바로 전투 → 이어서 보스전 뒤 연출(ship_control_intro 의 after 라벨이 이어 돌린다) */
 export const ship_battle_qa = Object.assign([

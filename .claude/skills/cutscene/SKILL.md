@@ -129,6 +129,7 @@ model: opus
 | `{ spawn:{type,id,sprite,x,y,facing,script} }` `{ remove:id }` `{ show:id }` `{ hide:id }` | 엔티티 |
 | `{ map:'room', spawn:'bed' }` | 즉시 맵 교체 — 앞뒤에 `fade` 를 붙일 것 |
 | `{ doorTransit:{actor:id,door:propId,inset:[x,y,w,h],duration?:0.85,openDuration?:0.18,closeAfter?:false} }` | 위쪽 닫힌 문 통과. 안전한 문 앞 좌표에서 걷는 그림만 위로 이동해 열린 문틀에 가리고 문턱에서 기존 철컥음을 낸다. inset은 문 원본의 안쪽 문짝 영역이다. 마지막 후행자에 closeAfter를 주고 완료 뒤 remove한다. 충돌 좌표는 벽 안으로 옮기지 않는다. |
+| `{ shipHatch:{hatch:'ship_logo',actor?:id,duration?:1.2} }` | 조종실 맨홀 전용. actor 생략은 원래 얼굴 뚜껑을 위로 밀고 완료 시 소품의 shipHatch flag를 세운다. actor가 있으면 구멍 위에 접근한 배우를 기존 doorTransit 클립으로 아래로 가린다. 완료 뒤 remove한다. 발 위치는 안전한 바닥에 유지하고 새 맵에서는 임시 오프셋이 남지 않는다. |
 | `{ zoom: 2.8, at:'tv'\|[x,y], offset?:[dx,dy], duration? }` / `{ zoom:1 }` | 2D 월드 줌인/아웃(UI 는 그대로). 3D 씬 진입 전환에 사용 |
 | `{ musicCamera:{src,at,duration,volume,offset,beats,introZoom,peakZoom,lowZoom,beatRelease,bounce} }` | 미리 디코드한 WAV 전체를 한 번 틀며 같은 AudioContext 시계로 박자 줌/바운스. 대화창은 닫고 기존 브금 위치를 보존했다가 끝나면 복구한다. Esc/QA 중단은 WAV·줌을 정리하며 브금을 되살리지 않는다. 설정 예: `src/data/storage-dance.js` |
 | `{ scene3d:'drawer', flag:'cord_found' }` | `src/scenes/<이름>.js` 의 WebGL 오버레이 씬. 끝나면 `{found}` → flag. 앞뒤에 `zoom` 을 붙인다 |

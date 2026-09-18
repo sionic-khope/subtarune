@@ -49,6 +49,7 @@ import { characterMotionWaiter } from '../world/character-motion.js';
 import { MusicCamera } from './music-camera.js';
 import { darkSmokeWaiter } from './dark-smoke.js';
 import { doorTransitWaiter } from '../world/door-transit.js';
+import { shipHatchWaiter } from '../world/ship-hatch.js';
 import { youngcleCageDropWaiter } from '../scenes/youngcle-lounge-effects.js';
 import { editorUnionWaiter } from '../scenes/editor-union-effects.js';
 
@@ -166,6 +167,10 @@ export function makeWaiter(game, node) {
   if (node.doorTransit) {
     const entry = node.doorTransit;
     return doorTransitWaiter(game, findEntity(game, entry.actor), findEntity(game, entry.door), entry);
+  }
+  if (node.shipHatch) {
+    const entry = node.shipHatch;
+    return shipHatchWaiter(game, findEntity(game, entry.hatch), entry.actor ? findEntity(game, entry.actor) : null, entry.duration);
   }
   if ('darkSmoke' in node) return darkSmokeWaiter(game, node.darkSmoke);
   if (node.nod) {

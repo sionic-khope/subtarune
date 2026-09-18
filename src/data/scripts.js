@@ -52,6 +52,8 @@ import { lava_raft_intro } from './cutscenes/stage_lava.js';
 import { furnace_arena_intro, furnace_panel, furnace_color_qa } from './cutscenes/furnace_arena.js';
 import { ship_gate } from './cutscenes/ship_gate.js';
 import { ship_control_intro, ship_battle_qa, ship_tvform_battle_qa } from './cutscenes/ship_control.js';
+import { ship_tvform_ending, ship_manhole } from './cutscenes/ship_ending.js';
+import { shipLoungeScripts } from './cutscenes/ship_lounge.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -93,6 +95,7 @@ export const SCRIPTS = {
   maillard_starboard_gate,
   maillard_boarding_intro, youngcle_entrance,
   ship_pursuit_backtrack: shipPursuitBacktrack,
+  ship_tvform_ending, ship_manhole, ...shipLoungeScripts,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,
