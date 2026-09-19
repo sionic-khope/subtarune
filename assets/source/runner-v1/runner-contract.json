@@ -2,261 +2,261 @@
  "prep": [
   {
    "bbox": [
-    101,
-    153,
-    426,
-    459
+    129,
+    163,
+    439,
+    450
+   ],
+   "height": 288,
+   "bodyCenterX": 293,
+   "feetBottom": 450,
+   "feetCenterX": 242
+  },
+  {
+   "bbox": [
+    27,
+    163,
+    439,
+    450
+   ],
+   "height": 288,
+   "bodyCenterX": 232,
+   "feetBottom": 450,
+   "feetCenterX": 246
+  },
+  {
+   "bbox": [
+    54,
+    112,
+    466,
+    418
    ],
    "height": 307,
-   "bodyCenterX": 259,
-   "feetBottom": 459,
-   "feetCenterX": 234
+   "bodyCenterX": 245,
+   "feetBottom": 418,
+   "feetCenterX": 266
   },
   {
    "bbox": [
-    20,
-    185,
-    437,
-    459
+    39,
+    122,
+    455,
+    418
    ],
-   "height": 275,
-   "bodyCenterX": 268,
-   "feetBottom": 459,
-   "feetCenterX": 244
-  },
-  {
-   "bbox": [
-    82,
-    131,
-    419,
-    434
-   ],
-   "height": 304,
-   "bodyCenterX": 278,
-   "feetBottom": 433,
-   "feetCenterX": 227
-  },
-  {
-   "bbox": [
-    73,
-    131,
-    438,
-    434
-   ],
-   "height": 304,
-   "bodyCenterX": 276,
-   "feetBottom": 432,
-   "feetCenterX": 228
+   "height": 297,
+   "bodyCenterX": 238,
+   "feetBottom": 418,
+   "feetCenterX": 328
   }
  ],
  "run": [
   {
    "bbox": [
-    80,
-    116,
-    427,
-    458
+    74,
+    123,
+    421,
+    425
    ],
-   "height": 343,
-   "bodyCenterX": 261,
-   "feetBottom": 458,
-   "feetCenterX": 332
+   "height": 303,
+   "bodyCenterX": 232,
+   "feetBottom": 425,
+   "feetCenterX": 252
   },
   {
    "bbox": [
-    69,
-    118,
-    420,
-    458
+    52,
+    123,
+    399,
+    435
    ],
-   "height": 341,
-   "bodyCenterX": 282,
-   "feetBottom": 458,
+   "height": 313,
+   "bodyCenterX": 202,
+   "feetBottom": 435,
+   "feetCenterX": 241
+  },
+  {
+   "bbox": [
+    74,
+    106,
+    421,
+    414
+   ],
+   "height": 309,
+   "bodyCenterX": 231,
+   "feetBottom": 413,
+   "feetCenterX": 250
+  },
+  {
+   "bbox": [
+    52,
+    106,
+    399,
+    418
+   ],
+   "height": 313,
+   "bodyCenterX": 202,
+   "feetBottom": 418,
    "feetCenterX": 246
-  },
-  {
-   "bbox": [
-    81,
-    84,
-    427,
-    427
-   ],
-   "height": 344,
-   "bodyCenterX": 256,
-   "feetBottom": 427,
-   "feetCenterX": 340
-  },
-  {
-   "bbox": [
-    68,
-    85,
-    420,
-    433
-   ],
-   "height": 349,
-   "bodyCenterX": 282,
-   "feetBottom": 432,
-   "feetCenterX": 239
   }
  ],
  "jump": [
   {
    "bbox": [
-    103,
-    138,
-    415,
-    422
+    58,
+    153,
+    430,
+    444
    ],
-   "height": 285,
-   "bodyCenterX": 288,
-   "feetBottom": 422,
-   "feetCenterX": 235
+   "height": 292,
+   "bodyCenterX": 230,
+   "feetBottom": 443,
+   "feetCenterX": 274
+  },
+  {
+   "bbox": [
+    65,
+    82,
+    377,
+    414
+   ],
+   "height": 333,
+   "bodyCenterX": 195,
+   "feetBottom": 414,
+   "feetCenterX": 234
   },
   {
    "bbox": [
     63,
-    79,
-    356,
-    399
-   ],
-   "height": 321,
-   "bodyCenterX": 228,
-   "feetBottom": 398,
-   "feetCenterX": 290
-  },
-  {
-   "bbox": [
-    105,
-    64,
-    400,
+    55,
+    399,
     395
    ],
-   "height": 332,
-   "bodyCenterX": 284,
+   "height": 341,
+   "bodyCenterX": 228,
    "feetBottom": 395,
-   "feetCenterX": 312
+   "feetCenterX": 331
   },
   {
    "bbox": [
-    91,
-    158,
-    405,
-    443
+    51,
+    171,
+    425,
+    437
    ],
-   "height": 286,
-   "bodyCenterX": 278,
-   "feetBottom": 443,
-   "feetCenterX": 244
+   "height": 267,
+   "bodyCenterX": 238,
+   "feetBottom": 436,
+   "feetCenterX": 255
   }
  ],
  "slash": [
   {
    "bbox": [
-    122,
-    77,
-    370,
-    447
+    101,
+    81,
+    397,
+    449
    ],
-   "height": 371,
-   "bodyCenterX": 238,
+   "height": 369,
+   "bodyCenterX": 272,
    "feetBottom": 447,
-   "feetCenterX": 234
+   "feetCenterX": 236
   },
   {
    "bbox": [
     83,
     151,
-    485,
-    447
+    479,
+    449
    ],
-   "height": 297,
-   "bodyCenterX": 292,
+   "height": 299,
+   "bodyCenterX": 304,
    "feetBottom": 447,
    "feetCenterX": 180
   },
   {
    "bbox": [
-    104,
-    122,
-    463,
-    423
+    134,
+    111,
+    462,
+    407
    ],
-   "height": 302,
-   "bodyCenterX": 258,
-   "feetBottom": 423,
-   "feetCenterX": 290
+   "height": 297,
+   "bodyCenterX": 274,
+   "feetBottom": 407,
+   "feetCenterX": 302
   },
   {
    "bbox": [
-    72,
-    128,
-    358,
-    423
+    35,
+    111,
+    377,
+    407
    ],
-   "height": 296,
-   "bodyCenterX": 227,
-   "feetBottom": 423,
-   "feetCenterX": 208
+   "height": 297,
+   "bodyCenterX": 196,
+   "feetBottom": 407,
+   "feetCenterX": 224
   }
  ],
  "airslash": [
   {
    "bbox": [
-    97,
-    62,
-    396,
-    443
+    98,
+    61,
+    405,
+    441
    ],
-   "height": 382,
-   "bodyCenterX": 254,
-   "feetBottom": 443,
-   "feetCenterX": 210
+   "height": 381,
+   "bodyCenterX": 294,
+   "feetBottom": 441,
+   "feetCenterX": 250
   },
   {
    "bbox": [
-    25,
-    147,
-    470,
-    443
+    50,
+    144,
+    490,
+    451
    ],
-   "height": 297,
-   "bodyCenterX": 250,
-   "feetBottom": 443,
-   "feetCenterX": 56
+   "height": 308,
+   "bodyCenterX": 194,
+   "feetBottom": 451,
+   "feetCenterX": 151
   },
   {
    "bbox": [
-    124,
-    105,
-    417,
-    448
+    138,
+    93,
+    451,
+    420
    ],
-   "height": 344,
-   "bodyCenterX": 270,
-   "feetBottom": 448,
-   "feetCenterX": 402
+   "height": 328,
+   "bodyCenterX": 266,
+   "feetBottom": 420,
+   "feetCenterX": 433
   },
   {
    "bbox": [
-    67,
-    72,
-    380,
-    422
+    50,
+    93,
+    408,
+    399
    ],
-   "height": 351,
-   "bodyCenterX": 240,
-   "feetBottom": 421,
-   "feetCenterX": 180
+   "height": 307,
+   "bodyCenterX": 209,
+   "feetBottom": 399,
+   "feetCenterX": 225
   }
  ],
- "scale": 0.1336,
+ "scale": 0.1486,
  "targetHeight": 46,
  "source": {
-  "prep": "runner-prep4-raw.png",
-  "run": "runner-run4-raw.png",
-  "jump": "runner-jump5-raw.png",
-  "slash": "runner-slash4-raw.png",
-  "airslash": "runner-airslash4-raw.png"
+  "prep": "runner-prep5-raw.png",
+  "run": "runner-run5-raw.png",
+  "jump": "runner-jump6-raw.png",
+  "slash": "runner-slash5-raw.png",
+  "airslash": "runner-airslash5-raw.png"
  },
- "note": "4판(BUILD233 사용자 정정): 완전 옆모습·델타룬 비율·양팔 뒤로 꼿꼿한 두 손 검·흩날림 없음, jump 4번째 = 착지 웅크림, airslash = 공중 내려치기. pivot = [반바지 가운데, 발 밑변], scale = 달리기 프레임 46px"
+ "note": "5판(BUILD234 사용자 정정 “칼날이 살짝 위로 들어진 거지 손은 아래로”): 손은 허벅지 뒤 아래, 칼날은 뒤로 뻗되 끝만 살짝 위. 완전 옆모습·델타룬 비율·흩날림 없음, jump 4번째 = 착지 웅크림, airslash = 공중 내려치기. pivot = [반바지 가운데, 발 밑변], scale = 달리기 프레임 46px"
 }
