@@ -1,0 +1,12 @@
+# imagegen 2026-09-19 17:58:29
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+
+Pixel art game props for a dark top-down 2D RPG runner section: a 2x2 sprite sheet, EXACTLY FOUR separate objects, one per invisible 512px cell on a 1024x1024 canvas, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no ground, no shadows, no glow, no motion lines.
+Reading order upper-left, upper-right, lower-left, lower-right:
+1 a single falling LEAF from a black pine forest: a dark green, slightly curled pine-needle cluster / broad leaf about 40% of the cell wide, seen from the side, drifting;
+2 a second LEAF of a different shape, dark green with a lighter green edge and a dark brown stem, about 40% of the cell wide;
+3 a broken TREE BRANCH: a gnarled dark brown pine branch with a few dark green needle tufts on it, about 80% of the cell wide, horizontal, pointed broken end on the left;
+4 a small bundle of three dark green pine needles with a tiny twig, about 30% of the cell wide.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (dark green, mid green, dark brown, near-black outline), dark stepped outlines, crisp square pixels, no anti-aliasing, no blur, no gradients. Each object centered in its cell, nothing touching the cell edges.

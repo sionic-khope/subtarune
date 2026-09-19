@@ -10,7 +10,7 @@
 "오른쪽으로 가는 맵 가면 오른쪽 길 이어져 있고 파란색 호이리(토리이)가 오른쪽 끝에 하나 깔려 있는 맵, 파란색 토리이를 지날 때마다 기믹(검 뽑기 준비 동작 → 잔상 달리기, X 점프, C 베기, 공중 C 회전 베기, 쿠키런처럼 왼쪽에서 계속 달림).
 이번 맵은 검은 바닥인데 물 깔린 전제라 한 발자국마다 동그란 파장. 토리이로 달려서 10초쯤 지나면 오른쪽 맵 끝에 도착하게(그만큼 길게)."
 - 석상 앞 숲 오른쪽 문에서 왼쪽 가장자리(8~9행)로 들어와 오른쪽 끝까지 곧은 길. 바닥은 새 타일 '*'(검은 물: 물걸음 루프 + 물결 고리), 양 끝 출입구 칸은 '+'(같은 그림의 가장자리 칸). 오른쪽 끝은 통로만 열림(다음 맵 브리핑 대기).
-- 걷는 구간 0~32열, 파란 토리이(기존 토리이 색 변환 assets/props/jjajang_torii_blue_*.png) 가까운 기둥 30열(길 아래 칸), 먼 기둥은 길 위 칸. 기둥 사이를 지나는 32~33열 트리거(매번, 오른쪽을 볼 때만) → 러너 기믹(src/world/runner.js).
+- 22~23열 트리거 → 토리이 앞 청소부 연출(jjajang_run_intro, 한 번). 걷는 구간 0~32열, 파란 토리이(기존 토리이 색 변환 assets/props/jjajang_torii_blue_*.png) 가까운 기둥 30열(길 아래 칸), 먼 기둥은 길 위 칸. 기둥 사이를 지나는 32~33열 트리거(매번, 오른쪽을 볼 때만) → 러너 기믹(src/world/runner.js).
 - 달리기 구간 34~196열 ≈ 5200px / 520px/s ≈ 10초 → 맵 오른쪽 안쪽(끝 386px 앞 = 카메라가 끝까지 따라올 수 있는 자리)에서 제동. 소나무·검은 숲은 소나무 숲과 같은 지역 자산, 브금 my_castle_town 이어짐."""
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ TILE: Final = 32
 ROAD_ROWS: Final = (8, 9)
 TORII_COL: Final = 30                 # 가까운 기둥 밑동 칸
 TRIGGER_COLS: Final = (32, 33)        # 기둥 사이(대각선 문) 를 지나는 자리
+INTRO_COLS: Final = (22, 23)          # 토리이 앞 청소부 연출(BUILD235) 트리거
 RUN_END_MARGIN: Final = 386           # 제동 목표 = 맵 오른쪽 끝 - 386px: 카메라 최대 x(pxW-480) 에서도 캐릭터 가운데가 화면 22%(105.6px) 자리
 RUN_SPEED: Final = 520
 # assets/source/jjajang-torii-v1/runtime-contract.json (배율 0.3)
@@ -99,6 +100,11 @@ def build_map() -> dict[str, object]:
         'type': 'trigger', 'id': 'run_torii_trigger', 'x': TRIGGER_COLS[0] * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
         'script': 'jjajang_run_start',
     }
+    # 토리이 앞 청소부 연출(사용자 브리핑 2026-09-19): 대사 10줄 → 휘리릭 사라짐. 한 번만
+    intro_trigger = {
+        'type': 'trigger', 'id': 'run_intro_trigger', 'x': INTRO_COLS[0] * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
+        'once': True, 'flag': 'run_intro_started', 'unless': 'run_intro_done', 'script': 'jjajang_run_intro',
+    }
     door_west = {
         'type': 'door', 'id': 'run_statue_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_statue', 'spawn': 'from_east', 'sfx': False,
@@ -115,7 +121,7 @@ def build_map() -> dict[str, object]:
         'spawns': {
             'from_west': {'x': 1 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
             'start': {'x': 1 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
-            'before_torii': {'x': 25 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'before_torii': {'x': 19 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
         },
         'meta': {
             'connected': True,
@@ -123,10 +129,11 @@ def build_map() -> dict[str, object]:
             'role': '석상 앞 숲 다음: 곧은 검은 물길, 30열 파란 토리이를 지나면 러너 기믹으로 오른쪽 끝(제동 목표 ' + str(end_x) + ')까지 약 10초 달린다. 오른쪽 끝 다음 맵 대기. 브금 my_castle_town 이어짐',
             'torii': [TORII_COL, ROAD_ROWS[1] + 1],
             # startX 는 트리거 오른쪽 끝(명목상 출발선). 실제 출발은 트리거 안에서 선 자리(최대 64px 앞)
-            'run': {'startX': (TRIGGER_COLS[1] + 1) * TILE, 'endX': end_x, 'speed': RUN_SPEED},
+            # outro: 달리기가 멈추면 runner.finish 가 이 스크립트를 부른다(outroFlag 가 서기 전까지). 그동안 동료는 숨긴 채
+            'run': {'startX': (TRIGGER_COLS[1] + 1) * TILE, 'endX': end_x, 'speed': RUN_SPEED, 'outro': 'jjajang_run_outro', 'outroFlag': 'run_outro_done'},
             'runRoadRows': list(ROAD_ROWS),   # 러너 바닥 물결 줄기가 깔리는 행
         },
-        'entities': [*pines, *gate, run_trigger, door_west],
+        'entities': [*pines, *gate, intro_trigger, run_trigger, door_west],
     }
 
 

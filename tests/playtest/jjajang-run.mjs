@@ -13,6 +13,15 @@ const press = async key => { await page.keyboard.down(key); await page.waitForTi
 const until = (fn, ms) => page.waitForFunction(fn, null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false);
 const st = () => page.evaluate(() => { const g = window.game; const r = g.runner; const f = g.entities.find(e => e.def?.type === 'follower' && !e.dead); return { map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, bgm: g.sound.bgmName, cam: [Math.round(g.camera.x), Math.round(g.camera.y)], locked: !!g.camera.locked, ripples: g.ripples.length, runner: r ? { phase: r.phase, vx: Math.round(r.core.vx), airY: Math.round(r.core.airY), grounded: r.core.grounded, attack: r.core.attack?.kind || null, anim: r.core.anim, frame: r.core.frame, trail: r.core.trail.length, elapsed: +r.core.elapsed.toFixed(2), sfx: r.sfxLog.slice(), wind: r.wind.length, streaks: r.streaks.length, spray: r.spray.length } : null, follower: f ? { x: Math.round(f.x), y: Math.round(f.y), visible: f.visible !== false } : null }; });
 const go = async (key, cond, ms, run = true) => { await page.evaluate(c => { window.__cond = c; }, cond); if (run) await page.keyboard.down('KeyX'); await page.keyboard.down(key); const ok = await page.waitForFunction(() => new Function('g', 'return ' + window.__cond)(window.game), null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false); await page.keyboard.up(key); if (run) await page.keyboard.up('KeyX'); await page.waitForTimeout(100); return ok; };
+const line = async (text, capture) => {
+  const seen = await page.waitForFunction(t => window.game.textbox.node?.text?.includes(t), text, { timeout: 12000, polling: 60 }).then(() => true).catch(() => false);
+  check(seen, `대사: ${text}`); if (!seen) throw new Error('missing line ' + text);
+  if (await page.evaluate(() => window.game.textbox.state === 'typing')) { await press('KeyC'); await until(() => window.game.textbox.state === 'waiting', 3000); }
+  if (capture) await cap(capture);
+  const before = await page.evaluate(() => window.game.textbox.node?.text);
+  await press('KeyC');
+  await page.waitForFunction(p => !window.game.dialogue.running || window.game.textbox.node?.text !== p, before, { timeout: 4000, polling: 40 }).catch(() => {});
+};
 try {
   await page.goto('http://localhost:8000/?qa=jjajang_run_torii');
   await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_run' && !window.game.dialogue.running, null, { timeout: 30000 });
@@ -20,10 +29,21 @@ try {
   let s = await st(); check(s.follower && s.bgm === 'my_castle_town' && !s.runner, '토리이 직전 QA: 청소부 동행, my_castle_town, 아직 걷기 ' + JSON.stringify({ px: s.px, bgm: s.bgm }));
   const r0 = s.ripples;
   await cap('00_before');
-  // 걸어서(달리기 아님) 토리이를 지난다 — 검은 물 위 발자국마다 물결 고리
+  // 토리이 앞 청소부 연출(BUILD235): 대사 10줄 → 껄껄 웃음 → 휘리릭 사라짐
   await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(700);
-  s = await st(); check(s.ripples > r0, '검은 물 위를 걸으면 물결 고리가 뜬다 ' + s.ripples);
+  check(await until(() => window.game.ripples.length > 0, 1500), '검은 물 위를 걸으면 물결 고리가 뜬다');
+  const introUp = await until(() => window.game.dialogue.running && window.game.flags.run_intro_started, 8000);
+  await page.keyboard.up('ArrowRight');
+  check(introUp, '토리이 앞에서 청소부 연출이 시작된다');
+  await line('파란 토리이', '00b_intro');
+  for (const t of ['경계의 표시일새', '빠르게 달린다면', '뚫는다나 뭐라나', '그냥 지나가면 되는거지만', '경직되게 휘두른다를', '검을 가볍게 움직여보는건', '더욱 빨리 가는 방법을']) await line(t);
+  await line('껄껄 이런느낌일새');
+  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000), '껄껄 뒤에 웃는다');
+  await line('결계를 뚫는다는 느낌으로');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.run_intro_done, 6000), '연출이 끝난다');
+  s = await st(); check(s.follower && !s.follower.visible, '청소부가 휘리릭 사라졌다 ' + JSON.stringify(s.follower));
+  // 걸어서(달리기 아님) 토리이를 지난다
+  await page.keyboard.down('ArrowRight');
   const started = await until(() => !!window.game.runner, 12000);
   await page.keyboard.up('ArrowRight');
   check(started, '기둥 사이를 지나면 러너 기믹이 시작된다');
@@ -72,8 +92,22 @@ try {
   const done = await until(() => !window.game.runner, 6000);
   s = await st();
   const endX = await page.evaluate(() => window.game.map.def.meta.run.endX);
-  check(done && s.px >= endX - 4 && !s.locked && s.follower && s.follower.visible && s.follower.x < s.px, `오른쪽 끝(${endX})에서 멈추고 조작·카메라·동료 복귀 ` + JSON.stringify({ px: s.px, cam: s.cam, follower: s.follower }));
-  await page.waitForTimeout(900); await cap('07_end');
+  check(done && s.px >= endX - 4 && !s.locked, `오른쪽 끝(${endX})에서 멈추고 조작·카메라 복귀 ` + JSON.stringify({ px: s.px, cam: s.cam }));
+  // 끝 연출(BUILD235): 청소부가 오른쪽 화면 밖에서 천천히 걸어온다 → 대사 4줄 → 동료 복귀
+  check(await until(() => window.game.dialogue.running && window.game.flags.run_outro_done !== true, 4000), '끝 연출 시작');
+  const appeared = await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && j.visible !== false && j.x > window.game.player.x + 150; }, 3000);
+  const walkIn = await page.evaluate(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return { x: Math.round(j.x), visible: j.visible !== false, px: Math.round(window.game.player.x) }; });
+  check(appeared, '청소부가 오른쪽 멀리서 나타난다 ' + JSON.stringify(walkIn));
+  await page.waitForTimeout(1500); await cap('07_walk_in');
+  await line('껄껄');
+  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000), '껄껄 뒤에 웃는다');
+  s = await st(); check(s.follower && s.follower.x > s.px && s.follower.x < s.px + 90, '요플래 오른쪽 앞에 서서 ' + JSON.stringify(s.follower));
+  await line('무슨 느낌인지');
+  await line('x로 점프를하면');
+  await line('점프하면서 공격할수도');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.run_outro_done, 6000), '끝 연출이 끝난다');
+  await page.waitForTimeout(600); s = await st(); await cap('07_end');
+  check(s.follower && s.follower.visible && s.follower.x < s.px, '다시 동료로 뒤에 선다 ' + JSON.stringify(s.follower));
   const f2 = await st();
   check(f2.follower && Math.abs(f2.follower.x - s.follower.x) < 12, '끝난 뒤 동료가 반대쪽으로 걸어가지 않는다 ' + JSON.stringify({ before: s.follower, after: f2.follower }));
   // 끝난 뒤 다시 조작: 왼쪽으로 걸을 수 있다
@@ -83,6 +117,7 @@ try {
   await page.goto('http://localhost:8000/?qa=jjajang_run_torii');
   await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_run' && !window.game.dialogue.running, null, { timeout: 30000 });
   await page.waitForTimeout(300);
+  await page.evaluate(() => { window.game.flags.run_intro_done = true; window.game.flags.run_outro_done = true; });
   await page.keyboard.down('ArrowRight'); await until(() => window.game.runner?.phase === 'run', 12000); await page.keyboard.up('ArrowRight');
   await page.waitForTimeout(600);
   await page.evaluate(() => window.game.doEscape());

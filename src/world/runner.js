@@ -119,7 +119,10 @@ export class Runner {
     g.camera.locked = false; p.moving = false; p.facing = 'right';
     g.sound?.walk?.(null);
     p.trail = [];   // 달리는 동안 쌓이지 않은 발자국 궤적을 비운다 — 안 비우면 동료가 토리이 자리로 되돌아 걸어간다(리뷰 2026-09-19)
-    for (const e of g.entities) if (e.def?.type === 'follower') { e.visible = true; e.snapBehind?.(); }
+    // 맵 meta.run.outro(BUILD235 청소부 끝 연출): 아직 안 본 상태면 동료는 숨긴 채 그 스크립트가 데려온다. 아니면 바로 뒤에 정렬
+    const run = g.map?.def?.meta?.run;
+    if (run?.outro && !(run.outroFlag && g.has?.(run.outroFlag)) && g.runScript) { g.runScript(run.outro); }
+    else for (const e of g.entities) if (e.def?.type === 'follower') { e.visible = true; e.snapBehind?.(); }
     for (const name of ['prep', 'run', 'jump', 'slash', 'airslash']) for (const f of this.sheet(name)?.frames || []) delete f.silhouette;
   }
   frameOf(anim, index) {

@@ -1,6 +1,7 @@
 // 러너 기믹 상태기계 — 순수 로직(캔버스·입력 객체·소리 없음). src/world/runner.js 가 그리기·소리·카메라를 맡는다 (BUILD230 사용자 브리핑 2026-09-19)
 //   파란 토리이를 지나면: 준비(땅 짚고 검을 뒤로 뽑음, 검 뽑는 소리) → 잔상 대시(0 → 속도) → 자동 달리기(X 점프, C 베기, 공중 C 위에서 아래로 내려치는 점프 공격, 착지 웅크림) → 맵 오른쪽 끝에서 제동 → 끝
 //   숫자는 여기 한 곳에서만 조정한다(사용자 “10초쯤 지나면 오른쪽 맵 끝”: 달리기 구간 ≈ 5250px / 520px/s ≈ 10초)
+//   BUILD236: 방향(dir ±1, 왼쪽 달리기)·장애물(나뭇잎 낙하·솔잎 날아옴·나뭇가지: 베면 쳐냄, 맞으면 hurt)
 export const RUNNER = Object.freeze({
   speed: 520,                       // px/s
   prepTime: 0.72,                   // 준비 동작 전체
@@ -20,13 +21,31 @@ export const RUNNER = Object.freeze({
   settleTime: 0.3,                  // 멈춘 뒤 웅크린 채 잠깐(그 뒤 일어나며 조작 복귀)
   trailEvery: 0.03, trailMax: 8,    // 잔상
   cameraLeft: 0.22,                 // 캐릭터를 화면 왼쪽 22% 자리에(크기는 character-motions.js runner_* 의 scale — 걷기보다 살짝 작게)
+  invuln: 0.9,                      // 맞은 뒤 무적
 });
 
+// 장애물(BUILD236 사용자 “나뭇잎 같은 게 떨어지거나 날아오거나 나뭇가지가 따라오는데 … 못 쳐내면 피가 10”): 종류별 크기·속도, 앞 거리(달리는 방향 기준)
+//   높이(h)는 땅에서 위로 잰 값. 베기 판정: 땅 베기 = 앞 8~62px × 높이 0~58, 공중 내려치기 = 앞 -6~54px × 높이 airY-24 ~ airY+62
+export const OBSTACLES = Object.freeze({
+  leaf:    { w: 20, h: 18, ahead: [220, 400], height: [120, 170], fall: [55, 85], drift: 40, sway: 22, hurt: 10, hitbox: 'body' },
+  leaf2:   { w: 20, h: 16, ahead: [220, 400], height: [120, 170], fall: [55, 85], drift: 40, sway: 22, hurt: 10, hitbox: 'body' },
+  needles: { w: 16, h: 10, ahead: [460, 520], height: [22, 34], fly: [250, 300], hurt: 10, hitbox: 'body' },
+  branch:  { w: 56, h: 18, ahead: [470, 540], height: [14, 20], fly: [190, 230], hurt: 10, hitbox: 'body' },
+});
+export const OBSTACLE_SPAWN = Object.freeze({ every: [0.9, 1.5], first: 1.2, types: ['leaf', 'needles', 'leaf2', 'branch', 'leaf', 'needles'] });
+const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
+
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
-export function createRunner({ x, endX, speed = RUNNER.speed }) {
-  return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), vx: 0, airY: 0, vy: 0, grounded: true,
-    anim: 'prep', frame: 0, animT: 0, attack: null, tilt: 0, landT: 0, trail: [], trailT: 0 };
+export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1 }) {
+  return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), dir: dir < 0 ? -1 : 1, vx: 0, airY: 0, vy: 0, grounded: true,
+    anim: 'prep', frame: 0, animT: 0, attack: null, tilt: 0, landT: 0, trail: [], trailT: 0,
+    obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0 };
 }
+/** 결정적 난수(테스트 재현용) 0~1 */
+function rand01(s) { s.rng = (Math.imul(s.rng, 1664525) + 1013904223) >>> 0; return s.rng / 4294967296; }
+const lerp = (a, b, k) => a + (b - a) * k;
+/** 남은 거리(달리는 방향 기준) */
+const left = s => (s.endX - s.x) * s.dir;
 
 /** 한 틱. input = { jump, attack } (이번 틱에 눌림). 돌아오는 값은 이벤트 이름 배열: draw·dash·step·jump·land·slash·airslash·skid·skidstep·end */
 export function stepRunner(s, dt, input = {}) {
@@ -50,17 +69,17 @@ export function stepRunner(s, dt, input = {}) {
     if (s.t >= RUNNER.dashTime) { s.phase = 'run'; s.t = 0; s.vx = s.speed; }
   } else if (s.phase === 'run') {
     s.t += dt;
-    if (s.x >= s.endX - RUNNER.brakeDist && s.grounded) { s.phase = 'brake'; s.t = 0; s.skidT = 0; s.attack = null; ev.push('skid'); }   // 땅 베기 중이면 베기를 끊고 미끄러진다
+    if (left(s) <= RUNNER.brakeDist && s.grounded) { s.phase = 'brake'; s.t = 0; s.skidT = 0; s.attack = null; ev.push('skid'); }   // 땅 베기 중이면 베기를 끊고 미끄러진다
   } else if (s.phase === 'brake') {
     s.t += dt; s.skidT += dt;
-    const left = Math.max(0, s.endX - s.x);
-    s.vx = s.speed * Math.sqrt(left / RUNNER.brakeDist);
+    const remain = Math.max(0, left(s));
+    s.vx = s.speed * Math.sqrt(remain / RUNNER.brakeDist);
     if (s.skidT >= RUNNER.skidStepEvery) { s.skidT = 0; ev.push('skidstep'); }
-    if (left <= 0.5 || s.vx * dt >= left) { s.x = s.endX; s.vx = 0; s.phase = 'settle'; s.t = 0; s.grounded = true; s.airY = 0; s.vy = 0; s.attack = null; }
+    if (remain <= 0.5 || s.vx * dt >= remain) { s.x = s.endX; s.vx = 0; s.phase = 'settle'; s.t = 0; s.grounded = true; s.airY = 0; s.vy = 0; s.attack = null; }
   }
-  if (s.phase !== 'done' && s.phase !== 'settle') s.x = Math.min(s.endX, s.x + s.vx * dt);
+  if (s.phase !== 'done' && s.phase !== 'settle') { s.x += s.vx * dt * s.dir; if (left(s) < 0) s.x = s.endX; }
   // 점프(X): 땅에 있고 공격 중이 아닐 때(제동 중엔 안 됨)
-  const jumpLandsBeforeBrake = s.x + s.speed * RUNNER.airTime < s.endX - RUNNER.minSkid;
+  const jumpLandsBeforeBrake = left(s) - s.speed * RUNNER.airTime > RUNNER.minSkid;
   if (input.jump && s.grounded && !s.attack && (s.phase === 'run' || s.phase === 'dash') && jumpLandsBeforeBrake) { s.grounded = false; s.vy = RUNNER.jumpV; ev.push('jump'); }
   if (!s.grounded) {
     s.airY += s.vy * dt; s.vy -= RUNNER.gravity * dt;
@@ -89,6 +108,7 @@ export function stepRunner(s, dt, input = {}) {
     s.frame = Math.floor(s.animT) % 4;
     if ((prevAnim !== 'run' || s.frame !== prevFrame) && RUNNER.stepFrames.includes(s.frame)) ev.push('step');
   }
+  if (s.obstacles) stepObstacles(s, dt, ev);
   // 잔상: 움직이는 동안 일정 간격으로 자리를 남긴다(대시 때 가장 진하게 — 그리기에서 결정)
   s.trailT += dt;
   if (s.vx > 0 && s.trailT >= RUNNER.trailEvery) {
@@ -97,4 +117,38 @@ export function stepRunner(s, dt, input = {}) {
     if (s.trail.length > RUNNER.trailMax) s.trail.shift();
   } else if (s.vx <= 0 && s.trail.length && s.phase === 'done') s.trail.length = 0;
   return ev;
+}
+
+/** 장애물 갱신: 생성(달리는 동안) → 이동 → 베기 판정(쳐냄) → 몸 판정(맞음) → 뒤로 지나간 것 정리. 좌표는 월드 x·땅에서의 높이 h */
+function stepObstacles(s, dt, ev) {
+  const running = s.phase === 'run' || s.phase === 'dash';
+  if (s.invuln > 0) s.invuln = Math.max(0, s.invuln - dt);
+  if (running && left(s) > RUNNER.brakeDist + 240) {
+    s.spawnT -= dt;
+    if (s.spawnT <= 0) {
+      s.spawnT = lerp(...OBSTACLE_SPAWN.every, rand01(s));
+      const type = OBSTACLE_SPAWN.types[s.spawnIdx % OBSTACLE_SPAWN.types.length]; s.spawnIdx += 1;
+      const d = OBSTACLES[type];
+      const o = { type, x: s.x + s.dir * lerp(...d.ahead, rand01(s)), h: lerp(...d.height, rand01(s)), w: d.w, hh: d.h, t: 0, deflected: false, hit: false, spin: 0, phase: rand01(s) * 6.28 };
+      if (d.fall) { o.vh = -lerp(...d.fall, rand01(s)); o.vx = -s.dir * d.drift; o.sway = d.sway; }
+      else { o.vh = 0; o.vx = -s.dir * lerp(...d.fly, rand01(s)); }
+      s.obstacles.push(o);
+    }
+  }
+  const px = s.x + 12, body = { lo: s.airY, hi: s.airY + PLAYER_BOX.height };
+  const atk = s.attack && s.attack.t >= 0.04 && s.attack.t <= (s.attack.kind === 'slash' ? RUNNER.slashTime : RUNNER.airSlashTime) * 0.8 ? s.attack.kind : null;
+  for (const o of s.obstacles) {
+    o.t += dt;
+    if (o.deflected) { o.x += o.vx * dt; o.h += o.vh * dt; o.vh -= 700 * dt; o.spin += 14 * dt; continue; }
+    o.x += o.vx * dt; o.h += o.vh * dt;
+    if (o.sway) o.x += Math.sin(o.phase + o.t * 5) * o.sway * dt;
+    if (o.h < -o.hh) { o.dead = true; continue; }
+    const relX = (o.x - px) * s.dir;   // 달리는 방향 기준 앞(+)
+    const overlapX = (a, b) => relX + o.w / 2 > a && relX - o.w / 2 < b;
+    const overlapH = (lo, hi) => o.h + o.hh > lo && o.h < hi;
+    if (atk === 'slash' && overlapX(8, 62) && overlapH(0, 58)) { o.deflected = true; o.vx = s.dir * 420; o.vh = 260; s.deflectCount += 1; ev.push('deflect'); continue; }
+    if (atk === 'airslash' && overlapX(-6, 54) && overlapH(s.airY - 24, s.airY + 62)) { o.deflected = true; o.vx = s.dir * 420; o.vh = 200; s.deflectCount += 1; ev.push('deflect'); continue; }
+    if (!o.hit && s.invuln <= 0 && overlapX(-PLAYER_BOX.half, PLAYER_BOX.half) && overlapH(body.lo, body.hi)) { o.hit = true; o.dead = true; s.invuln = RUNNER.invuln; s.hurtCount += 1; ev.push('hurt'); }
+  }
+  s.obstacles = s.obstacles.filter(o => !o.dead && (o.x - px) * s.dir > -160 && (!o.deflected || o.t < 3));
 }

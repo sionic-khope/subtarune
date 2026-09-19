@@ -1,0 +1,30 @@
+{
+ "run_leaf_1": {
+  "size": [
+   22,
+   22
+  ],
+  "scale": 0.078
+ },
+ "run_leaf_2": {
+  "size": [
+   22,
+   20
+  ],
+  "scale": 0.0724
+ },
+ "run_branch": {
+  "size": [
+   64,
+   42
+  ],
+  "scale": 0.1416
+ },
+ "run_needles": {
+  "size": [
+   16,
+   18
+  ],
+  "scale": 0.0727
+ }
+}

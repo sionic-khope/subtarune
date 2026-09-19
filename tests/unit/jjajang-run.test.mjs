@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { jjajang_run_start } from '../../src/data/cutscenes/jjajang_run.js';
+import { jjajang_run_start, jjajang_run_intro, jjajang_run_outro, OUTRO_WALK_FROM, OUTRO_STOP_GAP } from '../../src/data/cutscenes/jjajang_run.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { QA_POINTS, storyBgm, JJAJANG_AFTER_JOIN_MAPS } from '../../src/core/story.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
@@ -29,10 +29,14 @@ test('test_run_map_is_one_long_black_water_road_with_the_blue_torii_and_a_per_pa
   assert.ok(front.y >= (r1 + 1) * 32 && front.y + front.h <= (r1 + 2) * 32, '가까운 기둥은 길 아래 칸');
   assert.ok(back.y >= (r0 - 1) * 32 && back.y + back.h <= r0 * 32, '먼 기둥은 길 위 칸');
   assert.ok(front.iy >= 0 && back.iy >= 0, '그림이 맵 안');
-  const trig = map.entities.find(e => e.type === 'trigger');
+  const trig = map.entities.find(e => e.id === 'run_torii_trigger');
   assert.deepEqual({ script: trig.script, once: trig.once, flag: trig.flag, y: trig.y, h: trig.h }, { script: 'jjajang_run_start', once: undefined, flag: undefined, y: r0 * 32, h: 64 }, '지날 때마다(once 없음)');
   assert.ok(trig.x > front.x && trig.x >= 32 * 32 && trig.x + trig.w <= 34 * 32, '기둥 사이를 지나는 자리');
   assert.ok(map.meta.run.startX >= trig.x + trig.w && map.meta.run.endX === W * 32 - 386 && map.meta.run.speed === RUNNER.speed);
+  const intro = map.entities.find(e => e.id === 'run_intro_trigger');
+  assert.deepEqual({ script: intro.script, once: intro.once, flag: intro.flag, unless: intro.unless }, { script: 'jjajang_run_intro', once: true, flag: 'run_intro_started', unless: 'run_intro_done' }, '토리이 앞 청소부 연출은 한 번');
+  assert.ok(intro.x + intro.w <= front.x && map.spawns.before_torii.x < intro.x, '토리이 앞, QA 스폰은 그 앞');
+  assert.deepEqual([map.meta.run.outro, map.meta.run.outroFlag], ['jjajang_run_outro', 'run_outro_done'], '달리기 끝 연출은 맵 meta 로');
   assert.deepEqual(map.meta.runRoadRows, [r0, r1], '바닥 물결 줄기 행은 맵이 준다(하드코딩 금지)');
   // 제동·정지 자리에서도 카메라(최대 x = pxW-480)가 캐릭터를 화면 왼쪽 22% 에 둘 수 있다(리뷰 2026-09-19)
   assert.ok(Math.abs((map.meta.run.endX + 12) - (W * 32 - 480) - 480 * RUNNER.cameraLeft) <= 8, '끝에서도 왼쪽 22% 구도');
@@ -80,4 +84,32 @@ test('test_runner_sprites_are_right_facing_side_sheets_sized_to_the_walk_frame',
   assert.equal(m.runner_run.scale, contract.scale);
   assert.ok(Math.abs(runH * m.runner_run.scale - 46) < 2, `달리기 키 ${(runH * m.runner_run.scale).toFixed(1)}px`);
   for (const sfx of ['swing', 'criticalswing', 'weaponpull', 'jump', 'wing']) assert.ok(existsSync(new URL(`../../assets/audio/sfx/${sfx}.mp3`, import.meta.url)), sfx);
+});
+
+test('test_run_intro_and_outro_scripts_follow_the_brief', () => {
+  const texts = arr => arr.filter(n => n.text).map(n => n.text.replace(/^\* /, ''));
+  assert.equal(SCRIPTS.jjajang_run_intro, jjajang_run_intro); assert.equal(SCRIPTS.jjajang_run_outro, jjajang_run_outro);
+  assert.deepEqual(texts(jjajang_run_intro), ['파란 토리이', '토리이는 신과 인간의 세계를 나누는 경계, 뭐 대강 경계의 표시일새', '영적 결계의 의미를 담고있지만, 빠르게 달린다면', '그 결계의 효과를 뚫는다나 뭐라나',
+    '사실 별볼일없는 전설일뿐이고 그냥 지나가면 되는거지만', '한번 아까 말했던 검을 너무 크게 경직되게 휘두른다를 생각해보세', '몸놀림을 더 가볍게, 검을 가볍게 움직여보는건 어떻겠는가',
+    '그렇게되면, 도착지까지 더욱 빨리 가는 방법을 배울수있을지도 모르지', '말이 너무 어렵다고? 껄껄 이런느낌일새.. 이따보게', '기억하게, 호리이를 지나면, 결계를 뚫는다는 느낌으로 빠르게 달려보는거라네']);
+  assert.ok(jjajang_run_intro.filter(n => n.text).every(n => n.speaker === '청소부' && n.voice === 'janitor'));
+  const li = jjajang_run_intro.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' ? i : -1)).filter(i => i >= 0);
+  assert.equal(li.length, 1); assert.ok(jjajang_run_intro[li[0] - 1].text.includes('껄껄 이런느낌일새'), '껄껄 뒤에만 웃음');
+  const idx = (arr, pred) => arr.findIndex(pred);
+  const lastLine = jjajang_run_intro.map((n, i) => (n.text ? i : -1)).filter(i => i >= 0).pop();
+  const whoosh = idx(jjajang_run_intro, n => Array.isArray(n.parallel) && n.parallel.some(b => b.sfx === 'wing') && n.parallel.some(b => b.slide === 'janitor'));
+  const hide = idx(jjajang_run_intro, n => n.hide === 'janitor'), done = idx(jjajang_run_intro, n => n.set?.run_intro_done);
+  assert.ok(lastLine < whoosh && whoosh < hide && hide < done, '대사 뒤 휘리릭(휘융 + 확 밀림) → 사라짐 → 플래그');
+  assert.equal(jjajang_run_intro[0].if({ run_intro_done: true, torii_janitor_joined: true }), true);
+  // outro: 오른쪽 화면 밖에서 천천히 걸어와 마주 봄 → 대사 4줄(껄껄 두 곳 뒤 웃음) → 동료 정렬
+  assert.deepEqual(texts(jjajang_run_outro), ['껄껄', '어떤가 무슨 느낌인지 알았나?', 'c로 검을 휘두르고 x로 점프를하면 된다네,', '껄껄 점프하면서 공격할수도 있겠지. 뭐 일단 이어서 가보새']);
+  const lo = jjajang_run_outro.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' ? i : -1)).filter(i => i >= 0);
+  assert.equal(lo.length, 2); assert.equal(jjajang_run_outro[lo[0] - 1].text, '* 껄껄'); assert.ok(jjajang_run_outro[lo[1] - 1].text.startsWith('* 껄껄 점프'));
+  const moves = jjajang_run_outro.filter(n => n.move === 'janitor');
+  assert.equal(moves.length, 2);
+  assert.deepEqual(moves[0].px({ player: { x: 1000, y: 300 } }), [1000 + OUTRO_WALK_FROM, 300], '오른쪽 화면 밖으로');
+  assert.deepEqual(moves[1].px({ player: { x: 1000, y: 300 } }), [1000 + OUTRO_STOP_GAP, 300], '요플래 오른쪽 앞까지');
+  assert.ok(moves[1].speed <= 60 && moves[1].footsteps, '천천히, 발소리와 함께');
+  const show = idx(jjajang_run_outro, n => n.show === 'janitor'), firstLine = idx(jjajang_run_outro, n => n.text), regroup = idx(jjajang_run_outro, n => n.regroup), setDone = idx(jjajang_run_outro, n => n.set?.run_outro_done);
+  assert.ok(idx(jjajang_run_outro, n => n.hide === 'janitor') < jjajang_run_outro.indexOf(moves[0]) && jjajang_run_outro.indexOf(moves[0]) < show && show < jjajang_run_outro.indexOf(moves[1]) && jjajang_run_outro.indexOf(moves[1]) < firstLine && lo[1] < setDone && setDone < regroup, '순서: 숨김 → 오른쪽 밖 → 보임 → 걸어옴 → 대사 → 플래그 → 정렬');
 });

@@ -39,7 +39,7 @@
    "facing": "right"
   },
   "before_torii": {
-   "x": 808,
+   "x": 616,
    "y": 262,
    "facing": "right"
   }
@@ -64,7 +64,9 @@
   "run": {
    "startX": 1088,
    "endX": 6302,
-   "speed": 520
+   "speed": 520,
+   "outro": "jjajang_run_outro",
+   "outroFlag": "run_outro_done"
   },
   "runRoadRows": [
    8,
@@ -479,6 +481,18 @@
    "ix": 919,
    "iy": 37,
    "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "run_intro_trigger",
+   "x": 704,
+   "y": 256,
+   "w": 64,
+   "h": 64,
+   "once": true,
+   "flag": "run_intro_started",
+   "unless": "run_intro_done",
+   "script": "jjajang_run_intro"
   },
   {
    "type": "trigger",
