@@ -11,7 +11,8 @@ export const RUNNER = Object.freeze({
   stepFrames: [1, 3],               // 발 접촉 프레임 → 물결 고리·발소리
   jumpV: 430, gravity: 1100,        // 점프(사용자 “더 높게”): 체공 약 0.78초, 높이 약 84px
   jumpTilt: 0.32,                   // 점프 중 몸을 대각선으로 살짝 틀어 하늘을 본다(라디안, 오를 때 뒤로 젖힘·내려올 때 앞으로)
-  airTime: 2 * 430 / 1100,          // 점프 체공 시간 — 제동 경계를 공중에서 넘게 되는 점프는 받지 않는다(리뷰: 공중이면 제동이 못 시작해 미끄러짐이 통째로 빠짐)
+  airTime: 2 * 430 / 1100,          // 점프 체공 시간 — 착지 자리가 끝에서 minSkid 보다 가까워질 점프는 받지 않는다(리뷰: 공중이면 제동이 못 시작해 미끄러짐이 통째로 빠짐)
+  minSkid: 120,                     // 착지 뒤 최소 미끄러짐 거리(점프 거부 구간은 끝 앞 약 526px = 1초, 그 안에서 착지하면 짧게라도 미끄러진다)
   slashTime: 0.32, spinTime: 0.34,  // C 베기 / 공중 C 회전 베기(사용자 “공중 베기 속도감”: 0.34초에 한 바퀴)
   brakeDist: 260,                   // 끝에서 제동(사용자 “땅을 짚으면서 앞으로 드르르르륵”): 웅크려 손을 짚은 채 미끄러지며 v = speed·√(남은/brakeDist) 로 줄어 endX 에 정확히 선다(약 1.0초)
   skidStepEvery: 0.05,              // 미끄러지는 동안 물보라 간격
@@ -58,7 +59,7 @@ export function stepRunner(s, dt, input = {}) {
   }
   if (s.phase !== 'done' && s.phase !== 'settle') s.x = Math.min(s.endX, s.x + s.vx * dt);
   // 점프(X): 땅에 있고 공격 중이 아닐 때(제동 중엔 안 됨)
-  const jumpLandsBeforeBrake = s.x + s.speed * RUNNER.airTime < s.endX - RUNNER.brakeDist;
+  const jumpLandsBeforeBrake = s.x + s.speed * RUNNER.airTime < s.endX - RUNNER.minSkid;
   if (input.jump && s.grounded && !s.attack && (s.phase === 'run' || s.phase === 'dash') && jumpLandsBeforeBrake) { s.grounded = false; s.vy = RUNNER.jumpV; ev.push('jump'); }
   if (!s.grounded) {
     s.airY += s.vy * dt; s.vy -= RUNNER.gravity * dt;

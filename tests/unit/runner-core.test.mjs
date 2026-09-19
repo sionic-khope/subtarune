@@ -75,10 +75,13 @@ test('test_runner_brakes_before_the_end_and_stops_exactly_at_end_x', () => {
   assert.ok(ev.filter(e => e === 'skidstep').length >= 12, '미끄러지는 동안 물보라');
   // 경계 직전 점프(리뷰): 공중에서 경계를 넘게 되는 점프는 받지 않아 미끄러짐이 항상 나온다
   const j = createRunner({ x: 0, endX: 2000 }); run(j, RUNNER.prepTime + RUNNER.dashTime + 0.05);
-  while (j.x < 2000 - RUNNER.brakeDist - RUNNER.speed * RUNNER.airTime + 20) stepRunner(j, DT);
-  assert.deepEqual(stepRunner(j, DT, { jump: true }).filter(e => e === 'jump'), [], '착지 전에 경계를 넘을 점프는 무시');
-  let skidStart = null; for (let t = 0; t < 4 && j.phase !== 'done'; t += DT) { const e = stepRunner(j, DT); if (e.includes('skid')) skidStart = j.x; }
-  assert.ok(skidStart !== null && skidStart <= 2000 - RUNNER.brakeDist + 12 && j.x === 2000, `제동은 경계에서 시작(${skidStart})`);
+  while (j.x < 2000 - RUNNER.minSkid - RUNNER.speed * RUNNER.airTime - 200) stepRunner(j, DT);
+  assert.ok(stepRunner(j, DT, { jump: true }).includes('jump'), '착지 뒤 미끄러질 거리가 남는 점프는 받는다');
+  while (!j.grounded) stepRunner(j, DT);
+  while (j.x < 2000 - RUNNER.minSkid - RUNNER.speed * RUNNER.airTime + 20) stepRunner(j, DT);
+  assert.deepEqual(stepRunner(j, DT, { jump: true }).filter(e => e === 'jump'), [], '착지 자리가 끝에 너무 가까운 점프는 무시');
+  let skidStart = null, skidSteps = 0; for (let t = 0; t < 4 && j.phase !== 'done'; t += DT) { const e = stepRunner(j, DT); if (e.includes('skid')) skidStart = j.x; if (e.includes('skidstep')) skidSteps += 1; }
+  assert.ok(skidStart !== null && 2000 - skidStart >= RUNNER.minSkid - 1 && skidSteps >= 6 && j.x === 2000, `착지 뒤에도 최소 미끄러짐(${skidStart})`);
   assert.ok(ev.includes('end') && s.trail.length === 0, '끝나면 잔상도 지운다');
   assert.deepEqual(stepRunner(s, DT, { jump: true, attack: true }), [], 'done 뒤엔 아무것도 안 한다');
 });
