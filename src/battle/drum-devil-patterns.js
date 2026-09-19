@@ -24,7 +24,7 @@ function drawBarrel(ctx, api, bullet) {
   ctx.drawImage(img, -Math.round(w / 2), -Math.round(h / 2), w, h); ctx.restore();
 }
 function mark(api, x, y, life, radius, purple = false) {
-  api.emit({ x, y, r: radius, life, harmless: true, shape: 'drum_mark', drawShape(ctx, self) {
+  return api.emit({ x, y, r: radius, life, harmless: true, shape: 'drum_mark', drawShape(ctx, self) {
     ctx.save(); ctx.strokeStyle = purple ? '#c05cff' : '#fff'; ctx.lineWidth = 2;
     ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(self.age * 10));
     ctx.beginPath(); ctx.arc(x, y, radius, 0, TAU); ctx.stroke();
@@ -34,7 +34,7 @@ function mark(api, x, y, life, radius, purple = false) {
 function lob(api, target, flight, purple = false) {
   const actor = api.actor, from = { x: actor.x + C.hand[0] * actor.scale, y: actor.y + C.hand[1] * actor.scale };
   api.sfx?.('drum_throw');
-  api.emit({ ...from, r: 0, life: flight, harmless: true, purple, size: purple ? C.finisherSize : C.barrelSize,
+  return api.emit({ ...from, r: 0, life: flight, harmless: true, purple, size: purple ? C.finisherSize : C.barrelSize,
     shape: purple ? 'drum_purple' : 'drum_lob', spin: 3,
     out() { return this.age >= this.life; },
     steer(self) { const k = Math.min(1, self.age / flight); self.x = from.x + (target.x - from.x) * k; self.y = from.y + (target.y - from.y) * k - Math.sin(Math.PI * k) * C.arcHeight; },
@@ -55,6 +55,7 @@ function blast(api, p, fragments = true, radius = C.blastRadius) {
 function createPattern(kind) {
   let nextWave = 0, finishStarted = false, poseAt = -Infinity;
   let normalEndsAt = 0, duration = C.duration;
+  let purpleBarrel = null, purpleMark = null;
   const soundTimes = new Map();
   const queue = [];
   const schedule = (at, run) => { queue.push({ at, run }); queue.sort((a, b) => a.at - b.at); };
@@ -135,17 +136,25 @@ function createPattern(kind) {
     if (!finishStarted && nextWave === C.waves && queue.length === 0 && t >= Math.max(C.finisherAt, normalEndsAt + C.finisherQuiet)) {
       finishStarted = true; poseAt = t;
       duration = t + C.warn + C.finisherFlight + C.finisherFuse + C.finisherHold;
-      mark(api, center.x, center.y, C.warn + C.finisherFlight + C.finisherFuse, C.blastRadius, true);
-      schedule(t + C.warn, a => lob(a, center, C.finisherFlight, true));
+      purpleMark = mark(api, center.x, center.y, C.warn + C.finisherFlight + C.finisherFuse, C.blastRadius, true);
+      schedule(t + C.warn, a => { purpleBarrel = lob(a, center, C.finisherFlight, true); a.trackProjectile?.(purpleBarrel); });
       schedule(t + C.warn + C.finisherFlight, a => {
+        if (purpleBarrel?.intercepted) return;
         a.emit({ ...center, r: 0, harmless: true, purple: true, size: C.finisherSize, life: C.finisherFuse, shape: 'drum_fuse', drawShape(ctx, self) { drawBarrel(ctx, a, self); } });
       });
       schedule(t + C.warn + C.finisherFlight + C.finisherFuse, a => {
+        if (purpleBarrel?.intercepted) return;
         a.penalty(C.finisherDamage); a.sfx?.('drum_burst'); a.shake?.(0.3, 5); a.flash?.(C.finisherHold);
         a.emit({ ...center, r: 0, harmless: true, life: C.finisherHold, shape: 'drum_arena_blast', drawShape(ctx, self) {
           ctx.save(); ctx.fillStyle = '#c05cff'; ctx.globalAlpha = 0.8 * (1 - self.age / self.life); ctx.fillRect(b.x + 3, b.y + 3, b.w - 6, b.h - 6); ctx.restore();
         } });
       });
+    }
+    if (purpleBarrel?.intercepted) {
+      queue.length = 0;
+      if (purpleMark && typeof purpleMark === 'object') purpleMark.taken = true;
+      if (api.interceptionActive?.()) duration = Math.max(duration, t + 0.2);
+      else duration = Math.min(duration, t + 0.05);
     }
     const frame = C.attackFrameEnds.findIndex(end => t - poseAt < end);
     api.present?.(frame >= 0 ? { sheet: 'attack', frame } : null);

@@ -2,7 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 
 await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, check, until, press, shot, fixture }) => {
   const missingAssets = [];
-  page.on('response', response => { if (response.status() >= 400 && /drum-devil|janitor-hero|yoplait-(kneel|surprised|lookback)/.test(response.url())) missingAssets.push(response.url()); });
+  page.on('response', response => { if (response.status() >= 400 && /drum-devil|janitor-hero|janitor-red|rudebuster|yoplait-(kneel|surprised|lookback)/.test(response.url())) missingAssets.push(response.url()); });
   const earlyThreshold = async (kind = 'normal') => {
     await open({ qa: 'jjajang_nest_battle' });
     check('direct battle QA intro', await until(() => window.game?.battle?.state === 'intro' && game.battle.typed, 30000));
@@ -39,20 +39,59 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   check('both winged sheets loaded with matching384 cells', dimensions.every(d => d?.width === 768 && d?.height === 768), JSON.stringify(dimensions));
   await until(() => game.battle.typed);
   await shot('00-idle');
-  await page.evaluate(() => {
-    const b = game.battle, hurt = b.hurtAllParty.bind(b), sfx = b.sfx.bind(b), update = b.update.bind(b);
-    window.drumEvidence = { penalties: [], flights: [], sounds: [], lastOrdinary: {} };
+  await page.evaluate(async () => {
+    const b = game.battle, hurt = b.hurtAllParty.bind(b), hit = b.hitEnemy.bind(b), sfx = b.sfx.bind(b), update = b.update.bind(b);
+    const { JANITOR_HERO_ACTIONS: { attack } } = await import('/src/data/janitor-hero-actions.js');
+    const attackImage = await new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = attack.src; });
+    const canvas = document.createElement('canvas'); canvas.width = attackImage.width; canvas.height = attackImage.height;
+    const context = canvas.getContext('2d'); context.drawImage(attackImage, 0, 0);
+    const frameBounds = Array.from({ length: attack.count }, (_, frame) => {
+      const pixels = context.getImageData(frame % attack.cols * attack.cell, Math.floor(frame / attack.cols) * attack.cell, attack.cell, attack.cell).data;
+      let left = attack.cell, top = attack.cell, right = 0, bottom = 0;
+      for (let y = 0; y < attack.cell; y++) for (let x = 0; x < attack.cell; x++) if (pixels[(y * attack.cell + x) * 4 + 3]) {
+        left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x + 1); bottom = Math.max(bottom, y + 1);
+      }
+      return { left, top, right, bottom };
+    });
+    window.drumEvidence = { penalties: [], flights: [], sounds: [], lastOrdinary: {}, hits: [], actions: [], postheroHazards: [], clippedFrames: [], parryFrames: {} };
     window.drumSnapshot = () => { const snapshot = b.interlude?.snapshot; return snapshot?.inner || snapshot; };
     b.hurtAllParty = amount => { const before = b.members.map(m => m.hp), invuln = b.soul.invuln; hurt(amount); drumEvidence.penalties.push({ amount, before, after: b.members.map(m => m.hp), invuln, t: b.t }); };
+    b.hitEnemy = (enemy, by, damage, options) => {
+      const before = enemy.hp, result = hit(enemy, by, damage, options);
+      drumEvidence.hits.push({ source: options?.source || 'ordinary', damage: before - enemy.hp, hp: enemy.hp, action: b.support.actionSnapshot });
+      return result;
+    };
     b.sfx = (name, ...args) => { drumEvidence.sounds.push({ name, time: performance.now(), phase: drumSnapshot()?.phase }); return sfx(name, ...args); };
     b.update = (...args) => {
       const result = update(...args);
       if (b.state === 'bullets' && b.bullets.some(bullet => !['drum_mark', 'drum_purple', 'drum_fuse', 'drum_arena_blast'].includes(bullet.shape))) drumEvidence.lastOrdinary[b.enemies[0].patternIdx] = b.t;
+      const action = b.support.actionSnapshot;
+      const previous = drumEvidence.actions.at(-1);
+      if (action && (!previous || previous.kind !== action.kind || previous.phase !== action.phase || action.elapsed < previous.elapsed)) {
+        const purple = b.bullets.find(bullet => bullet.shape === 'drum_purple');
+        drumEvidence.actions.push({ ...action, turn: b.enemies[0].patternIdx, barrelAge: purple?.age, playerIdle: !b.members[0].action || b.members[0].action.mode === 'idle' });
+      }
+      if (action?.kind === 'janitor-intercept' && action.phase === 'attack') {
+        const box = frameBounds[action.frame], x = Math.round(action.position.x - attack.pivot[0]), y = Math.round(action.position.y - attack.pivot[1]);
+        const bounds = { left: x + box.left, top: y + box.top, right: x + box.right, bottom: y + box.bottom };
+        const turn = b.enemies[0].patternIdx;
+        (drumEvidence.parryFrames[turn] ||= {})[action.frame] = true;
+        if (bounds.left < 0 || bounds.top < 0 || bounds.right > 480 || bounds.bottom > 318) drumEvidence.clippedFrames.push({ turn, frame: action.frame, bounds, elapsed: action.elapsed });
+      }
+      if (b.support.rescued && b.bullets.some(bullet => ['drum_fuse', 'drum_arena_blast'].includes(bullet.shape))) drumEvidence.postheroHazards.push(b.t);
       return result;
     };
   });
-  // A visual-only refresh reuses the first real round after artwork changes.
-  const patterns = process.env.DRUM_CAPTURE_ONLY === '1' ? ['bombard'] : ['bombard', 'roll', 'chain', 'cross', 'ring', 'bombard-6', 'roll-7', 'chain-8'];
+  // A scoped support refresh enters the real rescue early without injecting phases.
+  const supportOnly = process.env.DRUM_POSTHERO_ONLY === '1';
+  if (supportOnly) {
+    await fixture('early-rescue-support-refresh', 'Set HP5 before real C attack and ordinary collision to reach rescue quickly for support visuals and behavior; no rescue flags or phases are injected.', () => { game.battle.members[0].hp = 5; });
+    await press('KeyC', { delay: 70 });
+    await until(() => game.battle.state === 'target');
+    await press('KeyC', { delay: 70 });
+    check('scoped support entry reaches realHP1 rescue', await until(() => game.battle.state === 'interlude' && game.battle.members[0].hp === 1, 15000));
+  }
+  const patterns = supportOnly ? [] : process.env.DRUM_CAPTURE_ONLY === '1' ? ['bombard'] : ['bombard', 'roll', 'chain', 'cross', 'ring', 'bombard-6', 'roll-7', 'chain-8'];
   for (const [index, name] of patterns.entries()) {
     await fixture(`restore-${name}`, 'Restore solo HP between isolated rounds; no claim of natural full fight.', () => { for (const m of game.battle.members) { m.hp = m.maxHp; m.down = false; } });
     await press('KeyC', { delay: 70 });
@@ -194,12 +233,84 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await shot('rescue-20-menu');
   const sounds = await page.evaluate(() => drumEvidence.sounds.filter(s => s.phase));
   check('single flag impact laugh and landing audio calls', sounds.filter(s => s.name === 'hit').length === 1 && sounds.filter(s => s.name === 'laugh_janitor').length === 1 && sounds.filter(s => s.name === 'impact').length === 1, JSON.stringify(sounds));
-  await press('KeyC', { delay: 70 }); await press('KeyC', { delay: 70 });
-  check('post-rescue real attack unlocks boss damage', await until(() => game.battle.enemies[0].hp < 300, 10000));
-  check('rescue does not repeat at existingHP1', await until(() => game.battle.state === 'bullets' && !game.battle.interlude, 8000));
-  await fixture('post-rescue-protection', 'Isolate one post-rescue enemy round with invulnerability. HP remains1; no death-policy assertion is made.', () => { game.battle.soul.invuln = 100; });
-  check('rescue remains once after another finisher', await until(() => game.battle.state === 'menu' && game.battle.support.rescued && !game.battle.interlude, 18000));
-  check('posthero turn does not retrigger eighth-turn scene', await page.evaluate(() => game.battle.support.completedTurns === 8));
+  for (const name of supportOnly ? ['roll', 'chain', 'cross', 'ring', 'bombard'] : ['cross', 'ring', 'bombard', 'roll', 'chain']) {
+    await fixture(`assist-${name}-isolation`, 'Restore bossHP300 and soloHP before testing each real posthero pattern; avoids killing the boss before all five interception paths are observed.', () => {
+      game.battle.enemies[0].hp = 300;
+      game.battle.members[0].hp = game.battle.members[0].maxHp;
+    });
+    const baseline = await page.evaluate(() => ({ hits: drumEvidence.hits.length, actions: drumEvidence.actions.length, sounds: drumEvidence.sounds.length, penalties: drumEvidence.penalties.length }));
+    await press('KeyC', { delay: 70 });
+    check(`${name} posthero C target menu`, await until(() => game.battle.state === 'target'));
+    await press('KeyC', { delay: 70 });
+    check(`${name} automatic hero attack begins`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack', 10000));
+    check(`${name} hero waits for player animation to finish`, await page.evaluate(() => !game.battle.members[0].action || game.battle.members[0].action.mode === 'idle'));
+    await shot(`assist-${name}-01-windup`);
+    check(`${name} red energy releases before contact`, await until(() => game.battle.support.actionSnapshot?.energy && !game.battle.support.actionSnapshot.contacted));
+    await shot(`assist-${name}-02-energy-flight`);
+    check(`${name} hero contacts boss`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack' && game.battle.support.actionSnapshot.contacted));
+    await shot(`assist-${name}-03-contact`);
+    const hits = await page.evaluate(offset => drumEvidence.hits.slice(offset), baseline.hits);
+    check(`${name} ordinary damage plus exactlyone60 support hit`, hits.length === 2 && hits[0].source === 'ordinary' && hits[0].damage > 0 && hits[1].source === 'janitor' && hits[1].damage === 60, JSON.stringify(hits));
+    check(`${name} hero hit lands after visible energy flight`, hits[1]?.action?.elapsed >= 1.2 && hits[1]?.action?.contacted);
+    check(`${name} enemy turn starts after automatic attack`, await until(() => game.battle.state === 'bullets' && !game.battle.gimmick, 8000));
+    check(`${name} posthero selected expected pattern`, await page.evaluate(expected => {
+      const e = game.battle.enemies[0]; return e.def.patterns[(e.patternIdx - 1) % 5].type === expected;
+    }, `drum_${name}`));
+    await fixture(`intercept-${name}-isolation`, 'Ordinary invulnerability isolates the automatic purple interception. No timer, projectile, hero action or support flags are changed.', () => { game.battle.soul.invuln = 100; });
+    const beforeHP = await page.evaluate(() => game.battle.members[0].hp);
+    check(`${name} real purple launch`, await until(() => game.battle.bullets.some(bullet => bullet.shape === 'drum_purple'), 12000));
+    await page.evaluate(() => { window.observedPurple = game.battle.bullets.find(bullet => bullet.shape === 'drum_purple'); });
+    await shot(`intercept-${name}-01-launch`);
+    check(`${name} exclamation begins after one-second flight`, await until(() => game.battle.support.actionSnapshot?.phase === 'notice'));
+    check(`${name} claim timing`, await page.evaluate(() => observedPurple.age >= 1 && observedPurple.age < 1.3 && observedPurple.intercepted && game.battle.support.interceptionActive));
+    await shot(`intercept-${name}-02-notice`);
+    check(`${name} teleport starts`, await until(() => game.battle.support.actionSnapshot?.phase === 'teleport-out'));
+    await shot(`intercept-${name}-03-teleport`);
+    await page.waitForFunction(() => game.battle.support.actionSnapshot?.kind === 'janitor-intercept' && game.battle.support.actionSnapshot.frame === 2 && !game.battle.support.actionSnapshot.contacted);
+    await shot(`intercept-${name}-03b-overhead`);
+    check(`${name} actual original barrel deflects`, await until(() => {
+      const b = game.battle;
+      return b.support.actionSnapshot?.kind === 'janitor-intercept' && b.support.actionSnapshot.contacted
+        && b.bullets.includes(observedPurple) && observedPurple.vx === 260 && observedPurple.vy === -170 && !observedPurple.steer;
+    }));
+    const deflected = await page.evaluate(() => ({ x: observedPurple.x, y: observedPurple.y }));
+    await shot(`intercept-${name}-04-deflect`);
+    await page.waitForTimeout(120);
+    check(`${name} barrel travels up and right after contact`, await page.evaluate(previous => observedPurple.x > previous.x && observedPurple.y < previous.y, deflected));
+    check(`${name} hero laughs after deflection`, await until(() => game.battle.support.actionSnapshot?.phase === 'laugh'));
+    await shot(`intercept-${name}-05-laugh`);
+    check(`${name} hero teleports home`, await until(() => game.battle.support.actionSnapshot?.phase === 'return-out'));
+    await shot(`intercept-${name}-06-return`);
+    check(`${name} normal C menu returns with clean support`, await until(() => game.battle.state === 'menu' && !game.battle.support.actionSnapshot && !game.battle.gimmick && !game.battle.support.interceptionActive, 6000));
+    const evidence = await page.evaluate(base => ({ phases: drumEvidence.actions.slice(base.actions).filter(a => a.kind === 'janitor-intercept').map(a => a.phase),
+      penalties: drumEvidence.penalties.length, forbidden: drumEvidence.postheroHazards.length,
+      sounds: drumEvidence.sounds.slice(base.sounds).map(s => s.name), hp: game.battle.members[0].hp }), baseline);
+    check(`${name} complete notice teleport attack laugh return sequence`, ['notice', 'teleport-out', 'teleport-in', 'attack', 'laugh', 'return-out', 'return-in', 'settle'].every(phase => evidence.phases.includes(phase)), JSON.stringify(evidence.phases));
+    check(`${name} zero purple fuse blast or penalty after interception`, evidence.penalties === baseline.penalties && evidence.forbidden === 0 && evidence.hp === beforeHP, JSON.stringify(evidence));
+    const geometry = await page.evaluate(() => ({ frames: Object.keys(drumEvidence.parryFrames[game.battle.enemies[0].patternIdx] || {}), clipped: drumEvidence.clippedFrames }));
+    check(`${name} all six actual parry frames keep opaque pixels in viewport`, geometry.frames.length === 6 && geometry.clipped.length === 0, JSON.stringify(geometry));
+    check(`${name} attack and intercept audio each playonce`, evidence.sounds.filter(s => s === 'rudebuster_swing').length === 2 && evidence.sounds.filter(s => s === 'rudebuster_hit').length === 2 && evidence.sounds.filter(s => s === 'laugh_janitor').length === 1);
+    check(`${name} posthero does not repeat rescue`, await page.evaluate(expected => game.battle.support.completedTurns === expected && !game.battle.interlude, supportOnly ? 0 : 8));
+    await until(() => game.battle.typed);
+    await shot(`intercept-${name}-07-menu`);
+  }
+  await fixture('hero-lethal-boundary', 'Set enemy HP to exactly one ordinary player hit plus60, then use real C attack to verify automatic hero kill and victory; not a natural full win.', () => {
+    game.battle.enemies[0].hp = game.attack + 60;
+    window.victoryBattle = game.battle;
+  });
+  const lethalHits = await page.evaluate(() => drumEvidence.hits.length);
+  await press('KeyC', { delay: 70 });
+  await until(() => game.battle.state === 'target');
+  await press('KeyC', { delay: 70 });
+  check('automatic hero lethal hit reaches win rather than another enemy turn', await until(() => game.battle.state === 'win', 10000));
+  const victoryHits = await page.evaluate(offset => drumEvidence.hits.slice(offset), lethalHits);
+  check('lethal support applies exactly60 once', victoryHits.length === 2 && victoryHits[1].source === 'janitor' && victoryHits[1].damage === 60 && victoryHits[1].hp === 0, JSON.stringify(victoryHits));
+  check('victory clears support action and gimmick', await page.evaluate(() => !game.battle.support.actionSnapshot && !game.battle.gimmick));
+  await until(() => game.battle.typed && game.battle.t > 0.6);
+  await shot('assist-lethal-victory');
+  await press('KeyC', { delay: 70 });
+  check('victory C returns to field', await until(() => !game.battle && game.lastBattle?.win, 8000));
+  check('victory leaves no transient hero action', await page.evaluate(() => !victoryBattle.support.actionSnapshot && !victoryBattle.gimmick && !victoryBattle.interlude));
   await earlyThreshold();
   await earlyThreshold('purple');
   check('all required drum and rescue assets loaded', missingAssets.length === 0, JSON.stringify(missingAssets));

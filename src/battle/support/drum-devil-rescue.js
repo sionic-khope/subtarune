@@ -127,11 +127,6 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
       ctx.save(); ctx.translate(-480, 0); BATTLE_BGS[battle.cfg.bg]?.(ctx, battle); ctx.restore();
       BATTLE_BGS[battle.cfg.bg]?.(ctx, battle);
       for (const e of battle.enemies) battle.drawEnemy(ctx, e);
-      for (const m of battle.members) {
-        if (m === player) sprite(ctx, assets[playerPose], C[playerPose], ...m.home);
-        else battle.drawMember(ctx, m);
-      }
-      if (phase === 'flag') sprite(ctx, assets.flag, C.flag, flagX(), enemy.y - 90);
       if (!['narration', 'silence', 'flag', 'surprise', 'lookback'].includes(phase)) {
         const landed = ['dive', 'land', 'ready', 'done'].includes(phase);
         const at = [landed ? C.hero.home[0] : C.hero.reveal[0], heroY];
@@ -139,6 +134,11 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
         if (pose === 'hero') drawDrumDevilHero(ctx, assets, elapsed, at);
         else sprite(ctx, assets[pose], C[pose], ...at);
       }
+      for (const m of battle.members) {
+        if (m === player) sprite(ctx, assets[playerPose], C[playerPose], ...m.home);
+        else battle.drawMember(ctx, m);
+      }
+      if (phase === 'flag') sprite(ctx, assets.flag, C.flag, flagX(), enemy.y - 90);
       if (impactAge >= 0 && impactAge < 0.5) {
         const p = impactAge / 0.5, r = 20 + 70 * (1 - (1 - p) ** 2), a = (1 - p) * 0.9;
         ctx.strokeStyle = `rgba(255,160,90,${a})`; ctx.lineWidth = 4 * (1 - p * 0.6) + 0.5;

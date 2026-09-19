@@ -11,6 +11,7 @@ const tuning = {
   rescueTurn: 8, tearRamp: 1.2, tearRip: 0.85, tearHold: 0.45, tearBands: 9, tearShift: 110,
   soundCooldown: { drum_throw: 0.25, drum_impact: 0.18, drum_burst: 0.8 },
   soundVolume: { drum_throw: 0.75, drum_impact: 0.5, drum_burst: 0.95 },
+  heroDamage: 60, interceptAfter: 1, deflectVelocity: [260, -170], deflectLife: 0.7,
 };
 const finisherAt = (tuning.waves - 1) * tuning.every + tuning.warn + tuning.flight
   + Math.max(tuning.rollLife, tuning.fragmentLife, tuning.blastHold, tuning.crossFlight + tuning.blastHold,

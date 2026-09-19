@@ -8,7 +8,7 @@ import { Battle } from '../../src/battle/battle.js';
 import { createDrumDevilSupport } from '../../src/battle/support/drum-devil.js';
 
 const box = { x: 120, y: 134, w: 240, h: 160 };
-const input = { down: () => false };
+const input = { down: () => false, just: () => false };
 test('all generated boss frames fit the scene including hit shake margin', () => {
   const contract = JSON.parse(fs.readFileSync(new URL('../../assets/source/drum-devil-wings-v2/runtime-contract.json', import.meta.url), 'utf8'));
   const def = ENEMIES.drum_devil, x = 396 + def.dx, y = 176 + def.dy;
@@ -29,12 +29,12 @@ test('all generated boss frames fit the scene including hit shake margin', () =>
     assert.ok(y + (bottom - def.pivot[1]) * def.scale <= 246);
   }
 });
-function battleFixture(hp = 100) {
+function battleFixture(hp = 100, actionFactories = {}) {
   const enemy = { id: 'drum_devil', def: ENEMIES.drum_devil, x: 350, y: 242, hp: 300, maxHp: 300, dying: 0, patternIdx: 0 };
   const battle = Object.assign(Object.create(Battle.prototype), {
-    enemies: [enemy], members: [{ hp, maxHp: 100, down: false }], soul: new Soul(), board: new Board(),
+    enemies: [enemy], members: [{ id: 'hyungsub', hp, maxHp: 100, down: false }], soul: new Soul(), board: new Board(),
     state: 'bullets', t: 0, bullets: [], patterns: [], bubble: null, fx: [],
-    game: { fadeTo() {}, sound: { stopBgm() {}, preloadBgm() {} } }, cfg: { bgm: C.bgm },
+    game: { fadeTo() {}, sound: { stopBgm() {}, preloadBgm() {}, blip() {} } }, cfg: { bgm: C.bgm },
     rnd: () => 0, sfx() {}, setText(text) { this.text = text; },
   });
   Object.assign(battle.board, box); battle.soul.center(box);
@@ -42,7 +42,7 @@ function battleFixture(hp = 100) {
   battle.support = createDrumDevilSupport(battle, { createRescue(_battle, { onComplete }) {
     battle.rescueCount++; battle.completeRescue = onComplete;
     return { update: () => false, draw() {} };
-  } });
+  }, ...actionFactories });
   return battle;
 }
 
@@ -182,4 +182,102 @@ test('all patterns isolate finisher hazards and apply its damage once with coars
     battle.afterEnemyPhase();
     assert.equal(battle.state, 'menu');
   }
+});
+
+function completeRescue(battle) {
+  battle.hurtAllParty(10000); battle.interruptEnemyPhase();
+  battle.completeRescue(); battle.interlude = null; battle.beginMenu();
+}
+
+test('Yoplait completed attack queues one 60-damage hero action and a lethal hit reaches victory', () => {
+  for (const hp of [300, 60]) {
+    const battle = battleFixture(); completeRescue(battle);
+    const enemy = battle.enemies[0]; enemy.hp = hp;
+    const plan = { type: 'fight', member: battle.members[0], target: enemy };
+    battle.plans = [plan]; battle.actIdx = 1; battle.state = 'act'; battle.text = ''; battle.textT = 0; battle.shown = 0;
+    battle.beginEnemyTurn = () => { battle.state = 'enemy-prep'; };
+    battle.finishPartyAction(plan);
+    assert.equal(battle.cur.supportFollowup, true);
+    assert.equal(battle.support.actionSnapshot.kind, 'janitor-attack');
+    for (let elapsed = 0; elapsed < 4 && battle.state === 'act'; elapsed += 0.02) battle.update(0.02, input);
+    assert.equal(enemy.hp, hp - 60);
+    assert.equal(battle.state, hp === 60 ? 'win' : 'enemy-prep');
+    assert.equal(battle.support.actionSnapshot, null);
+  }
+});
+
+test('hero assist ignores items and dead targets and reset invalidates callbacks', () => {
+  let hit, disposed = 0;
+  const battle = battleFixture(100, { createAttack(_battle, options) {
+    hit = options.onHit; return { update: () => false, draw() {}, dispose() { disposed++; } };
+  } });
+  completeRescue(battle);
+  const plan = { type: 'fight', member: battle.members[0], target: battle.enemies[0] };
+  assert.equal(battle.support.afterAction({ ...plan, type: 'item' }), null);
+  plan.target.dead = true; assert.equal(battle.support.afterAction(plan), null); plan.target.dead = false;
+  const action = battle.support.afterAction(plan); assert.ok(action);
+  battle.support.reset(); hit();
+  assert.equal(plan.target.hp, 300); assert.equal(disposed, 1); assert.equal(battle.support.actionSnapshot, null);
+});
+
+test('support paints assist body behind party actors and energy in the foreground', () => {
+  const drawn = [];
+  const battle = battleFixture(100, { createAttack() {
+    return { update: () => false, dispose() {},
+      drawBody() { drawn.push('hero'); }, drawEffects() { drawn.push('energy'); },
+      draw() { assert.fail('assist must use separate body and effect layers'); },
+    };
+  } });
+  completeRescue(battle);
+  const followup = battle.support.afterAction({ type: 'fight', member: battle.members[0], target: battle.enemies[0] });
+  battle.support.draw({}); drawn.push('yoplait'); followup.draw({});
+  assert.deepEqual(drawn, ['hero', 'yoplait', 'energy']);
+});
+
+test('post-rescue interception tracks the real barrel at one second, flings it, and cancels every purple tail', () => {
+  for (let index = 0; index < ENEMIES.drum_devil.patterns.length; index++) for (const dt of [1 / 60, 0.17]) {
+    const battle = battleFixture(); completeRescue(battle);
+    battle.enemies[0].patternIdx = index; battle.members[0].hp = 100;
+    battle.beginBullets();
+    let projectile = null, interceptedAt = null, penaltyCount = 0, lastPhase = null;
+    const phases = new Set(), shapes = new Set();
+    battle.hurtAllParty = () => { penaltyCount++; };
+    for (let elapsed = 0; elapsed < C.duration + 5 && battle.state === 'bullets'; elapsed += dt) {
+      battle.soul.invuln = 99;
+      battle.support.update(dt);
+      if (projectile?.intercepted && interceptedAt === null) interceptedAt = projectile.age;
+      const snapshot = battle.support.actionSnapshot;
+      if (snapshot) { phases.add(snapshot.phase); lastPhase = snapshot.phase; }
+      battle.updateBullets(dt, input); battle.t += dt;
+      for (const bullet of battle.bullets) {
+        shapes.add(bullet.shape);
+        if (bullet.shape === 'drum_purple') projectile = bullet;
+      }
+    }
+    assert.ok(interceptedAt >= 1 && interceptedAt < 1 + dt + 0.001);
+    assert.equal(projectile.steer, null); assert.equal(projectile.vx, C.deflectVelocity[0]);
+    assert.equal(projectile.vy, C.deflectVelocity[1]); assert.equal(penaltyCount, 0);
+    assert.equal(shapes.has('drum_fuse'), false); assert.equal(shapes.has('drum_arena_blast'), false);
+    if (dt < 0.02) {
+      for (const phase of ['notice', 'teleport-out', 'teleport-in', 'attack', 'laugh', 'return-out', 'return-in', 'settle']) assert.ok(phases.has(phase), phase);
+      assert.equal(lastPhase, 'settle');
+    }
+    assert.equal(battle.support.interceptionActive, false);
+    assert.equal(battle.members[0].hp, 100); assert.equal(battle.state, 'board-close');
+  }
+});
+
+test('reset clears an in-flight interception and rejects stale deflection callbacks', () => {
+  let deflect, disposed = 0;
+  const battle = battleFixture(100, { createIntercept(_battle, options) {
+    deflect = options.onDeflect;
+    return { update: () => false, draw() {}, dispose() { disposed++; } };
+  } });
+  completeRescue(battle);
+  const barrel = new Bullet({ x: 240, y: 100, purple: true, harmless: true, age: 1, life: 3 });
+  battle.support.onProjectile(barrel); battle.support.update(0.01);
+  assert.equal(battle.support.interceptionActive, true);
+  battle.support.reset(); deflect();
+  assert.equal(barrel.vx, 0); assert.equal(barrel.vy, 0);
+  assert.equal(disposed, 1); assert.equal(battle.support.interceptionActive, false);
 });

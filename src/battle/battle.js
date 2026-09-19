@@ -263,17 +263,24 @@ export class Battle {
   // ── 행동 실행 ──
   beginAct() { this.state = 'act'; this.t = 0; this.actIdx = 0; this.actWait = 0; this.cur = null; this.setText(''); }   // 이전 문구(아이템 없음 등)가 남지 않게
   updateAct(dt, input) {
-    if (this.cur?.gimmick) { if (this.gimmick.update(dt, input)) { this.disposeGimmick(); this.cur = null; this.actWait = BETWEEN_ACTS; } return; }
+    if (this.cur?.gimmick) {
+      if (this.gimmick.update(dt, input)) {
+        const { plan, supportFollowup } = this.cur;
+        this.disposeGimmick(); this.finishPartyAction(plan, !supportFollowup);
+      }
+      return;
+    }
     if (this.cur) {
       const { plan, action } = this.cur;
       // cfg.memberDamage: 이번 전투만 특정 동료의 공격 피해(청소부 지팡이 던지기 1, BUILD227)
       if (action.mode === 'attack' && !this.cur.hit && action.elapsed >= HIT_AT) { this.cur.hit = true; this.hitEnemy(plan.target, plan.member, this.cfg.memberDamage?.[plan.member.id] ?? (this.game.attack || 1)); }
-      if (action.mode === 'idle') { this.cur = null; this.actWait = BETWEEN_ACTS; }
+      if (action.mode === 'idle') this.finishPartyAction(plan);
       return;
     }
     if (this.actWait > 0) { this.actWait -= dt; return; }
     if (this.actIdx >= this.plans.length) {
       if (!this.targets().length) { this.beginWin(); return; }
+      if (this.targets().every(enemy => enemy.hp <= 0 || enemy.dying > 0)) return;
       this.beginEnemyTurn(); return;
     }
     const plan = this.plans[this.actIdx++];
@@ -305,6 +312,11 @@ export class Battle {
     if (e.def.reactive?.hitSfx) this.sfx(e.def.reactive.hitSfx);
     if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
     return damage;
+  }
+  finishPartyAction(plan, allowSupport = true) {
+    this.cur = null; this.actWait = BETWEEN_ACTS;
+    const followup = allowSupport ? this.support?.afterAction?.(plan) : null;
+    if (followup) { this.gimmick = followup; this.cur = { plan, gimmick: true, supportFollowup: true }; }
   }
   applyCannonDamage(target, damage = BARON_CANNON.damage) { return this.hitEnemy(target, null, damage, { source: 'cannon', sound: false }); }
   disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.clearPatternPresentation(); }
@@ -386,6 +398,8 @@ export class Battle {
       api.images = pat.enemy?.projectiles;
       api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
       api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
+      api.trackProjectile = projectile => this.support?.onProjectile?.(projectile);
+      api.interceptionActive = () => this.support?.interceptionActive ?? false;
       api.clearHazards = () => { this.bullets = []; };
       api.penalty = damage => { this.bullets = []; this.hurtAllParty(damage); };
       api.flash = duration => { this.game.fadeTo(0.8, 0, undefined, 'white'); this.game.fadeTo(0, duration); };
@@ -513,6 +527,7 @@ export class Battle {
     else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.board.draw(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
     else if (this.state !== 'lose') this.drawPanel(ctx);
     if (this.bubble) this.drawBubble(ctx);                          // 적 말풍선(준비 단계)
+    this.support?.drawOverlay?.(ctx);
     this.drawHpStrip(ctx);                                          // HP 띠는 어느 상태에서나 맨 아래 (사용자: '체력바를 아예 아래로 빼')
     if (this.state === 'lose') this.drawGameOver(ctx);              // 전원 쓰러짐: 전장이 어두워지고 GAME OVER + [다시 도전하기]
   }

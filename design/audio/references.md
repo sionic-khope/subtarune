@@ -525,6 +525,8 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 ## 드럼통 악마 전투·청소부 구출 (BUILD250, 2026-09-20)
 
+청소부 붉은 3겹 참격(사용자 지정 Rude Buster 원본): `sfx/rudebuster_swing.mp3` 발사음과 `sfx/rudebuster_hit.mp3` 명중음은 고정 리비전의 `snd_rudebuster_swing`·`snd_rudebuster_hit` 전체를 MP3 q2로 변환한 것(각 0.953379초, 44.1kHz mono)이다. 원본 게임의 공격·투사체 코드로 실제 사용 시점을 확인했으며 붉은 버전도 같은 두 소리를 쓴다. 음원 가공·대체 합성 없음. [출처·식별 코드·SHA·권장 큐](../../assets/source/janitor-rudebuster-audio/README.md).
+
 공격음 개선: 기존 `wing`를 낮추고 짧게 자른 `sfx/drum_throw.mp3`(0.38초), `metalhit` 저역과 `baron_slam`을 섞은 `sfx/drum_impact.mp3`(0.40초), `furnace_blast`를 저역 중심으로 짧게 감쇠한 `sfx/drum_burst.mp3`(0.95초)를 사용한다. 동시 투척/충돌은 묶음당 한 번, 보라 폭발은 일반 충격 없이 한 번만 재생한다. 붉은 찢김은 기존 `baron_slam`·`wallclaw`를 재사용한다. 원본·정확한 가공 명령·권장 음량/간격·레벨·비교 청취본은 [자산 기록](../../assets/source/drum-devil-audio-v1/README.md)에 있다. 기존 공용 파일과 아래 사용자 지정 BGM은 변경하지 않았다.
 
 사용자가 지정한 두 URL의 전체 오디오를 `yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2`로 가져왔다. 선택된 WebM/Opus를 MP3 q2로 변환했으며 트리밍·피치·속도·음량 가공은 없다. 제목·업로더·업로드 날짜는 yt-dlp 메타데이터로 확인했다. 웹 페이지 조회는 throttled였으며 재배포 라이선스는 확인되지 않았다(`license=NA`). 아래 자산 검사는 게임 내 큐·청취 검증과 구분한다.

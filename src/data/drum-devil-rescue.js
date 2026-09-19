@@ -4,7 +4,7 @@ export const DRUM_DEVIL_RESCUE = Object.freeze({
   focusSeconds: 0.75, revealZoom: 0.8, focusZoom: 0.88, revealPan: 310, revealCenterX: 208, focusShake: 1.2,
   speech: { width: 250, pad: 10, lineHeight: 18, fontSize: 14, headOffset: 64 },
   laughHold: 1.4, rise: 3.2, returnCamera: 1.6, dive: 0.42, landHold: 0.8,
-  hero: { src: 'assets/battle/janitor-hero-idle.png', cell: 192, cols: 2, pivot: [138, 180], frameHolds: [0.38, 0.26, 0.38, 0.26], home: [140, 150], reveal: [-70, 206] },
+  hero: { src: 'assets/battle/janitor-hero-idle.png', cell: 192, cols: 2, pivot: [138, 180], frameHolds: [0.38, 0.26, 0.38, 0.26], home: [160, 150], reveal: [-70, 206] },
   stand: { src: 'assets/battle/janitor-hero-stand.png', cell: 192, cols: 1, pivot: [138, 180] },
   laugh: { src: 'assets/battle/janitor-hero-laugh.png', cell: 192, cols: 1, pivot: [138, 180] },
   kneel: { src: 'assets/battle/yoplait-kneel.png', cell: 96, cols: 1, pivot: [48, 89] },

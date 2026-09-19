@@ -1,20 +1,57 @@
 import { DRUM_DEVIL as C } from '../../data/drum-devil.js';
 import { createDrumDevilRescue, loadDrumDevilRescue, drawDrumDevilHero } from './drum-devil-rescue.js';
 import { createDrumDevilLastStand } from './drum-devil-last-stand.js';
+import { loadJanitorHeroActions, createJanitorHeroAttack, createJanitorHeroIntercept } from './janitor-hero-actions.js';
 
 /** The first HP-one hit interrupts the barrage once and unlocks damage after rescue. */
-export function createDrumDevilSupport(battle, { createRescue = createDrumDevilRescue } = {}) {
+export function createDrumDevilSupport(battle, { createRescue = createDrumDevilRescue,
+  createAttack = createJanitorHeroAttack, createIntercept = createJanitorHeroIntercept } = {}) {
   if (!battle.enemies.some(e => e.def.support === 'drum_devil')) return null;
   let rescued = false, rescuePending = false, rescueStarted = false;
   let completedTurns = 0;
   let assets = null;
+  let action = null, actionKind = null, barrel = null;
+  let actionEpoch = 0;
+  const clearAction = () => { actionEpoch++; action?.dispose?.(); action = null; actionKind = null; barrel = null; };
   return {
     get rescued() { return rescued; },
     get rescuePending() { return rescuePending; },
     get completedTurns() { return completedTurns; },
-    async load(loadImage) { assets = await loadDrumDevilRescue(loadImage); },
-    draw(ctx) { if (rescued && assets) drawDrumDevilHero(ctx, assets, battle.game.time); },
-    reset() { rescued = false; rescuePending = false; rescueStarted = false; completedTurns = 0; },
+    get interceptionActive() { return actionKind === 'intercept'; },
+    get actionSnapshot() { return action?.snapshot ?? null; },
+    async load(loadImage) { assets = { ...await loadDrumDevilRescue(loadImage), ...await loadJanitorHeroActions(loadImage) }; },
+    draw(ctx) { if (actionKind === 'attack' || action?.backgroundBody) action.drawBody(ctx); else if (rescued && assets && !action) drawDrumDevilHero(ctx, assets, battle.game.time); },
+    drawOverlay(ctx) { if (actionKind === 'intercept') { if (action.backgroundBody) action.drawEffects(ctx); else action.draw(ctx); } },
+    reset() { clearAction(); rescued = false; rescuePending = false; rescueStarted = false; completedTurns = 0; },
+    onProjectile(projectile) { if (rescued && projectile?.purple) barrel = projectile; },
+    afterAction(plan) {
+      if (!rescued || action || plan?.type !== 'fight' || plan.member?.id !== 'hyungsub'
+        || !plan.target || plan.target.dead || plan.target.dying > 0 || plan.target.hp <= 0) return null;
+      const target = plan.target, epoch = actionEpoch; let hit = false;
+      actionKind = 'attack';
+      action = createAttack(battle, { assets, target, onHit() {
+        if (hit || epoch !== actionEpoch || !rescued) return; hit = true;
+        if (!target.dead && target.dying <= 0 && target.hp > 0) battle.hitEnemy(target, null, C.heroDamage, { source: 'janitor', sound: false });
+      } });
+      const current = action;
+      return { get snapshot() { return current.snapshot; }, draw(ctx) { current.drawEffects(ctx); },
+        update(dt, input) { const done = current.update(dt, input); if (done) clearAction(); return done; },
+        dispose() { if (action === current) clearAction(); },
+      };
+    },
+    update(dt) {
+      if (['win', 'lose', 'ending', 'retry'].includes(battle.state)) { clearAction(); return; }
+      if (rescued && !action && barrel && !barrel.intercepted && barrel.age >= C.interceptAfter) {
+        const flying = barrel, epoch = actionEpoch; flying.intercepted = true; actionKind = 'intercept';
+        let deflected = false;
+        action = createIntercept(battle, { assets, barrel: flying, onDeflect() {
+          if (deflected || epoch !== actionEpoch || !rescued) return; deflected = true;
+          flying.steer = null; flying.vx = C.deflectVelocity[0]; flying.vy = C.deflectVelocity[1];
+          flying.spin = 9; flying.life = flying.age + C.deflectLife;
+        } });
+      }
+      if (actionKind === 'intercept' && action.update(dt)) clearAction();
+    },
     blocksDamage(enemy) { return enemy.id === 'drum_devil' && !rescued; },
     blockText() { return C.blockedText; },
     adjustPartyDamage(member, damage) { return Math.max(0, Math.min(damage, member.hp - C.playerHpFloor)); },
