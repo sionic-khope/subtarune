@@ -1,0 +1,262 @@
+{
+ "prep": [
+  {
+   "bbox": [
+    133,
+    125,
+    423,
+    418
+   ],
+   "height": 294,
+   "bodyCenterX": 305,
+   "feetBottom": 418,
+   "feetCenterX": 258
+  },
+  {
+   "bbox": [
+    8,
+    187,
+    433,
+    418
+   ],
+   "height": 232,
+   "bodyCenterX": 218,
+   "feetBottom": 418,
+   "feetCenterX": 274
+  },
+  {
+   "bbox": [
+    32,
+    127,
+    461,
+    377
+   ],
+   "height": 251,
+   "bodyCenterX": 250,
+   "feetBottom": 376,
+   "feetCenterX": 286
+  },
+  {
+   "bbox": [
+    10,
+    127,
+    455,
+    377
+   ],
+   "height": 251,
+   "bodyCenterX": 232,
+   "feetBottom": 377,
+   "feetCenterX": 344
+  }
+ ],
+ "run": [
+  {
+   "bbox": [
+    30,
+    127,
+    457,
+    415
+   ],
+   "height": 289,
+   "bodyCenterX": 231,
+   "feetBottom": 415,
+   "feetCenterX": 404
+  },
+  {
+   "bbox": [
+    9,
+    127,
+    436,
+    419
+   ],
+   "height": 293,
+   "bodyCenterX": 210,
+   "feetBottom": 419,
+   "feetCenterX": 298
+  },
+  {
+   "bbox": [
+    30,
+    106,
+    457,
+    397
+   ],
+   "height": 292,
+   "bodyCenterX": 231,
+   "feetBottom": 397,
+   "feetCenterX": 406
+  },
+  {
+   "bbox": [
+    10,
+    106,
+    436,
+    399
+   ],
+   "height": 294,
+   "bodyCenterX": 208,
+   "feetBottom": 398,
+   "feetCenterX": 283
+  }
+ ],
+ "jump": [
+  {
+   "bbox": [
+    16,
+    148,
+    459,
+    412
+   ],
+   "height": 265,
+   "bodyCenterX": 234,
+   "feetBottom": 412,
+   "feetCenterX": 318
+  },
+  {
+   "bbox": [
+    16,
+    88,
+    415,
+    388
+   ],
+   "height": 301,
+   "bodyCenterX": 216,
+   "feetBottom": 388,
+   "feetCenterX": 336
+  },
+  {
+   "bbox": [
+    22,
+    51,
+    449,
+    352
+   ],
+   "height": 302,
+   "bodyCenterX": 218,
+   "feetBottom": 352,
+   "feetCenterX": 380
+  },
+  {
+   "bbox": [
+    6,
+    156,
+    450,
+    412
+   ],
+   "height": 257,
+   "bodyCenterX": 230,
+   "feetBottom": 412,
+   "feetCenterX": 312
+  }
+ ],
+ "slash": [
+  {
+   "bbox": [
+    46,
+    59,
+    424,
+    452
+   ],
+   "height": 394,
+   "bodyCenterX": 318,
+   "feetBottom": 452,
+   "feetCenterX": 276
+  },
+  {
+   "bbox": [
+    43,
+    186,
+    486,
+    452
+   ],
+   "height": 267,
+   "bodyCenterX": 284,
+   "feetBottom": 452,
+   "feetCenterX": 137
+  },
+  {
+   "bbox": [
+    96,
+    115,
+    503,
+    417
+   ],
+   "height": 303,
+   "bodyCenterX": 260,
+   "feetBottom": 417,
+   "feetCenterX": 476
+  },
+  {
+   "bbox": [
+    18,
+    107,
+    423,
+    385
+   ],
+   "height": 279,
+   "bodyCenterX": 220,
+   "feetBottom": 385,
+   "feetCenterX": 268
+  }
+ ],
+ "airslash": [
+  {
+   "bbox": [
+    48,
+    54,
+    415,
+    438
+   ],
+   "height": 385,
+   "bodyCenterX": 330,
+   "feetBottom": 438,
+   "feetCenterX": 250
+  },
+  {
+   "bbox": [
+    67,
+    196,
+    495,
+    437
+   ],
+   "height": 242,
+   "bodyCenterX": 290,
+   "feetBottom": 437,
+   "feetCenterX": 94
+  },
+  {
+   "bbox": [
+    128,
+    98,
+    468,
+    427
+   ],
+   "height": 330,
+   "bodyCenterX": 272,
+   "feetBottom": 422,
+   "feetCenterX": 450
+  },
+  {
+   "bbox": [
+    17,
+    106,
+    433,
+    357
+   ],
+   "height": 252,
+   "bodyCenterX": 222,
+   "feetBottom": 357,
+   "feetCenterX": 270
+  }
+ ],
+ "scale": 0.1575,
+ "targetHeight": 46,
+ "source": {
+  "prep": "runner-prep6-raw.png",
+  "run": "runner-run6-raw.png",
+  "jump": "runner-jump7-raw.png",
+  "slash": "runner-slash6-raw.png",
+  "airslash": "runner-airslash6-raw.png"
+ },
+ "note": "6판(BUILD235 사용자 정정 “도적처럼 쥐는 느낌, 내가 원한 건 두 손”): 긴 두손검, 양 주먹을 긴 손잡이에 겹쳐 잡고 팔을 뒤로 쭉 뻗어 엉덩이 뒤 아래에, 칼날은 뒤로 거의 수평. 완전 옆모습·델타룬 비율. pivot = [반바지 가운데, 발 밑변], scale = 달리기 프레임 46px"
+}

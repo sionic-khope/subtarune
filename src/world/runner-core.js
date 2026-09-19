@@ -10,9 +10,9 @@ export const RUNNER = Object.freeze({
   dashTime: 0.45,                   // 0 → speed 가속
   runFps: 12,                       // 달리기 프레임 속도(최고 속도 기준)
   stepFrames: [1, 3],               // 발 접촉 프레임 → 물결 고리·발소리
-  jumpV: 430, gravity: 1100,        // 점프(사용자 “더 높게”): 체공 약 0.78초, 높이 약 84px
+  jumpV: 451, gravity: 1100,        // 점프(사용자 “더 높게”, BUILD240 “점프력 10퍼센트만 올리자”): 체공 약 0.82초, 높이 약 92px(84 의 1.1배)
   jumpTilt: 0.32,                   // 점프 중 몸을 대각선으로 살짝 틀어 하늘을 본다(라디안, 오를 때 뒤로 젖힘·내려올 때 앞으로)
-  airTime: 2 * 430 / 1100,          // 점프 체공 시간 — 착지 자리가 끝에서 minSkid 보다 가까워질 점프는 받지 않는다(리뷰: 공중이면 제동이 못 시작해 미끄러짐이 통째로 빠짐)
+  airTime: 2 * 451 / 1100,          // 점프 체공 시간 — 착지 자리가 끝에서 minSkid 보다 가까워질 점프는 받지 않는다(리뷰: 공중이면 제동이 못 시작해 미끄러짐이 통째로 빠짐)
   minSkid: 120,                     // 착지 뒤 최소 미끄러짐 거리(점프 거부 구간은 끝 앞 약 526px = 1초, 그 안에서 착지하면 짧게라도 미끄러진다)
   slashTime: 0.32, airSlashTime: 0.36,   // C 베기 / 공중 C 내려치기(사용자 정정: 한 바퀴가 아니라 위에서 아래로 휘두르는 점프 공격)
   landTime: 0.16,                   // 착지 웅크림(점프 시트 4번째 프레임) 동안은 달리기 프레임·발소리 없이 미끄러지듯 이어 달린다
@@ -26,20 +26,25 @@ export const RUNNER = Object.freeze({
 
 // 장애물(BUILD236 사용자 “나뭇잎 같은 게 떨어지거나 날아오거나 나뭇가지가 따라오는데 … 못 쳐내면 피가 10”): 종류별 크기·속도, 앞 거리(달리는 방향 기준)
 //   높이(h)는 땅에서 위로 잰 값. 베기 판정: 땅 베기 = 앞 8~62px × 높이 0~58, 공중 내려치기 = 앞 -6~54px × 높이 airY-24 ~ airY+62
+//   BUILD240(사용자 “나뭇잎 잘 안 보여 … 떨어지는 속도랑 반응할 수 있는 속도”): 나뭇잎은 화면 오른쪽 가장자리 밖(앞 380~440px)에서 나타나 몸 높이(arrive)에 딱 맞춰 닿도록 시작 높이를 역산한다(머리 위로 지나가 버리는 잎 없음),
+//   솔잎·가지는 절반 속도로 날아오고 간격은 1.5~2.3초. 그림은 draw 배로 키워 그리고(가시성) 판정 상자는 그대로. 굽이 길 자체는 420px/s(맵 meta.runs.<id>.speed)
 export const OBSTACLES = Object.freeze({
-  leaf:    { w: 20, h: 18, ahead: [220, 400], height: [120, 170], fall: [55, 85], drift: 40, sway: 22, hurt: 10, hitbox: 'body' },
-  leaf2:   { w: 20, h: 16, ahead: [220, 400], height: [120, 170], fall: [55, 85], drift: 40, sway: 22, hurt: 10, hitbox: 'body' },
-  needles: { w: 16, h: 10, ahead: [460, 520], height: [22, 34], fly: [250, 300], hurt: 10, hitbox: 'body' },
-  branch:  { w: 56, h: 18, ahead: [470, 540], height: [14, 20], fly: [190, 230], hurt: 10, hitbox: 'body' },
+  leaf:    { w: 20, h: 18, ahead: [380, 440], arrive: [10, 26], fall: [70, 110], drift: 30, sway: 22, hurt: 10, hitbox: 'body', draw: 1.6 },
+  leaf2:   { w: 20, h: 16, ahead: [380, 440], arrive: [10, 26], fall: [70, 110], drift: 30, sway: 22, hurt: 10, hitbox: 'body', draw: 1.6 },
+  needles: { w: 16, h: 10, ahead: [400, 460], height: [22, 34], fly: [120, 160], hurt: 10, hitbox: 'body', draw: 1.5 },
+  branch:  { w: 56, h: 18, ahead: [400, 470], height: [14, 20], fly: [130, 170], hurt: 10, hitbox: 'body', draw: 1.2 },
 });
-export const OBSTACLE_SPAWN = Object.freeze({ every: [0.9, 1.5], first: 1.2, types: ['leaf', 'needles', 'leaf2', 'branch', 'leaf', 'needles'] });
+export const OBSTACLE_SPAWN = Object.freeze({ every: [1.5, 2.3], first: 1.4, types: ['leaf', 'needles', 'leaf2', 'branch', 'leaf', 'needles'] });
+// 첫 나뭇잎 튜토리얼(BUILD240 사용자 “첫 나뭇잎 맞기 바로 직전에 멈춰서 C 를 누르라는 가이드, 그 전엔 조작을 잠시 막기”): createRunner({tutorial:true}) 이면
+//   pending(점프·베기 무시) → 첫 장애물이 앞 holdAt px 안(땅 베기 판정 8~62 의 끝)에 들면 hold(시간 정지, C 만 기다림) → C 로 done(그 틱에 베기 시작 → 쳐냄). 게임 플래그 flag 가 있으면 다시 안 한다
+export const TUTORIAL = Object.freeze({ holdAt: 60, flag: 'run_leaf_tutorial_done' });
 const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
 
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
-export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1 }) {
+export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false }) {
   return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), dir: dir < 0 ? -1 : 1, vx: 0, airY: 0, vy: 0, grounded: true,
     anim: 'prep', frame: 0, animT: 0, attack: null, tilt: 0, landT: 0, trail: [], trailT: 0,
-    obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0 };
+    obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0, tutorial: obstacles && tutorial ? 'pending' : null };
 }
 /** 결정적 난수(테스트 재현용) 0~1 */
 function rand01(s) { s.rng = (Math.imul(s.rng, 1664525) + 1013904223) >>> 0; return s.rng / 4294967296; }
@@ -50,6 +55,11 @@ const left = s => (s.endX - s.x) * s.dir;
 /** 한 틱. input = { jump, attack } (이번 틱에 눌림). 돌아오는 값은 이벤트 이름 배열: draw·dash·step·jump·land·slash·airslash·skid·skidstep·end */
 export function stepRunner(s, dt, input = {}) {
   const ev = [];
+  // 첫 나뭇잎 튜토리얼: hold 동안은 시간이 멈춘 채 C(attack)만 기다리고, 그 전(pending)엔 점프·베기를 받지 않는다
+  if (s.tutorial === 'hold') {
+    if (!input.attack) return ev;
+    s.tutorial = 'done'; ev.push('tutorial_done');
+  } else if (s.tutorial === 'pending') input = {};
   s.elapsed += dt;
   if (s.phase === 'done') return ev;
   if (s.phase === 'settle') {
@@ -129,9 +139,13 @@ function stepObstacles(s, dt, ev) {
       s.spawnT = lerp(...OBSTACLE_SPAWN.every, rand01(s));
       const type = OBSTACLE_SPAWN.types[s.spawnIdx % OBSTACLE_SPAWN.types.length]; s.spawnIdx += 1;
       const d = OBSTACLES[type];
-      const o = { type, x: s.x + s.dir * lerp(...d.ahead, rand01(s)), h: lerp(...d.height, rand01(s)), w: d.w, hh: d.h, t: 0, deflected: false, hit: false, spin: 0, phase: rand01(s) * 6.28 };
-      if (d.fall) { o.vh = -lerp(...d.fall, rand01(s)); o.vx = -s.dir * d.drift; o.sway = d.sway; }
-      else { o.vh = 0; o.vx = -s.dir * lerp(...d.fly, rand01(s)); }
+      const ahead = lerp(...d.ahead, rand01(s));
+      const o = { type, x: s.x + s.dir * ahead, h: d.height ? lerp(...d.height, rand01(s)) : 0, w: d.w, hh: d.h, t: 0, deflected: false, hit: false, spin: 0, phase: rand01(s) * 6.28 };
+      if (d.fall) {
+        o.vh = -lerp(...d.fall, rand01(s)); o.vx = -s.dir * d.drift; o.sway = d.sway;
+        // 떨어지는 잎: 몸 가운데에 닿는 순간 높이가 arrive 가 되도록 시작 높이를 역산(닿기까지 ahead / (달리기 + 마주 오는 drift) 초)
+        if (d.arrive) o.h = lerp(...d.arrive, rand01(s)) - o.vh * (ahead / (s.speed + d.drift));
+      } else { o.vh = 0; o.vx = -s.dir * lerp(...d.fly, rand01(s)); }
       s.obstacles.push(o);
     }
   }
@@ -146,6 +160,7 @@ function stepObstacles(s, dt, ev) {
     const relX = (o.x - px) * s.dir;   // 달리는 방향 기준 앞(+)
     const overlapX = (a, b) => relX + o.w / 2 > a && relX - o.w / 2 < b;
     const overlapH = (lo, hi) => o.h + o.hh > lo && o.h < hi;
+    if (s.tutorial === 'pending' && relX <= TUTORIAL.holdAt && relX > 16 && overlapH(0, 58)) { s.tutorial = 'hold'; ev.push('tutorial_hold'); break; }
     if (atk === 'slash' && overlapX(8, 62) && overlapH(0, 58)) { o.deflected = true; o.vx = s.dir * 420; o.vh = 260; s.deflectCount += 1; ev.push('deflect'); continue; }
     if (atk === 'airslash' && overlapX(-6, 54) && overlapH(s.airY - 24, s.airY + 62)) { o.deflected = true; o.vx = s.dir * 420; o.vh = 200; s.deflectCount += 1; ev.push('deflect'); continue; }
     if (!o.hit && s.invuln <= 0 && overlapX(-PLAYER_BOX.half, PLAYER_BOX.half) && overlapH(body.lo, body.hi)) { o.hit = true; o.dead = true; s.invuln = RUNNER.invuln; s.hurtCount += 1; ev.push('hurt'); }

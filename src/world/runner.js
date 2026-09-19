@@ -2,7 +2,8 @@
 //   파란 토리이를 지나면 형섭이 땅을 짚고 검을 뒤로 뽑고(weaponpull) → 잔상을 남기며 대시(wing) → 화면 왼쪽 22% 자리에서 계속 달린다(쿠키런처럼 카메라가 따라감).
 //   X 점프(jump), C 앞을 가르는 베기(델타룬 snd_swing) + 초승달 호, 공중 C 머리 위에서 아래로 내려치는 점프 공격(snd_criticalswing) + 세로 호, 착지 웅크림. 발 접촉 프레임마다 검은 물 위 물결 고리 + 물걸음 루프.
 //   스프라이트는 CHARACTER_MOTIONS.hyungsub.runner_*(오른쪽 옆모습, 걷기의 0.85 크기). 동료는 달리는 동안 숨겼다가 끝나면 뒤에 정렬.
-import { RUNNER, createRunner, stepRunner } from './runner-core.js';
+import { RUNNER, OBSTACLES, TUTORIAL, createRunner, stepRunner } from './runner-core.js';
+import { FONT } from '../ui/font.js';
 import { CHAR_SCALE } from './world.js';
 import { SCREEN_W, SCREEN_H } from '../core/layout.js';
 import { makeCanvas, loadImageOptional } from '../core/gfx.js';
@@ -18,8 +19,9 @@ const HURT_HP = 10;
 const TRAIL_COLOR = '#58c8ff';
 const SLASH_FX = 0.26;
 // 속도감(사용자 “배경이 달리는 느낌, 바람”): 화면을 가로지르는 바람 줄기(화면 좌표, 지형보다 빠르게 왼쪽으로), 바닥 물결 줄기(월드 좌표, 바닥보다 빠르게 뒤로), 발마다 튀는 물보라(월드 좌표, 뒤로 튀어 떨어짐)
-const WIND = Object.freeze({ dashRate: 70, runRate: 24, extra: [320, 640], len: [36, 120], alpha: [0.14, 0.42] });
-const STREAK = Object.freeze({ rate: 26, speed: [220, 420], len: [18, 48], alpha: [0.18, 0.4] });
+// BUILD240 사용자 “바람을 가르는 흰색 줄은 좋은데 너무 과한 것 같기도”: 줄기 수 약 40%↓, 밝기↓
+const WIND = Object.freeze({ dashRate: 44, runRate: 14, extra: [320, 640], len: [36, 120], alpha: [0.1, 0.3] });
+const STREAK = Object.freeze({ rate: 18, speed: [220, 420], len: [18, 48], alpha: [0.16, 0.34] });
 const SPRAY = Object.freeze({ count: 6, vx: [110, 300], vy: [90, 230], gravity: 620, life: [0.32, 0.5] });
 const rand = (a, b) => a + Math.random() * (b - a);
 
@@ -29,7 +31,8 @@ export class Runner {
     this.cfg = opts;   // 맵 meta.run / meta.runs.<id>: dir·endX·speed·obstacles·seed·outro·outroFlag·keepFollowersHidden
     const p = game.player;
     const dir = opts.dir < 0 ? -1 : 1;
-    this.core = createRunner({ x: p.x, endX: opts.endX ?? (dir > 0 ? game.map.pxW - 386 : 362), speed: opts.speed || RUNNER.speed, dir, obstacles: !!opts.obstacles, seed: opts.seed ?? 1 });
+    this.core = createRunner({ x: p.x, endX: opts.endX ?? (dir > 0 ? game.map.pxW - 386 : 362), speed: opts.speed || RUNNER.speed, dir, obstacles: !!opts.obstacles, seed: opts.seed ?? 1, tutorial: !!opts.tutorial && !game.has?.(TUTORIAL.flag) });
+    this.holdT = 0;
     if (opts.obstacles) preloadObstacleImages();
     this.groundY = p.y;
     this.fx = [];
@@ -57,8 +60,12 @@ export class Runner {
       if (ev === 'land') this.splash(p.x + p.w / 2, p.y + p.h - 1, 8);
       if (ev === 'deflect') this.fx.push({ kind: 'deflect', t: 0, dur: 0.22 });
       if (ev === 'hurt') this.hurt();
+      if (ev === 'tutorial_hold') { this.holdT = 0; g.sound?.walk?.(null); }
+      if (ev === 'tutorial_done') g.setFlag?.(TUTORIAL.flag);
       if (ev === 'end') this.finish();
     }
+    // 첫 나뭇잎 튜토리얼 정지: 이펙트·바람·물보라도 멈춘 채 C 표시만 통통 뛴다
+    if (s.tutorial === 'hold') { this.holdT += dt; if (g.runner === this) this.placeCamera(0.5); return; }
     if (this.skidSfxT !== undefined) { this.skidSfxT -= dt; if (this.skidSfxT <= 0) { this.skidSfxT = undefined; g.sound?.sfx('scrape'); this.sfxLog.push('scrape'); } }
     for (const f of this.fx) f.t += dt;
     this.fx = this.fx.filter((f) => f.t < f.dur);
@@ -70,8 +77,10 @@ export class Runner {
   /** 장애물에 맞음(BUILD236 사용자 “못 쳐내면 피가 10”): 주인공 HP −10(1 아래로는 안 내려감), 붉은 섬광·흔들림·무적은 game.hurtPlayer 가, 소리는 델타룬 snd_damage */
   hurt() {
     const g = this.game;
-    const id = g.party?.length !== undefined ? 'hyungsub' : 'hyungsub';
-    if (g.partyHp && g.hpOf) g.partyHp[id] = Math.max(1, g.hpOf(id) - HURT_HP);
+    const id = 'hyungsub';
+    // BUILD240: game.damageParty 가 1 아래로 안 내려가게 깎고 아래에 HP 띠(−10)를 잠깐 띄운다(사용자 “바깥에서 맞는 건 죽지 않음, 1은 항상 남김”)
+    if (g.damageParty) g.damageParty(id, HURT_HP);
+    else if (g.partyHp && g.hpOf) g.partyHp[id] = Math.max(1, g.hpOf(id) - HURT_HP);
     g.hurtPlayer?.(null, { silent: true, push: 0 });
     this.game.player.knock = null;
   }
@@ -89,7 +98,7 @@ export class Runner {
       while (this.windAcc >= 1) {
         this.windAcc -= 1;
         const len = rand(...WIND.len);
-        this.wind.push({ x: s.dir > 0 ? SCREEN_W + len : -len, y: rand(6, SCREEN_H - 6), len, v: rand(...WIND.extra), a: rand(...WIND.alpha) * (s.phase === 'dash' ? 1.3 : 1), thick: s.phase === 'dash' && Math.random() < 0.4 ? 2 : 1 });
+        this.wind.push({ x: s.dir > 0 ? SCREEN_W + len : -len, y: rand(6, SCREEN_H - 6), len, v: rand(...WIND.extra), a: rand(...WIND.alpha) * (s.phase === 'dash' ? 1.3 : 1), thick: s.phase === 'dash' && Math.random() < 0.25 ? 2 : 1 });
       }
       if (map) {
         const groundRow = Math.floor((this.groundY + g.player.h - 1) / 32);
@@ -181,16 +190,36 @@ export class Runner {
     if (!s.obstacles?.length) return;
     const groundY = p.y + p.h;
     for (const o of s.obstacles) {
-      const img = obstacleImage(o.type);
+      const img = obstacleImage(o.type), k = OBSTACLES[o.type]?.draw || 1;
       const cx = Math.round(o.x - cam.x), cy = Math.round(groundY - o.h - o.hh / 2 - cam.y);
+      if (!o.deflected) {
+        // 가시성(BUILD240 사용자 “나뭇잎 잘 안 보여”): 땅에 떨어질 자리 표시(어두운 타원 + 옅은 테두리)와 잎 뒤의 옅은 빛무리, 그림은 k 배
+        const gy = Math.round(groundY - cam.y) - 1, halo = (o.w + o.hh) / 2 * k * 0.6;
+        ctx.save(); ctx.beginPath(); ctx.ellipse(cx, gy, 10 * k, 3, 0, 0, Math.PI * 2); ctx.globalAlpha = 0.5; ctx.fillStyle = '#000'; ctx.fill(); ctx.globalAlpha = 0.7; ctx.strokeStyle = '#8fd0ff'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+        ctx.save(); ctx.globalAlpha = 0.22; ctx.fillStyle = '#e8ffd0'; ctx.beginPath(); ctx.arc(cx, cy, halo, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
       ctx.save(); ctx.translate(cx, cy);
       if (o.deflected) { ctx.rotate(o.spin); ctx.globalAlpha = Math.max(0, 1 - o.t / 0.6); }
       else if (o.sway) ctx.rotate(Math.sin(o.phase + o.t * 5) * 0.35);
       if (s.dir < 0) ctx.scale(-1, 1);
-      if (img) ctx.drawImage(img, -Math.round(img.width / 2), -Math.round(img.height / 2));
+      if (img) { const w = Math.round(img.width * k), h = Math.round(img.height * k); ctx.drawImage(img, -Math.round(w / 2), -Math.round(h / 2), w, h); }
       else { ctx.fillStyle = '#3f7a44'; ctx.fillRect(-o.w / 2, -o.hh / 2, o.w, o.hh); }
       ctx.restore();
+      if (s.tutorial === 'hold' && !o.deflected) this.drawTutorialTarget(ctx, cx, cy, k);
     }
+  }
+  /** 첫 나뭇잎 튜토리얼(BUILD240): 멈춘 화면에서 잎에 노란 고리, 머리 위에 C 키 표시가 통통 뛴다(대사 없음) */
+  drawTutorialTarget(ctx, cx, cy, k) {
+    const r = 14 * k + Math.sin(this.holdT * 8) * 2;
+    ctx.save(); ctx.globalAlpha = 0.85; ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  drawTutorialPrompt(ctx, ax, ay) {
+    const t = this.holdT, x = Math.round(ax) - 11, y = Math.round(ay) - 78 + Math.round(Math.sin(t * 6) * 3);
+    ctx.save(); ctx.globalAlpha = Math.min(1, t * 4);
+    ctx.fillStyle = '#000'; ctx.fillRect(x - 2, y - 2, 26, 26); ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 22, 22); ctx.fillStyle = '#000'; ctx.fillRect(x + 2, y + 2, 18, 18);
+    ctx.font = FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#fff'; ctx.fillText('C', x + 11, y + 3);
+    ctx.beginPath(); ctx.moveTo(x + 7, y + 26); ctx.lineTo(x + 15, y + 26); ctx.lineTo(x + 11, y + 31); ctx.closePath(); ctx.fill();
+    ctx.restore();
   }
   /** Player.drawSprite 대신 그린다: 잔상 → 그림자 → 프레임(회전) → 베기 호 / 회전 고리 */
   drawPlayer(ctx, cam) {
@@ -209,6 +238,7 @@ export class Runner {
     if (fr) this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.tilt);
     else { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(ax - 8), Math.round(ay - s.airY - 40), 16, 40); }
     this.drawObstacles(ctx, cam);
+    if (s.tutorial === 'hold') this.drawTutorialPrompt(ctx, ax, ay - s.airY);
     const D = s.dir;
     for (const f of this.fx) {
       const k = f.t / f.dur;

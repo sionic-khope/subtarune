@@ -87,6 +87,7 @@ class Game {
     this.settings = { textSpeed: 1, sound: true };
     this.state = 'title';          // title | field | menu | battle-preview
     this.fade = { alpha: 0, dir: 0, cb: null, color: '0,0,0' };
+    this.hpPopup = null;   // 전투 밖 피해 표시(BUILD240): { id, delta, t, dur }
     this.transitioning = false;
     this.debug = false;
     this.spriteOverrides = {};
@@ -219,7 +220,7 @@ class Game {
     this.battle?.disposeGimmick();
     this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0; this.attack = 1; this.hpBonus = 0;   // 공격력·최대 HP 보너스(레드·블루 버프)
     this.battle = null; this.lastBattle = null; this.battleFlag = null; this.encountering = false; this.ride = null;
-    this.runner?.finish?.(); this.runner = null;   // 러너 기믹(파란 토리이, BUILD230) — 있으면 자동 달리기·X 점프·C 베기가 입력을 가져간다. 리셋 경로에서도 카메라 잠금을 푼다
+    this.runner?.finish?.(); this.runner = null; this.hpPopup = null;   // 러너 기믹(파란 토리이, BUILD230) — 있으면 자동 달리기·X 점프·C 베기가 입력을 가져간다. 리셋 경로에서도 카메라 잠금을 푼다
   }
   /** 타이틀에서 '이어하기': 세이브를 통째로 복원 → 맵 → 위치 → 동료를 주인공 뒤에 다시 세움 → 그 뒤에야 도착 스크립트(플래그 안 섰으면 처음부터 다시) */
   continueGame() {
@@ -262,6 +263,23 @@ class Game {
 
   /** 낙석 등에 맞음: 붉은 섬광 + 흔들림 + 소리, 레인 왼쪽으로 밀려남(체력 없음 — 진행만 되돌림), 잠깐 무적. 동료는 뒤로 재정렬 */
   /** 피격(낙석 등): 붉은 섬광 + 흔들림 + 무적 0.9s + **왼쪽으로 슬라이드**(순간이동·벽 튕김 금지). silent:true 면 소리 없음(낙석). HP 없음 */
+  /** 전투 밖 피해 띠(BUILD240): 전투 HP 띠(battle.drawHpStrip)와 같은 자리·모양 — 초상화·이름·HP 바·숫자, 위에 붉은 −10 이 살짝 떠오른다. 0.2초 페이드 인 → 유지 → 0.45초 페이드 아웃 */
+  drawHpPopup(ctx) {
+    const pop = this.hpPopup, c = CHARACTERS[pop.id]; if (!c) return;
+    const a = pop.t < HP_POPUP.fadeIn ? pop.t / HP_POPUP.fadeIn : pop.t > pop.dur - HP_POPUP.fadeOut ? (pop.dur - pop.t) / HP_POPUP.fadeOut : 1;
+    const hp = this.hpOf(pop.id), max = this.maxHpOf(pop.id);
+    const x = HP_POPUP.x, y = HP_POPUP.y;
+    ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, a)); ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(x - 6, y - 4, HP_POPUP.w, 34);
+    const face = this.portraits?.[pop.id]; if (face) ctx.drawImage(face, x + 4, y + 2, 26, 26);
+    ctx.font = FONT; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText(c.name, x + 34, y + 6);
+    const nameW = Math.ceil(ctx.measureText(c.name).width), bx = x + 34 + nameW + 24, bw = 96;
+    ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.fillText('HP', bx - 19, y + 15);
+    ctx.fillStyle = '#7a1b1b'; ctx.fillRect(bx, y + 16, bw, 9); ctx.fillStyle = c.hpColor || '#ffd23b'; ctx.fillRect(bx, y + 16, Math.round(bw * hp / max), 9);
+    ctx.font = FONT; ctx.textAlign = 'right'; ctx.fillStyle = '#fff'; ctx.fillText(`${hp}/ ${max}`, bx + bw, y + 3);
+    const rise = Math.min(1, pop.t / 0.5); ctx.fillStyle = '#ff5c5c'; ctx.fillText(pop.delta > 0 ? `+${pop.delta}` : String(pop.delta), bx + bw, y - 14 - Math.round(rise * 8));
+    ctx.restore();
+  }
   hurtPlayer(src, { silent = false, dir = -1, push = 240 } = {}) {
     if (this.invuln > 0) return;
     this.invuln = 0.9; this.hurt = 0.32;
@@ -495,6 +513,14 @@ class Game {
   maxHpOf(id) { return (CHARACTERS[id]?.hp ?? 100) + (CHARACTERS[id]?.noHpBonus ? 0 : (this.hpBonus || 0)); }   // noHpBonus: 청소부(BUILD227)
   /** 현재 HP (전투 밖): partyHp 에 없으면 최대 */
   hpOf(id) { const max = this.maxHpOf(id); return Math.max(0, Math.min(max, this.partyHp[id] ?? max)); }
+  /** 전투 밖 피해(러너 장애물 등, BUILD240 사용자 “10씩 떨어질 때 체력 바를 아래에 잠깐 페이드 인·아웃으로 −10”, “바깥에서 맞는 건 죽지 않음, 1은 항상 남김”):
+   *  HP 는 1 아래로 내려가지 않고, 전투 HP 띠와 같은 모양의 띠가 화면 맨 아래에 잠깐 떴다 사라진다(drawHpPopup) */
+  damageParty(id, amount) {
+    const before = this.hpOf(id);
+    this.partyHp[id] = Math.max(1, before - amount);
+    this.hpPopup = { id, delta: this.partyHp[id] - before, t: 0, dur: HP_POPUP.dur };
+    return this.partyHp[id];
+  }
   /** 메뉴에서 힐템 사용: 인벤토리에서 빼고 partyHp 회복 (2026-09-10) */
   useItemOn(name, id) {
     const def = ITEMS[name]; if (!def?.heal) return false;
@@ -906,6 +932,7 @@ class Game {
       if (this.worldSpin.turns && this.worldSpin.angle >= Math.PI * 2 * this.worldSpin.turns) this.worldSpin = null;
     }
     if (this.hurt > 0) this.hurt -= dt;
+    if (this.hpPopup) { this.hpPopup.t += dt; if (this.hpPopup.t >= this.hpPopup.dur) this.hpPopup = null; }
     if (this.invuln > 0) this.invuln -= dt;
     for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }
     for (const e of this.entities) if (e.emote) { e.emote.t += dt; if (e.emote.t >= e.emote.life) e.emote = null; }   // 머리 위 이모트 수명
@@ -1225,6 +1252,7 @@ class Game {
     ctx.restore();
     drawYoungcleLoungeEffects(ctx, this, cam);
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+    if (this.hpPopup) this.drawHpPopup(ctx);
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
     if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
     this.sysdialog.draw(ctx);
@@ -1393,7 +1421,9 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-19.239';
+export const BUILD = '2026-09-19.241';
+// 전투 밖 피해 띠(BUILD240): 전투 HP 띠와 같은 y=322(화면 맨 아래), 왼쪽 20px, 1.6초
+const HP_POPUP = Object.freeze({ x: 20, y: 322, w: 236, dur: 1.6, fadeIn: 0.2, fadeOut: 0.45 });
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

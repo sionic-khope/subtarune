@@ -11,7 +11,7 @@ const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } 
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'run2_' + n + '.png') }); };
 const press = async key => { await page.keyboard.down(key); await page.waitForTimeout(60); await page.keyboard.up(key); };
 const until = (fn, ms) => page.waitForFunction(fn, null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false);
-const st = () => page.evaluate(() => { const g = window.game; const r = g.runner; const f = g.entities.find(e => e.def?.type === 'follower' && !e.dead); return { map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, hp: g.hpOf('hyungsub'), cam: [Math.round(g.camera.x), Math.round(g.camera.y)], locked: !!g.camera.locked, runner: r ? { phase: r.phase, dir: r.core.dir, vx: Math.round(r.core.vx), obstacles: r.core.obstacles?.length ?? -1, hurt: r.core.hurtCount, deflect: r.core.deflectCount, sfx: r.sfxLog.slice() } : null, follower: f ? { x: Math.round(f.x), y: Math.round(f.y), visible: f.visible !== false } : null }; });
+const st = () => page.evaluate(() => { const g = window.game; const r = g.runner; const f = g.entities.find(e => e.def?.type === 'follower' && !e.dead); return { map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, hp: g.hpOf('hyungsub'), cam: [Math.round(g.camera.x), Math.round(g.camera.y)], locked: !!g.camera.locked, runner: r ? { phase: r.phase, dir: r.core.dir, vx: Math.round(r.core.vx), obstacles: r.core.obstacles?.length ?? -1, hurt: r.core.hurtCount, deflect: r.core.deflectCount, grounded: r.core.grounded, tutorial: r.core.tutorial, sfx: r.sfxLog.slice() } : null, popup: !!g.hpPopup, follower: f ? { x: Math.round(f.x), y: Math.round(f.y), visible: f.visible !== false } : null }; });
 const go = async (key, cond, ms, run = true) => { await page.evaluate(c => { window.__cond = c; }, cond); if (run) await page.keyboard.down('KeyX'); await page.keyboard.down(key); const ok = await page.waitForFunction(() => new Function('g', 'return ' + window.__cond)(window.game), null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false); await page.keyboard.up(key); if (run) await page.keyboard.up('KeyX'); await page.waitForTimeout(100); return ok; };
 const line = async (text, capture) => {
   const seen = await page.waitForFunction(t => window.game.textbox.node?.text?.includes(t), text, { timeout: 12000, polling: 60 }).then(() => true).catch(() => false);
@@ -52,16 +52,27 @@ try {
   await page.keyboard.down('ArrowRight');
   check(await until(() => !!window.game.runner, 12000), '토리이 a 를 지나면 달린다');
   await page.keyboard.up('ArrowRight');
+  // 첫 나뭇잎 튜토리얼(BUILD240): 그 전엔 X 점프가 안 먹고, 맞기 직전에 멈춰 C 를 기다린다 → C 로 쳐낸다
+  const L = await page.evaluate(() => { const g = window.game; const rows = g.map.def.rows; const [[a0, a1], [b0, b1], [c0, c1]] = g.map.def.meta.runRoadRows; const cols = r => [...rows[r]].map((ch, i) => (ch === '*' || ch === '+' ? i : -1)).filter(i => i >= 0); const dr = cols(a1 + 1), dl = cols(b1 + 1); return { W: rows[0].length, b0, c0, dr0: dr[0], dl1: dl[dl.length - 1] }; });
+  await until(() => window.game.runner?.phase === 'run', 3000); await press('KeyX'); await page.waitForTimeout(150);
+  s = await st(); check(s.runner && s.runner.grounded && s.runner.tutorial === 'pending', '첫 나뭇잎 전엔 점프가 잠긴다 ' + JSON.stringify({ grounded: s.runner?.grounded, tutorial: s.runner?.tutorial }));
   check(await until(() => window.game.runner?.core.obstacles?.length > 0, 6000), '장애물이 나온다');
-  await page.waitForTimeout(400); await cap('01_obstacles');
+  await page.waitForTimeout(300); await cap('01_obstacles');
+  check(await until(() => window.game.runner?.core.tutorial === 'hold', 8000), '첫 나뭇잎 직전에 멈춘다');
+  const hx = await page.evaluate(() => window.game.runner.core.x); await page.waitForTimeout(400); await cap('01b_tutorial');
+  check(await page.evaluate(x => window.game.runner.core.x === x, hx), '멈춘 동안 안 움직인다');
+  await press('KeyC');
+  check(await until(() => window.game.runner?.core.tutorial === 'done' && window.game.runner.core.deflectCount >= 1 && window.game.flags.run_leaf_tutorial_done, 3000), 'C 로 첫 나뭇잎을 쳐내고 튜토리얼 끝(플래그)');
+  check(await until(() => !!window.game.hpPopup, 15000), '맞으면 아래에 HP 띠가 뜬다');
+  await page.waitForTimeout(250); await cap('01c_hp');
   await runThrough(false, null);
   s = await st();
   const runsA = await page.evaluate(() => window.game.map.def.meta.runs.a);
   check(!s.runner && s.px >= runsA.endX - 4 && s.hp < hp0 && s.follower && !s.follower.visible, `A 끝: 맞아서 HP 가 줄었고(${hp0} → ${s.hp}) 청소부는 아직 없다`);
   check((hp0 - s.hp) % 10 === 0 && hp0 - s.hp >= 10, '맞을 때마다 10씩');
   // 밑길로 → B 길 → 왼쪽으로 토리이 b
-  check(await go('ArrowRight', 'g.player.x >= 112 * 32 + 4', 6000), '오른쪽 밑길 앞');
-  check(await go('ArrowDown', 'g.player.y >= 16 * 32 + 4', 8000), '밑길로 내려온다');
+  check(await go('ArrowRight', `g.player.x >= ${L.dr0 * 32 + 4}`, 6000), '오른쪽 밑길 앞');
+  check(await go('ArrowDown', `g.player.y >= ${L.b0 * 32 + 4}`, 8000), '밑길로 내려온다');
   await page.keyboard.down('ArrowLeft');
   check(await until(() => !!window.game.runner, 12000), '토리이 b 를 왼쪽으로 지나면 달린다');
   await page.keyboard.up('ArrowLeft');
@@ -77,8 +88,8 @@ try {
   const log = await page.evaluate(() => window.__lastRunner || null);
   check(!s.runner && s.px <= runsB.endX + 4, `B 끝(${runsB.endX})에서 멈춘다 ` + s.px);
   // 밑길 → C 길 → 토리이 c
-  check(await go('ArrowLeft', 'g.player.x <= 7 * 32 + 4', 6000), '왼쪽 밑길 앞');
-  check(await go('ArrowDown', 'g.player.y >= 24 * 32 + 4', 8000), '밑길로 내려온다');
+  check(await go('ArrowLeft', `g.player.x <= ${L.dl1 * 32 + 4}`, 6000), '왼쪽 밑길 앞');
+  check(await go('ArrowDown', `g.player.y >= ${L.c0 * 32 + 4}`, 8000), '밑길로 내려온다');
   await page.evaluate(() => { const g = window.game; window.__stats = { deflect: 0, hurt: 0 }; });
   await page.keyboard.down('ArrowRight');
   check(await until(() => !!window.game.runner, 12000), '토리이 c 를 지나면 달린다');
@@ -99,7 +110,7 @@ try {
   check(await until(() => !window.game.dialogue.running && window.game.flags.run2_outro_done, 12000), '대사 뒤 합류');
   await page.waitForTimeout(500); s = await st(); await cap('05_end');
   check(s.follower && s.follower.visible && s.follower.x < s.px, '다시 뒤에 선다 ' + JSON.stringify(s.follower));
-  check(await go('ArrowRight', 'g.player.x >= 118 * 32', 8000), '오른쪽 끝(다음 맵 대기)');
+  check(await go('ArrowRight', `g.player.x >= ${(L.W - 2) * 32}`, 8000), '오른쪽 끝(다음 맵 대기)');
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }
 console.log('fails=' + fails); await browser.close(); process.exit(fails ? 1 : 0);

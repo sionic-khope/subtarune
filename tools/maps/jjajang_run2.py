@@ -10,7 +10,7 @@
 "다음 맵 토리이 활용한 오른쪽 그리고 밑길, 다시 왼쪽 토리이 밑길 다시 오른쪽 토리이 … 중간중간 달리면서 나뭇잎 같은 게 떨어지거나 날아오거나 나뭇가지가 따라오는데
 공격으로 하면 효과음과 함께 쳐낼 수 있고 만약 못 쳐내면 피가 10 깎이는 거 … 그 맵에 들어서면 다시 청소부가 ‘껄껄 이번에도 한번 잘 해보게 그럼 이따보게’ 하고 사라지고 맵 끝으로 다시 가는 것도"
 - 파란 토리이 길 오른쪽 끝에서 왼쪽 가장자리(A 길 8~9행)로 들어온다. A: 오른쪽으로(토리이 → 러너 dir +1) → 오른쪽 끝에서 밑길(112~113열) → B: 왼쪽으로(토리이 → 러너 dir −1) → 왼쪽 끝에서 밑길(6~7열) → C: 오른쪽으로(토리이 → 러너 dir +1) → 오른쪽 끝(다음 맵 대기).
-- 세 달리기 모두 장애물(나뭇잎 낙하·솔잎 날아옴·나뭇가지): meta.runs.<id>.obstacles. 바닥은 검은 물 '*', 지역 자산은 파란 토리이 길과 같다.
+- 세 달리기 모두 장애물(나뭇잎 낙하·솔잎 날아옴·나뭇가지): meta.runs.<id>.obstacles. BUILD240: 길 170열·속도 420, A 의 첫 나뭇잎은 튜토리얼(meta.runs.a.tutorial: 맞기 직전 정지 → C). 바닥은 검은 물 '*', 지역 자산은 파란 토리이 길과 같다.
 - 입구 트리거(3~4열, 스폰 칸 밖) → jjajang_run2_enter(청소부 한마디 → 휘리릭 사라짐, 한 번). C 달리기 끝 → outro(청소부가 오른쪽에서 걸어와 다시 합류, 대사 없음). A·B 끝은 동료를 숨긴 채 둔다(keepFollowersHidden)."""
 from __future__ import annotations
 
@@ -20,18 +20,18 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'jjajang_run2'
-WIDTH: Final = 120
+WIDTH: Final = 170                # BUILD240 사용자 “길을 더 길게”: 120 → 170 (달리기 한 구간 ≈ 4600px / 420px/s ≈ 11초)
 HEIGHT: Final = 28
 TILE: Final = 32
 ROWS_A: Final = (8, 9)            # 오른쪽으로
 ROWS_B: Final = (16, 17)          # 왼쪽으로
 ROWS_C: Final = (24, 25)          # 오른쪽으로
-DOWN_RIGHT: Final = (112, 113)    # A 끝 → B 로 내려가는 밑길
+DOWN_RIGHT: Final = (162, 163)    # A 끝 → B 로 내려가는 밑길
 DOWN_LEFT: Final = (6, 7)         # B 끝 → C 로 내려가는 밑길
 TORII_A: Final = 10               # 가까운 기둥 밑동 칸(A, 오른쪽으로 지남)
-TORII_B: Final = 104              # (B, 왼쪽으로 지남)
+TORII_B: Final = 154              # (B, 왼쪽으로 지남)
 TORII_C: Final = 10               # (C, 오른쪽으로 지남)
-RUN_SPEED: Final = 520
+RUN_SPEED: Final = 420            # BUILD240 “반응할 수 있는 속도”: 파란 토리이 길 520 보다 느리게(화면 앞 362px 를 0.86초에)
 CAM_LEFT: Final = 0.22
 SCREEN_W: Final = 480
 NEAR_BASE: Final = (57.0, 285.3)
@@ -116,7 +116,7 @@ def build_map() -> dict[str, object]:
     end_b = int(SCREEN_W * (1 - CAM_LEFT)) - 12                                 # 카메라 최소 x = 0 에서 캐릭터 가운데가 78%
     end_c = px_w - SCREEN_W + int(SCREEN_W * CAM_LEFT) - 12
     runs = {
-        'a': {'dir': 1, 'endX': end_a, 'speed': RUN_SPEED, 'obstacles': True, 'seed': 11, 'keepFollowersHidden': True},
+        'a': {'dir': 1, 'endX': end_a, 'speed': RUN_SPEED, 'obstacles': True, 'seed': 11, 'keepFollowersHidden': True, 'tutorial': True},   # 첫 나뭇잎 튜토리얼(BUILD240)은 A 에서만
         'b': {'dir': -1, 'endX': end_b, 'speed': RUN_SPEED, 'obstacles': True, 'seed': 23, 'keepFollowersHidden': True},
         'c': {'dir': 1, 'endX': end_c, 'speed': RUN_SPEED, 'obstacles': True, 'seed': 37, 'outro': 'jjajang_run2_outro', 'outroFlag': 'run2_outro_done'},
     }
@@ -124,7 +124,7 @@ def build_map() -> dict[str, object]:
         {'type': 'trigger', 'id': 'run2_enter_trigger', 'x': 3 * TILE, 'y': ROWS_A[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
          'once': True, 'flag': 'run2_enter_started', 'unless': 'run2_enter_done', 'script': 'jjajang_run2_enter'},
         {'type': 'trigger', 'id': 'run2_torii_a', 'x': (TORII_A + 2) * TILE, 'y': ROWS_A[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_a'},
-        {'type': 'trigger', 'id': 'run2_torii_b', 'x': (TORII_B - 3) * TILE, 'y': ROWS_B[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_b'},   # 가까운 기둥(104열) 왼쪽 = 왼쪽으로 지난 자리
+        {'type': 'trigger', 'id': 'run2_torii_b', 'x': (TORII_B - 3) * TILE, 'y': ROWS_B[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_b'},   # 가까운 기둥(154열) 왼쪽 = 왼쪽으로 지난 자리
         {'type': 'trigger', 'id': 'run2_torii_c', 'x': (TORII_C + 2) * TILE, 'y': ROWS_C[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_c'},
     ]
     assert triggers[1]['x'] + triggers[1]['w'] < end_a - RUN_SPEED and end_a < DOWN_RIGHT[0] * TILE, 'A 구간'

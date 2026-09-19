@@ -6,25 +6,29 @@ import { readFileSync, existsSync } from 'node:fs';
 import { jjajang_run2_enter, jjajang_run2_start_a, jjajang_run2_start_b, jjajang_run2_outro } from '../../src/data/cutscenes/jjajang_run2.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { QA_POINTS, storyBgm, JJAJANG_AFTER_JOIN_MAPS } from '../../src/core/story.js';
-import { RUNNER, OBSTACLES, OBSTACLE_SPAWN, createRunner, stepRunner } from '../../src/world/runner-core.js';
+import { RUNNER, OBSTACLES, OBSTACLE_SPAWN, TUTORIAL, createRunner, stepRunner } from '../../src/world/runner-core.js';
 
 const map = JSON.parse(readFileSync(new URL('../../assets/maps/jjajang_run2.json', import.meta.url), 'utf8'));
 const prev = JSON.parse(readFileSync(new URL('../../assets/maps/jjajang_run.json', import.meta.url), 'utf8'));
 const rows = map.rows;
 const W = rows[0].length;
 const walk = (c, r) => rows[r]?.[c] === '*' || rows[r]?.[c] === '+';
+const colsIn = r => [...rows[r]].map((ch, i) => (ch === '*' || ch === '+' ? i : -1)).filter(i => i >= 0);   // 그 행의 걷는 칸(밑길 열은 맵에서 읽는다 — 길이가 바뀌어도 검사가 따라간다)
 const DT = 1 / 60;
 const run = (s, seconds, input = {}) => { const ev = []; for (let t = 0; t < seconds; t += DT) ev.push(...stepRunner(s, DT, input)); return ev; };
 
 test('test_run2_map_zigzags_right_down_left_down_right_with_three_torii', () => {
   const [[a0, a1], [b0, b1], [c0, c1]] = map.meta.runRoadRows;
   assert.ok(a0 < b0 && b0 < c0, '위에서 아래로 A·B·C');
-  for (let c = 1; c <= 113; c++) assert.ok(walk(c, a0) && walk(c, a1), `A ${c}`);
-  for (let c = 6; c <= 113; c++) assert.ok(walk(c, b0) && walk(c, b1), `B ${c}`);
-  for (let c = 6; c < W; c++) assert.ok(walk(c, c0) && walk(c, c1), `C ${c}`);
-  for (let r = a0; r <= b1; r++) assert.ok(walk(112, r) && walk(113, r), `오른쪽 밑길 ${r}`);
-  for (let r = b0; r <= c1; r++) assert.ok(walk(6, r) && walk(7, r), `왼쪽 밑길 ${r}`);
-  assert.ok(!walk(60, a1 + 1) && !walk(60, b0 - 1) && !walk(3, b0) && !walk(116, b0), '길 밖은 숲');
+  const DR = colsIn(a1 + 1), DL = colsIn(b1 + 1);
+  assert.deepEqual([DR.length, DL.length], [2, 2], '밑길은 두 칸씩'); assert.ok(DR[0] > W - 12 && DL[0] < 12, '오른쪽 밑길은 오른쪽 끝, 왼쪽 밑길은 왼쪽 끝');
+  assert.ok(W >= 170, `길이 더 길게(BUILD240): ${W}열`);
+  for (let c = 1; c <= DR[1]; c++) assert.ok(walk(c, a0) && walk(c, a1), `A ${c}`);
+  for (let c = DL[0]; c <= DR[1]; c++) assert.ok(walk(c, b0) && walk(c, b1), `B ${c}`);
+  for (let c = DL[0]; c < W; c++) assert.ok(walk(c, c0) && walk(c, c1), `C ${c}`);
+  for (let r = a0; r <= b1; r++) assert.ok(walk(DR[0], r) && walk(DR[1], r), `오른쪽 밑길 ${r}`);
+  for (let r = b0; r <= c1; r++) assert.ok(walk(DL[0], r) && walk(DL[1], r), `왼쪽 밑길 ${r}`);
+  assert.ok(!walk(60, a1 + 1) && !walk(60, b0 - 1) && !walk(DL[0] - 3, b0) && !walk(DR[1] + 3, b0), '길 밖은 숲');
   assert.equal(rows[a0][0], '+'); assert.equal(rows[c0][W - 1], '+');
   for (const [tag, rr] of [['a', [a0, a1]], ['b', [b0, b1]], ['c', [c0, c1]]]) {
     const front = map.entities.find(e => e.id === `jjajang_torii_blue_${tag}_front`), back = map.entities.find(e => e.id === `jjajang_torii_blue_${tag}_back`);
@@ -43,6 +47,9 @@ test('test_run2_triggers_runs_and_camera_framing', () => {
   assert.deepEqual([runs.a.dir, runs.b.dir, runs.c.dir], [1, -1, 1], 'A 오른쪽, B 왼쪽, C 오른쪽');
   assert.ok(runs.a.obstacles && runs.b.obstacles && runs.c.obstacles, '세 구간 모두 장애물');
   assert.ok(runs.a.keepFollowersHidden && runs.b.keepFollowersHidden && !runs.c.keepFollowersHidden, 'A·B 끝은 청소부가 사라진 채, C 끝에 돌아온다');
+  assert.ok(runs.a.tutorial === true && !runs.b.tutorial && !runs.c.tutorial, '첫 나뭇잎 튜토리얼은 A 에서만(BUILD240)');
+  assert.ok(runs.a.speed <= 440 && runs.a.speed === runs.b.speed && runs.b.speed === runs.c.speed, `굽이 길은 반응할 수 있는 속도(${runs.a.speed})`);
+  assert.ok((runs.a.endX - map.entities.find(e => e.id === 'run2_torii_a').x) / runs.a.speed >= 9, 'A 달리기 9초 이상(길게)');
   assert.deepEqual([runs.c.outro, runs.c.outroFlag], ['jjajang_run2_outro', 'run2_outro_done']);
   const pxW = W * 32;
   assert.ok(Math.abs((runs.a.endX + 12) - Math.min(runs.a.endX + 12 - 480 * 0.22, pxW - 480) - 480 * 0.22) <= 8, 'A 끝: 카메라가 캐릭터를 22% 에 둘 수 있다');
@@ -91,6 +98,42 @@ test('test_run2_enter_outro_and_start_scripts', () => {
   jjajang_run2_start_b[0].action(game); assert.equal(calls.length, 1, '오른쪽을 보며 b 트리거를 밟으면 안 켜짐');
   game.player.facing = 'left'; jjajang_run2_start_b[0].action(game); assert.equal(calls.length, 2); assert.equal(calls[1].dir, -1);
   game.runner = {}; jjajang_run2_start_a[0].action(game); assert.equal(calls.length, 2, '달리는 중엔 무시');
+});
+
+test('test_run2_first_leaf_tutorial_locks_input_then_holds_until_c', () => {
+  const s = createRunner({ x: 0, endX: 100000, obstacles: true, seed: 11, tutorial: true });
+  assert.equal(s.tutorial, 'pending');
+  run(s, RUNNER.prepTime + RUNNER.dashTime + 0.2);
+  assert.deepEqual(stepRunner(s, DT, { jump: true }).filter(e => e === 'jump'), [], '첫 나뭇잎 전엔 점프 잠금'); assert.ok(s.grounded);
+  assert.deepEqual(stepRunner(s, DT, { attack: true }).filter(e => e === 'slash'), [], '베기도 잠금'); assert.equal(s.attack, null);
+  let t = 0, held = false; while (t < 8 && !held) { held = stepRunner(s, DT).includes('tutorial_hold'); t += DT; }
+  assert.ok(held && s.tutorial === 'hold', '첫 나뭇잎 직전에 멈춘다');
+  const leaf = s.obstacles.find(o => !o.deflected), rel = leaf.x - (s.x + 12);
+  assert.ok(leaf.type === 'leaf' && rel > 16 && rel <= TUTORIAL.holdAt && leaf.h >= 0 && leaf.h + leaf.hh < 58, `첫 잎이 베기 판정(8~62 × 0~58) 안 (${rel.toFixed(0)}px, h ${leaf.h.toFixed(0)})`);
+  const x0 = s.x, e0 = s.elapsed; for (let i = 0; i < 120; i++) assert.deepEqual(stepRunner(s, DT, { jump: true }), []);
+  assert.ok(s.x === x0 && s.elapsed === e0 && s.tutorial === 'hold', 'C 전엔 시간이 멈춘다(점프도 무시)');
+  const ev = stepRunner(s, DT, { attack: true });
+  assert.ok(ev.includes('tutorial_done') && ev.includes('slash') && s.tutorial === 'done', 'C: 튜토리얼 끝 + 그 틱에 베기');
+  let deflected = false; for (let i = 0; i < 30 && !deflected; i++) deflected = stepRunner(s, DT).includes('deflect');
+  assert.ok(deflected && s.hurtCount === 0 && s.deflectCount === 1, 'C 를 누르면 그 잎을 쳐낸다');
+  while (s.attack) stepRunner(s, DT);
+  assert.ok(stepRunner(s, DT, { jump: true }).includes('jump'), '그 뒤엔 점프가 된다');
+  const n = createRunner({ x: 0, endX: 100000, obstacles: true, seed: 11 }); run(n, 5); assert.equal(n.tutorial, null, '튜토리얼 없는 달리기는 그대로');
+  assert.equal(createRunner({ x: 0, endX: 100, tutorial: true }).tutorial, null, '장애물 없는 달리기엔 튜토리얼도 없다');
+});
+
+test('test_run2_leaves_arrive_at_body_height_and_reaction_tuning', () => {
+  // 잎마다 몸 가운데를 지날 때 높이가 몸 상자 안이라 베거나 뛰어넘지 않으면 반드시 맞는다(전엔 머리 위로 지나가는 잎이 많았다)
+  const s = createRunner({ x: 0, endX: 100000, obstacles: true, seed: 11 });
+  const seen = new Set();
+  for (let t = 0; t < 16; t += DT) { stepRunner(s, DT); for (const o of s.obstacles) if (o.type === 'leaf' || o.type === 'leaf2') seen.add(o); }
+  const passed = [...seen].filter(o => (o.x - (s.x + 12)) * s.dir < -20 || o.dead);
+  assert.ok(passed.length >= 3, `지나간 잎 ${passed.length}`);
+  for (const o of passed) assert.ok(o.hit, `${o.type} 가 맞지 않고 지나감(h ${o.h.toFixed(0)})`);
+  assert.ok(s.hurtCount >= passed.length, `맞은 수(${s.hurtCount})는 지나간 잎 수(${passed.length}) 이상`);
+  assert.ok(Math.abs(RUNNER.jumpV * RUNNER.jumpV / (2 * RUNNER.gravity) - 84 * 1.1) < 2.5, '점프 높이 84 → 92px(+10%, BUILD240)');
+  assert.ok(OBSTACLE_SPAWN.every[0] >= 1.4 && OBSTACLES.needles.fly[1] <= 160 && OBSTACLES.branch.fly[1] <= 170, '반응할 시간(간격·속도)');
+  assert.ok(OBSTACLES.leaf.draw >= 1.5 && OBSTACLES.leaf.ahead[0] >= 362, '잎은 크게 그리고 화면 가장자리부터 보인다');
 });
 
 test('test_runner_core_runs_left_and_obstacles_deflect_or_hurt', () => {
