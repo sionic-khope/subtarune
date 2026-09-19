@@ -1,5 +1,5 @@
 // 토리이 굽이 길(BUILD236): A 오른쪽 → 밑길 → B 왼쪽 → 밑길 → C 오른쪽, 토리이 셋(각 길 위·아래 칸), 방향별 트리거·meta.runs(끝 자리는 카메라 구도 안), 장애물 켜짐,
-// 입구 청소부 한마디·휘리릭·사라짐, C 끝 outro(대사 없이 걸어와 합류), 러너 상태기계의 왼쪽 달리기·장애물(쳐냄·맞음)
+// 입구 청소부 한마디·휘리릭·사라짐, C 끝 outro(걸어와 “껄껄 이제 적응좀 됐나보구만” + 웃음 뒤 합류), 러너 상태기계의 왼쪽 달리기·장애물(쳐냄·맞음)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -77,10 +77,13 @@ test('test_run2_enter_outro_and_start_scripts', () => {
   const whoosh = jjajang_run2_enter.findIndex(n => Array.isArray(n.parallel) && n.parallel.some(b => b.sfx === 'wing'));
   const hide = jjajang_run2_enter.findIndex(n => n.hide === 'janitor');
   assert.ok(li < whoosh && whoosh < hide && jjajang_run2_enter.some(n => n.set?.run2_enter_done), '웃음 → 휘리릭 → 사라짐 → 플래그');
-  assert.equal(jjajang_run2_outro.filter(n => n.text).length, 0, '맵 끝 합류엔 대사 없음(브리핑에 없음)');
+  const outroLines = jjajang_run2_outro.filter(n => n.text).map(n => n.text);
+  assert.deepEqual(outroLines, ['* 껄껄 이제 적응좀 됐나보구만'], '맵 끝 합류 대사(사용자 문장 그대로)');
+  const oli = jjajang_run2_outro.findIndex(n => n.motion === 'janitor' && n.name === 'laugh');
+  assert.ok(oli > 0 && jjajang_run2_outro[oli - 1].text.startsWith('* 껄껄') && jjajang_run2_outro[oli].sfx === 'laugh_janitor', '껄껄 뒤 웃음');
   const moves = jjajang_run2_outro.filter(n => n.move === 'janitor');
   assert.equal(moves.length, 2); assert.ok(moves[1].speed <= 60 && moves[1].footsteps);
-  assert.ok(jjajang_run2_outro.findIndex(n => n.show === 'janitor') < jjajang_run2_outro.indexOf(moves[1]) && jjajang_run2_outro.findIndex(n => n.regroup) > jjajang_run2_outro.findIndex(n => n.set?.run2_outro_done));
+  assert.ok(jjajang_run2_outro.findIndex(n => n.show === 'janitor') < jjajang_run2_outro.indexOf(moves[1]) && jjajang_run2_outro.indexOf(moves[1]) < oli && jjajang_run2_outro.findIndex(n => n.regroup) > jjajang_run2_outro.findIndex(n => n.set?.run2_outro_done), '걸어온 뒤 대사, 플래그 뒤 합류');
   // 시작 스크립트: 그 방향을 볼 때만, 맵 meta.runs 의 설정으로
   const calls = [];
   const game = { runner: null, player: { facing: 'right' }, map: { def: { meta: { runs: map.meta.runs } } }, startRunner: cfg => calls.push(cfg) };

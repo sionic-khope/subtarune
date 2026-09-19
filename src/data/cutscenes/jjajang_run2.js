@@ -1,6 +1,6 @@
 // 토리이 굽이 길(jjajang_run2) — 세 토리이 달리기 + 장애물 (BUILD236 사용자 브리핑 2026-09-19, 원문은 design/narrative/cutscenes/jjajang_run2.md)
 //   들어서면 청소부: 껄껄 이번에도 한번 잘 해보게 그럼 이따보게 → 휘리릭 사라짐. 토리이 a(오른쪽)·b(왼쪽)·c(오른쪽)를 지나면 그 방향으로 러너(장애물 있음).
-//   c 달리기가 끝나면 청소부가 오른쪽에서 걸어와 다시 뒤에 합류(대사 없음 — 브리핑에 없음)
+//   c 달리기가 끝나면 청소부가 오른쪽에서 걸어와 “껄껄 이제 적응좀 됐나보구만”(껄껄 뒤 웃음) 하고 다시 뒤에 합류(BUILD238 사용자 대사 2026-09-19)
 const C = text => ({ speaker: '청소부', portrait: 'janitor', voice: 'janitor', text: `* ${text}` });
 const close = { action: game => game.textbox.close() };
 const laugh = () => ({ motion: JANITOR, name: 'laugh', sfx: 'laugh_janitor' });
@@ -36,7 +36,7 @@ export const jjajang_run2_start_a = [startRun('a'), { end: true }];
 export const jjajang_run2_start_b = [startRun('b'), { end: true }];
 export const jjajang_run2_start_c = [startRun('c'), { end: true }];
 
-// 맵 끝(c 달리기 뒤): 청소부가 오른쪽 화면 밖에서 천천히 걸어와 요플래 앞에 선 뒤 다시 동료로
+// 맵 끝(c 달리기 뒤): 청소부가 오른쪽 화면 밖에서 천천히 걸어와 요플래 앞에 서서 한마디(껄껄 뒤 웃음) → 다시 동료로
 export const jjajang_run2_outro = [
   { if: flags => flags.run2_outro_done || !flags.torii_janitor_joined, goto: 'end' },
   { hide: JANITOR },
@@ -46,7 +46,10 @@ export const jjajang_run2_outro = [
   { show: JANITOR },
   { move: JANITOR, px: game => [game.player.x + OUTRO_STOP_GAP, game.player.y], exact: true, speed: OUTRO_WALK_SPEED, footsteps: true },
   { face: JANITOR, dir: 'left' },
-  { wait: 0.4 },
+  { wait: 0.3 },
+  C('껄껄 이제 적응좀 됐나보구만'),
+  laugh(),
+  close,
   { set: { run2_outro_done: true } },
   { regroup: true },
   { label: 'end' },

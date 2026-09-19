@@ -1,5 +1,5 @@
 // 토리이 굽이 길(BUILD236): 입구에서 청소부 한마디(껄껄 웃음) → 휘리릭 사라짐 → 토리이 a 오른쪽 달리기(장애물: C 로 쳐내면 deflect, 못 쳐내면 HP −10)
-//   → 끝에서 멈춤(청소부는 사라진 채) → 밑길 → 토리이 b 왼쪽 달리기(스프라이트 반전, 카메라 오른쪽) → 밑길 → 토리이 c 오른쪽 달리기 → 끝에서 청소부가 걸어와 합류. 실행: tests/playtest/run.sh jjajang-run2
+//   → 끝에서 멈춤(청소부는 사라진 채) → 밑길 → 토리이 b 왼쪽 달리기(스프라이트 반전, 카메라 오른쪽) → 밑길 → 토리이 c 오른쪽 달리기 → 끝에서 청소부가 걸어와 “껄껄 이제 적응좀 됐나보구만”(웃음) 뒤 합류. 실행: tests/playtest/run.sh jjajang-run2
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -94,7 +94,9 @@ try {
   // 끝: 청소부가 오른쪽에서 걸어와 합류
   check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && j.visible !== false && j.x > window.game.player.x + 150; }, 4000), '청소부가 오른쪽 멀리서 나타난다');
   await page.waitForTimeout(1200); await cap('04_walk_in');
-  check(await until(() => !window.game.dialogue.running && window.game.flags.run2_outro_done, 12000), '대사 없이 합류');
+  await line('이제 적응좀 됐나보구만', '04b_line');
+  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000), '껄껄 뒤에 웃는다');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.run2_outro_done, 12000), '대사 뒤 합류');
   await page.waitForTimeout(500); s = await st(); await cap('05_end');
   check(s.follower && s.follower.visible && s.follower.x < s.px, '다시 뒤에 선다 ' + JSON.stringify(s.follower));
   check(await go('ArrowRight', 'g.player.x >= 118 * 32', 8000), '오른쪽 끝(다음 맵 대기)');
