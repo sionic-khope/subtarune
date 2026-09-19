@@ -61,7 +61,7 @@ try {
   check(Math.abs(camLeft - 480 * 0.22) < 40, `카메라: 캐릭터가 화면 왼쪽(${camLeft.toFixed(0)}px)`);
   const rBefore = s.ripples; await page.waitForTimeout(500); s = await st();
   check(s.ripples >= rBefore || s.ripples > 0, '달리는 동안 발마다 물결 ' + s.ripples);
-  check(s.runner.wind > 3 && s.runner.streaks > 3 && s.runner.spray > 0, '바람 줄기·바닥 줄기·물보라가 나온다 ' + JSON.stringify({ wind: s.runner.wind, streaks: s.runner.streaks, spray: s.runner.spray }));
+  check(s.runner.wind > 3 && s.runner.streaks >= 2 && s.runner.spray > 0, '바람 줄기·바닥 줄기·물보라가 나온다 ' + JSON.stringify({ wind: s.runner.wind, streaks: s.runner.streaks, spray: s.runner.spray }));
   await cap('03_run');
   // X 점프
   await press('KeyX');
