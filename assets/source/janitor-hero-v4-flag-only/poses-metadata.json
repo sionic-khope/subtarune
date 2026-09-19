@@ -1,0 +1,59 @@
+{
+  "cell": [
+    192,
+    192
+  ],
+  "hero_pivot": [
+    138,
+    180
+  ],
+  "flag_pivot": [
+    96,
+    96
+  ],
+  "flag_scale": 0.12,
+  "flag_size": [
+    169,
+    67
+  ],
+  "records": [
+    {
+      "pose": "stand",
+      "outside_flag_changed_pixels": 0,
+      "regions": [
+        [
+          0,
+          0,
+          114,
+          118
+        ],
+        [
+          0,
+          118,
+          103,
+          134
+        ]
+      ],
+      "flag_translation_x": 0
+    },
+    {
+      "pose": "laugh",
+      "outside_flag_changed_pixels": 0,
+      "regions": [
+        [
+          0,
+          0,
+          110,
+          118
+        ],
+        [
+          0,
+          118,
+          101,
+          134
+        ]
+      ],
+      "flag_translation_x": -5
+    }
+  ]
+}

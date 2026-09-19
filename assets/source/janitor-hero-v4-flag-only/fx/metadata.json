@@ -1,0 +1,81 @@
+{
+  "cell": [
+    128,
+    128
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "pivot": [
+    64,
+    64
+  ],
+  "runtime_fps": 16,
+  "preview_duration_ms": 60,
+  "scale": 0.16,
+  "component_mode": "all",
+  "processing": "Alpha below240 removed; keptalpha255; originalRGB; uniformnearest. Rawcellcenterfixed, all survivingcomponentsretained.",
+  "records": [
+    {
+      "frame": 0,
+      "raw_bounds": [
+        184,
+        102,
+        631,
+        455
+      ],
+      "visible_bounds": [
+        32,
+        39,
+        104,
+        95
+      ]
+    },
+    {
+      "frame": 1,
+      "raw_bounds": [
+        93,
+        84,
+        666,
+        476
+      ],
+      "visible_bounds": [
+        17,
+        36,
+        109,
+        99
+      ]
+    },
+    {
+      "frame": 2,
+      "raw_bounds": [
+        100,
+        90,
+        762,
+        418
+      ],
+      "visible_bounds": [
+        19,
+        37,
+        125,
+        89
+      ]
+    },
+    {
+      "frame": 3,
+      "raw_bounds": [
+        126,
+        89,
+        589,
+        423
+      ],
+      "visible_bounds": [
+        23,
+        37,
+        97,
+        90
+      ]
+    }
+  ]
+}

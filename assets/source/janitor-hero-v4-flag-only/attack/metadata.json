@@ -1,0 +1,173 @@
+{
+  "cell": [
+    320,
+    320
+  ],
+  "grid": [
+    2,
+    3
+  ],
+  "pivot": [
+    164,
+    236
+  ],
+  "scale": 0.5,
+  "holds_ms": [
+    220,
+    340,
+    120,
+    100,
+    220,
+    240
+  ],
+  "contact_frame": 3,
+  "contact_offset": [
+    90,
+    10
+  ],
+  "cloth_outer_offset": [
+    115,
+    14
+  ],
+  "method": "Alpha240, fixeduniformnearestscale, anatomicalfeetroottranslation. No perframefit or art changes.",
+  "records": [
+    {
+      "frame": 0,
+      "source_root": [
+        285,
+        403
+      ],
+      "raw_bounds": [
+        33,
+        247,
+        427,
+        414
+      ],
+      "visible_bounds": [
+        38,
+        158,
+        235,
+        242
+      ],
+      "offset": [
+        38,
+        158
+      ]
+    },
+    {
+      "frame": 1,
+      "source_root": [
+        340,
+        404
+      ],
+      "raw_bounds": [
+        39,
+        215,
+        384,
+        403
+      ],
+      "visible_bounds": [
+        14,
+        142,
+        186,
+        236
+      ],
+      "offset": [
+        14,
+        142
+      ]
+    },
+    {
+      "frame": 2,
+      "source_root": [
+        280,
+        370
+      ],
+      "raw_bounds": [
+        63,
+        85,
+        349,
+        370
+      ],
+      "visible_bounds": [
+        56,
+        94,
+        199,
+        236
+      ],
+      "offset": [
+        56,
+        94
+      ]
+    },
+    {
+      "frame": 3,
+      "source_root": [
+        225,
+        370
+      ],
+      "raw_bounds": [
+        121,
+        202,
+        486,
+        397
+      ],
+      "visible_bounds": [
+        112,
+        152,
+        294,
+        250
+      ],
+      "offset": [
+        112,
+        152
+      ]
+    },
+    {
+      "frame": 4,
+      "source_root": [
+        224,
+        354
+      ],
+      "raw_bounds": [
+        127,
+        197,
+        492,
+        370
+      ],
+      "visible_bounds": [
+        116,
+        158,
+        298,
+        244
+      ],
+      "offset": [
+        116,
+        158
+      ]
+    },
+    {
+      "frame": 5,
+      "source_root": [
+        280,
+        354
+      ],
+      "raw_bounds": [
+        29,
+        196,
+        427,
+        367
+      ],
+      "visible_bounds": [
+        38,
+        157,
+        237,
+        243
+      ],
+      "offset": [
+        38,
+        157
+      ]
+    }
+  ]
+}

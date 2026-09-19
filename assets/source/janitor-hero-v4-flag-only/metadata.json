@@ -1,0 +1,68 @@
+{
+  "cell": [
+    192,
+    192
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "pivot": [
+    138,
+    180
+  ],
+  "flag_region_per_cell": [
+    0,
+    0,
+    70,
+    192
+  ],
+  "method": "Original runtime kept byte-exact outside flag region; generated replacement alpha240, nearest sampling with original v2 geometry; no painting.",
+  "runtime_integrated": false,
+  "records": [
+    {
+      "frame": 0,
+      "changed_pixels": 1909,
+      "outside_flag_changed_pixels": 0,
+      "visible_bounds": [
+        3,
+        102,
+        173,
+        181
+      ]
+    },
+    {
+      "frame": 1,
+      "changed_pixels": 2109,
+      "outside_flag_changed_pixels": 0,
+      "visible_bounds": [
+        4,
+        102,
+        172,
+        184
+      ]
+    },
+    {
+      "frame": 2,
+      "changed_pixels": 2007,
+      "outside_flag_changed_pixels": 0,
+      "visible_bounds": [
+        3,
+        103,
+        173,
+        182
+      ]
+    },
+    {
+      "frame": 3,
+      "changed_pixels": 1936,
+      "outside_flag_changed_pixels": 0,
+      "visible_bounds": [
+        3,
+        102,
+        172,
+        181
+      ]
+    }
+  ]
+}
