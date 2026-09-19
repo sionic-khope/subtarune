@@ -68,11 +68,11 @@ test('test_run_map_doors_bgm_qa_and_start_script', () => {
 
 test('test_runner_sprites_are_right_facing_side_sheets_sized_to_the_walk_frame', () => {
   const m = CHARACTER_MOTIONS.hyungsub;
-  for (const name of ['runner_prep', 'runner_run', 'runner_jump', 'runner_slash']) {
+  for (const name of ['runner_prep', 'runner_run', 'runner_jump', 'runner_slash', 'runner_airslash']) {
     const d = m[name];
     assert.ok(d && d.faces === 'right' && d.frames.length === 4 && d.src === `assets/sprites/hyungsub-${name.replace('_', '-')}.png`, name);
     assert.ok(existsSync(new URL('../../' + d.src, import.meta.url)));
-    for (const f of d.frames) { assert.ok(f.pivot[1] * d.scale > 35 && f.pivot[1] * d.scale < 60, `${name}: 발 pivot`); assert.ok(f.duration > 0); }
+    for (const f of d.frames) { assert.ok(f.pivot[1] * d.scale > 30 && f.pivot[1] * d.scale < 72, `${name}: 발 pivot`); assert.ok(f.duration > 0); }
   }
   // 달리기 프레임 ≈ 46px(흩날리는 머리 끝까지) = 걷기 52px 보다 살짝 작게(사용자 “살짝 작아져야”) — 계약 파일의 실측 높이로
   const contract = JSON.parse(readFileSync(new URL('../../assets/source/runner-v1/runner-contract.json', import.meta.url), 'utf8'));

@@ -1,4 +1,4 @@
-// 러너 기믹 상태기계(BUILD230): 준비(검 뽑는 순간) → 대시(가속·잔상) → 달리기(발 접촉 프레임마다 step) → X 점프(포물선, 착지) → C 베기 / 공중 C 회전 베기(한 바퀴) → 끝에서 제동 → done.
+// 러너 기믹 상태기계(BUILD230): 준비(검 뽑는 순간) → 대시(가속·잔상) → 달리기(발 접촉 프레임마다 step) → X 점프(포물선, 착지 웅크림) → C 베기 / 공중 C 내려치기 → 끝에서 제동 → done.
 //   달리기 구간(≈5250px)을 약 10초에 지난다(사용자 “10초쯤 지나면 오른쪽 맵 끝”)
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -37,7 +37,7 @@ test('test_runner_steps_emit_on_foot_contact_frames_and_reaches_the_end_in_about
   assert.equal(createRunner({ x: 0, endX: 10, speed: 0 }).speed, RUNNER.speed, 'speed 0 은 기본값(NaN 방지)');
 });
 
-test('test_runner_jump_is_a_parabola_that_lands_and_air_attack_spins_a_full_turn', () => {
+test('test_runner_jump_is_a_parabola_that_lands_with_a_crouch_and_air_attack_is_an_overhead_slash', () => {
   const s = createRunner({ x: 0, endX: 100000 });
   run(s, RUNNER.prepTime + RUNNER.dashTime + 0.5);
   assert.equal(s.phase, 'run');
@@ -50,7 +50,9 @@ test('test_runner_jump_is_a_parabola_that_lands_and_air_attack_spins_a_full_turn
   assert.equal(s.tilt, 0, '땅에선 기울기 0');
   assert.ok(peak > 70 && peak < 100, `점프 높이 ${peak.toFixed(0)}px (사용자 “더 높게”)`);
   assert.equal(airSteps, 0, '공중에선 발소리·파장 없음(착지 틱의 발소리는 허용)');
-  // 땅에서 C = 베기(프레임 0~3), 점프 중 C = 회전 베기(한 바퀴)
+  assert.deepEqual(stepRunner(s, DT, { attack: true }).filter(e => e === 'slash'), [], '착지 웅크리는 동안엔 베기 안 됨');
+  while (s.landT > 0) stepRunner(s, DT);
+  // 땅에서 C = 베기(프레임 0~3), 점프 중 C = 위에서 아래로 내려치기
   ev = stepRunner(s, DT, { attack: true });
   assert.ok(ev.includes('slash') && s.attack?.kind === 'slash' && s.anim === 'slash');
   assert.deepEqual(stepRunner(s, DT, { jump: true }), [], '베는 동안 점프 안 됨');
@@ -58,10 +60,15 @@ test('test_runner_jump_is_a_parabola_that_lands_and_air_attack_spins_a_full_turn
   assert.equal(s.attack, null);
   stepRunner(s, DT, { jump: true }); stepRunner(s, DT);
   ev = stepRunner(s, DT, { attack: true });
-  assert.ok(ev.includes('spin') && s.attack?.kind === 'spin' && s.anim === 'jump' && s.frame === 2, '공중 C: 웅크린 프레임으로 회전');
-  const angles = []; while (s.attack) { stepRunner(s, DT); if (s.attack) angles.push(s.spinAngle); }
-  assert.ok(angles.every((a, i) => i === 0 || a >= angles[i - 1]) && Math.max(...angles) > Math.PI * 1.8, '한 바퀴(2π)까지 돈다');
-  run(s, 0.2); assert.equal(s.spinAngle, 0);
+  assert.ok(ev.includes('airslash') && s.attack?.kind === 'airslash' && s.anim === 'airslash' && s.frame === 0 && s.tilt === 0, '공중 C: 위에서 아래로 내려치는 점프 공격(회전 아님)');
+  const frames = new Set(); while (s.attack) { stepRunner(s, DT); if (s.attack) frames.add(s.frame); }
+  assert.deepEqual([...frames].sort(), [0, 1, 2, 3].filter(i => frames.has(i)), '내려치기 프레임이 차례로');
+  assert.ok(frames.has(3), '마지막 프레임까지');
+  // 착지: 잠깐 웅크린 프레임(점프 시트 4번째), 그동안 발소리 없음
+  while (!s.grounded) stepRunner(s, DT);
+  assert.ok(s.landT > 0 && s.anim === 'jump' && s.frame === 3, '착지 웅크림');
+  let landSteps = 0; while (s.landT > 0) { if (stepRunner(s, DT).includes('step')) landSteps += 1; }
+  assert.equal(landSteps, 0, '웅크리는 동안 발소리 없음'); assert.equal(s.anim, 'run');
 });
 
 test('test_runner_brakes_before_the_end_and_stops_exactly_at_end_x', () => {

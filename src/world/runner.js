@@ -1,6 +1,6 @@
 // 러너 기믹 — 그리기·소리·카메라·입력 (BUILD230 사용자 브리핑 2026-09-19, 상태는 runner-core.js)
 //   파란 토리이를 지나면 형섭이 땅을 짚고 검을 뒤로 뽑고(weaponpull) → 잔상을 남기며 대시(wing) → 화면 왼쪽 22% 자리에서 계속 달린다(쿠키런처럼 카메라가 따라감).
-//   X 점프(jump), C 앞을 가르는 베기(델타룬 snd_swing) + 초승달 호, 공중 C 한 바퀴 공중제비 회전 베기(snd_criticalswing) + 고리. 발 접촉 프레임마다 검은 물 위 물결 고리 + 물걸음 루프.
+//   X 점프(jump), C 앞을 가르는 베기(델타룬 snd_swing) + 초승달 호, 공중 C 머리 위에서 아래로 내려치는 점프 공격(snd_criticalswing) + 세로 호, 착지 웅크림. 발 접촉 프레임마다 검은 물 위 물결 고리 + 물걸음 루프.
 //   스프라이트는 CHARACTER_MOTIONS.hyungsub.runner_*(오른쪽 옆모습, 걷기의 0.85 크기). 동료는 달리는 동안 숨겼다가 끝나면 뒤에 정렬.
 import { RUNNER, createRunner, stepRunner } from './runner-core.js';
 import { CHAR_SCALE } from './world.js';
@@ -8,7 +8,7 @@ import { SCREEN_W, SCREEN_H } from '../core/layout.js';
 import { makeCanvas } from '../core/gfx.js';
 import { WATER_WALK } from '../data/footsteps.js';
 
-const SFX = Object.freeze({ draw: 'weaponpull', dash: 'wing', jump: 'jump', slash: 'swing', spin: 'criticalswing', skid: 'scrape' });
+const SFX = Object.freeze({ draw: 'weaponpull', dash: 'wing', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape' });
 const TRAIL_COLOR = '#58c8ff';
 const SLASH_FX = 0.26;
 // 속도감(사용자 “배경이 달리는 느낌, 바람”): 화면을 가로지르는 바람 줄기(화면 좌표, 지형보다 빠르게 왼쪽으로), 바닥 물결 줄기(월드 좌표, 바닥보다 빠르게 뒤로), 발마다 튀는 물보라(월드 좌표, 뒤로 튀어 떨어짐)
@@ -44,7 +44,8 @@ export class Runner {
       if (ev === 'skid') this.skidSfxT = 0.42;   // 드르르르륵: scrape(0.55초)를 한 번 더 이어 튼다
       if (ev === 'skidstep') { this.splash(p.x + p.w / 2 + 8, p.y + p.h - 1, 3); g.emitRipple(p.x + p.w / 2 + 6, p.y + p.h - 1); }
       if (ev === 'slash') this.fx.push({ kind: 'slash', t: 0, dur: SLASH_FX });
-      if (ev === 'spin') this.fx.push({ kind: 'ring', t: 0, dur: RUNNER.spinTime });
+      if (ev === 'airslash') this.fx.push({ kind: 'airslash', t: 0, dur: RUNNER.airSlashTime });
+      if (ev === 'land') this.splash(p.x + p.w / 2, p.y + p.h - 1, 8);
       if (ev === 'end') this.finish();
     }
     if (this.skidSfxT !== undefined) { this.skidSfxT -= dt; if (this.skidSfxT <= 0) { this.skidSfxT = undefined; g.sound?.sfx('scrape'); this.sfxLog.push('scrape'); } }
@@ -119,7 +120,7 @@ export class Runner {
     g.sound?.walk?.(null);
     p.trail = [];   // 달리는 동안 쌓이지 않은 발자국 궤적을 비운다 — 안 비우면 동료가 토리이 자리로 되돌아 걸어간다(리뷰 2026-09-19)
     for (const e of g.entities) if (e.def?.type === 'follower') { e.visible = true; e.snapBehind?.(); }
-    for (const name of ['prep', 'run', 'jump', 'slash']) for (const f of this.sheet(name)?.frames || []) delete f.silhouette;
+    for (const name of ['prep', 'run', 'jump', 'slash', 'airslash']) for (const f of this.sheet(name)?.frames || []) delete f.silhouette;
   }
   frameOf(anim, index) {
     const sheet = this.sheet(anim);
@@ -160,12 +161,7 @@ export class Runner {
     ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(Math.round(p.x - cam.x), Math.round(ay - 2), p.w, 3);
     const fr = this.frameOf(s.anim, s.frame);
-    if (fr && s.attack?.kind === 'spin') {
-      // 공중제비 회전 베기(사용자 “좀 별로, 간소화·속도감”): 몸을 바퀴처럼 — 회전 방향 뒤쪽에 파란 실루엣 3장을 겹쳐 흐림을 만들고 그 위에 본체를 그린다
-      for (let k = 3; k >= 1; k--) { ctx.globalAlpha = 0.42 - k * 0.1; this.drawFrame(ctx, this.silhouette(fr.frame, fr.scale), fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle - k * 0.45); }
-      ctx.globalAlpha = 1;
-      this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle);
-    } else if (fr) this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle || s.tilt);
+    if (fr) this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.tilt);
     else { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(ax - 8), Math.round(ay - s.airY - 40), 16, 40); }
     for (const f of this.fx) {
       const k = f.t / f.dur;
@@ -177,13 +173,13 @@ export class Runner {
         ctx.strokeStyle = 'rgba(120,220,255,0.9)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
         ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx, cy, r + 1, a0, a1); ctx.stroke();
         ctx.restore();
-      } else if (f.kind === 'ring') {
-        // 공중제비 회전 베기: 몸을 감싸는 칼날 궤적(회전과 같이 도는 270° 호, 앞 끝이 가장 밝음) + 바깥으로 퍼지며 옅어지는 충격 고리
-        const cx = ax, cy = ay - s.airY - 22, rr = 27, a1 = s.spinAngle, a0 = a1 - Math.PI * 1.5;
-        ctx.save(); ctx.lineCap = 'round';
-        ctx.globalAlpha = 0.55 * (1 - k * 0.5); ctx.strokeStyle = 'rgba(120,220,255,1)'; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(cx, cy, rr, a0, a1); ctx.stroke();
-        ctx.globalAlpha = 0.95 * (1 - k * 0.4); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, rr + 1, a1 - Math.PI * 0.8, a1); ctx.stroke();
-        ctx.globalAlpha = 0.5 * (1 - k); ctx.strokeStyle = 'rgba(160,230,255,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 30 + 34 * k, 0, Math.PI * 2); ctx.stroke();
+      } else if (f.kind === 'airslash') {
+        // 점프 공격: 머리 위에서 앞 아래로 내려치는 세로 호(위 → 아래로 쓸어 내리며 옅어진다)
+        const cx = ax + 16, cy = ay - s.airY - 26, r = 30;
+        const a0 = -Math.PI * 0.95, a1 = a0 + Math.PI * 1.25 * Math.min(1, k * 1.5);
+        ctx.save(); ctx.globalAlpha = 1 - k * k; ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(120,220,255,0.9)'; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, r + 1, Math.max(a0, a1 - Math.PI * 0.7), a1); ctx.stroke();
         ctx.restore();
       }
     }

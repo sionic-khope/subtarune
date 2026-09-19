@@ -1,4 +1,4 @@
-// 파란 토리이 길(BUILD230): 토리이 직전에서 오른쪽으로 지나면 러너 기믹 — 준비(검 뽑는 소리 weaponpull) → 대시(wing, 잔상) → 달리기(카메라 왼쪽 22%, 발마다 물결) → X 점프(jump) → C 베기(swing) → 공중 C 회전 베기(criticalswing)
+// 파란 토리이 길(BUILD230): 토리이 직전에서 오른쪽으로 지나면 러너 기믹 — 준비(검 뽑는 소리 weaponpull) → 대시(wing, 잔상) → 달리기(카메라 왼쪽 22%, 발마다 물결) → X 점프(jump)·착지 웅크림 → C 베기(swing) → 공중 C 내려치기(criticalswing)
 //   → 약 10초 뒤 오른쪽 끝에서 멈추고 조작·동료 복귀. 왼쪽 문 ↔ 석상 앞 숲 오른쪽. 실행: tests/playtest/run.sh jjajang-run
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
@@ -49,6 +49,8 @@ try {
   await page.waitForTimeout(120); s = await st(); await cap('04_jump');
   check(s.runner.sfx.includes('jump') && s.runner.anim === 'jump', '점프 소리·점프 프레임 ' + JSON.stringify(s.runner));
   check(await until(() => window.game.runner?.core.grounded, 2000), '착지');
+  s = await st(); check(s.runner.anim === 'jump' && s.runner.frame === 3, '착지 웅크림 프레임 ' + JSON.stringify({ anim: s.runner.anim, frame: s.runner.frame }));
+  await until(() => window.game.runner?.core.landT === 0, 1000);
   // C 베기(땅)
   await press('KeyC');
   check(await until(() => window.game.runner?.core.attack?.kind === 'slash', 1000), 'C 베기 시작');
@@ -59,10 +61,9 @@ try {
   await press('KeyX');
   check(await until(() => window.game.runner && !window.game.runner.core.grounded && window.game.runner.core.airY > 15, 1500), '점프');
   await press('KeyC');
-  check(await until(() => window.game.runner?.core.attack?.kind === 'spin', 1000), '공중 C: 회전 베기 시작');
-  await page.waitForTimeout(200); s = await st(); await cap('06_spin');
-  const spinAngle = await page.evaluate(() => window.game.runner?.core.spinAngle || 0);
-  check(s.runner.sfx.includes('criticalswing') && spinAngle > 1 && s.runner.frame === 2, `회전 베기: criticalswing, 각도 ${spinAngle.toFixed(2)}`);
+  check(await until(() => window.game.runner?.core.attack?.kind === 'airslash', 1000), '공중 C: 내려치기 시작');
+  await page.waitForTimeout(120); s = await st(); await cap('06_airslash');
+  check(s.runner.sfx.includes('criticalswing') && s.runner.anim === 'airslash' && !s.runner.grounded, '내려치기: criticalswing + 공중 베기 프레임 ' + JSON.stringify({ anim: s.runner.anim, frame: s.runner.frame }));
   // 끝까지: 시작 뒤 약 10초 남짓. 제동(손 짚고 미끄러짐) 때도 캐릭터는 화면 왼쪽 22% 자리
   check(await until(() => window.game.runner?.phase === 'brake', 16000), '끝 앞에서 제동 시작');
   s = await st(); await cap('06b_skid');
