@@ -8,8 +8,8 @@
     512
    ],
    "pivot": [
-    231,
-    467
+    264,
+    465
    ]
   },
   {
@@ -20,8 +20,8 @@
     512
    ],
    "pivot": [
-    231,
-    467
+    253,
+    465
    ]
   },
   {
@@ -32,8 +32,8 @@
     512
    ],
    "pivot": [
-    243,
-    467
+    264,
+    443
    ]
   },
   {
@@ -44,23 +44,29 @@
     512
    ],
    "pivot": [
-    234,
-    467
+    255,
+    443
    ]
   }
  ],
  "heights": [
-  436,
-  428,
-  439,
-  431
+  393,
+  393,
+  397,
+  383
  ],
- "scale": 0.1076,
+ "scale": 0.117,
  "durations": [
   0.24,
   0.3,
   0.24,
   0.32
  ],
- "source": "laugh2-raw.png (BUILD228 사용자 “거슨 웃음 마냥 할아버지 느낌”)"
+ "faces": "right",
+ "source": "laugh-side-raw.png (BUILD229 사용자 “옆모습으로 웃는 느낌”)",
+ "derivation": {
+  "sheetSideFeetCenter": 63.5,
+  "sheetSideHeight": 92,
+  "anchorDeltaGamePx": 0.25
+ }
 }

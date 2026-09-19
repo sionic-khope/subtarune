@@ -37,3 +37,7 @@ ffmpeg -ss 3.345 -t 0.105 -i audio/yt_VHS-OAgYyJM.webm -af "afade=t=in:st=0:d=0.
 ## 웃음 2판 (BUILD228, 2026-09-19)
 
 사용자 “청소부 웃음 모션 스프라이트 마음에 안 들어, 거슨 웃음 마냥 뭔가 할아버지 느낌 더 나야 하는데 웃을 때”: `laugh2.prompt.txt`(같은 참조 `laugh-ref.png`; 고개를 뒤로 젖혀 하늘 보기, 잇몸 보이는 큰 입, 눈가 주름·눈 꼭 감음, 굽은 등·들썩이는 어깨, 배 두드림, 지팡이에 몸을 기댐) → `laugh2-raw.png`(2×2 512 셀) 를 raw 그대로 `assets/sprites/janitor-laugh.png` 로 교체. 프레임별 pivot(발 가운데·밑변) 은 `laugh-contract.json` → `CHARACTER_MOTIONS.janitor.laugh`(scale 0.1076 유지). 1판 raw(`laugh-raw.png`) 는 보관.
+
+## 웃음 3판 — 옆모습 (BUILD229, 2026-09-19)
+
+사용자 “지금 청소부 웃음은 너무 별로임 징그러워, 걍 옆모습으로 웃는 느낌이면 좋겠는데”: 2판(정면 잇몸 웃음)은 폐기. `laugh-side.prompt.txt`(참조 `laugh-side-ref.png` = 걷기 시트 오른쪽 프레임 4배; 옆모습 그대로, 고개만 살짝 젖히고 눈은 감은 곡선, 입은 단순한 열린 미소, 잇몸·주름 없음, 한 손은 지팡이) → `laugh-side-raw.png`(2×2 512 셀) 를 raw 그대로 `assets/sprites/janitor-laugh.png` 로 교체. 오른쪽을 보는 시트라 `CHARACTER_MOTIONS.janitor.laugh.faces = 'right'` — 청소부가 왼쪽을 보고 있으면 `world.js drawSprite` 가 좌우 반전한다(검사 `tests/playtest/janitor-laugh-mirror.mjs`). 배율은 걷기 시트 옆 프레임 높이(46px)에, pivot 은 프레임마다 발 가운데·밑변에 맞춰 발이 안 움직인다(`laugh-contract.json`). 1·2판 raw 는 보관.

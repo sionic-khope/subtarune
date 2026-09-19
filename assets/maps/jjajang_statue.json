@@ -407,7 +407,7 @@
    "ix": 848,
    "iy": 0,
    "solid": false,
-   "sortY": 1000000000
+   "sortY": -1000000000
   },
   {
    "type": "prop",
@@ -420,8 +420,19 @@
    "ix": 850,
    "iy": 47,
    "solid": true,
-   "script": "jjajang_statue_talk",
-   "sortY": 2000000000
+   "script": "jjajang_statue_talk"
+  },
+  {
+   "type": "trigger",
+   "id": "statue_hint_trigger",
+   "x": 864,
+   "y": 448,
+   "w": 128,
+   "h": 64,
+   "once": true,
+   "flag": "jjajang_statue_hint_started",
+   "unless": "jjajang_statue_told",
+   "script": "jjajang_statue_hint"
   },
   {
    "type": "door",

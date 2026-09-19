@@ -270,9 +270,11 @@ export class Character extends Entity {
       const anchorX = this.x + this.w / 2 - cam.x, anchorY = this.y + this.h - cam.y;
       const beat = this.motion.flipEvery ? this.motion.elapsed / this.motion.flipEvery : 0;
       const lift = this.motion.pop ? Math.round(Math.max(0, Math.sin(beat * Math.PI * 2)) * this.motion.pop) : 0;
+      // 옆모습 시트(motion.faces 'right'|'left')는 캐릭터가 반대쪽을 보고 있으면 좌우 반전(청소부 옆모습 웃음, BUILD228)
+      const mirror = (this.motion.faces === 'right' && this.facing === 'left') || (this.motion.faces === 'left' && this.facing === 'right');
       ctx.save();
       ctx.translate(0, -lift);
-      if (Math.floor(beat) % 2) { ctx.translate(Math.round(anchorX) * 2, 0); ctx.scale(-1, 1); }
+      if (!!(Math.floor(beat) % 2) !== mirror) { ctx.translate(Math.round(anchorX) * 2, 0); ctx.scale(-1, 1); }
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
       blit(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));

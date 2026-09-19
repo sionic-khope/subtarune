@@ -100,13 +100,15 @@ export const CHARACTER_MOTIONS = {
   janitor: {
     laugh: {
       src: 'assets/sprites/janitor-laugh.png',
-      scale: 0.1076,
+      // 옆모습(오른쪽을 보는 시트, BUILD229 사용자 “옆모습으로 웃는 느낌”): faces 'right' — 왼쪽을 보고 있으면 world.js 가 좌우 반전. 배율·pivot 은 걷기 시트 옆 프레임(46px, 발 가운데) 에 맞춤(laugh-contract.json)
+      faces: 'right',
+      scale: 0.117,
       colorKey: { rMin: 150, gMax: 110, bMin: 150 },
       frames: [
-        { rect: [0, 0, 512, 512], pivot: [231, 467], duration: 0.24 },
-        { rect: [512, 0, 512, 512], pivot: [231, 467], duration: 0.30 },
-        { rect: [0, 512, 512, 512], pivot: [243, 467], duration: 0.24 },
-        { rect: [512, 512, 512, 512], pivot: [234, 467], duration: 0.32 },
+        { rect: [0, 0, 512, 512], pivot: [264, 465], duration: 0.24 },
+        { rect: [512, 0, 512, 512], pivot: [253, 465], duration: 0.30 },
+        { rect: [0, 512, 512, 512], pivot: [264, 443], duration: 0.24 },
+        { rect: [512, 512, 512, 512], pivot: [255, 443], duration: 0.32 },
       ],
     },
   },

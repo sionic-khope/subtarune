@@ -1,5 +1,6 @@
 // 석상 앞 숲(jjajang_statue) — 석상에 C: 청소부의 짜장숲 이야기 (BUILD228 사용자 브리핑 2026-09-19, 원문·구현표는 design/narrative/cutscenes/jjajang_statue.md)
-//   (석상은 막혀 있다) 브금 끔 → 둘 다 뒤로 한 칸 → 위를 본다 → 카메라를 위로 올려 석상 전체가 대화창 위에 들어온다 → 대사(껄껄 두 곳 뒤 웃음) → 카메라·브금 복귀
+//   (석상은 막혀 있다) 브금 끔 → 둘 다 뒤로 한 칸 → 양옆으로 퍼진다(요플래 왼쪽, 청소부 오른쪽, 같은 줄) → 위를 본다 → 카메라를 위로 올려 석상 전체가 대화창 위에 들어온다 → 대사(껄껄 두 곳 뒤 웃음) → 카메라·브금 복귀
+//   가운데 길로 오르기 전 갈림목: 청소부: 위로 한번 가보새 (jjajang_statue_hint)
 const C = text => ({ speaker: '청소부', portrait: 'janitor', voice: 'janitor', text: `* ${text}` });
 const close = { action: game => game.textbox.close() };
 const laugh = () => ({ motion: JANITOR, name: 'laugh', sfx: 'laugh_janitor' });
@@ -9,11 +10,24 @@ const JANITOR = 'janitor';
 // 요플래(한 칸 물러선 뒤 발 286)는 머리부터 발까지 대화창(248) 위에 남는다
 export const STATUE_VIEW = [28.5, 205 / 32];
 
+// 길 위 갈림목(가운데 길로 오르기 전): 청소부가 요플래를 보며 한마디
+export const jjajang_statue_hint = [
+  { if: flags => flags.jjajang_statue_hint_done || !flags.torii_janitor_joined, goto: 'end' },
+  { face: JANITOR, dir: 'toward:player' },
+  C('위로 한번 가보새'),
+  close,
+  { set: { jjajang_statue_hint_done: true } },
+  { label: 'end' },
+  { end: true },
+];
+
 export const jjajang_statue_talk = [
   { if: flags => flags.jjajang_statue_told || !flags.torii_janitor_joined, goto: 'end' },
   { bgm: null, fadeOut: 0.5 },
   // 둘 다 뒤로(아래로) 한 칸 물러선다 — by 는 16px 아트 단위(×2) → 16 = 한 칸 32px
   { parallel: [{ move: PLAYER, by: [0, 16], speed: 60 }, { move: JANITOR, by: [0, 16], speed: 60 }] },
+  // 양옆으로 퍼진다(사용자 “뒤로 가서 양옆으로 퍼지고 바라보는 거라고”): 요플래는 한 칸 왼쪽, 청소부는 요플래가 서 있던 자리의 한 칸 오른쪽·같은 줄
+  { parallel: [{ move: PLAYER, by: [-16, 0], speed: 60 }, { move: JANITOR, px: game => [game.player.x + 32, game.player.y], exact: true, speed: 60 }] },
   { face: PLAYER, dir: 'up' },
   { face: JANITOR, dir: 'up' },
   { camera: STATUE_VIEW, duration: 0.8 },

@@ -40,8 +40,9 @@ try {
   check(await until(() => window.game.dialogue.running, 3000), 'C 로 이야기가 시작된다');
   check(await until(() => !window.game.sound.bgmName, 3000), '브금이 꺼진다');
   check(await page.waitForFunction(y => window.game.player.y >= y, at0.py + 28, { timeout: 4000, polling: 40 }).then(() => true).catch(() => false), '요플래가 한 칸 물러선다');
-  await page.waitForTimeout(300); s = await st();
-  check(s.follower && s.follower.y >= at0.follower.y + 28 && s.facing === 'up' && s.follower.facing === 'up', '청소부도 물러서고 둘 다 위를 본다 ' + JSON.stringify({ at0, s }));
+  check(await page.waitForFunction(x => window.game.player.x <= x, at0.px - 28, { timeout: 4000, polling: 40 }).then(() => true).catch(() => false), '요플래가 왼쪽으로 한 칸 퍼진다');
+  await page.waitForTimeout(400); s = await st();
+  check(s.follower && s.py >= at0.py + 28 && Math.abs(s.follower.y - s.py) <= 6 && s.follower.x >= s.px + 56 && s.facing === 'up' && s.follower.facing === 'up', '청소부는 물러선 뒤 오른쪽으로 퍼져 요플래와 같은 줄, 둘 다 위를 본다 ' + JSON.stringify({ at0, s }));
   await line('여기 숲은');
   s = await st();
   check(s.locked && s.cam[1] <= statue.iy - 4 && statue.iy + statue.ih - s.cam[1] <= 230, `카메라가 올라가 석상 전체(${statue.iy}~${statue.iy + statue.ih})가 대화창 위에 (cam ${s.cam})`);
@@ -65,6 +66,7 @@ try {
   s = await st();
   check(!(await page.evaluate(() => window.game.dialogue.running)) && s.py >= statue.y + statue.h, '다시 C 는 이야기 없음, 여전히 막혀 있다');
   const t1 = s.t;
+  await go('ArrowRight', 'g.player.x >= 28 * 32 + 8', 3000);
   check(await go('ArrowDown', 'g.player.y >= 14 * 32', 8000), '길로 내려온다');
   check(await go('ArrowRight', 'g.player.x >= 57 * 32', 25000), '오른쪽 끝까지');
   s = await st(); await cap('06_east_end');
@@ -73,6 +75,13 @@ try {
   await page.goto('http://localhost:8000/?qa=jjajang_statue');
   await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_statue' && !window.game.dialogue.running, null, { timeout: 30000 });
   await page.waitForTimeout(400); s = await st(); const t2 = s.t;
+  // 갈림목까지 오른쪽으로 → 청소부: 위로 한번 가보새 (한 번)
+  const hinted = await go('ArrowRight', 'g.dialogue.running && g.flags.jjajang_statue_hint_started', 20000);
+  check(hinted, '가운데 길 갈림목에서 연출이 시작된다');
+  await line('위로 한번 가보새', '08_hint');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.jjajang_statue_hint_done, 5000), '한마디 뒤 끝');
+  s = await st(); check(s.follower && s.follower.facing === 'right' && s.follower.x < s.px && s.px >= 26 * 32 && s.px <= 31 * 32, '청소부가 요플래 쪽을 본다 ' + JSON.stringify(s));
+  check(await go('ArrowLeft', 'g.player.x <= 3 * 32', 20000), '왼쪽 입구로 되돌아온다');
   check(await go('ArrowLeft', "g.mapId === 'jjajang_pines'", 8000), '왼쪽 문 → 소나무 숲');
   await page.waitForTimeout(600); s = await st(); await cap('07_pines_east');
   check(s.map === 'jjajang_pines' && s.px > 60 * 32 && s.facing === 'left' && s.follower && s.bgm === 'my_castle_town' && s.t > t2, '소나무 숲 오른쪽 끝, 브금 이어짐 ' + JSON.stringify(s));

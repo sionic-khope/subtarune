@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { jjajang_statue_talk, STATUE_VIEW } from '../../src/data/cutscenes/jjajang_statue.js';
+import { jjajang_statue_talk, jjajang_statue_hint, STATUE_VIEW } from '../../src/data/cutscenes/jjajang_statue.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { QA_POINTS, storyBgm, JJAJANG_AFTER_JOIN_MAPS } from '../../src/core/story.js';
 import { DIALOGUE_VISIBLE_H, SCREEN_H, TILE } from '../../src/core/layout.js';
@@ -29,6 +29,9 @@ test('test_statue_map_straight_road_short_branch_wide_clearing_and_passage', () 
   assert.ok(pr0 >= 1 && [...rows[0]].every(ch => ch === '@'), '윗줄은 막혀 있다(오버레이가 완전히 검어 보이지 않는다)');
   assert.ok(!walk(pc0 - 1, pr1) && !walk(pc1 + 1, pr1), '통로 양옆은 숲(석상 옆으로 돌 수 없다)');
   assert.deepEqual(map.meta.blocked, [[28, 9], [28, 2]], '막아야 하는 길 감사: 공터에서 통로 안으로 못 간다');
+  const hint = map.entities.find(e => e.type === 'trigger');
+  assert.deepEqual({ script: hint.script, once: hint.once, flag: hint.flag, unless: hint.unless }, { script: 'jjajang_statue_hint', once: true, flag: 'jjajang_statue_hint_started', unless: 'jjajang_statue_told' });
+  assert.ok(hint.x <= 28 * TILE && hint.x + hint.w >= 30 * TILE && hint.y === 14 * TILE && hint.h === 2 * TILE, '가운데 길 갈림목, 길 위');
 });
 
 test('test_statue_blocks_the_passage_and_fits_the_dialogue_view', () => {
@@ -40,7 +43,8 @@ test('test_statue_blocks_the_passage_and_fits_the_dialogue_view', () => {
   assert.ok(statue.x <= pc0 * TILE && statue.x + statue.w >= (pc1 + 1) * TILE, '히트박스가 통로 폭을 다 덮는다');
   assert.ok(statue.x >= statue.ix && statue.x + statue.w <= statue.ix + w, '히트박스는 그림 안(레이아웃 감사)');
   assert.ok(h >= 160 && h <= DIALOGUE_VISIBLE_H, `거대하지만(${h}px = 요플래 65px 의 ${(h / 65).toFixed(1)}배) 대화 중 보이는 높이 안`);
-  assert.ok(statue.sortY > shade.sortY, '석상은 그림자 오버레이 위에 그린다(석상은 밝게, 뒤 통로만 어둡게)');
+  assert.equal(statue.sortY, undefined, '석상은 보통 소품처럼 밑변 정렬 — 바로 아래 선 요플래가 받침대 앞에 그려진다(“눌려 보이잖아”)');
+  assert.ok(shade.sortY < 0, '그림자 오버레이는 바닥처럼 모든 엔티티 아래');
   // 카메라 목표: 카메라 위 = ty*32 - (SCREEN_H/2 - 16). 석상 전체가 대화창 위 230px 안에 들어와야 한다
   const camTop = STATUE_VIEW[1] * TILE - (SCREEN_H / 2 - TILE / 2);
   assert.ok(camTop >= 0 && camTop <= statue.iy - 4, `카메라 위(${camTop})가 석상 위(${statue.iy}) 위쪽`);
@@ -91,8 +95,10 @@ test('test_statue_talk_script_order_lines_and_laughs', () => {
   const bgmOff = idx(n => 'bgm' in n && n.bgm === null);
   const back = idx(n => Array.isArray(n.parallel) && n.parallel.length === 2 && n.parallel.every(b => b.move && b.by[0] === 0 && b.by[1] === 16));
   const faceUp = s.map((n, i) => (n.face && n.dir === 'up' ? i : -1)).filter(i => i >= 0);
+  const spread = idx(n => Array.isArray(n.parallel) && n.parallel.some(b => b.move === 'player' && b.by?.[0] === -16 && b.by?.[1] === 0) && n.parallel.some(b => b.move === 'janitor' && typeof b.px === 'function' && b.exact));
   const cam = idx(n => n.camera === STATUE_VIEW), first = idx(n => n.text);
-  assert.ok(bgmOff >= 0 && bgmOff < back && back < faceUp[0] && faceUp[1] < cam && cam < first, '브금 끔 → 둘 다 뒤로 → 위를 봄 → 카메라 → 대사');
+  assert.ok(bgmOff >= 0 && bgmOff < back && back < spread && spread < faceUp[0] && faceUp[1] < cam && cam < first, '브금 끔 → 둘 다 뒤로 → 양옆으로 퍼짐 → 위를 봄 → 카메라 → 대사');
+  assert.deepEqual(s[spread].parallel.find(b => b.move === 'janitor').px({ player: { x: 904, y: 257 } }), [936, 257], '청소부는 요플래 자리의 한 칸 오른쪽·같은 줄');
   assert.deepEqual(s[back].parallel.map(b => b.move).sort(), ['janitor', 'player']);
   assert.deepEqual(faceUp.map(i => s[i].face).sort(), ['janitor', 'player']);
   const laughs = s.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' && n.sfx === 'laugh_janitor' ? i : -1)).filter(i => i >= 0);
@@ -101,4 +107,14 @@ test('test_statue_talk_script_order_lines_and_laughs', () => {
   const last = s.map((n, i) => (n.text ? i : -1)).filter(i => i >= 0).pop();
   const told = idx(n => n.set?.jjajang_statue_told), camBack = idx(n => n.camera === 'player'), resume = idx(n => String(n.action).includes('resumeMapBgm')), regroup = idx(n => n.regroup);
   assert.ok(last < told && told < camBack && camBack < resume && resume < regroup, '끝: 플래그 → 카메라 복귀 → 브금 복귀 → 동료 정렬');
+});
+
+test('test_statue_hint_janitor_says_go_up_once_at_the_junction', () => {
+  const h = jjajang_statue_hint;
+  assert.equal(SCRIPTS.jjajang_statue_hint, h);
+  assert.equal(h[0].if({ jjajang_statue_hint_done: true, torii_janitor_joined: true }), true);
+  assert.equal(h[0].if({ torii_janitor_joined: true }), false);
+  assert.deepEqual(h.filter(n => n.text).map(n => [n.speaker, n.voice, n.text]), [['청소부', 'janitor', '* 위로 한번 가보새']]);
+  assert.ok(h.findIndex(n => n.face === 'janitor' && n.dir === 'toward:player') < h.findIndex(n => n.text), '청소부가 요플래를 보며');
+  assert.ok(h.some(n => n.set?.jjajang_statue_hint_done));
 });

@@ -12,6 +12,7 @@
 그리고 가운데로 가서 거기에 상호작용하면 (막히기도 해야 함) 브금 꺼지면서 …"
 - 검은 소나무 숲(jjajang_pines) 오른쪽 문에서 왼쪽 가장자리(14~15행)로 들어와 오른쪽 끝까지 곧은 길. 오른쪽 끝은 통로만 열림(다음 맵 브리핑 대기 — 청소부 “오른쪽으로 가보는 건 어떻겠나”).
 - 가운데(28~29열)에서 위로 세 칸 오르면 가로로 넓은 공터(17~40열 × 7~10행). 공터 위 가운데(27~30열, 1~6행)는 위로 갈수록 검게 잠기는 통로(그림자 오버레이 assets/props/jjajang_passage_shade.png, 해안 숲 입구와 같은 구성).
+- 길 위 갈림목(27~30열×14~15행) 트리거 → 청소부: 위로 한번 가보새(jjajang_statue_hint, 한 번).
 - 통로 입구를 석상(assets/props/jjajang_statue.png, gpt-image-2.5-sunburst 로 사용자 사진을 회색 석상으로, 160×177 = 요플래의 약 2.7배)이 막는다: 히트박스는 그림 폭(852~1008) × 6행 아래 24px 로 통로(864~992)보다 넓고 양옆은 검은 숲, 그림 밑변 = 히트박스 밑변(224). C 상호작용 → 컷신 jjajang_statue_talk(src/data/cutscenes/jjajang_statue.js).
 - 소나무·검은 숲·'$' 에코 발소리·dim 0.08·브금 my_castle_town 이어짐(소나무 숲과 같은 지역 자산)."""
 from __future__ import annotations
@@ -90,8 +91,7 @@ def build_map() -> dict[str, object]:
         'type': 'prop', 'id': 'jjajang_statue', 'image': file,
         'x': cx - base_x + STATUE_HIT_INSET, 'y': base_y - 24, 'w': width - 2 * STATUE_HIT_INSET, 'h': 24,
         'ix': cx - base_x, 'iy': base_y - height, 'solid': True, 'script': 'jjajang_statue_talk',
-        # 그림자 오버레이(sortY 1e9)보다 위에 그려 석상은 밝게, 뒤 통로만 어둡게
-        'sortY': 2000000000,
+        # 정렬은 보통 소품처럼 밑변(224) 기준: 바로 아래 선 요플래가 받침대 앞에 그려진다(사용자 스크린샷 “눌려 보이잖아” — 위에 그리면 머리가 받침대에 잘린다)
     }
     assert statue['ix'] >= 0 and statue['iy'] >= 0 and statue['ix'] + width <= WIDTH * TILE, '석상 그림이 맵 안'
     assert statue['iy'] + height == statue['y'] + statue['h'], '그림 밑변 = 히트박스 밑변'
@@ -100,7 +100,13 @@ def build_map() -> dict[str, object]:
     passage_shade = {
         'type': 'prop', 'id': 'jjajang_passage_shade', 'image': shade_file,
         'x': PASSAGE_COLS[0] * TILE - 16, 'y': 0, 'w': 0, 'h': 0,
-        'ix': PASSAGE_COLS[0] * TILE - 16, 'iy': 0, 'solid': False, 'sortY': 1000000000,
+        # 바닥처럼 모든 엔티티 아래(sortY -1e9): 통로엔 아무도 못 들어가니 석상·캐릭터를 덮을 일이 없고, 석상은 밝게 남는다
+        'ix': PASSAGE_COLS[0] * TILE - 16, 'iy': 0, 'solid': False, 'sortY': -1000000000,
+    }
+    # 가운데 길로 오르기 전, 길 위 갈림목(27~30열)에 닿으면 청소부: 위로 한번 가보새 (사용자 2026-09-19)
+    hint_trigger = {
+        'type': 'trigger', 'id': 'statue_hint_trigger', 'x': (BRANCH_COLS[0] - 1) * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': 4 * TILE, 'h': 2 * TILE,
+        'once': True, 'flag': 'jjajang_statue_hint_started', 'unless': 'jjajang_statue_told', 'script': 'jjajang_statue_hint',
     }
     assert shade_w == (PASSAGE_COLS[1] - PASSAGE_COLS[0] + 1) * TILE + 32
     door_west = {
@@ -129,7 +135,7 @@ def build_map() -> dict[str, object]:
             'passage': [list(PASSAGE_COLS), list(PASSAGE_ROWS)],
             'statue': [STATUE_CENTER_COL, STATUE_BASE_ROW],
         },
-        'entities': [*pines, passage_shade, statue, door_west],
+        'entities': [*pines, passage_shade, statue, hint_trigger, door_west],
     }
 
 
