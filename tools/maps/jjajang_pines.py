@@ -11,7 +11,7 @@
 오른쪽으로 갔다가 위로 좀 올라갔다가 왼쪽으로 좀 갔다가 아래로 내려갔다가 가운데쯤 오른쪽으로 쭉 가는 길, 거기 중간에 풀숲하고 적당히 정사각형의 공간 만들어 줘 거기서 몹 이벤트 하나 만들 거라서 일단
 그리고 그 뒤에 오른쪽 길도 더 만들어 주고" / "다음 맵도 그 브금(my_castle_town)".
 - 짜장 곧은 길(jjajang_walk) 오른쪽 문에서 왼쪽 가장자리(16~17행)로 들어와 오른쪽 → 위(12~13열) → 왼쪽(4~5행) → 아래(4~5열) → 가운데(10~11행)에서 오른쪽 끝까지. 위 다리와 가운데 길은 12~13열에서 교차한다.
-- 공터: 34~41열 × 7~14행 정사각형, 둘레 한 칸이 울창한 풀숲 타일 '"'(걸을 수 있음), 가운데 6×6 은 비어 있음. 한가운데 트리거 → 아짐키야 조우 컷신 pines_center(src/data/cutscenes/jjajang_pines.js). 오른쪽 끝은 통로만 열림(다음 맵 대기).
+- 공터: 34~41열 × 7~14행 정사각형, 둘레 한 칸이 울창한 풀숲 타일 '"'(걸을 수 있음), 가운데 6×6 은 비어 있음. 한가운데 트리거 → 아짐키야 조우 컷신 pines_center(src/data/cutscenes/jjajang_pines.js). 오른쪽 끝 문 → 석상 앞 숲(jjajang_statue, BUILD228).
 - 소나무: gpt-image-2.5-sunburst 4종을 검은 실루엣 톤으로 후처리(assets/source/jjajang-pines-v1), 기존 짜장 나무보다 크고 드문드문. 히트박스는 밑동 한 칸(24×12)만.
 - 시야 오버레이 없음(“다시 펼쳐지는데”), dim 0.08. 발소리는 숲과 같은 '$' 에코."""
 from __future__ import annotations
@@ -94,6 +94,11 @@ def build_map() -> dict[str, object]:
         'type': 'door', 'id': 'pines_walk_door', 'x': 0, 'y': ENTRY_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_walk', 'spawn': 'from_east', 'sfx': False,
     }
+    # 오른쪽 끝 10px → 석상 앞 숲(jjajang_statue, BUILD228)
+    door_east = {
+        'type': 'door', 'id': 'pines_statue_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
+        'to': 'jjajang_statue', 'spawn': 'from_west', 'sfx': False,
+    }
     return {
         'id': MAP_ID,
         'name': '검은 소나무 숲',
@@ -107,14 +112,15 @@ def build_map() -> dict[str, object]:
             'from_west': {'x': 1 * TILE + 8, 'y': ENTRY_ROWS[0] * TILE + 6, 'facing': 'right'},
             'start': {'x': 1 * TILE + 8, 'y': ENTRY_ROWS[0] * TILE + 6, 'facing': 'right'},
             'before_center': {'x': 31 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'from_east': {'x': (WIDTH - 2) * TILE - 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
             'route': [[1, ENTRY_ROWS[0]], [UP_COLS[0], TOP_ROWS[0]], [DOWN_COLS[0], ROAD_ROWS[0]], [WIDTH - 2, ROAD_ROWS[0]]],
-            'role': '곧은 길 다음: 왼쪽 입구 → 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 다음 맵 대기. 브금 my_castle_town 이어짐',
+            'role': '곧은 길 다음: 왼쪽 입구 → 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 문 → 석상 앞 숲(jjajang_statue). 브금 my_castle_town 이어짐',
             'plaza': list(PLAZA),
         },
-        'entities': [*pines, center_trigger, door_west],
+        'entities': [*pines, center_trigger, door_west, door_east],
     }
 
 

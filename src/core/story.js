@@ -31,7 +31,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 // 짜장섬: 청소부(허약) 합류 컷신이 튼 wise_words 는 토리이 길에 남고, 사용자 지정 곡 my_castle_town(RKQUblO-iCs)은 **다음 맵(검은 소나무 숲)부터**(BUILD226 사용자 “아니다 그냥 다음 맵부터 나게 해줘”).
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
-export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines'];
+export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue'];
 export function storyBgm(mapId, flags) {
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
@@ -427,3 +427,8 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_pines', desc: '검은 소나
   map: 'jjajang_pines', spawn: 'from_west', flags: pinesFlags, party: ['janitor'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_pines_center', desc: '소나무 숲 공터 직전 (가운데로 가면 아짐키야 조우 → 전투)',
   map: 'jjajang_pines', spawn: 'before_center', flags: pinesFlags, party: ['janitor'] });
+const statueFlags = { ...pinesFlags, pines_center_started: true, pines_ajimkiya_won: true, pines_center_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_statue', desc: '석상 앞 숲 (왼쪽 입구 → 곧은 길, 가운데 위 공터의 석상 · 오른쪽 끝 다음 맵 브리핑 대기)',
+  map: 'jjajang_statue', spawn: 'from_west', flags: statueFlags, party: ['janitor'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_statue_front', desc: '석상 바로 아래 (위로 가서 C → 청소부 짜장숲 이야기)',
+  map: 'jjajang_statue', spawn: 'before_statue', flags: statueFlags, party: ['janitor'] });

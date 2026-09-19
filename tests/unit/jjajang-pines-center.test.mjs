@@ -88,3 +88,31 @@ test('test_pines_center_bgm_rules_and_qa', () => {
   const qa = QA_POINTS.find(p => p.id === 'jjajang_pines_center');
   assert.deepEqual(qa.party, ['janitor']); assert.equal(qa.spawn, 'before_center'); assert.ok(!qa.flags.pines_center_started);
 });
+
+test('test_pines_center_after_victory_janitor_talk_face_to_face_and_laugh', () => {
+  // BUILD228 사용자 브리핑: 승리 뒤 청소부: 허허허. → 요플래만 한 발짝 앞으로 가 뒤를 돌아본다(마주 봄) → 대사 → 껄껄 뒤 웃음
+  const s = pines_center;
+  const idx = pred => s.findIndex(pred);
+  const battle = idx(n => n.battle), guard = idx((n, i) => i > battle && typeof n.if === 'function');
+  const removes = s.map((n, i) => (n.remove && AJIMKIYA.includes(n.remove) ? i : -1)).filter(i => i >= 0);
+  const resume = idx(n => String(n.action).includes('resumeMapBgm')), heh = idx(n => n.text === '* 허허허.');
+  const step = idx(n => n.move === 'player' && typeof n.px === 'function');
+  const faceP = idx(n => n.face === 'player' && n.dir === 'toward:janitor'), faceJ = idx(n => n.face === 'janitor' && n.dir === 'toward:player');
+  const after = s.slice(heh).filter(n => n.text).map(n => n.text.replace(/^\* /, ''));
+  assert.deepEqual(after, ['허허허.', '검을 휘두르는 동작이 너무 거대하네', '한번에 죽일 수 있는 적에게는 효과적이지만 아마 나중에는 그렇지 않을걸세', '뭐?? 아 미안하네 노인의 혼잣말이라 생각해주게',
+    '...틀린말은 아닌거같다.', '나는 더 자세히 물었다.', '나는 싸움같은거 할줄 모르네,', '그렇지만 여기 섬에서 살아남는법은 알고있지.', '일단 다음으로 가보새 껄껄']);
+  assert.ok(s.slice(heh).filter(n => n.text && n.text.includes('틀린말') || n.text?.includes('자세히')).every(n => n.voice === 'narrator' && !n.speaker), '나레이션 두 줄');
+  assert.ok(battle < removes[0] && removes[2] < guard && guard < resume && resume < heh && heh < step && step < faceP && faceP < faceJ, '전투 → 아짐키야 제거 → (이겼을 때만) 브금 복귀 → 허허허 → 한 발짝 → 마주 봄');
+  const fadeIn = idx((n, i) => i > battle && n.fade === 'in'), zoomBack = idx((n, i) => i > battle && n.zoom === 1), regroupFirst = idx((n, i) => i > battle && n.regroup);
+  assert.ok(guard < zoomBack && zoomBack < fadeIn && fadeIn < regroupFirst && regroupFirst < heh, '표준 조우처럼 줌 복귀 → 검은 화면 걷기 → 동료 정렬 뒤에 대사(전투 뒤 화면이 검게 남던 것)');
+  assert.equal(s[step].exact, true, '한 칸 정확히');
+  assert.equal(s[guard].if({ pines_ajimkiya_won: false }), true, '이기지 못했으면 건너뛴다');
+  const fake = { player: { x: 100, y: 200, facing: 'right' } };
+  assert.deepEqual(s[step].px(fake), [132, 200], '보고 있는 쪽으로 한 칸(32px)');
+  assert.deepEqual(s[step].px({ player: { x: 100, y: 200, facing: 'up' } }), [100, 168]);
+  const laughs = s.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' ? i : -1)).filter(i => i >= 0);
+  assert.equal(laughs.length, 1, '웃음은 껄껄 뒤 한 번');
+  assert.equal(s[laughs[0] - 1].text, '* 일단 다음으로 가보새 껄껄');
+  const done = idx(n => n.set?.pines_center_done), regroup = s.map((n, i) => (n.regroup ? i : -1)).filter(i => i >= 0).pop();
+  assert.ok(laughs[0] < done && done < regroup, '끝: 플래그 → 동료 정렬');
+});

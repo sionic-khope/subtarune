@@ -49,6 +49,11 @@
    "x": 1000,
    "y": 326,
    "facing": "right"
+  },
+  "from_east": {
+   "x": 1976,
+   "y": 326,
+   "facing": "left"
   }
  },
  "meta": {
@@ -71,7 +76,7 @@
     10
    ]
   ],
-  "role": "곧은 길 다음: 왼쪽 입구 → 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 다음 맵 대기. 브금 my_castle_town 이어짐",
+  "role": "곧은 길 다음: 왼쪽 입구 → 오른쪽 → 위 → 왼쪽 → 아래 → 가운데에서 오른쪽 끝까지. 공터(34~41열×7~14행, 둘레 풀숲)는 몹 이벤트 자리(브리핑 대기). 오른쪽 끝 문 → 석상 앞 숲(jjajang_statue). 브금 my_castle_town 이어짐",
   "plaza": [
    34,
    41,
@@ -377,6 +382,17 @@
    "h": 64,
    "to": "jjajang_walk",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "pines_statue_door",
+   "x": 2038,
+   "y": 320,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_statue",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

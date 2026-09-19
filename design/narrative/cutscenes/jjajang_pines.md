@@ -35,3 +35,33 @@
 | 청소부 체력 100(정정 “100으로 하라고 했잖아”) | `characters.js janitor.noHpBonus` — 앞서 얻은 파티 최대 HP 보너스(+60)를 청소부에겐 안 붙임 → 전투 표시 100 | |
 
 QA `jjajang_pines_center`(공터 직전). 검사: `tests/unit/jjajang-pines-center.test.mjs`, `tests/playtest/jjajang-pines-center.mjs`.
+
+## 승리 뒤 (BUILD228, 2026-09-19)
+
+### 사용자 브리핑 (원문)
+
+> 아짐키야 전투 승리후 연출
+>
+> [연출]
+> 청소부: 허허허.
+> (요플래만 한발작 앞으로가 뒤를 돌아본다 마주보는연출)
+> 청소부: 검을 휘두르는 동작이 너무 거대하네
+> 청소부: 한번에 죽일 수 있는 적에게는 효과적이지만 아마 나중에는 그렇지 않을걸세
+> 청소부: 뭐?? 아 미안하네 노인의 혼잣말이라 생각해주게
+> 나레이션: ...틀린말은 아닌거같다.
+> 나레이션: 나는 더 자세히 물었다.
+> 청소부: 나는 싸움같은거 할줄 모르네,
+> 청소부: 그렇지만 여기 섬에서 살아남는법은 알고있지.
+> 청소부: 일단 다음으로 가보새 껄껄
+
+### 구현
+
+| 원문 | 구현 | 값 |
+|---|---|---|
+| 승리 후 | `{battle}` 뒤 아짐키야 제거 → 이겼을 때만(`pines_ajimkiya_won`) 이어짐 → 맵 브금 복귀(`resumeMapBgm`, 전투 뒤 표준) | |
+| 청소부: 허허허. | 원문 그대로(웃음 모션 없음 — 껄껄에만) | |
+| 요플래만 한 발짝 앞으로, 뒤를 돌아봄, 마주 봄 | `{move:'player', px: stepAhead}`(보고 있는 쪽으로 한 칸 32px, 컷신 중 동료는 안 따라온다) → `{face:'player', dir:'toward:janitor'}` + `{face:'janitor', dir:'toward:player'}` | |
+| 대사 8줄 | 원문 그대로, 나레이션 두 줄은 narrator. “껄껄” 뒤 웃음 모션 + 거슨 웃음 | |
+| 끝 | `pines_center_done` → `{regroup}` | |
+
+검사: `tests/unit/jjajang-pines-center.test.mjs`(순서·원문), `tests/playtest/jjajang-pines-center.mjs`(셋을 쓰러뜨린 뒤 브금 복귀·한 발짝·마주 봄·웃음).

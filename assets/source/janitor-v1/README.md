@@ -33,3 +33,7 @@ ffmpeg -ss 3.345 -t 0.105 -i audio/yt_VHS-OAgYyJM.webm -af "afade=t=in:st=0:d=0.
 
 ## 웃음 (BUILD227)
 사용자 “청소부 웃음도 만들어줘 약간 호탕하게 웃는 느낌이고 얼굴 올려서, 쥰희 웃음마냥”: `laugh.prompt.txt`(참조 `laugh-ref.png` = 지팡이 정면 프레임 4배) → `laugh-raw.png`(2×2 512 셀, 얼굴 들고 눈 감고 크게 웃음, 손은 배·지팡이 유지) 를 raw 그대로 `assets/sprites/janitor-laugh.png` 로 두고 `CHARACTER_MOTIONS.janitor.laugh` 가 마젠타 색키로 쓴다(pivot·scale 은 `laugh-contract.json`). 소리 `assets/audio/sfx/laugh_janitor.mp3` = 거슨 웃음 클립 앞 1.6초.
+
+## 웃음 2판 (BUILD228, 2026-09-19)
+
+사용자 “청소부 웃음 모션 스프라이트 마음에 안 들어, 거슨 웃음 마냥 뭔가 할아버지 느낌 더 나야 하는데 웃을 때”: `laugh2.prompt.txt`(같은 참조 `laugh-ref.png`; 고개를 뒤로 젖혀 하늘 보기, 잇몸 보이는 큰 입, 눈가 주름·눈 꼭 감음, 굽은 등·들썩이는 어깨, 배 두드림, 지팡이에 몸을 기댐) → `laugh2-raw.png`(2×2 512 셀) 를 raw 그대로 `assets/sprites/janitor-laugh.png` 로 교체. 프레임별 pivot(발 가운데·밑변) 은 `laugh-contract.json` → `CHARACTER_MOTIONS.janitor.laugh`(scale 0.1076 유지). 1판 raw(`laugh-raw.png`) 는 보관.

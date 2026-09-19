@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/jjajang-statue-v1/statue-ref.png"
+  ],
+  "elapsed_seconds": 36.6,
+  "usage": {
+    "input_tokens": 1095,
+    "output_tokens": 1756,
+    "total_tokens": 2851,
+    "input_tokens_details": {
+      "image_tokens": 704,
+      "text_tokens": 391
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789791844,
+  "outputs": [
+    {
+      "file": "assets/source/jjajang-statue-v1/statue-raw.png",
+      "bytes": 1179585,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

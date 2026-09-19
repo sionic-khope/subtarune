@@ -1,0 +1,438 @@
+{
+ "id": "jjajang_statue",
+ "name": "석상 앞 숲",
+ "stage": "ship_sinking_done",
+ "bgm": "my_castle_town",
+ "dim": 0.08,
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@$$$$$$$$$$$$$$$$$$$$$$$$@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@$$$$$$$$$$$$$$$$$$$$$$$$@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@$$$$$$$$$$$$$$$$$$$$$$$$@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@$$$$$$$$$$$$$$$$$$$$$$$$@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "&$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&",
+  "&$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 40,
+   "y": 454,
+   "facing": "right"
+  },
+  "start": {
+   "x": 40,
+   "y": 454,
+   "facing": "right"
+  },
+  "before_statue": {
+   "x": 904,
+   "y": 294,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    14
+   ],
+   [
+    28,
+    14
+   ],
+   [
+    28,
+    7
+   ],
+   [
+    58,
+    14
+   ]
+  ],
+  "blocked": [
+   [
+    28,
+    9
+   ],
+   [
+    28,
+    2
+   ]
+  ],
+  "role": "소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝(다음 맵 대기). 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐",
+  "clearing": [
+   17,
+   40,
+   7,
+   10
+  ],
+  "passage": [
+   [
+    27,
+    30
+   ],
+   [
+    1,
+    6
+   ]
+  ],
+  "statue": [
+   29,
+   7
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_1",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 228,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 140,
+   "iy": 33,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_2",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 452,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 434,
+   "iy": 63,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_3",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 676,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 628,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_4",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1188,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 1142,
+   "iy": 76,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_5",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1412,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1324,
+   "iy": 33,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_6",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 1668,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 1650,
+   "iy": 63,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_7",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 356,
+   "y": 274,
+   "w": 24,
+   "h": 12,
+   "ix": 308,
+   "iy": 119,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_8",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 420,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 374,
+   "iy": 204,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_9",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1444,
+   "y": 274,
+   "w": 24,
+   "h": 12,
+   "ix": 1356,
+   "iy": 129,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_10",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 1604,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 1586,
+   "iy": 191,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_11",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1796,
+   "y": 306,
+   "w": 24,
+   "h": 12,
+   "ix": 1748,
+   "iy": 151,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_12",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 164,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 118,
+   "iy": 268,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_13",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 484,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 396,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_14",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 708,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 690,
+   "iy": 287,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_15",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1124,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 1076,
+   "iy": 247,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_16",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1348,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1302,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_17",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1572,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 1484,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_19",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 196,
+   "y": 594,
+   "w": 24,
+   "h": 12,
+   "ix": 148,
+   "iy": 439,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_20",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 388,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 342,
+   "iy": 492,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_21",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 612,
+   "y": 594,
+   "w": 24,
+   "h": 12,
+   "ix": 524,
+   "iy": 449,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_22",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 836,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 818,
+   "iy": 479,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_23",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1060,
+   "y": 594,
+   "w": 24,
+   "h": 12,
+   "ix": 1012,
+   "iy": 439,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_24",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1284,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 1238,
+   "iy": 492,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_25",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1508,
+   "y": 594,
+   "w": 24,
+   "h": 12,
+   "ix": 1420,
+   "iy": 449,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_26",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 1732,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 1714,
+   "iy": 479,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_passage_shade",
+   "image": "assets/props/jjajang_passage_shade.png",
+   "x": 848,
+   "y": 0,
+   "w": 0,
+   "h": 0,
+   "ix": 848,
+   "iy": 0,
+   "solid": false,
+   "sortY": 1000000000
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_statue",
+   "image": "assets/props/jjajang_statue.png",
+   "x": 852,
+   "y": 200,
+   "w": 156,
+   "h": 24,
+   "ix": 850,
+   "iy": 47,
+   "solid": true,
+   "script": "jjajang_statue_talk",
+   "sortY": 2000000000
+  },
+  {
+   "type": "door",
+   "id": "statue_pines_door",
+   "x": 0,
+   "y": 448,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_pines",
+   "spawn": "from_east",
+   "sfx": false
+  }
+ ]
+}

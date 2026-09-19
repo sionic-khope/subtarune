@@ -1,0 +1,16 @@
+{
+ "scale": 0.18,
+ "rawBbox": [
+  73,
+  21,
+  961,
+  1003
+ ],
+ "file": "assets/props/jjajang_statue.png",
+ "size": [
+  160,
+  177
+ ],
+ "baseX": 78,
+ "plinthWidth": 102
+}

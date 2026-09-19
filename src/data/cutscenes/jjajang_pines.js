@@ -1,11 +1,16 @@
 // 검은 소나무 숲 공터 — 아짐키야 조우 (BUILD227 사용자 브리핑 2026-09-18, 원문·구현표는 design/narrative/cutscenes/jjajang_pines.md)
 //   가운데로 가면 브금 끔 → ???: ~~.. 디짐 → 요플래 ! → 청소부: 허허 이게 무슨소린가. → 아짐키야 넷이 딱 나오며 “가재맨 애미뒤짐”(영상 구간 소리) → 요플래: .. →
-//   노래(가재맨 애미 뒤짐)가 흐르며 넷이 제자리에서 빙글빙글 돌며 춤춤(22초, 화면은 안 돈다) → 전투 진입 연출 → 전투(짜장 일반몹 전투 브금). 첫 청소부 턴에 대사 셋, 이번 전투만 청소부 지팡이 던지기 데미지 1
+//   노래(가재맨 애미 뒤짐)가 흐르며 셋이 제자리에서 빙글빙글 돌며 춤춤(22초, 화면은 안 돈다) → 전투 진입 연출 → 전투(짜장 일반몹 전투 브금). 첫 청소부 턴에 대사 셋, 이번 전투만 청소부 지팡이 던지기 데미지 1
+//   승리 뒤(BUILD228 브리핑): 브금 복귀 → 청소부: 허허허. → 요플래만 한 발짝 앞으로 가 뒤를 돌아본다(마주 봄) → 대사 → 껄껄 뒤 웃음 → 끝
 import { battleEntry } from './helpers.js';
 const N = text => ({ voice: 'narrator', text: `* ${text}` });
 const C = text => ({ speaker: '청소부', portrait: 'janitor', voice: 'janitor', text: `* ${text}` });
 const close = { action: game => game.textbox.close() };
 const PLAYER = 'player';
+const JANITOR = 'janitor';
+const DIR = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+// 보고 있는 쪽으로 한 칸(32px) 앞 — 전투가 끝난 자리에서 요플래가 어느 쪽을 보고 있든 그쪽으로 한 발짝
+const stepAhead = game => { const [dx, dy] = DIR[game.player.facing] || DIR.right; return [game.player.x + dx * 32, game.player.y + dy * 32]; };
 export const AJIMKIYA = ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'];   // 셋(사용자 “3마리로”)
 // 공터(34~41열×7~14행) 둘레 풀숲 네 귀퉁이에서 튀어나오는 자리 — 그림 128×128(사용자 “부족 스프라이트 더 크게”: 요플래의 약 2배), 발 밑동 기준
 const FEET = [[34 * 32 + 16, 9 * 32 + 16], [41 * 32 + 16, 9 * 32 + 16], [38 * 32, 14 * 32 + 30]];   // 왼쪽 둘레·오른쪽 둘레(길 윗줄) + 아래 둘레 가운데 — 셋 다 화면 안(위 귀퉁이는 머리가 잘렸다)
@@ -40,7 +45,30 @@ export const pines_center = [
     memberDamage: { janitor: 1 },
     memberIntro: { janitor: [C('뭐 뭐라고? 공격을 하라고?'), C('껄껄 난 그런거 잘못한다네'), C('이거라도 던져보겠네 허허')] } } },
   ...AJIMKIYA.map(id => ({ remove: id })),
+  { if: flags => !flags.pines_ajimkiya_won, goto: 'end' },
+  // 승리 뒤 연출(사용자 브리핑 2026-09-19): 표준 조우처럼 줌·브금 복귀·검은 화면 걷기·동료 정렬 → 청소부 한마디 → 요플래만 한 발짝 앞으로 가 뒤를 돌아본다 → 마주 본 채 대사
+  { zoom: 1 },
+  { action: game => game.resumeMapBgm() },
+  { fade: 'in', duration: 0.5 },
+  { regroup: true },
+  C('허허허.'),
+  close,
+  { move: PLAYER, px: stepAhead, exact: true, speed: 60 },
+  { face: PLAYER, dir: 'toward:janitor' },
+  { face: JANITOR, dir: 'toward:player' },
+  { wait: 0.25 },
+  C('검을 휘두르는 동작이 너무 거대하네'),
+  C('한번에 죽일 수 있는 적에게는 효과적이지만 아마 나중에는 그렇지 않을걸세'),
+  C('뭐?? 아 미안하네 노인의 혼잣말이라 생각해주게'),
+  N('...틀린말은 아닌거같다.'),
+  N('나는 더 자세히 물었다.'),
+  C('나는 싸움같은거 할줄 모르네,'),
+  C('그렇지만 여기 섬에서 살아남는법은 알고있지.'),
+  C('일단 다음으로 가보새 껄껄'),
+  { motion: JANITOR, name: 'laugh', sfx: 'laugh_janitor' },
+  close,
   { set: { pines_center_done: true } },
+  { regroup: true },
   { label: 'end' },
   { end: true },
 ];

@@ -1,0 +1,12 @@
+# imagegen 2026-09-19 13:24:06
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/jjajang-statue-v1/statue-ref.png
+
+Pixel art game prop: ONE giant weathered STONE STATUE for a dark top-down 2D RPG map, single object only, 1024x1024 canvas, solid pure #FF00FF magenta background everywhere, no scenery, no banner, no sign, no letters, no text, no ground, no floor, no drop shadow, no border.
+The statue reproduces the man in the reference photo (Image1) EXACTLY as posed, background removed: a stocky middle-aged man with short dark hair, wearing a comically huge over-inflated suit jacket with a white dress shirt and a tie, chest puffed up, both arms spread wide out to the sides with clenched fists, chin tucked, looking straight ahead with a tense smug grimace. Same head-to-body proportions, same arm angles, same jacket silhouette, same facial expression as the photo.
+Carved entirely from old grey granite: every surface (skin, hair, jacket, shirt, tie, hands) is stone in flat grey shades only, with darker grey cracks and chips and a little dark moss in the crevices; no skin tones, no fabric colours, no red, no blue.
+Complete the figure below the photo's crop: straight stone trouser legs and stone shoes standing on a low, wide, plain rectangular stone plinth; the plinth's bottom edge is the bottom-most part of the object.
+Front view exactly like the photo, whole statue centered, filling about 85% of the canvas height, nothing touching the canvas edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited grey shades (light grey, mid grey, dark grey, near-black cracks, a touch of dark mossy green), dark stepped outlines, crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

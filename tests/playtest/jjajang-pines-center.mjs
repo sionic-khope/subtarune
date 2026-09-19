@@ -1,5 +1,5 @@
 // 소나무 숲 공터 아짐키야 조우(BUILD227): 가운데로 가면 브금이 꺼지고 ??? → ! → 청소부 → 넷 등장(클립 대사) → .. → 노래·맵 회전·춤 22초 → 전투(짜장 전투 브금).
-//   전투: 요플래 공격 뒤 청소부 첫 차례에 대사 셋 → 메뉴, 청소부 공격은 1, 적 체력 8, 적 턴 말풍선에 클립. 실행: tests/playtest/run.sh jjajang-pines-center
+//   전투: 요플래 공격 뒤 청소부 첫 차례에 대사 셋 → 메뉴, 청소부 공격은 1, 적 체력 8, 적 턴 말풍선에 클립 → 승리 → 브금 복귀 → 청소부: 허허허. → 요플래 한 발짝·마주 봄 → 대사 → 껄껄 웃음(BUILD228). 실행: tests/playtest/run.sh jjajang-pines-center
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -71,6 +71,41 @@ try {
   await page.waitForTimeout(900); await cap('06_pattern');
   const pat = await page.evaluate(() => game.battle.patterns.map(p => p.enemy.def.patterns[(p.enemy.patternIdx - 1 + 3) % 3].type));
   check(pat.length === 1, '말풍선을 띄운 한 명만 패턴을 낸다(일반몹 난이도) ' + JSON.stringify(pat));
+  // 승리 → 청소부 대화(BUILD228): 다음 요플래 차례에 셋을 체력 1 로 두고 셋을 차례로 쓰러뜨린다
+  check(await until(() => window.game.battle.state === 'menu' && window.game.battle.memberIdx === 0, 40000), '탄막 뒤 요플래 메뉴');
+  await page.evaluate(() => { for (const e of game.battle.enemies) e.hp = 1; });
+  await press('KeyC'); await until(() => window.game.battle.state === 'target', 3000); await press('KeyC');
+  check(await until(() => window.game.battle && window.game.battle.state === 'menu' && window.game.battle.memberIdx === 1, 20000), '청소부 메뉴(둘째 판)');
+  await press('KeyC'); await until(() => window.game.battle.state === 'target', 3000); await press('KeyC');
+  check(await until(() => window.game.battle && ['enemy-prep', 'bullets'].includes(window.game.battle.state), 20000), '하나 남은 적 턴');
+  check(await until(() => window.game.battle.state === 'menu' && window.game.battle.memberIdx === 0, 40000), '셋째 판 요플래 메뉴');
+  // 마지막 적을 쓰러뜨릴 때까지 차례마다 공격(청소부 차례가 남아 있으면 그것도) → 승리 화면 → C 로 닫는다
+  let winSeen = false;
+  for (let i = 0; i < 80 && await page.evaluate(() => !!window.game.battle); i++) {
+    const state = await page.evaluate(() => window.game.battle?.state);
+    if (state === 'menu') { await press('KeyC'); await until(() => window.game.battle?.state === 'target', 1500); await press('KeyC'); }
+    else if (state === 'win') { if (!winSeen) { await page.waitForTimeout(700); await cap('07_win'); } winSeen = true; await press('KeyC'); }
+    await page.waitForTimeout(350);
+  }
+  check(winSeen, '승리 화면');
+  check(await until(() => !window.game.battle && window.game.flags.pines_ajimkiya_won, 8000), '전투가 끝나고 승리 플래그');
+  check(await until(() => window.game.sound.bgmName === 'my_castle_town', 4000), '전투 뒤 맵 브금 복귀');
+  await line('허허허.');
+  const p0 = await page.evaluate(() => ({ x: Math.round(game.player.x), y: Math.round(game.player.y), facing: game.player.facing }));
+  check(await until(() => window.game.textbox.node?.text?.includes('검을 휘두르는'), 8000), '대사: 검을 휘두르는');
+  const p1 = await page.evaluate(() => { const g = game; const j = g.entities.find(e => e.id === 'janitor' && !e.dead); return { x: Math.round(g.player.x), y: Math.round(g.player.y), facing: g.player.facing, j: { x: Math.round(j.x), y: Math.round(j.y), facing: j.facing } }; });
+  const moved = Math.abs(p1.x - p0.x) + Math.abs(p1.y - p0.y);
+  const toward = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y; return Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down'); };
+  check(moved >= 24 && moved <= 40, '요플래만 한 발짝(한 칸) 앞으로 ' + JSON.stringify({ p0, p1 }));
+  check(p1.facing === toward(p1, p1.j) && p1.j.facing === toward(p1.j, p1), '뒤를 돌아보고 마주 본다 ' + JSON.stringify(p1));
+  await cap('08_face_to_face');
+  await line('검을 휘두르는');
+  for (const t of ['한번에 죽일', '노인의 혼잣말', '틀린말은', '더 자세히', '싸움같은거', '살아남는법']) await line(t);
+  await line('가보새 껄껄');
+  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000), '껄껄 뒤에 웃는다');
+  await page.waitForTimeout(280); await cap('09_laugh');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.pines_center_done, 8000), '연출이 끝난다');
+  await page.waitForTimeout(500); await cap('10_after');
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }
 console.log('fails=' + fails); await browser.close(); process.exit(fails ? 1 : 0);

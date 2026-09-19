@@ -55,3 +55,9 @@ test('test_pines_bgm_and_qa_point', () => {
   const qa = QA_POINTS.find(p => p.id === 'jjajang_pines');
   assert.deepEqual(qa.party, ['janitor']); assert.ok(qa.flags.torii_janitor_joined);
 });
+
+test('test_pines_east_door_leads_to_the_statue_forest', () => {
+  const east = map.entities.find(e => e.id === 'pines_statue_door');
+  assert.deepEqual([east.to, east.spawn, east.x, east.y, east.w, east.h], ['jjajang_statue', 'from_west', 64 * 32 - 10, 10 * 32, 10, 64], '오른쪽 끝 10px 문 → 석상 앞 숲(BUILD228)');
+  assert.ok(map.spawns.from_east.x < east.x - 20 && map.spawns.from_east.facing === 'left');
+});
