@@ -103,7 +103,7 @@ export class Runner {
       }
     }
     for (const w of this.wind) w.x -= s.dir * (s.vx * 1.2 + w.v) * dt;
-    this.wind = this.wind.filter((w) => w.x + w.len > -4 && w.x < SCREEN_W + 4);
+    this.wind = this.wind.filter((w) => w.x + w.len > -4 && w.x - w.len < SCREEN_W + 4);   // 오른쪽 달리기 줄기는 화면 오른쪽 밖(x = 480+len)에서 시작하므로 len 만큼 여유
     for (const t of this.streaks) t.x -= s.dir * t.v * dt;
     this.streaks = this.streaks.filter((t) => t.x + t.len > cam.x - 8 && t.x < cam.x + SCREEN_W + 8);
     for (const d of this.spray) { d.t += dt; d.vy += SPRAY.gravity * dt; d.x += d.vx * dt; d.y += d.vy * dt; }
