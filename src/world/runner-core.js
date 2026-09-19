@@ -11,18 +11,18 @@ export const RUNNER = Object.freeze({
   stepFrames: [1, 3],               // 발 접촉 프레임 → 물결 고리·발소리
   jumpV: 430, gravity: 1100,        // 점프(사용자 “더 높게”): 체공 약 0.78초, 높이 약 84px
   jumpTilt: 0.32,                   // 점프 중 몸을 대각선으로 살짝 틀어 하늘을 본다(라디안, 오를 때 뒤로 젖힘·내려올 때 앞으로)
+  airTime: 2 * 430 / 1100,          // 점프 체공 시간 — 제동 경계를 공중에서 넘게 되는 점프는 받지 않는다(리뷰: 공중이면 제동이 못 시작해 미끄러짐이 통째로 빠짐)
   slashTime: 0.32, spinTime: 0.34,  // C 베기 / 공중 C 회전 베기(사용자 “공중 베기 속도감”: 0.34초에 한 바퀴)
   brakeDist: 260,                   // 끝에서 제동(사용자 “땅을 짚으면서 앞으로 드르르르륵”): 웅크려 손을 짚은 채 미끄러지며 v = speed·√(남은/brakeDist) 로 줄어 endX 에 정확히 선다(약 1.0초)
   skidStepEvery: 0.05,              // 미끄러지는 동안 물보라 간격
   settleTime: 0.3,                  // 멈춘 뒤 웅크린 채 잠깐(그 뒤 일어나며 조작 복귀)
   trailEvery: 0.03, trailMax: 8,    // 잔상
-  scale: 0.85,                      // 걷기 스프라이트 대비 크기(사용자 “살짝 작아져야”)
-  cameraLeft: 0.22,                 // 캐릭터를 화면 왼쪽 22% 자리에
+  cameraLeft: 0.22,                 // 캐릭터를 화면 왼쪽 22% 자리에(크기는 character-motions.js runner_* 의 scale — 걷기보다 살짝 작게)
 });
 
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
 export function createRunner({ x, endX, speed = RUNNER.speed }) {
-  return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed, vx: 0, airY: 0, vy: 0, grounded: true,
+  return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), vx: 0, airY: 0, vy: 0, grounded: true,
     anim: 'prep', frame: 0, animT: 0, attack: null, spinAngle: 0, tilt: 0, trail: [], trailT: 0 };
 }
 
@@ -48,7 +48,7 @@ export function stepRunner(s, dt, input = {}) {
     if (s.t >= RUNNER.dashTime) { s.phase = 'run'; s.t = 0; s.vx = s.speed; }
   } else if (s.phase === 'run') {
     s.t += dt;
-    if (s.x >= s.endX - RUNNER.brakeDist && s.grounded && !s.attack) { s.phase = 'brake'; s.t = 0; s.skidT = 0; ev.push('skid'); }
+    if (s.x >= s.endX - RUNNER.brakeDist && s.grounded) { s.phase = 'brake'; s.t = 0; s.skidT = 0; s.attack = null; s.spinAngle = 0; ev.push('skid'); }   // 땅 베기 중이면 베기를 끊고 미끄러진다
   } else if (s.phase === 'brake') {
     s.t += dt; s.skidT += dt;
     const left = Math.max(0, s.endX - s.x);
@@ -58,7 +58,8 @@ export function stepRunner(s, dt, input = {}) {
   }
   if (s.phase !== 'done' && s.phase !== 'settle') s.x = Math.min(s.endX, s.x + s.vx * dt);
   // 점프(X): 땅에 있고 공격 중이 아닐 때(제동 중엔 안 됨)
-  if (input.jump && s.grounded && !s.attack && s.phase === 'run' || input.jump && s.grounded && !s.attack && s.phase === 'dash') { s.grounded = false; s.vy = RUNNER.jumpV; ev.push('jump'); }
+  const jumpLandsBeforeBrake = s.x + s.speed * RUNNER.airTime < s.endX - RUNNER.brakeDist;
+  if (input.jump && s.grounded && !s.attack && (s.phase === 'run' || s.phase === 'dash') && jumpLandsBeforeBrake) { s.grounded = false; s.vy = RUNNER.jumpV; ev.push('jump'); }
   if (!s.grounded) {
     s.airY += s.vy * dt; s.vy -= RUNNER.gravity * dt;
     if (s.airY <= 0) { s.airY = 0; s.vy = 0; s.grounded = true; ev.push('land'); }

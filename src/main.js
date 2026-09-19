@@ -466,7 +466,7 @@ class Game {
     for (const entity of this.entities) entity.motion = null;
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
-    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
+    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner?.finish(); this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
     this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = [];
     this.fadeTo(1, 0.4, () => {
       this.resetState();
@@ -594,6 +594,7 @@ class Game {
     if (!MAPS[mapId]) { console.warn('[map] 없는 맵', mapId); return; }                        // 문/QA/스크립트가 잘못된 id 를 줘도 게임이 죽지 않는다 (2026-09-11 smoke)
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      this.runner?.finish(); this.runner = null;   // 러너 중 맵 이동(코스 위 문·비상탈출): 카메라 잠금 풀고 조작 복귀 (리뷰 2026-09-19)
       this.finishTvBroadcast(true);
       this.finishShipAssault(true);
       this.finishShipCastle(true);
@@ -995,6 +996,7 @@ class Game {
    */
   doEscape() {
     this.state = 'field'; this.menu = null; this.sound.sfx('close');
+    this.runner?.finish(); this.runner = null;   // 달리는 중 비상탈출: 살아남은 러너가 다음 틱에 다시 코스로 끌고 가던 것 (리뷰 2026-09-19)
     this.escapes = (this.escapes || 0) + 1;   // 오버레이 씬(섭리오)이 열려 있으면 이 값이 바뀐 것을 보고 씬을 접는다
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }

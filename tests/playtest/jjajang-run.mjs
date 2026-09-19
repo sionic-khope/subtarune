@@ -11,7 +11,7 @@ const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } 
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'run_' + n + '.png') }); };
 const press = async key => { await page.keyboard.down(key); await page.waitForTimeout(60); await page.keyboard.up(key); };
 const until = (fn, ms) => page.waitForFunction(fn, null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false);
-const st = () => page.evaluate(() => { const g = window.game; const r = g.runner; const f = g.entities.find(e => e.def?.type === 'follower' && !e.dead); return { map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, bgm: g.sound.bgmName, cam: [Math.round(g.camera.x), Math.round(g.camera.y)], locked: !!g.camera.locked, ripples: g.ripples.length, runner: r ? { phase: r.phase, vx: Math.round(r.core.vx), airY: Math.round(r.core.airY), grounded: r.core.grounded, attack: r.core.attack?.kind || null, anim: r.core.anim, frame: r.core.frame, trail: r.core.trail.length, elapsed: +r.core.elapsed.toFixed(2), sfx: r.sfxLog.slice() } : null, follower: f ? { x: Math.round(f.x), y: Math.round(f.y), visible: f.visible !== false } : null }; });
+const st = () => page.evaluate(() => { const g = window.game; const r = g.runner; const f = g.entities.find(e => e.def?.type === 'follower' && !e.dead); return { map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, bgm: g.sound.bgmName, cam: [Math.round(g.camera.x), Math.round(g.camera.y)], locked: !!g.camera.locked, ripples: g.ripples.length, runner: r ? { phase: r.phase, vx: Math.round(r.core.vx), airY: Math.round(r.core.airY), grounded: r.core.grounded, attack: r.core.attack?.kind || null, anim: r.core.anim, frame: r.core.frame, trail: r.core.trail.length, elapsed: +r.core.elapsed.toFixed(2), sfx: r.sfxLog.slice(), wind: r.wind.length, streaks: r.streaks.length, spray: r.spray.length } : null, follower: f ? { x: Math.round(f.x), y: Math.round(f.y), visible: f.visible !== false } : null }; });
 const go = async (key, cond, ms, run = true) => { await page.evaluate(c => { window.__cond = c; }, cond); if (run) await page.keyboard.down('KeyX'); await page.keyboard.down(key); const ok = await page.waitForFunction(() => new Function('g', 'return ' + window.__cond)(window.game), null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false); await page.keyboard.up(key); if (run) await page.keyboard.up('KeyX'); await page.waitForTimeout(100); return ok; };
 try {
   await page.goto('http://localhost:8000/?qa=jjajang_run_torii');
@@ -33,7 +33,7 @@ try {
   check(await until(() => window.game.runner?.sfxLog.includes('weaponpull'), 2000), '검 뽑는 소리(weaponpull)');
   check(await until(() => window.game.runner?.phase === 'dash', 2000), '대시로 넘어간다');
   await page.waitForTimeout(220); s = await st(); await cap('02_dash');
-  check(s.runner.sfx.includes('wing') && s.runner.trail > 2 && s.px === xPrep + Math.round(s.px - xPrep), '대시: 휘융 + 잔상 ' + JSON.stringify(s.runner));
+  check(s.runner.sfx.includes('wing') && s.runner.trail > 2 && s.px > xPrep + 10, '대시: 휘융 + 잔상 ' + JSON.stringify(s.runner));
   check(await until(() => window.game.runner?.phase === 'run', 2000), '달리기');
   await page.waitForTimeout(400); s = await st();
   check(s.runner.vx === 520 && s.runner.anim === 'run', '최고 속도 520px/s 달리기 프레임 ' + JSON.stringify(s.runner));
@@ -41,6 +41,7 @@ try {
   check(Math.abs(camLeft - 480 * 0.22) < 40, `카메라: 캐릭터가 화면 왼쪽(${camLeft.toFixed(0)}px)`);
   const rBefore = s.ripples; await page.waitForTimeout(500); s = await st();
   check(s.ripples >= rBefore || s.ripples > 0, '달리는 동안 발마다 물결 ' + s.ripples);
+  check(s.runner.wind > 3 && s.runner.streaks > 3 && s.runner.spray > 0, '바람 줄기·바닥 줄기·물보라가 나온다 ' + JSON.stringify({ wind: s.runner.wind, streaks: s.runner.streaks, spray: s.runner.spray }));
   await cap('03_run');
   // X 점프
   await press('KeyX');
@@ -62,15 +63,30 @@ try {
   await page.waitForTimeout(200); s = await st(); await cap('06_spin');
   const spinAngle = await page.evaluate(() => window.game.runner?.core.spinAngle || 0);
   check(s.runner.sfx.includes('criticalswing') && spinAngle > 1 && s.runner.frame === 2, `회전 베기: criticalswing, 각도 ${spinAngle.toFixed(2)}`);
-  // 끝까지: 시작 뒤 약 10초 남짓
-  const done = await until(() => !window.game.runner, 16000);
+  // 끝까지: 시작 뒤 약 10초 남짓. 제동(손 짚고 미끄러짐) 때도 캐릭터는 화면 왼쪽 22% 자리
+  check(await until(() => window.game.runner?.phase === 'brake', 16000), '끝 앞에서 제동 시작');
+  s = await st(); await cap('06b_skid');
+  check(s.runner.anim === 'prep' && s.runner.frame === 1 && s.runner.sfx.includes('scrape') && Math.abs(s.px + 12 - s.cam[0] - 480 * 0.22) < 40, '손 짚은 웅크림으로 미끄러지고(scrape) 구도는 왼쪽 22% ' + JSON.stringify({ px: s.px, cam: s.cam, anim: s.runner.anim }));
+  check(await until(() => window.game.runner?.phase === 'settle', 4000), '멈춘 뒤 웅크린 채 잠깐(settle)');
+  const done = await until(() => !window.game.runner, 6000);
   s = await st();
-  check(done && s.px >= 6304 - 4 && !s.locked && s.follower && s.follower.visible && s.follower.x < s.px, '오른쪽 끝(6304)에서 멈추고 조작·카메라·동료 복귀 ' + JSON.stringify({ px: s.px, cam: s.cam, follower: s.follower }));
-  await page.waitForTimeout(300); await cap('07_end');
-  const elapsed = await page.evaluate(() => window.__runElapsed);
+  const endX = await page.evaluate(() => window.game.map.def.meta.run.endX);
+  check(done && s.px >= endX - 4 && !s.locked && s.follower && s.follower.visible && s.follower.x < s.px, `오른쪽 끝(${endX})에서 멈추고 조작·카메라·동료 복귀 ` + JSON.stringify({ px: s.px, cam: s.cam, follower: s.follower }));
+  await page.waitForTimeout(900); await cap('07_end');
+  const f2 = await st();
+  check(f2.follower && Math.abs(f2.follower.x - s.follower.x) < 12, '끝난 뒤 동료가 반대쪽으로 걸어가지 않는다 ' + JSON.stringify({ before: s.follower, after: f2.follower }));
   // 끝난 뒤 다시 조작: 왼쪽으로 걸을 수 있다
   await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(400); await page.keyboard.up('ArrowLeft');
   const s2 = await st(); check(s2.px < s.px - 20 && s2.facing === 'left', '끝난 뒤 다시 걸을 수 있다');
+  // 달리는 중 비상탈출(메뉴 → 탈출): 러너가 사라지고 카메라 잠금이 풀리며 입구 스폰으로(리뷰 2026-09-19: 살아남은 러너가 다시 코스로 끌고 가던 것)
+  await page.goto('http://localhost:8000/?qa=jjajang_run_torii');
+  await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_run' && !window.game.dialogue.running, null, { timeout: 30000 });
+  await page.waitForTimeout(300);
+  await page.keyboard.down('ArrowRight'); await until(() => window.game.runner?.phase === 'run', 12000); await page.keyboard.up('ArrowRight');
+  await page.waitForTimeout(600);
+  await page.evaluate(() => window.game.doEscape());
+  await page.waitForTimeout(900); s = await st();
+  check(!s.runner && !s.locked && s.px < 30 * 32 && s.follower && s.follower.visible, '달리는 중 비상탈출: 러너 해제·카메라 잠금 해제·입구 스폰 ' + JSON.stringify({ px: s.px, locked: s.locked, runner: !!s.runner }));
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
   // 문: 왼쪽 가장자리 ↔ 석상 앞 숲 오른쪽
   await page.goto('http://localhost:8000/?qa=jjajang_run');

@@ -21,7 +21,7 @@ export class Runner {
   constructor(game, opts = {}) {
     this.game = game;
     const p = game.player;
-    this.core = createRunner({ x: p.x, endX: opts.endX ?? (game.map.pxW - 96), speed: opts.speed ?? RUNNER.speed });
+    this.core = createRunner({ x: p.x, endX: opts.endX ?? (game.map.pxW - 386), speed: opts.speed || RUNNER.speed });
     this.groundY = p.y;
     this.fx = [];
     this.wind = []; this.streaks = []; this.spray = []; this.windAcc = 0; this.streakAcc = 0;
@@ -29,7 +29,7 @@ export class Runner {
     p.moving = false; p.facing = 'right'; p.frame = 0; p.animPhase = 0; p.knock = null;
     for (const e of game.entities) if (e.def?.type === 'follower') e.visible = false;
     game.sound?.walk?.(null);
-    this.placeCamera(1);
+    game.camera.locked = true;   // 이 프레임부터 카메라는 러너가 옮긴다(첫 update 전에도 잠금)
   }
   get phase() { return this.core.phase; }
   sheet(name) { return this.game.characterMotions?.hyungsub?.[`runner_${name}`] || null; }
@@ -53,7 +53,7 @@ export class Runner {
     this.updateParticles(dt);
     if (g.runner !== this) return;
     g.sound?.walk?.(s.vx > 0 && s.grounded ? WATER_WALK : null);
-    this.placeCamera(0.5);
+    this.placeCamera(s.phase === 'prep' ? 0.08 : 0.5);   // 준비 동작 동안 가운데 정렬에서 왼쪽 22% 로 천천히 옮겨 간다(한 프레임에 튀지 않게)
   }
   /** 발이 물을 차서 뒤로 튀는 물보라(월드 좌표) */
   splash(x, y, count = SPRAY.count) {
@@ -72,7 +72,8 @@ export class Runner {
         this.wind.push({ x: SCREEN_W + len, y: rand(6, SCREEN_H - 6), len, v: rand(...WIND.extra), a: rand(...WIND.alpha) * (s.phase === 'dash' ? 1.3 : 1), thick: s.phase === 'dash' && Math.random() < 0.4 ? 2 : 1 });
       }
       if (map) {
-        const [r0, r1] = map.def.meta?.runRoadRows || [8, 9];
+        const groundRow = Math.floor((this.groundY + g.player.h - 1) / 32);
+        const [r0, r1] = map.def.meta?.runRoadRows || [groundRow - 1, groundRow];   // 맵 meta 가 길 행을 주면 그대로, 없으면 주인공이 선 행 기준
         this.streakAcc += dt * STREAK.rate * k;
         while (this.streakAcc >= 1) {
           this.streakAcc -= 1;
@@ -116,7 +117,9 @@ export class Runner {
     if (g.runner === this) g.runner = null;
     g.camera.locked = false; p.moving = false; p.facing = 'right';
     g.sound?.walk?.(null);
+    p.trail = [];   // 달리는 동안 쌓이지 않은 발자국 궤적을 비운다 — 안 비우면 동료가 토리이 자리로 되돌아 걸어간다(리뷰 2026-09-19)
     for (const e of g.entities) if (e.def?.type === 'follower') { e.visible = true; e.snapBehind?.(); }
+    for (const name of ['prep', 'run', 'jump', 'slash']) for (const f of this.sheet(name)?.frames || []) delete f.silhouette;
   }
   frameOf(anim, index) {
     const sheet = this.sheet(anim);
@@ -124,11 +127,13 @@ export class Runner {
     return { frame: sheet.frames[Math.min(index, sheet.frames.length - 1)], scale: sheet.scale * CHAR_SCALE };
   }
   /** 잔상용 파란 실루엣(프레임마다 한 번 만들어 붙여 둔다) */
-  silhouette(frame) {
+  silhouette(frame, scale) {
     if (!frame.silhouette) {
-      const c = makeCanvas(frame.image.width, frame.image.height);
-      const x = c.getContext('2d');
-      x.drawImage(frame.image, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = TRAIL_COLOR; x.fillRect(0, 0, c.width, c.height);
+      // 표시 크기(약 60px)로 만든다 — 원본 512px 로 만들면 프레임당 1MB 가 게임 내내 남는다(리뷰 2026-09-19). finish() 에서 버린다
+      const w = Math.max(1, Math.round(frame.image.width * scale)), h = Math.max(1, Math.round(frame.image.height * scale));
+      const c = makeCanvas(w, h);
+      const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+      x.drawImage(frame.image, 0, 0, w, h); x.globalCompositeOperation = 'source-in'; x.fillStyle = TRAIL_COLOR; x.fillRect(0, 0, w, h);
       frame.silhouette = c;
     }
     return frame.silhouette;
@@ -150,14 +155,14 @@ export class Runner {
       const fr = this.frameOf(t.anim, t.frame);
       if (!fr) return;
       ctx.globalAlpha = (t.phase === 'dash' ? 0.6 : 0.3) * ((i + 1) / (n + 1));
-      this.drawFrame(ctx, this.silhouette(fr.frame), fr.frame, fr.scale, t.x + p.w / 2 - cam.x, ay - t.airY, t.angle);
+      this.drawFrame(ctx, this.silhouette(fr.frame, fr.scale), fr.frame, fr.scale, t.x + p.w / 2 - cam.x, ay - t.airY, t.angle);
     });
     ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(Math.round(p.x - cam.x), Math.round(ay - 2), p.w, 3);
     const fr = this.frameOf(s.anim, s.frame);
     if (fr && s.attack?.kind === 'spin') {
       // 공중제비 회전 베기(사용자 “좀 별로, 간소화·속도감”): 몸을 바퀴처럼 — 회전 방향 뒤쪽에 파란 실루엣 3장을 겹쳐 흐림을 만들고 그 위에 본체를 그린다
-      for (let k = 3; k >= 1; k--) { ctx.globalAlpha = 0.42 - k * 0.1; this.drawFrame(ctx, this.silhouette(fr.frame), fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle - k * 0.45); }
+      for (let k = 3; k >= 1; k--) { ctx.globalAlpha = 0.42 - k * 0.1; this.drawFrame(ctx, this.silhouette(fr.frame, fr.scale), fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle - k * 0.45); }
       ctx.globalAlpha = 1;
       this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle);
     } else if (fr) this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.spinAngle || s.tilt);

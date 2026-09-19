@@ -15,9 +15,10 @@ const rows = map.rows;
 
 test('test_run_map_is_one_long_black_water_road_with_the_blue_torii_and_a_per_pass_trigger', () => {
   const [r0, r1] = [8, 9];
-  assert.equal(rows[0].length, 200); assert.equal(rows.length, 14);
-  for (let c = 1; c < 199; c++) { assert.equal(rows[r0][c], '*'); assert.equal(rows[r1][c], '*'); }
-  assert.equal(rows[r0][0], '+'); assert.equal(rows[r0][199], '+');
+  const W = rows[0].length;
+  assert.equal(W, 209); assert.equal(rows.length, 14);
+  for (let c = 1; c < W - 1; c++) { assert.equal(rows[r0][c], '*'); assert.equal(rows[r1][c], '*'); }
+  assert.equal(rows[r0][0], '+'); assert.equal(rows[r0][W - 1], '+');
   assert.equal(getTile('+').name, 'jjajang_black_water_edge', '가장자리 출입구 칸도 검은 물 그림(회색 상자 금지)');
   assert.ok(rows.every((row, r) => (r === r0 || r === r1) || [...row].every(ch => ch === '@')), '길 밖은 검은 숲');
   const tile = getTile('*');
@@ -31,7 +32,10 @@ test('test_run_map_is_one_long_black_water_road_with_the_blue_torii_and_a_per_pa
   const trig = map.entities.find(e => e.type === 'trigger');
   assert.deepEqual({ script: trig.script, once: trig.once, flag: trig.flag, y: trig.y, h: trig.h }, { script: 'jjajang_run_start', once: undefined, flag: undefined, y: r0 * 32, h: 64 }, '지날 때마다(once 없음)');
   assert.ok(trig.x > front.x && trig.x >= 32 * 32 && trig.x + trig.w <= 34 * 32, '기둥 사이를 지나는 자리');
-  assert.ok(map.meta.run.startX >= trig.x + trig.w && map.meta.run.endX === 200 * 32 - 96 && map.meta.run.speed === RUNNER.speed);
+  assert.ok(map.meta.run.startX >= trig.x + trig.w && map.meta.run.endX === W * 32 - 386 && map.meta.run.speed === RUNNER.speed);
+  assert.deepEqual(map.meta.runRoadRows, [r0, r1], '바닥 물결 줄기 행은 맵이 준다(하드코딩 금지)');
+  // 제동·정지 자리에서도 카메라(최대 x = pxW-480)가 캐릭터를 화면 왼쪽 22% 에 둘 수 있다(리뷰 2026-09-19)
+  assert.ok(Math.abs((map.meta.run.endX + 12) - (W * 32 - 480) - 480 * RUNNER.cameraLeft) <= 8, '끝에서도 왼쪽 22% 구도');
   assert.ok((map.meta.run.endX - map.meta.run.startX) / map.meta.run.speed > 9.5, '달리기 구간 약 10초');
   for (const p of map.entities.filter(e => /jjajang_pine_/.test(e.image || ''))) {
     const c = Math.floor((p.x + 12) / 32), r = Math.floor((p.y + 6) / 32);

@@ -33,7 +33,8 @@ test('test_runner_steps_emit_on_foot_contact_frames_and_reaches_the_end_in_about
   const s2 = createRunner({ x: startX, endX, speed }); let t = 0;
   while (s2.phase !== 'done' && t < 30) { stepRunner(s2, DT); t += DT; }
   assert.ok(t > 9 && t < 12.5, `토리이에서 오른쪽 끝까지 약 10초 (${t.toFixed(1)}s)`);
-  assert.ok(speed === RUNNER.speed && endX === 200 * 32 - 96, '맵 meta.run 과 상태기계 속도가 같다');
+  assert.ok(speed === RUNNER.speed && endX === map.rows[0].length * 32 - 386, '맵 meta.run 과 상태기계 속도가 같다');
+  assert.equal(createRunner({ x: 0, endX: 10, speed: 0 }).speed, RUNNER.speed, 'speed 0 은 기본값(NaN 방지)');
 });
 
 test('test_runner_jump_is_a_parabola_that_lands_and_air_attack_spins_a_full_turn', () => {
@@ -72,6 +73,12 @@ test('test_runner_brakes_before_the_end_and_stops_exactly_at_end_x', () => {
   assert.equal(ev.filter(e => e === 'skid').length, 1, '제동 시작에 드르륵 한 번');
   assert.ok(skidFrames * DT > 0.8 && skidFrames * DT < 1.3 && skidAnimOk, `땅을 짚은 웅크린 프레임으로 약 1초 미끄러진다(${(skidFrames * DT).toFixed(2)}s)`);
   assert.ok(ev.filter(e => e === 'skidstep').length >= 12, '미끄러지는 동안 물보라');
+  // 경계 직전 점프(리뷰): 공중에서 경계를 넘게 되는 점프는 받지 않아 미끄러짐이 항상 나온다
+  const j = createRunner({ x: 0, endX: 2000 }); run(j, RUNNER.prepTime + RUNNER.dashTime + 0.05);
+  while (j.x < 2000 - RUNNER.brakeDist - RUNNER.speed * RUNNER.airTime + 20) stepRunner(j, DT);
+  assert.deepEqual(stepRunner(j, DT, { jump: true }).filter(e => e === 'jump'), [], '착지 전에 경계를 넘을 점프는 무시');
+  let skidStart = null; for (let t = 0; t < 4 && j.phase !== 'done'; t += DT) { const e = stepRunner(j, DT); if (e.includes('skid')) skidStart = j.x; }
+  assert.ok(skidStart !== null && skidStart <= 2000 - RUNNER.brakeDist + 12 && j.x === 2000, `제동은 경계에서 시작(${skidStart})`);
   assert.ok(ev.includes('end') && s.trail.length === 0, '끝나면 잔상도 지운다');
   assert.deepEqual(stepRunner(s, DT, { jump: true, attack: true }), [], 'done 뒤엔 아무것도 안 한다');
 });
