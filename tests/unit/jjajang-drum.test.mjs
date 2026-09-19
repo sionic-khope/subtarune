@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { jjajang_drum_talk, NEXT_MAP, LOOK_AT_JANITOR } from '../../src/data/cutscenes/jjajang_drum.js';
+import { jjajang_drum_talk, NEXT_MAP, LOOK_AT_JANITOR, APPROACH_SPEED, JANITOR_STAND, FOLLOW_GAP } from '../../src/data/cutscenes/jjajang_drum.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { QA_POINTS, storyBgm, JJAJANG_AFTER_JOIN_MAPS, partyFromFlags } from '../../src/core/story.js';
 
@@ -40,17 +40,26 @@ test('test_drum_talk_follows_the_brief_and_leaves_the_janitor_behind', () => {
   const s = jjajang_drum_talk; const idx = pred => s.findIndex(pred);
   assert.equal(SCRIPTS.jjajang_drum_talk, s);
   const texts = s.filter(n => n.text).map(n => n.text.replace(/^\* /, ''));
-  assert.deepEqual(texts, ['그래 자네 검을 다루는법은 조금 익숙해졋는가', '꼭 쓰러트려야만 하는 누군가가 있는거지?', '나도 그랬다네', '그렇지만 그러지 못했다네', '뭐 껄껄 어쩔수없는거 아닌가', '아 먼저 가보겠나 난 이걸 좀 보다 가야겠으니.', '전우들이여', '미안하네'], '대사 원문 그대로');
+  assert.deepEqual(texts, ['저 드럼통은 ....', '그래 자네 검을 다루는법은 조금 익숙해졋는가', '꼭 쓰러트려야만 하는 누군가가 있는거지?', '나도 그랬다네', '그렇지만 그러지 못했다네', '뭐 껄껄 어쩔수없는거 아닌가', '아 먼저 가보겠나 난 이걸 좀 보다 가야겠으니.', '전우들이여', '미안하네'], '대사 원문 그대로(BUILD244: 마주침 한마디 추가)');
   assert.ok(s.filter(n => n.text).every(n => n.speaker === '청소부' && n.voice === 'janitor'));
   const ti = textIdx(s), bubbles = s.map((n, i) => (n.bubble === 'janitor' ? i : -1)).filter(i => i >= 0);
-  assert.equal(bubbles.length, 2, '...은 말풍선 둘(처음·마지막)'); assert.ok(bubbles[0] < ti[0] && bubbles[1] > ti[7]);
+  // 1. 마주침: 느낌표 → 한마디 → 브금 페이드아웃 → 카메라가 드럼통으로 천천히 → 청소부가 앞장서 걷고 요플래가 뒤따름 → 함께 올려다봄 → 마주 봄 → 말풍선
+  const bang = idx(n => n.emote === 'janitor' && n.kind === '!'), bgm = idx(n => n.bgm === null), camDrum = idx(n => n.camera === 'jjajang_drum');
+  const jWalk = idx(n => n.move === 'janitor' && n.rel === 'jjajang_drum'), pFollow = idx(n => n.move === 'player' && n.speed === APPROACH_SPEED);
+  assert.ok(bang >= 0 && bang < ti[0] && ti[0] < bgm && bgm < camDrum && camDrum < jWalk && jWalk < pFollow && pFollow < bubbles[0] && bubbles[0] < ti[1], '느낌표 → 저 드럼통은 → 브금 끔 → 카메라 → 청소부 앞장 → 요플래 뒤따름 → 말풍선 → 대사');
+  assert.ok(s[bgm].fadeOut >= 1 && s[camDrum].duration >= 1.2, '브금은 페이드아웃, 카메라는 천천히');
+  assert.ok(s[jWalk].speed === APPROACH_SPEED && APPROACH_SPEED < 60 && s[jWalk].footsteps && s[jWalk].at === 'bottom' && s[jWalk].by === JANITOR_STAND, '청소부는 걷기보다 천천히 드럼통 앞으로');
+  const px = s[pFollow].px({ entities: [{ id: 'janitor', x: 1000, y: 262 }], player: { x: 900, y: 262 } }); assert.deepEqual(px, [1000 - FOLLOW_GAP, 262], '요플래는 청소부 뒤(왼쪽)에 선다');
+  assert.ok(s.slice(pFollow, bubbles[0]).some(n => n.face === 'player' && n.dir === 'up') && s.slice(pFollow, bubbles[0]).some(n => n.wait >= 0.8), '둘이 잠깐 드럼통을 올려다본다');
+  assert.equal(bubbles.length, 2, '...은 말풍선 둘(대화 앞·마지막)'); assert.ok(bubbles[1] > ti[8]);
   const li = s.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' ? i : -1)).filter(i => i >= 0);
   assert.equal(li.length, 1); assert.ok(s[li[0] - 1].text.includes('껄껄'), '껄껄 뒤에만 웃음');
-  const leave = idx(n => n.leave === 'janitor'), lookWait = idx(n => n.wait === LOOK_AT_JANITOR), cam = idx(n => n.camera === 'janitor'), walkOff = idx(n => n.move === 'player' && typeof n.px === 'function');
-  assert.ok(ti[5] < leave && leave < lookWait && lookWait < cam && cam < walkOff && walkOff < ti[6], '마지막 당부 → 이탈 → 바라봄 → 카메라 청소부 → 혼자 걸어감 → 혼자 남은 청소부 대사');
+  // 2. 이별: 마지막 당부 → 이탈(플래그 먼저) → NPC 로 남아 드럼통을 봄 → 요플래가 바라봄 → 카메라 청소부 → 혼자 걸어 나감 → 혼자 남은 청소부 대사
+  const leave = idx(n => n.leave === 'janitor'), lookWait = idx(n => n.wait === LOOK_AT_JANITOR), cam = idx(n => n.camera === 'janitor'), walkOff = idx(n => n.move === 'player' && n.speed === 60);
+  assert.ok(ti[6] < leave && leave < lookWait && lookWait < cam && cam < walkOff && walkOff < ti[7], '마지막 당부 → 이탈 → 바라봄 → 카메라 청소부 → 혼자 걸어감 → 혼자 남은 청소부 대사');
   assert.ok(s[leave - 1]?.set?.janitor_left === true, '이탈 직전에 플래그(자동 저장에 실린다)');
-  assert.ok(s[leave + 1]?.action && s.slice(leave + 1, lookWait).some(n => n.move === 'janitor' && n.rel === 'jjajang_drum' && n.at === 'bottom') && s.slice(leave + 1, lookWait).some(n => n.face === 'janitor' && n.dir === 'up'), 'NPC 로 남아 드럼통 아래에서 위를 본다');
-  const px = s[walkOff].px({ map: { pxW: 2048 }, player: { x: 1000, y: 262 } }); assert.ok(px[0] > 2048 && px[1] === 262 && s[walkOff].footsteps, '맵 밖까지 걸어 나간다');
+  assert.ok(s[leave + 1]?.action && s.slice(leave + 1, lookWait).some(n => n.face === 'janitor' && n.dir === 'up'), 'NPC 로 남아 드럼통을 올려다본다');
+  const off = s[walkOff].px({ map: { pxW: 2048 }, player: { x: 1000, y: 262 } }); assert.ok(off[0] > 2048 && off[1] === 262 && s[walkOff].footsteps, '맵 밖까지 걸어 나간다');
   const fadeOut = idx(n => n.fade === 'out'), mapNode = idx(n => n.map === NEXT_MAP), fadeIn = idx(n => n.fade === 'in'), done = idx(n => n.set?.drum_talk_done);
   assert.ok(bubbles[1] < fadeOut && fadeOut < done && done < mapNode && mapNode < fadeIn && s[mapNode].spawn === 'from_west', '말풍선 → 페이드 아웃 → 플래그 → 맵 교체(왼쪽 스폰) → 페이드 인');
   assert.equal(s[0].if({ drum_talk_done: true, torii_janitor_joined: true }), true); assert.equal(s[0].if({ janitor_left: true, torii_janitor_joined: true }), true); assert.equal(s[0].if({ torii_janitor_joined: true }), false);

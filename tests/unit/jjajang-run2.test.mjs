@@ -83,7 +83,9 @@ test('test_run2_enter_outro_and_start_scripts', () => {
   assert.equal(jjajang_run2_enter.findIndex(n => n.motion === 'janitor' && n.name === 'laugh'), -1, '껄껄이 없으니 웃음도 없다');
   const whoosh = jjajang_run2_enter.findIndex(n => Array.isArray(n.parallel) && n.parallel.some(b => b.sfx === 'wing'));
   const hide = jjajang_run2_enter.findIndex(n => n.hide === 'janitor');
-  assert.ok(li < whoosh && whoosh < hide && jjajang_run2_enter.some(n => n.set?.run2_enter_done), '대사 → 휘리릭 → 사라짐 → 플래그');
+  assert.ok(li < whoosh && whoosh < hide && jjajang_run2_enter.some(n => n.set?.run2_enter_done && n.set?.party_hidden === true), '대사 → 휘리릭 → 사라짐 → 플래그(party_hidden 포함)');
+  const showI = jjajang_run2_outro.findIndex(n => n.show === 'janitor'); assert.equal(jjajang_run2_outro[showI + 1]?.set?.party_hidden, false, '돌아오면 플래그 해제');
+  for (const id of ['jjajang_run2_b', 'jjajang_run2_c']) assert.ok(QA_POINTS.find(p => p.id === id).flags.party_hidden, `${id}: 입구 연출 뒤라 청소부는 숨은 채`);
   const outroLines = jjajang_run2_outro.filter(n => n.text).map(n => n.text);
   assert.deepEqual(outroLines, ['* 껄껄 이제 적응좀 됐나보구만'], '맵 끝 합류 대사(사용자 문장 그대로)');
   const oli = jjajang_run2_outro.findIndex(n => n.motion === 'janitor' && n.name === 'laugh');

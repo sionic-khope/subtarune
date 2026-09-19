@@ -443,9 +443,9 @@ const run2Flags = { ...runFlags, run_intro_started: true, run_intro_done: true, 
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_run2', desc: '토리이 굽이 길 입구 (청소부 한마디 → 토리이 a 오른쪽 달리기, 장애물)',
   map: 'jjajang_run2', spawn: 'from_west', flags: run2Flags, party: ['janitor'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_run2_b', desc: '토리이 굽이 길 · 토리이 b 직전 (왼쪽으로 지나면 왼쪽 달리기)',
-  map: 'jjajang_run2', spawn: 'before_b', flags: { ...run2Flags, run2_enter_started: true, run2_enter_done: true }, party: ['janitor'] });
+  map: 'jjajang_run2', spawn: 'before_b', flags: { ...run2Flags, run2_enter_started: true, run2_enter_done: true, party_hidden: true }, party: ['janitor'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_run2_c', desc: '토리이 굽이 길 · 토리이 c 직전 (오른쪽 달리기 → 끝에서 청소부 합류)',
-  map: 'jjajang_run2', spawn: 'before_c', flags: { ...run2Flags, run2_enter_started: true, run2_enter_done: true }, party: ['janitor'] });
+  map: 'jjajang_run2', spawn: 'before_c', flags: { ...run2Flags, run2_enter_started: true, run2_enter_done: true, party_hidden: true }, party: ['janitor'] });
 const drumFlags = { ...run2Flags, run2_enter_started: true, run2_enter_done: true, run2_outro_done: true, run_leaf_tutorial_done: true };
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_drum', desc: '드럼통 길 입구 (곧은 검은 물길 → 가운데 드럼통 앞에서 청소부 이별 연출)',
   map: 'jjajang_drum', spawn: 'from_west', flags: drumFlags, party: ['janitor'] });
@@ -458,5 +458,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin1_chin', desc: '찢칠�
   map: 'jjajang_chin1', spawn: 'before_chin', flags: chinFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2', desc: '찢칠라 길 2 입구 (파란 토리이 둘 → 달리기 두 번 → 중후반 찢칠라 → 오른쪽 끝 다음 맵 대기)',
   map: 'jjajang_chin2', spawn: 'from_west', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_spring', desc: '찢칠라 길 2 · 아래 샛길 (오른쪽 끝 마나샘, C 로 전체 회복)',
+  map: 'jjajang_chin2', spawn: 'before_spring', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_chin', desc: '찢칠라 길 2 · 찢칠라 직전',
   map: 'jjajang_chin2', spawn: 'before_chin', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });

@@ -230,5 +230,51 @@
   }
  ],
  "scale": 0.1453,
- "note": "9\ud310(BUILD243): pivot = [\ud770 \uc154\uce20 \uac00\uc6b4\ub370 x, \ubc1c \ubc11\ubcc0(\uc154\uce20 \uac00\uc6b4\ub370 \u00b170/80px \uc548 \uc5b4\ub450\uc6b4 \ud53d\uc140)], scale = 46px / \ub2ec\ub9ac\uae30 \ud3c9\uade0 \ud0a4"
+ "note": "9\ud310(BUILD243): pivot = [\ud770 \uc154\uce20 \uac00\uc6b4\ub370 x, \ubc1c \ubc11\ubcc0(\uc154\uce20 \uac00\uc6b4\ub370 \u00b170/80px \uc548 \uc5b4\ub450\uc6b4 \ud53d\uc140)], scale = 46px / \ub2ec\ub9ac\uae30 \ud3c9\uade0 \ud0a4",
+ "upslash": [
+  {
+   "bbox": [
+    78,
+    164,
+    397,
+    429
+   ],
+   "height": 266,
+   "bodyCenterX": 244,
+   "feetBottom": 429
+  },
+  {
+   "bbox": [
+    110,
+    123,
+    413,
+    429
+   ],
+   "height": 307,
+   "bodyCenterX": 238,
+   "feetBottom": 429
+  },
+  {
+   "bbox": [
+    138,
+    6,
+    444,
+    419
+   ],
+   "height": 414,
+   "bodyCenterX": 289,
+   "feetBottom": 419
+  },
+  {
+   "bbox": [
+    62,
+    154,
+    412,
+    419
+   ],
+   "height": 266,
+   "bodyCenterX": 250,
+   "feetBottom": 419
+  }
+ ]
 }

@@ -273,7 +273,7 @@ class Game {
     ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(x - 6, y - 4, HP_POPUP.w, 34);
     const face = this.portraits?.[pop.id]; if (face) ctx.drawImage(face, x + 4, y + 2, 26, 26);
     ctx.font = FONT; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText(c.name, x + 34, y + 6);
-    const nameW = Math.ceil(ctx.measureText(c.name).width), bx = x + 34 + nameW + 24, bw = 96;
+    const nameW = Math.ceil(ctx.measureText(c.name).width), bx = x + 34 + nameW + 24, bw = Math.min(96, x + Math.floor(440 / 3) - 6 - bx);   // 전투 HP 띠 첫 칸과 같은 바 길이
     ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.fillText('HP', bx - 19, y + 15);
     ctx.fillStyle = '#7a1b1b'; ctx.fillRect(bx, y + 16, bw, 9); ctx.fillStyle = c.hpColor || '#ffd23b'; ctx.fillRect(bx, y + 16, Math.round(bw * hp / max), 9);
     ctx.font = FONT; ctx.textAlign = 'right'; ctx.fillStyle = '#fff'; ctx.fillText(`${hp}/ ${max}`, bx + bw, y + 3);
@@ -297,7 +297,8 @@ class Game {
     this.entities = this.entities.filter((e) => e.def?.type !== 'follower');
     this.party.forEach((id, i) => {
       const f = createEntity({ type: 'follower', id, sprite: id, x: this.player.x, y: this.player.y, facing: this.player.facing, slot: i + 1 }, this);
-      if (f) this.entities.push(f);
+      // party_hidden(BUILD244): 컷신이 동료를 휘리릭 숨긴 상태(토리이 앞·굽이 길 입구)는 맵을 오가도 유지된다 — 전엔 맵을 바꾸면 여기서 다시 만들어져 보였다(사용자 “뒤 맵으로 갔다가 돌아오면 청소부가 복구”)
+      if (f) { if (this.flags?.party_hidden) f.visible = false; this.entities.push(f); }
     });
     this.player.trail = [];
   }
@@ -1421,7 +1422,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-19.243';
+export const BUILD = '2026-09-19.244';
 // 전투 밖 피해 띠(BUILD240): 전투 HP 띠와 같은 y=322(화면 맨 아래), 왼쪽 20px, 1.6초
 const HP_POPUP = Object.freeze({ x: 20, y: 322, w: 236, dur: 1.6, fadeIn: 0.2, fadeOut: 0.45 });
 const canvas = document.getElementById('screen');

@@ -19,3 +19,9 @@
 | 전투 대사 | `speak` = 씨2발년아 / 씹구멍 씹구멍 / 찍찍찍찍찢 (원문 그대로, 말풍선 소리 snd_squeaky). appear/idle/die 나레이션은 엔진 형식상 필요(미지정) | |
 
 QA `jjajang_chin1`, `jjajang_chin1_chin`(찢칠라 직전), `jjajang_chin2`, `jjajang_chin2_chin`. 검사: `tests/unit/jjajang-chin.test.mjs`(맵·트리거·적 데이터·탄막 계약·되돌아가기·베기 교대), `tests/playtest/jjajang-chin.mjs`(조우 → 예고 뒤 탄막 → 승리 18원 → 제거 → 길 2 토리이 달리기), `tests/playtest/enemy.mjs chinchilla`.
+
+## 정정 (BUILD244, 2026-09-19)
+
+> 그리고 마지막맵 너무 오른쪽으로만 있으니까 노잼 아래로 가는길 오른쪽으로 가는길 이런거 추가해줘 그리고 마나샘도 하나 두고 아래로 가면
+
+- 길 2를 240×24 로 늘리고, 두 번째 달리기가 끝난 뒤(176~177열) 아래로 내려가 20~21행에서 오른쪽으로 이어지는 샛길을 두었다. 샛길 끝(199열)에 마나샘 — 마이야르 샘물 소품(`blue_buff`)을 재사용, C 로 HP 전체 회복(`jjajang_spring`). 찢칠라는 216열로. QA `jjajang_chin2_spring`.

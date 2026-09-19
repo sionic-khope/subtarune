@@ -25,7 +25,7 @@ export const RUNNER = Object.freeze({
 });
 
 // 장애물(BUILD236 사용자 “나뭇잎 같은 게 떨어지거나 날아오거나 나뭇가지가 따라오는데 … 못 쳐내면 피가 10”): 종류별 크기·속도, 앞 거리(달리는 방향 기준)
-//   높이(h)는 땅에서 위로 잰 값. 베기 판정: 땅 베기 = 앞 8~62px × 높이 0~58, 공중 내려치기 = 앞 -6~54px × 높이 airY-24 ~ airY+62
+//   높이(h)는 땅에서 위로 잰 값. 베기 판정은 SLASH_BOX(BUILD244 에서 넓힘)
 //   BUILD240(사용자 “나뭇잎 잘 안 보여 … 떨어지는 속도랑 반응할 수 있는 속도”): 나뭇잎은 화면 오른쪽 가장자리 밖(앞 380~440px)에서 나타나 몸 높이(arrive)에 딱 맞춰 닿도록 시작 높이를 역산한다(머리 위로 지나가 버리는 잎 없음),
 //   솔잎·가지는 절반 속도로 날아오고 간격은 1.5~2.3초. 그림은 draw 배로 키워 그리고(가시성) 판정 상자는 그대로. 굽이 길 자체는 420px/s(맵 meta.runs.<id>.speed)
 export const OBSTACLES = Object.freeze({
@@ -39,7 +39,9 @@ export const OBSTACLE_SPAWN = Object.freeze({ every: [1.5, 2.3], first: 1.4, typ
 //   pending(점프·베기 무시) → 첫 장애물이 앞 holdAt px 안(땅 베기 판정 8~62 의 끝)에 들면 hold(시간 정지, C 만 기다림) → C 로 done(그 틱에 베기 시작 → 쳐냄). 게임 플래그 flag 가 있으면 다시 안 한다
 export const TUTORIAL = Object.freeze({ holdAt: 60, flag: 'run_leaf_tutorial_done' });
 const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
-export const SLASH_UP_FRAMES = Object.freeze([2, 1, 0, 3]);   // 올려베기: 아래(2) → 수평(1) → 위(0) → 복귀(3)
+// 올려베기(BUILD244 사용자 “위로 올릴 때는 턱도 들면서 자세가 잡혀야, 팔만 움직이지 말고 스프라이트를”): 전용 시트 runner_upslash(웅크림 → 낮게 베기 → 턱 들고 위로 → 복귀)
+// 베기 판정(BUILD244 “이펙트나 영역 좀 더 넓게”): 땅 베기 앞 4~80 × 높이 0~72, 공중 앞 -6~72 × airY-24 ~ +72
+export const SLASH_BOX = Object.freeze({ ground: [4, 80, 0, 72], air: [-6, 72, -24, 72] });
 
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
 export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false }) {
@@ -98,7 +100,7 @@ export function stepRunner(s, dt, input = {}) {
   }
   if (s.landT > 0) s.landT = Math.max(0, s.landT - dt);
   // 공격(C): 땅에서는 앞을 가르는 베기, 공중에서는 머리 위에서 아래로 내려치는 점프 공격(airslash)
-  // 땅 베기는 내려베기·올려베기가 번갈아 나온다(BUILD243 사용자 “아래로만 휘두르지 말고 위에서 아래로, 아래에서 위로”): up 이면 시트 프레임을 거꾸로(아래 → 수평 → 위 → 복귀)
+  // 땅 베기는 내려베기·올려베기가 번갈아 나온다(BUILD243 사용자 “아래로만 휘두르지 말고 위에서 아래로, 아래에서 위로”): up 이면 올려베기 시트(runner_upslash)
   if (input.attack && !s.attack && (s.phase === 'run' || s.phase === 'dash') && !(s.grounded && s.landT > 0)) { s.attack = { kind: s.grounded ? 'slash' : 'airslash', t: 0, up: s.grounded && s.slashN++ % 2 === 1 }; ev.push(s.attack.kind); }
   if (s.attack) {
     s.attack.t += dt;
@@ -108,7 +110,7 @@ export function stepRunner(s, dt, input = {}) {
   // 점프 기울기: 오를 때 뒤로 젖혀 하늘을 보고(음수 = 왼쪽으로 회전), 내려올 때 살짝 앞으로. 공격 중엔 기울이지 않는다(공격 판정 뒤에 계산)
   s.tilt = s.grounded || s.attack ? 0 : -RUNNER.jumpTilt * Math.max(-0.6, Math.min(1, s.vy / RUNNER.jumpV));
   // 애니메이션 프레임
-  if (s.attack?.kind === 'slash') { s.anim = 'slash'; const f = Math.min(3, Math.floor((s.attack.t / RUNNER.slashTime) * 4)); s.frame = s.attack.up ? SLASH_UP_FRAMES[f] : f; }
+  if (s.attack?.kind === 'slash') { s.anim = s.attack.up ? 'upslash' : 'slash'; s.frame = Math.min(3, Math.floor((s.attack.t / RUNNER.slashTime) * 4)); }
   else if (s.attack?.kind === 'airslash') { s.anim = 'airslash'; s.frame = Math.min(3, Math.floor((s.attack.t / RUNNER.airSlashTime) * 4)); }
   else if (!s.grounded) { s.anim = 'jump'; s.frame = s.airY < 6 && s.vy > 0 ? 0 : s.vy > 0 ? 1 : 2; }   // 0 도약, 1 상승(하늘 봄), 2 하강(착지 대비)
   else if (s.landT > 0 && s.phase !== 'brake' && s.phase !== 'settle') { s.anim = 'jump'; s.frame = 3; }   // 착지 웅크림
@@ -163,8 +165,8 @@ function stepObstacles(s, dt, ev) {
     const overlapX = (a, b) => relX + o.w / 2 > a && relX - o.w / 2 < b;
     const overlapH = (lo, hi) => o.h + o.hh > lo && o.h < hi;
     if (s.tutorial === 'pending' && relX <= TUTORIAL.holdAt && relX > 16 && overlapH(0, 58)) { s.tutorial = 'hold'; ev.push('tutorial_hold'); break; }
-    if (atk === 'slash' && overlapX(8, 62) && overlapH(0, 58)) { o.deflected = true; o.vx = s.dir * 420; o.vh = 260; s.deflectCount += 1; ev.push('deflect'); continue; }
-    if (atk === 'airslash' && overlapX(-6, 54) && overlapH(s.airY - 24, s.airY + 62)) { o.deflected = true; o.vx = s.dir * 420; o.vh = 200; s.deflectCount += 1; ev.push('deflect'); continue; }
+    if (atk === 'slash' && overlapX(SLASH_BOX.ground[0], SLASH_BOX.ground[1]) && overlapH(SLASH_BOX.ground[2], SLASH_BOX.ground[3])) { o.deflected = true; o.vx = s.dir * 420; o.vh = 260; s.deflectCount += 1; ev.push('deflect'); continue; }
+    if (atk === 'airslash' && overlapX(SLASH_BOX.air[0], SLASH_BOX.air[1]) && overlapH(s.airY + SLASH_BOX.air[2], s.airY + SLASH_BOX.air[3])) { o.deflected = true; o.vx = s.dir * 420; o.vh = 200; s.deflectCount += 1; ev.push('deflect'); continue; }
     if (!o.hit && s.invuln <= 0 && overlapX(-PLAYER_BOX.half, PLAYER_BOX.half) && overlapH(body.lo, body.hi)) { o.hit = true; o.dead = true; s.invuln = RUNNER.invuln; s.hurtCount += 1; ev.push('hurt'); }
   }
   s.obstacles = s.obstacles.filter(o => !o.dead && (o.x - px) * s.dir > -160 && (!o.deflected || o.t < 3));

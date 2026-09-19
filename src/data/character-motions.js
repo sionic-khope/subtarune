@@ -83,6 +83,19 @@ export const CHARACTER_MOTIONS = {
         { rect: [512, 512, 512, 512], pivot: [251, 412], duration: 0.08 },
       ],
     },
+    // 올려베기(BUILD244): 웅크림 → 낮게 베기 → 턱 들고 위로 → 복귀 (runner-upslash9)
+    runner_upslash: {
+      src: 'assets/sprites/hyungsub-runner-upslash.png',
+      scale: 0.1453,
+      faces: 'right',
+      colorKey: { rMin: 150, gMax: 110, bMin: 150 },
+      frames: [
+        { rect: [0, 0, 512, 512], pivot: [244, 429], duration: 0.08 },
+        { rect: [512, 0, 512, 512], pivot: [238, 429], duration: 0.08 },
+        { rect: [0, 512, 512, 512], pivot: [289, 419], duration: 0.08 },
+        { rect: [512, 512, 512, 512], pivot: [250, 419], duration: 0.08 },
+      ],
+    },
     runner_airslash: {
       src: 'assets/sprites/hyungsub-runner-airslash.png',
       scale: 0.1453,

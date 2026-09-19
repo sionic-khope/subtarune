@@ -68,6 +68,14 @@ try {
   await until(() => !window.game.runner?.core.attack, 2000); await press('KeyC'); await page.waitForTimeout(100); const up2 = await page.evaluate(() => !!window.game.runner?.core.attack?.up);
   await cap('04_upslash');
   check(!up1 && up2, `땅 베기 내려·올려 교대 (${up1}, ${up2})`);
+  // 아래 샛길 끝 마나샘(BUILD244): QA 스폰에서 오른쪽으로 → 막히는 자리에서 C → 전체 회복
+  await page.evaluate(() => { const g = window.game; g.runner?.finish(); g.changeMap('jjajang_chin2', 'before_spring'); g.partyHp.hyungsub = 40; });
+  await page.waitForFunction(() => window.game.mapId === 'jjajang_chin2' && !window.game.transitioning && Math.round(window.game.player.y / 32) >= 20, null, { timeout: 8000 });
+  check(await go('ArrowRight', "g.entities.find(e => e.id === 'chin2_spring') && g.player.x + g.player.w >= g.entities.find(e => e.id === 'chin2_spring').x - 2", 8000), '아래 길 끝 마나샘 앞');
+  await cap('05_spring');
+  await press('KeyC');
+  check(await until(() => window.game.hpOf('hyungsub') === window.game.maxHpOf('hyungsub') && /회복/.test(window.game.textbox.node?.text || ''), 5000), '마나샘: HP 전체 회복 + 나레이션');
+  await cap('05b_spring_heal');
   check(errors.length === 0, 'page errors ' + JSON.stringify(errors.slice(0, 3)));
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); }
 console.log('fails=' + fails); await browser.close(); process.exit(fails ? 1 : 0);

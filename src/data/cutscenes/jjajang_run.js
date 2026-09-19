@@ -35,7 +35,7 @@ export const jjajang_run_intro = [
   // 휘리릭: 휘융 소리와 함께 왼쪽 위로 확 밀리며 사라진다(러너가 끝나면 outro 가 다시 데려온다)
   { parallel: [{ sfx: 'wing' }, { slide: JANITOR, by: [-36, -14], duration: 0.14 }] },
   { hide: JANITOR },
-  { set: { run_intro_done: true } },
+  { set: { run_intro_done: true, party_hidden: true } },
   { face: PLAYER, dir: 'right' },
   { label: 'end' },
   { end: true },
@@ -49,6 +49,7 @@ export const jjajang_run_outro = [
   { face: JANITOR, dir: 'left' },
   { face: PLAYER, dir: 'right' },
   { show: JANITOR },
+  { set: { party_hidden: false } },
   { move: JANITOR, px: game => [game.player.x + OUTRO_STOP_GAP, game.player.y], exact: true, speed: OUTRO_WALK_SPEED, footsteps: true },
   { face: JANITOR, dir: 'left' },
   { wait: 0.3 },

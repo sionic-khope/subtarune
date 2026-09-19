@@ -27,11 +27,18 @@ const SPRAY = Object.freeze({ count: 6, vx: [110, 300], vy: [90, 230], gravity: 
 const PETAL = Object.freeze({ count: 12, vx: [40, 170], vy: [40, 150], gravity: 260, life: [0.45, 0.8], colors: ['#7fd36a', '#b7ef8a', '#4f9a44'], shake: { time: 0.12, amp: 1 } });
 // 검기 오라(BUILD243 사용자 “흰색 검기 오라, 도트풍, 투명한 느낌”): 절반 해상도 캔버스에 흰 반투명 초승달을 그려 2배로 찍는다(계단진 가장자리)
 const AURA = makeCanvas(48, 48);
-function drawAura(ctx, cx, cy, r, a0, a1, alpha, ccw) {
+// 날(BUILD244 사용자 “검기가 ) 모양이라 날카로움이 없다”): 호를 따라 폭이 가운데서 가장 넓고 양끝은 0 으로 모이는 초승달 — 앞끝(진행 방향)이 더 가늘어 베는 느낌. 각도는 a0 → a1 로 보간(부호가 방향)
+function drawAura(ctx, cx, cy, r, a0, a1, alpha) {
   const ac = AURA.getContext('2d'); ac.clearRect(0, 0, 48, 48);
-  const hr = r / 2, ir = Math.max(2, hr - 6), c = 24;
-  ac.globalAlpha = alpha * 0.62; ac.fillStyle = '#fff'; ac.beginPath(); ac.arc(c, c, hr, a0, a1, ccw); ac.arc(c, c, ir, a1, a0, !ccw); ac.closePath(); ac.fill();
-  ac.globalAlpha = alpha * 0.95; ac.lineWidth = 1.5; ac.strokeStyle = '#fff'; ac.beginPath(); ac.arc(c, c, hr - 1.5, a0, a1, ccw); ac.stroke();
+  const hr = r / 2, c = 24, n = 20, wmax = Math.max(4, hr * 0.46), span = a1 - a0;
+  const pt = (i, off) => { const u = i / n, a = a0 + span * u, w = wmax * Math.pow(Math.sin(Math.PI * u), 0.6) * (1 - 0.3 * u), rr = hr + off * w / 2; return [c + Math.cos(a) * rr, c + Math.sin(a) * rr]; };
+  ac.globalAlpha = alpha * 0.62; ac.fillStyle = '#fff'; ac.beginPath();
+  for (let i = 0; i <= n; i++) { const [x, y] = pt(i, 1); if (i === 0) ac.moveTo(x, y); else ac.lineTo(x, y); }
+  for (let i = n; i >= 0; i--) { const [x, y] = pt(i, -1); ac.lineTo(x, y); }
+  ac.closePath(); ac.fill();
+  ac.globalAlpha = alpha * 0.95; ac.lineWidth = 1.2; ac.strokeStyle = '#fff'; ac.beginPath();
+  for (let i = 1; i < n; i++) { const [x, y] = pt(i, 0.7); if (i === 1) ac.moveTo(x, y); else ac.lineTo(x, y); }
+  ac.stroke();
   ac.globalAlpha = 1;
   ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(AURA, 0, 0, 48, 48, Math.round(cx) - 48, Math.round(cy) - 48, 96, 96); ctx.restore();
 }
@@ -179,8 +186,8 @@ export class Runner {
     // cfg.outro(BUILD235 청소부 끝 연출): 아직 안 본 상태면 동료는 숨긴 채 그 스크립트가 데려온다. keepFollowersHidden(사라진 채 다음 구간으로) 이면 숨긴 채 둔다. 아니면 바로 뒤에 정렬
     const run = this.cfg;
     if (run?.outro && !(run.outroFlag && g.has?.(run.outroFlag)) && g.runScript) { g.runScript(run.outro); }
-    else if (!run?.keepFollowersHidden) for (const e of g.entities) if (e.def?.type === 'follower') { e.visible = true; e.snapBehind?.(); }
-    for (const name of ['prep', 'run', 'jump', 'slash', 'airslash']) for (const f of this.sheet(name)?.frames || []) delete f.silhouette;
+    else if (!run?.keepFollowersHidden) { for (const e of g.entities) if (e.def?.type === 'follower') { e.visible = true; e.snapBehind?.(); } g.setFlag?.('party_hidden', false); }
+    for (const name of ['prep', 'run', 'jump', 'slash', 'upslash', 'airslash']) for (const f of this.sheet(name)?.frames || []) delete f.silhouette;
   }
   frameOf(anim, index) {
     const sheet = this.sheet(anim);
@@ -271,15 +278,15 @@ export class Runner {
       const k = f.t / f.dur;
       if (f.kind === 'slash') {
         // 앞을 가르는 흰 검기 초승달(도트풍·반투명): 내려베기는 위→아래로, 올려베기(f.up)는 아래→위로 쓸며 옅어진다
-        const cx = ax + 20 * D, cy = ay - s.airY - 22, r = 30, sweep = Math.PI * 1.1 * Math.min(1, k * 1.6);
+        const cx = ax + 24 * D, cy = ay - s.airY - 24, r = 40, sweep = Math.PI * 1.1 * Math.min(1, k * 1.6);
         const top = D > 0 ? -Math.PI * 0.55 : Math.PI * 1.55, bottom = D > 0 ? Math.PI * 0.55 : Math.PI * 0.45;
         const a0 = f.up ? bottom : top, a1 = f.up ? bottom - D * sweep : top + D * sweep;
-        drawAura(ctx, cx, cy, r, a0, a1, 1 - k * k, f.up ? D > 0 : D < 0);
+        drawAura(ctx, cx, cy, r, a0, a1, 1 - k * k);
       } else if (f.kind === 'airslash') {
         // 점프 공격: 머리 위에서 앞 아래로 내려치는 세로 검기(위 → 아래로 쓸어 내리며 옅어진다)
-        const cx = ax + 16 * D, cy = ay - s.airY - 26, r = 34;
+        const cx = ax + 18 * D, cy = ay - s.airY - 26, r = 44;
         const a0 = D > 0 ? -Math.PI * 0.95 : Math.PI * 1.95, a1 = a0 + D * Math.PI * 1.25 * Math.min(1, k * 1.5);
-        drawAura(ctx, cx, cy, r, a0, a1, 1 - k * k, D < 0);
+        drawAura(ctx, cx, cy, r, a0, a1, 1 - k * k);
       } else if (f.kind === 'deflect') {
         // 쳐냄: 몸 앞에서 흰 섬광이 확 퍼진다
         const cx = ax + 34 * D, cy = ay - s.airY - 24, rr = 8 + 26 * k;

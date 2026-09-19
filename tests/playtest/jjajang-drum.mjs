@@ -11,7 +11,7 @@ const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } 
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'drum_' + n + '.png') }); };
 const press = async key => { await page.keyboard.down(key); await page.waitForTimeout(60); await page.keyboard.up(key); };
 const until = (fn, ms) => page.waitForFunction(fn, null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false);
-const st = () => page.evaluate(() => { const g = window.game; const f = g.entities.filter(e => e.def?.type === 'follower' && !e.dead); const j = g.entities.find(e => e.id === 'janitor' && !e.dead); return { map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, party: [...g.party], followers: f.length, janitor: j ? { type: j.def?.type, x: Math.round(j.x), y: Math.round(j.y), facing: j.facing, visible: j.visible !== false } : null, cam: [Math.round(g.camera.x), Math.round(g.camera.y)], flags: { left: !!g.flags.janitor_left, done: !!g.flags.drum_talk_done }, pxW: g.map.pxW }; });
+const st = () => page.evaluate(() => { const g = window.game; const f = g.entities.filter(e => e.def?.type === 'follower' && !e.dead); const j = g.entities.find(e => e.id === 'janitor' && !e.dead); return { bgm: g.sound?.bgmName ?? null, map: g.mapId, px: Math.round(g.player.x), py: Math.round(g.player.y), facing: g.player.facing, party: [...g.party], followers: f.length, janitor: j ? { type: j.def?.type, x: Math.round(j.x), y: Math.round(j.y), facing: j.facing, visible: j.visible !== false } : null, cam: [Math.round(g.camera.x), Math.round(g.camera.y)], flags: { left: !!g.flags.janitor_left, done: !!g.flags.drum_talk_done }, pxW: g.map.pxW }; });
 const line = async (text, capture) => {
   const seen = await page.waitForFunction(t => window.game.textbox.node?.text?.includes(t), text, { timeout: 15000, polling: 60 }).then(() => true).catch(() => false);
   check(seen, `대사: ${text}`); if (!seen) throw new Error('missing line ' + text);
@@ -32,7 +32,17 @@ try {
   const started = await until(() => window.game.dialogue.running && window.game.flags.drum_talk_started, 8000);
   await page.keyboard.up('ArrowRight');
   check(started, '드럼통 앞에서 연출 시작');
-  await cap('00_bubble');
+  const bgm0 = (await st()).bgm;
+  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.emote; }, 3000), '청소부 느낌표');
+  await cap('00_exclaim');
+  await line('저 드럼통은', '00b_drum_line');
+  check(await until(() => !window.game.sound?.bgmName, 6000), `브금이 꺼진다 (${bgm0} → 없음)`);
+  const drumX = drum.x + drum.w / 2;
+  check(await until(() => Math.abs((window.game.camera.x + 240) - (window.game.entities.find(e => e.id === 'jjajang_drum').x + 12)) < 24, 6000), '카메라가 드럼통으로 옮겨 간다');
+  const ahead = await until(() => { const g = window.game; const j = g.entities.find(e => e.id === 'janitor' && !e.dead); return j && j.x > g.player.x && Math.abs(j.x + 12 - (g.entities.find(e => e.id === 'jjajang_drum').x + 12)) < 80; }, 12000);
+  check(ahead, '청소부가 앞장서 드럼통 앞으로 ' + JSON.stringify(await page.evaluate(() => { const g = window.game; const j = g.entities.find(e => e.id === 'janitor' && !e.dead); return { j: j && [Math.round(j.x), j.w], p: Math.round(g.player.x) }; })));
+  check(await until(() => { const g = window.game; const j = g.entities.find(e => e.id === 'janitor' && !e.dead); return j && Math.abs(g.player.x - (j.x - 40)) < 6 && g.player.facing === 'up'; }, 12000), '요플래가 뒤따라 서서 함께 올려다본다');
+  await cap('00c_approach');
   await line('검을 다루는법은 조금 익숙해졋는가', '01_first');
   await line('꼭 쓰러트려야만 하는');
   await line('나도 그랬다네');

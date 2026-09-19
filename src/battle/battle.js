@@ -606,7 +606,8 @@ export class Battle {
   hpColor(m) { return CHARACTERS[m.id]?.hpColor || '#ffd23b'; }
   /** 화면 맨 아래 HP 띠(델타룬식, 사용자 참고 이미지 2026-09-10): 얼굴 · 이름 · HP · 색 바(바 위에 숫자). 현재 차례는 노란 이름, 정한 행동은 얼굴 귀퉁이 아이콘. 회피 중에도 그대로 */
   drawHpStrip(ctx) {
-    const n = this.members.length, cw = Math.floor(440 / n), y = 322;
+    // 칸 폭은 세 명 기준으로 고정(BUILD244 사용자 “혼자일 때 전투 체력 UI 가 다르고 체력바가 너무 길다”): 한 명이어도 억빠맨·경섭과 함께일 때의 첫 칸과 같은 자리·같은 바 길이
+    const n = this.members.length, cw = Math.floor(440 / Math.max(3, n)), y = 322;
     const picking = ['menu', 'target', 'item', 'item-target'].includes(this.state);
     const small = FONT.replace(/^\d+px/, '12px');
     this.members.forEach((m, i) => {

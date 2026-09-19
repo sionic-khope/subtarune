@@ -15,14 +15,17 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'jjajang_chin2'
-WIDTH: Final = 210
-HEIGHT: Final = 14
+WIDTH: Final = 240
+HEIGHT: Final = 24                # BUILD244: 아래 샛길(20~21행)까지
 TILE: Final = 32
 ROAD_ROWS: Final = (8, 9)
 RUN_SPEED: Final = 420
 CAM_LEFT: Final = 0.22
 SCREEN_W: Final = 480
-ENEMY_COL: Final = 186            # 찢칠라 자리(중후반)
+ENEMY_COL: Final = 216            # 찢칠라 자리(중후반, 샛길 뒤)
+BRANCH_COLS: Final = (176, 177)   # 아래로 내려가는 샛길(BUILD244 사용자 “오른쪽으로만 있으니까 노잼, 아래로 가는 길·오른쪽으로 가는 길 + 마나샘”)
+LOWER_ROWS: Final = (20, 21)      # 샛길 아래에서 오른쪽으로 이어지는 길
+SPRING_COL: Final = 199           # 아래 길 끝의 마나샘(전체 회복, 소품 blue_buff 재사용)
 NEAR_BASE: Final = (57.0, 285.3)
 FAR_BASE: Final = (196.0, 216.6)
 BACK_OFFSET: Final = (176, 121)
@@ -75,9 +78,15 @@ def build_map() -> dict[str, object]:
             rows[row][col] = '*'
         rows[row][0] = '+'
         rows[row][WIDTH - 1] = '+'
+    for row in range(ROAD_ROWS[1] + 1, LOWER_ROWS[1] + 1):
+        for col in BRANCH_COLS:
+            rows[row][col] = '*'
+    for row in LOWER_ROWS:
+        for col in range(BRANCH_COLS[0], SPRING_COL + 1):
+            rows[row][col] = '*'
     cells: list[tuple[int, int]] = []
     for col in range(7, WIDTH - 6, 9):
-        for row in (4, 12):
+        for row in (4, 12, 18):
             c, r = col + (row // 8) % 2 * 3, row + (col // 9) % 2
             if rows[r][c] != '@' or c <= 2:
                 continue
@@ -106,6 +115,12 @@ def build_map() -> dict[str, object]:
     assert triggers[1]['x'] + triggers[1]['w'] < runs['b']['endX'] - RUN_SPEED, 'b 구간'
     assert runs['b']['endX'] + 500 < ENEMY_COL * TILE, '달리기가 찢칠라 앞에서 끝난다'
     # 찢칠라(사용자 “몬스터를 중후반에”): 길 위에 서서(wander 0) 가까이 오면 다가와 닿으면 표준 조우. 이기면 플래그로 영구 제거
+    # 마나샘: 아래 길 끝(199열)에 서 있고(막힘) C 로 전체 회복(jjajang_spring = maillard_spring 과 같은 동작)
+    # 히트박스는 길 두 행(20~21행)을 세로로 덮어 어느 행에서 다가와도 C 가 닿는다(그림은 밑변 기준)
+    spring_cx, spring_top, spring_base = SPRING_COL * TILE + 16, LOWER_ROWS[0] * TILE + 6, LOWER_ROWS[1] * TILE + 14
+    spring = {'type': 'prop', 'id': 'chin2_spring', 'image': 'assets/props/blue_buff.png', 'anim': {'cols': 3, 'fps': 4},
+              'x': spring_cx - 16, 'y': spring_top, 'w': 32, 'h': spring_base - spring_top, 'ix': spring_cx - 20, 'iy': spring_base - 44, 'solid': True, 'script': 'jjajang_spring'}
+    assert rows[(spring['y'] + 6) // TILE][(spring['x'] + 12) // TILE] == '*', '마나샘은 아래 길 위'
     enemy = {'type': 'enemy', 'id': 'chin', 'sprite': 'chinchilla', 'x': ENEMY_COL * TILE, 'y': ROAD_ROWS[0] * TILE + 4, 'facing': 'left', 'wander': 0, 'enemies': ['chinchilla'], 'unless': f'{MAP_ID}_chin_defeated'}
     door_west = {'type': 'door', 'id': 'jjajang_chin2_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_chin1', 'spawn': 'from_east', 'sfx': False}
     return {
@@ -114,7 +129,7 @@ def build_map() -> dict[str, object]:
         'stage': 'ship_sinking_done',
         'bgm': 'my_castle_town',
         'dim': 0.08,
-        'preload': ['assets/sprites/hyungsub-runner-prep.png', 'assets/sprites/hyungsub-runner-run.png', 'assets/sprites/hyungsub-runner-jump.png', 'assets/sprites/hyungsub-runner-slash.png', 'assets/sprites/hyungsub-runner-airslash.png',
+        'preload': ['assets/sprites/hyungsub-runner-prep.png', 'assets/sprites/hyungsub-runner-run.png', 'assets/sprites/hyungsub-runner-jump.png', 'assets/sprites/hyungsub-runner-slash.png', 'assets/sprites/hyungsub-runner-upslash.png', 'assets/sprites/hyungsub-runner-airslash.png',
                     'assets/props/run_leaf_1.png', 'assets/props/run_leaf_2.png', 'assets/props/run_branch.png', 'assets/props/run_needles.png'],
         'rows': [''.join(row) for row in rows],
         'spawns': {
@@ -122,17 +137,20 @@ def build_map() -> dict[str, object]:
             'start': {'x': 2 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
             'before_torii_a': {'x': 10 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
             'before_torii_b': {'x': 92 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
-            'before_chin': {'x': 178 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'before_chin': {'x': 208 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'before_branch': {'x': 170 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
+            'before_spring': {'x': 190 * TILE + 8, 'y': LOWER_ROWS[0] * TILE + 6, 'facing': 'right'},
             'from_east': {'x': (WIDTH - 2) * TILE - 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
-            'route': [[2, ROAD_ROWS[0]], [WIDTH - 2, ROAD_ROWS[0]]],
-            'role': '찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 중후반 찢칠라(표준 조우) → 오른쪽 끝(다음 맵 브리핑 대기, 문 없음)',
+            'route': [[2, ROAD_ROWS[0]], [BRANCH_COLS[0], ROAD_ROWS[0]], [BRANCH_COLS[0], LOWER_ROWS[0]], [SPRING_COL - 1, LOWER_ROWS[0]], [BRANCH_COLS[0], ROAD_ROWS[0]], [WIDTH - 2, ROAD_ROWS[0]]],
+            'branch': {'cols': list(BRANCH_COLS), 'lowerRows': list(LOWER_ROWS), 'springCol': SPRING_COL},
+            'role': '찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 찢칠라(표준 조우) → 오른쪽 끝(다음 맵 브리핑 대기, 문 없음)',
             'runRoadRows': list(ROAD_ROWS),
             'runs': runs,
         },
-        'entities': [*pines, *gates, *triggers, enemy, door_west],
+        'entities': [*pines, *gates, *triggers, enemy, spring, door_west],
     }
 
 

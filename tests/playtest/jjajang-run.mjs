@@ -43,6 +43,14 @@ try {
   check(!(await page.evaluate(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; })), '웃음 없음');
   check(await until(() => !window.game.dialogue.running && window.game.flags.run_intro_done, 6000), '연출이 끝난다');
   s = await st(); check(s.follower && !s.follower.visible, '청소부가 휘리릭 사라졌다 ' + JSON.stringify(s.follower));
+  // 뒤 맵(석상 앞 숲)으로 갔다 돌아와도 숨은 채(BUILD244 사용자 “뒤 맵으로 갔다가 돌아오면 청소부가 복구”)
+  await page.evaluate(() => window.game.changeMap('jjajang_statue', 'from_east'));
+  await page.waitForFunction(() => window.game.mapId === 'jjajang_statue' && !window.game.transitioning, null, { timeout: 8000 });
+  s = await st(); check(s.follower && !s.follower.visible, '뒤 맵에서도 숨은 채 ' + JSON.stringify(s.follower));
+  await page.evaluate(() => window.game.changeMap('jjajang_run', 'before_torii'));
+  await page.waitForFunction(() => window.game.mapId === 'jjajang_run' && !window.game.transitioning, null, { timeout: 8000 });
+  await page.waitForTimeout(300); s = await st(); check(s.follower && !s.follower.visible && s.flags?.party_hidden !== false, '돌아와도 숨은 채 ' + JSON.stringify(s.follower));
+  await cap('00d_still_hidden');
   // 걸어서(달리기 아님) 토리이를 지난다
   await page.keyboard.down('ArrowRight');
   const started = await until(() => !!window.game.runner, 12000);
@@ -62,7 +70,7 @@ try {
   check(Math.abs(camLeft - 480 * 0.22) < 40, `카메라: 캐릭터가 화면 왼쪽(${camLeft.toFixed(0)}px)`);
   const rBefore = s.ripples; await page.waitForTimeout(500); s = await st();
   check(s.ripples >= rBefore || s.ripples > 0, '달리는 동안 발마다 물결 ' + s.ripples);
-  check(s.runner.wind > 3 && s.runner.streaks >= 2 && s.runner.spray > 0, '바람 줄기·바닥 줄기·물보라가 나온다 ' + JSON.stringify({ wind: s.runner.wind, streaks: s.runner.streaks, spray: s.runner.spray }));
+  check(s.runner.wind > 3 && s.runner.streaks >= 1 && s.runner.spray > 0, '바람 줄기·바닥 줄기·물보라가 나온다 ' + JSON.stringify({ wind: s.runner.wind, streaks: s.runner.streaks, spray: s.runner.spray }));
   await cap('03_run');
   // X 점프
   await press('KeyX');

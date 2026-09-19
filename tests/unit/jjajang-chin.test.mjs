@@ -9,7 +9,7 @@ import { ENEMIES } from '../../src/data/enemies.js';
 import { CHARACTERS } from '../../src/data/characters.js';
 import { PATTERNS, Bullet } from '../../src/battle/bullets.js';
 import { TEAR, DRUM } from '../../src/battle/chinchilla-patterns.js';
-import { RUNNER, createRunner, stepRunner, SLASH_UP_FRAMES } from '../../src/world/runner-core.js';
+import { RUNNER, createRunner, stepRunner, SLASH_BOX } from '../../src/world/runner-core.js';
 import { STATE_FROM_FLAGS } from '../../src/core/story.js';
 
 const load = id => JSON.parse(readFileSync(new URL(`../../assets/maps/${id}.json`, import.meta.url), 'utf8'));
@@ -43,6 +43,17 @@ test('test_chin_maps_layout_torii_runs_enemy_late_and_doors', () => {
   const e1 = m1.entities.find(e => e.id === 'jjajang_chin1_east_door'); assert.deepEqual([e1.to, e1.spawn, e1.x], ['jjajang_chin2', 'from_west', m1.rows[0].length * 32 - 10]);
   const w2 = m2.entities.find(e => e.id === 'jjajang_chin2_west_door'); assert.deepEqual([w2.to, w2.spawn, w2.x], ['jjajang_chin1', 'from_east', 0]);
   assert.ok(!m2.entities.some(e => e.type === 'door' && e.x > 0) && m2.rows[m2.meta.runRoadRows[0]][m2.rows[0].length - 1] === '+', '길 2 오른쪽은 통로만(다음 맵 대기)');
+  // 길 2 샛길(BUILD244): 176~177열로 내려가 20~21행에서 오른쪽으로, 끝에 마나샘(전체 회복). 달리기 끝 뒤·찢칠라 앞
+  const br = m2.meta.branch; const [b0, b1] = br.cols, [l0, l1] = br.lowerRows, [r0, r1] = m2.meta.runRoadRows;
+  for (let r = r1 + 1; r <= l1; r++) assert.ok(walk(m2, b0, r) && walk(m2, b1, r), `샛길 ${r}`);
+  for (let c = b0; c <= br.springCol; c++) assert.ok(walk(m2, c, l0) && walk(m2, c, l1), `아래 길 ${c}`);
+  assert.ok(!walk(m2, b0 - 3, l0) && !walk(m2, br.springCol + 2, l0) && !walk(m2, b0 - 1, r1 + 2), '샛길 밖은 숲');
+  assert.ok(b0 * 32 > m2.meta.runs.b.endX + 300 && b0 < m2.entities.find(e => e.type === 'enemy').x / 32, '샛길은 달리기 끝 뒤, 찢칠라 앞');
+  const spring = m2.entities.find(e => e.id === 'chin2_spring');
+  assert.ok(spring && spring.script === 'jjajang_spring' && spring.solid && existsSync(new URL('../../' + spring.image, import.meta.url)) && Math.floor((spring.y + 6) / 32) >= l0 && Math.floor((spring.x + 12) / 32) === br.springCol, '마나샘은 아래 길 끝');
+  assert.equal(SCRIPTS.jjajang_spring, SCRIPTS.maillard_spring, '마이야르 샘물과 같은 전체 회복');
+  const g = { party: [], partyHp: { hyungsub: 3 }, maxHpOf: () => 160 }; SCRIPTS.jjajang_spring[0].action(g); assert.equal(g.partyHp.hyungsub, 160);
+  assert.ok(m2.spawns.before_spring && Math.floor(m2.spawns.before_spring.y / 32) === l0 && m2.spawns.before_spring.x < spring.x - 100);
   for (const flag of ['jjajang_chin1_chin_defeated', 'jjajang_chin2_chin_defeated']) assert.ok(STATE_FROM_FLAGS.some(r => r.flag === flag && r.enemies?.[0] === 'chinchilla'), `${flag}: QA 돈 유도`);
 });
 
@@ -97,8 +108,9 @@ test('test_chin_patterns_warn_before_harm_and_tear_hits_only_near_the_line', () 
 
 test('test_runner_ground_slash_alternates_down_and_up', () => {
   const s = createRunner({ x: 0, endX: 100000 }); for (let t = 0; t < RUNNER.prepTime + RUNNER.dashTime + 0.2; t += DT) stepRunner(s, DT);
-  stepRunner(s, DT, { attack: true }); assert.ok(s.attack && !s.attack.up, '첫 베기는 내려베기'); const f1 = []; while (s.attack) { f1.push(s.frame); stepRunner(s, DT); }
-  stepRunner(s, DT, { attack: true }); assert.ok(s.attack && s.attack.up, '두 번째는 올려베기'); const f2 = []; while (s.attack) { f2.push(s.frame); stepRunner(s, DT); }
-  assert.deepEqual([...new Set(f1)], [0, 1, 2, 3]); assert.deepEqual([...new Set(f2)], [...SLASH_UP_FRAMES], '올려베기는 아래 → 수평 → 위 → 복귀');
+  stepRunner(s, DT, { attack: true }); assert.ok(s.attack && !s.attack.up && s.anim === 'slash', '첫 베기는 내려베기'); const f1 = []; while (s.attack) { f1.push(s.frame); stepRunner(s, DT); }
+  stepRunner(s, DT, { attack: true }); assert.ok(s.attack && s.attack.up && s.anim === 'upslash', '두 번째는 올려베기(전용 시트)'); const f2 = []; while (s.attack) { f2.push(s.frame); stepRunner(s, DT); }
+  assert.deepEqual([...new Set(f1)], [0, 1, 2, 3]); assert.deepEqual([...new Set(f2)], [0, 1, 2, 3], '올려베기 시트 4프레임 순서대로');
+  assert.ok(SLASH_BOX.ground[1] >= 80 && SLASH_BOX.ground[3] >= 72 && SLASH_BOX.air[1] >= 72, '베기 영역을 넓혔다(BUILD244)');
   stepRunner(s, DT, { attack: true }); assert.ok(s.attack && !s.attack.up, '다시 내려베기');
 });

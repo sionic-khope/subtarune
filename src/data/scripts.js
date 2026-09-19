@@ -104,6 +104,7 @@ export const SCRIPTS = {
   jjajang_run_outro,
   jjajang_run2_enter, jjajang_run2_start_a, jjajang_run2_start_b, jjajang_run2_start_c, jjajang_run2_outro,
   jjajang_drum_talk, jjajang_chin_start_a, jjajang_chin_start_b, jjajang_no_return,
+  jjajang_spring: maillard_spring,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
   obj4_baron_intro,
   obj4_baron_abduction,
   obj5_chase,

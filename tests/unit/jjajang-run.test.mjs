@@ -75,7 +75,7 @@ test('test_run_map_doors_bgm_qa_and_start_script', () => {
 
 test('test_runner_sprites_are_right_facing_side_sheets_sized_to_the_walk_frame', () => {
   const m = CHARACTER_MOTIONS.hyungsub;
-  for (const name of ['runner_prep', 'runner_run', 'runner_jump', 'runner_slash', 'runner_airslash']) {
+  for (const name of ['runner_prep', 'runner_run', 'runner_jump', 'runner_slash', 'runner_upslash', 'runner_airslash']) {
     const d = m[name];
     assert.ok(d && d.faces === 'right' && d.frames.length === 4 && d.src === `assets/sprites/hyungsub-${name.replace('_', '-')}.png`, name);
     assert.ok(existsSync(new URL('../../' + d.src, import.meta.url)));
@@ -103,6 +103,8 @@ test('test_run_intro_and_outro_scripts_follow_the_brief', () => {
   const whoosh = idx(jjajang_run_intro, n => Array.isArray(n.parallel) && n.parallel.some(b => b.sfx === 'wing') && n.parallel.some(b => b.slide === 'janitor'));
   const hide = idx(jjajang_run_intro, n => n.hide === 'janitor'), done = idx(jjajang_run_intro, n => n.set?.run_intro_done);
   assert.ok(lastLine < whoosh && whoosh < hide && hide < done, '대사 뒤 휘리릭(휘융 + 확 밀림) → 사라짐 → 플래그');
+  assert.equal(jjajang_run_intro[done].set.party_hidden, true, '숨김은 플래그로 남겨 맵을 오가도 유지(BUILD244)');
+  const showI = jjajang_run_outro.findIndex(n => n.show === 'janitor'); assert.equal(jjajang_run_outro[showI + 1]?.set?.party_hidden, false, '돌아오면 플래그 해제');
   assert.equal(jjajang_run_intro[0].if({ run_intro_done: true, torii_janitor_joined: true }), true);
   // outro: 오른쪽 화면 밖에서 천천히 걸어와 마주 봄 → 대사 4줄(껄껄 두 곳 뒤 웃음) → 동료 정렬
   assert.deepEqual(texts(jjajang_run_outro), ['껄껄', '어떤가 무슨 느낌인지 알았나?', 'c로 검을 휘두르고 x로 점프를하면 된다네,', '껄껄 점프하면서 공격할수도 있겠지. 뭐 일단 이어서 가보새']);

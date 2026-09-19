@@ -121,7 +121,7 @@ def build_map() -> dict[str, object]:
         'stage': 'ship_sinking_done',
         'bgm': 'my_castle_town',
         'dim': 0.08,
-        'preload': ['assets/sprites/hyungsub-runner-prep.png', 'assets/sprites/hyungsub-runner-run.png', 'assets/sprites/hyungsub-runner-jump.png', 'assets/sprites/hyungsub-runner-slash.png', 'assets/sprites/hyungsub-runner-airslash.png'],
+        'preload': ['assets/sprites/hyungsub-runner-prep.png', 'assets/sprites/hyungsub-runner-run.png', 'assets/sprites/hyungsub-runner-jump.png', 'assets/sprites/hyungsub-runner-slash.png', 'assets/sprites/hyungsub-runner-upslash.png', 'assets/sprites/hyungsub-runner-airslash.png'],
         'rows': [''.join(row) for row in rows],
         'spawns': {
             'from_west': {'x': 1 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
