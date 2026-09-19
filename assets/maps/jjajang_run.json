@@ -39,7 +39,7 @@
    "facing": "right"
   },
   "before_torii": {
-   "x": 616,
+   "x": 808,
    "y": 262,
    "facing": "right"
   },
@@ -490,7 +490,7 @@
   {
    "type": "trigger",
    "id": "run_intro_trigger",
-   "x": 704,
+   "x": 896,
    "y": 256,
    "w": 64,
    "h": 64,

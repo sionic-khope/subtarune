@@ -16,7 +16,7 @@ export const jjajang_run_start = [
   { end: true },
 ];
 
-// 토리이 앞(사용자 브리핑 2026-09-19): 대사 그대로, “껄껄 이런느낌일새.. 이따보게” 뒤 웃음 → (청소부가 갑자기 휘리릭 하고 사라진다)
+// 토리이 앞(사용자 브리핑 2026-09-19): 대사 그대로, “껄껄 이런느낌일새..” 뒤 웃음 → 마지막 줄 “이따보게”(BUILD239 사용자 정정: 이따보게를 마지막에) → (청소부가 갑자기 휘리릭 하고 사라진다)
 export const jjajang_run_intro = [
   { if: flags => flags.run_intro_done || !flags.torii_janitor_joined, goto: 'end' },
   { face: JANITOR, dir: 'toward:player' },
@@ -29,9 +29,10 @@ export const jjajang_run_intro = [
   C('한번 아까 말했던 검을 너무 크게 경직되게 휘두른다를 생각해보세'),
   C('몸놀림을 더 가볍게, 검을 가볍게 움직여보는건 어떻겠는가'),
   C('그렇게되면, 도착지까지 더욱 빨리 가는 방법을 배울수있을지도 모르지'),
-  C('말이 너무 어렵다고? 껄껄 이런느낌일새.. 이따보게'),
+  C('말이 너무 어렵다고? 껄껄 이런느낌일새..'),
   laugh(),
   C('기억하게, 호리이를 지나면, 결계를 뚫는다는 느낌으로 빠르게 달려보는거라네'),
+  C('이따보게'),
   close,
   // 휘리릭: 휘융 소리와 함께 왼쪽 위로 확 밀리며 사라진다(러너가 끝나면 outro 가 다시 데려온다)
   { parallel: [{ sfx: 'wing' }, { slide: JANITOR, by: [-36, -14], duration: 0.14 }] },
