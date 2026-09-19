@@ -65,7 +65,18 @@
     14
    ]
   ],
-  "role": "생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길, 사건 없음, 오른쪽 끝(다음 맵 브리핑 대기, 문 없음). 브금 my_castle_town 이어짐",
+  "role": "생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길. 길 위 칸에 비석 다섯(윗길 12·22·32열, 아랫길 52·62열 — C 로 읽는다). 오른쪽 끝(다음 맵 브리핑 대기, 문 없음). 브금 my_castle_town 이어짐",
+  "steles": [
+   12,
+   22,
+   32,
+   52,
+   62
+  ],
+  "steleSize": [
+   44,
+   92
+  ],
   "bend": {
    "downCols": [
     40,
@@ -293,6 +304,71 @@
    "ix": 2198,
    "iy": 492,
    "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_stele1",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 388,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 378,
+   "iy": 98,
+   "solid": true,
+   "script": "jjajang_stele1"
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_stele2",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 708,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 698,
+   "iy": 98,
+   "solid": true,
+   "script": "jjajang_stele2"
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_stele3",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1028,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1018,
+   "iy": 98,
+   "solid": true,
+   "script": "jjajang_stele3"
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_stele4",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1668,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1658,
+   "iy": 354,
+   "solid": true,
+   "script": "jjajang_stele4"
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_stele5",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1988,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1978,
+   "iy": 354,
+   "solid": true,
+   "script": "jjajang_stele5"
   },
   {
    "type": "door",

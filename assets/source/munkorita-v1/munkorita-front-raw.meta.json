@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/munkorita-v1/munkorita-ref2.png"
+  ],
+  "elapsed_seconds": 36.4,
+  "usage": {
+    "input_tokens": 891,
+    "output_tokens": 1756,
+    "total_tokens": 2647,
+    "input_tokens_details": {
+      "image_tokens": 576,
+      "text_tokens": 315
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789826676,
+  "outputs": [
+    {
+      "file": "assets/source/munkorita-v1/munkorita-front-raw.png",
+      "bytes": 903966,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

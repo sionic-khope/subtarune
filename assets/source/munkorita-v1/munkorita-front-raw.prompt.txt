@@ -1,0 +1,10 @@
+# imagegen 2026-09-19 23:04:38
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/munkorita-v1/munkorita-ref2.png
+
+Pixel art of ONE creature, a single figure, for a Deltarune-like top-down pixel RPG overworld. 1024x1024 canvas. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text.
+Image1 LEFT part is a photo for IDENTITY: a chubby pale-pink pig-like creature with the wrinkled face of an old human man - small round wire-rim glasses, a wide open delighted grin, squinting happy eyes, a pig snout and small pig ears, four short stubby legs, a HUGE curved grey plume sweeping up and back from its rear like a crescent feather tail, and a necklace of small dark-green beads. Image1 RIGHT part is a pixel character from this game for PIXEL DENSITY, outline style and body scale only (ignore its pose).
+The creature stands on its four legs facing the VIEWER (front view, slightly from above like an overworld sprite), grinning face forward, the grey crescent plume rising behind it, green bead necklace visible. Centered, filling about 70% of the canvas height, nothing touching the edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (pale pink body, grey plume, dark green beads, dark glasses), dark stepped outline, same sparse logical pixel density as the right part of Image1, crisp pixels, no anti-aliasing, no blur.

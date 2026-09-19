@@ -7,7 +7,8 @@
 # Run from repository root: /usr/bin/python3 tools/maps/jjajang_bend2.py [--check]
 # ──────────────────
 """굽은 물길(jjajang_bend2, BUILD245 사용자 “다음맵도 만들고” 2026-09-19 — 내용 브리핑 없음):
-- 생각 길 오른쪽 문에서 왼쪽 가장자리(6~7행)로 들어와 오른쪽 → 40~41열에서 아래로 → 14~15행에서 오른쪽 끝까지(같은 지역 자산: 검은 물 '*', 소나무). 대사·소품·문은 지어내지 않고 오른쪽 끝은 통로만(다음 맵 브리핑 대기)."""
+- 생각 길 오른쪽 문에서 왼쪽 가장자리(6~7행)로 들어와 오른쪽 → 40~41열에서 아래로 → 14~15행에서 오른쪽 끝까지(같은 지역 자산: 검은 물 '*', 소나무). 오른쪽 끝은 통로만(다음 맵 브리핑 대기).
+- 비석 다섯(BUILD248): 길 바로 위 칸에 10칸 간격(윗길 12·22·32열, 아랫길 52·62열), 앞에서 C 를 누르면 jjajang_stele1~5 가 새겨진 글을 읽는다."""
 from __future__ import annotations
 
 import json
@@ -22,6 +23,10 @@ TILE: Final = 32
 ROAD_ROWS: Final = (6, 7)              # 윗길
 LOWER_ROWS: Final = (14, 15)          # 아랫길
 DOWN_COLS: Final = (40, 41)           # 윗길 → 아랫길
+# 비석 다섯(BUILD248 사용자 “비석을 5개 추가 … 글이 적혀있는 석판 … 오른쪽길 상단들에 총5개”): 길 바로 위 칸에 10칸 간격으로, 앞에서 C 를 누르면 글을 읽는다
+STELE: Final = ('assets/props/jjajang_stele.png', 44, 92)   # 사람보다 크게 — 길에서 위를 보고 읽을 때 주인공에 가리지 않는다
+STELE_UPPER: Final = (12, 22, 32)     # 윗길(6~7행) 위 칸
+STELE_LOWER: Final = (52, 62)         # 아랫길(14~15행) 위 칸
 RUN_SPEED: Final = 420
 CAM_LEFT: Final = 0.22
 SCREEN_W: Final = 480
@@ -70,6 +75,17 @@ def torii(tag: str, col: int, road_rows: tuple[int, int]) -> list[dict[str, obje
     return [back, front]
 
 
+def stele(index: int, col: int, road_row: int) -> dict[str, object]:
+    """밑동을 길 바로 위 칸(숲)에 두고, 히트박스는 그림 폭 안쪽 — 길에서 C 로 읽는다."""
+    file, width, height = STELE
+    cx, base_y = col * TILE + 16, road_row * TILE - 2
+    return {
+        'type': 'prop', 'id': f'jjajang_stele{index}', 'image': file,
+        'x': cx - 12, 'y': base_y - 12, 'w': 24, 'h': 12,
+        'ix': cx - width // 2, 'iy': base_y - height, 'solid': True, 'script': f'jjajang_stele{index}',
+    }
+
+
 def build_map() -> dict[str, object]:
     rows = [['@'] * WIDTH for _ in range(HEIGHT)]
     for row in ROAD_ROWS:
@@ -94,6 +110,15 @@ def build_map() -> dict[str, object]:
     for p in pines:
         col, row = (p['x'] + 12) // TILE, (p['y'] + 6) // TILE
         assert rows[row][col] == '@', f'소나무 밑동이 길 위: {col},{row}'
+    steles = [stele(i + 1, col, ROAD_ROWS[0]) for i, col in enumerate(STELE_UPPER)]
+    steles += [stele(len(STELE_UPPER) + i + 1, col, LOWER_ROWS[0]) for i, col in enumerate(STELE_LOWER)]
+    for st in steles:
+        col, row = (st['x'] + 12) // TILE, (st['y'] + 6) // TILE
+        assert rows[row][col] == '@', f'비석 밑동이 길 위: {col},{row}'
+        assert rows[row + 1][col] == '*', f'비석 아래가 길이 아님(읽을 수 없다): {col},{row + 1}'
+        assert st['ix'] >= 0 and st['iy'] >= 0 and st['ix'] <= st['x'] and st['ix'] + STELE[1] >= st['x'] + st['w'], '히트박스는 그림 폭 안'
+    gaps = [b - a for a, b in zip(STELE_UPPER, STELE_UPPER[1:])] + [b - a for a, b in zip(STELE_LOWER, STELE_LOWER[1:])]
+    assert len(set(gaps)) == 1, f'비석 간격이 다르다: {gaps}'
     door_west = {'type': 'door', 'id': 'bend2_think_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_think', 'spawn': 'from_east', 'sfx': False}
     return {
         'id': MAP_ID,
@@ -110,10 +135,12 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[1, ROAD_ROWS[0]], [DOWN_COLS[0], ROAD_ROWS[0]], [DOWN_COLS[0], LOWER_ROWS[0]], [WIDTH - 2, LOWER_ROWS[0]]],
-            'role': '생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길, 사건 없음, 오른쪽 끝(다음 맵 브리핑 대기, 문 없음). 브금 my_castle_town 이어짐',
+            'role': '생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길. 길 위 칸에 비석 다섯(윗길 12·22·32열, 아랫길 52·62열 — C 로 읽는다). 오른쪽 끝(다음 맵 브리핑 대기, 문 없음). 브금 my_castle_town 이어짐',
+            'steles': list(STELE_UPPER) + list(STELE_LOWER),
+            'steleSize': [STELE[1], STELE[2]],
             'bend': {'downCols': list(DOWN_COLS), 'lowerRows': list(LOWER_ROWS)},
         },
-        'entities': [*pines, door_west],
+        'entities': [*pines, *steles, door_west],
     }
 
 

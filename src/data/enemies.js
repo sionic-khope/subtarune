@@ -109,6 +109,17 @@ export const ENEMIES = {
     patterns: [{ type: 'chin_tear' }, { type: 'chin_drum' }, { type: 'chin_tear', cross: true, drums: true }],
     lines: { appear: '* 찢칠라가 나타났다!', idle: ['* 찢칠라가 안경 너머로 노려본다.', '* 찢칠라의 수염이 씰룩인다.'], speak: ['씨2발년아', '씹구멍 씹구멍', '찍찍찍찍찢'], speakSfx: 'squeaky', die: '* 찢칠라가 쓰러졌다.' },
   },
+  // 문코리타(BUILD248 사용자 브리핑 2026-09-19): 사진(안경 쓴 노인 얼굴로 웃는 분홍 돼지 + 위로 솟은 회색 깃털 + 녹색 구슬 목걸이) → gpt-image 대기 시트 assets/source/munkorita-v1.
+  //   체력 16(“찢칠라와 똑같이”), 공격 대사 2줄(원문 그대로), 패턴은 덩굴 채찍·소리지르기 둘(원문 “두개로”) — src/battle/munkorita-patterns.js.
+  //   피해 9·돈 18 은 미지정(찢칠라와 같은 잠정값), appear/idle/die 나레이션도 엔진 형식상 필요한 최소(미지정)
+  munkorita: {
+    name: '문코리타', hp: 16, damage: 9, money: 18, voice: 'cat',
+    sheet: { src: 'assets/enemies/munkorita-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
+    pivot: [64, 118], scale: 1.3, idle: { swayX: 0, swayY: 0, period: 2 },
+    projectiles: { face: 'assets/enemies/munkorita-idle.png' },
+    patterns: [{ type: 'munkorita_vine' }, { type: 'munkorita_shout' }],
+    lines: { appear: '* 문코리타가 나타났다!', idle: ['* 문코리타가 활짝 웃고 있다.', '* 문코리타의 깃털이 흔들린다.'], speak: ['훠훠', '사람이뭔줘다'], die: '* 문코리타가 쓰러졌다.' },
+  },
   seopnyang: {
     name: '섭냥이', hp: 27, damage: 16, money: 90,
     sheet: { src: 'assets/enemies/seopnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },

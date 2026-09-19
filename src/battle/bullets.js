@@ -22,6 +22,7 @@ import { YOUNGCLE_PATTERNS } from './youngcle-patterns.js';
 import { COIN_PATTERNS } from './coin-patterns.js';
 import { AJIMKIYA_PATTERNS } from './ajimkiya-patterns.js';
 import { CHINCHILLA_PATTERNS } from './chinchilla-patterns.js';
+import { MUNKORITA_PATTERNS } from './munkorita-patterns.js';
 
 export class Board {
   constructor() { this.x = 140; this.y = 150; this.w = 200; this.h = 150; this.target = null; this.open = 0; }
@@ -171,6 +172,7 @@ export const PATTERNS = {
   ...COIN_PATTERNS,   // 변신 영클 코인벌기(BUILD214)
   ...AJIMKIYA_PATTERNS,   // 아짐키야 글자 탄·춤(BUILD227)
   ...CHINCHILLA_PATTERNS,   // 찢칠라 찢기·드럼통(BUILD242)
+  ...MUNKORITA_PATTERNS,   // 문코리타 덩굴 채찍·소리지르기(BUILD248)
   rain: (o = {}) => { const rate = o.rate ?? 0.18, speed = o.speed ?? 90, r = o.r ?? 4; let acc = 0;
     return { duration: o.duration ?? 4, update(t, dt, api) { acc += dt; while (acc >= rate) { acc -= rate; const b = api.box; api.emit({ x: b.x + 8 + api.rnd() * (b.w - 16), y: b.y - 12, vy: speed * (0.8 + api.rnd() * 0.4), r, shape: o.shape, kind: o.kind, spin: o.spin }); } } }; },
   aimed: (o = {}) => { const every = o.every ?? 0.6, speed = o.speed ?? 120, r = o.r ?? 5; let next = 0.4;

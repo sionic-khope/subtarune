@@ -70,5 +70,5 @@ test('test_party_and_qa_after_the_janitor_leaves', () => {
   assert.deepEqual(partyFromFlags({ ship_sinking_done: true, torii_janitor_joined: true, janitor_left: true }), [], '이별 뒤엔 요플래 혼자');
   const qa = id => QA_POINTS.find(p => p.id === id);
   assert.deepEqual(qa('jjajang_drum').party, ['janitor']); assert.equal(qa('jjajang_drum_center').spawn, 'before_drum');
-  for (const id of ['jjajang_chin1', 'jjajang_chin1_chin', 'jjajang_chin2', 'jjajang_chin2_chin']) { assert.deepEqual(qa(id).party, [], id); assert.ok(qa(id).flags.janitor_left && qa(id).flags.drum_talk_done, id); }
+  for (const id of ['jjajang_chin1', 'jjajang_chin1_chin', 'jjajang_chin2', 'jjajang_chin2_mun']) { assert.deepEqual(qa(id).party, [], id); assert.ok(qa(id).flags.janitor_left && qa(id).flags.drum_talk_done, id); }
 });

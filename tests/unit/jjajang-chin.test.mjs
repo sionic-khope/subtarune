@@ -32,7 +32,8 @@ test('test_chin_maps_layout_torii_runs_enemy_late_and_doors', () => {
       prevEnd = run.endX;
     }
     const chin = m.entities.find(e => e.type === 'enemy');
-    assert.deepEqual([chin.sprite, chin.enemies, chin.wander, chin.unless], ['chinchilla', ['chinchilla'], 0, `${m.id}_chin_defeated`]);
+    const who = m.id === 'jjajang_chin2' ? 'munkorita' : 'chinchilla';   // 길 2 의 적은 문코리타(BUILD248)
+    assert.deepEqual([chin.sprite, chin.enemies, chin.wander, chin.unless], [who, [who], 0, `${m.id}_${chin.id}_defeated`]);
     assert.ok(chin.x > W * 32 * 0.6 && chin.x > prevEnd + 500 && chin.y >= r0 * 32 && chin.y + 24 <= (r1 + 1) * 32, `${m.id}: 찢칠라는 중후반, 달리기 끝 뒤, 길 위`);
     assert.ok(m.spawns.before_chin.x < chin.x - 150 && m.spawns.from_west.x >= 2 * 32 && m.bgm === 'my_castle_town');
   }
@@ -54,7 +55,7 @@ test('test_chin_maps_layout_torii_runs_enemy_late_and_doors', () => {
   assert.equal(SCRIPTS.jjajang_spring, SCRIPTS.maillard_spring, '마이야르 샘물과 같은 전체 회복');
   const g = { party: [], partyHp: { hyungsub: 3 }, maxHpOf: () => 160 }; SCRIPTS.jjajang_spring[0].action(g); assert.equal(g.partyHp.hyungsub, 160);
   assert.ok(m2.spawns.before_spring && Math.floor(m2.spawns.before_spring.y / 32) === l0 && m2.spawns.before_spring.x < spring.x - 100);
-  for (const flag of ['jjajang_chin1_chin_defeated', 'jjajang_chin2_chin_defeated']) assert.ok(STATE_FROM_FLAGS.some(r => r.flag === flag && r.enemies?.[0] === 'chinchilla'), `${flag}: QA 돈 유도`);
+  for (const [flag, who] of [['jjajang_chin1_chin_defeated', 'chinchilla'], ['jjajang_chin2_mun_defeated', 'munkorita']]) assert.ok(STATE_FROM_FLAGS.some(r => r.flag === flag && r.enemies?.[0] === who), `${flag}: QA 돈 유도`);
 });
 
 test('test_no_return_and_start_scripts', () => {

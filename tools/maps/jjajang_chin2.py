@@ -22,7 +22,7 @@ ROAD_ROWS: Final = (8, 9)
 RUN_SPEED: Final = 420
 CAM_LEFT: Final = 0.22
 SCREEN_W: Final = 480
-ENEMY_COL: Final = 216            # 찢칠라 자리(중후반, 샛길 뒤)
+ENEMY_COL: Final = 216            # 문코리타 자리(중후반, 샛길 뒤)
 BRANCH_COLS: Final = (176, 177)   # 아래로 내려가는 샛길(BUILD244 사용자 “오른쪽으로만 있으니까 노잼, 아래로 가는 길·오른쪽으로 가는 길 + 마나샘”)
 LOWER_ROWS: Final = (20, 21)      # 샛길 아래에서 오른쪽으로 이어지는 길
 SPRING_COL: Final = 199           # 아래 길 끝의 마나샘(전체 회복, 소품 blue_buff 재사용)
@@ -121,7 +121,8 @@ def build_map() -> dict[str, object]:
     spring = {'type': 'prop', 'id': 'chin2_spring', 'image': 'assets/props/blue_buff.png', 'anim': {'cols': 3, 'fps': 4},
               'x': spring_cx - 16, 'y': spring_top, 'w': 32, 'h': spring_base - spring_top, 'ix': spring_cx - 20, 'iy': spring_base - 44, 'solid': True, 'script': 'jjajang_spring'}
     assert rows[(spring['y'] + 6) // TILE][(spring['x'] + 12) // TILE] == '*', '마나샘은 아래 길 위'
-    enemy = {'type': 'enemy', 'id': 'chin', 'sprite': 'chinchilla', 'x': ENEMY_COL * TILE, 'y': ROAD_ROWS[0] * TILE + 4, 'facing': 'left', 'wander': 0, 'enemies': ['chinchilla'], 'unless': f'{MAP_ID}_chin_defeated'}
+    # BUILD248 사용자 “두번째 찢칠라를 문코리타로”
+    enemy = {'type': 'enemy', 'id': 'mun', 'sprite': 'munkorita', 'x': ENEMY_COL * TILE, 'y': ROAD_ROWS[0] * TILE + 4, 'facing': 'left', 'wander': 0, 'enemies': ['munkorita'], 'unless': f'{MAP_ID}_mun_defeated'}
     door_east = {'type': 'door', 'id': 'jjajang_chin2_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_think', 'spawn': 'from_west', 'sfx': False}   # BUILD245: 생각 길
     door_west = {'type': 'door', 'id': 'jjajang_chin2_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_chin1', 'spawn': 'from_east', 'sfx': False}
     return {
@@ -147,7 +148,7 @@ def build_map() -> dict[str, object]:
             'connected': True,
             'route': [[2, ROAD_ROWS[0]], [BRANCH_COLS[0], ROAD_ROWS[0]], [BRANCH_COLS[0], LOWER_ROWS[0]], [SPRING_COL - 1, LOWER_ROWS[0]], [BRANCH_COLS[0], ROAD_ROWS[0]], [WIDTH - 2, ROAD_ROWS[0]]],
             'branch': {'cols': list(BRANCH_COLS), 'lowerRows': list(LOWER_ROWS), 'springCol': SPRING_COL},
-            'role': '찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 찢칠라(표준 조우) → 오른쪽 문 → 생각 길(jjajang_think)',
+            'role': '찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 문코리타(표준 조우) → 오른쪽 문 → 생각 길(jjajang_think)',
             'runRoadRows': list(ROAD_ROWS),
             'runs': runs,
         },

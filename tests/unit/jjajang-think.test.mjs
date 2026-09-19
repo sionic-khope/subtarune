@@ -2,8 +2,9 @@
 //   굽은 물길(사용자 “다음맵도 만들고”, 내용 브리핑 없음): 오른쪽 → 아래 → 오른쪽, 사건·소품 없음, 오른쪽 끝은 통로만
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { jjajang_think } from '../../src/data/cutscenes/jjajang_think.js';
+import { jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5, STELE_SCRIPTS } from '../../src/data/cutscenes/jjajang_stele.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { QA_POINTS, storyBgm, JJAJANG_AFTER_JOIN_MAPS } from '../../src/core/story.js';
 
@@ -52,8 +53,36 @@ test('test_bend2_is_a_right_down_right_water_road_with_no_events', () => {
   assert.equal(bend.rows[u0][0], '+'); assert.equal(bend.rows[l0][W - 1], '+');
   const west = bend.entities.find(e => e.type === 'door'); assert.deepEqual([west.to, west.spawn, west.x], ['jjajang_think', 'from_east', 0]);
   assert.equal(bend.entities.filter(e => e.type === 'door').length, 1, '오른쪽은 통로만(다음 맵 브리핑 대기)');
-  assert.ok(!bend.entities.some(e => e.type === 'trigger' || e.type === 'enemy' || e.type === 'npc') && bend.entities.every(e => e.type === 'door' || /jjajang_pine_/.test(e.image || '')), '사건·소품을 지어내지 않는다');
+  assert.ok(!bend.entities.some(e => e.type === 'trigger' || e.type === 'enemy' || e.type === 'npc'), '적·트리거는 지어내지 않는다');
   assert.ok(Math.floor(bend.spawns.from_east.y / 32) === l0 && Math.floor(bend.spawns.from_west.y / 32) === u0);
   const qa = id => QA_POINTS.find(p => p.id === id);
   assert.deepEqual(qa('jjajang_think').party, []); assert.equal(qa('jjajang_think_mid').spawn, 'before_think'); assert.ok(qa('jjajang_bend2').flags.think_done);
+});
+
+test('test_bend2_has_five_readable_steles_evenly_spaced_above_the_road', () => {
+  const steles = bend.entities.filter(e => /^jjajang_stele\d$/.test(e.id || ''));
+  assert.equal(steles.length, 5, '비석 다섯');
+  const [u0, u1] = [6, 7], { lowerRows: [l0] } = bend.meta.bend;
+  const cols = steles.map(e => Math.floor((e.x + 12) / 32));
+  assert.deepEqual(cols, bend.meta.steles, '맵 meta 와 같은 자리');
+  const upper = steles.slice(0, 3), lower = steles.slice(3);
+  for (const e of upper) assert.equal(Math.floor((e.y + 6) / 32), u0 - 1, '윗길 바로 위 칸');
+  for (const e of lower) assert.equal(Math.floor((e.y + 6) / 32), l0 - 1, '아랫길 바로 위 칸');
+  const gaps = [...upper, ...lower].slice(1).map((e, i) => cols[i + 1] - cols[i]).filter((g, i) => i !== 2);
+  assert.ok(gaps.every(g => g === gaps[0]), `간격이 같다 ${gaps}`);
+  for (const e of steles) {
+    assert.ok(e.solid && e.script === e.id && existsSync(new URL('../../' + e.image, import.meta.url)), `${e.id}: 막히고 C 로 읽는다`);
+    const img = bend.meta.steleSize || [43, 92];
+    assert.ok(e.ix <= e.x && e.ix + img[0] >= e.x + e.w && e.iy + img[1] === e.y + e.h, `${e.id}: 히트박스는 그림 폭 안, 그림 밑변 = 히트박스 밑변`);
+    assert.ok(img[1] > 60, '비석은 주인공보다 크다(가려지지 않게)');
+    assert.ok(bend.rows[Math.floor((e.y + 6) / 32) + 1][Math.floor((e.x + 12) / 32)] === '*', `${e.id}: 바로 아래가 길이라 읽을 수 있다`);
+  }
+  for (const name of STELE_SCRIPTS) assert.ok(SCRIPTS[name], name);
+  const texts = arr => arr.map(n => n.text.replace(/^\* /, ''));
+  assert.deepEqual(texts(jjajang_stele1), ['과거 붉은군단과 파란악마가 격돌했다', '붉은 군단은 혁명을 일으켰지만 결국 실패하고 말았다']);
+  assert.deepEqual(texts(jjajang_stele2), ['드럼통의 악마는 더욱 강해져갔다', '그를 막을 방법은 아무도 없었다']);
+  assert.deepEqual(texts(jjajang_stele3), ['전설의 붉은 깃발의 용사가 있었다.', '그가 마지막 영웅이였으며 모두의 희망이였다.']);
+  assert.deepEqual(texts(jjajang_stele4), ['그러나 결국 실패하고 말았다.', '계엄을 실패한 것이다.']);
+  assert.deepEqual(texts(jjajang_stele5), ['...', '야이씨발년아 씹구멍쑤ㅅ..', '... 그 뒤에 내용이 갈기갈기 찢어져있다 .'], '다섯 번째는 찢어진 뒤 나레이션 한 줄 더');
+  for (const arr of [jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5]) assert.ok(arr.every(n => n.voice === 'narrator' && !n.speaker), '비석 글은 나레이션');
 });

@@ -67,6 +67,7 @@ export const CHARACTERS = {
   cs_blue:   { name: '블루 CS', voice: 'cat', palette: 'ghost', still: 'assets/enemies/cs-blue-front.png' },
   razorbeak: { name: '칼날부리', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-raptor-front.png' },   // 청록숲6 정글 몹 — PR #10 이미지(docs/handoffs/jungle-enemies-assets.md)
   wolf:      { name: '늑대', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-wolf-front.png' },
+  munkorita: { name: '문코리타', voice: 'cat', palette: 'ghost', still: 'assets/enemies/munkorita-front.png' },   // 찢칠라 길 2 필드 적(BUILD248) — gpt-image 정면 64×64(assets/source/munkorita-v1)
   chinchilla: { name: '찢칠라', voice: 'cat', palette: 'ghost', still: 'assets/enemies/chinchilla-front.png' },   // 찢칠라 길 필드 적(BUILD242) — gpt-image 정면 64×64(assets/source/chinchilla-v1)
   toad:      { name: '두꺼비', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-gromp-front.png' },
   krug:      { name: '돌거북', voice: 'cat', palette: 'ghost', still: 'assets/enemies/jungle-krug-front.png' },      // 청록숲8 정글 2 — PR #14 이미지(assets/source/krug-scuttle-cannon-v1, docs/handoffs/krug-scuttle-cannon-sprites.md)

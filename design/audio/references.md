@@ -518,5 +518,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/bell_bounce.mp3` | `snd_bell_bounce_short` | 0.55s | 드럼통이 바닥에서 튕길 때 |
 | `sfx/squeaky.mp3` | `snd_squeaky` | 0.31s | 찢칠라 말풍선(speakSfx) |
 | `sfx/break1.mp3` | `snd_break1` | 0.71s | 러너 장애물 쳐냄 한 겹 더(BUILD243, snd_hit 과 같이) |
+| `sfx/vine_whip.mp3` | `snd_whip_crack_only` | 0.72s | 문코리타 덩굴 채찍이 쓸고 갈 때(BUILD248) |
+| `sfx/howl.mp3` | `snd_howl` | 1.89s | 문코리타 소리지르기(음파 고리 시작) |
 | **아짐키야** 노래·대사 클립 (BUILD227) | 사용자 지정 [mARppJip_hc](https://www.youtube.com/watch?v=mARppJip_hc) “[Team Azimkiya] 가재맨 애미 뒤짐”(서전트점프, 2024-12-01, 71초) | `bgm/ajimkiya_song.mp3`(전체), `sfx/ajimkiya_line.mp3`(0.0~2.6초, 잠정 구간) | **적용됨** — 소나무 숲 공터 연출(22초 재생) + 등장 대사·적 턴 말풍선 클립. 원본 `assets/source/ajimkiya-v1/audio/` |
 | **짜장 일반몹 전투** 브금 (BUILD227) | 사용자 지정 [QvoQVCBqegU](https://www.youtube.com/watch?v=QvoQVCBqegU) “Rakuichi Buster”(Toby Fox, 2026-06-24, 110초) | `bgm/jjajang_battle.mp3` | **적용됨** — `Game.encounterBgm()`: 짜장 맵 조우 기본, 아짐키야전 |

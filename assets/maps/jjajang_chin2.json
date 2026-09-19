@@ -123,7 +123,7 @@
    ],
    "springCol": 199
   },
-  "role": "찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 찢칠라(표준 조우) → 오른쪽 문 → 생각 길(jjajang_think)",
+  "role": "찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 문코리타(표준 조우) → 오른쪽 문 → 생각 길(jjajang_think)",
   "runRoadRows": [
    8,
    9
@@ -1078,16 +1078,16 @@
   },
   {
    "type": "enemy",
-   "id": "chin",
-   "sprite": "chinchilla",
+   "id": "mun",
+   "sprite": "munkorita",
    "x": 6912,
    "y": 260,
    "facing": "left",
    "wander": 0,
    "enemies": [
-    "chinchilla"
+    "munkorita"
    ],
-   "unless": "jjajang_chin2_chin_defeated"
+   "unless": "jjajang_chin2_mun_defeated"
   },
   {
    "type": "prop",

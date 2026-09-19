@@ -112,7 +112,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'jjajang_rock_taken', items: ['돌'] },
   { flag: 'pines_ajimkiya_won', enemies: ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'] },
   { flag: 'jjajang_chin1_chin_defeated', enemies: ['chinchilla'] },                                                       // 찢칠라 길 1·2 필드 조우(각 18원) — jjajang_chin.js
-  { flag: 'jjajang_chin2_chin_defeated', enemies: ['chinchilla'] },                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
+  { flag: 'jjajang_chin2_mun_defeated', enemies: ['munkorita'] },                                                       // 찢칠라 길 2 의 적은 문코리타(BUILD248 사용자 “두번째 찢칠라를 얘로”)                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
@@ -460,9 +460,9 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2', desc: '찢칠라 길
   map: 'jjajang_chin2', spawn: 'from_west', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_spring', desc: '찢칠라 길 2 · 아래 샛길 (오른쪽 끝 마나샘, C 로 전체 회복)',
   map: 'jjajang_chin2', spawn: 'before_spring', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_chin', desc: '찢칠라 길 2 · 찢칠라 직전',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_mun', desc: '찢칠라 길 2 · 문코리타 직전 (덩굴 채찍·소리지르기)',
   map: 'jjajang_chin2', spawn: 'before_chin', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
-const thinkFlags = { ...chinFlags, jjajang_chin1_chin_defeated: true, jjajang_chin2_chin_defeated: true };
+const thinkFlags = { ...chinFlags, jjajang_chin1_chin_defeated: true, jjajang_chin2_mun_defeated: true };
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_think', desc: '생각 길 입구 (오른쪽으로 쭉 걷다가 가운데에서 요플래 혼잣말 나레이션)',
   map: 'jjajang_think', spawn: 'from_west', flags: thinkFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_think_mid', desc: '생각 길 · 혼잣말 직전 (오른쪽으로 걸으면 시작, 끝은 다음 맵 브리핑 대기)',
