@@ -1,0 +1,22 @@
+{
+  "requestId": "choimis-gap247",
+  "runtime": "assets/sprites/choimis.png",
+  "sheet": "sheet-transparent.png",
+  "size": [512, 512],
+  "mode": "RGBA",
+  "cellSize": [128, 128],
+  "columns": 4,
+  "rows": ["down", "up", "left", "right"],
+  "frameOrder": [0, 1, 2, 3],
+  "idleFrame": 0,
+  "loop": true,
+  "previewDurationMs": 160,
+  "runtimeTiming": "existing world animator unchanged",
+  "pivot": [64, 120],
+  "scale": "existing 2x nearest runtime scale unchanged",
+  "preservation": "RGBA byte-identical outside four front chest rectangles; all back and profile frames unchanged",
+  "provider": "Codex built-in imagegen",
+  "model": "unknown",
+  "usage": "unknown",
+  "cost": "unknown"
+}

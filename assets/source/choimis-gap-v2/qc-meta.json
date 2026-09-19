@@ -1,0 +1,51 @@
+{
+  "dimensions": [
+    512,
+    512
+  ],
+  "cellSize": 128,
+  "rows": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "changedPixels": 608,
+  "outsideChestChangedPixels": 0,
+  "alphaIdentical": true,
+  "backAndProfilesIdentical": true,
+  "generatedLogoCrop": [
+    128,
+    200,
+    190,
+    225
+  ],
+  "blackThreshold": "max(R,G,B)<70",
+  "logicalLogoSize": [
+    13,
+    5
+  ],
+  "nearestScale": 2,
+  "frontLogoPositions": [
+    [
+      50,
+      82
+    ],
+    [
+      178,
+      82
+    ],
+    [
+      306,
+      82
+    ],
+    [
+      434,
+      82
+    ]
+  ],
+  "alphaValues": [
+    0,
+    255
+  ]
+}

@@ -1422,7 +1422,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-19.246';
+export const BUILD = '2026-09-19.247';
 // 전투 밖 피해 띠(BUILD240): 전투 HP 띠와 같은 y=322(화면 맨 아래), 왼쪽 20px, 1.6초
 const HP_POPUP = Object.freeze({ x: 20, y: 322, w: 236, dur: 1.6, fadeIn: 0.2, fadeOut: 0.45 });
 const canvas = document.getElementById('screen');
