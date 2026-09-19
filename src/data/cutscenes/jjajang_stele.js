@@ -25,9 +25,3 @@ export const jjajang_stele5 = [
   N('... 그 뒤에 내용이 갈기갈기 찢어져있다 .'),
 ];
 export const STELE_SCRIPTS = ['jjajang_stele1', 'jjajang_stele2', 'jjajang_stele3', 'jjajang_stele4', 'jjajang_stele5'];
-
-// 드럼통 둥지(jjajang_nest) 가운데 오른쪽의 상호작용 드럼통 (BUILD249 사용자 “상호작용할수있는 드럼통 하나 배치해주고”)
-//   연출·대사는 아직 브리핑이 없다 — 소품을 살펴보는 최소 나레이션 한 줄만 둔다(브리핑이 오면 이 스크립트를 그 내용으로 바꾼다)
-export const jjajang_nest_drum = [
-  { voice: 'narrator', text: '* 드럼통이다.' },
-];

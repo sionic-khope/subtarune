@@ -472,5 +472,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_bend2', desc: '굽은 물길
 const nestFlags = { ...thinkFlags, think_started: true, think_done: true };
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest', desc: '드럼통 둥지 입구 (오른쪽으로 1초 걸으면 드럼통 더미가 두른 동그란 공간 · 브금 없음)',
   map: 'jjajang_nest', spawn: 'from_west', flags: nestFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_center', desc: '드럼통 둥지 가운데 (오른쪽 드럼통에 C · 다음 연출 브리핑 대기)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_center', desc: '드럼통 둥지 가운데 (오른쪽 드럼통에 C · 두드리면 드럼통의 악마 등장·전투)',
   map: 'jjajang_nest', spawn: 'before_drum', flags: nestFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_battle', desc: '드럼통의 악마 전투 직행 (요플래 혼자 · HP 1에서 청소부 구출)',
+  map: 'jjajang_nest', spawn: 'before_drum', flags: nestFlags, party: [], script: 'drum_devil_battle_qa' });

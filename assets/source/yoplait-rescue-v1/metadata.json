@@ -1,0 +1,127 @@
+{
+  "cell": [
+    96,
+    96
+  ],
+  "anchor": [
+    48,
+    89
+  ],
+  "frames_each": 1,
+  "processing": "Alpha below 240 removed; retained alpha made opaque; RGB preserved; nearest scaling only.",
+  "calibration": "Head anatomy matched to standing Hyungsub, not bounding-box height. Each independently generated source uses a fixed uniform scalar.",
+  "reference": {
+    "path": "assets/battle/hyungsub.png",
+    "scale": 0.25,
+    "standing_height_approx": 87,
+    "head_width_approx": 46,
+    "head_height_approx": 44
+  },
+  "preview_order": [
+    "standing reference",
+    "kneel",
+    "surprised right",
+    "surprised lookback kneel"
+  ],
+  "records": [
+    {
+      "pose": "kneel",
+      "scale": 0.15,
+      "raw_bounds": [
+        475,
+        297,
+        1066,
+        740
+      ],
+      "size": [
+        89,
+        66
+      ],
+      "offset": [
+        3,
+        23
+      ],
+      "alpha_threshold": 240,
+      "visible_bounds": [
+        3,
+        23,
+        92,
+        89
+      ],
+      "head_landmarks_raw": [
+        648,
+        297,
+        949,
+        583
+      ],
+      "head_width_approx": 45.15,
+      "head_height_approx": 42.9
+    },
+    {
+      "pose": "surprised",
+      "scale": 0.125,
+      "raw_bounds": [
+        428,
+        221,
+        1142,
+        801
+      ],
+      "size": [
+        89,
+        72
+      ],
+      "offset": [
+        3,
+        17
+      ],
+      "alpha_threshold": 240,
+      "visible_bounds": [
+        3,
+        17,
+        92,
+        89
+      ],
+      "head_landmarks_raw": [
+        615,
+        221,
+        940,
+        530
+      ],
+      "head_width_approx": 40.62,
+      "head_height_approx": 38.62
+    },
+    {
+      "pose": "lookback",
+      "scale": 0.125,
+      "raw_bounds": [
+        424,
+        246,
+        1145,
+        827
+      ],
+      "size": [
+        90,
+        73
+      ],
+      "offset": [
+        3,
+        16
+      ],
+      "alpha_threshold": 240,
+      "visible_bounds": [
+        3,
+        16,
+        93,
+        89
+      ],
+      "head_landmarks_raw": [
+        604,
+        246,
+        955,
+        557
+      ],
+      "head_width_approx": 43.88,
+      "head_height_approx": 38.88
+    }
+  ]
+}

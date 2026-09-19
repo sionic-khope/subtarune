@@ -1,0 +1,263 @@
+{
+  "cell": [
+    192,
+    192
+  ],
+  "hero_pivot": [
+    138,
+    180
+  ],
+  "flag_pivot": [
+    96,
+    96
+  ],
+  "idle_grid": [
+    2,
+    2
+  ],
+  "idle_holds_ms": [
+    380,
+    260,
+    380,
+    260
+  ],
+  "hero_body_height_px_approx": [
+    77,
+    79,
+    78
+  ],
+  "method": "Alpha threshold 240, retained RGB unchanged, whole-pose uniform nearest resize, anatomical floor alignment. No drawing or body-part transforms.",
+  "records": [
+    {
+      "pose": "idle",
+      "frame": 0,
+      "scale": 0.235,
+      "raw_root": [
+        600,
+        466
+      ],
+      "pivot": [
+        138,
+        180
+      ],
+      "raw_bounds": [
+        25,
+        136,
+        749,
+        480
+      ],
+      "offset": [
+        3,
+        102
+      ],
+      "size": [
+        170,
+        81
+      ],
+      "visible_bounds": [
+        3,
+        102,
+        173,
+        183
+      ]
+    },
+    {
+      "pose": "idle",
+      "frame": 1,
+      "scale": 0.235,
+      "raw_root": [
+        600,
+        466
+      ],
+      "pivot": [
+        138,
+        180
+      ],
+      "raw_bounds": [
+        22,
+        133,
+        746,
+        480
+      ],
+      "offset": [
+        2,
+        102
+      ],
+      "size": [
+        170,
+        82
+      ],
+      "visible_bounds": [
+        2,
+        102,
+        172,
+        184
+      ]
+    },
+    {
+      "pose": "idle",
+      "frame": 2,
+      "scale": 0.235,
+      "raw_root": [
+        600,
+        425
+      ],
+      "pivot": [
+        138,
+        180
+      ],
+      "raw_bounds": [
+        24,
+        97,
+        749,
+        443
+      ],
+      "offset": [
+        3,
+        103
+      ],
+      "size": [
+        170,
+        81
+      ],
+      "visible_bounds": [
+        3,
+        103,
+        173,
+        184
+      ]
+    },
+    {
+      "pose": "idle",
+      "frame": 3,
+      "scale": 0.235,
+      "raw_root": [
+        600,
+        426
+      ],
+      "pivot": [
+        138,
+        180
+      ],
+      "raw_bounds": [
+        22,
+        96,
+        746,
+        442
+      ],
+      "offset": [
+        2,
+        102
+      ],
+      "size": [
+        170,
+        81
+      ],
+      "visible_bounds": [
+        2,
+        102,
+        172,
+        183
+      ]
+    },
+    {
+      "pose": "laugh",
+      "frame": 0,
+      "scale": 0.115,
+      "raw_root": [
+        830,
+        1110
+      ],
+      "pivot": [
+        138,
+        180
+      ],
+      "raw_bounds": [
+        197,
+        10,
+        1263,
+        1119
+      ],
+      "offset": [
+        65,
+        54
+      ],
+      "size": [
+        123,
+        128
+      ],
+      "visible_bounds": [
+        65,
+        54,
+        188,
+        182
+      ]
+    },
+    {
+      "pose": "stand",
+      "frame": 0,
+      "scale": 0.115,
+      "raw_root": [
+        805,
+        1110
+      ],
+      "pivot": [
+        138,
+        180
+      ],
+      "raw_bounds": [
+        212,
+        14,
+        1237,
+        1117
+      ],
+      "offset": [
+        70,
+        54
+      ],
+      "size": [
+        118,
+        127
+      ],
+      "visible_bounds": [
+        70,
+        54,
+        188,
+        181
+      ]
+    },
+    {
+      "pose": "flag",
+      "frame": 0,
+      "scale": 0.11,
+      "raw_root": [
+        882,
+        451
+      ],
+      "pivot": [
+        96,
+        96
+      ],
+      "raw_bounds": [
+        72,
+        170,
+        1714,
+        709
+      ],
+      "offset": [
+        7,
+        65
+      ],
+      "size": [
+        181,
+        59
+      ],
+      "visible_bounds": [
+        7,
+        65,
+        188,
+        124
+      ]
+    }
+  ]
+}

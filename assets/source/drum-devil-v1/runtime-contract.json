@@ -1,0 +1,226 @@
+{
+  "scale": 0.34,
+  "cell": [
+    256,
+    256
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "pivot": [
+    148,
+    238
+  ],
+  "filter": "NEAREST",
+  "actions": {
+    "idle": {
+      "frames": [
+        {
+          "index": 0,
+          "sourceBbox": [
+            47,
+            81,
+            627,
+            611
+          ],
+          "sourceRoot": [
+            347,
+            600
+          ],
+          "outputBbox": [
+            46,
+            62,
+            243,
+            242
+          ],
+          "pasteOffset": [
+            46,
+            62
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 1,
+          "sourceBbox": [
+            676,
+            95,
+            1207,
+            613
+          ],
+          "sourceRoot": [
+            957,
+            600
+          ],
+          "outputBbox": [
+            52,
+            66,
+            233,
+            242
+          ],
+          "pasteOffset": [
+            52,
+            66
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 2,
+          "sourceBbox": [
+            49,
+            674,
+            631,
+            1206
+          ],
+          "sourceRoot": [
+            350,
+            1198
+          ],
+          "outputBbox": [
+            46,
+            60,
+            244,
+            241
+          ],
+          "pasteOffset": [
+            46,
+            60
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 3,
+          "sourceBbox": [
+            668,
+            675,
+            1222,
+            1212
+          ],
+          "sourceRoot": [
+            954,
+            1200
+          ],
+          "outputBbox": [
+            51,
+            60,
+            239,
+            243
+          ],
+          "pasteOffset": [
+            51,
+            60
+          ],
+          "durationMs": 220
+        }
+      ],
+      "loop": true,
+      "previewGifLoops": true,
+      "outputEdgeTouch": [],
+      "pasteClamped": []
+    },
+    "attack": {
+      "frames": [
+        {
+          "index": 0,
+          "sourceBbox": [
+            145,
+            60,
+            645,
+            613
+          ],
+          "sourceRoot": [
+            375,
+            600
+          ],
+          "outputBbox": [
+            70,
+            54,
+            240,
+            242
+          ],
+          "pasteOffset": [
+            70,
+            54
+          ],
+          "durationMs": 180
+        },
+        {
+          "index": 1,
+          "sourceBbox": [
+            635,
+            33,
+            1223,
+            614
+          ],
+          "sourceRoot": [
+            940,
+            604
+          ],
+          "outputBbox": [
+            44,
+            44,
+            244,
+            242
+          ],
+          "pasteOffset": [
+            44,
+            44
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 2,
+          "sourceBbox": [
+            33,
+            723,
+            611,
+            1184
+          ],
+          "sourceRoot": [
+            443,
+            1177
+          ],
+          "outputBbox": [
+            9,
+            84,
+            206,
+            241
+          ],
+          "pasteOffset": [
+            9,
+            84
+          ],
+          "durationMs": 140
+        },
+        {
+          "index": 3,
+          "sourceBbox": [
+            644,
+            708,
+            1223,
+            1188
+          ],
+          "sourceRoot": [
+            957,
+            1180
+          ],
+          "outputBbox": [
+            42,
+            78,
+            239,
+            241
+          ],
+          "pasteOffset": [
+            42,
+            78
+          ],
+          "durationMs": 260
+        }
+      ],
+      "loop": false,
+      "previewGifLoops": true,
+      "outputEdgeTouch": [],
+      "pasteClamped": []
+    }
+  }
+}

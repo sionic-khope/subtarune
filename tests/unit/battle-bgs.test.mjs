@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { BATTLE_BGS } from '../../src/battle/backgrounds.js';
 
 test('test_battle_bgs_builtins_are_registered_functions', () => {
-  for (const name of ['teal', 'temple']) assert.equal(typeof BATTLE_BGS[name], 'function', `${name} 배경 없음`);
+  for (const name of ['teal', 'temple', 'drum_nest']) assert.equal(typeof BATTLE_BGS[name], 'function', `${name} 배경 없음`);
 });
 
 test('test_battle_bgs_every_bg_name_used_by_maps_and_cutscenes_is_registered', () => {

@@ -15,6 +15,29 @@ export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
 registerBattleBg('mankatsuki_vortex', drawMankatsukiBackground);
 registerBattleBg('editor_union_stage', drawParkGuardianBackground);
 
+const drumNestCaches = new WeakMap();
+registerBattleBg('drum_nest', (ctx, battle) => {
+  let canvas = drumNestCaches.get(battle.game);
+  if (!canvas) {
+    canvas = makeCanvas(480, 360);
+    const g = canvas.getContext('2d'); g.imageSmoothingEnabled = false;
+    g.fillStyle = g.createPattern(tileCanvas(getTile('@')), 'repeat'); g.fillRect(0, 0, 480, 360);
+    g.fillStyle = g.createPattern(tileCanvas(getTile('$')), 'repeat');
+    g.beginPath(); g.ellipse(240, 228, 300, 178, 0, 0, Math.PI * 2); g.fill();
+    const big = battle.game.propImages['assets/props/jjajang_drum_pile_big.png'];
+    const small = battle.game.propImages['assets/props/jjajang_drum_pile_small.png'];
+    if (big) for (const [x, y, w] of [[-18, 24, 140], [99, 5, 142], [229, 3, 140], [356, 22, 142]]) {
+      g.drawImage(big, x, y, w, Math.round(w * big.height / big.width));
+    }
+    if (small) for (const [x, y, w] of [[-24, 121, 118], [397, 123, 110]]) {
+      g.drawImage(small, x, y, w, Math.round(w * small.height / small.width));
+    }
+    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 0, 480, 360);
+    drumNestCaches.set(battle.game, canvas);
+  }
+  ctx.drawImage(canvas, 0, 0);
+});
+
 let factoryCache = null, bridgeCache = null;
 registerBattleBg('youngcle_factory', (ctx, battle) => {
   if (!factoryCache) {

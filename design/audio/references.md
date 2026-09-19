@@ -522,3 +522,16 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/howl.mp3` | `snd_howl` | 1.89s | 문코리타 소리지르기(음파 고리 시작) |
 | **아짐키야** 노래·대사 클립 (BUILD227) | 사용자 지정 [mARppJip_hc](https://www.youtube.com/watch?v=mARppJip_hc) “[Team Azimkiya] 가재맨 애미 뒤짐”(서전트점프, 2024-12-01, 71초) | `bgm/ajimkiya_song.mp3`(전체), `sfx/ajimkiya_line.mp3`(0.0~2.6초, 잠정 구간) | **적용됨** — 소나무 숲 공터 연출(22초 재생) + 등장 대사·적 턴 말풍선 클립. 원본 `assets/source/ajimkiya-v1/audio/` |
 | **짜장 일반몹 전투** 브금 (BUILD227) | 사용자 지정 [QvoQVCBqegU](https://www.youtube.com/watch?v=QvoQVCBqegU) “Rakuichi Buster”(Toby Fox, 2026-06-24, 110초) | `bgm/jjajang_battle.mp3` | **적용됨** — `Game.encounterBgm()`: 짜장 맵 조우 기본, 아짐키야전 |
+
+## 드럼통 악마 전투·청소부 구출 (BUILD250, 2026-09-20)
+
+공격음 개선: 기존 `wing`를 낮추고 짧게 자른 `sfx/drum_throw.mp3`(0.38초), `metalhit` 저역과 `baron_slam`을 섞은 `sfx/drum_impact.mp3`(0.40초), `furnace_blast`를 저역 중심으로 짧게 감쇠한 `sfx/drum_burst.mp3`(0.95초)를 사용한다. 동시 투척/충돌은 묶음당 한 번, 보라 폭발은 일반 충격 없이 한 번만 재생한다. 붉은 찢김은 기존 `baron_slam`·`wallclaw`를 재사용한다. 원본·정확한 가공 명령·권장 음량/간격·레벨·비교 청취본은 [자산 기록](../../assets/source/drum-devil-audio-v1/README.md)에 있다. 기존 공용 파일과 아래 사용자 지정 BGM은 변경하지 않았다.
+
+사용자가 지정한 두 URL의 전체 오디오를 `yt-dlp --no-playlist -f '251/bestaudio' -x --audio-format mp3 --audio-quality 2`로 가져왔다. 선택된 WebM/Opus를 MP3 q2로 변환했으며 트리밍·피치·속도·음량 가공은 없다. 제목·업로더·업로드 날짜는 yt-dlp 메타데이터로 확인했다. 웹 페이지 조회는 throttled였으며 재배포 라이선스는 확인되지 않았다(`license=NA`). 아래 자산 검사는 게임 내 큐·청취 검증과 구분한다.
+
+| 용도·런타임 키 | 사용자 지정 출처·확인된 제목 | 전체 MP3 길이·규격 | 자산 |
+| --- | --- | --- | --- |
+| 청소부 구출 전 보스전 `drum_devil_battle` | [B8Us0DZgexw](https://www.youtube.com/watch?v=B8Us0DZgexw), `30. Black Knife (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, Toby Fox, 2025-06-04 | 121.928초, 48kHz 스테레오, 2,909,612바이트 | `assets/audio/bgm/drum_devil_battle.mp3` |
+| 청소부 구출·테마 `janitor_hero` | [hFYTL3mTsdo](https://www.youtube.com/watch?v=hFYTL3mTsdo), `69. Need a hand!? (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, Toby Fox, 2025-06-04 | 51.176792초, 48kHz 스테레오, 1,155,116바이트 | `assets/audio/bgm/janitor_hero.mp3` |
+
+두 파일 모두 `ffmpeg -v error -i <파일> -f null -` 전체 디코드 종료 코드 0. BGM은 별도 등록 목록 없이 `Sound.playBgm(key)`가 위 경로를 직접 연다. SHA-256: `drum_devil_battle.mp3` = `0012fbda979102ab8a24b6d1968e58f69f40818d938bf39d1190d63b4ad39d4c`, `janitor_hero.mp3` = `82fac24e5006cb4f524f05a0f77519c7fa08d979cb562f484a573bad28385151`.

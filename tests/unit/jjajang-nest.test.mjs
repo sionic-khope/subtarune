@@ -51,7 +51,7 @@ test('test_nest_is_ringed_with_drum_piles_and_has_one_drum_to_interact_with', ()
   assert.equal(Math.floor((drum.x + 12) / 32), drumCol);
   assert.ok(drumCol > nest.rows[0].length / 2 && drumCol > cx, '맵 가운데보다 살짝 오른쪽');
   assert.equal(nest.rows[Math.floor((drum.y + 6) / 32)][drumCol], '*', '원 안(길 위)에 서 있다');
-  assert.ok(SCRIPTS.jjajang_nest_drum && SCRIPTS.jjajang_nest_drum.every(n => n.voice === 'narrator'), '연출 브리핑 전까지는 나레이션 한 줄');
+  assert.equal(SCRIPTS.jjajang_nest_drum[1].text, '* 드럼통이다.', '기존 조사 대사가 선택 조우로 이어진다');
   const west = nest.entities.find(e => e.type === 'door');
   assert.deepEqual([west.to, west.spawn, west.x], ['jjajang_bend2', 'from_east', 0]);
   assert.equal(nest.entities.filter(e => e.type === 'door').length, 1, '출구는 왼쪽 하나(보스전 맵 느낌)');

@@ -109,7 +109,7 @@ function mover(game, node) {
       }
       const step = Math.min(dist, speed * dt);
       e.x += (dx / dist) * step; e.y += (dy / dist) * step;
-      e.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      e.facing = node.facing || (Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
       if (node.footsteps) game.footstepsOverride = WATER_WALK;
       e.moving = true; e.animate?.(dt, fast ? 14 : 8); e.driven = true;   // driven: 이 틱은 컷신이 걷기 프레임을 진행시켰다 — NPC.update 의 대화 중 정지 처리가 프레임을 0 으로 덮지 않게 (PR #13 지침, 2026-09-11)
       syncPassenger();

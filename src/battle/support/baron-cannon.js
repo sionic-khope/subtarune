@@ -3,9 +3,12 @@ import L from '../../data/locale/ko.js';
 import { createParkGuardianSupport } from './park-guardian.js';
 import { createYoungcleShipSupport } from './youngcle-ship.js';
 import { createYoungcleTvformSupport } from './youngcle-tvform.js';
+import { createDrumDevilSupport } from './drum-devil.js';
 
 /** Battle-local support controller; no story flag survives victory or retry. */
 export function createBattleSupport(battle) {
+  const drum = createDrumDevilSupport(battle);
+  if (drum) return drum;
   const park = createParkGuardianSupport(battle);
   if (park) return park;
   const ship = createYoungcleShipSupport(battle);

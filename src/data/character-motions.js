@@ -1,6 +1,18 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
 export const CHARACTER_MOTIONS = {
+  drum_devil: {
+    roar: {
+      src: 'assets/enemies/drum-devil-idle.png',
+      scale: 220 / (240 * 1.43),
+      faces: 'left',
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [0, 2, 2, 0].map((index, beat) => ({
+        rect: [(index % 2) * 384 + 72, Math.floor(index / 2) * 384 + 116, 272, 240],
+        pivot: [144, 234], duration: [0.2, 0.3, 0.65, 0.2][beat],
+      })),
+    },
+  },
   park_guardian_costume: {
     bow: {
       src: 'assets/sprites/park-guardian-bow.png',

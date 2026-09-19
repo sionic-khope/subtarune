@@ -13,6 +13,18 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  drum_devil: {
+    name: '드럼통의 악마', hp: 300, damage: 15, money: 0, boss: true, support: 'drum_devil',
+    sheet: { src: 'assets/enemies/drum-devil-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
+    actions: { attack: { src: 'assets/enemies/drum-devil-attack.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 } },
+    pivot: [216, 350], scale: 1, dx: -56, dy: 64, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    projectiles: { drum: 'assets/props/jjajang_drum.png' },
+    patterns: [{ type: 'drum_bombard' }, { type: 'drum_roll' }, { type: 'drum_chain' }, { type: 'drum_cross' }, { type: 'drum_ring' }],
+    lines: { appear: '* 드럼통의 악마인 것 같다.',
+      idle: ['* 드럼통이 덜컹거린다.', '* 파란 드럼통이 쌓여 있다.', '* 드럼통의 악마다.', '* 드럼통의 악마가 다음 드럼통을 집어 든다.'],
+      speak: ['...'], die: '* 드럼통의 악마가 쓰러졌다.',
+    },
+  },
   // ── 엄청대박인배 조종실(BUILD207 사용자 브리핑): 영클(비행 장치, hp 40, 맞으면 피함) + 실험체 오방순·나람(공격 전용, 때릴 수 없음). 지원 모듈 youngcle_ship 이 턴마다 패턴 하나를 고른다.
   //    브금 youngcle_battle(사용자 지정 XR2QQMfeJbg). 전투 대기 시트는 전부 gpt-image-2.5-sunburst(assets/source/*-battle-*). 피해 기믹은 다음 명령
   youngcle_hover: {

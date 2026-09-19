@@ -23,6 +23,7 @@ import { COIN_PATTERNS } from './coin-patterns.js';
 import { AJIMKIYA_PATTERNS } from './ajimkiya-patterns.js';
 import { CHINCHILLA_PATTERNS } from './chinchilla-patterns.js';
 import { MUNKORITA_PATTERNS } from './munkorita-patterns.js';
+import { DRUM_DEVIL_PATTERNS } from './drum-devil-patterns.js';
 
 export class Board {
   constructor() { this.x = 140; this.y = 150; this.w = 200; this.h = 150; this.target = null; this.open = 0; }
@@ -162,6 +163,7 @@ export class Bullet {
 
 /** 패턴 라이브러리. 각 패턴은 { duration, update(t, dt, api) } 를 돌려준다. */
 export const PATTERNS = {
+  ...DRUM_DEVIL_PATTERNS,
   ...BARON_PATTERNS,
   ...VIEWER_PATTERNS,
   ...MANKATSUKI_PATTERNS,

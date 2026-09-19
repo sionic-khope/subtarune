@@ -381,14 +381,19 @@ export class Battle {
     for (const pat of this.patterns) {
       if (pat.t >= pat.p.duration) { pat.enemy.patternPose = null; continue; } running = true;
       const volume = pat.enemy.def.attackSfxVolume;
-      const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: name => this.sfx(name, { volume }) };
+      const api = { box: this.board.rect, soul: this.soul, rnd: this.rnd, emit: null, sfx: (name, options = {}) => this.sfx(name, { volume, ...options }) };
       api.emit = (o) => { const made = new Bullet({ ...o, dmg: o.dmg ?? pat.dmg }); this.bullets.push(made); return made; };   // 만든 탄을 돌려준다(패턴이 얼굴·몸통 탄을 계속 움직일 수 있게, BUILD207)
       api.images = pat.enemy?.projectiles;
       api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
       api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
+      api.clearHazards = () => { this.bullets = []; };
+      api.penalty = damage => { this.bullets = []; this.hurtAllParty(damage); };
+      api.flash = duration => { this.game.fadeTo(0.8, 0, undefined, 'white'); this.game.fadeTo(0, duration); };
       api.shake = (time, amp) => { this.game.shake = { time, amp }; };
       api.say = (text, hold = 2) => { this.bubble = { enemy: pat.enemy, text, shown: 0, t: 0, voice: pat.enemy?.def.voice || 'narrator', patternHold: hold }; };
       pat.p.update(pat.t, dt, api); pat.t += dt;
+      if (this.state === 'lose') return;
+      if (this.interruptEnemyPhase()) return;
     }
     if (this.bubble?.patternHold) {
       const b = this.bubble; b.t += dt;
@@ -401,6 +406,7 @@ export class Battle {
       b.update(dt, this.board);
       if (b.pickup) { if (!b.taken && Math.hypot(b.x - this.soul.x, b.y - this.soul.y) <= b.r + this.soul.r) { b.taken = true; this.support?.onPickup?.(b); } continue; }   // 줍는 탄(코인, BUILD214/215): 닿으면 support.onPickup(회복), 피해 없음
       if (this.soul.invuln <= 0 && b.hits(this.soul)) this.hurtParty(b.dmg);
+      if (this.interruptEnemyPhase()) return;
     }
     this.bullets = this.bullets.filter((b) => !b.taken && !b.out(this.board));
     if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
@@ -411,16 +417,24 @@ export class Battle {
     this.applyPartyDamage([alive[Math.floor(this.rnd() * alive.length)]], adjusted);
     this.support?.onPartyHurt?.(adjusted);
   }
+  interruptEnemyPhase() {
+    if (!this.support?.interruptEnemyPhase?.()) return false;
+    this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.patterns = [];
+    this.board.setTarget(440, 72, 240, 282); this.afterEnemyPhase();
+    return true;
+  }
   /** Unavoidable party-wide penalties hit every standing member once, independent of soul invulnerability. */
   hurtAllParty(dmg) { this.applyPartyDamage(this.alive().filter(m => m.hp > 0), dmg); }
   /** Shared HP/down/defeat path for random bullet hits and simultaneous party penalties. */
   applyPartyDamage(members, dmg) {
     if (!members.length) return;
     for (const m of members) {
-      m.hp = Math.max(0, m.hp - dmg); m.popup = { t: 0, text: String(dmg) };
+      const damage = this.support?.adjustPartyDamage?.(m, dmg) ?? dmg;
+      m.hp = Math.max(0, m.hp - damage); m.popup = { t: 0, text: String(damage) };
       if (m.hp <= 0) { m.down = true; m.downTurns = 0; m.action = null; m.pose = null; }
     }
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
+    this.support?.onPartyDamage?.();
     // 게임 오버는 셋(전원)이 다 쓰러졌을 때만 (사용자 2026-09-11)
     if (!this.alive().length) { this.disposeGimmick(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
   }
@@ -483,6 +497,7 @@ export class Battle {
     if (this.whiteout) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); return; }   // 흰 화면 유지(피날레)
     if (this.state === 'retry') return;                             // 징글 동안 검은 화면(표준 조우의 검은 화면과 같다)
     if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); if (this.gimmick.hpStrip) this.drawHpStrip(ctx); return; }   // 전체 화면 게임(변신 영클 특별 패턴)도 HP 띠는 맨 아래(hpStrip)
+    if (this.interlude?.fullscreen) { this.interlude.draw(ctx); this.drawHpStrip(ctx); return; }
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
     ctx.font = FONT; ctx.textBaseline = 'top';
     this.support?.draw?.(ctx);

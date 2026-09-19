@@ -10,7 +10,7 @@
 "다음맵으로 가면 오른쪽길 1초정도 걷다가 뭔가 둥글게 둥지처럼 지어져있고 뭔가 드럼통 수십개 쌓여있는 스프라이트, 드럼통들이 쓰레기장처럼 널브러져있는 적당히큰 동그라미 공간 보스전 맵 느낌"
 "그리고 브금이 꺼져야함" / "가리고 딱 맵 중간 살짝 오른쪽에 상호작용할수있는 드럼통 하나 배치해주고"
 - 굽은 물길(jjajang_bend2) 오른쪽 문에서 왼쪽 가장자리(17~18행)로 들어와 오른쪽으로 6칸(≈1.3초) 걸으면 지름 18칸의 동그란 공간. 바닥은 같은 지역 자산(검은 물 '*').
-- 둘레는 드럼통 더미(assets/props/jjajang_drum_pile_big|small.png)가 둥지처럼 두르고, 그 바깥은 검은 소나무 숲. 출구는 왼쪽 문 하나(보스전 맵 느낌, 다음 연출은 브리핑 대기).
+- 둘레는 드럼통 더미(assets/props/jjajang_drum_pile_big|small.png)가 둥지처럼 두르고, 그 바깥은 검은 소나무 숲. 출구는 왼쪽 문 하나. 가운데 드럼통을 두드리면 악마 등장과 전투로 이어진다.
 - 브금 없음: 맵 bgm null 이라 changeMap 이 stopBgm(0.4) 한다(JJAJANG_AFTER_JOIN_MAPS 에 넣지 않는다).
 - 가운데에서 살짝 오른쪽(중심 +4칸)에 상호작용 드럼통 하나 — C 로 누른다."""
 from __future__ import annotations
@@ -181,10 +181,14 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[1, ENTRY_ROWS[0]], [CENTER[0], CENTER[1]]],
-            'role': '굽은 물길 다음: 왼쪽에서 오른쪽으로 6칸(≈1.3초) 걸으면 드럼통 더미가 둘러싼 지름 26칸의 동그란 공간(보스전 맵 느낌). 브금 없음. 가운데 오른쪽 4칸에 상호작용 드럼통. 다음 연출은 브리핑 대기',
+            'role': '굽은 물길 다음: 왼쪽에서 오른쪽으로 6칸(≈1.3초) 걸으면 드럼통 더미가 둘러싼 지름 18칸의 동그란 공간. 입장 브금 없음. 가운데 오른쪽 4칸의 드럼통을 두드리면 악마 등장과 전투',
             'nest': {'center': list(CENTER), 'radius': RADIUS, 'drumCol': CENTER[0] + DRUM_OFFSET},
         },
-        'entities': [*pines, *piles, drum, door_west],
+        'entities': [*pines, *piles, drum, door_west, {
+            'type': 'npc', 'id': 'drum_devil', 'sprite': 'drum_devil',
+            'x': cx - 12, 'y': base_y - 16, 'w': 24, 'h': 16,
+            'hidden': True, 'solid': False, 'facing': 'left',
+        }],
     }
 
 

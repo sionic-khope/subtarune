@@ -29,9 +29,9 @@ function fixture(ids) {
   return { battle, sounds, stops, fades, ended, music };
 }
 
-test('test_boss_victory_metadata_marks_only_the_eight_story_bosses', () => {
+test('test_boss_victory_metadata_marks_only_registered_story_bosses', () => {
   assert.deepEqual(Object.keys(ENEMIES).filter(id => ENEMIES[id].boss),
-    ['youngcle_hover', 'youngcle_tvform', 'park_guardian', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);   // youngcle_hover: 조종실 보스(BUILD207)
+    ['drum_devil', 'youngcle_hover', 'youngcle_tvform', 'park_guardian', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);
 });
 
 for (const [ids, boss] of [
