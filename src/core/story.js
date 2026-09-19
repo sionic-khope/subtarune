@@ -31,7 +31,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 // 짜장섬: 청소부(허약) 합류 컷신이 튼 wise_words 는 토리이 길에 남고, 사용자 지정 곡 my_castle_town(RKQUblO-iCs)은 **다음 맵(검은 소나무 숲)부터**(BUILD226 사용자 “아니다 그냥 다음 맵부터 나게 해줘”).
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
-export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
+export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
@@ -462,3 +462,10 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_spring', desc: '찢칠
   map: 'jjajang_chin2', spawn: 'before_spring', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_chin', desc: '찢칠라 길 2 · 찢칠라 직전',
   map: 'jjajang_chin2', spawn: 'before_chin', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
+const thinkFlags = { ...chinFlags, jjajang_chin1_chin_defeated: true, jjajang_chin2_chin_defeated: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_think', desc: '생각 길 입구 (오른쪽으로 쭉 걷다가 가운데에서 요플래 혼잣말 나레이션)',
+  map: 'jjajang_think', spawn: 'from_west', flags: thinkFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_think_mid', desc: '생각 길 · 혼잣말 직전 (오른쪽으로 걸으면 시작, 끝은 다음 맵 브리핑 대기)',
+  map: 'jjajang_think', spawn: 'before_think', flags: thinkFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_bend2', desc: '굽은 물길 (오른쪽 → 아래 → 오른쪽, 사건 없음 · 오른쪽 끝 다음 맵 브리핑 대기)',
+  map: 'jjajang_bend2', spawn: 'from_west', flags: { ...thinkFlags, think_started: true, think_done: true }, party: [] });

@@ -123,7 +123,7 @@
    ],
    "springCol": 199
   },
-  "role": "찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 찢칠라(표준 조우) → 오른쪽 끝(다음 맵 브리핑 대기, 문 없음)",
+  "role": "찢칠라 길 1 다음: 파란 토리이 둘 → 달리기 두 번(장애물) → 176열 샛길(아래 → 오른쪽, 끝에 마나샘 전체 회복) → 중후반 찢칠라(표준 조우) → 오른쪽 문 → 생각 길(jjajang_think)",
   "runRoadRows": [
    8,
    9
@@ -1115,6 +1115,17 @@
    "h": 64,
    "to": "jjajang_chin1",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "jjajang_chin2_east_door",
+   "x": 7670,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_think",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

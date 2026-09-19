@@ -42,7 +42,7 @@ test('test_chin_maps_layout_torii_runs_enemy_late_and_doors', () => {
   assert.ok(m1.spawns.from_west.x >= guard.x + guard.w + 16, '스폰은 트리거 밖');
   const e1 = m1.entities.find(e => e.id === 'jjajang_chin1_east_door'); assert.deepEqual([e1.to, e1.spawn, e1.x], ['jjajang_chin2', 'from_west', m1.rows[0].length * 32 - 10]);
   const w2 = m2.entities.find(e => e.id === 'jjajang_chin2_west_door'); assert.deepEqual([w2.to, w2.spawn, w2.x], ['jjajang_chin1', 'from_east', 0]);
-  assert.ok(!m2.entities.some(e => e.type === 'door' && e.x > 0) && m2.rows[m2.meta.runRoadRows[0]][m2.rows[0].length - 1] === '+', '길 2 오른쪽은 통로만(다음 맵 대기)');
+  const e2 = m2.entities.find(e => e.id === 'jjajang_chin2_east_door'); assert.deepEqual([e2.to, e2.spawn, e2.x], ['jjajang_think', 'from_west', m2.rows[0].length * 32 - 10], '길 2 오른쪽 문 → 생각 길(BUILD245)');
   // 길 2 샛길(BUILD244): 176~177열로 내려가 20~21행에서 오른쪽으로, 끝에 마나샘(전체 회복). 달리기 끝 뒤·찢칠라 앞
   const br = m2.meta.branch; const [b0, b1] = br.cols, [l0, l1] = br.lowerRows, [r0, r1] = m2.meta.runRoadRows;
   for (let r = r1 + 1; r <= l1; r++) assert.ok(walk(m2, b0, r) && walk(m2, b1, r), `샛길 ${r}`);

@@ -66,6 +66,7 @@ import { jjajang_run_start, jjajang_run_intro, jjajang_run_outro } from './cutsc
 import { jjajang_run2_enter, jjajang_run2_start_a, jjajang_run2_start_b, jjajang_run2_start_c, jjajang_run2_outro } from './cutscenes/jjajang_run2.js';
 import { jjajang_drum_talk } from './cutscenes/jjajang_drum.js';
 import { jjajang_chin_start_a, jjajang_chin_start_b, jjajang_no_return } from './cutscenes/jjajang_chin.js';
+import { jjajang_think } from './cutscenes/jjajang_think.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -104,7 +105,8 @@ export const SCRIPTS = {
   jjajang_run_outro,
   jjajang_run2_enter, jjajang_run2_start_a, jjajang_run2_start_b, jjajang_run2_start_c, jjajang_run2_outro,
   jjajang_drum_talk, jjajang_chin_start_a, jjajang_chin_start_b, jjajang_no_return,
-  jjajang_spring: maillard_spring,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
+  jjajang_spring: maillard_spring,
+  jjajang_think,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
   obj4_baron_intro,
   obj4_baron_abduction,
   obj5_chase,

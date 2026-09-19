@@ -1,0 +1,263 @@
+{
+ "id": "jjajang_think",
+ "name": "생각 길",
+ "stage": "ship_sinking_done",
+ "bgm": "my_castle_town",
+ "dim": 0.08,
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "+**********************************************************************+",
+  "+**********************************************************************+",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 40,
+   "y": 262,
+   "facing": "right"
+  },
+  "start": {
+   "x": 40,
+   "y": 262,
+   "facing": "right"
+  },
+  "before_think": {
+   "x": 936,
+   "y": 262,
+   "facing": "right"
+  },
+  "from_east": {
+   "x": 2232,
+   "y": 262,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    8
+   ],
+   [
+    70,
+    8
+   ]
+  ],
+  "role": "찢칠라 길 2 다음: 곧은 검은 물길, 가운데(34~35열)에서 요플래 혼잣말 나레이션 10줄(느낌표) → 오른쪽 문 → 굽은 물길(jjajang_bend2). 브금 my_castle_town 이어짐"
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_1",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 228,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 140,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_2",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 324,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 306,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_3",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 516,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_4",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 612,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 566,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_5",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 804,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 716,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_6",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 900,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 882,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_7",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1092,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_8",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1188,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1142,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_9",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1380,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 1292,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_10",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 1476,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 1458,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_11",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1668,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1620,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_12",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1764,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1718,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_13",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1956,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 1868,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_14",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 2052,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 2034,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "think_trigger",
+   "x": 1088,
+   "y": 256,
+   "w": 64,
+   "h": 64,
+   "once": true,
+   "flag": "think_started",
+   "unless": "think_done",
+   "script": "jjajang_think"
+  },
+  {
+   "type": "door",
+   "id": "think_chin2_door",
+   "x": 0,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_chin2",
+   "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "think_bend2_door",
+   "x": 2294,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_bend2",
+   "spawn": "from_west",
+   "sfx": false
+  }
+ ]
+}
