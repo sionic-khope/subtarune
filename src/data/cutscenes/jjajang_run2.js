@@ -1,5 +1,5 @@
 // 토리이 굽이 길(jjajang_run2) — 세 토리이 달리기 + 장애물 (BUILD236 사용자 브리핑 2026-09-19, 원문은 design/narrative/cutscenes/jjajang_run2.md)
-//   들어서면 청소부: 껄껄 이번에도 한번 잘 해보게 그럼 이따보게 → 휘리릭 사라짐. 토리이 a(오른쪽)·b(왼쪽)·c(오른쪽)를 지나면 그 방향으로 러너(장애물 있음).
+//   들어서면 청소부: 이번엔 검도 휘둘러보게 이따보게 → 휘리릭 사라짐(BUILD243 사용자 2026-09-19 “두번째 꾸불 호리이맵에서도 이번엔 검도 휘둘러보게 이따보게 하고 사라지는 청소부 연출”; 전 줄 “껄껄 이번에도 한번 잘 해보게 그럼 이따보게”와 웃음은 이 줄로 대체). 토리이 a(오른쪽)·b(왼쪽)·c(오른쪽)를 지나면 그 방향으로 러너(장애물 있음).
 //   c 달리기가 끝나면 청소부가 오른쪽에서 걸어와 “껄껄 이제 적응좀 됐나보구만”(껄껄 뒤 웃음) 하고 다시 뒤에 합류(BUILD238 사용자 대사 2026-09-19)
 const C = text => ({ speaker: '청소부', portrait: 'janitor', voice: 'janitor', text: `* ${text}` });
 const close = { action: game => game.textbox.close() };
@@ -21,8 +21,7 @@ export const jjajang_run2_enter = [
   { if: flags => flags.run2_enter_done || !flags.torii_janitor_joined, goto: 'end' },
   { face: JANITOR, dir: 'toward:player' },
   { face: PLAYER, dir: 'toward:janitor' },
-  C('껄껄 이번에도 한번 잘 해보게 그럼 이따보게'),
-  laugh(),
+  C('이번엔 검도 휘둘러보게 이따보게'),
   close,
   { parallel: [{ sfx: 'wing' }, { slide: JANITOR, by: [-36, -14], duration: 0.14 }] },
   { hide: JANITOR },

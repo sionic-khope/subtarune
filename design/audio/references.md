@@ -513,5 +513,10 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | **청소부 웃음** 효과음 (BUILD227) | 같은 거슨 웃음 클립 [WiNn1mjmBlw](https://www.youtube.com/watch?v=WiNn1mjmBlw) | `sfx/laugh_janitor.mp3` | **적용됨** — 앞 1.6초 그대로(끝 0.15초 페이드), 웃음 모션과 같이 재생. 원본 webm 은 `assets/source/janitor-v1/audio/` |
 | **러너 기믹 검 소리** (BUILD230) | 사용자 “c 누를 때 공격 사운드는 검 휘두르는 짧은 바람소리, 델타룬에 있으면 그거” → 디컴파일 저장소 `sounds/snd_swing`, `snd_criticalswing` 원본 wav | `sfx/swing.mp3`(0.73s, C 베기), `sfx/criticalswing.mp3`(1.09s, 공중 C 회전 베기) | **적용됨** — 44.1k mono q2 변환만. 검 뽑기는 기존 `weaponpull`, 대시는 `wing`, 점프는 `jump`. 원본은 `assets/source/runner-v1/audio/` |
 | **러너 장애물 쳐냄·맞음** (BUILD236) | 사용자 “공격으로 쳐낼 때 효과음 델타룬에서 쓰이는 거” → 디컴파일 저장소 `sounds/snd_hit`, `snd_damage` 원본 wav | `sfx/deflect.mp3`(0.22s, 베기로 나뭇잎·가지를 쳐낼 때), `sfx/hurt_dr.mp3`(0.45s, 못 쳐내고 맞을 때 HP −10) | **적용됨** — 44.1k mono q2 변환만. 원본은 `assets/source/run-obstacles-v1/audio/`(snd_graze·snd_bump 는 보관) |
+| `sfx/wallclaw.mp3` | `snd_wallclaw` | 1.13s | 찢칠라 찢기(틈이 벌어질 때, BUILD242) |
+| `sfx/metalhit.mp3` | `snd_metalhit` | 0.89s | 찢칠라 드럼통 착지·굴러 들어옴 |
+| `sfx/bell_bounce.mp3` | `snd_bell_bounce_short` | 0.55s | 드럼통이 바닥에서 튕길 때 |
+| `sfx/squeaky.mp3` | `snd_squeaky` | 0.31s | 찢칠라 말풍선(speakSfx) |
+| `sfx/break1.mp3` | `snd_break1` | 0.71s | 러너 장애물 쳐냄 한 겹 더(BUILD243, snd_hit 과 같이) |
 | **아짐키야** 노래·대사 클립 (BUILD227) | 사용자 지정 [mARppJip_hc](https://www.youtube.com/watch?v=mARppJip_hc) “[Team Azimkiya] 가재맨 애미 뒤짐”(서전트점프, 2024-12-01, 71초) | `bgm/ajimkiya_song.mp3`(전체), `sfx/ajimkiya_line.mp3`(0.0~2.6초, 잠정 구간) | **적용됨** — 소나무 숲 공터 연출(22초 재생) + 등장 대사·적 턴 말풍선 클립. 원본 `assets/source/ajimkiya-v1/audio/` |
 | **짜장 일반몹 전투** 브금 (BUILD227) | 사용자 지정 [QvoQVCBqegU](https://www.youtube.com/watch?v=QvoQVCBqegU) “Rakuichi Buster”(Toby Fox, 2026-06-24, 110초) | `bgm/jjajang_battle.mp3` | **적용됨** — `Game.encounterBgm()`: 짜장 맵 조우 기본, 아짐키야전 |

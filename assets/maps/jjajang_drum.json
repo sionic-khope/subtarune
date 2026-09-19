@@ -1,0 +1,255 @@
+{
+ "id": "jjajang_drum",
+ "name": "드럼통 길",
+ "stage": "ship_sinking_done",
+ "bgm": "my_castle_town",
+ "dim": 0.08,
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "+**************************************************************+",
+  "+**************************************************************+",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 40,
+   "y": 262,
+   "facing": "right"
+  },
+  "start": {
+   "x": 40,
+   "y": 262,
+   "facing": "right"
+  },
+  "before_drum": {
+   "x": 808,
+   "y": 262,
+   "facing": "right"
+  },
+  "from_east": {
+   "x": 1976,
+   "y": 262,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    8
+   ],
+   [
+    62,
+    8
+   ]
+  ],
+  "role": "굽이 길 다음: 곧은 검은 물길, 가운데 드럼통 앞에서 청소부 이별 연출(요플래 혼자 오른쪽 다음 맵 jjajang_chin1 로). 브금 my_castle_town 이어짐",
+  "drum": [
+   32,
+   7
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_1",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 228,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 140,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_2",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 324,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 306,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_3",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 516,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_4",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 612,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 566,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_5",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 804,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 716,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_6",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 900,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 882,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_7",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1092,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_8",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1188,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1142,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_9",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1380,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 1292,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_10",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 1476,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 1458,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_11",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1668,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1620,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_12",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1764,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1718,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_drum",
+   "image": "assets/props/jjajang_drum.png",
+   "x": 1028,
+   "y": 242,
+   "w": 24,
+   "h": 12,
+   "ix": 1024,
+   "iy": 198,
+   "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "drum_talk_trigger",
+   "x": 960,
+   "y": 256,
+   "w": 64,
+   "h": 64,
+   "once": true,
+   "flag": "drum_talk_started",
+   "unless": "drum_talk_done",
+   "script": "jjajang_drum_talk"
+  },
+  {
+   "type": "door",
+   "id": "drum_run2_door",
+   "x": 0,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_run2",
+   "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "drum_chin1_door",
+   "x": 2038,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_chin1",
+   "spawn": "from_west",
+   "sfx": false
+  }
+ ]
+}

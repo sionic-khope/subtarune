@@ -94,10 +94,10 @@ test('test_run_intro_and_outro_scripts_follow_the_brief', () => {
   assert.equal(SCRIPTS.jjajang_run_intro, jjajang_run_intro); assert.equal(SCRIPTS.jjajang_run_outro, jjajang_run_outro);
   assert.deepEqual(texts(jjajang_run_intro), ['파란 토리이', '토리이는 신과 인간의 세계를 나누는 경계, 뭐 대강 경계의 표시일새', '영적 결계의 의미를 담고있지만, 빠르게 달린다면', '그 결계의 효과를 뚫는다나 뭐라나',
     '사실 별볼일없는 전설일뿐이고 그냥 지나가면 되는거지만', '한번 아까 말했던 검을 너무 크게 경직되게 휘두른다를 생각해보세', '몸놀림을 더 가볍게, 검을 가볍게 움직여보는건 어떻겠는가',
-    '그렇게되면, 도착지까지 더욱 빨리 가는 방법을 배울수있을지도 모르지', '말이 너무 어렵다고? 껄껄 이런느낌일새..', '기억하게, 호리이를 지나면, 결계를 뚫는다는 느낌으로 빠르게 달려보는거라네', '이따보게'], '이따보게는 마지막 줄(사용자 정정 2026-09-19)');
+    '그렇게되면, 도착지까지 더욱 빨리 가는 방법을 배울수있을지도 모르지', '기억하게, 호리이를 지나면, 결계를 뚫는다는 느낌으로 빠르게 달려보는거라네', '말이 너무 어렵다고? 껄껄 이런느낌일새.. 이따보게'], '기억하게 줄이 앞, 이거일세+이따보게가 마지막 줄(사용자 정정 2026-09-19 BUILD242)');
   assert.ok(jjajang_run_intro.filter(n => n.text).every(n => n.speaker === '청소부' && n.voice === 'janitor'));
   const li = jjajang_run_intro.map((n, i) => (n.motion === 'janitor' && n.name === 'laugh' ? i : -1)).filter(i => i >= 0);
-  assert.equal(li.length, 1); assert.ok(jjajang_run_intro[li[0] - 1].text.includes('껄껄 이런느낌일새'), '껄껄 뒤에만 웃음');
+  assert.equal(li.length, 0, '토리이 앞 연출엔 웃음 없음(사용자 정정 2026-09-19 “웃음 빼”)');
   const idx = (arr, pred) => arr.findIndex(pred);
   const lastLine = jjajang_run_intro.map((n, i) => (n.text ? i : -1)).filter(i => i >= 0).pop();
   const whoosh = idx(jjajang_run_intro, n => Array.isArray(n.parallel) && n.parallel.some(b => b.sfx === 'wing') && n.parallel.some(b => b.slide === 'janitor'));

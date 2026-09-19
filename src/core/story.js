@@ -31,7 +31,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 /** 납치 뒤 오브제 지역의 추격곡은 맵 이동·이어하기에서도 유지한다. */
 // 짜장섬: 청소부(허약) 합류 컷신이 튼 wise_words 는 토리이 길에 남고, 사용자 지정 곡 my_castle_town(RKQUblO-iCs)은 **다음 맵(검은 소나무 숲)부터**(BUILD226 사용자 “아니다 그냥 다음 맵부터 나게 해줘”).
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
-export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2'];
+export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
@@ -110,7 +110,9 @@ export const STATE_FROM_FLAGS = [
   { flag: 'obj4_baron_won', enemies: ['baron'] },
   { flag: 'obj5_gun_taken', items: ['나무총'] },
   { flag: 'jjajang_rock_taken', items: ['돌'] },
-  { flag: 'pines_ajimkiya_won', enemies: ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'] },                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
+  { flag: 'pines_ajimkiya_won', enemies: ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'] },
+  { flag: 'jjajang_chin1_chin_defeated', enemies: ['chinchilla'] },                                                       // 찢칠라 길 1·2 필드 조우(각 18원) — jjajang_chin.js
+  { flag: 'jjajang_chin2_chin_defeated', enemies: ['chinchilla'] },                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
@@ -147,7 +149,7 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
 export const partyFromFlags = (flags) => flags?.ship_sinking_done
-  ? (flags?.torii_janitor_joined ? ['janitor'] : [])
+  ? (flags?.torii_janitor_joined && !flags?.janitor_left ? ['janitor'] : [])   // 드럼통 길에서 이별(janitor_left, BUILD242)하면 다시 요플래 혼자
   : PARTY_FLAGS.filter(([flag]) => flags?.[flag]).map(([, id]) => id);
 
 /**
@@ -444,3 +446,17 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_run2_b', desc: '토리이 �
   map: 'jjajang_run2', spawn: 'before_b', flags: { ...run2Flags, run2_enter_started: true, run2_enter_done: true }, party: ['janitor'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_run2_c', desc: '토리이 굽이 길 · 토리이 c 직전 (오른쪽 달리기 → 끝에서 청소부 합류)',
   map: 'jjajang_run2', spawn: 'before_c', flags: { ...run2Flags, run2_enter_started: true, run2_enter_done: true }, party: ['janitor'] });
+const drumFlags = { ...run2Flags, run2_enter_started: true, run2_enter_done: true, run2_outro_done: true, run_leaf_tutorial_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_drum', desc: '드럼통 길 입구 (곧은 검은 물길 → 가운데 드럼통 앞에서 청소부 이별 연출)',
+  map: 'jjajang_drum', spawn: 'from_west', flags: drumFlags, party: ['janitor'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_drum_center', desc: '드럼통 바로 앞 (오른쪽으로 걸으면 청소부 이별 → 요플래 혼자 다음 맵)',
+  map: 'jjajang_drum', spawn: 'before_drum', flags: drumFlags, party: ['janitor'] });
+const chinFlags = { ...drumFlags, drum_talk_started: true, drum_talk_done: true, janitor_left: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin1', desc: '찢칠라 길 1 입구 · 요플래 혼자 (왼쪽으로는 못 감 → 파란 토리이 → 달리기 → 중후반 찢칠라)',
+  map: 'jjajang_chin1', spawn: 'from_west', flags: chinFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin1_chin', desc: '찢칠라 길 1 · 찢칠라 직전 (오른쪽으로 가면 표준 조우 → 전투: 찢기·드럼통)',
+  map: 'jjajang_chin1', spawn: 'before_chin', flags: chinFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2', desc: '찢칠라 길 2 입구 (파란 토리이 둘 → 달리기 두 번 → 중후반 찢칠라 → 오른쪽 끝 다음 맵 대기)',
+  map: 'jjajang_chin2', spawn: 'from_west', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_chin2_chin', desc: '찢칠라 길 2 · 찢칠라 직전',
+  map: 'jjajang_chin2', spawn: 'before_chin', flags: { ...chinFlags, jjajang_chin1_chin_defeated: true }, party: [] });

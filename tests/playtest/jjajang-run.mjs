@@ -38,10 +38,9 @@ try {
   await line('파란 토리이', '00b_intro');
   s = await st(); check(s.cam[0] + 480 >= 1115, `대사 시작 때 토리이가 화면 안(카메라 오른쪽 변 ${s.cam[0] + 480} ≥ 먼 기둥 가운데 1115)`);
   for (const t of ['경계의 표시일새', '빠르게 달린다면', '뚫는다나 뭐라나', '그냥 지나가면 되는거지만', '경직되게 휘두른다를', '검을 가볍게 움직여보는건', '더욱 빨리 가는 방법을']) await line(t);
-  await line('껄껄 이런느낌일새');
-  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000), '껄껄 뒤에 웃는다');
   await line('결계를 뚫는다는 느낌으로');
-  await line('이따보게', '00c_last');
+  await line('이런느낌일새.. 이따보게', '00c_last');
+  check(!(await page.evaluate(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; })), '웃음 없음');
   check(await until(() => !window.game.dialogue.running && window.game.flags.run_intro_done, 6000), '연출이 끝난다');
   s = await st(); check(s.follower && !s.follower.visible, '청소부가 휘리릭 사라졌다 ' + JSON.stringify(s.follower));
   // 걸어서(달리기 아님) 토리이를 지난다

@@ -99,6 +99,16 @@ export const ENEMIES = {
     // appear/idle/die 는 엔진 형식상 필요한 최소 나레이션(사용자 미지정): 등장은 첫 줄만 4인조 문구, 나머지는 한 줄씩
     lines: { appear: i === 0 ? '* 아짐키야 3인조가 춤추며 나타났다!' : '* 아짐키야' + (i + 1) + '도 춤춘다.', idle: ['* 아짐키야들이 춤을 멈추지 않는다.'], speak: ['가재맨ㅇㅁ뒤짐~', '땡개땡개~ ㅇㅁ뒤짐~'], speakSfx: 'ajimkiya_line', die: '* 아짐키야' + (i + 1) + '이(가) 춤을 멈췄다.' },
   }])),
+  // 찢칠라(BUILD242 사용자 브리핑 2026-09-19): 사진(안경 쓴 노인 얼굴의 친칠라) → gpt-image 대기 시트 assets/source/chinchilla-v1. 체력 16(원문), 패턴 = 찢기·드럼통 던지기(src/battle/chinchilla-patterns.js, 아짐키야보다 약 1.8배 촘촘).
+  //   전투 대사 3줄(speak)은 원문 그대로. 피해 9(미지정, 잠정: 아짐키야 5 × 1.8)·돈 18(미지정, 잠정)·appear/idle/die 나레이션(엔진 형식상 필요, 미지정). 말풍선 소리는 델타룬 snd_squeaky
+  chinchilla: {
+    name: '찢칠라', hp: 16, damage: 9, money: 18, voice: 'cat',
+    sheet: { src: 'assets/enemies/chinchilla-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
+    pivot: [64, 118], scale: 1.3, idle: { swayX: 0, swayY: 0, period: 2 },
+    projectiles: { drum: 'assets/props/jjajang_drum.png' },
+    patterns: [{ type: 'chin_tear' }, { type: 'chin_drum' }, { type: 'chin_tear', cross: true, drums: true }],
+    lines: { appear: '* 찢칠라가 나타났다!', idle: ['* 찢칠라가 안경 너머로 노려본다.', '* 찢칠라의 수염이 씰룩인다.'], speak: ['씨2발년아', '씹구멍 씹구멍', '찍찍찍찍찢'], speakSfx: 'squeaky', die: '* 찢칠라가 쓰러졌다.' },
+  },
   seopnyang: {
     name: '섭냥이', hp: 27, damage: 16, money: 90,
     sheet: { src: 'assets/enemies/seopnyang_idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 180, px: 1 },

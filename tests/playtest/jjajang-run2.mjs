@@ -44,8 +44,7 @@ try {
   const entered = await until(() => window.game.dialogue.running && window.game.flags.run2_enter_started, 6000);
   await page.keyboard.up('ArrowRight');
   check(entered, '들어서면 청소부 연출');
-  await line('이번에도 한번 잘 해보게', '00_enter');
-  check(await until(() => { const j = window.game.entities.find(e => e.id === 'janitor' && !e.dead); return j && !!j.motion; }, 3000), '껄껄 뒤에 웃는다');
+  await line('이번엔 검도 휘둘러보게 이따보게', '00_enter');
   check(await until(() => !window.game.dialogue.running && window.game.flags.run2_enter_done, 6000), '연출 끝');
   s = await st(); check(s.follower && !s.follower.visible, '청소부가 휘리릭 사라졌다');
   // 토리이 a: 오른쪽 달리기, 장애물을 안 쳐내면 맞는다

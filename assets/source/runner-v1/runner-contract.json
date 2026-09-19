@@ -2,233 +2,233 @@
  "prep": [
   {
    "bbox": [
-    123,
-    157,
+    125,
+    169,
     434,
-    431
+    441
    ],
-   "height": 275,
-   "bodyCenterX": 259,
-   "feetBottom": 431
+   "height": 273,
+   "bodyCenterX": 262,
+   "feetBottom": 441
   },
   {
    "bbox": [
     27,
-    157,
+    169,
     434,
-    431
+    441
    ],
-   "height": 275,
+   "height": 273,
    "bodyCenterX": 239,
-   "feetBottom": 431
+   "feetBottom": 441
   },
   {
    "bbox": [
-    50,
-    112,
-    442,
-    409
+    39,
+    122,
+    444,
+    406
    ],
-   "height": 298,
-   "bodyCenterX": 246,
-   "feetBottom": 409
+   "height": 285,
+   "bodyCenterX": 221,
+   "feetBottom": 406
   },
   {
    "bbox": [
-    54,
-    108,
-    455,
-    411
+    37,
+    129,
+    459,
+    415
    ],
-   "height": 304,
-   "bodyCenterX": 252,
-   "feetBottom": 411
+   "height": 287,
+   "bodyCenterX": 241,
+   "feetBottom": 415
   }
  ],
  "run": [
   {
    "bbox": [
-    50,
-    112,
-    439,
-    431
+    58,
+    113,
+    445,
+    426
    ],
-   "height": 320,
-   "bodyCenterX": 250,
-   "feetBottom": 431
+   "height": 314,
+   "bodyCenterX": 267,
+   "feetBottom": 425
   },
   {
    "bbox": [
-    50,
-    112,
-    439,
-    434
+    58,
+    113,
+    445,
+    430
    ],
-   "height": 323,
-   "bodyCenterX": 250,
-   "feetBottom": 434
+   "height": 318,
+   "bodyCenterX": 266,
+   "feetBottom": 430
   },
   {
    "bbox": [
-    50,
-    112,
-    439,
+    58,
+    108,
+    445,
+    421
+   ],
+   "height": 314,
+   "bodyCenterX": 264,
+   "feetBottom": 421
+  },
+  {
+   "bbox": [
+    58,
+    108,
+    445,
     427
    ],
-   "height": 316,
-   "bodyCenterX": 250,
-   "feetBottom": 426
-  },
-  {
-   "bbox": [
-    50,
-    112,
-    439,
-    434
-   ],
-   "height": 323,
-   "bodyCenterX": 250,
-   "feetBottom": 434
+   "height": 320,
+   "bodyCenterX": 265,
+   "feetBottom": 427
   }
  ],
  "jump": [
   {
    "bbox": [
-    81,
-    136,
-    397,
-    424
+    69,
+    157,
+    436,
+    420
    ],
-   "height": 289,
-   "bodyCenterX": 237,
-   "feetBottom": 424
+   "height": 264,
+   "bodyCenterX": 258,
+   "feetBottom": 420
   },
   {
    "bbox": [
-    87,
-    75,
-    345,
-    401
-   ],
-   "height": 327,
-   "bodyCenterX": 245,
-   "feetBottom": 401
-  },
-  {
-   "bbox": [
-    92,
-    41,
-    397,
-    373
-   ],
-   "height": 333,
-   "bodyCenterX": 252,
-   "feetBottom": 373
-  },
-  {
-   "bbox": [
+    43,
     77,
-    142,
-    417,
-    412
+    337,
+    391
    ],
-   "height": 271,
-   "bodyCenterX": 237,
-   "feetBottom": 411
+   "height": 315,
+   "bodyCenterX": 242,
+   "feetBottom": 391
+  },
+  {
+   "bbox": [
+    61,
+    40,
+    401,
+    370
+   ],
+   "height": 331,
+   "bodyCenterX": 262,
+   "feetBottom": 370
+  },
+  {
+   "bbox": [
+    47,
+    152,
+    423,
+    404
+   ],
+   "height": 253,
+   "bodyCenterX": 236,
+   "feetBottom": 404
   }
  ],
  "slash": [
   {
    "bbox": [
-    134,
-    87,
-    412,
-    457
-   ],
-   "height": 371,
-   "bodyCenterX": 248,
-   "feetBottom": 457
-  },
-  {
-   "bbox": [
-    61,
-    157,
-    480,
-    457
-   ],
-   "height": 301,
-   "bodyCenterX": 218,
-   "feetBottom": 457
-  },
-  {
-   "bbox": [
     105,
-    111,
-    459,
-    409
+    76,
+    408,
+    459
    ],
-   "height": 299,
-   "bodyCenterX": 264,
-   "feetBottom": 409
+   "height": 384,
+   "bodyCenterX": 245,
+   "feetBottom": 459
   },
   {
    "bbox": [
-    22,
-    114,
-    378,
-    409
+    49,
+    157,
+    482,
+    460
+   ],
+   "height": 304,
+   "bodyCenterX": 214,
+   "feetBottom": 459
+  },
+  {
+   "bbox": [
+    93,
+    110,
+    480,
+    412
+   ],
+   "height": 303,
+   "bodyCenterX": 261,
+   "feetBottom": 412
+  },
+  {
+   "bbox": [
+    43,
+    117,
+    425,
+    412
    ],
    "height": 296,
-   "bodyCenterX": 205,
-   "feetBottom": 409
+   "bodyCenterX": 251,
+   "feetBottom": 412
   }
  ],
  "airslash": [
   {
    "bbox": [
-    128,
-    62,
-    413,
-    435
+    112,
+    63,
+    419,
+    439
    ],
-   "height": 374,
-   "bodyCenterX": 252,
-   "feetBottom": 435
+   "height": 377,
+   "bodyCenterX": 263,
+   "feetBottom": 439
   },
   {
    "bbox": [
-    82,
-    147,
-    475,
-    445
+    66,
+    160,
+    468,
+    438
    ],
-   "height": 299,
-   "bodyCenterX": 239,
-   "feetBottom": 444
+   "height": 279,
+   "bodyCenterX": 215,
+   "feetBottom": 438
   },
   {
    "bbox": [
-    130,
-    91,
-    387,
-    406
+    145,
+    98,
+    432,
+    405
    ],
-   "height": 316,
-   "bodyCenterX": 225,
-   "feetBottom": 372
+   "height": 308,
+   "bodyCenterX": 255,
+   "feetBottom": 363
   },
   {
    "bbox": [
-    60,
-    91,
-    405,
-    394
+    44,
+    94,
+    398,
+    390
    ],
-   "height": 304,
+   "height": 297,
    "bodyCenterX": 217,
-   "feetBottom": 394
+   "feetBottom": 390
   }
  ],
- "scale": 0.1435,
- "note": "7\ud310(BUILD241): pivot = [\ud770 \uc154\uce20 \uac00\uc6b4\ub370 x, \uadf8 \uc544\ub798 \ubc1c \ubc11\ubcc0(\uc5b4\ub450\uc6b4 \ud53d\uc140, \uc154\uce20 \uac00\uc6b4\ub370 \u00b170/80px \uc548)], scale = 46px / \ub2ec\ub9ac\uae30 \ud3c9\uade0 \ud0a4"
+ "scale": 0.1453,
+ "note": "9\ud310(BUILD243): pivot = [\ud770 \uc154\uce20 \uac00\uc6b4\ub370 x, \ubc1c \ubc11\ubcc0(\uc154\uce20 \uac00\uc6b4\ub370 \u00b170/80px \uc548 \uc5b4\ub450\uc6b4 \ud53d\uc140)], scale = 46px / \ub2ec\ub9ac\uae30 \ud3c9\uade0 \ud0a4"
 }

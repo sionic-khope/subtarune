@@ -1,5 +1,5 @@
 // 토리이 굽이 길(BUILD236): A 오른쪽 → 밑길 → B 왼쪽 → 밑길 → C 오른쪽, 토리이 셋(각 길 위·아래 칸), 방향별 트리거·meta.runs(끝 자리는 카메라 구도 안), 장애물 켜짐,
-// 입구 청소부 한마디·휘리릭·사라짐, C 끝 outro(걸어와 “껄껄 이제 적응좀 됐나보구만” + 웃음 뒤 합류), 러너 상태기계의 왼쪽 달리기·장애물(쳐냄·맞음)
+// 입구 청소부 한마디(“이번엔 검도 휘둘러보게 이따보게”, 웃음 없음)·휘리릭·사라짐, C 끝 outro(걸어와 “껄껄 이제 적응좀 됐나보구만” + 웃음 뒤 합류), 러너 상태기계의 왼쪽 달리기·장애물(쳐냄·맞음)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -78,12 +78,12 @@ test('test_run2_triggers_runs_and_camera_framing', () => {
 
 test('test_run2_enter_outro_and_start_scripts', () => {
   assert.equal(SCRIPTS.jjajang_run2_enter, jjajang_run2_enter); assert.equal(SCRIPTS.jjajang_run2_outro, jjajang_run2_outro);
-  assert.deepEqual(jjajang_run2_enter.filter(n => n.text).map(n => [n.speaker, n.text]), [['청소부', '* 껄껄 이번에도 한번 잘 해보게 그럼 이따보게']]);
-  const li = jjajang_run2_enter.findIndex(n => n.motion === 'janitor' && n.name === 'laugh');
-  assert.ok(li > 0 && jjajang_run2_enter[li - 1].text.startsWith('* 껄껄'), '껄껄 뒤 웃음');
+  assert.deepEqual(jjajang_run2_enter.filter(n => n.text).map(n => [n.speaker, n.text]), [['청소부', '* 이번엔 검도 휘둘러보게 이따보게']], '입구 한마디(사용자 2026-09-19 BUILD243)');
+  const li = jjajang_run2_enter.findIndex(n => n.text);
+  assert.equal(jjajang_run2_enter.findIndex(n => n.motion === 'janitor' && n.name === 'laugh'), -1, '껄껄이 없으니 웃음도 없다');
   const whoosh = jjajang_run2_enter.findIndex(n => Array.isArray(n.parallel) && n.parallel.some(b => b.sfx === 'wing'));
   const hide = jjajang_run2_enter.findIndex(n => n.hide === 'janitor');
-  assert.ok(li < whoosh && whoosh < hide && jjajang_run2_enter.some(n => n.set?.run2_enter_done), '웃음 → 휘리릭 → 사라짐 → 플래그');
+  assert.ok(li < whoosh && whoosh < hide && jjajang_run2_enter.some(n => n.set?.run2_enter_done), '대사 → 휘리릭 → 사라짐 → 플래그');
   const outroLines = jjajang_run2_outro.filter(n => n.text).map(n => n.text);
   assert.deepEqual(outroLines, ['* 껄껄 이제 적응좀 됐나보구만'], '맵 끝 합류 대사(사용자 문장 그대로)');
   const oli = jjajang_run2_outro.findIndex(n => n.motion === 'janitor' && n.name === 'laugh');

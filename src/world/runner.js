@@ -23,6 +23,18 @@ const SLASH_FX = 0.26;
 const WIND = Object.freeze({ dashRate: 44, runRate: 14, extra: [320, 640], len: [36, 120], alpha: [0.1, 0.3] });
 const STREAK = Object.freeze({ rate: 18, speed: [220, 420], len: [18, 48], alpha: [0.16, 0.34] });
 const SPRAY = Object.freeze({ count: 6, vx: [110, 300], vy: [90, 230], gravity: 620, life: [0.32, 0.5] });
+// 쳐냄 연출(BUILD243 사용자 “효과음 더, 초록 점이 나뭇잎·꽃잎 흩날리듯, 진동 아주 살짝”): 잎 조각 12개(초록 2톤), 흔들림 1px 0.12초, 소리는 snd_hit(deflect) + snd_break1 한 겹
+const PETAL = Object.freeze({ count: 12, vx: [40, 170], vy: [40, 150], gravity: 260, life: [0.45, 0.8], colors: ['#7fd36a', '#b7ef8a', '#4f9a44'], shake: { time: 0.12, amp: 1 } });
+// 검기 오라(BUILD243 사용자 “흰색 검기 오라, 도트풍, 투명한 느낌”): 절반 해상도 캔버스에 흰 반투명 초승달을 그려 2배로 찍는다(계단진 가장자리)
+const AURA = makeCanvas(48, 48);
+function drawAura(ctx, cx, cy, r, a0, a1, alpha, ccw) {
+  const ac = AURA.getContext('2d'); ac.clearRect(0, 0, 48, 48);
+  const hr = r / 2, ir = Math.max(2, hr - 6), c = 24;
+  ac.globalAlpha = alpha * 0.62; ac.fillStyle = '#fff'; ac.beginPath(); ac.arc(c, c, hr, a0, a1, ccw); ac.arc(c, c, ir, a1, a0, !ccw); ac.closePath(); ac.fill();
+  ac.globalAlpha = alpha * 0.95; ac.lineWidth = 1.5; ac.strokeStyle = '#fff'; ac.beginPath(); ac.arc(c, c, hr - 1.5, a0, a1, ccw); ac.stroke();
+  ac.globalAlpha = 1;
+  ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(AURA, 0, 0, 48, 48, Math.round(cx) - 48, Math.round(cy) - 48, 96, 96); ctx.restore();
+}
 const rand = (a, b) => a + Math.random() * (b - a);
 
 export class Runner {
@@ -36,7 +48,7 @@ export class Runner {
     if (opts.obstacles) preloadObstacleImages();
     this.groundY = p.y;
     this.fx = [];
-    this.wind = []; this.streaks = []; this.spray = []; this.windAcc = 0; this.streakAcc = 0;
+    this.wind = []; this.streaks = []; this.spray = []; this.leafBits = []; this.windAcc = 0; this.streakAcc = 0;
     this.sfxLog = [];
     p.moving = false; p.facing = dir > 0 ? 'right' : 'left'; p.frame = 0; p.animPhase = 0; p.knock = null;
     for (const e of game.entities) if (e.def?.type === 'follower') e.visible = false;
@@ -55,10 +67,10 @@ export class Runner {
       if (ev === 'step') { g.emitRipple(p.x + p.w / 2, p.y + p.h - 1); this.splash(p.x + p.w / 2, p.y + p.h - 1); }
       if (ev === 'skid') this.skidSfxT = 0.42;   // 드르르르륵: scrape(0.55초)를 한 번 더 이어 튼다
       if (ev === 'skidstep') { this.splash(p.x + p.w / 2 + 8, p.y + p.h - 1, 3); g.emitRipple(p.x + p.w / 2 + 6, p.y + p.h - 1); }
-      if (ev === 'slash') this.fx.push({ kind: 'slash', t: 0, dur: SLASH_FX });
+      if (ev === 'slash') this.fx.push({ kind: 'slash', t: 0, dur: SLASH_FX, up: !!s.attack?.up });
       if (ev === 'airslash') this.fx.push({ kind: 'airslash', t: 0, dur: RUNNER.airSlashTime });
       if (ev === 'land') this.splash(p.x + p.w / 2, p.y + p.h - 1, 8);
-      if (ev === 'deflect') this.fx.push({ kind: 'deflect', t: 0, dur: 0.22 });
+      if (ev === 'deflect') { this.fx.push({ kind: 'deflect', t: 0, dur: 0.22 }); this.onDeflect(); }
       if (ev === 'hurt') this.hurt();
       if (ev === 'tutorial_hold') { this.holdT = 0; g.sound?.walk?.(null); }
       if (ev === 'tutorial_done') g.setFlag?.(TUTORIAL.flag);
@@ -83,6 +95,18 @@ export class Runner {
     else if (g.partyHp && g.hpOf) g.partyHp[id] = Math.max(1, g.hpOf(id) - HURT_HP);
     g.hurtPlayer?.(null, { silent: true, push: 0 });
     this.game.player.knock = null;
+  }
+  /** 쳐냄 연출: 부서지는 소리 한 겹 더 + 잎 조각이 흩날림 + 아주 살짝 흔들림 */
+  onDeflect() {
+    const g = this.game, s = this.core, p = g.player;
+    g.sound?.sfx('break1'); this.sfxLog.push('break1');
+    g.shake = { ...PETAL.shake };
+    const groundY = p.y + p.h;
+    for (const o of s.obstacles) if (o.deflected && !o.fxDone) { o.fxDone = true; this.petals(o.x, groundY - o.h - o.hh / 2); }
+  }
+  petals(x, y) {
+    const s = this.core;
+    for (let i = 0; i < PETAL.count; i++) this.leafBits.push({ x, y, vx: s.dir * rand(...PETAL.vx) + rand(-50, 50), vy: -rand(...PETAL.vy), life: rand(...PETAL.life), t: 0, c: PETAL.colors[i % PETAL.colors.length], sz: i % 3 === 0 ? 3 : 2, ph: rand(0, 6.28) });
   }
   /** 발이 물을 차서 뒤로 튀는 물보라(월드 좌표) */
   splash(x, y, count = SPRAY.count) {
@@ -117,6 +141,8 @@ export class Runner {
     this.streaks = this.streaks.filter((t) => t.x + t.len > cam.x - 8 && t.x < cam.x + SCREEN_W + 8);
     for (const d of this.spray) { d.t += dt; d.vy += SPRAY.gravity * dt; d.x += d.vx * dt; d.y += d.vy * dt; }
     this.spray = this.spray.filter((d) => d.t < d.life);
+    for (const d of this.leafBits) { d.t += dt; d.vy += PETAL.gravity * dt; d.vx *= Math.max(0, 1 - 1.8 * dt); d.x += d.vx * dt + Math.sin(d.ph + d.t * 9) * 34 * dt; d.y += d.vy * dt; }
+    this.leafBits = this.leafBits.filter((d) => d.t < d.life);
   }
   /** 바닥 물결 줄기 — 엔티티보다 먼저(바닥 위) 그린다 */
   drawGround(ctx, cam) {
@@ -130,6 +156,7 @@ export class Runner {
     ctx.save();
     for (const d of this.spray) { const k = d.t / d.life; ctx.globalAlpha = 0.9 * (1 - k); ctx.fillStyle = d.big ? '#d8f4ff' : '#8fd0ff'; const sz = d.big ? 3 : 2; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), sz, sz); }
     for (const w of this.wind) { ctx.globalAlpha = w.a; ctx.fillStyle = '#e8f6ff'; ctx.fillRect(Math.round(w.x), Math.round(w.y), Math.round(w.len), w.thick); }
+    for (const d of this.leafBits) { ctx.globalAlpha = Math.max(0, 1 - d.t / d.life); ctx.fillStyle = d.c; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.sz, d.sz); }
     ctx.restore();
   }
   /** 캐릭터를 화면 왼쪽 22% 자리에 두고 따라간다(맵 안으로 클램프). lerp 0.5 = 520px/s 에서 약 9px 뒤처짐(가속 때 살짝 밀리는 느낌만) */
@@ -243,21 +270,16 @@ export class Runner {
     for (const f of this.fx) {
       const k = f.t / f.dur;
       if (f.kind === 'slash') {
-        // 앞을 가르는 초승달 호: 몸 앞에서 위→아래로 쓸며 옅어진다
-        const cx = ax + 20 * D, cy = ay - s.airY - 22, r = 26;
-        const a0 = D > 0 ? -Math.PI * 0.55 : Math.PI * 1.55, a1 = a0 + D * Math.PI * 1.1 * Math.min(1, k * 1.6);
-        ctx.save(); ctx.globalAlpha = 1 - k * k; ctx.lineCap = 'round';
-        ctx.strokeStyle = 'rgba(120,220,255,0.9)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1, D < 0); ctx.stroke();
-        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx, cy, r + 1, a0, a1, D < 0); ctx.stroke();
-        ctx.restore();
+        // 앞을 가르는 흰 검기 초승달(도트풍·반투명): 내려베기는 위→아래로, 올려베기(f.up)는 아래→위로 쓸며 옅어진다
+        const cx = ax + 20 * D, cy = ay - s.airY - 22, r = 30, sweep = Math.PI * 1.1 * Math.min(1, k * 1.6);
+        const top = D > 0 ? -Math.PI * 0.55 : Math.PI * 1.55, bottom = D > 0 ? Math.PI * 0.55 : Math.PI * 0.45;
+        const a0 = f.up ? bottom : top, a1 = f.up ? bottom - D * sweep : top + D * sweep;
+        drawAura(ctx, cx, cy, r, a0, a1, 1 - k * k, f.up ? D > 0 : D < 0);
       } else if (f.kind === 'airslash') {
-        // 점프 공격: 머리 위에서 앞 아래로 내려치는 세로 호(위 → 아래로 쓸어 내리며 옅어진다)
-        const cx = ax + 16 * D, cy = ay - s.airY - 26, r = 30;
+        // 점프 공격: 머리 위에서 앞 아래로 내려치는 세로 검기(위 → 아래로 쓸어 내리며 옅어진다)
+        const cx = ax + 16 * D, cy = ay - s.airY - 26, r = 34;
         const a0 = D > 0 ? -Math.PI * 0.95 : Math.PI * 1.95, a1 = a0 + D * Math.PI * 1.25 * Math.min(1, k * 1.5);
-        ctx.save(); ctx.globalAlpha = 1 - k * k; ctx.lineCap = 'round';
-        ctx.strokeStyle = 'rgba(120,220,255,0.9)'; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1, D < 0); ctx.stroke();
-        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, r + 1, D > 0 ? Math.max(a0, a1 - Math.PI * 0.7) : Math.min(a0, a1 + Math.PI * 0.7), a1, D < 0); ctx.stroke();
-        ctx.restore();
+        drawAura(ctx, cx, cy, r, a0, a1, 1 - k * k, D < 0);
       } else if (f.kind === 'deflect') {
         // 쳐냄: 몸 앞에서 흰 섬광이 확 퍼진다
         const cx = ax + 34 * D, cy = ay - s.airY - 24, rr = 8 + 26 * k;

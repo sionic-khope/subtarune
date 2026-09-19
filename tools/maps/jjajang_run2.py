@@ -134,6 +134,11 @@ def build_map() -> dict[str, object]:
         'type': 'door', 'id': 'run2_run_door', 'x': 0, 'y': ROWS_A[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_run', 'spawn': 'from_east', 'sfx': False,
     }
+    # 오른쪽 끝 10px → 드럼통 길(jjajang_drum, BUILD242)
+    door_east = {
+        'type': 'door', 'id': 'run2_drum_door', 'x': WIDTH * TILE - 10, 'y': ROWS_C[0] * TILE, 'w': 10, 'h': 2 * TILE,
+        'to': 'jjajang_drum', 'spawn': 'from_west', 'sfx': False,
+    }
     return {
         'id': MAP_ID,
         'name': '토리이 굽이 길',
@@ -148,6 +153,7 @@ def build_map() -> dict[str, object]:
             'start': {'x': 1 * TILE + 8, 'y': ROWS_A[0] * TILE + 6, 'facing': 'right'},
             'before_b': {'x': (TORII_B + 4) * TILE + 8, 'y': ROWS_B[0] * TILE + 6, 'facing': 'left'},
             'before_c': {'x': 8 * TILE + 8, 'y': ROWS_C[0] * TILE + 6, 'facing': 'right'},
+            'from_east': {'x': (WIDTH - 2) * TILE - 8, 'y': ROWS_C[0] * TILE + 6, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
@@ -156,7 +162,7 @@ def build_map() -> dict[str, object]:
             'runRoadRows': [list(ROWS_A), list(ROWS_B), list(ROWS_C)],
             'runs': runs,
         },
-        'entities': [*pines, *gates, *triggers, door_west],
+        'entities': [*pines, *gates, *triggers, door_west, door_east],
     }
 
 

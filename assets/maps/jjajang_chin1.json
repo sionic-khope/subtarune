@@ -1,0 +1,540 @@
+{
+ "id": "jjajang_chin1",
+ "name": "찢칠라 길 1",
+ "stage": "ship_sinking_done",
+ "bgm": "my_castle_town",
+ "dim": 0.08,
+ "preload": [
+  "assets/sprites/hyungsub-runner-prep.png",
+  "assets/sprites/hyungsub-runner-run.png",
+  "assets/sprites/hyungsub-runner-jump.png",
+  "assets/sprites/hyungsub-runner-slash.png",
+  "assets/sprites/hyungsub-runner-airslash.png",
+  "assets/props/run_leaf_1.png",
+  "assets/props/run_leaf_2.png",
+  "assets/props/run_branch.png",
+  "assets/props/run_needles.png"
+ ],
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "+****************************************************************************************************************************************************+",
+  "+****************************************************************************************************************************************************+",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 72,
+   "y": 262,
+   "facing": "right"
+  },
+  "start": {
+   "x": 72,
+   "y": 262,
+   "facing": "right"
+  },
+  "before_torii": {
+   "x": 328,
+   "y": 262,
+   "facing": "right"
+  },
+  "before_chin": {
+   "x": 3336,
+   "y": 262,
+   "facing": "right"
+  },
+  "from_east": {
+   "x": 4728,
+   "y": 262,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    2,
+    8
+   ],
+   [
+    148,
+    8
+   ]
+  ],
+  "role": "드럼통 길 다음(요플래 혼자): 왼쪽 가장자리는 되돌아갈 수 없다(나레이션 + 한 발짝), 파란 토리이 하나 → 달리기(장애물) → 중후반 찢칠라(표준 조우) → 오른쪽 문 → 찢칠라 길 2",
+  "runRoadRows": [
+   8,
+   9
+  ],
+  "runs": {
+   "a": {
+    "dir": 1,
+    "endX": 2816,
+    "speed": 420,
+    "obstacles": true,
+    "seed": 53
+   }
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_1",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 228,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 140,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_2",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 324,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 306,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_3",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 516,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 468,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_4",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 612,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 566,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_5",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 804,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 716,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_6",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 900,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 882,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_7",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1092,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_8",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1188,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1142,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_9",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1380,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 1292,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_10",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 1476,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 1458,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_11",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 1668,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 1620,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_12",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 1764,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1718,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_13",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 1956,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 1868,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_14",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 2052,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 2034,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_15",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 2244,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 2196,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_16",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 2340,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 2294,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_17",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 2532,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 2444,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_18",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 2628,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 2610,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_19",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 2820,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 2772,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_20",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 2916,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 2870,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_21",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 3108,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 3020,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_22",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 3204,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 3186,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_23",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 3396,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 3348,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_24",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 3492,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 3446,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_25",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 3684,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 3596,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_26",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 3780,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 3762,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_27",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 3972,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 3924,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_28",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 4068,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 4022,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_29",
+   "image": "assets/props/jjajang_pine_1.png",
+   "x": 4260,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 4172,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_30",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 4356,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 4338,
+   "iy": 255,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_31",
+   "image": "assets/props/jjajang_pine_3.png",
+   "x": 4548,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 4500,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_32",
+   "image": "assets/props/jjajang_pine_4.png",
+   "x": 4644,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 4598,
+   "iy": 300,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_blue_a_back",
+   "image": "assets/props/jjajang_torii_blue_back.png",
+   "x": 591,
+   "y": 232,
+   "w": 24,
+   "h": 22,
+   "ix": 583,
+   "iy": 158,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_torii_blue_a_front",
+   "image": "assets/props/jjajang_torii_blue_front.png",
+   "x": 452,
+   "y": 322,
+   "w": 24,
+   "h": 24,
+   "ix": 407,
+   "iy": 37,
+   "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "chin_torii_a",
+   "x": 512,
+   "y": 256,
+   "w": 64,
+   "h": 64,
+   "script": "jjajang_chin_start_a"
+  },
+  {
+   "type": "enemy",
+   "id": "chin",
+   "sprite": "chinchilla",
+   "x": 3584,
+   "y": 260,
+   "facing": "left",
+   "wander": 0,
+   "enemies": [
+    "chinchilla"
+   ],
+   "unless": "jjajang_chin1_chin_defeated"
+  },
+  {
+   "type": "trigger",
+   "id": "chin_no_return",
+   "x": 0,
+   "y": 256,
+   "w": 16,
+   "h": 64,
+   "script": "jjajang_no_return"
+  },
+  {
+   "type": "door",
+   "id": "jjajang_chin1_east_door",
+   "x": 4790,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_chin2",
+   "spawn": "from_west",
+   "sfx": false
+  }
+ ]
+}

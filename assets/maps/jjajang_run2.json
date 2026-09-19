@@ -65,6 +65,11 @@
    "x": 264,
    "y": 774,
    "facing": "right"
+  },
+  "from_east": {
+   "x": 5368,
+   "y": 774,
+   "facing": "left"
   }
  },
  "meta": {
@@ -752,6 +757,17 @@
    "h": 64,
    "to": "jjajang_run",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "run2_drum_door",
+   "x": 5430,
+   "y": 768,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_drum",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

@@ -39,11 +39,12 @@ export const OBSTACLE_SPAWN = Object.freeze({ every: [1.5, 2.3], first: 1.4, typ
 //   pending(점프·베기 무시) → 첫 장애물이 앞 holdAt px 안(땅 베기 판정 8~62 의 끝)에 들면 hold(시간 정지, C 만 기다림) → C 로 done(그 틱에 베기 시작 → 쳐냄). 게임 플래그 flag 가 있으면 다시 안 한다
 export const TUTORIAL = Object.freeze({ holdAt: 60, flag: 'run_leaf_tutorial_done' });
 const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
+export const SLASH_UP_FRAMES = Object.freeze([2, 1, 0, 3]);   // 올려베기: 아래(2) → 수평(1) → 위(0) → 복귀(3)
 
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
 export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false }) {
   return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), dir: dir < 0 ? -1 : 1, vx: 0, airY: 0, vy: 0, grounded: true,
-    anim: 'prep', frame: 0, animT: 0, attack: null, tilt: 0, landT: 0, trail: [], trailT: 0,
+    anim: 'prep', frame: 0, animT: 0, attack: null, slashN: 0, tilt: 0, landT: 0, trail: [], trailT: 0,
     obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0, tutorial: obstacles && tutorial ? 'pending' : null };
 }
 /** 결정적 난수(테스트 재현용) 0~1 */
@@ -97,7 +98,8 @@ export function stepRunner(s, dt, input = {}) {
   }
   if (s.landT > 0) s.landT = Math.max(0, s.landT - dt);
   // 공격(C): 땅에서는 앞을 가르는 베기, 공중에서는 머리 위에서 아래로 내려치는 점프 공격(airslash)
-  if (input.attack && !s.attack && (s.phase === 'run' || s.phase === 'dash') && !(s.grounded && s.landT > 0)) { s.attack = { kind: s.grounded ? 'slash' : 'airslash', t: 0 }; ev.push(s.attack.kind); }
+  // 땅 베기는 내려베기·올려베기가 번갈아 나온다(BUILD243 사용자 “아래로만 휘두르지 말고 위에서 아래로, 아래에서 위로”): up 이면 시트 프레임을 거꾸로(아래 → 수평 → 위 → 복귀)
+  if (input.attack && !s.attack && (s.phase === 'run' || s.phase === 'dash') && !(s.grounded && s.landT > 0)) { s.attack = { kind: s.grounded ? 'slash' : 'airslash', t: 0, up: s.grounded && s.slashN++ % 2 === 1 }; ev.push(s.attack.kind); }
   if (s.attack) {
     s.attack.t += dt;
     const dur = s.attack.kind === 'slash' ? RUNNER.slashTime : RUNNER.airSlashTime;
@@ -106,7 +108,7 @@ export function stepRunner(s, dt, input = {}) {
   // 점프 기울기: 오를 때 뒤로 젖혀 하늘을 보고(음수 = 왼쪽으로 회전), 내려올 때 살짝 앞으로. 공격 중엔 기울이지 않는다(공격 판정 뒤에 계산)
   s.tilt = s.grounded || s.attack ? 0 : -RUNNER.jumpTilt * Math.max(-0.6, Math.min(1, s.vy / RUNNER.jumpV));
   // 애니메이션 프레임
-  if (s.attack?.kind === 'slash') { s.anim = 'slash'; s.frame = Math.min(3, Math.floor((s.attack.t / RUNNER.slashTime) * 4)); }
+  if (s.attack?.kind === 'slash') { s.anim = 'slash'; const f = Math.min(3, Math.floor((s.attack.t / RUNNER.slashTime) * 4)); s.frame = s.attack.up ? SLASH_UP_FRAMES[f] : f; }
   else if (s.attack?.kind === 'airslash') { s.anim = 'airslash'; s.frame = Math.min(3, Math.floor((s.attack.t / RUNNER.airSlashTime) * 4)); }
   else if (!s.grounded) { s.anim = 'jump'; s.frame = s.airY < 6 && s.vy > 0 ? 0 : s.vy > 0 ? 1 : 2; }   // 0 도약, 1 상승(하늘 봄), 2 하강(착지 대비)
   else if (s.landT > 0 && s.phase !== 'brake' && s.phase !== 'settle') { s.anim = 'jump'; s.frame = 3; }   // 착지 웅크림
