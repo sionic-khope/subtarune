@@ -42,6 +42,11 @@
    "x": 616,
    "y": 262,
    "facing": "right"
+  },
+  "from_east": {
+   "x": 6616,
+   "y": 262,
+   "facing": "left"
   }
  },
  "meta": {
@@ -512,6 +517,17 @@
    "h": 64,
    "to": "jjajang_statue",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "run_run2_door",
+   "x": 6678,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_run2",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

@@ -10,7 +10,8 @@ targets = sys.argv[1:]
 tmpdir = tempfile.mkdtemp(prefix='patch-')
 mapping = {}
 for t in targets:
-    tmp = os.path.join(tmpdir, t.replace('/', '__')); shutil.copy(t, tmp); mapping[t] = tmp
+    # .js 는 .mjs 사본으로 검사한다 — node --check 는 확장자 .js 를 CommonJS 로 보고 ES 모듈 문법 오류(예: if 와 else 사이에 끼어든 문장)를 못 잡았다(2026-09-19 러너 그리기 패치가 서버에 깨진 채 올라감)
+    tmp = os.path.join(tmpdir, t.replace('/', '__') + ('.mjs' if t.endswith('.js') else '')); shutil.copy(t, tmp); mapping[t] = tmp
 def rd(p): return io.open(mapping.get(p, p), encoding='utf-8').read()
 def wr(p, s): io.open(mapping.get(p, p), 'w', encoding='utf-8').write(s)
 def rep(s, old, new):

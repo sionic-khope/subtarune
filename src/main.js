@@ -534,7 +534,7 @@ class Game {
   /** 러너 기믹 시작(파란 토리이 트리거, BUILD230): 준비 동작 → 대시 → 자동 달리기 → 맵 오른쪽 끝 안쪽(endX)에서 제동. 끝나면 game.runner = null */
   startRunner(opts = {}) {
     if (this.runner) return this.runner;
-    this.runner = new Runner(this, { endX: this.map?.def?.meta?.run?.endX, speed: this.map?.def?.meta?.run?.speed, ...opts });
+    this.runner = new Runner(this, { ...(this.map?.def?.meta?.run || {}), ...opts });   // 맵 meta.run(한 구간) 또는 호출자가 준 meta.runs.<id>
     return this.runner;
   }
   /** 전투 뒤 맵 브금 복귀 — 표준 조우(startEncounter) 전용. 컷신 전투(튜토리얼)는 컷신이 알아서 (사용자 2026-09-10: 튜토리얼은 꺼져도 되지만 그 뒤 맵부턴 별도 요청 없으면 돌아와야 함) */
@@ -1393,7 +1393,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-19.235';
+export const BUILD = '2026-09-19.236';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용
