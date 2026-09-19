@@ -72,13 +72,15 @@ try {
   check(s.ripples >= rBefore || s.ripples > 0, '달리는 동안 발마다 물결 ' + s.ripples);
   check(s.runner.wind > 3 && s.runner.streaks >= 1 && s.runner.spray > 0, '바람 줄기·바닥 줄기·물보라가 나온다 ' + JSON.stringify({ wind: s.runner.wind, streaks: s.runner.streaks, spray: s.runner.spray }));
   await cap('03_run');
-  // X 점프
+  // X 점프 — 착지 웅크림(0.16초)은 폴링으로 잡으면 놓치므로 페이지 안에서 그 순간을 기록한다
+  await page.evaluate(() => { window.__land = null; const g = window.game; const tick = () => { const r = g.runner; if (!r) return; if (r.core.grounded && r.core.landT > 0 && !window.__land) window.__land = { anim: r.core.anim, frame: r.core.frame }; requestAnimationFrame(tick); }; tick(); });
   await press('KeyX');
   check(await until(() => window.game.runner && !window.game.runner.core.grounded && window.game.runner.core.airY > 10, 1500), 'X 점프: 떠오른다');
   await page.waitForTimeout(120); s = await st(); await cap('04_jump');
   check(s.runner.sfx.includes('jump') && s.runner.anim === 'jump', '점프 소리·점프 프레임 ' + JSON.stringify(s.runner));
   check(await until(() => window.game.runner?.core.grounded, 2000), '착지');
-  s = await st(); check(s.runner.anim === 'jump' && s.runner.frame === 3, '착지 웅크림 프레임 ' + JSON.stringify({ anim: s.runner.anim, frame: s.runner.frame }));
+  const land = await page.evaluate(() => window.__land);
+  check(!!land && land.anim === 'jump' && land.frame === 3, '착지 웅크림 프레임 ' + JSON.stringify(land));
   await until(() => window.game.runner?.core.landT === 0, 1000);
   // C 베기(땅)
   await press('KeyC');

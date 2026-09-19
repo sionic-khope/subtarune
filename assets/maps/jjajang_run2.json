@@ -713,9 +713,9 @@
   {
    "type": "trigger",
    "id": "run2_enter_trigger",
-   "x": 96,
+   "x": 256,
    "y": 256,
-   "w": 64,
+   "w": 96,
    "h": 64,
    "once": true,
    "flag": "run2_enter_started",

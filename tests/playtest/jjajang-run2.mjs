@@ -35,15 +35,21 @@ const runThrough = async (attack, tag) => {
   }
 };
 try {
-  await page.goto('http://localhost:8000/?qa=jjajang_run2');
-  await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_run2' && !window.game.dialogue.running, null, { timeout: 30000 });
-  await page.waitForTimeout(500);
-  let s = await st(); check(s.follower && s.follower.visible && s.hp > 0, '입구 QA: 청소부 동행 ' + JSON.stringify({ px: s.px, hp: s.hp }));
+  // 실제 진행 경로로 들어온다(BUILD246): 파란 토리이 길 동쪽 끝 → 오른쪽 문 → 굽이 길. 달려서(X) 들어와도 입구 연출이 발동해야 한다
+  //   전엔 입구 트리거가 스폰에서 32px 앞이라 맵 전환 직후 트리거 쿨다운(0.6초)이 끝나기 전에 지나쳐 영영 안 밟혔다(사용자 “청소부가 이따보새 하고 사라지는 거 추가하라고”)
+  await page.goto('http://localhost:8000/?qa=jjajang_run');
+  await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_run' && !window.game.dialogue.running, null, { timeout: 30000 });
+  await page.evaluate(() => { const g = window.game; for (const f of ['run_intro_started', 'run_intro_done', 'run_outro_done']) g.setFlag(f); g.setFlag('party_hidden', false); g.changeMap('jjajang_run', 'from_east'); });
+  await page.waitForFunction(() => window.game.mapId === 'jjajang_run' && !window.game.transitioning, null, { timeout: 12000 });
+  await page.waitForTimeout(300);
+  await page.keyboard.down('KeyX'); await page.keyboard.down('ArrowRight');
+  check(await until(() => window.game.mapId === 'jjajang_run2', 20000), '파란 토리이 길 오른쪽 문 → 굽이 길');
+  const entered = await until(() => window.game.dialogue.running && window.game.flags.run2_enter_started, 12000);
+  await page.keyboard.up('ArrowRight'); await page.keyboard.up('KeyX');
+  check(entered, '달려 들어와도 입구 청소부 연출이 발동한다');
+  await page.waitForTimeout(200);
+  let s = await st(); check(s.follower && s.hp > 0, '청소부 동행 ' + JSON.stringify({ px: s.px, hp: s.hp }));
   const hp0 = s.hp;
-  await page.keyboard.down('ArrowRight');
-  const entered = await until(() => window.game.dialogue.running && window.game.flags.run2_enter_started, 6000);
-  await page.keyboard.up('ArrowRight');
-  check(entered, '들어서면 청소부 연출');
   await line('이번엔 검도 휘둘러보게 이따보게', '00_enter');
   check(await until(() => !window.game.dialogue.running && window.game.flags.run2_enter_done, 6000), '연출 끝');
   s = await st(); check(s.follower && !s.follower.visible, '청소부가 휘리릭 사라졌다');

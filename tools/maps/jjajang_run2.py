@@ -11,7 +11,7 @@
 공격으로 하면 효과음과 함께 쳐낼 수 있고 만약 못 쳐내면 피가 10 깎이는 거 … 그 맵에 들어서면 다시 청소부가 ‘껄껄 이번에도 한번 잘 해보게 그럼 이따보게’ 하고 사라지고 맵 끝으로 다시 가는 것도"
 - 파란 토리이 길 오른쪽 끝에서 왼쪽 가장자리(A 길 8~9행)로 들어온다. A: 오른쪽으로(토리이 → 러너 dir +1) → 오른쪽 끝에서 밑길(112~113열) → B: 왼쪽으로(토리이 → 러너 dir −1) → 왼쪽 끝에서 밑길(6~7열) → C: 오른쪽으로(토리이 → 러너 dir +1) → 오른쪽 끝(다음 맵 대기).
 - 세 달리기 모두 장애물(나뭇잎 낙하·솔잎 날아옴·나뭇가지): meta.runs.<id>.obstacles. BUILD240: 길 170열·속도 420, A 의 첫 나뭇잎은 튜토리얼(meta.runs.a.tutorial: 맞기 직전 정지 → C). 바닥은 검은 물 '*', 지역 자산은 파란 토리이 길과 같다.
-- 입구 트리거(3~4열, 스폰 칸 밖) → jjajang_run2_enter(청소부 한마디 → 휘리릭 사라짐, 한 번). C 달리기 끝 → outro(청소부가 오른쪽에서 걸어와 다시 합류, 대사 없음). A·B 끝은 동료를 숨긴 채 둔다(keepFollowersHidden)."""
+- 입구 트리거(8~10열, 토리이 a 앞 — 맵 전환 쿨다운 0.6초 안에 지나치지 못할 거리) → jjajang_run2_enter(청소부 한마디 → 휘리릭 사라짐, 한 번). C 달리기 끝 → outro(청소부가 오른쪽에서 걸어와 다시 합류, 대사 없음). A·B 끝은 동료를 숨긴 채 둔다(keepFollowersHidden)."""
 from __future__ import annotations
 
 import json
@@ -28,6 +28,9 @@ ROWS_B: Final = (16, 17)          # 왼쪽으로
 ROWS_C: Final = (24, 25)          # 오른쪽으로
 DOWN_RIGHT: Final = (162, 163)    # A 끝 → B 로 내려가는 밑길
 DOWN_LEFT: Final = (6, 7)         # B 끝 → C 로 내려가는 밑길
+ENTER_COLS: Final = (8, 10)       # 입구 청소부 연출 트리거(BUILD246): 왼쪽 문 스폰에서 충분히 떨어뜨린다 — 맵 전환 직후 모든 트리거는 0.6초 쿨다운(main.js)이라
+                                  #   스폰 바로 옆(전 3열)이면 달려 들어올 때 쿨다운이 끝나기 전에 지나쳐 영영 안 밟혔다(사용자 “청소부가 이따보새 하고 사라지는 거 추가하라고”)
+ENTER_COOLDOWN_PX: Final = 132    # 0.6초 × 달리기 220px/s
 TORII_A: Final = 10               # 가까운 기둥 밑동 칸(A, 오른쪽으로 지남)
 TORII_B: Final = 154              # (B, 왼쪽으로 지남)
 TORII_C: Final = 10               # (C, 오른쪽으로 지남)
@@ -121,12 +124,16 @@ def build_map() -> dict[str, object]:
         'c': {'dir': 1, 'endX': end_c, 'speed': RUN_SPEED, 'obstacles': True, 'seed': 37, 'outro': 'jjajang_run2_outro', 'outroFlag': 'run2_outro_done'},
     }
     triggers = [
-        {'type': 'trigger', 'id': 'run2_enter_trigger', 'x': 3 * TILE, 'y': ROWS_A[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE,
+        {'type': 'trigger', 'id': 'run2_enter_trigger', 'x': ENTER_COLS[0] * TILE, 'y': ROWS_A[0] * TILE,
+         'w': (ENTER_COLS[1] - ENTER_COLS[0] + 1) * TILE, 'h': 2 * TILE,
          'once': True, 'flag': 'run2_enter_started', 'unless': 'run2_enter_done', 'script': 'jjajang_run2_enter'},
         {'type': 'trigger', 'id': 'run2_torii_a', 'x': (TORII_A + 2) * TILE, 'y': ROWS_A[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_a'},
         {'type': 'trigger', 'id': 'run2_torii_b', 'x': (TORII_B - 3) * TILE, 'y': ROWS_B[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_b'},   # 가까운 기둥(154열) 왼쪽 = 왼쪽으로 지난 자리
         {'type': 'trigger', 'id': 'run2_torii_c', 'x': (TORII_C + 2) * TILE, 'y': ROWS_C[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_run2_start_c'},
     ]
+    spawn_x = 1 * TILE + 8
+    assert triggers[0]['x'] - (spawn_x + 24) >= ENTER_COOLDOWN_PX, '입구 트리거는 맵 전환 쿨다운(0.6s) 안에 지나칠 수 없는 거리'
+    assert triggers[0]['x'] + triggers[0]['w'] <= triggers[1]['x'], '입구 트리거는 토리이 a 트리거 앞'
     assert triggers[1]['x'] + triggers[1]['w'] < end_a - RUN_SPEED and end_a < DOWN_RIGHT[0] * TILE, 'A 구간'
     assert triggers[2]['x'] > end_b + RUN_SPEED and end_b > (DOWN_LEFT[1] + 1) * TILE, 'B 구간'
     assert triggers[3]['x'] + triggers[3]['w'] < end_c - RUN_SPEED, 'C 구간'

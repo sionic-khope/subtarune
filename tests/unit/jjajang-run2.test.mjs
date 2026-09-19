@@ -63,6 +63,9 @@ test('test_run2_triggers_runs_and_camera_framing', () => {
   assert.ok(t('run2_torii_a').x > t('jjajang_torii_blue_a_front').x && t('run2_torii_b').x + t('run2_torii_b').w < t('jjajang_torii_blue_b_front').x + 20, '토리이를 지난 자리(A 오른쪽, B 왼쪽)');
   const enter = t('run2_enter_trigger');
   assert.deepEqual({ script: enter.script, once: enter.once, flag: enter.flag, unless: enter.unless }, { script: 'jjajang_run2_enter', once: true, flag: 'run2_enter_started', unless: 'run2_enter_done' });
+  // 맵 전환 직후 트리거 쿨다운 0.6초 × 달리기 220px/s = 132px — 그 안에 있으면 달려 들어올 때 지나쳐 영영 안 밟힌다(BUILD246)
+  assert.ok(enter.x - (map.spawns.from_west.x + 24) >= 132, `입구 트리거는 문 스폰에서 132px 밖 (${enter.x - (map.spawns.from_west.x + 24)}px)`);
+  assert.ok(enter.x + enter.w <= t('run2_torii_a').x, '입구 트리거는 토리이 a 트리거 앞');
   const west = map.entities.find(e => e.type === 'door');
   assert.deepEqual([west.to, west.spawn, west.x], ['jjajang_run', 'from_east', 0]);
   const east = prev.entities.find(e => e.id === 'run_run2_door');
