@@ -51,8 +51,10 @@ test('test_bend2_is_a_right_down_right_water_road_with_no_events', () => {
   for (let c = d0; c < W; c++) assert.ok(walk(bend, c, l0) && walk(bend, c, l1), `아랫길 ${c}`);
   assert.ok(!walk(bend, d1 + 2, u0) && !walk(bend, d0 - 2, l0) && !walk(bend, 20, u1 + 1), '길 밖은 숲');
   assert.equal(bend.rows[u0][0], '+'); assert.equal(bend.rows[l0][W - 1], '+');
-  const west = bend.entities.find(e => e.type === 'door'); assert.deepEqual([west.to, west.spawn, west.x], ['jjajang_think', 'from_east', 0]);
-  assert.equal(bend.entities.filter(e => e.type === 'door').length, 1, '오른쪽은 통로만(다음 맵 브리핑 대기)');
+  const west = bend.entities.find(e => e.id === 'bend2_think_door'); assert.deepEqual([west.to, west.spawn, west.x], ['jjajang_think', 'from_east', 0]);
+  const east = bend.entities.find(e => e.id === 'bend2_nest_door');   // BUILD249: 오른쪽 끝 → 드럼통 둥지
+  assert.deepEqual([east.to, east.spawn, east.x], ['jjajang_nest', 'from_west', bend.rows[0].length * 32 - 10]);
+  assert.equal(bend.entities.filter(e => e.type === 'door').length, 2, '왼쪽(생각 길)·오른쪽(드럼통 둥지) 문');
   assert.ok(!bend.entities.some(e => e.type === 'trigger' || e.type === 'enemy' || e.type === 'npc'), '적·트리거는 지어내지 않는다');
   assert.ok(Math.floor(bend.spawns.from_east.y / 32) === l0 && Math.floor(bend.spawns.from_west.y / 32) === u0);
   const qa = id => QA_POINTS.find(p => p.id === id);

@@ -120,6 +120,8 @@ def build_map() -> dict[str, object]:
     gaps = [b - a for a, b in zip(STELE_UPPER, STELE_UPPER[1:])] + [b - a for a, b in zip(STELE_LOWER, STELE_LOWER[1:])]
     assert len(set(gaps)) == 1, f'비석 간격이 다르다: {gaps}'
     door_west = {'type': 'door', 'id': 'bend2_think_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_think', 'spawn': 'from_east', 'sfx': False}
+    # 오른쪽 끝 10px → 드럼통 둥지(jjajang_nest, BUILD249)
+    door_east = {'type': 'door', 'id': 'bend2_nest_door', 'x': WIDTH * TILE - 10, 'y': LOWER_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_nest', 'spawn': 'from_west', 'sfx': False}
     return {
         'id': MAP_ID,
         'name': '굽은 물길',
@@ -135,12 +137,12 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[1, ROAD_ROWS[0]], [DOWN_COLS[0], ROAD_ROWS[0]], [DOWN_COLS[0], LOWER_ROWS[0]], [WIDTH - 2, LOWER_ROWS[0]]],
-            'role': '생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길. 길 위 칸에 비석 다섯(윗길 12·22·32열, 아랫길 52·62열 — C 로 읽는다). 오른쪽 끝(다음 맵 브리핑 대기, 문 없음). 브금 my_castle_town 이어짐',
+            'role': '생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길. 길 위 칸에 비석 다섯(윗길 12·22·32열, 아랫길 52·62열 — C 로 읽는다). 오른쪽 문 → 드럼통 둥지(jjajang_nest). 브금 my_castle_town 이어짐',
             'steles': list(STELE_UPPER) + list(STELE_LOWER),
             'steleSize': [STELE[1], STELE[2]],
             'bend': {'downCols': list(DOWN_COLS), 'lowerRows': list(LOWER_ROWS)},
         },
-        'entities': [*pines, *steles, door_west],
+        'entities': [*pines, *steles, door_west, door_east],
     }
 
 

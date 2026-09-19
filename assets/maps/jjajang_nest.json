@@ -1,0 +1,376 @@
+{
+ "id": "jjajang_nest",
+ "name": "드럼통 둥지",
+ "stage": "ship_sinking_done",
+ "bgm": null,
+ "dim": 0.08,
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@*@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@*********@@@@@@@@@@",
+  "@@@@@@@@@@***********@@@@@@@@@",
+  "@@@@@@@@@*************@@@@@@@@",
+  "@@@@@@@@***************@@@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "+***********************@@@@@@",
+  "+************************@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "@@@@@@@*****************@@@@@@",
+  "@@@@@@@@***************@@@@@@@",
+  "@@@@@@@@@*************@@@@@@@@",
+  "@@@@@@@@@@***********@@@@@@@@@",
+  "@@@@@@@@@@@*********@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@*@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 40,
+   "y": 390,
+   "facing": "right"
+  },
+  "start": {
+   "x": 40,
+   "y": 390,
+   "facing": "right"
+  },
+  "before_drum": {
+   "x": 392,
+   "y": 422,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    12
+   ],
+   [
+    15,
+    13
+   ]
+  ],
+  "role": "굽은 물길 다음: 왼쪽에서 오른쪽으로 6칸(≈1.3초) 걸으면 드럼통 더미가 둘러싼 지름 26칸의 동그란 공간(보스전 맵 느낌). 브금 없음. 가운데 오른쪽 4칸에 상호작용 드럼통. 다음 연출은 브리핑 대기",
+  "nest": {
+   "center": [
+    15,
+    13
+   ],
+   "radius": 9,
+   "drumCol": 19
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_2",
+   "image": "assets/props/jjajang_pine_2.png",
+   "x": 132,
+   "y": 690,
+   "w": 24,
+   "h": 12,
+   "ix": 114,
+   "iy": 543,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile1",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 482,
+   "y": 80,
+   "w": 28,
+   "h": 12,
+   "ix": 441,
+   "iy": 6,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile2",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 578,
+   "y": 112,
+   "w": 28,
+   "h": 12,
+   "ix": 541,
+   "iy": 76,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile3",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 674,
+   "y": 144,
+   "w": 28,
+   "h": 12,
+   "ix": 633,
+   "iy": 70,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile4",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 770,
+   "y": 240,
+   "w": 28,
+   "h": 12,
+   "ix": 733,
+   "iy": 204,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile5",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 802,
+   "y": 336,
+   "w": 28,
+   "h": 12,
+   "ix": 761,
+   "iy": 262,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile6",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 834,
+   "y": 432,
+   "w": 28,
+   "h": 12,
+   "ix": 797,
+   "iy": 396,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile7",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 802,
+   "y": 528,
+   "w": 28,
+   "h": 12,
+   "ix": 761,
+   "iy": 454,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile8",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 770,
+   "y": 624,
+   "w": 28,
+   "h": 12,
+   "ix": 733,
+   "iy": 588,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile9",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 674,
+   "y": 720,
+   "w": 28,
+   "h": 12,
+   "ix": 633,
+   "iy": 646,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile10",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 578,
+   "y": 752,
+   "w": 28,
+   "h": 12,
+   "ix": 541,
+   "iy": 716,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile11",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 386,
+   "y": 752,
+   "w": 28,
+   "h": 12,
+   "ix": 349,
+   "iy": 716,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile12",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 290,
+   "y": 720,
+   "w": 28,
+   "h": 12,
+   "ix": 249,
+   "iy": 646,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile13",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 194,
+   "y": 624,
+   "w": 28,
+   "h": 12,
+   "ix": 157,
+   "iy": 588,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile14",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 162,
+   "y": 528,
+   "w": 28,
+   "h": 12,
+   "ix": 121,
+   "iy": 454,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile15",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 194,
+   "y": 240,
+   "w": 28,
+   "h": 12,
+   "ix": 157,
+   "iy": 204,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile16",
+   "image": "assets/props/jjajang_drum_pile_big.png",
+   "x": 290,
+   "y": 144,
+   "w": 28,
+   "h": 12,
+   "ix": 249,
+   "iy": 70,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile17",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 386,
+   "y": 112,
+   "w": 28,
+   "h": 12,
+   "ix": 349,
+   "iy": 76,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile18",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 290,
+   "y": 272,
+   "w": 28,
+   "h": 12,
+   "ix": 253,
+   "iy": 236,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile19",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 642,
+   "y": 240,
+   "w": 28,
+   "h": 12,
+   "ix": 605,
+   "iy": 204,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile20",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 322,
+   "y": 592,
+   "w": 28,
+   "h": 12,
+   "ix": 285,
+   "iy": 556,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile21",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 674,
+   "y": 560,
+   "w": 28,
+   "h": 12,
+   "ix": 637,
+   "iy": 524,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_pile22",
+   "image": "assets/props/jjajang_drum_pile_small.png",
+   "x": 514,
+   "y": 656,
+   "w": 28,
+   "h": 12,
+   "ix": 477,
+   "iy": 620,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_nest_drum",
+   "image": "assets/props/jjajang_drum.png",
+   "x": 612,
+   "y": 430,
+   "w": 24,
+   "h": 12,
+   "ix": 608,
+   "iy": 386,
+   "solid": true,
+   "script": "jjajang_nest_drum"
+  },
+  {
+   "type": "door",
+   "id": "nest_bend2_door",
+   "x": 0,
+   "y": 384,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_bend2",
+   "spawn": "from_east",
+   "sfx": false
+  }
+ ]
+}

@@ -65,7 +65,7 @@
     14
    ]
   ],
-  "role": "생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길. 길 위 칸에 비석 다섯(윗길 12·22·32열, 아랫길 52·62열 — C 로 읽는다). 오른쪽 끝(다음 맵 브리핑 대기, 문 없음). 브금 my_castle_town 이어짐",
+  "role": "생각 길 다음: 오른쪽 → 아래 → 오른쪽 굽은 검은 물길. 길 위 칸에 비석 다섯(윗길 12·22·32열, 아랫길 52·62열 — C 로 읽는다). 오른쪽 문 → 드럼통 둥지(jjajang_nest). 브금 my_castle_town 이어짐",
   "steles": [
    12,
    22,
@@ -379,6 +379,17 @@
    "h": 64,
    "to": "jjajang_think",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "bend2_nest_door",
+   "x": 2550,
+   "y": 448,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_nest",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

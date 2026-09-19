@@ -467,5 +467,10 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_think', desc: '생각 길 �
   map: 'jjajang_think', spawn: 'from_west', flags: thinkFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_think_mid', desc: '생각 길 · 혼잣말 직전 (오른쪽으로 걸으면 시작, 끝은 다음 맵 브리핑 대기)',
   map: 'jjajang_think', spawn: 'before_think', flags: thinkFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_bend2', desc: '굽은 물길 (오른쪽 → 아래 → 오른쪽, 사건 없음 · 오른쪽 끝 다음 맵 브리핑 대기)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_bend2', desc: '굽은 물길 (오른쪽 → 아래 → 오른쪽, 길 위 비석 다섯 · 오른쪽 문 → 드럼통 둥지)',
   map: 'jjajang_bend2', spawn: 'from_west', flags: { ...thinkFlags, think_started: true, think_done: true }, party: [] });
+const nestFlags = { ...thinkFlags, think_started: true, think_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest', desc: '드럼통 둥지 입구 (오른쪽으로 1초 걸으면 드럼통 더미가 두른 동그란 공간 · 브금 없음)',
+  map: 'jjajang_nest', spawn: 'from_west', flags: nestFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_center', desc: '드럼통 둥지 가운데 (오른쪽 드럼통에 C · 다음 연출 브리핑 대기)',
+  map: 'jjajang_nest', spawn: 'before_drum', flags: nestFlags, party: [] });
