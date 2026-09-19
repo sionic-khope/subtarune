@@ -1,0 +1,14 @@
+# imagegen 2026-09-19 14:33:22
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/runner-v1/runner-ref.png
+
+Create a 2x2 sprite sheet, EXACTLY FOUR full-body frames of ONE character for a Deltarune-like pixel RPG. 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no motion lines, no speed lines, no dust, no effects.
+Image1 is the exact CHARACTER IDENTITY: the left figure is his SIDE VIEW facing RIGHT (a chubby boy with short dark navy hair, round glasses, a big round pale nose, white short-sleeved t-shirt, dark navy shorts, dark shoes, chunky cute pixel proportions) and the right figure shows his simple straight silver longsword with a small dark crossguard. Preserve his identity, colours, pixel density and proportions exactly. ALL FOUR frames are SIDE VIEW facing RIGHT.
+His FACE IS NORMAL like Image1: eyes and round glasses clearly visible, no shadow over the eyes, a calm focused expression.
+SWORD GRIP RULE: he holds the sword with BOTH HANDS TOGETHER on the hilt BEHIND HIS BACK, arms tucked behind the body (a two-handed grip carried behind the back), and the blade trails LOW behind him, pointing backward and slightly down, never raised — except where a frame description says otherwise.
+He is moving fast into a headwind, so his hair is swept BACK with strands streaming behind his head and the hem of his t-shirt flaps backward; the flutter changes slightly between frames.
+A forward two-handed SLASH while running (this sheet overrides the grip rule as described), reading order upper-left, upper-right, lower-left, lower-right: 1 wind-up, both hands bring the sword up over the right shoulder behind the head; 2 the two-handed cut sweeping forward horizontally at chest height, the blade fully extended to the right; 3 follow-through with the blade pointing down and forward; 4 recovering, both hands bringing the sword back down behind the back low. Feet touch the same ground baseline in every cell and the body centre stays roughly in the same place.
+Maintain the same anatomical scale, palette and camera in every cell. Whole subject within the central 70% of each cell, generous margins, nothing clipped.
+Style: hard square pixels, low-resolution logical art about 52 pixels tall standing, enlarged with a nearest-neighbour look, coarse sparse pixel clusters, flat limited shades, dark stepped outline, same pixel density as Image1, no gradients, no blur, no anti-aliasing.

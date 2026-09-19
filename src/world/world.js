@@ -424,6 +424,7 @@ export class Player extends Character {
     const [x, y] = freeSpot(g, this, this.x, this.y, 64); this.x = x; this.y = y;
   }
   update(dt, input) {
+    if (this.game.runner) { this.moving = false; return; }   // 러너 기믹(BUILD230)이 이동·발소리·프레임을 맡는다
     if (!g_frame_skip(this)) this.unstick();
     if (this.knock) {                       // 피격 슬라이드: 입력 없이 옆으로 미끄러진다(벽에 부딪히는 느낌 금지) — game.hurtPlayer 가 건다
       const k = this.knock; k.t -= dt;
@@ -455,6 +456,11 @@ export class Player extends Character {
     for (const e of this.game.entities) {
       if (e !== this && !e.solid && !e.dead && e.overlaps(this.rect)) e.onEnter(this);
     }
+  }
+  /** 러너 기믹 중엔 runner.js 가 잔상·프레임·이펙트를 그린다 */
+  drawSprite(ctx, cam) {
+    if (this.game.runner) { this.game.runner.drawPlayer(ctx, cam); return; }
+    super.drawSprite(ctx, cam);
   }
   /** 발 접촉 프레임(1·3): stepSfx 재질음과 물결 거리는 독립적이다. 물의 소리는 기존 Sound.walk 루프만 사용한다. */
   footstep(prevFrame) {

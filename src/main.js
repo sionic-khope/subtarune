@@ -34,6 +34,7 @@ import { WATER_WALK } from './data/footsteps.js';
 import { normalizeParty } from './core/party.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
+import { Runner } from './world/runner.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
 import { MaillardArrival } from './scenes/maillard-arrival.js';
 import { ShipAssault } from './scenes/ship-assault.js';
@@ -144,7 +145,7 @@ class Game {
       preloadCaptainMemories(),
       loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
       this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch']),
+      this.sound.loadSfxFiles(['menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch']),
       this.sound.loadWalkLoop(WATER_WALK),
       ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
         const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
@@ -218,6 +219,7 @@ class Game {
     this.battle?.disposeGimmick();
     this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0; this.attack = 1; this.hpBonus = 0;   // 공격력·최대 HP 보너스(레드·블루 버프)
     this.battle = null; this.lastBattle = null; this.battleFlag = null; this.encountering = false; this.ride = null;
+    this.runner = null;           // 러너 기믹(파란 토리이, BUILD230) — 있으면 자동 달리기·X 점프·C 베기가 입력을 가져간다
   }
   /** 타이틀에서 '이어하기': 세이브를 통째로 복원 → 맵 → 위치 → 동료를 주인공 뒤에 다시 세움 → 그 뒤에야 도착 스크립트(플래그 안 섰으면 처음부터 다시) */
   continueGame() {
@@ -464,7 +466,7 @@ class Game {
     for (const entity of this.entities) entity.motion = null;
     this.background = []; this.curtain = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
-    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.bubble.done = true; this.fx = []; this.prompt = null;
+    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
     this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = [];
     this.fadeTo(1, 0.4, () => {
       this.resetState();
@@ -528,6 +530,12 @@ class Game {
     this.player.moving = false; this.textbox.close?.();
     this.battle = new Battle(this, cfg);   // 에셋이 준비되면 Battle.load() 가 브금을 틀고 검은 화면을 걷는다(0.12s) — 0.45s 페이드 + 로딩 정지 동안 루드버스터 첫 0.6초가 지나가던 문제 (사용자 2026-09-10 '초반이 패스당한 느낌')
     return this.battle;
+  }
+  /** 러너 기믹 시작(파란 토리이 트리거, BUILD230): 준비 동작 → 대시 → 자동 달리기 → 맵 오른쪽 끝 안쪽(endX)에서 제동. 끝나면 game.runner = null */
+  startRunner(opts = {}) {
+    if (this.runner) return this.runner;
+    this.runner = new Runner(this, { endX: this.map?.def?.meta?.run?.endX, speed: this.map?.def?.meta?.run?.speed, ...opts });
+    return this.runner;
   }
   /** 전투 뒤 맵 브금 복귀 — 표준 조우(startEncounter) 전용. 컷신 전투(튜토리얼)는 컷신이 알아서 (사용자 2026-09-10: 튜토리얼은 꺼져도 되지만 그 뒤 맵부턴 별도 요청 없으면 돌아와야 함) */
   resumeMapBgm() {
@@ -961,6 +969,10 @@ class Game {
       if (Input.just('confirm') && this.ride.jump) this.ride.jump();
       if (Input.just('menu')) { this.state = 'menu'; this.menu = { index: 0, sub: null }; this.sound.sfx('open'); return; }   // 타는 중에도 메뉴(비상탈출) — 열린 동안 뗏목은 멈춤
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
+    } else if (this.runner) {                                 // 러너 기믹(파란 토리이, BUILD230): 자동 달리기, X 점프·C 베기 — 상호작용 대신. 메뉴는 열린다(열린 동안 멈춤)
+      if (Input.just('menu')) { this.state = 'menu'; this.menu = { index: 0, sub: null }; this.sound.sfx('open'); return; }
+      this.runner.update(dt, Input);
+      for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
     } else if (!this.transitioning) {
       if (Input.just('confirm')) {
         const target = this.player.probe();
@@ -1168,6 +1180,7 @@ class Game {
     if (this.worldSpin?.angle) { ctx.translate(SCREEN_W / 2, SCREEN_H / 2); ctx.rotate(this.worldSpin.angle); ctx.translate(-SCREEN_W / 2, -SCREEN_H / 2); }   // 맵 빙글빙글(BUILD227 아짐키야 춤)
     this.map.draw(ctx, cam);
     this.drawRipples(ctx, cam);
+    this.runner?.drawGround(ctx, cam);   // 러너 기믹: 바닥 물결 줄기(엔티티 아래)
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
     const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
@@ -1177,6 +1190,7 @@ class Game {
       e.draw(ctx, cam);
       if (e === this.tvBroadcast?.anchor) this.tvBroadcast.draw(ctx, cam);
     }
+    this.runner?.drawAir(ctx, cam);      // 러너 기믹: 바람 줄기·물보라(엔티티 위)
     drawDarkSmoke(ctx, this, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
@@ -1377,7 +1391,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-19.229';
+export const BUILD = '2026-09-19.230';
 const canvas = document.getElementById('screen');
 const game = new Game(canvas);
 window.game = game;   // 콘솔 디버깅용

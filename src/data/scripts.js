@@ -62,6 +62,7 @@ import { jjajang_rock } from './cutscenes/jjajang_bend.js';
 import { jjajang_walk_pause } from './cutscenes/jjajang_walk.js';
 import { pines_center } from './cutscenes/jjajang_pines.js';
 import { jjajang_statue_talk, jjajang_statue_hint } from './cutscenes/jjajang_statue.js';
+import { jjajang_run_start } from './cutscenes/jjajang_run.js';
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
 import {
@@ -95,6 +96,7 @@ export const SCRIPTS = {
   pines_center,
   jjajang_statue_talk,
   jjajang_statue_hint,
+  jjajang_run_start,
   obj4_baron_intro,
   obj4_baron_abduction,
   obj5_chase,

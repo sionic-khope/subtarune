@@ -1,0 +1,13 @@
+# imagegen 2026-09-19 14:29:44
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/runner-v1/runner-ref.png
+
+Create a 2x2 sprite sheet, EXACTLY FOUR full-body frames of ONE character for a Deltarune-like pixel RPG. 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no motion lines, no speed lines, no dust, no effects.
+Image1 is the exact CHARACTER IDENTITY: the left figure is his SIDE VIEW facing RIGHT (a chubby boy with short dark navy hair, round glasses, a big round pale nose, white short-sleeved t-shirt, dark navy shorts, dark shoes, chunky cute pixel proportions) and the right figure shows his simple straight silver longsword with a small dark crossguard. Preserve his identity, colours, pixel density and proportions exactly. ALL FOUR frames are SIDE VIEW facing RIGHT.
+He is running at FULL SPEED into a strong headwind, so in EVERY frame: his hair is swept straight BACK with several strands streaming out behind his head like flames in the wind, the back hem of his t-shirt and both sleeves flap and billow BACKWARD, and his body leans forward. The flutter must be clearly readable at pixel size and must CHANGE between frames (strands and hem in a different wave position each frame) so it animates.
+In every frame his EYES ARE HIDDEN IN SHADOW: a dark shadow band across the upper face under the hair so no eyes are visible, only a small glint on the glasses (a determined, intense look).
+A forward SLASH while running, reading order upper-left, upper-right, lower-left, lower-right: 1 wind-up, the sword raised high behind the head, body leaning forward; 2 the sword sweeping forward horizontally at chest height, the blade fully extended to the right; 3 follow-through with the blade pointing down and forward; 4 recovering to the run pose with the sword trailing behind. Feet touch the same ground baseline in every cell and the body centre stays roughly in the same place.
+Maintain the same anatomical scale, palette and camera in every cell. Whole subject within the central 70% of each cell, generous margins, nothing clipped.
+Style: hard square pixels, low-resolution logical art about 52 pixels tall standing, enlarged with a nearest-neighbour look, coarse sparse pixel clusters, flat limited shades, dark stepped outline, same pixel density as Image1, no gradients, no blur, no anti-aliasing.

@@ -11,8 +11,8 @@ import { TILE, PROBE_RANGE, CHAR_BOX, DIALOGUE_VISIBLE_H } from '../../src/core/
 
 const root = new URL('../../', import.meta.url).pathname;
 const CHAR_SCALE = Number(fs.readFileSync(root + 'src/world/world.js', 'utf-8').match(/export const CHAR_SCALE = ([\d.]+)/)[1]);
-const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', ':', ';', '/', '%', '?', '$', '"']);   // $ " = 짜장숲부터의 에코 길·공터 풀숲(BUILD226~227)
-const WALK = new Set([...ROAD, 'd', 'F', 'H', 'N', '&']);   // F: 용광로 구역 바닥(BUILD189), H: 가장자리 출입구 칸(BUILD194, 걷는다), N: 용암 위 다리 바닥(BUILD201)
+const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', ':', ';', '/', '%', '?', '$', '"', '*']);   // $ " = 짜장숲부터의 에코 길·공터 풀숲(BUILD226~227)
+const WALK = new Set([...ROAD, 'd', 'F', 'H', 'N', '&', '+']);   // F: 용광로 구역 바닥(BUILD189), H: 가장자리 출입구 칸(BUILD194, 걷는다), N: 용암 위 다리 바닥(BUILD201)
 const pngH = (p) => fs.readFileSync(root + p).readUInt32BE(20);
 const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8')).maps.map((id) => JSON.parse(fs.readFileSync(root + `assets/maps/${id}.json`, 'utf-8'))).filter((m) => m.rows);
 

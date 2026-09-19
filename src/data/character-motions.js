@@ -32,6 +32,56 @@ export const CHARACTER_MOTIONS = {
       colorKey: BATTLE_PREVIEW.colorKey,
       frames: BATTLE_SPRITES.hyungsub.attack,
     },
+    // 러너 기믹(BUILD230, assets/source/runner-v1 gpt-image 4장, 오른쪽 옆모습): 준비(땅 짚고 검 뽑기)·달리기·점프·베기. runner.js 가 프레임 번호를 직접 고른다(duration 은 형식용).
+    // pivot 은 프레임마다 [남색(머리·바지) 가운데, 발 밑변](runner-contract.json), scale 은 달리기 프레임을 44px(걷기 52px 의 0.85)로
+    runner_prep: {
+      src: 'assets/sprites/hyungsub-runner-prep.png',
+      scale: 0.131,
+      faces: 'right',
+      colorKey: { rMin: 150, gMax: 110, bMin: 150 },
+      frames: [
+        { rect: [0, 0, 512, 512], pivot: [269, 452], duration: 0.24 },
+        { rect: [512, 0, 512, 512], pivot: [228, 453], duration: 0.26 },
+        { rect: [0, 512, 512, 512], pivot: [242, 409], duration: 0.12 },
+        { rect: [512, 512, 512, 512], pivot: [234, 410], duration: 0.1 },
+      ],
+    },
+    runner_run: {
+      src: 'assets/sprites/hyungsub-runner-run.png',
+      scale: 0.131,
+      faces: 'right',
+      colorKey: { rMin: 150, gMax: 110, bMin: 150 },
+      frames: [
+        { rect: [0, 0, 512, 512], pivot: [206, 435], duration: 0.08 },
+        { rect: [512, 0, 512, 512], pivot: [192, 436], duration: 0.08 },
+        { rect: [0, 512, 512, 512], pivot: [238, 413], duration: 0.08 },
+        { rect: [512, 512, 512, 512], pivot: [192, 413], duration: 0.08 },
+      ],
+    },
+    runner_jump: {
+      src: 'assets/sprites/hyungsub-runner-jump.png',
+      scale: 0.131,
+      faces: 'right',
+      colorKey: { rMin: 150, gMax: 110, bMin: 150 },
+      frames: [
+        { rect: [0, 0, 512, 512], pivot: [229, 427], duration: 0.08 },
+        { rect: [512, 0, 512, 512], pivot: [243, 408], duration: 0.12 },
+        { rect: [0, 512, 512, 512], pivot: [272, 352], duration: 0.2 },
+        { rect: [512, 512, 512, 512], pivot: [190, 422], duration: 0.12 },
+      ],
+    },
+    runner_slash: {
+      src: 'assets/sprites/hyungsub-runner-slash.png',
+      scale: 0.131,
+      faces: 'right',
+      colorKey: { rMin: 150, gMax: 110, bMin: 150 },
+      frames: [
+        { rect: [0, 0, 512, 512], pivot: [237, 456], duration: 0.08 },
+        { rect: [512, 0, 512, 512], pivot: [268, 456], duration: 0.08 },
+        { rect: [0, 512, 512, 512], pivot: [258, 438], duration: 0.08 },
+        { rect: [512, 512, 512, 512], pivot: [161, 440], duration: 0.08 },
+      ],
+    },
   },
   expelled_viewer: {
     legraise: {

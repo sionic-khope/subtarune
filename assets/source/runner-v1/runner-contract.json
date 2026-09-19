@@ -1,0 +1,211 @@
+{
+ "prep": [
+  {
+   "bbox": [
+    95,
+    152,
+    428,
+    451
+   ],
+   "height": 300,
+   "bodyCenterX": 269,
+   "feetBottom": 451,
+   "feetCenterX": 244
+  },
+  {
+   "bbox": [
+    17,
+    146,
+    447,
+    452
+   ],
+   "height": 307,
+   "bodyCenterX": 228,
+   "feetBottom": 452,
+   "feetCenterX": 272
+  },
+  {
+   "bbox": [
+    38,
+    92,
+    459,
+    408
+   ],
+   "height": 317,
+   "bodyCenterX": 242,
+   "feetBottom": 408,
+   "feetCenterX": 266
+  },
+  {
+   "bbox": [
+    16,
+    94,
+    468,
+    410
+   ],
+   "height": 317,
+   "bodyCenterX": 234,
+   "feetBottom": 409,
+   "feetCenterX": 262
+  }
+ ],
+ "run": [
+  {
+   "bbox": [
+    45,
+    81,
+    451,
+    435
+   ],
+   "height": 355,
+   "bodyCenterX": 206,
+   "feetBottom": 434,
+   "feetCenterX": 288
+  },
+  {
+   "bbox": [
+    36,
+    84,
+    441,
+    435
+   ],
+   "height": 352,
+   "bodyCenterX": 192,
+   "feetBottom": 435,
+   "feetCenterX": 262
+  },
+  {
+   "bbox": [
+    45,
+    64,
+    451,
+    412
+   ],
+   "height": 349,
+   "bodyCenterX": 238,
+   "feetBottom": 412,
+   "feetCenterX": 292
+  },
+  {
+   "bbox": [
+    36,
+    64,
+    441,
+    412
+   ],
+   "height": 349,
+   "bodyCenterX": 192,
+   "feetBottom": 412,
+   "feetCenterX": 271
+  }
+ ],
+ "jump": [
+  {
+   "bbox": [
+    69,
+    117,
+    411,
+    426
+   ],
+   "height": 310,
+   "bodyCenterX": 229,
+   "feetBottom": 426,
+   "feetCenterX": 277
+  },
+  {
+   "bbox": [
+    82,
+    79,
+    359,
+    407
+   ],
+   "height": 329,
+   "bodyCenterX": 243,
+   "feetBottom": 407,
+   "feetCenterX": 180
+  },
+  {
+   "bbox": [
+    89,
+    60,
+    399,
+    351
+   ],
+   "height": 292,
+   "bodyCenterX": 272,
+   "feetBottom": 351,
+   "feetCenterX": 108
+  },
+  {
+   "bbox": [
+    66,
+    59,
+    375,
+    421
+   ],
+   "height": 363,
+   "bodyCenterX": 190,
+   "feetBottom": 421,
+   "feetCenterX": 275
+  }
+ ],
+ "slash": [
+  {
+   "bbox": [
+    95,
+    61,
+    387,
+    455
+   ],
+   "height": 395,
+   "bodyCenterX": 237,
+   "feetBottom": 455,
+   "feetCenterX": 245
+  },
+  {
+   "bbox": [
+    62,
+    110,
+    489,
+    455
+   ],
+   "height": 346,
+   "bodyCenterX": 268,
+   "feetBottom": 455,
+   "feetCenterX": 181
+  },
+  {
+   "bbox": [
+    88,
+    81,
+    445,
+    437
+   ],
+   "height": 357,
+   "bodyCenterX": 258,
+   "feetBottom": 437,
+   "feetCenterX": 202
+  },
+  {
+   "bbox": [
+    17,
+    84,
+    347,
+    439
+   ],
+   "height": 356,
+   "bodyCenterX": 161,
+   "feetBottom": 439,
+   "feetCenterX": 218
+  }
+ ],
+ "scale": 0.131,
+ "targetHeight": 46,
+ "source": {
+  "prep": "runner-prep3-raw.png",
+  "run": "runner-run3-raw.png",
+  "jump": "runner-jump3-raw.png",
+  "slash": "runner-slash3-raw.png"
+ },
+ "note": "3판(BUILD230 사용자 정정): 양손 뒷짐 검(칼날 아래 뒤로), 눈 정상, 점프 상승 프레임은 하늘 봄. pivot = [반바지 가운데, 발 밑변], scale = 달리기 프레임 46px"
+}

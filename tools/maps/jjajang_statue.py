@@ -10,7 +10,7 @@
 "다음 맵은 오른쪽 길 쭉 이어져 있고 가운데에서 살짝만 위로 올라가면 좀 더 넓게 가로로 펼쳐지면서 상단에 뭔가 깊숙한 곳으로 갈 수 있는 곳 같이
 그림자 진 입구 같은 느낌인데 앞에 [사진] 이 사진 그대로에서 배경만 제거하고 석상 버전으로 바꾼 거로 앞에 깔려 있어서 막혀 있게 해 줘 좀 거대함. 화면 잘림 잘 고려하고 자연스러움도.
 그리고 가운데로 가서 거기에 상호작용하면 (막히기도 해야 함) 브금 꺼지면서 …"
-- 검은 소나무 숲(jjajang_pines) 오른쪽 문에서 왼쪽 가장자리(14~15행)로 들어와 오른쪽 끝까지 곧은 길. 오른쪽 끝은 통로만 열림(다음 맵 브리핑 대기 — 청소부 “오른쪽으로 가보는 건 어떻겠나”).
+- 검은 소나무 숲(jjajang_pines) 오른쪽 문에서 왼쪽 가장자리(14~15행)로 들어와 오른쪽 끝까지 곧은 길. 오른쪽 끝 문 → 파란 토리이 길(jjajang_run, BUILD230).
 - 가운데(28~29열)에서 위로 세 칸 오르면 가로로 넓은 공터(17~40열 × 7~10행). 공터 위 가운데(27~30열, 1~6행)는 위로 갈수록 검게 잠기는 통로(그림자 오버레이 assets/props/jjajang_passage_shade.png, 해안 숲 입구와 같은 구성).
 - 길 위 갈림목(27~30열×14~15행) 트리거 → 청소부: 위로 한번 가보새(jjajang_statue_hint, 한 번).
 - 통로 입구를 석상(assets/props/jjajang_statue.png, gpt-image-2.5-sunburst 로 사용자 사진을 회색 석상으로, 160×177 = 요플래의 약 2.7배)이 막는다: 히트박스는 그림 폭(852~1008) × 6행 아래 24px 로 통로(864~992)보다 넓고 양옆은 검은 숲, 그림 밑변 = 히트박스 밑변(224). C 상호작용 → 컷신 jjajang_statue_talk(src/data/cutscenes/jjajang_statue.js).
@@ -113,6 +113,11 @@ def build_map() -> dict[str, object]:
         'type': 'door', 'id': 'statue_pines_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_pines', 'spawn': 'from_east', 'sfx': False,
     }
+    # 오른쪽 끝 10px → 파란 토리이 길(jjajang_run, BUILD230)
+    door_east = {
+        'type': 'door', 'id': 'statue_run_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
+        'to': 'jjajang_run', 'spawn': 'from_west', 'sfx': False,
+    }
     return {
         'id': MAP_ID,
         'name': '석상 앞 숲',
@@ -124,18 +129,19 @@ def build_map() -> dict[str, object]:
             'from_west': {'x': 1 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
             'start': {'x': 1 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
             'before_statue': {'x': BRANCH_COLS[0] * TILE + 8, 'y': (r1 - 1) * TILE + 6, 'facing': 'up'},
+            'from_east': {'x': (WIDTH - 2) * TILE - 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
             'route': [[1, ROAD_ROWS[0]], [BRANCH_COLS[0], ROAD_ROWS[0]], [BRANCH_COLS[0], r0], [WIDTH - 2, ROAD_ROWS[0]]],
             # 석상 뒤 통로는 걸어서 닿을 수 없어야 한다(막아야 하는 길 감사)
             'blocked': [[BRANCH_COLS[0], r1 - 1], [BRANCH_COLS[0], 2]],
-            'role': '소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝(다음 맵 대기). 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐',
+            'role': '소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝 문 → 파란 토리이 길. 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐',
             'clearing': list(CLEARING),
             'passage': [list(PASSAGE_COLS), list(PASSAGE_ROWS)],
             'statue': [STATUE_CENTER_COL, STATUE_BASE_ROW],
         },
-        'entities': [*pines, passage_shade, statue, hint_trigger, door_west],
+        'entities': [*pines, passage_shade, statue, hint_trigger, door_west, door_east],
     }
 
 

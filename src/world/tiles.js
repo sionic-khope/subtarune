@@ -210,3 +210,11 @@ const thicket = (ctx, rng) => {
 };
 registerTile('"', { name: 'jjajang_thicket', solid: false, step: FOREST_STEP, variants: 3, draw: thicket });
 registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });
+// 파란 토리이 길(jjajang_run, BUILD230 사용자 “검은 바닥인데 물 깔린 전제라 한 발자국 할 때마다 동그란 파장이 타다다닥”): 거의 검은 물 위에 옅은 물비늘 몇 줄, 걸을 수 있고 발소리는 물걸음 루프 + 물결 고리(ripple)
+const blackWater = (ctx, rng) => {
+  ctx.fillStyle = '#06080c'; ctx.fillRect(0, 0, ART_PX, ART_PX);
+  for (let i = 0; i < 3; i++) { ctx.fillStyle = i === 0 ? '#182634' : '#101820'; ctx.fillRect(Math.floor(rng() * ART_PX), Math.floor(rng() * ART_PX), 2 + Math.floor(rng() * 4), 1); }
+};
+registerTile('*', { name: 'jjajang_black_water', solid: false, step: WATER_STEP, variants: 3, draw: blackWater });
+// 검은 물길의 가장자리 출입구 칸('&' 와 같은 역할, 그림만 검은 물) — 회색 길 가장자리 그림이 검은 물 위에 상자로 보이던 것
+registerTile('+', { name: 'jjajang_black_water_edge', solid: false, step: WATER_STEP, variants: 3, draw: blackWater });

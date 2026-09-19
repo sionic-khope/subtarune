@@ -41,6 +41,11 @@
    "x": 904,
    "y": 294,
    "facing": "up"
+  },
+  "from_east": {
+   "x": 1848,
+   "y": 454,
+   "facing": "left"
   }
  },
  "meta": {
@@ -73,7 +78,7 @@
     2
    ]
   ],
-  "role": "소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝(다음 맵 대기). 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐",
+  "role": "소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝 문 → 파란 토리이 길. 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐",
   "clearing": [
    17,
    40,
@@ -443,6 +448,17 @@
    "h": 64,
    "to": "jjajang_pines",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "statue_run_door",
+   "x": 1910,
+   "y": 448,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_run",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

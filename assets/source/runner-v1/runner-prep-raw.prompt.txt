@@ -1,0 +1,12 @@
+# imagegen 2026-09-19 14:08:24
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/runner-v1/runner-ref.png
+
+Create a 2x2 sprite sheet, EXACTLY FOUR full-body frames of ONE character for a Deltarune-like pixel RPG. 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no motion lines, no effects.
+Image1 is the exact CHARACTER IDENTITY: the left figure is his SIDE VIEW facing RIGHT (a chubby boy with short dark navy hair, round glasses, a big round pale nose, white short-sleeved t-shirt, dark navy shorts, dark shoes, chunky cute pixel proportions) and the right figure shows his simple straight silver longsword with a small dark crossguard. Preserve his identity, colours, pixel density and proportions exactly. ALL FOUR frames are SIDE VIEW facing RIGHT.
+In every frame his EYES ARE HIDDEN IN SHADOW: a dark shadow band across the upper face under the hair so no eyes are visible, only a small glint on the glasses (a determined, intense look).
+A dramatic sword-draw START sequence, reading order upper-left, upper-right, lower-left, lower-right: 1 crouched very low on one knee, left hand pressed flat on the ground, head down, right hand reaching back over his shoulder to the sword hilt on his back; 2 same low crouch, the sword now drawn and held low BEHIND him with the blade pointing back and slightly up; 3 coiled forward with the weight on the front foot, sword still trailing behind, about to burst forward; 4 the first explosive stride forward, body leaning far forward, sword trailing behind. Feet touch the same ground baseline in every cell and the body centre stays roughly in the same place.
+Maintain the same anatomical scale, palette and camera in every cell. Whole subject within the central 70% of each cell, generous margins, nothing clipped.
+Style: hard square pixels, low-resolution logical art about 52 pixels tall standing, enlarged with a nearest-neighbour look, coarse sparse pixel clusters, flat limited shades, dark stepped outline, same pixel density as Image1, no gradients, no blur, no anti-aliasing.
