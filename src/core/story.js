@@ -494,3 +494,11 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_glade', desc: '빛 드는 �
   map: 'jjajang_glade', spawn: 'from_south', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_glade_bush', desc: '빛 드는 공터 · 풀숲 연출 직전 (위로 한 걸음이면 풀숲이 흔들린다)',
   map: 'jjajang_glade', spawn: 'before_bush', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });
+// 벚꽃 숲(BUILD261): 공터 연출을 끝낸 상태(glade_done)로, 검은 풀숲 땅·꽃잎 조금 → 넓은 풀숲 초입에서 벚꽃이 번진다
+const sakuraFlags = { ...regroupFlags, glade_started: true, glade_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura', desc: '벚꽃 숲 입구 (검은 풀숲 땅 · 꽃잎 조금씩 · 위로 8초쯤 걸으면 넓은 풀숲에서 벚꽃이 번진다)',
+  map: 'jjajang_sakura', spawn: 'from_south', flags: sakuraFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura_bloom', desc: '벚꽃 숲 · 벚꽃 번짐 직전 (위로 세 걸음이면 넓은 풀숲 트리거)',
+  map: 'jjajang_sakura', spawn: 'before_bloom', flags: sakuraFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura_bloomed', desc: '벚꽃 숲 · 이미 핀 뒤 (분홍 땅·벚꽃 나무 · 위로 가서 오른쪽으로)',
+  map: 'jjajang_sakura', spawn: 'meadow', flags: { ...sakuraFlags, sakura_bloom_started: true, sakura_bloom: true }, party: ['gyeongsub', 'ppaman'] });

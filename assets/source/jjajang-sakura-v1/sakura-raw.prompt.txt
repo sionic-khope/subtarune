@@ -1,0 +1,9 @@
+# imagegen 2026-09-20 14:57:51
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/jjajang-sakura-v1/pines-ref-512.png
+
+Pixel art prop sheet: the SAME four dark pine trees shown in Image1, in EXACTLY the same 2 columns x 2 rows layout, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no ground, no shadows.
+Keep each tree's exact cell position, overall size, trunk shape and branch silhouette from Image1. The ONLY change: every tree is now in FULL CHERRY BLOSSOM. Replace all of the dark needle foliage clumps with dense, fluffy, rounded clusters of pink cherry blossoms that completely cover the branch ends and make each tree look pink and soft (light pink #ffc2e0 highlights, pink #ff8ad0 body, deep pink #d24f9a shadow - at most 3 pink tones), with a few loose single petals resting on the branches. Trunks and branches stay dark charcoal brown with a dark stepped outline.
+Style: chunky retro pixel art matching the pixel density of Image1, coarse pixel clusters, flat limited shades, crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

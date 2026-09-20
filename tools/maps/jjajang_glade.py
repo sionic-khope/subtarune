@@ -32,6 +32,7 @@ RADIUS: Final = 10
 PATH_CHAR: Final = 'U'
 EDGE_CHAR: Final = '^'
 GLADE_CHAR: Final = 'U'               # 공터 바닥도 어두운 길 타일 — 밝기는 spotlight 로만(풀숲 타일 '"' 은 밝은 초록 줄무늬라 다른 지역처럼 보였다)
+NORTH_COLS: Final = (17, 18)          # 공터 꼭대기에서 윗줄 문까지의 길(BUILD261 벚꽃 숲으로)
 BUSH: Final = ('assets/props/jjajang_bush.png', 76, 74)   # 76px(BUILD258 사용자 “풀숲 더 키워줘도 되고”, 전 52)
 BUSH_CELLS: Final = ((21, 12), (22, 14), (21, 16))   # 가운데(18,15)에서 오른쪽으로 3~4칸 — 최미스가 튀어나와 빛이 드는 가운데에 선다(사용자 2026-09-20 “가운데에서 활동하게”)
 HIDE_TREE_CELL: Final = (13, 15)      # 숨는 나무(공터 왼쪽)
@@ -81,6 +82,9 @@ def build_map() -> dict[str, object]:
                 rows[row][col] = GLADE_CHAR
     for col in range(ENTRY_COLS[0], ENTRY_COLS[1] + 1):
         rows[HEIGHT - 1][col] = EDGE_CHAR
+    for row in range(0, CENTER[1] - RADIUS + 1):                  # 공터 꼭대기에서 윗줄까지 곧은 길(BUILD261: 위 문 → 벚꽃 숲 jjajang_sakura, 최미스가 달려 나간 쪽)
+        for col in range(NORTH_COLS[0], NORTH_COLS[1] + 1):
+            rows[row][col] = EDGE_CHAR if row == 0 else PATH_CHAR
     # 비스듬한 길 끝이 공터에 닿는지
     assert any(rows[diag_end + 1][c] == PATH_CHAR and inside_glade(c, diag_end) for c in range(WIDTH)), '길이 공터에 닿는다'
     pines = [p for p in (pine(i, col, row) for i, (col, row) in enumerate(PINE_CELLS)) if p]
@@ -116,6 +120,8 @@ def build_map() -> dict[str, object]:
     assert inside_glade(CENTER[0], tr + 3), '연출 직전 스폰은 공터 안'
     door_south = {'type': 'door', 'id': 'glade_deep_door', 'x': ENTRY_COLS[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': 2 * TILE, 'h': 10,
                   'to': 'jjajang_deep', 'spawn': 'from_north', 'sfx': False}
+    door_north = {'type': 'door', 'id': 'glade_sakura_door', 'x': NORTH_COLS[0] * TILE, 'y': 0, 'w': 2 * TILE, 'h': 10,
+                  'to': 'jjajang_sakura', 'spawn': 'from_south', 'sfx': False}
     cx, cy = CENTER[0] * TILE + 16, CENTER[1] * TILE + 16
     return {
         'id': MAP_ID,
@@ -130,14 +136,15 @@ def build_map() -> dict[str, object]:
             'start': {'x': ENTRY_COLS[1] * TILE - 8, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
             'before_bush': {'x': CENTER[0] * TILE + 8, 'y': (tr + 3) * TILE + 6, 'facing': 'up'},
             'center': {'x': CENTER[0] * TILE + 8, 'y': (CENTER[1] + 2) * TILE + 6, 'facing': 'up'},
+            'from_north': {'x': NORTH_COLS[1] * TILE - 8, 'y': 1 * TILE + 16, 'facing': 'down'},
         },
         'meta': {
             'connected': True,
-            'route': [[ENTRY_COLS[1], HEIGHT - 3], [ENTRY_COLS[1], STRAIGHT_TOP], [CENTER[0], CENTER[1]]],
+            'route': [[ENTRY_COLS[1], HEIGHT - 3], [ENTRY_COLS[1], STRAIGHT_TOP], [CENTER[0], CENTER[1]], [NORTH_COLS[1], 1]],
             'role': '깊은숲 입구 위 문 다음(BUILD257): 오른쪽으로 비스듬히 오르면 위에서 빛이 드는 원형 공터. 오른쪽 풀숲 셋(가운데 것에 최미스), 왼쪽 숨는 나무. 브금 wind',
             'glade': {'center': list(CENTER), 'radius': RADIUS, 'bushes': [list(c) for c in BUSH_CELLS], 'hideTree': list(HIDE_TREE_CELL), 'trigger': list(TRIGGER)},
         },
-        'entities': [*pines, hide_tree, *bushes, mask, choimis, *girls, trigger, door_south],
+        'entities': [*pines, hide_tree, *bushes, mask, choimis, *girls, trigger, door_south, door_north],
     }
 
 

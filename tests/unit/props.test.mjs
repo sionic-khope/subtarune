@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const KNOWN = new Set(['type', 'id', 'image', 'x', 'y', 'w', 'h', 'ix', 'iy', 'scale', 'foldX', 'carry', 'solid', 'script', 'sortY', 'unless', 'requires', 'obstacle', 'oscillate', 'interact', 'flag', 'emptyScript', 'lockedScript', 'to', 'spawn', 'sfx', 'sprite', 'facing', 'wander', 'route', 'speed', 'jump', 'swim', 'onBoard', 'onArrive', 'stops', 'checkpoints', 'swimAt', 'clear', 'sweep', 'anim', 'period', 'offset', 'range', 'ground', 'top', 'warn', 'fall', 'rest', 'raft', 'slot', 'once', 'dir', 'name', 'text', 'items', 'tiles', 'when', 'lanes', 'tileSwaps', 'visible', 'hidden', 'cooldown', 'noFace', 'walkable', 'auto', 'from', 'stage', 'label', 'motion', 'lift', 'pulse', 'lava', 'boardSfx', 'arriveSfx', 'jumpH2', 'disembarkPartyGap']);
 KNOWN.add('shipHatch');
+KNOWN.add('bloom');   // 벚꽃 숲(BUILD261): 번짐이 닿으면 바꿔 그릴 그림(assets/props/jjajang_sakura_N.png)
 const pngSize = (path) => { const b = fs.readFileSync(path); assert.equal(b.toString('ascii', 1, 4), 'PNG', `${path} 는 PNG 가 아님`); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }; };
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 for (const id of index.maps) {

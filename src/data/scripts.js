@@ -69,7 +69,8 @@ import { jjajang_chin_start_a, jjajang_chin_start_b, jjajang_no_return } from '.
 import { jjajang_think } from './cutscenes/jjajang_think.js';
 import { jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5 } from './cutscenes/jjajang_stele.js';
 import { jjajang_nest_drum } from './cutscenes/drum_devil.js';
-import { jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return } from './cutscenes/jjajang_nest_after.js';   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
+import { jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return } from './cutscenes/jjajang_nest_after.js';
+import { jjajang_sakura_bloom } from './cutscenes/jjajang_sakura.js';   // 벚꽃 숲 번짐(BUILD261)   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
 import { jjajang_glade_intro } from './cutscenes/jjajang_glade.js';   // 빛 드는 공터 풀숲의 최미스(BUILD257)
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
@@ -111,7 +112,7 @@ export const SCRIPTS = {
   jjajang_drum_talk, jjajang_chin_start_a, jjajang_chin_start_b, jjajang_no_return,
   jjajang_spring: maillard_spring,
   jjajang_think,
-  jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5, jjajang_nest_drum, jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return, jjajang_glade_intro,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
+  jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5, jjajang_nest_drum, jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return, jjajang_glade_intro, jjajang_sakura_bloom,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
   drum_devil_battle_qa: [jjajang_nest_drum.find(node => node.battle), ...jjajang_nest_after],   // 전투 직행 QA 도 승리 뒤 연출까지(BUILD254)
   obj4_baron_intro,
   obj4_baron_abduction,

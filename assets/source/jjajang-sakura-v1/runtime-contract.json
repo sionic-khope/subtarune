@@ -1,0 +1,42 @@
+{
+ "scale": 0.345,
+ "trunkDarken": 0.55,
+ "trees": [
+  {
+   "file": "assets/props/jjajang_sakura_1.png",
+   "size": [
+    141,
+    157
+   ],
+   "baseX": 100,
+   "pine": "assets/props/jjajang_pine_1.png"
+  },
+  {
+   "file": "assets/props/jjajang_sakura_2.png",
+   "size": [
+    135,
+    159
+   ],
+   "baseX": 30,
+   "pine": "assets/props/jjajang_pine_2.png"
+  },
+  {
+   "file": "assets/props/jjajang_sakura_3.png",
+   "size": [
+    108,
+    167
+   ],
+   "baseX": 60,
+   "pine": "assets/props/jjajang_pine_3.png"
+  },
+  {
+   "file": "assets/props/jjajang_sakura_4.png",
+   "size": [
+    167,
+    146
+   ],
+   "baseX": 58,
+   "pine": "assets/props/jjajang_pine_4.png"
+  }
+ ]
+}

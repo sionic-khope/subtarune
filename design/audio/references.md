@@ -554,6 +554,7 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 
 ## BUILD257 빛 드는 공터 (2026-09-20)
 
+- `bgm/sakura.mp3`(203.5초, 5.0MB): 사용자 지정 [MzEHcwoNlbE](https://www.youtube.com/watch?v=MzEHcwoNlbE) “11. Garden of Hopes and Dreams (DELTARUNE Chapter 5 Soundtrack) - Toby Fox & @insaneintherainmusic”(업로더 Toby Fox, 20260624) 전체를 MP3 q2 로 변환(구간 편집·정규화 없음). 벚꽃 숲(jjajang_sakura, BUILD261) 맵 브금. 원본 wav 는 `assets/source/jjajang-sakura-v1/`(커밋하지 않음, 메타·로그만).
 - `bgm/choimis.mp3`: 사용자 지정 [XGbJbxiXS0o](https://www.youtube.com/watch?v=XGbJbxiXS0o) — yt-dlp 제목 “10. Your Dad's Best Friend (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 29초 전체를 MP3 q2. 최미스 “아시발.” 부터 “큼큼” 까지 반복.
 - `bgm/gasuni.mp3`: 사용자 지정 [RQsr0_RUMJU](https://www.youtube.com/watch?v=RQsr0_RUMJU) — “Who might you be?”, Toby Fox, 64초 전체를 MP3 q2. 가순이 셋이 내려올 때부터 “ㅋㅋㅋ... 후후..” 까지.
 - `sfx/choimis_chosouya.mp3`(1.7초, BUILD259 — 처음 3.0초 안에 19:51.8 부근 다른 화자(여자 목소리) 한 마디가 딸려 있어 사용자 “뒤에 여자목소리 잘라” 로 첫 발화 1.5초 뒤 0.2초 페이드로 끝냈다): 사용자 지정 [OGMmX4AvedA](https://www.youtube.com/watch?v=OGMmX4AvedA) “그 남자 그 여자의 금지된 사랑”(가재맨) 19:49.5~19:52.5 — “나 추구미 쵸소우야” 로 지정된 19:50 부근을 `--force-keyframes-at-cuts` 로 정확히 받아 소리 크기 파형(0.1초 RMS)에서 말하는 구간을 골랐다. 받아쓰기 도구가 없어 단어는 사용자 확인 필요. 원본 구간 wav 는 로컬 `assets/source/choimis-audio-v1/`(30MB 라 커밋하지 않음, 메타·로그만 커밋).

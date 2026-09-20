@@ -212,6 +212,20 @@ const thicket = (ctx, rng) => {
 };
 registerTile('"', { name: 'jjajang_thicket', solid: false, step: FOREST_STEP, variants: 3, draw: thicket });
 registerTile('?', { name: 'jjajang_sand', solid: false, draw: flat('#b08e59') });
+// 벚꽃 숲(jjajang_sakura, BUILD261 사용자 “검은색 풀숲의 땅 타일을 만들어서 좀 구분되게 … 땅이 분홍색 꽃들로 다 바뀌는 … 벚꽃맵부터는 발소리 안나게”):
+//   '(' 검은 풀숲 땅 — 깊은숲 길(#1f2221)보다 초록기가 도는 검은 풀밭에 짧은 풀잎, ')' 분홍 꽃잎 땅 — 짙은 분홍 바탕에 밝은 꽃잎 점. 둘 다 step 없음(걸음 소리 무음)
+const darkMeadow = (ctx, rng) => {
+  fillNoise(ctx, '#131a15', ['#1a2519', '#0d120e', '#213024'], rng, 10);
+  const blades = 5 + Math.floor(rng() * 4);
+  for (let i = 0; i < blades; i++) { const x = Math.floor(rng() * ART_PX), h = 2 + Math.floor(rng() * 3); ctx.fillStyle = i % 2 ? '#22331f' : '#1b2a1e'; ctx.fillRect(x, ART_PX - h - Math.floor(rng() * 6), 1, h); }
+};
+const petalMeadow = (ctx, rng) => {
+  fillNoise(ctx, '#8e3a6f', ['#a8478a', '#6e2a55', '#c05a9c'], rng, 12);
+  const petals = 4 + Math.floor(rng() * 3);
+  for (let i = 0; i < petals; i++) { const x = Math.floor(rng() * (ART_PX - 1)), y = Math.floor(rng() * (ART_PX - 1)); ctx.fillStyle = i % 3 === 0 ? '#ffc2e0' : i % 3 === 1 ? '#ff8ad0' : '#f4a6d6'; ctx.fillRect(x, y, 2, i % 2 ? 1 : 2); }
+};
+registerTile('(', { name: 'sakura_dark_meadow', solid: false, variants: 4, draw: darkMeadow });
+registerTile(')', { name: 'sakura_petal_meadow', solid: false, variants: 4, draw: petalMeadow });
 // 파란 토리이 길(jjajang_run, BUILD230 사용자 “검은 바닥인데 물 깔린 전제라 한 발자국 할 때마다 동그란 파장이 타다다닥”): 거의 검은 물 위에 옅은 물비늘 몇 줄, 걸을 수 있고 발소리는 물걸음 루프 + 물결 고리(ripple)
 const blackWater = (ctx, rng) => {
   ctx.fillStyle = '#06080c'; ctx.fillRect(0, 0, ART_PX, ART_PX);

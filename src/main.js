@@ -18,7 +18,7 @@ import { BattlePreview } from './ui/battle-preview.js';
 import { DotBubble } from './ui/bubble.js';
 import { darkSmokeWaiter, drawDarkSmoke } from './ui/dark-smoke.js';
 import { TileMap, Camera, createEntity, freeSpot, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
-import { loadTileOverrides } from './world/tiles.js';
+import { loadTileOverrides, TILE } from './world/tiles.js';
 import { preloadCaptainMemories } from './data/captain-memories.js';
 import { loadCharacterMotions } from './world/character-motion.js';
 import { CHARACTER_MOTIONS } from './data/character-motions.js';
@@ -33,6 +33,8 @@ import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
 import { WATER_WALK } from './data/footsteps.js';
+import { createPetals } from './world/petals.js';        // 벚꽃 숲 꽃잎(BUILD261)
+import { createTileSpread } from './world/tile-spread.js';   // 벚꽃 숲 땅·나무가 번지듯 바뀜(BUILD261)
 import { normalizeParty } from './core/party.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
@@ -127,6 +129,9 @@ class Game {
     this.hurt = 0; this.invuln = 0;   // 낙석 등에 맞았을 때 붉은 섬광 / 무적 시간
     this.fx = [];                 // 작은 입자(물방울 등) { x,y,vx,vy,t,color }
     this.ripples = [];            // 얕은 물 발소리 물결 고리 { x,y,t,dur } — emitRipple, 맵 위·캐릭터 아래에 그린다
+    this.petals = null;           // 맵 meta.petals 가 있으면 화면 위에서 떨어지는 꽃잎(world/petals.js, BUILD261)
+    this.petalsBurstT = 0;        // 꽃잎 폭발(burstRate) 남은 시간 → 끝나면 meta.petals.after 로
+    this.tileSpread = null;       // 타일·나무 교체가 번지는 중(world/tile-spread.js) — bloom() 이 만든다
     this.flames = []; this.flameEmitters = [];   // 불꽃 입자·방출기 (컷신 {fire}/{rocket}) — updateFlames, 캐릭터 위에 그린다
     this.mash = null;             // C 연타 미니게임 상태 (컷신 {mash}) — drawMash
     this.booms = [];              // 한 번 재생하는 큰 이펙트 애니 (컷신 {boom}) — 캐릭터 위에 그린다
@@ -357,6 +362,15 @@ class Game {
     for (const [row, str] of Object.entries(sw.rows || {})) this.map.rows[+row] = str;
     if (bake) this.map.bake();
   }
+  /** 벚꽃 번짐(BUILD261, 맵 meta.bloom = { flag, tiles, speed }): 꽃잎을 한꺼번에 쏟고(meta.petals.burst) 주인공이 선 행에서부터 tileSwaps[tiles] 의 행과 def.bloom 나무 그림이 speed 행/초로 번진다. 멈춤 없음 */
+  bloom(originRow) {
+    const def = MAPS[this.mapId], b = def?.meta?.bloom; if (!b || !this.map) return;
+    const sw = def.tileSwaps?.[b.tiles]; if (!sw) { console.warn('[bloom] 없는 tileSwaps', b.tiles); return; }
+    const origin = originRow ?? Math.floor((this.player.y + this.player.h) / TILE);
+    this.tileSpread = createTileSpread({ origin, speed: b.speed ?? 10, rows: Object.keys(sw.rows || {}) });
+    const p = def.meta?.petals;
+    if (p && this.petals) { this.petals.burst(p.burst ?? 150, SCREEN_W, SCREEN_H); this.petals.rate = p.burstRate ?? 60; this.petalsBurstT = p.burstSeconds ?? 2.5; }
+  }
 
   /** 맵 JSON `backdrop:'purple_fire'` — 허공 너머 멀리서 지글지글 끓는 보라색 불 (화면 좌표, 카메라 x 의 1/4 만큼 흐름) */
   drawBackdrop(ctx, cam) {
@@ -523,7 +537,7 @@ class Game {
     this.background = []; this.curtain = null; this.picture = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner?.finish(); this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
-    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = [];
+    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = []; this.petals = null; this.tileSpread = null;
     this.fadeTo(1, 0.4, () => {
       this.resetState();
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
@@ -800,6 +814,10 @@ class Game {
       }
       // 문 위에서 스폰될 때 바로 되돌아가지 않도록 쿨다운
       for (const e of this.entities) if (e.cooldown !== undefined) e.cooldown = 0.6;
+      // 벚꽃 숲(BUILD261): meta.petals → 꽃잎(이미 핀 뒤면 after 밀도), meta.bloom.flag 가 서 있으면 나무(def.bloom 그림)도 처음부터 핀 그림
+      const petalsMeta = def.meta?.petals, bloomMeta = def.meta?.bloom, bloomed = !!(bloomMeta && this.has(bloomMeta.flag));
+      this.petals = petalsMeta ? createPetals({ rate: bloomed ? (petalsMeta.after ?? petalsMeta.rate) : petalsMeta.rate }) : null; this.petalsBurstT = 0; this.tileSpread = null;
+      if (bloomed) for (const e of this.entities) if (e.def?.bloom) { e.image = this.propImages[e.def.bloom] || e.image; e.bloomed = true; }
       this.camera.map = this.map;
       this.camera.target = this.player;
       // 컷신 카메라 팬(camera:[tx,ty])이 걸어 둔 잠금은 맵을 넘기면 의미가 없다 — 잠긴 채 snap 이 무시돼 옛 좌표에 박히면 다음 맵이 검게 나온다(BUILD259, 전함 연출 뒤 깊은숲)
@@ -1091,6 +1109,17 @@ class Game {
     for (const e of this.entities) if (e.emote) { e.emote.t += dt; if (e.emote.t >= e.emote.life) e.emote = null; }   // 머리 위 이모트 수명
     if (this.picture) this.picture.t += dt;
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
+    if (this.petals) {   // 벚꽃 숲 꽃잎(BUILD261): 대화 중에도 계속 내린다. 폭발 뒤엔 meta.petals.after 밀도로
+      this.petals.update(dt, SCREEN_W, SCREEN_H);
+      if (this.petalsBurstT > 0) { this.petalsBurstT -= dt; if (this.petalsBurstT <= 0) this.petals.rate = MAPS[this.mapId]?.meta?.petals?.after ?? this.petals.rate; }
+    }
+    if (this.tileSpread) {   // 땅·나무가 번지듯 바뀐다: 닿은 행은 tileSwaps 행으로 바꿔 다시 굽고, 밑동 행이 닿은 def.bloom 나무는 핀 그림으로
+      const b = MAPS[this.mapId]?.meta?.bloom, sw = b && MAPS[this.mapId]?.tileSwaps?.[b.tiles];
+      const hit = this.tileSpread.update(dt);
+      if (sw && hit.length) { for (const r of hit) this.map.rows[r] = sw.rows[r]; this.map.bake(); }
+      for (const e of this.entities) if (e.def?.bloom && !e.bloomed && this.tileSpread.covers(Math.floor((e.y + e.h) / TILE))) { e.image = this.propImages[e.def.bloom] || e.image; e.bloomed = true; }
+      if (this.tileSpread.done && this.tileSpread.radius > this.map.h) this.tileSpread = null;
+    }
     if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
     if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
@@ -1184,7 +1213,7 @@ class Game {
     this.escapes = (this.escapes || 0) + 1;   // 오버레이 씬(섭리오)이 열려 있으면 이 값이 바뀐 것을 보고 씬을 접는다
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
-    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null; this.booms = [];
+    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null; this.booms = []; this.tileSpread = null;
     const spawnId = this.entrySpawn || 'start', def = MAPS[this.mapId], sp = def?.spawns?.[spawnId] || def?.spawns?.start || { x: this.player.x, y: this.player.y };
     for (const e of def?.entities || []) {                        // 뗏목: 입구에 가까운 끝으로 (route 0 또는 마지막)
       if (e.type !== 'raft') continue;
@@ -1407,6 +1436,7 @@ class Game {
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
+    if (this.petals) this.petals.draw(ctx);   // 꽃잎은 어둠(dim) 위에 화면 좌표로(BUILD261)
     drawYoungcleLoungeEffects(ctx, this, cam);
     if (this.picture) this.drawPicture(ctx);
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
