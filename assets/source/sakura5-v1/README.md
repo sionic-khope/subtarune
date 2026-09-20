@@ -11,5 +11,5 @@
 
 - `domijorim-raw.png` 는 등에 얼린 홍어(검처럼 대각선 끈)를 멘 두 번째 생성(`domijorim-walk2.prompt.txt`). 홍어 없는 첫 시트는 `domijorim-v1-noskate-raw.png`(커밋하지 않음).
 - `domijorim-battle-raw.png`(`domijorim-battle.prompt.txt`, 참조 = 걷기 시트 0.5배): 오른손에 꼬리 잡은 얼린 홍어, 왼손 횃불 → `assets/enemies/domijorim-battle.png`(138×149).
-- `dohyun-battle-raw.png`(`dohyun-battle.prompt.txt`, 참조 = 걷기 시트): 손도끼 하나(“손ㄷ” 을 손도끼로 읽음 — 잠정) → `assets/enemies/dohyun-battle.png`(43×150).
+- `dohyun-battle-raw.png`(`dohyun-battle.prompt.txt`, 참조 = 걷기 시트): 빈손으로 한 손을 들어 인사하듯(사용자 정정 “걍 손하나 들고있다고 / 안녕하듯”) → `assets/enemies/dohyun-battle.png`(43×152). 손도끼로 잘못 읽은 첫 판은 `dohyun-battle-v1-axe-raw.png`(커밋하지 않음).
 - 전투 데이터(체력·패턴)는 브리핑에 없어 `ENEMIES` 에 등록하지 않았다. 축소 배율 `export.py BATTLE_SCALE` 6.5.

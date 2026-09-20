@@ -35,15 +35,15 @@
 | 도미조림 스프라이트 | gpt-image 4×4 걷기 시트(사진 참조) + **등에 얼린 홍어**(검처럼 대각선 끈) → `assets/sprites/domijorim.png` | — |
 | 도미조림 목소리 | 청소부 거슨 말하는 소리 클립(`voices/janitor.mp3`)을 1.35배 높여 젊게 → `voices/domijorim.mp3` | `VOICES.domijorim` |
 | 가순이 4·5·6 | 1·2·3 시트를 참조로 옷·머리만 바꿈(4 파랑 옆머리, 5 초록 단발, 6 보라 양갈래) → `assets/sprites/gasuni4~6.png` | — |
-| 적군 전투 스프라이트 | `assets/enemies/domijorim-battle.png`(오른손에 꼬리 잡은 얼린 홍어, 왼손 횃불) · `dohyun-battle.png`(손도끼 하나) — 그림만. 전투(체력·패턴)는 브리핑에 없어 아직 등록하지 않음 | `export.py BATTLE_SCALE` |
+| 적군 전투 스프라이트 | `assets/enemies/domijorim-battle.png`(오른손에 꼬리 잡은 얼린 홍어, 왼손 횃불) · `dohyun-battle.png`(빈손으로 한 손만 들고, 안녕하듯) — 전투 데이터는 아래 이어진 브리핑에서 등록 | `export.py BATTLE_SCALE` |
 
 QA `jjajang_sakura5`(입구), `jjajang_sakura5_bridge`(다리 끝), `jjajang_sakura5_clearing`(연출 뒤 공터). 검사: `tests/unit/jjajang-sakura5.test.mjs`, `tests/playtest/jjajang-sakura5.mjs`.
 
 ## 판단해 둔 것 (지정 없음 — 사용자 확인 필요)
 
 - 연출 뒤 브금은 지정이 없어 꺼진 채 둔다(맵을 나갔다 오면 `sakura` 다시).
-- “가순이들” 초상화는 가순이4. “손ㄷ 하나” 는 **손도끼**로 읽었다(손전등이면 바꾼다).
-- 도미조림 전투 그림은 얼린 홍어를 꼬리 쪽으로 잡고 든 자세. 전투 데이터(체력·패턴·효과음)는 브리핑을 주면 등록한다.
+- “가순이들” 초상화는 가순이4. “손ㄷ 하나” 는 처음 손도끼로 읽었다가 사용자 정정(“걍 손하나 들고있다고 / 안녕하듯”)으로 빈손 한 손 들기로 다시 만들었다.
+- 도미조림 전투 그림은 얼린 홍어를 꼬리 쪽으로 잡고 든 자세.
 - 공터의 다섯은 연출 뒤에도 그 자리에 서 있고 말을 걸어도 대사가 없다(지정 없음).
 
 ## 이어진 브리핑 (원문, 같은 날) — 윗길 연출·전투
@@ -58,6 +58,7 @@ QA `jjajang_sakura5`(입구), `jjajang_sakura5_bridge`(다리 끝), `jjajang_sak
 > (이러고 전투시작) 전투브금은 이걸로 https://www.youtube.com/watch?v=RsAu3BDaAp8
 > 그리고 얼린홍어를 던지는것, 횃불을 던지는것, 그리고 마른 도현이가 위에서 살랑살랑 떨어지는것, 그리고 카톡같은거 텍스트로 파크가디언 그새끼보다 낫노 이런 텍스트 던지는 패턴해서 일단 만들어주고 각각 체력 50씩 해줘
 > 도현이는 약간 양옆으로 살랑 살랑 춤추는 느낌의 전투모션 스프라이트임 / 카메라그리도 잘 신경쓰고 연출이랑 카메라표현등등 고려하고
+> (정정) 걍 손하나 들고있다고 / 안녕하듯
 
 ### 구현 (`jjajang_sakura5_clearing`, `src/battle/sakura5-patterns.js`, `ENEMIES.domijorim/dohyun`)
 

@@ -143,7 +143,7 @@ export const ENEMIES = {
     lines: { appear: '* 배찌가 나타났다!', idle: ['* 배찌가 고글을 반짝인다.', '* 배찌가 리본을 만진다.'], speak: ['물폭탄!', '자석!', '물파리!'], die: '* 배찌가 쓰러졌다.' },
   },
   // 도미조림·도현(BUILD271 사용자 브리핑 2026-09-20 벚꽃 숲 5 공터 “얼린홍어를 던지는것, 횃불을 던지는것, 마른 도현이가 위에서 살랑살랑 떨어지는것, 카톡 텍스트 던지는 패턴 … 각각 체력 50씩”):
-  //   전투 그림은 gpt-image(assets/source/sakura5-v1) — 도미조림은 오른손에 꼬리 잡은 얼린 홍어·왼손 횃불, 도현은 손도끼 하나. 도현은 “양옆으로 살랑살랑 춤추는 느낌”이라 idle 좌우 흔들림을 크게.
+  //   전투 그림은 gpt-image(assets/source/sakura5-v1) — 도미조림은 오른손에 꼬리 잡은 얼린 홍어·왼손 횃불, 도현은 빈손으로 한 손만 들고(안녕하듯, 사용자 “걍 손하나 들고있다고”). 도현은 “양옆으로 살랑살랑 춤추는 느낌”이라 idle 좌우 흔들림을 크게.
   //   체력 50(원문). 패턴 src/battle/sakura5-patterns.js. 피해 13·돈 45 는 미지정(잠정, 다오·배찌 12/40 다음 구간). 말풍선 대사는 미지정이라 비움(“...”), 잡담은 나레이션체.
   domijorim: {
     name: '도미조림', hp: 50, damage: 13, money: 45, voice: 'domijorim',
@@ -153,10 +153,10 @@ export const ENEMIES = {
   },
   dohyun: {
     name: '도현', hp: 50, damage: 13, money: 45, voice: 'dohyun',
-    image: 'assets/enemies/dohyun-battle.png', pivot: [21, 148], scale: 0.9, dx: 40, dy: 0, idle: { swayX: 12, swayY: 1, period: 1.5 },   // 양옆으로 살랑살랑 춤추듯
+    image: 'assets/enemies/dohyun-battle.png', pivot: [21, 150], scale: 0.9, dx: 40, dy: 0, idle: { swayX: 12, swayY: 1, period: 1.5 },   // 양옆으로 살랑살랑 춤추듯
     projectiles: { dohyun: 'assets/enemies/dohyun-battle.png' },
     patterns: [{ type: 'dohyun_fall' }, { type: 'kakao_text' }],
-    lines: { appear: '* 도현이 손도끼를 들고 살랑살랑 다가왔다.', idle: ['* 도현이 양옆으로 살랑살랑 춤춘다.', '* 도현이 가순이들 눈치를 본다.'], speak: [], die: '* 도현이 쓰러졌다.' },
+    lines: { appear: '* 도현이 한 손을 들고 살랑살랑 다가왔다.', idle: ['* 도현이 양옆으로 살랑살랑 춤춘다.', '* 도현이 가순이들 눈치를 본다.'], speak: [], die: '* 도현이 쓰러졌다.' },
   },
   munkorita: {
     name: '문코리타', hp: 16, damage: 9, money: 18, voice: 'cat',

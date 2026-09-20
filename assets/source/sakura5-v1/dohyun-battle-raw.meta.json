@@ -10,14 +10,14 @@
   "refs": [
     "assets/source/sakura5-v1/dohyun-raw.png"
   ],
-  "elapsed_seconds": 30.6,
+  "elapsed_seconds": 31.9,
   "usage": {
-    "input_tokens": 1283,
+    "input_tokens": 1292,
     "output_tokens": 1756,
-    "total_tokens": 3039,
+    "total_tokens": 3048,
     "input_tokens_details": {
       "image_tokens": 1024,
-      "text_tokens": 259
+      "text_tokens": 268
     },
     "output_tokens_details": {
       "image_tokens": 1756,
@@ -25,11 +25,11 @@
       "image_pages": 1
     }
   },
-  "created": 1789894330,
+  "created": 1789904338,
   "outputs": [
     {
       "file": "assets/source/sakura5-v1/dohyun-battle-raw.png",
-      "bytes": 871515,
+      "bytes": 868518,
       "size": [
         1024,
         1024
