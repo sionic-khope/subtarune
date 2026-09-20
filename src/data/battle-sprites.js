@@ -1,5 +1,6 @@
 const frame = (rect, pivot, duration, exclude = []) => ({ rect, pivot, duration, exclude });
 const idle = (pivot) => [0, 1, 2, 3].map((column) => frame([column * 384, 0, 384, 512], pivot, 0.25));
+const runtime = (id) => ({ src: `assets/battle/${id}-runtime.png`, run: `assets/battle/${id}-run-runtime.png` });
 const run = (id, scale, pivots) => ({
   src: `assets/battle/${id}-run.png`,
   scale,
@@ -9,6 +10,7 @@ const run = (id, scale, pivots) => ({
 export const BATTLE_SPRITES = {
   hyungsub: {
     src: 'assets/battle/hyungsub.png', scale: 0.25,
+    runtime: runtime('hyungsub'),
     run: run('hyungsub', 0.225, [[404, 500], [259, 502], [399, 439], [268, 437]]),
     idle: idle([156, 490]),
     attack: [
@@ -20,6 +22,7 @@ export const BATTLE_SPRITES = {
   },
   gyeongsub: {
     src: 'assets/battle/gyeongsub.png', scale: 0.25,
+    runtime: runtime('gyeongsub'),
     run: run('gyeongsub', 0.230, [[340, 475], [249, 475], [343, 424], [255, 425]]),
     idle: idle([149, 466]),
     attack: [
@@ -44,6 +47,7 @@ export const BATTLE_SPRITES = {
   },
   ppaman: {
     src: 'assets/battle/ppaman.png', scale: 0.25,
+    runtime: runtime('ppaman'),
     run: run('ppaman', 0.211, [[402, 487], [295, 479], [405, 406], [289, 406]]),
     idle: idle([174, 466]),
     attack: [

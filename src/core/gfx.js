@@ -77,7 +77,8 @@ export function silhouette(src, color) {
 }
 
 /** 이미지 로드 시도. 없으면 null (에러로 죽지 않는다) */
-export const ASSET_VERSION = Date.now();   // 개발 중 브라우저 캐시 무효화
+import { BUILD } from '../data/build.js';
+export const ASSET_VERSION = BUILD;
 export function loadImageOptional(src) {
   return new Promise((resolve) => {
     const img = new Image();

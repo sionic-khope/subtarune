@@ -88,15 +88,17 @@ export function clearExteriorChroma(data, width, height, colorKey) {
 }
 
 /** 원본 해상도를 유지한 채 한 프레임의 외부 마젠타만 제거한다. */
-export function makeTransparentFrame(image, definition, colorKey, createCanvas) {
+export function makeTransparentFrame(image, definition, colorKey, createCanvas, preprocessed = false) {
   const [sx, sy, width, height] = definition.rect;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(image, sx, sy, width, height, 0, 0, width, height);
-  const pixels = ctx.getImageData(0, 0, width, height);
-  clearExteriorChroma(pixels.data, width, height, colorKey);
-  ctx.putImageData(pixels, 0, 0);
+  if (!preprocessed) {
+    const pixels = ctx.getImageData(0, 0, width, height);
+    clearExteriorChroma(pixels.data, width, height, colorKey);
+    ctx.putImageData(pixels, 0, 0);
+  }
   for (const rect of definition.exclude || []) ctx.clearRect(...rect);
   return { ...definition, image: canvas };
 }
@@ -107,9 +109,20 @@ export function makeTransparentFrame(image, definition, colorKey, createCanvas) 
  */
 export async function loadActorFrames(definition, colorKey, createCanvas = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }, imageLoader = loadImage) {
   try {
-    const [image, runImage] = await Promise.all([imageLoader(definition.src), imageLoader(definition.run.src)]);
-    const prepare = (d) => makeTransparentFrame(image, d, colorKey, createCanvas);
-    return { idle: definition.idle.map(prepare), attack: definition.attack.map(prepare), run: definition.run.frames.map((d) => makeTransparentFrame(runImage, d, colorKey, createCanvas)) };
+    const runtime = definition.runtime;
+    const [image, runImage] = await Promise.all([imageLoader(runtime?.src || definition.src), imageLoader(runtime?.run || definition.run.src)]);
+    const prepare = (d) => makeTransparentFrame(image, d, colorKey, createCanvas, Boolean(runtime));
+    let attackX = 0;
+    return {
+      idle: definition.idle.map(prepare),
+      attack: definition.attack.map((d) => {
+        if (!runtime) return prepare(d);
+        const packed = { ...d, rect: [attackX, d.rect[1], d.rect[2], d.rect[3]] };
+        attackX += d.rect[2];
+        return prepare(packed);
+      }),
+      run: definition.run.frames.map((d) => makeTransparentFrame(runImage, d, colorKey, createCanvas, Boolean(runtime))),
+    };
   } catch (e) { console.warn('[battle] 아틀라스 로드 실패', definition.src, e); return null; }
 }
 

@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { Input } from './core/input.js';
 import { Sound, VOICES } from './core/audio.js';
+import { MapAssetCache } from './core/map-assets.js';
 import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait, pixelDisplayScale } from './core/gfx.js';
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
@@ -20,13 +21,14 @@ import { TileMap, Camera, createEntity, freeSpot, SCREEN_W, SCREEN_H, CHAR_SCALE
 import { loadTileOverrides } from './world/tiles.js';
 import { preloadCaptainMemories } from './data/captain-memories.js';
 import { loadCharacterMotions } from './world/character-motion.js';
+import { CHARACTER_MOTIONS } from './data/character-motions.js';
 import { TORSO, LEGS, PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
 import { battleEntry } from './data/cutscenes/helpers.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './data/cutscenes/captain_reveal.js';
-import { FX_SHEETS } from './data/fx.js';
 import L from './data/locale/ko.js';
+import { BUILD } from './data/build.js';
 import { CHARACTERS } from './data/characters.js';
 import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
@@ -43,7 +45,9 @@ import { SHIP_ASSAULT } from './data/ship-assault.js';
 import { ShipCastle } from './scenes/ship-castle.js';
 import { SHIP_CASTLE } from './data/ship-castle.js';
 import { ShipMemory } from './scenes/ship-memory.js';
+import { SHIP_MEMORY } from './data/ship-memory.js';
 import { YOUNGCLE_TV_PORTRAITS } from './data/youngcle-tv.js';
+import { MAP_RUNTIME_ASSETS } from './data/map-runtime-assets.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
@@ -55,6 +59,23 @@ const TEXT_SPEEDS = [
   { key: 'speed_normal', delay: 0.033 },   // 언더테일 기본(1글자/2프레임)
   { key: 'speed_fast', delay: 0.016 },
 ];
+const TITLE_SFX = ['menu', 'confirm', 'cancel', 'chime', 'door', 'battle_start'];
+
+function mapScriptAssets(mapId, def) {
+  const portraits = new Set(), playerMotions = new Set(), sfx = new Set(), entrySfx = new Set();
+  const visit = (node, urgent) => {
+    if (Array.isArray(node)) { node.forEach(item => visit(item, urgent)); return; }
+    if (!node || typeof node !== 'object') return;
+    if (node.portrait) portraits.add(node.portrait);
+    if (node.motion === 'player' && node.name) playerMotions.add(node.name);
+    if (node.sfx) { sfx.add(node.sfx); if (urgent) entrySfx.add(node.sfx); }
+    if (node.boom?.sfx) { sfx.add(node.boom.sfx); if (urgent) entrySfx.add(node.boom.sfx); }
+    if (node.async) visit(node.async, urgent);
+    if (node.parallel) visit(node.parallel, urgent);
+  };
+  for (const id of [mapId === 'room' ? 'opening' : null, def.enter?.script, ...(def.entities || []).flatMap(e => [e.script, e.lockedScript])]) if (SCRIPTS[id]) visit(SCRIPTS[id], id === def.enter?.script || id === 'opening' || (mapId === 'room' && id === 'room_computer'));
+  return { portraits, playerMotions, sfx, entrySfx };
+}
 
 class Game {
   constructor(canvas) {
@@ -125,34 +146,34 @@ class Game {
 
   async load() {
     // 폰트, 스프라이트 오버라이드(assets/sprites/<name>.png), 타일 오버라이드
-    try { await document.fonts.load(FONT); } catch {}
+    void document.fonts.load(FONT).catch(() => {});
     this.mapImages = {};
     this.propImages = {};
-    // 에디터가 저장한 JSON 맵(assets/maps/*.json) 을 코드 맵 위에 덮어씀
-    try {
-      const idx = await (await fetch('assets/maps/index.json?v=' + Date.now())).json();
-      await Promise.all((idx.maps || []).map(async (id) => {
-        try { MAPS[id] = await (await fetch(`assets/maps/${id}.json?v=` + Date.now())).json(); } catch (e) { console.warn('[map] 로드 실패', id, e); }
-      }));
-    } catch {}
-    const propSrcs = new Set(FX_SHEETS);
-    for (const src of Object.values(SHIP_ASSAULT.images)) propSrcs.add(src);
-    for (const src of Object.values(SHIP_CASTLE.images)) propSrcs.add(src);
-    for (const m of Object.values(MAPS)) { for (const e of (m.entities || [])) if (e.image) propSrcs.add(e.image); for (const src of (m.preload || [])) propSrcs.add(src); }   // 엔티티 이미지 + 컷신에서 spawn 할 이미지(preload)
-    await Promise.all([
-      ...[...propSrcs].map(async (src) => { this.propImages[src] = await loadImageOptional(src); }),
-      ...Object.entries(MAPS).filter(([, m]) => m.image).map(async ([id, m]) => { this.mapImages[id] = await loadImageOptional(m.image); }),
-      loadTileOverrides(),
-      preloadCaptainMemories(),
-      loadCharacterMotions().then((motions) => { this.characterMotions = motions; }),
-      this.sound.loadVoiceFiles(Object.keys(VOICES)),
-      this.sound.loadSfxFiles(['asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'drum_impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']),
-      this.sound.loadWalkLoop(WATER_WALK),
-      ...[...new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES)])].map(async (name) => {
-        const img = await loadImageOptional(CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`);
-        if (img) this.spriteOverrides[name] = img;
-      }),
-    ]);
+    this.mapAssets = new MapAssetCache({
+      maps: MAPS,
+      loadMap: async id => {
+        try {
+          const response = await fetch(`assets/maps/${id}.json?v=${BUILD}`);
+          return response.ok ? response.json() : null;
+        } catch { return null; }
+      },
+      loadImage: loadImageOptional,
+      loadTiles: def => loadTileOverrides(new Set((def.rows || []).join(''))),
+      extraSources: id => [
+        ...(MAP_RUNTIME_ASSETS[id]?.images || []),
+        ...(id === 'maillard_captain' ? Object.values(SHIP_ASSAULT.images) : []),
+        ...(id === 'ship_lounge' ? [...Object.values(SHIP_CASTLE.images), ...SHIP_MEMORY.panels.map(panel => panel.src)] : []),
+      ],
+    });
+    this.propImages = this.mapAssets.images;
+    if (!location.search) setTimeout(() => { void this.loadMapDefinitions(); }, 3000);
+    void this.sound.loadSfxFiles(TITLE_SFX);
+    void this.sound.loadVoiceFiles(Object.keys(VOICES));
+    setTimeout(() => {
+      this.scheduleSfxPreload(['asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'drum_impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
+      void this.sound.loadWalkLoop(WATER_WALK);
+    }, 3000);
+    this.characterMotions = {};
     this.portraits = this.makePortraits();
     this.title = new TitleScreen(this);
     this.title.enter();
@@ -173,12 +194,16 @@ class Game {
     // 개발용: ?map=test&spawn=start 로 타이틀/오프닝 건너뛰고 바로 진입
     const q = new URLSearchParams(location.search);
     const qa = q.get('qa') && QA_POINTS.find((x) => x.id === q.get('qa'));
-    if (qa) { this.devJump(qa); }
-    else if ((q.get('map') && MAPS[q.get('map')]) || (q.get('stage') && Story.isStage(q.get('stage')))) {
+    if (qa) {
+      try { await this.devJump(qa); }
+      catch (error) { console.error('[map] QA 진입 실패', error); }
+    }
+    else if (q.get('map') || (q.get('stage') && Story.isStage(q.get('stage')))) {
       if (q.get('sprite')) this.playerSprite = q.get('sprite');
-      this.devJump({ map: q.get('map'), spawn: q.get('spawn'), stage: q.get('stage') });   // 단계 backfill 포함
+      try { await this.devJump({ map: q.get('map'), spawn: q.get('spawn'), stage: q.get('stage') }); }
+      catch (error) { console.error('[map] 바로가기 실패', error); }
     } else {
-      this.changeMap('room', 'bed', true, { bgm: false });   // 부팅 시 타이틀 뒤에 준비만 — 방 브금이 타이틀/시작 순간에 새지 않게
+      void this.prepareMap('room').catch(error => console.warn('[map] 방 준비 실패', error));
     }
     if (q.get('battle') === '1' && this.mapId === 'test') this.openBattlePreview();
   }
@@ -223,9 +248,10 @@ class Game {
     this.runner?.finish?.(); this.runner = null; this.hpPopup = null;   // 러너 기믹(파란 토리이, BUILD230) — 있으면 자동 달리기·X 점프·C 베기가 입력을 가져간다. 리셋 경로에서도 카메라 잠금을 푼다
   }
   /** 타이틀에서 '이어하기': 세이브를 통째로 복원 → 맵 → 위치 → 동료를 주인공 뒤에 다시 세움 → 그 뒤에야 도착 스크립트(플래그 안 섰으면 처음부터 다시) */
-  continueGame() {
+  async continueGame() {
     let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
-    if (!d || !MAPS[d.map]) { this.startGame(); return; }
+    if (!d?.map) { await this.startGame(); return; }
+    await this.waitForMap(d.map, [d.sprite || 'hyungsub', ...normalizeParty(d.party)]);
     this.resetState(); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
     this.inventory = (d.inventory || []).filter((n) => typeof n === 'string');
@@ -233,7 +259,7 @@ class Game {
     this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.attack = d.attack || 1; this.hpBonus = d.hpBonus || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
     this.state = 'field';
-    this.changeMap(d.map, d.spawn || null, true, { enter: false });
+    await this.changeMap(d.map, d.spawn || null, true, { enter: false });
     if (Number.isFinite(d.x) && Number.isFinite(d.y) && d.x >= 0 && d.y >= 0 && d.x + this.player.w <= this.map.pxW && d.y + this.player.h <= this.map.pxH) {
       const [sx, sy] = freeSpot(this, this.player, d.x, d.y, 96);
       if (!this.map.solidRect(sx, sy, this.player.w, this.player.h)) [this.player.x, this.player.y] = [sx, sy];
@@ -244,7 +270,17 @@ class Game {
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
-  devJump({ map, spawn, stage, flags, party, inventory, money, script }) {
+  async devJump({ map, spawn, stage, flags, party, inventory, money, script }) {
+    if (stage && Story.isStage(stage)) map ||= Story.stageOf(stage).map;
+    const effectiveFlags = { ...(flags || {}) };
+    const effectiveStory = new Story(effectiveFlags);
+    if (stage && Story.isStage(stage)) effectiveStory.advance(stage);
+    if (!effectiveFlags.opening_seen) effectiveStory.advance('opening_seen');
+    const destinationParty = normalizeParty(party || partyFromFlags(effectiveFlags));
+    await Promise.all([
+      this.loadMapDefinitions(),
+      this.waitForMap(map, [this.playerSprite || 'hyungsub', ...destinationParty]),
+    ]);
     this.resetState();                               // 이전 세이브·이전 QA 지점 상태를 버리고 깨끗이 (섞이면 동료/플래그가 어긋난다)
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
     if (flags) Object.assign(this.flags, flags);   // QA 지점의 side flag (예: 다리 내려온 상태)
@@ -255,7 +291,7 @@ class Game {
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
     this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)
-    this.changeMap(map, spawn || 'start', true, { enter: false });
+    await this.changeMap(map, spawn || 'start', true, { enter: false });
     this.autosave();                                 // 바로가기 직후 '이어하기' 도 이 지점을 연다 (도착 스크립트 전이라 플래그가 안 서 있고, 이어하기 때 스크립트가 처음부터 돈다)
     // 지점 전용 스크립트(예: 섭리오 보스전 직행)가 있으면 도착 스크립트 대신 그것을 튼다
     if (script) this.runScript(script); else this.runMapEnter();
@@ -612,14 +648,123 @@ class Game {
       }
       // 대화창 초상화는 언더테일처럼 흰/검 2톤 도트로 (사용자 확정 2026-09-09)
       out[name] = monoPortrait(c);
-      loadImageOptional(`assets/portraits/${name}.png`).then((img) => { if (img) out[name] = monoPortrait(img, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold }); });   // 96px 시트 → 48px 대화창 1:1
     }
     return out;
   }
 
   // ── 맵 전환 ─────────────────────────────────────────────
+  loadMapDefinitions() {
+    this.mapDefinitionsPromise ||= (async () => {
+      const response = await fetch(`assets/maps/index.json?v=${BUILD}`);
+      if (!response.ok) return;
+      const index = await response.json();
+      await Promise.all((index.maps || []).map(id => this.mapAssets.definition(id)));
+    })().catch(error => { console.warn('[map] 목록 로드 실패', error); this.mapDefinitionsPromise = null; });
+    return this.mapDefinitionsPromise;
+  }
+
+  scheduleSfxPreload(names) {
+    let next = 0;
+    const pump = async () => {
+      if (this.loadingMap || this.transitioning || (this.state === 'title' && !this.preparedMaps?.has('room'))) { setTimeout(pump, 200); return; }
+      const batch = names.slice(next, next + 6);
+      next += batch.length;
+      try { await this.sound.loadSfxFiles(batch); }
+      catch (error) { console.warn('[audio] 효과음 준비 실패', error); }
+      if (next < names.length) setTimeout(pump, 100);
+    };
+    void pump();
+  }
+
+  prepareMap(mapId, participants = [this.playerSprite || 'hyungsub', ...this.party]) {
+    this.mapPreparationPromises ||= new Map();
+    const key = `${mapId}:${[...new Set(participants)].sort().join(',')}`;
+    if (!this.mapPreparationPromises.has(key)) {
+      const task = this._prepareMap(mapId, participants).catch(error => { this.mapPreparationPromises.delete(key); throw error; });
+      this.mapPreparationPromises.set(key, task);
+    }
+    return this.mapPreparationPromises.get(key);
+  }
+
+  async _prepareMap(mapId, participants) {
+    const def = await this.mapAssets.definition(mapId);
+    if (!def) throw new Error(`Unknown map: ${mapId}`);
+    const overrideBgm = storyBgm(mapId, this.flags);
+    const bgm = overrideBgm === undefined ? def.bgm : overrideBgm;
+    if (bgm) void this.sound.preloadBgm(bgm);
+    const scriptAssets = mapScriptAssets(mapId, def);
+    if (scriptAssets.sfx.size) void this.sound.loadSfxFiles([...scriptAssets.sfx]);
+    void Battle.preload({ party: participants.filter(name => name !== (this.playerSprite || 'hyungsub')) }, [...new Set((def.entities || []).flatMap(e => e.enemies || []))]);
+    await Promise.all([
+      this.mapAssets.prepare(mapId),
+      ...(mapId === 'maillard_captain' ? [preloadCaptainMemories()] : []),
+      ...(scriptAssets.entrySfx.size ? [this.sound.loadSfxFiles([...scriptAssets.entrySfx])] : []),
+    ]);
+    this.mapImages[mapId] = this.mapAssets.images[def.image] || null;
+    const names = new Set([
+      ...participants,
+      ...(def.entities || []).map(e => e.sprite).filter(Boolean),
+      ...(def.preload || []).filter(src => src.startsWith('assets/sprites/')).map(src => src.split('/').pop().replace(/\.png$/, '')),
+      ...(MAP_RUNTIME_ASSETS[mapId]?.sprites || []),
+    ]);
+    const playerMotions = scriptAssets.playerMotions;
+    if (def.meta?.run || def.meta?.runs) for (const name of Object.keys(CHARACTER_MOTIONS.hyungsub)) if (name.startsWith('runner_')) playerMotions.add(name);
+    if (mapId === 'jjajang_nest') playerMotions.add('battle_ready');
+    const motionNames = [...names].filter(name => CHARACTER_MOTIONS[name] && (name !== 'hyungsub' || playerMotions.size));
+    await Promise.all(motionNames.map(async name => {
+      const selected = name === 'hyungsub' ? [...playerMotions] : Object.keys(CHARACTER_MOTIONS[name]);
+      if (selected.every(key => this.characterMotions[name]?.[key])) return;
+      this.motionPromises ||= new Map();
+      const key = `${name}:${selected.join(',')}`;
+      if (!this.motionPromises.has(key)) this.motionPromises.set(key, loadCharacterMotions(src => this.mapAssets.image(src), makeCanvas, [name], { [name]: selected }));
+      Object.assign(this.characterMotions[name] ||= {}, (await this.motionPromises.get(key))[name]);
+    }));
+    await Promise.all([...names].map(async name => {
+      const src = CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`;
+      const image = await this.mapAssets.image(src);
+      if (image) this.spriteOverrides[name] = image;
+    }));
+    const fallbackPortraits = this.makePortraits();
+    for (const name of names) this.portraits[name] = fallbackPortraits[name];
+    const portraitNames = new Set([...names, ...scriptAssets.portraits, ...(MAP_RUNTIME_ASSETS[mapId]?.portraits || [])]);
+    await Promise.all([...portraitNames].filter(name => CHARACTERS[name]?.portrait !== false && (CHARACTERS[name] || PALETTES[name] || YOUNGCLE_TV_PORTRAITS.includes(name))).map(async name => {
+      const portrait = await this.mapAssets.image(`assets/portraits/${name}.png`);
+      if (portrait) this.portraits[name] = monoPortrait(portrait, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold });
+    }));
+    this.preparedCharacters ||= new Set();
+    for (const name of names) this.preparedCharacters.add(name);
+    this.preparedMaps ||= new Set();
+    this.preparedMaps.add(mapId);
+    return def;
+  }
+
+  async waitForMap(mapId, participants) {
+    this.loadingMap = mapId;
+    const status = document.getElementById('loading-status');
+    if (status) { status.textContent = L.loading_map; status.hidden = false; }
+    let succeeded = false;
+    try { const def = await this.prepareMap(mapId, participants); succeeded = true; return def; }
+    catch (error) { if (status) status.textContent = L.loading_error; throw error; }
+    finally { if (this.loadingMap === mapId) { this.loadingMap = null; if (status && succeeded) status.hidden = true; } }
+  }
+
   changeMap(mapId, spawnId, instant = false, { bgm = true, enter: runEnter = true } = {}) {   // enter:false — 도착 스크립트는 호출자가 runMapEnter() 로 (이어하기·QA: 위치·동료·세이브를 먼저)
-    if (!MAPS[mapId]) { console.warn('[map] 없는 맵', mapId); return; }                        // 문/QA/스크립트가 잘못된 id 를 줘도 게임이 죽지 않는다 (2026-09-11 smoke)
+    if (!mapId) { console.warn('[map] 없는 맵', mapId); return; }
+    const request = this.mapRequest = (this.mapRequest || 0) + 1;
+    if (!this.preparedMaps?.has(mapId) || [this.playerSprite || 'hyungsub', ...this.party].some(name => !this.preparedCharacters?.has(name))) {
+      this.transitioning = true;
+      if (this.state !== 'title') this.fadeTo(1, 0.25, null, 'black');
+      return this.waitForMap(mapId).then(() => {
+        if (request !== this.mapRequest) return;
+        if (instant) this.transitioning = false;
+        this.changeMap(mapId, spawnId, instant, { bgm, enter: runEnter });
+      }).catch(error => {
+        if (request !== this.mapRequest) return;
+        this.transitioning = false;
+        this.fadeTo(0, 0.25);
+        console.error('[map] 이동 준비 실패', mapId, error);
+      });
+    }
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
       this.runner?.finish(); this.runner = null;   // 러너 중 맵 이동(코스 위 문·비상탈출): 카메라 잠금 풀고 조작 복귀 (리뷰 2026-09-19)
@@ -705,7 +850,8 @@ class Game {
   }
 
   /** 타이틀에서 새 게임: 세이브 삭제 → 오프닝 컷신 */
-  startGame() {
+  async startGame() {
+    await this.waitForMap('room', ['hyungsub']);
     this.clearSave();
     this.resetState();
     this.changeMap('room', 'bed', true, { bgm: false });   // 방 브금은 오프닝 컷신이 흰색 뒤에 직접 튼다
@@ -828,8 +974,10 @@ class Game {
   /** Start the self-contained ocean scene; its cleared tableau survives the script. */
   startSeaChase() {
     if (this.has('obj5_maillard_done')) {
-      this.changeMap('maillard_deck', 'arrival', true, { enter: false, bgm: false });
-      return { completed: true };
+      const scene = { completed: false };
+      const change = this.changeMap('maillard_deck', 'arrival', true, { enter: false, bgm: false });
+      if (change?.then) change.then(() => { scene.completed = true; }); else scene.completed = true;
+      return scene;
     }
     this.setFlag('obj5_chase_retry_pending', false);
     this.seaChase?.dispose();
@@ -854,18 +1002,19 @@ class Game {
   finishMaillardArrival() {
     this.setFlag('obj5_maillard_done');
     this.ride = null;
-    this.changeMap('maillard_deck', 'arrival', true, { enter: false });
+    return this.changeMap('maillard_deck', 'arrival', true, { enter: false });
   }
 
   /** Defer the retry choice until the current chest script has released its runner. */
   promptSeaRetry() { this.seaRetryPromptPending = true; }
 
   /** Restore the original dock with its acquired gun and an explicit retry choice. */
-  returnFromSeaChase() {
+  async returnFromSeaChase() {
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     this.ride = null;
+    this.seaChase?.dispose(); this.seaChase = null;
     this.setFlag('obj5_chase_retry_pending');
-    this.changeMap('obj5', 'dock', true, { enter: false });
+    await this.changeMap('obj5', 'dock', true, { enter: false });
     this.runMapEnter();
     this.promptSeaRetry();
   }
@@ -1423,7 +1572,7 @@ const BACKDROP_OBJ = { mid: '#061408', stem: '#03100a', layers: [
   { par: 0.22, col: '#0a2612', rim: '#133a1e', leaf: '#4a2f6e', base: 156, n: 14, r: [26, 46], sway: 1.3 },
   { par: 0.38, col: '#0f3a1a', rim: '#1b5a2a', leaf: '#2e8a40', base: 186, n: 12, r: [18, 34], sway: 1.8 },
 ] };
-export const BUILD = '2026-09-20.252';
+export { BUILD };
 // 전투 밖 피해 띠(BUILD240): 전투 HP 띠와 같은 y=322(화면 맨 아래), 왼쪽 20px, 1.6초
 const HP_POPUP = Object.freeze({ x: 20, y: 322, w: 236, dur: 1.6, fadeIn: 0.2, fadeOut: 0.45 });
 const canvas = document.getElementById('screen');

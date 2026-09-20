@@ -52,6 +52,8 @@ export class Sound {
     this.voiceRaw = {};       // voice 이름 → ArrayBuffer (assets/audio/voices/<name>.mp3|ogg)
     this.voiceBuf = {};       // voice 이름 → AudioBuffer (unlock 후 디코드)
     this.cueBuffers = new Map();
+    this._sfxLoads = {};
+    this._voiceLoads = {};
   }
 
   /** Predecode a complete cue; callers never seek into compressed audio. */
@@ -87,33 +89,55 @@ export class Sound {
 
   /** assets/audio/voices/<voice>.(mp3|ogg) 가 있으면 글자 블립을 그 샘플로 낸다 (한 샘플만 있으면 됨) */
   async loadVoiceFiles(names) {
-    const grab = async (src) => { try { const r = await fetch(src); return r.ok ? await r.arrayBuffer() : null; } catch { return null; } };
-    await Promise.all(names.map(async (n) => {
-      const buf = (await grab(`assets/audio/voices/${n}.mp3`)) || (await grab(`assets/audio/voices/${n}.ogg`));
-      if (buf) this.voiceRaw[n] = buf;
-    }));
-    if (this.ctx) this._decodeVoices();   // 오버레이 클릭(unlock)이 파일보다 먼저였으면 여기서 디코드 — "목소리 유실" 재발 방지 (2026-09-10)
+    await Promise.all(names.map((n) => this._loadVoiceFile(n)));
+    if (this.ctx) await this._decodeVoices();   // 오버레이 클릭(unlock)이 파일보다 먼저였으면 여기서 디코드 — "목소리 유실" 재발 방지 (2026-09-10)
+  }
+  _loadVoiceFile(name) {
+    if (this.voiceRaw[name] || this.voiceBuf[name]) return Promise.resolve();
+    if (this._voiceLoads[name]) return this._voiceLoads[name];
+    const pending = (async () => {
+      const grab = async (src) => { try { const response = await fetch(src); return response.ok ? await response.arrayBuffer() : null; } catch { return null; } };
+      try {
+        const raw = (await grab(`assets/audio/voices/${name}.mp3`)) || (await grab(`assets/audio/voices/${name}.ogg`));
+        if (raw) this.voiceRaw[name] = raw;
+      } finally {
+        delete this._voiceLoads[name];
+      }
+    })();
+    this._voiceLoads[name] = pending;
+    return pending;
   }
   /** 받아 둔 음성 파일을 AudioContext 로 디코드. 몇 번을 불러도 안전(이미 된 건 건너뜀, 동시 호출은 한 번만) */
   async _decodeVoices() {
-    if (!this.ctx || this._decoding) return;
+    if (!this.ctx) return;
+    if (this._decoding) return this._voiceDecode;
     this._decoding = true;
-    try {
-      for (const [n, raw] of Object.entries(this.voiceRaw)) {
-        if (this.voiceBuf[n]) continue;
-        try {
-          const buffer = await this.ctx.decodeAudioData(raw.slice(0));
-          const voice = VOICES[n];
-          if (voice?.drive) {
-            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-              const samples = buffer.getChannelData(channel);
-              for (let i = 0; i < samples.length; i++) samples[i] = Math.tanh(samples[i] * voice.drive) * voice.driveLevel;
+    this._voiceDecode = (async () => {
+      try {
+        const attempted = new Set();
+        while (true) {
+          const next = Object.entries(this.voiceRaw).find(([name]) => !this.voiceBuf[name] && !attempted.has(name));
+          if (!next) break;
+          const [name, raw] = next;
+          attempted.add(name);
+          try {
+            const buffer = await this.ctx.decodeAudioData(raw.slice(0));
+            const voice = VOICES[name];
+            if (voice?.drive) {
+              for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const samples = buffer.getChannelData(channel);
+                for (let i = 0; i < samples.length; i++) samples[i] = Math.tanh(samples[i] * voice.drive) * voice.driveLevel;
+              }
             }
+            this.voiceBuf[name] = buffer;
+          } catch (e) { console.warn('[audio] 음성 디코드 실패', name, e); }
           }
-          this.voiceBuf[n] = buffer;
-        } catch (e) { console.warn('[audio] 음성 디코드 실패', n, e); }
+      } finally {
+        this._decoding = false;
+        this._voiceDecode = null;
       }
-    } finally { this._decoding = false; }
+    })();
+    await this._voiceDecode;
     const missing = Object.keys(this.voiceRaw).filter((n) => !this.voiceBuf[n]);
     if (missing.length) console.warn('[audio] 아직 디코드 안 된 음성:', missing.join(','));
   }
@@ -126,6 +150,11 @@ export class Sound {
    *  그 세션 내내 합성음(다른 소리)이 났고 새로고침(캐시)하면 다시 들렸다. 상한을 넘겨도 요소를 등록해 두면 도착한 뒤부터
    *  파일로 재생된다. 실제 404/디코드 실패(error)만 합성 폴백으로 남긴다. */
   async loadSfxFiles(names) {
+    await Promise.all(names.map((n) => this._loadSfxFile(n)));
+  }
+  _loadSfxFile(name) {
+    if (this.files[name]) return Promise.resolve();
+    if (this._sfxLoads[name]) return this._sfxLoads[name];
     const probe = (src) => new Promise((resolve) => {
       const a = new Audio(); a.preload = 'auto';
       let done = false;
@@ -135,13 +164,19 @@ export class Sound {
       a.onerror = () => settle(null);
       a.src = src;
     });
-    await Promise.all(names.map(async (n) => {
-      const a = (await probe(`assets/audio/sfx/${n}.mp3`)) || (await probe(`assets/audio/sfx/${n}.ogg`));
-      if (!a) return;
-      this.files[n] = a;
-      // 상한 뒤에 늦게 실패한 파일은 등록을 풀어 합성으로 돌아간다
-      a.onerror = () => { if (this.files[n] === a) delete this.files[n]; };
-    }));
+    const pending = (async () => {
+      try {
+        const a = (await probe(`assets/audio/sfx/${name}.mp3`)) || (await probe(`assets/audio/sfx/${name}.ogg`));
+        if (!a) return;
+        this.files[name] = a;
+        // 상한 뒤에 늦게 실패한 파일은 등록을 풀어 합성으로 돌아간다
+        a.onerror = () => { if (this.files[name] === a) delete this.files[name]; };
+      } finally {
+        delete this._sfxLoads[name];
+      }
+    })();
+    this._sfxLoads[name] = pending;
+    return pending;
   }
 
   unlock() {
@@ -307,7 +342,7 @@ export class Sound {
   /** BGM: assets/audio/bgm/<name>.mp3 루프 재생. 같은 곡이면 유지 */
   /** 브금 미리 로드 — 전환(전투 진입 등) 직전에 부르면 playBgm 이 이 엘리먼트를 바로 틀어 첫 소리까지의 공백이 없다 (2026-09-10 사용자 "전투 들어갈 때 0.5초 끊기고 전환") */
   preloadBgm(name) {
-    if (!name) return; this._preBgm = this._preBgm || {};
+    if (!name || this.bgmName === name) return; this._preBgm = this._preBgm || {};
     if (this._preBgm[name]) return;
     const a = new Audio(`assets/audio/bgm/${name}.mp3`); a.preload = 'auto'; a.load(); this._preBgm[name] = a;
   }

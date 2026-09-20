@@ -21,4 +21,14 @@ html, body {
   /* 크기는 JS가 정수배로 맞춘다 */
 }
 
+#loading-status:not([hidden]) {
+  position: fixed;
+  left: 50%; bottom: 9%; transform: translateX(-50%);
+  padding: 8px 12px;
+  background: #000; color: #fff;
+  border: 2px solid #fff;
+  font-size: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+}
 

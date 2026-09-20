@@ -339,7 +339,14 @@ export function makeWaiter(game, node) {
   if (node.show) { const e = findEntity(game, node.show); if (e) { e.visible = true; if (e._solidBeforeHide !== undefined) { e.solid = e._solidBeforeHide; delete e._solidBeforeHide; } } return done; }
   if (node.hide) { const e = findEntity(game, node.hide); if (e) { e.visible = false; if (e._solidBeforeHide === undefined) e._solidBeforeHide = e.solid; e.solid = false; } return done; }   // 안 보이는 것은 막지도 않는다 (2026-09-10 미로 출구에서 숨긴 NPC 가 길을 막았음)
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
-  if (node.map) { game.changeMap(node.map, node.spawn, true); if (node.enter) game.pendingMapEnter = node.map; return done; }
+  if (node.map) {
+    const change = game.changeMap(node.map, node.spawn, true);
+    if (node.enter) game.pendingMapEnter = node.map;
+    if (!change?.then) return done;
+    let finished = false;
+    change.then(() => { finished = true; });
+    return { update: () => finished };
+  }
   if (node.footsteps !== undefined && !node.move) {   // { footsteps: 초 } 주인공이 서 있어도 이 구역 걸음 루프(WATER_WALK)를 초 동안 튼다 — “뒤에서 또 다른 걸음소리”(BUILD226)
     let t = 0; game.footstepsOverride = WATER_WALK;
     return { update: (dt) => { t += dt; if (t >= node.footsteps) { game.footstepsOverride = null; return true; } return false; } };

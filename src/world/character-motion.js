@@ -18,11 +18,12 @@ export function updateLoopCharacterMotion(entity, dt) {
 }
 
 /** 걷기 시트와 별개인 캐릭터 동작을 원본 해상도의 투명 프레임으로 캐시한다. */
-export async function loadCharacterMotions(imageLoader = loadImageOptional, createCanvas = makeCanvas) {
+export async function loadCharacterMotions(imageLoader = loadImageOptional, createCanvas = makeCanvas, names = Object.keys(CHARACTER_MOTIONS), selected = {}) {
   const motions = {};
-  await Promise.all(Object.entries(CHARACTER_MOTIONS).map(async ([character, definitions]) => {
+  await Promise.all(names.filter(name => CHARACTER_MOTIONS[name]).map(async (character) => {
+    const definitions = CHARACTER_MOTIONS[character];
     motions[character] = {};
-    await Promise.all(Object.entries(definitions).map(async ([name, definition]) => {
+    await Promise.all(Object.entries(definitions).filter(([name]) => !selected[character] || selected[character].includes(name)).map(async ([name, definition]) => {
       const image = await imageLoader(definition.src);
       if (!image) { console.warn(`[character-motion] 이미지 없음: ${definition.src}`); return; }
       motions[character][name] = {

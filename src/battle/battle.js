@@ -76,12 +76,17 @@ export class Battle {
   /** 진입 연출 동안 아틀라스·적 이미지를 캐시에 올려 둔다 — 첫 전투도 로딩 정지 없이 징글이 끝나는 순간 화면이 열린다 (2026-09-11 브금 전환 타임라인) */
   static preload(game, enemyIds = []) {
     const ids = PARTY_ORDER.filter((id) => id === 'hyungsub' || game.party.includes(id));
-    for (const id of ids) if (BATTLE_SPRITES[id]) { cached(FRAME_CACHE, id, () => loadActorFrames(BATTLE_SPRITES[id], BATTLE_PREVIEW.colorKey)); cached(IMAGE_CACHE, DOWN_SRC(id), () => loadImage(DOWN_SRC(id))); }
+    const pending = [];
+    for (const id of ids) if (BATTLE_SPRITES[id]) {
+      pending.push(cached(FRAME_CACHE, id, () => loadActorFrames(BATTLE_SPRITES[id], BATTLE_PREVIEW.colorKey)));
+      pending.push(cached(IMAGE_CACHE, DOWN_SRC(id), () => loadImage(DOWN_SRC(id))));
+    }
     for (const eid of enemyIds) {
       const def = ENEMIES[eid]; if (!def) continue;
       const sources = [def.image || def.sheet?.src, ...Object.values(def.actions || {}).map(action => action.src), ...Object.values(def.projectiles || {})];
-      for (const src of sources) cached(IMAGE_CACHE, src, () => loadImage(src));
+      for (const src of sources) if (src) pending.push(cached(IMAGE_CACHE, src, () => loadImage(src)));
     }
+    return Promise.all(pending);
   }
   constructor(game, cfg) {
     this.game = game; this.cfg = cfg;

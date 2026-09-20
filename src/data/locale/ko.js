@@ -2,6 +2,8 @@
 export default {
   boot_title: 'SUBTARUNE',
   boot_hint: '아무 키나 누르거나 화면을 클릭하세요',
+  loading_map: '맵을 준비하는 중...',
+  loading_error: '맵을 불러오지 못했습니다. 다시 시도해주세요.',
   help: '이동 방향키 · 확인 C · 취소/달리기 X',
   chest_empty: '* 상자는 비어 있다.',
   menu_title: '메뉴',

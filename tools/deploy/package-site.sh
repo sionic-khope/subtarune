@@ -40,6 +40,8 @@ while IFS= read -r -d '' path; do copy_file "$path"; done < <(
 # The drawer scene imports this vendored module; retain its MIT notice.
 copy_file assets/lib/three.module.js
 copy_file assets/lib/three.LICENSE
+copy_file assets/source/fonts253/NeoDunggeunmo-LICENSE.txt
+copy_file assets/source/fonts253/Galmuri-LICENSE.txt
 touch "$output_root/.nojekyll"
 printf '{"sourceSha":"%s","builtAt":"%s"}\n' "$source_sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$output_root/version.json"
 printf 'Packaged source %s into %s\n' "$source_sha" "$output_root"

@@ -40,7 +40,7 @@ src/ui/dialogue.js    TextBox(타자기·태그·페이지·초상화·선택지
 src/world/tiles.js    타일 레지스트리 (registerTile)
 src/world/world.js    TileMap / Camera / Entity 종류 (registerEntity)
 src/data/art.js       도트 아트 원본 + 팔레트 (여길 고치면 그림이 바뀜)
-src/data/maps.js      코드 맵(방·거실 이미지 맵). 나머지 맵은 assets/maps/*.json 이 부팅 때 덮어쓴다(index.json)
+src/data/maps.js      코드 맵(방·거실 이미지 맵). 진입할 맵의 assets/maps/*.json 과 필요한 그림을 준비한 뒤 교체한다
 src/data/scripts.js   대사 스크립트 (한글)
 src/data/locale/ko.js 시스템 UI 문자열
 assets/               PNG를 넣으면 자동 교체 (아래 규격)
@@ -105,7 +105,7 @@ baker: [
 
 형섭은 칼(모든 프레임 입 없음), 경섭은 양손도끼, 빠맨은 파란 구슬이 달린 한손 마법봉을 사용한다. 캐릭터마다 대기 4장과 공격 4장이 있으며, 공격 중 재입력은 무시하고 한 번 재생한 뒤 대기로 돌아간다.
 
-원본과 생성 프롬프트는 `assets/battle/`, 프레임 영역·발 기준점·속도는 `src/data/battle-sprites.js`, 지연 로딩과 재생은 `src/ui/battle-preview.js`에 있다. PNG는 마젠타 배경의 RGB 원본이며 최초 미리보기 진입 때 배경을 제거한 프레임을 캐시한다. 전체 시트를 균등 분할하면 무기가 잘리므로 메타데이터를 함께 사용한다.
+원본과 생성 프롬프트는 `assets/battle/`, 프레임 영역·발 기준점·속도는 `src/data/battle-sprites.js`, 지연 로딩과 재생은 `src/ui/battle-preview.js`에 있다. 마젠타 RGB 원본은 보존하고, 기본 세 캐릭터는 동일 픽셀의 투명 런타임 아틀라스를 사용한다(`assets/battle/RUNTIME.md`). 전체 시트를 균등 분할하면 무기가 잘리므로 메타데이터를 함께 사용한다.
 
 **현재는 엔진 안의 모션 미리보기이며 실제 전투 시스템은 아니다.** 적·HP·턴·피해 판정·스토리 전투 진입은 구현하지 않았다. 기존 이동 스프라이트와 세이브는 변경하지 않는다. 생성은 사용자 승인에 따른 내장 이미지 도구이며 특정 GPT Image 2.5 모델로 고정한 결과는 아니다.
 
@@ -118,7 +118,7 @@ AI 생성 시트(보라 배경, 캐릭터당 4열 × 4행[정면/왼쪽/오른�
 pip install pillow numpy
 python3 tools/sprites/slice_sheet.py sheet.png hyungsub gyeongsub ppaman   # → assets/sprites/*.png, assets/portraits/*.png
 ```
-새 캐릭터는 `src/data/characters.js` 에 한 줄 추가. 폰트는 `src/ui/font.js` `FONT_PRESET` 한 줄 (기본 네오둥근모).
+새 캐릭터는 `src/data/characters.js` 에 한 줄 추가. 폰트는 `src/ui/font.js` `FONT_PRESET` 한 줄 (기본 네오둥근모). 기존 폰트 파일은 `assets/fonts/`에서 자체 제공하며 외부 CDN을 기다리지 않는다. 출처·배포 라이선스는 `assets/source/fonts253/`에 있다.
 사운드 파일은 `assets/audio/sfx/<이름>.mp3` 를 넣으면 합성음 대신 재생 (`design/audio/references.md`).
 
 ## 테스트

@@ -23,7 +23,7 @@ for (const p of [...walk('src/data'), ...walk('assets/maps')]) {
 
 test('test_fx_registry_sheets_and_sounds_exist_and_match_the_image', () => {
   const sfxDir = new Set(fs.readdirSync(path.join(ROOT, 'assets/audio/sfx')).map((f) => f.replace(/\.mp3$/, '')));
-  const loaded = [...(fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8').match(/loadSfxFiles\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]);
+  const loaded = [...(fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8').match(/scheduleSfxPreload\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]);
   for (const [name, f] of Object.entries(FX)) {
     assert.ok(fs.existsSync(path.join(ROOT, f.sheet)), `FX.${name}: 띠 파일이 없다 ${f.sheet} — tools/art/video_to_strip.py 로 만든다`);
     const { w, h } = png(f.sheet);

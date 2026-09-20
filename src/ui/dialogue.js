@@ -473,7 +473,16 @@ export class ScriptRunner {
       if (node.end) { this._finish(); return; }
       if (node.set) { for (const [k, v] of Object.entries(node.set)) this.game.setFlag(k, v); continue; }
       if (node.stage) { this.game.setFlag(node.stage); continue; }            // 스토리 단계 도달 (앞 단계 자동 채움)
-      if (node.action) { node.action(this.game); continue; }
+      if (node.action) {
+        const result = node.action(this.game);
+        if (result?.then) {
+          let finished = false;
+          result.then(() => { finished = true; });
+          this.wait = { update: () => finished };
+          return;
+        }
+        continue;
+      }
       if (node.if) { if (node.if(this.game.flags, this.game.story)) { this._jump(node.goto); return; } continue; }
       if (node.goto) { this._jump(node.goto); return; }
       if (node.text !== undefined) {

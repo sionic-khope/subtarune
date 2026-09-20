@@ -18,13 +18,14 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
 
 function fixture(flags = {}) {
   return Object.assign(Object.create(Game.prototype), {
-    time: 0, flags, state: 'field', settings: { textSpeed: 0, sound: true },
+    time: 0, flags, party: [], state: 'field', settings: { textSpeed: 0, sound: true },
     propImages: { sheet: { width: 120, height: 80 } }, booms: [],
     textbox: {}, sound: { muted: false }, sunrise: { update() {}, dispose() {} },
     fade: {}, zoom: {}, chat: { update() {} }, sysdialog: { update() {} },
     vortex: { update() {} }, bubble: { update() {} }, entities: [], fx: [], ripples: [],
     flames: [], flameEmitters: [], background: [], dialogue: { running: false },
     maillardArrival: { update() {}, dispose() {} },
+    preparedMaps: new Set(['maillard_captain', 'other']), preparedCharacters: new Set(['hyungsub']),
     camera: { snap() {} }, spawnParty() {}, has(key) { return !!this.flags[key]; },
   });
 }

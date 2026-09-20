@@ -42,8 +42,8 @@ export function tileCanvas(def, variant = 0) {
 }
 
 /** assets/tiles/*.png 오버라이드 로드 (없으면 조용히 통과) */
-export async function loadTileOverrides() {
-  await Promise.all(allTiles().map(async (def) => {
+export async function loadTileOverrides(chars = null) {
+  await Promise.all(allTiles().filter((def) => !chars || chars.has(def.char)).map(async (def) => {
     const img = await loadImageOptional(`assets/tiles/${def.name}.png`);
     if (img) { def.override = img; cache.delete(def.name); }
   }));

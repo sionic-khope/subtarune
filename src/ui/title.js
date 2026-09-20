@@ -184,7 +184,13 @@ export class TitleScreen {
   _leave(go) {
     this.leaving = true; this.flash = 0.12;
     this.game.sound.sfx('confirm'); this.game.sound.stopIntro(0.5); this.game.sound.stopBgm(0.6);
-    this.game.fadeTo(1, 0.6, go);
+    this.game.fadeTo(1, 0.6, () => {
+      Promise.resolve(go()).catch(error => {
+        console.error('[title] 이동 실패', error);
+        this.leaving = false;
+        this.game.fadeTo(0, 0.3);
+      });
+    });
   }
 
   _startIntro() {
@@ -230,14 +236,14 @@ export class TitleScreen {
     if (input.just('test')) {                 // T: 테스트룸 바로 가기
       this.leaving = true;
       this.game.sound.stopIntro(0.3); this.game.sound.stopBgm(0.3);
-      this.game.fadeTo(1, 0.3, () => { this.game.devJump({ map: 'test', spawn: 'start' }); this.game.fadeTo(0, 0.3); });
+      this.game.fadeTo(1, 0.3, async () => { await this.game.devJump({ map: 'test', spawn: 'start' }); this.game.fadeTo(0, 0.3); });
       return;
     }
     if (this.qa) {                                                 // QA 바로가기 목록
       if (input.just('up')) { this.qa.i = (this.qa.i + QA_MENU.length - 1) % QA_MENU.length; this._qaScroll(); this.game.sound.sfx('menu'); }
       if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_MENU.length; this._qaScroll(); this.game.sound.sfx('menu'); }
       if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
-      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; this._leave(() => { this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
+      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; this._leave(async () => { await this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
       return;
     }
     if (input.just('qa')) { this.qa = { i: 0, top: 0 }; this.game.sound.sfx('menu'); return; }
