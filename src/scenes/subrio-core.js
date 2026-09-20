@@ -250,18 +250,19 @@ function stageTutorial(b) {
 
 function stagePurple(b) {
   // 1-1: 평지 위주, 미니언은 한 마리씩. 틈은 2~3칸, 단차 1~2
-  b.ground(30, 18, [[R, 16], [R, 24]]);
+  // 스테이지마다 몬스터 5마리씩 줄임(사용자 2026-09-20): 1-1 28 → 23, 1-2 26 → 21, 1-3 33 → 28(레드·블루 유지)
+  b.ground(30, 18, [[R, 16]]);
   b.ground(6, 17).ground(6, 16).ground(14, 15, [[U, 6]]);
-  b.gap(3).ground(26, 18, [[R, 8], [R, 18]]).blocks(6, 4, 14).blocks(14, 5, 12, [[U, 2]]);
+  b.gap(3).ground(26, 18, [[R, 8]]).blocks(6, 4, 14).blocks(14, 5, 12, [[U, 2]]);
   b.gap(3).ground(22, 18, [[R, 10]]).blocks(6, 3, 14);
-  b.ground(8, 16).gap(3).ground(30, 18, [[R, 6], [U, 14], [R, 22]]).blocks(10, 5, 13).blocks(20, 4, 11);
+  b.ground(8, 16).gap(3).ground(30, 18, [[R, 6], [U, 14]]).blocks(10, 5, 13).blocks(20, 4, 11);
   b.gap(2).ground(18, 18, [[R, 9]]).blocks(4, 3, 15).blocks(11, 3, 13);
   b.ground(6, 17).ground(6, 16).ground(6, 15).gap(3).ground(20, 15, [[U, 5], [R, 14]]);
   b.gap(4).ground(28, 18, [[R, 8], [R, 20]]).blocks(6, 4, 14, [[U, 1]]).blocks(16, 4, 12).spring(14);
   b.gap(3).ground(24, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 6, 14);
   b.ground(6, 17).ground(6, 16).gap(3).ground(26, 16, [[R, 8], [R, 18]]).blocks(10, 4, 12);
-  b.gap(3).ground(30, 18, [[R, 6], [U, 12], [R, 20], [U, 26]]).blocks(8, 5, 14).blocks(18, 5, 12, [[R, 2]]);
-  b.gap(4).ground(34, 18, [[R, 8], [R, 16]]).spring(22);
+  b.gap(3).ground(30, 18, [[R, 6], [U, 12], [R, 20]]).blocks(8, 5, 14).blocks(18, 5, 12, [[R, 2]]);
+  b.gap(4).ground(34, 18, [[R, 8]]).spring(22);
   return b.flag(26);
 }
 
@@ -269,17 +270,17 @@ function stageTeal(b) {
   // 1-2: 틈 3~4칸, 오르내리는 계단, 블록 징검다리, 블록 위 미니언
   b.ground(22, 18, [[R, 12]]);
   b.ground(6, 16).gap(3).ground(14, 18).blocks(5, 3, 14);
-  b.gap(4).ground(6, 18).ground(6, 17).ground(6, 16).ground(6, 15).gap(3).ground(18, 15, [[U, 4], [R, 12]]).blocks(5, 4, 12, [[R, 1]]);
+  b.gap(4).ground(6, 18).ground(6, 17).ground(6, 16).ground(6, 15).gap(3).ground(18, 15, [[U, 4]]).blocks(5, 4, 12, [[R, 1]]);
   b.gap(4).ground(20, 18, [[R, 5]]).blocks(4, 3, 15).blocks(10, 4, 13);
   b.ground(6, 16).gap(3).ground(14, 16);
   // 블록 징검다리: 땅 끝(offset 14)에서 틈 3 → 블록 3칸(같은 높이) → 틈 3 → 블록 3칸(한 칸 위) → 틈 3 → 블록 3칸 → 틈 3 → 땅(내려감)
   b.blocks(17, 3, 16).blocks(23, 3, 15).blocks(29, 3, 15);
-  b.gap(21).ground(24, 18, [[U, 6], [R, 14], [R, 20]]).blocks(8, 5, 14, [[U, 2]]);
+  b.gap(21).ground(24, 18, [[U, 6], [R, 14]]).blocks(8, 5, 14, [[U, 2]]);
   b.gap(3).ground(8, 17).ground(6, 15).ground(6, 13).gap(4).ground(20, 18, [[R, 4], [U, 10], [R, 16]]).blocks(6, 4, 14).blocks(13, 4, 12).spring(2);
-  b.gap(4).ground(28, 18, [[R, 6], [R, 12], [U, 20]]).blocks(4, 3, 15).blocks(11, 3, 13).blocks(18, 3, 11, [[R, 1]]);
+  b.gap(4).ground(28, 18, [[R, 6], [U, 20]]).blocks(4, 3, 15).blocks(11, 3, 13).blocks(18, 3, 11, [[R, 1]]);
   b.gap(3).ground(6, 16).gap(3).ground(6, 16).gap(3).ground(22, 18, [[U, 8], [R, 16]]).blocks(10, 4, 14);
-  b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).gap(4).ground(24, 18, [[R, 6], [U, 12], [R, 18]]).blocks(8, 6, 14, [[U, 2]]);
-  b.gap(4).ground(30, 18, [[R, 8], [R, 14], [U, 22]]).blocks(6, 5, 14).blocks(16, 5, 12).blocks(24, 3, 15);
+  b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).gap(4).ground(24, 18, [[R, 6], [U, 12]]).blocks(8, 6, 14, [[U, 2]]);
+  b.gap(4).ground(30, 18, [[R, 8], [U, 22]]).blocks(6, 5, 14).blocks(16, 5, 12).blocks(24, 3, 15);
   b.gap(3).ground(34, 18, [[R, 8]]).spring(22);
   return b.flag(26);
 }
@@ -290,15 +291,15 @@ function stageBlue(b) {
   b.gap(4).ground(14, 18).blocks(4, 3, 14).blocks(9, 3, 12);
   b.ground(6, 16).ground(6, 14).gap(3).ground(12, 14, [[U, 5]]);
   b.gap(5).ground(18, 17, [[R, 4]]).blocks(4, 4, 13).blocks(11, 4, 11);
-  b.gap(3).ground(8, 17).ground(6, 15).gap(4).ground(20, 18, [[R, 5], [R, 16]]).blocks(4, 3, 15).blocks(10, 3, 12).blocks(15, 3, 9);
+  b.gap(3).ground(8, 17).ground(6, 15).gap(4).ground(20, 18, [[R, 5]]).blocks(4, 3, 15).blocks(10, 3, 12).blocks(15, 3, 9);
   b.ground(6, 16).gap(4).ground(12, 16, [[U, 6]]);
   b.gap(4).blocks(12 + 4, 3, 16).blocks(12 + 10, 3, 15).blocks(12 + 16, 3, 15).blocks(12 + 22, 3, 14);
-  b.gap(21).ground(22, 18, [[R, 4], [R, 10], [U, 16]]).blocks(6, 5, 14, [[R, 2]]).blocks(14, 4, 11);
-  b.gap(4).ground(6, 17).ground(6, 15).ground(6, 13).gap(5).ground(24, 18, [[U, 4], [R, 10], [R, 16], [U, 20]]).blocks(6, 4, 14).blocks(14, 4, 12).blocks(19, 3, 9).spring(1);
-  b.gap(4).ground(26, 18, [[R, 5], [U, 11], [R, 17], [R, 22]]).blocks(4, 3, 15).blocks(10, 3, 13).blocks(16, 3, 11, [[U, 1]]).blocks(21, 3, 9);
+  b.gap(21).ground(22, 18, [[R, 4], [U, 16]]).blocks(6, 5, 14, [[R, 2]]).blocks(14, 4, 11);
+  b.gap(4).ground(6, 17).ground(6, 15).ground(6, 13).gap(5).ground(24, 18, [[U, 4], [R, 10], [U, 20]]).blocks(6, 4, 14).blocks(14, 4, 12).blocks(19, 3, 9).spring(1);
+  b.gap(4).ground(26, 18, [[R, 5], [U, 11], [R, 17]]).blocks(4, 3, 15).blocks(10, 3, 13).blocks(16, 3, 11, [[U, 1]]).blocks(21, 3, 9);
   b.gap(4).ground(6, 16).gap(4).ground(6, 16).gap(4).ground(6, 16).gap(3).ground(22, 18, [[R, 6], [R, 18]]).blocks(8, 5, 14);
   b.ground(6, 17).ground(6, 16).ground(6, 15).ground(6, 14).ground(6, 13).gap(5).ground(26, 18, [[R, 4], [U, 10], [R, 16], [U, 22]]).blocks(8, 6, 14, [[U, 2]]).blocks(18, 4, 11);
-  b.gap(4).ground(30, 18, [[R, 6], [R, 12], [U, 18], [R, 24]]).blocks(5, 4, 14).blocks(13, 4, 12).blocks(21, 4, 10, [[R, 1]]);
+  b.gap(4).ground(30, 18, [[R, 6], [R, 12], [U, 18]]).blocks(5, 4, 14).blocks(13, 4, 12).blocks(21, 4, 10, [[R, 1]]);
   // 마지막 평지: 레드·블루(사용자: 1-3 마지막 쪽) + 깃발 앞 샘물
   b.gap(4).ground(34, 18, [['red', 6], ['blue', 16]]).spring(22);
   return b.flag(26);

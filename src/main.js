@@ -919,6 +919,13 @@ class Game {
     if (e) this.entities.push(e);
     return e;
   }
+  /** 소품 그림 지연 적재(BUILD268): 맵 준비 목록에 없는 그림을 컷신이 spawn 하면 Prop 이 여기로 받아 온다. 한 번 받은 그림은 propImages 에 남는다 */
+  requestPropImage(src) {
+    if (this.propImages[src]) return Promise.resolve(this.propImages[src]);
+    if (!this._propImageRequests) this._propImageRequests = new Map();
+    if (!this._propImageRequests.has(src)) this._propImageRequests.set(src, loadImageOptional(src).then((im) => { if (im) this.propImages[src] = im; else console.warn('[prop] 그림 없음', src); return im; }));
+    return this._propImageRequests.get(src);
+  }
 
   // ── 스크립트 ────────────────────────────────────────────
   runScript(key, onEnd) {

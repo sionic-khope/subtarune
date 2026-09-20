@@ -22,3 +22,13 @@ test('test_ship_control_intro_spots_match_map_meta', () => {
   assert.equal(map.enter?.script, 'ship_control_intro');
   for (const src of ['assets/props/ship_cannonball.png', 'assets/fx/cannon_smoke.png', 'assets/props/ship_cage.png', 'assets/props/ship_cage_open.png']) assert.ok(map.preload.includes(src) && fs.existsSync(src), `${src} preload·존재`);
 });
+
+test('test_ship_control_mushroom_image_is_preloaded_and_props_lazy_load_missing_images', async () => {
+  // 2026-09-20 사용자 “쥰희가 버섯 던져주는데 보라색으로 뜨고 잘 안뜸”: 맵 준비 목록에 버섯 그림이 없어 Prop 이 보라 네모(그림 없음 폴백)를 그렸다
+  const { MAP_RUNTIME_ASSETS } = await import('../../src/data/map-runtime-assets.js');
+  assert.ok(MAP_RUNTIME_ASSETS.youngcle20.images.includes('assets/props/editor-union-mushroom.png'), '조종실 맵이 버섯 그림을 미리 받는다');
+  const src = fs.readFileSync(new URL('../../src/data/cutscenes/ship_control.js', import.meta.url), 'utf8');
+  assert.ok(src.includes("image: 'assets/props/editor-union-mushroom.png'"), '회복 연출 버섯 소품 그림');
+  const world = fs.readFileSync(new URL('../../src/world/world.js', import.meta.url), 'utf8'), main = fs.readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
+  assert.ok(/game\.requestPropImage\(def\.image\)/.test(world) && /requestPropImage\(src\)/.test(main), '준비 목록에 없는 소품 그림은 지연 적재(보라 네모 대신)');
+});

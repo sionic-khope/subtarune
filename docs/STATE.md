@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-20
 
+**BUILD268 — 섭리오 몬스터 5마리씩 감소·쥰희 버섯 보라 네모 수정**(사용자 2026-09-20): ① 섭리오 1-1 28→23, 1-2 26→21, 1-3 33→28(레드·블루 유지), 종류 배분 유지(`subrio-core.js`), `subrio.test` 가 정확한 수를 잰다. ② 조종실 회복 연출의 버섯 소품 그림이 맵 준비 목록에 없어 보라 네모 폴백 → `MAP_RUNTIME_ASSETS.youngcle20.images` 추가 + `Prop` 이 없는 그림을 `game.requestPropImage` 로 지연 적재(엔진 일반 수정).
+
 **BUILD267 — 리듬 게임 Esc 취소·노래 재생 보강**(사용자 2026-09-20 “방가방가 노앰토리 같은 리듬게임 노래가 안나와” / “esc 누르면 성공 이후로 가지기도”): ① `stage_rhythm.js` — scene3d 결과가 `found` 가 아니면(Esc) `AFTER_SHOW` 로 가지 않고 `RHYTHM_CANCELLED`(대기실 `youngcle12` 재진입·페이드인·end) — 플래그가 없으니 뚜울라에게 다시 C 로 재도전. `backstage_ttuulla`·`rhythm_qa` 둘 다. ② `rhythm.js startSong` — 영상이 WebAudio 로 연결된 채 컨텍스트가 suspended 면 무음이라 먼저 resume, 로드가 끊긴 영상(error/NO_SOURCE)은 load 뒤 재생. 참고: 개발 서버를 작업 중 재기동하면 스트리밍 중인 노래 영상이 끊길 수 있다(페이지 새로고침으로 복구).
 
 **BUILD266 — 벚꽃 숲 4·다오·배찌(카트라이더 패턴)**(사용자 브리핑 2026-09-20, 원문·구현표 `design/narrative/cutscenes/jjajang_sakura4.md`): 벚꽃 숲 3 아래 물가 아랫줄 문 → `jjajang_sakura4`(36×70 지그재그 149칸). 붙인 도트 그림을 축소한 적 둘(`ENEMIES.dao/bazzi`, hp 36, 피해 12·돈 40 잠정): 다오 = `kart_missile`(조준 추적→잠김→미사일→파편)·`kart_booster`(띠 예고→흰 카트 질주)·`kart_banana`(바닥에 남는 바나나 + 띠), 배찌 = `kart_waterbomb`(호 예고→고리)·`kart_magnet`(하트 끌어당김 + 벽 가시)·`kart_waterfly`(조합). `src/battle/kart-patterns.js`, 소리 `sfx/kart_*.mp3`(효과음 모음 영상 구간 배정, 청취 미확인 — `assets/source/kartrider-v1/README.md`), 전투 배경 `sakura`, speak 는 아이템 이름 외침(잠정). QA `jjajang_sakura4`·`_dao`·`_bazzi`.

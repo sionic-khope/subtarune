@@ -32,3 +32,10 @@
 - 전투 시작 연출은 표준 조우 진입 그림(battle_start·브금 끔·진동·소용돌이·줌·검게)까지. 전투는 다음 명령 — 지금은 화면이 돌아오고 대치 상태(`ship_intro_done`)로 남는다. 재입장 `after` 라벨이 같은 상태를 복원.
 - 내가 고른 것: 브금 `storage_show`(영클 테마), 대포 소리 scrape/boom/cannon_puff/impact, 엔진 ember/whoosh, 버튼 click. 바꾸려면 말씀.
 - 정정(2026-09-17 사용자 “용준이 대포 쏠 때도 효과음 나야지”): 용준 쪽 포탄은 대포 그림 없이 가운데서 날아오지만 발사음(`cannon_guard_fire`·`boom`)은 쥰희 때와 같이 난다.
+
+## 정정 (BUILD268, 2026-09-20)
+
+> 쥰희가 야 너네 이거 하나씩먹어라 (영클 2차전전에) 버섯 던져주는데 보라색으로 뜨고 잘 안뜸
+
+- 원인: 회복 연출이 spawn 하는 버섯 소품 그림(`assets/props/editor-union-mushroom.png`)이 조종실 맵(youngcle20)의 준비 목록에 없어 `Prop` 이 ‘그림 없음’ 폴백(보라 반투명 네모)을 그렸다. 다른 맵에서 먼저 받아 둔 세션에서만 보였다(“잘 안뜸”).
+- 수정: `MAP_RUNTIME_ASSETS.youngcle20.images` 에 버섯 추가 + 엔진에서 준비 목록에 없는 소품 그림은 `game.requestPropImage` 로 지연 적재(같은 종류의 버그 재발 방지).

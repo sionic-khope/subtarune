@@ -647,6 +647,8 @@ export class Prop extends Entity {
     const iw = this.image ? Math.round(this.image.width / cols * this.scale) : 32;
     const ih = this.image ? Math.round(this.image.height * this.scale) : 32;
     this.iw = iw; this.ih = ih;
+    // 컷신이 spawn 한 소품의 그림이 이 맵에 미리 적재돼 있지 않으면(쥰희 버섯이 보라 네모로 뜨던 버그, BUILD268) 지금 받아서 끼운다
+    if (!this.image && def.image && game.requestPropImage) game.requestPropImage(def.image).then((im) => { if (!im || this.dead) return; this.image = im; this.iw = Math.round(im.width / cols * this.scale); this.ih = Math.round(im.height * this.scale); });
     // 히트박스: 지정 없으면 이미지 아래쪽 40%
     if (def.w === undefined) { this.w = iw; this.h = Math.max(4, Math.round(ih * 0.4)); this.x = def.x; this.y = def.y + ih - this.h; }
   }
