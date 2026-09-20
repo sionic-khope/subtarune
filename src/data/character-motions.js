@@ -7,7 +7,6 @@ export const CHARACTER_MOTIONS = {
     // 이미 투명 PNG 라 colorKey 는 ‘없음’(rMin 256) — 로더가 colorKey 없이는 죽는다(QA 진입 실패 TypeError rMin)
     masked: { src: 'assets/sprites/choimis-masked.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 }, frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
     facepalm: { src: 'assets/sprites/choimis-facepalm.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 }, frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
-    fallen: { src: 'assets/sprites/choimis-fallen.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 }, frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
     wink: { src: 'assets/sprites/choimis-wink.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [[1, 0.4], [0, 0.14], [1, 0.5], [0, 0.14], [1, 0.7]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
     seup: { src: 'assets/sprites/choimis-seup.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },

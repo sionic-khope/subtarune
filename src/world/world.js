@@ -689,7 +689,9 @@ export class Prop extends Entity {
   draw(ctx, cam) {
     if (!this.visible) return;
     if (this.def.shipHatch && this.image) { drawShipHatch(ctx, this, cam); return; }
-    const fx = this.flyX || 0, fy = this.flyY || 0;    // 컷신 {hop}/{fling} 로 밀려난 그림 위치(히트박스 지정 소품은 def.ix 를 따르므로 따로)
+    // jitter(컷신 {tremble}): 소품도 좌우로 부들부들 — 풀숲 흔들림(BUILD258 사용자 “풀숲 흔들리는거 안흔들리는데 소리만나고”). main.js 가 t 를 줄인다
+    const jx = this.jitter && this.jitter.t > 0 ? (Math.floor(this.jitter.t * 18) % 2 ? this.jitter.amp : -this.jitter.amp) : 0;
+    const fx = (this.flyX || 0) + jx, fy = this.flyY || 0;    // 컷신 {hop}/{fling} 로 밀려난 그림 위치(히트박스 지정 소품은 def.ix 를 따르므로 따로)
     const cols = this.anim?.cols || 1, fw = this.image ? this.image.width / cols : 0, fi = cols > 1 ? Math.floor(performance.now() / 1000 * (this.anim.fps || 8)) % cols : 0;
     const blit = (dx, dy) => ctx.drawImage(this.image, fi * fw, 0, fw, this.image.height, dx, dy, this.iw, this.ih);
     const pulseOff = this.pulseOn === false;

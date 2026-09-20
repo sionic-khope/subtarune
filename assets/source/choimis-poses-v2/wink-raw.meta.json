@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/choimis-walk-v1/runtime-128.png"
+  ],
+  "elapsed_seconds": 28.5,
+  "usage": {
+    "input_tokens": 1198,
+    "output_tokens": 1756,
+    "total_tokens": 2954,
+    "input_tokens_details": {
+      "image_tokens": 1024,
+      "text_tokens": 174
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789881075,
+  "outputs": [
+    {
+      "file": "assets/source/choimis-poses-v2/wink-raw.png",
+      "bytes": 864565,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

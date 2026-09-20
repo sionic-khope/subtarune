@@ -59,12 +59,13 @@ try {
   check(girls.every(g => g && g.x < choi.x) && new Set(girls.map(g => g.y)).size === 3, `가순이들은 최미스 왼쪽에 어긋나게 ${JSON.stringify(girls.map(g => [g.x, g.y]))}`);
   await cap('10_girls');
   s = await advanceTo('패션'); check(!!s && s.speaker === '가순이3', '가순이3: 패션 대박대박(동동)');
-  s = await advanceTo('후훗'); await next();
-  check(await until(() => { const e = window.game.entities.find(x => x.id === 'gasuni1'); return e && e.x > 700; }, 6000), '가순이들 오른쪽으로 이동');
+  s = await advanceTo('후훗'); const girlX = (await ent('gasuni1')).x; await next();
+  await page.evaluate(x => { window.__girlX = x; }, girlX);
+  check(await until(() => { const e = window.game.entities.find(x => x.id === 'gasuni1'); return e && e.x >= window.__girlX + 16; }, 6000), '가순이들 오른쪽(최미스 쪽)으로 이동');
   s = await advanceTo('쵸소우야.'); check(!!s, '내 추구미는 쵸소우야.'); await cap('11_girls_line');
   s = await advanceTo('꺄아아악'); check(!!s && s.speaker === '가순이123', '가순이123: 꺄아아악 …');
-  s = await advanceTo('칼로'); check(!!s && s.cam[0] < 400, `카메라 나무 뒤(억빠맨) ${s?.cam}`); await cap('12_tree_cam');
-  s = await advanceTo('이따 봐요'); check(!!s && s.cam[0] > 400, '다시 최미스 쪽');
+  s = await advanceTo('칼로'); check(!!s && s.cam[0] < 250, `카메라 나무 뒤(억빠맨) ${s?.cam}`); await cap('12_tree_cam');
+  s = await advanceTo('이따 봐요'); check(!!s && s.cam[0] > 300, `다시 가운데(최미스) ${s?.cam}`);
   s = await advanceTo('네 땡떙씨'); await next();
   check(await until(() => ['gasuni1', 'gasuni2', 'gasuni3'].every(id => { const e = window.game.entities.find(x => x.id === id); return !e || e.dead; }), 8000), '가순이 셋 달려서 올라감');
   s = await advanceTo('후후..'); await next();

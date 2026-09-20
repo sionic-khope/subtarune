@@ -560,3 +560,4 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 - `sfx/choimis_seup_miss.mp3`(2.7초): 사용자 지정 [X3qvIeLPkMI](https://www.youtube.com/watch?v=X3qvIeLPkMI) “최미스짜장면” 8.4~11.1초 — 조용한 들숨(스읍) 뒤 큰 소리(미스)가 있는 구간. 코 비비기 1.4초 → 손가락 총 1.3초 동작과 같은 길이.
 - `voices/choimis.mp3`(0.12초): 위 쵸소우야 클립 19:50.5 부근 목소리 조각(사용자 “보이스폰트는 쵸소우야 톤으로 느낌만”). `VOICES.choimis` rate 1·level 0.85.
 - 가순이 목소리는 지정 없음 → 합성 `VOICES.gasuni`(triangle 470Hz). 풀숲 흔들림은 기존 `break1` 0.5, 윙크 띠링은 기존 합성 `chime`, 가면 던짐은 기존 `whoosh`·`thud`.
+- (BUILD258 정정) 위 세 클립은 처음엔 무음으로 잘려 있었다(`-ss` 를 `-i` 뒤에 두고 afade 를 걸면 시작 시각이 0 이 아니라 페이드인이 끝나지 않음) → `-ss` 를 `-i` 앞에 두고 `loudnorm` 으로 -16 LUFS. `voices/choimis.mp3` 는 델타룬 **킹**(랜서 아빠) 대사음 `snd_dadtxt`(디컴파일 154f9a9) 그대로(사용자 “델타룬의 킹 목소리로”). `voices/gasuni.mp3` 는 델타룬 `snd_txttor`(토리엘)를 asetrate 1.32배로 높인 것(사용자 “토리엘 목소리에서 톤을 높인 버전”).

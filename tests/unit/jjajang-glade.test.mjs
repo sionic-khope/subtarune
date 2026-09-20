@@ -43,8 +43,8 @@ test('test_glade_beats_follow_the_briefing_order', () => {
   const idx = {
     rustle1: at(n => n.tremble === 'glade_bush_2'), alarm1: at(n => n.emote === 'player'), lookRight: at(n => n.face === 'ppaman' && n.dir === 'right'),
     line1: line('뭐죠'), rustle2: flat.findIndex((n, i) => n.tremble === 'glade_bush_2' && i > line('뭐죠')),
-    runLeft: at(n => n.move === 'player' && n.rel === 'glade_hide_tree' && n.run), camBush: at(n => Array.isArray(n.camera) && n.camera[0] > 20),
-    uwak: line('우왁'), show: at(n => n.show === 'choimis'), masked: at(n => n.pose === 'masked'), pop: at(n => n.hop === 'choimis'), fallen: at(n => n.pose === 'fallen'), maskOff: at(n => n.hop === 'discord_mask'),
+    runLeft: at(n => n.move === 'player' && n.rel === 'glade_hide_tree' && n.run), camBush: at(n => Array.isArray(n.camera) && n.camera[0] >= 20),
+    uwak: line('우왁'), show: at(n => n.show === 'choimis'), masked: at(n => n.pose === 'masked'), pop: at(n => n.hop === 'choimis'), fallen: at(n => n.lie === true), maskOff: at(n => n.hop === 'discord_mask'),
     bgm: at(n => n.bgm === 'choimis'), asibal: line('아시발'), camPlayer: at(n => n.camera === 'player'), bubble: at(n => n.bubble === 'player'),
     wink: at(n => n.motion === 'choimis' && n.name === 'wink'), gonic: line('고닉'), maskZoom: at(n => n.zoom > 1 && n.at === 'discord_mask'),
     sway: at(n => n.hop === 'choimis' && n.by && n.by[0] > 0 && n.height < 5), bgmOff: at(n => n.bgm === null),
@@ -71,7 +71,8 @@ test('test_glade_map_has_lit_clearing_bushes_tree_and_hidden_actors', () => {
   assert.ok(m.spotlight && m.spotlight.alpha > 0 && m.dim > 0, '위에서 드는 빛(spotlight) + 어두운 바깥');
   const { center: [cx, cy], radius, bushes, hideTree, trigger } = m.meta.glade;
   assert.ok(radius >= 8 && m.rows[cy][cx] === 'U' && m.rows[cy - radius + 1][cx] === 'U' && m.rows[cy][cx + radius - 1] === 'U', '원형 공터');
-  assert.equal(bushes.length, 3); assert.ok(bushes.every(([c]) => c > cx + 3), '풀숲 셋은 가운데 살짝 오른쪽');
+  assert.equal(bushes.length, 3); assert.ok(bushes.every(([c]) => c >= cx + 3 && c <= cx + 5), '풀숲 셋은 가운데 살짝 오른쪽(3~5칸) — 연출은 빛 가운데에서');
+  const bush = by('glade_bush_1'); assert.ok(bush.ix + 76 <= 40 * 32 && (bush.y + bush.h) - bush.iy >= 70, '풀숲은 76px 크기(BUILD258 “더 키워줘도”)');
   for (let i = 1; i <= 3; i++) { const b = by(`glade_bush_${i}`); assert.ok(b && b.solid && exists(b.image), `풀숲 ${i}`); }
   assert.ok(hideTree[0] < cx - 3 && by('glade_hide_tree')?.solid, '숨는 나무는 공터 왼쪽');
   const c = by('choimis'), mask = by('discord_mask');
@@ -89,7 +90,8 @@ test('test_choimis_and_gasuni_assets_are_registered', () => {
   assert.equal(CHARACTERS.choimis.voice, 'choimis'); assert.ok(VOICES.choimis && VOICES.gasuni);
   for (const f of ['assets/audio/voices/choimis.mp3', 'assets/audio/sfx/choimis_chosouya.mp3', 'assets/audio/sfx/choimis_seup_miss.mp3', 'assets/audio/bgm/choimis.mp3', 'assets/audio/bgm/gasuni.mp3', 'assets/portraits/choimis.png', 'assets/props/jjajang_bush.png', 'assets/props/discord_mask.png']) assert.ok(exists(f), f);
   const motions = CHARACTER_MOTIONS.choimis;
-  for (const name of ['masked', 'fallen', 'wink', 'seup', 'facepalm']) { assert.ok(motions[name] && exists(motions[name].src), name); assert.equal(motions[name].scale, 0.5); assert.ok(motions[name].frames.every(f => f.pivot.join() === '64,120')); }
+  assert.equal(motions.fallen, undefined, '넘어짐은 자세 그림 없이 기본 스프라이트를 눕힌다(사용자 2026-09-20)');
+  for (const name of ['masked', 'wink', 'seup', 'facepalm']) { assert.ok(motions[name] && exists(motions[name].src), name); assert.equal(motions[name].scale, 0.5); assert.ok(motions[name].frames.every(f => f.pivot.join() === '64,120')); }
   assert.ok(Math.abs(motions.seup.frames.reduce((s, f) => s + f.duration, 0) - 2.7) < 0.01, '스읍 미스 동작 = 음성 2.7초');
   assert.ok(motions.wink.frames.length >= 3, '윙크는 애니메이션');
   for (let i = 1; i <= 3; i++) { assert.equal(CHARACTERS[`gasuni${i}`].voice, 'gasuni'); assert.ok(exists(`assets/sprites/gasuni${i}.png`) && exists(`assets/portraits/gasuni${i}.png`), `가순이${i} 시트·초상화`); }

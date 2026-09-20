@@ -1,6 +1,6 @@
 // 빛 드는 공터 — 풀숲의 최미스(BUILD257, 사용자 브리핑 2026-09-20, 원문·구현표 design/narrative/cutscenes/jjajang_glade.md).
 //   공터 아래 입구에 닿으면: 오른쪽 풀숲이 흔들림 → 모두 느낌표·오른쪽 → 억빠맨·경섭 한 줄씩 → 한 번 더 흔들림 → 모두 느낌표, 왼쪽 나무 뒤로 달려가 숨음
-//   → 카메라가 풀숲으로 → 흔들리다 ???: 우왁!!! → 디스코드 가면을 쓴 최미스가 튀어나와 자빠짐, 가면이 벗겨져 옆에 떨어짐 → 아시발.(브금) … 카메라 잠깐 주인공(… 말풍선) → 다시 최미스
+//   → 카메라가 풀숲으로 → 흔들리다 ???: 우왁!!! → 디스코드 가면을 쓴 최미스가 튀어나와 자빠짐(기본 스프라이트 90° 눕힘), 가면이 벗겨져 옆에 떨어짐 → 아시발.(브금) … 카메라 잠깐 주인공(… 말풍선) → 다시 최미스
 //   → 내이름은 최땡땡 → 가재맨방 최고 고닉(띠링 + 윙크) → 갇히게 → 바로 이!(가면 클로즈업) 이 가면을 획득한뒤로 → 여자들이 … → 하긴 멘트치는건(좌우 꿈틀 춤) 내가 좀 .. 감각적이니까
 //   → 큼큼.. 콜록 큼!!!(브금 끔·천천히 클로즈업) → 내 추구미는... 쵸쇼우야.....(유튜브 음성) → 스읍 미스(코 비비기 → 손가락 총 2.7초, 유튜브 음성) → 막이래 어헣헣헣. 여기까지(다음 지시 대기).
 //   이어서(같은 날 2부): ???: 땡떙씨~? → 최미스 느낌표, 가면을 위로 던져 씀 → 브금 gasuni 로 바뀌며 가순이1(긴머리)·2(단발)·3(땋은머리)이 위에서 내려옴 → 셋의 한 줄씩(3은 동동 뛰며) → 후훗
@@ -20,26 +20,32 @@ const PLAYER = 'player', PARTY = ['player', 'gyeongsub', 'ppaman'];
 const CHOIMIS = 'choimis', MASK = 'discord_mask', BUSH = 'glade_bush_2', TREE = 'glade_hide_tree';
 const GIRLS = ['gasuni1', 'gasuni2', 'gasuni3'];
 const TREE_VIEW = [12, 15];             // 카메라 목표(숨는 나무 칸)
-const LOW_VIEW = [24, 19];              // 카메라가 천천히 내려와 일행(아래)·최미스(위)를 같이 잡는 자리
-const BUSH_VIEW = [25, 14];             // 카메라 목표(가운데 풀숲 칸, 맵 생성기 BUSH_CELLS[1])
+const LOW_VIEW = [18, 19];              // 카메라가 천천히 내려와 일행(아래)·최미스(위)를 같이 잡는 자리
+const BUSH_VIEW = [20, 14];             // 카메라 목표: 풀숲과 빛 드는 가운데가 같이 보이는 자리
+const CENTER_VIEW = [18, 15];           // 공터 가운데(빛) — 최미스가 여기서 활동한다(사용자 2026-09-20 “가운데에서 활동하게”)
 
-export const RUSTLE = { first: 1.0, second: 1.1, pop: 1.4, amp: 2, sfx: 'break1', volume: 0.5 };   // 풀숲 흔들림(부들부들) 길이·소리
+export const RUSTLE = { first: 1.0, second: 1.1, pop: 1.4, amp: 4, sfx: 'break1', volume: 0.5 };   // 풀숲 흔들림(부들부들 좌우 4px) 길이·소리
 export const HIDE = { player: [-44, -2], gyeongsub: [-32, 12], ppaman: [-52, -14] };               // 나무 왼쪽(16px 단위): 잎 가장자리에 반쯤 가려 내다본다(-28px 는 잎에 완전히 묻혔다), 셋이 겹치지 않게 어긋나게
-export const POP = { by: [-40, 30], height: 44, duration: 0.5 };                                   // 풀숲에서 튀어나오는 포물선(px)
-export const MASK_OFF = { by: [30, 34], height: 30, duration: 0.45, spin: 1 };                     // 벗겨진 가면이 옆 바닥으로
+export const POP = { by: [-104, 36], height: 52, duration: 0.6 };                                  // 풀숲(22,14)에서 빛 드는 가운데(18~19열)까지 크게 튀어나오는 포물선(px)
+export const MASK_OFF = { by: [-34, 34], height: 30, duration: 0.45, spin: 1 };                    // 벗겨진 가면이 최미스 왼쪽 바닥으로(사용자 2026-09-20 “왼쪽에 튀게”, 오른쪽은 풀숲에 가렸다)
 export const SWAY = { steps: 6, dx: 6, height: 3, duration: 0.17 };                                 // 좌우로 꿈틀꿈틀 춤추듯
 export const CLOSEUP = { mask: 2.2, choimis: 1.35, slow: 2.4 };                                     // 가면 클로즈업 / 큼큼 뒤 천천히 최미스에게
 export const GIRL_SPOTS = [[-40, -28], [-56, 0], [-40, 28]];                                       // 가순이 1·2·3 이 최미스 왼쪽 빈터에 반원으로 서는 자리(16px 단위) — 오른쪽은 풀숲이 막는다
 export const GIRL_SHIFT = [12, 0];                                                                 // 가순이들 오른쪽(최미스 쪽)으로 이동(16px 단위 = 24px)
 export const RUN_UP = [0, -64];                                                                     // 가순이들·최미스가 위로 달려 나가는 거리(16px 단위 = 128px, 공터 위쪽)
 export const BOUNCE = { steps: 5, height: 10, duration: 0.22 };                                    // 동동 뛰기
-export const MASK_ON = { by: [-30, -34], height: 40, duration: 0.4 };                               // 가면을 위로 던져 씀(땅 → 머리)
-export const MASK_DROP = { by: [26, 36], height: 24, duration: 0.4, spin: 1 };                      // 가면을 땅으로 던짐
+export const MASK_ON = { by: [34, -34], height: 40, duration: 0.4 };                                // 가면을 위로 던져 씀(왼쪽 땅 → 머리)
+export const MASK_DROP = { by: [-30, 36], height: 24, duration: 0.4, spin: 1 };                     // 가면을 왼쪽 땅으로 던짐
 export const PARTY_BELOW = 160;                                                                    // 일행을 최미스 아래로 순간이동시키는 거리(px)
-export const PAN_DOWN = 4.5;                                                                       // 카메라가 천천히 아래로 내려오는 시간
+export const PAN_DOWN = 3.2;                                                                       // 카메라가 천천히 아래로 내려오는 시간
+export const CAM = { toBush: 1.2, snap: 0.3, toTree: 0.8, back: 0.8, settle: 0.6 };                // 카메라 이동 시간(초): 풀숲으로 천천히, 휙 돌아올 땐 짧게
 
 const pose = name => ({ pose: name, action: game => { const e = game.entities.find(x => x.id === CHOIMIS); if (e) loopCharacterMotion(e, game.characterMotions.choimis?.[name]); } });   // pose: 검사용 표식
-const standing = { action: game => { const e = game.entities.find(x => x.id === CHOIMIS); if (e) { e.motion = null; e.facing = 'down'; } } };
+const standing = { action: game => { const e = game.entities.find(x => x.id === CHOIMIS); if (e) { e.motion = null; e.spin = 0; e.facing = 'down'; } } };
+// 넘어짐: 자세 그림을 따로 두지 않고 기본 걷기 스프라이트를 90° 눕힌다(사용자 2026-09-20 “넘어진건 스프라이트 만들지말고 기본 최미스 스프라이트에서 각도만 눕힌걸로”)
+// 가면 소품은 hop(keep) 뒤 그림 위치가 flyX/flyY 오프셋에 남는다 → 다음 hop·zoom 이 옛 자리를 기준 삼지 않게 히트박스·그림 좌표에 굳힌다
+const settleMask = { action: game => { const m = game.entities.find(x => x.id === MASK); if (!m) return; m.def.ix = (m.def.ix ?? m.x) + (m.flyX || 0); m.def.iy = (m.def.iy ?? m.y) + (m.flyY || 0); m.flyX = 0; m.flyY = 0; m.hopY = 0; m.spin = 0; } };
+const lieDown = { lie: true, action: game => { const e = game.entities.find(x => x.id === CHOIMIS); if (e) { e.motion = null; e.facing = 'down'; e.spin = -Math.PI / 2; } } };
 const everyone = (node) => ({ parallel: PARTY.map(id => ({ ...node, [Object.keys(node)[0]]: id })) });
 const alarm = () => everyone({ emote: '', kind: '!', duration: 1, hold: 0.6, sfx: 'chime' });
 const lookRight = () => everyone({ face: '', dir: 'right' });
@@ -64,20 +70,21 @@ export const jjajang_glade_intro = [
   everyone({ face: '', dir: 'right' }),
   { wait: 0.4 },
   // 그리고 다시 풀숲쪽으로 카메라가 이동됨 → (흔들거리다가 최미스가) ???: 우왁!!!
-  { camera: BUSH_VIEW, duration: 1.0 },
+  { camera: BUSH_VIEW, duration: CAM.toBush },
   { parallel: [{ tremble: BUSH, duration: RUSTLE.pop, amp: RUSTLE.amp + 1 }, { sfx: RUSTLE.sfx, volume: RUSTLE.volume }] },
   { wait: RUSTLE.pop * 0.5 },
   Q('우왁!!!'),
   close,
   // 최미스가 풀숲에서 튀어나와 자빠지고 디스코드 가면이 벗겨짐 그리고 최미스가 넘어짐
   { show: CHOIMIS }, pose('masked'),
-  { hop: CHOIMIS, by: POP.by, height: POP.height, duration: POP.duration, sfx: 'jump' },
+  { parallel: [{ hop: CHOIMIS, by: POP.by, height: POP.height, duration: POP.duration, sfx: 'jump' }, { camera: CENTER_VIEW, duration: CAM.settle }] },
   { action: game => { const c = game.entities.find(x => x.id === CHOIMIS), m = game.entities.find(x => x.id === MASK); if (c && m) { m.x = c.x - 11; m.y = c.y - 52; m.def.ix = m.x; m.def.iy = m.y; m.visible = true; } } },
-  pose('fallen'),
+  lieDown,
   { parallel: [
     { sfx: 'thud', volume: 0.8 },
     { hop: MASK, by: MASK_OFF.by, height: MASK_OFF.height, duration: MASK_OFF.duration, spin: MASK_OFF.spin, sfx: false, keep: true },
   ] },
+  settleMask,
   { wait: 0.5 },
   // 최미스: 아시발. (이때부터 브금)
   { bgm: 'choimis', volume: 0.5, fadeIn: 0.3 },
@@ -88,7 +95,7 @@ export const jjajang_glade_intro = [
   { camera: 'player' },
   { wait: 0.9 },
   { bubble: PLAYER },
-  { camera: BUSH_VIEW, duration: 0.35 },
+  { camera: CENTER_VIEW, duration: CAM.snap },
   standing,
   C('내이름은 최땡땡'),
   // 가재맨방 최고 고닉 (띠링 소리와 함께 윙크)
@@ -152,12 +159,12 @@ export const jjajang_glade_intro = [
   S(0, '꺄아아악 꺄아아악 섹시해, 고닉... 하...'),
   close,
   // (카메라가 주인공 나무 뒤쪽으로 이동)
-  { camera: TREE_VIEW, duration: 0.9 },
+  { camera: TREE_VIEW, duration: CAM.toTree },
   P('형저새끼 씨발 칼로찔러죽일테니까 제발 나가게해주세요'),
   G('참아 빠맨아'),
   close,
   // 다시 카메라 이동
-  { camera: BUSH_VIEW, duration: 0.9 },
+  { camera: CENTER_VIEW, duration: CAM.back },
   C('후후 이따 봐요 아가씨들 먼저 올라가있어.'),
   S(0, '네 땡떙씨!!'),
   close,
@@ -174,6 +181,7 @@ export const jjajang_glade_intro = [
   standing,
   { action: game => { const c = game.entities.find(x => x.id === CHOIMIS), m = game.entities.find(x => x.id === MASK); if (c && m) { m.x = c.x - 11; m.y = c.y - 52; m.def.ix = m.x; m.def.iy = m.y; m.visible = true; } } },
   { hop: MASK, by: MASK_DROP.by, height: MASK_DROP.height, duration: MASK_DROP.duration, spin: MASK_DROP.spin, sfx: 'thud', keep: true },
+  settleMask,
   C('휴우우우ㅜ우우 후우우우ㅜㅜ 아 다행이다. 시발 아 진짜 ㅈㄴ힘들다.'),
   C('이렇게해서라도 ... 넣... 넣을수만 있다면'),
   // 나는 상관없어!!!! — 그때 카메라가 천천히 아래로, 주인공들 셋은 화면 밖(최미스 아래)으로 순간이동해 있다

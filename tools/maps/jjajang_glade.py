@@ -10,8 +10,8 @@
 "그 다음맵은 오른쪽 좀 올라가다가 가운데에 어느정도 공간있는 원형모양에 위에서 뭔가 빛이 살짝 들어오는느낌의 밝기도 넣어주고
 가운데 살짝 옆에 풀숲같은게 오른쪽에 한 세개정도 배치해주고 … (여기에 나무가있음 나무뒤에 숨어서 바라보는느낌으로 이동. 나무배치도 하고)"
 - 깊은숲 입구(jjajang_deep) 위 문에서 아래 가장자리(8~9열)로 들어와 위로 가다가 오른쪽으로 비스듬히 오르는 길('U') → 가운데 반지름 10칸 원형 공터.
-- 위에서 드는 빛: spotlight(공터 가운데, rx 230 · ry 190 · alpha 0.22) + dim 0.2 — 공터 안은 은은히 밝고 밖은 어둡다. 바닥은 길과 같은 어두운 타일(밝은 풀숲 타일은 다른 지역처럼 보여 폐기).
-- 풀숲 소품 3개(gpt-image `assets/props/jjajang_bush.png`, 52×50)는 가운데에서 오른쪽으로 6~7칸. 가운데 풀숲에 최미스(숨은 NPC)와 디스코드 가면 소품이 숨어 있다. 가순이 1·2·3 은 공터 위쪽(6~7행)에 숨어 있다가 최미스 왼쪽 빈터로 내려온다(2부).
+- 위에서 드는 빛: spotlight(공터 가운데, rx 230 · ry 190 · alpha 0.26) + dim 0.12 — 공터 안은 은은히 밝고 밖은 어둡다(dim 0.2 는 입구 길이 검게 보여 낮춤, BUILD258). 바닥은 길과 같은 어두운 타일(밝은 풀숲 타일은 다른 지역처럼 보여 폐기).
+- 풀숲 소품 3개(gpt-image `assets/props/jjajang_bush.png`, 76×74)는 가운데에서 오른쪽으로 3~4칸 — 연출은 빛이 드는 가운데에서. 가운데 풀숲에 최미스(숨은 NPC)와 디스코드 가면 소품이 숨어 있다. 가순이 1·2·3 은 공터 위쪽(6~7행)에 숨어 있다가 최미스 왼쪽 빈터로 내려온다(2부).
 - 숨는 나무: 공터 왼쪽(13열)에 어두운 소나무 — 일행이 그 왼쪽(11열)에 서면 잎에 가려 ‘나무 뒤’ 가 된다.
 - 트리거: 공터 안 아래쪽(15~20열 × 18~19행)에 닿으면 한 번 `jjajang_glade_intro` — 이 자리에서 카메라(11.25행 높이)에 풀숲 셋(13~17행)이 다 보인다."""
 from __future__ import annotations
@@ -32,8 +32,8 @@ RADIUS: Final = 10
 PATH_CHAR: Final = 'U'
 EDGE_CHAR: Final = '^'
 GLADE_CHAR: Final = 'U'               # 공터 바닥도 어두운 길 타일 — 밝기는 spotlight 로만(풀숲 타일 '"' 은 밝은 초록 줄무늬라 다른 지역처럼 보였다)
-BUSH: Final = ('assets/props/jjajang_bush.png', 52, 50)
-BUSH_CELLS: Final = ((24, 12), (25, 14), (24, 16))   # 가운데에서 오른쪽으로 6~7칸에 세 개(가운데 것에 최미스)
+BUSH: Final = ('assets/props/jjajang_bush.png', 76, 74)   # 76px(BUILD258 사용자 “풀숲 더 키워줘도 되고”, 전 52)
+BUSH_CELLS: Final = ((21, 12), (22, 14), (21, 16))   # 가운데(18,15)에서 오른쪽으로 3~4칸 — 최미스가 튀어나와 빛이 드는 가운데에 선다(사용자 2026-09-20 “가운데에서 활동하게”)
 HIDE_TREE_CELL: Final = (13, 15)      # 숨는 나무(공터 왼쪽)
 TRIGGER: Final = (15, 18, 6, 2)       # 열, 행, 폭, 높이 — 공터 안 아래쪽(여기 서면 카메라에 풀숲 셋이 다 들어온다)
 PINES: Final = (
@@ -122,8 +122,8 @@ def build_map() -> dict[str, object]:
         'name': '빛 드는 공터',
         'stage': 'ship_sinking_done',
         'bgm': 'wind',
-        'dim': 0.2,
-        'spotlight': {'x': cx, 'y': cy - 24, 'rx': 230, 'ry': 190, 'alpha': 0.22},
+        'dim': 0.12,
+        'spotlight': {'x': cx, 'y': cy - 24, 'rx': 230, 'ry': 190, 'alpha': 0.26},
         'rows': [''.join(row) for row in rows],
         'spawns': {
             'from_south': {'x': ENTRY_COLS[1] * TILE - 8, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
