@@ -52,7 +52,7 @@ try {
   s = await advanceTo('깜짝이야!'); check(!!s && s.speaker === '가순이들', '가순이들: 깜짝이야!'); await cap('04_gasuni');
   s = await advanceTo('홍어가 최고랑께'); check(!!s && s.speaker === '도미조림', '도미조림: 아따 전라도 홍어가 최고랑께');
   s = await advanceTo('괜찮으세요?'); check(!!s && s.speaker === '도현', '도현: 어ㅋㅋ 가순이분들 괜찮으세요?'); await cap('05_dohyun');
-  s = await advanceTo('악역을 자처해서'); check(!!s && s.speaker === '가순이들', '가순이들: 도미조림형이 악역을 자처해서..');
+  s = await advanceTo('악역을 자처해서'); check(!!s && s.speaker === '도현', '도현: 도미조림형이 악역을 자처해서..');
   s = await advanceTo('땡땡이 오빠 어딨지'); check(!!s && s.speaker === '가순이들', '가순이들: 하.. 땡땡이 오빠 어딨지..'); await next();
   check(await until(() => window.game.camera.y > 300, 6000), '카메라가 다시 주인공 쪽으로');
   check(await until(() => !window.game.dialogue.running && window.game.flags.sakura5_scene_done, 6000), '연출 끝'); await cap('06_back');
@@ -106,7 +106,7 @@ try {
   s = await advanceTo('족치고'); check(!!s && s.speaker === '억빠맨', '억빠맨: 걍 족치고 가져가죠');
   s = await advanceTo('악역을 자처하시겠다'); check(!!s && s.speaker === '도현', '도현: 훗.. 악역을 자처하시겠다.'); await next();
   check(await until(() => (window.game.entities.find(e => e.id === 'domijorim')?.hopY || 0) > 30 && (window.game.entities.find(e => e.id === 'dohyun')?.hopY || 0) > 8, 4000), '둘이 뛰는 자세로 점프'); await page.waitForTimeout(200); await cap('15_leap');
-  check(await until(() => { const g = window.game; const d = g.entities.find(e => e.id === 'domijorim'), h = g.entities.find(e => e.id === 'dohyun'); return d && h && d.x < g.player.x - 60 && h.x > g.player.x + 40 && (d.hopY || 0) < 1 && !!d.motion; }, 6000), '일행 양옆에 착지, 전투 자세');
+  check(await until(() => { const g = window.game; const d = g.entities.find(e => e.id === 'domijorim'), h = g.entities.find(e => e.id === 'dohyun'); return d && h && d.x < g.player.x - 40 && h.x > g.player.x + 40 && d.y > g.player.y + 40 && h.y > g.player.y + 40 && (d.hopY || 0) < 1 && !!d.motion && d.facing === 'up' && h.facing === 'up'; }, 6000), '일행 아래 양옆에 착지해 일행을 올려다봄, 전투 자세'); await cap('15b_landed');
   check(await until(() => (window.game.entities.find(e => e.id === 'domijorim')?.hopY || 0) > 8, 4000), '도미조림 점프(흐미!!!!)');
   s = await advanceTo('내꺼랑께요'); check(!!s && s.speaker === '도미조림', '도미조림: 내꺼랑께요 흐미!!!!!!!!!!!!'); await next();
   // 전투 진입 연출(battleEntry: 흔들림·소용돌이·줌) → 전투: 도미조림·도현 체력 50, 브금 petal_dance → 한 턴 보고 → 체력 1 로 이겨서 연출 계속

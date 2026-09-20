@@ -147,13 +147,15 @@ export const ENEMIES = {
   //   체력 50(원문). 패턴 src/battle/sakura5-patterns.js. 피해 13·돈 45 는 미지정(잠정, 다오·배찌 12/40 다음 구간). 말풍선 대사는 미지정이라 비움(“...”), 잡담은 나레이션체.
   domijorim: {
     name: '도미조림', hp: 50, damage: 13, money: 45, voice: 'domijorim',
-    image: 'assets/enemies/domijorim-battle.png', pivot: [75, 141], scale: 0.9, dx: -60, dy: 10, idle: { swayX: 4, swayY: 2, period: 2.2 },   // 2등신 그림 150×143(BUILD272 재생성). 둘이 겹치지 않게: 도미조림은 왼쪽 위(둘일 때 발 130 — 상자 위 139 안 닿음), 도현은 오른쪽(발 236)
+    sheet: { src: 'assets/enemies/domijorim-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },   // 전투 대기 4프레임(숨쉬기·불꽃, gpt-image 2×2 → 160 셀) — 사용자 “전투 모션으로 두라고, 정적인 이미지 흔들거리지 말고” → 정지 그림+sway 폐기
+    pivot: [80, 156], scale: 0.9, dx: -60, dy: 10, idle: { swayX: 0, swayY: 0 },   // 둘이 겹치지 않게: 도미조림은 왼쪽 위(둘일 때 발 130 — 상자 위 139 안 닿음), 도현은 오른쪽(발 236)
     patterns: [{ type: 'skate_boomerang' }, { type: 'torch_pillars' }],
     lines: { appear: '* 도미조림이 얼린 홍어를 뽑아 들었다!', idle: ['* 도미조림이 홍어를 흔든다.', '* 횃불 냄새가 난다.', '* 홍어에서 서리가 떨어진다.', '* 도미조림이 꼬리를 고쳐 잡는다.'], speak: ['흐미!!', '내꺼랑께요'], die: '* 도미조림이 쓰러졌다.' },
   },
   dohyun: {
     name: '도현', hp: 50, damage: 13, money: 45, voice: 'dohyun',
-    image: 'assets/enemies/dohyun-battle.png', pivot: [25, 147], scale: 0.72, dx: 40, dy: 0, idle: { swayX: 12, swayY: 1, period: 1.5 },   // 양옆으로 살랑살랑 춤추듯. 그림 50×149(BUILD272 재생성, 손 든 3/4), scale 0.72 = 0.9 × 0.8(사용자 “비율 키 20퍼 줄여라”)
+    sheet: { src: 'assets/enemies/dohyun-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 3, px: 1 },   // 전투 대기 4프레임 = 양옆으로 살랑살랑 춤(왼쪽 기울기·정면·오른쪽 기울기·정면, gpt-image 2×2 → 160 셀). sway 로 흔들던 정지 그림은 폐기
+    pivot: [80, 156], scale: 0.72, dx: 24, dy: 0, idle: { swayX: 0, swayY: 0 },   // scale 0.72 = 0.9 × 0.8(사용자 “비율 키 20퍼 줄여라”). dx 24: 160 셀 시트가 화면 오른쪽(480) 안에
     projectiles: { dohyun: 'assets/enemies/dohyun-battle.png' },
     patterns: [{ type: 'dohyun_drift' }, { type: 'kakao_burst' }],
     lines: { appear: '* 도현이 한 손을 들고 살랑살랑 다가왔다.', idle: ['* 도현이 양옆으로 살랑살랑 춤춘다.', '* 도현이 눈치를 본다.', '* 도현이 휴대폰을 만지작거린다.', '* 도현이 하품을 한다.'], speak: ['훗..', '악역을 자처하시겠다.'], die: '* 도현이 쓰러졌다.' },

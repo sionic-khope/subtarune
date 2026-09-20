@@ -8,16 +8,16 @@
     "quality": "high"
   },
   "refs": [
-    "assets/source/sakura5-v1/domijorim-chibi4-ref.png"
+    "assets/source/sakura5-v1/dohyun-battle2-ref.png"
   ],
-  "elapsed_seconds": 40.9,
+  "elapsed_seconds": 34.5,
   "usage": {
-    "input_tokens": 1339,
+    "input_tokens": 1319,
     "output_tokens": 1756,
-    "total_tokens": 3095,
+    "total_tokens": 3075,
     "input_tokens_details": {
       "image_tokens": 1024,
-      "text_tokens": 315
+      "text_tokens": 295
     },
     "output_tokens_details": {
       "image_tokens": 1756,
@@ -25,11 +25,11 @@
       "image_pages": 1
     }
   },
-  "created": 1789907920,
+  "created": 1789907498,
   "outputs": [
     {
-      "file": "assets/source/sakura5-v1/domijorim-battle2-raw.png",
-      "bytes": 973699,
+      "file": "assets/source/sakura5-v1/dohyun-battle-idle-raw.png",
+      "bytes": 935528,
       "size": [
         1024,
         1024

@@ -5,7 +5,7 @@
 """벚꽃 숲 5 자산 가공(BUILD271): gpt-image 4×4 걷기 시트(1024×1024, 마젠타 배경) → 마젠타 색키 → tools/sprites/sheet_processor.py 로
 공통 배율·발 바닥 정렬(가순이 1·2·3 export.py 와 같은 인자, 도현만 fit-scale 0.92 로 더 길쭉하게) → 64px 제작 셀 → 게임용 512×512 `assets/sprites/<name>.png` + 초상화.
 거대 벚꽃 나무: tree-raw.png 색키 → 여백 잘라 1/3 로 축소(NEAREST) → `assets/props/sakura_giant_tree.png`.
-실행: /usr/bin/python3 assets/source/sakura5-v1/export.py [dohyun domijorim gasuni4 gasuni5 gasuni6 tree domijorim-battle dohyun-battle]  (저장소 루트에서, 인자 없으면 전부)"""
+실행: /usr/bin/python3 assets/source/sakura5-v1/export.py [dohyun domijorim gasuni4 gasuni5 gasuni6 tree domijorim-battle dohyun-battle domijorim-battle-idle dohyun-battle-idle]  (저장소 루트에서, 인자 없으면 전부)"""
 from __future__ import annotations
 
 import json
@@ -91,6 +91,26 @@ def export_battle(name: str) -> None:
     print(name, "battle", small.size)
 
 
+IDLE_CELL = 160                    # 전투 대기 시트 셀(2×2). 인물 최대 키가 셀 - 8 이 되게 네 칸 공통 배율(발 = 셀 아래 4px)
+
+
+def export_battle_idle(name: str) -> None:
+    """전투 대기 모션(사용자 “전투 모션으로 두라고, 정적인 이미지 흔들거리지 말고”): gpt-image 2×2 그리드(1024, 칸 512) → 색키 → 칸별 여백 → 공통 배율 → 160 셀 2×2 시트 assets/enemies/<name>-battle-idle.png.
+    enemies.js: sheet {cols 2, rows 2, count 4, fps, px 1}, pivot [80, 156], idle sway 0."""
+    clean = key_magenta(Image.open(ROOT / f"{name}-battle-idle-raw.png"))
+    cells = [clean.crop((c * 512, r * 512, (c + 1) * 512, (r + 1) * 512)) for r in range(2) for c in range(2)]
+    crops = [cell.crop(cell.getbbox()) for cell in cells]
+    scale = (IDLE_CELL - 8) / max(c.height for c in crops)
+    sheet = Image.new("RGBA", (IDLE_CELL * 2, IDLE_CELL * 2))
+    for i, crop in enumerate(crops):
+        w, h = max(1, round(crop.width * scale)), max(1, round(crop.height * scale))
+        assert w <= IDLE_CELL, f"{name} 칸 {i} 폭 {w} > {IDLE_CELL}"
+        sized = crop.resize((w, h), Image.Resampling.NEAREST)
+        sheet.paste(sized, ((i % 2) * IDLE_CELL + (IDLE_CELL - w) // 2, (i // 2) * IDLE_CELL + IDLE_CELL - 4 - h))
+    out = REPO / "assets/enemies" / f"{name}-battle-idle.png"; sheet.save(out)
+    print(name, "battle-idle", sheet.size, "scale", round(scale, 3), "heights", [round(c.height * scale) for c in crops])
+
+
 def export_tree() -> None:
     clean = key_magenta(Image.open(ROOT / "tree-raw.png"))
     bbox = clean.getbbox()
@@ -106,6 +126,8 @@ if __name__ == "__main__":
     for target in targets:
         if target == "tree":
             export_tree()
+        elif target.endswith("-battle-idle"):
+            export_battle_idle(target[: -len("-battle-idle")])
         elif target.endswith("-battle"):
             export_battle(target[: -len("-battle")])
         else:

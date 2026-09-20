@@ -7,10 +7,10 @@ export const CHARACTER_MOTIONS = {
   domijorim: {
     heumi: { src: 'assets/sprites/domijorim-heumi.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [[0, 0.12], [1, 0.32], [2, 0.7], [3, 0.22]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
-    leap: { src: 'assets/sprites/domijorim-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
-      frames: [[0, 0.18], [1, 0.62], [2, 0.2], [3, 0.6]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
+    leap: { src: 'assets/sprites/domijorim-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },   // 칸 160(홍어를 옆으로 뻗는 착지 칸이 128 을 넘는다)
+      frames: [[0, 0.18], [1, 0.62], [2, 0.2], [3, 0.6]].map(([cell, duration]) => ({ rect: [cell * 160, 0, 160, 128], pivot: [80, 120], duration })) },
     ready: { src: 'assets/sprites/domijorim-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
-      frames: [{ rect: [3 * 128, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+      frames: [{ rect: [3 * 160, 0, 160, 128], pivot: [80, 120], duration: 1 }] },
   },
   dohyun: {
     wave: { src: 'assets/sprites/dohyun-wave.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },

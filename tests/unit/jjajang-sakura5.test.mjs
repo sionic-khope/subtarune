@@ -58,8 +58,8 @@ test('test_sakura5_map_goes_down_a_little_right_three_seconds_bridge_three_secon
   const camX = CLEARING_VIEW[0] * 32 - 224;
   for (const e of actors) assert.ok(e.x >= camX && e.x + e.w <= camX + 480, `${e.id} 가 카메라 안`);
   for (const [px] of Object.values(PARTY_SPOTS)) assert.ok(px >= camX, '일행도 카메라 안');
-  const landX = { domijorim: actors.find(e => e.id === 'domijorim').x + LEAP.domijorim.by[0], dohyun: actors.find(e => e.id === 'dohyun').x + LEAP.dohyun.by[0] };
-  assert.ok(landX.domijorim + 24 < PARTY_SPOTS.gyeongsub[0] && landX.dohyun > PARTY_SPOTS.ppaman[0] + 24 && landX.domijorim >= camX, `둘은 일행 양옆에 착지 ${JSON.stringify(landX)}`);
+  const land = { domijorim: [actors.find(e => e.id === 'domijorim').x + LEAP.domijorim.by[0], actors.find(e => e.id === 'domijorim').y + LEAP.domijorim.by[1]], dohyun: [actors.find(e => e.id === 'dohyun').x + LEAP.dohyun.by[0], actors.find(e => e.id === 'dohyun').y + LEAP.dohyun.by[1]] };
+  assert.ok(land.domijorim[0] < PARTY_SPOTS.player[0] && land.dohyun[0] > PARTY_SPOTS.player[0] && land.domijorim[1] > PARTY_SPOTS.player[1] + 40 && land.dohyun[1] > PARTY_SPOTS.player[1] + 40 && land.domijorim[0] >= camX, `둘은 일행 아래(앞) 양옆에 착지해 일행을 올려다본다 ${JSON.stringify(land)}`);
   // 트리거: 연출(다리 건너자마자) · 공터 방문 · 오른쪽 길 막기
   const scene = m.entities.find(e => e.id === 'sakura5_scene_trigger'), visited = m.entities.find(e => e.id === 'sakura5_clearing_trigger'), block = m.entities.find(e => e.id === 'sakura5_block_trigger');
   assert.deepEqual([scene.x, scene.once, scene.unless, scene.script], [S.sceneCols[0] * 32, true, SAKURA5_SCENE_FLAG, 'jjajang_sakura5_scene']);
@@ -76,7 +76,7 @@ test('test_sakura5_map_goes_down_a_little_right_three_seconds_bridge_three_secon
 test('test_sakura5_scene_turns_bgm_off_pans_up_hops_domijorim_with_heumi_speaks_the_brief_verbatim_and_returns', () => {
   assert.equal(SCRIPTS.jjajang_sakura5_scene, jjajang_sakura5_scene);
   const lines = jjajang_sakura5_scene.filter(n => n.text).map(n => `${n.speaker}: ${n.text.replace(/^\* /, '')}`);
-  assert.deepEqual(lines, ['도미조림: 흐미!!', '가순이들: 깜짝이야!', '도미조림: 아따 전라도 홍어가 최고랑께', '도현: 어ㅋㅋ 가순이분들 괜찮으세요?', '가순이들: 도미조림형이 악역을 자처해서..', '가순이들: 하.. 땡땡이 오빠 어딨지..']);
+  assert.deepEqual(lines, ['도미조림: 흐미!!', '가순이들: 깜짝이야!', '도미조림: 아따 전라도 홍어가 최고랑께', '도현: 어ㅋㅋ 가순이분들 괜찮으세요?', '도현: 도미조림형이 악역을 자처해서..', '가순이들: 하.. 땡땡이 오빠 어딨지..']);
   const bgmOff = jjajang_sakura5_scene.findIndex(n => 'bgm' in n && n.bgm === null), pan = jjajang_sakura5_scene.findIndex(n => Array.isArray(n.camera));
   const heumi = jjajang_sakura5_scene.findIndex(n => n.parallel?.some(x => x.motion === 'domijorim' && x.name === 'heumi'));
   const first = jjajang_sakura5_scene.findIndex(n => n.text), back = jjajang_sakura5_scene.findIndex(n => n.camera === 'player');
@@ -147,7 +147,8 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   const leap = jjajang_sakura5_clearing.findIndex((n, i) => i > wide && n.parallel?.some(x => x.motion === 'domijorim' && x.name === 'leap'));
   const leapPar = jjajang_sakura5_clearing[leap].parallel;
   assert.ok(leap > jjajang_sakura5_clearing.findIndex(n => n.text?.includes('악역을 자처하시겠다')) && leapPar.some(x => x.motion === 'dohyun' && x.name === 'leap') && leapPar.some(x => x.hop === 'domijorim' && x.by[0] < -300) && leapPar.some(x => x.hop === 'dohyun' && x.by[0] < -100), '둘이 뛰는 자세로 점프해서 일행 양옆으로');
-  assert.ok(jjajang_sakura5_clearing[leap - 1].async?.some(x => x.sfx === 'thud'), '착지음');
+  assert.ok(jjajang_sakura5_clearing[leap - 1].async?.some(x => x.sfx === 'thud') && jjajang_sakura5_clearing[leap - 3].camera?.[1] > CLEARING_VIEW[1], '뛰기 전 카메라 한 칸 아래·착지음');
+  assert.ok(jjajang_sakura5_clearing.slice(leap, leap + 8).some(n => n.face === 'domijorim' && n.dir === 'up') && jjajang_sakura5_clearing.slice(leap, leap + 8).some(n => n.face === 'player' && n.dir === 'down'), '착지 뒤 둘은 위(일행)를, 일행은 아래를 본다');
   const hop = jjajang_sakura5_clearing.findIndex((n, i) => i > leap && n.hop === 'domijorim'), mine = jjajang_sakura5_clearing.findIndex(n => n.text?.includes('내꺼랑께요')), battle = jjajang_sakura5_clearing.findIndex(n => n.battle);
   assert.ok(hop > 0 && hop < mine && mine < battle && jjajang_sakura5_clearing[hop].sfx === HEUMI.sfx, '“내꺼랑께요 흐미!!!!!!!!!!!!” 는 점프+흐미 뒤, 그다음 전투');
   const entry = jjajang_sakura5_clearing.findIndex((n, i) => i > mine && n.sfx === 'battle_start');
@@ -164,14 +165,15 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
 
 test('test_sakura5_domijorim_and_dohyun_have_50_hp_their_four_patterns_warn_before_firing_and_stay_in_the_box', () => {
   for (const id of ['domijorim', 'dohyun']) {
-    const e = ENEMIES[id]; assert.equal(e.hp, 50, `${id} 체력 50`); assert.ok(here(e.image), `${id} 전투 그림`);
+    const e = ENEMIES[id]; assert.equal(e.hp, 50, `${id} 체력 50`); assert.ok(e.sheet && e.sheet.count === 4 && here(e.sheet.src) && !e.image, `${id} 전투 대기 4프레임 시트(정지 그림 아님)`);
+    assert.deepEqual([e.idle.swayX, e.idle.swayY], [0, 0], `${id} 시트 대기 모션이 있으면 sway 0`);
     for (const p of e.patterns) assert.ok(SAKURA5_PATTERNS[p.type] && PATTERNS[p.type] === SAKURA5_PATTERNS[p.type], `${id} 패턴 ${p.type} 등록`);
   }
   assert.deepEqual(ENEMIES.domijorim.patterns.map(p => p.type), ['skate_boomerang', 'torch_pillars']);
   assert.deepEqual(ENEMIES.dohyun.patterns.map(p => p.type), ['dohyun_drift', 'kakao_burst']);
   assert.ok(ENEMIES.dohyun.scale <= 0.75 && ENEMIES.domijorim.lines.speak.length >= 1 && ENEMIES.dohyun.lines.speak.length >= 1, '도현 키 20% 축소·말풍선 한 줄');
-  assert.ok(ENEMIES.dohyun.idle.swayX >= 10 && ENEMIES.dohyun.idle.period <= 1.6, '도현은 양옆으로 살랑살랑 춤추듯(큰 좌우 흔들림)');
-  assert.ok(ENEMIES.dohyun.projectiles.dohyun === ENEMIES.dohyun.image, '낙하 패턴은 도현 전투 그림을 쓴다');
+  assert.ok(ENEMIES.dohyun.sheet.fps <= 4, '도현 살랑살랑 춤은 시트 프레임으로(느린 fps)');
+  assert.ok(here(ENEMIES.dohyun.projectiles.dohyun), '낙하 패턴은 도현 전투 정지 그림을 쓴다');
   assert.deepEqual(KAKAO_TEXTS, ['파크가디언 그새끼보다 낫노'], '카톡 문구는 사용자 원문만');
   for (const w of [SKATE.warn, TORCH.warn, DOHYUN_FALL.warn, KAKAO.warn]) assert.ok(w >= 0.35, '예고 ≥ 0.35초');
   // 가짜 상자에서 한 턴을 돌려 본다: 예고(harmless)가 먼저, 진짜 탄은 그 뒤, 모두 상자 근처에서 나온다

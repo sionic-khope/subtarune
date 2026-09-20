@@ -29,3 +29,4 @@
 - 전투 그림 2차: `domijorim-battle2-raw.png`(2등신, 왼쪽 아래 3/4, 홍어+횃불) → `assets/enemies/domijorim-battle.png` 150×143, `dohyun-battle2-raw.png`(손 든 3/4) → `dohyun-battle.png` 50×149(def scale 0.72).
 - 목소리 재조정: `voices/dohyun.mp3` = snd_txtal 1.1배 + lowpass 3.2kHz + 페이드(loudnorm 제거 — “지지직”), `voices/domijorim.mp3` = janitor 0.92배 + bass +7dB + lowpass 2.2kHz(“더 굵게 낮게”).
 - (3차, 사용자 “44초에 소리라고”) 1:14:43.20 부터 1.25초로 재절단(음성인식이 ‘아워’로 적은 1:14:42.9~44.06 발성 구간 = 흐미~). 1:14:46.8 절단은 폐기.
+- (4차, 사용자 “도트풍 퀄리티 기존 섭타룬 애들 참고 안 하나, 1등신으로”) `domijorim-chibi4-raw.png`(`domijorim-chibi4.prompt.txt`, 참조 = `domijorim-style-ref.png` — 형섭 런타임 시트(스타일·1등신 비율) + 사진(얼굴)): 형섭과 같은 도트 밀도·굵은 윤곽·1등신, 사진의 웨이브 머리·얼굴, 등에 얼린 홍어. `domijorim-raw.png` 로 채택, 자세·전투·전투 대기도 이 시트 참조로 재생성. 3차 시트는 `domijorim-v4-chibi3-raw.png`(커밋하지 않음). 모델은 전부 `openai/gpt-image-2.5-sunburst`(meta.json).

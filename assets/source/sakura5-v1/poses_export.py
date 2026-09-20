@@ -17,12 +17,12 @@ ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[2]
 CELL = 128
 GRID = 512
-# 모션: (캐릭터, 기준 칸 index(0~3), 기준 칸 키 / 걷기 키 비율 — 팔을 든 자세는 걷기보다 커야 한다)
+# 모션: (캐릭터, 기준 칸 index(0~3), 기준 칸 키 / 걷기 키 비율 — 팔을 든 자세는 걷기보다 커야 한다, 칸 폭(홍어를 옆으로 뻗는 leap 은 160))
 MOTIONS = {
-    'domijorim-heumi': ('domijorim', 3, 1.02),
-    'domijorim-leap': ('domijorim', 3, 1.18),
-    'dohyun-wave': ('dohyun', 0, 1.0),
-    'dohyun-leap': ('dohyun', 3, 1.02),
+    'domijorim-heumi': ('domijorim', 3, 1.02, 128),
+    'domijorim-leap': ('domijorim', 3, 1.18, 160),
+    'dohyun-wave': ('dohyun', 0, 1.0, 128),
+    'dohyun-leap': ('dohyun', 3, 1.02, 128),
 }
 
 
@@ -40,18 +40,18 @@ def walk_height(character: str) -> int:
 
 
 def export(name: str) -> None:
-    character, ref_cell, factor = MOTIONS[name]
+    character, ref_cell, factor, cell_w = MOTIONS[name]
     clean = key_magenta(Image.open(ROOT / f'{name}-raw.png'))
     cells = [clean.crop((c * GRID, r * GRID, (c + 1) * GRID, (r + 1) * GRID)) for r in range(2) for c in range(2)]
     crops = [cell.crop(cell.getbbox()) for cell in cells]
     target = walk_height(character) * factor
     scale = target / crops[ref_cell].height
-    strip = Image.new('RGBA', (CELL * 4, CELL))
+    strip = Image.new('RGBA', (cell_w * 4, CELL))
     for i, crop in enumerate(crops):
         w, h = max(1, round(crop.width * scale)), max(1, round(crop.height * scale))
         sized = crop.resize((w, h), Image.Resampling.NEAREST)
-        assert w <= CELL and h <= CELL, f'{name} 칸 {i} 이 128 을 넘는다 ({w}×{h})'
-        strip.paste(sized, (i * CELL + (CELL - w) // 2, CELL - 8 - h))
+        assert w <= cell_w and h <= CELL, f'{name} 칸 {i} 이 칸을 넘는다 ({w}×{h} > {cell_w}×{CELL})'
+        strip.paste(sized, (i * cell_w + (cell_w - w) // 2, CELL - 8 - h))
     out = REPO / 'assets/sprites' / f'{name}.png'; strip.save(out)
     print(name, 'scale', round(scale, 3), 'heights', [round(c.height * scale) for c in crops], '→', out.name)
 

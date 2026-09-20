@@ -8,8 +8,8 @@
 //   도현 — 마른 몸·카톡
 //     dohyun_drift:    [동작] 마른 도현이 위에서 나뭇잎처럼 내려온다 [실루엣] 도현 전투 그림 흰 실루엣(44px) 둘이 반대 위상으로 ±26px 살랑살랑 [예고] 세로 점선 둘 0.35초
 //                      [회피] ① 두 줄 사이·바깥 ② 바닥에 닿으면 옆으로 미끄러져(90px/s) 바닥 줄을 쓸고 사라진다 — 바닥에서 떨어져 있기. 0.9초마다
-//     kakao_burst:     [동작] 카톡을 연달아 보낸다 [실루엣] 노란 카톡 말풍선 “파크가디언 그새끼보다 낫노”(사용자 원문만) [예고] 위·아래 다른 두 줄 가로 점선 0.4초 → 좌우 반대편에서 동시에 미끄러져 옴(150px/s, 출렁) → 이어서 소울 x 세로 점선 0.4초 → 위에서 큰 풍선 낙하(240px/s)
-//                      [회피] ① 두 줄 사이로 ② 낙하 자리에서 옆으로. 1.3초마다
+//     kakao_burst:     [동작] 카톡을 연달아 보낸다 [실루엣] 노란 카톡 말풍선 “파크가디언 그새끼보다 낫노”(사용자 원문만) [예고] 가로 점선 0.45초 → 왼쪽에서 한 줄(110px/s, 출렁) → 0.55초 뒤 다른 줄(≥64px 떨어진) 가로 점선 → 오른쪽에서 한 줄 → 둘 다 지나간 뒤 소울 x 세로 점선 0.45초 → 위에서 큰 풍선 낙하(200px/s)
+//                      [회피] ① 첫 줄 피해 ② 두 번째 줄로 옮겨 서지 말고 그 사이/바깥 ③ 낙하 자리에서 옆으로 — 한 번에 하나씩 온다(사용자 “어떻게 피하라고” → 동시 두 줄+낙하 겹침 폐기). 2.1초마다
 //   모든 예고 ≥ 0.35초. 피해는 적 def.damage 고정. 소리는 델타룬 소리 재사용(heavyswing 던짐·swing 되돌아옴·ember 횃불·sizzle 불기둥·wing 낙하·pop 착지·click 카톡·knock 낙하). whoosh 금지.
 //   텍스트 원문은 KAKAO_TEXTS 에만 둔다(더 주면 추가). 상자 안 캐릭터 그림은 whiteSprite(흰/검 2톤).
 import { whiteSprite } from './youngcle-patterns.js';
@@ -18,7 +18,7 @@ const TAU = Math.PI * 2;
 export const SKATE = Object.freeze({ every: 1.6, first: 0.45, warn: 0.45, returnWarn: 0.35, speed: 180, turnAt: 0.82, wobble: 10, wobbleHz: 3.0, r: 9, w: 30, h: 16, spin: 3.0, shards: 3, shardSpeed: 70, shardR: 4, duration: 5.2 });
 export const TORCH = Object.freeze({ every: 1.35, first: 0.4, warn: 0.45, lobVy: -260, lobG: 540, r: 7, spin: 7, pillarW: 22, pillarLife: 0.9, embers: 4, emberVy: -150, emberG: 300, emberR: 3, duration: 5.4 });
 export const DOHYUN_FALL = Object.freeze({ every: 0.9, first: 0.35, warn: 0.35, vy: 56, sway: 26, swayHz: 1.4, tilt: 0.3, h: 44, slide: 90, duration: 5.6 });
-export const KAKAO = Object.freeze({ every: 1.3, first: 0.4, warn: 0.4, dropWarn: 0.4, dropAfter: 0.55, speed: 150, dropVy: 240, bob: 5, bobHz: 2.4, padX: 6, padY: 4, font: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', bigFont: '13px Galmuri11, "Apple SD Gothic Neo", sans-serif', duration: 5.2 });
+export const KAKAO = Object.freeze({ every: 2.1, first: 0.4, warn: 0.45, secondAfter: 0.55, rowGap: 64, dropWarn: 0.45, dropAfter: 2.2, speed: 110, dropVy: 200, bob: 4, bobHz: 2.0, padX: 6, padY: 4, font: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', bigFont: '13px Galmuri11, "Apple SD Gothic Neo", sans-serif', duration: 5.4 });
 export const KAKAO_TEXTS = Object.freeze(['파크가디언 그새끼보다 낫노']);   // 사용자 원문(2026-09-20). 다른 문구를 주면 여기에 더한다
 
 let measureCtx = null;
@@ -187,20 +187,24 @@ function kakaoBurst(o = {}) {
   let next = o.first ?? KAKAO.first, n = 0; const queue = [];
   return { duration, update(t, dt, api) {
     const b = api.box, soul = api.soul;
-    if (t >= next && t + KAKAO.warn + KAKAO.dropAfter + KAKAO.dropWarn + 0.9 < duration + 0.6) {
+    if (t >= next && t + KAKAO.dropAfter + KAKAO.dropWarn + 0.9 < duration + 0.8) {
       next += every; const text = texts[n % texts.length]; n += 1;
       const w = textWidth(KAKAO.font, text) + KAKAO.padX * 2, h = 14 + KAKAO.padY * 2;
-      const gap = h + 26 + api.rnd() * 30, yTop = b.y + h / 2 + 8 + api.rnd() * (b.h - gap - h - 16), yBot = yTop + gap;
-      hline(api, yTop, KAKAO.warn); hline(api, yBot, KAKAO.warn);
-      queue.push({ at: t + KAKAO.warn, kind: 'pair', text, w, h, rows: [[yTop, 1], [yBot, -1]] });
-      queue.push({ at: t + KAKAO.warn + KAKAO.dropAfter, kind: 'dropWarn', text });
+      const y1 = b.y + h / 2 + 8 + api.rnd() * (b.h - h - 16);
+      let y2 = y1 + (api.rnd() < 0.5 ? -1 : 1) * (KAKAO.rowGap + api.rnd() * 30);
+      if (y2 < b.y + h / 2 + 8 || y2 > b.y + b.h - h / 2 - 8) y2 = y1 - (y2 - y1);
+      hline(api, y1, KAKAO.warn);
+      queue.push({ at: t + KAKAO.warn, kind: 'row', text, w, h, y: y1, dir: 1 });
+      queue.push({ at: t + KAKAO.secondAfter, kind: 'rowWarn', text, w, h, y: y2, dir: -1 });
+      queue.push({ at: t + KAKAO.dropAfter, kind: 'dropWarn', text });
     }
     queue.sort((p, q) => p.at - q.at);
     while (queue.length && t >= queue[0].at) {
       const q = queue.shift();
-      if (q.kind === 'pair') {
+      if (q.kind === 'rowWarn') { hline(api, q.y, KAKAO.warn); queue.push({ ...q, kind: 'row', at: t + KAKAO.warn }); queue.sort((p, r) => p.at - r.at); }
+      else if (q.kind === 'row') {
         api.sfx?.('click', { volume: 0.5 });
-        for (const [y, dir] of q.rows) api.emit({ x: dir > 0 ? b.x - q.w / 2 - 8 : b.x + b.w + q.w / 2 + 8, y, r: 0, kind: 'white', shape: 'kakao', vx: dir * KAKAO.speed, life: (b.w + q.w + 20) / KAKAO.speed + 0.2, w: q.w, h: q.h, text: q.text, tail: dir > 0 ? 'left' : 'right', baseY: y,
+        api.emit({ x: q.dir > 0 ? b.x - q.w / 2 - 8 : b.x + b.w + q.w / 2 + 8, y: q.y, r: 0, kind: 'white', shape: 'kakao', vx: q.dir * KAKAO.speed, life: (b.w + q.w + 20) / KAKAO.speed + 0.2, w: q.w, h: q.h, text: q.text, tail: q.dir > 0 ? 'left' : 'right', baseY: q.y,
           steer(self) { self.y = self.baseY + Math.sin(self.age * KAKAO.bobHz * TAU) * KAKAO.bob; }, hitShape: rectHit, drawShape(ctx, s) { drawKakao(ctx, s); } });
       } else if (q.kind === 'dropWarn') {
         const bw = textWidth(KAKAO.bigFont, q.text) + KAKAO.padX * 2, bh = 18 + KAKAO.padY * 2;

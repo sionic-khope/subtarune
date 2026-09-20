@@ -1,0 +1,7 @@
+# imagegen 2026-09-20 21:31:40
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/sakura5-v1/dohyun-battle2-ref.png
+
+Use case: stylized-concept. Image1 is the approved ENEMY BATTLE SPRITE of the character 도현 (tall slim young man, black bowl cut, white long-sleeved shirt, dark grey trousers, one hand raised with an open palm, the other hand in his pocket, turned to the lower-left). Create his BATTLE IDLE animation: exactly 4 frames laid out in a 2x2 grid of equal invisible square cells on a 1024x1024 canvas (top-left = frame 1, top-right = frame 2, bottom-left = frame 3, bottom-right = frame 4), the same character, same size and same viewing angle in every cell, full body visible and centred in each cell. Motion = a lazy side-to-side swaying dance: frame 1 upper body leaning to the LEFT with the raised hand tilted; frame 2 upright; frame 3 upper body leaning to the RIGHT, hips shifted; frame 4 upright with the raised hand a little higher. Feet stay planted in the same spot in all frames. Keep the face, hair, clothes and slim proportions exactly as Image1. Flat solid magenta background (#FF00FF), no ground, no shadow, no text, no grid lines. Chunky retro pixel art, crisp square pixels, flat limited shades, no anti-aliasing.
