@@ -12,7 +12,7 @@
 - 벚꽃 숲 4 아랫줄 문에서 들어와(왼쪽 위 길, 되돌아가는 문은 윗줄 끝 — 도착 자리는 길 중간 15행이라 아래로 살짝 7칸 ≈ 1초만 걷는다) → 오른쪽으로 21칸(달리기 ≈ 3초) → 파란 물 위 나무다리 20칸(≈ 3초)
   → 갈림목(연출 트리거): 오른쪽 길(동쪽 끝, 다음 맵은 아직 없음)과 윗길 → 위에 동그란 공터(타원 23×19칸)·한가운데 거대한 벚꽃 나무(768×762, 위쪽은 맵 밖 — 카메라에 맨 위가 안 보인다).
 - 공터의 가순이 4·5·6·도현·도미조림은 나무 밑동 오른쪽 땅(밑동 36px 위, 뿌리 앞)에 서 있는 NPC — 사용자 정정 “가순이들이나 캐릭터들 전부 다 벚꽃나무 아래 땅에 있어야지”. 일행은 윗길 연출에서 밑동 왼쪽에 선다. 공터에 들어가기 전 오른쪽 길로 가면 억빠맨이 막는다.
-- 윗길로 좀 올라가면(공터 밑 두 줄 트리거) 두 번째 연출(브금 telling·도미조림 느낌표·짜장면 얘기 → 전투 → 승리 뒤 연출: 가순이 셋이 아래로 걸어 내려가 사라진다, unless sakura5_girls_left) — 같은 트리거가 공터 방문 플래그도 세운다.
+- 윗길로 좀 올라가면(공터 밑 두 줄 트리거) 두 번째 연출(브금 telling·도미조림 느낌표·짜장면 얘기 → 전투 → 승리 뒤 연출: 가순이 셋이 아래로 걸어 내려가 사라진다, unless sakura5_girls_left; 눕힌 도현·도미조림은 unless sakura5_clearing_scene_done — 다시 들어오면 없다) — 같은 트리거가 공터 방문 플래그도 세운다.
 - 땅은 분홍 꽃잎 땅 ')', 나무다리 ']', 물 '[', 꽃잎 초당 18, 브금 sakura(연출에서 끔), 발소리 없음, 전투 배경 sakura."""
 from __future__ import annotations
 
@@ -56,6 +56,7 @@ ACTORS: Final = (                     # (id, 스프라이트, 중심에서의 x 
 )
 SCENE_FLAG: Final = 'sakura5_scene_done'
 GIRLS_LEFT_FLAG: Final = 'sakura5_girls_left'     # 승리 뒤 가순이 셋이 떠났다(윗길 연출 스크립트가 세운다)
+CLEARING_SCENE_FLAG: Final = 'sakura5_clearing_scene_done'   # 윗길 연출 전부 끝(전투·승리 뒤 대사까지) — 눕힌 도현·도미조림은 다시 들어오면 없다(BUILD276, 사용자 “맵 재입장시 없애”)
 CLEARING_FLAG: Final = 'sakura5_clearing_visited'
 TREES: Final = (
     ('assets/props/jjajang_sakura_1.png', 141, 157, 100),
@@ -135,6 +136,8 @@ def build_map() -> dict[str, object]:
         actor = {'type': 'npc', 'id': aid, 'sprite': sprite, 'x': x, 'y': y, 'w': 24, 'h': 16, 'solid': True, 'facing': facing, 'wander': 0}
         if aid.startswith('gasuni'):
             actor['unless'] = GIRLS_LEFT_FLAG                                    # 승리 뒤 연출에서 셋이 아래로 걸어 내려가 사라진다(BUILD274) — 다시 들어와도 없다
+        else:
+            actor['unless'] = CLEARING_SCENE_FLAG                                # 승리 뒤 눕힌 둘은 연출이 끝난 채 맵을 다시 들어오면 없다(BUILD276) — 연출 중엔 그대로 누워 있다
         actors.append(actor)
     for px in (PARTY_X - 40, PARTY_X, PARTY_X + 40):
         assert in_clearing((px - 12) // TILE, PARTY_FEET_Y // TILE) and PARTY_FEET_Y <= giant['y'], '일행 자리는 공터 안·밑동 히트박스 위쪽'

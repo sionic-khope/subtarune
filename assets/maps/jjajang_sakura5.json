@@ -1114,7 +1114,8 @@
    "h": 16,
    "solid": true,
    "facing": "left",
-   "wander": 0
+   "wander": 0,
+   "unless": "sakura5_clearing_scene_done"
   },
   {
    "type": "npc",
@@ -1126,7 +1127,8 @@
    "h": 16,
    "solid": true,
    "facing": "left",
-   "wander": 0
+   "wander": 0,
+   "unless": "sakura5_clearing_scene_done"
   },
   {
    "type": "trigger",

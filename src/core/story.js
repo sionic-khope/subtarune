@@ -121,6 +121,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'ship_tvform_won', enemies: ['youngcle_tvform'] },
   // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
   { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
+  { flag: 'sakura5_duo_won', enemies: ['domijorim', 'dohyun'] },                                                          // 벚꽃 숲 5 공터 도미조림·도현 전투(각 45원) — jjajang_sakura5.js(BUILD276)
 ];
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.

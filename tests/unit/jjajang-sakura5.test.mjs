@@ -185,6 +185,9 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   assert.ok(backBgm > 0 && backBgm < back, '경섭 허허 그럴까 뒤 브금 다시 복귀');
   const m5 = load('jjajang_sakura5');
   assert.ok(['gasuni4', 'gasuni5', 'gasuni6'].every(id => m5.entities.find(e => e.id === id).unless === SAKURA5_GIRLS_LEFT_FLAG), '떠난 가순이들은 다시 안 나온다');
+  // 눕힌 둘은 연출이 끝난 채 맵을 다시 들어오면 없다(BUILD276, 사용자 “맵 재입장시 없애”) — 연출 중(전투 직행 QA 포함)엔 플래그가 없어 그대로 서 있다가 눕는다
+  assert.ok(['domijorim', 'dohyun'].every(id => m5.entities.find(e => e.id === id).unless === SAKURA5_CLEARING_SCENE_FLAG), '연출 끝난 뒤 도미조림·도현은 다시 안 나온다');
+  assert.ok(!QA_POINTS.find(q => q.id === 'jjajang_sakura5_battle').flags[SAKURA5_CLEARING_SCENE_FLAG] && !QA_POINTS.find(q => q.id === 'jjajang_sakura5_after_battle').flags[SAKURA5_CLEARING_SCENE_FLAG], '전투 직행 QA 둘은 배우가 있어야 한다');
   assert.ok(back > battle && jjajang_sakura5_clearing.some(n => n.set?.[SAKURA5_CLEARING_SCENE_FLAG]), '전투 뒤 카메라 주인공·플래그');
   // QA 직행 둘 다 승리 뒤 연출(페이드인·브금 복귀)까지 같은 노드를 쓴다 — 전투 직행 뒤 검은 화면(사용자 “게임 이기고 나서 검은 화면만”) 방지
   assert.equal(SCRIPTS.sakura5_duo_battle_qa, sakura5_duo_battle_qa); assert.equal(SCRIPTS.sakura5_after_battle_qa, sakura5_after_battle_qa);
