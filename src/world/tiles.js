@@ -233,6 +233,15 @@ const sakuraWater = (ctx, rng) => {
 };
 registerTile('[', { name: 'sakura_water', solid: true, variants: 4, draw: sakuraWater });
 registerTile(')', { name: 'sakura_petal_meadow', solid: false, variants: 4, draw: petalMeadow });
+// 벚꽃 숲 5(jjajang_sakura5, BUILD271 “나무다리 3초정도 걷고”): 파란 물 위 나무다리 바닥 — 걷는 방향(가로)과 직각으로 놓인 널빤지(세로 이음매 8px 마다), 옅은 결·못 자국. 발소리 없음(벚꽃 맵 규칙)
+const sakuraBridgeDeck = (ctx, rng) => {
+  fillNoise(ctx, '#a0703f', ['#b07d48', '#8f6236', '#b9885a'], rng, 10);
+  for (let x = 0; x < ART_PX; x += 8) { ctx.fillStyle = '#5a3a1e'; ctx.fillRect(x, 0, 1, ART_PX); ctx.fillStyle = '#c99a66'; ctx.fillRect(x + 1, 0, 1, ART_PX); }
+  const grains = 3 + Math.floor(rng() * 3);
+  for (let i = 0; i < grains; i++) { const x = 2 + Math.floor(rng() * (ART_PX - 3)), y = Math.floor(rng() * (ART_PX - 6)); ctx.fillStyle = i % 2 ? '#8a5c33' : '#c08a56'; ctx.fillRect(x, y, 1, 3 + Math.floor(rng() * 4)); }
+  if (rng() < 0.6) { const x = 3 + 8 * Math.floor(rng() * 4), y = 3 + Math.floor(rng() * (ART_PX - 6)); ctx.fillStyle = '#3d2814'; ctx.fillRect(x, y, 2, 2); ctx.fillStyle = '#d8b088'; ctx.fillRect(x, y, 1, 1); }
+};
+registerTile(']', { name: 'sakura_bridge_deck', solid: false, variants: 4, draw: sakuraBridgeDeck });
 // 파란 토리이 길(jjajang_run, BUILD230 사용자 “검은 바닥인데 물 깔린 전제라 한 발자국 할 때마다 동그란 파장이 타다다닥”): 거의 검은 물 위에 옅은 물비늘 몇 줄, 걸을 수 있고 발소리는 물걸음 루프 + 물결 고리(ripple)
 const blackWater = (ctx, rng) => {
   ctx.fillStyle = '#06080c'; ctx.fillRect(0, 0, ART_PX, ART_PX);

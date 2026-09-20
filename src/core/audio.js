@@ -12,6 +12,10 @@ export const VOICES = {
   // 다오·배찌(BUILD270 사용자 “목소리도 너무 이상하고 너무 커”): 작고 짧은 블립 — 기본(0.256)의 절반 이하 음량, 다오는 낮은 네모파, 배찌는 조금 높은 삼각파
   dao:     { freq: 400, wave: 'square',   dur: 0.07, jitter: 12, gain: 0.10, cutoff: 1800 },
   bazzi:   { freq: 560, wave: 'triangle', dur: 0.07, jitter: 16, gain: 0.10, cutoff: 2400 },
+  // 도현(BUILD271 사용자 “델타룬 알피스에서 톤 살짝 올린 걸로”): voices/dohyun.mp3 = 델타룬 snd_txtal(알피스)을 1.1배 높인 것(assets/source/sakura5-v1). 합성값은 파일 없을 때 폴백
+  dohyun: { freq: 520, wave: 'triangle', dur: 0.07, jitter: 20, gain: 0.17, cutoff: 2600, rate: 1, level: 0.85, cut: true, minGap: 0.06 },
+  // 도미조림(BUILD271 사용자 “거슨 목소리 느낌인데 많이 젊어 보이는 느낌으로 재구성”): voices/domijorim.mp3 = 청소부 거슨 말하는 소리 클립(voices/janitor.mp3)을 1.35배 높인 것. 합성값은 폴백
+  domijorim: { freq: 200, wave: 'square', dur: 0.09, jitter: 24, gain: 0.18, cutoff: 1600, rate: 1, level: 0.85, cut: true, minGap: 0.07 },
   narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9, minGap: 0, poly: true },   // 파일: 언더테일 원본 snd_txt1. 언더테일처럼 글자마다(33ms) 울리고 앞 소리를 끊지 않는다(poly) — 2026-09-09 '목소리 바뀌었다' 피드백으로 복구
   mystery: { freq: 300, wave: 'sine',     dur: 0.14, jitter: 6,  gain: 0.2,   cutoff: 1500, rate: 0.8, level: 1.2, cut: true, minGap: 0.07 },   // 파일: 언더테일 snd_txt2 앞 0.32s(원본은 뒤가 무음) 톤다운 — 검은 화면의 정체불명 목소리. 긴 클립이라 mono cut
   // ── 캐릭터별 ──

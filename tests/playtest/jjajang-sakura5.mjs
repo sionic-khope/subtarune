@@ -1,0 +1,136 @@
+// 벚꽃 숲 5(BUILD271): QA jjajang_sakura5(입구)에서 아래로 살짝 → 오른쪽 → 나무다리 → 갈림목 연출(브금 꺼짐 · 카메라 위 공터 · 도미조림 점프+흐미 · 대사 여섯 · 카메라 복귀)
+//   → 오른쪽 길 먼저 가면 억빠맨이 막음 → 윗길로 좀 올라가면 두 번째 연출(브금 telling·느낌표·대사·카메라 살짝 위·가순이들로 이동·흐미 점프) → 도미조림·도현 전투(한 턴 보고 체력 1 로 이김) → 공터 → 다시 오른쪽 길은 열림. 스프라이트가 문자 도트(폴백)면 실패. 실행: tests/playtest/run.sh jjajang-sakura5
+import fs from 'node:fs'; import path from 'node:path';
+import { chromium } from 'playwright-core';
+const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+const errors = []; page.on('pageerror', e => errors.push(e.message));
+page.on('console', m => { if (m.type() === 'warning' && /cutscene|엔티티 없음|동작 없음|없음/.test(m.text())) errors.push('warn: ' + m.text()); });
+let fails = 0;
+const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
+const cap = async n => { await page.screenshot({ path: path.join(shots, 'sakura5_' + n + '.png') }); };
+const press = async key => { await page.keyboard.down(key); await page.waitForTimeout(60); await page.keyboard.up(key); };
+const until = (fn, ms) => page.waitForFunction(fn, null, { timeout: ms, polling: 30 }).then(() => true).catch(() => false);
+const ev = fn => page.evaluate(fn);
+const go = async (key, cond, ms) => { await page.evaluate(c => { window.__cond = c; }, cond); await page.keyboard.down(key); const ok = await until(() => new Function('g', 'return ' + window.__cond)(window.game), ms); await page.keyboard.up(key); return ok; };
+const st = () => ev(() => { const g = window.game; return { map: g.mapId, text: g.textbox.node?.text || null, speaker: g.textbox.node?.speaker || null, state: g.textbox.state, cam: [Math.round(g.camera.x), Math.round(g.camera.y)], bgm: g.sound.bgmName, px: Math.round(g.player.x), py: Math.round(g.player.y), petals: g.petals?.count ?? -1, running: g.dialogue.running }; });
+const next = async () => { await until(() => window.game.textbox.state === 'waiting', 8000); await press('KeyC'); };
+const advanceTo = async (needle, ms = 40000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const s = await st(); if (s.text && s.text.includes(needle)) return s; if (s.text) await next(); await page.waitForTimeout(100); } return null; };
+const ACTORS = ['domijorim', 'gasuni4', 'gasuni5', 'gasuni6', 'dohyun'];
+const actorState = () => ev(() => { const g = window.game; return ['domijorim', 'gasuni4', 'gasuni5', 'gasuni6', 'dohyun'].map(id => { const e = g.entities.find(x => x.id === id); return { id, ok: !!e, visible: e?.visible !== false, fallback: !!e?.sprite?.fallback, sheet: (e?.sprite?.fw || 0) > 16, x: Math.round(e?.x ?? -1), y: Math.round(e?.y ?? -1), hop: Math.round(e?.hopY ?? 0) }; }); });
+try {
+  await page.goto('http://localhost:8000/?qa=jjajang_sakura5');
+  check(await until(() => window.game?.mapId === 'jjajang_sakura5' && !window.game.transitioning, 30000), '벚꽃 숲 5 입구 QA');
+  await page.waitForTimeout(800); let s = await st(); check(s.bgm === 'sakura' && s.petals > 0, `브금 sakura·꽃잎 ${s.petals}`); await cap('00_entry');
+  const S = await ev(() => window.game.map.def.meta.sakura5);
+  const roadY = (S.roadRows[0] + 1) * 32 + 8;
+  const t0 = Date.now();
+  check(await go('ArrowDown', `g.player.y >= ${roadY - 4}`, 8000), `아래로 살짝 (${((Date.now() - t0) / 1000).toFixed(1)}초)`);
+  const t1 = Date.now();
+  check(await go('ArrowRight', `g.player.x >= ${S.bridgeCols[0] * 32}`, 12000), `오른쪽 길 → 다리 앞 (${((Date.now() - t1) / 1000).toFixed(1)}초)`);
+  await cap('01_bridge_start');
+  const deck = await ev(() => { const g = window.game; const c = Math.floor((g.player.x + 12) / 32), r = Math.floor((g.player.y + 8) / 32); return g.map.def.rows[r][c]; });
+  check(deck === ']', `나무다리 위(타일 '${deck}')`);
+  const t2 = Date.now();
+  check(await go('ArrowRight', 'g.dialogue.running', 14000), `다리 건너 갈림목 → 연출 시작 (${((Date.now() - t2) / 1000).toFixed(1)}초)`);
+  check(await until(() => !window.game.sound.bgmName, 3000), '브금 꺼짐');
+  check(await until(() => window.game.camera.y < 40 && window.game.camera.x > 1400, 4000), '카메라가 위 공터로'); await page.waitForTimeout(500); await cap('02_clearing');
+  let actors = await actorState();
+  check(actors.every(a => a.ok && a.visible && a.sheet && !a.fallback), `다섯 배우 시트로 보인다(폴백 아님) ${JSON.stringify(actors.map(a => [a.id, a.sheet, a.fallback]))}`);
+  const tree = await ev(() => { const g = window.game; const t = g.entities.find(e => e.id === 'sakura5_giant_tree'); return { img: !!t?.image, iy: t?.def.iy, camY: Math.round(g.camera.y) }; });
+  check(tree.img && tree.iy >= tree.camY, `거대 벚꽃 나무 그림·위가 화면 안 ${JSON.stringify(tree)}`);
+  const hopped = await until(() => (window.game.entities.find(e => e.id === 'domijorim')?.hopY || 0) > 8, 3000);
+  check(hopped, '도미조림 점프(흐미!!)'); await cap('03_heumi');
+  s = await advanceTo('흐미!!'); check(!!s && s.speaker === '도미조림', '도미조림: 흐미!!');
+  const heumiSfx = await ev(() => !!window.game.sound.files?.domijorim_heumi);
+  check(heumiSfx, '효과음 domijorim_heumi 적재됨');
+  s = await advanceTo('깜짝이야!'); check(!!s && s.speaker === '가순이들', '가순이들: 깜짝이야!'); await cap('04_gasuni');
+  s = await advanceTo('홍어가 최고랑께'); check(!!s && s.speaker === '도미조림', '도미조림: 아따 전라도 홍어가 최고랑께');
+  s = await advanceTo('괜찮으세요?'); check(!!s && s.speaker === '도현', '도현: 어ㅋㅋ 가순이분들 괜찮으세요?'); await cap('05_dohyun');
+  s = await advanceTo('악역을 자처해서'); check(!!s && s.speaker === '가순이들', '가순이들: 도미조림형이 악역을 자처해서..');
+  s = await advanceTo('땡땡이 오빠 어딨지'); check(!!s && s.speaker === '가순이들', '가순이들: 하.. 땡땡이 오빠 어딨지..'); await next();
+  check(await until(() => window.game.camera.y > 300, 5000), '카메라가 다시 주인공 쪽으로');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.sakura5_scene_done, 6000), '연출 끝'); await cap('06_back');
+  s = await st(); check(!s.bgm, '연출 뒤 브금은 꺼진 채(지정 없음)');
+  // 오른쪽 길 먼저 → 억빠맨이 막는다
+  check(await go('ArrowRight', 'g.dialogue.running', 8000), '오른쪽 길로 가면 억빠맨');
+  s = await advanceTo('위로 먼저'); check(!!s && s.speaker === '억빠맨', '억빠맨: 위로 먼저 가볼까요?'); await cap('07_block'); await next();
+  check(await until(() => !window.game.dialogue.running, 5000), '막힘 끝');
+  s = await st(); check(s.px + 24 <= S.blockCols[0] * 32, `한 칸 왼쪽으로 밀렸다 (x ${s.px})`);
+  // 윗길로 공터
+  check(await go('ArrowLeft', `g.player.x <= ${(S.upCols[0] + 1) * 32 + 4}`, 8000), '윗길 앞으로');
+  check(await go('ArrowUp', 'g.flags.sakura5_clearing_visited', 10000), '윗길 → 공터(방문 플래그)');
+  // 위로 좀 올라가면 두 번째 연출: 브금 telling → 카메라 배우 눈높이 → 도미조림 느낌표·아래 → 대사 → 카메라 살짝 위·돌아옴 → 짜장면 얘기 → 주인공
+  check(await until(() => window.game.dialogue.running, 3000), '위로 좀 올라가면 두 번째 연출');
+  check(await until(() => window.game.sound.bgmName === 'telling', 5000), '브금 telling');
+  check(await until(() => Math.abs(window.game.camera.y - 156) < 6 && window.game.player.y <= 368, 7000), '일행이 올라간 뒤 카메라가 배우 눈높이(y 156)로');
+  check(await until(() => !!window.game.entities.find(e => e.id === 'domijorim')?.emote, 5000), '도미조림 느낌표'); await cap('08_exclaim');
+  check(await ev(() => window.game.entities.find(e => e.id === 'domijorim')?.facing === 'down'), '도미조림이 아래를 본다');
+  s = await advanceTo('어 형님?'); check(!!s && s.speaker === '도미조림', '도미조림: 어 형님?');
+  s = await advanceTo('뭐냐 너네'); check(!!s && s.speaker === '억빠맨', '억빠맨: ㅋㅋ뭐냐 너네');
+  s = await advanceTo('안녕하세요 형들'); check(!!s && s.speaker === '도현', '도현: 안녕하세요 형들');
+  check(await ev(() => window.game.entities.find(e => e.id === 'dohyun')?.facing === 'down'), '도현도 아래를 본다'); await cap('09_dohyun_down');
+  s = await advanceTo('뭐하고있어?'); check(!!s && s.speaker === '억빠맨', '억빠맨: 여기서 뭐하고있어?');
+  s = await advanceTo('벚꽃나무 보이세요?'); check(!!s && s.speaker === '도현', '도현: 그게요 저 이 벚꽃나무 보이세요?');
+  s = await advanceTo('ㅇㅇ'); check(!!s && s.speaker === '억빠맨', '억빠맨: ㅇㅇ'); await next();
+  check(await until(() => window.game.camera.y < 8, 3000), '카메라 살짝 위(나무 맨 위)'); await cap('10_peek');
+  check(await until(() => Math.abs(window.game.camera.y - 156) < 6, 4000), '다시 돌아옴');
+  s = await advanceTo('맨 위에'); check(!!s && s.speaker === '도현', '도현: 사실 저기 벚꽃나무 맨 위에');
+  s = await advanceTo('이상한 짜장면'); check(!!s && s.speaker === '도현', '도현: 이상한 짜장면? 같은게 있는데 …'); await cap('11_jjajang'); await next();
+  // 주인공 일행 모두 느낌표 → 대사 → 가순이들로 카메라 → 나레이션 → 카메라 넓게 → 흐미 점프 → 전투
+  check(await until(() => ['player', 'gyeongsub', 'ppaman'].every(id => !!(id === 'player' ? window.game.player : window.game.entities.find(e => e.id === id))?.emote), 4000), '주인공 일행 모두 느낌표'); await cap('12_party_exclaim');
+  const partyPos = await ev(() => { const g = window.game; const f = id => g.entities.find(e => e.id === id); return { py: Math.round(g.player.y), gy: Math.round(f('gyeongsub')?.y ?? -1), gx: Math.round(f('gyeongsub')?.x ?? -1), py2: Math.round(f('ppaman')?.y ?? -1), px2: Math.round(f('ppaman')?.x ?? -1), px: Math.round(g.player.x), camY: Math.round(g.camera.y) }; });
+  check([partyPos.py, partyPos.gy, partyPos.py2].every(y => y + 16 - partyPos.camY <= 236 && y + 16 - partyPos.camY > 150) && partyPos.gx < partyPos.px && partyPos.px2 > partyPos.px, `일행 셋이 나무 밑까지 올라와 대화창 위에 나란히 보인다 ${JSON.stringify(partyPos)}`);
+  s = await advanceTo('이거 설마'); check(!!s && s.speaker === '억빠맨', '억빠맨: 형들 이거 설마');
+  s = await advanceTo('그런거같다'); check(!!s && s.speaker === '경섭', '경섭: 아마 그런거같다.');
+  s = await advanceTo('알고계셨어요'); check(!!s && s.speaker === '도현', '도현: 알고계셨어요?');
+  s = await advanceTo('가져가야될듯'); check(!!s && s.speaker === '억빠맨', '억빠맨: 저 짜장면은 우리가 가져가야될듯 ㅇㅇ');
+  s = await advanceTo('그건 아니지라'); check(!!s && s.speaker === '도미조림', '도미조림: 아따 행님들 그건 아니지라'); await next();
+  check(await until(() => window.game.camera.y < 90, 4000), '가순이들로 카메라가 이동'); await page.waitForTimeout(300); await cap('13_girls');
+  s = await advanceTo('수근수근'); check(!!s && s.speaker === '가순이들', '가순이들: 수근수근 뭐야?');
+  s = await advanceTo('시선을 의식중'); check(!!s && !s.speaker, '나레이션: 아무래도 저 둘은 …');
+  s = await advanceTo('먼저 찾았당깨'); check(!!s && s.speaker === '도미조림', '도미조림: 저 짜장면은 제가 먼저 찾았당깨');
+  s = await advanceTo('처먹는게'); check(!!s && !s.speaker, '나레이션: 처먹는게 더 중요');
+  s = await advanceTo('그건아니죠'); check(!!s && s.speaker === '도현', '도현: 형님들 아무리 그래도 그건아니죠 .');
+  s = await advanceTo('눈치를 본다'); check(!!s && !s.speaker, '나레이션: 도현이가 슬금슬금 …');
+  check(await ev(() => window.game.entities.find(e => e.id === 'dohyun')?.facing === 'left'), '도현이 가순이들 쪽(왼쪽)을 본다'); await cap('14_glance'); await next();
+  check(await until(() => Math.abs(window.game.camera.y - 156) < 6, 4000), '카메라 다시 넓게');
+  s = await advanceTo('뒤질래'); check(!!s && s.speaker === '억빠맨', '억빠맨: 뭐? 너 뒤질래?');
+  s = await advanceTo('느금마'); check(!!s && s.speaker === '억빠맨', '억빠맨: 응 느금마 걍 꺼지샘');
+  s = await advanceTo('족치고'); check(!!s && s.speaker === '억빠맨', '억빠맨: 걍 족치고 가져가죠');
+  s = await advanceTo('악역을 자처하시겠다'); check(!!s && s.speaker === '도현', '도현: 훗.. 악역을 자처하시겠다.'); await next();
+  check(await until(() => (window.game.entities.find(e => e.id === 'domijorim')?.hopY || 0) > 8, 3000), '도미조림 점프(흐미!!!!)');
+  s = await advanceTo('내꺼랑께요'); check(!!s && s.speaker === '도미조림', '도미조림: 내꺼랑께요 흐미!!!!!!!!!!!!'); await next();
+  // 전투: 도미조림·도현 체력 50, 브금 petal_dance → 한 턴 보고 → 체력 1 로 이겨서 연출 계속
+  check(await until(() => !!window.game.battle && window.game.battle.enemies.length === 2, 8000), '전투 시작');
+  const bt = await ev(() => ({ ids: window.game.battle.enemies.map(e => e.id), hp: window.game.battle.enemies.map(e => e.hp), img: window.game.battle.enemies.every(e => !!e.img), bgm: window.game.sound.bgmName, state: window.game.battle.state }));
+  check(bt.ids.join() === 'domijorim,dohyun' && bt.hp.join() === '50,50' && bt.bgm === 'petal_dance', `도미조림·도현 체력 50·브금 petal_dance ${JSON.stringify(bt)}`);
+  check(await until(() => window.game.battle?.enemies.every(e => e.img), 8000), '전투 그림 둘 다 적재'); await page.waitForTimeout(600); await cap('15_battle_intro');
+  await ev(() => { window.game.battle.shown = window.game.battle.text.length; }); await page.waitForTimeout(500); await press('KeyC');
+  check(await until(() => window.game.battle?.state === 'menu', 8000), '전투 메뉴');
+  for (let i = 0; i < 3; i++) { await press('KeyC'); await page.waitForTimeout(160); const bs = await ev(() => window.game.battle?.state); if (bs === 'target') { await press('KeyC'); await page.waitForTimeout(160); } }
+  check(await until(() => window.game.battle?.state === 'enemy-prep' || window.game.battle?.state === 'bullets', 15000), '적 턴');
+  check(await until(() => window.game.battle?.state === 'bullets' && window.game.battle.bullets.length > 0, 12000), '탄막이 나온다'); await page.waitForTimeout(500); await cap('16_bullets');
+  const shapes = await ev(() => [...new Set(window.game.battle.bullets.map(b => b.shape))]);
+  check(shapes.some(x => ['skate', 'torch', 'fire', 'dohyun', 'kakao'].includes(x)), `홍어·횃불·도현·카톡 모양 탄 ${JSON.stringify(shapes)}`);
+  check(await until(() => window.game.battle?.state === 'menu', 20000), '한 턴 뒤 메뉴');
+  await ev(() => { for (const e of window.game.battle.enemies) e.hp = 1; });
+  for (let i = 0; i < 3; i++) { await press('KeyC'); await page.waitForTimeout(160); const bs = await ev(() => window.game.battle?.state); if (bs === 'target') { await press('KeyC'); await page.waitForTimeout(160); } }
+  check(await until(() => window.game.battle?.state === 'win', 15000), '이김'); await cap('17_win');
+  await ev(() => { window.game.battle.shown = window.game.battle.text.length; }); await page.waitForTimeout(800); await press('KeyC');
+  let closed = await until(() => !window.game.battle, 8000); if (!closed) { await press('KeyC'); closed = await until(() => !window.game.battle, 8000); }
+  check(closed, '전투 닫힘');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.sakura5_clearing_scene_done && window.game.flags.sakura5_duo_won, 10000), '두 번째 연출 끝(전투 승리 플래그)');
+  check(await go('ArrowUp', `g.player.y <= ${(S.treeBaseRow + 3) * 32}`, 10000), '공터 안으로'); await page.waitForTimeout(300); await cap('18_clearing_walk');
+  actors = await actorState();
+  check(actors.every(a => a.ok && a.visible && !a.fallback), '공터 배우 다섯 그대로');
+  // 다시 오른쪽 길은 열림
+  check(await go('ArrowDown', `g.player.y >= ${roadY - 4}`, 10000), '갈림목으로');
+  check(await go('ArrowRight', `g.player.x >= ${(S.blockCols[1] + 3) * 32}`, 10000), '오른쪽 길 통과(막지 않음)'); await cap('19_east');
+  s = await st(); check(!s.running, '억빠맨이 더는 막지 않는다');
+} catch (e) { fails += 1; console.log('FAIL exception', e.message); await cap('99_error'); }
+check(errors.length === 0, `페이지 오류 없음 ${errors.slice(0, 3).join(' | ')}`);
+await browser.close();
+console.log('fails=' + fails);
+process.exit(fails ? 1 : 0);

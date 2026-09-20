@@ -563,3 +563,13 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 - `voices/choimis.mp3`(0.12초): 위 쵸소우야 클립 19:50.5 부근 목소리 조각(사용자 “보이스폰트는 쵸소우야 톤으로 느낌만”). `VOICES.choimis` rate 1·level 0.85.
 - 가순이 목소리는 지정 없음 → 합성 `VOICES.gasuni`(triangle 470Hz). 풀숲 흔들림은 기존 `break1` 0.5, 윙크 띠링은 기존 합성 `chime`, 가면 던짐은 기존 `whoosh`·`thud`.
 - (BUILD258 정정) 위 세 클립은 처음엔 무음으로 잘려 있었다(`-ss` 를 `-i` 뒤에 두고 afade 를 걸면 시작 시각이 0 이 아니라 페이드인이 끝나지 않음) → `-ss` 를 `-i` 앞에 두고 `loudnorm` 으로 -16 LUFS. `voices/choimis.mp3` 는 델타룬 **킹**(랜서 아빠) 대사음 `snd_dadtxt`(디컴파일 154f9a9) 그대로(사용자 “델타룬의 킹 목소리로”). `voices/gasuni.mp3` 는 델타룬 `snd_txttor`(토리엘)를 asetrate 1.32배로 높인 것(사용자 “토리엘 목소리에서 톤을 높인 버전”).
+
+## BUILD271 벚꽃 숲 5 (2026-09-20)
+
+- `voices/dohyun.mp3`(0.05초): 델타룬 알피스 대사음 `snd_txtal`(디컴파일 154f9a9 `sounds/snd_txtal/snd_txtal`)을 1.1배 높임(사용자 “델타룬 알피스에서 톤 살짝 올린 걸로”), loudnorm -16 LUFS. `VOICES.dohyun` rate 1·level 0.85.
+- `voices/domijorim.mp3`(0.08초): 청소부 `voices/janitor.mp3`(델타룬 4장 거슨 **말하는 소리** 클립, BUILD227)를 1.35배 높여 젊게(사용자 “거슨 목소리 느낌인데 많이 젊어 보이는 느낌으로 재구성”). 델타룬 디컴파일 목록에 거슨 대사음은 없어(`snd_txt*` 16종) 기존 클립을 썼다. `VOICES.domijorim` rate 1·level 0.85.
+- `sfx/domijorim_heumi.mp3`(1.7초): 사용자 지정 [waFEhwjUb3c](https://www.youtube.com/watch?v=waFEhwjUb3c) “천하제일 요리대회”(가재맨) 1:14:15.25 부터 1.7초(사용자 “1:14:15쯤 흐미~ 1.N초”). 1:14:05~1:14:25 를 받아(`assets/source/sakura5-v1/heumi-raw.wav`, 커밋하지 않음) 파형에서 10.25~11.95초 발화 구간을 잘랐다 — **청취 미확인**, 다른 발화면 구간을 바꾼다. 페이드아웃 0.2초, loudnorm -16 LUFS. 도미조림 “흐미!!” 점프와 같이 난다.
+- 가순이 4·5·6 목소리는 1·2·3 과 같은 `gasuni`. 벚꽃 숲 5 브금은 `sakura`, 갈림목 연출에서 끈다(“[브금 꺼지면서]”), 연출 뒤 지정 없음.
+- `bgm/telling.mp3`(40.5초, 0.9MB): 사용자 지정 [CvFuMiWEryM](https://www.youtube.com/watch?v=CvFuMiWEryM) “26. I'm Telling! (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”(업로더 Toby Fox) 전체를 MP3 q2(구간 편집·정규화 없음). 벚꽃 숲 5 윗길 연출(“위로 쫌 올라가면”)부터.
+- `bgm/petal_dance.mp3`(92.7초, 2.4MB): 사용자 지정 [RsAu3BDaAp8](https://www.youtube.com/watch?v=RsAu3BDaAp8) “17. Petal Dance (DELTARUNE Chapter 5 Soundtrack) - Toby Fox” 전체를 MP3 q2. 도미조림·도현 전투 브금.
+- 도미조림·도현 탄막 소리는 기존 `whoosh`(홍어)·`swing`/`thud`(횃불·착지)·`pop`(도현 낙하·카톡) 재사용(지정 없음).

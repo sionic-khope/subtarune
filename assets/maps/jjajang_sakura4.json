@@ -140,7 +140,7 @@
     67
    ]
   ],
-  "role": "벚꽃 숲 3 아래 물가 문 다음(BUILD266): 지그재그로 적당히 긴 벚꽃 길, 다오(첫 오른쪽 길)·배찌(왼쪽 길) 표준 조우. 아랫줄 다음 맵은 아직 없음. 브금 sakura, 발소리 없음",
+  "role": "벚꽃 숲 3 아래 물가 문 다음(BUILD266): 지그재그로 적당히 긴 벚꽃 길, 다오(첫 오른쪽 길)·배찌(왼쪽 길) 표준 조우. 아랫줄 문은 벚꽃 숲 5(BUILD271). 브금 sakura, 발소리 없음",
   "petals": {
    "rate": 18,
    "burst": 0,
@@ -1536,6 +1536,17 @@
    "h": 10,
    "to": "jjajang_sakura3",
    "spawn": "landing",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura4_south_door",
+   "x": 864,
+   "y": 2230,
+   "w": 128,
+   "h": 10,
+   "to": "jjajang_sakura5",
+   "spawn": "from_north",
    "sfx": false
   }
  ]

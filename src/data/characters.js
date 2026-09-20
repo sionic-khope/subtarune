@@ -10,6 +10,14 @@ export const CHARACTERS = {
   gasuni1: { name: '가순이1', voice: 'gasuni', sheet: 'assets/sprites/gasuni1.png', stillPivot: [64, 120] },
   gasuni2: { name: '가순이2', voice: 'gasuni', sheet: 'assets/sprites/gasuni2.png', stillPivot: [64, 120] },
   gasuni3: { name: '가순이3', voice: 'gasuni', sheet: 'assets/sprites/gasuni3.png', stillPivot: [64, 120] },
+  // 가순이 4·5·6(BUILD271 벚꽃 숲 5 공터): 1·2·3 시트를 참조로 옷·머리만 바꾼 gpt-image 4×4 걷기 시트(assets/source/sakura5-v1) — 4 파랑 옆머리, 5 초록 단발, 6 보라 양갈래
+  gasuni4: { name: '가순이4', voice: 'gasuni', sheet: 'assets/sprites/gasuni4.png', stillPivot: [64, 120] },
+  gasuni5: { name: '가순이5', voice: 'gasuni', sheet: 'assets/sprites/gasuni5.png', stillPivot: [64, 120] },
+  gasuni6: { name: '가순이6', voice: 'gasuni', sheet: 'assets/sprites/gasuni6.png', stillPivot: [64, 120] },
+  // 도현(BUILD271 사용자 선화 “얇고 살짝 길죽하게”): 검은 바가지머리·긴 얼굴, 다른 시트보다 셀을 더 채워(fit 0.92) 키가 크다. 목소리 델타룬 알피스 톤 살짝 올림
+  dohyun: { name: '도현', voice: 'dohyun', sheet: 'assets/sprites/dohyun.png', stillPivot: [64, 120] },
+  // 도미조림(BUILD271 사용자 사진): 곱슬머리·남색 티. 목소리 거슨(청소부 클립)을 젊게
+  domijorim: { name: '도미조림', voice: 'domijorim', sheet: 'assets/sprites/domijorim.png', stillPivot: [64, 120] },
   choimis: { name: '최미스', voice: 'choimis', sheet: 'assets/sprites/choimis.png', stillPivot: [64, 120] },   // 목소리(BUILD258): 델타룬 킹 snd_dadtxt(voices/choimis.mp3), 초상화 assets/portraits/choimis.png(걷기 시트 얼굴)
   // 청소부(BUILD226 사용자 그림 등록: 붉은 두건·안경·수염·붉은 셔츠, “조금만 더 허약한 섭타룬 버전”): gpt-image-2.5-sunburst 4×4 걷기 시트 → 128px 셀(assets/source/janitor-v1). 목소리는 형섭 샘플을 할아버지 느낌으로 낮춘 janitor.mp3(델타룬 거슨 참고)
   // 허약 청소부는 토리이 길 이벤트 뒤 동료(hp 100 = 사용자 “hp는 100으로”, 노란색 = “청소부(노란색)이 동료가 되었다”). 전투 시트 assets/battle/janitor*.png(허약 모습) — 깃발·댄스 시트는 ‘청소부(전투)’용으로 따로 둔다

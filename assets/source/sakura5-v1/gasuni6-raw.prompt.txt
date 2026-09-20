@@ -1,0 +1,7 @@
+# imagegen 2026-09-20 17:36:19
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/sakura5-v1/gasuni3-ref-256.png
+
+Use case: stylized-concept. Create a production pixel-art overworld movement spritesheet for a character named 가순이6. Image1 is a finished spritesheet of 가순이3: keep EXACTLY its pixel density, cell layout, body proportions, face, walking poses and magenta background — this is the same series of characters. Exactly 4 columns x 4 rows of full body sprites in equal invisible square cells, no grid lines or text. Row1 FRONT facing down, row2 LEFT profile, row3 RIGHT profile, row4 BACK facing up, same single character in all 16 cells, small walking pose changes. Character identity: the same girl and face as Image1 but with a different look: dark-brown hair in two round buns with purple ribbons, lavender long-sleeved top, white pleated skirt, white socks, purple shoes. Only the hair and clothes differ from Image1; everything else (cute irasutoya-style girl, round face, rosy cheeks, dot eyes, small stature) stays identical. Flat solid magenta background (#FF00FF), no shadow, no props.

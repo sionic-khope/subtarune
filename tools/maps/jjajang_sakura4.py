@@ -8,7 +8,7 @@
 # ──────────────────
 """벚꽃 숲 4(jjajang_sakura4, BUILD266 사용자 브리핑 2026-09-20 — 원문 design/narrative/cutscenes/jjajang_sakura4.md):
 "다오랑 배찌라는 몬스터를 그다음맵 알맞게 적당히 길게 찍어주고 몹 두개 추가해줘 … 두마리 다음맵에 각각 다른곳에 배치해줘"
-- 벚꽃 숲 3 아래 물가 뭍의 문에서 윗줄로 들어와(16~19열) 아래로 → 오른쪽 → 아래 → 왼쪽 → 아래 → 오른쪽 → 아래(지그재그로 적당히 길게, 걷기 약 40초) → 아랫줄(다음 맵은 아직 없음).
+- 벚꽃 숲 3 아래 물가 뭍의 문에서 윗줄로 들어와(16~19열) 아래로 → 오른쪽 → 아래 → 왼쪽 → 아래 → 오른쪽 → 아래(지그재그로 적당히 길게, 걷기 약 40초) → 아랫줄 문(벚꽃 숲 5, BUILD271).
 - 다오는 첫 오른쪽 길(15행)에서, 배찌는 왼쪽 길(35행)에서 걸어 다니며 닿으면 표준 조우(체력 36, 카트라이더 아이템 패턴). 이기면 영구 제거.
 - 땅은 분홍 꽃잎 땅 ')', 벚꽃 나무, 꽃잎 초당 18, 브금 sakura 유지, 발소리 없음, 전투 배경 sakura."""
 from __future__ import annotations
@@ -82,6 +82,7 @@ def build_map() -> dict[str, object]:
     dao, bazzi = enemy('dao', 'dao', DAO_CELL), enemy('bazzi', 'bazzi', BAZZI_CELL)
     assert abs(DAO_CELL[1] - BAZZI_CELL[1]) >= 10, '둘은 다른 곳에'
     door_north = {'type': 'door', 'id': 'sakura4_north_door', 'x': ENTRY_COLS[0] * TILE, 'y': 0, 'w': (ENTRY_COLS[1] - ENTRY_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura3', 'spawn': 'landing', 'sfx': False}
+    door_south = {'type': 'door', 'id': 'sakura4_south_door', 'x': 27 * TILE, 'y': HEIGHT * TILE - 10, 'w': 4 * TILE, 'h': 10, 'to': 'jjajang_sakura5', 'spawn': 'from_north', 'sfx': False}   # 아랫줄 → 벚꽃 숲 5(BUILD271)
     mid_x = (ENTRY_COLS[0] + ENTRY_COLS[1] + 1) * TILE // 2 - 12
     walk_tiles = sum((c1 - c0 + 1 if r1 - r0 < c1 - c0 else r1 - r0 + 1) for c0, c1, r0, r1 in LEGS)
     return {
@@ -97,11 +98,11 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[17, 1], [17, 15], [28, 15], [28, 35], [6, 35], [6, 53], [28, 53], [28, HEIGHT - 3]],
-            'role': '벚꽃 숲 3 아래 물가 문 다음(BUILD266): 지그재그로 적당히 긴 벚꽃 길, 다오(첫 오른쪽 길)·배찌(왼쪽 길) 표준 조우. 아랫줄 다음 맵은 아직 없음. 브금 sakura, 발소리 없음',
+            'role': '벚꽃 숲 3 아래 물가 문 다음(BUILD266): 지그재그로 적당히 긴 벚꽃 길, 다오(첫 오른쪽 길)·배찌(왼쪽 길) 표준 조우. 아랫줄 문은 벚꽃 숲 5(BUILD271). 브금 sakura, 발소리 없음',
             'petals': PETALS,
             'sakura4': {'legs': [list(l) for l in LEGS], 'dao': list(DAO_CELL), 'bazzi': list(BAZZI_CELL), 'walkTiles': walk_tiles},
         },
-        'entities': [*trees, dao, bazzi, door_north],
+        'entities': [*trees, dao, bazzi, door_north, door_south],
     }
 
 

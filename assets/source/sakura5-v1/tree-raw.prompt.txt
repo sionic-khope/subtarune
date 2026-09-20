@@ -1,0 +1,9 @@
+# imagegen 2026-09-20 17:35:34
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/sakura5-v1/tree-ref.png
+
+Pixel art prop of ONE enormous ancient cherry blossom tree for a dark top-down 2D RPG, 3/4 top-down game view, on a 1024x1024 canvas. Solid pure #FF00FF magenta background everywhere, no ground, no shadows, no grid, no text.
+Image1 shows the smaller cherry trees already in this forest: match their pixel density, outline style, trunk texture and the three pink blossom tones exactly, but make this tree far larger and grander — a massive gnarled trunk with thick roots spreading at the base, several huge twisting boughs, and a vast dense canopy of pink blossom clusters that fills about 90% of the canvas width, with a few loose petals drifting under it. The trunk base is at the bottom centre of the canvas; nothing touches the canvas edges.
+Style: chunky retro pixel art, coarse pixel clusters, flat limited shades (at most 3 tones per material), crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.
