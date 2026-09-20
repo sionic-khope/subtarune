@@ -10,7 +10,7 @@
 "그다음에 위로 맵 가면 위로갓다가 오른쪽으로 가는길, 그리고 떗목 오른쪽으로 파란물 길 만들어주고 땟목 타서 오른쪽으로 가고 아래로 가는 맵도 찍어줘 … 땟목타면 한 8초정도 이동하는길이로 만들고 4초쯤에 벚꽃 좀 휘날리고도 넣어주고"
 - 벚꽃 숲 2 윗줄 문에서 아래 가장자리로 들어와(5~8열) 위로 → 23~26행에서 오른쪽으로 → 물가(16열). 파란 물길 '['(막힘): 17~46열 × 22~27행 오른쪽으로, 41~46열 × 28~45행 아래로.
   뗏목(raft.png, 171px/s)이 물가에 떠 있고 C 로 걸어 올라타(동료는 옆에서 헤엄) 오른쪽 → 아래로 약 8.6초(1,472px) → 아래 물가 뭍(37~50열 × 46~49행)에 내린다. 4초쯤 꽃잎 휘날림(meta.rideGust).
-- 땅은 분홍 꽃잎 땅 ')', 나무는 벚꽃 판, 꽃잎 초당 18, 브금 sakura 유지, 발소리 없음. 아래 뭍의 다음 맵은 아직 없다."""
+- 땅은 분홍 꽃잎 땅 ')', 나무는 벚꽃 판, 꽃잎 초당 18, 브금 sakura 유지, 발소리 없음. 아래 뭍 아랫줄 문 → 벚꽃 숲 4(BUILD266)."""
 from __future__ import annotations
 
 import json
@@ -100,6 +100,9 @@ def build_map() -> dict[str, object]:
         if t:
             seen.add((col, row)); trees.append(t)
     door_south = {'type': 'door', 'id': 'sakura3_south_door', 'x': ENTRY_COLS[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': (ENTRY_COLS[1] - ENTRY_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura2', 'spawn': 'from_north', 'sfx': False}
+    # 아래 물가 뭍의 아랫줄 문(BUILD266) → 벚꽃 숲 4(다오·배찌)
+    exit_cols = (DOWN_COLS[0], DOWN_COLS[1] - 2)
+    door_landing = {'type': 'door', 'id': 'sakura3_landing_door', 'x': exit_cols[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': (exit_cols[1] - exit_cols[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura4', 'spawn': 'from_north', 'sfx': False}
     mid_x = (ENTRY_COLS[0] + ENTRY_COLS[1] + 1) * TILE // 2 - 12
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 3', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0,
@@ -113,12 +116,12 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[ENTRY_COLS[0] + 1, HEIGHT - 3], [ENTRY_COLS[0] + 1, ROAD_ROWS[0] + 1], [SHORE_COL - 1, ROAD_ROWS[0] + 1]],
-            'role': '벚꽃 숲 2 윗줄 문 다음(BUILD264): 위로 → 오른쪽으로 물가 → 뗏목(파란 물길)으로 오른쪽 8초, 4초쯤 꽃잎 휘날림 → 아래로 → 아래 물가 뭍(다음 맵은 아직 없음)',
+            'role': '벚꽃 숲 2 윗줄 문 다음(BUILD264): 위로 → 오른쪽으로 물가 → 뗏목(파란 물길)으로 오른쪽 8초, 4초쯤 꽃잎 휘날림 → 아래로 → 아래 물가 뭍 → 아랫줄 문(벚꽃 숲 4, BUILD266)',
             'petals': PETALS,
             'rideGust': RIDE_GUST,
             'sakura3': {'entryCols': list(ENTRY_COLS), 'roadRows': list(ROAD_ROWS), 'shoreCol': SHORE_COL, 'channel': [list(CHANNEL_COLS), list(CHANNEL_ROWS)], 'down': [list(DOWN_COLS), DOWN_END_ROW], 'landing': [list(LANDING_COLS), list(LANDING_ROWS)], 'rideSeconds': round(ride_px / RAFT_SPEED, 2)},
         },
-        'entities': [*trees, raft, door_south],
+        'entities': [*trees, raft, door_south, door_landing],
     }
 
 

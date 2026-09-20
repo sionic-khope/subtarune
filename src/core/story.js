@@ -512,3 +512,10 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura3', desc: '벚꽃 숲 
   map: 'jjajang_sakura3', spawn: 'from_south', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true }, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura3_dock', desc: '벚꽃 숲 3 · 뗏목 앞 (C → 오른쪽으로 8초, 4초쯤 꽃잎 → 아래로)',
   map: 'jjajang_sakura3', spawn: 'dock', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true }, party: ['gyeongsub', 'ppaman'] });
+// 벚꽃 숲 4(BUILD266): 다오·배찌 표준 조우
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura4', desc: '벚꽃 숲 4 입구 (지그재그 길, 다오 → 배찌)',
+  map: 'jjajang_sakura4', spawn: 'from_north', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura4_dao', desc: '벚꽃 숲 4 · 다오 앞 (오른쪽 길, 카트라이더 미사일·부스터·바나나)',
+  map: 'jjajang_sakura4', spawn: 'before_dao', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura4_bazzi', desc: '벚꽃 숲 4 · 배찌 앞 (왼쪽 길, 물폭탄·자석·물파리)',
+  map: 'jjajang_sakura4', spawn: 'before_bazzi', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true, jjajang_sakura4_dao_defeated: true }, party: ['gyeongsub', 'ppaman'] });

@@ -124,6 +124,19 @@ function buildTemple() {
 registerBattleBg('temple', (ctx) => { if (!templeCache) templeCache = buildTemple(); ctx.drawImage(templeCache, 0, 0); });
 
 let nestCache = null;
+// 벚꽃 숲 전투 배경(BUILD266): 검은 밤 + 양옆 벚꽃 나무 판(맵이 미리 적재한 assets/props/jjajang_sakura_N.png) + 떨어지는 분홍 꽃잎 점
+registerBattleBg('sakura', (ctx, battle) => {
+  const imgs = battle.game?.propImages || {};
+  ctx.save();
+  ctx.fillStyle = '#0a0608'; ctx.fillRect(0, 0, 480, 246);
+  ctx.globalAlpha = 0.55;
+  for (const [file, x, y, s] of [['assets/props/jjajang_sakura_1.png', -30, 60, 1.05], ['assets/props/jjajang_sakura_4.png', 320, 70, 1.0], ['assets/props/jjajang_sakura_2.png', 140, -20, 0.7], ['assets/props/jjajang_sakura_3.png', 400, -30, 0.7]]) {
+    const im = imgs[file]; if (im) ctx.drawImage(im, x, y, Math.round(im.width * s), Math.round(im.height * s));
+  }
+  ctx.globalAlpha = 0.85;
+  for (let i = 0; i < 26; i++) { const ph = (battle.t * (14 + (i % 5) * 4) + i * 37) % 300, x = (i * 71 + Math.sin(battle.t * 1.3 + i) * 14) % 480; ctx.fillStyle = i % 3 ? '#ff8ad0' : '#ffc2e0'; ctx.fillRect(Math.round(x), Math.round(ph - 20), 2, 2); }
+  ctx.restore();
+});
 registerBattleBg('baron_nest', (ctx, battle) => {
   if (!nestCache) {
     nestCache = makeCanvas(480, 360);

@@ -554,6 +554,7 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 
 ## BUILD257 빛 드는 공터 (2026-09-20)
 
+- `sfx/kart_missile.mp3`·`kart_booster.mp3`·`kart_banana.mp3`·`kart_waterbomb.mp3`·`kart_magnet.mp3`·`kart_waterfly.mp3`(BUILD266 다오·배찌 패턴): 유튜브 [BARkNxACQkE](https://www.youtube.com/watch?v=BARkNxACQkE) “[섭셉이subsebi]카트라이더 효과음 모음”(36초, 라벨 없음) 10구간 중 6구간을 소리 성격으로 배정(0.0~2.8 부스터 — 부스터 참고 영상과 상관 0.82 / 3.3~5.2 자석 / 5.7~10.9 미사일 / 16.2~19.8 물폭탄 / 20.1~27.0 물파리 / 27.7~29.1 바나나), loudnorm −16 LUFS. **청취 확인 없음** — 구간표 `assets/source/kartrider-v1/README.md`.
 - `bgm/sakura.mp3`(203.5초, 5.0MB): 사용자 지정 [MzEHcwoNlbE](https://www.youtube.com/watch?v=MzEHcwoNlbE) “11. Garden of Hopes and Dreams (DELTARUNE Chapter 5 Soundtrack) - Toby Fox & @insaneintherainmusic”(업로더 Toby Fox, 20260624) 전체를 MP3 q2 로 변환(구간 편집·정규화 없음). 벚꽃 숲(jjajang_sakura, BUILD261) 맵 브금. 원본 wav 는 `assets/source/jjajang-sakura-v1/`(커밋하지 않음, 메타·로그만).
 - `bgm/choimis.mp3`: 사용자 지정 [XGbJbxiXS0o](https://www.youtube.com/watch?v=XGbJbxiXS0o) — yt-dlp 제목 “10. Your Dad's Best Friend (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 29초 전체를 MP3 q2. 최미스 “아시발.” 부터 “큼큼” 까지 반복.
 - `bgm/gasuni.mp3`: 사용자 지정 [RQsr0_RUMJU](https://www.youtube.com/watch?v=RQsr0_RUMJU) — “Who might you be?”, Toby Fox, 64초 전체를 MP3 q2. 가순이 셋이 내려올 때부터 “ㅋㅋㅋ... 후후..” 까지.

@@ -1,0 +1,26 @@
+# 벚꽃 숲 4 — 다오·배찌 (jjajang_sakura4) — BUILD266
+
+## 사용자 브리핑 (원문, 2026-09-20)
+
+> [Image #111 다오(파랑 후드) 도트] [Image #112 배찌(빨강 곰 후드) 도트] 다오랑 배찌라는 몬스터를 그다음맵 알맞게 적당히 길게 찍어주고 몹 두개 추가해줘 각각 카트라이더 사운드 쓰는 카트라이더 패턴으로 체력 36씩해서 몬스터 만들어주고 두마리 다음맵에 각각 다른곳에 배치해줘
+
+붙인 그림 원본: `assets/source/kartrider-v1/paste-a.png`(다오 255×275), `paste-b.png`(배찌 220×280).
+
+## 구현 (`tools/maps/jjajang_sakura4.py`, `src/data/enemies.js`, `src/battle/kart-patterns.js`)
+
+| 브리핑 | 구현 | 값 |
+| --- | --- | --- |
+| 그다음맵 적당히 길게 | 벚꽃 숲 3 아래 물가 뭍 아랫줄 문 → `jjajang_sakura4`(36×70): 위에서 아래 → 오른쪽 → 아래 → 왼쪽 → 아래 → 오른쪽 → 아래(지그재그 149칸, 달리기 ≈ 22초·천천히 ≈ 38초). 아랫줄 다음 맵은 아직 없음 | `LEGS` |
+| 몹 두 개, 각각 다른 곳 | 다오는 첫 오른쪽 길(24,15), 배찌는 왼쪽 길(14,35)에서 걸어 다니다(`wander 40`) 닿으면 표준 조우, 이기면 영구 제거 | `DAO_CELL`, `BAZZI_CELL` |
+| 체력 36씩 | `hp: 36` 둘 다 | — |
+| 카트라이더 패턴 | 다오 = 미사일(조준 십자선 0.5초 추적 → 잠김 0.35초 → 가장자리에서 미사일 → 잠긴 자리에서 파편 6) · 부스터(가로 띠 예고 0.5초 → 흰 다오 카트 420px/s + 불꽃 꼬리, 3번째부터 둘 연속) · 바나나(착지 표식 → 바나나 4개가 바닥에 2.4초 남음 + 부스터 띠 둘) / 배찌 = 물폭탄(점선 호 → 포물선 → 착지 고리 r26 1.2초 + 물방울 8) · 자석(한쪽 벽 자석 0.45초 예고 → 1.6초 하트를 끌어당김 + 벽 가시 7, 반대쪽 반복) · 물파리(조합: 파리가 하트 주위를 돌며 1.1초마다 찍기 + 물폭탄) | `MISSILE`… |
+| 카트라이더 사운드 | `sfx/kart_missile·booster·banana·waterbomb·magnet·waterfly.mp3` — 효과음 모음 영상(BARkNxACQkE)의 구간을 소리 성격으로 배정(**청취 미확인**, 구간표 `assets/source/kartrider-v1/README.md`). 동작당 한 번 | — |
+| 몬스터 그림 | 붙인 도트를 그대로 축소: 필드 `assets/enemies/dao-front.png`(52×56)·`bazzi-front.png`(44×56), 전투 `dao-battle.png`(111×120)·`bazzi-battle.png`(94×120) scale 1.2 | — |
+
+전투 배경 `sakura`(검은 밤 + 벚꽃 나무 판 + 꽃잎). QA `jjajang_sakura4`(입구), `jjajang_sakura4_dao`, `jjajang_sakura4_bazzi`. 검사: `tests/unit/kart-enemies.test.mjs`, `tests/playtest/enemy.mjs dao|bazzi`, `tests/playtest/jjajang-sakura4.mjs`.
+
+## 판단해 둔 것 (지정 없음 — 사용자 확인 필요)
+
+- 피해 12·돈 40(찢칠라 9/18 보다 뒤 구간이라 조금 위). 목소리 다오 `hero`, 배찌 `cat`.
+- 적 턴 말풍선(`speak`)은 대사가 없어 아이템 이름 외침(`미사일!`·`부스터!`·`바나나!` / `물폭탄!`·`자석!`·`물파리!`) — 다음 공격을 알려 주는 역할. 바꿀 대사를 주시면 그대로 넣는다.
+- 효과음 배정은 파형·길이 근거라 틀릴 수 있다. 어느 소리가 다른지 말해 주면 구간을 바꾼다.

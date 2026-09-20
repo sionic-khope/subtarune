@@ -94,7 +94,7 @@
     24
    ]
   ],
-  "role": "벚꽃 숲 2 윗줄 문 다음(BUILD264): 위로 → 오른쪽으로 물가 → 뗏목(파란 물길)으로 오른쪽 8초, 4초쯤 꽃잎 휘날림 → 아래로 → 아래 물가 뭍(다음 맵은 아직 없음)",
+  "role": "벚꽃 숲 2 윗줄 문 다음(BUILD264): 위로 → 오른쪽으로 물가 → 뗏목(파란 물길)으로 오른쪽 8초, 4초쯤 꽃잎 휘날림 → 아래로 → 아래 물가 뭍 → 아랫줄 문(벚꽃 숲 4, BUILD266)",
   "petals": {
    "rate": 18,
    "burst": 0,
@@ -913,6 +913,17 @@
    "w": 128,
    "h": 10,
    "to": "jjajang_sakura2",
+   "spawn": "from_north",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura3_landing_door",
+   "x": 1312,
+   "y": 1590,
+   "w": 128,
+   "h": 10,
+   "to": "jjajang_sakura4",
    "spawn": "from_north",
    "sfx": false
   }

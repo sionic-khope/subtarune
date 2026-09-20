@@ -125,6 +125,23 @@ export const ENEMIES = {
   // 문코리타(BUILD248 사용자 브리핑 2026-09-19): 사진(안경 쓴 노인 얼굴로 웃는 분홍 돼지 + 위로 솟은 회색 깃털 + 녹색 구슬 목걸이) → gpt-image 대기 시트 assets/source/munkorita-v1.
   //   체력 16(“찢칠라와 똑같이”), 공격 대사 2줄(원문 그대로), 패턴은 덩굴 채찍·소리지르기 둘(원문 “두개로”) — src/battle/munkorita-patterns.js.
   //   피해 9·돈 18 은 미지정(찢칠라와 같은 잠정값), appear/idle/die 나레이션도 엔진 형식상 필요한 최소(미지정)
+  // 다오·배찌(BUILD266 사용자 브리핑 2026-09-20 “다오랑 배찌라는 몬스터 … 각각 카트라이더 사운드 쓰는 카트라이더 패턴으로 체력 36씩”): 사용자가 붙인 카트라이더 도트 그림(assets/source/kartrider-v1/paste-a/b)을 그대로 축소해 필드·전투에 쓴다.
+  //   체력 36(원문). 패턴은 카트라이더 아이템(src/battle/kart-patterns.js): 다오 = 미사일·부스터·바나나, 배찌 = 물폭탄·자석·물파리(조합). 소리 kart_*(assets/source/kartrider-v1/README.md — 청취 미확인 배정).
+  //   피해 12·돈 40 은 미지정(잠정, 찢칠라 9/18 보다 뒤 구간이라 조금 위). speak 는 아이템 이름을 외치는 한 마디(대사 미지정 — 잠정, 사용자 확인 필요), appear/idle/die 나레이션은 엔진 형식상 최소.
+  dao: {
+    name: '다오', hp: 36, damage: 12, money: 40, voice: 'hero',
+    image: 'assets/enemies/dao-battle.png', pivot: [55, 118], scale: 1.2, idle: { swayX: 6, swayY: 2, period: 2.4 },
+    projectiles: { kart: 'assets/enemies/dao-battle.png' },
+    patterns: [{ type: 'kart_missile', speak: '미사일!' }, { type: 'kart_booster', speak: '부스터!' }, { type: 'kart_banana', speak: '바나나!' }],   // speak: 이번 턴 아이템을 외친다(말풍선이 패턴과 맞게)
+    lines: { appear: '* 다오가 나타났다!', idle: ['* 다오가 엔진 소리를 낸다.', '* 다오가 헬멧을 고쳐 쓴다.'], speak: ['미사일!', '부스터!', '바나나!'], die: '* 다오가 쓰러졌다.' },
+  },
+  bazzi: {
+    name: '배찌', hp: 36, damage: 12, money: 40, voice: 'cat',
+    image: 'assets/enemies/bazzi-battle.png', pivot: [47, 118], scale: 1.2, idle: { swayX: 5, swayY: 3, period: 2.0 },
+    projectiles: { kart: 'assets/enemies/bazzi-battle.png' },
+    patterns: [{ type: 'kart_waterbomb', speak: '물폭탄!' }, { type: 'kart_magnet', speak: '자석!' }, { type: 'kart_waterfly', speak: '물파리!' }],
+    lines: { appear: '* 배찌가 나타났다!', idle: ['* 배찌가 고글을 반짝인다.', '* 배찌가 리본을 만진다.'], speak: ['물폭탄!', '자석!', '물파리!'], die: '* 배찌가 쓰러졌다.' },
+  },
   munkorita: {
     name: '문코리타', hp: 16, damage: 9, money: 18, voice: 'cat',
     sheet: { src: 'assets/enemies/munkorita-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },

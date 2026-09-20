@@ -352,6 +352,12 @@ export class Battle {
     }
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
     let text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
+    // 패턴 설정에 speak 가 있으면 이번 턴에 나올 패턴의 말(다오 “미사일!” 뒤 미사일, BUILD266) — 지원 모듈이 패턴을 고르는 전투는 제외
+    if (!this.support?.patternsFor) {
+      const enraged = !!e.def.enragedPatterns?.length && e.hp / e.maxHp <= e.def.enragedAt, cfgs = (enraged ? e.def.enragedPatterns : e.def.patterns) || [];
+      const idx = enraged !== !!e.enraged ? 0 : (e.patternIdx || 0), cfg = cfgs.length ? cfgs[idx % cfgs.length] : null;
+      if (cfg?.speak) text = cfg.speak;
+    }
     if (lines.length && e.def.lines.speakShuffle) {
       if (!e.speechBag?.length) e.speechBag = [...new Set(lines)];
       const choices = e.speechBag.filter(line => line !== e.lastSpeech);
