@@ -17,7 +17,7 @@ test('test_sakura_map_dark_meadow_path_wide_meadow_and_right_turn_with_no_footst
   assert.deepEqual([m.bgm, m.dim, m.stage], ['sakura', 0, 'ship_sinking_done']);
   const [c0, c1] = S.pathCols, [r0, r1] = S.entryRows;
   for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) assert.equal(m.rows[r][c], '(', `아래 길 ${c},${r}`);
-  assert.ok(r1 - r0 + 1 >= 38, `아래 길이 몇 초(달리기 ≈ 6초, ≥38행) — 브금 하이라이트 전에 닿는다: ${r1 - r0 + 1}`);
+  assert.ok(r1 - r0 + 1 >= 52, `아래 길이 몇 초(달리기 ≈ 8초, ≥52행 — BUILD263 “2초만 더”) — 브금 하이라이트 전에 닿는다: ${r1 - r0 + 1}`);
   const [[mc0, mc1], [mr0, mr1]] = S.meadow;
   for (let r = mr0; r <= mr1; r++) for (let c = mc0; c <= mc1; c++) assert.equal(m.rows[r][c], '(', `넓은 풀숲 ${c},${r}`);
   assert.ok(mc1 - mc0 + 1 >= 16 && mr1 - mr0 + 1 >= 12, '풀숲은 길보다 훨씬 넓다');
@@ -44,7 +44,7 @@ test('test_sakura_bloom_swaps_every_dark_meadow_row_and_trees_have_same_size_blo
     assert.deepEqual(pngSize(t.bloom), pngSize(t.image), `${t.bloom} 크기가 소나무와 같다(그림만 바꿔도 밑동 그대로)`);
     assert.ok(m.preload.includes(t.bloom), '벚꽃 판은 preload 로 미리 적재');
   }
-  assert.deepEqual(m.meta.bloom, { flag: 'sakura_bloom', tiles: 'sakura_bloom', speed: 14, atBgm: 7.6, sweep: { duration: 1.0, image: 'assets/props/sakura_blossom_big.png', petal: 'assets/props/sakura_petal_big.png', trail: 7 } });
+  assert.deepEqual(m.meta.bloom, { flag: 'sakura_bloom', tiles: 'sakura_bloom', speed: 8, atBgm: 11.0, sweep: { duration: 2.5, image: 'assets/props/sakura_blossom_big.png', petal: 'assets/props/sakura_petal_big.png', trail: 7 } });
   for (const src of [m.meta.bloom.sweep.image, m.meta.bloom.sweep.petal]) { assert.ok(existsSync(new URL(`../../${src}`, import.meta.url)), `${src} 있음`); assert.ok(m.preload.includes(src), `${src} preload`); }
   const rowsPerSecondRunning = 220 / 32, entryRows = m.meta.sakura.entryRows[1] - m.meta.sakura.entryRows[0] + 1;
   assert.ok(entryRows / rowsPerSecondRunning + 0.8 < m.meta.bloom.atBgm, `달리면 하이라이트(${m.meta.bloom.atBgm}초) 전에 풀숲 초입에 닿는다(${(entryRows / rowsPerSecondRunning).toFixed(1)}초)`);

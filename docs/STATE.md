@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-20
 
+**BUILD263 — 공터 한 줄 추가 + 벚꽃 숲 길 2초·이펙트 2.5초**(사용자 2026-09-20): ① `나는 상관없어!!!!` 뒤 최미스 `으하하하 왼쪽길로 가야겠군` → 창 닫고 나무 돌진. ② 벚꽃 숲 아래 길 40 → 54행(맵 30×90, 달리기 ≈ 8초), 하이라이트 예약 7.6 → 11.0초(첫 고조 정점), 거대 벚꽃 sweep 1 → 2.5초(회전은 진행률 기준), 번짐 14 → 8행/초.
+
 **BUILD262 — 벚꽃 숲 정정: 길 40행·브금 하이라이트 예약·거대 벚꽃 대각선**(사용자 2026-09-20 “좀 더 길게 … 몇초 걷다가 브금하이라이트때 쫙 … 딱 바뀔때는 벚꽃이 엄청 크게 화면을 한번 1초동안 대각선부터 쌰아아악”): 아래 길 28 → 40행(맵 30×76). 풀숲 초입 트리거는 `game.bloom()` 예약 → `bgmTime()`(맵 브금 Audio.currentTime)이 `meta.bloom.atBgm` **7.6초**(파형으로 잰 첫 큰 악센트; 다른 고조 11.0/15.0/18.6/34.5)에 닿으면 `fireBloom()`: 거대 벚꽃 `sakura_blossom_big.png`(300px)이 오른쪽 위→왼쪽 아래 1초 sweep + 큰 꽃잎 7장 trail(`drawSweep`, 꽃잎 위·대화창 아래), 꽃잎 폭발, 번짐 14행/초. 브금이 없거나 이미 지났으면 즉시. 검사: `jjajang-sakura.test`(길 길이 vs 하이라이트, sweep 자산·preload), 플레이테스트(예약 → 7.6초 ±0.35 에 sweep 시작·중간 프레임 픽셀).
 
 **BUILD261 — 벚꽃 숲(jjajang_sakura)**(사용자 브리핑 2026-09-20, 원문·구현표 `design/narrative/cutscenes/jjajang_sakura.md`): 공터 위 새 문 → 30×64 맵. 새 타일 `(` 검은 풀숲 땅·`)` 분홍 꽃잎 땅(둘 다 발소리 없음 — “벚꽃맵부터는 발소리 안나게”), 브금 `sakura`(델타룬 5장 Garden of Hopes and Dreams), 꽃잎 `src/world/petals.js`(맵 `meta.petals` rate 3 → 폭발 220+초당 70×2.5초 → 계속 18). 아래 길 28행(X 천천히 걷기 ≈ 7초·달리기 ≈ 4초) → 넓은 풀숲 초입 트리거 → `jjajang_sakura_bloom`(플래그 `sakura_bloom`, `game.bloom()`, 정지 없음): `src/world/tile-spread.js` 로 주인공 행에서 초당 9행씩 `tileSwaps` 행이 번지고(다시 굽기) 어두운 소나무 62그루가 `def.bloom` 벚꽃 판 `assets/props/jjajang_sakura_1~4.png`(gpt-image, 소나무와 같은 크기)로 바뀐다. 재진입은 `changeMap` 이 플래그로 처음부터 핀 상태. 위 길 → 8~11행에서 오른쪽으로 28열까지(끝은 아직 막힘). QA `jjajang_sakura`·`_bloom`·`_bloomed`. 검사: `jjajang-sakura.test`, 플레이테스트 `jjajang-sakura`.

@@ -26,7 +26,7 @@ test('test_glade_lines_are_the_briefing_verbatim_in_order', () => {
     '최미스: 내 추구미는 쵸소우야.', '가순이123: 꺄아아악 꺄아아악 섹시해, 고닉... 하...',
     '억빠맨: 형저새끼 씨발 칼로찔러죽일테니까 제발 나가게해주세요', '경섭: 참아 빠맨아',
     '최미스: 후후 이따 봐요 아가씨들 먼저 올라가있어.', '가순이123: 네 땡떙씨!!', '최미스: ㅋㅋㅋ... 후후..',
-    '최미스: 휴우우우ㅜ우우 후우우우ㅜㅜ 아 다행이다. 시발 아 진짜 ㅈㄴ힘들다.', '최미스: 이렇게해서라도 ... 넣... 넣을수만 있다면', '최미스: 나는 상관없어!!!!', '최미스: 어.',
+    '최미스: 휴우우우ㅜ우우 후우우우ㅜㅜ 아 다행이다. 시발 아 진짜 ㅈㄴ힘들다.', '최미스: 이렇게해서라도 ... 넣... 넣을수만 있다면', '최미스: 나는 상관없어!!!!', '최미스: 으하하하 왼쪽길로 가야겠군', '최미스: 어.',
     '최미스: ... 어 하이', '억빠맨: ...', '억빠맨: 스읍 미스', '최미스: 아 씨발', '최미스: 이거 말하면 진짜 뒤진다.',
     '억빠맨: ㅋㅋ', '억빠맨: 근데 경섭이형', '경섭: 어 왜', '억빠맨: 왜 돈달라고 안해요?', '경섭: ...', '경섭: 아 맞네 씨발 야 쫒아가.',
   ]);
@@ -53,7 +53,7 @@ test('test_glade_beats_follow_the_briefing_order', () => {
     girlsIn: at(n => n.move === 'gasuni1' && n.rel === 'choimis'), bounce3: at(n => n.hop === 'gasuni3'), girlsShift: at(n => n.move === 'gasuni1' && n.by && !n.rel && !n.run),
     camTree: at(n => Array.isArray(n.camera) && n.camera[0] < 15), knife: line('칼로'), girlsOut: at(n => n.move === 'gasuni1' && n.run && n.by && !n.rel),
     gasuniBgmOff: flat.findIndex((n, i) => n.bgm === null && i > line('후후..')), facepalm: at(n => n.pose === 'facepalm'),
-    maskDrop: flat.findIndex((n, i) => n.hop === 'discord_mask' && i > line('후후..')), noMatter: line('나는 상관없어'), charge: at(n => n.move === 'choimis' && n.rel === 'glade_hide_tree' && n.dash), treeFlung: at(n => n.fling === 'glade_hide_tree'), eyes: flat.findIndex((n, i) => n.face === 'choimis' && n.dir === 'left' && i > line('나는 상관없어')),
+    maskDrop: flat.findIndex((n, i) => n.hop === 'discord_mask' && i > line('후후..')), noMatter: line('나는 상관없어'), leftRoad: line('으하하하 왼쪽길로'), charge: at(n => n.move === 'choimis' && n.rel === 'glade_hide_tree' && n.dash), treeFlung: at(n => n.fling === 'glade_hide_tree'), eyes: flat.findIndex((n, i) => n.face === 'choimis' && n.dir === 'left' && i > line('나는 상관없어')),
     eo: line('* 어.'), bubbles: at(n => n.bubble === 'gyeongsub'), jump: flat.findIndex((n, i) => n.hop === 'choimis' && i > line('어 하이')),
     grabMask: flat.findIndex((n, i) => n.move === 'choimis' && n.rel === 'discord_mask' && i > line('뒤진다')), maskTaken: flat.findIndex((n, i) => n.hide === 'discord_mask' && i > line('뒤진다')), escape: flat.findIndex((n, i) => n.move === 'choimis' && n.dash && !n.rel && i > line('뒤진다')), gone: at(n => n.remove === 'choimis'), money: line('돈달라고'), done: at(n => n.set?.glade_done),
   };

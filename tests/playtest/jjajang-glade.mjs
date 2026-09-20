@@ -73,7 +73,8 @@ try {
   check(await until(() => window.game.entities.find(e => e.id === 'choimis')?.motion?.src?.includes('facepalm'), 4000), '얼굴에 손'); await cap('13_facepalm');
   check(await until(() => { const m = window.game.entities.find(e => e.id === 'discord_mask'); return m && m.visible; }, 6000), '가면을 땅으로 던짐');
   s = await advanceTo('다행이다'); check(!!s, '휴우우우 … 다행이다');
-  s = await advanceTo('상관없어'); check(!!s, '나는 상관없어!!!!'); await next();
+  s = await advanceTo('상관없어'); check(!!s, '나는 상관없어!!!!');
+  s = await advanceTo('왼쪽길로'); check(!!s && s.speaker === '최미스', '으하하하 왼쪽길로 가야겠군'); await next();
   const treeX = (await ent('glade_hide_tree'))?.x;
   check(await until(() => { const c = window.game.entities.find(e => e.id === 'choimis'); const t = window.game.entities.find(e => e.id === 'glade_hide_tree'); return c && t && c.x < t.x + 60; }, 4000), '최미스가 왼쪽 나무로 돌진');
   check(await until(() => { const t = window.game.entities.find(e => e.id === 'glade_hide_tree'); return t && (t.hopY || 0) > 20; }, 3000), '나무가 날아오른다');

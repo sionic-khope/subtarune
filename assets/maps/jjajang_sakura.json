@@ -80,6 +80,20 @@
   "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
   "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
   "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@((((@@@@@@@@@@@@@",
   "@@@@@@@@@@@@@((((@@@@@@@@@@@@@"
  ],
  "tileSwaps": {
@@ -152,7 +166,21 @@
     "72": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
     "73": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
     "74": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
-    "75": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@"
+    "75": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "76": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "77": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "78": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "79": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "80": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "81": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "82": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "83": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "84": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "85": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "86": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "87": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "88": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@",
+    "89": "@@@@@@@@@@@@@))))@@@@@@@@@@@@@"
    }
   }
  },
@@ -167,12 +195,12 @@
  "spawns": {
   "from_south": {
    "x": 468,
-   "y": 2348,
+   "y": 2796,
    "facing": "up"
   },
   "start": {
    "x": 468,
-   "y": 2348,
+   "y": 2796,
    "facing": "up"
   },
   "before_bloom": {
@@ -196,7 +224,7 @@
   "route": [
    [
     14,
-    73
+    87
    ],
    [
     14,
@@ -211,7 +239,7 @@
     9
    ]
   ],
-  "role": "빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 하이라이트(7.6초)에 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 걷는다. 브금 sakura, 발소리 없음",
+  "role": "빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 하이라이트(11.0초)에 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 걷는다. 브금 sakura, 발소리 없음",
   "petals": {
    "rate": 3,
    "burst": 220,
@@ -222,10 +250,10 @@
   "bloom": {
    "flag": "sakura_bloom",
    "tiles": "sakura_bloom",
-   "speed": 14,
-   "atBgm": 7.6,
+   "speed": 8,
+   "atBgm": 11.0,
    "sweep": {
-    "duration": 1.0,
+    "duration": 2.5,
     "image": "assets/props/sakura_blossom_big.png",
     "petal": "assets/props/sakura_petal_big.png",
     "trail": 7
@@ -234,7 +262,7 @@
   "sakura": {
    "entryRows": [
     36,
-    75
+    89
    ],
    "meadow": [
     [
@@ -942,7 +970,215 @@
   },
   {
    "type": "prop",
+   "id": "sakura_tree_53",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "bloom": "assets/props/jjajang_sakura_1.png",
+   "x": 356,
+   "y": 2450,
+   "w": 24,
+   "h": 12,
+   "ix": 268,
+   "iy": 2305,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_54",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "bloom": "assets/props/jjajang_sakura_2.png",
+   "x": 580,
+   "y": 2450,
+   "w": 24,
+   "h": 12,
+   "ix": 562,
+   "iy": 2303,
+   "solid": true
+  },
+  {
+   "type": "prop",
    "id": "sakura_tree_55",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "bloom": "assets/props/jjajang_sakura_3.png",
+   "x": 228,
+   "y": 2482,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 2327,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_56",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "bloom": "assets/props/jjajang_sakura_4.png",
+   "x": 708,
+   "y": 2482,
+   "w": 24,
+   "h": 12,
+   "ix": 662,
+   "iy": 2348,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_57",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "bloom": "assets/props/jjajang_sakura_1.png",
+   "x": 324,
+   "y": 2546,
+   "w": 24,
+   "h": 12,
+   "ix": 236,
+   "iy": 2401,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_58",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "bloom": "assets/props/jjajang_sakura_2.png",
+   "x": 612,
+   "y": 2546,
+   "w": 24,
+   "h": 12,
+   "ix": 594,
+   "iy": 2399,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_59",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "bloom": "assets/props/jjajang_sakura_3.png",
+   "x": 196,
+   "y": 2578,
+   "w": 24,
+   "h": 12,
+   "ix": 148,
+   "iy": 2423,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_60",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "bloom": "assets/props/jjajang_sakura_4.png",
+   "x": 740,
+   "y": 2578,
+   "w": 24,
+   "h": 12,
+   "ix": 694,
+   "iy": 2444,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_61",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "bloom": "assets/props/jjajang_sakura_1.png",
+   "x": 356,
+   "y": 2642,
+   "w": 24,
+   "h": 12,
+   "ix": 268,
+   "iy": 2497,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_62",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "bloom": "assets/props/jjajang_sakura_2.png",
+   "x": 580,
+   "y": 2642,
+   "w": 24,
+   "h": 12,
+   "ix": 562,
+   "iy": 2495,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_63",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "bloom": "assets/props/jjajang_sakura_3.png",
+   "x": 228,
+   "y": 2674,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 2519,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_64",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "bloom": "assets/props/jjajang_sakura_4.png",
+   "x": 708,
+   "y": 2674,
+   "w": 24,
+   "h": 12,
+   "ix": 662,
+   "iy": 2540,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_65",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "bloom": "assets/props/jjajang_sakura_1.png",
+   "x": 324,
+   "y": 2738,
+   "w": 24,
+   "h": 12,
+   "ix": 236,
+   "iy": 2593,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_66",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "bloom": "assets/props/jjajang_sakura_2.png",
+   "x": 612,
+   "y": 2738,
+   "w": 24,
+   "h": 12,
+   "ix": 594,
+   "iy": 2591,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_67",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "bloom": "assets/props/jjajang_sakura_3.png",
+   "x": 196,
+   "y": 2770,
+   "w": 24,
+   "h": 12,
+   "ix": 148,
+   "iy": 2615,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_68",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "bloom": "assets/props/jjajang_sakura_4.png",
+   "x": 740,
+   "y": 2770,
+   "w": 24,
+   "h": 12,
+   "ix": 694,
+   "iy": 2636,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura_tree_71",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 100,
@@ -955,7 +1191,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_56",
+   "id": "sakura_tree_72",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 836,
@@ -968,7 +1204,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_59",
+   "id": "sakura_tree_75",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 100,
@@ -981,7 +1217,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_60",
+   "id": "sakura_tree_76",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 836,
@@ -994,7 +1230,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_63",
+   "id": "sakura_tree_79",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 100,
@@ -1007,7 +1243,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_64",
+   "id": "sakura_tree_80",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 836,
@@ -1020,7 +1256,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_65",
+   "id": "sakura_tree_81",
    "image": "assets/props/jjajang_pine_dark_1.png",
    "bloom": "assets/props/jjajang_sakura_1.png",
    "x": 196,
@@ -1033,7 +1269,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_66",
+   "id": "sakura_tree_82",
    "image": "assets/props/jjajang_pine_dark_2.png",
    "bloom": "assets/props/jjajang_sakura_2.png",
    "x": 324,
@@ -1046,7 +1282,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_67",
+   "id": "sakura_tree_83",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 580,
@@ -1059,7 +1295,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_68",
+   "id": "sakura_tree_84",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 580,
@@ -1072,7 +1308,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_69",
+   "id": "sakura_tree_85",
    "image": "assets/props/jjajang_pine_dark_1.png",
    "bloom": "assets/props/jjajang_sakura_1.png",
    "x": 708,
@@ -1085,7 +1321,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_70",
+   "id": "sakura_tree_86",
    "image": "assets/props/jjajang_pine_dark_2.png",
    "bloom": "assets/props/jjajang_sakura_2.png",
    "x": 708,
@@ -1098,7 +1334,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_71",
+   "id": "sakura_tree_87",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 324,
@@ -1111,7 +1347,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_72",
+   "id": "sakura_tree_88",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 612,
@@ -1124,7 +1360,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_73",
+   "id": "sakura_tree_89",
    "image": "assets/props/jjajang_pine_dark_1.png",
    "bloom": "assets/props/jjajang_sakura_1.png",
    "x": 356,
@@ -1137,7 +1373,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_74",
+   "id": "sakura_tree_90",
    "image": "assets/props/jjajang_pine_dark_2.png",
    "bloom": "assets/props/jjajang_sakura_2.png",
    "x": 580,
@@ -1150,7 +1386,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_75",
+   "id": "sakura_tree_91",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 484,
@@ -1163,7 +1399,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_76",
+   "id": "sakura_tree_92",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 580,
@@ -1176,7 +1412,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_77",
+   "id": "sakura_tree_93",
    "image": "assets/props/jjajang_pine_dark_1.png",
    "bloom": "assets/props/jjajang_sakura_1.png",
    "x": 580,
@@ -1189,7 +1425,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_78",
+   "id": "sakura_tree_94",
    "image": "assets/props/jjajang_pine_dark_2.png",
    "bloom": "assets/props/jjajang_sakura_2.png",
    "x": 676,
@@ -1202,7 +1438,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_79",
+   "id": "sakura_tree_95",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 676,
@@ -1215,7 +1451,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_80",
+   "id": "sakura_tree_96",
    "image": "assets/props/jjajang_pine_dark_4.png",
    "bloom": "assets/props/jjajang_sakura_4.png",
    "x": 772,
@@ -1228,7 +1464,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_81",
+   "id": "sakura_tree_97",
    "image": "assets/props/jjajang_pine_dark_1.png",
    "bloom": "assets/props/jjajang_sakura_1.png",
    "x": 772,
@@ -1241,7 +1477,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_83",
+   "id": "sakura_tree_99",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 868,
@@ -1254,7 +1490,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_85",
+   "id": "sakura_tree_101",
    "image": "assets/props/jjajang_pine_dark_1.png",
    "bloom": "assets/props/jjajang_sakura_1.png",
    "x": 132,
@@ -1267,7 +1503,7 @@
   },
   {
    "type": "prop",
-   "id": "sakura_tree_87",
+   "id": "sakura_tree_103",
    "image": "assets/props/jjajang_pine_dark_3.png",
    "bloom": "assets/props/jjajang_sakura_3.png",
    "x": 324,
@@ -1294,7 +1530,7 @@
    "type": "door",
    "id": "sakura_glade_door",
    "x": 416,
-   "y": 2422,
+   "y": 2870,
    "w": 128,
    "h": 10,
    "to": "jjajang_glade",

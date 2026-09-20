@@ -395,12 +395,12 @@ class Game {
       ctx.restore();
     };
     for (let i = sw.trail; i >= 1; i--) {   // 뒤따르는 큰 꽃잎(먼저 그려 벚꽃 아래)
-      const lag = i * 0.09, kk = Math.max(0, Math.min(1, (sw.t - lag) / sw.duration)), e = kk * kk * (3 - 2 * kk);
+      const lag = i * 0.09 * sw.duration, kk = Math.max(0, Math.min(1, (sw.t - lag) / sw.duration)), e = kk * kk * (3 - 2 * kk);
       if (sw.t < lag) continue;
       const off = (i % 2 ? 1 : -1) * (26 + i * 14) / SCREEN_W;
-      draw(sw.petal, 44 + (i % 3) * 22, e + off * 0.35, e - off * 0.35, sw.t * (4 + i) + i, 0.95);
+      draw(sw.petal, 44 + (i % 3) * 22, e + off * 0.35, e - off * 0.35, kk * (4 + i) + i, 0.95);
     }
-    draw(sw.image, 300, ease, ease, -0.35 + sw.t * 1.6, 1);
+    draw(sw.image, 300, ease, ease, -0.35 + k * 1.6, 1);
   }
 
   /** 맵 JSON `backdrop:'purple_fire'` — 허공 너머 멀리서 지글지글 끓는 보라색 불 (화면 좌표, 카메라 x 의 1/4 만큼 흐름) */
@@ -1145,7 +1145,7 @@ class Game {
       if (this.petalsBurstT > 0) { this.petalsBurstT -= dt; if (this.petalsBurstT <= 0) this.petals.rate = MAPS[this.mapId]?.meta?.petals?.after ?? this.petals.rate; }
     }
     if (this.bloomArmed) { const b = MAPS[this.mapId]?.meta?.bloom, t = this.bgmTime(); if (!b) this.bloomArmed = false; else if (t === null || t >= b.atBgm) this.fireBloom(); }   // 예약한 번짐은 브금 하이라이트에(브금이 멈추면 바로)
-    if (this.sweep) { this.sweep.t += dt; if (this.sweep.t >= this.sweep.duration + 0.7) this.sweep = null; }   // 거대 벚꽃 대각선(꼬리까지 0.7초 더)
+    if (this.sweep) { this.sweep.t += dt; if (this.sweep.t >= this.sweep.duration * 1.7) this.sweep = null; }   // 거대 벚꽃 대각선(꼬리 꽃잎까지 duration 의 0.7 배 더)
     if (this.tileSpread) {   // 땅·나무가 번지듯 바뀐다: 닿은 행은 tileSwaps 행으로 바꿔 다시 굽고, 밑동 행이 닿은 def.bloom 나무는 핀 그림으로
       const b = MAPS[this.mapId]?.meta?.bloom, sw = b && MAPS[this.mapId]?.tileSwaps?.[b.tiles];
       const hit = this.tileSpread.update(dt);
