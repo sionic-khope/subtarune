@@ -2,7 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 
 await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, check, until, press, shot, fixture }) => {
   const missingAssets = [];
-  page.on('response', response => { if (response.status() >= 400 && /drum-devil|janitor-hero|janitor-red|rudebuster|yoplait-(kneel|surprised|lookback)/.test(response.url())) missingAssets.push(response.url()); });
+  page.on('response', response => { if (response.status() >= 400 && /drum[-_]devil|janitor[-_]hero|janitor-red|rudebuster|asgore_spear_swing|deltarune_release_shoot|yoplait-(kneel|surprised|lookback)/.test(response.url())) missingAssets.push(response.url()); });
   const earlyThreshold = async (kind = 'normal') => {
     await open({ qa: 'jjajang_nest_battle' });
     check('direct battle QA intro', await until(() => window.game?.battle?.state === 'intro' && game.battle.typed, 30000));
@@ -37,12 +37,61 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     return [e.img, e.actionImages.attack].map(img => img && { width: img.width, height: img.height });
   });
   check('both winged sheets loaded with matching384 cells', dimensions.every(d => d?.width === 768 && d?.height === 768), JSON.stringify(dimensions));
+  check('long-arm boss uses requested1.2 scale', await page.evaluate(() => game.battle.enemies[0].def.scale === 1.2));
   await until(() => game.battle.typed);
   await shot('00-idle');
+  if (process.env.DRUM_BOSS_POSES_ONLY === '1') {
+    for (const sheet of ['idle', 'attack']) for (let frame = 0; frame < 4; frame++) {
+      await fixture(`boss-${sheet}-${frame}`, 'Hold one native boss animation pose in the real menu to inspect artwork against the actual menu edge. Root, scale, pivot, art and UI are unchanged; this is not an attack-timing test.', pose => {
+        game.battle.enemies[0].patternPose = pose;
+      }, { sheet, frame });
+      const bounds = await page.evaluate(async () => {
+        const b = game.battle, e = b.enemies[0], surface = document.createElement('canvas');
+        surface.width = 480; surface.height = 360;
+        const context = surface.getContext('2d'); b.drawEnemy(context, e);
+        const pixels = context.getImageData(0, 0, 480, 360).data;
+        let left = 480, top = 360, right = 0, bottom = 0;
+        for (let y = 0; y < 360; y++) for (let x = 0; x < 480; x++) if (pixels[(y * 480 + x) * 4 + 3]) {
+          left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x + 1); bottom = Math.max(bottom, y + 1);
+        }
+        const contract = await fetch('/assets/source/drum-devil-raisedhands-v4/runtime-contract.json').then(response => response.json());
+        const regions = contract.actions[e.patternPose.sheet].frames[e.patternPose.frame].fullHandReviewRegions;
+        const drawScale = Math.round(384 * e.def.scale) / 384;
+        const origin = [Math.round(e.x - e.def.pivot[0] * e.def.scale), Math.round(e.y - e.def.pivot[1] * e.def.scale)];
+        const hands = regions.map(region => {
+          const rect = [origin[0] + Math.floor(region[0] * drawScale), origin[1] + Math.floor(region[1] * drawScale), origin[0] + Math.ceil(region[2] * drawScale), origin[1] + Math.ceil(region[3] * drawScale)];
+          let count = 0, bottom = 0;
+          for (let y = Math.max(0, rect[1]); y < Math.min(360, rect[3]); y++) for (let x = Math.max(0, rect[0]); x < Math.min(480, rect[2]); x++) if (pixels[(y * 480 + x) * 4 + 3]) { count++; bottom = Math.max(bottom, y + 1); }
+          return { reviewedSourceRegion: region, renderedRegion: rect, opaquePixels: count, bottom };
+        });
+        return { left, top, right, bottom, root: [e.x, e.y], scale: e.def.scale, pose: e.patternPose, hands };
+      });
+      check(`${sheet}${frame} actual menu pose stays within battle viewport`, bounds.left > 0 && bounds.top > 0 && bounds.right < 480 && bounds.bottom < 318, JSON.stringify(bounds));
+      check(`${sheet}${frame} both reviewed full-hand regions retain opaque pixels above menu246`, bounds.hands.length === 2 && bounds.hands.every(hand => hand.opaquePixels > 0 && hand.bottom < 246 && hand.renderedRegion[3] < 246), JSON.stringify(bounds.hands));
+      await shot(`boss-menu-${sheet}-${frame}`);
+    }
+    check('boss refresh required assets loaded', missingAssets.length === 0, JSON.stringify(missingAssets));
+    return;
+  }
   await page.evaluate(async () => {
     const b = game.battle, hurt = b.hurtAllParty.bind(b), hit = b.hitEnemy.bind(b), sfx = b.sfx.bind(b), update = b.update.bind(b);
     const { JANITOR_HERO_ACTIONS: { attack } } = await import('/src/data/janitor-hero-actions.js');
+    const { DRUM_DEVIL_RESCUE: rescue } = await import('/src/data/drum-devil-rescue.js');
+    const bodyScale = rescue.hero.scale ?? 1, renderedScale = Math.round(attack.cell * bodyScale) / attack.cell;
     const attackImage = await new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = attack.src; });
+    const heroImage = await new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = rescue.hero.src; });
+    const { drawDrumDevilHero } = await import('/src/battle/support/drum-devil-rescue.js');
+    const heroSurface = document.createElement('canvas'); heroSurface.width = 480; heroSurface.height = 360;
+    const heroContext = heroSurface.getContext('2d');
+    let heroTick = 0, heroRight = 0;
+    for (const hold of rescue.hero.frameHolds) {
+      heroContext.clearRect(0, 0, 480, 360);
+      drawDrumDevilHero(heroContext, { hero: heroImage }, heroTick + hold / 2);
+      const pixels = heroContext.getImageData(0, 0, 480, 360).data;
+      for (let i = 0; i < pixels.length; i += 4) if (pixels[i + 3]) heroRight = Math.max(heroRight, (i / 4) % 480 + 1);
+      heroTick += hold;
+    }
+    window.drumHeroNoticeClearance = () => ({ heroRight, boardLeft: b.board.rect.x, margin: b.board.rect.x - heroRight });
     const canvas = document.createElement('canvas'); canvas.width = attackImage.width; canvas.height = attackImage.height;
     const context = canvas.getContext('2d'); context.drawImage(attackImage, 0, 0);
     const frameBounds = Array.from({ length: attack.count }, (_, frame) => {
@@ -53,17 +102,48 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
       }
       return { left, top, right, bottom };
     });
-    window.drumEvidence = { penalties: [], flights: [], sounds: [], lastOrdinary: {}, hits: [], actions: [], postheroHazards: [], clippedFrames: [], parryFrames: {} };
+    window.drumEvidence = { penalties: [], flights: [], sounds: [], heals: [], lastOrdinary: {}, hits: [], actions: [], postheroHazards: [], clippedFrames: [], parryFrames: {}, music: [], cue: null };
+    window.drumDanceFrame = () => {
+      let time = b.game.time % rescue.hero.frameHolds.reduce((sum, hold) => sum + hold, 0), frame = 0;
+      while (frame < rescue.hero.frameHolds.length - 1 && time >= rescue.hero.frameHolds[frame]) time -= rescue.hero.frameHolds[frame++];
+      return frame;
+    };
+    const sound = b.game.sound, playBgm = sound.playBgm.bind(sound);
+    sound.playBgm = (name, options) => {
+      const result = playBgm(name, options), audio = sound.bgm;
+      drumEvidence.music.push({ name, time: performance.now(), fadeIn: options?.fadeIn, currentTime: audio?.currentTime });
+      if (name === 'janitor_hero_intro' && audio) {
+        const cue = { startedAt: performance.now(), loop: audio.loop, rate: audio.playbackRate, samples: [] };
+        drumEvidence.cue = cue; window.observedHeroCue = audio;
+        audio.addEventListener('timeupdate', () => cue.samples.push({ wall: performance.now(), time: audio.currentTime, rate: audio.playbackRate }));
+        audio.addEventListener('ended', event => { cue.ended = { wall: performance.now(), time: audio.currentTime, duration: audio.duration, trusted: event.isTrusted }; }, { once: true });
+      }
+      return result;
+    };
     window.drumSnapshot = () => { const snapshot = b.interlude?.snapshot; return snapshot?.inner || snapshot; };
     b.hurtAllParty = amount => { const before = b.members.map(m => m.hp), invuln = b.soul.invuln; hurt(amount); drumEvidence.penalties.push({ amount, before, after: b.members.map(m => m.hp), invuln, t: b.t }); };
     b.hitEnemy = (enemy, by, damage, options) => {
+      let renderedContact = null;
+      if (options?.source === 'janitor') {
+        const point = b.support.actionSnapshot?.contact;
+        if (point) {
+          const surface = document.createElement('canvas'); surface.width = 480; surface.height = 360;
+          const context = surface.getContext('2d');
+          b.drawEnemy(context, { ...enemy, popup: null, blink: 0, shake: 0 });
+          const x = Math.max(0, Math.min(478, Math.round(point.x) - 1)), y = Math.max(0, Math.min(358, Math.round(point.y) - 1));
+          const pixels = context.getImageData(x, y, 3, 3).data;
+          renderedContact = Array.from({ length: 9 }, (_, i) => pixels[i * 4 + 3]).some(alpha => alpha > 0);
+        }
+      }
       const before = enemy.hp, result = hit(enemy, by, damage, options);
-      drumEvidence.hits.push({ source: options?.source || 'ordinary', damage: before - enemy.hp, hp: enemy.hp, action: b.support.actionSnapshot });
+      drumEvidence.hits.push({ source: options?.source || 'ordinary', damage: before - enemy.hp, hp: enemy.hp, action: b.support.actionSnapshot, renderedContact });
       return result;
     };
     b.sfx = (name, ...args) => { drumEvidence.sounds.push({ name, time: performance.now(), phase: drumSnapshot()?.phase }); return sfx(name, ...args); };
     b.update = (...args) => {
+      const hpBefore = b.members[0].hp;
       const result = update(...args);
+      if (b.members[0].hp > hpBefore) drumEvidence.heals.push({ before: hpBefore, after: b.members[0].hp, phase: drumSnapshot()?.phase });
       if (b.state === 'bullets' && b.bullets.some(bullet => !['drum_mark', 'drum_purple', 'drum_fuse', 'drum_arena_blast'].includes(bullet.shape))) drumEvidence.lastOrdinary[b.enemies[0].patternIdx] = b.t;
       const action = b.support.actionSnapshot;
       const previous = drumEvidence.actions.at(-1);
@@ -72,8 +152,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
         drumEvidence.actions.push({ ...action, turn: b.enemies[0].patternIdx, barrelAge: purple?.age, playerIdle: !b.members[0].action || b.members[0].action.mode === 'idle' });
       }
       if (action?.kind === 'janitor-intercept' && action.phase === 'attack') {
-        const box = frameBounds[action.frame], x = Math.round(action.position.x - attack.pivot[0]), y = Math.round(action.position.y - attack.pivot[1]);
-        const bounds = { left: x + box.left, top: y + box.top, right: x + box.right, bottom: y + box.bottom };
+        const box = frameBounds[action.frame], x = Math.round(action.position.x - attack.pivot[0] * bodyScale), y = Math.round(action.position.y - attack.pivot[1] * bodyScale);
+        const bounds = { left: x + Math.floor(box.left * renderedScale), top: y + Math.floor(box.top * renderedScale), right: x + Math.ceil(box.right * renderedScale), bottom: y + Math.ceil(box.bottom * renderedScale) };
         const turn = b.enemies[0].patternIdx;
         (drumEvidence.parryFrames[turn] ||= {})[action.frame] = true;
         if (bounds.left < 0 || bounds.top < 0 || bounds.right > 480 || bounds.bottom > 318) drumEvidence.clippedFrames.push({ turn, frame: action.frame, bounds, elapsed: action.elapsed });
@@ -83,7 +163,19 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     };
   });
   // A scoped support refresh enters the real rescue early without injecting phases.
-  const supportOnly = process.env.DRUM_POSTHERO_ONLY === '1';
+  if (process.env.DRUM_HERO_BOARD_ONLY === '1') {
+    const clearance = await page.evaluate(async () => {
+      const { DRUM_DEVIL: config } = await import('/src/data/drum-devil.js');
+      const heroRight = drumHeroNoticeClearance().heroRight;
+      const width = game.battle.enemies[0].def.board[0], boardLeft = config.heroBoardCenter[0] - width / 2;
+      return { heroRight, boardLeft, boardRight: boardLeft + width, margin: boardLeft - heroRight };
+    });
+    check('configured rescued board clears every actual hero idle frame', clearance.margin >= 3 && clearance.boardRight < 480, JSON.stringify(clearance));
+    check('hero board preflight assets loaded', missingAssets.length === 0, JSON.stringify(missingAssets));
+    return;
+  }
+  const rescueOnly = process.env.DRUM_RESCUE_ONLY === '1';
+  const supportOnly = process.env.DRUM_POSTHERO_ONLY === '1' || rescueOnly;
   if (supportOnly) {
     await fixture('early-rescue-support-refresh', 'Set HP5 before real C attack and ordinary collision to reach rescue quickly for support visuals and behavior; no rescue flags or phases are injected.', () => { game.battle.members[0].hp = 5; });
     await press('KeyC', { delay: 70 });
@@ -132,14 +224,14 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     const first = await sample();
     check(`${name} ordinary hazards finish before quiet gap and purple`, Number.isFinite(first?.lastOrdinary) && first.t - first.age - first.lastOrdinary >= 1, JSON.stringify(first));
     await shot(`${name}-04-purple-start`);
-    await page.waitForTimeout(1300);
+    await page.waitForTimeout(1100);
     const middle = await sample();
     await shot(`${name}-05-purple-mid`);
-    await page.waitForFunction(() => game.battle.bullets.some(b => b.shape === 'drum_purple' && b.age >= 2.8));
+    await page.waitForFunction(() => game.battle.bullets.some(b => b.shape === 'drum_purple' && b.age >= 2.4));
     const last = await sample();
     await shot(`${name}-06-purple-end`);
-    const straightY = first && middle && first.y + (214 - first.y) * (middle.age - first.age) / (3 - first.age);
-    check(`${name} purple arcs from hand then reaches center over three seconds`, first?.age < 0.3 && middle?.age > 1.2 && middle.y < straightY - 20 && last?.age >= 2.8 && Math.hypot(last.x - 240, last.y - 214) < Math.hypot(first.x - 240, first.y - 214), JSON.stringify({ first, middle, last }));
+    const straightY = first && middle && first.y + (214 - first.y) * (middle.age - first.age) / (2.6 - first.age);
+    check(`${name} purple arcs from hand then reaches center over2.6 seconds`, first?.age < 0.3 && middle?.age > 1 && middle.y < straightY - 20 && last?.age >= 2.4 && Math.hypot(last.x - 240, last.y - 214) < Math.hypot(first.x - 240, first.y - 214), JSON.stringify({ first, middle, last }));
     check(`${name} center fuse`, await until(() => game.battle.bullets.some(b => b.shape === 'drum_fuse')));
     await shot(`${name}-07-fuse`);
     check(`${name} blast or rescue interruption`, await until(() => game.battle.bullets.some(b => b.shape === 'drum_arena_blast') || game.battle.state === 'interlude'));
@@ -187,8 +279,11 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await phase('flag');
   check('flag begins after two seconds', Date.now() - silentAt >= 1850);
   await shot('rescue-04-flag-start');
-  check('flag contacts boss', await until(() => drumSnapshot()?.hit));
+  await page.waitForFunction(() => drumSnapshot()?.flagImpact?.flash > 0.25);
+  check('flag contact starts white flash', await page.evaluate(() => drumSnapshot().hit && drumSnapshot().flagImpact.flash > 0));
   await shot('rescue-05-flag-hit');
+  check('flag hit recoils and shakes the boss', await until(() => drumSnapshot()?.flagImpact?.recoil > 1 && Math.abs(drumSnapshot().flagImpact.shake) > 0.1));
+  await shot('rescue-05b-recoil');
   const surprise = await phase('surprise');
   check('surprise right-facing pose before camera', surprise.pose === 'surprised' && surprise.camera === 0);
   await shot('rescue-06-surprise-right');
@@ -196,16 +291,19 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   check('distinct left lookback before camera', lookback.pose === 'lookback' && lookback.camera === 0);
   await shot('rescue-07-lookback-left');
   await phase('reveal');
-  await page.waitForTimeout(1250);
+  await page.waitForTimeout(1150);
+  check('far-left hero remains offscreen during early reveal', await page.evaluate(() => drumSnapshot().heroScreenX < 0));
+  await shot('rescue-08a-far-offscreen');
+  await page.waitForTimeout(1200);
   const pan = await page.evaluate(() => drumSnapshot());
-  check('slow pan retains standing vertical-flag pose', pan.camera > 0.3 && pan.camera < 0.7 && pan.heroPose === 'stand');
+  check('far-left slow reveal retains standing vertical-flag pose', pan.camera > 0.3 && pan.camera < 0.7 && pan.heroPose === 'stand');
   await shot('rescue-08-pan');
   const focused = await phase('focus');
   check('focus follows completed pan before greeting', focused.camera === 1 && focused.heroPose === 'stand' && focused.zoom <= 0.88);
   await shot('rescue-09-focus');
   const greeting = await phase('greeting');
   check('greeting waits for focus shake to end', greeting.camera === 1 && greeting.shake === 0 && greeting.heroPose === 'stand' && Math.abs(greeting.zoom - 0.88) < 0.001);
-  check('hero music starts', await page.evaluate(() => game.sound.bgmName === 'janitor_hero'));
+  check('one-shot hero introduction cue starts', await page.evaluate(() => game.sound.bgmName === 'janitor_hero_intro' && game.sound.bgm.loop === false && game.sound.bgm.playbackRate === 1));
   await line('도움이 필요한가?', 'rescue-10-white-speech');
   const laugh = await phase('laugh');
   check('laugh uses dedicated pose', laugh.heroPose === 'laugh');
@@ -215,25 +313,52 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await line('붉은 군단의 전사.', 'rescue-13-warrior');
   await line('멸공의 깃발이라고 불렸었지.', 'rescue-14-flag-title');
   await phase('rise');
-  await page.waitForTimeout(1000);
-  check('rises in stand pose without Cossack', await page.evaluate(() => drumSnapshot().heroPose === 'stand' && drumSnapshot().heroY < 150));
+  await page.waitForFunction(() => drumSnapshot()?.phase === 'rise' && drumSnapshot().time >= 0.22);
+  check('fast rise uses stand pose and moving camera', await page.evaluate(() => drumSnapshot().heroPose === 'stand' && drumSnapshot().heroY < 160 && drumSnapshot().camera < 1));
   await shot('rescue-15-rise');
-  await phase('return');
+  const returned = await phase('return');
+  check('ascent completes in about half a second', returned.heroY <= -100);
   await shot('rescue-16-return-camera');
+  await phase('hang');
+  await shot('rescue-16b-dive-hold');
   await phase('dive');
   check('dive still stand pose', await page.evaluate(() => drumSnapshot().heroPose === 'stand'));
   await shot('rescue-17-dive');
   await phase('land');
   check('Cossack begins only on landing', await page.evaluate(() => drumSnapshot().heroPose === 'hero'));
   await shot('rescue-18-warm-impact');
+  await phase('heal-talk');
+  check('healing waits for its dialogue C while player remainsHP1', await page.evaluate(() => game.battle.members[0].hp === 1 && !drumSnapshot().healed));
+  await line('많이 힘들어보이네?', 'rescue-18a-heal-offer');
+  await phase('heal-raise');
+  check('flag raise precedes actual healing', await page.evaluate(() => game.battle.members[0].hp === 1 && !drumSnapshot().healed));
+  await page.waitForTimeout(180);
+  await shot('rescue-18b-heal-flag');
+  await phase('healing');
+  check('flag heals to maximum and restores standing pose', await page.evaluate(() => {
+    const member = game.battle.members[0];
+    return member.hp === member.maxHp && !member.down && drumSnapshot().healed && drumSnapshot().pose === 'standing';
+  }));
+  await shot('rescue-18c-heal-effect');
   await phase('ready');
+  check('landing heal happens exactlyonce without damage', await page.evaluate(() => drumEvidence.heals.length === 1 && drumEvidence.heals[0].before === 1 && drumEvidence.heals[0].after === game.battle.members[0].maxHp && drumEvidence.hits.every(hit => hit.damage === 0)), JSON.stringify(await page.evaluate(() => drumEvidence.heals)));
   await line('자 얼른 저 괴물을 무찔러보게나,', 'rescue-19-ready');
   check('exact support menu returns', await until(() => game.battle.state === 'menu' && game.battle.text === '* 멸공의 깃발이 함께한다.' && game.battle.support.rescued));
   await until(() => game.battle.typed);
   await shot('rescue-20-menu');
+  const formation = await page.evaluate(async () => {
+    const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js');
+    return { hero: R.hero.home, scale: R.hero.scale, player: game.battle.members[0].home, frames: R.hero.frameHolds.length };
+  });
+  check('hero formation is below and left at92percent scale', formation.hero[0] < formation.player[0] && formation.hero[1] > formation.player[1] && formation.scale === 0.92, JSON.stringify(formation));
+  check('eight dance frames configured', formation.frames === 8);
+  for (let frame = 0; frame < formation.frames; frame++) {
+    await page.waitForFunction(expected => drumDanceFrame() === expected, frame);
+    await shot(`dance-leg-phase-${frame}`);
+  }
   const sounds = await page.evaluate(() => drumEvidence.sounds.filter(s => s.phase));
-  check('single flag impact laugh and landing audio calls', sounds.filter(s => s.name === 'hit').length === 1 && sounds.filter(s => s.name === 'laugh_janitor').length === 1 && sounds.filter(s => s.name === 'impact').length === 1, JSON.stringify(sounds));
-  for (const name of supportOnly ? ['roll', 'chain', 'cross', 'ring', 'bombard'] : ['cross', 'ring', 'bombard', 'roll', 'chain']) {
+  check('single flag impact laugh and landing audio calls', sounds.filter(s => s.phase === 'flag').length === 1 && sounds.filter(s => s.name === 'laugh_janitor').length === 1 && sounds.filter(s => s.name === 'impact').length === 1, JSON.stringify(sounds));
+  for (const name of rescueOnly ? [] : supportOnly ? ['roll', 'chain', 'cross', 'ring', 'bombard'] : ['cross', 'ring', 'bombard', 'roll', 'chain']) {
     await fixture(`assist-${name}-isolation`, 'Restore bossHP300 and soloHP before testing each real posthero pattern; avoids killing the boss before all five interception paths are observed.', () => {
       game.battle.enemies[0].hp = 300;
       game.battle.members[0].hp = game.battle.members[0].maxHp;
@@ -252,6 +377,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     const hits = await page.evaluate(offset => drumEvidence.hits.slice(offset), baseline.hits);
     check(`${name} ordinary damage plus exactlyone60 support hit`, hits.length === 2 && hits[0].source === 'ordinary' && hits[0].damage > 0 && hits[1].source === 'janitor' && hits[1].damage === 60, JSON.stringify(hits));
     check(`${name} hero hit lands after visible energy flight`, hits[1]?.action?.elapsed >= 1.2 && hits[1]?.action?.contacted);
+    check(`${name} ranged contact reaches rendered enlarged boss pixels`, hits[1]?.renderedContact === true);
     check(`${name} enemy turn starts after automatic attack`, await until(() => game.battle.state === 'bullets' && !game.battle.gimmick, 8000));
     check(`${name} posthero selected expected pattern`, await page.evaluate(expected => {
       const e = game.battle.enemies[0]; return e.def.patterns[(e.patternIdx - 1) % 5].type === expected;
@@ -263,23 +389,35 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     await shot(`intercept-${name}-01-launch`);
     check(`${name} exclamation begins after one-second flight`, await until(() => game.battle.support.actionSnapshot?.phase === 'notice'));
     check(`${name} claim timing`, await page.evaluate(() => observedPurple.age >= 1 && observedPurple.age < 1.3 && observedPurple.intercepted && game.battle.support.interceptionActive));
+    const noticeClearance = await page.evaluate(() => drumHeroNoticeClearance());
+    check(`${name} all eight rendered notice hero frames clear opaque board`, noticeClearance.margin >= 3, JSON.stringify(noticeClearance));
     await shot(`intercept-${name}-02-notice`);
     check(`${name} teleport starts`, await until(() => game.battle.support.actionSnapshot?.phase === 'teleport-out'));
+    await page.waitForFunction(() => game.battle.support.actionSnapshot?.elapsed >= 0.47);
     await shot(`intercept-${name}-03-teleport`);
     await page.waitForFunction(() => game.battle.support.actionSnapshot?.kind === 'janitor-intercept' && game.battle.support.actionSnapshot.frame === 2 && !game.battle.support.actionSnapshot.contacted);
     await shot(`intercept-${name}-03b-overhead`);
     check(`${name} actual original barrel deflects`, await until(() => {
       const b = game.battle;
       return b.support.actionSnapshot?.kind === 'janitor-intercept' && b.support.actionSnapshot.contacted
-        && b.bullets.includes(observedPurple) && observedPurple.vx === 260 && observedPurple.vy === -170 && !observedPurple.steer;
+        && b.bullets.includes(observedPurple) && observedPurple.vx >= 480 && observedPurple.vy < -200
+        && observedPurple.ax === 220 && observedPurple.ay === 280 && observedPurple.spin === 22 && !observedPurple.steer;
     }));
     const deflected = await page.evaluate(() => ({ x: observedPurple.x, y: observedPurple.y }));
+    check(`${name} actual cloth contact aligns with original barrel`, await page.evaluate(async () => {
+      const { JANITOR_HERO_ACTIONS: C } = await import('/src/data/janitor-hero-actions.js');
+      const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js');
+      const action = game.battle.support.actionSnapshot, scale = R.hero.scale ?? 1;
+      return Math.abs(action.position.x + C.attack.contactOffset[0] * scale - action.contact.x) < 1
+        && Math.abs(action.position.y + C.attack.contactOffset[1] * scale - action.contact.y) < 1;
+    }));
     await shot(`intercept-${name}-04-deflect`);
     await page.waitForTimeout(120);
     check(`${name} barrel travels up and right after contact`, await page.evaluate(previous => observedPurple.x > previous.x && observedPurple.y < previous.y, deflected));
     check(`${name} hero laughs after deflection`, await until(() => game.battle.support.actionSnapshot?.phase === 'laugh'));
     await shot(`intercept-${name}-05-laugh`);
     check(`${name} hero teleports home`, await until(() => game.battle.support.actionSnapshot?.phase === 'return-out'));
+    await page.waitForTimeout(80);
     await shot(`intercept-${name}-06-return`);
     check(`${name} normal C menu returns with clean support`, await until(() => game.battle.state === 'menu' && !game.battle.support.actionSnapshot && !game.battle.gimmick && !game.battle.support.interceptionActive, 6000));
     const evidence = await page.evaluate(base => ({ phases: drumEvidence.actions.slice(base.actions).filter(a => a.kind === 'janitor-intercept').map(a => a.phase),
@@ -289,14 +427,30 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     check(`${name} zero purple fuse blast or penalty after interception`, evidence.penalties === baseline.penalties && evidence.forbidden === 0 && evidence.hp === beforeHP, JSON.stringify(evidence));
     const geometry = await page.evaluate(() => ({ frames: Object.keys(drumEvidence.parryFrames[game.battle.enemies[0].patternIdx] || {}), clipped: drumEvidence.clippedFrames }));
     check(`${name} all six actual parry frames keep opaque pixels in viewport`, geometry.frames.length === 6 && geometry.clipped.length === 0, JSON.stringify(geometry));
-    check(`${name} attack and intercept audio each playonce`, evidence.sounds.filter(s => s === 'rudebuster_swing').length === 2 && evidence.sounds.filter(s => s === 'rudebuster_hit').length === 2 && evidence.sounds.filter(s => s === 'laugh_janitor').length === 1);
+    check(`${name} ranged swing and Asgore parry audio each playonce`, evidence.sounds.filter(s => s === 'rudebuster_swing').length === 1 && evidence.sounds.filter(s => s === 'asgore_spear_swing').length === 1 && evidence.sounds.filter(s => s === 'rudebuster_hit').length === 2 && evidence.sounds.filter(s => s === 'laugh_janitor').length === 1 && evidence.sounds.filter(s => s === 'spearappear').length === 2);
     check(`${name} posthero does not repeat rescue`, await page.evaluate(expected => game.battle.support.completedTurns === expected && !game.battle.interlude, supportOnly ? 0 : 8));
     await until(() => game.battle.typed);
     await shot(`intercept-${name}-07-menu`);
   }
+  if (rescueOnly) check('rescue-only waits for natural cue ending', await until(() => drumEvidence.cue?.ended && game.sound.bgmName === 'drum_devil_battle' && game.sound.bgm.currentTime > 0.1, 52000));
+  const cuePlayback = await page.evaluate(() => {
+    const cue = drumEvidence.cue, resumed = cue?.ended && drumEvidence.music.find(event => event.name === 'drum_devil_battle' && event.time >= cue.ended.wall);
+    return { cue, resumed, current: game.sound.bgmName, currentTime: game.sound.bgm?.currentTime };
+  });
+  check('hero cue naturally ends once at46.760 seconds without acceleration', cuePlayback.cue?.ended?.trusted === true
+    && Math.abs(cuePlayback.cue.ended.duration - 46.760) < 0.12
+    && cuePlayback.cue.ended.wall - cuePlayback.cue.startedAt >= 46000
+    && cuePlayback.cue.loop === false && cuePlayback.cue.samples.length > 100
+    && cuePlayback.cue.samples.every(sample => sample.rate === 1), JSON.stringify(cuePlayback));
+  check('real ended immediately resumes combat music with no fade delay', cuePlayback.resumed
+    && cuePlayback.resumed.time - cuePlayback.cue.ended.wall < 100 && cuePlayback.resumed.fadeIn === 0
+    && cuePlayback.current === 'drum_devil_battle' && cuePlayback.currentTime > 0);
   await fixture('hero-lethal-boundary', 'Set enemy HP to exactly one ordinary player hit plus60, then use real C attack to verify automatic hero kill and victory; not a natural full win.', () => {
     game.battle.enemies[0].hp = game.attack + 60;
     window.victoryBattle = game.battle;
+  });
+  await fixture('pending-cue-before-victory', 'Start a fresh introduction cue to probe stale ended callbacks after the upcoming real victory. The prior cue natural duration was already observed separately.', () => {
+    game.battle.support.playHeroCue(); window.victoryCue = game.sound.bgm;
   });
   const lethalHits = await page.evaluate(() => drumEvidence.hits.length);
   await press('KeyC', { delay: 70 });
@@ -311,7 +465,25 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await press('KeyC', { delay: 70 });
   check('victory C returns to field', await until(() => !game.battle && game.lastBattle?.win, 8000));
   check('victory leaves no transient hero action', await page.evaluate(() => !victoryBattle.support.actionSnapshot && !victoryBattle.gimmick && !victoryBattle.interlude));
-  await earlyThreshold();
-  await earlyThreshold('purple');
+  const staleVictory = await fixture('late-ended-after-finish', 'Dispatch a deliberately synthetic late ended event on the canceled cue after real victory; this is an adversarial cleanup probe, not natural playback evidence.', () => {
+    const before = drumEvidence.music.length; victoryCue.dispatchEvent(new Event('ended')); return drumEvidence.music.length === before;
+  });
+  check('finished battle cannot restart combat music from stale cue', staleVictory);
+  await fixture('fresh-battle-for-reset-probe', 'Prepare a fresh ordinary battle to test reset cancellation independently from victory.', async () => {
+    const { jjajang_nest_drum } = await import('/src/data/cutscenes/drum_devil.js');
+    game.startBattle(jjajang_nest_drum.find(node => node.battle).battle);
+  });
+  await until(() => game.battle?.state === 'intro', 15000);
+  const staleReset = await fixture('late-ended-after-reset', 'Start the cue, reset game state through its public reset handler, then dispatch a synthetic late ended event. No clock is accelerated.', () => {
+    const battle = game.battle; battle.support.prepareHeroFormation(); battle.support.playHeroCue();
+    const cue = game.sound.bgm; game.resetState(); const before = drumEvidence.music.length;
+    cue.dispatchEvent(new Event('ended'));
+    return !game.battle && !battle.support.actionSnapshot && drumEvidence.music.length === before;
+  });
+  check('reset cancels pending cue and transient action without BGM restart', staleReset);
+  if (!rescueOnly) {
+    await earlyThreshold();
+    await earlyThreshold('purple');
+  }
   check('all required drum and rescue assets loaded', missingAssets.length === 0, JSON.stringify(missingAssets));
 });

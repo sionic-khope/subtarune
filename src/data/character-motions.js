@@ -2,14 +2,20 @@ import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
 export const CHARACTER_MOTIONS = {
   drum_devil: {
+    throw: {
+      src: 'assets/enemies/drum-devil-attack.png',
+      scale: 220 / (266 * 1.43), faces: 'left',
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [1, 2].map(index => ({ rect: [(index % 2) * 384, Math.floor(index / 2) * 384, 384, 384], pivot: [216, 320], duration: 0.6 })),
+    },
     roar: {
       src: 'assets/enemies/drum-devil-idle.png',
-      scale: 220 / (240 * 1.43),
+      scale: 220 / (266 * 1.43),
       faces: 'left',
       colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [0, 2, 2, 0].map((index, beat) => ({
-        rect: [(index % 2) * 384 + 72, Math.floor(index / 2) * 384 + 116, 272, 240],
-        pivot: [144, 234], duration: [0.2, 0.3, 0.65, 0.2][beat],
+        rect: [(index % 2) * 384 + 74, Math.floor(index / 2) * 384 + 94, 272, 232],
+        pivot: [142, 226], duration: [0.2, 0.3, 0.65, 0.2][beat],
       })),
     },
   },
@@ -38,6 +44,10 @@ export const CHARACTER_MOTIONS = {
     },
   },
   hyungsub: {
+    battle_ready: {
+      src: BATTLE_SPRITES.hyungsub.src, scale: 0.13, faces: 'right',
+      colorKey: BATTLE_PREVIEW.colorKey, frames: [BATTLE_SPRITES.hyungsub.idle[0]],
+    },
     attack: {
       src: BATTLE_SPRITES.hyungsub.src,
       scale: 0.13,

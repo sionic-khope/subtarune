@@ -1,4 +1,5 @@
 import { DRUM_DEVIL as C } from '../../data/drum-devil.js';
+import { DRUM_DEVIL_RESCUE as R } from '../../data/drum-devil-rescue.js';
 import { createDrumDevilRescue, loadDrumDevilRescue, drawDrumDevilHero } from './drum-devil-rescue.js';
 import { createDrumDevilLastStand } from './drum-devil-last-stand.js';
 import { loadJanitorHeroActions, createJanitorHeroAttack, createJanitorHeroIntercept } from './janitor-hero-actions.js';
@@ -12,17 +13,46 @@ export function createDrumDevilSupport(battle, { createRescue = createDrumDevilR
   let assets = null;
   let action = null, actionKind = null, barrel = null;
   let actionEpoch = 0;
+  let heroCue = null, heroCueEnded = null, previousPartyHome = null;
+  const cancelHeroCue = () => { if (heroCue && heroCueEnded) heroCue.removeEventListener('ended', heroCueEnded); heroCue = null; heroCueEnded = null; };
   const clearAction = () => { actionEpoch++; action?.dispose?.(); action = null; actionKind = null; barrel = null; };
   return {
     get rescued() { return rescued; },
+    get boardCenter() { return rescued ? C.heroBoardCenter : undefined; },
     get rescuePending() { return rescuePending; },
     get completedTurns() { return completedTurns; },
     get interceptionActive() { return actionKind === 'intercept'; },
     get actionSnapshot() { return action?.snapshot ?? null; },
+    cancelBgm() { cancelHeroCue(); },
+    playHeroCue() {
+      cancelHeroCue();
+      const sound = battle.game.sound;
+      sound.preloadBgm(battle.cfg.bgm); sound.playBgm(R.bgm, { loop: false, fadeIn: R.fade });
+      const audio = sound.bgm;
+      if (!audio) return;
+      heroCue = audio;
+      heroCueEnded = () => {
+        const current = sound.bgm === audio && battle.game.battle === battle && !['win', 'lose', 'ending', 'retry'].includes(battle.state);
+        cancelHeroCue();
+        if (current) sound.playBgm(battle.cfg.bgm, { fadeIn: 0 });
+      };
+      audio.addEventListener('ended', heroCueEnded, { once: true });
+    },
+    prepareHeroFormation() {
+      const player = battle.members.find(member => member.id === 'hyungsub');
+      if (!player || previousPartyHome) return;
+      previousPartyHome = { member: player, home: [...player.home] };
+      player.action = null; player.home = [...C.heroPartyHome];
+    },
     async load(loadImage) { assets = { ...await loadDrumDevilRescue(loadImage), ...await loadJanitorHeroActions(loadImage) }; },
     draw(ctx) { if (actionKind === 'attack' || action?.backgroundBody) action.drawBody(ctx); else if (rescued && assets && !action) drawDrumDevilHero(ctx, assets, battle.game.time); },
     drawOverlay(ctx) { if (actionKind === 'intercept') { if (action.backgroundBody) action.drawEffects(ctx); else action.draw(ctx); } },
-    reset() { clearAction(); rescued = false; rescuePending = false; rescueStarted = false; completedTurns = 0; },
+    reset() {
+      clearAction(); cancelHeroCue();
+      if (previousPartyHome) previousPartyHome.member.home = previousPartyHome.home;
+      previousPartyHome = null; rescued = false; rescuePending = false; rescueStarted = false; completedTurns = 0;
+    },
+    dispose() { clearAction(); cancelHeroCue(); },
     onProjectile(projectile) { if (rescued && projectile?.purple) barrel = projectile; },
     afterAction(plan) {
       if (!rescued || action || plan?.type !== 'fight' || plan.member?.id !== 'hyungsub'
@@ -47,7 +77,8 @@ export function createDrumDevilSupport(battle, { createRescue = createDrumDevilR
         action = createIntercept(battle, { assets, barrel: flying, onDeflect() {
           if (deflected || epoch !== actionEpoch || !rescued) return; deflected = true;
           flying.steer = null; flying.vx = C.deflectVelocity[0]; flying.vy = C.deflectVelocity[1];
-          flying.spin = 9; flying.life = flying.age + C.deflectLife;
+          [flying.ax, flying.ay] = C.deflectAcceleration;
+          flying.spin = C.deflectSpin; flying.life = flying.age + C.deflectLife;
         } });
       }
       if (actionKind === 'intercept' && action.update(dt)) clearAction();

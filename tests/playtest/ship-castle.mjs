@@ -1,6 +1,10 @@
 import { runScenario } from './lib/harness.mjs';
 
 await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, check, until, open, press, shot, fixture }) => {
+  if (process.env.QA_SHIP_CASTLE_FOCUS === 'powershot') {
+    await powershotFocus({ page, check, until, open, press, shot, fixture });
+    return;
+  }
   await open({ qa: 'ship_castle' });
   check('QA starts below the untouched proximity trigger', !!await until(() => game.mapId === 'ship_lounge' && !game.dialogue.running && !game.flags.ship_castle_started, 20000));
   await page.keyboard.down('ArrowUp');
@@ -225,7 +229,7 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   check('waves roll out along the waterline while the fleet rides them', landed.geometry.wave > 0 && landed.geometry.wave < 1 && landed.geometry.phase.lift === 0
     && landed.geometry.phase.landed === true
     && Math.abs((landed.geometry.castle.y + landed.geometry.castle.height - 200) / landed.geometry.castle.height - 0.1) < 0.02, JSON.stringify({ wave: landed.geometry.wave, castle: landed.geometry.castle }));
-  check('one burst cue, never a repeating loop', await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'boom').length === 1));
+  check('one powershot cue, never a repeating loop', await page.evaluate(() => window.__shipCastleQA.sfx.filter(name => name === 'energetic_powershot').length === 1));
   check('reveal completes before dialogue', !!await until(() => game.shipCastle?.elapsed >= game.shipCastle.config.timing.castleReveal - 0.1, 10000));
   await page.setViewportSize({ width: 1280, height: 900 });
   await shot('castle_16_whole_castle_1280');
@@ -267,7 +271,7 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
     && Math.abs((fleeing.geometry.warship.x - fleeing.geometry.maillard.x) - (retreatStart.geometry.warship.x - retreatStart.geometry.maillard.x)) <= 1,
   JSON.stringify({ retreat: fleeing.geometry.retreat, start: retreatStart.geometry.warship.x, now: fleeing.geometry.warship.x }));
   await beat('final_hold', 'castle_21_transition_hold');
-  check('required field and ocean sounds were emitted through the real audio API', await page.evaluate(() => ['bell', 'wing', 'park_trial_shatter', 'explosion', 'maillard_water_lift', 'power', 'rumble', 'boom', 'laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.includes(name))), JSON.stringify(await page.evaluate(() => window.__shipCastleQA)));
+  check('required field and ocean sounds were emitted through the real audio API', await page.evaluate(() => ['bell', 'wing', 'park_trial_shatter', 'explosion', 'maillard_water_lift', 'power', 'rumble', 'energetic_powershot', 'laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.includes(name))), JSON.stringify(await page.evaluate(() => window.__shipCastleQA)));
   const beamTiming = await page.evaluate(() => ({ landedAt: window.__castleVeil.landedAt, firstBeamAt: window.__castleVeil.firstBeamAt }));
   check('the beams only start well after the castle landed and its waves rolled out', beamTiming.landedAt > 0 && beamTiming.firstBeamAt > beamTiming.landedAt + 1500, JSON.stringify({ ...beamTiming, gapMs: Math.round(beamTiming.firstBeamAt - beamTiming.landedAt) }));
   check('three isolated charged beams do not retrigger during dialogue holds', await page.evaluate(() => ['laser_charge', 'laser_beam'].every(name => window.__shipCastleQA.sfx.filter(cue => cue === name).length === 3)));
@@ -361,3 +365,80 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   check('Continue keeps theft, completion, no followers, and shore ambience', continued.flags.ship_castle_cord_stolen && continued.flags.ship_castle_done && continued.flags.ship_sinking_done && !continued.inventory.includes('보라색 코드 ?') && continued.followers === 0 && continued.bgm === 'jjajang_shore', JSON.stringify(continued));
   await shot('castle_37_continue_shore');
 });
+
+async function powershotFocus({ page, check, until, open, press, shot, fixture }) {
+  await open({ qa: 'ship_castle' });
+  check('castle approach assets are ready', !!await until(() => game.mapId === 'ship_lounge' && !game.dialogue.running, 20000));
+  await press('KeyX');
+  await fixture('castle-powershot-adjacent-beats', 'Prepare the existing script at 하지만... after the sky confrontation; play the original vortex, reveal, reactions, fall and first beam at real time. Earlier lounge approach and later memories are outside this focused regression.', async () => {
+    const { ship_castle } = await import('/src/data/cutscenes/ship_castle.js');
+    const originalSfx = game.sound.sfx.bind(game.sound);
+    window.__powershot = { calls: [], handle: null, playing: false, ended: false };
+    game.sound.sfx = (name, options) => {
+      const handle = originalSfx(name, options);
+      window.__powershot.calls.push({ name, at: performance.now(), elapsed: game.shipCastle?.elapsed });
+      if (name === 'energetic_powershot' && handle) {
+        window.__powershot.handle = handle;
+        handle.addEventListener('playing', () => { window.__powershot.playing = true; }, { once: true });
+        handle.addEventListener('ended', () => { window.__powershot.ended = true; }, { once: true });
+      }
+      return handle;
+    };
+    game.startShipCastle().setBeat('ocean_rise').setBeat('sky_opposite_aura');
+    game.runScript(Object.assign(ship_castle.slice(ship_castle.findIndex(node => node.text === '* 하지만...')), { silent: true }));
+  });
+  const line = async text => {
+    await page.waitForFunction(expected => game.textbox.node?.text?.includes(expected), text, { timeout: 20000 });
+    await press('KeyX');
+    await page.waitForTimeout(100);
+    await press('KeyC');
+  };
+  await shot('powershot_00_previous_confrontation');
+  await line('하지만...');
+  check('adjacent vortex burst still plays before castle creation', !!await until(() => game.shipCastle?.beat === 'vortex_burst', 5000));
+  await shot('powershot_01_previous_burst');
+  check('exact powershot begins actual browser playback', !!await until(() => window.__powershot.playing && window.__powershot.handle.currentTime > 0.1, 6000));
+  const playback = await page.evaluate(() => {
+    const audio = window.__powershot.handle;
+    return { src: audio.currentSrc, currentTime: audio.currentTime, paused: audio.paused, rate: audio.playbackRate, duration: audio.duration, muted: audio.muted, volume: audio.volume, sceneTime: game.shipCastle.elapsed };
+  });
+  check('unmodified full clip plays once at its native speed with audible gain', playback.src.endsWith('/assets/audio/sfx/energetic_powershot.mp3') && playback.duration > 10.2 && playback.duration < 10.4 && playback.rate === 1 && !playback.paused && !playback.muted && playback.volume > 0, JSON.stringify(playback));
+  await shot('powershot_02_audio_gather');
+  check('audio gathers before any castle appears', !!await until(() => game.shipCastle?.elapsed >= 4.2, 6000));
+  const gathering = await page.evaluate(() => game.shipCastle.snapshot());
+  check('the four-second gathering remains only a point', gathering.geometry.phase.gather < 1 && gathering.geometry.castle.width < 12, JSON.stringify(gathering.geometry.phase));
+  await shot('powershot_03_before_appearance');
+  await until(() => game.shipCastle?.elapsed >= 4.9, 3000);
+  await shot('powershot_04_castle_appears');
+  const emerging = await page.evaluate(() => ({ snapshot: game.shipCastle.snapshot(), audioTime: window.__powershot.handle.currentTime }));
+  check('castle grows and drops on the actual source clock', emerging.snapshot.geometry.castle.width > 70 && emerging.snapshot.geometry.phase.lift > 0 && !emerging.snapshot.castleLanded && Math.abs(emerging.snapshot.elapsed - emerging.audioTime) < 0.1, JSON.stringify({ phase: emerging.snapshot.geometry.phase, elapsed: emerging.snapshot.elapsed, audioTime: emerging.audioTime }));
+  await until(() => game.shipCastle?.elapsed >= 6, 3000);
+  await shot('powershot_05_castle_dropping');
+  check('landing follows emergence with one impact', !!await until(() => game.shipCastle?.landPlayed, 3000));
+  await page.waitForTimeout(240);
+  await shot('powershot_06_impact_waves');
+  const landed = await page.evaluate(() => game.shipCastle.snapshot());
+  check('waves spread after landing with connected ships below the castle', landed.geometry.wave > 0 && landed.geometry.wave < 1 && landed.geometry.phase.lift === 0 && [landed.geometry.maillard, landed.geometry.warship].every(ship => ship.y > landed.geometry.castle.y && ship.y + ship.height <= 230), JSON.stringify(landed.geometry));
+  await page.waitForFunction(() => game.textbox.node?.text?.includes('저 저게뭐노'), undefined, { timeout: 6000 });
+  await press('KeyX');
+  await page.waitForTimeout(100);
+  await shot('powershot_07_reaction');
+  check('waves finish before the first reaction and no beam intrudes', await page.evaluate(() => game.shipCastle.snapshot().geometry.wave >= 0.97 && game.shipCastle.beamIndex === 0));
+  await line('저 저게뭐노');
+  await line('씨발 저게 뭐야!!!');
+  await line('요 요플래!!!!');
+  check('Yoplait fall remains after castle reaction', !!await until(() => game.shipCastle?.beat === 'yoplait_fall', 3000));
+  check('full original powershot reaches its own ended event across the real dialogue boundary', !!await until(() => window.__powershot.ended, 3000));
+  await page.waitForTimeout(1000);
+  await shot('powershot_08_following_fall');
+  check('first beam remains after landing, waves and fall', !!await until(() => game.shipCastle?.beamIndex === 1, 6000));
+  await shot('powershot_09_following_beam');
+  const calls = await page.evaluate(() => window.__powershot.calls);
+  check('powershot and impact each fire once without old summon overlays', calls.filter(cue => cue.name === 'energetic_powershot').length === 1 && calls.filter(cue => cue.name === 'furnace_blast').length === 1 && !calls.some(cue => ['mankatsuki_clone', 'boom'].includes(cue.name)), JSON.stringify(calls));
+  await fixture('castle-powershot-abort', 'Replay only the reveal to exercise Escape during the new ten-second owned audio; original narrative completion is not forced.', () => {
+    game.shipCastle.setBeat('castle_reveal');
+  });
+  check('second reveal starts one fresh real clip for abort test', !!await until(() => window.__powershot.handle.currentTime > 0.1 && !window.__powershot.handle.paused, 3000));
+  await press('Escape');
+  check('Escape releases powershot and scene without falsely completing story', !!await until(() => game.state === 'title' && !game.shipCastle && window.__powershot.handle.paused && !game.flags.ship_castle_done, 3000));
+}

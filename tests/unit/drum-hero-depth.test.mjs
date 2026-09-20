@@ -23,18 +23,18 @@ test('upstage attack body is separate from foreground red energy', () => {
 test('landed rescue hero and carried flag render behind foreground Yoplait', () => {
   const draws = [], ctx = context(draws), assets = Object.fromEntries(
     ['hero', 'stand', 'laugh', 'kneel', 'surprised', 'lookback', 'flag'].map(id => [id, { id }]));
-  const battle = { cfg: { bg: 'depth-test' }, members: [{ id: 'hyungsub', home: [84, 190] }],
+  const battle = { cfg: { bg: 'depth-test' }, members: [{ id: 'hyungsub', hp: 1, maxHp: 160, home: [84, 190] }],
     enemies: [{ id: 'drum_devil', x: 340, y: 240 }], typed: true, shown: 999,
     game: { sound: { stopBgm() {}, preloadBgm() {}, playBgm() {} } },
     sfx() {}, setText(text) { this.text = text; }, showLine(line) { this.text = line.text; },
-    drawEnemy() { draws.push('enemy'); }, roundRect() {},
+    drawEnemy() { draws.push('enemy'); }, drawMember() { draws.push('standing'); }, roundRect() {},
   };
   const scene = createDrumDevilRescue(battle, { assets, onComplete() {} });
   for (let i = 0; i < 300 && scene.snapshot.phase !== 'ready'; i++) scene.update(0.2, { just: () => true });
   assert.equal(scene.snapshot.phase, 'ready'); scene.draw(ctx);
   assert.ok(draws.indexOf('hero') >= 0);
-  assert.ok(draws.indexOf('hero') < draws.indexOf('lookback'), `wrong painter order: ${draws.join(', ')}`);
-  assert.equal(draws.filter(id => id === 'lookback').length, 1);
+  assert.ok(draws.indexOf('hero') < draws.indexOf('standing'), `wrong painter order: ${draws.join(', ')}`);
+  assert.equal(draws.filter(id => id === 'standing').length, 1);
 });
 
 test('intercept notice puts home body behind Yoplait while keeping exclamation foreground', () => {

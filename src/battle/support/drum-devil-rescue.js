@@ -3,6 +3,15 @@ import { BATTLE_BGS } from '../backgrounds.js';
 import { FONT } from '../../ui/font.js';
 import { menuTextLines } from '../../ui/menu-layout.js';
 import { createTalk } from './talk.js';
+import { silhouette } from '../../core/gfx.js';
+import { JANITOR_HERO_ACTIONS } from '../../data/janitor-hero-actions.js';
+
+const RED_AFTERIMAGES = new WeakMap();
+export function janitorRedAfterimage(image) {
+  if (!image) return null;
+  if (!RED_AFTERIMAGES.has(image)) RED_AFTERIMAGES.set(image, silhouette(image, '#ff3333'));
+  return RED_AFTERIMAGES.get(image);
+}
 
 export async function loadDrumDevilRescue(loadImage) {
   const keys = ['hero', 'stand', 'laugh', 'kneel', 'surprised', 'lookback', 'flag'];
@@ -12,8 +21,9 @@ export async function loadDrumDevilRescue(loadImage) {
 
 function sprite(ctx, image, def, x, y, frame = 0) {
   if (!image) return;
+  const scale = def.scale ?? 1;
   ctx.drawImage(image, frame % def.cols * def.cell, Math.floor(frame / def.cols) * def.cell,
-    def.cell, def.cell, Math.round(x - def.pivot[0]), Math.round(y - def.pivot[1]), def.cell, def.cell);
+    def.cell, def.cell, Math.round(x - def.pivot[0] * scale), Math.round(y - def.pivot[1] * scale), Math.round(def.cell * scale), Math.round(def.cell * scale));
 }
 
 export function drawDrumDevilHero(ctx, assets, time, at = C.hero.home) {
@@ -23,12 +33,14 @@ export function drawDrumDevilHero(ctx, assets, time, at = C.hero.home) {
 }
 
 export function drawDrumDevilSpeech(ctx, battle, anchor) {
-  const { width, pad, lineHeight, fontSize } = C.speech;
+  const { pad, lineHeight, fontSize } = C.speech;
+  const width = anchor.postLanding ? C.speech.postLanding.width : C.speech.width;
   ctx.save(); ctx.font = FONT.replace(/^\d+px/, `${fontSize}px`); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   const lines = menuTextLines(ctx, battle.text, width - pad * 2, 5);
   const height = Math.max(44, lines.length * lineHeight + pad * 2);
   const beside = anchor.y < 90;
-  const x = Math.round(Math.max(12, Math.min(468 - width, beside ? anchor.x + 28 : anchor.x - 18)));
+  const x = anchor.postLanding ? C.speech.postLanding.x
+    : Math.round(Math.max(12, Math.min(468 - width, beside ? anchor.x + 28 : anchor.x - 18)));
   const y = Math.round(Math.max(10, beside ? anchor.y - height / 2 : anchor.y - height - 20));
   ctx.fillStyle = '#fff'; battle.roundRect(ctx, x, y, width, height, 6); ctx.fill();
   ctx.beginPath();
@@ -51,13 +63,22 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   let phase = 'narration', time = 0, elapsed = 0, hit = false, disposed = false;
   let talk = createTalk(battle, C.narration), camera = 0, heroY = C.hero.reveal[1];
   let playerPose = 'kneel', focus = 0;
-  let dust = [], impactAge = -1;
+  let dust = [], impactAge = -1, flagImpactAge = -1, healed = false, healAge = -1;
+  const healPose = { ...JANITOR_HERO_ACTIONS.attack, scale: C.hero.scale };
   const enter = name => { phase = name; time = 0; };
   const speak = (name, lines) => { enter(name); talk = createTalk(battle, lines); };
   battle.game.sound.stopBgm(C.fade);
   battle.game.sound.preloadBgm(C.bgm);
   const flagX = () => -100 + 700 * Math.min(1, time / C.flight);
-  const heroPose = () => phase === 'laugh' ? 'laugh' : ['land', 'ready', 'done'].includes(phase) ? 'hero' : 'stand';
+  const flagImpact = () => {
+    const active = flagImpactAge >= 0 && flagImpactAge < C.flagImpact.duration;
+    const recoil = active ? C.flagImpact.recoil * Math.exp(-flagImpactAge * 8) : 0;
+    const flash = active ? Math.max(0, 1 - flagImpactAge / C.flagImpact.flash) * 0.32 : 0;
+    const shake = active ? Math.cos(flagImpactAge * 65) * C.flagImpact.amp * Math.max(0, 1 - flagImpactAge / C.flagImpact.shake) : 0;
+    return { active, recoil, flash, shake, age: flagImpactAge };
+  };
+  const heroPose = () => phase === 'laugh' ? 'laugh' : phase === 'heal-raise' ? 'raise'
+    : ['land', 'heal-talk', 'healing', 'ready', 'done'].includes(phase) ? 'hero' : 'stand';
   const view = () => {
     const k = camera * camera * (3 - 2 * camera), f = focus * focus * (3 - 2 * focus);
     const zoom = 1 + (C.revealZoom - 1) * k + (C.focusZoom - C.revealZoom) * f;
@@ -74,23 +95,25 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   };
   return {
     fullscreen: true,
-    get snapshot() { return { phase, time, camera, ...view(), heroY, heroPose: heroPose(), flagX: phase === 'flag' ? flagX() : null, flagY: enemy.y - 90, hit, line: talk.index, pose: playerPose }; },
+    get snapshot() { return { phase, time, camera, ...view(), heroY, heroPose: heroPose(), flagX: phase === 'flag' ? flagX() : null, flagY: enemy.y - 90, flagImpact: flagImpact(), hit, healed, healAge, line: talk.index, pose: playerPose }; },
     update(dt, input) {
       if (disposed) return false;
       time += dt; elapsed += dt;
+      if (flagImpactAge >= 0) flagImpactAge += dt;
+      if (healAge >= 0) healAge += dt;
       if (impactAge >= 0) { impactAge += dt; for (const p of dust) { p.vy += 90 * dt; p.x += p.vx * dt; p.y += p.vy * dt; } }
       switch (phase) {
         case 'narration': if (talk.update(dt, input)) enter('silence'); break;
         case 'silence': if (time >= C.silence) enter('flag'); break;
         case 'flag':
-          if (!hit && flagX() >= enemy.x) { hit = true; playerPose = 'surprised'; battle.sfx('hit'); }
+          if (!hit && flagX() >= enemy.x) { hit = true; flagImpactAge = 0; playerPose = 'surprised'; battle.sfx(C.flagImpact.sound, { volume: 1 }); }
           if (time >= C.flight) enter('surprise');
           break;
         case 'surprise': if (time >= C.surpriseHold) { playerPose = 'lookback'; enter('lookback'); } break;
         case 'lookback': if (time >= C.lookbackHold) enter('reveal'); break;
         case 'reveal':
           camera = Math.min(1, time / C.reveal);
-          if (time >= C.reveal) { battle.game.sound.playBgm(C.bgm, { fadeIn: 1.2 }); enter('focus'); }
+          if (time >= C.reveal) { battle.support?.playHeroCue?.(); enter('focus'); }
           break;
         case 'focus':
           focus = Math.min(1, time / C.focusSeconds);
@@ -98,21 +121,35 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
           break;
         case 'greeting': if (talk.update(dt, input)) { battle.sfx('laugh_janitor'); enter('laugh'); } break;
         case 'laugh': if (time >= C.laughHold) speak('introduction', C.introduction); break;
-        case 'introduction': if (talk.update(dt, input)) { enter('rise'); battle.sfx('spearappear', { volume: 0.7 }); } break;
+        case 'introduction': if (talk.update(dt, input)) { battle.support?.prepareHeroFormation?.(); enter('rise'); battle.sfx('spearappear', { volume: 0.7 }); } break;
         case 'rise':
-          heroY = C.hero.reveal[1] - 310 * Math.min(1, time / C.rise);
+          heroY = C.hero.reveal[1] - 310 * Math.min(1, time / C.rise) ** 2;
+          camera = 1 - Math.min(1, time / (C.rise + C.returnCamera)); focus = camera;
           if (time >= C.rise) enter('return');
           break;
         case 'return':
-          camera = 1 - Math.min(1, time / C.returnCamera);
+          camera = 1 - Math.min(1, (C.rise + time) / (C.rise + C.returnCamera));
           focus = camera;
-          if (time >= C.returnCamera) { enter('dive'); battle.sfx('wing', { volume: 0.9 }); }
+          if (time >= C.returnCamera) enter('hang');
           break;
+        case 'hang': if (time >= C.diveHold) { enter('dive'); battle.sfx('wing', { volume: 0.9 }); } break;
         case 'dive':
           heroY = -120 + (C.hero.home[1] + 120) * Math.min(1, time / C.dive);
           if (time >= C.dive) land();
           break;
-        case 'land': if (time >= C.landHold) speak('ready', C.ready); break;
+        case 'land': if (time >= C.landHold) speak('heal-talk', C.healLines); break;
+        case 'heal-talk': if (talk.update(dt, input)) enter('heal-raise'); break;
+        case 'heal-raise':
+          if (time >= C.heal.raise) {
+            if (!healed) {
+              const amount = player.maxHp - player.hp;
+              player.hp = player.maxHp; player.popup = { t: 0, text: '+' + amount, heal: true };
+              healed = true; healAge = 0; playerPose = 'standing'; battle.sfx(C.heal.sound);
+            }
+            enter('healing');
+          }
+          break;
+        case 'healing': if (time >= C.heal.hold) speak('ready', C.ready); break;
         case 'ready': if (talk.update(dt, input)) { enter('done'); onComplete(); return true; } break;
         case 'done': return true;
       }
@@ -123,22 +160,48 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
       BATTLE_BGS[battle.cfg.bg]?.(ctx, battle);
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 480, 246); ctx.clip();
       const { zoom, pan, shake, centerX } = view();
-      ctx.translate(centerX + Math.round(shake), 0); ctx.scale(zoom, zoom); ctx.translate(-240 + pan, 0);
-      ctx.save(); ctx.translate(-480, 0); BATTLE_BGS[battle.cfg.bg]?.(ctx, battle); ctx.restore();
+      const strike = flagImpact();
+      ctx.translate(centerX + Math.round(shake + strike.shake), 0); ctx.scale(zoom, zoom); ctx.translate(-240 + pan, 0);
+      for (const offset of [-960, -480]) { ctx.save(); ctx.translate(offset, 0); BATTLE_BGS[battle.cfg.bg]?.(ctx, battle); ctx.restore(); }
       BATTLE_BGS[battle.cfg.bg]?.(ctx, battle);
-      for (const e of battle.enemies) battle.drawEnemy(ctx, e);
+      for (const e of battle.enemies) { ctx.save(); if (e === enemy) ctx.translate(Math.round(strike.recoil), 0); battle.drawEnemy(ctx, e); ctx.restore(); }
       if (!['narration', 'silence', 'flag', 'surprise', 'lookback'].includes(phase)) {
-        const landed = ['dive', 'land', 'ready', 'done'].includes(phase);
+        const landed = ['dive', 'land', 'heal-talk', 'heal-raise', 'healing', 'ready', 'done'].includes(phase);
         const at = [landed ? C.hero.home[0] : C.hero.reveal[0], heroY];
         const pose = heroPose();
+        if (phase === 'rise' || phase === 'dive') for (const [i, distance] of [34, 70, 112].entries()) {
+          ctx.save(); ctx.globalAlpha = 0.24 - i * 0.07;
+          sprite(ctx, janitorRedAfterimage(assets.stand), C.stand, at[0], at[1] + (phase === 'rise' ? distance : -distance)); ctx.restore();
+        }
         if (pose === 'hero') drawDrumDevilHero(ctx, assets, elapsed, at);
+        else if (pose === 'raise') sprite(ctx, assets.heroAttack, healPose, ...at, time < C.heal.brace ? 0 : 1);
         else sprite(ctx, assets[pose], C[pose], ...at);
       }
       for (const m of battle.members) {
-        if (m === player) sprite(ctx, assets[playerPose], C[playerPose], ...m.home);
+        if (m === player && playerPose !== 'standing') sprite(ctx, assets[playerPose], C[playerPose], ...m.home);
         else battle.drawMember(ctx, m);
       }
+      if (healAge >= 0 && healAge < C.heal.hold) {
+        const progress = healAge / C.heal.hold;
+        ctx.save(); ctx.globalAlpha = 1 - progress; ctx.fillStyle = '#7cff7c';
+        for (let i = 0; i < 8; i++) {
+          const angle = i * Math.PI / 4;
+          const x = Math.round(player.home[0] + Math.cos(angle) * (15 + progress * 18));
+          const y = Math.round(player.home[1] - 30 + Math.sin(angle) * 22 - progress * 28);
+          ctx.fillRect(x - 3, y, 8, 2); ctx.fillRect(x, y - 3, 2, 8);
+        }
+        ctx.restore();
+      }
       if (phase === 'flag') sprite(ctx, assets.flag, C.flag, flagX(), enemy.y - 90);
+      if (strike.active) {
+        const progress = strike.age / C.flagImpact.duration, radius = 8 + progress * 44;
+        ctx.save(); ctx.translate(enemy.x, enemy.y - 90); ctx.globalAlpha = 1 - progress;
+        for (let i = 0; i < 8; i++) {
+          ctx.save(); ctx.rotate(i * Math.PI / 4); ctx.fillStyle = i % 2 ? '#ff4141' : '#fff';
+          ctx.beginPath(); ctx.moveTo(radius * 0.25, -2); ctx.lineTo(radius + 13, 0); ctx.lineTo(radius * 0.25, 2); ctx.closePath(); ctx.fill(); ctx.restore();
+        }
+        ctx.restore();
+      }
       if (impactAge >= 0 && impactAge < 0.5) {
         const p = impactAge / 0.5, r = 20 + 70 * (1 - (1 - p) ** 2), a = (1 - p) * 0.9;
         ctx.strokeStyle = `rgba(255,160,90,${a})`; ctx.lineWidth = 4 * (1 - p * 0.6) + 0.5;
@@ -148,12 +211,14 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
         for (const particle of dust) ctx.fillRect(Math.round(particle.x), Math.round(particle.y), p < 0.5 ? 3 : 2, p < 0.5 ? 3 : 2);
       }
       ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      if (strike.flash > 0) { ctx.save(); ctx.fillStyle = '#fff'; ctx.globalAlpha = strike.flash; ctx.fillRect(0, 0, 480, 246); ctx.restore(); }
       if (phase === 'narration') {
         battle.box(ctx, 20, 8, 440, 66); ctx.fillStyle = '#fff';
         battle.wrapText(ctx, battle.text.slice(0, battle.shown), 408).forEach((line, i) => ctx.fillText(line, 36, 20 + i * 20));
-      } else if (['greeting', 'introduction', 'ready'].includes(phase)) {
-        const heroX = phase === 'ready' ? C.hero.home[0] : C.hero.reveal[0];
+      } else if (['greeting', 'introduction', 'heal-talk', 'ready'].includes(phase)) {
+        const heroX = ['heal-talk', 'ready'].includes(phase) ? C.hero.home[0] : C.hero.reveal[0];
         drawDrumDevilSpeech(ctx, battle, {
+          postLanding: ['heal-talk', 'ready'].includes(phase),
           x: Math.round(centerX + zoom * (heroX - 240 + pan)),
           y: Math.round(zoom * (heroY - C.speech.headOffset)),
         });

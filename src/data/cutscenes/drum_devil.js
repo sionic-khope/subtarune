@@ -1,4 +1,5 @@
 import { battleEntry } from './helpers.js';
+import { loopCharacterMotion } from '../../world/character-motion.js';
 
 const N = text => ({ voice: 'narrator', text: `* ${text}` });
 const closeBox = { action: g => g.textbox.close() };
@@ -7,7 +8,7 @@ const frameBarrel = { action: g => {
   const drum = g.entities.find(e => e.id === 'jjajang_nest_drum');
   g.camera.locked = true;
   g.camera.x = drum.x + drum.w / 2 - 320;
-  g.camera.y = drum.y + drum.h - 218;
+  g.camera.y = drum.y + drum.h - 192;
 } };
 const roar = () => [
   { parallel: [{ motion: 'drum_devil', name: 'roar', sfx: 'baron_roar' }, { shake: 1.35, amp: 5 }] },
@@ -56,7 +57,12 @@ export const jjajang_nest_drum = Object.assign([
   N('압도적인 포스에 몸이 떨려온다.'),
   N('죽음의 공포가 나를 감싼다.'),
   N('그럼에도 나는 포기할 수 없다.'),
+  N('쓰러트려야할 것 같다.'),
+  N('나는 자세를 고쳐잡았다'),
   closeBox,
+  { action: g => loopCharacterMotion(g.player, g.characterMotions.hyungsub.battle_ready) },
+  ...roar(),
+  { drumDevilThrow: true },
   ...battleEntry(['drum_devil'], 'drum_devil_battle'),
   { battle: { enemies: ['drum_devil'], bgm: 'drum_devil_battle', bg: 'drum_nest', modes: { attack: 'rush', enemy: 'bullets' } } },
   { label: 'done' },

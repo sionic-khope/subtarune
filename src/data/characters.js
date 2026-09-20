@@ -54,7 +54,7 @@ export const CHARACTERS = {
   parang: { name: '파랑이', voice: 'narrator', still: 'assets/props/parang.png' },
   norang: { name: '노랑이', voice: 'narrator', still: 'assets/props/norang.png' },
   wemix: { name: '위믹스', voice: 'narrator', sheet: 'assets/sprites/wemix.png' },
-  drum_devil: { name: '드럼통의 악마', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/drum-devil-field.png', stillScale: 220 / (240 * 1.43), stillPivot: [144, 234] },
+  drum_devil: { name: '드럼통의 악마', voice: 'mystery', portrait: false, palette: 'ghost', still: 'assets/enemies/drum-devil-field.png', stillScale: 220 / (266 * 1.43), stillPivot: [142, 226] },
   baron_intro: { name: '바론', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/baron-roar-idle.png', stillScale: 0.625, stillPivot: [128, 240] },
   baron_chase: { name: '바론', voice: 'mystery', palette: 'ghost', sheet: 'assets/sprites/baron-chase.png', rowOrder: ['down', 'left', 'right', 'up'], stillPivot: [256, 256] },
   voidgrub: { name: '공허유충', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/voidgrub-front.png' },

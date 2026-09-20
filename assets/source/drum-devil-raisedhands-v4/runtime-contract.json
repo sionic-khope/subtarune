@@ -1,0 +1,391 @@
+{
+  "scale": 0.44,
+  "cell": [
+    384,
+    384
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "pivot": [
+    216,
+    320
+  ],
+  "filter": "NEAREST",
+  "actions": {
+    "idle": {
+      "frames": [
+        {
+          "index": 0,
+          "sourceBbox": [
+            25,
+            85,
+            614,
+            581
+          ],
+          "sourceRoot": [
+            334,
+            577
+          ],
+          "outputBbox": [
+            80,
+            104,
+            339,
+            322
+          ],
+          "pasteOffset": [
+            80,
+            104
+          ],
+          "durationMs": 220,
+          "fullHandReviewRegions": [
+            [
+              70,
+              170,
+              165,
+              280
+            ],
+            [
+              255,
+              170,
+              350,
+              280
+            ]
+          ]
+        },
+        {
+          "index": 1,
+          "sourceBbox": [
+            649,
+            90,
+            1236,
+            580
+          ],
+          "sourceRoot": [
+            962,
+            577
+          ],
+          "outputBbox": [
+            78,
+            106,
+            336,
+            322
+          ],
+          "pasteOffset": [
+            78,
+            106
+          ],
+          "durationMs": 220,
+          "fullHandReviewRegions": [
+            [
+              70,
+              170,
+              165,
+              280
+            ],
+            [
+              255,
+              170,
+              350,
+              280
+            ]
+          ]
+        },
+        {
+          "index": 2,
+          "sourceBbox": [
+            26,
+            671,
+            621,
+            1178
+          ],
+          "sourceRoot": [
+            334,
+            1176
+          ],
+          "outputBbox": [
+            80,
+            98,
+            342,
+            321
+          ],
+          "pasteOffset": [
+            80,
+            98
+          ],
+          "durationMs": 220,
+          "fullHandReviewRegions": [
+            [
+              70,
+              170,
+              165,
+              280
+            ],
+            [
+              255,
+              170,
+              350,
+              280
+            ]
+          ]
+        },
+        {
+          "index": 3,
+          "sourceBbox": [
+            644,
+            687,
+            1235,
+            1178
+          ],
+          "sourceRoot": [
+            958,
+            1176
+          ],
+          "outputBbox": [
+            78,
+            105,
+            338,
+            321
+          ],
+          "pasteOffset": [
+            78,
+            105
+          ],
+          "durationMs": 220,
+          "fullHandReviewRegions": [
+            [
+              70,
+              170,
+              165,
+              280
+            ],
+            [
+              255,
+              170,
+              350,
+              280
+            ]
+          ]
+        }
+      ],
+      "loop": true,
+      "previewGifLoops": true,
+      "outputEdgeTouch": [],
+      "pasteClamped": []
+    },
+    "attack": {
+      "frames": [
+        {
+          "index": 0,
+          "sourceBbox": [
+            33,
+            96,
+            625,
+            605
+          ],
+          "sourceRoot": [
+            348,
+            603
+          ],
+          "outputBbox": [
+            77,
+            97,
+            337,
+            321
+          ],
+          "pasteOffset": [
+            77,
+            97
+          ],
+          "durationMs": 180,
+          "fullHandReviewRegions": [
+            [
+              115,
+              128,
+              185,
+              200
+            ],
+            [
+              255,
+              175,
+              350,
+              280
+            ]
+          ]
+        },
+        {
+          "index": 1,
+          "sourceBbox": [
+            650,
+            108,
+            1229,
+            605
+          ],
+          "sourceRoot": [
+            950,
+            602
+          ],
+          "outputBbox": [
+            84,
+            103,
+            339,
+            322
+          ],
+          "pasteOffset": [
+            84,
+            103
+          ],
+          "durationMs": 220,
+          "fullHandReviewRegions": [
+            [
+              85,
+              133,
+              150,
+              200
+            ],
+            [
+              255,
+              175,
+              350,
+              280
+            ]
+          ]
+        },
+        {
+          "index": 2,
+          "sourceBbox": [
+            31,
+            691,
+            625,
+            1179
+          ],
+          "sourceRoot": [
+            440,
+            1177
+          ],
+          "outputBbox": [
+            36,
+            106,
+            297,
+            321
+          ],
+          "pasteOffset": [
+            36,
+            106
+          ],
+          "durationMs": 140,
+          "fullHandReviewRegions": [
+            [
+              38,
+              195,
+              145,
+              280
+            ],
+            [
+              235,
+              135,
+              302,
+              210
+            ]
+          ]
+        },
+        {
+          "index": 3,
+          "sourceBbox": [
+            646,
+            691,
+            1237,
+            1189
+          ],
+          "sourceRoot": [
+            956,
+            1186
+          ],
+          "outputBbox": [
+            80,
+            102,
+            340,
+            321
+          ],
+          "pasteOffset": [
+            80,
+            102
+          ],
+          "durationMs": 260,
+          "fullHandReviewRegions": [
+            [
+              70,
+              170,
+              165,
+              280
+            ],
+            [
+              255,
+              170,
+              350,
+              280
+            ]
+          ]
+        }
+      ],
+      "loop": false,
+      "previewGifLoops": true,
+      "outputEdgeTouch": [],
+      "pasteClamped": []
+    }
+  },
+  "field": {
+    "source": "idle-0.png",
+    "cropXYWH": [
+      74,
+      94,
+      272,
+      232
+    ],
+    "size": [
+      272,
+      232
+    ],
+    "pivot": [
+      142,
+      226
+    ],
+    "scale": 1
+  },
+  "allFrameBounds": [
+    36,
+    97,
+    342,
+    322
+  ],
+  "throwHand": {
+    "action": "attack",
+    "frame": 1,
+    "contact": [
+      108,
+      160
+    ],
+    "relativeToPivot": [
+      -108,
+      -160
+    ],
+    "palmCenter": [
+      108,
+      171
+    ]
+  },
+  "overallEnlargement": {
+    "runtimeFactor": 1.2,
+    "bakedIntoImages": false
+  },
+  "menuClearance": {
+    "reviewRegionMaxY": 280,
+    "rootScreenY": 272,
+    "runtimeScale": 1.2,
+    "maxRegionScreenY": 224,
+    "menuTop": 246,
+    "margin": 22,
+    "regionMethod": "Manually reviewed conservative full-hand rectangles, not alpha segmentation."
+  }
+}

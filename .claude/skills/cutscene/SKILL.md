@@ -144,6 +144,8 @@ model: opus
 | `{ emote:id, kind:'!'|'sweat', duration?, hold?, sfx? }` | 머리 위 느낌표/식은땀 |
 | `{ hop:id, by, height?, duration? }` | 캐릭터 포물선 점프 |
 | `{ emerge:id, depth:370, duration:2.2 }` | 발 위치를 지면으로 삼아 아래에서 솟는다. 지면 아래 그림은 클리핑하며 페이드하지 않는다 |
+| `{ drumDevilThrow:true }` | 드럼통 악마의 현재 공격 손 기준점에서 드럼통 한 발을 포물선으로 던지고 착지·충격 여유까지 기다린다. `DRUM_DEVIL.hand`와 필드 모션 배율을 공유한다. |
+| `{ shipCastleReveal:true }` | 가재맨 성 생성 비트의 실제 효과음 시계로 등장·착수·파도가 끝날 때까지 기다린다. `ShipCastle.revealComplete`가 완료 기준이며, 원음의 남은 꼬리는 다음 대사·비트에서도 자연히 끝나고 장면 중단 때 정리된다. |
 | `{ youngcleCageDrop:{targets:[id,id],sfx,impactSfx,impactBodySfx,fallDuration,impactHold,carryDuration} }` | 영클 휴게실 전용: 화면 위 철창 두 개가 잔상을 남기며 동시에 낙하·충돌한 뒤 대상을 화면 아래로 운반한다. 맵·Q·타이틀 중단 시 TV 정리와 함께 제거한다 |
 | `{ puff:id, offset:[0,18], duration:0.7 }` | 대상 소품 그림 위쪽 기준 작은 공기 구름 한 번. 소리는 별도 `{sfx:'cannon_puff'}` |
 | `{ shakeOff:id, duration? }` | 물 털기(흔들림+파란 점) |

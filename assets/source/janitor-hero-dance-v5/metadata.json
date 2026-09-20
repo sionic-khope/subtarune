@@ -1,0 +1,202 @@
+{
+  "provider": "Codex built-in imagegen",
+  "backend_model": "unknown",
+  "calls": 2,
+  "cell": [
+    192,
+    192
+  ],
+  "grid": [
+    2,
+    4
+  ],
+  "pivot": [
+    138,
+    180
+  ],
+  "scale": 0.37,
+  "frames": 8,
+  "loop_ms": 1280,
+  "holds_ms": [
+    100,
+    120,
+    280,
+    140,
+    100,
+    120,
+    280,
+    140
+  ],
+  "processing": "Generated alpha below240 removed, keptalpha255, RGB preserved, uniformnearestwholeposes; translated anatomical root only.",
+  "runtime_integrated": true,
+  "records": [
+    {
+      "frame": 0,
+      "raw_bounds": [
+        48,
+        158,
+        473,
+        369
+      ],
+      "raw_root": [
+        370,
+        367
+      ],
+      "output_bounds": [
+        19,
+        103,
+        176,
+        181
+      ],
+      "body_height_approx": 77.7,
+      "duration_ms": 100
+    },
+    {
+      "frame": 1,
+      "raw_bounds": [
+        31,
+        158,
+        464,
+        374
+      ],
+      "raw_root": [
+        370,
+        375
+      ],
+      "output_bounds": [
+        13,
+        100,
+        173,
+        180
+      ],
+      "body_height_approx": 79.92,
+      "duration_ms": 120
+    },
+    {
+      "frame": 2,
+      "raw_bounds": [
+        53,
+        121,
+        473,
+        337
+      ],
+      "raw_root": [
+        370,
+        338
+      ],
+      "output_bounds": [
+        21,
+        100,
+        176,
+        180
+      ],
+      "body_height_approx": 77.7,
+      "duration_ms": 280
+    },
+    {
+      "frame": 3,
+      "raw_bounds": [
+        41,
+        132,
+        472,
+        336
+      ],
+      "raw_root": [
+        370,
+        336
+      ],
+      "output_bounds": [
+        16,
+        105,
+        175,
+        180
+      ],
+      "body_height_approx": 75.48,
+      "duration_ms": 140
+    },
+    {
+      "frame": 4,
+      "raw_bounds": [
+        47,
+        105,
+        472,
+        335
+      ],
+      "raw_root": [
+        370,
+        335
+      ],
+      "output_bounds": [
+        18,
+        95,
+        175,
+        180
+      ],
+      "body_height_approx": 76.96,
+      "duration_ms": 100
+    },
+    {
+      "frame": 5,
+      "raw_bounds": [
+        32,
+        127,
+        471,
+        337
+      ],
+      "raw_root": [
+        370,
+        337
+      ],
+      "output_bounds": [
+        13,
+        102,
+        175,
+        180
+      ],
+      "body_height_approx": 77.7,
+      "duration_ms": 120
+    },
+    {
+      "frame": 6,
+      "raw_bounds": [
+        47,
+        96,
+        481,
+        306
+      ],
+      "raw_root": [
+        370,
+        307
+      ],
+      "output_bounds": [
+        18,
+        102,
+        179,
+        180
+      ],
+      "body_height_approx": 77.7,
+      "duration_ms": 280
+    },
+    {
+      "frame": 7,
+      "raw_bounds": [
+        49,
+        99,
+        472,
+        304
+      ],
+      "raw_root": [
+        370,
+        305
+      ],
+      "output_bounds": [
+        19,
+        104,
+        176,
+        180
+      ],
+      "body_height_approx": 75.85,
+      "duration_ms": 140
+    }
+  ]
+}

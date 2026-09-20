@@ -1,6 +1,6 @@
 import { JANITOR_HERO_ACTIONS as C } from '../../data/janitor-hero-actions.js';
 import { DRUM_DEVIL_RESCUE as R } from '../../data/drum-devil-rescue.js';
-import { drawDrumDevilHero } from './drum-devil-rescue.js';
+import { drawDrumDevilHero, janitorRedAfterimage } from './drum-devil-rescue.js';
 import { drawEmote } from '../../world/world.js';
 
 const totalAttack = C.attack.holds.reduce((sum, hold) => sum + hold, 0);
@@ -21,27 +21,29 @@ function frameAt(time) {
   return frame;
 }
 
-function drawFrame(ctx, image, def, position, frame = 0) {
+function drawFrame(ctx, image, def, position, frame = 0, scale = 1) {
   if (!image) return;
   ctx.drawImage(image, frame % def.cols * def.cell, Math.floor(frame / def.cols) * def.cell, def.cell, def.cell,
-    Math.round(position.x - def.pivot[0]), Math.round(position.y - def.pivot[1]), def.cell, def.cell);
-}
-
-function drawTeleport(ctx, position, progress) {
-  const spread = 4 + Math.sin(progress * Math.PI) * 28;
-  ctx.save(); ctx.globalAlpha = Math.sin(progress * Math.PI); ctx.fillStyle = '#e6e1ff';
-  for (let i = 0; i < 8; i++) {
-    const angle = i * Math.PI / 4;
-    ctx.fillRect(Math.round(position.x + Math.cos(angle) * spread - 2),
-      Math.round(position.y - 38 + Math.sin(angle) * spread * 1.4 - 4), 4, 8);
-  }
-  ctx.restore();
+    Math.round(position.x - def.pivot[0] * scale), Math.round(position.y - def.pivot[1] * scale), Math.round(def.cell * scale), Math.round(def.cell * scale));
 }
 
 function createAction(battle, { assets, target, barrel, onHit, onDeflect }, intercept) {
   const home = { x: R.hero.home[0], y: R.hero.home[1] };
+  const bodyScale = R.hero.scale ?? 1;
+  const contactOffset = C.attack.contactOffset.map(value => value * bodyScale);
+  const targetPoint = () => ({ x: target.x + C.energy.target[0] * (target.def?.scale ?? 1), y: target.y + C.energy.target[1] * (target.def?.scale ?? 1) });
   let elapsed = 0, anticipation = 0, disposed = false, released = false, contacted = false;
   let position = { ...home }, contact = null;
+  let redTrail = null, returnFrom = null;
+  const transit = () => {
+    const returning = elapsed >= returnAt;
+    const from = returning ? returnFrom ?? position : home;
+    const to = returning ? home : { x: barrel.x - contactOffset[0], y: Math.max(C.intercept.minimumRootY, barrel.y - contactOffset[1]) };
+    const progress = Math.max(0, Math.min(1, (elapsed - (returning ? returnAt : C.intercept.notice)) / (C.intercept.teleport * 2)));
+    return { from, to, progress };
+  };
+  const along = (motion, progress) => ({ x: motion.from.x + (motion.to.x - motion.from.x) * progress,
+    y: motion.from.y + (motion.to.y - motion.from.y) * progress });
   const cues = new Set();
   const cue = (name, sound, volume = 0.8) => {
     if (cues.has(name)) return;
@@ -65,9 +67,9 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
     if (!released) return null;
     const age = attackTime() - releaseAt;
     if (age > C.energy.flight + C.energy.impactHold) return null;
-    const from = intercept ? contact : { x: home.x + C.energy.origin[0], y: home.y + C.energy.origin[1] };
+    const from = intercept ? contact : { x: home.x + C.energy.origin[0] * bodyScale, y: home.y + C.energy.origin[1] * bodyScale };
     const to = intercept ? { x: from.x + 150, y: from.y - 85 }
-      : { x: target.x + C.energy.target[0], y: target.y + C.energy.target[1] };
+      : targetPoint();
     const progress = Math.min(1, age / C.energy.flight);
     return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress,
       age, frame: Math.min(C.energy.count - 1, Math.floor(age * C.energy.fps)), layers: 3 };
@@ -81,32 +83,35 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
       if (disposed) return true;
       elapsed += dt;
       if (intercept) {
-        if (!contacted && barrel.y < C.intercept.minimumRootY + C.attack.contactOffset[1]) {
+        if (!contacted && barrel.y < C.intercept.minimumRootY + contactOffset[1]) {
           const wait = Math.max(0, elapsed - (windupAt + releaseAt - 0.000001));
           elapsed -= wait; anticipation += wait;
         }
-        if (elapsed >= C.intercept.notice) cue('teleport-out', C.sounds.teleport, 0.65);
-        if (elapsed >= C.intercept.notice + C.intercept.teleport) {
-          cue('teleport-in', C.sounds.teleport, 0.65);
-          if (!contacted) position = { x: barrel.x - C.attack.contactOffset[0],
-            y: Math.max(C.intercept.minimumRootY, barrel.y - C.attack.contactOffset[1]) };
+        if (elapsed >= C.intercept.notice) cue('teleport-out', C.sounds.teleport, 0.7);
+        if (elapsed >= C.intercept.notice && elapsed < windupAt) position = along(transit(), transit().progress);
+        if (elapsed >= windupAt) {
+          if (!contacted) position = { x: barrel.x - contactOffset[0],
+            y: Math.max(C.intercept.minimumRootY, barrel.y - contactOffset[1]) };
         }
       }
       if (!released && elapsed >= (intercept ? windupAt : 0) + releaseAt) {
-        released = true; cue('release', C.sounds.release);
+        released = true;
+        if (!intercept) cue('release', C.sounds.release);
         if (intercept) {
           contact = { x: barrel.x, y: barrel.y }; contacted = true;
-          cue('hit', C.sounds.hit, 0.85); onDeflect();
+          cue('parry', C.sounds.parry, 0.65);
+          cue('hit', C.sounds.hit, 0.45); onDeflect();
         }
       }
       if (!intercept && !contacted && elapsed >= releaseAt + C.energy.flight) {
-        contacted = true; contact = { x: target.x + C.energy.target[0], y: target.y + C.energy.target[1] };
+        contacted = true; contact = targetPoint();
         cue('hit', C.sounds.hit, 0.85); onHit();
       }
       if (intercept && elapsed >= laughAt) cue('laugh', C.sounds.laugh);
-      if (intercept && elapsed >= returnAt) cue('return-out', C.sounds.teleport, 0.65);
-      if (intercept && elapsed >= returnAt + C.intercept.teleport) {
-        cue('return-in', C.sounds.teleport, 0.65); position = { ...home };
+      if (intercept && elapsed >= returnAt) {
+        returnFrom ??= { ...position };
+        cue('return-out', C.sounds.teleport, 0.7);
+        position = along(transit(), transit().progress);
       }
       return elapsed >= duration;
     },
@@ -116,12 +121,19 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 480, 318); ctx.clip();
       if (current === 'notice' || current === 'settle' || current === 'done') {
         drawDrumDevilHero(ctx, assets, battle.game.time, at);
-      } else if (current === 'laugh') drawFrame(ctx, assets.laugh, R.laugh, position);
-      else if (current === 'attack' || current === 'recover') drawFrame(ctx, assets.heroAttack, C.attack, position, frameAt(attackTime()));
+      } else if (current === 'laugh') drawFrame(ctx, assets.laugh, R.laugh, position, 0, bodyScale);
+      else if (current === 'attack' || current === 'recover') drawFrame(ctx, assets.heroAttack, C.attack, position, frameAt(attackTime()), bodyScale);
       else {
-        const start = current === 'teleport-out' ? C.intercept.notice : current === 'teleport-in'
-          ? C.intercept.notice + C.intercept.teleport : current === 'return-out' ? returnAt : returnAt + C.intercept.teleport;
-        drawTeleport(ctx, position, Math.min(1, (elapsed - start) / C.intercept.teleport));
+        const motion = transit();
+        if (assets.heroAttack) {
+          redTrail ??= janitorRedAfterimage(assets.heroAttack);
+          for (let i = C.intercept.trailCount; i > 0; i--) {
+            ctx.globalAlpha = 0.48 * (1 - i / (C.intercept.trailCount + 1));
+            drawFrame(ctx, redTrail, C.attack, along(motion, Math.max(0, motion.progress - i * C.intercept.trailSpacing)), 0, bodyScale);
+          }
+          ctx.globalAlpha = 1;
+          drawFrame(ctx, assets.heroAttack, C.attack, position, 0, bodyScale);
+        }
       }
       ctx.restore();
     },

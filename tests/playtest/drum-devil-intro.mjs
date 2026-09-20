@@ -83,6 +83,36 @@ await runScenario({ name: 'drum-devil-intro', launchOptions: { args: ['--autopla
   await line('* 압도적인 포스에 몸이 떨려온다.');
   await line('* 죽음의 공포가 나를 감싼다.');
   await line('* 그럼에도 나는 포기할 수 없다.');
+  await line('* 쓰러트려야할 것 같다.');
+  await line('* 나는 자세를 고쳐잡았다');
+  check('new final confirmation changes player stance before third roar', await until(() => !!window.game.player.motion && !!window.game.entities.find(e => e.id === 'drum_devil').motion, 4000));
+  const poseBounds = await page.evaluate(() => {
+    const g = window.game, boss = g.entities.find(e => e.id === 'drum_devil');
+    return ['roar', 'throw'].flatMap(name => {
+      const motion = g.characterMotions.drum_devil[name], scale = motion.scale * 1.43 * (boss.def.visualScale || 1);
+      return motion.frames.map(frame => {
+        const canvas = document.createElement('canvas'); canvas.width = frame.image.width; canvas.height = frame.image.height;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(frame.image, 0, 0);
+        const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let left = canvas.width, top = canvas.height, right = 0, bottom = 0;
+        for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) if (rgba[(y * canvas.width + x) * 4 + 3]) {
+          left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x + 1); bottom = Math.max(bottom, y + 1);
+        }
+        const rootX = boss.x + boss.w / 2 - g.camera.x, rootY = boss.y + boss.h - g.camera.y;
+        return { name, left: rootX + (left - frame.pivot[0]) * scale, top: rootY + (top - frame.pivot[1]) * scale,
+          right: rootX + (right - frame.pivot[0]) * scale, bottom: rootY + (bottom - frame.pivot[1]) * scale };
+      });
+    });
+  });
+  check('all final roar and throw artwork remains inside field viewport', poseBounds.every(rect => rect.left >= 0 && rect.top >= 0 && rect.right <= 480 && rect.bottom <= 360), JSON.stringify(poseBounds));
+  await shot('08-ready-roar');
+  check('one barrel visibly launches before battle', await until(() => window.game.entities.some(e => e.id === 'drum_devil_intro_barrel' && !e.dead) && !window.game.battle, 7000));
+  await page.waitForTimeout(450);
+  await shot('09-barrel-flight');
+  check('battle still waits during visible barrel flight', await page.evaluate(() => !window.game.battle && window.game.entities.filter(e => e.id === 'drum_devil_intro_barrel' && !e.dead).length === 1));
+  await page.waitForTimeout(900);
+  await shot('10-barrel-impact');
+  check('impact hold still precedes battle transition', await page.evaluate(() => !window.game.battle));
   check('standard drum devil battle starts', await until(() => window.game.battle?.enemies?.some(e => e.id === 'drum_devil'), 12000));
   await shot('08-battle');
 });

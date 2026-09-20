@@ -1,5 +1,7 @@
 # 드럼통 악마 공격 효과음
 
+BUILD252: `drum_throw`만 [v2](../drum-throw-v2/README.md)로 교체했다. 아래 투척음 수치·SHA와 이 폴더의 preview는 v1 역사 기록이다. `build.sh`는 현재 v2 투척음 제작기로 위임한다. impact/burst는 아래 값 그대로다.
+
 2026-09-20 사용자 공격음 불만을 반영한 기존 샘플 가공본이다. 새 다운로드·새 합성·BGM 변경은 없다. 기존 공용 파일은 보존한다. 제작 명령은 `sh assets/source/drum-devil-audio-v1/build.sh`.
 
 | 키 | 원본·가공 | 디코드 길이 | 평균/피크 dBFS | 권장 재생 음량·최소 간격 |

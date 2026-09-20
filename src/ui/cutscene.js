@@ -53,6 +53,7 @@ import { shipHatchWaiter } from '../world/ship-hatch.js';
 import { youngcleCageDropWaiter } from '../scenes/youngcle-lounge-effects.js';
 import { editorUnionWaiter } from '../scenes/editor-union-effects.js';
 import { WATER_WALK } from '../data/footsteps.js';
+import { drumDevilThrowWaiter } from '../scenes/drum-devil-intro.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const done = { update: () => true };
@@ -165,6 +166,8 @@ function parallel(game, nodes) {
 
 /** 노드 → waiter | null(컷신 명령 아님) */
 export function makeWaiter(game, node) {
+  if (node.shipCastleReveal) return { update: () => !game.shipCastle || game.shipCastle.revealComplete };
+  if (node.drumDevilThrow) return drumDevilThrowWaiter(game);
   if (node.editorUnion) return editorUnionWaiter(game, node.editorUnion);
   if (node.youngcleCageDrop) return youngcleCageDropWaiter(game, node.youngcleCageDrop);
   if (node.doorTransit) {

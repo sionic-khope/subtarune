@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 import { SHIP_CASTLE, SHIP_CASTLE_BEATS } from '../../src/data/ship-castle.js';
 import { ShipCastle } from '../../src/scenes/ship-castle.js';
+import { makeWaiter } from '../../src/ui/cutscene.js';
 
 const context = {
   imageSmoothingEnabled: false,
@@ -121,10 +122,53 @@ test('test_ship_castle_reveal_gathers_long_then_bursts_out_then_drops_onto_the_w
   assert.equal(last.lift, 0);
   assert.ok(Math.abs((last.bottom - ocean.waterline) / last.width - ocean.castleSubmerge) < 0.02, 'it rests a tenth under the water');
   assert.equal(new Set(samples.map(sample => sample.shipX)).size, 1);
-  assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'boom').length, 1);
+  assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'energetic_powershot').length, 1);
   assert.equal(game.calls.filter(call => call[0] === 'sfx' && call[1] === 'furnace_blast').length, 1);
   assert.equal(scene.snapshot().castlePopped, true);
   assert.equal(scene.snapshot().castleLanded, true);
+});
+
+test('test_ship_castle_powershot_owns_reveal_clock_and_preserves_tail_until_abort', () => {
+  const game = makeGame();
+  const handles = [];
+  game.sound.sfx = (name, options) => {
+    game.calls.push(['sfx', name, options]);
+    if (name !== 'energetic_powershot') return;
+    const handle = { currentTime: 0, paused: false, pause() { this.paused = true; } };
+    handles.push(handle);
+    return handle;
+  };
+  const scene = new ShipCastle(game);
+  game.shipCastle = scene;
+  scene.setBeat('castle_reveal');
+  const wait = makeWaiter(game, { shipCastleReveal: true });
+  scene.setBeat('castle_reveal');
+  assert.equal(handles.length, 1, 'reselecting the beat cannot replay the clip');
+  handles[0].currentTime = 4.4;
+  scene.update(30);
+  assert.equal(scene.elapsed, 4.4, 'frame time cannot overtake the actual source audio');
+  assert.equal(scene.popPlayed, false);
+  assert.equal(wait.update(30), false, 'script time cannot overtake stalled audio either');
+  handles[0].currentTime = 4.6;
+  scene.update(0.01);
+  assert.equal(scene.popPlayed, true);
+  assert.equal(scene.landPlayed, false);
+  handles[0].currentTime = 6.6;
+  scene.update(0.01);
+  assert.equal(scene.landPlayed, true);
+  assert.equal(game.calls.filter(call => call[1] === 'furnace_blast').length, 1);
+  assert.ok(game.calls.every(call => !['mankatsuki_clone', 'rumble', 'boom'].includes(call[1])));
+  assert.equal(wait.update(30), false, 'landing alone cannot skip its waves');
+  handles[0].currentTime = 9.2;
+  scene.update(0.01);
+  assert.equal(wait.update(0.01), true);
+  scene.setBeat('yoplait_fall');
+  assert.equal(handles[0].paused, false, 'an adjacent beat cannot truncate the source tail');
+  scene.setBeat('castle_reveal');
+  assert.equal(handles[0].paused, true, 'an explicit replay cannot leave two cues running');
+  scene.dispose();
+  assert.equal(handles[1].paused, true, 'abort releases the owned sound');
+  assert.equal(scene.revealAudio, null);
 });
 
 test('test_ship_castle_ocean_rise_holds_the_wide_fleet_until_the_reaction_lines_release_it', () => {

@@ -33,7 +33,7 @@ function mark(api, x, y, life, radius, purple = false) {
 }
 function lob(api, target, flight, purple = false) {
   const actor = api.actor, from = { x: actor.x + C.hand[0] * actor.scale, y: actor.y + C.hand[1] * actor.scale };
-  api.sfx?.('drum_throw');
+  api.sfx?.(purple ? 'wing' : 'drum_throw');
   return api.emit({ ...from, r: 0, life: flight, harmless: true, purple, size: purple ? C.finisherSize : C.barrelSize,
     shape: purple ? 'drum_purple' : 'drum_lob', spin: 3,
     out() { return this.age >= this.life; },

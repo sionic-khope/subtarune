@@ -15,7 +15,6 @@ const ENTRY_SOUNDS = Object.freeze({
   field_rush: ['wing', 0.9],
   ocean_rise: ['maillard_water_lift', 0.55],
   yoplait_fall: ['wing', 0.72],
-  castle_reveal: ['mankatsuki_clone', 0.8],
 });
 
 export class ShipCastle {
@@ -41,6 +40,7 @@ export class ShipCastle {
     this.popPlayed = false;
     this.flarePhase = -1;
     this.landPlayed = false;
+    this.revealAudio = null;
     this.veilClosing = false;
     this.veilClock = 0;
     this.model = { scroll: 0, completed: true, phase: 'cleared', phaseTime: 0 };
@@ -63,6 +63,9 @@ export class ShipCastle {
   }
 
   get fullFrame() { return FULL_FRAME_BEATS.has(this.beat); }
+
+  /** Let the script wait for the same clock that draws the landing and waves. */
+  get revealComplete() { return this.elapsed >= this.config.timing.castleReveal + this.config.timing.castleHold; }
 
   /** Select one authored presentation beat without advancing dialogue. */
   setBeat(name) {
@@ -91,6 +94,11 @@ export class ShipCastle {
       this._startMusic();
     }
     if (name === 'ocean_rise') this._startMusic();
+    if (name === 'castle_reveal') {
+      const { key, volume } = this.config.revealSound;
+      this.revealAudio?.pause();
+      this.revealAudio = this.game.sound.sfx(key, { volume }) || null;
+    }
     const cue = ENTRY_SOUNDS[name];
     if (cue) this.game.sound.sfx(cue[0], { volume: cue[1] });
     return this;
@@ -137,6 +145,9 @@ export class ShipCastle {
     if (this.disposed) return;
     this.time += dt;
     this.elapsed += dt;
+    if (this.beat === 'castle_reveal' && this.revealAudio && !this.revealAudio.paused && !this.revealAudio.error) {
+      this.elapsed = this.revealAudio.currentTime;
+    }
     if (['ocean_rise', 'sky_tug', 'sky_opposite_aura', 'vortex_gather', 'vortex_burst'].includes(this.beat)) this.airTime += dt;
     if (this.beat === 'ocean_rise' && !this.ascentHeld) this.pushTime += dt;
     if (this.veilClosing) this.veilClock += dt;
@@ -166,12 +177,10 @@ export class ShipCastle {
         if (pulse !== this.flarePhase) {
           this.flarePhase = pulse;
           this.game.shake = { time: 0.16, amp: 1 + Math.round(reveal / this.config.ocean.castleGatherAt * 3) };
-          if (pulse === 0) this.game.sound.sfx('rumble', { volume: 0.4 });
         }
       }
       if (!this.popPlayed && reveal >= this.config.ocean.castlePopAt) {
         this.popPlayed = true;
-        this.game.sound.sfx('boom', { volume: 0.7 });
         this.game.shake = { time: 0.3, amp: 5 };
       }
       if (!this.landPlayed && reveal >= this.config.ocean.castleLandAt) {
@@ -239,6 +248,8 @@ export class ShipCastle {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.revealAudio?.pause();
+    this.revealAudio = null;
     this.shards.length = 0;
     if (this.ownsBgm && this.game.sound.bgmName === this.config.bgm) this.game.sound.stopBgm(0.35);
     this.game.shake = null;

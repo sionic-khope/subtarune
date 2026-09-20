@@ -12,6 +12,7 @@ const makeBattle = () => {
   return { sounds, game: { time: 10 }, sfx(name) { sounds.push(name); } };
 };
 const release = C.attack.holds.slice(0, 3).reduce((sum, hold) => sum + hold, 0);
+const heroScale = R.hero.scale ?? 1;
 
 test('assist has deep windup, one three-layer wave, and one damage callback at enemy contact', () => {
   const battle = makeBattle(), target = { x: 340, y: 240, hp: 300 };
@@ -37,7 +38,7 @@ test('intercept tracks the actual moving barrel, deflects only on downslam, laug
   action.update(0.2); assert.equal(action.snapshot.phase, 'teleport-in');
   barrel.x = 250; barrel.y = 250;
   action.update(0.3); assert.equal(action.snapshot.phase, 'attack');
-  assert.deepEqual(action.snapshot.position, { x: 250 - C.attack.contactOffset[0], y: 250 - C.attack.contactOffset[1] });
+  assert.deepEqual(action.snapshot.position, { x: 250 - C.attack.contactOffset[0] * heroScale, y: 250 - C.attack.contactOffset[1] * heroScale });
   assert.equal(deflects, 0);
   barrel.x = 244; barrel.y = 268;
   action.update(0.54); assert.equal(deflects, 1);
@@ -64,6 +65,23 @@ test('cancellation prevents pending damage, deflection, and later audio', () => 
   }
 });
 
+test('parry traverses visibly in both directions and uses only the dedicated strike cue', () => {
+  const battle = makeBattle(), barrel = { x: 280, y: 220 };
+  const action = createJanitorHeroIntercept(battle, { assets: {}, barrel, onDeflect() {} });
+  const destination = { x: barrel.x - C.attack.contactOffset[0] * heroScale, y: barrel.y - C.attack.contactOffset[1] * heroScale };
+  action.update(C.intercept.notice + C.intercept.teleport);
+  assert.ok(action.snapshot.position.x > R.hero.home[0] && action.snapshot.position.x < destination.x);
+  assert.ok(action.snapshot.position.y < R.hero.home[1] && action.snapshot.position.y > destination.y);
+  action.update(1.5);
+  assert.equal(battle.sounds.filter(name => name === 'asgore_spear_swing').length, 1);
+  assert.equal(battle.sounds.includes('rudebuster_swing'), false);
+  action.update(0.95);
+  assert.ok(action.snapshot.position.x > R.hero.home[0] && action.snapshot.position.x < destination.x);
+  action.update(1);
+  assert.deepEqual(action.snapshot.position, { x: R.hero.home[0], y: R.hero.home[1] });
+  assert.equal(battle.sounds.filter(name => name === 'spearappear').length, 2);
+});
+
 test('large frame steps still apply one contact and finish at home', () => {
   const battle = makeBattle(); let hits = 0;
   const action = createJanitorHeroIntercept(battle, { assets: {}, barrel: { x: 260, y: 270 }, onDeflect() { hits++; } });
@@ -82,15 +100,15 @@ test('final attack contract keeps full windup and downslam in view at home and a
   assert.deepEqual(metadata.pivot, C.attack.pivot);
   assert.deepEqual(metadata.cell, [C.attack.cell, C.attack.cell]);
   assert.equal(metadata.records.length, C.attack.count);
-  const positions = [R.hero.home, [240 - C.attack.contactOffset[0], 190 - C.attack.contactOffset[1]],
-    [248 - C.attack.contactOffset[0], 280 - C.attack.contactOffset[1]]];
+  const positions = [R.hero.home, [240 - C.attack.contactOffset[0] * heroScale, 190 - C.attack.contactOffset[1] * heroScale],
+    [248 - C.attack.contactOffset[0] * heroScale, 280 - C.attack.contactOffset[1] * heroScale]];
   for (const [x, y] of positions) {
     for (const frame of metadata.records) {
       const [left, top, right, bottom] = frame.visible_bounds;
-      assert.ok(x + left - C.attack.pivot[0] >= 0, `frame ${frame.frame} left`);
-      assert.ok(x + right - C.attack.pivot[0] <= 480, `frame ${frame.frame} right`);
-      assert.ok(y + top - C.attack.pivot[1] >= 0, `frame ${frame.frame} top`);
-      assert.ok(y + bottom - C.attack.pivot[1] <= 318, `frame ${frame.frame} HUD`);
+      assert.ok(x + (left - C.attack.pivot[0]) * heroScale >= 0, `frame ${frame.frame} left`);
+      assert.ok(x + (right - C.attack.pivot[0]) * heroScale <= 480, `frame ${frame.frame} right`);
+      assert.ok(y + (top - C.attack.pivot[1]) * heroScale >= 0, `frame ${frame.frame} top`);
+      assert.ok(y + (bottom - C.attack.pivot[1]) * heroScale <= 318, `frame ${frame.frame} HUD`);
     }
   }
   assert.deepEqual(C.energy.origin, C.attack.contactOffset);
@@ -98,10 +116,12 @@ test('final attack contract keeps full windup and downslam in view at home and a
 
 test('actual purple arcs keep every parry frame visible and hit the real cloth point before expiry', () => {
   const metadata = JSON.parse(readFileSync(new URL('../../assets/source/janitor-hero-v4-flag-only/attack/metadata.json', import.meta.url)));
-  const box = { x: 120, y: 134, w: 240, h: 160 };
+  const box = { x: 192, y: 134, w: 240, h: 160 };
+  const boss = ENEMIES.drum_devil;
+  const actor = { x: 396 + boss.dx, y: 176 + boss.dy, scale: boss.scale };
   for (const { type } of ENEMIES.drum_devil.patterns) for (const dt of [1 / 60, 0.17]) {
     let barrel, action, contacts = 0;
-    const pattern = PATTERNS[type](), api = { box, soul: { x: 240, y: 214 }, actor: { x: 340, y: 240, scale: 1 },
+    const pattern = PATTERNS[type](), api = { box, soul: { x: 240, y: 214 }, actor,
       emit(options) { const bullet = new Bullet(options); if (bullet.purple && bullet.shape === 'drum_purple') barrel = bullet; return bullet; }, penalty() {} };
     for (let t = 0; !barrel && t < 30; t += dt) pattern.update(t, dt, api);
     assert.ok(barrel);
@@ -109,24 +129,33 @@ test('actual purple arcs keep every parry frame visible and hit the real cloth p
       if (!action?.snapshot.contacted) barrel.update(dt, box);
       if (!action && barrel.age >= 1) action = createJanitorHeroIntercept(makeBattle(), { assets: {}, barrel, onDeflect() {
         contacts++; assert.ok(barrel.age < barrel.life, `${type} contact before expiry`);
-        assert.ok(Math.abs(action.snapshot.position.y + C.attack.contactOffset[1] - barrel.y) < 0.001);
-        assert.ok(Math.abs(action.snapshot.position.x + C.attack.contactOffset[0] - barrel.x) < 0.001);
+        assert.ok(Math.abs(action.snapshot.position.y + C.attack.contactOffset[1] * heroScale - barrel.y) < 0.001);
+        assert.ok(Math.abs(action.snapshot.position.x + C.attack.contactOffset[0] * heroScale - barrel.x) < 0.001);
       } });
       if (!action) continue;
       action.update(dt);
       const s = action.snapshot;
       if (s.phase === 'attack') {
         const [left, top, right, bottom] = metadata.records[s.frame].visible_bounds;
-        assert.ok(s.position.y + top - C.attack.pivot[1] >= 0, `${type} dt=${dt} frame=${s.frame} top clipped at barrel age ${barrel.age}`);
-        assert.ok(s.position.x + left - C.attack.pivot[0] >= 0);
-        assert.ok(s.position.x + right - C.attack.pivot[0] <= 480);
-        assert.ok(s.position.y + bottom - C.attack.pivot[1] <= 318);
+        assert.ok(s.position.y + (top - C.attack.pivot[1]) * heroScale >= 0, `${type} dt=${dt} frame=${s.frame} top clipped at barrel age ${barrel.age}`);
+        assert.ok(s.position.x + (left - C.attack.pivot[0]) * heroScale >= 0);
+        assert.ok(s.position.x + (right - C.attack.pivot[0]) * heroScale <= 480);
+        assert.ok(s.position.y + (bottom - C.attack.pivot[1]) * heroScale <= 318);
       }
       assert.ok(barrel.age < 4, 'intercept must not hang');
     }
     assert.equal(contacts, 1);
-    assert.ok(action.snapshot.anticipation > 0, 'real arc needs a brief raised-pose hold');
     assert.deepEqual(action.snapshot.contact, { x: barrel.x, y: barrel.y });
     assert.deepEqual(action.snapshot.position, { x: R.hero.home[0], y: R.hero.home[1] });
   }
+});
+
+test('a still-high barrel holds the raised pose until the scaled cloth contact can reach it', () => {
+  const barrel = { x: 240, y: 100 }; let contacts = 0;
+  const action = createJanitorHeroIntercept(makeBattle(), { assets: {}, barrel, onDeflect() { contacts++; } });
+  action.update(2);
+  assert.ok(action.snapshot.anticipation > 0); assert.equal(action.snapshot.released, false); assert.equal(contacts, 0);
+  barrel.y = 200; action.update(0.2);
+  assert.equal(contacts, 1);
+  assert.ok(Math.abs(action.snapshot.position.y + C.attack.contactOffset[1] * heroScale - barrel.y) < 0.001);
 });

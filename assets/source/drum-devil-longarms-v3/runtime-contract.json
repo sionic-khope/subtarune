@@ -1,0 +1,270 @@
+{
+  "scale": 0.44,
+  "cell": [
+    384,
+    384
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "pivot": [
+    216,
+    320
+  ],
+  "filter": "NEAREST",
+  "actions": {
+    "idle": {
+      "frames": [
+        {
+          "index": 0,
+          "sourceBbox": [
+            25,
+            83,
+            608,
+            657
+          ],
+          "sourceRoot": [
+            334,
+            577
+          ],
+          "outputBbox": [
+            80,
+            103,
+            337,
+            356
+          ],
+          "pasteOffset": [
+            80,
+            103
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 1,
+          "sourceBbox": [
+            648,
+            88,
+            1236,
+            659
+          ],
+          "sourceRoot": [
+            962,
+            577
+          ],
+          "outputBbox": [
+            78,
+            105,
+            337,
+            356
+          ],
+          "pasteOffset": [
+            78,
+            105
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 2,
+          "sourceBbox": [
+            34,
+            671,
+            608,
+            1229
+          ],
+          "sourceRoot": [
+            334,
+            1176
+          ],
+          "outputBbox": [
+            84,
+            98,
+            337,
+            344
+          ],
+          "pasteOffset": [
+            84,
+            98
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 3,
+          "sourceBbox": [
+            645,
+            685,
+            1236,
+            1228
+          ],
+          "sourceRoot": [
+            958,
+            1176
+          ],
+          "outputBbox": [
+            78,
+            104,
+            338,
+            343
+          ],
+          "pasteOffset": [
+            78,
+            104
+          ],
+          "durationMs": 220
+        }
+      ],
+      "loop": true,
+      "previewGifLoops": true,
+      "outputEdgeTouch": [],
+      "pasteClamped": []
+    },
+    "attack": {
+      "frames": [
+        {
+          "index": 0,
+          "sourceBbox": [
+            33,
+            96,
+            625,
+            675
+          ],
+          "sourceRoot": [
+            348,
+            603
+          ],
+          "outputBbox": [
+            77,
+            97,
+            337,
+            352
+          ],
+          "pasteOffset": [
+            77,
+            97
+          ],
+          "durationMs": 180
+        },
+        {
+          "index": 1,
+          "sourceBbox": [
+            650,
+            106,
+            1225,
+            678
+          ],
+          "sourceRoot": [
+            950,
+            602
+          ],
+          "outputBbox": [
+            84,
+            102,
+            337,
+            354
+          ],
+          "pasteOffset": [
+            84,
+            102
+          ],
+          "durationMs": 220
+        },
+        {
+          "index": 2,
+          "sourceBbox": [
+            29,
+            694,
+            628,
+            1210
+          ],
+          "sourceRoot": [
+            440,
+            1177
+          ],
+          "outputBbox": [
+            35,
+            107,
+            299,
+            334
+          ],
+          "pasteOffset": [
+            35,
+            107
+          ],
+          "durationMs": 140
+        },
+        {
+          "index": 3,
+          "sourceBbox": [
+            647,
+            693,
+            1235,
+            1236
+          ],
+          "sourceRoot": [
+            956,
+            1186
+          ],
+          "outputBbox": [
+            80,
+            103,
+            339,
+            342
+          ],
+          "pasteOffset": [
+            80,
+            103
+          ],
+          "durationMs": 260
+        }
+      ],
+      "loop": false,
+      "previewGifLoops": true,
+      "outputEdgeTouch": [],
+      "pasteClamped": []
+    }
+  },
+  "field": {
+    "source": "idle-0.png",
+    "cropXYWH": [
+      74,
+      94,
+      268,
+      266
+    ],
+    "size": [
+      268,
+      266
+    ],
+    "pivot": [
+      142,
+      226
+    ],
+    "scale": 1
+  },
+  "allFrameBounds": [
+    35,
+    97,
+    339,
+    356
+  ],
+  "throwHand": {
+    "action": "attack",
+    "frame": 1,
+    "contact": [
+      108,
+      160
+    ],
+    "relativeToPivot": [
+      -108,
+      -160
+    ],
+    "palmCenter": [
+      108,
+      171
+    ]
+  },
+  "overallEnlargement": {
+    "runtimeFactor": 1.2,
+    "bakedIntoImages": false
+  }
+}

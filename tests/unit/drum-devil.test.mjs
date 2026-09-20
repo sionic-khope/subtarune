@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { runInNewContext } from 'node:vm';
+import { CHARACTERS } from '../../src/data/characters.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { DRUM_DEVIL as C } from '../../src/data/drum-devil.js';
 import { Bullet, PATTERNS, Board, Soul } from '../../src/battle/bullets.js';
@@ -9,28 +11,39 @@ import { createDrumDevilSupport } from '../../src/battle/support/drum-devil.js';
 
 const box = { x: 120, y: 134, w: 240, h: 160 };
 const input = { down: () => false, just: () => false };
-test('all generated boss frames fit the scene including hit shake margin', () => {
-  const contract = JSON.parse(fs.readFileSync(new URL('../../assets/source/drum-devil-wings-v2/runtime-contract.json', import.meta.url), 'utf8'));
+const actor = { x: 396 + ENEMIES.drum_devil.dx, y: 176 + ENEMIES.drum_devil.dy, scale: ENEMIES.drum_devil.scale };
+test('scene-bubble-only drum devil neither fabricates nor requests a portrait', () => {
+  assert.equal(CHARACTERS.drum_devil.portrait, false);
+  const source = fs.readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
+  const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source.indexOf('// ── 부트')) + '\nGame;', {
+    CHARACTERS: { drum_devil: CHARACTERS.drum_devil }, PALETTES: {}, YOUNGCLE_TV_PORTRAITS: [],
+    makeCanvas() { assert.fail('opted-out portraits must not generate fallback art'); },
+    loadImageOptional() { assert.fail('opted-out portraits must not request a missing PNG'); },
+  });
+  assert.equal(Object.keys(Game.prototype.makePortraits.call({})).length, 0);
+});
+test('the full-size enlarged boss fits the unobstructed stage including recoil and shake margins', () => {
+  const contract = JSON.parse(fs.readFileSync(new URL('../../assets/source/drum-devil-raisedhands-v4/runtime-contract.json', import.meta.url), 'utf8'));
   const def = ENEMIES.drum_devil, x = 396 + def.dx, y = 176 + def.dy;
   assert.deepEqual(def.pivot, contract.pivot);
-  assert.equal(def.scale, 1);
+  assert.equal(def.scale, 1.2);
   for (const sheet of [def.sheet, def.actions.attack]) {
     const png = fs.readFileSync(new URL(`../../${sheet.src}`, import.meta.url));
     assert.equal(png.readUInt32BE(16) / sheet.cols, contract.cell[0]);
     assert.equal(png.readUInt32BE(20) / sheet.rows, contract.cell[1]);
   }
-  assert.ok(y + C.hand[1] - C.finisherSize / 2 >= 0);
-  assert.ok(y + C.hand[1] + C.finisherSize / 2 < box.y);
+  assert.ok(y + C.hand[1] * def.scale - C.finisherSize / 2 >= 0);
+  assert.ok(y + C.hand[1] * def.scale + C.finisherSize / 2 < box.y);
   for (const action of Object.values(contract.actions)) for (const frame of action.frames) {
     const [left, top, right, bottom] = frame.outputBbox;
     assert.ok(x + (left - def.pivot[0]) * def.scale - 3 >= 0);
-    assert.ok(x + (right - def.pivot[0]) * def.scale + 3 <= 480);
+    assert.ok(x + (right - def.pivot[0]) * def.scale + 15 <= 480);
     assert.ok(y + (top - def.pivot[1]) * def.scale >= 0);
-    assert.ok(y + (bottom - def.pivot[1]) * def.scale <= 246);
+    assert.ok(y + (bottom - def.pivot[1]) * def.scale <= 318);
   }
 });
 function battleFixture(hp = 100, actionFactories = {}) {
-  const enemy = { id: 'drum_devil', def: ENEMIES.drum_devil, x: 350, y: 242, hp: 300, maxHp: 300, dying: 0, patternIdx: 0 };
+  const enemy = { id: 'drum_devil', def: ENEMIES.drum_devil, ...actor, hp: 300, maxHp: 300, dying: 0, patternIdx: 0 };
   const battle = Object.assign(Object.create(Battle.prototype), {
     enemies: [enemy], members: [{ id: 'hyungsub', hp, maxHp: 100, down: false }], soul: new Soul(), board: new Board(),
     state: 'bullets', t: 0, bullets: [], patterns: [], bubble: null, fx: [],
@@ -59,7 +72,7 @@ for (const { type } of ENEMIES.drum_devil.patterns) {
   test(`${type}: normal attacks finish before a quiet beat and one slow unavoidable 20-damage barrel`, () => {
     const pattern = PATTERNS[type](), emitted = [], penalties = [], poses = [];
     let clock = 0, lastNormalEnd = 0, purpleAt = null;
-    const api = { box, soul: { x: 240, y: 214 }, actor: { x: 350, y: 242, scale: 1 },
+    const api = { box, soul: { x: 240, y: 214 }, actor,
       emit(o) {
         if (o.shape === 'drum_purple') { purpleAt = clock; assert.deepEqual(poses.at(-1), { sheet: 'attack', frame: 1 }); }
         if (!o.harmless) lastNormalEnd = Math.max(lastNormalEnd, clock + o.life);
@@ -71,12 +84,12 @@ for (const { type } of ENEMIES.drum_devil.patterns) {
     assert.deepEqual(penalties, [20]);
     assert.ok(purpleAt - lastNormalEnd >= C.finisherQuiet + C.warn - 0.001);
     const purple = emitted.filter(b => b.shape === 'drum_purple');
-    assert.equal(purple.length, 1); assert.equal(purple[0].x, 300); assert.equal(purple[0].y, 26);
+    assert.equal(purple.length, 1); assert.ok(Math.abs(purple[0].x - 183.4) < 0.001); assert.equal(purple[0].y, 80);
     assert.ok(purple[0].y - C.finisherSize / 2 >= 0);
     assert.ok(purple[0].y + C.finisherSize / 2 < box.y);
-    assert.equal(purple[0].life, 3); assert.equal(purple[0].harmless, true);
-    purple[0].update(1.5, box); assert.ok(purple[0].y < 173); assert.equal(purple[0].out(box), false);
-    purple[0].update(1.5, box); assert.equal(purple[0].x, 240); assert.equal(purple[0].y, 214);
+    assert.equal(purple[0].life, 2.6); assert.equal(purple[0].harmless, true);
+    purple[0].update(1.3, box); assert.ok(purple[0].y < 173); assert.equal(purple[0].out(box), false);
+    purple[0].update(1.3, box); assert.equal(purple[0].x, 240); assert.equal(purple[0].y, 214);
     assert.ok(poses.some(p => p?.sheet === 'attack' && p.frame === 2));
     assert.ok(emitted.some(b => !b.harmless));
     assert.ok(emitted.every(b => b.life > 0 && Number.isFinite(b.life)));
@@ -145,10 +158,11 @@ test('eighth completed enemy turn retains its purple tail then forces red-rip re
 test('barrel effects play once per volley and respect individual gains and cooldowns', () => {
   for (const { type } of ENEMIES.drum_devil.patterns) {
     let clock = 0; const sounds = [], pattern = PATTERNS[type]();
-    const api = { box, soul: { x: 240, y: 214 }, actor: { x: 340, y: 240, scale: 1 }, emit: o => new Bullet(o),
+    const api = { box, soul: { x: 240, y: 214 }, actor, emit: o => new Bullet(o),
       penalty() {}, sfx(name, options) { sounds.push({ name, ...options, at: clock }); } };
     for (clock = 0; clock < pattern.duration; clock += 1 / 60) pattern.update(clock, 1 / 60, api);
-    assert.equal(sounds.filter(s => s.name === 'drum_throw').length, C.waves + 1);
+    assert.equal(sounds.filter(s => s.name === 'drum_throw').length, C.waves);
+    assert.equal(sounds.filter(s => s.name === 'wing').length, 1);
     assert.equal(sounds.filter(s => s.name === 'drum_burst').length, 1);
     const last = new Map();
     for (const sound of sounds) {
@@ -255,8 +269,10 @@ test('post-rescue interception tracks the real barrel at one second, flings it, 
       }
     }
     assert.ok(interceptedAt >= 1 && interceptedAt < 1 + dt + 0.001);
-    assert.equal(projectile.steer, null); assert.equal(projectile.vx, C.deflectVelocity[0]);
-    assert.equal(projectile.vy, C.deflectVelocity[1]); assert.equal(penaltyCount, 0);
+    assert.equal(projectile.steer, null); assert.ok(projectile.vx > C.deflectVelocity[0]);
+    assert.ok(projectile.vy > C.deflectVelocity[1]);
+    assert.deepEqual([projectile.ax, projectile.ay], C.deflectAcceleration);
+    assert.equal(projectile.spin, C.deflectSpin); assert.equal(penaltyCount, 0);
     assert.equal(shapes.has('drum_fuse'), false); assert.equal(shapes.has('drum_arena_blast'), false);
     if (dt < 0.02) {
       for (const phase of ['notice', 'teleport-out', 'teleport-in', 'attack', 'laugh', 'return-out', 'return-in', 'settle']) assert.ok(phases.has(phase), phase);
@@ -265,6 +281,22 @@ test('post-rescue interception tracks the real barrel at one second, flings it, 
     assert.equal(battle.support.interceptionActive, false);
     assert.equal(battle.members[0].hp, 100); assert.equal(battle.state, 'board-close');
   }
+});
+
+test('rescued drum battle opens and snaps the same right-shifted board without moving the prepared soul', () => {
+  const battle = battleFixture(); battle.modes = { enemy: 'bullets' };
+  battle.beginEnemyTurn(); battle.board.snap();
+  assert.equal(battle.board.x, 120); assert.equal(battle.soul.x, 240);
+  completeRescue(battle);
+  battle.beginEnemyTurn(); battle.board.snap();
+  assert.equal(battle.board.x, 192); assert.equal(battle.board.w, 240);
+  assert.equal(battle.soul.x, 312); assert.equal(battle.soul.y, 214);
+  battle.soul.x += 20;
+  battle.beginBullets();
+  assert.equal(battle.board.x, 192); assert.equal(battle.soul.x, 332);
+  battle.support.reset();
+  battle.beginEnemyTurn(); battle.board.snap();
+  assert.equal(battle.board.x, 120); assert.equal(battle.soul.x, 240);
 });
 
 test('reset clears an in-flight interception and rejects stale deflection callbacks', () => {
@@ -280,4 +312,33 @@ test('reset clears an in-flight interception and rejects stale deflection callba
   battle.support.reset(); deflect();
   assert.equal(barrel.vx, 0); assert.equal(barrel.vy, 0);
   assert.equal(disposed, 1); assert.equal(battle.support.interceptionActive, false);
+});
+
+test('hero one-shot returns to the encounter BGM once and respects battle ownership', () => {
+  const battle = battleFixture(), played = [], preloaded = [];
+  battle.game.battle = battle; battle.state = 'menu';
+  const sound = battle.game.sound;
+  sound.preloadBgm = name => preloaded.push(name);
+  sound.playBgm = (name, options) => { played.push({ name, options }); sound.bgm = new EventTarget(); };
+  battle.support.playHeroCue();
+  assert.deepEqual(played[0], { name: 'janitor_hero_intro', options: { loop: false, fadeIn: 1.2 } });
+  assert.deepEqual(preloaded, [C.bgm]);
+  const cue = sound.bgm; cue.dispatchEvent(new Event('ended')); cue.dispatchEvent(new Event('ended'));
+  assert.deepEqual(played[1], { name: C.bgm, options: { fadeIn: 0 } }); assert.equal(played.length, 2);
+  for (const cancel of [() => battle.support.reset(), () => battle.cancelPendingBgm(), () => battle.support.dispose(),
+    () => { battle.game.battle = {}; }, () => { sound.bgm = new EventTarget(); }, () => { battle.state = 'win'; }]) {
+    battle.game.battle = battle; battle.state = 'menu'; battle.support.playHeroCue();
+    const old = sound.bgm, before = played.length;
+    cancel(); old.dispatchEvent(new Event('ended'));
+    assert.equal(played.length, before);
+  }
+});
+
+test('drum-only hero formation moves Yoplait once without healing and reset restores it', () => {
+  const battle = battleFixture(), player = battle.members[0];
+  player.home = [84, 190]; player.action = { mode: 'idle' };
+  battle.support.prepareHeroFormation(); battle.support.prepareHeroFormation();
+  assert.deepEqual(player.home, [204, 150]); assert.equal(player.action, null); assert.equal(player.hp, 100);
+  battle.support.reset(); assert.deepEqual(player.home, [84, 190]);
+  assert.deepEqual(ENEMIES.drum_devil.lines.speak, ['씨2발년아', '크어어어억', '찢어주겠다']);
 });

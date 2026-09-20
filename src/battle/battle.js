@@ -150,7 +150,7 @@ export class Battle {
   }
   sfx(n, options) { this.game.sound.sfx(n, options); }
   /** Cancel elapsed BGM delay and invalidate an in-flight load before exit or retry. */
-  cancelPendingBgm() { this.bgmWait = undefined; this.bgmLoadToken = null; }
+  cancelPendingBgm() { this.bgmWait = undefined; this.bgmLoadToken = null; this.support?.cancelBgm?.(); }
 
   // ── 진행 ──
   update(dt, input) {
@@ -358,8 +358,9 @@ export class Battle {
     this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.formDef?.voice || e.def.voice || 'narrator' };
     if (e.def.lines?.speakSfx) this.sfx(e.def.lines.speakSfx);   // 말풍선과 함께 트는 소리(아짐키야 ‘가재맨 애미 뒤짐’ 클립, BUILD227) — 목소리는 'none'
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
-    const [bw, bh] = this.boardSize(); this.board.setTarget(bw, bh, 240, 214);
-    this.soul.center({ x: 240 - bw / 2, y: 214 - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
+    const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
+    this.board.setTarget(bw, bh, cx, cy);
+    this.soul.center({ x: cx - bw / 2, y: cy - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
     this.state = 'enemy-prep'; this.t = 0; this.setText('');
   }
   updatePrep(dt, input) {
@@ -382,8 +383,8 @@ export class Battle {
       const c = cfgs[e.patternIdx++ % cfgs.length];
       return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e };
     }).filter(Boolean);
-    const [bw, bh] = this.boardSize();
-    this.board.setTarget(bw, bh, 240, 214); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
+    const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
+    this.board.setTarget(bw, bh, cx, cy); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
     this.bubble = null;                                        // 말풍선은 탄막이 시작되면 사라진다(델타룬) — 상자 위를 가려 탄막을 숨기지 않게
     this.state = 'bullets'; this.t = 0; this.setText('');
   }
@@ -498,7 +499,7 @@ export class Battle {
   finish(win, { white = false } = {}) {
     if (this.state === 'ending') return;
     this.cancelPendingBgm();
-    this.disposeGimmick(); this.interlude = null;
+    this.disposeGimmick(); this.interlude = null; this.support?.dispose?.();
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
     this.result = { win }; this.state = 'ending'; this.whiteout = white;
     if (white) { this.game.fadeTo(1, 0, undefined, 'white'); this.game.endBattle(this.result); return; }

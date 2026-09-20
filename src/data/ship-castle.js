@@ -1,5 +1,6 @@
 export const SHIP_CASTLE = Object.freeze({
   bgm: 'ship_castle',
+  revealSound: Object.freeze({ key: 'energetic_powershot', volume: 0.9 }),
   images: Object.freeze({
     castle: 'assets/props/gajaeman_castle.png',
     cord: 'assets/props/purple_cord.png',

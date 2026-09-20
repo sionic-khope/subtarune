@@ -525,6 +525,18 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 
 ## 드럼통 악마 전투·청소부 구출 (BUILD250, 2026-09-20)
 
+별도 향후 사용 보관(장면 연결·preload 없음): **청소년등장** = `assets/audio/archive/youth_entrance.mp3`, 사용자 지정 [ap0cop](https://www.myinstants.com/en/instant/ap0cop-4272/) 공개 MP3 원본 무가공, 10.866917초. **관객들 충격**은 전달된 로컬 파일이 없어 원본 대기 중이며 저장 완료가 아니다. [보관 색인·출처·SHA](../../assets/source/future-sfx-archive/README.md).
+
+BUILD252 보라 드럼통 쳐내기 추가 공격음(사용자 지정 아스고어 창 휘두르기): `sfx/asgore_spear_swing.mp3` = UNDERTALE `mus_sfx_cinematiccut.ogg` 전체 MP3 q2 변환(1.243719초). 원본 `obj_asgore_spearswipe`의 실제 창 휘두르기 재생 호출로 식별했다. 접촉 시 기존 강한 충격에 한 번 겹치며 일반 루드 버스터 공격·첫 깃발 Release Shoot은 유지한다. 상승/이동은 따뜻한 비데 실제 `bossVanish`의 `spearappear`0.7, 낙하는 `wing`0.9 재사용. [정확한 소스·코드 근거·레벨·SHA](../../assets/source/janitor-asgore-parry/README.md).
+
+BUILD252 별도 성 등장·낙하 사용자 지정음: [Energetic Powershot](https://www.myinstants.com/en/instant/energetic-powershot-51849/)의 공개 [Download MP3](https://www.myinstants.com/media/sounds/energetic-powershot.mp3)를 무가공으로 `sfx/energetic_powershot.mp3`에 저장했다. 10.276초, 48kHz stereo, 165,357바이트, 평균 −22.4dBFS / 피크 −6.1dBFS. 전체 디코드 성공. SHA-256 `ef059bc5e71f815c57426774301005fed4686dd8a0678063e414b7d10f26511b`. 첫 SFX 로드 목록 등록, 장면 타이밍은 성 연출 담당이 연결한다. 재배포 라이선스는 미확인.
+
+BUILD252 최신 사용자 지정 첫 깃발 명중음: [Myinstants Deltarune Release Shoot](https://www.myinstants.com/en/instant/deltarune-release-shoot-62629/)의 Download MP3 원본을 그대로 `sfx/deltarune_release_shoot.mp3`로 저장했다(1.772018초). 첫 깃발 접촉에 한 번 재생하며 아래 `rudebuster_hit` 추천을 이 장면에서만 대체한다. 일반 60피해 지원 공격은 루드 버스터 원본 두 음 그대로. [정확한 파일 URL·SHA·규격](../../assets/source/janitor-release-shoot/README.md).
+
+BUILD252 등장 음악 뒤 공백: 원본 `janitor_hero`의 끝에 −60dB 이하 4.494833초가 확인되어, 음악 감쇠를 보존한 46.76초의 전용 `bgm/janitor_hero_intro.mp3`를 만들었다. 원본은 그대로 보관한다. 등장용은 한 번 재생 후 실제 ended에서 미리 로드한 전투 음악으로 즉시 전환한다. [측정·재현·SHA 기록](../../assets/source/janitor-hero-intro-cue/README.md). 깃발 명중은 원본 `rudebuster_hit` gain 1.0 한 번을 권장하며 폭발음을 섞지 않는다.
+
+BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중역 어택 + baron_slam 저역 몸통의 0.32초 가공본으로 교체했다. 평균 −18.1dBFS / 피크 −5.1dBFS, 마지막 80ms 평균 −47.4dBFS로 짧게 감쇠한다. gain 0.75와 묶음당 1회·0.25초 간격은 유지 권장. [v2 제작·이전 파일·비교 청취본](../../assets/source/drum-throw-v2/README.md). 아래 v1 투척음 설명은 역사 기록이며 충돌/폭발 및 BGM은 그대로다.
+
 청소부 붉은 3겹 참격(사용자 지정 Rude Buster 원본): `sfx/rudebuster_swing.mp3` 발사음과 `sfx/rudebuster_hit.mp3` 명중음은 고정 리비전의 `snd_rudebuster_swing`·`snd_rudebuster_hit` 전체를 MP3 q2로 변환한 것(각 0.953379초, 44.1kHz mono)이다. 원본 게임의 공격·투사체 코드로 실제 사용 시점을 확인했으며 붉은 버전도 같은 두 소리를 쓴다. 음원 가공·대체 합성 없음. [출처·식별 코드·SHA·권장 큐](../../assets/source/janitor-rudebuster-audio/README.md).
 
 공격음 개선: 기존 `wing`를 낮추고 짧게 자른 `sfx/drum_throw.mp3`(0.38초), `metalhit` 저역과 `baron_slam`을 섞은 `sfx/drum_impact.mp3`(0.40초), `furnace_blast`를 저역 중심으로 짧게 감쇠한 `sfx/drum_burst.mp3`(0.95초)를 사용한다. 동시 투척/충돌은 묶음당 한 번, 보라 폭발은 일반 충격 없이 한 번만 재생한다. 붉은 찢김은 기존 `baron_slam`·`wallclaw`를 재사용한다. 원본·정확한 가공 명령·권장 음량/간격·레벨·비교 청취본은 [자산 기록](../../assets/source/drum-devil-audio-v1/README.md)에 있다. 기존 공용 파일과 아래 사용자 지정 BGM은 변경하지 않았다.
