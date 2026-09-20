@@ -21,7 +21,7 @@ REPO = ROOT.parents[2]
 DIRECTIONS = ("down", "up", "left", "right")
 RAW_ROWS = (0, 3, 1, 2)            # 원본 행 순서 down/left/right/up → 게임 순서 down/up/left/right
 CELL = 64
-FIT = {"dohyun": "0.92"}           # 사용자 “얇고 살짝 길죽하게” — 다른 캐릭터(0.84)보다 셀을 더 채워 키가 크게
+FIT = {"dohyun": "0.74", "domijorim": "0.84"}   # 도현: 처음 0.92(“얇고 살짝 길죽하게”)에서 사용자 “비율 키 20퍼 줄여라” → ×0.8 = 0.74. 도미조림 2등신 시트는 기본
 SHEETS = ("dohyun", "domijorim", "gasuni4", "gasuni5", "gasuni6")
 TREE_SCALE = 3                     # 1024 원본 → 1/3
 
@@ -78,11 +78,12 @@ def export_sheet(name: str) -> None:
 
 
 BATTLE_SCALE = 6.5                 # 1024 원본(인물이 세로 85~90%) → 게임 전투 그림 약 130~150px(다오·배찌 120px scale 1.2 와 비슷한 크기)
+BATTLE_RAW = {"domijorim": "domijorim-battle2-raw.png", "dohyun": "dohyun-battle2-raw.png"}   # 2차 생성(2등신 도미조림·손 든 도현, 왼쪽 아래 3/4 시점)
 
 
 def export_battle(name: str) -> None:
     """적군 전투 스프라이트(사용자 2026-09-20 “도미조림은 얼린 홍어를 한 손에, 반댓손엔 횃불 / 도현이는 손도끼 하나”): 색키 → 여백 잘라 축소 → assets/enemies/<name>-battle.png"""
-    clean = key_magenta(Image.open(ROOT / f"{name}-battle-raw.png"))
+    clean = key_magenta(Image.open(ROOT / BATTLE_RAW.get(name, f"{name}-battle-raw.png")))
     crop = clean.crop(clean.getbbox())
     w, h = crop.size
     small = crop.resize((round(w / BATTLE_SCALE), round(h / BATTLE_SCALE)), Image.Resampling.NEAREST)

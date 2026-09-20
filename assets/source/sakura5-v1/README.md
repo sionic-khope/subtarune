@@ -13,3 +13,18 @@
 - `domijorim-battle-raw.png`(`domijorim-battle.prompt.txt`, 참조 = 걷기 시트 0.5배): 오른손에 꼬리 잡은 얼린 홍어, 왼손 횃불 → `assets/enemies/domijorim-battle.png`(138×149).
 - `dohyun-battle-raw.png`(`dohyun-battle.prompt.txt`, 참조 = 걷기 시트): 빈손으로 한 손을 들어 인사하듯(사용자 정정 “걍 손하나 들고있다고 / 안녕하듯”) → `assets/enemies/dohyun-battle.png`(43×152). 손도끼로 잘못 읽은 첫 판은 `dohyun-battle-v1-axe-raw.png`(커밋하지 않음).
 - 전투 데이터(체력·패턴)는 브리핑에 없어 `ENEMIES` 에 등록하지 않았다. 축소 배율 `export.py BATTLE_SCALE` 6.5.
+
+## “흐미” 클립 정정 (사용자 “지금 흐미가 아니라 어머니 전라도이신분 이렇게 나오고”)
+
+- 1:14:15.25 구간은 유튜브 자동자막·로컬 음성인식(faster-whisper small) 모두 “옆에 혹시 어머니 전라도 오신 분 / 혹시 통역 좀 가능하나요?” 로 확인 → 폐기.
+- 1:13:50~1:14:40 전체를 인식해도 “흐미” 단어는 없음. 에너지 분석에서 우승 발표 “…도미조림입니다 / 축하드려요!”(1:13:47.7) 직후 1:13:48.4~1:13:51.7 에 자막 없는 큰 함성 구간이 있어, 그 시작 1.6초(1:13:48.35~)를 `sfx/domijorim_heumi.mp3` 후보로 잘랐다(`heumi-win.wav` = 1:13:44~1:13:56, 커밋하지 않음). **청취 미확인** — 틀리면 정확한 시:분:초를 받아 다시 자른다.
+- (재정정) 사용자 “1:14:44쯤에 있잖아 / 흐미” → 1:14:40~1:14:50(`heumi-4444.wav`, 커밋하지 않음)을 받아 음성인식: 1:14:46.88 “흐미이이이이!” 확인. 그 앞 1:14:45.8~46.6 은 2188Hz 순음(방송 삐- 처리음)이라 제외하고 1:14:46.82 부터 1.05초를 `sfx/domijorim_heumi.mp3` 로 잘랐다(페이드아웃 0.25초, loudnorm -16).
+
+## 2차 재생성 (BUILD272, 사용자 “다시 싹 재배치 … 스프라이트재생성도하고”)
+
+- `tree2-raw.png`(`tree2.prompt.txt`): 수관 80%·밑동 짧은 거대 벚꽃 나무 → `assets/props/sakura_giant_tree.png` 768×762(0.75배, 색키). 밑동+뿌리 약 174px, 밑동 폭 127.
+- `domijorim-chibi2-raw.png`(`domijorim-chibi2.prompt.txt`, 참조 = 최미스 시트+사진 합성): 2등신·사진 얼굴(넓은 볼·작은 눈 뜸·뾰족 입술)·황갈 피부·등에 홍어 → `domijorim-raw.png` 로 채택(1차 `domijorim-chibi-raw.png` 는 눈 감김·피부 연함, 커밋하지 않음). 시트 정면 키 88px.
+- `dohyun2-raw.png`(`dohyun2.prompt.txt`): 선화 얼굴을 살린 걷기 시트 → `dohyun-raw.png` 로 채택, fit 0.74(키 20% 축소, 정면 키 78px).
+- 자세 그리드(2×2, 참조 = 채택 시트 0.5배): `domijorim-heumi`(웅크림→두 팔 번쩍 외침→유지→복귀), `domijorim-leap`(웅크림→공중 홍어 뽑음→착지 횃불→전투 자세), `dohyun-wave`(손 들어 인사), `dohyun-leap`(웅크림→공중→착지 손 듦→자세). `poses_export.py` 가 128 칸 4프레임 띠(`assets/sprites/<name>-<motion>.png`, 발 [64,120])로 만든다 — 배율은 그리드의 서 있는 칸 키 = 걷기 키 × 보정(팔 든 자세 1.02~1.18)으로 네 칸 공통.
+- 전투 그림 2차: `domijorim-battle2-raw.png`(2등신, 왼쪽 아래 3/4, 홍어+횃불) → `assets/enemies/domijorim-battle.png` 150×143, `dohyun-battle2-raw.png`(손 든 3/4) → `dohyun-battle.png` 50×149(def scale 0.72).
+- 목소리 재조정: `voices/dohyun.mp3` = snd_txtal 1.1배 + lowpass 3.2kHz + 페이드(loudnorm 제거 — “지지직”), `voices/domijorim.mp3` = janitor 0.92배 + bass +7dB + lowpass 2.2kHz(“더 굵게 낮게”).

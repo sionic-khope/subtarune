@@ -566,9 +566,9 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 
 ## BUILD271 벚꽃 숲 5 (2026-09-20)
 
-- `voices/dohyun.mp3`(0.05초): 델타룬 알피스 대사음 `snd_txtal`(디컴파일 154f9a9 `sounds/snd_txtal/snd_txtal`)을 1.1배 높임(사용자 “델타룬 알피스에서 톤 살짝 올린 걸로”), loudnorm -16 LUFS. `VOICES.dohyun` rate 1·level 0.85.
-- `voices/domijorim.mp3`(0.08초): 청소부 `voices/janitor.mp3`(델타룬 4장 거슨 **말하는 소리** 클립, BUILD227)를 1.35배 높여 젊게(사용자 “거슨 목소리 느낌인데 많이 젊어 보이는 느낌으로 재구성”). 델타룬 디컴파일 목록에 거슨 대사음은 없어(`snd_txt*` 16종) 기존 클립을 썼다. `VOICES.domijorim` rate 1·level 0.85.
-- `sfx/domijorim_heumi.mp3`(1.7초): 사용자 지정 [waFEhwjUb3c](https://www.youtube.com/watch?v=waFEhwjUb3c) “천하제일 요리대회”(가재맨) 1:14:15.25 부터 1.7초(사용자 “1:14:15쯤 흐미~ 1.N초”). 1:14:05~1:14:25 를 받아(`assets/source/sakura5-v1/heumi-raw.wav`, 커밋하지 않음) 파형에서 10.25~11.95초 발화 구간을 잘랐다 — **청취 미확인**, 다른 발화면 구간을 바꾼다. 페이드아웃 0.2초, loudnorm -16 LUFS. 도미조림 “흐미!!” 점프와 같이 난다.
+- `voices/dohyun.mp3`(0.05초): 델타룬 알피스 대사음 `snd_txtal`(디컴파일 154f9a9 `sounds/snd_txtal/snd_txtal`)을 1.1배 높임(사용자 “델타룬 알피스에서 톤 살짝 올린 걸로”). (BUILD272 사용자 “지지직 좀만 빼줘”) 50ms 클립에 loudnorm 을 걸면 왜곡 → lowpass 3.2kHz·4ms/10ms 페이드·볼륨 4.5 로 교체(피크 −7.7dB). `VOICES.dohyun` rate 1·level 0.85.
+- `voices/domijorim.mp3`(0.11초): 청소부 `voices/janitor.mp3`(델타룬 4장 거슨 **말하는 소리** 클립, BUILD227) 기반. 처음엔 1.35배 높였으나(“많이 젊어 보이게”) 사용자 “좀 더 굵게, 낮게” → 0.92배로 낮추고 저음 +7dB(180Hz)·lowpass 2.2kHz(BUILD272). `VOICES.domijorim` rate 1·level 0.85.
+- `sfx/domijorim_heumi.mp3`(1.05초): 사용자 지정 [waFEhwjUb3c](https://www.youtube.com/watch?v=waFEhwjUb3c) “천하제일 요리대회”(가재맨) **1:14:46.82 부터**(사용자 정정 “1:14:44쯤에 있잖아 흐미”; 첫 절단 1:14:15 는 “어머니 전라도 오신 분”이라 폐기). 로컬 음성인식(faster-whisper)으로 “흐미이이이이!” 확인, 바로 앞 2188Hz 순음(방송 삐-)은 제외. 페이드아웃 0.25초, loudnorm -16 LUFS. 도미조림 “흐미!!” 두 팔 번쩍 자세·점프와 같이 난다.
 - 가순이 4·5·6 목소리는 1·2·3 과 같은 `gasuni`. 벚꽃 숲 5 브금은 `sakura`, 갈림목 연출에서 끈다(“[브금 꺼지면서]”), 연출 뒤 지정 없음.
 - `bgm/telling.mp3`(40.5초, 0.9MB): 사용자 지정 [CvFuMiWEryM](https://www.youtube.com/watch?v=CvFuMiWEryM) “26. I'm Telling! (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”(업로더 Toby Fox) 전체를 MP3 q2(구간 편집·정규화 없음). 벚꽃 숲 5 윗길 연출(“위로 쫌 올라가면”)부터.
 - `bgm/petal_dance.mp3`(92.7초, 2.4MB): 사용자 지정 [RsAu3BDaAp8](https://www.youtube.com/watch?v=RsAu3BDaAp8) “17. Petal Dance (DELTARUNE Chapter 5 Soundtrack) - Toby Fox” 전체를 MP3 q2. 도미조림·도현 전투 브금.

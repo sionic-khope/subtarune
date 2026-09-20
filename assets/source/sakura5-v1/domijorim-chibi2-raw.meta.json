@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/sakura5-v1/domijorim-composed.png"
+  ],
+  "elapsed_seconds": 39.5,
+  "usage": {
+    "input_tokens": 915,
+    "output_tokens": 1756,
+    "total_tokens": 2671,
+    "input_tokens_details": {
+      "image_tokens": 512,
+      "text_tokens": 403
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789905196,
+  "outputs": [
+    {
+      "file": "assets/source/sakura5-v1/domijorim-chibi2-raw.png",
+      "bytes": 1310314,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

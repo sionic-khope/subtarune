@@ -1,0 +1,7 @@
+# imagegen 2026-09-20 20:48:53
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/sakura5-v1/dohyun-composed.png
+
+Use case: stylized-concept. Create a production pixel-art overworld movement spritesheet for a character named 도현. Image1 is the PIXEL DENSITY, cell layout and background reference only: do not copy its character, hair, glasses or pink clothes. Image2 is the character identity reference (a simple black-and-white line drawing): keep this face recognizable. Exactly 4 columns x 4 rows of full body sprites in equal invisible square cells, no grid lines or text. Row1 FRONT facing down, row2 LEFT profile, row3 RIGHT profile, row4 BACK facing up, same single character in all 16 cells, small walking pose changes. Character identity: a slim young man with a slightly elongated narrow body and a long oval face, a heavy glossy black bowl-cut / mushroom haircut with straight bangs cut evenly across the forehead just above the eyebrows, small calm half-closed eyes, a straight nose, a small closed mouth with a faint smile, pale skin, a neat and pleasant look (not creepy, not ghostly); plain white long-sleeved shirt, dark grey trousers, dark shoes. He is a little slimmer and taller than a normal chunky sprite but still cute and readable at small size: narrow shoulders, long legs, filling about 90% of the cell height. Flat solid magenta background (#FF00FF), no shadow, no props.

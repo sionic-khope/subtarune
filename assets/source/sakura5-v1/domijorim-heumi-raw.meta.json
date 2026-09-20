@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/sakura5-v1/domijorim-chibi2-ref.png"
+  ],
+  "elapsed_seconds": 32.6,
+  "usage": {
+    "input_tokens": 1288,
+    "output_tokens": 1756,
+    "total_tokens": 3044,
+    "input_tokens_details": {
+      "image_tokens": 1024,
+      "text_tokens": 264
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789905231,
+  "outputs": [
+    {
+      "file": "assets/source/sakura5-v1/domijorim-heumi-raw.png",
+      "bytes": 1042160,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

@@ -1,6 +1,27 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
 export const CHARACTER_MOTIONS = {
+  // 도미조림·도현(BUILD272 벚꽃 숲 5 공터): gpt-image 2×2 자세 그리드(assets/source/sakura5-v1/*-heumi|leap|wave-raw.png, 참조 = 걷기 시트) → poses_export.py 로 128 칸 4프레임 띠(발 [64,120], 걷기 정면 키에 맞춘 공통 배율).
+  //   heumi: 웅크림 → 두 팔 번쩍 들고 “흐미!!” 외침(점프 정점) → 외침 유지 → 내려놓음. leap: 웅크림 → 공중(홍어 뽑음) → 착지(횃불) → 전투 자세(홍어·횃불) — 전투 진입 전 양옆으로 뛰는 hop 과 parallel.
+  //   ready: leap 의 마지막 칸을 정지 자세로 반복(착지 뒤 전투 시작까지 서 있음). wave: 손 들어 인사(“안녕하세요 형들”).
+  domijorim: {
+    heumi: { src: 'assets/sprites/domijorim-heumi.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [[0, 0.12], [1, 0.32], [2, 0.7], [3, 0.22]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
+    leap: { src: 'assets/sprites/domijorim-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [[0, 0.18], [1, 0.62], [2, 0.2], [3, 0.6]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
+    ready: { src: 'assets/sprites/domijorim-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [{ rect: [3 * 128, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+  },
+  dohyun: {
+    wave: { src: 'assets/sprites/dohyun-wave.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [[0, 0.15], [1, 0.35], [2, 0.4], [3, 0.5]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
+    hello: { src: 'assets/sprites/dohyun-wave.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [{ rect: [3 * 128, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+    leap: { src: 'assets/sprites/dohyun-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [[0, 0.18], [1, 0.62], [2, 0.2], [3, 0.6]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
+    ready: { src: 'assets/sprites/dohyun-leap.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [{ rect: [3 * 128, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+  },
   // 최미스(BUILD257 빛 드는 공터): 걷기 시트(128 셀, 발 [64,120])와 같은 규격의 자세 그림 — gpt-image-2.5-sunburst(assets/source/choimis-poses-v1, 참조 = 걷기 시트 미리보기) 를 색키·축소해 128 칸에 넣었다.
   //   masked: 디스코드 로고(simple-icons, 블러플)를 정면 0번 얼굴에 가면처럼 씌운 한 장. wink: 눈 뜬 정면 0번 ↔ 윙크. seup: 코 비비기 1.4초 → 손가락 총 1.3초(= 스읍 미스 음성 2.7초)
   choimis: {

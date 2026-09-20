@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/sakura5-v1/tree-ref.png"
+  ],
+  "elapsed_seconds": 42.0,
+  "usage": {
+    "input_tokens": 594,
+    "output_tokens": 1756,
+    "total_tokens": 2350,
+    "input_tokens_details": {
+      "image_tokens": 352,
+      "text_tokens": 242
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789904742,
+  "outputs": [
+    {
+      "file": "assets/source/sakura5-v1/tree2-raw.png",
+      "bytes": 1524722,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}
