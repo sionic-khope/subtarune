@@ -543,3 +543,11 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura6_plaza', desc: '벚�
   map: 'jjajang_sakura6', spawn: 'plaza', flags: sakura6Flags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura6_east', desc: '벚꽃 숲 6 · 연출 끝난 뒤 (최미스는 떠남 · 오른쪽 길 앞, 다음 맵 없음)',
   map: 'jjajang_sakura6', spawn: 'east', flags: { ...sakura6Flags, sakura6_scene_started: true, sakura6_scene_done: true }, party: ['gyeongsub', 'ppaman'] });
+// 벚꽃 숲 7(BUILD278): 벚꽃 숲 6 연출까지 끝난 뒤 — 오른쪽 끝 문 → 오른쪽 2초 → 넓은 들 · 맨 위 결혼식 나무 무대 · 관객 가순이들 → 들머리 연출(그 남자와 그 여자의 무대)
+const sakura7Flags = { ...sakura6Flags, sakura6_scene_started: true, sakura6_scene_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura7', desc: '벚꽃 숲 7 입구 (오른쪽으로 2초 → 넓은 들 · 무대 · 관객)',
+  map: 'jjajang_sakura7', spawn: 'from_west', flags: sakura7Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura7_stage', desc: '벚꽃 숲 7 · 들머리 앞 (오른쪽 한 걸음이면 무대 연출 — 느낌표·카메라 무대·어둠·치지직·스포트라이트·점례·최미스·도미조림·관객 난동·박치기)',
+  map: 'jjajang_sakura7', spawn: 'before_scene', flags: sakura7Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura7_after', desc: '벚꽃 숲 7 · 연출 끝난 뒤 (관객 뒤 가운데, 오른쪽에 길 — 다음 맵 없음)',
+  map: 'jjajang_sakura7', spawn: 'after', flags: { ...sakura7Flags, sakura7_scene_started: true, sakura7_scene_done: true }, party: ['gyeongsub', 'ppaman'] });

@@ -4,6 +4,9 @@
 //   game.bubble = new DotBubble();  main.js 가 update/draw 한다 (월드 좌표, 캐릭터 머리 위, 카메라 따라감).
 // 비율: 풍선 36×22(점 3개 기준, 점 4px 둥근 점·간격 4px), 꼬리 6px. 점은 풍선 정중앙 줄에 가운데 정렬. (2026-09-10: 점이 네모나고 커서 작게·둥글게, 풍선은 세로로 조금 길게)
 // ─────────────────────────────────────────────────────────────
+import { FONT } from './font.js';
+import { SCREEN_W } from '../world/world.js';
+
 export class DotBubble {
   constructor() { this.target = null; this.dots = 3; this.shown = 0; this.gap = 0.4; this.hold = 0.6; this.timer = 0; this.done = true; this.fadeT = 0; }
   /** 시작. 끝나면 done=true (waiter 가 본다) */
@@ -43,6 +46,46 @@ export class DotBubble {
     ctx.fillStyle = '#000';
     const dy = y + Math.round((H - DOT) / 2);
     for (let i = 0; i < this.shown; i++) { const px = x + PAD + i * (DOT + GAP); ctx.fillRect(px + 1, dy, DOT - 2, DOT); ctx.fillRect(px, dy + 1, DOT, DOT - 2); }   // 4px 둥근 점(모서리 뺌)
+    ctx.restore();
+  }
+}
+
+/** 둥근 네모(검은 테두리 → 흰 채움은 두 번 부른다) */
+function roundRect(ctx, px, py, pw, ph, r, fill) {
+  ctx.fillStyle = fill; ctx.beginPath(); ctx.moveTo(px + r, py); ctx.lineTo(px + pw - r, py); ctx.quadraticCurveTo(px + pw, py, px + pw, py + r); ctx.lineTo(px + pw, py + ph - r);
+  ctx.quadraticCurveTo(px + pw, py + ph, px + pw - r, py + ph); ctx.lineTo(px + r, py + ph); ctx.quadraticCurveTo(px, py + ph, px, py + ph - r); ctx.lineTo(px, py + r); ctx.quadraticCurveTo(px, py, px + r, py); ctx.closePath(); ctx.fill();
+}
+
+/**
+ * 머리 위 말풍선에 글(BUILD278 벚꽃 숲 7 “최미스 말풍선만: 아니. 그대여.”): 같은 흰 풍선·검은 테두리·꼬리에 글이 한 글자씩 찍히고 hold 뒤 사라진다.
+ *   컷신 { balloon:id, text, hold?, cps? }. main.js 가 어둠(dim)·스포트라이트 위에 그린다 — 화자가 어둠 속이거나 화면 밖이어도 풍선은 화면 안에서 보인다(꼬리는 화자 쪽).
+ */
+export class TextBalloon {
+  constructor() { this.target = null; this.text = ''; this.shown = 0; this.timer = 0; this.hold = 1.6; this.cps = 24; this.done = true; this.fadeT = 0; this.phase = 'type'; }
+  start(target, { text = '', hold = null, cps = 24 } = {}) {
+    this.target = target; this.text = text; this.shown = 0; this.timer = 0; this.cps = cps;
+    this.hold = hold ?? Math.max(1.2, 0.14 * text.length + 0.6); this.done = false; this.fadeT = 0; this.phase = 'type';
+  }
+  update(dt) {
+    if (this.done || !this.target) return;
+    if (this.phase === 'type') { this.timer += dt; this.shown = Math.min(this.text.length, Math.floor(this.timer * this.cps)); if (this.shown >= this.text.length) { this.phase = 'hold'; this.timer = this.hold; } }
+    else if (this.phase === 'hold') { this.timer -= dt; if (this.timer <= 0) { this.phase = 'out'; this.fadeT = 0.12; } }
+    else { this.fadeT -= dt; if (this.fadeT <= 0) { this.done = true; this.target = null; } }
+  }
+  draw(ctx, cam) {
+    if (this.done || !this.target) return;
+    const t = this.target, PAD = 6, H = 20, TAIL = 6, R = 5;
+    ctx.save(); ctx.font = FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    const w = Math.ceil(ctx.measureText(this.text).width) + PAD * 2;
+    const spriteH = t.sprite ? Math.round(t.sprite.fh / t.sprite.px * 1.43) : 48;
+    const cx = Math.round(t.x + t.w / 2 - cam.x), top = Math.round(t.y + t.h - spriteH - cam.y) - TAIL - H - 4;
+    const x = Math.max(4, Math.min(SCREEN_W - w - 4, cx - Math.round(w / 2))), y = top;   // 풍선은 화면 안에(화자가 가장자리·밖이어도)
+    if (this.phase === 'out') ctx.globalAlpha = Math.max(0, this.fadeT / 0.12);
+    roundRect(ctx, x - 1, y - 1, w + 2, H + 2, R + 1, '#000'); roundRect(ctx, x, y, w, H, R, '#fff');
+    const tx = Math.max(x + 8, Math.min(x + w - 8, cx));   // 꼬리는 화자 쪽
+    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(tx - 5, y + H - 1); ctx.lineTo(tx + 5, y + H - 1); ctx.lineTo(tx, y + H + TAIL + 1); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(tx - 3, y + H - 2); ctx.lineTo(tx + 3, y + H - 2); ctx.lineTo(tx, y + H + TAIL - 1); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#000'; ctx.fillText(this.text.slice(0, this.shown), x + PAD, y + Math.round(H / 2) + 1);
     ctx.restore();
   }
 }

@@ -1,0 +1,49 @@
+{
+ "jeomnye": {
+  "reference_stand_height": 82,
+  "scale": 0.5,
+  "frame_heights": [
+   82,
+   82,
+   82,
+   82,
+   84,
+   84,
+   84,
+   84,
+   86,
+   86,
+   86,
+   86,
+   88,
+   88,
+   88,
+   88
+  ]
+ },
+ "stage": {
+  "size": [
+   384,
+   197
+  ],
+  "scale": 0.2791,
+  "plank_top": 116,
+  "plank_bottom_incl_skirt": 163
+ },
+ "throw_tomato": [
+  16,
+  16
+ ],
+ "throw_egg": [
+  12,
+  15
+ ],
+ "throw_paper": [
+  15,
+  15
+ ],
+ "throw_apple": [
+  13,
+  19
+ ]
+}

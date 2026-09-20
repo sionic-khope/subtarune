@@ -1,0 +1,986 @@
+{
+ "id": "jjajang_sakura7",
+ "name": "벚꽃 숲 7",
+ "stage": "ship_sinking_done",
+ "bgm": "sakura",
+ "dim": 0,
+ "battleBg": "sakura",
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))@@@@@@@@@@@@@@))))@@@@",
+  "@@@@@@@@@@))))))@@@@@@@@@@@@@@))))@@@@",
+  "@@@@@@@@@@))))))@@@@@@@@@@@@@@))))@@@@",
+  "@@@@@@@@@@))))))@@@@@@@@@@@@@@))))@@@@",
+  "@@@@@@@@@@))))))@@@@@@@@@@@@@@))))@@@@",
+  "@@@@@@@@@@))))))@@@@@@@@@@@@@@))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "))))))))))))))))))))))))))))))))))))))",
+  "))))))))))))))))))))))))))))))))))))))",
+  "))))))))))))))))))))))))))))))))))))))",
+  "))))))))))))))))))))))))))))))))))))))",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@))))))))))))))))))))))))@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "preload": [
+  "assets/props/wedding_stage.png",
+  "assets/props/discord_mask.png",
+  "assets/props/throw_tomato.png",
+  "assets/props/throw_egg.png",
+  "assets/props/throw_paper.png",
+  "assets/props/throw_apple.png"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 36,
+   "y": 678,
+   "facing": "right"
+  },
+  "start": {
+   "x": 36,
+   "y": 678,
+   "facing": "right"
+  },
+  "field": {
+   "x": 356,
+   "y": 678,
+   "facing": "right"
+  },
+  "before_scene": {
+   "x": 484,
+   "y": 678,
+   "facing": "right"
+  },
+  "after": {
+   "x": 696,
+   "y": 424,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    21
+   ],
+   [
+    16,
+    21
+   ]
+  ],
+  "role": "벚꽃 숲 6 오른쪽 끝 문 다음(BUILD278): 오른쪽으로 2초 → 넓은 들 → 맨 위 결혼식 나무 무대 + 관객 가순이들. 들머리 트리거 → 그 남자와 그 여자의 무대 연출 → 오른쪽 길(다음 맵 없음). 브금 sakura, 발소리 없음",
+  "petals": {
+   "rate": 18,
+   "burst": 0,
+   "burstRate": 18,
+   "burstSeconds": 0,
+   "after": 18
+  },
+  "sakura7": {
+   "roadRows": [
+    20,
+    23
+   ],
+   "entryCols": [
+    0,
+    9
+   ],
+   "fieldCols": [
+    10,
+    33
+   ],
+   "fieldRows": [
+    2,
+    27
+   ],
+   "exitCols": [
+    34,
+    37
+   ],
+   "sceneCols": [
+    18,
+    19
+   ],
+   "stage": [
+    528,
+    96,
+    384,
+    197
+   ],
+   "stageFloor": [
+    185,
+    263
+   ],
+   "spot": {
+    "x": 720,
+    "y": 254,
+    "rx": 76,
+    "ry": 42,
+    "alpha": 0.35
+   },
+   "jeomnyeStart": [
+    708,
+    172
+   ],
+   "jeomnyeSpot": [
+    708,
+    236
+   ],
+   "choimisStart": [
+    880,
+    236
+   ],
+   "choimisSpot": [
+    764,
+    236
+   ],
+   "partySpots": {
+    "player": [
+     708,
+     424
+    ],
+    "gyeongsub": [
+     668,
+     428
+    ],
+    "ppaman": [
+     748,
+     428
+    ]
+   },
+   "crowd": [
+    [
+     530,
+     336
+    ],
+    [
+     595,
+     338
+    ],
+    [
+     647,
+     340
+    ],
+    [
+     699,
+     342
+    ],
+    [
+     751,
+     344
+    ],
+    [
+     803,
+     337
+    ],
+    [
+     855,
+     339
+    ],
+    [
+     542,
+     387
+    ],
+    [
+     594,
+     389
+    ],
+    [
+     646,
+     382
+    ],
+    [
+     698,
+     384
+    ],
+    [
+     750,
+     386
+    ],
+    [
+     802,
+     388
+    ],
+    [
+     854,
+     390
+    ]
+   ],
+   "roadY": 678
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "sakura7_tree_1",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 356,
+   "y": 946,
+   "w": 24,
+   "h": 12,
+   "ix": 268,
+   "iy": 801,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_2",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 452,
+   "y": 914,
+   "w": 24,
+   "h": 12,
+   "ix": 434,
+   "iy": 767,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_3",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 548,
+   "y": 946,
+   "w": 24,
+   "h": 12,
+   "ix": 500,
+   "iy": 791,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_4",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 644,
+   "y": 914,
+   "w": 24,
+   "h": 12,
+   "ix": 598,
+   "iy": 780,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_5",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 740,
+   "y": 946,
+   "w": 24,
+   "h": 12,
+   "ix": 652,
+   "iy": 801,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_6",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 836,
+   "y": 914,
+   "w": 24,
+   "h": 12,
+   "ix": 818,
+   "iy": 767,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_7",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 932,
+   "y": 946,
+   "w": 24,
+   "h": 12,
+   "ix": 884,
+   "iy": 791,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_8",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 1028,
+   "y": 914,
+   "w": 24,
+   "h": 12,
+   "ix": 982,
+   "iy": 780,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_9",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 260,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 172,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_10",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 292,
+   "y": 242,
+   "w": 24,
+   "h": 12,
+   "ix": 274,
+   "iy": 95,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_11",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 1092,
+   "y": 242,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 87,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_12",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 260,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 214,
+   "iy": 204,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_13",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1124,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 1036,
+   "iy": 193,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_14",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 292,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 274,
+   "iy": 287,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_15",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 1092,
+   "y": 434,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 279,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_16",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 260,
+   "y": 530,
+   "w": 24,
+   "h": 12,
+   "ix": 214,
+   "iy": 396,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_17",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1124,
+   "y": 530,
+   "w": 24,
+   "h": 12,
+   "ix": 1036,
+   "iy": 385,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_18",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 292,
+   "y": 818,
+   "w": 24,
+   "h": 12,
+   "ix": 274,
+   "iy": 671,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_19",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 1092,
+   "y": 818,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 663,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_20",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 132,
+   "y": 594,
+   "w": 24,
+   "h": 12,
+   "ix": 86,
+   "iy": 460,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_21",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 132,
+   "y": 818,
+   "w": 24,
+   "h": 12,
+   "ix": 44,
+   "iy": 673,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_22",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 228,
+   "y": 562,
+   "w": 24,
+   "h": 12,
+   "ix": 210,
+   "iy": 415,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_23",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 228,
+   "y": 850,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 695,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_24",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 1092,
+   "y": 594,
+   "w": 24,
+   "h": 12,
+   "ix": 1046,
+   "iy": 460,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura7_tree_25",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 228,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 140,
+   "iy": 65,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "wedding_stage",
+   "image": "assets/props/wedding_stage.png",
+   "x": 528,
+   "y": 262,
+   "w": 384,
+   "h": 20,
+   "ix": 528,
+   "iy": 96,
+   "solid": true,
+   "sortY": -1
+  },
+  {
+   "type": "npc",
+   "id": "jeomnye",
+   "sprite": "jeomnye",
+   "x": 708,
+   "y": 172,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "down",
+   "wander": 0,
+   "hidden": true,
+   "unless": "sakura7_scene_done"
+  },
+  {
+   "type": "npc",
+   "id": "choimis",
+   "sprite": "choimis_masked",
+   "x": 880,
+   "y": 236,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "left",
+   "wander": 0,
+   "hidden": true,
+   "unless": "sakura7_scene_done"
+  },
+  {
+   "type": "npc",
+   "id": "choimis_bare",
+   "sprite": "choimis",
+   "x": 764,
+   "y": 236,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0,
+   "hidden": true,
+   "unless": "sakura7_scene_done"
+  },
+  {
+   "type": "npc",
+   "id": "domijorim",
+   "sprite": "domijorim",
+   "x": 764,
+   "y": 236,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "facing": "down",
+   "wander": 0,
+   "hidden": true,
+   "unless": "sakura7_scene_done"
+  },
+  {
+   "type": "prop",
+   "id": "discord_mask",
+   "image": "assets/props/discord_mask.png",
+   "x": 708,
+   "y": 196,
+   "w": 0,
+   "h": 0,
+   "ix": 697,
+   "iy": 156,
+   "solid": false,
+   "hidden": true,
+   "unless": "sakura7_scene_done"
+  },
+  {
+   "type": "npc",
+   "id": "crowd_1",
+   "sprite": "gasuni1",
+   "x": 530,
+   "y": 336,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_2",
+   "sprite": "gasuni2",
+   "x": 595,
+   "y": 338,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_3",
+   "sprite": "gasuni3",
+   "x": 647,
+   "y": 340,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_4",
+   "sprite": "gasuni4",
+   "x": 699,
+   "y": 342,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_5",
+   "sprite": "gasuni5",
+   "x": 751,
+   "y": 344,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_6",
+   "sprite": "gasuni6",
+   "x": 803,
+   "y": 337,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_7",
+   "sprite": "gasuni1",
+   "x": 855,
+   "y": 339,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_8",
+   "sprite": "gasuni2",
+   "x": 542,
+   "y": 387,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_9",
+   "sprite": "gasuni3",
+   "x": 594,
+   "y": 389,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_10",
+   "sprite": "gasuni4",
+   "x": 646,
+   "y": 382,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_11",
+   "sprite": "gasuni5",
+   "x": 698,
+   "y": 384,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_12",
+   "sprite": "gasuni6",
+   "x": 750,
+   "y": 386,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_13",
+   "sprite": "gasuni1",
+   "x": 802,
+   "y": 388,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "crowd_14",
+   "sprite": "gasuni2",
+   "x": 854,
+   "y": 390,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0
+  },
+  {
+   "type": "prop",
+   "id": "throw_1",
+   "image": "assets/props/throw_tomato.png",
+   "x": 534,
+   "y": 336,
+   "w": 16,
+   "h": 16,
+   "ix": 534,
+   "iy": 336,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_2",
+   "image": "assets/props/throw_egg.png",
+   "x": 601,
+   "y": 339,
+   "w": 12,
+   "h": 15,
+   "ix": 601,
+   "iy": 339,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_3",
+   "image": "assets/props/throw_paper.png",
+   "x": 652,
+   "y": 341,
+   "w": 15,
+   "h": 15,
+   "ix": 652,
+   "iy": 341,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_4",
+   "image": "assets/props/throw_apple.png",
+   "x": 705,
+   "y": 341,
+   "w": 13,
+   "h": 19,
+   "ix": 705,
+   "iy": 341,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_5",
+   "image": "assets/props/throw_tomato.png",
+   "x": 755,
+   "y": 344,
+   "w": 16,
+   "h": 16,
+   "ix": 755,
+   "iy": 344,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_6",
+   "image": "assets/props/throw_egg.png",
+   "x": 809,
+   "y": 338,
+   "w": 12,
+   "h": 15,
+   "ix": 809,
+   "iy": 338,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_7",
+   "image": "assets/props/throw_paper.png",
+   "x": 860,
+   "y": 340,
+   "w": 15,
+   "h": 15,
+   "ix": 860,
+   "iy": 340,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_8",
+   "image": "assets/props/throw_apple.png",
+   "x": 548,
+   "y": 386,
+   "w": 13,
+   "h": 19,
+   "ix": 548,
+   "iy": 386,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_9",
+   "image": "assets/props/throw_tomato.png",
+   "x": 598,
+   "y": 389,
+   "w": 16,
+   "h": 16,
+   "ix": 598,
+   "iy": 389,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_10",
+   "image": "assets/props/throw_egg.png",
+   "x": 652,
+   "y": 383,
+   "w": 12,
+   "h": 15,
+   "ix": 652,
+   "iy": 383,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_11",
+   "image": "assets/props/throw_paper.png",
+   "x": 703,
+   "y": 385,
+   "w": 15,
+   "h": 15,
+   "ix": 703,
+   "iy": 385,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_12",
+   "image": "assets/props/throw_apple.png",
+   "x": 756,
+   "y": 385,
+   "w": 13,
+   "h": 19,
+   "ix": 756,
+   "iy": 385,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_13",
+   "image": "assets/props/throw_tomato.png",
+   "x": 806,
+   "y": 388,
+   "w": 16,
+   "h": 16,
+   "ix": 806,
+   "iy": 388,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "throw_14",
+   "image": "assets/props/throw_egg.png",
+   "x": 860,
+   "y": 391,
+   "w": 12,
+   "h": 15,
+   "ix": 860,
+   "iy": 391,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "trigger",
+   "id": "sakura7_scene_trigger",
+   "x": 576,
+   "y": 640,
+   "w": 64,
+   "h": 128,
+   "once": true,
+   "flag": "sakura7_scene_started",
+   "unless": "sakura7_scene_done",
+   "script": "jjajang_sakura7_scene"
+  },
+  {
+   "type": "door",
+   "id": "sakura7_west_door",
+   "x": 0,
+   "y": 640,
+   "w": 10,
+   "h": 128,
+   "to": "jjajang_sakura6",
+   "spawn": "from_east",
+   "sfx": false
+  }
+ ]
+}

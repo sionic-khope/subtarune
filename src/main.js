@@ -15,7 +15,7 @@ import { StreamChat } from './ui/chat.js';
 import { SysDialog } from './ui/sysdialog.js';
 import { Vortex } from './ui/vortex.js';
 import { BattlePreview } from './ui/battle-preview.js';
-import { DotBubble } from './ui/bubble.js';
+import { DotBubble, TextBalloon } from './ui/bubble.js';
 import { darkSmokeWaiter, drawDarkSmoke } from './ui/dark-smoke.js';
 import { TileMap, Camera, createEntity, freeSpot, SCREEN_W, SCREEN_H, CHAR_SCALE, RENDER_SCALE } from './world/world.js';
 import { loadTileOverrides, TILE } from './world/tiles.js';
@@ -179,7 +179,7 @@ class Game {
     void this.sound.loadSfxFiles(TITLE_SFX);
     void this.sound.loadVoiceFiles(Object.keys(VOICES));
     setTimeout(() => {
-      this.scheduleSfxPreload(['kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
+      this.scheduleSfxPreload(['kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
       void this.sound.loadWalkLoop(WATER_WALK);
     }, 3000);
     this.characterMotions = {};
@@ -199,6 +199,7 @@ class Game {
       onClose: () => this.closeBattlePreview(),
     });
     this.bubble = new DotBubble();       // 머리 위 '...' 말풍선 (컷신 {bubble})
+    this.balloon = new TextBalloon();    // 머리 위 글 말풍선 (컷신 {balloon}, BUILD278) — 어둠 위에 그린다
     this.playerSprite = 'hyungsub';   // 기본 주인공 = 형섭 (기존 파란 후드 문자 도트는 사용 안 함)
     // 개발용: ?map=test&spawn=start 로 타이틀/오프닝 건너뛰고 바로 진입
     const q = new URLSearchParams(location.search);
@@ -571,7 +572,7 @@ class Game {
     for (const entity of this.entities) entity.motion = null;
     this.background = []; this.curtain = null; this.picture = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
-    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner?.finish(); this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
+    this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner?.finish(); this.runner = null; this.bubble.done = true; this.balloon.done = true; this.fx = []; this.prompt = null;
     this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = []; this.petals = null; this.tileSpread = null; this.bloomArmed = false; this.sweep = null;
     this.fadeTo(1, 0.4, () => {
       this.resetState();
@@ -1157,7 +1158,7 @@ class Game {
       if (tw.t >= tw.dur) { this.zoom.s = tw.to; this.zoom.tween = null; if (tw.cb) tw.cb(); }
     }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
-    this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt);
+    this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt); this.balloon.update(dt);
     // 컷신 footsteps 오버라이드: 주인공 update 가 대화 중 돌지 않아도 이 구역 걸음 루프를 매 프레임 살려 둔다(BUILD226 “뒤에서 또 다른 걸음소리”)
     if (this.footstepsOverride) this.sound?.walk?.(this.footstepsOverride);
     if (this.worldSpin?.speed) {   // 컷신 { worldSpin, turns }: turns 바퀴를 돌면 멈추고 원위치
@@ -1504,6 +1505,7 @@ class Game {
     if (!stageLit && vision) this.drawVision(ctx, cam, vision);
     drawEditorUnionLabels(ctx, this, cam);
     for (const e of this.entities) if (e.drawOverlay && !e.dead) e.drawOverlay(ctx, cam);   // 어두움 위에 그리는 것(낙석 빛기둥 등)
+    this.balloon.draw(ctx, cam);   // 글 말풍선은 어둠·스포트라이트 위에(BUILD278: 어둠 속 최미스의 “아니. 그대여.”)
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
     if (this.petals) this.petals.draw(ctx);   // 꽃잎은 어둠(dim) 위에 화면 좌표로(BUILD261)

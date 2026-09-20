@@ -97,5 +97,5 @@ test('test_sakura6_masked_choimis_assets_and_qa_points', () => {
   const qa = id => QA_POINTS.find(q => q.id === id);
   assert.deepEqual([qa('jjajang_sakura6').spawn, qa('jjajang_sakura6_dock').spawn, qa('jjajang_sakura6_plaza').spawn, qa('jjajang_sakura6_east').spawn], ['from_west', 'dock', 'plaza', 'east']);
   assert.ok(qa('jjajang_sakura6').flags.sakura5_clearing_scene_done && qa('jjajang_sakura6').flags.sakura5_girls_left && !qa('jjajang_sakura6_plaza').flags.sakura6_scene_done && qa('jjajang_sakura6_east').flags.sakura6_scene_done);
-  const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura6') > ids.indexOf('jjajang_sakura5_clearing') && ids.indexOf('jjajang_sakura6_east') === ids.length - 1, 'QA 순서: 벚꽃 숲 5 뒤, 마지막은 연출 끝');
+  const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura6') > ids.indexOf('jjajang_sakura5_clearing') && ids.indexOf('jjajang_sakura6_east') > ids.indexOf('jjajang_sakura6_plaza'), 'QA 순서: 벚꽃 숲 5 뒤, 연출 끝은 그 뒤(벚꽃 숲 7 이 이어진다)');
 });

@@ -1,0 +1,6 @@
+# imagegen 2026-09-20 23:46:07
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+
+Pixel art sprite sheet with EXACTLY 4 cells in a 2x2 grid on a 1024x1024 canvas (invisible equal 512px cells, no grid lines, no labels, no text). Solid pure #FF00FF magenta background everywhere, no ground, no shadows. Each cell: ONE small throwable object seen slightly from above, filling about 55% of its cell and centered, drawn in chunky retro pixel art with flat limited shades and a dark outline. Top-left: a ripe red tomato with a small green stem. Top-right: a white chicken egg. Bottom-left: a crumpled ball of grey-white trash paper. Bottom-right: a bitten brown-red apple core. Crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

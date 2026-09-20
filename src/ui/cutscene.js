@@ -31,6 +31,9 @@
 //  { tiles:'키' } 맵 tileSwaps 적용(다리 내려옴 등)
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
+//  { balloon:id, say:'글', hold?, cps? } 머리 위 말풍선에 글(대화창 없이, 어둠 위에 그려져 화자가 안 보여도 풍선은 보인다 — BUILD278 “최미스 말풍선만”). text 키는 대사 상자로 잡히므로 say
+//  { action:fn } { set:{flag} } 는 parallel/async 가지 안에서도 된다(BUILD278: 전엔 가지 안에서 조용히 무시됐다 — 관객 던지기 목표 계산이 안 돼 하나도 안 날아갔다)
+//  { dim:0~1, duration? } 맵 어둠(맵 JSON dim)을 서서히   { spotlight:{x,y,rx,ry,alpha}|null, duration? } 어둠 위 둥근 빛(맵 JSON spotlight)을 켜고 끈다 — 무대 연출(BUILD278)
 //  { hop:..., spin?:2, keep?:true } 소품도 날린다(빙글 회전, 끼임 보정 생략)   { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { fling:id, vx, vup, spin?, gravity?, duration?, sfx? } 속도·중력으로 튀어나가 사라짐(동상 펑)   { emote:id, kind:'!'|'sweat', duration?, hold?, sfx? } 머리 위 느낌표/식은땀('!' 은 기본 chime, 동시 여러 명이면 한 번)   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
 //  { drop:id|[ids], height?:260, duration?:0.5, sfx?:'jump'|false, land?:'thud'|false, quake?:amp } 위에서 제자리로 떨어져 착지   { rise:id|[ids], height?:340, duration?:1.6, sfx? } 함께 하늘로 떠오름(끝나도 떠 있음 — 뒤에 map/hide)   { picture:{ src, from:[sx,sy,sw,sh], to?, duration? } | null } 전체화면 그림(원본 px 사각형을 화면에 채우고 from→to 로 천천히 훑음, 대화창은 그 위)   { map:…, bgm:false } 는 changeMap 에 bgm 끄기 전달
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
@@ -55,6 +58,7 @@ import { shipHatchWaiter } from '../world/ship-hatch.js';
 import { youngcleCageDropWaiter } from '../scenes/youngcle-lounge-effects.js';
 import { editorUnionWaiter } from '../scenes/editor-union-effects.js';
 import { WATER_WALK } from '../data/footsteps.js';
+import { MAPS } from '../data/maps.js';   // { dim } { spotlight } — 렌더러가 읽는 맵 정의(game.map.def 는 복사본)
 import { drumDevilThrowWaiter } from '../scenes/drum-devil-intro.js';
 
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -409,6 +413,29 @@ export function makeWaiter(game, node) {
     return done;
   }
   if (node.tiles) { game.applyTiles(node.tiles); return done; }
+  if (node.action) {                                   // { action:fn } — 가지(parallel/async/sequence) 안에서도 실행(맨 위에서는 dialogue.js 가 먼저 처리한다). 프로미스를 돌려주면 끝날 때까지 기다림
+    const result = node.action(game); if (result?.then) { let finished = false; result.then(() => { finished = true; }); return { update: () => finished }; }
+    return done;
+  }
+  if (node.set) { for (const [k, v] of Object.entries(node.set)) game.setFlag(k, v); return done; }   // { set:{flag:true} } 가지 안에서도
+  if (node.balloon) {                                  // { balloon:id, say, hold?, cps? } — 머리 위 말풍선에 글(대화창 없이). 다 찍히고 hold 뒤 사라질 때까지 기다림. 어둠(dim) 위에 그려진다
+    const e = findEntity(game, node.balloon); if (!e) return done;
+    game.textbox.close(); game.balloon.start(e, { text: node.say ?? '', hold: node.hold, cps: node.cps });
+    return { update: () => game.balloon.done };
+  }
+  if (node.dim !== undefined) {                        // { dim:0~1, duration?:0 } 맵 어둠을 서서히(무대 “화면이 점차 어두워짐”). 대화창/UI 는 어두워지지 않는다. 맵 정의를 바꾸므로 연출 끝에 되돌린다
+    const def = MAPS[game.mapId]; if (!def) return done;
+    const from = def.dim || 0, to = node.dim, dur = node.duration ?? 0; let t = 0;
+    if (!dur) { def.dim = to; return done; }
+    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); def.dim = from + (to - from) * k; return k >= 1; } };
+  }
+  if (node.spotlight !== undefined) {                  // { spotlight:{x,y,rx,ry,alpha}|null, duration?:0 } 어둠 위 둥근 빛을 켜고(alpha 0→값) 끈다(null)
+    const def = MAPS[game.mapId]; if (!def) return done;
+    if (!node.spotlight) { def.spotlight = null; return done; }
+    const target = { ...node.spotlight }, dur = node.duration ?? 0, a1 = target.alpha ?? 0.3; let t = 0;
+    def.spotlight = { ...target, alpha: dur ? 0 : a1 }; if (!dur) return done;
+    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); def.spotlight.alpha = a1 * k; return k >= 1; } };
+  }
   if (node.bubble) {                                   // { bubble:'player'|id, dots?, gap?, hold? } — 머리 위 '...' 말풍선, 다 찍히고 사라질 때까지 기다림
     const e = Array.isArray(node.bubble) ? node.bubble.map(id => findEntity(game, id)).filter(Boolean) : findEntity(game, node.bubble);
     if (!e || (Array.isArray(e) && !e.length)) return done;

@@ -22,7 +22,7 @@ function fixture(flags = {}) {
     propImages: { sheet: { width: 120, height: 80 } }, booms: [],
     textbox: {}, sound: { muted: false }, sunrise: { update() {}, dispose() {} },
     fade: {}, zoom: {}, chat: { update() {} }, sysdialog: { update() {} },
-    vortex: { update() {} }, bubble: { update() {} }, entities: [], fx: [], ripples: [],
+    vortex: { update() {} }, bubble: { update() {} }, balloon: { update() {} }, entities: [], fx: [], ripples: [],
     flames: [], flameEmitters: [], background: [], dialogue: { running: false },
     maillardArrival: { update() {}, dispose() {} },
     preparedMaps: new Set(['maillard_captain', 'other']), preparedCharacters: new Set(['hyungsub']),

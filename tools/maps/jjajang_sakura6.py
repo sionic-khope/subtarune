@@ -9,7 +9,7 @@
 """벚꽃 숲 6(jjajang_sakura6, BUILD277 사용자 브리핑 2026-09-20 — 원문 design/narrative/cutscenes/jjajang_sakura6.md):
 "그냥 벚꽃길 오른쪽에 있다가 쭉가는 그땟목맵 5초정도 넣고 바로 오른쪽가는맵" / "땟목내리고 오른쪽가면 광장처럼 살짝 동그란 부분있는데 거기서카메라 오른쪽 이동하면서 연출시작"
 - 벚꽃 숲 5 오른쪽 끝 문에서 서쪽 가장자리로 들어와(10~13행 길) 오른쪽으로 → 물가(9열) → 파란 물길 '['(10~37열 × 9~14행, 막힘) 위 뗏목(raft.png, 171px/s, 벚꽃 숲 3 과 같은 뗏목·걸어 올라타기·동료 헤엄)
-  으로 오른쪽으로 곧장 28칸(≈ 4.9초) → 뭍(38열~) → 살짝 동그란 광장(타원 13×9칸, 중심 56열·12행) → 오른쪽 길 → 동쪽 끝(다음 맵은 아직 없음).
+  으로 오른쪽으로 곧장 28칸(≈ 4.9초) → 뭍(38열~) → 살짝 동그란 광장(타원 13×9칸, 중심 56열·12행) → 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 7, BUILD278).
 - 광장 들머리(46~47열) 트리거 → 최미스 고백 연습 연출(`jjajang_sakura6_scene`): 카메라가 광장 가운데로 천천히, 가면 쓴 최미스가 가운데 옆 꽃 무더기(sakura_flowers 1~4) 사이를 따며 움직인 뒤 가운데로.
   최미스는 연출이 끝나면 오른쪽으로 떠난다(맵 NPC unless sakura6_scene_done). 꽃 무더기는 소품(색키·축소한 gpt-image, assets/source/sakura6-v1).
 - 땅은 분홍 꽃잎 땅 ')', 나무는 벚꽃 판, 꽃잎 초당 18, 브금 sakura(연출에서 loving_steps 로 바뀌었다가 끝나면 다시), 발소리 없음, 전투 배경 sakura."""
@@ -138,6 +138,7 @@ def build_map() -> dict[str, object]:
             seen.add((col, row)); trees.append(t)
     scene = {'type': 'trigger', 'id': 'sakura6_scene_trigger', 'x': SCENE_COLS[0] * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': (SCENE_COLS[1] - SCENE_COLS[0] + 1) * TILE, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE,
              'once': True, 'flag': 'sakura6_scene_started', 'unless': SCENE_FLAG, 'script': 'jjajang_sakura6_scene'}
+    door_east = {'type': 'door', 'id': 'sakura6_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura7', 'spawn': 'from_west', 'sfx': False}   # BUILD278: 오른쪽 끝 → 벚꽃 숲 7(무대)
     door_west = {'type': 'door', 'id': 'sakura6_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura5', 'spawn': 'from_east', 'sfx': False}
     road_y = (ROAD_ROWS[0] + 1) * TILE + 6
     east_col = int(PLAZA[0] + PLAZA[2]) + 2
@@ -151,17 +152,18 @@ def build_map() -> dict[str, object]:
             'landing': {'x': (LANDING_COL + 1) * TILE + 4, 'y': road_y, 'facing': 'right'},
             'plaza': {'x': (SCENE_COLS[0] - 2) * TILE + 4, 'y': road_y, 'facing': 'right'},
             'east': {'x': east_col * TILE + 4, 'y': road_y, 'facing': 'right'},
+            'from_east': {'x': (WIDTH - 2) * TILE + 4, 'y': road_y, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
             'route': [[1, ROAD_ROWS[0] + 1], [SHORE_COL - 1, ROAD_ROWS[0] + 1]],
-            'role': '벚꽃 숲 5 오른쪽 끝 문 다음(BUILD277): 오른쪽으로 → 물가 → 뗏목으로 오른쪽 5초 → 뭍 → 살짝 동그란 광장(최미스 고백 연습 연출, 가운데 옆 꽃 무더기) → 오른쪽 길(다음 맵은 아직 없음). 브금 sakura, 발소리 없음',
+            'role': '벚꽃 숲 5 오른쪽 끝 문 다음(BUILD277): 오른쪽으로 → 물가 → 뗏목으로 오른쪽 5초 → 뭍 → 살짝 동그란 광장(최미스 고백 연습 연출, 가운데 옆 꽃 무더기) → 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 7, BUILD278). 브금 sakura, 발소리 없음',
             'petals': PETALS,
             'sakura6': {'roadRows': list(ROAD_ROWS), 'shoreCol': SHORE_COL, 'channel': [list(CHANNEL_COLS), list(CHANNEL_ROWS)], 'landingCol': LANDING_COL,
                         'plaza': list(PLAZA), 'center': [cx_px, cy_px], 'sceneCols': list(SCENE_COLS), 'rideSeconds': round(ride_px / RAFT_SPEED, 2),
                         'roadY': road_y, 'choimis': [choimis_x, choimis_y], 'flowers': [[f['x'], f['y']] for f in flowers]},
         },
-        'entities': [*trees, raft, *flowers, choimis, scene, door_west],
+        'entities': [*trees, raft, *flowers, choimis, scene, door_west, door_east],
     }
 
 

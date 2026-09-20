@@ -61,6 +61,11 @@
    "x": 2052,
    "y": 358,
    "facing": "right"
+  },
+  "from_east": {
+   "x": 2180,
+   "y": 358,
+   "facing": "left"
   }
  },
  "meta": {
@@ -75,7 +80,7 @@
     11
    ]
   ],
-  "role": "벚꽃 숲 5 오른쪽 끝 문 다음(BUILD277): 오른쪽으로 → 물가 → 뗏목으로 오른쪽 5초 → 뭍 → 살짝 동그란 광장(최미스 고백 연습 연출, 가운데 옆 꽃 무더기) → 오른쪽 길(다음 맵은 아직 없음). 브금 sakura, 발소리 없음",
+  "role": "벚꽃 숲 5 오른쪽 끝 문 다음(BUILD277): 오른쪽으로 → 물가 → 뗏목으로 오른쪽 5초 → 뭍 → 살짝 동그란 광장(최미스 고백 연습 연출, 가운데 옆 꽃 무더기) → 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 7, BUILD278). 브금 sakura, 발소리 없음",
   "petals": {
    "rate": 18,
    "burst": 0,
@@ -1095,6 +1100,17 @@
    "h": 128,
    "to": "jjajang_sakura5",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura6_east_door",
+   "x": 2230,
+   "y": 320,
+   "w": 10,
+   "h": 128,
+   "to": "jjajang_sakura7",
+   "spawn": "from_west",
    "sfx": false
   }
  ]
