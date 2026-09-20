@@ -28,3 +28,4 @@
 - 자세 그리드(2×2, 참조 = 채택 시트 0.5배): `domijorim-heumi`(웅크림→두 팔 번쩍 외침→유지→복귀), `domijorim-leap`(웅크림→공중 홍어 뽑음→착지 횃불→전투 자세), `dohyun-wave`(손 들어 인사), `dohyun-leap`(웅크림→공중→착지 손 듦→자세). `poses_export.py` 가 128 칸 4프레임 띠(`assets/sprites/<name>-<motion>.png`, 발 [64,120])로 만든다 — 배율은 그리드의 서 있는 칸 키 = 걷기 키 × 보정(팔 든 자세 1.02~1.18)으로 네 칸 공통.
 - 전투 그림 2차: `domijorim-battle2-raw.png`(2등신, 왼쪽 아래 3/4, 홍어+횃불) → `assets/enemies/domijorim-battle.png` 150×143, `dohyun-battle2-raw.png`(손 든 3/4) → `dohyun-battle.png` 50×149(def scale 0.72).
 - 목소리 재조정: `voices/dohyun.mp3` = snd_txtal 1.1배 + lowpass 3.2kHz + 페이드(loudnorm 제거 — “지지직”), `voices/domijorim.mp3` = janitor 0.92배 + bass +7dB + lowpass 2.2kHz(“더 굵게 낮게”).
+- (3차, 사용자 “44초에 소리라고”) 1:14:43.20 부터 1.25초로 재절단(음성인식이 ‘아워’로 적은 1:14:42.9~44.06 발성 구간 = 흐미~). 1:14:46.8 절단은 폐기.
