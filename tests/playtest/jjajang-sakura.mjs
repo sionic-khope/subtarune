@@ -1,4 +1,4 @@
-// 벚꽃 숲(jjajang_sakura, BUILD261~262): QA jjajang_sakura 에서 브금 sakura·꽃잎 조금·발소리 없음 → 위로 달려 넓은 풀숲 초입 트리거(예약) → 브금 하이라이트 11.0초에 거대 벚꽃 대각선 sweep(2.5초)·꽃잎 폭발·땅과 나무가 번지듯 분홍으로 → 위로 → 오른쪽으로 꺾어 끝까지 → 재진입 땐 처음부터 핀 상태. 실행: tests/playtest/run.sh jjajang-sakura
+// 벚꽃 숲(jjajang_sakura, BUILD261~262): QA jjajang_sakura 에서 브금 sakura·꽃잎 조금·발소리 없음 → 위로 달리는 동안 브금 7.3초에 자동으로 거대 벚꽃 대각선 sweep(2.5초)·꽃잎 폭발·땅과 나무가 번지듯 분홍으로 → 위로 → 오른쪽으로 꺾어 끝까지 → 재진입 땐 처음부터 핀 상태. 실행: tests/playtest/run.sh jjajang-sakura
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -26,13 +26,15 @@ try {
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(700);
   const walking = await state(); await page.keyboard.up('ArrowUp');
   check(!walking.walkLoop && walking.row < s.row, `걷는 동안 발소리 루프 없음(walkLoop ${walking.walkLoop}, ${s.row}→${walking.row}행)`);
-  // 기본이 달리기(≈220px/s): 54행 길을 달리면 브금 하이라이트(11.0초) 전에 풀숲 초입에 닿아 예약(bloomArmed) → 하이라이트 순간에 거대 벚꽃 sweep + 번짐(사용자 “몇초 걷다가 브금 하이라이트때 쫙”)
-  check(await go('ArrowUp', 'g.flags.sakura_bloom', 30000), '위로 달려 넓은 풀숲 초입 → 플래그 sakura_bloom');
-  const armed = await ev(() => ({ armed: window.game.bloomArmed, spread: !!window.game.tileSpread, bgm: +(window.game.bgmTime() ?? -1).toFixed(2), atBgm: window.game.map.def.meta.bloom.atBgm }));
-  check(armed.armed && !armed.spread && armed.bgm >= 0 && armed.bgm < armed.atBgm, `하이라이트 전에 닿아 예약만(브금 ${armed.bgm}초 < ${armed.atBgm}) ${JSON.stringify(armed)}`);
-  check(await until(() => !!window.game.tileSpread, 12000), '브금 하이라이트에 번짐 시작');
+  // 브금 7.3초에 자동(사용자 “7.3초때 시작하자마자 나오면 될듯”): 트리거와 무관하게 예약돼 있다가 그 순간 거대 벚꽃 sweep + 번짐(주인공은 아직 아래 길 위)
+  const armed = await ev(() => { const g = window.game; const b = g.map.def.meta.bloom, t = g.bgmTime(); return { armed: g.bloomArmed, spread: !!g.tileSpread, bgm: +(t ?? -1).toFixed(2), atBgm: +(g.bloomAt + b.lead).toFixed(2) }; });
+  check(armed.armed && !armed.spread && armed.bgm >= 0 && armed.bgm < 7.3 && armed.atBgm === 7.3, `브금이 돌자 7.3초로 예약(지금 ${armed.bgm}초) ${JSON.stringify(armed)}`);
+  await page.keyboard.down('ArrowUp');
+  check(await until(() => !!window.game.tileSpread, 12000), '위로 달리는 동안 브금 7.3초에 번짐 시작(트리거 전)');
+  await page.keyboard.up('ArrowUp');
+  const rowAt = await ev(() => Math.floor((window.game.player.y + window.game.player.h) / 32)); check(rowAt > 35 && !!(await ev(() => window.game.flags.sakura_bloom)), `아직 아래 길(${rowAt}행)인데 주인공 행에서 번진다 · 플래그 sakura_bloom`);
   const fired = await ev(() => ({ bgm: +(window.game.bgmTime() ?? -1).toFixed(2), sweep: !!window.game.sweep, sweepT: +(window.game.sweep?.t ?? -1).toFixed(2), img: !!window.game.sweep?.image, petalImg: !!window.game.sweep?.petal }));
-  check(Math.abs(fired.bgm - armed.atBgm) < 0.35 && fired.sweep && fired.img && fired.petalImg, `브금 ${fired.bgm}초(하이라이트 ${armed.atBgm}) 에 거대 벚꽃 sweep 시작 ${JSON.stringify(fired)}`);
+  check(fired.bgm >= 7.3 - 0.12 && fired.bgm <= 7.3 + 0.15 && fired.sweep && fired.img && fired.petalImg, `브금 ${fired.bgm}초(지정 7.3, 리드 0.06) 에 거대 벚꽃 sweep 시작 ${JSON.stringify(fired)}`);
   await page.waitForTimeout(1250); s = await state(); await cap('01_sweep');   // sweep 2.5초의 한가운데
   const mid = await ev(() => { const g = window.game; const c = document.querySelector('canvas'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let big = 0; for (let i = 0; i < d.length; i += 8) if (d[i] > 200 && d[i + 1] > 120 && d[i + 1] < 215 && d[i + 2] > 170) big++; return { t: +(g.sweep?.t ?? -1).toFixed(2), pinkPixels: big / (d.length / 8) }; });
   check(mid.t > 0.9 && mid.t < 1.8 && mid.pinkPixels > 0.03, `sweep 중간(1.25초)에 큰 벚꽃이 화면에 있다 ${JSON.stringify(mid)}`);

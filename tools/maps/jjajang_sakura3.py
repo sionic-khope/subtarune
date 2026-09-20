@@ -9,7 +9,7 @@
 """벚꽃 숲 3(jjajang_sakura3, BUILD264 사용자 브리핑 2026-09-20 — 원문 design/narrative/cutscenes/jjajang_sakura2.md):
 "그다음에 위로 맵 가면 위로갓다가 오른쪽으로 가는길, 그리고 떗목 오른쪽으로 파란물 길 만들어주고 땟목 타서 오른쪽으로 가고 아래로 가는 맵도 찍어줘 … 땟목타면 한 8초정도 이동하는길이로 만들고 4초쯤에 벚꽃 좀 휘날리고도 넣어주고"
 - 벚꽃 숲 2 윗줄 문에서 아래 가장자리로 들어와(5~8열) 위로 → 23~26행에서 오른쪽으로 → 물가(16열). 파란 물길 '['(막힘): 17~46열 × 22~27행 오른쪽으로, 41~46열 × 28~45행 아래로.
-  뗏목(raft.png, 171px/s)이 물가에 떠 있고 C 로 걸어 올라타(동료는 옆에서 헤엄) 오른쪽 → 아래로 약 8.4초(1,440px) → 아래 물가 뭍(37~50열 × 46~49행)에 내린다. 4초쯤 꽃잎 휘날림(meta.rideGust).
+  뗏목(raft.png, 171px/s)이 물가에 떠 있고 C 로 걸어 올라타(동료는 옆에서 헤엄) 오른쪽 → 아래로 약 8.6초(1,472px) → 아래 물가 뭍(37~50열 × 46~49행)에 내린다. 4초쯤 꽃잎 휘날림(meta.rideGust).
 - 땅은 분홍 꽃잎 땅 ')', 나무는 벚꽃 판, 꽃잎 초당 18, 브금 sakura 유지, 발소리 없음. 아래 뭍의 다음 맵은 아직 없다."""
 from __future__ import annotations
 
@@ -69,13 +69,13 @@ def build_map() -> dict[str, object]:
     # 뗏목: 물가 바로 오른쪽 물 위(17열), 길 높이(24~25행) → 오른쪽 37열 → 아래 33행(그 아래 뭍에 내린다)
     raft_x, raft_y = CHANNEL_COLS[0] * TILE + 4, (ROAD_ROWS[0] + 1) * TILE - 4
     turn_x = (DOWN_COLS[0] + 1) * TILE + 4
-    end_y = (DOWN_END_ROW - 1) * TILE - 4
+    end_y = LANDING_ROWS[0] * TILE - 36                                   # 뗏목 아래가 뭍 첫 행에 4px 걸치게 — 뭍에서 위를 보고 C 로 다시 탈 수 있다(사용자 2026-09-20 “뗏목 반대로는 안타지네”: 전엔 물 한 행이 사이에 있어 probe 가 안 닿았다)
     raft = {'type': 'raft', 'id': 'sakura_raft', 'image': 'assets/props/raft.png', 'x': raft_x, 'y': raft_y,
             'route': [[turn_x, raft_y], [turn_x, end_y]], 'speed': RAFT_SPEED, 'walkOn': True,
             'swim': ['ppaman', 'gyeongsub'], 'swimAt': 'below'}
     ride_px = (turn_x - raft_x) + (end_y - raft_y)
     assert 7.0 <= ride_px / RAFT_SPEED <= 9.0, f'뗏목 8초쯤: {ride_px / RAFT_SPEED:.1f}초'
-    assert rows[(raft_y + 20) // TILE][(raft_x + 28) // TILE] == WATER and rows[(end_y + 20) // TILE][(turn_x + 28) // TILE] == WATER, '뗏목 경로는 물 위'
+    assert rows[(raft_y + 20) // TILE][(raft_x + 28) // TILE] == WATER and rows[(end_y + 16) // TILE][(turn_x + 28) // TILE] == WATER, '뗏목 경로는 물 위'
     assert rows[LANDING_ROWS[0]][(turn_x + 28) // TILE] == GROUND, '내리는 곳은 뭍'
     cells: list[tuple[int, int]] = []
     for row in range(ENTRY_TOP + 2, HEIGHT - 1, 3):                       # 입구 길 양옆

@@ -44,10 +44,10 @@ test('test_sakura_bloom_swaps_every_dark_meadow_row_and_trees_have_same_size_blo
     assert.deepEqual(pngSize(t.bloom), pngSize(t.image), `${t.bloom} 크기가 소나무와 같다(그림만 바꿔도 밑동 그대로)`);
     assert.ok(m.preload.includes(t.bloom), '벚꽃 판은 preload 로 미리 적재');
   }
-  assert.deepEqual(m.meta.bloom, { flag: 'sakura_bloom', tiles: 'sakura_bloom', speed: 8, atBgm: 11.0, sweep: { duration: 2.5, image: 'assets/props/sakura_blossom_big.png', petal: 'assets/props/sakura_petal_big.png', trail: 7 } });
+  assert.deepEqual(m.meta.bloom, { flag: 'sakura_bloom', tiles: 'sakura_bloom', speed: 8, atBgm: 7.3, lead: 0.06, auto: true, sweep: { duration: 2.5, image: 'assets/props/sakura_blossom_big.png', petal: 'assets/props/sakura_petal_big.png', trail: 7 } });
   for (const src of [m.meta.bloom.sweep.image, m.meta.bloom.sweep.petal]) { assert.ok(existsSync(new URL(`../../${src}`, import.meta.url)), `${src} 있음`); assert.ok(m.preload.includes(src), `${src} preload`); }
   const rowsPerSecondRunning = 220 / 32, entryRows = m.meta.sakura.entryRows[1] - m.meta.sakura.entryRows[0] + 1;
-  assert.ok(entryRows / rowsPerSecondRunning + 0.8 < m.meta.bloom.atBgm, `달리면 하이라이트(${m.meta.bloom.atBgm}초) 전에 풀숲 초입에 닿는다(${(entryRows / rowsPerSecondRunning).toFixed(1)}초)`);
+  assert.ok(m.meta.bloom.auto && m.meta.bloom.atBgm < entryRows / rowsPerSecondRunning + 0.8, '브금 7.3초 자동 발화 — 달려도 아직 아래 길 위(주인공 행에서 번진다)');
   const p = m.meta.petals; assert.ok(p.rate < p.after && p.after < p.burstRate && p.burst > 100, `꽃잎 밀도 조금 → 폭발 → 계속 ${JSON.stringify(p)}`);
 });
 

@@ -11,7 +11,7 @@
  좀 넓은 풀숲도 나오고 분홍 꽃잎이 맵 전체에 아주많이 깔리면서 그때부터 땅이 분홍색 꽃들로 다 바뀌는 맵 연출 (맵 자체가 조건부로 변하는 느낌, 배경 검은색 짜장은 비슷)
  그 화면 나온뒤에 살짝 더 올라가서 오른쪽으로 꺾어서 좀 걸어가게 / 근처 나무들도 분홍색으로 벚꽃이 전체를 덮으며 다 바뀌고 그 뒤에도 작은 벚꽃들은 계속 떨어짐 / 벚꽃맵부터는 발소리 안나게"
 - 빛 드는 공터(jjajang_glade) 위 문에서 아래 가장자리로 들어와 13~16열 곧은 길(검은 풀숲 땅 '(' — 발소리 없음)을 위로 54행(기본 달리기 ≈ 8초, X 천천히 걷기 ≈ 14초) → 20~35행의 넓은 풀숲(5~24열) → 다시 13~16열 길 → 8~11행에서 오른쪽으로 꺾어 오른쪽 가장자리 문(BUILD264: 벚꽃 숲 2)까지.
-- 넓은 풀숲 초입(34~35행) 트리거 한 번 → jjajang_sakura_bloom: 플래그 sakura_bloom + bloom() 예약 → **브금 하이라이트(BLOOM_AT_BGM 초, 첫 큰 악센트)에** 거대 벚꽃이 화면을 대각선으로 2.5초 가로지르며(sweep) 꽃잎 폭발, 주인공 행에서부터 tileSwaps.sakura_bloom('(' → ')' 분홍 꽃잎 땅)과 소나무(jjajang_pine_dark_N → jjajang_sakura_N, 같은 크기) 그림이 번진다(멈춤 없음). 브금이 이미 지났으면 바로.
+- 넓은 풀숲 초입(34~35행) 트리거 한 번 → jjajang_sakura_bloom: 플래그 sakura_bloom + bloom() 예약 → **브금 7.3초(BLOOM_AT_BGM, 자동)에** 거대 벚꽃이 화면을 대각선으로 2.5초 가로지르며(sweep) 꽃잎 폭발, 주인공 행에서부터 tileSwaps.sakura_bloom('(' → ')' 분홍 꽃잎 땅)과 소나무(jjajang_pine_dark_N → jjajang_sakura_N, 같은 크기) 그림이 번진다(멈춤 없음). 브금이 이미 지났으면 바로.
   (2026-09-20 정정: “벚꽃길 나오기전에 좀 더 길게 … 몇초 걷다가 브금 하이라이트때 쫙 바뀌는걸 노린거라 … 딱 바뀔때는 벚꽃이 엄청 크게 화면을 한번 1초동안 대각선부터 쌰아아악”)
 - 짜장 검은 숲 '@' 그대로, 소나무는 깊은숲과 같은 어두운 판. 브금 'sakura'(델타룬 5장 Garden of Hopes and Dreams), dim 0(꽃잎·분홍이 살아야 한다)."""
 from __future__ import annotations
@@ -28,7 +28,7 @@ TILE: Final = 32
 GROUND: Final = '('                   # 검은 풀숲 땅(발소리 없음)
 BLOOM: Final = ')'                    # 분홍 꽃잎 땅(번진 뒤)
 PATH_COLS: Final = (13, 16)           # 아래 입구 길·위쪽 길
-ENTRY_ROWS: Final = (36, 89)          # 아래 곧은 길(54행: 기본 달리기 ≈ 8초 → 11.0초 하이라이트 전에 풀숲 초입에 닿는다, X 천천히 걷기 ≈ 14초). BUILD263 “2초만 더”: 40 → 54행
+ENTRY_ROWS: Final = (36, 89)          # 아래 곧은 길(54행: 기본 달리기 ≈ 8초, X 천천히 걷기 ≈ 14초). BUILD263 “2초만 더”: 40 → 54행. 번짐은 브금 7.3초에 자동(BUILD265)
 MEADOW_COLS: Final = (5, 24)          # 넓은 풀숲
 MEADOW_ROWS: Final = (20, 35)
 UPPER_ROWS: Final = (8, 19)           # 풀숲 위 곧은 길
@@ -45,7 +45,11 @@ TREES: Final = (
 )
 PETALS: Final = {'rate': 3, 'burst': 220, 'burstRate': 70, 'burstSeconds': 2.5, 'after': 18}   # 초당 꽃잎: 처음 조금씩 → 번질 때 한꺼번에 220 + 초당 70 을 2.5초 → 그 뒤 계속 18
 SPREAD_SPEED: Final = 8               # 번짐 속도(행/초): 화면(11행)이 거대 벚꽃이 지나가는 2.5초 동안 천천히 바뀐다(BUILD263 “이펙트 좀 더 슬로우”)
-BLOOM_AT_BGM: Final = 11.0            # 브금 sakura 의 하이라이트: 첫 고조의 정점(파형 RMS 로 잰 값; 길을 2초 늘리며 7.6초 첫 악센트 → 11.0초로). 다른 고조: 7.6 / 15.0 / 18.6 / 34.5(드럼 드롭)
+# 브금 sakura 의 '딱 울리는' 타이밍(사용자 2026-09-20 “브금에서 딱 울리는 그 타이밍에 바뀌게” → “7.3초때 시작하자마자 나오면 될듯”): 트리거와 무관하게 브금 7.3초에 자동으로 터진다(auto).
+#   주인공이 어디에 있든 그 행에서부터 번진다. 브금이 꺼져 있으면(음소거) 풀숲 초입 트리거가 대신 터뜨린다. lead 0.06초 = 첫 프레임이 소리와 같이 보이게
+#   (참고: 파형 onset 은 7.68 / 11.28 / 15.13 / 18.49 / 18.97 / 35.08 …초 — 사용자 지정 7.3 을 그대로 쓴다)
+BLOOM_AT_BGM: Final = 7.3
+BLOOM_LEAD: Final = 0.06
 SWEEP: Final = {'duration': 2.5, 'image': 'assets/props/sakura_blossom_big.png', 'petal': 'assets/props/sakura_petal_big.png', 'trail': 7}   # 거대 벚꽃 한 송이가 오른쪽 위에서 왼쪽 아래로 2.5초(BUILD263, 1초 → 2.5초), 큰 꽃잎 7장이 뒤따른다
 
 
@@ -136,9 +140,9 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[PATH_COLS[0] + 1, HEIGHT - 3], [PATH_COLS[0] + 1, MEADOW_ROWS[0]], [PATH_COLS[0] + 1, TURN_ROWS[0] + 1], [TURN_END_COL - 1, TURN_ROWS[0] + 1]],
-            'role': '빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 하이라이트(11.0초)에 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 오른쪽 문(벚꽃 숲 2, BUILD264). 브금 sakura, 발소리 없음',
+            'role': '빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 7.3초에(자동, 주인공 위치 무관) 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 오른쪽 문(벚꽃 숲 2, BUILD264). 브금 sakura, 발소리 없음',
             'petals': PETALS,
-            'bloom': {'flag': BLOOM_FLAG, 'tiles': BLOOM_FLAG, 'speed': SPREAD_SPEED, 'atBgm': BLOOM_AT_BGM, 'sweep': SWEEP},
+            'bloom': {'flag': BLOOM_FLAG, 'tiles': BLOOM_FLAG, 'speed': SPREAD_SPEED, 'atBgm': BLOOM_AT_BGM, 'lead': BLOOM_LEAD, 'auto': True, 'sweep': SWEEP},
             'sakura': {'entryRows': list(ENTRY_ROWS), 'meadow': [list(MEADOW_COLS), list(MEADOW_ROWS)], 'trigger': list(TRIGGER_ROWS), 'turn': [list(TURN_ROWS), TURN_END_COL], 'pathCols': list(PATH_COLS)},
         },
         'entities': [*trees, trigger, door_south, door_east],

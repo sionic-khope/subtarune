@@ -53,6 +53,13 @@ try {
   const landed = await ev(() => { const g = window.game; const r = g.entities.find(e => e.id === 'sakura_raft'); return { rideTime: +r.rideTime.toFixed(1), px: Math.round(g.player.x), py: Math.round(g.player.y), raftY: Math.round(r.y), party: [...g.party], followers: g.entities.filter(e => e.def?.type === 'follower' && e.visible !== false).length }; });
   check(landed.rideTime >= 7.5 && landed.rideTime <= 9.5, `뗏목 8초쯤 (${landed.rideTime}초)`);
   check(landed.py > landed.raftY + 20 && landed.px > t4.x && landed.followers === 2, `오른쪽으로 갔다가 아래 뭍에 내렸고 동료 둘 복귀 ${JSON.stringify(landed)}`);
+  // 반대로도 탄다(사용자 2026-09-20 “뗏목 반대로는 안타지네”): 뭍에서 뗏목 쪽(위)을 보고 C → 되돌아가 물가에 내린다
+  await press('ArrowUp'); await page.waitForTimeout(200);
+  check(await ev(() => window.game.player.facing === 'up' && !window.game.ride), '뗏목 쪽(위)을 본다');
+  await press('KeyC'); check(await until(() => window.game.ride && window.game.ride.moving, 8000), '뭍에서 C → 반대로 탄다');
+  check(await until(() => !window.game.ride, 14000), '되돌아가 물가에 내린다');
+  const back = await ev(() => { const g = window.game; const r = g.entities.find(e => e.id === 'sakura_raft'); return { px: Math.round(g.player.x), raftX: Math.round(r.x), raftY: Math.round(r.y), followers: g.entities.filter(e => e.def?.type === 'follower' && e.visible !== false).length }; });
+  check(back.raftX < 600 && back.px < back.raftX && back.followers === 2, `뗏목이 물가로 돌아오고 주인공은 뭍(왼쪽) ${JSON.stringify(back)}`); await cap('07_return');
 } catch (e) { fails += 1; console.log('FAIL exception', e.message); await cap('99_error'); }
 check(errors.length === 0, `페이지 오류 없음 ${errors.slice(0, 3).join(' | ')}`);
 await browser.close();

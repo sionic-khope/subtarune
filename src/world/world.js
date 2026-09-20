@@ -937,7 +937,8 @@ export class Raft extends Prop {
   /** 도착: 진행 방향(없으면 사방)으로 4px 씩 밀어 뗏목 밖·막히지 않은 자리에 내려놓는다 */
   _disembark(dx, dy) {
     const p = this.rider; const map = this.game.map;
-    const solidEnt = (x, y) => this.game.entities.some((o) => o !== this && o !== p && o.solid && !o.dead && o.def?.type !== 'follower' && o.overlaps({ x, y, w: p.w, h: p.h }));
+    // swimmer(헤엄치는 동료)는 뗏목 옆·아래에 붙어 있어 하차 자리를 막는다 — 곧 뭍에 오르므로 장애물로 보지 않는다(BUILD265: 세로 물길 끝에서 아래 뭍 대신 뗏목 오른쪽 끝으로 밀려나 되돌아 타지 못했다)
+    const solidEnt = (x, y) => this.game.entities.some((o) => o !== this && o !== p && o.solid && !o.dead && o.def?.type !== 'follower' && o.def?.type !== 'swimmer' && o.overlaps({ x, y, w: p.w, h: p.h }));
     const dirs = Math.abs(dx) > Math.abs(dy) ? [[Math.sign(dx), 0], [0, 1], [0, -1]] : [[0, Math.sign(dy) || 1], [1, 0], [-1, 0]];
     for (const [ux, uy] of dirs) {
       for (let k = 1; k <= 24; k++) {
@@ -959,7 +960,21 @@ export class Raft extends Prop {
   _landSwimmer() {
     if (!this.swimIds.length) return;
     for (const sw of this.swimmers) sw.dead = true; this.swimmers = []; this.swimmer = null;
-    const p = this.rider, ahead = this.dirFacing === 'left' ? -1 : 1;
+    const p = this.rider;
+    // 마지막 구간이 세로(벚꽃 숲 3: 오른쪽 → 아래, BUILD265)면 뭍 안쪽도 세로로 — 전엔 늘 가로(dirFacing)로 40px 밀어 뗏목 오른쪽 끝(물 옆)으로 나가 되돌아 탈 수 없었다
+    const a = this.route[this.at], b = this.route[this.at === 0 ? 1 : this.at - 1] || a, vertical = Math.abs(a[1] - b[1]) > Math.abs(a[0] - b[0]);
+    if (vertical) {
+      const down = a[1] > b[1] ? 1 : -1;
+      [p.x, p.y] = freeSpot(this.game, p, p.x, p.y + down * 8);   // 살짝만 — 뗏목 앞에 서서 그대로 C(probe 19px)가 닿아야 한다
+      let k = 0;
+      for (const id of this.swimIds) {
+        const f = this.game.entities.find((e) => e.def?.type === 'follower' && e.id === id); if (!f) continue; k++;
+        f.visible = true; [f.x, f.y] = freeSpot(this.game, f, p.x + (k === 1 ? -1 : 1) * (f.w + 14), p.y - down * 6); f.facing = down > 0 ? 'down' : 'up'; f.moving = false; f.frame = 0;   // 물가 쪽 양옆에 나란히
+      }
+      p.facing = down > 0 ? 'up' : 'down'; p.trail = [];   // 물(뗏목) 쪽을 본다 — 그대로 C 면 되돌아 탄다
+      return;
+    }
+    const ahead = this.dirFacing === 'left' ? -1 : 1;
     [p.x, p.y] = freeSpot(this.game, p, p.x + ahead * 40, p.y);                       // 뭍 안쪽으로 — 소품(버튼 등)·벽이면 옆 빈 칸 (2026-09-10 '도착하면 버튼에 낌')
     let k = 0;
     for (const id of this.swimIds) {

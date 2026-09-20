@@ -364,10 +364,12 @@ class Game {
     for (const [row, str] of Object.entries(sw.rows || {})) this.map.rows[+row] = str;
     if (bake) this.map.bake();
   }
-  /** 벚꽃 번짐 예약(BUILD261~262, 맵 meta.bloom = { flag, tiles, speed, atBgm?, sweep? }): atBgm 이 있고 브금이 아직 거기 못 갔으면 예약해 두고(update 가 그 순간 fireBloom), 아니면 바로 */
+  /** 벚꽃 번짐 예약(BUILD261~265, 맵 meta.bloom = { flag, tiles, speed, atBgm?, lead?, sweep? }): atBgm 은 초 하나 또는 악센트 시각 목록 — 브금이 아직 못 간 첫 시각을 골라 예약(update 가 그 순간 fireBloom), 다 지났으면 바로 */
   bloom(originRow) {
     const b = MAPS[this.mapId]?.meta?.bloom; if (!b || !this.map) return;
-    if (b.atBgm !== undefined && this.bgmTime() !== null && this.bgmTime() < b.atBgm) { this.bloomArmed = true; return; }
+    const t = this.bgmTime(), lead = b.lead ?? 0;
+    const at = t === null ? null : (Array.isArray(b.atBgm) ? b.atBgm.find(h => h - lead > t) : (b.atBgm !== undefined && b.atBgm - lead > t ? b.atBgm : undefined));
+    if (at !== null && at !== undefined) { this.bloomArmed = true; this.bloomAt = at - lead; return; }
     this.fireBloom(originRow);
   }
   /** 지금 도는 맵 브금의 재생 위치(초). 브금이 없거나 멈춰 있으면 null(→ 예약 없이 바로) */
@@ -376,6 +378,7 @@ class Game {
   fireBloom(originRow) {
     const def = MAPS[this.mapId], b = def?.meta?.bloom; this.bloomArmed = false; if (!b || !this.map) return;
     const sw = def.tileSwaps?.[b.tiles]; if (!sw) { console.warn('[bloom] 없는 tileSwaps', b.tiles); return; }
+    if (b.flag && !this.has(b.flag)) this.setFlag(b.flag);   // 자동 발화도 플래그를 세운다(재진입·트리거 unless)
     const origin = originRow ?? Math.floor((this.player.y + this.player.h) / TILE);
     this.tileSpread = createTileSpread({ origin, speed: b.speed ?? 10, rows: Object.keys(sw.rows || {}) });
     const p = def.meta?.petals;
@@ -1144,7 +1147,10 @@ class Game {
       this.petals.update(dt, SCREEN_W, SCREEN_H);
       if (this.petalsBurstT > 0) { this.petalsBurstT -= dt; if (this.petalsBurstT <= 0) this.petals.rate = MAPS[this.mapId]?.meta?.petals?.after ?? this.petals.rate; }
     }
-    if (this.bloomArmed) { const b = MAPS[this.mapId]?.meta?.bloom, t = this.bgmTime(); if (!b) this.bloomArmed = false; else if (t === null || t >= b.atBgm) this.fireBloom(); }   // 예약한 번짐은 브금 하이라이트에(브금이 멈추면 바로)
+    // meta.bloom.auto(BUILD265, 사용자 “7.3초때 시작하자마자”): 트리거와 무관하게 브금이 돌기 시작하면 atBgm 에 예약 — 주인공이 어디에 있든 그 행에서 번진다. 브금이 없으면(음소거) 트리거가 대신
+    const bm = MAPS[this.mapId]?.meta?.bloom;
+    if (bm?.auto && !this.bloomArmed && !this.tileSpread && !this.has(bm.flag)) { const t = this.bgmTime(); if (t !== null) { const lead = bm.lead ?? 0, at = Array.isArray(bm.atBgm) ? (bm.atBgm.find(h => h - lead > t) ?? t + lead) : bm.atBgm; this.bloomArmed = true; this.bloomAt = at - lead; } }
+    if (this.bloomArmed) { const t = this.bgmTime(); if (t === null || t >= this.bloomAt) this.fireBloom(); }   // 예약한 번짐은 브금 악센트에(브금이 멈추면 바로)
     if (this.sweep) { this.sweep.t += dt; if (this.sweep.t >= this.sweep.duration * 1.7) this.sweep = null; }   // 거대 벚꽃 대각선(꼬리 꽃잎까지 duration 의 0.7 배 더)
     // 뗏목 타는 중 꽃잎 휘날림(BUILD264 벚꽃 숲 3, 사용자 “4초쯤에 벚꽃 좀 휘날리고”): 맵 meta.rideGust = { at, burst, rate, seconds } — 타고 at 초가 지나는 순간 한 번
     const gust = MAPS[this.mapId]?.meta?.rideGust;
