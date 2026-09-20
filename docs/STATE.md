@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-20
 
+**BUILD264 — 벚꽃 숲 2(빙글빙글·벚꽃다리 연출)·벚꽃 숲 3(뗏목)**(사용자 브리핑 2026-09-20, 원문·구현표 `design/narrative/cutscenes/jjajang_sakura2.md`): ① 벚꽃 숲 1 오른쪽 끝에 문 → `jjajang_sakura2`(44×56, `tools/maps/jjajang_sakura2.py`): 왼쪽에서 오른쪽 → 위 → 빙글빙글(오른쪽·위·왼쪽·위로 감아 오르는 고리) → 갈림목. 오른쪽 샛길은 24열에서 끊기고 그 너머 벚꽃다리 소품(`assets/props/sakura_bridge.png`, gpt-image) 위에 가면 쓴 최미스(`motion: masked`)·가순이 셋. 샛길 끝 트리거 → `jjajang_sakura2_bridge`: 브금 유지, `camera:[36,9]` 1.4초(그리드 이동) → 원문 4줄 → `camera:'player'` 복귀 → 억빠맨 `좆같네씨발`. 위로 문 → ② `jjajang_sakura3`(52×50): 위 → 오른쪽 → 물가 → 새 타일 `[` 파란 물길(막힘) 위 뗏목(`walkOn`, 동료 헤엄) 오른쪽 25칸 → 아래 20칸 ≈ 8.4초, 타고 4초에 꽃잎 휘날림(`meta.rideGust`, `main.js`), 아래 물가 뭍에 내림(다음 맵은 아직 없음). QA `jjajang_sakura2`·`_bridge`·`jjajang_sakura3`·`_dock`. 검사: `jjajang-sakura2.test`, 플레이테스트 `jjajang-sakura2`(연출 → 3 → 뗏목).
+
 **BUILD263 — 공터 한 줄 추가 + 벚꽃 숲 길 2초·이펙트 2.5초**(사용자 2026-09-20): ① `나는 상관없어!!!!` 뒤 최미스 `으하하하 왼쪽길로 가야겠군` → 창 닫고 나무 돌진. ② 벚꽃 숲 아래 길 40 → 54행(맵 30×90, 달리기 ≈ 8초), 하이라이트 예약 7.6 → 11.0초(첫 고조 정점), 거대 벚꽃 sweep 1 → 2.5초(회전은 진행률 기준), 번짐 14 → 8행/초.
 
 **BUILD262 — 벚꽃 숲 정정: 길 40행·브금 하이라이트 예약·거대 벚꽃 대각선**(사용자 2026-09-20 “좀 더 길게 … 몇초 걷다가 브금하이라이트때 쫙 … 딱 바뀔때는 벚꽃이 엄청 크게 화면을 한번 1초동안 대각선부터 쌰아아악”): 아래 길 28 → 40행(맵 30×76). 풀숲 초입 트리거는 `game.bloom()` 예약 → `bgmTime()`(맵 브금 Audio.currentTime)이 `meta.bloom.atBgm` **7.6초**(파형으로 잰 첫 큰 악센트; 다른 고조 11.0/15.0/18.6/34.5)에 닿으면 `fireBloom()`: 거대 벚꽃 `sakura_blossom_big.png`(300px)이 오른쪽 위→왼쪽 아래 1초 sweep + 큰 꽃잎 7장 trail(`drawSweep`, 꽃잎 위·대화창 아래), 꽃잎 폭발, 번짐 14행/초. 브금이 없거나 이미 지났으면 즉시. 검사: `jjajang-sakura.test`(길 길이 vs 하이라이트, sweep 자산·preload), 플레이테스트(예약 → 7.6초 ±0.35 에 sweep 시작·중간 프레임 픽셀).

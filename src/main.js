@@ -847,7 +847,7 @@ class Game {
       for (const e of this.entities) if (e.cooldown !== undefined) e.cooldown = 0.6;
       // 벚꽃 숲(BUILD261): meta.petals → 꽃잎(이미 핀 뒤면 after 밀도), meta.bloom.flag 가 서 있으면 나무(def.bloom 그림)도 처음부터 핀 그림
       const petalsMeta = def.meta?.petals, bloomMeta = def.meta?.bloom, bloomed = !!(bloomMeta && this.has(bloomMeta.flag));
-      this.petals = petalsMeta ? createPetals({ rate: bloomed ? (petalsMeta.after ?? petalsMeta.rate) : petalsMeta.rate }) : null; this.petalsBurstT = 0; this.tileSpread = null; this.bloomArmed = false; this.sweep = null;
+      this.petals = petalsMeta ? createPetals({ rate: bloomed ? (petalsMeta.after ?? petalsMeta.rate) : petalsMeta.rate }) : null; this.petalsBurstT = 0; this.tileSpread = null; this.bloomArmed = false; this.sweep = null; this.rideGustDone = false;
       if (bloomed) for (const e of this.entities) if (e.def?.bloom) { e.image = this.propImages[e.def.bloom] || e.image; e.bloomed = true; }
       this.camera.map = this.map;
       this.camera.target = this.player;
@@ -1146,6 +1146,9 @@ class Game {
     }
     if (this.bloomArmed) { const b = MAPS[this.mapId]?.meta?.bloom, t = this.bgmTime(); if (!b) this.bloomArmed = false; else if (t === null || t >= b.atBgm) this.fireBloom(); }   // 예약한 번짐은 브금 하이라이트에(브금이 멈추면 바로)
     if (this.sweep) { this.sweep.t += dt; if (this.sweep.t >= this.sweep.duration * 1.7) this.sweep = null; }   // 거대 벚꽃 대각선(꼬리 꽃잎까지 duration 의 0.7 배 더)
+    // 뗏목 타는 중 꽃잎 휘날림(BUILD264 벚꽃 숲 3, 사용자 “4초쯤에 벚꽃 좀 휘날리고”): 맵 meta.rideGust = { at, burst, rate, seconds } — 타고 at 초가 지나는 순간 한 번
+    const gust = MAPS[this.mapId]?.meta?.rideGust;
+    if (gust && this.ride && this.petals && !this.rideGustDone && (this.ride.rideTime || 0) >= gust.at) { this.rideGustDone = true; this.petals.burst(gust.burst ?? 120, SCREEN_W, SCREEN_H); this.petals.rate = gust.rate ?? 60; this.petalsBurstT = gust.seconds ?? 2; }
     if (this.tileSpread) {   // 땅·나무가 번지듯 바뀐다: 닿은 행은 tileSwaps 행으로 바꿔 다시 굽고, 밑동 행이 닿은 def.bloom 나무는 핀 그림으로
       const b = MAPS[this.mapId]?.meta?.bloom, sw = b && MAPS[this.mapId]?.tileSwaps?.[b.tiles];
       const hit = this.tileSpread.update(dt);

@@ -10,7 +10,7 @@
 "검은색 풀숲의 땅 타일을 만들어서 좀 구분되게 해주다가 (브금 MzEHcwoNlbE) 분홍색 벚꽃이 조금씩 날리는 맵임. 그러다가 위로 쭉 걷다가 8초정도 지나게 걷다보면
  좀 넓은 풀숲도 나오고 분홍 꽃잎이 맵 전체에 아주많이 깔리면서 그때부터 땅이 분홍색 꽃들로 다 바뀌는 맵 연출 (맵 자체가 조건부로 변하는 느낌, 배경 검은색 짜장은 비슷)
  그 화면 나온뒤에 살짝 더 올라가서 오른쪽으로 꺾어서 좀 걸어가게 / 근처 나무들도 분홍색으로 벚꽃이 전체를 덮으며 다 바뀌고 그 뒤에도 작은 벚꽃들은 계속 떨어짐 / 벚꽃맵부터는 발소리 안나게"
-- 빛 드는 공터(jjajang_glade) 위 문에서 아래 가장자리로 들어와 13~16열 곧은 길(검은 풀숲 땅 '(' — 발소리 없음)을 위로 54행(기본 달리기 ≈ 8초, X 천천히 걷기 ≈ 14초) → 20~35행의 넓은 풀숲(5~24열) → 다시 13~16열 길 → 8~11행에서 오른쪽으로 꺾어 28열까지.
+- 빛 드는 공터(jjajang_glade) 위 문에서 아래 가장자리로 들어와 13~16열 곧은 길(검은 풀숲 땅 '(' — 발소리 없음)을 위로 54행(기본 달리기 ≈ 8초, X 천천히 걷기 ≈ 14초) → 20~35행의 넓은 풀숲(5~24열) → 다시 13~16열 길 → 8~11행에서 오른쪽으로 꺾어 오른쪽 가장자리 문(BUILD264: 벚꽃 숲 2)까지.
 - 넓은 풀숲 초입(34~35행) 트리거 한 번 → jjajang_sakura_bloom: 플래그 sakura_bloom + bloom() 예약 → **브금 하이라이트(BLOOM_AT_BGM 초, 첫 큰 악센트)에** 거대 벚꽃이 화면을 대각선으로 2.5초 가로지르며(sweep) 꽃잎 폭발, 주인공 행에서부터 tileSwaps.sakura_bloom('(' → ')' 분홍 꽃잎 땅)과 소나무(jjajang_pine_dark_N → jjajang_sakura_N, 같은 크기) 그림이 번진다(멈춤 없음). 브금이 이미 지났으면 바로.
   (2026-09-20 정정: “벚꽃길 나오기전에 좀 더 길게 … 몇초 걷다가 브금 하이라이트때 쫙 바뀌는걸 노린거라 … 딱 바뀔때는 벚꽃이 엄청 크게 화면을 한번 1초동안 대각선부터 쌰아아악”)
 - 짜장 검은 숲 '@' 그대로, 소나무는 깊은숲과 같은 어두운 판. 브금 'sakura'(델타룬 5장 Garden of Hopes and Dreams), dim 0(꽃잎·분홍이 살아야 한다)."""
@@ -99,7 +99,7 @@ def build_map() -> dict[str, object]:
     fill(PATH_COLS[0], PATH_COLS[1], ENTRY_ROWS[0], ENTRY_ROWS[1])
     fill(MEADOW_COLS[0], MEADOW_COLS[1], MEADOW_ROWS[0], MEADOW_ROWS[1])
     fill(PATH_COLS[0], PATH_COLS[1], UPPER_ROWS[0], UPPER_ROWS[1])
-    fill(PATH_COLS[0], TURN_END_COL, TURN_ROWS[0], TURN_ROWS[1])
+    fill(PATH_COLS[0], WIDTH - 1, TURN_ROWS[0], TURN_ROWS[1])            # 오른쪽 가장자리까지(BUILD264: 오른쪽 문 → 벚꽃 숲 2)
     trees = [t for t in (tree(i, col, row) for i, (col, row) in enumerate(tree_cells())) if t]
     seen: set[tuple[int, int]] = set()
     for t in trees:
@@ -113,6 +113,8 @@ def build_map() -> dict[str, object]:
                'once': True, 'flag': 'sakura_bloom_started', 'unless': BLOOM_FLAG, 'script': 'jjajang_sakura_bloom'}
     door_south = {'type': 'door', 'id': 'sakura_glade_door', 'x': PATH_COLS[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': (PATH_COLS[1] - PATH_COLS[0] + 1) * TILE, 'h': 10,
                   'to': 'jjajang_glade', 'spawn': 'from_north', 'sfx': False}
+    door_east = {'type': 'door', 'id': 'sakura_east_door', 'x': WIDTH * TILE - 10, 'y': TURN_ROWS[0] * TILE, 'w': 10, 'h': (TURN_ROWS[1] - TURN_ROWS[0] + 1) * TILE,
+                 'to': 'jjajang_sakura2', 'spawn': 'from_west', 'sfx': False}
     mid_x = (PATH_COLS[0] + PATH_COLS[1] + 1) * TILE // 2 - 12
     return {
         'id': MAP_ID,
@@ -129,16 +131,17 @@ def build_map() -> dict[str, object]:
             'before_bloom': {'x': mid_x, 'y': (TRIGGER_ROWS[1] + 3) * TILE + 6, 'facing': 'up'},
             'meadow': {'x': mid_x, 'y': (MEADOW_ROWS[0] + 8) * TILE + 6, 'facing': 'up'},
             'east_end': {'x': (TURN_END_COL - 2) * TILE + 4, 'y': (TURN_ROWS[0] + 1) * TILE + 6, 'facing': 'right'},
+            'from_east': {'x': (WIDTH - 2) * TILE - 8, 'y': (TURN_ROWS[0] + 1) * TILE + 6, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
             'route': [[PATH_COLS[0] + 1, HEIGHT - 3], [PATH_COLS[0] + 1, MEADOW_ROWS[0]], [PATH_COLS[0] + 1, TURN_ROWS[0] + 1], [TURN_END_COL - 1, TURN_ROWS[0] + 1]],
-            'role': '빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 하이라이트(11.0초)에 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 걷는다. 브금 sakura, 발소리 없음',
+            'role': '빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 하이라이트(11.0초)에 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 오른쪽 문(벚꽃 숲 2, BUILD264). 브금 sakura, 발소리 없음',
             'petals': PETALS,
             'bloom': {'flag': BLOOM_FLAG, 'tiles': BLOOM_FLAG, 'speed': SPREAD_SPEED, 'atBgm': BLOOM_AT_BGM, 'sweep': SWEEP},
             'sakura': {'entryRows': list(ENTRY_ROWS), 'meadow': [list(MEADOW_COLS), list(MEADOW_ROWS)], 'trigger': list(TRIGGER_ROWS), 'turn': [list(TURN_ROWS), TURN_END_COL], 'pathCols': list(PATH_COLS)},
         },
-        'entities': [*trees, trigger, door_south],
+        'entities': [*trees, trigger, door_south, door_east],
     }
 
 

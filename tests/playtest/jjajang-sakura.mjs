@@ -50,7 +50,9 @@ try {
   check(await go('ArrowUp', 'g.player.y <= 9 * 32 + 8', 30000, true), '풀숲을 지나 위 길 끝(오른쪽으로 꺾이는 곳)');
   check(await go('ArrowRight', 'g.player.x >= 27 * 32', 20000, true), '오른쪽으로 꺾어 끝까지 걸어간다');
   await page.waitForTimeout(300); s = await state(); await cap('04_east_end');
-  check(s.map === 'jjajang_sakura' && s.col >= 27, `오른쪽 끝(${s.col}열) — 아직 다음 맵 없음`);
+  check(s.map === 'jjajang_sakura' && s.col >= 27, `오른쪽 끝 가까이(${s.col}열)`);
+  check(await go('ArrowRight', "g.mapId === 'jjajang_sakura2'", 10000, true), '오른쪽 문 → 벚꽃 숲 2(BUILD264)');
+  await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 });
   // 재진입: 플래그가 선 채 다시 들어오면 처음부터 핀 상태(땅·나무·꽃잎 after 밀도)
   await ev(() => window.game.changeMap('jjajang_sakura', 'from_south'));
   check(await until(() => window.game.mapId === 'jjajang_sakura' && !window.game.transitioning && window.game.player.y > 84 * 32, 15000), '입구로 재진입');

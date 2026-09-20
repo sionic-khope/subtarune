@@ -23,7 +23,7 @@ test('test_sakura_map_dark_meadow_path_wide_meadow_and_right_turn_with_no_footst
   assert.ok(mc1 - mc0 + 1 >= 16 && mr1 - mr0 + 1 >= 12, '풀숲은 길보다 훨씬 넓다');
   const [[t0, t1], endCol] = S.turn;
   for (let r = t0; r <= t1; r++) for (let c = c0; c <= endCol; c++) assert.equal(m.rows[r][c], '(', `오른쪽 길 ${c},${r}`);
-  assert.equal(m.rows[t0][endCol + 1], '@', '오른쪽 끝은 아직 막힘(다음 맵 문은 나중)');
+  assert.ok(m.rows[t0].endsWith('(') && m.entities.some(e => e.id === 'sakura_east_door'), '오른쪽 끝은 문(벚꽃 숲 2, BUILD264)');
   assert.ok(m.rows.every(row => !row.includes('U') && !row.includes('$')), '옛 지역 길 타일을 쓰지 않는다');
   const tiles = readFileSync(new URL('../../src/world/tiles.js', import.meta.url), 'utf8');
   for (const ch of ['(', ')']) { const line = tiles.split('\n').find(l => l.includes(`registerTile('${ch}'`)); assert.ok(line && !/step\s*:/.test(line), `${ch} 타일은 발소리(step) 없음`); }

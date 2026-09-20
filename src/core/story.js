@@ -502,3 +502,13 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura_bloom', desc: '벚꽃
   map: 'jjajang_sakura', spawn: 'before_bloom', flags: sakuraFlags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura_bloomed', desc: '벚꽃 숲 · 이미 핀 뒤 (분홍 땅·벚꽃 나무 · 위로 가서 오른쪽으로)',
   map: 'jjajang_sakura', spawn: 'meadow', flags: { ...sakuraFlags, sakura_bloom_started: true, sakura_bloom: true }, party: ['gyeongsub', 'ppaman'] });
+// 벚꽃 숲 2·3(BUILD264): 벚꽃이 다 핀 뒤. 2 = 오른쪽·위·빙글빙글 → 위로 가기 전 오른쪽 샛길 끝 벚꽃다리 연출, 3 = 위·오른쪽 → 뗏목(파란 물길 오른쪽 → 아래)
+const sakuraBloomedFlags = { ...sakuraFlags, sakura_bloom_started: true, sakura_bloom: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura2', desc: '벚꽃 숲 2 입구 (왼쪽에서 들어와 오른쪽 → 위 → 빙글빙글)',
+  map: 'jjajang_sakura2', spawn: 'from_west', flags: sakuraBloomedFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura2_bridge', desc: '벚꽃 숲 2 · 갈림목 (오른쪽 샛길 끝에서 벚꽃다리 연출, 위로 가면 3)',
+  map: 'jjajang_sakura2', spawn: 'junction', flags: sakuraBloomedFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura3', desc: '벚꽃 숲 3 입구 (위로 → 오른쪽 → 뗏목)',
+  map: 'jjajang_sakura3', spawn: 'from_south', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura3_dock', desc: '벚꽃 숲 3 · 뗏목 앞 (C → 오른쪽으로 8초, 4초쯤 꽃잎 → 아래로)',
+  map: 'jjajang_sakura3', spawn: 'dock', flags: { ...sakuraBloomedFlags, sakura2_bridge_done: true }, party: ['gyeongsub', 'ppaman'] });

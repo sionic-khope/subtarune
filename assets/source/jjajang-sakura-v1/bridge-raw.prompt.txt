@@ -1,0 +1,9 @@
+# imagegen 2026-09-20 15:45:29
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/jjajang-sakura-v1/pines-ref-512.png
+
+Pixel art prop of ONE cherry blossom bridge for a dark top-down 2D RPG, 3/4 top-down game view, on a 1536x1024 canvas. Solid pure #FF00FF magenta background everywhere, no ground, no shadows, no grid, no text.
+A long wooden plank footbridge seen from slightly above, spanning left to right across the whole canvas width (its two ends touch the left and right canvas edges), with low wooden railings on the far side and the near side, dark charcoal-brown wood with a dark stepped outline. The bridge is covered and decorated with cherry blossoms: drifts of pink petals lying on the planks, small pink blossom clusters and a few blossom branches draped over the railings (light pink #ffc2e0, pink #ff8ad0, deep pink #d24f9a, at most 3 pink tones). The bridge deck is about 260px tall in the middle of the canvas; nothing above or below it except the magenta background.
+Style: chunky retro pixel art, coarse pixel clusters, flat limited shades (at most 3 tones per material), crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

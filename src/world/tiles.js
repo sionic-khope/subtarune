@@ -225,6 +225,13 @@ const petalMeadow = (ctx, rng) => {
   for (let i = 0; i < petals; i++) { const x = Math.floor(rng() * (ART_PX - 1)), y = Math.floor(rng() * (ART_PX - 1)); ctx.fillStyle = i % 3 === 0 ? '#ffc2e0' : i % 3 === 1 ? '#ff8ad0' : '#f4a6d6'; ctx.fillRect(x, y, 2, i % 2 ? 1 : 2); }
 };
 registerTile('(', { name: 'sakura_dark_meadow', solid: false, variants: 4, draw: darkMeadow });
+// 벚꽃 숲 3(jjajang_sakura3, BUILD264 “뗏목 오른쪽으로 파란물 길”): 파란 물길 — 뗏목으로만 건넌다(막힘). 짙은 파랑에 옅은 물비늘 몇 줄과 떠 있는 분홍 꽃잎 한두 점
+const sakuraWater = (ctx, rng) => {
+  fillNoise(ctx, '#27439a', ['#2f52b4', '#1f367e', '#3a5fc4'], rng, 8);
+  for (let i = 0; i < 2; i++) { const x = Math.floor(rng() * 10), y = 2 + Math.floor(rng() * 12); ctx.fillStyle = '#5d7fd6'; ctx.fillRect(x, y, 4 + Math.floor(rng() * 4), 1); }
+  if (rng() < 0.5) { ctx.fillStyle = rng() < 0.5 ? '#ffc2e0' : '#ff8ad0'; ctx.fillRect(Math.floor(rng() * 14), Math.floor(rng() * 14), 2, 1); }
+};
+registerTile('[', { name: 'sakura_water', solid: true, variants: 4, draw: sakuraWater });
 registerTile(')', { name: 'sakura_petal_meadow', solid: false, variants: 4, draw: petalMeadow });
 // 파란 토리이 길(jjajang_run, BUILD230 사용자 “검은 바닥인데 물 깔린 전제라 한 발자국 할 때마다 동그란 파장이 타다다닥”): 거의 검은 물 위에 옅은 물비늘 몇 줄, 걸을 수 있고 발소리는 물걸음 루프 + 물결 고리(ripple)
 const blackWater = (ctx, rng) => {
