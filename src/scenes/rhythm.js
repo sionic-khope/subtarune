@@ -161,8 +161,13 @@ export function run(game, node = {}) {
       result: null, paused: false,
     };
     const charts = SONGS.map(src => fetch(src).then(r => r.json()).catch(() => null));
+    // 노래 영상은 씬이 열릴 때 파일 전체를 받아 메모리(Blob URL)로 튼다(사용자 2026-09-20 “영상을 설치해서 쓰는게 낫지않나 네트워크로 하지말고”): 서버가 재기동되거나 스트리밍이 끊겨도 노래가 멈추지 않는다. 받기에 실패하면 예전처럼 주소로
+    const blobUrls = [];
     const makeVideo = (src) => {
-      const v = document.createElement('video'); v.src = src; v.preload = 'auto'; v.playsInline = true; v.volume = MIX.song; v.style.display = 'none'; document.body.appendChild(v);
+      const v = document.createElement('video'); v.preload = 'auto'; v.playsInline = true; v.volume = MIX.song; v.style.display = 'none'; document.body.appendChild(v);
+      fetch(src).then(r => { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
+        .then(b => { const url = URL.createObjectURL(b); blobUrls.push(url); v.src = url; v.load(); })
+        .catch(() => { v.src = src; v.load(); });
       // 노래를 WebAudio 게인(1.1)으로 — 요소 볼륨은 1 이 상한이라(사용자 “노래 10% 더”). 컨텍스트가 아직 없으면(잠금 해제 전) 요소 볼륨만
       try { const ac = sound.ctx; if (ac) { const src = ac.createMediaElementSource(v); const g = ac.createGain(); g.gain.value = MIX.songGain; src.connect(g); g.connect(ac.destination); } } catch (e) { /* 이미 연결됐거나 지원 안 함 */ }
       return v;
@@ -185,6 +190,7 @@ export function run(game, node = {}) {
       stopNoise(); stopBed(); for (const c of state.crowdActive) { try { c.a.pause(); c.a.src = ''; } catch (e) { /* */ } }
       for (const lane of ['L', 'R']) stopHold(lane);
       for (const v of state.videos) if (v) { try { v.pause(); } catch (e) { /* */ } v.remove(); }
+      for (const url of blobUrls) { try { URL.revokeObjectURL(url); } catch (e) { /* */ } }
       ov.root.style.transition = 'opacity 0.6s ease'; ov.root.style.opacity = '0';
       setTimeout(() => { cancelAnimationFrame(raf); removeEventListener('resize', ov.fit); ov.root.remove(); delete window.__rhythm; resolve({ found }); }, 620);
     };
@@ -248,6 +254,10 @@ export function run(game, node = {}) {
       const v = state.videos?.[state.song];
       state.phase = 'play'; state.phaseT = 0; state.sideT = 0; state.clock = 0; state.fromClock = !v; state.video = v; state.signal = 1; state.glitch = 0;
       startNoise(); applySignal(); startBed(); saveHp();
+      // 노래가 안 나오던 경우(2026-09-20 사용자, QA 로 넘어와 다른 구간부터 진행): 영상이 WebAudio 로 연결돼 있으면 컨텍스트가 suspended 일 때 무음이라 먼저 깨우고,
+      // 서버 재기동·네트워크로 영상 로드가 끊겼으면(error/NO_SOURCE) 다시 load 한 뒤 튼다
+      try { if (sound.ctx && sound.ctx.state !== 'running') sound.ctx.resume().catch(() => {}); } catch (e) { /* */ }
+      if (v && (v.error || v.networkState === 3)) { try { v.load(); } catch (e) { /* */ } }
       if (v) { v.currentTime = 0; v.play().catch(() => { v.muted = true; v.play().catch(() => { state.fromClock = true; }); }); }
     };
     const retry = () => {

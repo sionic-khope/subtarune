@@ -71,6 +71,14 @@ export const AFTER_SHOW = [
   { end: true },
 ];
 
+/** 공연 취소(Esc): 대기실을 다시 세워(문으로 들어간 배우들 원위치) 페이드인 — rhythm_stage_done 이 없으니 대기 뚜울라가 그대로 있어 다시 도전할 수 있다 */
+export const RHYTHM_CANCELLED = [
+  { label: 'rhythm_cancelled' },
+  { map: 'youngcle12', spawn: 'from_stairs' },
+  { fade: 'in', duration: 0.5 },
+  { end: true },
+];
+
 export const backstage_ttuulla = [
   { if: flags => flags.rhythm_stage_done, goto: 'done' },
   ...PARTY.map(id => ({ face: id, dir: `toward:${MOUSE}` })),
@@ -90,16 +98,23 @@ export const backstage_ttuulla = [
   ...PARTY.flatMap(enterDoor),
   { fade: 'out', duration: 1.0 },
   { scene3d: 'rhythm', flag: 'rhythm_stage_done' },
+  // Esc 로 공연을 그만두면(scene3d 결과 cancel) 공연 뒤 연출로 가지 않고 대기실로 돌아온다(2026-09-20 사용자 “esc 누르면 성공 이후로 가지기도”). 뚜울라에게 다시 C 면 처음부터
+  { if: flags => flags.rhythm_result !== 'found', goto: 'rhythm_cancelled' },
   ...AFTER_SHOW,
   { label: 'done' },
   { text: '* 뚜울라알라는 아직 무대의 여운에 잠겨 있다.', voice: 'narrator' },
+  { end: true },
+  ...RHYTHM_CANCELLED,
 ];
 
 /** QA `rhythm_stage`: 대기실에 서자마자 리듬 게임 씬으로(대사 없이) → 공연 뒤 연출까지 */
 export const rhythm_qa = Object.assign([
   { fade: 'out', duration: 0.3 },
   { scene3d: 'rhythm', flag: 'rhythm_stage_done' },
+  { if: flags => flags.rhythm_result !== 'found', goto: 'rhythm_cancelled' },
   ...AFTER_SHOW,
+  { end: true },
+  ...RHYTHM_CANCELLED,
 ], { silent: true });
 
 /** QA `stage_after_show`: 리듬 게임 뒤 연출만(검은 화면 나레이션부터) */

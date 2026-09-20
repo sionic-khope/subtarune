@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-20
 
+**BUILD267 — 리듬 게임 Esc 취소·노래 재생 보강**(사용자 2026-09-20 “방가방가 노앰토리 같은 리듬게임 노래가 안나와” / “esc 누르면 성공 이후로 가지기도”): ① `stage_rhythm.js` — scene3d 결과가 `found` 가 아니면(Esc) `AFTER_SHOW` 로 가지 않고 `RHYTHM_CANCELLED`(대기실 `youngcle12` 재진입·페이드인·end) — 플래그가 없으니 뚜울라에게 다시 C 로 재도전. `backstage_ttuulla`·`rhythm_qa` 둘 다. ② `rhythm.js startSong` — 영상이 WebAudio 로 연결된 채 컨텍스트가 suspended 면 무음이라 먼저 resume, 로드가 끊긴 영상(error/NO_SOURCE)은 load 뒤 재생. 참고: 개발 서버를 작업 중 재기동하면 스트리밍 중인 노래 영상이 끊길 수 있다(페이지 새로고침으로 복구).
+
 **BUILD266 — 벚꽃 숲 4·다오·배찌(카트라이더 패턴)**(사용자 브리핑 2026-09-20, 원문·구현표 `design/narrative/cutscenes/jjajang_sakura4.md`): 벚꽃 숲 3 아래 물가 아랫줄 문 → `jjajang_sakura4`(36×70 지그재그 149칸). 붙인 도트 그림을 축소한 적 둘(`ENEMIES.dao/bazzi`, hp 36, 피해 12·돈 40 잠정): 다오 = `kart_missile`(조준 추적→잠김→미사일→파편)·`kart_booster`(띠 예고→흰 카트 질주)·`kart_banana`(바닥에 남는 바나나 + 띠), 배찌 = `kart_waterbomb`(호 예고→고리)·`kart_magnet`(하트 끌어당김 + 벽 가시)·`kart_waterfly`(조합). `src/battle/kart-patterns.js`, 소리 `sfx/kart_*.mp3`(효과음 모음 영상 구간 배정, 청취 미확인 — `assets/source/kartrider-v1/README.md`), 전투 배경 `sakura`, speak 는 아이템 이름 외침(잠정). QA `jjajang_sakura4`·`_dao`·`_bazzi`.
 
 **BUILD265 — 벚꽃 번짐은 브금 7.3초에 자동·뗏목 되돌아 타기**(사용자 2026-09-20 “브금에서 딱 울리는 그 타이밍에” → “7.3초때 시작하자마자” / “뗏목 반대로는 안타지네”): `meta.bloom.auto` — 브금이 돌면 `atBgm` 7.3초(리드 0.06)로 예약, 트리거·주인공 위치 무관하게 그 행에서 번진다(`main.js` update, `fireBloom` 이 플래그도 세움; 음소거면 트리거가 대신). 벚꽃 숲 3 뗏목: 도착 자리를 뭍 첫 행에 4px 걸치게 내리고, `Raft._landSwimmer` 가 마지막 구간이 세로면 세로로(8px) 밀며 주인공이 물 쪽을 보게 — 전엔 늘 가로로 40px 밀어 뗏목 오른쪽 끝으로 나가 되돌아 탈 수 없었다. 뭍에서 위 보고 C 로 되돌아 탄다(8.6초).

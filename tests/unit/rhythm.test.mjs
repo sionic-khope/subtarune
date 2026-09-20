@@ -112,3 +112,20 @@ test('test_rhythm_beat_grid_and_highlight_lookup', async () => {
   const last = boj.highlights[boj.highlights.length - 1];
   assert.ok(last[0] > boj.duration * 0.6, '보X팜 마지막 코러스 하이라이트가 곡 후반에 있다 ' + JSON.stringify(last));
 });
+
+test('test_rhythm_escape_cancel_returns_to_the_waiting_room_instead_of_the_after_show', async () => {
+  // 2026-09-20 사용자 “esc 누르면 성공 이후로 가지기도”: scene3d 결과가 found 가 아니면 AFTER_SHOW 로 가지 않는다
+  const { backstage_ttuulla, rhythm_qa, RHYTHM_CANCELLED, AFTER_SHOW } = await import('../../src/data/cutscenes/stage_rhythm.js');
+  for (const [name, script] of [['backstage_ttuulla', backstage_ttuulla], ['rhythm_qa', rhythm_qa]]) {
+    const scene = script.findIndex(n => n.scene3d === 'rhythm'), guard = script[scene + 1];
+    assert.ok(scene >= 0 && typeof guard?.if === 'function' && guard.goto === 'rhythm_cancelled', `${name}: 씬 바로 뒤 취소 분기`);
+    assert.equal(guard.if({ rhythm_result: 'cancel' }), true); assert.equal(guard.if({ rhythm_result: 'found' }), false);
+    const after = script.indexOf(AFTER_SHOW[0]), label = script.findIndex(n => n.label === 'rhythm_cancelled'), end = script.findIndex((n, i) => n.end === true && i > after && i < label);
+    assert.ok(after > scene && label > after && end > 0, `${name}: 공연 뒤 연출은 end 로 끝나고 취소 블록은 그 뒤`);
+  }
+  assert.deepEqual(RHYTHM_CANCELLED.map(n => Object.keys(n)[0]), ['label', 'map', 'fade', 'end']);
+  assert.deepEqual([RHYTHM_CANCELLED[1].map, RHYTHM_CANCELLED[1].spawn], ['youngcle12', 'from_stairs']);
+  const src = fs.readFileSync(new URL('../../src/scenes/rhythm.js', import.meta.url), 'utf8');
+  assert.ok(/createObjectURL/.test(src) && /revokeObjectURL/.test(src), '노래 영상은 Blob 으로 받아 튼다(서버 스트리밍 의존 없음)');
+  assert.ok(/ctx\.state !== 'running'\) sound\.ctx\.resume/.test(src), '노래 시작 전 오디오 컨텍스트 깨움');
+});
