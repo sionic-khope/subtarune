@@ -39,7 +39,7 @@ STAGE_IY: Final = 96
 STAGE_FLOOR: Final = (185, 263)       # 무대 그림 안 판자 윗면 y 범위(px, 맵 좌표) — 배우 발은 이 사이
 STAGE_BLOCK_COLS: Final = (16, 29)    # 무대 자리(막힌 땅)
 STAGE_BLOCK_ROWS: Final = (3, 8)
-SCENE_COLS: Final = (18, 19)          # 들머리 트리거(길 행)
+SCENE_COLS: Final = (18, 19)          # 들머리 트리거(들 세로 전체 띠 — BUILD280)
 SPOT: Final = {'x': 720, 'y': 254, 'rx': 76, 'ry': 42, 'alpha': 0.35}   # 스포트라이트(무대 가운데 앞)
 JEOMNYE_START: Final = (708, 172)     # 무대 뒤(판자 뒷선) — 어둠 속에서 걸어 나온다
 JEOMNYE_SPOT: Final = (708, 236)      # 무대 가운데 앞(발 252)
@@ -153,7 +153,8 @@ def build_map() -> dict[str, object]:
         t = tree(len(trees), col, row)
         if t:
             seen.add((col, row)); trees.append(t)
-    scene = {'type': 'trigger', 'id': 'sakura7_scene_trigger', 'x': SCENE_COLS[0] * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': (SCENE_COLS[1] - SCENE_COLS[0] + 1) * TILE, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE,
+    # 들머리 트리거는 들 세로 전체(2~27행)를 막는 띠 — 대각선으로 위로 올라가 길 행을 안 밟아도 걸린다(사용자 2026-09-21 “대각선 위로 올라가버리면 이벤트 발생이 안 되는 문제, 영역을 더”)
+    scene = {'type': 'trigger', 'id': 'sakura7_scene_trigger', 'x': SCENE_COLS[0] * TILE, 'y': FIELD_ROWS[0] * TILE, 'w': (SCENE_COLS[1] - SCENE_COLS[0] + 1) * TILE, 'h': (FIELD_ROWS[1] - FIELD_ROWS[0] + 1) * TILE,
              'once': True, 'flag': 'sakura7_scene_started', 'unless': SCENE_FLAG, 'script': 'jjajang_sakura7_scene'}
     door_west = {'type': 'door', 'id': 'sakura7_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura6', 'spawn': 'from_east', 'sfx': False}
     road_y = (ROAD_ROWS[0] + 1) * TILE + 6

@@ -41,7 +41,7 @@ test('test_sakura7_map_is_a_two_second_road_into_a_tall_field_with_a_wedding_sta
   for (const id of ['jeomnye', 'choimis', 'choimis_bare', 'domijorim', 'discord_mask']) { const e = m.entities.find(x => x.id === id); assert.ok(e.hidden && e.unless === SAKURA7_SCENE_FLAG, `${id} 숨김·연출 뒤 없음`); }
   assert.deepEqual([m.entities.find(e => e.id === 'choimis').sprite, m.entities.find(e => e.id === 'choimis_bare').sprite, m.entities.find(e => e.id === 'jeomnye').sprite], ['choimis_masked', 'choimis', 'jeomnye']);
   const t = m.entities.find(e => e.id === 'sakura7_scene_trigger');
-  assert.deepEqual([t.once, t.unless, t.script, t.x, t.y], [true, SAKURA7_SCENE_FLAG, 'jjajang_sakura7_scene', S.sceneCols[0] * 32, S.roadRows[0] * 32]);
+  assert.deepEqual([t.once, t.unless, t.script, t.x, t.y, t.h], [true, SAKURA7_SCENE_FLAG, 'jjajang_sakura7_scene', S.sceneCols[0] * 32, S.fieldRows[0] * 32, (S.fieldRows[1] - S.fieldRows[0] + 1) * 32]);   // 들 세로 전체 띠(대각선으로 못 피한다, BUILD280)
   assert.ok(m.spawns.before_scene.x + 24 < t.x && m.spawns.before_scene.y === S.roadY, '들머리 QA 자리는 트리거 왼쪽');
 });
 

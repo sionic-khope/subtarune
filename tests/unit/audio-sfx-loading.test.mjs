@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Sound } from '../../src/core/audio.js';
+import { BUILD } from '../../src/data/build.js';   // 소리 파일 주소엔 빌드 캐시 키가 붙는다(BUILD280)
 
 const withFakeAudio = async (run) => {
   const created = [];
@@ -38,7 +39,7 @@ test('test_sfx_probe_timeout_keeps_slow_file_registered_for_later_playback', asy
     const loading = sound.loadSfxFiles(['slow']);
     await loading;
     assert.equal(created.length, 1, 'mp3 만 시도하고 ogg 로 넘어가지 않는다');
-    assert.equal(created[0].src, 'assets/audio/sfx/slow.mp3');
+    assert.equal(created[0].src, `assets/audio/sfx/slow.mp3?v=${BUILD}`);
     assert.equal(sound.files.slow, created[0], '상한을 넘긴 파일도 등록된다');
     created[0].oncanplaythrough?.();
     await tick(5);
@@ -54,7 +55,7 @@ test('test_sfx_probe_error_falls_back_to_ogg_then_synth', async () => {
     created[0].onerror();
     await tick(2);
     assert.equal(created.length, 2, 'mp3 실패 즉시 ogg 를 시도한다');
-    assert.equal(created[1].src, 'assets/audio/sfx/gone.ogg');
+    assert.equal(created[1].src, `assets/audio/sfx/gone.ogg?v=${BUILD}`);
     created[1].onerror();
     await loading;
     assert.equal(sound.files.gone, undefined, '둘 다 없으면 합성 폴백');

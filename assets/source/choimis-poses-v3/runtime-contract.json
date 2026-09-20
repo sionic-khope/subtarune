@@ -1,0 +1,27 @@
+{
+ "reference_stand_height": 96,
+ "poses": {
+  "masked-seup": {
+   "scale": 0.1736,
+   "left": [
+    60,
+    96
+   ],
+   "right": [
+    59,
+    96
+   ]
+  },
+  "masked-pick": {
+   "scale": 0.1955,
+   "left": [
+    67,
+    84
+   ],
+   "right": [
+    66,
+    96
+   ]
+  }
+ }
+}

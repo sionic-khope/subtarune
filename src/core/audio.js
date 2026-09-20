@@ -1,4 +1,7 @@
 // 사운드는 전부 WebAudio로 합성한다 (오디오 파일 0개).
+import { BUILD } from '../data/build.js';
+/** 오디오 파일 주소에 빌드 캐시 키(BUILD280): 그림처럼 소리도 파일을 바꾸면 BUILD 를 올려야 새 소리가 들린다 — 전엔 mp3 가 브라우저 캐시에 남아 “흐미 소리가 아직도 안 나옴”(사용자 2026-09-21) */
+const vurl = (src) => `${src}?v=${BUILD}`;
 // 대사 한 글자마다 0.1초짜리 블립이 울린다 — 화자마다 음색이 다르다.
 
 export const VOICES = {
@@ -106,7 +109,7 @@ export class Sound {
     if (this.voiceRaw[name] || this.voiceBuf[name]) return Promise.resolve();
     if (this._voiceLoads[name]) return this._voiceLoads[name];
     const pending = (async () => {
-      const grab = async (src) => { try { const response = await fetch(src); return response.ok ? await response.arrayBuffer() : null; } catch { return null; } };
+      const grab = async (src) => { try { const response = await fetch(vurl(src)); return response.ok ? await response.arrayBuffer() : null; } catch { return null; } };
       try {
         const raw = (await grab(`assets/audio/voices/${name}.mp3`)) || (await grab(`assets/audio/voices/${name}.ogg`));
         if (raw) this.voiceRaw[name] = raw;
@@ -172,7 +175,7 @@ export class Sound {
       const tm = setTimeout(() => settle(a), Sound.SFX_PROBE_TIMEOUT);
       a.oncanplaythrough = () => settle(a);
       a.onerror = () => settle(null);
-      a.src = src;
+      a.src = vurl(src);
     });
     const pending = (async () => {
       try {
@@ -212,7 +215,7 @@ export class Sound {
   /** 걷기 루프·꼬리 wav 를 받아 둔다(unlock 뒤 디코드) */
   async loadWalkLoop(def) {
     this.walkDef = def;
-    const grab = async (src) => { try { const r = await fetch(src); return r.ok ? await r.arrayBuffer() : null; } catch { return null; } };
+    const grab = async (src) => { try { const r = await fetch(vurl(src)); return r.ok ? await r.arrayBuffer() : null; } catch { return null; } };
     const [loop, tail] = await Promise.all([grab(def.loop), grab(def.tail)]);
     if (loop) this.walkRaw = { loop, tail };
     if (this.ctx) this._decodeWalk();
@@ -354,7 +357,7 @@ export class Sound {
   preloadBgm(name) {
     if (!name || this.bgmName === name) return; this._preBgm = this._preBgm || {};
     if (this._preBgm[name]) return;
-    const a = new Audio(`assets/audio/bgm/${name}.mp3`); a.preload = 'auto'; a.load(); this._preBgm[name] = a;
+    const a = new Audio(vurl(`assets/audio/bgm/${name}.mp3`)); a.preload = 'auto'; a.load(); this._preBgm[name] = a;
   }
   /**
    * loopEnd(초): 원본 꼬리가 무음·잡음이면(섭리오 SWORD 마지막 5초 물소리, 사용자 2026-09-15) 그 앞에서 loopFade 동안 줄였다가
@@ -366,7 +369,7 @@ export class Sound {
     this.stopBgm(0.4);
     if (!name) return;
     const pre = this._preBgm?.[name]; if (pre) delete this._preBgm[name];
-    const a = pre || new Audio(`assets/audio/bgm/${name}.mp3`);
+    const a = pre || new Audio(vurl(`assets/audio/bgm/${name}.mp3`));
     a.loop = loop; a.volume = 0;
     // at: 이어 틀 위치(초) — 전투 뒤 맵 브금이 처음부터가 아니라 끊긴 자리에서(BUILD269, 사용자 “전투 끝나면 맵 브금 기존처럼 이어서”). 메타데이터가 아직이면 준비되는 대로 옮긴다
     if (at > 0) { const seek = () => { try { a.currentTime = at; } catch (e) { /* */ } }; if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek, { once: true }); }

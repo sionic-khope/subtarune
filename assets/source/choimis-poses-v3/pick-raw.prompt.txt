@@ -1,0 +1,11 @@
+# imagegen 2026-09-21 01:06:33
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/choimis-poses-v3/walk-front-ref.png
+
+Pixel art sprite sheet with EXACTLY 2 cells side by side on a 1024x1024 canvas (invisible equal 512px cells, no grid lines, no labels, no text). Flat solid magenta background (#FF00FF), no shadow, no border.
+The character is EXACTLY the one in the reference image, reproduced pixel-for-pixel wherever the pose allows: same messy white hair shape, same round glasses, same face with the big nose and wide mouth, same skin tone, same pink t-shirt with black GAP letters, same PINK pants (the legs are pink, not grey or black), same black shoes, same chunky pixel style and outline colors, same body proportions and the same 3/4 top-down RPG view. Do not redesign or beautify the face — copy it.
+Left cell: facing the viewer, bending forward at the waist with knees slightly bent, reaching one hand down toward the ground as if plucking a small pink flower growing there.
+Right cell: standing upright facing the viewer, holding one small pink cherry-blossom flower up in one hand at chest height, head tilted slightly toward it.
+Each figure fills about 80% of its cell height and is centered in the cell.
