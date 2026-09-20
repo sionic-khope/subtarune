@@ -45,7 +45,7 @@ test('the full-size enlarged boss fits the unobstructed stage including recoil a
 function battleFixture(hp = 100, actionFactories = {}) {
   const enemy = { id: 'drum_devil', def: ENEMIES.drum_devil, ...actor, hp: 300, maxHp: 300, dying: 0, patternIdx: 0 };
   const battle = Object.assign(Object.create(Battle.prototype), {
-    enemies: [enemy], members: [{ id: 'hyungsub', hp, maxHp: 100, down: false }], soul: new Soul(), board: new Board(),
+    enemies: [enemy], members: [{ id: 'hyungsub', hp, maxHp: 100, home: [84, 190], down: false }], soul: new Soul(), board: new Board(),
     state: 'bullets', t: 0, bullets: [], patterns: [], bubble: null, fx: [],
     game: { fadeTo() {}, sound: { stopBgm() {}, preloadBgm() {}, blip() {} } }, cfg: { bgm: C.bgm },
     rnd: () => 0, sfx() {}, setText(text) { this.text = text; },
@@ -314,17 +314,17 @@ test('reset clears an in-flight interception and rejects stale deflection callba
   assert.equal(disposed, 1); assert.equal(battle.support.interceptionActive, false);
 });
 
-test('hero one-shot returns to the encounter BGM once and respects battle ownership', () => {
+test('hero theme loops without returning to encounter BGM and respects battle ownership', () => {
   const battle = battleFixture(), played = [], preloaded = [];
   battle.game.battle = battle; battle.state = 'menu';
   const sound = battle.game.sound;
   sound.preloadBgm = name => preloaded.push(name);
   sound.playBgm = (name, options) => { played.push({ name, options }); sound.bgm = new EventTarget(); };
   battle.support.playHeroCue();
-  assert.deepEqual(played[0], { name: 'janitor_hero_intro', options: { loop: false, fadeIn: 1.2 } });
-  assert.deepEqual(preloaded, [C.bgm]);
+  assert.deepEqual(played[0], { name: 'janitor_hero_intro', options: { loop: true, fadeIn: 1.2 } });
+  assert.deepEqual(preloaded, []);
   const cue = sound.bgm; cue.dispatchEvent(new Event('ended')); cue.dispatchEvent(new Event('ended'));
-  assert.deepEqual(played[1], { name: C.bgm, options: { fadeIn: 0 } }); assert.equal(played.length, 2);
+  assert.equal(played.length, 1);
   for (const cancel of [() => battle.support.reset(), () => battle.cancelPendingBgm(), () => battle.support.dispose(),
     () => { battle.game.battle = {}; }, () => { sound.bgm = new EventTarget(); }, () => { battle.state = 'win'; }]) {
     battle.game.battle = battle; battle.state = 'menu'; battle.support.playHeroCue();
@@ -334,11 +334,10 @@ test('hero one-shot returns to the encounter BGM once and respects battle owners
   }
 });
 
-test('drum-only hero formation moves Yoplait once without healing and reset restores it', () => {
+test('drum-only formation is stable before and during rescue and dispose restores default home', () => {
   const battle = battleFixture(), player = battle.members[0];
-  player.home = [84, 190]; player.action = { mode: 'idle' };
-  battle.support.prepareHeroFormation(); battle.support.prepareHeroFormation();
-  assert.deepEqual(player.home, [204, 150]); assert.equal(player.action, null); assert.equal(player.hp, 100);
-  battle.support.reset(); assert.deepEqual(player.home, [84, 190]);
+  assert.deepEqual(player.home, [124, 164]); assert.equal(player.hp, 100);
+  battle.support.reset(); assert.deepEqual(player.home, [124, 164]);
+  battle.support.dispose(); assert.deepEqual(player.home, [84, 190]);
   assert.deepEqual(ENEMIES.drum_devil.lines.speak, ['씨2발년아', '크어어어억', '찢어주겠다']);
 });

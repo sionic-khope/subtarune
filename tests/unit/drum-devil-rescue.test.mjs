@@ -12,7 +12,7 @@ function harness() {
     showLine(line) { lines.push(line); this.text = line.text; }, setText(text) { this.text = text; },
     sfx(key) { calls.push(key); },
     game: { sound: { stopBgm: x => calls.push(['stop', x]), preloadBgm() {}, playBgm: key => calls.push(key) } },
-    support: { playHeroCue() { calls.push(C.bgm); }, prepareHeroFormation() { calls.push('formation'); } },
+    support: { playHeroCue() { calls.push(C.bgm); } },
   };
   let completed = 0;
   const scene = createDrumDevilRescue(battle, { onComplete: () => completed++ });
@@ -120,17 +120,35 @@ test('janitor stands with upright flag until landing, with a separate laugh pose
 });
 
 test('flag contact synchronizes one strong hit with white flash and visible recoil', () => {
+  assert.ok(C.flight < 0.8, 'first flag crosses quickly');
   const h = harness(); h.advance('flag');
   while (!h.scene.snapshot.hit) h.scene.update(0.01, still);
   assert.equal(h.calls.filter(c => c === C.flagImpact.sound).length, 1);
   assert.ok(h.scene.snapshot.flagImpact.flash > 0);
   assert.equal(C.flagImpact.sound, 'deltarune_release_shoot');
-  assert.equal(h.scene.snapshot.flagImpact.recoil, C.flagImpact.recoil);
+  assert.equal(h.scene.snapshot.flagImpact.recoil, C.flagImpact.recoil + C.flagImpact.heldRecoil);
   assert.equal(h.scene.snapshot.flagImpact.shake, C.flagImpact.amp);
+  assert.ok(h.scene.snapshot.flagImpact.flash >= 0.7, 'one impact flash reads as white');
+  assert.ok(C.flagImpact.amp >= 6, 'impact shake is visibly stronger');
+  assert.equal(h.scene.snapshot.bossHitstun, true);
   h.scene.update(0.04, still); assert.ok(h.scene.snapshot.flagImpact.recoil > 3);
   assert.ok(Math.abs(h.scene.snapshot.flagImpact.shake) > 0);
   h.scene.update(C.flagImpact.duration, still); assert.equal(h.scene.snapshot.flagImpact.active, false);
-  assert.equal(h.scene.snapshot.flagImpact.recoil, 0);
+  assert.equal(h.scene.snapshot.flagImpact.recoil, C.flagImpact.heldRecoil);
+  h.advance('ready'); assert.equal(h.scene.snapshot.bossHitstun, true, 'boss holds the hit pose through the introduction');
+  h.scene.update(0.2, input); assert.equal(h.scene.snapshot.bossHitstun, false, 'combat resumes normal boss animation');
+});
+
+test('rescue boss rendering stays in a held hit pose after the impact effects end', () => {
+  const h = harness(), poses = [];
+  h.battle.cfg = { bg: 'none' };
+  h.battle.drawEnemy = (_ctx, enemy) => poses.push(enemy.patternPose);
+  const ctx = Object.fromEntries(['save', 'restore', 'beginPath', 'rect', 'clip', 'translate', 'scale', 'rotate', 'fillRect'].map(key => [key, () => {}]));
+  h.advance('silence'); h.scene.draw(ctx);
+  assert.equal(poses.at(-1), undefined, 'pre-contact boss uses regular idle');
+  h.advance('surprise'); h.scene.update(C.flagImpact.duration, still); h.scene.draw(ctx);
+  assert.deepEqual(poses.at(-1), { sheet: 'idle', frame: C.flagImpact.frame });
+  assert.equal(h.scene.snapshot.flagImpact.recoil, C.flagImpact.heldRecoil);
 });
 
 test('distant reveal traverses a long left pan before focus without changing the actor identity', () => {
@@ -144,9 +162,9 @@ test('distant reveal traverses a long left pan before focus without changing the
   assert.ok(h.scene.snapshot.pan >= 480); assert.equal(h.scene.snapshot.heroScreenX, C.revealCenterX);
 });
 
-test('fast accelerating ascent begins formation and camera return before grand landing', () => {
+test('fast accelerating ascent returns camera without moving Yoplait home', () => {
   const h = harness(); h.advance('rise');
-  assert.ok(h.calls.includes('formation')); assert.ok(C.rise <= 0.6);
+  assert.equal(h.calls.includes('formation'), false); assert.deepEqual(h.battle.members[0].home, [100, 200]); assert.ok(C.rise <= 0.6);
   const startY = h.scene.snapshot.heroY;
   h.scene.update(C.rise / 2, still); const middleY = h.scene.snapshot.heroY, middleCamera = h.scene.snapshot.camera;
   assert.ok(middleCamera < 1);
@@ -185,17 +203,18 @@ test('post-landing speech stays left of Yoplait and boss faces with a compact he
   for (const line of [...C.healLines, ...C.ready]) {
     const boxes = [], tails = [], text = [];
     const ctx = { save() {}, restore() {}, beginPath() {}, closePath() {}, fill() {}, moveTo() {},
-      lineTo(x, y) { tails.push([x, y]); }, measureText(value) { return { width: value.length * 14 }; },
+      lineTo(x, y) { tails.push([x, y]); }, measureText(value) { return { width: [...value].reduce((sum, glyph) => sum + (glyph === ',' || glyph === ' ' ? 6 : 12), 0) }; },
       fillText(value, x, y) { text.push({ value, x, y }); } };
     const battle = { text: line.text, shown: 999, roundRect(_ctx, x, y, width, height) { boxes.push({ x, y, width, height }); } };
-    drawDrumDevilSpeech(ctx, battle, { x: 144, y: 174, postLanding: true });
+    drawDrumDevilSpeech(ctx, battle, { x: 122, y: 174, postLanding: true });
     const box = boxes[0];
-    assert.equal(box.x, 12); assert.equal(box.width, 156);
-    assert.ok(box.x + box.width < 180, 'bubble must remain left of Yoplait face');
+    assert.equal(box.x, 12); assert.equal(box.width, 100);
+    assert.ok(box.x + box.width < 120, 'bubble must remain left of Yoplait face');
     assert.ok(box.y >= 10 && box.y + box.height < 174);
-    assert.deepEqual(tails[0], [144, 166]);
+    assert.deepEqual(tails[0], [122, 166]);
     assert.equal(tails[0][1] - (box.y + box.height), 12);
     assert.ok(text.length >= 2, 'full Korean line must wrap inside narrow scene bubble');
+    assert.ok(text.every(part => part.value.trim() !== ','), 'punctuation cannot wrap onto its own line');
     assert.equal(text.map(part => part.value.replaceAll(' ', '')).join(''), line.text.replaceAll(' ', ''));
     assert.ok(text.every(part => part.x + ctx.measureText(part.value).width <= box.x + box.width - C.speech.pad));
   }

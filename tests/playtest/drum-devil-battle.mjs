@@ -175,7 +175,10 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     return;
   }
   const rescueOnly = process.env.DRUM_RESCUE_ONLY === '1';
-  const supportOnly = process.env.DRUM_POSTHERO_ONLY === '1' || rescueOnly;
+  const assistOnly = process.env.DRUM_ASSIST_ONLY === '1';
+  const supportOnly = process.env.DRUM_POSTHERO_ONLY === '1' || rescueOnly || assistOnly;
+  const initialHome = await page.evaluate(() => [...game.battle.members[0].home]);
+  check('Yoplait uses the rescue-safe formation from battle start', initialHome[0] === 124 && initialHome[1] === 164, JSON.stringify(initialHome));
   if (supportOnly) {
     await fixture('early-rescue-support-refresh', 'Set HP5 before real C attack and ordinary collision to reach rescue quickly for support visuals and behavior; no rescue flags or phases are injected.', () => { game.battle.members[0].hp = 5; });
     await press('KeyC', { delay: 70 });
@@ -268,6 +271,36 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     await press('KeyC', { delay: 70 });
   };
   await phase('narration');
+  check('rescue narration does not advance Yoplait home', await page.evaluate(home => game.battle.members[0].home.every((value, index) => value === home[index]), initialHome));
+  const bodyHeights = await page.evaluate(async () => {
+    const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js');
+    const canvas = document.createElement('canvas'); canvas.width = 480; canvas.height = 246;
+    const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+    const height = () => {
+      const pixels = ctx.getImageData(0, 0, 480, 246).data;
+      let top = 246, bottom = 0;
+      for (let y = 0; y < 246; y++) for (let x = 0; x < 480; x++) if (pixels[(y * 480 + x) * 4 + 3] > 10) { top = Math.min(top, y); bottom = Math.max(bottom, y + 1); }
+      return bottom - top;
+    };
+    const member = { ...game.battle.members[0], action: null, popup: null };
+    game.battle.drawMember(ctx, member); const regular = height();
+    const poses = {};
+    for (const key of ['kneel', 'surprised', 'lookback']) {
+      const def = R[key], image = await new Promise((resolve, reject) => {
+        const asset = new Image(); asset.onload = () => resolve(asset); asset.onerror = reject; asset.src = def.src;
+      });
+      ctx.clearRect(0, 0, 480, 246);
+      ctx.drawImage(image, 0, 0, def.cell, def.cell,
+        Math.round(124 - def.pivot[0] * def.scale), Math.round(164 - def.pivot[1] * def.scale),
+        Math.round(def.cell * def.scale), Math.round(def.cell * def.scale));
+      poses[key] = height();
+    }
+    return { regular, ...poses };
+  });
+  check('rescue body poses match regular Yoplait scale', bodyHeights.regular >= bodyHeights.surprised - 2
+    && bodyHeights.regular >= bodyHeights.lookback - 2 && bodyHeights.regular - bodyHeights.kneel <= 13
+    && Math.abs(bodyHeights.regular - bodyHeights.surprised) <= 8
+    && Math.abs(bodyHeights.regular - bodyHeights.lookback) <= 8, JSON.stringify(bodyHeights));
   check('kneel at HP1 and battle music stops', await page.evaluate(() => drumSnapshot().pose === 'kneel' && game.battle.members[0].hp === 1 && !game.sound.bgmName));
   await line('... 너무나도 강력하다', 'rescue-01-kneel');
   await line('저녀석을 쓰러트릴 방법은 아무래도 없는 것 같다.', 'rescue-02-narration');
@@ -283,6 +316,22 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   check('flag contact starts white flash', await page.evaluate(() => drumSnapshot().hit && drumSnapshot().flagImpact.flash > 0));
   await shot('rescue-05-flag-hit');
   check('flag hit recoils and shakes the boss', await until(() => drumSnapshot()?.flagImpact?.recoil > 1 && Math.abs(drumSnapshot().flagImpact.shake) > 0.1));
+  const bossHitBounds = await page.evaluate(async () => {
+    const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js');
+    const battle = game.battle, enemy = battle.enemies[0], canvas = document.createElement('canvas');
+    canvas.width = 480; canvas.height = 246;
+    const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+    ctx.translate(R.flagImpact.heldRecoil + R.flagImpact.recoil + R.flagImpact.rightShakeLimit, 0);
+    ctx.translate(enemy.x, enemy.y - 110); ctx.rotate(R.flagImpact.lean); ctx.translate(-enemy.x, -enemy.y + 110);
+    battle.drawEnemy(ctx, { ...enemy, patternPose: { sheet: 'idle', frame: R.flagImpact.frame }, popup: null });
+    const pixels = ctx.getImageData(0, 0, 480, 246).data;
+    let left = 480, top = 246, right = 0, bottom = 0;
+    for (let y = 0; y < 246; y++) for (let x = 0; x < 480; x++) if (pixels[(y * 480 + x) * 4 + 3] > 10) {
+      left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x + 1); bottom = Math.max(bottom, y + 1);
+    }
+    return { left, top, right, bottom };
+  });
+  check('strongest flag recoil and right shake keep boss inside viewport', bossHitBounds.left > 0 && bossHitBounds.top > 0 && bossHitBounds.right < 480, JSON.stringify(bossHitBounds));
   await shot('rescue-05b-recoil');
   const surprise = await phase('surprise');
   check('surprise right-facing pose before camera', surprise.pose === 'surprised' && surprise.camera === 0);
@@ -303,7 +352,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await shot('rescue-09-focus');
   const greeting = await phase('greeting');
   check('greeting waits for focus shake to end', greeting.camera === 1 && greeting.shake === 0 && greeting.heroPose === 'stand' && Math.abs(greeting.zoom - 0.88) < 0.001);
-  check('one-shot hero introduction cue starts', await page.evaluate(() => game.sound.bgmName === 'janitor_hero_intro' && game.sound.bgm.loop === false && game.sound.bgm.playbackRate === 1));
+  check('hero theme starts as a loop', await page.evaluate(() => game.sound.bgmName === 'janitor_hero_intro' && game.sound.bgm.loop === true && game.sound.bgm.playbackRate === 1));
   await line('도움이 필요한가?', 'rescue-10-white-speech');
   const laugh = await phase('laugh');
   check('laugh uses dedicated pose', laugh.heroPose === 'laugh');
@@ -313,6 +362,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await line('붉은 군단의 전사.', 'rescue-13-warrior');
   await line('멸공의 깃발이라고 불렸었지.', 'rescue-14-flag-title');
   await phase('rise');
+  check('introduction and ascent leave Yoplait in the same battle-start formation', await page.evaluate(home => game.battle.members[0].home.every((value, index) => value === home[index]), initialHome));
   await page.waitForFunction(() => drumSnapshot()?.phase === 'rise' && drumSnapshot().time >= 0.22);
   check('fast rise uses stand pose and moving camera', await page.evaluate(() => drumSnapshot().heroPose === 'stand' && drumSnapshot().heroY < 160 && drumSnapshot().camera < 1));
   await shot('rescue-15-rise');
@@ -341,9 +391,20 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   }));
   await shot('rescue-18c-heal-effect');
   await phase('ready');
+  const readyWrap = await page.evaluate(async () => {
+    const { menuTextLines } = await import('/src/ui/menu-layout.js');
+    const { FONT } = await import('/src/ui/font.js');
+    const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js');
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = FONT.replace(/^\d+px/, `${R.speech.postLanding.fontSize}px`);
+    return menuTextLines(ctx, R.ready[0].text, R.speech.postLanding.width - R.speech.pad * 2, 5);
+  });
+  check('compact ready bubble keeps Korean final punctuation attached', readyWrap.every(line => line.trim() !== ',' && !line.endsWith('…'))
+    && readyWrap.join('').replaceAll(' ', '') === '자얼른저괴물을무찔러보게나,', JSON.stringify(readyWrap));
   check('landing heal happens exactlyonce without damage', await page.evaluate(() => drumEvidence.heals.length === 1 && drumEvidence.heals[0].before === 1 && drumEvidence.heals[0].after === game.battle.members[0].maxHp && drumEvidence.hits.every(hit => hit.damage === 0)), JSON.stringify(await page.evaluate(() => drumEvidence.heals)));
   await line('자 얼른 저 괴물을 무찔러보게나,', 'rescue-19-ready');
   check('exact support menu returns', await until(() => game.battle.state === 'menu' && game.battle.text === '* 멸공의 깃발이 함께한다.' && game.battle.support.rescued));
+  check('rescued menu still uses unchanged battle-start formation', await page.evaluate(home => game.battle.members[0].home.every((value, index) => value === home[index]), initialHome));
   await until(() => game.battle.typed);
   await shot('rescue-20-menu');
   const formation = await page.evaluate(async () => {
@@ -358,7 +419,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   }
   const sounds = await page.evaluate(() => drumEvidence.sounds.filter(s => s.phase));
   check('single flag impact laugh and landing audio calls', sounds.filter(s => s.phase === 'flag').length === 1 && sounds.filter(s => s.name === 'laugh_janitor').length === 1 && sounds.filter(s => s.name === 'impact').length === 1, JSON.stringify(sounds));
-  for (const name of rescueOnly ? [] : supportOnly ? ['roll', 'chain', 'cross', 'ring', 'bombard'] : ['cross', 'ring', 'bombard', 'roll', 'chain']) {
+  for (const name of rescueOnly ? [] : assistOnly ? ['roll'] : supportOnly ? ['roll', 'chain', 'cross', 'ring', 'bombard'] : ['cross', 'ring', 'bombard', 'roll', 'chain']) {
     await fixture(`assist-${name}-isolation`, 'Restore bossHP300 and soloHP before testing each real posthero pattern; avoids killing the boss before all five interception paths are observed.', () => {
       game.battle.enemies[0].hp = 300;
       game.battle.members[0].hp = game.battle.members[0].maxHp;
@@ -370,6 +431,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     check(`${name} automatic hero attack begins`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack', 10000));
     check(`${name} hero waits for player animation to finish`, await page.evaluate(() => !game.battle.members[0].action || game.battle.members[0].action.mode === 'idle'));
     await shot(`assist-${name}-01-windup`);
+    check(`${name} hero windup steps forward into the unclipped attack root`, await until(() => game.battle.support.actionSnapshot?.frame === 1
+      && game.battle.support.actionSnapshot.position.x === 138));
     check(`${name} red energy releases before contact`, await until(() => game.battle.support.actionSnapshot?.energy && !game.battle.support.actionSnapshot.contacted));
     await shot(`assist-${name}-02-energy-flight`);
     check(`${name} hero contacts boss`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack' && game.battle.support.actionSnapshot.contacted));
@@ -379,6 +442,12 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     check(`${name} hero hit lands after visible energy flight`, hits[1]?.action?.elapsed >= 1.2 && hits[1]?.action?.contacted);
     check(`${name} ranged contact reaches rendered enlarged boss pixels`, hits[1]?.renderedContact === true);
     check(`${name} enemy turn starts after automatic attack`, await until(() => game.battle.state === 'bullets' && !game.battle.gimmick, 8000));
+    if (assistOnly) {
+      check('assist returns to idle root without a lingering action', await page.evaluate(() => !game.battle.support.actionSnapshot));
+      await shot('assist-settled-after-lunge');
+      check('assist-only assets loaded', missingAssets.length === 0, JSON.stringify(missingAssets));
+      return;
+    }
     check(`${name} posthero selected expected pattern`, await page.evaluate(expected => {
       const e = game.battle.enemies[0]; return e.def.patterns[(e.patternIdx - 1) % 5].type === expected;
     }, `drum_${name}`));
@@ -432,24 +501,26 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     await until(() => game.battle.typed);
     await shot(`intercept-${name}-07-menu`);
   }
-  if (rescueOnly) check('rescue-only waits for natural cue ending', await until(() => drumEvidence.cue?.ended && game.sound.bgmName === 'drum_devil_battle' && game.sound.bgm.currentTime > 0.1, 52000));
+  check('hero theme naturally wraps after46.760 seconds', await until(() => {
+    const samples = drumEvidence.cue?.samples || [];
+    return samples.some((sample, index) => index > 0 && samples[index - 1].time > 45 && sample.time < 2);
+  }, 52000));
   const cuePlayback = await page.evaluate(() => {
-    const cue = drumEvidence.cue, resumed = cue?.ended && drumEvidence.music.find(event => event.name === 'drum_devil_battle' && event.time >= cue.ended.wall);
-    return { cue, resumed, current: game.sound.bgmName, currentTime: game.sound.bgm?.currentTime };
+    const cue = drumEvidence.cue;
+    return { cue, current: game.sound.bgmName, currentTime: game.sound.bgm?.currentTime,
+      stillSameAudio: game.sound.bgm === observedHeroCue,
+      battleCues: drumEvidence.music.filter(event => event.name === 'drum_devil_battle' && event.time >= cue.startedAt) };
   });
-  check('hero cue naturally ends once at46.760 seconds without acceleration', cuePlayback.cue?.ended?.trusted === true
-    && Math.abs(cuePlayback.cue.ended.duration - 46.760) < 0.12
-    && cuePlayback.cue.ended.wall - cuePlayback.cue.startedAt >= 46000
-    && cuePlayback.cue.loop === false && cuePlayback.cue.samples.length > 100
+  check('hero cue continues without restarting boss theme or audio object', cuePlayback.cue?.ended === undefined
+    && cuePlayback.cue.loop === true && cuePlayback.cue.samples.length > 100
     && cuePlayback.cue.samples.every(sample => sample.rate === 1), JSON.stringify(cuePlayback));
-  check('real ended immediately resumes combat music with no fade delay', cuePlayback.resumed
-    && cuePlayback.resumed.time - cuePlayback.cue.ended.wall < 100 && cuePlayback.resumed.fadeIn === 0
-    && cuePlayback.current === 'drum_devil_battle' && cuePlayback.currentTime > 0);
+  check('hero theme remains audible after natural wrap', cuePlayback.stillSameAudio
+    && cuePlayback.battleCues.length === 0 && cuePlayback.current === 'janitor_hero_intro' && cuePlayback.currentTime > 0);
   await fixture('hero-lethal-boundary', 'Set enemy HP to exactly one ordinary player hit plus60, then use real C attack to verify automatic hero kill and victory; not a natural full win.', () => {
     game.battle.enemies[0].hp = game.attack + 60;
     window.victoryBattle = game.battle;
   });
-  await fixture('pending-cue-before-victory', 'Start a fresh introduction cue to probe stale ended callbacks after the upcoming real victory. The prior cue natural duration was already observed separately.', () => {
+  await fixture('pending-cue-before-victory', 'Retain the looping hero cue to probe stale ended callbacks after the upcoming real victory. A natural wrap was observed separately.', () => {
     game.battle.support.playHeroCue(); window.victoryCue = game.sound.bgm;
   });
   const lethalHits = await page.evaluate(() => drumEvidence.hits.length);
@@ -475,7 +546,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   });
   await until(() => game.battle?.state === 'intro', 15000);
   const staleReset = await fixture('late-ended-after-reset', 'Start the cue, reset game state through its public reset handler, then dispatch a synthetic late ended event. No clock is accelerated.', () => {
-    const battle = game.battle; battle.support.prepareHeroFormation(); battle.support.playHeroCue();
+    const battle = game.battle; battle.support.playHeroCue();
     const cue = game.sound.bgm; game.resetState(); const before = drumEvidence.music.length;
     cue.dispatchEvent(new Event('ended'));
     return !game.battle && !battle.support.actionSnapshot && drumEvidence.music.length === before;

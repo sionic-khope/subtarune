@@ -33,7 +33,9 @@ export function drawDrumDevilHero(ctx, assets, time, at = C.hero.home) {
 }
 
 export function drawDrumDevilSpeech(ctx, battle, anchor) {
-  const { pad, lineHeight, fontSize } = C.speech;
+  const { pad } = C.speech;
+  const lineHeight = anchor.postLanding ? C.speech.postLanding.lineHeight : C.speech.lineHeight;
+  const fontSize = anchor.postLanding ? C.speech.postLanding.fontSize : C.speech.fontSize;
   const width = anchor.postLanding ? C.speech.postLanding.width : C.speech.width;
   ctx.save(); ctx.font = FONT.replace(/^\d+px/, `${fontSize}px`); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   const lines = menuTextLines(ctx, battle.text, width - pad * 2, 5);
@@ -72,8 +74,8 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   const flagX = () => -100 + 700 * Math.min(1, time / C.flight);
   const flagImpact = () => {
     const active = flagImpactAge >= 0 && flagImpactAge < C.flagImpact.duration;
-    const recoil = active ? C.flagImpact.recoil * Math.exp(-flagImpactAge * 8) : 0;
-    const flash = active ? Math.max(0, 1 - flagImpactAge / C.flagImpact.flash) * 0.32 : 0;
+    const recoil = hit ? C.flagImpact.heldRecoil + (active ? C.flagImpact.recoil * Math.exp(-flagImpactAge * 8) : 0) : 0;
+    const flash = active ? Math.max(0, 1 - flagImpactAge / C.flagImpact.flash) * 0.78 : 0;
     const shake = active ? Math.cos(flagImpactAge * 65) * C.flagImpact.amp * Math.max(0, 1 - flagImpactAge / C.flagImpact.shake) : 0;
     return { active, recoil, flash, shake, age: flagImpactAge };
   };
@@ -95,7 +97,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   };
   return {
     fullscreen: true,
-    get snapshot() { return { phase, time, camera, ...view(), heroY, heroPose: heroPose(), flagX: phase === 'flag' ? flagX() : null, flagY: enemy.y - 90, flagImpact: flagImpact(), hit, healed, healAge, line: talk.index, pose: playerPose }; },
+    get snapshot() { return { phase, time, camera, ...view(), heroY, heroPose: heroPose(), flagX: phase === 'flag' ? flagX() : null, flagY: enemy.y - 90, flagImpact: flagImpact(), bossHitstun: hit && phase !== 'done', hit, healed, healAge, line: talk.index, pose: playerPose }; },
     update(dt, input) {
       if (disposed) return false;
       time += dt; elapsed += dt;
@@ -121,7 +123,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
           break;
         case 'greeting': if (talk.update(dt, input)) { battle.sfx('laugh_janitor'); enter('laugh'); } break;
         case 'laugh': if (time >= C.laughHold) speak('introduction', C.introduction); break;
-        case 'introduction': if (talk.update(dt, input)) { battle.support?.prepareHeroFormation?.(); enter('rise'); battle.sfx('spearappear', { volume: 0.7 }); } break;
+        case 'introduction': if (talk.update(dt, input)) { enter('rise'); battle.sfx('spearappear', { volume: 0.7 }); } break;
         case 'rise':
           heroY = C.hero.reveal[1] - 310 * Math.min(1, time / C.rise) ** 2;
           camera = 1 - Math.min(1, time / (C.rise + C.returnCamera)); focus = camera;
@@ -161,10 +163,18 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 480, 246); ctx.clip();
       const { zoom, pan, shake, centerX } = view();
       const strike = flagImpact();
-      ctx.translate(centerX + Math.round(shake + strike.shake), 0); ctx.scale(zoom, zoom); ctx.translate(-240 + pan, 0);
+      ctx.translate(centerX + Math.round(shake + Math.min(strike.shake, C.flagImpact.rightShakeLimit)), 0); ctx.scale(zoom, zoom); ctx.translate(-240 + pan, 0);
       for (const offset of [-960, -480]) { ctx.save(); ctx.translate(offset, 0); BATTLE_BGS[battle.cfg.bg]?.(ctx, battle); ctx.restore(); }
       BATTLE_BGS[battle.cfg.bg]?.(ctx, battle);
-      for (const e of battle.enemies) { ctx.save(); if (e === enemy) ctx.translate(Math.round(strike.recoil), 0); battle.drawEnemy(ctx, e); ctx.restore(); }
+      for (const e of battle.enemies) {
+        ctx.save();
+        if (e === enemy && hit) {
+          ctx.translate(Math.round(strike.recoil), 0);
+          ctx.translate(e.x, e.y - 110); ctx.rotate(C.flagImpact.lean); ctx.translate(-e.x, -e.y + 110);
+          battle.drawEnemy(ctx, { ...e, patternPose: { sheet: 'idle', frame: C.flagImpact.frame } });
+        } else battle.drawEnemy(ctx, e);
+        ctx.restore();
+      }
       if (!['narration', 'silence', 'flag', 'surprise', 'lookback'].includes(phase)) {
         const landed = ['dive', 'land', 'heal-talk', 'heal-raise', 'healing', 'ready', 'done'].includes(phase);
         const at = [landed ? C.hero.home[0] : C.hero.reveal[0], heroY];
@@ -194,11 +204,11 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
       }
       if (phase === 'flag') sprite(ctx, assets.flag, C.flag, flagX(), enemy.y - 90);
       if (strike.active) {
-        const progress = strike.age / C.flagImpact.duration, radius = 8 + progress * 44;
+        const progress = strike.age / C.flagImpact.duration, radius = 8 + progress * 62;
         ctx.save(); ctx.translate(enemy.x, enemy.y - 90); ctx.globalAlpha = 1 - progress;
         for (let i = 0; i < 8; i++) {
           ctx.save(); ctx.rotate(i * Math.PI / 4); ctx.fillStyle = i % 2 ? '#ff4141' : '#fff';
-          ctx.beginPath(); ctx.moveTo(radius * 0.25, -2); ctx.lineTo(radius + 13, 0); ctx.lineTo(radius * 0.25, 2); ctx.closePath(); ctx.fill(); ctx.restore();
+          ctx.beginPath(); ctx.moveTo(radius * 0.25, -3); ctx.lineTo(radius + 21, 0); ctx.lineTo(radius * 0.25, 3); ctx.closePath(); ctx.fill(); ctx.restore();
         }
         ctx.restore();
       }

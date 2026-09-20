@@ -18,7 +18,10 @@ test('assist has deep windup, one three-layer wave, and one damage callback at e
   const battle = makeBattle(), target = { x: 340, y: 240, hp: 300 };
   let hits = 0;
   const action = createJanitorHeroAttack(battle, { assets: {}, target, onHit() { hits++; } });
-  action.update(0.3); assert.equal(action.snapshot.frame, 1); assert.equal(action.snapshot.released, false);
+  action.update(0.11);
+  assert.ok(action.snapshot.position.x > R.hero.home[0] && action.snapshot.position.x < R.hero.attackHome[0]);
+  action.update(0.19); assert.equal(action.snapshot.frame, 1); assert.equal(action.snapshot.released, false);
+  assert.equal(action.snapshot.position.x, R.hero.attackHome[0]);
   action.update(0.3); assert.equal(action.snapshot.frame, 2); assert.equal(hits, 0);
   action.update(0.09); assert.equal(action.snapshot.frame, 3); assert.equal(action.snapshot.energy.layers, 3);
   assert.deepEqual(battle.sounds, ['rudebuster_swing']);
@@ -26,6 +29,7 @@ test('assist has deep windup, one three-layer wave, and one damage callback at e
   action.update(0.02); assert.equal(hits, 1);
   assert.deepEqual(action.snapshot.contact, { x: target.x, y: target.y - 100 });
   action.update(10); action.update(10); assert.equal(hits, 1); assert.equal(target.hp, 300);
+  assert.deepEqual(action.snapshot.position, { x: R.hero.home[0], y: R.hero.home[1] });
   assert.deepEqual(battle.sounds, ['rudebuster_swing', 'rudebuster_hit']);
 });
 
@@ -100,7 +104,7 @@ test('final attack contract keeps full windup and downslam in view at home and a
   assert.deepEqual(metadata.pivot, C.attack.pivot);
   assert.deepEqual(metadata.cell, [C.attack.cell, C.attack.cell]);
   assert.equal(metadata.records.length, C.attack.count);
-  const positions = [R.hero.home, [240 - C.attack.contactOffset[0] * heroScale, 190 - C.attack.contactOffset[1] * heroScale],
+  const positions = [R.hero.attackHome, [240 - C.attack.contactOffset[0] * heroScale, 190 - C.attack.contactOffset[1] * heroScale],
     [248 - C.attack.contactOffset[0] * heroScale, 280 - C.attack.contactOffset[1] * heroScale]];
   for (const [x, y] of positions) {
     for (const frame of metadata.records) {

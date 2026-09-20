@@ -4,13 +4,13 @@ export const CHARACTER_MOTIONS = {
   drum_devil: {
     throw: {
       src: 'assets/enemies/drum-devil-attack.png',
-      scale: 220 / (266 * 1.43), faces: 'left',
+      scale: 220 / (232 * 1.43), faces: 'left',
       colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [1, 2].map(index => ({ rect: [(index % 2) * 384, Math.floor(index / 2) * 384, 384, 384], pivot: [216, 320], duration: 0.6 })),
     },
     roar: {
       src: 'assets/enemies/drum-devil-idle.png',
-      scale: 220 / (266 * 1.43),
+      scale: 220 / (232 * 1.43),
       faces: 'left',
       colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [0, 2, 2, 0].map((index, beat) => ({

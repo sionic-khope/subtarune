@@ -29,6 +29,7 @@ function drawFrame(ctx, image, def, position, frame = 0, scale = 1) {
 
 function createAction(battle, { assets, target, barrel, onHit, onDeflect }, intercept) {
   const home = { x: R.hero.home[0], y: R.hero.home[1] };
+  const attackHome = { x: R.hero.attackHome[0], y: R.hero.attackHome[1] };
   const bodyScale = R.hero.scale ?? 1;
   const contactOffset = C.attack.contactOffset.map(value => value * bodyScale);
   const targetPoint = () => ({ x: target.x + C.energy.target[0] * (target.def?.scale ?? 1), y: target.y + C.energy.target[1] * (target.def?.scale ?? 1) });
@@ -67,7 +68,7 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
     if (!released) return null;
     const age = attackTime() - releaseAt;
     if (age > C.energy.flight + C.energy.impactHold) return null;
-    const from = intercept ? contact : { x: home.x + C.energy.origin[0] * bodyScale, y: home.y + C.energy.origin[1] * bodyScale };
+    const from = intercept ? contact : { x: attackHome.x + C.energy.origin[0] * bodyScale, y: attackHome.y + C.energy.origin[1] * bodyScale };
     const to = intercept ? { x: from.x + 150, y: from.y - 85 }
       : targetPoint();
     const progress = Math.min(1, age / C.energy.flight);
@@ -82,6 +83,11 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
     update(dt) {
       if (disposed) return true;
       elapsed += dt;
+      if (!intercept) {
+        const windup = Math.min(1, elapsed / C.attack.holds[0]);
+        const recovery = Math.max(0, Math.min(1, (elapsed - totalAttack) / C.assistHold));
+        position = { x: home.x + (attackHome.x - home.x) * windup * (1 - recovery), y: home.y };
+      }
       if (intercept) {
         if (!contacted && barrel.y < C.intercept.minimumRootY + contactOffset[1]) {
           const wait = Math.max(0, elapsed - (windupAt + releaseAt - 0.000001));

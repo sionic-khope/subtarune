@@ -43,13 +43,33 @@ test('test_drum_devil_reveal_occurs_behind_white_before_two_roars_and_narration'
   assert.equal(flat.find(node => node.battle).battle.bg, 'drum_nest');
   const fieldPng = readFileSync(new URL(`../../${CHARACTERS.drum_devil.still}`, import.meta.url));
   assert.deepEqual([fieldPng.readUInt32BE(16), fieldPng.readUInt32BE(20)], [272, 232]);
-  assert.ok(fieldPng.readUInt32BE(20) * CHARACTERS.drum_devil.stillScale * 1.43 <= 230);
+  const fieldHeight = fieldPng.readUInt32BE(20) * CHARACTERS.drum_devil.stillScale * 1.43;
+  assert.equal(Math.round(fieldHeight), 220);
+  assert.ok(fieldHeight <= 230);
   assert.deepEqual(CHARACTERS.drum_devil.stillPivot, [142, 226]);
-  assert.equal(CHARACTERS.drum_devil.stillScale, 220 / (266 * 1.43));
+  assert.equal(CHARACTERS.drum_devil.stillScale, 220 / (232 * 1.43));
   assert.ok(CHARACTER_MOTIONS.drum_devil.roar.frames.every(frame => frame.rect[2] === 272 && frame.rect[3] === 232 && frame.pivot.join() === '142,226'));
   assert.equal(CHARACTER_MOTIONS.drum_devil.roar.scale, CHARACTERS.drum_devil.stillScale);
   assert.equal(CHARACTER_MOTIONS.drum_devil.throw.scale, CHARACTERS.drum_devil.stillScale);
   assert.ok(flat.every(node => !node.join && !node.stage && !node.set && !node.map));
+});
+
+test('test_drum_field_geometry_keeps_220px_artwork_above_the_dialogue', () => {
+  const drum = { id: 'jjajang_nest_drum', x: 500, y: 400, w: 32, h: 32 };
+  const game = { entities: [drum], camera: {} };
+  const frameBarrel = nodes.find((node, index) => typeof node.action === 'function' && nodes[index + 1]?.hide === 'jjajang_nest_drum');
+  frameBarrel.action(game);
+  const scale = CHARACTERS.drum_devil.stillScale * 1.43;
+  const root = [drum.x + drum.w / 2 - game.camera.x, drum.y + drum.h - game.camera.y];
+  const bounds = {
+    left: root[0] - CHARACTERS.drum_devil.stillPivot[0] * scale,
+    top: root[1] - CHARACTERS.drum_devil.stillPivot[1] * scale,
+    right: root[0] + (272 - CHARACTERS.drum_devil.stillPivot[0]) * scale,
+    bottom: root[1] + (232 - CHARACTERS.drum_devil.stillPivot[1]) * scale,
+  };
+  assert.equal(game.camera.y, drum.y + drum.h - 222);
+  assert.equal(Math.round(bounds.bottom - bounds.top), 220);
+  assert.ok(bounds.left >= 0 && bounds.top >= 0 && bounds.right <= 480 && bounds.bottom <= 230, JSON.stringify(bounds));
 });
 
 test('test_intro_throws_exactly_one_barrel_from_registered_hand_and_waits_for_impact', () => {

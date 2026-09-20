@@ -8,7 +8,7 @@ const frameBarrel = { action: g => {
   const drum = g.entities.find(e => e.id === 'jjajang_nest_drum');
   g.camera.locked = true;
   g.camera.x = drum.x + drum.w / 2 - 320;
-  g.camera.y = drum.y + drum.h - 192;
+  g.camera.y = drum.y + drum.h - 222;
 } };
 const roar = () => [
   { parallel: [{ motion: 'drum_devil', name: 'roar', sfx: 'baron_roar' }, { shake: 1.35, amp: 5 }] },

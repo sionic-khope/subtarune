@@ -12,7 +12,7 @@ const tuning = {
   soundCooldown: { drum_throw: 0.25, drum_impact: 0.18, drum_burst: 0.8, wing: 0.25 },
   soundVolume: { drum_throw: 0.75, drum_impact: 0.5, drum_burst: 0.95, wing: 1 },
   heroDamage: 60, interceptAfter: 1, deflectVelocity: [480, -310], deflectAcceleration: [220, 280], deflectSpin: 22, deflectLife: 1.1,
-  heroPartyHome: [204, 150], heroBoardCenter: [312, 214],
+  heroPartyHome: [124, 164], heroBoardCenter: [312, 214],
 };
 const finisherAt = (tuning.waves - 1) * tuning.every + tuning.warn + tuning.flight
   + Math.max(tuning.rollLife, tuning.fragmentLife, tuning.blastHold, tuning.crossFlight + tuning.blastHold,
