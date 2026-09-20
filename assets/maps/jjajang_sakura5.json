@@ -1075,7 +1075,8 @@
    "h": 16,
    "solid": true,
    "facing": "right",
-   "wander": 0
+   "wander": 0,
+   "unless": "sakura5_girls_left"
   },
   {
    "type": "npc",
@@ -1087,7 +1088,8 @@
    "h": 16,
    "solid": true,
    "facing": "right",
-   "wander": 0
+   "wander": 0,
+   "unless": "sakura5_girls_left"
   },
   {
    "type": "npc",
@@ -1099,7 +1101,8 @@
    "h": 16,
    "solid": true,
    "facing": "right",
-   "wander": 0
+   "wander": 0,
+   "unless": "sakura5_girls_left"
   },
   {
    "type": "npc",

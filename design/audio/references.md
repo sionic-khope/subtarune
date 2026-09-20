@@ -573,3 +573,4 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 - `bgm/telling.mp3`(40.5초, 0.9MB): 사용자 지정 [CvFuMiWEryM](https://www.youtube.com/watch?v=CvFuMiWEryM) “26. I'm Telling! (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”(업로더 Toby Fox) 전체를 MP3 q2(구간 편집·정규화 없음). 벚꽃 숲 5 윗길 연출(“위로 쫌 올라가면”)부터.
 - `bgm/petal_dance.mp3`(92.7초, 2.4MB): 사용자 지정 [RsAu3BDaAp8](https://www.youtube.com/watch?v=RsAu3BDaAp8) “17. Petal Dance (DELTARUNE Chapter 5 Soundtrack) - Toby Fox” 전체를 MP3 q2. 도미조림·도현 전투 브금.
 - 도미조림·도현 탄막 소리는 기존 `whoosh`(홍어)·`swing`/`thud`(횃불·착지)·`pop`(도현 낙하·카톡) 재사용(지정 없음).
+- `bgm/stop_criminell.mp3`(45.2초, 0.96MB): 사용자 지정 [kXp2H7GbYis](https://www.youtube.com/watch?v=kXp2H7GbYis) “27. Stop, Criminell! (DELTARUNE Chapter 5 Soundtrack) - Toby Fox” 전체를 MP3 q2. 벚꽃 숲 5 승리 뒤 연출 “혹시 궁금한게 있는데…” 부터, 가순이들이 떠난 뒤 “...” 에서 끔, “허허 그럴까.” 뒤 `telling` 복귀.

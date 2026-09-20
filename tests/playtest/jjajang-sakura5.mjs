@@ -131,10 +131,36 @@ try {
   let closed = await until(() => !window.game.battle, 8000); if (!closed) { await press('KeyC'); closed = await until(() => !window.game.battle, 8000); }
   check(closed, '전투 닫힘');
   check(await until(() => (window.game.fade?.alpha ?? 1) < 0.05 && (window.game.zoom?.s || 1) < 1.05 && window.game.sound.bgmName === 'telling', 8000), '전투 뒤 화면 복귀(페이드인·줌 1·공터 브금)'); await cap('19b_after_battle');
-  check(await until(() => !window.game.dialogue.running && window.game.flags.sakura5_clearing_scene_done && window.game.flags.sakura5_duo_won, 10000), '두 번째 연출 끝(전투 승리 플래그)');
+  // 승리 뒤 연출: 둘 눕힘 → 나대 씨바 → 헉.. → 억빠맨 느낌표·오른쪽 → 브금 → 원문 대사(가순이들 오른쪽, 물음표) → 셋이 아래로 걸어 내려가 사라짐 → 브금 끔·말풍선 → 넉 줄 → 브금 복귀
+  const lying = await ev(() => ['domijorim', 'dohyun'].map(id => Math.abs(window.game.entities.find(e => e.id === id)?.spin || 0) > 1.2));
+  check(lying.every(Boolean), '도미조림·도현이 각도만 틀어 누워 있다');
+  s = await advanceTo('나대 씨바'); check(!!s && s.speaker === '억빠맨', '억빠맨: 나대 씨바'); await cap('19c_lying');
+  s = await advanceTo('헉..'); check(!!s && s.speaker === '가순이4', '가순이4: 헉..'); await next();
+  check(await until(() => window.game.entities.find(e => e.id === 'ppaman')?.facing === 'right' && !!window.game.entities.find(e => e.id === 'ppaman')?.emote, 4000), '억빠맨 느낌표 하면서 오른쪽');
+  s = await advanceTo('혹시 궁금한게'); check(!!s && s.speaker === '억빠맨', '억빠맨: 혹시 궁금한게 있는데 …');
+  check(await until(() => window.game.sound.bgmName === 'stop_criminell', 5000), '여기서부터 브금 stop_criminell');
+  s = await advanceTo('환심을'); check(!!s && s.speaker === '가순이5', '가순이5: 그야 떙떙님께 환심을 살 수 있으니까요.');
+  check(await ev(() => ['gasuni4', 'gasuni5', 'gasuni6'].every(id => window.game.entities.find(e => e.id === id)?.facing === 'right')), '가순이들도 오른쪽');
+  s = await advanceTo('맞아요 이미'); check(!!s && s.speaker === '가순이4', '가순이4: 맞아요 이미..'); await next();
+  check(await until(() => window.game.entities.find(e => e.id === 'ppaman')?.emote?.kind === '?', 4000), '억빠맨 물음표'); await cap('19d_question');
+  s = await advanceTo('왜요?'); check(!!s && s.speaker === '억빠맨', '억빠맨: 왜요?');
+  s = await advanceTo('청혼을 할거라고'); check(!!s && s.speaker === '가순이4', '가순이4: 곧 있으면 …');
+  s = await advanceTo('뭐 씨발 머야'); check(!!s && s.speaker === '억빠맨', '억빠맨: 뭐 씨발 머야 그게');
+  s = await advanceTo('미자라구'); check(!!s && s.speaker === '가순이6', '가순이6: 그녀는 미자라구 하셨어');
+  s = await advanceTo('점례'); check(!!s && s.speaker === '가순이5', '가순이5: 맞아 점례..');
+  s = await advanceTo('그냥 가는게'); check(!!s && s.speaker === '가순이4', '가순이4: 그냥 가는게 맞는거같아.');
+  s = await advanceTo('흑흑흑'); check(!!s && s.speaker === '가순이5', '가순이5: 흑흑흑'); await next();
+  check(await until(() => (window.game.entities.find(e => e.id === 'gasuni4')?.y || 0) > 360, 5000), '가순이들이 아래로 걸어 내려간다'); await cap('19e_girls_leave');
+  check(await until(() => ['gasuni4', 'gasuni5', 'gasuni6'].every(id => { const e = window.game.entities.find(x => x.id === id); return !e || e.dead; }), 12000), '셋이 사라짐');
+  check(await until(() => !window.game.sound.bgmName, 5000), '억빠맨 ... (이때 브금 꺼짐)');
+  s = await advanceTo('근데 일단'); check(!!s && s.speaker === '억빠맨', '억빠맨: 근데 일단 뭐 저 위에 짜장면이 있는건 맞지만');
+  s = await advanceTo('오른쪽으로 가볼까요'); check(!!s && s.speaker === '억빠맨', '억빠맨: 일단 오른쪽으로 가볼까요');
+  s = await advanceTo('허허 그럴까'); check(!!s && s.speaker === '경섭', '경섭: 허허 그럴까.'); await next();
+  check(await until(() => window.game.sound.bgmName === 'telling', 6000), '브금 다시 복귀');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.sakura5_clearing_scene_done && window.game.flags.sakura5_duo_won && window.game.flags.sakura5_girls_left, 10000), '두 번째 연출 끝(전투 승리·가순이 떠남 플래그)');
   check(await go('ArrowUp', `g.player.y <= ${(S.treeBaseRow + 3) * 32}`, 10000), '공터 안으로'); await page.waitForTimeout(300); await cap('20_clearing_walk');
   actors = await actorState();
-  check(actors.every(a => a.ok && a.visible && !a.fallback), '공터 배우 다섯 그대로');
+  check(actors.filter(a => ['domijorim', 'dohyun'].includes(a.id)).every(a => a.ok && a.visible && !a.fallback) && actors.filter(a => a.id.startsWith('gasuni')).every(a => !a.ok), '둘은 누운 채 남고 가순이들은 없다');
   // 다시 오른쪽 길은 열림
   check(await go('ArrowDown', `g.player.y >= ${roadY - 4}`, 12000), '윗길 그대로 내려가 갈림목으로');
   check(await go('ArrowRight', `g.player.x >= ${(S.blockCols[1] + 3) * 32}`, 10000), '오른쪽 길 통과(막지 않음)'); await cap('21_east');

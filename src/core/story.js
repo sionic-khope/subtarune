@@ -528,5 +528,5 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_fork', desc: '벚꽃
   map: 'jjajang_sakura5', spawn: 'fork', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true }, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_battle', desc: '벚꽃 숲 5 · 도미조림·도현 전투 직행 (홍어·횃불 / 살랑살랑 낙하·카톡 텍스트, 체력 50씩, 브금 petal_dance)',
   map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true }, party: ['gyeongsub', 'ppaman'], script: 'sakura5_duo_battle_qa' });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_clearing', desc: '벚꽃 숲 5 · 공터 (두 연출·전투 뒤 · 거대 벚꽃 나무 아래 도미조림·가순이 4·5·6·도현)',
-  map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true, sakura5_clearing_scene_done: true, sakura5_duo_won: true }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_clearing', desc: '벚꽃 숲 5 · 공터 (두 연출·전투·승리 뒤 연출까지 끝 — 가순이들은 떠났고 둘은 누워 있음, 오른쪽 길로)',
+  map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true, sakura5_clearing_scene_done: true, sakura5_duo_won: true, sakura5_girls_left: true }, party: ['gyeongsub', 'ppaman'] });

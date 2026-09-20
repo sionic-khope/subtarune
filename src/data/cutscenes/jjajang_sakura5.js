@@ -5,12 +5,17 @@
 //   ② 윗길 연출(sakura5_clearing): 브금 telling → 일행이 ㄱ자로 달려 올라와 밑동 왼쪽에 → 카메라 천천히 → 도미조림 느낌표(일행 쪽) → 원문 대사(도현 손 들어 인사 자세, 카메라 살짝 위 → 돌아옴, 일행 모두 느낌표,
 //      가순이들로 천천히 줌인 → 나레이션 → 줌아웃) → 맞붙는 대사 → 둘이 양옆으로 뛰어 착지(leap 자세, 홍어·횃불 뽑음) → “내꺼랑께요 흐미!!!!” → 공통 전투 진입(battleEntry) → 전투.
 //   규칙: 카메라는 먼저 천천히 움직이고 대사는 그 뒤(사용자 “확 넘어가는 거 별로”). 대사는 전부 원문. 브금 끌 때 페이드 ≥ 1초. 느낌표 놀람은 hop 12 + emote. 자세는 character-motions.js 의 gpt-image 자세 띠.
+//   ③ 승리 뒤(BUILD274 브리핑): 둘을 90° 눕힘 → 억빠맨 “나대 씨바” / 가순이4 “헉..” → 억빠맨 느낌표·오른쪽 → 브금 stop_criminell → 원문 대사(가순이들 오른쪽, 억빠맨 물음표) → 가순이 셋이 아래로 걸어 내려가 사라짐
+//      → 억빠맨 ‘...’ 말풍선(브금 끔) → 원문 넉 줄 → 브금 복귀(telling) → 카메라 주인공
 import { battleEntry } from './helpers.js';
 import { loopCharacterMotion } from '../../world/character-motion.js';
 
 const D = text => ({ speaker: '도미조림', portrait: 'domijorim', voice: 'domijorim', text: `* ${text}` });
 const H = text => ({ speaker: '도현', portrait: 'dohyun', voice: 'dohyun', text: `* ${text}` });
 const G = text => ({ speaker: '가순이들', portrait: 'gasuni4', voice: 'gasuni', text: `* ${text}` });   // 셋이 함께 — 초상화는 가순이4(잠정)
+const G4 = text => ({ speaker: '가순이4', portrait: 'gasuni4', voice: 'gasuni', text: `* ${text}` });
+const G5 = text => ({ speaker: '가순이5', portrait: 'gasuni5', voice: 'gasuni', text: `* ${text}` });
+const G6 = text => ({ speaker: '가순이6', portrait: 'gasuni6', voice: 'gasuni', text: `* ${text}` });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const N = text => ({ voice: 'narrator', text: `* ${text}` });
@@ -20,6 +25,8 @@ const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const actor = (game, id) => (id === 'player' ? game.player : game.entities.find(e => e.id === id));
 const pose = (id, name) => ({ action: game => { const e = actor(game, id); if (e) loopCharacterMotion(e, game.characterMotions[e.def.sprite]?.[name]); } });
 const unpose = ids => ({ action: game => { for (const id of ids) { const e = actor(game, id); if (e) e.motion = null; } } });
+/** 넘어짐: 자세 그림 없이 기본 스프라이트를 90° 눕힌다(공터 최미스와 같은 방식, 브리핑 “각도만 틀어서 눕혀놓고”). +90° = 머리가 오른쪽(가순이들이 내려가는 lane 왼쪽과 안 겹치게) */
+const lieDown = id => ({ lie: true, action: game => { const e = actor(game, id); if (e) { e.motion = null; e.facing = 'down'; e.spin = Math.PI / 2; } } });
 /** 놀라서 살짝 점프(공식 점프 소리 ✗) + 느낌표 — cutscene 스킬 표 그대로. 소리는 첫 사람만 */
 const startle = ids => ({ parallel: ids.flatMap((id, i) => [{ hop: id, height: 12, duration: 0.3, sfx: false }, { emote: id, kind: '!', duration: 1.1, hold: 0.7, ...(i ? { sfx: false } : { sfx: 'chime' }) }]) });
 
@@ -33,6 +40,9 @@ export const PARTY_WALK = { followerY: 392 };   // 동료는 위로 올라온 �
 export const LEAP = { domijorim: { by: [-402, 66], height: 80 }, dohyun: { by: [-120, 66], height: 56 }, duration: 0.8 };   // 둘이 뛰어 내려와 일행 양옆(같은 높이 발 380): 도미조림 x 1580(경섭 왼쪽), 도현 1812(억빠맨 오른쪽) → 일행을 본다
 export const LEAP_VIEW = [55, 10];          // 윗길 연출 카메라(y 156): 배우(발 314 → 158)·일행(발 380 → 224)·착지한 둘까지 대화창 위에
 export const DUO_BATTLE = { enemies: ['domijorim', 'dohyun'], bgm: 'petal_dance', bg: 'sakura', flag: 'sakura5_duo_won' };
+export const AFTER_BGM = 'stop_criminell';   // 승리 뒤 “# 여기서부터 브금”(사용자 지정 kXp2H7GbYis “27. Stop, Criminell!”)
+export const GIRLS_EXIT = { lane: 1782, down: 270, stagger: [0, 0.45, 1.2] };   // 가순이 셋: 윗길 오른쪽 lane(가순이4 자리 x) 으로 한 줄로 서서 아래로 270px(화면 밖) → remove
+export const SAKURA5_GIRLS_LEFT_FLAG = 'sakura5_girls_left';
 export const SAKURA5_SCENE_FLAG = 'sakura5_scene_done';
 export const SAKURA5_CLEARING_FLAG = 'sakura5_clearing_visited';
 export const SAKURA5_CLEARING_SCENE_FLAG = 'sakura5_clearing_scene_done';
@@ -150,12 +160,59 @@ export const jjajang_sakura5_clearing = [
   // (이러고 전투시작) — 공통 진입(battle_start·흔들림·소용돌이·줌·페이드)
   ...battleEntry(DUO_BATTLE.enemies, DUO_BATTLE.bgm),
   { battle: DUO_BATTLE },
-  // 전투 뒤 복귀(battleEntry 의 줌·페이드아웃은 장면이 되돌린다 — teal3_toolbox 와 같은 순서): 줌 1 → 공터 카메라 → 페이드인 → 공터 브금 이어서(장면이 소유) → 천천히 주인공
+  // ── 전투 승리 뒤 연출(사용자 브리핑 2026-09-20 원문) ──
+  // 전투 뒤 복귀(battleEntry 의 줌·페이드아웃은 장면이 되돌린다): [도미조림이랑 도현이 걍 각도만 틀어서 눕혀놓고] → 줌 1 → 공터 카메라 → 페이드인 → 공터 브금 이어서
   unpose(['domijorim', 'dohyun']),
+  lieDown('domijorim'), lieDown('dohyun'),
   { zoom: 1 }, { camera: LEAP_VIEW, duration: 0.01 },
   { fade: 'in', duration: 0.5 },
   { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.8 },
   { wait: 0.6 },
+  P('나대 씨바'),
+  G4('헉..'),
+  // 억빠맨 느낌표 하면서 오른쪽봄
+  { face: 'ppaman', dir: 'right' },
+  { emote: 'ppaman', kind: '!', duration: 1.0, hold: 0.7, sfx: 'chime' },
+  // # 여기서부터 브금
+  { bgm: AFTER_BGM, volume: 0.5, fadeIn: 0.6 },
+  P('혹시 궁금한게 있는데 왜 저 짜장면을 원하시나요?'),
+  // (가순이들도 오른쪽바라보는거 잊지말고) — 원문대로 오른쪽
+  ...GIRLS.map(id => ({ face: id, dir: 'right' })),
+  G5('그야 떙떙님께 환심을 살 수 있으니까요.'),
+  G6('하지만 의미 없겠죠 이미..'),
+  G4('맞아요 이미..'),
+  // 억빠맨 물음표
+  { emote: 'ppaman', kind: '?', duration: 1.0, hold: 0.7 },
+  P('왜요?'),
+  G4('곧 있으면 떙떙님이 청혼을 할거라고 하셨어요'),
+  G5('그녀에게 청혼을 한다고 했어'),
+  P('뭐 씨발 머야 그게'),
+  G6('저도 믿기싫어요 떙떙님 ㅠ'),
+  G6('그녀는 미자라구 하셨어'),
+  G5('맞아 점례.. 그래도 우리 점례가 가장 눈에 띄었어'),
+  G5('난 너무 슬퍼'),
+  G4('저 짜장면을 전달해도 의미가 없겠지'),
+  G4('그냥 가는게 맞는거같아.'),
+  G5('흑흑흑'),
+  close,
+  // (가순이 세명이 그냥 아래로 쭉 걸어서 내려간다 그리고 사라짐.) — 윗길 오른쪽 lane 으로 한 줄로(억빠맨·누운 도현 사이), 화면 밖까지 걸은 뒤 사라짐
+  { parallel: GIRLS.map((id, i) => [
+    { wait: GIRLS_EXIT.stagger[i] },
+    ...(i ? [{ move: id, px: game => [GIRLS_EXIT.lane, actor(game, id)?.y ?? 0] }] : []),
+    { move: id, px: game => [GIRLS_EXIT.lane, (actor(game, id)?.y ?? 0) + GIRLS_EXIT.down] },
+  ]) },
+  ...GIRLS.map(id => ({ remove: id })),
+  { set: { [SAKURA5_GIRLS_LEFT_FLAG]: true } },
+  // 억빠맨: ... (이때 브금꺼짐) — ‘...’ 은 머리 위 말풍선
+  { bgm: null, fadeOut: 1.0 },
+  { bubble: 'ppaman', dots: 3, gap: 0.4, hold: 0.6 },
+  P('근데 일단 뭐 저 위에 짜장면이 있는건 맞지만'),
+  P('저희도 얻을 방법이 없네요.'),
+  P('일단 오른쪽으로 가볼까요'),
+  K('허허 그럴까.'),
+  close,
+  // (이러고 브금 다시 복귀) — 공터 브금
+  { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.8 },
   { camera: 'player' },
   { wait: CAM.back },
   { set: { [SAKURA5_CLEARING_SCENE_FLAG]: true } },

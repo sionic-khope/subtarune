@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, CLEARING_VIEW, PEEK_VIEW, CAM, GIRLS_ZOOM, CLEARING_BGM, DUO_BATTLE, PARTY_SPOTS, LEAP, HEUMI, SAKURA5_SCENE_FLAG, SAKURA5_CLEARING_FLAG, SAKURA5_CLEARING_SCENE_FLAG, NO_RIGHT_LINE } from '../../src/data/cutscenes/jjajang_sakura5.js';
+import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, CLEARING_VIEW, PEEK_VIEW, CAM, GIRLS_ZOOM, CLEARING_BGM, AFTER_BGM, GIRLS_EXIT, DUO_BATTLE, PARTY_SPOTS, LEAP, HEUMI, SAKURA5_SCENE_FLAG, SAKURA5_CLEARING_FLAG, SAKURA5_CLEARING_SCENE_FLAG, SAKURA5_GIRLS_LEFT_FLAG, NO_RIGHT_LINE } from '../../src/data/cutscenes/jjajang_sakura5.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { PATTERNS } from '../../src/battle/bullets.js';
@@ -114,7 +114,10 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   assert.deepEqual(lines, ['도미조림: 어 형님?', '억빠맨: ㅋㅋ뭐냐 너네', '도현: 안녕하세요 형들', '억빠맨: 여기서 뭐하고있어?', '도현: 그게요 저 이 벚꽃나무 보이세요?', '억빠맨: ㅇㅇ', '도현: 사실 저기 벚꽃나무 맨 위에', '도현: 이상한 짜장면? 같은게 있는데 가순이들이 자꾸 최미스그새끼 준다고 가져와달라는거에요',
     '억빠맨: 형들 이거 설마', '경섭: 아마 그런거같다.', '도현: 알고계셨어요?', '억빠맨: 도현아', '도현: 네', '억빠맨: 저 짜장면은 우리가 가져가야될듯 ㅇㅇ', '도현: 네? 왜요?', '도미조림: 아따 행님들 그건 아니지라',
     '가순이들: 수근수근 뭐야?', 'undefined: 아무래도 저 둘은 가순이들의 시선을 의식중인 것 같다.', '도미조림: 저 짜장면은 제가 먼저 찾았당깨', 'undefined: 아무래도 도미조림은 가순이들의 시선보다 지가 처먹는게 더 중요한거같다.', '도현: 형님들 아무리 그래도 그건아니죠 .', 'undefined: 도현이가 슬금슬금 가순이들의 눈치를 본다.',
-    '억빠맨: 뭐? 너 뒤질래?', '도현: 형님들 아무리 그러시면 저희가', '억빠맨: 응 느금마 걍 꺼지샘', '억빠맨: 걍 족치고 가져가죠', '도현: 훗.. 악역을 자처하시겠다.', '도미조림: 내꺼랑께요 흐미!!!!!!!!!!!!']);
+    '억빠맨: 뭐? 너 뒤질래?', '도현: 형님들 아무리 그러시면 저희가', '억빠맨: 응 느금마 걍 꺼지샘', '억빠맨: 걍 족치고 가져가죠', '도현: 훗.. 악역을 자처하시겠다.', '도미조림: 내꺼랑께요 흐미!!!!!!!!!!!!',
+    '억빠맨: 나대 씨바', '가순이4: 헉..', '억빠맨: 혹시 궁금한게 있는데 왜 저 짜장면을 원하시나요?', '가순이5: 그야 떙떙님께 환심을 살 수 있으니까요.', '가순이6: 하지만 의미 없겠죠 이미..', '가순이4: 맞아요 이미..', '억빠맨: 왜요?',
+    '가순이4: 곧 있으면 떙떙님이 청혼을 할거라고 하셨어요', '가순이5: 그녀에게 청혼을 한다고 했어', '억빠맨: 뭐 씨발 머야 그게', '가순이6: 저도 믿기싫어요 떙떙님 ㅠ', '가순이6: 그녀는 미자라구 하셨어', '가순이5: 맞아 점례.. 그래도 우리 점례가 가장 눈에 띄었어', '가순이5: 난 너무 슬퍼',
+    '가순이4: 저 짜장면을 전달해도 의미가 없겠지', '가순이4: 그냥 가는게 맞는거같아.', '가순이5: 흑흑흑', '억빠맨: 근데 일단 뭐 저 위에 짜장면이 있는건 맞지만', '억빠맨: 저희도 얻을 방법이 없네요.', '억빠맨: 일단 오른쪽으로 가볼까요', '경섭: 허허 그럴까.']);
   assert.ok(jjajang_sakura5_clearing.filter(n => n.text && !n.speaker).every(n => n.voice === 'narrator'), '나레이션은 화자 없이 narrator 목소리');
   const walk = jjajang_sakura5_clearing.findIndex(n => n.parallel?.some(b => Array.isArray(b) && b[0].move === 'player'));
   const branches = jjajang_sakura5_clearing[walk].parallel;
@@ -158,7 +161,29 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   assert.ok(here(`assets/audio/bgm/${DUO_BATTLE.bgm}.mp3`), '전투 브금 파일(사용자 지정 RsAu3BDaAp8)');
   const back = jjajang_sakura5_clearing.findIndex((n, i) => i > battle && n.camera === 'player');
   const after = jjajang_sakura5_clearing.slice(battle + 1, back);
-  assert.ok(after.some(n => n.zoom === 1) && after.some(n => n.fade === 'in') && after.some(n => n.bgm === CLEARING_BGM), '전투 뒤 줌 1·페이드인·공터 브금 복귀(검은 화면 방지)');
+  const at = needle => jjajang_sakura5_clearing.findIndex((n, i) => i > battle && n.text?.includes(needle));
+  assert.ok(after.some(n => n.zoom === 1) && after.some(n => n.fade === 'in') && after.filter(n => n.bgm === CLEARING_BGM).length === 2, '전투 뒤 줌 1·페이드인·공터 브금 복귀(검은 화면 방지) + 끝에 브금 다시 복귀');
+  // 승리 뒤 연출(원문 순서): 둘 눕힘 → 나대 씨바 → 헉.. → 억빠맨 느낌표·오른쪽 → 브금 → 혹시 궁금한게 → 가순이들 오른쪽 → … → 물음표 → 왜요? → … → 흑흑흑 → 셋이 아래로 걸어 내려가 사라짐 → 브금 끔·말풍선 → 넉 줄 → 브금 복귀
+  const lies = jjajang_sakura5_clearing.map((n, i) => n.lie ? i : -1).filter(i => i > battle);
+  assert.ok(lies.length === 2 && lies.every(i => i < at('나대 씨바')), '도미조림·도현은 첫 대사 전에 90° 눕힘');
+  const bang = jjajang_sakura5_clearing.findIndex((n, i) => i > at('헉..') && n.emote === 'ppaman' && n.kind === '!'), lookRight = jjajang_sakura5_clearing.findIndex((n, i) => i > at('헉..') && n.face === 'ppaman' && n.dir === 'right');
+  const afterBgm = jjajang_sakura5_clearing.findIndex((n, i) => i > battle && n.bgm === AFTER_BGM);
+  assert.ok(lookRight > 0 && bang > lookRight && afterBgm > bang && afterBgm < at('혹시 궁금한게'), '느낌표 하면서 오른쪽 → 여기서부터 브금 → 혹시 궁금한게');
+  assert.ok(here(`assets/audio/bgm/${AFTER_BGM}.mp3`), '승리 뒤 브금 파일');
+  const girlsRight = jjajang_sakura5_clearing.findIndex((n, i) => i > at('혹시 궁금한게') && n.face === 'gasuni5' && n.dir === 'right');
+  assert.ok(girlsRight > 0 && girlsRight < at('환심을'), '가순이들도 오른쪽');
+  const q = jjajang_sakura5_clearing.findIndex((n, i) => i > at('맞아요 이미') && n.emote === 'ppaman' && n.kind === '?');
+  assert.ok(q > 0 && q < at('왜요?'), '억빠맨 물음표 → 왜요?');
+  const exit = jjajang_sakura5_clearing.findIndex((n, i) => i > at('흑흑흑') && n.parallel?.some(b => Array.isArray(b) && b.some(x => x.move === 'gasuni4')));
+  const removes = jjajang_sakura5_clearing.map((n, i) => n.remove?.startsWith('gasuni') ? i : -1).filter(i => i > 0);
+  assert.ok(exit > 0 && removes.length === 3 && removes.every(i => i > exit) && jjajang_sakura5_clearing.findIndex(n => n.set?.[SAKURA5_GIRLS_LEFT_FLAG]) > exit, '가순이 셋이 아래로 걸어 내려간 뒤 사라짐·플래그');
+  assert.ok(jjajang_sakura5_clearing[exit].parallel.every(b => b.at(-1).move.startsWith('gasuni') && typeof b.at(-1).px === 'function') && GIRLS_EXIT.down >= 250, '셋 다 아래로 화면 밖까지');
+  const off = jjajang_sakura5_clearing.findIndex((n, i) => i > exit && n.bgm === null), bubble = jjajang_sakura5_clearing.findIndex((n, i) => i > exit && n.bubble === 'ppaman');
+  assert.ok(off > 0 && bubble > off && bubble < at('근데 일단') && jjajang_sakura5_clearing[off].fadeOut >= 1, '억빠맨 ... (이때 브금 꺼짐, 말풍선)');
+  const backBgm = jjajang_sakura5_clearing.findIndex((n, i) => i > at('허허 그럴까') && n.bgm === CLEARING_BGM);
+  assert.ok(backBgm > 0 && backBgm < back, '경섭 허허 그럴까 뒤 브금 다시 복귀');
+  const m5 = load('jjajang_sakura5');
+  assert.ok(['gasuni4', 'gasuni5', 'gasuni6'].every(id => m5.entities.find(e => e.id === id).unless === SAKURA5_GIRLS_LEFT_FLAG), '떠난 가순이들은 다시 안 나온다');
   assert.ok(back > battle && jjajang_sakura5_clearing.some(n => n.set?.[SAKURA5_CLEARING_SCENE_FLAG]), '전투 뒤 카메라 주인공·플래그');
   assert.equal(SCRIPTS.sakura5_duo_battle_qa[0].battle, DUO_BATTLE);
 });
@@ -206,5 +231,5 @@ test('test_sakura5_characters_voices_sprites_and_qa_points_exist', () => {
   assert.deepEqual(ids, [['jjajang_sakura5', 'from_north'], ['jjajang_sakura5_bridge', 'bridge_end'], ['jjajang_sakura5_fork', 'fork'], ['jjajang_sakura5_battle', 'clearing'], ['jjajang_sakura5_clearing', 'clearing']]);
   assert.equal(QA_POINTS.find(q => q.id === 'jjajang_sakura5_battle').script, 'sakura5_duo_battle_qa');
   const clearing = QA_POINTS.find(q => q.id === 'jjajang_sakura5_clearing');
-  assert.ok(clearing.flags.sakura5_scene_done && clearing.flags.sakura5_clearing_visited && clearing.flags.sakura5_clearing_scene_done && clearing.flags.sakura5_duo_won && clearing.flags.jjajang_sakura4_bazzi_defeated);
+  assert.ok(clearing.flags.sakura5_scene_done && clearing.flags.sakura5_clearing_visited && clearing.flags.sakura5_clearing_scene_done && clearing.flags.sakura5_duo_won && clearing.flags.sakura5_girls_left && clearing.flags.jjajang_sakura4_bazzi_defeated);
 });
