@@ -8,16 +8,16 @@
     "quality": "high"
   },
   "refs": [
-    "assets/source/sakura5-v1/domijorim-chibi4-ref.png"
+    "assets/source/sakura5-v1/domijorim-chibi6-ref.png"
   ],
-  "elapsed_seconds": 36.3,
+  "elapsed_seconds": 39.0,
   "usage": {
-    "input_tokens": 1339,
+    "input_tokens": 1351,
     "output_tokens": 1756,
-    "total_tokens": 3095,
+    "total_tokens": 3107,
     "input_tokens_details": {
       "image_tokens": 1024,
-      "text_tokens": 315
+      "text_tokens": 327
     },
     "output_tokens_details": {
       "image_tokens": 1756,
@@ -25,11 +25,11 @@
       "image_pages": 1
     }
   },
-  "created": 1789907881,
+  "created": 1789909101,
   "outputs": [
     {
       "file": "assets/source/sakura5-v1/domijorim-leap-raw.png",
-      "bytes": 997356,
+      "bytes": 980064,
       "size": [
         1024,
         1024

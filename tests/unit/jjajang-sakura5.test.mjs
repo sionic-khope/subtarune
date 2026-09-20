@@ -54,12 +54,12 @@ test('test_sakura5_map_goes_down_a_little_right_three_seconds_bridge_three_secon
   for (const e of actors) assert.ok(e.y + e.h - camY <= 230 && e.y + e.h - camY >= 150 && e.y + e.h <= S.treeBaseY && e.y + e.h >= S.treeBaseY - 44 && e.x + e.w > tree.x + tree.w / 2, `${e.id} 는 밑동 오른쪽 땅·대화창 위 (${e.x},${e.y})`);
   const byX = [...actors].sort((a, b) => a.x - b.x).map(e => e.id);
   assert.deepEqual(byX, ['gasuni4', 'gasuni5', 'gasuni6', 'dohyun', 'domijorim'], '밑동에서부터 가순이 셋 → 도현 → 도미조림');
-  for (const [id, [px, py]] of Object.entries(PARTY_SPOTS)) assert.ok(px + 12 >= S.partyX - 60 && px + 12 <= S.partyX + 60 && Math.abs(py + 16 - S.partyFeetY) <= 4 && px + 24 <= tree.x + tree.w && py + 16 <= tree.y, `${id} 일행 자리는 밑동 왼쪽`);
+  for (const [id, [px, py]] of Object.entries(PARTY_SPOTS)) assert.ok(px >= S.upCols[0] * 32 - 8 && px + 24 <= (S.upCols[1] + 1) * 32 + 8 && py + 16 >= tree.y + tree.h + 24 && py + 16 <= tree.y + tree.h + 40, `${id} 일행 자리는 윗길 가운데·밑동 바로 아래 (${px},${py})`);
   const camX = CLEARING_VIEW[0] * 32 - 224;
   for (const e of actors) assert.ok(e.x >= camX && e.x + e.w <= camX + 480, `${e.id} 가 카메라 안`);
   for (const [px] of Object.values(PARTY_SPOTS)) assert.ok(px >= camX, '일행도 카메라 안');
   const land = { domijorim: [actors.find(e => e.id === 'domijorim').x + LEAP.domijorim.by[0], actors.find(e => e.id === 'domijorim').y + LEAP.domijorim.by[1]], dohyun: [actors.find(e => e.id === 'dohyun').x + LEAP.dohyun.by[0], actors.find(e => e.id === 'dohyun').y + LEAP.dohyun.by[1]] };
-  assert.ok(land.domijorim[0] < PARTY_SPOTS.player[0] && land.dohyun[0] > PARTY_SPOTS.player[0] && land.domijorim[1] > PARTY_SPOTS.player[1] + 40 && land.dohyun[1] > PARTY_SPOTS.player[1] + 40 && land.domijorim[0] >= camX, `둘은 일행 아래(앞) 양옆에 착지해 일행을 올려다본다 ${JSON.stringify(land)}`);
+  assert.ok(land.domijorim[0] + 24 < PARTY_SPOTS.gyeongsub[0] && land.dohyun[0] > PARTY_SPOTS.ppaman[0] + 24 && Math.abs(land.domijorim[1] - PARTY_SPOTS.player[1]) <= 8 && Math.abs(land.dohyun[1] - PARTY_SPOTS.player[1]) <= 8 && land.domijorim[0] >= camX, `둘은 뛰어 내려와 일행 양옆(같은 높이)에 착지 ${JSON.stringify(land)}`);
   // 트리거: 연출(다리 건너자마자) · 공터 방문 · 오른쪽 길 막기
   const scene = m.entities.find(e => e.id === 'sakura5_scene_trigger'), visited = m.entities.find(e => e.id === 'sakura5_clearing_trigger'), block = m.entities.find(e => e.id === 'sakura5_block_trigger');
   assert.deepEqual([scene.x, scene.once, scene.unless, scene.script], [S.sceneCols[0] * 32, true, SAKURA5_SCENE_FLAG, 'jjajang_sakura5_scene']);
@@ -118,9 +118,9 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   assert.ok(jjajang_sakura5_clearing.filter(n => n.text && !n.speaker).every(n => n.voice === 'narrator'), '나레이션은 화자 없이 narrator 목소리');
   const walk = jjajang_sakura5_clearing.findIndex(n => n.parallel?.some(b => Array.isArray(b) && b[0].move === 'player'));
   const branches = jjajang_sakura5_clearing[walk].parallel;
-  assert.ok(walk >= 0 && walk < jjajang_sakura5_clearing.findIndex(n => n.camera === CLEARING_VIEW) && branches.map(b => b[0].move).join() === 'player,gyeongsub,ppaman' && branches.every(b => b.length === 3 && b.every(x => x.run)), '일행 셋이 ㄱ자(위·왼쪽·위)로 달려 올라간 뒤 카메라');
-  for (const b of branches) assert.deepEqual(b[2].px, PARTY_SPOTS[b[2].move], `${b[2].move} 는 밑동 왼쪽 자리`);
-  const bgm = jjajang_sakura5_clearing.findIndex(n => n.bgm === CLEARING_BGM), up = jjajang_sakura5_clearing.findIndex(n => n.camera === CLEARING_VIEW);
+  assert.ok(walk >= 0 && walk < jjajang_sakura5_clearing.findIndex(n => Array.isArray(n.camera)) && branches.map(b => b[0].move).join() === 'player,gyeongsub,ppaman' && branches.every(b => b.every(x => x.run)) && branches[0].length === 1, '주인공은 윗길 그대로 곧장 위로, 동료는 올라온 뒤 옆으로 한 걸음');
+  for (const b of branches) assert.deepEqual(b.at(-1).px, PARTY_SPOTS[b.at(-1).move], `${b.at(-1).move} 자리`);
+  const bgm = jjajang_sakura5_clearing.findIndex(n => n.bgm === CLEARING_BGM), up = jjajang_sakura5_clearing.findIndex(n => Array.isArray(n.camera));
   const emote = jjajang_sakura5_clearing.findIndex(n => n.parallel?.some(x => x.emote === 'domijorim' && x.kind === '!')), faceDown = jjajang_sakura5_clearing.findIndex(n => n.face === 'domijorim' && n.dir === 'toward:player');
   const first = jjajang_sakura5_clearing.findIndex(n => n.text);
   assert.ok(bgm >= 0 && bgm < up && up < faceDown && faceDown < emote && emote < first, '브금 → 카메라 → 일행 쪽 쳐다봄·느낌표 → 어 형님?');
@@ -131,7 +131,7 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   const dohyunDown = jjajang_sakura5_clearing.findIndex(n => n.face === 'dohyun' && n.dir === 'toward:player'), hello = jjajang_sakura5_clearing.findIndex(n => n.text?.includes('안녕하세요 형들'));
   assert.ok(dohyunDown >= 0 && dohyunDown < hello && dohyunDown > jjajang_sakura5_clearing.findIndex(n => n.text?.includes('뭐냐 너네')), '도현이도 일행 쪽(아래)을 쳐다보고 인사');
   const yes = jjajang_sakura5_clearing.findIndex(n => n.text === '* ㅇㅇ'), top = jjajang_sakura5_clearing.findIndex((n, i) => i > yes && n.camera === PEEK_VIEW);
-  const backDown = jjajang_sakura5_clearing.findIndex((n, i) => i > top && n.camera === CLEARING_VIEW), truth = jjajang_sakura5_clearing.findIndex(n => n.text?.includes('맨 위에'));
+  const backDown = jjajang_sakura5_clearing.findIndex((n, i) => i > top && Array.isArray(n.camera) && n.camera[1] > PEEK_VIEW[1]), truth = jjajang_sakura5_clearing.findIndex(n => n.text?.includes('맨 위에'));
   assert.ok(yes < top && top < backDown && backDown < truth, 'ㅇㅇ 뒤 카메라 살짝 위로 갔다가 다시 돌아온 뒤 “사실 저기 벚꽃나무 맨 위에”');
   assert.ok(PEEK_VIEW[1] < CLEARING_VIEW[1] && jjajang_sakura5_clearing[top].duration >= 1.2 && jjajang_sakura5_clearing[backDown].duration >= 1.2, '살짝 위·복귀 모두 천천히');
   // 주인공 일행 모두 느낌표 → 대사 → (가순이들로 카메라) → 나레이션 → 카메라 넓게 → 흐미 점프 → 전투 → 카메라 주인공
@@ -147,8 +147,8 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   const leap = jjajang_sakura5_clearing.findIndex((n, i) => i > wide && n.parallel?.some(x => x.motion === 'domijorim' && x.name === 'leap'));
   const leapPar = jjajang_sakura5_clearing[leap].parallel;
   assert.ok(leap > jjajang_sakura5_clearing.findIndex(n => n.text?.includes('악역을 자처하시겠다')) && leapPar.some(x => x.motion === 'dohyun' && x.name === 'leap') && leapPar.some(x => x.hop === 'domijorim' && x.by[0] < -300) && leapPar.some(x => x.hop === 'dohyun' && x.by[0] < -100), '둘이 뛰는 자세로 점프해서 일행 양옆으로');
-  assert.ok(jjajang_sakura5_clearing[leap - 1].async?.some(x => x.sfx === 'thud') && jjajang_sakura5_clearing[leap - 3].camera?.[1] > CLEARING_VIEW[1], '뛰기 전 카메라 한 칸 아래·착지음');
-  assert.ok(jjajang_sakura5_clearing.slice(leap, leap + 8).some(n => n.face === 'domijorim' && n.dir === 'up') && jjajang_sakura5_clearing.slice(leap, leap + 8).some(n => n.face === 'player' && n.dir === 'down'), '착지 뒤 둘은 위(일행)를, 일행은 아래를 본다');
+  assert.ok(jjajang_sakura5_clearing[leap - 1].async?.some(x => x.sfx === 'thud'), '착지음');
+  assert.ok(jjajang_sakura5_clearing.slice(leap, leap + 8).some(n => n.face === 'domijorim' && n.dir === 'right') && jjajang_sakura5_clearing.slice(leap, leap + 8).some(n => n.face === 'dohyun' && n.dir === 'left'), '착지 뒤 둘은 일행 쪽을 본다');
   const hop = jjajang_sakura5_clearing.findIndex((n, i) => i > leap && n.hop === 'domijorim'), mine = jjajang_sakura5_clearing.findIndex(n => n.text?.includes('내꺼랑께요')), battle = jjajang_sakura5_clearing.findIndex(n => n.battle);
   assert.ok(hop > 0 && hop < mine && mine < battle && jjajang_sakura5_clearing[hop].sfx === HEUMI.sfx, '“내꺼랑께요 흐미!!!!!!!!!!!!” 는 점프+흐미 뒤, 그다음 전투');
   const entry = jjajang_sakura5_clearing.findIndex((n, i) => i > mine && n.sfx === 'battle_start');

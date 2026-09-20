@@ -1,4 +1,4 @@
-# imagegen 2026-09-20 21:39:21
+# imagegen 2026-09-20 21:59:44
 # endpoint: images/edits
 # model: openai/gpt-image-2.5-sunburst
 # size: 1024x1024  quality: high

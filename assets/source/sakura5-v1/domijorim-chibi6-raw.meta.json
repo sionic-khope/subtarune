@@ -8,16 +8,16 @@
     "quality": "high"
   },
   "refs": [
-    "assets/source/sakura5-v1/domijorim-battle2-ref.png"
+    "assets/source/sakura5-v1/domijorim-face2-composed.png"
   ],
-  "elapsed_seconds": 38.6,
+  "elapsed_seconds": 43.7,
   "usage": {
-    "input_tokens": 1296,
+    "input_tokens": 1519,
     "output_tokens": 1756,
-    "total_tokens": 3052,
+    "total_tokens": 3275,
     "input_tokens_details": {
-      "image_tokens": 1024,
-      "text_tokens": 272
+      "image_tokens": 1075,
+      "text_tokens": 444
     },
     "output_tokens_details": {
       "image_tokens": 1756,
@@ -25,11 +25,11 @@
       "image_pages": 1
     }
   },
-  "created": 1789909182,
+  "created": 1789909026,
   "outputs": [
     {
-      "file": "assets/source/sakura5-v1/domijorim-battle-idle-raw.png",
-      "bytes": 1138476,
+      "file": "assets/source/sakura5-v1/domijorim-chibi6-raw.png",
+      "bytes": 1126192,
       "size": [
         1024,
         1024

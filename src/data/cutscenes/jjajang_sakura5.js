@@ -28,10 +28,10 @@ export const PEEK_VIEW = [55, 5];            // “카메라 살짝 위로”: y
 export const CAM = { toClearing: 2.4, settle: 0.6, peek: 1.6, peekHold: 0.7, peekBack: 1.4, back: 1.4 };   // 카메라가 먼저 천천히 가고 대사는 그 뒤
 export const GIRLS_ZOOM = { zoom: 1.6, at: [1838, 296], duration: 1.4 };   // (가순이들로 카메라가 이동): 가순이 셋 가운데(맵 meta girlsFocus)로 천천히 줌인
 export const HEUMI = { height: 30, duration: 0.5, sfx: 'domijorim_heumi' };   // “흐미!!” 점프 + 가재맨 1:14:46.8 “흐미이이이!” 1.05초
-export const PARTY_SPOTS = { player: [1628, 304], gyeongsub: [1588, 308], ppaman: [1668, 308] };   // 밑동 왼쪽(맵 meta partyX 1640, 발 320) — 나란히
-export const PARTY_WALK = { firstY: 364, followerY: 372 };   // ㄱ자: 먼저 위로(배우·밑동 아래), 왼쪽으로, 다시 위로
-export const LEAP = { domijorim: { by: [-404, 70], height: 80 }, dohyun: { by: [-224, 70], height: 56 }, duration: 0.8 };   // 둘이 일행 **아래(앞)** 양옆으로 뛰어 착지(사용자 “밑으로 점프해서 바라보게”): 도미조림 x 1566, 도현 1708, 발 384 → 일행을 올려다본다
-export const LEAP_VIEW = [55, 10];          // 뛰기 전 카메라를 한 칸 아래로(y 156): 착지한 둘(발 384 → 화면 228)까지 대화창 위에
+export const PARTY_SPOTS = { player: [1704, 364], gyeongsub: [1660, 368], ppaman: [1748, 368] };   // 윗길 그대로 올라와 밑동 바로 아래 가운데(발 380, 사용자 “왼쪽으로 오지 말고 그냥 가운데”) — 경섭 왼쪽·억빠맨 오른쪽 나란히
+export const PARTY_WALK = { followerY: 392 };   // 동료는 위로 올라온 뒤 옆으로 한 걸음(44px)만
+export const LEAP = { domijorim: { by: [-402, 66], height: 80 }, dohyun: { by: [-120, 66], height: 56 }, duration: 0.8 };   // 둘이 뛰어 내려와 일행 양옆(같은 높이 발 380): 도미조림 x 1580(경섭 왼쪽), 도현 1812(억빠맨 오른쪽) → 일행을 본다
+export const LEAP_VIEW = [55, 10];          // 윗길 연출 카메라(y 156): 배우(발 314 → 158)·일행(발 380 → 224)·착지한 둘까지 대화창 위에
 export const DUO_BATTLE = { enemies: ['domijorim', 'dohyun'], bgm: 'petal_dance', bg: 'sakura', flag: 'sakura5_duo_won' };
 export const SAKURA5_SCENE_FLAG = 'sakura5_scene_done';
 export const SAKURA5_CLEARING_FLAG = 'sakura5_clearing_visited';
@@ -70,15 +70,15 @@ export const jjajang_sakura5_scene = [
 export const jjajang_sakura5_clearing = [
   { set: { [SAKURA5_CLEARING_FLAG]: true } },
   { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.6 },
-  // 일행이 ㄱ자로 달려 올라와 밑동 왼쪽에 나란히(대각선 금지 — 위·왼쪽·위)
+  // 일행이 윗길 그대로 달려 올라와 밑동 바로 아래 가운데에(주인공은 곧장 위로, 동료는 올라온 뒤 옆으로 한 걸음)
   { parallel: [
-    [{ move: 'player', px: game => [game.player.x, PARTY_WALK.firstY], run: true }, { move: 'player', px: [PARTY_SPOTS.player[0], PARTY_WALK.firstY], run: true }, { move: 'player', px: PARTY_SPOTS.player, run: true, facing: 'up' }],
-    [{ move: 'gyeongsub', px: game => [actor(game, 'gyeongsub')?.x ?? game.player.x, PARTY_WALK.followerY], run: true }, { move: 'gyeongsub', px: [PARTY_SPOTS.gyeongsub[0], PARTY_WALK.followerY], run: true }, { move: 'gyeongsub', px: PARTY_SPOTS.gyeongsub, run: true, facing: 'up' }],
-    [{ move: 'ppaman', px: game => [actor(game, 'ppaman')?.x ?? game.player.x, PARTY_WALK.followerY], run: true }, { move: 'ppaman', px: [PARTY_SPOTS.ppaman[0], PARTY_WALK.followerY], run: true }, { move: 'ppaman', px: PARTY_SPOTS.ppaman, run: true, facing: 'up' }],
+    [{ move: 'player', px: PARTY_SPOTS.player, run: true, facing: 'up' }],
+    [{ move: 'gyeongsub', px: [PARTY_SPOTS.gyeongsub[0], PARTY_WALK.followerY], run: true, facing: 'up' }, { move: 'gyeongsub', px: PARTY_SPOTS.gyeongsub, run: true, facing: 'up' }],
+    [{ move: 'ppaman', px: [PARTY_SPOTS.ppaman[0], PARTY_WALK.followerY], run: true, facing: 'up' }, { move: 'ppaman', px: PARTY_SPOTS.ppaman, run: true, facing: 'up' }],
   ] },
   ...PARTY.map(id => ({ face: id, dir: 'right' })),
   // (카메라 천천히 — 일행과 다섯이 한 화면) → 멈춘 뒤 도미조림 느낌표, 일행 쪽을 본다
-  { camera: CLEARING_VIEW, duration: CAM.toClearing },
+  { camera: LEAP_VIEW, duration: CAM.toClearing },
   { wait: CAM.settle },
   { face: 'domijorim', dir: 'toward:player' },
   startle(['domijorim']),
@@ -97,7 +97,7 @@ export const jjajang_sakura5_clearing = [
   // (카메라 살짝 위로 갔다가 다시 돌아옴 — 천천히, 나무 맨 위는 화면 밖)
   { camera: PEEK_VIEW, duration: CAM.peek },
   { wait: CAM.peekHold },
-  { camera: CLEARING_VIEW, duration: CAM.peekBack },
+  { camera: LEAP_VIEW, duration: CAM.peekBack },
   { wait: 0.4 },
   H('사실 저기 벚꽃나무 맨 위에'),
   H('이상한 짜장면? 같은게 있는데 가순이들이 자꾸 최미스그새끼 준다고 가져와달라는거에요'),
@@ -135,17 +135,15 @@ export const jjajang_sakura5_clearing = [
   P('걍 족치고 가져가죠'),
   H('훗.. 악역을 자처하시겠다.'),
   close,
-  // 둘이 일행 아래 양옆으로 뛰어 내려와 일행을 바라본다 — 카메라 먼저 한 칸 아래로, 뛰는 자세(leap 띠: 웅크림 → 공중에서 홍어 뽑음 → 착지 → 전투 자세), 착지음
-  { camera: LEAP_VIEW, duration: 1.0 },
-  { wait: 0.3 },
+  // 둘이 뛰어 내려와 일행 양옆(같은 높이)에 서서 일행을 바라본다 — 뛰는 자세(leap 띠: 웅크림 → 공중에서 홍어 뽑음 → 착지 → 전투 자세), 착지음
   { async: [{ wait: LEAP.duration }, { sfx: 'thud' }] },
   { parallel: [
     { motion: 'domijorim', name: 'leap', sfx: 'jump' }, { hop: 'domijorim', by: LEAP.domijorim.by, height: LEAP.domijorim.height, duration: LEAP.duration, sfx: false },
     { motion: 'dohyun', name: 'leap' }, { hop: 'dohyun', by: LEAP.dohyun.by, height: LEAP.dohyun.height, duration: LEAP.duration, sfx: false },
   ] },
   pose('domijorim', 'ready'), pose('dohyun', 'ready'),
-  { face: 'domijorim', dir: 'up' }, { face: 'dohyun', dir: 'up' },
-  ...PARTY.map(id => ({ face: id, dir: 'down' })),
+  { face: 'domijorim', dir: 'right' }, { face: 'dohyun', dir: 'left' },
+  { face: 'player', dir: 'left' }, { face: 'gyeongsub', dir: 'left' }, { face: 'ppaman', dir: 'right' },
   { hop: 'domijorim', by: [0, 0], height: HEUMI.height, duration: HEUMI.duration, sfx: HEUMI.sfx },
   D('내꺼랑께요 흐미!!!!!!!!!!!!'),
   close,

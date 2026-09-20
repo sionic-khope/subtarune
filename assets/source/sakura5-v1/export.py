@@ -20,8 +20,9 @@ ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[2]
 DIRECTIONS = ("down", "up", "left", "right")
 RAW_ROWS = (0, 3, 1, 2)            # 원본 행 순서 down/left/right/up → 게임 순서 down/up/left/right
+RAW_ROWS_BY = {"domijorim": (0, 1, 2, 3)}   # 도미조림 5차 시트는 형섭 시트를 그대로 참조해 행 순서가 이미 down/up/left/right
 CELL = 64
-FIT = {"dohyun": "0.74", "domijorim": "0.84"}   # 도현: 처음 0.92(“얇고 살짝 길죽하게”)에서 사용자 “비율 키 20퍼 줄여라” → ×0.8 = 0.74. 도미조림 2등신 시트는 기본
+FIT = {"dohyun": "0.74", "domijorim": "0.98"}   # 도현: 처음 0.92(“얇고 살짝 길죽하게”)에서 사용자 “비율 키 20퍼 줄여라” → ×0.8 = 0.74. 도미조림 5차 시트는 형섭 시트(칸을 거의 채움)와 같은 크기가 되게 0.98
 SHEETS = ("dohyun", "domijorim", "gasuni4", "gasuni5", "gasuni6")
 TREE_SCALE = 3                     # 1024 원본 → 1/3
 
@@ -55,7 +56,7 @@ def export_sheet(name: str) -> None:
     sheet = Image.new("RGBA", (CELL * 4, CELL * 4))
     for row, direction in enumerate(DIRECTIONS):
         for column in range(4):
-            info = metadata["frames"][RAW_ROWS[row] * 4 + column]
+            info = metadata["frames"][RAW_ROWS_BY.get(name, RAW_ROWS)[row] * 4 + column]
             crop = clean.crop(info["source_box"]).crop(info["crop_bbox"])
             sized = crop.resize(tuple(info["output_size"]), Image.Resampling.NEAREST)
             frame = Image.new("RGBA", (CELL, CELL))
