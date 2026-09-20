@@ -32,6 +32,7 @@
 //  { join:'ppaman' } { leave:'id' } { regroup:true } 파티(동료)
 //  { bubble:'player'|id, dots?:3, gap?:0.4, hold?:0.6 } 머리 위 '...' 말풍선(대화창 없이)
 //  { hop:..., spin?:2, keep?:true } 소품도 날린다(빙글 회전, 끼임 보정 생략)   { tremble:id|[ids], duration?, amp? } 부들부들(기다리지 않음)   { fling:id, vx, vup, spin?, gravity?, duration?, sfx? } 속도·중력으로 튀어나가 사라짐(동상 펑)   { emote:id, kind:'!'|'sweat', duration?, hold?, sfx? } 머리 위 느낌표/식은땀('!' 은 기본 chime, 동시 여러 명이면 한 번)   { hop:id, by:[dx,dy], height?, duration? } 캐릭터 포물선 점프(jump.mp3)   { raft:id, go:true | jump:true | until:'stop' } 뗏목 출발/점프/멈출 때까지 대기   { prompt:'C를 눌러보자' } C 로만 닫히는 안내 창   { shakeOff:id, duration } 물 털기(타다다닥+파란 점)
+//  { drop:id|[ids], height?:260, duration?:0.5, sfx?:'jump'|false, land?:'thud'|false, quake?:amp } 위에서 제자리로 떨어져 착지   { rise:id|[ids], height?:340, duration?:1.6, sfx? } 함께 하늘로 떠오름(끝나도 떠 있음 — 뒤에 map/hide)   { picture:{ src, from:[sx,sy,sw,sh], to?, duration? } | null } 전체화면 그림(원본 px 사각형을 화면에 채우고 from→to 로 천천히 훑음, 대화창은 그 위)   { map:…, bgm:false } 는 changeMap 에 bgm 끄기 전달
 //  { chat:'open'|mode|'close' } 방송 채팅창 / { dialog:{…}|'press'|null } 오류창 / { vortex:{at,size,grow}|null } 소용돌이
 //  { map: 'room', spawn: 'bed', enter?: true } 즉시 맵 교체 (앞뒤로 fade 를 붙일 것). enter:true 면 이 스크립트가 끝난 뒤 그 맵의 도착 스크립트(enter)를 이어서 돌린다 — 대사 중엔 도착 스크립트가 건너뛰어지므로(철문 → 조종실 연출, BUILD202)
 //  { caption: '평화롭던 우이동', duration?: 3 }   화면 위쪽에 지역 이름이 떠올랐다 사라짐 (기다리지 않음)
@@ -46,6 +47,7 @@
 import { TILE } from '../world/tiles.js';
 import { freeSpot, SCREEN_W, SCREEN_H } from '../world/world.js';
 import { characterMotionWaiter } from '../world/character-motion.js';
+import { loadImageOptional } from '../core/gfx.js';
 import { MusicCamera } from './music-camera.js';
 import { darkSmokeWaiter } from './dark-smoke.js';
 import { doorTransitWaiter } from '../world/door-transit.js';
@@ -340,7 +342,7 @@ export function makeWaiter(game, node) {
   if (node.hide) { const e = findEntity(game, node.hide); if (e) { e.visible = false; if (e._solidBeforeHide === undefined) e._solidBeforeHide = e.solid; e.solid = false; } return done; }   // 안 보이는 것은 막지도 않는다 (2026-09-10 미로 출구에서 숨긴 NPC 가 길을 막았음)
   if (node.remove) { const e = findEntity(game, node.remove); if (e) e.dead = true; return done; }
   if (node.map) {
-    const change = game.changeMap(node.map, node.spawn, true);
+    const change = game.changeMap(node.map, node.spawn, true, { bgm: node.bgm !== false });
     if (node.enter) game.pendingMapEnter = node.map;
     if (!change?.then) return done;
     let finished = false;
@@ -443,6 +445,36 @@ export function makeWaiter(game, node) {
     const e = findEntity(game, node.shakeOff); if (!e) return done;
     e.jitter = { t: node.duration ?? 0.9, amp: node.amp ?? 2 }; let acc = 0;
     return { update: (dt) => { acc += dt; while (acc > 0.03) { acc -= 0.03; game.emitDroplets(e, 2); } return !e.jitter; } };
+  }
+  if (node.drop) {                                     // { drop:id|[ids], height?:260, duration?:0.5, sfx?:'jump'|false, land?:'thud'|false, quake?:amp } 위에서 떨어져 제자리에 착지(hopY 를 height 에서 0 으로, 가속) — 드럼통 둥지 뒤 동상 앞 낙하(BUILD254). 착지 흔들림 키는 quake(shake 는 독립 노드라 먼저 잡힌다)
+    const list = (Array.isArray(node.drop) ? node.drop : [node.drop]).map((id) => findEntity(game, id)).filter(Boolean); if (!list.length) return done;
+    const h = node.height ?? 260, dur = node.duration ?? 0.5; let t = 0;
+    for (const e of list) { e.visible = true; e.hopY = h; e.moving = false; e.frame = 0; }
+    if (node.sfx !== false) game.sound.sfx(node.sfx || 'jump', { volume: 0.7 });
+    return { update: (dt) => {
+      t += dt; const k = Math.min(1, t / dur);
+      for (const e of list) e.hopY = Math.round(h * (1 - k * k));
+      if (k < 1) return false;
+      for (const e of list) e.hopY = 0;
+      if (node.land !== false) game.sound.sfx(node.land || 'thud', { volume: 0.8 });
+      if (node.quake) game.shake = { time: 0.25, amp: node.quake };
+      return true;
+    } };
+  }
+  if (node.rise) {                                     // { rise:id|[ids], height?:340, duration?:1.6, sfx? } 함께 하늘로 떠오른다(hopY 0 → height, 가속). 끝나도 떠 있는 채 — 뒤에 hide/remove/map (청소부와 승천, BUILD254)
+    const list = (Array.isArray(node.rise) ? node.rise : [node.rise]).map((id) => findEntity(game, id)).filter(Boolean); if (!list.length) return done;
+    const h = node.height ?? 340, dur = node.duration ?? 1.6; let t = 0;
+    if (node.sfx) game.sound.sfx(node.sfx, { volume: 0.8 });
+    return { update: (dt) => { t += dt; const k = Math.min(1, t / dur); for (const e of list) { e.hopY = Math.round(h * k * k); e.moving = false; } return k >= 1; } };
+  }
+  if (node.picture !== undefined) {                    // { picture:{ src, from:[sx,sy,sw,sh], to?, duration? } | null } 전체화면 그림(main.drawPicture). 그림이 준비될 때까지 기다린다. null 이면 걷는다
+    if (!node.picture) { game.picture = null; return done; }
+    const p = node.picture;
+    const picture = { src: p.src, from: p.from, to: p.to ?? p.from, duration: p.duration ?? 0, t: 0, image: game.propImages?.[p.src] || null, extra: p.extra ?? null };
+    game.picture = picture;
+    let loaded = !!picture.image;
+    if (!loaded) (game.mapAssets?.image ? game.mapAssets.image(p.src) : loadImageOptional(p.src)).then((image) => { picture.image = image; loaded = true; });
+    return { update: () => { if (loaded && !picture.from && picture.image) { picture.from = [0, 0, picture.image.width, picture.image.height]; picture.to = picture.from; } return loaded; } };
   }
   if (node.hop) {                                      // { hop:id, by:[dx,dy], height?:24, duration?:0.5, sfx?:'jump'|false } 캐릭터가 포물선으로 뛴다(재사용 점프 연출)
     const e = findEntity(game, node.hop); if (!e) return done;

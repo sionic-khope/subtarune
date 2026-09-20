@@ -17,6 +17,7 @@ export const ENEMIES = {
     name: '드럼통의 악마', hp: 300, damage: 15, money: 0, boss: true, support: 'drum_devil',
     sheet: { src: 'assets/enemies/drum-devil-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
     actions: { attack: { src: 'assets/enemies/drum-devil-attack.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 } },
+    // dx -83 은 오른쪽 한계: 대기 2번 프레임의 오른손이 x 464, 구출 피격 밀림(+14)과 흔들림(+2)까지 더하면 480 — 더 오른쪽이면 손이 화면 밖으로 잘린다(tests/unit/drum-devil.test 오른쪽 여백 15). 요플래와의 간격은 요플래 쪽(drum-devil.js heroPartyHome)을 왼쪽으로 옮겨 벌렸다(사용자 2026-09-20)
     pivot: [216, 320], scale: 1.2, dx: -83, dy: 96, board: [240, 160], idle: { swayX: 0, swayY: 0 },
     projectiles: { drum: 'assets/props/jjajang_drum.png' },
     patterns: [{ type: 'drum_bombard' }, { type: 'drum_roll' }, { type: 'drum_chain' }, { type: 'drum_cross' }, { type: 'drum_ring' }],

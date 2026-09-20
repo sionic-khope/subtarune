@@ -112,7 +112,8 @@ export const STATE_FROM_FLAGS = [
   { flag: 'jjajang_rock_taken', items: ['돌'] },
   { flag: 'pines_ajimkiya_won', enemies: ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'] },
   { flag: 'jjajang_chin1_chin_defeated', enemies: ['chinchilla'] },                                                       // 찢칠라 길 1·2 필드 조우(각 18원) — jjajang_chin.js
-  { flag: 'jjajang_chin2_mun_defeated', enemies: ['munkorita'] },                                                       // 찢칠라 길 2 의 적은 문코리타(BUILD248 사용자 “두번째 찢칠라를 얘로”)                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
+  { flag: 'jjajang_chin2_mun_defeated', enemies: ['munkorita'] },
+  { flag: 'drum_devil_won', enemies: ['drum_devil'] },                                                                   // 드럼통 둥지 보스전(돈 0) — drum_devil.js, 승리 뒤 연출 jjajang_nest_after.js(BUILD254)                                                       // 찢칠라 길 2 의 적은 문코리타(BUILD248 사용자 “두번째 찢칠라를 얘로”)                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
@@ -149,7 +150,8 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
 export const partyFromFlags = (flags) => flags?.ship_sinking_done
-  ? (flags?.torii_janitor_joined && !flags?.janitor_left ? ['janitor'] : [])   // 드럼통 길에서 이별(janitor_left, BUILD242)하면 다시 요플래 혼자
+  ? (flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
+    : flags?.torii_janitor_joined && !flags?.janitor_left ? ['janitor'] : [])   // 드럼통 길에서 이별(janitor_left, BUILD242)하면 다시 요플래 혼자
   : PARTY_FLAGS.filter(([flag]) => flags?.[flag]).map(([, id]) => id);
 
 /**
@@ -476,3 +478,14 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_center', desc: '드럼�
   map: 'jjajang_nest', spawn: 'before_drum', flags: nestFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_battle', desc: '드럼통의 악마 전투 직행 (요플래 혼자 · HP 1에서 청소부 구출)',
   map: 'jjajang_nest', spawn: 'before_drum', flags: nestFlags, party: [], script: 'drum_devil_battle_qa' });
+// 보스전 뒤 연출(BUILD254): 둥지 → 동상 앞 → 전함·영클 TV → 재합류 → 잔해 길 → 깊은숲 입구
+const afterFlags = { ...nestFlags, drum_devil_won: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_nest_after', desc: '드럼통의 악마 승리 직후 연출 (청소부 영웅 → 함께 승천 → 동상 앞 → 전함 → 영클 TV → 재합류)',
+  map: 'jjajang_nest', spawn: 'before_drum', flags: afterFlags, party: [], script: 'jjajang_nest_after' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_statue_return', desc: '동상 앞 낙하부터 (청소부 마지막 대사 → 휘이잉 → 전함 콰앙 → 섬 전경 → 영클 TV → 재합류)',
+  map: 'jjajang_statue', spawn: 'after_crash', flags: afterFlags, party: [], script: 'jjajang_statue_return' });
+const regroupFlags = { ...afterFlags, statue_destroyed: true, party_regrouped: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_statue_after', desc: '동상 파괴 뒤 석상 앞 숲 (잔해 길 · 통로 위 문 → 깊은숲 입구 · 억빠맨·경섭 동료)',
+  map: 'jjajang_statue', spawn: 'after_crash', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_deep', desc: '깊은숲 입구 (어두운 짜장숲 · 위로 가는 길 · 오른쪽 나들목 마법의샘 · 브금 wind)',
+  map: 'jjajang_deep', spawn: 'from_south', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });

@@ -47,5 +47,5 @@ test('cold map preparations deduplicate and do not publish partial images', asyn
 
 test('asset cache key follows the release rather than page reload time', () => {
   assert.equal(ASSET_VERSION, BUILD);
-  assert.equal(ASSET_VERSION, '2026-09-20.253');
+  assert.match(ASSET_VERSION, /^2026-\d\d-\d\d\.\d+$/);   // 빌드 번호는 매 빌드 오르므로 형식만 본다(253 고정값은 254 에서 깨졌다)
 });

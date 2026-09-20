@@ -158,7 +158,7 @@ def build_map() -> dict[str, object]:
     drum = {
         'type': 'prop', 'id': 'jjajang_nest_drum', 'image': file,
         'x': cx - 12, 'y': base_y - 12, 'w': 24, 'h': 12, 'ix': cx - width // 2, 'iy': base_y - height,
-        'solid': True, 'script': 'jjajang_nest_drum',
+        'solid': True, 'script': 'jjajang_nest_drum', 'unless': 'drum_devil_won',   # 보스전 뒤(BUILD254)엔 드럼통·악마가 다시 놓이지 않는다
     }
     assert rows[(drum['y'] + 6) // TILE][(drum['x'] + 12) // TILE] == '*', '상호작용 드럼통은 원 안(길 위)'
     assert (CENTER[0] + DRUM_OFFSET) * TILE > WIDTH * TILE / 2, '맵 가운데보다 오른쪽'
@@ -187,7 +187,12 @@ def build_map() -> dict[str, object]:
         'entities': [*pines, *piles, drum, door_west, {
             'type': 'npc', 'id': 'drum_devil', 'sprite': 'drum_devil',
             'x': cx - 12, 'y': base_y - 16, 'w': 24, 'h': 16,
-            'hidden': True, 'solid': False, 'facing': 'left',
+            'hidden': True, 'solid': False, 'facing': 'left', 'unless': 'drum_devil_won',
+        }, {
+            # 보스전 뒤 연출(BUILD254 사용자 브리핑 “드럼통악마 없어져있고 뒤에 청소부가 있고”): 청소부 영웅 모습(멸공의 깃발, 전투 정지 그림 그대로)이 요플래 뒤(왼쪽)에 나타난다 — 컷신이 show
+            'type': 'npc', 'id': 'janitor_hero', 'sprite': 'janitor_hero',
+            'x': cx - 12 - 7 * TILE, 'y': base_y - 16, 'w': 24, 'h': 16,
+            'hidden': True, 'solid': False, 'facing': 'right', 'wander': 0, 'unless': 'party_regrouped',
         }],
     }
 

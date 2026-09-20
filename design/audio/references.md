@@ -468,6 +468,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/select.mp3` | `snd_select` | 0.19s | 숫자가 다 찼을 때 |
 | `sfx/orchhit.mp3` | `snd_orchhit` | 0.61s | S+!! 도장 내려찍힘(+ 기존 `impact`) |
 | `sfx/great_shine.mp3` | `snd_great_shine`(ogg) | 2.26s | 도장 뒤 반짝 |
+| (재사용) `sfx/great_shine.mp3` | 같은 파일 | 2.26s | 억빠맨·경섭 재합류 나레이션(BUILD254). 사용자 링크 myinstants `deltarune-great-shrine-41204` 는 403 이라 같은 델타룬 원음 파일을 그대로 씀 |
 | `sfx/chain_extend.mp3` | `snd_chain_extend` | 0.24s | 보스 도끼 찌르기(앞으로 뻗음) |
 | `sfx/weaponpull.mp3` | `snd_weaponpull` | 1.07s | 찌르기에 걸린 주인공을 끌어당길 때 |
 

@@ -119,6 +119,7 @@ class Game {
     this.shake = null;            // { time, amp }
     this.caption = null;          // { text, time, duration } 지역 이름 표시
     this.curtain = null;          // 'black'|'white': 맵 위를 완전히 덮는 막 (컷신용)
+    this.picture = null;          // 컷신 {picture}: 전체화면 그림 { src, image, from, to, duration, t, extra } — drawPicture (BUILD254 짜장섬 전경)
     this.background = [];         // async 컷신 waiter
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 2D 월드 줌 (TV 로 빨려 들어가는 전환 등). UI 는 안 줌됨
     this.scene3d = null;          // 3D 오버레이 씬(src/scenes/*) 실행 중이면 true — Esc 등 게임 입력 무시
@@ -519,7 +520,7 @@ class Game {
     this.sound.stopBgm(0.4); this.sound.stopIntro(0.2);
     this.dialogue.script = null; this.dialogue.wait = null; this.textbox.close();
     for (const entity of this.entities) entity.motion = null;
-    this.background = []; this.curtain = null; this.caption = null; this.shake = null;
+    this.background = []; this.curtain = null; this.picture = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner?.finish(); this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
     this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = [];
@@ -740,12 +741,11 @@ class Game {
 
   async waitForMap(mapId, participants) {
     this.loadingMap = mapId;
+    // 맵 전환 때 '맵 로딩 중' 문구는 띄우지 않는다(사용자 2026-09-20 "맵 바뀔때마다 맵로딩중 텍스트는 굳이 안떠도될듯") — 실패했을 때만 문구를 보인다
     const status = document.getElementById('loading-status');
-    if (status) { status.textContent = L.loading_map; status.hidden = false; }
-    let succeeded = false;
-    try { const def = await this.prepareMap(mapId, participants); succeeded = true; return def; }
-    catch (error) { if (status) status.textContent = L.loading_error; throw error; }
-    finally { if (this.loadingMap === mapId) { this.loadingMap = null; if (status && succeeded) status.hidden = true; } }
+    try { return await this.prepareMap(mapId, participants); }
+    catch (error) { if (status) { status.textContent = L.loading_error; status.hidden = false; } throw error; }
+    finally { if (this.loadingMap === mapId) this.loadingMap = null; }
   }
 
   changeMap(mapId, spawnId, instant = false, { bgm = true, enter: runEnter = true } = {}) {   // enter:false — 도착 스크립트는 호출자가 runMapEnter() 로 (이어하기·QA: 위치·동료·세이브를 먼저)
@@ -1087,6 +1087,7 @@ class Game {
     if (this.invuln > 0) this.invuln -= dt;
     for (const e of this.entities) if (e.jitter) { e.jitter.t -= dt; if (e.jitter.t <= 0) e.jitter = null; }
     for (const e of this.entities) if (e.emote) { e.emote.t += dt; if (e.emote.t >= e.emote.life) e.emote = null; }   // 머리 위 이모트 수명
+    if (this.picture) this.picture.t += dt;
     if (this.fx.length) { for (const f of this.fx) { f.vy += 320 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.t -= dt; } this.fx = this.fx.filter((f) => f.t > 0); }
     if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
     if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
@@ -1402,6 +1403,7 @@ class Game {
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
     drawYoungcleLoungeEffects(ctx, this, cam);
+    if (this.picture) this.drawPicture(ctx);
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
     if (this.hpPopup) this.drawHpPopup(ctx);
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
@@ -1537,6 +1539,16 @@ class Game {
     ctx.globalAlpha = 0.75 + 0.25 * Math.sin(p.t * 6); ctx.fillStyle = '#fff'; ctx.fillText(p.text, x + 14, y + 7); ctx.globalAlpha = 1;
   }
 
+  /** 컷신 {picture}: 그림의 원본 px 사각형 from→to(부드럽게 보간)을 화면 480×360 에 꽉 채운다. 월드 위·대화창 아래. extra(ctx, t, rect) 로 그림 위에 덧그릴 수 있다 */
+  drawPicture(ctx) {
+    const p = this.picture, img = p.image || this.propImages[p.src];
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    if (!img || !p.from) return;
+    const k = p.duration > 0 ? Math.min(1, p.t / p.duration) : 1, ease = k * k * (3 - 2 * k);
+    const rect = p.from.map((v, i) => v + ((p.to || p.from)[i] - v) * ease);
+    ctx.drawImage(img, rect[0], rect[1], rect[2], rect[3], 0, 0, SCREEN_W, SCREEN_H);
+    p.extra?.(ctx, p.t, rect);
+  }
   drawCaption(ctx) {
     const c = this.caption, k = c.time / c.duration;
     const a = k < 0.2 ? k / 0.2 : k > 0.75 ? (1 - k) / 0.25 : 1;

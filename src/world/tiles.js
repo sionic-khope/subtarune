@@ -196,6 +196,8 @@ registerTile('&', { name: 'jjajang_path_edge', solid: false, draw: flat('#242726
 // 물이 아니라 검은 흙길이라 물결 고리는 내지 않는다(ripple false — Character.footstep). 해안('%')은 그대로 무음
 const FOREST_STEP = { ...WATER_WALK, ripple: false };
 registerTile('$', { name: 'jjajang_path_echo', solid: false, step: FOREST_STEP, draw: flat('#242726') });
+registerTile('U', { name: 'jjajang_deep_path', solid: false, step: FOREST_STEP, draw: flat('#161918') });   // 깊은숲 입구(jjajang_deep, BUILD254): 짜장 길보다 어두운 길, 발소리는 같은 숲 에코 ('I' 는 조종실 철판)
+registerTile('^', { name: 'jjajang_deep_edge', solid: false, step: FOREST_STEP, draw: flat('#161918') });   // 깊은숲 입구 길 가장자리 출입구 칸(문이 덮는다) — '&' 와 같은 역할, 어두운 색
 // 짜장 소나무 숲 공터의 풀숲(BUILD226 사용자 “거기 중간에 풀숲하고 적당히 정사각형의 공간”): 길 바닥 위에 어두운 풀잎 다발, 걸을 수 있고 발소리는 길과 같다
 // 더 울창하게(BUILD227 사용자 “가운데 풀숲 더 울창하게”): 칸마다 다른 풀잎 14~18개가 두 겹으로, 아래는 어두운 덤불 띠. variants 3 으로 칸마다 모양이 다르다
 const thicket = (ctx, rng) => {

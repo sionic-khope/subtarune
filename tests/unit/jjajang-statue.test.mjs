@@ -37,7 +37,7 @@ test('test_statue_map_straight_road_short_branch_wide_clearing_and_passage', () 
 test('test_statue_blocks_the_passage_and_fits_the_dialogue_view', () => {
   const [w, h] = pngSize(statue.image);
   assert.equal(statue.image, 'assets/props/jjajang_statue.png');
-  assert.ok(statue.solid && statue.script === 'jjajang_statue_talk' && !statue.unless, '막혀 있고 C 로 이야기, 사라지지 않는다');
+  assert.ok(statue.solid && statue.script === 'jjajang_statue_talk' && statue.unless === 'statue_destroyed', '막혀 있고 C 로 이야기, 엄청대박인배가 부순 뒤(statue_destroyed, BUILD254)에만 사라진다');
   assert.equal(statue.iy + h, statue.y + statue.h, '그림 밑변 = 히트박스 밑변');
   assert.equal(statue.y + statue.h, map.meta.statue[1] * TILE, '밑변은 통로 아래·공터 위 경계');
   assert.ok(statue.x <= pc0 * TILE && statue.x + statue.w >= (pc1 + 1) * TILE, '히트박스가 통로 폭을 다 덮는다');

@@ -336,8 +336,8 @@ test('hero theme loops without returning to encounter BGM and respects battle ow
 
 test('drum-only formation is stable before and during rescue and dispose restores default home', () => {
   const battle = battleFixture(), player = battle.members[0];
-  assert.deepEqual(player.home, [124, 164]); assert.equal(player.hp, 100);
-  battle.support.reset(); assert.deepEqual(player.home, [124, 164]);
+  assert.deepEqual(player.home, C.heroPartyHome); assert.deepEqual(C.heroPartyHome, [100, 164]); assert.equal(player.hp, 100);
+  battle.support.reset(); assert.deepEqual(player.home, C.heroPartyHome);
   battle.support.dispose(); assert.deepEqual(player.home, [84, 190]);
   assert.deepEqual(ENEMIES.drum_devil.lines.speak, ['씨2발년아', '크어어어억', '찢어주겠다']);
 });

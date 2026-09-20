@@ -34,7 +34,8 @@ test('test_drum_devil_reveal_occurs_behind_white_before_two_roars_and_narration'
   assert.deepEqual(flat.filter(node => node.speaker === '???').map(node => node.text), [
     '* 조사받.. 고 가..냐 이년아.', '* 니 친정엄마 ㅆ 2발년아.',
   ]);
-  assert.deepEqual(flat.filter(node => node.text).slice(-6).map(node => node.text), [
+  const battleAt = flat.findIndex(node => node.battle);   // 전투 뒤엔 승리 연출(BUILD254)이 이어지므로 전투 직전 6줄만 본다
+  assert.deepEqual(flat.slice(0, battleAt).filter(node => node.text).slice(-6).map(node => node.text), [
     '* 드럼통의 악마인 것 같다.', '* 압도적인 포스에 몸이 떨려온다.', '* 죽음의 공포가 나를 감싼다.', '* 그럼에도 나는 포기할 수 없다.',
     '* 쓰러트려야할 것 같다.', '* 나는 자세를 고쳐잡았다',
   ]);
@@ -51,7 +52,7 @@ test('test_drum_devil_reveal_occurs_behind_white_before_two_roars_and_narration'
   assert.ok(CHARACTER_MOTIONS.drum_devil.roar.frames.every(frame => frame.rect[2] === 272 && frame.rect[3] === 232 && frame.pivot.join() === '142,226'));
   assert.equal(CHARACTER_MOTIONS.drum_devil.roar.scale, CHARACTERS.drum_devil.stillScale);
   assert.equal(CHARACTER_MOTIONS.drum_devil.throw.scale, CHARACTERS.drum_devil.stillScale);
-  assert.ok(flat.every(node => !node.join && !node.stage && !node.set && !node.map));
+  assert.ok(flat.slice(0, flat.findIndex(node => node.battle)).every(node => !node.join && !node.stage && !node.set && !node.map));   // 전투 전엔 상태를 바꾸지 않는다(승리 뒤 연출은 join·set·map 을 쓴다, BUILD254)
 });
 
 test('test_drum_field_geometry_keeps_220px_artwork_above_the_dialogue', () => {

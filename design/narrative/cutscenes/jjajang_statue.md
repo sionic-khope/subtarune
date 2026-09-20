@@ -53,3 +53,7 @@
 | 복귀 | 플래그 → 카메라 요플래로 → `resumeMapBgm()`(my_castle_town) → `{regroup}` | |
 
 QA `jjajang_statue`(왼쪽 입구), `jjajang_statue_front`(석상 바로 아래). 검사: `tests/unit/jjajang-statue.test.mjs`, `tests/playtest/jjajang-statue.mjs`.
+
+## 정정 (BUILD254, 2026-09-20)
+
+드럼통의 악마 뒤 연출(`jjajang_nest_after.md`)에서 엄청대박인배가 석상을 부순다: 석상은 `unless: statue_destroyed`, 잔해 5개는 `requires`, 통로 1행에 문 `statue_deep_door` → 깊은숲 입구(`jjajang_deep`). 연출 배우(청소부 영웅·억빠맨·경섭)와 전함·영클 TV·모니터암은 맵에 숨겨 두고(`unless: party_regrouped`) 컷신이 꺼낸다. 스폰 `after_crash`·`from_deep`. QA `jjajang_statue_return`(낙하부터), `jjajang_statue_after`(파괴 뒤).

@@ -1,5 +1,6 @@
 import { battleEntry } from './helpers.js';
 import { loopCharacterMotion } from '../../world/character-motion.js';
+import { jjajang_nest_after } from './jjajang_nest_after.js';
 
 const N = text => ({ voice: 'narrator', text: `* ${text}` });
 const closeBox = { action: g => g.textbox.close() };
@@ -64,6 +65,8 @@ export const jjajang_nest_drum = Object.assign([
   ...roar(),
   { drumDevilThrow: true },
   ...battleEntry(['drum_devil'], 'drum_devil_battle'),
-  { battle: { enemies: ['drum_devil'], bgm: 'drum_devil_battle', bg: 'drum_nest', modes: { attack: 'rush', enemy: 'bullets' } } },
+  { battle: { enemies: ['drum_devil'], bgm: 'drum_devil_battle', bg: 'drum_nest', modes: { attack: 'rush', enemy: 'bullets' }, flag: 'drum_devil_won' } },
+  // 승리 뒤 연출(BUILD254 사용자 브리핑 2026-09-20): 악마가 사라진 자리에 청소부 영웅 → 함께 승천 → 동상 앞 → 엄청대박인배 → 영클 TV → 억빠맨·경섭 재합류 → 잔해 길
+  ...jjajang_nest_after,
   { label: 'done' },
 ], { silent: true });

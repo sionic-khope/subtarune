@@ -92,6 +92,8 @@ def build_map() -> dict[str, object]:
         'x': cx - base_x + STATUE_HIT_INSET, 'y': base_y - 24, 'w': width - 2 * STATUE_HIT_INSET, 'h': 24,
         'ix': cx - base_x, 'iy': base_y - height, 'solid': True, 'script': 'jjajang_statue_talk',
         # 정렬은 보통 소품처럼 밑변(224) 기준: 바로 아래 선 요플래가 받침대 앞에 그려진다(사용자 스크린샷 “눌려 보이잖아” — 위에 그리면 머리가 받침대에 잘린다)
+        # 드럼통의 악마 뒤(BUILD254): 엄청대박인배가 들이받아 파괴 → statue_destroyed 뒤엔 놓이지 않는다(잔해 소품이 대신, 통로 위 문이 열린다)
+        'unless': 'statue_destroyed',
     }
     assert statue['ix'] >= 0 and statue['iy'] >= 0 and statue['ix'] + width <= WIDTH * TILE, '석상 그림이 맵 안'
     assert statue['iy'] + height == statue['y'] + statue['h'], '그림 밑변 = 히트박스 밑변'
@@ -118,6 +120,39 @@ def build_map() -> dict[str, object]:
         'type': 'door', 'id': 'statue_run_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_run', 'spawn': 'from_west', 'sfx': False,
     }
+    # ── 드럼통의 악마 뒤 연출(BUILD254 사용자 브리핑 2026-09-20, 원문 design/narrative/cutscenes/jjajang_nest_after.md) ──
+    # 통로 맨 위(1행) 문 → 깊은숲 입구(jjajang_deep). 석상이 서 있는 동안은 히트박스가 통로를 막아 닿을 수 없다(meta.blocked 감사), 파괴 뒤(blockedClearedBy) 닿는다
+    door_north = {
+        'type': 'door', 'id': 'statue_deep_door', 'x': PASSAGE_COLS[0] * TILE, 'y': PASSAGE_ROWS[0] * TILE, 'w': (PASSAGE_COLS[1] - PASSAGE_COLS[0] + 1) * TILE, 'h': 10,
+        'to': 'jjajang_deep', 'spawn': 'from_south', 'sfx': False,
+    }
+    # 파괴 뒤 잔해(gpt-image-2.5-sunburst, assets/source/jjajang-rubble-v1 → 색키·축소): 큰 더미 둘은 통로 입구 양옆(막힘), 작은 조각은 길 위(안 막힘) — 가운데 길(28~29열)은 비워 둔다
+    big_w, big_h, small_w, small_h = 232, 100, 150, 71
+    def rubble(rid: str, image: str, ix: int, iy: int, w: int, h: int, solid: bool) -> dict[str, object]:
+        return {'type': 'prop', 'id': rid, 'image': image, 'x': ix, 'y': iy + h - 12, 'w': w, 'h': 12, 'ix': ix, 'iy': iy, 'solid': solid, 'requires': 'statue_destroyed'}
+    rubble_props = [
+        rubble('jjajang_rubble_left', 'assets/props/jjajang_rubble_big.png', 640, 190, big_w, big_h, True),
+        rubble('jjajang_rubble_right', 'assets/props/jjajang_rubble_big.png', 990, 186, big_w, big_h, True),
+        rubble('jjajang_rubble_a', 'assets/props/jjajang_rubble_small.png', 880, 236, small_w, small_h, False),
+        rubble('jjajang_rubble_b', 'assets/props/jjajang_rubble_small.png', 700, 320, small_w, small_h, False),
+        rubble('jjajang_rubble_c', 'assets/props/jjajang_rubble_small.png', 960, 430, small_w, small_h, False),
+    ]
+    for r in rubble_props:
+        if r['solid']:
+            assert r['x'] + r['w'] <= BRANCH_COLS[0] * TILE or r['x'] >= (BRANCH_COLS[1] + 1) * TILE, f"막는 잔해가 가운데 길을 덮는다: {r['id']}"
+    # 연출 배우(연출 전엔 숨김, 재합류 뒤엔 놓이지 않음): 청소부 영웅·억빠맨·경섭은 동상 앞 자리에서 떨어져 내려온다, 전함은 오른쪽 맵 밖에서 들어온다, 영클 TV·모니터암은 화면 위에서 내려온다
+    stand_x, stand_y = BRANCH_COLS[0] * TILE + 8, (r1 - 1) * TILE + 6
+    actor = lambda aid, sprite, dx, facing: {'type': 'npc', 'id': aid, 'sprite': sprite, 'x': stand_x + dx, 'y': stand_y, 'w': 24, 'h': 16,
+                                              'hidden': True, 'solid': False, 'facing': facing, 'wander': 0, 'unless': 'party_regrouped'}
+    actors = [actor('janitor_hero', 'janitor_hero', 48, 'up'), actor('ppaman', 'ppaman', -44, 'right'), actor('gyeongsub', 'gyeongsub', 44, 'left')]
+    ship_scale = 0.65
+    warship = {'type': 'prop', 'id': 'youngcle_warship', 'image': 'assets/props/youngcle-warship-left.png', 'scale': ship_scale,
+               'x': WIDTH * TILE, 'y': -10, 'w': 0, 'h': 0, 'ix': WIDTH * TILE, 'iy': -10, 'solid': False, 'hidden': True, 'sortY': 1000000000, 'unless': 'party_regrouped'}
+    tv_x, tv_y, tv_scale = 950, 150, 0.82
+    tv_frame = {'type': 'prop', 'id': 'youngcle_tv', 'image': 'assets/props/youngcle_tv_frame.png', 'scale': tv_scale, 'foldX': 0.06,
+                'x': tv_x, 'y': tv_y - 420, 'w': 236, 'h': 144, 'ix': tv_x, 'iy': tv_y - 420, 'solid': False, 'hidden': True, 'sortY': 2000000000, 'unless': 'party_regrouped'}
+    tv_arm = {'type': 'prop', 'id': 'youngcle_tv_arm', 'image': 'assets/props/tv_arm.png',
+              'x': tv_x + 118 - 6, 'y': tv_y - 420 - 320, 'w': 12, 'h': 320, 'ix': tv_x + 118 - 6, 'iy': tv_y - 420 - 320, 'solid': False, 'hidden': True, 'sortY': 2000000000, 'unless': 'party_regrouped'}
     return {
         'id': MAP_ID,
         'name': '석상 앞 숲',
@@ -130,18 +165,22 @@ def build_map() -> dict[str, object]:
             'start': {'x': 1 * TILE + 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'right'},
             'before_statue': {'x': BRANCH_COLS[0] * TILE + 8, 'y': (r1 - 1) * TILE + 6, 'facing': 'up'},
             'from_east': {'x': (WIDTH - 2) * TILE - 8, 'y': ROAD_ROWS[0] * TILE + 6, 'facing': 'left'},
+            'after_crash': {'x': BRANCH_COLS[0] * TILE + 8, 'y': (r1 - 1) * TILE + 6, 'facing': 'up'},
+            'from_deep': {'x': BRANCH_COLS[0] * TILE + 8, 'y': PASSAGE_ROWS[0] * TILE + 16, 'facing': 'down'},
         },
+        'preload': ['assets/illustrations/jjajang_island_crash.png'],
         'meta': {
             'connected': True,
             'route': [[1, ROAD_ROWS[0]], [BRANCH_COLS[0], ROAD_ROWS[0]], [BRANCH_COLS[0], r0], [WIDTH - 2, ROAD_ROWS[0]]],
             # 석상 뒤 통로는 걸어서 닿을 수 없어야 한다(막아야 하는 길 감사)
             'blocked': [[BRANCH_COLS[0], r1 - 1], [BRANCH_COLS[0], 2]],
-            'role': '소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝 문 → 파란 토리이 길. 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐',
+            'blockedClearedBy': 'statue_destroyed',
+            'role': '소나무 숲 다음: 왼쪽 입구 → 곧은 길 오른쪽 끝 문 → 파란 토리이 길. 가운데 위 공터, 그 위 그림자 통로를 석상이 막는다(C → 청소부 짜장숲 이야기). 브금 my_castle_town 이어짐. 드럼통의 악마 뒤(BUILD254) 엄청대박인배가 석상을 부수면 잔해가 깔리고 통로 위 문 → 깊은숲 입구(jjajang_deep)',
             'clearing': list(CLEARING),
             'passage': [list(PASSAGE_COLS), list(PASSAGE_ROWS)],
             'statue': [STATUE_CENTER_COL, STATUE_BASE_ROW],
         },
-        'entities': [*pines, passage_shade, statue, hint_trigger, door_west, door_east],
+        'entities': [*pines, passage_shade, statue, *rubble_props, hint_trigger, door_west, door_east, door_north, *actors, warship, tv_frame, tv_arm],
     }
 
 

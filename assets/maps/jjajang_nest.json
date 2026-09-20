@@ -359,7 +359,8 @@
    "ix": 608,
    "iy": 386,
    "solid": true,
-   "script": "jjajang_nest_drum"
+   "script": "jjajang_nest_drum",
+   "unless": "drum_devil_won"
   },
   {
    "type": "door",
@@ -382,7 +383,22 @@
    "h": 16,
    "hidden": true,
    "solid": false,
-   "facing": "left"
+   "facing": "left",
+   "unless": "drum_devil_won"
+  },
+  {
+   "type": "npc",
+   "id": "janitor_hero",
+   "sprite": "janitor_hero",
+   "x": 388,
+   "y": 426,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false,
+   "facing": "right",
+   "wander": 0,
+   "unless": "party_regrouped"
   }
  ]
 }

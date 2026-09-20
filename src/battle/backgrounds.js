@@ -29,7 +29,8 @@ registerBattleBg('drum_nest', (ctx, battle) => {
     if (big) for (const [x, y, w] of [[-18, 24, 140], [99, 5, 142], [229, 3, 140], [356, 22, 142]]) {
       g.drawImage(big, x, y, w, Math.round(w * big.height / big.width));
     }
-    if (small) for (const [x, y, w] of [[-24, 121, 118], [397, 123, 110]]) {
+    // 왼쪽 아래 작은 더미([-24, 121])는 뺐다 — 요플래 바로 옆이라 답답해 보임(사용자 2026-09-20 "요플래 옆에있는 왼쪽 드럼통은 치우고")
+    if (small) for (const [x, y, w] of [[397, 123, 110]]) {
       g.drawImage(small, x, y, w, Math.round(w * small.height / small.width));
     }
     g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 0, 480, 360);

@@ -33,20 +33,35 @@ export function drawDrumDevilHero(ctx, assets, time, at = C.hero.home) {
 }
 
 export function drawDrumDevilSpeech(ctx, battle, anchor) {
-  const { pad } = C.speech;
-  const lineHeight = anchor.postLanding ? C.speech.postLanding.lineHeight : C.speech.lineHeight;
-  const fontSize = anchor.postLanding ? C.speech.postLanding.fontSize : C.speech.fontSize;
-  const width = anchor.postLanding ? C.speech.postLanding.width : C.speech.width;
+  const { pad, minWidth } = C.speech, style = anchor.postLanding ? C.speech.postLanding : C.speech;
+  const { lineHeight, fontSize, width: maxWidth } = style;
   ctx.save(); ctx.font = FONT.replace(/^\d+px/, `${fontSize}px`); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  const lines = menuTextLines(ctx, battle.text, width - pad * 2, 5);
+  const lines = menuTextLines(ctx, battle.text, maxWidth - pad * 2, 5);
+  // 말풍선 폭은 가장 긴 줄에 맞춘다(사용자 2026-09-20 "말풍선 너무 빈공간많은것도 개선") — 이전 고정 폭은 상한. 타자 중에도 전체 문장 기준이라 커지지 않는다
+  const width = Math.min(maxWidth, Math.max(minWidth, Math.ceil(Math.max(0, ...lines.map(line => ctx.measureText(line).width))) + pad * 2));
   const height = Math.max(44, lines.length * lineHeight + pad * 2);
-  const beside = anchor.y < 90;
-  const x = anchor.postLanding ? C.speech.postLanding.x
-    : Math.round(Math.max(12, Math.min(468 - width, beside ? anchor.x + 28 : anchor.x - 18)));
-  const y = Math.round(Math.max(10, beside ? anchor.y - height / 2 : anchor.y - height - 20));
+  const beside = !anchor.offscreen && anchor.y < 90;
+  let x, y;
+  if (anchor.offscreen) {
+    // 화면 왼쪽 밖(아직 안 보이는 청소부)에서 들어오는 말풍선: 왼쪽 가장자리에 붙고 꼬리가 왼쪽 밖을 가리킨다. 처음 slide 초 동안 밖에서 미끄러져 들어온다
+    const off = C.speech.offscreen, k = off.slide > 0 ? Math.min(1, (anchor.t ?? off.slide) / off.slide) : 1;
+    x = Math.round(off.x - (width + off.x + off.tail) * (1 - k) * (1 - k)); y = off.y;
+  } else if (anchor.postLanding) {
+    // 착지 뒤: 요플래 발 아래·청소부 머리 왼쪽 고정 자리(데이터), 꼬리는 오른쪽 청소부 머리로
+    x = C.speech.postLanding.x; y = C.speech.postLanding.y;
+  } else {
+    x = Math.round(Math.max(12, Math.min(468 - width, beside ? anchor.x + 28 : anchor.x - 18)));
+    y = Math.round(Math.max(10, beside ? anchor.y - height / 2 : anchor.y - height - 20));
+  }
   ctx.fillStyle = '#fff'; battle.roundRect(ctx, x, y, width, height, 6); ctx.fill();
   ctx.beginPath();
-  if (beside) {
+  if (anchor.offscreen) {
+    const tailY = y + Math.round(height / 2);
+    ctx.moveTo(x + 2, tailY - 8); ctx.lineTo(x - C.speech.offscreen.tail, tailY); ctx.lineTo(x + 2, tailY + 8);
+  } else if (anchor.postLanding) {
+    const tailY = Math.max(y + 12, Math.min(y + height - 12, anchor.y)), tipX = Math.max(anchor.x - 14, x + width + 6);
+    ctx.moveTo(x + width - 2, tailY - 8); ctx.lineTo(tipX, anchor.y); ctx.lineTo(x + width - 2, tailY + 8);
+  } else if (beside) {
     const tailY = Math.max(y + 12, Math.min(y + height - 12, anchor.y));
     ctx.moveTo(x + 2, tailY - 8); ctx.lineTo(anchor.x + 14, anchor.y); ctx.lineTo(x + 2, tailY + 8);
   } else {
@@ -54,7 +69,7 @@ export function drawDrumDevilSpeech(ctx, battle, anchor) {
     ctx.moveTo(tailX - 9, y + height - 2); ctx.lineTo(anchor.x, anchor.y - 8); ctx.lineTo(tailX + 9, y + height - 2);
   }
   ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000';
-  menuTextLines(ctx, battle.text.slice(0, battle.shown), width - pad * 2, 5)
+  menuTextLines(ctx, battle.text.slice(0, battle.shown), maxWidth - pad * 2, 5)
     .forEach((line, i) => ctx.fillText(line, x + pad, y + pad + i * lineHeight));
   ctx.restore();
 }
@@ -112,20 +127,21 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
           if (time >= C.flight) enter('surprise');
           break;
         case 'surprise': if (time >= C.surpriseHold) { playerPose = 'lookback'; enter('lookback'); } break;
-        case 'lookback': if (time >= C.lookbackHold) enter('reveal'); break;
+        // 사용자 2026-09-20 "도움이 필요한가? 는 카메라 전환 전에 왼쪽에서 말풍선으로": 아직 화면 밖인 청소부의 인사가 먼저, C 로 넘기면 카메라가 왼쪽으로 간다
+        case 'lookback': if (time >= C.lookbackHold) speak('greeting', C.greeting); break;
+        case 'greeting': if (talk.update(dt, input)) enter('reveal'); break;
         case 'reveal':
           camera = Math.min(1, time / C.reveal);
           if (time >= C.reveal) { battle.support?.playHeroCue?.(); enter('focus'); }
           break;
         case 'focus':
           focus = Math.min(1, time / C.focusSeconds);
-          if (time >= C.focusSeconds) speak('greeting', C.greeting);
+          if (time >= C.focusSeconds) { battle.sfx('laugh_janitor'); enter('laugh'); }
           break;
-        case 'greeting': if (talk.update(dt, input)) { battle.sfx('laugh_janitor'); enter('laugh'); } break;
         case 'laugh': if (time >= C.laughHold) speak('introduction', C.introduction); break;
         case 'introduction': if (talk.update(dt, input)) { enter('rise'); battle.sfx('spearappear', { volume: 0.7 }); } break;
         case 'rise':
-          heroY = C.hero.reveal[1] - 310 * Math.min(1, time / C.rise) ** 2;
+          heroY = C.hero.reveal[1] + (C.hero.riseTo - C.hero.reveal[1]) * Math.min(1, time / C.rise) ** 2;
           camera = 1 - Math.min(1, time / (C.rise + C.returnCamera)); focus = camera;
           if (time >= C.rise) enter('return');
           break;
@@ -175,7 +191,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
         } else battle.drawEnemy(ctx, e);
         ctx.restore();
       }
-      if (!['narration', 'silence', 'flag', 'surprise', 'lookback'].includes(phase)) {
+      if (!['narration', 'silence', 'flag', 'surprise', 'lookback', 'greeting'].includes(phase)) {
         const landed = ['dive', 'land', 'heal-talk', 'heal-raise', 'healing', 'ready', 'done'].includes(phase);
         const at = [landed ? C.hero.home[0] : C.hero.reveal[0], heroY];
         const pose = heroPose();
@@ -225,12 +241,14 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
       if (phase === 'narration') {
         battle.box(ctx, 20, 8, 440, 66); ctx.fillStyle = '#fff';
         battle.wrapText(ctx, battle.text.slice(0, battle.shown), 408).forEach((line, i) => ctx.fillText(line, 36, 20 + i * 20));
-      } else if (['greeting', 'introduction', 'heal-talk', 'ready'].includes(phase)) {
+      } else if (phase === 'greeting') {
+        drawDrumDevilSpeech(ctx, battle, { offscreen: true, t: time });
+      } else if (['introduction', 'heal-talk', 'ready'].includes(phase)) {
         const heroX = ['heal-talk', 'ready'].includes(phase) ? C.hero.home[0] : C.hero.reveal[0];
         drawDrumDevilSpeech(ctx, battle, {
           postLanding: ['heal-talk', 'ready'].includes(phase),
           x: Math.round(centerX + zoom * (heroX - 240 + pan)),
-          y: Math.round(zoom * (heroY - C.speech.headOffset)),
+          y: Math.round(zoom * (heroY - (['heal-talk', 'ready'].includes(phase) ? C.speech.postLanding.headOffset : C.speech.headOffset))),
         });
       }
     },

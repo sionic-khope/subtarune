@@ -1,6 +1,19 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
 export const CHARACTER_MOTIONS = {
+  // 청소부 영웅(깃발) 필드 대기·웃음(BUILD254): 전투 시트(assets/battle/janitor-hero-idle 2×4 192, -laugh 192) 그대로. 배율은 characters.js janitor_hero.stillScale 과 같게(요플래 약 2배). 오른쪽을 본다
+  janitor_hero: {
+    idle: {
+      src: 'assets/battle/janitor-hero-idle.png', scale: 128 / (192 * 1.43), faces: 'right',
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [0.1, 0.12, 0.28, 0.14, 0.1, 0.12, 0.28, 0.14].map((duration, index) => ({ rect: [(index % 2) * 192, Math.floor(index / 2) * 192, 192, 192], pivot: [138, 180], duration })),
+    },
+    laugh: {
+      src: 'assets/battle/janitor-hero-laugh.png', scale: 128 / (192 * 1.43), faces: 'right',
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [{ rect: [0, 0, 192, 192], pivot: [138, 180], duration: 1.2 }],
+    },
+  },
   drum_devil: {
     throw: {
       src: 'assets/enemies/drum-devil-attack.png',

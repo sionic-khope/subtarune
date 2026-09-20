@@ -1,0 +1,11 @@
+# imagegen 2026-09-20 11:28:42
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/runner-v1/runner-ref.png
+
+Pixel art of ONE object group, a single heap, for a Deltarune-like top-down pixel RPG overworld prop. 1024x1024 canvas. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no cast shadow, no text.
+Image1 is a pixel character from this game for PIXEL DENSITY, outline style and scale only (ignore its pose and colours).
+Draw a SMALL scattered cluster of debris left where a huge navy battleship smashed through a stone statue and a pine forest: broken grey-blue stone blocks and a cracked carved fragment, snapped black pine trunks and branches, bent dark-navy steel plates and a torn hull panel with a few cyan window shards, all tumbled together. Wider than tall (about twice as wide as tall, just a few pieces), seen slightly from above like an overworld prop.
+Centered, filling about 60% of the canvas width, nothing touching the edges.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (grey-blue stone, near-black wood, dark navy steel, a few cyan slivers), dark stepped outline, same sparse logical pixel density as Image1, crisp pixels, no anti-aliasing, no blur.

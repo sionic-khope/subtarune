@@ -23,3 +23,7 @@
 연출·대사는 아직 브리핑이 없어 `jjajang_nest_drum` 은 나레이션 한 줄(“* 드럼통이다.”)만 둔다. 브리핑이 오면 이 스크립트를 그 내용으로 바꾼다.
 
 QA `jjajang_nest`(입구), `jjajang_nest_center`(드럼통 앞). 검사: `tests/unit/jjajang-nest.test.mjs`, `tests/playtest/jjajang-nest.mjs`(브금 꺼짐 → 1초 걷기 → 더미 → 드럼통 C).
+
+## 이어짐 (BUILD254, 2026-09-20)
+
+보스전(다른 작업자 BUILD250~253, `drum_devil.md`) 승리 뒤 연출은 `jjajang_nest_after.md`. 승리 뒤엔 드럼통·악마 NPC 가 다시 놓이지 않는다(`unless: drum_devil_won`), 청소부 영웅 NPC 는 숨은 채 맵에 있다.

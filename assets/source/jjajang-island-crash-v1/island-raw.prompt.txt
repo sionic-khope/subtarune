@@ -1,0 +1,10 @@
+# imagegen 2026-09-20 11:27:54
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/props/youngcle-warship.png
+
+Pixel art illustration, a single wide establishing shot for a Deltarune-like pixel RPG cutscene, 3:2 landscape. No text, no UI, no border.
+Image1 is the exact WARSHIP to draw: a huge dark-navy futuristic battleship with cyan window rows, a tall bridge tower, gun turrets and a white circular emblem on the bow. Keep its design and colours.
+Scene: seen from far out at sea at night. In the middle distance sits a small dark island covered in black twisted pine trees — a gloomy pine-forest island. The warship from Image1 has RAMMED straight into the middle of the island from the right side and is stuck there, its bow buried deep into the island's centre, splintered black pines and dark rubble thrown up around the point of impact, its stern still hanging out over the sea. Behind and beyond the crash, the deeper part of the island's forest remains intact and even darker, rising into a black wooded ridge. Dark sea with faint pale wave lines in the foreground, dark night sky with a few dim stars.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (near-black greens for the pines, dark navy sea and sky, the ship's navy and cyan, a few pale highlights), crisp pixels, no anti-aliasing, no blur, no gradients.

@@ -178,7 +178,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   const assistOnly = process.env.DRUM_ASSIST_ONLY === '1';
   const supportOnly = process.env.DRUM_POSTHERO_ONLY === '1' || rescueOnly || assistOnly;
   const initialHome = await page.evaluate(() => [...game.battle.members[0].home]);
-  check('Yoplait uses the rescue-safe formation from battle start', initialHome[0] === 124 && initialHome[1] === 164, JSON.stringify(initialHome));
+  const expectedHome = await page.evaluate(async () => (await import('/src/data/drum-devil.js')).DRUM_DEVIL.heroPartyHome);
+  check('Yoplait uses the rescue-safe formation from battle start', initialHome[0] === expectedHome[0] && initialHome[1] === expectedHome[1], JSON.stringify(initialHome));
   if (supportOnly) {
     await fixture('early-rescue-support-refresh', 'Set HP5 before real C attack and ordinary collision to reach rescue quickly for support visuals and behavior; no rescue flags or phases are injected.', () => { game.battle.members[0].hp = 5; });
     await press('KeyC', { delay: 70 });
@@ -291,7 +292,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
       });
       ctx.clearRect(0, 0, 480, 246);
       ctx.drawImage(image, 0, 0, def.cell, def.cell,
-        Math.round(124 - def.pivot[0] * def.scale), Math.round(164 - def.pivot[1] * def.scale),
+        Math.round(game.battle.members[0].home[0] - def.pivot[0] * def.scale), Math.round(game.battle.members[0].home[1] - def.pivot[1] * def.scale),
         Math.round(def.cell * def.scale), Math.round(def.cell * def.scale));
       poses[key] = height();
     }
@@ -339,6 +340,20 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   const lookback = await phase('lookback');
   check('distinct left lookback before camera', lookback.pose === 'lookback' && lookback.camera === 0);
   await shot('rescue-07-lookback-left');
+  const greeting = await phase('greeting');
+  check('greeting bubble comes before the camera pan while the janitor is still offscreen', greeting.camera === 0 && greeting.zoom === 1 && greeting.heroScreenX < 0 && greeting.pose === 'lookback');
+  await page.waitForTimeout(400);
+  const greetingBubble = await page.evaluate(() => {
+    const g = document.querySelector('canvas').getContext('2d'), data = g.getImageData(0, 0, 480 * (game.renderScale ?? 2), 246 * (game.renderScale ?? 2)).data, scale = game.renderScale ?? 2;
+    let leftWhite = 0, rightWhite = 0;
+    for (let y = 0; y < 246 * scale; y += 2) for (let x = 0; x < 480 * scale; x += 2) {
+      const i = (y * 480 * scale + x) * 4;
+      if (data[i] > 245 && data[i + 1] > 245 && data[i + 2] > 245) { if (x < 200 * scale) leftWhite++; else rightWhite++; }
+    }
+    return { leftWhite, rightWhite };
+  });
+  check('greeting bubble sits at the left edge of the screen', greetingBubble.leftWhite > 400 && greetingBubble.leftWhite > greetingBubble.rightWhite * 3, JSON.stringify(greetingBubble));
+  await line('도움이 필요한가?', 'rescue-07b-offscreen-greeting');
   await phase('reveal');
   await page.waitForTimeout(1150);
   check('far-left hero remains offscreen during early reveal', await page.evaluate(() => drumSnapshot().heroScreenX < 0));
@@ -348,14 +363,13 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   check('far-left slow reveal retains standing vertical-flag pose', pan.camera > 0.3 && pan.camera < 0.7 && pan.heroPose === 'stand');
   await shot('rescue-08-pan');
   const focused = await phase('focus');
-  check('focus follows completed pan before greeting', focused.camera === 1 && focused.heroPose === 'stand' && focused.zoom <= 0.88);
+  check('focus follows completed pan before the laugh', focused.camera === 1 && focused.heroPose === 'stand' && focused.zoom <= 0.88);
+  const revealFeet = await page.evaluate(async () => { const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js'); return Math.round(R.revealZoom * R.hero.reveal[1]); });
+  check('pulled-back camera shows the janitor about 20% lower than before (feet 165 → ~200) and inside the 246 panel', revealFeet >= 195 && revealFeet <= 210 && revealFeet + 12 < 246, String(revealFeet));
   await shot('rescue-09-focus');
-  const greeting = await phase('greeting');
-  check('greeting waits for focus shake to end', greeting.camera === 1 && greeting.shake === 0 && greeting.heroPose === 'stand' && Math.abs(greeting.zoom - 0.88) < 0.001);
-  check('hero theme starts as a loop', await page.evaluate(() => game.sound.bgmName === 'janitor_hero_intro' && game.sound.bgm.loop === true && game.sound.bgm.playbackRate === 1));
-  await line('도움이 필요한가?', 'rescue-10-white-speech');
   const laugh = await phase('laugh');
-  check('laugh uses dedicated pose', laugh.heroPose === 'laugh');
+  check('laugh waits for focus shake to end', laugh.camera === 1 && laugh.shake === 0 && laugh.heroPose === 'laugh' && Math.abs(laugh.zoom - 0.88) < 0.001);
+  check('hero theme starts as a loop', await page.evaluate(() => game.sound.bgmName === 'janitor_hero_intro' && game.sound.bgm.loop === true && game.sound.bgm.playbackRate === 1));
   await shot('rescue-11-laugh');
   await phase('introduction');
   await line('옛생각나서 옷을 갈아입었더니 마침 마주치는군', 'rescue-12-old-days');
@@ -364,7 +378,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await phase('rise');
   check('introduction and ascent leave Yoplait in the same battle-start formation', await page.evaluate(home => game.battle.members[0].home.every((value, index) => value === home[index]), initialHome));
   await page.waitForFunction(() => drumSnapshot()?.phase === 'rise' && drumSnapshot().time >= 0.22);
-  check('fast rise uses stand pose and moving camera', await page.evaluate(() => drumSnapshot().heroPose === 'stand' && drumSnapshot().heroY < 160 && drumSnapshot().camera < 1));
+  check('fast rise uses stand pose and moving camera', await page.evaluate(async () => { const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js'); return drumSnapshot().heroPose === 'stand' && drumSnapshot().heroY < R.hero.reveal[1] - 40 && drumSnapshot().camera < 1; }));
   await shot('rescue-15-rise');
   const returned = await phase('return');
   check('ascent completes in about half a second', returned.heroY <= -100);
@@ -411,7 +425,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     const { DRUM_DEVIL_RESCUE: R } = await import('/src/data/drum-devil-rescue.js');
     return { hero: R.hero.home, scale: R.hero.scale, player: game.battle.members[0].home, frames: R.hero.frameHolds.length };
   });
-  check('hero formation is below and left at92percent scale', formation.hero[0] < formation.player[0] && formation.hero[1] > formation.player[1] && formation.scale === 0.92, JSON.stringify(formation));
+  // 2026-09-20 사용자: 요플래를 왼쪽으로(100) — 청소부(122)는 깃발이 왼쪽 가장자리(7px)라 못 옮겨 요플래 앞·같은 열(±32)에 선다
+  check('hero formation stands in front of Yoplait within the party column at92percent scale', Math.abs(formation.hero[0] - formation.player[0]) <= 32 && formation.hero[1] > formation.player[1] && formation.scale === 0.92, JSON.stringify(formation));
   check('eight dance frames configured', formation.frames === 8);
   for (let frame = 0; frame < formation.frames; frame++) {
     await page.waitForFunction(expected => drumDanceFrame() === expected, frame);

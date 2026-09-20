@@ -20,7 +20,7 @@ await runScenario({ name: 'loading-map-race' }, async ({ page, check, until, ope
   });
   await shot('loading-pending');
   const status = await page.evaluate(() => ({ text: document.getElementById('loading-status')?.textContent, hidden: document.getElementById('loading-status')?.hidden }));
-  check('honest map preparation status is visible while waiting', !status.hidden && status.text === '맵을 준비하는 중...', JSON.stringify(status));
+  check('map preparation status stays hidden while waiting (BUILD254: 사용자 “맵로딩중 텍스트는 굳이 안떠도될듯”)', status.hidden !== false, JSON.stringify(status));
   const second = await until(() => game.mapId === 'test' && !game.transitioning, 10000);
   check('later cold destination commits first', !!second);
   await page.waitForTimeout(1700);

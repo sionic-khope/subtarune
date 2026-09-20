@@ -69,23 +69,52 @@ test('red afterimage caches a source-alpha silhouette without editing the origin
   } finally { globalThis.document = originalDocument; }
 });
 
-test('surprise precedes left turn, pan centers janitor, and greeting waits for focus to settle', () => {
+test('surprise precedes left turn, greeting bubble comes before the camera pan, and the laugh waits for focus to settle', () => {
   const h = harness(); h.advance('surprise');
   assert.equal(h.scene.snapshot.pose, 'surprised'); assert.equal(h.scene.snapshot.camera, 0);
   h.scene.update(C.surpriseHold - 0.01, still); assert.equal(h.scene.snapshot.phase, 'surprise');
   h.scene.update(0.02, still); assert.equal(h.scene.snapshot.phase, 'lookback');
   assert.equal(h.scene.snapshot.pose, 'lookback'); assert.equal(h.scene.snapshot.camera, 0);
   h.scene.update(C.lookbackHold - 0.01, still); assert.equal(h.scene.snapshot.phase, 'lookback');
-  h.scene.update(0.02, still); assert.equal(h.scene.snapshot.phase, 'reveal');
+  h.scene.update(0.02, still); assert.equal(h.scene.snapshot.phase, 'greeting');
+  assert.equal(h.lines.at(-1).text, '도움이 필요한가?'); assert.equal(h.lines.length, 4);
+  assert.equal(h.scene.snapshot.camera, 0, 'the greeting is spoken while the janitor is still offscreen');
+  assert.equal(h.scene.snapshot.zoom, 1); assert.ok(h.scene.snapshot.heroScreenX < 0);
+  h.scene.update(3, still); assert.equal(h.scene.snapshot.phase, 'greeting', 'the greeting waits for C');
+  h.scene.update(0.2, input); assert.equal(h.scene.snapshot.phase, 'reveal');
   h.scene.update(C.reveal / 2, still); assert.ok(h.scene.snapshot.camera > 0 && h.scene.snapshot.camera < 1);
   h.scene.update(C.reveal / 2, still); assert.equal(h.scene.snapshot.phase, 'focus');
-  assert.equal(h.scene.snapshot.heroScreenX, C.revealCenterX); assert.equal(h.lines.length, 3);
+  assert.equal(h.scene.snapshot.heroScreenX, C.revealCenterX); assert.equal(h.lines.length, 4);
   assert.equal(h.scene.snapshot.zoom, C.revealZoom);
   h.scene.update(C.focusSeconds / 2, still); assert.ok(h.scene.snapshot.zoom > C.revealZoom);
-  assert.ok(Math.abs(h.scene.snapshot.shake) <= C.focusShake); assert.equal(h.lines.length, 3);
-  h.scene.update(C.focusSeconds / 2, still); assert.equal(h.scene.snapshot.phase, 'greeting');
+  assert.ok(Math.abs(h.scene.snapshot.shake) <= C.focusShake); assert.equal(h.calls.includes('laugh_janitor'), false);
+  h.scene.update(C.focusSeconds / 2, still); assert.equal(h.scene.snapshot.phase, 'laugh');
   assert.equal(h.scene.snapshot.zoom, C.focusZoom); assert.equal(h.scene.snapshot.shake, 0);
-  assert.equal(h.lines.at(-1).text, '도움이 필요한가?');
+  assert.equal(h.calls.filter(cue => cue === 'laugh_janitor').length, 1); assert.equal(h.lines.length, 4);
+  h.advance('introduction'); assert.equal(h.lines.at(-1).text, C.introduction[0].text);
+});
+
+test('offscreen greeting bubble hugs the left edge, points offscreen, slides in, and fits its text', () => {
+  const draw = (t, text = C.greeting[0].text) => {
+    const boxes = [], tails = [], fills = [];
+    const ctx = { save() {}, restore() {}, beginPath() {}, closePath() {}, fill() { fills.push(this.fillStyle); }, moveTo(x, y) { tails.push([x, y]); },
+      lineTo(x, y) { tails.push([x, y]); }, measureText(value) { return { width: value.length * 14 }; }, fillText() {} };
+    drawDrumDevilSpeech(ctx, { text, shown: 999, roundRect(_ctx, x, y, width, height) { boxes.push({ x, y, width, height }); } }, { offscreen: true, t });
+    return { box: boxes[0], tails, fills };
+  };
+  const settled = draw(C.speech.offscreen.slide);
+  assert.equal(settled.box.x, C.speech.offscreen.x); assert.equal(settled.box.y, C.speech.offscreen.y);
+  assert.equal(settled.box.width, C.greeting[0].text.length * 14 + C.speech.pad * 2, 'width follows the measured line, not the 250px cap');
+  assert.ok(settled.box.width < C.speech.width);
+  assert.equal(settled.tails[1][0], settled.box.x - C.speech.offscreen.tail, 'tail tip points left, offscreen');
+  assert.equal(settled.tails[1][1], settled.box.y + Math.round(settled.box.height / 2));
+  assert.deepEqual(settled.fills, ['#fff', '#fff']);
+  const start = draw(0);
+  assert.ok(start.box.x + start.box.width <= 0, 'bubble starts fully offscreen');
+  const middle = draw(C.speech.offscreen.slide / 2);
+  assert.ok(middle.box.x > start.box.x && middle.box.x < settled.box.x);
+  assert.equal(draw(99).box.x, settled.box.x);
+  assert.equal(draw(1, '껄').box.width, C.speech.minWidth, 'tiny lines keep a readable minimum width');
 });
 
 test('hero speech uses white scene bubble and black partial text without a portrait panel', () => {
@@ -105,6 +134,7 @@ test('hero speech uses white scene bubble and black partial text without a portr
   assert.deepEqual(tails[0], [208, 101]);
   assert.equal(tails[0][1] - (boxes[0].y + boxes[0].height), 12);
   assert.equal(boxes[0].x, 190);
+  assert.equal(boxes[0].width, battle.text.length * 14 + C.speech.pad * 2, 'bubble width fits the line instead of the fixed 250px');
   drawDrumDevilSpeech(ctx, battle, { x: 140, y: 86 });
   assert.equal(boxes[1].x - tails[2][0], 14);
   assert.ok(tails[2][1] >= boxes[1].y && tails[2][1] <= boxes[1].y + boxes[1].height);
@@ -112,7 +142,7 @@ test('hero speech uses white scene bubble and black partial text without a portr
 
 test('janitor stands with upright flag until landing, with a separate laugh pose', () => {
   const h = harness();
-  for (const phase of ['reveal', 'focus', 'greeting']) { h.advance(phase); assert.equal(h.scene.snapshot.heroPose, 'stand'); }
+  for (const phase of ['greeting', 'reveal', 'focus']) { h.advance(phase); assert.equal(h.scene.snapshot.heroPose, 'stand'); }
   h.advance('laugh'); assert.equal(h.scene.snapshot.heroPose, 'laugh');
   for (const phase of ['introduction', 'rise', 'return', 'dive']) { h.advance(phase); assert.equal(h.scene.snapshot.heroPose, 'stand'); }
   h.advance('land'); assert.equal(h.scene.snapshot.heroPose, 'hero');
@@ -199,20 +229,24 @@ test('aborting before the heal cue leaves HP unchanged and prevents late healing
   assert.equal(h.calls.includes('heal'), false); assert.equal(h.completed(), 0);
 });
 
-test('post-landing speech stays left of Yoplait and boss faces with a compact hero tail', () => {
+test('post-landing speech sits below Yoplait beside the hero head and points right at him', () => {
   for (const line of [...C.healLines, ...C.ready]) {
     const boxes = [], tails = [], text = [];
-    const ctx = { save() {}, restore() {}, beginPath() {}, closePath() {}, fill() {}, moveTo() {},
+    const ctx = { save() {}, restore() {}, beginPath() {}, closePath() {}, fill() {}, moveTo(x, y) { tails.push([x, y]); },
       lineTo(x, y) { tails.push([x, y]); }, measureText(value) { return { width: [...value].reduce((sum, glyph) => sum + (glyph === ',' || glyph === ' ' ? 6 : 12), 0) }; },
       fillText(value, x, y) { text.push({ value, x, y }); } };
     const battle = { text: line.text, shown: 999, roundRect(_ctx, x, y, width, height) { boxes.push({ x, y, width, height }); } };
-    drawDrumDevilSpeech(ctx, battle, { x: 122, y: 174, postLanding: true });
+    const anchor = { x: C.hero.home[0], y: C.hero.home[1] - C.speech.postLanding.headOffset, postLanding: true };
+    drawDrumDevilSpeech(ctx, battle, anchor);
     const box = boxes[0];
-    assert.equal(box.x, 12); assert.equal(box.width, 100);
-    assert.ok(box.x + box.width < 120, 'bubble must remain left of Yoplait face');
-    assert.ok(box.y >= 10 && box.y + box.height < 174);
-    assert.deepEqual(tails[0], [122, 166]);
-    assert.equal(tails[0][1] - (box.y + box.height), 12);
+    assert.equal(box.x, C.speech.postLanding.x); assert.equal(box.y, C.speech.postLanding.y);
+    assert.ok(box.y >= 164, 'bubble starts below the kneeling Yoplait feet (home y 164) so his face stays clear');
+    assert.ok(box.y + box.height <= 246, 'bubble stays inside the battle panel');
+    assert.ok(box.width <= C.speech.postLanding.width && box.width >= C.speech.minWidth);
+    assert.ok(box.width <= Math.max(...text.map(part => ctx.measureText(part.value).width)) + C.speech.pad * 2 + 1, 'post-landing bubble also fits its longest line');
+    assert.ok(box.x + box.width <= anchor.x, 'bubble stays left of the hero head center');
+    assert.ok(tails[1][0] >= anchor.x - 14 && tails[1][0] > box.x + box.width, 'tail tip points right at the hero head'); assert.equal(tails[1][1], anchor.y);
+    assert.equal(tails[0][0], box.x + box.width - 2); assert.ok(tails[0][1] >= box.y && tails[2][1] <= box.y + box.height);
     assert.ok(text.length >= 2, 'full Korean line must wrap inside narrow scene bubble');
     assert.ok(text.every(part => part.value.trim() !== ','), 'punctuation cannot wrap onto its own line');
     assert.equal(text.map(part => part.value.replaceAll(' ', '')).join(''), line.text.replaceAll(' ', ''));
