@@ -556,7 +556,7 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 
 - `bgm/choimis.mp3`: 사용자 지정 [XGbJbxiXS0o](https://www.youtube.com/watch?v=XGbJbxiXS0o) — yt-dlp 제목 “10. Your Dad's Best Friend (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 29초 전체를 MP3 q2. 최미스 “아시발.” 부터 “큼큼” 까지 반복.
 - `bgm/gasuni.mp3`: 사용자 지정 [RQsr0_RUMJU](https://www.youtube.com/watch?v=RQsr0_RUMJU) — “Who might you be?”, Toby Fox, 64초 전체를 MP3 q2. 가순이 셋이 내려올 때부터 “ㅋㅋㅋ... 후후..” 까지.
-- `sfx/choimis_chosouya.mp3`(3.0초): 사용자 지정 [OGMmX4AvedA](https://www.youtube.com/watch?v=OGMmX4AvedA) “그 남자 그 여자의 금지된 사랑”(가재맨) 19:49.5~19:52.5 — “나 추구미 쵸소우야” 로 지정된 19:50 부근을 `--force-keyframes-at-cuts` 로 정확히 받아 소리 크기 파형(0.1초 RMS)에서 말하는 구간을 골랐다. 받아쓰기 도구가 없어 단어는 사용자 확인 필요. 원본 구간 wav 는 로컬 `assets/source/choimis-audio-v1/`(30MB 라 커밋하지 않음, 메타·로그만 커밋).
+- `sfx/choimis_chosouya.mp3`(1.7초, BUILD259 — 처음 3.0초 안에 19:51.8 부근 다른 화자(여자 목소리) 한 마디가 딸려 있어 사용자 “뒤에 여자목소리 잘라” 로 첫 발화 1.5초 뒤 0.2초 페이드로 끝냈다): 사용자 지정 [OGMmX4AvedA](https://www.youtube.com/watch?v=OGMmX4AvedA) “그 남자 그 여자의 금지된 사랑”(가재맨) 19:49.5~19:52.5 — “나 추구미 쵸소우야” 로 지정된 19:50 부근을 `--force-keyframes-at-cuts` 로 정확히 받아 소리 크기 파형(0.1초 RMS)에서 말하는 구간을 골랐다. 받아쓰기 도구가 없어 단어는 사용자 확인 필요. 원본 구간 wav 는 로컬 `assets/source/choimis-audio-v1/`(30MB 라 커밋하지 않음, 메타·로그만 커밋).
 - `sfx/choimis_seup_miss.mp3`(2.7초): 사용자 지정 [X3qvIeLPkMI](https://www.youtube.com/watch?v=X3qvIeLPkMI) “최미스짜장면” 8.4~11.1초 — 조용한 들숨(스읍) 뒤 큰 소리(미스)가 있는 구간. 코 비비기 1.4초 → 손가락 총 1.3초 동작과 같은 길이.
 - `voices/choimis.mp3`(0.12초): 위 쵸소우야 클립 19:50.5 부근 목소리 조각(사용자 “보이스폰트는 쵸소우야 톤으로 느낌만”). `VOICES.choimis` rate 1·level 0.85.
 - 가순이 목소리는 지정 없음 → 합성 `VOICES.gasuni`(triangle 470Hz). 풀숲 흔들림은 기존 `break1` 0.5, 윙크 띠링은 기존 합성 `chime`, 가면 던짐은 기존 `whoosh`·`thud`.

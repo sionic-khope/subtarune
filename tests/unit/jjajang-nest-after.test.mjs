@@ -152,6 +152,18 @@ test('test_deep_forest_entrance_is_a_dark_upward_path_with_one_spring', () => {
   assert.equal(m.entities.filter(e => e.type === 'door').length, 2, '문은 아래·위 둘');
 });
 
+test('test_statue_return_releases_the_camera_after_the_map_reentry', () => {
+  // BUILD259: camera:[30,9] 팬(영클 TV)이 카메라를 잠근다 — 맵 재진입 뒤 camera:'player' 로 풀지 않으면 다음 맵(깊은숲)이 검게 나온다
+  const pan = jjajang_statue_return.findIndex(n => Array.isArray(n.camera));
+  const reentry = jjajang_statue_return.findIndex(n => n.map === 'jjajang_statue');
+  const release = jjajang_statue_return.findIndex(n => n.camera === 'player');
+  assert.ok(pan >= 0 && reentry > pan && release > reentry, `팬 ${pan} → 맵 ${reentry} → 카메라 해제 ${release}`);
+  assert.ok(!jjajang_statue_return.slice(release).some(n => Array.isArray(n.camera)), '해제 뒤에 다시 잠그는 팬이 없다');
+  const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
+  const change = main.slice(main.indexOf('this.camera.map = this.map;'), main.indexOf('this.camera.map = this.map;') + 400);
+  assert.ok(change.indexOf('this.camera.locked = false') > 0 && change.indexOf('this.camera.locked = false') < change.indexOf('this.camera.snap()'), '맵 전환은 카메라 잠금을 풀고 나서 snap 한다');
+});
+
 test('test_party_and_qa_points_after_the_regroup', () => {
   assert.deepEqual(partyFromFlags({ ship_sinking_done: true, torii_janitor_joined: true, janitor_left: true, party_regrouped: true }), ['gyeongsub', 'ppaman']);
   assert.deepEqual(partyFromFlags({ ship_sinking_done: true, torii_janitor_joined: true, janitor_left: true }), []);

@@ -121,6 +121,10 @@ try {
   s = await st(); check(s.bgm === 'wind', `깊은숲 입구 브금 wind (${s.bgm})`);
   check(s.party.join() === 'gyeongsub,ppaman', '동료가 따라온다');
   await cap('18_deep_entry');
+  // BUILD259 회귀: 전함 연출의 camera:[tx,ty] 팬이 카메라를 잠근 채 맵을 넘겨 다음 맵이 검게 나왔다 — 카메라가 주인공을 따라오고 화면이 실제로 그려지는지 픽셀로 잰다
+  const camAfter = await ev(() => { const g = window.game; const c = document.querySelector('canvas'); const ctx = c.getContext('2d'); const d = ctx.getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 16) if (d[i] + d[i + 1] + d[i + 2] > 60) lit++; return { locked: g.camera.locked, follows: g.camera.target === g.player, inView: g.player.x >= g.camera.x && g.player.x < g.camera.x + 480 && g.player.y >= g.camera.y && g.player.y < g.camera.y + 360, litRatio: lit / (d.length / 16) }; });
+  check(!camAfter.locked && camAfter.follows && camAfter.inView, `깊은숲에서 카메라가 주인공을 따라온다(잠금 해제) ${JSON.stringify(camAfter)}`);
+  check(camAfter.litRatio > 0.05, `깊은숲 화면이 검지 않다(밝은 픽셀 비율 ${camAfter.litRatio.toFixed(3)})`);
   const S = await ev(() => window.game.map.def.meta.spring);
   check(await go('ArrowUp', `g.player.y <= ${S[1] * 32 + 8}`, 25000, true), '위로 가는 길을 따라 나들목 높이까지');
   check(await go('ArrowRight', `g.player.x >= ${(S[0] - 1) * 32 + 2}`, 10000), '오른쪽 나들목 끝');

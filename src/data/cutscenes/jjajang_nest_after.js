@@ -202,6 +202,7 @@ export const jjajang_statue_return = [
   { set: { statue_destroyed: true, party_regrouped: true } },
   { join: GYEONGSUB }, { join: PPAMAN },
   { map: 'jjajang_statue', spawn: 'after_crash' },
+  { camera: 'player' },
   { wait: 0.3 },
   { fade: 'in', duration: 1.2 },
 ];

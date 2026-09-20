@@ -802,6 +802,8 @@ class Game {
       for (const e of this.entities) if (e.cooldown !== undefined) e.cooldown = 0.6;
       this.camera.map = this.map;
       this.camera.target = this.player;
+      // 컷신 카메라 팬(camera:[tx,ty])이 걸어 둔 잠금은 맵을 넘기면 의미가 없다 — 잠긴 채 snap 이 무시돼 옛 좌표에 박히면 다음 맵이 검게 나온다(BUILD259, 전함 연출 뒤 깊은숲)
+      this.camera.locked = false;
       this.camera.snap();
       if (bgm && !this.dialogue.running && this.state !== 'title') {                 // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
         const gated = def.bgmFlag && !this.has(def.bgmFlag);                        // bgmFlag: 이 플래그가 켜진 뒤에만 맵 브금 — 첫 도착 컷신이 대사 중간에 직접 켜는 맵(void11)
