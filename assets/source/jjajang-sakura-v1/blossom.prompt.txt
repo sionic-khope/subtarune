@@ -1,0 +1,4 @@
+Pixel art sprite sheet with EXACTLY 2 cells side by side on a 1024x1024 canvas (invisible equal 512px cells, no grid lines, no labels, no text). Solid pure #FF00FF magenta background everywhere, no ground, no shadows.
+Left cell: ONE large single cherry blossom flower seen flat from the front (top-down), five rounded notched pink petals radiating from a small pale yellow center with a few tiny stamens; petals light pink #ffc2e0 with pink #ff8ad0 shading and a deep pink #d24f9a stepped outline; the flower fills about 85% of the cell and is centered.
+Right cell: ONE large single loose cherry blossom petal, a soft heart-like rounded petal shape with a small notch at the tip, same three pink tones, tilted diagonally, filling about 70% of the cell and centered.
+Style: chunky retro pixel art, coarse pixel clusters, flat limited shades (at most 3 pink tones), crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

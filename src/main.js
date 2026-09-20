@@ -132,6 +132,8 @@ class Game {
     this.petals = null;           // 맵 meta.petals 가 있으면 화면 위에서 떨어지는 꽃잎(world/petals.js, BUILD261)
     this.petalsBurstT = 0;        // 꽃잎 폭발(burstRate) 남은 시간 → 끝나면 meta.petals.after 로
     this.tileSpread = null;       // 타일·나무 교체가 번지는 중(world/tile-spread.js) — bloom() 이 만든다
+    this.bloomArmed = false;      // 벚꽃 번짐 예약: 브금이 meta.bloom.atBgm 초에 닿으면 fireBloom() (사용자 2026-09-20 “브금 하이라이트때 쫙 바뀌는걸”)
+    this.sweep = null;            // 거대 벚꽃이 화면을 대각선으로 가로지르는 1초 연출 { t, duration, image, petal, trail }
     this.flames = []; this.flameEmitters = [];   // 불꽃 입자·방출기 (컷신 {fire}/{rocket}) — updateFlames, 캐릭터 위에 그린다
     this.mash = null;             // C 연타 미니게임 상태 (컷신 {mash}) — drawMash
     this.booms = [];              // 한 번 재생하는 큰 이펙트 애니 (컷신 {boom}) — 캐릭터 위에 그린다
@@ -362,14 +364,43 @@ class Game {
     for (const [row, str] of Object.entries(sw.rows || {})) this.map.rows[+row] = str;
     if (bake) this.map.bake();
   }
-  /** 벚꽃 번짐(BUILD261, 맵 meta.bloom = { flag, tiles, speed }): 꽃잎을 한꺼번에 쏟고(meta.petals.burst) 주인공이 선 행에서부터 tileSwaps[tiles] 의 행과 def.bloom 나무 그림이 speed 행/초로 번진다. 멈춤 없음 */
+  /** 벚꽃 번짐 예약(BUILD261~262, 맵 meta.bloom = { flag, tiles, speed, atBgm?, sweep? }): atBgm 이 있고 브금이 아직 거기 못 갔으면 예약해 두고(update 가 그 순간 fireBloom), 아니면 바로 */
   bloom(originRow) {
-    const def = MAPS[this.mapId], b = def?.meta?.bloom; if (!b || !this.map) return;
+    const b = MAPS[this.mapId]?.meta?.bloom; if (!b || !this.map) return;
+    if (b.atBgm !== undefined && this.bgmTime() !== null && this.bgmTime() < b.atBgm) { this.bloomArmed = true; return; }
+    this.fireBloom(originRow);
+  }
+  /** 지금 도는 맵 브금의 재생 위치(초). 브금이 없거나 멈춰 있으면 null(→ 예약 없이 바로) */
+  bgmTime() { const a = this.sound?.bgm; return a && !a.paused && Number.isFinite(a.currentTime) ? a.currentTime : null; }
+  /** 벚꽃 번짐 실행: 거대 벚꽃 대각선 sweep(1초) + 꽃잎을 한꺼번에 쏟고(meta.petals.burst) 주인공이 선 행에서부터 tileSwaps[tiles] 의 행과 def.bloom 나무 그림이 speed 행/초로 번진다. 멈춤 없음 */
+  fireBloom(originRow) {
+    const def = MAPS[this.mapId], b = def?.meta?.bloom; this.bloomArmed = false; if (!b || !this.map) return;
     const sw = def.tileSwaps?.[b.tiles]; if (!sw) { console.warn('[bloom] 없는 tileSwaps', b.tiles); return; }
     const origin = originRow ?? Math.floor((this.player.y + this.player.h) / TILE);
     this.tileSpread = createTileSpread({ origin, speed: b.speed ?? 10, rows: Object.keys(sw.rows || {}) });
     const p = def.meta?.petals;
     if (p && this.petals) { this.petals.burst(p.burst ?? 150, SCREEN_W, SCREEN_H); this.petals.rate = p.burstRate ?? 60; this.petalsBurstT = p.burstSeconds ?? 2.5; }
+    if (b.sweep) this.sweep = { t: 0, duration: b.sweep.duration ?? 1.0, image: this.propImages[b.sweep.image] || null, petal: this.propImages[b.sweep.petal] || null, trail: b.sweep.trail ?? 6 };
+  }
+  /** 거대 벚꽃 sweep: 오른쪽 위 밖에서 왼쪽 아래 밖으로 대각선 1초(smoothstep — 0.5초에 화면 가운데), 살짝 돌며. 뒤로 큰 꽃잎 trail 장이 같은 대각선을 어긋나게 따라온다 */
+  drawSweep(ctx) {
+    const sw = this.sweep; if (!sw) return;
+    const k = Math.min(1, sw.t / sw.duration), ease = k * k * (3 - 2 * k);   // 부드럽게 들어와 0.5초에 화면 가운데를 지나 빠진다(쌰아아악)
+    const x0 = SCREEN_W + 260, y0 = -240, x1 = -320, y1 = SCREEN_H + 240;
+    const draw = (img, size, ex, ey, rot, alpha) => {
+      const px = x0 + (x1 - x0) * ex, py = y0 + (y1 - y0) * ey;
+      ctx.save(); ctx.globalAlpha = alpha; ctx.translate(Math.round(px), Math.round(py)); ctx.rotate(rot);
+      if (img) ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      else { ctx.fillStyle = '#ff8ad0'; ctx.fillRect(-size / 2, -size / 2, size, size); }
+      ctx.restore();
+    };
+    for (let i = sw.trail; i >= 1; i--) {   // 뒤따르는 큰 꽃잎(먼저 그려 벚꽃 아래)
+      const lag = i * 0.09, kk = Math.max(0, Math.min(1, (sw.t - lag) / sw.duration)), e = kk * kk * (3 - 2 * kk);
+      if (sw.t < lag) continue;
+      const off = (i % 2 ? 1 : -1) * (26 + i * 14) / SCREEN_W;
+      draw(sw.petal, 44 + (i % 3) * 22, e + off * 0.35, e - off * 0.35, sw.t * (4 + i) + i, 0.95);
+    }
+    draw(sw.image, 300, ease, ease, -0.35 + sw.t * 1.6, 1);
   }
 
   /** 맵 JSON `backdrop:'purple_fire'` — 허공 너머 멀리서 지글지글 끓는 보라색 불 (화면 좌표, 카메라 x 의 1/4 만큼 흐름) */
@@ -537,7 +568,7 @@ class Game {
     this.background = []; this.curtain = null; this.picture = null; this.caption = null; this.shake = null;
     this.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };   // 줌 도중 Esc 로 나와도 다음 게임이 확대된 채 시작되지 않게
     this.chat.stop(); this.sysdialog.hide(); this.vortex.stop(); this.ride = null; this.runner?.finish(); this.runner = null; this.bubble.done = true; this.fx = []; this.prompt = null;
-    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = []; this.petals = null; this.tileSpread = null;
+    this.flames = []; this.flameEmitters = []; this.mash = null; this.ripples = []; this.booms = []; this.petals = null; this.tileSpread = null; this.bloomArmed = false; this.sweep = null;
     this.fadeTo(1, 0.4, () => {
       this.resetState();
       this.changeMap('room', 'bed', true, { bgm: false });   // 타이틀에서 방 브금이 새지 않게
@@ -816,7 +847,7 @@ class Game {
       for (const e of this.entities) if (e.cooldown !== undefined) e.cooldown = 0.6;
       // 벚꽃 숲(BUILD261): meta.petals → 꽃잎(이미 핀 뒤면 after 밀도), meta.bloom.flag 가 서 있으면 나무(def.bloom 그림)도 처음부터 핀 그림
       const petalsMeta = def.meta?.petals, bloomMeta = def.meta?.bloom, bloomed = !!(bloomMeta && this.has(bloomMeta.flag));
-      this.petals = petalsMeta ? createPetals({ rate: bloomed ? (petalsMeta.after ?? petalsMeta.rate) : petalsMeta.rate }) : null; this.petalsBurstT = 0; this.tileSpread = null;
+      this.petals = petalsMeta ? createPetals({ rate: bloomed ? (petalsMeta.after ?? petalsMeta.rate) : petalsMeta.rate }) : null; this.petalsBurstT = 0; this.tileSpread = null; this.bloomArmed = false; this.sweep = null;
       if (bloomed) for (const e of this.entities) if (e.def?.bloom) { e.image = this.propImages[e.def.bloom] || e.image; e.bloomed = true; }
       this.camera.map = this.map;
       this.camera.target = this.player;
@@ -1113,6 +1144,8 @@ class Game {
       this.petals.update(dt, SCREEN_W, SCREEN_H);
       if (this.petalsBurstT > 0) { this.petalsBurstT -= dt; if (this.petalsBurstT <= 0) this.petals.rate = MAPS[this.mapId]?.meta?.petals?.after ?? this.petals.rate; }
     }
+    if (this.bloomArmed) { const b = MAPS[this.mapId]?.meta?.bloom, t = this.bgmTime(); if (!b) this.bloomArmed = false; else if (t === null || t >= b.atBgm) this.fireBloom(); }   // 예약한 번짐은 브금 하이라이트에(브금이 멈추면 바로)
+    if (this.sweep) { this.sweep.t += dt; if (this.sweep.t >= this.sweep.duration + 0.7) this.sweep = null; }   // 거대 벚꽃 대각선(꼬리까지 0.7초 더)
     if (this.tileSpread) {   // 땅·나무가 번지듯 바뀐다: 닿은 행은 tileSwaps 행으로 바꿔 다시 굽고, 밑동 행이 닿은 def.bloom 나무는 핀 그림으로
       const b = MAPS[this.mapId]?.meta?.bloom, sw = b && MAPS[this.mapId]?.tileSwaps?.[b.tiles];
       const hit = this.tileSpread.update(dt);
@@ -1213,7 +1246,7 @@ class Game {
     this.escapes = (this.escapes || 0) + 1;   // 오버레이 씬(섭리오)이 열려 있으면 이 값이 바뀐 것을 보고 씬을 접는다
     const r = this.ride;
     if (r) { r.riding = false; r.moving = false; r.jumping = false; r.jumpY = 0; r.blocked = null; if (r.swimmer) { r.swimmer.dead = true; r.swimmer = null; } this.ride = null; }
-    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null; this.booms = []; this.tileSpread = null;
+    this.player.knock = null; this.prompt = null; this.fx = []; this.flames = []; this.flameEmitters = []; this.mash = null; this.booms = []; this.tileSpread = null; this.bloomArmed = false; this.sweep = null;
     const spawnId = this.entrySpawn || 'start', def = MAPS[this.mapId], sp = def?.spawns?.[spawnId] || def?.spawns?.start || { x: this.player.x, y: this.player.y };
     for (const e of def?.entities || []) {                        // 뗏목: 입구에 가까운 끝으로 (route 0 또는 마지막)
       if (e.type !== 'raft') continue;
@@ -1437,6 +1470,7 @@ class Game {
     if (MAPS[this.mapId]?.backdrop === 'maillard_sunrise') this.sunrise.drawWorldLight(ctx);
     ctx.restore();
     if (this.petals) this.petals.draw(ctx);   // 꽃잎은 어둠(dim) 위에 화면 좌표로(BUILD261)
+    if (this.sweep) this.drawSweep(ctx);       // 거대 벚꽃 대각선 sweep(BUILD262) — 꽃잎 위, 대화창 아래
     drawYoungcleLoungeEffects(ctx, this, cam);
     if (this.picture) this.drawPicture(ctx);
     if (this.hurt > 0) { ctx.fillStyle = `rgba(255,40,40,${Math.min(0.45, this.hurt * 1.4)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }

@@ -10,8 +10,9 @@
 "검은색 풀숲의 땅 타일을 만들어서 좀 구분되게 해주다가 (브금 MzEHcwoNlbE) 분홍색 벚꽃이 조금씩 날리는 맵임. 그러다가 위로 쭉 걷다가 8초정도 지나게 걷다보면
  좀 넓은 풀숲도 나오고 분홍 꽃잎이 맵 전체에 아주많이 깔리면서 그때부터 땅이 분홍색 꽃들로 다 바뀌는 맵 연출 (맵 자체가 조건부로 변하는 느낌, 배경 검은색 짜장은 비슷)
  그 화면 나온뒤에 살짝 더 올라가서 오른쪽으로 꺾어서 좀 걸어가게 / 근처 나무들도 분홍색으로 벚꽃이 전체를 덮으며 다 바뀌고 그 뒤에도 작은 벚꽃들은 계속 떨어짐 / 벚꽃맵부터는 발소리 안나게"
-- 빛 드는 공터(jjajang_glade) 위 문에서 아래 가장자리로 들어와 13~16열 곧은 길(검은 풀숲 땅 '(' — 발소리 없음)을 위로 28행(X 천천히 걷기 ≈ 7초, 기본 달리기 ≈ 4초) → 20~35행의 넓은 풀숲(5~24열) → 다시 13~16열 길 → 8~11행에서 오른쪽으로 꺾어 28열까지.
-- 넓은 풀숲 초입(34~35행) 트리거 한 번 → jjajang_sakura_bloom: 플래그 sakura_bloom, 꽃잎 폭발, 트리거 행에서부터 tileSwaps.sakura_bloom('(' → ')' 분홍 꽃잎 땅)과 소나무(jjajang_pine_dark_N → jjajang_sakura_N, 같은 크기) 그림이 번진다(멈춤 없음).
+- 빛 드는 공터(jjajang_glade) 위 문에서 아래 가장자리로 들어와 13~16열 곧은 길(검은 풀숲 땅 '(' — 발소리 없음)을 위로 40행(기본 달리기 ≈ 6초, X 천천히 걷기 ≈ 10초) → 20~35행의 넓은 풀숲(5~24열) → 다시 13~16열 길 → 8~11행에서 오른쪽으로 꺾어 28열까지.
+- 넓은 풀숲 초입(34~35행) 트리거 한 번 → jjajang_sakura_bloom: 플래그 sakura_bloom + bloom() 예약 → **브금 하이라이트(BLOOM_AT_BGM 초, 첫 큰 악센트)에** 거대 벚꽃이 화면을 대각선으로 1초 가로지르며(sweep) 꽃잎 폭발, 주인공 행에서부터 tileSwaps.sakura_bloom('(' → ')' 분홍 꽃잎 땅)과 소나무(jjajang_pine_dark_N → jjajang_sakura_N, 같은 크기) 그림이 번진다(멈춤 없음). 브금이 이미 지났으면 바로.
+  (2026-09-20 정정: “벚꽃길 나오기전에 좀 더 길게 … 몇초 걷다가 브금 하이라이트때 쫙 바뀌는걸 노린거라 … 딱 바뀔때는 벚꽃이 엄청 크게 화면을 한번 1초동안 대각선부터 쌰아아악”)
 - 짜장 검은 숲 '@' 그대로, 소나무는 깊은숲과 같은 어두운 판. 브금 'sakura'(델타룬 5장 Garden of Hopes and Dreams), dim 0(꽃잎·분홍이 살아야 한다)."""
 from __future__ import annotations
 
@@ -22,12 +23,12 @@ from typing import Final
 
 MAP_ID: Final = 'jjajang_sakura'
 WIDTH: Final = 30
-HEIGHT: Final = 64
+HEIGHT: Final = 76
 TILE: Final = 32
 GROUND: Final = '('                   # 검은 풀숲 땅(발소리 없음)
 BLOOM: Final = ')'                    # 분홍 꽃잎 땅(번진 뒤)
 PATH_COLS: Final = (13, 16)           # 아래 입구 길·위쪽 길
-ENTRY_ROWS: Final = (36, 63)          # 아래 곧은 길(28행: X 천천히 걷기 ≈ 7초, 기본 달리기 ≈ 4초)
+ENTRY_ROWS: Final = (36, 75)          # 아래 곧은 길(40행: 기본 달리기 ≈ 6초 → 7.6초 하이라이트 전에 풀숲 초입에 닿는다, X 천천히 걷기 ≈ 10초)
 MEADOW_COLS: Final = (5, 24)          # 넓은 풀숲
 MEADOW_ROWS: Final = (20, 35)
 UPPER_ROWS: Final = (8, 19)           # 풀숲 위 곧은 길
@@ -43,7 +44,9 @@ TREES: Final = (
     ('assets/props/jjajang_pine_dark_4.png', 'assets/props/jjajang_sakura_4.png', 167, 146, 58),
 )
 PETALS: Final = {'rate': 3, 'burst': 220, 'burstRate': 70, 'burstSeconds': 2.5, 'after': 18}   # 초당 꽃잎: 처음 조금씩 → 번질 때 한꺼번에 220 + 초당 70 을 2.5초 → 그 뒤 계속 18
-SPREAD_SPEED: Final = 9               # 번짐 속도(행/초)
+SPREAD_SPEED: Final = 14              # 번짐 속도(행/초): 화면(11행)이 거대 벚꽃이 지나가는 1초 안에 다 바뀐다
+BLOOM_AT_BGM: Final = 7.6             # 브금 sakura 의 하이라이트(조용한 도입 7초 뒤 첫 큰 악센트, 파형 RMS 로 잰 값). 다른 고조: 11.0 / 15.0 / 18.6 / 34.5(드럼 드롭)
+SWEEP: Final = {'duration': 1.0, 'image': 'assets/props/sakura_blossom_big.png', 'petal': 'assets/props/sakura_petal_big.png', 'trail': 7}   # 거대 벚꽃 한 송이가 오른쪽 위에서 왼쪽 아래로 1초, 큰 꽃잎 7장이 뒤따른다
 
 
 def tree(index: int, col: int, row: int) -> dict[str, object] | None:
@@ -119,7 +122,7 @@ def build_map() -> dict[str, object]:
         'dim': 0,
         'rows': [''.join(row) for row in rows],
         'tileSwaps': {BLOOM_FLAG: {'rows': swaps}},
-        'preload': [t[1] for t in TREES],
+        'preload': [*(t[1] for t in TREES), SWEEP['image'], SWEEP['petal']],
         'spawns': {
             'from_south': {'x': mid_x, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
             'start': {'x': mid_x, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
@@ -130,9 +133,9 @@ def build_map() -> dict[str, object]:
         'meta': {
             'connected': True,
             'route': [[PATH_COLS[0] + 1, HEIGHT - 3], [PATH_COLS[0] + 1, MEADOW_ROWS[0]], [PATH_COLS[0] + 1, TURN_ROWS[0] + 1], [TURN_END_COL - 1, TURN_ROWS[0] + 1]],
-            'role': '빛 드는 공터 위 문 다음(BUILD261): 검은 풀숲 땅 길을 위로 8초쯤 → 넓은 풀숲 초입에서 벚꽃이 번지며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 걷는다. 브금 sakura, 발소리 없음',
+            'role': '빛 드는 공터 위 문 다음(BUILD261~262): 검은 풀숲 땅 길을 위로 몇 초 → 넓은 풀숲 초입에 닿은 뒤 브금 하이라이트(7.6초)에 거대 벚꽃이 대각선으로 지나가며 땅·나무가 분홍으로 → 위로 조금 더 → 오른쪽으로 꺾어 걷는다. 브금 sakura, 발소리 없음',
             'petals': PETALS,
-            'bloom': {'flag': BLOOM_FLAG, 'tiles': BLOOM_FLAG, 'speed': SPREAD_SPEED},
+            'bloom': {'flag': BLOOM_FLAG, 'tiles': BLOOM_FLAG, 'speed': SPREAD_SPEED, 'atBgm': BLOOM_AT_BGM, 'sweep': SWEEP},
             'sakura': {'entryRows': list(ENTRY_ROWS), 'meadow': [list(MEADOW_COLS), list(MEADOW_ROWS)], 'trigger': list(TRIGGER_ROWS), 'turn': [list(TURN_ROWS), TURN_END_COL], 'pathCols': list(PATH_COLS)},
         },
         'entities': [*trees, trigger, door_south],
