@@ -1,5 +1,5 @@
 // 빛 드는 공터 — 풀숲의 최미스·가순이 셋(BUILD257): QA jjajang_glade_bush 에서 위로 한 걸음 → 트리거 → 1부(흔들림·숨기·최미스 등장·대사·가면 클로즈업·쵸쇼우야·스읍 미스)
-//   → 2부(땡떙씨~?·가면 씀·가순이 셋 내려옴·오른쪽 이동·나무 뒤 카메라·가순이 퇴장·얼굴 손·가면 던짐·나는 상관없어→왼쪽 나무로 돌진·나무 날아감·눈 마주침·어.·도망·끝). 실행: tests/playtest/run.sh jjajang-glade
+//   → 2부(떙땡씨~?·가면 씀·가순이 셋 내려옴·오른쪽 이동·나무 뒤 카메라·가순이 퇴장·얼굴 손·가면 던짐·나는 상관없어→왼쪽 나무로 돌진·나무 날아감·눈 마주침·어.·도망·끝). 실행: tests/playtest/run.sh jjajang-glade
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -50,7 +50,7 @@ try {
   s = await advanceTo('스읍 미스'); check(await until(() => window.game.entities.find(e => e.id === 'choimis')?.motion?.src?.includes('seup'), 3000), '스읍 미스 동작'); await page.waitForTimeout(600); await cap('09_seup');
   s = await advanceTo('막이래'); check(!!s, '막이래 어헣헣헣');
   // ── 2부 ──
-  s = await advanceTo('땡떙씨~?'); check(!!s && s.speaker === '???', '???: 땡떙씨~?'); await next();
+  s = await advanceTo('떙땡씨~?'); check(!!s && s.speaker === '???', '???: 떙땡씨~?'); await next();
   check(await until(() => { const m = window.game.entities.find(e => e.id === 'discord_mask'); return m && m.visible === false; }, 6000), '가면을 위로 던져서 쓴다');
   check(await until(() => window.game.sound.bgmName === 'gasuni', 6000), '브금 gasuni 로 바뀜');
   check(await until(() => ['gasuni1', 'gasuni2', 'gasuni3'].every(id => { const e = window.game.entities.find(x => x.id === id); return e && e.visible; }), 6000), '가순이 셋이 내려온다');
@@ -66,7 +66,7 @@ try {
   s = await advanceTo('꺄아아악'); check(!!s && s.speaker === '가순이123', '가순이123: 꺄아아악 …');
   s = await advanceTo('칼로'); check(!!s && s.cam[0] < 250, `카메라 나무 뒤(억빠맨) ${s?.cam}`); await cap('12_tree_cam');
   s = await advanceTo('이따 봐요'); check(!!s && s.cam[0] > 300, `다시 가운데(최미스) ${s?.cam}`);
-  s = await advanceTo('네 땡떙씨'); await next();
+  s = await advanceTo('네 떙땡씨'); await next();
   check(await until(() => ['gasuni1', 'gasuni2', 'gasuni3'].every(id => { const e = window.game.entities.find(x => x.id === id); return !e || e.dead; }), 8000), '가순이 셋 달려서 올라감');
   s = await advanceTo('후후..'); await next();
   check(await until(() => !window.game.sound.bgmName, 4000), '브금 꺼짐(2)');

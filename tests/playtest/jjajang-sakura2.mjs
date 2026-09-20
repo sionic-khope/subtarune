@@ -28,7 +28,7 @@ try {
   const onBridge = await ev(() => { const g = window.game; const b = g.entities.find(e => e.id === 'sakura_bridge'); const c = g.entities.find(e => e.id === 'choimis'); const girls = ['gasuni1', 'gasuni2', 'gasuni3'].map(id => g.entities.find(e => e.id === id)); return { bridge: !!b?.image, choimis: !!c && c.visible !== false && !!c.motion, girls: girls.every(x => x && x.visible !== false), camX: Math.round(g.camera.x), choimisX: Math.round(c?.x ?? -1) }; });
   check(onBridge.bridge && onBridge.choimis && onBridge.girls && onBridge.choimisX > onBridge.camX && onBridge.choimisX < onBridge.camX + 480, `다리·가면 쓴 최미스·가순이 셋이 화면 안 ${JSON.stringify(onBridge)}`);
   s = await advanceTo('허허 스읍'); check(!!s && s.speaker === '최미스', '최미스: 허허 스읍 미스 ㅋㅋㅋㅋ');
-  s = await advanceTo('미용실'); check(!!s && s.speaker === '가순이1', '가순이1: 땡떙이오빠 미용실 어디다녀요?');
+  s = await advanceTo('미용실'); check(!!s && s.speaker === '가순이1', '가순이1: 떙땡이오빠 미용실 어디다녀요?');
   s = await advanceTo('인스타'); check(!!s && s.speaker === '최미스', '최미스: 아 ㅋㅋ 전 뭐 인스타에서 …');
   s = await advanceTo('스읍 ㅋㅋㅋㅋㅋ'); check(!!s, '최미스: 스읍 ㅋㅋㅋㅋㅋ'); await next();
   check(await until(() => window.game.camera.x < 20 * 32, 5000), '카메라가 다시 주인공 쪽으로'); await cap('02_back');

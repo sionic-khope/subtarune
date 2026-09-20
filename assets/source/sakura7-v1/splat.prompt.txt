@@ -1,0 +1,6 @@
+Pixel art sprite sheet with EXACTLY 4 cells in a 2x2 grid on a 1024x1024 canvas (invisible equal 512px cells, no grid lines, no labels, no text). Solid pure #FF00FF magenta background everywhere, no ground, no shadows.
+Top-left cell: a flat red tomato juice splat stain seen from above — an irregular rounded blob with a few round droplets around it, red #d62828 with darker #9b1c1c edge and lighter #ff5c5c highlights, filling about 55% of the cell.
+Top-right cell: a flat cracked egg splat stain seen from above — a pale white #f4f1e8 blob with a yellow #f6c344 yolk blob off-center and small white shell bits, filling about 55% of the cell.
+Bottom-left cell: a burst of red tomato juice splashing outward — 8 to 12 red droplets and short streaks radiating from an empty center, like the instant of impact, filling about 70% of the cell.
+Bottom-right cell: a burst of egg splashing outward — pale white and yellow droplets and short streaks radiating from an empty center, filling about 70% of the cell.
+Style: chunky retro pixel art, coarse pixel clusters, flat limited shades with dark outlines on the stains, crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

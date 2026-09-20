@@ -1,0 +1,2 @@
+source: https://www.youtube.com/watch?v=u0D718AmYTs “Crowd Booing - Sound Effect”(WhiteFox, 10s) 0.9~7.5초(야유 구간), 페이드 인 0.15/아웃 0.5, loudnorm I=-16 → assets/audio/sfx/crowd_boo.mp3 (6.6s)
+used: 벚꽃 숲 7 관객 난동(6초) + 박치기 뒤 “야유는 계속되고”. 사용자 “관객 야유소리는 아닌거같음”(기존 함성 crowd_roar 대체) — 내가 고른 녹음, 다른 걸 주시면 교체

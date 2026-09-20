@@ -3,11 +3,13 @@
 //   흐름: 들머리 트리거 → 셋 느낌표 → 카메라 천천히(2.4초) 무대로 → 셋이 가운데로 걸어와 위를 봄 → 화면이 점차 어두워짐(dim 2.5초, 맵 브금은 같이 꺼짐) → 치지직 ×2 → 나레이션
 //      → 브금 loving_steps 다시 → (천천히) 무대 가운데 스포트라이트 쾅(boom + 흔들림) → 점례(드레스 가순이)가 뒤에서 천천히 어둠 속에서 걸어 나옴 → 한 줄마다 한 걸음(뮤지컬)
 //      → 최미스 말풍선만 “아니. 그대여.”(어둠 속, 글 말풍선) → 점례 느낌표·오른쪽 → 가면 최미스가 천천히 걸어 나옴 → 원문 대사(스읍 미스 = 클립 + 가면 seup) → “나랑.. 사귀” 중간에
-//      도미조림이 하늘에서 쿵(“흐미!!!!!!! 내 홍어 어디갔당가!!!”) → 닿자마자 가면 벗겨져 점례 뒤에 떨어짐·최미스 뒷모습으로 넘어짐 → 도미조림 통통 튀어 도망 → 점례 뒤 잠깐 봄 → “이게뭐지.” “혹시 땡떙씨”
+//      도미조림이 하늘에서 쿵(“흐미!!!!!!! 내 홍어 어디갔당가!!!”) → 닿자마자 가면 벗겨져 점례 뒤에 떨어짐·최미스 뒷모습으로 넘어짐 → 도미조림 통통 튀어 도망 → 점례 뒤 잠깐 봄 → “이게뭐지.” “혹시 떙땡씨”
 //      → 브금 끔(불도 켜짐) → 최미스 일어남(뒷모습) → 2초 → 앞모습 + crowd_ooh → “...?” → 카메라 살짝 아래 관객 “....?” → 다시 가운데 → 최미스 ‘...’ 말풍선 → “어 하이.” → 2초 뒤 관객 난동 6초
-//      (야유 소리 + 토마토·계란·쓰레기·사과 심 날아와 무대에 떨어짐 + 가순이들 발 동동·양옆·앞) → “아 시발. 점례야” → 점례 ‘...’ → “꺼져 씨발새끼야” → 달려가 박치기 → 최미스 날아감(야유 계속)
+//      (실제 야유 녹음 + 토마토·계란·쓰레기·사과 심이 날아와 무대에 떨어짐·셋에 하나는 머리에 톡(떨림)·토마토·계란은 과즙 튀고 얼룩 + 가순이들 발 동동·양옆·앞) → “아 시발. 점례야” → 점례 ‘...’ → “꺼져 씨발새끼야” → 달려가 박치기 → 최미스 날아감(야유 계속)
 //      → 카메라 주인공들 → 원문 넉 줄 → 카메라 오른쪽 길 → 다시 주인공들 → 플래그.
 //   규칙: 카메라는 먼저 천천히 움직이고 대사는 그 뒤. 대사는 전부 원문(괄호 지시문은 대사 아님). 자세는 gpt-image 자세 띠(가면 seup, 도미조림 heumi). 브금 끌 때 페이드 ≥ 1초. 어둠·스포트라이트는 연출 끝에 되돌린다.
+
+import { FX } from '../fx.js';
 
 const PLAYER = 'player', GYEONGSUB = 'gyeongsub', PPAMAN = 'ppaman';
 const JEOMNYE = 'jeomnye', CHOIMIS = 'choimis', CHOIMIS_BARE = 'choimis_bare', DOMI = 'domijorim', MASK = 'discord_mask';
@@ -25,10 +27,15 @@ export const JEOMNYE_SPOT = [708, 236];
 export const JEOMNYE_STEPS = [[694, 236], [680, 236], [694, 236], [708, 236], [694, 236]];   // 한 줄마다 한 걸음(14px) — 스포트라이트 안에서 왔다 갔다
 export const CHOIMIS_SPOT = [764, 236];
 export const SLOW = { jeomnye: 20, choimis: 22 };      // move speed(16px 단위): 40·44px/s — “천천히 걸어 나옴”
-export const FALL = { from: -380, duration: 0.45 };    // 도미조림: 하늘(위 380px)에서 쿵
+export const FALL = { from: -520, first: { dy: 200, duration: 0.28, spin: 1 }, second: { dy: 320, duration: 0.2 }, sfx: 'boom', shake: { time: 0.35, amp: 6 } };   // 도미조림: 하늘(위 520px)에서 한 바퀴 돌며 떨어지다 마지막에 더 빠르게 → 쾅(사용자 “더 역동적으로, 발로 깔 때 그냥 쾅 소리”)
+export const LAND_DUST = { sheet: 'assets/fx/cannon_smoke.png', cols: 6, count: 6, fps: 14, scale: 1.8 };   // 착지 먼지(대포 연기 재사용)
+export const HEUMI_SFX = 'domijorim_heumi';               // 흐미~ 클립 — 떨어지기 전에 하늘에서 먼저(사용자 2026-09-21), 착지 자세엔 다시 안 튼다
+export const HEAD_HIT = { every: 3, offset: [4, -34], sfx: 'pop', tremble: { duration: 0.35, amp: 2 }, drop: { by: [0, 40], height: 8, duration: 0.22 } };   // 셋에 하나는 최미스 머리에 톡 → 살짝 떨림 → 발밑으로 떨어짐
+export const SPLAT = { tomato: { fx: 'tomato_burst', stains: ['stain_t1', 'stain_t2', 'stain_t3', 'stain_t4'] }, egg: { fx: 'egg_burst', stains: ['stain_e1', 'stain_e2', 'stain_e3', 'stain_e4'] }, burst: { duration: 0.35, scale: 0.35, endScale: 1.1 } };   // 과즙 튐(커지는 boom) + 얼룩 소품
+export const THROW_KINDS = ['tomato', 'egg', 'paper', 'apple'];   // 맵 throw_N 순서(THROW_FILES)
 export const BOUNCE = [{ by: [56, -8], height: 40, duration: 0.32 }, { by: [64, 4], height: 34, duration: 0.3 }, { by: [72, 0], height: 28, duration: 0.28 }];   // 통통 튀어 도망(오른쪽)
 export const MASK_OFF = { by: [-60, -4], height: 30, duration: 0.45, spin: 1 };   // 최미스 머리(776,196)에서 점례 바로 뒤(716,192 — 점례보다 위, 몸에 살짝 가려진다)로
-export const RIOT = { seconds: 6.0, throwEvery: 0.37, first: 0.3, hop: { duration: 0.55, heightMin: 56, heightMax: 92 } };
+export const RIOT = { seconds: 6.0, throwEvery: 0.37, first: 0.3, hop: { duration: 0.55, heightMin: 56, heightMax: 92 }, boo: 'crowd_boo' };   // 야유 = 실제 관객 야유 녹음(crowd_boo, 6.6초)
 export const HEADBUTT = { dash: true, bump: { by: [10, 0], height: 8, duration: 0.15, sfx: 'punch' }, fling: { vx: 560, vup: 520, spin: 14, sfx: 'hit' } };
 export const SCENE_BGM = 'loving_steps';
 export const MAP_BGM = 'sakura';
@@ -60,18 +67,34 @@ const standUpBack = { action: game => { const b = actor(game, CHOIMIS_BARE); if 
 const lightsOn = [{ spotlight: null }, { dim: 0, duration: 1.5 }];
 /** 관객 난동 6초: 야유 + 던지기(관객 자리에 숨긴 것들이 무대 최미스 쪽으로 날아와 떨어진다) + 가순이들 발 동동·양옆·앞 */
 const riot = () => {
-  // 던지기: 관객 자리에 숨긴 것들이 무대 최미스 근처(앞 가운데 오른쪽)로 포물선 → 떨어져 그대로 남는다. hop 의 by(px)는 실행 때 최미스 자리로 계산한다(action 이 hop 노드의 by 를 채운 뒤 hop 실행)
+  // 던지기: 관객 자리에 숨긴 것들이 무대 최미스 쪽으로 포물선. 셋에 하나(i%3==1)는 머리에 톡 맞고(살짝 떨림) 발밑으로 떨어진다. 토마토·계란은 맞는 자리에 과즙이 튀고(boom) 얼룩이 남는다.
+  //   hop 의 by(px)는 실행 때 최미스 자리로 계산한다(가지 안 action — BUILD278 부터 가지 안에서도 실행된다)
+  const used = { tomato: 0, egg: 0 };
   const aimed = THROWS.map((id, i) => {
+    const kind = THROW_KINDS[i % 4], head = i % HEAD_HIT.every === 1, splat = SPLAT[kind];
     const hop = { hop: id, by: [0, 0], height: RIOT.hop.heightMin + ((i * 37) % (RIOT.hop.heightMax - RIOT.hop.heightMin)), duration: RIOT.hop.duration, sfx: false, keep: true };
-    const aim = { action: game => { const t = actor(game, id), b = actor(game, CHOIMIS_BARE); if (t && b) hop.by = [b.x + 12 - 20 + ((i * 53) % 41) - t.x, b.y + 4 + ((i * 31) % 17) - t.y]; } };
-    return [{ wait: RIOT.first + i * RIOT.throwEvery }, { show: id }, aim, hop, { sfx: i % 4 >= 2 ? 'thud' : 'splash', volume: 0.5 }];
+    const aim = { action: game => { const t = actor(game, id), b = actor(game, CHOIMIS_BARE); if (!t || !b) return;
+      const [tx, ty] = head ? [b.x + HEAD_HIT.offset[0], b.y + HEAD_HIT.offset[1]] : [b.x + 12 - 20 + ((i * 53) % 41), b.y + 4 + ((i * 31) % 17)];
+      hop.by = [tx - t.x, ty - t.y]; } };
+    const seq = [{ wait: RIOT.first + i * RIOT.throwEvery }, { show: id }, aim, hop];
+    if (head) {
+      seq.push({ parallel: [{ sfx: HEAD_HIT.sfx, volume: 0.6 }, { tremble: CHOIMIS_BARE, duration: HEAD_HIT.tremble.duration, amp: HEAD_HIT.tremble.amp }, ...(splat ? [{ boom: { ...FX[splat.fx], at: id, ...SPLAT.burst } }] : [])] });
+      seq.push({ hop: id, by: HEAD_HIT.drop.by, height: HEAD_HIT.drop.height, duration: HEAD_HIT.drop.duration, sfx: false, keep: true });
+    }
+    if (splat) {
+      const stainId = splat.stains[used[kind]++ % splat.stains.length];
+      seq.push({ action: game => { const t = actor(game, id), st = actor(game, stainId); if (!t || !st) return; st.x = Math.round(t.x + t.w / 2 - st.w / 2); st.y = Math.round(t.y + t.h / 2 - st.h / 2 + 2); st.def.ix = st.x; st.def.iy = st.y; st.visible = true; } });
+      if (head) seq.push({ sfx: 'splash', volume: 0.35 });
+      else seq.push({ parallel: [{ boom: { ...FX[splat.fx], at: id, ...SPLAT.burst } }, { sfx: 'splash', volume: 0.5 }] });
+    } else if (!head) seq.push({ sfx: 'thud', volume: 0.5 });
+    return seq;
   });
   // 가순이들: 발 동동(살짝 두 번 뛰기)·양옆 봤다가 앞(위) — 세 번 되풀이 ≈ 6초, 시작은 조금씩 어긋나게
   const stomps = CROWD.map((id, i) => [{ wait: (i * 0.13) % 0.9 }, ...Array.from({ length: 3 }, () => [
     { face: id, dir: 'left' }, { wait: 0.35 }, { face: id, dir: 'right' }, { wait: 0.35 }, { face: id, dir: 'up' },
     { hop: id, by: [0, 0], height: 5, duration: 0.2, sfx: false }, { hop: id, by: [0, 0], height: 5, duration: 0.2, sfx: false }, { wait: 0.3 },
   ]).flat()]);
-  const boos = [{ sfx: 'crowd_roar', volume: 0.9 }, { wait: 2.6 }, { sfx: 'crowd_roar_2', volume: 0.9 }, { wait: 2.4 }, { sfx: 'crowd_roar', volume: 0.8 }];
+  const boos = [{ sfx: RIOT.boo, volume: 0.9 }];
   return { parallel: [boos, ...aimed, ...stomps, [{ wait: RIOT.seconds }]] };
 };
 
@@ -131,16 +154,24 @@ export const jjajang_sakura7_scene = [
   // 최미스: 나랑.. 사귀 (이때 중간에 갑자기 치고 들어오면서) — 다 찍히고 곧바로
   { ...C('나랑.. 사귀'), auto: 0.35 },
   close,
+  // (사용자 2026-09-21) 흐미~ 소리가 먼저 하늘에서 나오고 브금이 잠깐 꺼짐 → 최미스: ? / 이게 무슨소리ㅈ (다 찍히자마자 바로) → 점프 소리와 함께 떨어진다
+  { parallel: [{ sfx: HEUMI_SFX, volume: 0.9 }, { bgmPause: 0.25 }] },
+  { wait: 0.5 },
+  { ...C('?'), auto: 0.4 },
+  { ...C('이게 무슨소리ㅈ'), auto: 0.05 },
+  close,
   // 도미조림: 하늘에서 쿵 → 닿자마자 가면 벗겨짐·최미스 뒷모습으로 넘어짐·가면은 점례 뒤로
   placeAbove,
   { parallel: [
-    { hop: DOMI, by: [0, -FALL.from], height: 0, duration: FALL.duration, sfx: false },
-    [{ wait: FALL.duration - 0.05 }, { sfx: 'thud', volume: 0.9 }, { shake: 0.3, amp: 4 }],
+    [{ hop: DOMI, by: [0, FALL.first.dy], height: 0, duration: FALL.first.duration, spin: FALL.first.spin, sfx: 'jump' }, { hop: DOMI, by: [0, FALL.second.dy], height: 0, duration: FALL.second.duration, sfx: false }],
+    [{ wait: FALL.first.duration + FALL.second.duration - 0.03 }, { sfx: FALL.sfx, volume: 0.9 }, { shake: FALL.shake.time, amp: FALL.shake.amp }],
   ] },
+  { async: [{ boom: { ...LAND_DUST, at: DOMI, offset: [0, 12] } }] },
+  { bgmResume: 0.4 },
   maskOff,
   { parallel: [
     { hop: MASK, by: MASK_OFF.by, height: MASK_OFF.height, duration: MASK_OFF.duration, spin: MASK_OFF.spin, sfx: false, keep: true },
-    { motion: DOMI, name: 'heumi', sfx: 'domijorim_heumi' },
+    { motion: DOMI, name: 'heumi' },
   ] },
   settleMask,
   D('흐미!!!!!!! 내 홍어 어디갔당가!!!'),
@@ -151,7 +182,7 @@ export const jjajang_sakura7_scene = [
   // 점례가 뒤를 잠깐 보다가
   { face: JEOMNYE, dir: 'up' }, { wait: 0.8 }, { face: JEOMNYE, dir: 'down' }, { wait: 0.3 },
   J('이게뭐지.'),
-  J('혹시 땡떙씨'),
+  J('혹시 떙땡씨'),
   close,
   // (브금이 꺼지고 최미스가 일어나고 뒷모습이었다가 2초쯤 지나고 앞모습이 됨 — 이때 효과음 crowd_ooh) 불도 다시 켜진다
   { parallel: [{ bgm: null, fadeOut: 1.0 }, ...lightsOn] },
@@ -181,7 +212,7 @@ export const jjajang_sakura7_scene = [
   // 점례가 최미스한테 달려가 박치기 → 최미스는 역동적으로 날아감(야유는 계속)
   { move: JEOMNYE, rel: CHOIMIS_BARE, at: 'left', by: [-2, 0], dash: HEADBUTT.dash, exact: true }, { face: JEOMNYE, dir: 'right' },
   { parallel: [{ hop: JEOMNYE, ...HEADBUTT.bump }, { shake: 0.2, amp: 4 }] },
-  { parallel: [{ fling: CHOIMIS_BARE, ...HEADBUTT.fling }, { sfx: 'crowd_roar_2', volume: 0.9 }] },
+  { parallel: [{ fling: CHOIMIS_BARE, ...HEADBUTT.fling }, { sfx: RIOT.boo, volume: 0.8 }] },
   { wait: 0.4 },
   // 다시 주인공들로 카메라
   { camera: 'player', duration: CAM.toParty },

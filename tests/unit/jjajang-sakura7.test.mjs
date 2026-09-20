@@ -3,7 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { jjajang_sakura7_scene, PARTY, CROWD, THROWS, STAGE_VIEW, CROWD_VIEW, RIGHT_ROAD_VIEW, DARK, SPOT, PARTY_SPOTS, JEOMNYE_SPOT, JEOMNYE_STEPS, CHOIMIS_SPOT, SLOW, FALL, BOUNCE, MASK_OFF, RIOT, SCENE_BGM, MAP_BGM, SAKURA7_SCENE_FLAG } from '../../src/data/cutscenes/jjajang_sakura7.js';
+import { jjajang_sakura7_scene, PARTY, CROWD, THROWS, STAGE_VIEW, CROWD_VIEW, RIGHT_ROAD_VIEW, DARK, SPOT, PARTY_SPOTS, JEOMNYE_SPOT, JEOMNYE_STEPS, CHOIMIS_SPOT, SLOW, FALL, LAND_DUST, HEAD_HIT, SPLAT, BOUNCE, MASK_OFF, RIOT, SCENE_BGM, MAP_BGM, SAKURA7_SCENE_FLAG } from '../../src/data/cutscenes/jjajang_sakura7.js';
+import { FX } from '../../src/data/fx.js';
 import { CHARACTERS } from '../../src/data/characters.js';
 import { QA_POINTS } from '../../src/core/story.js';
 import { MAP_RUNTIME_ASSETS } from '../../src/data/map-runtime-assets.js';
@@ -34,6 +35,8 @@ test('test_sakura7_map_is_a_two_second_road_into_a_tall_field_with_a_wedding_sta
   const crowd = m.entities.filter(e => e.id.startsWith('crowd_')); assert.equal(crowd.length, 14);
   for (const c of crowd) { assert.deepEqual([c.facing, c.wander, c.hidden], ['up', 0, undefined]); assert.ok(/^gasuni[1-6]$/.test(c.sprite)); assert.ok(c.y > S.stageFloor[1] && c.y + 16 < PARTY_SPOTS.player[1], `${c.id} 는 무대 아래·일행 위`); }
   const throws = m.entities.filter(e => e.id.startsWith('throw_')); assert.equal(throws.length, 14);
+  const stains = m.entities.filter(e => e.id.startsWith('stain_')); assert.equal(stains.length, 8); assert.ok(stains.every(e => e.hidden && !e.solid && here(e.image) && m.preload.includes(e.image)), '얼룩 여덟(숨김·미리 적재)');
+  for (const sh of [FX.tomato_burst.sheet, FX.egg_burst.sheet, LAND_DUST.sheet]) assert.ok(m.preload.includes(sh), sh);
   for (const t of throws) { assert.ok(t.hidden && !t.solid && here(t.image), t.id); assert.ok(m.preload.includes(t.image), '던질 것 그림 미리 적재'); }
   for (const id of ['jeomnye', 'choimis', 'choimis_bare', 'domijorim', 'discord_mask']) { const e = m.entities.find(x => x.id === id); assert.ok(e.hidden && e.unless === SAKURA7_SCENE_FLAG, `${id} 숨김·연출 뒤 없음`); }
   assert.deepEqual([m.entities.find(e => e.id === 'choimis').sprite, m.entities.find(e => e.id === 'choimis_bare').sprite, m.entities.find(e => e.id === 'jeomnye').sprite], ['choimis_masked', 'choimis', 'jeomnye']);
@@ -56,8 +59,8 @@ test('test_sakura7_scene_beats_in_order_with_verbatim_lines', () => {
     ['나레이션', '지금부터 그남자와 그여자의 무대를 시작하겠습니다.'],
     ['점례', '아 외로워'], ['점례', '나의 외로움을 달래줄 어떤이가 없는것인가'], ['점례', '흑흑흑'], ['점례', '오늘도 나는 천천히'], ['점례', '하루를 보내다 잠에 들겠지.'],
     ['최미스', '안녕.'], ['최미스', '나 가재맨방 고닉. 최미스'], ['점례', '헐 가재맨 방 고닉???'], ['최미스', '스읍 미스'], ['최미스', '혹시 너 뭐해?'], ['점례', '나? 나 그냥.. 아무것도.'],
-    ['최미스', '혹시'], ['최미스', '난 너가 마음에 들어.'], ['점례', '헉!'], ['최미스', '스읍..'], ['최미스', '나랑 진지하게...'], ['최미스', '..후훗.. 이런말 부끄럽군'], ['점례', '두근두근..'], ['최미스', '나랑.. 사귀'],
-    ['도미조림', '흐미!!!!!!! 내 홍어 어디갔당가!!!'], ['점례', '이게뭐지.'], ['점례', '혹시 땡떙씨'], ['점례', '...?'], ['가순이들', '....?'], ['최미스', '어 하이.'],
+    ['최미스', '혹시'], ['최미스', '난 너가 마음에 들어.'], ['점례', '헉!'], ['최미스', '스읍..'], ['최미스', '나랑 진지하게...'], ['최미스', '..후훗.. 이런말 부끄럽군'], ['점례', '두근두근..'], ['최미스', '나랑.. 사귀'], ['최미스', '?'], ['최미스', '이게 무슨소리ㅈ'],
+    ['도미조림', '흐미!!!!!!! 내 홍어 어디갔당가!!!'], ['점례', '이게뭐지.'], ['점례', '혹시 떙땡씨'], ['점례', '...?'], ['가순이들', '....?'], ['최미스', '어 하이.'],
     ['최미스', '아 시발. 점례야'], ['점례', '꺼져 씨발새끼야'], ['억빠맨', 'ㅋㅋㅋ'], ['경섭', '아이고 저런'], ['억빠맨', 'ㅈㄴ웃긴데요 ㅋㅋ'], ['경섭', '일단 뭐.. 가볼까? 오른쪽에 길이 있네.'],
   ]);
   // 느낌표 → 카메라 천천히 무대 → 셋이 가운데로(위를 봄) → 점차 어두워짐(맵 브금도 같이) → 치지직 ×2 → 나레이션 → 브금 → 스포트라이트 쾅 → 점례 등장
@@ -79,26 +82,38 @@ test('test_sakura7_scene_beats_in_order_with_verbatim_lines', () => {
   assert.ok(seup > 0 && s[seup + 1].text === '* 스읍 미스' && s[seup + 1].voice === 'none');
   const sagwi = s.find(n => n.text === '* 나랑.. 사귀'); assert.ok(sagwi.auto > 0 && sagwi.auto < 1, '중간에 치고 들어옴(자동 넘김)');
   // 도미조림 하늘에서 쿵(thud+흔들림) → 닿자마자 가면 벗겨짐(점례 뒤로)·최미스 뒷모습 넘어짐 → 흐미(자세+클립) → 통통 튀어 도망 → 사라짐
-  const fall = idx(s, n => n.parallel?.some(x => x.hop === 'domijorim' && x.height === 0 && x.by[1] === -FALL.from) && n.parallel?.some(b => Array.isArray(b) && b.some(x => x.sfx === 'thud')));
+  // 낙하: 한 바퀴 돌며 떨어지다(spin) 마지막에 더 빠르게(두 hop 합 = 위 520px) → 쾅(boom, 흔들림) → 착지 먼지(배경)
+  const fall = idx(s, n => n.parallel?.some(b => Array.isArray(b) && b.some(x => x.hop === 'domijorim' && x.height === 0 && x.spin)) && n.parallel?.some(b => Array.isArray(b) && b.some(x => x.sfx === FALL.sfx)));
+  const fallHops = s[fall].parallel.flat(2).filter(x => x.hop === 'domijorim'); assert.equal(fallHops.reduce((a, x) => a + x.by[1], 0), -FALL.from, '두 hop 이 하늘 높이만큼 떨어진다');
+  assert.ok(fallHops[1].duration < fallHops[0].duration && fallHops[1].by[1] > fallHops[0].by[1], '마지막이 더 빠르다');
+  const dust = idx(s, n => Array.isArray(n.async) && n.async[0]?.boom?.sheet === LAND_DUST.sheet); assert.equal(dust, fall + 1, '착지 먼지');
   const off = idx(s, n => n.parallel?.some(x => x.hop === 'discord_mask' && x.keep && x.by === MASK_OFF.by) && n.parallel?.some(x => x.motion === 'domijorim' && x.name === 'heumi'));
   const heumi = idx(s, n => n.text?.includes('흐미')), bounces = s.map((n, i) => n.hop === 'domijorim' && n.sfx === 'jump' ? i : -1).filter(i => i >= 0), gone = idx(s, n => n.remove === 'domijorim');
   assert.ok(fall > idx(s, n => n.text === '* 나랑.. 사귀') && off > fall && s[fall - 1].action && s[off - 1].action && heumi > off && bounces.length === BOUNCE.length && bounces[0] > heumi && gone > bounces.at(-1));
+  // (2026-09-21) 흐미~ 소리가 먼저 + 브금 잠깐 멈춤 → ? → 이게 무슨소리ㅈ(자동, 바로) → 점프 소리와 함께 낙하 → 쾅 뒤 브금 이어서. 착지 자세엔 클립을 다시 안 튼다
+  const cry = idx(s, n => n.parallel?.some(x => x.sfx === 'domijorim_heumi') && n.parallel?.some(x => x.bgmPause !== undefined)), q = idx(s, n => n.text === '* ?'), what2 = idx(s, n => n.text === '* 이게 무슨소리ㅈ');
+  assert.ok(cry > idx(s, n => n.text === '* 나랑.. 사귀') && q > cry && what2 === q + 1 && s[what2].auto <= 0.1 && fall > what2 && fallHops[0].sfx === 'jump' && idx(s, n => n.bgmResume !== undefined) > fall && !s[off].parallel.find(x => x.motion === 'domijorim').sfx);
   assert.ok(MASK_OFF.by[0] < 0, '가면은 점례 쪽(왼쪽 뒤)으로');
-  // 점례 뒤 잠깐 → 이게뭐지·땡떙씨 → 브금 끔·불 켜짐 → 일어남(뒷모습) → 2초 → 앞모습 + crowd_ooh → ...? → 카메라 살짝 아래 관객 ....? → 다시 가운데 → ... 말풍선 → 어 하이
+  // 점례 뒤 잠깐 → 이게뭐지·떙땡씨 → 브금 끔·불 켜짐 → 일어남(뒷모습) → 2초 → 앞모습 + crowd_ooh → ...? → 카메라 살짝 아래 관객 ....? → 다시 가운데 → ... 말풍선 → 어 하이
   const back = idx(s, n => n.face === 'jeomnye' && n.dir === 'up'), what = idx(s, n => n.text?.includes('이게뭐지')), bgmOff = idx(s, n => n.parallel?.some(x => x.bgm === null && x.fadeOut >= 1) && n.parallel?.some(x => x.spotlight === null) && n.parallel?.some(x => x.dim === 0));
   const wait2 = idx(s, (n, i) => i > bgmOff && n.wait === 2.0), ooh = idx(s, n => n.parallel?.some(x => x.face === 'choimis_bare' && x.dir === 'down') && n.parallel?.some(x => x.sfx === 'crowd_ooh'));
   const q1 = idx(s, n => n.text === '* ...?'), down = idx(s, n => n.camera === CROWD_VIEW), q2 = idx(s, n => n.text === '* ....?'), up = idx(s, (n, i) => i > down && n.camera === STAGE_VIEW), dots = idx(s, n => n.bubble === 'choimis_bare'), hi = idx(s, n => n.text?.includes('어 하이'));
-  assert.ok(back > gone && what > back && bgmOff > idx(s, n => n.text?.includes('땡떙씨')) && wait2 > bgmOff && ooh > wait2 && q1 > ooh && down > q1 && q2 > down && up > q2 && dots > up && hi > dots);
+  assert.ok(back > gone && what > back && bgmOff > idx(s, n => n.text?.includes('떙땡씨')) && wait2 > bgmOff && ooh > wait2 && q1 > ooh && down > q1 && q2 > down && up > q2 && dots > up && hi > dots);
   assert.ok(camY(CROWD_VIEW) > camY(STAGE_VIEW) && camY(CROWD_VIEW) - camY(STAGE_VIEW) <= 64, '살짝 밑으로');
   // 2초 뒤 관객 난동 6초(야유·던지기 열넷·가순이들 발 동동/양옆/앞) → 아 시발 → ... → 꺼져 → 달려가 박치기 → 날아감(야유 계속) → 카메라 주인공들 → 넉 줄 → 오른쪽 길 → 다시 주인공들 → 맵 브금·플래그
   const riot = idx(s, (n, i) => i > hi && n.parallel && n.parallel.flat(3).some(x => x?.hop && THROWS.includes(x.hop)));
   assert.ok(riot > hi && s[riot - 1].wait === 2.0);
-  const flat = s[riot].parallel.flat(4);
-  assert.equal(flat.filter(x => x?.hop && THROWS.includes(x.hop) && x.keep).length, 14, '던질 것 열넷이 날아와 남는다');
-  assert.ok(flat.filter(x => typeof x?.sfx === 'string' && x.sfx.startsWith('crowd_roar')).length >= 2 && CROWD.every(id => flat.some(x => x?.face === id && x.dir === 'left') && flat.some(x => x?.hop === id)), '야유·가순이들 양옆·발 동동');
+  // 가지·중첩 parallel/async 안까지 모든 노드
+  const nodesOf = n => Array.isArray(n) ? n.flatMap(nodesOf) : n && typeof n === 'object' ? [n, ...(Array.isArray(n.parallel) ? nodesOf(n.parallel) : []), ...(Array.isArray(n.async) ? nodesOf(n.async) : [])] : [];
+  const flat = nodesOf(s[riot].parallel);
+  assert.ok(flat.filter(x => x?.hop && THROWS.includes(x.hop) && x.keep).length >= 14, '던질 것 열넷이 날아와 남는다');
+  assert.equal(flat.filter(x => x?.tremble === 'choimis_bare').length, THROWS.filter((_, i) => i % HEAD_HIT.every === 1).length, '셋에 하나는 머리에 맞고 살짝 떨린다');
+  assert.equal(flat.filter(x => x?.sfx === HEAD_HIT.sfx).length, 5, '머리에 맞을 땐 톡');
+  assert.equal(flat.filter(x => x?.boom && [FX.tomato_burst.sheet, FX.egg_burst.sheet].includes(x.boom.sheet)).length, THROWS.filter((_, i) => i % 4 < 2).length, '토마토·계란은 과즙이 튄다');
+  assert.ok(flat.filter(x => x?.sfx === RIOT.boo).length >= 1 && !flat.some(x => typeof x?.sfx === 'string' && x.sfx.startsWith('crowd_roar')) && CROWD.every(id => flat.some(x => x?.face === id && x.dir === 'left') && flat.some(x => x?.hop === id)), '실제 야유 녹음·가순이들 양옆·발 동동');
   assert.ok(s[riot].parallel.some(b => Array.isArray(b) && b.some(x => x.wait === RIOT.seconds)), '6초');
   const sibal = idx(s, n => n.text?.includes('아 시발. 점례야')), jd = idx(s, n => n.bubble === 'jeomnye'), go = idx(s, n => n.text?.includes('꺼져')), rush = idx(s, n => n.move === 'jeomnye' && n.rel === 'choimis_bare' && n.dash), bump = idx(s, n => n.parallel?.some(x => x.hop === 'jeomnye' && x.sfx === 'punch'));
-  const fling = idx(s, n => n.parallel?.some(x => x.fling === 'choimis_bare') && n.parallel?.some(x => x.sfx === 'crowd_roar_2')), toParty = idx(s, (n, i) => i > fling && n.camera === 'player');
+  const fling = idx(s, n => n.parallel?.some(x => x.fling === 'choimis_bare') && n.parallel?.some(x => x.sfx === RIOT.boo)), toParty = idx(s, (n, i) => i > fling && n.camera === 'player');
   const road = idx(s, n => n.camera === RIGHT_ROAD_VIEW), back2 = idx(s, (n, i) => i > road && n.camera === 'player'), mapBgm = idx(s, n => n.bgm === MAP_BGM), flag = idx(s, n => n.set?.[SAKURA7_SCENE_FLAG]);
   assert.ok(sibal > riot && jd > sibal && go > jd && rush > go && bump > rush && fling > bump && toParty > fling && idx(s, n => n.text?.includes('오른쪽에 길이 있네')) > toParty && road > toParty && back2 > road && mapBgm > back2 && flag > mapBgm);
   assert.ok(s[toParty].duration >= 1 && s[road].duration >= 1 && s[back2].duration >= 1, '카메라는 천천히');
@@ -106,7 +121,7 @@ test('test_sakura7_scene_beats_in_order_with_verbatim_lines', () => {
 
 test('test_sakura7_assets_qa_points_and_text_balloon_engine', () => {
   assert.deepEqual([CHARACTERS.jeomnye.sheet, CHARACTERS.jeomnye.voice, CHARACTERS.jeomnye.name], ['assets/sprites/jeomnye.png', 'gasuni', '점례']);
-  for (const rel of ['assets/sprites/jeomnye.png', 'assets/portraits/jeomnye.png', 'assets/props/wedding_stage.png', 'assets/props/throw_tomato.png', 'assets/props/throw_egg.png', 'assets/props/throw_paper.png', 'assets/props/throw_apple.png', 'assets/audio/sfx/crowd_ooh.mp3', 'assets/audio/sfx/static_burst.mp3', 'assets/audio/sfx/crowd_roar.mp3', 'assets/audio/sfx/crowd_roar_2.mp3', 'assets/audio/bgm/loving_steps.mp3']) assert.ok(here(rel), rel);
+  for (const rel of ['assets/sprites/jeomnye.png', 'assets/portraits/jeomnye.png', 'assets/props/wedding_stage.png', 'assets/props/throw_tomato.png', 'assets/props/throw_egg.png', 'assets/props/throw_paper.png', 'assets/props/throw_apple.png', 'assets/props/splat_tomato.png', 'assets/props/splat_egg.png', 'assets/fx/tomato_burst.png', 'assets/fx/egg_burst.png', 'assets/audio/sfx/crowd_boo.mp3', 'assets/audio/sfx/crowd_ooh.mp3', 'assets/audio/sfx/static_burst.mp3', 'assets/audio/sfx/crowd_roar.mp3', 'assets/audio/sfx/crowd_roar_2.mp3', 'assets/audio/bgm/loving_steps.mp3']) assert.ok(here(rel), rel);
   const A = MAP_RUNTIME_ASSETS.jjajang_sakura7;
   for (const sp of ['jeomnye', 'choimis_masked', 'choimis', 'domijorim', 'gasuni1', 'gasuni6']) assert.ok(A.sprites.includes(sp), sp);
   for (const pt of ['jeomnye', 'choimis', 'domijorim', 'gasuni1']) assert.ok(A.portraits.includes(pt), pt);

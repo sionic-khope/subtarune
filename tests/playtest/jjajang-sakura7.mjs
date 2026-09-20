@@ -45,7 +45,7 @@ try {
   const dark = await bright(40, 700); check(dark < litBefore * 0.4, `화면이 어두워졌다 (${litBefore} → ${dark})`); await cap('03_dark'); await next();
   check(await until(() => window.game.sound.bgmName === 'loving_steps', 4000), '이 브금(loving_steps) 다시');
   const spotAt = [(S.spot.x - 480) * 2, (S.spot.y - 98) * 2];
-  let spotOn = false; for (let i = 0; i < 40 && !spotOn; i++) { spotOn = (await bright(...spotAt, 'max')) > 200; if (!spotOn) await page.waitForTimeout(150); }
+  let spotOn = false; for (let i = 0; i < 40 && !spotOn; i++) { spotOn = (await bright(...spotAt)) > 200; if (!spotOn) await page.waitForTimeout(150); }   // 다섯 점 최소가 밝아야(꽃잎 한 점은 오탐)
   check(spotOn, '무대 가운데 스포트라이트 켜짐');
   await page.waitForTimeout(300); await cap('04_spot');
   const edge = await bright(40, 700), inside = await bright(...spotAt, 'max'); check(inside > edge * 2, `스포트라이트 안이 밖보다 밝다 (${inside} vs ${edge})`);
@@ -65,6 +65,7 @@ try {
   s = await advanceTo('가재맨방 고닉. 최미스'); check(!!s && s.speaker === '최미스', '최미스: 나 가재맨방 고닉. 최미스'); await cap('07_choimis');
   s = await advanceTo('스읍 미스'); check(!!s && (await ent('choimis')).motion, '최미스: 스읍 미스 (가면 seup 자세)'); await cap('08_seup');
   s = await advanceTo('나랑.. 사귀'); check(!!s, '최미스: 나랑.. 사귀 (자동 넘김)');
+  s = await advanceTo('이게 무슨소리'); check(!!s && s.speaker === '최미스', '흐미~ 먼저 → 최미스: ? → 이게 무슨소리ㅈ');
   // 6) 도미조림 하늘에서 쿵 → 가면 벗겨짐·최미스 뒷모습 넘어짐 → 흐미 → 통통 튀어 도망
   check(await until(() => { const d = window.game.entities.find(x => x.id === 'domijorim'); return d && d.visible !== false && d.y < 100; }, 4000), '도미조림이 하늘에서');
   check(await until(() => { const d = window.game.entities.find(x => x.id === 'domijorim'); return d && Math.round(d.y) >= 230; }, 3000), '쿵 착지');
@@ -73,7 +74,7 @@ try {
   check(await until(() => { const d = window.game.entities.find(x => x.id === 'domijorim'); return !d || d.dead; }, 5000), '통통 튀어 도망(사라짐)');
   const mask = await ent('discord_mask'), jn = await ent('jeomnye'); check(mask.visible && mask.x < jn.x + 24 && mask.y < jn.y, `가면이 점례 뒤에 ${JSON.stringify([mask.x, mask.y, jn.x, jn.y])}`);
   s = await advanceTo('이게뭐지'); check(!!s && s.speaker === '점례', '점례: 이게뭐지.'); await cap('10_mask');
-  s = await advanceTo('땡떙씨'); check(!!s, '점례: 혹시 땡떙씨'); await next();
+  s = await advanceTo('떙땡씨'); check(!!s, '점례: 혹시 떙땡씨'); await next();
   // 7) 브금 꺼지고 불 켜짐 → 최미스 일어남(뒷모습) → 2초 → 앞모습(crowd_ooh)
   check(await until(() => window.game.sound.bgmName === null, 3000), '(브금이 꺼지고)');
   check(await until(() => { const b = window.game.entities.find(x => x.id === 'choimis_bare'); return b && Math.abs(b.spin) < 0.01 && b.facing === 'up'; }, 3000), '최미스 일어남(뒷모습)');
@@ -93,6 +94,7 @@ try {
   s = await advanceTo('아 시발. 점례야'); check(!!s && s.speaker === '최미스', '최미스: 아 시발. 점례야');
   const landed = await ev(() => { const g = window.game; const b = g.entities.find(x => x.id === 'choimis_bare'); return g.entities.filter(e => (e.id || '').startsWith('throw_') && e.visible !== false && Math.abs(e.x - b.x) < 80 && Math.abs(e.y - b.y) < 40).length; });
   check(landed >= 10, `던진 것들이 무대 최미스 쪽에 떨어져 있다 (${landed})`); await cap('15_after_riot');
+  const stains = await ev(() => window.game.entities.filter(e => (e.id || '').startsWith('stain_') && e.visible !== false).length); check(stains >= 5, `토마토·계란 얼룩이 무대에 남는다 (${stains})`);
   s = await advanceTo('꺼져 씨발새끼야'); check(!!s && s.speaker === '점례', '점례: 꺼져 씨발새끼야'); await next();
   // 9) 달려가 박치기 → 최미스 날아감 → 카메라 주인공들 → 넉 줄 → 오른쪽 길 → 다시 주인공들
   check(await until(() => { const b = window.game.entities.find(x => x.id === 'choimis_bare'); return b && ((b.flyX || 0) > 40 || b.dead); }, 6000), '박치기 → 최미스가 날아간다'); await cap('16_fling');

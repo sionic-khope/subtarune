@@ -37,7 +37,7 @@ test('test_sakura2_winds_right_up_around_and_up_with_a_cut_side_road_to_the_brid
 test('test_sakura2_bridge_scene_pans_right_by_grid_speaks_the_brief_verbatim_and_returns', () => {
   assert.equal(SCRIPTS.jjajang_sakura2_bridge, jjajang_sakura2_bridge);
   const lines = jjajang_sakura2_bridge.filter(n => n.text).map(n => `${n.speaker}: ${n.text.replace(/^\* /, '')}`);
-  assert.deepEqual(lines, ['최미스: 허허 스읍 미스 ㅋㅋㅋㅋ', '가순이1: 땡떙이오빠 미용실 어디다녀요?', '최미스: 아 ㅋㅋ 전 뭐 인스타에서 연락오고 막.. 저인거  알아보던데', '최미스: 스읍 ㅋㅋㅋㅋㅋ', '억빠맨: 좆같네씨발']);
+  assert.deepEqual(lines, ['최미스: 허허 스읍 미스 ㅋㅋㅋㅋ', '가순이1: 떙땡이오빠 미용실 어디다녀요?', '최미스: 아 ㅋㅋ 전 뭐 인스타에서 연락오고 막.. 저인거  알아보던데', '최미스: 스읍 ㅋㅋㅋㅋㅋ', '억빠맨: 좆같네씨발']);
   const pan = jjajang_sakura2_bridge.findIndex(n => Array.isArray(n.camera)), back = jjajang_sakura2_bridge.findIndex(n => n.camera === 'player');
   const shows = ['choimis', 'gasuni1', 'gasuni2', 'gasuni3'].map(id => jjajang_sakura2_bridge.findIndex(n => n.show === id));
   assert.ok(shows.every(i => i >= 0 && i < pan), '배우 넷은 카메라가 가기 전에 보이게');

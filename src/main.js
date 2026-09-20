@@ -179,7 +179,7 @@ class Game {
     void this.sound.loadSfxFiles(TITLE_SFX);
     void this.sound.loadVoiceFiles(Object.keys(VOICES));
     setTimeout(() => {
-      this.scheduleSfxPreload(['kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
+      this.scheduleSfxPreload(['kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'crowd_boo', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
       void this.sound.loadWalkLoop(WATER_WALK);
     }, 3000);
     this.characterMotions = {};
@@ -1490,14 +1490,33 @@ class Game {
     const light = MAPS[this.mapId]?.spotlight;
     const stageLit = drawEditorUnionLight(ctx, this, cam);
     if (!stageLit && light) {
-      ctx.save(); ctx.translate(light.x - cam.x, light.y - cam.y); ctx.scale(1, light.ry / light.rx);
-      const shade = ctx.createRadialGradient(0, 0, light.rx * 0.35, 0, 0, light.rx);
-      shade.addColorStop(0, 'rgba(0,0,0,0)'); shade.addColorStop(1, `rgba(0,0,0,${dim || 0})`);
-      ctx.fillStyle = shade; ctx.fillRect(-10000, -10000, 20000, 20000);
+      // 스포트라이트(BUILD279 사용자 “위에도 살짝 밝았으면, 스포트라이트 위에서 쬐지는 거마냥”): 어둠 막을 따로 그려 바닥 타원 + 위에서 내려오는 빛기둥(위로 갈수록 좁고 옅음)을 뚫는다
+      const lx = light.x - cam.x, ly = light.y - cam.y, beam = light.beam ?? { h: 150, top: 0.55, alpha: 0.65 };
+      const layer = this._lightLayer || (this._lightLayer = document.createElement('canvas'));
+      if (layer.width !== SCREEN_W * RENDER_SCALE) { layer.width = SCREEN_W * RENDER_SCALE; layer.height = SCREEN_H * RENDER_SCALE; }
+      const lc = layer.getContext('2d');
+      lc.setTransform(1, 0, 0, 1, 0, 0); lc.globalCompositeOperation = 'source-over'; lc.clearRect(0, 0, layer.width, layer.height);
+      lc.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+      lc.fillStyle = `rgba(0,0,0,${dim || 0})`; lc.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      lc.globalCompositeOperation = 'destination-out';
+      lc.save(); lc.translate(lx, ly); lc.scale(1, light.ry / light.rx);
+      const hole = lc.createRadialGradient(0, 0, light.rx * 0.35, 0, 0, light.rx);
+      hole.addColorStop(0, 'rgba(0,0,0,1)'); hole.addColorStop(1, 'rgba(0,0,0,0)');
+      lc.fillStyle = hole; lc.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2); lc.restore();
+      const cone = lc.createLinearGradient(0, ly, 0, ly - beam.h);
+      cone.addColorStop(0, `rgba(0,0,0,${beam.alpha})`); cone.addColorStop(1, 'rgba(0,0,0,0)');
+      lc.fillStyle = cone; lc.beginPath(); lc.moveTo(lx - light.rx, ly); lc.lineTo(lx + light.rx, ly); lc.lineTo(lx + light.rx * beam.top, ly - beam.h); lc.lineTo(lx - light.rx * beam.top, ly - beam.h); lc.closePath(); lc.fill();
+      lc.globalCompositeOperation = 'source-over';
+      ctx.drawImage(layer, 0, 0, SCREEN_W, SCREEN_H);
+      // 빛 색(연보라): 바닥 타원의 은은한 광 + 빛기둥의 옅은 광
+      ctx.save(); ctx.translate(lx, ly); ctx.scale(1, light.ry / light.rx);
       const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, light.rx);
       glow.addColorStop(0, `rgba(220,202,255,${light.alpha})`); glow.addColorStop(1, 'rgba(220,202,255,0)');
       ctx.fillStyle = glow; ctx.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2);
       ctx.restore();
+      const coneGlow = ctx.createLinearGradient(0, ly, 0, ly - beam.h);
+      coneGlow.addColorStop(0, `rgba(220,202,255,${light.alpha * 0.35})`); coneGlow.addColorStop(1, 'rgba(220,202,255,0)');
+      ctx.fillStyle = coneGlow; ctx.beginPath(); ctx.moveTo(lx - light.rx, ly); ctx.lineTo(lx + light.rx, ly); ctx.lineTo(lx + light.rx * beam.top, ly - beam.h); ctx.lineTo(lx - light.rx * beam.top, ly - beam.h); ctx.closePath(); ctx.fill();
     } else if (!stageLit && dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
     // 맵 JSON `vision: { radius, edge, noise }` — 주인공 중심 원형 시야(BUILD226 짜장 토리이 길, 사용자 “주인공 기준 3분의 2 원만 보이고 겉으로 갈수록 노이즈 어둠이 차게”):
     //   radius 까지 맑고 edge 에서 완전히 검다. 그 사이엔 거친 알갱이(noise)가 바깥으로 갈수록 짙게 차오른다. 대화창/UI 는 어두워지지 않는다

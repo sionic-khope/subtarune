@@ -1,6 +1,6 @@
 // 벚꽃 숲 2(jjajang_sakura2, BUILD264 사용자 브리핑 2026-09-20, 원문 design/narrative/cutscenes/jjajang_sakura2.md)
 //   위로 올라가기 전 오른쪽 샛길 끝(길이 끊긴 곳) 트리거 → 브금 유지 → 카메라가 오른쪽으로 그리드(칸) 단위로 이동 → 벚꽃다리 위 가면 쓴 최미스·가순이 셋
-//   최미스: 허허 스읍 미스 ㅋㅋㅋㅋ / 가순이1: 땡떙이오빠 미용실 어디다녀요? / 최미스: 아 ㅋㅋ 전 뭐 인스타에서 연락오고 막.. 저인거  알아보던데 / 최미스: 스읍 ㅋㅋㅋㅋㅋ
+//   최미스: 허허 스읍 미스 ㅋㅋㅋㅋ / 가순이1: 떙땡이오빠 미용실 어디다녀요? / 최미스: 아 ㅋㅋ 전 뭐 인스타에서 연락오고 막.. 저인거  알아보던데 / 최미스: 스읍 ㅋㅋㅋㅋㅋ
 //   → 카메라 다시 주인공 → 억빠맨: 좆같네씨발 → 끝(플래그 sakura2_bridge_done)
 import { loopCharacterMotion } from '../../world/character-motion.js';
 const C = text => ({ speaker: '최미스', portrait: 'choimis', voice: 'choimis', text: `* ${text}` });
@@ -20,7 +20,7 @@ export const jjajang_sakura2_bridge = [
   { camera: BRIDGE_VIEW, duration: CAM.toBridge },
   { wait: 0.3 },
   C('허허 스읍 미스 ㅋㅋㅋㅋ'),
-  G1('땡떙이오빠 미용실 어디다녀요?'),
+  G1('떙땡이오빠 미용실 어디다녀요?'),
   C('아 ㅋㅋ 전 뭐 인스타에서 연락오고 막.. 저인거  알아보던데'),
   C('스읍 ㅋㅋㅋㅋㅋ'),
   close,

@@ -8,3 +8,4 @@
 - `throwables-raw.png`(`throwables.prompt.txt`): 토마토·계란·쓰레기 뭉치·사과 심 2×2 → `assets/props/throw_{tomato,egg,paper,apple}.png`(폭 12~16). 관객 자리에 숨겨 두고 난동 때 무대로 날린다.
 - `crowd-ooh-raw.mp3` + `crowd-ooh.meta.txt`: 사용자 지정 myinstants “Crowd Ooh (Deltarune)” → `assets/audio/sfx/crowd_ooh.mp3`(loudnorm I=-16).
 - `runtime-contract.json`: export 결과(배율·칸 크기).
+- (BUILD279) `splat-raw.png`(`splat.prompt.txt`): 토마토·계란 얼룩(위 두 칸) + 과즙 튐(아래 두 칸) → `export_splat.py` → `assets/props/splat_tomato.png`·`splat_egg.png`(폭 30), `assets/fx/tomato_burst.png`·`egg_burst.png`(폭 72, 한 장 — boom 노드로 커지며 튐). `crowd-boo-raw.webm` + `crowd-boo.meta.txt`: 야유 녹음 → `assets/audio/sfx/crowd_boo.mp3`.

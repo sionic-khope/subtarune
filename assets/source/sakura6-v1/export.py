@@ -66,16 +66,8 @@ ref = Image.open(A / 'sprites' / 'choimis.png').convert('RGBA').crop((0, 0, 128,
 target_h = rb[3] - rb[1]
 report = {'reference_stand_height': target_h}
 
-# 1) 가면 걷기 시트
-raw = keyed(ROOT / 'choimis-masked-walk-raw.png'); n = raw.width // 4
-figs = [[figure(raw, (c * n, r * n, (c + 1) * n, (r + 1) * n)) for c in range(4)] for r in range(4)]
-scale = target_h / figs[0][0][1]              # 정면 0번 칸 몸통 키 기준 공통 배율(칸마다 늘리지 않는다)
-sheet = Image.new('RGBA', (512, 512), (0, 0, 0, 0)); heights = []
-for r in range(4):
-    for c in range(4):
-        fr = place(figs[r][c], scale); sheet.paste(fr, (c * CELL, r * CELL)); heights.append(fr.getbbox()[3] - fr.getbbox()[1])
-sheet.save(A / 'sprites' / 'choimis-masked-walk.png'); report['walk'] = {'scale': round(scale, 4), 'frame_heights': heights}
-
+# 1) 가면 걷기 시트 — BUILD279 부터 mask_overlay.py(기존 GAP 시트 + 가면 조각)가 만든다. gpt-image 재생성 시트(choimis-masked-walk-raw.png)는 GAP 이 빠져 폐기(사용자 “왜 재사용 안 한 거지”)
+report['walk'] = 'mask_overlay.py'
 # 2) 자세 띠(2 칸): 오른쪽(선 자세) 키를 기준 키에 맞추고 같은 배율을 왼쪽에도
 for name in ('pick', 'seup'):
     img = keyed(ROOT / f'choimis-masked-{name}-raw.png'); half = img.width // 2

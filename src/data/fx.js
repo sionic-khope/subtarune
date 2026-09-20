@@ -12,6 +12,9 @@ export const FX = {
   /** 폭발 — 사용자 지정 영상 `deltarune explosion greenscreen`(youtube o84vJH19toI) 에서 누끼(31프레임 85×128)와 오디오를 같이 딴 것.
    *  쓰인 곳: 청록숲2 쥰희 동상 벽(teal3_toolbox.js). 재생성은 design/audio/references.md 의 '동상 벽 폭발' 줄 참고 */
   explosion: { sheet: 'assets/fx/explosion.png', cols: 31, rows: 1, count: 31, fps: 20, sfx: 'explosion' },
+  /** 과즙 튐(BUILD279 벚꽃 숲 7 관객 난동): 한 장짜리 — { boom:{ ...FX.tomato_burst, at, duration:0.35, scale:0.35, endScale:1.1 } } 로 커지며 튄다(gpt-image, assets/source/sakura7-v1/splat-raw.png) */
+  tomato_burst: { sheet: 'assets/fx/tomato_burst.png', cols: 1, rows: 1, count: 1, fps: 1 },
+  egg_burst: { sheet: 'assets/fx/egg_burst.png', cols: 1, rows: 1, count: 1, fps: 1 },
 };
 
 /** 맵 생성기(파이썬)에서도 쓰라고 경로만 모아 둔다 — 그 연출이 도는 맵의 preload 에 넣는다 */

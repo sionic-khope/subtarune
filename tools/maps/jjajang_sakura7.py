@@ -50,6 +50,8 @@ CROWD_ROWS: Final = (340, 386)        # 관객 두 줄(y)
 CROWD_X0: Final = 536
 CROWD_GAP: Final = 54
 THROW_FILES: Final = ('assets/props/throw_tomato.png', 'assets/props/throw_egg.png', 'assets/props/throw_paper.png', 'assets/props/throw_apple.png')
+STAIN_FILES: Final = {'t': 'assets/props/splat_tomato.png', 'e': 'assets/props/splat_egg.png'}   # 토마토·계란 얼룩(BUILD279) — 난동 때 떨어진 자리에 남는다
+BURST_SHEETS: Final = ('assets/fx/tomato_burst.png', 'assets/fx/egg_burst.png', 'assets/fx/cannon_smoke.png')   # 과즙 튐·착지 먼지(boom 노드)
 SCENE_FLAG: Final = 'sakura7_scene_done'
 TREES: Final = (
     ('assets/props/jjajang_sakura_1.png', 141, 157, 100),
@@ -113,6 +115,11 @@ def build_map() -> dict[str, object]:
         tw, th = png_size(THROW_FILES[i % 4])
         throws.append({'type': 'prop', 'id': f'throw_{i + 1}', 'image': THROW_FILES[i % 4], 'x': x + 12 - tw // 2, 'y': y + 8 - th // 2, 'w': tw, 'h': th,
                        'ix': x + 12 - tw // 2, 'iy': y + 8 - th // 2, 'solid': False, 'hidden': True})
+    stains = []
+    for kind, file in STAIN_FILES.items():
+        sw_, sh_ = png_size(file)
+        for i in range(4):
+            stains.append({'type': 'prop', 'id': f'stain_{kind}{i + 1}', 'image': file, 'x': 0, 'y': 0, 'w': sw_, 'h': sh_, 'ix': 0, 'iy': 0, 'solid': False, 'hidden': True})   # 연출이 떨어진 자리로 옮겨 보이게 한다
     for c in crowd:
         assert rows[(c['y'] + 8) // TILE][(c['x'] + 12) // TILE] == GROUND and c['y'] + 16 > STAGE_FLOOR[1] + 40, f"{c['id']} 는 무대 아래 들 위"
         assert c['y'] + 16 < PARTY_SPOTS['player'][1], f"{c['id']} 는 일행 자리보다 위"
@@ -153,7 +160,7 @@ def build_map() -> dict[str, object]:
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 7', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
-        'preload': [STAGE_FILE, 'assets/props/discord_mask.png', *THROW_FILES],
+        'preload': [STAGE_FILE, 'assets/props/discord_mask.png', *THROW_FILES, *STAIN_FILES.values(), *BURST_SHEETS],
         'spawns': {
             'from_west': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'start': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
@@ -171,7 +178,7 @@ def build_map() -> dict[str, object]:
                         'choimisStart': list(CHOIMIS_START), 'choimisSpot': list(CHOIMIS_SPOT), 'partySpots': {k: list(v) for k, v in PARTY_SPOTS.items()},
                         'crowd': [[c['x'], c['y']] for c in crowd], 'roadY': road_y},
         },
-        'entities': [*trees, stage, *actors, *crowd, *throws, scene, door_west],
+        'entities': [*trees, stage, *actors, *crowd, *stains, *throws, scene, door_west],
     }
 
 
