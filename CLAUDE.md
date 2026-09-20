@@ -28,6 +28,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 - **커밋 전 `tools/dev/check.sh`**(문법·단위 테스트·맵 생성기 동기화). `.githooks/pre-commit` 이 `--quick` 을 강제한다. 플레이테스트는 `tests/playtest/run.sh <이름…>`.
 - **검증은 눈으로**: 연출은 중간 프레임 스크린샷(Read)으로 본다. 헤드리스 통과 ≠ 완료. 테스트는 프록시가 아니라 보이는 값(`flyX`, y 단, 스프라이트 위치)을 잰다.
 - **QA 도구 재사용**: 전투·메뉴·회귀 검사는 [공통 QA 실행 가이드](docs/development/reusable-qa.md)를 따른다. 실행기/하네스를 재사용하고 전투별 조건만 추가하며, 결과는 실패 요약부터 읽는다.
+- **필드에서 캐릭터가 작은 네모(문자 도트)로 보이면 버그다**([회고](docs/postmortems/2026-09-20-sprite-fallback-management.md)): 컷신이 `spawn` 하는 배우의 시트는 `mapScriptAssets` 가 자동으로 준비하고, 그래도 폴백이면 `requestSheet` 가 받아 갈아탄다. 스크린샷에 도트 폴백 배우가 있으면 통과시키지 않는다. 새 자산 흐름을 만들면 `tests/playtest/assets-late-load.mjs` 로 첫 요청 실패·지연 적재를 본다.
 - **사용자가 고른 것은 바꾸지 않는다**(사운드·대사·레이아웃). "공식으로" 같은 지시는 아직 안 고른 것에만. 참고 이미지(델타룬)가 있으면 그 구성이 기본값.
 - **표준 흐름을 컷신에서 복사하지 않는다**(튜토리얼 전용 `{bgm:null}` 이 조우 표준으로 새어 들어간 사례). 줄마다 "일반 맵에서도 맞나".
 - 큰 패치는 앵커 교체(`rep(old,new)`)로, 슬라이스는 `assert a < b`. 끝나면 메서드 이름 중복 grep.
