@@ -126,13 +126,19 @@ registerBattleBg('temple', (ctx) => { if (!templeCache) templeCache = buildTempl
 let nestCache = null;
 // 벚꽃 숲 전투 배경(BUILD266): 검은 밤 + 양옆 벚꽃 나무 판(맵이 미리 적재한 assets/props/jjajang_sakura_N.png) + 떨어지는 분홍 꽃잎 점
 registerBattleBg('sakura', (ctx, battle) => {
+  // 나무는 멀리 뒤(위쪽 띠)에만, 밑동이 y 120 위에서 끝나게 — 캐릭터 발(y 144~246) 아래에 나무가 깔리면 “나무 위에 서 있는” 것처럼 보였다(사용자 2026-09-20). 바닥은 어두운 분홍 땅 띠
   const imgs = battle.game?.propImages || {};
   ctx.save();
   ctx.fillStyle = '#0a0608'; ctx.fillRect(0, 0, 480, 246);
-  ctx.globalAlpha = 0.55;
-  for (const [file, x, y, s] of [['assets/props/jjajang_sakura_1.png', -30, 60, 1.05], ['assets/props/jjajang_sakura_4.png', 320, 70, 1.0], ['assets/props/jjajang_sakura_2.png', 140, -20, 0.7], ['assets/props/jjajang_sakura_3.png', 400, -30, 0.7]]) {
-    const im = imgs[file]; if (im) ctx.drawImage(im, x, y, Math.round(im.width * s), Math.round(im.height * s));
+  const H = 96;   // 지평선: 맨 위 동료(발 y ≈ 144)보다 위 — 세 명 모두 땅 띠 위에 선다
+  ctx.globalAlpha = 0.3;
+  for (const [file, x, s] of [['assets/props/jjajang_sakura_1.png', -16, 0.5], ['assets/props/jjajang_sakura_2.png', 84, 0.46], ['assets/props/jjajang_sakura_3.png', 176, 0.42], ['assets/props/jjajang_sakura_4.png', 256, 0.5], ['assets/props/jjajang_sakura_2.png', 352, 0.46], ['assets/props/jjajang_sakura_3.png', 428, 0.42]]) {
+    const im = imgs[file]; if (!im) continue; const w = Math.round(im.width * s), h = Math.round(im.height * s); ctx.drawImage(im, x, H - h, w, h);
   }
+  ctx.globalAlpha = 1;
+  const ground = ctx.createLinearGradient(0, H, 0, 246); ground.addColorStop(0, '#2a1224'); ground.addColorStop(0.3, '#1a0b17'); ground.addColorStop(1, '#0a0608');
+  ctx.fillStyle = ground; ctx.fillRect(0, H, 480, 246 - H);
+  ctx.fillStyle = '#3a1830'; ctx.fillRect(0, H, 480, 2);
   ctx.globalAlpha = 0.85;
   for (let i = 0; i < 26; i++) { const ph = (battle.t * (14 + (i % 5) * 4) + i * 37) % 300, x = (i * 71 + Math.sin(battle.t * 1.3 + i) * 14) % 480; ctx.fillStyle = i % 3 ? '#ff8ad0' : '#ffc2e0'; ctx.fillRect(Math.round(x), Math.round(ph - 20), 2, 2); }
   ctx.restore();

@@ -9,6 +9,9 @@ export const VOICES = {
   low:     { freq: 210, wave: 'sawtooth', dur: 0.10, jitter: 14, gain: 0.208, cutoff: 1200, glide: -60 },
   cat:     { freq: 880, wave: 'triangle', dur: 0.10, jitter: 90, gain: 0.256, cutoff: 4000 },
   robot:   { freq: 300, wave: 'square',   dur: 0.10, jitter: 0,  gain: 0.224, cutoff: 900 },
+  // 다오·배찌(BUILD270 사용자 “목소리도 너무 이상하고 너무 커”): 작고 짧은 블립 — 기본(0.256)의 절반 이하 음량, 다오는 낮은 네모파, 배찌는 조금 높은 삼각파
+  dao:     { freq: 400, wave: 'square',   dur: 0.07, jitter: 12, gain: 0.10, cutoff: 1800 },
+  bazzi:   { freq: 560, wave: 'triangle', dur: 0.07, jitter: 16, gain: 0.10, cutoff: 2400 },
   narrator:{ freq: 440, wave: 'sine',     dur: 0.12, jitter: 10, gain: 0.208, cutoff: 2000, rate: 1.0, level: 0.9, minGap: 0, poly: true },   // 파일: 언더테일 원본 snd_txt1. 언더테일처럼 글자마다(33ms) 울리고 앞 소리를 끊지 않는다(poly) — 2026-09-09 '목소리 바뀌었다' 피드백으로 복구
   mystery: { freq: 300, wave: 'sine',     dur: 0.14, jitter: 6,  gain: 0.2,   cutoff: 1500, rate: 0.8, level: 1.2, cut: true, minGap: 0.07 },   // 파일: 언더테일 snd_txt2 앞 0.32s(원본은 뒤가 무음) 톤다운 — 검은 화면의 정체불명 목소리. 긴 클립이라 mono cut
   // ── 캐릭터별 ──

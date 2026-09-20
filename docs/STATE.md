@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-20
 
+**BUILD270 — 벚꽃 전투 배경·다오/배찌 목소리 정정**(사용자 2026-09-20 “나무 위에 캐릭터가 서있는 느낌 / 목소리도 너무 이상하고 너무 커”): 전투 배경 `sakura` 는 나무를 지평선(y 118) 위 멀리 띠에만 작게(0.5~0.6배, 알파 0.32) 두고 발밑은 어두운 분홍 땅 띠. 목소리는 전용 블립 `VOICES.dao`(400Hz 네모파)·`bazzi`(560Hz 삼각파), 음량 0.10(기본 0.256).
+
 **BUILD269 — 스프라이트 관리 정리·자산 적재 견고성·전투 뒤 브금 이어 틀기**([회고](postmortems/2026-09-20-sprite-fallback-management.md))(사용자 2026-09-20 “영클 스프라이트는 또 왜 이렇게 됐냐 / 나람이 얼굴도 / 청소부 스프라이트 안나오잖아 / 로딩 다 안된건가 / 스프라이트 관리 잘못되고있는거같은데 싹 고쳐줘 / 벚꽃맵에서 전투끝나면 맵브금 이어서”, 로컬·GitHub Pages 둘 다): 캐릭터 시트는 맵을 준비할 때 `names`(동료 + 맵 엔티티 sprite + preload + MAP_RUNTIME_ASSETS)만 받았고, **컷신이 `spawn` 하는 배우**(토리이 청소부·그림자, teal3 CS, 라운지 가재맨 그림자)는 목록에 없어 문자 도트 폴백으로 그려졌으며, `characterSprite` 가 그 폴백을 이름으로 캐시해 시트가 와도 영영 못 갈아탔다. 수정 ① `mapScriptAssets` 가 스크립트의 `spawn.sprite` 를 모아 `names` 에 넣는다(시트·모션·초상화까지 같은 경로) ② `characterSprite` 는 시트가 있어야 할 캐릭터의 폴백을 `#fallback` 키로 따로 두고 `fallback` 표식을 남긴다 ③ `Character.drawSprite` 가 폴백이면 `game.requestSheet(name)` 으로 받아 도착 즉시 갈아탄다(초상화 파일 없는 캐릭터는 시트 얼굴 초상화도 갱신) ④ `loadImageOptional` 재시도 2회(주소 nonce), `MapAssetCache.image` 는 실패를 캐시하지 않음 ⑤ `Prop` 은 없는 그림을 지연 적재(BUILD268). 감사: 81개 맵의 스크립트 spawn 배우 중 정적 목록에 없던 것 3곳(위)만 — 이제 ①로 전부 준비. 전투 뒤 맵 브금: `startEncounter` 가 브금 위치를 기억하고 `resumeMapBgm` 이 `playBgm(name, { at })` 로 그 자리부터 이어 튼다(모든 표준 조우). 검사 `tests/unit/asset-loading.test.mjs`, 플레이테스트 `assets-late-load`·`jjajang-torii-janitor`·`jjajang-sakura4`(브금 이어짐).
 
 **BUILD268 — 섭리오 몬스터 5마리씩 감소·쥰희 버섯 보라 네모 수정**(사용자 2026-09-20): ① 섭리오 1-1 28→23, 1-2 26→21, 1-3 33→28(레드·블루 유지), 종류 배분 유지(`subrio-core.js`), `subrio.test` 가 정확한 수를 잰다. ② 조종실 회복 연출의 버섯 소품 그림이 맵 준비 목록에 없어 보라 네모 폴백 → `MAP_RUNTIME_ASSETS.youngcle20.images` 추가 + `Prop` 이 없는 그림을 `game.requestPropImage` 로 지연 적재(엔진 일반 수정).
