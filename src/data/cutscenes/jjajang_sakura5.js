@@ -77,6 +77,75 @@ export const jjajang_sakura5_scene = [
   { camera: 'player' },
 ];
 
+/** 전투 직행 QA 준비: 둘은 뛰어 착지한 자리(일행 양옆)에 전투 자세로, 일행은 밑동 아래 가운데 자리에 — 실제 흐름과 같은 상태에서 전투·승리 뒤 연출을 본다 */
+const qaPlace = { action: game => {
+  const spots = { domijorim: [game.entities.find(e => e.id === 'domijorim')?.x ?? 0, 0], dohyun: [0, 0] };
+  for (const [id, by] of [['domijorim', LEAP.domijorim.by], ['dohyun', LEAP.dohyun.by]]) { const e = actor(game, id); if (!e) continue; const home = game.map?.def?.entities?.find(x => x.id === id); if (home) { e.x = home.x + by[0]; e.y = home.y + by[1]; } e.facing = id === 'domijorim' ? 'right' : 'left'; loopCharacterMotion(e, game.characterMotions[e.def.sprite]?.ready); }
+  for (const [id, [x, y]] of Object.entries(PARTY_SPOTS)) { const e = actor(game, id); if (e) { e.x = x; e.y = y; e.facing = id === 'ppaman' ? 'right' : 'left'; if (e === game.player) e.trail = []; } }
+  void spots;
+} };
+export const SAKURA5_BATTLE_AND_AFTER = [
+  ...battleEntry(DUO_BATTLE.enemies, DUO_BATTLE.bgm),
+  { battle: DUO_BATTLE },
+  // ── 전투 승리 뒤 연출(사용자 브리핑 2026-09-20 원문) ──
+  // 전투 뒤 복귀(battleEntry 의 줌·페이드아웃은 장면이 되돌린다): [도미조림이랑 도현이 걍 각도만 틀어서 눕혀놓고] → 줌 1 → 공터 카메라 → 페이드인 → 공터 브금 이어서
+  unpose(['domijorim', 'dohyun']),
+  lieDown('domijorim'), lieDown('dohyun'),
+  { zoom: 1 }, { camera: LEAP_VIEW, duration: 0.01 },
+  { fade: 'in', duration: 0.5 },
+  { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.8 },
+  { wait: 0.6 },
+  P('나대 씨바'),
+  G4('헉..'),
+  // 억빠맨 느낌표 하면서 오른쪽봄
+  { face: 'ppaman', dir: 'right' },
+  { emote: 'ppaman', kind: '!', duration: 1.0, hold: 0.7, sfx: 'chime' },
+  // # 여기서부터 브금
+  { bgm: AFTER_BGM, volume: 0.5, fadeIn: 0.6 },
+  P('혹시 궁금한게 있는데 왜 저 짜장면을 원하시나요?'),
+  // (가순이들도 오른쪽바라보는거 잊지말고) — 원문대로 오른쪽
+  ...GIRLS.map(id => ({ face: id, dir: 'right' })),
+  G5('그야 떙떙님께 환심을 살 수 있으니까요.'),
+  G6('하지만 의미 없겠죠 이미..'),
+  G4('맞아요 이미..'),
+  // 억빠맨 물음표
+  { emote: 'ppaman', kind: '?', duration: 1.0, hold: 0.7 },
+  P('왜요?'),
+  G4('곧 있으면 떙떙님이 청혼을 할거라고 하셨어요'),
+  G5('그녀에게 청혼을 한다고 했어'),
+  P('뭐 씨발 머야 그게'),
+  G6('저도 믿기싫어요 떙떙님 ㅠ'),
+  G6('그녀는 미자라구 하셨어'),
+  G5('맞아 점례.. 그래도 우리 점례가 가장 눈에 띄었어'),
+  G5('난 너무 슬퍼'),
+  G4('저 짜장면을 전달해도 의미가 없겠지'),
+  G4('그냥 가는게 맞는거같아.'),
+  G5('흑흑흑'),
+  close,
+  // (가순이 세명이 그냥 아래로 쭉 걸어서 내려간다 그리고 사라짐.) — 윗길 오른쪽 lane 으로 한 줄로(억빠맨·누운 도현 사이), 화면 밖까지 걸은 뒤 사라짐
+  { parallel: GIRLS.map((id, i) => [
+    { wait: GIRLS_EXIT.stagger[i] },
+    ...(i ? [{ move: id, px: game => [GIRLS_EXIT.lane, actor(game, id)?.y ?? 0] }] : []),
+    { move: id, px: game => [GIRLS_EXIT.lane, (actor(game, id)?.y ?? 0) + GIRLS_EXIT.down] },
+  ]) },
+  ...GIRLS.map(id => ({ remove: id })),
+  { set: { [SAKURA5_GIRLS_LEFT_FLAG]: true } },
+  // 억빠맨: ... (이때 브금꺼짐) — ‘...’ 은 머리 위 말풍선
+  { bgm: null, fadeOut: 1.0 },
+  { bubble: 'ppaman', dots: 3, gap: 0.4, hold: 0.6 },
+  P('근데 일단 뭐 저 위에 짜장면이 있는건 맞지만'),
+  P('저희도 얻을 방법이 없네요.'),
+  P('일단 오른쪽으로 가볼까요'),
+  K('허허 그럴까.'),
+  close,
+  // (이러고 브금 다시 복귀) — 공터 브금
+  { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.8 },
+  { camera: 'player' },
+  { wait: CAM.back },
+  { set: { [SAKURA5_CLEARING_SCENE_FLAG]: true } },
+  { camera: 'player' },
+];
+
 export const jjajang_sakura5_clearing = [
   { set: { [SAKURA5_CLEARING_FLAG]: true } },
   { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.6 },
@@ -157,67 +226,15 @@ export const jjajang_sakura5_clearing = [
   { hop: 'domijorim', by: [0, 0], height: HEUMI.height, duration: HEUMI.duration, sfx: HEUMI.sfx },
   D('내꺼랑께요 흐미!!!!!!!!!!!!'),
   close,
-  // (이러고 전투시작) — 공통 진입(battle_start·흔들림·소용돌이·줌·페이드)
-  ...battleEntry(DUO_BATTLE.enemies, DUO_BATTLE.bgm),
-  { battle: DUO_BATTLE },
-  // ── 전투 승리 뒤 연출(사용자 브리핑 2026-09-20 원문) ──
-  // 전투 뒤 복귀(battleEntry 의 줌·페이드아웃은 장면이 되돌린다): [도미조림이랑 도현이 걍 각도만 틀어서 눕혀놓고] → 줌 1 → 공터 카메라 → 페이드인 → 공터 브금 이어서
-  unpose(['domijorim', 'dohyun']),
-  lieDown('domijorim'), lieDown('dohyun'),
-  { zoom: 1 }, { camera: LEAP_VIEW, duration: 0.01 },
-  { fade: 'in', duration: 0.5 },
-  { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.8 },
-  { wait: 0.6 },
-  P('나대 씨바'),
-  G4('헉..'),
-  // 억빠맨 느낌표 하면서 오른쪽봄
-  { face: 'ppaman', dir: 'right' },
-  { emote: 'ppaman', kind: '!', duration: 1.0, hold: 0.7, sfx: 'chime' },
-  // # 여기서부터 브금
-  { bgm: AFTER_BGM, volume: 0.5, fadeIn: 0.6 },
-  P('혹시 궁금한게 있는데 왜 저 짜장면을 원하시나요?'),
-  // (가순이들도 오른쪽바라보는거 잊지말고) — 원문대로 오른쪽
-  ...GIRLS.map(id => ({ face: id, dir: 'right' })),
-  G5('그야 떙떙님께 환심을 살 수 있으니까요.'),
-  G6('하지만 의미 없겠죠 이미..'),
-  G4('맞아요 이미..'),
-  // 억빠맨 물음표
-  { emote: 'ppaman', kind: '?', duration: 1.0, hold: 0.7 },
-  P('왜요?'),
-  G4('곧 있으면 떙떙님이 청혼을 할거라고 하셨어요'),
-  G5('그녀에게 청혼을 한다고 했어'),
-  P('뭐 씨발 머야 그게'),
-  G6('저도 믿기싫어요 떙떙님 ㅠ'),
-  G6('그녀는 미자라구 하셨어'),
-  G5('맞아 점례.. 그래도 우리 점례가 가장 눈에 띄었어'),
-  G5('난 너무 슬퍼'),
-  G4('저 짜장면을 전달해도 의미가 없겠지'),
-  G4('그냥 가는게 맞는거같아.'),
-  G5('흑흑흑'),
-  close,
-  // (가순이 세명이 그냥 아래로 쭉 걸어서 내려간다 그리고 사라짐.) — 윗길 오른쪽 lane 으로 한 줄로(억빠맨·누운 도현 사이), 화면 밖까지 걸은 뒤 사라짐
-  { parallel: GIRLS.map((id, i) => [
-    { wait: GIRLS_EXIT.stagger[i] },
-    ...(i ? [{ move: id, px: game => [GIRLS_EXIT.lane, actor(game, id)?.y ?? 0] }] : []),
-    { move: id, px: game => [GIRLS_EXIT.lane, (actor(game, id)?.y ?? 0) + GIRLS_EXIT.down] },
-  ]) },
-  ...GIRLS.map(id => ({ remove: id })),
-  { set: { [SAKURA5_GIRLS_LEFT_FLAG]: true } },
-  // 억빠맨: ... (이때 브금꺼짐) — ‘...’ 은 머리 위 말풍선
-  { bgm: null, fadeOut: 1.0 },
-  { bubble: 'ppaman', dots: 3, gap: 0.4, hold: 0.6 },
-  P('근데 일단 뭐 저 위에 짜장면이 있는건 맞지만'),
-  P('저희도 얻을 방법이 없네요.'),
-  P('일단 오른쪽으로 가볼까요'),
-  K('허허 그럴까.'),
-  close,
-  // (이러고 브금 다시 복귀) — 공터 브금
-  { bgm: CLEARING_BGM, volume: 0.5, fadeIn: 0.8 },
-  { camera: 'player' },
-  { wait: CAM.back },
-  { set: { [SAKURA5_CLEARING_SCENE_FLAG]: true } },
-  { camera: 'player' },
+  // (이러고 전투시작) — 공통 진입(battle_start·흔들림·소용돌이·줌·페이드) → 전투 → 승리 뒤 연출(아래 SAKURA5_BATTLE_AND_AFTER, QA 직행도 같은 것을 쓴다)
+  ...SAKURA5_BATTLE_AND_AFTER,
 ];
+
+
+/** QA 전투 직행: 배치 → 진입 연출 → 전투 → 승리 뒤 연출(검은 화면으로 끝나지 않게 페이드인·브금까지 같은 노드) */
+export const sakura5_duo_battle_qa = [qaPlace, { camera: LEAP_VIEW, duration: 0.01 }, { wait: 0.3 }, ...SAKURA5_BATTLE_AND_AFTER];
+/** QA 승리 직후: 배치 → 승리 뒤 연출부터 */
+export const sakura5_after_battle_qa = [qaPlace, { camera: LEAP_VIEW, duration: 0.01 }, { set: { [DUO_BATTLE.flag]: true } }, ...SAKURA5_BATTLE_AND_AFTER.slice(SAKURA5_BATTLE_AND_AFTER.findIndex(n => n.battle) + 1)];
 
 export const jjajang_sakura5_no_right = [
   { face: 'player', dir: 'left' },

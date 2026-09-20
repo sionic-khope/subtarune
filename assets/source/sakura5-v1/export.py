@@ -24,6 +24,7 @@ RAW_ROWS_BY = {"domijorim": (0, 1, 2, 3)}   # 도미조림 5차 시트는 형섭
 CELL = 64
 FIT = {"dohyun": "0.74", "domijorim": "0.98"}   # 도현: 처음 0.92(“얇고 살짝 길죽하게”)에서 사용자 “비율 키 20퍼 줄여라” → ×0.8 = 0.74. 도미조림 5차 시트는 형섭 시트(칸을 거의 채움)와 같은 크기가 되게 0.98
 SHEETS = ("dohyun", "domijorim", "gasuni4", "gasuni5", "gasuni6")
+BIG_HEAD = {"domijorim"}           # 초상화를 머리 폭 기준 정사각으로
 TREE_SCALE = 3                     # 1024 원본 → 1/3
 
 
@@ -74,7 +75,11 @@ def export_sheet(name: str) -> None:
     face = runtime.crop((0, 0, 128, 128))
     bbox = face.getbbox()
     top = bbox[1] if bbox else 20
-    face.crop((34, top - 2, 96, top + 60)).resize((96, 96), Image.Resampling.NEAREST).save(REPO / "assets/portraits" / f"{name}.png")
+    if name in BIG_HEAD:   # 사진 머리(도미조림 7차): 머리가 칸 폭 대부분 — 머리 폭만큼 정사각으로 잘라 초상화(입까지 들어오게)
+        w = bbox[2] - bbox[0]; side = min(128, w); left = max(0, bbox[0] + (w - side) // 2)
+        face.crop((left, top, left + side, top + side)).resize((96, 96), Image.Resampling.NEAREST).save(REPO / "assets/portraits" / f"{name}.png")
+    else:
+        face.crop((34, top - 2, 96, top + 60)).resize((96, 96), Image.Resampling.NEAREST).save(REPO / "assets/portraits" / f"{name}.png")
     print(name, "runtime", runtime.size, "frame0 bbox", bbox)
 
 

@@ -10,14 +10,14 @@
   "refs": [
     "assets/source/sakura5-v1/domijorim-battle2-ref.png"
   ],
-  "elapsed_seconds": 38.6,
+  "elapsed_seconds": 38.5,
   "usage": {
-    "input_tokens": 1296,
+    "input_tokens": 1309,
     "output_tokens": 1756,
-    "total_tokens": 3052,
+    "total_tokens": 3065,
     "input_tokens_details": {
       "image_tokens": 1024,
-      "text_tokens": 272
+      "text_tokens": 285
     },
     "output_tokens_details": {
       "image_tokens": 1756,
@@ -25,11 +25,11 @@
       "image_pages": 1
     }
   },
-  "created": 1789909182,
+  "created": 1789911357,
   "outputs": [
     {
       "file": "assets/source/sakura5-v1/domijorim-battle-idle-raw.png",
-      "bytes": 1138476,
+      "bytes": 1198999,
       "size": [
         1024,
         1024

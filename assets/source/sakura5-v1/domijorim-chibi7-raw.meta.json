@@ -8,16 +8,16 @@
     "quality": "high"
   },
   "refs": [
-    "assets/source/sakura5-v1/domijorim-chibi7-ref.png"
+    "assets/source/sakura5-v1/domijorim-face2-composed.png"
   ],
-  "elapsed_seconds": 39.9,
+  "elapsed_seconds": 43.6,
   "usage": {
-    "input_tokens": 1331,
+    "input_tokens": 1500,
     "output_tokens": 1756,
-    "total_tokens": 3087,
+    "total_tokens": 3256,
     "input_tokens_details": {
-      "image_tokens": 1024,
-      "text_tokens": 307
+      "image_tokens": 1075,
+      "text_tokens": 425
     },
     "output_tokens_details": {
       "image_tokens": 1756,
@@ -25,11 +25,11 @@
       "image_pages": 1
     }
   },
-  "created": 1789911237,
+  "created": 1789911197,
   "outputs": [
     {
-      "file": "assets/source/sakura5-v1/domijorim-heumi-raw.png",
-      "bytes": 1026926,
+      "file": "assets/source/sakura5-v1/domijorim-chibi7-raw.png",
+      "bytes": 1257339,
       "size": [
         1024,
         1024

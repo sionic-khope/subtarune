@@ -31,7 +31,7 @@ function fixture(ids) {
 
 test('test_boss_victory_metadata_marks_only_registered_story_bosses', () => {
   assert.deepEqual(Object.keys(ENEMIES).filter(id => ENEMIES[id].boss),
-    ['drum_devil', 'youngcle_hover', 'youngcle_tvform', 'park_guardian', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);
+    ['drum_devil', 'youngcle_hover', 'youngcle_tvform', 'park_guardian', 'domijorim', 'dohyun', 'mankatsuki_junhee', 'expelled_viewer', 'baron', 'red', 'blue']);   // 도미조림·도현(BUILD275): 벚꽃 숲 5 보스전 — 승리음 없음(사용자 “보스전에서는 승리음 안 떠야”)
 });
 
 for (const [ids, boss] of [

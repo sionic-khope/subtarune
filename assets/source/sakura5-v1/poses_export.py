@@ -20,7 +20,7 @@ GRID = 512
 # 모션: (캐릭터, 기준 칸 index(0~3), 기준 칸 키 / 걷기 키 비율 — 팔을 든 자세는 걷기보다 커야 한다, 칸 폭 또는 (폭, 높이) — 홍어를 옆·위로 뻗는 leap 은 160×144, 발은 칸 아래 8px)
 MOTIONS = {
     'domijorim-heumi': ('domijorim', 3, 1.02, 128),
-    'domijorim-leap': ('domijorim', 3, 1.18, (160, 144)),
+    'domijorim-leap': ('domijorim', 3, 1.0, (160, 144)),   # 7차(사진 머리) 걷기 키가 120 이라 1.18 이면 공중 칸이 144 를 넘는다
     'dohyun-wave': ('dohyun', 0, 1.0, 128),
     'dohyun-leap': ('dohyun', 3, 1.02, 128),
 }

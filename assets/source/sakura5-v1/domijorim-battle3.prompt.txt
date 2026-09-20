@@ -1,7 +1,1 @@
-# imagegen 2026-09-20 22:35:19
-# endpoint: images/edits
-# model: openai/gpt-image-2.5-sunburst
-# size: 1024x1024  quality: high
-# refs: assets/source/sakura5-v1/domijorim-chibi7-ref.png
-
 Image1 is the approved 4x4 walking spritesheet of 도미조림 (a pixelated-photo head — the real man's face and wavy hair downsampled into pixels — on a small chunky pixel body). Create ONE larger ENEMY BATTLE SPRITE of him for a Deltarune-style RPG battle: the SAME pixelated-photo head (same face, same wide laughing expression, same hair, same pixel look — do not redraw it as a cartoon), on the same kind of chunky pixel body, standing in a confident fighting stance turned toward the LOWER-LEFT (3/4 view looking down-left toward the player's party), feet apart. In his RIGHT hand he holds up the big FROZEN SKATE FISH (flat diamond-shaped pale pinkish-grey ray with a long thin tail, white frost) gripped by the tail like a sword, raised high; in his LEFT hand a burning wooden torch with an orange-yellow pixel flame. Dark navy t-shirt with a tiny red patch, blue jeans, white sneakers. A single figure centred on the canvas filling about 85% of the height, nothing cut off. Flat solid magenta background (#FF00FF), no ground, no shadow, no text, no grid, no extra copies. Chunky retro pixel art, crisp square pixels, no anti-aliasing, no blur.

@@ -72,7 +72,7 @@ import { jjajang_nest_drum } from './cutscenes/drum_devil.js';
 import { jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return } from './cutscenes/jjajang_nest_after.js';
 import { jjajang_sakura_bloom } from './cutscenes/jjajang_sakura.js';   // 벚꽃 숲 번짐(BUILD261)
 import { jjajang_sakura2_bridge } from './cutscenes/jjajang_sakura2.js';
-import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right } from './cutscenes/jjajang_sakura5.js';   // 벚꽃 숲 5 공터 연출·오른쪽 길 막기(BUILD271)   // 벚꽃 숲 2 벚꽃다리(BUILD264)   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
+import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, sakura5_duo_battle_qa, sakura5_after_battle_qa } from './cutscenes/jjajang_sakura5.js';   // 벚꽃 숲 5 공터 연출·오른쪽 길 막기(BUILD271)   // 벚꽃 숲 2 벚꽃다리(BUILD264)   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
 import { jjajang_glade_intro } from './cutscenes/jjajang_glade.js';   // 빛 드는 공터 풀숲의 최미스(BUILD257)
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
 import { maillard_yakulbeol, maillard_mabaem, maillard_yerim_pair } from './cutscenes/maillard_saloon_npcs.js';
@@ -116,7 +116,7 @@ export const SCRIPTS = {
   jjajang_think,
   jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5, jjajang_nest_drum, jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return, jjajang_glade_intro, jjajang_sakura_bloom, jjajang_sakura2_bridge, jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
   drum_devil_battle_qa: [jjajang_nest_drum.find(node => node.battle), ...jjajang_nest_after],   // 전투 직행 QA 도 승리 뒤 연출까지(BUILD254)
-  sakura5_duo_battle_qa: [jjajang_sakura5_clearing.find(node => node.battle)],   // 도미조림·도현 전투 직행 QA(BUILD271)
+  sakura5_duo_battle_qa, sakura5_after_battle_qa,   // 도미조림·도현 전투 직행 QA(진입 연출·전투·승리 뒤 연출까지) / 승리 직후 QA(BUILD275)
   obj4_baron_intro,
   obj4_baron_abduction,
   obj5_chase,

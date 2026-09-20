@@ -526,7 +526,9 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_bridge', desc: '벚�
   map: 'jjajang_sakura5', spawn: 'bridge_end', flags: sakura5Flags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_fork', desc: '벚꽃 숲 5 · 갈림목 (첫 연출 뒤 · 위로 좀 올라가면 두 번째 연출 — 브금 telling·도미조림 느낌표·짜장면 얘기)',
   map: 'jjajang_sakura5', spawn: 'fork', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true }, party: ['gyeongsub', 'ppaman'] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_battle', desc: '벚꽃 숲 5 · 도미조림·도현 전투 직행 (홍어·횃불 / 살랑살랑 낙하·카톡 텍스트, 체력 50씩, 브금 petal_dance)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_battle', desc: '벚꽃 숲 5 · 도미조림·도현 전투 직행 (진입 연출 → 전투 → 승리 뒤 연출까지 이어짐)',
   map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true }, party: ['gyeongsub', 'ppaman'], script: 'sakura5_duo_battle_qa' });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_clearing', desc: '벚꽃 숲 5 · 공터 (두 연출·전투·승리 뒤 연출까지 끝 — 가순이들은 떠났고 둘은 누워 있음, 오른쪽 길로)',
-  map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true, sakura5_clearing_scene_done: true, sakura5_duo_won: true, sakura5_girls_left: true }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_after_battle', desc: '벚꽃 숲 5 · 전투 승리 직후 (승리 뒤 연출부터: 둘 눕힘 → 나대 씨바 → … → 가순이 퇴장 → 오른쪽으로)',
+  map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true }, party: ['gyeongsub', 'ppaman'], script: 'sakura5_after_battle_qa' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_clearing', desc: '벚꽃 숲 5 · 전부 끝난 뒤 (가순이들은 떠남 · 오른쪽 길 앞)',
+  map: 'jjajang_sakura5', spawn: 'east', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true, sakura5_clearing_scene_done: true, sakura5_duo_won: true, sakura5_girls_left: true }, party: ['gyeongsub', 'ppaman'] });

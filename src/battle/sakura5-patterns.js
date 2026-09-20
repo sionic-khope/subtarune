@@ -10,7 +10,7 @@
 //                      [회피] ① 두 줄 사이·바깥 ② 바닥에 닿으면 옆으로 미끄러져(90px/s) 바닥 줄을 쓸고 사라진다 — 바닥에서 떨어져 있기. 0.9초마다
 //     kakao_burst:     [동작] 카톡을 연달아 보낸다 [실루엣] 노란 카톡 말풍선 “파크가디언 그새끼보다 낫노”(사용자 원문만) [예고] 가로 점선 0.45초 → 왼쪽에서 한 줄(110px/s, 출렁) → 0.55초 뒤 다른 줄(≥64px 떨어진) 가로 점선 → 오른쪽에서 한 줄 → 둘 다 지나간 뒤 소울 x 세로 점선 0.45초 → 위에서 큰 풍선 낙하(200px/s)
 //                      [회피] ① 첫 줄 피해 ② 두 번째 줄로 옮겨 서지 말고 그 사이/바깥 ③ 낙하 자리에서 옆으로 — 한 번에 하나씩 온다(사용자 “어떻게 피하라고” → 동시 두 줄+낙하 겹침 폐기). 2.1초마다
-//   모든 예고 ≥ 0.35초. 피해는 적 def.damage 고정. 소리는 델타룬 소리 재사용(heavyswing 던짐·swing 되돌아옴·ember 횃불·sizzle 불기둥·wing 낙하·pop 착지·click 카톡·knock 낙하). whoosh 금지.
+//   모든 예고 ≥ 0.35초. 피해는 적 def.damage 고정. 소리는 델타룬 소리 재사용(heavyswing 던짐·swing 되돌아옴·ember 횃불·sizzle 불기둥·wing 낙하·pop 착지) + 카톡 말풍선은 실제 카카오톡 알림음 `kakao`(사용자 “똑똑똑 효과음은 왜 쓴 거야” → click/knock 폐기). whoosh 금지.
 //   텍스트 원문은 KAKAO_TEXTS 에만 둔다(더 주면 추가). 상자 안 캐릭터 그림은 whiteSprite(흰/검 2톤).
 import { whiteSprite } from './youngcle-patterns.js';
 
@@ -18,7 +18,7 @@ const TAU = Math.PI * 2;
 export const SKATE = Object.freeze({ every: 1.6, first: 0.45, warn: 0.45, returnWarn: 0.35, speed: 180, turnAt: 0.82, wobble: 10, wobbleHz: 3.0, r: 9, w: 30, h: 16, spin: 3.0, shards: 3, shardSpeed: 70, shardR: 4, duration: 5.2 });
 export const TORCH = Object.freeze({ every: 1.35, first: 0.4, warn: 0.45, lobVy: -260, lobG: 540, r: 7, spin: 7, pillarW: 22, pillarLife: 0.9, embers: 4, emberVy: -150, emberG: 300, emberR: 3, duration: 5.4 });
 export const DOHYUN_FALL = Object.freeze({ every: 0.9, first: 0.35, warn: 0.35, vy: 56, sway: 26, swayHz: 1.4, tilt: 0.3, h: 44, slide: 90, duration: 5.6 });
-export const KAKAO = Object.freeze({ every: 2.1, first: 0.4, warn: 0.45, secondAfter: 0.55, rowGap: 64, dropWarn: 0.45, dropAfter: 2.2, speed: 110, dropVy: 200, bob: 4, bobHz: 2.0, padX: 6, padY: 4, font: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', bigFont: '13px Galmuri11, "Apple SD Gothic Neo", sans-serif', duration: 5.4 });
+export const KAKAO = Object.freeze({ every: 2.6, first: 0.4, warn: 0.45, secondAfter: 0.55, rowGap: 64, dropWarn: 0.6, dropAfter: 2.4, speed: 150, dropVy: 150, bob: 4, bobHz: 2.0, padX: 6, padY: 4, font: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', bigFont: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', duration: 6.0 });   // 사용자 “아직도 못 피하잖아”: 줄은 하나씩 150px/s 로 2.4초 안에 지나가고, 낙하는 두 줄이 거의 나간 뒤(2.4초) 세로 점선 0.6초 → 150px/s(상자 1초) — 옆으로 80px 만 비키면 된다
 export const KAKAO_TEXTS = Object.freeze(['파크가디언 그새끼보다 낫노']);   // 사용자 원문(2026-09-20). 다른 문구를 주면 여기에 더한다
 
 let measureCtx = null;
@@ -203,8 +203,9 @@ function kakaoBurst(o = {}) {
       const q = queue.shift();
       if (q.kind === 'rowWarn') { hline(api, q.y, KAKAO.warn); queue.push({ ...q, kind: 'row', at: t + KAKAO.warn }); queue.sort((p, r) => p.at - r.at); }
       else if (q.kind === 'row') {
-        api.sfx?.('click', { volume: 0.5 });
+        api.sfx?.('kakao', { volume: 0.7 });
         api.emit({ x: q.dir > 0 ? b.x - q.w / 2 - 8 : b.x + b.w + q.w / 2 + 8, y: q.y, r: 0, kind: 'white', shape: 'kakao', vx: q.dir * KAKAO.speed, life: (b.w + q.w + 20) / KAKAO.speed + 0.2, w: q.w, h: q.h, text: q.text, tail: q.dir > 0 ? 'left' : 'right', baseY: q.y,
+          out() { return this.age >= this.life; },   // 상자 밖(40px 너머)에서 태어나므로 기본 밖 판정으로 첫 프레임에 지워지지 않게 — 수명으로만(BUILD275 “아무것도 안 나오는데 소리만”)
           steer(self) { self.y = self.baseY + Math.sin(self.age * KAKAO.bobHz * TAU) * KAKAO.bob; }, hitShape: rectHit, drawShape(ctx, s) { drawKakao(ctx, s); } });
       } else if (q.kind === 'dropWarn') {
         const bw = textWidth(KAKAO.bigFont, q.text) + KAKAO.padX * 2, bh = 18 + KAKAO.padY * 2;
@@ -212,7 +213,7 @@ function kakaoBurst(o = {}) {
         vline(api, x, KAKAO.dropWarn);
         queue.push({ at: t + KAKAO.dropWarn, kind: 'drop', text: q.text, x, w: bw, h: bh });
       } else {
-        api.sfx?.('knock', { volume: 0.5 });
+        api.sfx?.('kakao', { volume: 0.7 });
         api.emit({ x: q.x, y: b.y - q.h, r: 0, kind: 'white', shape: 'kakao', vy: KAKAO.dropVy, life: (b.h + q.h * 2) / KAKAO.dropVy + 0.2, w: q.w, h: q.h, text: q.text, tail: 'top', font: KAKAO.bigFont, hitShape: rectHit, drawShape(ctx, s) { drawKakao(ctx, s); } });
       }
     }

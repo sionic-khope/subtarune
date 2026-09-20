@@ -3,11 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, CLEARING_VIEW, PEEK_VIEW, CAM, GIRLS_ZOOM, CLEARING_BGM, AFTER_BGM, GIRLS_EXIT, DUO_BATTLE, PARTY_SPOTS, LEAP, HEUMI, SAKURA5_SCENE_FLAG, SAKURA5_CLEARING_FLAG, SAKURA5_CLEARING_SCENE_FLAG, SAKURA5_GIRLS_LEFT_FLAG, NO_RIGHT_LINE } from '../../src/data/cutscenes/jjajang_sakura5.js';
+import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, sakura5_duo_battle_qa, sakura5_after_battle_qa, SAKURA5_BATTLE_AND_AFTER, CLEARING_VIEW, PEEK_VIEW, CAM, GIRLS_ZOOM, CLEARING_BGM, AFTER_BGM, GIRLS_EXIT, DUO_BATTLE, PARTY_SPOTS, LEAP, HEUMI, SAKURA5_SCENE_FLAG, SAKURA5_CLEARING_FLAG, SAKURA5_CLEARING_SCENE_FLAG, SAKURA5_GIRLS_LEFT_FLAG, NO_RIGHT_LINE } from '../../src/data/cutscenes/jjajang_sakura5.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { PATTERNS } from '../../src/battle/bullets.js';
 import { SAKURA5_PATTERNS, SKATE, TORCH, DOHYUN_FALL, KAKAO, KAKAO_TEXTS } from '../../src/battle/sakura5-patterns.js';
+import { Bullet } from '../../src/battle/bullets.js';
 import { QA_POINTS } from '../../src/core/story.js';
 import { MAP_RUNTIME_ASSETS } from '../../src/data/map-runtime-assets.js';
 import { CHARACTERS } from '../../src/data/characters.js';
@@ -185,7 +186,12 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   const m5 = load('jjajang_sakura5');
   assert.ok(['gasuni4', 'gasuni5', 'gasuni6'].every(id => m5.entities.find(e => e.id === id).unless === SAKURA5_GIRLS_LEFT_FLAG), '떠난 가순이들은 다시 안 나온다');
   assert.ok(back > battle && jjajang_sakura5_clearing.some(n => n.set?.[SAKURA5_CLEARING_SCENE_FLAG]), '전투 뒤 카메라 주인공·플래그');
-  assert.equal(SCRIPTS.sakura5_duo_battle_qa[0].battle, DUO_BATTLE);
+  // QA 직행 둘 다 승리 뒤 연출(페이드인·브금 복귀)까지 같은 노드를 쓴다 — 전투 직행 뒤 검은 화면(사용자 “게임 이기고 나서 검은 화면만”) 방지
+  assert.equal(SCRIPTS.sakura5_duo_battle_qa, sakura5_duo_battle_qa); assert.equal(SCRIPTS.sakura5_after_battle_qa, sakura5_after_battle_qa);
+  const qaBattle = sakura5_duo_battle_qa.findIndex(n => n.battle);
+  assert.ok(qaBattle > 0 && sakura5_duo_battle_qa.slice(qaBattle).some(n => n.fade === 'in') && sakura5_duo_battle_qa.slice(qaBattle).some(n => n.text?.includes('나대 씨바')) && sakura5_duo_battle_qa.slice(0, qaBattle).some(n => n.sfx === 'battle_start'), '전투 직행 QA = 배치 → 진입 연출 → 전투 → 승리 뒤 연출');
+  assert.ok(!sakura5_after_battle_qa.some(n => n.battle) && sakura5_after_battle_qa.some(n => n.fade === 'in') && sakura5_after_battle_qa.some(n => n.text?.includes('허허 그럴까')) && sakura5_after_battle_qa.some(n => n.set?.[DUO_BATTLE.flag]), '승리 직후 QA = 배치 → 승리 뒤 연출 전부');
+  assert.ok(SAKURA5_BATTLE_AND_AFTER.every(n => jjajang_sakura5_clearing.includes(n)) && SAKURA5_BATTLE_AND_AFTER.some(n => n.sfx === 'battle_start') && SAKURA5_BATTLE_AND_AFTER.some(n => n.battle), '본 흐름도 같은 블록(진입·전투·승리 뒤)을 이어 쓴다');
 });
 
 test('test_sakura5_domijorim_and_dohyun_have_50_hp_their_four_patterns_warn_before_firing_and_stay_in_the_box', () => {
@@ -198,6 +204,7 @@ test('test_sakura5_domijorim_and_dohyun_have_50_hp_their_four_patterns_warn_befo
   assert.deepEqual(ENEMIES.dohyun.patterns.map(p => p.type), ['dohyun_drift', 'kakao_burst']);
   assert.ok(ENEMIES.dohyun.scale <= 0.75 && ENEMIES.domijorim.lines.speak.length >= 1 && ENEMIES.dohyun.lines.speak.length >= 1, '도현 키 20% 축소·말풍선 한 줄');
   assert.ok(ENEMIES.dohyun.sheet.fps <= 4, '도현 살랑살랑 춤은 시트 프레임으로(느린 fps)');
+  assert.ok(ENEMIES.domijorim.boss === true && ENEMIES.dohyun.boss === true, '보스전: 승리음 없음');
   assert.ok(here(ENEMIES.dohyun.projectiles.dohyun), '낙하 패턴은 도현 전투 정지 그림을 쓴다');
   assert.deepEqual(KAKAO_TEXTS, ['파크가디언 그새끼보다 낫노'], '카톡 문구는 사용자 원문만');
   for (const w of [SKATE.warn, TORCH.warn, DOHYUN_FALL.warn, KAKAO.warn]) assert.ok(w >= 0.35, '예고 ≥ 0.35초');
@@ -215,7 +222,21 @@ test('test_sakura5_domijorim_and_dohyun_have_50_hp_their_four_patterns_warn_befo
     assert.ok(shots.every(b => b.drawShape || b.shape === 'circle'), `${type}: 모양 있는 탄`);
     assert.ok(sfx.length >= 1 && !sfx.includes('whoosh'), `${type}: 소리(whoosh 금지)`);
     assert.ok(shots.some(b => b.steer || b.hitShape || b.vy || b.vx), `${type}: 회피 축이 둘 이상(움직임·모양 조합)`);
-    assert.ok(pat.duration >= 4.5 && pat.duration <= 6, `${type}: 길이 ${pat.duration}`);
+    assert.ok(pat.duration >= 4.5 && pat.duration <= 6.5, `${type}: 길이 ${pat.duration}`);
+  }
+  // 카톡 말풍선은 상자 밖(40px 너머)에서 태어나므로 엔진의 기본 out() 으로 첫 프레임에 지워지면 안 된다(사용자 “아무것도 안 나오는데 소리만”) — 실제 Bullet 로 검사
+  {
+    const made = []; let now = 0;
+    const api = { box, soul, rnd, sfx: () => {}, images: {}, emit: o => { const b = new Bullet(o); made.push(b); return b; } };
+    const pat = SAKURA5_PATTERNS.kakao_burst();
+    for (let step = 0; step < 80; step++) { now = step * 0.025; pat.update(now, 0.025, api); }
+    const rows = made.filter(b => b.shape === 'kakao');
+    assert.ok(rows.length >= 1, '카톡 말풍선이 나온다');
+    for (const b of rows) { b.age = 0.05; b.x += b.vx * 0.05; assert.ok(!b.out(box), '태어난 직후 상자 밖이라도 지워지지 않는다'); }
+    assert.ok(rows.every(b => b.w >= 100 && b.h >= 18), '말풍선 크기(글자 폭 기준)');
+    const sounds = []; SAKURA5_PATTERNS.kakao_burst().update(0.5, 0.5, { ...api, sfx: n => sounds.push(n), emit: o => ({ ...o }) });
+    assert.ok(!sounds.includes('click') && !sounds.includes('knock'), '카톡 소리는 click/knock 이 아니다');
+    assert.ok(here('assets/audio/sfx/kakao.mp3'), '카톡 알림음 파일');
   }
 });
 
@@ -228,7 +249,8 @@ test('test_sakura5_characters_voices_sprites_and_qa_points_exist', () => {
   for (const v of ['dohyun', 'domijorim']) assert.ok(VOICES[v] && here(`assets/audio/voices/${v}.mp3`), `목소리 ${v}`);
   assert.ok(here('assets/enemies/domijorim-battle.png') && here('assets/enemies/dohyun-battle.png'), '적군 전투 스프라이트(그림만)');
   const ids = QA_POINTS.filter(q => q.map === 'jjajang_sakura5').map(q => [q.id, q.spawn]);
-  assert.deepEqual(ids, [['jjajang_sakura5', 'from_north'], ['jjajang_sakura5_bridge', 'bridge_end'], ['jjajang_sakura5_fork', 'fork'], ['jjajang_sakura5_battle', 'clearing'], ['jjajang_sakura5_clearing', 'clearing']]);
+  assert.deepEqual(ids, [['jjajang_sakura5', 'from_north'], ['jjajang_sakura5_bridge', 'bridge_end'], ['jjajang_sakura5_fork', 'fork'], ['jjajang_sakura5_battle', 'clearing'], ['jjajang_sakura5_after_battle', 'clearing'], ['jjajang_sakura5_clearing', 'east']]);
+  assert.equal(QA_POINTS.find(q => q.id === 'jjajang_sakura5_after_battle').script, 'sakura5_after_battle_qa');
   assert.equal(QA_POINTS.find(q => q.id === 'jjajang_sakura5_battle').script, 'sakura5_duo_battle_qa');
   const clearing = QA_POINTS.find(q => q.id === 'jjajang_sakura5_clearing');
   assert.ok(clearing.flags.sakura5_scene_done && clearing.flags.sakura5_clearing_visited && clearing.flags.sakura5_clearing_scene_done && clearing.flags.sakura5_duo_won && clearing.flags.sakura5_girls_left && clearing.flags.jjajang_sakura4_bazzi_defeated);
