@@ -1,0 +1,484 @@
+{
+ "id": "jjajang_glade",
+ "name": "빛 드는 공터",
+ "stage": "ship_sinking_done",
+ "bgm": "wind",
+ "dim": 0.2,
+ "spotlight": {
+  "x": 592,
+  "y": 472,
+  "rx": 230,
+  "ry": 190,
+  "alpha": 0.22
+ },
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@U@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@UUUUUUUUU@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@UUUUUUUUUUUUU@@@@@@@@@@@",
+  "@@@@@@@@@@@UUUUUUUUUUUUUUU@@@@@@@@@@",
+  "@@@@@@@@@@UUUUUUUUUUUUUUUUU@@@@@@@@@",
+  "@@@@@@@@@@UUUUUUUUUUUUUUUUU@@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@UUUUUUUUUUUUUUUUUUUUU@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@UUUUUUUUUUUUUUUUUUU@@@@@@@@",
+  "@@@@@@@@@@UUUUUUUUUUUUUUUUU@@@@@@@@@",
+  "@@@@@@@@@@UUUUUUUUUUUUUUUUU@@@@@@@@@",
+  "@@@@@@@@@@@UUUUUUUUUUUUUUU@@@@@@@@@@",
+  "@@@@@@@@@@@@UUUUUUUUUUUUU@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@UUUUUUUUU@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@UUU@@@U@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@UUU@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@UUU@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@UUU@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UUU@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@UU@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@^^@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_south": {
+   "x": 280,
+   "y": 1196,
+   "facing": "up"
+  },
+  "start": {
+   "x": 280,
+   "y": 1196,
+   "facing": "up"
+  },
+  "before_bush": {
+   "x": 584,
+   "y": 678,
+   "facing": "up"
+  },
+  "center": {
+   "x": 584,
+   "y": 550,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    9,
+    37
+   ],
+   [
+    9,
+    30
+   ],
+   [
+    18,
+    15
+   ]
+  ],
+  "role": "깊은숲 입구 위 문 다음(BUILD257): 오른쪽으로 비스듬히 오르면 위에서 빛이 드는 원형 공터. 오른쪽 풀숲 셋(가운데 것에 최미스), 왼쪽 숨는 나무. 브금 wind",
+  "glade": {
+   "center": [
+    18,
+    15
+   ],
+   "radius": 10,
+   "bushes": [
+    [
+     24,
+     12
+    ],
+    [
+     25,
+     14
+    ],
+    [
+     24,
+     16
+    ]
+   ],
+   "hideTree": [
+    13,
+    15
+   ],
+   "trigger": [
+    15,
+    18,
+    6,
+    2
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_1",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 100,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 12,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_5",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 964,
+   "y": 146,
+   "w": 24,
+   "h": 12,
+   "ix": 876,
+   "iy": 1,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_7",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "x": 68,
+   "y": 338,
+   "w": 24,
+   "h": 12,
+   "ix": 20,
+   "iy": 183,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_8",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "x": 164,
+   "y": 530,
+   "w": 24,
+   "h": 12,
+   "ix": 118,
+   "iy": 396,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_9",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 1060,
+   "y": 530,
+   "w": 24,
+   "h": 12,
+   "ix": 972,
+   "iy": 385,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_10",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "x": 68,
+   "y": 722,
+   "w": 24,
+   "h": 12,
+   "ix": 50,
+   "iy": 575,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_11",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "x": 1028,
+   "y": 754,
+   "w": 24,
+   "h": 12,
+   "ix": 980,
+   "iy": 599,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_12",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "x": 164,
+   "y": 882,
+   "w": 24,
+   "h": 12,
+   "ix": 118,
+   "iy": 748,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_13",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 452,
+   "y": 882,
+   "w": 24,
+   "h": 12,
+   "ix": 364,
+   "iy": 737,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_14",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "x": 836,
+   "y": 882,
+   "w": 24,
+   "h": 12,
+   "ix": 818,
+   "iy": 735,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_15",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "x": 1028,
+   "y": 978,
+   "w": 24,
+   "h": 12,
+   "ix": 980,
+   "iy": 823,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_16",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "x": 100,
+   "y": 1074,
+   "w": 24,
+   "h": 12,
+   "ix": 54,
+   "iy": 940,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_17",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 452,
+   "y": 1074,
+   "w": 24,
+   "h": 12,
+   "ix": 364,
+   "iy": 929,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_18",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "x": 708,
+   "y": 1074,
+   "w": 24,
+   "h": 12,
+   "ix": 690,
+   "iy": 927,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_19",
+   "image": "assets/props/jjajang_pine_dark_3.png",
+   "x": 932,
+   "y": 1138,
+   "w": 24,
+   "h": 12,
+   "ix": 884,
+   "iy": 983,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_20",
+   "image": "assets/props/jjajang_pine_dark_4.png",
+   "x": 132,
+   "y": 1234,
+   "w": 24,
+   "h": 12,
+   "ix": 86,
+   "iy": 1100,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_21",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 580,
+   "y": 1234,
+   "w": 24,
+   "h": 12,
+   "ix": 492,
+   "iy": 1089,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "jjajang_pine_dark_22",
+   "image": "assets/props/jjajang_pine_dark_2.png",
+   "x": 836,
+   "y": 1234,
+   "w": 24,
+   "h": 12,
+   "ix": 818,
+   "iy": 1087,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "glade_hide_tree",
+   "image": "assets/props/jjajang_pine_dark_1.png",
+   "x": 420,
+   "y": 498,
+   "w": 24,
+   "h": 12,
+   "ix": 332,
+   "iy": 353,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "glade_bush_1",
+   "image": "assets/props/jjajang_bush.png",
+   "x": 772,
+   "y": 400,
+   "w": 24,
+   "h": 12,
+   "ix": 758,
+   "iy": 362,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "glade_bush_2",
+   "image": "assets/props/jjajang_bush.png",
+   "x": 804,
+   "y": 464,
+   "w": 24,
+   "h": 12,
+   "ix": 790,
+   "iy": 426,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "glade_bush_3",
+   "image": "assets/props/jjajang_bush.png",
+   "x": 772,
+   "y": 528,
+   "w": 24,
+   "h": 12,
+   "ix": 758,
+   "iy": 490,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "discord_mask",
+   "image": "assets/props/discord_mask.png",
+   "x": 804,
+   "y": 464,
+   "w": 0,
+   "h": 0,
+   "ix": 793,
+   "iy": 424,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "choimis",
+   "sprite": "choimis",
+   "x": 804,
+   "y": 456,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false,
+   "facing": "down",
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "gasuni1",
+   "sprite": "gasuni1",
+   "x": 580,
+   "y": 198,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false,
+   "facing": "down",
+   "wander": 0,
+   "unless": "glade_done"
+  },
+  {
+   "type": "npc",
+   "id": "gasuni2",
+   "sprite": "gasuni2",
+   "x": 644,
+   "y": 230,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false,
+   "facing": "down",
+   "wander": 0,
+   "unless": "glade_done"
+  },
+  {
+   "type": "npc",
+   "id": "gasuni3",
+   "sprite": "gasuni3",
+   "x": 708,
+   "y": 198,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false,
+   "facing": "down",
+   "wander": 0,
+   "unless": "glade_done"
+  },
+  {
+   "type": "trigger",
+   "id": "glade_intro_trigger",
+   "x": 480,
+   "y": 576,
+   "w": 192,
+   "h": 64,
+   "once": true,
+   "flag": "glade_started",
+   "unless": "glade_done",
+   "script": "jjajang_glade_intro"
+  },
+  {
+   "type": "door",
+   "id": "glade_deep_door",
+   "x": 256,
+   "y": 1270,
+   "w": 64,
+   "h": 10,
+   "to": "jjajang_deep",
+   "spawn": "from_north",
+   "sfx": false
+  }
+ ]
+}

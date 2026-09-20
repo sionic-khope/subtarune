@@ -138,7 +138,7 @@ test('test_deep_forest_entrance_is_a_dark_upward_path_with_one_spring', () => {
   assert.deepEqual([m.bgm, m.dim, m.stage], ['wind', 0.06, 'ship_sinking_done']);
   const H = m.rows.length;
   for (let r = 1; r < H - 1; r++) assert.ok(m.rows[r][9] === 'U' && m.rows[r][10] === 'U' && m.rows[r][8] === '@' && m.rows[r][11] !== 'U' || (r >= 16 && r <= 17), `위로 가는 길 하나 ${r}`);
-  assert.ok([...m.rows[0]].every(ch => ch === '@'), '윗줄은 막힘(다음 맵 브리핑 대기)');
+  assert.ok(m.rows[0][9] === '^' && m.rows[0][10] === '^' && [...m.rows[0]].filter(ch => ch !== '@').length === 2, '윗줄 가운데 두 칸만 출입구(BUILD257 빛 드는 공터로)');
   assert.ok(m.rows[H - 1][9] === '^' && m.rows[H - 1][10] === '^');
   const spring = m.entities.find(e => e.script === 'jjajang_spring');
   assert.ok(spring && spring.image === 'assets/props/blue_buff.png' && spring.solid, '마법의샘 하나');
@@ -146,9 +146,10 @@ test('test_deep_forest_entrance_is_a_dark_upward_path_with_one_spring', () => {
   const [sc, sr] = m.meta.spring; assert.ok(m.rows[sr][sc] === 'U' && m.rows[sr][sc - 1] === 'U', '나들목 위');
   const pines = m.entities.filter(e => /jjajang_pine_dark_/.test(e.image));
   assert.ok(pines.length >= 20 && pines.every(p => existsSync(new URL(`../../${p.image}`, import.meta.url))), '어두운 소나무');
-  const door = m.entities.find(e => e.type === 'door');
+  const door = m.entities.find(e => e.id === 'deep_statue_door'), north = m.entities.find(e => e.id === 'deep_glade_door');
   assert.deepEqual([door.to, door.spawn, door.y], ['jjajang_statue', 'from_deep', H * 32 - 10]);
-  assert.equal(m.entities.filter(e => e.type === 'door').length, 1, '문은 아래 하나');
+  assert.deepEqual([north.to, north.spawn, north.y], ['jjajang_glade', 'from_south', 0], '위 문 → 빛 드는 공터(BUILD257)');
+  assert.equal(m.entities.filter(e => e.type === 'door').length, 2, '문은 아래·위 둘');
 });
 
 test('test_party_and_qa_points_after_the_regroup', () => {

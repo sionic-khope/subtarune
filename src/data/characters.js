@@ -6,7 +6,11 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
-  choimis: { name: '최미스', sheet: 'assets/sprites/choimis.png', stillPivot: [64, 120] },
+  // 가순이 1·2·3(BUILD257 빛 드는 공터): 사용자 참조(이라스토야풍 소녀)를 글로 옮겨 gpt-image-2.5-sunburst 4×4 걷기 시트(assets/source/gasuni-walk-v1) — 1 긴머리, 2 단발, 3 땋은머리. 목소리는 합성 gasuni(지정 없음)
+  gasuni1: { name: '가순이1', voice: 'gasuni', sheet: 'assets/sprites/gasuni1.png', stillPivot: [64, 120] },
+  gasuni2: { name: '가순이2', voice: 'gasuni', sheet: 'assets/sprites/gasuni2.png', stillPivot: [64, 120] },
+  gasuni3: { name: '가순이3', voice: 'gasuni', sheet: 'assets/sprites/gasuni3.png', stillPivot: [64, 120] },
+  choimis: { name: '최미스', voice: 'choimis', sheet: 'assets/sprites/choimis.png', stillPivot: [64, 120] },   // 목소리(BUILD257): 유튜브 ‘쵸소우야’ 클립 톤(voices/choimis.mp3), 초상화 assets/portraits/choimis.png(걷기 시트 얼굴)
   // 청소부(BUILD226 사용자 그림 등록: 붉은 두건·안경·수염·붉은 셔츠, “조금만 더 허약한 섭타룬 버전”): gpt-image-2.5-sunburst 4×4 걷기 시트 → 128px 셀(assets/source/janitor-v1). 목소리는 형섭 샘플을 할아버지 느낌으로 낮춘 janitor.mp3(델타룬 거슨 참고)
   // 허약 청소부는 토리이 길 이벤트 뒤 동료(hp 100 = 사용자 “hp는 100으로”, 노란색 = “청소부(노란색)이 동료가 되었다”). 전투 시트 assets/battle/janitor*.png(허약 모습) — 깃발·댄스 시트는 ‘청소부(전투)’용으로 따로 둔다
   // hp 100 그대로(noHpBonus: 앞서 얻은 파티 최대 HP 보너스는 청소부에게 안 붙는다 — 사용자 “청소부 체력 100으로 하라고 했잖아”), attackMode throw = 제자리에서 지팡이 던지기

@@ -1,6 +1,18 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
 export const CHARACTER_MOTIONS = {
+  // 최미스(BUILD257 빛 드는 공터): 걷기 시트(128 셀, 발 [64,120])와 같은 규격의 자세 그림 — gpt-image-2.5-sunburst(assets/source/choimis-poses-v1, 참조 = 걷기 시트 미리보기) 를 색키·축소해 128 칸에 넣었다.
+  //   masked: 디스코드 로고(simple-icons, 블러플)를 정면 0번 얼굴에 가면처럼 씌운 한 장. wink: 눈 뜬 정면 0번 ↔ 윙크. seup: 코 비비기 1.4초 → 손가락 총 1.3초(= 스읍 미스 음성 2.7초)
+  choimis: {
+    // 이미 투명 PNG 라 colorKey 는 ‘없음’(rMin 256) — 로더가 colorKey 없이는 죽는다(QA 진입 실패 TypeError rMin)
+    masked: { src: 'assets/sprites/choimis-masked.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 }, frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+    facepalm: { src: 'assets/sprites/choimis-facepalm.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 }, frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+    fallen: { src: 'assets/sprites/choimis-fallen.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 }, frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1 }] },
+    wink: { src: 'assets/sprites/choimis-wink.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [[1, 0.4], [0, 0.14], [1, 0.5], [0, 0.14], [1, 0.7]].map(([cell, duration]) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })) },
+    seup: { src: 'assets/sprites/choimis-seup.png', scale: 0.5, colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [{ rect: [0, 0, 128, 128], pivot: [64, 120], duration: 1.4 }, { rect: [128, 0, 128, 128], pivot: [64, 120], duration: 1.3 }] },
+  },
   // 청소부 영웅(깃발) 필드 웃음(BUILD254): 전투 웃음 그림(assets/battle/janitor-hero-laugh 192) 그대로. 배율은 characters.js janitor_hero.stillScale 과 같게(요플래 약 2배). 오른쪽을 본다.
   //   대기는 동작 없이 정지 그림(stand) — 깃발 흔드는 idle 시트는 전투 스프라이트(사용자 2026-09-20 “이건 전투스프라이트야”)
   janitor_hero: {

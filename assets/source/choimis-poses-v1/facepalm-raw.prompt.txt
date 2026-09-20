@@ -1,0 +1,7 @@
+# imagegen 2026-09-20 13:39:50
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/choimis-walk-v1/preview-4x.png
+
+Pixel art game sprite of the exact same character as the reference image: an elderly man with messy white hair, round glasses, a pink t-shirt with black GAP letters and dark shorts. Keep the same chunky pixel style, palette and body proportions as the reference. Single figure, full body visible, centered, same 3/4 top-down RPG view as the reference, flat solid magenta background (#FF00FF), no text, no drop shadow, no border. Standing and facing the viewer, one hand pressed flat over his own face and forehead in a weary facepalm, shoulders slumped, exhausted sigh.

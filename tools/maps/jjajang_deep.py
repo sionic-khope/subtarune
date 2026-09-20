@@ -9,7 +9,7 @@
 """깊은숲 입구(jjajang_deep, BUILD254 사용자 브리핑 2026-09-20):
 "깊은숲 입구는 일단 오브제맵0의 브금을쓴 좀더 다크한 짜장숲느낌의 스프라이트로 만들어서 위로 가는길 하나랑 마법의샘하나만 추가한맵 찍어주샘"
 - 석상 앞 숲(jjajang_statue) 통로 위 문에서 아래 가장자리로 들어와 위로 곧게 가는 길 하나(9~10열, 'U' = 짜장 길보다 어두운 바닥, 발소리는 같은 숲 에코).
-  윗줄은 막힘(다음 맵 브리핑 대기). 길 오른쪽 작은 나들목(11~12열 × 16~17행) 끝에 마법의샘(마이야르 샘물 소품 blue_buff, C → 전체 회복 jjajang_spring).
+  윗줄 가운데 문 → 빛 드는 공터(jjajang_glade, BUILD257). 길 오른쪽 작은 나들목(11~12열 × 16~17행) 끝에 마법의샘(마이야르 샘물 소품 blue_buff, C → 전체 회복 jjajang_spring).
 - 짜장숲 자산을 어둡게: 검은 숲 '@' 그대로, 소나무는 jjajang_pine_N 을 0.88 밝기로 낮춘 jjajang_pine_dark_N(PIL 후처리; 0.5·0.66·0.8 과 dim 0.1·길 #161918 은 사용자 화면에서 “아무것도 안 보였다” — BUILD255), dim 0.06. 브금은 옵젝영역0 의 'wind'(짜장숲과 같은 곡).
   (2026-09-12 회고: 옛 지역 타일·소품은 쓰지 않는다 — 짜장섬 자산의 어두운 판만)"""
 from __future__ import annotations
@@ -66,6 +66,8 @@ def build_map() -> dict[str, object]:
     for row in range(1, HEIGHT):
         for col in range(PATH_COLS[0], PATH_COLS[1] + 1):
             rows[row][col] = PATH_CHAR
+    for col in range(PATH_COLS[0], PATH_COLS[1] + 1):   # 윗줄 출입구 칸(BUILD257: 위 문 → 빛 드는 공터)
+        rows[0][col] = EDGE_CHAR
     for row in range(NOOK_ROWS[0], NOOK_ROWS[1] + 1):
         for col in range(NOOK_COLS[0], NOOK_COLS[1] + 1):
             rows[row][col] = PATH_CHAR
@@ -84,6 +86,10 @@ def build_map() -> dict[str, object]:
         'type': 'door', 'id': 'deep_statue_door', 'x': PATH_COLS[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': 2 * TILE, 'h': 10,
         'to': 'jjajang_statue', 'spawn': 'from_deep', 'sfx': False,
     }
+    door_north = {
+        'type': 'door', 'id': 'deep_glade_door', 'x': PATH_COLS[0] * TILE, 'y': 0, 'w': 2 * TILE, 'h': 10,
+        'to': 'jjajang_glade', 'spawn': 'from_south', 'sfx': False,
+    }
     return {
         'id': MAP_ID,
         'name': '깊은숲 입구',
@@ -95,14 +101,15 @@ def build_map() -> dict[str, object]:
             'from_south': {'x': PATH_COLS[1] * TILE - 8, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
             'start': {'x': PATH_COLS[1] * TILE - 8, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},
             'spring': {'x': NOOK_COLS[0] * TILE + 4, 'y': NOOK_ROWS[0] * TILE + 10, 'facing': 'right'},
+            'from_north': {'x': PATH_COLS[1] * TILE - 8, 'y': 1 * TILE + 16, 'facing': 'down'},
         },
         'meta': {
             'connected': True,
             'route': [[PATH_COLS[1], HEIGHT - 3], [PATH_COLS[1], 1]],
-            'role': '석상 앞 숲 통로 위 문 다음(BUILD254): 어두운 짜장숲, 위로 가는 길 하나(윗줄 막힘 — 다음 맵 브리핑 대기)와 오른쪽 나들목의 마법의샘. 브금 wind',
+            'role': '석상 앞 숲 통로 위 문 다음(BUILD254): 어두운 짜장숲, 위로 가는 길 하나(위 문 → 빛 드는 공터 jjajang_glade, BUILD257)와 오른쪽 나들목의 마법의샘. 브금 wind',
             'spring': [SPRING_COL, NOOK_ROWS[0]],
         },
-        'entities': [*pines, spring, door_south],
+        'entities': [*pines, spring, door_south, door_north],
     }
 
 

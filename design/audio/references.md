@@ -551,3 +551,12 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 | 청소부 구출·테마 `janitor_hero` | [hFYTL3mTsdo](https://www.youtube.com/watch?v=hFYTL3mTsdo), `69. Need a hand!? (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, Toby Fox, 2025-06-04 | 51.176792초, 48kHz 스테레오, 1,155,116바이트 | `assets/audio/bgm/janitor_hero.mp3` |
 
 두 파일 모두 `ffmpeg -v error -i <파일> -f null -` 전체 디코드 종료 코드 0. BGM은 별도 등록 목록 없이 `Sound.playBgm(key)`가 위 경로를 직접 연다. SHA-256: `drum_devil_battle.mp3` = `0012fbda979102ab8a24b6d1968e58f69f40818d938bf39d1190d63b4ad39d4c`, `janitor_hero.mp3` = `82fac24e5006cb4f524f05a0f77519c7fa08d979cb562f484a573bad28385151`.
+
+## BUILD257 빛 드는 공터 (2026-09-20)
+
+- `bgm/choimis.mp3`: 사용자 지정 [XGbJbxiXS0o](https://www.youtube.com/watch?v=XGbJbxiXS0o) — yt-dlp 제목 “10. Your Dad's Best Friend (DELTARUNE Chapter 5 Soundtrack) - Toby Fox”, 업로더 Toby Fox, 29초 전체를 MP3 q2. 최미스 “아시발.” 부터 “큼큼” 까지 반복.
+- `bgm/gasuni.mp3`: 사용자 지정 [RQsr0_RUMJU](https://www.youtube.com/watch?v=RQsr0_RUMJU) — “Who might you be?”, Toby Fox, 64초 전체를 MP3 q2. 가순이 셋이 내려올 때부터 “ㅋㅋㅋ... 후후..” 까지.
+- `sfx/choimis_chosouya.mp3`(3.0초): 사용자 지정 [OGMmX4AvedA](https://www.youtube.com/watch?v=OGMmX4AvedA) “그 남자 그 여자의 금지된 사랑”(가재맨) 19:49.5~19:52.5 — “나 추구미 쵸소우야” 로 지정된 19:50 부근을 `--force-keyframes-at-cuts` 로 정확히 받아 소리 크기 파형(0.1초 RMS)에서 말하는 구간을 골랐다. 받아쓰기 도구가 없어 단어는 사용자 확인 필요. 원본 구간 wav 는 로컬 `assets/source/choimis-audio-v1/`(30MB 라 커밋하지 않음, 메타·로그만 커밋).
+- `sfx/choimis_seup_miss.mp3`(2.7초): 사용자 지정 [X3qvIeLPkMI](https://www.youtube.com/watch?v=X3qvIeLPkMI) “최미스짜장면” 8.4~11.1초 — 조용한 들숨(스읍) 뒤 큰 소리(미스)가 있는 구간. 코 비비기 1.4초 → 손가락 총 1.3초 동작과 같은 길이.
+- `voices/choimis.mp3`(0.12초): 위 쵸소우야 클립 19:50.5 부근 목소리 조각(사용자 “보이스폰트는 쵸소우야 톤으로 느낌만”). `VOICES.choimis` rate 1·level 0.85.
+- 가순이 목소리는 지정 없음 → 합성 `VOICES.gasuni`(triangle 470Hz). 풀숲 흔들림은 기존 `break1` 0.5, 윙크 띠링은 기존 합성 `chime`, 가면 던짐은 기존 `whoosh`·`thud`.

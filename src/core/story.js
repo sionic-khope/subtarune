@@ -489,3 +489,8 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_statue_after', desc: '동상
   map: 'jjajang_statue', spawn: 'after_crash', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_deep', desc: '깊은숲 입구 (어두운 짜장숲 · 위로 가는 길 · 오른쪽 나들목 마법의샘 · 브금 wind)',
   map: 'jjajang_deep', spawn: 'from_south', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });
+// 빛 드는 공터(BUILD257): 풀숲의 최미스
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_glade', desc: '빛 드는 공터 입구 (오른쪽으로 비스듬히 오르면 원형 공터 · 풀숲 셋 · 최미스 등장 연출)',
+  map: 'jjajang_glade', spawn: 'from_south', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_glade_bush', desc: '빛 드는 공터 · 풀숲 연출 직전 (위로 한 걸음이면 풀숲이 흔들린다)',
+  map: 'jjajang_glade', spawn: 'before_bush', flags: regroupFlags, party: ['gyeongsub', 'ppaman'] });

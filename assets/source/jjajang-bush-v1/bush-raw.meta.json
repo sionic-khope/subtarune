@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/props/jjajang_pine_1.png"
+  ],
+  "elapsed_seconds": 28.5,
+  "usage": {
+    "input_tokens": 184,
+    "output_tokens": 1756,
+    "total_tokens": 1940,
+    "input_tokens_details": {
+      "image_tokens": 90,
+      "text_tokens": 94
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1789878565,
+  "outputs": [
+    {
+      "file": "assets/source/jjajang-bush-v1/bush-raw.png",
+      "bytes": 875902,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

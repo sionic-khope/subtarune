@@ -34,7 +34,10 @@ export const VOICES = {
   // 나람(BUILD203 사용자 “뚱뚱한 목소리를 가진 쥰희 느낌, 같은 목소리는 쓰지 말고 비슷하게 새로”): voices/naram.mp3 = 쥰희 클립(snd_txtsus)을 -3반음 낮추고 굵게(lowpass·bass) 만든 변형. 합성음이던 예전 값은 파일 없을 때 폴백
   naram: { freq: 200, wave: 'sawtooth', dur: 0.11, jitter: 50, gain: 0.2, cutoff: 900, glide: 80, rate: 1, level: 0.9, cut: true, minGap: 0.08 },
   // 청소부(BUILD227 사용자 “거슨 목소리가 이게 아닌데” → 대사 텍스트음으로): voices/janitor.mp3 = 델타룬 4장 거슨 **말하는 소리**(유튜브 VHS-OAgYyJM “Deltarune sound effects: weapon throw (damage-Mr. Gerson’s talking)” 3.345s 부터의 첫 블립 0.105초)를 그대로 자른 것. 웃음 음절본은 폐기. 재생 rate 0.9439 = 반키 톤다운(“톤다운만 살짝 반키”), 글자마다 끊어 낸다
-  janitor: { freq: 260, wave: 'square', dur: 0.12, jitter: 30, gain: 0.22, cutoff: 1800, rate: 0.9439, level: 0.72, cut: true, minGap: 0.08 },   // level 0.85 → 0.72 (-15%, 사용자 “청소부 목소리 15퍼만 크기 줄여”)
+  janitor: { freq: 260, wave: 'square', dur: 0.12, jitter: 30, gain: 0.22, cutoff: 1800, rate: 0.9439, level: 0.72, cut: true, minGap: 0.08 },
+  // 최미스(BUILD257 사용자 “보이스폰트는 쵸소우야 톤으로 느낌만”): voices/choimis.mp3 = 유튜브 OGMmX4AvedA 19:50 부근 ‘추구미 쵸소우야’ 클립의 목소리 0.12초 조각(assets/source/choimis-audio-v1). 합성값은 파일 없을 때 폴백
+  choimis: { freq: 230, wave: 'square', dur: 0.12, jitter: 24, gain: 0.2, cutoff: 1900, rate: 1, level: 0.85, cut: true, minGap: 0.08 },
+  gasuni: { freq: 470, wave: 'triangle', dur: 0.12, jitter: 30, gain: 0.17, cutoff: 2600, rate: 1, level: 0.8, cut: true, minGap: 0.1 },   // 가순이 셋(BUILD257, 지정 없음 → 은별보다 낮고 예림보다 높은 합성 소녀 목소리)   // level 0.85 → 0.72 (-15%, 사용자 “청소부 목소리 15퍼만 크기 줄여”)
   park_guardian_costume: { freq: 430, wave: 'triangle', dur: 0.16, jitter: 8, gain: 0.18, cutoff: 2600, glide: 20, rate: 1, level: 0.85, cut: false, minGap: 0.18, drive: 2.1, driveLevel: 0.64 },
   park_guardian: { freq: 100, wave: 'triangle', dur: 0.175, jitter: 2, gain: 0.18, cutoff: 1100, rate: 1, level: 0.85, cut: false, minGap: 0.195 },
   red:       { freq: 150, wave: 'sine',     dur: 0.12, jitter: 3,  gain: 0.2,   cutoff: 900,  rate: 0.62, level: 1.2, cut: true, minGap: 0.10 },   // 레드(청록숲9 문지기) — 파일: 언더테일 snd_txt2(voices/red.mp3 = mystery 와 같은 클립)를 0.62 배로 깊게, 드문드문. 합성 사각파(2026-09-11 1차)는 '마음에 안 듦'

@@ -1,0 +1,7 @@
+# imagegen 2026-09-20 13:29:26
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/props/jjajang_pine_1.png
+
+Pixel art game prop of a single round leafy bush (shrub) for a dark night-time pine forest, top-down 3/4 RPG view like a 16-bit RPG, chunky pixels, dark green leaves with a few lighter green highlights and black outline, sits on the ground, single object centered, flat solid magenta background (#FF00FF), no text, no shadow.
