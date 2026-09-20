@@ -27,10 +27,12 @@ async function encounter(qa, id, key) {
   const b = await ev(() => { const bt = window.game.battle; return { bg: bt.cfg.bg, names: bt.enemies.map(e => e.name), hp: bt.enemies.map(e => e.hp), bgm: window.game.sound.bgmName }; });
   check(b.bg === 'sakura' && b.hp[0] === 36 && b.bgm === 'jjajang_battle', `${id}: 배경 sakura·체력 36·전투 브금 ${JSON.stringify(b)}`); await cap(`${id}_01_battle`);
   const money0 = (await st()).money;
+  const bgmAt = await ev(() => window.game.bgmResume?.at ?? -1); check(bgmAt > 0.5, `조우 전 맵 브금 위치 기억(${bgmAt.toFixed(1)}초)`);
   await ev(() => window.game.battle.finish(true));
   check(await until(() => !window.game.battle && !window.game.dialogue.running && !window.game.transitioning, 15000), `${id}: 승리 뒤 맵으로`);
   await page.waitForTimeout(700); s = await st();
   check(!s.enemies.includes(id) && s.flags[id] && s.bgm === 'sakura', `${id}: 제거·플래그·브금 복귀 ${JSON.stringify({ enemies: s.enemies, flags: s.flags, bgm: s.bgm, money: [money0, s.money] })}`);
+  const resumed = await ev(() => +(window.game.sound.bgm?.currentTime ?? -1).toFixed(1)); check(resumed >= bgmAt - 0.5, `전투 뒤 브금이 처음부터가 아니라 이어서(${bgmAt.toFixed(1)}초 → ${resumed}초)`);
   await cap(`${id}_02_after`);
 }
 try {

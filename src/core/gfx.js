@@ -79,12 +79,20 @@ export function silhouette(src, color) {
 /** 이미지 로드 시도. 없으면 null (에러로 죽지 않는다) */
 import { BUILD } from '../data/build.js';
 export const ASSET_VERSION = BUILD;
-export function loadImageOptional(src) {
-  return new Promise((resolve) => {
+/** 그림 한 장(없으면 null). 잠깐 끊겨도 두 번 더 받는다(BUILD269 — 시트를 한 번 못 받으면 문자 도트 폴백이 영영 남던 문제). 재시도는 주소를 바꿔 브라우저가 실패한 요청을 되풀이하지 않게 */
+export function loadImageOptional(src, { retries = 2, delay = 400 } = {}) {
+  const once = (attempt) => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = src + '?v=' + ASSET_VERSION;
+    img.src = src + '?v=' + ASSET_VERSION + (attempt ? '&r=' + attempt : '');
+  });
+  return once(0).then(async (img) => {
+    for (let attempt = 1; !img && attempt <= retries; attempt++) {
+      await new Promise((r) => setTimeout(r, delay * attempt));
+      img = await once(attempt);
+    }
+    return img;
   });
 }
 

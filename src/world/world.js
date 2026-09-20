@@ -130,9 +130,11 @@ export class Camera {
 const spriteCache = new Map();
 /** palette 이름으로 4방향 x 4프레임 스프라이트 세트를 만든다 */
 export function characterSprite(paletteName, override = null) {
-  const key = paletteName;
+  // 시트가 있어야 할 캐릭터(CHARACTERS 등록)인데 아직 못 받았으면 문자 도트 폴백을 이름으로 **캐시하지 않는다** — 전엔 늦게 도착한 시트가 영영 안 쓰였다(BUILD269, 사용자 “로딩 다 안된건가”)
+  const expectsSheet = !override && !!CHARACTERS[paletteName];
+  const key = expectsSheet ? `${paletteName}#fallback` : paletteName;
   if (spriteCache.has(key)) return spriteCache.get(key);
-  const set = { down: [], up: [], left: [], right: [], fw: 16, fh: 16, px: 1 };   // px: 시트 해상도 배율
+  const set = { down: [], up: [], left: [], right: [], fw: 16, fh: 16, px: 1, fallback: expectsSheet, name: paletteName };   // px: 시트 해상도 배율
   if (override && CHARACTERS[paletteName]?.still) {
     // 정지 프레임 1장(assets/enemies/*-front.png 등, PR #7 가이드): 4방향·4프레임 모두 같은 그림, 원본 해상도(px 1) 그대로 — 4분할하지 않는다
     // stillScale: 정지 그림을 몇 배로 크게 — 청록숲9 레드·블루 문지기(파티보다 훨씬 크게, 사용자 2026-09-11)
@@ -261,6 +263,8 @@ export class Character extends Entity {
     if (dy) { const ny = this.y + dy; if (!blocked(this.x, ny)) this.y = ny; }
   }
   drawSprite(ctx, cam) {
+    // 폴백(문자 도트)으로 그려지는 중이면 시트가 도착했는지 매번 본다 — 없으면 받아 오게 한다(BUILD269)
+    if (this.sprite?.fallback) { const name = this.sprite.name || this.def.sprite; const sheet = this.game.spriteOverrides?.[name]; if (sheet) this.sprite = characterSprite(name, sheet); else this.game.requestSheet?.(name); }
     const emote = this.emote || this.def.persistentEmote;
     const dim = shadeDimAt(this.game, this.x + this.w / 2, this.y + this.h);   // 그늘(Shade) 안이면 스프라이트 통째로 어둡게
     const blit = (img, x, y, w, h) => dim ? drawDimmed(ctx, img, x, y, w, h, dim) : ctx.drawImage(img, x, y, w, h);

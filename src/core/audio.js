@@ -353,7 +353,7 @@ export class Sound {
    * loopEnd(초): 원본 꼬리가 무음·잡음이면(섭리오 SWORD 마지막 5초 물소리, 사용자 2026-09-15) 그 앞에서 loopFade 동안 줄였다가
    * 처음으로 되감아 다시 키운다 — 끊김 없이 조기 종료. timeupdate(약 4Hz)로 감시하므로 loopFade 는 0.5초 이상
    */
-  playBgm(name, { loop = true, volume = 0.35, fadeIn = 0.5, loopEnd = 0, loopFade = 0.8 } = {}) {
+  playBgm(name, { loop = true, volume = 0.35, fadeIn = 0.5, loopEnd = 0, loopFade = 0.8, at = 0 } = {}) {
     volume = Math.min(volume, 0.4);
     if (this.bgm && this.bgmName === name) return;
     this.stopBgm(0.4);
@@ -361,6 +361,8 @@ export class Sound {
     const pre = this._preBgm?.[name]; if (pre) delete this._preBgm[name];
     const a = pre || new Audio(`assets/audio/bgm/${name}.mp3`);
     a.loop = loop; a.volume = 0;
+    // at: 이어 틀 위치(초) — 전투 뒤 맵 브금이 처음부터가 아니라 끊긴 자리에서(BUILD269, 사용자 “전투 끝나면 맵 브금 기존처럼 이어서”). 메타데이터가 아직이면 준비되는 대로 옮긴다
+    if (at > 0) { const seek = () => { try { a.currentTime = at; } catch (e) { /* */ } }; if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek, { once: true }); }
     a.play().catch((error) => console.warn('[audio] BGM 자동 재생 대기', error));
     this.bgm = a; this.bgmName = name; this.bgmVolume = volume;
     this._ramp(a, this.muted ? 0 : volume, fadeIn);

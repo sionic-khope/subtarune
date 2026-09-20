@@ -64,11 +64,12 @@ const TEXT_SPEEDS = [
 const TITLE_SFX = ['menu', 'confirm', 'cancel', 'chime', 'door', 'battle_start'];
 
 function mapScriptAssets(mapId, def) {
-  const portraits = new Set(), playerMotions = new Set(), sfx = new Set(), entrySfx = new Set();
+  const portraits = new Set(), playerMotions = new Set(), sfx = new Set(), entrySfx = new Set(), sprites = new Set();
   const visit = (node, urgent) => {
     if (Array.isArray(node)) { node.forEach(item => visit(item, urgent)); return; }
     if (!node || typeof node !== 'object') return;
     if (node.portrait) portraits.add(node.portrait);
+    if (node.spawn?.sprite) sprites.add(node.spawn.sprite);   // 컷신이 spawn 하는 배우의 시트·모션도 맵과 함께 준비(BUILD269: 토리이 청소부·teal3 CS·라운지 그림자가 문자 도트로 뜨던 빈틈)
     if (node.motion === 'player' && node.name) playerMotions.add(node.name);
     if (node.sfx) { sfx.add(node.sfx); if (urgent) entrySfx.add(node.sfx); }
     if (node.boom?.sfx) { sfx.add(node.boom.sfx); if (urgent) entrySfx.add(node.boom.sfx); }
@@ -76,7 +77,7 @@ function mapScriptAssets(mapId, def) {
     if (node.parallel) visit(node.parallel, urgent);
   };
   for (const id of [mapId === 'room' ? 'opening' : null, def.enter?.script, ...(def.entities || []).flatMap(e => [e.script, e.lockedScript])]) if (SCRIPTS[id]) visit(SCRIPTS[id], id === def.enter?.script || id === 'opening' || (mapId === 'room' && id === 'room_computer'));
-  return { portraits, playerMotions, sfx, entrySfx };
+  return { portraits, playerMotions, sfx, entrySfx, sprites };
 }
 
 class Game {
@@ -624,6 +625,8 @@ class Game {
   startEncounter(e) {
     if (this.battle || this.dialogue.running || this.transitioning || this.encountering) return;
     this.encountering = true; this.player.moving = false;
+    // 맵 브금이 어디까지 갔는지 기억해 두고 전투 뒤 그 자리부터 이어 튼다(BUILD269)
+    this.bgmResume = this.sound.bgmName ? { name: this.sound.bgmName, at: this.sound.bgm?.currentTime || 0 } : null;
     const flag = `${this.mapId}_${e.id}_defeated`;
     this.runScript([
       ...battleEntry(e.def.enemies || ['cs_red'], e.def.bgm || this.encounterBgm()),
@@ -656,7 +659,8 @@ class Game {
     const override = storyBgm(this.mapId, this.flags);
     const name = override === undefined ? def.bgm : override;
     const gated = def.bgmFlag && !this.has(def.bgmFlag);
-    if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
+    const at = this.bgmResume?.name === name ? this.bgmResume.at : 0; this.bgmResume = null;
+    if (name && !gated) this.sound.playBgm(name, { volume: 0.45, at });
     else if (name === null || gated) this.sound.stopBgm(0.4);
   }
   endBattle(result) {
@@ -755,6 +759,7 @@ class Game {
       ...(def.entities || []).map(e => e.sprite).filter(Boolean),
       ...(def.preload || []).filter(src => src.startsWith('assets/sprites/')).map(src => src.split('/').pop().replace(/\.png$/, '')),
       ...(MAP_RUNTIME_ASSETS[mapId]?.sprites || []),
+      ...scriptAssets.sprites,
     ]);
     const playerMotions = scriptAssets.playerMotions;
     if (def.meta?.run || def.meta?.runs) for (const name of Object.keys(CHARACTER_MOTIONS.hyungsub)) if (name.startsWith('runner_')) playerMotions.add(name);
@@ -778,7 +783,7 @@ class Game {
     const portraitNames = new Set([...names, ...scriptAssets.portraits, ...(MAP_RUNTIME_ASSETS[mapId]?.portraits || [])]);
     await Promise.all([...portraitNames].filter(name => CHARACTERS[name]?.portrait !== false && (CHARACTERS[name] || PALETTES[name] || YOUNGCLE_TV_PORTRAITS.includes(name))).map(async name => {
       const portrait = await this.mapAssets.image(`assets/portraits/${name}.png`);
-      if (portrait) this.portraits[name] = monoPortrait(portrait, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold });
+      if (portrait) { this.portraits[name] = monoPortrait(portrait, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold }); (this.portraitFiles ||= new Set()).add(name); }
     }));
     this.preparedCharacters ||= new Set();
     for (const name of names) this.preparedCharacters.add(name);
@@ -918,6 +923,22 @@ class Game {
     const e = createEntity({ ...def }, this);
     if (e) this.entities.push(e);
     return e;
+  }
+  /** 캐릭터 시트 지연 적재(BUILD269): 폴백으로 그려지는 캐릭터가 부른다. 받으면 spriteOverrides 에 넣고, 초상화 파일이 없는 캐릭터면 시트 얼굴 초상화도 다시 만든다 */
+  requestSheet(name) {
+    if (!name || !CHARACTERS[name] || this.spriteOverrides[name]) return Promise.resolve(this.spriteOverrides[name] || null);
+    this._sheetRequests ||= new Map();
+    if (!this._sheetRequests.has(name)) {
+      const src = CHARACTERS[name].still || CHARACTERS[name].sheet || `assets/sprites/${name}.png`;
+      this._sheetRequests.set(name, this.mapAssets.image(src).then((image) => {
+        this._sheetRequests.delete(name);
+        if (!image) { console.warn('[sheet] 시트 없음', name, src); return null; }
+        this.spriteOverrides[name] = image;
+        if (!this.portraitFiles?.has(name) && CHARACTERS[name].portrait !== false) { try { this.portraits[name] = this.makePortraits()[name] || this.portraits[name]; } catch (e) { /* */ } }
+        return image;
+      }));
+    }
+    return this._sheetRequests.get(name);
   }
   /** 소품 그림 지연 적재(BUILD268): 맵 준비 목록에 없는 그림을 컷신이 spawn 하면 Prop 이 여기로 받아 온다. 한 번 받은 그림은 propImages 에 남는다 */
   requestPropImage(src) {

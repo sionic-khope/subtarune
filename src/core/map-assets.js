@@ -16,7 +16,8 @@ export class MapAssetCache {
   ready(id) { return this.prepared.has(id); }
 
   image(src) {
-    if (!this.imagePromises.has(src)) this.imagePromises.set(src, Promise.resolve().then(() => this.loadImage(src)));
+    // 실패(null)는 기억하지 않는다 — 다음에 다시 부르면 다시 받는다(BUILD269: 한 번 끊긴 그림이 세션 내내 없던 문제)
+    if (!this.imagePromises.has(src)) this.imagePromises.set(src, Promise.resolve().then(() => this.loadImage(src)).then((image) => { if (!image) this.imagePromises.delete(src); return image; }));
     return this.imagePromises.get(src);
   }
 
