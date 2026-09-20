@@ -1,5 +1,5 @@
 // 빛 드는 공터 — 풀숲의 최미스·가순이 셋(BUILD257): QA jjajang_glade_bush 에서 위로 한 걸음 → 트리거 → 1부(흔들림·숨기·최미스 등장·대사·가면 클로즈업·쵸쇼우야·스읍 미스)
-//   → 2부(땡떙씨~?·가면 씀·가순이 셋 내려옴·오른쪽 이동·나무 뒤 카메라·가순이 퇴장·얼굴 손·가면 던짐·카메라 아래로·일행 발견·도망·끝). 실행: tests/playtest/run.sh jjajang-glade
+//   → 2부(땡떙씨~?·가면 씀·가순이 셋 내려옴·오른쪽 이동·나무 뒤 카메라·가순이 퇴장·얼굴 손·가면 던짐·나는 상관없어→왼쪽 나무로 돌진·나무 날아감·눈 마주침·어.·도망·끝). 실행: tests/playtest/run.sh jjajang-glade
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
@@ -73,14 +73,20 @@ try {
   check(await until(() => window.game.entities.find(e => e.id === 'choimis')?.motion?.src?.includes('facepalm'), 4000), '얼굴에 손'); await cap('13_facepalm');
   check(await until(() => { const m = window.game.entities.find(e => e.id === 'discord_mask'); return m && m.visible; }, 6000), '가면을 땅으로 던짐');
   s = await advanceTo('다행이다'); check(!!s, '휴우우우 … 다행이다');
-  s = await advanceTo('상관없어'); check(!!s, '나는 상관없어!!!!');
-  check(await until(() => window.game.player.y > window.game.entities.find(e => e.id === 'choimis').y + 100, 3000), '일행이 최미스 아래에 순간이동');
-  await page.waitForTimeout(2500); await cap('14_pan_down');
-  s = await advanceTo('* 어.'); check(!!s && s.cam[1] > 380, `카메라가 내려와 일행·최미스를 같이 잡는다 ${s?.cam}`); await cap('15_eo');
+  s = await advanceTo('상관없어'); check(!!s, '나는 상관없어!!!!'); await next();
+  const treeX = (await ent('glade_hide_tree'))?.x;
+  check(await until(() => { const c = window.game.entities.find(e => e.id === 'choimis'); const t = window.game.entities.find(e => e.id === 'glade_hide_tree'); return c && t && c.x < t.x + 60; }, 4000), '최미스가 왼쪽 나무로 돌진');
+  check(await until(() => { const t = window.game.entities.find(e => e.id === 'glade_hide_tree'); return t && (t.hopY || 0) > 20; }, 3000), '나무가 날아오른다');
+  await page.waitForTimeout(350); await cap('14_tree_flung');
+  check(await until(() => { const t = window.game.entities.find(e => e.id === 'glade_hide_tree'); return !t || t.dead; }, 3000), '나무가 날아가 사라진다');
+  s = await advanceTo('* 어.');
+  const stare = await page.evaluate(() => { const g = window.game; const c = g.entities.find(e => e.id === 'choimis'); return { choimis: c?.facing, player: g.player.facing, dx: Math.round(c.x - g.player.x), dy: Math.round(c.y - g.player.y) }; });
+  check(!!s && stare.choimis === 'left' && stare.player === 'right' && stare.dx > 0 && stare.dx < 140 && Math.abs(stare.dy) < 60, `눈이 마주친다(최미스 왼쪽·일행 오른쪽, 나무 자리 ${treeX}) ${JSON.stringify(stare)}`); await cap('15_eo');
   s = await advanceTo('어 하이'); check(!!s, '... 어 하이');
   s = await advanceTo('스읍 미스'); check(!!s && s.speaker === '억빠맨', '억빠맨: 스읍 미스');
   s = await advanceTo('아 씨발'); check(!!s, '최미스: 아 씨발(점프·진동)');
   s = await advanceTo('뒤진다'); await next();
+  check(await until(() => { const c = window.game.entities.find(e => e.id === 'choimis'); const m = window.game.entities.find(e => e.id === 'discord_mask'); return c && !c.dead && m && !m.visible && Math.abs(c.x - m.x) < 40; }, 6000), '가면까지 달려가 챙긴다');
   check(await until(() => { const c = window.game.entities.find(e => e.id === 'choimis'); const m = window.game.entities.find(e => e.id === 'discord_mask'); return (!c || c.dead) && m && !m.visible; }, 8000), '가면 챙겨서 위로 도망');
   await cap('16_escape');
   s = await advanceTo('돈달라고'); check(!!s && s.speaker === '억빠맨', '왜 돈달라고 안해요?');

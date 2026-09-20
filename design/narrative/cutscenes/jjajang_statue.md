@@ -57,3 +57,9 @@ QA `jjajang_statue`(왼쪽 입구), `jjajang_statue_front`(석상 바로 아래)
 ## 정정 (BUILD254, 2026-09-20)
 
 드럼통의 악마 뒤 연출(`jjajang_nest_after.md`)에서 엄청대박인배가 석상을 부순다: 석상은 `unless: statue_destroyed`, 잔해 5개는 `requires`, 통로 1행에 문 `statue_deep_door` → 깊은숲 입구(`jjajang_deep`). 연출 배우(청소부 영웅·억빠맨·경섭)와 전함·영클 TV·모니터암은 맵에 숨겨 두고(`unless: party_regrouped`) 컷신이 꺼낸다. 스폰 `after_crash`·`from_deep`. QA `jjajang_statue_return`(낙하부터), `jjajang_statue_after`(파괴 뒤).
+
+## 정정 (BUILD260, 2026-09-20)
+
+> 동상부숴지고 뒤로 가서 왼쪽으로 가려고하면 억빠맨이 / 억빠맨: 형 그럴때가 아닌거같아요 라고 하는 보호장치 만들어줘
+
+- 왼쪽 문(`statue_pines_door`) 앞 16px 트리거 `statue_no_return`(`requires: statue_destroyed`, 길 두 행): 주인공이 왼쪽을 보고 억빠맨이 주인공 쪽을 보며 `형 그럴때가 아닌거같아요` → 창 닫고 한 칸(32px) 오른쪽으로 걸어 다시 오른쪽을 본다(`jjajang_statue_no_return`, 찢칠라 길 1 되돌아가기 금지와 같은 틀). 동상이 서 있을 때는 없다. 검사: `jjajang-nest-after.test`(트리거·대사·밀기), 플레이테스트 `jjajang-nest-after`(길로 내려와 왼쪽 끝 → 대사 → 밀려남 → 통로로 복귀).

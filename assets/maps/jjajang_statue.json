@@ -520,6 +520,16 @@
    "script": "jjajang_statue_hint"
   },
   {
+   "type": "trigger",
+   "id": "statue_no_return",
+   "x": 10,
+   "y": 448,
+   "w": 16,
+   "h": 64,
+   "requires": "statue_destroyed",
+   "script": "jjajang_statue_no_return"
+  },
+  {
    "type": "door",
    "id": "statue_pines_door",
    "x": 0,

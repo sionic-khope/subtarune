@@ -81,6 +81,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   let talk = createTalk(battle, C.narration), camera = 0, heroY = C.hero.reveal[1];
   let playerPose = 'kneel', focus = 0;
   let dust = [], impactAge = -1, flagImpactAge = -1, healed = false, healAge = -1;
+  let stage = 0;   // 무대 어둠(0 밝음 ~ stage.max): 나레이션 줄마다 조금씩 어두워지고 깃발 비행 동안 밝아진다
   const healPose = { ...JANITOR_HERO_ACTIONS.attack, scale: C.hero.scale };
   const enter = name => { phase = name; time = 0; };
   const speak = (name, lines) => { enter(name); battle.typeInterval = C.speech.charDelay; talk = createTalk(battle, lines); };   // 말풍선은 한 글자씩 띠리링(charDelay)
@@ -112,13 +113,19 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   };
   return {
     fullscreen: true,
-    get snapshot() { return { phase, time, camera, ...view(), heroY, heroPose: heroPose(), flagX: phase === 'flag' ? flagX() : null, flagY: enemy.y - 90, flagImpact: flagImpact(), bossHitstun: hit && phase !== 'done', hit, healed, healAge, line: talk.index, pose: playerPose }; },
+    get snapshot() { return { phase, time, camera, ...view(), stage, heroY, heroPose: heroPose(), flagX: phase === 'flag' ? flagX() : null, flagY: enemy.y - 90, flagImpact: flagImpact(), bossHitstun: hit && phase !== 'done', hit, healed, healAge, line: talk.index, pose: playerPose }; },
     update(dt, input) {
       if (disposed) return false;
       time += dt; elapsed += dt;
       if (flagImpactAge >= 0) flagImpactAge += dt;
       if (healAge >= 0) healAge += dt;
       if (impactAge >= 0) { impactAge += dt; for (const p of dust) { p.vy += 90 * dt; p.x += p.vx * dt; p.y += p.vy * dt; } }
+      // 무대 조명: 나레이션은 줄 번호에 비례한 목표까지 천천히(dimSpeed/초), 침묵은 최대, 깃발이 날아드는 동안 비행 진행에 맞춰 다시 밝아진다
+      if (phase === 'narration' || phase === 'silence') {
+        const target = phase === 'silence' ? C.stage.max : C.stage.max * Math.min(1, (talk.index + 1) / C.narration.length);
+        stage = Math.min(target, stage + C.stage.dimSpeed * dt);
+      } else if (phase === 'flag') stage = C.stage.max * Math.max(0, 1 - time / C.flight);
+      else stage = 0;
       switch (phase) {
         case 'narration': if (talk.update(dt, input)) enter('silence'); break;
         case 'silence': if (time >= C.silence) enter('flag'); break;
@@ -237,6 +244,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
         for (const particle of dust) ctx.fillRect(Math.round(particle.x), Math.round(particle.y), p < 0.5 ? 3 : 2, p < 0.5 ? 3 : 2);
       }
       ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      if (stage > 0) { ctx.save(); ctx.fillStyle = '#000'; ctx.globalAlpha = stage; ctx.fillRect(0, 0, 480, 246); ctx.restore(); }   // 무대 어둠: 전투 패널 위 무대만(화면 좌표), 나레이션 상자는 그 위에 그려 읽힌다
       if (strike.flash > 0) { ctx.save(); ctx.fillStyle = '#fff'; ctx.globalAlpha = strike.flash; ctx.fillRect(0, 0, 480, 246); ctx.restore(); }
       if (phase === 'narration') {
         battle.box(ctx, 20, 8, 440, 66); ctx.fillStyle = '#fff';

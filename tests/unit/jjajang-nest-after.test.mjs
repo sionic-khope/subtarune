@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { jjajang_nest_drum } from '../../src/data/cutscenes/drum_devil.js';
-import { jjajang_nest_after, jjajang_statue_return, ISLAND_ZOOM, RAMP, SHIP_HIT_DX, SHIP_THROUGH_DX, SHIP_RUSH, SHIP_HIT_AT } from '../../src/data/cutscenes/jjajang_nest_after.js';
+import { jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return, STATUE_NO_RETURN_LINE, ISLAND_ZOOM, RAMP, SHIP_HIT_DX, SHIP_THROUGH_DX, SHIP_RUSH, SHIP_HIT_AT } from '../../src/data/cutscenes/jjajang_nest_after.js';
 import { QA_POINTS, STATE_FROM_FLAGS, partyFromFlags } from '../../src/core/story.js';
 import { CHARACTERS } from '../../src/data/characters.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
@@ -162,6 +162,19 @@ test('test_statue_return_releases_the_camera_after_the_map_reentry', () => {
   const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
   const change = main.slice(main.indexOf('this.camera.map = this.map;'), main.indexOf('this.camera.map = this.map;') + 400);
   assert.ok(change.indexOf('this.camera.locked = false') > 0 && change.indexOf('this.camera.locked = false') < change.indexOf('this.camera.snap()'), '맵 전환은 카메라 잠금을 풀고 나서 snap 한다');
+});
+
+test('test_statue_map_blocks_going_back_left_after_the_statue_breaks_with_ppaman_line', () => {
+  // 사용자 2026-09-20 “동상부숴지고 뒤로 가서 왼쪽으로 가려고하면 억빠맨: 형 그럴때가 아닌거같아요 라고 하는 보호장치”
+  const m = JSON.parse(readFileSync(new URL('../../assets/maps/jjajang_statue.json', import.meta.url), 'utf8'));
+  const guard = m.entities.find(e => e.id === 'statue_no_return'), west = m.entities.find(e => e.id === 'statue_pines_door');
+  assert.ok(guard && guard.type === 'trigger' && guard.requires === 'statue_destroyed' && guard.script === 'jjajang_statue_no_return', '동상이 부서진 뒤에만 있는 왼쪽 가장자리 트리거');
+  assert.ok(guard.x === west.x + west.w && guard.w === 16 && guard.y === west.y && guard.h === west.h, '문 바로 오른쪽에 붙은 16px(문보다 먼저 닿고 문과 겹치지 않는다)');
+  assert.equal(SCRIPTS.jjajang_statue_no_return, jjajang_statue_no_return);
+  const line = jjajang_statue_no_return.find(n => n.text);
+  assert.equal(line.speaker, '억빠맨'); assert.ok(line.text.includes(STATUE_NO_RETURN_LINE));
+  const push = jjajang_statue_no_return.find(n => n.move === 'player');
+  assert.deepEqual(push.by, [32, 0]); assert.ok(jjajang_statue_no_return.indexOf(push) > jjajang_statue_no_return.indexOf(line), '대사 뒤 한 칸 오른쪽');
 });
 
 test('test_party_and_qa_points_after_the_regroup', () => {

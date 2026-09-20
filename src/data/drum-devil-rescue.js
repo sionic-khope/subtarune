@@ -20,9 +20,17 @@ export const DRUM_DEVIL_RESCUE = Object.freeze({
   surprised: { src: 'assets/battle/yoplait-surprised.png', cell: 96, cols: 1, pivot: [48, 89], scale: 0.8 },
   lookback: { src: 'assets/battle/yoplait-lookback.png', cell: 96, cols: 1, pivot: [48, 89], scale: 0.8 },
   flag: { src: 'assets/props/janitor-hero-flag.png', cell: 192, cols: 1, pivot: [96, 96] },
+  // stage: 절망 나레이션 동안 무대 조명이 줄마다 조금씩 꺼지듯 어두워지다가(max 까지) 깃발이 날아드는 동안 다시 밝아진다(사용자 2026-09-20 “화면이 쪼금씩 어두워지다가 깃발이 날라오면서 밝아지는 무대연출”)
+  stage: { max: 0.82, dimSpeed: 1.4 },
+  // 사용자 2026-09-20: “이길수있는방법이 없는지도 모른다” 뒤에 다섯 줄 추가(... / 차라리 잘됐는지 모른다 / 억빠맨과 경섭이형이 여기에 없었기에 / 그들은 희생되지 않았으니까 / 내 운명은 여기까지...). 기존 마지막 줄은 그대로 뒤에
   narration: [
     { voice: 'narrator', text: '... 너무나도 강력하다' },
     { voice: 'narrator', text: '저녀석을 쓰러트릴 방법은 아무래도 없는 것 같다.' },
+    { voice: 'narrator', text: '...' },
+    { voice: 'narrator', text: '차라리 잘됐는지 모른다' },
+    { voice: 'narrator', text: '억빠맨과 경섭이형이 여기에 없었기에' },
+    { voice: 'narrator', text: '그들은 희생되지 않았으니까' },
+    { voice: 'narrator', text: '내 운명은 여기까지...' },
     { voice: 'narrator', text: '이렇게 나의 운명은 끝나는 것일까.' },
   ],
   greeting: [J('도움이 필요한가?')],

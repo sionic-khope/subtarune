@@ -114,6 +114,14 @@ try {
   const left = await ev(() => ({ statue: !!window.game.entities.find(e => e.id === 'jjajang_statue' && !e.dead), ship: !!window.game.entities.find(e => e.id === 'youngcle_warship' && !e.dead), rubble: window.game.entities.filter(e => /jjajang_rubble/.test(e.id) && !e.dead).length, tv: !!window.game.entities.find(e => e.id === 'youngcle_tv' && !e.dead) }));
   check(!left.statue && !left.ship && !left.tv && left.rubble === 5, `동상·전함·TV 없음, 잔해 ${left.rubble}개`);
   await page.waitForTimeout(400); await cap('17_rubble_map');
+  // ── 왼쪽으로 되돌아가려 하면 억빠맨이 말린다(BUILD260) ──
+  const homeX = await ev(() => window.game.player.x), roadY = await ev(() => window.game.map.def.spawns.from_west.y);
+  check(await go('ArrowDown', `g.player.y >= ${roadY}`, 8000, true), '갈림목을 내려와 길로');
+  check(await go('ArrowLeft', "g.dialogue.running && (g.textbox.node?.text || '').includes('그럴때가')", 20000, true), '왼쪽 가장자리에서 억빠맨: 형 그럴때가 아닌거같아요');
+  s = await st(); check(s.speaker === '억빠맨' && s.map === 'jjajang_statue', `억빠맨 대사·맵 그대로 (${s.speaker}, ${s.map})`); await cap('17b_no_return');
+  await next(); check(await until(() => !window.game.dialogue.running, 6000), '대사 닫힘');
+  check(await ev(() => window.game.player.x >= 16 && window.game.player.facing === 'right' && window.game.mapId === 'jjajang_statue'), '한 칸 오른쪽으로 밀려나 소나무 길로 못 간다');
+  check(await go('ArrowRight', `g.player.x >= ${Math.round(homeX)} - 4`, 20000, true), '통로 아래로 돌아옴');
   // ── 통로 위로 → 깊은숲 입구 ──
   check(await go('ArrowUp', "g.mapId === 'jjajang_deep'", 25000, true), '통로 위 문 → 깊은숲 입구');
   await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 });

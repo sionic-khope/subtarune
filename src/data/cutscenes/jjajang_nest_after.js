@@ -207,6 +207,18 @@ export const jjajang_statue_return = [
   { fade: 'in', duration: 1.2 },
 ];
 
+/** 동상이 부서진 뒤 석상 앞 숲 왼쪽 가장자리(소나무 길로 되돌아가는 문 앞 16px 트리거, statue_destroyed 일 때만): 억빠맨이 말리고 한 칸 오른쪽으로 — 사용자 2026-09-20 “동상부숴지고 뒤로 가서 왼쪽으로 가려고하면 억빠맨: 형 그럴때가 아닌거같아요 라고 하는 보호장치” */
+export const STATUE_NO_RETURN_LINE = '형 그럴때가 아닌거같아요';
+export const jjajang_statue_no_return = [
+  { face: PLAYER, dir: 'left' },
+  { face: PPAMAN, dir: `toward:${PLAYER}` },
+  P(STATUE_NO_RETURN_LINE),
+  close,
+  { move: PLAYER, by: [32, 0], speed: 60 },   // by 는 픽셀: 한 칸(32px) 오른쪽
+  { face: PLAYER, dir: 'right' },
+  { end: true },
+];
+
 /** 둥지 부분: drum_devil.js 의 battle 노드(flag drum_devil_won) 바로 뒤에 이어진다. QA jjajang_nest_after 는 승리 플래그를 켠 채 여기서 시작 */
 export const jjajang_nest_after = [
   { if: flags => !flags.drum_devil_won, goto: 'nest_after_end' },

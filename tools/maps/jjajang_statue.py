@@ -111,6 +111,11 @@ def build_map() -> dict[str, object]:
         'once': True, 'flag': 'jjajang_statue_hint_started', 'unless': 'jjajang_statue_told', 'script': 'jjajang_statue_hint',
     }
     assert shade_w == (PASSAGE_COLS[1] - PASSAGE_COLS[0] + 1) * TILE + 32
+    # 동상이 부서진 뒤(statue_destroyed) 왼쪽 문 바로 앞 16px(문 10px 과 겹치지 않게 x 10~26): 억빠맨 “형 그럴때가 아닌거같아요” 뒤 한 칸 오른쪽 — 문(x<10)에 닿기 전에 먼저 밟는다(찢칠라 길 1 의 되돌아가기 금지와 같은 틀, 사용자 2026-09-20)
+    no_return = {
+        'type': 'trigger', 'id': 'statue_no_return', 'x': 10, 'y': ROAD_ROWS[0] * TILE, 'w': 16, 'h': 2 * TILE,
+        'requires': 'statue_destroyed', 'script': 'jjajang_statue_no_return',
+    }
     door_west = {
         'type': 'door', 'id': 'statue_pines_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE,
         'to': 'jjajang_pines', 'spawn': 'from_east', 'sfx': False,
@@ -184,7 +189,7 @@ def build_map() -> dict[str, object]:
             'passage': [list(PASSAGE_COLS), list(PASSAGE_ROWS)],
             'statue': [STATUE_CENTER_COL, STATUE_BASE_ROW],
         },
-        'entities': [*pines, passage_shade, statue, *rubble_props, hint_trigger, door_west, door_east, door_north, *actors, warship, tv_frame, tv_arm],
+        'entities': [*pines, passage_shade, statue, *rubble_props, hint_trigger, no_return, door_west, door_east, door_north, *actors, warship, tv_frame, tv_arm],
     }
 
 

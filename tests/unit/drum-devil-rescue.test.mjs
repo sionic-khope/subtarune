@@ -39,6 +39,29 @@ test('rescue waits two seconds, hits once, heals, and completes after final dial
   for (const cue of [C.bgm, 'laugh_janitor', 'spearappear', 'wing', 'impact']) assert.ok(h.calls.includes(cue), cue);
 });
 
+test('despair narration carries the five added lines in order and the stage dims per line then relights with the flag', () => {
+  // 사용자 2026-09-20: “이길수있는방법이 없는지도 모른다” 뒤에 다섯 줄, 화면이 조금씩 어두워지다가 깃발이 날아오며 밝아지는 무대 연출
+  const texts = C.narration.map(line => line.text), at = texts.indexOf('저녀석을 쓰러트릴 방법은 아무래도 없는 것 같다.');
+  assert.deepEqual(texts.slice(at + 1, at + 6), ['...', '차라리 잘됐는지 모른다', '억빠맨과 경섭이형이 여기에 없었기에', '그들은 희생되지 않았으니까', '내 운명은 여기까지...']);
+  const h = harness();
+  assert.equal(h.scene.snapshot.stage, 0);
+  h.scene.update(2, still); const first = h.scene.snapshot.stage;
+  assert.ok(first > 0 && first <= C.stage.max / C.narration.length + 1e-9, `첫 줄에서는 한 단계만 어둡다 ${first}`);
+  const steps = [first];
+  for (let i = 1; i < C.narration.length; i++) { h.scene.update(0.2, input); h.scene.update(2, still); steps.push(h.scene.snapshot.stage); }
+  assert.ok(steps.every((v, i) => i === 0 || v > steps[i - 1]), `줄마다 조금씩 어두워진다 ${steps.map(v => v.toFixed(2))}`);
+  assert.ok(Math.abs(steps.at(-1) - C.stage.max) < 1e-6, '마지막 줄에서 최대 어둠');
+  h.advance('silence'); h.scene.update(C.silence - 0.01, still); assert.ok(Math.abs(h.scene.snapshot.stage - C.stage.max) < 1e-6, '침묵 동안 어둠 유지');
+  h.scene.update(0.02, still); assert.equal(h.scene.snapshot.phase, 'flag');
+  h.scene.update(C.flight / 2, still); const mid = h.scene.snapshot.stage; assert.ok(mid > 0 && mid < C.stage.max, `깃발이 날아오는 동안 밝아지는 중 ${mid}`);
+  h.scene.update(C.flight / 2 + 0.01, still); assert.equal(h.scene.snapshot.phase, 'surprise'); assert.equal(h.scene.snapshot.stage, 0, '깃발이 지나면 완전히 밝다');
+  const ctx = Object.fromEntries(['save', 'restore', 'beginPath', 'rect', 'clip', 'translate', 'scale', 'rotate', 'fillRect', 'fillText'].map(key => [key, () => {}]));
+  const fills = []; ctx.fillRect = (...a) => fills.push([ctx.globalAlpha, ...a]);
+  const dim = harness(); dim.battle.cfg = { bg: 'none' }; dim.battle.drawEnemy = () => {}; dim.battle.drawMember = () => {}; dim.battle.box = () => {}; dim.battle.wrapText = () => [];
+  dim.scene.update(2, still); dim.scene.draw(ctx);
+  assert.ok(fills.some(([alpha, x, y, w, hgt]) => x === 0 && y === 0 && w === 480 && hgt === 246 && Math.abs(alpha - dim.scene.snapshot.stage) < 1e-6), '무대(0..246)만 어둠 사각형으로 덮는다');
+});
+
 test('disposing a rescue cannot complete it or start later audio', () => {
   const h = harness(); h.advance('reveal'); h.scene.dispose();
   const cues = h.calls.length; h.scene.update(99, input);
@@ -77,20 +100,20 @@ test('surprise precedes left turn, greeting bubble comes before the camera pan, 
   assert.equal(h.scene.snapshot.pose, 'lookback'); assert.equal(h.scene.snapshot.camera, 0);
   h.scene.update(C.lookbackHold - 0.01, still); assert.equal(h.scene.snapshot.phase, 'lookback');
   h.scene.update(0.02, still); assert.equal(h.scene.snapshot.phase, 'greeting');
-  assert.equal(h.lines.at(-1).text, '도움이 필요한가?'); assert.equal(h.lines.length, 4);
+  assert.equal(h.lines.at(-1).text, '도움이 필요한가?'); assert.equal(h.lines.length, C.narration.length + 1);
   assert.equal(h.scene.snapshot.camera, 0, 'the greeting is spoken while the janitor is still offscreen');
   assert.equal(h.scene.snapshot.zoom, 1); assert.ok(h.scene.snapshot.heroScreenX < 0);
   h.scene.update(3, still); assert.equal(h.scene.snapshot.phase, 'greeting', 'the greeting waits for C');
   h.scene.update(0.2, input); assert.equal(h.scene.snapshot.phase, 'reveal');
   h.scene.update(C.reveal / 2, still); assert.ok(h.scene.snapshot.camera > 0 && h.scene.snapshot.camera < 1);
   h.scene.update(C.reveal / 2, still); assert.equal(h.scene.snapshot.phase, 'focus');
-  assert.equal(h.scene.snapshot.heroScreenX, C.revealCenterX); assert.equal(h.lines.length, 4);
+  assert.equal(h.scene.snapshot.heroScreenX, C.revealCenterX); assert.equal(h.lines.length, C.narration.length + 1);
   assert.equal(h.scene.snapshot.zoom, C.revealZoom);
   h.scene.update(C.focusSeconds / 2, still); assert.ok(h.scene.snapshot.zoom > C.revealZoom);
   assert.ok(Math.abs(h.scene.snapshot.shake) <= C.focusShake); assert.equal(h.calls.includes('laugh_janitor'), false);
   h.scene.update(C.focusSeconds / 2, still); assert.equal(h.scene.snapshot.phase, 'laugh');
   assert.equal(h.scene.snapshot.zoom, C.focusZoom); assert.equal(h.scene.snapshot.shake, 0);
-  assert.equal(h.calls.filter(cue => cue === 'laugh_janitor').length, 1); assert.equal(h.lines.length, 4);
+  assert.equal(h.calls.filter(cue => cue === 'laugh_janitor').length, 1); assert.equal(h.lines.length, C.narration.length + 1);
   h.advance('introduction'); assert.equal(h.lines.at(-1).text, C.introduction[0].text);
 });
 

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { jjajang_glade_intro, RUSTLE, POP, GIRL_SPOTS, PARTY_BELOW, PAN_DOWN } from '../../src/data/cutscenes/jjajang_glade.js';
+import { jjajang_glade_intro, RUSTLE, POP, GIRL_SPOTS, CHARGE } from '../../src/data/cutscenes/jjajang_glade.js';
 import { QA_POINTS } from '../../src/core/story.js';
 import { CHARACTERS } from '../../src/data/characters.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
@@ -53,15 +53,16 @@ test('test_glade_beats_follow_the_briefing_order', () => {
     girlsIn: at(n => n.move === 'gasuni1' && n.rel === 'choimis'), bounce3: at(n => n.hop === 'gasuni3'), girlsShift: at(n => n.move === 'gasuni1' && n.by && !n.rel && !n.run),
     camTree: at(n => Array.isArray(n.camera) && n.camera[0] < 15), knife: line('칼로'), girlsOut: at(n => n.move === 'gasuni1' && n.run && n.by && !n.rel),
     gasuniBgmOff: flat.findIndex((n, i) => n.bgm === null && i > line('후후..')), facepalm: at(n => n.pose === 'facepalm'),
-    maskDrop: flat.findIndex((n, i) => n.hop === 'discord_mask' && i > line('후후..')), panDown: at(n => Array.isArray(n.camera) && n.camera[1] >= 19),
+    maskDrop: flat.findIndex((n, i) => n.hop === 'discord_mask' && i > line('후후..')), noMatter: line('나는 상관없어'), charge: at(n => n.move === 'choimis' && n.rel === 'glade_hide_tree' && n.dash), treeFlung: at(n => n.fling === 'glade_hide_tree'), eyes: flat.findIndex((n, i) => n.face === 'choimis' && n.dir === 'left' && i > line('나는 상관없어')),
     eo: line('* 어.'), bubbles: at(n => n.bubble === 'gyeongsub'), jump: flat.findIndex((n, i) => n.hop === 'choimis' && i > line('어 하이')),
-    escape: at(n => n.move === 'choimis' && n.dash), gone: at(n => n.remove === 'choimis'), money: line('돈달라고'), done: at(n => n.set?.glade_done),
+    grabMask: flat.findIndex((n, i) => n.move === 'choimis' && n.rel === 'discord_mask' && i > line('뒤진다')), maskTaken: flat.findIndex((n, i) => n.hide === 'discord_mask' && i > line('뒤진다')), escape: flat.findIndex((n, i) => n.move === 'choimis' && n.dash && !n.rel && i > line('뒤진다')), gone: at(n => n.remove === 'choimis'), money: line('돈달라고'), done: at(n => n.set?.glade_done),
   };
   const order = Object.keys(idx);
   for (const key of order) assert.ok(idx[key] >= 0, `${key} 노드가 있다`);
   for (let i = 1; i < order.length; i++) assert.ok(idx[order[i]] > idx[order[i - 1]], `${order[i - 1]} → ${order[i]} 순서`);
   assert.ok(RUSTLE.first > 0 && POP.height > 0 && GIRL_SPOTS.length === 3 && GIRL_SPOTS.every(([dx]) => dx < 0), '가순이는 최미스 왼쪽 빈터에');
-  assert.ok(PARTY_BELOW > 100 && PAN_DOWN >= 3, '일행은 최미스 아래로, 카메라는 천천히');
+  assert.ok(CHARGE.vx < 0 && CHARGE.vup > 0 && CHARGE.stare > 0, '나무는 왼쪽 위로 날아가고, 눈 마주친 뒤 어.');
+  assert.ok(!flat.some(n => typeof n.action === 'function' && /PARTY_BELOW|c\.y \+ /.test(String(n.action))), '일행 순간이동은 없다(사용자 2026-09-20)');
   assert.equal(flat.filter(n => n.emote === 'player').length, 2, '모두 느낌표는 두 번(첫 흔들림·두 번째 흔들림)');
 });
 

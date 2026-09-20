@@ -5,7 +5,7 @@
 //   → 큼큼.. 콜록 큼!!!(브금 끔·천천히 클로즈업) → 내 추구미는... 쵸쇼우야.....(유튜브 음성) → 스읍 미스(코 비비기 → 손가락 총 2.7초, 유튜브 음성) → 막이래 어헣헣헣. 여기까지(다음 지시 대기).
 //   이어서(같은 날 2부): ???: 땡떙씨~? → 최미스 느낌표, 가면을 위로 던져 씀 → 브금 gasuni 로 바뀌며 가순이1(긴머리)·2(단발)·3(땋은머리)이 위에서 내려옴 → 셋의 한 줄씩(3은 동동 뛰며) → 후훗
 //   → 가순이들 오른쪽으로 → 최미스 왼쪽 봄·가순이들도 → 오른쪽 봄 → 내 추구미는 쵸소우야.(음성) → 가순이123 꺄아아악… → 카메라 나무 뒤(억빠맨·경섭) → 다시 → 이따 봐요 → 네 땡떙씨!!(달려 올라감)
-//   → ㅋㅋㅋ... 후후..(브금 끔, 얼굴에 손, 가면을 땅에) → 휴우우… / 이렇게해서라도 … / 나는 상관없어!!!!(카메라 천천히 아래로, 일행은 최미스 아래로 순간이동) → 어. → 말풍선 넷 → ... 어 하이 → 억빠맨 ... / 스읍 미스
+//   → ㅋㅋㅋ... 후후..(브금 끔, 얼굴에 손, 가면을 땅에) → 휴우우… / 이렇게해서라도 … / 나는 상관없어!!!!(왼쪽 나무로 돌진, 나무가 날아감 — 사용자 2026-09-20, 순간이동 대신) → 눈 마주침 → 어. → 말풍선 넷 → ... 어 하이 → 억빠맨 ... / 스읍 미스
 //   → 아 씨발(점프·진동) → 이거 말하면 진짜 뒤진다.(가면 챙겨 위로 도망) → ㅋㅋ / 근데 경섭이형 / 어 왜 / 왜 돈달라고 안해요? / ... / 아 맞네 씨발 야 쫒아가. 끝.
 //   대사는 전부 원문. 최미스 자세는 걷기 시트 참조로 gpt-image 생성(assets/source/choimis-poses-v1), 가면은 디스코드 로고(simple-icons) 그대로. 가순이 셋은 사용자 참조 그림(이라스토야풍 소녀)을 글로 옮겨 gpt-image 걷기 시트.
 import { loopCharacterMotion } from '../../world/character-motion.js';
@@ -20,7 +20,6 @@ const PLAYER = 'player', PARTY = ['player', 'gyeongsub', 'ppaman'];
 const CHOIMIS = 'choimis', MASK = 'discord_mask', BUSH = 'glade_bush_2', TREE = 'glade_hide_tree';
 const GIRLS = ['gasuni1', 'gasuni2', 'gasuni3'];
 const TREE_VIEW = [12, 15];             // 카메라 목표(숨는 나무 칸)
-const LOW_VIEW = [18, 19];              // 카메라가 천천히 내려와 일행(아래)·최미스(위)를 같이 잡는 자리
 const BUSH_VIEW = [20, 14];             // 카메라 목표: 풀숲과 빛 드는 가운데가 같이 보이는 자리
 const CENTER_VIEW = [18, 15];           // 공터 가운데(빛) — 최미스가 여기서 활동한다(사용자 2026-09-20 “가운데에서 활동하게”)
 
@@ -36,9 +35,10 @@ export const RUN_UP = [0, -64];                                                 
 export const BOUNCE = { steps: 5, height: 10, duration: 0.22 };                                    // 동동 뛰기
 export const MASK_ON = { by: [34, -34], height: 40, duration: 0.4 };                                // 가면을 위로 던져 씀(왼쪽 땅 → 머리)
 export const MASK_DROP = { by: [-30, 36], height: 24, duration: 0.4, spin: 1 };                     // 가면을 왼쪽 땅으로 던짐
-export const PARTY_BELOW = 160;                                                                    // 일행을 최미스 아래로 순간이동시키는 거리(px)
-export const PAN_DOWN = 3.2;                                                                       // 카메라가 천천히 아래로 내려오는 시간
-export const CAM = { toBush: 1.2, snap: 0.3, toTree: 0.8, back: 0.8, settle: 0.6 };                // 카메라 이동 시간(초): 풀숲으로 천천히, 휙 돌아올 땐 짧게
+// 나는 상관없어!!!! 뒤 왼쪽 나무(일행이 숨은)로 돌진해 나무를 날려 버린다(사용자 2026-09-20 “밑으로 순간이동을 바꾸자 … 왼쪽 나무로 돌진해서 나무를 날려버리는거임 그리고나서 눈마주치고 어.”)
+export const CHARGE = { stop: [2, 0], vx: -230, vup: 760, spin: 9, duration: 1.3, shake: 0.5, amp: 6, stare: 0.9 };   // stop: 나무 오른쪽에 멈추는 자리(px), 나무는 왼쪽 위로 빙글 날아가 사라짐, stare: 눈 마주치고 어. 까지
+const CHARGE_VIEW = [15, 15];           // 돌진 동안 카메라: 나무(13열)와 최미스가 같이 보이는 자리
+export const CAM = { toBush: 1.2, snap: 0.3, toTree: 0.8, back: 0.8, settle: 0.6, charge: 0.45 };   // 카메라 이동 시간(초): 풀숲으로 천천히, 휙 돌아올 땐 짧게, charge: 돌진 따라 왼쪽으로
 
 const pose = name => ({ pose: name, action: game => { const e = game.entities.find(x => x.id === CHOIMIS); if (e) loopCharacterMotion(e, game.characterMotions.choimis?.[name]); } });   // pose: 검사용 표식
 const standing = { action: game => { const e = game.entities.find(x => x.id === CHOIMIS); if (e) { e.motion = null; e.spin = 0; e.facing = 'down'; } } };
@@ -184,16 +184,22 @@ export const jjajang_glade_intro = [
   settleMask,
   C('휴우우우ㅜ우우 후우우우ㅜㅜ 아 다행이다. 시발 아 진짜 ㅈㄴ힘들다.'),
   C('이렇게해서라도 ... 넣... 넣을수만 있다면'),
-  // 나는 상관없어!!!! — 그때 카메라가 천천히 아래로, 주인공들 셋은 화면 밖(최미스 아래)으로 순간이동해 있다
-  { action: game => {
-    const c = game.entities.find(x => x.id === CHOIMIS); if (!c) return;
-    const p = game.player; p.x = c.x; p.y = c.y + PARTY_BELOW; p.facing = 'up';
-    for (const [id, dx] of [['ppaman', -40], ['gyeongsub', 40]]) { const e = game.entities.find(x => x.id === id); if (e) { e.x = p.x + dx; e.y = p.y; e.facing = 'up'; } }
-  } },
-  { async: [{ camera: LOW_VIEW, duration: PAN_DOWN }] },
+  // 나는 상관없어!!!! — 하면서 왼쪽 나무(일행이 숨은 나무)로 돌진해 나무를 날려 버린다 → 일행이 드러나 눈이 마주침 → 어.
   C('나는 상관없어!!!!'),
   close,
-  { wait: 1.6 },
+  { async: [{ camera: CHARGE_VIEW, duration: CAM.charge }] },
+  { move: CHOIMIS, rel: TREE, at: 'right', by: CHARGE.stop, dash: true },
+  { parallel: [
+    { fling: TREE, vx: CHARGE.vx, vup: CHARGE.vup, spin: CHARGE.spin, duration: CHARGE.duration, sfx: 'break1' },
+    { sfx: 'boom', volume: 0.7 },
+    { shake: CHARGE.shake, amp: CHARGE.amp },
+    { hop: CHOIMIS, by: [0, 0], height: 14, duration: 0.3, sfx: false },
+  ] },
+  { wait: 0.4 },
+  // 눈이 마주침: 최미스는 왼쪽(일행), 일행은 오른쪽(최미스)
+  { face: CHOIMIS, dir: 'left' },
+  everyone({ face: '', dir: 'right' }),
+  { wait: CHARGE.stare },
   C('어.'),
   close,
   // (요플래 억빠맨 김경섭 순으로 ... 말풍선 후 최미스 말풍선)
@@ -207,7 +213,8 @@ export const jjajang_glade_intro = [
   C('아 씨발'),
   C('이거 말하면 진짜 뒤진다.'),
   close,
-  // (이러고 가면 챙겨서 위로 후딲 도망감)
+  // (이러고 가면 챙겨서 위로 후딲 도망감) — 나무 앞에서 땅에 던져 둔 가면까지 달려가 챙긴 뒤 위로
+  { move: CHOIMIS, rel: MASK, at: 'right', by: [-6, 0], dash: true },
   { hide: MASK },
   { move: CHOIMIS, by: RUN_UP, dash: true },
   { remove: CHOIMIS },
