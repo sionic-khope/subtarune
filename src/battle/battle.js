@@ -149,7 +149,7 @@ export class Battle {
   /** 전투 문구 타자: 22ms 마다 한 글자, 글자마다 나레이션 블립(띠리리링) */
   typeText(dt) {
     if (this.shown >= this.text.length) return;
-    this.textT += dt; const n = Math.min(this.text.length, Math.floor(this.textT / 0.022));
+    this.textT += dt; const n = Math.min(this.text.length, Math.floor(this.textT / (this.typeInterval || 0.022)));   // typeInterval: 막간(구출 말풍선)이 글자 간격을 늦출 수 있다
     for (let i = this.shown; i < n; i++) if (this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip(this.voice || 'narrator');
     this.shown = n;
   }

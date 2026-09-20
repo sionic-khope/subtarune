@@ -83,7 +83,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
   let dust = [], impactAge = -1, flagImpactAge = -1, healed = false, healAge = -1;
   const healPose = { ...JANITOR_HERO_ACTIONS.attack, scale: C.hero.scale };
   const enter = name => { phase = name; time = 0; };
-  const speak = (name, lines) => { enter(name); talk = createTalk(battle, lines); };
+  const speak = (name, lines) => { enter(name); battle.typeInterval = C.speech.charDelay; talk = createTalk(battle, lines); };   // 말풍선은 한 글자씩 띠리링(charDelay)
   battle.game.sound.stopBgm(C.fade);
   battle.game.sound.preloadBgm(C.bgm);
   const flagX = () => -100 + 700 * Math.min(1, time / C.flight);
@@ -168,7 +168,7 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
           }
           break;
         case 'healing': if (time >= C.heal.hold) speak('ready', C.ready); break;
-        case 'ready': if (talk.update(dt, input)) { enter('done'); onComplete(); return true; } break;
+        case 'ready': if (talk.update(dt, input)) { enter('done'); battle.typeInterval = undefined; onComplete(); return true; } break;
         case 'done': return true;
       }
       return false;
@@ -252,6 +252,6 @@ export function createDrumDevilRescue(battle, { onComplete, assets = {} }) {
         });
       }
     },
-    dispose() { disposed = true; dust = []; },
+    dispose() { disposed = true; dust = []; battle.typeInterval = undefined; },
   };
 }

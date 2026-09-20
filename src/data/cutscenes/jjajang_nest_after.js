@@ -8,7 +8,6 @@
 import { FX } from '../fx.js';
 import { TvBroadcast } from '../../world/tv-broadcast.js';
 import { YOUNGCLE_TV_ARENA } from '../youngcle-tv.js';
-import { loopCharacterMotion } from '../../world/character-motion.js';
 import { STATUE_VIEW } from './jjajang_statue.js';
 
 const C = text => ({ speaker: '청소부', portrait: 'janitor', voice: 'janitor', text: `* ${text}` });
@@ -30,16 +29,16 @@ export const STAND_BELOW_STATUE = 12;   // 석상 앞: 착지 자리는 석상 �
 export const DROP_HEIGHT = 380;         // 위에서 떨어지는 높이(px)
 export const RISE_HEIGHT = 380;         // 함께 승천하는 높이(px)
 export const SHIP_HIT_DX = -910;        // 전함: 맵 오른쪽 밖(1920)에서 뱃머리가 석상 오른쪽 가장자리(1010)에 닿기까지
-export const SHIP_THROUGH_DX = -200;    // 동상 자리를 뚫고 더 들어오는 거리
+export const SHIP_THROUGH_DX = -320;    // 동상 자리를 뚫고 더 들어오는 거리(거대한 선체가 앞으로 싹 쓸고 들어온다)
 export const TV_DROP = 420;             // 영클 TV·모니터암이 내려오는 거리(맵 생성기 tv_y - 420 에서 tv_y 로)
 export const PARTY_SIDE = 44;           // 억빠맨(왼쪽)·경섭(오른쪽)이 떨어지는 자리
+export const PARTY_DROP = { duration: 1.0, gap: 0.45, after: 0.6 };   // 억빠맨 착지 → gap → 경섭 착지 → after → 대사. 천천히 내려온다(사용자 2026-09-20 “좀 더 천천히”)
 export const ISLAND_ZOOM = { from: [400, 135, 520, 390], to: [0, 0, 960, 720], duration: 5.5 };   // 전함 클로즈업 → 섬 전체(“화면 축소”)
 export const RAMP = { top: [600, 395], foot: [520, 452], lower: 0.8, walkAt: 0.9, walk: 1.2 };   // 전경 그림 px: 전함 옆구리 → 섬 땅
 
-const idle = game => { const hero = game.entities.find(e => e.id === HERO); if (hero) loopCharacterMotion(hero, game.characterMotions.janitor_hero?.idle); };
+// 필드의 청소부 영웅은 서 있는 정지 그림(janitor-hero-stand) 그대로 — 깃발 흔드는 대기 시트는 전투 스프라이트라 안 돌린다(사용자 2026-09-20). 웃음(껄껄)만 동작으로, 끝나면 정지 그림으로 돌아온다
 const laugh = () => ({ motion: HERO, name: 'laugh', sfx: 'laugh_janitor' });
 const heroLaughs = [{ async: [laugh()] }];
-const heroIdleAgain = { action: idle };
 
 /** 전경 그림 위 덧그림: 다리가 내려오고(lower 초) 보라·검은 점이 다리를 따라 내려온다(walkAt 부터 walk 초) — 원문 “(다리를 내림) 보라색하고 검은색점이 내려오는 연출” */
 export function rampAndDots() {
@@ -69,7 +68,6 @@ export const jjajang_statue_return = [
     const base = game.map?.def?.meta?.statue; if (base) p.y = base[1] * 32 + STAND_BELOW_STATUE;
     p.facing = 'up'; p.hopY = DROP_HEIGHT;
     if (hero) { hero.x = p.x + HERO_BESIDE; hero.y = p.y; hero.facing = 'up'; }
-    idle(game);
   } },
   { camera: STATUE_VIEW, duration: 0.05 },
   { fade: 'in', duration: 0.9 },
@@ -112,15 +110,15 @@ export const jjajang_statue_return = [
   { parallel: [{ slide: SHIP, by: [SHIP_HIT_DX, 0], duration: 0.9, sfx: 'rocket' }, { shake: 0.9, amp: 4 }, { sfx: 'rumble' }] },
   // 동상 파괴!! 요플래는 잠깐 점프
   { parallel: [
-    { boom: { ...FX.explosion, at: 'jjajang_statue', scale: 2.2, offset: [0, -30] } },
-    { sfx: 'boom' }, { shake: 0.7, amp: 9 },
+    { boom: { ...FX.explosion, at: 'jjajang_statue', scale: 3, offset: [0, -30] } },
+    { sfx: 'boom' }, { shake: 0.9, amp: 11 },
     { async: [{ wait: 0.1 }, { remove: 'jjajang_statue' }] },
     { hop: PLAYER, by: [-6, 6], height: 18, duration: 0.35, sfx: false },
   ] },
   // 뒷걸음 천천히 쭈우우욱, 전함은 그 동상 진영 자체를 뚫어버리면서 들어옴
   { parallel: [
-    { slide: SHIP, by: [SHIP_THROUGH_DX, 0], duration: 1.4 },
-    { sfx: 'rumble' }, { shake: 1.4, amp: 3 },
+    { slide: SHIP, by: [SHIP_THROUGH_DX, 0], duration: 1.8 },
+    { sfx: 'rumble' }, { shake: 1.8, amp: 4 },
     { move: PLAYER, by: [-20, 12], speed: 18, facing: 'up' },
   ] },
   { wait: 0.5 },
@@ -152,8 +150,11 @@ export const jjajang_statue_return = [
     }
   } },
   { fade: 'in', duration: 0.4 },
-  { drop: [PPAMAN, GYEONGSUB], height: DROP_HEIGHT, duration: 0.5, sfx: 'jump', land: 'thud', quake: 3 },
-  { wait: 0.5 },
+  // 억빠맨 점프 착지 → 경섭 점프 착지 → 대사(사용자 2026-09-20 “억빠맨 점프착지 그다음에 경섭 점프착지후 대사, 좀 더 천천히 내려오게”)
+  { drop: PPAMAN, height: DROP_HEIGHT, duration: PARTY_DROP.duration, sfx: 'jump', land: 'thud', quake: 3 },
+  { wait: PARTY_DROP.gap },
+  { drop: GYEONGSUB, height: DROP_HEIGHT, duration: PARTY_DROP.duration, sfx: 'jump', land: 'thud', quake: 3 },
+  { wait: PARTY_DROP.after },
   { face: PPAMAN, dir: `toward:${PLAYER}` }, { face: GYEONGSUB, dir: `toward:${PLAYER}` },
   P('요플래 괜찮아요?'),
   G('허허 무사해서 다행이네'),
@@ -211,21 +212,20 @@ export const jjajang_nest_after = [
     const p = game.player, hero = game.entities.find(e => e.id === HERO);
     if (hero) { hero.x = p.x - HERO_BEHIND; hero.y = p.y; hero.facing = 'right'; hero.visible = true; }
     p.facing = 'right';
-    idle(game);
   } },
   { fade: 'in', duration: 0.6 },
   { wait: 0.5 },
   // 요플래가 뒤를 바라봄
   { face: PLAYER, dir: 'left' },
   { wait: 0.6 },
-  ...heroLaughs, C('껄껄'), heroIdleAgain,
+  ...heroLaughs, C('껄껄'),
   C('드디어 쓰러트렸구만'),
   C('고맙네 자네가 아니였으면 기습을 못했을거였고 쓰러트리지도 못했을거라네'),
   N('...'),
   C('할말이 많은 표정이구먼, 뭐 어떤가'),
   C('멸공의 깃발'),
   C('그게 나의 이명이라네,'),
-  ...heroLaughs, C('껄껄'), heroIdleAgain,
+  ...heroLaughs, C('껄껄'),
   C('그리고 좋은일은 연속으로 일어나는 것 아니겠나.'),
   close,
   // 요플래 느낌표

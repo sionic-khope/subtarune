@@ -145,9 +145,13 @@ def build_map() -> dict[str, object]:
     actor = lambda aid, sprite, dx, facing: {'type': 'npc', 'id': aid, 'sprite': sprite, 'x': stand_x + dx, 'y': stand_y, 'w': 24, 'h': 16,
                                               'hidden': True, 'solid': False, 'facing': facing, 'wander': 0, 'unless': 'party_regrouped'}
     actors = [actor('janitor_hero', 'janitor_hero', 48, 'up'), actor('ppaman', 'ppaman', -44, 'right'), actor('gyeongsub', 'gyeongsub', 44, 'left')]
-    ship_scale = 0.65
+    # 전함은 거대하게(2.6배 = 1997×998): 화면엔 뱃머리 아래쪽 파란 선체 일부만 보인다(사용자 2026-09-20 “ㅈㄴ 큰게 앞으로 싹 쓸려야지 … 존나 거대한 일부분만 보여야지 파란색”).
+    # 선체 밑변은 석상 밑변(224) 조금 아래(240): 그리기 순서는 석상(224) 뒤·요플래 일행 앞이 아닌 뒤(sortY 230) — 석상과 뒤쪽 소나무를 쓸어 덮고 일행은 선체 앞에 선다
+    ship_scale = 2.6
+    ship_bottom = STATUE_BASE_ROW * TILE + 16
     warship = {'type': 'prop', 'id': 'youngcle_warship', 'image': 'assets/props/youngcle-warship-left.png', 'scale': ship_scale,
-               'x': WIDTH * TILE, 'y': -10, 'w': 0, 'h': 0, 'ix': WIDTH * TILE, 'iy': -10, 'solid': False, 'hidden': True, 'sortY': 1000000000, 'unless': 'party_regrouped'}
+               'x': WIDTH * TILE, 'y': ship_bottom - round(384 * ship_scale), 'w': 0, 'h': 0, 'ix': WIDTH * TILE, 'iy': ship_bottom - round(384 * ship_scale),
+               'solid': False, 'hidden': True, 'sortY': ship_bottom - 10, 'unless': 'party_regrouped'}
     tv_x, tv_y, tv_scale = 950, 150, 0.82
     tv_frame = {'type': 'prop', 'id': 'youngcle_tv', 'image': 'assets/props/youngcle_tv_frame.png', 'scale': tv_scale, 'foldX': 0.06,
                 'x': tv_x, 'y': tv_y - 420, 'w': 236, 'h': 144, 'ix': tv_x, 'iy': tv_y - 420, 'solid': False, 'hidden': True, 'sortY': 2000000000, 'unless': 'party_regrouped'}

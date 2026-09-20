@@ -203,7 +203,7 @@ test('fast accelerating ascent returns camera without moving Yoplait home', () =
   assert.ok(h.scene.snapshot.camera < middleCamera);
   h.advance('hang'); assert.equal(h.scene.snapshot.camera, 0);
   h.advance('land'); assert.equal(h.scene.snapshot.heroY, C.hero.home[1]);
-  assert.ok(C.hero.home[1] > 220); assert.equal(C.hero.scale, 0.92);
+  assert.ok(C.hero.home[1] > 220); assert.equal(C.hero.scale, 0.92 * 0.8); assert.equal(C.stand.scale, 0.92); assert.equal(C.laugh.scale, 0.92);   // 대기·공격 몸만 20% 작게(사용자 2026-09-20), 등장·웃음은 그대로
 });
 
 test('healing waits for C and the raised flag cue, fills actual HP once, and restores standing pose', () => {

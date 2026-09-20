@@ -36,7 +36,7 @@ export function drumDevilThrowWaiter(game) {
     if (!impacted) {
       impacted = true;
       boss.motion = null;
-      game.sound.sfx('drum_impact');
+      game.sound.sfx('impact', { volume: 0.6 });   // 델타룬 snd_impact(사용자 2026-09-20: 착지 ‘띠링’ 이 별로 → 델타룬 공격음)
       game.shake = { time: 0.35, amp: 4 };
     }
     if (elapsed < INTRO_THROW.windup + INTRO_THROW.flight + INTRO_THROW.impactHold) return false;

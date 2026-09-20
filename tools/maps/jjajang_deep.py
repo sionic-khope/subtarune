@@ -10,7 +10,7 @@
 "깊은숲 입구는 일단 오브제맵0의 브금을쓴 좀더 다크한 짜장숲느낌의 스프라이트로 만들어서 위로 가는길 하나랑 마법의샘하나만 추가한맵 찍어주샘"
 - 석상 앞 숲(jjajang_statue) 통로 위 문에서 아래 가장자리로 들어와 위로 곧게 가는 길 하나(9~10열, 'U' = 짜장 길보다 어두운 바닥, 발소리는 같은 숲 에코).
   윗줄은 막힘(다음 맵 브리핑 대기). 길 오른쪽 작은 나들목(11~12열 × 16~17행) 끝에 마법의샘(마이야르 샘물 소품 blue_buff, C → 전체 회복 jjajang_spring).
-- 짜장숲 자산을 어둡게: 검은 숲 '@' 그대로, 소나무는 jjajang_pine_N 을 0.8 밝기로 낮춘 jjajang_pine_dark_N(PIL 후처리; 0.5·0.66 은 검은 숲에 묻혀 안 보였다), dim 0.1. 브금은 옵젝영역0 의 'wind'(짜장숲과 같은 곡).
+- 짜장숲 자산을 어둡게: 검은 숲 '@' 그대로, 소나무는 jjajang_pine_N 을 0.88 밝기로 낮춘 jjajang_pine_dark_N(PIL 후처리; 0.5·0.66·0.8 과 dim 0.1·길 #161918 은 사용자 화면에서 “아무것도 안 보였다” — BUILD255), dim 0.06. 브금은 옵젝영역0 의 'wind'(짜장숲과 같은 곡).
   (2026-09-12 회고: 옛 지역 타일·소품은 쓰지 않는다 — 짜장섬 자산의 어두운 판만)"""
 from __future__ import annotations
 
@@ -89,7 +89,7 @@ def build_map() -> dict[str, object]:
         'name': '깊은숲 입구',
         'stage': 'ship_sinking_done',
         'bgm': 'wind',
-        'dim': 0.1,
+        'dim': 0.06,
         'rows': [''.join(row) for row in rows],
         'spawns': {
             'from_south': {'x': PATH_COLS[1] * TILE - 8, 'y': (HEIGHT - 3) * TILE + 12, 'facing': 'up'},

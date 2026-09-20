@@ -409,6 +409,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/spearappear.mp3` | `snd_spearappear` | 0.54s | 보스가 사라질 때 |
 | `sfx/wing.mp3` | `snd_wing` | 0.47s | 위에서 미끄러져 내려올 때(휘융) · 파크가디언 날리기 |
 | `sfx/impact.mp3` | `snd_impact` | 0.62s | 내려찍기 착지 |
+| (재사용) `sfx/impact.mp3` | 같은 파일 | 0.62s | 드럼통의 악마 흰 드럼통 착지(BUILD255, 사용자 “띠링 하는게 ㅂㄹ임” → 델타룬 공격음). `drum_impact.mp3` 는 삭제(로드 목록 감사: 파일만 남으면 무음 경고) |
 | `sfx/power.mp3` | `snd_power` | 0.71s | 팽이 회전 예비(빨간 원) |
 | `sfx/ultraswing.mp3` | `snd_ultraswing` | 1.09s | 팽이 회전 |
 | `sfx/heavyswing.mp3` | `snd_heavyswing` | 1.04s | 평타(슬로우) |

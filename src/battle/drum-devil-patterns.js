@@ -42,7 +42,7 @@ function lob(api, target, flight, purple = false) {
   });
 }
 function blast(api, p, fragments = true, radius = C.blastRadius) {
-  api.sfx?.('drum_impact');
+  api.sfx?.('impact');
   api.emit({ ...p, r: radius, life: C.blastHold, shape: 'drum_blast',
     drawShape(ctx, self) { ctx.save(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(self.x, self.y, self.r - 2, 0, TAU); ctx.stroke(); ctx.globalAlpha = 0.3; ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore(); },
   });
@@ -115,7 +115,7 @@ function createPattern(kind) {
           mark(api, p.x, p.y, C.warn + C.flight, 12);
           schedule(at + C.warn, a => lob(a, p, C.flight));
           schedule(at + C.warn + C.flight, a => {
-            a.sfx?.('drum_impact');
+            a.sfx?.('impact');
             rolling = a.emit({ ...p, r: C.barrelRadius, size: C.barrelSize, life: C.rollLife, vx: (left ? 1 : -1) * C.rollSpeed, spin: left ? 7 : -7, shape: 'drum_roll', drawShape(ctx, self) { drawBarrel(ctx, a, self); } });
           });
           schedule(at + C.warn + C.flight + 1.1, a => {

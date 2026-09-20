@@ -61,7 +61,7 @@ test('test_after_scene_beats_follow_the_briefing_order', () => {
     vanish: at(n => n.slide === 'janitor_hero'), heroGone: at(n => n.remove === 'janitor_hero'), bubble: at(n => n.bubble === 'player'),
     ship: at(n => n.show === 'youngcle_warship'), boom: at(n => n.boom?.sheet && n.boom.at === 'jjajang_statue'), statueGone: at(n => n.remove === 'jjajang_statue'),
     hop: at(n => n.hop === 'player'), back: at(n => n.move === 'player' && n.by), picture: at(n => n.picture?.src), youngcleBgm: at(n => n.bgm === 'storage_show'),
-    ramp: at(n => n.sfx === 'chain_extend'), pictureOff: at(n => n.picture === null), partyDrop: at(n => Array.isArray(n.drop) && n.drop.includes('ppaman')),
+    ramp: at(n => n.sfx === 'chain_extend'), pictureOff: at(n => n.picture === null), partyDrop: at(n => n.drop === 'ppaman'), secondDrop: at(n => n.drop === 'gyeongsub'),
     tvDown: at(n => n.slide === 'youngcle_tv' && n.by[1] > 0), tvOpen: at(n => n.fold === 'youngcle_tv' && n.to === 1), bgmOff: at(n => n.bgm === null),
     tvClose: at(n => n.fold === 'youngcle_tv' && n.to < 1), tvUp: at(n => n.slide === 'youngcle_tv' && n.by[1] < 0), shine: at(n => n.sfx === 'great_shine'),
     whiteEnd: flat.findLastIndex(n => n.fade === 'white'), set: at(n => n.set?.statue_destroyed && n.set?.party_regrouped), joinG: at(n => n.join === 'gyeongsub'), joinP: at(n => n.join === 'ppaman'),
@@ -77,8 +77,11 @@ test('test_after_scene_beats_follow_the_briefing_order', () => {
   assert.ok(idx.picture < idx.youngcleBgm && idx.ramp < idx.pictureOff, '전경 위에서 영클 대사·다리·점, 그 다음 맵으로');
   assert.deepEqual(ISLAND_ZOOM.to, [0, 0, 960, 720]); assert.ok(ISLAND_ZOOM.from[2] < 960, '클로즈업에서 섬 전체로 축소');
   assert.ok(RAMP.walkAt >= RAMP.lower, '다리가 다 내려온 뒤 점이 내려온다');
-  const ppamanDrop = flat[idx.partyDrop];
-  assert.deepEqual([ppamanDrop.sfx, ppamanDrop.land], ['jump', 'thud'], '점프 소리와 함께 떨어진다');
+  const ppamanDrop = flat[idx.partyDrop], gyeongsubDrop = flat[idx.secondDrop];
+  assert.deepEqual([ppamanDrop.sfx, ppamanDrop.land, gyeongsubDrop.sfx, gyeongsubDrop.land], ['jump', 'thud', 'jump', 'thud'], '점프 소리와 함께 떨어진다');
+  assert.ok(ppamanDrop.duration >= 0.9 && gyeongsubDrop.duration >= 0.9, '천천히 내려온다(사용자 2026-09-20)');
+  const firstLine = at(n => n.text === '* 요플래 괜찮아요?');
+  assert.ok(idx.partyDrop < idx.secondDrop && idx.secondDrop < firstLine, '억빠맨 착지 → 경섭 착지 → 대사');
   assert.ok(idx.map < idx.drop && flat[idx.map].spawn === 'after_crash');
 });
 
@@ -86,13 +89,15 @@ test('test_hero_form_reuses_battle_art_and_is_hidden_in_both_maps', () => {
   const hero = CHARACTERS.janitor_hero;
   assert.deepEqual([hero.still, hero.stillPivot, hero.portrait], ['assets/battle/janitor-hero-stand.png', [138, 180], false]);
   assert.ok(existsSync(new URL(`../../${hero.still}`, import.meta.url)));
-  const idle = CHARACTER_MOTIONS.janitor_hero.idle;
-  assert.equal(idle.src, 'assets/battle/janitor-hero-idle.png'); assert.equal(idle.frames.length, 8); assert.equal(idle.scale, hero.stillScale);
+  assert.equal(CHARACTER_MOTIONS.janitor_hero.idle, undefined, '필드 대기는 정지 그림(stand) — 깃발 흔드는 시트는 전투 스프라이트(사용자 2026-09-20)');
+  const laugh = CHARACTER_MOTIONS.janitor_hero.laugh;
+  assert.equal(laugh.src, 'assets/battle/janitor-hero-laugh.png'); assert.equal(laugh.scale, hero.stillScale);
+  assert.ok(!flatten(jjajang_nest_after).some(n => n.motion === 'janitor_hero' && n.name === 'idle'));
   assert.ok(Math.round(192 * hero.stillScale * 1.43) === 128, '필드 키 = 128px 셀 상당(요플래의 약 2배)');
   for (const id of ['jjajang_nest', 'jjajang_statue']) {
     const npc = load(id).entities.find(e => e.id === 'janitor_hero');
     assert.ok(npc && npc.hidden && npc.solid === false && npc.sprite === 'janitor_hero' && npc.unless === 'party_regrouped', `${id}: 숨은 청소부 영웅`);
-    assert.ok(MAP_RUNTIME_ASSETS[id].sprites.includes('janitor_hero'));
+    assert.ok(MAP_RUNTIME_ASSETS[id].sprites.includes('janitor_hero') && MAP_RUNTIME_ASSETS[id].sprites.includes('janitor'), `${id}: 청소부 걷기 시트도 실어야 초상화가 난다`);
   }
   const nest = load('jjajang_nest');
   for (const id of ['jjajang_nest_drum', 'drum_devil']) assert.equal(nest.entities.find(e => e.id === id).unless, 'drum_devil_won', `${id}: 승리 뒤엔 놓이지 않는다`);
@@ -122,7 +127,7 @@ test('test_statue_map_switches_from_statue_to_rubble_and_opens_the_north_door', 
 
 test('test_deep_forest_entrance_is_a_dark_upward_path_with_one_spring', () => {
   const m = load('jjajang_deep');
-  assert.deepEqual([m.bgm, m.dim, m.stage], ['wind', 0.1, 'ship_sinking_done']);
+  assert.deepEqual([m.bgm, m.dim, m.stage], ['wind', 0.06, 'ship_sinking_done']);
   const H = m.rows.length;
   for (let r = 1; r < H - 1; r++) assert.ok(m.rows[r][9] === 'U' && m.rows[r][10] === 'U' && m.rows[r][8] === '@' && m.rows[r][11] !== 'U' || (r >= 16 && r <= 17), `위로 가는 길 하나 ${r}`);
   assert.ok([...m.rows[0]].every(ch => ch === '@'), '윗줄은 막힘(다음 맵 브리핑 대기)');

@@ -426,7 +426,9 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     return { hero: R.hero.home, scale: R.hero.scale, player: game.battle.members[0].home, frames: R.hero.frameHolds.length };
   });
   // 2026-09-20 사용자: 요플래를 왼쪽으로(100) — 청소부(122)는 깃발이 왼쪽 가장자리(7px)라 못 옮겨 요플래 앞·같은 열(±32)에 선다
-  check('hero formation stands in front of Yoplait within the party column at92percent scale', Math.abs(formation.hero[0] - formation.player[0]) <= 32 && formation.hero[1] > formation.player[1] && formation.scale === 0.92, JSON.stringify(formation));
+  // 2026-09-20 사용자: 대기(깃발 흔드는)·공격 몸은 20% 작게(0.736), 자리 x 112, 공격은 제자리(attackHome = home)
+  check('hero formation stands in front of Yoplait within the party column at74percent scale', Math.abs(formation.hero[0] - formation.player[0]) <= 32 && formation.hero[1] > formation.player[1] && Math.abs(formation.scale - 0.92 * 0.8) < 1e-9, JSON.stringify(formation));
+  await page.evaluate(x => { window.__heroHome = x; }, formation.hero[0]);
   check('eight dance frames configured', formation.frames === 8);
   for (let frame = 0; frame < formation.frames; frame++) {
     await page.waitForFunction(expected => drumDanceFrame() === expected, frame);
@@ -446,8 +448,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     check(`${name} automatic hero attack begins`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack', 10000));
     check(`${name} hero waits for player animation to finish`, await page.evaluate(() => !game.battle.members[0].action || game.battle.members[0].action.mode === 'idle'));
     await shot(`assist-${name}-01-windup`);
-    check(`${name} hero windup steps forward into the unclipped attack root`, await until(() => game.battle.support.actionSnapshot?.frame === 1
-      && game.battle.support.actionSnapshot.position.x === 138));
+    check(`${name} hero windup attacks in place at home without stepping forward`, await until(() => game.battle.support.actionSnapshot?.frame === 1
+      && game.battle.support.actionSnapshot.position.x === window.__heroHome));
     check(`${name} red energy releases before contact`, await until(() => game.battle.support.actionSnapshot?.energy && !game.battle.support.actionSnapshot.contacted));
     await shot(`assist-${name}-02-energy-flight`);
     check(`${name} hero contacts boss`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack' && game.battle.support.actionSnapshot.contacted));

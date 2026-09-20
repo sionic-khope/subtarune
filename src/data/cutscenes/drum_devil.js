@@ -49,9 +49,10 @@ export const jjajang_nest_drum = Object.assign([
   frameBarrel,
   { hide: 'jjajang_nest_drum' },
   { emerge: 'drum_devil', depth: 220, duration: 1.2 },
-  { bgm: 'baron_intro', volume: 0.55, fadeIn: 1.2 },
   { fade: 'in', duration: 2.2 },
-  { wait: 0.8 },
+  // 악마가 다 드러나고 1초 뒤에 브금(사용자 2026-09-20 “드럼통의 악마가 나타나고 1초뒤에 브금이 나오게”) — 전엔 흰 화면 속 emerge 직후에 시작했다
+  { wait: 1.0 },
+  { bgm: 'baron_intro', volume: 0.55, fadeIn: 0.6 },
   ...roar(),
   ...roar(),
   N('드럼통의 악마인 것 같다.'),

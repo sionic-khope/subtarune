@@ -89,7 +89,7 @@ test('test_intro_throws_exactly_one_barrel_from_registered_hand_and_waits_for_im
   assert.equal(waiter.update(INTRO_THROW.flight / 2), false);
   assert.equal(props.length, 1);
   assert.equal(waiter.update(INTRO_THROW.flight / 2), false);
-  assert.deepEqual(sounds, ['drum_throw', 'drum_impact']);
+  assert.deepEqual(sounds, ['drum_throw', 'impact']);   // 착지음은 델타룬 snd_impact(BUILD255, 사용자 ‘띠링’ 교체)
   assert.equal(props[0].dead, undefined);
   assert.equal(waiter.update(INTRO_THROW.impactHold + 0.001), true);
   assert.equal(props[0].dead, true);

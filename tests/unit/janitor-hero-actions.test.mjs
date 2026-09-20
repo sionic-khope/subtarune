@@ -19,7 +19,8 @@ test('assist has deep windup, one three-layer wave, and one damage callback at e
   let hits = 0;
   const action = createJanitorHeroAttack(battle, { assets: {}, target, onHit() { hits++; } });
   action.update(0.11);
-  assert.ok(action.snapshot.position.x > R.hero.home[0] && action.snapshot.position.x < R.hero.attackHome[0]);
+  assert.deepEqual(R.hero.attackHome, R.hero.home, '공격은 제자리에서(사용자 2026-09-20 “앞으로 나가지 말고”)');
+  assert.equal(action.snapshot.position.x, R.hero.home[0]);
   action.update(0.19); assert.equal(action.snapshot.frame, 1); assert.equal(action.snapshot.released, false);
   assert.equal(action.snapshot.position.x, R.hero.attackHome[0]);
   action.update(0.3); assert.equal(action.snapshot.frame, 2); assert.equal(hits, 0);
