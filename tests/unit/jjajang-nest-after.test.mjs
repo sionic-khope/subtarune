@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { jjajang_nest_drum } from '../../src/data/cutscenes/drum_devil.js';
-import { jjajang_nest_after, jjajang_statue_return, ISLAND_ZOOM, RAMP } from '../../src/data/cutscenes/jjajang_nest_after.js';
+import { jjajang_nest_after, jjajang_statue_return, ISLAND_ZOOM, RAMP, SHIP_HIT_DX, SHIP_THROUGH_DX, SHIP_RUSH, SHIP_HIT_AT } from '../../src/data/cutscenes/jjajang_nest_after.js';
 import { QA_POINTS, STATE_FROM_FLAGS, partyFromFlags } from '../../src/core/story.js';
 import { CHARACTERS } from '../../src/data/characters.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
@@ -59,6 +59,7 @@ test('test_after_scene_beats_follow_the_briefing_order', () => {
     approach: at(n => n.move === 'janitor_hero' && n.rel === 'player'), rise: at(n => n.rise), whiteOut: at(n => n.fade === 'white'), map: at(n => n.map === 'jjajang_statue'),
     drop: at(n => Array.isArray(n.drop) && n.drop.includes('player') && n.drop.includes('janitor_hero')),
     vanish: at(n => n.slide === 'janitor_hero'), heroGone: at(n => n.remove === 'janitor_hero'), bubble: at(n => n.bubble === 'player'),
+    quake: flat.findIndex((n, i) => n.shake && i > at(n2 => n2.bubble === 'player')), alarm: flat.findIndex((n, i) => n.emote === 'player' && i > at(n2 => n2.bubble === 'player')), lookRight: at(n => n.face === 'player' && n.dir === 'right'),
     ship: at(n => n.show === 'youngcle_warship'), boom: at(n => n.boom?.sheet && n.boom.at === 'jjajang_statue'), statueGone: at(n => n.remove === 'jjajang_statue'),
     hop: at(n => n.hop === 'player'), back: at(n => n.move === 'player' && n.by), picture: at(n => n.picture?.src), youngcleBgm: at(n => n.bgm === 'storage_show'),
     ramp: at(n => n.sfx === 'chain_extend'), pictureOff: at(n => n.picture === null), partyDrop: at(n => n.drop === 'ppaman'), secondDrop: at(n => n.drop === 'gyeongsub'),
@@ -83,6 +84,13 @@ test('test_after_scene_beats_follow_the_briefing_order', () => {
   const firstLine = at(n => n.text === '* 요플래 괜찮아요?');
   assert.ok(idx.partyDrop < idx.secondDrop && idx.secondDrop < firstLine, '억빠맨 착지 → 경섭 착지 → 대사');
   assert.ok(idx.map < idx.drop && flat[idx.map].spawn === 'after_crash');
+  // 전함은 멈추지 않고 한 번에(슬라이드 하나) 들어오고, 폭발·석상 제거·점프·뒷걸음은 뱃머리가 닿는 시각에 비동기로(사용자 2026-09-20)
+  const rush = flat.find(n => n.slide === 'youngcle_warship');
+  assert.equal(flat.filter(n => n.slide === 'youngcle_warship').length, 1, '전함 슬라이드는 하나');
+  assert.equal(rush.by[0], SHIP_HIT_DX + SHIP_THROUGH_DX); assert.equal(rush.duration, SHIP_RUSH);
+  assert.ok(SHIP_HIT_AT > 0 && SHIP_HIT_AT < SHIP_RUSH && Math.abs(SHIP_HIT_AT - SHIP_RUSH * SHIP_HIT_DX / rush.by[0]) < 0.01, '닿는 순간 = 슬라이드 시간 × 석상까지 비율');
+  const hitWait = flat.find(n => n.wait === SHIP_HIT_AT); assert.ok(hitWait, '뱃머리가 닿을 때까지 기다린 뒤 폭발');
+  assert.ok(flat[idx.back].facing === 'right', '뒷걸음 중에도 오른쪽(전함)을 본다');
 });
 
 test('test_hero_form_reuses_battle_art_and_is_hidden_in_both_maps', () => {

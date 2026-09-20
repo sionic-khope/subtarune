@@ -1092,7 +1092,10 @@ class Game {
     if (this.ripples.length) { for (const r of this.ripples) r.t += dt; this.ripples = this.ripples.filter((r) => r.t < r.dur); }
     if (this.flameEmitters.length || this.flames.length) this.updateFlames(dt);
     if (this.booms.length) { for (const b of this.booms) b.t += dt; this.booms = this.booms.filter((b) => b.duration == null ? b.t * b.fps < b.count : b.t < b.duration); }
-    this.background = this.background.filter((w) => !w.update(dt, Input));
+    // 배경 waiter(컷신 {async}): 갱신 중에 새로 push 된 것(배경 시퀀스 안의 중첩 {async})을 잃지 않도록 목록을 갈아 끼우고 합친다 — 전엔 filter 결과로 덮어써 중첩 async 가 통째로 사라졌다(BUILD256 전함 돌진 중 석상 제거)
+    const backgroundBefore = this.background; this.background = [];
+    const backgroundLeft = backgroundBefore.filter((w) => !w.update(dt, Input));
+    this.background = [...backgroundLeft, ...this.background];
     this.shipAssault?.update(dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);

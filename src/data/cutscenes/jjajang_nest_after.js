@@ -30,6 +30,8 @@ export const DROP_HEIGHT = 380;         // 위에서 떨어지는 높이(px)
 export const RISE_HEIGHT = 380;         // 함께 승천하는 높이(px)
 export const SHIP_HIT_DX = -910;        // 전함: 맵 오른쪽 밖(1920)에서 뱃머리가 석상 오른쪽 가장자리(1010)에 닿기까지
 export const SHIP_THROUGH_DX = -320;    // 동상 자리를 뚫고 더 들어오는 거리(거대한 선체가 앞으로 싹 쓸고 들어온다)
+export const SHIP_RUSH = 2.2;           // 전함이 맵 밖에서 동상 너머까지 한 번에 미끄러지는 시간(멈추지 않는다 — 사용자 2026-09-20 “배 멈추지말고 그대로 쭉들어와”)
+export const SHIP_HIT_AT = Math.round(SHIP_RUSH * SHIP_HIT_DX / (SHIP_HIT_DX + SHIP_THROUGH_DX) * 100) / 100;   // 뱃머리가 석상에 닿는 순간(초)
 export const TV_DROP = 420;             // 영클 TV·모니터암이 내려오는 거리(맵 생성기 tv_y - 420 에서 tv_y 로)
 export const PARTY_SIDE = 44;           // 억빠맨(왼쪽)·경섭(오른쪽)이 떨어지는 자리
 export const PARTY_DROP = { duration: 1.0, gap: 0.45, after: 0.6 };   // 억빠맨 착지 → gap → 경섭 착지 → after → 대사. 천천히 내려온다(사용자 2026-09-20 “좀 더 천천히”)
@@ -102,24 +104,26 @@ export const jjajang_statue_return = [
   { face: PLAYER, dir: 'up' },
   { bubble: PLAYER },
   { wait: 0.5 },
-  // 갑자기 화면이 진동함
+  // 갑자기 화면이 진동함 → 요플래 느낌표 → 오른쪽(전함이 오는 쪽)을 본다 (사용자 2026-09-20 “부딪히기전에 흔들리고 요플래 느낌표 후에 오른쪽 바라보고 그 뒤에 부딪히고”)
   { parallel: [{ sfx: 'rumble' }, { shake: 1.4, amp: 3 }] },
-  { wait: 0.5 },
-  // 엄청대박인배 전함이 오른쪽에서 왼쪽으로 콰앙! 우르르
+  { emote: PLAYER, kind: '!', duration: 1, hold: 0.6, sfx: 'chime' },
+  { face: PLAYER, dir: 'right' },
+  { wait: 0.3 },
+  // 엄청대박인배 전함이 오른쪽에서 왼쪽으로 콰앙! 우르르 — 멈추지 않고 한 번에 동상 너머까지(SHIP_RUSH). 뱃머리가 석상에 닿는 순간(SHIP_HIT_AT) 동상 파괴!! 요플래는 잠깐 점프하고 뒷걸음 천천히 쭈우우욱
   { show: SHIP },
-  { parallel: [{ slide: SHIP, by: [SHIP_HIT_DX, 0], duration: 0.9, sfx: 'rocket' }, { shake: 0.9, amp: 4 }, { sfx: 'rumble' }] },
-  // 동상 파괴!! 요플래는 잠깐 점프
   { parallel: [
-    { boom: { ...FX.explosion, at: 'jjajang_statue', scale: 3, offset: [0, -30] } },
-    { sfx: 'boom' }, { shake: 0.9, amp: 11 },
-    { async: [{ wait: 0.1 }, { remove: 'jjajang_statue' }] },
-    { hop: PLAYER, by: [-6, 6], height: 18, duration: 0.35, sfx: false },
-  ] },
-  // 뒷걸음 천천히 쭈우우욱, 전함은 그 동상 진영 자체를 뚫어버리면서 들어옴
-  { parallel: [
-    { slide: SHIP, by: [SHIP_THROUGH_DX, 0], duration: 1.8 },
-    { sfx: 'rumble' }, { shake: 1.8, amp: 4 },
-    { move: PLAYER, by: [-20, 12], speed: 18, facing: 'up' },
+    { slide: SHIP, by: [SHIP_HIT_DX + SHIP_THROUGH_DX, 0], duration: SHIP_RUSH, sfx: 'rocket' },
+    { sfx: 'rumble' }, { shake: SHIP_RUSH, amp: 4 },
+    { async: [
+      { wait: SHIP_HIT_AT },
+      { parallel: [
+        { boom: { ...FX.explosion, at: 'jjajang_statue', scale: 3, offset: [0, -30] } },
+        { sfx: 'boom' }, { shake: 0.9, amp: 11 },
+        { async: [{ wait: 0.1 }, { remove: 'jjajang_statue' }] },
+        { hop: PLAYER, by: [-6, 6], height: 18, duration: 0.35, sfx: false },
+      ] },
+      { move: PLAYER, by: [-20, 12], speed: 18, facing: 'right' },
+    ] },
   ] },
   { wait: 0.5 },
   // 다시 화면 축소: 바다에서 본 짜장면섬 가운데 전함이 뚫려 박힌 전경, 깊숙한 숲은 뒤에 남아 있다
