@@ -1,0 +1,64 @@
+{
+ "reference_stand_height": 96,
+ "walk": {
+  "scale": 0.5333,
+  "frame_heights": [
+   96,
+   96,
+   96,
+   96,
+   100,
+   101,
+   100,
+   99,
+   102,
+   101,
+   102,
+   102,
+   100,
+   99,
+   100,
+   100
+  ]
+ },
+ "pick": {
+  "scale": 0.172,
+  "left": [
+   63,
+   88
+  ],
+  "right": [
+   59,
+   96
+  ]
+ },
+ "seup": {
+  "scale": 0.1638,
+  "left": [
+   57,
+   96
+  ],
+  "right": [
+   57,
+   96
+  ]
+ },
+ "flowers": {
+  "sakura_flowers_1": [
+   40,
+   45
+  ],
+  "sakura_flowers_2": [
+   40,
+   40
+  ],
+  "sakura_flowers_3": [
+   40,
+   42
+  ],
+  "sakura_flowers_4": [
+   40,
+   42
+  ]
+ }
+}

@@ -10,7 +10,7 @@
 "그다음맵은 아래로 살짝 갔다가 오른쪽길에 3초걷다가 나무다리 3초정도 걷고 오른쪽길도 있는데 윗길도 있음 위에는 뭔가 동그랗게 펼쳐져있고
  맵이 그 갈라지는 사이공간오면 연출시작"
 - 벚꽃 숲 4 아랫줄 문에서 들어와(왼쪽 위 길, 되돌아가는 문은 윗줄 끝 — 도착 자리는 길 중간 15행이라 아래로 살짝 7칸 ≈ 1초만 걷는다) → 오른쪽으로 21칸(달리기 ≈ 3초) → 파란 물 위 나무다리 20칸(≈ 3초)
-  → 갈림목(연출 트리거): 오른쪽 길(동쪽 끝, 다음 맵은 아직 없음)과 윗길 → 위에 동그란 공터(타원 23×19칸)·한가운데 거대한 벚꽃 나무(768×762, 위쪽은 맵 밖 — 카메라에 맨 위가 안 보인다).
+  → 갈림목(연출 트리거): 오른쪽 길(동쪽 끝 문 → 벚꽃 숲 6, BUILD277)과 윗길 → 위에 동그란 공터(타원 23×19칸)·한가운데 거대한 벚꽃 나무(768×762, 위쪽은 맵 밖 — 카메라에 맨 위가 안 보인다).
 - 공터의 가순이 4·5·6·도현·도미조림은 나무 밑동 오른쪽 땅(밑동 36px 위, 뿌리 앞)에 서 있는 NPC — 사용자 정정 “가순이들이나 캐릭터들 전부 다 벚꽃나무 아래 땅에 있어야지”. 일행은 윗길 연출에서 밑동 왼쪽에 선다. 공터에 들어가기 전 오른쪽 길로 가면 억빠맨이 막는다.
 - 윗길로 좀 올라가면(공터 밑 두 줄 트리거) 두 번째 연출(브금 telling·도미조림 느낌표·짜장면 얘기 → 전투 → 승리 뒤 연출: 가순이 셋이 아래로 걸어 내려가 사라진다, unless sakura5_girls_left; 눕힌 도현·도미조림은 unless sakura5_clearing_scene_done — 다시 들어오면 없다) — 같은 트리거가 공터 방문 플래그도 세운다.
 - 땅은 분홍 꽃잎 땅 ')', 나무다리 ']', 물 '[', 꽃잎 초당 18, 브금 sakura(연출에서 끔), 발소리 없음, 전투 배경 sakura."""
@@ -39,7 +39,7 @@ JUNCTION_COLS: Final = (45, 56)       # 갈라지는 사이공간
 SCENE_COLS: Final = (49, 52)          # 연출 트리거: 다리 건너 갈림목 사이공간(윗길 바로 아래 왼쪽) — 사용자 “연출 발생 지점 좀 더 오른쪽”(다리 끝 45~48 → 49~52)
 UP_COLS: Final = (52, 55)             # 윗길
 BLOCK_COLS: Final = (57, 58)          # 오른쪽 길 막기(공터 다녀오기 전)
-EAST_COLS: Final = (57, WIDTH - 1)    # 오른쪽 길(다음 맵 아직 없음)
+EAST_COLS: Final = (57, WIDTH - 1)    # 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 6, BUILD277)
 CLEARING: Final = (54, 10, 11.5, 9.5)   # 동그란 공터: 중심(열, 행)·가로 반지름·세로 반지름(칸)
 TREE_FILE: Final = 'assets/props/sakura_giant_tree.png'
 TREE_BASE_ROW: Final = 10             # 거대 나무 밑동 행(공터 가운데). 그림 위쪽(-412px)은 맵 밖 — 카메라가 0행에 있어도 맨 위는 안 보인다
@@ -147,6 +147,7 @@ def build_map() -> dict[str, object]:
                'once': True, 'flag': CLEARING_FLAG, 'script': 'jjajang_sakura5_clearing'}
     block = {'type': 'trigger', 'id': 'sakura5_block_trigger', 'x': BLOCK_COLS[0] * TILE, 'y': ROAD_ROWS[0] * TILE, 'w': (BLOCK_COLS[1] - BLOCK_COLS[0] + 1) * TILE, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE,
              'unless': CLEARING_FLAG, 'script': 'jjajang_sakura5_no_right'}
+    door_east = {'type': 'door', 'id': 'sakura5_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura6', 'spawn': 'from_west', 'sfx': False}   # BUILD277: 오른쪽 끝 → 벚꽃 숲 6(뗏목 5초)
     door_north = {'type': 'door', 'id': 'sakura5_north_door', 'x': ENTRY_COLS[0] * TILE, 'y': 0, 'w': (ENTRY_COLS[1] - ENTRY_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura4', 'spawn': 'south_end', 'sfx': False}
     mid_x = (ENTRY_COLS[0] + ENTRY_COLS[1] + 1) * TILE // 2 - 12
     road_y = (ROAD_ROWS[0] + 1) * TILE + 8
@@ -161,18 +162,19 @@ def build_map() -> dict[str, object]:
             'fork': {'x': (UP_COLS[0] + 1) * TILE + 4, 'y': road_y, 'facing': 'up'},
             'clearing': {'x': PARTY_X - 12, 'y': PARTY_FEET_Y - 16, 'facing': 'right'},
             'east': {'x': (BLOCK_COLS[1] + 2) * TILE + 4, 'y': road_y, 'facing': 'right'},
+            'from_east': {'x': (WIDTH - 2) * TILE + 4, 'y': road_y, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
             'route': [[ENTRY_COLS[0] + 1, 1], [ENTRY_COLS[0] + 1, ROAD_ROWS[0] + 1], [UP_COLS[0] + 1, ROAD_ROWS[0] + 1], [UP_COLS[0] + 1, TREE_BASE_ROW + 2], [UP_COLS[0] + 1, ROAD_ROWS[0] + 1], [WIDTH - 2, ROAD_ROWS[0] + 1]],
-            'role': '벚꽃 숲 4 아랫줄 문 다음(BUILD271): 아래로 살짝 → 오른쪽 3초 → 나무다리 3초 → 갈림목(연출: 브금 끄고 카메라 위 공터 — 도미조림·가순이 4·5·6·도현). 윗길 = 거대 벚꽃 나무 공터, 오른쪽 길 다음 맵은 아직 없음(공터 전엔 억빠맨이 막는다). 브금 sakura, 발소리 없음',
+            'role': '벚꽃 숲 4 아랫줄 문 다음(BUILD271): 아래로 살짝 → 오른쪽 3초 → 나무다리 3초 → 갈림목(연출: 브금 끄고 카메라 위 공터 — 도미조림·가순이 4·5·6·도현). 윗길 = 거대 벚꽃 나무 공터, 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 6, BUILD277; 공터 전엔 억빠맨이 막는다). 브금 sakura, 발소리 없음',
             'petals': PETALS,
             'sakura5': {'entryCols': list(ENTRY_COLS), 'spawnRow': SPAWN_ROW, 'roadRows': list(ROAD_ROWS), 'rightCols': list(RIGHT_COLS), 'bridgeCols': list(BRIDGE_COLS), 'waterRows': list(WATER_ROWS),
                         'sceneCols': list(SCENE_COLS), 'upCols': list(UP_COLS), 'blockCols': list(BLOCK_COLS), 'eastCols': list(EAST_COLS), 'clearing': list(CLEARING), 'clearingBottom': clearing_bottom,
                         'treeBaseRow': TREE_BASE_ROW, 'treeBaseY': base_y, 'treeTop': giant['iy'], 'actorFeetY': ACTOR_FEET_Y, 'partyFeetY': PARTY_FEET_Y, 'partyX': PARTY_X,
                         'girlsFocus': [center_x + 94, ACTOR_FEET_Y - 18]},
         },
-        'entities': [*trees, giant, *actors, scene, visited, block, door_north],
+        'entities': [*trees, giant, *actors, scene, visited, block, door_north, door_east],
     }
 
 

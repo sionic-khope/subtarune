@@ -18,6 +18,8 @@ export const CHARACTERS = {
   dohyun: { name: '도현', voice: 'dohyun', sheet: 'assets/sprites/dohyun.png', stillPivot: [64, 120] },
   // 도미조림(BUILD271 사용자 사진): 곱슬머리·남색 티. 목소리 거슨(청소부 클립)을 젊게
   domijorim: { name: '도미조림', voice: 'domijorim', sheet: 'assets/sprites/domijorim.png', stillPivot: [64, 120] },
+  // 가면 쓴 최미스(BUILD277 벚꽃 숲 6): 걷기 시트에 디스코드 가면을 씌운 4×4(gpt-image-2.5-sunburst, assets/source/sakura6-v1 — 참조 = 걷기 시트 + 가면 정면). 초상화·목소리는 최미스 그대로, 자세 띠는 character-motions.js choimis_masked
+  choimis_masked: { name: '최미스', voice: 'choimis', sheet: 'assets/sprites/choimis-masked-walk.png', stillPivot: [64, 120] },
   choimis: { name: '최미스', voice: 'choimis', sheet: 'assets/sprites/choimis.png', stillPivot: [64, 120] },   // 목소리(BUILD258): 델타룬 킹 snd_dadtxt(voices/choimis.mp3), 초상화 assets/portraits/choimis.png(걷기 시트 얼굴)
   // 청소부(BUILD226 사용자 그림 등록: 붉은 두건·안경·수염·붉은 셔츠, “조금만 더 허약한 섭타룬 버전”): gpt-image-2.5-sunburst 4×4 걷기 시트 → 128px 셀(assets/source/janitor-v1). 목소리는 형섭 샘플을 할아버지 느낌으로 낮춘 janitor.mp3(델타룬 거슨 참고)
   // 허약 청소부는 토리이 길 이벤트 뒤 동료(hp 100 = 사용자 “hp는 100으로”, 노란색 = “청소부(노란색)이 동료가 되었다”). 전투 시트 assets/battle/janitor*.png(허약 모습) — 깃발·댄스 시트는 ‘청소부(전투)’용으로 따로 둔다

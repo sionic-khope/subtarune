@@ -1,0 +1,9 @@
+# imagegen 2026-09-20 23:12:51
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/sakura6-v1/masked-face-ref.png
+
+Pixel art sprite sheet with EXACTLY 2 cells side by side on a 1024x1024 canvas (invisible equal 512px cells, no grid lines, no labels, no text). The exact same character as the reference image: an elderly man with messy white hair, a pink t-shirt with black GAP letters, dark shorts, wearing the round blurple (#5865F2) Discord-logo mask over his whole face (smooth rounded blurple face with the white controller-shaped Discord logo as eyes and mouth). Keep the same chunky pixel style, palette and body proportions as the reference, same 3/4 top-down RPG view, full body visible, one figure centered in each cell, flat solid magenta background (#FF00FF), no drop shadow, no border.
+Left cell: facing the viewer, bending forward at the waist with knees slightly bent, reaching one hand down toward the ground as if plucking a small pink flower growing there.
+Right cell: standing upright facing the viewer, holding one small pink cherry-blossom flower up in one hand at chest height, head tilted slightly toward it.

@@ -1,0 +1,5 @@
+Pixel art sprite sheet with EXACTLY 4 cells in a 2x2 grid on a 1024x1024 canvas (invisible equal 512px cells, no grid lines, no labels, no text). Solid pure #FF00FF magenta background everywhere, no ground, no shadows.
+Each cell: ONE small clump of wildflowers seen from a 3/4 top-down RPG view, 3 to 5 blossoms on short green stems with a few small leaves, the clump filling about 60% of its cell and centered.
+Top-left cell: pink cherry-blossom-like flowers. Top-right cell: white flowers with pale yellow centers. Bottom-left cell: mixed pink and white flowers. Bottom-right cell: a slightly wider pink clump with one taller stem.
+Petals: light pink #ffc2e0, pink #ff8ad0, deep pink #d24f9a stepped outline; white flowers #ffffff with #e6e6f0 shading; stems and leaves in two flat greens (#5fae4a, #3b7a34).
+Style: chunky retro pixel art, coarse pixel clusters, flat limited shades, crisp square pixels, no anti-aliasing, no blur, no gradients, no glow.

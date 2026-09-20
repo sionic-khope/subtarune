@@ -533,3 +533,13 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_after_battle', desc:
   map: 'jjajang_sakura5', spawn: 'clearing', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true }, party: ['gyeongsub', 'ppaman'], script: 'sakura5_after_battle_qa' });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura5_clearing', desc: '벚꽃 숲 5 · 전부 끝난 뒤 (가순이들은 떠남 · 오른쪽 길 앞)',
   map: 'jjajang_sakura5', spawn: 'east', flags: { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true, sakura5_clearing_scene_done: true, sakura5_duo_won: true, sakura5_girls_left: true }, party: ['gyeongsub', 'ppaman'] });
+// 벚꽃 숲 6(BUILD277): 벚꽃 숲 5 전부 끝난 뒤 — 오른쪽 끝 문 → 뗏목 5초 → 둥근 광장(가면 쓴 최미스 고백 연습 연출) → 오른쪽 길
+const sakura6Flags = { ...sakura5Flags, sakura5_scene_started: true, sakura5_scene_done: true, sakura5_clearing_visited: true, sakura5_clearing_scene_done: true, sakura5_duo_won: true, sakura5_girls_left: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura6', desc: '벚꽃 숲 6 입구 (오른쪽으로 → 뗏목 5초 → 뭍 → 둥근 광장 연출)',
+  map: 'jjajang_sakura6', spawn: 'from_west', flags: sakura6Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura6_dock', desc: '벚꽃 숲 6 · 뗏목 앞 (C → 오른쪽으로 5초 → 뭍)',
+  map: 'jjajang_sakura6', spawn: 'dock', flags: sakura6Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura6_plaza', desc: '벚꽃 숲 6 · 광장 앞 (오른쪽 한 걸음이면 최미스 고백 연습 연출 — 카메라 천천히 오른쪽·꽃 따기·헤헤)',
+  map: 'jjajang_sakura6', spawn: 'plaza', flags: sakura6Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura6_east', desc: '벚꽃 숲 6 · 연출 끝난 뒤 (최미스는 떠남 · 오른쪽 길 앞, 다음 맵 없음)',
+  map: 'jjajang_sakura6', spawn: 'east', flags: { ...sakura6Flags, sakura6_scene_started: true, sakura6_scene_done: true }, party: ['gyeongsub', 'ppaman'] });

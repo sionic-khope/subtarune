@@ -1,0 +1,3 @@
+source: https://www.youtube.com/watch?v=tLAxahP5scs (28. Loving Steps (DELTARUNE Chapter 5 Soundtrack) - Toby Fox, 134s)
+export: ffmpeg -vn -codec:a libmp3lame -q:a 2 (전체, 구간 편집·정규화 없음 — telling/stop_criminell 과 같은 방식)
+used: 벚꽃 숲 6 최미스 고백 연습 연출(“헤헤” 부터), 벚꽃 숲 7 무대(“이 브금 다시 나오면서”)
