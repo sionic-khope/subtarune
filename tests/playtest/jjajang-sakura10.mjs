@@ -70,9 +70,12 @@ try {
   check(await go('ArrowRight', `g.player.x > ${L.x + 40}`, 5000), '걸을 수 있다'); await cap('09_walk');
   // 6) 위쪽 길 → 문 → 벚꽃 숲 12 제단: 브금 꺼짐, 가운데 그루터기 위 어둠의 짜장면이 보라 오라를 두르고 맥동 → 아래 문으로 되돌아오면 브금 sakura
   await page.evaluate(() => { const g = window.game; g.player.x = g.map.def.spawns.from_north.x; });
+  // 위쪽 길 위 끝 띠에서 sakura 가 꺼지고(hush) → 문 → 벚꽃 숲 12 는 shop3(사용자 지정)
+  check(await go('ArrowUp', 'g.player.y < 90', 12000, true), '위쪽 길 위 끝(hush 띠 안, 문 앞)');
+  check(await until(() => window.game.sound.bgmName === null, 3000), '위에 길로 가면 브금 꺼짐');
   check(await go('ArrowUp', "g.mapId === 'jjajang_sakura12'", 12000, true), '위쪽 길 끝 문 → 벚꽃 숲 12');
   await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 }); await page.waitForTimeout(700);
-  s = await st(); check(s.map === 'jjajang_sakura12' && s.bgm === null && s.party.length === 0, `12: 브금 꺼짐·혼자 ${JSON.stringify([s.bgm, s.px, s.py])}`);
+  s = await st(); check(s.map === 'jjajang_sakura12' && s.bgm === 'shop3' && s.party.length === 0, `12: 브금 shop3·혼자 ${JSON.stringify([s.bgm, s.px, s.py])}`);
   const altar = await ev(() => { const g = window.game; const a = g.entities.find(e => e.id === 'sakura12_altar'), b = g.entities.find(e => e.id === 'sakura12_dark_jjajang'); return a && b ? { ax: Math.round(a.x), ay: Math.round(a.y), bx: Math.round(b.def.ix), by: Math.round(b.def.iy), bw: b.iw, bh: b.ih, aura: !!b.def.aura, visible: b.visible !== false && a.visible !== false } : null; });
   check(altar && altar.aura && altar.visible, `그루터기 제단 위 어둠의 짜장면(오라) ${JSON.stringify(altar)}`);
   check(await go('ArrowUp', 'g.player.y < 300', 8000), '제단 앞까지 올라간다');
@@ -84,7 +87,11 @@ try {
   check(await go('ArrowUp', 'false', 700) === false && (await st()).py > 190, '제단은 막혀 있다');
   check(await go('ArrowDown', "g.mapId === 'jjajang_sakura11'", 12000, true), '아래 문 → 벚꽃 숲 11');
   await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 }); await page.waitForTimeout(800);
-  s = await st(); check(s.map === 'jjajang_sakura11' && s.bgm === 'sakura' && s.py < 120, `되돌아오면 브금 sakura·위쪽 길 (${s.bgm}, ${s.py})`); await cap('12_back');
+  s = await st(); check(s.map === 'jjajang_sakura11' && s.py < 140 && s.py > 96, `되돌아오면 위쪽 길, hush 띠 아래 (${s.py})`);
+  check(await until(() => window.game.sound.bgmName === 'sakura', 3000), '돌아오면 sakura');
+  check(await go('ArrowDown', 'g.player.y > 200', 8000, true), '바닥으로 내려온다');
+  check((await st()).bgm === 'sakura', '내려와도 sakura'); await cap('12_back');
+  check(await go('ArrowUp', 'g.player.y < 90', 8000, true) && await until(() => window.game.sound.bgmName === null, 3000), '다시 올라가면 hush 띠에서 브금 꺼짐');
   // 6) QA 재입장: 바로 서 있다
   await page.goto('http://localhost:8000/?qa=jjajang_sakura11');
   check(await until(() => window.game?.mapId === 'jjajang_sakura11' && !window.game.transitioning, 30000), 'QA 벚꽃 숲 11');

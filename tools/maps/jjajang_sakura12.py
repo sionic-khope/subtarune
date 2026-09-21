@@ -7,7 +7,7 @@
 # Run from repository root: /usr/bin/python3 tools/maps/jjajang_sakura12.py [--check]
 # ──────────────────
 """벚꽃 숲 12 — 제단(jjajang_sakura12, BUILD284 사용자 브리핑 2026-09-21 “그다음맵 위에 길 뚫어주고 위에 길로 가면 브금 잠깐꺼지고 그냥 그렇게 넓진않음 위로 가면 이제 가운데에 작은잘린 나무 재단? 같은곳위에 보라색 짜장면이 오오라를 뛰면서 (보라색) 배치되게해줘”):
-- 벚꽃 숲 11 위쪽 길 끝 문에서 아래 가장자리(7~8열)로 들어와 위로 → 그리 넓지 않은 둥근 나무 널빤지 바닥(타일 '-'). 브금 없음(bgm null → 들어오면 꺼진다).
+- 벚꽃 숲 11 위쪽 길 끝 문에서 아래 가장자리(7~8열)로 들어와 위로 → 그리 넓지 않은 둥근 나무 널빤지 바닥(타일 '-'). 브금 shop3(사용자 지정, 벚꽃 숲 11 위쪽 길에서 sakura 가 꺼진 뒤 여기서 시작).
 - 가운데 작은 잘린 나무 그루터기 제단(assets/props/sakura_stump_altar.png) 위에 어둠의 짜장면 그릇(assets/props/dark_jjajang.png, 보라 오라 = 소품 aura 옵션이 엔진에서 맥동하는 보라 빛을 그린다).
   두 그림 다 gpt-image(assets/source/sakura12-v1, export.py 가 그루터기 윗면 가운데 픽셀을 contract 에 적는다 → 그릇 자리).
 - 둘레는 허공과 벚꽃 나무. 문은 아래(→ 벚꽃 숲 11 from_north)뿐. 짜장면을 얻는 방법은 아직 없음(브리핑 대기)."""
@@ -40,6 +40,7 @@ RING_PAD: Final = (1.5, 1.8)
 STUMP_CONTRACT: Final = Path('assets/source/sakura12-v1/stump-contract.json')
 BOWL_CONTRACT: Final = Path('assets/source/sakura12-v1/bowl-contract.json')
 AURA: Final = {'rgb': '180,140,255', 'radius': 36, 'alpha': 0.72, 'pulse': 2.0, 'centerY': 0.55}   # 첫 스크린샷에서 옅어 반지름·세기 올림
+BGM: Final = 'shop3'                  # 사용자 지정(2026-09-21 “짜장면 있는 맵 브금은 wsYUaus3RGI”): 20. Shop 3 (DELTARUNE Chapter 5) — assets/audio/bgm/shop3.mp3
 
 
 def inside(col: int, row: int) -> bool:
@@ -95,14 +96,14 @@ def build_map() -> dict[str, object]:
     for t in trees:
         assert rows[(t['y'] + 12) // TILE][(t['x'] + 12) // TILE] == '@', f"{t['id']} 밑동은 바닥 밖"
     return {
-        'id': MAP_ID, 'name': '벚꽃 숲 12', 'stage': 'ship_sinking_done', 'bgm': None, 'dim': 0, 'battleBg': 'sakura',
+        'id': MAP_ID, 'name': '벚꽃 숲 12', 'stage': 'ship_sinking_done', 'bgm': BGM, 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
         'preload': [props[0]['image'], props[1]['image']],
         'spawns': {'from_south': spawn, 'start': dict(spawn)},
         'meta': {
             'connected': True,
             'route': [[PATH_COLS[0], HEIGHT - 2], [PATH_COLS[0], CENTER[1] + 1]],
-            'role': '벚꽃 숲 11 위쪽 길 다음(BUILD284): 브금 꺼짐, 그리 넓지 않은 나무 바닥, 가운데 잘린 나무 그루터기 제단 위 어둠의 짜장면(보라 오라). 아래 문뿐(다음 없음). 발소리 없음',
+            'role': '벚꽃 숲 11 위쪽 길 다음(BUILD284): 브금 shop3(BUILD285 사용자 지정), 그리 넓지 않은 나무 바닥, 가운데 잘린 나무 그루터기 제단 위 어둠의 짜장면(보라 오라). 아래 문뿐(다음 없음). 발소리 없음',
             'petals': PETALS,
             'sakura12': {'center': list(CENTER), 'radii': list(RADII), 'altar': list(ALTAR), 'pathCols': list(PATH_COLS), 'aura': dict(AURA)},
         },

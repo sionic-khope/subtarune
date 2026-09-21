@@ -3,6 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { QA_POINTS } from '../../src/core/story.js';
+import { SCRIPTS } from '../../src/data/scripts.js';
+import { jjajang_sakura11_hush, jjajang_sakura11_unhush, HUSH_FADE } from '../../src/data/cutscenes/jjajang_sakura10.js';
 
 const load = id => JSON.parse(readFileSync(new URL(`../../assets/maps/${id}.json`, import.meta.url), 'utf8'));
 const here = rel => existsSync(new URL(`../../${rel}`, import.meta.url));
@@ -15,15 +17,24 @@ test('test_sakura11_has_an_upper_path_to_the_altar_map_and_the_doors_connect_bot
   assert.deepEqual([n11.to, n11.spawn, n11.y, n11.x, n11.x + n11.w], ['jjajang_sakura12', 'from_south', 0, S.pathCols[0] * 32, (S.pathCols[1] + 1) * 32]);
   assert.deepEqual([s12.to, s12.spawn, s12.y + s12.h], ['jjajang_sakura11', 'from_north', twelve.rows.length * 32]);
   assert.deepEqual([eleven.spawns.from_north.facing, twelve.spawns.from_south.facing], ['down', 'up']);
-  assert.ok(eleven.spawns.from_north.y >= n11.h && eleven.spawns.from_north.x >= n11.x && eleven.spawns.from_north.x + 24 <= n11.x + n11.w, '북쪽 스폰은 문 아래·폭 안');
+  assert.ok(eleven.spawns.from_north.y >= n11.h && eleven.spawns.from_north.x >= n11.x && eleven.spawns.from_north.x + 24 <= n11.x + n11.w, '북쪽 스폰은 문 아래·길 폭 안');
   const trees = eleven.entities.filter(e => e.id.startsWith('sakura11_tree'));
   assert.ok(trees.every(t => !(t.y < S.center[1] * 32 && Math.abs(t.x + 12 - (S.center[0] + 0.5) * 32) < 96)), '위쪽 길 자리엔 나무 없음');
   assert.ok(trees.every(t => eleven.rows[Math.floor((t.y + 12) / 32)]?.[Math.floor((t.x + 12) / 32)] !== '-'), '밑동은 바닥 밖');
+  // 위에 길로 가면 브금 잠깐 꺼지고(BUILD285): 길 위 끝 띠(hush, 문 바로 아래)는 sakura 를 끄고, 바닥 위 끝 띠(unhush)는 내려오면 sakura 다시. 북쪽 스폰은 두 띠 사이(돌아오면 sakura, 다시 올라갈 때 hush 를 밟는다)
+  const hush = ent(eleven, 'sakura11_hush'), unhush = ent(eleven, 'sakura11_unhush');
+  assert.deepEqual([hush.script, hush.x, hush.y, hush.w, hush.h, hush.once], ['jjajang_sakura11_hush', S.pathCols[0] * 32, S.hushRows[0] * 32, 3 * 32, (S.hushRows[1] - S.hushRows[0] + 1) * 32, undefined]);
+  assert.deepEqual([unhush.script, unhush.y, unhush.h], ['jjajang_sakura11_unhush', S.unhushRows[0] * 32, (S.unhushRows[1] - S.unhushRows[0] + 1) * 32]);
+  assert.ok(hush.y + hush.h <= unhush.y && unhush.y + unhush.h <= (S.center[1] + 1) * 32, 'hush 는 위, unhush 는 바닥 위 끝');
+  assert.ok(hush.y >= n11.y + n11.h && eleven.spawns.from_north.y >= hush.y + hush.h && eleven.spawns.from_north.y + 16 <= unhush.y, 'hush 는 문 아래, 북쪽 스폰은 hush 와 unhush 사이');
+  assert.equal(SCRIPTS.jjajang_sakura11_hush, jjajang_sakura11_hush); assert.equal(SCRIPTS.jjajang_sakura11_unhush, jjajang_sakura11_unhush);
+  assert.deepEqual(jjajang_sakura11_hush, [{ bgm: null, fadeOut: HUSH_FADE }, { end: true }]);
+  assert.deepEqual(jjajang_sakura11_unhush[0], { bgm: 'sakura', volume: 0.45, fadeIn: 0.6 }); assert.ok(jjajang_sakura11_unhush.at(-1).end);
 });
 
-test('test_sakura12_is_a_small_silent_deck_with_a_stump_altar_holding_the_dark_jjajang_in_a_purple_aura', () => {
+test('test_sakura12_is_a_small_deck_with_its_own_bgm_and_a_stump_altar_holding_the_dark_jjajang_in_a_purple_aura', () => {
   const m = load('jjajang_sakura12'), S = m.meta.sakura12;
-  assert.equal(m.bgm, null, '브금 꺼짐');
+  assert.equal(m.bgm, 'shop3', '브금 shop3(사용자 지정 wsYUaus3RGI)'); assert.ok(here('assets/audio/bgm/shop3.mp3'), 'shop3.mp3');
   const deck = m.rows.join('').split('').filter(ch => ch === '-').length;
   assert.ok(deck >= 40 && deck <= 110 && m.rows.every(r => /^[@-]+$/.test(r)), `그리 넓지 않은 나무 바닥 (${deck}칸)`);
   for (let row = S.center[1]; row < m.rows.length; row++) for (let col = S.pathCols[0]; col <= S.pathCols[1]; col++) assert.equal(m.rows[row][col], '-', '아래 길');

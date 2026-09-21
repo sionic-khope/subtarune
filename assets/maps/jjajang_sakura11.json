@@ -40,7 +40,7 @@
   },
   "from_north": {
    "x": 420,
-   "y": 38,
+   "y": 102,
    "facing": "down"
   }
  },
@@ -56,7 +56,7 @@
     0
    ]
   ],
-  "role": "벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 위쪽 길 끝 문 → 벚꽃 숲 12 제단(BUILD284, 브금 꺼짐). 브금 sakura, 발소리 없음",
+  "role": "벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 위쪽 길 위 끝에서 브금이 꺼지고(hush) 문 → 벚꽃 숲 12 제단(shop3, BUILD285). 내려오면 sakura 다시. 브금 sakura, 발소리 없음",
   "petals": {
    "rate": 18,
    "burst": 0,
@@ -81,6 +81,14 @@
    "pathCols": [
     12,
     14
+   ],
+   "hushRows": [
+    1,
+    2
+   ],
+   "unhushRows": [
+    5,
+    6
    ]
   }
  },
@@ -240,6 +248,24 @@
    "ix": 644,
    "iy": 157,
    "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "sakura11_hush",
+   "x": 384,
+   "y": 32,
+   "w": 96,
+   "h": 64,
+   "script": "jjajang_sakura11_hush"
+  },
+  {
+   "type": "trigger",
+   "id": "sakura11_unhush",
+   "x": 384,
+   "y": 160,
+   "w": 96,
+   "h": 64,
+   "script": "jjajang_sakura11_unhush"
   },
   {
    "type": "door",

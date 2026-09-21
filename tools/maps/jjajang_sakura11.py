@@ -33,6 +33,8 @@ TREES: Final = (
 )
 RING: Final = 14                      # 둘레 나무 수(각도 등분)
 PATH_COLS: Final = (12, 14)           # 위쪽 길(BUILD284 사용자 “그다음맵 위에 길 뚫어주고”): 바닥 위 끝에서 맵 위 끝까지 → 벚꽃 숲 12(제단)
+HUSH_ROWS: Final = (1, 2)             # 위쪽 길 위 끝 띠(문 바로 아래, 문·북쪽 스폰과 안 겹치게): 밟으면 브금 sakura 가 꺼진다(사용자 “위에 길로 가면 브금 잠깐 꺼지고” — 제단 맵에서 shop3 시작, BUILD285)
+UNHUSH_ROWS: Final = (5, 6)           # 바닥 위 끝 띠: 내려오면 sakura 다시(같은 곡이 이미 나오면 그대로)
 RING_PAD: Final = (1.6, 1.9)          # 바닥 가장자리에서 밑동까지(가로·세로 칸)
 
 
@@ -70,6 +72,8 @@ def build_map() -> dict[str, object]:
         t = tree(len(trees), cx, base_y)
         if t:
             trees.append(t)
+    hush = {'type': 'trigger', 'id': 'sakura11_hush', 'x': PATH_COLS[0] * TILE, 'y': HUSH_ROWS[0] * TILE, 'w': (PATH_COLS[1] - PATH_COLS[0] + 1) * TILE, 'h': (HUSH_ROWS[1] - HUSH_ROWS[0] + 1) * TILE, 'script': 'jjajang_sakura11_hush'}
+    unhush = {'type': 'trigger', 'id': 'sakura11_unhush', 'x': PATH_COLS[0] * TILE, 'y': UNHUSH_ROWS[0] * TILE, 'w': (PATH_COLS[1] - PATH_COLS[0] + 1) * TILE, 'h': (UNHUSH_ROWS[1] - UNHUSH_ROWS[0] + 1) * TILE, 'script': 'jjajang_sakura11_unhush'}
     door_north = {'type': 'door', 'id': 'sakura11_north_door', 'x': PATH_COLS[0] * TILE, 'y': 0, 'w': (PATH_COLS[1] - PATH_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura12', 'spawn': 'from_south', 'sfx': False}
     landing = {'x': CENTER[0] * TILE + 4, 'y': CENTER[1] * TILE + 6, 'facing': 'down'}
     assert rows[CENTER[1]][CENTER[0]] == DECK and rows[CENTER[1] + 1][CENTER[0]] == DECK
@@ -78,15 +82,15 @@ def build_map() -> dict[str, object]:
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 11', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
-        'spawns': {'landing': landing, 'start': dict(landing), 'from_north': {'x': CENTER[0] * TILE + 4, 'y': 38, 'facing': 'down'}},
+        'spawns': {'landing': landing, 'start': dict(landing), 'from_north': {'x': CENTER[0] * TILE + 4, 'y': (HUSH_ROWS[1] + 1) * TILE + 6, 'facing': 'down'}},   # hush 띠 바로 아래(돌아오면 sakura, 다시 올라갈 때 띠를 밟는다)
         'meta': {
             'connected': True,
             'route': [[CENTER[0], CENTER[1]], [CENTER[0], 0]],
-            'role': '벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 위쪽 길 끝 문 → 벚꽃 숲 12 제단(BUILD284, 브금 꺼짐). 브금 sakura, 발소리 없음',
+            'role': '벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 위쪽 길 위 끝에서 브금이 꺼지고(hush) 문 → 벚꽃 숲 12 제단(shop3, BUILD285). 내려오면 sakura 다시. 브금 sakura, 발소리 없음',
             'petals': PETALS,
-            'sakura11': {'center': list(CENTER), 'radii': list(RADII), 'landing': [landing['x'], landing['y']], 'ring': RING, 'pathCols': list(PATH_COLS)},
+            'sakura11': {'center': list(CENTER), 'radii': list(RADII), 'landing': [landing['x'], landing['y']], 'ring': RING, 'pathCols': list(PATH_COLS), 'hushRows': list(HUSH_ROWS), 'unhushRows': list(UNHUSH_ROWS)},
         },
-        'entities': [*trees, door_north],
+        'entities': [*trees, hush, unhush, door_north],
     }
 
 

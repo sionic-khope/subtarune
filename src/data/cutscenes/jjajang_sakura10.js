@@ -23,3 +23,8 @@ export const jjajang_sakura10_outro = [
   { wait: 0.25 },
   { end: true },
 ];
+
+/** 벚꽃 숲 11 위쪽 길(BUILD285 사용자 “위에 길로 가면 브금 잠깐 꺼지고”): 길 위 끝 띠를 밟으면 sakura 가 잦아들고(제단 맵 shop3 는 맵이 튼다), 바닥 위 끝 띠로 내려오면 sakura 다시(이미 나오면 그대로 — playBgm 같은 곡 무시) */
+export const HUSH_FADE = 0.8;
+export const jjajang_sakura11_hush = [{ bgm: null, fadeOut: HUSH_FADE }, { end: true }];
+export const jjajang_sakura11_unhush = [{ bgm: 'sakura', volume: 0.45, fadeIn: 0.6 }, { end: true }];

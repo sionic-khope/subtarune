@@ -98,7 +98,7 @@ test('test_sakura11_is_a_round_wooden_deck_ringed_by_blossom_trees_with_the_land
   const landing = m.spawns.landing; assert.deepEqual([Math.floor((landing.x + 12) / 32), Math.floor((landing.y + 8) / 32)], [cx, cy], '착지는 가운데');
   assert.ok(!m.rows.at(-1).includes('-') && [...m.rows[0]].every((ch, col) => ch === '@' || (col >= S.pathCols[0] && col <= S.pathCols[1])), '가장자리는 허공(위쪽 길만 뚫림, BUILD284)');
   const trees = m.entities.filter(e => e.id.startsWith('sakura11_tree'));
-  assert.ok(trees.length >= 10 && m.entities.every(e => e.type === 'prop' || e.id === 'sakura11_north_door'), '나무 둘레, 문은 위쪽 길 끝뿐(BUILD284)');
+  assert.ok(trees.length >= 10 && m.entities.every(e => e.type === 'prop' || e.id === 'sakura11_north_door' || e.id.startsWith('sakura11_')), '나무 둘레, 문은 위쪽 길 끝뿐(BUILD284), 그 밖은 위쪽 길 브금 띠(BUILD285)');
   for (const t of trees) { const col = Math.floor((t.x + 12) / 32), row = Math.floor((t.y + 12) / 32); assert.notEqual(m.rows[row]?.[col], '-', `${t.id} 밑동은 바닥 밖`); assert.ok(Math.hypot(t.x - landing.x, t.y + 12 - landing.y) > 96, '착지 자리 근처 밑동 없음'); }
   assert.ok(m.meta.petals && m.bgm === 'sakura');
 });
