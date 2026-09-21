@@ -565,3 +565,10 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura9', desc: '벚꽃 숲 
   map: 'jjajang_sakura9', spawn: 'from_south', flags: sakura8DoneFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura9_torii', desc: '벚꽃 숲 9 · 파란 토리이 앞 (왼쪽으로 지나면 달리기: X 점프·C 베기, 분홍 나뭇잎·꽃가지)',
   map: 'jjajang_sakura9', spawn: 'torii', flags: sakura8DoneFlags, party: [] });
+// 벚꽃 숲 10·11(BUILD283): 파란 토리이 10초 달리기(장애물 없음) → 절벽 오르막 도약·잔상 슬로우 6초·낙하 → 나무 정상 착지
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura10', desc: '벚꽃 숲 10 입구 (왼쪽으로 조금 → 파란 토리이 → 10초 달리기 → 절벽 도약)',
+  map: 'jjajang_sakura10', spawn: 'from_east', flags: sakura8DoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura10_torii', desc: '벚꽃 숲 10 · 파란 토리이 앞 (왼쪽으로 지나면 달리기 10초 → 절벽 오르막 → 점프·슬로우·낙하 → 나무 정상)',
+  map: 'jjajang_sakura10', spawn: 'torii', flags: sakura8DoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura11', desc: '벚꽃 숲 11 나무 정상 (낙하 착지 자리, 다음 맵 없음)',
+  map: 'jjajang_sakura11', spawn: 'landing', flags: sakura8DoneFlags, party: [] });

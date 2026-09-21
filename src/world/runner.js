@@ -26,6 +26,8 @@ const STREAK = Object.freeze({ rate: 18, speed: [220, 420], len: [18, 48], alpha
 const SPRAY = Object.freeze({ count: 6, vx: [110, 300], vy: [90, 230], gravity: 620, life: [0.32, 0.5] });
 // 쳐냄 연출(BUILD243 사용자 “효과음 더, 초록 점이 나뭇잎·꽃잎 흩날리듯, 진동 아주 살짝”): 잎 조각 12개(초록 2톤), 흔들림 1px 0.12초, 소리는 snd_hit(deflect) + snd_break1 한 겹
 const PETAL = Object.freeze({ count: 12, vx: [40, 170], vy: [40, 150], gravity: 260, life: [0.45, 0.8], colors: ['#7fd36a', '#b7ef8a', '#4f9a44'], shake: { time: 0.12, amp: 1 } });
+// 절벽 도약 슬로우(BUILD283): 화면 꽃잎 burst 개 + 초당 rate 로 슬로우 동안, 몸 주위 분홍 조각은 every 초마다(petals(), 몸 위 above px 에서)
+const FLOAT_BITS = Object.freeze({ burst: 36, rate: 40, every: 0.35, above: 26 });
 // 검기 오라(BUILD243 사용자 “흰색 검기 오라, 도트풍, 투명한 느낌”): 절반 해상도 캔버스에 흰 반투명 초승달을 그려 2배로 찍는다(계단진 가장자리)
 const AURA = makeCanvas(48, 48);
 // 날(BUILD244 사용자 “검기가 ) 모양이라 날카로움이 없다”): 호를 따라 폭이 가운데서 가장 넓고 양끝은 0 으로 모이는 초승달 — 앞끝(진행 방향)이 더 가늘어 베는 느낌. 각도는 a0 → a1 로 보간(부호가 방향)
@@ -48,13 +50,13 @@ const rand = (a, b) => a + Math.random() * (b - a);
 export class Runner {
   constructor(game, opts = {}) {
     this.game = game;
-    this.cfg = opts;   // 맵 meta.run / meta.runs.<id>: dir·endX·speed·obstacles·seed·outro·outroFlag·keepFollowersHidden·types·water·petals
+    this.cfg = opts;   // 맵 meta.run / meta.runs.<id>: dir·endX·speed·obstacles·seed·outro·outroFlag·keepFollowersHidden·types·water·petals·finale(절벽 오르막 도약, BUILD283)
     this.water = opts.water !== false;                 // false: 물 바닥이 아니다(벚꽃 길) — 물결 고리·물보라·물결 줄기·물걸음 소리 없음(BUILD282)
     this.petalColors = Array.isArray(opts.petals) && opts.petals.length ? opts.petals : PETAL.colors;   // 쳐낼 때 흩날리는 조각 색(벚꽃 길은 분홍)
     const p = game.player;
     const dir = opts.dir < 0 ? -1 : 1;
-    this.core = createRunner({ x: p.x, endX: opts.endX ?? (dir > 0 ? game.map.pxW - 386 : 362), speed: opts.speed || RUNNER.speed, dir, obstacles: !!opts.obstacles, types: opts.types, seed: opts.seed ?? 1, tutorial: !!opts.tutorial && !game.has?.(TUTORIAL.flag) });
-    this.holdT = 0;
+    this.core = createRunner({ x: p.x, endX: opts.endX ?? (dir > 0 ? game.map.pxW - 386 : 362), speed: opts.speed || RUNNER.speed, dir, obstacles: !!opts.obstacles, types: opts.types, finale: opts.finale || null, seed: opts.seed ?? 1, tutorial: !!opts.tutorial && !game.has?.(TUTORIAL.flag) });
+    this.holdT = 0; this.floatBitT = 0;
     if (opts.obstacles) preloadObstacleImages();
     this.groundY = p.y;
     this.fx = [];
@@ -81,6 +83,7 @@ export class Runner {
       if (ev === 'airslash') this.fx.push({ kind: 'airslash', t: 0, dur: RUNNER.airSlashTime });
       if (ev === 'land') this.splash(p.x + p.w / 2, p.y + p.h - 1, 8);
       if (ev === 'deflect') { this.fx.push({ kind: 'deflect', t: 0, dur: 0.22 }); this.onDeflect(); }
+      if (ev === 'float') this.onFloat();   // 슬로우 시작: 꽃잎이 살짝(BUILD283 “살짝 벚꽃같은게 좀 나오다가”)
       if (ev === 'hurt') this.hurt();
       if (ev === 'tutorial_hold') { this.holdT = 0; g.sound?.walk?.(null); }
       if (ev === 'tutorial_done') g.setFlag?.(TUTORIAL.flag);
@@ -89,6 +92,7 @@ export class Runner {
     // 첫 나뭇잎 튜토리얼 정지: 이펙트·바람·물보라도 멈춘 채 C 표시만 통통 뛴다
     if (s.tutorial === 'hold') { this.holdT += dt; if (g.runner === this) this.placeCamera(0.5); return; }
     if (this.skidSfxT !== undefined) { this.skidSfxT -= dt; if (this.skidSfxT <= 0) { this.skidSfxT = undefined; g.sound?.sfx('scrape'); this.sfxLog.push('scrape'); } }
+    if (s.phase === 'float') { this.floatBitT += dt; if (this.floatBitT >= FLOAT_BITS.every) { this.floatBitT = 0; this.petals(p.x + p.w / 2, p.y + p.h - s.airY - FLOAT_BITS.above); } }   // 슬로우 동안 몸 주위에서 분홍 조각이 조금씩
     for (const f of this.fx) f.t += dt;
     this.fx = this.fx.filter((f) => f.t < f.dur);
     this.updateParticles(dt);
@@ -117,6 +121,11 @@ export class Runner {
   petals(x, y) {
     const s = this.core;
     for (let i = 0; i < PETAL.count; i++) this.leafBits.push({ x, y, vx: s.dir * rand(...PETAL.vx) + rand(-50, 50), vy: -rand(...PETAL.vy), life: rand(...PETAL.life), t: 0, c: this.petalColors[i % this.petalColors.length], sz: i % 3 === 0 ? 3 : 2, ph: rand(0, 6.28) });
+  }
+  /** 절벽 도약 슬로우 시작(BUILD283): 화면 꽃잎을 조금 흩뿌린다(맵 meta.petals 가 있을 때). 세기는 meta.runs.<id>.finale.petalBurst */
+  onFloat() {
+    const g = this.game;
+    if (g.petals) { g.petals.burst(this.cfg.finale?.petalBurst ?? FLOAT_BITS.burst, SCREEN_W, SCREEN_H); g.petals.rate = Math.max(g.petals.rate, FLOAT_BITS.rate); g.petalsBurstT = Math.max(g.petalsBurstT || 0, this.core.finale?.slow ?? 6); }
   }
   /** 발이 물을 차서 뒤로 튀는 물보라(월드 좌표) */
   splash(x, y, count = SPRAY.count) {
@@ -177,14 +186,17 @@ export class Runner {
     cam.locked = true;
     const side = this.core.dir > 0 ? RUNNER.cameraLeft : 1 - RUNNER.cameraLeft;   // 왼쪽으로 달리면 화면 오른쪽 22% 자리
     const tx = Math.max(0, Math.min(map.pxW - SCREEN_W, p.x + p.w / 2 - SCREEN_W * side));
-    const ty = map.pxH < SCREEN_H ? (map.pxH - SCREEN_H) / 2 : Math.max(0, Math.min(map.pxH - SCREEN_H, p.y + p.h / 2 - SCREEN_H / 2));
+    const lift = this.core.finale ? this.core.airY : 0;   // 절벽 도약(BUILD283): 카메라가 뛰어오른 높이를 따라간다(맵 안으로 클램프)
+    const ty = map.pxH < SCREEN_H ? (map.pxH - SCREEN_H) / 2 : Math.max(0, Math.min(map.pxH - SCREEN_H, p.y + p.h / 2 - lift - SCREEN_H / 2));
     cam.x += (tx - cam.x) * lerp; cam.y += (ty - cam.y) * lerp;
   }
   /** 끝: 조작·카메라 복귀, 동료 다시 보이고 뒤에 정렬 */
   finish() {
     const g = this.game, p = g.player;
     if (g.runner === this) g.runner = null;
-    g.camera.locked = false; p.moving = false; p.facing = this.core.dir > 0 ? 'right' : 'left';
+    // 절벽 도약 마무리(BUILD283): 맵이 바뀔 때까지 카메라를 그대로 두고(풀면 떨어진 주인공 쪽으로 튄다 — changeMap 이 다시 푼다) 주인공 그림은 떨어진 높이(hopY)에 둔다
+    if (this.cfg?.finale) p.hopY = this.core.airY; else g.camera.locked = false;
+    p.moving = false; p.facing = this.core.dir > 0 ? 'right' : 'left';
     g.sound?.walk?.(null);
     p.trail = [];   // 달리는 동안 쌓이지 않은 발자국 궤적을 비운다 — 안 비우면 동료가 토리이 자리로 되돌아 걸어간다(리뷰 2026-09-19)
     // cfg.outro(BUILD235 청소부 끝 연출): 아직 안 본 상태면 동료는 숨긴 채 그 스크립트가 데려온다. keepFollowersHidden(사라진 채 다음 구간으로) 이면 숨긴 채 둔다. 아니면 바로 뒤에 정렬
@@ -267,11 +279,11 @@ export class Runner {
     s.trail.forEach((t, i) => {
       const fr = this.frameOf(t.anim, t.frame);
       if (!fr) return;
-      ctx.globalAlpha = (t.phase === 'dash' ? 0.6 : 0.3) * ((i + 1) / (n + 1));
+      ctx.globalAlpha = (t.phase === 'dash' || t.phase === 'leap' ? 0.6 : 0.3) * ((i + 1) / (n + 1));   // 대시·절벽 도약 잔상은 진하게
       this.drawFrame(ctx, this.silhouette(fr.frame, fr.scale), fr.frame, fr.scale, t.x + p.w / 2 - cam.x, ay - t.airY, t.angle);
     });
     ctx.globalAlpha = 1;
-    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(Math.round(p.x - cam.x), Math.round(ay - 2), p.w, 3);
+    if (!(s.phase === 'leap' || s.phase === 'float' || s.phase === 'fall')) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(Math.round(p.x - cam.x), Math.round(ay - 2 - s.groundY), p.w, 3); }   // 그림자는 비탈을 따라 오르고, 절벽 너머(허공)엔 없다
     const fr = this.frameOf(s.anim, s.frame);
     if (fr) this.drawFrame(ctx, fr.frame.image, fr.frame, fr.scale, ax, ay - s.airY, s.tilt);
     else { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(ax - 8), Math.round(ay - s.airY - 40), 16, 40); }

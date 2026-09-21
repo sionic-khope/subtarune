@@ -43,14 +43,19 @@ export const OBSTACLE_SPAWN = Object.freeze({ every: [1.5, 2.3], first: 1.4, typ
 // 첫 나뭇잎 튜토리얼(BUILD240 사용자 “첫 나뭇잎 맞기 바로 직전에 멈춰서 C 를 누르라는 가이드, 그 전엔 조작을 잠시 막기”): createRunner({tutorial:true}) 이면
 //   pending(점프·베기 무시) → 첫 장애물이 앞 holdAt px 안(땅 베기 판정 8~62 의 끝)에 들면 hold(시간 정지, C 만 기다림) → C 로 done(그 틱에 베기 시작 → 쳐냄). 게임 플래그 flag 가 있으면 다시 안 한다
 export const TUTORIAL = Object.freeze({ holdAt: 60, flag: 'run_leaf_tutorial_done' });
+// 절벽 오르막 마무리(BUILD283 사용자 “왼쪽 끝에 절벽 오르막 있으며 거기로 가지면 꽤 점프되는 연출과 함께 점프된 뒤에 잔상 점프 한 슬로우 6초 정도 하다가 떨어지는데 점프할 때 소리도 나고”):
+//   맵 meta.runs.<id>.finale = { ramp, rise, leapV, leapVx, leapTime, slow, scale, fallTo } 가 있으면 endX 에서 제동하지 않고 오르막(ramp px 를 달려 오르며 rise 만큼 발이 올라감) → 끝에서 도약(leapV, 'jump' 소리)
+//   → leapTime 초 보통 속도로 솟은 뒤 슬로우(실시간 slow 초 동안 시간 배율 scale — 꼭대기 근처에 잔상이 허공에 멈춰 남는다) → 낙하(보통 속도, airY 가 fallTo 아래면 end → 맵 outro). 절벽 너머는 땅이 없다
+//   leapV 663 = √(2·1100·200): 꼭대기 약 200px(카메라가 airY 를 따라가도 화면 위에 남는 높이)
+export const FINALE = Object.freeze({ ramp: 160, rise: 64, leapV: 663, leapVx: 120, leapTime: 0.22, slow: 6, scale: 0.08, fallTo: -440, trailEvery: 5, trailMax: 14 });
 const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
 // 올려베기(BUILD244 사용자 “위로 올릴 때는 턱도 들면서 자세가 잡혀야, 팔만 움직이지 말고 스프라이트를”): 전용 시트 runner_upslash(웅크림 → 낮게 베기 → 턱 들고 위로 → 복귀)
 // 베기 판정(BUILD244 “이펙트나 영역 좀 더 넓게”): 땅 베기 앞 4~80 × 높이 0~72, 공중 앞 -6~72 × airY-24 ~ +72
 export const SLASH_BOX = Object.freeze({ ground: [4, 80, 0, 72], air: [-6, 72, -24, 72] });
 
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
-export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false, types = OBSTACLE_SPAWN.types }) {   // types: 장애물 종류 순서(맵 meta.runs.<id>.types, BUILD282)
-  return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), dir: dir < 0 ? -1 : 1, vx: 0, airY: 0, vy: 0, grounded: true,
+export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false, types = OBSTACLE_SPAWN.types, finale = null }) {   // types: 장애물 종류 순서(맵 meta.runs.<id>.types, BUILD282) / finale: 절벽 오르막 마무리(BUILD283)
+  return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), dir: dir < 0 ? -1 : 1, vx: 0, airY: 0, vy: 0, grounded: true, groundY: 0, finale: finale ? { ...FINALE, ...finale } : null,
     anim: 'prep', frame: 0, animT: 0, attack: null, slashN: 0, tilt: 0, landT: 0, trail: [], trailT: 0,
     obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, types: Array.isArray(types) && types.length ? types : OBSTACLE_SPAWN.types, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0, tutorial: obstacles && tutorial ? 'pending' : null };
 }
@@ -87,7 +92,19 @@ export function stepRunner(s, dt, input = {}) {
     if (s.t >= RUNNER.dashTime) { s.phase = 'run'; s.t = 0; s.vx = s.speed; }
   } else if (s.phase === 'run') {
     s.t += dt;
-    if (left(s) <= RUNNER.brakeDist && s.grounded) { s.phase = 'brake'; s.t = 0; s.skidT = 0; s.attack = null; ev.push('skid'); }   // 땅 베기 중이면 베기를 끊고 미끄러진다
+    if (s.finale) { if (left(s) <= 0) { s.phase = 'ramp'; s.t = 0; s.attack = null; ev.push('ramp'); } }   // 절벽 오르막 마무리(BUILD283): 제동 없이 오르막으로
+    else if (left(s) <= RUNNER.brakeDist && s.grounded) { s.phase = 'brake'; s.t = 0; s.skidT = 0; s.attack = null; ev.push('skid'); }   // 땅 베기 중이면 베기를 끊고 미끄러진다
+  } else if (s.phase === 'ramp') {   // 오르막: 계속 달리며 발이 비탈을 따라 오른다 → 끝에서 도약
+    s.t += dt; s.vx = s.speed;
+    const along = -left(s);
+    s.groundY = s.finale.rise * Math.min(1, Math.max(0, along) / s.finale.ramp);
+    if (along >= s.finale.ramp) { s.phase = 'leap'; s.t = 0; s.grounded = false; s.airY = s.groundY; s.vy = s.finale.leapV; s.vx = s.finale.leapVx; s.attack = null; ev.push('jump', 'leap'); }
+  } else if (s.phase === 'leap') {   // 보통 속도로 솟는다 → 슬로우
+    s.t += dt; if (s.t >= s.finale.leapTime) { s.phase = 'float'; s.t = 0; ev.push('float'); }
+  } else if (s.phase === 'float') {   // 슬로우(실시간 slow 초) → 낙하
+    s.t += dt; if (s.t >= s.finale.slow) { s.phase = 'fall'; s.t = 0; ev.push('fall'); }
+  } else if (s.phase === 'fall') {
+    s.t += dt;
   } else if (s.phase === 'brake') {
     s.t += dt; s.skidT += dt;
     const remain = Math.max(0, left(s));
@@ -95,14 +112,17 @@ export function stepRunner(s, dt, input = {}) {
     if (s.skidT >= RUNNER.skidStepEvery) { s.skidT = 0; ev.push('skidstep'); }
     if (remain <= 0.5 || s.vx * dt >= remain) { s.x = s.endX; s.vx = 0; s.phase = 'settle'; s.t = 0; s.grounded = true; s.airY = 0; s.vy = 0; s.attack = null; }
   }
-  if (s.phase !== 'done' && s.phase !== 'settle') { s.x += s.vx * dt * s.dir; if (left(s) < 0) s.x = s.endX; }
+  const ts = s.phase === 'float' ? s.finale.scale : 1;   // 슬로우 배율(float 동안만 — 주인공 물리에만)
+  if (s.phase !== 'done' && s.phase !== 'settle') { s.x += s.vx * dt * ts * s.dir; if (!s.finale && left(s) < 0) s.x = s.endX; }
   // 점프(X): 땅에 있고 공격 중이 아닐 때(제동 중엔 안 됨)
   const jumpLandsBeforeBrake = left(s) - s.speed * RUNNER.airTime > RUNNER.minSkid;
   if (input.jump && s.grounded && !s.attack && (s.phase === 'run' || s.phase === 'dash') && jumpLandsBeforeBrake) { s.grounded = false; s.vy = RUNNER.jumpV; ev.push('jump'); }
+  const overVoid = s.phase === 'leap' || s.phase === 'float' || s.phase === 'fall';   // 절벽 너머: 땅이 없다
   if (!s.grounded) {
-    s.airY += s.vy * dt; s.vy -= RUNNER.gravity * dt;
-    if (s.airY <= 0) { s.airY = 0; s.vy = 0; s.grounded = true; s.landT = RUNNER.landTime; ev.push('land'); }
-  }
+    s.airY += s.vy * dt * ts; s.vy -= RUNNER.gravity * dt * ts;
+    if (overVoid) { if (s.phase === 'fall' && s.airY <= s.finale.fallTo) { s.phase = 'done'; s.trail.length = 0; ev.push('end'); return ev; } }
+    else if (s.airY <= s.groundY) { s.airY = s.groundY; s.vy = 0; s.grounded = true; s.landT = RUNNER.landTime; ev.push('land'); }
+  } else if (s.phase === 'ramp') s.airY = s.groundY;   // 오르막을 달려 오르는 동안 발이 비탈을 따른다
   if (s.landT > 0) s.landT = Math.max(0, s.landT - dt);
   // 공격(C): 땅에서는 앞을 가르는 베기, 공중에서는 머리 위에서 아래로 내려치는 점프 공격(airslash)
   // 땅 베기는 내려베기·올려베기가 번갈아 나온다(BUILD243 사용자 “아래로만 휘두르지 말고 위에서 아래로, 아래에서 위로”): up 이면 올려베기 시트(runner_upslash)
@@ -130,7 +150,10 @@ export function stepRunner(s, dt, input = {}) {
   if (s.obstacles) stepObstacles(s, dt, ev);
   // 잔상: 움직이는 동안 일정 간격으로 자리를 남긴다(대시 때 가장 진하게 — 그리기에서 결정)
   s.trailT += dt;
-  if (s.vx > 0 && s.trailT >= RUNNER.trailEvery) {
+  if (overVoid) {   // 도약·슬로우·낙하: 거리 간격으로 촘촘한 잔상(슬로우엔 거의 안 움직여 잔상이 허공에 멈춰 남는다)
+    const last = s.trail[s.trail.length - 1];
+    if (!last || Math.hypot(s.x - last.x, s.airY - last.airY) >= s.finale.trailEvery) { s.trail.push({ x: s.x, airY: s.airY, anim: s.anim, frame: s.frame, angle: s.tilt, phase: 'leap' }); if (s.trail.length > s.finale.trailMax) s.trail.shift(); }
+  } else if (s.vx > 0 && s.trailT >= RUNNER.trailEvery) {
     s.trailT = 0;
     s.trail.push({ x: s.x, airY: s.airY, anim: s.anim, frame: s.frame, angle: s.tilt, phase: s.phase });
     if (s.trail.length > RUNNER.trailMax) s.trail.shift();

@@ -75,6 +75,7 @@ import { jjajang_sakura2_bridge } from './cutscenes/jjajang_sakura2.js';
 import { jjajang_sakura6_scene } from './cutscenes/jjajang_sakura6.js';   // 벚꽃 숲 6 광장 최미스 고백 연습 연출(BUILD277)
 import { jjajang_sakura7_scene } from './cutscenes/jjajang_sakura7.js';   // 벚꽃 숲 7 나무 무대 — 그 남자와 그 여자의 무대(BUILD278)
 import { jjajang_sakura8_split, jjajang_sakura8_no_right, jjajang_sakura9_start } from './cutscenes/jjajang_sakura8.js';   // 벚꽃 숲 8 갈림길(경섭 이탈·억빠맨 가드)·벚꽃 숲 9 파란 토리이 달리기(BUILD282)
+import { jjajang_sakura10_start, jjajang_sakura10_outro } from './cutscenes/jjajang_sakura10.js';   // 벚꽃 숲 10 파란 토리이 10초 달리기·절벽 도약 → 벚꽃 숲 11 착지(BUILD283)
 import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, sakura5_duo_battle_qa, sakura5_after_battle_qa } from './cutscenes/jjajang_sakura5.js';   // 벚꽃 숲 5 공터 연출·오른쪽 길 막기(BUILD271)   // 벚꽃 숲 2 벚꽃다리(BUILD264)   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
 import { jjajang_glade_intro } from './cutscenes/jjajang_glade.js';   // 빛 드는 공터 풀숲의 최미스(BUILD257)
 import { storage_viewer, storage_viewer_defeated } from './cutscenes/storage_viewer.js';
@@ -120,6 +121,7 @@ export const SCRIPTS = {
   jjajang_stele1, jjajang_stele2, jjajang_stele3, jjajang_stele4, jjajang_stele5, jjajang_nest_drum, jjajang_nest_after, jjajang_statue_return, jjajang_statue_no_return, jjajang_glade_intro, jjajang_sakura_bloom, jjajang_sakura2_bridge, jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right,   // 찢칠라 길 2 아래 샛길 마나샘(BUILD244) — 마이야르 샘물과 같은 전체 회복
   drum_devil_battle_qa: [jjajang_nest_drum.find(node => node.battle), ...jjajang_nest_after],   // 전투 직행 QA 도 승리 뒤 연출까지(BUILD254)
   jjajang_sakura8_split, jjajang_sakura8_no_right, jjajang_sakura9_start,   // 벚꽃 숲 8 갈림길 연출·오른쪽 길 막기 / 벚꽃 숲 9 러너 시작(BUILD282)
+  jjajang_sakura10_start, jjajang_sakura10_outro,   // 벚꽃 숲 10 러너 시작 / 절벽 도약 낙하 뒤 나무 정상 착지(BUILD283)
   jjajang_sakura7_scene,   // 벚꽃 숲 7 무대 연출: 어둠·스포트라이트·점례(드레스 가순이)·가면 최미스·도미조림 난입·관객 난동·박치기(BUILD278)
   jjajang_sakura6_scene,   // 벚꽃 숲 6 광장 연출: 뗏목 뒤 둥근 광장에서 가면 쓴 최미스의 고백 연습 → 주인공들과 대화 → 오른쪽으로 떠남(BUILD277)
   sakura5_duo_battle_qa, sakura5_after_battle_qa,   // 도미조림·도현 전투 직행 QA(진입 연출·전투·승리 뒤 연출까지) / 승리 직후 QA(BUILD275)

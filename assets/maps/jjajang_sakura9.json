@@ -53,6 +53,11 @@
    "x": 382,
    "y": 294,
    "facing": "left"
+  },
+  "from_west": {
+   "x": 36,
+   "y": 294,
+   "facing": "right"
   }
  },
  "meta": {
@@ -71,7 +76,7 @@
     9
    ]
   ],
-  "role": "벚꽃 숲 8 윗줄 문 다음(BUILD282): 위로 살짝 → 왼쪽으로 살짝 → 파란 토리이 → 왼쪽으로 15초 달리기(분홍 나뭇잎·꽃가지 쳐내기) → 왼쪽 끝(다음 맵 없음). 브금 sakura, 발소리 없음",
+  "role": "벚꽃 숲 8 윗줄 문 다음(BUILD282): 위로 살짝 → 왼쪽으로 살짝 → 파란 토리이 → 왼쪽으로 15초 달리기(분홍 나뭇잎·꽃가지 쳐내기) → 왼쪽 끝 문 → 벚꽃 숲 10(BUILD283). 브금 sakura, 발소리 없음",
   "petals": {
    "rate": 18,
    "burst": 0,
@@ -2247,6 +2252,17 @@
    "h": 10,
    "to": "jjajang_sakura8",
    "spawn": "from_north",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura9_west_door",
+   "x": 0,
+   "y": 256,
+   "w": 10,
+   "h": 64,
+   "to": "jjajang_sakura10",
+   "spawn": "from_east",
    "sfx": false
   }
  ]

@@ -1,0 +1,31 @@
+{
+ "file": "assets/props/sakura_cliff_ramp.png",
+ "size": [
+  181,
+  95
+ ],
+ "scale": 0.2025,
+ "slope_start": [
+  179,
+  80
+ ],
+ "slope_top": [
+  7,
+  0
+ ],
+ "raw": {
+  "size": [
+   892,
+   467
+  ],
+  "slope_start": [
+   884,
+   395
+  ],
+  "slope_top": [
+   35,
+   0
+  ],
+  "lip_y": 403
+ }
+}

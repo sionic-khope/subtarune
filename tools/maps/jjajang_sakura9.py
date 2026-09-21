@@ -10,7 +10,7 @@
 "위쪽길로가면 위살짝갔다가 왼쪽으로 살짝 갔다가 왼쪽으로 쭊 이어져있는 파란호리이 분홍색 나뭇가지랑 나뭇잎들 쳐낼수있는 기믹 한 15초정도 달리는 맵 찍어줘" / "파란호리이 기믹 참고잘하고"
 - 벚꽃 숲 8 윗줄 문에서 아래 가장자리(218~219열)로 들어와 위로 7칸 → 8~9행에서 왼쪽으로 12칸 → 파란 토리이(가까운 기둥 206열, 토리이 굽이 길과 같은 소품·자리 계산)를 왼쪽으로 지나면
   러너(dir −1, 420px/s, meta.runs.a): 장애물은 분홍 벚꽃 잎·꽃가지·꽃잎 다발(assets/props/run_sakura_*.png, 쳐내면 분홍 꽃잎 조각) — 왼쪽 362px 에서 제동(≈ 14.6초). 바닥은 분홍 꽃잎 땅(물 아님 → 물결·물걸음 없음, meta.runs.a.water false).
-- 왼쪽 끝은 길만(다음 맵 없음). 지역 자산: 벚꽃 나무 판, 꽃잎 초당 18, 브금 sakura, 발소리 없음."""
+- 왼쪽 끝 문 → 벚꽃 숲 10(BUILD283). 지역 자산: 벚꽃 나무 판, 꽃잎 초당 18, 브금 sakura, 발소리 없음."""
 from __future__ import annotations
 
 import json
@@ -101,6 +101,7 @@ def build_map() -> dict[str, object]:
         if t:
             seen.add((col, row)); trees.append(t)
     start = {'type': 'trigger', 'id': 'sakura9_torii_a', 'x': run_start_x, 'y': RUN_ROWS[0] * TILE, 'w': 2 * TILE, 'h': 2 * TILE, 'script': 'jjajang_sakura9_start'}   # 가까운 기둥 왼쪽 = 왼쪽으로 지난 자리
+    door_west = {'type': 'door', 'id': 'sakura9_west_door', 'x': 0, 'y': RUN_ROWS[0] * TILE, 'w': 10, 'h': 2 * TILE, 'to': 'jjajang_sakura10', 'spawn': 'from_east', 'sfx': False}   # 왼쪽 끝 → 벚꽃 숲 10(BUILD283)
     door_south = {'type': 'door', 'id': 'sakura9_south_door', 'x': ENTRY_COLS[0] * TILE, 'y': HEIGHT * TILE - 10, 'w': (ENTRY_COLS[1] - ENTRY_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura8', 'spawn': 'from_north', 'sfx': False}
     road_y = (RUN_ROWS[0] + 1) * TILE + 6
     return {
@@ -112,17 +113,18 @@ def build_map() -> dict[str, object]:
             'start': {'x': ENTRY_COLS[0] * TILE + 4, 'y': (HEIGHT - 2) * TILE + 6, 'facing': 'up'},
             'torii': {'x': (TORII_COL + 2) * TILE + 4, 'y': road_y, 'facing': 'left'},
             'end': {'x': END_X + 20, 'y': road_y, 'facing': 'left'},
+            'from_west': {'x': 36, 'y': road_y, 'facing': 'right'},
         },
         'meta': {
             'connected': True,
             'route': [[ENTRY_COLS[0], HEIGHT - 2], [ENTRY_COLS[0], RUN_ROWS[0] + 1], [TORII_COL + 2, RUN_ROWS[0] + 1]],
-            'role': '벚꽃 숲 8 윗줄 문 다음(BUILD282): 위로 살짝 → 왼쪽으로 살짝 → 파란 토리이 → 왼쪽으로 15초 달리기(분홍 나뭇잎·꽃가지 쳐내기) → 왼쪽 끝(다음 맵 없음). 브금 sakura, 발소리 없음',
+            'role': '벚꽃 숲 8 윗줄 문 다음(BUILD282): 위로 살짝 → 왼쪽으로 살짝 → 파란 토리이 → 왼쪽으로 15초 달리기(분홍 나뭇잎·꽃가지 쳐내기) → 왼쪽 끝 문 → 벚꽃 숲 10(BUILD283). 브금 sakura, 발소리 없음',
             'petals': PETALS,
             'runRoadRows': [list(RUN_ROWS)],
             'runs': runs,
             'sakura9': {'runRows': list(RUN_ROWS), 'entryCols': list(ENTRY_COLS), 'turnCols': list(TURN_COLS), 'toriiCol': TORII_COL, 'runStartX': run_start_x, 'endX': END_X, 'rideSeconds': round(ride, 1), 'roadY': road_y},
         },
-        'entities': [*trees, *gates, start, door_south],
+        'entities': [*trees, *gates, start, door_south, door_west],
     }
 
 

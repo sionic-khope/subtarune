@@ -233,6 +233,17 @@ const sakuraWater = (ctx, rng) => {
 };
 registerTile('[', { name: 'sakura_water', solid: true, variants: 4, draw: sakuraWater });
 registerTile(')', { name: 'sakura_petal_meadow', solid: false, variants: 4, draw: petalMeadow });
+// 벚꽃 숲 11 나무 정상(jjajang_sakura11, BUILD283 “나무 정상같은 느낌의 나뭇바닥과 벚꽃들”): 가로 널빤지 두 장(이음매 8px), 세로 이음은 엇갈리게, 옅은 결, 분홍 꽃잎 한 점. 발소리 없음(벚꽃 맵 규칙)
+const sakuraDeck = (ctx, rng) => {
+  fillNoise(ctx, '#7a4a35', ['#85533b', '#6c4030', '#8f5a42'], rng, 10);
+  ctx.fillStyle = '#4a2a1e';
+  for (let y = 0; y < ART_PX; y += 8) ctx.fillRect(0, y, ART_PX, 1);
+  for (let i = 0; i < 2; i++) { const jx = Math.floor(rng() * ART_PX); ctx.fillRect(jx, i * 8 + 1, 1, 7); }
+  ctx.fillStyle = '#96614a';
+  for (let i = 0; i < 3; i++) { const y = 2 + Math.floor(rng() * 5) + (i % 2) * 8, x = Math.floor(rng() * 8); ctx.fillRect(x, y, 4 + Math.floor(rng() * 6), 1); }
+  if (rng() < 0.6) { ctx.fillStyle = rng() < 0.5 ? '#ffc2e0' : '#ff8ad0'; ctx.fillRect(Math.floor(rng() * 14), Math.floor(rng() * 14), 2, rng() < 0.5 ? 1 : 2); }
+};
+registerTile('-', { name: 'sakura_deck', solid: false, variants: 4, draw: sakuraDeck });
 // 벚꽃 숲 5(jjajang_sakura5, BUILD271 “나무다리 3초정도 걷고”): 파란 물 위 나무다리 바닥 — 걷는 방향(가로)과 직각으로 놓인 널빤지(세로 이음매 8px 마다), 옅은 결·못 자국. 발소리 없음(벚꽃 맵 규칙)
 const sakuraBridgeDeck = (ctx, rng) => {
   fillNoise(ctx, '#a0703f', ['#b07d48', '#8f6236', '#b9885a'], rng, 10);

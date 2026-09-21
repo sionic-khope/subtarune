@@ -1,0 +1,248 @@
+{
+ "id": "jjajang_sakura11",
+ "name": "벚꽃 숲 11",
+ "stage": "ship_sinking_done",
+ "bgm": "sakura",
+ "dim": 0,
+ "battleBg": "sakura",
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@-------@@@@@@@@@",
+  "@@@@@@@@-----------@@@@@@@",
+  "@@@@@@@-------------@@@@@@",
+  "@@@@@@---------------@@@@@",
+  "@@@@@-----------------@@@@",
+  "@@@@@-----------------@@@@",
+  "@@@@@-----------------@@@@",
+  "@@@@@@---------------@@@@@",
+  "@@@@@@@-------------@@@@@@",
+  "@@@@@@@@-----------@@@@@@@",
+  "@@@@@@@@@@-------@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "landing": {
+   "x": 420,
+   "y": 326,
+   "facing": "down"
+  },
+  "start": {
+   "x": 420,
+   "y": 326,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    13,
+    10
+   ],
+   [
+    17,
+    10
+   ]
+  ],
+  "role": "벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 문 없음(다음 맵 없음). 브금 sakura, 발소리 없음",
+  "petals": {
+   "rate": 18,
+   "burst": 0,
+   "burstRate": 18,
+   "burstSeconds": 0,
+   "after": 18
+  },
+  "sakura11": {
+   "center": [
+    13,
+    10
+   ],
+   "radii": [
+    8.4,
+    5.4
+   ],
+   "landing": [
+    420,
+    326
+   ],
+   "ring": 14
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "sakura11_tree_1",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 732,
+   "y": 406,
+   "w": 24,
+   "h": 12,
+   "ix": 644,
+   "iy": 261,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_2",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 670,
+   "y": 500,
+   "w": 24,
+   "h": 12,
+   "ix": 652,
+   "iy": 353,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_3",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 559,
+   "y": 564,
+   "w": 24,
+   "h": 12,
+   "ix": 511,
+   "iy": 409,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_4",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 420,
+   "y": 588,
+   "w": 24,
+   "h": 12,
+   "ix": 374,
+   "iy": 454,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_5",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 281,
+   "y": 564,
+   "w": 24,
+   "h": 12,
+   "ix": 193,
+   "iy": 419,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_6",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 170,
+   "y": 500,
+   "w": 24,
+   "h": 12,
+   "ix": 152,
+   "iy": 353,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_7",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 108,
+   "y": 406,
+   "w": 24,
+   "h": 12,
+   "ix": 60,
+   "iy": 251,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_8",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 108,
+   "y": 302,
+   "w": 24,
+   "h": 12,
+   "ix": 62,
+   "iy": 168,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_9",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 170,
+   "y": 208,
+   "w": 24,
+   "h": 12,
+   "ix": 82,
+   "iy": 63,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_10",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 281,
+   "y": 144,
+   "w": 24,
+   "h": 12,
+   "ix": 263,
+   "iy": -3,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_11",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 420,
+   "y": 120,
+   "w": 24,
+   "h": 12,
+   "ix": 372,
+   "iy": -35,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_12",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 559,
+   "y": 144,
+   "w": 24,
+   "h": 12,
+   "ix": 513,
+   "iy": 10,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_13",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 670,
+   "y": 208,
+   "w": 24,
+   "h": 12,
+   "ix": 582,
+   "iy": 63,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura11_tree_14",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 732,
+   "y": 302,
+   "w": 24,
+   "h": 12,
+   "ix": 714,
+   "iy": 155,
+   "solid": true
+  }
+ ]
+}

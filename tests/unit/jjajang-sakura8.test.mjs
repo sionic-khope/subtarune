@@ -127,6 +127,6 @@ test('test_sakura8_qa_points_and_runtime_assets', () => {
   assert.deepEqual([qa('jjajang_sakura8').spawn, qa('jjajang_sakura8_fork').spawn, qa('jjajang_sakura8_after').spawn, qa('jjajang_sakura9').spawn, qa('jjajang_sakura9_torii').spawn], ['from_west', 'fork', 'after', 'from_south', 'torii']);
   assert.deepEqual([qa('jjajang_sakura8').party, qa('jjajang_sakura8_after').party, qa('jjajang_sakura9').party, qa('jjajang_sakura9_torii').party], [['gyeongsub', 'ppaman'], [], [], []]);
   assert.ok(qa('jjajang_sakura8').flags.sakura7_scene_done && !qa('jjajang_sakura8').flags.sakura8_split_done && qa('jjajang_sakura8_after').flags.sakura8_split_done && qa('jjajang_sakura9').flags.sakura8_split_done);
-  const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura8') > ids.indexOf('jjajang_sakura7_after') && ids.indexOf('jjajang_sakura9_torii') === ids.length - 1);
+  const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura8') > ids.indexOf('jjajang_sakura7_after') && ids.indexOf('jjajang_sakura9_torii') > ids.indexOf('jjajang_sakura9'));   // 마지막 지점 검사는 벚꽃 숲 10 테스트로(BUILD283)
   assert.deepEqual(MAP_RUNTIME_ASSETS.jjajang_sakura8, { sprites: ['gyeongsub', 'ppaman'], portraits: ['gyeongsub', 'ppaman'] });
 });
