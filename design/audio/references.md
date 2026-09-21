@@ -407,7 +407,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | --- | --- | --- | --- |
 | `sfx/bell.mp3` | `snd_bell` | 0.47s | 순간이동 뒤 영역 표시(띵) |
 | `sfx/spearappear.mp3` | `snd_spearappear` | 0.54s | 보스가 사라질 때 |
-| `sfx/wing.mp3` | `snd_wing` | 0.47s | 위에서 미끄러져 내려올 때(휘융) · 파크가디언 날리기 |
+| `sfx/wing.mp3` | `snd_wing` | 0.47s | 위에서 미끄러져 내려올 때(휘융) · 파크가디언 날리기 · 러너 준비동작(BUILD286, 사용자 링크 myinstants deltarune-wing = 같은 소리) |
 | `sfx/impact.mp3` | `snd_impact` | 0.62s | 내려찍기 착지 |
 | (재사용) `sfx/impact.mp3` | 같은 파일 | 0.62s | 드럼통의 악마 흰 드럼통 착지(BUILD255, 사용자 “띠링 하는게 ㅂㄹ임” → 델타룬 공격음). `drum_impact.mp3` 는 삭제(로드 목록 감사: 파일만 남으면 무음 경고) |
 | `sfx/power.mp3` | `snd_power` | 0.71s | 팽이 회전 예비(빨간 원) |
@@ -471,7 +471,7 @@ ffmpeg -f lavfi -i 'anoisesrc=color=brown:amplitude=0.45:duration=0.78:sample_ra
 | `sfx/great_shine.mp3` | `snd_great_shine`(ogg) | 2.26s | 도장 뒤 반짝 |
 | (재사용) `sfx/great_shine.mp3` | 같은 파일 | 2.26s | 억빠맨·경섭 재합류 나레이션(BUILD254). 사용자 링크 myinstants `deltarune-great-shrine-41204` 는 403 이라 같은 델타룬 원음 파일을 그대로 씀 |
 | `sfx/chain_extend.mp3` | `snd_chain_extend` | 0.24s | 보스 도끼 찌르기(앞으로 뻗음) |
-| `sfx/weaponpull.mp3` | `snd_weaponpull` | 1.07s | 찌르기에 걸린 주인공을 끌어당길 때 |
+| `sfx/weaponpull.mp3` | `snd_weaponpull` | 1.07s | 찌르기에 걸린 주인공을 끌어당길 때 · 러너 달리기 시작 “핑!”(BUILD286, 전엔 준비동작에 썼음 — 사용자 “순서가 반대”) |
 
 `snd_ghostappear`, `snd_quake_nes` 는 이 SHA 에 파일이 없어(14바이트) 못 썼다. 섭리오 BGM SWORD 는 원본 124~129.5초가 물소리·무음이라(사용자가 준 소스) `playBgm(loopEnd: 124, loopFade: 1.0)` 으로 123초부터 줄였다가 처음으로 되감는다(`src/core/audio.js`).
 

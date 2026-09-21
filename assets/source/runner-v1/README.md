@@ -20,3 +20,4 @@
 - 올려베기 10판(BUILD284, 사용자 “위로 베기 스프라이트만 문제, 허리까지 틀어서 검을 잘 휘두르는 느낌, 그대로 퍼올리는 게 아니라”): `runner-upslash10.prompt.txt` — 머리·다리는 옆모습을 지키고 허리·어깨만 비틀어(야구 타자처럼 코일 → 풀림) 엉덩이 뒤 아래에서 무릎 앞 낮게 → 가슴 열고 턱 들며 대각선 위 60° → 복귀. 기준점은 [신발 가운데 x, 발 밑변](발이 땅에 붙은 채 몸이 휘둘리게). 9판 raw 는 보관.
 - 런타임: raw 그대로 `assets/sprites/hyungsub-runner-*.png`(마젠타 색키). `CHARACTER_MOTIONS.hyungsub.runner_*` 의 pivot 은 프레임마다 [남색(머리·바지) 가운데, 발 밑변], scale 0.1264(흩날리는 머리 끝까지 46px, 걷기 52px 보다 살짝 작게; 몸 가운데는 반바지 기준) — `runner-contract.json`. `src/world/runner.js` 가 프레임 번호를 직접 고르고 잔상(파란 실루엣)·베기 호·회전 고리를 그린다.
 - 소리 `audio/`: 델타룬 디컴파일 저장소(TeamBlossomDevs/DeltaruneDecomp_beta @154f9a9 `sounds/snd_swing`, `snd_criticalswing`, `snd_smallswing`) 원본 wav → `assets/audio/sfx/swing.mp3`(C 베기), `criticalswing.mp3`(공중 회전 베기). smallswing 은 보관만.
+- 소리 순서(BUILD286, 사용자 “달리기 이전에 wing(준비동작) → 달리기 시작할 때 핑!, 지금 순서가 반대”): 준비동작(검 뽑는 순간) = `wing`, 대시 시작 = `weaponpull`(핑!). 전엔 반대였다.

@@ -1,4 +1,4 @@
-// 파란 토리이 길(BUILD230): 토리이 직전에서 오른쪽으로 지나면 러너 기믹 — 준비(검 뽑는 소리 weaponpull) → 대시(wing, 잔상) → 달리기(카메라 왼쪽 22%, 발마다 물결) → X 점프(jump)·착지 웅크림 → C 베기(swing) → 공중 C 내려치기(criticalswing)
+// 파란 토리이 길(BUILD230): 토리이 직전에서 오른쪽으로 지나면 러너 기믹 — 준비(휘융 wing, BUILD286 순서 교체) → 대시(핑! weaponpull, 잔상) → 달리기(카메라 왼쪽 22%, 발마다 물결) → X 점프(jump)·착지 웅크림 → C 베기(swing) → 공중 C 내려치기(criticalswing)
 //   → 약 10초 뒤 오른쪽 끝에서 멈추고 조작·동료 복귀. 왼쪽 문 ↔ 석상 앞 숲 오른쪽. 실행: tests/playtest/run.sh jjajang-run
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
@@ -59,10 +59,10 @@ try {
   s = await st(); check(s.runner && s.runner.phase === 'prep' && s.locked && s.follower && !s.follower.visible, '준비 동작(제자리), 카메라 잠금, 동료 숨김 ' + JSON.stringify(s.runner));
   const xPrep = s.px;
   await page.waitForTimeout(300); await cap('01_prep');
-  check(await until(() => window.game.runner?.sfxLog.includes('weaponpull'), 2000), '검 뽑는 소리(weaponpull)');
+  check(await until(() => window.game.runner?.sfxLog.includes('wing') && !window.game.runner.sfxLog.includes('weaponpull'), 2000), '준비동작 소리(wing) — 핑은 아직');
   check(await until(() => window.game.runner?.phase === 'dash', 2000), '대시로 넘어간다');
   await page.waitForTimeout(220); s = await st(); await cap('02_dash');
-  check(s.runner.sfx.includes('wing') && s.runner.trail > 2 && s.px > xPrep + 10, '대시: 휘융 + 잔상 ' + JSON.stringify(s.runner));
+  check(s.runner.sfx.indexOf('weaponpull') > s.runner.sfx.indexOf('wing') && s.runner.trail > 2 && s.px > xPrep + 10, '대시: 핑!(weaponpull, wing 뒤) + 잔상 ' + JSON.stringify(s.runner));
   check(await until(() => window.game.runner?.phase === 'run', 2000), '달리기');
   await page.waitForTimeout(400); s = await st();
   check(s.runner.vx === 520 && s.runner.anim === 'run', '최고 속도 520px/s 달리기 프레임 ' + JSON.stringify(s.runner));

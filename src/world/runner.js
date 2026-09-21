@@ -1,5 +1,5 @@
 // 러너 기믹 — 그리기·소리·카메라·입력 (BUILD230 사용자 브리핑 2026-09-19, 상태는 runner-core.js)
-//   파란 토리이를 지나면 형섭이 땅을 짚고 검을 뒤로 뽑고(weaponpull) → 잔상을 남기며 대시(wing) → 화면 왼쪽 22% 자리에서 계속 달린다(쿠키런처럼 카메라가 따라감).
+//   파란 토리이를 지나면 형섭이 땅을 짚고 검을 뒤로 뽑고(준비동작 소리 wing) → 잔상을 남기며 대시(시작 소리 weaponpull 핑!, BUILD286 에서 순서 교체) → 화면 왼쪽 22% 자리에서 계속 달린다(쿠키런처럼 카메라가 따라감).
 //   X 점프(jump), C 앞을 가르는 베기(델타룬 snd_swing) + 초승달 호, 공중 C 머리 위에서 아래로 내려치는 점프 공격(snd_criticalswing) + 세로 호, 착지 웅크림. 발 접촉 프레임마다 검은 물 위 물결 고리 + 물걸음 루프.
 //   스프라이트는 CHARACTER_MOTIONS.hyungsub.runner_*(오른쪽 옆모습, 걷기의 0.85 크기). 동료는 달리는 동안 숨겼다가 끝나면 뒤에 정렬.
 import { RUNNER, OBSTACLES, TUTORIAL, createRunner, stepRunner } from './runner-core.js';
@@ -9,7 +9,8 @@ import { SCREEN_W, SCREEN_H } from '../core/layout.js';
 import { makeCanvas, loadImageOptional } from '../core/gfx.js';
 import { WATER_WALK } from '../data/footsteps.js';
 
-const SFX = Object.freeze({ draw: 'weaponpull', dash: 'wing', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape', deflect: 'deflect', hurt: 'hurt_dr' });
+// 준비동작 = wing(휘융, 사용자 링크 myinstants deltarune-wing = 델타룬 snd_wing), 달리기 시작 = weaponpull(핑!) — BUILD286 사용자 “달리기 이전에 wing 이 나오고(준비동작) 달리기 시작할 때 핑!, 지금 순서가 반대”
+const SFX = Object.freeze({ draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape', deflect: 'deflect', hurt: 'hurt_dr' });
 // 장애물 그림(BUILD236, assets/source/run-obstacles-v1): 종류 → 소품 PNG. 한 번 읽어 모든 러너가 나눠 쓴다
 const OBSTACLE_IMAGES = { leaf: 'assets/props/run_leaf_1.png', leaf2: 'assets/props/run_leaf_2.png', needles: 'assets/props/run_needles.png', branch: 'assets/props/run_branch.png',
   sakura_leaf: 'assets/props/run_sakura_leaf_1.png', sakura_leaf2: 'assets/props/run_sakura_leaf_2.png', sakura_petals: 'assets/props/run_sakura_petals.png', sakura_branch: 'assets/props/run_sakura_branch.png' };   // 벚꽃 숲 9(BUILD282)
