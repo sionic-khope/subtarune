@@ -16,6 +16,8 @@ export const ITEMS = {
   '돌':            { kind: 'plain', heal: -5, desc: '볼품없는 돌. HP -5 회복.' },
   '먼지':          { kind: 'plain', heal: 1, desc: '상자 안에 있던 먼지. HP 1 회복.' },                  // 허공9 빈 상자 — void9_events.js (사용자: 먼지는 hp 1 회복)
   '바나나':        { kind: 'plain', heal: 30, desc: '포타슘. HP 30 회복.' },                              // 청록숲3 상자 2개, 청록숲4 버튼/껍질 — teal3_toolbox.js, teal4_events.js
+  // 벚꽃 숲 12 제단의 말하는 보라색 짜장면(BUILD288 사용자 브리핑 “짜장면을 획득했다.”): 먹을 수 없는 중요 아이템(고춧가루·위염). 설명 문구는 원문 대사에서 따온 잠정 — jjajang_sakura12.js
+  '어둠의 짜장면': { kind: 'key', desc: '말을 하는 보라색 짜장면. 고춧가루가 들어 있어 위염이 있으면 못 먹는다. 더 안전한 곳으로 데려다주기로 했다.' },
 };
 export const itemKind = (name) => ITEMS[name]?.kind || 'key';
 export const plainItems = (inventory) => inventory.filter((n) => itemKind(n) === 'plain');

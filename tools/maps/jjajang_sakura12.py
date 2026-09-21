@@ -10,7 +10,7 @@
 - 벚꽃 숲 11 위쪽 길 끝 문에서 아래 가장자리(7~8열)로 들어와 위로 → 그리 넓지 않은 둥근 나무 널빤지 바닥(타일 '-'). 브금 shop3(사용자 지정, 벚꽃 숲 11 위쪽 길에서 sakura 가 꺼진 뒤 여기서 시작).
 - 가운데 작은 잘린 나무 그루터기 제단(assets/props/sakura_stump_altar.png) 위에 어둠의 짜장면 그릇(assets/props/dark_jjajang.png, 보라 오라 = 소품 aura 옵션이 엔진에서 맥동하는 보라 빛을 그린다).
   두 그림 다 gpt-image(assets/source/sakura12-v1, export.py 가 그루터기 윗면 가운데 픽셀을 contract 에 적는다 → 그릇 자리).
-- 둘레는 허공과 벚꽃 나무. 문은 아래(→ 벚꽃 숲 11 from_north)뿐. 짜장면을 얻는 방법은 아직 없음(브리핑 대기)."""
+- 둘레는 허공과 벚꽃 나무. 문은 아래(→ 벚꽃 숲 11 from_north)뿐. 제단에 C → jjajang_sakura12_bowl(짜장면 대화 → 획득 → 눈을 감는다, BUILD288); 얻은 뒤엔 그릇만 없고(unless) 그루터기는 그대로, 스크립트가 플래그를 보고 바로 끝난다."""
 from __future__ import annotations
 
 import json
@@ -40,6 +40,7 @@ RING_PAD: Final = (1.5, 1.8)
 STUMP_CONTRACT: Final = Path('assets/source/sakura12-v1/stump-contract.json')
 BOWL_CONTRACT: Final = Path('assets/source/sakura12-v1/bowl-contract.json')
 AURA: Final = {'rgb': '180,140,255', 'radius': 36, 'alpha': 0.72, 'pulse': 2.0, 'centerY': 0.55}   # 첫 스크린샷에서 옅어 반지름·세기 올림
+TAKEN_FLAG: Final = 'dark_jjajang_taken'   # 짜장면을 얻은 뒤(BUILD288)
 BGM: Final = 'shop3'                  # 사용자 지정(2026-09-21 “짜장면 있는 맵 브금은 wsYUaus3RGI”): 20. Shop 3 (DELTARUNE Chapter 5) — assets/audio/bgm/shop3.mp3
 
 
@@ -63,10 +64,11 @@ def altar() -> list[dict[str, object]]:
     sw, sh = st['size']; bx, by = bw['size']; tx, ty = st['top']
     ax, ay = ALTAR[0] * TILE + 16, ALTAR[1] * TILE + 30            # 제단 밑동 가운데·바닥선
     six, siy = ax - sw // 2, ay - sh
-    stump = {'type': 'prop', 'id': 'sakura12_altar', 'image': st['file'], 'x': ax - 18, 'y': ay - 14, 'w': 36, 'h': 14, 'ix': six, 'iy': siy, 'solid': True}
+    # 제단(그루터기)에 C: 짜장면 연출(BUILD288). 얻은 뒤엔 스크립트 첫 줄이 플래그를 보고 바로 끝난다(그루터기는 하나 — unless/requires 로 나누면 같은 방문에선 안 바뀐다)
+    stump = {'type': 'prop', 'id': 'sakura12_altar', 'image': st['file'], 'x': ax - 18, 'y': ay - 14, 'w': 36, 'h': 14, 'ix': six, 'iy': siy, 'solid': True, 'script': 'jjajang_sakura12_bowl'}
     bix, biy = six + tx - bx // 2, siy + ty - by + 4                    # 그릇 밑변이 윗면 가운데 살짝 아래
     bowl = {'type': 'prop', 'id': 'sakura12_dark_jjajang', 'image': bw['file'], 'x': bix, 'y': biy + by - 6, 'w': bx, 'h': 6, 'ix': bix, 'iy': biy, 'solid': False,
-            'sortY': ay + 1, 'aura': dict(AURA)}
+            'sortY': ay + 1, 'aura': dict(AURA), 'unless': TAKEN_FLAG}
     return [stump, bowl]
 
 
@@ -98,7 +100,7 @@ def build_map() -> dict[str, object]:
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 12', 'stage': 'ship_sinking_done', 'bgm': BGM, 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
-        'preload': [props[0]['image'], props[1]['image']],
+        'preload': sorted({p['image'] for p in props}),
         'spawns': {'from_south': spawn, 'start': dict(spawn)},
         'meta': {
             'connected': True,

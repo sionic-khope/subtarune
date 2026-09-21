@@ -106,6 +106,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'teal3_cs_won',   items: ['바나나', '바나나'], enemies: ['cs_red', 'cs_blue'] },   // 청록숲3 첫 전투 + 상자 바나나 2 — teal3_toolbox.js
   { flag: 'button2_done',   items: ['바나나'] },                                             // 청록숲4 수상한 버튼 2 — teal4_events.js
   { flag: 'teal9_boss_won', enemies: ['red', 'blue'], attack: 2, hpBonus: 20 },             // 청록숲9 문지기 보스전 + 축복 버프 — teal9_boss.js
+  { flag: 'dark_jjajang_taken', items: ['어둠의 짜장면'] },                                   // 벚꽃 숲 12 제단의 짜장면(BUILD288) — jjajang_sakura12.js
   { flag: 'obj2_banana_taken', items: ['바나나'] },                                          // 옵젝영역2 광장 바나나 — obj2_events.js
   { flag: 'obj4_baron_won', enemies: ['baron'] },
   { flag: 'obj5_gun_taken', items: ['나무총'] },
@@ -572,5 +573,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura10_torii', desc: '벚�
   map: 'jjajang_sakura10', spawn: 'torii', flags: sakura8DoneFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura11', desc: '벚꽃 숲 11 나무 정상 (낙하 착지 자리 · 위쪽 길 → 제단)',
   map: 'jjajang_sakura11', spawn: 'landing', flags: sakura8DoneFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12', desc: '벚꽃 숲 12 제단 (브금 꺼짐 · 잘린 나무 제단 위 어둠의 짜장면·보라 오라, 다음 없음)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12', desc: '벚꽃 숲 12 제단 (브금 shop3 · 잘린 나무 제단 위 어둠의 짜장면·보라 오라 — C 로 말을 걸면 연출)',
   map: 'jjajang_sakura12', spawn: 'from_south', flags: sakura8DoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12_after', desc: '벚꽃 숲 12 제단 · 짜장면을 얻은 뒤 (그릇 없음, 눈을 감은 뒤 — 다음 브리핑 대기)',
+  map: 'jjajang_sakura12', spawn: 'from_south', flags: { ...sakura8DoneFlags, dark_jjajang_taken: true, sakura12_eyes_closed: true }, party: [] });

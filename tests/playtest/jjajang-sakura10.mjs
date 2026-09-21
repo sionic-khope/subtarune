@@ -85,6 +85,29 @@ try {
   const samples = []; for (let i = 0; i < 12; i++) { samples.push(await auraAt()); await page.waitForTimeout(140); }
   check(Math.max(...samples) >= 60 && Math.max(...samples) - Math.min(...samples) >= 10, `보라 오라가 맥동한다 (${Math.min(...samples)}~${Math.max(...samples)})`);
   check(await go('ArrowUp', 'false', 700) === false && (await st()).py > 190, '제단은 막혀 있다');
+  // 7) 제단(짜장면)에 C → 원문 대사 → 획득 → (이후에) → 눈을 감는다 → 어두워졌다 밝아지고 조작 복귀(BUILD288)
+  const next = async () => { await until(() => window.game.textbox.state === 'waiting', 8000); await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC'); };
+  const line = () => ev(() => { const g = window.game; return { text: g.textbox.node?.text || null, speaker: g.textbox.node?.speaker || null, running: g.dialogue.running }; });
+  const advanceTo = async (needle, ms = 40000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const l = await line(); if (l.text && l.text.includes(needle)) return l; if (l.text) await next(); await page.waitForTimeout(80); } return null; };
+  await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC');
+  let l = await advanceTo('안녕하세요', 5000); check(!!l && l.speaker === '짜장면', '짜장면: 안녕하세요'); await page.waitForTimeout(200); await cap('13_hello');
+  await next(); check(await until(() => window.game.player.emote?.kind === '!', 3000), '요플래 느낌표');
+  l = await advanceTo('프하하'); check(!!l, '짜장면: 왜요 짜장면이 말하면 안되는건가요? 프하하');
+  l = await advanceTo('가재맨이요'); check(!!l, '짜장면: 네? 가재맨이요? 전 그런거 몰라요~');
+  l = await advanceTo('이번 한번만이에요'); check(!!l, '짜장면: 흥. 이번 한번만이에요'); await next();
+  l = await advanceTo('획득했다'); const got = await ev(() => ({ inv: window.game.inventory.includes('어둠의 짜장면'), bowl: !!window.game.entities.find(e => e.id === 'sakura12_dark_jjajang' && !e.dead), flag: !!window.game.flags.dark_jjajang_taken }));
+  check(!!l && got.inv && !got.bowl && got.flag, `짜장면을 획득했다 (아이템·그릇 사라짐·플래그) ${JSON.stringify(got)}`); await cap('14_got');
+  l = await advanceTo('어떻게 나가실거에요'); check(!!l && l.speaker === '짜장면', '짜장면: 근데 여기서 어떻게 나가실거에요?');
+  l = await advanceTo('아 맞다'); check(!!l && !l.speaker, '나레이션: 아 맞다.');
+  l = await advanceTo('나는 눈을 감는다'); check(!!l && !l.speaker, '나레이션: 나는 눈을 감는다.'); await next();
+  check(await until(() => (window.game.fade?.alpha ?? window.game.fade?.value ?? 0) > 0.9, 4000), '눈을 감는다 → 어두워짐'); await cap('15_eyes');
+  check(await until(() => !window.game.dialogue.running && window.game.flags.sakura12_eyes_closed, 10000), '연출 끝·플래그');
+  await page.waitForTimeout(400); check((await bright(640, 450)) > 60, '(잠정) 다시 밝아져 조작 복귀'); await cap('16_after_scene');
+  const again = await ev(() => { const g = window.game; return { altar: !!g.entities.find(e => e.id === 'sakura12_altar' && !e.dead), count: g.inventory.filter(n => n === '어둠의 짜장면').length }; });
+  check(again.altar && again.count === 1, `제단은 남고 짜장면은 하나 ${JSON.stringify(again)}`);
+  await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC'); await page.waitForTimeout(700);
+  const twice = await ev(() => ({ running: window.game.dialogue.running, text: window.game.textbox.node?.text || null, count: window.game.inventory.filter(n => n === '어둠의 짜장면').length }));
+  check(!twice.running && !twice.text && twice.count === 1, `다시 C 를 눌러도 연출 반복·중복 획득 없음 ${JSON.stringify(twice)}`);
   check(await go('ArrowDown', "g.mapId === 'jjajang_sakura11'", 12000, true), '아래 문 → 벚꽃 숲 11');
   await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 }); await page.waitForTimeout(800);
   s = await st(); check(s.map === 'jjajang_sakura11' && s.py < 140 && s.py > 96, `되돌아오면 위쪽 길, hush 띠 아래 (${s.py})`);
@@ -96,6 +119,14 @@ try {
   await page.goto('http://localhost:8000/?qa=jjajang_sakura11');
   check(await until(() => window.game?.mapId === 'jjajang_sakura11' && !window.game.transitioning, 30000), 'QA 벚꽃 숲 11');
   await page.waitForTimeout(500); s = await st(); check(s.visible && s.hopY === 0 && s.bgm === 'sakura', `QA 재입장 정상 ${JSON.stringify([s.hopY, s.bgm])}`); await cap('10_qa');
+  // 8) 얻은 뒤 QA: 그릇 없음, 말 없는 그루터기, 아이템은 플래그로 유도
+  await page.goto('http://localhost:8000/?qa=jjajang_sakura12_after');
+  check(await until(() => window.game?.mapId === 'jjajang_sakura12' && !window.game.transitioning, 30000), 'QA 짜장면 얻은 뒤');
+  await page.waitForTimeout(500); const after = await ev(() => { const g = window.game; return { bowl: !!g.entities.find(e => e.id === 'sakura12_dark_jjajang' && !e.dead), altar: !!g.entities.find(e => e.id === 'sakura12_altar' && !e.dead), inv: g.inventory.filter(n => n === '어둠의 짜장면').length, bgm: g.sound.bgmName }; });
+  check(!after.bowl && after.altar && after.inv === 1 && after.bgm === 'shop3', `얻은 뒤: 그릇 없음·그루터기 그대로·아이템 하나 ${JSON.stringify(after)}`); await cap('17_after_qa');
+  await page.evaluate(() => { const g = window.game; g.player.x = g.map.def.spawns.from_south.x; }); await go('ArrowUp', 'g.player.y < 300', 8000); await go('ArrowUp', 'false', 900);
+  await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC'); await page.waitForTimeout(700);
+  check(!(await ev(() => window.game.dialogue.running)), '얻은 뒤 재진입해서 C 를 눌러도 아무 일 없음');
 } catch (e) { fails += 1; console.log('FAIL exception', e.stack || e.message); }
 if (errors.length) { fails += 1; console.log('FAIL console/page errors', errors.slice(0, 5).join(' | ')); }
 console.log(`=== total fails=${fails}`);

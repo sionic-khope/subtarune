@@ -5,6 +5,9 @@ import { readFileSync, existsSync } from 'node:fs';
 import { QA_POINTS } from '../../src/core/story.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { jjajang_sakura11_hush, jjajang_sakura11_unhush, HUSH_FADE } from '../../src/data/cutscenes/jjajang_sakura10.js';
+import { jjajang_sakura12_bowl, DARK_JJAJANG_ITEM, DARK_JJAJANG_FLAG, EYES_CLOSED_FLAG, EYES, BOWL_ID } from '../../src/data/cutscenes/jjajang_sakura12.js';
+import { ITEMS } from '../../src/data/items.js';
+import { STATE_FROM_FLAGS } from '../../src/core/story.js';
 
 const load = id => JSON.parse(readFileSync(new URL(`../../assets/maps/${id}.json`, import.meta.url), 'utf8'));
 const here = rel => existsSync(new URL(`../../${rel}`, import.meta.url));
@@ -42,6 +45,8 @@ test('test_sakura12_is_a_small_deck_with_its_own_bgm_and_a_stump_altar_holding_t
   const sc = JSON.parse(readFileSync(new URL('../../assets/source/sakura12-v1/stump-contract.json', import.meta.url), 'utf8')), bc = JSON.parse(readFileSync(new URL('../../assets/source/sakura12-v1/bowl-contract.json', import.meta.url), 'utf8'));
   assert.ok(here(stump.image) && here(bowl.image) && m.preload.includes(stump.image) && m.preload.includes(bowl.image), '소품 그림·미리 적재');
   assert.deepEqual([stump.image, bowl.image, [stump.w, stump.h], stump.solid, bowl.solid], [sc.file, bc.file, [36, 14], true, false]);
+  // 제단에 C → 짜장면 연출(BUILD288). 그루터기는 하나(플래그가 서도 남는다), 그릇만 재진입 때 없다
+  assert.deepEqual([stump.script, stump.unless, stump.requires, bowl.unless, ent(m, 'sakura12_altar_after')], ['jjajang_sakura12_bowl', undefined, undefined, DARK_JJAJANG_FLAG, undefined]);
   assert.equal(m.rows[S.altar[1]][S.altar[0]], '-', '제단은 바닥 위');
   assert.ok(Math.abs(stump.ix + sc.size[0] / 2 - (S.altar[0] * 32 + 16)) <= 1 && stump.iy + sc.size[1] === S.altar[1] * 32 + 30, '그루터기는 제단 칸 가운데');
   assert.ok(Math.abs(bowl.ix + bc.size[0] / 2 - (stump.ix + sc.top[0])) <= 1 && Math.abs(bowl.iy + bc.size[1] - (stump.iy + sc.top[1] + 4)) <= 1, '그릇은 그루터기 윗면 가운데 위');
@@ -59,4 +64,34 @@ test('test_sakura12_qa_point', () => {
   const qa = QA_POINTS.find(q => q.id === 'jjajang_sakura12');
   assert.deepEqual([qa.map, qa.spawn, qa.party], ['jjajang_sakura12', 'from_south', []]); assert.ok(qa.flags.sakura8_split_done);
   const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura12') > ids.indexOf('jjajang_sakura11'));
+});
+
+test('test_sakura12_bowl_scene_has_verbatim_lines_in_order_gives_the_item_and_closes_the_eyes', () => {
+  const s = jjajang_sakura12_bowl; assert.equal(SCRIPTS.jjajang_sakura12_bowl, s);
+  // 이미 얻었으면 첫 줄에서 끝으로(같은 방문에서 다시 C: 반복·중복 획득 없음)
+  assert.ok(typeof s[0].if === 'function' && s[0].goto === 'end' && s[0].if({ [DARK_JJAJANG_FLAG]: true }) === true && s[0].if({}) === false && s.at(-2).label === 'end', '얻은 뒤엔 바로 끝');
+  const line = n => n.text ? [n.speaker || '나레이션', n.text.replace(/^\* /, '')] : null;
+  assert.deepEqual(s.map(line).filter(Boolean), [
+    ['짜장면', '안녕하세요'], ['짜장면', '왜요 짜장면이 말하면 안되는건가요? 프하하'], ['짜장면', '저는 짜장면이지만 어떠한 힘이 깃들어 있어서 말을 할 수 있어요'], ['짜장면', '저를 먹으면 강한 힘을 얻을 수 있을거에요'],
+    ['짜장면', '...'], ['짜장면', '네? 가재맨이요? 전 그런거 몰라요~'], ['짜장면', '흠 어쨋든 저를 먹으실건가요?'], ['짜장면', '미안하지만 당신은 절 드실수 없을거에요'], ['짜장면', '저는 고춧가루가 들어가있거든요'],
+    ['짜장면', '위염갖고계신분한테는 힘들거에요'], ['짜장면', '네? 저를 먹으려고 하는 나쁜사람이 있고'], ['짜장면', '그 사람이 절 먹으면 큰일난다구요?'], ['짜장면', '네 그래서 제가 지금 여기 있는거잖아요'],
+    ['짜장면', '더 안전한 곳으로 데려다주신다구요? 알겠어요'], ['짜장면', '흥. 이번 한번만이에요'], ['나레이션', '{c=yellow}짜장면{/c}을 획득했다.'],
+    ['짜장면', '근데 여기서 어떻게 나가실거에요?'], ['나레이션', '아 맞다.'], ['짜장면', '이럴땐 편한하게 다른사람들이 어디서 무엇을 하고있는지'], ['짜장면', '천천히 생각해보시는걸 추천해요'], ['나레이션', '...'], ['나레이션', '나는 눈을 감는다.'],
+  ]);
+  assert.ok(s.filter(n => n.text && n.speaker === '짜장면').every(n => n.voice === 'narrator' && n.portrait === 'dark_jjajang'), '짜장면 목소리는 나레이션과 같이');
+  assert.ok(s.filter(n => n.text && !n.speaker).every(n => n.voice === 'narrator'), '나레이션');
+  const idx = pred => s.findIndex(pred);
+  const hello = idx(n => n.text === '* 안녕하세요'), ex1 = idx(n => n.emote === 'player' && n.kind === '!'), why = idx(n => n.text?.includes('프하하'));
+  assert.ok(hello < ex1 && ex1 < why && s[ex1 - 1].action, '안녕하세요 → 요플래 느낌표 → 왜요');
+  const last = idx(n => n.text?.includes('이번 한번만이에요')), gone = idx(n => n.remove === BOWL_ID), sfx = idx(n => n.sfx === 'item'), give = idx(n => n.action && String(n.action).includes("push('어둠의 짜장면')")), flag = idx(n => n.set?.[DARK_JJAJANG_FLAG]), got = idx(n => n.text?.includes('획득했다'));
+  assert.ok(last < gone && gone < sfx && sfx < give && give < flag && flag < got, '흥 → 그릇 사라짐 → 아이템 소리 → 획득 → 플래그 → 획득했다');
+  const how = idx(n => n.text?.includes('어떻게 나가실거에요')), ex2 = idx((n, i) => i > how && n.emote === 'player' && n.kind === '!'), ahMatda = idx(n => n.text === '* 아 맞다.');
+  assert.ok(got < how && how < ex2 && ex2 < ahMatda, '(이후에) 근데 → 느낌표 → 아 맞다');
+  const eyes = idx(n => n.text === '* 나는 눈을 감는다.'), fadeOut = idx((n, i) => i > eyes && n.fade === 'out'), hold = idx((n, i) => i > fadeOut && n.wait !== undefined), closed = idx(n => n.set?.[EYES_CLOSED_FLAG]), fadeIn = idx((n, i) => i > fadeOut && n.fade === 'in');
+  assert.ok(eyes < fadeOut && fadeOut < hold && hold < closed && closed < fadeIn && s.at(-1).end === true, '눈을 감는다 → 어두워짐 → 잠깐 → 플래그 → (잠정) 다시 밝아짐 → 끝');
+  assert.deepEqual([s[fadeOut].duration, s[hold].wait, s[fadeIn].duration], [EYES.fadeOut, EYES.hold, EYES.fadeIn]);
+  assert.equal(DARK_JJAJANG_ITEM, '어둠의 짜장면'); assert.equal(ITEMS[DARK_JJAJANG_ITEM].kind, 'key', '먹을 수 없는 중요 아이템');
+  assert.deepEqual(STATE_FROM_FLAGS.find(r => r.flag === DARK_JJAJANG_FLAG)?.items, [DARK_JJAJANG_ITEM], 'QA 도 플래그로 아이템 유도');
+  assert.ok(here('assets/portraits/dark_jjajang.png'), '짜장면 초상화(그릇 그림에서)');
+  const qa = QA_POINTS.find(q => q.id === 'jjajang_sakura12_after'); assert.ok(qa.flags[DARK_JJAJANG_FLAG] && qa.flags[EYES_CLOSED_FLAG] && qa.spawn === 'from_south');
 });

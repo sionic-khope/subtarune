@@ -71,6 +71,8 @@ export const CHARACTERS = {
   chakgeom: { name: '착검하고검사로살기', voice: 'narrator', sheet: 'assets/sprites/chakgeom.png' },
   parang: { name: '파랑이', voice: 'narrator', still: 'assets/props/parang.png' },
   norang: { name: '노랑이', voice: 'narrator', still: 'assets/props/norang.png' },
+  // 벚꽃 숲 12 제단의 말하는 어둠의 짜장면(BUILD288 사용자 “짜장면 목소리는 나레이션과 같이”): 초상화 assets/portraits/dark_jjajang.png(그릇 그림을 줄인 것), 필드 그림은 소품(dark_jjajang.png)
+  dark_jjajang: { name: '짜장면', voice: 'narrator', still: 'assets/props/dark_jjajang.png' },
   wemix: { name: '위믹스', voice: 'narrator', sheet: 'assets/sprites/wemix.png' },
   drum_devil: { name: '드럼통의 악마', voice: 'mystery', portrait: false, palette: 'ghost', still: 'assets/enemies/drum-devil-field.png', stillScale: 220 / (232 * 1.43), stillPivot: [142, 226] },
   baron_intro: { name: '바론', voice: 'mystery', palette: 'ghost', still: 'assets/enemies/baron-roar-idle.png', stillScale: 0.625, stillPivot: [128, 240] },

@@ -23,8 +23,8 @@
   "@@@@@@@--@@@@@@@"
  ],
  "preload": [
-  "assets/props/sakura_stump_altar.png",
-  "assets/props/dark_jjajang.png"
+  "assets/props/dark_jjajang.png",
+  "assets/props/sakura_stump_altar.png"
  ],
  "spawns": {
   "from_south": {
@@ -191,7 +191,8 @@
    "h": 14,
    "ix": 250,
    "iy": 157,
-   "solid": true
+   "solid": true,
+   "script": "jjajang_sakura12_bowl"
   },
   {
    "type": "prop",
@@ -211,7 +212,8 @@
     "alpha": 0.72,
     "pulse": 2.0,
     "centerY": 0.55
-   }
+   },
+   "unless": "dark_jjajang_taken"
   },
   {
    "type": "door",

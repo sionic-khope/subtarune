@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-21
 
+**BUILD288 — 벚꽃 숲 12 짜장면 연출**(사용자 브리핑 2026-09-21, 원문·구현표 `design/narrative/cutscenes/jjajang_sakura12.md` 브리핑 2): 제단(그루터기)에 C → `jjajang_sakura12_bowl`: 짜장면(화자 “짜장면”, 목소리 narrator, 초상화 = 그릇 그림) 원문 21줄, 요플래 느낌표 ×2 → “흥. 이번 한번만이에요” 뒤 그릇이 사라지고 중요 아이템 ‘어둠의 짜장면’(`items.js`, 먹을 수 없음) + “{c=yellow}짜장면{/c}을 획득했다.” → (이후에) 원문 → “나는 눈을 감는다.” → 1.6초 어두워짐·1.2초 → 플래그 `sakura12_eyes_closed` → (잠정) 다시 밝아지고 조작 복귀. 맵: `sakura12_altar`(script, 늘 있음 — 스크립트 첫 줄 `{if: flags.dark_jjajang_taken, goto:'end'}` 로 같은 방문 반복·중복 획득 방지; unless/requires 로 나누면 맵 재진입 전엔 안 바뀐다) / 그릇 `unless`. STATE_FROM_FLAGS `dark_jjajang_taken` → 아이템. QA `jjajang_sakura12_after`. 다음: “나는 눈을 감는다” 뒤 브리핑 대기(“일단 이렇게까지만”). BUILD 288.
+
 **BUILD287 — 러너 올려베기 11판(뒤통수가 보이게 틀어 사선 위로)**(사용자 2026-09-21 “아직 위로 올리는 공격이 그대로인 것 같은데, 사선 위로 올려보내서 뒷대가리가 보이게 틀어서 치는 걸 원한다”): `runner-upslash11.prompt.txt` → 코일(옆모습) → 사선 위로 올려 베며 고개가 같이 돌기 시작(뒤통수 3/4) → 마무리는 머리까지 돌아가 뒤통수·등만 보이고 검은 머리 위 앞 60° → 옆모습 복귀. 기준점 [신발 가운데, 발 밑변]. BUILD 287.
 
 **BUILD286 — 러너 소리 순서 교체**(사용자 2026-09-21 “파란 토리이 출발할 때 … 달리기 이전에 [deltarune wing] 이 나오고(준비동작) 달리기 시작할 때 핑!, 지금 순서가 반대”): `runner.js SFX` 준비동작(검 뽑는 순간 0.24초) = `wing`(휘융, 사용자 링크 = 델타룬 snd_wing), 대시 시작 = `weaponpull`(핑!). 올려베기 시트는 BUILD284 에서 이미 10판으로 교체·배포됨(서버·저장소·Pages 모두 새 시트, 이미지 주소에 `?v=BUILD`) — 옛것으로 보이면 build.js 캐시(Pages 10분)라 강력 새로고침. BUILD 286.
