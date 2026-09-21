@@ -7,7 +7,7 @@ import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_rig
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { PATTERNS } from '../../src/battle/bullets.js';
-import { SAKURA5_PATTERNS, SKATE, TORCH, DOHYUN_FALL, KAKAO, KAKAO_TEXTS } from '../../src/battle/sakura5-patterns.js';
+import { SAKURA5_PATTERNS, SKATE, TORCH, DOHYUN_FALL, KAKAO, AK, KAKAO_TEXTS } from '../../src/battle/sakura5-patterns.js';
 import { Bullet } from '../../src/battle/bullets.js';
 import { QA_POINTS } from '../../src/core/story.js';
 import { MAP_RUNTIME_ASSETS } from '../../src/data/map-runtime-assets.js';
@@ -197,24 +197,27 @@ test('test_sakura5_up_the_path_scene_starts_the_telling_bgm_exclaims_domijorim_l
   assert.ok(SAKURA5_BATTLE_AND_AFTER.every(n => jjajang_sakura5_clearing.includes(n)) && SAKURA5_BATTLE_AND_AFTER.some(n => n.sfx === 'battle_start') && SAKURA5_BATTLE_AND_AFTER.some(n => n.battle), '본 흐름도 같은 블록(진입·전투·승리 뒤)을 이어 쓴다');
 });
 
-test('test_sakura5_domijorim_and_dohyun_have_50_hp_their_four_patterns_warn_before_firing_and_stay_in_the_box', () => {
+test('test_sakura5_domijorim_and_dohyun_have_48_hp_their_five_patterns_warn_before_firing_and_stay_in_the_box', () => {
   for (const id of ['domijorim', 'dohyun']) {
-    const e = ENEMIES[id]; assert.equal(e.hp, 50, `${id} 체력 50`); assert.ok(e.sheet && e.sheet.count === 4 && here(e.sheet.src) && !e.image, `${id} 전투 대기 4프레임 시트(정지 그림 아님)`);
+    const e = ENEMIES[id]; assert.equal(e.hp, 48, `${id} 체력 48(BUILD281)`); assert.ok(e.sheet && e.sheet.count === 4 && here(e.sheet.src) && !e.image, `${id} 전투 대기 4프레임 시트(정지 그림 아님)`);
     assert.deepEqual([e.idle.swayX, e.idle.swayY], [0, 0], `${id} 시트 대기 모션이 있으면 sway 0`);
     for (const p of e.patterns) assert.ok(SAKURA5_PATTERNS[p.type] && PATTERNS[p.type] === SAKURA5_PATTERNS[p.type], `${id} 패턴 ${p.type} 등록`);
   }
-  assert.deepEqual(ENEMIES.domijorim.patterns.map(p => p.type), ['skate_boomerang', 'torch_pillars']);
+  assert.deepEqual(ENEMIES.domijorim.patterns.map(p => p.type), ['skate_boomerang', 'torch_pillars', 'ak_torch']);
+  assert.ok(ENEMIES.domijorim.scale <= 0.7, '도미조림 전투 스프라이트 비율 더 축소(BUILD281)');
+  assert.deepEqual(ENEMIES.dohyun.lines.speak, ['훗..', '악역을 자처하시겠다.', '인면견보단 제가 낫죠', '용준이 어딨지?'], '도현 공격 대사(원문)');
   assert.deepEqual(ENEMIES.dohyun.patterns.map(p => p.type), ['dohyun_drift', 'kakao_burst']);
   assert.ok(ENEMIES.dohyun.scale <= 0.75 && ENEMIES.domijorim.lines.speak.length >= 1 && ENEMIES.dohyun.lines.speak.length >= 1, '도현 키 20% 축소·말풍선 한 줄');
   assert.ok(ENEMIES.dohyun.sheet.fps <= 4, '도현 살랑살랑 춤은 시트 프레임으로(느린 fps)');
   assert.ok(ENEMIES.domijorim.boss === true && ENEMIES.dohyun.boss === true, '보스전: 승리음 없음');
   assert.ok(here(ENEMIES.dohyun.projectiles.dohyun), '낙하 패턴은 도현 전투 정지 그림을 쓴다');
   assert.deepEqual(KAKAO_TEXTS, ['파크가디언 그새끼보다 낫노'], '카톡 문구는 사용자 원문만');
-  for (const w of [SKATE.warn, TORCH.warn, DOHYUN_FALL.warn, KAKAO.warn]) assert.ok(w >= 0.35, '예고 ≥ 0.35초');
+  for (const w of [SKATE.warn, TORCH.warn, DOHYUN_FALL.warn, KAKAO.warn, AK.warn]) assert.ok(w >= 0.35, '예고 ≥ 0.35초');
+  assert.ok(DOHYUN_FALL.every >= 1.2 && DOHYUN_FALL.warn >= 0.5 && DOHYUN_FALL.sway <= 20, '도현 낙하 완화(BUILD281 “피하기 너무 어려움”)');
   // 가짜 상자에서 한 턴을 돌려 본다: 예고(harmless)가 먼저, 진짜 탄은 그 뒤, 모두 상자 근처에서 나온다
   let seed = 7; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
   const box = { x: 140, y: 140, w: 200, h: 150 }, soul = { x: 240, y: 215, r: 6 };
-  for (const [type, cfg] of [['skate_boomerang', SKATE], ['torch_pillars', TORCH], ['dohyun_drift', DOHYUN_FALL], ['kakao_burst', KAKAO]]) {
+  for (const [type, cfg] of [['skate_boomerang', SKATE], ['torch_pillars', TORCH], ['dohyun_drift', DOHYUN_FALL], ['kakao_burst', KAKAO], ['ak_torch', AK]]) {
     const emitted = [], sfx = [];
     const api = { box, soul, rnd, sfx: n => sfx.push(n), images: {}, emit: o => { const b = { age: 0, rot: 0, ...o }; emitted.push({ ...b, at: now }); return b; } };
     let now = 0; const pat = SAKURA5_PATTERNS[type]();

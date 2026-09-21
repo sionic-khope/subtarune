@@ -1,0 +1,2 @@
+source: https://www.youtube.com/watch?v=75Yj9jNj7OA “AK47 Single Shot Natural Mid 2 - Sound effect for editing”(Sound Effect Library, 5s) 0~0.42초(총성 + 잔향), 페이드아웃 0.1, volume 0.72(피크 정규화) → assets/audio/sfx/ak_shot.mp3
+used: 벚꽃 숲 5 도미조림 ak_torch 패턴 4발 연사(BUILD281). 사용자 지정 없음 — 내가 고른 녹음, 다른 걸 주시면 교체

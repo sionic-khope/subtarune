@@ -113,7 +113,7 @@ try {
   check(await until(() => (window.game.zoom?.s || 1) > 1.5 && !window.game.battle, 4000), '전투 진입 줌인(연출)'); await cap('16_battle_entry');
   check(await until(() => !!window.game.battle && window.game.battle.enemies.length === 2, 8000), '전투 시작');
   const bt = await ev(() => ({ ids: window.game.battle.enemies.map(e => e.id), hp: window.game.battle.enemies.map(e => e.hp), img: window.game.battle.enemies.every(e => !!e.img), bgm: window.game.sound.bgmName, state: window.game.battle.state }));
-  check(bt.ids.join() === 'domijorim,dohyun' && bt.hp.join() === '50,50', `도미조림·도현 체력 50 ${JSON.stringify(bt)}`);
+  check(bt.ids.join() === 'domijorim,dohyun' && bt.hp.join() === '48,48', `도미조림·도현 체력 48 ${JSON.stringify(bt)}`);
   check(await until(() => window.game.sound.bgmName === 'petal_dance', 10000), '전투 브금 petal_dance');
   check(await until(() => window.game.battle?.enemies.every(e => e.img), 8000), '전투 그림 둘 다 적재'); await page.waitForTimeout(600); await cap('17_battle_intro');
   await ev(() => { window.game.battle.shown = window.game.battle.text.length; }); await page.waitForTimeout(500); await press('KeyC');

@@ -8,6 +8,8 @@
 //   도현 — 마른 몸·카톡
 //     dohyun_drift:    [동작] 마른 도현이 위에서 나뭇잎처럼 내려온다 [실루엣] 도현 전투 그림 흰 실루엣(44px) 둘이 반대 위상으로 ±26px 살랑살랑 [예고] 세로 점선 둘 0.35초
 //                      [회피] ① 두 줄 사이·바깥 ② 바닥에 닿으면 옆으로 미끄러져(90px/s) 바닥 줄을 쓸고 사라진다 — 바닥에서 떨어져 있기. 0.9초마다
+//     ak_torch:        [동작] 도미조림이 횃불이랑 AK 를 쓴다(BUILD281 사용자) [실루엣] 상자 오른쪽 밖 흰 AK(왼쪽 겨눔) + 흰 총알(8×3) + 횃불·불기둥 [예고] 총알 줄은 가로 점선 0.5초(줄 = 경로), 횃불은 착지 고리 0.45초
+//                      [회피] ① 점선 줄에서 위·아래로 비키기(줄은 소울 위·아래를 번갈아 온다) ② 착지 고리 x 에서 옆으로 — 1.5초마다 4발 연사, 2초마다 횃불 하나. 소리 = 실제 AK 단발 녹음 ak_shot(사용자 지정 없음, 내가 고름)
 //     kakao_burst:     [동작] 카톡을 연달아 보낸다 [실루엣] 노란 카톡 말풍선 “파크가디언 그새끼보다 낫노”(사용자 원문만) [예고] 가로 점선 0.45초 → 왼쪽에서 한 줄(110px/s, 출렁) → 0.55초 뒤 다른 줄(≥64px 떨어진) 가로 점선 → 오른쪽에서 한 줄 → 둘 다 지나간 뒤 소울 x 세로 점선 0.45초 → 위에서 큰 풍선 낙하(200px/s)
 //                      [회피] ① 첫 줄 피해 ② 두 번째 줄로 옮겨 서지 말고 그 사이/바깥 ③ 낙하 자리에서 옆으로 — 한 번에 하나씩 온다(사용자 “어떻게 피하라고” → 동시 두 줄+낙하 겹침 폐기). 2.1초마다
 //   모든 예고 ≥ 0.35초. 피해는 적 def.damage 고정. 소리는 델타룬 소리 재사용(heavyswing 던짐·swing 되돌아옴·ember 횃불·sizzle 불기둥·wing 낙하·pop 착지) + 카톡 말풍선은 실제 카카오톡 알림음 `kakao`(사용자 “똑똑똑 효과음은 왜 쓴 거야” → click/knock 폐기). whoosh 금지.
@@ -17,7 +19,8 @@ import { whiteSprite } from './youngcle-patterns.js';
 const TAU = Math.PI * 2;
 export const SKATE = Object.freeze({ every: 1.6, first: 0.45, warn: 0.45, returnWarn: 0.35, speed: 180, turnAt: 0.82, wobble: 10, wobbleHz: 3.0, r: 9, w: 30, h: 16, spin: 3.0, shards: 3, shardSpeed: 70, shardR: 4, duration: 5.2 });
 export const TORCH = Object.freeze({ every: 1.35, first: 0.4, warn: 0.45, lobVy: -260, lobG: 540, r: 7, spin: 7, pillarW: 22, pillarLife: 0.9, embers: 4, emberVy: -150, emberG: 300, emberR: 3, duration: 5.4 });
-export const DOHYUN_FALL = Object.freeze({ every: 0.9, first: 0.35, warn: 0.35, vy: 56, sway: 26, swayHz: 1.4, tilt: 0.3, h: 44, slide: 90, duration: 5.6 });
+export const DOHYUN_FALL = Object.freeze({ every: 1.3, first: 0.4, warn: 0.5, vy: 52, sway: 18, swayHz: 1.4, tilt: 0.3, h: 44, slide: 75, duration: 5.6 });   // BUILD281 사용자 “왔다갔다하는 패턴 피하기 너무 어려움”: 뜸하게(1.3초)·예고 0.5초·살랑 폭 18·미끄럼 75, 홀수 번째는 하나만. 예고는 살랑 폭만큼의 띠(예고 = 실제 경로)
+export const AK = Object.freeze({ every: 1.5, first: 0.5, warn: 0.5, shots: 4, gap: 0.09, speed: 260, len: 8, thick: 3, rowMin: 16, torchEvery: 2.0, torchFirst: 1.15, pillarLife: 0.7, duration: 6.2 });   // BUILD281 사용자 “횃불이랑 ak 쏘는 패턴”: 오른쪽 밖 AK 실루엣이 한 줄(가로 점선 예고 0.5초)로 4발 연사(260px/s) + 횃불 하나씩 낙하(착지 고리 예고) → 불기둥 0.7초
 export const KAKAO = Object.freeze({ every: 2.6, first: 0.4, warn: 0.45, secondAfter: 0.55, rowGap: 64, dropWarn: 0.6, dropAfter: 2.4, speed: 150, dropVy: 150, bob: 4, bobHz: 2.0, padX: 6, padY: 4, font: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', bigFont: '11px Galmuri11, "Apple SD Gothic Neo", sans-serif', duration: 6.0 });   // 사용자 “아직도 못 피하잖아”: 줄은 하나씩 150px/s 로 2.4초 안에 지나가고, 낙하는 두 줄이 거의 나간 뒤(2.4초) 세로 점선 0.6초 → 150px/s(상자 1초) — 옆으로 80px 만 비키면 된다
 export const KAKAO_TEXTS = Object.freeze(['파크가디언 그새끼보다 낫노']);   // 사용자 원문(2026-09-20). 다른 문구를 주면 여기에 더한다
 
@@ -116,6 +119,43 @@ function skateBoomerang(o = {}) {
   } };
 }
 /** 도미조림: 횃불 두 개 → 불기둥 */
+/** 횃불 하나를 상자 위 x0 에서 tx 로 포물선으로 던져 바닥에 불기둥(pillarLife)을 세운다 — ak_torch 용(torch_pillars 와 같은 던지기·착지) */
+function lobTorch(api, b, tx, dir, floorY, pillarLife = TORCH.pillarLife) {
+  const x0 = dir > 0 ? b.x + 8 : b.x + b.w - 8, y0 = b.y - 12, vy = TORCH.lobVy, g = TORCH.lobG;
+  const T = (-vy + Math.sqrt(vy * vy + 2 * g * (floorY - y0))) / g;
+  api.emit({ x: x0, y: y0, r: TORCH.r, kind: 'orange', shape: 'torch', vx: (tx - x0) / T, vy, ay: g, spin: TORCH.spin * dir, life: T + 0.5,
+    steer(self) {
+      if (self.landed || self.y < floorY) return;
+      self.landed = true; self.life = 0.01; api.sfx?.('sizzle', { volume: 0.45 });
+      api.emit({ x: tx, y: b.y + 6, r: 0, kind: 'orange', shape: 'pillar', w: TORCH.pillarW, h: b.h - 8, life: pillarLife,
+        hitShape(s, soul2) { return s.age > 0.1 && Math.abs(soul2.x - s.x) <= s.w / 2 + soul2.r - 3 && soul2.y + soul2.r > s.y + s.h * (1 - Math.min(1, s.age / 0.12)); },
+        drawShape(ctx, s) { drawPillar(ctx, s); } });
+      for (let k = 0; k < TORCH.embers; k++) { const a = -Math.PI / 2 + (k - (TORCH.embers - 1) / 2) * 0.5; api.emit({ x: tx, y: floorY - 10, r: TORCH.emberR, kind: 'orange', shape: 'circle', vx: Math.cos(a) * 80, vy: Math.sin(a) * -TORCH.emberVy, ay: TORCH.emberG, life: 0.7 }); }
+    },
+    drawShape(ctx, self) { drawTorch(ctx, self); } });
+}
+/** AK 실루엣(왼쪽을 겨눔): 총열·몸통·굽은 탄창·개머리판을 흰 덩어리로, 예고 동안 깜빡이고 쏜 직후 총구 섬광 */
+function drawGun(ctx, self) {
+  const x = Math.round(self.x), y = Math.round(self.y); const warn = self.age < self.warnFor;
+  ctx.save(); if (warn) ctx.globalAlpha = blink(self, 6) ? 1 : 0.45;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x - 34, y - 2, 26, 3);
+  ctx.fillRect(x - 10, y - 5, 24, 9);
+  ctx.fillRect(x + 14, y - 3, 14, 6);
+  ctx.beginPath(); ctx.moveTo(x - 6, y + 4); ctx.lineTo(x + 3, y + 4); ctx.lineTo(x + 1, y + 14); ctx.lineTo(x - 8, y + 14); ctx.closePath(); ctx.fill();
+  ctx.fillRect(x + 6, y + 4, 4, 8);
+  ctx.fillStyle = '#000'; ctx.fillRect(x - 4, y - 2, 12, 1); ctx.fillRect(x - 24, y - 1, 12, 1);
+  ctx.restore();
+}
+function drawAkBullet(ctx, self) {
+  const x = Math.round(self.x), y = Math.round(self.y);
+  ctx.fillStyle = '#fff'; ctx.fillRect(x - AK.len / 2, y - 1, AK.len, AK.thick); ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y, 2, 1);
+}
+/** 살랑 폭만큼의 예고 띠(양쪽 세로 점선) — 도현이 이 폭 안에서 내려온다 */
+function drawBand(ctx, self) {
+  ctx.fillStyle = blink(self) ? '#ff5c5c' : '#ff9a9a';
+  for (const ex of [self.x - self.w / 2, self.x + self.w / 2]) for (let k = 0; k < self.len; k += 6) ctx.fillRect(Math.round(ex) - 1, Math.round(self.y0) + k, 2, 3);
+}
 function torchPillars(o = {}) {
   const every = o.every ?? TORCH.every, duration = o.duration ?? TORCH.duration;
   let next = o.first ?? TORCH.first, n = 0; const queue = [];
@@ -155,9 +195,11 @@ function dohyunDrift(o = {}) {
     const b = api.box;
     if (t >= next && t + DOHYUN_FALL.warn + 1.6 < duration) {
       next += every; n += 1;
-      const x1 = b.x + 30 + api.rnd() * (b.w - 60), x2 = Math.max(b.x + 30, Math.min(b.x + b.w - 30, x1 + (x1 < b.x + b.w / 2 ? 1 : -1) * (60 + api.rnd() * 50)));
-      vline(api, x1, DOHYUN_FALL.warn); vline(api, x2, DOHYUN_FALL.warn);
-      queue.push({ at: t + DOHYUN_FALL.warn, xs: [x1, x2] });
+      const x1 = b.x + 30 + api.rnd() * (b.w - 60), x2 = Math.max(b.x + 30, Math.min(b.x + b.w - 30, x1 + (x1 < b.x + b.w / 2 ? 1 : -1) * (70 + api.rnd() * 50)));
+      const xs = n % 2 === 1 ? [x1] : [x1, x2];
+      const imgW = (() => { const im = whiteSprite(api.images?.dohyun); return im ? Math.max(10, Math.round(im.width * DOHYUN_FALL.h / im.height)) : 12; })();
+      for (const x of xs) api.emit({ x, y: b.y + b.h / 2, r: 0, harmless: true, life: DOHYUN_FALL.warn, shape: 'band', w: DOHYUN_FALL.sway * 2 + imgW, len: b.h, y0: b.y, drawShape(ctx, self) { drawBand(ctx, self); } });
+      queue.push({ at: t + DOHYUN_FALL.warn, xs });
     }
     while (queue.length && t >= queue[0].at) {
       const q = queue.shift(); api.sfx?.('wing', { volume: 0.4 });
@@ -179,6 +221,36 @@ function dohyunDrift(o = {}) {
           } });
       });
     }
+  } };
+}
+/** 도미조림: 횃불이랑 AK — 오른쪽 밖 AK 가 한 줄로 4발 연사(가로 점선 예고), 사이사이 횃불 하나가 떨어져 불기둥 */
+function akTorch(o = {}) {
+  const duration = o.duration ?? AK.duration;
+  let nextGun = o.first ?? AK.first, nextTorch = AK.torchFirst, n = 0; const bursts = [], torches = [];
+  return { duration, update(t, dt, api) {
+    const b = api.box, soul = api.soul, floorY = b.y + b.h - 4;
+    const travel = (b.w + 60) / AK.speed;
+    if (t >= nextGun && t + AK.warn + AK.shots * AK.gap + travel < duration + 0.3) {
+      nextGun += AK.every; n += 1;
+      const off = (n % 2 ? 1 : -1) * (34 + api.rnd() * 36), y = Math.max(b.y + AK.rowMin, Math.min(b.y + b.h - AK.rowMin, soul.y + off));
+      hline(api, y, AK.warn);
+      api.emit({ x: b.x + b.w + 24, y, r: 0, harmless: true, life: AK.warn + AK.shots * AK.gap + 0.25, shape: 'gun', warnFor: AK.warn, drawShape(ctx, self) { drawGun(ctx, self); } });
+      for (let k = 0; k < AK.shots; k++) bursts.push({ at: t + AK.warn + k * AK.gap, y });
+    }
+    while (bursts.length && t >= bursts[0].at) {
+      const q = bursts.shift(); api.sfx?.('ak_shot', { volume: 0.5 });
+      api.emit({ x: b.x + b.w + 8, y: q.y, r: 3, kind: 'white', shape: 'ak_bullet', vx: -AK.speed, life: travel + 0.2,
+        hitShape(self, soul2) { return Math.abs(soul2.x - self.x) <= AK.len / 2 + soul2.r - 2 && Math.abs(soul2.y - self.y) <= AK.thick / 2 + soul2.r - 2; },
+        drawShape(ctx, self) { drawAkBullet(ctx, self); } });
+      api.emit({ x: b.x + b.w - 14, y: q.y, r: 0, harmless: true, life: 0.07, shape: 'flash', drawShape(ctx, self) { ctx.fillStyle = '#fff4a8'; const fx = Math.round(self.x), fy = Math.round(self.y); ctx.fillRect(fx - 6, fy - 1, 12, 2); ctx.fillRect(fx - 1, fy - 6, 2, 12); ctx.fillRect(fx - 4, fy - 4, 8, 8); } });
+    }
+    if (t >= nextTorch && t + TORCH.warn + 0.9 + AK.pillarLife < duration + 0.5) {
+      nextTorch += AK.torchEvery;
+      const tx = Math.max(b.x + TORCH.pillarW, Math.min(b.x + b.w - TORCH.pillarW, b.x + 24 + api.rnd() * (b.w - 48)));
+      api.emit({ x: tx, y: floorY, r: 0, harmless: true, life: TORCH.warn, shape: 'mark' });
+      torches.push({ at: t + TORCH.warn, tx });
+    }
+    while (torches.length && t >= torches[0].at) { const q = torches.shift(); api.sfx?.('ember', { volume: 0.5 }); lobTorch(api, b, q.tx, q.tx < b.x + b.w / 2 ? -1 : 1, floorY, AK.pillarLife); }
   } };
 }
 /** 도현: 카톡 두 줄 + 큰 풍선 낙하 */
@@ -220,4 +292,4 @@ function kakaoBurst(o = {}) {
   } };
 }
 
-export const SAKURA5_PATTERNS = { skate_boomerang: skateBoomerang, torch_pillars: torchPillars, dohyun_drift: dohyunDrift, kakao_burst: kakaoBurst };
+export const SAKURA5_PATTERNS = { skate_boomerang: skateBoomerang, torch_pillars: torchPillars, dohyun_drift: dohyunDrift, kakao_burst: kakaoBurst, ak_torch: akTorch };
