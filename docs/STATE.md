@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-21
 
+**BUILD287 — 러너 올려베기 11판(뒤통수가 보이게 틀어 사선 위로)**(사용자 2026-09-21 “아직 위로 올리는 공격이 그대로인 것 같은데, 사선 위로 올려보내서 뒷대가리가 보이게 틀어서 치는 걸 원한다”): `runner-upslash11.prompt.txt` → 코일(옆모습) → 사선 위로 올려 베며 고개가 같이 돌기 시작(뒤통수 3/4) → 마무리는 머리까지 돌아가 뒤통수·등만 보이고 검은 머리 위 앞 60° → 옆모습 복귀. 기준점 [신발 가운데, 발 밑변]. BUILD 287.
+
 **BUILD286 — 러너 소리 순서 교체**(사용자 2026-09-21 “파란 토리이 출발할 때 … 달리기 이전에 [deltarune wing] 이 나오고(준비동작) 달리기 시작할 때 핑!, 지금 순서가 반대”): `runner.js SFX` 준비동작(검 뽑는 순간 0.24초) = `wing`(휘융, 사용자 링크 = 델타룬 snd_wing), 대시 시작 = `weaponpull`(핑!). 올려베기 시트는 BUILD284 에서 이미 10판으로 교체·배포됨(서버·저장소·Pages 모두 새 시트, 이미지 주소에 `?v=BUILD`) — 옛것으로 보이면 build.js 캐시(Pages 10분)라 강력 새로고침. BUILD 286.
 
 **BUILD285 — 제단 맵 브금 shop3 + 위쪽 길 브금 끄기**(사용자 2026-09-21 “짜장면 있는 맵 브금은 wsYUaus3RGI”): ① `assets/audio/bgm/shop3.mp3`(20. Shop 3, DELTARUNE Ch.5, 75초, MP3 q2 그대로) = `jjajang_sakura12.bgm`. ② 벚꽃 숲 11 위쪽 길: 위 끝 띠 `sakura11_hush`(0~2행) → `jjajang_sakura11_hush`(sakura 0.8초 페이드 아웃 — “위에 길로 가면 브금 잠깐 꺼지고”), 바닥 위 끝 띠 `sakura11_unhush`(5~6행) → sakura 다시(같은 곡이면 무시). 제단에서 돌아오면 북쪽 스폰이 hush 띠 안이라 길에선 조용, 바닥에서 sakura. 검사 `tests/unit/jjajang-sakura12.test.mjs`, `tests/playtest/jjajang-sakura10.mjs`. BUILD 285.

@@ -21,3 +21,4 @@
 - 런타임: raw 그대로 `assets/sprites/hyungsub-runner-*.png`(마젠타 색키). `CHARACTER_MOTIONS.hyungsub.runner_*` 의 pivot 은 프레임마다 [남색(머리·바지) 가운데, 발 밑변], scale 0.1264(흩날리는 머리 끝까지 46px, 걷기 52px 보다 살짝 작게; 몸 가운데는 반바지 기준) — `runner-contract.json`. `src/world/runner.js` 가 프레임 번호를 직접 고르고 잔상(파란 실루엣)·베기 호·회전 고리를 그린다.
 - 소리 `audio/`: 델타룬 디컴파일 저장소(TeamBlossomDevs/DeltaruneDecomp_beta @154f9a9 `sounds/snd_swing`, `snd_criticalswing`, `snd_smallswing`) 원본 wav → `assets/audio/sfx/swing.mp3`(C 베기), `criticalswing.mp3`(공중 회전 베기). smallswing 은 보관만.
 - 소리 순서(BUILD286, 사용자 “달리기 이전에 wing(준비동작) → 달리기 시작할 때 핑!, 지금 순서가 반대”): 준비동작(검 뽑는 순간) = `wing`, 대시 시작 = `weaponpull`(핑!). 전엔 반대였다.
+- 올려베기 11판(BUILD287, 사용자 “아직 그대로인 것 같은데, 사선 위로 올려보내서 뒷대가리가 보이게 틀어서 치는 걸 원한다”): `runner-upslash11.prompt.txt` — 1·2·4 프레임은 옆모습, 2 프레임에서 고개가 같이 돌기 시작(뒤통수 3/4, 검은 앞 위 45°), 3 프레임(마무리)은 머리까지 돌아가 뒤통수(검은 머리만, 얼굴 없음)와 등이 보이고 검은 머리 위 앞 60°. 기준점 [신발 가운데, 발 밑변]. 10판 raw 는 보관.

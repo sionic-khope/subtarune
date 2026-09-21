@@ -154,18 +154,18 @@ export const CHARACTER_MOTIONS = {
         { rect: [512, 512, 512, 512], pivot: [251, 412], duration: 0.08 },
       ],
     },
-    // 올려베기(BUILD244 → BUILD284 10판, 사용자 “허리까지 틀어서 검을 잘 휘두르는 느낌, 그대로 퍼올리는 게 아니라”): 허리를 뒤로 꼰 채 검을 엉덩이 뒤 아래(코일) → 허리 풀며 무릎 앞으로 낮게 → 가슴 열고 턱 들며 대각선 위로(60°) → 복귀 (runner-upslash10)
-    //   기준점은 프레임마다 [신발 가운데 x, 발 밑변](발이 땅에 붙은 채 몸이 휘둘리게)
+    // 올려베기(BUILD244 → BUILD287 11판, 사용자 “사선 위로 올려보내서 뒷대가리가 보이게 틀어서 치는 걸 원한다”): 허리를 뒤로 꼰 채 검을 엉덩이 뒤 아래(코일) → 사선 위로 올려 베며 고개가 같이 돌아감(뒤통수 3/4)
+    //   → 마무리는 머리까지 돌아가 뒤통수·등만 보이고 검은 머리 위 앞 60° → 옆모습 복귀 (runner-upslash11). 기준점은 프레임마다 [신발 가운데 x, 발 밑변](발이 땅에 붙은 채 몸이 휘둘리게)
     runner_upslash: {
       src: 'assets/sprites/hyungsub-runner-upslash.png',
       scale: 0.1453,
       faces: 'right',
       colorKey: { rMin: 150, gMax: 110, bMin: 150 },
       frames: [
-        { rect: [0, 0, 512, 512], pivot: [264, 435], duration: 0.08 },
-        { rect: [512, 0, 512, 512], pivot: [219, 435], duration: 0.08 },
-        { rect: [0, 512, 512, 512], pivot: [237, 426], duration: 0.08 },
-        { rect: [512, 512, 512, 512], pivot: [271, 426], duration: 0.08 },
+        { rect: [0, 0, 512, 512], pivot: [255, 430], duration: 0.08 },
+        { rect: [512, 0, 512, 512], pivot: [193, 430], duration: 0.08 },
+        { rect: [0, 512, 512, 512], pivot: [249, 432], duration: 0.08 },
+        { rect: [512, 512, 512, 512], pivot: [264, 432], duration: 0.08 },
       ],
     },
     runner_airslash: {
