@@ -700,6 +700,14 @@ export class Prop extends Entity {
     const fx = (this.flyX || 0) + jx, fy = this.flyY || 0;    // 컷신 {hop}/{fling} 로 밀려난 그림 위치(히트박스 지정 소품은 def.ix 를 따르므로 따로)
     const cols = this.anim?.cols || 1, fw = this.image ? this.image.width / cols : 0, fi = cols > 1 ? Math.floor(performance.now() / 1000 * (this.anim.fps || 8)) % cols : 0;
     const blit = (dx, dy) => ctx.drawImage(this.image, fi * fw, 0, fw, this.image.height, dx, dy, this.iw, this.ih);
+    // aura(BUILD284 벚꽃 숲 12 제단 위 어둠의 짜장면, 사용자 “보라색 짜장면이 오오라를 뛰면서(보라색)”): 그림 뒤에 천천히 맥동하는 둥근 빛 — def.aura = { rgb:'180,140,255', radius, alpha, pulse(초당 rad), centerY(그림 높이 비율) }
+    if (this.def.aura && this.image) {
+      const a = this.def.aura, k = 0.5 + 0.5 * Math.sin(performance.now() / 1000 * (a.pulse ?? 2.2));
+      const r = Math.round((a.radius ?? 24) * (0.88 + 0.24 * k)), cx = Math.round(this.drawX + fx - cam.x + this.iw / 2), cy = Math.round(this.drawY + fy - cam.y - (this.hopY || 0) + this.ih * (a.centerY ?? 0.6));
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, `rgba(${a.rgb ?? '180,140,255'},${((a.alpha ?? 0.55) * (0.75 + 0.25 * k)).toFixed(3)})`); g.addColorStop(0.55, `rgba(${a.rgb ?? '180,140,255'},${((a.alpha ?? 0.55) * 0.35).toFixed(3)})`); g.addColorStop(1, `rgba(${a.rgb ?? '180,140,255'},0)`);
+      ctx.fillStyle = g; ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    }
     const pulseOff = this.pulseOn === false;
     if (pulseOff) { ctx.save(); ctx.globalAlpha = 0.22; }   // 꺼진 플라즈마 빔: 흐리게(막지도 않는다)
     if (this.image && this.spin) {                    // 날아가며 회전(컷신 {hop spin}/{fling})

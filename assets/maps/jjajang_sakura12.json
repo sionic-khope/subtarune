@@ -1,0 +1,228 @@
+{
+ "id": "jjajang_sakura12",
+ "name": "벚꽃 숲 12",
+ "stage": "ship_sinking_done",
+ "bgm": null,
+ "dim": 0,
+ "battleBg": "sakura",
+ "rows": [
+  "@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@",
+  "@@@@@@-----@@@@@",
+  "@@@@---------@@@",
+  "@@@-----------@@",
+  "@@@-----------@@",
+  "@@@-----------@@",
+  "@@@@---------@@@",
+  "@@@@@@-----@@@@@",
+  "@@@@@@@--@@@@@@@",
+  "@@@@@@@--@@@@@@@",
+  "@@@@@@@--@@@@@@@",
+  "@@@@@@@--@@@@@@@",
+  "@@@@@@@--@@@@@@@"
+ ],
+ "preload": [
+  "assets/props/sakura_stump_altar.png",
+  "assets/props/dark_jjajang.png"
+ ],
+ "spawns": {
+  "from_south": {
+   "x": 244,
+   "y": 422,
+   "facing": "up"
+  },
+  "start": {
+   "x": 244,
+   "y": 422,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    7,
+    13
+   ],
+   [
+    7,
+    7
+   ]
+  ],
+  "role": "벚꽃 숲 11 위쪽 길 다음(BUILD284): 브금 꺼짐, 그리 넓지 않은 나무 바닥, 가운데 잘린 나무 그루터기 제단 위 어둠의 짜장면(보라 오라). 아래 문뿐(다음 없음). 발소리 없음",
+  "petals": {
+   "rate": 14,
+   "burst": 0,
+   "burstRate": 14,
+   "burstSeconds": 0,
+   "after": 14
+  },
+  "sakura12": {
+   "center": [
+    8,
+    6
+   ],
+   "radii": [
+    5.4,
+    3.6
+   ],
+   "altar": [
+    8,
+    5
+   ],
+   "pathCols": [
+    7,
+    8
+   ],
+   "aura": {
+    "rgb": "180,140,255",
+    "radius": 36,
+    "alpha": 0.72,
+    "pulse": 2.0,
+    "centerY": 0.55
+   }
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "sakura12_tree_1",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 470,
+   "y": 279,
+   "w": 24,
+   "h": 12,
+   "ix": 382,
+   "iy": 134,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_2",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 390,
+   "y": 366,
+   "w": 24,
+   "h": 12,
+   "ix": 372,
+   "iy": 219,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_3",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 130,
+   "y": 366,
+   "w": 24,
+   "h": 12,
+   "ix": 82,
+   "iy": 211,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_4",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 50,
+   "y": 279,
+   "w": 24,
+   "h": 12,
+   "ix": 4,
+   "iy": 145,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_5",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 50,
+   "y": 173,
+   "w": 24,
+   "h": 12,
+   "ix": -38,
+   "iy": 28,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_6",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 130,
+   "y": 86,
+   "w": 24,
+   "h": 12,
+   "ix": 112,
+   "iy": -61,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_7",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 390,
+   "y": 86,
+   "w": 24,
+   "h": 12,
+   "ix": 342,
+   "iy": -69,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_tree_8",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 470,
+   "y": 173,
+   "w": 24,
+   "h": 12,
+   "ix": 424,
+   "iy": 39,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_altar",
+   "image": "assets/props/sakura_stump_altar.png",
+   "x": 254,
+   "y": 176,
+   "w": 36,
+   "h": 14,
+   "ix": 250,
+   "iy": 157,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura12_dark_jjajang",
+   "image": "assets/props/dark_jjajang.png",
+   "x": 259,
+   "y": 166,
+   "w": 26,
+   "h": 6,
+   "ix": 259,
+   "iy": 150,
+   "solid": false,
+   "sortY": 191,
+   "aura": {
+    "rgb": "180,140,255",
+    "radius": 36,
+    "alpha": 0.72,
+    "pulse": 2.0,
+    "centerY": 0.55
+   }
+  },
+  {
+   "type": "door",
+   "id": "sakura12_south_door",
+   "x": 224,
+   "y": 470,
+   "w": 64,
+   "h": 10,
+   "to": "jjajang_sakura11",
+   "spawn": "from_north",
+   "sfx": false
+  }
+ ]
+}

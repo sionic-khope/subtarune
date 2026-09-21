@@ -8,7 +8,7 @@
 # ──────────────────
 """벚꽃 숲 11 — 나무 정상(jjajang_sakura11, BUILD283 사용자 브리핑 2026-09-21 “그 다음맵은 나무 정상같은 느낌의 나뭇바닥과 벚꽃들”):
 - 절벽에서 떨어져(벚꽃 숲 10 outro) 가운데(landing)에 착지한다. 둥근 나무 널빤지 바닥(타일 '-' sakura_deck) 한 덩이, 그 둘레는 허공(@)과 벚꽃 나무 캐노피(밑동을 바닥 가장자리 바깥에 둬 캐노피가 바닥 가장자리를 두른다), 꽃잎 초당 18.
-- 문 없음(다음 맵 없음). 브금 sakura, 발소리 없음."""
+- 위쪽 길(12~14열) 끝 문 → 벚꽃 숲 12 제단(BUILD284). 브금 sakura, 발소리 없음."""
 from __future__ import annotations
 
 import json
@@ -32,6 +32,7 @@ TREES: Final = (
     ('assets/props/jjajang_sakura_4.png', 167, 146, 58),
 )
 RING: Final = 14                      # 둘레 나무 수(각도 등분)
+PATH_COLS: Final = (12, 14)           # 위쪽 길(BUILD284 사용자 “그다음맵 위에 길 뚫어주고”): 바닥 위 끝에서 맵 위 끝까지 → 벚꽃 숲 12(제단)
 RING_PAD: Final = (1.6, 1.9)          # 바닥 가장자리에서 밑동까지(가로·세로 칸)
 
 
@@ -55,15 +56,21 @@ def build_map() -> dict[str, object]:
         for col in range(WIDTH):
             if inside(col, row):
                 rows[row][col] = DECK
+    for row in range(0, CENTER[1]):                                          # 위쪽 길: 바닥 위 끝 → 맵 위 끝(문)
+        for col in range(PATH_COLS[0], PATH_COLS[1] + 1):
+            rows[row][col] = DECK
     # 둘레 나무: 바닥 타원 바깥 RING_PAD 칸에 밑동을 두고 각도 등분. 위쪽 나무는 바닥 위 끝 뒤로, 아래·양옆은 캐노피가 바닥 가장자리 앞을 두른다
     trees = []
     for i in range(RING):
         ang = (i + 0.5) * 2 * math.pi / RING
         cx = (CENTER[0] + 0.5 + (RADII[0] + RING_PAD[0]) * math.cos(ang)) * TILE
         base_y = (CENTER[1] + 0.5 + (RADII[1] + RING_PAD[1]) * math.sin(ang)) * TILE + 30
+        if base_y < CENTER[1] * TILE and abs(cx - (CENTER[0] + 0.5) * TILE) < (PATH_COLS[1] - PATH_COLS[0] + 3) * TILE / 2:   # 위쪽 길 자리엔 나무 없음
+            continue
         t = tree(len(trees), cx, base_y)
         if t:
             trees.append(t)
+    door_north = {'type': 'door', 'id': 'sakura11_north_door', 'x': PATH_COLS[0] * TILE, 'y': 0, 'w': (PATH_COLS[1] - PATH_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura12', 'spawn': 'from_south', 'sfx': False}
     landing = {'x': CENTER[0] * TILE + 4, 'y': CENTER[1] * TILE + 6, 'facing': 'down'}
     assert rows[CENTER[1]][CENTER[0]] == DECK and rows[CENTER[1] + 1][CENTER[0]] == DECK
     for t in trees:
@@ -71,15 +78,15 @@ def build_map() -> dict[str, object]:
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 11', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
-        'spawns': {'landing': landing, 'start': dict(landing)},
+        'spawns': {'landing': landing, 'start': dict(landing), 'from_north': {'x': CENTER[0] * TILE + 4, 'y': 38, 'facing': 'down'}},
         'meta': {
             'connected': True,
-            'route': [[CENTER[0], CENTER[1]], [CENTER[0] + 4, CENTER[1]]],
-            'role': '벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 문 없음(다음 맵 없음). 브금 sakura, 발소리 없음',
+            'route': [[CENTER[0], CENTER[1]], [CENTER[0], 0]],
+            'role': '벚꽃 숲 10 절벽 도약 낙하 뒤 착지(BUILD283): 나무 정상 — 둥근 나무 널빤지 바닥, 둘레는 벚꽃 캐노피와 허공. 위쪽 길 끝 문 → 벚꽃 숲 12 제단(BUILD284, 브금 꺼짐). 브금 sakura, 발소리 없음',
             'petals': PETALS,
-            'sakura11': {'center': list(CENTER), 'radii': list(RADII), 'landing': [landing['x'], landing['y']], 'ring': RING},
+            'sakura11': {'center': list(CENTER), 'radii': list(RADII), 'landing': [landing['x'], landing['y']], 'ring': RING, 'pathCols': list(PATH_COLS)},
         },
-        'entities': trees,
+        'entities': [*trees, door_north],
     }
 
 

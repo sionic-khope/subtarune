@@ -12,7 +12,7 @@
 - 벚꽃 숲 9 왼쪽 끝 문에서 동쪽 가장자리(10~11행)로 들어와 왼쪽으로 조금 → 파란 토리이(가까운 기둥 150열, 토리이 굽이 길과 같은 소품·자리 계산)를 왼쪽으로 지나면
   러너(meta.runs.a: dir −1, 420px/s, 장애물 없음, 물 아님) ≈ 10초 → endX(오르막 밑동 480px)에서 제동 없이 오르막(finale: 소품 비탈 그대로 ramp px 동안 rise 만큼 오르며 달림)
   → 도약(점프 소리) → 슬로우 6초(잔상·꽃잎 조금) → 낙하 → outro jjajang_sakura10_outro(어둡게 → 벚꽃 숲 11 나무 정상 착지).
-- 길 위 하늘(0~9행)은 비워 둬 뛰어오른 주인공이 검은 하늘에 보인다. 절벽 왼쪽(오르막 소품 왼쪽)은 허공(@), 근처엔 나무 없음.
+- 길 위 하늘(0~9행)은 비워 둬 뛰어오른 주인공이 검은 하늘에 보인다. 절벽 왼쪽(오르막 소품 왼쪽 약 1220px)은 허공(@) — 슬로우 동안 앞으로 쭉 멀리뛰기(실시간 150px/s, 카메라가 따라가 맵이 흐른다)해 맵 안에서 떨어진다. 근처엔 나무 없음.
 - 오르막 소품 assets/props/sakura_cliff_ramp.png(assets/source/sakura10-v1/export.py 가 비탈 시작·꼭대기 픽셀을 ramp-contract.json 에 적는다 → 여기서 읽어 자리·finale.ramp/rise 를 맞춘다), 항상 뒤에(sortY −1)."""
 from __future__ import annotations
 
@@ -22,20 +22,20 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'jjajang_sakura10'
-WIDTH: Final = 160
+WIDTH: Final = 188
 HEIGHT: Final = 20
 TILE: Final = 32
 GROUND: Final = ')'
 RUN_ROWS: Final = (10, 11)            # 달리는 길(왼쪽으로) — 위 10행은 하늘(도약이 화면에 남게)
-TORII_COL: Final = 150                # 가까운 기둥 밑동 칸(왼쪽으로 지남)
+TORII_COL: Final = 178                # 가까운 기둥 밑동 칸(왼쪽으로 지남)
 RUN_SPEED: Final = 420
-END_X: Final = 480                    # 오르막 밑동(러너 endX — 여기서 제동 없이 비탈로)
+END_X: Final = 1400                   # 오르막 밑동(러너 endX — 여기서 제동 없이 비탈로). 왼쪽 허공 약 1220px: 멀리뛰기(도약 92 + 슬로우 900 + 낙하 ≈170px)가 맵 안에서 끝난다
 PETAL_COLORS: Final = ('#ffc2e0', '#ff8ad0', '#ffffff')
 NEAR_BASE: Final = (57.0, 285.3)      # 토리이 굽이 길(tools/maps/jjajang_run2.py)과 같은 자리 계산
 FAR_BASE: Final = (196.0, 216.6)
 BACK_OFFSET: Final = (176, 121)
 RAMP_CONTRACT: Final = Path('assets/source/sakura10-v1/ramp-contract.json')
-TREE_MIN_COL: Final = 20              # 절벽 근처엔 나무 없음
+TREE_MIN_COL: Final = END_X // TILE + 4   # 절벽 근처·허공엔 나무 없음
 TREES: Final = (
     ('assets/props/jjajang_sakura_1.png', 141, 157, 100),
     ('assets/props/jjajang_sakura_2.png', 135, 159, 30),

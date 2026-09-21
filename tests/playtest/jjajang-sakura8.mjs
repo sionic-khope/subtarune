@@ -54,7 +54,8 @@ try {
   s = await advanceTo('미스가 있는거같은데'); check(!!s && s.speaker === '경섭', '경섭: 아마 저 다음에 미스가 있는거같은데,');
   s = await advanceTo('내가 혼자 갔다오마'); check(!!s, '경섭: 내가 혼자 갔다오마');
   s = await advanceTo('아 네'); check(!!s && s.speaker === '억빠맨', '억빠맨: 아 네');
-  s = await advanceTo('어둠의짜장면'); check(!!s && s.speaker === '경섭', '경섭: 그동안 그 어둠의짜장면?(보라색)을 …');
+  s = await advanceTo('어둠의짜장면'); check(!!s && s.speaker === '경섭' && s.text.includes('{c=purple}어둠의짜장면{/c}') && !s.text.includes('(보라색)'), '경섭: 그동안 그 어둠의짜장면?을 … (어둠의짜장면은 보라색 글자, 괄호 없음)');
+  await until(() => window.game.textbox.state === 'waiting', 8000); await cap('01b_purple');
   s = await advanceTo('고민좀 해볼게요'); check(!!s && s.speaker === '억빠맨', '억빠맨: 흠.. 저 고민좀 해볼게요');
   s = await advanceTo('저기라도 가보실래요'); check(!!s && s.speaker === '억빠맨', '억빠맨: 요플래형은 뭐 한번 저기라도 가보실래요?'); await cap('02_ask');
   const camBefore = s.cam; await next();
@@ -66,8 +67,9 @@ try {
   s = await advanceTo('갔다오마.'); check(!!s && s.speaker === '경섭' && Math.abs(s.cam[0] + 240 - (s.px + 12)) < 48, `카메라 돌아온 뒤 경섭: 갔다오마. (${s?.cam})`); await next();
   // (경섭이 오른쪽으로 쭉 걸어감): 동료에서 빠지고 사본이 오른쪽으로 걸어 나가 사라진다
   check(await until(() => { const g = window.game; const n = g.entities.find(e => e.id === 'gyeongsub_npc'); return n && n.visible !== false && !g.party.includes('gyeongsub'); }, 4000), '경섭이 동료에서 빠져 사본이 선다');
-  const k0 = await ent('gyeongsub_npc'); await page.waitForTimeout(900); const k1 = await ent('gyeongsub_npc');
-  check(k0 && k1 && k1.x > k0.x + 40 && k1.facing === 'right' && k1.y === S.roadY + 24, `경섭이 앞줄로 오른쪽으로 쭉 걸어간다 (${k0?.x} → ${k1?.x}, y ${k1?.y})`); await cap('04_gyeongsub_leaves');
+  const k0 = await ent('gyeongsub_npc'), p0 = await ent('ppaman_npc'); await page.waitForTimeout(900); const k1 = await ent('gyeongsub_npc'), p1 = await ent('ppaman_npc');
+  check(k0 && k1 && k1.x > k0.x + 40 && k1.facing === 'right' && k1.y === S.roadY + 24, `경섭이 앞줄로 오른쪽으로 쭉 걸어간다 (${k0?.x} → ${k1?.x}, y ${k1?.y})`);
+  check(p0 && p1 && p1.visible && p1.x > p0.x + 20 && p1.facing === 'right', `억빠맨도 거의 같이 오른쪽으로 (${p0?.x} → ${p1?.x})`); await cap('04_gyeongsub_leaves');
   check(await until(() => { const n = window.game.entities.find(e => e.id === 'gyeongsub_npc'); return !n || n.dead; }, 15000), '경섭이 맵 밖으로 사라짐');
   // 억빠맨: 동료에서 빠져 오른쪽 길 바로 앞을 막고 선다 → 요플래 혼자
   check(await until(() => { const g = window.game; const n = g.entities.find(e => e.id === 'ppaman_npc'); return n && n.visible !== false && !g.party.includes('ppaman'); }, 4000), '억빠맨이 동료에서 빠진다');

@@ -154,17 +154,18 @@ export const CHARACTER_MOTIONS = {
         { rect: [512, 512, 512, 512], pivot: [251, 412], duration: 0.08 },
       ],
     },
-    // 올려베기(BUILD244): 웅크림 → 낮게 베기 → 턱 들고 위로 → 복귀 (runner-upslash9)
+    // 올려베기(BUILD244 → BUILD284 10판, 사용자 “허리까지 틀어서 검을 잘 휘두르는 느낌, 그대로 퍼올리는 게 아니라”): 허리를 뒤로 꼰 채 검을 엉덩이 뒤 아래(코일) → 허리 풀며 무릎 앞으로 낮게 → 가슴 열고 턱 들며 대각선 위로(60°) → 복귀 (runner-upslash10)
+    //   기준점은 프레임마다 [신발 가운데 x, 발 밑변](발이 땅에 붙은 채 몸이 휘둘리게)
     runner_upslash: {
       src: 'assets/sprites/hyungsub-runner-upslash.png',
       scale: 0.1453,
       faces: 'right',
       colorKey: { rMin: 150, gMax: 110, bMin: 150 },
       frames: [
-        { rect: [0, 0, 512, 512], pivot: [244, 429], duration: 0.08 },
-        { rect: [512, 0, 512, 512], pivot: [238, 429], duration: 0.08 },
-        { rect: [0, 512, 512, 512], pivot: [289, 419], duration: 0.08 },
-        { rect: [512, 512, 512, 512], pivot: [250, 419], duration: 0.08 },
+        { rect: [0, 0, 512, 512], pivot: [264, 435], duration: 0.08 },
+        { rect: [512, 0, 512, 512], pivot: [219, 435], duration: 0.08 },
+        { rect: [0, 512, 512, 512], pivot: [237, 426], duration: 0.08 },
+        { rect: [512, 512, 512, 512], pivot: [271, 426], duration: 0.08 },
       ],
     },
     runner_airslash: {

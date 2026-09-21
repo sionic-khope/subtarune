@@ -1,0 +1,24 @@
+{
+ "file": "assets/props/sakura_stump_altar.png",
+ "size": [
+  44,
+  33
+ ],
+ "scale": 0.0887,
+ "top": [
+  22,
+  11
+ ],
+ "raw": {
+  "bbox": [
+   264,
+   341,
+   760,
+   712
+  ],
+  "top": [
+   253,
+   120
+  ]
+ }
+}

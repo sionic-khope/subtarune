@@ -50,9 +50,10 @@ try {
   check(s.runner?.phase === 'float' && s.runner.airY >= 200 && s.runner.trail >= 8, `높이 뜬 채 잔상 (airY ${s.runner?.airY}, 잔상 ${s.runner?.trail})`);
   check(s.runner.feetScreenY >= 60 && s.runner.feetScreenY <= 330 && s.runner.xScreen >= 24 && s.runner.xScreen <= 440, `주인공이 화면 안 (${s.runner.xScreen}, ${s.runner.feetScreenY})`);
   check((s.petalRate ?? 0) >= 40 || s.runner.bits > 0, `꽃잎이 조금 (rate ${s.petalRate}, 조각 ${s.runner.bits})`);
-  const air1 = s.runner.airY;
+  const air1 = s.runner.airY, px1 = s.px, cam1 = s.cam[0];
   await page.waitForTimeout(3000); s = await st(); await cap('05_float_4s');
   check(s.runner?.phase === 'float' && Math.abs(s.runner.airY - air1) < 60, `4초에도 아직 꼭대기 근처 (${air1} → ${s.runner?.airY})`);
+  check(px1 - s.px >= 380 && cam1 - s.cam[0] >= 300, `슬로우 동안 앞으로 쭉 가고 맵이 흐른다 (x ${px1} → ${s.px}, cam ${cam1} → ${s.cam[0]})`);
   // 5) 낙하(보통 속도) → 어둡게 → 벚꽃 숲 11
   check(await phase('fall', 4000), '낙하 시작'); const tFall = (Date.now() - tFloat) / 1000; check(tFall >= 5.5 && tFall <= 7, `슬로우 6초쯤 (${tFall.toFixed(1)}초)`);
   await page.waitForTimeout(350); s = await st(); await cap('06_fall');
@@ -67,6 +68,23 @@ try {
   check(s.map === 'jjajang_sakura11' && s.visible && s.hopY === 0 && !s.locked && !s.runner && s.bgm === 'sakura' && Math.abs(s.px - L.x) < 4 && Math.abs(s.py - L.y) < 4, `나무 정상 가운데에 서 있다 ${JSON.stringify([s.px, s.py, s.hopY, s.locked, s.bgm])}`);
   const lit = await bright(640, 450); check(lit > 90, `화면이 밝다(어둠 막 걷힘, ${lit})`);
   check(await go('ArrowRight', `g.player.x > ${L.x + 40}`, 5000), '걸을 수 있다'); await cap('09_walk');
+  // 6) 위쪽 길 → 문 → 벚꽃 숲 12 제단: 브금 꺼짐, 가운데 그루터기 위 어둠의 짜장면이 보라 오라를 두르고 맥동 → 아래 문으로 되돌아오면 브금 sakura
+  await page.evaluate(() => { const g = window.game; g.player.x = g.map.def.spawns.from_north.x; });
+  check(await go('ArrowUp', "g.mapId === 'jjajang_sakura12'", 12000, true), '위쪽 길 끝 문 → 벚꽃 숲 12');
+  await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 }); await page.waitForTimeout(700);
+  s = await st(); check(s.map === 'jjajang_sakura12' && s.bgm === null && s.party.length === 0, `12: 브금 꺼짐·혼자 ${JSON.stringify([s.bgm, s.px, s.py])}`);
+  const altar = await ev(() => { const g = window.game; const a = g.entities.find(e => e.id === 'sakura12_altar'), b = g.entities.find(e => e.id === 'sakura12_dark_jjajang'); return a && b ? { ax: Math.round(a.x), ay: Math.round(a.y), bx: Math.round(b.def.ix), by: Math.round(b.def.iy), bw: b.iw, bh: b.ih, aura: !!b.def.aura, visible: b.visible !== false && a.visible !== false } : null; });
+  check(altar && altar.aura && altar.visible, `그루터기 제단 위 어둠의 짜장면(오라) ${JSON.stringify(altar)}`);
+  check(await go('ArrowUp', 'g.player.y < 300', 8000), '제단 앞까지 올라간다');
+  await page.waitForTimeout(300); await cap('11_altar');
+  // 오라 맥동: 그릇 옆(오른쪽 14px) 화면 픽셀의 보라 밝기가 시간에 따라 변한다
+  const auraAt = async () => ev(([bx, by]) => { const g = window.game; const c = document.querySelector('canvas').getContext('2d'); const sx = Math.round((bx - g.camera.x) * 2), sy = Math.round((by - g.camera.y) * 2); const d = c.getImageData(sx, sy, 1, 1).data; return d[0] + d[2]; }, [altar.bx + altar.bw + 14, altar.by + altar.bh - 4]);
+  const samples = []; for (let i = 0; i < 12; i++) { samples.push(await auraAt()); await page.waitForTimeout(140); }
+  check(Math.max(...samples) >= 60 && Math.max(...samples) - Math.min(...samples) >= 10, `보라 오라가 맥동한다 (${Math.min(...samples)}~${Math.max(...samples)})`);
+  check(await go('ArrowUp', 'false', 700) === false && (await st()).py > 190, '제단은 막혀 있다');
+  check(await go('ArrowDown', "g.mapId === 'jjajang_sakura11'", 12000, true), '아래 문 → 벚꽃 숲 11');
+  await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 }); await page.waitForTimeout(800);
+  s = await st(); check(s.map === 'jjajang_sakura11' && s.bgm === 'sakura' && s.py < 120, `되돌아오면 브금 sakura·위쪽 길 (${s.bgm}, ${s.py})`); await cap('12_back');
   // 6) QA 재입장: 바로 서 있다
   await page.goto('http://localhost:8000/?qa=jjajang_sakura11');
   check(await until(() => window.game?.mapId === 'jjajang_sakura11' && !window.game.transitioning, 30000), 'QA 벚꽃 숲 11');

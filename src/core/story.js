@@ -570,5 +570,7 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura10', desc: '벚꽃 숲
   map: 'jjajang_sakura10', spawn: 'from_east', flags: sakura8DoneFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura10_torii', desc: '벚꽃 숲 10 · 파란 토리이 앞 (왼쪽으로 지나면 달리기 10초 → 절벽 오르막 → 점프·슬로우·낙하 → 나무 정상)',
   map: 'jjajang_sakura10', spawn: 'torii', flags: sakura8DoneFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura11', desc: '벚꽃 숲 11 나무 정상 (낙하 착지 자리, 다음 맵 없음)',
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura11', desc: '벚꽃 숲 11 나무 정상 (낙하 착지 자리 · 위쪽 길 → 제단)',
   map: 'jjajang_sakura11', spawn: 'landing', flags: sakura8DoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12', desc: '벚꽃 숲 12 제단 (브금 꺼짐 · 잘린 나무 제단 위 어둠의 짜장면·보라 오라, 다음 없음)',
+  map: 'jjajang_sakura12', spawn: 'from_south', flags: sakura8DoneFlags, party: [] });

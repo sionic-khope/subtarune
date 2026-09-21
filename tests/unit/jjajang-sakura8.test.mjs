@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { SCRIPTS } from '../../src/data/scripts.js';
-import { jjajang_sakura8_split, jjajang_sakura8_no_right, jjajang_sakura9_start, ROAD_Y, UP_VIEW, CAM, GUARD_SPOT, EXIT_SPOT, FRONT_ROW, SAKURA8_SPLIT_FLAG, NO_RIGHT_LINE } from '../../src/data/cutscenes/jjajang_sakura8.js';
+import { jjajang_sakura8_split, jjajang_sakura8_no_right, jjajang_sakura9_start, ROAD_Y, UP_VIEW, CAM, GUARD_SPOT, EXIT_SPOT, FRONT_ROW, FOLLOW_DELAY, SAKURA8_SPLIT_FLAG, NO_RIGHT_LINE } from '../../src/data/cutscenes/jjajang_sakura8.js';
 import { QA_POINTS } from '../../src/core/story.js';
 import { MAP_RUNTIME_ASSETS } from '../../src/data/map-runtime-assets.js';
 import { OBSTACLES, OBSTACLE_SPAWN, createRunner, stepRunner } from '../../src/world/runner-core.js';
@@ -55,7 +55,7 @@ test('test_sakura8_split_scene_has_verbatim_lines_camera_to_the_up_road_then_gye
   const s = jjajang_sakura8_split; assert.equal(SCRIPTS.jjajang_sakura8_split, s);
   assert.deepEqual(s.map(line).filter(Boolean), [
     ['경섭', '빠맨아,'], ['억빠맨', '네?'], ['경섭', '아마 저 다음에 미스가 있는거같은데,'], ['경섭', '내가 혼자 갔다오마'], ['억빠맨', '아 네'],
-    ['경섭', '그동안 그 어둠의짜장면?(보라색)을 얻을 방법을 좀 궁리해보는게 좋을듯 싶다.'], ['억빠맨', '흠.. 저 고민좀 해볼게요'], ['억빠맨', '요플래형은 뭐 한번 저기라도 가보실래요?'],
+    ['경섭', '그동안 그 {c=purple}어둠의짜장면{/c}?을 얻을 방법을 좀 궁리해보는게 좋을듯 싶다.'], ['억빠맨', '흠.. 저 고민좀 해볼게요'], ['억빠맨', '요플래형은 뭐 한번 저기라도 가보실래요?'],   // “(보라색)” 은 지시 → 보라색 글자
     ['경섭', '갔다오마.'],
   ]);
   // (윗길로 카메라를 가리킨다): 억빠맨이 위를 보고 카메라가 천천히 윗길로 갔다가 돌아온 뒤 “갔다오마.”
@@ -66,12 +66,16 @@ test('test_sakura8_split_scene_has_verbatim_lines_camera_to_the_up_road_then_gye
   const eight = load('jjajang_sakura8'), S = eight.meta.sakura8;
   const camTop = UP_VIEW[1] * 32 - 164, camLeft = UP_VIEW[0] * 32 - 224;
   assert.ok(camTop >= 0 && camTop + 230 <= S.roadRows[0] * 32 + 64 && camLeft < S.junctionCols[0] * 32 && camLeft + 480 > S.junctionCols[1] * 32, '윗길 뷰: 길 위쪽(윗줄)이 보이는 영역 안');
-  // (경섭이 오른쪽으로 쭉 걸어감): 사본이 서고 → 동료에서 빠짐 → 동쪽 끝 밖으로 → 사라짐. 그 뒤 억빠맨도 빠져 가드 자리로(왼쪽 보고 막아섬) → 플래그
-  const kStand = idx(s, (n, i) => i > bye && n.action), kLeave = idx(s, n => n.leave === 'gyeongsub'), kGo = idx(s, n => n.move === 'gyeongsub_npc' && n.px === EXIT_SPOT && n.exact), kGone = idx(s, n => n.remove === 'gyeongsub_npc');
-  const pLeave = idx(s, n => n.leave === 'ppaman'), pGo = idx(s, n => n.move === 'ppaman_npc' && n.px === GUARD_SPOT && n.exact), pFace = idx(s, n => n.face === 'ppaman_npc' && n.dir === 'left'), flag = idx(s, n => n.set?.[SAKURA8_SPLIT_FLAG]);
-  assert.ok(bye < kStand && kStand < kLeave && kLeave < kGo && kGo < kGone && kGone < pLeave && pLeave < pGo && pGo < pFace && pFace < flag && flag === s.length - 1);
-  const kFront = idx(s, n => n.move === 'gyeongsub_npc' && n.by?.[1] === FRONT_ROW), pFront = idx(s, n => n.move === 'ppaman_npc' && n.by?.[1] === FRONT_ROW);
-  assert.ok(kLeave < kFront && kFront < kGo && pLeave < pFront && pFront < pGo, '둘 다 앞줄로 내려와 지나간다(일행과 겹쳐 통과하지 않게)');
+  // (경섭이 오른쪽으로 쭉 걸어감): 둘 다 사본이 서고 동료에서 빠진 뒤 거의 같이 오른쪽으로 — 경섭은 동쪽 끝 밖으로 사라지고, 억빠맨은 0.3초 뒤 출발해 가드 자리에 멈춰 왼쪽을 본다 → 플래그(사용자 “거의 같이”, “중간에 억빠맨이 왼쪽 보게”)
+  const kStand = bye + 2, kLeave = idx(s, n => n.leave === 'gyeongsub'), pLeave = idx(s, n => n.leave === 'ppaman');   // bye + 1 은 대사 상자 닫기(action)
+  const par = idx(s, n => Array.isArray(n.parallel) && n.parallel.length === 2), flag = idx(s, n => n.set?.[SAKURA8_SPLIT_FLAG]);
+  assert.ok(s[bye + 1].action && s[kStand].action && kStand < kLeave && kLeave < pLeave && pLeave < par && par < flag && flag === s.length - 1);
+  assert.equal(s.slice(kStand, kLeave).filter(n => n.action).length, 2, '둘 다 먼저 사본이 선다(동료가 빠지면 남은 동료가 주인공 자리에 다시 생기므로)');
+  const [kb, pb] = s[par].parallel;
+  const kFront = kb.findIndex(n => n.move === 'gyeongsub_npc' && n.by?.[1] === FRONT_ROW), kGo = kb.findIndex(n => n.move === 'gyeongsub_npc' && n.px === EXIT_SPOT && n.exact), kGone = kb.findIndex(n => n.remove === 'gyeongsub_npc');
+  const pFront = pb.findIndex(n => n.move === 'ppaman_npc' && n.by?.[1] === FRONT_ROW), pGo = pb.findIndex(n => n.move === 'ppaman_npc' && n.px === GUARD_SPOT && n.exact), pFace = pb.findIndex(n => n.face === 'ppaman_npc' && n.dir === 'left');
+  assert.ok(kFront === 0 && kFront < kGo && kGo < kGone && kGone === kb.length - 1, '경섭: 앞줄로 → 동쪽 끝 밖 → 사라짐');
+  assert.ok(pb[0].wait === FOLLOW_DELAY && FOLLOW_DELAY <= 0.5 && pFront === 1 && pFront < pGo && pGo < pFace && pFace === pb.length - 1, '억빠맨: 잠깐 뒤 앞줄로 → 가드 자리에 멈춰 → 왼쪽을 본다');
   assert.ok(!s.some(n => n.leave === 'player') && !s.some(n => n.join), '요플래(주인공)만 남고 아무도 다시 합류하지 않는다');
 });
 

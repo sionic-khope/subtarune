@@ -11,6 +11,7 @@ export const UP_VIEW = [23.5, 7];                      // 윗길을 가리키는
 export const CAM = { up: 1.4, hold: 0.9, back: 1.2 };
 export const GUARD_SPOT = [900, ROAD_Y];               // 억빠맨 가드 자리(28열, 오른쪽 길 바로 앞) = 맵 meta.sakura8.guard
 export const FRONT_ROW = 12;                           // 사본이 일행 앞줄(24px 아래)로 한 걸음 내려와 지나간다(겹쳐 통과하지 않게, by 는 16px 단위 = 2px)
+export const FOLLOW_DELAY = 0.3;                       // 억빠맨은 경섭보다 이만큼 늦게 출발(“거의 같이”)
 export const EXIT_SPOT = [40 * 32 + 48, ROAD_Y + FRONT_ROW * 2];   // 경섭: 앞줄로 동쪽 끝 밖까지 쭉 걸어 나간다
 export const SAKURA8_SPLIT_FLAG = 'sakura8_split_done';
 export const NO_RIGHT_LINE = '윗길로 가보시는게 어때요?';
@@ -33,7 +34,8 @@ export const jjajang_sakura8_split = [
   K('아마 저 다음에 미스가 있는거같은데,'),
   K('내가 혼자 갔다오마'),
   P('아 네'),
-  K('그동안 그 어둠의짜장면?(보라색)을 얻을 방법을 좀 궁리해보는게 좋을듯 싶다.'),
+  // 브리핑 “어둠의짜장면?(보라색)” — 괄호는 지시: 그 낱말을 보라색 글자로(사용자 2026-09-21 “보라색 텍스트로 쓰라고”). 드럼통 둥지 뒤 TV 연출과 같은 {c=purple}
+  K('그동안 그 {c=purple}어둠의짜장면{/c}?을 얻을 방법을 좀 궁리해보는게 좋을듯 싶다.'),
   P('흠.. 저 고민좀 해볼게요'),
   P('요플래형은 뭐 한번 저기라도 가보실래요?'),
   close,
@@ -45,20 +47,15 @@ export const jjajang_sakura8_split = [
   { face: PPAMAN, dir: 'toward:gyeongsub' },
   K('갔다오마.'),
   close,
-  // (경섭이 오른쪽으로 쭉 걸어감) — 동료에서 빠지고 사본이 동쪽 끝 밖으로
-  standIn(GYEONGSUB_NPC, GYEONGSUB),
-  { leave: GYEONGSUB },
-  { move: GYEONGSUB_NPC, by: [0, FRONT_ROW] },
-  { face: GYEONGSUB_NPC, dir: 'right' },
-  { move: GYEONGSUB_NPC, px: EXIT_SPOT, exact: true },
-  { remove: GYEONGSUB_NPC },
-  // 억빠맨: 동료에서 빠져 오른쪽 길 바로 앞을 막고 선다 — 잠시 요플래 혼자
-  standIn(PPAMAN_NPC, PPAMAN),
-  { leave: PPAMAN },
-  { move: PPAMAN_NPC, by: [0, FRONT_ROW] },
-  { move: PPAMAN_NPC, px: [GUARD_SPOT[0] - 32, GUARD_SPOT[1] + FRONT_ROW * 2] },
-  { move: PPAMAN_NPC, px: GUARD_SPOT, exact: true },
-  { face: PPAMAN_NPC, dir: 'left' },
+  // (경섭이 오른쪽으로 쭉 걸어감) — 둘 다 사본이 그 자리에 서고(동료가 빠지면 남은 동료는 주인공 자리에 다시 생기므로 먼저) 동료에서 빠진 뒤 거의 같이 오른쪽으로:
+  //   경섭은 앞줄로 동쪽 끝 밖까지 걸어가 사라지고, 억빠맨은 0.3초 뒤 출발해 오른쪽 길 바로 앞(가드 자리)에 멈춰 왼쪽을 보고 막아선다 — 잠시 요플래 혼자
+  //   (사용자 2026-09-21 “억빠맨이랑 김경섭 오른쪽 거의 같이 가게”, “중간에 억빠맨이 왼쪽 보게”)
+  standIn(GYEONGSUB_NPC, GYEONGSUB), standIn(PPAMAN_NPC, PPAMAN),
+  { leave: GYEONGSUB }, { leave: PPAMAN },
+  { parallel: [
+    [{ move: GYEONGSUB_NPC, by: [0, FRONT_ROW] }, { face: GYEONGSUB_NPC, dir: 'right' }, { move: GYEONGSUB_NPC, px: EXIT_SPOT, exact: true }, { remove: GYEONGSUB_NPC }],
+    [{ wait: FOLLOW_DELAY }, { move: PPAMAN_NPC, by: [0, FRONT_ROW] }, { move: PPAMAN_NPC, px: [GUARD_SPOT[0] - 32, GUARD_SPOT[1] + FRONT_ROW * 2] }, { move: PPAMAN_NPC, px: GUARD_SPOT, exact: true }, { face: PPAMAN_NPC, dir: 'left' }],
+  ] },
   { action: game => { const n = game.entities.find(e => e.id === PPAMAN_NPC); if (n) n.solid = true; } },
   { set: { [SAKURA8_SPLIT_FLAG]: true } },
 ];

@@ -1,0 +1,8 @@
+# imagegen 2026-09-21 11:03:04
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+
+Pixel art game prop for a top-down 2D RPG (Deltarune-like, 3/4 top-down view), single object centered on a flat solid magenta (#FF00FF) background, nothing else in the image.
+A small freshly cut cherry tree stump used as a tiny altar: the flat sawn top is seen from above at a 3/4 angle as a wide pale oval with visible growth rings, the short bark sides are dark brown and rough, a few pink cherry petals lie on the top. Small and squat, wider than tall.
+Crisp hard-edged pixels, no anti-aliasing, no glow, no outline halo, no text, no ground plane, no shadow outside the object.

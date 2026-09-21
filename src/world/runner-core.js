@@ -45,9 +45,10 @@ export const OBSTACLE_SPAWN = Object.freeze({ every: [1.5, 2.3], first: 1.4, typ
 export const TUTORIAL = Object.freeze({ holdAt: 60, flag: 'run_leaf_tutorial_done' });
 // 절벽 오르막 마무리(BUILD283 사용자 “왼쪽 끝에 절벽 오르막 있으며 거기로 가지면 꽤 점프되는 연출과 함께 점프된 뒤에 잔상 점프 한 슬로우 6초 정도 하다가 떨어지는데 점프할 때 소리도 나고”):
 //   맵 meta.runs.<id>.finale = { ramp, rise, leapV, leapVx, leapTime, slow, scale, fallTo } 가 있으면 endX 에서 제동하지 않고 오르막(ramp px 를 달려 오르며 rise 만큼 발이 올라감) → 끝에서 도약(leapV, 'jump' 소리)
-//   → leapTime 초 보통 속도로 솟은 뒤 슬로우(실시간 slow 초 동안 시간 배율 scale — 꼭대기 근처에 잔상이 허공에 멈춰 남는다) → 낙하(보통 속도, airY 가 fallTo 아래면 end → 맵 outro). 절벽 너머는 땅이 없다
+//   → leapTime 초 보통 속도로 솟은 뒤 슬로우(실시간 slow 초 동안 세로 물리는 시간 배율 scale — 꼭대기 근처에 오래 떠 있고, 잔상이 뒤로 길게 남는다) → 낙하(보통 속도, airY 가 fallTo 아래면 end → 맵 outro). 절벽 너머는 땅이 없다
+//   가로는 멀리뛰기(사용자 2026-09-21 “천천히 점프될 때 옆으로도 쭉 가야지 맵 자체가 / 앞으로도 쭉 멀리뛰기하는 거마냥”): 도약 동안 달리던 속도 그대로, 슬로우·낙하 동안은 실시간 glide px/s 로 앞으로 쭉(6초 × 150 = 900px, 카메라가 따라가 맵이 흐른다)
 //   leapV 663 = √(2·1100·200): 꼭대기 약 200px(카메라가 airY 를 따라가도 화면 위에 남는 높이)
-export const FINALE = Object.freeze({ ramp: 160, rise: 64, leapV: 663, leapVx: 120, leapTime: 0.22, slow: 6, scale: 0.08, fallTo: -440, trailEvery: 5, trailMax: 14 });
+export const FINALE = Object.freeze({ ramp: 160, rise: 64, leapV: 663, leapVx: 420, leapTime: 0.22, slow: 6, scale: 0.08, glide: 150, fallTo: -440, trailEvery: 5, trailMax: 14 });
 const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
 // 올려베기(BUILD244 사용자 “위로 올릴 때는 턱도 들면서 자세가 잡혀야, 팔만 움직이지 말고 스프라이트를”): 전용 시트 runner_upslash(웅크림 → 낮게 베기 → 턱 들고 위로 → 복귀)
 // 베기 판정(BUILD244 “이펙트나 영역 좀 더 넓게”): 땅 베기 앞 4~80 × 높이 0~72, 공중 앞 -6~72 × airY-24 ~ +72
@@ -112,8 +113,9 @@ export function stepRunner(s, dt, input = {}) {
     if (s.skidT >= RUNNER.skidStepEvery) { s.skidT = 0; ev.push('skidstep'); }
     if (remain <= 0.5 || s.vx * dt >= remain) { s.x = s.endX; s.vx = 0; s.phase = 'settle'; s.t = 0; s.grounded = true; s.airY = 0; s.vy = 0; s.attack = null; }
   }
-  const ts = s.phase === 'float' ? s.finale.scale : 1;   // 슬로우 배율(float 동안만 — 주인공 물리에만)
-  if (s.phase !== 'done' && s.phase !== 'settle') { s.x += s.vx * dt * ts * s.dir; if (!s.finale && left(s) < 0) s.x = s.endX; }
+  const ts = s.phase === 'float' ? s.finale.scale : 1;   // 슬로우 배율(float 동안만 — 주인공 세로 물리에만)
+  const glide = s.phase === 'float' || s.phase === 'fall';   // 절벽 너머 멀리뛰기: 가로는 실시간 glide 속도로 앞으로 쭉
+  if (s.phase !== 'done' && s.phase !== 'settle') { s.x += (glide ? s.finale.glide : s.vx * ts) * dt * s.dir; if (!s.finale && left(s) < 0) s.x = s.endX; }
   // 점프(X): 땅에 있고 공격 중이 아닐 때(제동 중엔 안 됨)
   const jumpLandsBeforeBrake = left(s) - s.speed * RUNNER.airTime > RUNNER.minSkid;
   if (input.jump && s.grounded && !s.attack && (s.phase === 'run' || s.phase === 'dash') && jumpLandsBeforeBrake) { s.grounded = false; s.vy = RUNNER.jumpV; ev.push('jump'); }

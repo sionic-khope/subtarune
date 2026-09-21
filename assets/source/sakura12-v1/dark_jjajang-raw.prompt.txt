@@ -1,0 +1,8 @@
+# imagegen 2026-09-21 11:03:06
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+
+Pixel art game item prop for a top-down 2D RPG (Deltarune-like, 3/4 top-down view), single object centered on a flat solid magenta (#FF00FF) background, nothing else in the image.
+A small white ceramic bowl of ominous "dark jjajangmyeon": Korean black bean noodles that are deep purple-black, glossy, with a faint violet sheen and a few purple-black sauce highlights, seen from a 3/4 top-down angle so the noodles fill the bowl opening. The bowl is plain white with a thin purple rim.
+Crisp hard-edged pixels, no anti-aliasing, no glow or aura outside the bowl (the game draws the aura), no outline halo, no text, no table, no shadow outside the object.
