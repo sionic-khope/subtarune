@@ -1,0 +1,652 @@
+{
+ "id": "jjajang_sakura8",
+ "name": "벚꽃 숲 8",
+ "stage": "ship_sinking_done",
+ "bgm": "sakura",
+ "dim": 0,
+ "battleBg": "sakura",
+ "rows": [
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@))))@@@@@@@@@@@@@@",
+  "))))))))))))))))))))))))))))))))))))))))",
+  "))))))))))))))))))))))))))))))))))))))))",
+  "))))))))))))))))))))))))))))))))))))))))",
+  "))))))))))))))))))))))))))))))))))))))))",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "spawns": {
+  "from_west": {
+   "x": 36,
+   "y": 486,
+   "facing": "right"
+  },
+  "start": {
+   "x": 36,
+   "y": 486,
+   "facing": "right"
+  },
+  "fork": {
+   "x": 580,
+   "y": 486,
+   "facing": "right"
+  },
+  "after": {
+   "x": 740,
+   "y": 486,
+   "facing": "up"
+  },
+  "from_north": {
+   "x": 740,
+   "y": 38,
+   "facing": "down"
+  },
+  "from_east": {
+   "x": 1220,
+   "y": 486,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    1,
+    15
+   ],
+   [
+    18,
+    15
+   ]
+  ],
+  "role": "벚꽃 숲 7 오른쪽 끝 문 다음(BUILD282): 오른쪽 3초 → 갈림목(윗길·오른쪽 길). 갈림목 연출: 경섭 혼자 오른쪽으로 떠남, 억빠맨은 오른쪽 길 앞 가드(“윗길로 가보시는게 어때요?”) → 요플래 혼자 윗길 → 벚꽃 숲 9. 브금 sakura, 발소리 없음",
+  "petals": {
+   "rate": 18,
+   "burst": 0,
+   "burstRate": 18,
+   "burstSeconds": 0,
+   "after": 18
+  },
+  "sakura8": {
+   "roadRows": [
+    14,
+    17
+   ],
+   "entryCols": [
+    0,
+    21
+   ],
+   "junctionCols": [
+    22,
+    25
+   ],
+   "upRows": [
+    0,
+    13
+   ],
+   "rightCols": [
+    26,
+    39
+   ],
+   "sceneCols": [
+    20,
+    21
+   ],
+   "blockCols": [
+    26,
+    27
+   ],
+   "roadY": 486,
+   "junctionX": 740,
+   "guard": [
+    900,
+    486
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "sakura8_tree_1",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 132,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 44,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_2",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 132,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 114,
+   "iy": 479,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_3",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 228,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 180,
+   "iy": 215,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_4",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 228,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 182,
+   "iy": 524,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_5",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 324,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 236,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_6",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 324,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 306,
+   "iy": 479,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_7",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 420,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 372,
+   "iy": 215,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_8",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 420,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 374,
+   "iy": 524,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_9",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 516,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 428,
+   "iy": 257,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_10",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 516,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 498,
+   "iy": 479,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_11",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 612,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 564,
+   "iy": 215,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_12",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 612,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 566,
+   "iy": 524,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_13",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 708,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 620,
+   "iy": 481,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_14",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 804,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 786,
+   "iy": 511,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_15",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 900,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 852,
+   "iy": 247,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_16",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 900,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 854,
+   "iy": 492,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_17",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 996,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 908,
+   "iy": 225,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_18",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 996,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 978,
+   "iy": 511,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_19",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 1092,
+   "y": 402,
+   "w": 24,
+   "h": 12,
+   "ix": 1044,
+   "iy": 247,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_20",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 1092,
+   "y": 626,
+   "w": 24,
+   "h": 12,
+   "ix": 1046,
+   "iy": 492,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_21",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1188,
+   "y": 370,
+   "w": 24,
+   "h": 12,
+   "ix": 1100,
+   "iy": 225,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_22",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 644,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 626,
+   "iy": 63,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_23",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 868,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 820,
+   "iy": 55,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_24",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 612,
+   "y": 306,
+   "w": 24,
+   "h": 12,
+   "ix": 566,
+   "iy": 172,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_25",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 900,
+   "y": 306,
+   "w": 24,
+   "h": 12,
+   "ix": 812,
+   "iy": 161,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_26",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 68,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 50,
+   "iy": 31,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_27",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 132,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 84,
+   "iy": 503,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_28",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 228,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 182,
+   "iy": 76,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_29",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 292,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 204,
+   "iy": 513,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_30",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 388,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 370,
+   "iy": 31,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_31",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 452,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 404,
+   "iy": 503,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_32",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 548,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 502,
+   "iy": 76,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_33",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 772,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 684,
+   "iy": 513,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_34",
+   "image": "assets/props/jjajang_sakura_2.png",
+   "x": 932,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 914,
+   "iy": 511,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_35",
+   "image": "assets/props/jjajang_sakura_3.png",
+   "x": 1028,
+   "y": 178,
+   "w": 24,
+   "h": 12,
+   "ix": 980,
+   "iy": 23,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_36",
+   "image": "assets/props/jjajang_sakura_4.png",
+   "x": 1092,
+   "y": 658,
+   "w": 24,
+   "h": 12,
+   "ix": 1046,
+   "iy": 524,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "sakura8_tree_37",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1188,
+   "y": 210,
+   "w": 24,
+   "h": 12,
+   "ix": 1100,
+   "iy": 65,
+   "solid": true
+  },
+  {
+   "type": "npc",
+   "id": "gyeongsub_npc",
+   "sprite": "gyeongsub",
+   "x": 740,
+   "y": 486,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "facing": "right",
+   "wander": 0,
+   "hidden": true,
+   "unless": "sakura8_split_done"
+  },
+  {
+   "type": "npc",
+   "id": "ppaman_npc",
+   "sprite": "ppaman",
+   "x": 740,
+   "y": 486,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "facing": "right",
+   "wander": 0,
+   "hidden": true,
+   "unless": "sakura8_split_done"
+  },
+  {
+   "type": "npc",
+   "id": "ppaman_guard",
+   "sprite": "ppaman",
+   "x": 900,
+   "y": 486,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "left",
+   "wander": 0,
+   "requires": "sakura8_split_done"
+  },
+  {
+   "type": "trigger",
+   "id": "sakura8_split_trigger",
+   "x": 640,
+   "y": 448,
+   "w": 64,
+   "h": 128,
+   "once": true,
+   "flag": "sakura8_split_started",
+   "unless": "sakura8_split_done",
+   "script": "jjajang_sakura8_split"
+  },
+  {
+   "type": "trigger",
+   "id": "sakura8_block_trigger",
+   "x": 832,
+   "y": 448,
+   "w": 64,
+   "h": 128,
+   "unless": "sakura8_right_open",
+   "script": "jjajang_sakura8_no_right"
+  },
+  {
+   "type": "door",
+   "id": "sakura8_west_door",
+   "x": 0,
+   "y": 448,
+   "w": 10,
+   "h": 128,
+   "to": "jjajang_sakura7",
+   "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura8_up_door",
+   "x": 704,
+   "y": 0,
+   "w": 128,
+   "h": 10,
+   "to": "jjajang_sakura9",
+   "spawn": "from_south",
+   "sfx": false
+  }
+ ]
+}

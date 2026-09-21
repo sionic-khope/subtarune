@@ -75,6 +75,11 @@
    "x": 696,
    "y": 424,
    "facing": "up"
+  },
+  "from_east": {
+   "x": 1156,
+   "y": 678,
+   "facing": "left"
   }
  },
  "meta": {
@@ -89,7 +94,7 @@
     21
    ]
   ],
-  "role": "벚꽃 숲 6 오른쪽 끝 문 다음(BUILD278): 오른쪽으로 2초 → 넓은 들 → 맨 위 결혼식 나무 무대 + 관객 가순이들. 들머리 트리거 → 그 남자와 그 여자의 무대 연출 → 오른쪽 길(다음 맵 없음). 브금 sakura, 발소리 없음",
+  "role": "벚꽃 숲 6 오른쪽 끝 문 다음(BUILD278): 오른쪽으로 2초 → 넓은 들 → 맨 위 결혼식 나무 무대 + 관객 가순이들. 들머리 트리거 → 그 남자와 그 여자의 무대 연출 → 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 8 갈림길, BUILD282). 브금 sakura, 발소리 없음",
   "petals": {
    "rate": 18,
    "burst": 0,
@@ -1089,6 +1094,17 @@
    "h": 128,
    "to": "jjajang_sakura6",
    "spawn": "from_east",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura7_east_door",
+   "x": 1206,
+   "y": 640,
+   "w": 10,
+   "h": 128,
+   "to": "jjajang_sakura8",
+   "spawn": "from_west",
    "sfx": false
   }
  ]

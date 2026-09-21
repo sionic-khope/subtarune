@@ -156,6 +156,7 @@ def build_map() -> dict[str, object]:
     # 들머리 트리거는 들 세로 전체(2~27행)를 막는 띠 — 대각선으로 위로 올라가 길 행을 안 밟아도 걸린다(사용자 2026-09-21 “대각선 위로 올라가버리면 이벤트 발생이 안 되는 문제, 영역을 더”)
     scene = {'type': 'trigger', 'id': 'sakura7_scene_trigger', 'x': SCENE_COLS[0] * TILE, 'y': FIELD_ROWS[0] * TILE, 'w': (SCENE_COLS[1] - SCENE_COLS[0] + 1) * TILE, 'h': (FIELD_ROWS[1] - FIELD_ROWS[0] + 1) * TILE,
              'once': True, 'flag': 'sakura7_scene_started', 'unless': SCENE_FLAG, 'script': 'jjajang_sakura7_scene'}
+    door_east = {'type': 'door', 'id': 'sakura7_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura8', 'spawn': 'from_west', 'sfx': False}   # BUILD282: 오른쪽 길 → 벚꽃 숲 8(갈림길)
     door_west = {'type': 'door', 'id': 'sakura7_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura6', 'spawn': 'from_east', 'sfx': False}
     road_y = (ROAD_ROWS[0] + 1) * TILE + 6
     return {
@@ -168,18 +169,19 @@ def build_map() -> dict[str, object]:
             'field': {'x': (FIELD_COLS[0] + 1) * TILE + 4, 'y': road_y, 'facing': 'right'},
             'before_scene': {'x': (SCENE_COLS[0] - 3) * TILE + 4, 'y': road_y, 'facing': 'right'},
             'after': {'x': PARTY_SPOTS['player'][0] - 12, 'y': PARTY_SPOTS['player'][1], 'facing': 'up'},
+            'from_east': {'x': (WIDTH - 2) * TILE + 4, 'y': road_y, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
             'route': [[1, ROAD_ROWS[0] + 1], [SCENE_COLS[0] - 2, ROAD_ROWS[0] + 1]],
-            'role': '벚꽃 숲 6 오른쪽 끝 문 다음(BUILD278): 오른쪽으로 2초 → 넓은 들 → 맨 위 결혼식 나무 무대 + 관객 가순이들. 들머리 트리거 → 그 남자와 그 여자의 무대 연출 → 오른쪽 길(다음 맵 없음). 브금 sakura, 발소리 없음',
+            'role': '벚꽃 숲 6 오른쪽 끝 문 다음(BUILD278): 오른쪽으로 2초 → 넓은 들 → 맨 위 결혼식 나무 무대 + 관객 가순이들. 들머리 트리거 → 그 남자와 그 여자의 무대 연출 → 오른쪽 길 → 동쪽 끝 문(벚꽃 숲 8 갈림길, BUILD282). 브금 sakura, 발소리 없음',
             'petals': PETALS,
             'sakura7': {'roadRows': list(ROAD_ROWS), 'entryCols': list(ENTRY_COLS), 'fieldCols': list(FIELD_COLS), 'fieldRows': list(FIELD_ROWS), 'exitCols': list(EXIT_COLS), 'sceneCols': list(SCENE_COLS),
                         'stage': [STAGE_IX, STAGE_IY, sw, sh], 'stageFloor': list(STAGE_FLOOR), 'spot': SPOT, 'jeomnyeStart': list(JEOMNYE_START), 'jeomnyeSpot': list(JEOMNYE_SPOT),
                         'choimisStart': list(CHOIMIS_START), 'choimisSpot': list(CHOIMIS_SPOT), 'partySpots': {k: list(v) for k, v in PARTY_SPOTS.items()},
                         'crowd': [[c['x'], c['y']] for c in crowd], 'roadY': road_y},
         },
-        'entities': [*trees, stage, *actors, *crowd, *stains, *throws, scene, door_west],
+        'entities': [*trees, stage, *actors, *crowd, *stains, *throws, scene, door_west, door_east],
     }
 
 

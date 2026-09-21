@@ -11,7 +11,8 @@ import { WATER_WALK } from '../data/footsteps.js';
 
 const SFX = Object.freeze({ draw: 'weaponpull', dash: 'wing', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape', deflect: 'deflect', hurt: 'hurt_dr' });
 // 장애물 그림(BUILD236, assets/source/run-obstacles-v1): 종류 → 소품 PNG. 한 번 읽어 모든 러너가 나눠 쓴다
-const OBSTACLE_IMAGES = { leaf: 'assets/props/run_leaf_1.png', leaf2: 'assets/props/run_leaf_2.png', needles: 'assets/props/run_needles.png', branch: 'assets/props/run_branch.png' };
+const OBSTACLE_IMAGES = { leaf: 'assets/props/run_leaf_1.png', leaf2: 'assets/props/run_leaf_2.png', needles: 'assets/props/run_needles.png', branch: 'assets/props/run_branch.png',
+  sakura_leaf: 'assets/props/run_sakura_leaf_1.png', sakura_leaf2: 'assets/props/run_sakura_leaf_2.png', sakura_petals: 'assets/props/run_sakura_petals.png', sakura_branch: 'assets/props/run_sakura_branch.png' };   // 벚꽃 숲 9(BUILD282)
 const obstacleCache = {};
 function obstacleImage(type) { if (!(type in obstacleCache)) { obstacleCache[type] = null; loadImageOptional(OBSTACLE_IMAGES[type]).then((img) => { obstacleCache[type] = img || null; }); } return obstacleCache[type]; }
 export function preloadObstacleImages() { for (const t of Object.keys(OBSTACLE_IMAGES)) obstacleImage(t); }
@@ -47,10 +48,12 @@ const rand = (a, b) => a + Math.random() * (b - a);
 export class Runner {
   constructor(game, opts = {}) {
     this.game = game;
-    this.cfg = opts;   // 맵 meta.run / meta.runs.<id>: dir·endX·speed·obstacles·seed·outro·outroFlag·keepFollowersHidden
+    this.cfg = opts;   // 맵 meta.run / meta.runs.<id>: dir·endX·speed·obstacles·seed·outro·outroFlag·keepFollowersHidden·types·water·petals
+    this.water = opts.water !== false;                 // false: 물 바닥이 아니다(벚꽃 길) — 물결 고리·물보라·물결 줄기·물걸음 소리 없음(BUILD282)
+    this.petalColors = Array.isArray(opts.petals) && opts.petals.length ? opts.petals : PETAL.colors;   // 쳐낼 때 흩날리는 조각 색(벚꽃 길은 분홍)
     const p = game.player;
     const dir = opts.dir < 0 ? -1 : 1;
-    this.core = createRunner({ x: p.x, endX: opts.endX ?? (dir > 0 ? game.map.pxW - 386 : 362), speed: opts.speed || RUNNER.speed, dir, obstacles: !!opts.obstacles, seed: opts.seed ?? 1, tutorial: !!opts.tutorial && !game.has?.(TUTORIAL.flag) });
+    this.core = createRunner({ x: p.x, endX: opts.endX ?? (dir > 0 ? game.map.pxW - 386 : 362), speed: opts.speed || RUNNER.speed, dir, obstacles: !!opts.obstacles, types: opts.types, seed: opts.seed ?? 1, tutorial: !!opts.tutorial && !game.has?.(TUTORIAL.flag) });
     this.holdT = 0;
     if (opts.obstacles) preloadObstacleImages();
     this.groundY = p.y;
@@ -71,9 +74,9 @@ export class Runner {
     p.x = s.x; p.y = this.groundY; p.moving = s.vx > 0; p.facing = s.dir > 0 ? 'right' : 'left';
     for (const ev of events) {
       if (SFX[ev]) { g.sound?.sfx(SFX[ev]); this.sfxLog.push(SFX[ev]); }
-      if (ev === 'step') { g.emitRipple(p.x + p.w / 2, p.y + p.h - 1); this.splash(p.x + p.w / 2, p.y + p.h - 1); }
+      if (ev === 'step') { if (this.water) g.emitRipple(p.x + p.w / 2, p.y + p.h - 1); this.splash(p.x + p.w / 2, p.y + p.h - 1); }
       if (ev === 'skid') this.skidSfxT = 0.42;   // 드르르르륵: scrape(0.55초)를 한 번 더 이어 튼다
-      if (ev === 'skidstep') { this.splash(p.x + p.w / 2 + 8, p.y + p.h - 1, 3); g.emitRipple(p.x + p.w / 2 + 6, p.y + p.h - 1); }
+      if (ev === 'skidstep') { this.splash(p.x + p.w / 2 + 8, p.y + p.h - 1, 3); if (this.water) g.emitRipple(p.x + p.w / 2 + 6, p.y + p.h - 1); }
       if (ev === 'slash') this.fx.push({ kind: 'slash', t: 0, dur: SLASH_FX, up: !!s.attack?.up });
       if (ev === 'airslash') this.fx.push({ kind: 'airslash', t: 0, dur: RUNNER.airSlashTime });
       if (ev === 'land') this.splash(p.x + p.w / 2, p.y + p.h - 1, 8);
@@ -90,7 +93,7 @@ export class Runner {
     this.fx = this.fx.filter((f) => f.t < f.dur);
     this.updateParticles(dt);
     if (g.runner !== this) return;
-    g.sound?.walk?.(s.vx > 0 && s.grounded ? WATER_WALK : null);
+    g.sound?.walk?.(this.water && s.vx > 0 && s.grounded ? WATER_WALK : null);
     this.placeCamera(s.phase === 'prep' ? 0.08 : 0.5);   // 준비 동작 동안 가운데 정렬에서 왼쪽 22% 로 천천히 옮겨 간다(한 프레임에 튀지 않게)
   }
   /** 장애물에 맞음(BUILD236 사용자 “못 쳐내면 피가 10”): 주인공 HP −10(1 아래로는 안 내려감), 붉은 섬광·흔들림·무적은 game.hurtPlayer 가, 소리는 델타룬 snd_damage */
@@ -113,10 +116,11 @@ export class Runner {
   }
   petals(x, y) {
     const s = this.core;
-    for (let i = 0; i < PETAL.count; i++) this.leafBits.push({ x, y, vx: s.dir * rand(...PETAL.vx) + rand(-50, 50), vy: -rand(...PETAL.vy), life: rand(...PETAL.life), t: 0, c: PETAL.colors[i % PETAL.colors.length], sz: i % 3 === 0 ? 3 : 2, ph: rand(0, 6.28) });
+    for (let i = 0; i < PETAL.count; i++) this.leafBits.push({ x, y, vx: s.dir * rand(...PETAL.vx) + rand(-50, 50), vy: -rand(...PETAL.vy), life: rand(...PETAL.life), t: 0, c: this.petalColors[i % this.petalColors.length], sz: i % 3 === 0 ? 3 : 2, ph: rand(0, 6.28) });
   }
   /** 발이 물을 차서 뒤로 튀는 물보라(월드 좌표) */
   splash(x, y, count = SPRAY.count) {
+    if (!this.water) return;
     const s = this.core;
     for (let i = 0; i < count; i++) this.spray.push({ x: x - s.dir * rand(0, 10), y, vx: s.dir * (s.vx * 0.3 - rand(...SPRAY.vx)), vy: -rand(...SPRAY.vy), life: rand(...SPRAY.life), t: 0, big: i % 3 === 0 });
   }
@@ -135,7 +139,7 @@ export class Runner {
         const groundRow = Math.floor((this.groundY + g.player.h - 1) / 32);
         const rr = map.def.meta?.runRoadRows;
         const [r0, r1] = (Array.isArray(rr?.[0]) ? rr.find(([a, b]) => groundRow >= a && groundRow <= b) : rr) || [groundRow - 1, groundRow];   // 맵 meta 가 길 행을 주면 그대로(여러 길이면 선 행이 든 것), 없으면 주인공이 선 행 기준
-        this.streakAcc += dt * STREAK.rate * k;
+        if (this.water) this.streakAcc += dt * STREAK.rate * k;
         while (this.streakAcc >= 1) {
           this.streakAcc -= 1;
           this.streaks.push({ x: s.dir > 0 ? cam.x + SCREEN_W + rand(0, 80) : cam.x - rand(0, 80) - 48, y: rand(r0 * 32 + 3, (r1 + 1) * 32 - 3), len: rand(...STREAK.len), v: rand(...STREAK.speed), a: rand(...STREAK.alpha) });

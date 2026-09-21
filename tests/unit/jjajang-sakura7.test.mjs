@@ -128,7 +128,7 @@ test('test_sakura7_assets_qa_points_and_text_balloon_engine', () => {
   const qa = id => QA_POINTS.find(q => q.id === id);
   assert.deepEqual([qa('jjajang_sakura7').spawn, qa('jjajang_sakura7_stage').spawn, qa('jjajang_sakura7_after').spawn], ['from_west', 'before_scene', 'after']);
   assert.ok(qa('jjajang_sakura7').flags.sakura6_scene_done && !qa('jjajang_sakura7_stage').flags.sakura7_scene_done && qa('jjajang_sakura7_after').flags.sakura7_scene_done);
-  const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura7') > ids.indexOf('jjajang_sakura6_east') && ids.indexOf('jjajang_sakura7_after') === ids.length - 1);
+  const ids = QA_POINTS.map(q => q.id); assert.ok(ids.indexOf('jjajang_sakura7') > ids.indexOf('jjajang_sakura6_east') && ids.indexOf('jjajang_sakura7_after') > ids.indexOf('jjajang_sakura7_stage'));   // 마지막 지점 검사는 벚꽃 숲 8 테스트로(BUILD282)
   // 글 말풍선(엔진): 한 글자씩 찍힌 뒤 hold 만큼 있다가 사라진다
   const b = new TextBalloon(); b.start({ x: 0, y: 0, w: 24, h: 16 }, { text: '아니. 그대여.', cps: 100 });
   assert.equal(b.done, false); b.update(0.5); assert.equal(b.shown, '아니. 그대여.'.length); assert.equal(b.phase, 'hold');

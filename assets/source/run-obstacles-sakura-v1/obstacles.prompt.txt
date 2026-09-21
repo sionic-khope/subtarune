@@ -1,0 +1,7 @@
+Pixel art game props for a pink cherry-blossom forest top-down 2D RPG runner section: a 2x2 sprite sheet, EXACTLY FOUR separate objects, one per invisible 512px cell on a 1024x1024 canvas, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no ground, no shadows, no glow, no motion lines.
+Reading order upper-left, upper-right, lower-left, lower-right:
+1 a single falling cherry-blossom LEAF CLUSTER: two or three pink blossoms with a couple of small green leaves on a short brown twig, about 40% of the cell wide, seen from the side, drifting;
+2 a second falling cluster of a different shape: a large pink five-petal blossom with a small pale-pink bud and one green leaf, about 40% of the cell wide;
+3 a broken cherry-tree BRANCH: a gnarled dark brown branch with several pink blossom tufts along it, about 80% of the cell wide, horizontal, pointed broken end on the left;
+4 a small bundle of three loose pink petals with a tiny twig, about 30% of the cell wide.
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades (light pink #ffc2e0, pink #ff8ad0, deep pink #d24f9a, two greens, dark brown, near-black outline), dark stepped outlines, crisp square pixels, no anti-aliasing, no blur, no gradients. Each object centered in its cell, nothing touching the cell edges.

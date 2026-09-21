@@ -151,7 +151,8 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
 export const partyFromFlags = (flags) => flags?.ship_sinking_done
-  ? (flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
+  ? (flags?.sakura8_split_done ? []                                             // 벚꽃 숲 8 갈림목(sakura8_split_done, BUILD282): 경섭 혼자 떠나고 억빠맨은 오른쪽 길 가드 → 다시 요플래 혼자
+    : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
     : flags?.torii_janitor_joined && !flags?.janitor_left ? ['janitor'] : [])   // 드럼통 길에서 이별(janitor_left, BUILD242)하면 다시 요플래 혼자
   : PARTY_FLAGS.filter(([flag]) => flags?.[flag]).map(([, id]) => id);
 
@@ -551,3 +552,16 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura7_stage', desc: '벚�
   map: 'jjajang_sakura7', spawn: 'before_scene', flags: sakura7Flags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura7_after', desc: '벚꽃 숲 7 · 연출 끝난 뒤 (관객 뒤 가운데, 오른쪽에 길 — 다음 맵 없음)',
   map: 'jjajang_sakura7', spawn: 'after', flags: { ...sakura7Flags, sakura7_scene_started: true, sakura7_scene_done: true }, party: ['gyeongsub', 'ppaman'] });
+// 벚꽃 숲 8·9(BUILD282): 갈림길 연출 뒤 경섭은 혼자 오른쪽으로, 억빠맨은 오른쪽 길 가드 → 요플래 혼자(party []) 윗길 → 파란 토리이 달리기
+const sakura8Flags = { ...sakura7Flags, sakura7_scene_started: true, sakura7_scene_done: true };
+const sakura8DoneFlags = { ...sakura8Flags, sakura8_split_started: true, sakura8_split_done: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8', desc: '벚꽃 숲 8 입구 (오른쪽 3초 → 갈림길 연출: 경섭 이탈·억빠맨 가드)',
+  map: 'jjajang_sakura8', spawn: 'from_west', flags: sakura8Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8_fork', desc: '벚꽃 숲 8 · 갈림목 앞 (오른쪽 한 걸음이면 연출)',
+  map: 'jjajang_sakura8', spawn: 'fork', flags: sakura8Flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8_after', desc: '벚꽃 숲 8 · 연출 뒤 요플래 혼자 (오른쪽 길은 억빠맨이 막음 · 윗길 → 벚꽃 숲 9)',
+  map: 'jjajang_sakura8', spawn: 'after', flags: sakura8DoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura9', desc: '벚꽃 숲 9 입구 (위로 살짝 → 왼쪽 → 파란 토리이 → 왼쪽으로 15초 달리기)',
+  map: 'jjajang_sakura9', spawn: 'from_south', flags: sakura8DoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura9_torii', desc: '벚꽃 숲 9 · 파란 토리이 앞 (왼쪽으로 지나면 달리기: X 점프·C 베기, 분홍 나뭇잎·꽃가지)',
+  map: 'jjajang_sakura9', spawn: 'torii', flags: sakura8DoneFlags, party: [] });

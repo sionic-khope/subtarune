@@ -1,0 +1,30 @@
+{
+ "run_sakura_leaf_1": {
+  "size": [
+   22,
+   18
+  ],
+  "scale": 0.0791
+ },
+ "run_sakura_leaf_2": {
+  "size": [
+   22,
+   16
+  ],
+  "scale": 0.0772
+ },
+ "run_sakura_branch": {
+  "size": [
+   64,
+   33
+  ],
+  "scale": 0.1385
+ },
+ "run_sakura_petals": {
+  "size": [
+   16,
+   16
+  ],
+  "scale": 0.0808
+ }
+}

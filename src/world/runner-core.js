@@ -33,6 +33,11 @@ export const OBSTACLES = Object.freeze({
   leaf2:   { w: 20, h: 16, ahead: [380, 440], arrive: [10, 26], fall: [70, 110], drift: 30, sway: 22, hurt: 10, hitbox: 'body', draw: 1.6 },
   needles: { w: 16, h: 10, ahead: [400, 460], height: [22, 34], fly: [120, 160], hurt: 10, hitbox: 'body', draw: 1.5 },
   branch:  { w: 56, h: 18, ahead: [400, 470], height: [14, 20], fly: [130, 170], hurt: 10, hitbox: 'body', draw: 1.2 },
+  // 벚꽃 숲 9(BUILD282 사용자 “분홍색 나뭇가지랑 나뭇잎들 쳐낼 수 있는 기믹”): 같은 물리, 그림만 분홍(assets/props/run_sakura_*.png). 맵 meta.runs.<id>.types 로 고른다
+  sakura_leaf:   { w: 20, h: 18, ahead: [380, 440], arrive: [10, 26], fall: [70, 110], drift: 30, sway: 22, hurt: 10, hitbox: 'body', draw: 1.6 },
+  sakura_leaf2:  { w: 20, h: 16, ahead: [380, 440], arrive: [10, 26], fall: [70, 110], drift: 30, sway: 22, hurt: 10, hitbox: 'body', draw: 1.6 },
+  sakura_petals: { w: 16, h: 10, ahead: [400, 460], height: [22, 34], fly: [120, 160], hurt: 10, hitbox: 'body', draw: 1.5 },
+  sakura_branch: { w: 56, h: 18, ahead: [400, 470], height: [14, 20], fly: [130, 170], hurt: 10, hitbox: 'body', draw: 1.2 },
 });
 export const OBSTACLE_SPAWN = Object.freeze({ every: [1.5, 2.3], first: 1.4, types: ['leaf', 'needles', 'leaf2', 'branch', 'leaf', 'needles'] });
 // 첫 나뭇잎 튜토리얼(BUILD240 사용자 “첫 나뭇잎 맞기 바로 직전에 멈춰서 C 를 누르라는 가이드, 그 전엔 조작을 잠시 막기”): createRunner({tutorial:true}) 이면
@@ -44,10 +49,10 @@ const PLAYER_BOX = Object.freeze({ half: 10, height: 44 });
 export const SLASH_BOX = Object.freeze({ ground: [4, 80, 0, 72], air: [-6, 72, -24, 72] });
 
 /** 시작 상태. x = 주인공 x(히트박스 왼쪽), endX = 제동 목표(맵 오른쪽 끝 안쪽) */
-export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false }) {
+export function createRunner({ x, endX, speed = RUNNER.speed, dir = 1, obstacles = false, seed = 1, tutorial = false, types = OBSTACLE_SPAWN.types }) {   // types: 장애물 종류 순서(맵 meta.runs.<id>.types, BUILD282)
   return { phase: 'prep', t: 0, elapsed: 0, x, endX, speed: Math.max(1, speed || RUNNER.speed), dir: dir < 0 ? -1 : 1, vx: 0, airY: 0, vy: 0, grounded: true,
     anim: 'prep', frame: 0, animT: 0, attack: null, slashN: 0, tilt: 0, landT: 0, trail: [], trailT: 0,
-    obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0, tutorial: obstacles && tutorial ? 'pending' : null };
+    obstacles: obstacles ? [] : null, spawnT: obstacles ? OBSTACLE_SPAWN.first : 0, spawnIdx: 0, types: Array.isArray(types) && types.length ? types : OBSTACLE_SPAWN.types, rng: (seed >>> 0) || 1, invuln: 0, hurtCount: 0, deflectCount: 0, tutorial: obstacles && tutorial ? 'pending' : null };
 }
 /** 결정적 난수(테스트 재현용) 0~1 */
 function rand01(s) { s.rng = (Math.imul(s.rng, 1664525) + 1013904223) >>> 0; return s.rng / 4294967296; }
@@ -141,7 +146,7 @@ function stepObstacles(s, dt, ev) {
     s.spawnT -= dt;
     if (s.spawnT <= 0) {
       s.spawnT = lerp(...OBSTACLE_SPAWN.every, rand01(s));
-      const type = OBSTACLE_SPAWN.types[s.spawnIdx % OBSTACLE_SPAWN.types.length]; s.spawnIdx += 1;
+      const type = s.types[s.spawnIdx % s.types.length]; s.spawnIdx += 1;
       const d = OBSTACLES[type];
       const ahead = lerp(...d.ahead, rand01(s));
       const o = { type, x: s.x + s.dir * ahead, h: d.height ? lerp(...d.height, rand01(s)) : 0, w: d.w, hh: d.h, t: 0, deflected: false, hit: false, spin: 0, phase: rand01(s) * 6.28 };
