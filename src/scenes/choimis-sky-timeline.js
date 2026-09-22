@@ -35,6 +35,28 @@ export function waitForChoimisSkyAnimation(game, state, duration, update) {
   });
 }
 
+/** Add a cancellable continuous scene update owned by the current Choimis token. */
+export function addChoimisSkyLoop(game, state, update) {
+  let active = true;
+  const waiter = {
+    choimisSkyState: state,
+    cancel() {
+      if (!active) return true;
+      active = false;
+      state.waiters.delete(waiter);
+      return true;
+    },
+    update(dt) {
+      if (!active || state.cancelled || game.choimisSky !== state) return waiter.cancel();
+      update(dt);
+      return false;
+    },
+  };
+  state.waiters.add(waiter);
+  game.background.push(waiter);
+  return waiter;
+}
+
 /** Resolve and remove only waiters owned by the supplied Choimis scene token. */
 export function cancelChoimisSkyAnimations(game, state) {
   state.cancelled = true;

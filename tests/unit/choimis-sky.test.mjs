@@ -6,7 +6,7 @@ import { QA_POINTS } from '../../src/core/story.js';
 import { MAP_RUNTIME_ASSETS } from '../../src/data/map-runtime-assets.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { CHOIMIS_SKY, choimis_sky } from '../../src/data/cutscenes/choimis_sky.js';
-import { CHOIMIS_SKY_SCALE, ascendChoimisSky, clearChoimisSky, gatherChoimisSkyPollen, riseChoimisFromBelow } from '../../src/scenes/choimis-sky-intro.js';
+import { CHOIMIS_SKY_SCALE, ascendChoimisSky, clearChoimisSky, gatherChoimisSkyPollen, playChoimisSkyCue, riseChoimisFromBelow } from '../../src/scenes/choimis-sky-intro.js';
 
 test('test_choimis_sky_supplied_dialogue_enters_seamless_battle_after_ascent', () => {
   assert.equal(SCRIPTS.choimis_sky, choimis_sky);
@@ -80,7 +80,19 @@ test('test_choimis_sky_boss_rises_with_afterimages_before_stabilizing', async ()
   assert.equal(finished, false);
   assert.equal(game.background[0].update(3), true);
   await rising;
-  assert.equal(boss.hopY, 0);
+  assert.ok(boss.hopY >= 25 && boss.hopY <= 31);
+  assert.equal(game.background.length, 2);
+  const hoverStart = boss.hopY;
+  assert.equal(game.background[1].update(0.6), false);
+  assert.notEqual(boss.hopY, hoverStart);
+  assert.ok(boss.hopY >= 25 && boss.hopY <= 31);
+  assert.equal(game.choimisSky.phase, undefined);
+  game.choimisSky.raise = { scale: 1, frames: [{ duration: 1 }] };
+  game.sound = { muted: true, sfx() {} };
+  const beforeHandRaise = boss.hopY;
+  await playChoimisSkyCue(game);
+  assert.equal(boss.hopY, beforeHandRaise);
+  assert.equal(game.choimisSky.phase, undefined);
   assert.deepEqual(game.choimisFlower.ghosts, []);
 });
 
@@ -125,7 +137,7 @@ test('test_choimis_sky_abort_cancels_gather_without_advancing_a_fresh_scene', as
 test('test_choimis_sky_abort_cancels_ascent_without_advancing_a_fresh_scene', async () => {
   const actor = id => ({ id, x: 560, y: 199, w: 24, h: 16, dead: false, hopY: 0, motion: null });
   const player = actor('player'), gyeongsub = actor('gyeongsub'), ppaman = actor('ppaman');
-  const boss = { ...actor('choimis_sky_boss'), motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
+  const boss = { ...actor('choimis_sky_boss'), hopY: 28, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
   const motion = id => ({ scale: CHOIMIS_SKY_SCALE.battleReady[id], frames: [{ duration: 1 }] });
   const game = {
     player, playerSprite: 'hyungsub', entities: [gyeongsub, ppaman, boss], background: [],
@@ -155,7 +167,7 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
   const player = actor('player');
   const gyeongsub = actor('gyeongsub');
   const ppaman = actor('ppaman');
-  const boss = { ...actor('choimis_sky_boss'), motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
+  const boss = { ...actor('choimis_sky_boss'), hopY: 28, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
   const motion = id => ({ scale: CHOIMIS_SKY_SCALE.battleReady[id], frames: [{ duration: 1 }] });
   const game = {
     player, playerSprite: 'hyungsub', entities: [gyeongsub, ppaman, boss], background: [],
@@ -170,13 +182,19 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
   assert.ok(game.choimisSky.loosePetals.every(petal => petal.color.startsWith('#ff')));
   assert.equal(game.background[0].update(3), true);
   await gathering;
+  let hoverCancelled = false;
+  game.choimisSky.hoverWaiter = { cancel() { hoverCancelled = true; } };
+  const bossFootBeforeAscent = boss.y + boss.h - boss.hopY - game.camera.y;
   const ascent = ascendChoimisSky(game);
+  assert.equal(hoverCancelled, true);
   assert.equal(game.camera.locked, true);
+  assert.equal(game.background[1].update(0), false);
+  assert.equal(boss.y + boss.h - boss.hopY - game.camera.y + boss.flyY, bossFootBeforeAscent);
   assert.equal(game.background[1].update(6), true);
   await ascent;
   assert.equal(game.camera.y, -470);
   assert.equal(player.hopY, 470);
-  assert.equal(boss.hopY, 470);
+  assert.equal(boss.hopY, 498);
   assert.equal(game.zoom.s, 0.84);
   const screenFoot = current => [
     240 + (current.x + current.w / 2 - game.camera.x + current.flyX - 240) * game.zoom.s,

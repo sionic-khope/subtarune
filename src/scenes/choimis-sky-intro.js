@@ -5,13 +5,14 @@ import { clearChoimisFlowerEffects } from '../data/cutscenes/choimis_flower.js';
 import { makeCanvas } from '../core/gfx.js';
 import { makeTransparentFrame } from '../ui/battle-preview.js';
 import { CHAR_SCALE } from '../world/world.js';
-import { cancelChoimisSkyAnimations, getChoimisSkyState, waitForChoimisSkyAnimation } from './choimis-sky-timeline.js';
+import { addChoimisSkyLoop, cancelChoimisSkyAnimations, getChoimisSkyState, waitForChoimisSkyAnimation } from './choimis-sky-timeline.js';
 
 const RAISE_SRC = 'assets/enemies/choimis-flower-raise.png';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const BATTLE_ACTOR_SCALE = 0.66;
 const PINK_PETALS = Object.freeze(['#ff86b7', '#ffb1d0', '#ffd7e8']);
 const BOSS_BATTLE_HEIGHT = 123 * ENEMIES.choimis_flower.scale;
+const BOSS_HOVER = Object.freeze({ height: 28, amplitude: 3, period: 2.4 });
 export const CHOIMIS_SKY_SCALE = Object.freeze({
   battleReady: Object.freeze({ hyungsub: 101 / (2 * 349), gyeongsub: 98 / (2 * 359), ppaman: 99 / (2 * 305) }),
   raisedHand: 103 / (2 * 123),
@@ -77,7 +78,7 @@ export function riseChoimisFromBelow(game) {
   game.camera.locked = false;
   return waitForChoimisSkyAnimation(game, state, 2.8, (progress, dt) => {
     const settle = Math.sin(progress * Math.PI * 3) * 12 * (1 - progress);
-    boss.hopY = -230 * (1 - progress) + settle;
+    boss.hopY = -230 * (1 - progress) + BOSS_HOVER.height * progress + settle;
     view.y = boss.y - 12 - Math.max(0, boss.hopY) * 0.12;
     trail += dt;
     for (const ghost of ghosts.ghosts) ghost.age += dt;
@@ -90,7 +91,12 @@ export function riseChoimisFromBelow(game) {
     ghosts.ghosts.push({ actor: snapshot, age: 0 });
   }).then(completed => {
     if (!completed || game.choimisSky !== state) return;
-    boss.hopY = 0; ghosts.ghosts = []; state.boss = boss;
+    boss.hopY = BOSS_HOVER.height; ghosts.ghosts = []; state.boss = boss;
+    state.hoverTime = 0;
+    state.hoverWaiter = addChoimisSkyLoop(game, state, dt => {
+      state.hoverTime += dt;
+      boss.hopY = BOSS_HOVER.height + Math.sin(state.hoverTime * Math.PI * 2 / BOSS_HOVER.period) * BOSS_HOVER.amplitude;
+    });
   });
 }
 
@@ -152,9 +158,15 @@ export function ascendChoimisSky(game) {
   members.forEach((actor, index) => setLoop(actor, state.motions?.[ids[index]]));
   game.sound.sfx('weaponpull', { volume: 0.75 });
   const actors = state.actors;
+  state.hoverWaiter?.cancel();
+  state.hoverWaiter = null;
   const cameraY = game.camera.y;
   const targets = [[84, 104], [84, 164], [84, 224], [396, 176]];
-  const starts = actors.map(actor => [actor.x + actor.w / 2 - game.camera.x, actor.y + actor.h - game.camera.y]);
+  const starts = actors.map(actor => [
+    actor.x + actor.w / 2 - game.camera.x + (actor.flyX || 0),
+    actor.y + actor.h - (actor.hopY || 0) - game.camera.y + (actor.flyY || 0),
+  ]);
+  const initialHops = actors.map(actor => actor.hopY || 0);
   const motionScales = actors.map(actor => actor.motion?.scale || 0);
   game.camera.locked = true;
   state.phase = 'rise';
@@ -167,7 +179,7 @@ export function ascendChoimisSky(game) {
     game.zoom.s = zoom;
     game.zoom.smax = 1;
     actors.forEach((actor, index) => {
-      actor.hopY = rise;
+      actor.hopY = initialHops[index] + rise;
       const [startX, startY] = starts[index];
       const [targetX, targetY] = targets[index];
       const intendedX = startX + (targetX - startX) * progress;

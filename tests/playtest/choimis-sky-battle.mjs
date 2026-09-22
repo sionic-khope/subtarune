@@ -187,8 +187,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     if (rising) { await record('rise-afterimages'); await shot('02_boss_rise_afterimages'); }
   } finally { await page.keyboard.up('ArrowRight'); }
   const settled = await until(() => window.game.choimisSky?.phase === undefined && window.game.dialogue.running && window.game.textbox.node?.text === '* 하이', 30000);
-  check('boss settles before the first 하이 line', !!settled, json(await snapshot()));
-  await shot('03_boss_settled_before_hi');
+  check('boss stays airborne before the first 하이 line', !!settled && (await snapshot()).actors.choimis_sky_boss?.hopY > 20, json(await snapshot()));
+  await shot('03_boss_hover_before_hi');
 
   for (const [index, expected] of DIALOGUE.entries()) {
     const exact = `* ${expected}`;
@@ -204,6 +204,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     const fullLine = await until(() => window.game.dialogue.running && window.game.textbox.node?.text === window.__choimisQa.expectedDialogueText && window.game.textbox.state === 'waiting', 10000);
     check(`dialogue ${index + 1}/8 is fully displayed before advancing`, !!fullLine);
     if (!fullLine) return;
+    check(`dialogue ${index + 1}/8 preserves Choimis hover`, (await snapshot()).actors.choimis_sky_boss?.hopY > 20);
     if (reached) await shot(`04_dialogue_${String(index + 1).padStart(2, '0')}`);
     await press('KeyC');
     await until(() => window.game.textbox.node?.text !== window.__choimisQa.expectedDialogueText || window.game.textbox.state === 'closed', 3000);
