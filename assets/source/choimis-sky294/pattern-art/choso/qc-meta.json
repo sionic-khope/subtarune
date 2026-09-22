@@ -1,0 +1,133 @@
+{
+  "status": "asset ready; runtime registration and user appearance approval remain separate",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sheetSize": [
+    320,
+    320
+  ],
+  "cellSize": [
+    160,
+    160
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pivot": [
+    80,
+    152
+  ],
+  "durationsMs": [
+    220,
+    260,
+    150,
+    260
+  ],
+  "playback": "one-shot 0\u21921\u21922\u21923; integrator chooses recovery/hold",
+  "sharedScale": 0.2411764705882353,
+  "alphaThreshold": 128,
+  "chromaRemoval": false,
+  "resample": "NEAREST",
+  "frames": [
+    {
+      "frame": 0,
+      "pose": "hands-rise",
+      "bbox": [
+        52,
+        29,
+        116,
+        152
+      ],
+      "bodyHeight": 123,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        52,
+        29
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "6f5948ce91a98a041801d86290ad2f6fe709401c7e4ab36c637d15e3de80858c"
+    },
+    {
+      "frame": 1,
+      "pose": "joined-sign",
+      "bbox": [
+        56,
+        29,
+        118,
+        152
+      ],
+      "bodyHeight": 123,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        56,
+        29
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "4c95f4a3ea5b8c9d2dccf05eb9acfcb8f6edd8c4b6a317e7fc28aeec250f4e85"
+    },
+    {
+      "frame": 2,
+      "pose": "release-thrust",
+      "bbox": [
+        39,
+        30,
+        127,
+        152
+      ],
+      "bodyHeight": 122,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        39,
+        30
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "5cf7f26198a225b0873ea5e381058b0b09866a0c86c3880b67c99a35acce5af3"
+    },
+    {
+      "frame": 3,
+      "pose": "aim-hold",
+      "bbox": [
+        37,
+        31,
+        124,
+        152
+      ],
+      "bodyHeight": 121,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        37,
+        31
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "ee4af7898e327a38e11af76e56b000b752dbec5c1daf6ed7df39fffe104fcda0"
+    }
+  ],
+  "bodyHeightMean": 122.25,
+  "bodyHeightCV": 0.0067824637839578724,
+  "uniqueRGBAFrames": 4,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "outputEdgeTouchFrames": [],
+  "pasteClampedFrames": [],
+  "processorMetadata": "processor/pipeline-meta.json",
+  "rawSHA256": "87c9feb39d84622fd4b2f0526e439a32d8236f60c73ceb93c54dccfc2282981c"
+}

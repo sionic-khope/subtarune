@@ -12,10 +12,11 @@ import { youngcle_intro, youngcle_tv_off } from '../../src/data/cutscenes/youngc
 import { QA_POINTS, stateFromFlags, storyBgm } from '../../src/core/story.js';
 import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
 import { clearChoimisFlowerEffects } from '../../src/data/cutscenes/choimis_flower.js';
+import { clearChoimisSky } from '../../src/scenes/choimis-sky-intro.js';
 
 const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
 const Game = runInNewContext(main.slice(main.indexOf('class Game {'), main.indexOf('// ── 부트')) + '\nGame;', {
-  clearEditorUnionStage, clearChoimisFlowerEffects,
+  clearEditorUnionStage, clearChoimisFlowerEffects, clearChoimisSky,
   Input: { poll() {}, just: () => false }, TEXT_SPEEDS: { normal: { delay: 0.045 } },
 });
 const room = JSON.parse(readFileSync(new URL('../../assets/maps/youngcle1.json', import.meta.url)));

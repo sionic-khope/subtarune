@@ -1,0 +1,20 @@
+{
+  "requestId": "choimis-sky294-pattern-art",
+  "generatedAt": "2026-09-22",
+  "provider": "Codex built-in image_gen",
+  "backendModel": "unknown (not exposed by tool)",
+  "quality": "unknown (not exposed by tool)",
+  "seed": "unknown (not exposed by tool)",
+  "usage": "unknown (not exposed by tool)",
+  "cost": "unknown (not exposed by tool)",
+  "externalPaidCalls": 0,
+  "generationCalls": 3,
+  "reference": "assets/source/choimis-flower-cape292/battle-neutral.png",
+  "referenceRoles": ["approved Choimis identity", "pixel density", "body scale", "camera", "project-native style"],
+  "outputs": [
+    {"source": "choso/raw-sheet.png", "prompt": "choso/prompt-used.txt"},
+    {"source": "rap/raw-sheet.png", "prompt": "rap/prompt-used.txt"},
+    {"source": "fashion/raw-sheet.png", "prompt": "fashion/prompt-used.txt"}
+  ],
+  "postprocess": "export.py plus tools/sprites/sheet_processor.py; alpha threshold 128; NEAREST; no chroma removal"
+}

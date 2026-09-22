@@ -78,6 +78,7 @@ import { jjajang_sakura8_split, jjajang_sakura8_no_right, jjajang_sakura9_start 
 import { jjajang_sakura10_start, jjajang_sakura10_outro, jjajang_sakura11_hush, jjajang_sakura11_unhush } from './cutscenes/jjajang_sakura10.js';   // 벚꽃 숲 10 파란 토리이 10초 달리기·절벽 도약 → 벚꽃 숲 11 착지(BUILD283) · 위쪽 길 브금 끄기/되살리기(BUILD285)
 import { jjajang_sakura12_bowl } from './cutscenes/jjajang_sakura12.js';   // 벚꽃 숲 12 제단: 짜장면과 대화 → 획득 → 눈을 감는다(BUILD288)
 import { jjajang_night_cliff_scene } from './cutscenes/jjajang_night_cliff.js';
+import { choimis_sky } from './cutscenes/choimis_sky.js';
 import { NIGHT_COAST_SCRIPTS } from './cutscenes/jjajang_night_coast.js';
 import { choimis_runaway, choimis_runaway_crash, choimis_runaway_aura, choimis_runaway_restore } from './cutscenes/choimis_runaway.js';
 import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, sakura5_duo_battle_qa, sakura5_after_battle_qa } from './cutscenes/jjajang_sakura5.js';   // 벚꽃 숲 5 공터 연출·오른쪽 길 막기(BUILD271)   // 벚꽃 숲 2 벚꽃다리(BUILD264)   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
@@ -130,6 +131,7 @@ export const SCRIPTS = {
   jjajang_sakura11_hush, jjajang_sakura11_unhush,   // 벚꽃 숲 11 위쪽 길: 브금 끄기 / 내려오면 sakura 다시(BUILD285)
   jjajang_sakura12_bowl,   // 벚꽃 숲 12 제단 짜장면 연출(BUILD288)
   jjajang_night_cliff_scene,
+  choimis_sky,
   choimis_runaway, choimis_runaway_crash, choimis_runaway_aura, choimis_runaway_restore,
   jjajang_sakura7_scene,   // 벚꽃 숲 7 무대 연출: 어둠·스포트라이트·점례(드레스 가순이)·가면 최미스·도미조림 난입·관객 난동·박치기(BUILD278)
   jjajang_sakura6_scene,   // 벚꽃 숲 6 광장 연출: 뗏목 뒤 둥근 광장에서 가면 쓴 최미스의 고백 연습 → 주인공들과 대화 → 오른쪽으로 떠남(BUILD277)

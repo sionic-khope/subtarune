@@ -40,6 +40,8 @@ class Entity(TypedDict, total=False):
     facing: str
     wander: int
     unless: str
+    requires: str
+    script: str
     to: str
     spawn: str
     sfx: bool
@@ -90,6 +92,15 @@ def build_map() -> MapData:
          'unless': 'night_cliff_scene_done'}
         for name, x in (('gyeongsub', 200), ('choimis', 644))
     ]
+    sky_entities: list[Entity] = [
+        {'type': 'npc', 'id': 'choimis_sky_boss', 'sprite': 'choimis_flower',
+         'x': 632, 'y': 199, 'solid': False, 'hidden': True,
+         'facing': 'down', 'wander': 0, 'requires': 'choimis_flower_done',
+         'unless': 'choimis_flower_won'},
+        {'type': 'trigger', 'id': 'choimis_sky_trigger', 'x': 560, 'y': 176,
+         'w': 96, 'h': 64, 'solid': False, 'script': 'choimis_sky',
+         'requires': 'choimis_flower_done', 'unless': 'choimis_flower_won'},
+    ]
     return {
         'id': MAP_ID, 'name': '달빛 절벽', 'stage': 'ship_sinking_done',
         'bgm': None, 'backdrop': 'jjajang_night_sea',
@@ -105,7 +116,7 @@ def build_map() -> MapData:
             {'type': 'prop', 'id': 'night_cliff_floor', 'image': CLIFF,
              'x': 0, 'y': 160, 'w': 704, 'h': 224, 'ix': 0, 'iy': 160,
              'solid': False, 'sortY': -100},
-            *anchors, *actors,
+            *anchors, *actors, *sky_entities,
             {'type': 'door', 'id': 'night_west_door', 'x': 0, 'y': 192,
              'w': 10, 'h': 32, 'to': 'jjajang_night_coast3',
              'spawn': 'from_east', 'sfx': False},

@@ -1,0 +1,27 @@
+{
+  "clock": "game.sound.bgm.currentTime",
+  "source": "assets/audio/bgm/choimis_battle.mp3",
+  "duration": 192.040646,
+  "analysis": {
+    "tool": "tools/rhythm/chart.py",
+    "arguments": ["--player", "melody", "--no-video", "--min-gap", "0.10", "--max-per-sec", "7", "--mel-delta", "0.45", "--soft-delta", "0.20"],
+    "bpm": 160.0,
+    "firstBeat": 0.184,
+    "maxTenSecondGridDriftMs": 1.5,
+    "rawOnsets": "choimis_battle_onsets.json"
+  },
+  "qaBeatmarks": {
+    "firstPass": [24.09, 27.184, 30.184, 33.184, 36.184, 39.184, 42.184, 44.809, 46.121, 52.215, 58.121, 64.215, 71.246],
+    "repeatPass": [144.184, 147.184, 150.184, 153.184, 156.184, 159.184, 162.184, 164.809, 166.121, 172.215, 178.121, 184.215, 191.246]
+  },
+  "targetedChantAdjustment": {
+    "cueStart": 46.121,
+    "firstVisibleSyllable": 46.496,
+    "secondChantWordStart": 48.184,
+    "repeatCueStart": 166.121,
+    "repeatFirstVisibleSyllable": 166.496,
+    "repeatSecondChantWordStart": 168.184,
+    "reason": "46.121 is a pre-phrase attack; both 최미스 words use later measured melodic attacks with individually staggered Hangul."
+  },
+  "visualEvidence": ["spectrum-023_071.png", "spectrum-143_191.png"]
+}

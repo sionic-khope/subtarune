@@ -1,5 +1,10 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 최미스 하늘 전투 (BUILD294, 2026-09-22)
+
+- 사용자 지정 [GWf9_qSrnOM](https://www.youtube.com/watch?v=GWf9_qSrnOM) — yt-dlp 메타데이터 제목 `34. Flower Man (DELTARUNE Chapter 5 Soundtrack) - Toby Fox & @Cametek.CamelliaOfficial`, 업로더 Toby Fox, 업로드 날짜 `20260624` — 의 포맷251 전체를 `bgm/choimis_battle.mp3`로 MP3 q2 변환했다. 런타임 키는 `choimis_battle`; 출력은 192.040646초, 48kHz stereo, 4,726,316바이트다. 구간 편집·피치·속도·페이드·음량 정규화는 없다. 원본 보존, 명령, SHA256, 전체 디코드, 로컬 처리/비용 기록은 `assets/source/choimis-sky294/audio/README.md`를 기준으로 한다.
+- 전투/장면은 새 합성 소리를 만들지 않는다. 준비 핑은 기존 공식 DELTARUNE `sfx/weaponpull.mp3` (`snd_weaponpull`, 실제 1.072086초), 반짝이는 마법은 기존 공식 `sfx/great_shine.mp3` (`snd_great_shine`, 실제 2.258073초)를 재사용한다. `choimis_seup_miss`는 기존 사용자 지정 2.700초이며, BUILD292의 에코 대사 `choimis_flower_hello|seup|sexy|gap|gonik`는 각각 1.290/1.770/2.650/1.530/1.850초다. 어떤 클립을 큐에 붙일지는 장면의 실제 발화와 동작 길이에 맞춘다.
+
 ## 최미스 새 한국어 다섯 문장 (BUILD292, 2026-09-22)
 
 후속 에코 요청: 다섯 파일 모두 `aecho=0.9:0.9:85|170:0.16|0.07`로 처리했다. 원음과 두 번의 약한 반사음이며 마지막170ms까지 재생 길이에 포함한다. 건조 원본과 에코 출력의 해시·길이·피크는 아래 원본 폴더 기록으로 구분한다.

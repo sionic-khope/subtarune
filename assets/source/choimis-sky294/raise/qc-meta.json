@@ -1,0 +1,171 @@
+{
+  "status": "asset-only; runtime registration is owned by the scene integrator",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sheetSize": [
+    320,
+    320
+  ],
+  "cellSize": [
+    160,
+    160
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "poseContract": [
+    "arm-waist",
+    "palm-chest",
+    "arm-overhead",
+    "hold-cape"
+  ],
+  "pivot": [
+    80,
+    152
+  ],
+  "durationsMs": [
+    300,
+    350,
+    350,
+    450
+  ],
+  "playback": "one-shot 0\u21921\u21922\u21923, then hold frame 3; optional light 2\u21943 cape loop after completion",
+  "resample": "NEAREST",
+  "alphaThreshold": 128,
+  "chromaRemoval": false,
+  "sharedScale": 0.2963855421686747,
+  "neutralRawHeight": 415,
+  "neutralTargetHeight": 123,
+  "reference292BBox": [
+    46,
+    29,
+    114,
+    152
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "rawBBox": [
+        198,
+        145,
+        440,
+        560
+      ],
+      "finalBBox": [
+        39,
+        29,
+        111,
+        152
+      ],
+      "finalHeight": 123,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "opaquePixels": 5741,
+      "paste": [
+        39,
+        29
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "649a3bbc2458c574e74cb35644da0fe65b905856c4474b9a5e655566e275a93f"
+    },
+    {
+      "frame": 1,
+      "rawBBox": [
+        154,
+        145,
+        440,
+        560
+      ],
+      "finalBBox": [
+        26,
+        29,
+        111,
+        152
+      ],
+      "finalHeight": 123,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "opaquePixels": 5829,
+      "paste": [
+        26,
+        29
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "e25ec8927353a87c7abbc62600aefa18baa0510a0802ab1a233f394f6c8c759b"
+    },
+    {
+      "frame": 2,
+      "rawBBox": [
+        198,
+        117,
+        440,
+        560
+      ],
+      "finalBBox": [
+        39,
+        21,
+        111,
+        152
+      ],
+      "finalHeight": 131,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "opaquePixels": 5755,
+      "paste": [
+        39,
+        21
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "f562f3edfeb836c918cd70b9261d1fbc8c5e19bf089c9bd3970b2c0787a9f9d5"
+    },
+    {
+      "frame": 3,
+      "rawBBox": [
+        194,
+        117,
+        499,
+        560
+      ],
+      "finalBBox": [
+        45,
+        21,
+        135,
+        152
+      ],
+      "finalHeight": 131,
+      "feetMedianX": 80,
+      "feetBottomYExclusive": 152,
+      "opaquePixels": 6101,
+      "paste": [
+        45,
+        21
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "48204b33e84559be0ad41ccdc54b6c67d18914811812540b9ad95f551cc523d6"
+    }
+  ],
+  "uniqueRGBAFrames": 4,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "outputEdgeTouchFrames": [],
+  "pasteClampedFrames": [],
+  "processorMetadata": "processor/pipeline-meta.json",
+  "rawSHA256": "9965c24781b4c1955803519e703faedad01e2c2dc19beebb74468bead3b6ecf8",
+  "reference292SHA256": "bf9714e1171ca0af194e49c364fcc0451ead2babc0853776bd8f74f18c32a56f",
+  "processorSHA256": "7a7b1fb3730cf21b733928119d899aa73a5b9db374a5041690b0d1f959f9633b"
+}

@@ -127,6 +127,31 @@
    "unless": "night_cliff_scene_done"
   },
   {
+   "type": "npc",
+   "id": "choimis_sky_boss",
+   "sprite": "choimis_flower",
+   "x": 632,
+   "y": 199,
+   "solid": false,
+   "hidden": true,
+   "facing": "down",
+   "wander": 0,
+   "requires": "choimis_flower_done",
+   "unless": "choimis_flower_won"
+  },
+  {
+   "type": "trigger",
+   "id": "choimis_sky_trigger",
+   "x": 560,
+   "y": 176,
+   "w": 96,
+   "h": 64,
+   "solid": false,
+   "script": "choimis_sky",
+   "requires": "choimis_flower_done",
+   "unless": "choimis_flower_won"
+  },
+  {
    "type": "door",
    "id": "night_west_door",
    "x": 0,

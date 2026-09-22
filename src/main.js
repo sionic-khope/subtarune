@@ -58,6 +58,7 @@ import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
 import { ITEMS, plainItems, keyItems } from './data/items.js';
 import { drawYoungcleLoungeEffects } from './scenes/youngcle-lounge-effects.js';
 import { clearEditorUnionStage, drawEditorUnionWorld, drawEditorUnionLight, drawEditorUnionLabels, drawEditorUnionOverlay } from './scenes/editor-union-effects.js';
+import { clearChoimisSky, drawChoimisSkyPollen } from './scenes/choimis-sky-intro.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -1052,6 +1053,7 @@ class Game {
   /** TV cancellation releases the current runner before map/title/QA reconstructs actors. */
   finishTvBroadcast(abort = false) {
     if (abort) clearChoimisFlowerEffects(this);
+    if (abort) clearChoimisSky(this);
     if (abort) clearEditorUnionStage(this, true);
     if (abort && this.tvBroadcast) {
       this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
@@ -1490,6 +1492,7 @@ class Game {
     drawCoastWater(ctx, MAPS[this.mapId]?.meta?.coast, cam, this.time);
     this.map.draw(ctx, cam);
     drawCoastWake(ctx, MAPS[this.mapId]?.meta?.coast, this.entities, cam, this.time, this.propImages['assets/tiles/night_coast_edge.png']);
+    drawChoimisSkyPollen(ctx, this, cam);
     this.drawRipples(ctx, cam);
     this.runner?.drawGround(ctx, cam);   // 러너 기믹: 바닥 물결 줄기(엔티티 아래)
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다

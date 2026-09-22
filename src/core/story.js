@@ -606,3 +606,8 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_coast_after', desc: '�
   map: 'jjajang_night_cliff', spawn: 'from_west', flags: { ...coast3Flags, night_coast3_a: true, night_coast3_b: true, raft_coast3_a: 1 }, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff_after', desc: '밤 절벽 · 최미스 추적 도착 뒤 해안길 왕복',
   map: 'jjajang_night_cliff', spawn: 'from_west', flags: { ...coast3Flags, night_coast3_a: true, night_coast3_b: true, raft_coast3_a: 1 }, party: ['gyeongsub', 'ppaman'] });
+const choimisSkyFlags = { ...coast3Flags, night_coast3_a: true, night_coast3_b: true, raft_coast3_a: 1 };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_sky', desc: '밤 절벽 · 오른쪽 끝 최미스 하늘 보스 인트로',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: choimisSkyFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_sky_after', desc: '최미스 하늘 전투 승리 뒤 잠정 절벽 복귀',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: { ...choimisSkyFlags, choimis_flower_won: true }, party: ['gyeongsub', 'ppaman'] });

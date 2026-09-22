@@ -13,6 +13,36 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  choimis_flower: {
+    name: '최미스', hp: 200, damage: 15, money: 0, boss: true, voice: 'choimis_flower',
+    sheet: { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 },
+    actions: { choso: { src: 'assets/enemies/choimis-choso.png', cols: 2, rows: 2, count: 4, fps: 4.5, px: 1, pivot: [80, 152] } },
+    pivot: [80, 152], scale: 0.506, idle: { swayX: 0, swayY: 3, period: 2.4 },
+    projectiles: {
+      jjajang: 'assets/props/dark_jjajang.png',
+      mic: 'assets/enemies/choimis-rap.png',
+      fashion: 'assets/props/choimis-fashion.png',
+    },
+    patterns: [
+      { type: 'choimis_jjajang' },
+      { type: 'choimis_choso', speak: '내 추구미는 쵸소우야' },
+      { type: 'choimis_rap', speak: '요 최미스 래퍼딱지를때이젠앰씨로 포에버 포에버' },
+      { type: 'choimis_money', speak: '가져가라.' },
+      { type: 'choimis_seup', speak: '스읍 미스' },
+      { type: 'choimis_fashion', speak: '이거 패션어떰?' },
+    ],
+    openingMode: 'choimis_pink_shooter',
+    openingLines: [
+      { speaker: '최미스', portrait: 'choimis_flower', voice: 'choimis_flower', text: '* 형들 꼭 그렇게 저를 막으셔야겠다면' },
+      { speaker: '최미스', portrait: 'choimis_flower', voice: 'choimis_flower', text: '* 여러분들의 마음을 핑크로 물들여보세요.' },
+    ],
+    lines: {
+      appear: '* 최미스가 승부를 걸어왔다.',
+      idle: ['* 짜장면의 냄새가 풍긴다.', '* 핑크색이 보인다.'],
+      speak: [],
+      die: '* 최미스를 쓰러뜨렸다.',
+    },
+  },
   drum_devil: {
     name: '드럼통의 악마', hp: 300, damage: 15, money: 0, boss: true, support: 'drum_devil',
     sheet: { src: 'assets/enemies/drum-devil-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },

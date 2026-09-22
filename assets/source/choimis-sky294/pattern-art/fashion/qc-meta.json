@@ -1,0 +1,119 @@
+{
+  "status": "asset ready; runtime registration and user appearance approval remain separate",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sheetSize": [
+    192,
+    192
+  ],
+  "cellSize": [
+    96,
+    96
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pivot": [
+    48,
+    48
+  ],
+  "durationsMs": [
+    180,
+    180,
+    180,
+    220
+  ],
+  "playback": "sequential one-shot 0\u21921\u21922\u21923",
+  "sharedScale": 0.1494661921708185,
+  "alphaThreshold": 128,
+  "chromaRemoval": false,
+  "resample": "NEAREST",
+  "frames": [
+    {
+      "frame": 0,
+      "outfit": "pink-leopard-suit",
+      "bbox": [
+        17,
+        8,
+        79,
+        88
+      ],
+      "pivot": [
+        48,
+        48
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "6502b28acd87279e78b2692d9988d2211a0ece2b6bf27ebe587fdfbd1d80d19f"
+    },
+    {
+      "frame": 1,
+      "outfit": "pink-zebra-coat",
+      "bbox": [
+        15,
+        6,
+        80,
+        90
+      ],
+      "pivot": [
+        48,
+        48
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "9af3072d9c8a2005353f2628d01c136aba055e3fd168e5afa091e5d34fa8b74c"
+    },
+    {
+      "frame": 2,
+      "outfit": "pink-checker-idol",
+      "bbox": [
+        15,
+        14,
+        81,
+        81
+      ],
+      "pivot": [
+        48,
+        48
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "d1425e79e1a315fdd22fd6598cb5631b1cc8ddee0d8d7e917a6f1fb34ee15824"
+    },
+    {
+      "frame": 3,
+      "outfit": "pink-heart-star-jumpsuit",
+      "bbox": [
+        15,
+        6,
+        80,
+        89
+      ],
+      "pivot": [
+        48,
+        48
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "8c98f9fb5bb41f20cb973c9bc22c2f1ebefdf772034c7b9a01d2f82bb1601dbc"
+    }
+  ],
+  "uniqueRGBAFrames": 4,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "outputEdgeTouchFrames": [],
+  "pasteClampedFrames": [],
+  "processorMetadata": "processor/pipeline-meta.json",
+  "rawSHA256": "f2fe1cd395e463fc80bd5cdb75f0aaacf5baf68256976cceba458c6d6bf1887f"
+}

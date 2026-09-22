@@ -1,0 +1,14 @@
+Use case: stylized-concept
+Asset type: compact pixel-art prop pack of clothing for a Canvas RPG attack sequence
+Primary request: Create exactly four SEPARATE empty garments, no person and no mannequin, for a sequential garishly pink fashion attack. Each cell contains one complete coordinated outfit as a readable floating clothing set, visually distinct from the others.
+Input image: use the provided Choimis sprite only as the exact project-native pixel density, crisp outline, and hot-pink palette/style reference. Do not include Choimis or any body parts.
+Composition: exactly 2 columns × 2 rows = 4 equal invisible square cells, one outfit centered in each cell, same scale family and generous padding, no overlap and nothing crossing cell edges.
+Outfit 0 top-left: outrageous hot-pink leopard-pattern stage suit with flared trousers, pointed shoulders, tiny black accents.
+Outfit 1 top-right: neon-pink zebra-pattern long coat with matching slim trousers and dramatic wide collar.
+Outfit 2 bottom-left: candy-pink checkerboard idol jacket and pleated skirt-over-shorts ensemble with exaggerated bow accents.
+Outfit 3 bottom-right: fuchsia heart-and-star patterned runway jumpsuit with puffed sleeves and a wide belt.
+Every garment must look EMPTY: visible neck opening, hollow sleeves, and empty trouser/skirt openings; no head, face, skin, hands, feet, or human silhouette. Strongly pink, tacky, gaudy, fashion-show absurdity; patterns must remain readable after downscaling.
+Style/medium: sparse project-native pixel art with crisp stepped black outlines, limited flat colors, one-step shadows, low logical pixel density matching the reference, integer nearest-neighbor feel.
+Background: 100% solid flat #FF00FF magenta. Because the outfits are pink, outline every garment with an unbroken dark near-black contour so it remains separable from the magenta background. Use outfit pinks that are visibly lighter/darker/oranger than #FF00FF and never use exact #FF00FF inside any garment.
+Constraints: no text, no labels, no GAP lettering, no borders, no separators, no hanger, no mannequin, no people, no extra accessories floating outside the outfit, no ground shadow; each complete outfit fully contained with magenta margin on all sides.
+Avoid: photoreal fabric, soft gradients, tiny noisy patterns, transparent checkboard baked into image, clipping, duplicate outfits.

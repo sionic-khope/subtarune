@@ -7,7 +7,8 @@ test('night cliff keeps actors grounded and blocks walking into the sea', () => 
   const def = JSON.parse(fs.readFileSync('assets/maps/jjajang_night_cliff.json', 'utf8'));
   const map = new TileMap(def);
   const actors = def.entities.filter((e) => e.type === 'npc');
-  assert.equal(actors.length, 2);
+  assert.equal(actors.length, 3);
+  assert.equal(actors.find((actor) => actor.id === 'choimis_sky_boss').hidden, true);
   for (const actor of actors) assert.equal(map.solidRect(actor.x, actor.y, 24, 16), false);
   for (const x of [96, 320, 560, 644]) assert.equal(map.solidRect(x, 199, 24, 16), false);
   assert.equal(map.solidRect(672, 199, 24, 16), true);
