@@ -8,12 +8,15 @@ import { CHAR_SCALE } from '../world/world.js';
 import { addChoimisSkyLoop, cancelChoimisSkyAnimations, getChoimisSkyState, waitForChoimisSkyAnimation } from './choimis-sky-timeline.js';
 
 const RAISE_SRC = 'assets/enemies/choimis-flower-raise.png';
+const CAPE_SRC = ENEMIES.choimis_flower.sheet.src;
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const BATTLE_ACTOR_SCALE = 0.66;
 const PINK_PETALS = Object.freeze(['#ff86b7', '#ffb1d0', '#ffd7e8']);
 const BOSS_BATTLE_HEIGHT = 117.5 * ENEMIES.choimis_flower.scale;
 const BOSS_HOVER = Object.freeze({ height: 48, amplitude: 0, period: 2.4 });
 const REVEAL_PAN = Object.freeze({ dx: 64, duration: 2, bossX: 722 });
+export const CHOIMIS_SKY_ASCENT = Object.freeze({ distance: 720, duration: 5.2, petalFall: 0.55 });
+export const CHOIMIS_CAPE_REVEAL = Object.freeze({ durations: [0.22, 0.16, 0.16, 0.18, 0.18], cueAt: 0.22 });
 export const CHOIMIS_SKY_SCALE = Object.freeze({
   battleReady: Object.freeze({ hyungsub: 101 / (2 * 349), gyeongsub: 98 / (2 * 359), ppaman: 99 / (2 * 305) }),
   raisedHand: 103 / (2 * 123),
@@ -42,6 +45,35 @@ function raiseMotion(image) {
   };
 }
 
+function capeMotion(image) {
+  const frames = Array.from({ length: 4 }, (_, index) => makeTransparentFrame(image, {
+    rect: [(index % 2) * 160, Math.floor(index / 2) * 160, 160, 160],
+    pivot: ENEMIES.choimis_flower.pivot,
+    duration: 1 / ENEMIES.choimis_flower.sheet.fps,
+  }, { rMin: 256, gMax: -1, bMin: 256 }, makeCanvas));
+  const clipped = (capeFrame, right) => {
+    const canvas = makeCanvas(160, 160);
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, right, 160);
+    ctx.clip();
+    ctx.drawImage(capeFrame.image, 0, 0);
+    ctx.restore();
+    return { image: canvas, pivot: ENEMIES.choimis_flower.pivot };
+  };
+  return {
+    frames,
+    revealFrames: [
+      { ...clipped(frames[0], 104), duration: CHOIMIS_CAPE_REVEAL.durations[0] },
+      { ...clipped(frames[0], 118), duration: CHOIMIS_CAPE_REVEAL.durations[1] },
+      { ...clipped(frames[1], 140), duration: CHOIMIS_CAPE_REVEAL.durations[2] },
+      { ...clipped(frames[2], 160), duration: CHOIMIS_CAPE_REVEAL.durations[3] },
+      { ...frames[0], duration: CHOIMIS_CAPE_REVEAL.durations[4] },
+    ],
+  };
+}
+
 function setLoop(actor, definition) {
   if (!actor || !definition) return;
   actor.motion = { ...definition, loop: true, elapsed: 0, index: 0 };
@@ -53,15 +85,17 @@ export async function prepareChoimisSky(game) {
   const state = getChoimisSkyState(game);
   game.sound.preloadBgm('choimis_battle');
   const ids = ['hyungsub', 'gyeongsub', 'ppaman'];
-  const [raise, ...images] = await Promise.all([
+  const [raise, cape, ...images] = await Promise.all([
     game.mapAssets.image(RAISE_SRC),
+    game.mapAssets.image(CAPE_SRC),
     ...ids.map(id => game.mapAssets.image(BATTLE_SPRITES[id].src)),
     Battle.preload(game, ['choimis_flower']),
-    game.sound.loadSfxFiles(['great_shine', 'choimis_flower_seup', 'weaponpull']),
+    game.sound.loadSfxFiles(['great_shine', 'choimis_flower_seup', 'wing', 'weaponpull']),
   ]);
   if (state.cancelled || game.choimisSky !== state) return;
   state.motions = Object.fromEntries(ids.map((id, index) => [id, images[index] ? battleMotion(images[index], id) : null]));
   state.raise = raise ? raiseMotion(raise) : null;
+  state.cape = cape ? capeMotion(cape) : null;
 }
 
 /** Pan beyond the normal right map clamp while Choimis remains hidden below the cliff. */
@@ -174,7 +208,6 @@ export function ascendChoimisSky(game) {
   const members = [game.player, entity(game, 'gyeongsub'), entity(game, 'ppaman')].filter(Boolean);
   const ids = [game.playerSprite || 'hyungsub', 'gyeongsub', 'ppaman'];
   members.forEach((actor, index) => setLoop(actor, state.motions?.[ids[index]]));
-  game.sound.sfx('weaponpull', { volume: 0.75 });
   const actors = state.actors;
   state.hoverWaiter?.cancel();
   state.hoverWaiter = null;
@@ -188,8 +221,9 @@ export function ascendChoimisSky(game) {
   const motionScales = actors.map(actor => actor.motion?.scale || 0);
   game.camera.locked = true;
   state.phase = 'rise';
-  return waitForChoimisSkyAnimation(game, state, 5.2, (progress, dt) => {
-    const rise = 470 * progress;
+  state.progress = 0;
+  return waitForChoimisSkyAnimation(game, state, CHOIMIS_SKY_ASCENT.duration, (progress, dt) => {
+    const rise = CHOIMIS_SKY_ASCENT.distance * progress;
     game.camera.y = cameraY - rise;
     state.progress = progress;
     state.windTime += dt;
@@ -218,6 +252,45 @@ export function ascendChoimisSky(game) {
   });
 }
 
+export function revealChoimisCape(game) {
+  const state = getChoimisSkyState(game);
+  const boss = state.boss || entity(game, 'choimis_sky_boss');
+  state.phase = 'cape';
+  state.capeProgress = 0;
+  if (!boss || !state.cape?.revealFrames?.length) { state.capeProgress = 1; return Promise.resolve(); }
+  const duration = CHOIMIS_CAPE_REVEAL.durations.reduce((sum, value) => sum + value, 0);
+  const scale = ENEMIES.choimis_flower.scale / (CHAR_SCALE * game.zoom.s);
+  const motion = { ...state.cape, frames: state.cape.revealFrames, scale, loop: false, elapsed: 0, index: 0 };
+  boss.motion = motion;
+  boss.moving = false;
+  let elapsed = 0;
+  let cuePlayed = false;
+  return waitForChoimisSkyAnimation(game, state, duration, (progress, dt) => {
+    elapsed = Math.min(duration, elapsed + dt);
+    state.capeProgress = progress;
+    state.windTime += dt;
+    if (!cuePlayed && elapsed >= CHOIMIS_CAPE_REVEAL.cueAt) {
+      cuePlayed = true;
+      game.sound.sfx('wing', { volume: 0.8 });
+    }
+    let frameTime = elapsed;
+    motion.index = motion.frames.length - 1;
+    for (let index = 0; index < motion.frames.length; index++) {
+      frameTime -= motion.frames[index].duration;
+      if (frameTime < 0) { motion.index = index; break; }
+    }
+    motion.elapsed = elapsed;
+  }).then(completed => {
+    if (!completed || game.choimisSky !== state) return;
+    setLoop(boss, { ...state.cape, scale });
+    state.capeProgress = 1;
+  });
+}
+
+export function readyChoimisSkyBattle(game) {
+  game.sound.sfx('weaponpull', { volume: 0.75 });
+}
+
 export function drawChoimisSkyPollen(ctx, game, cam) {
   const state = game.choimisSky;
   if (!state?.pollen || !state.actors?.length) return;
@@ -235,9 +308,10 @@ export function drawChoimisSkyPollen(ctx, game, cam) {
     ctx.fillStyle = particle.color;
     ctx.fillRect(Math.round(x), Math.round(y), particle.size, particle.size);
   }
-  if (state.phase === 'rise') for (const petal of state.loosePetals) {
+  if (state.phase === 'rise' || state.phase === 'cape') for (const petal of state.loosePetals) {
     const x = (petal.x + state.windTime * petal.speed + 520) % 520 - 20;
-    const y = petal.y + Math.sin(state.windTime * 2.2 + petal.phase) * 7;
+    const fall = state.progress * CHOIMIS_SKY_ASCENT.distance * CHOIMIS_SKY_ASCENT.petalFall;
+    const y = ((petal.y + fall + 10) % 270 + 270) % 270 - 10 + Math.sin(state.windTime * 2.2 + petal.phase) * 7;
     ctx.globalAlpha = 0.55;
     ctx.fillStyle = petal.color;
     ctx.fillRect(Math.round(x), Math.round(y), petal.size + 1, petal.size);

@@ -5,6 +5,8 @@ import {
   panChoimisSkyReveal,
   playChoimisSkyCue,
   prepareChoimisSky,
+  readyChoimisSkyBattle,
+  revealChoimisCape,
   riseChoimisFromBelow,
 } from '../../scenes/choimis-sky-intro.js';
 
@@ -22,6 +24,7 @@ const close = { action: game => game.textbox.close() };
 
 export const choimis_sky = Object.assign([
   { if: flags => !!flags[CHOIMIS_SKY.winFlag], goto: 'end' },
+  { bgm: 'wind', volume: 0.45 },
   { action: prepareChoimisSky },
   { parallel: [
     { move: 'player', rel: 'night_edge', at: 'left', by: [-20, 0], speed: 70 },
@@ -46,6 +49,8 @@ export const choimis_sky = Object.assign([
   { action: playChoimisSkyCue },
   { action: gatherChoimisSkyPollen },
   { action: ascendChoimisSky },
+  { action: revealChoimisCape },
+  { action: readyChoimisSkyBattle },
   { battle: {
     enemies: [CHOIMIS_SKY.enemy], bgm: CHOIMIS_SKY.bgm, bg: CHOIMIS_SKY.background,
     flag: CHOIMIS_SKY.winFlag, seamlessIntro: CHOIMIS_SKY.background,

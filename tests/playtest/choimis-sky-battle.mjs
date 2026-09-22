@@ -133,6 +133,13 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     fs.writeFileSync(file, Buffer.from(capture.data.split(',')[1], 'base64'));
     trace.observations.push({ shot: file, label: key, snapshot: capture.snapshot }); save();
   };
+  const saveDataUrl = async (name, frame) => {
+    if (!frame?.data) { check(`actual rendered transition frame exists: ${name}`, false, json(frame)); return null; }
+    const file = path.join(process.env.SHOT_DIR, `${name}.png`);
+    fs.writeFileSync(file, Buffer.from(frame.data.split(',')[1], 'base64'));
+    trace.observations.push({ shot: file, label: name, frame: { ...frame, data: undefined } }); save();
+    return file;
+  };
 
   // The draw/audio observer records rendered intermediate states and actual calls without altering time, input, or battle durations.
   await open({ qa: 'choimis_sky' });
@@ -143,12 +150,13 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     window.__choimisQa = {
       sfx: [], bgm: [], phases: [], frames: [], draws: 0, lyricAt: choimisLyricAt,
       prepanSamples: [], chargeSamples: [], roundCaptures: {}, hintDraws: [], chargeFrames: {}, defenseFrames: {}, capeFrames: {}, roundLatches: {},
+      skyTransition: { rise: {}, risePending: {}, cape: {}, gatherLate: null, windHi: [], phaseFrames: {}, phasePending: {} }, audioTimeline: [],
       temporalCaptures: [42.214, 42.264, 42.334, 42.384, 42.484, 42.584].map(time => ({ time, data: null, actual: null, frame: null })),
     };
     const sound = g.sound;
     const sfx = sound.sfx.bind(sound), playBgm = sound.playBgm.bind(sound);
-    sound.sfx = (name, options) => { window.__choimisQa.sfx.push({ name, at: performance.now() }); return sfx(name, options); };
-    sound.playBgm = (name, options) => { window.__choimisQa.bgm.push({ name, at: performance.now(), options }); return playBgm(name, options); };
+    sound.sfx = (name, options) => { const event = { name, at: performance.now() }; window.__choimisQa.sfx.push(event); window.__choimisQa.audioTimeline.push({ kind: 'sfx', ...event }); return sfx(name, options); };
+    sound.playBgm = (name, options) => { const event = { name, at: performance.now(), options }; window.__choimisQa.bgm.push(event); window.__choimisQa.audioTimeline.push({ kind: 'bgm', ...event }); return playBgm(name, options); };
     const originalGameUpdate = g.update.bind(g);
     g.update = (...args) => {
       const b = g.battle;
@@ -165,7 +173,18 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         };
         b.__choimisQaUpdateWrapped = true;
       }
-      return originalGameUpdate(...args);
+      const result = originalGameUpdate(...args);
+      const sky = g.choimisSky, phase = sky?.phase, progress = Number(sky?.progress);
+      if (phase && ['gather', 'cloud', 'rise'].includes(phase) && !window.__choimisQa.skyTransition.phasePending[phase]) {
+        window.__choimisQa.skyTransition.phasePending[phase] = { at: performance.now(), phase, progress, pollen: sky.pollen?.length || 0, loosePetals: sky.loosePetals?.length || 0, windTime: sky.windTime || 0, camera: { x: g.camera.x, y: g.camera.y }, bossHopY: g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead)?.hopY };
+      }
+      if (phase === 'rise' && Number.isFinite(progress)) {
+        for (const [label, threshold] of [['start', 0.05], ['mid', 0.5], ['end', 0.98]]) if (!window.__choimisQa.skyTransition.risePending[label] && progress >= threshold) {
+          window.__choimisQa.skyTransition.risePending[label] = { at: performance.now(), progress, camera: { x: g.camera.x, y: g.camera.y }, windTime: sky.windTime || 0, bossHopY: g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead)?.hopY };
+        }
+        if (progress >= 0.98 && !window.__choimisQa.skyTransition.risePending.endAt) window.__choimisQa.skyTransition.risePending.endAt = performance.now();
+      }
+      return result;
     };
     const draw = g.draw.bind(g);
     let nextQaBulletId = 1;
@@ -191,6 +210,20 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         };
       }
       const result = draw(...args); const b = g.battle, sky = g.choimisSky;
+      if (sky?.phase === 'gather' && Number(sky.progress) >= 0.95 && !window.__choimisQa.skyTransition.gatherLate) {
+        window.__choimisQa.skyTransition.gatherLate = { at: performance.now(), phase: sky.phase, progress: Number(sky.progress), pollen: sky.pollen?.length || 0, loosePetals: sky.loosePetals?.length || 0, data: g.canvas.toDataURL('image/png') };
+      }
+      const phasePending = window.__choimisQa.skyTransition.phasePending;
+      for (const phase of Object.keys(phasePending)) if (!window.__choimisQa.skyTransition.phaseFrames[phase]) {
+        window.__choimisQa.skyTransition.phaseFrames[phase] = { ...phasePending[phase], data: g.canvas.toDataURL('image/png') };
+        delete phasePending[phase];
+      }
+      const risePending = window.__choimisQa.skyTransition.risePending;
+      for (const label of ['start', 'mid', 'end']) if (risePending[label] && !window.__choimisQa.skyTransition.rise[label]) {
+        window.__choimisQa.skyTransition.rise[label] = { ...risePending[label], data: g.canvas.toDataURL('image/png') };
+        delete risePending[label];
+      }
+      if (risePending.endAt && !window.__choimisQa.skyTransition.rise.endAt) window.__choimisQa.skyTransition.rise.endAt = risePending.endAt;
       if (ctx && originalFillText) {
         ctx.fillText = originalFillText;
         const last = window.__choimisQa.hintDraws.at(-1);
@@ -207,6 +240,27 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       if (b?.state === 'intro' && window.__choimisQa.introAt === undefined) window.__choimisQa.introAt = performance.now();
       const boss = g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead);
       if (boss && !boss.visible && g.camera.locked) window.__choimisQa.prepanSamples.push({ at: performance.now(), x: g.camera.x, y: g.camera.y, visible: boss.visible });
+      const skyTransition = window.__choimisQa.skyTransition;
+      const skyProgress = Number(sky?.progress);
+      if (sky?.phase === 'rise' && Number.isFinite(skyProgress)) {
+        for (const [label, threshold] of [['start', 0.05], ['mid', 0.5], ['end', 0.98]]) {
+          if (!skyTransition.rise[label] && skyProgress >= threshold) skyTransition.rise[label] = { at: performance.now(), progress: skyProgress, camera: { x: g.camera.x, y: g.camera.y }, windTime: sky.windTime || 0, bossHopY: boss?.hopY, data: g.canvas.toDataURL('image/png') };
+        }
+        if (skyProgress >= 0.98 && !skyTransition.rise.endAt) skyTransition.rise.endAt = performance.now();
+      }
+      const capePhase = sky?.phase === 'cape' && Number.isFinite(Number(sky?.capeProgress));
+      if (capePhase && !skyTransition.capeStartAt) skyTransition.capeStartAt = performance.now();
+      const capeProgress = Number(sky?.capeProgress), capeElapsed = Number.isFinite(skyTransition.capeStartAt) ? performance.now() - skyTransition.capeStartAt : -1;
+      if (capePhase) {
+        for (const [label, progressThreshold, elapsedThreshold] of [['start', 0, 0], ['mid', 0.45, 405], ['end', 0.98, 882]]) {
+          const reached = Number.isFinite(capeProgress) ? capeProgress >= progressThreshold : capeElapsed >= elapsedThreshold;
+          if (!skyTransition.cape[label] && reached) skyTransition.cape[label] = { at: performance.now(), elapsed: Math.max(0, capeElapsed), progress: Number.isFinite(capeProgress) ? capeProgress : null, phase: sky?.phase || null, capePhase: sky?.capePhase || null, bossHopY: boss?.hopY, bossFrame: boss?.frame, bossMotionIndex: boss?.motion?.index, bossMotionElapsed: boss?.motion?.elapsed, bossMotionFrames: boss?.motion?.frames?.length, data: g.canvas.toDataURL('image/png') };
+        }
+      }
+      if (g.dialogue.running && g.textbox.node?.text === '* 하이' && skyTransition.windHi.length < 4) {
+        const last = skyTransition.windHi.at(-1);
+        if (!last || performance.now() - last.at >= 220) skyTransition.windHi.push({ at: performance.now(), windTime: sky?.windTime || 0, bgmName: g.sound.bgmName, bgmTime: g.sound.bgm?.currentTime, bgmPaused: g.sound.bgm?.paused, bossHopY: boss?.hopY, camera: { x: g.camera.x, y: g.camera.y }, data: g.canvas.toDataURL('image/png') });
+      }
       const opening = b?.gimmick?.snapshot;
       if (opening?.charge?.active) window.__choimisQa.chargeSamples.push({ at: performance.now(), ...opening.charge });
       if (opening?.charge?.active && opening.charge.progress >= 0.3 && opening.charge.progress <= 0.6 && !window.__choimisQa.chargeFrames.mid) {
@@ -371,15 +425,24 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     json({ player: beforePose.actors.player, boss: beforePose.actors.choimis_sky_boss, camera: beforePose.camera }));
 
   const gathering = await until(() => window.game.choimisSky?.phase === 'gather' && window.game.choimisSky.progress > 0.45, 15000);
-  check('C advance closes dialogue and starts the dense 168-petal platform gathering', !!gathering && (await snapshot()).sky.actors?.length === 4 && (await snapshot()).sky.pollen === 168 && (await snapshot()).sky.loosePetals === 36,
-    json((await snapshot()).sky));
+  const gatheredFrame = await page.evaluate(() => window.__choimisQa.skyTransition.phaseFrames.gather || null);
+  const gatheredState = await snapshot();
+  check('C advance closes dialogue and starts the dense 168-petal platform gathering', (!!gathering || !!gatheredFrame) && gatheredFrame?.pollen === 168 && gatheredFrame?.loosePetals === 36,
+    json({ gathering: !!gathering, frame: gatheredFrame, sky: gatheredState.sky }));
   await shot('13_pollen_gathering_under_four_actors');
-  const cloud = await until(() => window.game.choimisSky?.phase === 'cloud', 6000);
-  const gatheredIntoRise = await page.evaluate(() => window.game.choimisSky?.phase === 'rise' && window.game.choimisSky?.pollen?.length === 168);
-  check('pollen gathers into a cloud for all four actors before ascent', (!!cloud || gatheredIntoRise || (await page.evaluate(() => window.__choimisQa?.phases || [])).includes('cloud')) && (await snapshot()).sky.pollen === 168,
-    json(await snapshot()));
+  const gatherLateReady = await until(() => !!window.__choimisQa.skyTransition.gatherLate, 6000);
+  const gatherLate = await page.evaluate(() => {
+    const frame = window.__choimisQa.skyTransition.gatherLate;
+    if (!frame) return null;
+    const { data, ...metadata } = frame;
+    return metadata;
+  });
+  check('pollen gathering completes at the three-party platform before ascent', !!gatherLateReady && !!gatherLate && gatherLate.phase === 'gather' && gatherLate.progress >= 0.95 && gatherLate.pollen === 168 && gatherLate.loosePetals === 36,
+    json({ ready: !!gatherLateReady, frame: gatherLate }));
   const ascent = await until(() => window.game.choimisSky?.phase === 'rise' && window.game.choimisSky.progress > 0.25, 15000);
-  check('continuous ascent keeps all 168 platform petals and 36 loose sea petals moving', !!ascent && (await snapshot()).sky.pollen === 168 && (await snapshot()).sky.loosePetals === 36 && (await snapshot()).sky.windTime > 0, json(await snapshot()));
+  const riseFrame = await page.evaluate(() => window.__choimisQa.skyTransition.phaseFrames.rise || null);
+  const ascentState = await snapshot();
+  check('continuous ascent keeps all 168 platform petals and 36 loose sea petals moving', (!!ascent || !!riseFrame) && (riseFrame?.pollen === 168 || ascentState.sky.pollen === 168) && (riseFrame?.loosePetals === 36 || ascentState.sky.loosePetals === 36) && ((riseFrame?.windTime || 0) > 0 || (ascentState.sky.windTime || 0) > 0), json({ ascent: !!ascent, frame: riseFrame, sky: ascentState.sky }));
   if (ascent) { await record('ascent-mid'); await shot('14_continuous_cliff_sea_ascent_mid'); }
   const battleReady = await until(() => window.game.battle?.state === 'intro', 30000);
   const handoff = await record('battle-handoff');
@@ -398,8 +461,41 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const handoffBgmReady = await page.evaluate(() => ({ introAt: window.__choimisQa.introAt, bgm: game.sound.bgmName, time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused, callAt: window.__choimisQa.bgm.find(call => call.name === 'choimis_battle')?.at }));
   const handoffBgmElapsed = handoffBgmReady.callAt - handoffBgmReady.introAt;
   trace.observations.push({ label: 'battle-handoff-bgm-ready', value: { ...handoffBgmReady, elapsedMs: handoffBgmElapsed } }); save();
+  const audioTimeline = await page.evaluate(() => window.__choimisQa.audioTimeline || []);
+  const weaponAt = audioTimeline.find(event => event.kind === 'sfx' && event.name === 'weaponpull')?.at;
+  const wingEvents = audioTimeline.filter(event => event.kind === 'sfx' && event.name === 'wing');
+  const wingAt = wingEvents[0]?.at;
+  const battleBgmAt = audioTimeline.find(event => event.kind === 'bgm' && event.name === 'choimis_battle')?.at;
+  const skyTransition = await page.evaluate(() => window.__choimisQa.skyTransition);
+  const stripFrame = frame => frame ? { ...frame, data: undefined } : frame;
+  const transitionSummary = {
+    rise: Object.fromEntries(Object.entries(skyTransition.rise || {}).map(([key, frame]) => [key, stripFrame(frame)])),
+    cape: Object.fromEntries(Object.entries(skyTransition.cape || {}).map(([key, frame]) => [key, stripFrame(frame)])),
+    gatherLate: stripFrame(skyTransition.gatherLate),
+    phaseFrames: Object.fromEntries(Object.entries(skyTransition.phaseFrames || {}).map(([key, frame]) => [key, stripFrame(frame)])),
+    windHi: (skyTransition.windHi || []).map(stripFrame),
+  };
+  trace.observations.push({ label: 'sky-transition-latches', value: { ...transitionSummary, audioTimeline: audioTimeline.filter(event => event.name === 'weaponpull' || event.name === 'choimis_battle') } }); save();
+  for (const label of ['start', 'mid', 'end']) await saveDataUrl(`sky_rise_${label}`, skyTransition.rise?.[label]);
+  await saveDataUrl('sky_gather_late', skyTransition.gatherLate);
+  for (const phase of ['gather', 'rise']) await saveDataUrl(`sky_phase_${phase}`, skyTransition.phaseFrames?.[phase]);
+  for (const label of ['start', 'mid', 'end']) await saveDataUrl(`sky_cape_${label}`, skyTransition.cape?.[label]);
+  await saveDataUrl('sky_hi_wind', skyTransition.windHi?.[Math.min(2, (skyTransition.windHi?.length || 1) - 1)]);
+  check('sky rise captures start/mid/end with moving wind and camera state', !!skyTransition.rise?.start && !!skyTransition.rise?.mid && !!skyTransition.rise?.end && skyTransition.rise.mid.windTime >= skyTransition.rise.start.windTime, json(transitionSummary.rise));
+  const hiClock = (skyTransition.windHi || []).map(sample => sample.bgmTime).filter(Number.isFinite);
+  check('sky encounter captures wind samples during the current 하이 line', (skyTransition.windHi?.length || 0) >= 2 && (hiClock.length < 2 || hiClock.at(-1) > hiClock[0]), json(transitionSummary.windHi));
+  check('cape unfurl captures start/mid/end before handoff', !!skyTransition.cape?.start && !!skyTransition.cape?.mid && !!skyTransition.cape?.end, json(transitionSummary.cape));
+  check('cape settles before weaponpull and battle audio', Number.isFinite(skyTransition.cape?.end?.at) && Number.isFinite(weaponAt) && weaponAt >= skyTransition.cape.end.at, json({ capeEndAt: skyTransition.cape?.end?.at, weaponAt }));
   check('battle handoff starts the actual choimis_battle BGM within one second', !!bgmReady && handoffBgmReady.bgm === 'choimis_battle' && handoffBgmReady.paused === false && handoffBgmReady.time > 0.01 && handoffBgmElapsed >= -100 && handoffBgmElapsed <= 1000, json({ ...handoffBgmReady, elapsedMs: handoffBgmElapsed }));
-  if (process.env.QA_HANDOFF_ONLY === '1') return;
+  check('cape wing cue fires once before weaponpull', wingEvents.length === 1 && Number.isFinite(wingAt) && Number.isFinite(weaponAt) && wingAt <= weaponAt, json({ wingEvents, weaponAt }));
+  check('weaponpull precedes immediate choimis_battle BGM', Number.isFinite(weaponAt) && Number.isFinite(battleBgmAt) && weaponAt <= battleBgmAt && battleBgmAt - weaponAt <= 1000, json({ weaponAt, battleBgmAt, elapsedMs: battleBgmAt - weaponAt }));
+  if (process.env.QA_HANDOFF_ONLY === '1') {
+    const readySettled = await until(() => window.game.battle?.state === 'intro' && window.game.battle.typed && window.game.battle.t > 1.5, 5000);
+    check('settled battle handoff is ready before responsive captures', !!readySettled, json(await snapshot()));
+    for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 720 }); await page.waitForTimeout(120); await shot(`settled_battle_viewport_${width}`); }
+    await page.setViewportSize({ width: 960, height: 720 });
+    return;
+  }
   check('battle starts with HP 200 and all three natural party members loaded', !!battleReady && handoff.battle.enemies[0].hp === 200 && handoff.battle.members.length === 3 && handoff.battle.members.every(m => m.loaded), json(handoff.battle));
   check('battle handoff rects preserve matching party poses and moon scene actor placement', !!battleReady && handoff.battle.members.every((m, i) => i === 0 || m.home[1] > handoff.battle.members[i - 1].home[1]) && handoff.battle.enemies[0].x > 300, json({ members: handoff.battle.members, enemy: handoff.battle.enemies[0] }));
   check('no character or battle art fallback is active', !!battleReady && !handoff.actors.player?.fallback && !handoff.actors.gyeongsub?.fallback && !handoff.actors.ppaman?.fallback && handoff.battle.members.every(m => m.loaded) && handoff.battle.enemies.every(e => e.loaded), json({ actors: handoff.actors, members: handoff.battle.members, enemies: handoff.battle.enemies }));
