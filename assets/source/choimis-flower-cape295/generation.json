@@ -1,0 +1,14 @@
+{
+  "requestId": "choimis-flower-cape295",
+  "provider": "Codex builtin image_gen",
+  "backendModel": "unknown",
+  "usageAndCost": "not exposed by tool",
+  "generationCount": 1,
+  "referenceRoles": [
+    {"path": "old-sheet-reference.png", "role": "BUILD294 runtime identity, palette, proportions and pixel style"},
+    {"path": "pose-reference.png", "role": "cape held behind shoulder, floating bent knee pose only"}
+  ],
+  "generatedOriginal": "/Users/khope@sionic.ai/.codex/generated_images/01a0c8ca-3968-7af3-9553-3bb1c8113522/exec-5c1ff43b-64e8-4f59-be15-f28be288b0ea.png",
+  "prompt": "prompt-used.txt",
+  "scope": "Four-frame floating battle idle. No attack, field movement or hand-raise sprite replacement."
+}

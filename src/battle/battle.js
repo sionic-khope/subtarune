@@ -18,6 +18,7 @@ import { Board, Soul, Bullet, PATTERNS } from './bullets.js';
 import { getBattleMode, NATIVE } from './modes.js';
 import { BATTLE_BGS } from './backgrounds.js';
 import { drawChoimisKaraoke } from './choimis-karaoke.js';
+import { createChoimisDefenseCinematic } from './choimis-defense-cinematic.js';
 import { ITEMS, plainItems } from '../data/items.js';
 import L from '../data/locale/ko.js';
 import { createBattleSupport } from './support/baron-cannon.js';
@@ -50,6 +51,12 @@ const stripTags = (t) => (t || '').replace(/\{[^}]*\}/g, '');
 const FRAME_CACHE = new Map(), IMAGE_CACHE = new Map();   // 전투마다 아틀라스를 다시 색키 처리하지 않는다(첫 전투 뒤엔 로딩 정지 없음)
 const DOWN_SRC = (id) => `assets/battle/down/${id}.png`;   // HP 0 쓰러짐 정지 그림(PR #17, 96×96, 하단 기준점 48,89, 머리 오른쪽·발 왼쪽 — 누운 길이 81px ≈ 서 있는 키 81px 이라 배율 1)
 const DOWN_SCALE = 1, DOWN_PIVOT = [48, 89];
+const nextPatternConfig = (enemy) => {
+  const enraged = !!enemy.def.enragedPatterns?.length && enemy.hp / enemy.maxHp <= enemy.def.enragedAt;
+  const configs = (enraged ? enemy.def.enragedPatterns : enemy.def.patterns) || [];
+  const index = enraged !== !!enemy.enraged ? 0 : (enemy.patternIdx || 0);
+  return { enraged, config: configs.length ? configs[index % configs.length] : null };
+};
 const loadImage = (src) => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => resolve(null); im.src = src; });
 const cached = (map, key, make) => { if (!map.has(key)) map.set(key, make()); return map.get(key); };
 
@@ -178,7 +185,7 @@ export class Battle {
     this.typeText(dt);
     this.fx = this.fx.filter((f) => { f.t += dt; if (f.t > 0) f.y += f.vy * dt; return f.t < f.life; });
     if (this.interlude) {
-      if (this.interlude.update(dt, input)) { this.interlude = null; this.beginMenu(); }
+      if (this.interlude.update(dt, input)) { this.interlude.dispose?.(); this.interlude = null; this.beginMenu(); }
       return;
     }
     switch (this.state) {
@@ -200,7 +207,9 @@ export class Battle {
         }
         if (this.gimmick && this.gimmick.update(dt, input) && this.state === 'enemy-mode') {
           const restoreActors = !!this.actorFocus;
+          const completedMode = this.activeEnemyMode;
           this.disposeGimmick();
+          if (completedMode === 'choimis_pink_shooter') this.pendingPostOpening = completedMode;
           if (restoreActors) { this.actorFocus = { phase: 'in', t: 0, duration: OPENING_FOCUS_FADE }; this.state = 'enemy-mode-restore'; this.t = 0; }
           else this.afterEnemyPhase();
         }
@@ -338,7 +347,8 @@ export class Battle {
       return 0;
     }
     const adjusted = this.support?.adjustDamage?.(e, dmg, source) ?? dmg;                 // 방심한 영클은 1, 아이디어는 3(BUILD208)
-    const damage = Math.min(e.hp, adjusted);
+    const defended = e.id === 'choimis_flower' && e.defenseBoosted ? 1 : adjusted;
+    const damage = Math.min(e.hp, defended);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
     this.support?.onHit?.(e, damage, source);
     if (sound) { this.sfx('hit'); this.sfx('damage'); }
@@ -352,12 +362,15 @@ export class Battle {
     if (followup) { this.gimmick = followup; this.cur = { plan, gimmick: true, supportFollowup: true }; }
   }
   applyCannonDamage(target, damage = BARON_CANNON.damage) { return this.hitEnemy(target, null, damage, { source: 'cannon', sound: false }); }
-  disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.actorFocus = null; this.clearPatternPresentation(); }
+  disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.activeEnemyMode = null; this.actorFocus = null; this.clearPatternPresentation(); }
   /** 지원 모듈이 고른 적 턴 모드를 바로 연다(인트로 대사 뒤 오프닝 연출 — 변신 영클 편집노조 흡수, BUILD214). 끝나면 여느 적 턴처럼 afterEnemyPhase → 막간/메뉴 */
   startEnemyMode(name) {
     const create = getBattleMode('enemy', name); if (typeof create !== 'function') { this.beginMenu(); return; }
-    const actorFocus = name === 'choimis_pink_shooter' ? { phase: 'out', t: 0, duration: OPENING_FOCUS_FADE } : null;
+    const actorFocus = name === 'choimis_pink_shooter' || name === 'choimis_pink_round'
+      ? { phase: 'out', t: 0, duration: OPENING_FOCUS_FADE }
+      : null;
     this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); this.gimmick = create(this, { enemy: this.living()[0] });
+    this.activeEnemyMode = name;
     this.actorFocus = actorFocus;
   }
   /** Opacity for combatants and their support clouds during a fullscreen opening-mode focus transition. */
@@ -377,14 +390,22 @@ export class Battle {
 
   // ── 적 턴 ──
   boardSize() { const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
+  /** Read the next ordinary pattern config without advancing its cycle. */
+  nextPatternConfig(enemy) { return nextPatternConfig(enemy); }
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
     const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)];
-    const defName = this.support?.enemyModeFor?.(e) || e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
+    const selected = this.support?.patternsFor ? null : nextPatternConfig(e);
+    const defName = this.support?.enemyModeFor?.(e) || selected?.config?.mode || e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
     const lines = this.support?.speechFor?.(e) || e.def.lines?.speak || [];
     if (typeof create === 'function') {
       this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText('');
-      this.gimmick = create(this, { enemy: e }); return;
+      if (selected?.config?.mode) { e.enraged = selected.enraged; e.patternIdx++; }
+      this.activeEnemyMode = defName;
+      this.actorFocus = defName === 'choimis_pink_shooter' || defName === 'choimis_pink_round'
+        ? { phase: 'out', t: 0, duration: OPENING_FOCUS_FADE }
+        : null;
+      this.gimmick = create(this, { enemy: e, config: selected?.config || null }); return;
     }
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
     let text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
@@ -498,7 +519,7 @@ export class Battle {
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
     this.support?.onPartyDamage?.();
     // 게임 오버는 셋(전원)이 다 쓰러졌을 때만 (사용자 2026-09-11)
-    if (!this.alive().length) { this.disposeGimmick(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
+    if (!this.alive().length) { this.disposeGimmick(); this.interlude?.dispose?.(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
   }
   /** 라운드 경계(적 턴 끝): 쓰러진 동료마다 회복 이펙트(초록 반짝임 + heal 음), DOWN_TURNS 번째 라운드에 반피로 일어난다 — 사용자 2026-09-11 '한 턴마다 회복 이펙트, 3턴 지나면 반피 부활' */
   /** 승리: 돈·문구·브금 정리 → win 상태. 행동 단계 끝과 적 턴 끝(특별 패턴 피해로 쓰러뜨린 경우 — 2026-09-18 사용자 “특별 패턴에서 쓰러트렸는데 전투 안 끝나는 버그”) 양쪽에서 부른다 */
@@ -521,6 +542,15 @@ export class Battle {
       else this.sparkle(m, 10, false);
     }
     if (up.length || this.members.some((m) => m.down)) this.sfx('heal');
+    if (this.pendingPostOpening === 'choimis_pink_shooter') {
+      this.pendingPostOpening = null;
+      const choimis = this.enemies.find(enemy => enemy.id === 'choimis_flower' && !enemy.dead);
+      if (choimis && !choimis.defenseBoosted) {
+        this.interlude = createChoimisDefenseCinematic(this, choimis);
+        this.state = 'interlude'; this.t = 0; this.plans = [];
+        return;
+      }
+    }
     this.interlude = this.support?.afterEnemyPhase() || null;
     if (this.interlude) { this.state = 'interlude'; this.t = 0; this.plans = []; return; }
     this.beginMenu();
@@ -534,10 +564,10 @@ export class Battle {
   /** 게임 오버 → [다시 도전하기]: 즉시 검은 화면 + 징글·흔들림(표준 조우와 같은 타임라인) → HP·적 복구 → load() 가 화면을 걷고 브금을 튼다. 같은 전투를 처음부터 */
   beginRetry() {
     this.cancelPendingBgm();
-    this.disposeGimmick(); this.interlude = null; this.support?.reset(); this.cur = null;
-    this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = []; this.openingShown = false;
+    this.disposeGimmick(); this.interlude?.dispose?.(); this.interlude = null; this.support?.reset(); this.cur = null;
+    this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = []; this.openingShown = false; this.pendingPostOpening = null;
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; m.action = null; m.popup = null; m.pose = null; }
-    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null; }
+    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.defenseBoosted = false; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null; }
     this.game.fadeTo(1, 0, undefined, 'black');
     this.game.sound.preloadBgm(this.cfg.bgm); this.sfx(this.cfg.seamlessIntro ? 'weaponpull' : 'battle_start'); this.game.shake = { time: 0.45, amp: 3 };
     this.retrying = true; this.retryT = this.cfg.seamlessIntro ? 0.35 : RETRY_JINGLE;
@@ -546,7 +576,7 @@ export class Battle {
   finish(win, { white = false } = {}) {
     if (this.state === 'ending') return;
     this.cancelPendingBgm();
-    this.disposeGimmick(); this.interlude = null; this.support?.dispose?.();
+    this.disposeGimmick(); this.interlude?.dispose?.(); this.interlude = null; this.support?.dispose?.();
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
     this.result = { win }; this.state = 'ending'; this.whiteout = white;
     if (white) { this.game.fadeTo(1, 0, undefined, 'white'); this.game.endBattle(this.result); return; }

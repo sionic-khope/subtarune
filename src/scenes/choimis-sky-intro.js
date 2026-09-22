@@ -11,8 +11,9 @@ const RAISE_SRC = 'assets/enemies/choimis-flower-raise.png';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const BATTLE_ACTOR_SCALE = 0.66;
 const PINK_PETALS = Object.freeze(['#ff86b7', '#ffb1d0', '#ffd7e8']);
-const BOSS_BATTLE_HEIGHT = 123 * ENEMIES.choimis_flower.scale;
-const BOSS_HOVER = Object.freeze({ height: 48, amplitude: 3, period: 2.4 });
+const BOSS_BATTLE_HEIGHT = 117.5 * ENEMIES.choimis_flower.scale;
+const BOSS_HOVER = Object.freeze({ height: 48, amplitude: 0, period: 2.4 });
+const REVEAL_PAN = Object.freeze({ dx: 64, duration: 2, bossX: 722 });
 export const CHOIMIS_SKY_SCALE = Object.freeze({
   battleReady: Object.freeze({ hyungsub: 101 / (2 * 349), gyeongsub: 98 / (2 * 359), ppaman: 99 / (2 * 305) }),
   raisedHand: 103 / (2 * 123),
@@ -63,6 +64,25 @@ export async function prepareChoimisSky(game) {
   state.raise = raise ? raiseMotion(raise) : null;
 }
 
+/** Pan beyond the normal right map clamp while Choimis remains hidden below the cliff. */
+export function panChoimisSkyReveal(game) {
+  const boss = entity(game, 'choimis_sky_boss');
+  if (!boss) throw new Error('choimis sky boss is missing from the night cliff');
+  const state = getChoimisSkyState(game);
+  const startX = game.camera.x;
+  const startY = game.camera.y;
+  boss.x = REVEAL_PAN.bossX;
+  boss.visible = false;
+  boss.hopY = -230;
+  game.camera.locked = true;
+  return waitForChoimisSkyAnimation(game, state, REVEAL_PAN.duration, progress => {
+    game.camera.x = startX + REVEAL_PAN.dx * progress;
+    game.camera.y = startY;
+  }).then(completed => {
+    if (completed && game.choimisSky === state) state.revealComplete = true;
+  });
+}
+
 export function riseChoimisFromBelow(game) {
   const boss = entity(game, 'choimis_sky_boss');
   if (!boss) throw new Error('choimis sky boss is missing from the night cliff');
@@ -73,13 +93,10 @@ export function riseChoimisFromBelow(game) {
   const ghosts = game.choimisFlower || (game.choimisFlower = { ghosts: [], cancelled: false });
   ghosts.cancelled = false;
   let trail = 0;
-  const view = { x: boss.x - 104, y: boss.y - 12, w: 0, h: 0 };
-  game.camera.target = view;
-  game.camera.locked = false;
+  game.camera.locked = true;
   return waitForChoimisSkyAnimation(game, state, 2.8, (progress, dt) => {
     const settle = Math.sin(progress * Math.PI * 3) * 12 * (1 - progress);
     boss.hopY = -230 * (1 - progress) + BOSS_HOVER.height * progress + settle;
-    view.y = boss.y - 12 - Math.max(0, boss.hopY) * 0.12;
     trail += dt;
     for (const ghost of ghosts.ghosts) ghost.age += dt;
     ghosts.ghosts = ghosts.ghosts.filter(ghost => ghost.age < 0.42);
@@ -130,12 +147,13 @@ export function playChoimisSkyCue(game) {
 
 export function gatherChoimisSkyPollen(game) {
   const state = getChoimisSkyState(game);
-  const actors = [...PARTY.map(id => entity(game, id)), entity(game, 'choimis_sky_boss')].filter(Boolean);
+  const supportActors = PARTY.map(id => entity(game, id)).filter(Boolean);
+  const actors = [...supportActors, entity(game, 'choimis_sky_boss')].filter(Boolean);
   state.actors = actors;
   state.phase = 'gather';
   state.progress = 0;
   state.windTime = 0;
-  state.pollen = actors.flatMap((actor, actorIndex) => Array.from({ length: 56 }, (_, index) => ({
+  state.pollen = supportActors.flatMap((actor, actorIndex) => Array.from({ length: 56 }, (_, index) => ({
     actor, actorIndex, angle: index * 2.399 + actorIndex * 0.7,
     radius: 42 + (index * 13 % 46), cloudX: (index * 17 % 74) - 37,
     cloudY: (index * 11 % 18) - 9, size: index % 5 === 0 ? 3 : 2,

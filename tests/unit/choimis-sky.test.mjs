@@ -6,7 +6,7 @@ import { QA_POINTS } from '../../src/core/story.js';
 import { MAP_RUNTIME_ASSETS } from '../../src/data/map-runtime-assets.js';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { CHOIMIS_SKY, choimis_sky } from '../../src/data/cutscenes/choimis_sky.js';
-import { CHOIMIS_SKY_SCALE, ascendChoimisSky, clearChoimisSky, gatherChoimisSkyPollen, playChoimisSkyCue, riseChoimisFromBelow } from '../../src/scenes/choimis-sky-intro.js';
+import { CHOIMIS_SKY_SCALE, ascendChoimisSky, clearChoimisSky, gatherChoimisSkyPollen, panChoimisSkyReveal, playChoimisSkyCue, riseChoimisFromBelow } from '../../src/scenes/choimis-sky-intro.js';
 
 test('test_choimis_sky_supplied_dialogue_enters_seamless_battle_after_ascent', () => {
   assert.equal(SCRIPTS.choimis_sky, choimis_sky);
@@ -21,11 +21,18 @@ test('test_choimis_sky_supplied_dialogue_enters_seamless_battle_after_ascent', (
     ['최미스', '그리고. 이젠 달라진 나의 모습을.', 'choimis_flower'],
   ]);
   const rise = choimis_sky.findIndex(node => node.action === riseChoimisFromBelow);
+  const pan = choimis_sky.findIndex(node => node.action === panChoimisSkyReveal);
+  const approach = choimis_sky.findIndex(node => node.parallel?.every(step => ['player', 'gyeongsub', 'ppaman'].includes(step.move)));
   const hello = choimis_sky.findIndex(node => node.text === '* 하이');
   const gather = choimis_sky.findIndex(node => node.action === gatherChoimisSkyPollen);
   const ascent = choimis_sky.findIndex(node => node.action === ascendChoimisSky);
   const battle = choimis_sky.findIndex(node => node.battle);
-  assert.ok(rise < hello && choimis_sky[rise + 1].wait === 0.5);
+  assert.ok(approach >= 0 && approach < pan && pan < rise && rise < hello && choimis_sky[rise + 1].wait === 0.5);
+  assert.deepEqual(choimis_sky[approach].parallel.map(step => [step.move, step.rel, step.at, step.by, step.speed]), [
+    ['player', 'night_edge', 'left', [-20, 0], 70],
+    ['gyeongsub', 'night_edge', 'left', [-84, 0], 70],
+    ['ppaman', 'night_edge', 'left', [-148, 0], 70],
+  ]);
   assert.ok(hello < gather && gather < ascent && ascent < battle);
   assert.deepEqual(choimis_sky[battle].battle, {
     enemies: ['choimis_flower'], bgm: 'choimis_battle', bg: 'choimis_sky',
@@ -33,6 +40,58 @@ test('test_choimis_sky_supplied_dialogue_enters_seamless_battle_after_ascent', (
   });
   assert.equal(choimis_sky.some(node => node.sfx === 'battle_start' || node.vortex), false);
   assert.equal(choimis_sky.findIndex(node => node.fade === 'out'), battle + 1);
+});
+
+test('test_choimis_sky_reveal_pans_right_before_the_hidden_boss_rises', async () => {
+  const boss = { id: 'choimis_sky_boss', x: 632, y: 199, w: 24, h: 16, visible: false, dead: false, def: {} };
+  const player = { id: 'player', x: 560, y: 199, w: 24, h: 16 };
+  const game = {
+    player, entities: [boss], background: [], camera: { x: 224, y: 0, target: player, locked: false },
+    zoom: {}, choimisSky: {}, choimisFlower: null,
+  };
+  const panning = panChoimisSkyReveal(game);
+  assert.equal(game.camera.locked, true);
+  assert.equal(boss.visible, false);
+  assert.equal(boss.hopY, -230);
+  assert.equal(boss.x, 722);
+  assert.equal(game.background[0].update(1), false);
+  assert.equal(game.camera.x, 256);
+  assert.equal(boss.visible, false);
+  assert.equal(game.background[0].update(1), true);
+  await panning;
+  assert.equal(game.camera.x, 288);
+  assert.equal(704 - game.camera.x, 416);
+  assert.equal(boss.x + boss.w / 2 - game.camera.x, 446);
+  assert.ok(boss.x + boss.w / 2 >= 704 + 30);
+  assert.deepEqual([600 - game.camera.x, 536 - game.camera.x, 472 - game.camera.x], [312, 248, 184]);
+  assert.ok(600 + player.w <= 704 - 64);
+  const framedX = game.camera.x;
+  const rising = riseChoimisFromBelow(game);
+  assert.equal(game.camera.x, framedX);
+  assert.equal(boss.visible, true);
+  assert.equal(game.background[1].update(3), true);
+  await rising;
+});
+
+test('test_choimis_sky_reveal_pan_cancels_without_resetting_a_fresh_scene', async () => {
+  const boss = { id: 'choimis_sky_boss', x: 632, y: 199, w: 24, h: 16, visible: false, dead: false, def: {} };
+  const player = { id: 'player', x: 560, y: 199, w: 24, h: 16 };
+  const game = {
+    player, entities: [boss], background: [], camera: { x: 224, y: 0, target: player, locked: false },
+    zoom: {}, choimisSky: {}, choimisFlower: null,
+  };
+  const panning = panChoimisSkyReveal(game);
+  const stalePan = game.background[0];
+  assert.equal(stalePan.update(0.5), false);
+  clearChoimisSky(game);
+  const fresh = { fresh: true }; game.choimisSky = fresh;
+  await panning;
+  assert.deepEqual(game.background, []);
+  assert.equal(stalePan.update(2), true);
+  assert.equal(game.choimisSky, fresh);
+  assert.equal(fresh.revealComplete, undefined);
+  assert.equal(game.camera.target, player);
+  assert.equal(game.camera.locked, false);
 });
 
 test('test_night_cliff_retryable_trigger_preloads_raised_hand_contract', () => {
@@ -84,8 +143,8 @@ test('test_choimis_sky_boss_rises_with_afterimages_before_stabilizing', async ()
   assert.equal(game.background.length, 2);
   const hoverStart = boss.hopY;
   assert.equal(game.background[1].update(0.6), false);
-  assert.notEqual(boss.hopY, hoverStart);
-  assert.ok(boss.hopY >= 45 && boss.hopY <= 51);
+  assert.equal(boss.hopY, hoverStart);
+  assert.equal(boss.hopY, 48);
   assert.equal(game.choimisSky.phase, undefined);
   game.choimisSky.raise = { scale: 1, frames: [{ duration: 1 }] };
   game.sound = { muted: true, sfx() {} };
@@ -197,7 +256,8 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
     sound: { sfx() {} },
   };
   const gathering = gatherChoimisSkyPollen(game);
-  assert.equal(game.choimisSky.pollen.length, 224);
+  assert.equal(game.choimisSky.pollen.length, 168);
+  assert.deepEqual([...new Set(game.choimisSky.pollen.map(particle => particle.actor.id))], ['player', 'gyeongsub', 'ppaman']);
   assert.equal(game.choimisSky.loosePetals.length, 36);
   assert.ok(game.choimisSky.pollen.every(particle => particle.color.startsWith('#ff')));
   assert.ok(game.choimisSky.loosePetals.every(petal => petal.color.startsWith('#ff')));
@@ -228,6 +288,8 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
   assert.ok(Math.abs(player.motion.scale * 1.43 * game.zoom.s - 0.165) < 0.0001);
   const playerBodyHeight = player.motion.scale * 1.43 * game.zoom.s * 349;
   const bossBodyHeight = boss.motion.scale * 1.43 * game.zoom.s * 131;
-  assert.ok(Math.abs(bossBodyHeight - 123 * ENEMIES.choimis_flower.scale) < 0.0001);
-  assert.ok(bossBodyHeight / playerBodyHeight >= 1.05 && bossBodyHeight / playerBodyHeight <= 1.12);
+  const expectedBossRatio = 117.5 * ENEMIES.choimis_flower.scale / (349 * 0.25 * 0.66);
+  assert.ok(Math.abs(bossBodyHeight - 117.5 * ENEMIES.choimis_flower.scale) < 0.0001);
+  assert.ok(Math.abs(bossBodyHeight / playerBodyHeight - expectedBossRatio) < 0.0001);
+  assert.ok(expectedBossRatio >= 1 && expectedBossRatio <= 1.08);
 });

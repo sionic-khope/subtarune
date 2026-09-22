@@ -17,11 +17,13 @@ export const ENEMIES = {
     name: '최미스', hp: 200, damage: 15, money: 0, boss: true, voice: 'choimis_flower',
     sheet: { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 },
     actions: { choso: { src: 'assets/enemies/choimis-choso.png', cols: 2, rows: 2, count: 4, fps: 4.5, px: 1, pivot: [80, 152] } },
-    pivot: [80, 152], scale: 0.506, idle: { swayX: 0, swayY: 3, period: 2.4 },
+    pivot: [80, 152], scale: 0.506, idle: { swayX: 0, swayY: 0, period: 2.4 },
     projectiles: {
       jjajang: 'assets/props/dark_jjajang.png',
       mic: 'assets/enemies/choimis-rap.png',
       fashion: 'assets/props/choimis-fashion.png',
+      dao: 'assets/enemies/dao-battle.png',
+      bazzi: 'assets/enemies/bazzi-battle.png',
     },
     patterns: [
       { type: 'choimis_jjajang' },
@@ -30,6 +32,9 @@ export const ENEMIES = {
       { type: 'choimis_money', speak: '가져가라.' },
       { type: 'choimis_seup', speak: '스읍 미스' },
       { type: 'choimis_fashion', speak: '이거 패션어떰?' },
+      { type: 'choimis_pink_choso', mode: 'choimis_pink_round', scenario: 'choso', speak: '내 추구미는 쵸소우야' },
+      { type: 'choimis_pink_kart', mode: 'choimis_pink_round', scenario: 'kart_block', speak: '막자할게' },
+      { type: 'choimis_pink_prism', mode: 'choimis_pink_round', scenario: 'pink_prism' },
     ],
     openingMode: 'choimis_pink_shooter',
     openingLines: [

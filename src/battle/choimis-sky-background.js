@@ -12,11 +12,18 @@ function actorFeet(battle) {
     const [x, y] = member.action?.position || member.home;
     return [x + (!member.action && picking && index === battle.memberIdx ? 10 : 0), y];
   });
-  const enemies = battle.enemies.filter(enemy => !enemy.dead).map(enemy => {
-    const pose = battle.support?.poseFor?.(enemy) || enemy.patternPose;
-    return [pose?.x ?? enemy.x, (pose?.y ?? enemy.y) + (pose ? 0 : enemy.oy || 0)];
-  });
-  return [...members, ...enemies];
+  return members;
+}
+
+function drawSeaFlow(ctx, sky, time) {
+  for (let row = 0; row < 9; row++) {
+    const y = 216 + row * 16;
+    const shift = Math.floor(time * (9 + row * 1.6)) % 480;
+    const seam = 480 - shift;
+    ctx.globalAlpha = 0.44;
+    ctx.drawImage(sky, shift, y, 480 - shift, 16, 0, y, 480 - shift, 16);
+    if (shift > 0) ctx.drawImage(sky, 0, y, shift, 16, seam, y, shift, 16);
+  }
 }
 
 function drawPetalCloud(ctx, x, y, seed, time, layerAlpha) {
@@ -31,7 +38,6 @@ function drawPetalCloud(ctx, x, y, seed, time, layerAlpha) {
   }
 }
 
-/** Draw the moonlit aerial sea, windblown petals, and petal clouds supporting every combatant. */
 export function drawChoimisSkyBackground(ctx, battle) {
   const time = battle.game?.time ?? battle.t;
   const sky = battle.game?.propImages?.['assets/backdrops/jjajang_night_sea.png'];
@@ -39,10 +45,11 @@ export function drawChoimisSkyBackground(ctx, battle) {
   if (sky) ctx.drawImage(sky, 0, 0, 480, 360, 0, 0, 480, 360);
 
   ctx.save();
-  ctx.globalAlpha = 0.22;
+  if (sky) drawSeaFlow(ctx, sky, time);
+  ctx.globalAlpha = 0.3;
   for (let row = 0; row < 6; row++) {
     const y = 220 + row * 7, speed = 7 + row * 2;
-    for (let x = -34 + ((time * speed + row * 29) % 62); x < 480; x += 62) {
+    for (let x = -62 + ((row * 29 - time * speed) % 62); x < 480; x += 62) {
       ctx.fillStyle = row % 3 === 0 ? '#d8e7ff' : '#3b78b6';
       ctx.fillRect(Math.round(x), y, 18 + row * 2, 1);
     }

@@ -59,7 +59,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         intro: [...(b.introLines || [])], board: { ...b.board.rect }, soul: { x: b.soul.x, y: b.soul.y, r: b.soul.r, hits: b.soul.hits },
         opening: b.gimmick?.snapshot ? b.gimmick.snapshot : null,
         members: b.members.map(m => ({ id: m.id, hp: m.hp, maxHp: m.maxHp, down: m.down, home: [...m.home], loaded: !!m.frames?.idle?.length })),
-        enemies: b.enemies.map(e => ({ id: e.id, hp: e.hp, maxHp: e.maxHp, x: e.x, y: e.y, dead: e.dead, loaded: !!e.img, src: e.img?.src,
+        enemies: b.enemies.map(e => ({ id: e.id, hp: e.hp, maxHp: e.maxHp, x: e.x, y: e.y, dead: e.dead, defenseBoosted: !!e.defenseBoosted, loaded: !!e.img, src: e.img?.src,
           actionLoaded: Object.fromEntries(Object.entries(e.actionImages || {}).map(([k, v]) => [k, !!v])), pose: e.patternPose ? { ...e.patternPose } : null,
           bullets: b.bullets?.map(q => ({ shape: q.shape, age: q.age, warn: q.warn, text: q.text, denomination: q.denomination, look: q.look, x: q.x, y: q.y })) || [] })),
         patterns: b.patterns?.map(p => ({ type: p?.type || null, elapsed: p?.t, duration: p?.p?.duration })) || [],
@@ -67,6 +67,72 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     };
   });
   const record = async label => { const value = await snapshot(); trace.observations.push({ label, value }); if (value.sky?.phase && !trace.phases.includes(value.sky.phase)) trace.phases.push(value.sky.phase); save(); return value; };
+
+
+  const movePinkHeart = async target => {
+    const y = await page.evaluate(() => window.game.battle?.gimmick?.snapshot?.heart?.y);
+    if (!Number.isFinite(y) || Math.abs(y - target) <= 2) return;
+    const up = target < y, key = up ? 'ArrowUp' : 'ArrowDown';
+    await page.keyboard.down(key);
+    try {
+      await page.waitForFunction(({ target, up }) => {
+        const y = window.game.battle?.gimmick?.snapshot?.heart?.y;
+        return Number.isFinite(y) && (up ? y <= target + 2 : y >= target - 2);
+      }, { target, up }, { polling: 'raf', timeout: 1800 });
+    } finally { await page.keyboard.up(key); }
+  };
+  const readPinkScenario = name => page.evaluate(name =>
+    window.game.battle?.gimmick?.snapshot?.scenario?.kind === name
+      ? window.game.battle.gimmick.snapshot.scenario : window.__choimisQa.roundLatches[name], name);
+  const hitChoso = async () => {
+    await movePinkHeart(159);
+    let hits = 0, attempts = 0;
+    while (hits < 6 && attempts < 60) {
+      await press('KeyC'); await page.waitForTimeout(290); attempts++;
+      hits = (await readPinkScenario('choso'))?.hits ?? hits;
+    }
+    return { hits, attempts };
+  };
+  const clearPrism = async () => {
+    await movePinkHeart(159);
+    let shields = 3, chargeShots = 0;
+    while (shields > 0 && chargeShots < 12) {
+      await page.keyboard.down('KeyC');
+      try {
+        const ready = await until(() => !!window.game.battle?.gimmick?.snapshot?.charge?.ready, 2400);
+        if (!ready) break;
+        const aligned = await until(() => {
+          const state = window.game.battle?.gimmick?.snapshot, scenario = state?.scenario;
+          if (!scenario?.shieldPositions?.length) return false;
+          const flight = (scenario.core.x - 37 - (state.heart.x + 11)) / 410;
+          return scenario.shieldPositions.some(point => {
+            const angle = Math.atan2(point.y - scenario.core.y, point.x - scenario.core.x) + flight * 1.4 - Math.PI;
+            return Math.abs(Math.atan2(Math.sin(angle), Math.cos(angle))) < 0.18;
+          });
+        }, 5200);
+        if (!aligned) break;
+      } finally { await page.keyboard.up('KeyC'); }
+      chargeShots++;
+      await page.waitForTimeout(850);
+      shields = (await readPinkScenario('pink_prism'))?.shields ?? shields;
+    }
+    let coreHits = 0, coreAttempts = 0;
+    if (shields === 0) {
+      await movePinkHeart(159);
+      while (coreHits < 3 && coreAttempts < 12) {
+        await press('KeyC'); await page.waitForTimeout(350); coreAttempts++;
+        coreHits = (await readPinkScenario('pink_prism'))?.coreHits ?? coreHits;
+      }
+    }
+    return { shields, coreHits, chargeShots, coreAttempts };
+  };
+  const saveRoundCapture = async key => {
+    const capture = await page.evaluate(key => window.__choimisQa.roundCaptures[key], key);
+    if (!capture?.data) { check(`actual rendered frame exists: ${key}`, false); return; }
+    const file = path.join(process.env.SHOT_DIR, `${key}.png`);
+    fs.writeFileSync(file, Buffer.from(capture.data.split(',')[1], 'base64'));
+    trace.observations.push({ shot: file, label: key, snapshot: capture.snapshot }); save();
+  };
 
   // The draw/audio observer records rendered intermediate states and actual calls without altering time, input, or battle durations.
   await open({ qa: 'choimis_sky' });
@@ -76,17 +142,102 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     const { choimisLyricAt } = await import('/src/battle/choimis-karaoke.js');
     window.__choimisQa = {
       sfx: [], bgm: [], phases: [], frames: [], draws: 0, lyricAt: choimisLyricAt,
+      prepanSamples: [], chargeSamples: [], roundCaptures: {}, hintDraws: [], chargeFrames: {}, defenseFrames: {}, capeFrames: {}, roundLatches: {},
       temporalCaptures: [42.214, 42.264, 42.334, 42.384, 42.484, 42.584].map(time => ({ time, data: null, actual: null, frame: null })),
     };
     const sound = g.sound;
     const sfx = sound.sfx.bind(sound), playBgm = sound.playBgm.bind(sound);
     sound.sfx = (name, options) => { window.__choimisQa.sfx.push({ name, at: performance.now() }); return sfx(name, options); };
     sound.playBgm = (name, options) => { window.__choimisQa.bgm.push({ name, at: performance.now(), options }); return playBgm(name, options); };
+    const originalGameUpdate = g.update.bind(g);
+    g.update = (...args) => {
+      const b = g.battle;
+      if (b && !b.__choimisQaUpdateWrapped) {
+        const originalBattleUpdate = b.update.bind(b);
+        b.update = (...updateArgs) => {
+          const mode = b.gimmick, modeName = b.activeEnemyMode;
+          const result = originalBattleUpdate(...updateArgs);
+          if (modeName === 'choimis_pink_round' && mode?.snapshot) {
+            const scenario = mode.snapshot.scenario;
+            if (scenario?.kind) window.__choimisQa.roundLatches[scenario.kind] = { ...scenario, modeDone: !!mode.done };
+          }
+          return result;
+        };
+        b.__choimisQaUpdateWrapped = true;
+      }
+      return originalGameUpdate(...args);
+    };
     const draw = g.draw.bind(g);
     let nextQaBulletId = 1;
     g.draw = (...args) => {
+      const ctx = g.ctx, originalFillText = ctx?.fillText;
+      if (ctx && originalFillText) {
+        ctx.fillText = function qaFillText(text, x, y, ...rest) {
+          const result = originalFillText.call(this, text, x, y, ...rest);
+          if (text === '↑↓ 이동 · C 탭 발사 / 길게 눌러 충전') {
+            let pixels = null;
+            try {
+              const image = this.getImageData(68, 536, Math.min(812, this.canvas.width - 68), Math.min(60, this.canvas.height - 536)).data;
+              pixels = 0;
+              for (let i = 0; i < image.length; i += 4) if (image[i + 3] > 0 && image[i] + image[i + 1] + image[i + 2] > 90) pixels++;
+            } catch {}
+            const transform = this.getTransform ? this.getTransform() : null;
+            window.__choimisQa.hintDraws.push({ when: 'after-fillText', text, x, y, alpha: this.globalAlpha,
+              font: this.font, composite: this.globalCompositeOperation,
+              transform: transform ? [transform.a, transform.d, transform.e, transform.f] : null,
+              pixels, battle: window.game.battle?.state || null, phase: window.game.battle?.gimmick?.snapshot?.phase || null });
+          }
+          return result;
+        };
+      }
       const result = draw(...args); const b = g.battle, sky = g.choimisSky;
+      if (ctx && originalFillText) {
+        ctx.fillText = originalFillText;
+        const last = window.__choimisQa.hintDraws.at(-1);
+        if (last && last.endDraw === undefined) {
+          let pixels = null;
+          try {
+            const image = ctx.getImageData(68, 536, Math.min(812, ctx.canvas.width - 68), Math.min(60, ctx.canvas.height - 536)).data;
+            pixels = 0;
+            for (let i = 0; i < image.length; i += 4) if (image[i + 3] > 0 && image[i] + image[i + 1] + image[i + 2] > 90) pixels++;
+          } catch {}
+          last.endDraw = { pixels, battle: b?.state || null, phase: b?.gimmick?.snapshot?.phase || null };
+        }
+      }
       if (b?.state === 'intro' && window.__choimisQa.introAt === undefined) window.__choimisQa.introAt = performance.now();
+      const boss = g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead);
+      if (boss && !boss.visible && g.camera.locked) window.__choimisQa.prepanSamples.push({ at: performance.now(), x: g.camera.x, y: g.camera.y, visible: boss.visible });
+      const opening = b?.gimmick?.snapshot;
+      if (opening?.charge?.active) window.__choimisQa.chargeSamples.push({ at: performance.now(), ...opening.charge });
+      if (opening?.charge?.active && opening.charge.progress >= 0.3 && opening.charge.progress <= 0.6 && !window.__choimisQa.chargeFrames.mid) {
+        window.__choimisQa.chargeFrames.mid = { at: performance.now(), progress: opening.charge.progress, data: g.canvas.toDataURL('image/png') };
+      }
+      const defense = b?.interlude?.snapshot;
+      for (const target of [1.4, 2.5]) if (defense?.phase === 'charge' && defense.phaseTime >= target && !window.__choimisQa.defenseFrames[target]) {
+        window.__choimisQa.defenseFrames[target] = { at: performance.now(), phaseTime: defense.phaseTime, data: g.canvas.toDataURL('image/png') };
+      }
+      for (const target of [1, 2, 3, 4]) if (b?.state === 'menu' && !b.enemies?.[0]?.patternPose && b.t >= target && !window.__choimisQa.capeFrames[target]) {
+        window.__choimisQa.capeFrames[target] = { at: performance.now(), battleTime: b.t, data: g.canvas.toDataURL('image/png') };
+      }
+      if (b?.activeEnemyMode === 'choimis_pink_round' && opening?.scenario?.kind) {
+        const kind = opening.scenario.kind;
+        const phase = opening.phase || 'unknown';
+        for (const key of [`${kind}-prep`, `${kind}-${phase}`]) {
+          if (!window.__choimisQa.roundCaptures[key]) window.__choimisQa.roundCaptures[key] = { at: performance.now(), phase, snapshot: opening, data: g.canvas.toDataURL('image/png') };
+        }
+        const captures = [];
+        if (kind === 'kart_block') for (const blocker of opening.scenario.blockers || []) {
+          if (blocker.age > 0.5 && blocker.x > 130 && blocker.x < 360) captures.push(`kart_block-${blocker.kind}`);
+        }
+        if (kind === 'pink_prism') {
+          if (opening.scenario.shields < 3 && opening.scenario.shields > 0) captures.push('pink_prism-shield-active');
+          if (opening.scenario.shields === 0) captures.push('pink_prism-core-active');
+          if (opening.charge.ready) captures.push('pink_prism-charge');
+        }
+        for (const key of captures) if (!window.__choimisQa.roundCaptures[key]) {
+          window.__choimisQa.roundCaptures[key] = { at: performance.now(), phase, snapshot: opening, data: g.canvas.toDataURL('image/png') };
+        }
+      }
       if (b?.state === 'bullets') {
         for (const shape of ['choimis_breath', 'choimis_finger_beam']) {
           const visible = b.bullets.some(q => q.shape === shape && q.age >= q.warn + (shape === 'choimis_finger_beam' ? 0.1 : 0.4) && (shape === 'choimis_finger_beam' || (q.x > b.board.x + 12 && q.x < b.board.x + b.board.w - 12 && q.y > b.board.y + 12 && q.y < b.board.y + b.board.h - 12)));
@@ -95,7 +246,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       }
       for (const bullet of b?.bullets || []) if (!bullet.__qaId) bullet.__qaId = nextQaBulletId++;
       if (sky?.phase && !window.__choimisQa.phases.includes(sky.phase)) window.__choimisQa.phases.push(sky.phase);
-      if (sky?.phase === 'rise' || b?.state === 'bullets' || b?.state === 'enemy-prep' || b?.state === 'board-close' || window.__choimisQa.temporalCaptures?.some(target => !target.data)) {
+      if (sky?.phase === 'rise' || b?.state === 'bullets' || b?.state === 'enemy-prep' || b?.state === 'board-close' || b?.activeEnemyMode === 'choimis_pink_round' || window.__choimisQa.temporalCaptures?.some(target => !target.data)) {
         const bgmTime = g.sound.bgm?.currentTime;
         const cue = window.__choimisQa.lyricAt(bgmTime);
         const lyricFade = cue ? Math.min(1, Math.max(0, (bgmTime - cue.start) / 0.28)) : 0;
@@ -104,7 +255,9 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
           bgmTime, lyric: window.__choimisQa.lyricAt(bgmTime)?.text || null,
           lyricFade, lyricEchoChars, lyricDim: ['enemy-mode', 'enemy-prep', 'bullets', 'board-close'].includes(b?.state),
           ghosts: g.choimisFlower?.ghosts?.length || 0, alpha: ['bullets', 'enemy-prep', 'board-close'].includes(b?.state) ? 0.68 : 1,
-          bullets: b?.bullets?.map(q => ({ id: q.__qaId, shape: q.shape, age: q.age, warn: q.warn, text: q.text, denomination: q.denomination, look: q.look })) || [], pose: b?.enemies?.[0]?.patternPose || null });
+          bullets: b?.bullets?.map(q => ({ id: q.__qaId, shape: q.shape, age: q.age, warn: q.warn, text: q.text, denomination: q.denomination, look: q.look })) || [],
+          opening: b?.activeEnemyMode === 'choimis_pink_round' ? b.gimmick?.snapshot || null : null,
+          pose: b?.enemies?.[0]?.patternPose || null });
         for (const target of window.__choimisQa.temporalCaptures || []) {
           if (!target.data && Number.isFinite(bgmTime) && bgmTime >= target.time && bgmTime < target.time + 0.14) {
             target.actual = bgmTime;
@@ -183,6 +336,9 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       const g = window.game, b = g.entities.find(e => e.id === 'choimis_sky_boss' && !e.dead);
       return b?.visible && b.hopY < -12 && (g.choimisFlower?.ghosts?.length || 0) > 0;
     }, 30000);
+    const prepan = await page.evaluate(() => window.__choimisQa.prepanSamples || []);
+    const prepanXs = prepan.map(sample => sample.x);
+    check('rightward approach visibly pans for two seconds while the boss remains hidden', prepan.length >= 2 && Math.max(...prepanXs) - Math.min(...prepanXs) > 10 && prepan.every(sample => sample.visible === false), json({ samples: prepan.slice(-8), span: prepanXs.length ? Math.max(...prepanXs) - Math.min(...prepanXs) : 0 }));
     check('rightward approach triggers the sky intro and catches an invisible-boss rise with afterimages', !!rising, json(await snapshot()));
     if (rising) { await record('rise-afterimages'); await shot('02_boss_rise_afterimages'); }
   } finally { await page.keyboard.up('ArrowRight'); }
@@ -215,15 +371,15 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     json({ player: beforePose.actors.player, boss: beforePose.actors.choimis_sky_boss, camera: beforePose.camera }));
 
   const gathering = await until(() => window.game.choimisSky?.phase === 'gather' && window.game.choimisSky.progress > 0.45, 15000);
-  check('C advance closes dialogue and starts the dense 224-petal platform gathering', !!gathering && (await snapshot()).sky.actors?.length === 4 && (await snapshot()).sky.pollen === 224 && (await snapshot()).sky.loosePetals === 36,
+  check('C advance closes dialogue and starts the dense 168-petal platform gathering', !!gathering && (await snapshot()).sky.actors?.length === 4 && (await snapshot()).sky.pollen === 168 && (await snapshot()).sky.loosePetals === 36,
     json((await snapshot()).sky));
   await shot('13_pollen_gathering_under_four_actors');
   const cloud = await until(() => window.game.choimisSky?.phase === 'cloud', 6000);
-  const gatheredIntoRise = await page.evaluate(() => window.game.choimisSky?.phase === 'rise' && window.game.choimisSky?.pollen?.length === 224);
-  check('pollen gathers into a cloud for all four actors before ascent', (!!cloud || gatheredIntoRise || (await page.evaluate(() => window.__choimisQa?.phases || [])).includes('cloud')) && (await snapshot()).sky.pollen === 224,
+  const gatheredIntoRise = await page.evaluate(() => window.game.choimisSky?.phase === 'rise' && window.game.choimisSky?.pollen?.length === 168);
+  check('pollen gathers into a cloud for all four actors before ascent', (!!cloud || gatheredIntoRise || (await page.evaluate(() => window.__choimisQa?.phases || [])).includes('cloud')) && (await snapshot()).sky.pollen === 168,
     json(await snapshot()));
   const ascent = await until(() => window.game.choimisSky?.phase === 'rise' && window.game.choimisSky.progress > 0.25, 15000);
-  check('continuous ascent keeps all 224 platform petals and 36 loose sea petals moving', !!ascent && (await snapshot()).sky.pollen === 224 && (await snapshot()).sky.loosePetals === 36 && (await snapshot()).sky.windTime > 0, json(await snapshot()));
+  check('continuous ascent keeps all 168 platform petals and 36 loose sea petals moving', !!ascent && (await snapshot()).sky.pollen === 168 && (await snapshot()).sky.loosePetals === 36 && (await snapshot()).sky.windTime > 0, json(await snapshot()));
   if (ascent) { await record('ascent-mid'); await shot('14_continuous_cliff_sea_ascent_mid'); }
   const battleReady = await until(() => window.game.battle?.state === 'intro', 30000);
   const handoff = await record('battle-handoff');
@@ -289,12 +445,34 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const battleHp = () => page.evaluate(() => Object.fromEntries(game.battle.members.map(member => [member.id, member.hp])));
   const beforePinkHp = await battleHp();
   const fireNoodle = await until(() => window.game.battle?.gimmick?.snapshot?.noodles?.find(n => !n.telegraph) || null, 5000);
-  // Seeded opening lanes center the first noodle on the initial soul y=159;
-  // hold C without a blind movement overshoot so collision remains a real render/input path.
-  await page.keyboard.down('KeyC'); await page.waitForTimeout(1800); await page.keyboard.up('KeyC');
-  const pinkFire = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), hp: Object.fromEntries(game.battle.members.map(member => [member.id, member.hp])) }));
-  check('actual C fire destroys at least one incoming noodle during pink combat', !!fireNoodle && pinkFire.destroyed >= 1, json({ fireNoodle, ...pinkFire }));
-  if (pinkFire.destroyed >= 1) await shot('18_pink_shooter_projectile_hit');
+  // Seeded opening lanes center the first noodle on the initial soul y=159.
+  // A tap must fire once; a separate bounded hold/release checks the three-strand capped charge.
+  await page.waitForTimeout(180);
+  const tapSfxBefore = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length);
+  await page.evaluate(value => { window.__choimisQa.tapSfxBefore = value; }, tapSfxBefore);
+  await press('KeyC');
+  const tapFired = await until(() => window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length > window.__choimisQa.tapSfxBefore ? true : null, 1500);
+  const tapResult = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), cannonPuff: window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length }));
+  check('C tap/release fires exactly one natural pink projectile', !!tapFired && tapResult.cannonPuff === tapSfxBefore + 1, json({ fireNoodle, tapResult }));
+  const chargeStart = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length);
+  await page.keyboard.down('KeyC');
+  const chargeReady = await until(() => {
+    const charge = window.game.battle?.gimmick?.snapshot?.charge;
+    return charge?.active && charge.ready ? charge : null;
+  }, 2200);
+  await page.waitForTimeout(180);
+  const chargeFrame = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), samples: window.__choimisQa.chargeSamples.slice(-12) }));
+  await shot('19_pink_shooter_three_strand_charge');
+  await page.keyboard.up('KeyC');
+  await page.evaluate(value => { window.__choimisQa.chargeSfxBefore = value; }, chargeStart);
+  const chargedReleased = await until(() => {
+    const snapshot = window.game.battle?.gimmick?.snapshot, count = window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length;
+    return snapshot && snapshot.charge?.active === false && count > window.__choimisQa.chargeSfxBefore ? true : null;
+  }, 2000);
+  const pinkFire = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), hp: Object.fromEntries(game.battle.members.map(member => [member.id, member.hp])), cannonPuff: window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length }));
+  check('held C reaches a fixed three-strand charge cap before release', !!chargeReady && chargeFrame.charge?.ready === true && chargeFrame.charge?.elapsed >= 0.9 && chargeFrame.charge?.aura?.length === 3 && !!chargedReleased && pinkFire.cannonPuff === chargeStart + 1, json({ chargeReady, charge: chargeFrame.charge, samples: chargeFrame.samples, afterRelease: pinkFire.charge, released: chargedReleased }));
+  check('actual C tap fire destroys at least one incoming noodle during pink combat', !!fireNoodle && pinkFire.destroyed >= 1, json({ fireNoodle, ...pinkFire }));
+  if (pinkFire.destroyed >= 1) await shot('20_pink_shooter_projectile_hit');
   const activeNoodle = await until(() => window.game.battle?.gimmick?.snapshot?.noodles?.find(n => !n.telegraph && n.x > 80 && n.x < 320) || null, 5000);
   const beforePinkHurt = await battleHp();
   await page.evaluate(() => { window.__choimisQa.hurtHpSum = game.battle.members.reduce((sum, member) => sum + member.hp, 0); });
@@ -335,10 +513,147 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     trace.observations.push({ label: 'bounded-recovery-stop', reason: 'QA_STOP_AFTER_SHOOTER requested after real opening fire/hurt/dodge; no completion claim.' }); save();
     return;
   }
+  const defenseLine = await until(() => {
+    const b = window.game.battle;
+    return b?.state === 'interlude' && b.interlude?.snapshot?.phase === 'boss-line' ? { text: b.text, typed: b.typed } : null;
+  }, 30000);
+  check('pink opening routes into the defense cinematic boss talk before returning to menu', !!defenseLine && defenseLine.text === '* 분홍의 힘이 나를 감싼다.', json(defenseLine));
+  const defenseTyped = await until(() => window.game.battle?.state === 'interlude' && window.game.battle.interlude?.snapshot?.phase === 'boss-line' && window.game.battle.typed, 10000);
+  if (defenseTyped) await shot('23_defense_boss_line');
+  check('defense boss line is fully typed before its flowers transition', !!defenseTyped);
+  if (defenseTyped) await press('KeyC');
+  const flowers = await until(() => window.game.battle?.state === 'interlude' && window.game.battle.interlude?.snapshot?.phase === 'charge' ? window.game.battle.interlude.snapshot : null, 5000);
+  check('defense cinematic renders the flower charge phase after the boss line', !!flowers && flowers.flowers >= 32 && flowers.defenseBoosted === false, json(flowers));
+  if (flowers) await shot('24_defense_flowers_charge');
+  const narrator = await until(() => window.game.battle?.state === 'interlude' && window.game.battle.interlude?.snapshot?.phase === 'result' ? { text: window.game.battle.text, typed: window.game.battle.typed } : null, 5000);
+  check('defense cinematic reaches its narrator result line before menu', !!narrator && narrator.text === '* 최미스의 방어력이 강화되었다.', json(narrator));
+  const narratorTyped = await until(() => window.game.battle?.state === 'interlude' && window.game.battle.interlude?.snapshot?.phase === 'result' && window.game.battle.typed, 10000);
+  if (narratorTyped) await shot('25_defense_narrator_result');
+  if (narratorTyped) await press('KeyC');
   const menu = await until(() => window.game.battle?.state === 'menu', 25000);
   const menuRestored = await until(() => { const b = window.game.battle; return b?.state === 'menu' && !b.gimmick && b.board.w > 0 && b.board.h > 0 ? true : null; }, 3000);
   const returnedMenu = await snapshot(), pinkElapsedMs = Date.now() - pinkCombatStartedAt;
-  check('20-second pink combat transitions to the normal HP/menu state', !!menu && !!menuRestored && pinkElapsedMs >= 19000, json({ elapsedMs: pinkElapsedMs, menu: !!menu, restored: !!menuRestored, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
+  check('20-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === 200 && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 19000, json({ elapsedMs: pinkElapsedMs, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
+  if (process.env.QA_PINK_SUPPLEMENT === '1') {
+    const hintDraws = await page.evaluate(() => window.__choimisQa.hintDraws || []);
+    const visibleHints = hintDraws.filter(draw => draw.pixels > 0 && draw.endDraw?.pixels > 0);
+    const hintStates = new Set(hintDraws.map(draw => `${draw.battle}:${draw.phase}`));
+    trace.observations.push({ label: 'pink-guide-fillText-instrumentation', value: { count: hintDraws.length, visible: visibleHints.length, hintStates, samples: hintDraws.slice(-8) } }); save();
+    check('pink guide uses an actual fillText call with visible pixels in open and combat states', hintDraws.length > 0 && visibleHints.length === hintDraws.length && [...hintStates].some(state => state.startsWith('enemy-mode:')), json({ count: hintDraws.length, visible: visibleHints.length, states: [...hintStates], samples: hintDraws.slice(-8) }));
+    await shot('pink_supplement_sea_menu_t0');
+    await page.waitForTimeout(1000); await shot('pink_supplement_sea_menu_t1');
+    await page.waitForTimeout(1000); await shot('pink_supplement_sea_menu_t2');
+    await page.waitForTimeout(2600);
+    const saveLatched = async (name, data) => {
+      if (!data) return null;
+      const file = await shot(name);
+      fs.writeFileSync(file, Buffer.from(data.split(',')[1], 'base64'));
+      return file;
+    };
+    const latched = await page.evaluate(() => ({ charge: window.__choimisQa.chargeFrames, defense: window.__choimisQa.defenseFrames, cape: window.__choimisQa.capeFrames }));
+    const midChargeFile = await saveLatched('pink_supplement_charge_progress_03_06', latched.charge?.mid?.data);
+    const defenseFiles = [];
+    for (const target of ['1.4', '2.5']) defenseFiles.push(await saveLatched(`pink_supplement_defense_peak_${target.replace('.', '_')}`, latched.defense?.[target]?.data));
+    const capeFiles = [];
+    for (const target of ['1', '2', '3', '4']) capeFiles.push(await saveLatched(`pink_supplement_cape_idle_${target}s`, latched.cape?.[target]?.data));
+    check('supplement captures actual mid-charge, defense peaks, and four cape idle frames', !!midChargeFile && defenseFiles.every(Boolean) && capeFiles.every(Boolean), json({ midCharge: latched.charge?.mid ? { at: latched.charge.mid.at, progress: latched.charge.mid.progress } : null, defense: Object.fromEntries(Object.entries(latched.defense || {}).map(([key, value]) => [key, { at: value.at, phaseTime: value.phaseTime }])), cape: Object.fromEntries(Object.entries(latched.cape || {}).map(([key, value]) => [key, { at: value.at, battleTime: value.battleTime }])) }));
+    const viewportSizes = [375, 768, 1280];
+    for (const width of viewportSizes) { await page.setViewportSize({ width, height: 720 }); await page.waitForTimeout(100); await shot(`pink_supplement_menu_viewport_${width}`); }
+    await page.setViewportSize({ width: 960, height: 720 });
+    const selectSupplement = async scenario => {
+      const selected = await fixture(`pink-supplement-select-${scenario}`, `Select only the registered ${scenario} target-local pink round for bounded supplemental QA; no shots, HP, or completion state are injected.`, ({ scenario: expected }) => {
+        const b = game.battle, e = b?.enemies?.[0];
+        const index = e?.def?.patterns?.findIndex(pattern => pattern?.mode === 'choimis_pink_round' && pattern.scenario === expected) ?? -1;
+        window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
+        if (index < 0) return false;
+        e.patternIdx = index; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+        b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
+        return true;
+      }, { scenario });
+      check(`pink supplement ${scenario}: registered route is available`, selected === true, json(await page.evaluate(() => window.__choimisQa.pinkRoundFixture)));
+      await page.evaluate(() => { const scenario = window.__choimisQa.pinkRoundFixture?.scenario; window.__choimisQa.pinkSupplementHits = 0; window.__choimisQa.pinkSupplementCleared = 0; if (scenario) delete window.__choimisQa.roundLatches[scenario]; });
+      return selected === true;
+    };
+    const queueSupplement = async scenario => {
+      await page.evaluate(value => { window.__choimisQa.pinkSupplementScenario = value; }, scenario);
+      for (let memberIndex = 0; memberIndex < 3; memberIndex++) {
+        await page.evaluate(index => { window.__choimisQa.waitMemberIdx = index; }, memberIndex);
+        if (!await until(() => window.game.battle?.state === 'menu' && window.game.battle.memberIdx === window.__choimisQa.waitMemberIdx, 6000)) return false;
+        await press('KeyC');
+        if (!await until(() => window.game.battle?.state === 'target', 3000)) return false;
+        await press('KeyC');
+      }
+      const started = await until(() => {
+        const b = window.game.battle, opening = b?.gimmick?.snapshot;
+        return b?.state === 'enemy-mode' && b.activeEnemyMode === 'choimis_pink_round' && opening?.scenario?.kind === window.__choimisQa.pinkSupplementScenario ? opening : null;
+      }, 8000);
+      check(`pink supplement ${scenario}: real menu input enters target-local round`, !!started, json(started || await snapshot()));
+      if (!started) return false;
+      await shot(`pink_supplement_${scenario}_prep`);
+      const combat = await until(() => window.game.battle?.gimmick?.snapshot?.phase === 'combat' ? window.game.battle.gimmick.snapshot : null, 5000);
+      check(`pink supplement ${scenario}: prep opens lower-panel combat`, !!combat, json(combat));
+      if (combat) {
+        await shot(`pink_supplement_${scenario}_combat`);
+        if (scenario === 'choso') {
+          for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 720 }); await page.waitForTimeout(100); await shot(`pink_supplement_${scenario}_guide_viewport_${width}`); }
+          await page.setViewportSize({ width: 960, height: 720 });
+        }
+      }
+      return !!combat;
+    };
+    const moveHeart = async targetY => {
+      const heartY = await page.evaluate(() => window.game.battle?.gimmick?.snapshot?.heart?.y);
+      if (!Number.isFinite(targetY) || !Number.isFinite(heartY) || Math.abs(targetY - heartY) <= 2) return;
+      const key = targetY < heartY ? 'ArrowUp' : 'ArrowDown';
+      await page.evaluate(value => { window.__choimisQa.pinkTargetY = value; }, targetY);
+      await page.keyboard.down(key);
+      await until(() => { const y = window.game.battle?.gimmick?.snapshot?.heart?.y; return Number.isFinite(y) && Math.abs(y - window.__choimisQa.pinkTargetY) <= 2; }, 1500);
+      await page.keyboard.up(key);
+    };
+    const cleanupSupplementRound = async (scenario, passed, detail) => {
+      const ended = await until(() => window.game.battle?.state === 'menu' && !window.game.battle?.gimmick && !window.game.battle?.activeEnemyMode, 8000);
+      check(`pink supplement ${scenario}: cleanup returns to normal menu`, !!ended && passed, json({ ended, ...detail }));
+      trace.observations.push({ label: `pink-supplement-${scenario}`, ended: !!ended, passed, detail }); save();
+      return !!ended && passed;
+    };
+    if (!await selectSupplement('choso') || !await queueSupplement('choso')) return;
+    const chosoWarning = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age < beam.warned), 4000);
+    if (chosoWarning) await shot('pink_supplement_choso_beam_warning');
+    const chosoActive = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age >= beam.warned), 3000);
+    if (chosoActive) await shot('pink_supplement_choso_beam_active');
+    const { hits: chosoHits, attempts: chosoAttempts } = await hitChoso();
+    check('pink supplement choso: six actual projectiles stop six moving blood beams', chosoHits === 6, json({ hits: chosoHits, attempts: chosoAttempts, warning: !!chosoWarning, active: !!chosoActive }));
+    if (!await cleanupSupplementRound('choso', chosoHits === 6, { hits: chosoHits, attempts: chosoAttempts })) return;
+    if (!await selectSupplement('kart_block') || !await queueSupplement('kart_block')) return;
+    let kartCleared = 0, kartAttempts = 0; const kartKinds = new Set();
+    while (kartCleared < 4 && kartAttempts++ < 16) {
+      const blocker = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.blockers?.find(item => item.age >= 0.5) || null, 5000);
+      if (!blocker) break;
+      kartKinds.add(blocker.kind); await moveHeart(blocker.y); await press('KeyC');
+      await page.evaluate(value => { window.__choimisQa.pinkSupplementCleared = value; }, kartCleared);
+      const next = await until(() => { const value = window.game.battle?.gimmick?.snapshot?.scenario?.cleared ?? window.__choimisQa.roundLatches.kart_block?.cleared; return Number.isFinite(value) && value > window.__choimisQa.pinkSupplementCleared ? value : null; }, 5000);
+      kartCleared = next || kartCleared;
+    }
+    for (const key of ['kart_block-dao', 'kart_block-bazzi']) await saveRoundCapture(key);
+    if (!await cleanupSupplementRound('kart_block', kartCleared === 4 && kartKinds.has('dao') && kartKinds.has('bazzi'), { cleared: kartCleared, kinds: [...kartKinds] })) return;
+    if (!await selectSupplement('pink_prism') || !await queueSupplement('pink_prism')) return;
+    const prism = await clearPrism();
+    for (const key of ['pink_prism-shield-active', 'pink_prism-core-active', 'pink_prism-charge']) await saveRoundCapture(key);
+    check('pink supplement prism: charged shots break three shields and three real shots hit the exposed core',
+      prism.shields === 0 && prism.coreHits === 3 && prism.chargeShots >= 3, json(prism));
+    if (!await cleanupSupplementRound('pink_prism', prism.shields === 0 && prism.coreHits === 3, prism)) return;
+    if (!await selectSupplement('choso') || !await queueSupplement('choso')) return;
+    await fixture('pink-supplement-explicit-loss', 'Inject party defeat in the target-local pink round to verify disposal; this is an explicit miss fixture and makes no natural completion claim.', () => game.battle.hurtAllParty(999));
+    const lostRound = await until(() => window.game.battle?.state === 'lose', 3000);
+    const lostRoundState = await snapshot();
+    check('pink supplement explicit miss disposes gimmick', !!lostRound && !lostRoundState.battle?.opening && lostRoundState.battle?.state === 'lose', json(lostRoundState));
+    await shot('pink_supplement_explicit_miss'); await page.waitForTimeout(2300); await press('KeyC');
+    const retryRound = await until(() => window.game.battle?.state === 'retry', 3000);
+    const retryIntroRound = await until(() => window.game.battle?.state === 'intro', 8000);
+    check('pink supplement retry restores the ordinary intro state', !!retryRound && !!retryIntroRound && (await snapshot()).battle?.opening === null, json({ retryRound, retryIntroRound, state: await snapshot() }));
+    await runRecoveryLifecycle();
+    return;
+  }
   if (process.env.QA_RECOVERY_ONLY === '1') {
     await fixture('restore-opening-rng', 'Restore the original battle RNG before the bounded recovery lifecycle; no natural boss completion is claimed.', () => {
       if (game.battle?.__choimisQaOriginalRnd) { game.battle.rnd = game.battle.__choimisQaOriginalRnd; delete game.battle.__choimisQaOriginalRnd; }
@@ -349,11 +664,11 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   await fixture('restore-opening-rng', 'Restore the original battle RNG after the natural opening shooter so the six pattern fixtures use their normal runtime randomness.', () => {
     if (game.battle?.__choimisQaOriginalRnd) { game.battle.rnd = game.battle.__choimisQaOriginalRnd; delete game.battle.__choimisQaOriginalRnd; }
   });
-  await shot('19_battle_menu_hp200');
+  await shot('21_battle_menu_hp200');
   const idleFrames = [];
   for (let i = 0; i < 8; i++) { idleFrames.push(await page.evaluate(() => { const b = game.battle, e = b?.enemies?.[0]; return b && e ? { t: b.t, frame: Math.floor(b.t * (e.def.sheet?.fps || 5.5)) % (e.def.sheet?.count || 4), pose: e.patternPose, ox: e.ox, oy: e.oy } : null; })); await page.waitForTimeout(180); }
   check('floating boss idle visibly cycles cape/idle frames while remaining at the stable home pose', new Set(idleFrames.filter(Boolean).map(f => f.frame)).size >= 2 && idleFrames.every(f => !f?.pose), json(idleFrames));
-  await shot('20_boss_idle_cape_flap');
+  await shot('22_boss_idle_cape_flap');
 
   const waitForLyric = async (text, start, end, image, timeout = 45000) => {
     // Poll the interior of each cue window so screenshot overhead cannot cross a short
@@ -440,7 +755,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     }, { index: pattern.index });
     await page.evaluate(() => { window.__choimisQa.frames = []; });
     const queued = await queueRound();
-    check(`${pattern.name}: real menu/attack input queues a full party turn`, queued, json(await snapshot()));
+    await until(() => ['enemy-prep', 'bullets', 'board-close'].includes(window.game.battle?.state) ? true : null, 7000);
+    const queuedState = await snapshot();
+    check(`${pattern.name}: real menu/attack input queues a full party turn`, queued, json(queuedState));
+    check(`${pattern.name}: boosted Choimis takes exactly one damage from each party attack`, queued && queuedState.battle?.enemies?.[0]?.hp === 197 && queuedState.battle?.enemies?.[0]?.defenseBoosted === true, json({ hp: queuedState.battle?.enemies?.[0]?.hp, defenseBoosted: queuedState.battle?.enemies?.[0]?.defenseBoosted }));
     const telegraph = await until(() => window.__choimisQa.frames?.some(f => f.battle === 'bullets' && f.bullets.some(b => b.warn !== undefined && b.age < b.warn)) ? true : null, 10000);
     if (telegraph) await shot(`pattern_${pattern.name}_telegraph`);
     const teleFrame = await page.evaluate(() => [...(window.__choimisQa.frames || [])].reverse().find(f => f.battle === 'bullets' && f.bullets.some(b => b.warn !== undefined && b.age < b.warn)) || null);
@@ -501,6 +819,115 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       check('fashion: four pink outfit looks render in sequence', json(looks) === json([0, 1, 2, 3]), json(looks));
     }
   }
+
+  // BUILD295 target-local pink rounds are a separate registry route from the six
+  // ordinary source patterns above.  Every round below is selected by fixture
+  // index only, then driven through the real menu/input/update/render path.
+  const PINK_ROUNDS = [
+    { name: 'choso', label: 'Choso blood-beam round', required: 6 },
+    { name: 'kart_block', label: 'Kart blocker round', required: 4 },
+    { name: 'pink_prism', label: 'Pink prism charged-break round', required: 3 },
+  ];
+  const selectPinkRound = async scenario => {
+    const selected = await fixture(`pink-round-select-${scenario}`, `Select only the registered ${scenario} target-local pink round for real menu/input QA; no shots, HP, or completion state are injected.`, ({ scenario: expected }) => {
+      const b = game.battle, e = b?.enemies?.[0];
+      const index = e?.def?.patterns?.findIndex(pattern => pattern?.mode === 'choimis_pink_round' && pattern.scenario === expected) ?? -1;
+      window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
+      if (index < 0) return false;
+      e.patternIdx = index; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+      b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
+      return true;
+    }, { scenario });
+    check(`${scenario}: registered pink-round route is available`, selected === true, json(await page.evaluate(() => window.__choimisQa.pinkRoundFixture)));
+    await page.evaluate(scenario => { window.__choimisQa.pinkRoundHits = 0; window.__choimisQa.kartCleared = 0; window.__choimisQa.prismCoreHits = 0; delete window.__choimisQa.roundLatches[scenario]; }, scenario);
+    return selected === true;
+  };
+  const startPinkRound = async scenario => {
+    const queued = await queueRound();
+    check(`${scenario}: real menu/attack input queues the target-local pink round`, queued, json(await snapshot()));
+    const started = await until(() => {
+      const b = window.game.battle, opening = b?.gimmick?.snapshot;
+      return b?.state === 'enemy-mode' && b.activeEnemyMode === 'choimis_pink_round' && opening?.scenario?.kind === window.__choimisQa.pinkRoundFixture?.scenario ? opening : null;
+    }, 8000);
+    check(`${scenario}: pink round starts through the registered enemy mode`, !!started, json(started || await snapshot()));
+    if (!started) return null;
+    await shot(`pink_round_${scenario}_prep`);
+    const combat = await until(() => {
+      const b = window.game.battle, opening = b?.gimmick?.snapshot;
+      return b?.activeEnemyMode === 'choimis_pink_round' && opening?.phase === 'combat' ? opening : null;
+    }, 5000);
+    check(`${scenario}: black lower panel leaves prep and opens its combat board`, !!combat, json(combat));
+    if (combat) {
+      await page.evaluate(() => { window.__choimisQa.roundSfxBefore = Object.fromEntries(window.__choimisQa.sfx.map(sound => [sound.name, (window.__choimisQa.sfx.filter(item => item.name === sound.name).length)])); });
+      await shot(`pink_round_${scenario}_combat`);
+    }
+    return combat;
+  };
+  const finishPinkRound = async (scenario, passed, detail) => {
+    const ended = await until(() => window.game.battle?.state === 'menu' && !window.game.battle?.gimmick && !window.game.battle?.activeEnemyMode, 8000);
+    check(`${scenario}: round cleanup returns to normal menu after its target condition`, !!ended && passed, json({ ended, ...detail }));
+    trace.observations.push({ label: `pink-round-${scenario}`, ended: !!ended, passed, detail }); save();
+    return !!ended && passed;
+  };
+  for (const pink of PINK_ROUNDS) {
+    if (!await selectPinkRound(pink.name)) return;
+    const combat = await startPinkRound(pink.name);
+    if (!combat) return;
+    if (pink.name === 'choso') {
+      const warning = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age < beam.warned) ? true : null, 4000);
+      if (warning) await shot('pink_round_choso_beam_warning');
+      const active = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age >= beam.warned) ? true : null, 3000);
+      if (active) await shot('pink_round_choso_beam_active');
+      const { hits, attempts } = await hitChoso();
+      const hitSfx = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'hit').length - (window.__choimisQa.roundSfxBefore?.hit || 0));
+      if (hits < pink.required) check(`choso: actual projectile reaches all six beam-stop hits`, false, json({ hits, attempts, required: pink.required, warning, active }));
+      if (!await finishPinkRound('choso', hits === pink.required && hitSfx >= pink.required, { hits, hitSfx, attempts, required: pink.required, warning: !!warning, active: !!active })) return;
+    } else if (pink.name === 'kart_block') {
+      let cleared = 0; const kinds = new Set();
+      let roundAttempts = 0;
+      while (cleared < pink.required && roundAttempts < pink.required * 4) {
+        roundAttempts++;
+        const blocker = await until(() => {
+          const value = window.game.battle?.gimmick?.snapshot?.scenario?.blockers?.find(item => item.age >= 0.5);
+          if (value) window.__choimisQa.kartTarget = value;
+          return value || null;
+        }, 5000);
+        if (!blocker) break;
+        kinds.add(blocker.kind);
+        await movePinkHeart(blocker.y);
+        await press('KeyC');
+        const next = await until(() => {
+          const value = window.game.battle?.gimmick?.snapshot?.scenario?.cleared ?? window.__choimisQa.roundLatches.kart_block?.cleared;
+          return Number.isFinite(value) && value > window.__choimisQa.kartCleared ? value : null;
+        }, 5000);
+        await page.evaluate(value => { window.__choimisQa.kartCleared = value; }, next || cleared);
+        cleared = next || cleared;
+        check(`kart block: actual sprite blocker cleared ${cleared}/${pink.required}`, !!next, json({ blocker, cleared }));
+        if (!next) break;
+      }
+      const kartSfx = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'kart_booster').length - (window.__choimisQa.roundSfxBefore?.kart_booster || 0));
+      for (const key of ['kart_block-dao', 'kart_block-bazzi']) await saveRoundCapture(key);
+      if (!await finishPinkRound('kart_block', cleared === pink.required && kartSfx >= pink.required && kinds.has('dao') && kinds.has('bazzi'), { cleared, kartSfx, required: pink.required, kinds: [...kinds] })) return;
+    } else {
+      const { shields, coreHits, chargeShots, coreAttempts } = await clearPrism();
+      for (const key of ['pink_prism-shield-active', 'pink_prism-core-active', 'pink_prism-charge']) await saveRoundCapture(key);
+      check('pink prism: charged shots break all rotating shields', shields === 0 && chargeShots >= 3, json({ shields, chargeShots }));
+      if (!await finishPinkRound('pink_prism', shields === 0 && coreHits === 3, { shields, chargeShots, coreHits, coreAttempts })) return;
+    }
+  }
+
+  await selectPinkRound('choso');
+  const missQueued = await startPinkRound('choso');
+  if (!missQueued) return;
+  await fixture('pink-round-explicit-loss', 'Inject party defeat while the target-local round is active to verify mode disposal; this is an explicit miss fixture and does not claim natural boss completion.', () => game.battle.hurtAllParty(999));
+  const miss = await until(() => window.game.battle?.state === 'lose', 3000);
+  const missState = await snapshot();
+  check('pink round explicit miss disposes gimmick and restores battle cleanup state', !!miss && !missState.battle?.opening && missState.battle?.state === 'lose', json(missState));
+  await shot('pink_round_explicit_miss_game_over');
+  await page.waitForTimeout(2300); await press('KeyC');
+  const retry = await until(() => window.game.battle?.state === 'retry', 3000);
+  const retryIntro = await until(() => window.game.battle?.state === 'intro', 8000);
+  check('pink round retry clears the miss and reloads its ordinary intro state', !!retry && !!retryIntro && (await snapshot()).battle?.opening === null, json({ retry, retryIntro, state: await snapshot() }));
 
   await runRecoveryLifecycle();
 });

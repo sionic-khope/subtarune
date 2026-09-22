@@ -5,6 +5,7 @@ import { BATTLE_BGS } from '../../src/battle/backgrounds.js';
 import { drawChoimisSkyBackground } from '../../src/battle/choimis-sky-background.js';
 import { Battle } from '../../src/battle/battle.js';
 import { Board, Soul, PATTERNS } from '../../src/battle/bullets.js';
+import { getBattleMode } from '../../src/battle/modes.js';
 import { choimisLyricAt, drawChoimisKaraoke } from '../../src/battle/choimis-karaoke.js';
 
 test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
@@ -16,13 +17,15 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   assert.equal(enemy.lines.appear, '* 최미스가 승부를 걸어왔다.');
   assert.deepEqual(enemy.lines.idle, ['* 짜장면의 냄새가 풍긴다.', '* 핑크색이 보인다.']);
   assert.equal(enemy.idle.swayX, 0);
-  assert.ok(enemy.idle.swayY > 0);
+  assert.equal(enemy.idle.swayY, 0);
   assert.equal(enemy.scale, 0.506);
   assert.equal(enemy.actions.choso.src, 'assets/enemies/choimis-choso.png');
   assert.deepEqual(enemy.projectiles, {
     jjajang: 'assets/props/dark_jjajang.png',
     mic: 'assets/enemies/choimis-rap.png',
     fashion: 'assets/props/choimis-fashion.png',
+    dao: 'assets/enemies/dao-battle.png',
+    bazzi: 'assets/enemies/bazzi-battle.png',
   });
   assert.deepEqual(enemy.patterns.map(pattern => [pattern.type, pattern.speak]), [
     ['choimis_jjajang', undefined],
@@ -31,13 +34,17 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     ['choimis_money', '가져가라.'],
     ['choimis_seup', '스읍 미스'],
     ['choimis_fashion', '이거 패션어떰?'],
+    ['choimis_pink_choso', '내 추구미는 쵸소우야'],
+    ['choimis_pink_kart', '막자할게'],
+    ['choimis_pink_prism', undefined],
   ]);
   assert.equal(enemy.openingMode, 'choimis_pink_shooter');
   assert.deepEqual(enemy.openingLines.map(line => [line.speaker, line.portrait, line.voice, line.text]), [
     ['최미스', 'choimis_flower', 'choimis_flower', '* 형들 꼭 그렇게 저를 막으셔야겠다면'],
     ['최미스', 'choimis_flower', 'choimis_flower', '* 여러분들의 마음을 핑크로 물들여보세요.'],
   ]);
-  assert.ok(enemy.patterns.every(pattern => typeof PATTERNS[pattern.type] === 'function'));
+  assert.ok(enemy.patterns.slice(0, 6).every(pattern => typeof PATTERNS[pattern.type] === 'function'));
+  assert.ok(enemy.patterns.slice(6).every(pattern => typeof getBattleMode('enemy', pattern.mode) === 'function'));
 });
 
 test('test_choimis_opening_mode_runs_once_per_attempt_and_retry_rearms_it', () => {
@@ -84,7 +91,7 @@ test('test_choimis_opening_focus_hides_actors_before_board_updates_and_restores_
   assert.equal(battle.openingActorAlpha(), 1);
 });
 
-test('test_choimis_sky_preserves_moon_and_sea_with_petal_supports_for_every_actor', () => {
+test('test_choimis_sky_keeps_three_party_supports_and_moves_only_the_sea_left', () => {
   const sky = { id: 'night-sky' }, calls = [];
   const ctx = {
     globalAlpha: 1, fillStyle: '',
@@ -102,7 +109,20 @@ test('test_choimis_sky_preserves_moon_and_sea_with_petal_supports_for_every_acto
   assert.equal(BATTLE_BGS.choimis_sky, drawChoimisSkyBackground);
   assert.deepEqual(calls[0], ['paint', 0, 0, 480, 360]);
   assert.deepEqual(calls[1], ['image', sky, 0, 0, 480, 360, 0, 0, 480, 360]);
-  assert.ok(calls.filter(call => call[0] === 'paint').length >= 230, 'four dense petal platforms plus airborne petals render');
+  const platformPaint = calls.filter(call => call[0] === 'paint' && call[3] <= 4 && call[4] <= 2 && call[1] < 130);
+  assert.ok(platformPaint.length >= 162, 'three dense 54-petal party platforms render');
+  assert.equal(calls.filter(call => call[0] === 'image').length, 19);
+  const earlierSea = calls.find(call => call[0] === 'image' && call[3] === 216);
+  calls.length = 0;
+  battle.game.time = 2.25;
+  drawChoimisSkyBackground(ctx, battle);
+  const laterSea = calls.find(call => call[0] === 'image' && call[3] === 216);
+  assert.ok(laterSea[2] > earlierSea[2], 'fixed screen origin samples farther right as water travels left');
+  assert.deepEqual(calls[1], ['image', sky, 0, 0, 480, 360, 0, 0, 480, 360], 'moon and stars stay fixed');
+  calls.length = 0;
+  battle.openingActorAlpha = () => 0;
+  drawChoimisSkyBackground(ctx, battle);
+  assert.ok(calls.filter(call => call[0] === 'paint').length < 162, 'party supports hide with party actors');
 });
 
 test('test_choimis_seamless_intro_keeps_the_previous_frame_until_assets_are_ready', async () => {
@@ -132,6 +152,7 @@ test('test_choimis_karaoke_reads_only_the_audio_clock_and_recomputes_after_seek'
   const ctx = {
     globalAlpha: 1, font: '', textAlign: '', textBaseline: '', lineJoin: '', strokeStyle: '', fillStyle: '', lineWidth: 0,
     save() {}, restore() {}, measureText: () => ({ width: 8 }),
+    beginPath() {}, rect() {}, clip() {},
     strokeText: (text, x, y) => calls.push(['stroke', text, x, y]),
     fillText: (text, x, y) => calls.push(['fill', text, x, y]),
   };

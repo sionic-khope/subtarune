@@ -1,3 +1,6 @@
+import L from '../../data/locale/ko.js';
+import { FONT } from '../../ui/font.js';
+
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
 const COMPACT_BOARD = Object.freeze({ x: 135, y: 90, w: 210, h: 132 });
@@ -10,11 +13,13 @@ const BOWL_ASSET = 'assets/props/dark_jjajang.png';
 /** Opening shooter tuning. Combat time intentionally excludes formation and launch. */
 export const CHOIMIS_PINK_SHOOTER = Object.freeze({
   openSeconds: 0.5,
-  fillSeconds: 1.4,
+  fillSeconds: 1.8,
   drainSeconds: 2.4,
   launchSeconds: 0.7,
   combatSeconds: 20,
-  fireCooldown: 0.18,
+  fireCooldown: 0.3,
+  chargeSeconds: 0.9,
+  chargeCueAt: 0.18,
   shotSpeed: 410,
   heartSpeed: 126,
   heartX: 64,
@@ -47,6 +52,45 @@ export function heartPixels(facing = 'down') {
 }
 
 const held = (input, key) => input.down?.(key) ?? input.held?.(key) ?? input.held?.[key] ?? false;
+
+/** Shared pink-shooter C edge state: tap fires normally; only a full bounded hold charges. */
+export function createPinkFireControl(config = CHOIMIS_PINK_SHOOTER) {
+  let armed = false, wasDown = false, active = false, elapsed = 0, cooldown = 0, cuePlayed = false, disposed = false;
+  const snapshot = () => ({ active, elapsed: Math.round(elapsed * 100) / 100, ready: active && elapsed >= config.chargeSeconds, progress: active ? clamp(elapsed / config.chargeSeconds, 0, 1) : 0 });
+  return {
+    get snapshot() { return snapshot(); },
+    update(dt, input) {
+      if (disposed) return [];
+      const events = [], down = held(input, 'confirm'), canStart = cooldown <= 0;
+      cooldown = Math.max(0, cooldown - dt);
+      if (!armed) { if (!down) armed = true; wasDown = down; return events; }
+      if (down && !active && canStart) { active = true; elapsed = 0; cuePlayed = false; }
+      if (active && down) {
+        elapsed = Math.min(config.chargeSeconds, elapsed + dt);
+        if (!cuePlayed && elapsed >= config.chargeCueAt) { cuePlayed = true; events.push({ type: 'charge' }); }
+      }
+      if (active && !down && wasDown) {
+        events.push({ type: 'fire', charged: elapsed + 1e-9 >= config.chargeSeconds });
+        active = false; elapsed = 0; cuePlayed = false; cooldown = config.fireCooldown;
+      }
+      wasDown = down;
+      return events;
+    },
+    dispose() { disposed = true; armed = false; wasDown = false; active = false; elapsed = 0; cooldown = 0; cuePlayed = false; },
+  };
+}
+
+/** Three bounded streak heads orbit outside the heart and converge at full charge. */
+export function pinkChargeAura(x, y, progress, time) {
+  const p = clamp(progress, 0, 1), radius = lerp(24, 2, p * p);
+  return Array.from({ length: 3 }, (_, index) => {
+    const angle = time * 8 + index * Math.PI * 2 / 3;
+    return { x: x + Math.cos(angle) * radius, y: y + Math.sin(angle) * radius, angle, radius };
+  });
+}
+
+/** Shared fixed-tier projectile; charged only changes bounded presentation/collision size. */
+export const createPinkShot = (x, y, charged = false) => ({ x, y, oldX: x, oldY: y, r: charged ? 5 : 3, charged });
 const boardAt = board => ({ x: board.x, y: board.y, w: board.w, h: board.h });
 const snapshotObject = value => ({ ...value, x: Math.round(value.x * 100) / 100, y: Math.round(value.y * 100) / 100 });
 
@@ -55,7 +99,8 @@ export function createChoimisPinkShooter(battle, { enemy }) {
   const C = CHOIMIS_PINK_SHOOTER, board = battle.board, soul = battle.soul;
   const oldBoard = { ...board.rect, target: board.target && { ...board.target } };
   const oldSoul = { x: soul.x, y: soul.y, invuln: soul.invuln };
-  let phase = 'open', phaseTime = 0, combatElapsed = 0, water = 0, scroll = 0, cooldown = 0;
+  let phase = 'open', phaseTime = 0, combatElapsed = 0, water = 0, scroll = 0;
+  const fireControl = createPinkFireControl(C);
   let shots = [], noodles = [], effects = [], nextSpawn = C.spawnFirst;
   let spawned = 0, destroyed = 0, missed = 0, disposed = false;
   const bowl = { image: null };
@@ -83,9 +128,8 @@ export function createChoimisPinkShooter(battle, { enemy }) {
     noodles.push({ x: WIDE_BOARD.x + WIDE_BOARD.w - 5, y, oldX: WIDE_BOARD.x + WIDE_BOARD.w - 5, oldY: y, r: 8, age: 0, telegraph: true });
     spawned++;
   };
-  const fire = () => {
-    shots.push({ x: soul.x + 11, y: soul.y, oldX: soul.x + 11, oldY: soul.y, r: 3 });
-    cooldown = C.fireCooldown;
+  const fire = charged => {
+    shots.push(createPinkShot(soul.x + 11, soul.y, charged));
     battle.sfx('cannon_puff', { volume: 0.4, rate: 1.45 });
   };
   const burst = (x, y, color, kind = 'hit') => {
@@ -93,10 +137,13 @@ export function createChoimisPinkShooter(battle, { enemy }) {
   };
   const updateCombat = (dt, input) => {
     combatElapsed = Math.min(C.combatSeconds, combatElapsed + dt); phaseTime += dt; scroll += dt * 92;
-    soul.invuln = Math.max(0, soul.invuln - dt); cooldown -= dt;
+    soul.invuln = Math.max(0, soul.invuln - dt);
     const direction = Number(held(input, 'down')) - Number(held(input, 'up'));
     soul.y = clamp(soul.y + direction * C.heartSpeed * dt, WIDE_BOARD.y + 13, WIDE_BOARD.y + WIDE_BOARD.h - 13);
-    if (held(input, 'confirm') && cooldown <= 0) fire();
+    for (const event of fireControl.update(dt, input)) {
+      if (event.type === 'charge') battle.sfx('power', { volume: 0.65 });
+      else fire(event.charged);
+    }
     while (combatElapsed >= nextSpawn && nextSpawn < C.combatSeconds - 0.8) { spawnNoodle(); nextSpawn += C.spawnEvery; }
     for (const shot of shots) { shot.oldX = shot.x; shot.oldY = shot.y; shot.x += C.shotSpeed * dt; }
     for (const noodle of noodles) {
@@ -138,6 +185,7 @@ export function createChoimisPinkShooter(battle, { enemy }) {
         heart: { x: Math.round(soul.x), y: Math.round(soul.y), color: phase === 'open' || phase === 'fill' ? 'red' : 'pink', facing: phase === 'open' || phase === 'fill' ? 'down' : 'right' },
         shots: shots.map(snapshotObject), noodles: noodles.map(noodle => ({ ...snapshotObject(noodle), telegraph: noodle.telegraph })),
         effects: effects.map(snapshotObject), spawned, destroyed, missed, disposed,
+        charge: { ...fireControl.snapshot, aura: fireControl.snapshot.active ? pinkChargeAura(soul.x, soul.y, fireControl.snapshot.progress, combatElapsed) : [] },
       };
     },
     update(dt, input) {
@@ -147,10 +195,10 @@ export function createChoimisPinkShooter(battle, { enemy }) {
         phaseTime = Math.min(C.openSeconds, phaseTime + delta);
         const amount = 1 - (1 - phaseTime / C.openSeconds) ** 3;
         tweenBoard(oldBoard, COMPACT_BOARD, amount);
-        if (phaseTime + 1e-9 >= C.openSeconds) { tweenBoard(COMPACT_BOARD, COMPACT_BOARD, 1); change('fill'); }
+        if (phaseTime + 1e-9 >= C.openSeconds) { tweenBoard(COMPACT_BOARD, COMPACT_BOARD, 1); battle.sfx('great_shine', { volume: 0.55 }); change('fill'); }
       } else if (phase === 'fill') {
         phaseTime = Math.min(C.fillSeconds, phaseTime + delta); water = phaseTime / C.fillSeconds;
-        if (phaseTime + 1e-9 >= C.fillSeconds) change('drain');
+        if (phaseTime + 1e-9 >= C.fillSeconds) { battle.sfx('color_heart', { volume: 0.72 }); change('drain'); }
       } else if (phase === 'drain') {
         phaseTime = Math.min(C.drainSeconds, phaseTime + delta); water = 1 - phaseTime / C.drainSeconds;
         if (phaseTime + 1e-9 >= C.drainSeconds) change('launch');
@@ -168,16 +216,18 @@ export function createChoimisPinkShooter(battle, { enemy }) {
       if (phase === 'launch' || phase === 'combat') drawScroll(ctx, b, scroll);
       if (water > 0) drawPinkWater(ctx, b, water, phaseTime);
       for (const noodle of noodles) drawNoodle(ctx, noodle, bowl.image);
-      for (const shot of shots) drawPellet(ctx, shot);
+      if (fireControl.snapshot.active) drawPinkChargeAura(ctx, pinkChargeAura(soul.x, soul.y, fireControl.snapshot.progress, combatElapsed), fireControl.snapshot.ready);
+      for (const shot of shots) drawPinkPellet(ctx, shot);
       for (const effect of effects) { ctx.globalAlpha = clamp(effect.life / 0.22, 0, 1); ctx.fillStyle = effect.color; ctx.fillRect(Math.round(effect.x) - 2, Math.round(effect.y) - 2, 4, 4); }
       const forming = phase === 'open' || phase === 'fill';
       ctx.globalAlpha = 1; drawHeartShape(ctx, soul.x, soul.y, forming ? '#ff203a' : PINK, forming ? 'down' : 'right', soul.invuln, combatElapsed);
-      if (phase !== 'combat' && phase !== 'done') { ctx.font = '12px "Galmuri11", sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('↑↓ 이동 · C 발사', Math.round(b.x + 10), Math.round(b.y + 9)); }
       ctx.restore(); battle.drawTextBox(ctx);
+      ctx.save(); ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(L.battle_choimis_pink_controls, 240, 272); ctx.restore();
     },
     dispose() {
       if (disposed) return;
-      disposed = true; shots = []; noodles = []; effects = [];
+      disposed = true; shots = []; noodles = []; effects = []; fireControl.dispose();
       if (bowl.image) { bowl.image.onload = null; bowl.image.onerror = null; }
       restore();
     },
@@ -199,9 +249,20 @@ function drawScroll(ctx, board, scroll) {
   }
 }
 
-function drawPellet(ctx, shot) {
-  const x = Math.round(shot.x), y = Math.round(shot.y);
-  ctx.fillStyle = '#8c1e59'; ctx.fillRect(x - 5, y - 3, 9, 7); ctx.fillStyle = PINK; ctx.fillRect(x - 4, y - 2, 9, 5); ctx.fillStyle = '#ffd2e8'; ctx.fillRect(x + 2, y - 1, 3, 2);
+export function drawPinkPellet(ctx, shot) {
+  const x = Math.round(shot.x), y = Math.round(shot.y), charged = !!shot.charged;
+  ctx.fillStyle = '#8c1e59'; ctx.fillRect(x - (charged ? 7 : 5), y - (charged ? 4 : 3), charged ? 14 : 9, charged ? 9 : 7);
+  ctx.fillStyle = PINK; ctx.fillRect(x - (charged ? 6 : 4), y - (charged ? 3 : 2), charged ? 14 : 9, charged ? 7 : 5);
+  ctx.fillStyle = '#ffd2e8'; ctx.fillRect(x + (charged ? 1 : 2), y - 1, charged ? 5 : 3, charged ? 3 : 2);
+}
+
+function drawPinkChargeAura(ctx, aura, ready) {
+  ctx.fillStyle = ready ? '#fff' : '#ff9ccd';
+  for (const streak of aura) for (let trail = 0; trail < 3; trail++) {
+    const angle = streak.angle - trail * 0.18, radius = streak.radius + trail * 4;
+    ctx.globalAlpha = 1 - trail * 0.28; ctx.fillRect(Math.round(streak.x + Math.cos(angle) * (radius - streak.radius)) - 2, Math.round(streak.y + Math.sin(angle) * (radius - streak.radius)) - 1, 5 - trail, 3 - Math.floor(trail / 2));
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawNoodle(ctx, noodle, bowl) {

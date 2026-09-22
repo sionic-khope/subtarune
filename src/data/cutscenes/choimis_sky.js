@@ -2,6 +2,7 @@ import {
   ascendChoimisSky,
   clearChoimisSky,
   gatherChoimisSkyPollen,
+  panChoimisSkyReveal,
   playChoimisSkyCue,
   prepareChoimisSky,
   riseChoimisFromBelow,
@@ -22,9 +23,15 @@ const close = { action: game => game.textbox.close() };
 export const choimis_sky = Object.assign([
   { if: flags => !!flags[CHOIMIS_SKY.winFlag], goto: 'end' },
   { action: prepareChoimisSky },
+  { parallel: [
+    { move: 'player', rel: 'night_edge', at: 'left', by: [-20, 0], speed: 70 },
+    { move: 'gyeongsub', rel: 'night_edge', at: 'left', by: [-84, 0], speed: 70 },
+    { move: 'ppaman', rel: 'night_edge', at: 'left', by: [-148, 0], speed: 70 },
+  ] },
   { face: 'player', dir: `toward:${CHOIMIS_SKY.boss}` },
   { face: 'gyeongsub', dir: `toward:${CHOIMIS_SKY.boss}` },
   { face: 'ppaman', dir: `toward:${CHOIMIS_SKY.boss}` },
+  { action: panChoimisSkyReveal },
   { action: riseChoimisFromBelow },
   { wait: 0.5 },
   C('하이'),
