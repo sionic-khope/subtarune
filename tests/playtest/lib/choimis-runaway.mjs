@@ -6,7 +6,7 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
     const g = window.game;
     const actor = id => {
       const e = id === 'player' ? g.player : g.entities.find(e => e.id === id && !e.dead);
-      return e && { x: e.x, y: e.y, spin: e.spin || 0, hopY: e.hopY || 0, visible: e.visible, sprite: e.def.sprite, facing: e.facing };
+      return e && { x: e.x, y: e.y, spin: e.spin || 0, hopY: e.hopY || 0, visible: e.visible, sprite: e.def.sprite, facing: e.facing, fallback: !!e.sprite?.fallback };
     };
     return { map: g.mapId, text: g.textbox.node?.text, box: g.textbox.state, index: g.dialogue.i, waiting: !!g.dialogue.wait, running: g.dialogue.running,
       flags: g.flags, party: g.party, hp: g.partyHp, inventory: g.inventory, money: g.money, bgm: g.sound.bgmName, zoom: g.worldZoom,
@@ -58,7 +58,7 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
         if (!out.chaseAudio) out.chaseAudio = this.sound.bgm;
         else if (out.chaseAudio !== this.sound.bgm) out.stableMusic = false;
       }
-      const frame = { map: this.mapId, cx: c.x, cy: c.y, cspin: c.spin || 0, facing: c.facing, px: p.x, py: p.y,
+      const frame = { map: this.mapId, cx: c.x, cy: c.y, cspin: c.spin || 0, chop: c.hopY || 0, sprite: c.def.sprite, facing: c.facing, px: p.x, py: p.y,
         pspin: p.spin || 0, phop: p.hopY || 0, bowl: !!bowl && bowl.visible, bx: bowl?.drawX, by: bowl?.drawY,
         k: !!get('gyeongsub_scene'), pp: !!get('ppaman_scene'), d: !!d, dx: d?.x, eaten: !!this.flags.choimis_jjajang_eaten };
       out.frames.push(frame);
@@ -70,10 +70,12 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
       if (tree && Math.abs(tree.flyX || 0) > 30) cap('tree_flying');
       if (this.mapId === 'jjajang_sakura5' && p.visible && p.hopY > 30 && p.hopY < 260) cap('yop_falling');
       if (bowl?.visible && bowl.spin > 0.5 && bowl.hopY > 2) cap('bowl_rolling');
-      if (d && this.camera.x < 1450) cap('domi_reveal');
+      if (d?.visible && d.hopY > 35 && d.hopY < 75) cap('domi_reveal');
       if (d && c.spin < -0.5 && c.spin > -1.5 && bowl?.visible) cap('domi_bowl_collision');
       if (this.flags.choimis_jjajang_eaten && c.spin < -1.5 && !this.darkSmoke) cap('bowl_consumed');
       if (this.darkSmoke?.veil >= 0.39 && c.jitter?.amp === 3) cap('aura_growing');
+      if (c.def.sprite === 'choimis_flower' && c.hopY > 60 && c.hopY < 140) cap('flower_rising');
+      if (c.def.sprite === 'choimis_flower' && c.x > 2100 && c.hopY > 150) cap('flower_right_exit');
       if (this.fade.color === '255,255,255' && this.fade.alpha > 0.96) {
         const ctx = this.canvas.getContext('2d');
         out.whitePixels = [[0.2, 0.2], [0.5, 0.5], [0.8, 0.8]].map(([x, y]) => [...ctx.getImageData(Math.floor(this.canvas.width * x), Math.floor(this.canvas.height * y), 1, 1).data]);
@@ -100,8 +102,12 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   await text('내 짜장면'); s = await state();
   check('Choimis lands back-facing on bowl and consumes it only here', s.choimis.facing === 'up' && s.choimis.spin < -1.5 && s.flags.choimis_jjajang_eaten && !s.inventory.includes('어둠의 짜장면'));
   await shot('runaway_07_domi_food');
+  await text('우걱우걱'); s = await state();
+  check('eating line occurs after Domi leaves and before any purple aura', !s.domi && !s.smoke && !s.bgm);
+  await shot('runaway_07b_chewing');
   await text('진짜 ㅈ된거같은데요'); s = await state();
   check('Domi escapes before the existing dark aura begins', !s.domi && s.bgm === 'captain_reveal' && s.smoke && s.choimis.sprite === 'choimis');
+  check('the group watches Choimis during the aura', [s.player, s.gyeongsub, s.ppaman].every(e => e.facing === 'right'));
   await shot('runaway_08_aura_start');
   await text('족쳐야죠.'); await shot('runaway_09_response');
   await text('흐흐흐 이 힘은..'); await shot('runaway_10_aura_strong');
@@ -110,18 +116,26 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   await next();
   check('transformation cue reaches a white screen', await until(() => window.game.fade.color === '255,255,255' && window.game.fade.alpha > 0.96, 5000));
   await shot('runaway_12_white');
-  check('ends at the requested transformation beat with control restored', await until(() => window.game.flags.choimis_runaway_done && !window.game.dialogue.running && window.game.fade.alpha < 0.01, 7000));
+  await text('하핫 ~'); s = await state();
+  check('white reveals the loaded new field form with the requested existing theme', s.choimis.sprite === 'choimis_flower' && !s.choimis.fallback && !s.smoke && s.bgm === 'choimis');
+  await shot('runaway_13_flower_reveal');
+  await widths('flower');
+  await text('그래 내가 지금까지'); await shot('runaway_14_self_discovery');
+  await text('아까 그 장소에서'); await shot('runaway_15_invitation');
+  await text('쫒아가죠 형.'); await shot('runaway_16_follow');
+  await next();
+  check('ends after flower departure with control restored', await until(() => window.game.flags.choimis_flower_done && !window.game.dialogue.running && window.game.fade.alpha < 0.01, 7000));
   const after = await state();
-  check('HP money and solo party remain unchanged', JSON.stringify(after.hp) === JSON.stringify(before.hp) && after.money === before.money && JSON.stringify(after.party) === JSON.stringify(before.party));
-  check('only dark jjajang is consumed; no invented character form', JSON.stringify(after.inventory) === JSON.stringify(before.inventory.filter(i => i !== '어둠의 짜장면')) && after.choimis.sprite === 'choimis' && after.player.spin === 0 && after.smoke?.veil === 0.3);
-  await shot('runaway_13_pending_form');
+  check('HP and money remain unchanged while K and P rejoin', JSON.stringify(after.hp) === JSON.stringify(before.hp) && after.money === before.money && JSON.stringify(after.party) === JSON.stringify(['gyeongsub', 'ppaman']));
+  check('only dark jjajang is consumed and all temporary actors/effects depart', JSON.stringify(after.inventory) === JSON.stringify(before.inventory.filter(i => i !== '어둠의 짜장면')) && !after.choimis && !after.ppaman && !after.gyeongsub && after.player.spin === 0 && !after.smoke && !after.bgm);
+  await shot('runaway_17_party_restored');
   const observed = await page.evaluate(() => ({ ...window.runawayObserved, chaseAudio: undefined }));
   check('white cue renders white RGB at three separated canvas samples', observed.whitePixels?.length === 3 && observed.whitePixels.every(pixel => pixel.slice(0, 3).every(v => v >= 245)));
   check('three pink forest maps appear in requested travel order', JSON.stringify(observed.maps) === JSON.stringify(['jjajang_sakura8', 'jjajang_sakura7', 'jjajang_sakura6']));
   check('chase music uses the same audio element across all map cuts', observed.stableMusic);
   check('companions arrive only after Yop landed', observed.frames.filter(f => f.phop > 0).every(f => !f.k && !f.pp));
   check('food is visibly present immediately before consumption', observed.frames.some(f => f.bowl && f.cspin < -0.5 && !f.eaten));
-  for (const required of ['tree_flying', 'yop_falling', 'bowl_rolling', 'domi_reveal', 'domi_bowl_collision', 'bowl_consumed', 'aura_growing', 'alpha_white']) check(`observed actual ${required} frame`, !!observed.images[required]);
+  for (const required of ['tree_flying', 'yop_falling', 'bowl_rolling', 'domi_reveal', 'domi_bowl_collision', 'bowl_consumed', 'aura_growing', 'alpha_white', 'flower_rising', 'flower_right_exit']) check(`observed actual ${required} frame`, !!observed.images[required]);
   for (const [name, data] of Object.entries(observed.images)) fs.writeFileSync(path.join(process.env.SHOT_DIR, `runaway_observed_${name}.png`), Buffer.from(data.split(',')[1], 'base64'));
   await press('ArrowDown', { delay: 220 });
   check('normal movement resumes after final white cue', (await state()).player.y > after.player.y);
@@ -138,12 +152,12 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   await press('KeyC');
   check('normal title Continue restores completed Sakura5 save', await until(() => window.game.state === 'field' && window.game.mapId === 'jjajang_sakura5' && !window.game.dialogue.running && window.game.fade.alpha < 0.01, 15000));
   const continued = await state();
-  check('Continue preserves consumption HP money solo identity and aura', continued.flags.choimis_runaway_done && !continued.inventory.includes('어둠의 짜장면') && JSON.stringify(continued.hp) === JSON.stringify(after.hp) && continued.money === after.money && JSON.stringify(continued.party) === JSON.stringify(after.party) && continued.player.sprite === after.player.sprite && continued.smoke?.veil === 0.3 && continued.choimis?.sprite === 'choimis');
+  check('Continue preserves consumption HP money party and departure', continued.flags.choimis_flower_done && !continued.inventory.includes('어둠의 짜장면') && JSON.stringify(continued.hp) === JSON.stringify(after.hp) && continued.money === after.money && JSON.stringify(continued.party) === JSON.stringify(after.party) && continued.player.sprite === after.player.sprite && !continued.smoke && !continued.choimis);
   await shot('runaway_continue');
-  await fixture('same-state-revisit', 'Reload the actual completed map state without changing flags, HP, inventory or party; verify persistent tree destruction and existing-form aura restoration.', async () => { await window.game.changeMap('jjajang_sakura5', 'after_runaway', true); });
+  await fixture('same-state-revisit', 'Reload the completed map without changing flags, HP, inventory or party; verify persistent tree destruction and no replay of the completed transformation.', async () => { await window.game.changeMap('jjajang_sakura5', 'after_runaway', true); });
   await until(() => !window.game.dialogue.running, 5000);
   s = await state();
   check('revisit does not respawn tree or food or replay story', s.flags.choimis_runaway_done && !s.running && !s.inventory.includes('어둠의 짜장면') && await page.evaluate(() => !window.game.entities.some(e => e.id === 'sakura5_giant_tree')));
-  check('revisit retains the three NPCs and aura without a new form', s.choimis?.sprite === 'choimis' && s.gyeongsub && s.ppaman && s.smoke?.veil === 0.3);
+  check('revisit retains follower party and no stale scene NPCs or aura', !s.choimis && !s.gyeongsub && !s.ppaman && !s.smoke && JSON.stringify(s.party) === JSON.stringify(['gyeongsub', 'ppaman']));
   await shot('runaway_14_revisit');
 }

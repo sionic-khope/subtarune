@@ -33,7 +33,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
-  if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return 'captain_reveal';
+  if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
   if (mapId === 'jjajang_pines' && flags.pines_center_started && !flags.pines_ajimkiya_won) return null;
@@ -153,7 +153,8 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
 export const partyFromFlags = (flags) => flags?.ship_sinking_done
-  ? (flags?.sakura8_split_done ? []                                             // 벚꽃 숲 8 갈림목(sakura8_split_done, BUILD282): 경섭 혼자 떠나고 억빠맨은 오른쪽 길 가드 → 다시 요플래 혼자
+  ? (flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
+    : flags?.sakura8_split_done ? []
     : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
     : flags?.torii_janitor_joined && !flags?.janitor_left ? ['janitor'] : [])   // 드럼통 길에서 이별(janitor_left, BUILD242)하면 다시 요플래 혼자
   : PARTY_FLAGS.filter(([flag]) => flags?.[flag]).map(([, id]) => id);
@@ -582,10 +583,6 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12_after', desc: '벚�
   map: 'jjajang_sakura12', spawn: 'from_south', flags: nightCliffDoneFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff', desc: '밤 절벽 · 경섭이 최미스에게 접근하는 연출 (요플래 상태는 보존)',
   map: 'jjajang_night_cliff', spawn: 'scene', flags: nightCliffBeforeFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff_after', desc: '밤 절벽 · 연출 뒤 재방문 (최미스 없음 · 왼쪽 벚꽃 숲 8 귀환)',
-  map: 'jjajang_night_cliff', spawn: 'from_west', flags: nightCliffDoneFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8_right', desc: '벚꽃 숲 8 · 밤 절벽 연출 뒤 오른쪽 길 진입',
-  map: 'jjajang_sakura8', spawn: 'after', flags: nightCliffDoneFlags, party: [] });
 const runawayFlags = { ...nightCliffDoneFlags, choimis_runaway_started: true };
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway', desc: '최미스 도주 · 벚꽃 숲 8→7→6→거대 벚꽃 나무 충돌',
   map: 'jjajang_sakura8', spawn: 'chase', flags: runawayFlags, party: [], script: 'choimis_runaway' });
@@ -593,5 +590,19 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_crash', desc: '최�
   map: 'jjajang_sakura5', spawn: 'chase_crash', flags: runawayFlags, party: [], script: 'choimis_runaway_crash' });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_aura', desc: '최미스 · 짜장면을 먹은 직후 검은 오라와 흰 전환',
   map: 'jjajang_sakura5', spawn: 'after_runaway', flags: { ...runawayFlags, choimis_tree_crashed: true, choimis_jjajang_eaten: true }, party: [], script: 'choimis_runaway_aura' });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_after', desc: '최미스 · 흰 전환 뒤 (새 변신/전투 미정 · 나무 없음 · 오라 유지)',
-  map: 'jjajang_sakura5', spawn: 'after_runaway', flags: { ...runawayFlags, choimis_tree_crashed: true, choimis_jjajang_eaten: true, choimis_runaway_done: true }, party: [] });
+const flowerBeforeFlags = { ...runawayFlags, choimis_tree_crashed: true, choimis_jjajang_eaten: true, choimis_runaway_done: true };
+const flowerDoneFlags = { ...flowerBeforeFlags, choimis_flower_done: true, party_hidden: false };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8_right', desc: '벚꽃 숲 8 · 변신 최미스 도주 뒤 밤 해안길 진입',
+  map: 'jjajang_sakura8', spawn: 'after', flags: flowerDoneFlags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_flower', desc: '최미스 · 흰 전환 이후 새 외형 대사와 꽃가루 승천 (BUILD290 저장 이행)',
+  map: 'jjajang_sakura5', spawn: 'after_runaway', flags: flowerBeforeFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_after', desc: '최미스 · 변신 도주 뒤 경섭·억빠맨과 추적 재개',
+  map: 'jjajang_sakura5', spawn: 'after_runaway', flags: flowerDoneFlags, party: ['gyeongsub', 'ppaman'] });
+const coast2Flags = { ...flowerDoneFlags, night_coast1_a: true, night_coast1_b: true };
+const coast3Flags = { ...coast2Flags, night_coast2_a: true, night_coast2_b: true, night_coast2_c: true, raft_coast2_a: 1, raft_coast2_b: 1, raft_coast2_c: 1 };
+for (const [number, flags] of [[1, flowerDoneFlags], [2, coast2Flags], [3, coast3Flags]]) QA_POINTS.push({ ...parkWonCheckpoint, id: `jjajang_night_coast${number}`, desc: `밤 해안 ${number} · 최미스 추적 중 레버와 다리`,
+  map: `jjajang_night_coast${number}`, spawn: 'from_west', flags, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_coast_after', desc: '밤 해안길 완료 · 밤 절벽 · 일행과 왕복',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: { ...coast3Flags, night_coast3_a: true, night_coast3_b: true, raft_coast3_a: 1 }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff_after', desc: '밤 절벽 · 최미스 추적 도착 뒤 해안길 왕복',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: { ...coast3Flags, night_coast3_a: true, night_coast3_b: true, raft_coast3_a: 1 }, party: ['gyeongsub', 'ppaman'] });

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
+import { clearChoimisFlowerEffects } from '../../src/data/cutscenes/choimis_flower.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { ScriptRunner, TextBox, parseText } from '../../src/ui/dialogue.js';
 import { Camera, Entity, TileMap } from '../../src/world/world.js';
@@ -11,7 +12,7 @@ import { QA_POINTS, storyBgm } from '../../src/core/story.js';
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
 const mainSource = fs.readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
 const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;', {
-  MAPS: { maillard_captain: readMap('maillard_captain') }, storyBgm, clearEditorUnionStage,
+  MAPS: { maillard_captain: readMap('maillard_captain') }, storyBgm, clearEditorUnionStage, clearChoimisFlowerEffects,
 });
 
 function fixture() {

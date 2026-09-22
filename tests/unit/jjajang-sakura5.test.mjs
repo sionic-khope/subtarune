@@ -71,7 +71,7 @@ test('test_sakura5_map_goes_down_a_little_right_three_seconds_bridge_three_secon
   // 벚꽃 숲 4 아랫줄 문 → 5
   const four = load('jjajang_sakura4'), south = four.entities.find(e => e.id === 'sakura4_south_door');
   assert.deepEqual([south.to, south.spawn, south.y + south.h], ['jjajang_sakura5', 'from_north', four.rows.length * 32]);
-  assert.deepEqual(MAP_RUNTIME_ASSETS.jjajang_sakura5.sprites, [...ACTORS, 'choimis', 'gyeongsub', 'ppaman']);
+  assert.deepEqual(MAP_RUNTIME_ASSETS.jjajang_sakura5.sprites, [...ACTORS, 'choimis', 'choimis_flower', 'gyeongsub', 'ppaman']);
 });
 
 test('test_sakura5_scene_turns_bgm_off_pans_up_hops_domijorim_with_heumi_speaks_the_brief_verbatim_and_returns', () => {
@@ -255,7 +255,7 @@ test('test_sakura5_characters_voices_sprites_and_qa_points_exist', () => {
   for (const v of ['dohyun', 'domijorim']) assert.ok(VOICES[v] && here(`assets/audio/voices/${v}.mp3`), `목소리 ${v}`);
   assert.ok(here('assets/enemies/domijorim-battle.png') && here('assets/enemies/dohyun-battle.png'), '적군 전투 스프라이트(그림만)');
   const ids = QA_POINTS.filter(q => q.map === 'jjajang_sakura5').map(q => [q.id, q.spawn]);
-  assert.deepEqual(ids, [['jjajang_sakura5', 'from_north'], ['jjajang_sakura5_bridge', 'bridge_end'], ['jjajang_sakura5_fork', 'fork'], ['jjajang_sakura5_battle', 'clearing'], ['jjajang_sakura5_after_battle', 'clearing'], ['jjajang_sakura5_clearing', 'east'], ['choimis_runaway_crash', 'chase_crash'], ['choimis_runaway_aura', 'after_runaway'], ['choimis_runaway_after', 'after_runaway']]);
+  assert.deepEqual(ids, [['jjajang_sakura5', 'from_north'], ['jjajang_sakura5_bridge', 'bridge_end'], ['jjajang_sakura5_fork', 'fork'], ['jjajang_sakura5_battle', 'clearing'], ['jjajang_sakura5_after_battle', 'clearing'], ['jjajang_sakura5_clearing', 'east'], ['choimis_runaway_crash', 'chase_crash'], ['choimis_runaway_aura', 'after_runaway'], ['choimis_flower', 'after_runaway'], ['choimis_runaway_after', 'after_runaway']]);
   assert.equal(QA_POINTS.find(q => q.id === 'jjajang_sakura5_after_battle').script, 'sakura5_after_battle_qa');
   assert.equal(QA_POINTS.find(q => q.id === 'jjajang_sakura5_battle').script, 'sakura5_duo_battle_qa');
   const clearing = QA_POINTS.find(q => q.id === 'jjajang_sakura5_clearing');

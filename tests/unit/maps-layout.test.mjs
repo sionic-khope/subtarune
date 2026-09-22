@@ -14,6 +14,8 @@ const CHAR_SCALE = Number(fs.readFileSync(root + 'src/world/world.js', 'utf-8').
 const ROAD = new Set(['t', 'u', 'w', 'n', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', ':', ';', '/', '%', '?', '$', '"', '*', 'U', '(', ')', ']']);   // ] = 벚꽃 숲 5 나무다리(BUILD271)   // $ " = 짜장숲부터의 에코 길·공터 풀숲(BUILD226~227), U = 깊은숲 입구 어두운 길(BUILD254)
 const WALK = new Set([...ROAD, 'd', 'F', 'H', 'N', '&', '+', '^', '-']);   // - = 벚꽃 숲 11·12 나무 정상 널빤지 바닥(BUILD288)   // ^: 깊은숲 입구 길 가장자리 출입구(BUILD254)   // F: 용광로 구역 바닥(BUILD189), H: 가장자리 출입구 칸(BUILD194, 걷는다), N: 용암 위 다리 바닥(BUILD201)
 const pngH = (p) => fs.readFileSync(root + p).readUInt32BE(20);
+ROAD.add('≈');
+WALK.add('≈');
 const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8')).maps.map((id) => JSON.parse(fs.readFileSync(root + `assets/maps/${id}.json`, 'utf-8'))).filter((m) => m.rows);
 
 const tileAt = (m, x, y) => { const r = Math.floor(y / TILE), c = Math.floor(x / TILE); return (m.rows[r] || '')[c] ?? ' '; };

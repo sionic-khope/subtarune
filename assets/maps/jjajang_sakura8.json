@@ -621,7 +621,8 @@
    "solid": true,
    "facing": "up",
    "wander": 0,
-   "requires": "sakura8_right_open"
+   "requires": "sakura8_right_open",
+   "unless": "choimis_flower_done"
   },
   {
    "type": "prop",
@@ -696,9 +697,9 @@
    "y": 448,
    "w": 10,
    "h": 128,
-   "to": "jjajang_night_cliff",
+   "to": "jjajang_night_coast1",
    "spawn": "from_west",
-   "requires": "sakura8_right_open",
+   "requires": "choimis_flower_done",
    "lockedScript": "jjajang_sakura8_no_right",
    "sfx": false
   }

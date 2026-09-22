@@ -13,10 +13,11 @@ import { shipPursuitBacktrack } from '../../src/data/scripts/ship-pursuit.js';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
+import { clearChoimisFlowerEffects } from '../../src/data/cutscenes/choimis_flower.js';
 import { captain_attack } from '../../src/data/cutscenes/captain_attack.js';
 
 const mainSource = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
-const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;', { clearEditorUnionStage });
+const Game = runInNewContext(mainSource.slice(mainSource.indexOf('class Game {'), mainSource.indexOf('// ── 부트')) + '\nGame;', { clearEditorUnionStage, clearChoimisFlowerEffects });
 
 function fixture() {
   const sounds = [];

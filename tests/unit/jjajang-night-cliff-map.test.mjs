@@ -15,13 +15,17 @@ test('night cliff keeps actors grounded and blocks walking into the sea', () => 
   assert.equal(map.solidRect(644, 176, 24, 16), true);
 });
 
-test('night cliff connects only the unlocked right fork and returns outside the portal', () => {
+test('night coast connects the unlocked right fork to the cliff with safe return spawns', () => {
   const fork = JSON.parse(fs.readFileSync('assets/maps/jjajang_sakura8.json', 'utf8'));
   const cliff = JSON.parse(fs.readFileSync('assets/maps/jjajang_night_cliff.json', 'utf8'));
-  const door = fork.entities.find((e) => e.to === cliff.id);
-  assert.equal(door.requires, 'sakura8_right_open');
+  const first = JSON.parse(fs.readFileSync('assets/maps/jjajang_night_coast1.json', 'utf8'));
+  const third = JSON.parse(fs.readFileSync('assets/maps/jjajang_night_coast3.json', 'utf8'));
+  const door = fork.entities.find((e) => e.to === first.id);
+  assert.equal(door.requires, 'choimis_flower_done');
   assert.equal(door.x + door.w, fork.rows[0].length * 32);
-  assert.ok(cliff.spawns[door.spawn].x > 10 + 24);
+  assert.ok(first.spawns[door.spawn].x > 10 + 24);
+  assert.ok(cliff.spawns[third.entities.find((e) => e.to === cliff.id).spawn].x > 10 + 24);
+  assert.equal(cliff.entities.find((e) => e.type === 'door').to, third.id);
   assert.equal(cliff.entities.find((e) => e.type === 'door').spawn, 'from_east');
   assert.equal(cliff.backdrop, 'jjajang_night_sea');
   assert.ok(cliff.preload.includes('assets/backdrops/jjajang_night_sea.png'));

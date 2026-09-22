@@ -1,5 +1,12 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 최미스 플라워리 변신·밤 해안 (BUILD291, 2026-09-22)
+
+- 변신곡은 사용자 지정 [XGbJbxiXS0o](https://www.youtube.com/watch?v=XGbJbxiXS0o)와 동일한 기존 `bgm/choimis.mp3`를 그대로 재사용한다.
+- 밤 해안 세 맵은 사용자 지정 [1kGmc1BOyPY](https://www.youtube.com/watch?v=1kGmc1BOyPY), 조회 제목 `33. Running Sky (DELTARUNE Chapter 5 Soundtrack) - Toby Fox`, 업로더 표시명 Toby Fox, 게시일20260624의 전체 포맷251을 `bgm/night_coast.mp3`로 변환했다.142.291896초,48kHz stereo,트리밍·속도·피치·음량 변경 없음.
+- 한국어 짧은 반응 `sfx/choimis_flower_wow|yes|no.mp3`는 사용자 지정 [대람의 플라워리 한국어 더빙 모음](https://www.youtube.com/shorts/T3THgeD8bpI)에서 각각 “와”(6.35–7.30s),“그래”(33.76–34.38s),“아니 아니 아니”(24.74–25.79s)를 추출했다. 출력 세 파일을 Whisper small로 독립 전사해 내용을 확인했다. 새 다섯 문장의 합성/복제 음성이 아니다. `voices/choimis_flower.mp3`는 같은 더빙33.95–34.09s의 음절 조각을2반음 낮추고 길이0.14s를 유지한 블립이다. 원작 게임 블립으로 표기하지 않는다.
+- 원본·자동자막·변환 명령·SHA256·확인 범위는 `assets/source/choimis-flower291/audio/README.md`. 전체 디코드/비무음 검사를 통과했으며 실제 장면 청취는 별도다. 출처 기록이 별도 이용허락 확인을 뜻하지 않는다.
+
 ## 최미스 도주·짜장면 사고 (2026-09-22)
 
 - 도주곡: 사용자 지정 https://www.youtube.com/watch?v=OX5iGh2pgxk 는 기존 `assets/audio/bgm/baron_intro.mp3`(The Chase)와 같은 소스. 새로 변형하거나 다시 다운로드하지 않고 세 맵 전환과 나무 충돌 뒤 대화까지 같은 재생 시계를 유지한다. “네 안먹어요” 뒤 정지한다.

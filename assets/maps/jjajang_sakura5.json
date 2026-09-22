@@ -1290,7 +1290,8 @@
    "facing": "down",
    "solid": true,
    "wander": 0,
-   "requires": "choimis_runaway_done"
+   "requires": "choimis_runaway_done",
+   "unless": "choimis_flower_done"
   },
   {
    "type": "npc",
@@ -1301,7 +1302,8 @@
    "facing": "up",
    "solid": true,
    "wander": 0,
-   "requires": "choimis_runaway_done"
+   "requires": "choimis_runaway_done",
+   "unless": "choimis_flower_done"
   },
   {
    "type": "npc",
@@ -1312,7 +1314,8 @@
    "facing": "up",
    "solid": true,
    "wander": 0,
-   "requires": "choimis_runaway_done"
+   "requires": "choimis_runaway_done",
+   "unless": "choimis_flower_done"
   },
   {
    "type": "trigger",

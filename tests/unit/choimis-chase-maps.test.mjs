@@ -45,13 +45,14 @@ test('crash staging keeps every landing and dialogue anchor on the clearing floo
   assert.ok(impact.y < trunk.y + trunk.h && impact.y + 16 > trunk.y);
 });
 
-test('the completed runaway scene restores its actors beside the player without repeating dialogue', () => {
+test('the old completed runaway save restores actors only until flower continuation is completed', () => {
   const def = readMap('jjajang_sakura5'), map = new TileMap(def);
   const npcs = def.entities.filter(e => e.type === 'npc' && e.requires === 'choimis_runaway_done');
   assert.deepEqual(npcs.map(e => e.id).sort(), ['choimis_runaway', 'gyeongsub_scene', 'ppaman_scene']);
   const player = def.spawns.after_runaway;
   for (const actor of npcs) {
     assert.equal(actor.script, undefined);
+    assert.equal(actor.unless, 'choimis_flower_done');
     assert.equal(map.solidRect(actor.x, actor.y, 24, 16), false);
     if (actor.id !== 'choimis_runaway') assert.ok(Math.hypot(actor.x - player.x, actor.y - player.y) < 100, `${actor.id} stands beside the player`);
   }

@@ -6,6 +6,7 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  choimis_flower: { name: '최미스', voice: 'choimis_flower', sheet: 'assets/sprites/choimis_flower.png', stillPivot: [64, 120] },
   // 가순이 1·2·3(BUILD257 빛 드는 공터): 사용자 참조(이라스토야풍 소녀)를 글로 옮겨 gpt-image-2.5-sunburst 4×4 걷기 시트(assets/source/gasuni-walk-v1) — 1 긴머리, 2 단발, 3 땋은머리. 목소리는 합성 gasuni(지정 없음)
   gasuni1: { name: '가순이1', voice: 'gasuni', sheet: 'assets/sprites/gasuni1.png', stillPivot: [64, 120] },
   gasuni2: { name: '가순이2', voice: 'gasuni', sheet: 'assets/sprites/gasuni2.png', stillPivot: [64, 120] },

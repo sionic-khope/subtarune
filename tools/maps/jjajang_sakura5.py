@@ -167,7 +167,7 @@ def build_map() -> dict[str, object]:
     ]
     settled_actors = [
         {'type': 'npc', 'id': aid, 'sprite': sprite, 'x': x, 'y': y,
-         'facing': facing, 'solid': True, 'wander': 0, 'requires': 'choimis_runaway_done'}
+         'facing': facing, 'solid': True, 'wander': 0, 'requires': 'choimis_runaway_done', 'unless': 'choimis_flower_done'}
         for aid, sprite, x, y, facing in (
             ('choimis_runaway', 'choimis', 1880, 409, 'down'),
             ('gyeongsub_scene', 'gyeongsub', 1668, 430, 'up'),

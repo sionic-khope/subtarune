@@ -1,8 +1,9 @@
 import { FX } from '../fx.js';
 import { CAPTAIN_AURA_COLORS } from './captain_reveal.js';
+import { CHOIMIS_FLOWER } from './choimis_flower.js';
 
 export const RUNAWAY = {
-  done: 'choimis_runaway_done', tree: 'choimis_tree_crashed', eaten: 'choimis_jjajang_eaten',
+  done: 'choimis_runaway_done', flower: 'choimis_flower_done', tree: 'choimis_tree_crashed', eaten: 'choimis_jjajang_eaten',
   choimis: 'choimis_runaway', gyeongsub: 'gyeongsub_scene', ppaman: 'ppaman_scene', domi: 'domijorim_scene', bowl: 'runaway_bowl',
   firstView: [54.1875, 12.375], groupView: [57, 12.375], leftView: [49.5, 12.375],
   chaseBgm: 'baron_intro', auraBgm: 'captain_reveal',
@@ -90,6 +91,9 @@ export const consumeRunawayBowl = game => {
 };
 
 export const CHOIMIS_AURA = [
+  { face: 'player', dir: 'toward:choimis_runaway' },
+  { face: K_ID, dir: 'toward:choimis_runaway' },
+  { face: P_ID, dir: 'toward:choimis_runaway' },
   { bgm: RUNAWAY.auraBgm, fadeIn: 1.2 },
   { sfx: 'captain_thunder' },
   { tremble: C_ID, duration: 120, amp: 1 },
@@ -112,12 +116,8 @@ export const CHOIMIS_AURA = [
   { fade: 'white', duration: 0.65 },
   { wait: 1.0 },
   { action: game => { actor(game, C_ID).jitter = null; } },
-  { darkSmoke: { mode: 'veil', duration: 0.01, veil: 0.3, aura: { at: C_ID, colors: CAPTAIN_AURA_COLORS } } },
   { set: { [RUNAWAY.done]: true } },
-  { fade: 'in', duration: 0.9 },
-  { wait: 0.5 },
-  { camera: 'player' },
-  { end: true },
+  ...CHOIMIS_FLOWER,
 ];
 
 export const CHOIMIS_CRASH = [
@@ -169,15 +169,10 @@ export const CHOIMIS_CRASH = [
   { bubble: ['player', C_ID, P_ID, K_ID], gap: 0.35, hold: 0.9 },
   P('...?'), K('? 아 그러니'), C('네 저 다이어트하려구요.'), P('오'), K('그래 뭐.. 잘됐네'),
   close,
-  spawnAt(D_ID, 'domijorim', 'crash_domi_entry', { facing: 'right' }),
+  spawnAt(D_ID, 'domijorim', C_ID, { facing: 'down', hidden: true }),
   { sfx: 'domijorim_heumi' },
-  { parallel: [
-    { camera: RUNAWAY.leftView, duration: 1.3 },
-    { move: D_ID, rel: 'crash_domi_reveal', at: 'bottom', run: true, exact: true },
-  ] },
-  { parallel: [{ motion: D_ID, name: 'heumi' }, { hop: D_ID, height: 24, duration: 0.4, sfx: false }] },
-  { async: [{ camera: RUNAWAY.groupView, duration: 1.2 }] },
-  { move: D_ID, rel: C_ID, at: 'left', dash: true, exact: true },
+  { wait: 0.65 },
+  { drop: D_ID, height: 520, duration: 0.85, sfx: 'jump', land: false },
   { parallel: [knockOntoBowl, { shake: 0.3, amp: 4 }, { sfx: 'punch' }] },
   { sfx: 'ralsei_splat' },
   { action: consumeRunawayBowl },
@@ -188,7 +183,7 @@ export const CHOIMIS_CRASH = [
   { move: D_ID, rel: 'crash_domi_exit', at: 'bottom', dash: true, exact: true },
   { move: D_ID, by: [56, 0], dash: true, exact: true },
   { remove: D_ID },
-  K('...'), close,
+  K('...'), C('우걱우걱 우적우적 쓰읍..'), close,
   ...CHOIMIS_AURA,
 ];
 
@@ -212,7 +207,10 @@ export const choimis_runaway_aura = Object.assign([
 ], { silent: true });
 
 export const choimis_runaway_restore = Object.assign([
-  { if: flags => !flags[RUNAWAY.done], goto: 'end' },
-  { darkSmoke: { mode: 'veil', duration: 0.01, veil: 0.3, aura: { at: C_ID, colors: CAPTAIN_AURA_COLORS } } },
+  { if: flags => !flags[RUNAWAY.done] || !!flags[RUNAWAY.flower], goto: 'end' },
+  { fade: 'white', duration: 0.5 },
+  placeAt('player', 'crash_player', { spin: 0, facing: 'right', visible: true }),
+  { camera: RUNAWAY.groupView, duration: 0.01 },
+  ...CHOIMIS_FLOWER,
   { label: 'end' }, { end: true },
 ], { silent: true });

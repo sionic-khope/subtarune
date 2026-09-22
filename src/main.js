@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { Input } from './core/input.js';
 import { Sound, VOICES } from './core/audio.js';
+import { drawChoimisFlowerEffects, clearChoimisFlowerEffects } from './data/cutscenes/choimis_flower.js';
 import { MapAssetCache } from './core/map-assets.js';
 import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait, pixelDisplayScale } from './core/gfx.js';
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
@@ -179,7 +180,7 @@ class Game {
     void this.sound.loadSfxFiles(TITLE_SFX);
     void this.sound.loadVoiceFiles(Object.keys(VOICES));
     setTimeout(() => {
-      this.scheduleSfxPreload(['ralsei_splat', 'kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'crowd_boo', 'ak_shot', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
+      this.scheduleSfxPreload(['choimis_flower_wow', 'choimis_flower_yes', 'choimis_flower_no', 'ralsei_splat', 'kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'crowd_boo', 'ak_shot', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
       void this.sound.loadWalkLoop(WATER_WALK);
     }, 3000);
     this.characterMotions = {};
@@ -1040,6 +1041,7 @@ class Game {
 
   /** TV cancellation releases the current runner before map/title/QA reconstructs actors. */
   finishTvBroadcast(abort = false) {
+    if (abort) clearChoimisFlowerEffects(this);
     if (abort) clearEditorUnionStage(this, true);
     if (abort && this.tvBroadcast) {
       this.dialogue.script = null; this.dialogue.wait = null; this.dialogue.onEnd = null;
@@ -1439,7 +1441,13 @@ class Game {
     else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
     else if (MAPS[this.mapId]?.backdrop === 'jjajang_night_sea') {
       const sea = this.propImages['assets/backdrops/jjajang_night_sea.png'];
-      if (sea) ctx.drawImage(sea, 0, 0, SCREEN_W, SCREEN_H);
+      if (sea) {
+        ctx.drawImage(sea, 0, 0, SCREEN_W, SCREEN_H);
+        if (MAPS[this.mapId]?.meta?.coast) {
+          const horizon = 138, sourceY = Math.round(sea.height * 0.6);
+          ctx.drawImage(sea, 0, sourceY, sea.width, sea.height - sourceY, 0, horizon, SCREEN_W, SCREEN_H - horizon);
+        }
+      }
     }
     else if (MAPS[this.mapId]?.backdrop === 'youngcle_factory' || MAPS[this.mapId]?.backdrop === 'youngcle_furnace') {
       // 엄청대박인배 공장 / 용광로 변주(BUILD189, youngcle13·14): 같은 그리기, 그림만 다르다
@@ -1475,6 +1483,7 @@ class Game {
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
     const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
+    drawChoimisFlowerEffects(ctx, this, cam);
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
     for (const e of sorted) {
       e.draw(ctx, cam);

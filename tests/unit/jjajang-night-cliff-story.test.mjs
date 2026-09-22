@@ -61,7 +61,8 @@ test('test_old_item_save_resumes_new_view_without_repeating_reward', () => {
   assert.equal(bowl[resume + 1].if({ dark_jjajang_taken: true, sakura12_eyes_closed: true, night_cliff_scene_done: true }), false);
   const qa = QA_POINTS.find(q => q.id === 'jjajang_night_cliff_after');
   assert.equal(qa.flags.sakura8_right_open, true);
-  assert.deepEqual(qa.party, []);
+  assert.equal(qa.flags.choimis_flower_done, true);
+  assert.deepEqual(qa.party, ['gyeongsub', 'ppaman']);
   assert.deepEqual(MAP_RUNTIME_ASSETS.jjajang_night_cliff.sprites, ['gyeongsub', 'choimis']);
   assert.equal(scene.find(n => n.map === 'jjajang_sakura5').spawn, 'chase_crash');
   assert.equal(scene.some(n => n.map === 'jjajang_sakura12'), false);

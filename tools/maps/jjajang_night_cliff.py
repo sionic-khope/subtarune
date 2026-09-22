@@ -107,7 +107,7 @@ def build_map() -> MapData:
              'solid': False, 'sortY': -100},
             *anchors, *actors,
             {'type': 'door', 'id': 'night_west_door', 'x': 0, 'y': 192,
-             'w': 10, 'h': 32, 'to': 'jjajang_sakura8',
+             'w': 10, 'h': 32, 'to': 'jjajang_night_coast3',
              'spawn': 'from_east', 'sfx': False},
         ],
     }

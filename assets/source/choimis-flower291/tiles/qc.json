@@ -1,0 +1,35 @@
+{
+  "rawSize": [
+    1774,
+    887
+  ],
+  "resample": "NEAREST",
+  "tiles": [
+    {
+      "name": "night_coast_rock",
+      "crop": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "size": [
+        32,
+        32
+      ]
+    },
+    {
+      "name": "night_coast_edge",
+      "crop": [
+        887,
+        0,
+        1774,
+        887
+      ],
+      "size": [
+        32,
+        32
+      ]
+    }
+  ]
+}

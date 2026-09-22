@@ -1,0 +1,226 @@
+{
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sharedOuterCrop": [
+    1,
+    1,
+    1253,
+    1253
+  ],
+  "sourceGridSize": [
+    1252,
+    1252
+  ],
+  "alphaThreshold": 128,
+  "chromaKey": false,
+  "edgeChromaCleanup": "one-pixel alpha boundary only; R>140,G<100 or G>130,R<120,B<120",
+  "resample": "NEAREST",
+  "paletteQuantization": false,
+  "rawRows": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "runtimeRows": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "scale": 0.4007667731629393,
+  "processorQC": {
+    "frame_count": 16,
+    "valid_frame_count": 16,
+    "empty_count": 0,
+    "edge_touch_count": 0,
+    "paste_clamped_count": 0,
+    "body_scale_mean": 0.479848932178058,
+    "output_subject_height_mean": 100.9375,
+    "body_scale_cv": 0.02623256542037445,
+    "anchor_x_std": 0.00728765478869596,
+    "anchor_y_std": 0.04792155464656586,
+    "anchor_y_mean": 0.5206669329073482
+  },
+  "frames": [
+    {
+      "direction": "down",
+      "column": 0,
+      "bbox": [
+        37,
+        17,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "down",
+      "column": 1,
+      "bbox": [
+        37,
+        16,
+        90,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "down",
+      "column": 2,
+      "bbox": [
+        37,
+        19,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "down",
+      "column": 3,
+      "bbox": [
+        37,
+        17,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "up",
+      "column": 0,
+      "bbox": [
+        37,
+        20,
+        90,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "up",
+      "column": 1,
+      "bbox": [
+        37,
+        20,
+        91,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "up",
+      "column": 2,
+      "bbox": [
+        37,
+        20,
+        91,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "up",
+      "column": 3,
+      "bbox": [
+        37,
+        20,
+        91,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "left",
+      "column": 0,
+      "bbox": [
+        37,
+        18,
+        91,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "left",
+      "column": 1,
+      "bbox": [
+        37,
+        18,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "left",
+      "column": 2,
+      "bbox": [
+        36,
+        18,
+        91,
+        120
+      ],
+      "removedEdgeChromaPixels": 1
+    },
+    {
+      "direction": "left",
+      "column": 3,
+      "bbox": [
+        36,
+        18,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 1
+    },
+    {
+      "direction": "right",
+      "column": 0,
+      "bbox": [
+        36,
+        21,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "right",
+      "column": 1,
+      "bbox": [
+        36,
+        21,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    },
+    {
+      "direction": "right",
+      "column": 2,
+      "bbox": [
+        36,
+        21,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 1
+    },
+    {
+      "direction": "right",
+      "column": 3,
+      "bbox": [
+        36,
+        21,
+        92,
+        120
+      ],
+      "removedEdgeChromaPixels": 0
+    }
+  ],
+  "note": "Processor output is geometry/QC only; delivered frames use NEAREST."
+}
