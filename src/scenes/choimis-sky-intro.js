@@ -12,7 +12,7 @@ const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const BATTLE_ACTOR_SCALE = 0.66;
 const PINK_PETALS = Object.freeze(['#ff86b7', '#ffb1d0', '#ffd7e8']);
 const BOSS_BATTLE_HEIGHT = 123 * ENEMIES.choimis_flower.scale;
-const BOSS_HOVER = Object.freeze({ height: 28, amplitude: 3, period: 2.4 });
+const BOSS_HOVER = Object.freeze({ height: 48, amplitude: 3, period: 2.4 });
 export const CHOIMIS_SKY_SCALE = Object.freeze({
   battleReady: Object.freeze({ hyungsub: 101 / (2 * 349), gyeongsub: 98 / (2 * 359), ppaman: 99 / (2 * 305) }),
   raisedHand: 103 / (2 * 123),

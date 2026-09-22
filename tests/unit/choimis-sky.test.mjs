@@ -80,12 +80,12 @@ test('test_choimis_sky_boss_rises_with_afterimages_before_stabilizing', async ()
   assert.equal(finished, false);
   assert.equal(game.background[0].update(3), true);
   await rising;
-  assert.ok(boss.hopY >= 25 && boss.hopY <= 31);
+  assert.ok(boss.hopY >= 45 && boss.hopY <= 51);
   assert.equal(game.background.length, 2);
   const hoverStart = boss.hopY;
   assert.equal(game.background[1].update(0.6), false);
   assert.notEqual(boss.hopY, hoverStart);
-  assert.ok(boss.hopY >= 25 && boss.hopY <= 31);
+  assert.ok(boss.hopY >= 45 && boss.hopY <= 51);
   assert.equal(game.choimisSky.phase, undefined);
   game.choimisSky.raise = { scale: 1, frames: [{ duration: 1 }] };
   game.sound = { muted: true, sfx() {} };
@@ -116,6 +116,27 @@ test('test_choimis_sky_abort_cancels_rise_without_touching_a_fresh_scene', async
   assert.equal(fresh.boss, undefined);
 });
 
+test('test_choimis_sky_abort_removes_an_active_hover_without_touching_a_fresh_scene', async () => {
+  const boss = { id: 'choimis_sky_boss', x: 632, y: 199, w: 24, h: 16, visible: false, dead: false, def: {}, draw() {} };
+  const player = { id: 'player', x: 0, y: 0, w: 24, h: 16 };
+  const game = {
+    player, entities: [boss], background: [], camera: { target: null, locked: true }, zoom: {},
+    choimisSky: {}, choimisFlower: null,
+  };
+  const rising = riseChoimisFromBelow(game);
+  assert.equal(game.background[0].update(3), true);
+  await rising;
+  const staleHover = game.background[1];
+  assert.equal(staleHover.update(0.4), false);
+  clearChoimisSky(game);
+  const fresh = { fresh: true }; game.choimisSky = fresh;
+  assert.deepEqual(game.background, []);
+  assert.equal(staleHover.update(0.6), true);
+  assert.equal(game.choimisSky, fresh);
+  assert.equal(fresh.hoverTime, undefined);
+  assert.equal(boss.hopY, 0);
+});
+
 test('test_choimis_sky_abort_cancels_gather_without_advancing_a_fresh_scene', async () => {
   const player = { id: 'player', x: 0, y: 0, w: 24, h: 16, motion: null };
   const game = {
@@ -137,7 +158,7 @@ test('test_choimis_sky_abort_cancels_gather_without_advancing_a_fresh_scene', as
 test('test_choimis_sky_abort_cancels_ascent_without_advancing_a_fresh_scene', async () => {
   const actor = id => ({ id, x: 560, y: 199, w: 24, h: 16, dead: false, hopY: 0, motion: null });
   const player = actor('player'), gyeongsub = actor('gyeongsub'), ppaman = actor('ppaman');
-  const boss = { ...actor('choimis_sky_boss'), hopY: 28, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
+  const boss = { ...actor('choimis_sky_boss'), hopY: 48, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
   const motion = id => ({ scale: CHOIMIS_SKY_SCALE.battleReady[id], frames: [{ duration: 1 }] });
   const game = {
     player, playerSprite: 'hyungsub', entities: [gyeongsub, ppaman, boss], background: [],
@@ -167,7 +188,7 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
   const player = actor('player');
   const gyeongsub = actor('gyeongsub');
   const ppaman = actor('ppaman');
-  const boss = { ...actor('choimis_sky_boss'), hopY: 28, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
+  const boss = { ...actor('choimis_sky_boss'), hopY: 48, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
   const motion = id => ({ scale: CHOIMIS_SKY_SCALE.battleReady[id], frames: [{ duration: 1 }] });
   const game = {
     player, playerSprite: 'hyungsub', entities: [gyeongsub, ppaman, boss], background: [],
@@ -194,7 +215,7 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
   await ascent;
   assert.equal(game.camera.y, -470);
   assert.equal(player.hopY, 470);
-  assert.equal(boss.hopY, 498);
+  assert.equal(boss.hopY, 518);
   assert.equal(game.zoom.s, 0.84);
   const screenFoot = current => [
     240 + (current.x + current.w / 2 - game.camera.x + current.flyX - 240) * game.zoom.s,
