@@ -41,7 +41,7 @@ export async function runScenario({ name, launchOptions = {} }, scenario) {
         report.screenshots.push(file);
         return file;
       },
-      open: async ({ qa, params = {} } = {}) => {
+      open: async ({ qa, params = {}, waitUntil = 'load' } = {}) => {
         const url = new URL('index.html', baseUrl);
         for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
         if (qa) {
@@ -50,7 +50,7 @@ export async function runScenario({ name, launchOptions = {} }, scenario) {
         }
         report.urls.push(url.href);
         persist();
-        return page.goto(url.href);
+        return page.goto(url.href, { waitUntil });
       },
       fixture: async (name, description, prepare, arg) => {
         if (!name || !description || typeof prepare !== 'function') throw new Error('fixture requires a name, description, and browser preparation function');

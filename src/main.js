@@ -41,6 +41,7 @@ import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { Runner } from './world/runner.js';
 import { NightCoastChatter } from './world/night-coast-chatter.js';
+import { drawCoastWater, drawCoastWake } from './world/coast-water.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
 import { MaillardArrival } from './scenes/maillard-arrival.js';
 import { ShipAssault } from './scenes/ship-assault.js';
@@ -1486,7 +1487,9 @@ class Game {
       ctx.translate(Cx, Cy); ctx.scale(z.s, z.s); ctx.translate(-Fx, -Fy);
     }
     if (this.worldSpin?.angle) { ctx.translate(SCREEN_W / 2, SCREEN_H / 2); ctx.rotate(this.worldSpin.angle); ctx.translate(-SCREEN_W / 2, -SCREEN_H / 2); }   // 맵 빙글빙글(BUILD227 아짐키야 춤)
+    drawCoastWater(ctx, MAPS[this.mapId]?.meta?.coast, cam, this.time);
     this.map.draw(ctx, cam);
+    drawCoastWake(ctx, MAPS[this.mapId]?.meta?.coast, this.entities, cam, this.time, this.propImages['assets/tiles/night_coast_edge.png']);
     this.drawRipples(ctx, cam);
     this.runner?.drawGround(ctx, cam);   // 러너 기믹: 바닥 물결 줄기(엔티티 아래)
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다

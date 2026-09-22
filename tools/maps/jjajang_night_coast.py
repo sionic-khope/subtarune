@@ -113,6 +113,7 @@ def build_map(coast: Coast) -> dict[str, Json]:
             changed[str(y)] = ''.join(row)
         completed_rows.update(changed)
         swaps[gate.flag] = {'rows': completed_rows.copy()}
+    near_water: list[Json] = []
     for index, ((ax, ay), (bx, by)) in enumerate(coast.ferries):
         right = bx > ax
         x = (ax + 2) * TILE - 4 if right else (ax - 1) * TILE - 52
@@ -121,6 +122,13 @@ def build_map(coast: Coast) -> dict[str, Json]:
         entities.append({'type': 'raft', 'id': f'coast{coast.number}_{chr(97 + index)}',
             'image': 'assets/props/raft.png', 'x': x, 'y': y, 'route': [[end, by * TILE - 4]],
             'speed': 171, 'walkOn': True, 'swim': ['ppaman', 'gyeongsub'], 'swimAt': 'below'})
+        water_left, water_right = -15 * TILE, (width + 15) * TILE
+        top, bottom = ay * TILE - 24, y + 384
+        near_water.append({'raft': f'coast{coast.number}_{chr(97 + index)}',
+            'polygon': [[water_left, top + 8], [0, top], [width * TILE, top + 8],
+                        [water_right, top], [water_right, bottom], [water_left, bottom]],
+            'shore': [(min(ax, bx) + 2) * TILE, (max(ax, bx) - 1) * TILE],
+            'bankY': (ay - 1) * TILE})
     if coast.number == 3:
         entities.append({'type': 'prop', 'id': 'coast3_spring',
             'image': 'assets/props/blue_buff.png', 'anim': {'cols': 3, 'fps': 4},
@@ -147,6 +155,7 @@ def build_map(coast: Coast) -> dict[str, Json]:
         'rows': [''.join(row) for row in rows], 'spawns': spawn, 'entities': entities, 'tileSwaps': swaps,
         'preload': ['assets/backdrops/jjajang_night_sea.png', 'assets/tiles/night_coast_rock.png', 'assets/tiles/night_coast_edge.png', 'assets/props/lever_on.png'],
         'meta': {'connected': True, 'coast': {'gates': gate_meta,
+            **({'nearWater': near_water} if near_water else {}),
             'walkRoute': [[[x * TILE + 4, y * TILE + 8] for x, y in path] for path in coast.paths],
             'walkDistance': distance, 'defaultMoveSeconds': round(distance / 218.4, 1),
             'slowMoveSeconds': round(distance / 124.8, 1)}}}

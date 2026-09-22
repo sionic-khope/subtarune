@@ -2,18 +2,144 @@ import { runScenario } from './lib/harness.mjs';
 import { createHash } from 'node:crypto';
 import { validateBaseUrl } from './lib/runner-utils.mjs';
 
-await runScenario({ name: 'jjajang-night-coast-visual', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, check, shot, until, press: rawPress, fixture }) => {
+await runScenario({ name: 'jjajang-night-coast-visual', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open: rawOpen, check, shot, until, press: rawPress, fixture }) => {
   page.setDefaultNavigationTimeout(30000);
+  const pendingRequests = new Set();
+  page.on('request', request => pendingRequests.add(request.url()));
+  page.on('requestfinished', request => pendingRequests.delete(request.url()));
+  page.on('requestfailed', request => { pendingRequests.delete(request.url()); console.log('COAST_REQUEST_FAILED', request.url(), request.failure()?.errorText); });
+  const open = async options => {
+    try { return await rawOpen({ ...options, waitUntil: 'domcontentloaded' }); }
+    catch (error) { console.log('COAST_PENDING_REQUESTS', JSON.stringify([...pendingRequests])); throw error; }
+  };
   const press = key => rawPress(key, { delay: 80 });
   const numbers = process.env.COAST_RENDER_ONLY === '1' ? [] : process.env.COAST_VISUAL_ROOM ? [Number(process.env.COAST_VISUAL_ROOM)] : [1, 2, 3];
   if (!numbers.every(number => [1, 2, 3].includes(number))) throw new Error('COAST_VISUAL_ROOM must be1,2 or3');
-  const sourceFiles = ['src/data/build.js', 'src/main.js', 'src/world/tiles.js', 'tests/playtest/jjajang-night-coast-visual.mjs', ...numbers.map(number => `assets/maps/jjajang_night_coast${number}.json`)];
+  const sourceFiles = ['src/data/build.js', 'src/main.js', 'src/world/world.js', 'src/world/tiles.js', 'src/world/coast-water.js', 'tests/playtest/jjajang-night-coast-visual.mjs', ...numbers.map(number => `assets/maps/jjajang_night_coast${number}.json`)];
   const sources = await Promise.all(sourceFiles.map(async file => {
     const response = await page.request.get(new URL(file, validateBaseUrl(process.env.QA_BASE_URL)).href);
     if (!response.ok()) throw new Error(`Capture source unavailable: ${file}`);
     return [file, await response.text()];
   }));
   console.log('CAPTURE_SOURCE', JSON.stringify({ build: new Map(sources).get('src/data/build.js').trim(), servedSha256: Object.fromEntries(sources.map(([file, text]) => [file, createHash('sha256').update(text).digest('hex')])) }));
+  if (process.env.COAST_FERRY_ONLY === '1') {
+    const ferries = [[2, 0, 'coast2_a'], [2, 1, 'coast2_b'], [2, 2, 'coast2_c'], [3, 0, 'coast3_a']];
+    const selectedId = process.env.COAST_FERRY_ID;
+    if (selectedId && !ferries.some(([, , id]) => id === selectedId)) throw new Error('COAST_FERRY_ID must be coast2_a, coast2_b, coast2_c or coast3_a');
+    for (const [number, index, id] of ferries.filter(([, , id]) => !selectedId || id === selectedId)) {
+      await open({ qa: `jjajang_night_coast${number}` });
+      if (!await until(() => window.game?.state === 'field' && !!window.game.map?.def.meta?.coast && !window.game.transitioning && window.game.fade.alpha < 0.01 && !window.game.dialogue.running, 60000)) throw new Error(`${id}: room not ready`);
+      await fixture(`${id}-dock-start`, 'Prepare only the party at this ferry’s departure bank. The C boarding sequence, crossing, landing and subsequent walking use real game updates and keyboard input; this is not a full-room walkthrough.', ({ id, index }) => {
+        const g = window.game, r = g.entities.find(e => e.id === id);
+        const sign = Math.sign(r.route.at(-1)[0] - r.route[0][0]);
+        const end = g.map.def.meta.coast.walkRoute[index].at(-1);
+        g.coastChatter.clear();
+        g.player.x = end[0] + sign * 26; g.player.y = end[1] - 1;
+        g.player.facing = sign > 0 ? 'right' : 'left';
+        g.player.trail = []; g.spawnParty(); g.camera.snap();
+      }, { id, index });
+      const freshFrame = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const observe = () => page.evaluate(async id => {
+        const g = window.game, r = g.entities.find(e => e.id === id), cam = g.camera;
+        const surfaceCanvas = document.createElement('canvas');
+        surfaceCanvas.width = 480; surfaceCanvas.height = 360;
+        const surfaceContext = surfaceCanvas.getContext('2d');
+        if (g.map.def.meta.coast.nearWater) {
+          const { drawCoastWater } = await import('./src/world/coast-water.js');
+          drawCoastWater(surfaceContext, g.map.def.meta.coast, cam, g.time);
+        }
+        const sample = (x, y) => {
+          const tx = Math.floor(x / 32), ty = Math.floor(y / 32), tile = g.map.tileAt(tx, ty);
+          const sx = Math.floor(x - cam.x), sy = Math.floor(y - cam.y);
+          const waterAlpha = sx >= 0 && sx < 480 && sy >= 0 && sy < 360 ? surfaceContext.getImageData(sx, sy, 1, 1).data[3] : null;
+          return { x, y, tx, ty, char: g.map.rows[ty]?.[tx], name: tile.name, waterAlpha };
+        };
+        const actor = e => ({ id: e.id, world: { x: e.x, y: e.y, w: e.w, h: e.h }, screen: { x: e.x - cam.x, y: e.y - cam.y }, visible: e.visible,
+          surface: [sample(e.x + 2, e.y + e.h - 2), sample(e.x + e.w / 2, e.y + e.h - 2), sample(e.x + e.w - 2, e.y + e.h - 2)] });
+        return { map: g.mapId, camera: { x: cam.x, y: cam.y }, fade: g.fade.alpha, ride: g.ride?.id ?? null, moving: r.moving,
+          raft: actor(r), player: actor(g.player), swimmers: r.swimmers.filter(sw => !sw.dead).map(actor), followers: g.entities.filter(e => e.def.type === 'follower').map(actor) };
+      }, id);
+      await freshFrame();
+      console.log('FERRY_FRAME', id, 'dock', JSON.stringify(await observe()));
+      await shot(`${id}_dock`);
+      await fixture(`${id}-capture-observer`, 'Before C input, register explicit non-natural screenshot pauses at first boarding and then at the naturally reached midpoint. Do not change position, route, speed, camera or input; release each hold after its capture.', id => {
+        let boarded = false;
+        const watch = () => {
+          const g = window.game, r = g.ride;
+          if (r?.id === id) {
+            if (!boarded) { boarded = true; r.hold = true; }
+            else if (r.moving && Math.abs(r.x - r.route[0][0]) >= Math.abs(r.route.at(-1)[0] - r.route[0][0]) * 0.45) { r.hold = true; return; }
+          }
+          requestAnimationFrame(watch);
+        };
+        requestAnimationFrame(watch);
+      }, id);
+      await press('KeyC');
+      await page.waitForFunction(id => window.game.ride?.id === id && window.game.ride.hold, id, { timeout: 12000 });
+      await freshFrame();
+      console.log('FERRY_FRAME', id, 'embark', JSON.stringify(await observe()));
+      await shot(`${id}_embark`);
+      await fixture(`${id}-release-embark`, 'Release only the first-boarding screenshot pause. The already registered observer will hold the naturally moving ferry at its midpoint.', () => { window.game.ride.hold = false; });
+      await page.waitForFunction(id => {
+        const g = window.game, r = g.ride;
+        return r?.id === id && r.hold && r.image && r.visible && r.swimmers.filter(sw => !sw.dead && sw.visible && sw.sprite && !sw.sprite.fallback).length === 2 && !g.transitioning && g.fade.alpha < 0.01 && !g.camera.locked;
+      }, id, { timeout: 16000, polling: 'raf' });
+      await freshFrame();
+      const middle = await observe();
+      console.log('FERRY_FRAME', id, 'midride', JSON.stringify(middle));
+      await shot(`${id}_midride`);
+      check(`${id} raft and both swimmers have opaque world water underneath`, [middle.raft, ...middle.swimmers].every(actor => actor.surface.every(tile => tile.waterAlpha === 255)), JSON.stringify([middle.raft, ...middle.swimmers].map(actor => ({ id: actor.id, surface: actor.surface }))));
+      await fixture(`${id}-release-midride`, 'Release only the screenshot hold and let the real ferry finish crossing and disembark.', () => { window.game.ride.hold = false; });
+      check(`${id} naturally lands with both followers`, await until(() => {
+        const g = window.game;
+        return !g.ride && !g.dialogue.running && g.party.length === 2 && [g.player, ...g.entities.filter(e => e.def.type === 'follower')].every(e => e.visible && !g.map.solidRect(e.x, e.y, e.w, e.h));
+      }, 16000));
+      await freshFrame();
+      console.log('FERRY_FRAME', id, 'landing', JSON.stringify(await observe()));
+      await shot(`${id}_landing`);
+      const start = await observe();
+      const movement = await page.evaluate(index => {
+        const g = window.game, next = g.map.def.meta.coast.walkRoute[index + 1][1];
+        const axis = Math.abs(next[0] - g.player.x) > Math.abs(next[1] - g.player.y) ? 'x' : 'y';
+        const direction = Math.sign(next[axis === 'x' ? 0 : 1] - g.player[axis]);
+        return { axis, direction, start: g.player[axis], key: axis === 'x' ? direction > 0 ? 'ArrowRight' : 'ArrowLeft' : direction > 0 ? 'ArrowDown' : 'ArrowUp' };
+      }, index);
+      const { key } = movement;
+      await page.keyboard.down(key);
+      try { await page.waitForFunction(({ axis, start, direction }) => direction * (window.game.player[axis] - start) >= 160, movement, { timeout: 5000 }); }
+      finally { await page.keyboard.up(key); }
+      const after = await observe();
+      check(`${id} both companions follow real walking after landing`, after.followers.length === 2 && after.followers.every(e => e.visible && movement.direction * (e.world[movement.axis] - start.followers.find(f => f.id === e.id).world[movement.axis]) > 20), JSON.stringify({ movement, before: start.followers, after: after.followers }));
+      await freshFrame();
+      await shot(`${id}_regrouped`);
+      if (id === 'coast3_a') {
+        await page.keyboard.down('ArrowLeft');
+        try { await page.waitForFunction(id => window.game.player.probe()?.id === id, id, { timeout: 5000 }); }
+        finally { await page.keyboard.up('ArrowLeft'); }
+        await press('KeyC');
+        await page.waitForFunction(id => window.game.ride?.id === id, id, { timeout: 12000 });
+        check(`${id} returns naturally to its departure bank`, await until(() => {
+          const g = window.game;
+          return !g.ride && !g.dialogue.running && [g.player, ...g.entities.filter(e => e.def.type === 'follower')].every(e => e.visible && !g.map.solidRect(e.x, e.y, e.w, e.h));
+        }, 16000));
+        await freshFrame();
+        console.log('FERRY_FRAME', id, 'return_landing', JSON.stringify(await observe()));
+        await shot(`${id}_return_landing`);
+        const bankX = await page.evaluate(() => window.game.player.x);
+        await page.keyboard.down('ArrowLeft');
+        try { await page.waitForFunction(x => window.game.player.x <= x - 320, bankX, { timeout: 5000 }); }
+        finally { await page.keyboard.up('ArrowLeft'); }
+        await page.waitForFunction(() => {
+          const g = window.game;
+          return !g.transitioning && Math.abs(g.player.cx - g.camera.x - 240) < 1 && Math.abs(g.player.cy - g.camera.y - 180) < 1;
+        }, undefined, { timeout: 5000 });
+        await freshFrame();
+        console.log('FERRY_FRAME', id, 'away_shoreline', JSON.stringify(await observe()));
+        await shot(`${id}_away_shoreline`);
+      }
+    }
+    return;
+  }
   for (const number of numbers) {
     await open({ qa: `jjajang_night_coast${number}` });
     check(`coast${number} loads current textures`, await until(() => window.game?.map?.def.meta?.coast && !window.game.transitioning, 30000));
@@ -86,9 +212,14 @@ await runScenario({ name: 'jjajang-night-coast-visual', launchOptions: { args: [
     check(`${id} rendered midride frame is ready`, true, JSON.stringify(await frame.jsonValue()));
     await frame.dispose();
     await shot(`${id}_final_midride`);
-    check(`${id} is below the water horizon`, await page.evaluate(() => {
+    check(`${id} is on world water below the horizon`, await page.evaluate(async () => {
       const g = window.game, r = g.ride;
-      return r && r.y + r.h - g.camera.y > 138 && r.swimmers.every(sw => sw.y - g.camera.y > 138);
+      const canvas = document.createElement('canvas'); canvas.width = 480; canvas.height = 360;
+      const ctx = canvas.getContext('2d');
+      const { drawCoastWater } = await import('./src/world/coast-water.js');
+      drawCoastWater(ctx, g.map.def.meta.coast, g.camera, g.time);
+      return r && r.y + r.h - g.camera.y > 138 && [r, ...r.swimmers].every(e =>
+        ctx.getImageData(Math.floor(e.x + e.w / 2 - g.camera.x), Math.floor(e.y + e.h - 2 - g.camera.y), 1, 1).data[3] === 255);
     }));
     await fixture(`${id}-release-capture-hold`, 'The midride observer held the naturally moving raft for its screenshot only. Release that capture hold without changing route, position or speed.', () => { window.game.ride.hold = false; });
     check(`${id} returns every companion to land`, await until(() => {
