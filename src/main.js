@@ -1492,7 +1492,6 @@ class Game {
     drawCoastWater(ctx, MAPS[this.mapId]?.meta?.coast, cam, this.time);
     this.map.draw(ctx, cam);
     drawCoastWake(ctx, MAPS[this.mapId]?.meta?.coast, this.entities, cam, this.time, this.propImages['assets/tiles/night_coast_edge.png']);
-    drawChoimisSkyPollen(ctx, this, cam);
     this.drawRipples(ctx, cam);
     this.runner?.drawGround(ctx, cam);   // 러너 기믹: 바닥 물결 줄기(엔티티 아래)
     // y 정렬: 아래 있는 엔티티가 앞에 그려진다
@@ -1501,10 +1500,16 @@ class Game {
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
     drawChoimisFlowerEffects(ctx, this, cam);
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
+    let skyPollenDrawn = !this.choimisSky?.actors?.length;
     for (const e of sorted) {
+      if (!skyPollenDrawn && this.choimisSky.actors.includes(e)) {
+        drawChoimisSkyPollen(ctx, this, cam);
+        skyPollenDrawn = true;
+      }
       e.draw(ctx, cam);
       if (e === this.tvBroadcast?.anchor) this.tvBroadcast.draw(ctx, cam);
     }
+    if (!skyPollenDrawn) drawChoimisSkyPollen(ctx, this, cam);
     this.runner?.drawAir(ctx, cam);      // 러너 기믹: 바람 줄기·물보라(엔티티 위)
     drawDarkSmoke(ctx, this, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점

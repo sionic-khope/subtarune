@@ -53,6 +53,17 @@ test('test_night_cliff_retryable_trigger_preloads_raised_hand_contract', () => {
   assert.deepEqual(qa.party, ['gyeongsub', 'ppaman']);
 });
 
+test('test_choimis_sky_pollen_draws_above_the_cliff_floor_and_below_supported_actors', () => {
+  const map = JSON.parse(fs.readFileSync('assets/maps/jjajang_night_cliff.json', 'utf8'));
+  assert.equal(map.entities.find(entity => entity.id === 'night_cliff_floor').sortY, -100);
+
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  const entityLayer = main.slice(main.indexOf('const sorted = [...this.entities]'), main.indexOf("this.runner?.drawAir"));
+  assert.match(entityLayer, /this\.choimisSky\.actors\.includes\(e\)[\s\S]*drawChoimisSkyPollen\(ctx, this, cam\)[\s\S]*e\.draw\(ctx, cam\)/);
+  const beforeEntityLayer = main.slice(main.indexOf('drawCoastWake('), main.indexOf('const sorted = [...this.entities]'));
+  assert.equal(beforeEntityLayer.includes('drawChoimisSkyPollen'), false);
+});
+
 test('test_choimis_sky_boss_rises_with_afterimages_before_stabilizing', async () => {
   const boss = { id: 'choimis_sky_boss', x: 632, y: 199, w: 24, h: 16, visible: false, dead: false, def: {}, draw() {} };
   const game = {
