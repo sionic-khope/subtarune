@@ -9,8 +9,11 @@ const DIALOGUE = [
   '어쨋든 곧 나는 점례에게 돌아갈거야',
   '너희들의 동기가 어떻게 됐든 난 상관없어',
   '나를 막을 순 없을것이다.',
+  "형들이 무슨 대의를 위해 날 막는건진 모르겠지만. 난 '순애'다.",
   '순수한 나의 사랑을',
   '그리고. 이젠 달라진 나의 모습을.',
+  '점례야.. 곧 해치우고 너에게 갈게',
+  '내 힘을 받아라',
 ];
 
 const PATTERNS = [
@@ -42,7 +45,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       const e = id === 'player' ? g.player : g.entities.find(item => item.id === id && !item.dead);
       return e ? { id: e.id, x: e.x, y: e.y, w: e.w, h: e.h, visible: e.visible, facing: e.facing,
         hopY: e.hopY || 0, flyX: e.flyX || 0, flyY: e.flyY || 0, moving: e.moving, fallback: !!e.sprite?.fallback,
-        frame: e.frame, motion: e.motion ? { scale: e.motion.scale, index: e.motion.index, loop: e.motion.loop } : null } : null;
+        frame: e.frame, motion: e.motion ? { scale: e.motion.scale, scaleY: e.motion.scaleY, index: e.motion.index, loop: e.motion.loop } : null } : null;
     };
     const b = g.battle;
     return {
@@ -71,15 +74,19 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
 
   const movePinkHeart = async target => {
     const y = await page.evaluate(() => window.game.battle?.gimmick?.snapshot?.heart?.y);
-    if (!Number.isFinite(y) || Math.abs(y - target) <= 2) return;
+    if (!Number.isFinite(y)) return false;
+    if (Math.abs(y - target) <= 2) return true;
     const up = target < y, key = up ? 'ArrowUp' : 'ArrowDown';
     await page.keyboard.down(key);
+    await page.evaluate(({ target, up }) => { window.__choimisQa.moveTarget = { target, up }; }, { target, up });
+    let reached = false;
     try {
-      await page.waitForFunction(({ target, up }) => {
-        const y = window.game.battle?.gimmick?.snapshot?.heart?.y;
-        return Number.isFinite(y) && (up ? y <= target + 2 : y >= target - 2);
-      }, { target, up }, { polling: 'raf', timeout: 1800 });
+      reached = !!(await until(() => {
+        const y = window.game.battle?.gimmick?.snapshot?.heart?.y, move = window.__choimisQa.moveTarget;
+        return Number.isFinite(y) && move && (move.up ? y <= move.target + 2 : y >= move.target - 2) ? true : null;
+      }, 1800));
     } finally { await page.keyboard.up(key); }
+    return reached;
   };
   const readPinkScenario = name => page.evaluate(name =>
     window.game.battle?.gimmick?.snapshot?.scenario?.kind === name
@@ -92,6 +99,43 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       hits = (await readPinkScenario('choso'))?.hits ?? hits;
     }
     return { hits, attempts };
+  };
+  const tapPinkBossCenter = async () => {
+    await movePinkHeart(159);
+    await press('KeyC');
+    await page.waitForTimeout(380);
+  };
+  const fireKartCenterShots = async () => {
+    const start = await page.evaluate(() => {
+      const b = window.game.battle, mode = b?.gimmick, scenario = mode?.snapshot?.scenario;
+      return { enemyHp: b?.enemies?.[0]?.hp, bossHits: mode?.snapshot?.bossHits ?? 0, hitSfx: window.__choimisQa.sfx.filter(sound => sound.name === 'hit').length, heartY: mode?.snapshot?.heart?.y, phase: mode?.snapshot?.phase, scenarioKind: scenario?.kind };
+    });
+    const shotTimes = [];
+    await movePinkHeart(159);
+    for (let index = 0; index < 3; index++) {
+      shotTimes.push(await page.evaluate(() => performance.now()));
+      await press('KeyC');
+      await page.waitForTimeout(380);
+    }
+    await page.waitForTimeout(700);
+    const after = await page.evaluate(() => {
+      const b = window.game.battle, mode = b?.gimmick, scenario = mode?.snapshot?.scenario;
+      return { enemyHp: b?.enemies?.[0]?.hp, bossHits: mode?.snapshot?.bossHits ?? window.__choimisQa.roundLatches.kart_block?.bossHits ?? 0, hitSfx: window.__choimisQa.sfx.filter(sound => sound.name === 'hit').length, heartY: mode?.snapshot?.heart?.y, phase: mode?.snapshot?.phase, scenarioKind: scenario?.kind, blockers: scenario?.blockers?.length ?? window.__choimisQa.roundLatches.kart_block?.blockers?.length ?? 0 };
+    });
+    return {
+      start,
+      after,
+      hpDrop: Number.isFinite(start.enemyHp) && Number.isFinite(after.enemyHp) && after.enemyHp < start.enemyHp,
+      contactSfx: after.hitSfx - start.hitSfx,
+      remainder: after.bossHits === 0,
+      spacingMs: shotTimes.slice(1).map((time, index) => time - shotTimes[index]),
+      flightWaitMs: 700,
+    };
+  };
+  const checkKartCenterShots = async (shots, label) => {
+    await shot(label);
+    check('kart: three real center-lane normal shots contact the far-right boss before blocker movement', shots.start.scenarioKind === 'kart_block' && shots.start.phase === 'combat' && shots.start.heartY === 159 && shots.hpDrop && shots.contactSfx === 3 && shots.remainder && shots.spacingMs.every(value => value >= 300), json(shots));
+    return shots;
   };
   const clearPrism = async () => {
     await movePinkHeart(159);
@@ -149,16 +193,38 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     const { choimisLyricAt } = await import('/src/battle/choimis-karaoke.js');
     window.__choimisQa = {
       sfx: [], bgm: [], phases: [], frames: [], draws: 0, lyricAt: choimisLyricAt,
-      prepanSamples: [], chargeSamples: [], roundCaptures: {}, hintDraws: [], chargeFrames: {}, defenseFrames: {}, capeFrames: {}, roundLatches: {},
-      skyTransition: { rise: {}, risePending: {}, cape: {}, gatherLate: null, windHi: [], phaseFrames: {}, phasePending: {} }, audioTimeline: [],
-      temporalCaptures: [42.214, 42.264, 42.334, 42.384, 42.484, 42.584].map(time => ({ time, data: null, actual: null, frame: null })),
+      rapVideo: { starts: [], stops: [], frames: [] },
+      prepanSamples: [], chargeSamples: [], roundCaptures: {}, hintDraws: [], chargeFrames: {}, defenseFrames: {}, capeFrames: {}, roundLatches: {}, roundHistory: {},
+      skyTransition: { rise: {}, risePending: {}, cape: {}, gatherLate: null, windHi: [], phaseFrames: {}, phasePending: {} }, audioTimeline: [], sceneVoices: { sexy: [], seup: [] },
+      temporalCaptures: [42.364, 42.414, 42.484, 42.534, 42.634, 42.734].map(time => ({ time, data: null, actual: null, frame: null })),
+      audioBoundaryCaptures: [58.121, 58.271, 58.421, 178.121, 178.271, 178.421].map(time => ({ time, data: null, actual: null, frame: null })),
     };
     const sound = g.sound;
     const sfx = sound.sfx.bind(sound), playBgm = sound.playBgm.bind(sound);
     sound.sfx = (name, options) => { const event = { name, at: performance.now() }; window.__choimisQa.sfx.push(event); window.__choimisQa.audioTimeline.push({ kind: 'sfx', ...event }); return sfx(name, options); };
     sound.playBgm = (name, options) => { const event = { name, at: performance.now(), options }; window.__choimisQa.bgm.push(event); window.__choimisQa.audioTimeline.push({ kind: 'bgm', ...event }); return playBgm(name, options); };
+    const wrappedVoiceSources = new WeakSet();
+    const wrapSceneVoices = () => {
+      for (const [bucket, name] of [['sexy', 'choimis_flower_sexy'], ['seup', 'choimis_flower_seup']]) {
+        const source = g.sound.files?.[name];
+        if (!source || wrappedVoiceSources.has(source) || typeof source.cloneNode !== 'function') continue;
+        const cloneNode = source.cloneNode.bind(source);
+        source.cloneNode = (...cloneArgs) => {
+          const clip = cloneNode(...cloneArgs);
+          const event = { name, at: performance.now(), phase: g.choimisSky?.phase || null };
+          window.__choimisQa.sceneVoices[bucket].push(event); window.__choimisQa.audioTimeline.push({ kind: 'voice', ...event });
+          if (typeof clip.play === 'function') {
+            const play = clip.play.bind(clip);
+            clip.play = (...playArgs) => { event.playAt = performance.now(); return play(...playArgs); };
+          }
+          return clip;
+        };
+        wrappedVoiceSources.add(source);
+      }
+    };
     const originalGameUpdate = g.update.bind(g);
     g.update = (...args) => {
+      wrapSceneVoices();
       const b = g.battle;
       if (b && !b.__choimisQaUpdateWrapped) {
         const originalBattleUpdate = b.update.bind(b);
@@ -167,11 +233,39 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
           const result = originalBattleUpdate(...updateArgs);
           if (modeName === 'choimis_pink_round' && mode?.snapshot) {
             const scenario = mode.snapshot.scenario;
-            if (scenario?.kind) window.__choimisQa.roundLatches[scenario.kind] = { ...scenario, modeDone: !!mode.done };
+            if (scenario?.kind) {
+              const enemy = b.enemies?.[0];
+              const entry = { ...scenario, modeDone: !!mode.done, bossHits: mode.snapshot.bossHits ?? null,
+                enemyHp: enemy?.hp, enemyDying: enemy?.dying, enemyDead: enemy?.dead };
+              window.__choimisQa.roundLatches[scenario.kind] = entry;
+              (window.__choimisQa.roundHistory[scenario.kind] ||= []).push(entry);
+            }
           }
           return result;
         };
         b.__choimisQaUpdateWrapped = true;
+      }
+      if (b && !b.__choimisQaRapVideoWrapped) {
+        const startRapVideo = b.startRapVideo.bind(b), stopRapVideo = b.stopRapVideo.bind(b);
+        b.startRapVideo = (...videoArgs) => {
+          const handle = startRapVideo(...videoArgs);
+          if (handle?.draw && !handle.__choimisQaDrawWrapped) {
+            const drawVideo = handle.draw.bind(handle);
+            handle.draw = (...drawArgs) => {
+              const drawn = drawVideo(...drawArgs);
+              if (drawn) handle.__choimisQaLastDrawAt = performance.now();
+              return drawn;
+            };
+            handle.__choimisQaDrawWrapped = true;
+          }
+          window.__choimisQa.rapVideo.starts.push({ at: performance.now(), options: videoArgs[0] || null, handle: !!handle });
+          return handle;
+        };
+        b.stopRapVideo = (...videoArgs) => {
+          if (videoArgs[0] || b.rapVideo) window.__choimisQa.rapVideo.stops.push({ at: performance.now(), hadHandle: true });
+          return stopRapVideo(...videoArgs);
+        };
+        b.__choimisQaRapVideoWrapped = true;
       }
       const result = originalGameUpdate(...args);
       const sky = g.choimisSky, phase = sky?.phase, progress = Number(sky?.progress);
@@ -210,6 +304,12 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         };
       }
       const result = draw(...args); const b = g.battle, sky = g.choimisSky;
+      if (b?.rapVideo?.__choimisQaLastDrawAt && !window.__choimisQa.rapVideo.frames.length) {
+        window.__choimisQa.rapVideo.frames.push({ at: performance.now(), data: g.canvas.toDataURL('image/png'), battleTime: b.t, handle: true, drawnAt: b.rapVideo.__choimisQaLastDrawAt });
+      }
+      for (const event of [...(window.__choimisQa.sceneVoices.sexy || []), ...(window.__choimisQa.sceneVoices.seup || [])]) {
+        if (event.phaseAtDraw == null && sky?.phase) event.phaseAtDraw = sky.phase;
+      }
       if (sky?.phase === 'gather' && Number(sky.progress) >= 0.95 && !window.__choimisQa.skyTransition.gatherLate) {
         window.__choimisQa.skyTransition.gatherLate = { at: performance.now(), phase: sky.phase, progress: Number(sky.progress), pollen: sky.pollen?.length || 0, loosePetals: sky.loosePetals?.length || 0, data: g.canvas.toDataURL('image/png') };
       }
@@ -300,7 +400,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       }
       for (const bullet of b?.bullets || []) if (!bullet.__qaId) bullet.__qaId = nextQaBulletId++;
       if (sky?.phase && !window.__choimisQa.phases.includes(sky.phase)) window.__choimisQa.phases.push(sky.phase);
-      if (sky?.phase === 'rise' || b?.state === 'bullets' || b?.state === 'enemy-prep' || b?.state === 'board-close' || b?.activeEnemyMode === 'choimis_pink_round' || window.__choimisQa.temporalCaptures?.some(target => !target.data)) {
+      if (sky?.phase === 'rise' || b?.state === 'bullets' || b?.state === 'enemy-prep' || b?.state === 'board-close' || b?.activeEnemyMode === 'choimis_pink_round' || window.__choimisQa.temporalCaptures?.some(target => !target.data) || window.__choimisQa.audioBoundaryCaptures?.some(target => !target.data)) {
         const bgmTime = g.sound.bgm?.currentTime;
         const cue = window.__choimisQa.lyricAt(bgmTime);
         const lyricFade = cue ? Math.min(1, Math.max(0, (bgmTime - cue.start) / 0.28)) : 0;
@@ -313,6 +413,13 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
           opening: b?.activeEnemyMode === 'choimis_pink_round' ? b.gimmick?.snapshot || null : null,
           pose: b?.enemies?.[0]?.patternPose || null });
         for (const target of window.__choimisQa.temporalCaptures || []) {
+          if (!target.data && Number.isFinite(bgmTime) && bgmTime >= target.time && bgmTime < target.time + 0.14) {
+            target.actual = bgmTime;
+            target.frame = window.__choimisQa.frames.at(-1);
+            target.data = g.canvas.toDataURL('image/png');
+          }
+        }
+        for (const target of window.__choimisQa.audioBoundaryCaptures || []) {
           if (!target.data && Number.isFinite(bgmTime) && bgmTime >= target.time && bgmTime < target.time + 0.14) {
             target.actual = bgmTime;
             target.frame = window.__choimisQa.frames.at(-1);
@@ -407,14 +514,14 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       return g.dialogue.running && typeof g.textbox.node?.text === 'string' ? { text: g.textbox.node.text, state: g.textbox.state, index: g.dialogue.i } : null;
     }, 15000);
     const reached = line?.text === exact;
-    check(`dialogue ${index + 1}/8 is exact`, reached, json({ expected: exact, actual: line?.text }));
+    check(`dialogue ${index + 1}/${DIALOGUE.length} is exact`, reached, json({ expected: exact, actual: line?.text }));
     trace.dialogue.push({ index: index + 1, expected: exact, actual: line?.text, reached }); save();
     if (!reached) return;
     await page.evaluate(expectedText => { window.__choimisQa.expectedDialogueText = expectedText; }, exact);
     const fullLine = await until(() => window.game.dialogue.running && window.game.textbox.node?.text === window.__choimisQa.expectedDialogueText && window.game.textbox.state === 'waiting', 10000);
-    check(`dialogue ${index + 1}/8 is fully displayed before advancing`, !!fullLine);
+    check(`dialogue ${index + 1}/${DIALOGUE.length} is fully displayed before advancing`, !!fullLine);
     if (!fullLine) return;
-    check(`dialogue ${index + 1}/8 preserves Choimis hover`, (await snapshot()).actors.choimis_sky_boss?.hopY > 20);
+    check(`dialogue ${index + 1}/${DIALOGUE.length} preserves Choimis hover`, (await snapshot()).actors.choimis_sky_boss?.hopY > 20);
     if (reached) await shot(`04_dialogue_${String(index + 1).padStart(2, '0')}`);
     await press('KeyC');
     await until(() => window.game.textbox.node?.text !== window.__choimisQa.expectedDialogueText || window.game.textbox.state === 'closed', 3000);
@@ -462,6 +569,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const handoffBgmElapsed = handoffBgmReady.callAt - handoffBgmReady.introAt;
   trace.observations.push({ label: 'battle-handoff-bgm-ready', value: { ...handoffBgmReady, elapsedMs: handoffBgmElapsed } }); save();
   const audioTimeline = await page.evaluate(() => window.__choimisQa.audioTimeline || []);
+  const sceneVoices = await page.evaluate(() => window.__choimisQa.sceneVoices || { sexy: [], seup: [] });
   const weaponAt = audioTimeline.find(event => event.kind === 'sfx' && event.name === 'weaponpull')?.at;
   const wingEvents = audioTimeline.filter(event => event.kind === 'sfx' && event.name === 'wing');
   const wingAt = wingEvents[0]?.at;
@@ -474,6 +582,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     gatherLate: stripFrame(skyTransition.gatherLate),
     phaseFrames: Object.fromEntries(Object.entries(skyTransition.phaseFrames || {}).map(([key, frame]) => [key, stripFrame(frame)])),
     windHi: (skyTransition.windHi || []).map(stripFrame),
+    sceneVoices,
   };
   trace.observations.push({ label: 'sky-transition-latches', value: { ...transitionSummary, audioTimeline: audioTimeline.filter(event => event.name === 'weaponpull' || event.name === 'choimis_battle') } }); save();
   for (const label of ['start', 'mid', 'end']) await saveDataUrl(`sky_rise_${label}`, skyTransition.rise?.[label]);
@@ -482,6 +591,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   for (const label of ['start', 'mid', 'end']) await saveDataUrl(`sky_cape_${label}`, skyTransition.cape?.[label]);
   await saveDataUrl('sky_hi_wind', skyTransition.windHi?.[Math.min(2, (skyTransition.windHi?.length || 1) - 1)]);
   check('sky rise captures start/mid/end with moving wind and camera state', !!skyTransition.rise?.start && !!skyTransition.rise?.mid && !!skyTransition.rise?.end && skyTransition.rise.mid.windTime >= skyTransition.rise.start.windTime, json(transitionSummary.rise));
+  check('gather sexy voice and shine cue start once before the concurrent gather line', sceneVoices.sexy.length === 1 && sceneVoices.sexy[0].phaseAtDraw === 'gather' && Number.isFinite(sceneVoices.sexy[0].at) && Number.isFinite(skyTransition.gatherLate?.at) && sceneVoices.sexy[0].at <= skyTransition.gatherLate.at && audioTimeline.filter(event => event.kind === 'sfx' && event.name === 'great_shine').length === 1, json({ sexy: sceneVoices.sexy, gatherLateAt: skyTransition.gatherLate?.at, shine: audioTimeline.filter(event => event.kind === 'sfx' && event.name === 'great_shine') }));
+  check('ascent seup voice starts once at the actual rise phase without blocking the ascent', sceneVoices.seup.length === 1 && sceneVoices.seup[0].phaseAtDraw === 'rise' && Number.isFinite(sceneVoices.seup[0].at) && Number.isFinite(skyTransition.rise?.start?.at) && sceneVoices.seup[0].at <= skyTransition.rise.start.at + 250, json({ seup: sceneVoices.seup, riseStartAt: skyTransition.rise?.start?.at }));
   const hiClock = (skyTransition.windHi || []).map(sample => sample.bgmTime).filter(Number.isFinite);
   check('sky encounter captures wind samples during the current 하이 line', (skyTransition.windHi?.length || 0) >= 2 && (hiClock.length < 2 || hiClock.at(-1) > hiClock[0]), json(transitionSummary.windHi));
   check('cape unfurl captures start/mid/end before handoff', !!skyTransition.cape?.start && !!skyTransition.cape?.mid && !!skyTransition.cape?.end, json(transitionSummary.cape));
@@ -544,13 +655,13 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   // Seeded opening lanes center the first noodle on the initial soul y=159.
   // A tap must fire once; a separate bounded hold/release checks the three-strand capped charge.
   await page.waitForTimeout(180);
-  const tapSfxBefore = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length);
+  const tapSfxBefore = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot').length);
   await page.evaluate(value => { window.__choimisQa.tapSfxBefore = value; }, tapSfxBefore);
   await press('KeyC');
-  const tapFired = await until(() => window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length > window.__choimisQa.tapSfxBefore ? true : null, 1500);
-  const tapResult = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), cannonPuff: window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length }));
-  check('C tap/release fires exactly one natural pink projectile', !!tapFired && tapResult.cannonPuff === tapSfxBefore + 1, json({ fireNoodle, tapResult }));
-  const chargeStart = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length);
+  const tapFired = await until(() => window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot').length > window.__choimisQa.tapSfxBefore ? true : null, 1500);
+  const tapResult = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), shotSfx: window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot').length }));
+  check('C tap/release fires exactly one natural pink projectile', !!tapFired && tapResult.shotSfx === tapSfxBefore + 1, json({ fireNoodle, tapResult }));
+  const chargeStart = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot_big').length);
   await page.keyboard.down('KeyC');
   const chargeReady = await until(() => {
     const charge = window.game.battle?.gimmick?.snapshot?.charge;
@@ -562,12 +673,20 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   await page.keyboard.up('KeyC');
   await page.evaluate(value => { window.__choimisQa.chargeSfxBefore = value; }, chargeStart);
   const chargedReleased = await until(() => {
-    const snapshot = window.game.battle?.gimmick?.snapshot, count = window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length;
+    const snapshot = window.game.battle?.gimmick?.snapshot, count = window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot_big').length;
     return snapshot && snapshot.charge?.active === false && count > window.__choimisQa.chargeSfxBefore ? true : null;
   }, 2000);
-  const pinkFire = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), hp: Object.fromEntries(game.battle.members.map(member => [member.id, member.hp])), cannonPuff: window.__choimisQa.sfx.filter(sound => sound.name === 'cannon_puff').length }));
-  check('held C reaches a fixed three-strand charge cap before release', !!chargeReady && chargeFrame.charge?.ready === true && chargeFrame.charge?.elapsed >= 0.9 && chargeFrame.charge?.aura?.length === 3 && !!chargedReleased && pinkFire.cannonPuff === chargeStart + 1, json({ chargeReady, charge: chargeFrame.charge, samples: chargeFrame.samples, afterRelease: pinkFire.charge, released: chargedReleased }));
+  const pinkFire = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), hp: Object.fromEntries(game.battle.members.map(member => [member.id, member.hp])), chargedShotSfx: window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot_big').length }));
+  check('held C reaches a fixed three-strand charge cap before release', !!chargeReady && chargeFrame.charge?.ready === true && chargeFrame.charge?.elapsed >= 0.9 && chargeFrame.charge?.aura?.length === 3 && !!chargedReleased && pinkFire.chargedShotSfx === chargeStart + 1, json({ chargeReady, charge: chargeFrame.charge, samples: chargeFrame.samples, afterRelease: pinkFire.charge, released: chargedReleased }));
   check('actual C tap fire destroys at least one incoming noodle during pink combat', !!fireNoodle && pinkFire.destroyed >= 1, json({ fireNoodle, ...pinkFire }));
+  await page.evaluate(value => { window.__choimisQa.beforeChargeDestroyed = value; }, tapResult.destroyed || 0);
+  const chargedNoodles = await until(() => {
+    const current = window.game.battle?.gimmick?.snapshot;
+    return current && current.destroyed >= window.__choimisQa.beforeChargeDestroyed + 2 ? current : null;
+  }, 3500);
+  const openingShotAudio = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => ['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big'].includes(sound.name)).map(sound => sound.name));
+  check('charged C projectile penetrates multiple natural noodles without a second target injection', !!chargedNoodles && chargedNoodles.destroyed >= (tapResult.destroyed || 0) + 2, json({ beforeCharge: tapResult.destroyed, afterCharge: chargedNoodles?.destroyed, shots: chargedNoodles?.shots }));
+  check('pink shooter emits the official charge and charged/tap release audio cues', openingShotAudio.includes('yellowheart_charge') && openingShotAudio.includes('yellowheart_shot') && openingShotAudio.includes('yellowheart_shot_big'), json(openingShotAudio));
   if (pinkFire.destroyed >= 1) await shot('20_pink_shooter_projectile_hit');
   const activeNoodle = await until(() => window.game.battle?.gimmick?.snapshot?.noodles?.find(n => !n.telegraph && n.x > 80 && n.x < 320) || null, 5000);
   const beforePinkHurt = await battleHp();
@@ -667,7 +786,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         return true;
       }, { scenario });
       check(`pink supplement ${scenario}: registered route is available`, selected === true, json(await page.evaluate(() => window.__choimisQa.pinkRoundFixture)));
-      await page.evaluate(() => { const scenario = window.__choimisQa.pinkRoundFixture?.scenario; window.__choimisQa.pinkSupplementHits = 0; window.__choimisQa.pinkSupplementCleared = 0; if (scenario) delete window.__choimisQa.roundLatches[scenario]; });
+      await page.evaluate(() => { const scenario = window.__choimisQa.pinkRoundFixture?.scenario; window.__choimisQa.pinkSupplementHits = 0; window.__choimisQa.pinkSupplementCleared = 0; if (scenario) { delete window.__choimisQa.roundLatches[scenario]; delete window.__choimisQa.roundHistory[scenario]; } });
       return selected === true;
     };
     const queueSupplement = async scenario => {
@@ -697,15 +816,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       }
       return !!combat;
     };
-    const moveHeart = async targetY => {
-      const heartY = await page.evaluate(() => window.game.battle?.gimmick?.snapshot?.heart?.y);
-      if (!Number.isFinite(targetY) || !Number.isFinite(heartY) || Math.abs(targetY - heartY) <= 2) return;
-      const key = targetY < heartY ? 'ArrowUp' : 'ArrowDown';
-      await page.evaluate(value => { window.__choimisQa.pinkTargetY = value; }, targetY);
-      await page.keyboard.down(key);
-      await until(() => { const y = window.game.battle?.gimmick?.snapshot?.heart?.y; return Number.isFinite(y) && Math.abs(y - window.__choimisQa.pinkTargetY) <= 2; }, 1500);
-      await page.keyboard.up(key);
-    };
+    const moveHeart = movePinkHeart;
     const cleanupSupplementRound = async (scenario, passed, detail) => {
       const ended = await until(() => window.game.battle?.state === 'menu' && !window.game.battle?.gimmick && !window.game.battle?.activeEnemyMode, 8000);
       check(`pink supplement ${scenario}: cleanup returns to normal menu`, !!ended && passed, json({ ended, ...detail }));
@@ -721,6 +832,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     check('pink supplement choso: six actual projectiles stop six moving blood beams', chosoHits === 6, json({ hits: chosoHits, attempts: chosoAttempts, warning: !!chosoWarning, active: !!chosoActive }));
     if (!await cleanupSupplementRound('choso', chosoHits === 6, { hits: chosoHits, attempts: chosoAttempts })) return;
     if (!await selectSupplement('kart_block') || !await queueSupplement('kart_block')) return;
+    // The first Kart wave leaves the center lane open. Fire three real normal
+    // shots there before moving for blockers; this also drives the standard
+    // pink-round branch through the same deterministic-but-natural contact.
+    const kartCenter = await checkKartCenterShots(await fireKartCenterShots(), 'pink_supplement_kart_boss_center_shots');
     let kartCleared = 0, kartAttempts = 0; const kartKinds = new Set();
     while (kartCleared < 4 && kartAttempts++ < 16) {
       const blocker = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.blockers?.find(item => item.age >= 0.5) || null, 5000);
@@ -731,7 +846,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       kartCleared = next || kartCleared;
     }
     for (const key of ['kart_block-dao', 'kart_block-bazzi']) await saveRoundCapture(key);
-    if (!await cleanupSupplementRound('kart_block', kartCleared === 4 && kartKinds.has('dao') && kartKinds.has('bazzi'), { cleared: kartCleared, kinds: [...kartKinds] })) return;
+    if (!await cleanupSupplementRound('kart_block', kartCleared === 4 && kartKinds.has('dao') && kartKinds.has('bazzi') && kartCenter.hpDrop && kartCenter.contactSfx === 3 && kartCenter.remainder, { cleared: kartCleared, kinds: [...kartKinds], ...kartCenter })) return;
     if (!await selectSupplement('pink_prism') || !await queueSupplement('pink_prism')) return;
     const prism = await clearPrism();
     for (const key of ['pink_prism-shield-active', 'pink_prism-core-active', 'pink_prism-charge']) await saveRoundCapture(key);
@@ -796,9 +911,17 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     trace.observations.push({ label: `karaoke-temporal-${name}`, target: details?.time, captured: !!details?.data, actual: details?.actual, frame: details?.frame, file }); save();
     check(`karaoke temporal ${name} is captured from an onDraw frame at the natural BGM clock`, !!temporalReady && !!details?.data && Number.isFinite(details?.actual) && Math.abs(details.actual - details.time) < 0.14, json({ target: details?.time, actual: details?.actual, frame: details?.frame, file }));
   }
-  await waitForLyric('쟤들은 날 이해 하지 못해', 42.184, 44.809, 'karaoke_verse_under_menu');
-  await waitForLyric('오늘도 스읍 미스', 44.809, 46.121, 'karaoke_verse_last_line');
-  await waitForLyric('최미스! 최미스! 가재맨! 방고닉!', 46.121, 52.215, 'karaoke_chant_first');
+  const saveAudioBoundary = async (target, name) => {
+    const details = await page.evaluate(time => window.__choimisQa.audioBoundaryCaptures?.find(capture => capture.time === time) || null, target);
+    const file = await shot(name);
+    if (details?.data) fs.writeFileSync(file, Buffer.from(details.data.split(',')[1], 'base64'));
+    const cue = Number.isFinite(details?.actual) ? await page.evaluate(time => window.__choimisQa.lyricAt(time)?.text || null, details.actual) : null;
+    trace.observations.push({ label: `karaoke-boundary-${name}`, target, actual: details?.actual, cue, captured: !!details?.data, file }); save();
+    return { details, cue, file };
+  };
+  await waitForLyric('쟤들은 날 이해 하지 못해', 42.334, 44.959, 'karaoke_verse_under_menu');
+  await waitForLyric('오늘도 스읍 미스', 44.959, 46.271, 'karaoke_verse_last_line');
+  await waitForLyric('최미스! 최미스! 가재맨! 방고닉!', 46.271, 52.365, 'karaoke_chant_first');
   const mediaReady = await until(() => {
     const a = window.game.sound.bgm, b = window.game.battle;
     return a && window.game.sound.bgmName === 'choimis_battle' && a.readyState >= 2 && Number.isFinite(a.duration) && a.duration > 160 && !a.seeking && b?.bgmWait === undefined && a.currentTime > 5 ? true : null;
@@ -809,11 +932,11 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     return { readyState: a?.readyState, duration: a?.duration, currentTime: a?.currentTime, seeking: a?.seeking, paused: a?.paused, seekable, bgmName: game.sound.bgmName, bgmWait: b?.bgmWait };
   });
   check('real BGM media is ready for repeat-pass observation', !!mediaReady, json(mediaCaps));
-  if (mediaCaps.seekable.some(([, end]) => end >= 144.2)) {
+  if (mediaCaps.seekable.some(([, end]) => end >= 144.334)) {
     await fixture('karaoke-seek-pause-loop-boundary', 'Explicitly seek the real battle audio element to the repeat-pass cue, pause it, and leave gameplay state and pattern timers untouched. This checks the renderer recomputes from currentTime rather than retaining stale lyric state.', () => {
       const audio = game.sound.bgm;
       window.__choimisQa.seekProbe = { before: audio?.currentTime, pausedBefore: audio?.paused, readyState: audio?.readyState, duration: audio?.duration };
-      if (audio) { audio.currentTime = 144.2; audio.pause(); }
+      if (audio) { audio.currentTime = 144.334; audio.pause(); }
     });
     await page.waitForTimeout(250);
     const repeatPaused = await page.evaluate(() => {
@@ -824,8 +947,17 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     check('karaoke recomputes the repeat-pass lyric after an explicit pause/seek boundary', repeatPaused.cue === '가재맨 방 고닉 최미스' && repeatPaused.paused === true && repeatPaused.battle === 'menu', json(repeatPaused));
   } else {
     trace.observations.push({ label: 'karaoke-seek-unavailable-natural-repeat-required', mediaCaps }); save();
-    await waitForLyric('가재맨 방 고닉 최미스', 144.184, 147.184, 'karaoke_repeat_pass_natural', 120000);
+    await waitForLyric('가재맨 방 고닉 최미스', 144.334, 147.334, 'karaoke_repeat_pass_natural', 120000);
   }
+  await fixture('karaoke-resume-after-boundary-observation', 'Resume the same real battle audio element after the paused repeat-boundary probe; no battle state or timer is injected.', async () => {
+    const audio = game.sound.bgm;
+    if (audio?.paused) await audio.play().catch(() => {});
+  });
+  await waitForLyric('1500, 1500, 경섭이 1500', 178.271, 184.365, 'karaoke_1500_repeat_boundary', 120000);
+  const boundaryFrames = {};
+  for (const [time, name] of [[58.121, 'karaoke_1500_before'], [58.271, 'karaoke_1500_after'], [58.421, 'karaoke_1500_after_150ms'], [178.121, 'karaoke_1500_repeat_before'], [178.271, 'karaoke_1500_repeat_after'], [178.421, 'karaoke_1500_repeat_after_150ms']]) boundaryFrames[name] = await saveAudioBoundary(time, name);
+  check('1500 cue begins at the delayed first-pass audio boundary with before/after frames', boundaryFrames.karaoke_1500_before.cue === '최미스! 오늘도 가순이 만나야' && boundaryFrames.karaoke_1500_after.cue === '1500, 1500, 경섭이 1500' && boundaryFrames.karaoke_1500_after_150ms.cue === '1500, 1500, 경섭이 1500', json(Object.fromEntries(Object.entries(boundaryFrames).slice(0, 3).map(([name, value]) => [name, { cue: value.cue, actual: value.details?.actual, captured: !!value.details?.data, file: value.file }]))));
+  check('1500 cue repeats at the delayed loop boundary with before/after frames', boundaryFrames.karaoke_1500_repeat_before.cue === '최미스! 오늘도 가순이 만나야' && boundaryFrames.karaoke_1500_repeat_after.cue === '1500, 1500, 경섭이 1500' && boundaryFrames.karaoke_1500_repeat_after_150ms.cue === '1500, 1500, 경섭이 1500', json(Object.fromEntries(Object.entries(boundaryFrames).slice(3).map(([name, value]) => [name, { cue: value.cue, actual: value.details?.actual, captured: !!value.details?.data, file: value.file }]))));
   const resetProbe = await fixture('karaoke-loop-reset', 'Reset only the real BGM element to the start of its loop and resume it; no battle state or timers are injected.', async () => {
     const audio = game.sound.bgm;
     if (audio) { audio.currentTime = 0; await audio.play().catch(() => {}); }
@@ -869,7 +1001,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       check('karaoke remains rendered and uses the dim attack state during active enemy bullets', dimFrame?.battle === 'bullets' && dimFrame.alpha < 1 && !!dimFrame.lyric, json(dimFrame));
     }
     const observed = [];
-    const endAt = Date.now() + 14000;
+    const endAt = Date.now() + (pattern.name === 'rap' ? 24000 : 14000);
     while (Date.now() < endAt) {
       const q = await page.evaluate(() => { const b = game.battle; return b ? { state: b.state, bullets: (b.bullets || []).map(x => ({ id: x.__qaId, shape: x.shape, text: x.text, denomination: x.denomination, look: x.look, age: x.age, warn: x.warn, x: x.x, y: x.y })), pose: b.enemies[0]?.patternPose || null } : null; });
       if (!q) break; observed.push(q); if (q.state === 'board-close' || q.state === 'menu') break; await page.waitForTimeout(90);
@@ -886,13 +1018,22 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     }
     if (pattern.name === 'rap') {
       const orderedLyrics = [], seenLyricBullets = new Set();
-      for (const bullet of observed.flatMap(q => q.bullets.filter(b => b.shape === 'choimis_lyric')).filter(b => b.text)) {
+      const renderedFrames = await page.evaluate(() => window.__choimisQa.frames || []);
+      for (const bullet of renderedFrames.flatMap(q => q.bullets.filter(b => b.shape === 'choimis_lyric')).filter(b => b.text)) {
         if (seenLyricBullets.has(bullet.id)) continue;
         seenLyricBullets.add(bullet.id); orderedLyrics.push(bullet.text);
       }
+      const expectedChunks = Array.from({ length: 15 }, (_, index) => index % 2 ? '래퍼딱지를때는중이젠MC로' : '@#$!@#!@#');
       const lyrics = orderedLyrics.join('');
       const mic = observed.flatMap(q => q.bullets).find(b => b.shape === 'choimis_mic');
-      check('rap: centered MIC and exact lyric sequence render in the active turn', lyrics === '요최미스래퍼딱지를때이젠앰씨로포에버포에버' && !!mic, json({ lyrics, mic }));
+      const rapVideo = await page.evaluate(() => window.__choimisQa.rapVideo);
+      if (rapVideo?.frames?.[0]?.data) {
+        const file = await shot('pattern_rap_video_active');
+        fs.writeFileSync(file, Buffer.from(rapVideo.frames[0].data.split(',')[1], 'base64'));
+        trace.observations.push({ shot: file, label: 'pattern_rap_video_active', frame: { ...rapVideo.frames[0], data: undefined } }); save();
+      }
+      check('rap: centered MIC and exact alternating lyric sequence render in the active turn', json(orderedLyrics) === json(expectedChunks) && !!mic, json({ orderedLyrics, mic, renderedFrameCount: renderedFrames.length }));
+      check('rap: 19-second source video starts once, renders an actual frame, and stops once', rapVideo?.starts?.length === 1 && rapVideo.starts[0].options?.src === 'assets/video/choimis-forever-22-41.mp4' && rapVideo?.frames?.length >= 1 && rapVideo?.stops?.length === 1, json({ starts: rapVideo?.starts, stops: rapVideo?.stops, frames: rapVideo?.frames?.map(frame => ({ ...frame, data: undefined })) }));
     }
     if (pattern.name === 'money') check('money: rendered notes announce the 1500만원 denomination', observed.flatMap(q => q.bullets).some(b => b.shape === 'choimis_money_note' && b.denomination === '1500'), json(observed.flatMap(q => q.bullets).filter(b => b.shape === 'choimis_money_note').slice(0, 8)));
     if (pattern.name === 'seup') {
@@ -931,11 +1072,12 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
       if (index < 0) return false;
       e.patternIdx = index; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+      b.memberIdx = 0; b.menuIdx = 0;
       b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
       return true;
     }, { scenario });
     check(`${scenario}: registered pink-round route is available`, selected === true, json(await page.evaluate(() => window.__choimisQa.pinkRoundFixture)));
-    await page.evaluate(scenario => { window.__choimisQa.pinkRoundHits = 0; window.__choimisQa.kartCleared = 0; window.__choimisQa.prismCoreHits = 0; delete window.__choimisQa.roundLatches[scenario]; }, scenario);
+    await page.evaluate(scenario => { window.__choimisQa.pinkRoundHits = 0; window.__choimisQa.kartCleared = 0; window.__choimisQa.prismCoreHits = 0; delete window.__choimisQa.roundLatches[scenario]; delete window.__choimisQa.roundHistory[scenario]; }, scenario);
     return selected === true;
   };
   const startPinkRound = async scenario => {
@@ -965,6 +1107,19 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     trace.observations.push({ label: `pink-round-${scenario}`, ended: !!ended, passed, detail }); save();
     return !!ended && passed;
   };
+  const inspectPinkBoss = async scenario => {
+    const history = await page.evaluate(name => window.__choimisQa.roundHistory[name] || [], scenario);
+    const bossSamples = history.map(entry => entry.boss).filter(boss => Number.isFinite(boss?.x));
+    const hpSamples = history.map(entry => entry.enemyHp).filter(Number.isFinite);
+    const hpDrop = hpSamples.some((hp, index) => index > 0 && hp < hpSamples[index - 1]);
+    const maxRemainder = history.reduce((max, entry) => Math.max(max, Number(entry.bossHits) || 0), 0);
+    const cycleDamage = history.some((entry, index) => index > 0 && Number.isFinite(entry.enemyHp) && entry.enemyHp < history[index - 1].enemyHp && entry.bossHits === 0);
+    const farRight = bossSamples.length > 0 && bossSamples.every(boss => boss.x > 300 && boss.x < 410 && boss.y > 80 && boss.y < 240);
+    trace.observations.push({ label: `pink-round-${scenario}-boss-history`, value: { samples: history.length, farRight, hpDrop, cycleDamage, maxRemainder, first: history[0], last: history.at(-1) } }); save();
+    check(`${scenario}: actual white Choimis target remains far-right inside the pink board`, farRight, json({ samples: bossSamples.slice(0, 4), count: bossSamples.length }));
+    check(`${scenario}: three unique projectile contacts deal one HP and never overcount the same boss target`, hpDrop && cycleDamage && maxRemainder <= 2, json({ hpSamples, hpDrop, cycleDamage, maxRemainder }));
+    return { history, hpDrop, cycleDamage, maxRemainder, farRight };
+  };
   for (const pink of PINK_ROUNDS) {
     if (!await selectPinkRound(pink.name)) return;
     const combat = await startPinkRound(pink.name);
@@ -977,8 +1132,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       const { hits, attempts } = await hitChoso();
       const hitSfx = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'hit').length - (window.__choimisQa.roundSfxBefore?.hit || 0));
       if (hits < pink.required) check(`choso: actual projectile reaches all six beam-stop hits`, false, json({ hits, attempts, required: pink.required, warning, active }));
-      if (!await finishPinkRound('choso', hits === pink.required && hitSfx >= pink.required, { hits, hitSfx, attempts, required: pink.required, warning: !!warning, active: !!active })) return;
+      const boss = await inspectPinkBoss('choso');
+      if (!await finishPinkRound('choso', hits === pink.required && boss.hpDrop && boss.cycleDamage && boss.maxRemainder <= 2, { hits, hitSfx, attempts, required: pink.required, warning: !!warning, active: !!active, boss })) return;
     } else if (pink.name === 'kart_block') {
+      const kartCenter = await checkKartCenterShots(await fireKartCenterShots(), 'pink_round_kart_boss_center_shots');
       let cleared = 0; const kinds = new Set();
       let roundAttempts = 0;
       while (cleared < pink.required && roundAttempts < pink.required * 4) {
@@ -990,7 +1147,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         }, 5000);
         if (!blocker) break;
         kinds.add(blocker.kind);
-        await movePinkHeart(blocker.y);
+        if (!await movePinkHeart(blocker.y)) break;
         await press('KeyC');
         const next = await until(() => {
           const value = window.game.battle?.gimmick?.snapshot?.scenario?.cleared ?? window.__choimisQa.roundLatches.kart_block?.cleared;
@@ -1003,12 +1160,14 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       }
       const kartSfx = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'kart_booster').length - (window.__choimisQa.roundSfxBefore?.kart_booster || 0));
       for (const key of ['kart_block-dao', 'kart_block-bazzi']) await saveRoundCapture(key);
-      if (!await finishPinkRound('kart_block', cleared === pink.required && kartSfx >= pink.required && kinds.has('dao') && kinds.has('bazzi'), { cleared, kartSfx, required: pink.required, kinds: [...kinds] })) return;
+      const boss = await inspectPinkBoss('kart_block');
+      if (!await finishPinkRound('kart_block', cleared === pink.required && kartSfx >= pink.required && kinds.has('dao') && kinds.has('bazzi') && kartCenter.hpDrop && kartCenter.contactSfx === 3 && kartCenter.remainder && boss.hpDrop && boss.cycleDamage && boss.maxRemainder <= 2, { cleared, kartSfx, required: pink.required, kinds: [...kinds], kartCenter, boss })) return;
     } else {
       const { shields, coreHits, chargeShots, coreAttempts } = await clearPrism();
       for (const key of ['pink_prism-shield-active', 'pink_prism-core-active', 'pink_prism-charge']) await saveRoundCapture(key);
       check('pink prism: charged shots break all rotating shields', shields === 0 && chargeShots >= 3, json({ shields, chargeShots }));
-      if (!await finishPinkRound('pink_prism', shields === 0 && coreHits === 3, { shields, chargeShots, coreHits, coreAttempts })) return;
+      const boss = await inspectPinkBoss('pink_prism');
+      if (!await finishPinkRound('pink_prism', shields === 0 && coreHits === 3 && boss.hpDrop && boss.cycleDamage && boss.maxRemainder <= 2, { shields, chargeShots, coreHits, coreAttempts, boss })) return;
     }
   }
 

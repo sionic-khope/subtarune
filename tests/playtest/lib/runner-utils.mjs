@@ -4,6 +4,7 @@ export const BASE_URL_SCENARIOS = new Set(['drum-devil-battle', 'drum-devil-intr
 BASE_URL_SCENARIOS.add('jjajang-night-cliff');
 BASE_URL_SCENARIOS.add('choimis-runaway');
 BASE_URL_SCENARIOS.add('choimis-sky-battle');
+BASE_URL_SCENARIOS.add('choimis-eating-race');
 BASE_URL_SCENARIOS.add('jjajang-night-coast');
 BASE_URL_SCENARIOS.add('jjajang-night-coast-visual');
 

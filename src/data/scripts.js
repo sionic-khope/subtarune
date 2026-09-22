@@ -132,6 +132,7 @@ export const SCRIPTS = {
   jjajang_sakura12_bowl,   // 벚꽃 숲 12 제단 짜장면 연출(BUILD288)
   jjajang_night_cliff_scene,
   choimis_sky,
+  choimis_eating_qa: [{ battle: { enemies: ['choimis_flower'], bgm: 'choimis_battle', bg: 'choimis_sky', openingMode: 'choimis_eating_race' } }, { end: true }],
   choimis_runaway, choimis_runaway_crash, choimis_runaway_aura, choimis_runaway_restore,
   jjajang_sakura7_scene,   // 벚꽃 숲 7 무대 연출: 어둠·스포트라이트·점례(드레스 가순이)·가면 최미스·도미조림 난입·관객 난동·박치기(BUILD278)
   jjajang_sakura6_scene,   // 벚꽃 숲 6 광장 연출: 뗏목 뒤 둥근 광장에서 가면 쓴 최미스의 고백 연습 → 주인공들과 대화 → 오른쪽으로 떠남(BUILD277)

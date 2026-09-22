@@ -1,21 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { Bullet } from '../../src/battle/bullets.js';
+import { Battle } from '../../src/battle/battle.js';
 import { CHOIMIS_PATTERNS_B } from '../../src/battle/choimis-patterns-b.js';
+import { createChoimisRapVideo } from '../../src/battle/choimis-rap-video.js';
 
 const BOX = Object.freeze({ x: 140, y: 140, w: 200, h: 150 });
 const SOUL = Object.freeze({ x: 184, y: 252, r: 6 });
 const IDS = ['choimis_rap', 'choimis_seup', 'choimis_fashion'];
+const ROOT = new URL('../../', import.meta.url);
 
 function start(id, options = {}) {
-  const emitted = [], sounds = [], poses = [], soul = { ...SOUL };
+  const emitted = [], sounds = [], poses = [], mediaStarts = [], mediaStops = [], mediaSyncs = [], soul = { ...SOUL };
   const api = {
     box: BOX, soul, rnd: () => 0.5, images: {},
     emit(spec) { const bullet = new Bullet(spec); emitted.push(bullet); return bullet; },
     sfx(name) { sounds.push(name); },
     present(pose) { poses.push(pose); },
+    startRapVideo(spec) { const handle = { spec }; mediaStarts.push(handle); return handle; },
+    stopRapVideo(handle) { mediaStops.push(handle); },
+    syncRapVideo(handle, time) { mediaSyncs.push({ handle, time }); },
   };
-  return { pattern: CHOIMIS_PATTERNS_B[id](options), emitted, sounds, poses, soul, api };
+  return { pattern: CHOIMIS_PATTERNS_B[id](options), emitted, sounds, poses, mediaStarts, mediaStops, mediaSyncs, soul, api };
 }
 
 function advance(run, end, step = 0.05) {
@@ -82,7 +89,17 @@ test('test_choimis_pattern_b_exports_exact_registry_contract', () => {
   }
 });
 
-test('test_choimis_rap_keeps_center_mic_silhouette_and_delivers_exact_lyrics_from_board_edges', () => {
+test('test_choimis_rap_runtime_asset_keeps_the_verified_video_and_audio_contract', () => {
+  const asset = new URL('assets/video/choimis-forever-22-41.mp4', ROOT);
+  const metadata = JSON.parse(fs.readFileSync(new URL('assets/source/choimis-rap297/metadata.json', ROOT), 'utf8'));
+  const bytes = fs.readFileSync(asset);
+  assert.equal(bytes.length, metadata.bytes);
+  assert.equal(bytes.subarray(4, 8).toString('ascii'), 'ftyp');
+  assert.deepEqual([metadata.segment_seconds.duration, metadata.video.width, metadata.video.height, metadata.video.fps, metadata.video.frames], [19, 480, 270, 15, 285]);
+  assert.deepEqual([metadata.audio.codec, metadata.audio.sample_rate, metadata.audio.channels], ['aac', 44100, 2]);
+});
+
+test('test_choimis_rap_keeps_center_mic_and_rains_only_supplied_lyrics_for_full_video_segment', () => {
   const run = start('choimis_rap');
   advance(run, run.pattern.duration);
   const boss = run.emitted.find(b => b.shape === 'choimis_mic');
@@ -98,17 +115,22 @@ test('test_choimis_rap_keeps_center_mic_silhouette_and_delivers_exact_lyrics_fro
   boss.age = boss.warn;
   assert.equal(boss.hits({ x: boss.x, y: boss.y, r: 1 }), true);
   assert.equal(boss.hits({ x: boss.x + 22, y: boss.y - 23, r: 1 }), false, 'transparent mic-pose corner stays safe');
-  assert.equal(lyrics.map(b => b.text).join(''), '요최미스래퍼딱지를때이젠앰씨로포에버포에버');
+  assert.equal(run.pattern.duration, 19);
+  assert.deepEqual([...new Set(lyrics.map(b => b.text))], ['@#$!@#!@#', '래퍼딱지를때는중이젠MC로']);
   assert.deepEqual(lyrics.map(b => b.order), lyrics.map((_, index) => index));
   assert.ok(lyrics.every(b => b.warn >= 0.3));
-  assert.ok(lyrics.every(b => b.spawnX >= BOX.x - 40 && b.spawnX <= BOX.x + BOX.w + 40), 'outside entries survive Bullet.out');
-  assert.ok(new Set(lyrics.map(b => b.lane)).size >= 4, 'lyrics cover enough lanes to defeat corner camping');
+  assert.ok(lyrics.every(b => b.direction === 'down' && b.spawnY >= BOX.y - 40 && b.spawnY < BOX.y), 'lyrics enter downward without immediate Bullet.out cleanup');
+  assert.ok(new Set(lyrics.map(b => b.column)).size >= 2, 'alternating rain columns defeat one-side camping');
+  assert.equal(run.mediaStarts.length, 1);
+  assert.deepEqual(run.mediaStarts[0].spec, { src: 'assets/video/choimis-forever-22-41.mp4', volume: 0.72, opacity: 0.22 });
+  assert.ok(run.mediaSyncs.length > 300 && run.mediaSyncs.every(sync => sync.handle === run.mediaStarts[0]));
+  assert.deepEqual(run.mediaStops, [run.mediaStarts[0]], 'normal 19-second completion releases the video handle exactly once');
 });
 
 test('test_choimis_rap_draws_readable_cjk_inside_its_collision_rectangle', () => {
   const run = start('choimis_rap');
-  advance(run, 1.7);
-  const lyric = run.emitted.find(b => b.shape === 'choimis_lyric');
+  advance(run, 2);
+  const lyric = run.emitted.find(b => b.shape === 'choimis_lyric' && b.text.startsWith('래퍼'));
   const calls = [];
   const ctx = new Proxy({}, {
     get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); },
@@ -117,7 +139,7 @@ test('test_choimis_rap_draws_readable_cjk_inside_its_collision_rectangle', () =>
   lyric.age = lyric.warn + 0.1;
   lyric.draw(ctx);
   assert.ok(calls.some(call => call[0] === 'font' && String(call[1]).includes('NeoDunggeunmo')));
-  assert.ok(calls.some(call => call[0] === 'fillText' && call[1] === lyric.text));
+  assert.equal(calls.filter(call => call[0] === 'fillText').map(call => call[1]).join(''), lyric.text);
   assert.ok(lyric.w <= BOX.w - 10);
   assert.equal(lyric.hits({ x: lyric.x, y: lyric.y, r: 1 }), true);
   assert.equal(lyric.hits({ x: lyric.x, y: lyric.y + lyric.h, r: 1 }), false);
@@ -138,6 +160,8 @@ test('test_choimis_seup_uses_existing_clip_once_and_locks_every_warned_path', ()
   assert.deepEqual(beam.lockedTarget, locked, 'danger line never tracks after telegraph');
   assert.ok(threats.some(b => b.fromEdge === 'left') && threats.some(b => b.fromEdge === 'right'));
   assert.ok(threats.some(b => b.fromEdge === 'top') && threats.some(b => b.fromEdge === 'bottom'));
+  const gaps = [...new Map(threats.filter(b => b.shape === 'choimis_breath').map(b => [b.wave, b.safeGap])).values()];
+  assert.deepEqual(gaps, ['bottom', 'top', 'bottom', 'top'], 'staggered inhale waves alternate the safe vertical corridor');
 });
 
 test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', () => {
@@ -149,6 +173,8 @@ test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', 
   assert.ok(outfits.every(b => b.warn >= 0.3));
   assert.deepEqual(outfits.map(b => Math.sign(b.direction)), [1, -1, 1, -1]);
   assert.equal(new Set(outfits.map(b => b.profile)).size, 4, 'outfits are geometry changes, not color reskins');
+  assert.deepEqual(outfits.map(b => b.safeGap), ['bottom', 'top', 'bottom', 'top']);
+  assert.deepEqual(outfits.map(b => b.entryAt), [0.35, 1.55, 2.65, 4], 'nonuniform stagger changes when the safe corridor must switch');
   for (const outfit of outfits) {
     outfit.age = outfit.warn + outfit.flight / 2;
     outfit.steer(outfit);
@@ -156,6 +182,64 @@ test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', 
     assert.equal(outfit.hits({ x: outfit.x + outfit.w / 2, y: outfit.y - outfit.h / 2, r: 1 }), false,
       'transparent bounding-box corners do not deal damage');
   }
+});
+
+test('test_choimis_rap_video_plays_moving_media_with_audio_and_disposes_without_bgm_access', async () => {
+  const calls = [], listeners = {}, documentRef = {
+    hidden: false,
+    addEventListener(name, listener) { listeners[name] = listener; },
+    removeEventListener(name, listener) { if (listeners[name] === listener) delete listeners[name]; },
+  }, video = {
+    readyState: 3, videoWidth: 854, videoHeight: 480, currentTime: 0, paused: true,
+    load() { calls.push('load'); }, play() { this.paused = false; calls.push('play'); return Promise.resolve(); },
+    pause() { this.paused = true; calls.push('pause'); }, removeAttribute(name) { calls.push(`remove:${name}`); },
+  };
+  documentRef.createElement = () => video;
+  const handle = createChoimisRapVideo({ src: 'clip.mp4', volume: 0.72, opacity: 0.22, documentRef });
+  await Promise.resolve();
+  assert.equal(video.src, 'clip.mp4'); assert.equal(video.preload, 'auto'); assert.equal(video.playsInline, true); assert.equal(video.muted, false); assert.equal(video.volume, 0.72);
+  assert.deepEqual(calls.slice(0, 2), ['load', 'play']);
+  assert.equal(await handle.ready, true);
+  handle.sync({ time: 3.25, muted: true, paused: true });
+  assert.equal(video.currentTime, 3.25); assert.equal(video.muted, true); assert.equal(video.paused, true);
+  handle.sync({ time: 3.25, muted: false, paused: false });
+  assert.equal(video.muted, false); assert.equal(video.paused, false);
+  documentRef.hidden = true; listeners.visibilitychange();
+  assert.equal(video.paused, true, 'hidden page pauses media even while requestAnimationFrame is suspended');
+  documentRef.hidden = false; handle.sync({ time: 3.25, muted: false, paused: false });
+  const drawn = [], ctx = new Proxy({ globalAlpha: 1 }, {
+    get(target, key) { return target[key] ?? ((...args) => drawn.push([key, ...args])); },
+    set(target, key, value) { target[key] = value; return true; },
+  });
+  handle.draw(ctx, { x: 0, y: 0, w: 480, h: 360 });
+  assert.ok(drawn.some(call => call[0] === 'drawImage' && call[1] === video), 'decoded moving video frame is drawn, not a static stand-in');
+  const pausesBeforeStop = calls.filter(call => call === 'pause').length;
+  handle.stop(); handle.stop();
+  assert.equal(calls.filter(call => call === 'pause').length, pausesBeforeStop + 1); assert.equal(calls.filter(call => call === 'remove:src').length, 1);
+  assert.equal(listeners.visibilitychange, undefined);
+  assert.equal('bgm' in handle, false, 'video lifecycle has no route to stop or restart battle BGM');
+});
+
+test('test_choimis_rap_video_stop_settles_a_pending_preload', async () => {
+  const listeners = {}, video = {
+    readyState: 0, paused: true, load() {}, play() { return Promise.resolve(); }, pause() {}, removeAttribute() {},
+    addEventListener(name, listener) { listeners[name] = listener; }, removeEventListener(name, listener) { if (listeners[name] === listener) delete listeners[name]; },
+  };
+  const handle = createChoimisRapVideo({ autoplay: false, documentRef: { createElement: () => video } });
+  handle.stop();
+  assert.equal(await handle.ready, false);
+  assert.deepEqual(listeners, {});
+});
+
+test('test_choimis_rap_video_abnormal_battle_cleanup_is_idempotent', () => {
+  let stops = 0;
+  const handle = { stop() { stops++; } };
+  const battle = Object.assign(Object.create(Battle.prototype), { rapVideo: handle, gimmick: null, activeEnemyMode: null, actorFocus: null, enemies: [] });
+
+  battle.disposeGimmick(); battle.disposeGimmick();
+
+  assert.equal(stops, 1);
+  assert.equal(battle.rapVideo, null);
 });
 
 test('test_choimis_fashion_reads_the_four_outfits_from_a_two_by_two_sheet', () => {

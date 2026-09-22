@@ -75,6 +75,8 @@ function drawJjajang(ctx, bullet) {
 
 function hitJjajang(bullet, soul) {
   if (bullet.age < bullet.warn || bullet.age >= bullet.life) return false;
+  if (soul.x < bullet.box.x + 3 || soul.x > bullet.box.x + bullet.box.w - 3
+    || soul.y < bullet.box.y + 3 || soul.y > bullet.box.y + bullet.box.h - 3) return false;
   if (Math.hypot(soul.x - bullet.x, soul.y - bullet.y) <= 10 + Math.max(0, soul.r - 2)) return true;
   return noodleGeometry(bullet).some((points) => points.slice(1).some((end, index) =>
     segmentDistance(soul, points[index], end) <= 2 + Math.max(0, soul.r - 2)));
@@ -85,7 +87,7 @@ function emitJjajang(api, lane, fromLeft, options, phase) {
   const endX = fromLeft ? box.x + box.w - 5 : box.x + 5;
   const startY = box.y + 10 + lane * (box.h - 20), endY = startY;
   const distance = Math.hypot(endX - startX, endY - startY), dirX = (endX - startX) / distance, dirY = (endY - startY) / distance;
-  const warn = Math.max(0.3, options.warn ?? 0.5), flight = options.flight ?? 1.45;
+  const warn = Math.max(0.3, options.warn ?? 0.5), flight = options.flight ?? 1.1;
   api.emit({ shape: 'choimis_jjajang_bowl', box, image: api.images?.[options.assetKey ?? 'jjajang'], sauce: true,
     noodles: options.noodles ?? 3, phase, startX, startY, endX, endY, dirX, dirY, x: startX, y: startY,
     r: 0, warn, life: warn + flight + 0.05, drawShape: drawJjajang, hitShape: hitJjajang,
@@ -192,6 +194,8 @@ function drawMoney(ctx, bullet) {
 
 function hitMoney(bullet, soul) {
   if (bullet.age < bullet.warn || bullet.age >= bullet.life) return false;
+  if (soul.x < bullet.box.x + 3 || soul.x > bullet.box.x + bullet.box.w - 3
+    || soul.y < bullet.box.y + 3 || soul.y > bullet.box.y + bullet.box.h - 3) return false;
   const dx = soul.x - bullet.x, dy = soul.y - bullet.y, cosine = Math.cos(bullet.rot), sine = Math.sin(bullet.rot);
   const localX = dx * cosine + dy * sine, localY = -dx * sine + dy * cosine;
   const x = Math.max(-bullet.noteWidth / 2, Math.min(localX, bullet.noteWidth / 2));
@@ -205,7 +209,7 @@ function emitMoney(api, side, lane, targetLane, options, phase) {
   const startY = side === 2 ? box.y + 4 : side === 3 ? box.y + box.h - 4 : box.y + 12 + lane * (box.h - 24);
   const endX = side === 0 ? box.x + box.w - 4 : side === 1 ? box.x + 4 : box.x + 12 + targetLane * (box.w - 24);
   const endY = side === 2 ? box.y + box.h - 4 : side === 3 ? box.y + 4 : box.y + 12 + targetLane * (box.h - 24);
-  const warn = Math.max(0.3, options.warn ?? 0.4), flight = options.flight ?? 1.3;
+  const warn = Math.max(0.3, options.warn ?? 0.5), flight = options.flight ?? 1.05;
   api.emit({ shape: 'choimis_money_note', box, x: startX, y: startY, startX, startY, endX, endY,
     noteWidth: options.noteWidth ?? 18, noteHeight: options.noteHeight ?? 10, denomination: '1500', r: 0,
     warn, life: warn + flight + 0.05, rot: horizontal ? phase * 0.25 : Math.PI / 2 + phase * 0.25,
@@ -220,13 +224,15 @@ function emitMoney(api, side, lane, targetLane, options, phase) {
 /** Choimis-owned signature attacks; dialogue stays in enemy pattern config except exact in-pattern calls. */
 export const CHOIMIS_PATTERNS_A = {
   choimis_jjajang(options = {}) {
-    const duration = options.duration ?? 6.4, lanes = [0.02, 0.5, 0.98, 0.25, 0.75], every = options.every ?? 1.15;
-    let wave = 0;
+    const duration = options.duration ?? 6.4, every = options.every ?? 1.95;
+    const volleys = [[0.02, 0.5, 0.98], [0.25, 0.75, 0.5], [0.98, 0.25, 0.02]];
+    let shot = 0;
     return { duration, update(t, dt, api) {
-      while (wave < lanes.length && t >= 0.1 + wave * every) {
-        emitJjajang(api, lanes[wave], wave % 2 === 0, options, wave);
-        api.sfx?.('swing', { volume: 0.5 });
-        wave++;
+      while (shot < volleys.length * 3 && t >= 0.1 + Math.floor(shot / 3) * every + shot % 3 * 0.14) {
+        const wave = Math.floor(shot / 3), lane = shot % 3;
+        emitJjajang(api, volleys[wave][lane], (wave + lane) % 2 === 0, options, shot);
+        if (lane === 0) api.sfx?.('swing', { volume: 0.5 });
+        shot++;
       }
     } };
   },
@@ -246,15 +252,17 @@ export const CHOIMIS_PATTERNS_A = {
     } };
   },
   choimis_money(options = {}) {
-    const duration = options.duration ?? 6.4, every = options.every ?? 0.95;
+    const duration = options.duration ?? 6.4, every = options.every ?? 0.82;
+    const sides = [2, 0, 3, 1, 2, 3], gaps = [1, 4, 4, 1, 2, 5];
     let wave = 0, announced = false;
     return { duration, update(t, dt, api) {
       if (!announced) { announced = true; api.say?.('1500만원', 0.8); }
       while (wave < 6 && t >= 0.15 + wave * every) {
-        for (let side = 0; side < 4; side++) {
-          const lane = (wave * 0.23 + side * 0.19) % 1;
-          const targetLane = (1 - lane + side * 0.13) % 1;
-          emitMoney(api, side, lane, targetLane, options, wave + side);
+        for (let lane = 0; lane < 8; lane++) {
+          if (lane === gaps[wave] || lane === gaps[wave] + 1) continue;
+          const startLane = lane / 7;
+          const targetLane = wave % 2 ? clamp(startLane + (lane < gaps[wave] ? -0.06 : 0.06), 0, 1) : startLane;
+          emitMoney(api, sides[wave], startLane, targetLane, options, wave + lane);
         }
         api.sfx?.('bell', { volume: 0.45 });
         wave++;

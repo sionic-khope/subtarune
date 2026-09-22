@@ -19,6 +19,7 @@ import { getBattleMode, NATIVE } from './modes.js';
 import { BATTLE_BGS } from './backgrounds.js';
 import { drawChoimisKaraoke } from './choimis-karaoke.js';
 import { createChoimisDefenseCinematic } from './choimis-defense-cinematic.js';
+import { CHOIMIS_RAP_VIDEO, createChoimisRapVideo } from './choimis-rap-video.js';
 import { ITEMS, plainItems } from '../data/items.js';
 import L from '../data/locale/ko.js';
 import { createBattleSupport } from './support/baron-cannon.js';
@@ -109,7 +110,7 @@ export class Battle {
     const eys = ENEMY_YS[cfg.enemies.length] || ENEMY_YS[3];
     this.enemies = cfg.enemies.map((id, i) => { const def = ENEMIES[id]; return { id, def, name: def.name, hp: def.hp, maxHp: def.hp, x: ENEMY_X + (def.dx || 0), y: eys[i] + (def.dy || 0), img: null, dead: false, dying: 0, shake: 0, blink: 0, popup: null, patternIdx: 0, animationTime: 0 }; });
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
-    this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random;
+    this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random; this.rapVideo = null; this.preparedRapVideo = null;
     this.modes = { attack: cfg.modes?.attack || 'rush', enemy: cfg.modes?.enemy || 'bullets' }; this.gimmick = null;   // 기믹 모드(src/battle/modes.js): 공격/적 턴을 미니게임으로 바꿔 끼움
     this.result = null; this.pressed = false; this.fx = []; this.retryT = undefined; this.openingShown = false;   // fx: 회복 반짝임(쓰러진 동료 위)
     this.support = createBattleSupport(this); this.interlude = null;
@@ -120,8 +121,11 @@ export class Battle {
     const loadToken = {};
     this.bgmLoadToken = loadToken;
     this.bgmWait = undefined;
+    if (this.enemies.some(enemy => enemy.id === 'choimis_flower') && !this.preparedRapVideo) this.preparedRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
     try {
       await Promise.all([
+        this.enemies.some(enemy => enemy.id === 'choimis_flower') ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big']) : null,
+        this.preparedRapVideo?.ready,
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),
         ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),
         ...this.enemies.map(async (e) => {
@@ -165,6 +169,15 @@ export class Battle {
     this.shown = n;
   }
   sfx(n, options) { this.game.sound.sfx(n, options); }
+  startRapVideo(options) { this.stopRapVideo(); this.rapVideo = this.preparedRapVideo || createChoimisRapVideo({ ...options, autoplay: false }); this.preparedRapVideo = null; this.syncRapVideo(this.rapVideo, 0); return this.rapVideo; }
+  stopRapVideo(handle = this.rapVideo) { if (!handle) return; handle.stop(); if (this.rapVideo === handle) this.rapVideo = null; }
+  syncRapVideo(handle, time) { handle?.sync({ time, muted: this.game.sound.muted, paused: this.game.sound.ctx?.state === 'suspended' }); }
+  discardPreparedRapVideo() { this.preparedRapVideo?.stop(); this.preparedRapVideo = null; }
+  drawBattleBoard(ctx) {
+    if (!this.rapVideo) { this.board.draw(ctx); return; }
+    ctx.fillStyle = 'rgba(0,0,0,0.58)'; ctx.fillRect(Math.round(this.board.x), Math.round(this.board.y), Math.round(this.board.w), Math.round(this.board.h));
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(Math.round(this.board.x) + 1.5, Math.round(this.board.y) + 1.5, Math.round(this.board.w) - 3, Math.round(this.board.h) - 3);
+  }
   /** Cancel elapsed BGM delay and invalidate an in-flight load before exit or retry. */
   cancelPendingBgm() { this.bgmWait = undefined; this.bgmLoadToken = null; this.support?.cancelBgm?.(); }
 
@@ -347,7 +360,7 @@ export class Battle {
       return 0;
     }
     const adjusted = this.support?.adjustDamage?.(e, dmg, source) ?? dmg;                 // 방심한 영클은 1, 아이디어는 3(BUILD208)
-    const defended = e.id === 'choimis_flower' && e.defenseBoosted ? 1 : adjusted;
+    const defended = e.id === 'choimis_flower' && e.defenseBoosted && source !== 'choimis-eating-race' ? 1 : adjusted;
     const damage = Math.min(e.hp, defended);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
     this.support?.onHit?.(e, damage, source);
@@ -362,7 +375,7 @@ export class Battle {
     if (followup) { this.gimmick = followup; this.cur = { plan, gimmick: true, supportFollowup: true }; }
   }
   applyCannonDamage(target, damage = BARON_CANNON.damage) { return this.hitEnemy(target, null, damage, { source: 'cannon', sound: false }); }
-  disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.activeEnemyMode = null; this.actorFocus = null; this.clearPatternPresentation(); }
+  disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.activeEnemyMode = null; this.actorFocus = null; this.stopRapVideo(); this.clearPatternPresentation(); }
   /** 지원 모듈이 고른 적 턴 모드를 바로 연다(인트로 대사 뒤 오프닝 연출 — 변신 영클 편집노조 흡수, BUILD214). 끝나면 여느 적 턴처럼 afterEnemyPhase → 막간/메뉴 */
   startEnemyMode(name) {
     const create = getBattleMode('enemy', name); if (typeof create !== 'function') { this.beginMenu(); return; }
@@ -453,6 +466,7 @@ export class Battle {
     }).filter(Boolean);
     const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
     this.board.setTarget(bw, bh, cx, cy); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
+    this.stopRapVideo();
     this.bubble = null;                                        // 말풍선은 탄막이 시작되면 사라진다(델타룬) — 상자 위를 가려 탄막을 숨기지 않게
     this.state = 'bullets'; this.t = 0; this.setText('');
   }
@@ -474,6 +488,9 @@ export class Battle {
       api.flash = duration => { this.game.fadeTo(0.8, 0, undefined, 'white'); this.game.fadeTo(0, duration); };
       api.shake = (time, amp) => { this.game.shake = { time, amp }; };
       api.say = (text, hold = 2) => { this.bubble = { enemy: pat.enemy, text, shown: 0, t: 0, voice: pat.enemy?.def.voice || 'narrator', patternHold: hold }; };
+      api.startRapVideo = options => this.startRapVideo(options);
+      api.stopRapVideo = handle => this.stopRapVideo(handle);
+      api.syncRapVideo = (handle, time) => this.syncRapVideo(handle, time);
       pat.p.update(pat.t, dt, api); pat.t += dt;
       if (this.state === 'lose') return;
       if (this.interruptEnemyPhase()) return;
@@ -492,7 +509,7 @@ export class Battle {
       if (this.interruptEnemyPhase()) return;
     }
     this.bullets = this.bullets.filter((b) => !b.taken && !b.out(this.board));
-    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
+    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.stopRapVideo(); this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
   }
   hurtParty(dmg) {
     const alive = this.alive(); if (!alive.length) return;
@@ -502,6 +519,7 @@ export class Battle {
   }
   interruptEnemyPhase() {
     if (!this.support?.interruptEnemyPhase?.()) return false;
+    this.stopRapVideo();
     this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.patterns = [];
     this.board.setTarget(440, 72, 240, 282); this.afterEnemyPhase();
     return true;
@@ -519,11 +537,12 @@ export class Battle {
     this.soul.invuln = 0.75; this.soul.hits++; this.sfx('hurt'); this.game.shake = { time: 0.15, amp: 2 };
     this.support?.onPartyDamage?.();
     // 게임 오버는 셋(전원)이 다 쓰러졌을 때만 (사용자 2026-09-11)
-    if (!this.alive().length) { this.disposeGimmick(); this.interlude?.dispose?.(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
+    if (!this.alive().length) { this.disposeGimmick(); this.discardPreparedRapVideo(); this.interlude?.dispose?.(); this.interlude = null; this.bullets = []; this.bubble = null; this.fx = []; this.state = 'lose'; this.t = 0; this.board.setTarget(440, 72, 240, 282); this.setText(''); this.game.sound.stopBgm(0.8); this.game.sound.preloadBgm(this.cfg.bgm); }
   }
   /** 라운드 경계(적 턴 끝): 쓰러진 동료마다 회복 이펙트(초록 반짝임 + heal 음), DOWN_TURNS 번째 라운드에 반피로 일어난다 — 사용자 2026-09-11 '한 턴마다 회복 이펙트, 3턴 지나면 반피 부활' */
   /** 승리: 돈·문구·브금 정리 → win 상태. 행동 단계 끝과 적 턴 끝(특별 패턴 피해로 쓰러뜨린 경우 — 2026-09-18 사용자 “특별 패턴에서 쓰러트렸는데 전투 안 끝나는 버그”) 양쪽에서 부른다 */
   beginWin() {
+    this.stopRapVideo(); this.discardPreparedRapVideo();
     this.standUpAll();
     const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
     this.game.money = (this.game.money || 0) + gain;
@@ -564,10 +583,10 @@ export class Battle {
   /** 게임 오버 → [다시 도전하기]: 즉시 검은 화면 + 징글·흔들림(표준 조우와 같은 타임라인) → HP·적 복구 → load() 가 화면을 걷고 브금을 튼다. 같은 전투를 처음부터 */
   beginRetry() {
     this.cancelPendingBgm();
-    this.disposeGimmick(); this.interlude?.dispose?.(); this.interlude = null; this.support?.reset(); this.cur = null;
+    this.disposeGimmick(); this.discardPreparedRapVideo(); this.interlude?.dispose?.(); this.interlude = null; this.support?.reset(); this.cur = null;
     this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = []; this.openingShown = false; this.pendingPostOpening = null;
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; m.action = null; m.popup = null; m.pose = null; }
-    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.defenseBoosted = false; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null; }
+    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.defenseBoosted = false; e.pinkShotHits = 0; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null; }
     this.game.fadeTo(1, 0, undefined, 'black');
     this.game.sound.preloadBgm(this.cfg.bgm); this.sfx(this.cfg.seamlessIntro ? 'weaponpull' : 'battle_start'); this.game.shake = { time: 0.45, amp: 3 };
     this.retrying = true; this.retryT = this.cfg.seamlessIntro ? 0.35 : RETRY_JINGLE;
@@ -576,7 +595,7 @@ export class Battle {
   finish(win, { white = false } = {}) {
     if (this.state === 'ending') return;
     this.cancelPendingBgm();
-    this.disposeGimmick(); this.interlude?.dispose?.(); this.interlude = null; this.support?.dispose?.();
+    this.disposeGimmick(); this.discardPreparedRapVideo(); this.interlude?.dispose?.(); this.interlude = null; this.support?.dispose?.();
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
     this.result = { win }; this.state = 'ending'; this.whiteout = white;
     if (white) { this.game.fadeTo(1, 0, undefined, 'white'); this.game.endBattle(this.result); return; }
@@ -592,6 +611,7 @@ export class Battle {
     if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); if (this.gimmick.hpStrip) this.drawHpStrip(ctx); return; }   // 전체 화면 게임(변신 영클 특별 패턴)도 HP 띠는 맨 아래(hpStrip)
     if (this.interlude?.fullscreen) { this.interlude.draw(ctx); this.drawHpStrip(ctx); return; }
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
+    this.rapVideo?.draw(ctx, { x: 0, y: 0, w: SCREEN_W, h: SCREEN_H });
     ctx.font = FONT; ctx.textBaseline = 'top';
     const actorAlpha = this.openingActorAlpha();
     if (actorAlpha > 0) {
@@ -608,7 +628,7 @@ export class Battle {
     ctx.globalAlpha = 1;
     if (this.interlude) this.interlude.draw(ctx);
     else if (this.gimmick) { if (this.gimmick.draw) this.gimmick.draw(ctx); else this.drawTextBox(ctx); }
-    else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.board.draw(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
+    else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.drawBattleBoard(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
     else if (this.state !== 'lose') this.drawPanel(ctx);
     if (this.bubble) this.drawBubble(ctx);                          // 적 말풍선(준비 단계)
     this.support?.drawOverlay?.(ctx);
@@ -679,6 +699,7 @@ export class Battle {
     const img = action ? e.actionImages?.[pose.sheet] : e.formImage || e.img, sh = action || e.formDef?.sheet || e.def.sheet;
     const x = pose?.x ?? e.x, y = pose?.y ?? e.y;
     const scale = pose?.scale ?? e.def.scale ?? 1;
+    const scaleY = pose?.scaleY ?? action?.scaleY ?? e.formDef?.scaleY ?? e.def.scaleY ?? 1;
     const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(pose ? 0 : e.ox || 0), sy = Math.round(pose ? 0 : e.oy || 0);
     if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, x, y - 60, e.popup.text, e.popup.t, '#fff'); return; }
     ctx.save(); if (e.dying > 0) ctx.globalAlpha = Math.max(0, e.dying / 0.5);
@@ -686,8 +707,8 @@ export class Battle {
       const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / (sh.rows || 1));
       const animationTime = e.def.reactive ? e.animationTime || 0 : e.id === 'choimis_flower' ? (this.game.time ?? this.t) : this.t;
       const i = pose?.frame === undefined ? Math.floor(animationTime * (sh.fps || 5.5)) % sh.count : Math.max(0, Math.min(sh.count - 1, Math.floor(pose.frame)));
-      const s = scale / (sh.px || 1), dw = Math.round(fw * s), dh = Math.round(fh * s); const [pvx, pvy] = sh.pivot || e.def.pivot || [fw / 2, fh];
-      const left = Math.round(x - pvx * s + sx), top = Math.round(y - pvy * s + sy);
+      const s = scale / (sh.px || 1), syScale = s * scaleY, dw = Math.round(fw * s), dh = Math.round(fh * syScale); const [pvx, pvy] = sh.pivot || e.def.pivot || [fw / 2, fh];
+      const left = Math.round(x - pvx * s + sx), top = Math.round(y - pvy * syScale + sy);
       const ghosts = !pose && e.hp > 0 ? (e.def.reactive?.afterimages || []).reduce((count, step) => e.hp / e.maxHp <= step.hp ? Math.max(count, step.count) : count, 0) : 0;
       if (ghosts) {
         const rightSpace = Math.max(0, SCREEN_W - left - dw);
@@ -704,11 +725,11 @@ export class Battle {
       ctx.drawImage(img, (i % sh.cols) * fw, Math.floor(i / sh.cols) * fh, fw, fh, left, top, dw, dh);
     } else if (img && sh) {
       const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
-      const dw = Math.round(fw / 2 * scale), dh = Math.round(fh / 2 * scale);
+      const dw = Math.round(fw / 2 * scale), dh = Math.round(fh / 2 * scale * scaleY);
       ctx.drawImage(img, col * fw, sh.row * fh, fw, fh, Math.round(x - dw / 2 + sx), Math.round(y - dh + sy), dw, dh);
     } else if (img) {
-      const dw = Math.round(img.width * scale), dh = Math.round(img.height * scale); const [pvx, pvy] = e.def.pivot || [img.width / 2, img.height];
-      ctx.drawImage(img, Math.round(x - pvx * scale + sx), Math.round(y - pvy * scale + sy), dw, dh);
+      const dw = Math.round(img.width * scale), dh = Math.round(img.height * scale * scaleY); const [pvx, pvy] = e.def.pivot || [img.width / 2, img.height];
+      ctx.drawImage(img, Math.round(x - pvx * scale + sx), Math.round(y - pvy * scale * scaleY + sy), dw, dh);
     } else { ctx.fillStyle = '#7a8'; ctx.fillRect(x - 20 + sx, y - 44 + sy, 40, 44); }
     ctx.restore();
     if (e.popup) this.drawPopup(ctx, x, y - 60, e.popup.text, e.popup.t, '#fff');

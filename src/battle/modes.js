@@ -23,6 +23,7 @@ import { createYoungcleFinale, createYoungcleSkip } from './modes/youngcle-final
 import { createThrowAttack } from './modes/throw.js';
 import { createChoimisPinkShooter } from './modes/choimis-pink-shooter.js';
 import { createChoimisPinkRound } from './modes/choimis-pink-round.js';
+import { createChoimisEatingRace } from './modes/choimis-eating-race.js';
 
 const MODES = { attack: new Map(), enemy: new Map() };
 export const NATIVE = 'native';                          // battle.js 가 직접 처리하는 기본 모드 표시
@@ -43,6 +44,7 @@ registerBattleMode('attack', 'throw', createThrowAttack);   // 제자리 던지�
 registerBattleMode('enemy', 'bullets', NATIVE);
 registerBattleMode('enemy', 'choimis_pink_shooter', createChoimisPinkShooter);
 registerBattleMode('enemy', 'choimis_pink_round', createChoimisPinkRound);
+registerBattleMode('enemy', 'choimis_eating_race', createChoimisEatingRace);
 registerBattleMode('attack', 'timing', createTimingAttack);
 registerBattleMode('attack', 'cannon_guard', createCannonGuard);
 registerBattleMode('attack', 'park_strip', createParkStrip);

@@ -1,5 +1,6 @@
 import { monoPortrait } from '../core/gfx.js';
 import { FONT } from '../ui/font.js';
+import { CHOIMIS_RAP_VIDEO } from './choimis-rap-video.js';
 
 const TAU = Math.PI * 2;
 const WHITE = new WeakMap();
@@ -61,13 +62,14 @@ function drawMic(ctx, b) {
   ctx.fillStyle = '#fff'; ctx.fillRect(b.x + 18, b.y - 8, 3, 17); ctx.fillRect(b.x + 15, b.y + 7, 9, 3); ctx.restore();
 }
 
-function lyricBullet(api, text, order, lane, direction, options) {
-  const box = { ...api.box }, warn = Math.max(0.3, options.warn ?? 0.45), speed = options.speed ?? 112;
-  const w = Math.min(box.w - 10, text.length * 11 + 10), h = 15;
-  const spawnX = direction > 0 ? box.x - 34 : box.x + box.w + 34;
-  api.emit({ shape: 'choimis_lyric', text, order, lane, direction, spawnX, x: spawnX, y: box.y + lane,
-    w, h, r: 0, warn, life: warn + (box.w + 68) / speed, box,
-    steer(b) { b.x = b.spawnX + b.direction * Math.max(0, b.age - b.warn) * speed; },
+function lyricBullet(api, text, order, column, options) {
+  const box = { ...api.box }, warn = Math.max(0.3, options.warn ?? 0.48), speed = options.speed ?? 104;
+  const lines = text === '래퍼딱지를때는중이젠MC로' ? ['래퍼딱지를때는중', '이젠MC로'] : [text];
+  const w = Math.min(box.w - 18, Math.max(...lines.map(line => line.length)) * 11 + 10), h = lines.length * 14 + 4;
+  const x = box.x + box.w * column, spawnY = box.y - 34;
+  api.emit({ shape: 'choimis_lyric', text, lines, order, column, direction: 'down', spawnY, x, y: spawnY,
+    w, h, r: 0, warn, life: warn + (box.h + 68) / speed, box,
+    steer(b) { b.y = b.spawnY + Math.max(0, b.age - b.warn) * speed; },
     hitShape(b, soul) {
       if (b.age < b.warn) return false;
       return Math.abs(soul.x - b.x) <= b.w / 2 + soul.r - 2 && Math.abs(soul.y - b.y) <= b.h / 2 + soul.r - 2;
@@ -75,27 +77,30 @@ function lyricBullet(api, text, order, lane, direction, options) {
     drawShape(ctx, b) {
       ctx.save(); clipArena(ctx, box); ctx.font = FONT.replace(/^\d+px/, '11px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       if (b.age < b.warn) {
-        ctx.strokeStyle = '#ff83bc'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath();
-        ctx.moveTo(box.x + 4, b.y); ctx.lineTo(box.x + box.w - 4, b.y); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = '#ff83bc'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+        ctx.strokeRect(Math.round(b.x - b.w / 2), box.y + 4, b.w, box.h - 8); ctx.setLineDash([]);
       }
-      ctx.fillStyle = b.age < b.warn ? '#ff83bc' : '#fff'; ctx.fillText(b.text, Math.round(b.x), Math.round(b.y));
+      ctx.fillStyle = b.age < b.warn ? '#ff83bc' : '#fff';
+      const centerY = b.age < b.warn ? box.y + 10 + b.h / 2 : b.y;
+      b.lines.forEach((line, lineIndex) => ctx.fillText(line, Math.round(b.x), Math.round(centerY + (lineIndex - (b.lines.length - 1) / 2) * 14)));
       ctx.restore();
     },
   });
 }
 
-function breathBullet(api, index, options) {
-  const box = { ...api.box }, edge = ['left', 'top', 'right', 'bottom'][index % 4];
+function breathBullet(api, wave, slot, safeGap, options) {
+  const box = { ...api.box }, edge = slot < 2 ? (slot ? 'right' : 'left') : (safeGap === 'bottom' ? 'top' : 'bottom');
   const warn = Math.max(0.3, options.warn ?? 0.45), flight = options.flight ?? 1.05;
-  const along = [0.06, 0.5, 0.94][Math.floor(index / 4)];
+  const along = slot < 2 ? (safeGap === 'bottom' ? 0.08 : 0.92) : 0.5;
   const from = edge === 'left' ? { x: box.x - 32, y: box.y + box.h * along }
     : edge === 'right' ? { x: box.x + box.w + 32, y: box.y + box.h * along }
       : edge === 'top' ? { x: box.x + box.w * along, y: box.y - 32 }
         : { x: box.x + box.w * along, y: box.y + box.h + 32 };
-  const target = { x: box.x + box.w / 2 + ((index % 3) - 1) * 18, y: box.y + box.h / 2 + ((index % 2) ? 15 : -15) };
+  const target = { x: box.x + box.w * [0.35, 0.65, 0.5][slot],
+    y: box.y + box.h * (slot < 2 ? (safeGap === 'bottom' ? 0.08 : 0.92) : (safeGap === 'bottom' ? 0.34 : 0.66)) };
   const control = edge === 'left' ? { x: box.x + 54, y: from.y } : edge === 'right' ? { x: box.x + box.w - 54, y: from.y }
     : edge === 'top' ? { x: from.x, y: box.y + 54 } : { x: from.x, y: box.y + box.h - 54 };
-  api.emit({ shape: 'choimis_breath', x: from.x, y: from.y, from, control, target, fromEdge: edge,
+  api.emit({ shape: 'choimis_breath', x: from.x, y: from.y, from, control, target, fromEdge: edge, wave, safeGap, staggerSlot: slot,
     r: 6, warn, flight, life: warn + flight + 0.05, box,
     steer(b) { const u = clamp((b.age - b.warn) / b.flight, 0, 1), v = 1 - u; b.x = v * v * b.from.x + 2 * v * u * b.control.x + u * u * b.target.x; b.y = v * v * b.from.y + 2 * v * u * b.control.y + u * u * b.target.y; },
     hitShape(b, soul) { return b.age >= b.warn && Math.hypot(soul.x - b.x, soul.y - b.y) <= b.r + soul.r - 2; },
@@ -177,13 +182,13 @@ function outfitHit(b, soul) {
     || (dx <= b.w * 0.25 + r && dy >= -b.h / 2 - r && dy <= b.h / 2 + r);
 }
 
-function outfitBullet(api, look, direction, options) {
+function outfitBullet(api, look, direction, entryAt, safeGap, options) {
   const box = { ...api.box }, style = OUTFITS[look], alphaFrame = fashionFrames(api.images?.fashion)?.[look];
   const sourceBbox = alphaFrame?.bbox || style.bbox, sourceW = sourceBbox[2] - sourceBbox[0], sourceH = sourceBbox[3] - sourceBbox[1];
   const scale = Math.min(48 / sourceW, 60 / sourceH), w = Math.round(sourceW * scale), h = Math.round(sourceH * scale);
   const warn = Math.max(0.3, options.warn ?? 0.55), speed = options.speed ?? 126;
-  const lanes = [box.y + 35, box.y + box.h - 34, box.y + 61, box.y + box.h - 36], spawnX = direction > 0 ? box.x - 34 : box.x + box.w + 34;
-  api.emit({ shape: 'choimis_outfit', look, profile: style.profile, direction, spawnX, x: spawnX, y: lanes[look],
+  const lanes = [box.y + 31, box.y + box.h - 31, box.y + 58, box.y + box.h - 58], spawnX = direction > 0 ? box.x - 34 : box.x + box.w + 34;
+  api.emit({ shape: 'choimis_outfit', look, profile: style.profile, direction, entryAt, safeGap, spawnX, x: spawnX, y: lanes[look],
     w, h, sourceBbox, alphaFrame, r: 0, warn, flight: (box.w + 68) / speed, life: warn + (box.w + 68) / speed, box, image: api.images?.fashion,
     steer(b) { b.x = b.spawnX + b.direction * Math.max(0, b.age - b.warn) * speed; },
     hitShape(b, soul) { return b.age >= b.warn && outfitHit(b, soul); },
@@ -202,24 +207,32 @@ function outfitBullet(api, look, direction, options) {
 /** 최미스 하늘 보스 후반 세 패턴. 모든 빠른 위협은 고정 예고 뒤 같은 경로로 움직인다. */
 export const CHOIMIS_PATTERNS_B = {
   choimis_rap: (options = {}) => {
-    const duration = options.duration ?? 8.4;
-    const chunks = ['요', '최미스', '래퍼딱지를', '때', '이젠', '앰씨로', '포에버', '포에버'];
-    const lanes = [16, 48, 132, 102, 16, 102, 48, 132];
-    let started = false, index = 0;
+    const duration = 19;
+    const chunks = ['@#$!@#!@#', '래퍼딱지를때는중이젠MC로'];
+    const columns = [0.18, 0.76, 0.46, 0.82, 0.28, 0.64, 0.18, 0.74, 0.42, 0.82, 0.25, 0.62, 0.18, 0.78, 0.48];
+    let started = false, ended = false, video = null, index = 0;
     return { duration, update(t, dt, api) {
-      if (!started) { started = true; const box = { ...api.box }; api.emit({ shape: 'choimis_mic', x: box.x + box.w / 2, y: box.y + box.h / 2, r: 0,
+      if (!started) { started = true; video = api.startRapVideo?.(CHOIMIS_RAP_VIDEO) || null;
+        const box = { ...api.box }; api.emit({ shape: 'choimis_mic', x: box.x + box.w / 2, y: box.y + box.h / 2, r: 0,
         warn: Math.max(0.3, options.micWarn ?? 0.45), life: duration + 0.1, box, image: api.images?.mic,
         spriteScale: options.micScale ?? 0.506, spritePivot: [80, 152], sourceBodyHeight: 123, hitShape: micHit, drawShape: drawMic }); }
-      while (index < chunks.length && t >= 0.55 + index * 0.82) { lyricBullet(api, chunks[index], index, lanes[index], index % 2 ? -1 : 1, options); index++; }
+      api.syncRapVideo?.(video, t);
+      while (index < columns.length && t >= 0.45 + index * 1.16) { lyricBullet(api, chunks[index % chunks.length], index, columns[index], options); index++; }
+      if (!ended && t + dt >= duration) { ended = true; api.stopRapVideo?.(video); }
     } };
   },
 
   choimis_seup: (options = {}) => {
     const duration = options.duration ?? 6.4;
+    const waves = [
+      { at: 0.35, safeGap: 'bottom' }, { at: 1.25, safeGap: 'top' },
+      { at: 2.35, safeGap: 'bottom' }, { at: 3.55, safeGap: 'top' },
+    ];
     let started = false, ended = false, breath = 0, beam = 0;
     return { duration, update(t, dt, api) {
       if (!started) { started = true; api.sfx?.('choimis_seup_miss'); api.present?.({ sheet: 'idle', frame: 0 }); }
-      while (breath < 12 && t >= 0.35 + breath * 0.29) { breathBullet(api, breath, options); breath++; }
+      while (breath < waves.length * 3) { const wave = Math.floor(breath / 3), slot = breath % 3, spec = waves[wave];
+        if (t < spec.at + slot * 0.18) break; breathBullet(api, wave, slot, spec.safeGap, options); breath++; }
       while (beam < 3 && t >= 2.05 + beam * 1.15) { fingerBeam(api, beam, options); beam++; }
       if (!ended && t >= duration - 0.2) { ended = true; api.present?.(null); }
     } };
@@ -227,9 +240,14 @@ export const CHOIMIS_PATTERNS_B = {
 
   choimis_fashion: (options = {}) => {
     const duration = options.duration ?? 7.5;
+    const entries = [
+      { at: 0.35, safeGap: 'bottom' }, { at: 1.55, safeGap: 'top' },
+      { at: 2.65, safeGap: 'bottom' }, { at: 4, safeGap: 'top' },
+    ];
     let ended = false, look = 0;
     return { duration, update(t, dt, api) {
-      while (look < OUTFITS.length && t >= 0.35 + look * 1.55) { api.present?.({ sheet: 'idle', frame: look }); outfitBullet(api, look, look % 2 ? -1 : 1, options); look++; }
+      while (look < OUTFITS.length && t >= entries[look].at) { const entry = entries[look]; api.present?.({ sheet: 'idle', frame: look });
+        outfitBullet(api, look, look % 2 ? -1 : 1, entry.at, entry.safeGap, options); look++; }
       if (!ended && t >= duration - 0.2) { ended = true; api.present?.(null); }
     } };
   },

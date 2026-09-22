@@ -41,7 +41,7 @@ test('test_choimis_karaoke_clip_has_stable_endpoints_and_handles_duplicate_times
   drawChoimisKaraoke(start.ctx, battleAt(cue.start));
   assert.deepEqual(start.calls.clips, []);
 
-  const duplicateMidpoint = (45.128 + 45.278) / 2;
+  const duplicateMidpoint = (45.128 + 45.278) / 2 + 0.15;
   const grouped = recordingContext();
   drawChoimisKaraoke(grouped.ctx, battleAt(duplicateMidpoint));
   assert.deepEqual(grouped.calls.clips.slice(-2).map(rect => Math.round(rect[2] * 1000) / 1000), [5, 5]);
@@ -53,15 +53,41 @@ test('test_choimis_karaoke_clip_has_stable_endpoints_and_handles_duplicate_times
 });
 
 test('test_choimis_karaoke_recomputes_sweep_after_seek_and_repeat', () => {
-  assert.equal(choimisLyricAt(24.1).text, '가재맨 방 고닉 최미스');
-  assert.equal(choimisLyricAt(46.2).text, '최미스! 최미스! 가재맨! 방고닉!');
-  assert.equal(choimisLyricAt(144.2).text, '가재맨 방 고닉 최미스');
+  assert.equal(choimisLyricAt(24.25).text, '가재맨 방 고닉 최미스');
+  assert.equal(choimisLyricAt(46.3).text, '최미스! 최미스! 가재맨! 방고닉!');
+  assert.equal(choimisLyricAt(144.35).text, '가재맨 방 고닉 최미스');
 
   const first = CHOIMIS_LYRICS[0], repeat = CHOIMIS_LYRICS[12];
   const firstCtx = recordingContext(), repeatCtx = recordingContext();
   drawChoimisKaraoke(firstCtx.ctx, battleAt((first.chars[0].at + first.chars[0].end) / 2));
   drawChoimisKaraoke(repeatCtx.ctx, battleAt((repeat.chars[0].at + repeat.chars[0].end) / 2));
   assert.ok(Math.abs(firstCtx.calls.clips[0][2] - repeatCtx.calls.clips[0][2]) < 0.0001);
+});
+
+test('test_choimis_karaoke_applies_one_constant_delay_after_repeat_expansion', () => {
+  assert.equal(CHOIMIS_LYRICS.length, 24);
+  const originalBoundaries = [24.090, 27.184, 30.184, 33.184, 36.184, 39.184, 42.184, 44.809, 46.121, 52.215, 58.121, 64.215, 71.246];
+  for (let index = 0; index < 12; index++) {
+    const first = CHOIMIS_LYRICS[index], repeat = CHOIMIS_LYRICS[index + 12];
+    assert.ok(Math.abs(first.start - (originalBoundaries[index] + 0.15)) < 0.000001);
+    assert.ok(Math.abs(first.end - (originalBoundaries[index + 1] + 0.15)) < 0.000001);
+    const repeatStart = index === 0 ? 144.184 + 0.15 : originalBoundaries[index] + 120 + 0.15;
+    assert.ok(Math.abs(repeat.start - repeatStart) < 0.000001);
+    assert.ok(Math.abs(repeat.end - (originalBoundaries[index + 1] + 120 + 0.15)) < 0.000001);
+    for (let charIndex = index === 0 ? 1 : 0; charIndex < first.chars.length; charIndex++) {
+      assert.ok(Math.abs(repeat.chars[charIndex].at - first.chars[charIndex].at - 120) < 0.000001);
+      assert.ok(Math.abs(repeat.chars[charIndex].end - first.chars[charIndex].end - 120) < 0.000001);
+    }
+  }
+  const money = CHOIMIS_LYRICS.find(entry => entry.text === '1500, 1500, 경섭이 1500');
+  const moneyRepeat = CHOIMIS_LYRICS.findLast(entry => entry.text === money.text);
+  assert.ok(Math.abs(money.start - 58.271) < 0.000001);
+  assert.ok(Math.abs(moneyRepeat.start - 178.271) < 0.000001);
+  assert.equal(choimisLyricAt(58.270999).text, '최미스! 오늘도 가순이 만나야');
+  assert.equal(choimisLyricAt(58.271).text, money.text);
+  assert.ok(Math.abs((money.end - money.start) - (64.215 - 58.121)) < 0.000001);
+  assert.ok(Math.abs(money.chars[0].at - money.start) < 0.000001);
+  assert.ok(Math.abs(CHOIMIS_LYRICS.at(-1).end - 191.396) < 0.000001);
 });
 
 test('test_choimis_karaoke_keeps_fade_attack_dimming_and_pink_trail', () => {

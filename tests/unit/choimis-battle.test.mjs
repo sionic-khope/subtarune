@@ -19,6 +19,8 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   assert.equal(enemy.idle.swayX, 0);
   assert.equal(enemy.idle.swayY, 0);
   assert.equal(enemy.scale, 0.506);
+  assert.equal(enemy.scaleY, 1.2);
+  assert.equal(ENEMIES.drum_devil.scaleY, undefined);
   assert.equal(enemy.actions.choso.src, 'assets/enemies/choimis-choso.png');
   assert.deepEqual(enemy.projectiles, {
     jjajang: 'assets/props/dark_jjajang.png',
@@ -37,6 +39,7 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     ['choimis_pink_choso', '내 추구미는 쵸소우야'],
     ['choimis_pink_kart', '막자할게'],
     ['choimis_pink_prism', undefined],
+    ['choimis_eating_race', undefined],
   ]);
   assert.equal(enemy.openingMode, 'choimis_pink_shooter');
   assert.deepEqual(enemy.openingLines.map(line => [line.speaker, line.portrait, line.voice, line.text]), [
@@ -45,6 +48,40 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   ]);
   assert.ok(enemy.patterns.slice(0, 6).every(pattern => typeof PATTERNS[pattern.type] === 'function'));
   assert.ok(enemy.patterns.slice(6).every(pattern => typeof getBattleMode('enemy', pattern.mode) === 'function'));
+});
+
+test('test_choimis_battle_vertical_scale_keeps_width_and_foot_anchor_for_idle_and_actions', () => {
+  const draws = [];
+  const ctx = {
+    globalAlpha: 1, filter: '', save() {}, restore() {}, translate() {}, scale() {},
+    drawImage: (...args) => draws.push(args),
+  };
+  const battle = Object.assign(Object.create(Battle.prototype), { support: null, t: 0, game: { time: 0 } });
+  const image = { width: 320, height: 320 };
+  const enemy = {
+    id: 'choimis_flower', def: ENEMIES.choimis_flower, img: image, actionImages: { choso: image },
+    x: 396, y: 176, hp: 200, maxHp: 200, dead: false, dying: 0, shake: 0, blink: 0, popup: null,
+    patternPose: null,
+  };
+  const assertTallDraw = call => {
+    const [, , , sourceW, sourceH, left, top, width, height] = call;
+    assert.deepEqual([sourceW, sourceH, width, height], [160, 160, 81, 97]);
+    assert.equal(left + Math.round(ENEMIES.choimis_flower.pivot[0] * ENEMIES.choimis_flower.scale), enemy.x);
+    assert.equal(top + Math.round(ENEMIES.choimis_flower.pivot[1] * ENEMIES.choimis_flower.scale * ENEMIES.choimis_flower.scaleY), enemy.y);
+  };
+  battle.drawEnemy(ctx, enemy);
+  assertTallDraw(draws.at(-1));
+  draws.length = 0;
+  enemy.patternPose = { sheet: 'choso', frame: 0 };
+  battle.drawEnemy(ctx, enemy);
+  assertTallDraw(draws.at(-1));
+
+  draws.length = 0;
+  const ordinary = { ...enemy, id: 'ordinary', def: { ...ENEMIES.choimis_flower, scaleY: undefined }, patternPose: null };
+  battle.drawEnemy(ctx, ordinary);
+  const ordinaryDraw = draws.at(-1);
+  assert.deepEqual(ordinaryDraw.slice(-2), [81, 81]);
+  assert.equal(ordinaryDraw[6] + Math.round(152 * 0.506), ordinary.y);
 });
 
 test('test_choimis_opening_mode_runs_once_per_attempt_and_retry_rearms_it', () => {
@@ -146,7 +183,7 @@ test('test_choimis_seamless_intro_keeps_the_previous_frame_until_assets_are_read
 });
 
 test('test_choimis_karaoke_reads_only_the_audio_clock_and_recomputes_after_seek', () => {
-  const cue = choimisLyricAt(24.1);
+  const cue = choimisLyricAt(24.25);
   assert.equal(cue.text, '가재맨 방 고닉 최미스');
   const calls = [];
   const ctx = {
@@ -156,7 +193,7 @@ test('test_choimis_karaoke_reads_only_the_audio_clock_and_recomputes_after_seek'
     strokeText: (text, x, y) => calls.push(['stroke', text, x, y]),
     fillText: (text, x, y) => calls.push(['fill', text, x, y]),
   };
-  const battle = { cfg: { bgm: 'choimis_battle' }, state: 'menu', game: { sound: { bgmName: 'choimis_battle', bgm: { currentTime: 24.1 } } } };
+  const battle = { cfg: { bgm: 'choimis_battle' }, state: 'menu', game: { sound: { bgmName: 'choimis_battle', bgm: { currentTime: 24.25 } } } };
   drawChoimisKaraoke(ctx, battle);
   assert.ok(calls.filter(call => call[0] === 'fill').length >= 1);
 
@@ -164,11 +201,11 @@ test('test_choimis_karaoke_reads_only_the_audio_clock_and_recomputes_after_seek'
   drawChoimisKaraoke(ctx, battle);
   assert.deepEqual(calls, []);
 
-  battle.game.sound.bgm.currentTime = 46.2;
+  battle.game.sound.bgm.currentTime = 46.3;
   assert.equal(choimisLyricAt(battle.game.sound.bgm.currentTime).text, '최미스! 최미스! 가재맨! 방고닉!');
-  assert.equal(choimisLyricAt(42.2).text, '쟤들은 날 이해 하지 못해');
-  assert.equal(choimisLyricAt(44.9).text, '오늘도 스읍 미스');
-  assert.equal(choimisLyricAt(164.9).text, '오늘도 스읍 미스');
+  assert.equal(choimisLyricAt(42.35).text, '쟤들은 날 이해 하지 못해');
+  assert.equal(choimisLyricAt(45).text, '오늘도 스읍 미스');
+  assert.equal(choimisLyricAt(165).text, '오늘도 스읍 미스');
   assert.equal(choimisLyricAt(0), null);
 
   calls.length = 0; battle.state = 'lose';

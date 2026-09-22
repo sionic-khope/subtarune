@@ -6,7 +6,7 @@ import { ENEMIES } from '../../src/data/enemies.js';
 function damageResolvedForFirstPattern(id) {
   const def = ENEMIES[id];
   const enemy = { def, hp: def.hp, maxHp: def.hp, patternIdx: 0 };
-  const battle = {
+  const battle = Object.assign(Object.create(Battle.prototype), {
     living: () => [enemy],
     boardSize: Battle.prototype.boardSize,
     clearPatternPresentation() {},
@@ -15,9 +15,9 @@ function damageResolvedForFirstPattern(id) {
     board: { setTarget() {}, snap() {} },
     soul: { invuln: 0 },
     bullets: [],
-  };
+  });
 
-  Battle.prototype.beginBullets.call(battle);
+  battle.beginBullets();
   return battle.patterns[0].dmg;
 }
 

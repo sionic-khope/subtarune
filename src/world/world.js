@@ -271,6 +271,7 @@ export class Character extends Entity {
     if (this.motion) {
       const frame = this.motion.frames[this.motion.index];
       const scale = this.motion.scale * CHAR_SCALE * (this.def.visualScale || 1);
+      const scaleY = scale * (this.motion.scaleY ?? 1);
       const anchorX = this.x + this.w / 2 - cam.x, anchorY = this.y + this.h - cam.y;
       const beat = this.motion.flipEvery ? this.motion.elapsed / this.motion.flipEvery : 0;
       const lift = this.motion.pop ? Math.round(Math.max(0, Math.sin(beat * Math.PI * 2)) * this.motion.pop) : 0;
@@ -281,8 +282,8 @@ export class Character extends Entity {
       if (!!(Math.floor(beat) % 2) !== mirror) { ctx.translate(Math.round(anchorX) * 2, 0); ctx.scale(-1, 1); }
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(Math.round(anchorX - this.w / 2), Math.round(anchorY - 2), this.w, 3);
-      blit(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scale), Math.round(frame.image.width * scale), Math.round(frame.image.height * scale));
-      if (emote && emote.anchor !== 'feet') drawEmote(ctx, emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scale));
+      blit(frame.image, Math.round(anchorX - frame.pivot[0] * scale), Math.round(anchorY - frame.pivot[1] * scaleY), Math.round(frame.image.width * scale), Math.round(frame.image.height * scaleY));
+      if (emote && emote.anchor !== 'feet') drawEmote(ctx, emote, Math.round(anchorX), Math.round(anchorY - frame.pivot[1] * scaleY));
       ctx.restore();
       if (emote?.anchor === 'feet') drawEmote(ctx, emote, Math.round(anchorX), Math.round(anchorY));
       return;

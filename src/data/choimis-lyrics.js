@@ -31,7 +31,15 @@ const repeatCue = (entry, entryIndex) => cue(
   entry.chars.map(({ at }, charIndex) => entryIndex === 0 && charIndex === 0 ? 144.184 : at + 120),
 );
 
+const LYRIC_DELAY = 0.15;
+const delayedCue = entry => cue(
+  entry.text,
+  entry.start + LYRIC_DELAY,
+  entry.end + LYRIC_DELAY,
+  entry.chars.map(({ at }) => at + LYRIC_DELAY),
+);
+
 export const CHOIMIS_LYRICS = Object.freeze([
   ...FIRST_PASS,
   ...FIRST_PASS.map(repeatCue),
-]);
+].map(delayedCue));

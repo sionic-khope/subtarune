@@ -1,0 +1,34 @@
+{
+  "source_url": "https://www.youtube.com/watch?v=X3qvIeLPkMI",
+  "source_id": "X3qvIeLPkMI",
+  "source_title": "최미스짜장면",
+  "runtime_asset": "assets/video/choimis-eating-race.mp4",
+  "sha256": "07fa1cc730d3c1d9936434f7caaee421b9cc44e8ba69c0cd4388b54bc010e32a",
+  "bytes": 579159,
+  "duration_seconds": 21.694014,
+  "content_timeline": {
+    "self_intro_start": 0,
+    "self_intro_end_approx": 10.3,
+    "start_transition_approx": 10.3,
+    "eating_start_approx": 10.8,
+    "late_strain_caption_approx": 19,
+    "source_end": 21.694014,
+    "separate_result_card_present": false
+  },
+  "video": {
+    "codec": "h264",
+    "profile": "Constrained Baseline",
+    "width": 480,
+    "height": 270,
+    "fps": 15,
+    "frames": 325,
+    "unique_frame_hashes": 317,
+    "pixel_format": "yuv420p"
+  },
+  "audio": {
+    "codec": "aac",
+    "sample_rate": 44100,
+    "channels": 2,
+    "bitrate": 80000
+  }
+}

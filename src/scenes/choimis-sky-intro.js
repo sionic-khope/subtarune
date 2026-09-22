@@ -90,7 +90,7 @@ export async function prepareChoimisSky(game) {
     game.mapAssets.image(CAPE_SRC),
     ...ids.map(id => game.mapAssets.image(BATTLE_SPRITES[id].src)),
     Battle.preload(game, ['choimis_flower']),
-    game.sound.loadSfxFiles(['great_shine', 'choimis_flower_seup', 'wing', 'weaponpull']),
+    game.sound.loadSfxFiles(['great_shine', 'choimis_flower_seup', 'choimis_flower_sexy', 'wing', 'weaponpull']),
   ]);
   if (state.cancelled || game.choimisSky !== state) return;
   state.motions = Object.fromEntries(ids.map((id, index) => [id, images[index] ? battleMotion(images[index], id) : null]));
@@ -155,38 +155,50 @@ export function playChoimisSkyCue(game) {
   const boss = entity(game, 'choimis_sky_boss');
   const state = game.choimisSky;
   setLoop(boss, state?.raise);
-  game.sound.sfx('great_shine', { volume: 0.8 });
-  if (game.sound.muted) return Promise.resolve();
-  const clip = game.sound.files.choimis_flower_seup?.cloneNode();
-  if (!clip) return Promise.resolve();
+}
+
+function playChoimisSkyVoice(game, state, key) {
+  state.clip?.pause();
+  state.finishClip?.();
+  if (game.sound.muted) return;
+  const clip = game.sound.files?.[key]?.cloneNode();
+  if (!clip) return;
   clip.volume = 0.9;
   state.clip = clip;
-  return new Promise(resolve => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      clip.removeEventListener('ended', finish);
-      clip.removeEventListener('error', finish);
-      if (state.clip === clip) state.clip = null;
-      state.finishClip = null;
-      resolve();
-    };
-    state.finishClip = finish;
-    clip.addEventListener('ended', finish, { once: true });
-    clip.addEventListener('error', finish, { once: true });
-    clip.play().catch(finish);
-  });
+  let settled = false;
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    clip.removeEventListener('ended', finish);
+    clip.removeEventListener('error', finish);
+    if (state.clip === clip) state.clip = null;
+    if (state.finishClip === finish) state.finishClip = null;
+  };
+  state.finishClip = finish;
+  clip.addEventListener('ended', finish, { once: true });
+  clip.addEventListener('error', finish, { once: true });
+  clip.play().catch(finish);
+}
+
+function playChoimisAscentVoice(game, state) {
+  if (state.ascentVoiceStarted) return;
+  state.ascentVoiceStarted = true;
+  playChoimisSkyVoice(game, state, 'choimis_flower_seup');
 }
 
 export function gatherChoimisSkyPollen(game) {
   const state = getChoimisSkyState(game);
-  const supportActors = PARTY.map(id => entity(game, id)).filter(Boolean);
-  const actors = [...supportActors, entity(game, 'choimis_sky_boss')].filter(Boolean);
-  state.actors = actors;
   state.phase = 'gather';
   state.progress = 0;
   state.windTime = 0;
+  if (!state.gatherVoiceStarted) {
+    state.gatherVoiceStarted = true;
+    game.sound.sfx('great_shine', { volume: 0.8 });
+    playChoimisSkyVoice(game, state, 'choimis_flower_sexy');
+  }
+  const supportActors = PARTY.map(id => entity(game, id)).filter(Boolean);
+  const actors = [...supportActors, entity(game, 'choimis_sky_boss')].filter(Boolean);
+  state.actors = actors;
   state.pollen = supportActors.flatMap((actor, actorIndex) => Array.from({ length: 56 }, (_, index) => ({
     actor, actorIndex, angle: index * 2.399 + actorIndex * 0.7,
     radius: 42 + (index * 13 % 46), cloudX: (index * 17 % 74) - 37,
@@ -198,9 +210,18 @@ export function gatherChoimisSkyPollen(game) {
     speed: 18 + (index % 5) * 7, phase: index * 0.71,
     size: index % 6 === 0 ? 3 : 2, color: PINK_PETALS[index % PINK_PETALS.length],
   }));
-  return waitForChoimisSkyAnimation(game, state, 2.4, progress => { state.progress = progress; }).then(completed => {
+  state.gatherPromise = waitForChoimisSkyAnimation(game, state, 2.4, progress => { state.progress = progress; }).then(completed => {
     if (completed && game.choimisSky === state) state.phase = 'cloud';
   });
+  return state.gatherPromise;
+}
+
+export function startChoimisSkyGather(game) {
+  void gatherChoimisSkyPollen(game);
+}
+
+export function waitForChoimisSkyGather(game) {
+  return game.choimisSky?.gatherPromise;
 }
 
 export function ascendChoimisSky(game) {
@@ -222,6 +243,7 @@ export function ascendChoimisSky(game) {
   game.camera.locked = true;
   state.phase = 'rise';
   state.progress = 0;
+  playChoimisAscentVoice(game, state);
   return waitForChoimisSkyAnimation(game, state, CHOIMIS_SKY_ASCENT.duration, (progress, dt) => {
     const rise = CHOIMIS_SKY_ASCENT.distance * progress;
     game.camera.y = cameraY - rise;
@@ -260,7 +282,7 @@ export function revealChoimisCape(game) {
   if (!boss || !state.cape?.revealFrames?.length) { state.capeProgress = 1; return Promise.resolve(); }
   const duration = CHOIMIS_CAPE_REVEAL.durations.reduce((sum, value) => sum + value, 0);
   const scale = ENEMIES.choimis_flower.scale / (CHAR_SCALE * game.zoom.s);
-  const motion = { ...state.cape, frames: state.cape.revealFrames, scale, loop: false, elapsed: 0, index: 0 };
+  const motion = { ...state.cape, frames: state.cape.revealFrames, scale, scaleY: ENEMIES.choimis_flower.scaleY, loop: false, elapsed: 0, index: 0 };
   boss.motion = motion;
   boss.moving = false;
   let elapsed = 0;
@@ -282,7 +304,7 @@ export function revealChoimisCape(game) {
     motion.elapsed = elapsed;
   }).then(completed => {
     if (!completed || game.choimisSky !== state) return;
-    setLoop(boss, { ...state.cape, scale });
+    setLoop(boss, { ...state.cape, scale, scaleY: ENEMIES.choimis_flower.scaleY });
     state.capeProgress = 1;
   });
 }

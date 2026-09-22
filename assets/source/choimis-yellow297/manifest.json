@@ -1,0 +1,44 @@
+{
+  "repository": "https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta",
+  "revision": "154f9a97b8f18fa6974e917c4c4e774bde6b7eba",
+  "branch": "chapter2",
+  "retrieved": "2026-09-22",
+  "provenance": "Community decompilation containing DELTARUNE game assets; not a publisher-operated distribution or a license grant.",
+  "eventEvidence": "objects/obj_heart/Step_0.gml:224-253 (color == 1): tap snd_heartshot_dr_b; charge snd_chargeshot_charge; charged release snd_chargeshot_fire. CleanUp_0.gml stops charge.",
+  "conversion": "ffmpeg -nostdin -hide_banner -loglevel error -i INPUT.wav -map_metadata -1 -codec:a libmp3lame -q:a 2 OUTPUT.mp3",
+  "processing": "Full original waveform, native 44100 Hz mono; no trim, gain, normalization, pitch, speed, fade, mixing, or synthesis.",
+  "playback": "Charge once per hold at volume 0.3, original pitch; tap/full release default volume 0.9 and rate 1. Cancel the charge HTMLAudioElement on release, phase exit, or disposal. Original game dynamically pitches and loops the charge; this implementation intentionally keeps the unmodified source at rate 1.",
+  "verification": "Source event references and WAV SHA256 verified; MP3s inspected by ffprobe and fully decoded by ffmpeg. Subjective listening not performed.",
+  "assets": [
+    {
+      "key": "yellowheart_charge",
+      "source": "sounds/snd_chargeshot_charge/snd_chargeshot_charge",
+      "original": "audio/snd_chargeshot_charge.wav",
+      "sourceSha256": "bbbe8f9183877d5bf99bdd2fdf54bc1ccd9e3ccb1e7e71cb25c3b144aa535c04",
+      "runtime": "assets/audio/sfx/yellowheart_charge.mp3",
+      "runtimeSha256": "be422f7c7a63bc912651e4a1ea50abba6aa1eedea55a639d9829e5c064dd72e5",
+      "durationSeconds": 1.309320,
+      "bytes": 26312
+    },
+    {
+      "key": "yellowheart_shot",
+      "source": "sounds/snd_heartshot_dr_b/snd_heartshot_dr_b",
+      "original": "audio/snd_heartshot_dr_b.wav",
+      "sourceSha256": "83700e7e44ab1b4639f6d46be4406323e8c63d8282482db229c821acf8724a32",
+      "runtime": "assets/audio/sfx/yellowheart_shot.mp3",
+      "runtimeSha256": "d86401b094361af4fcfe9f188ae14114ac37ce0290d898a35eb0338383d8b7c1",
+      "durationSeconds": 0.290680,
+      "bytes": 4764
+    },
+    {
+      "key": "yellowheart_shot_big",
+      "source": "sounds/snd_chargeshot_fire/snd_chargeshot_fire",
+      "original": "audio/snd_chargeshot_fire.wav",
+      "sourceSha256": "59acdd7fdb558333a25be9cb50fdac490c5b6b2e1f99a9f8ce7cb1079c90c7e6",
+      "runtime": "assets/audio/sfx/yellowheart_shot_big.mp3",
+      "runtimeSha256": "d970b86a6baf1018de3cd90246589205dc371c3b844e8b5185bc7e2ce3dda302",
+      "durationSeconds": 1.772018,
+      "bytes": 21303
+    }
+  ]
+}

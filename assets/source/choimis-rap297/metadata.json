@@ -1,0 +1,27 @@
+{
+  "source_url": "https://www.youtube.com/watch?v=LHT3XMBGO_8",
+  "source_id": "LHT3XMBGO_8",
+  "segment_seconds": {
+    "start": 22,
+    "end": 41,
+    "duration": 19
+  },
+  "runtime_asset": "assets/video/choimis-forever-22-41.mp4",
+  "sha256": "d2803dae2fc5640da87a41f2ab4be817ccfd0f3e0112380ea0fe7afd46141a13",
+  "bytes": 1043724,
+  "video": {
+    "codec": "h264",
+    "profile": "Constrained Baseline",
+    "width": 480,
+    "height": 270,
+    "fps": 15,
+    "frames": 285,
+    "pixel_format": "yuv420p"
+  },
+  "audio": {
+    "codec": "aac",
+    "sample_rate": 44100,
+    "channels": 2,
+    "bitrate": 80000
+  }
+}

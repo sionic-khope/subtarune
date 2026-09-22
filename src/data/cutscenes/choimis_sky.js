@@ -1,13 +1,14 @@
 import {
   ascendChoimisSky,
   clearChoimisSky,
-  gatherChoimisSkyPollen,
   panChoimisSkyReveal,
   playChoimisSkyCue,
   prepareChoimisSky,
   readyChoimisSkyBattle,
   revealChoimisCape,
   riseChoimisFromBelow,
+  startChoimisSkyGather,
+  waitForChoimisSkyGather,
 } from '../../scenes/choimis-sky-intro.js';
 
 export const CHOIMIS_SKY = Object.freeze({
@@ -43,11 +44,15 @@ export const choimis_sky = Object.assign([
   C('어쨋든 곧 나는 점례에게 돌아갈거야'),
   C('너희들의 동기가 어떻게 됐든 난 상관없어'),
   C('나를 막을 순 없을것이다.'),
+  C("형들이 무슨 대의를 위해 날 막는건진 모르겠지만. 난 '순애'다."),
   C('순수한 나의 사랑을'),
   C('그리고. 이젠 달라진 나의 모습을.'),
+  C('점례야.. 곧 해치우고 너에게 갈게'),
   close,
   { action: playChoimisSkyCue },
-  { action: gatherChoimisSkyPollen },
+  { action: startChoimisSkyGather },
+  { ...C('내 힘을 받아라'), voice: 'none' },
+  { action: waitForChoimisSkyGather },
   { action: ascendChoimisSky },
   { action: revealChoimisCape },
   { action: readyChoimisSkyBattle },

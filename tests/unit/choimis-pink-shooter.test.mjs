@@ -2,24 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Board, Soul } from '../../src/battle/bullets.js';
 import L from '../../src/data/locale/ko.js';
-import { CHOIMIS_PINK_SHOOTER, createChoimisPinkShooter, createPinkFireControl, createPinkShot, drawPinkPellet, heartPixels, pinkChargeAura, sweptCirclesHit } from '../../src/battle/modes/choimis-pink-shooter.js';
+import { CHOIMIS_PINK_SHOOTER, createChoimisPinkShooter, createPinkFireControl, createPinkShot, drawPinkPellet, heartPixels, pinkChargeAura, registerPinkTargetHit, sweptCirclesHit } from '../../src/battle/modes/choimis-pink-shooter.js';
 
 const input = (...held) => ({ down: key => held.includes(key), held: key => held.includes(key), just: key => held.includes(key) });
 const none = input();
 
-function fixture({ random = 0.5 } = {}) {
+function fixture({ random = 0.5, pinkShotHits } = {}) {
   const board = new Board(), soul = new Soul();
   board.x = 20; board.y = 246; board.w = 440; board.h = 72; board.target = { w: 440, h: 72, cx: 240, cy: 282 };
   soul.x = 211; soul.y = 277; soul.invuln = 0.35;
   const original = { board: { ...board.rect, target: { ...board.target } }, soul: { x: soul.x, y: soul.y, invuln: soul.invuln } };
-  const sounds = [], damage = [], shakes = [];
+  const sounds = [], damage = [], shakes = [], chargeHandles = [];
   const battle = {
-    board, soul, game: { set shake(value) { shakes.push(value); } }, rnd: () => random,
+    board, soul, game: { sound: { sfx: (name, options) => { const handle = { paused: false, src: name, pause() { this.paused = true; }, removeAttribute() { this.src = ''; }, load() {} }; chargeHandles.push(handle); sounds.push({ name, options }); return handle; } }, set shake(value) { shakes.push(value); } }, rnd: () => random,
     sfx: (name, options) => sounds.push({ name, options }),
     hurtParty(value) { damage.push(value); soul.invuln = CHOIMIS_PINK_SHOOTER.invulnerability; soul.hits++; sounds.push({ name: 'hurt' }); }, drawTextBox() {},
   };
-  const enemy = { def: { damage: 15 } };
-  return { battle, board, soul, sounds, damage, shakes, original, mode: createChoimisPinkShooter(battle, { enemy }) };
+  const enemy = { def: { damage: 15 } }; if (pinkShotHits !== undefined) enemy.pinkShotHits = pinkShotHits;
+  return { battle, board, soul, sounds, damage, shakes, chargeHandles, original, enemy, mode: createChoimisPinkShooter(battle, { enemy }) };
 }
 
 function advance(mode, seconds, controls = none, step = 1 / 120) {
@@ -42,6 +42,7 @@ test('test_choimis_shooter_fills_slowly_with_one_shot_sound_then_changes_heart_c
   const f = fixture();
   assert.equal(CHOIMIS_PINK_SHOOTER.fillSeconds, 1.8);
   assert.equal(CHOIMIS_PINK_SHOOTER.fireCooldown, 0.3);
+  assert.equal(CHOIMIS_PINK_SHOOTER.noodleSpeed, 155);
   assert.equal(f.mode.snapshot.phase, 'open'); assert.deepEqual(f.mode.snapshot.board, { x: 20, y: 246, w: 440, h: 72 });
   assert.deepEqual(f.mode.snapshot.heart, { x: 240, y: 156, color: 'red', facing: 'down' });
   advance(f.mode, CHOIMIS_PINK_SHOOTER.openSeconds / 2); assert.ok(f.mode.snapshot.board.y < 246 && f.mode.snapshot.board.y > 90);
@@ -60,6 +61,13 @@ test('test_choimis_shooter_fills_slowly_with_one_shot_sound_then_changes_heart_c
   advance(f.mode, CHOIMIS_PINK_SHOOTER.launchSeconds / 2); assert.ok(f.mode.snapshot.heart.x < 240 && f.mode.snapshot.heart.x > CHOIMIS_PINK_SHOOTER.heartX);
   advance(f.mode, CHOIMIS_PINK_SHOOTER.launchSeconds / 2); assert.equal(f.mode.snapshot.phase, 'combat');
   assert.equal(f.mode.snapshot.heart.x, CHOIMIS_PINK_SHOOTER.heartX); assert.deepEqual(f.mode.snapshot.board, CHOIMIS_PINK_SHOOTER.wideBoard);
+});
+
+test('test_choimis_opening_resets_fight_local_boss_shot_remainder_without_damaging_boss', () => {
+  const f = fixture({ pinkShotHits: 2 });
+  assert.equal(f.enemy.pinkShotHits, 0);
+  enterCombat(f); advance(f.mode, 2, input('confirm'));
+  assert.equal(f.enemy.pinkShotHits, 0, 'opening noodles never count as boss contacts');
 });
 
 test('test_choimis_shooter_actual_heart_pixels_keep_lobes_and_move_single_tip_from_bottom_to_right', () => {
@@ -83,9 +91,10 @@ test('test_choimis_shooter_up_down_only_tap_fires_once_and_held_c_never_autofire
   assert.ok(f.mode.snapshot.heart.y < start.y); assert.equal(f.mode.snapshot.heart.x, start.x); assert.equal(f.mode.snapshot.shots.length, 0);
   f.mode.update(0.04, none);
   assert.equal(f.mode.snapshot.shots.length, 1); assert.equal(f.mode.snapshot.shots[0].charged, false);
-  assert.ok(f.sounds.some(sound => sound.name === 'cannon_puff' && sound.options.volume === 0.4 && sound.options.rate === 1.45));
-  f.mode.update(2, input('confirm')); assert.equal(f.sounds.filter(sound => sound.name === 'cannon_puff').length, 1);
-  f.mode.update(0.01, none); assert.equal(f.sounds.filter(sound => sound.name === 'cannon_puff').length, 1);
+  assert.match(f.mode.snapshot.shots[0].id, /^opening-shot-\d+$/);
+  assert.ok(f.sounds.some(sound => sound.name === 'yellowheart_shot' && sound.options.volume === 0.9 && sound.options.rate === 1));
+  f.mode.update(2, input('confirm')); assert.equal(f.sounds.filter(sound => sound.name === 'yellowheart_shot').length, 1);
+  f.mode.update(0.01, none); assert.equal(f.sounds.filter(sound => sound.name === 'yellowheart_shot').length, 1);
   f.mode.update(0.3, input('down', 'right')); assert.ok(f.mode.snapshot.heart.y > start.y - 1); assert.equal(f.mode.snapshot.heart.x, start.x);
 });
 
@@ -99,10 +108,13 @@ test('test_choimis_shooter_hold_to_fixed_max_then_release_fires_one_bounded_char
   const full = f.mode.snapshot.charge;
   assert.equal(full.ready, true); assert.equal(full.elapsed, CHOIMIS_PINK_SHOOTER.chargeSeconds); assert.equal(f.mode.snapshot.shots.length, 0);
   const fullRadius = Math.hypot(full.aura[0].x - f.mode.snapshot.heart.x, full.aura[0].y - f.mode.snapshot.heart.y);
-  assert.ok(fullRadius < earlyRadius); assert.equal(f.sounds.filter(sound => sound.name === 'power').length, 1);
+  assert.ok(fullRadius < earlyRadius); assert.equal(f.sounds.filter(sound => sound.name === 'yellowheart_charge').length, 1);
   f.mode.update(3, input('confirm')); assert.equal(f.mode.snapshot.charge.elapsed, CHOIMIS_PINK_SHOOTER.chargeSeconds); assert.equal(f.mode.snapshot.shots.length, 0);
   f.mode.update(0.01, none);
   assert.equal(f.mode.snapshot.shots.length, 1); assert.deepEqual({ charged: f.mode.snapshot.shots[0].charged, r: f.mode.snapshot.shots[0].r }, { charged: true, r: 5 });
+  assert.equal(f.sounds.filter(sound => sound.name === 'yellowheart_shot_big').length, 1);
+  assert.deepEqual(f.sounds.filter(sound => sound.name.startsWith('yellowheart_')).map(sound => sound.name), ['yellowheart_charge', 'yellowheart_shot_big']);
+  assert.ok(f.chargeHandles[0].paused && f.chargeHandles[0].src === '', 'charge loop is cancelled on release');
 });
 
 test('test_pink_fire_hold_started_during_cooldown_begins_charge_when_ready_and_fires_once', () => {
@@ -124,6 +136,18 @@ test('test_choimis_shooter_entry_held_c_must_release_before_tap_or_charge_can_st
   f.mode.update(1.2, input('confirm')); assert.equal(f.mode.snapshot.shots.length, 0); assert.equal(f.mode.snapshot.charge.active, false);
   f.mode.update(0.01, none); tap(f.mode);
   assert.equal(f.mode.snapshot.shots.length, 1); assert.equal(f.mode.snapshot.shots[0].charged, false);
+});
+
+test('test_fully_charged_shot_penetrates_multiple_stable_targets_but_each_target_counts_once', () => {
+  const charged = createPinkShot(10, 20, true), normal = createPinkShot(10, 20, false);
+  assert.equal(registerPinkTargetHit(charged, 'front'), true);
+  assert.equal(registerPinkTargetHit(charged, 'front'), false, 'same projectile cannot hit one target on later frames');
+  assert.equal(registerPinkTargetHit(charged, 'middle'), true);
+  assert.equal(registerPinkTargetHit(charged, 'boss'), true);
+  assert.equal(charged.dead, undefined, 'full charge survives every target until the arena edge');
+  assert.equal(registerPinkTargetHit(normal, 'front'), true);
+  assert.equal(normal.dead, true, 'tap shot is consumed by its first target');
+  assert.equal(registerPinkTargetHit(normal, 'boss'), false);
 });
 
 test('test_choimis_shooter_swept_collision_catches_fast_shot_and_visible_hit_effect_while_misses_cleanup', () => {

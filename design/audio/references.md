@@ -1,5 +1,11 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 최미스 핑크 슈터 노란 하트 원음 (BUILD297, 2026-09-22)
+
+일반 발사 `yellowheart_shot` = `snd_heartshot_dr_b`(0.290680초), 충전 `yellowheart_charge` = `snd_chargeshot_charge`(1.309320초), 완전 충전 발사 `yellowheart_shot_big` = `snd_chargeshot_fire`(1.772018초). 세 파일은 DELTARUNE 노란 하트의 [실제 입력·발사 이벤트](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/objects/obj_heart/Step_0.gml#L224-L253)에서 확인했다. 큰 발사 원본이 천둥 원본과 같은 바이트라는 사실과 별개로 이 이벤트에서 직접 쓰인다.
+
+출처는 게임 자산을 포함한 커뮤니티 디컴파일 저장소이며 배급사 공식 배포처가 아니다. 원본 WAV·GameMaker 메타데이터·이벤트 코드·해시·변환 명령은 `assets/source/choimis-yellow297/`에 보관한다. 전체 원본을 44.1kHz mono MP3 q2로 변환했으며 자르기·합성·피치/속도/게인 가공은 없다. 런타임은 충전 홀드마다 한 번(volume 0.3), 발사마다 일반/완전충전 키를 재생한다(rate 1, 기본 volume 0.9). 놓기·단계 종료·dispose에서 충전 핸들을 정리한다. 원작 충전의 루프·동적 피치 상승은 적용하지 않는다. 출처 코드·해시·ffprobe·전체 디코드 검증을 수행했으며 주관적 청취는 미확인이다.
+
 ## 최미스 하늘 전투 (BUILD294, 2026-09-22)
 
 - 사용자 지정 [GWf9_qSrnOM](https://www.youtube.com/watch?v=GWf9_qSrnOM) — yt-dlp 메타데이터 제목 `34. Flower Man (DELTARUNE Chapter 5 Soundtrack) - Toby Fox & @Cametek.CamelliaOfficial`, 업로더 Toby Fox, 업로드 날짜 `20260624` — 의 포맷251 전체를 `bgm/choimis_battle.mp3`로 MP3 q2 변환했다. 런타임 키는 `choimis_battle`; 출력은 192.040646초, 48kHz stereo, 4,726,316바이트다. 구간 편집·피치·속도·페이드·음량 정규화는 없다. 원본 보존, 명령, SHA256, 전체 디코드, 로컬 처리/비용 기록은 `assets/source/choimis-sky294/audio/README.md`를 기준으로 한다.

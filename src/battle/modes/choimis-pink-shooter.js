@@ -25,7 +25,7 @@ export const CHOIMIS_PINK_SHOOTER = Object.freeze({
   heartX: 64,
   invulnerability: 0.75,
   noodleWarning: 0.55,
-  noodleSpeed: 118,
+  noodleSpeed: 155,
   spawnFirst: 0.45,
   spawnEvery: 0.92,
   compactBoard: COMPACT_BOARD,
@@ -89,8 +89,34 @@ export function pinkChargeAura(x, y, progress, time) {
   });
 }
 
-/** Shared fixed-tier projectile; charged only changes bounded presentation/collision size. */
+/** Shared fixed-tier projectile; charge duration never scales its power. */
 export const createPinkShot = (x, y, charged = false) => ({ x, y, oldX: x, oldY: y, r: charged ? 5 : 3, charged });
+
+/** A projectile can contact each stable target once; only tap shots stop on contact. */
+export function registerPinkTargetHit(shot, targetId) {
+  if (!shot || shot.dead) return false;
+  if (!shot.hitTargets) Object.defineProperty(shot, 'hitTargets', { value: new Set(), configurable: true });
+  if (shot.hitTargets.has(targetId)) return false;
+  shot.hitTargets.add(targetId);
+  if (!shot.charged) shot.dead = true;
+  return true;
+}
+
+/** Official yellow-heart cues plus the one cancellable charge handle. */
+export function createPinkShotAudio(battle) {
+  let chargeHandle = null;
+  const stopCharge = () => {
+    if (!chargeHandle) return;
+    try { chargeHandle.pause?.(); chargeHandle.removeAttribute?.('src'); if (!chargeHandle.removeAttribute) chargeHandle.src = ''; chargeHandle.load?.(); } catch { /* disposed audio is already silent */ }
+    chargeHandle = null;
+  };
+  return {
+    charge() { stopCharge(); chargeHandle = battle.game?.sound?.sfx?.('yellowheart_charge', { volume: 0.3, rate: 1 }) || null; },
+    fire(charged) { stopCharge(); battle.sfx(charged ? 'yellowheart_shot_big' : 'yellowheart_shot', { volume: 0.9, rate: 1 }); },
+    stop: stopCharge,
+    dispose: stopCharge,
+  };
+}
 const boardAt = board => ({ x: board.x, y: board.y, w: board.w, h: board.h });
 const snapshotObject = value => ({ ...value, x: Math.round(value.x * 100) / 100, y: Math.round(value.y * 100) / 100 });
 
@@ -100,9 +126,10 @@ export function createChoimisPinkShooter(battle, { enemy }) {
   const oldBoard = { ...board.rect, target: board.target && { ...board.target } };
   const oldSoul = { x: soul.x, y: soul.y, invuln: soul.invuln };
   let phase = 'open', phaseTime = 0, combatElapsed = 0, water = 0, scroll = 0;
-  const fireControl = createPinkFireControl(C);
-  let shots = [], noodles = [], effects = [], nextSpawn = C.spawnFirst;
+  const fireControl = createPinkFireControl(C), shotAudio = createPinkShotAudio(battle);
+  let shots = [], noodles = [], effects = [], nextSpawn = C.spawnFirst, nextShotId = 0;
   let spawned = 0, destroyed = 0, missed = 0, disposed = false;
+  if (enemy) enemy.pinkShotHits = 0;
   const bowl = { image: null };
   if (typeof Image !== 'undefined') {
     const image = new Image();
@@ -125,12 +152,10 @@ export function createChoimisPinkShooter(battle, { enemy }) {
   const spawnNoodle = () => {
     const margin = 18, height = WIDE_BOARD.h - margin * 2;
     const y = WIDE_BOARD.y + margin + battle.rnd() * height;
-    noodles.push({ x: WIDE_BOARD.x + WIDE_BOARD.w - 5, y, oldX: WIDE_BOARD.x + WIDE_BOARD.w - 5, oldY: y, r: 8, age: 0, telegraph: true });
-    spawned++;
+    noodles.push({ id: `noodle-${spawned++}`, x: WIDE_BOARD.x + WIDE_BOARD.w - 5, y, oldX: WIDE_BOARD.x + WIDE_BOARD.w - 5, oldY: y, r: 8, age: 0, telegraph: true });
   };
   const fire = charged => {
-    shots.push(createPinkShot(soul.x + 11, soul.y, charged));
-    battle.sfx('cannon_puff', { volume: 0.4, rate: 1.45 });
+    const shot = createPinkShot(soul.x + 11, soul.y, charged); shot.id = `opening-shot-${nextShotId++}`; shots.push(shot); shotAudio.fire(charged);
   };
   const burst = (x, y, color, kind = 'hit') => {
     for (let i = 0; i < 9; i++) effects.push({ kind, x, y, vx: 38 + (i % 3) * 18, vy: (i - 4) * 17, life: 0.32, color });
@@ -141,7 +166,7 @@ export function createChoimisPinkShooter(battle, { enemy }) {
     const direction = Number(held(input, 'down')) - Number(held(input, 'up'));
     soul.y = clamp(soul.y + direction * C.heartSpeed * dt, WIDE_BOARD.y + 13, WIDE_BOARD.y + WIDE_BOARD.h - 13);
     for (const event of fireControl.update(dt, input)) {
-      if (event.type === 'charge') battle.sfx('power', { volume: 0.65 });
+      if (event.type === 'charge') shotAudio.charge();
       else fire(event.charged);
     }
     while (combatElapsed >= nextSpawn && nextSpawn < C.combatSeconds - 0.8) { spawnNoodle(); nextSpawn += C.spawnEvery; }
@@ -156,9 +181,9 @@ export function createChoimisPinkShooter(battle, { enemy }) {
       for (const noodle of noodles) {
         if (noodle.dead || noodle.telegraph) continue;
         if (!sweptCirclesHit({ x: shot.oldX, y: shot.oldY }, shot, shot.r, { x: noodle.oldX, y: noodle.oldY }, noodle, noodle.r)) continue;
-        shot.dead = true; noodle.dead = true; destroyed++;
-        burst(noodle.x, noodle.y, '#ff9ccd'); battle.sfx('pop', { volume: 0.384, rate: 0.8 });
-        break;
+        if (!registerPinkTargetHit(shot, noodle.id)) continue;
+        noodle.dead = true; destroyed++; burst(noodle.x, noodle.y, '#ff9ccd'); battle.sfx('pop', { volume: 0.384, rate: 0.8 });
+        if (shot.dead) break;
       }
     }
     for (const noodle of noodles) {
@@ -174,7 +199,7 @@ export function createChoimisPinkShooter(battle, { enemy }) {
     shots = shots.filter(shot => !shot.dead);
     noodles = noodles.filter(noodle => !noodle.dead && noodle.x > WIDE_BOARD.x - 24);
     effects = effects.filter(effect => effect.life > 0);
-    if (combatElapsed + 1e-9 >= C.combatSeconds) change('done');
+    if (combatElapsed + 1e-9 >= C.combatSeconds) { shotAudio.stop(); change('done'); }
   };
 
   return {
@@ -227,7 +252,7 @@ export function createChoimisPinkShooter(battle, { enemy }) {
     },
     dispose() {
       if (disposed) return;
-      disposed = true; shots = []; noodles = []; effects = []; fireControl.dispose();
+      disposed = true; shots = []; noodles = []; effects = []; fireControl.dispose(); shotAudio.dispose();
       if (bowl.image) { bowl.image.onload = null; bowl.image.onerror = null; }
       restore();
     },

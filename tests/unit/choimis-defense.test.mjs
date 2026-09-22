@@ -49,7 +49,7 @@ test('test_choimis_defense_cinematic_activates_only_after_both_exact_lines_and_c
   assert.equal(enemy.defenseBoosted, true);
 });
 
-test('test_choimis_boosted_defense_clamps_every_positive_hit_to_one_without_affecting_other_enemies', () => {
+test('test_choimis_boosted_defense_clamps_normal_hits_without_affecting_other_enemies', () => {
   const battle = Object.assign(Object.create(Battle.prototype), {
     game: { attack: 12 }, support: null,
     sfx() {}, setText() {},
@@ -63,6 +63,24 @@ test('test_choimis_boosted_defense_clamps_every_positive_hit_to_one_without_affe
   const other = { id: 'cs_red', hp: 30, maxHp: 30, dead: false, dying: 0, defenseBoosted: true, def: { reactive: null, lines: {} } };
   assert.equal(battle.hitEnemy(other, null, 12), 12);
   assert.equal(other.hp, 18);
+});
+
+test('test_choimis_eating_race_reward_bypasses_defense_but_keeps_common_death_and_duplicate_guards', () => {
+  const sounds = [];
+  const battle = Object.assign(Object.create(Battle.prototype), {
+    game: { attack: 12 }, support: null, sfx(name) { sounds.push(name); }, setText() {},
+  });
+  const enemy = { id: 'choimis_flower', hp: 25, dead: false, dying: 0, defenseBoosted: true, def: { lines: {} } };
+  assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 10);
+  assert.equal(enemy.hp, 15);
+  assert.equal(battle.hitEnemy(enemy, null, 10), 1);
+  assert.equal(enemy.hp, 14);
+  enemy.hp = 7;
+  assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 7);
+  assert.equal(enemy.hp, 0);
+  assert.equal(enemy.dying, 0.5);
+  assert.equal(sounds.filter(name => name === 'vaporized').length, 1);
+  assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 0);
 });
 
 test('test_choimis_post_opening_routes_once_then_retry_clears_defense', () => {
