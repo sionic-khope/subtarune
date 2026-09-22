@@ -108,7 +108,7 @@ export function createChoimisEatingRace(battle, { enemy, media } = {}) {
     draw(ctx) {
       ctx.save(); ctx.imageSmoothingEnabled = false;
       ctx.fillStyle = '#09060d'; ctx.fillRect(0, 0, SCREEN_W, BATTLE_PANEL_TOP);
-      text(ctx, L.battle_choimis_eating_goal, 240, 18, 440);
+      if (phase === 'intro' || phase === 'race' && raceElapsed < 0.8) text(ctx, L.battle_choimis_eating_goal, 240, 18, 440);
       text(ctx, L.battle_choimis_eating_party, 64, 43, 120, '#ffb4d7', 12);
       text(ctx, enemy.name || enemy.def.name, 411, 43, 120, '#ffb4d7', 12);
       ctx.fillStyle = '#000'; ctx.fillRect(C.video.x, C.video.y, C.video.w, C.video.h);
@@ -137,9 +137,8 @@ export function createChoimisEatingRace(battle, { enemy, media } = {}) {
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(21.5, BATTLE_PANEL_TOP + 1.5, 437, 69);
       const message = phase === 'loading' ? L.battle_choimis_eating_loading : phase === 'error' ? L.battle_choimis_eating_error
         : phase === 'result' ? winner === 'party' ? L.battle_choimis_eating_win : L.battle_choimis_eating_lose
-          : phase === 'intro' ? L.battle_choimis_eating_intro : L.battle_choimis_eating_controls;
-      text(ctx, message, 240, BATTLE_PANEL_TOP + 13, 410);
-      text(ctx, phase === 'race' ? `${bites} / ${total}` : L.battle_choimis_eating_controls, 240, BATTLE_PANEL_TOP + 40, 410, '#ffb4d7', 12);
+          : '';
+      if (message) text(ctx, message, 240, BATTLE_PANEL_TOP + 13, 410);
       ctx.restore();
     },
     dispose() { if (disposed) return; disposed = true; armed = false; wasDown = false; video.stop(); },

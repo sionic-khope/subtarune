@@ -38,10 +38,11 @@ function tap(mode) {
   mode.update(0.04, none);
 }
 
-test('test_choimis_shooter_fills_slowly_with_one_shot_sound_then_changes_heart_color_with_distinct_sound', () => {
+test('test_choimis_shooter_fills_slowly_then_changes_heart_without_the_removed_transform_sound', () => {
   const f = fixture();
   assert.equal(CHOIMIS_PINK_SHOOTER.fillSeconds, 1.8);
   assert.equal(CHOIMIS_PINK_SHOOTER.fireCooldown, 0.3);
+  assert.equal(CHOIMIS_PINK_SHOOTER.chargeSeconds, 0.6);
   assert.equal(CHOIMIS_PINK_SHOOTER.noodleSpeed, 155);
   assert.equal(f.mode.snapshot.phase, 'open'); assert.deepEqual(f.mode.snapshot.board, { x: 20, y: 246, w: 440, h: 72 });
   assert.deepEqual(f.mode.snapshot.heart, { x: 240, y: 156, color: 'red', facing: 'down' });
@@ -55,7 +56,7 @@ test('test_choimis_shooter_fills_slowly_with_one_shot_sound_then_changes_heart_c
   assert.equal(f.mode.snapshot.phase, 'drain'); assert.equal(f.mode.snapshot.water, 1);
   assert.deepEqual(f.mode.snapshot.heart, { x: 240, y: 156, color: 'pink', facing: 'right' });
   assert.equal(f.sounds.filter(sound => sound.name === 'great_shine').length, 1);
-  assert.equal(f.sounds.filter(sound => sound.name === 'color_heart').length, 1);
+  assert.equal(f.sounds.filter(sound => sound.name === 'color_heart').length, 0, 'removed heart-transform cue stays silent');
   advance(f.mode, CHOIMIS_PINK_SHOOTER.drainSeconds);
   assert.equal(f.mode.snapshot.phase, 'launch'); assert.equal(f.mode.snapshot.water, 0); assert.equal(f.mode.snapshot.heart.x, 240);
   advance(f.mode, CHOIMIS_PINK_SHOOTER.launchSeconds / 2); assert.ok(f.mode.snapshot.heart.x < 240 && f.mode.snapshot.heart.x > CHOIMIS_PINK_SHOOTER.heartX);
@@ -78,7 +79,8 @@ test('test_choimis_shooter_actual_heart_pixels_keep_lobes_and_move_single_tip_fr
   assert.ok(right.filter(pixel => pixel.x < 0).length > 20); assert.ok(right.some(pixel => pixel.x === rightmost && pixel.y === 0));
 });
 
-test('test_choimis_shooter_combat_budget_is_twenty_seconds_excluding_fill_and_drain', () => {
+test('test_choimis_shooter_combat_budget_is_fifteen_seconds_excluding_fill_and_drain', () => {
+  assert.equal(CHOIMIS_PINK_SHOOTER.combatSeconds, 15);
   const f = fixture(); enterCombat(f); advance(f.mode, CHOIMIS_PINK_SHOOTER.combatSeconds - 0.01);
   assert.equal(f.mode.snapshot.phase, 'combat'); assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds - 0.01);
   assert.equal(f.mode.update(0.02, none), true); assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds); assert.equal(f.mode.snapshot.phase, 'done');

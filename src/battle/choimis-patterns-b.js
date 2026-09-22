@@ -11,12 +11,6 @@ function clipArena(ctx, box) {
   ctx.beginPath(); ctx.rect(box.x + 3, box.y + 3, box.w - 6, box.h - 6); ctx.clip();
 }
 
-function segmentDistance(px, py, ax, ay, bx, by) {
-  const dx = bx - ax, dy = by - ay, length = dx * dx + dy * dy || 1;
-  const u = clamp(((px - ax) * dx + (py - ay) * dy) / length, 0, 1);
-  return Math.hypot(px - ax - dx * u, py - ay - dy * u);
-}
-
 function whiteImage(image) {
   if (!image) return null;
   if (!WHITE.has(image)) {
@@ -88,42 +82,35 @@ function lyricBullet(api, text, order, column, options) {
   });
 }
 
-function breathBullet(api, wave, slot, safeGap, options) {
-  const box = { ...api.box }, edge = slot < 2 ? (slot ? 'right' : 'left') : (safeGap === 'bottom' ? 'top' : 'bottom');
-  const warn = Math.max(0.3, options.warn ?? 0.45), flight = options.flight ?? 1.05;
-  const along = slot < 2 ? (safeGap === 'bottom' ? 0.08 : 0.92) : 0.5;
-  const from = edge === 'left' ? { x: box.x - 32, y: box.y + box.h * along }
-    : edge === 'right' ? { x: box.x + box.w + 32, y: box.y + box.h * along }
-      : edge === 'top' ? { x: box.x + box.w * along, y: box.y - 32 }
-        : { x: box.x + box.w * along, y: box.y + box.h + 32 };
-  const target = { x: box.x + box.w * [0.35, 0.65, 0.5][slot],
-    y: box.y + box.h * (slot < 2 ? (safeGap === 'bottom' ? 0.08 : 0.92) : (safeGap === 'bottom' ? 0.34 : 0.66)) };
-  const control = edge === 'left' ? { x: box.x + 54, y: from.y } : edge === 'right' ? { x: box.x + box.w - 54, y: from.y }
-    : edge === 'top' ? { x: from.x, y: box.y + 54 } : { x: from.x, y: box.y + box.h - 54 };
-  api.emit({ shape: 'choimis_breath', x: from.x, y: from.y, from, control, target, fromEdge: edge, wave, safeGap, staggerSlot: slot,
-    r: 6, warn, flight, life: warn + flight + 0.05, box,
-    steer(b) { const u = clamp((b.age - b.warn) / b.flight, 0, 1), v = 1 - u; b.x = v * v * b.from.x + 2 * v * u * b.control.x + u * u * b.target.x; b.y = v * v * b.from.y + 2 * v * u * b.control.y + u * u * b.target.y; },
-    hitShape(b, soul) { return b.age >= b.warn && Math.hypot(soul.x - b.x, soul.y - b.y) <= b.r + soul.r - 2; },
-    drawShape(ctx, b) {
-      ctx.save(); clipArena(ctx, box);
-      if (b.age < b.warn) { ctx.strokeStyle = '#ff78b0'; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y); ctx.quadraticCurveTo(b.control.x, b.control.y, b.target.x, b.target.y); ctx.stroke(); ctx.setLineDash([]); }
-      ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(Math.atan2(b.target.y - b.from.y, b.target.x - b.from.x));
-      ctx.fillStyle = '#fff'; ctx.fillRect(-8, -2, 16, 4); ctx.fillRect(-3, -5, 7, 10); ctx.restore();
+function missBullet(api, wave, slot, safeGap, options) {
+  const box = { ...api.box }, direction = wave % 2 ? -1 : 1;
+  const warn = Math.max(0.3, options.warn ?? 0.42), speed = options.missSpeed ?? 280;
+  const w = 54, h = 22, edgeOffset = 34;
+  const yOffsets = safeGap === 'bottom' ? [18, 52, 86] : [box.h - 18, box.h - 52, box.h - 86];
+  const spawnX = direction > 0 ? box.x - edgeOffset : box.x + box.w + edgeOffset;
+  const flight = (box.w + edgeOffset * 2) / speed;
+  api.emit({ shape: 'choimis_miss', text: 'MISS', wave, slot, safeGap, direction,
+    fromEdge: direction > 0 ? 'left' : 'right', spawnX, x: spawnX, y: box.y + yOffsets[slot],
+    w, h, r: 0, warn, flight, life: warn + flight, box,
+    steer(b) { b.x = b.spawnX + b.direction * Math.max(0, b.age - b.warn) * speed; },
+    hitShape(b, soul) {
+      if (b.age < b.warn) return false;
+      const cx = clamp(soul.x, b.x - b.w / 2, b.x + b.w / 2);
+      const cy = clamp(soul.y, b.y - b.h / 2, b.y + b.h / 2);
+      return Math.hypot(soul.x - cx, soul.y - cy) <= Math.max(0, soul.r - 2);
     },
-  });
-}
-
-function fingerBeam(api, volley, options) {
-  const box = { ...api.box }, warn = Math.max(0.3, options.beamWarn ?? 0.55), hit = options.beamHit ?? 0.35;
-  const from = { x: box.x + box.w / 2 + 18, y: box.y + box.h / 2 - 5 };
-  const lockedTarget = { x: api.soul.x, y: api.soul.y + (volley % 3 - 1) * 16 };
-  const angle = Math.atan2(lockedTarget.y - from.y, lockedTarget.x - from.x), end = { x: from.x + Math.cos(angle) * 320, y: from.y + Math.sin(angle) * 320 };
-  api.emit({ shape: 'choimis_finger_beam', x: from.x, y: from.y, from, end, lockedTarget,
-    fromEdge: 'center', r: 0, warn, life: warn + hit, width: 8, box,
-    hitShape(b, soul) { return b.age >= b.warn && segmentDistance(soul.x, soul.y, b.from.x, b.from.y, b.end.x, b.end.y) <= soul.r + b.width / 2 - 2; },
     drawShape(ctx, b) {
-      ctx.save(); clipArena(ctx, box); ctx.strokeStyle = b.age < b.warn ? '#ff70ad' : '#fff'; ctx.lineWidth = b.age < b.warn ? 1 : b.width;
-      if (b.age < b.warn) ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y); ctx.lineTo(b.end.x, b.end.y); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+      ctx.save(); clipArena(ctx, box); ctx.font = FONT.replace(/^\d+px/, '14px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      if (b.age < b.warn) {
+        ctx.strokeStyle = '#ff70ad'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+        ctx.strokeRect(box.x + 4, Math.round(b.y - b.h / 2), box.w - 8, b.h); ctx.setLineDash([]);
+        ctx.fillStyle = '#ff85bd'; ctx.fillText(b.text, Math.round(b.x), Math.round(b.y + 1));
+      } else {
+        ctx.fillStyle = '#ff4f9c'; ctx.fillRect(Math.round(b.x - b.w / 2), Math.round(b.y - b.h / 2), b.w, b.h);
+        ctx.fillStyle = '#8f174f'; ctx.fillRect(Math.round(b.x - b.w / 2 + 2), Math.round(b.y - b.h / 2 + 2), b.w - 4, b.h - 4);
+        ctx.fillStyle = '#fff'; ctx.fillText(b.text, Math.round(b.x), Math.round(b.y + 1));
+      }
+      ctx.restore();
     },
   });
 }
@@ -225,29 +212,33 @@ export const CHOIMIS_PATTERNS_B = {
   choimis_seup: (options = {}) => {
     const duration = options.duration ?? 6.4;
     const waves = [
-      { at: 0.35, safeGap: 'bottom' }, { at: 1.25, safeGap: 'top' },
-      { at: 2.35, safeGap: 'bottom' }, { at: 3.55, safeGap: 'top' },
+      { at: 0.8, safeGap: 'bottom' }, { at: 2.15, safeGap: 'top' },
+      { at: 3.5, safeGap: 'bottom' }, { at: 4.85, safeGap: 'top' },
     ];
-    let started = false, ended = false, breath = 0, beam = 0;
+    let started = false, ended = false, miss = 0;
     return { duration, update(t, dt, api) {
       if (!started) { started = true; api.sfx?.('choimis_seup_miss'); api.present?.({ sheet: 'idle', frame: 0 }); }
-      while (breath < waves.length * 3) { const wave = Math.floor(breath / 3), slot = breath % 3, spec = waves[wave];
-        if (t < spec.at + slot * 0.18) break; breathBullet(api, wave, slot, spec.safeGap, options); breath++; }
-      while (beam < 3 && t >= 2.05 + beam * 1.15) { fingerBeam(api, beam, options); beam++; }
+      while (miss < waves.length * 3) { const wave = Math.floor(miss / 3), slot = miss % 3, spec = waves[wave];
+        if (t < spec.at + slot * 0.12) break; missBullet(api, wave, slot, spec.safeGap, options); miss++; }
       if (!ended && t >= duration - 0.2) { ended = true; api.present?.(null); }
     } };
   },
 
   choimis_fashion: (options = {}) => {
     const duration = options.duration ?? 7.5;
+    const remarkDelay = Math.max(0.3, options.warn ?? 0.55);
     const entries = [
       { at: 0.35, safeGap: 'bottom' }, { at: 1.55, safeGap: 'top' },
       { at: 2.65, safeGap: 'bottom' }, { at: 4, safeGap: 'top' },
     ];
-    let ended = false, look = 0;
+    let ended = false, look = 0, remark = 0;
     return { duration, update(t, dt, api) {
       while (look < OUTFITS.length && t >= entries[look].at) { const entry = entries[look]; api.present?.({ sheet: 'idle', frame: look });
         outfitBullet(api, look, look % 2 ? -1 : 1, entry.at, entry.safeGap, options); look++; }
+      while (remark < entries.length && t >= entries[remark].at + remarkDelay) {
+        if (options.lines?.[remark]) api.say?.(options.lines[remark], 1);
+        remark++;
+      }
       if (!ended && t >= duration - 0.2) { ended = true; api.present?.(null); }
     } };
   },

@@ -26,16 +26,18 @@ export const ENEMIES = {
       bazzi: 'assets/enemies/bazzi-battle.png',
     },
     patterns: [
-      { type: 'choimis_jjajang' },
+      { type: 'choimis_jjajang', speak: '내 짜장면 맛 좀 볼래?' },
       { type: 'choimis_choso', speak: '내 추구미는 쵸소우야' },
       { type: 'choimis_rap', speak: '요 최미스 래퍼딱지를때이젠앰씨로 포에버 포에버' },
       { type: 'choimis_money', speak: '가져가라.' },
       { type: 'choimis_seup', speak: '스읍 미스' },
-      { type: 'choimis_fashion', speak: '이거 패션어떰?' },
+      { type: 'choimis_fashion', speak: '이거 패션어떰?',
+        // 표범→지브라→체크→하트별 착장 진입과 동시에 나오는 머리 말풍선.
+        lines: ['이거 패턴이 이쁘네', '이건 매치하기 좋을듯', '이건 좀 과감한가?', '역시 핑크가 잘 받아'] },
       { type: 'choimis_pink_choso', mode: 'choimis_pink_round', scenario: 'choso', speak: '내 추구미는 쵸소우야' },
       { type: 'choimis_pink_kart', mode: 'choimis_pink_round', scenario: 'kart_block', speak: '막자할게' },
-      { type: 'choimis_pink_prism', mode: 'choimis_pink_round', scenario: 'pink_prism' },
-      { type: 'choimis_eating_race', mode: 'choimis_eating_race' },
+      { type: 'choimis_pink_prism', mode: 'choimis_pink_round', scenario: 'pink_prism', speak: '핑크빛으로 물들어봐' },
+      { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 배틀 한번할까?' },
     ],
     openingMode: 'choimis_pink_shooter',
     openingLines: [

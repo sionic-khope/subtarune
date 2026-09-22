@@ -5,28 +5,32 @@ import { Bullet } from '../../src/battle/bullets.js';
 import { Battle } from '../../src/battle/battle.js';
 import { CHOIMIS_PATTERNS_B } from '../../src/battle/choimis-patterns-b.js';
 import { createChoimisRapVideo } from '../../src/battle/choimis-rap-video.js';
+import { ENEMIES } from '../../src/data/enemies.js';
 
 const BOX = Object.freeze({ x: 140, y: 140, w: 200, h: 150 });
 const SOUL = Object.freeze({ x: 184, y: 252, r: 6 });
 const IDS = ['choimis_rap', 'choimis_seup', 'choimis_fashion'];
+const FASHION_LINES = ENEMIES.choimis_flower.patterns.find(pattern => pattern.type === 'choimis_fashion').lines;
 const ROOT = new URL('../../', import.meta.url);
 
 function start(id, options = {}) {
-  const emitted = [], sounds = [], poses = [], mediaStarts = [], mediaStops = [], mediaSyncs = [], soul = { ...SOUL };
+  const emitted = [], sounds = [], poses = [], speech = [], mediaStarts = [], mediaStops = [], mediaSyncs = [], soul = { ...SOUL };
   const api = {
     box: BOX, soul, rnd: () => 0.5, images: {},
     emit(spec) { const bullet = new Bullet(spec); emitted.push(bullet); return bullet; },
     sfx(name) { sounds.push(name); },
     present(pose) { poses.push(pose); },
+    say(text, hold) { speech.push({ text, hold, at: this.now }); },
     startRapVideo(spec) { const handle = { spec }; mediaStarts.push(handle); return handle; },
     stopRapVideo(handle) { mediaStops.push(handle); },
     syncRapVideo(handle, time) { mediaSyncs.push({ handle, time }); },
   };
-  return { pattern: CHOIMIS_PATTERNS_B[id](options), emitted, sounds, poses, mediaStarts, mediaStops, mediaSyncs, soul, api };
+  return { pattern: CHOIMIS_PATTERNS_B[id](options), emitted, sounds, poses, speech, mediaStarts, mediaStops, mediaSyncs, soul, api };
 }
 
 function advance(run, end, step = 0.05) {
   for (let t = 0; t <= end + 1e-9; t += step) {
+    run.api.now = t;
     run.pattern.update(t, step, run.api);
     for (const bullet of run.emitted) bullet.update(step, BOX);
   }
@@ -145,27 +149,36 @@ test('test_choimis_rap_draws_readable_cjk_inside_its_collision_rectangle', () =>
   assert.equal(lyric.hits({ x: lyric.x, y: lyric.y + lyric.h, r: 1 }), false);
 });
 
-test('test_choimis_seup_uses_existing_clip_once_and_locks_every_warned_path', () => {
+test('test_choimis_seup_prepares_then_sends_readable_miss_words_through_alternating_corridors', () => {
   const run = start('choimis_seup');
+  advance(run, 0.75);
+  assert.equal(run.emitted.length, 0, 'the approved idle pose and inhale clip prepare the attack before hazards appear');
   advance(run, run.pattern.duration);
-  const threats = run.emitted.filter(b => !b.harmless && ['choimis_breath', 'choimis_finger_beam'].includes(b.shape));
+  const threats = run.emitted.filter(b => !b.harmless);
 
   assert.deepEqual(run.sounds.filter(name => name === 'choimis_seup_miss'), ['choimis_seup_miss']);
-  assert.ok(threats.length >= 10);
+  assert.equal(threats.length, 12);
+  assert.ok(threats.every(b => b.shape === 'choimis_miss' && b.text === 'MISS'));
   assert.ok(threats.every(b => b.warn >= 0.3));
-  const beam = threats.find(b => b.shape === 'choimis_finger_beam');
-  const locked = { ...beam.lockedTarget };
-  run.soul.x = BOX.x + BOX.w - 8; run.soul.y = BOX.y + 8;
-  beam.update(0.2, BOX);
-  assert.deepEqual(beam.lockedTarget, locked, 'danger line never tracks after telegraph');
   assert.ok(threats.some(b => b.fromEdge === 'left') && threats.some(b => b.fromEdge === 'right'));
-  assert.ok(threats.some(b => b.fromEdge === 'top') && threats.some(b => b.fromEdge === 'bottom'));
-  const gaps = [...new Map(threats.filter(b => b.shape === 'choimis_breath').map(b => [b.wave, b.safeGap])).values()];
-  assert.deepEqual(gaps, ['bottom', 'top', 'bottom', 'top'], 'staggered inhale waves alternate the safe vertical corridor');
+  const gaps = [...new Map(threats.map(b => [b.wave, b.safeGap])).values()];
+  assert.deepEqual(gaps, ['bottom', 'top', 'bottom', 'top'], 'MISS rows alternate the safe vertical corridor');
+
+  const miss = threats[0], calls = [];
+  const ctx = new Proxy({}, {
+    get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); },
+    set(target, key, value) { target[key] = value; calls.push([key, value]); return true; },
+  });
+  miss.age = miss.warn; miss.steer(miss); miss.draw(ctx);
+  assert.ok(calls.some(call => call[0] === 'font' && String(call[1]).includes('NeoDunggeunmo')));
+  assert.ok(calls.some(call => call[0] === 'fillText' && call[1] === 'MISS'));
+  assert.equal(miss.hits({ x: miss.x, y: miss.y, r: 1 }), true);
+  assert.equal(miss.hits({ x: miss.x + miss.w / 2 + 3, y: miss.y + miss.h / 2 + 3, r: 1 }), false,
+    'the visible MISS plaque and its collision rectangle share the same boundary');
 });
 
 test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', () => {
-  const run = start('choimis_fashion');
+  const run = start('choimis_fashion', { lines: FASHION_LINES });
   advance(run, run.pattern.duration);
   const outfits = run.emitted.filter(b => b.shape === 'choimis_outfit');
 
@@ -175,6 +188,33 @@ test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', 
   assert.equal(new Set(outfits.map(b => b.profile)).size, 4, 'outfits are geometry changes, not color reskins');
   assert.deepEqual(outfits.map(b => b.safeGap), ['bottom', 'top', 'bottom', 'top']);
   assert.deepEqual(outfits.map(b => b.entryAt), [0.35, 1.55, 2.65, 4], 'nonuniform stagger changes when the safe corridor must switch');
+  assert.deepEqual(run.speech.map(entry => entry.text), [
+    '이거 패턴이 이쁘네', '이건 매치하기 좋을듯', '이건 좀 과감한가?', '역시 핑크가 잘 받아',
+  ]);
+  const warningReleases = [0.9, 2.1, 3.2, 4.55];
+  run.speech.forEach((entry, index) => {
+    assert.ok(entry.at >= warningReleases[index] && entry.at < warningReleases[index] + 0.051,
+      `look ${index} remark starts on the first update after its warning releases`);
+  });
+  assert.ok(run.speech.every(entry => entry.hold === 1), 'each outfit gets a bounded one-second head bubble');
+  const textSecondsPerCharacter = 0.03;
+  for (const [index, outfit] of outfits.entries()) {
+    const remark = run.speech[index], nextRemarkAt = run.speech[index + 1]?.at ?? Infinity;
+    const speed = (BOX.w + 68) / outfit.flight;
+    const fullInsideDistance = outfit.direction > 0
+      ? BOX.x + 3 + outfit.w / 2 - outfit.spawnX
+      : outfit.spawnX - (BOX.x + BOX.w - 3 - outfit.w / 2);
+    const fullOutsideDistance = outfit.direction > 0
+      ? BOX.x + BOX.w - 3 - outfit.w / 2 - outfit.spawnX
+      : outfit.spawnX - (BOX.x + 3 + outfit.w / 2);
+    const fullyInsideAt = outfit.entryAt + outfit.warn + fullInsideDistance / speed;
+    const leavesFullViewAt = outfit.entryAt + outfit.warn + fullOutsideDistance / speed;
+    const fullTextAt = remark.at + remark.text.length * textSecondsPerCharacter;
+    const bubbleEndsAt = Math.min(nextRemarkAt, fullTextAt + remark.hold);
+    const synchronizedSeconds = Math.min(leavesFullViewAt, bubbleEndsAt) - Math.max(fullyInsideAt, fullTextAt);
+    assert.ok(synchronizedSeconds >= 0.3,
+      `look ${index} keeps its complete remark and full visible garment together for ${synchronizedSeconds.toFixed(2)}s`);
+  }
   for (const outfit of outfits) {
     outfit.age = outfit.warn + outfit.flight / 2;
     outfit.steer(outfit);
@@ -182,6 +222,24 @@ test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', 
     assert.equal(outfit.hits({ x: outfit.x + outfit.w / 2, y: outfit.y - outfit.h / 2, r: 1 }), false,
       'transparent bounding-box corners do not deal damage');
   }
+});
+
+test('test_choimis_every_registered_attack_has_an_in_character_preamble', () => {
+  const patterns = ENEMIES.choimis_flower.patterns;
+  assert.ok(patterns.every(pattern => typeof pattern.speak === 'string' && pattern.speak.length > 0));
+  assert.deepEqual(Object.fromEntries(patterns.map(pattern => [pattern.type, pattern.speak])), {
+    choimis_jjajang: '내 짜장면 맛 좀 볼래?',
+    choimis_choso: '내 추구미는 쵸소우야',
+    choimis_rap: '요 최미스 래퍼딱지를때이젠앰씨로 포에버 포에버',
+    choimis_money: '가져가라.',
+    choimis_seup: '스읍 미스',
+    choimis_fashion: '이거 패션어떰?',
+    choimis_pink_choso: '내 추구미는 쵸소우야',
+    choimis_pink_kart: '막자할게',
+    choimis_pink_prism: '핑크빛으로 물들어봐',
+    choimis_eating_race: '짜장면 배틀 한번할까?',
+  });
+  assert.ok(patterns.every(pattern => !/(?:6\s*번|3\s*번|\d+\s*회|damage|hit)/i.test(pattern.speak)), 'preambles never expose objective counters');
 });
 
 test('test_choimis_rap_video_plays_moving_media_with_audio_and_disposes_without_bgm_access', async () => {

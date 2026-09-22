@@ -16,9 +16,9 @@ export const CHOIMIS_PINK_SHOOTER = Object.freeze({
   fillSeconds: 1.8,
   drainSeconds: 2.4,
   launchSeconds: 0.7,
-  combatSeconds: 20,
+  combatSeconds: 15,
   fireCooldown: 0.3,
-  chargeSeconds: 0.9,
+  chargeSeconds: 0.6,
   chargeCueAt: 0.18,
   shotSpeed: 410,
   heartSpeed: 126,
@@ -223,7 +223,7 @@ export function createChoimisPinkShooter(battle, { enemy }) {
         if (phaseTime + 1e-9 >= C.openSeconds) { tweenBoard(COMPACT_BOARD, COMPACT_BOARD, 1); battle.sfx('great_shine', { volume: 0.55 }); change('fill'); }
       } else if (phase === 'fill') {
         phaseTime = Math.min(C.fillSeconds, phaseTime + delta); water = phaseTime / C.fillSeconds;
-        if (phaseTime + 1e-9 >= C.fillSeconds) { battle.sfx('color_heart', { volume: 0.72 }); change('drain'); }
+        if (phaseTime + 1e-9 >= C.fillSeconds) change('drain');
       } else if (phase === 'drain') {
         phaseTime = Math.min(C.drainSeconds, phaseTime + delta); water = 1 - phaseTime / C.drainSeconds;
         if (phaseTime + 1e-9 >= C.drainSeconds) change('launch');
@@ -238,7 +238,7 @@ export function createChoimisPinkShooter(battle, { enemy }) {
     draw(ctx) {
       board.draw(ctx); const b = board.rect;
       ctx.save(); ctx.beginPath(); ctx.rect(Math.round(b.x + 3), Math.round(b.y + 3), Math.round(b.w - 6), Math.round(b.h - 6)); ctx.clip();
-      if (phase === 'launch' || phase === 'combat') drawScroll(ctx, b, scroll);
+      if (phase === 'launch' || phase === 'combat') drawPinkScroll(ctx, b, scroll);
       if (water > 0) drawPinkWater(ctx, b, water, phaseTime);
       for (const noodle of noodles) drawNoodle(ctx, noodle, bowl.image);
       if (fireControl.snapshot.active) drawPinkChargeAura(ctx, pinkChargeAura(soul.x, soul.y, fireControl.snapshot.progress, combatElapsed), fireControl.snapshot.ready);
@@ -266,7 +266,8 @@ function drawPinkWater(ctx, board, level, time) {
   for (let x = board.x + 3 - (time * 24) % 12; x < board.x + board.w; x += 12) ctx.fillRect(Math.round(x), y - 2 + Math.round(Math.sin(x * 0.13 + time * 8) * 2), 8, 3);
 }
 
-function drawScroll(ctx, board, scroll) {
+/** Shared scrolling scenery makes a stationary heart read as forward flight. */
+export function drawPinkScroll(ctx, board, scroll) {
   ctx.fillStyle = '#160918'; ctx.fillRect(board.x + 3, board.y + 3, board.w - 6, board.h - 6);
   for (let x = board.x - (scroll % 48); x < board.x + board.w; x += 48) {
     ctx.fillStyle = '#40132f'; ctx.fillRect(Math.round(x), board.y + 4, 2, board.h - 8);

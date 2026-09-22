@@ -30,7 +30,7 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     bazzi: 'assets/enemies/bazzi-battle.png',
   });
   assert.deepEqual(enemy.patterns.map(pattern => [pattern.type, pattern.speak]), [
-    ['choimis_jjajang', undefined],
+    ['choimis_jjajang', '내 짜장면 맛 좀 볼래?'],
     ['choimis_choso', '내 추구미는 쵸소우야'],
     ['choimis_rap', '요 최미스 래퍼딱지를때이젠앰씨로 포에버 포에버'],
     ['choimis_money', '가져가라.'],
@@ -38,8 +38,8 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     ['choimis_fashion', '이거 패션어떰?'],
     ['choimis_pink_choso', '내 추구미는 쵸소우야'],
     ['choimis_pink_kart', '막자할게'],
-    ['choimis_pink_prism', undefined],
-    ['choimis_eating_race', undefined],
+    ['choimis_pink_prism', '핑크빛으로 물들어봐'],
+    ['choimis_eating_race', '짜장면 배틀 한번할까?'],
   ]);
   assert.equal(enemy.openingMode, 'choimis_pink_shooter');
   assert.deepEqual(enemy.openingLines.map(line => [line.speaker, line.portrait, line.voice, line.text]), [

@@ -28,10 +28,10 @@ function tap(mode, rate = 6) {
 
 test('test_choimis_eating_registry_appends_pattern_without_reordering_existing_modes', () => {
   assert.equal(getBattleMode('enemy', 'choimis_eating_race'), createChoimisEatingRace);
-  assert.deepEqual(ENEMIES.choimis_flower.patterns.at(-1), { type: 'choimis_eating_race', mode: 'choimis_eating_race' });
+  assert.deepEqual(ENEMIES.choimis_flower.patterns.at(-1), { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 배틀 한번할까?' });
   assert.equal(ENEMIES.choimis_flower.patterns[1].type, 'choimis_choso');
   assert.equal(C.introSeconds, 11); assert.equal(C.bitesPerBowl * C.bowls, 54); assert.equal(C.raceSeconds, 10.2);
-  assert.equal(L.battle_choimis_eating_goal, '먼저 다 먹어치워라!');
+  assert.equal(L.battle_choimis_eating_goal, '짜장면을 먹어라! (C 연타)');
   assert.equal(L.battle_choimis_eating_start, '시작!');
 });
 
@@ -128,13 +128,15 @@ test('test_choimis_eating_draw_uses_approved_actors_bowls_and_centered_video_wit
     drawImage(...args) { images.push(args); }, measureText(label) { return { width: label.length * 8 }; },
     fillText(label) { labels.push(label); } };
   f.mode.draw(ctx);
-  assert.ok(labels.includes('시작!')); assert.ok(labels.includes('먼저 다 먹어치워라!'));
+  assert.ok(labels.includes('시작!')); assert.equal(labels.filter(label => label === '짜장면을 먹어라! (C 연타)').length, 1);
   assert.ok(labels.includes('요플래')); assert.ok(labels.includes('억빠맨'));
   assert.deepEqual(f.drawn.slice(0, 5), [C.video, 'hyungsub', 'gyeongsub', 'ppaman', 'choimis_flower']);
   assert.ok(images.every(args => args[0] === f.bowl));
   assert.equal(images[0][8], 10);
   for (let index = 0; index < 9; index++) tap(f.mode);
-  images.length = 0; f.mode.draw(ctx);
+  images.length = 0; labels.length = 0; f.mode.draw(ctx);
+  assert.ok(!labels.includes(L.battle_choimis_eating_goal), 'the single start cue clears while the food communicates progress');
+  assert.ok(!labels.some(label => /피해|한 입|눌렀다|먹어라|9 \/ 54/.test(label)), 'no redundant instructions or numeric bite target');
   assert.equal(images[0][8], 5, 'half the bites visibly removes half of the food while retaining the bowl');
   assert.equal(images[1][8], 12, 'approved bowl base is preserved');
   assert.ok(images.some(args => args[1] === 9 && args[2] === 3 && args[3] === 8), 'each real bite moves a fragment of approved food toward the mouth');

@@ -21,11 +21,12 @@ const PATTERNS = [
   { name: 'choso', index: 1, type: 'choimis_choso', source: 'A', shapes: ['choimis_blood_beam'], warning: true },
   { name: 'money', index: 3, type: 'choimis_money', source: 'A', shapes: ['choimis_money_note'], warning: true },
   { name: 'rap', index: 2, type: 'choimis_rap', source: 'B', shapes: ['choimis_mic', 'choimis_lyric'], warning: true },
-  { name: 'seup', index: 4, type: 'choimis_seup', source: 'B', shapes: ['choimis_breath', 'choimis_finger_beam'], warning: true },
+  { name: 'seup', index: 4, type: 'choimis_seup', source: 'B', shapes: ['choimis_miss'], warning: true },
   { name: 'fashion', index: 5, type: 'choimis_fashion', source: 'B', shapes: ['choimis_outfit'], warning: true },
 ];
 
-const json = value => JSON.stringify(value, (_key, item) => typeof item === 'number' ? Math.round(item * 1000) / 1000 : item);
+const json = value => JSON.stringify(value, (key, item) => key === 'data' ? undefined : typeof item === 'number' ? Math.round(item * 1000) / 1000 : item);
+const BUILD298 = process.env.QA_BUILD298 === '1';
 
 await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async context => {
   const { page, open, until: rawUntil, press: rawPress, shot: rawShot, check: rawCheck, fixture } = context;
@@ -193,15 +194,15 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     const { choimisLyricAt } = await import('/src/battle/choimis-karaoke.js');
     window.__choimisQa = {
       sfx: [], bgm: [], phases: [], frames: [], draws: 0, lyricAt: choimisLyricAt,
-      rapVideo: { starts: [], stops: [], frames: [] },
+      rapVideo: { starts: [], stops: [], frames: [] }, fashionFrames: {}, missActiveFrame: null,
       prepanSamples: [], chargeSamples: [], roundCaptures: {}, hintDraws: [], chargeFrames: {}, defenseFrames: {}, capeFrames: {}, roundLatches: {}, roundHistory: {},
-      skyTransition: { rise: {}, risePending: {}, cape: {}, gatherLate: null, windHi: [], phaseFrames: {}, phasePending: {} }, audioTimeline: [], sceneVoices: { sexy: [], seup: [] },
+      skyTransition: { rise: {}, risePending: {}, cape: {}, gatherLate: null, windHi: [], windAudio: { calls: [], samples: [] }, phaseFrames: {}, phasePending: {} }, audioTimeline: [], sceneVoices: { sexy: [], seup: [] },
       temporalCaptures: [42.364, 42.414, 42.484, 42.534, 42.634, 42.734].map(time => ({ time, data: null, actual: null, frame: null })),
       audioBoundaryCaptures: [58.121, 58.271, 58.421, 178.121, 178.271, 178.421].map(time => ({ time, data: null, actual: null, frame: null })),
     };
     const sound = g.sound;
     const sfx = sound.sfx.bind(sound), playBgm = sound.playBgm.bind(sound);
-    sound.sfx = (name, options) => { const event = { name, at: performance.now() }; window.__choimisQa.sfx.push(event); window.__choimisQa.audioTimeline.push({ kind: 'sfx', ...event }); return sfx(name, options); };
+    sound.sfx = (name, options) => { const event = { name, at: performance.now(), options }; const result = sfx(name, options); window.__choimisQa.sfx.push(event); window.__choimisQa.audioTimeline.push({ kind: 'sfx', ...event }); if (name === 'whoosh') { window.__choimisQa.skyTransition.windAudio.calls.push(event); window.__choimisQa.skyTransition.windAudio.audio = result; } return result; };
     sound.playBgm = (name, options) => { const event = { name, at: performance.now(), options }; window.__choimisQa.bgm.push(event); window.__choimisQa.audioTimeline.push({ kind: 'bgm', ...event }); return playBgm(name, options); };
     const wrappedVoiceSources = new WeakSet();
     const wrapSceneVoices = () => {
@@ -235,7 +236,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
             const scenario = mode.snapshot.scenario;
             if (scenario?.kind) {
               const enemy = b.enemies?.[0];
-              const entry = { ...scenario, modeDone: !!mode.done, bossHits: mode.snapshot.bossHits ?? null,
+              const entry = { ...scenario, phase: mode.snapshot.phase, combatElapsed: mode.snapshot.combatElapsed, duration: mode.snapshot.duration, modeDone: !!mode.done, bossHits: mode.snapshot.bossHits ?? null,
                 enemyHp: enemy?.hp, enemyDying: enemy?.dying, enemyDead: enemy?.dead };
               window.__choimisQa.roundLatches[scenario.kind] = entry;
               (window.__choimisQa.roundHistory[scenario.kind] ||= []).push(entry);
@@ -269,12 +270,15 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       }
       const result = originalGameUpdate(...args);
       const sky = g.choimisSky, phase = sky?.phase, progress = Number(sky?.progress);
+      const windAudio = window.__choimisQa.skyTransition.windAudio.audio;
+      if (windAudio && (phase === 'rise' || phase === 'cape' || phase === 'weaponpull')) window.__choimisQa.skyTransition.windAudio.samples.push({ at: performance.now(), phase, progress, volume: Number(windAudio.volume), paused: !!windAudio.paused, src: windAudio.src || '' });
       if (phase && ['gather', 'cloud', 'rise'].includes(phase) && !window.__choimisQa.skyTransition.phasePending[phase]) {
         window.__choimisQa.skyTransition.phasePending[phase] = { at: performance.now(), phase, progress, pollen: sky.pollen?.length || 0, loosePetals: sky.loosePetals?.length || 0, windTime: sky.windTime || 0, camera: { x: g.camera.x, y: g.camera.y }, bossHopY: g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead)?.hopY };
       }
       if (phase === 'rise' && Number.isFinite(progress)) {
         for (const [label, threshold] of [['start', 0.05], ['mid', 0.5], ['end', 0.98]]) if (!window.__choimisQa.skyTransition.risePending[label] && progress >= threshold) {
-          window.__choimisQa.skyTransition.risePending[label] = { at: performance.now(), progress, camera: { x: g.camera.x, y: g.camera.y }, windTime: sky.windTime || 0, bossHopY: g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead)?.hopY };
+          window.__choimisQa.skyTransition.risePending[label] = { at: performance.now(), progress, camera: { x: g.camera.x, y: g.camera.y }, windTime: sky.windTime || 0, bossHopY: g.entities.find(entity => entity.id === 'choimis_sky_boss' && !entity.dead)?.hopY,
+            party: ['player', 'gyeongsub', 'ppaman'].map(id => { const actor = id === 'player' ? g.player : g.entities.find(entity => entity.id === id && !entity.dead); return actor ? { id, x: actor.x, y: actor.y, flyX: actor.flyX || 0, flyY: actor.flyY || 0, hopY: actor.hopY || 0 } : null; }) };
         }
         if (progress >= 0.98 && !window.__choimisQa.skyTransition.risePending.endAt) window.__choimisQa.skyTransition.risePending.endAt = performance.now();
       }
@@ -344,7 +348,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       const skyProgress = Number(sky?.progress);
       if (sky?.phase === 'rise' && Number.isFinite(skyProgress)) {
         for (const [label, threshold] of [['start', 0.05], ['mid', 0.5], ['end', 0.98]]) {
-          if (!skyTransition.rise[label] && skyProgress >= threshold) skyTransition.rise[label] = { at: performance.now(), progress: skyProgress, camera: { x: g.camera.x, y: g.camera.y }, windTime: sky.windTime || 0, bossHopY: boss?.hopY, data: g.canvas.toDataURL('image/png') };
+          if (!skyTransition.rise[label] && skyProgress >= threshold) skyTransition.rise[label] = { at: performance.now(), progress: skyProgress, camera: { x: g.camera.x, y: g.camera.y }, windTime: sky.windTime || 0, bossHopY: boss?.hopY,
+            party: ['player', 'gyeongsub', 'ppaman'].map(id => { const actor = id === 'player' ? g.player : g.entities.find(entity => entity.id === id && !entity.dead); return actor ? { id, x: actor.x, y: actor.y, flyX: actor.flyX || 0, flyY: actor.flyY || 0, hopY: actor.hopY || 0 } : null; }), data: g.canvas.toDataURL('image/png') };
         }
         if (skyProgress >= 0.98 && !skyTransition.rise.endAt) skyTransition.rise.endAt = performance.now();
       }
@@ -393,9 +398,13 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         }
       }
       if (b?.state === 'bullets') {
-        for (const shape of ['choimis_breath', 'choimis_finger_beam']) {
-          const visible = b.bullets.some(q => q.shape === shape && q.age >= q.warn + (shape === 'choimis_finger_beam' ? 0.1 : 0.4) && (shape === 'choimis_finger_beam' || (q.x > b.board.x + 12 && q.x < b.board.x + b.board.w - 12 && q.y > b.board.y + 12 && q.y < b.board.y + b.board.h - 12)));
+        for (const shape of ['choimis_miss']) {
+          const visible = b.bullets.some(q => q.shape === shape && q.age >= q.warn && q.x > b.board.x - 12 && q.x < b.board.x + b.board.w + 12 && q.y > b.board.y + 12 && q.y < b.board.y + b.board.h - 12);
           if (visible && !window.__choimisQa[shape]) window.__choimisQa[shape] = g.canvas.toDataURL('image/png');
+        }
+        for (const bullet of b.bullets) {
+          if (bullet.shape === 'choimis_outfit' && bullet.age >= bullet.warn && bullet.x > b.board.x + 30 && bullet.x < b.board.x + b.board.w - 30 && !window.__choimisQa.fashionFrames[bullet.look]) window.__choimisQa.fashionFrames[bullet.look] = { at: performance.now(), look: bullet.look, x: bullet.x, y: bullet.y, data: g.canvas.toDataURL('image/png') };
+          if (bullet.shape === 'choimis_miss' && bullet.age >= bullet.warn + 0.5 && bullet.x - bullet.w / 2 > b.board.x + 8 && bullet.x + bullet.w / 2 < b.board.x + b.board.w - 8 && !window.__choimisQa.missActiveFrame) window.__choimisQa.missActiveFrame = { at: performance.now(), x: bullet.x, y: bullet.y, age: bullet.age, data: g.canvas.toDataURL('image/png') };
         }
       }
       for (const bullet of b?.bullets || []) if (!bullet.__qaId) bullet.__qaId = nextQaBulletId++;
@@ -505,6 +514,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   } finally { await page.keyboard.up('ArrowRight'); }
   const settled = await until(() => window.game.choimisSky?.phase === undefined && window.game.dialogue.running && window.game.textbox.node?.text === '* 하이', 30000);
   check('boss stays airborne before the first 하이 line', !!settled && (await snapshot()).actors.choimis_sky_boss?.hopY > 20, json(await snapshot()));
+  if (BUILD298) {
+    const hiWaiting = await until(() => window.game.dialogue.running && window.game.textbox.node?.text === '* 하이' && window.game.textbox.state === 'waiting', 5000);
+    if (hiWaiting) await page.waitForTimeout(500);
+  }
   await shot('03_boss_hover_before_hi');
 
   for (const [index, expected] of DIALOGUE.entries()) {
@@ -591,8 +604,15 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   for (const label of ['start', 'mid', 'end']) await saveDataUrl(`sky_cape_${label}`, skyTransition.cape?.[label]);
   await saveDataUrl('sky_hi_wind', skyTransition.windHi?.[Math.min(2, (skyTransition.windHi?.length || 1) - 1)]);
   check('sky rise captures start/mid/end with moving wind and camera state', !!skyTransition.rise?.start && !!skyTransition.rise?.mid && !!skyTransition.rise?.end && skyTransition.rise.mid.windTime >= skyTransition.rise.start.windTime, json(transitionSummary.rise));
+  if (BUILD298) {
+    const riseStart = skyTransition.rise?.start || null, riseEnd = skyTransition.rise?.end || null;
+    const cameraRise = Number.isFinite(riseStart?.camera?.y) && Number.isFinite(riseEnd?.camera?.y) ? riseStart.camera.y - riseEnd.camera.y : NaN;
+    check('BUILD298 ascent covers 1080px while the three party actors remain in the moving field', Number.isFinite(cameraRise) && cameraRise >= 1000 && cameraRise <= 1120 && riseEnd?.party?.filter(Boolean).length === 3, json({ cameraRise, riseStart, riseEnd }));
+  }
   check('gather sexy voice and shine cue start once before the concurrent gather line', sceneVoices.sexy.length === 1 && sceneVoices.sexy[0].phaseAtDraw === 'gather' && Number.isFinite(sceneVoices.sexy[0].at) && Number.isFinite(skyTransition.gatherLate?.at) && sceneVoices.sexy[0].at <= skyTransition.gatherLate.at && audioTimeline.filter(event => event.kind === 'sfx' && event.name === 'great_shine').length === 1, json({ sexy: sceneVoices.sexy, gatherLateAt: skyTransition.gatherLate?.at, shine: audioTimeline.filter(event => event.kind === 'sfx' && event.name === 'great_shine') }));
   check('ascent seup voice starts once at the actual rise phase without blocking the ascent', sceneVoices.seup.length === 1 && sceneVoices.seup[0].phaseAtDraw === 'rise' && Number.isFinite(sceneVoices.seup[0].at) && Number.isFinite(skyTransition.rise?.start?.at) && sceneVoices.seup[0].at <= skyTransition.rise.start.at + 250, json({ seup: sceneVoices.seup, riseStartAt: skyTransition.rise?.start?.at }));
+  const windAudioSamples = skyTransition.windAudio?.samples || [], riseWind = windAudioSamples.filter(sample => sample.phase === 'rise' && Number.isFinite(sample.volume));
+  check('ascent rushing-wind audio starts during rise, fades through the envelope, and is stopped before cape/weapon handoff', skyTransition.windAudio?.calls?.length === 1 && riseWind.some(sample => sample.volume > 0.05) && Math.max(...riseWind.map(sample => sample.volume), 0) <= 0.8 && windAudioSamples.some(sample => ['cape', 'weaponpull'].includes(sample.phase) && sample.paused), json({ calls: skyTransition.windAudio?.calls?.map(call => ({ name: call.name, at: call.at, options: call.options })), samples: windAudioSamples.filter(sample => sample.phase !== 'rise' || sample.at === riseWind.at(-1)?.at).slice(-8) }));
   const hiClock = (skyTransition.windHi || []).map(sample => sample.bgmTime).filter(Number.isFinite);
   check('sky encounter captures wind samples during the current 하이 line', (skyTransition.windHi?.length || 0) >= 2 && (hiClock.length < 2 || hiClock.at(-1) > hiClock[0]), json(transitionSummary.windHi));
   check('cape unfurl captures start/mid/end before handoff', !!skyTransition.cape?.start && !!skyTransition.cape?.mid && !!skyTransition.cape?.end, json(transitionSummary.cape));
@@ -644,7 +664,14 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const pinkCombat = await until(() => { const s = window.game.battle?.gimmick?.snapshot; return s?.phase === 'combat' ? s : null; }, 6000);
   const pinkCombatStartedAt = Date.now();
   check('pink shooter transforms to a wide arena with a right-facing pink heart', !!pinkCombat && pinkCombat.heart.color === 'pink' && pinkCombat.heart.facing === 'right' && pinkCombat.board.w >= 400, json(pinkCombat));
-  if (pinkCombat) await shot('18_pink_shooter_combat_wide');
+  if (pinkCombat) {
+    await shot('18_pink_shooter_combat_wide');
+    if (BUILD298) {
+      await shot('18b_pink_shooter_forwardflow_t0');
+      await page.waitForTimeout(1000);
+      await shot('18c_pink_shooter_forwardflow_t1');
+    }
+  }
   if (!pinkCombat) {
     check('pink shooter exposes a combat snapshot before input-dependent checks', false, json({ openingMode, pinkFill, pinkDrain, pinkCombat }));
     return;
@@ -655,12 +682,14 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   // Seeded opening lanes center the first noodle on the initial soul y=159.
   // A tap must fire once; a separate bounded hold/release checks the three-strand capped charge.
   await page.waitForTimeout(180);
+  const initialHeartCueCount = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => ['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big'].includes(sound.name)).length);
   const tapSfxBefore = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot').length);
   await page.evaluate(value => { window.__choimisQa.tapSfxBefore = value; }, tapSfxBefore);
   await press('KeyC');
   const tapFired = await until(() => window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot').length > window.__choimisQa.tapSfxBefore ? true : null, 1500);
   const tapResult = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), shotSfx: window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot').length }));
   check('C tap/release fires exactly one natural pink projectile', !!tapFired && tapResult.shotSfx === tapSfxBefore + 1, json({ fireNoodle, tapResult }));
+  check('opening has no initial heart cue before the first real C input', initialHeartCueCount === 0, json({ initialHeartCueCount, tapSfxBefore }));
   const chargeStart = await page.evaluate(() => window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot_big').length);
   await page.keyboard.down('KeyC');
   const chargeReady = await until(() => {
@@ -677,7 +706,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     return snapshot && snapshot.charge?.active === false && count > window.__choimisQa.chargeSfxBefore ? true : null;
   }, 2000);
   const pinkFire = await page.evaluate(() => ({ ...(game.battle?.gimmick?.snapshot || {}), hp: Object.fromEntries(game.battle.members.map(member => [member.id, member.hp])), chargedShotSfx: window.__choimisQa.sfx.filter(sound => sound.name === 'yellowheart_shot_big').length }));
-  check('held C reaches a fixed three-strand charge cap before release', !!chargeReady && chargeFrame.charge?.ready === true && chargeFrame.charge?.elapsed >= 0.9 && chargeFrame.charge?.aura?.length === 3 && !!chargedReleased && pinkFire.chargedShotSfx === chargeStart + 1, json({ chargeReady, charge: chargeFrame.charge, samples: chargeFrame.samples, afterRelease: pinkFire.charge, released: chargedReleased }));
+  const chargeFloor = 0.6;
+  check('held C reaches the fixed .6-second three-strand charge cap before release', !!chargeReady && chargeFrame.charge?.ready === true && chargeFrame.charge?.elapsed >= chargeFloor && chargeFrame.charge?.aura?.length === 3 && !!chargedReleased && pinkFire.chargedShotSfx === chargeStart + 1, json({ chargeFloor, chargeReady, charge: chargeFrame.charge, samples: chargeFrame.samples, afterRelease: pinkFire.charge, released: chargedReleased }));
   check('actual C tap fire destroys at least one incoming noodle during pink combat', !!fireNoodle && pinkFire.destroyed >= 1, json({ fireNoodle, ...pinkFire }));
   await page.evaluate(value => { window.__choimisQa.beforeChargeDestroyed = value; }, tapResult.destroyed || 0);
   const chargedNoodles = await until(() => {
@@ -748,7 +778,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const menu = await until(() => window.game.battle?.state === 'menu', 25000);
   const menuRestored = await until(() => { const b = window.game.battle; return b?.state === 'menu' && !b.gimmick && b.board.w > 0 && b.board.h > 0 ? true : null; }, 3000);
   const returnedMenu = await snapshot(), pinkElapsedMs = Date.now() - pinkCombatStartedAt;
-  check('20-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === 200 && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 19000, json({ elapsedMs: pinkElapsedMs, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
+  check('15-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === 200 && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 14000, json({ elapsedMs: pinkElapsedMs, minimumMs: 14000, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
   if (process.env.QA_PINK_SUPPLEMENT === '1') {
     const hintDraws = await page.evaluate(() => window.__choimisQa.hintDraws || []);
     const visibleHints = hintDraws.filter(draw => draw.pixels > 0 && draw.endDraw?.pixels > 0);
@@ -823,6 +853,125 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       trace.observations.push({ label: `pink-supplement-${scenario}`, ended: !!ended, passed, detail }); save();
       return !!ended && passed;
     };
+    if (BUILD298) {
+      const readBuild298Round = () => page.evaluate(() => {
+        const b = game.battle, mode = b?.gimmick, s = mode?.snapshot;
+        return { state: b?.state, active: b?.activeEnemyMode, mode: s || null, board: b?.board?.rect ? { ...b.board.rect } : null, enemyHp: b?.enemies?.[0]?.hp,
+          partyHp: Object.fromEntries((b?.members || []).map(member => [member.id, member.hp])) };
+      });
+      const waitBuild298RoundEnd = async (scenario, detail = {}) => {
+        await page.evaluate(name => { window.__choimisQa.build298Scenario = name; }, scenario);
+        const aliveHistory = await page.evaluate(name => (window.__choimisQa.roundHistory[name] || []).some(entry => Number(entry.combatElapsed) >= 4 && entry.phase === 'combat'), scenario);
+        const ended = await until(() => window.game.battle?.state === 'menu' && !window.game.battle?.gimmick && !window.game.battle?.activeEnemyMode, 24000);
+        const history = await page.evaluate(name => window.__choimisQa.roundHistory[name] || [], scenario);
+        const maxCombatElapsed = Math.max(0, ...history.map(entry => Number(entry.combatElapsed) || 0));
+        const stayedCombat = history.some(entry => Number(entry.combatElapsed) >= 4 && Number(entry.combatElapsed) < 17.9 && entry.phase === 'combat');
+        const passed = aliveHistory && !!ended && maxCombatElapsed >= 17.9 && stayedCombat;
+        check(`BUILD298 ${scenario}: remains in combat through the timed 18-second round before cleanup`, passed, json({ aliveHistory, ended: !!ended, maxCombatElapsed, stayedCombat, ...detail }));
+        trace.observations.push({ label: `BUILD298-${scenario}-timed-round`, value: { aliveHistory, ended: !!ended, maxCombatElapsed, stayedCombat, ...detail }, history: history.slice(-5) }); save();
+        return passed;
+      };
+      const dodgeBuild298 = async (scenario, durationMs = 12000) => {
+        const stopAt = Date.now() + durationMs;
+        while (Date.now() < stopAt) {
+          const state = await readBuild298Round();
+          const s = state.mode?.scenario;
+          if (!s || state.mode?.phase !== 'combat') { await page.waitForTimeout(180); continue; }
+          const heartY = state.mode.heart?.y || 159;
+          const hazards = scenario === 'choso'
+            ? (s.beams || []).filter(beam => beam.age < beam.life).map(beam => ({ y: beam.locked?.y, age: beam.age, warn: beam.warned }))
+            : (s.bolts || []).filter(bolt => !bolt.hit).map(bolt => ({ y: bolt.y, age: bolt.age, warn: bolt.warn }));
+          const danger = hazards.filter(item => Number.isFinite(item.y) && (item.age >= item.warn || item.warn - item.age < 0.28));
+          if (danger.some(item => Math.abs(item.y - heartY) < 28)) {
+            const candidates = [96, 159, 222];
+            const target = candidates.sort((a, b) => Math.min(...danger.map(item => Math.abs(b - item.y))) - Math.min(...danger.map(item => Math.abs(a - item.y))))[0];
+            await moveHeart(target);
+          }
+          await page.waitForTimeout(180);
+        }
+      };
+      const targetBoss = async () => {
+        const current = await readBuild298Round(), boss = current.mode?.scenario?.boss;
+        if (Number.isFinite(boss?.y)) {
+          const velocityPerFrame = Number.isFinite(boss.oldY) ? boss.y - boss.oldY : 0;
+          const flightFrames = Math.max(1, ((boss.x || 423) - ((current.mode?.heart?.x || 64) + 11)) / 410 * 60);
+          const movingChoso = current.mode?.scenario?.kind === 'choso';
+          const predicted = movingChoso
+            ? 159 + 38 * Math.sin(Math.atan2((boss.y - 159) / 38, Math.max(-1, Math.min(1, velocityPerFrame * 60 / (38 * Math.PI / 2)))) + Math.PI / 2 * (flightFrames / 60))
+            : boss.y;
+          await moveHeart(Math.max(96, Math.min(222, predicted)));
+        }
+      };
+      const normalBossContacts = async (count = 3) => {
+        for (let index = 0; index < count; index++) { await targetBoss(); await press('KeyC'); await page.waitForTimeout(850); }
+      };
+      const chargedBossContact = async () => {
+        await targetBoss(); await page.keyboard.down('KeyC');
+        const ready = await until(() => window.game.battle?.gimmick?.snapshot?.charge?.ready === true, 1600);
+        if (ready) await targetBoss();
+        await page.waitForTimeout(120); await page.keyboard.up('KeyC'); await page.waitForTimeout(950);
+        return ready;
+      };
+      const checkRoundContract = async (scenario, label) => {
+        const current = await readBuild298Round();
+        check(`BUILD298 ${scenario}: wide 430 board and forward-flow 18-second snapshot`, current.mode?.duration === 18 && current.mode?.scenario?.kind === scenario && current.mode?.heart?.x === 64 && current.board?.w >= 400 && current.mode?.scenario?.boss?.x > 400, json({ label, mode: current.mode, board: current.board }));
+        return current;
+      };
+      const runBuild298Choso = async () => {
+        if (!await selectSupplement('choso') || !await queueSupplement('choso')) return false;
+        await checkRoundContract('choso', 'prep'); await shot('pink298_choso_prep');
+        const combat = await until(() => window.game.battle?.gimmick?.snapshot?.phase === 'combat' ? window.game.battle.gimmick.snapshot : null, 6000);
+        check('BUILD298 choso: real input reaches moving-boss combat', !!combat && combat.duration === 18, json(combat));
+        if (!combat) return false;
+        await shot('pink298_choso_combat_forwardflow');
+        const warning = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age < beam.warned) ? true : null, 3000);
+        if (warning) await shot('pink298_choso_beam_warning');
+        const active = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age >= beam.warned) ? true : null, 3000);
+        if (active) await shot('pink298_choso_beam_active');
+        const beforeCharged = await readBuild298Round(), chargeReady = await chargedBossContact(), afterCharged = await readBuild298Round();
+        check('BUILD298 choso: charged boss contact deals exactly one HP without ending the round', chargeReady && Number.isFinite(beforeCharged.enemyHp) && afterCharged.enemyHp === beforeCharged.enemyHp - 1 && afterCharged.mode?.phase === 'combat', json({ chargeReady, before: beforeCharged, after: afterCharged }));
+        const beforeNormal = await readBuild298Round(); await normalBossContacts(3); const afterNormal = await readBuild298Round();
+        check('BUILD298 choso: three normal boss contacts deal one HP and preserve remainder zero', afterNormal.enemyHp === beforeNormal.enemyHp - 1 && afterNormal.mode?.bossHits === 0, json({ before: beforeNormal, after: afterNormal }));
+        await dodgeBuild298('choso', 10500); await shot('pink298_choso_avoided_moving_beams');
+        return waitBuild298RoundEnd('choso', { warning: !!warning, active: !!active, chargeReady, normalContacts: 3, partyHp: (await readBuild298Round()).partyHp });
+      };
+      const runBuild298Kart = async () => {
+        if (!await selectSupplement('kart_block') || !await queueSupplement('kart_block')) return false;
+        const combat = await until(() => window.game.battle?.gimmick?.snapshot?.phase === 'combat' ? window.game.battle.gimmick.snapshot : null, 6000);
+        if (!combat) return false; await shot('pink298_kart_combat_forwardflow');
+        const center = await checkKartCenterShots(await fireKartCenterShots(), 'pink298_kart_three_normal_contacts');
+        let cleared = 0, attempts = 0, kinds = new Set();
+        while (cleared < 4 && attempts++ < 12) {
+          const blocker = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.blockers?.find(item => item.age >= 0.5) || null, 3500);
+          if (!blocker) break; kinds.add(blocker.kind); await moveHeart(blocker.y); await press('KeyC');
+          await page.evaluate(value => { window.__choimisQa.build298Cleared = value; }, cleared);
+          const next = await until(() => { const value = window.game.battle?.gimmick?.snapshot?.scenario?.cleared; return Number.isFinite(value) && value > window.__choimisQa.build298Cleared ? value : null; }, 3500); if (next) cleared = next;
+        }
+        for (const key of ['kart_block-dao', 'kart_block-bazzi']) await saveRoundCapture(key);
+        await dodgeBuild298('kart_block', 8500); await shot('pink298_kart_blockers_forwardflow');
+        return waitBuild298RoundEnd('kart_block', { cleared, kinds: [...kinds], contactSfx: center.contactSfx, bossHpDrop: center.hpDrop, remainder: center.remainder });
+      };
+      const runBuild298Prism = async () => {
+        if (!await selectSupplement('pink_prism') || !await queueSupplement('pink_prism')) return false;
+        const combat = await until(() => window.game.battle?.gimmick?.snapshot?.phase === 'combat' ? window.game.battle.gimmick.snapshot : null, 6000);
+        if (!combat) return false; await shot('pink298_prism_combat_forwardflow');
+        const prism = await clearPrism();
+        for (const key of ['pink_prism-shield-active', 'pink_prism-core-active', 'pink_prism-charge']) await saveRoundCapture(key);
+        check('BUILD298 prism: real charged input breaks shields and exposes the core without ending the round', prism.shields === 0 && prism.chargeShots >= 3, json(prism));
+        await dodgeBuild298('pink_prism', 10500); await shot('pink298_prism_core_forwardflow');
+        return waitBuild298RoundEnd('pink_prism', prism);
+      };
+      if (!await runBuild298Choso() || !await runBuild298Kart() || !await runBuild298Prism()) return;
+      await selectSupplement('choso');
+      if (!await queueSupplement('choso')) return;
+      await fixture('pink298-explicit-loss', 'Inject only party defeat in a registered timed pink round to verify retry cleanup; this is an explicit miss fixture, not natural completion.', () => game.battle.hurtAllParty(999));
+      const miss298 = await until(() => window.game.battle?.state === 'lose', 3000), missState298 = await snapshot();
+      check('BUILD298 pink explicit miss disposes round state', !!miss298 && !missState298.battle?.opening && missState298.battle?.state === 'lose', json(missState298));
+      await shot('pink298_explicit_miss'); await page.waitForTimeout(2300); await press('KeyC');
+      const retry298 = await until(() => window.game.battle?.state === 'retry', 3000), retryIntro298 = await until(() => window.game.battle?.state === 'intro', 8000);
+      check('BUILD298 pink retry restores ordinary intro cleanup', !!retry298 && !!retryIntro298 && (await snapshot()).battle?.opening === null, json({ retry298, retryIntro298, state: await snapshot() }));
+      await runRecoveryLifecycle(); return;
+    }
     if (!await selectSupplement('choso') || !await queueSupplement('choso')) return;
     const chosoWarning = await until(() => window.game.battle?.gimmick?.snapshot?.scenario?.beams?.some(beam => beam.age < beam.warned), 4000);
     if (chosoWarning) await shot('pink_supplement_choso_beam_warning');
@@ -881,6 +1030,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   check('floating boss idle visibly cycles cape/idle frames while remaining at the stable home pose', new Set(idleFrames.filter(Boolean).map(f => f.frame)).size >= 2 && idleFrames.every(f => !f?.pose), json(idleFrames));
   await shot('22_boss_idle_cape_flap');
 
+  if (process.env.QA_SKIP_KARAOKE !== '1') {
   const waitForLyric = async (text, start, end, image, timeout = 45000) => {
     // Poll the interior of each cue window so screenshot overhead cannot cross a short
     // boundary (the actual assertion still checks the requested full range below).
@@ -965,6 +1115,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const loopReset = await page.evaluate(() => ({ time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused, cue: window.__choimisQa.lyricAt(game.sound.bgm?.currentTime)?.text || null }));
   check('karaoke loop reset returns to audio time zero without retaining the repeat lyric', loopReset.time < 1 && loopReset.cue === null, json(loopReset));
   await until(() => window.game.sound.bgm?.currentTime >= 18 ? true : null, 30000);
+  }
 
   const queueRound = async () => {
     for (let i = 0; i < 3; i++) {
@@ -977,7 +1128,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     }
     return !!(await until(() => window.game.battle?.state === 'act' || window.game.battle?.state === 'enemy-prep', 6000));
   };
-  for (const pattern of PATTERNS) {
+  const activePatterns = process.env.QA_PATTERN_SOURCE === 'B' ? PATTERNS.filter(pattern => pattern.source === 'B') : PATTERNS;
+  for (const pattern of activePatterns) {
     await fixture(`pattern-select-${pattern.name}`, `Explicitly select ${pattern.type} by setting only the enemy pattern index before using the real attack/menu input. This is not a natural boss-completion claim.`, ({ index }) => {
       const b = game.battle, e = b.enemies[0]; e.patternIdx = index; e.hp = e.maxHp; b.members.forEach(m => { m.down = false; m.hp = m.maxHp; });
     }, { index: pattern.index });
@@ -1003,7 +1155,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     const observed = [];
     const endAt = Date.now() + (pattern.name === 'rap' ? 24000 : 14000);
     while (Date.now() < endAt) {
-      const q = await page.evaluate(() => { const b = game.battle; return b ? { state: b.state, bullets: (b.bullets || []).map(x => ({ id: x.__qaId, shape: x.shape, text: x.text, denomination: x.denomination, look: x.look, age: x.age, warn: x.warn, x: x.x, y: x.y })), pose: b.enemies[0]?.patternPose || null } : null; });
+      const q = await page.evaluate(() => { const b = game.battle; return b ? { state: b.state, bubble: b.bubble?.text || null, bullets: (b.bullets || []).map(x => ({ id: x.__qaId, shape: x.shape, text: x.text, denomination: x.denomination, look: x.look, age: x.age, warn: x.warn, x: x.x, y: x.y })), pose: b.enemies[0]?.patternPose || null } : null; });
       if (!q) break; observed.push(q); if (q.state === 'board-close' || q.state === 'menu') break; await page.waitForTimeout(90);
     }
     const ended = await until(() => window.game.battle?.state === 'menu', 5000);
@@ -1039,10 +1191,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     if (pattern.name === 'seup') {
       const sfx = await page.evaluate(() => window.__choimisQa.sfx.map(x => x.name));
       check('seup: existing voice/SFX clip is emitted once for the pattern', sfx.filter(name => name === 'choimis_seup_miss').length === 1, json(sfx.filter(name => name === 'choimis_seup_miss')));
-      const breathBody = observed.some(q => q.bullets.some(b => b.shape === 'choimis_breath' && b.age >= b.warn + 0.4));
-      const fingerBody = observed.some(q => q.bullets.some(b => b.shape === 'choimis_finger_beam' && b.age >= b.warn + 0.1));
-      check('seup: white breath and finger beam remain rendered as active bodies after warning', breathBody && fingerBody, json({ breathBody, fingerBody, active: observed.flatMap(q => q.bullets).filter(b => ['choimis_breath', 'choimis_finger_beam'].includes(b.shape)).slice(-12) }));
-      for (const shape of ['choimis_breath', 'choimis_finger_beam']) {
+      const missBody = observed.some(q => q.bullets.some(b => b.shape === 'choimis_miss' && b.age >= b.warn));
+      const missWarnings = observed.some(q => q.bullets.some(b => b.shape === 'choimis_miss' && b.age < b.warn));
+      check('seup: MISS warnings become active rendered bodies after warning', missWarnings && missBody, json({ missWarnings, missBody, active: observed.flatMap(q => q.bullets).filter(b => b.shape === 'choimis_miss').slice(-12) }));
+      for (const shape of ['choimis_miss']) {
         const captured = await page.evaluate(name => window.__choimisQa[name], shape);
         check(`seup: ${shape} has an actual visible active-body canvas capture`, !!captured);
         if (captured) {
@@ -1050,14 +1202,33 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
           fs.writeFileSync(file, Buffer.from(captured.split(',')[1], 'base64'));
         }
       }
+      const missWord = await page.evaluate(() => window.__choimisQa.missActiveFrame || null);
+      const missWordFile = await saveDataUrl('pattern_choimis_miss_word_active', missWord);
+      check('seup: active MISS word is captured inside the board after warning', !!missWordFile && missWord.x > 120 && missWord.x < 350, json({ x: missWord?.x, age: missWord?.age, file: missWordFile }));
     }
     if (pattern.name === 'fashion') {
       const looks = [...new Set(observed.flatMap(q => q.bullets.filter(b => b.shape === 'choimis_outfit').map(b => b.look)).filter(look => look !== undefined))];
       check('fashion: four pink outfit looks render in sequence', json(looks) === json([0, 1, 2, 3]), json(looks));
+      const bubbles = [...new Set(observed.map(q => q.bubble).filter(Boolean))];
+      check('fashion: four configured outfit bubbles appear during the actual pattern', bubbles.length === 4, json({ bubbles, expected: 4 }));
+      const fashionFrames = await page.evaluate(() => window.__choimisQa.fashionFrames || {});
+      const fashionFiles = [];
+      for (const look of [0, 1, 2, 3]) fashionFiles.push(await saveDataUrl(`pattern_fashion_look_${look}_active`, fashionFrames[look]));
+      check('fashion: each configured outfit has an actual settled active-body canvas capture', fashionFiles.every(Boolean), json({ looks: Object.keys(fashionFrames), files: fashionFiles }));
     }
   }
 
-  // BUILD295 target-local pink rounds are a separate registry route from the six
+  if (process.env.QA_PATTERN_ONLY === '1') {
+    trace.observations.push({ label: 'bounded-pattern-stop', source: process.env.QA_PATTERN_SOURCE || 'all', reason: 'QA_PATTERN_ONLY requested after real pattern render checks; pink rounds and natural full completion are not claimed.' }); save();
+    return;
+  }
+
+  if (process.env.QA_PINK_SUPPLEMENT !== '1') {
+    trace.observations.push({ label: 'scoped-pink-rounds-required', reason: 'Current timed 18-second pink-round QA is exercised by the explicit QA_PINK_SUPPLEMENT=1 command; no obsolete target-count completion claim is made in the ordinary pattern route.' }); save();
+    return;
+  }
+
+  // Target-local pink rounds are a separate registry route from the six
   // ordinary source patterns above.  Every round below is selected by fixture
   // index only, then driven through the real menu/input/update/render path.
   const PINK_ROUNDS = [
