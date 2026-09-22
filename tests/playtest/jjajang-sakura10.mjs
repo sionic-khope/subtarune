@@ -85,7 +85,7 @@ try {
   const samples = []; for (let i = 0; i < 12; i++) { samples.push(await auraAt()); await page.waitForTimeout(140); }
   check(Math.max(...samples) >= 60 && Math.max(...samples) - Math.min(...samples) >= 10, `보라 오라가 맥동한다 (${Math.min(...samples)}~${Math.max(...samples)})`);
   check(await go('ArrowUp', 'false', 700) === false && (await st()).py > 190, '제단은 막혀 있다');
-  // 7) 제단(짜장면)에 C → 원문 대사 → 획득 → (이후에) → 눈을 감는다 → 어두워졌다 밝아지고 조작 복귀(BUILD288)
+  // 7) 제단 → 짜장면 획득 → 밤 절벽 → 도주·짜장면 사건(BUILD290)
   const next = async () => { await until(() => window.game.textbox.state === 'waiting', 8000); await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC'); };
   const line = () => ev(() => { const g = window.game; return { text: g.textbox.node?.text || null, speaker: g.textbox.node?.speaker || null, running: g.dialogue.running }; });
   const advanceTo = async (needle, ms = 40000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const l = await line(); if (l.text && l.text.includes(needle)) return l; if (l.text) await next(); await page.waitForTimeout(80); } return null; };
@@ -104,13 +104,17 @@ try {
   check(await until(() => window.game.mapId === 'jjajang_night_cliff' && window.game.flags.sakura12_eyes_closed, 15000), '눈을 감은 뒤 밤 절벽으로 전환');
   l = await advanceTo('아 씨발년 이럴줄알았어', 90000);
   check(!!l && l.speaker === '경섭', '밤 절벽 도주 뒤 경섭 마지막 대사'); await next();
-  check(await until(() => window.game.mapId === 'jjajang_sakura12' && !window.game.dialogue.running && window.game.flags.night_cliff_scene_done, 10000), '밤 절벽 종료 뒤 제단 조작 복귀');
-  await page.waitForTimeout(400); check((await bright(640, 450)) > 60, '제단 복귀 페이드인'); await cap('16_after_scene');
+  l = await advanceTo('난 알파메일이 되는거야!!!', 120000); check(!!l, '도주·충돌·짜장면 사건 뒤 마지막 변신 대사'); await next();
+  check(await until(() => window.game.mapId === 'jjajang_sakura5' && !window.game.dialogue.running && window.game.flags.choimis_runaway_done, 10000), '후속 장면 종료 뒤 숲5 조작 복귀');
+  check(await ev(() => !window.game.inventory.includes('어둠의 짜장면') && window.game.flags.choimis_jjajang_eaten), '실제 그릇 충돌 뒤 짜장면 소비'); await cap('16_after_scene');
+  // 기존 제단/남쪽 문 회귀 검사는 완료 상태를 유지한 실제 맵 재입장으로 분리한다.
+  await ev(async () => { await window.game.changeMap('jjajang_sakura12', 'from_scene', true); });
+  await until(() => !window.game.dialogue.running && !window.game.transitioning, 10000);
   const again = await ev(() => { const g = window.game; return { altar: !!g.entities.find(e => e.id === 'sakura12_altar' && !e.dead), count: g.inventory.filter(n => n === '어둠의 짜장면').length }; });
-  check(again.altar && again.count === 1, `제단은 남고 짜장면은 하나 ${JSON.stringify(again)}`);
+  check(again.altar && again.count === 0, `재방문 제단은 남고 먹은 짜장면은 복구되지 않음 ${JSON.stringify(again)}`);
   await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC'); await page.waitForTimeout(700);
   const twice = await ev(() => ({ running: window.game.dialogue.running, text: window.game.textbox.node?.text || null, count: window.game.inventory.filter(n => n === '어둠의 짜장면').length }));
-  check(!twice.running && !twice.text && twice.count === 1, `다시 C 를 눌러도 연출 반복·중복 획득 없음 ${JSON.stringify(twice)}`);
+  check(!twice.running && !twice.text && twice.count === 0, `다시 C 를 눌러도 연출 반복·중복 획득 없음 ${JSON.stringify(twice)}`);
   check(await go('ArrowDown', "g.mapId === 'jjajang_sakura11'", 12000, true), '아래 문 → 벚꽃 숲 11');
   await page.waitForFunction(() => !window.game.transitioning, null, { timeout: 10000 }); await page.waitForTimeout(800);
   s = await st(); check(s.map === 'jjajang_sakura11' && s.py < 140 && s.py > 96, `되돌아오면 위쪽 길, hush 띠 아래 (${s.py})`);

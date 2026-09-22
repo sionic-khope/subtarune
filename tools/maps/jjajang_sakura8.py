@@ -101,10 +101,16 @@ def build_map() -> dict[str, object]:
     door_up = {'type': 'door', 'id': 'sakura8_up_door', 'x': JUNCTION_COLS[0] * TILE, 'y': 0, 'w': (JUNCTION_COLS[1] - JUNCTION_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura9', 'spawn': 'from_south', 'sfx': False}
     door_east = {'type': 'door', 'id': 'sakura8_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE,
                  'to': 'jjajang_night_cliff', 'spawn': 'from_west', 'requires': RIGHT_OPEN_FLAG, 'lockedScript': 'jjajang_sakura8_no_right', 'sfx': False}
+    chase_anchors = [
+        {'type': 'prop', 'id': name, 'image': TREES[0][0], 'x': x, 'y': 486,
+         'w': 24, 'h': 16, 'solid': False, 'hidden': True}
+        for name, x in (('chase_start', 1220), ('chase_end', 500))
+    ]
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 8', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
         'spawns': {
+            'chase': {'x': 1220, 'y': 486, 'facing': 'left'},
             'from_west': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'start': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'fork': {'x': (SCENE_COLS[0] - 2) * TILE + 4, 'y': road_y, 'facing': 'right'},
@@ -120,7 +126,7 @@ def build_map() -> dict[str, object]:
             'sakura8': {'roadRows': list(ROAD_ROWS), 'entryCols': list(ENTRY_COLS), 'junctionCols': list(JUNCTION_COLS), 'upRows': list(UP_ROWS), 'rightCols': list(RIGHT_COLS), 'sceneCols': list(SCENE_COLS), 'blockCols': list(BLOCK_COLS),
                         'roadY': road_y, 'junctionX': junction_x, 'guard': [guard['x'], guard['y']]},
         },
-        'entities': [*trees, *actors, scene, block, door_west, door_up, door_east],
+        'entities': [*trees, *actors, *chase_anchors, scene, block, door_west, door_up, door_east],
     }
 
 

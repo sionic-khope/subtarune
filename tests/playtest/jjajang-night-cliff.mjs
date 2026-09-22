@@ -1,4 +1,7 @@
 import { runScenario } from './lib/harness.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { verifyRunaway } from './lib/choimis-runaway.mjs';
 
 await runScenario({ name: 'jjajang-night-cliff', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, check, shot, until, press, fixture }) => {
   page.setDefaultNavigationTimeout(30000);
@@ -44,6 +47,21 @@ await runScenario({ name: 'jjajang-night-cliff', launchOptions: { args: ['--auto
   check('altar QA loaded', await until(() => window.game?.mapId === 'jjajang_sakura12' && !window.game.transitioning, 30000));
   await page.waitForTimeout(400);
   const before = await snapshot();
+  await fixture('render-observer', 'Observe actual rendered camera and jump frames without changing inputs, time or world state. Capture exact intermediate canvas frames even under CPU contention.', () => {
+    const g = window.game, draw = g.draw;
+    window.nightObserved = { frames: [], images: {} };
+    g.draw = function(...args) {
+      const result = draw.apply(this, args);
+      if (this.mapId !== 'jjajang_night_cliff') return result;
+      const actor = this.entities.find(e => e.id === 'choimis' && !e.dead);
+      const f = { cameraX: this.camera.x, text: this.textbox.node?.text, actor: actor && { x: actor.x, y: actor.y, hopY: actor.hopY || 0, flyX: actor.flyX || 0 } };
+      const observed = window.nightObserved;
+      observed.frames.push(f);
+      if (!observed.images.camera && f.text === '* 형 저는 왜 항상 이런식일까요' && f.cameraX > 420 && f.cameraX < 540) observed.images.camera = this.canvas.toDataURL('image/png');
+      if (!observed.images.jump && actor && actor.hopY > 20 && actor.y - actor.hopY < 199) observed.images.jump = this.canvas.toDataURL('image/png');
+      return result;
+    };
+  });
   check('C interaction reached by walking from altar entrance', await walk('ArrowUp', () => window.game.player.y <= 200));
   await press('KeyC');
   await text('나는 눈을 감는다.'); await settle(); await shot('01_eyes_close_line');
@@ -67,7 +85,7 @@ await runScenario({ name: 'jjajang-night-cliff', launchOptions: { args: ['--auto
   await press('KeyX'); await page.waitForTimeout(90); await press('KeyC');
   await page.waitForTimeout(180);
   const panMiddle = await snapshot();
-  check('fast confirm does not bypass camera travel', panMiddle.camera.x > panStart.camera.x && panMiddle.camera.x < 559.99 && panMiddle.text !== '* 그게 무슨말이야');
+  check('fast confirm never reveals next line before camera arrives', panMiddle.text !== '* 그게 무슨말이야' || Math.abs(panMiddle.camera.x - 560) < 0.1, JSON.stringify({ panStart: panStart.camera.x, panMiddle: panMiddle.camera.x, text: panMiddle.text }));
   await shot('06_camera_mid');
   await text('그게 무슨말이야'); await settle();
   const wide = await snapshot();
@@ -92,19 +110,26 @@ await runScenario({ name: 'jjajang-night-cliff', launchOptions: { args: ['--auto
   check('Choimis visibly jumps down-right off the ledge', await until(() => window.game.entities.find(e => e.id === 'choimis')?.hopY > 20, 3500));
   await page.waitForTimeout(100);
   const jump = await snapshot();
-  check('jump first visibly rises and draws displacement once', jump.actors.choimis.x > 644 && jump.actors.choimis.y > 199 && jump.actors.choimis.y - jump.actors.choimis.hopY < 199 && jump.actors.choimis.flyX === 0);
+  check('jump first visibly rises and draws displacement once', await page.evaluate(() => window.nightObserved.frames.some(f => f.actor && f.actor.x > 644 && f.actor.y > 199 && f.actor.y - f.actor.hopY < 199 && f.actor.flyX === 0)), JSON.stringify(jump.actors.choimis));
   await shot('11_escape_jump');
   await text('아 씨발년 이럴줄알았어'); await settle(); await shot('12_last_line');
   const last = await snapshot();
+  const observed = await page.evaluate(() => window.nightObserved);
+  check('actual rendered camera pan contains intermediate frames', observed.frames.some(f => f.text === '* 형 저는 왜 항상 이런식일까요' && f.cameraX > 420 && f.cameraX < 540));
+  check('all rendered next-line frames wait for final composition', observed.frames.filter(f => f.text === '* 그게 무슨말이야').every(f => Math.abs(f.cameraX - 560) < 0.1));
+  for (const [name, data] of Object.entries(observed.images)) {
+    const file = path.join(process.env.SHOT_DIR, `observed_${name}.png`);
+    fs.writeFileSync(file, Buffer.from(data.split(',')[1], 'base64'));
+    check(`exact ${name} frame captured from live canvas`, true, file);
+  }
   check('Choimis has escaped; no death or damage state', !last.actors.choimis && JSON.stringify(last.hp) === JSON.stringify(before.hp));
   check('same music continues through the exchange', last.bgm === wide.bgm && last.musicTime > wide.musicTime);
-  await advance();
-  check('returns to altar with control', await until(() => window.game.mapId === 'jjajang_sakura12' && !window.game.dialogue.running && window.game.fade.alpha < 0.01, 8000));
+  await verifyRunaway({ page, check, shot, until, press, fixture }, before, advance);
   const after = await snapshot();
   check('solo identity HP and money preserved', after.actors.player.sprite === before.actors.player.sprite && after.actors.player.visible && JSON.stringify(after.party) === JSON.stringify(before.party) && JSON.stringify(after.hp) === JSON.stringify(before.hp) && after.money === before.money);
-  check('item exactly once and scene completed', after.inventory.filter(i => i === '어둠의 짜장면').length === 1 && after.flags.night_cliff_scene_done && after.flags.sakura8_right_open);
-  check('camera and altar music restored', !after.camera.locked && after.bgm === 'shop3');
-  await shot('13_altar_return');
+  check('night sequence continues through the food event once', !after.inventory.includes('어둠의 짜장면') && after.flags.night_cliff_scene_done && after.flags.sakura8_right_open && after.flags.choimis_runaway_done);
+  check('camera and current aura music restored', !after.camera.locked && after.bgm === 'captain_reveal');
+  await shot('13_full_chain_return');
   await press('ArrowRight', { delay: 250 });
   check('movement works after the remote scene', (await snapshot()).actors.player.x > after.actors.player.x);
   await fixture('completed-fork-entry', 'Load existing completed state at Sakura8 after spawn; use actual arrows to verify the newly open physical route and return.', async () => { await window.game.changeMap('jjajang_sakura8', 'after', true); });

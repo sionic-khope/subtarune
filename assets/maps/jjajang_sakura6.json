@@ -32,6 +32,11 @@
   "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
  ],
  "spawns": {
+  "chase": {
+   "x": 2180,
+   "y": 334,
+   "facing": "left"
+  },
   "from_west": {
    "x": 36,
    "y": 358,
@@ -1078,6 +1083,28 @@
    "facing": "right",
    "wander": 0,
    "unless": "sakura6_scene_done"
+  },
+  {
+   "type": "prop",
+   "id": "chase_start",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 2180,
+   "y": 334,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "chase_end",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1252,
+   "y": 334,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
   },
   {
    "type": "trigger",

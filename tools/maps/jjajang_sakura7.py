@@ -159,11 +159,17 @@ def build_map() -> dict[str, object]:
     door_east = {'type': 'door', 'id': 'sakura7_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura8', 'spawn': 'from_west', 'sfx': False}   # BUILD282: 오른쪽 길 → 벚꽃 숲 8(갈림길)
     door_west = {'type': 'door', 'id': 'sakura7_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura6', 'spawn': 'from_east', 'sfx': False}
     road_y = (ROAD_ROWS[0] + 1) * TILE + 6
+    chase_anchors = [
+        {'type': 'prop', 'id': name, 'image': TREES[0][0], 'x': x, 'y': 678,
+         'w': 24, 'h': 16, 'solid': False, 'hidden': True}
+        for name, x in (('chase_start', 1156), ('chase_end', 356))
+    ]
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 7', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
         'preload': [STAGE_FILE, 'assets/props/discord_mask.png', *THROW_FILES, *STAIN_FILES.values(), *BURST_SHEETS],
         'spawns': {
+            'chase': {'x': 1156, 'y': 678, 'facing': 'left'},
             'from_west': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'start': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'field': {'x': (FIELD_COLS[0] + 1) * TILE + 4, 'y': road_y, 'facing': 'right'},
@@ -181,7 +187,7 @@ def build_map() -> dict[str, object]:
                         'choimisStart': list(CHOIMIS_START), 'choimisSpot': list(CHOIMIS_SPOT), 'partySpots': {k: list(v) for k, v in PARTY_SPOTS.items()},
                         'crowd': [[c['x'], c['y']] for c in crowd], 'roadY': road_y},
         },
-        'entities': [*trees, stage, *actors, *crowd, *stains, *throws, scene, door_west, door_east],
+        'entities': [*trees, stage, *actors, *crowd, *stains, *throws, *chase_anchors, scene, door_west, door_east],
     }
 
 

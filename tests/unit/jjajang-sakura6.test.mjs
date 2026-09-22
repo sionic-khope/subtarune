@@ -93,7 +93,7 @@ test('test_sakura6_masked_choimis_assets_and_qa_points', () => {
   const M = CHARACTER_MOTIONS.choimis_masked;
   assert.deepEqual([M.pick.frames.length, M.seup.frames.length, M.pick.scale], [2, 2, 0.5]);
   assert.ok(Math.abs(M.seup.frames[0].duration + M.seup.frames[1].duration - 2.7) < 0.01, '스읍 미스 2.7초(최미스 seup 과 같은 박자)');
-  assert.deepEqual(MAP_RUNTIME_ASSETS.jjajang_sakura6.sprites, ['choimis_masked']);
+  assert.deepEqual(MAP_RUNTIME_ASSETS.jjajang_sakura6.sprites, ['choimis_masked', 'choimis']);
   const qa = id => QA_POINTS.find(q => q.id === id);
   assert.deepEqual([qa('jjajang_sakura6').spawn, qa('jjajang_sakura6_dock').spawn, qa('jjajang_sakura6_plaza').spawn, qa('jjajang_sakura6_east').spawn], ['from_west', 'dock', 'plaza', 'east']);
   assert.ok(qa('jjajang_sakura6').flags.sakura5_clearing_scene_done && qa('jjajang_sakura6').flags.sakura5_girls_left && !qa('jjajang_sakura6_plaza').flags.sakura6_scene_done && qa('jjajang_sakura6_east').flags.sakura6_scene_done);

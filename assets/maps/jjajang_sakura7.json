@@ -51,6 +51,11 @@
   "assets/fx/cannon_smoke.png"
  ],
  "spawns": {
+  "chase": {
+   "x": 1156,
+   "y": 678,
+   "facing": "left"
+  },
   "from_west": {
    "x": 36,
    "y": 678,
@@ -1070,6 +1075,28 @@
    "h": 15,
    "ix": 860,
    "iy": 391,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "chase_start",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1156,
+   "y": 678,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "chase_end",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 356,
+   "y": 678,
+   "w": 24,
+   "h": 16,
    "solid": false,
    "hidden": true
   },

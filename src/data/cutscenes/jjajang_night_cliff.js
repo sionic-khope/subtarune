@@ -1,3 +1,5 @@
+import { choimis_runaway } from './choimis_runaway.js';
+
 export const NIGHT_CLIFF = {
   map: 'jjajang_night_cliff',
   doneFlag: 'night_cliff_scene_done',
@@ -64,15 +66,8 @@ export const jjajang_night_cliff_scene = Object.assign([
   { wait: 0.5 },
   K('아 씨발년 이럴줄알았어'),
   close,
-  { wait: 1.2 },
-  { fade: 'out', duration: 0.8 },
-  { bgm: null, fadeOut: 0.6 },
-  { set: { [NIGHT_CLIFF.doneFlag]: true, sakura8_right_open: true } },
-  { map: 'jjajang_sakura12', spawn: 'from_scene' },
-  { camera: 'player' },
-  { show: 'player' },
-  { bgm: 'shop3', volume: 0.45, fadeIn: 0.9 },
-  { fade: 'in', duration: 0.9 },
+  { wait: 0.6 },
+  ...choimis_runaway,
   { label: 'end' },
   { end: true },
 ], { silent: true });

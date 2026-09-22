@@ -126,7 +126,8 @@ def build_map() -> dict[str, object]:
         if t:
             seen.add((col, row)); trees.append(t)
     giant = {'type': 'prop', 'id': 'sakura5_giant_tree', 'image': TREE_FILE, 'x': center_x - TREE_TRUNK_W // 2, 'y': base_y - 12, 'w': TREE_TRUNK_W, 'h': 12,
-             'ix': center_x - tw // 2, 'iy': base_y - th, 'solid': True, 'sortY': -1}   # sortY -1: 밑동 앞에 선 배우들이 나무 위에 그려진다. iy 는 음수(수관이 맵 위로 나간다)
+             'ix': center_x - tw // 2, 'iy': base_y - th, 'solid': True, 'sortY': -1,
+             'unless': 'choimis_tree_crashed'}
     assert giant['iy'] < 0 and center_x - tw // 2 >= 0 and center_x + tw // 2 <= WIDTH * TILE, '거대 나무: 위는 맵 밖, 좌우는 맵 안'
     actors = []
     for aid, sprite, dx, dy, facing in ACTORS:
@@ -151,11 +152,36 @@ def build_map() -> dict[str, object]:
     door_north = {'type': 'door', 'id': 'sakura5_north_door', 'x': ENTRY_COLS[0] * TILE, 'y': 0, 'w': (ENTRY_COLS[1] - ENTRY_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura4', 'spawn': 'south_end', 'sfx': False}
     mid_x = (ENTRY_COLS[0] + ENTRY_COLS[1] + 1) * TILE // 2 - 12
     road_y = (ROAD_ROWS[0] + 1) * TILE + 8
+    chase_anchors = [
+        {'type': 'prop', 'id': name, 'image': TREES[0][0], 'x': x, 'y': y,
+         'w': 24, 'h': 16, 'solid': False, 'hidden': True}
+        for name, x, y in (
+            ('crash_start', 1990, 334), ('crash_impact', 1808, 334),
+            ('crash_player', 1732, 390), ('crash_bowl', 1832, 406),
+            ('crash_k_entry', 2060, 388), ('crash_p_entry', 2028, 430),
+            ('crash_k_pass', 1940, 446),
+            ('crash_k_talk', 1668, 430), ('crash_p_talk', 1784, 442),
+            ('crash_domi_entry', 1460, 390), ('crash_domi_reveal', 1600, 390),
+            ('crash_domi_exit', 2028, 406),
+        )
+    ]
+    settled_actors = [
+        {'type': 'npc', 'id': aid, 'sprite': sprite, 'x': x, 'y': y,
+         'facing': facing, 'solid': True, 'wander': 0, 'requires': 'choimis_runaway_done'}
+        for aid, sprite, x, y, facing in (
+            ('choimis_runaway', 'choimis', 1880, 409, 'down'),
+            ('gyeongsub_scene', 'gyeongsub', 1668, 430, 'up'),
+            ('ppaman_scene', 'ppaman', 1784, 442, 'up'),
+        )
+    ]
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 5', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
         'preload': [TREE_FILE],
+        'enter': {'script': 'choimis_runaway_restore'},
         'spawns': {
+            'chase_crash': {'x': 1990, 'y': 334, 'facing': 'left'},
+            'after_runaway': {'x': 1732, 'y': 390, 'facing': 'right'},
             'from_north': {'x': mid_x, 'y': SPAWN_ROW * TILE + 16, 'facing': 'down'},
             'start': {'x': mid_x, 'y': SPAWN_ROW * TILE + 16, 'facing': 'down'},
             'bridge_end': {'x': (BRIDGE_COLS[1] - 1) * TILE + 4, 'y': road_y, 'facing': 'right'},
@@ -174,7 +200,7 @@ def build_map() -> dict[str, object]:
                         'treeBaseRow': TREE_BASE_ROW, 'treeBaseY': base_y, 'treeTop': giant['iy'], 'actorFeetY': ACTOR_FEET_Y, 'partyFeetY': PARTY_FEET_Y, 'partyX': PARTY_X,
                         'girlsFocus': [center_x + 94, ACTOR_FEET_Y - 18]},
         },
-        'entities': [*trees, giant, *actors, scene, visited, block, door_north, door_east],
+        'entities': [*trees, giant, *actors, *chase_anchors, *settled_actors, scene, visited, block, door_north, door_east],
     }
 
 

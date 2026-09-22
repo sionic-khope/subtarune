@@ -50,7 +50,20 @@
  "preload": [
   "assets/props/sakura_giant_tree.png"
  ],
+ "enter": {
+  "script": "choimis_runaway_restore"
+ },
  "spawns": {
+  "chase_crash": {
+   "x": 1990,
+   "y": 334,
+   "facing": "left"
+  },
+  "after_runaway": {
+   "x": 1732,
+   "y": 390,
+   "facing": "right"
+  },
   "from_north": {
    "x": 180,
    "y": 496,
@@ -1068,7 +1081,8 @@
    "ix": 1360,
    "iy": -412,
    "solid": true,
-   "sortY": -1
+   "sortY": -1,
+   "unless": "choimis_tree_crashed"
   },
   {
    "type": "npc",
@@ -1134,6 +1148,171 @@
    "facing": "left",
    "wander": 0,
    "unless": "sakura5_clearing_scene_done"
+  },
+  {
+   "type": "prop",
+   "id": "crash_start",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1990,
+   "y": 334,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_impact",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1808,
+   "y": 334,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_player",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1732,
+   "y": 390,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_bowl",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1832,
+   "y": 406,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_k_entry",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 2060,
+   "y": 388,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_p_entry",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 2028,
+   "y": 430,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_k_pass",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1940,
+   "y": 446,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_k_talk",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1668,
+   "y": 430,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_p_talk",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1784,
+   "y": 442,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_domi_entry",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1460,
+   "y": 390,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_domi_reveal",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 1600,
+   "y": 390,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "crash_domi_exit",
+   "image": "assets/props/jjajang_sakura_1.png",
+   "x": 2028,
+   "y": 406,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "choimis_runaway",
+   "sprite": "choimis",
+   "x": 1880,
+   "y": 409,
+   "facing": "down",
+   "solid": true,
+   "wander": 0,
+   "requires": "choimis_runaway_done"
+  },
+  {
+   "type": "npc",
+   "id": "gyeongsub_scene",
+   "sprite": "gyeongsub",
+   "x": 1668,
+   "y": 430,
+   "facing": "up",
+   "solid": true,
+   "wander": 0,
+   "requires": "choimis_runaway_done"
+  },
+  {
+   "type": "npc",
+   "id": "ppaman_scene",
+   "sprite": "ppaman",
+   "x": 1784,
+   "y": 442,
+   "facing": "up",
+   "solid": true,
+   "wander": 0,
+   "requires": "choimis_runaway_done"
   },
   {
    "type": "trigger",

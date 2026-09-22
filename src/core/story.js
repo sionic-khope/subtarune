@@ -33,6 +33,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
+  if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return 'captain_reveal';
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
   if (mapId === 'jjajang_pines' && flags.pines_center_started && !flags.pines_ajimkiya_won) return null;
@@ -106,7 +107,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'teal3_cs_won',   items: ['바나나', '바나나'], enemies: ['cs_red', 'cs_blue'] },   // 청록숲3 첫 전투 + 상자 바나나 2 — teal3_toolbox.js
   { flag: 'button2_done',   items: ['바나나'] },                                             // 청록숲4 수상한 버튼 2 — teal4_events.js
   { flag: 'teal9_boss_won', enemies: ['red', 'blue'], attack: 2, hpBonus: 20 },             // 청록숲9 문지기 보스전 + 축복 버프 — teal9_boss.js
-  { flag: 'dark_jjajang_taken', items: ['어둠의 짜장면'] },                                   // 벚꽃 숲 12 제단의 짜장면(BUILD288) — jjajang_sakura12.js
+  { flag: 'dark_jjajang_taken', items: ['어둠의 짜장면'], unless: 'choimis_jjajang_eaten' },
   { flag: 'obj2_banana_taken', items: ['바나나'] },                                          // 옵젝영역2 광장 바나나 — obj2_events.js
   { flag: 'obj4_baron_won', enemies: ['baron'] },
   { flag: 'obj5_gun_taken', items: ['나무총'] },
@@ -585,3 +586,12 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff_after', desc: '�
   map: 'jjajang_night_cliff', spawn: 'from_west', flags: nightCliffDoneFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8_right', desc: '벚꽃 숲 8 · 밤 절벽 연출 뒤 오른쪽 길 진입',
   map: 'jjajang_sakura8', spawn: 'after', flags: nightCliffDoneFlags, party: [] });
+const runawayFlags = { ...nightCliffDoneFlags, choimis_runaway_started: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway', desc: '최미스 도주 · 벚꽃 숲 8→7→6→거대 벚꽃 나무 충돌',
+  map: 'jjajang_sakura8', spawn: 'chase', flags: runawayFlags, party: [], script: 'choimis_runaway' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_crash', desc: '최미스 · 거대 벚꽃 나무 충돌 직전 (요플래·짜장면 낙하부터)',
+  map: 'jjajang_sakura5', spawn: 'chase_crash', flags: runawayFlags, party: [], script: 'choimis_runaway_crash' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_aura', desc: '최미스 · 짜장면을 먹은 직후 검은 오라와 흰 전환',
+  map: 'jjajang_sakura5', spawn: 'after_runaway', flags: { ...runawayFlags, choimis_tree_crashed: true, choimis_jjajang_eaten: true }, party: [], script: 'choimis_runaway_aura' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_runaway_after', desc: '최미스 · 흰 전환 뒤 (새 변신/전투 미정 · 나무 없음 · 오라 유지)',
+  map: 'jjajang_sakura5', spawn: 'after_runaway', flags: { ...runawayFlags, choimis_tree_crashed: true, choimis_jjajang_eaten: true, choimis_runaway_done: true }, party: [] });

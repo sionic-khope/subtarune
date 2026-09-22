@@ -2,6 +2,7 @@ export const DEFAULT_BASE_URL = 'http://localhost:8000/';
 // Add a scenario only after every navigation uses the shared harness URL.
 export const BASE_URL_SCENARIOS = new Set(['drum-devil-battle', 'drum-devil-intro', 'battle_lose', 'battle_bgm', 'battle-preload', 'tvform-rhythm', 'tvform-subrio-b', 'tvform-subrio', 'tvform-subrio-guard', 'ship-lounge', 'ship-ending', 'ship-castle', 'jjajang-shore', 'sinking-shore', 'choimis', 'loading-performance', 'loading-map-race', 'loading-map-assets']);
 BASE_URL_SCENARIOS.add('jjajang-night-cliff');
+BASE_URL_SCENARIOS.add('choimis-runaway');
 
 /** Validate CLI names before using them as file paths. */
 export function selectScenarios(args, available) {

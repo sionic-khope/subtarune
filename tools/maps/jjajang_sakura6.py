@@ -142,10 +142,16 @@ def build_map() -> dict[str, object]:
     door_west = {'type': 'door', 'id': 'sakura6_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura5', 'spawn': 'from_east', 'sfx': False}
     road_y = (ROAD_ROWS[0] + 1) * TILE + 6
     east_col = int(PLAZA[0] + PLAZA[2]) + 2
+    chase_anchors = [
+        {'type': 'prop', 'id': name, 'image': TREES[0][0], 'x': x, 'y': 334,
+         'w': 24, 'h': 16, 'solid': False, 'hidden': True}
+        for name, x in (('chase_start', 2180), ('chase_end', 1252))
+    ]
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 6', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
         'spawns': {
+            'chase': {'x': 2180, 'y': 334, 'facing': 'left'},
             'from_west': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'start': {'x': TILE + 4, 'y': road_y, 'facing': 'right'},
             'dock': {'x': (SHORE_COL - 1) * TILE + 4, 'y': road_y, 'facing': 'right'},
@@ -163,7 +169,7 @@ def build_map() -> dict[str, object]:
                         'plaza': list(PLAZA), 'center': [cx_px, cy_px], 'sceneCols': list(SCENE_COLS), 'rideSeconds': round(ride_px / RAFT_SPEED, 2),
                         'roadY': road_y, 'choimis': [choimis_x, choimis_y], 'flowers': [[f['x'], f['y']] for f in flowers]},
         },
-        'entities': [*trees, raft, *flowers, choimis, scene, door_west, door_east],
+        'entities': [*trees, raft, *flowers, choimis, *chase_anchors, scene, door_west, door_east],
     }
 
 

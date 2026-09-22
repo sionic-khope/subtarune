@@ -1,5 +1,11 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 최미스 도주·짜장면 사고 (2026-09-22)
+
+- 도주곡: 사용자 지정 https://www.youtube.com/watch?v=OX5iGh2pgxk 는 기존 `assets/audio/bgm/baron_intro.mp3`(The Chase)와 같은 소스. 새로 변형하거나 다시 다운로드하지 않고 세 맵 전환과 나무 충돌 뒤 대화까지 같은 재생 시계를 유지한다. “네 안먹어요” 뒤 정지한다.
+- 넘어짐: 사용자 지정 [Ralsei Splat](https://www.myinstants.com/en/instant/ralsei-splat-44947/)의 공개 다운로드 `https://www.myinstants.com/media/sounds/ralsei-splat.mp3` 원본을 `assets/audio/sfx/ralsei_splat.mp3`로 저장. 12,791바이트, 0.735646초, MP3 44.1kHz stereo. 트리밍·피치·속도·정규화 없음. 최미스가 등진 채 짜장면 쪽에 넘어지는 접촉 순간 한 번 재생한다. 공개 출처 기록은 별도 이용허락 확인을 뜻하지 않는다.
+- 어둠의 오라·변신 직전은 기존 만카츠키의 `captain_reveal` BGM과 `captain_thunder`, `captain_transform` 큐를 장면에 맞춰 재사용한다. 새 변신 모습·보스전은 포함하지 않는다.
+
 ## 침몰 기억·짜장숲 해변 (2026-09-18)
 
 - `bgm/ship_sinking.mp3`: 사용자 지정 [P89rxnT7lKw](https://www.youtube.com/watch?v=P89rxnT7lKw), yt-dlp 조회 `Lost Girl`, 업로더 Toby Fox, 업로드20211004. 포맷251 전체를 MP3 q2로 변환(80.000000초, 48kHz stereo), 트리밍·속도·피치·음량 변경 없음.
