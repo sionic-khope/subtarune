@@ -101,7 +101,7 @@ def build_map() -> dict[str, object]:
         'id': MAP_ID, 'name': '벚꽃 숲 12', 'stage': 'ship_sinking_done', 'bgm': BGM, 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
         'preload': sorted({p['image'] for p in props}),
-        'spawns': {'from_south': spawn, 'start': dict(spawn)},
+        'spawns': {'from_south': spawn, 'start': dict(spawn), 'from_scene': {'x': 244, 'y': 234, 'facing': 'up'}},
         'meta': {
             'connected': True,
             'route': [[PATH_COLS[0], HEIGHT - 2], [PATH_COLS[0], CENTER[1] + 1]],

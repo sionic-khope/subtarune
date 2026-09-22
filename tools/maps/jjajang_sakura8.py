@@ -69,7 +69,8 @@ def build_map() -> dict[str, object]:
     actors = [
         {'type': 'npc', 'id': 'gyeongsub_npc', 'sprite': 'gyeongsub', 'x': junction_x, 'y': road_y, 'w': 24, 'h': 16, 'solid': False, 'facing': 'right', 'wander': 0, 'hidden': True, 'unless': SPLIT_FLAG},
         {'type': 'npc', 'id': 'ppaman_npc', 'sprite': 'ppaman', 'x': junction_x, 'y': road_y, 'w': 24, 'h': 16, 'solid': False, 'facing': 'right', 'wander': 0, 'hidden': True, 'unless': SPLIT_FLAG},
-        {'type': 'npc', 'id': 'ppaman_guard', 'sprite': 'ppaman', 'x': guard['x'], 'y': guard['y'], 'w': 24, 'h': 16, 'solid': True, 'facing': 'left', 'wander': 0, 'requires': SPLIT_FLAG},
+        {'type': 'npc', 'id': 'ppaman_guard', 'sprite': 'ppaman', 'x': guard['x'], 'y': guard['y'], 'w': 24, 'h': 16, 'solid': True, 'facing': 'left', 'wander': 0, 'requires': SPLIT_FLAG, 'unless': RIGHT_OPEN_FLAG},
+        {'type': 'npc', 'id': 'ppaman_aside', 'sprite': 'ppaman', 'x': guard['x'], 'y': ROAD_ROWS[1] * TILE - 2, 'w': 24, 'h': 16, 'solid': True, 'facing': 'up', 'wander': 0, 'requires': RIGHT_OPEN_FLAG},
     ]
     assert rows[(guard['y'] + 8) // TILE][(guard['x'] + 12) // TILE] == GROUND and guard['x'] >= (BLOCK_COLS[1] + 1) * TILE, '가드는 막기 트리거 오른쪽 길 위'
     cells: list[tuple[int, int]] = []
@@ -98,6 +99,8 @@ def build_map() -> dict[str, object]:
              'unless': RIGHT_OPEN_FLAG, 'script': 'jjajang_sakura8_no_right'}
     door_west = {'type': 'door', 'id': 'sakura8_west_door', 'x': 0, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE, 'to': 'jjajang_sakura7', 'spawn': 'from_east', 'sfx': False}
     door_up = {'type': 'door', 'id': 'sakura8_up_door', 'x': JUNCTION_COLS[0] * TILE, 'y': 0, 'w': (JUNCTION_COLS[1] - JUNCTION_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura9', 'spawn': 'from_south', 'sfx': False}
+    door_east = {'type': 'door', 'id': 'sakura8_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE,
+                 'to': 'jjajang_night_cliff', 'spawn': 'from_west', 'requires': RIGHT_OPEN_FLAG, 'lockedScript': 'jjajang_sakura8_no_right', 'sfx': False}
     return {
         'id': MAP_ID, 'name': '벚꽃 숲 8', 'stage': 'ship_sinking_done', 'bgm': 'sakura', 'dim': 0, 'battleBg': 'sakura',
         'rows': [''.join(row) for row in rows],
@@ -117,7 +120,7 @@ def build_map() -> dict[str, object]:
             'sakura8': {'roadRows': list(ROAD_ROWS), 'entryCols': list(ENTRY_COLS), 'junctionCols': list(JUNCTION_COLS), 'upRows': list(UP_ROWS), 'rightCols': list(RIGHT_COLS), 'sceneCols': list(SCENE_COLS), 'blockCols': list(BLOCK_COLS),
                         'roadY': road_y, 'junctionX': junction_x, 'guard': [guard['x'], guard['y']]},
         },
-        'entities': [*trees, *actors, scene, block, door_west, door_up],
+        'entities': [*trees, *actors, scene, block, door_west, door_up, door_east],
     }
 
 

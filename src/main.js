@@ -1437,6 +1437,10 @@ class Game {
     else if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
+    else if (MAPS[this.mapId]?.backdrop === 'jjajang_night_sea') {
+      const sea = this.propImages['assets/backdrops/jjajang_night_sea.png'];
+      if (sea) ctx.drawImage(sea, 0, 0, SCREEN_W, SCREEN_H);
+    }
     else if (MAPS[this.mapId]?.backdrop === 'youngcle_factory' || MAPS[this.mapId]?.backdrop === 'youngcle_furnace') {
       // 엄청대박인배 공장 / 용광로 변주(BUILD189, youngcle13·14): 같은 그리기, 그림만 다르다
       const factory = this.propImages[`assets/backdrops/${MAPS[this.mapId].backdrop}.png`];

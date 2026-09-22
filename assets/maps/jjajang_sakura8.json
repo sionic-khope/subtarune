@@ -602,7 +602,21 @@
    "solid": true,
    "facing": "left",
    "wander": 0,
-   "requires": "sakura8_split_done"
+   "requires": "sakura8_split_done",
+   "unless": "sakura8_right_open"
+  },
+  {
+   "type": "npc",
+   "id": "ppaman_aside",
+   "sprite": "ppaman",
+   "x": 900,
+   "y": 542,
+   "w": 24,
+   "h": 16,
+   "solid": true,
+   "facing": "up",
+   "wander": 0,
+   "requires": "sakura8_right_open"
   },
   {
    "type": "trigger",
@@ -646,6 +660,19 @@
    "h": 10,
    "to": "jjajang_sakura9",
    "spawn": "from_south",
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "sakura8_east_door",
+   "x": 1270,
+   "y": 448,
+   "w": 10,
+   "h": 128,
+   "to": "jjajang_night_cliff",
+   "spawn": "from_west",
+   "requires": "sakura8_right_open",
+   "lockedScript": "jjajang_sakura8_no_right",
    "sfx": false
   }
  ]

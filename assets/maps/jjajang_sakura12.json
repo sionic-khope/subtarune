@@ -36,6 +36,11 @@
    "x": 244,
    "y": 422,
    "facing": "up"
+  },
+  "from_scene": {
+   "x": 244,
+   "y": 234,
+   "facing": "up"
   }
  },
  "meta": {

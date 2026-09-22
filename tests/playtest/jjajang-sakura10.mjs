@@ -101,8 +101,11 @@ try {
   l = await advanceTo('아 맞다'); check(!!l && !l.speaker, '나레이션: 아 맞다.');
   l = await advanceTo('나는 눈을 감는다'); check(!!l && !l.speaker, '나레이션: 나는 눈을 감는다.'); await next();
   check(await until(() => (window.game.fade?.alpha ?? window.game.fade?.value ?? 0) > 0.9, 4000), '눈을 감는다 → 어두워짐'); await cap('15_eyes');
-  check(await until(() => !window.game.dialogue.running && window.game.flags.sakura12_eyes_closed, 10000), '연출 끝·플래그');
-  await page.waitForTimeout(400); check((await bright(640, 450)) > 60, '(잠정) 다시 밝아져 조작 복귀'); await cap('16_after_scene');
+  check(await until(() => window.game.mapId === 'jjajang_night_cliff' && window.game.flags.sakura12_eyes_closed, 15000), '눈을 감은 뒤 밤 절벽으로 전환');
+  l = await advanceTo('아 씨발년 이럴줄알았어', 90000);
+  check(!!l && l.speaker === '경섭', '밤 절벽 도주 뒤 경섭 마지막 대사'); await next();
+  check(await until(() => window.game.mapId === 'jjajang_sakura12' && !window.game.dialogue.running && window.game.flags.night_cliff_scene_done, 10000), '밤 절벽 종료 뒤 제단 조작 복귀');
+  await page.waitForTimeout(400); check((await bright(640, 450)) > 60, '제단 복귀 페이드인'); await cap('16_after_scene');
   const again = await ev(() => { const g = window.game; return { altar: !!g.entities.find(e => e.id === 'sakura12_altar' && !e.dead), count: g.inventory.filter(n => n === '어둠의 짜장면').length }; });
   check(again.altar && again.count === 1, `제단은 남고 짜장면은 하나 ${JSON.stringify(again)}`);
   await page.keyboard.down('KeyC'); await page.waitForTimeout(60); await page.keyboard.up('KeyC'); await page.waitForTimeout(700);

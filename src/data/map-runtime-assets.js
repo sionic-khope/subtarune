@@ -12,6 +12,7 @@ export const MAP_RUNTIME_ASSETS = {
   jjajang_sakura2: { sprites: ['choimis', 'gasuni1', 'gasuni2', 'gasuni3'], portraits: ['choimis', 'gasuni1', 'ppaman'] },
   jjajang_sakura8: { sprites: ['gyeongsub', 'ppaman'], portraits: ['gyeongsub', 'ppaman'] },   // 벚꽃 숲 8(BUILD282): 갈림길 연출용 경섭·억빠맨 사본 NPC + 가드
   jjajang_sakura12: { sprites: [], portraits: ['dark_jjajang'] },   // 벚꽃 숲 12(BUILD288): 제단의 말하는 짜장면 초상화
+  jjajang_night_cliff: { sprites: ['gyeongsub', 'choimis'], portraits: ['gyeongsub', 'choimis'] },
   jjajang_sakura7: { sprites: ['jeomnye', 'choimis_masked', 'choimis', 'domijorim', 'gasuni1', 'gasuni2', 'gasuni3', 'gasuni4', 'gasuni5', 'gasuni6'], portraits: ['jeomnye', 'choimis', 'domijorim', 'gasuni1', 'gyeongsub', 'ppaman'] },   // 벚꽃 숲 7(BUILD278): 무대의 점례·가면/맨얼굴 최미스·난입 도미조림·관객 가순이들
   jjajang_sakura6: { sprites: ['choimis_masked'], portraits: ['choimis', 'gyeongsub', 'ppaman'] },   // 벚꽃 숲 6(BUILD277): 광장의 가면 쓴 최미스(고백 연습 연출)
   jjajang_sakura5: { sprites: ['domijorim', 'gasuni4', 'gasuni5', 'gasuni6', 'dohyun'], portraits: ['domijorim', 'gasuni4', 'dohyun', 'ppaman'] },   // 벚꽃 숲 5(BUILD271): 공터의 도미조림·가순이 4·5·6·도현   // 벚꽃 숲 2(BUILD264): 벚꽃다리 위 가면 쓴 최미스·가순이 셋   // 빛 드는 공터(BUILD257): 풀숲의 최미스·가순이 셋

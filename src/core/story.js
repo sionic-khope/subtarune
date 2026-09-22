@@ -575,5 +575,13 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura11', desc: '벚꽃 숲
   map: 'jjajang_sakura11', spawn: 'landing', flags: sakura8DoneFlags, party: [] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12', desc: '벚꽃 숲 12 제단 (브금 shop3 · 잘린 나무 제단 위 어둠의 짜장면·보라 오라 — C 로 말을 걸면 연출)',
   map: 'jjajang_sakura12', spawn: 'from_south', flags: sakura8DoneFlags, party: [] });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12_after', desc: '벚꽃 숲 12 제단 · 짜장면을 얻은 뒤 (그릇 없음, 눈을 감은 뒤 — 다음 브리핑 대기)',
-  map: 'jjajang_sakura12', spawn: 'from_south', flags: { ...sakura8DoneFlags, dark_jjajang_taken: true, sakura12_eyes_closed: true }, party: [] });
+const nightCliffBeforeFlags = { ...sakura8DoneFlags, dark_jjajang_taken: true, sakura12_eyes_closed: true };
+const nightCliffDoneFlags = { ...nightCliffBeforeFlags, night_cliff_scene_started: true, night_cliff_scene_done: true, sakura8_right_open: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura12_after', desc: '벚꽃 숲 12 제단 · 밤 절벽 연출 뒤 (어둠의 짜장면 보유 · 혼자 · 오른쪽 길 열림)',
+  map: 'jjajang_sakura12', spawn: 'from_south', flags: nightCliffDoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff', desc: '밤 절벽 · 경섭이 최미스에게 접근하는 연출 (요플래 상태는 보존)',
+  map: 'jjajang_night_cliff', spawn: 'scene', flags: nightCliffBeforeFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_night_cliff_after', desc: '밤 절벽 · 연출 뒤 재방문 (최미스 없음 · 왼쪽 벚꽃 숲 8 귀환)',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: nightCliffDoneFlags, party: [] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'jjajang_sakura8_right', desc: '벚꽃 숲 8 · 밤 절벽 연출 뒤 오른쪽 길 진입',
+  map: 'jjajang_sakura8', spawn: 'after', flags: nightCliffDoneFlags, party: [] });

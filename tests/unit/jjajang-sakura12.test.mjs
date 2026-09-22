@@ -69,7 +69,7 @@ test('test_sakura12_qa_point', () => {
 test('test_sakura12_bowl_scene_has_verbatim_lines_in_order_gives_the_item_and_closes_the_eyes', () => {
   const s = jjajang_sakura12_bowl; assert.equal(SCRIPTS.jjajang_sakura12_bowl, s);
   // 이미 얻었으면 첫 줄에서 끝으로(같은 방문에서 다시 C: 반복·중복 획득 없음)
-  assert.ok(typeof s[0].if === 'function' && s[0].goto === 'end' && s[0].if({ [DARK_JJAJANG_FLAG]: true }) === true && s[0].if({}) === false && s.at(-2).label === 'end', '얻은 뒤엔 바로 끝');
+  assert.ok(typeof s[0].if === 'function' && s[0].goto === 'after_item' && s[0].if({ [DARK_JJAJANG_FLAG]: true }) === true && s[0].if({}) === false && s.at(-2).label === 'end', '얻은 뒤엔 아이템 대사를 건너뛴다');
   const line = n => n.text ? [n.speaker || '나레이션', n.text.replace(/^\* /, '')] : null;
   assert.deepEqual(s.map(line).filter(Boolean), [
     ['짜장면', '안녕하세요'], ['짜장면', '왜요 짜장면이 말하면 안되는건가요? 프하하'], ['짜장면', '저는 짜장면이지만 어떠한 힘이 깃들어 있어서 말을 할 수 있어요'], ['짜장면', '저를 먹으면 강한 힘을 얻을 수 있을거에요'],
@@ -87,9 +87,10 @@ test('test_sakura12_bowl_scene_has_verbatim_lines_in_order_gives_the_item_and_cl
   assert.ok(last < gone && gone < sfx && sfx < give && give < flag && flag < got, '흥 → 그릇 사라짐 → 아이템 소리 → 획득 → 플래그 → 획득했다');
   const how = idx(n => n.text?.includes('어떻게 나가실거에요')), ex2 = idx((n, i) => i > how && n.emote === 'player' && n.kind === '!'), ahMatda = idx(n => n.text === '* 아 맞다.');
   assert.ok(got < how && how < ex2 && ex2 < ahMatda, '(이후에) 근데 → 느낌표 → 아 맞다');
-  const eyes = idx(n => n.text === '* 나는 눈을 감는다.'), fadeOut = idx((n, i) => i > eyes && n.fade === 'out'), hold = idx((n, i) => i > fadeOut && n.wait !== undefined), closed = idx(n => n.set?.[EYES_CLOSED_FLAG]), fadeIn = idx((n, i) => i > fadeOut && n.fade === 'in');
-  assert.ok(eyes < fadeOut && fadeOut < hold && hold < closed && closed < fadeIn && s.at(-1).end === true, '눈을 감는다 → 어두워짐 → 잠깐 → 플래그 → (잠정) 다시 밝아짐 → 끝');
-  assert.deepEqual([s[fadeOut].duration, s[hold].wait, s[fadeIn].duration], [EYES.fadeOut, EYES.hold, EYES.fadeIn]);
+  const eyes = idx(n => n.text === '* 나는 눈을 감는다.'), fadeOut = idx((n, i) => i > eyes && n.fade === 'out'), hold = idx((n, i) => i > fadeOut && n.wait !== undefined), closed = idx(n => n.set?.[EYES_CLOSED_FLAG]), night = idx(n => n.map === 'jjajang_night_cliff');
+  assert.ok(eyes < fadeOut && fadeOut < hold && hold < closed && closed < night && s.at(-1).end === true, '눈을 감는다 → 어두워짐 → 잠깐 → 플래그 → 밤 절벽 장면');
+  assert.deepEqual([s[fadeOut].duration, s[hold].wait, s[night].spawn, s[night].enter], [EYES.fadeOut, EYES.hold, 'scene', true]);
+  assert.ok(!s.some(n => n.fade === 'in'), '밤 절벽 도착 스크립트가 검은 화면을 열어 제단이 잠깐 비치지 않음');
   assert.equal(DARK_JJAJANG_ITEM, '어둠의 짜장면'); assert.equal(ITEMS[DARK_JJAJANG_ITEM].kind, 'key', '먹을 수 없는 중요 아이템');
   assert.deepEqual(STATE_FROM_FLAGS.find(r => r.flag === DARK_JJAJANG_FLAG)?.items, [DARK_JJAJANG_ITEM], 'QA 도 플래그로 아이템 유도');
   assert.ok(here('assets/portraits/dark_jjajang.png'), '짜장면 초상화(그릇 그림에서)');

@@ -1,6 +1,6 @@
 // 벚꽃 숲 12 제단(jjajang_sakura12) — 짜장면과 상호작용(C)하면 시작하는 연출(BUILD288 사용자 브리핑 2026-09-21, 원문·구현표 design/narrative/cutscenes/jjajang_sakura12.md)
 //   대사는 전부 원문. 짜장면 목소리는 나레이션과 같이(voice narrator). “요플래 느낌표”는 주인공 머리 위 !. “짜장면을 획득했다.” 에서 그릇이 제단에서 사라지고 중요 아이템 ‘어둠의 짜장면’이 들어온다.
-//   (이후에) 이어지는 대사 → “나는 눈을 감는다.” → 화면이 어두워진다(잠정: 다음 브리핑이 여기서 이어질 자리 — 지금은 잠깐 어둡다가 다시 밝아지고 조작 복귀).
+//   “나는 눈을 감는다.” → 검은 전환 → 오른쪽 밤 절벽의 경섭·최미스 장면.
 export const DARK_JJAJANG_ITEM = '어둠의 짜장면';
 export const DARK_JJAJANG_FLAG = 'dark_jjajang_taken';
 export const EYES_CLOSED_FLAG = 'sakura12_eyes_closed';
@@ -14,7 +14,7 @@ const exclaim = { emote: 'player', kind: '!', duration: 1.0, hold: 0.55 };
 
 export const jjajang_sakura12_bowl = [
   // 이미 얻었으면 아무 일 없음 — 같은 방문에서 다시 C 를 눌러도 연출이 반복되거나 짜장면이 또 들어오지 않게(플래그 unless 는 맵 재진입 때만 적용된다)
-  { if: flags => !!flags[DARK_JJAJANG_FLAG], goto: 'end' },
+  { if: flags => !!flags[DARK_JJAJANG_FLAG], goto: 'after_item' },
   { face: 'player', dir: 'up' },
   J('안녕하세요'),
   close, exclaim,
@@ -48,11 +48,16 @@ export const jjajang_sakura12_bowl = [
   N('...'),
   N('나는 눈을 감는다.'),
   close,
-  // 눈을 감는다 → 어두워짐. 다음 브리핑(“일단 이렇게까지만”)이 이 자리에서 이어진다 — 지금은 잠깐 어두웠다가 다시 밝아진다(잠정)
+  { label: 'night_view' },
+  { bgm: null, fadeOut: 0.8 },
   { fade: 'out', duration: EYES.fadeOut },
   { wait: EYES.hold },
   { set: { [EYES_CLOSED_FLAG]: true } },
-  { fade: 'in', duration: EYES.fadeIn },
+  { map: 'jjajang_night_cliff', spawn: 'scene', enter: true },
+  { goto: 'end' },
+  // BUILD288 saves already hold the item. Resume the added scene without giving it twice.
+  { label: 'after_item' },
+  { if: flags => !!flags[EYES_CLOSED_FLAG] && !flags.night_cliff_scene_done, goto: 'night_view' },
   { label: 'end' },
   { end: true },
 ];

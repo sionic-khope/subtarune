@@ -1,0 +1,141 @@
+{
+ "id": "jjajang_night_cliff",
+ "name": "달빛 절벽",
+ "stage": "ship_sinking_done",
+ "bgm": null,
+ "backdrop": "jjajang_night_sea",
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  ")))rrrrrrrrrrrrrrrrrr!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ ],
+ "preload": [
+  "assets/props/jjajang_night_cliff.png",
+  "assets/backdrops/jjajang_night_sea.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 36,
+   "y": 199,
+   "facing": "right"
+  },
+  "from_west": {
+   "x": 36,
+   "y": 199,
+   "facing": "right"
+  },
+  "scene": {
+   "x": 200,
+   "y": 199,
+   "facing": "right"
+  }
+ },
+ "enter": {
+  "script": "jjajang_night_cliff_scene",
+  "flag": "night_cliff_scene_started",
+  "early": true
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "night_cliff_floor",
+   "image": "assets/props/jjajang_night_cliff.png",
+   "x": 0,
+   "y": 160,
+   "w": 704,
+   "h": 224,
+   "ix": 0,
+   "iy": 160,
+   "solid": false,
+   "sortY": -100
+  },
+  {
+   "type": "prop",
+   "id": "night_approach",
+   "image": "assets/props/jjajang_night_cliff.png",
+   "x": 560,
+   "y": 199,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "night_edge",
+   "image": "assets/props/jjajang_night_cliff.png",
+   "x": 644,
+   "y": 199,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "night_vista",
+   "image": "assets/props/jjajang_night_cliff.png",
+   "x": 800,
+   "y": 220,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "night_exit",
+   "image": "assets/props/jjajang_night_cliff.png",
+   "x": 736,
+   "y": 370,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "gyeongsub",
+   "sprite": "gyeongsub",
+   "x": 200,
+   "y": 199,
+   "solid": false,
+   "facing": "right",
+   "wander": 0,
+   "unless": "night_cliff_scene_done"
+  },
+  {
+   "type": "npc",
+   "id": "choimis",
+   "sprite": "choimis",
+   "x": 644,
+   "y": 199,
+   "solid": false,
+   "facing": "right",
+   "wander": 0,
+   "unless": "night_cliff_scene_done"
+  },
+  {
+   "type": "door",
+   "id": "night_west_door",
+   "x": 0,
+   "y": 192,
+   "w": 10,
+   "h": 32,
+   "to": "jjajang_sakura8",
+   "spawn": "from_east",
+   "sfx": false
+  }
+ ]
+}

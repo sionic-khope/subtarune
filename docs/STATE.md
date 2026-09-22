@@ -1,6 +1,8 @@
 # SUBTARUNE 현재 상태 (세션 넘어갈 때 여기부터 읽는다)
 
-마지막 갱신: 2026-09-21
+마지막 갱신: 2026-09-22
+
+**BUILD289 — 달빛 절벽·최미스 도주**: 벚꽃 숲12 눈 감기 이후 `jjajang_night_cliff`로 전환. 생성한 밤하늘·둥근 달·바다 원경과 돌절벽 PNG를 별도로 배치했다(`assets/source/night-cliff289/`). 경섭이 접근하고 최미스가 “형 저는 왜 항상 이런식일까요”로 말을 끊으면 Lost Girl(`ship_sinking`)과 함께 최미스를 왼쪽에 두는 2.2초 카메라 이동. 원문 대사·지정어 모자이크·1500만원 질문·최미스 도주 점프·경섭 마지막 대사까지 구현. 이후 새 스토리 없이 잠정 제단 복귀, 요플래 단독 상태/아이템/HP 보존. 완료 후 숲8 오른쪽 길로 절벽 재방문 가능, 연출 재생 없음. QA `jjajang_night_cliff`, `jjajang_night_cliff_after`; 원문/계약은 `design/narrative/cutscenes/jjajang_night_cliff.md`. **아래 BUILD288의 ‘눈 감기 뒤 브리핑 대기’는 이 항목으로 대체**.
 
 **BUILD288 — 벚꽃 숲 12 짜장면 연출**(사용자 브리핑 2026-09-21, 원문·구현표 `design/narrative/cutscenes/jjajang_sakura12.md` 브리핑 2): 제단(그루터기)에 C → `jjajang_sakura12_bowl`: 짜장면(화자 “짜장면”, 목소리 narrator, 초상화 = 그릇 그림) 원문 21줄, 요플래 느낌표 ×2 → “흥. 이번 한번만이에요” 뒤 그릇이 사라지고 중요 아이템 ‘어둠의 짜장면’(`items.js`, 먹을 수 없음) + “{c=yellow}짜장면{/c}을 획득했다.” → (이후에) 원문 → “나는 눈을 감는다.” → 1.6초 어두워짐·1.2초 → 플래그 `sakura12_eyes_closed` → (잠정) 다시 밝아지고 조작 복귀. 맵: `sakura12_altar`(script, 늘 있음 — 스크립트 첫 줄 `{if: flags.dark_jjajang_taken, goto:'end'}` 로 같은 방문 반복·중복 획득 방지; unless/requires 로 나누면 맵 재진입 전엔 안 바뀐다) / 그릇 `unless`. STATE_FROM_FLAGS `dark_jjajang_taken` → 아이템. QA `jjajang_sakura12_after`. 다음: “나는 눈을 감는다” 뒤 브리핑 대기(“일단 이렇게까지만”). BUILD 288.
 
