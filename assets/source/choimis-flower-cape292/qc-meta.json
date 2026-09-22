@@ -1,0 +1,180 @@
+{
+  "status": "asset-only; not integrated; user appearance approval pending",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sheetSize": [
+    320,
+    320
+  ],
+  "cellSize": [
+    160,
+    160
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pivot": [
+    80,
+    152
+  ],
+  "durationsMs": [
+    300,
+    220,
+    300,
+    300
+  ],
+  "loop": true,
+  "resample": "NEAREST",
+  "alphaThreshold": 128,
+  "chromaRemoval": false,
+  "commonScale": 0.23563218390804597,
+  "rawBboxes": [
+    [
+      200,
+      80,
+      489,
+      602
+    ],
+    [
+      136,
+      84,
+      472,
+      602
+    ],
+    [
+      201,
+      39,
+      551,
+      559
+    ],
+    [
+      135,
+      40,
+      426,
+      559
+    ]
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "bbox": [
+        46,
+        29,
+        114,
+        152
+      ],
+      "bodyHeight": 123,
+      "oldBodyHeight": 103,
+      "pinkPixels": 890,
+      "feetMedianX": 80.0,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        46,
+        29
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "b120891300aab4e15837821fb0eab685334f456be1be9f542eefc690fc822218"
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        49,
+        30,
+        128,
+        152
+      ],
+      "bodyHeight": 122,
+      "oldBodyHeight": 103,
+      "pinkPixels": 882,
+      "feetMedianX": 80.0,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        49,
+        30
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "340351e7f48d5275d9db2a9549957cd0262af852c7db47656cc7d93d745422c3"
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        48,
+        29,
+        130,
+        152
+      ],
+      "bodyHeight": 123,
+      "oldBodyHeight": 102,
+      "pinkPixels": 946,
+      "feetMedianX": 80.0,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        48,
+        29
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "d7967e721020ac09bec4cde99766aee6fe79e9ff87cc1ecc1bf90e515f26b74a"
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        45,
+        30,
+        114,
+        152
+      ],
+      "bodyHeight": 122,
+      "oldBodyHeight": 102,
+      "pinkPixels": 919,
+      "feetMedianX": 80.0,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        45,
+        30
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "13305a975cad3d450f9e5fe999f36a9abbf1727891e67b9aad0d3fcdcf3575b0"
+    }
+  ],
+  "bodyHeightMean": 122.5,
+  "oldBodyHeightMean": 102.5,
+  "heightIncreasePercent": 19.512195121951216,
+  "headComparisonFrame0": {
+    "method": "Approximate visual landmarks: hair top to chin outline; +/-2px uncertainty",
+    "oldHairTop": 17,
+    "oldChinBottomExclusive": 69,
+    "oldHeadHeightApprox": 52,
+    "newHairTop": 29,
+    "newChinBottomExclusive": 88,
+    "newHeadHeightApprox": 59,
+    "oldHeadBodyRatioApprox": 0.5048543689320388,
+    "newHeadBodyRatioApprox": 0.4796747967479675,
+    "oldBelowHeadHeightApprox": 51,
+    "newBelowHeadHeightApprox": 64
+  },
+  "bodyHeightCV": 0.004081632653061225,
+  "uniqueRGBAFrames": 4,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "outputEdgeTouchFrames": [],
+  "pasteClampedFrames": [],
+  "processorMetadata": "processor/pipeline-meta.json",
+  "rawSHA256": "a40d766690ac9c2f2d8dfd37d565f5806921098dd4c31157f8feaff379d79dd5",
+  "oldReferenceSHA256": "c5aa440c73426c0f323be3d248b7b57810671072ac6ee57c90ffb7360af96fc8",
+  "processorSHA256": "7a7b1fb3730cf21b733928119d899aa73a5b9db374a5041690b0d1f959f9633b"
+}

@@ -23,11 +23,22 @@ test('test_crash_dialogue_is_verbatim_and_transformation_remains_outside_combat'
     ['도미조림', '아.'], ['억빠맨', '아.'], ['도미조림', '내 짜장면 ㅠㅠㅠ 흐미~~'], ['경섭', '...'], ['최미스', '우걱우걱 우적우적 쓰읍..'],
     ['억빠맨', '진짜 ㅈ된거같은데요'], ['경섭', '어 어떡하지..'], ['억빠맨', '뭘 어떻게해요 족쳐야죠.'],
     ['최미스', '...'], ['최미스', '흐흐흐 이 힘은..'], ['최미스', '뭐야 . 이짜장면 대박이잖아..'], ['최미스', '난 알파메일이 되는거야!!!'],
+    ['억빠맨', '아 ㅈ된거같다.'], ['경섭', '알파메일..?'], ['억빠맨', '제가 느낀건데 앰뒤력이 강할수록 가재맨의 힘을 받는애들이 훨 강해지더라구요'],
+    ['경섭', '그러면 과연..'], ['최미스', '헤헤 헤헤 스으으으으으으으으읍'],
   ]);
   assert.ok(CHOIMIS_CRASH.every(n => !n.battle && !n.leave));
   const alpha = CHOIMIS_AURA.findIndex(n => n.text?.includes('알파메일'));
-  assert.ok(CHOIMIS_AURA.findIndex(n => n.fade === 'white') > alpha);
+  const inhale = CHOIMIS_AURA.findIndex(n => n.text === '* 헤헤 헤헤 스으으으으으으으으읍');
+  assert.ok(inhale > alpha);
+  assert.ok(CHOIMIS_AURA.findIndex(n => n.sfx === 'captain_transform') > inhale);
+  assert.ok(CHOIMIS_AURA.findIndex(n => n.fade === 'white') > inhale);
   assert.ok(CHOIMIS_AURA.findIndex(n => n.set?.choimis_runaway_done) > alpha);
+});
+
+test('test_runaway_silence_bubbles_always_use_three_dots', () => {
+  const bubbles = CHOIMIS_CRASH.filter(n => n.bubble);
+  assert.ok(bubbles.length >= 3);
+  assert.ok(bubbles.every(n => (n.dots ?? 3) === 3));
 });
 
 test('test_contact_orders_tree_drop_arrivals_splat_and_consumption', () => {
@@ -89,18 +100,32 @@ test('test_old_completed_save_enters_only_postwhite_continuation_once', () => {
   assert.ok(migration.some(n => n.text?.includes('하핫 ~')));
 });
 
+test('test_flower_five_requested_recordings_mute_their_entire_preserved_text_nodes', () => {
+  const phrases = [
+    '하핫 ~ 형님들 안녕하세요 미스에요~!!', '하하핫~ 드디어 깨달았어요 고닉의 핵심!!',
+    '스읍 미스', '디스코드같은 가면빼고 나 자체가 섹시해지면 되는거였어.', '나는.. 옷을 잘 입으니까!!',
+  ];
+  assert.deepEqual(CHOIMIS_FLOWER.filter(n => n.text && n.voice === 'none').map(n => n.text.slice(2)), phrases);
+  for (const text of ['(내 추구미는 쵸소우야)', '그래 내가 지금까지 나의 모습을 너무 감춰왔던거같아.']) {
+    assert.equal(CHOIMIS_FLOWER.find(n => n.text === `* ${text}`).voice, 'choimis_flower');
+  }
+});
+
 test('test_flower_audio_waits_for_real_end_and_cancellation_releases_it', async () => {
   const sound = new EventTarget(); sound.pause = () => { sound.paused = true; }; sound.play = () => Promise.resolve(); sound.duration = 0.62;
   const game = { sound: { files: { choimis_flower_yes: { cloneNode: () => sound } } }, fx: [], textbox: {} };
   const line = { text: '* 그래', voice: 'choimis_flower' };
   const nodes = flowerReaction('choimis_flower_yes', line);
   nodes[0].action(game);
-  game.textbox.node = line;
+  game.textbox.node = nodes[1];
+  game.textbox.voice = nodes[1].voice;
   let ended = false;
   const waiting = nodes[2].action(game).then(() => { ended = true; });
   await Promise.resolve(); assert.equal(ended, false); assert.equal(game.textbox.voice, 'none');
   sound.dispatchEvent(new Event('ended')); await waiting; assert.equal(ended, true);
-  assert.equal(game.textbox.voice, 'choimis_flower');
+  assert.equal(nodes[1].voice, 'none');
+  assert.equal(game.textbox.voice, 'none');
+  assert.equal(line.voice, 'choimis_flower', 'the caller-owned line is not mutated');
   nodes[0].action(game);
   const cancelled = nodes[2].action(game);
   clearChoimisFlowerEffects(game); await cancelled;
@@ -113,9 +138,35 @@ test('test_flower_rejected_play_and_muted_audio_never_lock_dialogue', async () =
   const nodes = flowerReaction('choimis_flower_yes', { text: '* 그래', voice: 'choimis_flower' });
   nodes[0].action(game); await nodes[2].action(game);
   assert.equal(game.choimisFlower.finishAudio, null);
+  assert.equal(nodes[1].voice, 'none');
   game.sound.muted = true;
   nodes[0].action(game); await nodes[2].action(game);
   assert.equal(game.choimisFlower.audio, null);
+});
+
+test('test_flower_missing_clip_loads_before_play_and_cannot_restart_after_cancel', async () => {
+  for (const cancel of [false, true]) {
+    let finishLoad, plays = 0;
+    const sound = new EventTarget();
+    sound.duration = 0.62; sound.pause = () => {}; sound.play = () => { plays++; return Promise.resolve(); };
+    const game = { sound: { files: {}, loadSfxFiles: async keys => {
+      assert.deepEqual(keys, ['choimis_flower_hello']);
+      await new Promise(resolve => { finishLoad = resolve; });
+      game.sound.files.choimis_flower_hello = { cloneNode: () => sound };
+    } }, fx: [] };
+    const nodes = flowerReaction('choimis_flower_hello', { text: '* 인사', voice: 'choimis_flower' });
+    const starting = nodes[0].action(game);
+    assert.equal(plays, 0);
+    if (cancel) clearChoimisFlowerEffects(game);
+    finishLoad(); await starting;
+    assert.equal(plays, cancel ? 0 : 1);
+    if (cancel) assert.equal(game.choimisFlower, null);
+    else {
+      sound.dispatchEvent(new Event('ended'));
+      await nodes[2].action(game);
+      clearChoimisFlowerEffects(game);
+    }
+  }
 });
 
 test('test_flower_flight_has_visible_rise_then_right_exit_and_resolves_on_cancel', async () => {

@@ -1,0 +1,1 @@
+{"model":"Systran/faster-whisper-small","device":"cpu","compute_type":"int8","language":"ko","beam_size":5,"condition_on_previous_text":false,"input":"greeting_000.wav","segments":[{"start":0.0,"end":1.28,"text":"안녕하세요 형들!"}],"expected":"안녕하세요 형들.","result":"wording matches; punctuation differs"}

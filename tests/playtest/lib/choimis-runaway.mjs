@@ -51,6 +51,11 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
       const result = draw.apply(this, args), out = window.runawayObserved;
       const get = id => this.entities.find(e => e.id === id && !e.dead);
       const c = get('choimis_runaway');
+      const cap = name => { if (!out.images[name]) out.images[name] = this.canvas.toDataURL('image/png'); };
+      if (Array.isArray(this.bubble.target) && this.bubble.phase === 'hold' && this.bubble.dots === 3 && this.bubble.shown === 3) {
+        if (this.bubble.target.length === 4) cap('refusal_three_dots');
+        else if (this.bubble.target.length === 3 && !c) cap('departure_three_dots');
+      }
       if (!c) return result;
       const tree = get('sakura5_giant_tree'), bowl = get('runaway_bowl'), d = get('domijorim_scene');
       const p = this.player;
@@ -62,7 +67,6 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
         pspin: p.spin || 0, phop: p.hopY || 0, bowl: !!bowl && bowl.visible, bx: bowl?.drawX, by: bowl?.drawY,
         k: !!get('gyeongsub_scene'), pp: !!get('ppaman_scene'), d: !!d, dx: d?.x, eaten: !!this.flags.choimis_jjajang_eaten };
       out.frames.push(frame);
-      const cap = name => { if (!out.images[name]) out.images[name] = this.canvas.toDataURL('image/png'); };
       if (c.moving && this.fade.alpha < 0.05 && this.sound.bgmName === 'baron_intro' && this.mapId !== 'jjajang_sakura5') {
         if (!out.maps.includes(this.mapId)) out.maps.push(this.mapId);
         cap(`montage_${this.mapId}`);
@@ -113,14 +117,28 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   await text('흐흐흐 이 힘은..'); await shot('runaway_10_aura_strong');
   await widths('aura');
   await text('난 알파메일이 되는거야!!!'); await shot('runaway_11_alpha_line');
+  for (const [index, line] of ['아 ㅈ된거같다.', '알파메일..?', '제가 느낀건데 앰뒤력이 강할수록 가재맨의 힘을 받는애들이 훨 강해지더라구요', '그러면 과연..', '헤헤 헤헤 스으으으으으으으으읍'].entries()) {
+    s = await text(line);
+    check(`pre-transformation line keeps the original form and purple aura: ${line}`, s.choimis.sprite === 'choimis' && s.smoke?.veil >= 0.39 && s.fade < 0.01);
+    await shot(`runaway_11_pretransform_${index + 1}`);
+  }
+  await shot('runaway_11b_last_pretransform_line');
   await next();
-  check('transformation cue reaches a white screen', await until(() => window.game.fade.color === '255,255,255' && window.game.fade.alpha > 0.96, 5000));
-  await shot('runaway_12_white');
+  check('transformation cue renders a white screen', await until(() => !!window.runawayObserved.images.alpha_white, 5000));
   await text('하핫 ~'); s = await state();
   check('white reveals the loaded new field form with the requested existing theme', s.choimis.sprite === 'choimis_flower' && !s.choimis.fallback && !s.smoke && s.bgm === 'choimis');
   await shot('runaway_13_flower_reveal');
   await widths('flower');
-  await text('그래 내가 지금까지'); await shot('runaway_14_self_discovery');
+  for (const line of ['하핫 ~', '고닉의 핵심!!', '스읍 미스', '디스코드같은 가면빼고', '나는.. 옷을 잘 입으니까!!']) {
+    await text(line);
+    check(`recorded reaction stays blip-free through the entire text: ${line}`, await page.evaluate(async () => {
+      const g = window.game, node = g.textbox.node;
+      const started = !!g.choimisFlower?.audio;
+      await g.choimisFlower.audioDone;
+      return started && g.choimisFlower.audio.ended && g.choimisFlower.audio.currentTime > 0 && g.textbox.node === node && node.voice === 'none' && g.textbox.voice === 'none';
+    }));
+  }
+  await shot('runaway_14_self_discovery');
   await text('아까 그 장소에서'); await shot('runaway_15_invitation');
   await text('쫒아가죠 형.'); await shot('runaway_16_follow');
   await next();
@@ -135,7 +153,7 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   check('chase music uses the same audio element across all map cuts', observed.stableMusic);
   check('companions arrive only after Yop landed', observed.frames.filter(f => f.phop > 0).every(f => !f.k && !f.pp));
   check('food is visibly present immediately before consumption', observed.frames.some(f => f.bowl && f.cspin < -0.5 && !f.eaten));
-  for (const required of ['tree_flying', 'yop_falling', 'bowl_rolling', 'domi_reveal', 'domi_bowl_collision', 'bowl_consumed', 'aura_growing', 'alpha_white', 'flower_rising', 'flower_right_exit']) check(`observed actual ${required} frame`, !!observed.images[required]);
+  for (const required of ['tree_flying', 'yop_falling', 'bowl_rolling', 'domi_reveal', 'domi_bowl_collision', 'bowl_consumed', 'aura_growing', 'alpha_white', 'flower_rising', 'flower_right_exit', 'refusal_three_dots', 'departure_three_dots']) check(`observed actual ${required} frame`, !!observed.images[required]);
   for (const [name, data] of Object.entries(observed.images)) fs.writeFileSync(path.join(process.env.SHOT_DIR, `runaway_observed_${name}.png`), Buffer.from(data.split(',')[1], 'base64'));
   await press('ArrowDown', { delay: 220 });
   check('normal movement resumes after final white cue', (await state()).player.y > after.player.y);

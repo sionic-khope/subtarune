@@ -61,7 +61,7 @@
    "facing": "down"
   },
   "from_east": {
-   "x": 1220,
+   "x": 1028,
    "y": 486,
    "facing": "left"
   }
@@ -667,6 +667,18 @@
    "h": 128,
    "unless": "sakura8_right_open",
    "script": "jjajang_sakura8_no_right"
+  },
+  {
+   "type": "trigger",
+   "id": "coast_entry",
+   "x": 1184,
+   "y": 448,
+   "w": 32,
+   "h": 128,
+   "once": true,
+   "flag": "night_coast_entry_seen",
+   "requires": "choimis_flower_done",
+   "script": "night_coast_entry"
   },
   {
    "type": "door",

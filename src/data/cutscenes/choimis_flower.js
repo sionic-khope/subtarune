@@ -5,7 +5,7 @@ const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', 
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const actor = game => game.entities.find(e => e.id === ID && !e.dead);
 const close = { action: game => game.textbox.close() };
-const CUE_SECONDS = { choimis_chosouya: 1.7, choimis_seup_miss: 2.7, choimis_flower_yes: 0.62 };
+const CUE_SECONDS = { choimis_flower_hello: 1.29, choimis_flower_seup: 1.77, choimis_flower_sexy: 2.65, choimis_flower_gap: 1.53, choimis_flower_gonik: 1.85 };
 
 /** Stop owned audio/flight work before a map, title, or QA reset. */
 export function clearChoimisFlowerEffects(game) {
@@ -21,10 +21,12 @@ export function clearChoimisFlowerEffects(game) {
 
 const effectState = game => game.choimisFlower || (game.choimisFlower = { ghosts: [], cancelled: false });
 
-/** Use complete, source-recorded reactions without letting C overlap the next cue. */
+/** Play complete reaction clips without letting C overlap the next cue. */
 export const flowerReaction = (key, line) => [
-  { action: game => {
+  { action: async game => {
     const state = effectState(game);
+    if (!game.sound.muted && !game.sound.files[key]) await game.sound.loadSfxFiles([key]);
+    if (state.cancelled) return;
     state.audio = game.sound.muted ? null : game.sound.files[key]?.cloneNode();
     state.audioDone = new Promise(resolve => {
       let timer, finished = false;
@@ -35,7 +37,6 @@ export const flowerReaction = (key, line) => [
         state.audio?.removeEventListener('ended', finish);
         state.audio?.removeEventListener('error', finish);
         state.audio?.pause();
-        if (game.textbox?.node === line) game.textbox.voice = line.voice;
         state.finishAudio = null;
         resolve();
       };
@@ -48,11 +49,10 @@ export const flowerReaction = (key, line) => [
         const duration = Number.isFinite(state.audio.duration) ? state.audio.duration : CUE_SECONDS[key];
         timer = setTimeout(finish, (duration + 2) * 1000);
         state.audio.play().catch(finish);
-        queueMicrotask(() => { if (!finished && game.textbox?.node === line) game.textbox.voice = 'none'; });
       }
     });
   } },
-  line,
+  { ...line, voice: 'none' },
   { action: game => game.choimisFlower?.audioDone },
 ];
 
@@ -125,15 +125,15 @@ export const CHOIMIS_FLOWER = [
   { fade: 'in', duration: 0.9 }, { wait: 0.6 },
   { bgm: 'choimis', fadeIn: 1.2 },
   { async: [{ shake: 0.7, amp: 4 }] },
-  C('하핫 ~ 형님들 안녕하세요 미스에요~!!'), close,
+  ...flowerReaction('choimis_flower_hello', C('하핫 ~ 형님들 안녕하세요 미스에요~!!')), close,
   { bubble: ['player', K_ID, P_ID], gap: 0.4, hold: 0.7 },
   P('뭐지 씨2발 뭐랄까 더 좆같아졌네요'),
-  C('하하핫~ 드디어 깨달았어요 고닉의 핵심!!'),
-  ...flowerReaction('choimis_chosouya', C('(내 추구미는 쵸소우야)')),
-  ...flowerReaction('choimis_seup_miss', C('스읍 미스')),
-  ...flowerReaction('choimis_flower_yes', C('그래 내가 지금까지 나의 모습을 너무 감춰왔던거같아.')),
-  C('디스코드같은 가면빼고 나 자체가 섹시해지면 되는거였어.'),
-  C('나는.. 옷을 잘 입으니까!!'),
+  ...flowerReaction('choimis_flower_gonik', C('하하핫~ 드디어 깨달았어요 고닉의 핵심!!')),
+  C('(내 추구미는 쵸소우야)'),
+  ...flowerReaction('choimis_flower_seup', C('스읍 미스')),
+  C('그래 내가 지금까지 나의 모습을 너무 감춰왔던거같아.'),
+  ...flowerReaction('choimis_flower_sexy', C('디스코드같은 가면빼고 나 자체가 섹시해지면 되는거였어.')),
+  ...flowerReaction('choimis_flower_gap', C('나는.. 옷을 잘 입으니까!!')),
   K('...'),
   C('어이구 어이구 형님들. 뭐 질투나십니까?'),
   C('하하하...'), C('...'),
@@ -145,7 +145,7 @@ export const CHOIMIS_FLOWER = [
   { action: flyChoimisFlower },
   { camera: [57, 12.375], duration: 1.3 },
   { bgm: null },
-  { bubble: ['player', K_ID, P_ID], dots: 2, gap: 0.45, hold: 0.6 },
+  { bubble: ['player', K_ID, P_ID], gap: 0.45, hold: 0.6 },
   P('...'), P('쫒아가죠 형.'), close,
   { set: { party_hidden: false } },
   { remove: K_ID }, { remove: P_ID },

@@ -1,0 +1,15 @@
+{
+  "requestId": "choimis-flower-cape292",
+  "userRequest": "전투스프라이트는 망토를 걸친 플라워리 느낌이였으면 하는데, 그리고 키 한 20퍼만 더 크게 비율을 향상",
+  "provider": "Codex builtin image_gen",
+  "backendModel": "unknown",
+  "usageAndCost": "not exposed by tool",
+  "generationCount": 1,
+  "referenceRoles": [
+    {"path": "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/choimis-flower291/battle/preview-4x.png", "role": "identity, pixel style, existing battle stance"},
+    {"path": "/Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/choimis-flower291/refs/flowery-intro.png", "role": "shoulder-draped cape and suave bearing only"}
+  ],
+  "generatedOriginal": "/Users/khope@sionic.ai/.codex/generated_images/01a09daa-6644-71a0-a0b4-284c735f3b96/exec-8a64407e-21a0-4ba3-87a5-901a18c58ed9.png",
+  "prompt": "prompt-used.txt",
+  "scope": "Battle-idle sprite asset only; no walking, portrait or gameplay change. 292 is an asset revision name, not a deployed build."
+}

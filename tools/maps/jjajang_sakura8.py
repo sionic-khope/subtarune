@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.9"
 # dependencies = []
 # ///
 # ─── How to run ───
@@ -101,6 +101,10 @@ def build_map() -> dict[str, object]:
     door_up = {'type': 'door', 'id': 'sakura8_up_door', 'x': JUNCTION_COLS[0] * TILE, 'y': 0, 'w': (JUNCTION_COLS[1] - JUNCTION_COLS[0] + 1) * TILE, 'h': 10, 'to': 'jjajang_sakura9', 'spawn': 'from_south', 'sfx': False}
     door_east = {'type': 'door', 'id': 'sakura8_east_door', 'x': WIDTH * TILE - 10, 'y': ROAD_ROWS[0] * TILE, 'w': 10, 'h': (ROAD_ROWS[1] - ROAD_ROWS[0] + 1) * TILE,
                  'to': 'jjajang_night_coast1', 'spawn': 'from_west', 'requires': 'choimis_flower_done', 'lockedScript': 'jjajang_sakura8_no_right', 'sfx': False}
+    coast_entry = {'type': 'trigger', 'id': 'coast_entry', 'x': (WIDTH - 3) * TILE,
+                   'y': ROAD_ROWS[0] * TILE, 'w': TILE, 'h': 4 * TILE,
+                   'once': True, 'flag': 'night_coast_entry_seen', 'requires': 'choimis_flower_done',
+                   'script': 'night_coast_entry'}
     chase_anchors = [
         {'type': 'prop', 'id': name, 'image': TREES[0][0], 'x': x, 'y': 486,
          'w': 24, 'h': 16, 'solid': False, 'hidden': True}
@@ -116,7 +120,7 @@ def build_map() -> dict[str, object]:
             'fork': {'x': (SCENE_COLS[0] - 2) * TILE + 4, 'y': road_y, 'facing': 'right'},
             'after': {'x': junction_x, 'y': road_y, 'facing': 'up'},
             'from_north': {'x': junction_x, 'y': TILE + 6, 'facing': 'down'},
-            'from_east': {'x': (WIDTH - 2) * TILE + 4, 'y': road_y, 'facing': 'left'},
+            'from_east': {'x': (WIDTH - 8) * TILE + 4, 'y': road_y, 'facing': 'left'},
         },
         'meta': {
             'connected': True,
@@ -126,7 +130,7 @@ def build_map() -> dict[str, object]:
             'sakura8': {'roadRows': list(ROAD_ROWS), 'entryCols': list(ENTRY_COLS), 'junctionCols': list(JUNCTION_COLS), 'upRows': list(UP_ROWS), 'rightCols': list(RIGHT_COLS), 'sceneCols': list(SCENE_COLS), 'blockCols': list(BLOCK_COLS),
                         'roadY': road_y, 'junctionX': junction_x, 'guard': [guard['x'], guard['y']]},
         },
-        'entities': [*trees, *actors, *chase_anchors, scene, block, door_west, door_up, door_east],
+        'entities': [*trees, *actors, *chase_anchors, scene, block, coast_entry, door_west, door_up, door_east],
     }
 
 

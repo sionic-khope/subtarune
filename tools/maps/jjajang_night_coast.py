@@ -40,28 +40,28 @@ class Coast:
 
 
 COASTS: Final = (
-    Coast(1, (124, 82), (
-        ((0, 64), (24, 64), (24, 10), (108, 10), (108, 34), (52, 34), (52, 64), (123, 64)),
+    Coast(1, (112, 74), (
+        ((0, 58), (22, 58), (22, 9), (97, 9), (97, 31), (47, 31), (47, 58), (111, 58)),
     ), (), (
-        Gate('night_coast1_a', (91, 10), (97, 10)),
-        Gate('night_coast1_b', (75, 34), (69, 34)),
+        Gate('night_coast1_a', (82, 9), (87, 9)),
+        Gate('night_coast1_b', (68, 31), (62, 31)),
     )),
-    Coast(2, (132, 92), (
-        ((0, 54), (20, 54), (20, 10), (48, 10)),
-        ((78, 10), (114, 10), (114, 54), (78, 54)),
-        ((48, 54), (48, 78), (78, 78)),
-        ((108, 78), (131, 78)),
-    ), (((48, 10), (78, 10)), ((78, 54), (48, 54)), ((78, 78), (108, 78))), (
-        Gate('night_coast2_a', (36, 10), (42, 10)),
-        Gate('night_coast2_b', (95, 54), (89, 54)),
-        Gate('night_coast2_c', (64, 78), (70, 78)),
+    Coast(2, (119, 83), (
+        ((0, 49), (18, 49), (18, 9), (43, 9)),
+        ((70, 9), (103, 9), (103, 49), (70, 49)),
+        ((43, 49), (43, 70), (70, 70)),
+        ((97, 70), (118, 70)),
+    ), (((43, 9), (70, 9)), ((70, 49), (43, 49)), ((70, 70), (97, 70))), (
+        Gate('night_coast2_a', (32, 9), (38, 9)),
+        Gate('night_coast2_b', (86, 49), (80, 49)),
+        Gate('night_coast2_c', (58, 70), (63, 70)),
     )),
-    Coast(3, (140, 86), (
-        ((0, 70), (28, 70), (28, 10), (116, 10), (116, 36), (60, 36), (60, 70), (102, 70)),
-        ((132, 70), (139, 70)),
-    ), (((102, 70), (132, 70)),), (
-        Gate('night_coast3_a', (97, 10), (103, 10)),
-        Gate('night_coast3_b', (80, 36), (74, 36)),
+    Coast(3, (126, 77), (
+        ((0, 63), (25, 63), (25, 9), (104, 9), (104, 32), (54, 32), (54, 63), (92, 63)),
+        ((119, 63), (125, 63)),
+    ), (((92, 63), (119, 63)),), (
+        Gate('night_coast3_a', (87, 9), (93, 9)),
+        Gate('night_coast3_b', (72, 32), (67, 32)),
     )),
 )
 
@@ -121,6 +121,12 @@ def build_map(coast: Coast) -> dict[str, Json]:
         entities.append({'type': 'raft', 'id': f'coast{coast.number}_{chr(97 + index)}',
             'image': 'assets/props/raft.png', 'x': x, 'y': y, 'route': [[end, by * TILE - 4]],
             'speed': 171, 'walkOn': True, 'swim': ['ppaman', 'gyeongsub'], 'swimAt': 'below'})
+    if coast.number == 3:
+        entities.append({'type': 'prop', 'id': 'coast3_spring',
+            'image': 'assets/props/blue_buff.png', 'anim': {'cols': 3, 'fps': 4},
+            'x': 122 * TILE, 'y': 62 * TILE + 6, 'w': 32, 'h': 20,
+            'ix': 122 * TILE - 4, 'iy': 62 * TILE - 18,
+            'solid': True, 'script': 'jjajang_spring'})
     entry_y, exit_y = coast.paths[0][0][1], coast.paths[-1][-1][1]
     previous = 'jjajang_sakura8' if coast.number == 1 else f'jjajang_night_coast{coast.number - 1}'
     following = 'jjajang_night_cliff' if coast.number == 3 else f'jjajang_night_coast{coast.number + 1}'
