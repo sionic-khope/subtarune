@@ -654,3 +654,10 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 - `sfx/ak_shot.mp3`(0.42초): 유튜브 [75Yj9jNj7OA](https://www.youtube.com/watch?v=75Yj9jNj7OA) “AK47 Single Shot Natural Mid 2”(Sound Effect Library) 0~0.42초, 페이드아웃 0.1, 피크 정규화(원본 `assets/source/sakura5-v1/ak-raw.webm`). 벚꽃 숲 5 도미조림 `ak_torch` 4발 연사(BUILD281, 사용자 지정 없음 — 내가 고른 녹음, 다른 걸 주시면 교체).
 - `sfx/kakao.mp3`(0.8초): 도현 카톡 말풍선 패턴의 알림음(사용자 “카톡 올 때 똑똑똑 효과음은 왜 쓴 거야” → click/knock 폐기). 유튜브 [sAcHTjAH7Co](https://www.youtube.com/watch?v=sAcHTjAH7Co) “카카오톡 사운드 모음” 7.50~8.30초 — 파형 분석에서 사람 목소리(기본 주파수 220Hz, 0.65초)로 보이는 구간 = ‘카톡!’ 알림음으로 추정, **청취 미확인**. 다른 구간이 맞으면 초를 바꾼다.
 - `bgm/shop3.mp3`(75.2초, 1.0MB): 사용자 지정 [wsYUaus3RGI](https://www.youtube.com/watch?v=wsYUaus3RGI) “20. Shop 3 (DELTARUNE Chapter 5 Soundtrack) - Toby Fox” 전체를 MP3 q2(구간 편집·정규화 없음; raw 는 `assets/source/sakura12-v1/audio/`에 두고 저장소엔 안 넣음). 벚꽃 숲 12 제단 맵 브금(BUILD285) — 벚꽃 숲 11 위쪽 길에서 sakura 가 꺼진 뒤 제단 맵에서 시작.
+
+## BUILD307 성 로비·오른쪽 회랑 (2026-09-23)
+
+- 가재맨 로비 등장 `castle_gajaeman`: 사용자 지정 [iRMn2HlCRFI](https://www.youtube.com/watch?v=iRMn2HlCRFI), yt-dlp 제목 `67. SPAWN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`. 전체76.091792초, 48kHz stereo, 1,741,484바이트, SHA256 `6e61bf5689ec5b75983e93216fdb8bfd954e65384969fda99eaf2c3b12977a9a`.
+- 오른쪽 회랑 `castle_right`: 사용자 지정 [Jp7kfYH4VaE](https://www.youtube.com/watch?v=Jp7kfYH4VaE), yt-dlp 제목 `60. The Second Sanctuary (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`. 전체170.260333초, 48kHz stereo, 3,649,292바이트, SHA256 `bad80820a33672b7c569a3e6bca48bcd379840ef1091964499537cf92b20cbe4`.
+- 두 곡은 기존 동일 영상 등록이 없어 포맷251 전체를 MP3 q2로 변환했다. 구간·피치·속도·페이드·볼륨 가공 없음. 표시 업로더 `Toby Fox`, 게시20250604; 명시적 재배포 허가는 별도 확인하지 않았다. 전체 디코드 종료 코드0이며 실제 장면 재생·청취 검증과 구분한다. [재현·원본 위치·메타데이터·효과음 재사용 계약](../../assets/source/castle307-audio/README.md).
+- 철문은 기존 `locker`, 영클 레이저는 `laser_charge`/`laser_zap`, 발소리는 오브제맵의 `WATER_WALK` 루프+tail을 재사용한다. 마른 바닥은 `ripple:false`; 걸음별 one-shot으로 바꾸지 않는다.

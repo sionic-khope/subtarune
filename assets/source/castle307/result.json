@@ -1,0 +1,14 @@
+{
+  "requestId": "castle307-environment",
+  "status": "ready",
+  "files": [
+    "/private/tmp/subtarune-castle307/assets/props/castle307_sealed_gate.png",
+    "/private/tmp/subtarune-castle307/assets/backdrops/castle307_right.png",
+    "/private/tmp/subtarune-castle307/assets/tiles/castle307_floor.png",
+    "/private/tmp/subtarune-castle307/assets/tiles/castle307_moss.png",
+    "/private/tmp/subtarune-castle307/assets/tiles/castle307_lava.png",
+    "/private/tmp/subtarune-castle307/assets/tiles/castle307_lava_dark.png"
+  ],
+  "contract": "/private/tmp/subtarune-castle307/assets/source/castle307/README.md",
+  "notes": "Built-in imagegen; exact prompts/raw/export metadata preserved. Asset QC only; map/runtime integration belongs to parent. Model and cost unknown."
+}

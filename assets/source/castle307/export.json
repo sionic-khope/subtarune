@@ -1,0 +1,140 @@
+{
+  "generator": "built-in image_gen",
+  "model": "unknown",
+  "cost": "unknown",
+  "resample": "NEAREST",
+  "alphaCleanup": false,
+  "colorChanges": false,
+  "tiles": [
+    {
+      "path": "assets/tiles/castle307_floor.png",
+      "size": [
+        32,
+        32
+      ],
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "mode": "RGB",
+      "sha256": "70c9340b9aa24c332f87c63623fa52a10a685ffedc96800b0021d64c1c16f671",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 11.947916666666666,
+        "topBottom": 16.989583333333332
+      }
+    },
+    {
+      "path": "assets/tiles/castle307_moss.png",
+      "size": [
+        32,
+        32
+      ],
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "mode": "RGB",
+      "sha256": "206a2c219f1a24e27799675316e826a8153b8ed4300a4b00fbad8726a5fe66e4",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 27.770833333333332,
+        "topBottom": 18.083333333333332
+      }
+    },
+    {
+      "path": "assets/tiles/castle307_lava.png",
+      "size": [
+        32,
+        32
+      ],
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "c76eb0a4f8d5f7f3d62dbb5468edd2d16393b5fd3fd38b2160477c59bfa15929",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 48.479166666666664,
+        "topBottom": 49.34375
+      }
+    },
+    {
+      "path": "assets/tiles/castle307_lava_dark.png",
+      "size": [
+        32,
+        32
+      ],
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "ac14e8bfc8a865799a4b8ed23ded2e4fadaa0e97796d3c580b5cc33e49fab8b7",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 17.6875,
+        "topBottom": 28.177083333333332
+      }
+    }
+  ],
+  "gate": {
+    "path": "assets/props/castle307_sealed_gate.png",
+    "size": [
+      320,
+      384
+    ],
+    "sourceSize": [
+      1145,
+      1374
+    ],
+    "contentSize": [
+      316,
+      379
+    ],
+    "placement": [
+      2,
+      3
+    ],
+    "pivot": [
+      160,
+      384
+    ],
+    "blackOrbSeals": 2,
+    "alphaBounds": [
+      2,
+      3,
+      318,
+      382
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "2f074272c07e7dfd13e830135d56f23f094d63d862d474b9038457453a09f970"
+  },
+  "backdrop": {
+    "path": "assets/backdrops/castle307_right.png",
+    "size": [
+      480,
+      360
+    ],
+    "sourceSize": [
+      1448,
+      1086
+    ],
+    "setting": "enclosed furnace-gallery interior",
+    "sha256": "5c6480e5de2807ef77679b8f9ddf0532e3c03d5c71b89e0e6e3ebc7362be8015"
+  },
+  "sourceSHA256": {
+    "raw-tiles.png": "f51e204b331b4c5547a407997c47d9fa9cc36c7b084e550ba0903417cd248e73",
+    "raw-gate.png": "6abdcbcc9f91904355b2dbc79d2986902f83d33ecd0146c1a28af07c32f3764e",
+    "raw-backdrop.png": "b7901bac1ce26aeca77c1119a91fc2b0c21f16e54e4a65931e515b48cc73a5a8"
+  },
+  "note": "Tiles are visually checked repeats, not a mathematically exact seamless-edge guarantee."
+}

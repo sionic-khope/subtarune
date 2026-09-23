@@ -1,0 +1,40 @@
+{
+  "build": 307,
+  "retrievedOn": "2026-09-23",
+  "tool": "yt-dlp 2026.08.19",
+  "conversion": "ffmpeg 9.0.1 libmp3lame q2, entire audio, no filters",
+  "uploader": "Toby Fox",
+  "channelId": "UC26hbdeqyPRl7VsnK1UhFPw",
+  "uploadDate": "20250604",
+  "license": null,
+  "formatId": "251",
+  "paidApiCost": 0,
+  "tracks": [
+    {
+      "key": "castle_gajaeman",
+      "url": "https://www.youtube.com/watch?v=iRMn2HlCRFI",
+      "title": "67. SPAWN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox",
+      "path": "assets/audio/bgm/castle_gajaeman.mp3",
+      "durationSeconds": 76.091792,
+      "bytes": 1741484,
+      "sampleRate": 48000,
+      "channels": 2,
+      "sha256": "6e61bf5689ec5b75983e93216fdb8bfd954e65384969fda99eaf2c3b12977a9a",
+      "sourceSha256": "af452bb600d0e30ab9a0ed938376b20e06195403b200ff227ced9cc8f13c2d18",
+      "fullDecodeExitCode": 0
+    },
+    {
+      "key": "castle_right",
+      "url": "https://www.youtube.com/watch?v=Jp7kfYH4VaE",
+      "title": "60. The Second Sanctuary (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox",
+      "path": "assets/audio/bgm/castle_right.mp3",
+      "durationSeconds": 170.260333,
+      "bytes": 3649292,
+      "sampleRate": 48000,
+      "channels": 2,
+      "sha256": "bad80820a33672b7c569a3e6bca48bcd379840ef1091964499537cf92b20cbe4",
+      "sourceSha256": "2d99488b9ac9f9648763b833c7e07f2ee8fd1ec9915bf417bc5a27417d38db55",
+      "fullDecodeExitCode": 0
+    }
+  ]
+}
