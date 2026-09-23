@@ -25,7 +25,9 @@ test('test_ship_lounge_npcs_respond_without_repositioning', () => {
       if (script[0].hop) assert.equal(script[0].hop, 'lounge_mini_mario');
       else { runner.start(script); assert.ok(shown?.text, `${npc.id} responds immediately, rescued=${choimis_rescued}`); }
     }
-    assert.ok(script.every(node => !node.move && !node.parallel && !node.wait && !node.action && !node.regroup), npc.id);
+    const departure = script.findIndex(node => node.label === 'invasion_yes');
+    const interaction = departure < 0 ? script : script.slice(0, departure);
+    assert.ok(interaction.every(node => !node.move && !node.parallel && !node.wait && !node.action && !node.regroup), npc.id);
   }
   const mario = shipLoungeScripts.ship_lounge_mini_mario;
   const hops = mario.filter(node => node.hop === 'lounge_mini_mario');

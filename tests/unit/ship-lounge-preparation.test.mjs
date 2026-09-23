@@ -19,7 +19,7 @@ test('briefed lounge preserves a local shop and sealed actor across stage restor
   assert.ok(!visible({ ship_ending_done: true }).some(e => e.id === 'ship_lounge_shop'));
   assert.equal(map.enter.script, 'ship_lounge_briefing');
   assert.equal(map.enter.flag, undefined);
-  assert.equal(storyBgm('ship_lounge', flags), 'storage_show');
+  assert.equal(storyBgm('ship_lounge', flags), 'ship_lounge');
   assert.equal(storyBgm('ship_lounge', {}), undefined);
 });
 
@@ -29,19 +29,22 @@ test('rescued ladder refuses old route before presenting a travel choice', () =>
   assert.ok(node.text); assert.equal(node.choice, undefined);
 });
 
-for (const selected of [0, 1, null]) test(`Youngcle readiness choice ${selected} never starts an unspecified scene`, () => {
+for (const selected of [0, 1, null]) test(`Youngcle readiness choice ${selected} starts the invasion only on Yes`, () => {
   const flags = { choimis_rescued: true, ship_lounge_briefed: true };
   let shown, advance;
-  const runner = new ScriptRunner({ show: (n, _ctx, next) => { shown = n; advance = next; }, close() {} }, {
-    flags, setFlag: (key, value) => { flags[key] = value; },
-  });
+  const textbox = { show: (n, _ctx, next) => { shown = n; advance = next; }, close() {} };
+  const game = { flags, textbox, sound: { stopBgm() {} },
+    setFlag: (key, value = true) => { flags[key] = value; } };
+  const runner = new ScriptRunner(textbox, game);
   runner.start(shipLoungeScripts.ship_lounge_youngcle);
   assert.equal(shown.choice.delay, 0.6);
   assert.deepEqual(shown.choice.options.map(o => o.label), ['네', '아니요']);
   assert.equal(shown.choice.cancel, 1);
   advance(selected);
   assert.equal(flags.ship_invasion_ready, selected === 0 ? true : undefined);
-  assert.equal(runner.running, false);
+  assert.equal(flags.ship_invasion_started, selected === 0 ? true : undefined);
+  assert.equal(runner.running, selected === 0);
+  assert.equal(flags.ship_invasion_arrived, undefined);
 });
 
 test('QA separates pending briefing from completed preparation', () => {

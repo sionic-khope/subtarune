@@ -1,5 +1,7 @@
 # SUBTARUNE
 
+BUILD305 출정 연출의 주먹 응답은 기존 요플래·경섭·빠맨의 얼굴과 의상을 유지한 무기 없는4프레임이다. `assets/sprites/*-deck-fist.png`는512×128, 셀128×128·발 피벗64,120·배율0.5이며 원래 걷기 높이에 맞춘다. 생성 원본/정확한 프롬프트/NEAREST·알파 보존 처리 기록은 [갑판 모션](assets/source/ship-deck305-poses/README.md), 성 입구의32px 보라 석재4종은 [타일 기록](assets/source/ship-invasion305-tiles/README.md)에 있다. 내장 이미지 생성 도구를 사용했고 기존 걷기·전투·초상화는 변경하지 않았다.
+
 델타룬 스타일 탑다운 도트 스토리 어드벤처. **웹에서 바로 실행**, 빌드 없음(ES 모듈), 맵·아트는 파이썬 생성기로 뽑고 오디오는 mp3(출처 `design/audio/references.md`).
 
 ```bash

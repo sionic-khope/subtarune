@@ -26,6 +26,10 @@ export const STAGES = [
   { id: 'ship_sinking_done', desc: '가재맨 기억 회상 뒤 짜장섬 해안에 홀로 도착', map: 'jjajang_shore', spawn: 'washed_up' },
   { id: 'choimis_rescued', desc: '최미스 승리 뒤 냄트기 구조 · 엄청대박인배 귀환', map: 'ship_lounge', spawn: 'from_rescue' },
   { id: 'ship_lounge_briefed', desc: '라운지 침공 브리핑 완료 · 상점과 출정 준비', map: 'ship_lounge', spawn: 'lounge_free' },
+  { id: 'ship_invasion_started', desc: '영클 출정 확인 · 결전 전날의 기념사진', map: 'ship_lounge', spawn: 'lounge_free' },
+  { id: 'ship_rally_done', desc: '라운지 결전 집회 완료 · 밤 갑판의 세 사람', map: 'ship_night_deck', spawn: 'alone' },
+  { id: 'ship_deck_bond_done', desc: '밤 갑판 약속 완료 · 결전의 날 항해', map: 'ship_lounge', spawn: 'lounge_free' },
+  { id: 'ship_invasion_arrived', desc: '전함 피격 · 가재맨 성 입구에 세 사람 도착', map: 'gajaeman_castle_entry', spawn: 'arrival' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -35,7 +39,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
-  if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'storage_show';
+  if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
@@ -624,3 +628,16 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_return', desc: '냄트기 �
   stage: 'ship_lounge_briefed', map: 'ship_lounge', spawn: 'lounge_free', flags: { ...choimisWonFlags, choimis_rescued: true, choimis_lounge_sealed: true, ship_lounge_briefed: true }, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_lounge_briefing', desc: '냄트기 귀환 직후 · 라운지 침공 브리핑 시작',
   stage: 'choimis_rescued', map: 'ship_lounge', spawn: 'from_rescue', flags: { ...choimisWonFlags, choimis_rescued: true }, party: ['gyeongsub', 'ppaman'] });
+
+const invasionReady = QA_POINTS.find(point => point.id === 'choimis_return');
+QA_POINTS.push({ ...invasionReady, id: 'ship_invasion_ready', desc: '출정 전 라운지 · 영클에게 C → 네로 결전 연출 시작',
+  flags: { ...invasionReady.flags }, party: [...invasionReady.party] });
+for (const [id, desc, stage, map, spawn, flags] of [
+  ['ship_invasion_deck', '결전 전날 · 밤 갑판의 약속부터', 'ship_rally_done', 'ship_night_deck', 'alone', { ship_invasion_started: true, ship_rally_done: true }],
+  ['ship_invasion_sailing', '결전의 날 · 전함 항해와 가재맨 성 습격부터', 'ship_deck_bond_done', 'ship_lounge', 'lounge_free', { ship_invasion_started: true, ship_rally_done: true, ship_deck_bond_done: true }],
+]) QA_POINTS.push({ ...invasionReady, id, desc, stage, map, spawn,
+  flags: { ...invasionReady.flags, ...flags }, party: [...invasionReady.party], script: 'ship_invasion' });
+QA_POINTS.push({ ...invasionReady, id: 'gajaeman_castle_entry', desc: '가재맨 성 입구 · 도착 연출 완료 후 세 사람 조작',
+  stage: 'ship_invasion_arrived', map: 'gajaeman_castle_entry', spawn: 'arrival',
+  flags: { ...invasionReady.flags, ship_invasion_started: true, ship_rally_done: true, ship_deck_bond_done: true, ship_invasion_arrived: true },
+  party: [...invasionReady.party] });

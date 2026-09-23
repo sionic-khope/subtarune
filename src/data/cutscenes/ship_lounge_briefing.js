@@ -130,6 +130,7 @@ export const SHIP_LOUNGE_BRIEFING_NODES = [
   { camera: [12, 11.75], duration: 1.5 },
   { zoom: 1, duration: 0.6 }, { camera: 'player' }, { regroup: true },
   { label: 'complete' }, { stage: 'ship_lounge_briefed' },
+  { bgm: 'ship_lounge', volume: 0.6, fadeIn: 1.2 },
   { label: 'briefing_end' },
 ];
 

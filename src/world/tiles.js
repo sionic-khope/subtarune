@@ -142,6 +142,9 @@ registerTile('K', { name: 'desk', solid: true, art: TILE_ART.desk, drawOver: '.'
 registerTile('W', { name: 'window', solid: true, art: TILE_ART.window });
 // ── 직접 그린 32px 세트 (assets/tiles/<name>.png 가 본체. 없으면 단색 폴백) ──
 const flat = (col) => (ctx) => { ctx.fillStyle = col; ctx.fillRect(0, 0, ART_PX, ART_PX); };
+registerTile('⌂', { name: 'gajaeman_castle_floor', solid: false, draw: flat('#30283e') });
+registerTile('⌁', { name: 'gajaeman_castle_cracked', solid: false, draw: flat('#30283e') });
+registerTile('▥', { name: 'gajaeman_castle_wall', solid: true, draw: flat('#171421') });
 registerTile('≈', { name: 'night_coast_rock', solid: false, draw: flat('#424b60') });
 registerTile('≋', { name: 'night_coast_edge', solid: true, draw: flat('#242c40') });
 registerTile(':', { name: 'ship_lounge_floor', solid: false, draw: flat('#333746') });

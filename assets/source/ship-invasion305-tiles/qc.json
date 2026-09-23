@@ -1,0 +1,122 @@
+{
+  "generator": "built-in image_gen",
+  "generations": 1,
+  "model": "unknown",
+  "cost": "unknown",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "rawMode": "RGB",
+  "grid": {
+    "columns": 2,
+    "rows": 2
+  },
+  "rawSHA256": "c62cee810330b0a18f16e0e357a16696b4d6a78ec9afc3fbc3185a723cd259e8",
+  "reference": "assets/props/gajaeman_castle.png",
+  "referenceSHA256": "51d94eb316526ffa2dbd43e074301ea643867634c491c86a1bc689148714ee9c",
+  "resample": "NEAREST",
+  "alphaChanges": false,
+  "colorChanges": false,
+  "patternReuse": "assets/source/choimis-flower291/tiles/export.py",
+  "tiles": [
+    {
+      "name": "gajaeman_castle_floor",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "51b47d0b01b7c623505d5b530aa9f6dd02908f81c5cacc010bdc19dabae9032e",
+      "opaquePixels": 1024,
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 10.447916666666666,
+        "topBottom": 5.041666666666667
+      }
+    },
+    {
+      "name": "gajaeman_castle_cracked",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "74c419cc2e077e20baa7118ef1ad5f2f070fd317a22062c2a366e45cd118bd28",
+      "opaquePixels": 1024,
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 10.270833333333334,
+        "topBottom": 5.96875
+      }
+    },
+    {
+      "name": "gajaeman_castle_wall",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "98325eddf44ca34b9ffbd58018a1b9bd41ca53a7a6cbf6efd554b8738d665313",
+      "opaquePixels": 1024,
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 9.541666666666666,
+        "topBottom": 116.35416666666667
+      }
+    },
+    {
+      "name": "gajaeman_castle_capstone",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "f892175dd39cfa83104d3c1f0284f1e79c49128305de089684a741b44014d644",
+      "opaquePixels": 1024,
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 5.104166666666667,
+        "topBottom": 116.8125
+      }
+    }
+  ],
+  "mixedFloorArrangement": [
+    [
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "note": "Edge differences are observations, not a pixel-perfect seamlessness claim."
+}

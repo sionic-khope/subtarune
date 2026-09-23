@@ -1,4 +1,5 @@
 import { maillard_spring } from './maillard_lounge.js';
+import { SHIP_INVASION_NODES } from './ship_invasion.js';
 
 const afterRescue = (before, after) => [
   { if: flags => flags.ship_lounge_briefed, goto: 'rescued' },
@@ -34,7 +35,8 @@ export const shipLoungeScripts = {
   ship_lounge_youngcle: afterRescue([
     { speaker: '영클', portrait: 'youngcle', voice: 'youngcle', text: '* 여기서 좀 쉬셈.{n}* 할 일은 아직 남았지만 ㅇㅇ' },
   ], [{ speaker: '영클', portrait: 'youngcle', voice: 'youngcle', text: '* 준비됨?',
-    choice: { delay: 0.6, cancel: 1, options: [{ label: '네', set: { ship_invasion_ready: true } }, { label: '아니요' }] } }]),
+    choice: { delay: 0.6, cancel: 1, options: [{ label: '네', goto: 'invasion_yes', set: { ship_invasion_ready: true } }, { label: '아니요', goto: 'invasion_no' }] } },
+  { label: 'invasion_no' }, { end: true }, { label: 'invasion_yes' }, ...SHIP_INVASION_NODES]),
   ship_lounge_junhee: afterRescue([
     { speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: '* 배 안에 이런 곳도 있었군.{n}* 숨 좀 돌리고 가자고.' },
   ], [

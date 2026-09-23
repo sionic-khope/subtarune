@@ -1,6 +1,19 @@
 import { YOUNGCLE_TV, YOUNGCLE_TV_PORTRAITS } from './youngcle-tv.js';
 
 export const MAP_RUNTIME_ASSETS = {
+  ship_lounge: {
+    sprites: ['youngcle', 'youngcle_hover', 'junhee', 'yongjun', 'gyeongsub', 'ppaman'],
+    portraits: ['youngcle', 'junhee', 'yongjun', 'gyeongsub', 'ppaman'],
+  },
+  ship_night_deck: {
+    sprites: ['hyungsub', 'gyeongsub', 'ppaman'],
+    portraits: ['gyeongsub', 'ppaman'],
+    images: ['assets/sprites/hyungsub-deck-fist.png', 'assets/sprites/gyeongsub-deck-fist.png', 'assets/sprites/ppaman-deck-fist.png'],
+  },
+  gajaeman_castle_entry: {
+    sprites: ['youngcle', 'youngcle_hover', 'junhee', 'gyeongsub', 'ppaman'],
+    portraits: ['youngcle', 'junhee', 'gyeongsub', 'ppaman'],
+  },
   maillard_captain: { sprites: ['junhee_point', 'junhee_mankatsuki'], images: ['assets/fx/mankatsuki-vortex.png'] },
   maillard_lounge: { sprites: ['yerim_kick'] },
   obj4: { sprites: ['baron_chase'] },

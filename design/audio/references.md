@@ -1,5 +1,14 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 전함 침공·사진·주먹 들기 (BUILD305, 2026-09-23)
+
+- `bgm/ship_invasion.mp3`: 사용자 지정 [z2IT2YzscSE](https://www.youtube.com/watch?v=z2IT2YzscSE), 조회 제목 `66. Crumbling Tower (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 표시명 Toby Fox. 전체173.592979초를 사용하며 거대 가재맨 성 낙하·전함 분단 시작 큐에 연결한다. 트리밍·피치·속도·페이드 변경 없음. MP3 재인코딩에서 생기는 0dBFS 초과를 막기 위해 게인만 −0.5dB 적용했다.
+- `sfx/photo_shutter.mp3`: DELTARUNE `snd_camera_flash`,0.780000초. 원작 사진 촬영 이벤트와 흰 플래시를 [코드에서 확인](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/objects/obj_ch2_scene21_loop/Step_0.gml#L764-L778)했다. 전체 길이를 유지하며 인코딩 헤드룸을 위해 −1.2dB만 적용했다.
+- `sfx/soul_grab.mp3`: DELTARUNE `snd_grab`,0.857143초. 파일명 추정이 아니라 [크리스가 소울을 꺼내는 소파 장면](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/objects/obj_ch2_scene32/Step_0.gml#L503-L544)의 실제 재생을 확인했다. 전체 원본을 MP3로 변환했으며 추가 가공은 없다. 일행이 주먹을 드는 순간 한 번 재생한다.
+- 빠른 이동 ‘삐용’은 기존 `wing`(DELTARUNE `snd_wing`,약0.469초)을 재사용한다. 새 합성음·중복 파일은 만들지 않는다.
+
+원본 게임 효과음은 커뮤니티 디컴파일 자료이며 공식 배급사의 다운로드나 별도 이용허락을 뜻하지 않는다. 원본 WAV·SHA256·재현 명령·float peak 검사는 [305 취득 기록](../../assets/source/ship-invasion305-audio/README.md)을 따른다. 파일 전체 디코드와 무클리핑 확인은 장면의 실제 큐·사람 청취 검증과 구분한다.
+
 ## 냄트기 비행 소리 (BUILD304, 2026-09-23)
 
 사용자 비행기 소리 요청으로 [qubodup — Jet Plane Flyby](https://freesound.org/people/qubodup/sounds/189446/)의 CC0 항공기 녹음 공개 HQ MP3를 사용한다. 접근 `naem_jet_approach`는 잡기 진입에서 한 번, `naem_jet_engine`은 비행 대화 아래 volume0.12 반복, `naem_jet_depart`는 퇴장 때 한 번이다. 기존 랜서 BGM·클로 접촉음·대사·구출 동작은 유지한다. 세 클립의 편집/해시/원본 미리보기와 라이선스는 [취득 기록](../../assets/source/choimis-jet304/README.md)을 따른다. 장면 완료·타이틀·맵 이동에서는 소유 핸들을 모두 정리한다.

@@ -61,6 +61,8 @@ import { drawYoungcleLoungeEffects } from './scenes/youngcle-lounge-effects.js';
 import { clearEditorUnionStage, drawEditorUnionWorld, drawEditorUnionLight, drawEditorUnionLabels, drawEditorUnionOverlay } from './scenes/editor-union-effects.js';
 import { clearChoimisSky, drawChoimisSkyPollen } from './scenes/choimis-sky-intro.js';
 import { finishChoimisRescue } from './scenes/choimis-rescue.js';
+import { finishShipInvasion } from './scenes/ship-invasion.js';
+import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
 const TEXT_SPEEDS = [
@@ -245,6 +247,8 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    finishShipInvasion(this, true);
+    clearShipDeckPoses(this);
     this.coastChatter?.clear();
     this.finishTvBroadcast(true);
     this.battle?.cancelPendingBgm();
@@ -563,6 +567,8 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    finishShipInvasion(this, true);
+    clearShipDeckPoses(this);
     this.finishTvBroadcast(true);
     this.battle?.cancelPendingBgm();
     this.shipPursuitAmbient?.stop();
@@ -827,6 +833,8 @@ class Game {
     }
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      if (mapId !== 'ship_lounge') finishShipInvasion(this, true);
+      clearShipDeckPoses(this);
       this.coastChatter?.clear();
       this.runner?.finish(); this.runner = null;   // 러너 중 맵 이동(코스 위 문·비상탈출): 카메라 잠금 풀고 조작 복귀 (리뷰 2026-09-19)
       this.finishTvBroadcast(true);
@@ -1211,11 +1219,16 @@ class Game {
     const backgroundLeft = backgroundBefore.filter((w) => !w.update(dt, Input));
     this.background = [...backgroundLeft, ...this.background];
     this.shipAssault?.update(dt);
+    this.shipInvasion?.update(dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);
     this.choimisRescue?.update(dt);
     this.tvBroadcast?.update(dt);
     this.shipPursuitAmbient?.update(dt);
+    if (this.shipInvasion?.fullFrame) {
+      if (this.dialogue.running) this.dialogue.update(dt, Input);
+      return;
+    }
     if (this.shipAssault?.ocean) {
       if (this.dialogue.running) this.dialogue.update(dt, Input);
       return;
@@ -1390,6 +1403,15 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
+    if (this.shipInvasion?.fullFrame) {
+      ctx.save();
+      if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
+      this.shipInvasion.draw(ctx);
+      ctx.restore();
+      this.textbox.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
     if (this.shipAssault?.ocean) {
       ctx.save();
       if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
@@ -1465,8 +1487,8 @@ class Game {
       const sea = this.propImages['assets/backdrops/jjajang_night_sea.png'];
       if (sea) {
         ctx.drawImage(sea, 0, 0, SCREEN_W, SCREEN_H);
-        if (MAPS[this.mapId]?.meta?.coast) {
-          const horizon = 138, sourceY = Math.round(sea.height * 0.6);
+        if (MAPS[this.mapId]?.meta?.coast || this.mapId === 'ship_night_deck') {
+          const horizon = this.mapId === 'ship_night_deck' ? 110 : 138, sourceY = Math.round(sea.height * 0.6);
           ctx.drawImage(sea, 0, sourceY, sea.width, sea.height - sourceY, 0, horizon, SCREEN_W, SCREEN_H - horizon);
         }
       }
@@ -1582,6 +1604,7 @@ class Game {
     this.shipAssault?.drawDust(ctx);
     this.shipPursuitAmbient?.draw(ctx);
     this.shipCastle?.draw(ctx);
+    this.shipInvasion?.draw(ctx);
     this.coastChatter?.draw(ctx);
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);

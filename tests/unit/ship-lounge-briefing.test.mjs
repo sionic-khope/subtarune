@@ -58,7 +58,9 @@ test('shop camera waits actual entry and removal before completion stage', () =>
   assert.ok(run.parallel[0].slice(0, 3).every(n => n.run && n.rel === 'ship_lounge_shop_door'));
   assert.deepEqual(run.parallel[0].at(-1), { remove: 'lounge_return_yongjun' });
   assert.ok(nodes.findIndex(n => n.stage === 'ship_lounge_briefed') > index + 1);
-  assert.equal(nodes.at(-3).label, 'complete');
+  const complete = nodes.findIndex(n => n.label === 'complete');
+  assert.equal(nodes[complete + 1].stage, 'ship_lounge_briefed');
+  assert.equal(nodes[complete + 2].bgm, 'ship_lounge');
 });
 
 test('flight uses actor coordinates until real landing then reveals immovable sealed prop once', async () => {

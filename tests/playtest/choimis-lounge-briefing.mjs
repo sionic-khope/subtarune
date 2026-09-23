@@ -12,7 +12,7 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
   const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, 'briefing-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
   evidence.scope = abortOnly ? 'direct-mid-laugh-abort' : direct ? 'direct-briefing' : 'rescue-to-briefing';
   if (direct) evidence.limitations = 'Registered post-rescue briefing checkpoint; this run does not replay aerial rescue. Scene progression uses real updates and physical keys. The abort scope uses actual Escape while the owned laugh plays. Where exercised, NPC approach coordinates and old-save compatibility states are disclosed fixtures. No scene clock, movement, dialogue index or completion flag is injected.';
-  const sources = ['src/data/cutscenes/ship_lounge_briefing.js', 'src/data/cutscenes/ship_lounge.js', 'src/data/cutscenes/choimis_rescue.js', 'src/core/story.js', 'src/data/scripts.js', 'src/main.js', 'src/ui/cutscene.js', 'src/ui/dialogue.js', 'assets/maps/ship_lounge.json', 'assets/audio/bgm/storage_show.mp3'];
+  const sources = ['src/data/cutscenes/ship_lounge_briefing.js', 'src/data/cutscenes/ship_lounge.js', 'src/data/cutscenes/ship_invasion.js', 'src/data/cutscenes/choimis_rescue.js', 'src/core/story.js', 'src/data/scripts.js', 'src/main.js', 'src/ui/cutscene.js', 'src/ui/dialogue.js', 'assets/maps/ship_lounge.json', 'assets/audio/bgm/storage_show.mp3', 'assets/audio/bgm/ship_lounge.mp3'];
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   for (const relative of sources) {
     const response = await page.request.get(new URL(relative, process.env.QA_BASE_URL).href);
@@ -113,6 +113,7 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
     if (state.open) await key('KeyC'); else await page.waitForTimeout(100);
   }
   check(direct ? 'direct checkpoint completes one real briefing' : 'rescue naturally enters and completes one lounge briefing', await field() && await page.evaluate(() => game.mapId === 'ship_lounge' && game.flags.choimis_rescued && game.flags.ship_lounge_briefed));
+  check('lounge music resumes after the entry performance finishes', await until(() => game.sound.bgmName === 'ship_lounge' && game.sound.bgm?.currentTime > 0.05 && !game.sound.bgm.paused, 5000));
   const q = await page.evaluate(() => { window.__briefQa.observing = false; return window.__briefQa; });
   evidence.arrival = { ...q, frames: undefined };
   for (const [label, frame] of Object.entries(q.frames)) { const file = path.join(process.env.SHOT_DIR, `${label}.png`); fs.writeFileSync(file, Buffer.from(frame.data.split(',')[1], 'base64')); evidence.captures.push({ label, file, ...frame, data: undefined }); }
@@ -174,13 +175,16 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
   check('repeat readiness prompt allows cancellation', await until(() => game.textbox.state === 'choice' && game.textbox.choiceShown === 2, 3000));
   await page.waitForTimeout(150); await key('KeyX');
   check('cancel also returns field without readiness', await field() && await page.evaluate(() => !game.flags.ship_invasion_ready));
+  await fixture('save-completed-briefing', 'Persist the actual completed briefing in the idle lounge before testing the now-implemented Yes departure.', () => game.autosave());
   await place('lounge_return_youngcle'); await key('KeyC'); await key('KeyC');
   check('fresh confirmation can choose Yes', await until(() => game.textbox.state === 'choice' && game.textbox.choiceShown === 2, 3000));
   await page.waitForTimeout(150); await key('KeyC');
-  check('Yes stores readiness and restores lounge without invented next scene', await field() && await page.evaluate(() => game.flags.ship_invasion_ready && game.mapId === 'ship_lounge' && game.fade.alpha === 0 && !game.textbox.isOpen));
-  await fixture('save-completed-briefing', 'Persist actual briefing completion and actual Yes choice through autosave.', () => game.autosave());
+  check('Yes starts the implemented invasion rally', await until(() => game.flags.ship_invasion_ready && game.flags.ship_invasion_started && game.mapId === 'ship_lounge' && game.dialogue.running && game.textbox.node?.text === '* ...' && game.fade.alpha === 0, 15000));
+  await shot('ready-yes-invasion-rally');
+  await key('Escape');
+  check('departure can return to title without advancing its saved checkpoint', await until(() => game.state === 'title' && !game.dialogue.running, 3000));
   await fixture('continue-completed-briefing', 'Exercise the normal continue path on that unmodified save.', () => game.continueGame());
-  check('saved briefing and readiness do not replay on continue', await field() && await page.evaluate(() => game.flags.ship_lounge_briefed && game.flags.ship_invasion_ready && game.mapId === 'ship_lounge'));
+  check('saved briefing restores preparation without replaying arrival or committing interrupted invasion', await field() && await page.evaluate(() => game.flags.ship_lounge_briefed && !game.flags.ship_invasion_started && !game.flags.ship_invasion_ready && game.mapId === 'ship_lounge'));
   await shot('continued-without-replay');
   await fixture('old-rescued-save-migration', 'Prepare an old already-rescued lounge save by removing only newly introduced briefing/readiness/sealing flags, then normal continueGame must start the newly added arrival once.', () => {
     game.autosave();

@@ -8,6 +8,7 @@ const SOLID_CHARS = new Set(['#', 'p', 'q', 'e', 'P', 'Q', 'T', '~', 'W', ' ', '
 const EDGE_OPEN = new Set(['H', '&', '+', '^', '(', ')', ']', '-']);   // - = 벚꽃 숲 11·12 나무 정상 널빤지 바닥(BUILD284: 위쪽 길 문·제단 아래 문)   // ] = 벚꽃 숲 5 나무다리(BUILD271)   // ( ) = 벚꽃 숲 검은 풀숲 땅·분홍 꽃잎 땅(BUILD261)   // & = 짜장섬 길 가장자리 출입구(BUILD225), ^ = 깊은숲 입구(BUILD254)
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 SOLID_CHARS.add('≋');
+SOLID_CHARS.add('▥');
 EDGE_OPEN.add('≈');
 const PW = 24, PH = 16;   // 주인공 히트박스 (스폰 x,y = 히트박스 왼쪽 위)
 const solidAt = (m, x, y) => { const c = Math.floor(x / TILE), r = Math.floor(y / TILE); if (r < 0 || r >= m.rows.length || c < 0 || c >= m.rows[0].length) return true; return SOLID_CHARS.has(m.rows[r][c]); };

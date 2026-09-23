@@ -1,0 +1,198 @@
+{
+ "id": "gajaeman_castle_entry",
+ "name": "가재맨성 입구",
+ "stage": "ship_invasion_arrived",
+ "bgm": null,
+ "rows": [
+  "                                                ",
+  "            ▥▥▥▥▥                               ",
+  "           ▥⌂⌂⌂⌂⌂▥                              ",
+  "           ▥⌂⌂⌂⌂⌂▥                              ",
+  "           ▥⌂⌂⌂⌂⌂▥                              ",
+  "           ▥⌂⌂⌂⌂⌂▥                              ",
+  "           ▥⌂⌂⌂⌁⌂▥                              ",
+  "           ▥⌂⌂⌂⌂⌂▥                              ",
+  "           ▥⌂⌂⌂⌂⌂▥                              ",
+  "  ▥▥▥▥▥▥▥▥▥▥⌂⌁⌂⌂⌂▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥ ",
+  " ▥⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂▥",
+  " ▥⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂▥",
+  " ▥⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂▥",
+  " ▥⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂▥",
+  " ▥⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥ ",
+  " ▥⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂⌂⌂⌂⌂⌂▥                              ",
+  " ▥⌁⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂▥                              ",
+  " ▥⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌂⌁⌂⌂▥                              ",
+  "  ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥                               ",
+  "                                                "
+ ],
+ "preload": [
+  "assets/tiles/gajaeman_castle_floor.png",
+  "assets/tiles/gajaeman_castle_cracked.png",
+  "assets/tiles/gajaeman_castle_wall.png"
+ ],
+ "spawns": {
+  "arrival": {
+   "x": 228,
+   "y": 440,
+   "facing": "right"
+  },
+  "start": {
+   "x": 228,
+   "y": 440,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "castle_player": [
+    228,
+    440
+   ],
+   "castle_ppaman": [
+    164,
+    488
+   ],
+   "castle_gyeongsub": [
+    292,
+    488
+   ],
+   "castle_youngcle": [
+    420,
+    408
+   ],
+   "castle_junhee": [
+    484,
+    456
+   ],
+   "castle_exit_turn": [
+    452,
+    344
+   ],
+   "castle_exit_up": [
+    452,
+    72
+   ],
+   "castle_right_path": [
+    1452,
+    360
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "castle_player",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 228,
+   "y": 440,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_ppaman",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 164,
+   "y": 488,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_gyeongsub",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 292,
+   "y": 488,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_youngcle",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 420,
+   "y": 408,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_junhee",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 484,
+   "y": 456,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_exit_turn",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 452,
+   "y": 344,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_exit_up",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 452,
+   "y": 72,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_right_path",
+   "image": "assets/tiles/gajaeman_castle_floor.png",
+   "x": 1452,
+   "y": 360,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "invasion_youngcle",
+   "sprite": "youngcle",
+   "x": 420,
+   "y": 408,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true,
+   "unless": "ship_invasion_arrived",
+   "visualScale": 2
+  },
+  {
+   "type": "npc",
+   "id": "invasion_junhee",
+   "sprite": "junhee",
+   "x": 484,
+   "y": 456,
+   "facing": "down",
+   "wander": 0,
+   "solid": false,
+   "hidden": true,
+   "unless": "ship_invasion_arrived",
+   "visualScale": 1
+  }
+ ]
+}

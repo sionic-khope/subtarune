@@ -1,0 +1,214 @@
+{
+  "name": "gyeongsub",
+  "rawSize": [
+    1230,
+    1278
+  ],
+  "runtimeSheet": [
+    512,
+    128
+  ],
+  "cell": [
+    128,
+    128
+  ],
+  "pivot": [
+    64,
+    120
+  ],
+  "runtimeScale": 0.5,
+  "durationsMs": [
+    220,
+    180,
+    180,
+    420
+  ],
+  "walkBodyHeight": 99,
+  "neutralRawHeight": 476,
+  "commonScale": 0.20798319327731093,
+  "cropPaddingRawPixels": 32,
+  "alphaPolicy": "preserve sampled RGBA exactly; alpha128 only measures body and feet",
+  "resample": "NEAREST",
+  "paletteChange": false,
+  "frames": [
+    {
+      "frame": 0,
+      "sourceRectangle": [
+        0,
+        0,
+        615,
+        639
+      ],
+      "coreBBox": [
+        227,
+        95,
+        509,
+        571
+      ],
+      "cropBBox": [
+        195,
+        63,
+        541,
+        603
+      ],
+      "scaledSize": [
+        72,
+        112
+      ],
+      "paste": [
+        26,
+        15
+      ],
+      "visibleHeightAlpha128": 98,
+      "footMidpointX": 63.5,
+      "footBottomYExclusive": 120,
+      "outputBBoxAllAlpha": [
+        29,
+        21,
+        93,
+        121
+      ],
+      "croppedLowAlphaPixels": 572,
+      "croppedAlpha128Pixels": 0,
+      "outputEdgeTouch": false,
+      "pasteClamped": false,
+      "sha256RGBA": "82447c46189ef5b371b636cf6b31183ef949c2820940f3c2cf41e7afc96c4bf3"
+    },
+    {
+      "frame": 1,
+      "sourceRectangle": [
+        615,
+        0,
+        1230,
+        639
+      ],
+      "coreBBox": [
+        94,
+        95,
+        375,
+        571
+      ],
+      "cropBBox": [
+        62,
+        63,
+        407,
+        603
+      ],
+      "scaledSize": [
+        72,
+        112
+      ],
+      "paste": [
+        26,
+        15
+      ],
+      "visibleHeightAlpha128": 98,
+      "footMidpointX": 63.5,
+      "footBottomYExclusive": 120,
+      "outputBBoxAllAlpha": [
+        32,
+        21,
+        92,
+        121
+      ],
+      "croppedLowAlphaPixels": 562,
+      "croppedAlpha128Pixels": 0,
+      "outputEdgeTouch": false,
+      "pasteClamped": false,
+      "sha256RGBA": "19817d691095efd94a51cce660f941b73093e0a0fdc80f0983e1660b7c3ba70c"
+    },
+    {
+      "frame": 2,
+      "sourceRectangle": [
+        0,
+        639,
+        615,
+        1278
+      ],
+      "coreBBox": [
+        227,
+        67,
+        509,
+        544
+      ],
+      "cropBBox": [
+        195,
+        35,
+        541,
+        576
+      ],
+      "scaledSize": [
+        72,
+        113
+      ],
+      "paste": [
+        26,
+        14
+      ],
+      "visibleHeightAlpha128": 99,
+      "footMidpointX": 63.5,
+      "footBottomYExclusive": 120,
+      "outputBBoxAllAlpha": [
+        32,
+        20,
+        93,
+        121
+      ],
+      "croppedLowAlphaPixels": 1437,
+      "croppedAlpha128Pixels": 0,
+      "outputEdgeTouch": false,
+      "pasteClamped": false,
+      "sha256RGBA": "b2cdecc086bccc43a158fdd9f68b70b783c662c32a7b87c67134fc638d0b764a"
+    },
+    {
+      "frame": 3,
+      "sourceRectangle": [
+        615,
+        639,
+        1230,
+        1278
+      ],
+      "coreBBox": [
+        94,
+        67,
+        402,
+        544
+      ],
+      "cropBBox": [
+        62,
+        35,
+        434,
+        576
+      ],
+      "scaledSize": [
+        77,
+        113
+      ],
+      "paste": [
+        26,
+        14
+      ],
+      "visibleHeightAlpha128": 99,
+      "footMidpointX": 63.5,
+      "footBottomYExclusive": 120,
+      "outputBBoxAllAlpha": [
+        28,
+        16,
+        97,
+        122
+      ],
+      "croppedLowAlphaPixels": 303,
+      "croppedAlpha128Pixels": 0,
+      "outputEdgeTouch": false,
+      "pasteClamped": false,
+      "sha256RGBA": "7caef3891fd14613fcdadecfe700fb32d1ebd9bc08c495fed034fbb570d6718a"
+    }
+  ],
+  "uniqueRGBAFrames": 4,
+  "rawSHA256": "fa2652c8437f696c727da580003dbb8292b7d4598f63b7bed4770ebdb4c183e8",
+  "walkSHA256": "f246cec9d496ea78701b81dc911d9a588804afea8d5e771e34432bce58367f8a",
+  "generator": "built-in image_gen",
+  "generations": 1,
+  "model": "unknown",
+  "cost": "unknown"
+}

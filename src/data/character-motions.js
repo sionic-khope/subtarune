@@ -1,6 +1,14 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
 
+const deckFist = (character, faces) => ({
+  src: `assets/sprites/${character}-deck-fist.png`, scale: 0.5, faces,
+  colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+  frames: [0.22, 0.3, 0.38, 1].map((duration, cell) => ({ rect: [cell * 128, 0, 128, 128], pivot: [64, 120], duration })),
+});
+
 export const CHARACTER_MOTIONS = {
+  gyeongsub: { deck_fist: deckFist('gyeongsub', 'right') },
+  ppaman: { deck_fist: deckFist('ppaman', 'right') },
   // 도미조림·도현(BUILD272 벚꽃 숲 5 공터): gpt-image 2×2 자세 그리드(assets/source/sakura5-v1/*-heumi|leap|wave-raw.png, 참조 = 걷기 시트) → poses_export.py 로 128 칸 4프레임 띠(발 [64,120], 걷기 정면 키에 맞춘 공통 배율).
   //   heumi: 웅크림 → 두 팔 번쩍 들고 “흐미!!” 외침(점프 정점) → 외침 유지 → 내려놓음. leap: 웅크림 → 공중(홍어 뽑음) → 착지(횃불) → 전투 자세(홍어·횃불) — 전투 진입 전 양옆으로 뛰는 hop 과 parallel.
   //   ready: leap 의 마지막 칸을 정지 자세로 반복(착지 뒤 전투 시작까지 서 있음). wave: 손 들어 인사(“안녕하세요 형들”).
@@ -93,6 +101,7 @@ export const CHARACTER_MOTIONS = {
     },
   },
   hyungsub: {
+    deck_fist: deckFist('hyungsub', 'left'),
     battle_ready: {
       src: BATTLE_SPRITES.hyungsub.src, scale: 0.13, faces: 'right',
       colorKey: BATTLE_PREVIEW.colorKey, frames: [BATTLE_SPRITES.hyungsub.idle[0]],

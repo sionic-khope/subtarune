@@ -9,6 +9,8 @@ const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/maps/index.json')
 // unless 소품(이기면 사라지는 거대한 문 등)은 길을 영구히 막지 않으므로 막힘에서 뺀다
 const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x', 'X', 'z', 'b', 's', '.', ',', 'f', 'g', 'h', 'i', 'k', 'l', 'D', 'B', 'M', 'I', 'H', 'F', 'N', ':', ';', '/', '%', '?', '&', '$', '"', '*', '+', 'U', '^', '(', ')', ']', '-']);   // ] = 벚꽃 숲 5 나무다리(BUILD271)   // U ^: 깊은숲 입구 어두운 길·가장자리(BUILD254)
 WALK.add('≈');
+WALK.add('⌂');
+WALK.add('⌁');
 for (const id of idx) {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, `assets/maps/${id}.json`), 'utf8'));
   if (!m.rows) continue;
