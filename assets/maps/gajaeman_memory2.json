@@ -7,11 +7,11 @@
  "backdrop": "castle307_right",
  "followScreenY": 250,
  "rows": [
-  "                                                  ",
-  "                                                  ",
-  "                                                  ",
-  "                                       ♩♨♨♩       ",
-  "                                       ▦▦▦▦       ",
+  "                                     ▦▦♤♤♤♤▦▦     ",
+  "                                     ♨▦♤♤♤♧▦♩     ",
+  "                                     ♩▦♤♧♤♤▦♨     ",
+  "                                     ♨▦♤♤♤♤▦♨     ",
+  "                                     ♨▦♤♤♤♤▦♩     ",
   "                                     ♩▦♧♤♤♤▦♨     ",
   "                                     ♨▦♤♤♤♤▦♨     ",
   "                                     ♨▦♤♤♧♤▦♩     ",
@@ -91,6 +91,11 @@
    "y": 840,
    "facing": "right"
   },
+  "from_fork": {
+   "x": 1284,
+   "y": 104,
+   "facing": "down"
+  },
   "end": {
    "x": 1284,
    "y": 200,
@@ -165,6 +170,18 @@
    "h": 128,
    "to": "gajaeman_memory1",
    "spawn": "from_next",
+   "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "memory2_next",
+   "x": 1248,
+   "y": 0,
+   "w": 128,
+   "h": 10,
+   "to": "gajaeman_castle_fork",
+   "spawn": "start",
    "interact": false,
    "sfx": false
   },

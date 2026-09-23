@@ -100,7 +100,7 @@ test('test_qa_state_before_saloon_keeps_optional_shop_upgrades_unpurchased', () 
 });
 
 test('test_castle_qa_includes_consumed_rescue_upgrades_once_with_full_maximum_hp', () => {
-  const points = QA_POINTS.filter(point => /^gajaeman_(castle|memory)/.test(point.map));
+  const points = QA_POINTS.filter(point => /^gajaeman_(castle|memory|torii)/.test(point.map));
   assert.ok(points.length >= 12);
   for (const point of points) {
     const flagsBefore = { ...point.flags };
@@ -115,14 +115,14 @@ test('test_castle_qa_includes_consumed_rescue_upgrades_once_with_full_maximum_hp
     assert.equal(state.hpBonus, beforePurchase.hpBonus + 20);
     assert.equal(state.money, beforePurchase.money - 20);
     assert.deepEqual(state.inventory, beforePurchase.inventory);
-    assert.deepEqual(['hyungsub', ...point.party].map(id => (CHARACTERS[id].hp ?? 100) + state.hpBonus), [180, 200, 170]);
+    assert.deepEqual(['hyungsub', ...point.party].map(id => (CHARACTERS[id].hp ?? 100) + state.hpBonus), point.flags.castle_malzahar_split ? [180] : [180, 200, 170]);
     assert.deepEqual(derive(point), state, 'repeated QA reconstruction must not accumulate upgrades');
     assert.deepEqual(point.flags, flagsBefore);
   }
 });
 
 test('test_precastle_qa_preserves_optional_rescue_shop_purchase_and_immediate_consumption', () => {
-  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory)/.test(point.map || ''))) {
+  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory|torii)/.test(point.map || ''))) {
     assert.equal(!!point.flags?.shop_yongjun_strong_cialis, false, point.id);
     assert.equal(!!point.flags?.shop_yongjun_strong_vaseline, false, point.id);
   }

@@ -1,0 +1,399 @@
+{
+ "id": "gajaeman_castle_fork",
+ "name": "가재맨성 결계 갈림길",
+ "stage": "castle_lobby_seen",
+ "bgm": "castle_right",
+ "battleBg": "castle_memory",
+ "backdrop": "castle307_right",
+ "followScreenY": 250,
+ "rows": [
+  "                                                                                                                                            ",
+  "                                                                                                                                            ",
+  "                                                                                                                                            ",
+  "                                                                                                                                            ",
+  "                                                                                                                                            ",
+  "                                                                                                                                            ",
+  "                    ▦▦▦▦▦▦                                                                                                                  ",
+  "                   ▦♤♤♧♤♤♤▦                                                                                                                 ",
+  "                   ▦♧♤♤♤♤♤▦                                                                                                                 ",
+  "                   ▦♤♤♤♤♤♧▦                                                                                                                 ",
+  "                   ▦♤♤♤♧♤♤▦                                                                                                                 ",
+  "                   ▦♤♤♤♤♤♤▦                                                                                                                 ",
+  "                   ▦♤♤♤♤♤♤▦                                                                                                                 ",
+  "                   ▦♤♤♤♤♤♤▦                                                                                                                 ",
+  "                   ▦♤♧♤♤♤♤▦                                                                                                                 ",
+  "                   ▦♤♤♤♤♤♤▦                                                                                                                 ",
+  "                   ▦♤♤♤♤♧♤▦                                                                                                                 ",
+  "        ▦▦▦▦▦▦▦▦▦▦▦▦♤♤♧♤♤♤▦                                                                                                                 ",
+  "       ▦♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤▦                                                                                                                 ",
+  "       ▦♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦ ",
+  "       ▦♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤▦",
+  "       ▦♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤▦",
+  "       ▦♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤▦",
+  "       ▦♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦ ",
+  "       ▦♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤▦                                                                                                                 ",
+  "       ▦♤♤♤♧♤♤♤♤♤♤♤▦▦▦▦▦▦▦                                                                                                                  ",
+  "       ▦♤♤♤♤♤♤♤♤♧♤♤▦                                                                                                                        ",
+  "       ▦♤♤♤♤♤♤♧♤♤♤♤▦                                                                                                                        ",
+  "       ▦♤♤♤♤♤♤♤♤♤♤♤▦                                                                                                                        ",
+  "       ▦♤♧♤♤♤♤♤♤♤♧♤▦                                                                                                                        ",
+  "       ▦♤♤♤♤♤♤♤♤♤♤♤▦                                                                                                                        ",
+  "       ▦♤♤♤♤♧♤♤♤♤♤♤▦                                                                                                                        ",
+  "       ▦♤♤♧♤♤♤♤♤♤♤♤▦                                                                                                                        ",
+  "       ▦♤♤♤♤♤♤♤♧♤♤♤▦                                                                                                                        "
+ ],
+ "preload": [
+  "assets/backdrops/castle307_right.png",
+  "assets/tiles/castle308_wall.png",
+  "assets/tiles/castle307_floor.png",
+  "assets/tiles/castle307_moss.png",
+  "assets/props/jjajang_torii_purple_back.png",
+  "assets/props/jjajang_torii_purple_front.png",
+  "assets/props/castle306_gate.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 388,
+   "y": 952,
+   "facing": "up"
+  },
+  "after_split": {
+   "x": 688,
+   "y": 488,
+   "facing": "right"
+  },
+  "torii": {
+   "x": 1188,
+   "y": 680,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "fork_player": [
+    388,
+    708
+   ],
+   "fork_gyeongsub": [
+    460,
+    716
+   ],
+   "fork_ppaman": [
+    316,
+    716
+   ],
+   "fork_bidet_meet": [
+    388,
+    624
+   ],
+   "fork_mario_meet": [
+    484,
+    600
+   ],
+   "fork_right_turn": [
+    688,
+    680
+   ],
+   "fork_player_wait": [
+    688,
+    488
+   ],
+   "fork_ppaman_farewell": [
+    644,
+    416
+   ],
+   "fork_bidet_guard": [
+    660,
+    264
+   ],
+   "fork_mario_guard": [
+    752,
+    264
+   ],
+   "fork_gyeongsub_guard": [
+    700,
+    336
+   ],
+   "fork_ppaman_guard": [
+    644,
+    336
+   ]
+  },
+  "route": [
+   [
+    12,
+    30
+   ],
+   [
+    12,
+    21
+   ],
+   [
+    40,
+    21
+   ]
+  ],
+  "runRoadRows": [
+   [
+    20,
+    22
+   ]
+  ],
+  "runs": {
+   "a": {
+    "dir": 1,
+    "startX": 1248,
+    "endX": 4320,
+    "groundY": 680,
+    "speed": 420,
+    "water": false,
+    "obstacles": false,
+    "seed": 31,
+    "keepFollowersHidden": true,
+    "leadInSeconds": 3,
+    "encounter": "malzahar_runner"
+   }
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "fork_player",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 388,
+   "y": 708,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_gyeongsub",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 460,
+   "y": 716,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_ppaman",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 316,
+   "y": 716,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_bidet_meet",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 388,
+   "y": 624,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_mario_meet",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 484,
+   "y": 600,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_right_turn",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 688,
+   "y": 680,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_player_wait",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 688,
+   "y": 488,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_ppaman_farewell",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 644,
+   "y": 416,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_bidet_guard",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 660,
+   "y": 264,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_mario_guard",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 752,
+   "y": 264,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_gyeongsub_guard",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 700,
+   "y": 336,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "fork_ppaman_guard",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 644,
+   "y": 336,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "prop",
+   "id": "castle_monster_aperture",
+   "image": "assets/props/castle306_gate.png",
+   "scale": 0.5625,
+   "x": 640,
+   "y": 224,
+   "w": 144,
+   "h": 16,
+   "ix": 640,
+   "iy": 60,
+   "solid": true,
+   "sortY": 0
+  },
+  {
+   "type": "npc",
+   "id": "castle_warm_bidet",
+   "sprite": "warm_bidet",
+   "x": 388,
+   "y": 624,
+   "facing": "up",
+   "solid": false,
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "castle_dot_mario",
+   "sprite": "mini_mario",
+   "x": 484,
+   "y": 600,
+   "facing": "up",
+   "solid": false,
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "castle_guard_gyeongsub",
+   "sprite": "gyeongsub",
+   "x": 700,
+   "y": 336,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "castle_guard_ppaman",
+   "sprite": "ppaman",
+   "x": 644,
+   "y": 336,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "door",
+   "id": "castle_fork_return",
+   "x": 256,
+   "y": 1078,
+   "w": 352,
+   "h": 10,
+   "to": "gajaeman_memory2",
+   "spawn": "from_fork",
+   "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "trigger",
+   "id": "castle_torii_start",
+   "x": 1248,
+   "y": 640,
+   "w": 64,
+   "h": 96,
+   "script": "castle_malzahar_run",
+   "requires": "castle_malzahar_split"
+  },
+  {
+   "type": "prop",
+   "id": "castle_torii_back",
+   "image": "assets/props/jjajang_torii_purple_back.png",
+   "x": 1135,
+   "y": 648,
+   "w": 24,
+   "h": 22,
+   "ix": 1127,
+   "iy": 574,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "castle_torii_front",
+   "image": "assets/props/jjajang_torii_purple_front.png",
+   "x": 996,
+   "y": 738,
+   "w": 24,
+   "h": 24,
+   "ix": 951,
+   "iy": 453,
+   "solid": true
+  }
+ ],
+ "enter": {
+  "script": "castle_malzahar_intro",
+  "early": true
+ }
+}

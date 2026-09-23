@@ -157,6 +157,8 @@ export class Battle {
     if (!this.cfg.seamlessIntro || this.retrying) this.game.fadeTo(0, 0.12);
     this.retrying = false;
     this.bgmWait = Math.max(BGM_DELAY, ...this.enemies.map(enemy => enemy.def.bgmDelay ?? 0));
+    const preemptive = this.support?.preemptiveMode?.();
+    if (preemptive) { this.startEnemyMode(preemptive); return; }
     this.members.forEach((m, i) => { m.pose = -0.12 * i; });   // 전투 시작 포즈: 공격 모션을 제자리에서 한 번(순서대로 살짝 어긋나게)
     // 인트로 문구 목록: cfg.intro(전투 안 대사 — 튜토리얼 기믹 등, 문자열 또는 {speaker, portrait, voice, text}) 없으면 적의 appear 줄
     this.introLines = (this.cfg.intro && this.cfg.intro.length) ? [...this.cfg.intro] : [this.enemies.map((e) => e.def.lines?.appear).filter(Boolean).join('\n') || `* ${this.enemies[0].name} 이(가) 나타났다!`];
@@ -239,6 +241,14 @@ export class Battle {
         if (this.gimmick && this.gimmick.update(dt, input) && this.state === 'enemy-mode') {
           const restoreActors = !!this.actorFocus;
           const completedMode = this.activeEnemyMode;
+          if (this.gimmick.preserveFinalFrame && !this.targets().length) {
+            this.endingFrame = document.createElement('canvas');
+            this.endingFrame.width = SCREEN_W; this.endingFrame.height = SCREEN_H;
+            const context = this.endingFrame.getContext('2d');
+            context.imageSmoothingEnabled = false;
+            this.gimmick.draw(context);
+            if (this.gimmick.hpStrip) this.drawHpStrip(context);
+          }
           this.disposeGimmick();
           if (completedMode === 'choimis_pink_shooter') this.pendingPostOpening = completedMode;
           if (restoreActors) { this.actorFocus = { phase: 'in', t: 0, duration: OPENING_FOCUS_FADE }; this.state = 'enemy-mode-restore'; this.t = 0; }
@@ -580,10 +590,11 @@ export class Battle {
     this.standUpAll();
     const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
     this.game.money = (this.game.money || 0) + gain;
-    this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain));
+    this.t = 0; this.setText(this.cfg.skipVictoryText ? '' : L.battle_win_money.replace('{n}', gain));
     this.cancelPendingBgm();
     this.game.sound.stopBgm(this.bossBattle ? BOSS_VICTORY_FADE : 0.3);
     if (!this.bossBattle) this.sfx('won');
+    if (this.cfg.skipVictoryText) this.finish(true);
   }
   afterEnemyPhase() {
     if (this.startPendingFinale()) return;
@@ -644,6 +655,7 @@ export class Battle {
     if (this.state === 'load' && this.cfg.seamlessIntro) return;
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     if (this.whiteout) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); return; }   // 흰 화면 유지(피날레)
+    if (this.state === 'ending' && this.endingFrame) { ctx.drawImage(this.endingFrame, 0, 0); return; }
     if (this.state === 'retry') return;                             // 징글 동안 검은 화면(표준 조우의 검은 화면과 같다)
     if (this.gimmick?.fullscreen) { this.gimmick.draw?.(ctx); if (this.gimmick.hpStrip) this.drawHpStrip(ctx); return; }   // 전체 화면 게임(변신 영클 특별 패턴)도 HP 띠는 맨 아래(hpStrip)
     if (this.interlude?.fullscreen) { this.interlude.draw(ctx); this.drawHpStrip(ctx); return; }

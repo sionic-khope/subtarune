@@ -145,7 +145,7 @@ for (const [mapId, spawn, facing] of [
   }
 });
 
-test('memory routes connect successive bends and stop at the final wall', () => {
+test('memory routes connect successive bends and continue north into the defence fork', () => {
   const maps = ['gajaeman_memory1', 'gajaeman_memory2'].map(readMap);
   for (const [index, map] of maps.entries()) {
     assert.ok(map.rows.some(row => row.includes('▦')));
@@ -168,7 +168,8 @@ test('memory routes connect successive bends and stop at the final wall', () => 
   const route = maps[0].meta.route;
   assert.deepEqual(route.slice(1).map(([x, y], i) => [Math.sign(x - route[i][0]), Math.sign(y - route[i][1])]),
     [[0, -1], [1, 0], [0, -1], [-1, 0]]);
-  assert.equal(maps[1].entities.filter(entity => entity.type === 'door').length, 1);
+  assert.equal(maps[1].entities.filter(entity => entity.type === 'door').length, 2);
+  assert.equal(maps[1].entities.find(entity => entity.id === 'memory2_next').to, 'gajaeman_castle_fork');
   const [x, y] = maps[1].meta.route.at(-1);
-  assert.equal(getTile(maps[1].rows[y - 2][x]).solid, true);
+  for (let row = 0; row <= y; row++) assert.equal(getTile(maps[1].rows[row][x]).solid, false);
 });

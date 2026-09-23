@@ -4,9 +4,12 @@ import { createParkGuardianSupport } from './park-guardian.js';
 import { createYoungcleShipSupport } from './youngcle-ship.js';
 import { createYoungcleTvformSupport } from './youngcle-tvform.js';
 import { createDrumDevilSupport } from './drum-devil.js';
+import { createMalzaharRunnerSupport } from './malzahar-runner.js';
 
 /** Battle-local support controller; no story flag survives victory or retry. */
 export function createBattleSupport(battle) {
+  const malzahar = createMalzaharRunnerSupport(battle);
+  if (malzahar) return malzahar;
   const drum = createDrumDevilSupport(battle);
   if (drum) return drum;
   const park = createParkGuardianSupport(battle);

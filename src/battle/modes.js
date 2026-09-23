@@ -25,6 +25,7 @@ import { createChoimisPinkShooter } from './modes/choimis-pink-shooter.js';
 import { createChoimisPinkRound } from './modes/choimis-pink-round.js';
 import { createChoimisEatingRace } from './modes/choimis-eating-race.js';
 import { createChoimisFinale } from './modes/choimis-finale.js';
+import { createMalzaharRunner } from './modes/malzahar-runner.js';
 
 const MODES = { attack: new Map(), enemy: new Map() };
 export const NATIVE = 'native';                          // battle.js 가 직접 처리하는 기본 모드 표시
@@ -43,6 +44,7 @@ export const listBattleModes = () => ({ attack: [...MODES.attack.keys()], enemy:
 registerBattleMode('attack', 'rush', NATIVE);
 registerBattleMode('attack', 'throw', createThrowAttack);   // 제자리 던지기(청소부 지팡이, BUILD227)
 registerBattleMode('enemy', 'bullets', NATIVE);
+registerBattleMode('enemy', 'malzahar_runner', createMalzaharRunner);
 registerBattleMode('enemy', 'choimis_pink_shooter', createChoimisPinkShooter);
 registerBattleMode('enemy', 'choimis_pink_round', createChoimisPinkRound);
 registerBattleMode('enemy', 'choimis_eating_race', createChoimisEatingRace);

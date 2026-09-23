@@ -45,6 +45,7 @@ def main() -> None:
             floor.update((col, row) for col in range(7, 11) for row in range(44, height))
         else:
             floor.update((col, row) for col in range(47, width) for row in range(48, 52))
+            floor.update((col, row) for col in range(39, 43) for row in range(6))
         cells = [[' '] * width for _ in range(height)]
         for col, row in floor:
             for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)):
@@ -99,10 +100,14 @@ def main() -> None:
             spawns = {'start': {'x': 1412, 'y': 1576, 'facing': 'left'},
                       'before_jiroesub': {'x': 964, 'y': 1576, 'facing': 'left'},
                       'before_udyrsub': {'x': 740, 'y': 840, 'facing': 'right'},
+                      'from_fork': {'x': 1284, 'y': 104, 'facing': 'down'},
                       'end': {'x': 1284, 'y': 200, 'facing': 'up'}}
             doors = [
                 {'type': 'door', 'id': 'memory2_return', 'x': width * TILE - 10, 'y': 1536,
                  'w': 10, 'h': 128, 'to': 'gajaeman_memory1', 'spawn': 'from_next',
+                 'interact': False, 'sfx': False},
+                {'type': 'door', 'id': 'memory2_next', 'x': 1248, 'y': 0,
+                 'w': 128, 'h': 10, 'to': 'gajaeman_castle_fork', 'spawn': 'start',
                  'interact': False, 'sfx': False},
             ]
         distance = sum(abs(x1 - x0) + abs(y1 - y0) for (x0, y0), (x1, y1) in zip(route, route[1:])) * TILE

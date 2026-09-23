@@ -41,6 +41,7 @@ import { normalizeParty } from './core/party.js';
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './data/battle-sprites.js';
 import { Battle } from './battle/battle.js';
 import { Runner } from './world/runner.js';
+import { RUNNER } from './world/runner-core.js';
 import { NightCoastChatter } from './world/night-coast-chatter.js';
 import { drawCoastWater, drawCoastWake } from './world/coast-water.js';
 import { BaronSeaChase } from './scenes/baron-sea-chase.js';
@@ -667,7 +668,28 @@ class Game {
   startRunner(opts = {}) {
     if (this.runner) return this.runner;
     this.runner = new Runner(this, { ...(this.map?.def?.meta?.run || {}), ...opts });   // 맵 meta.run(한 구간) 또는 호출자가 준 meta.runs.<id>
+    if (this.runner.cfg.encounter === 'malzahar_runner') {
+      void Battle.preload(this, ['malzahar_sub']);
+      void this.sound.preloadBgm('castle_battle');
+      void this.sound.loadSfxFiles(['malzahar_q', 'malzahar_w', 'malzahar_dash']);
+    }
     return this.runner;
+  }
+  /** Preserve the torii run pose while its registered fullscreen encounter loads. */
+  startRunnerEncounter(runner) {
+    if (this.battle || runner.encounterStarted) return;
+    runner.encounterStarted = true;
+    const runnerState = structuredClone(runner.core);
+    const runnerView = { x: this.player.x + this.player.w / 2 - this.camera.x,
+      groundY: this.player.y + this.player.h - this.camera.y, cameraX: this.camera.x, cameraY: this.camera.y };
+    this.runScript([
+      { battle: { enemies: ['malzahar_sub'], bgm: 'castle_battle', flag: 'castle_malzahar_won',
+        seamlessIntro: true, skipVictoryText: true, runnerState, runnerView } },
+      { map: 'gajaeman_torii_end', spawn: 'start' },
+      { bgm: 'castle_right' },
+      { stage: 'castle_malzahar_won' },
+      { fade: 'in', duration: 0.65 },
+    ]);
   }
   /** 전투 뒤 맵 브금 복귀 — 표준 조우(startEncounter) 전용. 컷신 전투(튜토리얼)는 컷신이 알아서 (사용자 2026-09-10: 튜토리얼은 꺼져도 되지만 그 뒤 맵부턴 별도 요청 없으면 돌아와야 함) */
   resumeMapBgm() {
@@ -1294,6 +1316,8 @@ class Game {
     } else if (this.runner) {                                 // 러너 기믹(파란 토리이, BUILD230): 자동 달리기, X 점프·C 베기 — 상호작용 대신. 메뉴는 열린다(열린 동안 멈춤)
       if (Input.just('menu')) { this.state = 'menu'; this.menu = { index: 0, sub: null }; this.sound.sfx('open'); return; }
       this.runner.update(dt, Input);
+      if (this.runner?.cfg.encounter === 'malzahar_runner' && this.runner.core.phase === 'run'
+        && this.runner.core.elapsed >= RUNNER.prepTime + RUNNER.dashTime + this.runner.cfg.leadInSeconds) this.startRunnerEncounter(this.runner);
       for (const e of this.entities) if (e !== this.player) e.update(dt, Input);
     } else if (!this.transitioning) {
       if (Input.just('confirm')) {

@@ -13,6 +13,16 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  malzahar_sub: {
+    name: '말자하섭', hp: 5, damage: 15, damageStep: 0, money: 0, boss: true,
+    support: 'malzahar_runner', defense: 'malzahar_runner',
+    sheet: { src: 'assets/enemies/malzahar-hover.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+    actions: Object.fromEntries(['hover', 'cast', 'dash', 'hit'].map(name => [name,
+      { src: `assets/enemies/malzahar-${name}.png`, cols: 2, rows: 2, count: 4, fps: 6, px: 1 }])),
+    projectiles: { voidling: 'assets/projectiles/malzahar-voidling.png' },
+    pivot: [64, 64], scale: 0.8, idle: { swayX: 0, swayY: 0 },
+    lines: { appear: '* 말자하섭이 길을 막았다.', idle: ['* 보라색 기운이 일렁인다.'], speak: [], die: '* 말자하섭이 흩어졌다.' },
+  },
   seobruto: {
     name: '섭루토', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },

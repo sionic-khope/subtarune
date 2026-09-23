@@ -31,6 +31,8 @@ export const STAGES = [
   { id: 'ship_deck_bond_done', desc: '밤 갑판 약속 완료 · 결전의 날 항해', map: 'ship_lounge', spawn: 'lounge_free' },
   { id: 'ship_invasion_arrived', desc: '전함 피격 · 가재맨 성 입구에 세 사람 도착', map: 'gajaeman_castle_entry', spawn: 'arrival' },
   { id: 'castle_lobby_seen', desc: '성 로비 · 두 구체의 봉인문과 오른쪽 조사', map: 'gajaeman_castle_lobby', spawn: 'after_intro' },
+  { id: 'castle_malzahar_split', desc: '성 갈림길 · 동료들의 엄호와 요플래 단독 돌파', map: 'gajaeman_castle_fork', spawn: 'after_split' },
+  { id: 'castle_malzahar_won', desc: '보라 토리이 · 말자하섭 돌파 후 북쪽 문', map: 'gajaeman_torii_end', spawn: 'start' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -144,6 +146,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'park_guardian_won', enemies: ['park_guardian'] },
   { flag: 'ship_tvform_won', enemies: ['youngcle_tvform'] },
   { flag: 'choimis_flower_won', enemies: ['choimis_flower'] },
+  { flag: 'castle_malzahar_won', enemies: ['malzahar_sub'] },
   // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
   { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
   { flag: 'sakura5_duo_won', enemies: ['domijorim', 'dohyun'] },                                                          // 벚꽃 숲 5 공터 도미조림·도현 전투(각 45원) — jjajang_sakura5.js(BUILD276)
@@ -175,7 +178,7 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 /** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
-export const partyFromFlags = (flags) => flags?.ship_sinking_done
+export const partyFromFlags = (flags) => flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
   ? (flags?.choimis_rescued || flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
     : flags?.sakura8_split_done ? []
     : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
@@ -677,6 +680,16 @@ for (const [id, desc, map, spawn, flags] of [
   ['gajaeman_memory2', '기억의 방 2 · 두 그림자의 굽잇길', 'gajaeman_memory2', 'start', { gajaeman_memory1_seobruto_defeated: true }],
   ['memory_jiroesub', '기억의 방 2 · 지뢰섭 표준 조우', 'gajaeman_memory2', 'before_jiroesub', { gajaeman_memory1_seobruto_defeated: true }],
   ['memory_udyrsub', '기억의 방 2 · 우디르섭 표준 조우', 'gajaeman_memory2', 'before_udyrsub', { gajaeman_memory1_seobruto_defeated: true, gajaeman_memory2_jiroesub_defeated: true }],
-  ['memory_end', '기억의 방 2 · 전투 후 북쪽 벽', 'gajaeman_memory2', 'end', { gajaeman_memory1_seobruto_defeated: true, gajaeman_memory2_jiroesub_defeated: true, gajaeman_memory2_udyrsub_defeated: true }],
+  ['memory_end', '기억의 방 2 · 전투 후 북쪽 출구', 'gajaeman_memory2', 'end', { gajaeman_memory1_seobruto_defeated: true, gajaeman_memory2_jiroesub_defeated: true, gajaeman_memory2_udyrsub_defeated: true }],
 ]) QA_POINTS.push({ ...castleArrival, id, desc, map, spawn, stage: 'castle_lobby_seen',
   flags: { ...memoryFlags, ...flags } });
+const memoryCleared = { ...memoryFlags, gajaeman_memory1_seobruto_defeated: true,
+  gajaeman_memory2_jiroesub_defeated: true, gajaeman_memory2_udyrsub_defeated: true };
+QA_POINTS.push({ ...castleArrival, id: 'gajaeman_castle_fork', desc: '성 갈림길 · 비데와 도트마리오의 엄호',
+  stage: 'castle_lobby_seen', map: 'gajaeman_castle_fork', spawn: 'start', flags: { ...memoryCleared } });
+for (const [id, desc, map, spawn, won] of [
+  ['malzahar_torii', '보라 토리이 · X 점프와 C 반격', 'gajaeman_castle_fork', 'torii', false],
+  ['malzahar_arrival', '말자하섭 돌파 · 북쪽의 문', 'gajaeman_torii_end', 'start', true],
+]) QA_POINTS.push({ ...castleArrival, id, desc, map, spawn, party: [],
+  stage: won ? 'castle_malzahar_won' : 'castle_malzahar_split',
+  flags: { ...memoryCleared, castle_malzahar_split: true, ...(won ? { castle_malzahar_won: true } : {}) } });

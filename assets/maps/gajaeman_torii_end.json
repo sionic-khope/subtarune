@@ -1,0 +1,76 @@
+{
+ "id": "gajaeman_torii_end",
+ "name": "결계 너머 회랑",
+ "stage": "castle_malzahar_split",
+ "bgm": "castle_right",
+ "battleBg": "castle_memory",
+ "backdrop": "castle307_right",
+ "followScreenY": 250,
+ "rows": [
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  "                   ▦▦▦▦▦▦▦    ",
+  "                  ▦♧♤♤♤♤♤♤▦   ",
+  "                  ▦♤♤♤♤♤♤♤▦   ",
+  "                  ▦♤♤♤♧♤♤♤▦   ",
+  "                  ▦♤♧♤♤♤♤♤▦   ",
+  "                  ▦♤♤♤♤♤♤♧▦   ",
+  "                  ▦♤♤♤♤♧♤♤▦   ",
+  "                  ▦♤♤♤♤♤♤♤▦   ",
+  " ▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦♤♤♤♤♤♤♤▦   ",
+  "▦♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤▦   ",
+  "▦♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤▦   ",
+  "▦♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤▦   ",
+  "▦♧♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤▦   ",
+  "▦♤♤♤♤♤♤♤♤♤♤♤♤♤♧♤♤♤♤♤♤♤♧♤♤♤▦   ",
+  " ▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦▦    ",
+  "                              ",
+  "                              ",
+  "                              "
+ ],
+ "preload": [
+  "assets/backdrops/castle307_right.png",
+  "assets/tiles/castle308_wall.png",
+  "assets/tiles/castle307_floor.png",
+  "assets/tiles/castle307_moss.png",
+  "assets/props/castle-memory-door.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 692,
+   "y": 280,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    21,
+    8
+   ],
+   [
+    21,
+    6
+   ]
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "castle_torii_end_door",
+   "image": "assets/props/castle-memory-door.png",
+   "x": 656,
+   "y": 160,
+   "w": 96,
+   "h": 16,
+   "ix": 656,
+   "iy": 48,
+   "solid": true,
+   "sortY": 0,
+   "script": "castle_malzahar_end_door"
+  }
+ ]
+}

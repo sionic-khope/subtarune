@@ -265,11 +265,11 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
   await walk('ArrowUp', () => game.player.y <= 850, 'memory2 north leg completes');
   await walk('ArrowRight', () => !!game.battle, 'memory2 east leg reaches Udyrsub', 12000); await encounter(ENCOUNTERS[2]);
   await walk('ArrowRight', () => game.player.x >= 1270, 'memory2 east leg completes');
-  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(4000); await page.keyboard.up('ArrowUp');
-  const wallY = await page.evaluate(() => game.player.y);
-  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(500); await page.keyboard.up('ArrowUp');
-  check('memory end stops at final wall with all three flags', await page.evaluate(y => game.mapId === 'gajaeman_memory2' && Math.abs(game.player.y - y) < 2
-    && ['gajaeman_memory1_seobruto_defeated', 'gajaeman_memory2_jiroesub_defeated', 'gajaeman_memory2_udyrsub_defeated'].every(flag => game.flags[flag]), wallY), JSON.stringify({ wallY, state: await state() }));
+  await walk('ArrowUp', () => game.player.y <= 96, 'memory end reaches the open north connector approach');
+  check('memory north connector is open with all three encounter flags', await page.evaluate(() => game.mapId === 'gajaeman_memory2'
+    && game.entities.some(entity => entity.id === 'memory2_next' && entity.def.to === 'gajaeman_castle_fork')
+    && !game.map.solidRect(game.player.x, 0, game.player.w, game.player.h)
+    && ['gajaeman_memory1_seobruto_defeated', 'gajaeman_memory2_jiroesub_defeated', 'gajaeman_memory2_udyrsub_defeated'].every(flag => game.flags[flag])), JSON.stringify(await state()));
   await shot('memory-end');
   const beforeSave = await state();
   await fixture('save-and-continue-memory-end', 'Persist the naturally completed route through game.autosave, then reload the unmodified save through production continueGame.', async () => { game.autosave(); await game.continueGame(); });

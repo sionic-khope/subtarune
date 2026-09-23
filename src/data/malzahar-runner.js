@@ -1,0 +1,17 @@
+export const MALZAHAR_RUNNER = Object.freeze({
+  counters: 5, counterDamage: 1, damage: 15, invulnerability: 0.9,
+  entrySeconds: 5, cycleSeconds: 15, victorySeconds: 1.25, victoryBrakeDelay: 0.28,
+  hpHud: { x: 18, y: 42, width: 132, height: 7, drainSeconds: 0.16, trailHold: 0.3, trailRate: 3, color: '#bb76ff', trailColor: '#fce9a2' },
+  player: { x: 106, groundY: 286, scale: 0.9, halfWidth: 9, height: 40, alpha: 0.76, heartHeight: 32 },
+  boss: { from: [-68, 90], home: [385, 92], size: 112, radius: 19, fps: 7 },
+  q: { at: 0.35, warn: 0.85, count: 2, spacing: 52, x: 400, height: 18, radius: 17, speed: 245, aura: 9, wisps: 4 },
+  w: { at: 4.1, warn: 0.85, count: 3, every: 0.95, x: 510, height: 26, halfWidth: 17, speed: 220, size: 64, pivot: [32, 32], fps: 10 },
+  dash: { at: 10.1, warn: 1.1, speed: 275, endX: -90, height: 30, recoil: 0.85, returnSeconds: 1.0 },
+  slash: { from: 0.04, until: 0.8 },
+  effects: { flash: 0.1, shake: { time: 0.22, amp: 4 }, particles: 24, life: 0.55, hurtFlash: 0.18 },
+  smoke: { count: 12, width: 38, height: 46, radius: 8, rise: 18, period: 1.7, alpha: 0.62, colors: ['#030207', '#09070d', '#211c28'] },
+  dashTrail: { every: 0.025, life: 0.32, width: 12, arc: 9, alpha: 0.45, smokeWidth: 25, smokeAlpha: 0.75 },
+  sfx: { q: 'malzahar_q', w: 'malzahar_w', dash: 'malzahar_dash', counter: 'impact', deflect: 'deflect', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape' },
+  colors: { aura: '#a851ff', core: '#ecbeff', dark: '#35115c', particles: ['#ffffff', '#e8b4ff', '#9755f3'] },
+  text: { controls: 'X 점프  ·  C 베기', title: '말자하섭' },
+});

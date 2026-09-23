@@ -8,6 +8,7 @@ import { CHAR_SCALE } from './world.js';
 import { SCREEN_W, SCREEN_H } from '../core/layout.js';
 import { makeCanvas, loadImageOptional } from '../core/gfx.js';
 import { WATER_WALK } from '../data/footsteps.js';
+import { drawRunnerFrame, drawRunnerAura as drawAura } from './runner-render.js';
 
 // 준비동작 = wing(휘융, 사용자 링크 myinstants deltarune-wing = 델타룬 snd_wing), 달리기 시작 = weaponpull(핑!) — BUILD286 사용자 “달리기 이전에 wing 이 나오고(준비동작) 달리기 시작할 때 핑!, 지금 순서가 반대”
 const SFX = Object.freeze({ draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape', deflect: 'deflect', hurt: 'hurt_dr' });
@@ -30,22 +31,6 @@ const PETAL = Object.freeze({ count: 12, vx: [40, 170], vy: [40, 150], gravity: 
 // 절벽 도약 슬로우(BUILD283): 화면 꽃잎 burst 개 + 초당 rate 로 슬로우 동안, 몸 주위 분홍 조각은 every 초마다(petals(), 몸 위 above px 에서)
 const FLOAT_BITS = Object.freeze({ burst: 36, rate: 40, every: 0.35, above: 26 });
 // 검기 오라(BUILD243 사용자 “흰색 검기 오라, 도트풍, 투명한 느낌”): 절반 해상도 캔버스에 흰 반투명 초승달을 그려 2배로 찍는다(계단진 가장자리)
-const AURA = makeCanvas(48, 48);
-// 날(BUILD244 사용자 “검기가 ) 모양이라 날카로움이 없다”): 호를 따라 폭이 가운데서 가장 넓고 양끝은 0 으로 모이는 초승달 — 앞끝(진행 방향)이 더 가늘어 베는 느낌. 각도는 a0 → a1 로 보간(부호가 방향)
-function drawAura(ctx, cx, cy, r, a0, a1, alpha) {
-  const ac = AURA.getContext('2d'); ac.clearRect(0, 0, 48, 48);
-  const hr = r / 2, c = 24, n = 20, wmax = Math.max(4, hr * 0.46), span = a1 - a0;
-  const pt = (i, off) => { const u = i / n, a = a0 + span * u, w = wmax * Math.pow(Math.sin(Math.PI * u), 0.6) * (1 - 0.3 * u), rr = hr + off * w / 2; return [c + Math.cos(a) * rr, c + Math.sin(a) * rr]; };
-  ac.globalAlpha = alpha * 0.62; ac.fillStyle = '#fff'; ac.beginPath();
-  for (let i = 0; i <= n; i++) { const [x, y] = pt(i, 1); if (i === 0) ac.moveTo(x, y); else ac.lineTo(x, y); }
-  for (let i = n; i >= 0; i--) { const [x, y] = pt(i, -1); ac.lineTo(x, y); }
-  ac.closePath(); ac.fill();
-  ac.globalAlpha = alpha * 0.95; ac.lineWidth = 1.2; ac.strokeStyle = '#fff'; ac.beginPath();
-  for (let i = 1; i < n; i++) { const [x, y] = pt(i, 0.7); if (i === 1) ac.moveTo(x, y); else ac.lineTo(x, y); }
-  ac.stroke();
-  ac.globalAlpha = 1;
-  ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(AURA, 0, 0, 48, 48, Math.round(cx) - 48, Math.round(cy) - 48, 96, 96); ctx.restore();
-}
 const rand = (a, b) => a + Math.random() * (b - a);
 
 export class Runner {
@@ -224,16 +209,7 @@ export class Runner {
     return frame.silhouette;
   }
   drawFrame(ctx, img, frame, scale, ax, ay, angle) {
-    const dw = Math.round(frame.image.width * scale), dh = Math.round(frame.image.height * scale);
-    const dx = Math.round(ax - frame.pivot[0] * scale), dy = Math.round(ay - frame.pivot[1] * scale);
-    const mirror = this.core.dir < 0;   // 시트는 오른쪽을 본다 → 왼쪽으로 달릴 땐 앵커 기준 좌우 반전(기울기도 반대)
-    ctx.save();
-    if (mirror) { ctx.translate(Math.round(ax) * 2, 0); ctx.scale(-1, 1); }
-    if (angle) {
-      const cx = Math.round(ax), cy = Math.round(ay - dh * 0.5);
-      ctx.translate(cx, cy); ctx.rotate(angle); ctx.drawImage(img, dx - cx, dy - cy, dw, dh);
-    } else ctx.drawImage(img, dx, dy, dw, dh);
-    ctx.restore();
+    drawRunnerFrame(ctx, img, frame, scale, ax, ay, angle, this.core.dir);
   }
   /** 장애물(월드 x·땅 높이 h → 화면): 쳐낸 것은 돌며 날아간다 */
   drawObstacles(ctx, cam) {
