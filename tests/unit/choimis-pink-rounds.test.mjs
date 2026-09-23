@@ -304,6 +304,54 @@ test('test_prism_each_live_core_fires_white_attacks_that_survive_core_death_and_
   assert.equal(run.scenario.pending, false);
 });
 
+test('test_prism_warmup_hides_both_attack_guides_then_draws_live_balls', () => {
+  const run = scenarioFixture('pink_prism');
+  for (let step = 0; step < 66; step++) run.scenario.update(0.01, []);
+  const warmup = run.scenario.snapshot;
+  assert.equal(warmup.bolts.length, 2); assert.equal(warmup.coreBolts.length, 1);
+  assert.ok(warmup.bolts.every(bolt => bolt.age < bolt.warn));
+  assert.ok(warmup.coreBolts.every(bolt => bolt.age < 0.45));
+  const calls = [], ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, target.fillStyle, ...args])); }, set(target, key, value) { target[key] = value; return true; } });
+  run.scenario.draw(ctx);
+  assert.equal(calls.some(call => ['moveTo', 'lineTo', 'setLineDash', 'stroke', 'arc'].includes(call[0])), false, 'neither attack previews its direction or appears early');
+  assert.equal(calls.filter(call => call[0] === 'strokeRect').length, 3, 'the three destructible cores remain visible');
+  calls.length = 0;
+  for (let step = 0; step < 50; step++) run.scenario.update(0.01, []);
+  run.scenario.draw(ctx);
+  assert.equal(calls.some(call => ['moveTo', 'lineTo', 'setLineDash', 'stroke'].includes(call[0])), false, 'later queued attacks also have no guides');
+  assert.ok(calls.some(call => call[0] === 'arc' && call[1] === '#ff9ccd' && call[4] === 5));
+  assert.ok(calls.some(call => call[0] === 'arc' && call[1] === '#fff' && call[4] === 4));
+});
+
+test('test_prism_white_core_shots_repeat_every_two_point_four_seconds_with_original_offsets', () => {
+  const run = scenarioFixture('pink_prism'), bornById = new Map();
+  assert.equal(CHOIMIS_PINK_ROUNDS.pink_prism.shieldBoltEvery, 2.4);
+  assert.equal(CHOIMIS_PINK_ROUNDS.pink_prism.boltEvery, 0.72, 'pink row cadence stays unchanged');
+  for (let step = 0; step < 620; step++) {
+    run.scenario.update(0.01, []);
+    for (const bolt of run.scenario.snapshot.coreBolts) bornById.set(bolt.id, bolt);
+  }
+  assert.equal(run.scenario.snapshot.coreBoltsSpawned, 9);
+  for (let index = 0; index < 3; index++) {
+    const shots = [...bornById.values()].filter(bolt => bolt.sourceId === `prism-shield-${index}`);
+    assert.equal(shots.length, 3);
+    shots.forEach((bolt, shotIndex) => assert.ok(Math.abs(bolt.born - (0.65 + index * 0.3 + shotIndex * 2.4)) < 1e-9));
+  }
+});
+
+test('test_prism_hidden_core_warmup_remains_harmless_and_live_bolt_keeps_swept_collision', () => {
+  const run = scenarioFixture('pink_prism');
+  for (let step = 0; step < 66; step++) run.scenario.update(0.01, []);
+  const bolt = run.scenario.snapshot.coreBolts[0];
+  assert.equal(bolt.r, 4); assert.ok(Math.abs(Math.hypot(bolt.vx, bolt.vy) - 155) < 1e-9);
+  run.soul.x = run.soul.oldX = bolt.x; run.soul.y = run.soul.oldY = bolt.y;
+  run.scenario.stopSpawning(); run.scenario.update(0.01, []);
+  assert.deepEqual(run.damage, [], 'invisible startup is harmless even at the projectile origin');
+  run.scenario.update(0.6, []);
+  assert.deepEqual(run.damage, [15], 'a live core ball still detects a swept crossing');
+  assert.equal(run.scenario.snapshot.coreBolts.some(item => item.id === bolt.id), false);
+});
+
 test('test_choso_stopped_emission_still_detonates_warned_orbs_and_drains_radial_bullets', () => {
   const run = scenarioFixture('choso', { repeat: true }); run.soul.y = run.soul.oldY = BOX.y - 100;
   run.scenario.update(0.8, []); run.scenario.stopSpawning();

@@ -13,7 +13,7 @@ export const CHOIMIS_PINK_ROUNDS = Object.freeze({
   choso: Object.freeze({ beamWarn: 0.55, beamHit: 0.38, beamEvery: 1.08 }),
   blood_orbs: Object.freeze({ first: 0.8, every: 3.4, warn: 2.2, speed: 36, radius: 11, bulletCount: 8, bulletSpeed: 132, bulletRadius: 3, bulletLife: 4.8 }),
   kart_block: Object.freeze({ warn: 0.45, every: 1.12, speed: 170, boostAfter: 0.65, boostStagger: 0.16, boostSpeed: 255, radius: 18, escapeLimit: 3, escapeFlash: 0.35 }),
-  pink_prism: Object.freeze({ shields: 3, shieldHp: 2, shieldBoltWarn: 0.45, shieldBoltEvery: 1.6, shieldBoltSpeed: 155, boltWarn: 0.4, boltEvery: 0.72, boltSpeed: 170 }),
+  pink_prism: Object.freeze({ shields: 3, shieldHp: 2, shieldBoltWarn: 0.45, shieldBoltEvery: 2.4, shieldBoltSpeed: 155, boltWarn: 0.4, boltEvery: 0.72, boltSpeed: 170 }),
 });
 
 function hitShotCircle(shot, target, radius) {
@@ -308,15 +308,11 @@ function createPinkPrism(api) {
       contactBossShots(api, shots, boss);
     },
     draw(ctx) {
-      for (const bolt of bolts) {
-        if (bolt.age < bolt.warn) { ctx.strokeStyle = '#ff87bf'; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.moveTo(api.box.x + 4, bolt.y); ctx.lineTo(boss.x - 14, bolt.y); ctx.stroke(); ctx.setLineDash([]); }
-        else { ctx.fillStyle = '#ff9ccd'; ctx.beginPath(); ctx.arc(bolt.x, bolt.y, bolt.r, 0, TAU); ctx.fill(); }
+      for (const bolt of bolts) if (bolt.age >= bolt.warn) {
+        ctx.fillStyle = '#ff9ccd'; ctx.beginPath(); ctx.arc(bolt.x, bolt.y, bolt.r, 0, TAU); ctx.fill();
       }
-      for (const bolt of coreBolts) {
-        ctx.strokeStyle = '#fff'; ctx.fillStyle = '#fff';
-        if (bolt.age < C.shieldBoltWarn) {
-          ctx.setLineDash([2, 5]); ctx.beginPath(); ctx.moveTo(bolt.x, bolt.y); ctx.lineTo(bolt.aim.x, bolt.aim.y); ctx.stroke(); ctx.setLineDash([]);
-        } else { ctx.beginPath(); ctx.arc(Math.round(bolt.x), Math.round(bolt.y), bolt.r, 0, TAU); ctx.fill(); }
+      for (const bolt of coreBolts) if (bolt.age >= C.shieldBoltWarn) {
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(Math.round(bolt.x), Math.round(bolt.y), bolt.r, 0, TAU); ctx.fill();
       }
       ctx.save(); ctx.translate(core.x, core.y); ctx.rotate(elapsed); ctx.fillStyle = '#ff5ca8'; ctx.fillRect(-11, -11, 22, 22); ctx.fillStyle = '#ffd2e8'; ctx.fillRect(-5, -5, 10, 10); ctx.restore();
       for (const item of shields) {

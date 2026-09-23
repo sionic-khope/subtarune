@@ -4,12 +4,13 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 await runScenario({ name: 'choimis-301', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
-  const build303 = process.env.QA_BUILD303 === '1';
+  const build304 = process.env.QA_BUILD304 === '1';
+  const build303 = process.env.QA_BUILD303 === '1' || build304;
   const scope = process.env.QA_301_SCOPE || 'all';
   const cases = scope === 'all' ? build303 ? ['prism', 'kart', 'blood-later', 'gasuni-drain', 'fashion', 'ordinary-choso'] : ['idle', 'kart', 'blood-first', 'blood-later', 'gasuni-normal', 'gasuni-charge', 'ordinary-choso', 'eating'] : [scope];
   const evidence = { scope, sources: [], rounds: [], captures: [], limitations: 'Direct QA battle, opening skipped and defense boosted. Pattern fixtures resolve actual nextPatternConfig and restore legitimate party HP between rounds only. All movement/shots/eating use physical arrows/C and real-time updates. No hit, clock, invulnerability, projectile, winner or completion field is injected. Automated targeting does not rate human difficulty.' };
-  evidence.build = build303 ? 303 : 301;
-  const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, build303 ? 'build303-evidence.json' : 'build301-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
+  evidence.build = build304 ? 304 : build303 ? 303 : 301;
+  const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, `build${evidence.build}-evidence.json`), JSON.stringify(evidence, null, 2) + '\n');
   const files = ['src/battle/battle.js', 'src/battle/choimis-pink-rounds.js', 'src/battle/choimis-gasuni.js', 'src/data/choimis-gasuni.js', 'src/battle/modes/choimis-pink-round.js', 'src/battle/modes/choimis-eating-race.js', 'src/battle/choimis-patterns-a.js', 'src/battle/choimis-sky-background.js', 'src/data/enemies.js', 'assets/enemies/choimis-flower-idle.png', 'assets/enemies/choimis-flower-raise.png', 'assets/enemies/choimis-choso.png', 'assets/audio/sfx/choimis_piercing_blood.mp3'];
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   files.push('src/data/build.js', 'assets/props/choimis-dolphin-breach.png');
@@ -71,6 +72,7 @@ await runScenario({ name: 'choimis-301', launchOptions: { args: ['--autoplay-pol
           if (sc.giantOutcome === 'destroyed') capture('giant-destroyed');
         }
         if (sc?.kind === 'pink_prism') {
+          if (sc.coreBolts?.some(t => t.age < 0.45)) capture('core-warmup-no-guide');
           if (sc.coreBolts?.some(t => t.age > 0.45)) capture('cores-white-fire');
           if (sc.shieldPositions.some(t => t.hp === 1)) capture('core-one-hp');
           if (sc.shields < 3) capture('core-destroyed');
@@ -119,6 +121,13 @@ await runScenario({ name: 'choimis-301', launchOptions: { args: ['--autoplay-pol
     }
     const pink = type.startsWith('choimis_pink_');
     check(`${name}: real attacks enter selected mode`, await until(pink ? () => game.battle.gimmick?.snapshot?.phase === 'combat' : name === 'eating' ? () => game.battle.activeEnemyMode === 'choimis_eating_race' : () => game.battle.state === 'bullets', 15000));
+    if (build304 && name === 'prism') {
+      for (const width of [375, 768, 1280]) {
+        await page.setViewportSize({ width, height: 800 });
+        await page.waitForTimeout(180);
+        await shot(`prism-viewport-${width}`);
+      }
+    }
     const start = Date.now(); let held = null, chargeHeld = false, fired = 0, lastFire = 0, tailFired = false;
     while (Date.now() - start < 40000) {
       const state = await page.evaluate(() => ({ state: game.battle.state, s: game.battle.gimmick?.snapshot }));
@@ -183,6 +192,14 @@ await runScenario({ name: 'choimis-301', launchOptions: { args: ['--autoplay-pol
       const ids = states[0].shieldPositions.map(s => s.id);
       check('real charged shots give cores2→1→removed, not one-hit deletion', ids.some(id => states.some(s => s.shieldPositions.find(shield => shield.id === id)?.hp === 1) && states.some(s => !s.shieldPositions.some(shield => shield.id === id))));
       check('all live cores fire white bullets and fired shots survive core destruction', new Set(states.flatMap(s => s.coreBolts.map(b => b.sourceId))).size === 3 && observed.frames.includes('destroyed-core-fired-bolt-survives'));
+      if (build304) {
+        const births = [...new Map(states.flatMap(s => s.coreBolts).map(bolt => [bolt.id, bolt])).values()].filter(bolt => bolt.born < 4);
+        check('white cores repeat every2.4s with six births before4s', births.length === 6 && ids.every((id, index) => {
+          const times = births.filter(bolt => bolt.sourceId === id).map(bolt => bolt.born).sort((a, b) => a - b);
+          return times.length === 2 && Math.abs(times[0] - (0.65 + index * 0.3)) < 1e-8 && Math.abs(times[1] - times[0] - 2.4) < 1e-8;
+        }), JSON.stringify(births.map(({ sourceId, born }) => ({ sourceId, born }))));
+        check('warmup and visible white-fire frames captured for guide-removal review', observed.frames.includes('core-warmup-no-guide') && observed.frames.includes('cores-white-fire'));
+      }
     }
     if (name === 'fashion') check('all seven different outfits render during the real turn', Array.from({ length: 7 }, (_, i) => `fashion-look-${i}`).every(name => observed.frames.includes(name)) && new Set(observed.samples.flatMap(s => s.bullets.filter(b => b.shape === 'choimis_outfit').map(b => b.profile))).size === 7);
     if (build303 && name.startsWith('blood')) check('pink Choso uses the approved0.44s loaded strong source', observed.sounds.some(s => s.name === 'choimis_piercing_blood' && s.options.volume === 0.85 && s.samples.some(v => v.time > 0 && !v.paused && Math.abs(v.duration - 0.44) < 0.01) && s.samples.some(v => v.delay >= 500 && v.paused)));
