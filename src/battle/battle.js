@@ -183,7 +183,7 @@ export class Battle {
   typeText(dt) {
     if (this.shown >= this.text.length) return;
     this.textT += dt; const n = Math.min(this.text.length, Math.floor(this.textT / (this.typeInterval || 0.022)));   // typeInterval: 막간(구출 말풍선)이 글자 간격을 늦출 수 있다
-    for (let i = this.shown; i < n; i++) if (this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip(this.voice || 'narrator');
+    for (let i = this.shown; i < n; i++) if (this.voice !== 'none' && this.text[i] !== ' ' && this.text[i] !== '\n') this.game.sound.blip(this.voice || 'narrator');
     this.shown = n;
   }
   sfx(n, options) { this.game.sound.sfx(n, options); }
