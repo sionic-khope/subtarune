@@ -151,7 +151,7 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
         if (lastBiteMember === index) drawBite(ctx, { x: 103, y: y - 23 }, { x: 49, y: y - 34 }, biteFlash);
       }
       if (enemy.img) battle.drawEnemy(ctx, { ...enemy, popup: null, patternPose: { x: 411, y: 178 - (rivalBiteFlash > 0 ? 2 : 0),
-        scale: 0.45, scaleY: 1.2, frame: Math.floor(elapsed * 4) % 4 } });
+        scale: 0.45, scaleY: 1, frame: Math.floor(elapsed * 4) % 4 } });
       for (let index = 0; index < C.bowls; index++) bowl(ctx, 377 + index * 34, 215,
         (rivalBites - index * C.bitesPerBowl) / C.bitesPerBowl, phase === 'race' && Math.floor(rivalBites / C.bitesPerBowl) === index);
       drawBite(ctx, { x: 377 + Math.max(0, Math.floor((rivalBites - 1) / C.bitesPerBowl)) * 34, y: 197 }, { x: 405, y: 129 }, rivalBiteFlash);

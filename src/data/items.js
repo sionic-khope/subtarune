@@ -8,8 +8,8 @@
 export const ITEMS = {
   '에그타르트': { kind: 'plain', heal: 100, desc: '파랑이와 노랑이가 나눠 준 에그타르트. HP 100 회복.' },
   '위장약': { kind: 'plain', heal: 200, desc: '용준이 파는 위장약. HP 200 회복.' },
-  '더 강한 바세린': { kind: 'plain', heal: 300, desc: '용준이 새로 준비한 회복용 바세린. HP 300 회복.' },
-  '더 강한 씨알리스': { kind: 'plain', heal: 500, desc: '용준이 새로 준비한 회복용 씨알리스. HP 500 회복.' },
+  '핫도그': { kind: 'plain', heal: 150, desc: '용준이 준비한 따뜻한 핫도그. 한 명의 HP 150 회복.' },
+  '기름떡볶이': { kind: 'plain', heal: 100, target: 'party', desc: '일행이 함께 나눠 먹는 기름떡볶이. 전체 HP 100 회복.' },
   '나무총': { kind: 'key', desc: '해안의 상자에서 챙긴 나무총. 바다에서 C를 눌러 쏜다.' },
   '보라색 코드 ?': { kind: 'key', desc: '방송 중 서랍에서 찾은 보라색 코드. 뭔가 에러가 났었다.' },   // 인트로 티비 서랍(3D) — src/data/scripts.js
   '낡은 열쇠':     { kind: 'key', desc: '상자에서 나온 낡은 열쇠.' },                                    // 인트로 상자 — src/data/scripts.js
@@ -24,3 +24,6 @@ export const ITEMS = {
 export const itemKind = (name) => ITEMS[name]?.kind || 'key';
 export const plainItems = (inventory) => inventory.filter((n) => itemKind(n) === 'plain');
 export const keyItems = (inventory) => inventory.filter((n) => itemKind(n) !== 'plain');
+
+/** BUILD300의 잘못된 회복품 이름만 바꾼다. 수량·돈·영구 강화는 건드리지 않는다. */
+export const normalizeItemNames = inventory => inventory.map(name => ({ '더 강한 바세린': '핫도그', '더 강한 씨알리스': '기름떡볶이' })[name] || name);

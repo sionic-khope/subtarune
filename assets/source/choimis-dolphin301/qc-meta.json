@@ -1,0 +1,132 @@
+{
+  "rawSize": [
+    1268,
+    1241
+  ],
+  "cellSize": [
+    32,
+    32
+  ],
+  "grid": [
+    1,
+    4
+  ],
+  "sheetSize": [
+    128,
+    32
+  ],
+  "order": [
+    "emerge",
+    "apex",
+    "dive",
+    "splash-tail"
+  ],
+  "pivot": [
+    16,
+    30
+  ],
+  "commonScale": 0.07017543859649122,
+  "durationsMs": [
+    350,
+    350,
+    350,
+    350
+  ],
+  "componentMode": "all",
+  "resample": "NEAREST",
+  "alphaThreshold": 128,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "rawBboxes": [
+    [
+      167,
+      204,
+      552,
+      565
+    ],
+    [
+      80,
+      226,
+      479,
+      492
+    ],
+    [
+      241,
+      123,
+      551,
+      466
+    ],
+    [
+      129,
+      298,
+      419,
+      485
+    ]
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "bbox": [
+        2,
+        5,
+        29,
+        30
+      ],
+      "paste": [
+        2,
+        5
+      ],
+      "edgeTouch": false,
+      "sha256RGBA": "ad2bb6c6644d862e8f7bbc983727d266df349e3d11372ed82f5fe5f0de041d07"
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        2,
+        11,
+        30,
+        30
+      ],
+      "paste": [
+        2,
+        11
+      ],
+      "edgeTouch": false,
+      "sha256RGBA": "580e325bfce5254d0b039fe76dad52f797900f79b201cac703c7477d5815c0fd"
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        5,
+        6,
+        27,
+        30
+      ],
+      "paste": [
+        5,
+        6
+      ],
+      "edgeTouch": false,
+      "sha256RGBA": "6c77b11da7f7ac7f18cd78a64a8a404ca5cca1d9ae6e5d3cad3bc12a3e2fd23c"
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        6,
+        17,
+        25,
+        30
+      ],
+      "paste": [
+        6,
+        17
+      ],
+      "edgeTouch": false,
+      "sha256RGBA": "8683a80739dd42806042505a87ef1ad3cbb36f115169a84eba0b6b2e4e2a9f4c"
+    }
+  ],
+  "uniqueFrames": 4,
+  "rawSHA256": "fd04ae9ac55a922151c38a29951d4f5bb80181438355a6f440bae0afba0d7c31"
+}

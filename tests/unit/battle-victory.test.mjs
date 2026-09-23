@@ -107,3 +107,49 @@ test('test_nonwinning_boss_exit_keeps_the_existing_screen_fade', () => {
   battle.finish(false);
   assert.equal(fades[0][1], 0.35);
 });
+
+for (const id of ['choimis_flower', 'cs_red']) test(`test_${id}_duplicate_win_and_finished_reentry_credit_only_once`, () => {
+  const { battle, stops, sounds, fades, ended } = fixture([id]);
+  const expected = 17 + (ENEMIES[id].money ?? 30);
+  battle.beginWin();
+  battle.t = 0.75;
+  battle.beginWin();
+  assert.equal(battle.game.money, expected);
+  assert.equal(battle.t, 0.75);
+  assert.equal(stops.length, 1);
+  assert.equal(sounds.length, battle.bossBattle ? 0 : 1);
+  battle.finish(true);
+  battle.beginWin();
+  assert.equal(battle.state, 'ending');
+  assert.equal(battle.game.money, expected);
+  assert.equal(stops.length, 1);
+  fades[0][2]();
+  battle.beginWin();
+  assert.equal(battle.game.money, expected);
+  assert.deepEqual(ended, [{ win: true }]);
+});
+
+test('test_loss_retry_does_not_prevent_its_first_successful_reward', () => {
+  const { battle } = fixture(['choimis_flower']);
+  battle.state = 'lose';
+  battle.game.sound.preloadBgm = () => {};
+  for (const enemy of battle.enemies) enemy.maxHp = enemy.def.hp;
+  battle.beginRetry();
+  assert.equal(battle.game.money, 17);
+  battle.state = 'act';
+  for (const enemy of battle.enemies) { enemy.hp = 0; enemy.dead = true; }
+  battle.beginWin(); battle.beginWin();
+  assert.equal(battle.game.money, 15000017);
+  const fresh = fixture(['choimis_flower']).battle;
+  fresh.beginWin();
+  assert.equal(fresh.game.money, 15000017);
+});
+
+test('test_win_enters_settled_state_before_cleanup_can_reenter', () => {
+  const { battle } = fixture(['choimis_flower']);
+  let cleanups = 0;
+  battle.stopRapVideo = () => { cleanups++; battle.beginWin(); };
+  battle.beginWin();
+  assert.equal(cleanups, 1);
+  assert.equal(battle.game.money, 15000017);
+});

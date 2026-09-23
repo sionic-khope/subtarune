@@ -30,9 +30,9 @@ function tap(mode, rate = 6) {
   mode.update(0.5 / rate, pressed); mode.update(0.5 / rate, idle);
 }
 
-test('test_choimis_eating_registry_appends_pattern_without_reordering_existing_modes', () => {
+test('test_choimis_eating_registry_runs_as_fifth_regular_pattern_before_seup', () => {
   assert.equal(getBattleMode('enemy', 'choimis_eating_race'), createChoimisEatingRace);
-  assert.deepEqual(ENEMIES.choimis_flower.patterns.at(-1), { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 먹방 대결해볼까? 들어와' });
+  assert.deepEqual(ENEMIES.choimis_flower.patterns.filter(pattern => pattern.mode !== 'choimis_pink_round')[4], { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 먹방 대결해볼까? 들어와' });
   assert.equal(ENEMIES.choimis_flower.patterns[1].type, 'choimis_choso');
   assert.equal(C.introSeconds, 11); assert.equal(C.bitesPerBowl * C.bowls, 54); assert.equal(C.raceSeconds, 10.2);
   assert.equal(L.battle_choimis_eating_goal, '짜장면을 먹어라! (C 연타)');

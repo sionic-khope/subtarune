@@ -21,6 +21,7 @@ import { drawChoimisKaraoke } from './choimis-karaoke.js';
 import { createChoimisDefenseCinematic } from './choimis-defense-cinematic.js';
 import { CHOIMIS_RAP_VIDEO, createChoimisRapVideo } from './choimis-rap-video.js';
 import { ITEMS, plainItems } from '../data/items.js';
+import { useBattleItem } from '../core/item-use.js';
 import L from '../data/locale/ko.js';
 import { createBattleSupport } from './support/baron-cannon.js';
 import { BARON_CANNON } from '../data/baron-cannon.js';
@@ -57,8 +58,19 @@ const nextPatternConfig = (enemy) => {
   const configs = (enraged ? enemy.def.enragedPatterns : enemy.def.patterns) || [];
   const index = enraged !== !!enemy.enraged ? 0 : (enemy.patternIdx || 0);
   if (enemy.def.alternatingPatternMode) {
-    const bucket = configs.filter(config => (config.mode === enemy.def.alternatingPatternMode) === (index % 2 === 1));
-    return { enraged, config: bucket[Math.floor(index / 2) % bucket.length] };
+    const regular = configs.filter(config => config.mode !== enemy.def.alternatingPatternMode);
+    const alternate = configs.filter(config => config.mode === enemy.def.alternatingPatternMode);
+    const round = Math.floor(index / 2);
+    if (index % 2 === 0) return { enraged, config: regular[round % regular.length] };
+    const cycleStart = round - round % alternate.length;
+    const fits = (config, slot) => !config.avoidAdjacentType || [slot, slot + 1].every(offset =>
+      regular[(cycleStart + offset) % regular.length]?.type !== config.avoidAdjacentType);
+    for (let slot = 0; slot < alternate.length; slot++) {
+      if (fits(alternate[slot], slot)) continue;
+      const replacement = alternate.findIndex((config, other) => other !== slot && fits(config, slot) && fits(alternate[slot], other));
+      if (replacement >= 0) [alternate[slot], alternate[replacement]] = [alternate[replacement], alternate[slot]];
+    }
+    return { enraged, config: alternate[round % alternate.length], cycle: Math.floor(round / alternate.length) };
   }
   return { enraged, config: configs.length ? configs[index % configs.length] : null };
 };
@@ -125,10 +137,12 @@ export class Battle {
     const loadToken = {};
     this.bgmLoadToken = loadToken;
     this.bgmWait = undefined;
-    if (this.enemies.some(enemy => enemy.id === 'choimis_flower') && !this.preparedRapVideo) this.preparedRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
+    const choimisBattle = this.enemies.some(enemy => enemy.id === 'choimis_flower');
+    if (choimisBattle && !this.preparedRapVideo) this.preparedRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
     try {
       await Promise.all([
-        this.enemies.some(enemy => enemy.id === 'choimis_flower') ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya']) : null,
+        choimisBattle ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya', 'choimis_piercing_blood']) : null,
+        choimisBattle ? this.game.requestPropImage?.('assets/props/choimis-dolphin-breach.png') : null,
         this.preparedRapVideo?.ready,
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),
         ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),
@@ -414,10 +428,7 @@ export class Battle {
   /** A pattern may stage its actor without changing the ordinary battle home. */
   clearPatternPresentation() { for (const enemy of this.enemies) enemy.patternPose = null; }
   useItem(m, name, by = m) {
-    const def = ITEMS[name] || {}; const i = this.game.inventory.indexOf(name); if (i >= 0) this.game.inventory.splice(i, 1);
-    // 음수 회복(돌 -5): 1 밑으로는 안 내려가고 빨간 숫자로 뜬다
-    if (def.heal) { const before = m.hp; m.hp = Math.max(def.heal < 0 ? Math.min(1, m.hp) : 0, Math.min(m.maxHp, m.hp + def.heal)); if (m.down && m.hp > 0) m.down = false; const diff = m.hp - before; m.popup = { t: 0, text: (diff >= 0 ? '+' : '') + diff, heal: diff >= 0 }; }
-    this.sfx('heal'); this.setText(`* ${by.name} 이(가) ${m.name} 에게 ${name} 을(를) 썼다.`);
+    return useBattleItem(this, { name, target: m, member: by });
   }
 
   // ── 적 턴 ──
@@ -437,7 +448,7 @@ export class Battle {
       this.actorFocus = defName === 'choimis_pink_shooter' || defName === 'choimis_pink_round'
         ? { phase: 'out', t: 0, duration: OPENING_FOCUS_FADE }
         : null;
-      this.gimmick = create(this, { enemy: e, config: selected?.config || null }); return;
+      this.gimmick = create(this, { enemy: e, config: selected?.config || null, cycle: selected?.cycle || 0 }); return;
     }
     if (create !== NATIVE) console.warn('[battle] 모르는 적 턴 모드', defName);
     let text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
@@ -563,11 +574,13 @@ export class Battle {
   /** 라운드 경계(적 턴 끝): 쓰러진 동료마다 회복 이펙트(초록 반짝임 + heal 음), DOWN_TURNS 번째 라운드에 반피로 일어난다 — 사용자 2026-09-11 '한 턴마다 회복 이펙트, 3턴 지나면 반피 부활' */
   /** 승리: 돈·문구·브금 정리 → win 상태. 행동 단계 끝과 적 턴 끝(특별 패턴 피해로 쓰러뜨린 경우 — 2026-09-18 사용자 “특별 패턴에서 쓰러트렸는데 전투 안 끝나는 버그”) 양쪽에서 부른다 */
   beginWin() {
+    if (this.state === 'win' || this.state === 'ending' || this.result) return;
+    this.state = 'win';
     this.stopRapVideo(); this.discardPreparedRapVideo();
     this.standUpAll();
     const gain = this.enemies.reduce((a, e) => a + (e.def.money ?? 30), 0);
     this.game.money = (this.game.money || 0) + gain;
-    this.state = 'win'; this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain));
+    this.t = 0; this.setText(L.battle_win_money.replace('{n}', gain));
     this.cancelPendingBgm();
     this.game.sound.stopBgm(this.bossBattle ? BOSS_VICTORY_FADE : 0.3);
     if (!this.bossBattle) this.sfx('won');
@@ -874,12 +887,13 @@ export class Battle {
       const items = plainItems(this.game.inventory), page = Math.floor(this.itemIdx / 6) * 6;
       items.slice(page, page + 6).forEach((it, k) => { const i = page + k, x = 36 + Math.floor(k / 3) * 212, y = row(k % 3), sel = i === this.itemIdx; if (sel) this.heart(ctx, x + 2, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(it + (ITEMS[it]?.heal ? ` (+${ITEMS[it].heal})` : ''), x + 18, y); });
     } else if (this.state === 'item-target') {                     // 누구에게: 멤버 목록 + 색 HP 바
-      this.members.forEach((t, i) => { const y = row(i), sel = i === this.itemTargetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = t.down ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(t.name, 54, y);
+      const all = ITEMS[this.itemName]?.target === 'party';
+      this.members.forEach((t, i) => { const y = row(i), sel = all || i === this.itemTargetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = sel ? '#ffe066' : t.down ? '#777' : '#fff'; ctx.fillText(t.name, 54, y);
         this.hpBar(ctx, 250, y + 4, 90, t.hp, t.maxHp, this.hpColor(t), '#3a2020'); ctx.fillStyle = '#fff'; ctx.fillText(`${t.hp}/${t.maxHp}`, 350, y); });
-      ctx.fillStyle = '#9a9ab0'; ctx.textAlign = 'right'; ctx.fillText(this.itemName || '', 444, 254); ctx.textAlign = 'left';
     }
     if (this.state === 'item-target') {                           // 대상 멤버 위에 화살표
-      const t = this.members[this.itemTargetIdx]; if (t) { const ax = t.home[0], ay = t.home[1] - 92; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill(); }
+      const targets = ITEMS[this.itemName]?.target === 'party' ? this.members : [this.members[this.itemTargetIdx]];
+      for (const t of targets) if (t) { const ax = t.home[0], ay = t.home[1] - 92; ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.lineTo(ax, ay + 9); ctx.closePath(); ctx.fill(); }
     }
     if (this.state === 'target') {                                // 고르는 적 위에 화살표 (HP 는 목록에)
       // 커서는 때릴 수 있는 적(untargetable 제외) 위에 — 오방순 위에 뜨던 버그(BUILD210)

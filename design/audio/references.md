@@ -1,5 +1,13 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 최미스 천혈·상승·최종 타격 (BUILD301, 2026-09-23)
+
+천혈 발사 `sfx/choimis_piercing_blood.mp3`는 Voicemod Tuna의 [Choso piercing blood](https://tuna.voicemod.net/sound/ebcb5a80-7c56-4a0c-bdaa-03bea88d40c9), 업로더 Time2365의 커뮤니티 업로드에서 만들었다. 공식 애니메이션 원본·특정 회차·원저작자·별도 재사용 라이선스는 확인되지 않았다. 원본3.984초의0.68–1.16초를 추출하고 필터·짧은 페이드로0.48초 발사음으로 가공했다. 일반/핑크 천혈의 실제 발사·피 구체 폭발에서 묶음당 한 번 volume0.6으로 재생하며, 일반 천혈의 기존 조준음은 유지한다. [원본·가공·SHA·검증 범위](../../assets/source/choimis-piercing-blood301/README.md)를 따른다. 파형/디코드 검증과 사람의 청취 승인, 재배포 허가를 구분한다.
+
+최종 빔의 실제 몸 접촉에는 기존 `sfx/furnace_blast.mp3`, 원작 DELTARUNE `snd_punchheavythunder`를 재사용한다. 이번에 새 천둥 파일을 받거나 합성하지 않았다. 현재 호출은 volume0.8/rate0.8/pitch=true이며 짧은 섬광과 느린 피격을 같은 접촉에서 시작한다. 이 이름은 용광로 장면에서 남은 런타임 키다. 아래 BUILD198의 원음 식별과 [보존 원본](../../assets/source/furnace198/audio/README.md)이 출처 기준이다.
+
+일행이 실제 상승을 시작할 때는 기존 `sfx/spearappear.mp3`(`snd_spearappear`)를 volume0.7로 한 번 재생한다. 따뜻한 비데의 실제 `bossVanish`와 청소부 상승이 같은 키를 사용한다는 [연결 기록](../../assets/source/janitor-asgore-parry/README.md)을 확인했다. 낮은 기존 바람음은 별도로 유지하며 완료/취소 시 소유 핸들을 정리한다. 낙하/비행의 `wing`과 상승음을 혼동하지 않는다. 파일 원음의 출처 기록은301의 전체 장면 청취·최종 배포 완료를 뜻하지 않는다.
+
 ## 최미스 전투 뒤 냄트기 구조 (BUILD300, 2026-09-23)
 
 후속 라운지 영클 브리핑의 지정곡은 사용자가 다시 명시한 [Queen — Toby Fox](https://www.youtube.com/watch?v=6XQv5CHmITA)다. 기존 `youngcle_intro.js`의 엄청대박인배 초반 TV 등장 → `YOUNGCLE_TV.bgm` → `storage_show` 연결과 아래 기존 출처 기록을 대조했다. 파일명은 옛 창고 장면에서 남은 내부 이름이며 곡 자체는 Queen이다. `assets/audio/bgm/storage_show.mp3` 전체56.749896초를 그대로 재사용하고, 새 다운로드·트리밍·곡 교체 없이 라운지 영클 “ㅋㅋ”에서 시작한다.

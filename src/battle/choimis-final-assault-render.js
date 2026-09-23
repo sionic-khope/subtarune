@@ -44,7 +44,7 @@ export function createFinalAssaultRenderer(enemy) {
   const images = { boss: whiteSprite(enemy.img), choso: whiteSprite(enemy.actionImages?.choso),
     noodle: enemy.projectiles?.jjajang, daoKart: whiteSprite(enemy.projectiles?.daoKart),
     bazziKart: whiteSprite(enemy.projectiles?.bazziKart), money: enemy.projectiles?.money };
-  const scale = enemy.def.scale ?? 0.506, scaleY = enemy.def.scaleY ?? 1.2;
+  const scale = enemy.def.scale ?? 1, scaleY = enemy.def.scaleY ?? 1;
   return { draw(ctx, state) {
     const { box, boss, heart, elapsed, charge } = state;
     ctx.save(); ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip();

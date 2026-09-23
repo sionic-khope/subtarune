@@ -12,7 +12,7 @@ const CAPE_SRC = ENEMIES.choimis_flower.sheet.src;
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const BATTLE_ACTOR_SCALE = 0.66;
 const PINK_PETALS = Object.freeze(['#ff86b7', '#ffb1d0', '#ffd7e8']);
-const BOSS_BATTLE_HEIGHT = 117.5 * ENEMIES.choimis_flower.scale;
+const BOSS_BATTLE_HEIGHT = 140 * ENEMIES.choimis_flower.scale;
 const BOSS_HOVER = Object.freeze({ height: 48, amplitude: 0, period: 2.4 });
 const REVEAL_PAN = Object.freeze({ dx: 64, duration: 2, bossX: 722 });
 export const CHOIMIS_SKY_ASCENT = Object.freeze({ distance: 1080, duration: 5.2, petalFall: 0.55 });
@@ -20,10 +20,10 @@ const ASCENT_WIND = Object.freeze({ volume: 0.24, rate: 0.82, fadeIn: 0.16, fade
 export const CHOIMIS_CAPE_REVEAL = Object.freeze({ durations: [0.22, 0.16, 0.16, 0.18, 0.18], cueAt: 0.22 });
 export const CHOIMIS_SKY_SCALE = Object.freeze({
   battleReady: Object.freeze({ hyungsub: 101 / (2 * 349), gyeongsub: 98 / (2 * 359), ppaman: 99 / (2 * 305) }),
-  raisedHand: 103 / (2 * 123),
+  raisedHand: 103 / (2 * 140),
   bossToHyungsub: BOSS_BATTLE_HEIGHT / (349 * BATTLE_SPRITES.hyungsub.scale * BATTLE_ACTOR_SCALE),
   raisedHandBattleHeight: BOSS_BATTLE_HEIGHT,
-  raisedHandFrameHeight: 131,
+  raisedHandFrameHeight: 137,
 });
 
 const entity = (game, id) => id === 'player' ? game.player : game.entities.find(item => item.id === id && !item.dead);
@@ -38,7 +38,7 @@ function raiseMotion(image) {
   const durations = [0.30, 0.35, 0.35, 0.45];
   const frames = Array.from({ length: 4 }, (_, index) => makeTransparentFrame(image, {
     rect: [(index % 2) * 160, Math.floor(index / 2) * 160, 160, 160],
-    pivot: [80, 152], duration: durations[index],
+    pivot: ENEMIES.choimis_flower.actions.raise.pivot, duration: durations[index],
   }, { rMin: 256, gMax: -1, bMin: 256 }, makeCanvas));
   return {
     scale: CHOIMIS_SKY_SCALE.raisedHand,
@@ -91,7 +91,7 @@ export async function prepareChoimisSky(game) {
     game.mapAssets.image(CAPE_SRC),
     ...ids.map(id => game.mapAssets.image(BATTLE_SPRITES[id].src)),
     Battle.preload(game, ['choimis_flower']),
-    game.sound.loadSfxFiles(['great_shine', 'choimis_flower_seup', 'choimis_flower_sexy', 'whoosh', 'wing', 'weaponpull']),
+    game.sound.loadSfxFiles(['great_shine', 'choimis_flower_seup', 'choimis_flower_sexy', 'whoosh', 'spearappear', 'wing', 'weaponpull']),
   ]);
   if (state.cancelled || game.choimisSky !== state) return;
   state.motions = Object.fromEntries(ids.map((id, index) => [id, images[index] ? battleMotion(images[index], id) : null]));
@@ -188,14 +188,17 @@ function playChoimisAscentVoice(game, state) {
 }
 
 function stopChoimisAscentWind(state) {
-  const audio = state.ascentWind;
-  if (!audio) return;
+  for (const audio of [state.ascentWind, state.ascentCue]) {
+    if (!audio) continue;
+    try { audio.pause(); audio.src = ''; } catch {}
+  }
   state.ascentWind = null;
-  try { audio.pause(); audio.src = ''; } catch {}
+  state.ascentCue = null;
 }
 
 function startChoimisAscentWind(game, state) {
   stopChoimisAscentWind(state);
+  state.ascentCue = game.sound.sfx('spearappear', { volume: 0.7 });
   const audio = game.sound.sfx('whoosh', { volume: 0, rate: ASCENT_WIND.rate });
   if (!audio || typeof audio !== 'object') return;
   audio.loop = true;
@@ -348,6 +351,18 @@ export function drawChoimisSkyPollen(ctx, game, cam) {
   if (!state?.pollen || !state.actors?.length) return;
   const progress = state.phase === 'gather' ? state.progress : 1;
   ctx.save();
+  if (state.phase === 'rise' && state.progress > 0 && state.progress < 1) {
+    const zoom = game.zoom?.s || 1;
+    const strength = Math.min(1, state.progress / 0.16, (1 - state.progress) / 0.18);
+    for (let index = 0; index < 30; index++) {
+      const x = 8 + index * 16;
+      const y = ((index * 71 + state.windTime * (210 + index % 5 * 32)) % 450) - 60;
+      ctx.globalAlpha = strength * (index % 3 ? 0.16 : 0.25);
+      ctx.fillStyle = index % 3 ? '#e4d6ff' : '#ffd7e8';
+      ctx.fillRect(Math.round(240 + (x - 240) / zoom), Math.round(180 + (y - 180) / zoom),
+        (index % 4 ? 1 : 2) / zoom, (28 + index % 6 * 9) * strength / zoom);
+    }
+  }
   for (const particle of state.pollen) {
     const actor = particle.actor;
     const footX = actor.x + actor.w / 2 - cam.x + (actor.flyX || 0);

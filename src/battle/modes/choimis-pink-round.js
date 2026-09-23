@@ -60,8 +60,8 @@ export function createPinkBossContact(battle, enemy, onContact, onDamage) {
   };
 }
 
-/** Enemy-mode adapter for three fixed-duration post-tutorial pink-heart rounds. */
-export function createChoimisPinkRound(battle, { enemy, config }) {
+/** Enemy-mode adapter for fixed-duration post-tutorial pink-heart rounds. */
+export function createChoimisPinkRound(battle, { enemy, config, cycle = 0 }) {
   const board = battle.board, soul = battle.soul, scenarioName = config?.scenario;
   const oldBoard = { ...board.rect, target: board.target && { ...board.target } };
   const oldSoul = { x: soul.x, y: soul.y, invuln: soul.invuln };
@@ -86,12 +86,13 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
   const images = {
     boss: whiteSprite(enemy.img), choso: whiteSprite(enemy.actionImages?.choso),
     dao: whiteSprite(enemy.projectiles?.daoKart), bazzi: whiteSprite(enemy.projectiles?.bazziKart),
+    ...Object.fromEntries(['gasuni1', 'gasuni2', 'gasuni3', 'gasuni4', 'gasuni5', 'gasuni6', 'jeomnye'].map(id => [id, whiteSprite(enemy.projectiles?.[id])])),
   };
   const hit = (x, y) => {
     for (let index = 0; index < 7; index++) effects.push({ x, y, vx: (index - 3) * 24, vy: -35 + Math.abs(index - 3) * 8, life: 0.32 });
   };
-  const hurt = () => {
-    if (soul.invuln > 0) return false;
+  const hurt = (forced = false) => {
+    if (disposed || (!forced && soul.invuln > 0)) return false;
     battle.hurtParty(enemy.def.damage ?? 15); if (!disposed) soul.invuln = CHOIMIS_PINK_SHOOTER.invulnerability; return true;
   };
   const bossContact = createPinkBossContact(battle, enemy, hit, (target, damage) => {
@@ -101,7 +102,7 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
     x: Math.round(indicator.target.x - 33), y: Math.round(clamp(indicator.target.y - 24 - (0.55 - indicator.life) * 16, BOARD.y + 14, BOARD.y + BOARD.h - 10)) });
   const transformed = () => scenarioName !== 'choso' || phase === 'announce' || phase === 'combat' || phase === 'done';
   const scenario = createChoimisPinkScenario(scenarioName, {
-    box: BOARD, soul, images, hit, hurt, bossContact, transformed,
+    box: BOARD, soul, images, hit, hurt, bossContact, transformed, repeat: cycle > 0,
     bossAlive: () => !enemy.dead && enemy.dying <= 0 && enemy.hp > 0,
     hitTarget: registerPinkTargetHit,
     rnd: battle.rnd, sfx: (name, options) => battle.sfx(name, options),

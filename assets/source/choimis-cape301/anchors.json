@@ -1,0 +1,15 @@
+{
+  "coordinateSpace": "160x160 frame-local pixels; exclusive feet bottom",
+  "pivot": [72, 152],
+  "idle": { "hairTopY": [12, 12, 12, 12], "bodyHeight": [140, 140, 140, 140] },
+  "raise": {
+    "hairTopY": [12, 12, 14, 15],
+    "bodyHeight": [140, 140, 138, 137],
+    "totalAlphaHeight": [140, 140, 145, 146],
+    "gatherPalmFrame2": [47, 14],
+    "gatherPalmFrame3": [47, 13],
+    "gatherTorso": [69, 80]
+  },
+  "choso": { "hairTopY": [12, 12, 16, 16], "bodyHeight": [140, 140, 136, 136] },
+  "anchorVerification": "palm frame2 RGBA252,235,205,255; palm frame3 RGBA251,234,203,255; torso frame2 RGBA253,119,247,255"
+}

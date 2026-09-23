@@ -88,9 +88,9 @@ async function runBuild299({ page, open, until, press, shot, check, fixture }) {
   const select = async type => fixture(`select-${type}`, 'Select a registered config using its current alternating turn bucket; restore party HP only between rounds. No projectile, hit, time or completion injection.', type => {
     const b = game.battle, e = b.enemies[0], config = e.def.patterns.find(p => p.type === type);
     if (!config) throw new Error(`No registered ${type}`);
-    const pink = config.mode === e.def.alternatingPatternMode;
-    const bucket = e.def.patterns.filter(p => (p.mode === e.def.alternatingPatternMode) === pink);
-    e.patternIdx = bucket.indexOf(config) * 2 + Number(pink); e.hp = e.maxHp;
+    e.hp = e.maxHp;
+    for (e.patternIdx = 0; e.patternIdx < 128 && b.nextPatternConfig(e).config?.type !== type; e.patternIdx++);
+    if (e.patternIdx === 128) throw new Error(`No reachable registered ${type}`);
     b.members.forEach(m => { m.hp = m.maxHp; m.down = false; }); window.__qa299.samples = []; window.__qa299.hits = []; window.__qa299.sfx = []; window.__qa299.labels = [];
   }, type);
   const aimChoso = async () => {
@@ -103,7 +103,10 @@ async function runBuild299({ page, open, until, press, shot, check, fixture }) {
     await page.keyboard.down(key); await page.waitForTimeout(travel * 1000); await page.keyboard.up(key);
     return !!await page.evaluate(() => game.battle?.gimmick?.snapshot?.phase === 'combat');
   };
-  const types = scope === 'flow' ? ['choimis_jjajang', 'choimis_pink_choso', 'choimis_choso', 'choimis_pink_kart'] : scope === 'patterns' ? ['choimis_jjajang', 'choimis_choso', 'choimis_rap'] : ['choimis_pink_choso', 'choimis_pink_kart', 'choimis_pink_prism'];
+  const types = scope === 'flow' ? await page.evaluate(() => {
+    const b = game.battle, e = b.enemies[0];
+    return Array.from({ length: 4 }, (_, offset) => b.nextPatternConfig({ ...e, patternIdx: e.patternIdx + offset }).config.type);
+  }) : scope === 'patterns' ? ['choimis_jjajang', 'choimis_choso', 'choimis_rap'] : ['choimis_pink_choso', 'choimis_pink_kart', 'choimis_pink_prism'];
   for (const [index, type] of types.entries()) {
     if (scope !== 'flow') await select(type);
     else if (index > 0) await fixture('between-turn-hp', 'Restore party HP between naturally sequenced turns only, to isolate alternation from accumulated damage; do not change turn index.', () => game.battle.members.forEach(m => { m.hp = m.maxHp; m.down = false; }));
@@ -1002,7 +1005,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         const index = e?.def?.patterns?.findIndex(pattern => pattern?.mode === 'choimis_pink_round' && pattern.scenario === expected) ?? -1;
         window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
         if (index < 0) return false;
-        e.patternIdx = e.def.patterns.filter(pattern => pattern.mode === 'choimis_pink_round').findIndex(pattern => pattern.scenario === expected) * 2 + 1; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+        e.hp = e.maxHp;
+        for (e.patternIdx = 0; e.patternIdx < 128 && b.nextPatternConfig(e).config?.scenario !== expected; e.patternIdx++);
+        if (e.patternIdx === 128) throw new Error(`No reachable pink ${expected}`);
+        e.dead = false; e.dying = 0;
         b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
         return true;
       }, { scenario });
@@ -1321,9 +1327,12 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   };
   const activePatterns = process.env.QA_PATTERN_SOURCE === 'B' ? PATTERNS.filter(pattern => pattern.source === 'B') : PATTERNS;
   for (const pattern of activePatterns) {
-    await fixture(`pattern-select-${pattern.name}`, `Explicitly select ${pattern.type} by setting only the enemy pattern index before using the real attack/menu input. This is not a natural boss-completion claim.`, ({ index }) => {
-      const b = game.battle, e = b.enemies[0]; e.patternIdx = index; e.hp = e.maxHp; b.members.forEach(m => { m.down = false; m.hp = m.maxHp; });
-    }, { index: pattern.index });
+    await fixture(`pattern-select-${pattern.name}`, `Explicitly resolve ${pattern.type} through nextPatternConfig before using the real attack/menu input. This is not a natural boss-completion claim.`, ({ type }) => {
+      const b = game.battle, e = b.enemies[0]; e.hp = e.maxHp;
+      for (e.patternIdx = 0; e.patternIdx < 128 && b.nextPatternConfig(e).config?.type !== type; e.patternIdx++);
+      if (e.patternIdx === 128) throw new Error(`No reachable registered ${type}`);
+      b.members.forEach(m => { m.down = false; m.hp = m.maxHp; });
+    }, { type: pattern.type });
     await page.evaluate(() => { window.__choimisQa.frames = []; });
     const queued = await queueRound();
     await until(() => ['enemy-prep', 'bullets', 'board-close'].includes(window.game.battle?.state) ? true : null, 7000);
@@ -1434,7 +1443,10 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       const index = e?.def?.patterns?.findIndex(pattern => pattern?.mode === 'choimis_pink_round' && pattern.scenario === expected) ?? -1;
       window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
       if (index < 0) return false;
-      e.patternIdx = e.def.patterns.filter(pattern => pattern.mode === 'choimis_pink_round').findIndex(pattern => pattern.scenario === expected) * 2 + 1; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+      e.hp = e.maxHp;
+      for (e.patternIdx = 0; e.patternIdx < 128 && b.nextPatternConfig(e).config?.scenario !== expected; e.patternIdx++);
+      if (e.patternIdx === 128) throw new Error(`No reachable pink ${expected}`);
+      e.dead = false; e.dying = 0;
       b.memberIdx = 0; b.menuIdx = 0;
       b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
       return true;

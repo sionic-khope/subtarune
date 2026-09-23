@@ -148,7 +148,7 @@ export const CHOIMIS_PATTERNS_A = {
         api.sfx?.('laser_charge', { volume: options.chargeVolume ?? 0.18, len: options.chargeLength ?? 0.28 });
         shot++;
       }
-      while (fires.length && t >= fires[0]) { fires.shift(); api.present?.({ sheet: costume, frame: 2 }); api.sfx?.('laser_beam', { volume: options.beamVolume ?? 0.22, len: options.beamLength ?? 0.22 }); holds.push(t + 0.14); }
+      while (fires.length && t >= fires[0]) { fires.shift(); api.present?.({ sheet: costume, frame: 2 }); api.sfx?.(options.beamSfx ?? 'laser_beam', { volume: options.beamVolume ?? 0.22, len: options.beamLength ?? 0.22 }); holds.push(t + 0.14); }
       while (holds.length && t >= holds[0]) { holds.shift(); api.present?.({ sheet: costume, frame: 3 }); }
       if (!restored && t >= duration - 0.05) { restored = true; api.present?.(null); }
     } };

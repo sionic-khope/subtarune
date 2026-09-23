@@ -1,4 +1,3 @@
-import { BaronSeaChase } from './baron-sea-chase.js';
 import { drawChoimisSkyBackground } from '../battle/choimis-sky-background.js';
 
 const clamp = value => Math.max(0, Math.min(1, value));
@@ -22,7 +21,15 @@ export function rescueGeometry(scene) {
   jet.h = jet.w * ((scene.assets.images.jet?.height || 200) / (scene.assets.images.jet?.width || 400));
   const scale = jet.w / JET.width;
   const project = ([x, y]) => ({ x: jet.x + x * scale, y: jet.y + y * scale });
+  const distantWidth = 100, distantScale = distantWidth / JET.width;
+  const contactX = 237 - JET.seats[1][0] * distantScale;
+  const distantJet = { x: -110 + elapsed * (contactX + 110) / 0.65,
+    y: 193 - JET.seats[1][1] * distantScale, w: distantWidth, h: JET.height * distantScale };
+  distantJet.seats = JET.seats.map(([x, y]) => ({ x: distantJet.x + x * distantScale, y: distantJet.y + y * distantScale }));
+  const distantParty = PARTY.map((id, i) => ({ id, x: contactX + JET.seats[i][0] * distantScale,
+    y: beat === 'catch' ? 193 : 44 + clamp(elapsed / 3) * 149 }));
   return { party, petals, jet, pilot: project(JET.pilot), seats: JET.seats.map(project), fourth: project(JET.fourth), sky: SKY_BEATS.includes(beat),
+    distantJet, distantParty,
     caught: beat === 'catch' ? scene.catchCount : 3,
     choimisCaught: beat === 'flyaway' || (beat === 'save_choimis' && elapsed >= 1.5) };
 }
@@ -52,32 +59,43 @@ function sky(ctx, scene, geometry) {
   scene.bubble.draw(ctx, { x: 0, y: 0 });
 }
 
-function distant(ctx, scene) {
-  BaronSeaChase.prototype.drawOcean.call(scene, ctx);
+function nightSea(ctx, scene) {
+  const image = scene.assets.images.sky;
+  ctx.fillStyle = '#071426'; ctx.fillRect(0, 0, 480, 360);
+  if (!image) return;
+  ctx.drawImage(image, 0, 0, 480, 360);
+  ctx.save(); ctx.globalAlpha = 0.5;
+  for (let row = 0; row < 9; row++) {
+    const y = 216 + row * 16, shift = Math.floor(scene.time * (9 + row * 1.6)) % 480;
+    ctx.drawImage(image, shift, y, 480 - shift, 16, 0, y, 480 - shift, 16);
+    if (shift) ctx.drawImage(image, 0, y, shift, 16, 480 - shift, y, shift, 16);
+  }
+  ctx.restore();
+}
+
+function distant(ctx, scene, geometry) {
+  nightSea(ctx, scene);
   const catching = scene.beat === 'catch';
   for (let i = 0; i < 3; i++) {
     if (catching && i < scene.catchCount) continue;
-    const x = 204 + i * 33;
-    const y = catching ? 193 + i * 5 : 44 + Math.min(1, scene.elapsed / 3) * 149 + i * 5;
+    const { x, y } = geometry.distantParty[i];
     ctx.fillStyle = '#d7edff'; ctx.fillRect(x, Math.round(y - 23), 1, 15);
     ctx.fillStyle = ['#f4f1df', '#18283a', '#4b67bc'][i]; ctx.fillRect(x - 2, Math.round(y), 4, 6);
   }
   if (catching) {
-    const index = Math.min(2, Math.floor(scene.elapsed / 0.32));
-    const progress = clamp((scene.elapsed - index * 0.32) / 0.32);
-    const width = 57, height = width * JET.height / JET.width;
-    const contactX = 204 + index * 33 - JET.seats[1][0] * width / JET.width;
-    const x = -70 + progress * (contactX + 70) / (0.18 / 0.32);
-    const y = 193 + index * 5 - JET.seats[1][1] * width / JET.width;
+    const { x, y, w: width, h: height, seats } = geometry.distantJet;
     ctx.globalAlpha = 0.7; ctx.fillStyle = '#dffbff';
     for (let i = 0; i < 5; i++) ctx.fillRect(Math.round(x - i * 22), y + i % 2 * 4, 34, 2);
     ctx.globalAlpha = 1;
     if (scene.assets.images.jet) ctx.drawImage(scene.assets.images.jet, Math.round(x), Math.round(y), width, Math.round(height));
+    if (scene.catchCount === 3) for (const [i, seat] of seats.entries()) {
+      ctx.fillStyle = ['#f4f1df', '#b1bad1', '#4b67bc'][i]; ctx.fillRect(Math.round(seat.x - 2), Math.round(seat.y - 6), 4, 6);
+    }
   }
 }
 
 function flying(ctx, scene, geometry) {
-  BaronSeaChase.prototype.drawOcean.call(scene, ctx);
+  nightSea(ctx, scene);
   ctx.save(); ctx.globalAlpha = 0.3; ctx.fillStyle = '#e4f8ff';
   for (let i = 0; i < 12; i++) {
     const x = (i * 67 - scene.time * (46 + i % 4 * 13)) % 600;
@@ -108,7 +126,7 @@ export function drawChoimisRescue(ctx, scene) {
   const geometry = rescueGeometry(scene);
   ctx.save(); ctx.imageSmoothingEnabled = false;
   if (geometry.sky) sky(ctx, scene, geometry);
-  else if (scene.beat === 'ocean_fall' || scene.beat === 'catch') distant(ctx, scene);
+  else if (scene.beat === 'ocean_fall' || scene.beat === 'catch') distant(ctx, scene, geometry);
   else flying(ctx, scene, geometry);
   ctx.restore();
 }

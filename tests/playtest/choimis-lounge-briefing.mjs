@@ -134,7 +134,7 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
   const music = q.audio.filter(a => a.kind === 'bgm' && a.name === 'storage_show'), laughLine = q.lines.find(l => l.text === '* ㅋㅋ');
   check('Youngcle song starts from zero at his laugh exactly once', music.length === 1 && Math.abs(music[0].at - laughLine.at) < 120 && music[0].samples.some(s => s.delay === 100 && s.time < 0.3) && music[0].samples.some(s => s.delay === 1500 && s.time > 1 && !s.paused), JSON.stringify(music));
   check('active Queen media uses the existing complete source file', music.some(a => a.samples.some(s => s.src?.includes('/assets/audio/bgm/storage_show.mp3') && s.duration > 56.6 && s.duration < 56.9)));
-  check('Junhee line is interrupted automatically with no C input', evidence.laughAutomatic?.nextText?.startsWith('* 그래서 니들은 일단 여기서 준비만 하면 될거고') && evidence.laughAutomatic.elapsedMs < 6000, JSON.stringify(evidence.laughAutomatic));
+  check('Junhee line is interrupted quickly and automatically with no C input', evidence.laughAutomatic?.nextText?.startsWith('* 그래서 니들은 일단 여기서 준비만 하면 될거고') && evidence.laughAutomatic.elapsedMs < 1500, JSON.stringify(evidence.laughAutomatic));
   check('Junhee laugh actually starts and is interrupted before full playback', q.audio.some(a => a.name === 'laugh_junhee' && a.samples.some(s => s.time > 0 && !s.paused) && a.samples.some(s => s.delay >= 850 && s.paused)), JSON.stringify(q.audio.filter(a => a.name === 'laugh_junhee')));
   const shopCamera = q.samples.filter(s => s.label === 'shop_run').map(s => s.camera.y);
   check('camera follows Yongjun to the lower shop', shopCamera.length > 2 && Math.max(...shopCamera) - Math.min(...shopCamera) > 300);
@@ -154,6 +154,7 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
       const text = await page.evaluate(() => game.textbox.node?.text);
       check(`${id} has a live postbriefing interaction`, typeof text === 'string' && text.length > 3, String(text));
       evidence.arrival.interactions.push({ id, text });
+      if (id.includes('park_guardian')) check('Park dialogue uses the actual costume face rather than a generic fallback', await page.evaluate(() => game.textbox.node.portrait === 'park_guardian_costume' && !!game.spriteOverrides.park_guardian_costume && !!game.textbox.portrait && game.textbox.portrait === game.portraits.park_guardian_costume));
       if (await page.evaluate(() => game.textbox.state === 'typing')) await key('KeyC');
       await shot(`npc-${id}`); await finishText();
     }

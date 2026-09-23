@@ -11,7 +11,7 @@
 //
 // 새 스토리 비트 추가: STAGES 에 한 줄(id, 설명, 그 시점의 맵/스폰) → 스크립트에서 `{ stage:'id' }`.
 // ─────────────────────────────────────────────────────────────
-import { YONGJUN_SHOP } from '../data/shops.js';
+import { YONGJUN_SHOP, YONGJUN_RESCUE_SHOP } from '../data/shops.js';
 import { SHIP_ASSAULT, isShipPursuitMap } from '../data/ship-assault.js';
 
 export const STAGES = [
@@ -143,7 +143,7 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
     if (r.hpBonus) out.hpBonus += r.hpBonus;
   }
   for (const m of Object.values(maps)) for (const e of (m?.entities || [])) if (e.type === 'enemy' && e.unless && flags[e.unless]) for (const id of (e.enemies || [])) out.money += enemyMoney(id);
-  for (const item of YONGJUN_SHOP) {
+  for (const item of [...YONGJUN_SHOP, ...YONGJUN_RESCUE_SHOP]) {
     if (!item.onceFlag || !flags[item.onceFlag]) continue;
     out.attack += item.stat?.attack || 0;
     out.hpBonus += item.stat?.hpBonus || 0;

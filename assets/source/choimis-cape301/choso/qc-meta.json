@@ -1,0 +1,167 @@
+{
+  "status": "asset-only; not integrated; user appearance approval pending",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sheetSize": [
+    320,
+    320
+  ],
+  "cellSize": [
+    160,
+    160
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pivot": [
+    72,
+    152
+  ],
+  "durationsMs": [
+    220,
+    260,
+    150,
+    260
+  ],
+  "loop": true,
+  "resample": "NEAREST",
+  "alphaThreshold": 128,
+  "chromaRemoval": false,
+  "commonScale": 0.2597402597402597,
+  "rawBboxes": [
+    [
+      231,
+      48,
+      500,
+      587
+    ],
+    [
+      205,
+      48,
+      472,
+      587
+    ],
+    [
+      188,
+      38,
+      554,
+      561
+    ],
+    [
+      173,
+      38,
+      528,
+      561
+    ]
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "bbox": [
+        37,
+        12,
+        107,
+        152
+      ],
+      "bodyHeight": 140,
+      "oldBodyHeight": 123,
+      "pinkPixels": 0,
+      "feetMidpointX": 72.0,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        37,
+        12
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "8cc28486774f9855881ea4aa3b3c5cc3a5c71482b1f6ee72822f9f4a20b4840e"
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        38,
+        12,
+        107,
+        152
+      ],
+      "bodyHeight": 140,
+      "oldBodyHeight": 123,
+      "pinkPixels": 0,
+      "feetMidpointX": 72.0,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        38,
+        12
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "83a4617e18e7cde10fabf48f2adf0af71addcccd33fc9944d07f42131cae5244"
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        16,
+        16,
+        111,
+        152
+      ],
+      "bodyHeight": 136,
+      "oldBodyHeight": 122,
+      "pinkPixels": 0,
+      "feetMidpointX": 71.5,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        16,
+        16
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "321cd134821dd3b362085debc3168cb3b55a6b3001a15eb40f8a1e79ff0b400e"
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        20,
+        16,
+        112,
+        152
+      ],
+      "bodyHeight": 136,
+      "oldBodyHeight": 121,
+      "pinkPixels": 0,
+      "feetMidpointX": 72.5,
+      "feetBottomYExclusive": 152,
+      "paste": [
+        20,
+        16
+      ],
+      "pasteClamped": false,
+      "edgeTouch": false,
+      "sha256RGBA": "bb4bfdf5873b6b0917ed0f4127f82000724835012e258e8c660c485034e31386"
+    }
+  ],
+  "bodyHeightMean": 138.0,
+  "oldBodyHeightMean": 122.25,
+  "heightIncreasePercent": 12.883435582822077,
+  "bodyHeightCV": 0.014492753623188406,
+  "uniqueRGBAFrames": 4,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "outputEdgeTouchFrames": [],
+  "pasteClampedFrames": [],
+  "processorMetadata": "processor/pipeline-meta.json",
+  "rawSHA256": "9e01b35a05b15128b3f0c0311a7096c95c660e1a675997117f9cb4aef15745d5",
+  "oldReferenceSHA256": "bf4c7a0c04d7b306db7770bece6483158a08789fed96495e3365762e1dfce51f",
+  "processorSHA256": "7a7b1fb3730cf21b733928119d899aa73a5b9db374a5041690b0d1f959f9633b"
+}

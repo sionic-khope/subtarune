@@ -14,18 +14,20 @@ export function createChoimisFinale(battle, { enemy }) {
   enemy.patternPose = { hidden: true };
   battle.bubble = null;
   const stop = handle => { if (!handle) return; handle.pause?.(); handle.removeAttribute?.('src'); handle.load?.(); sounds.delete(handle); };
-  const cue = (name, volume = 0.85) => {
-    const handle = battle.game.sound.sfx(name, { volume });
+  const cue = (name, volume = 0.85, options = {}) => {
+    const handle = battle.game.sound.sfx(name, { volume, ...options });
     if (handle) sounds.add(handle);
     return handle;
   };
-  let chargeHandle = null;
+  let chargeHandle = null, impactHandle = null;
   const change = next => { phase = next; phaseTime = 0; };
   const stopAssault = () => {
     if (!assault) return;
     finalAssault = assault.snapshot;
     heart = { ...finalAssault.heart };
-    boss = { x: finalAssault.boss.x, y: finalAssault.boss.y + 72 * (enemy.def.scale ?? 1) * (enemy.def.scaleY ?? 1) };
+    const pivot = enemy.def.pivot || [80, 152], scale = enemy.def.scale ?? 1;
+    boss = { x: finalAssault.boss.x + (pivot[0] - 80) * scale,
+      y: finalAssault.boss.y + (pivot[1] - 80) * scale * (enemy.def.scaleY ?? 1) };
     assault.dispose(); assault = null;
   };
   const enter = next => {
@@ -45,12 +47,16 @@ export function createChoimisFinale(battle, { enemy }) {
       if (chargeHandle) chargeHandle.loop = true;
     }
     if (next === 'shot') { stop(chargeHandle); chargeHandle = null; cue('yellowheart_shot_big', 0.95); }
-    if (next === 'impact') { cue('deltarune_release_shoot'); cue('energetic_powershot', 0.8); battle.game.shake = { time: 0.6, amp: 9 }; }
+    if (next === 'impact') impactHandle = cue('furnace_blast', 0.8, { rate: 0.8, pitch: true });
     if (next === 'smoke') renderer.beginSmoke(boss);
+    if (next === 'revert') { stop(impactHandle); impactHandle = null; }
     if (next === 'fall') { fallStartY = boss.y; cue('wing', 0.75); }
   };
   const transitions = { raise: 'gather', gather: 'assault', bursts: 'death-talk', autocharge: 'shot', shot: 'impact', impact: 'flash', flash: 'smoke', smoke: 'revert', revert: 'fall' };
   const snapshot = () => ({ phase, phaseTime, elapsed, disposed, boss: { ...boss }, heart: { ...heart },
+    impactPoint: { x: (finalAssault?.boss.x ?? boss.x) - 24, y: finalAssault?.boss.y ?? boss.y - 38 },
+    impactTime: phase === 'impact' ? Math.max(0, phaseTime - C.impact.hitstop) * C.impact.timeScale : 0,
+    impactFlash: phase === 'impact' && phaseTime < C.impact.flashSeconds,
     normal: ['revert', 'fall', 'done'].includes(phase), assault: assault?.snapshot || finalAssault, burstCount,
     chargeProgress: phase === 'autocharge' ? Math.min(1, phaseTime / C.seconds.autocharge) : 0 });
   const dispose = () => {

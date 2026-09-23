@@ -128,9 +128,13 @@ test('test_choimis_choso_locks_each_aim_after_warning_and_restores_the_idle_cost
   assert.deepEqual([...new Set(result.poses.filter(({ pose }) => pose?.sheet === 'choso').map(({ pose }) => pose.frame))], [0, 1, 2, 3]);
   const gaps = beams.slice(1).map(({ at }, index) => at - beams[index].at);
   assert.ok(gaps.some((gap) => gap >= 1.1), 'volley includes a safe interlude');
-  const cues = result.sounds.filter(sound => sound.name.startsWith('laser_'));
-  assert.equal(cues.length, 12);
-  assert.ok(cues.every(cue => cue.options.volume <= 0.22 && cue.options.len > 0 && cue.options.len <= 0.28), 'original charge/fire clips have short bounded quiet playback');
+  const charges = result.sounds.filter(sound => sound.name === 'laser_charge');
+  const releases = result.sounds.filter(sound => sound.name === 'choimis_piercing_blood');
+  assert.equal(charges.length, 6);
+  assert.equal(releases.length, 6);
+  assert.ok(charges.every(cue => cue.options.volume === 0.18 && cue.options.len === 0.28));
+  assert.ok(releases.every(cue => cue.options.volume === 0.6 && cue.options.len === 0), 'the new short piercing clip plays fully once per release');
+  assert.ok(!result.sounds.some(sound => sound.name === 'laser_beam'));
 });
 
 test('test_choimis_money_announces_1500_and_scatters_recognizable_warned_notes', () => {

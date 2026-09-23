@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ChoimisRescue, finishChoimisRescue } from '../../src/scenes/choimis-rescue.js';
-import { rescueGeometry } from '../../src/scenes/choimis-rescue-render.js';
+import { drawChoimisRescue, rescueGeometry } from '../../src/scenes/choimis-rescue-render.js';
 import { CHOIMIS_RESCUE_NODES, choimis_rescue } from '../../src/data/cutscenes/choimis_rescue.js';
 import { choimis_sky } from '../../src/data/cutscenes/choimis_sky.js';
 
@@ -40,6 +40,13 @@ test('victory goes directly to shared rescue and then the authored lounge spawn'
   assert.ok(CHOIMIS_RESCUE_NODES.findIndex(n => n.stage) > CHOIMIS_RESCUE_NODES.findIndex(n => n.rescueBeat === 'flyaway'));
 });
 
+test('common victory black fade is explicitly cleared before any rescue dialogue', () => {
+  const firstText = CHOIMIS_RESCUE_NODES.findIndex(n => n.text);
+  const reveal = CHOIMIS_RESCUE_NODES.slice(1, firstText).find(n => n.fade === 'in');
+  assert.ok(reveal, 'Battle.finish leaves alpha1: rescue needs a fade-in before its first C-blocked line');
+  assert.ok(reveal.duration > 0 && reveal.duration <= 0.8);
+});
+
 test('petals disappear gradually before the three sequential three-dot reactions', () => {
   const { scene } = setup();
   assert.equal(rescueGeometry(scene).petals, 1);
@@ -68,13 +75,13 @@ test('fall moves all three actors offscreen before the distant ocean camera', ()
   scene.setBeat('ocean_fall'); assert.equal(scene.snapshot().sky, false);
 });
 
-test('three catches are contact-timed and do not repeat while scene remains visible', () => {
+test('one flyby catches all three simultaneously with only one pickup cue', () => {
   const { scene, sounds } = setup(); scene.setBeat('catch');
-  scene.update(0.17); assert.equal(scene.catchCount, 0);
-  scene.update(0.02); assert.equal(scene.catchCount, 1);
-  scene.update(0.32); assert.equal(scene.catchCount, 2);
-  scene.update(0.32); assert.equal(scene.catchCount, 3);
-  scene.update(4); assert.equal(sounds.filter(s => s === 'wing').length, 3);
+  scene.update(0.64); assert.equal(scene.catchCount, 0);
+  scene.update(0.01); assert.equal(scene.catchCount, 3);
+  const { distantJet, distantParty } = scene.snapshot();
+  distantParty.forEach((actor, i) => { assert.ok(Math.abs(actor.x - distantJet.seats[i].x) < 0.01); assert.equal(actor.y, distantJet.seats[i].y); });
+  scene.update(4); assert.equal(sounds.filter(s => s === 'wing').length, 1);
 });
 
 test('jet flight keeps moving during dialogue and rescues normal Choimis before departure', () => {
@@ -83,6 +90,20 @@ test('jet flight keeps moving during dialogue and rescues normal Choimis before 
   scene.setBeat('spot_choimis'); assert.equal(scene.snapshot().choimisCaught, false);
   scene.setBeat('save_choimis'); scene.update(1.51); assert.equal(scene.snapshot().choimisCaught, true);
   scene.setBeat('flyaway'); scene.update(2); assert.ok(scene.snapshot().jet.x > 480);
+});
+
+test('distant and close rescue retain the same approved night sky and moving ocean', () => {
+  const { scene } = setup(), sky = { width: 480, height: 360 }, calls = [];
+  scene.assets.images.sky = sky;
+  const ctx = new Proxy({ drawImage: (...args) => calls.push(args) }, {
+    get: (target, key) => key in target ? target[key] : () => {},
+  });
+  for (const beat of ['ocean_fall', 'catch', 'jet_reveal', 'spot_choimis']) {
+    scene.setBeat(beat); scene.update(0.2); calls.length = 0;
+    drawChoimisRescue(ctx, scene);
+    assert.deepEqual(calls[0], [sky, 0, 0, 480, 360]);
+    assert.ok(calls.some(call => call[0] === sky && call.length === 9 && call[2] >= 216));
+  }
 });
 
 test('abort disposes handles, assets and script without setting completion or late cues', () => {

@@ -6,6 +6,7 @@ import { ENEMIES } from '../../src/data/enemies.js';
 import { getBattleMode } from '../../src/battle/modes.js';
 import { createChoimisPinkRound } from '../../src/battle/modes/choimis-pink-round.js';
 import { createChoimisEatingRace, CHOIMIS_EATING_RACE } from '../../src/battle/modes/choimis-eating-race.js';
+import { stateFromFlags } from '../../src/core/story.js';
 
 const input = { just: () => false, down: () => false };
 
@@ -13,7 +14,7 @@ test('test_choimis_finale_is_registered_with_preloaded_raise_and_normal_body', (
   assert.equal(typeof getBattleMode('enemy', 'choimis_finale'), 'function');
   assert.deepEqual(ENEMIES.choimis_flower.actions.raise, {
     src: 'assets/enemies/choimis-flower-raise.png', cols: 2, rows: 2, count: 4,
-    fps: 4.5, px: 1, pivot: [80, 152],
+    fps: 4.5, px: 1, pivot: [72, 152],
   });
   assert.equal(ENEMIES.choimis_flower.projectiles.normal, 'assets/sprites/choimis.png');
 });
@@ -108,6 +109,7 @@ test('test_choimis_retry_resets_pending_started_complete_and_rearms_opening', ()
   assert.equal(enemy.hp, enemy.maxHp);
   for (const field of ['finalePending', 'finaleStarted', 'finaleComplete']) assert.equal(enemy[field], false);
   assert.equal(battle.takeOpeningMode(), 'choimis_pink_shooter');
+  assert.equal(battle.game.money, 0);
 });
 
 test('test_lethal_hit_inside_real_pink_round_keeps_full_eighteen_seconds_and_restores_pose', () => {
@@ -171,7 +173,8 @@ test('test_finale_mode_completion_reaches_common_win_once_after_cinematic', () =
   let complete = false, disposed = 0, wins = 0;
   enemy.hp = 1; enemy.finaleStarted = true;
   battle.state = 'enemy-mode'; battle.activeEnemyMode = 'choimis_finale';
-  battle.beginWin = function () { wins++; this.state = 'win'; };
+  battle.game.money = 75;
+  battle.beginWin = function () { wins++; Battle.prototype.beginWin.call(this); };
   battle.gimmick = {
     update() {
       if (!complete) return false;
@@ -182,10 +185,21 @@ test('test_finale_mode_completion_reaches_common_win_once_after_cinematic', () =
   };
   battle.update(1 / 60, input);
   assert.equal(wins, 0);
+  assert.equal(battle.game.money, 75);
   complete = true;
   battle.update(1 / 60, input);
   battle.update(1 / 60, input);
   assert.equal(wins, 1);
   assert.equal(disposed, 1);
   assert.equal(enemy.finaleComplete, true);
+  assert.equal(battle.game.money, 15000075);
+  for (let step = 0; step < 60; step++) battle.update(1 / 60, input);
+  assert.equal(battle.game.money, 15000075);
+});
+
+test('test_choimis_won_checkpoint_derives_reward_once_across_rescue_flags', () => {
+  const options = { enemyMoney: id => ENEMIES[id]?.money ?? 0 };
+  assert.equal(stateFromFlags({}, options).money, 0);
+  assert.equal(stateFromFlags({ choimis_flower_won: true }, options).money, 15000000);
+  assert.equal(stateFromFlags({ choimis_flower_won: true, choimis_rescued: true, ship_lounge_briefed: true }, options).money, 15000000);
 });

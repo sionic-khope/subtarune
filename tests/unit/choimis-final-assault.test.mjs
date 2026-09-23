@@ -103,3 +103,21 @@ test('disposal cancels charge, clears projectiles, restores soul and cannot fini
   assert.equal(battle.soul.y, 170);
   assert.equal(mode.update(60, input()), false);
 });
+
+test('test_final_assault_contact_milestones_show_three_nonblocking_balloons_once_and_preserve_survival', () => {
+  const { mode, battle, enemy } = fixture();
+  const lines = [], thresholds = [];
+  for (let frame = 0; frame < 3599; frame++) {
+    battle.soul.y = mode.snapshot.boss.y;
+    assert.equal(mode.update(1 / 60, input(...(frame % 24 === 1 ? ['confirm'] : []))), false);
+    const bubble = mode.snapshot.bubble;
+    if (bubble && !lines.includes(bubble.text)) { lines.push(bubble.text); thresholds.push(mode.snapshot.contacts); }
+  }
+  assert.deepEqual(lines, ['아직이다.', '아직 쓰러질 수 없어.', '쓰읍 미스']);
+  assert.ok(thresholds[0] < thresholds[1] && thresholds[1] < thresholds[2]);
+  assert.equal(mode.snapshot.bubblesShown, 3);
+  assert.equal(enemy.hp, 1);
+  assert.equal(mode.update(1 / 60, input()), true);
+  mode.dispose();
+  assert.equal(mode.snapshot.bubble, null);
+});

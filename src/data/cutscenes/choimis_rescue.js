@@ -11,6 +11,7 @@ const beat = name => ({ rescueBeat: name, action: game => game.choimisRescue.set
 export const CHOIMIS_RESCUE_NODES = [
   { action: startChoimisRescue },
   { bgm: null },
+  { fade: 'in', duration: 0.65 },
   P('휴 드디어 잡았네요'),
   G('ㅋㅋ 그니까 근데 여기 진짜 높다.'),
   P('잠깐 근데 이거 하늘을 날수있는 이유가..'),

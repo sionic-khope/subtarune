@@ -7,8 +7,10 @@ BASE_URL_SCENARIOS.add('choimis-sky-battle');
 BASE_URL_SCENARIOS.add('choimis-eating-race');
 BASE_URL_SCENARIOS.add('choimis-finale');
 BASE_URL_SCENARIOS.add('choimis-rescue');
+BASE_URL_SCENARIOS.add('choimis-win-rescue');
 BASE_URL_SCENARIOS.add('choimis-return');
 BASE_URL_SCENARIOS.add('choimis-lounge-briefing');
+BASE_URL_SCENARIOS.add('choimis-301');
 BASE_URL_SCENARIOS.add('jjajang-night-coast');
 BASE_URL_SCENARIOS.add('jjajang-night-coast-visual');
 

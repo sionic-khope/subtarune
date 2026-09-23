@@ -64,11 +64,11 @@ export const shipLoungeScripts = {
     { speaker: '따듯한비데', portrait: 'warm_bidet', voice: 'warm_bidet', text: '* 어서 오세요.{n}* 쉬고 나면 할 일도 잊지 마시고요.' },
   ], [{ speaker: '따듯한비데', portrait: 'warm_bidet', voice: 'warm_bidet', text: '* 침공 전에 마음부터 따뜻하게 하시죠.{n}* 수압은 전투용으로 맞춰 뒀습니다.' }]),
   ship_lounge_park_guardian: afterRescue([
-    { speaker: '파크가디언', portrait: 'park_guardian', voice: 'park_guardian_costume', text: '* 훗훗... 여기선 안 싸워요.{n}* 라운지는 다 같이 쓰는 거라구요.' },
+    { speaker: '파크가디언', portrait: 'park_guardian_costume', voice: 'park_guardian_costume', text: '* 훗훗... 여기선 안 싸워요.{n}* 라운지는 다 같이 쓰는 거라구요.' },
   ], [
-    { speaker: '파크가디언', portrait: 'park_guardian', voice: 'park_guardian_costume', text: '* 훗훗, 성에서도 공연해도 되나요?' },
+    { speaker: '파크가디언', portrait: 'park_guardian_costume', voice: 'park_guardian_costume', text: '* 훗훗, 성에서도 공연해도 되나요?' },
     { hop: 'lounge_park_guardian', by: [0, 0], height: 7, duration: 0.4, keep: true, sfx: false },
-    { speaker: '파크가디언', portrait: 'park_guardian', voice: 'park_guardian_costume', text: '* 인형탈은 이제 안 벗겨요.{n}* 단추도 두 번 잠갔지롱.' },
+    { speaker: '파크가디언', portrait: 'park_guardian_costume', voice: 'park_guardian_costume', text: '* 인형탈은 이제 안 벗겨요.{n}* 단추도 두 번 잠갔지롱.' },
   ]),
   ship_lounge_mini_mario: [
     // 마리오 점프 소리(2026-09-18 사용자 “마리오 점프는 마리오 점프 소리가 나야지”): 기존 sfx/mario_jump.mp3(SMB Jump small)

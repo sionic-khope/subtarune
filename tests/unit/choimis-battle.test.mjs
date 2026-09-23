@@ -11,15 +11,17 @@ import { choimisLyricAt, drawChoimisKaraoke } from '../../src/battle/choimis-kar
 test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   const enemy = ENEMIES.choimis_flower;
   assert.equal(enemy.hp, 200);
+  assert.equal(enemy.money, 15000000);
   assert.equal(enemy.boss, true);
   assert.deepEqual(enemy.sheet, { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 });
-  assert.deepEqual(enemy.pivot, [80, 152]);
+  assert.deepEqual(enemy.pivot, [72, 152]);
   assert.equal(enemy.lines.appear, '* 최미스가 승부를 걸어왔다.');
   assert.deepEqual(enemy.lines.idle, ['* 짜장면의 냄새가 풍긴다.', '* 핑크색이 보인다.']);
   assert.equal(enemy.idle.swayX, 0);
   assert.equal(enemy.idle.swayY, 0);
-  assert.equal(enemy.scale, 0.506);
-  assert.equal(enemy.scaleY, 1.2);
+  assert.equal(enemy.scale, 0.714);
+  assert.equal(enemy.scaleY, 1);
+  assert.ok(Math.abs(140 * enemy.scale / (117.5 * 0.506 * 1.2) - 1.4) < 0.002);
   assert.equal(ENEMIES.drum_devil.scaleY, undefined);
   assert.equal(enemy.actions.choso.src, 'assets/enemies/choimis-choso.png');
   assert.deepEqual(enemy.projectiles, {
@@ -31,29 +33,37 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     bazzi: 'assets/enemies/bazzi-battle.png',
     daoKart: 'assets/props/choimis-dao-kart.png',
     bazziKart: 'assets/props/choimis-bazzi-kart.png',
+    gasuni1: 'assets/sprites/gasuni1.png',
+    gasuni2: 'assets/sprites/gasuni2.png',
+    gasuni3: 'assets/sprites/gasuni3.png',
+    gasuni4: 'assets/sprites/gasuni4.png',
+    gasuni5: 'assets/sprites/gasuni5.png',
+    gasuni6: 'assets/sprites/gasuni6.png',
+    jeomnye: 'assets/sprites/jeomnye.png',
   });
   assert.deepEqual(enemy.patterns.map(pattern => [pattern.type, pattern.speak]), [
     ['choimis_jjajang', '내 짜장면 맛 좀 볼래?'],
     ['choimis_choso', '내 추구미는 쵸소우야'],
     ['choimis_rap', '요 최미스 래퍼딱지를때이젠앰씨로 포에버 포에버'],
     ['choimis_money', '가져가라.'],
+    ['choimis_eating_race', '짜장면 먹방 대결해볼까? 들어와'],
     ['choimis_seup', '스읍 미스'],
     ['choimis_fashion', '이거 패션어떰?'],
     ['choimis_pink_choso', '내 추구미는 쵸소우야'],
     ['choimis_pink_kart', '막자할게'],
     ['choimis_pink_prism', '차징해서 쏜 공격 아닌 이상 이 코어들은 무너지지 않아.'],
-    ['choimis_eating_race', '짜장면 먹방 대결해볼까? 들어와'],
+    ['choimis_pink_gasuni', '가순이들아 나에게 힘을줘!'],
   ]);
   assert.equal(enemy.openingMode, 'choimis_pink_shooter');
   assert.deepEqual(enemy.openingLines.map(line => [line.speaker, line.portrait, line.voice, line.text]), [
     ['최미스', 'choimis_flower', 'choimis_flower', '* 형들 꼭 그렇게 저를 막으셔야겠다면'],
     ['최미스', 'choimis_flower', 'choimis_flower', '* 여러분들의 마음을 핑크로 물들여보세요.'],
   ]);
-  assert.ok(enemy.patterns.slice(0, 6).every(pattern => typeof PATTERNS[pattern.type] === 'function'));
-  assert.ok(enemy.patterns.slice(6).every(pattern => typeof getBattleMode('enemy', pattern.mode) === 'function'));
+  assert.ok(enemy.patterns.filter(pattern => !pattern.mode).every(pattern => typeof PATTERNS[pattern.type] === 'function'));
+  assert.ok(enemy.patterns.filter(pattern => pattern.mode).every(pattern => typeof getBattleMode('enemy', pattern.mode) === 'function'));
 });
 
-test('test_choimis_battle_vertical_scale_keeps_width_and_foot_anchor_for_idle_and_actions', () => {
+test('test_choimis_battle_taller_art_keeps_native_aspect_and_foot_anchor_for_idle_and_actions', () => {
   const draws = [];
   const ctx = {
     globalAlpha: 1, filter: '', save() {}, restore() {}, translate() {}, scale() {},
@@ -62,29 +72,31 @@ test('test_choimis_battle_vertical_scale_keeps_width_and_foot_anchor_for_idle_an
   const battle = Object.assign(Object.create(Battle.prototype), { support: null, t: 0, game: { time: 0 } });
   const image = { width: 320, height: 320 };
   const enemy = {
-    id: 'choimis_flower', def: ENEMIES.choimis_flower, img: image, actionImages: { choso: image },
+    id: 'choimis_flower', def: ENEMIES.choimis_flower, img: image, actionImages: { choso: image, raise: image },
     x: 396, y: 176, hp: 200, maxHp: 200, dead: false, dying: 0, shake: 0, blink: 0, popup: null,
     patternPose: null,
   };
   const assertTallDraw = call => {
     const [, , , sourceW, sourceH, left, top, width, height] = call;
-    assert.deepEqual([sourceW, sourceH, width, height], [160, 160, 81, 97]);
+    assert.deepEqual([sourceW, sourceH, width, height], [160, 160, 114, 114]);
     assert.equal(left + Math.round(ENEMIES.choimis_flower.pivot[0] * ENEMIES.choimis_flower.scale), enemy.x);
     assert.equal(top + Math.round(ENEMIES.choimis_flower.pivot[1] * ENEMIES.choimis_flower.scale * ENEMIES.choimis_flower.scaleY), enemy.y);
   };
   battle.drawEnemy(ctx, enemy);
   assertTallDraw(draws.at(-1));
-  draws.length = 0;
-  enemy.patternPose = { sheet: 'choso', frame: 0 };
-  battle.drawEnemy(ctx, enemy);
-  assertTallDraw(draws.at(-1));
+  for (const sheet of ['choso', 'raise']) {
+    draws.length = 0;
+    enemy.patternPose = { sheet, frame: 0 };
+    battle.drawEnemy(ctx, enemy);
+    assertTallDraw(draws.at(-1));
+  }
 
   draws.length = 0;
   const ordinary = { ...enemy, id: 'ordinary', def: { ...ENEMIES.choimis_flower, scaleY: undefined }, patternPose: null };
   battle.drawEnemy(ctx, ordinary);
   const ordinaryDraw = draws.at(-1);
-  assert.deepEqual(ordinaryDraw.slice(-2), [81, 81]);
-  assert.equal(ordinaryDraw[6] + Math.round(152 * 0.506), ordinary.y);
+  assert.deepEqual(ordinaryDraw.slice(-2), [114, 114]);
+  assert.equal(ordinaryDraw[6] + Math.round(152 * 0.714), ordinary.y);
 });
 
 test('test_choimis_opening_mode_runs_once_per_attempt_and_retry_rearms_it', () => {
@@ -112,31 +124,36 @@ test('test_choimis_actual_turn_dispatch_alternates_independent_cycles_and_retry_
     rnd: () => 0.5, setText() {}, sfx() {}, cancelPendingBgm() {},
     game: { fadeTo() {}, sound: { preloadBgm() {}, blip() {} } },
   });
-  const regular = ['choimis_jjajang', 'choimis_choso', 'choimis_rap', 'choimis_money', 'choimis_seup', 'choimis_fashion', 'choimis_eating_race'];
-  const pink = ['choimis_pink_choso', 'choimis_pink_kart', 'choimis_pink_prism'];
-  const instantiated = [], originals = new Map(regular.filter(type => PATTERNS[type]).map(type => [type, PATTERNS[type]]));
+  const regular = ['choimis_jjajang', 'choimis_choso', 'choimis_rap', 'choimis_money', 'choimis_eating_race', 'choimis_seup', 'choimis_fashion'];
+  const pink = ['choimis_pink_choso', 'choimis_pink_kart', 'choimis_pink_prism', 'choimis_pink_gasuni'];
+  const instantiated = [], selectedTypes = [], originals = new Map(regular.filter(type => PATTERNS[type]).map(type => [type, PATTERNS[type]]));
   for (const [type, create] of originals) PATTERNS[type] = config => { instantiated.push(config.type); return create(config); };
   try {
     assert.equal(battle.takeOpeningMode(), 'choimis_pink_shooter');
     battle.startEnemyMode('choimis_pink_shooter');
     assert.equal(enemy.patternIdx, 0, 'mandatory opening consumes no ordinary turn');
     battle.disposeGimmick();
-    for (let turn = 0; turn < 86; turn++) {
-      const expected = turn % 2 ? pink[Math.floor(turn / 2) % pink.length] : regular[Math.floor(turn / 2) % regular.length];
+    for (let turn = 0; turn < 114; turn++) {
       const selected = battle.nextPatternConfig(enemy).config;
-      assert.equal(selected.type, expected, `selected turn ${turn}`);
+      if (turn % 2 === 0) assert.equal(selected.type, regular[Math.floor(turn / 2) % regular.length], `selected turn ${turn}`);
+      assert.equal(!!selected.mode && selected.mode === 'choimis_pink_round', turn % 2 === 1);
+      selectedTypes.push(selected.type);
+      assert.equal(battle.nextPatternConfig(enemy).config, selected, 'preview is stable');
+      assert.equal([selectedTypes.at(-2), selected.type].filter(type => ['choimis_choso', 'choimis_pink_choso'].includes(type)).length === 2, false, `choso forms cannot be adjacent at turn ${turn}`);
+      if (turn % 8 === 7) assert.deepEqual(selectedTypes.slice(-8).filter((_, slot) => slot % 2).sort(), [...pink].sort(), 'every four pink rounds retains all four attacks');
       assert.equal(enemy.patternIdx, turn, 'preview does not consume a turn');
       battle.beginEnemyTurn();
       if (selected.mode) {
         assert.equal(battle.state, 'enemy-mode');
         assert.equal(battle.activeEnemyMode, selected.mode);
+        if (selected.scenario === 'choso') assert.equal(battle.gimmick.snapshot.scenario.repeat, Math.floor(turn / 8) > 0, 'later pink choso rounds enable blood orbs');
         battle.disposeGimmick();
       } else {
         assert.equal(battle.state, 'enemy-prep');
         assert.equal(battle.bubble.text, selected.speak, 'speech uses the same selected config');
         assert.equal(enemy.patternIdx, turn, 'ordinary prep does not advance early');
         battle.beginBullets();
-        assert.equal(instantiated.at(-1), expected, 'real bullet constructor uses the selected config');
+        assert.equal(instantiated.at(-1), selected.type, 'real bullet constructor uses the selected config');
       }
       assert.equal(enemy.patternIdx, turn + 1, 'every mode advances exactly once');
     }
@@ -146,7 +163,7 @@ test('test_choimis_actual_turn_dispatch_alternates_independent_cycles_and_retry_
     assert.equal(battle.takeOpeningMode(), null);
     assert.equal(battle.nextPatternConfig(enemy).config.type, 'choimis_jjajang');
     battle.beginEnemyTurn(); battle.beginBullets();
-    assert.equal(battle.nextPatternConfig(enemy).config.type, 'choimis_pink_choso');
+    assert.equal(battle.nextPatternConfig(enemy).config.type, 'choimis_pink_prism');
   } finally {
     battle.disposeGimmick();
     for (const [type, create] of originals) PATTERNS[type] = create;
@@ -238,7 +255,9 @@ test('test_choimis_sky_keeps_three_party_supports_and_moves_only_the_sea_left', 
 });
 
 test('test_choimis_seamless_intro_keeps_the_previous_frame_until_assets_are_ready', async () => {
-  const fades = [];
+  const fades = [], props = [], soundBatches = [];
+  let finishProp;
+  const propReady = new Promise(resolve => { finishProp = resolve; });
   const battle = Object.assign(Object.create(Battle.prototype), {
     cfg: { enemies: ['choimis_flower'], bgm: 'choimis_battle', bg: 'choimis_sky', seamlessIntro: 'choimis_sky' },
     state: 'load', t: 0, members: [], fx: [], patterns: [], board: new Board(), soul: new Soul(),
@@ -246,15 +265,28 @@ test('test_choimis_seamless_intro_keeps_the_previous_frame_until_assets_are_read
     enemies: [{ id: 'choimis_flower', name: '최미스', hp: 200, maxHp: 200,
       def: { ...ENEMIES.choimis_flower, actions: {}, projectiles: {} } }],
     loadEnemyImage: async () => ({}),
-    game: { partyHp: {}, fadeTo: (...args) => fades.push(args), sound: { playBgm() {}, blip() {}, sfx() {} } },
+    game: { partyHp: {}, fadeTo: (...args) => fades.push(args),
+      requestPropImage: src => { props.push(src); return propReady; },
+      sound: { playBgm() {}, blip() {}, sfx() {}, loadSfxFiles: names => { soundBatches.push(names); } } },
   });
   const drawCalls = [];
   battle.draw({ fillRect: (...args) => drawCalls.push(args) });
   assert.deepEqual(drawCalls, []);
 
-  await battle.load();
+  const loading = battle.load();
+  await Promise.resolve();
+  assert.equal(battle.state, 'load', 'natural intro waits for the dolphin image alongside battle assets');
+  finishProp({ width: 128, height: 32 });
+  await loading;
   assert.equal(battle.state, 'intro');
   assert.deepEqual(fades, []);
+  battle.cfg.seamlessIntro = false;
+  await battle.load();
+  battle.retrying = true;
+  await battle.load();
+  assert.deepEqual(props, Array(3).fill('assets/props/choimis-dolphin-breach.png'), 'natural entry, direct battle and retry request the cached prop');
+  assert.equal(soundBatches.length, 3);
+  assert.ok(soundBatches.every(names => names.includes('choimis_piercing_blood')), 'each entry path prepares the dedicated blood beam sound');
 });
 
 test('test_choimis_karaoke_reads_only_the_audio_clock_and_recomputes_after_seek', () => {

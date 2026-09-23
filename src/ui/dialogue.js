@@ -133,7 +133,7 @@ export class TextBox {
     this.onDone = onDone;
     this.voice = node.voice || 'default';
     this.speaker = node.speaker || null;
-    this.portrait = node.portrait ? this.portraits[node.portrait] : null;
+    this.portrait = node.portrait ? this.portraits?.[node.portrait] ?? null : null;
     this.choice = node.choice || null;
     this.choiceIndex = 0;
     this.choiceShown = 0;                      // 지금까지 드러난 선택지 개수 (stagger 연출)

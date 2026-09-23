@@ -1,4 +1,5 @@
 import { sweptCirclesHit } from './modes/choimis-pink-shooter.js';
+import { createChoimisGasuniScenario } from './choimis-gasuni.js';
 
 const TAU = Math.PI * 2;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -10,7 +11,8 @@ const segmentDistance = (point, from, to) => {
 
 export const CHOIMIS_PINK_ROUNDS = Object.freeze({
   choso: Object.freeze({ beamWarn: 0.55, beamHit: 0.38, beamEvery: 1.15 }),
-  kart_block: Object.freeze({ warn: 0.45, every: 1.2, speed: 170, boostAfter: 0.65, boostStagger: 0.16, boostSpeed: 255, radius: 18 }),
+  blood_orbs: Object.freeze({ first: 0.8, every: 3.6, warn: 2.2, speed: 36, radius: 11, bulletCount: 8, bulletSpeed: 132, bulletRadius: 3, bulletLife: 4.8 }),
+  kart_block: Object.freeze({ warn: 0.45, every: 1.2, speed: 170, boostAfter: 0.65, boostStagger: 0.16, boostSpeed: 255, radius: 18, escapeLimit: 3, escapeFlash: 0.35 }),
   pink_prism: Object.freeze({ shields: 3, boltWarn: 0.4, boltEvery: 0.72, boltSpeed: 170 }),
 });
 
@@ -37,20 +39,76 @@ function drawSheetFrame(ctx, image, frame, x, y, cell, width, height) {
 
 function drawBoss(ctx, api, boss, elapsed, costume = false) {
   drawSheetFrame(ctx, costume ? api.images.choso : api.images.boss, Math.floor(elapsed * (costume ? 5.5 : 3.6)) % 4,
-    boss.x, boss.y, 160, costume ? 62 : 58, costume ? 62 : 58);
+    boss.x, boss.y, 160, costume ? 76 : 68, costume ? 76 : 68);
 }
 
 function contactBossShots(api, shots, boss) {
   for (const shot of shots) if (!shot.dead && hitShotCircle(shot, boss, boss.r)) api.bossContact(shot, boss);
 }
 
+function createBloodOrbs(api, boss) {
+  const C = CHOIMIS_PINK_ROUNDS.blood_orbs;
+  let elapsed = 0, next = C.first, wave = 0, destroyed = 0, bursts = 0, orbs = [], bullets = [], disposed = false;
+  return {
+    get snapshot() { return { bloodOrbs: orbs.map(orb => ({ ...orb })), bloodBullets: bullets.map(bullet => ({ ...bullet })), destroyedOrbs: destroyed, orbBursts: bursts }; },
+    update(dt, shots) {
+      if (disposed) return;
+      elapsed += dt;
+      while (elapsed >= next) {
+        const born = next; next += C.every;
+        for (const offset of [-32, 32]) {
+          const y = clamp(boss.y + offset, api.box.y + 24, api.box.y + api.box.h - 24), x = boss.x - 58;
+          orbs.push({ id: `blood-orb-${wave}-${offset}`, born, startX: x, oldX: x, oldY: y, x, y, r: C.radius, age: 0, angle: wave * Math.PI / C.bulletCount });
+        }
+        wave++;
+      }
+      let bursting = false;
+      for (const orb of orbs) {
+        orb.oldX = orb.x; orb.age = elapsed - orb.born; orb.x = orb.startX - Math.min(orb.age, C.warn) * C.speed;
+        for (const shot of shots) {
+          if (shot.dead || orb.dead || !hitShotCircle(shot, orb, orb.r) || !api.hitTarget(shot, orb.id)) continue;
+          orb.dead = true; destroyed++; api.hit(orb.x, orb.y); api.sfx('pop', { volume: 0.384, rate: 0.8 });
+        }
+        if (orb.dead || orb.age < C.warn) continue;
+        orb.dead = true; bursts++; bursting = true;
+        for (let index = 0; index < C.bulletCount; index++) {
+          const angle = orb.angle + index * TAU / C.bulletCount;
+          bullets.push({ x: orb.x, oldX: orb.x, y: orb.y, oldY: orb.y, vx: Math.cos(angle) * C.bulletSpeed, vy: Math.sin(angle) * C.bulletSpeed,
+            born: orb.born + C.warn, updatedAt: orb.born + C.warn, r: C.bulletRadius, age: 0 });
+        }
+      }
+      if (bursting) api.sfx('choimis_piercing_blood', { volume: 0.6 });
+      orbs = orbs.filter(orb => !orb.dead);
+      for (const bullet of bullets) {
+        const step = Math.max(0, elapsed - bullet.updatedAt); bullet.updatedAt = elapsed; bullet.age = elapsed - bullet.born;
+        bullet.oldX = bullet.x; bullet.oldY = bullet.y; bullet.x += bullet.vx * step; bullet.y += bullet.vy * step;
+        const oldSoul = { x: api.soul.oldX ?? api.soul.x, y: api.soul.oldY ?? api.soul.y };
+        if (!bullet.dead && bullet.age <= C.bulletLife && sweptCirclesHit({ x: bullet.oldX, y: bullet.oldY }, bullet, bullet.r, oldSoul, api.soul, api.soul.r)) bullet.dead = api.hurt();
+        if (disposed) return;
+      }
+      bullets = bullets.filter(bullet => !bullet.dead && bullet.age <= C.bulletLife && bullet.x >= api.box.x - 8 && bullet.x <= api.box.x + api.box.w + 8 && bullet.y >= api.box.y - 8 && bullet.y <= api.box.y + api.box.h + 8);
+    },
+    draw(ctx) {
+      for (const orb of orbs) {
+        ctx.strokeStyle = '#ff94b1'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(Math.round(orb.x), Math.round(orb.y), orb.r + 8 * (1 - orb.age / C.warn), 0, TAU); ctx.stroke();
+        ctx.fillStyle = '#b41447'; ctx.beginPath(); ctx.arc(Math.round(orb.x), Math.round(orb.y), orb.r, 0, TAU); ctx.fill();
+        ctx.fillStyle = '#ffd2e8'; ctx.fillRect(Math.round(orb.x) - 4, Math.round(orb.y) - 5, 4, 4);
+      }
+      ctx.fillStyle = '#f45a83';
+      for (const bullet of bullets) { ctx.beginPath(); ctx.arc(Math.round(bullet.x), Math.round(bullet.y), bullet.r, 0, TAU); ctx.fill(); }
+    },
+    dispose() { orbs = []; bullets = []; disposed = true; },
+  };
+}
+
 function createChoso(api) {
   const C = CHOIMIS_PINK_ROUNDS.choso, boss = makeBoss(api), centerY = boss.y;
+  const blood = api.repeat ? createBloodOrbs(api, boss) : null;
   let elapsed = 0, hits = 0, nextBeam = 0.4, volley = 0, beams = [], disposed = false;
   return {
     get done() { return disposed; }, get boss() { return boss; },
     get snapshot() {
-      return { kind: 'choso', hits, target: { ...boss }, boss: { ...boss },
+      return { kind: 'choso', hits, repeat: !!api.repeat, target: { ...boss }, boss: { ...boss }, ...blood?.snapshot,
         charge: beams.filter(beam => beam.age < beam.warned).map(beam => ({ from: { ...beam.from }, locked: { ...beam.locked }, progress: beam.age / beam.warned })),
         spray: beams.filter(beam => beam.age >= beam.warned).map(beam => ({ from: { ...beam.from }, to: { ...beam.to }, age: beam.age - beam.warned })),
         beams: beams.map(beam => ({ ...beam, from: { ...beam.from }, to: { ...beam.to }, locked: { ...beam.locked } })) };
@@ -68,11 +126,17 @@ function createChoso(api) {
             locked: { x: api.soul.x, y: lockedY }, warned: C.beamWarn, life: C.beamWarn + C.beamHit, hit: false });
         }
       }
+      let firing = false;
       for (const beam of beams) {
         beam.age += dt; beam.from.x = boss.x - 16; beam.from.y = boss.y - 10;
+        if (!beam.fired && beam.age >= beam.warned && beam.age < beam.life) { beam.fired = true; firing = true; }
         if (beam.age >= beam.warned && beam.age < beam.life && !beam.hit && segmentDistance(api.soul, beam.from, beam.to) <= api.soul.r + 4) beam.hit = api.hurt();
       }
+      if (disposed) return;
+      if (firing) api.sfx('choimis_piercing_blood', { volume: 0.6 });
       beams = beams.filter(beam => beam.age < beam.life);
+      blood?.update(dt, shots);
+      if (disposed) return;
       for (const shot of shots) {
         if (shot.dead || !hitShotCircle(shot, boss, boss.r) || !api.bossContact(shot, boss)) continue;
         hits++;
@@ -102,9 +166,10 @@ function createChoso(api) {
         }
         ctx.restore();
       }
+      blood?.draw(ctx);
       drawBoss(ctx, api, boss, elapsed, !!api.transformed?.());
     },
-    dispose() { beams = []; disposed = true; },
+    dispose() { beams = []; blood?.dispose(); disposed = true; },
   };
 }
 
@@ -117,14 +182,14 @@ function createKartBlock(api) {
     const driving = Math.max(0, blocker.age - C.warn);
     return Math.min(driving, blocker.boostAt) * C.speed + Math.max(0, driving - blocker.boostAt) * C.boostSpeed;
   };
-  let elapsed = 0, cleared = 0, spawned = 0, wave = 0, next = 0.25, blockers = [], disposed = false;
+  let elapsed = 0, cleared = 0, spawned = 0, escaped = 0, missed = 0, missFlash = 0, wave = 0, next = 0.25, blockers = [], disposed = false;
   return {
     get done() { return disposed; }, get boss() { return boss; },
-    get snapshot() { return { kind: 'kart_block', cleared, spawned, boss: { ...boss }, blockers: blockers.map(blocker => ({ ...blocker })) }; },
+    get snapshot() { return { kind: 'kart_block', cleared, spawned, escaped, missed, missFlash, boss: { ...boss }, blockers: blockers.map(blocker => ({ ...blocker })) }; },
     prepare(dt) { if (!disposed) prepareBoss(boss, dt); },
     update(dt, shots) {
       if (disposed || !api.bossAlive()) return;
-      elapsed += dt; boss.oldX = boss.x; boss.oldY = boss.y; boss.x = boss.targetX;
+      elapsed += dt; missFlash = Math.max(0, missFlash - dt); boss.oldX = boss.x; boss.oldY = boss.y; boss.x = boss.targetX;
       while (elapsed >= next) {
         const born = next, waveId = wave++, safeLane = safeLanes[waveId % safeLanes.length]; next += C.every;
         let position = 0;
@@ -140,13 +205,20 @@ function createKartBlock(api) {
         if (!blocker.launched && blocker.age >= C.warn) { blocker.launched = true; launched = true; }
         if (!blocker.boosted && blocker.age >= C.warn + blocker.boostAt) { blocker.boosted = true; boosted = true; }
         const oldSoul = { x: api.soul.oldX ?? api.soul.x, y: api.soul.oldY ?? api.soul.y };
-        if (blocker.age >= C.warn && !blocker.dead && sweptCirclesHit({ x: blocker.oldX, y: blocker.oldY }, blocker, blocker.r, oldSoul, api.soul, api.soul.r)) { blocker.dead = true; api.hurt(); }
+        if (blocker.age >= C.warn && !blocker.dead && !blocker.escaped && sweptCirclesHit({ x: blocker.oldX, y: blocker.oldY }, blocker, blocker.r, oldSoul, api.soul, api.soul.r)) { blocker.dead = true; api.hurt(); }
+        if (disposed) return;
       }
       if (launched || boosted) api.sfx('kart_booster', { volume: boosted ? 0.24 : 0.18, len: 0.28 });
       for (const shot of shots) for (const blocker of blockers) {
-        if (shot.dead || blocker.dead || blocker.age < C.warn || !hitShotCircle(shot, blocker, blocker.r) || !api.hitTarget(shot, blocker.id)) continue;
+        if (shot.dead || blocker.dead || blocker.escaped || blocker.age < C.warn || !hitShotCircle(shot, blocker, blocker.r) || !api.hitTarget(shot, blocker.id)) continue;
         blocker.dead = true; cleared++; api.hit(blocker.x, blocker.y); api.sfx('pop', { volume: 0.384, rate: 0.8 });
         if (shot.dead) break;
+      }
+      for (const blocker of blockers) {
+        if (blocker.dead || blocker.escaped || blocker.x + blocker.r >= api.soul.x - api.soul.r) continue;
+        blocker.escaped = true; escaped++; missed++;
+        if (missed >= C.escapeLimit) { missed = 0; missFlash = C.escapeFlash; api.hurt(true); }
+        if (disposed) return;
       }
       blockers = blockers.filter(blocker => !blocker.dead && blocker.x > api.box.x - 24);
       contactBossShots(api, shots, boss);
@@ -161,8 +233,13 @@ function createKartBlock(api) {
         }
       }
       drawBoss(ctx, api, boss, elapsed);
+      for (let index = 0; index < C.escapeLimit; index++) {
+        ctx.beginPath(); ctx.arc(api.box.x + 12 + index * 10, api.box.y + 12, 3, 0, TAU);
+        ctx.fillStyle = missFlash > 0 ? '#fff' : index < missed ? '#ff5ca8' : '#48273b'; ctx.fill();
+        ctx.strokeStyle = '#ff87bf'; ctx.lineWidth = 1; ctx.stroke();
+      }
     },
-    dispose() { blockers = []; disposed = true; },
+    dispose() { blockers = []; escaped = 0; missed = 0; missFlash = 0; disposed = true; },
   };
 }
 
@@ -221,6 +298,7 @@ function createPinkPrism(api) {
 
 /** Creates one fixed-duration pink shooting scenario without mutating battle state. */
 export function createChoimisPinkScenario(name, api) {
+  if (name === 'gasuni') return createChoimisGasuniScenario(api);
   if (name === 'choso') return createChoso(api);
   if (name === 'kart_block') return createKartBlock(api);
   if (name === 'pink_prism') return createPinkPrism(api);

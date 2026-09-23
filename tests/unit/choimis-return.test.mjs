@@ -57,35 +57,35 @@ test('old lounge keeps original actors and castle scene until rescue', () => {
   assert.deepEqual(map.spawns.lounge_free, { x: 372, y: 520, facing: 'up' });
 });
 
-test('rescue catalog replaces only consumables and retains upgrade identities', () => {
+test('rescue catalog replaces old stock with separate upgrade tier and food', () => {
   assert.equal(yongjunShop({}), YONGJUN_SHOP);
   assert.equal(yongjunShop({ choimis_rescued: true }), YONGJUN_RESCUE_SHOP);
   assert.deepEqual(YONGJUN_RESCUE_SHOP.slice(0, 2).map(e => [e.name, e.price]), [['더 강한 바세린', 10], ['더 강한 씨알리스', 10]]);
-  assert.equal(YONGJUN_RESCUE_SHOP[2], YONGJUN_SHOP[2]);
-  assert.equal(YONGJUN_RESCUE_SHOP[3], YONGJUN_SHOP[3]);
+  assert.equal(YONGJUN_RESCUE_SHOP[2].item, '핫도그');
+  assert.equal(YONGJUN_RESCUE_SHOP[3].item, '기름떡볶이');
   const current = game({ choimis_rescued: true, shop_yongjun_cialis: true });
   assert.equal(new Shop(current).products, YONGJUN_RESCUE_SHOP);
-  assert.equal(shopItemState(current, 'cialis').reason, 'sold_out');
+  assert.equal(shopItemState(current, 'cialis').reason, 'unknown');
+  assert.equal(shopItemState(current, 'strong_cialis').ok, true);
   assert.equal(shopItemState(current, 'eggtart').reason, 'unknown');
   assert.equal(shopItemState(game(), 'strong_cialis').reason, 'unknown');
 });
 
-test('strong healing supplies can be repeatedly bought and resold for half price', () => {
+test('healing food can be repeatedly bought and resold for half price', () => {
   const current = game({ choimis_rescued: true });
-  for (const id of ['strong_vaseline', 'strong_cialis', 'strong_vaseline']) assert.equal(purchaseShopItem(current, id).ok, true);
+  for (const id of ['hotdog', 'oil_tteokbokki', 'hotdog']) assert.equal(purchaseShopItem(current, id).ok, true);
   assert.equal(current.money, 70); assert.equal(current.saves, 3);
-  assert.deepEqual(current.inventory, ['더 강한 바세린', '더 강한 씨알리스', '더 강한 바세린']);
+  assert.deepEqual(current.inventory, ['핫도그', '기름떡볶이', '핫도그']);
   assert.equal(current.attack, 4); assert.equal(current.hpBonus, 60);
   assert.equal(saleItemState(current, 1).price, 5);
   assert.equal(sellShopItem(current, 1).ok, true);
   assert.equal(current.money, 75); assert.equal(current.inventory.length, 2);
 });
 
-test('strong healing consumables have stronger registered recovery values', () => {
-  assert.equal(ITEMS['더 강한 바세린'].kind, 'plain');
-  assert.equal(ITEMS['더 강한 씨알리스'].kind, 'plain');
-  assert.ok(ITEMS['더 강한 바세린'].heal > ITEMS['위장약'].heal);
-  assert.ok(ITEMS['더 강한 씨알리스'].heal > ITEMS['더 강한 바세린'].heal);
+test('food has the requested recovery values and group scope', () => {
+  assert.equal(ITEMS['핫도그'].heal, 150);
+  assert.equal(ITEMS['기름떡볶이'].heal, 100);
+  assert.equal(ITEMS['기름떡볶이'].target, 'party');
 });
 
 test('rescue releases pursuit backtracking and ambient without altering pre-rescue pursuit', () => {

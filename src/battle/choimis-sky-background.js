@@ -11,6 +11,7 @@ const PETALS = Object.freeze([
 ]);
 const AIR = Object.freeze([[32, 42, 46], [137, 112, 34], [258, 174, 54], [379, 137, 40], [448, 76, 30]]);
 const PINK = Object.freeze(['#ff86b7', '#ffb1d0', '#ffd7e8']);
+const DOLPHIN = 'assets/props/choimis-dolphin-breach.png';
 
 function actorFeet(battle) {
   const picking = ['menu', 'target', 'item', 'item-target'].includes(battle.state);
@@ -44,8 +45,33 @@ function drawPetalCloud(ctx, x, y, seed, time, layerAlpha) {
   }
 }
 
+function drawOceanLife(ctx, battle, time) {
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 216, 480, 30); ctx.clip();
+  ctx.fillStyle = '#b8d7ff';
+  for (let i = 0; i < 12; i++) {
+    const phase = (time * 0.34 + i * 0.37) % 1;
+    const x = ((i * 47 - time * (5 + i % 3)) % 520 + 520) % 520 - 20;
+    ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.2;
+    ctx.fillRect(Math.round(x), 219 + i % 4 * 6, 5 + Math.round(phase * 12), 1);
+  }
+  const dolphin = battle.game?.propImages?.[DOLPHIN];
+  const elapsed = (battle.game?.time ?? battle.t ?? 0) - 5;
+  const phase = elapsed % 8.6;
+  if (dolphin && elapsed >= 0 && phase < 1.4) {
+    const p = phase / 1.4, cycle = Math.floor(elapsed / 8.6);
+    const cell = dolphin.width / 4, frame = Math.min(3, Math.floor(p * 4));
+    const x = 150 + cycle * 83 % 190 + p * 22;
+    const y = 226 - Math.sin(p * Math.PI) * 7;
+    ctx.globalAlpha = Math.min(1, p * 10, (1 - p) * 10) * 0.76;
+    ctx.drawImage(dolphin, frame * cell, 0, cell, dolphin.height, Math.round(x), Math.round(y), 24, 24);
+  }
+  ctx.restore();
+}
+
 export function drawChoimisSkyBackground(ctx, battle) {
-  const time = battle.game?.time ?? battle.t;
+  const battleSky = battle.cfg?.bg === 'choimis_sky';
+  const time = (battle.game?.time ?? battle.t ?? 0) * (battleSky ? 1.5 : 1);
   const sky = battle.game?.propImages?.['assets/backdrops/jjajang_night_sea.png'];
   ctx.fillStyle = '#071426'; ctx.fillRect(0, 0, 480, 360);
   if (sky) ctx.drawImage(sky, 0, 0, 480, 360, 0, 0, 480, 360);
@@ -60,6 +86,7 @@ export function drawChoimisSkyBackground(ctx, battle) {
       ctx.fillRect(Math.round(x), y, 18 + row * 2, 1);
     }
   }
+  if (battleSky) drawOceanLife(ctx, battle, time);
   ctx.globalAlpha = 0.12; ctx.fillStyle = '#b8d7ff';
   for (let i = 0; i < AIR.length; i++) {
     const [baseX, y, width] = AIR[i], x = (baseX + time * (5 + i) + 520) % 520 - 40;

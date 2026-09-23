@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const evidence = { source: [], captures: [], limitations: 'The registered postvictory QA checkpoint prepares story flags. All subsequent dialogue uses physical C input and real-time scene updates. No beat/time/return flag injection. This tests rescue continuation and return, not natural boss victory or subjective audio listening.' };
   const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, 'rescue-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
-  const sources = ['src/scenes/choimis-rescue.js', 'src/scenes/choimis-rescue-render.js', 'src/data/cutscenes/choimis_rescue.js', 'src/core/story.js', 'src/main.js', 'src/data/scripts.js', 'src/ui/cutscene.js', 'assets/props/naem-jet.png', 'assets/sprites/yongjun.png', 'assets/sprites/choimis.png'];
+  const sources = ['src/scenes/choimis-rescue.js', 'src/scenes/choimis-rescue-render.js', 'src/data/cutscenes/choimis_rescue.js', 'src/core/story.js', 'src/main.js', 'src/data/scripts.js', 'src/ui/cutscene.js', 'assets/backdrops/jjajang_night_sea.png', 'assets/props/naem-jet.png', 'assets/sprites/yongjun.png', 'assets/sprites/choimis.png'];
   for (const relative of sources) {
     const response = await page.request.get(new URL(relative, process.env.QA_BASE_URL).href);
     const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -17,8 +17,9 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
   await open({ qa: 'choimis_rescue' });
   check('registered rescue checkpoint loads exact continuation', await until(() => window.game?.choimisRescue && game.textbox?.isOpen, 30000));
   await fixture('rescue-observation-only', 'Wrap full Game.draw after render to latch phase images and read geometry/text/music; no game progression or stats are changed.', () => {
-    const q = window.__rescueQa = { frames: {}, beats: [], samples: [], lines: [], canvas: [game.canvas.width, game.canvas.height] };
-    const draw = game.draw.bind(game);
+    const q = window.__rescueQa = { frames: {}, beats: [], samples: [], lines: [], sounds: [], canvas: [game.canvas.width, game.canvas.height] };
+    const draw = game.draw.bind(game), sfx = game.sound.sfx.bind(game.sound);
+    game.sound.sfx = (name, options) => { q.sounds.push({ name, options, beat: game.choimisRescue?.beat, at: performance.now() }); return sfx(name, options); };
     game.draw = (...args) => {
       const result = draw(...args), scene = game.choimisRescue;
       if (!scene) return result;
@@ -26,12 +27,13 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
       if (q.beats.at(-1)?.beat !== s.beat) q.beats.push({ beat: s.beat, at: now });
       if (text && q.lines.at(-1)?.text !== text) q.lines.push({ text, speaker: game.textbox.node.speaker, beat: s.beat });
       if (!q.samples.length || now - q.samples.at(-1).at >= 100) q.samples.push({ ...s, at: now, dots: scene.bubble.shown, bubbleDone: scene.bubble.done, bgm: game.sound.bgmName, musicTime: game.sound.bgm?.currentTime });
-      const capture = label => { if (!q.frames[label]) q.frames[label] = { beat: s.beat, elapsed: s.elapsed, at: now, data: game.canvas.toDataURL('image/png') }; };
+      const capture = label => { if (!q.frames[label]) q.frames[label] = { beat: s.beat, elapsed: s.elapsed, at: now, distantParty: s.distantParty, seats: s.distantJet?.seats, data: game.canvas.toDataURL('image/png') }; };
       if (text && game.textbox.state === 'waiting') capture(`dialogue-${q.lines.length}-page-${game.textbox.page}`);
       if (s.elapsed > 0.35) capture(s.beat);
       if (s.beat.startsWith('dots_') && scene.bubble.shown === 3 && !scene.bubble.done) capture(`${s.beat}-three`);
       if (s.beat === 'petals_fade' && s.elapsed > 1.2) capture('petals-half');
       if (s.beat === 'catch' && s.catchCount > 0) capture(`catch-${s.catchCount}`);
+      if (s.beat === 'catch' && s.elapsed >= 0.55 && s.catchCount === 0) capture('catch-before-contact');
       if (s.beat === 'jet_reveal' && s.elapsed > 2) capture('jet-full');
       if (s.beat === 'save_choimis' && s.choimisCaught) capture('choimis-caught');
       return result;
@@ -57,13 +59,17 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
   check('all nineteen dialogue lines have fully revealed rendered captures', expectedLines.every((_, i) => Object.keys(q.frames).some(label => label.startsWith(`dialogue-${i + 1}-page-`))));
   check('petal platforms visibly fade over time', q.samples.some(s => s.beat === 'petals_fade' && s.petals > 0.8) && q.samples.some(s => s.beat === 'petals_fade' && s.petals < 0.15));
   check('each party bubble reaches exactly three visible dots', ['ppaman', 'gyeongsub', 'hyungsub'].every(id => q.samples.some(s => s.beat === `dots_${id}` && s.dots === 3 && !s.bubbleDone) && q.frames[`dots_${id}-three`]));
-  check('distant fall leads to three separate catches', [1, 2, 3].every(count => q.samples.some(s => s.beat === 'catch' && s.catchCount === count)));
+  const catches = q.samples.filter(s => s.beat === 'catch');
+  check('single contact catches all three together after0.65s', catches.some(s => s.catchCount === 0) && catches.some(s => s.catchCount === 3 && s.elapsed >= 0.65) && catches.every(s => s.catchCount === 0 || s.catchCount === 3));
+  check('one simultaneous catch emits exactly one cue', q.sounds.filter(s => s.beat === 'catch' && s.name === 'wing').length === 1);
+  const contact = q.frames['catch-3'];
+  check('actual first catch frame aligns all three claw seats with falling party', contact && contact.elapsed >= 0.65 && contact.elapsed < 0.69 && contact.distantParty.every((actor, i) => Math.hypot(actor.x - contact.seats[i].x, actor.y - contact.seats[i].y) < 18), JSON.stringify(contact && { elapsed: contact.elapsed, party: contact.distantParty, seats: contact.seats }));
   check('generated jet asset loads and lancer BGM advances in reveal', q.samples.some(s => s.beat === 'jet_reveal' && s.assetsReady && s.bgm === 'vs_lancer' && s.musicTime > 0.2));
   check('Choimis is rescued before flyaway', q.samples.some(s => s.beat === 'save_choimis' && s.choimisCaught));
   check('full draw captures every visible rescue beat', expectedBeats.every(beat => q.frames[beat]) && q.canvas[0] === 960 && q.canvas[1] === 720, JSON.stringify(Object.keys(q.frames)));
   const end = await page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, transition: game.transitioning, rescue: !!game.choimisRescue, assets: !!game.choimisRescueAssets, flags: game.flags, bgm: game.sound.bgmName, party: game.party, player: { x: game.player.x, y: game.player.y }, entities: game.entities.map(e => ({ id: e.id, x: e.x, y: e.y })) }));
   evidence.end = end; save();
-  check('rescue returns control to lounge with stage and cleanup', end.map === 'ship_lounge' && !end.running && !end.transition && !end.rescue && !end.assets && end.flags.choimis_rescued && end.bgm === 'ship_lounge', JSON.stringify(end));
+  check('rescue and briefing return control to lounge with stage and cleanup', end.map === 'ship_lounge' && !end.running && !end.transition && !end.rescue && !end.assets && end.flags.choimis_rescued && end.flags.ship_lounge_briefed && end.bgm === 'storage_show', JSON.stringify(end));
   await shot('lounge-return');
   await page.keyboard.down('ArrowDown'); await page.waitForTimeout(350); await page.keyboard.up('ArrowDown');
   check('real movement resumes after rescue', await page.evaluate(y => Math.abs(game.player.y - y) > 3, end.player.y));

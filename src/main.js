@@ -6,12 +6,13 @@ import { Input } from './core/input.js';
 import { Sound, VOICES } from './core/audio.js';
 import { drawChoimisFlowerEffects, clearChoimisFlowerEffects } from './data/cutscenes/choimis_flower.js';
 import { MapAssetCache } from './core/map-assets.js';
-import { makeCanvas, artToCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait, pixelDisplayScale } from './core/gfx.js';
+import { makeCanvas, drawBox, drawHeart, loadImageOptional, monoPortrait, pixelDisplayScale } from './core/gfx.js';
 import { TextBox, ScriptRunner } from './ui/dialogue.js';
 import { FONT, F } from './ui/font.js';
 import { MENU_LAYOUT, menuWindow, menuInventoryRows, drawMenuText } from './ui/menu-layout.js';
 import { TitleScreen } from './ui/title.js';
 import { Shop } from './ui/shop.js';
+import { useFieldItem } from './core/item-use.js';
 import { StreamChat } from './ui/chat.js';
 import { SysDialog } from './ui/sysdialog.js';
 import { Vortex } from './ui/vortex.js';
@@ -23,7 +24,7 @@ import { loadTileOverrides, TILE } from './world/tiles.js';
 import { preloadCaptainMemories } from './data/captain-memories.js';
 import { loadCharacterMotions } from './world/character-motion.js';
 import { CHARACTER_MOTIONS } from './data/character-motions.js';
-import { TORSO, LEGS, PALETTES } from './data/art.js';
+import { PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
 import { SCRIPTS } from './data/scripts.js';
 import { battleEntry } from './data/cutscenes/helpers.js';
@@ -55,7 +56,7 @@ import { YOUNGCLE_TV_PORTRAITS } from './data/youngcle-tv.js';
 import { MAP_RUNTIME_ASSETS } from './data/map-runtime-assets.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
-import { ITEMS, plainItems, keyItems } from './data/items.js';
+import { ITEMS, plainItems, keyItems, normalizeItemNames } from './data/items.js';
 import { drawYoungcleLoungeEffects } from './scenes/youngcle-lounge-effects.js';
 import { clearEditorUnionStage, drawEditorUnionWorld, drawEditorUnionLight, drawEditorUnionLabels, drawEditorUnionOverlay } from './scenes/editor-union-effects.js';
 import { clearChoimisSky, drawChoimisSkyPollen } from './scenes/choimis-sky-intro.js';
@@ -276,7 +277,7 @@ class Game {
     await this.waitForMap(d.map, [d.sprite || 'hyungsub', ...normalizeParty(d.party)]);
     this.resetState(); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
-    this.inventory = (d.inventory || []).filter((n) => typeof n === 'string');
+    this.inventory = normalizeItemNames((d.inventory || []).filter((n) => typeof n === 'string'));
     this.party = normalizeParty(d.party);            // 어떤 조합이든 걷는 순서(경섭 → 빠맨)로
     this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.attack = d.attack || 1; this.hpBonus = d.hpBonus || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
@@ -623,13 +624,7 @@ class Game {
   }
   /** 메뉴에서 힐템 사용: 인벤토리에서 빼고 partyHp 회복 (2026-09-10) */
   useItemOn(name, id) {
-    const def = ITEMS[name]; if (!def?.heal) return false;
-    const i = this.inventory.indexOf(name); if (i < 0) return false;
-    this.inventory.splice(i, 1);
-    // 음수 회복(돌 -5)은 1 밑으로 내리지 않고, 회복음 대신 피격음
-    const max = this.maxHpOf(id); this.partyHp[id] = Math.max(1, Math.min(max, this.hpOf(id) + def.heal));
-    this.sound.sfx(def.heal < 0 ? 'hurt' : 'heal'); this.autosave();
-    return true;
+    return useFieldItem(this, name, id);
   }
 
   /** 필드에서 적(enemy 엔티티)에 닿음 → 표준 전투 진입 연출 + 전투 + 승리 시 적 제거(플래그로 영구). 어느 맵이든 같은 흐름 (2026-09-10) */
@@ -692,26 +687,25 @@ class Game {
     return true;
   }
 
-  /** 초상화: assets/portraits/<name>.png (48x48) → 없으면 시트의 정면 얼굴 확대 → 없으면 문자 도트 얼굴 */
+  /** 전용 초상화를 보존하고 실제 시트의 얼굴만 보완한다. 둘 다 없으면 얼굴을 표시하지 않는다. */
   makePortraits() {
     const out = {};
     for (const name of new Set([...Object.keys(CHARACTERS), ...Object.keys(PALETTES), ...YOUNGCLE_TV_PORTRAITS])) {
       if (CHARACTERS[name]?.portrait === false) continue;
+      if (this.portraitFiles?.has(name) && this.portraits?.[name]) {
+        out[name] = this.portraits[name];
+        continue;
+      }
+      const sheet = this.spriteOverrides[name];
+      if (!sheet) continue;
       const c = makeCanvas(48, 48);
       const ctx = c.getContext('2d');
       ctx.imageSmoothingEnabled = false;
-      const sheet = this.spriteOverrides[name];
-      if (sheet) {
-        const fw = Math.floor(sheet.width / 4), fh = Math.floor(sheet.height / 4);
-        const headH = Math.round(fh * 0.55);            // 정면 0번 프레임 상단 55% = 얼굴
-        const scale = Math.min(48 / fw, 44 / headH);
-        const dw = Math.round(fw * scale), dh = Math.round(headH * scale);
-        ctx.drawImage(sheet, 0, 0, fw, headH, Math.round((48 - dw) / 2), 48 - dh - 2, dw, dh);
-      } else {
-        const pal = PALETTES[name] || PALETTES[CHARACTERS[name]?.palette] || PALETTES.hero;
-        const face = artToCanvas([...TORSO.down.slice(0, 7), ...Array(9).fill('................')], pal);
-        ctx.drawImage(face, 3, 0, 10, 8, 0, 4, 48, 40);
-      }
+      const fw = Math.floor(sheet.width / 4), fh = Math.floor(sheet.height / 4);
+      const headH = Math.round(fh * 0.55);
+      const scale = Math.min(48 / fw, 44 / headH);
+      const dw = Math.round(fw * scale), dh = Math.round(headH * scale);
+      ctx.drawImage(sheet, 0, 0, fw, headH, Math.round((48 - dw) / 2), 48 - dh - 2, dw, dh);
       // 대화창 초상화는 언더테일처럼 흰/검 2톤 도트로 (사용자 확정 2026-09-09)
       out[name] = monoPortrait(c);
     }
@@ -1624,10 +1618,11 @@ class Game {
         const members = [this.playerSprite || 'hyungsub', ...this.party];
         const visible = menuWindow(members.length, m.pick, layout.targetRows);
         ctx.fillStyle = '#ffe066'; drawMenuText(ctx, item, x + inset, y + inset, width - inset * 2, 2);
-        ctx.fillStyle = '#fff'; drawMenuText(ctx, L.menu_use_on, x + inset, 64, width - inset * 2);
+        const all = ITEMS[item]?.target === 'party';
+        ctx.fillStyle = '#fff'; drawMenuText(ctx, all ? L.menu_use_all : L.menu_use_on, x + inset, 64, width - inset * 2);
         members.slice(visible.start, visible.end).forEach((id, row) => {
           const i = row + visible.start, ch = CHARACTERS[id] || { name: id };
-          const ry = layout.targetY + row * layout.memberHeight, sel = i === m.pick;
+          const ry = layout.targetY + row * layout.memberHeight, sel = all || i === m.pick;
           const name = i === 0 ? (this.has('void_fallen') ? '요플래' : ch.name) : (ch.partyName || ch.name);
           ctx.fillStyle = sel ? '#ffe066' : '#fff'; drawMenuText(ctx, name, x + 22, ry, width - 30);
           if (sel) drawHeart(ctx, x + 9, ry + Math.round(F.size / 2) - 3);
@@ -1636,7 +1631,7 @@ class Game {
           ctx.fillStyle = '#3a2020'; ctx.fillRect(barX, ry + 29, barW, 7);
           ctx.fillStyle = ch.hpColor || '#ffd23b'; ctx.fillRect(barX, ry + 29, Math.round(barW * Math.max(0, Math.min(1, hp / max))), 7);
         });
-        ctx.fillStyle = '#9a9ab0'; drawMenuText(ctx, `${m.pick + 1}/${members.length}  ${L.menu_target_controls}`, x + inset, 326, width - inset * 2);
+        ctx.fillStyle = '#9a9ab0'; drawMenuText(ctx, all ? L.menu_use_all_controls : `${m.pick + 1}/${members.length}  ${L.menu_target_controls}`, x + inset, 326, width - inset * 2);
       } else {
         const rows = menuInventoryRows(plain, keys, L);
         const selectedRow = Math.max(0, rows.findIndex((row) => row.index === m.subIndex));

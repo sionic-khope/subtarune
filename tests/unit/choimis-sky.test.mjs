@@ -236,11 +236,12 @@ test('test_choimis_sky_abort_cancels_ascent_without_advancing_a_fresh_scene', as
   const boss = { ...actor('choimis_sky_boss'), hopY: 48, motion: { scale: CHOIMIS_SKY_SCALE.raisedHand } };
   const motion = id => ({ scale: CHOIMIS_SKY_SCALE.battleReady[id], frames: [{ duration: 1 }] });
   const ascentWind = { volume: -1, loop: false, pauses: 0, src: 'whoosh', pause() { this.pauses++; } };
+  const ascentCue = { pauses: 0, src: 'spearappear', pause() { this.pauses++; } };
   const game = {
     player, playerSprite: 'hyungsub', entities: [gyeongsub, ppaman, boss], background: [],
     camera: { x: 320, y: 0, target: boss, locked: false }, zoom: { s: 1, smax: 1 },
     choimisSky: { actors: [player, gyeongsub, ppaman, boss], motions: { hyungsub: motion('hyungsub'), gyeongsub: motion('gyeongsub'), ppaman: motion('ppaman') }, boss },
-    sound: { sfx: name => name === 'whoosh' ? ascentWind : undefined },
+    sound: { sfx: name => name === 'whoosh' ? ascentWind : name === 'spearappear' ? ascentCue : undefined },
   };
   const ascent = ascendChoimisSky(game);
   const staleWaiter = game.background[0];
@@ -252,6 +253,8 @@ test('test_choimis_sky_abort_cancels_ascent_without_advancing_a_fresh_scene', as
   clearChoimisSky(game);
   assert.equal(ascentWind.pauses, 1);
   assert.equal(ascentWind.src, '');
+  assert.equal(ascentCue.pauses, 1);
+  assert.equal(ascentCue.src, '');
   const fresh = { fresh: true }; game.choimisSky = fresh;
   await ascent;
   assert.equal(resolved, true);
@@ -334,7 +337,7 @@ test('test_choimis_sky_unfurls_cape_after_ascent_then_plays_weapon_ready', async
   assert.equal(game.choimisSky.phase, 'cape');
   assert.equal(game.choimisSky.capeProgress, 0);
   assert.equal(boss.motion.index, 0);
-  assert.equal(boss.motion.scaleY, 1.2);
+  assert.equal(boss.motion.scaleY, 1);
   assert.equal(player.motion.scale, CHOIMIS_SKY_SCALE.battleReady.hyungsub);
   assert.equal(game.background[0].update(0.12), false);
   assert.deepEqual(sounds, []);
@@ -347,7 +350,7 @@ test('test_choimis_sky_unfurls_cape_after_ascent_then_plays_weapon_ready', async
   assert.equal(boss.motion.loop, true);
   assert.equal(boss.motion.index, 0);
   assert.equal(boss.motion.frames.length, 4);
-  assert.equal(boss.motion.scaleY, 1.2);
+  assert.equal(boss.motion.scaleY, 1);
   assert.deepEqual([player, gyeongsub, ppaman].map(actor => [actor.x + actor.w / 2 + actor.flyX, actor.y + actor.h - actor.hopY + actor.flyY]), partyFeet);
   assert.ok([player, gyeongsub, ppaman].every((actor, index) =>
     Math.abs(actor.motion.scale * CHAR_SCALE * game.zoom.s - [0.25, 0.25, 0.25][index] * 0.66) < 0.0001));
@@ -421,7 +424,7 @@ test('test_choimis_sky_cape_reveal_keeps_foot_and_scale_for_point_nine_seconds_b
   assert.ok(Math.abs(CHOIMIS_CAPE_REVEAL.durations.reduce((sum, value) => sum + value, 0) - 0.9) < 1e-9);
   assert.deepEqual(foot(), beforeFoot);
   assert.equal(boss.motion.scale, ENEMIES.choimis_flower.scale / (1.43 * 0.84));
-  assert.equal(boss.motion.scaleY, 1.2);
+  assert.equal(boss.motion.scaleY, 1);
   assert.equal(game.background[0].update(0.21), false);
   assert.deepEqual(sounds, []);
   assert.equal(game.background[0].update(0.01), false);
@@ -433,7 +436,7 @@ test('test_choimis_sky_cape_reveal_keeps_foot_and_scale_for_point_nine_seconds_b
   await revealing;
   assert.deepEqual(foot(), beforeFoot);
   assert.equal(boss.motion.scale, ENEMIES.choimis_flower.scale / (1.43 * 0.84));
-  assert.equal(boss.motion.scaleY, 1.2);
+  assert.equal(boss.motion.scaleY, 1);
   assert.equal(sounds.includes('weaponpull'), false);
   readyChoimisSkyBattle(game);
   assert.deepEqual(sounds, ['wing', 'weaponpull']);
@@ -481,12 +484,28 @@ test('test_choimis_sky_loose_petals_fall_during_rise_and_cape', () => {
   assert.ok(calls[0][1] >= startY + 90, `${startY} -> ${calls[0][1]}`);
 });
 
+test('test_choimis_ascent_flow_covers_screen_then_clears_before_cape', () => {
+  const state = { phase: 'rise', progress: 0.5, windTime: 2.6, actors: [{}], pollen: [], loosePetals: [] };
+  const fills = [];
+  const ctx = { save() {}, restore() {}, fillRect: (...rect) => fills.push(rect) };
+  const game = { choimisSky: state, zoom: { s: 0.92 } };
+  drawChoimisSkyPollen(ctx, game, { x: 0, y: 0 });
+  assert.equal(fills.length, 30);
+  assert.ok(fills.some(([x]) => x < 16) && fills.some(([x]) => x > 460));
+  assert.ok(fills.some(([, y]) => y < 20) && fills.some(([, y]) => y > 320));
+  assert.ok(fills.every(([, , width, height]) => width < 3 && height > 25));
+  fills.length = 0;
+  state.phase = 'cape';
+  drawChoimisSkyPollen(ctx, game, { x: 0, y: 0 });
+  assert.equal(fills.length, 0);
+});
+
 test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relative', async () => {
   assert.deepEqual(CHOIMIS_SKY_ASCENT, { distance: 1080, duration: 5.2, petalFall: 0.55 });
   assert.ok(Math.abs(CHOIMIS_SKY_SCALE.battleReady.hyungsub * 349 - 101 / 2) < 0.0001);
   assert.ok(Math.abs(CHOIMIS_SKY_SCALE.battleReady.gyeongsub * 359 - 98 / 2) < 0.0001);
   assert.ok(Math.abs(CHOIMIS_SKY_SCALE.battleReady.ppaman * 305 - 99 / 2) < 0.0001);
-  assert.ok(Math.abs(CHOIMIS_SKY_SCALE.raisedHand * 123 - 103 / 2) < 0.0001);
+  assert.ok(Math.abs(CHOIMIS_SKY_SCALE.raisedHand * 140 - 103 / 2) < 0.0001);
   const actor = id => ({ id, x: 560, y: 199, w: 24, h: 16, dead: false, hopY: 0, motion: null });
   const player = actor('player');
   const gyeongsub = actor('gyeongsub');
@@ -523,6 +542,7 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
   assert.equal(game.choimisSky.progress, 0);
   assert.equal(ascentWind.loop, true);
   assert.equal(ascentWind.volume, 0);
+  assert.equal(sounds.filter(name => name === 'spearappear').length, 1);
   assert.deepEqual([player.motion, gyeongsub.motion, ppaman.motion], [null, null, null]);
   assert.equal(boss.motion, raisedHandMotion);
   assert.equal(sounds.includes('weaponpull'), false);
@@ -567,9 +587,9 @@ test('test_choimis_sky_ascent_moves_cliff_down_while_actors_remain_camera_relati
     current.motion.scale * CHAR_SCALE * game.zoom.s * [349, 359, 305][index]);
   battleBodyHeights.forEach((height, index) => assert.ok(Math.abs(height - fieldBodyHeights[index]) < 0.0001));
   const playerBodyHeight = player.motion.scale * 1.43 * game.zoom.s * 349;
-  const bossBodyHeight = boss.motion.scale * 1.43 * game.zoom.s * 131;
-  const expectedBossRatio = 117.5 * ENEMIES.choimis_flower.scale / (101 / 2 * CHAR_SCALE * game.zoom.s);
-  assert.ok(Math.abs(bossBodyHeight - 117.5 * ENEMIES.choimis_flower.scale) < 0.0001);
+  const bossBodyHeight = boss.motion.scale * 1.43 * game.zoom.s * 137;
+  const expectedBossRatio = 140 * ENEMIES.choimis_flower.scale / (101 / 2 * CHAR_SCALE * game.zoom.s);
+  assert.ok(Math.abs(bossBodyHeight - 140 * ENEMIES.choimis_flower.scale) < 0.0001);
   assert.ok(Math.abs(bossBodyHeight / playerBodyHeight - expectedBossRatio) < 0.0001);
-  assert.ok(expectedBossRatio >= 0.95 && expectedBossRatio <= 1.05);
+  assert.ok(expectedBossRatio >= 1.6 && expectedBossRatio <= 1.7);
 });

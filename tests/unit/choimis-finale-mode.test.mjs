@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createChoimisFinale } from '../../src/battle/modes/choimis-finale.js';
+import { CHOIMIS_FINALE as C } from '../../src/data/choimis-finale.js';
 
 const input = confirm => ({ just: key => confirm && key === 'confirm', down: () => false });
 function fixture() {
@@ -18,7 +19,7 @@ function fixture() {
     sfx(name) { events.push(name); },
     game: { time: 0, propImages: {}, sound: {
       stopBgm() { events.push('stop-bgm'); },
-      sfx(name, options) { events.push(name); const handle = { volume: options.volume, paused: false, pause() { this.paused = true; }, removeAttribute() {}, load() {} }; handles.push(handle); return handle; },
+      sfx(name, options) { events.push(name); const handle = { name, options, volume: options.volume, paused: false, pause() { this.paused = true; }, removeAttribute() {}, load() {} }; handles.push(handle); return handle; },
     } },
   };
   return { battle, enemy, events, handles, mode: createChoimisFinale(battle, { enemy }) };
@@ -92,4 +93,41 @@ test('test_finale_automatic_charge_starts_empty_and_fires_once_only_after_four_s
   assert.equal(charge.paused, true);
   advance(f, 10);
   assert.equal(f.events.filter(event => event === 'yellowheart_shot_big').length, 1);
+});
+
+test('test_finale_contact_sound_flash_and_local_slow_motion_stay_synchronized', () => {
+  const f = fixture(); finishTalk(f); advance(f, 66); finishTalk(f); advance(f, 4);
+  f.mode.update(C.seconds.shot - 0.001, input(false));
+  assert.equal(f.mode.snapshot.phase, 'shot');
+  assert.equal(f.mode.snapshot.impactFlash, false);
+  f.mode.update(0.001, input(false));
+  assert.equal(f.mode.snapshot.phase, 'impact');
+  assert.equal(f.mode.snapshot.impactFlash, true);
+  assert.equal(f.events.filter(event => event === 'furnace_blast').length, 1);
+  assert.equal(f.events.includes('energetic_powershot'), false);
+  const impact = f.handles.at(-1);
+  assert.ok(impact.options.rate < 1);
+  assert.equal(impact.options.pitch, true);
+  f.mode.update(0.2, input(false));
+  assert.ok(f.mode.snapshot.impactTime < 0.06);
+  assert.equal(f.mode.snapshot.impactFlash, false);
+  assert.equal(f.battle.game.time, 0);
+  f.mode.update(C.seconds.impact - 0.2, input(false));
+  assert.equal(f.mode.snapshot.phase, 'flash');
+  assert.ok(C.seconds.flash <= 0.1);
+  f.mode.update(C.seconds.flash, input(false));
+  assert.equal(f.mode.snapshot.phase, 'smoke');
+  f.mode.update(C.seconds.smoke, input(false));
+  assert.equal(f.mode.snapshot.phase, 'revert');
+  assert.equal(impact.paused, true);
+});
+
+test('test_finale_assault_exit_keeps_the_new_sprite_pivot_at_the_same_cell_center', () => {
+  const f = fixture();
+  f.enemy.def.pivot = [72, 152]; f.enemy.def.scale = 0.714; f.enemy.def.scaleY = 1;
+  finishTalk(f); advance(f, 4.5); advance(f, 60);
+  const state = f.mode.snapshot;
+  assert.equal(state.phase, 'bursts');
+  assert.equal(state.boss.x - (72 - 80) * 0.714, state.assault.boss.x);
+  assert.equal(state.boss.y - (152 - 80) * 0.714, state.assault.boss.y);
 });

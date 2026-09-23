@@ -41,7 +41,7 @@ test('slow staggered entry uses approved carried NPC and throws before Youngcle 
 
 test('Junhee laugh precedes the timed interruption and bubble does not close Youngcle textbox', () => {
   const line = nodes.findIndex(n => n.text?.includes('내가 그중에서'));
-  assert.equal(nodes[line].cut, 2.1);
+  assert.equal(nodes[line].cut, 1.05);
   assert.equal(nodes[line - 1].async[0].motion, 'lounge_return_junhee');
   const next = nodes.findIndex(n => n.text?.includes('그래서 니들은'));
   let bubble;

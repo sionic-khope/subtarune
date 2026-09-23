@@ -1,0 +1,22 @@
+{
+  "oldScale": 0.506,
+  "oldScaleY": 1.2,
+  "newUniformScale": 0.714,
+  "oldHeights": [
+    71.64959999999999,
+    71.64959999999999,
+    71.0424,
+    71.0424
+  ],
+  "newHeights": [
+    99.96,
+    99.96,
+    99.96,
+    99.96
+  ],
+  "oldMean": 71.346,
+  "newMean": 99.96,
+  "increasePercent": 40.10596249264147,
+  "previewRounding": "full-cell dimensions and pivot rounded to nearest whole pixel",
+  "runtimeVerification": "mathematical display comparison; actual scene QA owned by integration"
+}

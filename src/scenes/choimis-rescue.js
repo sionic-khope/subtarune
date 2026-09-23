@@ -63,15 +63,14 @@ export class ChoimisRescue {
     if (handle?.pause) this.handles.add(handle);
   }
 
-  /** Continue sea/cloud travel during dialogue; catches happen at three distinct contacts. */
+  /** Continue night-sea travel; one claw contact catches the whole falling party. */
   update(dt) {
     if (this.disposed) return;
     this.time += dt; this.elapsed += dt; this.model.scroll -= dt * 60;
     this.bubble.update(dt);
     if (this.beat === 'spot_choimis') this.choimisFallY = 146 + 35 * (1 - Math.exp(-this.elapsed / 4));
-    if (this.beat === 'catch') {
-      const target = Math.min(3, Math.floor(Math.max(0, this.elapsed - 0.18) / 0.32) + (this.elapsed >= 0.18 ? 1 : 0));
-      while (this.catchCount < target) { this.catchCount++; this.sound('wing', 0.4, 1.8); }
+    if (this.beat === 'catch' && this.elapsed >= 0.65 && this.catchCount === 0) {
+      this.catchCount = 3; this.sound('wing', 0.4, 1.8);
     }
     for (const audio of this.handles) if (audio.ended || audio.paused) this.handles.delete(audio);
   }

@@ -110,7 +110,7 @@ export const SHIP_LOUNGE_BRIEFING_NODES = [
   { label: 'laugh' },
   { action: startLoungeBriefingLaugh },
   { async: [{ motion: JUNHEE, name: 'laugh' }] },
-  { ...J('내가 그중에서 가장 대단한 무기를 만들었는데'), cut: 2.1 },
+  { ...J('내가 그중에서 가장 대단한 무기를 만들었는데'), cut: 1.05 },
   { action: clearLoungeBriefing },
   { label: 'interruption' },
   { action: game => game.bubble.start(entity(game, JUNHEE), { dots: 3, gap: 0.3, hold: 2 }) },

@@ -1,5 +1,6 @@
 import { CHOIMIS_FINAL_ASSAULT as C } from '../data/choimis-final-assault.js';
 import { createFinalAssaultRenderer } from './choimis-final-assault-render.js';
+import { TextBalloon } from '../ui/bubble.js';
 import { CHOIMIS_PINK_SHOOTER as P, createPinkFireControl, createPinkShot, createPinkShotAudio,
   registerPinkTargetHit, sweptCirclesHit } from './modes/choimis-pink-shooter.js';
 
@@ -13,6 +14,8 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
   const soul = battle.soul, originalSoul = { x: soul.x, y: soul.y, invuln: soul.invuln };
   const fireControl = createPinkFireControl(P), audio = createPinkShotAudio(battle);
   const renderer = createFinalAssaultRenderer(enemy);
+  const balloon = new TextBalloon(), bubbleTarget = { x: 0, y: 0, w: 0, h: 0 };
+  let bubblesShown = 0;
   const centerY = box.y + box.h / 2, amplitude = Math.min(C.corridorAmplitude, box.h / 2 - 45);
   const corridor = time => centerY + Math.sin(time * C.corridorFrequency) * amplitude;
   const corridorSpeed = amplitude * C.corridorFrequency;
@@ -88,6 +91,7 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
   };
   const step = (dt, input) => {
     elapsed = Math.min(C.seconds, elapsed + dt);
+    balloon.update(dt);
     soul.oldX = soul.x; soul.oldY = soul.y; soul.x = P.heartX;
     soul.invuln = Math.max(0, soul.invuln - dt);
     soul.y = clamp(soul.y + (Number(held(input, 'down')) - Number(held(input, 'up'))) * P.heartSpeed * dt,
@@ -108,6 +112,12 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
     updateHazards(dt);
     if (disposed) return;
     contactShots();
+    const line = C.resolveLines[bubblesShown];
+    if (line && contacts >= line.contacts && balloon.done) {
+      balloon.start(bubbleTarget, { text: line.text, hold: 2, cps: 24 }); bubblesShown++;
+    }
+    bubbleTarget.x = boss.x;
+    bubbleTarget.y = Math.max(80, boss.y - 80 * (enemy.def.scale ?? 1) * (enemy.def.scaleY ?? 1) + 48);
     for (const hazard of hazards) {
       if (hazard.kind !== 'beam' && !hazard.dead && hazard.age >= hazard.warn && hit(hazard, soul)) {
         hurt(); if (disposed) return;
@@ -121,7 +131,8 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
   const snapshot = () => ({ elapsed: Math.round(elapsed * 1000) / 1000, duration: C.seconds, stage: stage(),
     boss: { ...boss }, heart: { x: soul.x, y: soul.y, invuln: soul.invuln }, box: { ...box },
     shots: shots.map(shot => ({ ...shot })), hazards: hazards.map(hazard => ({ ...hazard })), effects: effects.map(effect => ({ ...effect })),
-    charge: fireControl.snapshot, safeY: corridor(elapsed), contacts, destroyed, spawned, disposed });
+    charge: fireControl.snapshot, safeY: corridor(elapsed), contacts, destroyed, spawned, disposed,
+    bubblesShown, bubble: balloon.done ? null : { text: balloon.text, shown: balloon.shown } });
   return {
     get snapshot() { return snapshot(); },
     update(dt, input) {
@@ -131,10 +142,11 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
       if (elapsed + 1e-9 < C.seconds) return false;
       elapsed = C.seconds; fireControl.dispose(); audio.stop(); return true;
     },
-    draw(ctx) { if (!disposed) renderer.draw(ctx, snapshot()); },
+    draw(ctx) { if (!disposed) { renderer.draw(ctx, snapshot()); balloon.draw(ctx, { x: 0, y: 0 }); } },
     dispose() {
       if (disposed) return;
       disposed = true; shots = []; hazards = []; effects = []; fireControl.dispose(); audio.dispose();
+      balloon.done = true; balloon.target = null;
       Object.assign(soul, originalSoul);
     },
   };

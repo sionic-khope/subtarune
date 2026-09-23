@@ -45,7 +45,9 @@ function drawCharge(ctx, state) {
 }
 function drawBeam(ctx, state) {
   const travel = state.phase === 'shot' ? clamp(state.phaseTime / C.seconds.shot) : 1;
-  const target = { x: state.boss.x, y: state.boss.y - 38 };
+  const point = state.impactPoint;
+  const angle = Math.atan2(point.y - state.heart.y, point.x - state.heart.x);
+  const target = { x: point.x - Math.cos(angle) * 24, y: point.y - Math.sin(angle) * 24 };
   const head = { x: mix(state.heart.x + 15, target.x, travel), y: mix(state.heart.y, target.y, travel) };
   const dx = head.x - state.heart.x, dy = head.y - state.heart.y, length = Math.hypot(dx, dy);
   ctx.save(); ctx.translate(Math.round(state.heart.x), Math.round(state.heart.y)); ctx.rotate(Math.atan2(dy, dx));
@@ -82,7 +84,11 @@ export function createChoimisFinaleRenderer(battle, enemy) {
         let frame, sheet = 'idle';
         if (state.phase === 'raise') { sheet = 'raise'; frame = C.raiseFrames.filter(time => state.phaseTime >= time).length; }
         if (state.phase === 'gather') { sheet = 'raise'; frame = 2; }
-        battle.drawEnemy?.(ctx, { ...enemy, blink: 0, shake: 0, popup: null, patternPose: { x: state.boss.x, y: state.boss.y, sheet, frame } });
+        const progress = state.phase === 'impact' ? clamp(state.impactTime / ((C.seconds.impact - C.impact.hitstop) * C.impact.timeScale)) : 0;
+        const recoil = C.impact.recoil * Math.sin(progress * Math.PI / 2);
+        const shake = state.phase === 'impact' ? Math.round(Math.sin(state.phaseTime * 90) * 4 * (1 - progress)) : 0;
+        if (state.phase === 'impact') frame = 0;
+        battle.drawEnemy?.(ctx, { ...enemy, blink: 0, shake: 0, popup: null, patternPose: { x: state.boss.x + recoil + shake, y: state.boss.y - recoil / 3, sheet, frame } });
       }
       if (state.phase === 'gather') gather(ctx, state, enemy);
       if (!showParty && state.phase !== 'done') heart(ctx, state.heart);
@@ -91,12 +97,14 @@ export function createChoimisFinaleRenderer(battle, enemy) {
       if (state.phase === 'bursts' || state.phase === 'impact') {
         const power = state.phase === 'impact' ? 2 : 1;
         for (let index = 0; index < 36; index++) {
-          const angle = index * 2.399, age = (state.phaseTime + index % 4 * 0.1) % 0.4, radius = age * 220 * power;
-          flower(ctx, state.boss.x + Math.cos(angle) * radius, state.boss.y - 38 + Math.sin(angle) * radius, 2 + index % 3, index % 2 ? P.energyWhite : P.impactPetal);
+          const angle = index * 2.399, age = state.phase === 'impact' ? state.impactTime + 0.015 : (state.phaseTime + index % 4 * 0.1) % 0.4;
+          const radius = age * 220 * power * (0.6 + index % 4 * 0.16);
+          const point = state.phase === 'impact' ? state.impactPoint : { x: state.boss.x, y: state.boss.y - 38 };
+          flower(ctx, point.x + Math.cos(angle) * radius, point.y + Math.sin(angle) * radius, 2 + index % 3, index % 2 ? P.energyWhite : P.impactPetal);
         }
       }
       if (state.phase === 'smoke') drawDarkSmoke(ctx, smokeGame, { x: 0, y: 0 });
-      if (state.phase === 'flash') { ctx.fillStyle = P.energyWhite; ctx.fillRect(0, 0, 480, 360); }
+      if (state.phase === 'flash' || state.impactFlash) { ctx.fillStyle = P.energyWhite; ctx.fillRect(0, 0, 480, 360); }
       if (state.phase.endsWith('talk')) { ctx.font = FONT; ctx.textBaseline = 'top'; battle.drawTextBox(ctx); }
     },
     dispose() { smokeGame.darkSmoke = null; smokeWaiter = null; },

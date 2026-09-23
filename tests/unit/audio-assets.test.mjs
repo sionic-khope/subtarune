@@ -16,9 +16,18 @@ const VOICE_PRESETS = new Set([...(audioSrc.match(/VOICES\s*=\s*\{([\s\S]*?)\n\}
 const walk = (dir, out = []) => { for (const f of fs.readdirSync(path.join(ROOT, dir))) { const p = path.join(dir, f); if (fs.statSync(path.join(ROOT, p)).isDirectory()) walk(p, out); else if (/\.(js|json)$/.test(f)) out.push(p); } return out; };
 const sources = [...walk('src'), ...walk('assets/maps').filter((p) => p.endsWith('.json'))];
 const refs = { sfx: new Map(), bgm: new Map(), voice: new Map() };
+const literalSfxLoads = source => [...source.matchAll(/\b(?:scheduleSfxPreload|loadSfxFiles)(?:\?\.)?\s*\(\s*\[([^\]]*)\]/g)]
+  .flatMap(call => [...call[1].matchAll(/['"]([a-z_0-9]+)['"]/g)].map(name => name[1]));
+const auditSfxLoads = (list, available, synth) => ({
+  missing: [...list].filter(name => !available.has(name) && !synth.has(name)),
+  unused: [...available].filter(name => !list.has(name) && !/_(yt|prev|dr)$/.test(name)
+    && !['battle_end', 'cancel', 'click', 'error', 'plug', 'rumble', 'white', 'whoosh', 'laugh_junhee'].includes(name)),
+});
+const sfxLoads = new Set();
 const add = (kind, name, where) => { if (!refs[kind].has(name)) refs[kind].set(name, where); };
 for (const p of sources) {
   const s = fs.readFileSync(path.join(ROOT, p), 'utf8');
+  if (p.endsWith('.js')) for (const name of literalSfxLoads(s)) sfxLoads.add(name);
   for (const m of s.matchAll(/\bsfx\s*:\s*'([a-z_0-9]+)'|\.sfx\(\s*'([a-z_0-9]+)'|sfx\(\s*'([a-z_0-9]+)'/g)) add('sfx', m[1] || m[2] || m[3], p);
   for (const m of s.matchAll(/\bbgm\s*:\s*'([a-z_0-9]+)'|"bgm"\s*:\s*"([a-z_0-9]+)"|playBgm\(\s*'([a-z_0-9]+)'|preloadBgm\(\s*'([a-z_0-9]+)'/g)) add('bgm', m[1] || m[2] || m[3] || m[4], p);
   for (const m of s.matchAll(/\bvoice\s*:\s*'([a-z_0-9]+)'|blip\(\s*'([a-z_0-9]+)'/g)) add('voice', m[1] || m[2], p);
@@ -36,12 +45,22 @@ test('test_audio_every_referenced_voice_exists_as_file_or_preset', () => {
   assert.deepEqual(missing, [], '없는 목소리: ' + missing.join(', '));
 });
 test('test_audio_loadSfxFiles_list_matches_files', () => {
-  const main = fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8');
-  const list = [...[...(main.match(/scheduleSfxPreload\(\[([^\]]*)\]/)?.[1] || '').matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1])];
-  assert.ok(list.length > 10, 'loadSfxFiles 목록을 찾지 못함');
-  const missing = list.filter((n) => !SFX.has(n) && !SYNTH.has(n)); assert.deepEqual(missing, [], '목록에 있지만 파일도 합성도 없음: ' + missing.join(', '));   // open/close/chime 은 합성 폴백
-  const unused = [...SFX].filter((n) => !list.includes(n) && !/_(yt|prev|dr)$/.test(n) && !['battle_end', 'cancel', 'click', 'error', 'plug', 'rumble', 'white', 'whoosh', 'laugh_junhee'].includes(n));
+  assert.ok(sfxLoads.size > 10, 'loadSfxFiles 목록을 찾지 못함');
+  const { missing, unused } = auditSfxLoads(sfxLoads, SFX, SYNTH);
+  assert.deepEqual(missing, [], '목록에 있지만 파일도 합성도 없음: ' + missing.join(', '));
   assert.deepEqual(unused, [], '파일은 있는데 로드 목록에 없음(무음이 됨): ' + unused.join(', '));
+});
+test('test_audio_scoped_load_lists_keep_missing_and_unused_asset_detection', () => {
+  const list = new Set(literalSfxLoads(`
+    game.scheduleSfxPreload(['boot']);
+    game.sound.loadSfxFiles?.(['scoped', "missing"]);
+    sound.loadSfxFiles([...dynamicNames, 'synth']);
+    const unrelated = ['orphan'];
+  `));
+  assert.deepEqual([...list], ['boot', 'scoped', 'missing', 'synth']);
+  assert.deepEqual(auditSfxLoads(list, new Set(['boot', 'scoped', 'orphan']), new Set(['synth'])), {
+    missing: ['missing'], unused: ['orphan'],
+  });
 });
 // 물걸음 루프(src/data/footsteps.js WATER_WALK): 루프·꼬리 wav 가 있고, 루프 구간이 파일 안에 있고, 걸음 시각표가 루프 구간 안에서 오름차순
 const wavSeconds = (p) => { const b = fs.readFileSync(path.join(ROOT, p)); const rate = b.readUInt32LE(24), ch = b.readUInt16LE(22), bps = b.readUInt16LE(34); let i = 12; while (i < b.length - 8) { const id = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); if (id === 'data') return n / (rate * ch * bps / 8); i += 8 + n + (n % 2); } return 0; };
