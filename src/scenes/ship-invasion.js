@@ -15,7 +15,7 @@ export function setInvasionBeat(game, name) { return game.shipInvasion?.setBeat(
 
 /** The script calls this before castle entry; title/reset and unrelated map transitions also abort it. */
 export function finishShipInvasion(game, abort = false) {
-  if (abort && game.shipInvasion?.impactCount && game.sound.bgmName === game.shipInvasion.config.bgm) game.sound.stopBgm(0.2);
+  if (abort && game.shipInvasion?.musicStarted && game.sound.bgmName === game.shipInvasion.config.bgm) game.sound.stopBgm(0.2);
   game.shipInvasion?.dispose();
   game.shipInvasion = null;
 }
@@ -29,6 +29,8 @@ export class ShipInvasion {
     this.time = 0;
     this.impactTime = null;
     this.impactCount = 0;
+    this.roomImpactTime = null;
+    this.musicStarted = false;
     this.launchCount = 0;
     this.disposed = false;
     this.loaded = false;
@@ -45,7 +47,7 @@ export class ShipInvasion {
   }
 
   /** Only the shadow overlays the live room; hidden keeps the prepared assets without painting. */
-  get fullFrame() { return !this.disposed && !['hidden', 'room-shadow'].includes(this.beat); }
+  get fullFrame() { return !this.disposed && !['hidden', 'room-impact', 'room-shadow'].includes(this.beat); }
 
   /** Completion uses the actual contact event plus its aftermath, not a second script timer. */
   get done() {
@@ -65,6 +67,12 @@ export class ShipInvasion {
     if (this.disposed || this.beat === name) return this;
     this.beat = name;
     this.elapsed = 0;
+    if (name === 'room-impact' && this.roomImpactTime === null) {
+      this.roomImpactTime = this.time;
+      this.sound(this.config.sound.impact, 0.85);
+      this.game.sound.playBgm(this.config.bgm, { volume: 0.48, fadeIn: 0.15 });
+      this.musicStarted = true;
+    }
     if (name === 'teleport') {
       this.launchCount = 0;
       this.sound(this.config.sound.charge, 0.45);
@@ -89,7 +97,6 @@ export class ShipInvasion {
       this.sound(this.config.sound.impact, 0.92);
       this.sound(this.config.sound.splash, 0.7);
       this.game.shake = { time: 0.85, amp: 14 };
-      this.game.sound.playBgm(this.config.bgm, { volume: 0.48, fadeIn: 0.15 });
     }
     if (this.beat === 'teleport') {
       const { count, charge, stagger } = this.config.teleport;
@@ -107,7 +114,8 @@ export class ShipInvasion {
   /** Read-only values for the existing cutscene QA harness. */
   get snapshot() {
     return { beat: this.beat, elapsed: this.elapsed, loaded: this.loaded, done: this.done, fullFrame: this.fullFrame,
-      impactCount: this.impactCount, launchCount: this.launchCount, ...invasionGeometry(this) };
+      impactCount: this.impactCount, launchCount: this.launchCount, musicStarted: this.musicStarted,
+      roomImpactAge: this.roomImpactTime === null ? null : this.time - this.roomImpactTime, ...invasionGeometry(this) };
   }
 
   /** Abort releases only this presentation, including sounds still ringing after an impact. */

@@ -11,7 +11,11 @@ const YOUNGCLE = 'lounge_return_youngcle', JUNHEE = 'lounge_return_junhee';
 const YONGJUN = 'invasion_yongjun';
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const EDITORS = ['lounge_warm_bidet', 'lounge_ttuulla', 'lounge_mini_mario', 'lounge_park_guardian'];
-const GUESTS = [...PARTY, JUNHEE, YONGJUN, 'lounge_naram', 'lounge_obangsun', ...EDITORS];
+export const INVASION_EXTRA_GUESTS = ['expelled_viewer', 'eunbyeol', 'lucky_guy', 'dohyun', 'domijorim', 'chakgeom'];
+const EXTRA_IDS = INVASION_EXTRA_GUESTS.map(sprite => `invasion_guest_${sprite}`);
+const GUESTS = [...PARTY, JUNHEE, YONGJUN, 'lounge_naram', 'lounge_obangsun', ...EDITORS, ...EXTRA_IDS];
+const PHOTO_CAMERA = 'invasion_photo_camera';
+const rallyCamera = duration => ({ parallel: [{ camera: [12, 20.5], duration }, { zoom: 0.42, duration }] });
 const close = { action: game => game.textbox.close() };
 const entity = (game, id) => id === 'player' ? game.player : game.entities.find(actor => actor.id === id && !actor.dead);
 const face = (ids, dir) => ids.map(id => ({ face: id, dir }));
@@ -20,12 +24,16 @@ const at = (id, anchor, by = [0, 0], extra = {}) => ({ move: id, rel: anchor, at
 const beat = name => ({ invasionBeat: name, action: game => setInvasionBeat(game, name) });
 const spawnYongjun = { spawn: { type: 'npc', id: YONGJUN, sprite: 'yongjun', x: 0, y: 0,
   hidden: true, solid: false, wander: 0 } };
+const spawnExtraGuests = INVASION_EXTRA_GUESTS.map((sprite, index) => ({ spawn: {
+  type: 'npc', id: EXTRA_IDS[index], sprite, x: 0, y: 0, hidden: true, solid: false, wander: 0,
+} }));
 
 /** Arrange the already-present crowd under the fade, relative to the lounge's door. */
 export function prepareInvasionRally(game) {
   const door = entity(game, 'ship_lounge_grand_door');
   const positions = [[-70, 238], [0, 238], [70, 238], [-140, 238], [140, 238],
-    [-150, 320], [-50, 320], [52, 320], [152, 320], [-65, 394], [65, 394]];
+    [-140, 348], [-47, 348], [47, 348], [140, 348], [-140, 458], [-47, 458], [47, 458], [140, 458],
+    [-120, 568], [-40, 568], [40, 568], [120, 568]];
   const place = (id, dx, dy, facing) => {
     const actor = entity(game, id);
     actor.x = door.x + door.w / 2 - actor.w / 2 + dx;
@@ -100,16 +108,26 @@ export const SHIP_INVASION_NODES = [
   { if: flags => !!flags.ship_rally_done, goto: 'invasion_deck' },
   { label: 'invasion_rally' },
   { map: 'ship_lounge', spawn: 'lounge_free', bgm: false },
-  spawnYongjun, { action: prepareInvasionRally },
-  { parallel: [{ camera: [12, 16.7], duration: 0.01 }, { zoom: 0.62, duration: 0.01 }] },
+  spawnYongjun, ...spawnExtraGuests, { action: prepareInvasionRally },
+  rallyCamera(0.01),
   { fade: 'in', duration: 1 }, { wait: 0.7 },
   V('...'), V('이제 결전에 때가 왔다.'), V('내일 우리는 가재맨 성을 침공하는거임 ㅇㅇ'),
   V('그래서 다들 푹 쉬고 내일 보자 ㅇㅇ'), V('아 맞다'), close,
-  { camera: [12, 10], duration: 1.3 },
+  { spawn: { type: 'prop', id: PHOTO_CAMERA, image: 'assets/props/ship-photo-camera.png',
+    x: 0, y: 0, ix: 0, iy: 0, solid: false, hidden: true } },
+  { action: game => {
+    const camera = entity(game, PHOTO_CAMERA), door = entity(game, 'ship_lounge_grand_door');
+    camera.x = door.x + door.w / 2 + 74;
+    camera.y = door.y - 96 + camera.ih - camera.h;
+    camera.def.ix = camera.x; camera.def.iy = camera.drawY;
+    camera.visible = true;
+  } },
   { face: YOUNGCLE, dir: 'up' },
-  { camera: [12, 16.7], duration: 2.2 }, { wait: 0.5 },
+  { slide: PHOTO_CAMERA, by: [0, 126], duration: 1.1 },
+  { slide: PHOTO_CAMERA, by: [0, 84], duration: 1.1 }, { wait: 0.5 },
   V('기념샷'), close, { sfx: 'photo_shutter' },
   { fade: 'white', duration: 0.06 }, { wait: 0.13 }, { fade: 'in', duration: 0.75 },
+  { slide: PHOTO_CAMERA, by: [0, -210], duration: 1.2 }, { remove: PHOTO_CAMERA },
   { face: YOUNGCLE, dir: 'down' }, V('ㅋㅋ'), P('뭔가 빠릿빠릿 진행되네요'), V('ㅇㅇ'),
   V('그리고 이 문을 열면'), close,
   { parallel: [{ camera: [12, 5.6], duration: 1.5 }, { zoom: 0.9, duration: 1.5 }] },
@@ -121,7 +139,7 @@ export const SHIP_INVASION_NODES = [
   J('흥.. 뭘 어떻게되긴, 우리랑 함께 세상 밖으로 나가면 되는거지'),
   J('어서 빨리 가재맨의 아구창에 한대 날리고싶구만 흥!'), close,
   { parallel: [at(JUNHEE, 'ship_lounge_ladder', [0, -38], { run: true }), { camera: [12, 24], duration: 1.5 }] },
-  { hide: JUNHEE }, { parallel: [{ camera: [12, 16.7], duration: 1.3 }, { zoom: 0.62, duration: 1.3 }] },
+  { hide: JUNHEE }, rallyCamera(1.3),
   V('ㅂㅅ'), V('어쨋든 게이들아 다들 푹 쉬도록 ㅇㅇ'), close,
   { stage: 'ship_rally_done' }, { fade: 'out', duration: 1.2 },
 
@@ -134,7 +152,7 @@ export const SHIP_INVASION_NODES = [
   P('뭐하고계세요?'), close,
   { emote: 'player', kind: '!', duration: 1, hold: 0.5, sfx: 'chime' },
   { face: 'player', dir: 'left' }, { show: 'ppaman' }, { show: 'gyeongsub' },
-  { parallel: [at('ppaman', 'deck_ppaman_near'), [{ wait: 0.45 }, at('gyeongsub', 'deck_gyeongsub_near')],
+  { parallel: [at('ppaman', 'deck_ppaman_near', [0, 0], { speed: 50 }), [{ wait: 0.45 }, at('gyeongsub', 'deck_gyeongsub_near', [0, 0], { speed: 50 })],
     { camera: [22, 11.6], duration: 1.5 }] }, { wait: 0.5 },
   P('뭔가 걱정이 많아보이시네요'), N('...'), G('이 길던 여행도 끝이 다가오니까'),
   G('떨리기도하고'), P('솔직히 인정하는게 처음에 가재맨성 봤을때 너무 에바긴했어요'),
@@ -146,15 +164,14 @@ export const SHIP_INVASION_NODES = [
   { action: game => { setShipDeckFist(game, 'ppaman'); setShipDeckFist(game, 'gyeongsub'); } },
   { bubble: 'player', dots: 3, gap: 0.4, hold: 0.7 },
   { action: game => setShipDeckFist(game, 'player') }, { wait: 1.6 },
-  { fade: 'out', duration: 1.5 }, { action: clearShipDeckPoses },
+  { fade: 'out', duration: 2.5 }, { action: clearShipDeckPoses },
   { stage: 'ship_deck_bond_done' },
 
   { label: 'invasion_sailing' },
   { bgm: null, fadeOut: 0.7 },
   { map: 'ship_lounge', spawn: 'lounge_free', bgm: false },
-  spawnYongjun, { action: prepareInvasionRally },
-  { parallel: [{ camera: [12, 16.7], duration: 0.01 }, { zoom: 0.62, duration: 0.01 }] },
-  { fade: 'in', duration: 0.8 }, { wait: 0.7 }, { fade: 'out', duration: 1 },
+  spawnYongjun, ...spawnExtraGuests, { action: prepareInvasionRally },
+  rallyCamera(0.01),
   { action: game => game.fadeTo(0, 0) },
   { text: '그리고, 결전의 날.', voice: 'none', style: 'narration', speed: 0.65, auto: 1.6 }, close,
   { action: game => game.fadeTo(1, 0, null, 'black') },
@@ -168,14 +185,19 @@ export const SHIP_INVASION_NODES = [
   V('자 슬슬 준비하자'), P('네네 대형대로 스면 될까요?'),
   { ...V('편집노조애들 위치로, 쥰희랑 용준이 그리고 나 위치로, 요플래 억빠맨 김경섭도 위치로'), mosaic: { text: '노', block: 2 } }, close,
   { parallel: [
-    ...EDITORS.map((id, index) => at(id, 'ship_lounge_grand_door', [-184 + index * 120, 390], { run: true })),
+    ...EDITORS.map((id, index) => at(id, 'ship_lounge_grand_door', [-138 + index * 92, 370], { run: true })),
     at(JUNHEE, 'ship_lounge_grand_door', [-90, 160], { run: true }),
     at(YONGJUN, 'ship_lounge_grand_door', [90, 160], { run: true }),
-    ...PARTY.map((id, index) => at(id, 'ship_lounge_grand_door', [-76 + index * 76, 272], { run: true })),
-  ] }, ...face([...PARTY, ...EDITORS, JUNHEE, YONGJUN], 'up'),
+    ...PARTY.map((id, index) => at(id, 'ship_lounge_grand_door', [-76 + index * 76, 260], { run: true })),
+    at('lounge_naram', 'ship_lounge_grand_door', [-145, 260], { run: true }),
+    at('lounge_obangsun', 'ship_lounge_grand_door', [145, 260], { run: true }),
+    ...EXTRA_IDS.map((id, index) => at(id, 'ship_lounge_grand_door',
+      index < 2 ? [-46 + index * 92, 470] : [-120 + (index - 2) * 80, 570], { run: true })),
+  ] }, ...face(GUESTS, 'up'),
+  rallyCamera(1.2),
   { fade: 'out', duration: 0.6 }, { wait: 0.3 }, { fade: 'in', duration: 0.7 },
   ...interrupted(V('자 이제 준비하고 1시간뒤쯤 출발ㅎ..'), 'ㅎ'), close,
-  { parallel: [{ sfx: 'explosion', volume: 0.85 }, { shake: 1.1, amp: 14 },
+  { parallel: [beat('room-impact'), { shake: 1.1, amp: 14 },
     ...[YOUNGCLE, ...GUESTS].map(id => ({ hop: id, by: [0, 0], height: 18, duration: 0.5, sfx: false }))] },
   V('...?'), V('뭐노 시발'), J('오 이런..'),
   ...interrupted(J('미치...'), '치'), close,

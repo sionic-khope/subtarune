@@ -1502,6 +1502,10 @@ class Game {
         ctx.drawImage(factory, 0, offset, SCREEN_W, SCREEN_H, 0, 0, SCREEN_W, SCREEN_H);
       }
     }
+    else if (MAPS[this.mapId]?.backdrop === 'castle306_distant') {
+      const castle = this.propImages['assets/backdrops/castle306_distant.png'];
+      if (castle) ctx.drawImage(castle, 0, 0, SCREEN_W, SCREEN_H);
+    }
     else if (MAPS[this.mapId]?.backdrop === 'maillard_sea') {
       const sea = this.propImages['assets/backdrops/maillard_sea.png'];
       ctx.fillStyle = '#075783';

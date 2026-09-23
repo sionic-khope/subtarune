@@ -7,7 +7,7 @@
 # Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh
 # Run from repository root: uv run tools/maps/gajaeman_castle_entry.py [--check]
 # ──────────────────
-"""Build the castle arrival court and continuous right-hand stone approach."""
+"""Build the castle arrival court and its northern approach exit."""
 from __future__ import annotations
 
 import json
@@ -16,12 +16,12 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_entry'
-WIDTH: Final = 48
+WIDTH: Final = 24
 HEIGHT: Final = 20
 
 
 def main() -> None:
-    """Keep the five landing spots and both departure lanes on real stone."""
+    """Keep five landing spots and the northern departure on real stone."""
     if '--help' in sys.argv:
         print(f'Usage: uv run tools/maps/{MAP_ID}.py [--check]')
         return
@@ -30,11 +30,10 @@ def main() -> None:
         raise SystemExit(2)
     cells = [[' '] * WIDTH for _ in range(HEIGHT)]
     floor = {(col, row) for col in range(2, 17) for row in range(10, 18)}
-    floor.update((col, row) for col in range(12, 47) for row in range(10, 14))
-    floor.update((col, row) for col in range(12, 17) for row in range(2, 14))
+    floor.update((col, row) for col in range(12, 17) for row in range(14))
     for col, row in floor:
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            if (col + dx, row + dy) not in floor:
+            if 0 <= row + dy < HEIGHT and 0 <= col + dx < WIDTH and (col + dx, row + dy) not in floor:
                 cells[row + dy][col + dx] = '▥'
     for col, row in floor:
         cells[row][col] = '⌁' if (col * 7 + row * 11) % 19 == 0 else '⌂'
@@ -42,7 +41,7 @@ def main() -> None:
         'castle_player': [228, 440], 'castle_ppaman': [164, 488],
         'castle_gyeongsub': [292, 488], 'castle_youngcle': [420, 408],
         'castle_junhee': [484, 456], 'castle_exit_turn': [452, 344],
-        'castle_exit_up': [452, 72], 'castle_right_path': [1452, 360],
+        'castle_exit_up': [452, 72],
     }
     anchors = [
         {'type': 'prop', 'id': name, 'image': 'assets/tiles/gajaeman_castle_floor.png',
@@ -61,9 +60,13 @@ def main() -> None:
         'preload': [f'assets/tiles/gajaeman_castle_{suffix}.png'
                     for suffix in ('floor', 'cracked', 'wall')],
         'spawns': {'arrival': {'x': 228, 'y': 440, 'facing': 'right'},
-                   'start': {'x': 228, 'y': 440, 'facing': 'right'}},
+                   'start': {'x': 228, 'y': 440, 'facing': 'right'},
+                   'from_approach': {'x': 452, 'y': 176, 'facing': 'down'}},
         'meta': {'connected': True, 'stage': stage},
-        'entities': [*anchors, *actors],
+        'entities': [*anchors, *actors,
+                     {'type': 'door', 'id': 'castle_north_exit', 'x': 384, 'y': 0,
+                      'w': 160, 'h': 10, 'to': 'gajaeman_castle_approach',
+                      'spawn': 'start', 'interact': False, 'sfx': False}],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')
     index_path = Path('assets/maps/index.json')

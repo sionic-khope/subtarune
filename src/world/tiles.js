@@ -145,6 +145,10 @@ const flat = (col) => (ctx) => { ctx.fillStyle = col; ctx.fillRect(0, 0, ART_PX,
 registerTile('⌂', { name: 'gajaeman_castle_floor', solid: false, draw: flat('#30283e') });
 registerTile('⌁', { name: 'gajaeman_castle_cracked', solid: false, draw: flat('#30283e') });
 registerTile('▥', { name: 'gajaeman_castle_wall', solid: true, draw: flat('#171421') });
+registerTile('♜', { name: 'castle306_floor', solid: false, draw: flat('#282430') });
+registerTile('♠', { name: 'castle306_moss', solid: false, draw: flat('#322739') });
+registerTile('♣', { name: 'castle306_cracked', solid: false, draw: flat('#282430') });
+registerTile('♦', { name: 'castle306_moss_dense', solid: false, draw: flat('#392d45') });
 registerTile('≈', { name: 'night_coast_rock', solid: false, draw: flat('#424b60') });
 registerTile('≋', { name: 'night_coast_edge', solid: true, draw: flat('#242c40') });
 registerTile(':', { name: 'ship_lounge_floor', solid: false, draw: flat('#333746') });

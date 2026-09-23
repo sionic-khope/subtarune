@@ -1,5 +1,11 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 구조·출정·성 접근 교정 (BUILD306, 2026-09-23)
+
+- 냄트기는 `catch`에서 `naem_jet_approach` 한 번만. `jet_reveal`에서 잔여 소리도 정지해 용준 대화·이탈 때 제트기 소리는 없다. 아래304의 engine/depart 파일은 기록으로 보관하며 이 장면에서 재생/적재하지 않는다. wing·vs_lancer는 보존한다.
+- `ship_invasion`은 첫 라운지 폭발에 시작한다. 성의 선체 충돌 때 재시작하지 않으며 소유 장면 중단 때 정리한다. 아래305의 성 접촉 시작은 이전 큐다.
+- `castle_approach`: 사용자 지정 [JygDUsh9W5E](https://www.youtube.com/watch?v=JygDUsh9W5E), 조회 제목 `48. ATRIUM (DELTARUNE Chapter3+4 Soundtrack) - Toby Fox`. 전체63.680초, 원속도·원피치·무트리밍. 성 접근맵에서 사용한다. 출처·디코드·피크·SHA는 [취득 기록](../../assets/source/castle306-audio/README.md)에 있다.
+
 ## 전함 침공·사진·주먹 들기 (BUILD305, 2026-09-23)
 
 - `bgm/ship_invasion.mp3`: 사용자 지정 [z2IT2YzscSE](https://www.youtube.com/watch?v=z2IT2YzscSE), 조회 제목 `66. Crumbling Tower (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 업로더 표시명 Toby Fox. 전체173.592979초를 사용하며 거대 가재맨 성 낙하·전함 분단 시작 큐에 연결한다. 트리밍·피치·속도·페이드 변경 없음. MP3 재인코딩에서 생기는 0dBFS 초과를 막기 위해 게인만 −0.5dB 적용했다.

@@ -10,6 +10,7 @@ const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 SOLID_CHARS.add('≋');
 SOLID_CHARS.add('▥');
 EDGE_OPEN.add('≈');
+for (const char of ['⌂', '⌁', '♜', '♠', '♣', '♦']) EDGE_OPEN.add(char);
 const PW = 24, PH = 16;   // 주인공 히트박스 (스폰 x,y = 히트박스 왼쪽 위)
 const solidAt = (m, x, y) => { const c = Math.floor(x / TILE), r = Math.floor(y / TILE); if (r < 0 || r >= m.rows.length || c < 0 || c >= m.rows[0].length) return true; return SOLID_CHARS.has(m.rows[r][c]); };
 const onProp = (m, x, y) => (m.entities || []).some((e) => e.type === 'prop' && e.w !== undefined && x < e.x + e.w && x + PW > e.x && y < e.y + e.h && y + PH > e.y);   // 발판 소품(void4 기둥) 위는 허용

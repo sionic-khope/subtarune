@@ -1,0 +1,143 @@
+{
+  "generator": "built-in image_gen",
+  "model": "unknown",
+  "cost": "unknown",
+  "generationIds": [
+    "exec-b13f3532-f7c1-4eaa-baef-1167a9fede08",
+    "exec-acbf3cf8-e4f0-472b-84a6-74b52567786f",
+    "exec-a9cf567c-c620-4ed7-a7d5-40245c3ba68e"
+  ],
+  "resample": "NEAREST",
+  "alphaCleanup": false,
+  "colorChanges": false,
+  "tiles": [
+    {
+      "path": "assets/tiles/castle306_floor.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "sha256": "32b5e4d113564c86e869f084015f8ac775ea53cbeb8781f02cec61de4df5a18a",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 15.3125,
+        "topBottom": 20.489583333333332
+      }
+    },
+    {
+      "path": "assets/tiles/castle306_moss.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "sha256": "03b780e5977436c26ae8b9e0882030239cdfb31ec5d0bfadd21770b4ea4f7f78",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 7.25,
+        "topBottom": 27.552083333333332
+      }
+    },
+    {
+      "path": "assets/tiles/castle306_cracked.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "sha256": "fa6fb99bc555a696872337612758785a8eecedfe7b14b602cf9924f6897e9714",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 12.052083333333334,
+        "topBottom": 14.0
+      }
+    },
+    {
+      "path": "assets/tiles/castle306_moss_dense.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "sha256": "9073bd0bffb40ed152d4da1e6299f76d4035b1e6c62949c4bbb601b5afea7305",
+      "edgeMeanAbsoluteRGBDifference": {
+        "leftRight": 14.125,
+        "topBottom": 13.71875
+      }
+    }
+  ],
+  "gate": {
+    "path": "assets/props/castle306_gate.png",
+    "size": [
+      256,
+      320
+    ],
+    "sourceSize": [
+      1122,
+      1402
+    ],
+    "contentSize": [
+      252,
+      315
+    ],
+    "placement": [
+      2,
+      3
+    ],
+    "pivot": [
+      128,
+      320
+    ],
+    "alphaBounds": [
+      2,
+      3,
+      254,
+      318
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "21bf5082f331598035f34570026c8e019d98b41b9467e3ab4552f32ab56e312f"
+  },
+  "backdrop": {
+    "path": "assets/backdrops/castle306_distant.png",
+    "size": [
+      480,
+      360
+    ],
+    "sourceSize": [
+      1448,
+      1086
+    ],
+    "sha256": "4d2392226da1f88ffc50489bb6549ce728cc24ace2d6694e72c2c6cad30ede00"
+  },
+  "sourceSHA256": {
+    "raw-tiles.png": "fe1f2155ed52736afbf5850315d7e9ea7df01b8005234aa02ba1135cc1280858",
+    "raw-gate.png": "0d0ffc8694866eb713b01b6f56115ac8536958b8e08e1bbc0474ca4859e69ebc",
+    "raw-distant.png": "49501aa1d554ee3f93f6b5edad4463af323fc5754955ebf68b2d3709a4d538da"
+  },
+  "note": "Tile edges visually reviewed; edge measurements are observations, not a perfect seamlessness guarantee."
+}

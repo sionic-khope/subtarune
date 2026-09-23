@@ -164,12 +164,40 @@ function drawCastleWaterline(ctx, scene, g) {
   ctx.restore();
 }
 
+/** Falling fragments reuse opaque hull plating from the approved warship image. */
+export function invasionRoomDebris(scene) {
+  if (scene.roomImpactTime === null || !['room-impact', 'room-shadow'].includes(scene.beat)) return [];
+  const age = scene.time - scene.roomImpactTime, { count, duration, gravity } = scene.config.debris;
+  if (age >= duration) return [];
+  return Array.from({ length: count }, (_, i) => {
+    const t = age - i % 5 * 0.055;
+    return { x: 28 + i * 71 % 420 + (i % 2 ? 1 : -1) * t * (12 + i % 4 * 7),
+      y: -18 - i % 4 * 24 + t * 90 + gravity * t * t / 2,
+      width: 9 + i % 4 * 4, height: 6 + i % 3 * 3, rotation: t * (i % 2 ? 2.3 : -1.9),
+      sourceX: 0.16 + i % 6 * 0.085, sourceY: 0.71 + i % 3 * 0.045, started: t >= 0 };
+  }).filter(piece => piece.started && piece.y < SCREEN_H + 24);
+}
+
+function drawRoomDebris(ctx, scene) {
+  const image = scene.images.warship;
+  if (!image) return;
+  for (const piece of invasionRoomDebris(scene)) {
+    ctx.save(); ctx.translate(Math.round(piece.x), Math.round(piece.y)); ctx.rotate(piece.rotation);
+    ctx.drawImage(image, Math.round(image.width * piece.sourceX), Math.round(image.height * piece.sourceY),
+      28, 18, -piece.width / 2, -piece.height / 2, piece.width, piece.height);
+    ctx.restore();
+  }
+}
+
 /** Room shadow stays below dialogue; ocean shots retain the same upper-screen picture budget. */
 export function drawShipInvasion(ctx, scene) {
   if (scene.beat === 'hidden') return;
-  if (scene.beat === 'room-shadow') {
-    ctx.fillStyle = `rgba(7,3,13,${smooth(scene.elapsed / scene.config.timing.shadow) * 0.78})`;
-    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+  if (['room-impact', 'room-shadow'].includes(scene.beat)) {
+    if (scene.beat === 'room-shadow') {
+      ctx.fillStyle = `rgba(7,3,13,${smooth(scene.elapsed / scene.config.timing.shadow) * 0.78})`;
+      ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    }
+    drawRoomDebris(ctx, scene);
     return;
   }
   const g = invasionGeometry(scene);

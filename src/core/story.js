@@ -655,3 +655,6 @@ QA_POINTS.push({ ...invasionReady, id: 'gajaeman_castle_entry', desc: '가재맨
   stage: 'ship_invasion_arrived', map: 'gajaeman_castle_entry', spawn: 'arrival',
   flags: { ...invasionReady.flags, ship_invasion_started: true, ship_rally_done: true, ship_deck_bond_done: true, ship_invasion_arrived: true },
   party: [...invasionReady.party] });
+QA_POINTS.push({ ...QA_POINTS.find(point => point.id === 'gajaeman_castle_entry'),
+  id: 'gajaeman_castle_approach', desc: '가재맨성 접근로 · 북쪽의 닫힌 거대 성문까지',
+  map: 'gajaeman_castle_approach', spawn: 'start' });

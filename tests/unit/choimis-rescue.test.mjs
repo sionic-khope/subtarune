@@ -92,30 +92,38 @@ test('jet flight keeps moving during dialogue and rescues normal Choimis before 
   scene.setBeat('flyaway'); scene.update(2); assert.ok(scene.snapshot().jet.x > 480);
 });
 
-test('aircraft approach, continuous dialogue engine and departure each play once and dispose cleanly', () => {
-  const { scene, game, sounds, handles } = setup();
+test('aircraft sounds once at the catch and its tail stops before dialogue, without a departure cue', () => {
+  const { scene, sounds, handles } = setup();
   scene.setBeat('catch'); scene.setBeat('catch');
   assert.equal(sounds.filter(name => name === 'naem_jet_approach').length, 1);
-  scene.setBeat('jet_reveal'); const engine = scene.engine;
-  assert.equal(engine.loop, true);
-  for (let i = 0; i < 120; i++) scene.update(0.1);
-  scene.setBeat('spot_choimis'); scene.update(1);
-  assert.equal(scene.engine, engine);
-  assert.equal(sounds.filter(name => name === 'naem_jet_engine').length, 1);
-  game.sound.muted = true; scene.update(0.1); assert.equal(engine.muted, true);
+  const approach = scene.approach;
+  assert.ok(approach);
+  assert.notEqual(approach.paused, true);
+  assert.notEqual(approach.loop, true);
+  scene.update(0.7);
+  scene.setBeat('jet_reveal');
+  assert.equal(approach.paused, true);
+  assert.equal(scene.approach, null);
+  for (const beat of ['jet_reveal', 'spot_choimis', 'save_choimis']) {
+    scene.setBeat(beat);
+    for (let i = 0; i < 120; i++) scene.update(0.1);
+    assert.equal(approach.paused, true);
+  }
   scene.setBeat('flyaway'); scene.setBeat('flyaway');
-  assert.equal(engine.paused, true);
-  assert.equal(sounds.filter(name => name === 'naem_jet_depart').length, 1);
+  assert.deepEqual(sounds.filter(name => name.startsWith('naem_jet_')), ['naem_jet_approach']);
+  assert.equal(sounds.filter(name => name === 'wing').length, 2);
   scene.dispose(); assert.ok(handles.every(handle => handle.paused));
 });
 
-test('title or map abort stops the looping aircraft engine without replaying late cues', () => {
+test('title or map abort during the catch stops its aircraft sound without replaying late cues', () => {
   const { scene, game, sounds, handles } = setup();
-  scene.setBeat('jet_reveal'); finishChoimisRescue(game, true);
+  scene.setBeat('catch');
+  assert.ok(scene.approach);
+  finishChoimisRescue(game, true);
   assert.ok(handles.every(handle => handle.paused));
-  assert.equal(scene.engine, null);
+  assert.equal(scene.approach, null);
   scene.setBeat('flyaway'); scene.update(3);
-  assert.deepEqual(sounds, ['naem_jet_engine']);
+  assert.deepEqual(sounds, ['naem_jet_approach']);
 });
 
 test('distant and close rescue retain the same approved night sky and moving ocean', () => {

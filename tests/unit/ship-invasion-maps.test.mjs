@@ -20,7 +20,7 @@ test('test_ship_night_deck_staging_keeps_party_on_iron_behind_rail', () => {
   assert.equal(map.entities.filter((entity) => entity.type === 'npc').length, 0);
 });
 
-test('test_castle_entry_arrival_has_five_safe_anchors_and_both_routes', () => {
+test('test_castle_entry_arrival_has_five_safe_anchors_and_north_route_only', () => {
   const map = readMap('gajaeman_castle_entry');
   const walk = new Set(['⌂', '⌁']);
   const start = map.spawns.arrival;
@@ -37,9 +37,14 @@ test('test_castle_entry_arrival_has_five_safe_anchors_and_both_routes', () => {
     assert.ok(seen.has(`${Math.floor(x / 32)},${Math.floor(y / 32)}`));
     assert.ok(walk.has(tile(map, x + 23, y + 15)));
   }
-  assert.ok(seen.has('46,11'));
+  assert.ok(!seen.has('46,11'));
   assert.ok(seen.has('14,2'));
-  assert.equal(map.entities.filter((entity) => entity.type === 'door').length, 0);
+  assert.ok(seen.has('14,0'));
+  const doors = map.entities.filter((entity) => entity.type === 'door');
+  assert.equal(doors.length, 1);
+  assert.equal(doors[0].to, 'gajaeman_castle_approach');
+  assert.equal(doors[0].y, 0);
+  assert.equal(doors[0].interact, false);
   assert.deepEqual(map.entities.filter((entity) => entity.type === 'npc').map((entity) => entity.id), ['invasion_youngcle', 'invasion_junhee']);
   assert.equal(map.entities.find((entity) => entity.id === 'invasion_youngcle').visualScale, 2);
 });

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ShipInvasion, finishShipInvasion, prepareShipInvasion } from '../../src/scenes/ship-invasion.js';
 import { SHIP_INVASION as C } from '../../src/data/ship-invasion.js';
+import { invasionRoomDebris } from '../../src/scenes/ship-invasion-render.js';
 
 async function setup() {
   const cues = [], handles = [];
@@ -28,8 +29,11 @@ test('test_invasion_sailing_pan_keeps_castle_outside_then_holds_exact_ratio', as
   assert.equal(scene.done, true);
 });
 
-test('test_invasion_drop_contact_once_precedes_split_and_cues_music', async () => {
+test('test_invasion_drop_contact_once_precedes_split_without_restarting_music', async () => {
   const { scene, cues } = await setup();
+  scene.setBeat('room-impact');
+  scene.update(1.1);
+  assert.deepEqual(cues, [C.sound.impact, `bgm:${C.bgm}`]);
   scene.setBeat('castle-drop');
   scene.update(C.timing.fall - 0.01);
   assert.equal(scene.snapshot.contact, false);
@@ -39,19 +43,38 @@ test('test_invasion_drop_contact_once_precedes_split_and_cues_music', async () =
   assert.equal(scene.snapshot.contact, true);
   assert.equal(scene.snapshot.split, 0);
   assert.equal(scene.impactCount, 1);
-  assert.deepEqual(cues, [C.sound.impact, C.sound.splash, `bgm:${C.bgm}`]);
-  scene.update(C.timing.pullback + C.timing.impactHold);
+  assert.deepEqual(cues, [C.sound.impact, `bgm:${C.bgm}`, C.sound.impact, C.sound.splash]);
+  scene.update(C.timing.pullback + C.timing.impactHold + 0.001);
   assert.equal(scene.done, true);
   assert.equal(scene.snapshot.split, 1);
   assert.equal(scene.snapshot.castle.width, C.world.wideCastleWidth);
   assert.equal(scene.snapshot.castle.x + scene.snapshot.castle.width / 2, scene.snapshot.warship.x + scene.snapshot.warship.width / 2);
   scene.setBeat('castle-drop'); scene.update(1);
   assert.equal(scene.impactCount, 1);
-  assert.equal(cues.filter(key => key === C.sound.impact).length, 1);
+  assert.equal(cues.filter(key => key === C.sound.impact).length, 2);
+  assert.equal(cues.filter(key => key === `bgm:${C.bgm}`).length, 1);
+});
+
+test('test_invasion_initial_room_blast_drops_visible_fragments_and_owns_music_on_abort', async () => {
+  const { game, scene, cues } = await setup();
+  scene.setBeat('room-impact');
+  assert.equal(scene.fullFrame, false);
+  assert.equal(scene.musicStarted, true);
+  scene.update(0.4);
+  const early = invasionRoomDebris(scene);
+  assert.ok(early.filter(piece => piece.y > 0 && piece.y < 230).length >= 6);
+  scene.update(0.3);
+  assert.ok(invasionRoomDebris(scene)[0].y > early[0].y + 30);
+  scene.setBeat('hidden'); scene.setBeat('room-impact');
+  assert.equal(cues.filter(key => key === `bgm:${C.bgm}`).length, 1);
+  finishShipInvasion(game, true);
+  assert.equal(game.sound.bgmName, null);
+  assert.equal(game.shipInvasion, null);
 });
 
 test('test_invasion_teleport_staggers_five_lights_once_and_cleans_owned_sounds', async () => {
   const { game, scene, cues, handles } = await setup();
+  scene.setBeat('room-impact');
   scene.setBeat('castle-drop'); scene.update(2);
   scene.setBeat('teleport'); scene.update(0.64);
   assert.equal(scene.launchCount, 0);
@@ -85,6 +108,7 @@ test('test_invasion_disposal_during_prepare_cannot_restore_scene', async () => {
 
 test('test_invasion_normal_finish_preserves_story_music_and_hidden_room_view', async () => {
   const { game, scene } = await setup();
+  scene.setBeat('room-impact');
   scene.setBeat('room-shadow');
   assert.equal(scene.fullFrame, false);
   scene.setBeat('hidden');

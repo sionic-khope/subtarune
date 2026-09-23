@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { TextBox, ScriptRunner } from '../../src/ui/dialogue.js';
 import { shipLoungeScripts } from '../../src/data/cutscenes/ship_lounge.js';
 import { SHIP_LOUNGE_BRIEFING_NODES } from '../../src/data/cutscenes/ship_lounge_briefing.js';
-import { SHIP_INVASION_NODES, armInvasionInterruption, waitInvasionBeat, placeInvasionActors } from '../../src/data/cutscenes/ship_invasion.js';
+import { SHIP_INVASION_NODES, INVASION_EXTRA_GUESTS, armInvasionInterruption, waitInvasionBeat, placeInvasionActors } from '../../src/data/cutscenes/ship_invasion.js';
+import { CHARACTERS } from '../../src/data/characters.js';
 import { prepareShipDeckPoses, setShipDeckFist, clearShipDeckPoses } from '../../src/scenes/ship-deck-poses.js';
 
 const input = { just: () => false };
@@ -116,6 +117,50 @@ test('test_invasion_day_title_releases_cover_in_same_step_and_recovers_cover_bef
   box._done(null);
   assert.equal(game.fade.alpha, 1);
   assert.equal(box.isOpen, false);
+});
+
+test('test_invasion_photo_prop_descends_without_empty_viewport_pan_and_retracts', () => {
+  const start = SHIP_INVASION_NODES.findIndex(node => node.text === '* 아 맞다');
+  const end = SHIP_INVASION_NODES.findIndex(node => node.text === '* ㅋㅋ');
+  const photo = SHIP_INVASION_NODES.slice(start, end);
+  const prop = photo.find(node => node.spawn)?.spawn;
+  assert.equal(prop.image, 'assets/props/ship-photo-camera.png');
+  assert.equal(prop.w, undefined);
+  assert.equal(prop.h, undefined);
+  assert.equal(photo.some(node => node.camera), false);
+  assert.deepEqual(photo.filter(node => node.slide).map(node => node.by[1]), [126, 84, -210]);
+  assert.equal(photo.at(-2).remove, prop.id);
+});
+
+test('test_invasion_adds_six_registered_png_guests_to_both_rallies_formation_and_jump', () => {
+  assert.equal(INVASION_EXTRA_GUESTS.length, 6);
+  assert.ok(INVASION_EXTRA_GUESTS.includes('expelled_viewer'));
+  assert.ok(INVASION_EXTRA_GUESTS.includes('eunbyeol'));
+  const flat = nodes => nodes.flatMap(node => Array.isArray(node) ? flat(node) : [node, ...flat(node.parallel || [])]);
+  const nodes = flat(SHIP_INVASION_NODES);
+  for (const sprite of INVASION_EXTRA_GUESTS) {
+    assert.ok(CHARACTERS[sprite].sheet || CHARACTERS[sprite].still);
+    const id = `invasion_guest_${sprite}`;
+    assert.equal(nodes.filter(node => node.spawn?.id === id).length, 2);
+    assert.equal(nodes.filter(node => node.move === id).length, 1);
+    assert.equal(nodes.filter(node => node.hop === id).length, 1);
+  }
+});
+
+test('test_invasion_deck_entry_walks_faster_and_day_title_never_reveals_lounge', () => {
+  const nodes = SHIP_INVASION_NODES;
+  const entry = nodes.find(node => node.parallel?.some(child => child.move === 'ppaman' && child.rel === 'deck_ppaman_near'));
+  assert.equal(entry.parallel[0].speed, 50);
+  assert.equal(entry.parallel[1][1].speed, 50);
+  assert.equal(entry.parallel[0].run, undefined);
+  const fistApproach = nodes.find(node => node.parallel?.some(child => child.move === 'ppaman' && child.rel === 'deck_lookout'));
+  assert.ok(fistApproach.parallel.every(node => node.speed === 20));
+  const done = nodes.findIndex(node => node.stage === 'ship_deck_bond_done');
+  assert.deepEqual(nodes[done - 2], { fade: 'out', duration: 2.5 });
+  const title = nodes.findIndex(node => node.text === '그리고, 결전의 날.');
+  assert.equal(nodes.slice(done, title).some(node => node.fade === 'in'), false);
+  const interruption = nodes.findIndex(node => node.text?.endsWith('출발ㅎ..'));
+  assert.equal(nodes[interruption + 2].parallel[0].invasionBeat, 'room-impact');
 });
 
 const poseGame = () => ({

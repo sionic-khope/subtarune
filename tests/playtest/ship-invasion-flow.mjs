@@ -10,6 +10,7 @@ await runScenario({ name: 'ship-invasion-flow', launchOptions: { args: ['--autop
   const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, 'flow-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
   const sources = ['src/data/cutscenes/ship_invasion.js', 'src/data/cutscenes/ship_lounge.js', 'src/data/cutscenes/ship_lounge_briefing.js', 'src/scenes/ship-deck-poses.js', 'src/scenes/ship-invasion.js', 'src/scenes/ship-invasion-render.js', 'src/data/ship-invasion.js', 'src/data/character-motions.js', 'src/data/scripts.js', 'src/data/map-runtime-assets.js', 'src/core/story.js', 'src/main.js', 'src/ui/cutscene.js', 'src/ui/dialogue.js', 'assets/maps/ship_lounge.json', 'assets/maps/ship_night_deck.json', 'assets/maps/gajaeman_castle_entry.json', 'assets/props/gajaeman_castle.png', 'assets/props/youngcle-warship.png', 'assets/props/maillard-ship.png', 'assets/sprites/youngcle_hover.png', 'assets/audio/bgm/ship_invasion.mp3', 'assets/audio/sfx/photo_shutter.mp3', 'assets/audio/sfx/soul_grab.mp3'];
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+  sources.push('assets/props/ship-photo-camera.png', 'assets/sprites/expelled-viewer.png', 'assets/sprites/eunbyeol.png', 'assets/sprites/lucky.png', 'assets/sprites/dohyun.png', 'assets/sprites/domijorim.png', 'assets/sprites/chakgeom.png');
   sources.push(...['hyungsub', 'gyeongsub', 'ppaman'].map(id => `assets/sprites/${id}-deck-fist.png`), ...['floor', 'cracked', 'wall', 'capstone'].map(id => `assets/tiles/gajaeman_castle_${id}.png`), 'assets/backdrops/jjajang_night_sea.png');
   for (const relative of sources) {
     const response = await page.request.get(new URL(relative, process.env.QA_BASE_URL).href);
@@ -29,8 +30,30 @@ await runScenario({ name: 'ship-invasion-flow', launchOptions: { args: ['--autop
   await open({ qa: 'ship_invasion_ready' });
   check('registered readiness checkpoint reaches field', await field());
   check('completed arrival briefing restores lounge BGM', await page.evaluate(() => game.sound.bgmName === 'ship_lounge'));
-  await fixture('invasion-read-only-observer', 'Observe completed draws, visible typewriter glyphs, real actor/camera motion and audio calls without changing story state or clocks.', () => {
-    const q = window.__invasionFlow = { frames: {}, samples: [], lines: [], audio: [], interruptions: [], choices: [], enabled: true };
+  await fixture('invasion-read-only-observer', 'Observe completed draws, visible typewriter glyphs, real actor/camera motion and audio calls without changing story state or clocks.', async () => {
+    const [{ CHARACTERS }, { CHAR_SCALE }] = await Promise.all([import('./src/data/characters.js'), import('./src/world/world.js')]);
+    const q = window.__invasionFlow = { frames: {}, samples: [], lines: [], audio: [], interruptions: [], choices: [], transitionFrames: [], layouts: {}, enabled: true };
+    const alphaRects = new WeakMap();
+    const alphaRect = image => {
+      if (alphaRects.has(image)) return alphaRects.get(image);
+      const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+      const pixels = ctx.getImageData(0, 0, image.width, image.height).data;
+      let left = image.width, top = image.height, right = 0, bottom = 0;
+      for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x++) if (pixels[(y * image.width + x) * 4 + 3] > 10) {
+        left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x + 1); bottom = Math.max(bottom, y + 1);
+      }
+      const rect = { left, top, width: right - left, height: bottom - top }; alphaRects.set(image, rect); return rect;
+    };
+    const actorRect = e => {
+      const image = e.sprite[e.facing][e.frame], alpha = alphaRect(image), scale = CHAR_SCALE * (e.def.visualScale || 1) / e.sprite.px;
+      const width = Math.round(e.sprite.fw * scale), height = Math.round(e.sprite.fh * scale), pivot = CHARACTERS[e.def.sprite]?.stillPivot;
+      const x = Math.round(e.x + e.w / 2 - (pivot ? pivot[0] * scale : width / 2) - game.camera.x) + alpha.left * width / image.width;
+      const y = Math.round(e.y + e.h - (pivot ? pivot[1] * scale : height) - game.camera.y) + alpha.top * height / image.height;
+      return { id: e === game.player ? 'player' : e.id, x: (x - 240) * game.zoom.s + 240, y: (y - 180) * game.zoom.s + 180,
+        width: alpha.width * width / image.width * game.zoom.s, height: alpha.height * height / image.height * game.zoom.s };
+    };
+    const bgmHandles = new WeakMap(); let nextBgmHandle = 1;
     const draw = game.draw.bind(game), sfx = game.sound.sfx.bind(game.sound), bgm = game.sound.playBgm.bind(game.sound), done = game.textbox._done.bind(game.textbox);
     const phase = () => game.dialogue.script?.slice(0, game.dialogue.i).filter(n => n.label).at(-1)?.label || 'readiness';
     game.sound.sfx = (name, options) => { const result = sfx(name, options); q.audio.push({ kind: 'sfx', name, at: performance.now(), phase: phase(), beat: game.shipInvasion?.beat }); return result; };
@@ -42,13 +65,24 @@ await runScenario({ name: 'ship-invasion-flow', launchOptions: { args: ['--autop
     game.draw = (...args) => {
       const result = draw(...args); if (!q.enabled) return result;
       const now = performance.now(), box = game.textbox, label = phase(), text = box.isOpen ? box.node?.text : null;
-      const actors = [game.player, ...game.entities.filter(e => ['gyeongsub', 'ppaman', 'lounge_return_youngcle', 'lounge_return_junhee', 'invasion_youngcle', 'invasion_junhee'].includes(e.id))].map(e => ({ id: e === game.player ? 'player' : e.id, x: e.x, y: e.y, facing: e.facing, pose: e.pose, visible: e.visible, dead: e.dead, moving: e.moving, hopY: e.hopY, motion: e.motion?.name, motionIndex: e.motion?.index, sprite: e.def?.sprite }));
+      const actors = [game.player, ...game.entities.filter(e => e.id?.startsWith('invasion_guest_') || ['gyeongsub', 'ppaman', 'lounge_return_youngcle', 'lounge_return_junhee', 'invasion_yongjun', 'lounge_naram', 'lounge_obangsun', 'lounge_warm_bidet', 'lounge_ttuulla', 'lounge_mini_mario', 'lounge_park_guardian', 'invasion_youngcle', 'invasion_junhee'].includes(e.id))].map(e => ({ id: e === game.player ? 'player' : e.id, x: e.x, y: e.y, facing: e.facing, pose: e.pose, visible: e.visible, dead: e.dead, moving: e.moving, hopY: e.hopY, motion: e.motion?.name, motionIndex: e.motion?.index, sprite: e.def?.sprite, fallback: !!e.sprite?.fallback }));
       const sample = { at: now, map: game.mapId, label, text, visible: box.isOpen ? box._pageTokens().slice(0, box.revealed).map(t => t.ch).join('') : null, state: box.state, page: box.page, fade: game.fade.alpha, fadeColor: game.fade.color, camera: { x: game.camera.x, y: game.camera.y, zoom: game.zoom.s }, actors, bgm: game.sound.bgmName, bgmTime: game.sound.bgm?.currentTime, bgmPaused: game.sound.bgm?.paused, beat: game.shipInvasion?.beat, elapsed: game.shipInvasion?.elapsed, impactCount: game.shipInvasion?.impactCount, launchCount: game.shipInvasion?.launchCount, bubbleDots: game.bubble.shown };
+      if (game.sound.bgm && !bgmHandles.has(game.sound.bgm)) bgmHandles.set(game.sound.bgm, nextBgmHandle++);
+      sample.bgmHandle = game.sound.bgm ? bgmHandles.get(game.sound.bgm) : null;
+      const photo = game.entities.find(e => e.id === 'invasion_photo_camera' && !e.dead && e.visible);
+      if (photo) sample.photo = { x: photo.drawX, y: photo.drawY, width: photo.iw, height: photo.ih, loaded: !!photo.image };
+      if (label === 'invasion_sailing' && game.mapId === 'ship_lounge' && !game.shipInvasion) q.transitionFrames.push({ at: now, fade: game.fade.alpha, text, fullscreen: box.fullscreen });
       if (!q.samples.length || now - q.samples.at(-1).at > 75) q.samples.push(sample);
       if (text && q.lines.at(-1)?.text !== text) q.lines.push({ text, at: now, label, map: game.mapId, mosaic: box.node?.mosaic });
       const capture = name => { if (!q.frames[name]) q.frames[name] = { ...sample, data: game.canvas.toDataURL('image/png') }; };
+      if (['* 이제 결전에 때가 왔다.', '* 자 이제 준비하고 1시간뒤쯤 출발ㅎ..'].includes(text) && box.revealed > 0 && !q.layouts[text]) {
+        const ids = new Set(actors.filter(a => a.visible && !a.dead).map(a => a.id));
+        q.layouts[text] = [game.player, ...game.entities.filter(e => e !== game.player)].filter(e => ids.has(e === game.player ? 'player' : e.id) && e.visible && !e.dead).map(actorRect);
+      }
       if (box.state === 'waiting' && game.fade.alpha < 0.01) capture(`line-${q.lines.length}-page-${box.page}`);
       if (game.flags.ship_invasion_started && game.fade.alpha > 0.95 && game.fade.color === '255,255,255') capture('photo-flash');
+      if (photo && game.fade.alpha < 0.01) capture(`photo-prop-${Math.floor(photo.drawY / 30)}`);
+      if (actors.filter(a => !a.dead && a.hopY > 5).length >= 18) capture('whole-crowd-jump');
       if (actors.some(a => Number.isInteger(a.motionIndex))) capture(`fists-${actors.filter(a => Number.isInteger(a.motionIndex)).map(a => `${a.id}-${a.motionIndex}`).join('-')}`);
       if (text === '그리고, 결전의 날.' && box.revealed > 0) capture(`day-title-${box.revealed}`);
       if (sample.beat && !['hidden', 'aftermath'].includes(sample.beat) && game.fade.alpha < 0.01) capture(`beat-${sample.beat}-${Math.floor(sample.elapsed * 2)}`);
@@ -99,11 +133,25 @@ await runScenario({ name: 'ship-invasion-flow', launchOptions: { args: ['--autop
   check('Junhee automatically interrupts on 치', q.interruptions.some(i => i.text === '* 미치...' && i.visible.endsWith('치')));
   check('photo shutter and soul grab fire once', ['photo_shutter', 'soul_grab'].every(name => q.audio.filter(a => a.name === name).length === 1));
   check('photo visibly flashes white', !!q.frames['photo-flash']);
+  const photoSamples = q.samples.filter(s => s.photo?.loaded);
+  check('actual camera prop descends at least 180 world pixels with viewport fixed', photoSamples.length > 5 && Math.max(...photoSamples.map(s => s.photo.y)) - Math.min(...photoSamples.map(s => s.photo.y)) >= 180 && new Set(photoSamples.map(s => `${s.camera.x}:${s.camera.y}:${s.camera.zoom}`)).size === 1);
+  check('photo camera removed before later dialogue', q.samples.some(s => s.text === '* 뭔가 빠릿빠릿 진행되네요' && !s.photo));
+  for (const text of ['* 이제 결전에 때가 왔다.', '* 자 이제 준비하고 1시간뒤쯤 출발ㅎ..']) {
+    const crowd = q.samples.find(s => s.text === text)?.actors.filter(a => a.visible && !a.dead);
+    check(`eighteen real PNG actors present: ${text}`, crowd?.length === 18 && crowd.every(a => !a.fallback) && crowd.filter(a => a.id.startsWith('invasion_guest_')).length === 6);
+    const layout = q.layouts[text];
+    check(`all eighteen opaque actor bounds fit above dialogue: ${text}`, layout?.length === 18 && layout.every(r => r.x >= 0 && r.y >= 0 && r.x + r.width <= 480 && r.y + r.height <= 230));
+    check(`crowd silhouettes do not overlap: ${text}`, layout?.every((a, i) => layout.slice(i + 1).every(b => a.x >= b.x + b.width || a.x + a.width <= b.x || a.y >= b.y + b.height || a.y + a.height <= b.y)));
+  }
+  check('initial explosion jumps all eighteen actors together', !!q.frames['whole-crowd-jump']);
+  check('every pre-title lounge frame remains hidden', q.transitionFrames.length > 5 && q.transitionFrames.every(s => s.fade >= 0.999 || s.text === '그리고, 결전의 날.' && s.fullscreen));
   check('day title types visibly over black without opaque fade hiding it', q.samples.filter(s => s.text === '그리고, 결전의 날.' && s.fade < 0.05 && s.visible?.length > 0).length > 4);
   check('night deck plays wind through real time', q.samples.some(s => s.map === 'ship_night_deck' && s.bgm === 'wind' && s.bgmTime > 1 && !s.bgmPaused));
   check('all three actors raise through multiple fist frames', ['player', 'gyeongsub', 'ppaman'].every(id => new Set(q.samples.flatMap(s => s.actors.filter(a => a.id === id && Number.isInteger(a.motionIndex)).map(a => a.motionIndex))).size >= 3));
-  for (const name of ['sail', 'castle-look', 'room-shadow', 'castle-drop', 'aftermath', 'teleport']) check(`real-time cinematic beat ${name}`, q.samples.some(s => s.beat === name));
-  check('impact starts requested BGM once at contact', q.audio.filter(a => a.kind === 'bgm' && a.name === 'ship_invasion').length === 1 && q.audio.some(a => a.name === 'ship_invasion' && a.beat === 'castle-drop' && a.contact === 1));
+  for (const name of ['sail', 'castle-look', 'room-impact', 'room-shadow', 'castle-drop', 'aftermath', 'teleport']) check(`real-time cinematic beat ${name}`, q.samples.some(s => s.beat === name));
+  check('first room explosion starts requested BGM once before castle contact', q.audio.filter(a => a.kind === 'bgm' && a.name === 'ship_invasion').length === 1 && q.audio.some(a => a.name === 'ship_invasion' && a.beat === 'room-impact' && a.contact === 0));
+  const invasionMusic = q.samples.filter(s => s.bgm === 'ship_invasion' && s.bgmTime > 0 && !s.bgmPaused);
+  check('same advancing BGM handle crosses later castle impact', invasionMusic.some(s => s.beat === 'room-impact') && invasionMusic.some(s => s.beat === 'aftermath') && new Set(invasionMusic.map(s => s.bgmHandle)).size === 1 && invasionMusic.every((s, i) => !i || s.bgmTime >= invasionMusic[i - 1].bgmTime));
   check('five transport lights launched before castle entry', q.samples.some(s => s.launchCount === 5));
   check('all five fallen actors render before standing', !!q.frames['five-fallen']);
   if (complete) {
