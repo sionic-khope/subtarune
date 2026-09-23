@@ -1,5 +1,9 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 냄트기 비행 소리 (BUILD304, 2026-09-23)
+
+사용자 비행기 소리 요청으로 [qubodup — Jet Plane Flyby](https://freesound.org/people/qubodup/sounds/189446/)의 CC0 항공기 녹음 공개 HQ MP3를 사용한다. 접근 `naem_jet_approach`는 잡기 진입에서 한 번, `naem_jet_engine`은 비행 대화 아래 volume0.12 반복, `naem_jet_depart`는 퇴장 때 한 번이다. 기존 랜서 BGM·클로 접촉음·대사·구출 동작은 유지한다. 세 클립의 편집/해시/원본 미리보기와 라이선스는 [취득 기록](../../assets/source/choimis-jet304/README.md)을 따른다. 장면 완료·타이틀·맵 이동에서는 소유 핸들을 모두 정리한다.
+
 ## 마지막 힘 합치기·릴리즈샷 (BUILD303, 2026-09-23)
 
 - **힘 합치기**: 사용자 지정 [Lend me your power! (Flowery)](https://www.myinstants.com/en/instant/lend-me-your-power-flowery-27180/),업로더adam0025F. 공개MP3를 편집 없이 `sfx/choimis_lend_power.mp3`로 저장했다.5.067755초,44.1kHz stereo,117158바이트,평균−22.2/피크−6.1dBFS. 최종 도입 `마지막 모두의 힘을 합쳐.`에서 한 번 재생하며 해당 줄의 글자블립은 겹치지 않는다. [취득·SHA·검증범위](../../assets/source/choimis-lend-power303/README.md).

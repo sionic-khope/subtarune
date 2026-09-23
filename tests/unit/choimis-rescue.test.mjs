@@ -92,6 +92,32 @@ test('jet flight keeps moving during dialogue and rescues normal Choimis before 
   scene.setBeat('flyaway'); scene.update(2); assert.ok(scene.snapshot().jet.x > 480);
 });
 
+test('aircraft approach, continuous dialogue engine and departure each play once and dispose cleanly', () => {
+  const { scene, game, sounds, handles } = setup();
+  scene.setBeat('catch'); scene.setBeat('catch');
+  assert.equal(sounds.filter(name => name === 'naem_jet_approach').length, 1);
+  scene.setBeat('jet_reveal'); const engine = scene.engine;
+  assert.equal(engine.loop, true);
+  for (let i = 0; i < 120; i++) scene.update(0.1);
+  scene.setBeat('spot_choimis'); scene.update(1);
+  assert.equal(scene.engine, engine);
+  assert.equal(sounds.filter(name => name === 'naem_jet_engine').length, 1);
+  game.sound.muted = true; scene.update(0.1); assert.equal(engine.muted, true);
+  scene.setBeat('flyaway'); scene.setBeat('flyaway');
+  assert.equal(engine.paused, true);
+  assert.equal(sounds.filter(name => name === 'naem_jet_depart').length, 1);
+  scene.dispose(); assert.ok(handles.every(handle => handle.paused));
+});
+
+test('title or map abort stops the looping aircraft engine without replaying late cues', () => {
+  const { scene, game, sounds, handles } = setup();
+  scene.setBeat('jet_reveal'); finishChoimisRescue(game, true);
+  assert.ok(handles.every(handle => handle.paused));
+  assert.equal(scene.engine, null);
+  scene.setBeat('flyaway'); scene.update(3);
+  assert.deepEqual(sounds, ['naem_jet_engine']);
+});
+
 test('distant and close rescue retain the same approved night sky and moving ocean', () => {
   const { scene } = setup(), sky = { width: 480, height: 360 }, calls = [];
   scene.assets.images.sky = sky;

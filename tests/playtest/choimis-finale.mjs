@@ -31,6 +31,7 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
     }
     save();
   };
+  sources.push('assets/enemies/choimis-cape-swing.png', 'assets/audio/sfx/choimis_chosouya.mp3');
   await binding('before');
   await page.setViewportSize({ width: 1280, height: 800 });
   await open({ qa: naturalEntry ? 'choimis_sky' : 'choimis_eating' });
@@ -50,9 +51,9 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
     const b = game.battle;
     b.openingShown = true; b.enemies[0].defenseBoosted = true; b.enemies[0].hp = 1;
     if (lossOnly) b.members.forEach(member => { member.hp = 1; });
-    const q = window.__finalQa = { frames: {}, phases: [], samples: [], texts: [], audio: [], voices: [], bubbleDraws: [], beamDraws: [], confirms: [], initialMoney: game.money, initialParty: b.members.map(m => ({ id: m.id, hp: m.hp, maxHp: m.maxHp })), canvas: [game.canvas.width, game.canvas.height] };
+    const q = window.__finalQa = { frames: {}, phases: [], samples: [], texts: [], audio: [], voices: [], talkVoices: [], talkTyping: [], bubbleDraws: [], beamDraws: [], confirms: [], initialMoney: game.money, initialParty: b.members.map(m => ({ id: m.id, hp: m.hp, maxHp: m.maxHp })), canvas: [game.canvas.width, game.canvas.height] };
     const draw = game.draw.bind(game), sound = game.sound.sfx.bind(game.sound), stopBgm = game.sound.stopBgm.bind(game.sound);
-    const tracked = [], watched = new Set(['choimis_lend_power', 'deltarune_release_shoot', 'yellowheart_charge', 'yellowheart_shot_big', 'furnace_blast', 'choimis_piercing_blood']);
+    const tracked = [], watched = new Set(['choimis_lend_power', 'deltarune_release_shoot', 'yellowheart_charge', 'yellowheart_shot_big', 'furnace_blast', 'choimis_piercing_blood', 'choimis_chosouya']);
     const audioSample = (entry, handle, event) => entry.samples.push({ event, at: performance.now(), phase: b.gimmick?.snapshot?.phase, paused: handle.paused, time: handle.currentTime, duration: Number.isFinite(handle.duration) ? handle.duration : null, ended: handle.ended, readyState: handle.readyState, rate: handle.playbackRate, volume: handle.volume, muted: handle.muted, src: handle.currentSrc || handle.src, error: handle.error?.code ?? null });
     game.sound.sfx = (name, options) => {
       const result = sound(name, options), entry = { type: 'sfx', name, options, at: performance.now(), phase: b.gimmick?.snapshot?.phase, text: b.text, htmlAudio: result instanceof HTMLAudioElement, samples: [] }; q.audio.push(entry);
@@ -68,6 +69,7 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
     const blip = game.sound.blip.bind(game.sound);
     game.sound.blip = (voice, ...args) => {
       const before = game.sound._lastBlip, result = blip(voice, ...args), s = b.gimmick?.snapshot;
+      if (s?.phase.endsWith('talk')) q.talkVoices.push({ voice, text: b.text, phase: s.phase, decoded: !!game.sound.voiceBuf[voice], startedBuffer: game.sound._lastBlip !== before && game.sound._lastBlip?.voice === voice });
       if (s?.phase === 'assault' && s.assault.bubble) q.voices.push({ at: performance.now(), voice, text: s.assault.bubble.text, kind: s.assault.bubble.kind, decoded: !!game.sound.voiceBuf[voice], context: game.sound.ctx?.state, contextTime: game.sound.ctx?.currentTime, startedBuffer: game.sound._lastBlip !== before && game.sound._lastBlip?.voice === voice, muted: game.sound.muted });
       return result;
     };
@@ -95,6 +97,7 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
       const s = b.gimmick?.snapshot;
       if (b.activeEnemyMode !== 'choimis_finale' || !s) return result;
       const now = performance.now();
+      if (s.phase.endsWith('talk') && (!q.talkTyping.length || now - q.talkTyping.at(-1).at > 100)) q.talkTyping.push({ at: now, phase: s.phase, text: b.text, shown: b.shown, typed: b.typed, voice: b.voice });
       const changed = q.phases.at(-1)?.phase !== s.phase;
       if (changed) q.phases.push({ phase: s.phase, at: now, time: s.phaseTime, charge: s.chargeProgress });
       for (const { entry, handle, active } of tracked) if (active && (changed || now - entry.samples.at(-1).at >= 100)) audioSample(entry, handle, changed ? 'phase-change' : 'draw');
@@ -112,11 +115,17 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
       if (s.phase === 'beam-fade' && s.phaseTime >= 0.7) capture('beam-fade-half');
       if (s.phase === 'beam-fade' && s.phaseTime >= 1.25) capture('beam-fade-tail');
       if (s.phase === 'flash' && s.phaseTime >= 0.68) capture('final-white-full');
+      if (s.phase === 'flash' && s.finalWhite >= 0.9 && q.samples.at(-1).finalWhite < 0.9) q.samples.push({ at: now, phase: s.phase, phaseTime: s.phaseTime, finalWhite: s.finalWhite, transitionWhite: s.transitionWhite });
       if (s.phase === 'transform-white' && s.transitionWhite === 1) capture('transform-white-full');
       if (s.phase === 'reveal' && s.phaseTime >= 0.9) capture('reveal-clear');
       if (s.phase === 'fall' && s.phaseTime >= 0.8) capture('normal-fall');
       if (s.phase === 'gather' && s.phaseTime >= 2.7) capture('petals-huge');
       if (s.phase === 'assault') for (const threshold of [0.3, 16, 31, 46, 59]) if (s.assault.elapsed >= threshold) capture(`assault-${threshold}`);
+      if (s.phase === 'assault' && s.assault.boss.pose) {
+        const pose = s.assault.boss.pose;
+        capture(`pose-${pose.sheet}-${pose.frame}`);
+        q.samples.at(-1).assault.boss = s.assault.boss;
+      }
       if (s.phase === 'assault' && s.assault.bubble && s.assault.bubble.shown === s.assault.bubble.text.length) capture(s.assault.bubble.kind === 'chatter' ? `chatter-${s.assault.chatterShown}` : `resolve-${s.assault.bubblesShown}`);
       return result;
     };
@@ -133,6 +142,7 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
   const advanceTalk = async phase => {
     const deadline = Date.now() + 20000;
     while (Date.now() < deadline && await page.evaluate(p => game.battle.gimmick?.snapshot?.phase === p, phase)) {
+      if (await page.evaluate(() => game.battle.text === '* 마지막 모두의 힘을 합쳐.' && !game.battle.typed)) { await page.waitForTimeout(120); continue; }
       await page.evaluate(() => { const q = window.__finalQa; q.confirms.push({ at: performance.now(), phase: game.battle.gimmick.snapshot.phase, text: game.battle.text, lend: q.audio.find(a => a.name === 'choimis_lend_power')?.samples.at(-1) }); });
       await press('KeyC', { delay: 60 }); await page.waitForTimeout(230);
     }
@@ -222,6 +232,9 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
   check('full Game.draw captures all critical stages at 960x720', q.canvas[0] === 960 && q.canvas[1] === 720 && criticalFrames.every(p => q.frames[p]), JSON.stringify(Object.keys(q.frames)));
   if (!captureOnly) check('real directional and C inputs move and fire during survival', q.samples.some(s => s.assault?.shots > 0) && Math.max(...q.samples.map(s => s.assault?.heart.y || 0)) - Math.min(...q.samples.filter(s => s.assault).map(s => s.assault.heart.y)) > 120);
   if (build303) {
+    const lendTyping = q.talkTyping.filter(s => s.text === '* 마지막 모두의 힘을 합쳐.');
+    check('unite line types naturally with explicit none and zero voicefont calls', lendTyping.some(s => !s.typed) && lendTyping.some(s => s.typed) && lendTyping.every(s => s.voice === 'none') && !q.talkVoices.some(s => s.text === '* 마지막 모두의 힘을 합쳐.'), JSON.stringify(lendTyping));
+    check('normal GAP voicefont resumes after clip-only unite line', q.talkVoices.some(s => s.phase === 'gap-talk' && s.voice === 'choimis_flower' && s.decoded && s.startedBuffer), JSON.stringify(q.talkVoices.filter(s => s.phase === 'gap-talk')));
     const cue = name => q.audio.filter(a => a.type === 'sfx' && a.name === name);
     const advancing = entry => {
       const samples = entry?.samples.filter(s => s.readyState >= 2 && !s.paused && !s.muted && s.volume > 0 && !s.error && s.time > 0) || [];
@@ -246,6 +259,11 @@ await runScenario({ name: 'choimis-finale' }, async ({ page, open, until, press,
     check('drawn beam pierces beyond the right viewport and narrows before white exit', q.beamDraws.some(s => s.phase === 'impact' && s.endX > q.canvas[0]) && q.beamDraws.some(s => s.phase === 'beam-fade' && s.phaseTime > 1.2 && s.height <= 2 && s.alpha < 0.1 && s.endX > q.canvas[0]), JSON.stringify(q.beamDraws));
     check('white reveal and slower white exit are present in full Game.draw observations', q.samples.some(s => s.phase === 'transform-white' && s.transitionWhite === 1) && q.samples.some(s => s.phase === 'reveal' && s.transitionWhite < 0.15) && q.samples.some(s => s.phase === 'flash' && s.finalWhite > 0.85));
     if (!captureOnly) {
+      const choso = cue('choimis_chosouya');
+      check('three Choso transformations play their existing full clip without voicefont overlap', choso.length === 3 && choso.every(a => advancing(a) && a.samples.some(s => s.event === 'ended')) && !q.voices.some(v => v.text === '내 추구미는 쵸소우야'), JSON.stringify(choso));
+      check('Choso speech balloon renders during actual final assault', q.bubbleDraws.some(b => b.fullText === '내 추구미는 쵸소우야' && b.fontLoaded));
+      const bosses = q.samples.filter(s => s.assault?.boss).map(s => s.assault.boss);
+      check('final boss moves laterally and shows all six cape-swing frames', Math.max(...bosses.map(b => b.x)) - Math.min(...bosses.map(b => b.x)) > 30 && [0,1,2,3,4,5].every(i => q.frames[`pose-capeSwing-${i}`]), JSON.stringify({ minX: Math.min(...bosses.map(b => b.x)), maxX: Math.max(...bosses.map(b => b.x)), frames: Object.keys(q.frames).filter(k => k.startsWith('pose-')) }));
       const chatter = ['형들, 아직 끝난 거 아니에요.', '모두의 힘이 느껴져요.', '마지막까지 버텨볼게요.'];
       check('three additional speech balloons render fully with the loaded game font', chatter.every(text => q.bubbleDraws.some(b => b.fullText === text && b.kind === 'chatter' && b.fontLoaded && b.font.includes('NeoDunggeunmo')) && q.frames[`chatter-${chatter.indexOf(text) + 1}`]), JSON.stringify(q.bubbleDraws));
       check('each additional balloon starts decoded Choimis voice buffers on a running audio clock', chatter.every(text => q.voices.some(v => v.text === text && v.voice === 'choimis_flower' && v.decoded && v.startedBuffer && !v.muted && v.context === 'running')) && Math.max(...q.voices.map(v => v.contextTime)) - Math.min(...q.voices.map(v => v.contextTime)) > 30, JSON.stringify(q.voices.filter(v => v.startedBuffer).slice(0, 10)));

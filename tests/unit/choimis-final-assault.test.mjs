@@ -1,15 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createChoimisFinalAssault } from '../../src/battle/choimis-final-assault.js';
+import { createFinalAssaultRenderer } from '../../src/battle/choimis-final-assault-render.js';
+import { CHOIMIS_FINAL_ASSAULT as C } from '../../src/data/choimis-final-assault.js';
 
 const input = (...keys) => ({ down: key => keys.includes(key) });
 function fixture() {
-  const calls = { damage: 0, sounds: [], paused: 0, voices: [] };
+  const calls = { damage: 0, sounds: [], paused: 0, voices: [], media: [] };
   const enemy = { hp: 1, def: { damage: 15, scale: 0.506, scaleY: 1.2 }, projectiles: {} };
   const soul = { x: 240, y: 170, r: 5, invuln: 0 };
   const battle = { soul, hurtParty: () => calls.damage++, sfx: name => calls.sounds.push(name),
     hitEnemy: () => assert.fail('survival contacts must never request HP damage'),
-    game: { sound: { blip: voice => calls.voices.push(voice), sfx: () => ({ pause: () => calls.paused++, removeAttribute() {}, load() {} }) } } };
+    game: { sound: { blip: voice => calls.voices.push(voice), sfx: name => {
+      const handle = { name, pause: () => calls.paused++, removeAttribute() {}, load() {} };
+      calls.media.push(handle); return handle;
+    } } } };
   const mode = createChoimisFinalAssault(battle, enemy, { box: { x: 8, y: 8, w: 464, h: 304 } });
   return { mode, battle, enemy, calls };
 }
@@ -26,7 +31,7 @@ test('test_final_assault_beam_release_plays_one_piercing_cut_without_laser_charg
   const { mode, battle, calls } = fixture();
   const cues = [];
   battle.sfx = (name, options) => { calls.sounds.push(name); cues.push({ name, options }); };
-  mode.update(16.5, input());
+  mode.update(17.2, input());
   assert.equal(cues.length, 0, 'warning remains silent');
   mode.update(0.45, input());
   assert.deepEqual(cues, [{ name: 'choimis_piercing_blood', options: { volume: 0.85 } }]);
@@ -156,4 +161,81 @@ test('test_final_assault_chatter_types_with_choimis_voice_without_pausing_or_rep
   const afterDispose = calls.voices.length;
   mode.update(5, input());
   assert.equal(calls.voices.length, afterDispose);
+});
+
+test('test_final_assault_cape_swing_uses_six_frames_and_continuous_xy_motion_between_choso_volleys', () => {
+  const { mode } = fixture(), frames = new Set(), motions = new Set(), xs = [], ys = [];
+  let previousBoss = mode.snapshot.boss;
+  for (let i = 0; i < 60 * 120; i++) {
+    mode.update(1 / 120, input());
+    const { boss, hazards, elapsed, transformed } = mode.snapshot;
+    assert.ok(Math.hypot(boss.x - previousBoss.x, boss.y - previousBoss.y) <= C.motion.maxSpeed / 120 + 0.001, 'no teleport when a locked beam ends');
+    assert.ok(boss.x > 320 && boss.x < 401, 'visible body remains in the right combat zone');
+    if (boss.pose.sheet === 'capeSwing') { frames.add(boss.pose.frame); motions.add(boss.pose.motion); }
+    for (const beam of hazards.filter(hazard => hazard.kind === 'beam' && hazard.age < hazard.life)) {
+      assert.equal(transformed, true);
+      assert.ok(Math.abs(boss.x - beam.from.x - 14) < 0.001);
+      assert.ok(Math.abs(boss.y - beam.from.y - 10) < 0.001);
+    }
+    if (elapsed > 24 && elapsed < 29 || elapsed > 39 && elapsed < 44 || elapsed > 54 && elapsed < 59) {
+      assert.notEqual(boss.pose.sheet, 'choso');
+    }
+    previousBoss = boss; xs.push(boss.x); ys.push(boss.y);
+  }
+  assert.deepEqual([...frames].sort(), [0, 1, 2, 3, 4, 5]);
+  assert.deepEqual([...motions].sort(), ['recover', 'swing', 'windup']);
+  assert.ok(Math.max(...xs) - Math.min(...xs) > 40);
+  assert.ok(Math.max(...ys) - Math.min(...ys) > 140);
+  assert.equal(mode.snapshot.transformations, 3);
+});
+
+test('test_final_assault_each_transform_owns_one_clip_without_blips_and_restores_ordinary_chatter', () => {
+  const { mode, calls } = fixture();
+  mode.update(15.01, input());
+  assert.deepEqual(mode.snapshot.bubble, { text: C.transform.text, shown: C.transform.text.length, kind: 'transform' });
+  assert.equal(calls.media.filter(handle => handle.name === C.transform.sfx).length, 1);
+  const voices = calls.voices.length;
+  mode.update(1.6, input());
+  assert.equal(calls.voices.length, voices);
+  assert.equal(mode.snapshot.hazards.some(hazard => hazard.kind === 'beam'), false, 'clip precedes beam warning');
+  mode.update(43.39, input());
+  assert.equal(calls.media.filter(handle => handle.name === C.transform.sfx).length, 3);
+  assert.equal(mode.snapshot.chatterShown, 3, 'transform priority does not discard queued chatter');
+  assert.ok(calls.voices.length > voices);
+  assert.equal(calls.paused, 3);
+  mode.dispose();
+  assert.equal(calls.paused, 3, 'already completed clips are not stopped twice');
+});
+
+test('test_final_assault_live_transform_clip_delays_beam_and_disposal_stops_owned_handle', () => {
+  const { mode, calls } = fixture();
+  mode.update(15.01, input());
+  Object.assign(calls.media.at(-1), { paused: false, ended: false });
+  mode.update(3, input());
+  assert.equal(mode.snapshot.bubble.kind, 'transform');
+  assert.equal(mode.snapshot.hazards.some(hazard => hazard.kind === 'beam'), false);
+  const voices = calls.voices.length;
+  mode.dispose(); mode.dispose(); mode.update(45, input());
+  assert.equal(calls.paused, 1);
+  assert.equal(calls.voices.length, voices);
+  assert.equal(mode.snapshot.bubble, null);
+});
+
+test('test_final_assault_renderer_aligns_different_cell_sizes_to_same_collision_body_center', () => {
+  const images = { idle: { width: 320, height: 320 }, capeSwing: { width: 448, height: 576 }, choso: { width: 320, height: 320 } };
+  const enemy = { img: images.idle, actionImages: images, projectiles: {}, def: { scale: 0.714, scaleY: 1, pivot: [72, 152],
+    sheet: { cols: 2, rows: 2, count: 4 }, actions: {
+      capeSwing: { cols: 2, rows: 3, count: 6, pivot: [136, 180] }, choso: { cols: 2, rows: 2, count: 4, pivot: [72, 152] },
+    } } };
+  const draws = [], ctx = new Proxy({ drawImage: (...args) => draws.push(args) }, { get: (target, key) => target[key] ?? (() => {}) });
+  const renderer = createFinalAssaultRenderer(enemy);
+  for (const [sheet, frame, pivot, width, height] of [['idle', 0, [72, 152], 160, 160], ['capeSwing', 5, [136, 180], 224, 192], ['choso', 2, [72, 152], 160, 160]]) {
+    const boss = { x: 372, y: 160, flash: 0, pose: { sheet, frame } };
+    renderer.draw(ctx, { box: C.box, boss, heart: { x: 50, y: 160, invuln: 0 }, elapsed: 0, charge: { active: false }, hazards: [], shots: [], effects: [] });
+    const [image, sx, sy, sw, sh, dx, dy] = draws.at(-1);
+    assert.equal(image, images[sheet]);
+    assert.deepEqual([sx, sy, sw, sh], [frame % 2 * width, Math.floor(frame / 2) * height, width, height]);
+    assert.ok(Math.abs(dx + pivot[0] * 0.714 - boss.x) <= 0.5);
+    assert.ok(Math.abs(dy + (pivot[1] - C.bossBodyHeight / 2) * 0.714 - boss.y) <= 0.5);
+  }
 });

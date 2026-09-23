@@ -2,8 +2,10 @@
 export const CHOIMIS_FINAL_ASSAULT = Object.freeze({
   seconds: 60, stageSeconds: 15, step: 1 / 120,
   box: Object.freeze({ x: 8, y: 8, w: 464, h: 304 }),
-  heartMargin: 14, bossInset: 46, bossRadius: 24,
+  heartMargin: 14, bossInset: 100, bossRadius: 24, bossBodyHeight: 140,
   bossAmplitude: 76, bossFrequency: 0.63,
+  motion: Object.freeze({ xAmplitude: 19, xFrequency: 0.83, lunge: 24, windupBack: 7, swing: 0.16, recover: 0.24, response: 14, maxSpeed: 240 }),
+  transform: Object.freeze({ at: 15, window: 8, text: '내 추구미는 쵸소우야', sfx: 'choimis_chosouya', duration: 1.7 }),
   corridorAmplitude: 95, corridorFrequency: 0.42, corridorHalfWidth: 29,
   firstWave: 0.65, waveEvery: [0.9, 0.74, 0.62, 0.46],
   speeds: [172, 191, 213, 239], rowSpacing: 30, rowMargin: 20,

@@ -27,7 +27,7 @@ export async function prepareChoimisRescue(game) {
         token.sprites[id] = characterSprite(id, image);
       }
     }),
-    game.sound.loadSfxFiles(['wing']),
+    game.sound.loadSfxFiles(['wing', 'naem_jet_approach', 'naem_jet_engine', 'naem_jet_depart']),
   ]);
   if (!token.cancelled && game.choimisRescueAssets === token) {
     game.portraits.yongjun = game.makePortraits().yongjun;
@@ -55,12 +55,22 @@ export class ChoimisRescue {
       this.bubble.start({ x: member.x, y: member.y, w: 0, h: 0, sprite: { fh: 58 / 1.43, px: 1 } },
         { dots: 3, gap: 0.25, hold: 0.35 });
     }
-    if (name === 'party_fall' || name === 'flyaway') this.sound('wing', 0.75);
+    if (name === 'party_fall') this.sound('wing', 0.75);
+    if (name === 'catch') this.sound('naem_jet_approach', 0.42);
+    if (name === 'jet_reveal') {
+      this.engine = this.sound('naem_jet_engine', 0.12);
+      if (this.engine) this.engine.loop = true;
+    }
+    if (name === 'flyaway') {
+      this.engine?.pause(); this.engine = null;
+      this.sound('naem_jet_depart', 0.5);
+    }
     if (name === 'save_choimis') this.sound('wing', 0.45, 1.25);
   }
   sound(name, volume, rate = 1) {
     const handle = this.game.sound.sfx(name, { volume, rate });
     if (handle?.pause) this.handles.add(handle);
+    return handle;
   }
 
   /** Continue night-sea travel; one claw contact catches the whole falling party. */
@@ -68,6 +78,7 @@ export class ChoimisRescue {
     if (this.disposed) return;
     this.time += dt; this.elapsed += dt; this.model.scroll -= dt * 60;
     this.bubble.update(dt);
+    if (this.engine) this.engine.muted = this.game.sound.muted;
     if (this.beat === 'spot_choimis') this.choimisFallY = 146 + 35 * (1 - Math.exp(-this.elapsed / 4));
     if (this.beat === 'catch' && this.elapsed >= 0.65 && this.catchCount === 0) {
       this.catchCount = 3; this.sound('wing', 0.4, 1.8);
@@ -87,6 +98,7 @@ export class ChoimisRescue {
     this.disposed = true;
     for (const audio of this.handles) audio.pause();
     this.handles.clear();
+    this.engine = null;
     if (this.game.sound.bgmName === 'vs_lancer') this.game.sound.stopBgm(0.2);
   }
 }

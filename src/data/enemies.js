@@ -20,6 +20,7 @@ export const ENEMIES = {
     actions: {
       choso: { src: 'assets/enemies/choimis-choso.png', cols: 2, rows: 2, count: 4, fps: 4.5, px: 1, pivot: [72, 152] },
       raise: { src: 'assets/enemies/choimis-flower-raise.png', cols: 2, rows: 2, count: 4, fps: 4.5, px: 1, pivot: [72, 152] },
+      capeSwing: { src: 'assets/enemies/choimis-cape-swing.png', cols: 2, rows: 3, count: 6, fps: 6, px: 1, pivot: [136, 180] },
     },
     pivot: [72, 152], scale: 0.714, scaleY: 1, idle: { swayX: 0, swayY: 0, period: 2.4 },
     projectiles: {

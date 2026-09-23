@@ -1,0 +1,277 @@
+{
+  "status": "asset exported; runtime integration and visual approval separate",
+  "rawSize": [
+    1024,
+    1536
+  ],
+  "sheetSize": [
+    448,
+    576
+  ],
+  "cellSize": [
+    224,
+    192
+  ],
+  "pivot": [
+    136,
+    180
+  ],
+  "columns": 2,
+  "rows": 3,
+  "durationsMs": [
+    140,
+    110,
+    100,
+    120,
+    140,
+    190
+  ],
+  "runtimeScale": 0.714,
+  "commonScale": 0.340632603406326,
+  "referenceAnatomicalHeight": 140,
+  "referenceRawHeight": 411,
+  "sourceComponents": [
+    {
+      "frame": 0,
+      "component": 1,
+      "bbox": [
+        121,
+        46,
+        388,
+        457
+      ],
+      "opaquePixels": 52603,
+      "regridOffset": [
+        122,
+        50
+      ]
+    },
+    {
+      "frame": 1,
+      "component": 2,
+      "bbox": [
+        630,
+        56,
+        938,
+        457
+      ],
+      "opaquePixels": 56382,
+      "regridOffset": [
+        102,
+        55
+      ]
+    },
+    {
+      "frame": 2,
+      "component": 3,
+      "bbox": [
+        75,
+        558,
+        537,
+        942
+      ],
+      "opaquePixels": 78547,
+      "regridOffset": [
+        25,
+        64
+      ]
+    },
+    {
+      "frame": 3,
+      "component": 4,
+      "bbox": [
+        526,
+        574,
+        942,
+        934
+      ],
+      "opaquePixels": 55326,
+      "regridOffset": [
+        48,
+        76
+      ]
+    },
+    {
+      "frame": 4,
+      "component": 5,
+      "bbox": [
+        114,
+        1047,
+        465,
+        1463
+      ],
+      "opaquePixels": 58713,
+      "regridOffset": [
+        80,
+        48
+      ]
+    },
+    {
+      "frame": 5,
+      "component": 6,
+      "bbox": [
+        635,
+        1047,
+        975,
+        1462
+      ],
+      "opaquePixels": 53905,
+      "regridOffset": [
+        86,
+        48
+      ]
+    }
+  ],
+  "losslessAlpha128Coverage": 355476,
+  "sourceAlphaZeroPixels": 1117485,
+  "sourceAlphaNonzeroPixels": 455379,
+  "discardedForegroundComponents": 0,
+  "alphaThreshold": 128,
+  "uniformRawGridRejected": "middle-left cape crosses x512; six disconnected components recovered",
+  "resample": "NEAREST",
+  "chromaRemoval": false,
+  "paletteChange": false,
+  "anchorMethod": "midpoint of occupied x range within geometric lowest10% bbox height",
+  "frames": [
+    {
+      "frame": 0,
+      "bbox": [
+        100,
+        40,
+        191,
+        180
+      ],
+      "poseHeight": 140,
+      "paste": [
+        100,
+        40
+      ],
+      "feetMidpointX": 136.0,
+      "roundedFootAnchorX": 136,
+      "feetBottomYExclusive": 180,
+      "opaquePixels": 6123,
+      "sha256RGBA": "9f00a931eadb9c536187e57233eb1587828a2c05c55203663e816bbd7f8c50d1",
+      "edgeTouch": false,
+      "pasteClamped": false
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        84,
+        43,
+        189,
+        180
+      ],
+      "poseHeight": 137,
+      "paste": [
+        84,
+        43
+      ],
+      "feetMidpointX": 135.5,
+      "roundedFootAnchorX": 136,
+      "feetBottomYExclusive": 180,
+      "opaquePixels": 6575,
+      "sha256RGBA": "187dff1c0a92d111572c631d428c82f26056daaf447c37dc6215457e30bbe4bf",
+      "edgeTouch": false,
+      "pasteClamped": false
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        55,
+        49,
+        212,
+        180
+      ],
+      "poseHeight": 131,
+      "paste": [
+        55,
+        49
+      ],
+      "feetMidpointX": 136.0,
+      "roundedFootAnchorX": 136,
+      "feetBottomYExclusive": 180,
+      "opaquePixels": 9112,
+      "sha256RGBA": "0b29b20ebd55d773849d03361c8f30e6561b8c1a2653c7fc22649c97d92b57c7",
+      "edgeTouch": false,
+      "pasteClamped": false
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        3,
+        57,
+        145,
+        180
+      ],
+      "poseHeight": 123,
+      "paste": [
+        3,
+        57
+      ],
+      "feetMidpointX": 136.0,
+      "roundedFootAnchorX": 136,
+      "feetBottomYExclusive": 180,
+      "opaquePixels": 6456,
+      "sha256RGBA": "d30267c6845046114c84686770650ef3fed372a5fa6099b257a51eebf61657bd",
+      "edgeTouch": false,
+      "pasteClamped": false
+    },
+    {
+      "frame": 4,
+      "bbox": [
+        90,
+        38,
+        210,
+        180
+      ],
+      "poseHeight": 142,
+      "paste": [
+        90,
+        38
+      ],
+      "feetMidpointX": 136.0,
+      "roundedFootAnchorX": 136,
+      "feetBottomYExclusive": 180,
+      "opaquePixels": 6845,
+      "sha256RGBA": "f10f8c5fbe1abef30944eaa05c9ec2faf2ea9f18f18040d11a59e16ac89ea176",
+      "edgeTouch": false,
+      "pasteClamped": false
+    },
+    {
+      "frame": 5,
+      "bbox": [
+        98,
+        39,
+        214,
+        180
+      ],
+      "poseHeight": 141,
+      "paste": [
+        98,
+        39
+      ],
+      "feetMidpointX": 135.5,
+      "roundedFootAnchorX": 136,
+      "feetBottomYExclusive": 180,
+      "opaquePixels": 6259,
+      "sha256RGBA": "2529a56d66e8d9b87cd5041cbf3a71c2875cf65fb2a707862f31b131b9ae25f6",
+      "edgeTouch": false,
+      "pasteClamped": false
+    }
+  ],
+  "uniqueRGBAFrames": 6,
+  "alphaValues": [
+    0,
+    255
+  ],
+  "outputEdgeTouchFrames": [],
+  "pasteClampedFrames": [],
+  "generator": "built-in image_gen",
+  "model": "unknown",
+  "price": "unknown",
+  "generations": 1,
+  "rawSHA256": "fffb46812c42631eb56e26638039891bc7c4f56050db69e95d2a0c7b9c3a6872",
+  "processorSHA256": "7a7b1fb3730cf21b733928119d899aa73a5b9db374a5041690b0d1f959f9633b",
+  "idleReferenceSHA256": "a37837f8831c09eea7f4e720d4e80c751f8808a5f9c4f99a9c65fcb852cf0c33"
+}

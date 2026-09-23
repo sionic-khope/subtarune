@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const evidence = { source: [], captures: [], limitations: 'The registered postvictory QA checkpoint prepares story flags. All subsequent dialogue uses physical C input and real-time scene updates. No beat/time/return flag injection. This tests rescue continuation and return, not natural boss victory or subjective audio listening.' };
   const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, 'rescue-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
-  const sources = ['src/scenes/choimis-rescue.js', 'src/scenes/choimis-rescue-render.js', 'src/data/cutscenes/choimis_rescue.js', 'src/core/story.js', 'src/main.js', 'src/data/scripts.js', 'src/ui/cutscene.js', 'assets/backdrops/jjajang_night_sea.png', 'assets/props/naem-jet.png', 'assets/sprites/yongjun.png', 'assets/sprites/choimis.png'];
+  const sources = ['src/scenes/choimis-rescue.js', 'src/scenes/choimis-rescue-render.js', 'src/data/cutscenes/choimis_rescue.js', 'src/core/story.js', 'src/main.js', 'src/data/scripts.js', 'src/ui/cutscene.js', 'assets/backdrops/jjajang_night_sea.png', 'assets/props/naem-jet.png', 'assets/sprites/yongjun.png', 'assets/sprites/choimis.png', ...['approach', 'engine', 'depart'].map(name => `assets/audio/sfx/naem_jet_${name}.mp3`)];
   for (const relative of sources) {
     const response = await page.request.get(new URL(relative, process.env.QA_BASE_URL).href);
     const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -18,15 +18,22 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
   check('registered rescue checkpoint loads exact continuation', await until(() => window.game?.choimisRescue && game.textbox?.isOpen, 30000));
   await fixture('rescue-observation-only', 'Wrap full Game.draw after render to latch phase images and read geometry/text/music; no game progression or stats are changed.', () => {
     const q = window.__rescueQa = { frames: {}, beats: [], samples: [], lines: [], sounds: [], canvas: [game.canvas.width, game.canvas.height] };
+    window.__rescueAudio = [];
     const draw = game.draw.bind(game), sfx = game.sound.sfx.bind(game.sound);
-    game.sound.sfx = (name, options) => { q.sounds.push({ name, options, beat: game.choimisRescue?.beat, at: performance.now() }); return sfx(name, options); };
+    game.sound.sfx = (name, options) => {
+      q.sounds.push({ name, options, beat: game.choimisRescue?.beat, at: performance.now() });
+      const handle = sfx(name, options);
+      if (name.startsWith('naem_jet_')) window.__rescueAudio.push({ name, handle });
+      return handle;
+    };
     game.draw = (...args) => {
       const result = draw(...args), scene = game.choimisRescue;
       if (!scene) return result;
       const s = scene.snapshot(), now = performance.now(), text = game.textbox.node?.text;
       if (q.beats.at(-1)?.beat !== s.beat) q.beats.push({ beat: s.beat, at: now });
       if (text && q.lines.at(-1)?.text !== text) q.lines.push({ text, speaker: game.textbox.node.speaker, beat: s.beat });
-      if (!q.samples.length || now - q.samples.at(-1).at >= 100) q.samples.push({ ...s, at: now, dots: scene.bubble.shown, bubbleDone: scene.bubble.done, bgm: game.sound.bgmName, musicTime: game.sound.bgm?.currentTime });
+      if (!q.samples.length || now - q.samples.at(-1).at >= 100) q.samples.push({ ...s, at: now, dots: scene.bubble.shown, bubbleDone: scene.bubble.done, bgm: game.sound.bgmName, musicTime: game.sound.bgm?.currentTime,
+        audio: window.__rescueAudio.map(({ name, handle: a }) => ({ name, time: a?.currentTime, paused: a?.paused, ended: a?.ended, loop: a?.loop, volume: a?.volume, ready: a?.readyState, src: a?.currentSrc })) });
       const capture = label => { if (!q.frames[label]) q.frames[label] = { beat: s.beat, elapsed: s.elapsed, at: now, distantParty: s.distantParty, seats: s.distantJet?.seats, data: game.canvas.toDataURL('image/png') }; };
       if (text && game.textbox.state === 'waiting') capture(`dialogue-${q.lines.length}-page-${game.textbox.page}`);
       if (s.elapsed > 0.35) capture(s.beat);
@@ -65,6 +72,14 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
   const contact = q.frames['catch-3'];
   check('actual first catch frame aligns all three claw seats with falling party', contact && contact.elapsed >= 0.65 && contact.elapsed < 0.69 && contact.distantParty.every((actor, i) => Math.hypot(actor.x - contact.seats[i].x, actor.y - contact.seats[i].y) < 18), JSON.stringify(contact && { elapsed: contact.elapsed, party: contact.distantParty, seats: contact.seats }));
   check('generated jet asset loads and lancer BGM advances in reveal', q.samples.some(s => s.beat === 'jet_reveal' && s.assetsReady && s.bgm === 'vs_lancer' && s.musicTime > 0.2));
+  for (const [name, beat] of [['approach', 'catch'], ['engine', 'jet_reveal'], ['depart', 'flyaway']]) {
+    const key = `naem_jet_${name}`;
+    check(`aircraft ${name} starts exactly once at ${beat}`, q.sounds.filter(s => s.name === key).length === 1 && q.sounds.some(s => s.name === key && s.beat === beat));
+    check(`aircraft ${name} file really plays in browser`, q.samples.some(s => s.beat === beat && s.audio.some(a => a.name === key && !a.paused && a.time > 0.1 && a.ready >= 2 && a.src.includes(`${key}.mp3`))));
+  }
+  const flightSamples = q.samples.filter(s => ['jet_reveal', 'spot_choimis', 'save_choimis'].includes(s.beat));
+  check('engine stays unobtrusive and loops through jet dialogue', flightSamples.every(s => s.audio.some(a => a.name === 'naem_jet_engine' && a.loop && !a.paused && a.volume <= 0.15)) && flightSamples.some((s, i) => i > 0 && s.audio.find(a => a.name === 'naem_jet_engine').time < flightSamples[i - 1].audio.find(a => a.name === 'naem_jet_engine').time));
+  check('departure stops dialogue engine before accelerating away', q.samples.filter(s => s.beat === 'flyaway').every(s => s.audio.find(a => a.name === 'naem_jet_engine')?.paused));
   check('Choimis is rescued before flyaway', q.samples.some(s => s.beat === 'save_choimis' && s.choimisCaught));
   check('full draw captures every visible rescue beat', expectedBeats.every(beat => q.frames[beat]) && q.canvas[0] === 960 && q.canvas[1] === 720, JSON.stringify(Object.keys(q.frames)));
   const end = await page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, transition: game.transitioning, rescue: !!game.choimisRescue, assets: !!game.choimisRescueAssets, flags: game.flags, bgm: game.sound.bgmName, party: game.party, player: { x: game.player.x, y: game.player.y }, entities: game.entities.map(e => ({ id: e.id, x: e.x, y: e.y })) }));
@@ -73,7 +88,22 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
   await shot('lounge-return');
   await page.keyboard.down('ArrowDown'); await page.waitForTimeout(350); await page.keyboard.up('ArrowDown');
   check('real movement resumes after rescue', await page.evaluate(y => Math.abs(game.player.y - y) > 3, end.player.y));
+  evidence.audioEnd = await page.evaluate(() => window.__rescueAudio.map(({ name, handle: a }) => ({ name, paused: a?.paused, ended: a?.ended })));
+  check('all aircraft sounds stop after scene exit', evidence.audioEnd.length === 3 && evidence.audioEnd.every(a => a.paused || a.ended));
   evidence.sourceAfter = sources.map(relative => ({ relative, local: createHash('sha256').update(fs.readFileSync(path.join(process.env.QA_SOURCE_ROOT, relative))).digest('hex') }));
   check('rescue sources stable throughout execution', evidence.sourceAfter.every(after => evidence.source.find(before => before.relative === after.relative).local === after.local));
+  await open({ qa: 'choimis_rescue' });
+  check('fresh rescue checkpoint supports title abort', await until(() => window.game?.choimisRescue && game.textbox?.isOpen, 30000));
+  const abortBegan = Date.now();
+  while (Date.now() - abortBegan < 45000 && !await page.evaluate(() => !!game.choimisRescue?.engine)) {
+    if (await page.evaluate(() => game.textbox.isOpen)) await press('KeyC', { delay: 65 });
+    await page.waitForTimeout(150);
+  }
+  await page.evaluate(() => { window.__abortEngine = game.choimisRescue?.engine; });
+  check('engine is playing before actual Escape abort', await page.evaluate(() => !!window.__abortEngine && !window.__abortEngine.paused));
+  await press('Escape'); await page.waitForTimeout(700);
+  evidence.titleAbort = await page.evaluate(() => ({ state: game.state, scene: !!game.choimisRescue, paused: window.__abortEngine?.paused, completed: !!game.flags.choimis_rescued }));
+  check('Escape stops the owned engine and returns to title without completion', evidence.titleAbort.state === 'title' && !evidence.titleAbort.scene && evidence.titleAbort.paused && !evidence.titleAbort.completed, JSON.stringify(evidence.titleAbort));
+  await shot('jet-title-abort');
   save();
 });

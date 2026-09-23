@@ -1,5 +1,6 @@
 import { whiteSprite } from './youngcle-patterns.js';
 import { drawPinkPellet, heartPixels, pinkChargeAura } from './modes/choimis-pink-shooter.js';
+import { CHOIMIS_FINAL_ASSAULT as C } from '../data/choimis-final-assault.js';
 
 function drawProjectile(ctx, item, image) {
   const x = Math.round(item.x), y = Math.round(item.y), radius = item.r;
@@ -39,9 +40,10 @@ function drawBeam(ctx, beam, elapsed) {
   ctx.restore();
 }
 
-/** Transparent combat renderer; boss coordinates denote the 160px source-cell center. */
+/** Boss coordinates denote the body center shared with projectile collision. */
 export function createFinalAssaultRenderer(enemy) {
   const images = { boss: whiteSprite(enemy.img), choso: whiteSprite(enemy.actionImages?.choso),
+    capeSwing: whiteSprite(enemy.actionImages?.capeSwing),
     noodle: enemy.projectiles?.jjajang, daoKart: whiteSprite(enemy.projectiles?.daoKart),
     bazziKart: whiteSprite(enemy.projectiles?.bazziKart), money: enemy.projectiles?.money };
   const scale = enemy.def.scale ?? 1, scaleY = enemy.def.scaleY ?? 1;
@@ -55,12 +57,20 @@ export function createFinalAssaultRenderer(enemy) {
         ctx.setLineDash([3, 11]); ctx.beginPath(); ctx.moveTo(box.x + 3, item.y); ctx.lineTo(box.x + box.w - 8, item.y); ctx.stroke(); ctx.restore();
       } else drawProjectile(ctx, item, images[item.kind]);
     }
-    const image = state.stage > 0 && images.choso ? images.choso : images.boss;
+    const sheet = boss.pose?.sheet || (state.stage > 0 ? 'choso' : 'idle');
+    const action = sheet === 'idle' ? null : enemy.def.actions?.[sheet];
+    const image = sheet !== 'idle' && images[sheet] ? images[sheet] : images.boss;
     if (image) {
-      const frame = Math.floor(elapsed * 4.5) % 4, width = Math.round(160 * scale), height = Math.round(160 * scale * scaleY);
+      const spec = action && images[sheet] ? action : enemy.def.sheet;
+      const cols = spec?.cols ?? 2, rows = spec?.rows ?? 2;
+      const cellWidth = image.width / cols, cellHeight = image.height / rows;
+      const pivot = spec?.pivot ?? enemy.def.pivot ?? [72, 152];
+      const frame = action && images[sheet] ? Math.min(boss.pose?.frame ?? 0, (spec.count ?? 4) - 1)
+        : Math.floor(elapsed * (spec?.fps ?? 4.5)) % (spec?.count ?? 4);
+      const width = Math.round(cellWidth * scale), height = Math.round(cellHeight * scale * scaleY);
       ctx.globalAlpha = boss.flash > 0 ? 0.6 : 1;
-      ctx.drawImage(image, frame % 2 * 160, Math.floor(frame / 2) * 160, 160, 160,
-        Math.round(boss.x - width / 2), Math.round(boss.y - height / 2), width, height);
+      ctx.drawImage(image, frame % cols * cellWidth, Math.floor(frame / cols) * cellHeight, cellWidth, cellHeight,
+        Math.round(boss.x - pivot[0] * scale), Math.round(boss.y - (pivot[1] - C.bossBodyHeight / 2) * scale * scaleY), width, height);
       ctx.globalAlpha = 1;
     }
     for (const shot of state.shots) drawPinkPellet(ctx, shot);
