@@ -3,6 +3,7 @@ export const DEFAULT_BASE_URL = 'http://localhost:8000/';
 export const BASE_URL_SCENARIOS = new Set(['drum-devil-battle', 'drum-devil-intro', 'battle_lose', 'battle_bgm', 'battle-preload', 'tvform-rhythm', 'tvform-subrio-b', 'tvform-subrio', 'tvform-subrio-guard', 'ship-lounge', 'ship-ending', 'ship-castle', 'jjajang-shore', 'sinking-shore', 'choimis', 'loading-performance', 'loading-map-race', 'loading-map-assets']);
 BASE_URL_SCENARIOS.add('jjajang-night-cliff');
 BASE_URL_SCENARIOS.add('choimis-runaway');
+BASE_URL_SCENARIOS.add('choimis-chase-raft');
 BASE_URL_SCENARIOS.add('choimis-sky-battle');
 BASE_URL_SCENARIOS.add('choimis-eating-race');
 BASE_URL_SCENARIOS.add('choimis-finale');

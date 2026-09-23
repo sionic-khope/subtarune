@@ -66,6 +66,20 @@ export function storyBgm(mapId, flags) {
 
 const PURSUIT_EXITS = { obj0: 'obj1', obj1: 'obj2', obj2: 'obj5', obj3: 'obj2', obj4: 'obj3', obj5: null };
 
+/** 변신 연출이 일행만 서쪽으로 옮겼으므로 추격 첫 진입 때 뗏목을 현재 강둑에 준비한다. */
+export function restoreChoimisChaseRaft(game) {
+  if (!game.has('choimis_flower_done') || game.has('choimis_chase_raft_ready')) return;
+  const raft = game.entities.find(e => e.id === 'sakura6_raft');
+  if (!raft || game.ride) return;
+  const last = raft.route.length - 1;
+  const distance = ([x, y]) => Math.hypot(game.player.x - x, game.player.y - y);
+  raft.at = distance(raft.route[last]) < distance(raft.route[0]) ? last : 0;
+  raft.setPos(raft.route[raft.at]);
+  game.setFlag(raft.flagKey, raft.at);
+  game.setFlag('choimis_chase_raft_ready');
+  game.autosave();
+}
+
 /** 납치 추격 중에는 문으로 우회하거나 직전 구역으로 돌아갈 수 없다. */
 export function storyExitScript(mapId, destination, flags) {
   if (!flags.choimis_rescued && flags.captain_attack_done && isShipPursuitMap(mapId) && SHIP_ASSAULT.pursuit[mapId] !== destination) return 'ship_pursuit_backtrack';

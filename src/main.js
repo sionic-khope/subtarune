@@ -32,7 +32,7 @@ import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './data/cutscenes/capta
 import L from './data/locale/ko.js';
 import { BUILD } from './data/build.js';
 import { CHARACTERS } from './data/characters.js';
-import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm } from './core/story.js';
+import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm, restoreChoimisChaseRaft } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
 import { WATER_WALK } from './data/footsteps.js';
 import { createPetals } from './world/petals.js';        // 벚꽃 숲 꽃잎(BUILD261)
@@ -904,6 +904,7 @@ class Game {
   /** 맵 JSON `enter: { script, flag?, early? }` — 도착 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회(스크립트 시작 때 섬 — 세이브는 컷신 중엔 안 되므로, 중간에 끄면 이어하기 때 처음부터) */
   runMapEnter(mapId = this.mapId) {
     if (this.dialogue.running) return;
+    if (mapId === 'jjajang_sakura6') restoreChoimisChaseRaft(this);
     if (mapId === 'maillard_captain' && this.has('captain_mankatsuki_defeated') && !this.has('captain_aftermath_done')) {
       this.runScript('captain_aftermath');
       return;
