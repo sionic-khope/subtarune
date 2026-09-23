@@ -217,6 +217,36 @@
    "spawn": "from_west",
    "sfx": false,
    "interact": false
+  },
+  {
+   "type": "raft_recall",
+   "id": "coast3_a_recall_start",
+   "raft": "coast3_a",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 2972,
+   "y": 2056,
+   "w": 12,
+   "h": 16,
+   "ix": 2962,
+   "iy": 2024,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "coast3_a_recall_end",
+   "raft": "coast3_a",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 3788,
+   "y": 2056,
+   "w": 12,
+   "h": 16,
+   "ix": 3778,
+   "iy": 2024,
+   "solid": true
   }
  ],
  "tileSwaps": {
@@ -242,7 +272,9 @@
   "assets/backdrops/jjajang_night_sea.png",
   "assets/tiles/night_coast_rock.png",
   "assets/tiles/night_coast_edge.png",
-  "assets/props/lever_on.png"
+  "assets/props/lever_on.png",
+  "assets/props/raft_call_lever_off.png",
+  "assets/props/raft_call_lever_on.png"
  ],
  "meta": {
   "connected": true,

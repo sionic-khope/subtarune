@@ -79,7 +79,7 @@ for (const [id, m] of Object.entries(maps)) {
       const pr = [sp.x, sp.y, ...PLAYER];
       for (const z of ents.filter((e) => e.type === 'trigger' || e.type === 'door')) assert.ok(!hit(pr, rectOf(z)), `스폰 ${name} 이 트리거/문 위`);
       for (const r of (m.solids || [])) assert.ok(!hit(pr, r), `스폰 ${name} 이 막힘 안`);
-      for (const e of ents.filter((e) => e.type === 'prop' && e.solid !== false && e.w !== undefined)) assert.ok(!hit(pr, rectOf(e)), `스폰 ${name} 이 소품 ${e.image} 안`);
+      for (const e of ents.filter((e) => ['prop', 'raft_recall'].includes(e.type) && e.solid !== false && e.w !== undefined)) assert.ok(!hit(pr, rectOf(e)), `스폰 ${name} 이 소품 ${e.image} 안`);
     }
   });
   test(`${id}: 트리거/문끼리 겹치지 않는다`, () => {
@@ -98,7 +98,7 @@ for (const [id, m] of Object.entries(maps)) {
     for (const k of keys) assert.ok(SCRIPTS[k], `${id}: 스크립트 없음 '${k}'`);
   });
   test(`${id}: 소품 이미지 파일이 존재`, () => {
-    for (const e of (m.entities || []).filter((e) => e.type === 'prop' && e.image)) assert.ok(fs.existsSync(e.image), `${id}: 이미지 없음 ${e.image}`);
+    for (const e of (m.entities || []).filter((e) => ['prop', 'raft_recall'].includes(e.type) && e.image)) assert.ok(fs.existsSync(e.image), `${id}: 이미지 없음 ${e.image}`);
   });
   test(`${id}: 잠긴 문은 lockedScript 가 있고, 문/트리거는 대상 스폰이 있다`, () => {
     for (const d of (m.entities || []).filter((e) => e.type === 'door')) {

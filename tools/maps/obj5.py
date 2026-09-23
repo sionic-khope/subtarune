@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import sys
 from typing import Final
+from raft_recall import RECALL_IMAGES, recall_levers
 
 sys.path.insert(0, '.')
 from tools.maps.objlib import build
@@ -58,6 +59,8 @@ map_data = {
              'stage': {'player': [670, 328], 'ppaman': [734, 356], 'gyeongsub': [606, 356]}},
     'entities': entities,
 }
+map_data['entities'].extend(recall_levers('obj5'))
+map_data['preload'].extend(RECALL_IMAGES)
 path = Path('assets/maps/obj5.json')
 if '--check' in sys.argv:
     same = json.loads(path.read_text(encoding='utf-8')) == map_data

@@ -1,5 +1,9 @@
 # SUBTARUNE
 
+뗏목 회수 기둥은 [회수 레버 원본·규격](assets/source/raft-call306/README.md)을 따른다.32×48 대기/당김2포즈, 공통 바닥 피벗16,48이며 기존 캐릭터나 뗏목 그림은 바꾸지 않는다.
+
+BUILD306 성 북쪽 길은 외부가 아니라 검은 석벽·기둥·아치와 보라 이끼가 있는 **성 내부 진입 홀**이다. 32px 바닥4종·거대 성문·실내 배경은 [성 내부 자산 계약](assets/source/castle306/README.md), 기념사진의 하강 카메라 소품은 [카메라 계약](assets/source/ship-camera306/README.md)을 따른다. 기존 캐릭터 외형은 바꾸지 않는다. 초기 외부 성 전경은 미채택 초안으로 보존하며 런타임에 다시 연결하지 않는다.
+
 BUILD305 출정 연출의 주먹 응답은 기존 요플래·경섭·빠맨의 얼굴과 의상을 유지한 무기 없는4프레임이다. `assets/sprites/*-deck-fist.png`는512×128, 셀128×128·발 피벗64,120·배율0.5이며 원래 걷기 높이에 맞춘다. 생성 원본/정확한 프롬프트/NEAREST·알파 보존 처리 기록은 [갑판 모션](assets/source/ship-deck305-poses/README.md), 성 입구의32px 보라 석재4종은 [타일 기록](assets/source/ship-invasion305-tiles/README.md)에 있다. 내장 이미지 생성 도구를 사용했고 기존 걷기·전투·초상화는 변경하지 않았다.
 
 델타룬 스타일 탑다운 도트 스토리 어드벤처. **웹에서 바로 실행**, 빌드 없음(ES 모듈), 맵·아트는 파이썬 생성기로 뽑고 오디오는 mp3(출처 `design/audio/references.md`).

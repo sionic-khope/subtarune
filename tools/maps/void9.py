@@ -4,6 +4,7 @@
 규칙: 첫 벽은 출발 300px 이상 뒤, 벽 사이 300px 이상. 착지마다 다른 유형의 이벤트 소품.
 """
 import io, json, sys
+from raft_recall import RECALL_IMAGES, recall_levers
 W, H = 48, 52
 rows = [[' '] * W for _ in range(H)]
 def g(r, c): return 'x' if (r + c) % 2 == 0 else 'X'
@@ -48,6 +49,8 @@ m = {'id': 'void9', 'name': '???', 'bgm': 'scarlet', 'stage': 'void_fallen', 'di
                 'dockB': {'x': 1396, 'y': 196, 'facing': 'down'}, 'dockC': {'x': 1316, 'y': 890, 'facing': 'left'}, 'dockD': {'x': 116, 'y': 964, 'facing': 'down'}, 'dockE': {'x': 190, 'y': 1528, 'facing': 'right'},
                 'landing': {'x': 1420, 'y': 1530, 'facing': 'left'}},
      'entities': ents}
+m['entities'].extend(recall_levers('void9'))
+m['preload'] = list(RECALL_IMAGES)
 path = 'assets/maps/void9.json'
 if '--check' in sys.argv:
     cur = json.loads(io.open(path, encoding='utf-8').read()); print('void9', 'same' if cur == m else 'DIFFERENT'); sys.exit(0 if cur == m else 1)

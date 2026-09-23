@@ -1,0 +1,85 @@
+{
+  "generator": "built-in image_gen",
+  "model": "unknown",
+  "cost": "unknown",
+  "generationId": "exec-1a292c45-6d46-4f24-818d-47e33d4c3119",
+  "sourceSize": [
+    748,
+    2103
+  ],
+  "sourceSHA256": "3a8e68a4b050e989b96bf7aa133b13d6fd330a6244f3af1202e7dba7ba94ebe3",
+  "sourceRows": 2,
+  "sourceColumns": 1,
+  "sharedScale": 0.05314009661835749,
+  "resample": "NEAREST",
+  "alphaRule": "clear generated alpha below8 only",
+  "colorChanges": false,
+  "frames": [
+    {
+      "state": "off",
+      "path": "assets/props/raft_call_lever_off.png",
+      "sourceCrop": [
+        144,
+        197,
+        533,
+        1025
+      ],
+      "contentSize": [
+        21,
+        44
+      ],
+      "placement": [
+        4,
+        2
+      ],
+      "size": [
+        32,
+        48
+      ],
+      "pivot": [
+        16,
+        48
+      ],
+      "visibleBounds": [
+        4,
+        2,
+        25,
+        46
+      ],
+      "sha256": "e4fd13d2462851593fd1a30948e03a8dc3ffaa7ebfcba9ec30638505c108509c"
+    },
+    {
+      "state": "on",
+      "path": "assets/props/raft_call_lever_on.png",
+      "sourceCrop": [
+        217,
+        1118,
+        606,
+        1945
+      ],
+      "contentSize": [
+        21,
+        44
+      ],
+      "placement": [
+        8,
+        2
+      ],
+      "size": [
+        32,
+        48
+      ],
+      "pivot": [
+        16,
+        48
+      ],
+      "visibleBounds": [
+        8,
+        2,
+        29,
+        46
+      ],
+      "sha256": "6ee76b443e734c2f3770f6fcaca5054e85b197391e7471cbbf578c9caa48da97"
+    }
+  ]
+}

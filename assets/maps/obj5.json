@@ -29,7 +29,9 @@
   "script": "obj5_resume"
  },
  "preload": [
-  "assets/props/wooden_gun.png"
+  "assets/props/wooden_gun.png",
+  "assets/props/raft_call_lever_off.png",
+  "assets/props/raft_call_lever_on.png"
  ],
  "spawns": {
   "start": {
@@ -1084,6 +1086,21 @@
    "h": 8,
    "ix": 564,
    "iy": 360
+  },
+  {
+   "type": "raft_recall",
+   "id": "obj5_raft_recall_start",
+   "raft": "obj5_raft",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 730,
+   "y": 392,
+   "w": 12,
+   "h": 16,
+   "ix": 720,
+   "iy": 360,
+   "solid": true
   }
  ]
 }

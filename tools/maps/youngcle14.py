@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 import sys
 from typing import Final, Union
+from raft_recall import RECALL_IMAGES, recall_levers
 
 JsonValue = Union[str, int, float, bool, None, list["JsonValue"], dict[str, "JsonValue"]]
 
@@ -156,6 +157,8 @@ def main() -> None:
             beam('beam_c_low1', RAFT_C_X0 + 1068, False, pulse={'on': 1.6, 'off': 1.1, 'phase': 0.3}, top=LANE_C_TOP),
         ],
     }
+    map_data['entities'].extend(recall_levers(MAP_ID))
+    map_data['preload'].extend(RECALL_IMAGES)
     output = Path(f'assets/maps/{MAP_ID}.json')
     index_path = Path('assets/maps/index.json')
     index = json.loads(index_path.read_text(encoding='utf-8'))

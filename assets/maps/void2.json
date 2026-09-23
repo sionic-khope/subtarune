@@ -39,7 +39,38 @@
       "facing": "left"
     }
   },
+  "preload": ["assets/props/raft_call_lever_off.png","assets/props/raft_call_lever_on.png"],
   "entities": [
+    {
+      "type": "raft_recall",
+      "id": "raft1_recall_start",
+      "raft": "raft1",
+      "endpoint": "start",
+      "image": "assets/props/raft_call_lever_off.png",
+      "imageOn": "assets/props/raft_call_lever_on.png",
+      "x": 98,
+      "y": 164,
+      "w": 12,
+      "h": 16,
+      "ix": 88,
+      "iy": 132,
+      "solid": true
+    },
+    {
+      "type": "raft_recall",
+      "id": "raft1_recall_end",
+      "raft": "raft1",
+      "endpoint": "end",
+      "image": "assets/props/raft_call_lever_off.png",
+      "imageOn": "assets/props/raft_call_lever_on.png",
+      "x": 654,
+      "y": 172,
+      "w": 12,
+      "h": 16,
+      "ix": 644,
+      "iy": 140,
+      "solid": true
+    },
     {
       "type": "door",
       "x": 32,

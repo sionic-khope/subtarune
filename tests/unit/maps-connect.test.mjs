@@ -18,7 +18,7 @@ for (const id of idx) {
   const reachable = (flag) => {
     const H = m.rows.length, W = m.rows[0].length; const solid = new Set();
     const rows = m.rows.map((row, i) => m.tileSwaps?.[flag]?.rows[i] ?? row);
-    for (const e of m.entities || []) if (e.solid !== false && !e.unless && (e.type === 'prop' || e.type === 'raft')) { const x0 = Math.floor(e.x / 32), y0 = Math.floor(e.y / 32), x1 = Math.floor((e.x + (e.w || 32) - 1) / 32), y1 = Math.floor((e.y + (e.h || 32) - 1) / 32); for (let r = y0; r <= y1; r++) for (let c = x0; c <= x1; c++) solid.add(`${r},${c}`); }
+    for (const e of m.entities || []) if (e.solid !== false && !e.unless && ['prop', 'raft', 'raft_recall'].includes(e.type)) { const x0 = Math.floor(e.x / 32), y0 = Math.floor(e.y / 32), x1 = Math.floor((e.x + (e.w || 32) - 1) / 32), y1 = Math.floor((e.y + (e.h || 32) - 1) / 32); for (let r = y0; r <= y1; r++) for (let c = x0; c <= x1; c++) solid.add(`${r},${c}`); }
     const ok = (r, c) => r >= 0 && c >= 0 && r < H && c < W && WALK.has(rows[r][c]) && !solid.has(`${r},${c}`);
     const s = m.spawns.start || Object.values(m.spawns)[0]; const start = [Math.floor(s.y / 32), Math.floor(s.x / 32)];
     const stations = (m.entities || []).filter(e => e.type === 'raft' && e.route?.length).map(e =>
@@ -41,7 +41,7 @@ for (const id of idx) {
   if (m.meta?.blockedClearedBy) barrierStates.push({ flags: { [m.meta.blockedClearedBy]: true }, cleared: true });
   for (const { flags, cleared } of barrierStates) if (m.meta?.blocked) test(`${id}: 장애물 ${cleared ? '제거 후 통과' : '제거 전 차단'}(플레이어 24×16)`, () => {
     const PW = 24, PH = 16, STEP = 4;                                  // 플레이어 히트박스와 탐색 간격(px)
-    const rects = (m.entities || []).filter((e) => e.solid !== false && !(e.unless && flags[e.unless]) && !(e.requires && !flags[e.requires]) && (e.type === 'prop' || e.type === 'raft')).map((e) => ({ x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 32 }));
+    const rects = (m.entities || []).filter((e) => e.solid !== false && !(e.unless && flags[e.unless]) && !(e.requires && !flags[e.requires]) && ['prop', 'raft', 'raft_recall'].includes(e.type)).map((e) => ({ x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 32 }));
     const tileOk = (x, y) => { const r = Math.floor(y / 32), c = Math.floor(x / 32); return r >= 0 && c >= 0 && r < m.rows.length && c < m.rows[0].length && WALK.has(m.rows[r][c]); };
     const free = (x, y) => [[x, y], [x + PW - 1, y], [x, y + PH - 1], [x + PW - 1, y + PH - 1]].every(([px, py]) => tileOk(px, py))
       && !rects.some((s) => x < s.x + s.w && x + PW > s.x && y < s.y + s.h && y + PH > s.y);

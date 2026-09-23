@@ -21,7 +21,7 @@ const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8'
 
 const tileAt = (m, x, y) => { const r = Math.floor(y / TILE), c = Math.floor(x / TILE); return (m.rows[r] || '')[c] ?? ' '; };
 const boxOn = (m, x, y, w, h, set) => [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]].every(([px, py]) => set.has(tileAt(m, px, py)));
-const solids = (m) => (m.entities || []).filter((e) => e.type === 'prop' && e.solid !== false).map((e) => ({ x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 12 }));
+const solids = (m) => (m.entities || []).filter((e) => ['prop', 'raft_recall'].includes(e.type) && e.solid !== false).map((e) => ({ x: e.x, y: e.y, w: e.w ?? 32, h: e.h ?? 12 }));
 const hits = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 for (const m of maps) {

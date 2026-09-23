@@ -7,12 +7,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const KNOWN = new Set(['type', 'id', 'image', 'x', 'y', 'w', 'h', 'ix', 'iy', 'scale', 'foldX', 'carry', 'solid', 'script', 'sortY', 'unless', 'requires', 'obstacle', 'oscillate', 'interact', 'flag', 'emptyScript', 'lockedScript', 'to', 'spawn', 'sfx', 'sprite', 'facing', 'wander', 'route', 'speed', 'jump', 'swim', 'onBoard', 'onArrive', 'stops', 'checkpoints', 'swimAt', 'clear', 'sweep', 'anim', 'period', 'offset', 'range', 'ground', 'top', 'warn', 'fall', 'rest', 'raft', 'slot', 'once', 'dir', 'name', 'text', 'items', 'tiles', 'when', 'lanes', 'tileSwaps', 'visible', 'hidden', 'cooldown', 'noFace', 'walkable', 'auto', 'from', 'stage', 'label', 'motion', 'lift', 'pulse', 'lava', 'boardSfx', 'arriveSfx', 'jumpH2', 'disembarkPartyGap', 'aura']);   // aura: 소품 뒤 맥동 빛(BUILD284 제단 위 어둠의 짜장면)
 KNOWN.add('shipHatch');
+KNOWN.add('endpoint');
+KNOWN.add('imageOn');
 KNOWN.add('bloom');   // 벚꽃 숲(BUILD261): 번짐이 닿으면 바꿔 그릴 그림(assets/props/jjajang_sakura_N.png)
 const pngSize = (path) => { const b = fs.readFileSync(path); assert.equal(b.toString('ascii', 1, 4), 'PNG', `${path} 는 PNG 가 아님`); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }; };
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 for (const id of index.maps) {
   const m = JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
-  const props = (m.entities || []).filter((e) => e.type === 'prop');
+  const props = (m.entities || []).filter((e) => ['prop', 'raft_recall'].includes(e.type));
   if (!props.length) continue;
   test(`${id}: 소품 키는 엔진이 아는 것만`, () => {
     for (const e of props) for (const k of Object.keys(e)) assert.ok(KNOWN.has(k), `${id}.${e.id || e.image}: 모르는 키 '${k}' (scale 대신 imageScale 같은 오타?)`);

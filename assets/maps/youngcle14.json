@@ -46,7 +46,9 @@
   "assets/props/lava_wall_low.png",
   "assets/tiles/youngcle_iron_blue_wall.png",
   "assets/props/plasma_beam_v_h.png",
-  "assets/props/plasma_beam_high_h.png"
+  "assets/props/plasma_beam_high_h.png",
+  "assets/props/raft_call_lever_off.png",
+  "assets/props/raft_call_lever_on.png"
  ],
  "spawns": {
   "left": {
@@ -522,6 +524,96 @@
     "off": 1.1,
     "phase": 0.3
    }
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft14a_recall_start",
+   "raft": "raft14a",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 356,
+   "y": 708,
+   "w": 12,
+   "h": 16,
+   "ix": 346,
+   "iy": 676,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft14a_recall_end",
+   "raft": "raft14a",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 1680,
+   "y": 708,
+   "w": 12,
+   "h": 16,
+   "ix": 1670,
+   "iy": 676,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft14b_recall_start",
+   "raft": "raft14b",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 1808,
+   "y": 652,
+   "w": 12,
+   "h": 16,
+   "ix": 1798,
+   "iy": 620,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft14b_recall_end",
+   "raft": "raft14b",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 1808,
+   "y": 124,
+   "w": 12,
+   "h": 16,
+   "ix": 1798,
+   "iy": 92,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft14c_recall_start",
+   "raft": "raft14c",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 1860,
+   "y": 140,
+   "w": 12,
+   "h": 16,
+   "ix": 1850,
+   "iy": 108,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft14c_recall_end",
+   "raft": "raft14c",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 3178,
+   "y": 140,
+   "w": 12,
+   "h": 16,
+   "ix": 3168,
+   "iy": 108,
+   "solid": true
   }
  ]
 }

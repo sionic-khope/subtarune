@@ -13,6 +13,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Union
+from raft_recall import RECALL_IMAGES, recall_levers
 
 Json = Union[None, bool, int, float, str, list['Json'], dict[str, 'Json']]
 Point = tuple[int, int]
@@ -172,6 +173,9 @@ def main() -> None:
     for coast in COASTS:
         data = build_map(coast)
         map_id = f'jjajang_night_coast{coast.number}'
+        if coast.ferries:
+            data['entities'].extend(recall_levers(map_id))
+            data['preload'].extend(RECALL_IMAGES)
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == data and map_id in index['maps']

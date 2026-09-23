@@ -5,6 +5,7 @@
 실행: /usr/bin/python3 tools/maps/teal5.py  (--check)
 """
 import io, json, sys
+from raft_recall import RECALL_IMAGES, recall_levers
 W, H, T = 120, 20, 32
 rows = [[' '] * W for _ in range(H)]
 def g(r, c): return 'w' if (r * 7 + c * 13) % 11 == 0 else ('t' if (r + c) % 2 == 0 else 'u')
@@ -50,6 +51,8 @@ m = {'id': 'teal5', 'name': '청록숲', 'bgm': 'hopes', 'stage': 'void_fallen',
                 'dock': {'x': RAFT_X0 - 34, 'y': 13 * T + 8, 'facing': 'right'}, 'landing': {'x': (W - 4) * T, 'y': 7 * T + 8, 'facing': 'left'}},
      'meta': {'raftStart': RAFT_X0, 'raftEnd': RAFT_X1, 'stop': STOP_X, 'holdAt': HOLD_X, 'checkpoints': CHECKPOINTS, 'waterfalls': FALLS, 'wall': 740, 'levels': [Y0, Y1, Y2, Y3]},
      'entities': ents}
+m['entities'].extend(recall_levers('teal5'))
+m['preload'] = list(RECALL_IMAGES)
 path = 'assets/maps/teal5.json'
 if '--check' in sys.argv:
     cur = json.loads(io.open(path, encoding='utf-8').read()); print('teal5', 'same' if cur == m else 'DIFFERENT'); sys.exit(0 if cur == m else 1)

@@ -724,6 +724,41 @@ export class Prop extends Entity {
   }
 }
 
+/** 강둑 호출 기둥: { type:'raft_recall', raft:'id', endpoint:'start'|'end', image, imageOn }. */
+export class RaftRecall extends Prop {
+  constructor(def, game) {
+    super(def, game);
+    this.pulled = 0;
+    if (def.imageOn && !game.propImages[def.imageOn]) game.requestPropImage?.(def.imageOn);
+  }
+  canInteract() { return true; }
+  interact() {
+    const game = this.game;
+    if (this.pulled > 0 || game.state !== 'field' || game.dialogue.running || game.transitioning || game.ride) return true;
+    const raft = game.entities.find(e => e.id === this.def.raft && e.def.type === 'raft' && !e.dead && e.visible);
+    if (!raft || raft.riding || raft.moving || raft.jumping || raft.sweeping || raft.hold) return true;
+    const at = this.def.endpoint === 'start' ? 0 : this.def.endpoint === 'end' ? raft.route.length - 1 : -1;
+    if (at < 0) return true;
+    const [x, y] = raft.route[at];
+    if (raft.at === at && raft.x === x && raft.y === y) return true;
+    if (game.entities.some(e => e !== raft && !e.dead && e.visible && e.solid && e.overlaps({ x, y, w: raft.w, h: raft.h }))) return true;
+    raft.at = at; raft.setPos([x, y]); game.setFlag(raft.flagKey, at);
+    this.pulled = 0.35;
+    this.image = game.propImages[this.def.imageOn] || this.image;
+    game.sound.sfx('click', { volume: 0.7 });
+    game.sound.sfx(raft.def.lava ? 'sizzle' : 'splash', { volume: 0.5 });
+    game.emitDropletsAt(x + raft.w / 2, y + raft.h * 0.7, 12, raft.dropColor);
+    game.autosave();
+    return true;
+  }
+  update(dt) {
+    super.update(dt);
+    this.pulled = Math.max(0, this.pulled - dt);
+    this.image = this.game.propImages[this.pulled > 0 ? this.def.imageOn : this.def.image] || this.game.propImages[this.def.image] || this.image;
+  }
+}
+registerEntity('raft_recall', RaftRecall);
+
 /**
  * 뗏목(재사용 기믹): 물 위 발판. 옆에 서서 C → 정해진 경로(route)를 따라 일직선으로 이동, 끝에서 내린다. 반대편에서 타면 되돌아온다.
  *   { type:'raft', id:'raft1', image:'assets/props/raft.png', x,y, route:[[x,y]], speed:171, flag?:'raft1',

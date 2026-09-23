@@ -249,6 +249,40 @@
     "cols": 3,
     "fps": 8
    }
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft5_recall_start",
+   "raft": "raft5",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 294,
+   "y": 468,
+   "w": 12,
+   "h": 16,
+   "ix": 284,
+   "iy": 436,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft5_recall_end",
+   "raft": "raft5",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 2842,
+   "y": 274,
+   "w": 12,
+   "h": 16,
+   "ix": 2832,
+   "iy": 242,
+   "solid": true
   }
+ ],
+ "preload": [
+  "assets/props/raft_call_lever_off.png",
+  "assets/props/raft_call_lever_on.png"
  ]
 }

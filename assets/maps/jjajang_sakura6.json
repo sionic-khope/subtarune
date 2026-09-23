@@ -1139,6 +1139,40 @@
    "to": "jjajang_sakura7",
    "spawn": "from_west",
    "sfx": false
+  },
+  {
+   "type": "raft_recall",
+   "id": "sakura6_raft_recall_start",
+   "raft": "sakura6_raft",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 292,
+   "y": 404,
+   "w": 12,
+   "h": 16,
+   "ix": 282,
+   "iy": 372,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "sakura6_raft_recall_end",
+   "raft": "sakura6_raft",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 1230,
+   "y": 406,
+   "w": 12,
+   "h": 16,
+   "ix": 1220,
+   "iy": 374,
+   "solid": true
   }
+ ],
+ "preload": [
+  "assets/props/raft_call_lever_off.png",
+  "assets/props/raft_call_lever_on.png"
  ]
 }

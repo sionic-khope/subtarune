@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from raft_recall import RECALL_IMAGES, recall_levers
 from typing import Final
 
 MAP_ID: Final = 'jjajang_sakura3'
@@ -121,7 +122,7 @@ def build_map() -> dict[str, object]:
             'rideGust': RIDE_GUST,
             'sakura3': {'entryCols': list(ENTRY_COLS), 'roadRows': list(ROAD_ROWS), 'shoreCol': SHORE_COL, 'channel': [list(CHANNEL_COLS), list(CHANNEL_ROWS)], 'down': [list(DOWN_COLS), DOWN_END_ROW], 'landing': [list(LANDING_COLS), list(LANDING_ROWS)], 'rideSeconds': round(ride_px / RAFT_SPEED, 2)},
         },
-        'entities': [*trees, raft, door_south, door_landing],
+        'entities': [*trees, raft, door_south, door_landing, *recall_levers(MAP_ID)],
     }
 
 
@@ -132,6 +133,7 @@ def main() -> None:
         print('Unknown argument. Use --help.', file=sys.stderr); raise SystemExit(2)
     output = Path(f'assets/maps/{MAP_ID}.json'); index_path = Path('assets/maps/index.json')
     index = json.loads(index_path.read_text(encoding='utf-8')); map_data = build_map()
+    map_data.setdefault('preload', []).extend(RECALL_IMAGES)
     if '--check' in sys.argv:
         same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == map_data; registered = MAP_ID in index['maps']
         print(MAP_ID, 'same' if same and registered else 'DIFFERENT'); raise SystemExit(0 if same and registered else 1)

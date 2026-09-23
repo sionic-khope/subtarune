@@ -31,6 +31,8 @@
   }
  },
  "preload": [
+  "assets/props/raft_call_lever_off.png",
+  "assets/props/raft_call_lever_on.png",
   "assets/props/bridge_span31.png",
   "assets/props/lever_on.png"
  ],
@@ -62,6 +64,36 @@
   }
  },
  "entities": [
+  {
+   "type": "raft_recall",
+   "id": "raft4_recall_start",
+   "raft": "raft4",
+   "endpoint": "start",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 132,
+   "y": 330,
+   "w": 12,
+   "h": 16,
+   "ix": 122,
+   "iy": 298,
+   "solid": true
+  },
+  {
+   "type": "raft_recall",
+   "id": "raft4_recall_end",
+   "raft": "raft4",
+   "endpoint": "end",
+   "image": "assets/props/raft_call_lever_off.png",
+   "imageOn": "assets/props/raft_call_lever_on.png",
+   "x": 2250,
+   "y": 340,
+   "w": 12,
+   "h": 16,
+   "ix": 2240,
+   "iy": 308,
+   "solid": true
+  },
   {
    "type": "door",
    "x": 32,
