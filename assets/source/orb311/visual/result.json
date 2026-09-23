@@ -1,0 +1,14 @@
+{
+  "requestId": "castle-seal-orb311",
+  "status": "ready",
+  "files": ["assets/props/castle-seal-orb.png"],
+  "contract": "assets/source/orb311/visual/README.md",
+  "size": [128, 128],
+  "pivot": [64, 64],
+  "frames": 1,
+  "alphaBounds": [7, 5, 120, 122],
+  "alphaValues": [0, 255],
+  "opaquePixels": 7538,
+  "sha256": "dfac57a821e58c19778d2eaf03baad684feac2cba30ad32f19e7c01a18522acb",
+  "notes": "Built-in image generation; transparent raw returned despite magenta prompt. Deterministic alpha cleanup and NEAREST final. Asset-ready only, not runtime-integrated. Body approximately85px; aura113x117."
+}
