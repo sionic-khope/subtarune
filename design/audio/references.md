@@ -679,3 +679,6 @@ Q/W는 [Riot 공식 말자하 페이지](https://www.leagueoflegends.com/en-us/c
 ## BUILD308 성 기억 전투 (2026-09-23)
 
 - `bgm/castle_battle.mp3`: 사용자 지정 [OobVFldn6As](https://www.youtube.com/watch?v=OobVFldn6As), yt-dlp 제목 `50. From Now On (Battle 2) (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 표시 업로더 Toby Fox, 게시20250604. 포맷251 WebM/Opus(48kHz stereo) 전체를 MP3 q2로 한 번 변환했다. 런타임은113.174063초·48kHz stereo·2,388,668바이트·SHA256 `f538c1d47b10819279f2e4837238bde95be08540f6cd8e9b6df2a522168d3179`; 트리밍·반복 편집·속도·피치·페이드·음량 가공 없음. 전체 디코드 종료코드0. [출처·재현·검증](../../assets/source/memory308/audio/README.md). 별도 유료 API/생성 비용0, 메타데이터 license는 null이며 재배포 허가 확인을 뜻하지 않는다.
+# BUILD311 · 봉인 구체 방
+
+`assets/audio/bgm/castle_orb.mp3`: 사용자 지정 [The distance between two](https://www.youtube.com/watch?v=byUCuhB8r5Q), Toby Fox 공개 영상, 전체47.426771초 원속도/원음높이. 변환·해시·디코드 근거는 `assets/source/orb311/audio/README.md`. 접촉/상승/지직/점등 효과음은 기존 `power`, `spearappear`, `static_burst`, `great_shine` 재사용. 실제 재생 확인과 사람의 음색 청취 승인은 구분한다.
