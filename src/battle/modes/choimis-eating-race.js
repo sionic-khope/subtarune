@@ -2,26 +2,31 @@ import L from '../../data/locale/ko.js';
 import { FONT } from '../../ui/font.js';
 import { BATTLE_PANEL_TOP, SCREEN_W } from '../../core/layout.js';
 import { createChoimisRapVideo } from '../choimis-rap-video.js';
+import { sayBubble, tickBubble } from '../support/youngcle-tvform.js';
 
 export const CHOIMIS_EATING_RACE = Object.freeze({
   src: 'assets/video/choimis-eating-race.mp4', introSeconds: 11, raceSeconds: 10.2,
   bitesPerBowl: 18, bowls: 3, resultSeconds: 1.2, bossDamage: 10, partyDamage: 15,
+  preludeHold: 0.9, transitionSeconds: 0.8, revealSeconds: 0.4,
   partyOrder: Object.freeze(['hyungsub', 'gyeongsub', 'ppaman']),
   video: Object.freeze({ x: 134, y: 86, w: 212, h: 120 }),
 });
 const clamp = value => Math.max(0, Math.min(1, value));
 
-export function createChoimisEatingRace(battle, { enemy, media } = {}) {
+export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
   const C = CHOIMIS_EATING_RACE, total = C.bitesPerBowl * C.bowls;
   const video = media || createChoimisRapVideo({ src: C.src, volume: 0.72, opacity: 1, autoplay: false });
   const members = C.partyOrder.map(id => battle.members.find(member => member.id === id));
   const names = [L.battle_choimis_eating_hyungsub, L.battle_choimis_eating_gyeongsub, L.battle_choimis_eating_ppaman];
-  let phase = 'loading', elapsed = 0, raceElapsed = 0, resultElapsed = 0;
+  let phase = 'prelude', elapsed = 0, raceElapsed = 0, resultElapsed = 0, phaseElapsed = 0, mediaReady = null;
   let bites = 0, rivalBites = 0, biteFlash = 0, rivalBiteFlash = 0, lastBiteMember = 0;
   let winner = null, wasDown = false, armed = false, disposed = false;
-  video.ready.then(ready => { if (!disposed) phase = ready ? 'intro' : 'error'; });
+  const preamble = config?.speak || enemy.def.patterns.find(pattern => pattern.mode === 'choimis_eating_race')?.speak;
+  sayBubble(battle, enemy, preamble);
+  const preludeBubble = battle.bubble;
+  video.ready.then(ready => { if (!disposed) { mediaReady = ready; if (phase === 'loading') phase = ready ? 'intro' : 'error'; } });
   const syncMedia = (paused = false) => video.sync({ time: elapsed, muted: !!battle.game.sound?.muted,
-    paused: paused || phase === 'loading' || phase === 'error' || phase === 'result' || disposed });
+    paused: paused || !['intro', 'race'].includes(phase) || disposed });
   const finish = result => {
     if (winner || disposed) return;
     winner = result; phase = 'result'; resultElapsed = 0; video.stop();
@@ -57,9 +62,9 @@ export function createChoimisEatingRace(battle, { enemy, media } = {}) {
     }
   };
   return {
-    fullscreen: true, hpStrip: true,
+    get fullscreen() { return phase !== 'prelude' && phase !== 'transition'; }, hpStrip: true,
     get snapshot() {
-      return { phase, elapsed, raceElapsed, bites, rivalBites, biteFlash, rivalBiteFlash, lastBiteMember, winner, disposed,
+      return { phase, phaseElapsed, elapsed, raceElapsed, bites, rivalBites, biteFlash, rivalBiteFlash, lastBiteMember, winner, disposed,
         activeMember: C.partyOrder[Math.min(2, Math.floor(bites / C.bitesPerBowl))],
         partyBowls: C.partyOrder.map((id, index) => ({ id, eaten: clamp((bites - index * C.bitesPerBowl) / C.bitesPerBowl) })),
         rivalBowls: C.partyOrder.map((id, index) => clamp((rivalBites - index * C.bitesPerBowl) / C.bitesPerBowl)),
@@ -70,13 +75,26 @@ export function createChoimisEatingRace(battle, { enemy, media } = {}) {
       if (disposed) return true;
       const paused = !!globalThis.document?.hidden || battle.game.sound?.ctx?.state === 'suspended';
       syncMedia(paused);
-      if (paused || phase === 'loading') return false;
+      if (paused) return false;
+      if (enemy.dead || enemy.dying > 0 || enemy.hp <= 0) { video.stop(); return true; }
+      if (phase === 'prelude') {
+        const alreadyTyped = !battle.bubble || battle.bubble.shown >= battle.bubble.text.length;
+        tickBubble(battle, Math.max(0, dt));
+        if (alreadyTyped) phaseElapsed += Math.max(0, dt);
+        if (phaseElapsed >= C.preludeHold) { phase = 'transition'; phaseElapsed = 0; if (battle.bubble === preludeBubble) battle.bubble = null; }
+        return false;
+      }
+      if (phase === 'transition') {
+        phaseElapsed = Math.min(C.transitionSeconds, phaseElapsed + Math.max(0, dt));
+        if (phaseElapsed >= C.transitionSeconds) phase = mediaReady === null ? 'loading' : mediaReady ? 'intro' : 'error';
+        return false;
+      }
+      if (phase === 'loading') return false;
       if (video.loadError || video.playError) { phase = 'error'; video.stop(); }
       if (phase === 'result' || phase === 'error') {
         resultElapsed += Math.max(0, dt);
         return resultElapsed >= C.resultSeconds;
       }
-      if (enemy.dead || enemy.dying > 0 || enemy.hp <= 0) { video.stop(); return true; }
       const down = !!input.down?.('confirm'), delta = Math.max(0, dt);
       const previous = elapsed;
       elapsed = Math.min(C.introSeconds + C.raceSeconds, elapsed + delta);
@@ -106,6 +124,12 @@ export function createChoimisEatingRace(battle, { enemy, media } = {}) {
       return disposed;
     },
     draw(ctx) {
+      if (phase === 'prelude') { battle.drawTextBox(ctx); return; }
+      if (phase === 'transition') {
+        battle.drawTextBox(ctx);
+        ctx.save(); ctx.globalAlpha *= clamp(phaseElapsed / C.transitionSeconds); ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, SCREEN_W, BATTLE_PANEL_TOP + 72); ctx.restore(); return;
+      }
       ctx.save(); ctx.imageSmoothingEnabled = false;
       ctx.fillStyle = '#09060d'; ctx.fillRect(0, 0, SCREEN_W, BATTLE_PANEL_TOP);
       if (phase === 'intro' || phase === 'race' && raceElapsed < 0.8) text(ctx, L.battle_choimis_eating_goal, 240, 18, 440);
@@ -139,8 +163,11 @@ export function createChoimisEatingRace(battle, { enemy, media } = {}) {
         : phase === 'result' ? winner === 'party' ? L.battle_choimis_eating_win : L.battle_choimis_eating_lose
           : '';
       if (message) text(ctx, message, 240, BATTLE_PANEL_TOP + 13, 410);
+      if (phase === 'intro' && elapsed < C.revealSeconds) {
+        ctx.globalAlpha *= 1 - clamp(elapsed / C.revealSeconds); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, BATTLE_PANEL_TOP + 72);
+      }
       ctx.restore();
     },
-    dispose() { if (disposed) return; disposed = true; armed = false; wasDown = false; video.stop(); },
+    dispose() { if (disposed) return; disposed = true; armed = false; wasDown = false; if (battle.bubble === preludeBubble) battle.bubble = null; video.stop(); },
   };
 }

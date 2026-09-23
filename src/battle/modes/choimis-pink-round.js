@@ -39,13 +39,14 @@ function drawCharge(ctx, soul, control, time) {
 }
 
 /** Charged boss contacts deal one HP immediately; three normal contacts deal one HP. */
-export function createPinkBossContact(battle, enemy, onContact) {
+export function createPinkBossContact(battle, enemy, onContact, onDamage) {
   return (shot, boss) => {
     if (!enemy || enemy.dead || enemy.dying > 0 || enemy.hp <= 0 || shot?.dead) return false;
     if (!sweptCirclesHit({ x: shot.oldX, y: shot.oldY }, shot, shot.r, { x: boss.oldX ?? boss.x, y: boss.oldY ?? boss.y }, boss, boss.r)) return false;
     if (!registerPinkTargetHit(shot, boss.id || 'choimis-boss')) return false;
     onContact?.(boss.x, boss.y);
-    battle.sfx('hit', { volume: 0.55 });
+    battle.sfx('pop', { volume: 0.384, rate: 0.8 });
+    const previousHp = enemy.hp;
     if (shot.charged) battle.hitEnemy(enemy, null, 1, { source: 'pink-shot', sound: false });
     else {
       enemy.pinkShotHits = (enemy.pinkShotHits || 0) + 1;
@@ -54,6 +55,7 @@ export function createPinkBossContact(battle, enemy, onContact) {
         battle.hitEnemy(enemy, null, 1, { source: 'pink-shot', sound: false });
       }
     }
+    if (enemy.hp < previousHp) onDamage?.(boss, previousHp - enemy.hp);
     return true;
   };
 }
@@ -66,15 +68,24 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
   const oldPose = enemy.patternPose;
   const fireControl = createPinkFireControl(CHOIMIS_PINK_SHOOTER), shotAudio = createPinkShotAudio(battle);
   let phase = 'prep', phaseTime = 0, combatElapsed = 0, scroll = 0;
-  let shots = [], effects = [], nextShotId = 0, disposed = false, terminating = false;
+  let preambleElapsed = 0, speechHandle = null;
+  let shots = [], effects = [], damageIndicators = [], nextShotId = 0, disposed = false, terminating = false;
   board.setTarget(BOARD.w, BOARD.h, BOARD.x + BOARD.w / 2, BOARD.y + BOARD.h / 2);
   soul.x = HEART_X; soul.y = BOARD.y + BOARD.h / 2; soul.invuln = 0;
   enemy.patternPose = { hidden: true };
   const firstLine = config?.speak || (scenarioName === 'choso' ? L.battle_choimis_pink_choso_preamble : '');
   if (firstLine) sayBubble(battle, enemy, firstLine);
+  if (firstLine && config?.speakSfx) {
+    battle.bubble.voice = 'none';
+    speechHandle = battle.game?.sound?.sfx?.(config.speakSfx, { volume: 0.9 }) || null;
+  }
+  const stopSpeech = () => {
+    if (!speechHandle) return;
+    speechHandle.pause?.(); speechHandle.removeAttribute?.('src'); speechHandle.load?.(); speechHandle = null;
+  };
   const images = {
     boss: whiteSprite(enemy.img), choso: whiteSprite(enemy.actionImages?.choso),
-    dao: whiteSprite(enemy.projectiles?.dao), bazzi: whiteSprite(enemy.projectiles?.bazzi),
+    dao: whiteSprite(enemy.projectiles?.daoKart), bazzi: whiteSprite(enemy.projectiles?.bazziKart),
   };
   const hit = (x, y) => {
     for (let index = 0; index < 7; index++) effects.push({ x, y, vx: (index - 3) * 24, vy: -35 + Math.abs(index - 3) * 8, life: 0.32 });
@@ -83,7 +94,11 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
     if (soul.invuln > 0) return false;
     battle.hurtParty(enemy.def.damage ?? 15); if (!disposed) soul.invuln = CHOIMIS_PINK_SHOOTER.invulnerability; return true;
   };
-  const bossContact = createPinkBossContact(battle, enemy, hit);
+  const bossContact = createPinkBossContact(battle, enemy, hit, (target, damage) => {
+    damageIndicators.push({ target, text: `-${damage}`, life: 0.55 });
+  });
+  const indicatorAt = indicator => ({ text: indicator.text, life: indicator.life,
+    x: Math.round(indicator.target.x - 33), y: Math.round(clamp(indicator.target.y - 24 - (0.55 - indicator.life) * 16, BOARD.y + 14, BOARD.y + BOARD.h - 10)) });
   const transformed = () => scenarioName !== 'choso' || phase === 'announce' || phase === 'combat' || phase === 'done';
   const scenario = createChoimisPinkScenario(scenarioName, {
     box: BOARD, soul, images, hit, hurt, bossContact, transformed,
@@ -99,7 +114,7 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
   };
   const stopRound = nextPhase => {
     if (phase === 'done') return;
-    phase = nextPhase; shots = []; effects = []; fireControl.dispose(); shotAudio.stop(); scenario.dispose?.(); battle.bubble = null;
+    phase = nextPhase; shots = []; effects = []; damageIndicators = []; fireControl.dispose(); shotAudio.stop(); stopSpeech(); scenario.dispose?.(); battle.bubble = null;
   };
   const terminate = () => { if (terminating) return; terminating = true; stopRound('terminating'); };
   const startCombat = () => { battle.bubble = null; phase = 'combat'; phaseTime = 0; };
@@ -108,7 +123,7 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
       return { phase, phaseTime: Math.round(phaseTime * 100) / 100, combatElapsed: Math.round(combatElapsed * 100) / 100,
         duration: CHOIMIS_PINK_ROUND_SECONDS, scroll: Math.round(scroll * 100) / 100, board: { ...BOARD }, scenario: scenario.snapshot,
         heart: { x: soul.x, y: soul.y }, shots: shots.map(shot => ({ ...shot })), charge: fireControl.snapshot,
-        bossHits: enemy.pinkShotHits || 0, transformed: transformed(), terminating, disposed };
+        bossHits: enemy.pinkShotHits || 0, damageIndicators: damageIndicators.map(indicatorAt), preambleElapsed, transformed: transformed(), terminating, disposed };
     },
     update(dt, input) {
       if (disposed || phase === 'done') return true;
@@ -116,9 +131,16 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
       const delta = Math.max(0, dt);
       soul.invuln = Math.max(0, soul.invuln - delta);
       if (phase === 'prep') {
-        scenario.prepare?.(delta); scroll += delta * 92;
-        if (tickBubble(battle, delta)) phaseTime += delta;
-        if (phaseTime >= 0.55) {
+        scenario.prepare?.(delta); scroll += delta * 92; preambleElapsed += delta;
+        let textReady;
+        if (config?.speakSfx && battle.bubble) {
+          const bubble = battle.bubble; bubble.t += delta; bubble.shown = Math.min(bubble.text.length, Math.floor(bubble.t / 0.03));
+          textReady = bubble.shown === bubble.text.length;
+        } else textReady = tickBubble(battle, delta);
+        if (textReady) phaseTime += delta;
+        const speechPlaying = speechHandle?.ended === false && speechHandle?.paused === false;
+        if (phaseTime >= 0.55 && preambleElapsed + 1e-9 >= (config?.speakDuration || 0) && !speechPlaying) {
+          stopSpeech();
           phaseTime = 0;
           if (scenarioName === 'choso') { battle.bubble = null; phase = 'transform'; }
           else startCombat();
@@ -151,6 +173,8 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
       if (disposed) return true;
       if (enemy.hp <= 0 || enemy.dying > 0 || enemy.dead) { terminate(); return !!enemy.dead; }
       for (const effect of effects) { effect.x += effect.vx * combatDelta; effect.y += effect.vy * combatDelta; effect.life -= combatDelta; }
+      for (const indicator of damageIndicators) indicator.life -= combatDelta;
+      damageIndicators = damageIndicators.filter(indicator => indicator.life > 0);
       shots = shots.filter(shot => !shot.dead && shot.x <= BOARD.x + BOARD.w + 14);
       effects = effects.filter(effect => effect.life > 0);
       if (combatElapsed + 1e-9 >= CHOIMIS_PINK_ROUND_SECONDS) { stopRound('done'); return true; }
@@ -165,6 +189,13 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
         drawPinkScroll(ctx, BOARD, scroll); scenario.draw(ctx);
         for (const shot of shots) drawPinkPellet(ctx, shot);
         for (const effect of effects) { ctx.globalAlpha = clamp(effect.life / 0.25, 0, 1); ctx.fillStyle = '#fff'; ctx.fillRect(effect.x - 2, effect.y - 2, 4, 4); }
+        ctx.font = FONT.replace(/^\d+px/, '11px'); ctx.textAlign = 'right';
+        for (const indicator of damageIndicators) {
+          const { text, x, y } = indicatorAt(indicator);
+          ctx.globalAlpha = Math.min(1, indicator.life / 0.18);
+          ctx.fillStyle = '#351323'; ctx.fillText(text, x + 1, y + 1);
+          ctx.fillStyle = '#ffd2e8'; ctx.fillText(text, x, y);
+        }
         ctx.globalAlpha = 1; drawCharge(ctx, soul, fireControl, combatElapsed); drawHeart(ctx, soul, soul.invuln, combatElapsed); ctx.restore();
       }
       ctx.fillStyle = '#000'; ctx.fillRect(20, 246, 440, 72); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(21.5, 247.5, 437, 69);
@@ -172,7 +203,7 @@ export function createChoimisPinkRound(battle, { enemy, config }) {
     },
     dispose() {
       if (disposed) return;
-      disposed = true; shots = []; effects = []; fireControl.dispose(); shotAudio.dispose(); scenario.dispose?.(); restore();
+      disposed = true; shots = []; effects = []; damageIndicators = []; fireControl.dispose(); shotAudio.dispose(); stopSpeech(); scenario.dispose?.(); restore();
     },
   };
 }

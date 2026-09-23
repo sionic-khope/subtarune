@@ -1,6 +1,196 @@
 import { runScenario } from './lib/harness.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+
+async function runBuild299({ page, open, until, press, shot, check, fixture }) {
+  const scope = process.env.QA_BUILD299_SCOPE || 'flow';
+  const evidence = { scope, source: [], samples: [], limitations: 'Registered QA battle and named preparation fixtures; real-time updates and physical keys. Critical combat stays at 1280px; real canvas start/mid/end frames are latched while running. Responsive375/768/1280 screenshots use safe waiting menus so capture latency cannot consume the shooting window. No natural story/full-boss-clear or human audio-hearing claim.' };
+  const file = path.join(process.env.SHOT_DIR, `build299-${scope}.json`);
+  const save = () => fs.writeFileSync(file, JSON.stringify(evidence, null, 2) + '\n');
+  const files = ['src/battle/battle.js', 'src/battle/choimis-patterns-a.js', 'src/battle/choimis-jjajang.js', 'src/battle/choimis-patterns-b.js', 'src/battle/choimis-pink-rounds.js', 'src/battle/modes/choimis-pink-shooter.js', 'src/battle/modes/choimis-pink-round.js', 'src/data/enemies.js', 'src/data/build.js', 'assets/props/choimis-dao-kart.png', 'assets/props/choimis-bazzi-kart.png'];
+  for (const relative of files) {
+    const response = await page.request.get(new URL(relative, process.env.QA_BASE_URL).href);
+    const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+    const local = hash(fs.readFileSync(path.join(process.env.QA_SOURCE_ROOT, relative))), served = hash(await response.body());
+    evidence.source.push({ relative, local, served }); check(`source binding ${relative}`, response.ok() && local === served);
+  }
+  await page.addInitScript(() => {
+    window.__qa299Videos = [];
+    const create = document.createElement.bind(document);
+    document.createElement = (...args) => { const element = create(...args); if (args[0] === 'video') window.__qa299Videos.push(element); return element; };
+  });
+  const state = () => page.evaluate(() => {
+    const b = game.battle, v = window.__qa299Videos.at(-1);
+    return { state: b?.state, mode: b?.activeEnemyMode, snapshot: b?.gimmick?.snapshot, hp: b?.enemies[0]?.hp,
+      index: b?.enemies[0]?.patternIdx, boosted: b?.enemies[0]?.defenseBoosted,
+      party: b?.members.map(m => ({ hp: m.hp, maxHp: m.maxHp, down: m.down })),
+      patterns: b?.patterns.map(p => ({ type: window.__qa299.activeType, t: p.t })),
+      bullets: b?.bullets.map(q => ({ shape: q.shape, text: q.text, order: q.order, age: q.age, x: q.x, y: q.y, warn: q.warn, vx: q.vx, vy: q.vy })),
+      media: v ? { time: v.currentTime, duration: v.duration, paused: v.paused, muted: v.muted, volume: v.volume, frames: v.getVideoPlaybackQuality?.().totalVideoFrames, src: v.getAttribute('src') } : null };
+  });
+  const record = async label => { const value = await state(); evidence.samples.push({ label, value }); save(); return value; };
+  const responsive = async label => { for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: width === 375 ? 812 : width === 768 ? 1024 : 800 }); await shot(`${scope}-${label}-${width}`); } };
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await open({ qa: 'choimis_eating' });
+  check('existing direct battle route loaded', await until(() => game.battle?.state === 'intro', 30000));
+  await fixture('build299-battle-preparation', 'Reuse existing direct QA battle. Select standard opening for flow; skip only the already-covered opening for isolated pattern scopes. Observe actual damage/audio/render calls without changing game time or input.', opening => {
+    const b = game.battle, q = window.__qa299 = { hits: [], sfx: [], samples: [], labels: [], audio: [], frames: {}, canvasSize: [game.canvas.width, game.canvas.height] };
+    b.cfg.openingMode = 'choimis_pink_shooter';
+    if (!opening) { b.openingShown = true; b.enemies[0].defenseBoosted = true; }
+    const hit = b.hitEnemy.bind(b), sfx = b.sfx.bind(b), update = b.update.bind(b);
+    const beginBullets = b.beginBullets.bind(b);
+    b.beginBullets = (...args) => { q.activeType = b.nextPatternConfig(b.enemies[0]).config.type; return beginBullets(...args); };
+    const draw = b.draw.bind(b);
+    b.draw = (...args) => {
+      const result = draw(...args), s = b.gimmick?.snapshot;
+      if (s?.damageIndicators?.length && !q.damageFrame) q.damageFrame = game.canvas.toDataURL('image/png');
+      if (s?.scenario?.kind === 'kart_block' && s.scenario.blockers.some(k => k.boosted) && !q.kartFrame) q.kartFrame = game.canvas.toDataURL('image/png');
+      const time = s?.phase === 'combat' ? s.combatElapsed : b.state === 'bullets' ? b.patterns[0]?.t : null;
+      const duration = s?.phase === 'combat' ? s.duration || 12 : b.patterns[0]?.p.duration;
+      if (Number.isFinite(time)) for (const [label, at] of [['start', 0.15], ['mid', duration / 2], ['end', duration - 0.3]]) {
+        if (time >= at && !q.frames[label]) q.frames[label] = { time, viewport: [innerWidth, innerHeight], data: game.canvas.toDataURL('image/png') };
+      }
+      return result;
+    };
+    b.hitEnemy = (...args) => { const before = args[0].hp, result = hit(...args); q.hits.push({ before, after: args[0].hp, source: args[3]?.source, at: performance.now() }); return result; };
+    b.sfx = (name, options) => { const result = sfx(name, options); q.sfx.push({ name, options, at: performance.now() }); return result; };
+    const sound = game.sound.sfx.bind(game.sound);
+    game.sound.sfx = (name, options) => { const audio = sound(name, options); if (['laser_beam', 'choimis_chosouya', 'pop', 'kart_booster'].includes(name)) { const entry = { name, options, src: audio?.src, at: performance.now(), samples: [] }; q.audio.push(entry); for (const delay of name === 'choimis_chosouya' ? [80, 400, 1400, 1800, 2100] : [80, 180, 400]) setTimeout(() => entry.samples.push({ delay, time: audio?.currentTime, duration: audio?.duration, paused: audio?.paused, ended: audio?.ended, volume: audio?.volume, phase: b.gimmick?.snapshot?.phase }), delay); } return audio; };
+    b.update = (...args) => { const result = update(...args); const s = b.gimmick?.snapshot; if (s || b.state === 'bullets') q.samples.push({ at: performance.now(), state: b.state, mode: b.activeEnemyMode, hp: b.enemies[0]?.hp, snapshot: s, patterns: b.patterns.map(p => ({ type: q.activeType, t: p.t })), bullets: b.bullets.map(x => ({ shape: x.shape, text: x.text, order: x.order, x: x.x, y: x.y, age: x.age, warn: x.warn, arcHeight: x.arcHeight })) }); return result; };
+    const fill = CanvasRenderingContext2D.prototype.fillText;
+    CanvasRenderingContext2D.prototype.fillText = function(text, ...args) { if (String(text).startsWith('-')) q.labels.push({ text, x: args[0], y: args[1], hp: b.enemies[0]?.hp, at: performance.now() }); return fill.call(this, text, ...args); };
+  }, scope === 'flow');
+  for (let i = 0; i < 30 && !await page.evaluate(() => ['menu', 'enemy-mode'].includes(game.battle.state)); i++) { await press('KeyC', { delay: 70 }); await page.waitForTimeout(180); }
+  if (scope === 'flow') {
+    check('opening enters standard pink shooter', await until(() => game.battle?.activeEnemyMode === 'choimis_pink_shooter', 5000));
+    await shot('flow-opening-start-1280');
+    check('opening reaches combat', await until(() => game.battle?.gimmick?.snapshot?.phase === 'combat', 9000));
+    const started = Date.now(); await page.waitForTimeout(5500); await shot('flow-opening-mid-1280');
+    check('12-second combat reaches defense dialogue', await until(() => game.battle?.state === 'interlude' && game.battle.typed, 16000));
+    const samples = await page.evaluate(() => window.__qa299.samples.filter(s => s.snapshot?.phase === 'combat' && s.mode === 'choimis_pink_shooter'));
+    check('opening lasts 12 seconds, not 15', samples.length > 0 && Math.max(...samples.map(s => s.snapshot.combatElapsed)) >= 11.8 && Math.max(...samples.map(s => s.snapshot.combatElapsed)) <= 12 && Date.now() - started >= 11500);
+    await press('KeyC', { delay: 70 });
+    check('defense result becomes fully readable', await until(() => game.battle?.interlude?.snapshot?.phase === 'result' && game.battle.typed, 10000));
+    await press('KeyC', { delay: 70 });
+    check('defense dialogue real input returns to menu', await until(() => game.battle?.state === 'menu', 5000));
+    await responsive('opening-end');
+  }
+  check('battle ready for real turn inputs', await until(() => game.battle?.state === 'menu', 7000));
+  const queue = async () => {
+    for (let member = 0; member < 3; member++) {
+      await page.evaluate(i => window.__qa299.member = i, member);
+      if (!await until(() => game.battle?.state === 'menu' && game.battle.memberIdx === window.__qa299.member, 5000)) throw new Error('member menu missing');
+      await press('KeyC', { delay: 70 }); if (!await until(() => game.battle.state === 'target', 3000)) throw new Error('target missing'); await press('KeyC', { delay: 70 });
+    }
+    if (!await until(() => ['enemy-prep', 'enemy-mode', 'bullets'].includes(game.battle?.state), 8000)) throw new Error('enemy turn missing');
+  };
+  const select = async type => fixture(`select-${type}`, 'Select a registered config using its current alternating turn bucket; restore party HP only between rounds. No projectile, hit, time or completion injection.', type => {
+    const b = game.battle, e = b.enemies[0], config = e.def.patterns.find(p => p.type === type);
+    if (!config) throw new Error(`No registered ${type}`);
+    const pink = config.mode === e.def.alternatingPatternMode;
+    const bucket = e.def.patterns.filter(p => (p.mode === e.def.alternatingPatternMode) === pink);
+    e.patternIdx = bucket.indexOf(config) * 2 + Number(pink); e.hp = e.maxHp;
+    b.members.forEach(m => { m.hp = m.maxHp; m.down = false; }); window.__qa299.samples = []; window.__qa299.hits = []; window.__qa299.sfx = []; window.__qa299.labels = [];
+  }, type);
+  const aimChoso = async () => {
+    const current = await state(), s = current.snapshot;
+    if (s?.phase !== 'combat') return false;
+    const flight = (s.scenario.boss.x - s.heart.x - 11) / 410;
+    let travel = 0, target = s.heart.y;
+    for (let i = 0; i < 3; i++) { target = 159 + 38 * Math.sin((s.combatElapsed + flight + travel) * Math.PI / 2); travel = Math.abs(target - s.heart.y) / 126; }
+    const key = target > s.heart.y ? 'ArrowDown' : 'ArrowUp';
+    await page.keyboard.down(key); await page.waitForTimeout(travel * 1000); await page.keyboard.up(key);
+    return !!await page.evaluate(() => game.battle?.gimmick?.snapshot?.phase === 'combat');
+  };
+  const types = scope === 'flow' ? ['choimis_jjajang', 'choimis_pink_choso', 'choimis_choso', 'choimis_pink_kart'] : scope === 'patterns' ? ['choimis_jjajang', 'choimis_choso', 'choimis_rap'] : ['choimis_pink_choso', 'choimis_pink_kart', 'choimis_pink_prism'];
+  for (const [index, type] of types.entries()) {
+    if (scope !== 'flow') await select(type);
+    else if (index > 0) await fixture('between-turn-hp', 'Restore party HP between naturally sequenced turns only, to isolate alternation from accumulated damage; do not change turn index.', () => game.battle.members.forEach(m => { m.hp = m.maxHp; m.down = false; }));
+    await page.evaluate(() => { const q = window.__qa299; q.samples = []; q.hits = []; q.sfx = []; q.labels = []; q.audio = []; q.frames = {}; q.damageFrame = null; q.kartFrame = null; });
+    const before = await record(`${type}-before`); await queue();
+    check(`${type}: normal three party attacks deal 9 total after defense`, (await state()).hp === before.hp - 9);
+    const pink = type.includes('_pink_');
+    check(`${type}: actual sequential turn matches expected mode`, await until(() => {
+      const b = game.battle; return b?.activeEnemyMode === 'choimis_pink_round' || b?.state === 'bullets';
+    }, 8000));
+    const active = await record(`${type}-active`);
+    check(`${type}: expected registered type reached`, pink ? active.mode === 'choimis_pink_round' && active.snapshot?.scenario?.kind === type.replace('choimis_pink_', '').replace('kart', 'kart_block').replace('prism', 'pink_prism') : active.patterns.some(p => p.type === type));
+    if (pink) check(`${type}: combat begins`, await until(() => game.battle?.gimmick?.snapshot?.phase === 'combat', 7000));
+    const roundStart = Date.now(); let chargedHp = null;
+    if (type === 'choimis_pink_choso') {
+      await page.keyboard.down('KeyC');
+      check('choso: charged shot becomes ready after real hold', await until(() => game.battle?.gimmick?.snapshot?.charge?.ready, 1600));
+      const current = await state(); await aimChoso();
+      await page.keyboard.up('KeyC'); await page.waitForTimeout(1000);
+      const charged = await record('choso-charged-contact');
+      check('choso: actual charged boss contact deals exactly one HP', charged.hp === current.hp - 1);
+      chargedHp = charged.hp;
+    }
+    while (Date.now() - roundStart < 25000 && !await page.evaluate(() => ['menu', 'lose'].includes(game.battle?.state))) {
+      const sample = await record(`${type}-live`);
+      if (pink && sample.snapshot?.scenario?.kind === 'choso' && sample.hp >= chargedHp) {
+        if (await aimChoso()) { await press('KeyC', { delay: 70 }); await page.waitForTimeout(1000); }
+      } else if (pink && sample.snapshot?.phase === 'combat') {
+        const key = Math.floor((Date.now() - roundStart) / 800) % 2 ? 'ArrowUp' : 'ArrowDown';
+        await page.keyboard.down(key); await page.waitForTimeout(190); await page.keyboard.up(key);
+        if (sample.snapshot.scenario.kind !== 'choso' && await page.evaluate(() => game.battle?.gimmick?.snapshot?.phase === 'combat')) await press('KeyC', { delay: 70 });
+      }
+      await page.waitForTimeout(150);
+    }
+    const ended = await record(`${type}-end`); await responsive(`${type}-end`);
+    check(`${type}: timed turn cleans up to menu`, ended.state === 'menu' && !ended.mode);
+    const observed = await page.evaluate(() => window.__qa299); evidence.samples.push({ label: `${type}-observed`, value: observed }); save();
+    for (const [label, frame] of Object.entries(observed.frames)) { const capture = path.join(process.env.SHOT_DIR, `${scope}-${type}-${label}-canvas.png`); fs.writeFileSync(capture, Buffer.from(frame.data.split(',')[1], 'base64')); evidence.samples.push({ label: `${type}-${label}`, canvasCapture: capture, time: frame.time, viewport: frame.viewport, dimensions: observed.canvasSize }); }
+    check(`${type}: actual start/mid/end combat frames captured without pausing gameplay`, ['start', 'mid', 'end'].every(label => observed.frames[label]));
+    for (const kind of ['damageFrame', 'kartFrame']) if (observed[kind]) { const capture = path.join(process.env.SHOT_DIR, `${scope}-${type}-${kind}-canvas.png`); fs.writeFileSync(capture, Buffer.from(observed[kind].split(',')[1], 'base64')); evidence.samples.push({ label: `${type}-${kind}`, canvasCapture: capture, dimensions: observed.canvasSize }); save(); }
+    if (type === 'choimis_jjajang') {
+      const bullets = observed.samples.flatMap(s => s.bullets), bowls = bullets.filter(b => b.shape === 'choimis_jjajang_bowl'), sauce = bullets.filter(b => b.shape === 'choimis_jjajang_splash');
+      check('jjajang: straight and opposing bowl arcs plus telegraphed sauce droplets render', [0, 22, -22].every(arc => bowls.some(b => b.arcHeight === arc)) && sauce.some(b => b.age < b.warn) && sauce.some(b => b.age >= b.warn));
+    }
+    if (type === 'choimis_pink_choso') {
+      const hits = observed.hits.filter(hit => hit.source === 'pink-shot');
+      const pops = observed.sfx.filter(sound => sound.name === 'pop');
+      const samples = observed.samples.filter(s => s.snapshot?.phase === 'combat');
+      const cycle = samples.some((s, i) => i > 0 && s.hp === samples[i - 1].hp - 1 && samples[i - 1].snapshot.bossHits === 2 && s.snapshot.bossHits === 0);
+      check('choso: three normal boss contacts produce exactly one damage after two retained contacts', cycle && hits.length >= 2 && hits.every(h => h.before - h.after === 1));
+      const actualContacts = Math.max(...samples.map(s => s.snapshot.scenario.hits));
+      check('choso: one Baron pop per actual contact, independent of missed shot attempts', actualContacts >= 4 && pops.length === actualContacts && pops.every(p => p.options?.volume === 0.384 && p.options?.rate === 0.8));
+      const indicators = samples.filter(s => s.snapshot.damageIndicators.length);
+      check('choso: local -1 indicators only accompany actual damage and track boss vicinity', indicators.length > 0 && indicators.every(s => s.snapshot.damageIndicators.every(d => d.text === '-1' && Math.abs(d.x - s.snapshot.scenario.boss.x) <= 35 && d.y < s.snapshot.scenario.boss.y)) && samples.every((s, i) => i === 0 || !s.snapshot.damageIndicators.length || samples[i - 1].snapshot.damageIndicators.length > 0 || s.hp < samples[i - 1].hp));
+      const voice = observed.audio.find(a => a.name === 'choimis_chosouya'), transform = observed.samples.find(s => s.snapshot?.phase === 'transform');
+      check('choso: recorded voice actually advances before transformation', voice?.samples.some(s => s.time > 1 && !s.paused && s.phase === 'prep') && transform?.at - voice.at >= 1650);
+    }
+    if (type === 'choimis_pink_kart') {
+      const karts = observed.samples.flatMap(s => s.snapshot?.scenario?.blockers || []);
+      check('kart: two vehicle identities roll through overlapping waves and boost', ['dao', 'bazzi'].every(kind => karts.some(k => k.kind === kind && k.boosted)) && observed.samples.some(s => new Set((s.snapshot?.scenario?.blockers || []).map(k => k.wave)).size >= 2));
+    }
+    if (type === 'choimis_choso') {
+      const lasers = observed.audio.filter(a => a.name === 'laser_beam');
+      check('choso: actual quieter laser plays briefly and is stopped', lasers.length > 0 && lasers.every(a => a.options.volume === 0.22 && a.options.len === 0.22) && lasers.some(a => a.samples.some(s => s.time > 0 && !s.paused && s.volume === 0.22)) && lasers.every(a => a.samples.some(s => s.delay === 400 && s.paused)));
+    }
+    if (type === 'choimis_rap') {
+      const rap = observed.samples.filter(s => s.patterns.some(p => p.type === 'choimis_rap'));
+      const early = rap.filter(s => s.patterns[0].t < 2.95), lyrics = new Map();
+      for (const s of rap) for (const b of s.bullets.filter(b => b.shape === 'choimis_lyric')) if (!lyrics.has(b.order)) lyrics.set(b.order, b.text);
+      const firstGlyph = rap.flatMap(s => s.bullets).find(b => b.shape === 'choimis_lyric');
+      check('rap: telegraphed glyphs stay still until three seconds', early.length > 0 && firstGlyph && early.every(s => s.bullets.filter(b => b.shape === 'choimis_lyric').every(b => b.y === firstGlyph.y)));
+      const glyphText = [...lyrics.entries()].sort((a,b) => a[0]-b[0]).map(x => x[1]).join(''), expected = '래퍼딱지를때는중이젠앰씨로예술가의길로!@#!@$!@#@#$포에버포에버';
+      check('rap: burst glyphs repeat exact requested sentence with spacing omitted as falling glyphs', glyphText.length >= expected.length && glyphText === expected.repeat(Math.ceil(glyphText.length / expected.length)).slice(0, glyphText.length));
+      const media = evidence.samples.filter(s => s.label === `${type}-live`).map(s => s.value.media).filter(Boolean);
+      check('rap: actual video advances with audio across 19-second duration', media.some(v => v.time > 16 && !v.paused && !v.muted && v.volume > 0 && v.frames > 0 && Math.abs(v.duration - 19) < 0.2));
+    }
+    if (ended.state !== 'menu') throw new Error(`${type} did not survive to menu`);
+  }
+  if (scope === 'flow') {
+    await fixture('loss-boundary', 'Inject lethal party damage only to reach retry cleanup after naturally alternating rounds.', () => game.battle.hurtAllParty(999));
+    check('defeat reaches lose', await until(() => game.battle?.state === 'lose', 5000)); await page.waitForTimeout(2300); await press('KeyC', { delay: 70 });
+    check('real retry key returns to ordinary intro', await until(() => game.battle?.state === 'intro', 9000));
+    const retry = await record('retry'); check('retry resets HP and sequence', retry.hp === 200 && retry.index === 0 && retry.party.every(m => m.hp === m.maxHp && !m.down));
+    await responsive('retry');
+  }
+  save();
+}
 
 const DIALOGUE = [
   '하이',
@@ -18,17 +208,18 @@ const DIALOGUE = [
 
 const PATTERNS = [
   { name: 'jjajang', index: 0, type: 'choimis_jjajang', source: 'A', shapes: ['choimis_jjajang_bowl'], warning: true },
-  { name: 'choso', index: 1, type: 'choimis_choso', source: 'A', shapes: ['choimis_blood_beam'], warning: true },
-  { name: 'money', index: 3, type: 'choimis_money', source: 'A', shapes: ['choimis_money_note'], warning: true },
-  { name: 'rap', index: 2, type: 'choimis_rap', source: 'B', shapes: ['choimis_mic', 'choimis_lyric'], warning: true },
-  { name: 'seup', index: 4, type: 'choimis_seup', source: 'B', shapes: ['choimis_miss'], warning: true },
-  { name: 'fashion', index: 5, type: 'choimis_fashion', source: 'B', shapes: ['choimis_outfit'], warning: true },
+  { name: 'choso', index: 2, type: 'choimis_choso', source: 'A', shapes: ['choimis_blood_beam'], warning: true },
+  { name: 'money', index: 6, type: 'choimis_money', source: 'A', shapes: ['choimis_money_note'], warning: true },
+  { name: 'rap', index: 4, type: 'choimis_rap', source: 'B', shapes: ['choimis_mic', 'choimis_lyric'], warning: true },
+  { name: 'seup', index: 8, type: 'choimis_seup', source: 'B', shapes: ['choimis_miss'], warning: true },
+  { name: 'fashion', index: 10, type: 'choimis_fashion', source: 'B', shapes: ['choimis_outfit'], warning: true },
 ];
 
 const json = value => JSON.stringify(value, (key, item) => key === 'data' ? undefined : typeof item === 'number' ? Math.round(item * 1000) / 1000 : item);
 const BUILD298 = process.env.QA_BUILD298 === '1';
 
 await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async context => {
+  if (process.env.QA_BUILD299 === '1') return runBuild299(context);
   const { page, open, until: rawUntil, press: rawPress, shot: rawShot, check: rawCheck, fixture } = context;
   page.setDefaultNavigationTimeout(30000);
   const evidencePath = path.join(process.env.SHOT_DIR, 'choimis-sky-runtime.json');
@@ -778,7 +969,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const menu = await until(() => window.game.battle?.state === 'menu', 25000);
   const menuRestored = await until(() => { const b = window.game.battle; return b?.state === 'menu' && !b.gimmick && b.board.w > 0 && b.board.h > 0 ? true : null; }, 3000);
   const returnedMenu = await snapshot(), pinkElapsedMs = Date.now() - pinkCombatStartedAt;
-  check('15-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === 200 && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 14000, json({ elapsedMs: pinkElapsedMs, minimumMs: 14000, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
+  check('12-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === 200 && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 11500, json({ elapsedMs: pinkElapsedMs, minimumMs: 11500, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
   if (process.env.QA_PINK_SUPPLEMENT === '1') {
     const hintDraws = await page.evaluate(() => window.__choimisQa.hintDraws || []);
     const visibleHints = hintDraws.filter(draw => draw.pixels > 0 && draw.endDraw?.pixels > 0);
@@ -811,7 +1002,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         const index = e?.def?.patterns?.findIndex(pattern => pattern?.mode === 'choimis_pink_round' && pattern.scenario === expected) ?? -1;
         window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
         if (index < 0) return false;
-        e.patternIdx = index; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+        e.patternIdx = e.def.patterns.filter(pattern => pattern.mode === 'choimis_pink_round').findIndex(pattern => pattern.scenario === expected) * 2 + 1; e.hp = e.maxHp; e.dead = false; e.dying = 0;
         b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
         return true;
       }, { scenario });
@@ -1138,7 +1329,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     await until(() => ['enemy-prep', 'bullets', 'board-close'].includes(window.game.battle?.state) ? true : null, 7000);
     const queuedState = await snapshot();
     check(`${pattern.name}: real menu/attack input queues a full party turn`, queued, json(queuedState));
-    check(`${pattern.name}: boosted Choimis takes exactly one damage from each party attack`, queued && queuedState.battle?.enemies?.[0]?.hp === 197 && queuedState.battle?.enemies?.[0]?.defenseBoosted === true, json({ hp: queuedState.battle?.enemies?.[0]?.hp, defenseBoosted: queuedState.battle?.enemies?.[0]?.defenseBoosted }));
+    check(`${pattern.name}: boosted Choimis takes exactly three damage from each party attack`, queued && queuedState.battle?.enemies?.[0]?.hp === 191 && queuedState.battle?.enemies?.[0]?.defenseBoosted === true, json({ hp: queuedState.battle?.enemies?.[0]?.hp, defenseBoosted: queuedState.battle?.enemies?.[0]?.defenseBoosted }));
     const telegraph = await until(() => window.__choimisQa.frames?.some(f => f.battle === 'bullets' && f.bullets.some(b => b.warn !== undefined && b.age < b.warn)) ? true : null, 10000);
     if (telegraph) await shot(`pattern_${pattern.name}_telegraph`);
     const teleFrame = await page.evaluate(() => [...(window.__choimisQa.frames || [])].reverse().find(f => f.battle === 'bullets' && f.bullets.some(b => b.warn !== undefined && b.age < b.warn)) || null);
@@ -1175,7 +1366,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         if (seenLyricBullets.has(bullet.id)) continue;
         seenLyricBullets.add(bullet.id); orderedLyrics.push(bullet.text);
       }
-      const expectedChunks = Array.from({ length: 15 }, (_, index) => index % 2 ? '래퍼딱지를때는중이젠MC로' : '@#$!@#!@#');
+      const expectedText = '래퍼딱지를때는중이젠앰씨로예술가의길로!@#!@$!@#@#$포에버포에버';
+      const expectedChunks = Array.from(expectedText.repeat(Math.ceil(orderedLyrics.length / expectedText.length)).slice(0, orderedLyrics.length));
       const lyrics = orderedLyrics.join('');
       const mic = observed.flatMap(q => q.bullets).find(b => b.shape === 'choimis_mic');
       const rapVideo = await page.evaluate(() => window.__choimisQa.rapVideo);
@@ -1184,7 +1376,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
         fs.writeFileSync(file, Buffer.from(rapVideo.frames[0].data.split(',')[1], 'base64'));
         trace.observations.push({ shot: file, label: 'pattern_rap_video_active', frame: { ...rapVideo.frames[0], data: undefined } }); save();
       }
-      check('rap: centered MIC and exact alternating lyric sequence render in the active turn', json(orderedLyrics) === json(expectedChunks) && !!mic, json({ orderedLyrics, mic, renderedFrameCount: renderedFrames.length }));
+      check('rap: centered MIC and exact repeated single-glyph lyric sequence render in the active turn', orderedLyrics.length >= expectedText.length && json(orderedLyrics) === json(expectedChunks) && !!mic, json({ orderedLyrics, mic, renderedFrameCount: renderedFrames.length }));
       check('rap: 19-second source video starts once, renders an actual frame, and stops once', rapVideo?.starts?.length === 1 && rapVideo.starts[0].options?.src === 'assets/video/choimis-forever-22-41.mp4' && rapVideo?.frames?.length >= 1 && rapVideo?.stops?.length === 1, json({ starts: rapVideo?.starts, stops: rapVideo?.stops, frames: rapVideo?.frames?.map(frame => ({ ...frame, data: undefined })) }));
     }
     if (pattern.name === 'money') check('money: rendered notes announce the 1500만원 denomination', observed.flatMap(q => q.bullets).some(b => b.shape === 'choimis_money_note' && b.denomination === '1500'), json(observed.flatMap(q => q.bullets).filter(b => b.shape === 'choimis_money_note').slice(0, 8)));
@@ -1242,7 +1434,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
       const index = e?.def?.patterns?.findIndex(pattern => pattern?.mode === 'choimis_pink_round' && pattern.scenario === expected) ?? -1;
       window.__choimisQa.pinkRoundFixture = { scenario: expected, index, found: index >= 0 };
       if (index < 0) return false;
-      e.patternIdx = index; e.hp = e.maxHp; e.dead = false; e.dying = 0;
+      e.patternIdx = e.def.patterns.filter(pattern => pattern.mode === 'choimis_pink_round').findIndex(pattern => pattern.scenario === expected) * 2 + 1; e.hp = e.maxHp; e.dead = false; e.dying = 0;
       b.memberIdx = 0; b.menuIdx = 0;
       b.members.forEach(member => { member.down = false; member.hp = member.maxHp; });
       return true;

@@ -12,13 +12,17 @@ function fixture(ready = Promise.resolve(true)) {
   const media = { ready, stops: 0, sync(state) { syncs.push(state); }, stop() { this.stops++; }, draw(ctx, bounds) { drawn.push(bounds); } };
   const enemy = { id: 'choimis_flower', name: '최미스', def: ENEMIES.choimis_flower, hp: 200, img: {}, projectiles: { jjajang: bowl } };
   const members = ['hyungsub', 'gyeongsub', 'ppaman'].map((id, index) => ({ id, name: ['형섭', '경섭', '빠맨'][index], frames: {} }));
-  const battle = { members, game: { sound: { muted: false } },
+  const battle = { members, game: { sound: { muted: false, blip() {} } }, drawTextBox() {},
     hitEnemy(target, by, amount, options) { hits.push({ target, by, amount, options }); },
     hurtAllParty(amount) { hurts.push(amount); }, sfx(name) { sounds.push(name); },
     drawMember(ctx, member) { drawn.push(member.id); }, drawEnemy(ctx, actor) { drawn.push(actor.id); } };
   return { battle, enemy, media, hits, hurts, sounds, syncs, drawn, bowl, mode: createChoimisEatingRace(battle, { enemy, media }) };
 }
-async function ready(f) { await Promise.resolve(); assert.equal(f.mode.snapshot.phase, 'intro'); }
+async function ready(f) {
+  await Promise.resolve();
+  while (['prelude', 'transition'].includes(f.mode.snapshot.phase)) f.mode.update(1 / 120, idle);
+  assert.equal(f.mode.snapshot.phase, 'intro');
+}
 function advance(mode, seconds, controls = idle, step = 1 / 120) {
   for (let elapsed = 0; elapsed < seconds - 1e-9; elapsed += step) mode.update(Math.min(step, seconds - elapsed), controls);
 }
@@ -28,7 +32,7 @@ function tap(mode, rate = 6) {
 
 test('test_choimis_eating_registry_appends_pattern_without_reordering_existing_modes', () => {
   assert.equal(getBattleMode('enemy', 'choimis_eating_race'), createChoimisEatingRace);
-  assert.deepEqual(ENEMIES.choimis_flower.patterns.at(-1), { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 배틀 한번할까?' });
+  assert.deepEqual(ENEMIES.choimis_flower.patterns.at(-1), { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 먹방 대결해볼까? 들어와' });
   assert.equal(ENEMIES.choimis_flower.patterns[1].type, 'choimis_choso');
   assert.equal(C.introSeconds, 11); assert.equal(C.bitesPerBowl * C.bowls, 54); assert.equal(C.raceSeconds, 10.2);
   assert.equal(L.battle_choimis_eating_goal, '짜장면을 먹어라! (C 연타)');
@@ -50,6 +54,27 @@ test('test_choimis_eating_waits_for_video_and_starts_at_eleven_without_intro_bit
   f.mode.update(0.01, idle); f.mode.update(0.01, pressed);
   assert.equal(f.mode.snapshot.bites, 1);
   advance(f.mode, 1, pressed); assert.equal(f.mode.snapshot.bites, 1, 'OS repeat cannot produce extra bites');
+});
+
+test('test_choimis_eating_types_invitation_before_slow_fade_and_never_runs_video_early', async () => {
+  const f = fixture(); await Promise.resolve();
+  assert.equal(f.mode.snapshot.phase, 'prelude'); assert.equal(f.mode.fullscreen, false);
+  assert.equal(f.battle.bubble.text, '짜장면 먹방 대결해볼까? 들어와');
+  const typing = f.battle.bubble.text.length * 0.03;
+  advance(f.mode, typing + 0.8, pressed);
+  assert.equal(f.mode.snapshot.phase, 'prelude');
+  assert.equal(f.battle.bubble.shown, f.battle.bubble.text.length);
+  while (f.mode.snapshot.phase === 'prelude') f.mode.update(1 / 120, idle);
+  assert.equal(f.battle.bubble, null); assert.equal(f.mode.fullscreen, false);
+  advance(f.mode, 0.4);
+  assert.equal(f.mode.snapshot.phase, 'transition');
+  const fills = [], ctx = { globalAlpha: 1, save() {}, restore() {}, fillRect() { fills.push(this.globalAlpha); } };
+  f.mode.draw(ctx); assert.ok(Math.abs(fills[0] - 0.5) < 0.001);
+  assert.equal(f.mode.snapshot.elapsed, 0); assert.equal(f.mode.snapshot.bites, 0);
+  assert.ok(f.syncs.every(state => state.paused && state.time === 0));
+  await ready(f);
+  assert.equal(f.mode.fullscreen, true); assert.equal(f.mode.snapshot.elapsed, 0);
+  f.mode.update(0.1, idle); assert.equal(f.syncs.at(-1).paused, false);
 });
 
 test('test_choimis_eating_six_distinct_presses_per_second_wins_and_hands_each_bowl_to_next_member', async () => {
@@ -95,7 +120,8 @@ test('test_choimis_eating_dispose_during_load_or_race_prevents_late_damage_and_s
   let resolve;
   const loading = fixture(new Promise(done => { resolve = done; }));
   loading.mode.dispose(); loading.mode.dispose(); resolve(true); await Promise.resolve();
-  assert.equal(loading.mode.snapshot.disposed, true); assert.equal(loading.mode.snapshot.phase, 'loading');
+  assert.equal(loading.mode.snapshot.disposed, true); assert.equal(loading.mode.snapshot.phase, 'prelude');
+  assert.equal(loading.battle.bubble, null);
   assert.equal(loading.media.stops, 1); assert.equal(loading.mode.update(40, pressed), true);
   const playing = fixture(); await ready(playing); advance(playing.mode, 11); tap(playing.mode);
   playing.mode.dispose(); advance(playing.mode, 30, pressed);
@@ -105,6 +131,7 @@ test('test_choimis_eating_dispose_during_load_or_race_prevents_late_damage_and_s
 
 test('test_choimis_eating_media_failure_exits_without_awarding_or_penalizing', async () => {
   const f = fixture(Promise.resolve(false)); await Promise.resolve();
+  while (['prelude', 'transition'].includes(f.mode.snapshot.phase)) f.mode.update(1 / 120, idle);
   assert.equal(f.mode.snapshot.phase, 'error');
   assert.equal(f.mode.update(C.resultSeconds, idle), true);
   assert.deepEqual(f.hits, []); assert.deepEqual(f.hurts, []);

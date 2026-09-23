@@ -11,6 +11,8 @@ const BOX = Object.freeze({ x: 140, y: 140, w: 200, h: 150 });
 const SOUL = Object.freeze({ x: 184, y: 252, r: 6 });
 const IDS = ['choimis_rap', 'choimis_seup', 'choimis_fashion'];
 const FASHION_LINES = ENEMIES.choimis_flower.patterns.find(pattern => pattern.type === 'choimis_fashion').lines;
+const RAP = ENEMIES.choimis_flower.patterns.find(pattern => pattern.type === 'choimis_rap');
+const RAP_TEXT = '래퍼딱지를때는중이젠앰씨로 예술가의길로!@#!@$!@#@#$포에버포에버';
 const ROOT = new URL('../../', import.meta.url);
 
 function start(id, options = {}) {
@@ -25,7 +27,7 @@ function start(id, options = {}) {
     stopRapVideo(handle) { mediaStops.push(handle); },
     syncRapVideo(handle, time) { mediaSyncs.push({ handle, time }); },
   };
-  return { pattern: CHOIMIS_PATTERNS_B[id](options), emitted, sounds, poses, speech, mediaStarts, mediaStops, mediaSyncs, soul, api };
+  return { pattern: CHOIMIS_PATTERNS_B[id]({ ...(id === 'choimis_rap' ? RAP : {}), ...options }), emitted, sounds, poses, speech, mediaStarts, mediaStops, mediaSyncs, soul, api };
 }
 
 function advance(run, end, step = 0.05) {
@@ -120,10 +122,12 @@ test('test_choimis_rap_keeps_center_mic_and_rains_only_supplied_lyrics_for_full_
   assert.equal(boss.hits({ x: boss.x, y: boss.y, r: 1 }), true);
   assert.equal(boss.hits({ x: boss.x + 22, y: boss.y - 23, r: 1 }), false, 'transparent mic-pose corner stays safe');
   assert.equal(run.pattern.duration, 19);
-  assert.deepEqual([...new Set(lyrics.map(b => b.text))], ['@#$!@#!@#', '래퍼딱지를때는중이젠MC로']);
+  assert.ok(lyrics.length > 70, 'brisk staggered bursts fill the verse');
+  assert.equal(lyrics.slice(0, Array.from(RAP_TEXT.replace(/\s/g, '')).length).map(b => b.text).join(''), RAP_TEXT.replace(/\s/g, ''));
+  assert.ok(lyrics.every(b => Array.from(b.text).length === 1 && b.w <= 14 && b.h <= 14));
   assert.deepEqual(lyrics.map(b => b.order), lyrics.map((_, index) => index));
   assert.ok(lyrics.every(b => b.warn >= 0.3));
-  assert.ok(lyrics.every(b => b.direction === 'down' && b.spawnY >= BOX.y - 40 && b.spawnY < BOX.y), 'lyrics enter downward without immediate Bullet.out cleanup');
+  assert.ok(lyrics.every(b => b.direction === 'down' && b.spawnY >= BOX.y && b.spawnY < BOX.y + 20), 'each glyph starts visibly at the top edge');
   assert.ok(new Set(lyrics.map(b => b.column)).size >= 2, 'alternating rain columns defeat one-side camping');
   assert.equal(run.mediaStarts.length, 1);
   assert.deepEqual(run.mediaStarts[0].spec, { src: 'assets/video/choimis-forever-22-41.mp4', volume: 0.72, opacity: 0.22 });
@@ -133,8 +137,8 @@ test('test_choimis_rap_keeps_center_mic_and_rains_only_supplied_lyrics_for_full_
 
 test('test_choimis_rap_draws_readable_cjk_inside_its_collision_rectangle', () => {
   const run = start('choimis_rap');
-  advance(run, 2);
-  const lyric = run.emitted.find(b => b.shape === 'choimis_lyric' && b.text.startsWith('래퍼'));
+  advance(run, 3.5);
+  const lyric = run.emitted.find(b => b.shape === 'choimis_lyric' && b.text === '래');
   const calls = [];
   const ctx = new Proxy({}, {
     get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); },
@@ -175,6 +179,46 @@ test('test_choimis_seup_prepares_then_sends_readable_miss_words_through_alternat
   assert.equal(miss.hits({ x: miss.x, y: miss.y, r: 1 }), true);
   assert.equal(miss.hits({ x: miss.x + miss.w / 2 + 3, y: miss.y + miss.h / 2 + 3, r: 1 }), false,
     'the visible MISS plaque and its collision rectangle share the same boundary');
+});
+
+test('test_choimis_rap_starts_video_immediately_but_first_glyph_falls_at_three_seconds', () => {
+  const run = start('choimis_rap'), dt = 0.01;
+  let firstFall = null;
+  for (let frame = 0; frame < 340; frame++) {
+    const t = frame * dt, now = t + dt;
+    run.pattern.update(t, dt, run.api);
+    if (frame === 0) assert.equal(run.mediaStarts.length, 1);
+    for (const bullet of run.emitted) {
+      bullet.update(dt, BOX);
+      if (now < 3 - 1e-9) assert.equal(bullet.hits({ x: bullet.x, y: bullet.y, r: 6 }), false, 'including central mic, no hazard before 3s');
+      if (bullet.shape === 'choimis_lyric' && bullet.y > bullet.spawnY + 0.001) firstFall ??= now;
+    }
+  }
+  assert.ok(firstFall >= 3 && firstFall <= 3.02, `first visible fall is ${firstFall}s`);
+  const glyphs = run.emitted.filter(b => b.shape === 'choimis_lyric');
+  assert.equal(glyphs[0].fallAt, 3);
+  assert.ok(glyphs.slice(1, 5).every((b, i) => b.fallAt - glyphs[i].fallAt >= 0.08 && b.fallAt - glyphs[i].fallAt <= 0.09));
+  assert.ok(glyphs.every(b => !b.safeColumns.includes(b.column)), 'warned glyph columns preserve two adjacent empty lanes');
+});
+
+test('test_choimis_rap_large_steps_keep_glyph_schedule_and_stop_video_once', () => {
+  const run = start('choimis_rap');
+  run.pattern.update(0, 0.01, run.api);
+  run.pattern.update(8, 0.8, run.api);
+  const glyphs = run.emitted.filter(b => b.shape === 'choimis_lyric');
+  assert.ok(glyphs.length > 20);
+  assert.equal(new Set(glyphs.map(b => b.order)).size, glyphs.length);
+  for (const glyph of glyphs) {
+    glyph.update(0.8, BOX);
+    const elapsed = 8.8 - glyph.fallAt;
+    assert.ok(Math.abs(glyph.y - glyph.spawnY - Math.max(0, elapsed) * RAP.speed) < 1e-8);
+    if (glyph.out(BOX)) assert.equal(glyph.hits({ x: glyph.x, y: glyph.y, r: 6 }), false);
+  }
+  run.pattern.update(18.8, 0.2, run.api);
+  const total = run.emitted.length;
+  run.pattern.update(21, 2, run.api);
+  assert.equal(run.emitted.length, total);
+  assert.deepEqual(run.mediaStops, [run.mediaStarts[0]]);
 });
 
 test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', () => {
@@ -236,8 +280,8 @@ test('test_choimis_every_registered_attack_has_an_in_character_preamble', () => 
     choimis_fashion: '이거 패션어떰?',
     choimis_pink_choso: '내 추구미는 쵸소우야',
     choimis_pink_kart: '막자할게',
-    choimis_pink_prism: '핑크빛으로 물들어봐',
-    choimis_eating_race: '짜장면 배틀 한번할까?',
+    choimis_pink_prism: '차징해서 쏜 공격 아닌 이상 이 코어들은 무너지지 않아.',
+    choimis_eating_race: '짜장면 먹방 대결해볼까? 들어와',
   });
   assert.ok(patterns.every(pattern => !/(?:6\s*번|3\s*번|\d+\s*회|damage|hit)/i.test(pattern.speak)), 'preambles never expose objective counters');
 });

@@ -4,6 +4,8 @@ import { Battle } from '../../src/battle/battle.js';
 import { createChoimisDefenseCinematic } from '../../src/battle/choimis-defense-cinematic.js';
 import { Board, Soul } from '../../src/battle/bullets.js';
 import { getBattleMode, registerBattleMode } from '../../src/battle/modes.js';
+import { ENEMIES } from '../../src/data/enemies.js';
+import { createPinkBossContact } from '../../src/battle/modes/choimis-pink-round.js';
 
 function dialogueBattle() {
   const sounds = [];
@@ -54,15 +56,38 @@ test('test_choimis_boosted_defense_clamps_normal_hits_without_affecting_other_en
     game: { attack: 12 }, support: null,
     sfx() {}, setText() {},
   });
-  const choimis = { id: 'choimis_flower', hp: 200, maxHp: 200, dead: false, dying: 0, def: { reactive: null, lines: {} } };
+  const choimis = { id: 'choimis_flower', hp: 200, maxHp: 200, dead: false, dying: 0, def: ENEMIES.choimis_flower };
   assert.equal(battle.hitEnemy(choimis, null, 12), 12);
   choimis.hp = 188; choimis.defenseBoosted = true;
-  assert.equal(battle.hitEnemy(choimis, null, 99, { source: 'cannon', sound: false }), 1);
-  assert.equal(choimis.hp, 187);
+  assert.equal(battle.hitEnemy(choimis, null, 99, { source: 'cannon', sound: false }), 3);
+  assert.equal(choimis.hp, 185);
+  assert.equal(battle.hitEnemy(choimis, null, 12), 3);
+  assert.equal(choimis.hp, 182);
 
   const other = { id: 'cs_red', hp: 30, maxHp: 30, dead: false, dying: 0, defenseBoosted: true, def: { reactive: null, lines: {} } };
   assert.equal(battle.hitEnemy(other, null, 12), 12);
   assert.equal(other.hp, 18);
+});
+
+test('test_choimis_boosted_defense_preserves_real_pink_contact_damage_and_remainder', () => {
+  const battle = Object.assign(Object.create(Battle.prototype), {
+    game: { attack: 12 }, support: null, sfx() {}, setText() {},
+  });
+  const enemy = { id: 'choimis_flower', hp: 20, dead: false, dying: 0, defenseBoosted: true, def: ENEMIES.choimis_flower };
+  const boss = { id: 'choimis-boss', x: 350, y: 150, r: 20 };
+  const shot = charged => ({ oldX: 322, oldY: 150, x: 378, y: 150, r: charged ? 5 : 3, charged });
+  const contact = createPinkBossContact(battle, enemy, () => {});
+  contact(shot(false), boss); contact(shot(false), boss);
+  assert.equal(enemy.hp, 20);
+  assert.equal(enemy.pinkShotHits, 2);
+  const charged = shot(true);
+  assert.equal(contact(charged, boss), true);
+  assert.equal(contact(charged, boss), false);
+  assert.equal(enemy.hp, 19);
+  assert.equal(enemy.pinkShotHits, 2);
+  contact(shot(false), boss);
+  assert.equal(enemy.hp, 18);
+  assert.equal(enemy.pinkShotHits, 0);
 });
 
 test('test_choimis_eating_race_reward_bypasses_defense_but_keeps_common_death_and_duplicate_guards', () => {
@@ -70,11 +95,11 @@ test('test_choimis_eating_race_reward_bypasses_defense_but_keeps_common_death_an
   const battle = Object.assign(Object.create(Battle.prototype), {
     game: { attack: 12 }, support: null, sfx(name) { sounds.push(name); }, setText() {},
   });
-  const enemy = { id: 'choimis_flower', hp: 25, dead: false, dying: 0, defenseBoosted: true, def: { lines: {} } };
+  const enemy = { id: 'choimis_flower', hp: 25, dead: false, dying: 0, defenseBoosted: true, def: ENEMIES.choimis_flower };
   assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 10);
   assert.equal(enemy.hp, 15);
-  assert.equal(battle.hitEnemy(enemy, null, 10), 1);
-  assert.equal(enemy.hp, 14);
+  assert.equal(battle.hitEnemy(enemy, null, 10), 3);
+  assert.equal(enemy.hp, 12);
   enemy.hp = 7;
   assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 7);
   assert.equal(enemy.hp, 0);

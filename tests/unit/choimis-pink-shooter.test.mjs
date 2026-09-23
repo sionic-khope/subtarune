@@ -79,8 +79,8 @@ test('test_choimis_shooter_actual_heart_pixels_keep_lobes_and_move_single_tip_fr
   assert.ok(right.filter(pixel => pixel.x < 0).length > 20); assert.ok(right.some(pixel => pixel.x === rightmost && pixel.y === 0));
 });
 
-test('test_choimis_shooter_combat_budget_is_fifteen_seconds_excluding_fill_and_drain', () => {
-  assert.equal(CHOIMIS_PINK_SHOOTER.combatSeconds, 15);
+test('test_choimis_shooter_combat_budget_is_twelve_seconds_excluding_fill_and_drain', () => {
+  assert.equal(CHOIMIS_PINK_SHOOTER.combatSeconds, 12);
   const f = fixture(); enterCombat(f); advance(f.mode, CHOIMIS_PINK_SHOOTER.combatSeconds - 0.01);
   assert.equal(f.mode.snapshot.phase, 'combat'); assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds - 0.01);
   assert.equal(f.mode.update(0.02, none), true); assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds); assert.equal(f.mode.snapshot.phase, 'done');

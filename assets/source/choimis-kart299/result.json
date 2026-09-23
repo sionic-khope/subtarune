@@ -1,0 +1,18 @@
+{
+  "requestId": "choimis-kart299",
+  "status": "ready",
+  "files": [
+    "/private/tmp/subtarune-choimis294/assets/props/choimis-dao-kart.png",
+    "/private/tmp/subtarune-choimis294/assets/props/choimis-bazzi-kart.png"
+  ],
+  "contract": "/private/tmp/subtarune-choimis294/assets/source/choimis-kart299/README.md",
+  "qc": "/private/tmp/subtarune-choimis294/assets/source/choimis-kart299/qc.json",
+  "preview": "/private/tmp/subtarune-choimis294/assets/source/choimis-kart299/preview-color-monochrome-2x.png",
+  "provider": "built-in image_gen",
+  "backendModel": "unknown",
+  "quality": "unknown",
+  "usage": "unknown",
+  "cost": "unknown",
+  "generationCalls": 2,
+  "notes": "Producer asset QC passed. One static rider+car per variant. Runtime integration and independent review remain owned by the integrating team."
+}

@@ -1,0 +1,76 @@
+{
+  "dao": {
+    "file": "assets/props/choimis-dao-kart.png",
+    "canvas": [
+      48,
+      40
+    ],
+    "content_bbox": [
+      2,
+      3,
+      45,
+      36
+    ],
+    "pivot": [
+      24,
+      20
+    ],
+    "frame_count": 1,
+    "unique_poses": 1,
+    "duration_ms": null,
+    "loop": false,
+    "direction": "lower-left three-quarter",
+    "raw_dimensions": [
+      1434,
+      1097
+    ],
+    "raw_has_transparency": true,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "opaque_pixel_count": 908,
+    "png_crc_chunks_verified": 3,
+    "png_decode_verified": true,
+    "full_containment": true,
+    "magenta_pixel_count": 0,
+    "monochrome_white_pixels": 457
+  },
+  "bazzi": {
+    "file": "assets/props/choimis-bazzi-kart.png",
+    "canvas": [
+      48,
+      40
+    ],
+    "content_bbox": [
+      2,
+      3,
+      45,
+      37
+    ],
+    "pivot": [
+      24,
+      20
+    ],
+    "frame_count": 1,
+    "unique_poses": 1,
+    "duration_ms": null,
+    "loop": false,
+    "direction": "lower-left three-quarter",
+    "raw_dimensions": [
+      1430,
+      1100
+    ],
+    "raw_has_transparency": true,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "opaque_pixel_count": 868,
+    "png_crc_chunks_verified": 3,
+    "png_decode_verified": true,
+    "full_containment": true,
+    "magenta_pixel_count": 0,
+    "monochrome_white_pixels": 407
+  }
+}

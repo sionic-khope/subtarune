@@ -10,7 +10,7 @@ const segmentDistance = (point, from, to) => {
 
 export const CHOIMIS_PINK_ROUNDS = Object.freeze({
   choso: Object.freeze({ beamWarn: 0.55, beamHit: 0.38, beamEvery: 1.15 }),
-  kart_block: Object.freeze({ warn: 0.4, every: 0.78, speed: 145 }),
+  kart_block: Object.freeze({ warn: 0.45, every: 1.2, speed: 170, boostAfter: 0.65, boostStagger: 0.16, boostSpeed: 255, radius: 18 }),
   pink_prism: Object.freeze({ shields: 3, boltWarn: 0.4, boltEvery: 0.72, boltSpeed: 170 }),
 });
 
@@ -111,6 +111,12 @@ function createChoso(api) {
 function createKartBlock(api) {
   const C = CHOIMIS_PINK_ROUNDS.kart_block, boss = makeBoss(api);
   const lanes = [api.box.y + 28, api.box.y + api.box.h / 2, api.box.y + api.box.h - 28];
+  const safeLanes = [1, 0, 1, 2];
+  const startX = boss.targetX - 18;
+  const distanceAt = blocker => {
+    const driving = Math.max(0, blocker.age - C.warn);
+    return Math.min(driving, blocker.boostAt) * C.speed + Math.max(0, driving - blocker.boostAt) * C.boostSpeed;
+  };
   let elapsed = 0, cleared = 0, spawned = 0, wave = 0, next = 0.25, blockers = [], disposed = false;
   return {
     get done() { return disposed; }, get boss() { return boss; },
@@ -119,21 +125,27 @@ function createKartBlock(api) {
     update(dt, shots) {
       if (disposed || !api.bossAlive()) return;
       elapsed += dt; boss.oldX = boss.x; boss.oldY = boss.y; boss.x = boss.targetX;
-      if (elapsed >= next && blockers.length === 0) {
-        next = elapsed + C.every; const safeLane = (wave++ * 2 + 1) % lanes.length;
+      while (elapsed >= next) {
+        const born = next, waveId = wave++, safeLane = safeLanes[waveId % safeLanes.length]; next += C.every;
+        let position = 0;
         for (let lane = 0; lane < lanes.length; lane++) if (lane !== safeLane) {
-          blockers.push({ id: `kart-${spawned}`, x: boss.x - 18, oldX: boss.x - 18, y: lanes[lane], oldY: lanes[lane], age: 0, lane, kind: spawned++ % 2 ? 'bazzi' : 'dao', r: 15 });
+          blockers.push({ id: `kart-${spawned}`, wave: waveId, safeLane, born, x: startX, oldX: startX, y: lanes[lane], oldY: lanes[lane], age: 0,
+            boostAt: C.boostAfter + position++ * C.boostStagger, launched: false, boosted: false, lane, kind: spawned++ % 2 ? 'bazzi' : 'dao', r: C.radius });
         }
       }
+      let launched = false, boosted = false;
       for (const blocker of blockers) {
-        blocker.age += dt; blocker.oldX = blocker.x; blocker.oldY = blocker.y;
-        if (blocker.age >= C.warn) blocker.x -= C.speed * dt;
+        blocker.age = elapsed - blocker.born; blocker.oldX = blocker.x; blocker.oldY = blocker.y;
+        blocker.x = startX - distanceAt(blocker);
+        if (!blocker.launched && blocker.age >= C.warn) { blocker.launched = true; launched = true; }
+        if (!blocker.boosted && blocker.age >= C.warn + blocker.boostAt) { blocker.boosted = true; boosted = true; }
         const oldSoul = { x: api.soul.oldX ?? api.soul.x, y: api.soul.oldY ?? api.soul.y };
         if (blocker.age >= C.warn && !blocker.dead && sweptCirclesHit({ x: blocker.oldX, y: blocker.oldY }, blocker, blocker.r, oldSoul, api.soul, api.soul.r)) { blocker.dead = true; api.hurt(); }
       }
+      if (launched || boosted) api.sfx('kart_booster', { volume: boosted ? 0.24 : 0.18, len: 0.28 });
       for (const shot of shots) for (const blocker of blockers) {
         if (shot.dead || blocker.dead || blocker.age < C.warn || !hitShotCircle(shot, blocker, blocker.r) || !api.hitTarget(shot, blocker.id)) continue;
-        blocker.dead = true; cleared++; api.hit(blocker.x, blocker.y); api.sfx('kart_booster', { volume: 0.45 });
+        blocker.dead = true; cleared++; api.hit(blocker.x, blocker.y); api.sfx('pop', { volume: 0.384, rate: 0.8 });
         if (shot.dead) break;
       }
       blockers = blockers.filter(blocker => !blocker.dead && blocker.x > api.box.x - 24);
@@ -142,7 +154,11 @@ function createKartBlock(api) {
     draw(ctx) {
       for (const blocker of blockers) {
         if (blocker.age < C.warn) { ctx.strokeStyle = '#ff87bf'; ctx.setLineDash([4, 5]); ctx.strokeRect(api.box.x + 3, blocker.y - 20, api.box.w - 6, 40); ctx.setLineDash([]); }
-        const image = api.images[blocker.kind]; if (image) ctx.drawImage(image, Math.round(blocker.x - 17), Math.round(blocker.y - 20), 34, 40);
+        const image = api.images[blocker.kind];
+        if (image) {
+          const width = 50, height = Math.round(width * image.height / image.width);
+          ctx.drawImage(image, Math.round(blocker.x - width / 2), Math.round(blocker.y - height / 2), width, height);
+        }
       }
       drawBoss(ctx, api, boss, elapsed);
     },
@@ -181,11 +197,12 @@ function createPinkPrism(api) {
         for (let index = shields.length - 1; index >= 0; index--) {
           const shield = shieldAt(shields[index]), oldShield = shieldAt(shields[index], previousElapsed); shield.oldX = oldShield.x; shield.oldY = oldShield.y;
           if (!hitShotCircle(shot, shield, shield.r) || !api.hitTarget(shot, shield.id)) continue;
-          if (shot.charged) { shields.splice(index, 1); api.hit(shield.x, shield.y); api.sfx('great_shine', { volume: 0.5 }); }
+          api.hit(shield.x, shield.y); api.sfx('pop', { volume: 0.384, rate: 0.8 });
+          if (shot.charged) shields.splice(index, 1);
           if (shot.dead) break;
         }
         if (shot.dead || shields.length || !hitShotCircle(shot, core, core.r) || !api.hitTarget(shot, core.id)) continue;
-        coreHits++; api.hit(core.x, core.y);
+        coreHits++; api.hit(core.x, core.y); api.sfx('pop', { volume: 0.384, rate: 0.8 });
       }
       contactBossShots(api, shots, boss);
     },

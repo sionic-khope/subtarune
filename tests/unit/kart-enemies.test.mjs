@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { ENEMIES } from '../../src/data/enemies.js';
 import { CHARACTERS } from '../../src/data/characters.js';
-import { PATTERNS } from '../../src/battle/bullets.js';
+import { Board, Soul, PATTERNS } from '../../src/battle/bullets.js';
+import { Battle } from '../../src/battle/battle.js';
 import { KART_PATTERNS, MISSILE, BOOSTER, BANANA, WATERBOMB, MAGNET } from '../../src/battle/kart-patterns.js';
 import { QA_POINTS } from '../../src/core/story.js';
 
@@ -33,10 +34,33 @@ test('test_dao_and_bazzi_have_hp_36_kart_patterns_and_reuse_the_pasted_art', () 
   }
   assert.deepEqual(ENEMIES.dao.patterns.map(p => p.type), ['kart_missile', 'kart_booster', 'kart_banana']);
   assert.deepEqual(ENEMIES.dao.patterns.map(p => p.speak), ['미사일!', '부스터!', '바나나!']); assert.deepEqual(ENEMIES.bazzi.patterns.map(p => p.speak), ['물폭탄!', '자석!', '물파리!']);
-  const battle = readFileSync(new URL('../../src/battle/battle.js', import.meta.url), 'utf8'); assert.ok(/cfg\?\.speak\) text = cfg\.speak/.test(battle), '말풍선은 이번 턴 패턴의 speak');
   assert.deepEqual(ENEMIES.bazzi.patterns.map(p => p.type), ['kart_waterbomb', 'kart_magnet', 'kart_waterfly']);
   for (const name of ['kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly']) assert.ok(existsSync(new URL(`../../assets/audio/sfx/${name}.mp3`, import.meta.url)), `${name} 소리 파일`);
   assert.ok(MISSILE.track + MISSILE.lock >= 0.35 && BOOSTER.warn >= 0.35 && BANANA.warn >= 0.35 && WATERBOMB.arcWarn >= 0.35 && MAGNET.warn >= 0.35, '모든 예고 ≥ 0.35초');
+});
+
+test('test_kart_enemy_turn_speech_matches_selected_pattern_through_cycle_wrap', () => {
+  const expected = {
+    dao: ['미사일!', '부스터!', '바나나!', '미사일!'],
+    bazzi: ['물폭탄!', '자석!', '물파리!', '물폭탄!'],
+  };
+  for (const [id, lines] of Object.entries(expected)) {
+    const enemy = { id, def: ENEMIES[id], hp: 36, maxHp: 36, dead: false, dying: 0, patternIdx: 0 };
+    const battle = Object.assign(Object.create(Battle.prototype), {
+      enemies: [enemy], members: [], support: null, modes: { enemy: 'bullets' },
+      board: new Board(), soul: new Soul(), rnd: () => 0, setText() {}, sfx() {},
+    });
+    for (const [turn, text] of lines.entries()) {
+      battle.beginEnemyTurn();
+      assert.equal(battle.state, 'enemy-prep');
+      assert.equal(battle.bubble.text, text, `${id} turn ${turn}: speech must describe the selected attack`);
+      assert.equal(enemy.patternIdx, turn, 'preparation cannot consume the attack');
+      battle.beginBullets();
+      assert.equal(battle.state, 'bullets');
+      assert.equal(battle.patterns.length, 1);
+      assert.equal(enemy.patternIdx, turn + 1);
+    }
+  }
 });
 
 test('test_kart_missile_locks_on_then_flies_to_the_locked_point_and_bursts', () => {

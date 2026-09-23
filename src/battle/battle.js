@@ -56,6 +56,10 @@ const nextPatternConfig = (enemy) => {
   const enraged = !!enemy.def.enragedPatterns?.length && enemy.hp / enemy.maxHp <= enemy.def.enragedAt;
   const configs = (enraged ? enemy.def.enragedPatterns : enemy.def.patterns) || [];
   const index = enraged !== !!enemy.enraged ? 0 : (enemy.patternIdx || 0);
+  if (enemy.def.alternatingPatternMode) {
+    const bucket = configs.filter(config => (config.mode === enemy.def.alternatingPatternMode) === (index % 2 === 1));
+    return { enraged, config: bucket[Math.floor(index / 2) % bucket.length] };
+  }
   return { enraged, config: configs.length ? configs[index % configs.length] : null };
 };
 const loadImage = (src) => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => resolve(null); im.src = src; });
@@ -124,7 +128,7 @@ export class Battle {
     if (this.enemies.some(enemy => enemy.id === 'choimis_flower') && !this.preparedRapVideo) this.preparedRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
     try {
       await Promise.all([
-        this.enemies.some(enemy => enemy.id === 'choimis_flower') ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big']) : null,
+        this.enemies.some(enemy => enemy.id === 'choimis_flower') ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya']) : null,
         this.preparedRapVideo?.ready,
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),
         ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),
@@ -360,7 +364,9 @@ export class Battle {
       return 0;
     }
     const adjusted = this.support?.adjustDamage?.(e, dmg, source) ?? dmg;                 // 방심한 영클은 1, 아이디어는 3(BUILD208)
-    const defended = e.id === 'choimis_flower' && e.defenseBoosted && source !== 'choimis-eating-race' ? 1 : adjusted;
+    const defended = e.id === 'choimis_flower' && e.defenseBoosted && source !== 'choimis-eating-race'
+      ? source === 'pink-shot' ? 1 : e.def.boostedAttackDamage
+      : adjusted;
     const damage = Math.min(e.hp, defended);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
     this.support?.onHit?.(e, damage, source);
@@ -424,9 +430,7 @@ export class Battle {
     let text = lines.length ? lines[Math.floor(this.rnd() * lines.length)] : '...';
     // 패턴 설정에 speak 가 있으면 이번 턴에 나올 패턴의 말(다오 “미사일!” 뒤 미사일, BUILD266) — 지원 모듈이 패턴을 고르는 전투는 제외
     if (!this.support?.patternsFor) {
-      const enraged = !!e.def.enragedPatterns?.length && e.hp / e.maxHp <= e.def.enragedAt, cfgs = (enraged ? e.def.enragedPatterns : e.def.patterns) || [];
-      const idx = enraged !== !!e.enraged ? 0 : (e.patternIdx || 0), cfg = cfgs.length ? cfgs[idx % cfgs.length] : null;
-      if (cfg?.speak) text = cfg.speak;
+      if (selected?.config?.speak) text = selected.config.speak;
     }
     if (lines.length && e.def.lines.speakShuffle) {
       if (!e.speechBag?.length) e.speechBag = [...new Set(lines)];
@@ -436,8 +440,11 @@ export class Battle {
       e.speechBag.splice(e.speechBag.indexOf(text), 1);
       e.lastSpeech = text;
     }
-    this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0, voice: e.formDef?.voice || e.def.voice || 'narrator' };
-    if (e.def.lines?.speakSfx) this.sfx(e.def.lines.speakSfx);   // 말풍선과 함께 트는 소리(아짐키야 ‘가재맨 애미 뒤짐’ 클립, BUILD227) — 목소리는 'none'
+    const speakSfx = selected?.config?.speakSfx || e.def.lines?.speakSfx;
+    this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0,
+      voice: selected?.config?.speakSfx ? 'none' : e.formDef?.voice || e.def.voice || 'narrator',
+      minDuration: selected?.config?.speakDuration || 0 };
+    if (speakSfx) this.sfx(speakSfx);
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
     this.board.setTarget(bw, bh, cx, cy);
@@ -448,7 +455,7 @@ export class Battle {
     const b = this.bubble;
     if (b) { b.t += dt; const n = Math.min(b.text.length, Math.floor(b.t / BUBBLE_CPS)); for (let i = b.shown; i < n; i++) if (b.text[i] !== ' ' && b.voice !== 'none') this.game.sound.blip(b.voice); b.shown = n; if (n >= b.text.length && b.doneAt === undefined) b.doneAt = this.t; }
     if (this.t > PREP_OPEN) this.soul.update(dt, input, this.board);                          // 준비 시간 동안 소울을 미리 움직일 수 있다
-    if ((!b || b.doneAt !== undefined) && this.t > PREP_OPEN && this.t - (b?.doneAt ?? 0) > PREP_HOLD) this.beginBullets();
+    if ((!b || b.doneAt !== undefined) && this.t > PREP_OPEN && this.t >= (b?.minDuration || 0) && this.t - (b?.doneAt ?? 0) > PREP_HOLD) this.beginBullets();
   }
   beginBullets() {
     this.clearPatternPresentation();
@@ -461,7 +468,8 @@ export class Battle {
       const fromSupport = this.support?.patternsFor ? this.support.patternsFor(e) : undefined;
       if (Array.isArray(fromSupport) && fromSupport.length === 0) return null;                 // 지원 모듈이 [] 를 주면 이번 턴은 쉰다(조종실 실험체, BUILD207). null/undefined 는 예전대로 기본 패턴
       const cfgs = fromSupport || (enraged ? e.def.enragedPatterns : e.def.patterns) || [{ type: 'rain' }];
-      const c = cfgs[e.patternIdx++ % cfgs.length];
+      const c = e.def.alternatingPatternMode && !fromSupport ? nextPatternConfig(e).config : cfgs[e.patternIdx % cfgs.length];
+      e.patternIdx++;
       return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e };
     }).filter(Boolean);
     const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];

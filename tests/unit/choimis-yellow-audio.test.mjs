@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
+import { Battle } from '../../src/battle/battle.js';
+import { ENEMIES } from '../../src/data/enemies.js';
 
 const root = new URL('../../', import.meta.url);
 const source = new URL('assets/source/choimis-yellow297/', root);
@@ -24,9 +26,25 @@ test('test_choimis_yellow_audio_retains_exact_originals_and_runtime_assets', () 
   }
 });
 
-test('test_choimis_yellow_audio_preloads_all_three_original_event_sounds', () => {
-  const battle = fs.readFileSync(new URL('src/battle/battle.js', root), 'utf8');
-  assert.match(battle, /enemy\.id === 'choimis_flower'\) \? this\.game\.sound\.loadSfxFiles\?\.\(\['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big'\]\)/);
+test('test_choimis_yellow_audio_preloads_original_event_sounds_and_recorded_preamble_before_intro', async () => {
+  const calls = [];
+  let finishPreload;
+  const pending = new Promise(resolve => { finishPreload = resolve; });
+  const battle = Object.assign(Object.create(Battle.prototype), {
+    cfg: { seamlessIntro: 'choimis_sky' }, state: 'load', members: [], support: null,
+    enemies: [{ id: 'choimis_flower', def: { ...ENEMIES.choimis_flower, actions: {}, projectiles: {} } }],
+    preparedRapVideo: { ready: Promise.resolve(true) }, loadEnemyImage: async () => ({}),
+    game: { sound: { loadSfxFiles(keys) { calls.push(keys); return pending; } } },
+  });
+  const loading = battle.load();
+  assert.equal(calls.length, 1);
+  for (const key of ['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya']) {
+    assert.ok(calls[0].includes(key), `${key} must preload before the battle intro`);
+  }
+  assert.equal(battle.state, 'load');
+  finishPreload();
+  await loading;
+  assert.equal(battle.state, 'intro');
   const originalEvent = fs.readFileSync(new URL('code/obj_heart-Step_0.gml', source), 'utf8');
   const yellowEvent = originalEvent.slice(originalEvent.indexOf('if (color == 1)'));
   assert.match(yellowEvent, /snd_play\(snd_heartshot_dr_b\)/);

@@ -16,7 +16,7 @@ export const CHOIMIS_PINK_SHOOTER = Object.freeze({
   fillSeconds: 1.8,
   drainSeconds: 2.4,
   launchSeconds: 0.7,
-  combatSeconds: 15,
+  combatSeconds: 12,
   fireCooldown: 0.3,
   chargeSeconds: 0.6,
   chargeCueAt: 0.18,

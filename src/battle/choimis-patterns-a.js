@@ -1,3 +1,5 @@
+import { createChoimisJjajang } from './choimis-jjajang.js';
+
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 
 function clipArena(ctx, box) {
@@ -8,94 +10,6 @@ function segmentDistance(point, start, end) {
   const dx = end.x - start.x, dy = end.y - start.y;
   const amount = clamp(((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy || 1), 0, 1);
   return Math.hypot(point.x - start.x - dx * amount, point.y - start.y - dy * amount);
-}
-
-function noodleGeometry(bullet) {
-  const length = 42, normalX = -bullet.dirY, normalY = bullet.dirX;
-  const strands = [];
-  for (let strand = 0; strand < bullet.noodles; strand++) {
-    const offset = (strand - (bullet.noodles - 1) / 2) * 5;
-    const points = [];
-    for (let step = 0; step <= 5; step++) {
-      const distance = step / 5 * length;
-      const wave = Math.sin(step * 1.7 + bullet.phase) * 2.5;
-      points.push({
-        x: bullet.x - bullet.dirX * (12 + distance) + normalX * (offset + wave),
-        y: bullet.y - bullet.dirY * (12 + distance) + normalY * (offset + wave),
-      });
-    }
-    strands.push(points);
-  }
-  return strands;
-}
-
-function drawJjajang(ctx, bullet) {
-  ctx.save();
-  clipArena(ctx, bullet.box);
-  if (bullet.age < bullet.warn) {
-    ctx.strokeStyle = '#d8a47b';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(bullet.startX, bullet.startY);
-    ctx.lineTo(bullet.endX, bullet.endY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 0.45 + Math.sin(bullet.age * 18) * 0.15;
-  } else {
-    ctx.strokeStyle = '#f0d88c';
-    ctx.lineWidth = 3;
-    for (const points of noodleGeometry(bullet)) {
-      ctx.beginPath();
-      points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
-      ctx.stroke();
-    }
-  }
-  const x = Math.round(bullet.x), y = Math.round(bullet.y);
-  ctx.translate(x, y);
-  ctx.rotate(Math.atan2(bullet.dirY, bullet.dirX) * 0.18);
-  if (bullet.image) {
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(bullet.image, -16, -13, 32, 27);
-  } else {
-    ctx.fillStyle = '#f2f0e8';
-    ctx.fillRect(-15, -4, 30, 9);
-    ctx.fillStyle = '#262022';
-    ctx.fillRect(-12, -7, 24, 8);
-    ctx.fillStyle = '#562b20';
-    ctx.fillRect(-9, -5, 18, 5);
-  }
-  ctx.fillStyle = '#2a1714';
-  ctx.fillRect(-9, -5, 18, 3);
-  ctx.fillStyle = '#754126';
-  ctx.fillRect(-7, -4, 4, 2);
-  ctx.fillRect(3, -4, 5, 2);
-  ctx.restore();
-}
-
-function hitJjajang(bullet, soul) {
-  if (bullet.age < bullet.warn || bullet.age >= bullet.life) return false;
-  if (soul.x < bullet.box.x + 3 || soul.x > bullet.box.x + bullet.box.w - 3
-    || soul.y < bullet.box.y + 3 || soul.y > bullet.box.y + bullet.box.h - 3) return false;
-  if (Math.hypot(soul.x - bullet.x, soul.y - bullet.y) <= 10 + Math.max(0, soul.r - 2)) return true;
-  return noodleGeometry(bullet).some((points) => points.slice(1).some((end, index) =>
-    segmentDistance(soul, points[index], end) <= 2 + Math.max(0, soul.r - 2)));
-}
-
-function emitJjajang(api, lane, fromLeft, options, phase) {
-  const box = { ...api.box }, startX = fromLeft ? box.x + 5 : box.x + box.w - 5;
-  const endX = fromLeft ? box.x + box.w - 5 : box.x + 5;
-  const startY = box.y + 10 + lane * (box.h - 20), endY = startY;
-  const distance = Math.hypot(endX - startX, endY - startY), dirX = (endX - startX) / distance, dirY = (endY - startY) / distance;
-  const warn = Math.max(0.3, options.warn ?? 0.5), flight = options.flight ?? 1.1;
-  api.emit({ shape: 'choimis_jjajang_bowl', box, image: api.images?.[options.assetKey ?? 'jjajang'], sauce: true,
-    noodles: options.noodles ?? 3, phase, startX, startY, endX, endY, dirX, dirY, x: startX, y: startY,
-    r: 0, warn, life: warn + flight + 0.05, drawShape: drawJjajang, hitShape: hitJjajang,
-    steer(bullet) {
-      const amount = clamp((bullet.age - warn) / flight, 0, 1);
-      bullet.x = startX + (endX - startX) * amount;
-      bullet.y = startY + (endY - startY) * amount;
-    } });
 }
 
 function beamEnd(box, source, target) {
@@ -223,19 +137,7 @@ function emitMoney(api, side, lane, targetLane, options, phase) {
 
 /** Choimis-owned signature attacks; dialogue stays in enemy pattern config except exact in-pattern calls. */
 export const CHOIMIS_PATTERNS_A = {
-  choimis_jjajang(options = {}) {
-    const duration = options.duration ?? 6.4, every = options.every ?? 1.95;
-    const volleys = [[0.02, 0.5, 0.98], [0.25, 0.75, 0.5], [0.98, 0.25, 0.02]];
-    let shot = 0;
-    return { duration, update(t, dt, api) {
-      while (shot < volleys.length * 3 && t >= 0.1 + Math.floor(shot / 3) * every + shot % 3 * 0.14) {
-        const wave = Math.floor(shot / 3), lane = shot % 3;
-        emitJjajang(api, volleys[wave][lane], (wave + lane) % 2 === 0, options, shot);
-        if (lane === 0) api.sfx?.('swing', { volume: 0.5 });
-        shot++;
-      }
-    } };
-  },
+  choimis_jjajang: createChoimisJjajang,
   choimis_choso(options = {}) {
     const duration = options.duration ?? 6.6, times = [0.12, 0.95, 1.78, 3.55, 4.38, 5.21], fires = [], holds = [];
     let shot = 0, announced = false, restored = false, costume = options.costume ?? 'choso';
@@ -243,10 +145,10 @@ export const CHOIMIS_PATTERNS_A = {
       if (!announced) { announced = true; api.present?.({ sheet: costume, frame: 0 }); api.say?.('천혈!', 0.6); }
       while (shot < times.length && t >= times[shot]) {
         const warn = emitBloodBeam(api, options); api.present?.({ sheet: costume, frame: 1 }); fires.push(times[shot] + warn);
-        api.sfx?.('laser_charge', { volume: 0.55 });
+        api.sfx?.('laser_charge', { volume: options.chargeVolume ?? 0.18, len: options.chargeLength ?? 0.28 });
         shot++;
       }
-      while (fires.length && t >= fires[0]) { fires.shift(); api.present?.({ sheet: costume, frame: 2 }); api.sfx?.('laser_beam', { volume: 0.7 }); holds.push(t + 0.14); }
+      while (fires.length && t >= fires[0]) { fires.shift(); api.present?.({ sheet: costume, frame: 2 }); api.sfx?.('laser_beam', { volume: options.beamVolume ?? 0.22, len: options.beamLength ?? 0.22 }); holds.push(t + 0.14); }
       while (holds.length && t >= holds[0]) { holds.shift(); api.present?.({ sheet: costume, frame: 3 }); }
       if (!restored && t >= duration - 0.05) { restored = true; api.present?.(null); }
     } };

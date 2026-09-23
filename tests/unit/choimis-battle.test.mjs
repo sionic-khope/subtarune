@@ -28,6 +28,8 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     fashion: 'assets/props/choimis-fashion.png',
     dao: 'assets/enemies/dao-battle.png',
     bazzi: 'assets/enemies/bazzi-battle.png',
+    daoKart: 'assets/props/choimis-dao-kart.png',
+    bazziKart: 'assets/props/choimis-bazzi-kart.png',
   });
   assert.deepEqual(enemy.patterns.map(pattern => [pattern.type, pattern.speak]), [
     ['choimis_jjajang', '내 짜장면 맛 좀 볼래?'],
@@ -38,8 +40,8 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     ['choimis_fashion', '이거 패션어떰?'],
     ['choimis_pink_choso', '내 추구미는 쵸소우야'],
     ['choimis_pink_kart', '막자할게'],
-    ['choimis_pink_prism', '핑크빛으로 물들어봐'],
-    ['choimis_eating_race', '짜장면 배틀 한번할까?'],
+    ['choimis_pink_prism', '차징해서 쏜 공격 아닌 이상 이 코어들은 무너지지 않아.'],
+    ['choimis_eating_race', '짜장면 먹방 대결해볼까? 들어와'],
   ]);
   assert.equal(enemy.openingMode, 'choimis_pink_shooter');
   assert.deepEqual(enemy.openingLines.map(line => [line.speaker, line.portrait, line.voice, line.text]), [
@@ -100,6 +102,56 @@ test('test_choimis_opening_mode_runs_once_per_attempt_and_retry_rearms_it', () =
   assert.ok(!sounds.includes('battle_start'));
 });
 
+test('test_choimis_actual_turn_dispatch_alternates_independent_cycles_and_retry_restarts_after_opening', () => {
+  const enemy = { id: 'choimis_flower', def: ENEMIES.choimis_flower, hp: 200, maxHp: 200,
+    dead: false, dying: 0, patternIdx: 0, enraged: false, actionImages: {}, projectiles: {} };
+  const battle = Object.assign(Object.create(Battle.prototype), {
+    cfg: { seamlessIntro: 'choimis_sky' }, enemies: [enemy], members: [], support: null,
+    openingShown: false, modes: { enemy: 'bullets' }, board: new Board(), soul: new Soul(),
+    rnd: () => 0.5, setText() {}, sfx() {}, cancelPendingBgm() {},
+    game: { fadeTo() {}, sound: { preloadBgm() {}, blip() {} } },
+  });
+  const regular = ['choimis_jjajang', 'choimis_choso', 'choimis_rap', 'choimis_money', 'choimis_seup', 'choimis_fashion', 'choimis_eating_race'];
+  const pink = ['choimis_pink_choso', 'choimis_pink_kart', 'choimis_pink_prism'];
+  const instantiated = [], originals = new Map(regular.filter(type => PATTERNS[type]).map(type => [type, PATTERNS[type]]));
+  for (const [type, create] of originals) PATTERNS[type] = config => { instantiated.push(config.type); return create(config); };
+  try {
+    assert.equal(battle.takeOpeningMode(), 'choimis_pink_shooter');
+    battle.startEnemyMode('choimis_pink_shooter');
+    assert.equal(enemy.patternIdx, 0, 'mandatory opening consumes no ordinary turn');
+    battle.disposeGimmick();
+    for (let turn = 0; turn < 86; turn++) {
+      const expected = turn % 2 ? pink[Math.floor(turn / 2) % pink.length] : regular[Math.floor(turn / 2) % regular.length];
+      const selected = battle.nextPatternConfig(enemy).config;
+      assert.equal(selected.type, expected, `selected turn ${turn}`);
+      assert.equal(enemy.patternIdx, turn, 'preview does not consume a turn');
+      battle.beginEnemyTurn();
+      if (selected.mode) {
+        assert.equal(battle.state, 'enemy-mode');
+        assert.equal(battle.activeEnemyMode, selected.mode);
+        battle.disposeGimmick();
+      } else {
+        assert.equal(battle.state, 'enemy-prep');
+        assert.equal(battle.bubble.text, selected.speak, 'speech uses the same selected config');
+        assert.equal(enemy.patternIdx, turn, 'ordinary prep does not advance early');
+        battle.beginBullets();
+        assert.equal(instantiated.at(-1), expected, 'real bullet constructor uses the selected config');
+      }
+      assert.equal(enemy.patternIdx, turn + 1, 'every mode advances exactly once');
+    }
+    battle.beginRetry();
+    assert.equal(enemy.patternIdx, 0);
+    assert.equal(battle.takeOpeningMode(), 'choimis_pink_shooter');
+    assert.equal(battle.takeOpeningMode(), null);
+    assert.equal(battle.nextPatternConfig(enemy).config.type, 'choimis_jjajang');
+    battle.beginEnemyTurn(); battle.beginBullets();
+    assert.equal(battle.nextPatternConfig(enemy).config.type, 'choimis_pink_choso');
+  } finally {
+    battle.disposeGimmick();
+    for (const [type, create] of originals) PATTERNS[type] = create;
+  }
+});
+
 test('test_choimis_opening_focus_hides_actors_before_board_updates_and_restores_them_before_menu', () => {
   let modeUpdates = 0, afterCalls = 0;
   const battle = Object.assign(Object.create(Battle.prototype), {
@@ -126,6 +178,28 @@ test('test_choimis_opening_focus_hides_actors_before_board_updates_and_restores_
   battle.update(0.11, input);
   assert.equal(afterCalls, 1);
   assert.equal(battle.openingActorAlpha(), 1);
+});
+
+test('test_choimis_choso_recorded_preamble_finishes_before_costume_attack_without_voice_blips', () => {
+  const sounds = [], blips = [];
+  const enemy = { id: 'choimis_flower', def: ENEMIES.choimis_flower, hp: 200, maxHp: 200,
+    dead: false, dying: 0, patternIdx: 2, enraged: false };
+  const battle = Object.assign(Object.create(Battle.prototype), {
+    enemies: [enemy], members: [], support: null, modes: { enemy: 'bullets' },
+    board: new Board(), soul: new Soul(), rnd: () => 0.5, setText() {},
+    sfx(name) { sounds.push(name); }, game: { sound: { blip(voice) { blips.push(voice); } } },
+  });
+  const idle = { down: () => false };
+  battle.beginEnemyTurn();
+  assert.deepEqual(sounds, ['choimis_chosouya']);
+  for (let step = 0; step < 32; step++) { battle.t += 0.05; battle.updatePrep(0.05, idle); }
+  assert.equal(battle.state, 'enemy-prep', '1.7-second recorded clip cannot be interrupted by transformation');
+  assert.equal(enemy.patternPose, undefined);
+  assert.deepEqual(blips, []);
+  for (let step = 0; step < 5 && battle.state === 'enemy-prep'; step++) { battle.t += 0.05; battle.updatePrep(0.05, idle); }
+  assert.equal(battle.state, 'bullets');
+  assert.equal(enemy.patternIdx, 3);
+  assert.deepEqual(sounds, ['choimis_chosouya']);
 });
 
 test('test_choimis_sky_keeps_three_party_supports_and_moves_only_the_sea_left', () => {

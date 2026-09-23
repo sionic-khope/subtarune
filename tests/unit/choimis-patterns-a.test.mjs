@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Bullet } from '../../src/battle/bullets.js';
 import { CHOIMIS_PATTERNS_A } from '../../src/battle/choimis-patterns-a.js';
+import { ENEMIES } from '../../src/data/enemies.js';
 
 const BOX = { x: 140, y: 139, w: 200, h: 150 };
 const SOUL = { x: 240, y: 214, r: 6 };
@@ -23,7 +24,7 @@ function recordingContext() {
 }
 
 function simulate(type, options = {}, soulAt = () => SOUL) {
-  const pattern = CHOIMIS_PATTERNS_A[type](options);
+  const pattern = CHOIMIS_PATTERNS_A[type]({ ...ENEMIES.choimis_flower.patterns.find(p => p.type === type), ...options });
   const emitted = [], said = [], poses = [], sounds = [];
   let active = [], time = 0;
   const threatened = new Set();
@@ -42,7 +43,7 @@ function simulate(type, options = {}, soulAt = () => SOUL) {
     },
     say(text, hold) { said.push({ at: time, text, hold }); },
     present(pose) { poses.push({ at: time, pose }); },
-    sfx(name) { sounds.push({ at: time, name }); },
+    sfx(name, options) { sounds.push({ at: time, name, options }); },
   };
   const dt = 1 / 30;
   for (time = 0; time < pattern.duration + 3; time += dt) {
@@ -127,6 +128,9 @@ test('test_choimis_choso_locks_each_aim_after_warning_and_restores_the_idle_cost
   assert.deepEqual([...new Set(result.poses.filter(({ pose }) => pose?.sheet === 'choso').map(({ pose }) => pose.frame))], [0, 1, 2, 3]);
   const gaps = beams.slice(1).map(({ at }, index) => at - beams[index].at);
   assert.ok(gaps.some((gap) => gap >= 1.1), 'volley includes a safe interlude');
+  const cues = result.sounds.filter(sound => sound.name.startsWith('laser_'));
+  assert.equal(cues.length, 12);
+  assert.ok(cues.every(cue => cue.options.volume <= 0.22 && cue.options.len > 0 && cue.options.len <= 0.28), 'original charge/fire clips have short bounded quiet playback');
 });
 
 test('test_choimis_money_announces_1500_and_scatters_recognizable_warned_notes', () => {
@@ -146,10 +150,16 @@ test('test_choimis_money_announces_1500_and_scatters_recognizable_warned_notes',
   assert.ok(result.threatened.size >= 7, 'scatter pressures center, edges, and corners instead of leaving corner cheese');
 });
 
-test('test_choimis_faster_noodle_volleys_stagger_lanes_and_leave_recovery_beats', () => {
-  const { pattern, emitted, sounds } = simulate('choimis_jjajang');
+test('test_choimis_noodle_volleys_build_from_straight_bowls_to_arcs_and_sauce', () => {
+  const { pattern, emitted: all, sounds } = simulate('choimis_jjajang');
+  const emitted = all.filter(({ bullet }) => bullet.shape === 'choimis_jjajang_bowl');
+  const splashes = all.filter(({ bullet }) => bullet.shape === 'choimis_jjajang_splash');
   assert.equal(pattern.duration, 6.4);
   assert.equal(emitted.length, 9);
+  assert.equal(splashes.length, 9);
+  assert.ok(emitted.slice(0, 3).every(({ bullet }) => bullet.arcHeight === 0));
+  assert.ok(emitted.slice(3).every(({ bullet }) => Math.abs(bullet.arcHeight) >= 20));
+  assert.ok(splashes.every(({ bullet }) => bullet.warn >= 0.3 && bullet.drawShape && bullet.hitShape));
   assert.equal(sounds.length, 3, 'one sound per bowl volley, not one per projectile');
   for (let wave = 0; wave < 3; wave++) {
     const volley = emitted.slice(wave * 3, wave * 3 + 3);

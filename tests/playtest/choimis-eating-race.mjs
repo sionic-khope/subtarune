@@ -3,10 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 
-await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, check, fixture }) => {
-  const evidence = { scope: 'QA opening override after normal intro; not natural tenth-turn or whole boss clear', source: [], rounds: [] };
+await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot: rawShot, check, fixture }) => {
+  const evidence = { scope: 'QA opening override after normal intro; not natural tenth-turn or whole boss clear', source: [], rounds: [], captures: [] };
   const file = path.join(process.env.SHOT_DIR, 'eating-runtime.json');
   const save = () => fs.writeFileSync(file, JSON.stringify(evidence, null, 2) + '\n');
+  const shot = async name => {
+    if (process.env.QA_BUILD299 !== '1' || name.endsWith('-menu')) return rawShot(name);
+    const frame = await page.evaluate(() => ({ data: game.canvas.toDataURL('image/png'), dimensions: [game.canvas.width, game.canvas.height], viewport: [innerWidth, innerHeight], phase: game.battle?.gimmick?.snapshot?.phase, elapsed: game.battle?.gimmick?.snapshot?.elapsed }));
+    const capture = path.join(process.env.SHOT_DIR, `${name}-canvas.png`);
+    fs.writeFileSync(capture, Buffer.from(frame.data.split(',')[1], 'base64'));
+    evidence.captures.push({ file: capture, ...frame, data: undefined }); save(); return capture;
+  };
   const sourceRoot = process.env.QA_SOURCE_ROOT;
   if (!sourceRoot) throw new Error('QA_SOURCE_ROOT must identify the independently verified serving worktree');
   for (const relative of ['src/battle/modes/choimis-eating-race.js', 'src/battle/choimis-rap-video.js', 'src/battle/battle.js', 'src/battle/modes.js', 'src/data/enemies.js', 'src/core/story.js', 'src/data/scripts.js', 'src/data/locale/ko.js', 'src/data/build.js', 'assets/video/choimis-eating-race.mp4']) {
@@ -33,7 +40,8 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
       party: b?.members.map(m => ({ id: m.id, hp: m.hp, maxHp: m.maxHp, down: m.down, loaded: !!m.frames?.idle?.length })),
       bgm: { name: game.sound.bgmName, time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused },
       media: v ? { time: v.currentTime, duration: v.duration, paused: v.paused, muted: v.muted, volume: v.volume, src: v.getAttribute('src'), frames: v.getVideoPlaybackQuality?.().totalVideoFrames, ready: v.readyState } : null,
-      hits: q?.hits, hurts: q?.hurts, labels: q?.labels, allLabels: q?.allLabels, biteDraws: q?.biteDraws, boundary: q?.boundary };
+      bubble: b?.bubble ? { text: b.bubble.text, shown: b.bubble.shown } : null,
+      hits: q?.hits, hurts: q?.hurts, labels: q?.labels, allLabels: q?.allLabels, biteDraws: q?.biteDraws, boundary: q?.boundary, transition: q?.transition };
   });
   const record = async label => { const state = await snapshot(); evidence.rounds.push({ label, ...state }); save(); return state; };
   const enter = async (label, width = 1280, setup = {}) => {
@@ -44,14 +52,14 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     if (!loaded) throw new Error('QA battle missing');
     await fixture(`${label}-preparation`, 'Observe common damage/render calls; optionally prepare defense/HP boundaries. The QA route replaces openingMode and is not natural tenth-turn entry. No clock, result, or bite count injection.', options => {
       const b = game.battle;
-      const q = window.__eatingQa = { hits: [], hurts: [], labels: [], allLabels: [], biteDraws: 0, boundary: [], mode: null };
+      const q = window.__eatingQa = { hits: [], hurts: [], labels: [], allLabels: [], biteDraws: 0, boundary: [], transition: [], mode: null };
       if (options.boosted) b.enemies[0].defenseBoosted = true;
       if (options.bossHp !== undefined) b.enemies[0].hp = options.bossHp;
       if (options.partyHp !== undefined) for (const member of b.members) { member.hp = options.partyHp; member.down = false; }
       const hit = b.hitEnemy.bind(b), hurt = b.hurtAllParty.bind(b), update = b.update.bind(b);
       b.hitEnemy = (...args) => { const before = args[0]?.hp, result = hit(...args); q.hits.push({ before, after: args[0]?.hp, requested: args[2], source: args[3]?.source }); return result; };
       b.hurtAllParty = (...args) => { const before = b.members.map(m => m.hp), result = hurt(...args); q.hurts.push({ before, after: b.members.map(m => m.hp), requested: args[0] }); return result; };
-      b.update = (...args) => { const result = update(...args); if (b.activeEnemyMode === 'choimis_eating_race' && b.gimmick) { q.mode = b.gimmick; const s = q.mode.snapshot; if (s.elapsed > 10.85 && s.elapsed < 11.15) q.boundary.push({ phase: s.phase, elapsed: s.elapsed, bites: s.bites }); } return result; };
+      b.update = (...args) => { const result = update(...args); if (b.activeEnemyMode === 'choimis_eating_race' && b.gimmick) { q.mode = b.gimmick; const s = q.mode.snapshot; if (s.elapsed > 10.85 && s.elapsed < 11.15) q.boundary.push({ phase: s.phase, elapsed: s.elapsed, bites: s.bites }); if (['prelude', 'transition'].includes(s.phase)) q.transition.push({ phase: s.phase, phaseElapsed: s.phaseElapsed, elapsed: s.elapsed, at: performance.now() }); } return result; };
       const fillText = CanvasRenderingContext2D.prototype.fillText;
       CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
         if (b.activeEnemyMode === 'choimis_eating_race') {
@@ -64,13 +72,26 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
       CanvasRenderingContext2D.prototype.drawImage = function (...args) { if (b.activeEnemyMode === 'choimis_eating_race' && args[0] === b.enemies[0].projectiles?.jjajang && args[1] === 9 && args[2] === 3 && args[3] === 8) q.biteDraws++; return draw.apply(this, args); };
     }, setup);
     for (let i = 0; i < 30; i++) {
-      if (await page.evaluate(() => game.battle?.gimmick?.snapshot?.phase === 'intro')) break;
+      if (await page.evaluate(() => ['prelude', 'intro'].includes(game.battle?.gimmick?.snapshot?.phase))) break;
       await press('KeyC', { delay: 70 }); await page.waitForTimeout(180);
+    }
+    if (process.env.QA_BUILD299 === '1') {
+      const prelude = await until(() => game.battle?.gimmick?.snapshot?.phase === 'prelude' && game.battle.bubble?.shown >= game.battle.bubble?.text.length, 8000);
+      const before = await record(`${label}-preamble`); await shot(`${label}-preamble`);
+      check(`${label}: exact preamble is completely visible before video clock`, prelude && before.bubble?.text === '짜장면 먹방 대결해볼까? 들어와' && before.mode.elapsed === 0 && before.media.paused && before.media.time === 0);
+      check(`${label}: slower fade reaches intermediate state`, await until(() => game.battle?.gimmick?.snapshot?.phase === 'transition' && game.battle.gimmick.snapshot.phaseElapsed >= 0.3, 3000));
+      const middle = await record(`${label}-transition-mid`); await shot(`${label}-transition-mid`);
+      check(`${label}: fade does not consume the eleven-second media clock`, middle.mode.elapsed === 0 && middle.media.paused && middle.media.time === 0);
     }
     const intro = await until(() => game.battle?.gimmick?.snapshot?.phase === 'intro', 8000);
     check(`${label}: ordinary intro keys enter eating video intro`, intro);
     if (!intro) throw new Error('eating intro missing');
-    return record(`${label}-intro`);
+    const introState = await record(`${label}-intro`);
+    if (process.env.QA_BUILD299 === '1') {
+      const fade = introState.transition.filter(s => s.phase === 'transition');
+      check(`${label}: transition lasts 0.8 seconds`, fade.length > 0 && Math.max(...fade.map(s => s.phaseElapsed)) >= 0.75 && Math.max(...fade.map(s => s.phaseElapsed)) <= 0.8);
+    }
+    return introState;
   };
   const start = async label => {
     const ready = await until(() => game.battle?.gimmick?.snapshot?.phase === 'race', 14000);
@@ -115,6 +136,7 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     await shot(`${label}-menu`);
     check(`${label}: damage once and video disposed; BGM persists`, after.hits.length === 1 && after.mode.disposed && after.media.paused && after.media.src === null && after.bgm.name === before.bgm.name && !after.bgm.paused);
   }
+  if (process.env.QA_BUILD299 === '1') { evidence.scope = 'BUILD299 responsive preamble, 0.8-second fade, media-clock eleven-second start, physical 54-press win and menu cleanup; older loss/hold/bossdeath scopes not repeated'; save(); return; }
   for (const held of [false, true]) {
     const label = held ? 'held-repeat-loss' : 'noinput-loss';
     const before = await enter(label);

@@ -14,7 +14,7 @@ const none = { down: () => false };
 function scenarioFixture(name) {
   const soul = { x: 64, y: 159, oldX: 64, oldY: 159, r: 6 };
   const sounds = [], speech = [], damage = [], hits = [], bossContacts = [];
-  const images = { boss: { id: 'boss' }, choso: { id: 'choso' }, dao: { id: 'dao' }, bazzi: { id: 'bazzi' } };
+  const images = { boss: { id: 'boss' }, choso: { id: 'choso' }, dao: { id: 'dao-kart', width: 64, height: 64 }, bazzi: { id: 'bazzi-kart', width: 64, height: 64 } };
   const scenario = createChoimisPinkScenario(name, {
     box: BOX, soul, images, rnd: () => 0.5,
     sfx: (sound, options) => sounds.push({ sound, options }), say: text => speech.push(text),
@@ -80,12 +80,64 @@ test('test_kart_and_prism_attacks_spawn_at_far_right_boss_with_readable_lane_gap
 test('test_choimis_pink_kart_uses_real_character_images_and_lane_dodging_avoids_damage', () => {
   const run = scenarioFixture('kart_block');
   run.soul.y = BOX.y + BOX.h / 2; run.soul.oldY = run.soul.y;
-  run.scenario.update(0.2, []); run.scenario.update(0.5, []); run.scenario.update(3, []);
+  for (let step = 0; step < 240; step++) run.scenario.update(1 / 120, []);
   assert.deepEqual(run.damage, [], 'kart crossing another lane is harmless');
   const calls = [], ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); }, set(target, key, value) { target[key] = value; return true; } });
-  run.scenario.update(0.9, []); run.scenario.draw(ctx);
+  run.scenario.draw(ctx);
   assert.ok(calls.some(call => call[0] === 'drawImage' && [run.images.dao, run.images.bazzi].includes(call[1])));
   assert.equal(calls.some(call => call[0] === 'fillRect'), false, 'no code-drawn fake KartRider character');
+  assert.ok(calls.filter(call => call[0] === 'drawImage' && [run.images.dao, run.images.bazzi].includes(call[1])).every(call => call[4] === call[5]), 'square rider-and-vehicle cells retain aspect ratio');
+});
+
+test('test_pink_kart_rolling_waves_require_moving_gaps_but_allow_normal_speed_avoidance', () => {
+  const run = scenarioFixture('kart_block');
+  let maxConcurrent = 0, changes = 0, previousSafe = 1;
+  for (let step = 0; step < 18 * 120; step++) {
+    const upcoming = run.scenario.snapshot.blockers.filter(item => item.x >= run.soul.x - item.r - run.soul.r).sort((a, b) => a.wave - b.wave);
+    const safe = upcoming[0]?.safeLane ?? previousSafe, target = [112, 159, 206][safe];
+    if (safe !== previousSafe) changes++;
+    previousSafe = safe; run.soul.oldY = run.soul.y;
+    run.soul.y += Math.sign(target - run.soul.y) * Math.min(Math.abs(target - run.soul.y), 126 / 120);
+    run.scenario.update(1 / 120, []); maxConcurrent = Math.max(maxConcurrent, run.scenario.snapshot.blockers.length);
+  }
+  assert.deepEqual(run.damage, [], 'a player following visible gaps can dodge every wave at the unchanged heart speed');
+  assert.ok(changes >= 10 && maxConcurrent >= 4, 'rolling waves demand repeated decisions before prior karts leave');
+  for (const y of [98, 112, 135.5, 159, 182.5, 206, 220]) {
+    const fixed = scenarioFixture('kart_block'); fixed.soul.y = y; fixed.soul.oldY = y;
+    for (let step = 0; step < 18 * 120; step++) fixed.scenario.update(1 / 120, []);
+    assert.ok(fixed.damage.length > 0, `fixed y=${y} cannot avoid every wave`);
+  }
+  run.scenario.dispose(); assert.deepEqual(run.scenario.snapshot.blockers, []);
+});
+
+test('test_pink_kart_warning_launch_and_staggered_boost_audio_follow_movement_not_destruction', () => {
+  const run = scenarioFixture('kart_block'); run.scenario.update(0.25, []);
+  const start = run.scenario.snapshot.blockers.map(item => item.x);
+  run.scenario.update(0.44, []);
+  assert.deepEqual(run.scenario.snapshot.blockers.map(item => item.x), start); assert.deepEqual(run.sounds, []);
+  run.scenario.update(0.02, []);
+  assert.ok(run.scenario.snapshot.blockers.every(item => item.x < start[0])); assert.equal(run.sounds.length, 1); assert.equal(run.sounds[0].sound, 'kart_booster');
+  run.scenario.update(0.65, []);
+  assert.equal(run.scenario.snapshot.blockers.filter(item => item.boosted).length, 1);
+  run.scenario.update(0.16, []);
+  assert.equal(run.scenario.snapshot.blockers.filter(item => item.boosted).length, 2);
+  const boosterCount = run.sounds.filter(item => item.sound === 'kart_booster').length;
+  const target = run.scenario.snapshot.blockers[0], shot = crossingShot(target, true);
+  run.scenario.update(0.001, [shot]);
+  assert.equal(run.sounds.filter(item => item.sound === 'kart_booster').length, boosterCount);
+  assert.equal(run.sounds.at(-1).sound, 'pop'); assert.equal(shot.dead, false, 'charge penetrates a kart');
+  assert.equal(run.scenario.snapshot.cleared, 1);
+});
+
+test('test_pink_kart_large_step_has_same_positions_and_catches_a_crossing_hazard', () => {
+  const coarse = scenarioFixture('kart_block'), fine = scenarioFixture('kart_block');
+  coarse.soul.y = 112; coarse.soul.oldY = 112; fine.soul.y = 112; fine.soul.oldY = 112;
+  coarse.scenario.update(2.4, []);
+  for (let step = 0; step < 240; step++) fine.scenario.update(0.01, []);
+  assert.equal(coarse.damage.length, 1); assert.equal(fine.damage.length, 1);
+  const actual = coarse.scenario.snapshot.blockers, expected = fine.scenario.snapshot.blockers;
+  assert.equal(actual.length, expected.length);
+  for (let index = 0; index < actual.length; index++) assert.ok(Math.abs(actual[index].x - expected[index].x) < 1e-6);
 });
 
 test('test_choimis_pink_kart_keeps_spawning_after_four_clears_until_mode_timer', () => {
@@ -106,6 +158,7 @@ test('test_choimis_pink_prism_clears_obstacles_but_keeps_bolts_after_former_core
   let shield = run.scenario.snapshot.shieldPositions[0];
   run.scenario.update(0.01, [crossingShot(shield, false)]);
   assert.equal(run.scenario.snapshot.shields, CHOIMIS_PINK_ROUNDS.pink_prism.shields, 'tap cannot silently break a shield');
+  assert.equal(run.sounds.at(-1).sound, 'pop', 'normal obstacle contact is audible without destroying it');
   while (run.scenario.snapshot.shields) {
     shield = run.scenario.snapshot.shieldPositions[0]; run.scenario.update(0.01, [crossingShot(shield, true)]);
   }
@@ -121,9 +174,11 @@ test('test_pink_boss_charged_projectile_deals_one_immediately_while_three_normal
     sfx(name, options) { sounds.push({ name, options }); },
     hitEnemy(target, member, damage, options) { calls.push({ target, member, damage, options }); target.hp -= damage; return damage; },
   };
-  const contact = createPinkBossContact(battle, enemy, () => {}), boss = { id: 'choimis-boss', x: 350, y: 159, oldX: 350, oldY: 159, r: 20 };
+  const indicators = [];
+  const contact = createPinkBossContact(battle, enemy, () => {}, (target, damage) => indicators.push({ target, damage })), boss = { id: 'choimis-boss', x: 350, y: 159, oldX: 350, oldY: 159, r: 20 };
   for (let index = 0; index < 2; index++) contact(crossingShot(boss), boss);
   assert.equal(enemy.hp, 5); assert.equal(enemy.pinkShotHits, 2);
+  assert.deepEqual(indicators, [], 'partial normal contacts do not pretend HP damage');
   const charged = crossingShot(boss, true);
   assert.equal(contact(charged, boss), true); assert.equal(contact(charged, boss), false, 'same charged projectile cannot damage the boss twice');
   assert.equal(enemy.hp, 4); assert.equal(enemy.pinkShotHits, 2, 'charged damage preserves the normal-shot remainder'); assert.equal(calls.length, 1);
@@ -131,7 +186,17 @@ test('test_pink_boss_charged_projectile_deals_one_immediately_while_three_normal
   assert.equal(enemy.hp, 3); assert.equal(enemy.pinkShotHits, 0); assert.equal(calls.length, 2);
   assert.ok(calls.every(call => call.member === null && call.damage === 1 && call.options.source === 'pink-shot' && call.options.sound === false));
   assert.equal(sounds.length, 4, 'each accepted projectile gets one impact cue');
+  assert.ok(sounds.every(item => item.name === 'pop' && item.options.volume === 0.384 && item.options.rate === 0.8), 'reuse Baron sea chase impact exactly');
+  assert.deepEqual(indicators, [{ target: boss, damage: 1 }, { target: boss, damage: 1 }]);
   enemy.dying = 0.5; assert.equal(contact(crossingShot(boss, true), boss), false, 'dying boss rejects postmortem charged hits');
+});
+
+test('test_pink_boss_blocked_damage_keeps_contact_sound_without_false_hp_indicator', () => {
+  const enemy = { hp: 5, dying: 0 }, sounds = [], indicators = [];
+  const contact = createPinkBossContact({ sfx: name => sounds.push(name), hitEnemy: () => 0 }, enemy, null, (_, damage) => indicators.push(damage));
+  const boss = { id: 'boss', x: 350, y: 159, r: 20 };
+  contact(crossingShot(boss, true), boss);
+  assert.deepEqual(sounds, ['pop']); assert.deepEqual(indicators, []); assert.equal(enemy.hp, 5);
 });
 
 function modeFixture(config) {
@@ -140,7 +205,7 @@ function modeFixture(config) {
   soul.x = 211; soul.y = 277; soul.invuln = 0.3;
   const old = { board: { ...board.rect, target: { ...board.target } }, soul: { x: soul.x, y: soul.y, invuln: soul.invuln } };
   const enemy = { id: 'choimis_flower', x: 396, y: 176, hp: 4, maxHp: 4, dead: false, dying: 0, patternPose: null, img: { width: 320, height: 320 }, def: { damage: 15, voice: 'choimis_flower' },
-    actionImages: { choso: { width: 320, height: 320 } }, projectiles: { dao: { width: 111, height: 120 }, bazzi: { width: 94, height: 120 } } };
+    actionImages: { choso: { width: 320, height: 320 } }, projectiles: { daoKart: { width: 64, height: 64 }, bazziKart: { width: 64, height: 64 } } };
   const soundHandles = [], sounds = [];
   const battle = { board, soul, bubble: null, rnd: () => 0.5, game: { sound: { blip() {}, sfx(name) { const handle = { name, paused: false, src: name, pause() { this.paused = true; }, removeAttribute() { this.src = ''; }, load() {} }; soundHandles.push(handle); return handle; } } }, sfx(name, options) { sounds.push({ name, options }); }, hurtParty() {}, hitEnemy(target, member, damage) { target.hp -= damage; return damage; }, drawTextBox() {} };
   return { board, soul, enemy, old, battle, soundHandles, sounds, mode: createChoimisPinkRound(battle, { enemy, config }) };
@@ -245,6 +310,54 @@ test('test_choso_preamble_transform_then_attack_line_precedes_eighteen_second_co
   enterRound(run); assert.equal(run.mode.snapshot.combatElapsed, 0);
 });
 
+test('test_choso_recorded_preamble_finishes_before_transform_without_voice_blips_and_cancels_on_dispose', () => {
+  const config = { scenario: 'choso', speak: '내 추구미는 쵸소우야', speakSfx: 'choimis_chosouya', speakDuration: 1.7 };
+  const run = modeFixture(config), blips = [];
+  run.battle.game.sound.blip = name => blips.push(name);
+  assert.deepEqual(run.soundHandles.map(handle => handle.name), ['choimis_chosouya']);
+  const speech = run.soundHandles[0]; speech.ended = false;
+  run.board.snap();
+  for (let step = 0; step < 18; step++) run.mode.update(0.1, none);
+  assert.equal(run.mode.snapshot.phase, 'prep', 'a still-playing recorded phrase is not cut by the text timer');
+  assert.deepEqual(blips, []); assert.equal(run.battle.bubble.shown, config.speak.length);
+  speech.ended = true; run.mode.update(0.01, none);
+  assert.equal(run.mode.snapshot.phase, 'transform'); assert.ok(speech.paused && speech.src === '');
+  run.mode.dispose();
+  const cancelled = modeFixture(config); cancelled.mode.dispose();
+  assert.ok(cancelled.soundHandles[0].paused && cancelled.soundHandles[0].src === '', 'cancel releases recorded speech');
+});
+
+test('test_pink_damage_indicator_is_local_to_the_moving_boss_and_expires_with_round_cleanup', () => {
+  const run = modeFixture({ scenario: 'choso', speak: '준비' }); enterRound(run);
+  run.soul.y = 195;
+  run.mode.update(0.01, none); run.mode.update(0.6, { down: key => key === 'confirm' }); run.mode.update(0.01, none);
+  for (let step = 0; step < 100 && !run.mode.snapshot.damageIndicators.length; step++) run.mode.update(0.01, none);
+  const snapshot = run.mode.snapshot, indicator = snapshot.damageIndicators[0];
+  assert.equal(run.enemy.hp, 3); assert.equal(indicator.text, '-1');
+  assert.equal(indicator.x, Math.round(snapshot.scenario.boss.x - 33));
+  assert.ok(indicator.y < snapshot.scenario.boss.y && indicator.y > BOX.y);
+  const calls = [], ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); }, set(target, key, value) { target[key] = value; return true; } });
+  run.mode.draw(ctx);
+  assert.ok(calls.some(call => call[0] === 'fillText' && call[1] === '-1' && call[2] === indicator.x && call[3] === indicator.y), 'HP text is drawn inside the pink arena beside the actual target');
+  run.mode.update(0.1, none);
+  const moved = run.mode.snapshot;
+  assert.notEqual(moved.damageIndicators[0].y, indicator.y);
+  assert.equal(moved.damageIndicators[0].x, Math.round(moved.scenario.boss.x - 33));
+  run.mode.update(0.6, none); assert.deepEqual(run.mode.snapshot.damageIndicators, []);
+  run.mode.dispose(); assert.deepEqual(run.mode.snapshot.damageIndicators, []);
+});
+
+test('test_prism_charge_rule_is_fully_readable_before_the_round_starts', () => {
+  const line = '차징해서 쏜 공격 아닌 이상 이 코어들은 무너지지 않아.';
+  const run = modeFixture({ scenario: 'pink_prism', speak: line }); run.board.snap();
+  run.mode.update(line.length * 0.03 - 0.01, none);
+  assert.equal(run.mode.snapshot.phase, 'prep'); assert.ok(run.battle.bubble.shown < line.length);
+  run.mode.update(0.02, none);
+  assert.equal(run.battle.bubble.shown, line.length); assert.equal(run.mode.snapshot.phase, 'prep');
+  run.mode.update(0.55, none); assert.equal(run.mode.snapshot.phase, 'combat'); assert.equal(run.mode.snapshot.combatElapsed, 0);
+  run.mode.dispose();
+});
+
 test('test_pink_round_panel_keeps_plain_controls_without_hit_count_objectives', () => {
   assert.equal(L.battle_choimis_pink_round_controls, '↑↓ 이동 · C 탭 발사 / 길게 눌러 충전');
   assert.doesNotMatch(L.battle_choimis_pink_round_controls, /3발|6번|4명|코어|피해/);
@@ -280,7 +393,7 @@ test('test_choimis_pink_round_production_configs_route_all_three_scenarios_throu
   const expected = ['choso', 'kart_block', 'pink_prism'];
 
   for (const scenario of expected) {
-    const patternIdx = def.patterns.findIndex(config => config.scenario === scenario);
+    const patternIdx = expected.indexOf(scenario) * 2 + 1;
     const enemy = { id: 'choimis_flower', name: def.name, def, hp: def.hp, maxHp: def.hp, dead: false, patternIdx,
       actionImages: { choso: { width: 320, height: 320 } }, projectiles: { dao: { width: 111, height: 120 }, bazzi: { width: 94, height: 120 } } };
     const battle = Object.assign(Object.create(Battle.prototype), {

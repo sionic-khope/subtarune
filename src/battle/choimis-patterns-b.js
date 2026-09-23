@@ -56,27 +56,27 @@ function drawMic(ctx, b) {
   ctx.fillStyle = '#fff'; ctx.fillRect(b.x + 18, b.y - 8, 3, 17); ctx.fillRect(b.x + 15, b.y + 7, 9, 3); ctx.restore();
 }
 
-function lyricBullet(api, text, order, column, options) {
-  const box = { ...api.box }, warn = Math.max(0.3, options.warn ?? 0.48), speed = options.speed ?? 104;
-  const lines = text === '래퍼딱지를때는중이젠MC로' ? ['래퍼딱지를때는중', '이젠MC로'] : [text];
-  const w = Math.min(box.w - 18, Math.max(...lines.map(line => line.length)) * 11 + 10), h = lines.length * 14 + 4;
-  const x = box.x + box.w * column, spawnY = box.y - 34;
-  api.emit({ shape: 'choimis_lyric', text, lines, order, column, direction: 'down', spawnY, x, y: spawnY,
-    w, h, r: 0, warn, life: warn + (box.h + 68) / speed, box,
+function lyricBullet(api, text, order, column, options, timing) {
+  const box = { ...api.box }, warn = Math.max(0.3, options.warn ?? 0.48), speed = options.speed ?? 136;
+  const fontSize = options.fontSize ?? 14, w = /[\uAC00-\uD7A3]/u.test(text) ? fontSize : fontSize * 0.65, h = fontSize;
+  const x = box.x + box.w * column, spawnY = box.y + fontSize / 2 + 3;
+  api.emit({ shape: 'choimis_lyric', text, lines: [text], fontSize, order, column, direction: 'down', spawnY, x, y: spawnY,
+    w, h, r: 0, warn, age: timing.age, fallAt: timing.fallAt, safeColumns: timing.safeColumns, life: warn + (box.h + fontSize) / speed, box,
     steer(b) { b.y = b.spawnY + Math.max(0, b.age - b.warn) * speed; },
     hitShape(b, soul) {
-      if (b.age < b.warn) return false;
-      return Math.abs(soul.x - b.x) <= b.w / 2 + soul.r - 2 && Math.abs(soul.y - b.y) <= b.h / 2 + soul.r - 2;
+      if (b.age < b.warn || b.age >= b.life || soul.x < box.x + 3 || soul.x > box.x + box.w - 3
+        || soul.y < box.y + 3 || soul.y > box.y + box.h - 3) return false;
+      const dx = Math.max(0, Math.abs(soul.x - b.x) - b.w / 2), dy = Math.max(0, Math.abs(soul.y - b.y) - b.h / 2);
+      return Math.hypot(dx, dy) <= Math.max(0, soul.r - 2);
     },
     drawShape(ctx, b) {
-      ctx.save(); clipArena(ctx, box); ctx.font = FONT.replace(/^\d+px/, '11px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.save(); clipArena(ctx, box); ctx.font = FONT.replace(/^\d+px/, `${b.fontSize}px`); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       if (b.age < b.warn) {
         ctx.strokeStyle = '#ff83bc'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
         ctx.strokeRect(Math.round(b.x - b.w / 2), box.y + 4, b.w, box.h - 8); ctx.setLineDash([]);
       }
       ctx.fillStyle = b.age < b.warn ? '#ff83bc' : '#fff';
-      const centerY = b.age < b.warn ? box.y + 10 + b.h / 2 : b.y;
-      b.lines.forEach((line, lineIndex) => ctx.fillText(line, Math.round(b.x), Math.round(centerY + (lineIndex - (b.lines.length - 1) / 2) * 14)));
+      ctx.fillText(b.text, Math.round(b.x), Math.round(b.y));
       ctx.restore();
     },
   });
@@ -195,16 +195,26 @@ function outfitBullet(api, look, direction, entryAt, safeGap, options) {
 export const CHOIMIS_PATTERNS_B = {
   choimis_rap: (options = {}) => {
     const duration = 19;
-    const chunks = ['@#$!@#!@#', '래퍼딱지를때는중이젠MC로'];
-    const columns = [0.18, 0.76, 0.46, 0.82, 0.28, 0.64, 0.18, 0.74, 0.42, 0.82, 0.25, 0.62, 0.18, 0.78, 0.48];
+    const glyphs = Array.from(options.lyrics ?? '').filter(glyph => !/\s/u.test(glyph));
+    const columns = [0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95];
+    const warn = Math.max(0.3, options.warn ?? 0.48), start = Math.max(3, options.lyricStart ?? 3);
+    const every = options.every ?? 0.085, burstSize = options.burstSize ?? 7, burstPause = options.burstPause ?? 0.45;
     let started = false, ended = false, video = null, index = 0;
     return { duration, update(t, dt, api) {
       if (!started) { started = true; video = api.startRapVideo?.(CHOIMIS_RAP_VIDEO) || null;
         const box = { ...api.box }; api.emit({ shape: 'choimis_mic', x: box.x + box.w / 2, y: box.y + box.h / 2, r: 0,
-        warn: Math.max(0.3, options.micWarn ?? 0.45), life: duration + 0.1, box, image: api.images?.mic,
+        warn: Math.max(start, options.micWarn ?? 3), life: duration + 0.1, box, image: api.images?.mic,
         spriteScale: options.micScale ?? 0.506, spritePivot: [80, 152], sourceBodyHeight: 123, hitShape: micHit, drawShape: drawMic }); }
       api.syncRapVideo?.(video, t);
-      while (index < columns.length && t >= 0.45 + index * 1.16) { lyricBullet(api, chunks[index % chunks.length], index, columns[index], options); index++; }
+      while (glyphs.length && t < duration) {
+        const burst = Math.floor(index / burstSize), slot = index % burstSize;
+        const fallAt = start + index * every + burst * burstPause, at = fallAt - warn;
+        if (t < at || fallAt + (api.box.h + (options.fontSize ?? 14)) / (options.speed ?? 136) >= duration - 0.2) break;
+        const gap = Math.floor(burst / 3) % 2 ? 5 : 0, safeColumns = columns.slice(gap, gap + 2);
+        const lanes = columns.filter((column, lane) => lane < gap || lane >= gap + 2);
+        const column = lanes[(slot * 2 + burst) % lanes.length];
+        lyricBullet(api, glyphs[index % glyphs.length], index, column, options, { age: t - at, fallAt, safeColumns }); index++;
+      }
       if (!ended && t + dt >= duration) { ended = true; api.stopRapVideo?.(video); }
     } };
   },
