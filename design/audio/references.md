@@ -662,6 +662,20 @@ BUILD252 일반 흰 드럼통 투척음 보강: `drum_throw.mp3`을 wing의 중�
 - 두 곡은 기존 동일 영상 등록이 없어 포맷251 전체를 MP3 q2로 변환했다. 구간·피치·속도·페이드·볼륨 가공 없음. 표시 업로더 `Toby Fox`, 게시20250604; 명시적 재배포 허가는 별도 확인하지 않았다. 전체 디코드 종료 코드0이며 실제 장면 재생·청취 검증과 구분한다. [재현·원본 위치·메타데이터·효과음 재사용 계약](../../assets/source/castle307-audio/README.md).
 - 철문은 기존 `locker`, 영클 레이저는 `laser_charge`/`laser_zap`, 발소리는 오브제맵의 `WATER_WALK` 루프+tail을 재사용한다. 마른 바닥은 `ripple:false`; 걸음별 one-shot으로 바꾸지 않는다.
 
+## BUILD310 말자하섭 토리이 전투 (2026-09-23)
+
+Q/W는 [Riot 공식 말자하 페이지](https://www.leagueoflegends.com/en-us/champions/malzahar/)의 스킬 시연 영상에서 추출했다. 원본 MP4·구간 선정 프레임·파형·변환 명령·SHA256은 [말자하 오디오 원본 기록](../../assets/source/malzahar310/audio/README.md)을 따른다.
+
+| 파일 | 공식 시연 원본과 절단 구간 | 장면 큐 |
+| --- | --- | --- |
+| `sfx/malzahar_q.mp3` | `ability_0090_Q1.mp4` 0.55–1.85초, +4dB | 두 보라 구체 발사 묶음1회 |
+| `sfx/malzahar_w.mp3` | `ability_0090_W1.mp4` 0.27–1.55초, +6dB | 공허충 세 마리 소환 묶음1회 |
+| `sfx/malzahar_dash.mp3` | 같은 Q 영상1.13–1.65초, +5.5dB | 커스텀 돌진 실제 출발1회 |
+
+각각48kHz stereo MP3 q2, 시작8ms/끝80ms 페이드다. 영상에서 잘라낸 소리이므로 배경/캐릭터 기합이 남을 수 있고 독립 분리된 원음이 아니다. 원작 E는 지속 피해/전염이며, 이번 돌진은 사용자 지정 대체 공격이다. `malzahar_dash`를 공식 E 효과음이라고 기록하지 않는다. 공식 E 영상은 조사 참고로만 보존한다. 공개 다운로드 가능 여부와 재배포 허가는 별개이며 별도 허가는 확인하지 않았다.
+
+반격은 기존 `impact`, 점프·베기·제동은 기존 runner 효과음을 재사용한다. 전투곡은 아래 BUILD308의 `castle_battle`, 도착은 BUILD307의 `castle_right`다. 파일 디코드·파형·시전 영상 타이밍 확인과 실제 청취는 구분하며, 새 소리의 주관적 음색/중첩 밸런스 청취를 완료했다고 주장하지 않는다.
+
 ## BUILD308 성 기억 전투 (2026-09-23)
 
 - `bgm/castle_battle.mp3`: 사용자 지정 [OobVFldn6As](https://www.youtube.com/watch?v=OobVFldn6As), yt-dlp 제목 `50. From Now On (Battle 2) (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 표시 업로더 Toby Fox, 게시20250604. 포맷251 WebM/Opus(48kHz stereo) 전체를 MP3 q2로 한 번 변환했다. 런타임은113.174063초·48kHz stereo·2,388,668바이트·SHA256 `f538c1d47b10819279f2e4837238bde95be08540f6cd8e9b6df2a522168d3179`; 트리밍·반복 편집·속도·피치·페이드·음량 가공 없음. 전체 디코드 종료코드0. [출처·재현·검증](../../assets/source/memory308/audio/README.md). 별도 유료 API/생성 비용0, 메타데이터 license는 null이며 재배포 허가 확인을 뜻하지 않는다.

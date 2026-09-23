@@ -17,4 +17,3 @@ export.py applies source-origin offsets, alpha threshold128, NEAREST, one consta
 Verified16 distinct actual poses through contact-preview-2x.png and runtime-half-scale-preview-4x.png: claw/gather/sword/kama windups, strikes and recoil. All16 finalframes nonempty, binaryalpha, zero opaque magenta, zero output-edge contact, zero clamp, everyfeet83. Four decoded frames perGIF;16distinct pixelhashes. Export script programming audit passes.
 
 Current CUA browser list is empty, so actual browser animation playback for THIS bundle is not claimed; parent in-game QA must check sequencing and defeat. preview.html is provided. Earlier boss bundle playback is separate evidence. No runtime edits or commits made.
-
