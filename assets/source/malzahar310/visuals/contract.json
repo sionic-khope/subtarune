@@ -1,0 +1,154 @@
+{
+  "requestId": "malzahar310",
+  "provider": "built-in image_gen",
+  "backendModel": "unknown",
+  "quality": "unknown",
+  "cost": "unknown",
+  "reference": "identity-reference.png",
+  "direction": "screen-left 3/4, two eyes and glasses visible",
+  "layout": "2 columns x 2 rows, row-major, zero-based",
+  "alpha": "binary 0/255, original native alpha retained then magenta cleanup and threshold128; no palette quantization",
+  "sampling": "NEAREST; shared boss raw-to-final magnification 96/542; voidling 44/519",
+  "actions": [
+    {
+      "name": "hover",
+      "path": "hover.png",
+      "cell": [
+        128,
+        128
+      ],
+      "pivot": [
+        64,
+        64
+      ],
+      "order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "durationMs": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "loop": true,
+      "returnTo": "hover",
+      "frames": "hover/frame-{0..3}.png",
+      "preview": "hover/final-animation.gif"
+    },
+    {
+      "name": "cast",
+      "path": "cast.png",
+      "cell": [
+        128,
+        128
+      ],
+      "pivot": [
+        64,
+        64
+      ],
+      "order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "durationMs": [
+        150,
+        200,
+        150,
+        180
+      ],
+      "loop": false,
+      "returnTo": "hover",
+      "frames": "cast/frame-{0..3}.png",
+      "preview": "cast/final-animation.gif"
+    },
+    {
+      "name": "dash",
+      "path": "dash.png",
+      "cell": [
+        128,
+        128
+      ],
+      "pivot": [
+        64,
+        64
+      ],
+      "order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "durationMs": [
+        240,
+        100,
+        120,
+        200
+      ],
+      "loop": false,
+      "returnTo": "hover",
+      "frames": "dash/frame-{0..3}.png",
+      "preview": "dash/final-animation.gif"
+    },
+    {
+      "name": "hit",
+      "path": "hit.png",
+      "cell": [
+        128,
+        128
+      ],
+      "pivot": [
+        64,
+        64
+      ],
+      "order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "durationMs": [
+        80,
+        130,
+        140,
+        180
+      ],
+      "loop": false,
+      "returnTo": "hover",
+      "frames": "hit/frame-{0..3}.png",
+      "preview": "hit/final-animation.gif"
+    },
+    {
+      "name": "voidling",
+      "path": "voidling.png",
+      "cell": [
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        32
+      ],
+      "order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "durationMs": [
+        90,
+        90,
+        90,
+        90
+      ],
+      "loop": true,
+      "returnTo": "voidling",
+      "frames": "voidling/frame-{0..3}.png",
+      "preview": "voidling/final-animation.gif"
+    }
+  ]
+}

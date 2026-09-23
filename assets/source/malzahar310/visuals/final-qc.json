@@ -1,0 +1,782 @@
+[
+  {
+    "action": "hover",
+    "sheet_size": [
+      256,
+      256
+    ],
+    "cell_size": 128,
+    "durations_ms": [
+      180,
+      180,
+      180,
+      180
+    ],
+    "frames": [
+      {
+        "index": 0,
+        "source_cell": [
+          0,
+          0,
+          627,
+          627
+        ],
+        "crop_cell_local": [
+          100,
+          63,
+          598,
+          605
+        ],
+        "source_rect_global": [
+          100,
+          63,
+          598,
+          605
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          21,
+          17,
+          108,
+          111
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "24b5a378dc7274fd25903662c54fca971b6e0456d75d968440edeb3faa618a05",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 1,
+        "source_cell": [
+          627,
+          0,
+          1254,
+          627
+        ],
+        "crop_cell_local": [
+          47,
+          58,
+          563,
+          597
+        ],
+        "source_rect_global": [
+          674,
+          58,
+          1190,
+          597
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          19,
+          16,
+          107,
+          111
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "12755c329da3d48ea22c7eb2609a03fc7b192f0c0a00a4f5972fd0abdd4dd7fb",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 2,
+        "source_cell": [
+          0,
+          627,
+          627,
+          1254
+        ],
+        "crop_cell_local": [
+          113,
+          31,
+          601,
+          579
+        ],
+        "source_rect_global": [
+          113,
+          658,
+          601,
+          1206
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          22,
+          16,
+          106,
+          110
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "426f1e706e30cb7616220097a64a21be211d18188548b298b37ada74d03e3192",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 3,
+        "source_cell": [
+          627,
+          627,
+          1254,
+          1254
+        ],
+        "crop_cell_local": [
+          62,
+          32,
+          580,
+          573
+        ],
+        "source_rect_global": [
+          689,
+          659,
+          1207,
+          1200
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          20,
+          17,
+          109,
+          110
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "72986bc16d0b725abdd3f340809c45bfbda7ab8577fd76555f9d0f1470284524",
+        "edge_touch": false,
+        "paste_clamped": false
+      }
+    ]
+  },
+  {
+    "action": "cast",
+    "sheet_size": [
+      256,
+      256
+    ],
+    "cell_size": 128,
+    "durations_ms": [
+      150,
+      200,
+      150,
+      180
+    ],
+    "frames": [
+      {
+        "index": 0,
+        "source_cell": [
+          0,
+          0,
+          627,
+          627
+        ],
+        "crop_cell_local": [
+          142,
+          69,
+          596,
+          602
+        ],
+        "source_rect_global": [
+          142,
+          69,
+          596,
+          602
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          24,
+          17,
+          104,
+          111
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "0c9383f59b36138a25c5633bbb3116dd5900f38ebe5a3e62cb5d9131032b8927",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 1,
+        "source_cell": [
+          627,
+          0,
+          1254,
+          627
+        ],
+        "crop_cell_local": [
+          39,
+          63,
+          552,
+          601
+        ],
+        "source_rect_global": [
+          666,
+          63,
+          1179,
+          601
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          18,
+          16,
+          109,
+          111
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "ebb567f3273ad0bd9341975b790396f5c9c0980cf150684dae5f4d73f1395ee0",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 2,
+        "source_cell": [
+          0,
+          627,
+          627,
+          1254
+        ],
+        "crop_cell_local": [
+          54,
+          36,
+          612,
+          557
+        ],
+        "source_rect_global": [
+          54,
+          663,
+          612,
+          1184
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          14,
+          18,
+          113,
+          110
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "3a6eb4faafc7fa2d04eb8a6c3c82f5fa21c1f69b76e1a16b96ceb241292237e4",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 3,
+        "source_cell": [
+          627,
+          627,
+          1254,
+          1254
+        ],
+        "crop_cell_local": [
+          77,
+          36,
+          573,
+          564
+        ],
+        "source_rect_global": [
+          704,
+          663,
+          1200,
+          1191
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          20,
+          17,
+          108,
+          111
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "63ce252dec5e608db62ad74d8d02bdae2b948c729a2070e13f10687821d6ca5d",
+        "edge_touch": false,
+        "paste_clamped": false
+      }
+    ]
+  },
+  {
+    "action": "dash",
+    "sheet_size": [
+      256,
+      256
+    ],
+    "cell_size": 128,
+    "durations_ms": [
+      240,
+      100,
+      120,
+      200
+    ],
+    "frames": [
+      {
+        "index": 0,
+        "source_cell": [
+          0,
+          0,
+          627,
+          627
+        ],
+        "crop_cell_local": [
+          155,
+          74,
+          563,
+          587
+        ],
+        "source_rect_global": [
+          155,
+          74,
+          563,
+          587
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          28,
+          18,
+          100,
+          109
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "164c0fc218459515067ede699a75967fd1c38e4fa96603d0718d17ffac5bb66f",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 1,
+        "source_cell": [
+          627,
+          0,
+          1254,
+          627
+        ],
+        "crop_cell_local": [
+          24,
+          100,
+          582,
+          565
+        ],
+        "source_rect_global": [
+          651,
+          100,
+          1209,
+          565
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          14,
+          23,
+          113,
+          105
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "5db94f2b622916a5ff8840c620b4ae73ab688e89b5fd6c8185c6f57903bc061c",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 2,
+        "source_cell": [
+          0,
+          627,
+          627,
+          1254
+        ],
+        "crop_cell_local": [
+          76,
+          65,
+          626,
+          499
+        ],
+        "source_rect_global": [
+          76,
+          692,
+          626,
+          1126
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          15,
+          25,
+          112,
+          102
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "5e7f3d34c65af96de649c310955897e6b61bd7439c6072b9e2ca640d026a6f37",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 3,
+        "source_cell": [
+          627,
+          627,
+          1254,
+          1254
+        ],
+        "crop_cell_local": [
+          97,
+          28,
+          577,
+          547
+        ],
+        "source_rect_global": [
+          724,
+          655,
+          1204,
+          1174
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          21,
+          18,
+          106,
+          110
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "eaef122ebb3ecec8ccc9160b3a6eab7c612e5db4ab51e8b74553fd6191036780",
+        "edge_touch": false,
+        "paste_clamped": false
+      }
+    ]
+  },
+  {
+    "action": "hit",
+    "sheet_size": [
+      256,
+      256
+    ],
+    "cell_size": 128,
+    "durations_ms": [
+      80,
+      130,
+      140,
+      180
+    ],
+    "frames": [
+      {
+        "index": 0,
+        "source_cell": [
+          0,
+          0,
+          627,
+          627
+        ],
+        "crop_cell_local": [
+          103,
+          65,
+          593,
+          595
+        ],
+        "source_rect_global": [
+          103,
+          65,
+          593,
+          595
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          21,
+          19,
+          106,
+          110
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "04fec383d58f12581e5f4efaa3c0a797ecc0c823239bb9afd77a9033468b258c",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 1,
+        "source_cell": [
+          627,
+          0,
+          1254,
+          627
+        ],
+        "crop_cell_local": [
+          47,
+          80,
+          611,
+          596
+        ],
+        "source_rect_global": [
+          674,
+          80,
+          1238,
+          596
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          15,
+          19,
+          112,
+          108
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "5fd5c5ff14e42d7caff2be6505a905fe60c3b3a39a06a96d94d9ca98fe23da0a",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 2,
+        "source_cell": [
+          0,
+          627,
+          627,
+          1254
+        ],
+        "crop_cell_local": [
+          97,
+          46,
+          612,
+          548
+        ],
+        "source_rect_global": [
+          97,
+          673,
+          612,
+          1175
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          20,
+          20,
+          108,
+          107
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "c2f8d95d0ac6d7d2a83b96809a32b2b03a5d31c1548ddc9091714a6197e2b180",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 3,
+        "source_cell": [
+          627,
+          627,
+          1254,
+          1254
+        ],
+        "crop_cell_local": [
+          65,
+          30,
+          590,
+          573
+        ],
+        "source_rect_global": [
+          692,
+          657,
+          1217,
+          1200
+        ],
+        "source_to_output_scale": 0.17712177121771217,
+        "output_bounds": [
+          19,
+          17,
+          109,
+          110
+        ],
+        "pivot": [
+          64,
+          64
+        ],
+        "sha256_rgba": "01139306f8af8cc4ca7f97b0cdd4d57a0c1f5257695a9417ca0a99acc469828b",
+        "edge_touch": false,
+        "paste_clamped": false
+      }
+    ]
+  },
+  {
+    "action": "voidling",
+    "sheet_size": [
+      128,
+      128
+    ],
+    "cell_size": 64,
+    "durations_ms": [
+      90,
+      90,
+      90,
+      90
+    ],
+    "frames": [
+      {
+        "index": 0,
+        "source_cell": [
+          0,
+          0,
+          627,
+          627
+        ],
+        "crop_cell_local": [
+          65,
+          161,
+          595,
+          515
+        ],
+        "source_rect_global": [
+          65,
+          161,
+          595,
+          515
+        ],
+        "source_to_output_scale": 0.08477842003853564,
+        "output_bounds": [
+          10,
+          17,
+          53,
+          46
+        ],
+        "pivot": [
+          32,
+          32
+        ],
+        "sha256_rgba": "563297f75effb9367a51d2e1de3eee5f5ce345f5d0fe3d16726156d5057ed403",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 1,
+        "source_cell": [
+          627,
+          0,
+          1254,
+          627
+        ],
+        "crop_cell_local": [
+          64,
+          161,
+          533,
+          512
+        ],
+        "source_rect_global": [
+          691,
+          161,
+          1160,
+          512
+        ],
+        "source_to_output_scale": 0.08477842003853564,
+        "output_bounds": [
+          12,
+          17,
+          51,
+          46
+        ],
+        "pivot": [
+          32,
+          32
+        ],
+        "sha256_rgba": "4879fecc901c1f7cb41be2bcfe5c64c9b85df4731102169ef3aa3f9edfc6302d",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 2,
+        "source_cell": [
+          0,
+          627,
+          627,
+          1254
+        ],
+        "crop_cell_local": [
+          79,
+          122,
+          583,
+          446
+        ],
+        "source_rect_global": [
+          79,
+          749,
+          583,
+          1073
+        ],
+        "source_to_output_scale": 0.08477842003853564,
+        "output_bounds": [
+          11,
+          18,
+          53,
+          44
+        ],
+        "pivot": [
+          32,
+          32
+        ],
+        "sha256_rgba": "837599b5ff20bc4722d2c33ad3bab0d77b2d624173f062b8a42c93bdd3414c7b",
+        "edge_touch": false,
+        "paste_clamped": false
+      },
+      {
+        "index": 3,
+        "source_cell": [
+          627,
+          627,
+          1254,
+          1254
+        ],
+        "crop_cell_local": [
+          49,
+          122,
+          548,
+          451
+        ],
+        "source_rect_global": [
+          676,
+          749,
+          1175,
+          1078
+        ],
+        "source_to_output_scale": 0.08477842003853564,
+        "output_bounds": [
+          12,
+          18,
+          52,
+          45
+        ],
+        "pivot": [
+          32,
+          32
+        ],
+        "sha256_rgba": "499f14b6d9755475758617521f5837c70b43729c063f8756f441cd7bcd632999",
+        "edge_touch": false,
+        "paste_clamped": false
+      }
+    ]
+  }
+]

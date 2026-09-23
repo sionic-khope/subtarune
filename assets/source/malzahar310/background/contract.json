@@ -1,0 +1,53 @@
+{
+  "requestId": "malzahar310-background",
+  "status": "working",
+  "provider": "built-in image_gen",
+  "generationBudget": 4,
+  "ids": [
+    "warwick",
+    "ezreal",
+    "yasuo",
+    "akali"
+  ],
+  "frames": 4,
+  "grid": [
+    2,
+    2
+  ],
+  "cell": [
+    96,
+    96
+  ],
+  "pivot": [
+    48,
+    48
+  ],
+  "direction": "screen-left 3/4 with both lenses visible",
+  "bodyHeightTarget": 70,
+  "poses": [
+    "idle",
+    "windup",
+    "strike",
+    "hurt"
+  ],
+  "durationMs": [
+    350,
+    220,
+    180,
+    250
+  ],
+  "runtimeScale": 0.48,
+  "sheet": [192, 192],
+  "feetY": 83,
+  "finalQc": "final-qc.json",
+  "generationCount": 4,
+  "identity": "Gajaeman broad cheeks, large round/U nose, black glasses, exactly2 red eyes, gray-blue skin; champion-specific silhouette; no facial smoke",
+  "palette": "gray-blue/charcoal/navy dark-power with restrained champion accent",
+  "sources": [
+    "https://www.leagueoflegends.com/en-us/champions/warwick/",
+    "https://www.leagueoflegends.com/en-us/champions/ezreal/",
+    "https://www.leagueoflegends.com/en-us/champions/yasuo/",
+    "https://www.leagueoflegends.com/en-us/champions/akali/"
+  ],
+  "ownership": "delivery and result only; no runtime changes or commits"
+}
