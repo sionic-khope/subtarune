@@ -59,6 +59,7 @@
  "preload": [
   "assets/backdrops/castle307_right.png",
   "assets/tiles/castle308_wall.png",
+  "assets/props/jjajang_stele.png",
   "assets/tiles/castle307_floor.png",
   "assets/tiles/castle307_moss.png",
   "assets/tiles/castle307_lava.png",
@@ -152,6 +153,45 @@
    "spawn": "start",
    "interact": false,
    "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "castle_memory_stele1",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 452,
+   "y": 788,
+   "w": 24,
+   "h": 12,
+   "ix": 442,
+   "iy": 708,
+   "solid": true,
+   "script": "castle_memory_stele1"
+  },
+  {
+   "type": "prop",
+   "id": "castle_memory_stele2",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1216,
+   "y": 676,
+   "w": 24,
+   "h": 12,
+   "ix": 1206,
+   "iy": 596,
+   "solid": true,
+   "script": "castle_memory_stele2"
+  },
+  {
+   "type": "prop",
+   "id": "castle_memory_stele3",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 772,
+   "y": 180,
+   "w": 24,
+   "h": 12,
+   "ix": 762,
+   "iy": 100,
+   "solid": true,
+   "script": "castle_memory_stele3"
   }
  ]
 }

@@ -57,7 +57,9 @@ import { shipLoungeScripts } from './cutscenes/ship_lounge.js';
 import { ship_lounge_briefing } from './cutscenes/ship_lounge_briefing.js';
 import { ship_invasion } from './cutscenes/ship_invasion.js';
 import { castle_lobby_intro, castle_lobby_left_block, castle_lobby_sealed, castle_lobby_enter, castle_lobby_right_enter } from './cutscenes/castle_lobby.js';
-import { castle_memory_sign, castle_memory_enter } from './cutscenes/castle_memory.js';
+import { castle_memory_sign, castle_memory_enter,
+  castle_memory_stele1, castle_memory_stele2, castle_memory_stele3,
+  castle_memory_stele4, castle_memory_stele5, castle_memory_stele6 } from './cutscenes/castle_memory.js';
 import { ship_castle } from './cutscenes/ship_castle.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
@@ -163,6 +165,8 @@ export const SCRIPTS = {
   ship_tvform_ending, ship_manhole, ship_lounge_briefing, ship_invasion, ...shipLoungeScripts,
   castle_lobby_intro, castle_lobby_left_block, castle_lobby_sealed, castle_lobby_enter, castle_lobby_right_enter,
   castle_memory_sign, castle_memory_enter,
+  castle_memory_stele1, castle_memory_stele2, castle_memory_stele3,
+  castle_memory_stele4, castle_memory_stele5, castle_memory_stele6,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,

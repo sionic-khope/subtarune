@@ -75,6 +75,14 @@ def main() -> None:
              'bgm': 'castle_battle', 'unless': f'{map_id}_{enemy_id}_defeated'}
             for enemy_id, col, row in enemy_cells
         ]
+        stele_bases = [(452, 788), (1216, 676), (772, 180)] if first else [(580, 1524), (352, 964), (1124, 788)]
+        steles = [
+            {'type': 'prop', 'id': f'castle_memory_stele{(number - 1) * 3 + index}',
+             'image': 'assets/props/jjajang_stele.png',
+             'x': x, 'y': y, 'w': 24, 'h': 12, 'ix': x - 10, 'iy': y - 80,
+             'solid': True, 'script': f'castle_memory_stele{(number - 1) * 3 + index}'}
+            for index, (x, y) in enumerate(stele_bases, start=1)
+        ]
         if first:
             spawns = {'start': {'x': 260, 'y': 1416, 'facing': 'up'},
                       'from_next': {'x': 164, 'y': 232, 'facing': 'right'},
@@ -104,12 +112,13 @@ def main() -> None:
             'backdrop': 'castle307_right', 'followScreenY': 250,
             'rows': [''.join(row) for row in cells],
             'preload': ['assets/backdrops/castle307_right.png', 'assets/tiles/castle308_wall.png',
+                        'assets/props/jjajang_stele.png',
                         *[f'assets/tiles/castle307_{suffix}.png'
                           for suffix in ('floor', 'moss', 'lava', 'lava_dark')]],
             'spawns': spawns,
             'meta': {'connected': True, 'route': [list(point) for point in route],
                      'walkSeconds': round(distance / WALK_SPEED, 2)},
-            'entities': [*enemies, *doors],
+            'entities': [*enemies, *doors, *steles],
         }
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:

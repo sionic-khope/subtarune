@@ -6,8 +6,19 @@ const ENCOUNTERS = Object.freeze([
   { id: 'jiroesub', flag: 'gajaeman_memory2_jiroesub_defeated', shapes: [['memory_kuromi'], ['memory_mine'], ['memory_web']] },
   { id: 'udyrsub', flag: 'gajaeman_memory2_udyrsub_defeated', shapes: [['memory_claw'], ['memory_mantle', 'memory_stampede'], ['memory_storm']] },
 ]);
+const CASTLE_QA = ['gajaeman_castle_entry', 'gajaeman_castle_approach', 'gajaeman_castle_lobby', 'gajaeman_castle_lobby_after', 'gajaeman_castle_right1', 'castle_memory_door', 'gajaeman_memory1', 'memory_seobruto', 'gajaeman_memory2', 'memory_jiroesub', 'memory_udyrsub', 'memory_end'];
+const TOMBSTONES = [
+  { id: 'castle_memory_stele1', qa: 'gajaeman_memory1', x: 452, y: 800, facing: 'up', text: '* 나도 사실은 이런대우가 싫었어. 나도 올라가고싶었어.' },
+  { id: 'castle_memory_stele2', qa: 'gajaeman_memory1', x: 1192, y: 676, facing: 'right', text: '* 이렇게 하면 사람들이 좋아해주니까 그런거였어' },
+  { id: 'castle_memory_stele3', qa: 'gajaeman_memory1', x: 772, y: 192, facing: 'up', text: '* 왜 나에게 창녀라고 하는거야?' },
+  { id: 'castle_memory_stele4', qa: 'memory_end', x: 580, y: 1536, facing: 'up', text: '* 자꾸 높이있는녀석들과 비교하지마, 나를 봐달란말이야' },
+  { id: 'castle_memory_stele5', qa: 'memory_end', x: 328, y: 964, facing: 'right', text: '* 하지마, 난 그런사람이 아니라고, 오해하지 말아줘' },
+  { id: 'castle_memory_stele6', qa: 'memory_end', x: 1124, y: 800, facing: 'up', text: '* 사실은 말이야, 나도 양지에 가고싶었어.' },
+];
+const updates = process.env.CASTLE_MEMORY_PHASE === 'updates';
 
 await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
+  page.on('pageerror', error => console.error('PAGEERROR', error.stack || error.message));
   const key = async code => { await press(code, { delay: 45 }); await page.waitForTimeout(100); };
   const field = () => until(() => game.state === 'field' && !game.battle && !game.dialogue.running && !game.transitioning && game.fade.alpha < 0.01, 25000);
   const walk = async (code, predicate, label, timeout = 15000) => {
@@ -48,13 +59,14 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
     }
   };
   const observePattern = async (enemy, patternIndex, expectedShapes) => {
+    if (updates) { await page.setViewportSize({ width: [375, 768, 1280][patternIndex], height: 900 }); await page.waitForTimeout(120); }
     await pickAll();
     assert.ok(await until(() => game.battle?.state === 'enemy-prep', 10000), `${enemy} pattern ${patternIndex + 1} prepares`);
     assert.equal(await page.evaluate(() => game.sound.bgmName), 'castle_battle');
     assert.ok(await until(() => game.battle?.state === 'bullets', 8000), `${enemy} pattern ${patternIndex + 1} starts`);
     await fixture(`${enemy}-pattern-${patternIndex + 1}-observer`, 'Keep the soul invulnerable only while observing this full configured hazard timeline; warning, hazard emission, cast frames and return are real, but this is not evidence of human avoidance difficulty.', () => { game.battle.soul.invuln = 999; });
     let warning = false, active = false, maxBullets = 0;
-    const frames = new Set(), shapes = new Set(); let captured = false;
+    const frames = new Set(), shapes = new Set(); let captured = false, warningCaptured = false, recoveryCaptured = false;
     const started = Date.now();
     while (Date.now() - started < 10000) {
       const sample = await page.evaluate(() => {
@@ -72,9 +84,15 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
         if (!bullet.harmless && bullet.age < bullet.warn) warning = true;
         if (!bullet.harmless && bullet.age >= bullet.warn) active = true;
       }
-      if (!captured && warning && active && frames.has(1) && (frames.has(2) || enemy === 'jiroesub' && patternIndex === 2)) {
-        await shot(`${enemy}-pattern-${patternIndex + 1}`);
+      if (updates && !warningCaptured && sample.pose === 1 && warning) {
+        await shot(`${enemy}-pattern-${patternIndex + 1}-warning-${[375, 768, 1280][patternIndex]}`); warningCaptured = true;
+      }
+      if (!captured && warning && active && sample.pose === (enemy === 'jiroesub' && patternIndex === 2 ? 0 : 2)) {
+        await shot(`${enemy}-pattern-${patternIndex + 1}${updates ? '-' + [375, 768, 1280][patternIndex] : ''}`);
         captured = true;
+      }
+      if (updates && !recoveryCaptured && sample.pose === 3) {
+        await shot(`${enemy}-pattern-${patternIndex + 1}-recovery-${[375, 768, 1280][patternIndex]}`); recoveryCaptured = true;
       }
       await page.waitForTimeout(40);
     }
@@ -82,13 +100,18 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
     const expectedFrames = enemy === 'jiroesub' && patternIndex === 2 ? [1, 0, 3] : [1, 2, 3];
     check(`${enemy} pattern ${patternIndex + 1} has warning, active hazard, cast and recovery`, warning && active && maxBullets > 0 && expectedFrames.every(frame => frames.has(frame)), JSON.stringify({ frames: [...frames], shapes: [...shapes], maxBullets }));
     check(`${enemy} pattern ${patternIndex + 1} emits its configured hazards`, expectedShapes.every(shape => shapes.has(shape)), JSON.stringify([...shapes]));
+    if (updates) check(`${enemy} pattern ${patternIndex + 1} warning, release and recovery were captured`, captured && warningCaptured && recoveryCaptured);
   };
   const encounter = async config => {
-    assert.ok(await until(() => !!game.battle, 12000), `${config.id} natural collision starts battle`);
+    assert.ok(await until(() => !!game.battle, 12000), `${config.id} ${updates ? 'standard encounter fixture' : 'natural collision'} starts battle`);
     await finishIntro();
     const initial = await page.evaluate(() => ({ id: game.battle.enemies[0].id, hp: game.battle.enemies[0].maxHp,
       patterns: game.battle.enemies[0].def.patterns.map(pattern => pattern.type), bgm: game.sound.bgmName }));
     check(`${config.id} starts at HP50 with three patterns and castle BGM`, initial.id === config.id && initial.hp === 50 && initial.patterns.length === 3 && initial.bgm === 'castle_battle', JSON.stringify(initial));
+    if (updates) {
+      for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`${config.id}-neutral-${width}`); }
+      await page.setViewportSize({ width: 1000, height: 780 });
+    }
     if (config.id === 'seobruto') {
       for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`battle-intro-${width}`); }
       await page.setViewportSize({ width: 1000, height: 780 });
@@ -105,6 +128,7 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
       });
       check('battle background visibly contains black field and purple aura', palette.black > palette.sampled * 0.45 && palette.purple > 100, JSON.stringify(palette));
     }
+    await fixture(`${config.id}-three-turn-observation-hp`, 'The production enemy was verified at HP50 above. Temporarily set current and display maximum enemy HP to500 so the strengthened attack5 party can show all three real pattern turns. This is an observation fixture, not natural combat length or balance evidence; the victory fixture resets remaining HP to1 afterward.', () => { game.battle.enemies[0].hp = 500; game.battle.enemies[0].maxHp = 500; });
     for (let index = 0; index < config.shapes.length; index++) await observePattern(config.id, index, config.shapes[index]);
     await fixture(`${config.id}-victory-boundary`, 'After observing all three full enemy turns, set only the remaining enemy HP to one so the standard victory/return/save path finishes promptly.', () => { game.battle.enemies[0].hp = 1; });
     await pickAll();
@@ -115,6 +139,83 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
     const returned = await state();
     check(`${config.id} win persists and restores castle field BGM`, returned.flags[config.flag] === true && returned.bgm === 'castle_right' && !returned.enemies.includes(config.id), JSON.stringify(returned));
   };
+
+  if (updates) {
+    await open({ qa: 'castle_memory_door' }); assert.ok(await field());
+    const stats = () => page.evaluate(() => ({ attack: game.attack, hpBonus: game.hpBonus, money: game.money, inventory: [...game.inventory],
+      maximum: ['hyungsub', 'gyeongsub', 'ppaman'].map(id => game.maxHpOf(id)), hp: ['hyungsub', 'gyeongsub', 'ppaman'].map(id => game.hpOf(id)),
+      strongCialis: !!game.flags.shop_yongjun_strong_cialis, strongVaseline: !!game.flags.shop_yongjun_strong_vaseline }));
+    for (const qa of CASTLE_QA) {
+      await open({ qa });
+      assert.ok(await until(() => !!window.game?.player && !game.transitioning, 20000), `${qa} fresh-page QA loads`);
+      const actual = await stats();
+      check(`${qa} has attack5 and full HP180/200/170`, actual.attack === 5 && actual.hpBonus === 80 && actual.strongCialis && actual.strongVaseline
+        && JSON.stringify(actual.maximum) === '[180,200,170]' && JSON.stringify(actual.hp) === '[180,200,170]', JSON.stringify(actual));
+    }
+    assert.ok(await field());
+    const settledSnapshots = [await stats()];
+    for (let repeat = 0; repeat < 2; repeat++) {
+      await fixture(`memory-end-settled-reconstruct-${repeat + 1}`, 'Repeat production QA reconstruction only after the memory-end field has settled. This verifies same-instance idempotence without interrupting an active lobby cutscene; the separate failed diagnostic records that active-cutscene cancellation boundary.', async () => {
+        const { QA_POINTS } = await import('/src/core/story.js');
+        await game.devJump(QA_POINTS.find(point => point.id === 'memory_end'));
+      });
+      assert.ok(await field()); settledSnapshots.push(await stats());
+    }
+    check('settled castle QA reconstruction does not accumulate upgrades, money or inventory', settledSnapshots.every(snapshot => JSON.stringify(snapshot) === JSON.stringify(settledSnapshots[0])), JSON.stringify(settledSnapshots));
+    await open({ qa: 'choimis_return' }); assert.ok(await field());
+    const beforeShop = await stats();
+    check('pre-rescue-shop QA keeps attack4 and optional strong upgrades unpurchased', beforeShop.attack === 4 && beforeShop.hpBonus === 60 && !beforeShop.strongCialis && !beforeShop.strongVaseline, JSON.stringify(beforeShop));
+    if (process.env.CASTLE_MEMORY_UPDATES_ONLY === 'qa') return;
+    for (const stone of TOMBSTONES) {
+      await open({ qa: stone.qa }); assert.ok(await field());
+      await fixture(`${stone.id}-approach`, 'Place the party on the documented adjacent walkable inspection spot. Both reads use real C input and the production interaction probe; no script or progression flag is invoked by the fixture.', target => {
+        game.player.x = target.x; game.player.y = target.y; game.player.facing = target.facing; game.player.trail = [];
+        for (const entity of game.entities) if (entity.def?.type === 'follower') entity.snapBehind();
+        game.camera.snap();
+      }, stone);
+      await page.waitForTimeout(120);
+      check(`${stone.id} is reached by the normal C probe`, await page.evaluate(id => game.player.probe()?.id === id, stone.id));
+      const before = await page.evaluate(() => ({ flags: { ...game.flags }, money: game.money, inventory: [...game.inventory] }));
+      for (let repeat = 0; repeat < 2; repeat++) {
+        await key('KeyC');
+        assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 10000), `${stone.id} text is visible`);
+        const node = await page.evaluate(() => ({ text: game.textbox.node?.text, voice: game.textbox.node?.voice, speaker: game.textbox.node?.speaker, portrait: game.textbox.node?.portrait }));
+        check(`${stone.id} read${repeat + 1} gives exact narrator text without portrait`, node.text === stone.text && node.voice === 'narrator' && !node.speaker && !node.portrait, JSON.stringify(node));
+        const pagination = await page.evaluate(() => ({ count: game.textbox.pages.length, page: game.textbox.page }));
+        let pagesSeen = 0;
+        while (await page.evaluate(() => game.dialogue.running)) {
+          assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 10000));
+          if (repeat === 0) for (const width of [375, 768, 1280]) {
+            await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(80); await shot(`${stone.id}-page${pagesSeen + 1}-${width}`);
+          }
+          pagesSeen++;
+          await key('KeyC');
+          await until(() => !game.dialogue.running || game.textbox.state === 'waiting', 10000);
+        }
+        check(`${stone.id} read${repeat + 1} advances through every laid-out page`, pagesSeen === pagination.count, JSON.stringify({ pagesSeen, pagination }));
+        assert.ok(await field());
+      }
+      const after = await page.evaluate(() => ({ flags: { ...game.flags }, money: game.money, inventory: [...game.inventory] }));
+      check(`${stone.id} remains repeatable without progression or reward mutations`, JSON.stringify(before) === JSON.stringify(after));
+    }
+    for (const config of ENCOUNTERS) {
+      await open({ qa: `memory_${config.id}` }); assert.ok(await field());
+      await fixture(`${config.id}-field-palette-observation`, 'Move the viewing position near this already-spawned enemy and pause its movement and encounter cooldown for responsive field screenshots; this is an appearance fixture, not natural approach evidence.', id => {
+        const enemy = game.entities.find(entity => entity.id === id);
+        enemy.cool = 999; enemy.chaseSpeed = 0; enemy.wander = 0;
+        game.player.x = enemy.x + (id === 'jiroesub' ? 110 : -110); game.player.y = enemy.y; game.player.trail = [];
+        for (const entity of game.entities) if (entity.def?.type === 'follower') entity.snapBehind();
+        game.camera.snap();
+      }, config.id);
+      for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`${config.id}-field-${width}`); }
+      await page.setViewportSize({ width: 1000, height: 780 });
+      await fixture(`${config.id}-direct-encounter-observation`, 'Invoke the existing standard encounter on this field enemy for updated artwork and nine real turn timelines, including production return and victory persistence. This shortcut is not natural collision evidence; the existing full phase retains the door-to-collision route.', id => {
+        game.startEncounter(game.entities.find(entity => entity.id === id));
+      }, config.id);
+      await encounter(config);
+    }
+    return;
+  }
 
   if (process.env.CASTLE_MEMORY_PHASE === 'entry') {
     await open({ qa: 'gajaeman_memory1' }); assert.ok(await field());
