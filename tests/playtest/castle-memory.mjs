@@ -116,6 +116,30 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
     check(`${config.id} win persists and restores castle field BGM`, returned.flags[config.flag] === true && returned.bgm === 'castle_right' && !returned.enemies.includes(config.id), JSON.stringify(returned));
   };
 
+  if (process.env.CASTLE_MEMORY_PHASE === 'entry') {
+    await open({ qa: 'gajaeman_memory1' }); assert.ok(await field());
+    await fixture('memory1-next-threshold', 'Place the party beside the already-walked memory1 west exit to focus this run on the real map1→map2 transition and responsive entry composition.', () => {
+      game.player.x = 20; game.player.y = 232; game.player.facing = 'left'; game.player.trail = [];
+      for (const entity of game.entities) if (entity.def?.type === 'follower') entity.snapBehind();
+      game.camera.snap();
+    });
+    await walk('ArrowLeft', () => game.mapId === 'gajaeman_memory2', 'actual memory1 exit enters memory2'); assert.ok(await field());
+    const entry = await page.evaluate(() => ({ player: [game.player.x, game.player.y], cameraX: game.camera.x,
+      actors: [game.player, ...game.entities.filter(entity => entity.def?.type === 'follower')].map(entity => ({ id: entity.id || 'player', screenX: entity.x - game.camera.x })) }));
+    check('memory2 entry keeps the full party inside the logical screen', entry.actors.length === 3 && entry.actors.every(actor => actor.screenX >= 40 && actor.screenX <= 400), JSON.stringify(entry));
+    for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`memory2-entry-${width}`); }
+    await fixture('memory2-return-threshold', 'Place the party beside the existing memory2 return threshold to verify the paired transition without altering story flags.', () => {
+      game.player.x = 1570; game.player.y = 1576; game.player.facing = 'right'; game.player.trail = []; game.camera.snap();
+    });
+    await walk('ArrowRight', () => game.mapId === 'gajaeman_memory1', 'memory2 return enters memory1'); assert.ok(await field());
+    const returned = await page.evaluate(() => ({ map: game.mapId, player: [game.player.x, game.player.y], cameraX: game.camera.x,
+      actors: [game.player, ...game.entities.filter(entity => entity.def?.type === 'follower')].map(entity => ({ id: entity.id || 'player', screenX: entity.x - game.camera.x })) }));
+    check('memory2 return lands at the matching memory1 spawn with the full party visible', returned.map === 'gajaeman_memory1' && Math.abs(returned.player[0] - 164) < 8 && Math.abs(returned.player[1] - 232) < 8
+      && returned.actors.length === 3 && returned.actors.every(actor => actor.screenX >= 48 && actor.screenX <= 440), JSON.stringify(returned));
+    for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`memory2-return-${width}`); }
+    return;
+  }
+
   await open({ qa: 'castle_memory_door' }); assert.ok(await field());
   for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`memory-door-${width}`); }
   await page.setViewportSize({ width: 1000, height: 780 });

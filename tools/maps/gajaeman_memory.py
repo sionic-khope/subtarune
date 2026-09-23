@@ -77,7 +77,7 @@ def main() -> None:
         ]
         if first:
             spawns = {'start': {'x': 260, 'y': 1416, 'facing': 'up'},
-                      'from_next': {'x': 68, 'y': 232, 'facing': 'right'},
+                      'from_next': {'x': 164, 'y': 232, 'facing': 'right'},
                       'before_seobruto': {'x': 580, 'y': 840, 'facing': 'right'},
                       'end': {'x': 68, 'y': 232, 'facing': 'left'}}
             doors = [
@@ -88,7 +88,7 @@ def main() -> None:
                  'to': 'gajaeman_memory2', 'spawn': 'start', 'interact': False, 'sfx': False},
             ]
         else:
-            spawns = {'start': {'x': 1508, 'y': 1576, 'facing': 'left'},
+            spawns = {'start': {'x': 1412, 'y': 1576, 'facing': 'left'},
                       'before_jiroesub': {'x': 964, 'y': 1576, 'facing': 'left'},
                       'before_udyrsub': {'x': 740, 'y': 840, 'facing': 'right'},
                       'end': {'x': 1284, 'y': 200, 'facing': 'up'}}

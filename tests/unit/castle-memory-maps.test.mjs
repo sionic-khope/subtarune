@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { getTile } from '../../src/world/tiles.js';
-import { Entity, Player, TileMap, freeSpot } from '../../src/world/world.js';
+import { Camera, CHAR_SCALE, Entity, Follower, Player, RENDER_SCALE, SCREEN_W, TileMap, freeSpot } from '../../src/world/world.js';
 import { castle_memory_sign, castle_memory_enter } from '../../src/data/cutscenes/castle_memory.js';
 
 const readMap = id => JSON.parse(fs.readFileSync(`assets/maps/${id}.json`, 'utf8'));
@@ -63,6 +63,39 @@ test('memory maps have one then two independent persistent encounters', () => {
     assert.equal(enemy.bgm, 'castle_battle');
     assert.equal(map.battleBg, 'castle_memory');
     assert.equal(map.bgm, 'castle_right');
+  }
+});
+
+for (const [mapId, spawn, facing] of [
+  ['gajaeman_memory2', 'start', 'left'],
+  ['gajaeman_memory1', 'from_next', 'right'],
+]) test(`${mapId}.${spawn} leaves the complete party sprite frames inside the camera edge`, () => {
+  const def = readMap(mapId);
+  const game = { map: new TileMap(def), entities: [] };
+  game.player = new Entity({ ...def.spawns[spawn], sprite: 'hyungsub' }, game);
+  const actors = [game.player];
+  for (const [slot, sprite] of ['gyeongsub', 'ppaman'].entries()) {
+    const follower = new Entity({ type: 'follower', sprite, solid: false }, game);
+    follower.gap = 48 * (slot + 1);
+    Follower.prototype.snapBehind.call(follower);
+    actors.push(follower);
+    game.entities.push(follower);
+  }
+  const camera = new Camera();
+  camera.target = game.player; camera.map = game.map; camera.snap();
+  assert.equal(game.player.facing, facing);
+  const entranceClearance = facing === 'left' ? game.map.pxW - game.player.x : game.player.x;
+  assert.ok(entranceClearance >= 160);
+  for (const actor of actors) {
+    const png = fs.readFileSync(`assets/sprites/${actor.def.sprite}.png`);
+    const frameWidth = Math.round(png.readUInt32BE(16) / 4 / RENDER_SCALE * CHAR_SCALE);
+    const left = Math.round(actor.x + actor.w / 2 - frameWidth / 2 - camera.x);
+    assert.ok(left >= 16 && left + frameWidth <= SCREEN_W - 16, actor.def.sprite);
+    assert.equal(game.map.solidRect(actor.x, actor.y, actor.w, actor.h), false);
+  }
+  for (const door of def.entities.filter(entity => entity.type === 'door')) {
+    const exit = new Entity(door, game);
+    assert.ok(actors.every(actor => !exit.overlaps(actor.rect)));
   }
 });
 
