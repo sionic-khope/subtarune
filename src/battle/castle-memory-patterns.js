@@ -126,9 +126,9 @@ function ring(api, center, radius, gapAngle, shape, hold = 1.2) {
 function rasengan(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.45, clock.duration - 1.5, () => {
+    clock.due(t, 1.16, clock.duration - 1.5, () => {
       const side = wave++ % 2 ? -1 : 1, b = api.box;
-      projectile(api, { x: side > 0 ? b.x + 9 : b.x + b.w - 9, y: clamp(api.soul.y, b.y + 18, b.y + b.h - 18), vx: side * 155, r: 13, shape: 'memory_rasengan' });
+      projectile(api, { x: side > 0 ? b.x + 9 : b.x + b.w - 9, y: clamp(api.soul.y, b.y + 18, b.y + b.h - 18), vx: side * 180, r: 13, shape: 'memory_rasengan' });
       api.sfx?.('spearappear');
     }); clock.pose(t, api);
   } };
@@ -137,9 +137,9 @@ function rasengan(o = {}) {
 function shuriken(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.35, clock.duration - 1.5, () => {
+    clock.due(t, 1.08, clock.duration - 1.5, () => {
       const b = api.box, gap = [1, 4, 0, 3][wave++ % 4];
-      for (let col = 0; col < 6; col++) if (col !== gap) projectile(api, { ...point(b, (col + 0.5) / 6, 0.04), vy: 150, r: 11, draw: drawShuriken, shape: 'memory_shuriken' });
+      for (let col = 0; col < 6; col++) if (col !== gap) projectile(api, { ...point(b, (col + 0.5) / 6, 0.04), vy: 175, r: 11, draw: drawShuriken, shape: 'memory_shuriken' });
       api.sfx?.('heavyswing');
     }); clock.pose(t, api);
   } };
@@ -148,11 +148,11 @@ function shuriken(o = {}) {
 function crossThrow(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.75, clock.duration - 1.6, () => {
+    clock.due(t, 1.4, clock.duration - 1.6, () => {
       const b = api.box, side = wave++ % 2 ? -1 : 1, y = b.y + b.h * (wave % 2 ? 0.3 : 0.7);
-      projectile(api, { x: side > 0 ? b.x + 8 : b.x + b.w - 8, y, vx: side * 140, r: 14, shape: 'memory_rasengan' });
+      projectile(api, { x: side > 0 ? b.x + 8 : b.x + b.w - 8, y, vx: side * 165, r: 14, shape: 'memory_rasengan' });
       const star = point(b, side > 0 ? 0.94 : 0.06, 0.08), dx = api.soul.x - star.x, dy = api.soul.y - star.y, d = Math.hypot(dx, dy) || 1;
-      projectile(api, { ...star, vx: dx / d * 130, vy: dy / d * 130, r: 9, draw: drawShuriken, shape: 'memory_shuriken' });
+      projectile(api, { ...star, vx: dx / d * 150, vy: dy / d * 150, r: 9, draw: drawShuriken, shape: 'memory_shuriken' });
       api.sfx?.('heavyswing');
     }); clock.pose(t, api);
   } };
@@ -161,9 +161,9 @@ function crossThrow(o = {}) {
 function kuromi(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.4, clock.duration - 1.5, () => {
+    clock.due(t, 1.12, clock.duration - 1.5, () => {
       const b = api.box, side = wave++ % 2 ? -1 : 1, img = whiteSprite(api.images?.kuromi, 0.08);
-      for (const lane of [clamp((api.soul.y - b.y) / b.h, 0.08, 0.92), wave % 2 ? 0.72 : 0.22]) projectile(api, { ...point(b, side > 0 ? 0.06 : 0.94, lane), vx: side * 95, r: 10, shape: 'memory_kuromi',
+      for (const lane of [clamp((api.soul.y - b.y) / b.h, 0.08, 0.92), wave % 2 ? 0.72 : 0.22]) projectile(api, { ...point(b, side > 0 ? 0.06 : 0.94, lane), vx: side * 115, r: 10, shape: 'memory_kuromi',
         draw(ctx, s) { if (img) ctx.drawImage(img, Math.round(s.x - 13), Math.round(s.y - 15), 26, 30); } });
       api.sfx?.('wing');
     }); clock.pose(t, api);
@@ -173,22 +173,23 @@ function kuromi(o = {}) {
 function mines(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.2, clock.duration - 1.4, () => {
+    clock.due(t, 0.96, clock.duration - 1.4, () => {
       const b = api.box;
-      mine(api, { x: clamp(api.soul.x, b.x + 24, b.x + b.w - 24), y: clamp(api.soul.y, b.y + 24, b.y + b.h - 24) }, 23, 0.8);
-      mine(api, point(b, wave++ % 2 ? 0.24 : 0.76, 0.5), 18, 0.8);
+      mine(api, { x: clamp(api.soul.x, b.x + 24, b.x + b.w - 24), y: clamp(api.soul.y, b.y + 24, b.y + b.h - 24) }, 23, 1.0);
+      mine(api, point(b, wave++ % 2 ? 0.24 : 0.76, 0.5), 18, 1.0);
       api.sfx?.('locker');
     }); clock.pose(t, api);
   } };
 }
-// Rear-facing cast lays two diverging silk strands; their broad middle wedge stays open.
+// Rear-facing silk leaves a middle wedge; alternate casts mark a mine there to force repositioning.
 function web(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.75, clock.duration - 1.6, () => {
+    clock.due(t, 1.4, clock.duration - 1.6, () => {
       const b = api.box, left = wave++ % 2 === 0;
       const origin = point(b, left ? 0.02 : 0.98, 0.5);
-      for (const y of [0.08, 0.92]) line(api, origin, point(b, left ? 0.98 : 0.02, y), 6, 'memory_web', 0.95);
+      for (const y of [0.08, 0.92]) line(api, origin, point(b, left ? 0.98 : 0.02, y), 6, 'memory_web', 1.1);
+      if (wave % 2 === 0) mine(api, { x: clamp(api.soul.x, b.x + 22, b.x + b.w - 22), y: clamp(api.soul.y, b.y + 22, b.y + b.h - 22) }, 18, 0.6);
       api.sfx?.('spearappear');
     }); clock.pose(t, api, 'web');
   } };
@@ -197,11 +198,11 @@ function web(o = {}) {
 function claw(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.35, clock.duration - 1.4, () => {
+    clock.due(t, 1.08, clock.duration - 1.4, () => {
       const b = api.box, aim = clamp(api.soul.x, b.x + 20, b.x + b.w - 20), slope = wave++ % 2 ? -18 : 18;
       for (let i = 0; i < 3; i++) {
         const x = clamp(aim + (i - 1) * 20, b.x + 7, b.x + b.w - 7);
-        line(api, { x: clamp(x - slope, b.x + 5, b.x + b.w - 5), y: b.y + 4 }, { x: clamp(x + slope, b.x + 5, b.x + b.w - 5), y: b.y + b.h - 4 }, 9, 'memory_claw', 0.35);
+        line(api, { x: clamp(x - slope, b.x + 5, b.x + b.w - 5), y: b.y + 4 }, { x: clamp(x + slope, b.x + 5, b.x + b.w - 5), y: b.y + b.h - 4 }, 9, 'memory_claw', 0.44);
       }
       api.sfx?.('heavyswing');
     }); clock.pose(t, api);
@@ -211,11 +212,11 @@ function claw(o = {}) {
 function mantleStampede(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.85, clock.duration - 1.7, () => {
+    clock.due(t, 1.48, clock.duration - 1.7, () => {
       const b = api.box, side = wave++ % 2 ? -1 : 1;
-      ring(api, point(b, 0.5, 0.5), 45, side > 0 ? 0 : Math.PI, 'memory_mantle', 1.05);
+      ring(api, point(b, 0.5, 0.5), 45, side > 0 ? 0 : Math.PI, 'memory_mantle', 1.25);
       const y = clamp(api.soul.y, b.y + 12, b.y + b.h - 12);
-      line(api, { x: b.x + 4, y }, { x: b.x + b.w - 4, y }, 18, 'memory_stampede', 0.42);
+      line(api, { x: b.x + 4, y }, { x: b.x + b.w - 4, y }, 18, 'memory_stampede', 0.52);
       api.sfx?.('baron_slam');
     }); clock.pose(t, api);
   } };
@@ -224,7 +225,7 @@ function mantleStampede(o = {}) {
 function storm(o = {}) {
   const clock = timeline(o.duration ?? MEMORY_TIMING.duration); let wave = 0;
   return { duration: clock.duration, update(t, dt, api) {
-    clock.due(t, 1.3, clock.duration - 1.4, () => {
+    clock.due(t, 1.04, clock.duration - 1.4, () => {
       const b = api.box, center = { x: clamp(api.soul.x, b.x + 18, b.x + b.w - 18), y: clamp(api.soul.y, b.y + 18, b.y + b.h - 18) }, phase = wave++ * 0.7;
       for (let i = 0; i < 3; i++) {
         const a = phase + i * TAU / 3;
