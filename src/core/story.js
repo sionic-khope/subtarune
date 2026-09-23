@@ -30,6 +30,7 @@ export const STAGES = [
   { id: 'ship_rally_done', desc: '라운지 결전 집회 완료 · 밤 갑판의 세 사람', map: 'ship_night_deck', spawn: 'alone' },
   { id: 'ship_deck_bond_done', desc: '밤 갑판 약속 완료 · 결전의 날 항해', map: 'ship_lounge', spawn: 'lounge_free' },
   { id: 'ship_invasion_arrived', desc: '전함 피격 · 가재맨 성 입구에 세 사람 도착', map: 'gajaeman_castle_entry', spawn: 'arrival' },
+  { id: 'castle_lobby_seen', desc: '성 로비 · 두 구체의 봉인문과 오른쪽 조사', map: 'gajaeman_castle_lobby', spawn: 'after_intro' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -658,3 +659,12 @@ QA_POINTS.push({ ...invasionReady, id: 'gajaeman_castle_entry', desc: '가재맨
 QA_POINTS.push({ ...QA_POINTS.find(point => point.id === 'gajaeman_castle_entry'),
   id: 'gajaeman_castle_approach', desc: '가재맨성 접근로 · 북쪽의 닫힌 거대 성문까지',
   map: 'gajaeman_castle_approach', spawn: 'start' });
+const castleArrival = QA_POINTS.find(point => point.id === 'gajaeman_castle_entry');
+QA_POINTS.push({ ...castleArrival, id: 'gajaeman_castle_lobby', desc: '성 로비 · 영클 파괴와 가재맨 조우',
+  map: 'gajaeman_castle_lobby', spawn: 'start', flags: { ...castleArrival.flags } });
+for (const [id, desc, spawn] of [
+  ['gajaeman_castle_lobby_after', '성 로비 · 조우 후 오른쪽 문 조사', 'after_intro'],
+  ['gajaeman_castle_right1', '성 오른쪽 · 검은 석재와 보라 용암 통로', 'start'],
+]) QA_POINTS.push({ ...castleArrival, id, desc, spawn,
+  stage: 'castle_lobby_seen', map: id === 'gajaeman_castle_lobby_after' ? 'gajaeman_castle_lobby' : id,
+  flags: { ...castleArrival.flags, castle_lobby_seen: true } });

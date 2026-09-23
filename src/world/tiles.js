@@ -149,6 +149,11 @@ registerTile('♜', { name: 'castle306_floor', solid: false, draw: flat('#282430
 registerTile('♠', { name: 'castle306_moss', solid: false, draw: flat('#322739') });
 registerTile('♣', { name: 'castle306_cracked', solid: false, draw: flat('#282430') });
 registerTile('♦', { name: 'castle306_moss_dense', solid: false, draw: flat('#392d45') });
+const CASTLE_STEP = { ...WATER_WALK, ripple: false };
+registerTile('♤', { name: 'castle307_floor', solid: false, step: CASTLE_STEP, draw: flat('#17141e') });
+registerTile('♧', { name: 'castle307_moss', solid: false, step: CASTLE_STEP, draw: flat('#251d30') });
+registerTile('♨', { name: 'castle307_lava', solid: true, draw: flat('#8725bb') });
+registerTile('♩', { name: 'castle307_lava_dark', solid: true, draw: flat('#45165d') });
 registerTile('≈', { name: 'night_coast_rock', solid: false, draw: flat('#424b60') });
 registerTile('≋', { name: 'night_coast_edge', solid: true, draw: flat('#242c40') });
 registerTile(':', { name: 'ship_lounge_floor', solid: false, draw: flat('#333746') });

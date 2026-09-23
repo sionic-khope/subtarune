@@ -43,7 +43,8 @@ def main() -> None:
     gate = {'type': 'prop', 'id': 'castle306_gate',
             'image': 'assets/props/castle306_gate.png', 'scale': 0.75,
             'x': 288, 'y': 528, 'w': 192, 'h': 16,
-            'ix': 288, 'iy': 304, 'solid': True, 'sortY': 0}
+            'ix': 288, 'iy': 304, 'solid': True, 'sortY': 0,
+            'script': 'castle_lobby_enter'}
     map_data = {
         'id': MAP_ID, 'name': '가재맨성 접근로', 'stage': 'ship_invasion_arrived',
         'bgm': 'castle_approach', 'backdrop': 'castle306_distant', 'followScreenY': 250,
@@ -52,7 +53,8 @@ def main() -> None:
                     'assets/props/castle306_gate.png', 'assets/tiles/gajaeman_castle_wall.png',
                     *[f'assets/tiles/castle306_{suffix}.png'
                       for suffix in ('floor', 'moss', 'cracked', 'moss_dense')]],
-        'spawns': {'start': {'x': 372, 'y': 2720, 'facing': 'up'}},
+        'spawns': {'start': {'x': 372, 'y': 2720, 'facing': 'up'},
+                   'from_lobby': {'x': 372, 'y': 608, 'facing': 'down'}},
         'meta': {'connected': True},
         'entities': [gate, {'type': 'door', 'id': 'castle_approach_return',
                            'x': 256, 'y': HEIGHT * 32 - 10, 'w': 256, 'h': 10,

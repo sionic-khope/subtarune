@@ -62,6 +62,7 @@ import { clearEditorUnionStage, drawEditorUnionWorld, drawEditorUnionLight, draw
 import { clearChoimisSky, drawChoimisSkyPollen } from './scenes/choimis-sky-intro.js';
 import { finishChoimisRescue } from './scenes/choimis-rescue.js';
 import { finishShipInvasion } from './scenes/ship-invasion.js';
+import { finishCastleLobby } from './scenes/castle-lobby.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
@@ -247,6 +248,7 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    finishCastleLobby(this, true);
     finishShipInvasion(this, true);
     clearShipDeckPoses(this);
     this.coastChatter?.clear();
@@ -567,6 +569,7 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    finishCastleLobby(this, true);
     finishShipInvasion(this, true);
     clearShipDeckPoses(this);
     this.finishTvBroadcast(true);
@@ -833,6 +836,7 @@ class Game {
     }
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      finishCastleLobby(this, true);
       if (mapId !== 'ship_lounge') finishShipInvasion(this, true);
       clearShipDeckPoses(this);
       this.coastChatter?.clear();
@@ -1221,6 +1225,7 @@ class Game {
     this.background = [...backgroundLeft, ...this.background];
     this.shipAssault?.update(dt);
     this.shipInvasion?.update(dt);
+    this.castleLobby?.update(dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);
     this.choimisRescue?.update(dt);
@@ -1502,8 +1507,8 @@ class Game {
         ctx.drawImage(factory, 0, offset, SCREEN_W, SCREEN_H, 0, 0, SCREEN_W, SCREEN_H);
       }
     }
-    else if (MAPS[this.mapId]?.backdrop === 'castle306_distant') {
-      const castle = this.propImages['assets/backdrops/castle306_distant.png'];
+    else if (MAPS[this.mapId]?.backdrop === 'castle306_distant' || MAPS[this.mapId]?.backdrop === 'castle307_right') {
+      const castle = this.propImages[`assets/backdrops/${MAPS[this.mapId].backdrop}.png`];
       if (castle) ctx.drawImage(castle, 0, 0, SCREEN_W, SCREEN_H);
     }
     else if (MAPS[this.mapId]?.backdrop === 'maillard_sea') {
@@ -1548,6 +1553,7 @@ class Game {
     if (!skyPollenDrawn) drawChoimisSkyPollen(ctx, this, cam);
     this.runner?.drawAir(ctx, cam);      // 러너 기믹: 바람 줄기·물보라(엔티티 위)
     drawDarkSmoke(ctx, this, cam);
+    this.castleLobby?.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})

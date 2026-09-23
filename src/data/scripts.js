@@ -56,6 +56,7 @@ import { ship_tvform_ending, ship_manhole } from './cutscenes/ship_ending.js';
 import { shipLoungeScripts } from './cutscenes/ship_lounge.js';
 import { ship_lounge_briefing } from './cutscenes/ship_lounge_briefing.js';
 import { ship_invasion } from './cutscenes/ship_invasion.js';
+import { castle_lobby_intro, castle_lobby_left_block, castle_lobby_sealed, castle_lobby_enter, castle_lobby_right_enter } from './cutscenes/castle_lobby.js';
 import { ship_castle } from './cutscenes/ship_castle.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
@@ -159,6 +160,7 @@ export const SCRIPTS = {
   maillard_boarding_intro, youngcle_entrance,
   ship_pursuit_backtrack: shipPursuitBacktrack,
   ship_tvform_ending, ship_manhole, ship_lounge_briefing, ship_invasion, ...shipLoungeScripts,
+  castle_lobby_intro, castle_lobby_left_block, castle_lobby_sealed, castle_lobby_enter, castle_lobby_right_enter,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,

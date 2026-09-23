@@ -18,6 +18,14 @@ export const MAP_RUNTIME_ASSETS = {
   gajaeman_castle_approach: {
     images: ['assets/backdrops/castle306_distant.png', 'assets/props/castle306_gate.png'],
   },
+  gajaeman_castle_lobby: {
+    sprites: ['youngcle', 'youngcle_hover', 'junhee', 'gajaeman_shadow', 'gyeongsub', 'ppaman'],
+    portraits: ['youngcle', 'junhee', 'gyeongsub', 'ppaman'],
+    images: ['assets/backdrops/castle306_distant.png', 'assets/fx/explosion.png'],
+  },
+  gajaeman_castle_right1: {
+    images: ['assets/backdrops/castle307_right.png'],
+  },
   maillard_captain: { sprites: ['junhee_point', 'junhee_mankatsuki'], images: ['assets/fx/mankatsuki-vortex.png'] },
   maillard_lounge: { sprites: ['yerim_kick'] },
   obj4: { sprites: ['baron_chase'] },

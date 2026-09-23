@@ -12,7 +12,7 @@ test('castle approach has a ten second walk ending at a closed gate', () => {
   const seconds = (spawn.y - gate.y - gate.h) / (32 * 3.9 * 1.75);
   assert.ok(seconds >= 9.5 && seconds <= 10.5, `${seconds}s`);
   assert.equal(gate.solid, true);
-  assert.equal(gate.script, undefined);
+  assert.equal(gate.script, 'castle_lobby_enter');
   assert.equal(map.entities.filter(entity => entity.type === 'door').length, 1);
   assert.equal(map.entities.find(entity => entity.type === 'door').to, 'gajaeman_castle_entry');
 });

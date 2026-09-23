@@ -14,6 +14,7 @@ BASE_URL_SCENARIOS.add('choimis-return');
 BASE_URL_SCENARIOS.add('ship-invasion-ocean');
 BASE_URL_SCENARIOS.add('ship-invasion-flow');
 BASE_URL_SCENARIOS.add('castle-approach');
+BASE_URL_SCENARIOS.add('castle-lobby');
 BASE_URL_SCENARIOS.add('choimis-lounge-briefing');
 BASE_URL_SCENARIOS.add('choimis-301');
 BASE_URL_SCENARIOS.add('choimis-karaoke');

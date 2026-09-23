@@ -69,8 +69,6 @@ await runScenario({ name: 'castle-approach', launchOptions: { args: ['--autoplay
   await page.waitForTimeout(300);
   await page.keyboard.up('ArrowUp');
   check('held north input cannot cross the closed gate', Math.abs((await state()).y - atGate.y) < 1);
-  await press('KeyC');
-  check('closed gate adds no unrequested dialogue', await page.evaluate(() => !game.dialogue.running && game.state === 'field'));
   await shot('04-gate');
   for (const [width, height] of [[375, 812], [768, 1024], [1280, 900]]) {
     await page.setViewportSize({ width, height });
@@ -107,4 +105,10 @@ await runScenario({ name: 'castle-approach', launchOptions: { args: ['--autoplay
   check('removed east corridor save falls back to safe arrival', legacy.map === 'gajaeman_castle_entry' && !legacy.blocked && legacy.x < 544 && legacy.party.join() === 'gyeongsub,ppaman');
   await walk('ArrowUp', () => game.player.y < 400);
   await shot('08-legacy-save');
+  await open({ qa: 'gajaeman_castle_approach' });
+  assert.ok(await until(() => game.state === 'field' && !game.transitioning && game.fade.alpha === 0, 25000));
+  await walk('ArrowUp', () => game.player.y <= 555);
+  await press('KeyC');
+  check('C opens the castle lobby and starts its first encounter', Boolean(await until(() => game.mapId === 'gajaeman_castle_lobby' && game.castleLobby?.beat === 'raid', 20000)));
+  await shot('09-lobby-entry');
 });

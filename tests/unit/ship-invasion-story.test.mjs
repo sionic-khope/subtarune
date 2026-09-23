@@ -12,7 +12,9 @@ const effective = point => {
 };
 
 test('invasion checkpoints append in order and restore only completed earlier beats', () => {
-  assert.deepEqual(STAGES.slice(-4).map(stage => stage.id), stages);
+  const start = STAGES.findIndex(stage => stage.id === stages[0]);
+  assert.ok(start > STAGES.findIndex(stage => stage.id === 'ship_lounge_briefed'));
+  assert.deepEqual(STAGES.slice(start, start + stages.length).map(stage => stage.id), stages);
   for (const [index, id] of stages.entries()) {
     const restored = {}, story = new Story(restored);
     story.load({ stage: id });

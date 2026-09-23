@@ -109,6 +109,11 @@
    "x": 372,
    "y": 2720,
    "facing": "up"
+  },
+  "from_lobby": {
+   "x": 372,
+   "y": 608,
+   "facing": "down"
   }
  },
  "meta": {
@@ -127,7 +132,8 @@
    "ix": 288,
    "iy": 304,
    "solid": true,
-   "sortY": 0
+   "sortY": 0,
+   "script": "castle_lobby_enter"
   },
   {
    "type": "door",

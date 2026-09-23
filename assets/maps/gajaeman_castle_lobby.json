@@ -1,0 +1,422 @@
+{
+ "id": "gajaeman_castle_lobby",
+ "name": "가재맨성 로비",
+ "stage": "ship_invasion_arrived",
+ "bgm": null,
+ "backdrop": "castle306_distant",
+ "followScreenY": 250,
+ "enter": {
+  "script": "castle_lobby_intro",
+  "early": true
+ },
+ "rows": [
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "                                        ",
+  "              ▥▥▥▥▥▥▥▥▥▥▥▥              ",
+  "             ▥♜♦♜♠♜♜♜♜♣♜♠♜▥             ",
+  "             ▥♜♜♜♜♣♜♠♜♜♣♜♠▥             ",
+  "             ▥♣♜♠♜♜♣♜♠♜♜♦♜▥             ",
+  "             ▥♜♣♜♠♜♜♦♜♠♜♜♜▥             ",
+  "      ▥▥▥▥▥▥ ▥♜♜♦♜♠♜♜♜♜♣♜♠▥ ▥▥▥▥▥▥      ",
+  "     ▥♜♣♜♠♜♜▥▥♠♜♜♜♜♣♜♠♜♜♣♜▥▥♜♦♜♠♜♜▥     ",
+  "     ▥♜♜♦♜♠♜▥▥♜♣♜♠♜♜♣♜♠♜♜♦▥▥♜♜♜♜♣♜▥     ",
+  "     ▥♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣▥     ",
+  "     ▥♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜▥     ",
+  "     ▥♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜▥     ",
+  "     ▥♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣▥     ",
+  "     ▥♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜▥     ",
+  "      ▥▥▥▥▥▥▥▥♜♠♜♜♦♜♠♜♜♜♜♣▥▥▥▥▥▥▥▥      ",
+  "             ▥♦♜♠♜♜♜♜♣♜♠♜♜▥             ",
+  "             ▥♜♜♜♣♜♠♜♜♣♜♠♜▥             ",
+  "             ▥♜♠♜♜♣♜♠♜♜♦♜♠▥             ",
+  "             ▥♣♜♠♜♜♦♜♠♜♜♜♜▥             ",
+  "             ▥♜♦♜♠♜♜♜♜♣♜♠♜▥             ",
+  "             ▥♜♜♜♜♣♜♠♜♜♣♜♠▥             ",
+  "             ▥♣♜♠♜♜♣♜♠♜♜♦♜▥             ",
+  "             ▥♜♣♜♠♜♜♦♜♠♜♜♜▥             "
+ ],
+ "preload": [
+  "assets/backdrops/castle306_distant.png",
+  "assets/fx/explosion.png",
+  "assets/props/castle306_gate.png",
+  "assets/props/castle307_sealed_gate.png",
+  "assets/tiles/gajaeman_castle_wall.png",
+  "assets/tiles/castle306_floor.png",
+  "assets/tiles/castle306_moss.png",
+  "assets/tiles/castle306_cracked.png",
+  "assets/tiles/castle306_moss_dense.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 604,
+   "y": 864,
+   "facing": "up"
+  },
+  "after_intro": {
+   "x": 604,
+   "y": 568,
+   "facing": "right"
+  },
+  "from_right": {
+   "x": 980,
+   "y": 600,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "lobby_focus": [
+    640,
+    560
+   ],
+   "lobby_youngcle": [
+    524,
+    496
+   ],
+   "lobby_junhee": [
+    628,
+    400
+   ],
+   "lobby_player": [
+    604,
+    568
+   ],
+   "lobby_gyeongsub": [
+    676,
+    576
+   ],
+   "lobby_ppaman": [
+    532,
+    584
+   ],
+   "lobby_gajaeman": [
+    756,
+    464
+   ],
+   "lobby_entry_player": [
+    604,
+    864
+   ],
+   "lobby_entry_gyeongsub": [
+    676,
+    912
+   ],
+   "lobby_entry_ppaman": [
+    532,
+    912
+   ],
+   "lobby_left_turn": [
+    532,
+    656
+   ],
+   "lobby_left_door": [
+    276,
+    520
+   ],
+   "lobby_left_block_return": [
+    484,
+    656
+   ]
+  },
+  "seals": 2
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "lobby_focus",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 640,
+   "y": 560,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_youngcle",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 524,
+   "y": 496,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_junhee",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 628,
+   "y": 400,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_player",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 604,
+   "y": 568,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_gyeongsub",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 676,
+   "y": 576,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_ppaman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 532,
+   "y": 584,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_gajaeman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 756,
+   "y": 464,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_entry_player",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 604,
+   "y": 864,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_entry_gyeongsub",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 676,
+   "y": 912,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_entry_ppaman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 532,
+   "y": 912,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_left_turn",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 532,
+   "y": 656,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_left_door",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 276,
+   "y": 520,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_left_block_return",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 484,
+   "y": 656,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_left_inside",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 276,
+   "y": 472,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_wall1",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 432,
+   "y": 422,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_wall2",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 704,
+   "y": 336,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_wall3",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 848,
+   "y": 442,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "castle_lobby_youngcle",
+   "sprite": "youngcle_hover",
+   "x": 524,
+   "y": 496,
+   "facing": "right",
+   "solid": false,
+   "wander": 0,
+   "hidden": false,
+   "unless": "castle_lobby_seen"
+  },
+  {
+   "type": "npc",
+   "id": "castle_lobby_junhee",
+   "sprite": "junhee",
+   "x": 628,
+   "y": 400,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": false,
+   "unless": "castle_lobby_seen"
+  },
+  {
+   "type": "npc",
+   "id": "castle_lobby_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": 756,
+   "y": 464,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "unless": "castle_lobby_seen"
+  },
+  {
+   "type": "prop",
+   "id": "castle_lobby_left_door",
+   "image": "assets/props/castle306_gate.png",
+   "scale": 0.5625,
+   "x": 216,
+   "y": 496,
+   "w": 144,
+   "h": 16,
+   "ix": 216,
+   "iy": 332,
+   "solid": true,
+   "sortY": 0
+  },
+  {
+   "type": "prop",
+   "id": "castle_lobby_right_door",
+   "image": "assets/props/castle306_gate.png",
+   "scale": 0.5625,
+   "x": 920,
+   "y": 496,
+   "w": 144,
+   "h": 16,
+   "ix": 920,
+   "iy": 332,
+   "solid": true,
+   "sortY": 0,
+   "script": "castle_lobby_right_enter"
+  },
+  {
+   "type": "prop",
+   "id": "castle_lobby_sealed_door",
+   "image": "assets/props/castle307_sealed_gate.png",
+   "scale": 0.75,
+   "x": 520,
+   "y": 336,
+   "w": 240,
+   "h": 16,
+   "ix": 520,
+   "iy": 64,
+   "solid": true,
+   "sortY": 0,
+   "script": "castle_lobby_sealed"
+  },
+  {
+   "type": "trigger",
+   "id": "castle_lobby_left_guard",
+   "x": 416,
+   "y": 576,
+   "w": 64,
+   "h": 160,
+   "script": "castle_lobby_left_block"
+  },
+  {
+   "type": "door",
+   "id": "castle_lobby_return",
+   "x": 448,
+   "y": 1014,
+   "w": 384,
+   "h": 10,
+   "to": "gajaeman_castle_approach",
+   "spawn": "from_lobby",
+   "interact": false,
+   "sfx": false
+  }
+ ]
+}

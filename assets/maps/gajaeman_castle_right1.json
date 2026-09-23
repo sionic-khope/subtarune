@@ -1,0 +1,83 @@
+{
+ "id": "gajaeman_castle_right1",
+ "name": "가재맨성 동쪽 회랑",
+ "stage": "castle_lobby_seen",
+ "bgm": "castle_right",
+ "backdrop": "castle307_right",
+ "followScreenY": 250,
+ "rows": [
+  "       ▥▥▥▥▥▥▥▥▥▥       ",
+  "       ♨▥▥▥▥▥▥▥▥♩       ",
+  "       ♨▥♤♧♤♤♤♧▥♨       ",
+  "       ♩▥♤♤♤♧♤♤▥♨       ",
+  "       ♨▥♧♤♤♤♧♤▥♩       ",
+  "       ♨▥♤♤♧♤♤♧▥♨       ",
+  "       ♩▥♤♤♤♧♤♤▥♨       ",
+  "       ♨▥♤♧♤♤♧♤▥♩       ",
+  "       ♨▥♤♤♧♤♤♤▥♨       ",
+  "       ♩▥♧♤♤♧♤♤▥♨       ",
+  "       ♨▥♤♧♤♤♤♧▥♩       ",
+  "       ♨▥♤♤♧♤♤♤▥♨       ",
+  "       ♩▥♧♤♤♤♧♤▥♨       ",
+  "       ♨▥♤♧♤♤♤♧▥♩       ",
+  "       ♨▥♤♤♤♧♤♤▥♨       ",
+  "       ♩▥♧♤♤♤♧♤▥♨       ",
+  "       ♨▥♤♤♧♤♤♧▥♩       ",
+  "       ♨▥♤♤♤♧♤♤▥♨       ",
+  "       ♩▥♤♧♤♤♧♤▥♨       ",
+  "       ♨▥♤♤♧♤♤♤▥♩       ",
+  "       ♨▥♧♤♤♧♤♤▥♨       ",
+  "       ♩▥♤♧♤♤♤♧▥♨       ",
+  "       ♨▥♤♤♧♤♤♤▥♩       ",
+  "       ♨▥♧♤♤♤♧♤▥♨       ",
+  "       ♩▥♤♧♤♤♤♧▥♨       ",
+  "       ♨▥♤♤♤♧♤♤▥♩       ",
+  "       ♨▥♧♤♤♤♧♤▥♨       ",
+  "       ♩▥♤♤♧♤♤♧▥♨       ",
+  "       ♨▥♤♤♤♧♤♤▥♩       ",
+  "       ♨▥♤♧♤♤♧♤▥♨       ",
+  "       ♩▥♤♤♧♤♤♤▥♨       ",
+  "       ♨▥♧♤♤♧♤♤▥♩       ",
+  "       ♨▥♤♧♤♤♤♧▥♨       ",
+  "       ♩▥♤♤♧♤♤♤▥♨       ",
+  "       ♨▥♧♤♤♤♧♤▥♩       ",
+  "       ♨▥♤♧♤♤♤♧▥♨       ",
+  "       ♩▥♤♤♤♧♤♤▥♨       ",
+  "       ♨▥♧♤♤♤♧♤▥♩       ",
+  "       ♨▥♤♤♧♤♤♧▥♨       ",
+  "       ▥▥♤♤♤♧♤♤▥▥       "
+ ],
+ "preload": [
+  "assets/backdrops/castle307_right.png",
+  "assets/tiles/gajaeman_castle_wall.png",
+  "assets/tiles/castle307_floor.png",
+  "assets/tiles/castle307_moss.png",
+  "assets/tiles/castle307_lava.png",
+  "assets/tiles/castle307_lava_dark.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 372,
+   "y": 1120,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "walkSeconds": 4.84
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "castle_right_return",
+   "x": 288,
+   "y": 1270,
+   "w": 192,
+   "h": 10,
+   "to": "gajaeman_castle_lobby",
+   "spawn": "from_right",
+   "interact": false,
+   "sfx": false
+  }
+ ]
+}
