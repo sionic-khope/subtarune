@@ -120,6 +120,9 @@ const OUTFITS = [
   { profile: 'pink_zebra_coat', bbox: [15, 6, 80, 90] },
   { profile: 'pink_checker_idol', bbox: [15, 14, 81, 81] },
   { profile: 'pink_heart_star_jumpsuit', bbox: [15, 6, 80, 89] },
+  { profile: 'pink_polka_raincoat', bbox: [15, 10, 80, 85] },
+  { profile: 'pink_ruffled_dress', bbox: [9, 12, 86, 84] },
+  { profile: 'pink_lightning_varsity', bbox: [12, 15, 83, 81] },
 ];
 
 function fashionFrames(image) {
@@ -130,7 +133,7 @@ function fashionFrames(image) {
     const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
     const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
     const pixels = ctx.getImageData(0, 0, image.width, image.height).data;
-    const fw = image.width / 2, fh = image.height / 2;
+    const fw = image.width / 2, fh = fw;
     frames = OUTFITS.map((style, look) => {
       const alpha = new Uint8Array(fw * fh), ox = look % 2 * fw, oy = Math.floor(look / 2) * fh;
       let left = fw, top = fh, right = 0, bottom = 0;
@@ -175,14 +178,14 @@ function outfitBullet(api, look, direction, entryAt, safeGap, options) {
   const scale = Math.min(48 / sourceW, 60 / sourceH), w = Math.round(sourceW * scale), h = Math.round(sourceH * scale);
   const warn = Math.max(0.3, options.warn ?? 0.55), speed = options.speed ?? 126;
   const lanes = [box.y + 31, box.y + box.h - 31, box.y + 58, box.y + box.h - 58], spawnX = direction > 0 ? box.x - 34 : box.x + box.w + 34;
-  api.emit({ shape: 'choimis_outfit', look, profile: style.profile, direction, entryAt, safeGap, spawnX, x: spawnX, y: lanes[look],
+  api.emit({ shape: 'choimis_outfit', look, profile: style.profile, direction, entryAt, safeGap, spawnX, x: spawnX, y: lanes[look % lanes.length],
     w, h, sourceBbox, alphaFrame, r: 0, warn, flight: (box.w + 68) / speed, life: warn + (box.w + 68) / speed, box, image: api.images?.fashion,
     steer(b) { b.x = b.spawnX + b.direction * Math.max(0, b.age - b.warn) * speed; },
     hitShape(b, soul) { return b.age >= b.warn && outfitHit(b, soul); },
     drawShape(ctx, b) {
       ctx.save(); clipArena(ctx, box);
       if (b.age < b.warn) { ctx.strokeStyle = '#ff67ad'; ctx.setLineDash([4, 4]); ctx.strokeRect(box.x + 4, b.y - b.h / 2, box.w - 8, b.h); ctx.setLineDash([]); }
-      if (b.image) { const fw = b.image.width / 2, fh = b.image.height / 2, [sx, sy, right, bottom] = b.sourceBbox;
+      if (b.image) { const fw = b.image.width / 2, fh = fw, [sx, sy, right, bottom] = b.sourceBbox;
         ctx.drawImage(b.image, b.look % 2 * fw + sx, Math.floor(b.look / 2) * fh + sy, right - sx, bottom - sy,
           Math.round(b.x - b.w / 2), Math.round(b.y - b.h / 2), b.w, b.h); }
       else { ctx.fillStyle = b.look % 2 ? '#ff5aa8' : '#ff9ace'; ctx.fillRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h); }
@@ -198,7 +201,7 @@ export const CHOIMIS_PATTERNS_B = {
     const glyphs = Array.from(options.lyrics ?? '').filter(glyph => !/\s/u.test(glyph));
     const columns = [0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95];
     const warn = Math.max(0.3, options.warn ?? 0.48), start = Math.max(3, options.lyricStart ?? 3);
-    const every = options.every ?? 0.085, burstSize = options.burstSize ?? 7, burstPause = options.burstPause ?? 0.45;
+    const every = options.every ?? 0.08, burstSize = options.burstSize ?? 7, burstPause = options.burstPause ?? 0.42;
     let started = false, ended = false, video = null, index = 0;
     return { duration, update(t, dt, api) {
       if (!started) { started = true; video = api.startRapVideo?.(CHOIMIS_RAP_VIDEO) || null;
@@ -222,8 +225,8 @@ export const CHOIMIS_PATTERNS_B = {
   choimis_seup: (options = {}) => {
     const duration = options.duration ?? 6.4;
     const waves = [
-      { at: 0.8, safeGap: 'bottom' }, { at: 2.15, safeGap: 'top' },
-      { at: 3.5, safeGap: 'bottom' }, { at: 4.85, safeGap: 'top' },
+      { at: 0.8, safeGap: 'bottom' }, { at: 2.07, safeGap: 'top' },
+      { at: 3.34, safeGap: 'bottom' }, { at: 4.61, safeGap: 'top' },
     ];
     let started = false, ended = false, miss = 0;
     return { duration, update(t, dt, api) {
@@ -235,18 +238,20 @@ export const CHOIMIS_PATTERNS_B = {
   },
 
   choimis_fashion: (options = {}) => {
-    const duration = options.duration ?? 7.5;
+    const duration = options.duration ?? 9.1;
     const remarkDelay = Math.max(0.3, options.warn ?? 0.55);
     const entries = [
-      { at: 0.35, safeGap: 'bottom' }, { at: 1.55, safeGap: 'top' },
-      { at: 2.65, safeGap: 'bottom' }, { at: 4, safeGap: 'top' },
+      { at: 0.35, safeGap: 'bottom' }, { at: 1.3, safeGap: 'top' },
+      { at: 2.25, safeGap: 'bottom' }, { at: 3.2, safeGap: 'top' },
+      { at: 4.15, safeGap: 'bottom' }, { at: 5.1, safeGap: 'top' },
+      { at: 6.05, safeGap: 'bottom' },
     ];
     let ended = false, look = 0, remark = 0;
     return { duration, update(t, dt, api) {
-      while (look < OUTFITS.length && t >= entries[look].at) { const entry = entries[look]; api.present?.({ sheet: 'idle', frame: look });
+      while (look < OUTFITS.length && t >= entries[look].at) { const entry = entries[look]; api.present?.({ sheet: 'idle', frame: look % 4 });
         outfitBullet(api, look, look % 2 ? -1 : 1, entry.at, entry.safeGap, options); look++; }
       while (remark < entries.length && t >= entries[remark].at + remarkDelay) {
-        if (options.lines?.[remark]) api.say?.(options.lines[remark], 1);
+        if (options.lines?.length) api.say?.(options.lines[remark % options.lines.length], 1);
         remark++;
       }
       if (!ended && t >= duration - 0.2) { ended = true; api.present?.(null); }

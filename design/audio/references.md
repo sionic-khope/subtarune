@@ -1,8 +1,15 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 마지막 힘 합치기·릴리즈샷 (BUILD303, 2026-09-23)
+
+- **힘 합치기**: 사용자 지정 [Lend me your power! (Flowery)](https://www.myinstants.com/en/instant/lend-me-your-power-flowery-27180/),업로더adam0025F. 공개MP3를 편집 없이 `sfx/choimis_lend_power.mp3`로 저장했다.5.067755초,44.1kHz stereo,117158바이트,평균−22.2/피크−6.1dBFS. 최종 도입 `마지막 모두의 힘을 합쳐.`에서 한 번 재생하며 해당 줄의 글자블립은 겹치지 않는다. [취득·SHA·검증범위](../../assets/source/choimis-lend-power303/README.md).
+- **릴리즈샷**: 사용자 지정 [Deltarune Release Shoot](https://www.myinstants.com/en/instant/deltarune-release-shoot-62629/). 새로 받은MP3와 기존 `sfx/deltarune_release_shoot.mp3`의 바이트가 같아 기존키를 재사용한다. 보관명은릴리즈샷,길이1.772018초. 최미스60초 공세 종료의 탄막폭발 큐이며 이후4초차지 최종빔 발사음과별개다. [원본·재확인](../../assets/source/janitor-release-shoot/README.md).
+
+위 둘은 정확한 사용자 지정 페이지의파일을 사용한다. 원작 내부sound ID·공식 배포·직접 청취 승인을 확인했다고 주장하지 않는다.
+
 ## 최미스 천혈·상승·최종 타격 (BUILD301, 2026-09-23)
 
-천혈 발사 `sfx/choimis_piercing_blood.mp3`는 Voicemod Tuna의 [Choso piercing blood](https://tuna.voicemod.net/sound/ebcb5a80-7c56-4a0c-bdaa-03bea88d40c9), 업로더 Time2365의 커뮤니티 업로드에서 만들었다. 공식 애니메이션 원본·특정 회차·원저작자·별도 재사용 라이선스는 확인되지 않았다. 원본3.984초의0.68–1.16초를 추출하고 필터·짧은 페이드로0.48초 발사음으로 가공했다. 일반/핑크 천혈의 실제 발사·피 구체 폭발에서 묶음당 한 번 volume0.6으로 재생하며, 일반 천혈의 기존 조준음은 유지한다. [원본·가공·SHA·검증 범위](../../assets/source/choimis-piercing-blood301/README.md)를 따른다. 파형/디코드 검증과 사람의 청취 승인, 재배포 허가를 구분한다.
+천혈 발사 `sfx/choimis_piercing_blood.mp3`는 **BUILD303에서 교체**했다. 기존 델타룬 `snd_criticalswing`의 짧은 베기와 `snd_impact`의 시작 충격을0.44초로 편집한 조합이며, 주술회전 원음이라고 주장하지 않는다. 일반/핑크 천혈·피 구체 폭발·마지막60초 공세의 실제 발사에서 묶음당 한 번volume0.85로 재생하고 기존 레이저 충전음은 제거한다. 평균−15.2/피크−2.2dBFS, 전체 디코드 성공. 기존301 커뮤니티 샘플은 사용자 거절로 런타임에서 제외했다. [303 원본·가공·SHA·호출 감사](../../assets/source/choimis-piercing-blood303/README.md)가 현재 기준이다. 직접 청취는 미검증이며, 원작 샘플의 보관 출처를 공식 배포나 이용허락으로 표현하지 않는다.
 
 최종 빔의 실제 몸 접촉에는 기존 `sfx/furnace_blast.mp3`, 원작 DELTARUNE `snd_punchheavythunder`를 재사용한다. 이번에 새 천둥 파일을 받거나 합성하지 않았다. 현재 호출은 volume0.8/rate0.8/pitch=true이며 짧은 섬광과 느린 피격을 같은 접촉에서 시작한다. 이 이름은 용광로 장면에서 남은 런타임 키다. 아래 BUILD198의 원음 식별과 [보존 원본](../../assets/source/furnace198/audio/README.md)이 출처 기준이다.
 

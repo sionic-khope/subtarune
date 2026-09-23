@@ -10,7 +10,7 @@ import { choimisLyricAt, drawChoimisKaraoke } from '../../src/battle/choimis-kar
 
 test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   const enemy = ENEMIES.choimis_flower;
-  assert.equal(enemy.hp, 200);
+  assert.equal(enemy.hp, 250);
   assert.equal(enemy.money, 15000000);
   assert.equal(enemy.boss, true);
   assert.deepEqual(enemy.sheet, { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 });
@@ -28,7 +28,7 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
     normal: 'assets/sprites/choimis.png',
     jjajang: 'assets/props/dark_jjajang.png',
     mic: 'assets/enemies/choimis-rap.png',
-    fashion: 'assets/props/choimis-fashion.png',
+    fashion: 'assets/props/choimis-fashion303.png',
     dao: 'assets/enemies/dao-battle.png',
     bazzi: 'assets/enemies/bazzi-battle.png',
     daoKart: 'assets/props/choimis-dao-kart.png',
@@ -309,6 +309,8 @@ test('test_choimis_karaoke_reads_only_the_audio_clock_and_recomputes_after_seek'
   assert.deepEqual(calls, []);
 
   battle.game.sound.bgm.currentTime = 46.3;
+  assert.equal(choimisLyricAt(battle.game.sound.bgm.currentTime).text, '오늘도 스읍 미스');
+  battle.game.sound.bgm.currentTime = 46.7;
   assert.equal(choimisLyricAt(battle.game.sound.bgm.currentTime).text, '최미스! 최미스! 가재맨! 방고닉!');
   assert.equal(choimisLyricAt(42.35).text, '쟤들은 날 이해 하지 못해');
   assert.equal(choimisLyricAt(45).text, '오늘도 스읍 미스');

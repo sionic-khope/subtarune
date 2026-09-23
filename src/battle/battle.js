@@ -141,7 +141,7 @@ export class Battle {
     if (choimisBattle && !this.preparedRapVideo) this.preparedRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
     try {
       await Promise.all([
-        choimisBattle ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya', 'choimis_piercing_blood']) : null,
+        choimisBattle ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya', 'choimis_piercing_blood', 'choimis_lend_power']) : null,
         choimisBattle ? this.game.requestPropImage?.('assets/props/choimis-dolphin-breach.png') : null,
         this.preparedRapVideo?.ready,
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),

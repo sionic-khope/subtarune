@@ -15,7 +15,7 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
   const fireControl = createPinkFireControl(P), audio = createPinkShotAudio(battle);
   const renderer = createFinalAssaultRenderer(enemy);
   const balloon = new TextBalloon(), bubbleTarget = { x: 0, y: 0, w: 0, h: 0 };
-  let bubblesShown = 0;
+  let bubblesShown = 0, chatterShown = 0, nextSpeech = 0, bubbleKind = null;
   const centerY = box.y + box.h / 2, amplitude = Math.min(C.corridorAmplitude, box.h / 2 - 45);
   const corridor = time => centerY + Math.sin(time * C.corridorFrequency) * amplitude;
   const corridorSpeed = amplitude * C.corridorFrequency;
@@ -56,14 +56,13 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
     hazards.push({ id: `final-beam-${sequence++}`, kind: 'beam', x: from.x, y: from.y, from, to: { x: toX, y: toY },
       r: C.beamRadius, age: 0, warn: C.beamWarn, life: C.beamWarn + C.beamHit, fired: false, lockedY });
     spawned++; nextBeam += C.beamEvery[stage()];
-    battle.sfx('laser_charge', { volume: 0.18, len: 0.28 });
   };
   const updateHazards = dt => {
     for (const hazard of hazards) {
       const before = hazard.age; hazard.age += dt;
       if (hazard.kind === 'beam') {
         if (hazard.age < hazard.warn || hazard.age >= hazard.life) continue;
-        if (!hazard.fired) { hazard.fired = true; battle.sfx('laser_beam', { volume: 0.22, len: 0.22 }); }
+        if (!hazard.fired) { hazard.fired = true; battle.sfx('choimis_piercing_blood', { volume: 0.85 }); }
         const dx = hazard.to.x - hazard.from.x, dy = hazard.to.y - hazard.from.y;
         const u = clamp(((soul.x - hazard.from.x) * dx + (soul.y - hazard.from.y) * dy) / (dx * dx + dy * dy), 0, 1);
         if (Math.hypot(soul.x - hazard.from.x - dx * u, soul.y - hazard.from.y - dy * u) <= soul.r + hazard.r) hurt();
@@ -91,7 +90,9 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
   };
   const step = (dt, input) => {
     elapsed = Math.min(C.seconds, elapsed + dt);
+    const previousShown = balloon.shown;
     balloon.update(dt);
+    if (balloon.shown > previousShown && /\S/.test(balloon.text.slice(previousShown, balloon.shown))) battle.game.sound.blip?.(C.speech.voice);
     soul.oldX = soul.x; soul.oldY = soul.y; soul.x = P.heartX;
     soul.invuln = Math.max(0, soul.invuln - dt);
     soul.y = clamp(soul.y + (Number(held(input, 'down')) - Number(held(input, 'up'))) * P.heartSpeed * dt,
@@ -113,8 +114,15 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
     if (disposed) return;
     contactShots();
     const line = C.resolveLines[bubblesShown];
-    if (line && contacts >= line.contacts && balloon.done) {
-      balloon.start(bubbleTarget, { text: line.text, hold: 2, cps: 24 }); bubblesShown++;
+    const chatter = C.chatterLines[chatterShown];
+    if (balloon.done && elapsed >= nextSpeech) {
+      const resolve = line && contacts >= line.contacts;
+      const speech = resolve ? line : chatter && elapsed >= chatter.at ? chatter : null;
+      if (speech) {
+        balloon.start(bubbleTarget, { text: speech.text, hold: C.speech.hold, cps: C.speech.cps });
+        if (resolve) bubblesShown++; else chatterShown++;
+        bubbleKind = resolve ? 'resolve' : 'chatter'; nextSpeech = elapsed + C.speech.startGap;
+      }
     }
     bubbleTarget.x = boss.x;
     bubbleTarget.y = Math.max(80, boss.y - 80 * (enemy.def.scale ?? 1) * (enemy.def.scaleY ?? 1) + 48);
@@ -132,7 +140,7 @@ export function createChoimisFinalAssault(battle, enemy, { box = C.box } = {}) {
     boss: { ...boss }, heart: { x: soul.x, y: soul.y, invuln: soul.invuln }, box: { ...box },
     shots: shots.map(shot => ({ ...shot })), hazards: hazards.map(hazard => ({ ...hazard })), effects: effects.map(effect => ({ ...effect })),
     charge: fireControl.snapshot, safeY: corridor(elapsed), contacts, destroyed, spawned, disposed,
-    bubblesShown, bubble: balloon.done ? null : { text: balloon.text, shown: balloon.shown } });
+    bubblesShown, chatterShown, bubble: balloon.done ? null : { text: balloon.text, shown: balloon.shown, kind: bubbleKind } });
   return {
     get snapshot() { return snapshot(); },
     update(dt, input) {

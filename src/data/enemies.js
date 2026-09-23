@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
   choimis_flower: {
-    name: '최미스', hp: 200, damage: 15, money: 15000000, boss: true, voice: 'choimis_flower',
+    name: '최미스', hp: 250, damage: 15, money: 15000000, boss: true, voice: 'choimis_flower',
     boostedAttackDamage: 3, alternatingPatternMode: 'choimis_pink_round',
     sheet: { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 },
     actions: {
@@ -26,7 +26,7 @@ export const ENEMIES = {
       normal: 'assets/sprites/choimis.png',
       jjajang: 'assets/props/dark_jjajang.png',
       mic: 'assets/enemies/choimis-rap.png',
-      fashion: 'assets/props/choimis-fashion.png',
+      fashion: 'assets/props/choimis-fashion303.png',
       dao: 'assets/enemies/dao-battle.png',
       bazzi: 'assets/enemies/bazzi-battle.png',
       daoKart: 'assets/props/choimis-dao-kart.png',
@@ -44,10 +44,10 @@ export const ENEMIES = {
         arcHeight: 22, splashRadius: 9, splashFlight: 0.7, splashDelay: 0.22 },
       { type: 'choimis_choso', speak: '내 추구미는 쵸소우야',
         speakSfx: 'choimis_chosouya', speakDuration: 1.7,
-        chargeVolume: 0.18, chargeLength: 0.28, beamSfx: 'choimis_piercing_blood', beamVolume: 0.6, beamLength: 0 },
+        beamSfx: 'choimis_piercing_blood', beamVolume: 0.85, beamLength: 0 },
       { type: 'choimis_rap', speak: '요 최미스 래퍼딱지를때이젠앰씨로 포에버 포에버',
         lyrics: '래퍼딱지를때는중이젠앰씨로 예술가의길로!@#!@$!@#@#$포에버포에버',
-        lyricStart: 3, every: 0.085, burstSize: 7, burstPause: 0.45, speed: 136, fontSize: 14, warn: 0.48, micWarn: 3 },
+        lyricStart: 3, every: 0.08, burstSize: 7, burstPause: 0.42, speed: 136, fontSize: 14, warn: 0.48, micWarn: 3 },
       { type: 'choimis_money', speak: '가져가라.' },
       { type: 'choimis_eating_race', mode: 'choimis_eating_race', speak: '짜장면 먹방 대결해볼까? 들어와' },
       { type: 'choimis_seup', speak: '스읍 미스' },

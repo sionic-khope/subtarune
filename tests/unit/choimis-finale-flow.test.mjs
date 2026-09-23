@@ -148,8 +148,14 @@ test('test_real_eating_win_waits_for_result_hold_and_media_cleanup_before_finale
     battle.update(1 / 12, input);
   }
   assert.equal(mode.snapshot.winner, 'party');
+  assert.equal(enemy.hp, 7);
+  assert.equal(enemy.finalePending, undefined);
+  for (let i = 0; i < 300 && mode.snapshot.phase !== 'impact'; i++) battle.update(1 / 120, input);
+  assert.equal(mode.snapshot.phase, 'impact');
   assert.equal(enemy.hp, 1);
   assert.equal(enemy.finalePending, true);
+  assert.deepEqual(events, []);
+  battle.update(CHOIMIS_EATING_RACE.impactSeconds, input);
   assert.deepEqual(events, []);
   battle.update(CHOIMIS_EATING_RACE.resultSeconds - 0.2, input);
   assert.deepEqual(events, []);

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot: rawShot, check, fixture }) => {
+  const build303 = process.env.QA_BUILD303 === '1';
   const evidence = { scope: 'QA opening override after normal intro; not natural tenth-turn or whole boss clear', source: [], rounds: [], captures: [] };
   const file = path.join(process.env.SHOT_DIR, 'eating-runtime.json');
   const save = () => fs.writeFileSync(file, JSON.stringify(evidence, null, 2) + '\n');
@@ -38,8 +39,8 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     return { state: game.state, battle: b?.state, mode: b?.gimmick?.snapshot || q?.mode?.snapshot,
       hp: b?.enemies[0]?.hp, boosted: b?.enemies[0]?.defenseBoosted,
       party: b?.members.map(m => ({ id: m.id, hp: m.hp, maxHp: m.maxHp, down: m.down, loaded: !!m.frames?.idle?.length })),
-      bgm: { name: game.sound.bgmName, time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused },
-      media: v ? { time: v.currentTime, duration: v.duration, paused: v.paused, muted: v.muted, volume: v.volume, src: v.getAttribute('src'), frames: v.getVideoPlaybackQuality?.().totalVideoFrames, ready: v.readyState } : null,
+      bgm: { name: game.sound.bgmName, time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused, ready: game.sound.bgm?.readyState, src: game.sound.bgm?.currentSrc, volume: game.sound.bgm?.volume, muted: game.sound.bgm?.muted },
+      media: v ? { time: v.currentTime, duration: v.duration, paused: v.paused, muted: v.muted, volume: v.volume, src: v.getAttribute('src'), currentSrc: v.currentSrc, frames: v.getVideoPlaybackQuality?.().totalVideoFrames, ready: v.readyState, audioDecodedBytes: v.webkitAudioDecodedByteCount ?? null, width: v.videoWidth, height: v.videoHeight, error: v.error?.message || null } : null,
       bubble: b?.bubble ? { text: b.bubble.text, shown: b.bubble.shown } : null,
       hits: q?.hits, hurts: q?.hurts, labels: q?.labels, allLabels: q?.allLabels, biteDraws: q?.biteDraws, boundary: q?.boundary, transition: q?.transition };
   });
@@ -52,12 +53,12 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     if (!loaded) throw new Error('QA battle missing');
     await fixture(`${label}-preparation`, 'Observe common damage/render calls; optionally prepare defense/HP boundaries. The QA route replaces openingMode and is not natural tenth-turn entry. No clock, result, or bite count injection.', options => {
       const b = game.battle;
-      const q = window.__eatingQa = { hits: [], hurts: [], labels: [], allLabels: [], biteDraws: 0, boundary: [], transition: [], mode: null };
+      const q = window.__eatingQa = { hits: [], hurts: [], labels: [], allLabels: [], biteDraws: 0, boundary: [], transition: [], mode: null, frames: {}, phaseHistory: [], enemyPose: null };
       if (options.boosted) b.enemies[0].defenseBoosted = true;
       if (options.bossHp !== undefined) b.enemies[0].hp = options.bossHp;
       if (options.partyHp !== undefined) for (const member of b.members) { member.hp = options.partyHp; member.down = false; }
       const hit = b.hitEnemy.bind(b), hurt = b.hurtAllParty.bind(b), update = b.update.bind(b);
-      b.hitEnemy = (...args) => { const before = args[0]?.hp, result = hit(...args); q.hits.push({ before, after: args[0]?.hp, requested: args[2], source: args[3]?.source }); return result; };
+      b.hitEnemy = (...args) => { const before = args[0]?.hp, phase = q.mode?.snapshot.phase, result = hit(...args); q.hits.push({ before, after: args[0]?.hp, requested: args[2], source: args[3]?.source, phase, at: performance.now() }); return result; };
       b.hurtAllParty = (...args) => { const before = b.members.map(m => m.hp), result = hurt(...args); q.hurts.push({ before, after: b.members.map(m => m.hp), requested: args[0] }); return result; };
       b.update = (...args) => { const result = update(...args); if (b.activeEnemyMode === 'choimis_eating_race' && b.gimmick) { q.mode = b.gimmick; const s = q.mode.snapshot; if (s.elapsed > 10.85 && s.elapsed < 11.15) q.boundary.push({ phase: s.phase, elapsed: s.elapsed, bites: s.bites }); if (['prelude', 'transition'].includes(s.phase)) q.transition.push({ phase: s.phase, phaseElapsed: s.phaseElapsed, elapsed: s.elapsed, at: performance.now() }); } return result; };
       const fillText = CanvasRenderingContext2D.prototype.fillText;
@@ -70,12 +71,38 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
       };
       const draw = CanvasRenderingContext2D.prototype.drawImage;
       CanvasRenderingContext2D.prototype.drawImage = function (...args) { if (b.activeEnemyMode === 'choimis_eating_race' && args[0] === b.enemies[0].projectiles?.jjajang && args[1] === 9 && args[2] === 3 && args[3] === 8) q.biteDraws++; return draw.apply(this, args); };
+      const drawEnemy = b.drawEnemy.bind(b);
+      b.drawEnemy = (ctx, enemy, ...args) => {
+        if (enemy.patternPose && b.activeEnemyMode === 'choimis_eating_race') q.enemyPose = { ...enemy.patternPose };
+        return drawEnemy(ctx, enemy, ...args);
+      };
+      const drawGame = game.draw.bind(game);
+      game.draw = (...args) => {
+        q.enemyPose = null;
+        const result = drawGame(...args), s = q.mode?.snapshot;
+        if (!s) return result;
+        const phase = b.state === 'menu' ? 'menu' : s.phase;
+        if (q.phaseHistory.at(-1)?.phase !== phase) q.phaseHistory.push({ phase, at: performance.now(), hp: b.enemies[0].hp, hits: q.hits.length });
+        const capture = name => {
+          if (q.frames[name]) return;
+          q.frames[name] = { at: performance.now(), captureSurface: 'after full Game.draw', dimensions: [game.canvas.width, game.canvas.height], viewport: [innerWidth, innerHeight], battle: b.state, mode: s, hp: b.enemies[0].hp, hits: q.hits.map(hit => ({ ...hit })), enemyPose: q.enemyPose,
+            bubble: b.bubble ? { text: b.bubble.text, shown: b.bubble.shown } : null, data: game.canvas.toDataURL('image/png') };
+        };
+        if (phase === 'win-talk' && b.bubble?.shown >= b.bubble?.text.length) capture('win-talk');
+        if (phase === 'windup' && s.phaseElapsed >= 0.15) capture('windup');
+        if (phase === 'throw' && s.projectile.progress >= 0.45 && s.projectile.progress <= 0.6) capture('mid-throw');
+        if (phase === 'impact') capture('impact');
+        if (phase === 'impact' && s.phaseElapsed >= 0.38 && s.phaseElapsed <= 0.45) capture('recoil');
+        if (phase === 'result' && s.winner === 'party') capture('result');
+        if (phase === 'menu' && s.winner === 'party') capture('menu');
+        return result;
+      };
     }, setup);
     for (let i = 0; i < 30; i++) {
       if (await page.evaluate(() => ['prelude', 'intro'].includes(game.battle?.gimmick?.snapshot?.phase))) break;
       await press('KeyC', { delay: 70 }); await page.waitForTimeout(180);
     }
-    if (process.env.QA_BUILD299 === '1') {
+    if (process.env.QA_BUILD299 === '1' || build303) {
       const prelude = await until(() => game.battle?.gimmick?.snapshot?.phase === 'prelude' && game.battle.bubble?.shown >= game.battle.bubble?.text.length, 8000);
       const before = await record(`${label}-preamble`); await shot(`${label}-preamble`);
       check(`${label}: exact preamble is completely visible before video clock`, prelude && before.bubble?.text === '짜장면 먹방 대결해볼까? 들어와' && before.mode.elapsed === 0 && before.media.paused && before.media.time === 0);
@@ -87,7 +114,7 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     check(`${label}: ordinary intro keys enter eating video intro`, intro);
     if (!intro) throw new Error('eating intro missing');
     const introState = await record(`${label}-intro`);
-    if (process.env.QA_BUILD299 === '1') {
+    if (process.env.QA_BUILD299 === '1' || build303) {
       const fade = introState.transition.filter(s => s.phase === 'transition');
       check(`${label}: transition lasts 0.8 seconds`, fade.length > 0 && Math.max(...fade.map(s => s.phaseElapsed)) >= 0.75 && Math.max(...fade.map(s => s.phaseElapsed)) <= 0.8);
     }
@@ -105,15 +132,18 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     for (let i = 0; i < count; i++) { await press('KeyC', { delay: 45 }); await page.waitForTimeout(45); }
   };
   const instructionLabels = state => state.labels.filter(label => /먹어라|연타|피해|한 입|눌렀다|\d+ \/ 54/.test(label));
-  for (const width of [375, 768, 1280]) {
+  for (const width of build303 ? [1280] : [375, 768, 1280]) {
     const label = `win-${width}`, before = await enter(label, width, { boosted: width !== 375 });
     check(`${label}: intro renders only the single eating guide`, JSON.stringify(instructionLabels(before)) === JSON.stringify(['짜장면을 먹어라! (C 연타)']));
     await shot(`${label}-intro-a`);
     await press('KeyC', { delay: 70 });
     check(`${label}: intro C does not eat`, (await snapshot()).mode.bites === 0);
     const firstMedia = await snapshot(); await page.waitForTimeout(700); const secondMedia = await snapshot();
+    evidence.rounds.push({ label: `${label}-media-playback`, first: firstMedia, second: secondMedia }); save();
     await shot(`${label}-intro-b`);
     check(`${label}: video decodes moving frames with audio while BGM continues`, secondMedia.media.frames > firstMedia.media.frames && secondMedia.media.time > firstMedia.media.time && !secondMedia.media.paused && !secondMedia.media.muted && secondMedia.media.volume > 0 && secondMedia.bgm.time > firstMedia.bgm.time && !secondMedia.bgm.paused);
+    check(`${label}: actual video and BGM media loaded without errors`, secondMedia.media.ready >= 2 && secondMedia.media.width > 0 && secondMedia.media.height > 0 && !secondMedia.media.error && secondMedia.media.currentSrc.includes('/assets/video/choimis-eating-race.mp4') && secondMedia.bgm.ready >= 2 && !!secondMedia.bgm.src && secondMedia.bgm.volume > 0 && !secondMedia.bgm.muted);
+    if (secondMedia.media.audioDecodedBytes !== null) check(`${label}: browser decoded the video audio track`, secondMedia.media.audioDecodedBytes > 0);
     await start(label); await shot(`${label}-start`);
     check(`${label}: START retains only the single eating guide`, JSON.stringify(instructionLabels(await snapshot())) === JSON.stringify(['짜장면을 먹어라! (C 연타)']));
     check(`${label}: race advances beyond the guide window`, await until(() => window.__eatingQa.mode?.snapshot.raceElapsed >= 0.95, 2500));
@@ -126,16 +156,42 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
     check(`${label}: 18 presses finish hyungsub then select gyeongsub`, first.mode.bites === 18 && first.mode.activeMember === 'gyeongsub' && first.mode.partyBowls[0].eaten === 1 && first.mode.partyBowls[1].eaten === 0);
     await taps(18); const second = await record(`${label}-second-bowl`);
     check(`${label}: 36 presses finish gyeongsub then select ppaman`, second.mode.bites === 36 && second.mode.activeMember === 'ppaman' && second.mode.partyBowls[1].eaten === 1 && second.mode.partyBowls[2].eaten === 0);
-    await taps(18); const result = await record(`${label}-result`); await shot(`${label}-result`);
+    await taps(18); const result = await record(`${label}-54-taps`);
     check(`${label}: 54 physical presses win before 10.2 seconds`, result.mode.winner === 'party' && result.mode.bites === 54 && result.mode.raceElapsed < 10.2 && result.mode.partyBowls.every(b => b.eaten === 1));
-    check(`${label}: exactly one common boss hit deals 10 and party stays intact`, result.hits.length === 1 && result.hits[0].source === 'choimis-eating-race' && before.hp - result.hp === 10 && result.hurts.length === 0 && result.party.every((m, i) => m.hp === before.party[i].hp));
+    check(`${label}: win starts with surprise dialogue and no early damage`, result.mode.phase === 'win-talk' && result.bubble?.text === '앗 이런!' && result.hits.length === 0 && result.hp === before.hp);
     check(`${label}: live actor sprites, bite render and START label exist`, result.party.every(m => m.loaded) && result.biteDraws > 0 && result.allLabels.includes('시작!'));
     check(`${label}: pre-11 intro and post-11 race recorded without early bites`, result.boundary.some(s => s.elapsed < 11 && s.phase === 'intro' && s.bites === 0) && result.boundary.some(s => s.elapsed >= 11 && s.phase === 'race'));
-    check(`${label}: menu returns after result`, await until(() => game.battle?.state === 'menu', 4000));
+    check(`${label}: menu returns after complete throw and result`, await until(() => game.battle?.state === 'menu' && !!window.__eatingQa.frames.menu, 6500));
     const after = await record(`${label}-menu`);
     await shot(`${label}-menu`);
+    const latched = await page.evaluate(() => ({ frames: window.__eatingQa.frames, history: window.__eatingQa.phaseHistory }));
+    evidence.rounds.push({ label: `${label}-phase-history`, history: latched.history });
+    for (const name of ['win-talk', 'windup', 'mid-throw', 'impact', 'recoil', 'result', 'menu']) {
+      const frame = latched.frames[name];
+      check(`${label}: full Game.draw frame latched for ${name}`, !!frame);
+      if (!frame) continue;
+      const { data, ...metadata } = frame, bytes = Buffer.from(data.split(',')[1], 'base64');
+      const capture = path.join(process.env.SHOT_DIR, `${label}-${name}-canvas.png`);
+      fs.writeFileSync(capture, bytes);
+      evidence.captures.push({ file: capture, sha256: createHash('sha256').update(bytes).digest('hex'), ...metadata });
+    }
+    save();
+    const { 'win-talk': talk, windup, 'mid-throw': flying, impact, recoil, result: settled } = latched.frames;
+    check(`${label}: typed surprise and windup precede any damage`, talk?.bubble?.text === '앗 이런!' && talk.bubble.shown >= talk.bubble.text.length && [talk, windup, flying].every(frame => frame?.hp === before.hp && frame.hits.length === 0));
+    check(`${label}: bowl travels and rotates from windup through mid-throw`, windup?.mode.projectile?.x === 64 && windup.mode.projectile.y === 200 && flying?.mode.projectile?.x > 64 && flying.mode.projectile.x < 411 && flying.mode.projectile.y < 123 && flying.mode.projectile.rotation > 0);
+    check(`${label}: impact first frame reaches boss at 411,123 and applies exactly ten`, impact?.mode.projectile?.progress === 1 && Math.abs(impact.mode.projectile.x - 411) <= 1e-6 && Math.abs(impact.mode.projectile.y - 123) <= 1e-6 && impact.hits.length === 1 && impact.hits[0].phase === 'impact' && impact.hits[0].requested === 10 && before.hp - impact.hp === 10);
+    check(`${label}: rendered boss recoils then returns to rest`, impact?.enemyPose?.x === 411 && recoil?.enemyPose?.x > 419.7 && recoil.enemyPose.y < 174.2 && settled?.enemyPose?.x === 411 && settled.enemyPose.y === 178);
+    const phaseNames = latched.history.map(item => item.phase);
+    check(`${label}: observed win phases retain order`, ['win-talk', 'windup', 'throw', 'impact', 'result', 'menu'].every((phase, i, order) => phaseNames.includes(phase) && (!i || phaseNames.indexOf(phase) > phaseNames.indexOf(order[i - 1]))));
+    for (const [phase, seconds] of [['windup', 0.45], ['throw', 0.65], ['impact', 0.8], ['result', 1.2]]) {
+      const index = latched.history.findIndex(entry => entry.phase === phase);
+      const duration = index >= 0 && latched.history[index + 1] ? (latched.history[index + 1].at - latched.history[index].at) / 1000 : NaN;
+      check(`${label}: ${phase} real-time duration approximately ${seconds}s`, duration >= seconds - 0.07 && duration <= seconds + 0.35, `observed=${duration}`);
+    }
+    check(`${label}: exactly one common boss hit deals 10 and party stays intact`, after.hits.length === 1 && after.hits[0].source === 'choimis-eating-race' && before.hp - after.hp === 10 && after.hurts.length === 0 && after.party.every((m, i) => m.hp === before.party[i].hp));
     check(`${label}: damage once and video disposed; BGM persists`, after.hits.length === 1 && after.mode.disposed && after.media.paused && after.media.src === null && after.bgm.name === before.bgm.name && !after.bgm.paused);
   }
+  if (build303) { evidence.scope = 'BUILD303 finite 1280px eating win: QA opening override and defense-boost starting boundary; real C54, unaccelerated media, full Game.draw win-talk/windup/throw/impact/recoil/result/menu PNGs and hashes. No time/result/bite/HP injection. No human audio listening, natural tenth-turn, loss, HP1 finale, or whole-boss clear claim.'; save(); return; }
   if (process.env.QA_BUILD299 === '1') { evidence.scope = 'BUILD299 responsive preamble, 0.8-second fade, media-clock eleven-second start, physical 54-press win and menu cleanup; older loss/hold/bossdeath scopes not repeated'; save(); return; }
   for (const held of [false, true]) {
     const label = held ? 'held-repeat-loss' : 'noinput-loss';

@@ -136,7 +136,7 @@ function emitSauce(api, wave, slot, options, age) {
 
 /** Create the ordinary jjajang bowl, noodle and sauce attack. */
 export function createChoimisJjajang(options = {}) {
-  const duration = options.duration ?? 6.4, every = options.every ?? 1.95;
+  const duration = options.duration ?? 6.4, every = options.every ?? 1.84;
   const volleys = [[0.02, 0.5, 0.98], [0.25, 0.75, 0.5], [0.98, 0.25, 0.02]];
   let shot = 0, splash = 0;
   return { duration, update(t, dt, api) {

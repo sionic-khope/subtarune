@@ -79,11 +79,34 @@ test('test_choimis_shooter_actual_heart_pixels_keep_lobes_and_move_single_tip_fr
   assert.ok(right.filter(pixel => pixel.x < 0).length > 20); assert.ok(right.some(pixel => pixel.x === rightmost && pixel.y === 0));
 });
 
-test('test_choimis_shooter_combat_budget_is_twelve_seconds_excluding_fill_and_drain', () => {
+test('test_choimis_shooter_twelve_second_spawn_budget_preserves_last_noodles_until_they_resolve', () => {
   assert.equal(CHOIMIS_PINK_SHOOTER.combatSeconds, 12);
   const f = fixture(); enterCombat(f); advance(f.mode, CHOIMIS_PINK_SHOOTER.combatSeconds - 0.01);
   assert.equal(f.mode.snapshot.phase, 'combat'); assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds - 0.01);
-  assert.equal(f.mode.update(0.02, none), true); assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds); assert.equal(f.mode.snapshot.phase, 'done');
+  const last = f.mode.snapshot.noodles.map(noodle => noodle.id);
+  assert.ok(last.length > 0);
+  assert.equal(f.mode.update(0.02, none), false, `timer must not return while noodles ${last.join(',')} are active`);
+  assert.equal(f.mode.snapshot.combatElapsed, CHOIMIS_PINK_SHOOTER.combatSeconds); assert.equal(f.mode.snapshot.phase, 'tail');
+  assert.ok(f.mode.snapshot.noodles.some(noodle => last.includes(noodle.id)));
+  const spawned = f.mode.snapshot.spawned;
+  advance(f.mode, 5, input('confirm'));
+  assert.equal(f.mode.snapshot.spawned, spawned); assert.equal(f.mode.snapshot.phase, 'done');
+  assert.deepEqual(f.mode.snapshot.noodles, []); assert.deepEqual(f.mode.snapshot.shots, []);
+});
+
+test('test_opening_tail_keeps_movement_shooting_and_collision_active', () => {
+  const firing = fixture(); enterCombat(firing); firing.soul.y = 100;
+  advance(firing.mode, 12); assert.equal(firing.mode.snapshot.phase, 'tail');
+  const spawned = firing.mode.snapshot.spawned;
+  advance(firing.mode, 0.47, input('down', 'confirm')); firing.mode.update(0.01, none);
+  assert.ok(firing.mode.snapshot.heart.y > 155); assert.ok(firing.mode.snapshot.shots.length > 0);
+  advance(firing.mode, 0.6);
+  assert.ok(firing.mode.snapshot.destroyed > 0, 'tail shots can destroy the last launched noodles');
+  assert.equal(firing.mode.snapshot.spawned, spawned);
+  const collision = fixture(); enterCombat(collision); advance(collision.mode, 12);
+  const hits = collision.damage.length; advance(collision.mode, 2);
+  assert.ok(collision.damage.length > hits, 'late noodles retain their damage after the spawn deadline');
+  firing.mode.dispose(); collision.mode.dispose();
 });
 
 test('test_choimis_shooter_up_down_only_tap_fires_once_and_held_c_never_autofires', () => {

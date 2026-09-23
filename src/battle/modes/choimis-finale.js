@@ -9,7 +9,7 @@ export function createChoimisFinale(battle, { enemy }) {
   const oldSoul = { x: soul.x, y: soul.y, invuln: soul.invuln, oldX: soul.oldX, oldY: soul.oldY }, oldPose = enemy.patternPose;
   const renderer = createChoimisFinaleRenderer(battle, enemy), sounds = new Set();
   let phase = 'intro-talk', phaseTime = 0, elapsed = 0, disposed = false, assault = null, finalAssault = null;
-  let talk = createTalk(battle, C.intro), burstCount = 0, fallStartY = enemy.y;
+  let talk, burstCount = 0, fallStartY = enemy.y;
   let boss = { x: enemy.x, y: enemy.y }, heart = { x: C.finisher.soulX, y: C.finisher.soulY };
   enemy.patternPose = { hidden: true };
   battle.bubble = null;
@@ -19,7 +19,10 @@ export function createChoimisFinale(battle, { enemy }) {
     if (handle) sounds.add(handle);
     return handle;
   };
-  let chargeHandle = null, impactHandle = null;
+  let chargeHandle = null, impactHandle = null, uniteHandle = null, burstHandle = null;
+  talk = createTalk(battle, C.intro, { onLine: (_line, index) => {
+    if (index === C.intro.length - 1) uniteHandle = cue('choimis_lend_power', 1);
+  } });
   const change = next => { phase = next; phaseTime = 0; };
   const stopAssault = () => {
     if (!assault) return;
@@ -32,13 +35,16 @@ export function createChoimisFinale(battle, { enemy }) {
   };
   const enter = next => {
     change(next);
-    if (next === 'raise') { battle.setText(''); cue('power', 0.72); }
-    if (next === 'assault') {
+    if (next === 'raise') { stop(uniteHandle); uniteHandle = null; battle.setText(''); cue('power', 0.72); }
+    if (next === 'transform-white') cue('great_shine', 0.85);
+    if (next === 'reveal') {
       board.setTarget(C.box.w, C.box.h, C.box.x + C.box.w / 2, C.box.y + C.box.h / 2);
       assault = createChoimisFinalAssault(battle, enemy, { box: C.box });
     }
-    if (next === 'bursts') { stopAssault(); cue('break1'); burstCount = 1; }
+    if (next === 'gap-talk') talk = createTalk(battle, C.announcement);
+    if (next === 'bursts') { stopAssault(); burstHandle = cue('deltarune_release_shoot', 0.9); burstCount = 1; }
     if (next === 'death-talk') {
+      stop(burstHandle); burstHandle = null;
       battle.cancelPendingBgm(); battle.game.sound.stopBgm(1);
       talk = createTalk(battle, C.defeated);
     }
@@ -52,11 +58,15 @@ export function createChoimisFinale(battle, { enemy }) {
     if (next === 'revert') { stop(impactHandle); impactHandle = null; }
     if (next === 'fall') { fallStartY = boss.y; cue('wing', 0.75); }
   };
-  const transitions = { raise: 'gather', gather: 'assault', bursts: 'death-talk', autocharge: 'shot', shot: 'impact', impact: 'flash', flash: 'smoke', smoke: 'revert', revert: 'fall' };
+  const transitions = { raise: 'gather', gather: 'transform-white', 'transform-white': 'reveal', reveal: 'gap-talk', bursts: 'death-talk', autocharge: 'shot', shot: 'impact', impact: 'beam-fade', 'beam-fade': 'flash', flash: 'smoke', smoke: 'revert', revert: 'fall' };
   const snapshot = () => ({ phase, phaseTime, elapsed, disposed, boss: { ...boss }, heart: { ...heart },
+    transitionWhite: phase === 'transform-white' ? Math.min(1, phaseTime / C.whiteRise) : phase === 'reveal' ? Math.max(0, 1 - phaseTime / C.seconds.reveal) : 0,
     impactPoint: { x: (finalAssault?.boss.x ?? boss.x) - 24, y: finalAssault?.boss.y ?? boss.y - 38 },
-    impactTime: phase === 'impact' ? Math.max(0, phaseTime - C.impact.hitstop) * C.impact.timeScale : 0,
+    impactTime: phase === 'impact' ? Math.max(0, phaseTime - C.impact.hitstop) * C.impact.timeScale : phase === 'beam-fade' ? (C.seconds.impact - C.impact.hitstop + phaseTime) * C.impact.timeScale : 0,
     impactFlash: phase === 'impact' && phaseTime < C.impact.flashSeconds,
+    beamReach: phase === 'impact' ? Math.min(1, Math.max(0, phaseTime - C.impact.hitstop) / C.impact.pierceSeconds) : phase === 'beam-fade' ? 1 : 0,
+    beamWidth: phase === 'beam-fade' ? Math.max(0, 1 - phaseTime / C.seconds['beam-fade']) ** 2 : 1,
+    finalWhite: phase === 'flash' ? Math.min(1, phaseTime / C.seconds.flash) : phase === 'smoke' ? Math.max(0, 1 - phaseTime / C.impact.smokeReveal) : 0,
     normal: ['revert', 'fall', 'done'].includes(phase), assault: assault?.snapshot || finalAssault, burstCount,
     chargeProgress: phase === 'autocharge' ? Math.min(1, phaseTime / C.seconds.autocharge) : 0 });
   const dispose = () => {
@@ -76,8 +86,9 @@ export function createChoimisFinale(battle, { enemy }) {
       if (battle.state !== 'enemy-mode') { dispose(); return false; }
       if (phase === 'done') return true;
       const delta = Math.max(0, dt); elapsed += delta; phaseTime += delta;
-      if (phase === 'intro-talk' || phase === 'death-talk') {
-        if (talk.update(delta, input)) enter(phase === 'intro-talk' ? 'raise' : 'autocharge');
+      if (phase.endsWith('talk')) {
+        if (phase === 'intro-talk' && talk.index === C.intro.length - 1 && battle.typed && uniteHandle?.ended === false && uniteHandle.paused === false) return false;
+        if (talk.update(delta, input)) enter(phase === 'intro-talk' ? 'raise' : phase === 'gap-talk' ? 'assault' : 'autocharge');
         return false;
       }
       if (phase === 'assault') {
@@ -89,6 +100,7 @@ export function createChoimisFinale(battle, { enemy }) {
       if (phase === 'bursts') {
         const count = Math.min(4, 1 + Math.floor(phaseTime / 0.25));
         while (burstCount < count) { burstCount++; cue('break1', 0.75); }
+        if (burstHandle?.ended === false && burstHandle.paused === false && !burstHandle.error && !battle.game.sound.muted) return false;
       }
       if (phase === 'smoke') renderer.updateSmoke(delta);
       if (phase === 'autocharge' && chargeHandle) {

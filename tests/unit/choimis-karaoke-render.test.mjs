@@ -58,7 +58,8 @@ test('test_choimis_karaoke_clip_has_stable_endpoints_and_handles_duplicate_times
 
 test('test_choimis_karaoke_recomputes_sweep_after_seek_and_repeat', () => {
   assert.equal(choimisLyricAt(24.25).text, '가재맨 방 고닉 최미스');
-  assert.equal(choimisLyricAt(46.3).text, '최미스! 최미스! 가재맨! 방고닉!');
+  assert.equal(choimisLyricAt(46.3).text, '오늘도 스읍 미스');
+  assert.equal(choimisLyricAt(46.7).text, '최미스! 최미스! 가재맨! 방고닉!');
   assert.equal(choimisLyricAt(144.35).text, '가재맨 방 고닉 최미스');
 
   const first = CHOIMIS_LYRICS[0], repeat = CHOIMIS_LYRICS[12];
@@ -70,7 +71,7 @@ test('test_choimis_karaoke_recomputes_sweep_after_seek_and_repeat', () => {
 
 test('test_choimis_karaoke_applies_one_constant_delay_after_repeat_expansion', () => {
   assert.equal(CHOIMIS_LYRICS.length, 24);
-  const originalBoundaries = [24.090, 27.184, 30.184, 33.184, 36.184, 39.184, 42.184, 44.809, 46.121, 52.215, 58.121, 64.215, 71.246];
+  const originalBoundaries = [24.090, 27.184, 30.184, 33.184, 36.184, 39.184, 42.184, 44.809, 46.496, 52.215, 58.121, 64.215, 71.246];
   for (let index = 0; index < 12; index++) {
     const first = CHOIMIS_LYRICS[index], repeat = CHOIMIS_LYRICS[index + 12];
     assert.ok(Math.abs(first.start - (originalBoundaries[index] + 0.15)) < 0.000001);
@@ -92,6 +93,27 @@ test('test_choimis_karaoke_applies_one_constant_delay_after_repeat_expansion', (
   assert.ok(Math.abs((money.end - money.start) - (64.215 - 58.121)) < 0.000001);
   assert.ok(Math.abs(money.chars[0].at - money.start) < 0.000001);
   assert.ok(Math.abs(CHOIMIS_LYRICS.at(-1).end - 191.396) < 0.000001);
+});
+
+test('test_choimis_chant_display_waits_for_the_first_syllable_without_moving_fill_or_later_cues', () => {
+  const rawChantTimes = [46.496, 46.835, 47.153, 47.153, 47.153, 48.184, 48.559, 48.934, 48.934, 48.934, 49.684, 50.059, 50.434, 50.809, 51.184, 51.559, 51.746, 51.934, 52.059];
+  for (const [previousIndex, shift] of [[7, 0], [19, 120]]) {
+    const previous = CHOIMIS_LYRICS[previousIndex], chant = CHOIMIS_LYRICS[previousIndex + 1];
+    assert.ok(Math.abs(chant.start - (46.646 + shift)) < 0.000001);
+    assert.equal(previous.end, chant.start);
+    assert.equal(chant.start, chant.chars[0].at);
+    assert.equal(choimisLyricAt(46.271 + shift), previous);
+    assert.equal(choimisLyricAt(chant.start - 0.000001), previous);
+    assert.equal(choimisLyricAt(chant.start), chant);
+    assert.ok(Math.abs(previous.chars.at(-1).at - (46.146 + shift)) < 0.000001);
+    assert.ok(Math.abs(previous.chars.at(-1).end - (46.271 + shift)) < 0.000001, 'the preceding fill finishes at its original time while its line remains visible');
+    chant.chars.forEach((char, index) => {
+      assert.ok(Math.abs(char.at - (rawChantTimes[index] + shift + 0.15)) < 0.000001);
+      assert.ok(Math.abs(char.end - ((rawChantTimes[index + 1] ?? 52.215) + shift + 0.15)) < 0.000001);
+    });
+    assert.ok(Math.abs(chant.end - (52.365 + shift)) < 0.000001);
+    assert.equal(CHOIMIS_LYRICS[previousIndex + 2].start, chant.end);
+  }
 });
 
 test('test_choimis_karaoke_keeps_fade_attack_dimming_and_pink_trail', () => {

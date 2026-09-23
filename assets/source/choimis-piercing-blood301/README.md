@@ -1,5 +1,7 @@
 # 최미스 천혈 발사 효과음 — BUILD301
 
+BUILD303에서 사용자가 이 음원을 거절하여 런타임 파일을 교체했다. 아래는301의 보존 기록이며 현재 음원·호출 계약은 [303 기록](../choimis-piercing-blood303/README.md)을 따른다.
+
 - 출력: `assets/audio/sfx/choimis_piercing_blood.mp3`
 - 내려받은 원본: `community-source.mp3` (3.984초)
 - 출처 페이지: https://tuna.voicemod.net/sound/ebcb5a80-7c56-4a0c-bdaa-03bea88d40c9

@@ -17,6 +17,7 @@ export default {
   battle_choimis_eating_loading: '먹기 대결 영상을 준비하는 중...',
   battle_choimis_eating_error: '영상을 재생하지 못해 대결을 건너뜁니다.',
   battle_choimis_eating_win: '먼저 다 먹었다!',
+  battle_choimis_eating_surprise: '앗 이런!',
   battle_choimis_eating_lose: '최미스가 먼저 먹었다!',
   help: '이동 방향키 · 확인 C · 취소/달리기 X',
   chest_empty: '* 상자는 비어 있다.',

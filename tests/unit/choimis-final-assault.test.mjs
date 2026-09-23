@@ -4,12 +4,12 @@ import { createChoimisFinalAssault } from '../../src/battle/choimis-final-assaul
 
 const input = (...keys) => ({ down: key => keys.includes(key) });
 function fixture() {
-  const calls = { damage: 0, sounds: [], paused: 0 };
+  const calls = { damage: 0, sounds: [], paused: 0, voices: [] };
   const enemy = { hp: 1, def: { damage: 15, scale: 0.506, scaleY: 1.2 }, projectiles: {} };
   const soul = { x: 240, y: 170, r: 5, invuln: 0 };
   const battle = { soul, hurtParty: () => calls.damage++, sfx: name => calls.sounds.push(name),
     hitEnemy: () => assert.fail('survival contacts must never request HP damage'),
-    game: { sound: { sfx: () => ({ pause: () => calls.paused++, removeAttribute() {}, load() {} }) } } };
+    game: { sound: { blip: voice => calls.voices.push(voice), sfx: () => ({ pause: () => calls.paused++, removeAttribute() {}, load() {} }) } } };
   const mode = createChoimisFinalAssault(battle, enemy, { box: { x: 8, y: 8, w: 464, h: 304 } });
   return { mode, battle, enemy, calls };
 }
@@ -20,6 +20,19 @@ test('final assault completes only after sixty seconds, with no shooting require
   assert.equal(mode.update(0.01, input()), true);
   assert.equal(mode.snapshot.elapsed, 60);
   assert.equal(enemy.hp, 1);
+});
+
+test('test_final_assault_beam_release_plays_one_piercing_cut_without_laser_charge', () => {
+  const { mode, battle, calls } = fixture();
+  const cues = [];
+  battle.sfx = (name, options) => { calls.sounds.push(name); cues.push({ name, options }); };
+  mode.update(16.5, input());
+  assert.equal(cues.length, 0, 'warning remains silent');
+  mode.update(0.45, input());
+  assert.deepEqual(cues, [{ name: 'choimis_piercing_blood', options: { volume: 0.85 } }]);
+  assert.ok(mode.snapshot.hazards.some(hazard => hazard.kind === 'beam' && hazard.fired));
+  mode.update(0.2, input());
+  assert.equal(cues.length, 1, 'active beam does not repeat its sound each frame');
 });
 
 test('final assault leaves a reachable corridor through every wave and beam', () => {
@@ -108,10 +121,10 @@ test('test_final_assault_contact_milestones_show_three_nonblocking_balloons_once
   const { mode, battle, enemy } = fixture();
   const lines = [], thresholds = [];
   for (let frame = 0; frame < 3599; frame++) {
-    battle.soul.y = mode.snapshot.boss.y;
+    battle.soul.y = 160 + Math.sin((mode.snapshot.elapsed + 0.85) * 0.63) * 76;
     assert.equal(mode.update(1 / 60, input(...(frame % 24 === 1 ? ['confirm'] : []))), false);
     const bubble = mode.snapshot.bubble;
-    if (bubble && !lines.includes(bubble.text)) { lines.push(bubble.text); thresholds.push(mode.snapshot.contacts); }
+    if (bubble?.kind === 'resolve' && !lines.includes(bubble.text)) { lines.push(bubble.text); thresholds.push(mode.snapshot.contacts); }
   }
   assert.deepEqual(lines, ['아직이다.', '아직 쓰러질 수 없어.', '쓰읍 미스']);
   assert.ok(thresholds[0] < thresholds[1] && thresholds[1] < thresholds[2]);
@@ -120,4 +133,27 @@ test('test_final_assault_contact_milestones_show_three_nonblocking_balloons_once
   assert.equal(mode.update(1 / 60, input()), true);
   mode.dispose();
   assert.equal(mode.snapshot.bubble, null);
+});
+
+test('test_final_assault_chatter_types_with_choimis_voice_without_pausing_or_replaying_during_hold', () => {
+  const { mode, calls, enemy } = fixture();
+  mode.update(10.25, input());
+  const first = mode.snapshot;
+  assert.equal(first.bubble.text, '형들, 아직 끝난 거 아니에요.');
+  assert.equal(first.bubble.kind, 'chatter');
+  assert.ok(first.bubble.shown > 0 && first.bubble.shown < first.bubble.text.length);
+  assert.ok(calls.voices.length > 0);
+  assert.deepEqual([...new Set(calls.voices)], ['choimis_flower']);
+  mode.update(1, input());
+  const voices = calls.voices.length;
+  mode.update(0.5, input());
+  assert.equal(calls.voices.length, voices, 'completed text does not keep talking during its hold');
+  assert.ok(mode.snapshot.elapsed > first.elapsed);
+  assert.equal(enemy.hp, 1);
+  mode.update(47.25, input());
+  assert.equal(mode.snapshot.chatterShown, 3);
+  mode.dispose();
+  const afterDispose = calls.voices.length;
+  mode.update(5, input());
+  assert.equal(calls.voices.length, afterDispose);
 });

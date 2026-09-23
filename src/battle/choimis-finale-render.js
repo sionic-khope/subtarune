@@ -47,14 +47,18 @@ function drawBeam(ctx, state) {
   const travel = state.phase === 'shot' ? clamp(state.phaseTime / C.seconds.shot) : 1;
   const point = state.impactPoint;
   const angle = Math.atan2(point.y - state.heart.y, point.x - state.heart.x);
-  const target = { x: point.x - Math.cos(angle) * 24, y: point.y - Math.sin(angle) * 24 };
+  const contact = { x: point.x - Math.cos(angle) * 24, y: point.y - Math.sin(angle) * 24 };
+  const target = { x: mix(contact.x, C.impact.beamEndX, state.beamReach),
+    y: mix(contact.y, state.heart.y + Math.tan(angle) * (C.impact.beamEndX - state.heart.x), state.beamReach) };
   const head = { x: mix(state.heart.x + 15, target.x, travel), y: mix(state.heart.y, target.y, travel) };
   const dx = head.x - state.heart.x, dy = head.y - state.heart.y, length = Math.hypot(dx, dy);
   ctx.save(); ctx.translate(Math.round(state.heart.x), Math.round(state.heart.y)); ctx.rotate(Math.atan2(dy, dx));
+  ctx.globalAlpha = Math.min(1, state.beamWidth * 4);
   for (const [width, color] of [[38, P.beamOuter], [24, P.beamInner], [10, P.energyWhite]]) {
-    ctx.fillStyle = color; ctx.fillRect(8, -width / 2, Math.max(0, length - 8), width);
+    const thickness = Math.max(1, Math.round(width * state.beamWidth));
+    ctx.fillStyle = color; ctx.fillRect(8, -Math.round(thickness / 2), Math.max(0, length - 8), thickness);
   }
-  heart(ctx, { x: length, y: 0 }, 4, P.energyWhite); ctx.restore();
+  if (state.phase !== 'beam-fade') heart(ctx, { x: length, y: 0 }, 4, P.energyWhite); ctx.restore();
 }
 
 /** Draws the finale over its existing sky; the smoke state belongs only to this renderer. */
@@ -75,36 +79,48 @@ export function createChoimisFinaleRenderer(battle, enemy) {
     updateSmoke(dt) { smokeGame.time += dt; smokeWaiter?.update(dt); },
     draw(ctx, state, assault) {
       const background = BATTLE_BGS[battle.cfg.bg] || BATTLE_BGS.choimis_sky;
-      const showParty = ['intro-talk', 'raise', 'gather'].includes(state.phase);
+      const showParty = ['intro-talk', 'raise', 'gather', 'transform-white'].includes(state.phase);
       background(ctx, { ...battle, openingActorAlpha: () => showParty ? 1 : 0 });
-      if (state.phase === 'assault') { assault?.draw(ctx); return; }
+      if (['reveal', 'gap-talk', 'assault'].includes(state.phase)) {
+        assault?.draw(ctx);
+        if (state.transitionWhite > 0) {
+          ctx.save(); ctx.globalAlpha = state.transitionWhite; ctx.fillStyle = P.energyWhite; ctx.fillRect(0, 0, 480, 360); ctx.restore();
+        }
+        if (state.phase === 'gap-talk') { ctx.font = FONT; ctx.textBaseline = 'top'; battle.drawTextBox(ctx); }
+        return;
+      }
       if (showParty) for (const member of battle.members) battle.drawMember?.(ctx, member);
       if (state.normal) normal(ctx, state);
       else {
         let frame, sheet = 'idle';
         if (state.phase === 'raise') { sheet = 'raise'; frame = C.raiseFrames.filter(time => state.phaseTime >= time).length; }
-        if (state.phase === 'gather') { sheet = 'raise'; frame = 2; }
-        const progress = state.phase === 'impact' ? clamp(state.impactTime / ((C.seconds.impact - C.impact.hitstop) * C.impact.timeScale)) : 0;
+        if (state.phase === 'gather' || state.phase === 'transform-white') { sheet = 'raise'; frame = 2; }
+        const progress = state.phase === 'impact' || state.phase === 'beam-fade' ? clamp(state.impactTime / ((C.seconds.impact - C.impact.hitstop) * C.impact.timeScale)) : state.phase === 'flash' ? 1 : 0;
         const recoil = C.impact.recoil * Math.sin(progress * Math.PI / 2);
         const shake = state.phase === 'impact' ? Math.round(Math.sin(state.phaseTime * 90) * 4 * (1 - progress)) : 0;
-        if (state.phase === 'impact') frame = 0;
+        if (['impact', 'beam-fade', 'flash'].includes(state.phase)) frame = 0;
         battle.drawEnemy?.(ctx, { ...enemy, blink: 0, shake: 0, popup: null, patternPose: { x: state.boss.x + recoil + shake, y: state.boss.y - recoil / 3, sheet, frame } });
       }
       if (state.phase === 'gather') gather(ctx, state, enemy);
+      if (state.phase === 'transform-white') {
+        gather(ctx, { ...state, phaseTime: C.seconds.gather + state.phaseTime }, enemy);
+        ctx.save(); ctx.globalAlpha = state.transitionWhite; ctx.fillStyle = P.energyWhite; ctx.fillRect(0, 0, 480, 360); ctx.restore();
+      }
       if (!showParty && state.phase !== 'done') heart(ctx, state.heart);
       if (state.phase === 'autocharge') drawCharge(ctx, state);
-      if (state.phase === 'shot' || state.phase === 'impact') drawBeam(ctx, state);
-      if (state.phase === 'bursts' || state.phase === 'impact') {
-        const power = state.phase === 'impact' ? 2 : 1;
+      if (['shot', 'impact', 'beam-fade'].includes(state.phase)) drawBeam(ctx, state);
+      if (['bursts', 'impact', 'beam-fade'].includes(state.phase)) {
+        const finisher = state.phase !== 'bursts', power = 2;
         for (let index = 0; index < 36; index++) {
-          const angle = index * 2.399, age = state.phase === 'impact' ? state.impactTime + 0.015 : (state.phaseTime + index % 4 * 0.1) % 0.4;
+          const angle = index * 2.399, age = finisher ? state.impactTime + 0.015 : (state.phaseTime + index % 4 * 0.1) % 0.4;
           const radius = age * 220 * power * (0.6 + index % 4 * 0.16);
-          const point = state.phase === 'impact' ? state.impactPoint : { x: state.boss.x, y: state.boss.y - 38 };
+          const point = finisher ? state.impactPoint : { x: state.boss.x, y: state.boss.y - 38 };
           flower(ctx, point.x + Math.cos(angle) * radius, point.y + Math.sin(angle) * radius, 2 + index % 3, index % 2 ? P.energyWhite : P.impactPetal);
         }
       }
       if (state.phase === 'smoke') drawDarkSmoke(ctx, smokeGame, { x: 0, y: 0 });
-      if (state.phase === 'flash' || state.impactFlash) { ctx.fillStyle = P.energyWhite; ctx.fillRect(0, 0, 480, 360); }
+      const white = state.impactFlash || (state.phase === 'bursts' && state.phaseTime < 0.075) ? 1 : state.finalWhite;
+      if (white > 0) { ctx.save(); ctx.globalAlpha = white; ctx.fillStyle = P.energyWhite; ctx.fillRect(0, 0, 480, 360); ctx.restore(); }
       if (state.phase.endsWith('talk')) { ctx.font = FONT; ctx.textBaseline = 'top'; battle.drawTextBox(ctx); }
     },
     dispose() { smokeGame.darkSmoke = null; smokeWaiter = null; },

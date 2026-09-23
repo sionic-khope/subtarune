@@ -88,12 +88,76 @@ test('test_choimis_eating_six_distinct_presses_per_second_wins_and_hands_each_bo
   for (let index = 0; index < 18; index++) tap(f.mode);
   assert.equal(f.mode.snapshot.winner, 'party');
   assert.ok(f.mode.snapshot.raceElapsed >= 8.8 && f.mode.snapshot.raceElapsed <= 9);
+  assert.equal(f.mode.snapshot.phase, 'win-talk');
+  assert.equal(f.battle.bubble.text, '앗 이런!');
+  assert.equal(f.hits.length, 0, 'finishing the meal does not damage the boss before the bowl lands');
+  while (f.mode.snapshot.phase === 'win-talk') f.mode.update(1 / 120, idle);
+  assert.equal(f.mode.snapshot.phase, 'windup');
+  f.mode.update(C.windupSeconds, idle);
+  assert.equal(f.mode.snapshot.phase, 'throw');
+  f.mode.update(C.throwSeconds - 0.01, idle); assert.equal(f.hits.length, 0);
+  f.mode.update(0.01, idle);
+  assert.equal(f.mode.snapshot.phase, 'impact');
+  assert.equal(f.mode.snapshot.projectile.x, 411);
+  assert.ok(Math.abs(f.mode.snapshot.projectile.y - 123) < 1e-9);
+  assert.equal(f.mode.snapshot.projectile.progress, 1);
   assert.equal(f.hits.length, 1); assert.equal(f.hits[0].amount, 10);
   assert.equal(f.hits[0].target, f.enemy); assert.deepEqual(f.hits[0].options, { source: 'choimis-eating-race' });
   assert.equal(f.enemy.hp, 200, 'the mode delegates damage instead of mutating enemy HP');
   assert.deepEqual(f.hurts, []);
+  assert.equal(f.mode.update(C.impactSeconds, pressed), false);
   assert.equal(f.mode.update(C.resultSeconds, pressed), true);
   f.mode.update(4, pressed); assert.equal(f.hits.length, 1);
+});
+
+test('test_eating_bowl_arc_uses_existing_art_and_throw_pose_then_recoils_at_head', async () => {
+  const f = fixture(); await ready(f); advance(f.mode, 11);
+  for (let i = 0; i < 54; i++) tap(f.mode);
+  while (f.mode.snapshot.phase === 'win-talk') f.mode.update(1 / 120, idle);
+  const actors = [], images = [];
+  f.battle.drawMember = (_ctx, actor) => actors.push(actor);
+  f.battle.drawEnemy = (_ctx, actor) => actors.push(actor);
+  const ctx = { save() {}, restore() {}, fillRect() {}, strokeRect() {}, translate() {}, scale() {}, rotate() {},
+    beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, fillText() {},
+    drawImage(...args) { images.push(args); }, measureText(label) { return { width: label.length * 8 }; } };
+  f.mode.draw(ctx);
+  assert.equal(actors.find(actor => actor.id === 'ppaman').pose, 0);
+  assert.equal(actors.find(actor => actor.id === 'hyungsub').pose, null);
+  assert.deepEqual(images.at(-1), [f.bowl, 0, 10, 26, 12, -13, -6, 26, 12]);
+  const start = f.mode.snapshot.projectile;
+  f.mode.update(C.windupSeconds, idle); f.mode.update(C.throwSeconds / 2, idle);
+  const middle = f.mode.snapshot.projectile;
+  assert.equal(middle.progress, 0.5); assert.ok(middle.x > start.x && middle.x < 411);
+  assert.ok(middle.y < 123, 'the bowl arcs above the head before descending into contact');
+  actors.length = 0; f.mode.draw(ctx);
+  assert.equal(actors.find(actor => actor.id === 'ppaman').pose, 0.36);
+  f.mode.update(C.throwSeconds / 2, idle); assert.equal(f.hits.length, 1);
+  f.mode.update(C.impactSeconds / 2, idle); actors.length = 0; f.mode.draw(ctx);
+  const recoil = actors.find(actor => actor.id === 'choimis_flower').patternPose;
+  assert.equal(recoil.x, 420); assert.equal(recoil.y, 174);
+  assert.deepEqual(f.sounds.slice(-2), ['wing', 'ralsei_splat']);
+  f.mode.update(C.impactSeconds / 2, idle); actors.length = 0; f.mode.draw(ctx);
+  assert.equal(actors.find(actor => actor.id === 'choimis_flower').patternPose.x, 411);
+  assert.equal(f.mode.snapshot.projectile, null);
+});
+
+test('test_eating_victory_phase_skips_and_disposal_cannot_apply_early_or_duplicate_damage', async () => {
+  for (const cancelPhase of ['win-talk', 'windup', 'throw']) {
+    const f = fixture(); await ready(f); advance(f.mode, 11);
+    for (let i = 0; i < 54; i++) tap(f.mode);
+    while (f.mode.snapshot.phase !== cancelPhase) f.mode.update(100, idle);
+    assert.equal(f.hits.length, 0);
+    f.mode.dispose(); f.mode.update(100, pressed);
+    assert.equal(f.hits.length, 0); assert.equal(f.battle.bubble, null);
+  }
+  const f = fixture(); await ready(f); advance(f.mode, 11);
+  for (let i = 0; i < 54; i++) tap(f.mode);
+  for (const expected of ['windup', 'throw', 'impact', 'result']) {
+    assert.equal(f.mode.update(100, pressed), false);
+    assert.equal(f.mode.snapshot.phase, expected, 'large dt keeps each visible beat instead of skipping the throw');
+  }
+  assert.equal(f.mode.update(100, pressed), true); f.mode.update(100, pressed);
+  assert.equal(f.hits.length, 1); assert.deepEqual(f.hurts, []);
 });
 
 test('test_choimis_eating_five_presses_per_second_loses_and_charges_one_common_party_penalty', async () => {

@@ -31,7 +31,7 @@ const crossingShot = (target, charged = false) => ({
 
 test('test_pink_round_tuning_keeps_choso_difficulty_and_uses_fixed_eighteen_seconds', () => {
   assert.equal(CHOIMIS_PINK_ROUND_SECONDS, 18);
-  assert.deepEqual(CHOIMIS_PINK_ROUNDS.choso, { beamWarn: 0.55, beamHit: 0.38, beamEvery: 1.15 });
+  assert.deepEqual(CHOIMIS_PINK_ROUNDS.choso, { beamWarn: 0.55, beamHit: 0.38, beamEvery: 1.08 });
   assert.ok(CHOIMIS_PINK_ROUNDS.kart_block.warn >= 0.3 && CHOIMIS_PINK_ROUNDS.kart_block.speed > 118);
   assert.ok(CHOIMIS_PINK_ROUNDS.pink_prism.boltWarn >= 0.3 && CHOIMIS_PINK_ROUNDS.pink_prism.boltSpeed > 150);
 });
@@ -112,7 +112,7 @@ test('test_pink_choso_release_audio_fires_once_per_beam_volley_after_warning', (
   assert.equal(run.sounds.filter(item => item.sound === 'choimis_piercing_blood').length, 1);
   run.scenario.update(0.1, []); run.scenario.update(0.1, []);
   assert.equal(run.sounds.filter(item => item.sound === 'choimis_piercing_blood').length, 1);
-  assert.equal(run.sounds[0].options.volume, 0.6);
+  assert.equal(run.sounds[0].options.volume, 0.85);
 });
 
 test('test_kart_and_prism_attacks_spawn_at_far_right_boss_with_readable_lane_gaps', () => {
@@ -268,6 +268,54 @@ test('test_choimis_pink_prism_clears_obstacles_but_keeps_bolts_after_former_core
   assert.ok(run.scenario.snapshot.bolts.length > 0, 'bolts continue after shields and the former three-core threshold');
 });
 
+test('test_prism_each_core_requires_two_distinct_charged_hits_and_normals_do_not_reduce_hp', () => {
+  const run = scenarioFixture('pink_prism'); run.scenario.update(0.1, []);
+  for (const initial of run.scenario.snapshot.shieldPositions) {
+    const shield = () => run.scenario.snapshot.shieldPositions.find(item => item.id === initial.id);
+    assert.equal(shield().hp, 2);
+    run.scenario.update(0, [crossingShot(shield())]); assert.equal(shield().hp, 2);
+    const charged = crossingShot(shield(), true);
+    run.scenario.update(0, [charged]); assert.equal(shield().hp, 1);
+    run.scenario.update(0, [charged]); assert.equal(shield().hp, 1, 'the same penetrating shot cannot hit a core twice');
+    run.scenario.update(0, [crossingShot(shield())]); assert.equal(shield().hp, 1);
+    run.scenario.update(0, [crossingShot(shield(), true)]); assert.equal(shield(), undefined);
+  }
+  assert.equal(run.scenario.snapshot.shields, 0); assert.equal(run.scenario.done, false);
+});
+
+test('test_prism_each_live_core_fires_white_attacks_that_survive_core_death_and_drain', () => {
+  const run = scenarioFixture('pink_prism'); run.scenario.update(1.3, []);
+  const original = run.scenario.snapshot, shieldIds = original.shieldPositions.map(shield => shield.id);
+  assert.deepEqual([...new Set(original.coreBolts.map(bolt => bolt.sourceId))].sort(), [...shieldIds].sort());
+  const calls = [], ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, target.fillStyle, ...args])); }, set(target, key, value) { target[key] = value; return true; } });
+  run.scenario.draw(ctx);
+  assert.ok(calls.some(call => call[0] === 'fill' && call[1] === '#fff'), 'released core attacks render white');
+  for (const id of shieldIds) for (let hit = 0; hit < 2; hit++) {
+    const shield = run.scenario.snapshot.shieldPositions.find(item => item.id === id);
+    run.scenario.update(0, [crossingShot(shield, true)]);
+  }
+  assert.equal(run.scenario.snapshot.shields, 0);
+  assert.deepEqual(run.scenario.snapshot.coreBolts.map(bolt => bolt.id), original.coreBolts.map(bolt => bolt.id));
+  run.scenario.stopSpawning(); assert.equal(run.scenario.pending, true);
+  const spawned = run.scenario.snapshot.coreBoltsSpawned;
+  for (let step = 0; step < 5 * 120; step++) run.scenario.update(1 / 120, []);
+  assert.equal(run.scenario.snapshot.coreBoltsSpawned, spawned);
+  assert.deepEqual(run.scenario.snapshot.coreBolts, []); assert.deepEqual(run.scenario.snapshot.bolts, []);
+  assert.equal(run.scenario.pending, false);
+});
+
+test('test_choso_stopped_emission_still_detonates_warned_orbs_and_drains_radial_bullets', () => {
+  const run = scenarioFixture('choso', { repeat: true }); run.soul.y = run.soul.oldY = BOX.y - 100;
+  run.scenario.update(0.8, []); run.scenario.stopSpawning();
+  assert.equal(run.scenario.snapshot.bloodOrbs.length, 2); assert.equal(run.scenario.pending, true);
+  run.scenario.update(2.21, []);
+  assert.equal(run.scenario.snapshot.orbBursts, 2); assert.equal(run.scenario.snapshot.bloodBullets.length, 16);
+  assert.equal(run.scenario.pending, true);
+  for (let step = 0; step < 5 * 120; step++) run.scenario.update(1 / 120, []);
+  assert.equal(run.scenario.snapshot.orbBursts, 2); assert.deepEqual(run.scenario.snapshot.bloodOrbs, []);
+  assert.deepEqual(run.scenario.snapshot.bloodBullets, []); assert.equal(run.scenario.pending, false);
+});
+
 test('test_pink_boss_charged_projectile_deals_one_immediately_while_three_normal_contacts_share_remainder', () => {
   const enemy = { id: 'choimis_flower', hp: 5, maxHp: 5, dead: false, dying: 0, def: {} };
   const calls = [], sounds = [], battle = {
@@ -404,19 +452,55 @@ test('test_all_pink_rounds_draw_approved_white_boss_at_far_right_and_emit_attack
   }
 });
 
-test('test_all_pink_rounds_keep_heart_x_fixed_scroll_and_end_only_after_eighteen_combat_seconds', () => {
-  for (const [scenario, cycle] of [['choso', 0], ['kart_block', 0], ['pink_prism', 0], ['choso', 1]]) {
+test('test_all_pink_rounds_preserve_launched_attacks_after_eighteen_second_spawn_budget', () => {
+  for (const [scenario, cycle] of [['choso', 0], ['kart_block', 0], ['pink_prism', 0], ['choso', 1], ['gasuni', 0]]) {
     const run = modeFixture({ scenario, speak: scenario === 'choso' ? '내 추구미는 쵸소우야' : '준비' }, cycle); enterRound(run);
+    if (scenario === 'gasuni') run.soul.y = BOX.y + 14;
     const x = run.mode.snapshot.heart.x, beforeScroll = run.mode.snapshot.scroll;
     for (let elapsed = 0; elapsed < CHOIMIS_PINK_ROUND_SECONDS - 0.01; elapsed += 0.1) {
       assert.equal(run.mode.update(Math.min(0.1, CHOIMIS_PINK_ROUND_SECONDS - 0.01 - elapsed), none), false);
     }
     assert.equal(run.mode.snapshot.phase, 'combat'); assert.equal(run.mode.snapshot.heart.x, x); assert.ok(run.mode.snapshot.scroll > beforeScroll);
-    assert.equal(run.mode.update(0.02, none), true); assert.equal(run.mode.snapshot.phase, 'done'); assert.equal(run.mode.snapshot.combatElapsed, CHOIMIS_PINK_ROUND_SECONDS);
+    assert.equal(run.mode.update(0.02, none), false, `${scenario} must finish live attacks before returning`);
+    assert.equal(run.mode.snapshot.phase, 'tail'); assert.equal(run.mode.snapshot.combatElapsed, CHOIMIS_PINK_ROUND_SECONDS);
+    assert.equal(run.mode.snapshot.transformed, true);
+    let ended = false;
+    for (let tail = 0; tail < 10 && !ended; tail += 0.01) ended = run.mode.update(0.01, { down: key => key === 'confirm' });
+    assert.equal(ended, true, `${scenario} has a finite tail even if C stays held`); assert.equal(run.mode.snapshot.phase, 'done');
     if (scenario === 'kart_block') assert.equal(run.mode.snapshot.scenario.missed, 0);
     if (scenario === 'choso' && cycle > 0) { assert.deepEqual(run.mode.snapshot.scenario.bloodOrbs, []); assert.deepEqual(run.mode.snapshot.scenario.bloodBullets, []); }
     run.mode.dispose();
   }
+});
+
+test('test_gasuni_giant_callout_is_readable_then_clears_without_pausing_the_pink_round', () => {
+  const run = modeFixture({ scenario: 'gasuni', speak: '준비' }); enterRound(run); run.soul.y = BOX.y + 14;
+  const voices = []; run.battle.game.sound.blip = voice => voices.push(voice);
+  for (let step = 0; step < 13 * 120; step++) run.mode.update(1 / 120, none);
+  assert.ok(run.battle.bubble?.text.includes('점례'));
+  assert.deepEqual(voices, Array.from(run.battle.bubble.text.replaceAll(' ', ''), () => 'choimis_flower'), 'new callout types with the enemy voicefont');
+  const before = run.mode.snapshot.combatElapsed, target = run.mode.snapshot.scenario.targets.find(item => item.kind === 'jeomnye');
+  for (let step = 0; step < 3 * 120; step++) run.mode.update(1 / 120, none);
+  assert.equal(run.battle.bubble, null); assert.ok(run.mode.snapshot.combatElapsed > before + 2.9);
+  const moved = run.mode.snapshot.scenario.targets.find(item => item.kind === 'jeomnye');
+  assert.ok(moved.x < target.x, 'the callout cannot freeze the giant');
+  run.mode.dispose();
+});
+
+test('test_round_tail_keeps_firing_then_waits_for_existing_player_shots_without_new_spawns', () => {
+  const run = modeFixture({ scenario: 'choso', speak: '준비' }); enterRound(run);
+  for (let step = 0; step < 18 * 120; step++) run.mode.update(1 / 120, none);
+  assert.equal(run.mode.snapshot.phase, 'tail');
+  run.mode.update(0.05, { down: key => key === 'confirm' || key === 'up' }); run.mode.update(0.01, none);
+  assert.ok(run.mode.snapshot.shots.length > 0); assert.ok(run.mode.snapshot.heart.y < 159);
+  let sawSettlingShot = false, ended = false;
+  for (let step = 0; step < 3 * 120 && !ended; step++) {
+    ended = run.mode.update(1 / 120, none);
+    if (run.mode.snapshot.phase === 'settle' && run.mode.snapshot.shots.length) sawSettlingShot = true;
+  }
+  assert.equal(sawSettlingShot, true, 'outbound player bullets finish after the last enemy attack');
+  assert.equal(ended, true); assert.deepEqual(run.mode.snapshot.shots, []);
+  run.mode.dispose();
 });
 
 test('test_choso_preamble_transform_then_attack_line_precedes_eighteen_second_combat', () => {

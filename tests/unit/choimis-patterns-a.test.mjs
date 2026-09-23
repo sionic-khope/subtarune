@@ -130,11 +130,19 @@ test('test_choimis_choso_locks_each_aim_after_warning_and_restores_the_idle_cost
   assert.ok(gaps.some((gap) => gap >= 1.1), 'volley includes a safe interlude');
   const charges = result.sounds.filter(sound => sound.name === 'laser_charge');
   const releases = result.sounds.filter(sound => sound.name === 'choimis_piercing_blood');
-  assert.equal(charges.length, 6);
+  assert.equal(charges.length, 0);
   assert.equal(releases.length, 6);
-  assert.ok(charges.every(cue => cue.options.volume === 0.18 && cue.options.len === 0.28));
-  assert.ok(releases.every(cue => cue.options.volume === 0.6 && cue.options.len === 0), 'the new short piercing clip plays fully once per release');
+  assert.ok(releases.every(cue => cue.options.volume === 0.85 && cue.options.len === 0), 'the short piercing cut plays fully once per release');
+  for (const [index, cue] of releases.entries()) {
+    assert.ok(Math.abs(cue.at - (beams[index].at + beams[index].bullet.warn)) <= 1 / 30 + 1e-9, 'the cut starts when the warned beam releases');
+  }
   assert.ok(!result.sounds.some(sound => sound.name === 'laser_beam'));
+});
+
+test('test_choimis_choso_without_audio_overrides_keeps_the_piercing_cut', () => {
+  const result = simulate('choimis_choso', { beamSfx: undefined, beamVolume: undefined, beamLength: undefined });
+  assert.equal(result.sounds.length, 6);
+  assert.ok(result.sounds.every(cue => cue.name === 'choimis_piercing_blood' && cue.options.volume === 0.85 && cue.options.len === 0));
 });
 
 test('test_choimis_money_announces_1500_and_scatters_recognizable_warned_notes', () => {
@@ -165,6 +173,7 @@ test('test_choimis_noodle_volleys_build_from_straight_bowls_to_arcs_and_sauce', 
   assert.ok(emitted.slice(3).every(({ bullet }) => Math.abs(bullet.arcHeight) >= 20));
   assert.ok(splashes.every(({ bullet }) => bullet.warn >= 0.3 && bullet.drawShape && bullet.hitShape));
   assert.equal(sounds.length, 3, 'one sound per bowl volley, not one per projectile');
+  assert.ok(Math.abs(emitted[3].at - emitted[0].at - 1.84) < 1 / 30, 'volley cadence tightens by about six percent within one update frame');
   for (let wave = 0; wave < 3; wave++) {
     const volley = emitted.slice(wave * 3, wave * 3 + 3);
     assert.equal(new Set(volley.map(({ bullet }) => bullet.startY)).size, 3);
@@ -188,6 +197,7 @@ test('test_choimis_money_alternates_rain_fans_and_shifts_the_safe_corridor', () 
   const { pattern, emitted, threatened } = simulate('choimis_money');
   assert.equal(pattern.duration, 6.4);
   assert.equal(emitted.length, 36);
+  assert.ok(Math.abs(emitted[6].at - emitted[0].at - 0.77) < 1 / 30, 'fan cadence tightens by about six percent within one update frame');
   assert.equal(threatened.size, CAMPS.length, 'rain and side fans reach all corners as well as the center');
   const gaps = [];
   for (let wave = 0; wave < 6; wave++) {

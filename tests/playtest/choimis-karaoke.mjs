@@ -87,6 +87,19 @@ await runScenario({ name: 'choimis-karaoke', launchOptions: { args: ['--autoplay
   }
   const menuFrame = await capture('menu-verse-mid', 24.48);
   await capture('chorus-mid', 48.56); await capture('1500-mid', 59.08); await capture('1500-repeat120-mid', 179.08);
+  if (process.env.QA_BUILD303 === '1') {
+    for (const offset of [0, 120]) {
+      const before = await capture(`303-chorus-${offset}-before`, 46.62 + offset);
+      const after = await capture(`303-chorus-${offset}-after`, 46.70 + offset);
+      check(`chorus${offset}: container waits until46.646 plus repeat offset`, before.cue === '오늘도 스읍 미스' && after.cue === '최미스! 최미스! 가재맨! 방고닉!');
+    }
+    const timing = await page.evaluate(async () => {
+      const { CHOIMIS_LYRICS } = await import('./src/data/choimis-lyrics.js');
+      return CHOIMIS_LYRICS.filter(c => c.text === '최미스! 최미스! 가재맨! 방고닉!').map(c => ({ start: c.start, chars: c.chars.map(char => char.at) }));
+    });
+    check('chorus syllable timing stays unchanged while only its container onset moves', timing.length === 2 && Math.abs(timing[0].start - 46.646) < 0.001 && Math.abs(timing[1].start - 166.646) < 0.001 && timing[0].chars.slice(0, 3).every((at, i) => Math.abs(at - [46.646, 46.985, 47.303][i]) < 0.001) && timing[1].chars.every((at, i) => Math.abs(at - timing[0].chars[i] - 120) < 0.001));
+    evidence.chorus303 = timing;
+  }
   const repeat = await capture('verse-repeat120-mid', 144.48);
   check('repeat seeks choose current cue with no prior-chorus ghosts', repeat.cue === '가재맨 방 고닉 최미스' && repeat.calls.filter(c => c.style === '#ff9dca').every(c => repeat.cue.includes(c.text)));
   await capture('cue-transition-before', 27.30); const transition = await capture('cue-transition-after', 27.39);

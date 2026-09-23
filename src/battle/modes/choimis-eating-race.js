@@ -8,6 +8,7 @@ export const CHOIMIS_EATING_RACE = Object.freeze({
   src: 'assets/video/choimis-eating-race.mp4', introSeconds: 11, raceSeconds: 10.2,
   bitesPerBowl: 18, bowls: 3, resultSeconds: 1.2, bossDamage: 10, partyDamage: 15,
   preludeHold: 0.9, transitionSeconds: 0.8, revealSeconds: 0.4,
+  winTalkHold: 0.65, windupSeconds: 0.45, throwSeconds: 0.65, impactSeconds: 0.8,
   partyOrder: Object.freeze(['hyungsub', 'gyeongsub', 'ppaman']),
   video: Object.freeze({ x: 134, y: 86, w: 212, h: 120 }),
 });
@@ -21,6 +22,7 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
   let phase = 'prelude', elapsed = 0, raceElapsed = 0, resultElapsed = 0, phaseElapsed = 0, mediaReady = null;
   let bites = 0, rivalBites = 0, biteFlash = 0, rivalBiteFlash = 0, lastBiteMember = 0;
   let winner = null, wasDown = false, armed = false, disposed = false;
+  let winBubble = null;
   const preamble = config?.speak || enemy.def.patterns.find(pattern => pattern.mode === 'choimis_eating_race')?.speak;
   sayBubble(battle, enemy, preamble);
   const preludeBubble = battle.bubble;
@@ -30,8 +32,18 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
   const finish = result => {
     if (winner || disposed) return;
     winner = result; phase = 'result'; resultElapsed = 0; video.stop();
-    if (result === 'party') battle.hitEnemy(enemy, null, C.bossDamage, { source: 'choimis-eating-race' });
-    else battle.hurtAllParty(C.partyDamage);
+    if (result === 'party') {
+      phase = 'win-talk'; phaseElapsed = 0; biteFlash = 0; rivalBiteFlash = 0;
+      sayBubble(battle, enemy, L.battle_choimis_eating_surprise, { x: 411, y: 100 });
+      winBubble = battle.bubble;
+    } else battle.hurtAllParty(C.partyDamage);
+  };
+  const projectile = () => {
+    if (!['windup', 'throw', 'impact'].includes(phase)) return null;
+    const p = phase === 'throw' ? clamp(phaseElapsed / C.throwSeconds) : phase === 'impact' ? 1 : 0;
+    const fall = phase === 'impact' ? clamp(phaseElapsed / C.impactSeconds) : 0;
+    return { x: 64 + 347 * p + 24 * fall, y: 200 - 77 * p - 76 * Math.sin(Math.PI * p) + 80 * fall * fall,
+      rotation: p * Math.PI * 2 + fall * 3, progress: p };
   };
   const text = (ctx, label, x, y, width, color = '#fff', size = 16) => {
     ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
@@ -64,7 +76,7 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
   return {
     get fullscreen() { return phase !== 'prelude' && phase !== 'transition'; }, hpStrip: true,
     get snapshot() {
-      return { phase, phaseElapsed, elapsed, raceElapsed, bites, rivalBites, biteFlash, rivalBiteFlash, lastBiteMember, winner, disposed,
+      return { phase, phaseElapsed, elapsed, raceElapsed, bites, rivalBites, biteFlash, rivalBiteFlash, lastBiteMember, winner, disposed, projectile: projectile(),
         activeMember: C.partyOrder[Math.min(2, Math.floor(bites / C.bitesPerBowl))],
         partyBowls: C.partyOrder.map((id, index) => ({ id, eaten: clamp((bites - index * C.bitesPerBowl) / C.bitesPerBowl) })),
         rivalBowls: C.partyOrder.map((id, index) => clamp((rivalBites - index * C.bitesPerBowl) / C.bitesPerBowl)),
@@ -90,7 +102,30 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
         return false;
       }
       if (phase === 'loading') return false;
-      if (video.loadError || video.playError) { phase = 'error'; video.stop(); }
+      if (!winner && (video.loadError || video.playError)) { phase = 'error'; video.stop(); }
+      if (phase === 'win-talk') {
+        const typed = tickBubble(battle, Math.max(0, dt));
+        if (typed) phaseElapsed += Math.max(0, dt);
+        if (phaseElapsed >= C.winTalkHold) {
+          if (battle.bubble === winBubble) battle.bubble = null;
+          phase = 'windup'; phaseElapsed = 0;
+        }
+        return false;
+      }
+      if (['windup', 'throw', 'impact'].includes(phase)) {
+        const duration = phase === 'windup' ? C.windupSeconds : phase === 'throw' ? C.throwSeconds : C.impactSeconds;
+        phaseElapsed = Math.min(duration, phaseElapsed + Math.max(0, dt));
+        if (phaseElapsed >= duration) {
+          if (phase === 'windup') { phase = 'throw'; battle.sfx('wing', { volume: 0.45 }); }
+          else if (phase === 'throw') {
+            phase = 'impact';
+            battle.hitEnemy(enemy, null, C.bossDamage, { source: 'choimis-eating-race' });
+            battle.sfx('ralsei_splat', { volume: 0.65 });
+          } else phase = 'result';
+          phaseElapsed = 0;
+        }
+        return false;
+      }
       if (phase === 'result' || phase === 'error') {
         resultElapsed += Math.max(0, dt);
         return resultElapsed >= C.resultSeconds;
@@ -143,14 +178,17 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
         const eaten = clamp((bites - index * C.bitesPerBowl) / C.bitesPerBowl);
         const active = phase === 'race' && Math.floor(bites / C.bitesPerBowl) === index;
         if (member?.frames) {
-          ctx.save(); ctx.translate(44, y - (lastBiteMember === index && biteFlash > 0 ? 2 : 0)); ctx.scale(0.58, 0.58);
-          battle.drawMember(ctx, { ...member, home: [0, 0], action: null, down: false, popup: null, pose: null }); ctx.restore();
+          const throwing = index === 2 && ['windup', 'throw'].includes(phase);
+          ctx.save(); ctx.translate(44 + (throwing ? phase === 'windup' ? -4 : 5 : 0), y - (lastBiteMember === index && biteFlash > 0 ? 2 : 0)); ctx.scale(0.58, 0.58);
+          battle.drawMember(ctx, { ...member, home: [0, 0], action: null, down: false, popup: null,
+            pose: throwing ? phase === 'windup' ? 0 : 0.36 : null }); ctx.restore();
         }
         text(ctx, names[index], 47, y + 2, 70, active ? '#fff' : '#b5a5af', 12);
-        bowl(ctx, 103, y - 5, eaten, active);
+        if (!(index === 2 && winner === 'party' && phase !== 'win-talk')) bowl(ctx, 103, y - 5, eaten, active);
         if (lastBiteMember === index) drawBite(ctx, { x: 103, y: y - 23 }, { x: 49, y: y - 34 }, biteFlash);
       }
-      if (enemy.img) battle.drawEnemy(ctx, { ...enemy, popup: null, patternPose: { x: 411, y: 178 - (rivalBiteFlash > 0 ? 2 : 0),
+      const recoil = phase === 'impact' ? Math.sin(Math.PI * clamp(phaseElapsed / C.impactSeconds)) : 0;
+      if (enemy.img) battle.drawEnemy(ctx, { ...enemy, blink: 0, popup: phase === 'impact' ? enemy.popup : null, patternPose: { x: 411 + recoil * 9, y: 178 - recoil * 4 - (rivalBiteFlash > 0 ? 2 : 0),
         scale: 0.45, scaleY: 1, frame: Math.floor(elapsed * 4) % 4 } });
       for (let index = 0; index < C.bowls; index++) bowl(ctx, 377 + index * 34, 215,
         (rivalBites - index * C.bitesPerBowl) / C.bitesPerBowl, phase === 'race' && Math.floor(rivalBites / C.bitesPerBowl) === index);
@@ -163,11 +201,17 @@ export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
         : phase === 'result' ? winner === 'party' ? L.battle_choimis_eating_win : L.battle_choimis_eating_lose
           : '';
       if (message) text(ctx, message, 240, BATTLE_PANEL_TOP + 13, 410);
+      const flyingBowl = projectile();
+      if (flyingBowl && enemy.projectiles?.jjajang) {
+        ctx.save(); ctx.translate(flyingBowl.x, flyingBowl.y); ctx.rotate(flyingBowl.rotation);
+        ctx.drawImage(enemy.projectiles.jjajang, 0, 10, 26, 12, -13, -6, 26, 12); ctx.restore();
+      }
+      if (phase === 'win-talk' && battle.bubble === winBubble) battle.drawBubble(ctx);
       if (phase === 'intro' && elapsed < C.revealSeconds) {
         ctx.globalAlpha *= 1 - clamp(elapsed / C.revealSeconds); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, BATTLE_PANEL_TOP + 72);
       }
       ctx.restore();
     },
-    dispose() { if (disposed) return; disposed = true; armed = false; wasDown = false; if (battle.bubble === preludeBubble) battle.bubble = null; video.stop(); },
+    dispose() { if (disposed) return; disposed = true; armed = false; wasDown = false; if (battle.bubble === preludeBubble || battle.bubble === winBubble) battle.bubble = null; video.stop(); },
   };
 }

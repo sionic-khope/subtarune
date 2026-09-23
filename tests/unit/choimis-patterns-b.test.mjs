@@ -181,6 +181,25 @@ test('test_choimis_seup_prepares_then_sends_readable_miss_words_through_alternat
     'the visible MISS plaque and its collision rectangle share the same boundary');
 });
 
+test('test_choimis_normal_cadence_increases_modestly_without_shortening_warnings', () => {
+  const rap = start('choimis_rap', { every: undefined, burstPause: undefined });
+  advance(rap, 5);
+  const glyphs = rap.emitted.filter(bullet => bullet.shape === 'choimis_lyric');
+  assert.ok(Math.abs(glyphs[1].fallAt - glyphs[0].fallAt - 0.08) < 1e-9);
+  assert.ok(Math.abs(glyphs[7].fallAt - glyphs[6].fallAt - 0.5) < 1e-9);
+  assert.ok(glyphs.every(bullet => bullet.warn === 0.48));
+  const seup = start('choimis_seup');
+  const emittedAt = [];
+  seup.api.emit = spec => { emittedAt.push({ at: seup.api.now, ...spec }); return new Bullet(spec); };
+  advance(seup, seup.pattern.duration, 0.01);
+  const firstRows = emittedAt.filter(bullet => bullet.slot === 0);
+  assert.equal(firstRows.length, 4);
+  for (let index = 1; index < firstRows.length; index++) {
+    assert.ok(Math.abs(firstRows[index].at - firstRows[index - 1].at - 1.27) < 0.011);
+  }
+  assert.ok(firstRows.every(bullet => bullet.warn === 0.42));
+});
+
 test('test_choimis_rap_starts_video_immediately_but_first_glyph_falls_at_three_seconds', () => {
   const run = start('choimis_rap'), dt = 0.01;
   let firstFall = null;
@@ -197,7 +216,11 @@ test('test_choimis_rap_starts_video_immediately_but_first_glyph_falls_at_three_s
   assert.ok(firstFall >= 3 && firstFall <= 3.02, `first visible fall is ${firstFall}s`);
   const glyphs = run.emitted.filter(b => b.shape === 'choimis_lyric');
   assert.equal(glyphs[0].fallAt, 3);
-  assert.ok(glyphs.slice(1, 5).every((b, i) => b.fallAt - glyphs[i].fallAt >= 0.08 && b.fallAt - glyphs[i].fallAt <= 0.09));
+  for (const [index, glyph] of glyphs.slice(1, 5).entries()) {
+    const previous = glyphs[index].fallAt, interval = glyph.fallAt - previous;
+    const tolerance = Number.EPSILON * (Math.abs(glyph.fallAt) + Math.abs(previous) + 0.08);
+    assert.ok(Math.abs(interval - 0.08) <= tolerance, `glyph interval ${interval} must be 0.08s within floating-point precision`);
+  }
   assert.ok(glyphs.every(b => !b.safeColumns.includes(b.column)), 'warned glyph columns preserve two adjacent empty lanes');
 });
 
@@ -221,21 +244,22 @@ test('test_choimis_rap_large_steps_keep_glyph_schedule_and_stop_video_once', () 
   assert.deepEqual(run.mediaStops, [run.mediaStarts[0]]);
 });
 
-test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', () => {
+test('test_choimis_fashion_adds_three_staggered_outfits_with_readable_per_outfit_bubbles', () => {
   const run = start('choimis_fashion', { lines: FASHION_LINES });
   advance(run, run.pattern.duration);
   const outfits = run.emitted.filter(b => b.shape === 'choimis_outfit');
 
-  assert.deepEqual(outfits.map(b => b.look), [0, 1, 2, 3]);
+  assert.deepEqual(outfits.map(b => b.look), [0, 1, 2, 3, 4, 5, 6]);
   assert.ok(outfits.every(b => b.warn >= 0.3));
-  assert.deepEqual(outfits.map(b => Math.sign(b.direction)), [1, -1, 1, -1]);
-  assert.equal(new Set(outfits.map(b => b.profile)).size, 4, 'outfits are geometry changes, not color reskins');
-  assert.deepEqual(outfits.map(b => b.safeGap), ['bottom', 'top', 'bottom', 'top']);
-  assert.deepEqual(outfits.map(b => b.entryAt), [0.35, 1.55, 2.65, 4], 'nonuniform stagger changes when the safe corridor must switch');
+  assert.deepEqual(outfits.map(b => Math.sign(b.direction)), [1, -1, 1, -1, 1, -1, 1]);
+  assert.equal(new Set(outfits.map(b => b.profile)).size, 7, 'new outfits have distinct silhouettes');
+  assert.deepEqual(outfits.map(b => b.safeGap), ['bottom', 'top', 'bottom', 'top', 'bottom', 'top', 'bottom']);
+  assert.deepEqual(outfits.map(b => b.entryAt), [0.35, 1.3, 2.25, 3.2, 4.15, 5.1, 6.05]);
   assert.deepEqual(run.speech.map(entry => entry.text), [
     '이거 패턴이 이쁘네', '이건 매치하기 좋을듯', '이건 좀 과감한가?', '역시 핑크가 잘 받아',
+    '이거 패턴이 이쁘네', '이건 매치하기 좋을듯', '이건 좀 과감한가?',
   ]);
-  const warningReleases = [0.9, 2.1, 3.2, 4.55];
+  const warningReleases = outfits.map(outfit => outfit.entryAt + outfit.warn);
   run.speech.forEach((entry, index) => {
     assert.ok(entry.at >= warningReleases[index] && entry.at < warningReleases[index] + 0.051,
       `look ${index} remark starts on the first update after its warning releases`);
@@ -260,6 +284,8 @@ test('test_choimis_fashion_sends_four_distinct_outfit_silhouettes_in_sequence', 
       `look ${index} keeps its complete remark and full visible garment together for ${synchronizedSeconds.toFixed(2)}s`);
   }
   for (const outfit of outfits) {
+    assert.equal((BOX.w + 68) / outfit.flight, 126, 'pressure comes from staggered outfits, not faster projectiles');
+    assert.ok(outfit.entryAt + outfit.life < run.pattern.duration, 'each outfit clears naturally before the pattern ends');
     outfit.age = outfit.warn + outfit.flight / 2;
     outfit.steer(outfit);
     assert.equal(outfit.hits({ x: outfit.x, y: outfit.y, r: 1 }), true);
@@ -345,9 +371,9 @@ test('test_choimis_rap_video_abnormal_battle_cleanup_is_idempotent', () => {
   assert.equal(battle.rapVideo, null);
 });
 
-test('test_choimis_fashion_reads_the_four_outfits_from_a_two_by_two_sheet', () => {
+test('test_choimis_fashion_reads_seven_outfits_from_the_extended_two_by_four_sheet', () => {
   const run = start('choimis_fashion');
-  run.api.images.fashion = { width: 192, height: 192 };
+  run.api.images.fashion = { width: 192, height: 384 };
   advance(run, run.pattern.duration);
   const outfits = run.emitted.filter(b => b.shape === 'choimis_outfit');
 
@@ -367,8 +393,8 @@ test('test_choimis_fashion_reads_the_four_outfits_from_a_two_by_two_sheet', () =
 });
 
 test('test_choimis_fashion_uses_cached_alpha_pixels_for_visible_garment_collision', () => {
-  const pixels = new Uint8ClampedArray(192 * 192 * 4);
-  for (let look = 0; look < 4; look++) {
+  const pixels = new Uint8ClampedArray(192 * 384 * 4);
+  for (let look = 0; look < 7; look++) {
     const ox = look % 2 * 96, oy = Math.floor(look / 2) * 96;
     for (let y = 20; y <= 80; y++) for (let x = 30; x <= 38; x++) pixels[((oy + y) * 192 + ox + x) * 4 + 3] = 255;
     for (let y = 72; y <= 80; y++) for (let x = 30; x <= 75; x++) pixels[((oy + y) * 192 + ox + x) * 4 + 3] = 255;
@@ -377,19 +403,22 @@ test('test_choimis_fashion_uses_cached_alpha_pixels_for_visible_garment_collisio
   globalThis.document = { createElement: () => ({ width: 0, height: 0, getContext: () => ({ drawImage() {}, getImageData: () => ({ data: pixels }) }) }) };
   try {
     const run = start('choimis_fashion');
-    run.api.images.fashion = { width: 192, height: 192 };
-    advance(run, 0.4);
-    const outfit = run.emitted.find(b => b.shape === 'choimis_outfit');
-    outfit.age = outfit.warn + outfit.flight / 2; outfit.steer(outfit);
-    const [left, top, right, bottom] = outfit.sourceBbox, drawLeft = outfit.x - outfit.w / 2, drawTop = outfit.y - outfit.h / 2;
-    const atSource = (x, y) => ({
-      x: drawLeft + (x - left + 0.5) / (right - left) * outfit.w,
-      y: drawTop + (y - top + 0.5) / (bottom - top) * outfit.h,
-      r: 1,
-    });
-    assert.deepEqual(outfit.sourceBbox, [30, 20, 76, 81]);
-    assert.equal(outfit.hits(atSource(35, 45)), true, 'opaque garment pixel collides');
-    assert.equal(outfit.hits(atSource(70, 30)), false, 'transparent space inside alpha bounds stays safe');
+    run.api.images.fashion = { width: 192, height: 384 };
+    advance(run, run.pattern.duration);
+    const outfits = run.emitted.filter(b => b.shape === 'choimis_outfit');
+    assert.equal(outfits.length, 7);
+    for (const outfit of outfits) {
+      outfit.age = outfit.warn + outfit.flight / 2; outfit.steer(outfit);
+      const [left, top, right, bottom] = outfit.sourceBbox, drawLeft = outfit.x - outfit.w / 2, drawTop = outfit.y - outfit.h / 2;
+      const atSource = (x, y) => ({
+        x: drawLeft + (x - left + 0.5) / (right - left) * outfit.w,
+        y: drawTop + (y - top + 0.5) / (bottom - top) * outfit.h,
+        r: 1,
+      });
+      assert.deepEqual(outfit.sourceBbox, [30, 20, 76, 81]);
+      assert.equal(outfit.hits(atSource(35, 45)), true, 'opaque garment pixel collides');
+      assert.equal(outfit.hits(atSource(70, 30)), false, 'transparent space inside alpha bounds stays safe');
+    }
   } finally {
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;

@@ -1,5 +1,7 @@
 # 첫 구출 깃발 명중음 — 사용자 지정 Release Shoot
 
+BUILD303 사용자 지정 보관명은 **릴리즈샷**이다.2026-09-23 같은 페이지의Download MP3를다시 내려받아 기존 파일과 `cmp` 및SHA256을 대조했고 바이트가 완전히 같다. 별도 복제파일을 만들지 않고 기존키 `deltarune_release_shoot`를 재사용한다. 최미스60초 공세가 끝나며 화면탄막이 폭발하는 순간에 사용하며, 이후4초차지 최종빔 발사와 혼동하지 않는다. 기존 첫구출 깃발 큐는 유지한다.
+
 2026-09-20 사용자 지정 [Deltarune Release Shoot](https://www.myinstants.com/en/instant/deltarune-release-shoot-62629/). 페이지 제목과 업로더 `adriano28`, Download MP3 링크를 웹 조회로 확인했다.
 
 - 정확한 공개 파일: https://www.myinstants.com/media/sounds/deltarune-release-shoot.mp3

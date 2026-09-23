@@ -145,16 +145,15 @@ export const CHOIMIS_PATTERNS_A = {
       if (!announced) { announced = true; api.present?.({ sheet: costume, frame: 0 }); api.say?.('천혈!', 0.6); }
       while (shot < times.length && t >= times[shot]) {
         const warn = emitBloodBeam(api, options); api.present?.({ sheet: costume, frame: 1 }); fires.push(times[shot] + warn);
-        api.sfx?.('laser_charge', { volume: options.chargeVolume ?? 0.18, len: options.chargeLength ?? 0.28 });
         shot++;
       }
-      while (fires.length && t >= fires[0]) { fires.shift(); api.present?.({ sheet: costume, frame: 2 }); api.sfx?.(options.beamSfx ?? 'laser_beam', { volume: options.beamVolume ?? 0.22, len: options.beamLength ?? 0.22 }); holds.push(t + 0.14); }
+      while (fires.length && t >= fires[0]) { fires.shift(); api.present?.({ sheet: costume, frame: 2 }); api.sfx?.(options.beamSfx ?? 'choimis_piercing_blood', { volume: options.beamVolume ?? 0.85, len: options.beamLength ?? 0 }); holds.push(t + 0.14); }
       while (holds.length && t >= holds[0]) { holds.shift(); api.present?.({ sheet: costume, frame: 3 }); }
       if (!restored && t >= duration - 0.05) { restored = true; api.present?.(null); }
     } };
   },
   choimis_money(options = {}) {
-    const duration = options.duration ?? 6.4, every = options.every ?? 0.82;
+    const duration = options.duration ?? 6.4, every = options.every ?? 0.77;
     const sides = [2, 0, 3, 1, 2, 3], gaps = [1, 4, 4, 1, 2, 5];
     let wave = 0, announced = false;
     return { duration, update(t, dt, api) {

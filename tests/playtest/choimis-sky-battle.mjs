@@ -4,9 +4,10 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 async function runBuild299({ page, open, until, press, shot, check, fixture }) {
-  const scope = process.env.QA_BUILD299_SCOPE || 'flow';
+  const opening303 = process.env.QA_BUILD303_OPENING === '1';
+  const scope = opening303 ? 'opening' : process.env.QA_BUILD299_SCOPE || 'flow';
   const evidence = { scope, source: [], samples: [], limitations: 'Registered QA battle and named preparation fixtures; real-time updates and physical keys. Critical combat stays at 1280px; real canvas start/mid/end frames are latched while running. Responsive375/768/1280 screenshots use safe waiting menus so capture latency cannot consume the shooting window. No natural story/full-boss-clear or human audio-hearing claim.' };
-  const file = path.join(process.env.SHOT_DIR, `build299-${scope}.json`);
+  const file = path.join(process.env.SHOT_DIR, `build${opening303 ? '303' : '299'}-${scope}.json`);
   const save = () => fs.writeFileSync(file, JSON.stringify(evidence, null, 2) + '\n');
   const files = ['src/battle/battle.js', 'src/battle/choimis-patterns-a.js', 'src/battle/choimis-jjajang.js', 'src/battle/choimis-patterns-b.js', 'src/battle/choimis-pink-rounds.js', 'src/battle/modes/choimis-pink-shooter.js', 'src/battle/modes/choimis-pink-round.js', 'src/data/enemies.js', 'src/data/build.js', 'assets/props/choimis-dao-kart.png', 'assets/props/choimis-bazzi-kart.png'];
   for (const relative of files) {
@@ -34,7 +35,7 @@ async function runBuild299({ page, open, until, press, shot, check, fixture }) {
   await page.setViewportSize({ width: 1280, height: 800 });
   await open({ qa: 'choimis_eating' });
   check('existing direct battle route loaded', await until(() => game.battle?.state === 'intro', 30000));
-  await fixture('build299-battle-preparation', 'Reuse existing direct QA battle. Select standard opening for flow; skip only the already-covered opening for isolated pattern scopes. Observe actual damage/audio/render calls without changing game time or input.', opening => {
+  await fixture('build299-battle-preparation', 'Reuse existing direct QA battle. Select standard opening for flow/opening; skip only the already-covered opening for isolated pattern scopes. Observe actual damage/audio/render calls without changing game time, HP, projectiles or input.', ({ opening, opening303 }) => {
     const b = game.battle, q = window.__qa299 = { hits: [], sfx: [], samples: [], labels: [], audio: [], frames: {}, canvasSize: [game.canvas.width, game.canvas.height] };
     b.cfg.openingMode = 'choimis_pink_shooter';
     if (!opening) { b.openingShown = true; b.enemies[0].defenseBoosted = true; }
@@ -58,10 +59,91 @@ async function runBuild299({ page, open, until, press, shot, check, fixture }) {
     const sound = game.sound.sfx.bind(game.sound);
     game.sound.sfx = (name, options) => { const audio = sound(name, options); if (['laser_beam', 'choimis_chosouya', 'pop', 'kart_booster'].includes(name)) { const entry = { name, options, src: audio?.src, at: performance.now(), samples: [] }; q.audio.push(entry); for (const delay of name === 'choimis_chosouya' ? [80, 400, 1400, 1800, 2100] : [80, 180, 400]) setTimeout(() => entry.samples.push({ delay, time: audio?.currentTime, duration: audio?.duration, paused: audio?.paused, ended: audio?.ended, volume: audio?.volume, phase: b.gimmick?.snapshot?.phase }), delay); } return audio; };
     b.update = (...args) => { const result = update(...args); const s = b.gimmick?.snapshot; if (s || b.state === 'bullets') q.samples.push({ at: performance.now(), state: b.state, mode: b.activeEnemyMode, hp: b.enemies[0]?.hp, snapshot: s, patterns: b.patterns.map(p => ({ type: q.activeType, t: p.t })), bullets: b.bullets.map(x => ({ shape: x.shape, text: x.text, order: x.order, x: x.x, y: x.y, age: x.age, warn: x.warn, arcHeight: x.arcHeight })) }); return result; };
+    if (opening303) {
+      q.openingFrames = {}; q.openingUpdates = [];
+      const startMode = b.startEnemyMode.bind(b);
+      b.startEnemyMode = (name, ...args) => {
+        if (name === 'choimis_pink_shooter') { q.initialBoard = { ...b.board.rect }; q.initialSoul = { x: b.soul.x, y: b.soul.y }; }
+        return startMode(name, ...args);
+      };
+      const observedUpdate = b.update.bind(b), drawGame = game.draw.bind(game);
+      b.update = (...args) => {
+        const result = observedUpdate(...args);
+        if (b.activeEnemyMode === 'choimis_pink_shooter' && b.gimmick !== q.openingMode) {
+          q.openingMode = b.gimmick;
+          const updateMode = b.gimmick.update.bind(b.gimmick);
+          b.gimmick.update = (...args) => {
+            const done = updateMode(...args), snapshot = q.openingMode.snapshot;
+            q.openingUpdates.push({ at: performance.now(), done, snapshot });
+            q.lastOpening = snapshot;
+            return done;
+          };
+        }
+        return result;
+      };
+      game.draw = (...args) => {
+        const result = drawGame(...args), s = q.lastOpening;
+        if (!s) return result;
+        const capture = name => {
+          if (!q.openingFrames[name]) q.openingFrames[name] = { at: performance.now(), captureSurface: 'after full Game.draw', state: b.state, mode: b.activeEnemyMode, snapshot: s, hp: b.enemies[0].hp, boosted: b.enemies[0].defenseBoosted, board: { ...b.board.rect }, soul: { x: b.soul.x, y: b.soul.y }, viewport: [innerWidth, innerHeight], dimensions: [game.canvas.width, game.canvas.height], data: game.canvas.toDataURL('image/png') };
+        };
+        if (s.phase === 'combat' && s.combatElapsed >= 0.15) capture('start');
+        if (s.phase === 'tail') capture('deadline');
+        if (s.phase === 'tail' && s.shots.length > 0) capture('tail-player-shot');
+        if (s.phase === 'settle' && s.shots.length > 0) capture('settle-player-shot');
+        if (b.state === 'interlude') capture('interlude');
+        if (b.state === 'menu') capture('menu');
+        return result;
+      };
+    }
     const fill = CanvasRenderingContext2D.prototype.fillText;
     CanvasRenderingContext2D.prototype.fillText = function(text, ...args) { if (String(text).startsWith('-')) q.labels.push({ text, x: args[0], y: args[1], hp: b.enemies[0]?.hp, at: performance.now() }); return fill.call(this, text, ...args); };
-  }, scope === 'flow');
+  }, { opening: scope === 'flow' || scope === 'opening', opening303 });
   for (let i = 0; i < 30 && !await page.evaluate(() => ['menu', 'enemy-mode'].includes(game.battle.state)); i++) { await press('KeyC', { delay: 70 }); await page.waitForTimeout(180); }
+  if (opening303) {
+    evidence.limitations = 'BUILD303 opening only, 1280px: existing choimis_eating QA entry changes openingMode before real intro C inputs. Real elapsed time and physical direction/C keys; no HP/time/projectile/result injection. No old pattern loops, natural story/full-boss-clear or human audio-hearing claim.';
+    check('opening303: actual opening enters combat', await until(() => game.battle?.gimmick?.snapshot?.phase === 'combat', 10000));
+    await page.keyboard.down('ArrowUp'); await page.waitForTimeout(600); await page.keyboard.up('ArrowUp');
+    check('opening303: twelve-second deadline retains live hazards in tail', await until(() => game.battle?.gimmick?.snapshot?.phase === 'tail', 15000));
+    const deadlineState = await record('opening-deadline');
+    const s = deadlineState.snapshot;
+    if (s?.phase === 'tail' && s.noodles.length) {
+      const candidates = Array.from({ length: 125 }, (_, i) => 97 + i);
+      const target = candidates.reduce((best, y) => Math.min(...s.noodles.map(n => Math.abs(n.y - y))) > Math.min(...s.noodles.map(n => Math.abs(n.y - best))) ? y : best, candidates[0]);
+      const key = target > s.heart.y ? 'ArrowDown' : 'ArrowUp';
+      await page.keyboard.down(key); await page.waitForTimeout(Math.abs(target - s.heart.y) / 126 * 1000); await page.keyboard.up(key);
+    }
+    check('opening303: tail keeps running with late hazards', await until(() => { const s = game.battle?.gimmick?.snapshot; return s?.phase === 'tail' && s.tailElapsed >= 1.5; }, 3000));
+    await press('KeyC', { delay: 70 });
+    check('opening303: physical tail C release creates a player shot', await until(() => !!window.__qa299.openingFrames['tail-player-shot'], 1500));
+    check('opening303: natural cleanup reaches defense dialogue', await until(() => game.battle?.state === 'interlude' && game.battle.typed, 6500));
+    await record('opening-interlude');
+    await press('KeyC', { delay: 70 });
+    check('opening303: defense result is readable', await until(() => game.battle?.interlude?.snapshot?.phase === 'result' && game.battle.typed, 10000));
+    await press('KeyC', { delay: 70 });
+    check('opening303: real confirmation restores menu', await until(() => game.battle?.state === 'menu' && !!window.__qa299.openingFrames.menu, 5000));
+    const menu = await record('opening-menu');
+    const observed = await page.evaluate(() => ({ frames: window.__qa299.openingFrames, updates: window.__qa299.openingUpdates, initialBoard: window.__qa299.initialBoard, initialSoul: window.__qa299.initialSoul, hits: window.__qa299.hits, disposed: window.__qa299.openingMode?.snapshot.disposed }));
+    evidence.samples.push({ label: 'opening-updates-before-disposal', value: observed.updates });
+    const samples = observed.updates.map(entry => entry.snapshot), deadline = samples.find(s => s.phase === 'tail'), done = observed.updates.find(entry => entry.done);
+    const tail = samples.filter(s => ['tail', 'settle', 'done'].includes(s.phase));
+    check('opening303: combat stops at twelve seconds with outstanding noodles', deadline?.combatElapsed === 12 && deadline.noodles.length > 0);
+    check('opening303: deadline forbids new hazards while existing hazards drain', tail.length > 1 && !!deadline && tail.every(s => s.combatElapsed === 12 && s.spawned === deadline.spawned && s.noodles.every(noodle => deadline.noodles.some(original => original.id === noodle.id))) && tail.at(-1).noodles.length === 0);
+    check('opening303: settle retains the late player shot after hazards finish', samples.some(s => s.phase === 'settle' && s.noodles.length === 0 && s.shots.length > 0));
+    check('opening303: completion waits for shots, hazards and effects to drain naturally', done?.snapshot.phase === 'done' && done.snapshot.shots.length === 0 && done.snapshot.noodles.length === 0 && done.snapshot.effects.length === 0 && observed.disposed);
+    check('opening303: defense and menu occur after mode completion', !!done && observed.frames.interlude?.at >= done.at && observed.frames.menu?.at > observed.frames.interlude?.at);
+    check('opening303: return preserves boss HP250 and enables defense', menu.hp === 250 && menu.boosted === true && !menu.mode && observed.hits.length === 0);
+    const restored = observed.frames.interlude;
+    check('opening303: disposal restores original board and soul', !!restored && ['x', 'y', 'w', 'h'].every(key => restored.board[key] === observed.initialBoard[key]) && restored.soul.x === observed.initialSoul.x && restored.soul.y === observed.initialSoul.y);
+    for (const name of ['start', 'deadline', 'tail-player-shot', 'settle-player-shot', 'interlude', 'menu']) {
+      const frame = observed.frames[name]; check(`opening303: full Game.draw ${name} frame`, !!frame);
+      if (!frame) continue;
+      const { data, ...metadata } = frame, bytes = Buffer.from(data.split(',')[1], 'base64');
+      const capture = path.join(process.env.SHOT_DIR, `opening303-${name}-canvas.png`); fs.writeFileSync(capture, bytes);
+      evidence.samples.push({ label: name, canvasCapture: capture, sha256: createHash('sha256').update(bytes).digest('hex'), ...metadata });
+    }
+    save(); return;
+  }
   if (scope === 'flow') {
     check('opening enters standard pink shooter', await until(() => game.battle?.activeEnemyMode === 'choimis_pink_shooter', 5000));
     await shot('flow-opening-start-1280');
@@ -222,7 +304,7 @@ const json = value => JSON.stringify(value, (key, item) => key === 'data' ? unde
 const BUILD298 = process.env.QA_BUILD298 === '1';
 
 await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async context => {
-  if (process.env.QA_BUILD299 === '1') return runBuild299(context);
+  if (process.env.QA_BUILD299 === '1' || process.env.QA_BUILD303_OPENING === '1') return runBuild299(context);
   const { page, open, until: rawUntil, press: rawPress, shot: rawShot, check: rawCheck, fixture } = context;
   page.setDefaultNavigationTimeout(30000);
   const evidencePath = path.join(process.env.SHOT_DIR, 'choimis-sky-runtime.json');
@@ -230,6 +312,15 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   fs.writeFileSync(evidencePath, JSON.stringify(trace, null, 2) + '\n');
   const save = () => fs.writeFileSync(evidencePath, JSON.stringify(trace, null, 2) + '\n');
   const check = (label, ok, detail = '') => rawCheck(label, ok, `${detail}${detail ? ' ' : ''}artifact=${evidencePath}`);
+  if (process.env.QA_BUILD303_FIELD === '1') {
+    trace.fieldSources = [];
+    for (const relative of ['src/scenes/choimis-sky-intro.js', 'src/data/characters.js', 'src/data/build.js', 'assets/sprites/choimis_flower.png', 'assets/sprites/choimis.png', 'assets/portraits/choimis_flower.png', 'assets/enemies/choimis-flower-idle.png', 'assets/enemies/choimis-flower-raise.png']) {
+      const response = await page.request.get(new URL(relative, process.env.QA_BASE_URL).href);
+      const local = createHash('sha256').update(fs.readFileSync(path.join(process.env.QA_SOURCE_ROOT, relative))).digest('hex'), served = createHash('sha256').update(await response.body()).digest('hex');
+      trace.fieldSources.push({ relative, local, served }); check(`BUILD303 field source ${relative}`, response.ok() && local === served);
+    }
+    save();
+  }
   const shot = async name => { const file = await rawShot(name); trace.observations.push({ shot: file }); save(); return file; };
   const until = async (predicate, timeout = 10000) => rawUntil(predicate, timeout);
   const press = async key => rawPress(key, { delay: 70 });
@@ -708,7 +799,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   } finally { await page.keyboard.up('ArrowRight'); }
   const settled = await until(() => window.game.choimisSky?.phase === undefined && window.game.dialogue.running && window.game.textbox.node?.text === '* 하이', 30000);
   check('boss stays airborne before the first 하이 line', !!settled && (await snapshot()).actors.choimis_sky_boss?.hopY > 20, json(await snapshot()));
-  if (BUILD298) {
+  if (BUILD298 || process.env.QA_BUILD303_FIELD === '1') {
     const hiWaiting = await until(() => window.game.dialogue.running && window.game.textbox.node?.text === '* 하이' && window.game.textbox.state === 'waiting', 5000);
     if (hiWaiting) await page.waitForTimeout(500);
   }
@@ -814,11 +905,16 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   check('battle handoff starts the actual choimis_battle BGM within one second', !!bgmReady && handoffBgmReady.bgm === 'choimis_battle' && handoffBgmReady.paused === false && handoffBgmReady.time > 0.01 && handoffBgmElapsed >= -100 && handoffBgmElapsed <= 1000, json({ ...handoffBgmReady, elapsedMs: handoffBgmElapsed }));
   check('cape wing cue fires once before weaponpull', wingEvents.length === 1 && Number.isFinite(wingAt) && Number.isFinite(weaponAt) && wingAt <= weaponAt, json({ wingEvents, weaponAt }));
   check('weaponpull precedes immediate choimis_battle BGM', Number.isFinite(weaponAt) && Number.isFinite(battleBgmAt) && weaponAt <= battleBgmAt && battleBgmAt - weaponAt <= 1000, json({ weaponAt, battleBgmAt, elapsedMs: battleBgmAt - weaponAt }));
-  if (process.env.QA_HANDOFF_ONLY === '1') {
+  if (process.env.QA_HANDOFF_ONLY === '1' || process.env.QA_BUILD303_FIELD === '1') {
     const readySettled = await until(() => window.game.battle?.state === 'intro' && window.game.battle.typed && window.game.battle.t > 1.5, 5000);
     check('settled battle handoff is ready before responsive captures', !!readySettled, json(await snapshot()));
     for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 720 }); await page.waitForTimeout(120); await shot(`settled_battle_viewport_${width}`); }
     await page.setViewportSize({ width: 960, height: 720 });
+    if (process.env.QA_BUILD303_FIELD === '1') {
+      check('BUILD303 natural field handoff reaches HP250 battle', handoff.battle.enemies[0].hp === 250);
+      trace.fieldSourcesAfter = trace.fieldSources.map(s => ({ relative: s.relative, local: createHash('sha256').update(fs.readFileSync(path.join(process.env.QA_SOURCE_ROOT, s.relative))).digest('hex') }));
+      check('BUILD303 field sources stay unchanged throughout natural handoff', trace.fieldSourcesAfter.every(s => trace.fieldSources.find(before => before.relative === s.relative).local === s.local)); save();
+    }
     return;
   }
   check('battle starts with HP 200 and all three natural party members loaded', !!battleReady && handoff.battle.enemies[0].hp === 200 && handoff.battle.members.length === 3 && handoff.battle.members.every(m => m.loaded), json(handoff.battle));
@@ -1409,12 +1505,12 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     }
     if (pattern.name === 'fashion') {
       const looks = [...new Set(observed.flatMap(q => q.bullets.filter(b => b.shape === 'choimis_outfit').map(b => b.look)).filter(look => look !== undefined))];
-      check('fashion: four pink outfit looks render in sequence', json(looks) === json([0, 1, 2, 3]), json(looks));
+      check('fashion: seven pink outfit looks render in sequence', json(looks) === json([0, 1, 2, 3, 4, 5, 6]), json(looks));
       const bubbles = [...new Set(observed.map(q => q.bubble).filter(Boolean))];
       check('fashion: four configured outfit bubbles appear during the actual pattern', bubbles.length === 4, json({ bubbles, expected: 4 }));
       const fashionFrames = await page.evaluate(() => window.__choimisQa.fashionFrames || {});
       const fashionFiles = [];
-      for (const look of [0, 1, 2, 3]) fashionFiles.push(await saveDataUrl(`pattern_fashion_look_${look}_active`, fashionFrames[look]));
+      for (const look of [0, 1, 2, 3, 4, 5, 6]) fashionFiles.push(await saveDataUrl(`pattern_fashion_look_${look}_active`, fashionFrames[look]));
       check('fashion: each configured outfit has an actual settled active-body canvas capture', fashionFiles.every(Boolean), json({ looks: Object.keys(fashionFrames), files: fashionFiles }));
     }
   }

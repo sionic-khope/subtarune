@@ -43,6 +43,8 @@ shasum -a 256 assets/source/choimis-sky294/audio/GWf9_qSrnOM.webm assets/audio/b
 
 ## 해시와 비용
 
+BUILD303 후속 교정: 위 BUILD294의 후렴 컨테이너 유지 결정은 최신 피드백으로 대체됐다. `최미스! 최미스!` 문장 공개를 첫 가락 어택46.496/166.496초에 맞추고 기존 공통 지연0.15초를 더해 실제46.646/166.646초로 표시한다. 이전 컨테이너보다0.375초 늦다. 모든 `chars.at/end`와 이후 문장 경계는 그대로이며, 앞 문장 마지막 채움 종료도 늘리지 않는다. 오디오 의미론적 청취 검증과는 구분한다.
+
 - `GWf9_qSrnOM.webm`: `1ae9d88a3916524b5400b33040d43f0b2e243e6bf92c49abea3fbd75130b7da3`
 - `choimis_battle.mp3`: `a767c3a326bd8cdeaab3677c1813f9cf37036010bd6c19490a76a7bf24c72df3`
 - 취득은 공개 URL의 `yt-dlp`와 로컬 `ffmpeg`만 사용했다. 유료 API 호출·외부 API 비용은 0이다.
