@@ -26,12 +26,18 @@ test('invasion checkpoints append in order and restore only completed earlier be
   }
 });
 
-test('invasion QA preserves earned state and separates ready, intermediate, and completed entry', () => {
+test('invasion QA preserves earned state and adds the consumed rescue upgrades only at castle entry', () => {
   const baseline = QA_POINTS.find(point => point.id === 'choimis_return');
+  const baselineState = stateFromFlags(effective(baseline));
   for (const id of points) {
     const point = QA_POINTS.find(item => item.id === id);
     assert.ok(point, id);
-    assert.deepEqual(stateFromFlags(effective(point)), stateFromFlags(effective(baseline)), id);
+    const castleEntry = id === 'gajaeman_castle_entry';
+    const expected = castleEntry ? { ...baselineState, attack: baselineState.attack + 1,
+      hpBonus: baselineState.hpBonus + 20, money: baselineState.money - 20 } : baselineState;
+    assert.deepEqual(stateFromFlags(effective(point)), expected, id);
+    assert.equal(!!point.flags.shop_yongjun_strong_cialis, castleEntry, id);
+    assert.equal(!!point.flags.shop_yongjun_strong_vaseline, castleEntry, id);
     assert.deepEqual(point.party, ['gyeongsub', 'ppaman']);
   }
   const [ready, deck, sailing, arrived] = points.map(id => QA_POINTS.find(point => point.id === id));

@@ -10,6 +10,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { QA_POINTS, STATE_FROM_FLAGS, stateFromFlags, STAGES, storyBgm } from '../../src/core/story.js';
 import { ENEMIES } from '../../src/data/enemies.js';
+import { CHARACTERS } from '../../src/data/characters.js';
+import { purchaseShopItem, shopItemState } from '../../src/core/shop.js';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '../..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -81,8 +83,8 @@ test('test_qa_state_saloon_and_later_points_include_purchased_upgrades_and_cost'
     assert.equal(point.flags.shop_yongjun_vaseline, true, point.id);
     // 비데 방 버섯(bidet_arcade_done) 뒤에는 공격 +1·최대 HP +20 이 더해진다 (2026-09-15)
     const mushroom = point.flags.bidet_arcade_done ? 1 : 0;
-    assert.equal(state.attack, 3 + mushroom, point.id);
-    assert.equal(state.hpBonus, 40 + mushroom * 20, point.id);
+    assert.equal(state.attack, 3 + mushroom + Number(!!point.flags.shop_yongjun_strong_cialis), point.id);
+    assert.equal(state.hpBonus, 40 + mushroom * 20 + Number(!!point.flags.shop_yongjun_strong_vaseline) * 20, point.id);
     assert.equal(state.money, beforePurchase.money - 20, point.id);
     assert.deepEqual(state.inventory, beforePurchase.inventory, point.id);
   }
@@ -95,6 +97,55 @@ test('test_qa_state_before_saloon_keeps_optional_shop_upgrades_unpurchased', () 
     assert.equal(!!point.flags?.shop_yongjun_cialis, false, point.id);
     assert.equal(!!point.flags?.shop_yongjun_vaseline, false, point.id);
   }
+});
+
+test('test_castle_qa_includes_consumed_rescue_upgrades_once_with_full_maximum_hp', () => {
+  const points = QA_POINTS.filter(point => /^gajaeman_(castle|memory)/.test(point.map));
+  assert.ok(points.length >= 12);
+  for (const point of points) {
+    const flagsBefore = { ...point.flags };
+    const beforePurchase = derive({ ...point, flags: { ...point.flags,
+      shop_yongjun_strong_cialis: false, shop_yongjun_strong_vaseline: false } });
+    const state = derive(point);
+    assert.equal(point.flags.shop_yongjun_strong_cialis, true, point.id);
+    assert.equal(point.flags.shop_yongjun_strong_vaseline, true, point.id);
+    assert.equal(state.attack, 5, point.id);
+    assert.equal(state.hpBonus, 80, point.id);
+    assert.equal(state.attack, beforePurchase.attack + 1);
+    assert.equal(state.hpBonus, beforePurchase.hpBonus + 20);
+    assert.equal(state.money, beforePurchase.money - 20);
+    assert.deepEqual(state.inventory, beforePurchase.inventory);
+    assert.deepEqual(['hyungsub', ...point.party].map(id => (CHARACTERS[id].hp ?? 100) + state.hpBonus), [180, 200, 170]);
+    assert.deepEqual(derive(point), state, 'repeated QA reconstruction must not accumulate upgrades');
+    assert.deepEqual(point.flags, flagsBefore);
+  }
+});
+
+test('test_precastle_qa_preserves_optional_rescue_shop_purchase_and_immediate_consumption', () => {
+  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory)/.test(point.map || ''))) {
+    assert.equal(!!point.flags?.shop_yongjun_strong_cialis, false, point.id);
+    assert.equal(!!point.flags?.shop_yongjun_strong_vaseline, false, point.id);
+  }
+  const point = QA_POINTS.find(point => point.id === 'choimis_return');
+  const before = derive(point);
+  const game = { ...before, flags: { ...point.flags }, party: [...point.party], partyHp: {},
+    has(key) { return !!this.flags[key]; }, setFlag(key) { this.flags[key] = true; }, autosave() {},
+    maxHpOf(id) { return (CHARACTERS[id].hp ?? 100) + this.hpBonus; },
+    hpOf(id) { return this.partyHp[id] ?? this.maxHpOf(id); },
+  };
+  assert.equal(shopItemState(game, 'strong_vaseline').ok, true);
+  assert.equal(shopItemState(game, 'strong_cialis').ok, true);
+  assert.equal(purchaseShopItem(game, 'strong_vaseline').ok, true);
+  assert.equal(purchaseShopItem(game, 'strong_cialis').ok, true);
+  assert.equal(game.attack, 5);
+  assert.equal(game.hpBonus, 80);
+  assert.deepEqual(game.partyHp, { hyungsub: 180, gyeongsub: 200, ppaman: 170 });
+  assert.equal(game.money, before.money - 20);
+  assert.deepEqual(game.inventory, before.inventory);
+  assert.equal(purchaseShopItem(game, 'strong_cialis').reason, 'sold_out');
+  assert.equal(purchaseShopItem(game, 'strong_vaseline').reason, 'sold_out');
+  assert.equal(game.attack, 5);
+  assert.equal(game.hpBonus, 80);
 });
 
 test('test_qa_ship_assault_points_preserve_victory_reward_and_only_completed_beats', () => {
