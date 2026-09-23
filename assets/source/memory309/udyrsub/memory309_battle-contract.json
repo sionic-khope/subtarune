@@ -1,0 +1,58 @@
+{
+  "schema": "subtarune.sprite-handoff/v1",
+  "id": "memory309_battle",
+  "status": "approved-source-art; runtime-not-wired-by-this-task",
+  "character": "udyrsub",
+  "deliverables": {
+    "battle": "assets/enemies/udyrsub-battle.png",
+    "front": "assets/enemies/udyrsub-front.png"
+  },
+  "layout": {
+    "sheet_px": [256, 256],
+    "grid": [2, 2],
+    "cell_px": [128, 128],
+    "row_major_frames": [
+      "neutral_3_4_left_down",
+      "raised_guard_anticipation",
+      "spread_claw_spirit_release",
+      "recovery"
+    ],
+    "durations_ms": [180, 160, 140, 200]
+  },
+  "placement": {
+    "shared_pivot_px": [64, 120],
+    "feet_baseline_y": 120,
+    "shared_source_to_output_scale": 0.20668058455114824,
+    "opaque_heights_px": [98, 98, 94, 95],
+    "required_height_range_px": [94, 98]
+  },
+  "identity_preserved": [
+    "broad face with huge U-shaped nose",
+    "two visible eyes and glasses",
+    "long hair and beard with blue hair strand",
+    "muscular bare torso with blue tattoos",
+    "orange bead necklace, wraps, leather skirt"
+  ],
+  "palette": {
+    "direction": "whole-body dark power",
+    "references": "references/gajaeman-shadow-color-only.png",
+    "skin": "dark slate blue",
+    "hair_beard_outfit": "charcoal navy brown",
+    "tattoos_and_hair_strand": "muted cold blue",
+    "beads": "subdued blue-gray orange",
+    "prohibited": ["face-obscuring aura", "new geometry", "pose change"]
+  },
+  "lineage": {
+    "previous_pose_identity": "references/udyrsub-battle308.png",
+    "previous_front": "references/udyrsub-front308.png",
+    "identity_reference": "references/identity.png",
+    "rejected_v1_raw": "raw-v1-rejected-near-neutral-poses.png",
+    "accepted_v2_raw_imagegen_edit": "raw-v2-pose-repaired.png",
+    "accepted_v2_imagegen_call": "imagegen-v2-pose-repair-call.json",
+    "strict_processor": "processed-v2/pipeline-meta.json",
+    "mechanical_export": "runtime-qc-v2-pose-repair.json",
+    "crop_coordinate_system": "pipeline-meta crop boxes are local to each 627px input cell; export applies the row-major cell origin before cropping",
+    "pose_comparison": "pose-comparison-memory308-to-v2.png"
+  },
+  "consumer": "memory309_battle"
+}

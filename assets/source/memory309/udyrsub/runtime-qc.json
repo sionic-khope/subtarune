@@ -1,0 +1,105 @@
+{
+  "operation": "mechanical nearest-neighbor export from strict-processor crops",
+  "input_cleaned_source": "processed/raw-sheet-clean.png",
+  "crop_boxes": [
+    [
+      103,
+      99,
+      513,
+      596
+    ],
+    [
+      121,
+      95,
+      498,
+      596
+    ],
+    [
+      86,
+      112,
+      531,
+      597
+    ],
+    [
+      98,
+      97,
+      516,
+      595
+    ]
+  ],
+  "shared_scale": 0.19560878243512975,
+  "pivot": [
+    64,
+    120
+  ],
+  "cells": [
+    {
+      "index": 0,
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        24,
+        24,
+        104,
+        120
+      ],
+      "rendered_size": [
+        80,
+        97
+      ]
+    },
+    {
+      "index": 1,
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        27,
+        24,
+        101,
+        120
+      ],
+      "rendered_size": [
+        74,
+        98
+      ]
+    },
+    {
+      "index": 2,
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        24,
+        25,
+        103,
+        120
+      ],
+      "rendered_size": [
+        87,
+        95
+      ]
+    },
+    {
+      "index": 3,
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        24,
+        24,
+        104,
+        120
+      ],
+      "rendered_size": [
+        82,
+        97
+      ]
+    }
+  ]
+}

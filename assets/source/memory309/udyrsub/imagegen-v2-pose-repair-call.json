@@ -1,0 +1,32 @@
+{
+  "engine": "built-in image_gen.imagegen",
+  "operation": "pose-repair edit after independent visual blocker",
+  "call_arguments": {
+    "num_last_images_to_include": 2,
+    "referenced_image_paths": null,
+    "prompt_file": "prompt-v2-pose-repair.txt",
+    "prompt_sha256": "aedf65ad96611eb8878a539536dc25988aa70b05e0c0b19a1ed0fedae899f03d"
+  },
+  "conversation_image_order": [
+    {
+      "position": 1,
+      "role": "current dark-power palette and identity reference",
+      "persisted_reference": "raw-v1-rejected-near-neutral-poses.png"
+    },
+    {
+      "position": 2,
+      "role": "original memory308 four-pose coordinate and silhouette reference",
+      "persisted_reference": "references/udyrsub-battle308.png"
+    }
+  ],
+  "result": {
+    "generated_local_path": "/Users/khope@sionic.ai/.codex/generated_images/01a0bc79-1f9e-7dc1-a8ed-84a1681b21a0/exec-93e68e0a-37a9-4393-8431-4cf69464dcc9.png",
+    "captured_raw": "raw-v2-pose-repaired.png",
+    "raw_sha256": "500235ce5b6a4b4c74ab7b99ad439e9a0c1742b232605cc75d9897f3f1650dbf"
+  },
+  "rejected_v1": {
+    "raw": "raw-v1-rejected-near-neutral-poses.png",
+    "reason": "independent visual review found nearly identical arms-down neutral poses in cells 1–3",
+    "sha256": "98d2b8620426a76a79b57ec7086438971aea1909072ca4ec0eed49e15125b264"
+  }
+}

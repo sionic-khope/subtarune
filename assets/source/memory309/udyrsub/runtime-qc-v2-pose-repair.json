@@ -1,0 +1,120 @@
+{
+  "operation": "mechanical NEAREST export from strict v2 local crop boxes with per-cell source-origin translation and alpha-bottom feet alignment",
+  "input_cleaned_source": "processed-v2/raw-sheet-clean.png",
+  "local_crop_boxes": [
+    [
+      114,
+      118,
+      530,
+      597
+    ],
+    [
+      126,
+      118,
+      516,
+      596
+    ],
+    [
+      7,
+      129,
+      596,
+      592
+    ],
+    [
+      121,
+      119,
+      530,
+      591
+    ]
+  ],
+  "global_crop_boxes": [
+    [
+      114,
+      118,
+      530,
+      597
+    ],
+    [
+      753,
+      118,
+      1143,
+      596
+    ],
+    [
+      7,
+      756,
+      596,
+      1219
+    ],
+    [
+      748,
+      746,
+      1157,
+      1218
+    ]
+  ],
+  "cell_source_origin_px": 627,
+  "shared_scale": 0.20668058455114824,
+  "pivot": [
+    64,
+    120
+  ],
+  "cells": [
+    {
+      "index": 0,
+      "alpha_bbox": [
+        22,
+        22,
+        107,
+        120
+      ],
+      "height": 98,
+      "rendered_size": [
+        86,
+        99
+      ]
+    },
+    {
+      "index": 1,
+      "alpha_bbox": [
+        23,
+        22,
+        103,
+        120
+      ],
+      "height": 98,
+      "rendered_size": [
+        81,
+        99
+      ]
+    },
+    {
+      "index": 2,
+      "alpha_bbox": [
+        8,
+        26,
+        124,
+        120
+      ],
+      "height": 94,
+      "rendered_size": [
+        122,
+        96
+      ]
+    },
+    {
+      "index": 3,
+      "alpha_bbox": [
+        21,
+        25,
+        105,
+        120
+      ],
+      "height": 95,
+      "rendered_size": [
+        85,
+        98
+      ]
+    }
+  ]
+}

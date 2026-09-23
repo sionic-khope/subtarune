@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "jiroesub-shadow",
+  "processing": {
+    "cell_size": 128,
+    "fit_scale": 0.81,
+    "trim_border": 0,
+    "edge_clean_depth": 3,
+    "align": "feet",
+    "shared_scale": true,
+    "scale_strategy": "fit",
+    "component_mode": "largest",
+    "component_padding": 0,
+    "min_component_area": 1,
+    "edge_touch_margin": 0
+  },
+  "output_origin": [
+    64.0,
+    116
+  ],
+  "reference": {
+    "target": "npc",
+    "mode": "combat",
+    "rows": 2,
+    "cols": 2,
+    "body_scale_mean": 0.5334895906914652,
+    "body_scale_cv": 0.005676861131506395,
+    "anchor_y_mean": 0.9102870813397129
+  },
+  "qc": {
+    "max_body_scale_drift": 0.1
+  }
+}

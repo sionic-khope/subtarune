@@ -1,0 +1,32 @@
+{
+  "engine": "built-in image_gen.imagegen",
+  "operation": "identity-and-pose-preserving color-only edit",
+  "call_arguments": {
+    "num_last_images_to_include": 3,
+    "referenced_image_paths": null,
+    "prompt_file": "prompt-used.txt",
+    "prompt_sha256": "63c1e1da628184e505f56376ae748da31683054691ecd686267cc3b7e2cacf17"
+  },
+  "conversation_image_order": [
+    {
+      "position": 1,
+      "role": "exact Udyrsub pose, identity, proportion, and 2x2-grid edit target",
+      "persisted_reference": "references/udyrsub-battle308.png"
+    },
+    {
+      "position": 2,
+      "role": "neutral-cell identity reinforcement only",
+      "persisted_reference": "references/udyrsub-front308.png"
+    },
+    {
+      "position": 3,
+      "role": "whole-body dark-power color-family reference only",
+      "persisted_reference": "references/gajaeman-shadow-color-only.png"
+    }
+  ],
+  "result": {
+    "generated_local_path": "/Users/khope@sionic.ai/.codex/generated_images/01a0bc79-1f9e-7dc1-a8ed-84a1681b21a0/exec-2f2362a6-5321-42b1-9bb3-793c5a1d7da3.png",
+    "captured_raw": "raw-sheet.png",
+    "raw_sha256": "98d2b8620426a76a79b57ec7086438971aea1909072ca4ec0eed49e15125b264"
+  }
+}
