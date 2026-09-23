@@ -85,8 +85,9 @@ await runScenario({ name: 'castle-malzahar-scene', launchOptions: { args: ['--au
   await shot('arrival-before-door');
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_torii_end_door', 'reach north door with normal movement');
   await press('KeyC', { delay: 45 });
-  assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 5000));
-  check('closed north door responds to C without inventing a next room', await page.evaluate(() => game.textbox.node.voice === 'narrator'
-    && game.textbox.node.text === '* 문이 잠겨 있다.' && game.mapId === 'gajaeman_torii_end'));
-  await shot('arrival-door-dialogue'); await press('KeyC', { delay: 45 }); assert.ok(await field());
+  assert.ok(await until(() => game.mapId === 'gajaeman_castle_orb', 15000));
+  assert.ok(await field());
+  check('north door C enters the BUILD311 orb room with solo party and requested music', await page.evaluate(() =>
+    game.party.length === 0 && game.sound.bgmName === 'castle_orb' && !game.flags.castle_right_seal_active));
+  await shot('arrival-orb-room');
 });

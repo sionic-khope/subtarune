@@ -97,7 +97,12 @@ export const castle_lobby_left_block = Object.assign([
   { face: 'player', dir: 'right' }, { regroup: true }, { label: 'end' }, { end: true },
 ], { silent: true });
 
-export const castle_lobby_sealed = [{ text: '* 문이 잠겨 있다.\n* 두 개의 검은 구체가 달려 있다.', voice: 'narrator' }, { end: true }];
+export const castle_lobby_sealed = [
+  { if: flags => !!flags.castle_right_seal_active, goto: 'right-lit' },
+  { text: '* 문이 잠겨 있다.\n* 두 개의 검은 구체가 달려 있다.', voice: 'narrator' }, { end: true },
+  { label: 'right-lit' },
+  { text: '* 문은 아직 잠겨 있다.\n* 오른쪽 구체가 보라색으로 빛난다.', voice: 'narrator' }, { end: true },
+];
 
 export const castle_lobby_enter = Object.assign([
   close, { sfx: 'locker' }, { fade: 'out', duration: 0.55 },

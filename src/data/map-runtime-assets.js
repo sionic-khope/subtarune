@@ -1,6 +1,9 @@
 import { YOUNGCLE_TV, YOUNGCLE_TV_PORTRAITS } from './youngcle-tv.js';
 
 export const MAP_RUNTIME_ASSETS = {
+  gajaeman_castle_orb: {
+    images: ['assets/props/castle-seal-orb.png', 'assets/props/castle307_sealed_gate.png', 'assets/backdrops/castle306_distant.png'],
+  },
   ship_lounge: {
     sprites: ['youngcle', 'youngcle_hover', 'junhee', 'yongjun', 'gyeongsub', 'ppaman', 'expelled_viewer', 'eunbyeol', 'lucky_guy', 'dohyun', 'domijorim', 'chakgeom'],
     portraits: ['youngcle', 'junhee', 'yongjun', 'gyeongsub', 'ppaman'],

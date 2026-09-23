@@ -107,7 +107,8 @@ def main() -> None:
                          'image': 'assets/props/castle-memory-door.png',
                          'x': 656, 'y': 160, 'w': 96, 'h': 16, 'ix': 656, 'iy': 48,
                          'solid': True, 'sortY': 0, 'script': 'castle_malzahar_end_door'}]
-            spawns = {'start': {'x': 692, 'y': 280, 'facing': 'up'}}
+            spawns = {'start': {'x': 692, 'y': 280, 'facing': 'up'},
+                      'from_orb': {'x': 692, 'y': 208, 'facing': 'down'}}
             meta = {'connected': True, 'route': [[21, 8], [21, 6]]}
         map_data = {
             'id': map_id, 'name': '가재맨성 결계 갈림길' if fork else '결계 너머 회랑',

@@ -42,6 +42,11 @@
    "x": 692,
    "y": 280,
    "facing": "up"
+  },
+  "from_orb": {
+   "x": 692,
+   "y": 208,
+   "facing": "down"
   }
  },
  "meta": {

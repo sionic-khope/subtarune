@@ -84,4 +84,9 @@ export const castle_malzahar_run = Object.assign([
   } }, { end: true },
 ], { silent: true });
 
-export const castle_malzahar_end_door = [N('문이 잠겨 있다.'), { end: true }];
+export const castle_malzahar_end_door = Object.assign([
+  close, { sfx: 'locker' }, { fade: 'out', duration: 0.55 },
+  { map: 'gajaeman_castle_orb', spawn: 'start' },
+  { bgm: 'castle_orb', volume: 0.5, fadeIn: 0.7 },
+  { fade: 'in', duration: 0.7 }, { end: true },
+], { silent: true });

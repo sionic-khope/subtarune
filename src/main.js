@@ -64,6 +64,7 @@ import { clearChoimisSky, drawChoimisSkyPollen } from './scenes/choimis-sky-intr
 import { finishChoimisRescue } from './scenes/choimis-rescue.js';
 import { finishShipInvasion } from './scenes/ship-invasion.js';
 import { finishCastleLobby } from './scenes/castle-lobby.js';
+import { updateCastleOrb, drawCastleOrbGround, drawCastleOrbWorld, drawCastleOrbCutaway, finishCastleOrb } from './scenes/castle-orb.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
@@ -249,6 +250,7 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    finishCastleOrb(this);
     finishCastleLobby(this, true);
     finishShipInvasion(this, true);
     clearShipDeckPoses(this);
@@ -570,6 +572,7 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    finishCastleOrb(this);
     finishCastleLobby(this, true);
     finishShipInvasion(this, true);
     clearShipDeckPoses(this);
@@ -858,6 +861,7 @@ class Game {
     }
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      finishCastleOrb(this);
       finishCastleLobby(this, true);
       if (mapId !== 'ship_lounge') finishShipInvasion(this, true);
       clearShipDeckPoses(this);
@@ -905,6 +909,10 @@ class Game {
       // 컷신 카메라 팬(camera:[tx,ty])이 걸어 둔 잠금은 맵을 넘기면 의미가 없다 — 잠긴 채 snap 이 무시돼 옛 좌표에 박히면 다음 맵이 검게 나온다(BUILD259, 전함 연출 뒤 깊은숲)
       this.camera.locked = false;
       this.camera.snap();
+      if (this.map.def.meta?.orbRoom?.camera) {
+        [this.camera.x, this.camera.y] = this.map.def.meta.orbRoom.camera;
+        this.camera.locked = true;
+      }
       if (bgm && !this.dialogue.running && this.state !== 'title') {                 // 타이틀 상태(부팅·Esc)에선 맵 브금을 절대 틀지 않는다
         const gated = def.bgmFlag && !this.has(def.bgmFlag);                        // bgmFlag: 이 플래그가 켜진 뒤에만 맵 브금 — 첫 도착 컷신이 대사 중간에 직접 켜는 맵(void11)
         const override = storyBgm(mapId, this.flags);
@@ -1248,6 +1256,7 @@ class Game {
     this.shipAssault?.update(dt);
     this.shipInvasion?.update(dt);
     this.castleLobby?.update(dt);
+    updateCastleOrb(this, dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);
     this.choimisRescue?.update(dt);
@@ -1556,6 +1565,7 @@ class Game {
     if (this.worldSpin?.angle) { ctx.translate(SCREEN_W / 2, SCREEN_H / 2); ctx.rotate(this.worldSpin.angle); ctx.translate(-SCREEN_W / 2, -SCREEN_H / 2); }   // 맵 빙글빙글(BUILD227 아짐키야 춤)
     drawCoastWater(ctx, MAPS[this.mapId]?.meta?.coast, cam, this.time);
     this.map.draw(ctx, cam);
+    drawCastleOrbGround(ctx, this, cam);
     drawCoastWake(ctx, MAPS[this.mapId]?.meta?.coast, this.entities, cam, this.time, this.propImages['assets/tiles/night_coast_edge.png']);
     this.drawRipples(ctx, cam);
     this.runner?.drawGround(ctx, cam);   // 러너 기믹: 바닥 물결 줄기(엔티티 아래)
@@ -1579,6 +1589,7 @@ class Game {
     this.runner?.drawAir(ctx, cam);      // 러너 기믹: 바람 줄기·물보라(엔티티 위)
     if (!this.darkSmoke?.behindActors) drawDarkSmoke(ctx, this, cam);
     this.castleLobby?.draw(ctx, cam);
+    drawCastleOrbWorld(ctx, this, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})
@@ -1641,6 +1652,7 @@ class Game {
     this.shipPursuitAmbient?.draw(ctx);
     this.shipCastle?.draw(ctx);
     this.shipInvasion?.draw(ctx);
+    drawCastleOrbCutaway(ctx, this);
     this.coastChatter?.draw(ctx);
     this.textbox.draw(ctx);
     if (this.caption) this.drawCaption(ctx);

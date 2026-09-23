@@ -17,6 +17,7 @@ BASE_URL_SCENARIOS.add('castle-approach');
 BASE_URL_SCENARIOS.add('castle-lobby');
 BASE_URL_SCENARIOS.add('castle-memory');
 BASE_URL_SCENARIOS.add('castle-malzahar-scene');
+BASE_URL_SCENARIOS.add('castle-orb');
 BASE_URL_SCENARIOS.add('castle-malzahar-battle');
 BASE_URL_SCENARIOS.add('castle-malzahar-battle-resize');
 BASE_URL_SCENARIOS.add('choimis-lounge-briefing');

@@ -693,3 +693,11 @@ for (const [id, desc, map, spawn, won] of [
 ]) QA_POINTS.push({ ...castleArrival, id, desc, map, spawn, party: [],
   stage: won ? 'castle_malzahar_won' : 'castle_malzahar_split',
   flags: { ...memoryCleared, castle_malzahar_split: true, ...(won ? { castle_malzahar_won: true } : {}) } });
+for (const active of [false, true]) QA_POINTS.push({
+  ...QA_POINTS.find(point => point.id === 'malzahar_arrival'),
+  id: active ? 'castle_orb_after' : 'castle_orb',
+  desc: active ? '오른쪽 봉인 구체 · 점등 후' : '오른쪽 봉인 구체 · 접촉 연출',
+  map: 'gajaeman_castle_orb', spawn: 'start',
+  flags: { ...memoryCleared, castle_malzahar_split: true, castle_malzahar_won: true,
+    ...(active ? { castle_right_seal_active: true } : {}) },
+});
