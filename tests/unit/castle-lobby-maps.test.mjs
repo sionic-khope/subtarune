@@ -41,25 +41,27 @@ test('castle lobby entrance and completed left restriction preserve safe party a
   }
 });
 
-test('castle right corridor is a five-second indoor walk beside blocked violet lava', () => {
+test('castle right corridor reaches the small memory doorway beside blocked violet lava', () => {
   const map = readMap('gajaeman_castle_right1');
   assert.equal(map.backdrop, 'castle307_right');
   assert.equal(map.bgm, 'castle_right');
-  assert.ok((map.spawns.start.y - 64) / (32 * 3.9 * 1.75) > 4.8);
-  assert.ok((map.spawns.start.y - 64) / (32 * 3.9 * 1.75) < 5.3);
+  assert.ok((map.spawns.start.y - 128) / (32 * 3.9 * 1.75) > 4.5);
+  assert.ok((map.spawns.start.y - 128) / (32 * 3.9 * 1.75) < 5.0);
   assert.ok(map.rows.some(row => row.includes('♨') && row.includes('♩')));
-  for (const row of map.rows.slice(2, -1)) {
+  for (const row of map.rows.slice(4, -1)) {
     assert.equal(row.slice(0, 7), ' '.repeat(7));
     assert.equal(row.slice(17), ' '.repeat(7));
     assert.ok([...row.slice(9, 15)].every(char => !getTile(char).solid));
     assert.ok([row[7], row[16]].every(char => getTile(char).solid));
   }
-  assert.ok(map.rows.slice(0, 2).every(row => row.slice(9, 15) === '▥'.repeat(6)));
-  for (let y = 64; y <= map.spawns.start.y; y += 8) {
+  assert.ok(map.rows.slice(0, 4).every(row => row.slice(9, 15) === '▦'.repeat(6)));
+  assert.equal(getTile('▦').name, 'castle308_wall');
+  for (let y = 128; y <= map.spawns.start.y; y += 8) {
     for (const dx of [0, 23]) assert.equal(getTile(map.rows[Math.floor(y / 32)][Math.floor((map.spawns.start.x + dx) / 32)]).solid, false);
   }
   assert.equal(map.entities.filter(e => e.type === 'door').length, 1);
   assert.equal(map.entities.find(e => e.type === 'door').to, 'gajaeman_castle_lobby');
   assert.equal(map.entities.find(e => e.type === 'door').x, 288);
   assert.equal(map.entities.find(e => e.type === 'door').w, 192);
+  assert.equal(map.entities.find(e => e.id === 'castle_memory_door').script, 'castle_memory_enter');
 });

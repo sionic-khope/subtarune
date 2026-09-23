@@ -1,0 +1,98 @@
+{
+  "status": "passed",
+  "battle": {
+    "path": "assets/enemies/udyrsub-battle.png",
+    "sha256": "6d2932ebc14822a3473fc28d075f8f0435094fc6fc73ae06e80fc0d48b6299d0",
+    "size": [
+      256,
+      256
+    ]
+  },
+  "front": {
+    "path": "assets/enemies/udyrsub-front.png",
+    "sha256": "1a1565a8a7774b3bf1a659e26aa58e245858f2595f8fd4a9396f07328359770f",
+    "size": [
+      128,
+      128
+    ]
+  },
+  "frames": [
+    {
+      "index": 0,
+      "bbox": [
+        22,
+        22,
+        104,
+        120
+      ],
+      "height": 98,
+      "bottom": 120,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaqueMagenta": 0
+    },
+    {
+      "index": 1,
+      "bbox": [
+        25,
+        24,
+        100,
+        120
+      ],
+      "height": 96,
+      "bottom": 120,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaqueMagenta": 0
+    },
+    {
+      "index": 2,
+      "bbox": [
+        18,
+        26,
+        107,
+        120
+      ],
+      "height": 94,
+      "bottom": 120,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaqueMagenta": 0
+    },
+    {
+      "index": 3,
+      "bbox": [
+        22,
+        23,
+        105,
+        120
+      ],
+      "height": 97,
+      "bottom": 120,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaqueMagenta": 0
+    }
+  ],
+  "styleComparison": "style-scale-comparison-2x.png",
+  "checks": [
+    "PNG decode",
+    "exact 256x256 battle sheet",
+    "exact 128x128 front still",
+    "front equals neutral cell0",
+    "four nonempty frames",
+    "binary alpha",
+    "zero opaque magenta",
+    "interior bounds",
+    "bottom <= common pivot 120",
+    "nearest comparison with approved hyungsub"
+  ]
+}

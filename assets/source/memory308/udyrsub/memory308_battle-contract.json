@@ -1,0 +1,28 @@
+{
+  "asset": "udyrsub",
+  "status": "asset-qc-passed-not-runtime-integrated",
+  "runtime": {
+    "battle": "assets/enemies/udyrsub-battle.png",
+    "front": "assets/enemies/udyrsub-front.png"
+  },
+  "layout": {
+    "sheet": [256, 256],
+    "grid": [2, 2],
+    "cell": [128, 128],
+    "frameOrder": ["neutral", "anticipation", "release", "recovery"],
+    "durationMs": [180, 160, 140, 200],
+    "loop": false,
+    "frontSource": "neutral"
+  },
+  "placement": {
+    "pivot": [64, 120],
+    "sharedScale": 0.17148325358851674,
+    "sharedFeetY": 120,
+    "bodyHeightPx": "94-98"
+  },
+  "integration": {
+    "consumer": "memory308_battle",
+    "required": "Use row-major 2x2 cells with the declared pivot and frame order. Do not add a second runtime scale or per-frame root offsets.",
+    "notIncluded": ["enemy registration", "battle logic", "runtime preload", "scene playback"]
+  }
+}

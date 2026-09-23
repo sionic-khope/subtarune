@@ -42,23 +42,26 @@ def main() -> None:
         'lobby_focus': [640, 560], 'lobby_youngcle': [524, 496],
         'lobby_junhee': [628, 400], 'lobby_player': [604, 568],
         'lobby_gyeongsub': [676, 576], 'lobby_ppaman': [532, 584],
-        'lobby_gajaeman': [756, 464], 'lobby_entry_player': [604, 864],
+        'lobby_entry_player': [604, 864],
         'lobby_entry_gyeongsub': [676, 912], 'lobby_entry_ppaman': [532, 912],
         'lobby_left_turn': [532, 656], 'lobby_left_door': [276, 520],
         'lobby_left_block_return': [484, 656],
     }
+    hover_stage = {'lobby_gajaeman': [844, 416]}
+    actor_stage = {**stage, **hover_stage}
     anchors = [
         {'type': 'prop', 'id': name, 'image': 'assets/tiles/castle306_floor.png',
          'x': x, 'y': y, 'w': 24, 'h': 16, 'solid': False, 'hidden': True}
-        for name, (x, y) in {**stage, 'lobby_left_inside': [276, 472],
+        for name, (x, y) in {**actor_stage, 'lobby_left_inside': [276, 472],
                             'lobby_wall1': [432, 422], 'lobby_wall2': [704, 336],
                             'lobby_wall3': [848, 442]}.items()
     ]
     actors = [
         {'type': 'npc', 'id': f'castle_lobby_{name}', 'sprite': sprite,
-         'x': stage[f'lobby_{name}'][0], 'y': stage[f'lobby_{name}'][1],
+         'x': actor_stage[f'lobby_{name}'][0], 'y': actor_stage[f'lobby_{name}'][1],
          'facing': facing, 'solid': False, 'wander': 0,
-         'hidden': name == 'gajaeman', 'unless': 'castle_lobby_seen'}
+         'hidden': name == 'gajaeman', 'unless': 'castle_lobby_seen',
+         **({'visualScale': 1.89} if name == 'gajaeman' else {})}
         for name, sprite, facing in (('youngcle', 'youngcle_hover', 'right'),
                                     ('junhee', 'junhee', 'up'),
                                     ('gajaeman', 'gajaeman_shadow', 'left'))
@@ -84,7 +87,7 @@ def main() -> None:
         'spawns': {'start': {'x': 604, 'y': 864, 'facing': 'up'},
                    'after_intro': {'x': 604, 'y': 568, 'facing': 'right'},
                    'from_right': {'x': 980, 'y': 600, 'facing': 'down'}},
-        'meta': {'connected': True, 'stage': stage, 'seals': 2},
+        'meta': {'connected': True, 'stage': stage, 'hoverStage': hover_stage, 'seals': 2},
         'entities': [*anchors, *actors, *side_doors,
                      {'type': 'prop', 'id': 'castle_lobby_sealed_door',
                       'image': 'assets/props/castle307_sealed_gate.png', 'scale': 0.75,

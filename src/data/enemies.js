@@ -13,6 +13,46 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  seobruto: {
+    name: '섭루토', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    sheet: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { cast: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
+    pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    patterns: [{ type: 'memory_rasengan' }, { type: 'memory_shuriken' }, { type: 'memory_cross_throw' }],
+    lines: {
+      appear: '* 섭루토가 앞을 막았다.',
+      idle: ['* 섭루토가 이마보호대를 고쳐 맨다.', '* 섭루토의 손바닥 위에서 바람이 돈다.', '* 섭루토가 표창을 꺼내 든다.', '* 섭루토가 안경을 밀어 올린다.'],
+      speak: ['니애미따라가라센간', '넌나가라센간'], die: '* 섭루토가 흩어졌다.',
+    },
+  },
+  jiroesub: {
+    name: '지뢰섭', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    sheet: { src: 'assets/enemies/jiroesub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: {
+      cast: { src: 'assets/enemies/jiroesub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 },
+      web: { src: 'assets/enemies/jiroesub-web.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1 },
+    },
+    projectiles: { kuromi: 'assets/projectiles/jiroesub-kuromi.png' },
+    pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    patterns: [{ type: 'memory_kuromi' }, { type: 'memory_mines' }, { type: 'memory_web' }],
+    lines: {
+      appear: '* 지뢰섭이 앞을 막았다.',
+      idle: ['* 지뢰섭이 리본을 매만진다.', '* 지뢰섭의 가방에서 달그락 소리가 난다.', '* 지뢰섭이 발끝으로 바닥을 두드린다.', '* 지뢰섭의 치맛자락이 흔들린다.'],
+      speak: ['가재멘헤라 아니다.', '넌니애미따라가라멘헤라'], die: '* 지뢰섭이 흩어졌다.',
+    },
+  },
+  udyrsub: {
+    name: '우디르섭', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    sheet: { src: 'assets/enemies/udyrsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { cast: { src: 'assets/enemies/udyrsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
+    pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    patterns: [{ type: 'memory_claw' }, { type: 'memory_mantle_stampede' }, { type: 'memory_storm' }],
+    lines: {
+      appear: '* 우디르섭이 앞을 막았다.',
+      idle: ['* 우디르섭이 손목의 붕대를 조인다.', '* 우디르섭의 구슬이 낮게 울린다.', '* 우디르섭이 어깨를 풀고 있다.', '* 우디르섭의 파란 머리카락이 곤두선다.'],
+      speak: ['니애미따라가디르'], die: '* 우디르섭이 흩어졌다.',
+    },
+  },
   choimis_flower: {
     name: '최미스', hp: 250, damage: 15, money: 15000000, boss: true, voice: 'choimis_flower',
     boostedAttackDamage: 3, alternatingPatternMode: 'choimis_pink_round',

@@ -6,7 +6,7 @@
 # ─── How to run ───
 # Run from repository root: uv run tools/maps/gajaeman_castle_right1.py [--check]
 # ──────────────────
-"""Build a five-second northern castle aisle beside recessed violet lava."""
+"""Build the northern castle aisle and its smaller memory-room doorway."""
 from __future__ import annotations
 
 import json
@@ -20,7 +20,7 @@ HEIGHT: Final = 40
 
 
 def main() -> None:
-    """Write the right interior corridor without inventing its next destination."""
+    """Write the corridor with the memory entrance and a separate right-hand sign."""
     if '--help' in sys.argv:
         print(f'Usage: uv run tools/maps/{MAP_ID}.py [--check]')
         return
@@ -32,29 +32,41 @@ def main() -> None:
         for col in range(9, 15):
             cells[row][col] = '♧' if (col * 3 + row * 7) % 11 < 3 else '♤'
         for col in (8, 15):
-            cells[row][col] = '▥'
+            cells[row][col] = '▦'
         for col in (7, 16):
             cells[row][col] = '♨' if (row + col // 2) % 3 else '♩'
     for row in (0, HEIGHT - 1):
         for col in (7, 8, 15, 16):
-            cells[row][col] = '▥'
-    for row in range(2):
+            cells[row][col] = '▦'
+    for row in range(4):
         for col in range(9, 15):
-            cells[row][col] = '▥'
+            cells[row][col] = '▦'
     map_data = {
         'id': MAP_ID, 'name': '가재맨성 동쪽 회랑', 'stage': 'castle_lobby_seen',
         'bgm': 'castle_right', 'backdrop': 'castle307_right', 'followScreenY': 250,
         'rows': [''.join(row) for row in cells],
         'preload': ['assets/backdrops/castle307_right.png',
-                    'assets/tiles/gajaeman_castle_wall.png',
+                    'assets/tiles/castle308_wall.png',
                     *[f'assets/tiles/castle307_{suffix}.png'
                       for suffix in ('floor', 'moss', 'lava', 'lava_dark')]],
-        'spawns': {'start': {'x': 372, 'y': 1120, 'facing': 'up'}},
-        'meta': {'connected': True, 'walkSeconds': 4.84},
+        'spawns': {'start': {'x': 372, 'y': 1120, 'facing': 'up'},
+                   'from_memory': {'x': 372, 'y': 192, 'facing': 'down'},
+                   'memory_door': {'x': 372, 'y': 160, 'facing': 'up'}},
+        'meta': {'connected': True, 'walkSeconds': 4.54},
         'entities': [{'type': 'door', 'id': 'castle_right_return',
                       'x': 288, 'y': HEIGHT * 32 - 10, 'w': 192, 'h': 10,
                       'to': 'gajaeman_castle_lobby', 'spawn': 'from_right',
-                      'interact': False, 'sfx': False}],
+                      'interact': False, 'sfx': False},
+                     {'type': 'prop', 'id': 'castle_memory_door',
+                      'image': 'assets/props/castle-memory-door.png',
+                      'x': 336, 'y': 112, 'w': 96, 'h': 16,
+                      'ix': 336, 'iy': 0, 'solid': True, 'sortY': 0,
+                      'script': 'castle_memory_enter'},
+                     {'type': 'prop', 'id': 'castle_memory_sign',
+                      'image': 'assets/props/signpost.png',
+                      'x': 444, 'y': 128, 'w': 26, 'h': 12,
+                      'ix': 444, 'iy': 110, 'solid': True,
+                      'script': 'castle_memory_sign'}],
     }
     output = Path(f'assets/maps/{MAP_ID}.json')
     index_path = Path('assets/maps/index.json')

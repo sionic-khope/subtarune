@@ -1,5 +1,17 @@
 # SUBTARUNE
 
+### 기억의 방 캐릭터 기준 (BUILD308)
+
+세 적의 외형을 수정할 때 `assets/references/memory308-<id>.png`와 아래 자산 계약을 함께 확인한다. 필드와 전투는 같은 얼굴·의상·왼쪽 아래3/4 시점을 유지하며, 작은 어두운 기운은 얼굴 뒤에 둔다.
+
+| 캐릭터 | 고정 외형 | 원본·런타임 계약 |
+| --- | --- | --- |
+| 섭루토 (`seobruto`) | 노란 머리, 나뭇잎 머리띠, 둥근 안경과 두 눈, 넓은 볼·큰 U자 코, 별도 입 없음, 주황/남색 닌자옷 | [섭루토](assets/source/memory308/seobruto/README.md) |
+| 지뢰섭 (`jiroesub`) | 검정/분홍 쌍갈래와 리본, 안경 없는 두 눈·큰 U자 코·별도 입 없음, 분홍 프릴, 검정 치마/부츠, 캔과 쿠로미 가방 | [지뢰섭](assets/source/memory308/jiroesub/README.md) |
+| 우디르섭 (`udyrsub`) | 긴 갈색 머리와 수염, 파란 머리 가닥, 안경과 두 눈·큰 U자 코, 문신한 상체, 주황 구슬·흰 붕대·가죽 치마 | [우디르섭](assets/source/memory308/udyrsub/README.md) |
+
+세 몸체는128px셀·피벗64,120의4포즈 전투 시트와 중립 셀의 필드 정지 그림을 사용한다. 기억의 방 문·검정 석재·기둥 원경을 수정할 때는 [BUILD308 환경 계약](assets/source/memory308/environment/README.md)을 적용한다. 현재 자산은 기존 `castle307_*` 런타임 파일을 갱신하므로 과거307 생성기로 덮어쓰지 않는다. 조우·대사·진행 범위는 [기억의 방 콘티](design/narrative/cutscenes/castle_memory.md), 통합 검증·메인·배포 상태는 [STATE](docs/STATE.md)를 따른다.
+
 뗏목 회수 기둥은 [회수 레버 원본·규격](assets/source/raft-call306/README.md)을 따른다.32×48 대기/당김2포즈, 공통 바닥 피벗16,48이며 기존 캐릭터나 뗏목 그림은 바꾸지 않는다.
 
 BUILD306 성 북쪽 길은 외부가 아니라 검은 석벽·기둥·아치와 보라 이끼가 있는 **성 내부 진입 홀**이다. 32px 바닥4종·거대 성문·실내 배경은 [성 내부 자산 계약](assets/source/castle306/README.md), 기념사진의 하강 카메라 소품은 [카메라 계약](assets/source/ship-camera306/README.md)을 따른다. 기존 캐릭터 외형은 바꾸지 않는다. 초기 외부 성 전경은 미채택 초안으로 보존하며 런타임에 다시 연결하지 않는다.

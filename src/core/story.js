@@ -668,3 +668,14 @@ for (const [id, desc, spawn] of [
 ]) QA_POINTS.push({ ...castleArrival, id, desc, spawn,
   stage: 'castle_lobby_seen', map: id === 'gajaeman_castle_lobby_after' ? 'gajaeman_castle_lobby' : id,
   flags: { ...castleArrival.flags, castle_lobby_seen: true } });
+const memoryFlags = { ...castleArrival.flags, castle_lobby_seen: true };
+for (const [id, desc, map, spawn, flags] of [
+  ['castle_memory_door', '동쪽 회랑 · 기억의 방 문과 표지판', 'gajaeman_castle_right1', 'memory_door', {}],
+  ['gajaeman_memory1', '기억의 방 1 · 위 오른쪽 위 왼쪽 길', 'gajaeman_memory1', 'start', {}],
+  ['memory_seobruto', '기억의 방 1 · 섭루토 표준 조우', 'gajaeman_memory1', 'before_seobruto', {}],
+  ['gajaeman_memory2', '기억의 방 2 · 두 그림자의 굽잇길', 'gajaeman_memory2', 'start', { gajaeman_memory1_seobruto_defeated: true }],
+  ['memory_jiroesub', '기억의 방 2 · 지뢰섭 표준 조우', 'gajaeman_memory2', 'before_jiroesub', { gajaeman_memory1_seobruto_defeated: true }],
+  ['memory_udyrsub', '기억의 방 2 · 우디르섭 표준 조우', 'gajaeman_memory2', 'before_udyrsub', { gajaeman_memory1_seobruto_defeated: true, gajaeman_memory2_jiroesub_defeated: true }],
+  ['memory_end', '기억의 방 2 · 전투 후 북쪽 벽', 'gajaeman_memory2', 'end', { gajaeman_memory1_seobruto_defeated: true, gajaeman_memory2_jiroesub_defeated: true, gajaeman_memory2_udyrsub_defeated: true }],
+]) QA_POINTS.push({ ...castleArrival, id, desc, map, spawn, stage: 'castle_lobby_seen',
+  flags: { ...memoryFlags, ...flags } });

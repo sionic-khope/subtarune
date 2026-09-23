@@ -1,0 +1,204 @@
+{
+  "generator": "built-in image_gen",
+  "model": "unknown",
+  "cost": "unknown",
+  "resample": "NEAREST",
+  "alphaCleanup": false,
+  "colorChanges": false,
+  "quantization": false,
+  "sharpening": false,
+  "runtime": [
+    {
+      "path": "assets/props/castle-memory-door.png",
+      "size": [
+        96,
+        128
+      ],
+      "mode": "RGBA",
+      "sha256": "3a6a3a208d004ff8b46543148d9a0d9d71b14358cf1c5a4f10b4834a6590d86b",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/backdrops/castle307_right.png",
+      "size": [
+        480,
+        360
+      ],
+      "mode": "RGB",
+      "sha256": "d4a6753ed1574ba60441031af23a6f7c8121274a5d793bd9dbf6f386fc4abbe4",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/tiles/castle307_floor.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "bc39e20b902bc04aff3206d92049f445ee4c6823abea56c439e5846a37e9b50c",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/tiles/castle307_moss.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "057d191b04a8343e896e53d59b61999da29c23bd1e3b16547cef71170a45a286",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/tiles/castle307_lava.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "a85cfc5441e84549fce0721dee01ca01aa53b678176cb0fed211c1647ffd50b9",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/tiles/castle307_lava_dark.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "2b6786adbc8f664ca52cf5185a902593f2d980cf21fa934b737d2ef773378da0",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/tiles/castle308_wall.png",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGB",
+      "sha256": "cf81e9861f084e42a8151eab4e2e3882285640e339117f3b63cdea5ae3bf27d6",
+      "alpha_range": null
+    }
+  ],
+  "sources": [
+    {
+      "path": "assets/source/memory308/environment/raw-door.png",
+      "size": [
+        1086,
+        1448
+      ],
+      "mode": "RGBA",
+      "sha256": "51981858ffc10b80de6a979f29d92ea2b22974be3dc00a1e385135b1a41514b8",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/source/memory308/environment/raw-backdrop.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "mode": "RGB",
+      "sha256": "36376eae7ed46191c8031bf2d1e99c9a5a54884fadf066c2989a498fa5fa9e84",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/source/memory308/environment/raw-tiles.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "9613b39e3faf78633e7522acbebf23229da49a477080128c36e48a26bdd78f42",
+      "alpha_range": null
+    },
+    {
+      "path": "assets/source/memory308/environment/raw-wall.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "9b5d3a98c95eadb4956693f08968b32c90728b867a1b3ea61a7382244abdbf84",
+      "alpha_range": null
+    }
+  ],
+  "door": {
+    "sourceCrop": [
+      0,
+      33,
+      1070,
+      1448
+    ],
+    "sampledCrop": [
+      8,
+      4,
+      91,
+      119
+    ],
+    "contentSize": [
+      83,
+      115
+    ],
+    "placement": [
+      6,
+      12
+    ],
+    "pivot": [
+      48,
+      128
+    ],
+    "alphaBounds": [
+      6,
+      12,
+      89,
+      127
+    ]
+  },
+  "tiles": {
+    "order": [
+      "floor",
+      "moss",
+      "lava",
+      "lava_dark"
+    ],
+    "sourceCrops": [
+      [
+        0,
+        0,
+        627,
+        627
+      ],
+      [
+        627,
+        0,
+        1254,
+        627
+      ],
+      [
+        0,
+        627,
+        627,
+        1254
+      ],
+      [
+        627,
+        627,
+        1254,
+        1254
+      ]
+    ]
+  },
+  "wall": {
+    "reference": "assets/tiles/gajaeman_castle_wall.png",
+    "generationId": "exec-0e814fc0-78a2-4556-beb6-c124c7fabd11",
+    "scope": "right1 and memory maps only; original wall PNG unchanged"
+  },
+  "verification": "All sources and runtime PNGs passed PNG CRC verify and full decode.",
+  "supersedes": "castle307 backdrop and four tiles; historical castle307 sources unchanged",
+  "repeatCaveat": "Visual repeats, not mathematically guaranteed seamless edges."
+}

@@ -9,6 +9,7 @@ const EDGE_OPEN = new Set(['H', '&', '+', '^', '(', ')', ']', '-']);   // - = �
 const index = JSON.parse(fs.readFileSync('assets/maps/index.json', 'utf8'));
 SOLID_CHARS.add('≋');
 SOLID_CHARS.add('▥');
+SOLID_CHARS.add('▦');
 SOLID_CHARS.add('♨');
 SOLID_CHARS.add('♩');
 EDGE_OPEN.add('≈');

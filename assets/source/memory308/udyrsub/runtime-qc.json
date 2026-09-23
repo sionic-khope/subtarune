@@ -1,0 +1,100 @@
+{
+  "runtime": {
+    "battle": "assets/enemies/udyrsub-battle.png",
+    "front": "assets/enemies/udyrsub-front.png"
+  },
+  "sheet": [
+    256,
+    256
+  ],
+  "cell": [
+    128,
+    128
+  ],
+  "grid": [
+    2,
+    2
+  ],
+  "pivot": [
+    64,
+    120
+  ],
+  "frameOrder": [
+    "neutral",
+    "anticipation",
+    "release",
+    "recovery"
+  ],
+  "durationMs": [
+    180,
+    160,
+    140,
+    200
+  ],
+  "loop": false,
+  "source": "processed/raw-sheet-clean.png",
+  "processorScale": 0.17148325358851674,
+  "processing": "standard strict-QC processor established one shared raw-cell scale and feet alignment; final export uses the reported per-frame dimensions, only NEAREST resampling, binary alpha at128, and one common y120 pivot.",
+  "frames": [
+    {
+      "index": 0,
+      "bbox": [
+        22,
+        22,
+        104,
+        120
+      ],
+      "height": 98,
+      "bottom": 120,
+      "alphaValues": [
+        0,
+        255
+      ]
+    },
+    {
+      "index": 1,
+      "bbox": [
+        25,
+        24,
+        100,
+        120
+      ],
+      "height": 96,
+      "bottom": 120,
+      "alphaValues": [
+        0,
+        255
+      ]
+    },
+    {
+      "index": 2,
+      "bbox": [
+        18,
+        26,
+        107,
+        120
+      ],
+      "height": 94,
+      "bottom": 120,
+      "alphaValues": [
+        0,
+        255
+      ]
+    },
+    {
+      "index": 3,
+      "bbox": [
+        22,
+        23,
+        105,
+        120
+      ],
+      "height": 97,
+      "bottom": 120,
+      "alphaValues": [
+        0,
+        255
+      ]
+    }
+  ]
+}

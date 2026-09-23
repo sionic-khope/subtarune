@@ -9,6 +9,7 @@ import { getTile, tileCanvas } from '../world/tiles.js';
 import { drawMankatsukiBackground } from './mankatsuki-background.js';
 import { drawParkGuardianBackground } from './park-guardian-background.js';
 import { drawChoimisSkyBackground } from './choimis-sky-background.js';
+import { drawCastleMemoryBackground } from './castle-memory-background.js';
 export const BATTLE_BGS = {};
 /** 새 전투 배경 등록: fn(ctx, battle) — 480×360, 패널(y 246~)·HP 띠는 위에 덮인다 */
 export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
@@ -16,6 +17,7 @@ export function registerBattleBg(name, fn) { BATTLE_BGS[name] = fn; }
 registerBattleBg('mankatsuki_vortex', drawMankatsukiBackground);
 registerBattleBg('editor_union_stage', drawParkGuardianBackground);
 registerBattleBg('choimis_sky', drawChoimisSkyBackground);
+registerBattleBg('castle_memory', drawCastleMemoryBackground);
 
 const drumNestCaches = new WeakMap();
 registerBattleBg('drum_nest', (ctx, battle) => {

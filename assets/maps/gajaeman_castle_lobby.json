@@ -98,10 +98,6 @@
     532,
     584
    ],
-   "lobby_gajaeman": [
-    756,
-    464
-   ],
    "lobby_entry_player": [
     604,
     864
@@ -125,6 +121,12 @@
    "lobby_left_block_return": [
     484,
     656
+   ]
+  },
+  "hoverStage": {
+   "lobby_gajaeman": [
+    844,
+    416
    ]
   },
   "seals": 2
@@ -198,17 +200,6 @@
   },
   {
    "type": "prop",
-   "id": "lobby_gajaeman",
-   "image": "assets/tiles/castle306_floor.png",
-   "x": 756,
-   "y": 464,
-   "w": 24,
-   "h": 16,
-   "solid": false,
-   "hidden": true
-  },
-  {
-   "type": "prop",
    "id": "lobby_entry_player",
    "image": "assets/tiles/castle306_floor.png",
    "x": 604,
@@ -268,6 +259,17 @@
    "image": "assets/tiles/castle306_floor.png",
    "x": 484,
    "y": 656,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "lobby_gajaeman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 844,
+   "y": 416,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -345,13 +347,14 @@
    "type": "npc",
    "id": "castle_lobby_gajaeman",
    "sprite": "gajaeman_shadow",
-   "x": 756,
-   "y": 464,
+   "x": 844,
+   "y": 416,
    "facing": "left",
    "solid": false,
    "wander": 0,
    "hidden": true,
-   "unless": "castle_lobby_seen"
+   "unless": "castle_lobby_seen",
+   "visualScale": 1.89
   },
   {
    "type": "prop",

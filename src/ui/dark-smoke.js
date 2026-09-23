@@ -45,7 +45,7 @@ export function darkSmokeWaiter(game, definition) {
   } };
 }
 
-/** Draw above world actors, beneath dialogue. Time comes from the game's existing clock. */
+/** Draw beneath dialogue; main routes optional behindActors smoke before entities. */
 export function drawDarkSmoke(ctx, game, cam) {
   const smoke = game.darkSmoke;
   if (!smoke) return;
@@ -130,8 +130,8 @@ export function drawDarkSmoke(ctx, game, cam) {
     const auraAge = game.time - started;
     const strength = smooth(clamp(auraAge / 2.4)) * (smoke.mode === 'dissipate' ? 1 - progress : 1);
     const scale = Math.sqrt(actor.def?.visualScale || 1);
-    const cx = actor.x + actor.w / 2 - cam.x;
-    const cy = actor.y + actor.h - 28 * scale - cam.y;
+    const cx = actor.x + actor.w / 2 + (actor.flyX || 0) - cam.x;
+    const cy = actor.y + actor.h + (actor.flyY || 0) - 28 * scale - cam.y;
     for (let index = 0; index < 28; index++) {
       const phase = (index / 28 + auraAge * 0.12) % 1;
       const angle = phase * Math.PI * 2;

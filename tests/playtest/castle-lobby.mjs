@@ -28,9 +28,9 @@ await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-po
     const start = Date.now(); await page.keyboard.down('ArrowUp');
     assert.ok(await until(() => game.player.y < 750, 4000));
     check('right walk plays object loop without water ripples', await page.evaluate(() => !!game.sound.w && !game.sound.w.stopping && game.sound.w.def.ripple === false && !game.ripples?.length));
-    await shot('right-middle'); assert.ok(await until(() => game.player.y <= 70, 6000)); await page.keyboard.up('ArrowUp');
+    await shot('right-middle'); assert.ok(await until(() => game.player.y <= 134, 6000)); await page.keyboard.up('ArrowUp');
     const seconds = (Date.now() - start) / 1000;
-    check('normal right corridor walk remains about five seconds', seconds >= 4.7 && seconds <= 5.8, JSON.stringify({ seconds }));
+    check('right corridor reaches BUILD308 memory door at y128 in about 4.54 seconds', seconds >= 4.3 && seconds <= 5.5, JSON.stringify({ seconds }));
     await shot('right-end'); await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_lobby'); assert.ok(await field()); await page.waitForTimeout(700);
     check('right return is safe without replay or ping-pong', (await state()).map === 'gajaeman_castle_lobby' && (await state()).seen && !(await state()).scene && !(await state()).blocked);
     await shot('right-return'); return;
@@ -53,6 +53,7 @@ await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-po
       const actors = [game.player, ...game.entities.filter(e => e.def.type === 'follower' || ['castle_lobby_youngcle', 'castle_lobby_junhee', 'castle_lobby_gajaeman'].includes(e.id))].map(e => ({
         id: e === game.player ? 'player' : e.id, x: e.x, y: e.y, flyX: e.flyX || 0, flyY: e.flyY || 0,
         spin: e.spin || 0, visible: e.visible, dead: e.dead, facing: e.facing, fallback: !!e.sprite?.fallback,
+        visualScale: e.def.visualScale || 1,
       }));
       const sample = { at: now, map: game.mapId, beat: scene?.beat, elapsed: scene?.elapsed,
         beams: scene?.beams.length, scars: scene?.scars.length, smoke: !!game.darkSmoke, text,
@@ -82,7 +83,7 @@ await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-po
       open: game.textbox.isOpen, state: game.textbox.state, cut: game.textbox.node?.cut,
       auto: game.textbox.node?.auto, text: game.textbox.node?.text }));
     if (s.done) break;
-    if (!responsive && s.text?.includes('여기 뒤에') && s.state === 'waiting') {
+    if (!responsive && s.text?.includes('이런이런 그러지말게') && s.state === 'waiting') {
       for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`lobby-dialogue-${width}`); }
       responsive = true;
     }
@@ -106,6 +107,12 @@ await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-po
   check('requested encounter BGM advances in real time', q.samples.some(s => s.bgm === 'castle_gajaeman' && s.bgmTime > 1 && !s.bgmPaused));
   check('greeting is interrupted exactly at 갑', q.interrupts.includes('* 다들 반갑'));
   check('laser dodge visibly moves Gajaeman left', range(actors('dodge', 'castle_lobby_gajaeman'), 'x') > 35);
+  const hovering = q.samples.filter(s => s.beat === 'idle' && s.text === '* 이런이런 그러지말게 ㅋㅋㅋ');
+  check('visible Gajaeman retains canonical scale and floats apart from Junhee', hovering.length > 0 && hovering.every(s => {
+    const boss = s.actors.find(a => a.id === 'castle_lobby_gajaeman');
+    const junhee = s.actors.find(a => a.id === 'castle_lobby_junhee');
+    return boss?.visualScale === 1.89 && boss.x - junhee.x >= 150 && boss.y + boss.flyY < junhee.y - 50;
+  }));
   check('Gajaeman departure visibly rises and spins', range(actors('depart', 'castle_lobby_gajaeman'), 'y') > 220 && range(actors('depart', 'castle_lobby_gajaeman'), 'spin') > 12);
   for (const id of ['castle_lobby_youngcle', 'castle_lobby_junhee']) {
     const samples = q.samples.flatMap(s => s.actors.filter(a => a.id === id && a.visible && !a.dead));
@@ -145,10 +152,10 @@ await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-po
   assert.ok(await until(() => game.player.y < 750, 4000));
   check('corridor uses object walking loop without ripples', await page.evaluate(() => !!game.sound.w && !game.sound.w.stopping && game.sound.w.def.ripple === false && !game.ripples?.length));
   await shot('right-middle');
-  assert.ok(await until(() => game.player.y <= 70, 6000));
+  assert.ok(await until(() => game.player.y <= 134, 6000));
   await page.keyboard.up('ArrowUp');
   const seconds = (Date.now() - walkStart) / 1000;
-  check('normal north corridor walk takes about five seconds', seconds >= 4.7 && seconds <= 5.8, JSON.stringify({ seconds }));
+  check('north corridor reaches BUILD308 memory door at y128 in about 4.54 seconds', seconds >= 4.3 && seconds <= 5.5, JSON.stringify({ seconds }));
   await shot('right-end');
   await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_lobby'); assert.ok(await field()); await page.waitForTimeout(700);
   check('return spawn stays in lobby without replay or ping-pong', (await state()).map === 'gajaeman_castle_lobby' && (await state()).seen && !(await state()).scene && !(await state()).blocked);

@@ -5,6 +5,7 @@ export const CASTLE_LOBBY = {
   youngcle: 'castle_lobby_youngcle', gajaeman: 'castle_lobby_gajaeman',
   duration: { raid: 4.2, descend: 2.1, dodge: 0.7, depart: 1.9 },
   shots: [0.35, 1.45, 2.6], beamLife: 0.3, entryHeight: 310, dodgeDistance: -62,
+  dodgeHeight: 16, dodgeSpin: 0.18, hoverAmplitude: 6, hoverPeriod: 2.8,
   sounds: ['laser_zap', 'break1', 'wing', 'captain_transform', 'chime', 'door', 'locker'],
 };
 const actor = (game, id) => game.entities.find(entity => entity.id === id && !entity.dead);
@@ -19,7 +20,7 @@ export class CastleLobbyScene {
     this.gajaeman = actor(game, CASTLE_LOBBY.gajaeman);
     this.gajaemanOrigin = [this.gajaeman.x, this.gajaeman.y];
     this.targets = [1, 2, 3].map(index => actor(game, `lobby_wall${index}`));
-    this.beat = 'idle'; this.elapsed = 0; this.shots = 0; this.beams = []; this.debris = [];
+    this.beat = 'idle'; this.elapsed = 0; this.hoverElapsed = 0; this.shots = 0; this.beams = []; this.debris = [];
     this.scars = []; this.handles = new Set(); this.disposed = false;
   }
 
@@ -36,7 +37,7 @@ export class CastleLobbyScene {
     }
     if (name === 'dodge') {
       this.dodgeOrigin = [this.gajaeman.x, this.gajaeman.y];
-      this.fire({ x: this.gajaeman.x + this.gajaeman.w / 2, y: this.gajaeman.y - 24 }, false);
+      this.fire({ x: this.gajaeman.x + this.gajaeman.w / 2, y: this.gajaeman.y - 24 + this.gajaeman.flyY }, false);
       this.sound('wing', 0.45);
     }
     if (name === 'depart') this.sound('wing', 0.5);
@@ -71,6 +72,8 @@ export class CastleLobbyScene {
       finishCastleLobby(this.game, true); return;
     }
     this.elapsed += dt;
+    this.hoverElapsed += dt;
+    this.gajaeman.flyY = Math.sin(this.hoverElapsed * Math.PI * 2 / CASTLE_LOBBY.hoverPeriod) * CASTLE_LOBBY.hoverAmplitude;
     for (const beam of this.beams) beam.age += dt;
     this.beams = this.beams.filter(beam => beam.age < CASTLE_LOBBY.beamLife);
     for (const chip of this.debris) { chip.age += dt; chip.x += chip.vx * dt; chip.y += chip.vy * dt; chip.vy += 210 * dt; }
@@ -87,9 +90,9 @@ export class CastleLobbyScene {
     if (this.beat === 'descend') this.gajaeman.y = this.gajaemanOrigin[1] - CASTLE_LOBBY.entryHeight * (1 - ease(this.elapsed / CASTLE_LOBBY.duration.descend));
     if (this.beat === 'dodge') {
       const k = ease(this.elapsed / CASTLE_LOBBY.duration.dodge);
-      this.gajaeman.y = this.dodgeOrigin[1] - Math.sin(Math.PI * k) * 35;
+      this.gajaeman.y = this.dodgeOrigin[1] - Math.sin(Math.PI * k) * CASTLE_LOBBY.dodgeHeight;
       this.gajaeman.x = this.dodgeOrigin[0] + CASTLE_LOBBY.dodgeDistance * k;
-      this.gajaeman.spin = Math.sin(Math.PI * k) * 0.35;
+      this.gajaeman.spin = Math.sin(Math.PI * k) * CASTLE_LOBBY.dodgeSpin;
     }
     if (this.beat === 'depart') {
       const k = Math.min(1, this.elapsed / CASTLE_LOBBY.duration.depart);
@@ -99,7 +102,7 @@ export class CastleLobbyScene {
     }
     if (this.game.darkSmoke?.aura?.actor === this.gajaeman) {
       this.game.darkSmoke.source.x = this.gajaeman.x + this.gajaeman.w / 2;
-      this.game.darkSmoke.source.y = this.gajaeman.y + this.gajaeman.h - 30;
+      this.game.darkSmoke.source.y = this.gajaeman.y + this.gajaeman.h + this.gajaeman.flyY - 30;
     }
   }
 

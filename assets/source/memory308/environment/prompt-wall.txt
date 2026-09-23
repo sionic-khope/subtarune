@@ -1,0 +1,5 @@
+Use case: precise-object-edit
+Asset type: one full-bleed repeating 32x32 game wall tile, delivered as a square image for nearest-neighbor reduction.
+Input image: the supplied existing gajaeman_castle_wall.png is the edit target and layout/pixel-density reference. Use the image just shown as the visual reference.
+Primary request: change only the predominantly purple brick material into near-black charcoal castle stone. Preserve the same front-facing brick-wall layout, staggered brick courses, dark mortar joints, block scale, small top edge and coarse pixel-art structure. Neutral black and charcoal gray must dominate; highlights are muted cool gray. Add only sparse, subdued purple moss in a few mortar joints, not a purple color wash.
+Constraints: one square full-bleed opaque tile; no transparent margin; no labels, text, border, objects, doors, characters, glow, lava or new architecture. Preserve the original tile composition rather than zooming to a different brick scale. Keep the edges suitable for repeating wall runs. No photorealistic texture, no smooth gradients. Final runtime target 32x32.
