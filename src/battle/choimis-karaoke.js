@@ -4,6 +4,8 @@ import { FONT } from '../ui/font.js';
 const KARAOKE_SIZE = 17;
 const SAFE_WIDTH = 456;
 const TEXT_TOP = 10;
+const ECHO_LIFETIME = 0.5;
+const ECHO_LAYERS = 5;
 const fontAt = size => FONT.replace(/^\d+(?:\.\d+)?px/, `${size}px`);
 const clamp = value => Math.min(1, Math.max(0, value));
 
@@ -49,7 +51,30 @@ export function drawChoimisKaraoke(ctx, battle) {
     widths = cue.chars.map(({ char }) => ctx.measureText(char).width);
     totalWidth = widths.reduce((sum, width) => sum + width, 0);
   }
-  let x = 240 - totalWidth / 2;
+  const startX = 240 - totalWidth / 2;
+  let x = startX;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(12, TEXT_TOP - 4, SAFE_WIDTH, fontSize + 8); ctx.clip();
+  ctx.strokeStyle = '#ff9dca'; ctx.fillStyle = '#ff9dca'; ctx.lineWidth = 1;
+  for (let i = 0; i < cue.chars.length; i++) {
+    const char = cue.chars[i], age = time - char.at;
+    if (age > 0 && age < ECHO_LIFETIME && char.char.trim()) {
+      const remaining = 1 - age / ECHO_LIFETIME;
+      for (let layer = ECHO_LAYERS; layer >= 1; layer--) {
+        const offset = layer * (3 + age / ECHO_LIFETIME);
+        const alpha = dim * fade * remaining * 0.58 * (1 - layer / (ECHO_LAYERS + 1));
+        for (const direction of [-1, 1]) {
+          const echoX = x + direction * offset;
+          ctx.globalAlpha = alpha; ctx.strokeText(char.char, echoX, TEXT_TOP);
+          ctx.globalAlpha = alpha * 0.24; ctx.fillText(char.char, echoX, TEXT_TOP);
+        }
+      }
+    }
+    x += widths[i];
+  }
+  ctx.restore();
+  ctx.globalAlpha = dim * fade;
+  x = startX;
   for (let i = 0; i < cue.chars.length; i++) {
     const char = cue.chars[i];
     ctx.strokeStyle = 'rgba(4,8,20,0.9)'; ctx.lineWidth = 4; ctx.strokeText(char.char, x, TEXT_TOP);
@@ -60,12 +85,6 @@ export function drawChoimisKaraoke(ctx, battle) {
       ctx.beginPath();
       ctx.rect(x, TEXT_TOP - 4, widths[i] * progress, fontSize + 8);
       ctx.clip();
-      const age = time - char.at;
-      if (age < 0.26 && char.char.trim()) {
-        const echo = (1 - age / 0.26) * 0.42;
-        ctx.fillStyle = '#ff9dca'; ctx.globalAlpha = dim * fade * echo;
-        ctx.fillText(char.char, x - 2 - age * 8, TEXT_TOP); ctx.fillText(char.char, x + 2 + age * 8, TEXT_TOP);
-      }
       ctx.globalAlpha = dim * fade; ctx.fillStyle = '#ff78b8'; ctx.fillText(char.char, x, TEXT_TOP);
       ctx.restore();
       ctx.globalAlpha = dim * fade;

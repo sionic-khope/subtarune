@@ -11,6 +11,7 @@ BASE_URL_SCENARIOS.add('choimis-win-rescue');
 BASE_URL_SCENARIOS.add('choimis-return');
 BASE_URL_SCENARIOS.add('choimis-lounge-briefing');
 BASE_URL_SCENARIOS.add('choimis-301');
+BASE_URL_SCENARIOS.add('choimis-karaoke');
 BASE_URL_SCENARIOS.add('jjajang-night-coast');
 BASE_URL_SCENARIOS.add('jjajang-night-coast-visual');
 
