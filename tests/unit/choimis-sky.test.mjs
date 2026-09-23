@@ -11,7 +11,8 @@ import { CHAR_SCALE, Character } from '../../src/world/world.js';
 
 test('test_choimis_sky_supplied_dialogue_enters_seamless_battle_after_ascent', () => {
   assert.equal(SCRIPTS.choimis_sky, choimis_sky);
-  assert.deepEqual(choimis_sky.filter(node => node.text).map(node => [node.speaker, node.text.slice(2), node.voice]), [
+  const battleIndex = choimis_sky.findIndex(node => node.battle);
+  assert.deepEqual(choimis_sky.slice(0, battleIndex).filter(node => node.text).map(node => [node.speaker, node.text.slice(2), node.voice]), [
     ['최미스', '하이', 'choimis_flower'],
     ['억빠맨', '빨리 내려와라 씨발색끼', 'ppaman'],
     ['최미스', '어휴 하여간 다들 날 싫어하는이유가뭐야?', 'choimis_flower'],
@@ -51,7 +52,8 @@ test('test_choimis_sky_supplied_dialogue_enters_seamless_battle_after_ascent', (
     flag: 'choimis_flower_won', seamlessIntro: 'choimis_sky',
   });
   assert.equal(choimis_sky.some(node => node.sfx === 'battle_start' || node.vortex), false);
-  assert.equal(choimis_sky.findIndex(node => node.fade === 'out'), battle + 1);
+  assert.equal(choimis_sky[battle + 1].action.name, 'startChoimisRescue');
+  assert.equal(choimis_sky.slice(battle + 1).some(node => node.map === 'jjajang_night_cliff'), false);
   assert.deepEqual(choimis_sky.find(node => 'bgm' in node), { bgm: 'wind', volume: 0.45 });
 });
 

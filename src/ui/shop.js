@@ -1,7 +1,7 @@
 import { Input } from '../core/input.js';
 import { drawBox, drawHeart, loadImageOptional } from '../core/gfx.js';
 import { purchaseShopItem, shopItemState, saleItemState, sellShopItem } from '../core/shop.js';
-import { YONGJUN_SHOP } from '../data/shops.js';
+import { yongjunShop } from '../data/shops.js';
 import { SHOP_KO as L } from '../data/locale/shop-ko.js';
 import { FONT, F } from './font.js';
 import { drawMenuText, menuWindow } from './menu-layout.js';
@@ -27,6 +27,8 @@ function panel(ctx, rect) {
 
 /** A field overlay: core shop commands alone apply purchases to saved game data. */
 export class Shop {
+  get products() { return yongjunShop(this.game.flags); }
+
   constructor(game) {
     this.game = game;
     this.mode = 'closed';
@@ -119,11 +121,11 @@ export class Shop {
       }
       return;
     }
-    const count = (this.section === 'sell' ? this.game.inventory : YONGJUN_SHOP).length + 1;
+    const count = (this.section === 'sell' ? this.game.inventory : this.products).length + 1;
     this._move(input, count);
     if (!input.just('confirm')) return;
     if (this.index === count - 1) { this._home(); return; }
-    const result = this.section === 'sell' ? saleItemState(this.game, this.index) : shopItemState(this.game, YONGJUN_SHOP[this.index].id);
+    const result = this.section === 'sell' ? saleItemState(this.game, this.index) : shopItemState(this.game, this.products[this.index].id);
     this.transaction = result;
     if (!result.ok) { this._feedback(result); return; }
     this.choice = this.section === 'buy' ? 0 : 1;
@@ -134,7 +136,7 @@ export class Shop {
 
   _browse() {
     this.mode = this.section === 'sell' ? 'sell' : 'browse';
-    const count = this.section === 'sell' ? this.game.inventory.length : YONGJUN_SHOP.length;
+    const count = this.section === 'sell' ? this.game.inventory.length : this.products.length;
     this.index = Math.min(this.index, count);
     this.message = null;
     this.lock = SHOP_LAYOUT.inputLock;
@@ -207,8 +209,8 @@ export class Shop {
 
   _drawProducts(ctx) {
     const { listY, rowHeight, nameX, priceX, colors } = SHOP_LAYOUT;
-    for (let i = 0; i <= YONGJUN_SHOP.length; i++) {
-      const item = YONGJUN_SHOP[i];
+    for (let i = 0; i <= this.products.length; i++) {
+      const item = this.products[i];
       const soldOut = item && shopItemState(this.game, item.id).reason === 'sold_out';
       const y = listY + i * rowHeight;
       ctx.fillStyle = i === this.index ? colors.selected : soldOut ? colors.muted : colors.text;
@@ -295,7 +297,7 @@ export class Shop {
 
   _drawDetail(ctx) {
     const { detail, inset, colors } = SHOP_LAYOUT;
-    const item = YONGJUN_SHOP[this.index];
+    const item = this.products[this.index];
     const x = detail.x + inset;
     const width = detail.w - inset * 2;
     ctx.fillStyle = colors.text;

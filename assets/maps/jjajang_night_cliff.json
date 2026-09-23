@@ -43,7 +43,6 @@
  },
  "enter": {
   "script": "jjajang_night_cliff_scene",
-  "flag": "night_cliff_scene_started",
   "early": true
  },
  "entities": [

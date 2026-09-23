@@ -8,6 +8,8 @@
 export const ITEMS = {
   '에그타르트': { kind: 'plain', heal: 100, desc: '파랑이와 노랑이가 나눠 준 에그타르트. HP 100 회복.' },
   '위장약': { kind: 'plain', heal: 200, desc: '용준이 파는 위장약. HP 200 회복.' },
+  '더 강한 바세린': { kind: 'plain', heal: 300, desc: '용준이 새로 준비한 회복용 바세린. HP 300 회복.' },
+  '더 강한 씨알리스': { kind: 'plain', heal: 500, desc: '용준이 새로 준비한 회복용 씨알리스. HP 500 회복.' },
   '나무총': { kind: 'key', desc: '해안의 상자에서 챙긴 나무총. 바다에서 C를 눌러 쏜다.' },
   '보라색 코드 ?': { kind: 'key', desc: '방송 중 서랍에서 찾은 보라색 코드. 뭔가 에러가 났었다.' },   // 인트로 티비 서랍(3D) — src/data/scripts.js
   '낡은 열쇠':     { kind: 'key', desc: '상자에서 나온 낡은 열쇠.' },                                    // 인트로 상자 — src/data/scripts.js

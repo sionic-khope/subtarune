@@ -5,6 +5,8 @@ import { runInNewContext } from 'node:vm';
 import { clearEditorUnionStage } from '../../src/scenes/editor-union-effects.js';
 import { clearChoimisFlowerEffects } from '../../src/data/cutscenes/choimis_flower.js';
 import { clearChoimisSky } from '../../src/scenes/choimis-sky-intro.js';
+import { clearLoungeBriefing } from '../../src/data/cutscenes/ship_lounge_briefing.js';
+import { finishChoimisRescue } from '../../src/scenes/choimis-rescue.js';
 import { darkSmokeWaiter } from '../../src/ui/dark-smoke.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from '../../src/data/cutscenes/captain_reveal.js';
 
@@ -15,6 +17,7 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
   Input: { poll() {}, just: () => false }, TEXT_SPEEDS: [{ delay: 0.03 }],
   MAPS: { maillard_captain: room, other: { entities: [], spawns: { start: {} } } },
   MAILLARD_CART: {}, darkSmokeWaiter, CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL, clearEditorUnionStage, clearChoimisFlowerEffects, clearChoimisSky,
+  clearLoungeBriefing, finishChoimisRescue,
   TileMap: class { bake() {} }, createEntity: definition => ({ ...definition, def: definition }),
 });
 

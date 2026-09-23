@@ -21,7 +21,7 @@ export class ShipPursuitAmbient {
   /** Reconcile saved flags/map eligibility, preserving the clock between pursuit maps. */
   sync() {
     const game = this.game;
-    if (this.stopped || !game.flags.captain_attack_done || !isShipPursuitMap(game.mapId)
+    if (this.stopped || game.flags.choimis_rescued || !game.flags.captain_attack_done || !isShipPursuitMap(game.mapId)
       || !['field', 'menu'].includes(game.state) || game.battle || game.shipAssault) {
       this.clear();
       return;

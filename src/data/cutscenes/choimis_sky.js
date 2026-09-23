@@ -1,6 +1,5 @@
 import {
   ascendChoimisSky,
-  clearChoimisSky,
   panChoimisSkyReveal,
   playChoimisSkyCue,
   prepareChoimisSky,
@@ -10,6 +9,8 @@ import {
   startChoimisSkyGather,
   waitForChoimisSkyGather,
 } from '../../scenes/choimis-sky-intro.js';
+import { prepareChoimisRescue } from '../../scenes/choimis-rescue.js';
+import { CHOIMIS_RESCUE_NODES } from './choimis_rescue.js';
 
 export const CHOIMIS_SKY = Object.freeze({
   boss: 'choimis_sky_boss',
@@ -27,6 +28,7 @@ export const choimis_sky = Object.assign([
   { if: flags => !!flags[CHOIMIS_SKY.winFlag], goto: 'end' },
   { bgm: 'wind', volume: 0.45 },
   { action: prepareChoimisSky },
+  { action: prepareChoimisRescue },
   { parallel: [
     { move: 'player', rel: 'night_edge', at: 'left', by: [-20, 0], speed: 70 },
     { move: 'gyeongsub', rel: 'night_edge', at: 'left', by: [-84, 0], speed: 70 },
@@ -60,12 +62,7 @@ export const choimis_sky = Object.assign([
     enemies: [CHOIMIS_SKY.enemy], bgm: CHOIMIS_SKY.bgm, bg: CHOIMIS_SKY.background,
     flag: CHOIMIS_SKY.winFlag, seamlessIntro: CHOIMIS_SKY.background,
   } },
-  { fade: 'out', duration: 0.01 },
-  { action: clearChoimisSky },
-  { map: 'jjajang_night_cliff', spawn: 'from_west', bgm: false },
-  { camera: 'player' },
-  { regroup: true },
-  { fade: 'in', duration: 0.45 },
+  ...CHOIMIS_RESCUE_NODES,
   { label: 'end' },
   { end: true },
 ], { silent: true });

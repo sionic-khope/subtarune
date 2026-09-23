@@ -52,7 +52,21 @@
    "x": 372,
    "y": 470,
    "facing": "up"
+  },
+  "from_rescue": {
+   "x": 372,
+   "y": 900,
+   "facing": "up"
+  },
+  "lounge_free": {
+   "x": 372,
+   "y": 520,
+   "facing": "up"
   }
+ },
+ "enter": {
+  "script": "ship_lounge_briefing",
+  "early": true
  },
  "meta": {
   "connected": true,
@@ -309,7 +323,8 @@
    "wander": 0,
    "script": "ship_lounge_youngcle",
    "visualScale": 2,
-   "requires": "ship_ending_done"
+   "requires": "ship_ending_done",
+   "unless": "choimis_rescued"
   },
   {
    "type": "npc",
@@ -320,7 +335,8 @@
    "facing": "down",
    "wander": 0,
    "script": "ship_lounge_junhee",
-   "requires": "ship_ending_done"
+   "requires": "ship_ending_done",
+   "unless": "choimis_rescued"
   },
   {
    "type": "npc",
@@ -331,7 +347,8 @@
    "facing": "down",
    "wander": 0,
    "script": "ship_lounge_yongjun",
-   "requires": "ship_ending_done"
+   "requires": "ship_ending_done",
+   "unless": "choimis_rescued"
   },
   {
    "type": "npc",
@@ -394,6 +411,81 @@
    "facing": "left",
    "wander": 0,
    "script": "ship_lounge_mini_mario"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_return_youngcle",
+   "sprite": "youngcle",
+   "x": 240,
+   "y": 332,
+   "facing": "right",
+   "wander": 0,
+   "visualScale": 2,
+   "requires": "choimis_rescued",
+   "script": "ship_lounge_youngcle"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_return_junhee",
+   "sprite": "junhee",
+   "x": 360,
+   "y": 316,
+   "facing": "down",
+   "wander": 0,
+   "visualScale": 1,
+   "requires": "choimis_rescued",
+   "script": "ship_lounge_junhee"
+  },
+  {
+   "type": "npc",
+   "id": "lounge_return_yongjun",
+   "sprite": "yongjun",
+   "x": 466,
+   "y": 426,
+   "facing": "left",
+   "wander": 0,
+   "visualScale": 1,
+   "requires": "choimis_rescued",
+   "unless": "ship_lounge_briefed",
+   "script": "ship_lounge_yongjun"
+  },
+  {
+   "type": "prop",
+   "id": "lounge_choimis_sealed",
+   "image": "assets/props/choimis-sealed.png",
+   "x": 524,
+   "y": 277,
+   "w": 46,
+   "h": 18,
+   "ix": 519,
+   "iy": 205,
+   "solid": true,
+   "requires": "choimis_rescued",
+   "script": "ship_lounge_choimis_sealed"
+  },
+  {
+   "type": "prop",
+   "id": "ship_lounge_shop",
+   "image": "assets/props/yongjun-shop.png",
+   "x": 74,
+   "y": 1036,
+   "w": 172,
+   "h": 48,
+   "ix": 64,
+   "iy": 896,
+   "solid": true,
+   "requires": "choimis_rescued"
+  },
+  {
+   "type": "sign",
+   "id": "ship_lounge_shop_door",
+   "x": 136,
+   "y": 1072,
+   "w": 48,
+   "h": 16,
+   "solid": false,
+   "requires": "choimis_rescued",
+   "script": "maillard_shop"
   }
  ]
 }

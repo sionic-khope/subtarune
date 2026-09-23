@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { shipLoungeScripts } from '../../src/data/cutscenes/ship_lounge.js';
+import { ScriptRunner } from '../../src/ui/dialogue.js';
 
 const mapPath = 'assets/maps/ship_lounge.json';
 test('ship lounge provides a tall room after the control-room ending', () => {
@@ -18,7 +19,12 @@ test('test_ship_lounge_npcs_respond_without_repositioning', () => {
   const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
   for (const npc of m.entities.filter(entity => entity.type === 'npc')) {
     const script = shipLoungeScripts[npc.script];
-    assert.ok(script[0].text || script[0].hop, `${npc.id} responds immediately`);
+    for (const choimis_rescued of [false, true]) {
+      let shown = null;
+      const runner = new ScriptRunner({ show: node => { shown = node; } }, { flags: { choimis_rescued, ship_lounge_briefed: choimis_rescued } });
+      if (script[0].hop) assert.equal(script[0].hop, 'lounge_mini_mario');
+      else { runner.start(script); assert.ok(shown?.text, `${npc.id} responds immediately, rescued=${choimis_rescued}`); }
+    }
     assert.ok(script.every(node => !node.move && !node.parallel && !node.wait && !node.action && !node.regroup), npc.id);
   }
   const mario = shipLoungeScripts.ship_lounge_mini_mario;

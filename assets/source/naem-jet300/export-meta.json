@@ -1,0 +1,20 @@
+{
+  "input": "assets/source/naem-jet300/processed/clean.png",
+  "output": "assets/props/naem-jet.png",
+  "sourceCrop": [
+    39,
+    218,
+    719,
+    557
+  ],
+  "size": [
+    680,
+    339
+  ],
+  "visibleAlphaThreshold": 128,
+  "rgbaChanged": false,
+  "resample": "NEAREST",
+  "aspectPreserved": true,
+  "inputSha256": "2c130f04ae2c845f403dc5c782e9e71758ffac41378c6a4ddaea94091a2b2158",
+  "outputSha256": "c13032795f7b749a42758f43c627445506800dab1483b503246e0c0439de26b1"
+}

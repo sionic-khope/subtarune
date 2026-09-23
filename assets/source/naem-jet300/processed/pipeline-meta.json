@@ -1,0 +1,19 @@
+{
+  "target": "asset",
+  "mode": "single",
+  "prompt": "",
+  "role": "",
+  "input": "/Users/khope@sionic.ai/.codex/generated_images/01a09daa-6644-71a0-a0b4-284c735f3b96/exec-94a11b60-ed62-4182-8e74-ef1bc58ed3c2.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 200,
+  "single_size": 768,
+  "qc_config": {
+    "strict_qc": true,
+    "reject_edge_touch": false,
+    "allow_source_edge_touch": false,
+    "max_body_scale_cv": null,
+    "max_anchor_y_std": null,
+    "max_profile_scale_drift": null
+  }
+}

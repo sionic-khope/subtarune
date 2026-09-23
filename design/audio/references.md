@@ -1,5 +1,13 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 최미스 전투 뒤 냄트기 구조 (BUILD300, 2026-09-23)
+
+후속 라운지 영클 브리핑의 지정곡은 사용자가 다시 명시한 [Queen — Toby Fox](https://www.youtube.com/watch?v=6XQv5CHmITA)다. 기존 `youngcle_intro.js`의 엄청대박인배 초반 TV 등장 → `YOUNGCLE_TV.bgm` → `storage_show` 연결과 아래 기존 출처 기록을 대조했다. 파일명은 옛 창고 장면에서 남은 내부 이름이며 곡 자체는 Queen이다. `assets/audio/bgm/storage_show.mp3` 전체56.749896초를 그대로 재사용하고, 새 다운로드·트리밍·곡 교체 없이 라운지 영클 “ㅋㅋ”에서 시작한다.
+
+사용자 지정 [Ce-gU8G6Vik](https://www.youtube.com/watch?v=Ce-gU8G6Vik)는 아래 옵젝영역1 항목에서 이미 사용한 **Vs. Lancer**와 같은 영상이다. 기존 `assets/audio/bgm/vs_lancer.mp3`와 런타임 키 `vs_lancer`를 재사용한다. 새 다운로드·대체곡·음량/피치/속도 가공은 없다. 기존 파일은 최초 도입 때 앞 무음만 제거한 버전이다. `Sound.preloadBgm`/`playBgm`은 파일명으로 연결되므로 별도 레지스트리나 복제 키는 필요 없다.
+
+파일 확인: MP3, 48kHz stereo, 41.652146초, 516884바이트; SHA256 `ade5838a8ef50a2c723583008d831feb9de5b29d26b6a2ca6356cdb67f92b19e`. `ffprobe` 메타데이터와 `ffmpeg -v error -i assets/audio/bgm/vs_lancer.mp3 -f null -` 전체 디코드가 통과했다. 이번 확인은 기존 파일과 출처의 연결이며, 새 장면의 재생 시점·주관적 청취 검수는 장면 QA에서 구분한다.
+
 ## 최미스 핑크 슈터 노란 하트 원음 (BUILD297, 2026-09-22)
 
 일반 발사 `yellowheart_shot` = `snd_heartshot_dr_b`(0.290680초), 충전 `yellowheart_charge` = `snd_chargeshot_charge`(1.309320초), 완전 충전 발사 `yellowheart_shot_big` = `snd_chargeshot_fire`(1.772018초). 세 파일은 DELTARUNE 노란 하트의 [실제 입력·발사 이벤트](https://github.com/TeamBlossomDevs/DeltaruneDecomp_beta/blob/154f9a97b8f18fa6974e917c4c4e774bde6b7eba/objects/obj_heart/Step_0.gml#L224-L253)에서 확인했다. 큰 발사 원본이 천둥 원본과 같은 바이트라는 사실과 별개로 이 이벤트에서 직접 쓰인다.

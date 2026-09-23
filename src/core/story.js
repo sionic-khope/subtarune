@@ -24,6 +24,8 @@ export const STAGES = [
   { id: 'ship_ending_done', desc: '변신 영클 승리 뒤 통로 공개 · 라운지로', map: 'youngcle20', spawn: 'from_lounge' },
   { id: 'ship_castle_done', desc: '가재맨의 성 출현 · 요플래 바다 추락', map: 'ship_lounge', spawn: 'castle_approach' },
   { id: 'ship_sinking_done', desc: '가재맨 기억 회상 뒤 짜장섬 해안에 홀로 도착', map: 'jjajang_shore', spawn: 'washed_up' },
+  { id: 'choimis_rescued', desc: '최미스 승리 뒤 냄트기 구조 · 엄청대박인배 귀환', map: 'ship_lounge', spawn: 'from_rescue' },
+  { id: 'ship_lounge_briefed', desc: '라운지 침공 브리핑 완료 · 상점과 출정 준비', map: 'ship_lounge', spawn: 'lounge_free' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -33,6 +35,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
+  if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'storage_show';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
   // 소나무 숲 공터: 아짐키야 연출이 시작되면 무음(컷신이 끈 대로), 이기면 다시 my_castle_town(BUILD227)
@@ -42,7 +45,7 @@ export function storyBgm(mapId, flags) {
   if (mapId === 'youngcle1') return flags.youngcle_intro_done ? 'storage_show' : null;
   // 조종실: 보스전 뒤 연출(가재맨 → 영클 변신)이 끝나면 선장실 변신 뒤와 같은 곡이 흐른다(BUILD211)
   if (mapId === 'youngcle20' && flags.ship_aftermath_done) return 'captain_mankatsuki';
-  if ((flags.captain_attack_started || flags.captain_attack_done) && isShipPursuitMap(mapId)) return SHIP_ASSAULT.bgm;
+  if (!flags.choimis_rescued && (flags.captain_attack_started || flags.captain_attack_done) && isShipPursuitMap(mapId)) return SHIP_ASSAULT.bgm;
   if (mapId === 'maillard_captain' && (flags.captain_mankatsuki_defeated || flags.captain_aftermath_done)) return null;
   if (mapId === 'maillard_captain' && flags.captain_reveal_done) return 'captain_mankatsuki';
   if (mapId === 'maillard_path' && flags.maillard_cart_done) return 'maillard_sunrise';
@@ -61,7 +64,7 @@ const PURSUIT_EXITS = { obj0: 'obj1', obj1: 'obj2', obj2: 'obj5', obj3: 'obj2', 
 
 /** 납치 추격 중에는 문으로 우회하거나 직전 구역으로 돌아갈 수 없다. */
 export function storyExitScript(mapId, destination, flags) {
-  if (flags.captain_attack_done && isShipPursuitMap(mapId) && SHIP_ASSAULT.pursuit[mapId] !== destination) return 'ship_pursuit_backtrack';
+  if (!flags.choimis_rescued && flags.captain_attack_done && isShipPursuitMap(mapId) && SHIP_ASSAULT.pursuit[mapId] !== destination) return 'ship_pursuit_backtrack';
   if (!flags.obj4_abduction_done || flags.obj5_maillard_done) return undefined;
   if (Object.hasOwn(PURSUIT_EXITS, mapId) && PURSUIT_EXITS[mapId] !== destination) return 'chase_route_block';
   return undefined;
@@ -121,6 +124,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
   { flag: 'park_guardian_won', enemies: ['park_guardian'] },
   { flag: 'ship_tvform_won', enemies: ['youngcle_tvform'] },
+  { flag: 'choimis_flower_won', enemies: ['choimis_flower'] },
   // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
   { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
   { flag: 'sakura5_duo_won', enemies: ['domijorim', 'dohyun'] },                                                          // 벚꽃 숲 5 공터 도미조림·도현 전투(각 45원) — jjajang_sakura5.js(BUILD276)
@@ -153,7 +157,7 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
 export const partyFromFlags = (flags) => flags?.ship_sinking_done
-  ? (flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
+  ? (flags?.choimis_rescued || flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
     : flags?.sakura8_split_done ? []
     : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
     : flags?.torii_janitor_joined && !flags?.janitor_left ? ['janitor'] : [])   // 드럼통 길에서 이별(janitor_left, BUILD242)하면 다시 요플래 혼자
@@ -611,5 +615,12 @@ QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_sky', desc: '밤 절벽 · �
   map: 'jjajang_night_cliff', spawn: 'from_west', flags: choimisSkyFlags, party: ['gyeongsub', 'ppaman'] });
 QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_eating', desc: '최미스 · 먹방 대결 패턴 직행 QA',
   map: 'jjajang_night_cliff', spawn: 'from_west', flags: choimisSkyFlags, party: ['gyeongsub', 'ppaman'], script: 'choimis_eating_qa' });
-QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_sky_after', desc: '최미스 하늘 전투 승리 뒤 잠정 절벽 복귀',
-  map: 'jjajang_night_cliff', spawn: 'from_west', flags: { ...choimisSkyFlags, choimis_flower_won: true }, party: ['gyeongsub', 'ppaman'] });
+const choimisWonFlags = { ...choimisSkyFlags, choimis_flower_won: true };
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_sky_after', desc: '최미스 하늘 전투 승리 뒤 꽃잎 소멸 · 냄트기 구조',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: choimisWonFlags, party: ['gyeongsub', 'ppaman'], script: 'choimis_rescue' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_rescue', desc: '최미스 승리 뒤 추락 · 박용준의 냄트기 구조',
+  map: 'jjajang_night_cliff', spawn: 'from_west', flags: choimisWonFlags, party: ['gyeongsub', 'ppaman'], script: 'choimis_rescue' });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_return', desc: '냄트기 귀환 뒤 엄청대박인배 라운지 · 봉인된 최미스',
+  stage: 'ship_lounge_briefed', map: 'ship_lounge', spawn: 'lounge_free', flags: { ...choimisWonFlags, choimis_rescued: true, choimis_lounge_sealed: true, ship_lounge_briefed: true }, party: ['gyeongsub', 'ppaman'] });
+QA_POINTS.push({ ...parkWonCheckpoint, id: 'choimis_lounge_briefing', desc: '냄트기 귀환 직후 · 라운지 침공 브리핑 시작',
+  stage: 'choimis_rescued', map: 'ship_lounge', spawn: 'from_rescue', flags: { ...choimisWonFlags, choimis_rescued: true }, party: ['gyeongsub', 'ppaman'] });

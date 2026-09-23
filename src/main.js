@@ -59,6 +59,8 @@ import { ITEMS, plainItems, keyItems } from './data/items.js';
 import { drawYoungcleLoungeEffects } from './scenes/youngcle-lounge-effects.js';
 import { clearEditorUnionStage, drawEditorUnionWorld, drawEditorUnionLight, drawEditorUnionLabels, drawEditorUnionOverlay } from './scenes/editor-union-effects.js';
 import { clearChoimisSky, drawChoimisSkyPollen } from './scenes/choimis-sky-intro.js';
+import { finishChoimisRescue } from './scenes/choimis-rescue.js';
+import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
 const TEXT_SPEEDS = [
   { key: 'speed_slow', delay: 0.06 },
@@ -1052,6 +1054,8 @@ class Game {
 
   /** TV cancellation releases the current runner before map/title/QA reconstructs actors. */
   finishTvBroadcast(abort = false) {
+    if (abort) clearLoungeBriefing(this);
+    if (abort) finishChoimisRescue(this, true);
     if (abort) clearChoimisFlowerEffects(this);
     if (abort) clearChoimisSky(this);
     if (abort) clearEditorUnionStage(this, true);
@@ -1215,6 +1219,7 @@ class Game {
     this.shipAssault?.update(dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);
+    this.choimisRescue?.update(dt);
     this.tvBroadcast?.update(dt);
     this.shipPursuitAmbient?.update(dt);
     if (this.shipAssault?.ocean) {
@@ -1226,6 +1231,10 @@ class Game {
       return;
     }
     if (this.shipMemory?.fullFrame) {
+      if (this.dialogue.running) this.dialogue.update(dt, Input);
+      return;
+    }
+    if (this.choimisRescue?.fullFrame) {
       if (this.dialogue.running) this.dialogue.update(dt, Input);
       return;
     }
@@ -1410,6 +1419,12 @@ class Game {
       if (this.shake) { const a = this.shake.amp; ctx.translate(Math.round(Math.sin(this.time * 73) * a), Math.round(Math.sin(this.time * 57) * a)); }
       this.shipMemory.draw(ctx);
       ctx.restore();
+      this.textbox.draw(ctx);
+      if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
+      return;
+    }
+    if (this.choimisRescue?.fullFrame) {
+      this.choimisRescue.draw(ctx);
       this.textbox.draw(ctx);
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;

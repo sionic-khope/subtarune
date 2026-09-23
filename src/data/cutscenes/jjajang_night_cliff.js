@@ -1,4 +1,5 @@
 import { choimis_runaway } from './choimis_runaway.js';
+import { choimis_rescue } from './choimis_rescue.js';
 
 export const NIGHT_CLIFF = {
   map: 'jjajang_night_cliff',
@@ -17,7 +18,9 @@ const close = { action: game => game.textbox.close() };
 
 /** A remote view, not a protagonist swap: inventory, HP and party remain untouched. */
 export const jjajang_night_cliff_scene = Object.assign([
-  { if: flags => !!flags[NIGHT_CLIFF.doneFlag], goto: 'end' },
+  { if: flags => flags.choimis_flower_won && !flags.choimis_rescued, goto: 'rescue' },
+  { if: flags => !!flags[NIGHT_CLIFF.doneFlag] || flags.night_cliff_scene_started, goto: 'end' },
+  { set: { night_cliff_scene_started: true } },
   { hide: 'player' },
   { bgm: null, fadeOut: 0.3 },
   { action: game => { game.sound.preloadBgm(NIGHT_CLIFF.bgm); } },
@@ -70,4 +73,6 @@ export const jjajang_night_cliff_scene = Object.assign([
   ...choimis_runaway,
   { label: 'end' },
   { end: true },
+  { label: 'rescue' },
+  ...choimis_rescue,
 ], { silent: true });

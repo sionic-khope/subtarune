@@ -32,6 +32,11 @@ NPCS: Final = (
     ('park_guardian', 'park_guardian_costume', 248, 964, 'right'),
     ('mini_mario', 'mini_mario', 568, 1008, 'left'),
 )
+RETURN_NPCS: Final = (
+    ('youngcle', 'youngcle', 240, 332, 'right', 2),
+    ('junhee', 'junhee', 360, 316, 'down', 1),
+    ('yongjun', 'yongjun', 466, 426, 'left', 1),
+)
 
 
 def main() -> None:
@@ -87,8 +92,21 @@ def main() -> None:
            **({'visualScale': 2} if id_ == 'youngcle' else {}),
            **({'visualScale': 2.22} if id_ == 'park_guardian' else {}),
            **({'visualScale': 1.79} if id_ == 'ttuulla' else {}),
-           **({'requires': 'ship_ending_done'} if id_ in ('youngcle', 'junhee', 'yongjun') else {})}
+           **({'requires': 'ship_ending_done', 'unless': 'choimis_rescued'} if id_ in ('youngcle', 'junhee', 'yongjun') else {})}
           for id_, sprite, x, y, facing in NPCS],
+        *[{'type': 'npc', 'id': f'lounge_return_{id_}', 'sprite': sprite, 'x': x, 'y': y,
+           'facing': facing, 'wander': 0, 'visualScale': scale, 'requires': 'choimis_rescued',
+           **({'unless': 'ship_lounge_briefed'} if id_ == 'yongjun' else {}),
+           'script': f'ship_lounge_{id_}'}
+          for id_, sprite, x, y, facing, scale in RETURN_NPCS],
+        {'type': 'prop', 'id': 'lounge_choimis_sealed', 'image': P + 'choimis-sealed.png',
+         'x': 524, 'y': 277, 'w': 46, 'h': 18, 'ix': 519, 'iy': 205,
+         'solid': True, 'requires': 'choimis_rescued', 'script': 'ship_lounge_choimis_sealed'},
+        {'type': 'prop', 'id': 'ship_lounge_shop', 'image': P + 'yongjun-shop.png',
+         'x': 74, 'y': 1036, 'w': 172, 'h': 48, 'ix': 64, 'iy': 896,
+         'solid': True, 'requires': 'choimis_rescued'},
+        {'type': 'sign', 'id': 'ship_lounge_shop_door', 'x': 136, 'y': 1072, 'w': 48, 'h': 16,
+         'solid': False, 'requires': 'choimis_rescued', 'script': 'maillard_shop'},
     ]
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 라운지', 'stage': 'ship_ending_done',
@@ -96,7 +114,10 @@ def main() -> None:
         'spawns': {
             'from_control': {'x': 372, 'y': 900, 'facing': 'up'},
             'castle_approach': {'x': 372, 'y': 470, 'facing': 'up'},
+            'from_rescue': {'x': 372, 'y': 900, 'facing': 'up'},
+            'lounge_free': {'x': 372, 'y': 520, 'facing': 'up'},
         },
+        'enter': {'script': 'ship_lounge_briefing', 'early': True},
         'meta': {'connected': True, 'route': [[11, 28], [11, 7]],
                  'role': '보스전 뒤 휴식, 좌우 대화 공간과 위쪽 보라 문'},
         'entities': entities,

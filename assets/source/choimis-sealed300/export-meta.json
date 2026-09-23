@@ -1,0 +1,20 @@
+{
+  "input": "assets/source/choimis-sealed300/clean.png",
+  "output": "assets/props/choimis-sealed.png",
+  "sourceCrop": [
+    41,
+    25,
+    89,
+    104
+  ],
+  "size": [
+    55,
+    90
+  ],
+  "visibleAlphaThreshold": 128,
+  "rgbaChanged": false,
+  "resample": "NEAREST",
+  "aspectPreserved": true,
+  "inputSha256": "dd3b9bd85eb23714401481ec857e1d58f25ffd29764814b5e535840a09e6c560",
+  "outputSha256": "88542d688f87bc67c8c95387d3200bff792a26bf3283c24efb553488a2e042ba"
+}

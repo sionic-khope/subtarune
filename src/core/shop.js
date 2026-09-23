@@ -1,10 +1,10 @@
-import { YONGJUN_RESALE_PRICES, YONGJUN_SHOP } from '../data/shops.js';
+import { YONGJUN_RESALE_PRICES, yongjunShop } from '../data/shops.js';
 import { ITEMS } from '../data/items.js';
 import { fullParty } from './party.js';
 
 /** 구매 가능 여부를 읽기만 한다. 취소 또는 상세 보기에는 상태 변경이 없다. */
 export function shopItemState(game, itemId) {
-  const item = YONGJUN_SHOP.find((entry) => entry.id === itemId);
+  const item = yongjunShop(game.flags).find((entry) => entry.id === itemId);
   const reason = !item ? 'unknown' : item.onceFlag && game.has(item.onceFlag) ? 'sold_out' : game.money < item.price ? 'insufficient_money' : null;
   return { ok: reason === null, reason, item };
 }

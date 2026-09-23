@@ -55,7 +55,6 @@ class Spawn(TypedDict):
 
 class Entry(TypedDict):
     script: str
-    flag: str
     early: bool
 
 
@@ -110,8 +109,7 @@ def build_map() -> MapData:
             'from_west': {'x': 36, 'y': 199, 'facing': 'right'},
             'scene': {'x': 200, 'y': 199, 'facing': 'right'},
         },
-        'enter': {'script': 'jjajang_night_cliff_scene',
-                  'flag': 'night_cliff_scene_started', 'early': True},
+        'enter': {'script': 'jjajang_night_cliff_scene', 'early': True},
         'entities': [
             {'type': 'prop', 'id': 'night_cliff_floor', 'image': CLIFF,
              'x': 0, 'y': 160, 'w': 704, 'h': 224, 'ix': 0, 'iy': 160,

@@ -23,6 +23,7 @@ test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   assert.equal(ENEMIES.drum_devil.scaleY, undefined);
   assert.equal(enemy.actions.choso.src, 'assets/enemies/choimis-choso.png');
   assert.deepEqual(enemy.projectiles, {
+    normal: 'assets/sprites/choimis.png',
     jjajang: 'assets/props/dark_jjajang.png',
     mic: 'assets/enemies/choimis-rap.png',
     fashion: 'assets/props/choimis-fashion.png',

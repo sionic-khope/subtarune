@@ -54,6 +54,7 @@ import { ship_gate } from './cutscenes/ship_gate.js';
 import { ship_control_intro, ship_battle_qa, ship_tvform_battle_qa } from './cutscenes/ship_control.js';
 import { ship_tvform_ending, ship_manhole } from './cutscenes/ship_ending.js';
 import { shipLoungeScripts } from './cutscenes/ship_lounge.js';
+import { ship_lounge_briefing } from './cutscenes/ship_lounge_briefing.js';
 import { ship_castle } from './cutscenes/ship_castle.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
@@ -79,6 +80,7 @@ import { jjajang_sakura10_start, jjajang_sakura10_outro, jjajang_sakura11_hush, 
 import { jjajang_sakura12_bowl } from './cutscenes/jjajang_sakura12.js';   // 벚꽃 숲 12 제단: 짜장면과 대화 → 획득 → 눈을 감는다(BUILD288)
 import { jjajang_night_cliff_scene } from './cutscenes/jjajang_night_cliff.js';
 import { choimis_sky } from './cutscenes/choimis_sky.js';
+import { choimis_rescue } from './cutscenes/choimis_rescue.js';
 import { NIGHT_COAST_SCRIPTS } from './cutscenes/jjajang_night_coast.js';
 import { choimis_runaway, choimis_runaway_crash, choimis_runaway_aura, choimis_runaway_restore } from './cutscenes/choimis_runaway.js';
 import { jjajang_sakura5_scene, jjajang_sakura5_clearing, jjajang_sakura5_no_right, sakura5_duo_battle_qa, sakura5_after_battle_qa } from './cutscenes/jjajang_sakura5.js';   // 벚꽃 숲 5 공터 연출·오른쪽 길 막기(BUILD271)   // 벚꽃 숲 2 벚꽃다리(BUILD264)   // 드럼통의 악마 뒤 연출(BUILD254), 동상 뒤 왼쪽 되돌아가기 방지(BUILD260)
@@ -132,6 +134,7 @@ export const SCRIPTS = {
   jjajang_sakura12_bowl,   // 벚꽃 숲 12 제단 짜장면 연출(BUILD288)
   jjajang_night_cliff_scene,
   choimis_sky,
+  choimis_rescue,
   choimis_eating_qa: [{ battle: { enemies: ['choimis_flower'], bgm: 'choimis_battle', bg: 'choimis_sky', openingMode: 'choimis_eating_race' } }, { end: true }],
   choimis_runaway, choimis_runaway_crash, choimis_runaway_aura, choimis_runaway_restore,
   jjajang_sakura7_scene,   // 벚꽃 숲 7 무대 연출: 어둠·스포트라이트·점례(드레스 가순이)·가면 최미스·도미조림 난입·관객 난동·박치기(BUILD278)
@@ -154,7 +157,7 @@ export const SCRIPTS = {
   maillard_starboard_gate,
   maillard_boarding_intro, youngcle_entrance,
   ship_pursuit_backtrack: shipPursuitBacktrack,
-  ship_tvform_ending, ship_manhole, ...shipLoungeScripts,
+  ship_tvform_ending, ship_manhole, ship_lounge_briefing, ...shipLoungeScripts,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,

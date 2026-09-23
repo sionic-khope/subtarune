@@ -357,6 +357,7 @@ export class Battle {
   }
   hitEnemy(e, by, dmg = this.game.attack || 1, { source = 'ordinary', sound = true } = {}) {
     if (!e || e.dead || e.dying > 0 || e.hp <= 0 || !(dmg > 0)) return 0;
+    if (e.id === 'choimis_flower' && (e.finalePending || e.finaleStarted)) return 0;
     this.support?.onContact?.(e, dmg, source);
     if (this.support?.blocksDamage?.(e, source)) {
       e.shake = 0.25; e.popup = { t: 0, text: this.support.blockText?.(e) || L.battle_strip_blocked };   // 영클은 '피했다'(BUILD207)
@@ -367,7 +368,9 @@ export class Battle {
     const defended = e.id === 'choimis_flower' && e.defenseBoosted && source !== 'choimis-eating-race'
       ? source === 'pink-shot' ? 1 : e.def.boostedAttackDamage
       : adjusted;
-    const damage = Math.min(e.hp, defended);
+    const awaitsFinale = e.id === 'choimis_flower' && !e.finaleComplete;
+    if (awaitsFinale && defended >= e.hp) e.finalePending = true;
+    const damage = Math.min(awaitsFinale ? Math.max(0, e.hp - 1) : e.hp, defended);
     e.hp -= damage; e.shake = 0.35; e.blink = 0.3;
     this.support?.onHit?.(e, damage, source);
     if (sound) { this.sfx('hit'); this.sfx('damage'); }
@@ -377,18 +380,28 @@ export class Battle {
   }
   finishPartyAction(plan, allowSupport = true) {
     this.cur = null; this.actWait = BETWEEN_ACTS;
+    if (this.startPendingFinale()) return;
     const followup = allowSupport ? this.support?.afterAction?.(plan) : null;
     if (followup) { this.gimmick = followup; this.cur = { plan, gimmick: true, supportFollowup: true }; }
   }
   applyCannonDamage(target, damage = BARON_CANNON.damage) { return this.hitEnemy(target, null, damage, { source: 'cannon', sound: false }); }
   disposeGimmick() { this.gimmick?.dispose?.(); this.gimmick = null; this.activeEnemyMode = null; this.actorFocus = null; this.stopRapVideo(); this.clearPatternPresentation(); }
+  /** BUILD300: consume a lethal hit only after the current action or full enemy phase has ended. */
+  startPendingFinale() {
+    const enemy = this.enemies.find(e => e.id === 'choimis_flower' && e.finalePending && !e.finaleStarted);
+    if (!enemy) return false;
+    enemy.finalePending = false; enemy.finaleStarted = true;
+    this.plans = []; this.bullets = []; this.patterns = []; this.pendingPostOpening = null;
+    this.startEnemyMode('choimis_finale', enemy);
+    return true;
+  }
   /** 지원 모듈이 고른 적 턴 모드를 바로 연다(인트로 대사 뒤 오프닝 연출 — 변신 영클 편집노조 흡수, BUILD214). 끝나면 여느 적 턴처럼 afterEnemyPhase → 막간/메뉴 */
-  startEnemyMode(name) {
+  startEnemyMode(name, enemy = this.living()[0]) {
     const create = getBattleMode('enemy', name); if (typeof create !== 'function') { this.beginMenu(); return; }
     const actorFocus = name === 'choimis_pink_shooter' || name === 'choimis_pink_round'
       ? { phase: 'out', t: 0, duration: OPENING_FOCUS_FADE }
       : null;
-    this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); this.gimmick = create(this, { enemy: this.living()[0] });
+    this.bubble = null; this.state = 'enemy-mode'; this.t = 0; this.setText(''); this.gimmick = create(this, { enemy });
     this.activeEnemyMode = name;
     this.actorFocus = actorFocus;
   }
@@ -560,6 +573,7 @@ export class Battle {
     if (!this.bossBattle) this.sfx('won');
   }
   afterEnemyPhase() {
+    if (this.startPendingFinale()) return;
     if (!this.targets().length) { this.bullets = []; this.bubble = null; this.board.setTarget(440, 72, 240, 282); this.beginWin(); return; }
     const up = [];
     for (const m of this.members) {
@@ -594,7 +608,9 @@ export class Battle {
     this.disposeGimmick(); this.discardPreparedRapVideo(); this.interlude?.dispose?.(); this.interlude = null; this.support?.reset(); this.cur = null;
     this.sfx('confirm'); this.state = 'retry'; this.t = 0; this.bubble = null; this.fx = []; this.bullets = []; this.plans = []; this.openingShown = false; this.pendingPostOpening = null;
     for (const m of this.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; m.action = null; m.popup = null; m.pose = null; }
-    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.defenseBoosted = false; e.pinkShotHits = 0; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null; }
+    for (const e of this.enemies) { e.hp = e.maxHp; e.dead = false; e.dying = 0; e.patternIdx = 0; e.enraged = false; e.defenseBoosted = false; e.pinkShotHits = 0; e.animationTime = 0; e.popup = null; e.shake = 0; e.blink = 0; e.speechBag = []; e.lastSpeech = null;
+      if (e.id === 'choimis_flower') { e.finalePending = false; e.finaleStarted = false; e.finaleComplete = false; }
+    }
     this.game.fadeTo(1, 0, undefined, 'black');
     this.game.sound.preloadBgm(this.cfg.bgm); this.sfx(this.cfg.seamlessIntro ? 'weaponpull' : 'battle_start'); this.game.shake = { time: 0.45, amp: 3 };
     this.retrying = true; this.retryT = this.cfg.seamlessIntro ? 0.35 : RETRY_JINGLE;

@@ -90,7 +90,7 @@ test('test_choimis_boosted_defense_preserves_real_pink_contact_damage_and_remain
   assert.equal(enemy.pinkShotHits, 0);
 });
 
-test('test_choimis_eating_race_reward_bypasses_defense_but_keeps_common_death_and_duplicate_guards', () => {
+test('test_choimis_eating_race_reward_bypasses_defense_but_waits_for_finale_and_rejects_duplicate_hits', () => {
   const sounds = [];
   const battle = Object.assign(Object.create(Battle.prototype), {
     game: { attack: 12 }, support: null, sfx(name) { sounds.push(name); }, setText() {},
@@ -101,10 +101,11 @@ test('test_choimis_eating_race_reward_bypasses_defense_but_keeps_common_death_an
   assert.equal(battle.hitEnemy(enemy, null, 10), 3);
   assert.equal(enemy.hp, 12);
   enemy.hp = 7;
-  assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 7);
-  assert.equal(enemy.hp, 0);
-  assert.equal(enemy.dying, 0.5);
-  assert.equal(sounds.filter(name => name === 'vaporized').length, 1);
+  assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 6);
+  assert.equal(enemy.hp, 1);
+  assert.equal(enemy.dying, 0);
+  assert.equal(enemy.finalePending, true);
+  assert.equal(sounds.filter(name => name === 'vaporized').length, 0);
   assert.equal(battle.hitEnemy(enemy, null, 10, { source: 'choimis-eating-race' }), 0);
 });
 
