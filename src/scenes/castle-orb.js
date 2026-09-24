@@ -99,7 +99,7 @@ function drawSeal(ctx, gate, cam, time, orb, strength, crackle = 0) {
 /** Aura stays with either chamber; each activated seal persists on ordinary lobby reentry. */
 export function drawCastleOrbWorld(ctx, game, cam) {
   const time = game.time || 0;
-  if (game.mapId === CASTLE_ORB.lobby) {
+  if (game.mapId === CASTLE_ORB.lobby && !game.flags.castle_gate_open && !game.castleGate?.progress) {
     const gate = game.map.def.entities.find(e => e.id === CASTLE_ORB.gate);
     for (const orb of ORBS) if (game.flags[orb.flag]) drawSeal(ctx, gate, cam, time, orb, 1);
   }

@@ -13,6 +13,7 @@ import { updateCastleOrb, finishCastleOrb } from '../../src/scenes/castle-orb.js
 import { cancelCastlePipe } from '../../src/scenes/castle-pipe.js';
 import { finishCastleBoulder, restoreCastleBoulder } from '../../src/scenes/castle-boulder.js';
 import { updateCastleBoulderPush, clearCastleBoulderPush } from '../../src/scenes/castle-boulder-push.js';
+import { updateCastleGate, finishCastleGate } from '../../src/scenes/castle-gate.js';
 import { clearShipDeckPoses } from '../../src/scenes/ship-deck-poses.js';
 import { darkSmokeWaiter } from '../../src/ui/dark-smoke.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from '../../src/data/cutscenes/captain_reveal.js';
@@ -27,6 +28,7 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
   clearLoungeBriefing, finishChoimisRescue, finishShipInvasion, finishCastleLobby, clearShipDeckPoses,
   updateCastleOrb, finishCastleOrb, cancelCastlePipe,
   finishCastleBoulder, restoreCastleBoulder, updateCastleBoulderPush, clearCastleBoulderPush,
+  updateCastleGate, finishCastleGate,
   TileMap: class { constructor(def) { this.def = def; } bake() {} },
   createEntity: definition => ({ ...definition, def: definition }),
 });

@@ -1,0 +1,19 @@
+{
+  "target": "asset",
+  "mode": "single_asset",
+  "prompt": "",
+  "role": "",
+  "input": "assets/source/castle318/gate/raw-open-gate.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 200,
+  "single_size": 384,
+  "qc_config": {
+    "strict_qc": false,
+    "reject_edge_touch": false,
+    "allow_source_edge_touch": false,
+    "max_body_scale_cv": null,
+    "max_anchor_y_std": null,
+    "max_profile_scale_drift": null
+  }
+}

@@ -1,5 +1,10 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 거석 다리 뒤 어두운 길 (BUILD318, 2026-09-24)
+
+- `bgm/castle_dark_path.mp3`: 사용자 지정 [62. 13am — Toby Fox](https://www.youtube.com/watch?v=sbzmYjE49N4). 영상 ID `sbzmYjE49N4`, 업로더 `Toby Fox`, 게시일2025-06-04, 오디오 포맷251 전체를 MP3 q2로 변환했다. **91.254438초,48kHz stereo,946460바이트**. 트리밍·속도·피치·페이드·음량 변경 없이 전체 원본을 사용한다.
+- ffmpeg 전체 디코드 성공, 평균−23.5dBFS/피크−8.3dBFS. SHA256 `8aaec84c65d3422b6e92b55be6be4b46b82d6260bdc86ba58f1a0a768b361fcf`. [취득 기록](../../assets/source/castle318-audio/README.md)에 원본 해시와 재현 명령을 보관한다. 파일 검증이며 게임 큐·재생 시계·직접 청취 승인은 별도로 확인한다.
+
 ## 구조·출정·성 접근 교정 (BUILD306, 2026-09-23)
 
 - 냄트기는 `catch`에서 `naem_jet_approach` 한 번만. `jet_reveal`에서 잔여 소리도 정지해 용준 대화·이탈 때 제트기 소리는 없다. 아래304의 engine/depart 파일은 기록으로 보관하며 이 장면에서 재생/적재하지 않는다. wing·vs_lancer는 보존한다.

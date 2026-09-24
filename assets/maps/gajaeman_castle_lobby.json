@@ -49,6 +49,7 @@
   "assets/props/castle306_gate.png",
   "assets/props/castle307_sealed_gate.png",
   "assets/props/mario_pipe.png",
+  "assets/props/castle318_open_gate.png",
   "assets/tiles/gajaeman_castle_wall.png",
   "assets/tiles/castle306_floor.png",
   "assets/tiles/castle306_moss.png",
@@ -84,6 +85,16 @@
   "after_pipe": {
    "x": 604,
    "y": 624,
+   "facing": "up"
+  },
+  "from_dark": {
+   "x": 628,
+   "y": 400,
+   "facing": "down"
+  },
+  "gate_reunion": {
+   "x": 628,
+   "y": 800,
    "facing": "up"
   }
  },
@@ -149,7 +160,63 @@
     416
    ]
   },
-  "seals": 2
+  "seals": 2,
+  "gate": {
+   "entrance": [
+    640,
+    800
+   ],
+   "assembly": [
+    640,
+    550
+   ],
+   "approach": [
+    640,
+    368
+   ],
+   "retreat": [
+    640,
+    520
+   ]
+  }
+ },
+ "tileSwaps": {
+  "castle_gate_open": {
+   "rows": [
+    "                                        ",
+    "                                        ",
+    "                                        ",
+    "                                        ",
+    "                                        ",
+    "                                        ",
+    "                                        ",
+    "                                        ",
+    "                 ♜♜♜♜♜♜                 ",
+    "                 ♜♜♜♜♜♜                 ",
+    "              ▥▥▥♜♜♜♜♜♜▥▥▥              ",
+    "             ▥♜♦♜♠♜♜♜♜♣♜♠♜▥             ",
+    "             ▥♜♜♜♜♣♜♠♜♜♣♜♠▥             ",
+    "             ▥♣♜♠♜♜♣♜♠♜♜♦♜▥             ",
+    "             ▥♜♣♜♠♜♜♦♜♠♜♜♜▥             ",
+    "      ▥▥▥▥▥▥ ▥♜♜♦♜♠♜♜♜♜♣♜♠▥ ▥▥▥▥▥▥      ",
+    "     ▥♜♣♜♠♜♜▥▥♠♜♜♜♜♣♜♠♜♜♣♜▥▥♜♦♜♠♜♜▥     ",
+    "     ▥♜♜♦♜♠♜▥▥♜♣♜♠♜♜♣♜♠♜♜♦▥▥♜♜♜♜♣♜▥     ",
+    "     ▥♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣▥     ",
+    "     ▥♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜▥     ",
+    "     ▥♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜▥     ",
+    "     ▥♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣▥     ",
+    "     ▥♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜▥     ",
+    "      ▥▥▥▥▥▥▥▥♜♠♜♜♦♜♠♜♜♜♜♣▥▥▥▥▥▥▥▥      ",
+    "             ▥♦♜♠♜♜♜♜♣♜♠♜♜▥             ",
+    "             ▥♜♜♜♣♜♠♜♜♣♜♠♜▥             ",
+    "             ▥♜♠♜♜♣♜♠♜♜♦♜♠▥             ",
+    "             ▥♣♜♠♜♜♦♜♠♜♜♜♜▥             ",
+    "             ▥♜♦♜♠♜♜♜♜♣♜♠♜▥             ",
+    "             ▥♜♜♜♜♣♜♠♜♜♣♜♠▥             ",
+    "             ▥♣♜♠♜♜♣♜♠♜♜♦♜▥             ",
+    "             ▥♜♣♜♠♜♜♦♜♠♜♜♜▥             "
+   ]
+  }
  },
  "entities": [
   {
@@ -470,6 +537,90 @@
    "hidden": true
   },
   {
+   "type": "npc",
+   "id": "gate_youngcle",
+   "sprite": "youngcle_hover",
+   "visualScale": 1,
+   "x": 524,
+   "y": 464,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "requires": "castle_left_seal_active",
+   "unless": "castle_gate_reunion_done"
+  },
+  {
+   "type": "npc",
+   "id": "gate_junhee",
+   "sprite": "junhee",
+   "visualScale": 1,
+   "x": 628,
+   "y": 416,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "requires": "castle_left_seal_active",
+   "unless": "castle_gate_reunion_done"
+  },
+  {
+   "type": "npc",
+   "id": "gate_bidet",
+   "sprite": "warm_bidet",
+   "visualScale": 1,
+   "x": 732,
+   "y": 464,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "requires": "castle_left_seal_active",
+   "unless": "castle_gate_reunion_done"
+  },
+  {
+   "type": "npc",
+   "id": "gate_mario",
+   "sprite": "mini_mario",
+   "visualScale": 1,
+   "x": 772,
+   "y": 552,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "requires": "castle_left_seal_active",
+   "unless": "castle_gate_reunion_done"
+  },
+  {
+   "type": "npc",
+   "id": "gate_ttuulla",
+   "sprite": "ttuulla",
+   "visualScale": 1.79,
+   "x": 488,
+   "y": 616,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "requires": "castle_left_seal_active",
+   "unless": "castle_gate_reunion_done"
+  },
+  {
+   "type": "npc",
+   "id": "gate_park",
+   "sprite": "park_guardian_costume",
+   "visualScale": 2.22,
+   "x": 716,
+   "y": 632,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "requires": "castle_left_seal_active",
+   "unless": "castle_gate_reunion_done"
+  },
+  {
    "type": "prop",
    "id": "castle_return_pipe",
    "image": "assets/props/mario_pipe.png",
@@ -497,7 +648,24 @@
    "iy": 64,
    "solid": true,
    "sortY": 0,
-   "script": "castle_lobby_sealed"
+   "script": "castle_lobby_sealed",
+   "unless": "castle_gate_open"
+  },
+  {
+   "type": "prop",
+   "id": "castle_lobby_open_door",
+   "image": "assets/props/castle318_open_gate.png",
+   "scale": 0.75,
+   "x": 520,
+   "y": 336,
+   "w": 240,
+   "h": 16,
+   "ix": 520,
+   "iy": 64,
+   "solid": true,
+   "sortY": 0,
+   "script": "castle_gate_enter",
+   "requires": "castle_gate_open"
   },
   {
    "type": "trigger",

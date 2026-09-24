@@ -8,6 +8,7 @@
 import { drawBox, drawHeart } from '../core/gfx.js';
 import { makeWaiter } from './cutscene.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
+import { resolvePortraitKey } from '../data/portraits.js';
 
 import { FONT, F } from './font.js';
 import { drawMosaicText, markTextMosaic } from './text-mosaic.js';
@@ -133,7 +134,7 @@ export class TextBox {
     this.onDone = onDone;
     this.voice = node.voice || 'default';
     this.speaker = node.speaker || null;
-    this.portrait = node.portrait ? this.portraits?.[node.portrait] ?? null : null;
+    this.portrait = node.portrait ? this.portraits?.[resolvePortraitKey(node.portrait)] ?? null : null;
     this.choice = node.choice || null;
     this.choiceIndex = 0;
     this.choiceShown = 0;                      // 지금까지 드러난 선택지 개수 (stagger 연출)

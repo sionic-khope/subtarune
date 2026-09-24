@@ -35,6 +35,8 @@ export const STAGES = [
   { id: 'castle_malzahar_won', desc: '보라 토리이 · 말자하섭 돌파 후 북쪽 문', map: 'gajaeman_torii_end', spawn: 'start' },
   { id: 'castle_pipe_returned', desc: '오른쪽 봉인 점등 · 토관 귀환과 왼쪽 조사 합류', map: 'gajaeman_castle_lobby', spawn: 'after_intro' },
   { id: 'castle_boulder_done', desc: '거대 바위 협동 밀기 완료 · 요플래의 왼쪽 구체 조사', map: 'gajaeman_castle_boulder', spawn: 'boulder_finish' },
+  { id: 'castle_gate_reunion_done', desc: '두 봉인의 대문 개방 · 동료들이 먼저 진입', map: 'gajaeman_castle_lobby', spawn: 'from_dark' },
+  { id: 'castle_dark_path_seen', desc: '대문 너머 어둠의 통로 · 세 사람의 전진', map: 'gajaeman_castle_dark_path', spawn: 'start' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -44,6 +46,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
+  if (mapId === 'gajaeman_castle_dark_path' && flags.castle_dark_path_seen) return 'castle_dark_path';
   if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
   if (flags.torii_janitor_joined && mapId === 'jjajang_torii') return 'wise_words';
@@ -180,7 +183,7 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 /** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
-export const partyFromFlags = (flags) => flags?.castle_boulder_done ? [] : flags?.castle_pipe_returned ? ['gyeongsub', 'ppaman'] : flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
+export const partyFromFlags = (flags) => flags?.castle_gate_reunion_done ? ['gyeongsub', 'ppaman'] : flags?.castle_boulder_done ? [] : flags?.castle_pipe_returned ? ['gyeongsub', 'ppaman'] : flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
   ? (flags?.choimis_rescued || flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
     : flags?.sakura8_split_done ? []
     : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
@@ -739,3 +742,12 @@ for (const [id, desc, map, spawn, completed, active] of [
   flags: { ...regretCleared, ...(completed ? { castle_boulder_done: true } : {}),
     ...(active ? { castle_left_seal_active: true } : {}) },
   party: completed ? [] : [...regretArrival.party] });
+
+const gateReady = QA_POINTS.find(point => point.id === 'castle_left_orb_after');
+QA_POINTS.push({ ...gateReady, id: 'castle_gate_reunion', desc: '두 봉인 완료 · 로비 대문 개방과 동료 진입',
+  map: 'gajaeman_castle_lobby', spawn: 'gate_reunion', flags: { ...gateReady.flags } });
+for (const [id, map, spawn, desc] of [
+  ['castle_gate_after', 'gajaeman_castle_lobby', 'from_dark', '열린 대문 · C로 어둠의 통로 진입'],
+  ['castle_dark_path', 'gajaeman_castle_dark_path', 'start', '어둠의 통로 · 세 사람의 입장 대화'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_gate_reunion_done',
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });

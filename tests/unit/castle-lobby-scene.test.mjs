@@ -90,11 +90,11 @@ test('test_castle_lobby_smoke_draws_behind_actors_while_existing_smoke_stays_in_
   const source = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
   const start = source.indexOf('    // y 정렬: 아래 있는 엔티티가 앞에 그려진다');
   const end = source.indexOf('    this.castleLobby?.draw(ctx, cam);', start);
-  const draw = new Function('ctx', 'cam', 'drawChoimisFlowerEffects', 'drawChoimisSkyPollen', 'drawDarkSmoke', source.slice(start, end));
+  const draw = new Function('ctx', 'cam', 'drawChoimisFlowerEffects', 'drawChoimisSkyPollen', 'drawDarkSmoke', 'drawCastleGate', source.slice(start, end));
   for (const behindActors of [true, false, undefined]) {
     const order = [];
     const game = { darkSmoke: { behindActors }, entities: [{ y: 0, h: 1, draw() { order.push('actor'); } }] };
-    draw.call(game, {}, {}, () => {}, () => {}, () => order.push('smoke'));
+    draw.call(game, {}, {}, () => {}, () => {}, () => order.push('smoke'), () => {});
     assert.deepEqual(order, behindActors ? ['smoke', 'actor'] : ['actor', 'smoke']);
   }
 });
@@ -173,9 +173,16 @@ test('test_castle_lobby_dialogue_preserves_requested_sequence_and_only_completes
   assert.equal(castle_lobby_intro.find(node => node.text === '* 다들 반갑..').cut, 999);
   const stage = castle_lobby_intro.findIndex(node => node.stage === 'castle_lobby_seen');
   assert.ok(stage > castle_lobby_intro.findIndex(node => node.text === '* 가자.'));
-  assert.equal(castle_lobby_intro[0].if({ castle_lobby_seen: true }), true);
-  assert.equal(castle_lobby_intro[0].if({}), false);
-  assert.equal(castle_lobby_intro.filter(node => node.stage).length, 1);
+  const alreadySeen = castle_lobby_intro.find(node => node.if && node.goto === 'end');
+  assert.equal(alreadySeen.if({ castle_lobby_seen: true }), true);
+  assert.equal(alreadySeen.if({}), false);
+  const reunion = castle_lobby_intro.find(node => node.goto === 'gate-reunion');
+  assert.ok(castle_lobby_intro.indexOf(reunion) < castle_lobby_intro.indexOf(alreadySeen));
+  assert.equal(reunion.if({ castle_lobby_seen: true, castle_left_seal_active: true, castle_right_seal_active: true }), true);
+  assert.equal(reunion.if({ castle_left_seal_active: true, castle_right_seal_active: true, castle_gate_reunion_done: true }), false);
+  assert.deepEqual(castle_lobby_intro.filter(node => node.stage).map(node => node.stage),
+    ['castle_lobby_seen', 'castle_gate_reunion_done']);
+  assert.ok(castle_lobby_intro.findIndex(node => node.label === 'gate-reunion') > stage);
 });
 
 test('test_castle_lobby_doors_chain_enter_and_left_guard_returns_to_safe_anchor', () => {

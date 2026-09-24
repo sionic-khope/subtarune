@@ -86,6 +86,21 @@ def main() -> None:
             ('castle_return_bidet', 'warm_bidet', 480, 552, 'down'),
             ('castle_return_mario', 'mini_mario', 692, 616, 'left'))
     ]
+    bridge = json.loads(Path('assets/maps/gajaeman_castle_boulder.json').read_text(encoding='utf-8'))
+    bridge_actors = {actor['id']: actor for actor in bridge['entities'] if actor['type'] == 'npc'}
+    gate_actors = [
+        {'type': 'npc', 'id': f'gate_{name}', 'sprite': bridge_actors[f'boulder_{name}']['sprite'],
+         'visualScale': bridge_actors[f'boulder_{name}'].get('visualScale', 1),
+         'x': x, 'y': y, 'facing': 'up', 'solid': False, 'wander': 0, 'hidden': True,
+         'requires': 'castle_left_seal_active', 'unless': 'castle_gate_reunion_done'}
+        for name, x, y in (('youngcle', 524, 464), ('junhee', 628, 416),
+                           ('bidet', 732, 464), ('mario', 772, 552),
+                           ('ttuulla', 488, 616), ('park', 716, 632))
+    ]
+    open_cells = [row.copy() for row in cells]
+    for row in range(8, 11):
+        for col in range(17, 23):
+            open_cells[row][col] = '♜'
     map_data = {
         'id': MAP_ID, 'name': '가재맨성 로비', 'stage': 'ship_invasion_arrived',
         'bgm': None, 'backdrop': 'castle306_distant', 'followScreenY': 250,
@@ -93,7 +108,7 @@ def main() -> None:
         'rows': [''.join(row) for row in cells],
         'preload': ['assets/backdrops/castle306_distant.png', 'assets/fx/explosion.png',
                     'assets/props/castle306_gate.png', 'assets/props/castle307_sealed_gate.png',
-                    'assets/props/mario_pipe.png',
+                    'assets/props/mario_pipe.png', 'assets/props/castle318_open_gate.png',
                     'assets/tiles/gajaeman_castle_wall.png',
                     *[f'assets/tiles/castle306_{suffix}.png'
                       for suffix in ('floor', 'moss', 'cracked', 'moss_dense')]],
@@ -102,9 +117,14 @@ def main() -> None:
                    'from_right': {'x': 980, 'y': 600, 'facing': 'down'},
                    'from_left': {'x': 276, 'y': 640, 'facing': 'down'},
                    'from_pipe': {'x': 604, 'y': 624, 'facing': 'up'},
-                   'after_pipe': {'x': 604, 'y': 624, 'facing': 'up'}},
-        'meta': {'connected': True, 'stage': stage, 'hoverStage': hover_stage, 'seals': 2},
-        'entities': [*anchors, *actors, *side_doors, *return_actors,
+                   'after_pipe': {'x': 604, 'y': 624, 'facing': 'up'},
+                   'from_dark': {'x': 628, 'y': 400, 'facing': 'down'},
+                   'gate_reunion': {'x': 628, 'y': 800, 'facing': 'up'}},
+        'meta': {'connected': True, 'stage': stage, 'hoverStage': hover_stage, 'seals': 2,
+                 'gate': {'entrance': [640, 800], 'assembly': [640, 550],
+                          'approach': [640, 368], 'retreat': [640, 520]}},
+        'tileSwaps': {'castle_gate_open': {'rows': [''.join(row) for row in open_cells]}},
+        'entities': [*anchors, *actors, *side_doors, *return_actors, *gate_actors,
                      {'type': 'prop', 'id': 'castle_return_pipe',
                       'image': 'assets/props/mario_pipe.png',
                       'x': 612, 'y': 550, 'w': 64, 'h': 34, 'ix': 612, 'iy': 520,
@@ -113,7 +133,13 @@ def main() -> None:
                      {'type': 'prop', 'id': 'castle_lobby_sealed_door',
                       'image': 'assets/props/castle307_sealed_gate.png', 'scale': 0.75,
                       'x': 520, 'y': 336, 'w': 240, 'h': 16, 'ix': 520, 'iy': 64,
-                      'solid': True, 'sortY': 0, 'script': 'castle_lobby_sealed'},
+                      'solid': True, 'sortY': 0, 'script': 'castle_lobby_sealed',
+                      'unless': 'castle_gate_open'},
+                     {'type': 'prop', 'id': 'castle_lobby_open_door',
+                      'image': 'assets/props/castle318_open_gate.png', 'scale': 0.75,
+                      'x': 520, 'y': 336, 'w': 240, 'h': 16, 'ix': 520, 'iy': 64,
+                      'solid': True, 'sortY': 0, 'script': 'castle_gate_enter',
+                      'requires': 'castle_gate_open'},
                      {'type': 'trigger', 'id': 'castle_lobby_left_guard',
                       'x': 416, 'y': 576, 'w': 64, 'h': 160,
                       'script': 'castle_lobby_left_block', 'unless': 'castle_pipe_returned'},

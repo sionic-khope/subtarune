@@ -1,7 +1,8 @@
 import { CASTLE_LOBBY, prepareCastleLobby, finishCastleLobby } from '../../scenes/castle-lobby.js';
 import { armInvasionInterruption } from './ship_invasion.js';
+import { castle_gate_reunion, castle_gate_enter } from './castle_gate.js';
 
-const V = text => ({ speaker: '영클', portrait: 'youngcle', voice: 'youngcle', text: `* ${text}` });
+const V = text => ({ speaker: '영클', portrait: 'youngcle_tv_smirk', voice: 'youngcle', text: `* ${text}` });
 const J = text => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: `* ${text}` });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
@@ -34,6 +35,7 @@ export function prepareCastleLobbyActors(game) {
 }
 
 export const castle_lobby_intro = Object.assign([
+  { if: flags => flags.castle_left_seal_active && flags.castle_right_seal_active && !flags.castle_gate_reunion_done, goto: 'gate-reunion' },
   { if: flags => !!flags.castle_lobby_seen, goto: 'end' },
   close, { bgm: null, fadeOut: 0.4 }, { action: prepareCastleLobbyActors },
   { action: prepareCastleLobby },
@@ -88,6 +90,7 @@ export const castle_lobby_intro = Object.assign([
   { bgm: null, fadeOut: 0.7 }, { action: game => finishCastleLobby(game) },
   { camera: 'player' }, { regroup: true }, { stage: 'castle_lobby_seen' },
   { label: 'end' }, { end: true },
+  { label: 'gate-reunion' }, ...castle_gate_reunion,
 ], { silent: true });
 
 export const castle_lobby_left_block = Object.assign([
@@ -98,10 +101,14 @@ export const castle_lobby_left_block = Object.assign([
 ], { silent: true });
 
 export const castle_lobby_sealed = [
+  { if: flags => flags.castle_gate_open && flags.castle_gate_reunion_done, goto: 'open-gate' },
+  { if: flags => flags.castle_left_seal_active && flags.castle_right_seal_active, goto: 'gate-reunion' },
   { if: flags => !!flags.castle_right_seal_active, goto: 'right-lit' },
   { text: '* 문이 잠겨 있다.\n* 두 개의 검은 구체가 달려 있다.', voice: 'narrator' }, { end: true },
   { label: 'right-lit' },
   { text: '* 문은 아직 잠겨 있다.\n* 오른쪽 구체가 보라색으로 빛난다.', voice: 'narrator' }, { end: true },
+  { label: 'gate-reunion' }, ...castle_gate_reunion,
+  { label: 'open-gate' }, ...castle_gate_enter,
 ];
 
 export const castle_lobby_enter = Object.assign([

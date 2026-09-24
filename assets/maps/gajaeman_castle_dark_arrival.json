@@ -1,0 +1,45 @@
+{
+ "id": "gajaeman_castle_dark_arrival",
+ "name": "검은 길 끝",
+ "stage": "castle_gate_reunion_done",
+ "bgm": null,
+ "rows": [
+  "               ",
+  "               ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   "
+ ],
+ "spawns": {
+  "start": {
+   "x": 228,
+   "y": 240,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "darkPath": true
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "castle_dark_arrival_return",
+   "x": 96,
+   "y": 374,
+   "w": 288,
+   "h": 10,
+   "to": "gajaeman_castle_dark_path",
+   "spawn": "from_next",
+   "interact": false,
+   "sfx": false
+  }
+ ]
+}

@@ -54,6 +54,7 @@ import { SHIP_CASTLE } from './data/ship-castle.js';
 import { ShipMemory } from './scenes/ship-memory.js';
 import { SHIP_MEMORY } from './data/ship-memory.js';
 import { YOUNGCLE_TV_PORTRAITS } from './data/youngcle-tv.js';
+import { resolvePortraitKey } from './data/portraits.js';
 import { MAP_RUNTIME_ASSETS } from './data/map-runtime-assets.js';
 import { MaillardSunrise } from './world/sunrise.js';
 import { MAILLARD_CART, MAILLARD_SUNRISE } from './data/maillard-sunrise.js';
@@ -68,6 +69,8 @@ import { updateCastleOrb, drawCastleOrbGround, drawCastleOrbWorld, drawCastleOrb
 import { cancelCastlePipe } from './scenes/castle-pipe.js';
 import { restoreCastleBoulder, finishCastleBoulder, drawCastleBoulder } from './scenes/castle-boulder.js';
 import { updateCastleBoulderPush, drawCastleBoulderPush, clearCastleBoulderPush } from './scenes/castle-boulder-push.js';
+import { CastleDarkPath } from './scenes/castle-dark-path.js';
+import { updateCastleGate, drawCastleGate, finishCastleGate } from './scenes/castle-gate.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
@@ -253,6 +256,8 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    this.castleDarkPath?.dispose();
+    finishCastleGate(this, true);
     cancelCastlePipe(this);
     finishCastleOrb(this);
     finishCastleBoulder(this, true);
@@ -578,6 +583,8 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    this.castleDarkPath?.dispose();
+    finishCastleGate(this, true);
     cancelCastlePipe(this);
     finishCastleOrb(this);
     finishCastleBoulder(this, true);
@@ -811,6 +818,8 @@ class Game {
       ...(def.preload || []).filter(src => src.startsWith('assets/sprites/')).map(src => src.split('/').pop().replace(/\.png$/, '')),
       ...(MAP_RUNTIME_ASSETS[mapId]?.sprites || []),
       ...scriptAssets.sprites,
+      ...[...scriptAssets.portraits, ...(MAP_RUNTIME_ASSETS[mapId]?.portraits || [])]
+        .map(resolvePortraitKey).filter(name => CHARACTERS[name]),
     ]);
     const playerMotions = scriptAssets.playerMotions;
     if (def.meta?.run || def.meta?.runs) for (const name of Object.keys(CHARACTER_MOTIONS.hyungsub)) if (name.startsWith('runner_')) playerMotions.add(name);
@@ -831,7 +840,7 @@ class Game {
     }));
     const fallbackPortraits = this.makePortraits();
     for (const name of names) this.portraits[name] = fallbackPortraits[name];
-    const portraitNames = new Set([...names, ...scriptAssets.portraits, ...(MAP_RUNTIME_ASSETS[mapId]?.portraits || [])]);
+    const portraitNames = new Set([...names, ...scriptAssets.portraits, ...(MAP_RUNTIME_ASSETS[mapId]?.portraits || [])].map(resolvePortraitKey));
     await Promise.all([...portraitNames].filter(name => CHARACTERS[name]?.portrait !== false && (CHARACTERS[name] || PALETTES[name] || YOUNGCLE_TV_PORTRAITS.includes(name))).map(async name => {
       const portrait = await this.mapAssets.image(`assets/portraits/${name}.png`);
       if (portrait) { this.portraits[name] = monoPortrait(portrait, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold }); (this.portraitFiles ||= new Set()).add(name); }
@@ -871,6 +880,8 @@ class Game {
     }
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      this.castleDarkPath?.dispose();
+      finishCastleGate(this, true);
       cancelCastlePipe(this);
       finishCastleOrb(this);
       finishCastleBoulder(this, true);
@@ -898,7 +909,7 @@ class Game {
       this.shipPursuitAmbient?.resume();
       this.map = new TileMap({ ...def, rows: def.rows ? [...def.rows] : def.rows }, this.mapImages?.[mapId] || null);   // rows 는 복사 (tileSwaps 가 원본을 안 건드리게)
       for (const key of Object.keys(def.tileSwaps || {})) if (this.has(key)) this.applyTiles(key, false);   // 플래그가 선 타일 교체는 처음부터 적용
-      this.map.bake();
+      if (!def.meta?.darkPath) this.map.bake();
       // 엔티티 조건: unless:'플래그' (플래그가 서면 안 나옴, 예: 먹은 에그타르트) / requires:'플래그' (서야 나옴)
       this.entities = def.entities
         .filter((e) => !(e.unless && this.has(e.unless)) && !(e.requires && e.type !== 'door' && !this.has(e.requires)))
@@ -907,6 +918,7 @@ class Game {
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: spawn.facing ?? this.player?.facing ?? 'down' }, this);   // 스폰에 facing 을 주면 그 방향(QA 지점 등)
       this.entities.push(this.player);
       this.spawnParty();
+      this.castleDarkPath = def.meta?.darkPath ? new CastleDarkPath(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
@@ -1272,6 +1284,7 @@ class Game {
     this.castleLobby?.update(dt);
     this.castleBoulder?.update(dt);
     updateCastleBoulderPush(this, dt, Input);
+    updateCastleGate(this, dt);
     updateCastleOrb(this, dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);
@@ -1358,6 +1371,7 @@ class Game {
       }
       for (const e of this.entities) e.update(dt, Input);
     }
+    this.castleDarkPath?.update(dt);
     this.entities = this.entities.filter((e) => !e.dead);   // 컷신·탈것 중에 죽은 것(Swimmer 등)도 그 프레임에 치운다 (2026-09-10: 대사 중엔 안 치워져 헤엄 머리가 남던 버그)
     this.camera.follow(this.dialogue.running ? 0.05 : 0.18);
   }
@@ -1585,7 +1599,8 @@ class Game {
     }
     if (this.worldSpin?.angle) { ctx.translate(SCREEN_W / 2, SCREEN_H / 2); ctx.rotate(this.worldSpin.angle); ctx.translate(-SCREEN_W / 2, -SCREEN_H / 2); }   // 맵 빙글빙글(BUILD227 아짐키야 춤)
     drawCoastWater(ctx, MAPS[this.mapId]?.meta?.coast, cam, this.time);
-    this.map.draw(ctx, cam);
+    if (this.castleDarkPath) this.castleDarkPath.drawGround(ctx, cam);
+    else this.map.draw(ctx, cam);
     drawCastleOrbGround(ctx, this, cam);
     drawCoastWake(ctx, MAPS[this.mapId]?.meta?.coast, this.entities, cam, this.time, this.propImages['assets/tiles/night_coast_edge.png']);
     this.drawRipples(ctx, cam);
@@ -1597,13 +1612,15 @@ class Game {
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
     drawChoimisFlowerEffects(ctx, this, cam);
     const sorted = [...this.entities].sort((a, b) => key(a) - key(b));
+    drawCastleGate(ctx, this, cam);
     let skyPollenDrawn = !this.choimisSky?.actors?.length;
     for (const e of sorted) {
       if (!skyPollenDrawn && this.choimisSky.actors.includes(e)) {
         drawChoimisSkyPollen(ctx, this, cam);
         skyPollenDrawn = true;
       }
-      e.draw(ctx, cam);
+      if (this.castleDarkPath) this.castleDarkPath.drawEntity(ctx, e, cam);
+      else e.draw(ctx, cam);
       if (e === this.tvBroadcast?.anchor) this.tvBroadcast.draw(ctx, cam);
     }
     if (!skyPollenDrawn) drawChoimisSkyPollen(ctx, this, cam);
