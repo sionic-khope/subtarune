@@ -7,11 +7,11 @@
  "backdrop": "castle-regret-depth",
  "followScreenY": 250,
  "rows": [
-  "                                                  ",
-  "                                                  ",
-  "                                                  ",
-  "                                                  ",
-  "                                      ▥▥▥▥        ",
+  "                                     ▥♜♠♜♜▥       ",
+  "                                     ▥♦♜♠♜▥       ",
+  "                                     ▥♜♜♜♣▥       ",
+  "                                     ▥♜♠♜♜▥       ",
+  "                                     ▥♣♜♠♜▥       ",
   "                                     ▥♜♦♜♠▥       ",
   "                                     ▥♜♜♜♜▥       ",
   "                                     ▥♣♜♠♜▥       ",
@@ -65,6 +65,7 @@
  "preload": [
   "assets/backdrops/castle-regret-depth.png",
   "assets/tiles/gajaeman_castle_wall.png",
+  "assets/props/jjajang_stele.png",
   "assets/tiles/castle306_floor.png",
   "assets/tiles/castle306_moss.png",
   "assets/tiles/castle306_cracked.png",
@@ -85,6 +86,11 @@
    "x": 580,
    "y": 808,
    "facing": "right"
+  },
+  "from_boulder": {
+   "x": 1252,
+   "y": 120,
+   "facing": "down"
   },
   "end": {
    "x": 1252,
@@ -153,6 +159,45 @@
    "unless": "gajaeman_regret2_taliyahsub_defeated"
   },
   {
+   "type": "prop",
+   "id": "castle_regret_stele4",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1156,
+   "y": 1416,
+   "w": 24,
+   "h": 12,
+   "ix": 1146,
+   "iy": 1336,
+   "solid": true,
+   "script": "castle_regret_stele4"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_stele5",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 324,
+   "y": 1060,
+   "w": 24,
+   "h": 12,
+   "ix": 314,
+   "iy": 980,
+   "solid": true,
+   "script": "castle_regret_stele5"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_stele6",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1124,
+   "y": 780,
+   "w": 24,
+   "h": 12,
+   "ix": 1114,
+   "iy": 700,
+   "solid": true,
+   "script": "castle_regret_stele6"
+  },
+  {
    "type": "door",
    "id": "regret2_return",
    "x": 1590,
@@ -161,6 +206,18 @@
    "h": 128,
    "to": "gajaeman_regret1",
    "spawn": "from_next",
+   "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "regret2_next",
+   "x": 1216,
+   "y": 0,
+   "w": 128,
+   "h": 10,
+   "to": "gajaeman_castle_boulder",
+   "spawn": "start",
    "interact": false,
    "sfx": false
   }

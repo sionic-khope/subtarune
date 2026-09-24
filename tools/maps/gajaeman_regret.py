@@ -50,6 +50,7 @@ def main() -> None:
                 floor.update((col, row) for col in range(7, 11) for row in range(44, height))
             else:
                 floor.update((col, row) for col in range(47, width) for row in range(44, 48))
+                floor.update((col, row) for col in range(38, 42) for row in range(0, 6))
         cells = [[' '] * width for _ in range(height)]
         for col, row in floor:
             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
@@ -97,6 +98,14 @@ def main() -> None:
                  'bgm': 'castle_battle', 'unless': f'{map_id}_{enemy_id}_defeated'}
                 for enemy_id, col, row, enemies in encounters
             ]
+            stele_bases = [(292, 1156), (1060, 756), (644, 308)] if first else [
+                (1156, 1416), (324, 1060), (1124, 780)]
+            entities.extend(
+                {'type': 'prop', 'id': f'castle_regret_stele{(number - 1) * 3 + index}',
+                 'image': 'assets/props/jjajang_stele.png',
+                 'x': x, 'y': y, 'w': 24, 'h': 12, 'ix': x - 10, 'iy': y - 80,
+                 'solid': True, 'script': f'castle_regret_stele{(number - 1) * 3 + index}'}
+                for index, (x, y) in enumerate(stele_bases, start=1))
             if first:
                 spawns = {'start': {'x': 260, 'y': 1416, 'facing': 'up'},
                           'from_next': {'x': 164, 'y': 328, 'facing': 'right'},
@@ -116,10 +125,15 @@ def main() -> None:
                 spawns = {'start': {'x': 1412, 'y': 1448, 'facing': 'left'},
                           'before_syndrasub': {'x': 1028, 'y': 1448, 'facing': 'left'},
                           'before_taliyahsub': {'x': 580, 'y': 808, 'facing': 'right'},
+                          'from_boulder': {'x': 1252, 'y': 120, 'facing': 'down'},
                           'end': {'x': 1252, 'y': 200, 'facing': 'up'}}
                 entities.append({'type': 'door', 'id': 'regret2_return',
                                  'x': width * TILE - 10, 'y': 1408, 'w': 10, 'h': 128,
                                  'to': 'gajaeman_regret1', 'spawn': 'from_next',
+                                 'interact': False, 'sfx': False})
+                entities.append({'type': 'door', 'id': 'regret2_next',
+                                 'x': 1216, 'y': 0, 'w': 128, 'h': 10,
+                                 'to': 'gajaeman_castle_boulder', 'spawn': 'start',
                                  'interact': False, 'sfx': False})
         distance = sum(abs(x1 - x0) + abs(y1 - y0) for (x0, y0), (x1, y1) in zip(route, route[1:])) * TILE
         map_data = {
@@ -129,7 +143,7 @@ def main() -> None:
             'rows': [''.join(row) for row in cells],
             'preload': [f'assets/backdrops/{BACKDROP}.png', 'assets/tiles/gajaeman_castle_wall.png',
                         *(['assets/props/castle-memory-door.png', 'assets/props/signpost.png',
-                           'assets/props/blue_buff.png'] if bridge else []),
+                           'assets/props/blue_buff.png'] if bridge else ['assets/props/jjajang_stele.png']),
                         *[f'assets/tiles/castle306_{suffix}.png'
                           for suffix in ('floor', 'moss', 'cracked', 'moss_dense')]],
             'spawns': spawns,

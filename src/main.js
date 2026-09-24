@@ -66,6 +66,8 @@ import { finishShipInvasion } from './scenes/ship-invasion.js';
 import { finishCastleLobby } from './scenes/castle-lobby.js';
 import { updateCastleOrb, drawCastleOrbGround, drawCastleOrbWorld, drawCastleOrbCutaway, finishCastleOrb } from './scenes/castle-orb.js';
 import { cancelCastlePipe } from './scenes/castle-pipe.js';
+import { restoreCastleBoulder, finishCastleBoulder, drawCastleBoulder } from './scenes/castle-boulder.js';
+import { updateCastleBoulderPush, drawCastleBoulderPush, clearCastleBoulderPush } from './scenes/castle-boulder-push.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
@@ -253,6 +255,8 @@ class Game {
   resetState() {
     cancelCastlePipe(this);
     finishCastleOrb(this);
+    finishCastleBoulder(this, true);
+    clearCastleBoulderPush(this);
     finishCastleLobby(this, true);
     finishShipInvasion(this, true);
     clearShipDeckPoses(this);
@@ -576,6 +580,8 @@ class Game {
   toTitle() {
     cancelCastlePipe(this);
     finishCastleOrb(this);
+    finishCastleBoulder(this, true);
+    clearCastleBoulderPush(this);
     finishCastleLobby(this, true);
     finishShipInvasion(this, true);
     clearShipDeckPoses(this);
@@ -867,6 +873,8 @@ class Game {
     const go = () => {
       cancelCastlePipe(this);
       finishCastleOrb(this);
+      finishCastleBoulder(this, true);
+      clearCastleBoulderPush(this);
       finishCastleLobby(this, true);
       if (mapId !== 'ship_lounge') finishShipInvasion(this, true);
       clearShipDeckPoses(this);
@@ -899,6 +907,7 @@ class Game {
       this.player = createEntity({ type: 'player', sprite: this.playerSprite || 'hyungsub', ...spawn, facing: spawn.facing ?? this.player?.facing ?? 'down' }, this);   // 스폰에 facing 을 주면 그 방향(QA 지점 등)
       this.entities.push(this.player);
       this.spawnParty();
+      restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
           aura: { at: 'captain_mankatsuki', colors: CAPTAIN_AURA_COLORS } }).update(0.01);
@@ -1261,6 +1270,8 @@ class Game {
     this.shipAssault?.update(dt);
     this.shipInvasion?.update(dt);
     this.castleLobby?.update(dt);
+    this.castleBoulder?.update(dt);
+    updateCastleBoulderPush(this, dt, Input);
     updateCastleOrb(this, dt);
     this.shipCastle?.update(dt);
     this.shipMemory?.update(dt);
@@ -1599,6 +1610,7 @@ class Game {
     this.runner?.drawAir(ctx, cam);      // 러너 기믹: 바람 줄기·물보라(엔티티 위)
     if (!this.darkSmoke?.behindActors) drawDarkSmoke(ctx, this, cam);
     this.castleLobby?.draw(ctx, cam);
+    drawCastleBoulder(ctx, this, cam);
     drawCastleOrbWorld(ctx, this, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
@@ -1669,6 +1681,7 @@ class Game {
     drawEditorUnionOverlay(ctx, this);
     if (this.prompt) this.drawPrompt(ctx);
     if (this.mash) this.drawMash(ctx);
+    drawCastleBoulderPush(this, ctx);
     if (this.sound.muted) { ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#ff8080'; ctx.fillText('사운드 꺼짐 (V→설정)', SCREEN_W - 170, 6); }
     if (this.state === 'menu') this.drawMenu(ctx);
 

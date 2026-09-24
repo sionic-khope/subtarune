@@ -11,6 +11,8 @@ import { finishShipInvasion } from '../../src/scenes/ship-invasion.js';
 import { finishCastleLobby } from '../../src/scenes/castle-lobby.js';
 import { updateCastleOrb, finishCastleOrb } from '../../src/scenes/castle-orb.js';
 import { cancelCastlePipe } from '../../src/scenes/castle-pipe.js';
+import { finishCastleBoulder, restoreCastleBoulder } from '../../src/scenes/castle-boulder.js';
+import { updateCastleBoulderPush, clearCastleBoulderPush } from '../../src/scenes/castle-boulder-push.js';
 import { clearShipDeckPoses } from '../../src/scenes/ship-deck-poses.js';
 import { darkSmokeWaiter } from '../../src/ui/dark-smoke.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from '../../src/data/cutscenes/captain_reveal.js';
@@ -24,6 +26,7 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
   MAILLARD_CART: {}, darkSmokeWaiter, CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL, clearEditorUnionStage, clearChoimisFlowerEffects, clearChoimisSky,
   clearLoungeBriefing, finishChoimisRescue, finishShipInvasion, finishCastleLobby, clearShipDeckPoses,
   updateCastleOrb, finishCastleOrb, cancelCastlePipe,
+  finishCastleBoulder, restoreCastleBoulder, updateCastleBoulderPush, clearCastleBoulderPush,
   TileMap: class { constructor(def) { this.def = def; } bake() {} },
   createEntity: definition => ({ ...definition, def: definition }),
 });

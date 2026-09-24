@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CASTLE_ORB as C, activateCastleOrb, finishCastleOrb, updateCastleOrb,
+import { CASTLE_ORB as C, CASTLE_LEFT_ORB as L, activateCastleOrb, finishCastleOrb, updateCastleOrb,
   drawCastleOrbWorld, drawCastleOrbGround, drawCastleOrbCutaway } from '../../src/scenes/castle-orb.js';
+import { castle_orb_touch, castle_left_orb_touch, castle_left_orb_return } from '../../src/data/cutscenes/castle_orb.js';
 
 const GATE = Object.freeze({ type: 'prop', id: C.gate, image: 'gate.png', ix: 520, iy: 64, scale: 0.75 });
 const LOBBY = Object.freeze({ rows: ['   ', '   '], entities: [GATE] });
@@ -126,4 +127,68 @@ test('test_castle_orb_cutaway_fade_and_remote_draw_do_not_write_global_fade', as
   advanceTo(game, 'pan'); drawCastleOrbCutaway(ctx, game);
   assert.ok(ctx.calls.some(call => call[0] === 'drawImage'));
   assert.equal(game.fade.alpha, 0); finishCastleOrb(game); await promise;
+});
+
+test('test_left_orb_narrator_and_return_preserve_chamber_contract_without_pipe_or_unlock', () => {
+  assert.deepEqual(castle_left_orb_touch.filter(node => node.text), castle_orb_touch.filter(node => node.text));
+  assert.equal(castle_left_orb_touch[0].if({ [C.flag]: true }), false);
+  assert.equal(castle_left_orb_touch[0].if({ [L.flag]: true }), true);
+  assert.deepEqual(castle_left_orb_return.find(node => node.map), { map: 'gajaeman_castle_boulder', spawn: 'from_orb' });
+  assert.equal(castle_left_orb_return.find(node => 'bgm' in node).bgm, null);
+  assert.ok(castle_left_orb_return.every(node => !node.action || node === castle_left_orb_return[0]));
+  assert.ok(castle_left_orb_touch.every(node => !node.set && !node.stage));
+});
+
+test('test_left_orb_activation_preserves_right_seal_and_live_solo_chamber_state', async () => {
+  const { game, cues } = setup(); game.mapId = L.map; game.flags[C.flag] = true;
+  const before = { map: game.map, player: game.player, party: game.party, camera: game.camera, bgm: game.sound.bgm };
+  const finished = activateCastleOrb(game); await ready();
+  assert.equal(game.castleOrb.orb, L);
+  advanceTo(game, 'ignite'); updateCastleOrb(game, 0.11);
+  assert.equal(game.flags[L.flag], undefined); assert.equal(game.flags[C.flag], true);
+  updateCastleOrb(game, 0.02); assert.equal(game.flags[L.flag], true);
+  advanceTo(game, 'returnIn'); updateCastleOrb(game, game.castleOrb.duration); await finished;
+  assert.deepEqual(game.flags, { [C.flag]: true, [L.flag]: true });
+  for (const key of ['map', 'player', 'party', 'camera']) assert.equal(game[key], before[key]);
+  assert.equal(game.sound.bgm, before.bgm); assert.equal(game.mapId, L.map);
+  const count = cues.length; await activateCastleOrb(game); assert.equal(cues.length, count);
+});
+
+test('test_left_orb_interruptions_roll_back_only_own_seal_and_stop_owned_audio', async () => {
+  for (const interruption of ['map', 'script', 'explicit']) {
+    const { game, handles } = setup(); game.mapId = L.map; game.flags[C.flag] = true;
+    const finished = activateCastleOrb(game); await ready();
+    advanceTo(game, 'ignite'); updateCastleOrb(game, 0.2); assert.equal(game.flags[L.flag], true);
+    if (interruption === 'map') game.mapId = 'room';
+    if (interruption === 'script') game.dialogue.script = [];
+    if (interruption === 'explicit') finishCastleOrb(game);
+    updateCastleOrb(game, 0.1); await finished;
+    assert.deepEqual(game.flags, { [C.flag]: true }); assert.equal(game.castleOrb, null);
+    assert.ok(handles.every(handle => handle.paused));
+  }
+});
+
+test('test_left_orb_completion_renders_both_spheres_in_cutaway_and_lobby', async () => {
+  const { game } = setup(), ctx = context(); game.mapId = L.map; game.flags[C.flag] = true;
+  const finished = activateCastleOrb(game); await ready();
+  game.castleOrb.remote.canvas = {};
+  advanceTo(game, 'crackle'); drawCastleOrbCutaway(ctx, game);
+  assert.ok(ctx.calls.filter(call => call[0] === 'arc').every(call => call[1] === 271.5));
+  ctx.calls.length = 0;
+  advanceTo(game, 'hold'); drawCastleOrbCutaway(ctx, game);
+  assert.deepEqual([...new Set(ctx.calls.filter(call => call[0] === 'arc').map(call => call[1]))].sort(), [207.75, 271.5]);
+  advanceTo(game, 'returnIn'); updateCastleOrb(game, game.castleOrb.duration); await finished;
+  game.mapId = C.lobby; game.map = { def: LOBBY }; ctx.calls.length = 0;
+  drawCastleOrbWorld(ctx, game, { x: 400, y: 32 });
+  assert.deepEqual([...new Set(ctx.calls.filter(call => call[0] === 'arc').map(call => call[1]))].sort(), [207.75, 271.5]);
+  assert.ok(ctx.calls.filter(call => call[0] === 'arc').every(call => call[2] === 203));
+});
+
+test('test_left_orb_render_reuses_right_chamber_point_light_and_aura', () => {
+  const { game } = setup(), right = context(), left = context();
+  game.player = { visible: false };
+  drawCastleOrbGround(right, game, { x: 0, y: 12 }); drawCastleOrbWorld(right, game, { x: 0, y: 12 });
+  game.mapId = L.map;
+  drawCastleOrbGround(left, game, { x: 0, y: 12 }); drawCastleOrbWorld(left, game, { x: 0, y: 12 });
+  assert.ok(left.calls.length > 0); assert.deepEqual(left.calls, right.calls);
 });

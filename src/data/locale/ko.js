@@ -1,5 +1,6 @@
 // UI 문자열 (대사 내용은 scripts.js — 여긴 시스템 UI 텍스트만)
 export default {
+  boulder_push_mash: '연타하라!',
   boot_title: 'SUBTARUNE',
   boot_hint: '아무 키나 누르거나 화면을 클릭하세요',
   loading_map: '맵을 준비하는 중...',

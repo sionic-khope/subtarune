@@ -1,0 +1,97 @@
+{
+  "scale": 0.5769230769230769,
+  "pivot": [
+    192,
+    360
+  ],
+  "cell": [
+    384,
+    384
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "crop": {
+        "left": 17,
+        "top": 64,
+        "width": 563,
+        "height": 520
+      },
+      "outputBBox": [
+        35,
+        70,
+        349,
+        360
+      ],
+      "height": 290,
+      "feetY": 360,
+      "opaque": 55817,
+      "magenta": 0,
+      "edges": 0,
+      "sha256": "7935f4fb027ceadb9c215f8433737666b8f03576f1f617ecb9edfc55909b4a2f"
+    },
+    {
+      "frame": 1,
+      "crop": {
+        "left": 642,
+        "top": 106,
+        "width": 566,
+        "height": 475
+      },
+      "outputBBox": [
+        35,
+        92,
+        350,
+        360
+      ],
+      "height": 268,
+      "feetY": 360,
+      "opaque": 54230,
+      "magenta": 0,
+      "edges": 0,
+      "sha256": "12f8f94387bf3311dd961c608cf84ff10d24b8f745f490d684266c504faec215"
+    },
+    {
+      "frame": 2,
+      "crop": {
+        "left": 15,
+        "top": 640,
+        "width": 583,
+        "height": 568
+      },
+      "outputBBox": [
+        30,
+        39,
+        354,
+        360
+      ],
+      "height": 321,
+      "feetY": 360,
+      "opaque": 65845,
+      "magenta": 0,
+      "edges": 0,
+      "sha256": "2e627b15a5214f7a8751edeebc0d82dfc8b77d591a98669704fc519288c9b55a"
+    },
+    {
+      "frame": 3,
+      "crop": {
+        "left": 658,
+        "top": 674,
+        "width": 584,
+        "height": 532
+      },
+      "outputBBox": [
+        30,
+        61,
+        355,
+        360
+      ],
+      "height": 299,
+      "feetY": 360,
+      "opaque": 56108,
+      "magenta": 0,
+      "edges": 0,
+      "sha256": "6c7d6f467bd5a60c4b428708d1026243f5beb79ff457d2107520f932407e962f"
+    }
+  ]
+}

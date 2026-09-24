@@ -1,0 +1,306 @@
+{
+ "id": "gajaeman_castle_boulder",
+ "name": "가재맨성 거석 회랑",
+ "stage": "castle_pipe_returned",
+ "bgm": null,
+ "backdrop": "castle-regret-depth",
+ "followScreenY": 240,
+ "enter": {
+  "script": "castle_boulder_intro"
+ },
+ "rows": [
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                                ",
+  "                                                                                                ▥▥▥▥▥▥          ",
+  "                                                                                               ▥♦♜♠♜♜♜▥         ",
+  "       ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥♜♜♜♣♜♠▥▥▥▥▥     ",
+  "      ▥♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜▥    ",
+  "      ▥♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜▥    ",
+  "      ▥♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠▥    ",
+  "      ▥♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜▥    ",
+  "      ▥♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦▥    ",
+  "      ▥♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜▥    ",
+  "      ▥♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜▥    ",
+  "      ▥♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣▥    ",
+  "      ▥♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜▥    ",
+  "      ▥♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜▥    ",
+  "      ▥♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣▥    ",
+  "      ▥♠♜♜♦♜♠♜♜♜▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥     ",
+  "      ▥♜♠♜♜♜♜♣♜♠▥                                                                                               ",
+  "      ▥♜♜♣♜♠♜♜♣♜▥                                                                                               ",
+  "      ▥♠♜♜♣♜♠♜♜♦▥                                                                                               ",
+  "      ▥♜♠♜♜♦♜♠♜♜▥                                                                                               ",
+  "      ▥♦♜♠♜♜♜♜♣♜▥                                                                                               ",
+  "      ▥♜♜♜♣♜♠♜♜♣▥                                                                                               ",
+  "      ▥♜♠♜♜♣♜♠♜♜▥                                                                                               ",
+  "      ▥♣♜♠♜♜♦♜♠♜▥                                                                                               ",
+  "      ▥♜♦♜♠♜♜♜♜♣▥                                                                                               ",
+  "      ▥♜♜♜♜♣♜♠♜♜▥                                                                                               ",
+  "      ▥♣♜♠♜♜♣♜♠♜▥                                                                                               ",
+  "      ▥♜♣♜♠♜♜♦♜♠▥                                                                                               ",
+  "      ▥♜♜♦♜♠♜♜♜♜▥                                                                                               ",
+  "      ▥♠♜♜♜♜♣♜♠♜▥                                                                                               ",
+  "      ▥♜♣♜♠♜♜♣♜♠▥                                                                                               ",
+  "      ▥♜♜♣♜♠♜♜♦♜▥                                                                                               ",
+  "      ▥♠♜♜♦♜♠♜♜♜▥                                                                                               ",
+  "      ▥♜♠♜♜♜♜♣♜♠▥                                                                                               ",
+  "      ▥♜♜♣♜♠♜♜♣♜▥                                                                                               ",
+  "      ▥♠♜♜♣♜♠♜♜♦▥                                                                                               ",
+  "      ▥♜♠♜♜♦♜♠♜♜▥                                                                                               ",
+  "      ▥♦♜♠♜♜♜♜♣♜▥                                                                                               "
+ ],
+ "preload": [
+  "assets/backdrops/castle-regret-depth.png",
+  "assets/props/castle-memory-door.png",
+  "assets/props/castle-boulder316.png",
+  "assets/props/castle-boulder-wall316.png",
+  "assets/enemies/nunusub316.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 356,
+   "y": 1416,
+   "facing": "up"
+  },
+  "from_orb": {
+   "x": 3140,
+   "y": 544,
+   "facing": "down"
+  },
+  "orb_door": {
+   "x": 3140,
+   "y": 448,
+   "facing": "up"
+  },
+  "boulder_start": {
+   "x": 356,
+   "y": 1416,
+   "facing": "right"
+  },
+  "boulder_bend": {
+   "x": 356,
+   "y": 648,
+   "facing": "right"
+  },
+  "boulder_approach": {
+   "x": 804,
+   "y": 648,
+   "facing": "right"
+  },
+  "boulder_push": {
+   "x": 1540,
+   "y": 648,
+   "facing": "right"
+  },
+  "boulder_finish": {
+   "x": 3044,
+   "y": 648,
+   "facing": "right"
+  },
+  "boulder_guard_return": {
+   "x": 2960,
+   "y": 648,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "boulder": {
+   "bridge": [
+    224,
+    448,
+    3200,
+    352
+   ],
+   "anchors": {
+    "start": [
+     356,
+     1416
+    ],
+    "bend": [
+     356,
+     648
+    ],
+    "approach": [
+     804,
+     648
+    ],
+    "push": [
+     1540,
+     648
+    ],
+    "finish": [
+     3044,
+     648
+    ],
+    "guard_return": [
+     2960,
+     648
+    ],
+    "nunu": [
+     2070,
+     690
+    ],
+    "boulder": [
+     1810,
+     628
+    ]
+   },
+   "wallX": 3424,
+   "guardX": 2848,
+   "orbDoor": [
+    3104,
+    384,
+    96,
+    16
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "npc",
+   "id": "boulder_bidet",
+   "sprite": "warm_bidet",
+   "x": 340,
+   "y": 1240,
+   "facing": "up",
+   "solid": true,
+   "wander": 0,
+   "hidden": false
+  },
+  {
+   "type": "npc",
+   "id": "boulder_mario",
+   "sprite": "mini_mario",
+   "x": 404,
+   "y": 1176,
+   "facing": "up",
+   "solid": true,
+   "wander": 0,
+   "hidden": false
+  },
+  {
+   "type": "npc",
+   "id": "boulder_youngcle",
+   "sprite": "youngcle_hover",
+   "x": 1420,
+   "y": 584,
+   "facing": "right",
+   "solid": true,
+   "wander": 0,
+   "hidden": false
+  },
+  {
+   "type": "npc",
+   "id": "boulder_junhee",
+   "sprite": "junhee",
+   "x": 1650,
+   "y": 640,
+   "facing": "right",
+   "solid": true,
+   "wander": 0,
+   "hidden": false
+  },
+  {
+   "type": "npc",
+   "id": "boulder_ttuulla",
+   "sprite": "ttuulla",
+   "x": 692,
+   "y": 612,
+   "facing": "right",
+   "solid": true,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "boulder_park",
+   "sprite": "park_guardian",
+   "x": 628,
+   "y": 688,
+   "facing": "right",
+   "solid": true,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "boulder_gyeongsub",
+   "sprite": "gyeongsub",
+   "x": 2896,
+   "y": 576,
+   "facing": "right",
+   "solid": true,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "boulder_ppaman",
+   "sprite": "ppaman",
+   "x": 2960,
+   "y": 704,
+   "facing": "right",
+   "solid": true,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "door",
+   "id": "castle_boulder_return",
+   "x": 224,
+   "y": 1526,
+   "w": 288,
+   "h": 10,
+   "to": "gajaeman_regret2",
+   "spawn": "from_boulder",
+   "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "castle_boulder_orb_door",
+   "image": "assets/props/castle-memory-door.png",
+   "x": 3104,
+   "y": 384,
+   "w": 96,
+   "h": 16,
+   "ix": 3104,
+   "iy": 272,
+   "solid": true,
+   "sortY": 0,
+   "script": "castle_boulder_orb_enter"
+  },
+  {
+   "type": "prop",
+   "id": "castle_boulder_wall",
+   "image": "assets/props/castle-boulder-wall316.png",
+   "x": 3304,
+   "y": 480,
+   "w": 120,
+   "h": 304,
+   "ix": 3200,
+   "iy": 452,
+   "solid": true,
+   "requires": "castle_boulder_done"
+  },
+  {
+   "type": "trigger",
+   "id": "castle_boulder_back_guard",
+   "x": 2816,
+   "y": 448,
+   "w": 32,
+   "h": 352,
+   "script": "castle_boulder_back"
+  }
+ ]
+}

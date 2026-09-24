@@ -12,7 +12,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
     '/assets/tiles/void.png',
     // BUILD313 visits Mario/Bidet; makePortraits derives Bidet's face from his loaded sheet.
     // prepareMapAssets probes a separate portrait PNG optionally, even for silent Mario.
-    ...['youngcle', 'youngcle_hover', 'gajaeman_shadow', 'mini_mario', 'warm_bidet'].map(name => `/assets/portraits/${name}.png`),
+    ...['youngcle', 'youngcle_hover', 'gajaeman_shadow', 'mini_mario', 'warm_bidet', 'ttuulla', 'park_guardian'].map(name => `/assets/portraits/${name}.png`),
     ...['default', 'hero', 'low', 'cat', 'robot', 'dao', 'bazzi'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/voices/${name}.${ext}`)),
     ...['chime', 'open', 'close'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/sfx/${name}.${ext}`)),
   ]);
@@ -26,7 +26,8 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
   };
   const snapshot = () => page.evaluate(() => ({ map: game.mapId, party: [...game.party], player: [game.player.x, game.player.y],
     facing: game.player.facing, camera: [game.camera.x, game.camera.y], locked: game.camera.locked,
-    flag: !!game.flags.castle_right_seal_active, stage: game.story.stage, scene: game.castleOrb?.beat || null,
+    flag: !!game.flags.castle_right_seal_active, leftFlag: !!game.flags.castle_left_seal_active,
+    stage: game.story.stage, scene: game.castleOrb?.beat || null,
     bgm: game.sound.bgmName, musicTime: game.sound.bgm?.currentTime, musicPaused: game.sound.bgm?.paused,
     hp: { ...game.partyHp }, attack: game.attack, inventory: [...game.inventory], money: game.money,
     playerFallback: !!game.player.sprite?.fallback,
@@ -64,6 +65,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
     ]) && texts.every(line => line.voice === 'narrator' && !line.speaker), JSON.stringify(texts));
   };
 
+  if (process.env.QA_ORB_SIDE !== 'left') {
   await open({ qa: 'malzahar_arrival' }); assert.ok(await field());
   await shot('corridor-before-entry');
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_torii_end_door', 'north door reached by walking');
@@ -146,7 +148,11 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
   check('real title continue preserves activated seal solo party and room camera', (await snapshot()).flag && (await snapshot()).party.length === 0
     && (await snapshot()).map === 'gajaeman_castle_orb' && JSON.stringify((await snapshot()).camera) === JSON.stringify(before.camera));
   await shot('orb-continued');
-  await walk('ArrowDown', () => game.mapId === 'gajaeman_torii_end', 'south doorway returns to torii corridor'); assert.ok(await field());
+  await walk('ArrowDown', () => game.mapId === 'gajaeman_torii_end', 'south doorway returns to torii corridor');
+  assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 12000));
+  check('Mario return includes the current narrator boarding hint', await page.evaluate(() => game.textbox.node.text === '* 토관을 타라는 것 같다.'
+    && game.textbox.node.voice === 'narrator'));
+  await key('KeyC'); assert.ok(await field());
   check('return corridor restores field BGM without losing seal', (await snapshot()).flag && (await snapshot()).bgm === 'castle_right');
   await shot('corridor-return');
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_torii_end_door', 'approach north door again'); await key('KeyC');
@@ -181,6 +187,77 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
     check(`${label} continue restores safe room control`, (await snapshot()).map === 'gajaeman_castle_orb' && !(await snapshot()).blocked
       && (await snapshot()).party.length === 0 && !(await snapshot()).scene && JSON.stringify((await snapshot()).camera) === '[0,12]');
     check(`${label} unfinished transaction stays retryable after continue`, !(await snapshot()).flag, JSON.stringify(await snapshot()));
+  }
+  }
+
+  if (process.env.QA_ORB_SIDE === 'left') {
+    await open({ qa: 'castle_left_orb' }); assert.ok(await field());
+    const entered = await snapshot();
+    check('left chamber begins solo with only the right seal already active', entered.map === 'gajaeman_castle_left_orb'
+      && entered.flag && !entered.leftFlag && entered.party.length === 0 && JSON.stringify(entered.camera) === '[0,12]' && !entered.blocked);
+    await sizes('left-room-before'); await approach(); const before = await snapshot();
+    await fixture('left-orb-frame-observer', 'Record production draw frames without modifying scene clocks, positions, input, flags or audio.', () => {
+      const q = window.__leftOrbQA = { frames: {}, enabled: true }, draw = game.draw.bind(game);
+      game.draw = (...args) => {
+        const result = draw(...args), scene = game.castleOrb;
+        if (q.enabled && scene && scene.beat !== 'loading' && scene.elapsed > scene.duration * 0.42 && !q.frames[scene.beat]) {
+          q.frames[scene.beat] = { map: game.mapId, party: [...game.party], player: [game.player.x, game.player.y],
+            camera: [game.camera.x, game.camera.y], right: !!game.flags.castle_right_seal_active,
+            left: !!game.flags.castle_left_seal_active, data: game.canvas.toDataURL('image/png') };
+        }
+        return result;
+      };
+    });
+    await narrate('left-activation'); assert.ok(await until(() => game.castleOrb?.beat === 'charge', 12000));
+    await page.keyboard.down('ArrowDown'); await page.waitForTimeout(250); await page.keyboard.up('ArrowDown');
+    check('left contact locks movement', JSON.stringify((await snapshot()).player) === JSON.stringify(before.player));
+    assert.ok(await field());
+    const after = await snapshot(), frames = await page.evaluate(() => { window.__leftOrbQA.enabled = false; return window.__leftOrbQA.frames; });
+    for (const [name, frame] of Object.entries(frames)) {
+      fs.writeFileSync(path.join(process.env.SHOT_DIR, `left-activation-${name}.png`), Buffer.from(frame.data.split(',')[1], 'base64'));
+    }
+    const samples = Object.values(frames);
+    check('left activation completes every existing cinematic beat', Object.keys(frames).join() === 'charge,out,reveal,pan,crackle,ignite,hold,returnOut,returnIn');
+    check('right seal remains active throughout left ignition', samples.every(sample => sample.right) && after.flag && after.leftFlag);
+    check('left seal stays dark before ignition and lights during ignition', !frames.crackle.left && frames.ignite.left && frames.hold.left);
+    check('left cutaway preserves room position solo party and fixed camera', samples.every(sample => sample.map === before.map && sample.party.length === 0
+      && JSON.stringify(sample.player) === JSON.stringify(before.player) && JSON.stringify(sample.camera) === JSON.stringify(before.camera)));
+    check('left activation preserves inventory HP money and music owner', JSON.stringify(after.inventory) === JSON.stringify(before.inventory)
+      && JSON.stringify(after.hp) === JSON.stringify(before.hp) && after.money === before.money && after.bgm === 'castle_orb');
+    await sizes('left-room-after'); await key('KeyC');
+    assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 8000));
+    check('left repeated C gives active narrator line without replay', await page.evaluate(() => !game.castleOrb
+      && game.textbox.node.text === '* 구체가 보라색으로 빛나고 있다.' && game.textbox.node.voice === 'narrator'));
+    await shot('left-repeat'); await key('KeyC'); assert.ok(await field());
+    await fixture('save-completed-left-orb', 'Production autosave after naturally completed C interaction; no state edits.', () => game.autosave());
+    await key('Escape'); await continueFromTitle();
+    const continued = await snapshot();
+    check('title continue preserves both seals solo party and fixed left-room camera', continued.flag && continued.leftFlag
+      && continued.map === 'gajaeman_castle_left_orb' && !continued.blocked && continued.party.length === 0 && JSON.stringify(continued.camera) === '[0,12]');
+    await shot('left-continued');
+    await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_boulder', 'left south exit returns to boulder bridge'); assert.ok(await field());
+    check('left exit restores safe solo bridge without pipe or BGM', (await snapshot()).party.length === 0 && !(await snapshot()).blocked
+      && !(await snapshot()).bgm && (await snapshot()).flag && (await snapshot()).leftFlag);
+    await shot('left-bridge-return');
+    await fixture('both-seals-lobby-render', 'Load lobby via production changeMap preserving naturally completed flags; position camera to observe both seals. Not natural route coverage.', async () => {
+      await game.changeMap('gajaeman_castle_lobby', 'from_left', true, { enter: false });
+      game.player.x = 620; game.player.y = 360; game.player.facing = 'up'; game.camera.snap(); game.fadeTo(0, 0.3);
+    });
+    assert.ok(await field()); await sizes('lobby-both-seals-active');
+    check('both glowing seals do not unlock central gate', await page.evaluate(() => game.flags.castle_right_seal_active && game.flags.castle_left_seal_active
+      && game.entities.find(entity => entity.id === 'castle_lobby_sealed_door')?.def.solid === true));
+    for (const post of [false, true]) {
+      const label = post ? 'left-post-flag' : 'left-pre-flag';
+      await open({ qa: 'castle_left_orb' }); assert.ok(await field()); await approach(); await narrate(label);
+      assert.ok(await until(post ? () => game.castleOrb?.beat === 'hold' && game.flags.castle_left_seal_active : () => game.castleOrb?.beat === 'charge', 12000));
+      await shot(`${label}-cancel`); await key('Escape');
+      assert.ok(await until(() => game.state === 'title' && !game.castleOrb, 5000));
+      await continueFromTitle(); const restored = await snapshot();
+      check(`${label} abort preserves old right seal and discards incomplete left activation`, restored.flag && !restored.leftFlag);
+      check(`${label} continue restores left room solo and safe`, restored.map === 'gajaeman_castle_left_orb' && restored.party.length === 0
+        && !restored.scene && !restored.blocked && JSON.stringify(restored.camera) === '[0,12]');
+      await shot(`${label}-continued`);
+    }
   }
   const unexpected = failures.filter(value => !optionalProbes.has(new URL(value.slice(4)).pathname));
   fs.writeFileSync(path.join(process.env.SHOT_DIR, 'asset-probes.json'), JSON.stringify({

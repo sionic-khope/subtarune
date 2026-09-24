@@ -270,6 +270,13 @@ export const CHARACTER_MOTIONS = {
     },
   },
   junhee: {
+    boulder_push: {
+      src: 'assets/sprites/junhee-boulder-push316.png', scale: 0.5, faces: 'right',
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: [0.24, 0.20, 0.28, 0.22].map((duration, cell) => ({
+        rect: [cell % 2 * 128, Math.floor(cell / 2) * 128, 128, 128], pivot: [64, 120], duration,
+      })),
+    },
     laugh: {
       src: 'assets/sprites/junhee-laugh.png',
       scale: 84 / 512 / 2,

@@ -1,0 +1,7 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>누누섭316 자산 미리보기</title>
+<style>body{background:#1b1622;color:#eee;font:16px sans-serif;margin:20px}figure{display:inline-block;margin:12px}img{image-rendering:pixelated}figcaption{margin:8px 0}</style>
+<h1>누누섭316: 밀기 0→1 / 포효2 / 밀려남3</h1>
+<figure><img id="push" src="frame-0.png" width="384" height="384"><figcaption>밀기 반복 · 280/320ms</figcaption></figure>
+<figure><img src="frame-2.png" width="384" height="384"><figcaption>포효</figcaption></figure>
+<figure><img src="frame-3.png" width="384" height="384"><figcaption>오른쪽으로 밀려남</figcaption></figure>
+<script>let frame=0;function step(){document.getElementById('push').src=`frame-${frame}.png`;const duration=[280,320][frame];frame=1-frame;setTimeout(step,duration)}step();</script>

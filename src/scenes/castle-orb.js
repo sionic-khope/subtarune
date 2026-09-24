@@ -11,6 +11,12 @@ export const CASTLE_ORB = Object.freeze({
     ['crackle', 0.9], ['ignite', 0.85], ['hold', 1.25], ['returnOut', 0.7], ['returnIn', 0.8]],
   cameraFrom: [360, 80], cameraTo: [400, 32],
 });
+export const CASTLE_LEFT_ORB = Object.freeze({
+  ...CASTLE_ORB, map: 'gajaeman_castle_left_orb', flag: 'castle_left_seal_active',
+  sealCenter: [117, 228],
+});
+const ORBS = [CASTLE_ORB, CASTLE_LEFT_ORB];
+const chamberFor = map => ORBS.find(orb => orb.map === map);
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const k = clamp(value); return k * k * (3 - 2 * k); };
 const masks = new WeakMap();
@@ -25,8 +31,9 @@ function glow(ctx, x, y, radius, alpha, rgb = '161,74,239') {
 
 /** Point-light ground pool and a cached silhouette of the player's real current sprite. */
 export function drawCastleOrbGround(ctx, game, cam) {
-  if (game.mapId !== CASTLE_ORB.map) return;
-  const [ox, oy] = CASTLE_ORB.center, time = game.time || 0;
+  const orb = chamberFor(game.mapId);
+  if (!orb) return;
+  const [ox, oy] = orb.center, time = game.time || 0;
   ctx.save(); ctx.translate(ox - cam.x, oy + 57 - cam.y); ctx.scale(1, 0.63);
   glow(ctx, 0, 0, 160, 0.25 + Math.sin(time * 1.7) * 0.035); ctx.restore();
   const player = game.player, sprite = player?.sprite;
@@ -52,16 +59,16 @@ export function drawCastleOrbGround(ctx, game, cam) {
   ctx.drawImage(mask, -width / 2, -height, width, height); ctx.restore();
 }
 
-function sealPosition(gate) {
+function sealPosition(gate, orb) {
   const scale = gate.scale ?? 1;
-  return { x: (gate.ix ?? gate.x) + CASTLE_ORB.sealCenter[0] * scale,
-    y: (gate.iy ?? gate.y) + CASTLE_ORB.sealCenter[1] * scale,
-    r: CASTLE_ORB.sealRadius * scale };
+  return { x: (gate.ix ?? gate.x) + orb.sealCenter[0] * scale,
+    y: (gate.iy ?? gate.y) + orb.sealCenter[1] * scale,
+    r: orb.sealRadius * scale };
 }
 
-function drawSeal(ctx, gate, cam, time, strength, crackle = 0) {
+function drawSeal(ctx, gate, cam, time, orb, strength, crackle = 0) {
   if (!gate || (!strength && !crackle)) return;
-  const point = sealPosition(gate), x = point.x - cam.x, y = point.y - cam.y, r = point.r;
+  const point = sealPosition(gate, orb), x = point.x - cam.x, y = point.y - cam.y, r = point.r;
   ctx.save();
   if (strength) {
     glow(ctx, x, y, r * 3.6, 0.42 * strength);
@@ -89,14 +96,16 @@ function drawSeal(ctx, gate, cam, time, strength, crackle = 0) {
   ctx.restore();
 }
 
-/** Aura stays with the chamber; the activated right seal also renders on ordinary lobby reentry. */
+/** Aura stays with either chamber; each activated seal persists on ordinary lobby reentry. */
 export function drawCastleOrbWorld(ctx, game, cam) {
   const time = game.time || 0;
-  if (game.mapId === CASTLE_ORB.lobby && game.flags[CASTLE_ORB.flag]) {
-    drawSeal(ctx, game.map.def.entities.find(e => e.id === CASTLE_ORB.gate), cam, time, 1);
+  if (game.mapId === CASTLE_ORB.lobby) {
+    const gate = game.map.def.entities.find(e => e.id === CASTLE_ORB.gate);
+    for (const orb of ORBS) if (game.flags[orb.flag]) drawSeal(ctx, gate, cam, time, orb, 1);
   }
-  if (game.mapId !== CASTLE_ORB.map) return;
-  const [ox, oy] = CASTLE_ORB.center, x = ox - cam.x, y = oy - cam.y;
+  const orb = chamberFor(game.mapId);
+  if (!orb) return;
+  const [ox, oy] = orb.center, x = ox - cam.x, y = oy - cam.y;
   const scene = game.castleOrb, charge = scene?.beat === 'charge' ? smooth(scene.elapsed / scene.duration) : 0;
   ctx.save(); ctx.globalCompositeOperation = 'screen';
   glow(ctx, x, y, 86 + charge * 34, 0.12 + charge * 0.35);
@@ -116,8 +125,9 @@ export function drawCastleOrbWorld(ctx, game, cam) {
 
 /** Isolated read-only gate view: never replaces the live map, party, camera, or BGM clock. */
 export class CastleOrbScene {
-  constructor(game) {
+  constructor(game, orb = CASTLE_ORB) {
     this.game = game; this.script = game.dialogue.script;
+    this.orb = orb;
     this.index = -1; this.beat = 'loading'; this.elapsed = 0; this.duration = 0;
     this.handles = new Set(); this.disposed = false; this.remote = null; this.activated = false;
     this.promise = new Promise(resolve => { this.resolve = resolve; });
@@ -140,7 +150,7 @@ export class CastleOrbScene {
   }
 
   current() {
-    return !this.disposed && this.game.castleOrb === this && this.game.mapId === CASTLE_ORB.map &&
+    return !this.disposed && this.game.castleOrb === this && this.game.mapId === this.orb.map &&
       this.game.dialogue.script === this.script;
   }
 
@@ -164,7 +174,7 @@ export class CastleOrbScene {
     if (this.beat === 'loading') return;
     this.elapsed += dt;
     if (this.beat === 'ignite' && this.elapsed >= 0.12 && !this.activated) {
-      this.activated = true; this.game.setFlag(CASTLE_ORB.flag);
+      this.activated = true; this.game.setFlag(this.orb.flag);
     }
     if (this.elapsed >= this.duration) this.next();
   }
@@ -175,7 +185,7 @@ export class CastleOrbScene {
     this.disposed = true;
     for (const handle of this.handles) handle.pause();
     this.handles.clear(); this.remote = null;
-    if (abort && this.activated) delete this.game.flags[CASTLE_ORB.flag];
+    if (abort && this.activated) delete this.game.flags[this.orb.flag];
     if (this.game.castleOrb === this) this.game.castleOrb = null;
     this.resolve();
   }
@@ -198,8 +208,12 @@ export class CastleOrbScene {
         ctx.drawImage(image, Math.round((prop.ix ?? prop.x) - cam.x), Math.round((prop.iy ?? prop.y) - cam.y),
           Math.round(image.width * scale), Math.round(image.height * scale));
       }
-      const strength = this.beat === 'ignite' ? k : this.game.flags[CASTLE_ORB.flag] ? 1 : 0;
-      drawSeal(ctx, this.gate, cam, this.game.time || 0, strength, this.beat === 'crackle' || this.beat === 'ignite' ? 1 : 0);
+      for (const orb of ORBS) {
+        const active = orb === this.orb;
+        const strength = active && this.beat === 'ignite' ? k : this.game.flags[orb.flag] ? 1 : 0;
+        drawSeal(ctx, this.gate, cam, this.game.time || 0, orb, strength,
+          active && (this.beat === 'crackle' || this.beat === 'ignite') ? 1 : 0);
+      }
     }
     const black = this.beat === 'out' || this.beat === 'returnOut' ? k :
       this.beat === 'reveal' || this.beat === 'returnIn' ? 1 - k : 0;
@@ -210,10 +224,11 @@ export class CastleOrbScene {
 
 /** Called after the three narrator lines; the existing dialogue completion performs the autosave. */
 export function activateCastleOrb(game) {
-  if (game.mapId !== CASTLE_ORB.map || game.flags[CASTLE_ORB.flag]) return Promise.resolve();
+  const orb = chamberFor(game.mapId);
+  if (!orb || game.flags[orb.flag]) return Promise.resolve();
   if (game.castleOrb) return game.castleOrb.promise;
   game.textbox.close();
-  const scene = new CastleOrbScene(game); game.castleOrb = scene;
+  const scene = new CastleOrbScene(game, orb); game.castleOrb = scene;
   void scene.prepare(); return scene.promise;
 }
 

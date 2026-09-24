@@ -59,6 +59,7 @@
  "preload": [
   "assets/backdrops/castle-regret-depth.png",
   "assets/tiles/gajaeman_castle_wall.png",
+  "assets/props/jjajang_stele.png",
   "assets/tiles/castle306_floor.png",
   "assets/tiles/castle306_moss.png",
   "assets/tiles/castle306_cracked.png",
@@ -128,6 +129,45 @@
    ],
    "bgm": "castle_battle",
    "unless": "gajaeman_regret1_yisub_defeated"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_stele1",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 292,
+   "y": 1156,
+   "w": 24,
+   "h": 12,
+   "ix": 282,
+   "iy": 1076,
+   "solid": true,
+   "script": "castle_regret_stele1"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_stele2",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 1060,
+   "y": 756,
+   "w": 24,
+   "h": 12,
+   "ix": 1050,
+   "iy": 676,
+   "solid": true,
+   "script": "castle_regret_stele2"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_stele3",
+   "image": "assets/props/jjajang_stele.png",
+   "x": 644,
+   "y": 308,
+   "w": 24,
+   "h": 12,
+   "ix": 634,
+   "iy": 228,
+   "solid": true,
+   "script": "castle_regret_stele3"
   },
   {
    "type": "door",

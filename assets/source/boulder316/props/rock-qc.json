@@ -1,0 +1,32 @@
+{
+  "output": "assets/props/castle-boulder316.png",
+  "canvas": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    128
+  ],
+  "alphaBbox": [
+    18,
+    20,
+    238,
+    236
+  ],
+  "sourceBbox": [
+    39,
+    60,
+    1212,
+    1211
+  ],
+  "bodySize": [
+    220,
+    216
+  ],
+  "scale": 0.1875532821824382,
+  "resample": "NEAREST",
+  "alpha": "binary0/255",
+  "sourceSha256": "94ab1ab44c4d4d6dacd88414a1ce3b58685342af22e97de1dfddb6af9e2c1f8f",
+  "sha256": "66a4654cf2d3ac563a7d2291f0d592a43a084c841538d90b13175e208dca6df6"
+}

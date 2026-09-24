@@ -1,0 +1,70 @@
+{
+ "id": "gajaeman_castle_left_orb",
+ "name": "왼쪽 봉인의 방",
+ "stage": "castle_pipe_returned",
+ "bgm": "castle_orb",
+ "rows": [
+  "               ",
+  "               ",
+  "   ♧♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♧♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♧♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "   ♤♤♤♤♤♤♤♤♤   ",
+  "      ♤♤♤      ",
+  "               "
+ ],
+ "preload": [
+  "assets/tiles/castle307_floor.png",
+  "assets/tiles/castle307_moss.png",
+  "assets/props/castle-seal-orb.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 228,
+   "y": 286,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "orbRoom": {
+   "camera": [
+    0,
+    12
+   ],
+   "center": [
+    240,
+    130
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "castle_seal_orb",
+   "image": "assets/props/castle-seal-orb.png",
+   "x": 208,
+   "y": 186,
+   "w": 64,
+   "h": 18,
+   "ix": 176,
+   "iy": 66,
+   "scale": 1,
+   "solid": true,
+   "script": "castle_left_orb_touch"
+  },
+  {
+   "type": "trigger",
+   "id": "castle_left_orb_exit",
+   "x": 192,
+   "y": 342,
+   "w": 96,
+   "h": 10,
+   "script": "castle_left_orb_return"
+  }
+ ]
+}

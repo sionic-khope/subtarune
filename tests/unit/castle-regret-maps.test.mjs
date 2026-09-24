@@ -81,10 +81,10 @@ test('two winding regret maps contain exactly the three requested persistent enc
       }
     }
     assert.ok(map.meta.walkSeconds >= 12);
-    assert.ok(map.entities.every(entity => ['enemy', 'door'].includes(entity.type)));
+    assert.ok(map.entities.every(entity => ['enemy', 'door', 'prop'].includes(entity.type)));
   }
   assert.equal(rooms[0].entities.find(entity => entity.id === 'regret1_next').to, maps[2]);
-  assert.deepEqual(rooms[1].entities.filter(entity => entity.type === 'door').map(entity => entity.to), [maps[1]]);
+  assert.deepEqual(rooms[1].entities.filter(entity => entity.type === 'door').map(entity => entity.to), [maps[1], 'gajaeman_castle_boulder']);
 });
 
 test('return spawns leave the full party on floor without compressing their following gaps', () => {

@@ -1,0 +1,33 @@
+{
+  "output": "assets/props/castle-boulder-wall316.png",
+  "canvas": [
+    384,
+    320
+  ],
+  "rockCenter": [
+    144,
+    176
+  ],
+  "wallContactPlaneX": 224,
+  "approximateRockSize": [
+    220,
+    217
+  ],
+  "alphaBbox": [
+    34,
+    34,
+    305,
+    306
+  ],
+  "sourceBbox": [
+    153,
+    12,
+    1270,
+    1132
+  ],
+  "scale": 0.24282560706401765,
+  "resample": "NEAREST",
+  "alpha": "binary0/255",
+  "sourceSha256": "1379009c12e253e861da2c860a6ab36126cf6c148697c984bf00032f69170d03",
+  "sha256": "ac91a8a157f85661000d203d9da92d65656db23d849485bbf8d0d79e5c23bf77"
+}
