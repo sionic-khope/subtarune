@@ -13,6 +13,63 @@
 //   lines       { appear, idle[], die, speak[] }  speak = 적 턴 말풍선(1인칭, 흰 풍선·작은 글씨, 델타룬 전투 참고) — 탄막 전에 뜨고 준비 시간을 준다.  전투 문구 (나레이션 '* ' 포함, 행동 선택 화면에 idle 중 하나가 [공격하기][아이템] 과 같이 뜬다 — 다른 적을 가리키는 문구 금지(그 적이 죽은 뒤에도 뜸) — 언더테일식 잡담 톤: "억빠맨이 CS 막타를 노리고 있는 듯 하다.. (신경쓸 필욘 없다)"). 맞았을 때 문구는 없음
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
+  yisub: {
+    name: '마스터이섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    sheet: { src: 'assets/enemies/yisub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { cast: { src: 'assets/enemies/yisub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
+    pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    patterns: [
+      { type: 'regret_alpha_double', speak: '니애미따라가라 일격필살.' },
+      { type: 'regret_highlander', speak: '어디 한번 달아나 봐라.' },
+      { type: 'regret_meditate', speak: '명상 좀 하자.\n그 다음은 네 차례다.' },
+    ],
+    lines: { appear: '* 마스터이섭이 칼을 뽑았다.',
+      idle: ['* 마스터이섭의 렌즈가 어둠 속에서 빛난다.', '* 칼날에 보라색 기운이 맺힌다.'],
+      speak: ['니애미따라가라 일격필살.'], die: '* 마스터이섭이 흩어졌다.' },
+  },
+  syndrasub: {
+    name: '신드라섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    sheet: { src: 'assets/enemies/syndrasub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { cast: { src: 'assets/enemies/syndrasub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
+    pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    patterns: [
+      { type: 'regret_scatter', speak: '꺼져.\n내 구체에 손대지 마.' },
+      { type: 'regret_force_of_will', speak: '이것도 한번 받아 봐라.' },
+      { type: 'regret_unleashed', speak: '전부 네게 돌려주겠다.' },
+    ],
+    lines: { appear: '* 신드라섭의 구체가 떠오른다.',
+      idle: ['* 신드라섭의 손끝에서 구체들이 돈다.', '* 보라색 구체가 낮게 울린다.'],
+      speak: ['니애미따라가드라.'], die: '* 신드라섭이 흩어졌다.' },
+  },
+  taliyahsub: {
+    name: '탈리야섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    sheet: { src: 'assets/enemies/taliyahsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { cast: { src: 'assets/enemies/taliyahsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
+    pivot: [64, 120], scale: 0.9, board: [240, 170], idle: { swayX: 0, swayY: 0 },
+    patterns: [
+      { type: 'taliyah_threaded_volley', speak: '돌 좀 맞아볼래?' },
+      { type: 'taliyah_unraveled_shove', speak: '발밑이나 잘 봐라.' },
+      { type: 'taliyah_weavers_wall', speak: '도망갈 길은 없다.' },
+    ],
+    lines: { appear: '* 탈리야섭이 길을 막았다.',
+      idle: ['* 탈리야섭의 발밑에서 돌이 솟는다.', '* 탈리야섭이 손바닥을 털어낸다.'],
+      speak: ['니애미따라가리야.'], die: '* 탈리야섭이 흩어졌다.' },
+  },
+  aurelionsub: {
+    name: '아우솔섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    dx: 29,
+    sheet: { src: 'assets/enemies/aurelionsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { cast: { src: 'assets/enemies/aurelionsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
+    pivot: [64, 120], scale: 0.9, board: [240, 170], idle: { swayX: 0, swayY: 0 },
+    patterns: [
+      { type: 'aurelion_singularity', speak: '별도 너를 삼킬 거다.' },
+      { type: 'aurelion_breath_of_light', speak: '내 숨결을 견뎌 봐라.' },
+      { type: 'aurelion_falling_star', speak: '하늘이 무너진다.' },
+    ],
+    lines: { appear: '* 아우솔섭이 어둠 속에서 나타났다.',
+      idle: ['* 아우솔섭의 꼬리에 별빛이 맺힌다.', '* 아우솔섭이 고개를 치켜든다.'],
+      speak: ['니애미따라가솔.'], die: '* 아우솔섭이 흩어졌다.' },
+  },
   malzahar_sub: {
     name: '말자하섭', hp: 5, damage: 15, damageStep: 0, money: 0, boss: true,
     support: 'malzahar_runner', defense: 'malzahar_runner',

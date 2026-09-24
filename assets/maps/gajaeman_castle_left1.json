@@ -1,0 +1,156 @@
+{
+ "id": "gajaeman_castle_left1",
+ "name": "가재맨성 서쪽 회랑",
+ "stage": "castle_lobby_seen",
+ "bgm": "castle_regret",
+ "battleBg": "castle_memory",
+ "backdrop": "castle-regret-depth",
+ "followScreenY": 250,
+ "rows": [
+  "         ▥▥▥▥▥▥         ",
+  "         ▥▥▥▥▥▥         ",
+  "         ▥▥▥▥▥▥         ",
+  "         ▥▥▥▥▥▥         ",
+  "        ▥♦♜♠♜♜♜▥        ",
+  "        ▥♜♜♜♣♜♠▥        ",
+  "        ▥♜♠♜♜♣♜▥        ",
+  "        ▥♣♜♠♜♜♦▥        ",
+  "        ▥♜♦♜♠♜♜▥        ",
+  "        ▥♜♜♜♜♣♜▥        ",
+  "        ▥♣♜♠♜♜♣▥        ",
+  "        ▥♜♣♜♠♜♜▥        ",
+  "        ▥♜♜♦♜♠♜▥        ",
+  "        ▥♠♜♜♜♜♣▥        ",
+  "        ▥♜♣♜♠♜♜▥        ",
+  "        ▥♜♜♣♜♠♜▥        ",
+  "        ▥♠♜♜♦♜♠▥        ",
+  "        ▥♜♠♜♜♜♜▥        ",
+  "        ▥♜♜♣♜♠♜▥        ",
+  "        ▥♠♜♜♣♜♠▥        ",
+  "        ▥♜♠♜♜♦♜▥        ",
+  "        ▥♦♜♠♜♜♜▥        ",
+  "        ▥♜♜♜♣♜♠▥        ",
+  "        ▥♜♠♜♜♣♜▥        ",
+  "        ▥♣♜♠♜♜♦▥        ",
+  "        ▥♜♦♜♠♜♜▥        ",
+  "        ▥♜♜♜♜♣♜▥        ",
+  "        ▥♣♜♠♜♜♣▥▥▥      ",
+  "        ▥♜♣♜♠♜♜♦♜♠▥     ",
+  "        ▥♜♜♦♜♠♜♜♜♜▥     ",
+  "        ▥♠♜♜♜♜♣♜♠♜▥     ",
+  "        ▥♜♣♜♠♜♜♣♜♠▥     ",
+  "        ▥♜♜♣♜♠♜▥▥▥      ",
+  "        ▥♠♜♜♦♜♠▥        ",
+  "        ▥♜♠♜♜♜♜▥        ",
+  "        ▥♜♜♣♜♠♜▥        ",
+  "        ▥♠♜♜♣♜♠▥        ",
+  "        ▥♜♠♜♜♦♜▥        ",
+  "        ▥♦♜♠♜♜♜▥        ",
+  "        ▥♜♜♜♣♜♠▥        "
+ ],
+ "preload": [
+  "assets/backdrops/castle-regret-depth.png",
+  "assets/tiles/gajaeman_castle_wall.png",
+  "assets/props/castle-memory-door.png",
+  "assets/props/signpost.png",
+  "assets/props/blue_buff.png",
+  "assets/tiles/castle306_floor.png",
+  "assets/tiles/castle306_moss.png",
+  "assets/tiles/castle306_cracked.png",
+  "assets/tiles/castle306_moss_dense.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 372,
+   "y": 1120,
+   "facing": "up"
+  },
+  "from_regret": {
+   "x": 372,
+   "y": 256,
+   "facing": "down"
+  },
+  "regret_door": {
+   "x": 372,
+   "y": 160,
+   "facing": "up"
+  },
+  "spring": {
+   "x": 532,
+   "y": 948,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    11,
+    35
+   ],
+   [
+    11,
+    5
+   ]
+  ],
+  "walkSeconds": 4.4
+ },
+ "entities": [
+  {
+   "type": "door",
+   "id": "castle_left_return",
+   "x": 288,
+   "y": 1270,
+   "w": 192,
+   "h": 10,
+   "to": "gajaeman_castle_lobby",
+   "spawn": "from_left",
+   "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_door",
+   "image": "assets/props/castle-memory-door.png",
+   "x": 336,
+   "y": 112,
+   "w": 96,
+   "h": 16,
+   "ix": 336,
+   "iy": 0,
+   "solid": true,
+   "sortY": 0,
+   "script": "castle_regret_enter"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_sign",
+   "image": "assets/props/signpost.png",
+   "x": 444,
+   "y": 128,
+   "w": 26,
+   "h": 12,
+   "ix": 444,
+   "iy": 110,
+   "solid": true,
+   "script": "castle_regret_sign"
+  },
+  {
+   "type": "prop",
+   "id": "castle_regret_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 528,
+   "y": 916,
+   "w": 32,
+   "h": 12,
+   "ix": 524,
+   "iy": 884,
+   "solid": true,
+   "script": "maillard_spring"
+  }
+ ]
+}

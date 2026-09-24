@@ -718,3 +718,11 @@ QA_POINTS.push({
   party: ['gyeongsub', 'ppaman'],
   flags: { ...QA_POINTS.find(point => point.id === 'castle_pipe_ready').flags, castle_pipe_returned: true },
 });
+const regretArrival = QA_POINTS.find(point => point.id === 'castle_pipe_after');
+for (const [id, desc, map, spawn, flags] of [
+  ['castle_regret_entry', '후회의 방 진입로 · 보라 다리와 마나의 샘', 'gajaeman_castle_left1', 'start', {}],
+  ['castle_regret_yi', '후회의 방 1 · 마스터이섭', 'gajaeman_regret1', 'before_yisub', {}],
+  ['castle_regret_syndra', '후회의 방 2 · 신드라섭', 'gajaeman_regret2', 'before_syndrasub', { gajaeman_regret1_yisub_defeated: true }],
+  ['castle_regret_duo', '후회의 방 2 · 탈리야섭과 아우솔섭 동시 조우', 'gajaeman_regret2', 'before_taliyahsub', { gajaeman_regret1_yisub_defeated: true, gajaeman_regret2_syndrasub_defeated: true }],
+]) QA_POINTS.push({ ...regretArrival, id, desc, map, spawn,
+  flags: { ...regretArrival.flags, ...flags }, party: [...regretArrival.party] });

@@ -6,6 +6,10 @@
 // portraitThreshold: 대화창 초상화(흰/검 2톤 변환, gfx.monoPortrait)에서 이 밝기 미만을 검정으로. 기본 0.38.
 // ─────────────────────────────────────────────────────────────
 export const CHARACTERS = {
+  yisub: { name: '마스터이섭', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/yisub-front.png', stillScale: 0.6, stillPivot: [64, 120] },
+  syndrasub: { name: '신드라섭', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/syndrasub-front.png', stillScale: 0.6, stillPivot: [64, 120] },
+  taliyahsub: { name: '탈리야섭', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/taliyahsub-front.png', stillScale: 0.6, stillPivot: [64, 120] },
+  aurelionsub: { name: '아우솔섭', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/aurelionsub-front.png', stillScale: 0.6, stillPivot: [64, 120] },
   seobruto: { name: '섭루토', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/seobruto-front.png', stillScale: 0.6, stillPivot: [64, 120] },
   jiroesub: { name: '지뢰섭', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/jiroesub-front.png', stillScale: 0.6, stillPivot: [64, 120] },
   udyrsub: { name: '우디르섭', voice: 'hyungsub', palette: 'ghost', still: 'assets/enemies/udyrsub-front.png', stillScale: 0.6, stillPivot: [64, 120] },

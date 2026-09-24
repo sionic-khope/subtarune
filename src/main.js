@@ -1550,7 +1550,7 @@ class Game {
         ctx.drawImage(factory, 0, offset, SCREEN_W, SCREEN_H, 0, 0, SCREEN_W, SCREEN_H);
       }
     }
-    else if (MAPS[this.mapId]?.backdrop === 'castle306_distant' || MAPS[this.mapId]?.backdrop === 'castle307_right') {
+    else if (['castle306_distant', 'castle307_right', 'castle-regret-depth'].includes(MAPS[this.mapId]?.backdrop)) {
       const castle = this.propImages[`assets/backdrops/${MAPS[this.mapId].backdrop}.png`];
       if (castle) ctx.drawImage(castle, 0, 0, SCREEN_W, SCREEN_H);
     }

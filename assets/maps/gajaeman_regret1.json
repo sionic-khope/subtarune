@@ -1,0 +1,157 @@
+{
+ "id": "gajaeman_regret1",
+ "name": "후회의 방 1",
+ "stage": "castle_lobby_seen",
+ "bgm": "castle_regret",
+ "battleBg": "castle_memory",
+ "backdrop": "castle-regret-depth",
+ "followScreenY": 250,
+ "rows": [
+  "                                          ",
+  "                                          ",
+  "                                          ",
+  "                                          ",
+  "                                          ",
+  "                                          ",
+  "                                          ",
+  "                                          ",
+  "▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥       ",
+  "♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜▥      ",
+  "♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜▥      ",
+  "♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠▥      ",
+  "♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜▥      ",
+  "▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥♣♜♠♜▥      ",
+  "                              ▥♜♣♜♠▥      ",
+  "                              ▥♜♜♦♜▥      ",
+  "                              ▥♠♜♜♜▥      ",
+  "                              ▥♜♣♜♠▥      ",
+  "                              ▥♜♜♣♜▥      ",
+  "                              ▥♠♜♜♦▥      ",
+  "                              ▥♜♠♜♜▥      ",
+  "                              ▥♜♜♣♜▥      ",
+  "                              ▥♠♜♜♣▥      ",
+  "                              ▥♜♠♜♜▥      ",
+  "                              ▥♦♜♠♜▥      ",
+  "                              ▥♜♜♜♣▥      ",
+  "                              ▥♜♠♜♜▥      ",
+  "                              ▥♣♜♠♜▥      ",
+  "       ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥♜♦♜♠▥      ",
+  "      ▥♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜▥      ",
+  "      ▥♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜▥      ",
+  "      ▥♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠▥      ",
+  "      ▥♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜▥      ",
+  "      ▥♣♜♠♜▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥       ",
+  "      ▥♜♦♜♠▥                              ",
+  "      ▥♜♜♜♜▥                              ",
+  "      ▥♣♜♠♜▥                              ",
+  "      ▥♜♣♜♠▥                              ",
+  "      ▥♜♜♦♜▥                              ",
+  "      ▥♠♜♜♜▥                              ",
+  "      ▥♜♣♜♠▥                              ",
+  "      ▥♜♜♣♜▥                              ",
+  "      ▥♠♜♜♦▥                              ",
+  "      ▥♜♠♜♜▥                              ",
+  "      ▥♜♜♣♜▥                              ",
+  "      ▥♠♜♜♣▥                              ",
+  "      ▥♜♠♜♜▥                              ",
+  "      ▥♦♜♠♜▥                              "
+ ],
+ "preload": [
+  "assets/backdrops/castle-regret-depth.png",
+  "assets/tiles/gajaeman_castle_wall.png",
+  "assets/tiles/castle306_floor.png",
+  "assets/tiles/castle306_moss.png",
+  "assets/tiles/castle306_cracked.png",
+  "assets/tiles/castle306_moss_dense.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 260,
+   "y": 1416,
+   "facing": "up"
+  },
+  "from_next": {
+   "x": 164,
+   "y": 328,
+   "facing": "right"
+  },
+  "before_yisub": {
+   "x": 516,
+   "y": 968,
+   "facing": "right"
+  },
+  "end": {
+   "x": 68,
+   "y": 328,
+   "facing": "left"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    8,
+    44
+   ],
+   [
+    8,
+    30
+   ],
+   [
+    32,
+    30
+   ],
+   [
+    32,
+    10
+   ],
+   [
+    0,
+    10
+   ]
+  ],
+  "walkSeconds": 13.19
+ },
+ "entities": [
+  {
+   "type": "enemy",
+   "id": "yisub",
+   "sprite": "yisub",
+   "x": 708,
+   "y": 968,
+   "facing": "left",
+   "wander": 16,
+   "chase": 170,
+   "speed": 42,
+   "enemies": [
+    "yisub"
+   ],
+   "bgm": "castle_battle",
+   "unless": "gajaeman_regret1_yisub_defeated"
+  },
+  {
+   "type": "door",
+   "id": "regret1_return",
+   "x": 224,
+   "y": 1526,
+   "w": 128,
+   "h": 10,
+   "to": "gajaeman_castle_left1",
+   "spawn": "from_regret",
+   "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "regret1_next",
+   "x": 0,
+   "y": 288,
+   "w": 10,
+   "h": 128,
+   "to": "gajaeman_regret2",
+   "spawn": "start",
+   "interact": false,
+   "sfx": false
+  }
+ ]
+}

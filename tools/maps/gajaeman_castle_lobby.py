@@ -72,7 +72,7 @@ def main() -> None:
          'image': 'assets/props/castle306_gate.png', 'scale': 0.5625,
          'x': center - 72, 'y': 496, 'w': 144, 'h': 16,
          'ix': center - 72, 'iy': 332, 'solid': True, 'sortY': 0,
-         **({'script': 'castle_lobby_right_enter'} if side == 'right' else {})}
+         'script': f'castle_lobby_{side}_enter'}
         for side, center in (('left', 288), ('right', 992))
     ]
     return_actors = [
@@ -100,6 +100,7 @@ def main() -> None:
         'spawns': {'start': {'x': 604, 'y': 864, 'facing': 'up'},
                    'after_intro': {'x': 604, 'y': 568, 'facing': 'right'},
                    'from_right': {'x': 980, 'y': 600, 'facing': 'down'},
+                   'from_left': {'x': 276, 'y': 640, 'facing': 'down'},
                    'from_pipe': {'x': 604, 'y': 624, 'facing': 'up'},
                    'after_pipe': {'x': 604, 'y': 624, 'facing': 'up'}},
         'meta': {'connected': True, 'stage': stage, 'hoverStage': hover_stage, 'seals': 2},

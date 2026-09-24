@@ -1,0 +1,124 @@
+{
+  "sheet_size": [
+    256,
+    256
+  ],
+  "cell_size": [
+    128,
+    128
+  ],
+  "pivot": [
+    64,
+    120
+  ],
+  "frame_order": [
+    "neutral",
+    "windup",
+    "attack",
+    "hurt"
+  ],
+  "durations_ms": [
+    400,
+    240,
+    180,
+    300
+  ],
+  "runtime_loop": false,
+  "return_to": 0,
+  "front_equals_cell0": true,
+  "resampling": "NEAREST",
+  "magenta_pixels": 0,
+  "empty_frames": [],
+  "edge_touch_frames": [],
+  "common_scale": 0.19444444444444445,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "bbox": [
+        37,
+        22,
+        101,
+        120
+      ],
+      "height": 98,
+      "source_bbox": [
+        175,
+        77,
+        503,
+        581
+      ],
+      "paste": [
+        37,
+        22
+      ]
+    },
+    {
+      "index": 1,
+      "bbox": [
+        37,
+        22,
+        102,
+        120
+      ],
+      "height": 98,
+      "source_bbox": [
+        163,
+        77,
+        497,
+        581
+      ],
+      "paste": [
+        37,
+        22
+      ]
+    },
+    {
+      "index": 2,
+      "bbox": [
+        15,
+        25,
+        105,
+        120
+      ],
+      "height": 95,
+      "source_bbox": [
+        77,
+        57,
+        541,
+        546
+      ],
+      "paste": [
+        15,
+        25
+      ]
+    },
+    {
+      "index": 3,
+      "bbox": [
+        37,
+        26,
+        114,
+        120
+      ],
+      "height": 94,
+      "source_bbox": [
+        135,
+        61,
+        529,
+        546
+      ],
+      "paste": [
+        37,
+        26
+      ]
+    }
+  ],
+  "tool": "built-in image_gen",
+  "model": "unknown",
+  "cost": "unknown",
+  "raw_sha256": "502607b08d08382a7e7185f45bc9ccf961d2260eb6b6bd48ce1966fad15b43e1"
+}

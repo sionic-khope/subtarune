@@ -1,0 +1,41 @@
+{
+  "generation_count": 1,
+  "provider": "built-in image_gen",
+  "model": "unknown",
+  "cost": "unknown",
+  "generation_id": "exec-c4f5291c-9655-4de9-89df-520b0d4fe1fb",
+  "method": "complete source NEAREST 1448x1086 to 480x360, then NEAREST 2x to 960x720; no cropping, painting, quantization, alpha keying or color modification",
+  "backdrop_key": "castle-regret-depth",
+  "records": [
+    {
+      "path": "assets/source/regret315/environment/raw-backdrop.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "mode": "RGB",
+      "alpha": "opaque RGB; no alpha channel",
+      "sha256": "e7bdd3c4792637f5c30c866ea77ae8b3de8dcd139e5b6de269c19f7afc43948a"
+    },
+    {
+      "path": "assets/source/regret315/environment/logical-preview.png",
+      "size": [
+        480,
+        360
+      ],
+      "mode": "RGB",
+      "alpha": "opaque RGB; no alpha channel",
+      "sha256": "a75586ce786c511f928ae4316fdf39b9cad23c556e518720c891c837d89c8078"
+    },
+    {
+      "path": "assets/backdrops/castle-regret-depth.png",
+      "size": [
+        960,
+        720
+      ],
+      "mode": "RGB",
+      "alpha": "opaque RGB; no alpha channel",
+      "sha256": "e42267d09b3466d2b5efbcd093859ecd057290c67a970e4fd421248c13c190f0"
+    }
+  ]
+}

@@ -682,3 +682,6 @@ Q/W는 [Riot 공식 말자하 페이지](https://www.leagueoflegends.com/en-us/c
 # BUILD311 · 봉인 구체 방
 
 `assets/audio/bgm/castle_orb.mp3`: 사용자 지정 [The distance between two](https://www.youtube.com/watch?v=byUCuhB8r5Q), Toby Fox 공개 영상, 전체47.426771초 원속도/원음높이. 변환·해시·디코드 근거는 `assets/source/orb311/audio/README.md`. 접촉/상승/지직/점등 효과음은 기존 `power`, `spearappear`, `static_burst`, `great_shine` 재사용. 실제 재생 확인과 사람의 음색 청취 승인은 구분한다.
+# BUILD315 후회의 방
+
+`bgm/castle_regret.mp3`는 사용자 지정 [The Third Sanctuary](https://www.youtube.com/watch?v=7f1RK1m7qvc) 전체 원속도 음원이다. 표기 업로더 Toby Fox. 새 다리와 두 후회의 방에 사용하며 전투는 기존 From Now On을 유지한다. [취득·변환·해시 기록](../../assets/source/regret315/audio/README.md). 새 전투는 기존 검격·구체·바위·별빛 효과음을 시전 단위로 재사용한다.

@@ -1,0 +1,168 @@
+{
+ "id": "gajaeman_regret2",
+ "name": "후회의 방 2",
+ "stage": "castle_lobby_seen",
+ "bgm": "castle_regret",
+ "battleBg": "castle_memory",
+ "backdrop": "castle-regret-depth",
+ "followScreenY": 250,
+ "rows": [
+  "                                                  ",
+  "                                                  ",
+  "                                                  ",
+  "                                                  ",
+  "                                      ▥▥▥▥        ",
+  "                                     ▥♜♦♜♠▥       ",
+  "                                     ▥♜♜♜♜▥       ",
+  "                                     ▥♣♜♠♜▥       ",
+  "                                     ▥♜♣♜♠▥       ",
+  "                                     ▥♜♜♦♜▥       ",
+  "                                     ▥♠♜♜♜▥       ",
+  "                                     ▥♜♣♜♠▥       ",
+  "                                     ▥♜♜♣♜▥       ",
+  "                                     ▥♠♜♜♦▥       ",
+  "                                     ▥♜♠♜♜▥       ",
+  "                                     ▥♜♜♣♜▥       ",
+  "                                     ▥♠♜♜♣▥       ",
+  "                                     ▥♜♠♜♜▥       ",
+  "                                     ▥♦♜♠♜▥       ",
+  "                                     ▥♜♜♜♣▥       ",
+  "                                     ▥♜♠♜♜▥       ",
+  "                                     ▥♣♜♠♜▥       ",
+  "                                     ▥♜♦♜♠▥       ",
+  "         ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥♜♜♜♜▥       ",
+  "        ▥♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜▥       ",
+  "        ▥♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠▥       ",
+  "        ▥♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜▥       ",
+  "        ▥♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜▥       ",
+  "        ▥♜♣♜♠▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥        ",
+  "        ▥♜♜♦♜▥                                    ",
+  "        ▥♠♜♜♜▥                                    ",
+  "        ▥♜♣♜♠▥                                    ",
+  "        ▥♜♜♣♜▥                                    ",
+  "        ▥♠♜♜♦▥                                    ",
+  "        ▥♜♠♜♜▥                                    ",
+  "        ▥♜♜♣♜▥                                    ",
+  "        ▥♠♜♜♣▥                                    ",
+  "        ▥♜♠♜♜▥                                    ",
+  "        ▥♦♜♠♜▥                                    ",
+  "        ▥♜♜♜♣▥                                    ",
+  "        ▥♜♠♜♜▥                                    ",
+  "        ▥♣♜♠♜▥                                    ",
+  "        ▥♜♦♜♠▥                                    ",
+  "        ▥♜♜♜♜▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥",
+  "        ▥♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜",
+  "        ▥♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦",
+  "        ▥♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜",
+  "        ▥♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜",
+  "         ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥",
+  "                                                  ",
+  "                                                  ",
+  "                                                  ",
+  "                                                  ",
+  "                                                  "
+ ],
+ "preload": [
+  "assets/backdrops/castle-regret-depth.png",
+  "assets/tiles/gajaeman_castle_wall.png",
+  "assets/tiles/castle306_floor.png",
+  "assets/tiles/castle306_moss.png",
+  "assets/tiles/castle306_cracked.png",
+  "assets/tiles/castle306_moss_dense.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 1412,
+   "y": 1448,
+   "facing": "left"
+  },
+  "before_syndrasub": {
+   "x": 1028,
+   "y": 1448,
+   "facing": "left"
+  },
+  "before_taliyahsub": {
+   "x": 580,
+   "y": 808,
+   "facing": "right"
+  },
+  "end": {
+   "x": 1252,
+   "y": 200,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "route": [
+   [
+    47,
+    45
+   ],
+   [
+    10,
+    45
+   ],
+   [
+    10,
+    25
+   ],
+   [
+    39,
+    25
+   ],
+   [
+    39,
+    6
+   ]
+  ],
+  "walkSeconds": 15.38
+ },
+ "entities": [
+  {
+   "type": "enemy",
+   "id": "syndrasub",
+   "sprite": "syndrasub",
+   "x": 836,
+   "y": 1448,
+   "facing": "right",
+   "wander": 16,
+   "chase": 170,
+   "speed": 42,
+   "enemies": [
+    "syndrasub"
+   ],
+   "bgm": "castle_battle",
+   "unless": "gajaeman_regret2_syndrasub_defeated"
+  },
+  {
+   "type": "enemy",
+   "id": "taliyahsub",
+   "sprite": "taliyahsub",
+   "x": 772,
+   "y": 808,
+   "facing": "right",
+   "wander": 16,
+   "chase": 170,
+   "speed": 42,
+   "enemies": [
+    "taliyahsub",
+    "aurelionsub"
+   ],
+   "bgm": "castle_battle",
+   "unless": "gajaeman_regret2_taliyahsub_defeated"
+  },
+  {
+   "type": "door",
+   "id": "regret2_return",
+   "x": 1590,
+   "y": 1408,
+   "w": 10,
+   "h": 128,
+   "to": "gajaeman_regret1",
+   "spawn": "from_next",
+   "interact": false,
+   "sfx": false
+  }
+ ]
+}

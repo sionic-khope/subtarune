@@ -71,6 +71,11 @@
    "y": 600,
    "facing": "down"
   },
+  "from_left": {
+   "x": 276,
+   "y": 640,
+   "facing": "down"
+  },
   "from_pipe": {
    "x": 604,
    "y": 624,
@@ -394,7 +399,8 @@
    "ix": 216,
    "iy": 332,
    "solid": true,
-   "sortY": 0
+   "sortY": 0,
+   "script": "castle_lobby_left_enter"
   },
   {
    "type": "prop",
