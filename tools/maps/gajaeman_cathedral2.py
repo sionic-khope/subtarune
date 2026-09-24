@@ -6,7 +6,7 @@
 # ─── How to run ───
 # Run: uv run tools/maps/gajaeman_cathedral2.py [--check]
 # ──────────────────
-"""BUILD325 second cathedral hall: the same three-lane aisle continued north (~1분30초 with the mid rescue)."""
+"""BUILD325/326 second cathedral hall: ~70s at the forced slow walk (124.8px/s) + mid rescue ≈ 1분30초."""
 from __future__ import annotations
 
 import json
@@ -15,8 +15,8 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_cathedral2'
-ROWS: Final = 312
-MID_Y: Final = 5000
+ROWS: Final = 275
+MID_Y: Final = 5260
 
 
 def main() -> None:

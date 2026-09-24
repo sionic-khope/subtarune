@@ -56,11 +56,15 @@ await runScenario({ name: 'castle-cathedral-climb', launchOptions: { args: ['--a
   await key('KeyC'); await waitLine('* 어떻게든 뚫고가야해'); await key('KeyC');
   assert.ok(await until(() => game.castleCathedral?.beat === 'arrive', 8000)); await page.waitForTimeout(700); await shot('09a-arrive-mid');
   assert.ok(await until(() => game.castleCathedral?.beat === 'forge', 8000)); await page.waitForTimeout(1600); await shot('09-forge-mid');
-  check('wind loop is playing during the gust', await page.evaluate(() => { const h = game.castleCathedral?.windHandle; return !!h && !h.paused && h.volume > 0.2; }));
   assert.ok(await until(() => game.castleCathedral?.beat === 'idle' && game.camera.y < 200, 6000)); await shot('10-forge-done'); obs.beats.forge = await snap();
   assert.ok(await until(() => game.state === 'field' && !game.dialogue.running && game.castleCathedral?.climbing, 10000));
   await page.waitForTimeout(300); await shot('11-climb-start'); obs.beats.climb = await snap();
   check('climb arms heart, drag and the specified track', obs.beats.climb.scene.heart && obs.beats.climb.bgm === 'cathedral_climb', JSON.stringify(obs.beats.climb));
+  {
+    const y0 = await page.evaluate(() => game.player.y); await page.keyboard.down('ArrowUp'); await page.waitForTimeout(1000); await page.keyboard.up('ArrowUp');
+    const moved = y0 - await page.evaluate(() => game.player.y);
+    check('climb walk is forced to the X slow-walk speed (~124.8px/s)', await page.evaluate(() => !!game.windWalk) && moved > 90 && moved < 150, String(moved));
+  }
   check('stage saved at climb start', await page.evaluate(() => !!game.flags.castle_cathedral_climb && JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)).flags.castle_cathedral_climb));
   const hp0 = obs.beats.climb.hp;
   // 회피 없이 위로만: 검 예고·발사·피격을 실제 경로에서 관찰한다.

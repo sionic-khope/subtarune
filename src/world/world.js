@@ -443,17 +443,16 @@ export class Player extends Character {
     if (a.x !== 0 || a.y !== 0) {
       if (a.x) this.facing = a.x > 0 ? 'right' : 'left';
       if (a.y && !a.x) this.facing = a.y > 0 ? 'down' : 'up';
-      const run = input.down('cancel') ? this.slowMul : 1;
+      // 맞바람(BUILD326 대성당): 오르는 동안은 X 천천히 걷기 속도로 고정
+      const run = input.down('cancel') || this.game.windWalk ? this.slowMul : 1;
       const len = Math.hypot(a.x, a.y);
       const step = this.speed * run * dt;
-      // 맞바람(BUILD323 대성당): 위로 가는 성분만 느려진다. 기본 1
-      const resist = a.y < 0 ? (this.game.windResist ?? 1) : 1;
       // 소수점 누적 이동 (도트 튐 방지: 렌더 시 round)
-      this.moveBy((a.x / len) * step, (a.y / len) * step * resist);
+      this.moveBy((a.x / len) * step, (a.y / len) * step);
     }
     this.moving = this.x !== startX || this.y !== startY;
     const prevFrame = this.frame;
-    this.animate(dt, input.down('cancel') ? 8 : 12);
+    this.animate(dt, input.down('cancel') || this.game.windWalk ? 8 : 12);
     if (this.moving) { this.recordTrail(); this.footstep(prevFrame); }
     // 물 위 걷기 소리(영상 루프): 걷는 동안 이어 틀고, 멈추면 다음 걸음 직전에 끊는다 — audio.js walk (2026-09-12)
     // footstepsOverride: 컷신이 “뒤에서 들리는 걸음소리”처럼 주인공이 서 있어도 이 구역 걸음 루프를 켜 둔다({ footsteps } 노드·move footsteps, BUILD226 청소부 이벤트)

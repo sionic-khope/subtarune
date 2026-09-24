@@ -85,7 +85,7 @@ def main() -> None:
     }
     refuge_cells = [[' '] * 24 for _ in range(22)]
     refuge_floor = {(col, row) for col in range(4, 20) for row in range(10, 20)}
-    refuge_floor.update((col, row) for col in range(9, 15) for row in range(20, 22))
+    # BUILD326: 탈출 뒤 잠긴 남쪽 통로는 열린 길처럼 보이지 않게 벽으로 닫는다(되돌아가기 = 나레이션만)
     for col, row in refuge_floor:
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             x, y = col + dx, row + dy
@@ -122,9 +122,8 @@ def main() -> None:
              'image': 'assets/props/castle306_gate.png', 'scale': 0.6875,
              'x': 296, 'y': 304, 'w': 176, 'h': 16, 'ix': 296, 'iy': 100,
              'solid': True, 'sortY': 0},
-            {'type': 'door', 'id': 'castle_dark_refuge_return',
-             'x': 288, 'y': 694, 'w': 192, 'h': 10,
-             'to': ARRIVAL_ID, 'spawn': 'from_refuge', 'interact': False, 'sfx': False},
+            {'type': 'trigger', 'id': 'castle_dark_refuge_return',
+             'x': 288, 'y': 626, 'w': 192, 'h': 10, 'script': 'castle_dark_refuge_locked'},
             {'type': 'door', 'id': 'castle_cathedral_entry',
              'x': 296, 'y': 312, 'w': 176, 'h': 16,
              'to': 'gajaeman_castle_cathedral', 'spawn': 'entry', 'interact': True, 'sfx': False},

@@ -6,7 +6,7 @@
 - 검 차징: 기존 `spearappear`(따뜻한 비데 상승 `bossVanish`와 같은 키, 사용자 “따뜻한비데 상승 효과음같은거”).
 - 검 발사 `sfx/knight_cut.mp3`: 사용자 지정 myinstants “roaring-knight-cut-8236”은 Cloudflare 403(curl·브라우저 확장 미연결)으로 받지 못했다. **임시로 기존 `bigcut.mp3`(DELTARUNE snd_bigcut) 사본**이며, 원본을 받으면 같은 파일명으로 교체한다.
 - 가재맨 상승: 기존 `captain_thunder`(snd_punchheavythunder 계열, 웅장한 효과음) + `wing`. 등장 하강: 로비와 같은 `captain_transform`.
-- 바람 `sfx/cathedral_wind.mp3`(BUILD324 사용자 “바람 세게 불때 효과음도”): YouTube [5hgvD35CX0k](https://www.youtube.com/watch?v=5hgvD35CX0k) `Wind (High Place) - DELTARUNE Chapter 2 OST`, 13.87초 전체 MP3 q2(원본 `assets/source/cathedral323/audio/wind-high-place.webm`). 돌풍 때 0.85, 오르기 중 약0.48로 반복. 합성·`whoosh` 아님.
+- 바람 `sfx/cathedral_gust.mp3`(BUILD326 사용자 “더 강렬한 바람소리, 시끄럽겐 말고, 초반 1회만”): 공식 원음 두 개를 겹친 1회용 돌풍 — YouTube [LuTIDmmq8QY](https://www.youtube.com/watch?v=LuTIDmmq8QY) `Deltarune OST - Howling Winds (called w in files)` 0~3.6초 ×1.4 + [5hgvD35CX0k](https://www.youtube.com/watch?v=5hgvD35CX0k) `Wind (High Place)` 2~5.6초 ×0.9, 저역+4dB, 0.18초 상승→1.1초 유지→2.4초 감쇠, limiter0.7, 3.6초. 원본 webm은 `assets/source/cathedral323/audio/`. 첫 돌풍에서만 볼륨0.55로 재생. (BUILD324의 반복 `cathedral_wind`는 폐기·삭제)
 
 ## 거석 다리 뒤 어두운 길 (BUILD318, 2026-09-24)
 

@@ -48,3 +48,15 @@ test('test_cathedral_intro_keeps_user_lines_in_order', () => {
   const cut = castle_cathedral_intro.find(n => n.text?.startsWith('* 그러게'));
   assert.ok(cut.auto <= 0.1, 'gyeongsub is cut off by the laugh');
 });
+
+test('test_cathedral2_mid_event_matches_map_and_hall_length_fits_ninety_seconds', async () => {
+  const fs = await import('node:fs');
+  const { CATHEDRAL2, laserLane } = await import('../../src/scenes/castle-cathedral2.js');
+  const map = JSON.parse(fs.readFileSync('assets/maps/gajaeman_castle_cathedral2.json', 'utf8'));
+  const c = map.meta.cathedralClimb, slowWalk = 32 * 3.9 * 1.75 / 1.75;
+  assert.equal(c.midY, CATHEDRAL2.midY);
+  const walk = (c.startY - c.topY) / slowWalk;
+  assert.ok(walk > 60 && walk < 75, `walk ${walk}s + ~20s rescue ≈ 90s`);
+  assert.ok((c.startY - c.midY) / (c.startY - c.topY) < 0.42, 'rescue about 20% earlier than the old half-way point');
+  for (let lane = 0; lane < 3; lane++) for (const r of [0, 0.5, 0.99]) assert.notEqual(laserLane(lane, () => r), lane);
+});

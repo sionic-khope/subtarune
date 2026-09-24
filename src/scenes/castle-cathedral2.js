@@ -5,7 +5,7 @@ import { CATHEDRAL, CastleCathedral } from './castle-cathedral.js';
 
 /** BUILD325 second hall: mid-hall nine-sword stand-off, Youngcle/Junhee rescue, then laser-assisted triple volleys. */
 export const CATHEDRAL2 = Object.freeze({
-  map: 'gajaeman_castle_cathedral2', rescueFlag: 'castle_cathedral_rescue_done', rescueScript: 'castle_cathedral_rescue',
+  map: 'gajaeman_castle_cathedral2', midY: 5260, rescueFlag: 'castle_cathedral_rescue_done', rescueScript: 'castle_cathedral_rescue',
   youngcle: 'cath2_youngcle', junhee: 'cath2_junhee',
   duration: { swarm: 1.9, gather: 3.0, rescue: 2.8 },
   // Nine overlapping swords hovering ahead of the party (x offset, y offset, tilt).

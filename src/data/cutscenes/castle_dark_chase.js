@@ -27,7 +27,7 @@ export const castle_dark_refuge_locked = Object.assign([
 export const castle_dark_chase_finish = Object.assign([
   { if: flags => flags.castle_dark_refuge_dialogue_done, goto: 'dark-refuge-end' },
   close, { stage: 'castle_dark_chase_done' }, { bgm: 'castle_dark_path', volume: 0.2, fadeIn: 1 },
-  { camera: 'player' }, { zoom: 1.05, at: 'player', offset: [0, 64], duration: 1.2 },
+  { camera: 'player' }, { zoom: 1.05, at: 'player', offset: [0, -40], duration: 1.2 },
   { wait: 0.5 }, P('와 겨우 나왔네요 ㅈ될뻔'), close,
   { zoom: 0.6, duration: 0.5 },
   { parallel: [

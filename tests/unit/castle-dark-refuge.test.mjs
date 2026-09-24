@@ -174,8 +174,8 @@ test('escaped refuge south exit narrates locked without transition or standing r
   const transitions = [];
   game.changeMap = (...args) => transitions.push(args);
   game.runScript = (key, done) => game.dialogue.start(SCRIPTS[key], done);
-  const door = new Door(def.entities.find(entity => entity.id === 'castle_dark_refuge_return'), game);
-  game.player.x = 372; game.player.y = 686;
+  const door = new Trigger(def.entities.find(entity => entity.id === 'castle_dark_refuge_return'), game);
+  game.player.x = 372; game.player.y = 620;
   door.update(0.02);
   assert.deepEqual(transitions, []);
   assert.deepEqual(lines.map(line => [line.voice, line.speaker, line.portrait, line.text]), [
@@ -185,8 +185,8 @@ test('escaped refuge south exit narrates locked without transition or standing r
   assert.equal(door.running, false); assert.equal(door.cooldown, Trigger.COOLDOWN);
   door.update(2); door.update(2);
   assert.equal(lines.length, 1);
-  game.player.y = 640; door.update(0.02);
-  game.player.y = 686; door.update(0.02);
+  game.player.y = 590; door.update(0.02);
+  game.player.y = 620; door.update(0.02);
   assert.equal(lines.length, 2);
   assert.deepEqual(transitions, []);
 });

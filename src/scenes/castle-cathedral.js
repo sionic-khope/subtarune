@@ -12,7 +12,7 @@ export const CATHEDRAL = Object.freeze({
   // Difficulty follows climb progress (0 at the aisle foot, 1 near the top).
   interval: [1.9, 1.05], doubleFrom: [0.3, 0.6], doubleChance: [0.4, 0.75], chaseLane: 0.6,
   startY: 7560, stopY: 560, topY: 120,
-  windResist: 0.85, heartAlpha: 0.76, focusDrop: 74,
+  heartAlpha: 0.76, focusDrop: 74,
   top: [360, 420], hover: { amplitude: 5, period: 2.6 },
   duration: { descend: 2.1, rise: 1.2, arrive: 1.4, forge: 3.8, leave: 1.8 }, entryHeight: 300, riseHeight: 900, arriveHeight: 280, hoverLift: 10,
   leaveY: 560, leaveHeight: 620,
@@ -63,7 +63,7 @@ export class CastleCathedral {
     this.climbing = false; this.heart = false; this.handles = new Set(); this.disposed = false;
     this.focus = { x: 0, y: 0, w: 0, h: 0 };
     for (let i = 0; i < 110; i++) this.streaks.push(this.newStreak(true));
-    void game.sound.loadSfxFiles?.(['spearappear', 'knight_cut', 'captain_thunder', 'captain_transform', 'wing', 'damage', 'chime', 'cathedral_wind']);
+    void game.sound.loadSfxFiles?.(['spearappear', 'knight_cut', 'captain_thunder', 'captain_transform', 'wing', 'damage', 'chime', 'cathedral_gust']);
     if (this.cfg.part !== 2 && game.has(CATHEDRAL.stage)) this.resume();
   }
   get done() { return this.disposed || this.elapsed >= (this.cfg.duration[this.beat] || 0); }
@@ -105,7 +105,11 @@ export class CastleCathedral {
     if (name === 'forge') { this.fan = 0; this.drawn = 0; }
     if (name === 'leave') { this.riseFrom = this.actor.y; this.sound('wing', 0.55); }
   }
-  setWind(value) { this.windTarget = value; if (value > 0 && this.wind < 0.05) this.game.shake = { time: 0.5, amp: 3 }; }
+  /** The first gust shakes the hall and plays the one-shot gust (only once, BUILD326). */
+  setWind(value) {
+    if (value > 0 && this.wind < 0.05 && this.windTarget < 0.05) { this.game.shake = { time: 0.5, amp: 3 }; this.sound('cathedral_gust', 0.55); }
+    this.windTarget = value;
+  }
   /** Fast camera return that the DSL awaits before the hazard starts. */
   panToPlayer(seconds) {
     const g = this.game, cam = g.camera, sx = cam.x, sy = cam.y;
@@ -128,7 +132,7 @@ export class CastleCathedral {
     if (this.disposed) return;
     const g = this.game;
     this.climbing = true; this.heart = true; this.nextVolley = fresh ? 0.8 : 1.2;
-    g.windResist = this.cfg.windResist;
+    g.windWalk = true;
     g.camera.locked = false; this.updateFocus(); g.camera.target = this.focus;
     if (g.sound.bgmName !== CATHEDRAL.climbBgm) g.sound.playBgm(CATHEDRAL.climbBgm, { volume: 0.45, fadeIn: 0.3 });
   }
@@ -136,16 +140,6 @@ export class CastleCathedral {
     const p = this.game.player; if (!p) return;
     this.focus.x = p.x; this.focus.w = p.w; this.focus.h = p.h;
     this.focus.y = p.y - (this.climbing ? this.cfg.focusDrop : 0);
-  }
-  /** DELTARUNE “Wind (High Place)” loop: loud on the gust, lower under the climb music. */
-  updateWindSound() {
-    if (this.wind < 0.02) return;
-    if (!this.windHandle) {
-      const handle = this.game.sound.sfx('cathedral_wind', { volume: 0 });
-      if (!handle || typeof handle !== 'object') return;
-      handle.loop = true; this.windHandle = handle; this.handles.add(handle);
-    }
-    this.windHandle.volume = Math.max(0, Math.min(1, 0.85 * this.wind * this.wind));
   }
   newStreak(anywhere = false) {
     const r = this.rnd;
@@ -160,7 +154,6 @@ export class CastleCathedral {
     const seconds = Math.max(0, dt);
     this.time += seconds; this.elapsed += seconds; this.hover += seconds;
     this.wind += (this.windTarget - this.wind) * Math.min(1, seconds * 3);
-    this.updateWindSound();
     for (const s of this.streaks) {
       s.y += s.speed * (0.35 + this.wind) * seconds; s.x += Math.sin(this.time * 2 + s.sway) * 18 * seconds;
       if (s.y > SCREEN_H + 60) Object.assign(s, this.newStreak());
@@ -327,7 +320,7 @@ export class CastleCathedral {
     const g = this.game;
     for (const handle of this.handles) handle.pause();
     this.handles.clear(); this.swords.length = 0;
-    if (g.windResist) g.windResist = 1;
+    g.windWalk = false;
     if (g.camera.target === this.focus) g.camera.target = g.player;
     if (this.actor) { this.actor.flyY = 0; this.actor.spin = 0; }
     if (g.darkSmoke?.aura?.actor === this.actor) g.darkSmoke = null;

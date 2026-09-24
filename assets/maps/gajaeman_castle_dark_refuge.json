@@ -28,8 +28,8 @@
   "   ▥♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜▥   ",
   "   ▥♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜▥   ",
   "   ▥♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠▥   ",
-  "   ▥▥▥▥▥▥♜♠♜♜♦♜▥▥▥▥▥▥   ",
-  "   ▥▥▥▥▥▥♦♜♠♜♜♜▥▥▥▥▥▥   "
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   "
  ],
  "enter": {
   "script": "castle_dark_chase_finish"
@@ -97,16 +97,13 @@
    "sortY": 0
   },
   {
-   "type": "door",
+   "type": "trigger",
    "id": "castle_dark_refuge_return",
    "x": 288,
-   "y": 694,
+   "y": 626,
    "w": 192,
    "h": 10,
-   "to": "gajaeman_castle_dark_arrival",
-   "spawn": "from_refuge",
-   "interact": false,
-   "sfx": false
+   "script": "castle_dark_refuge_locked"
   },
   {
    "type": "door",

@@ -1,4 +1,5 @@
 import { CATHEDRAL } from '../../scenes/castle-cathedral.js';
+import { CATHEDRAL2 } from '../../scenes/castle-cathedral2.js';
 
 // BUILD323 사용자 원문(2026-09-24). 띄어쓰기·표기(용캐)는 원문 그대로.
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
@@ -69,6 +70,8 @@ export const castle_cathedral_intro = Object.assign([
   { label: 'end' }, { end: true },
 ], { silent: true });
 
+// 카메라 타일 좌표(중심) — 둘째 회랑 중간 지점 기준
+const midCam = dy => [11.5, (CATHEDRAL2.midY + dy - 16) / 32];
 const stand2 = id => [
   { move: id, rel: `cath2_mid_${id}`, at: 'bottom', by: [0, 0], axis: 'x', facing: 'up', speed: 70 },
   { move: id, rel: `cath2_mid_${id}`, at: 'bottom', by: [0, 0], axis: 'y', facing: 'up', speed: 70 },
@@ -80,14 +83,14 @@ export const castle_cathedral_rescue = Object.assign([
   close,
   { parallel: [stand2('player'), [{ wait: 0.2 }, ...stand2('gyeongsub')], [{ wait: 0.35 }, ...stand2('ppaman')]] },
   ...PARTY.map(id => ({ face: id, dir: 'up' })),
-  { camera: [11.5, 149.5], duration: 1.0 },
+  { camera: midCam(-216), duration: 1.0 },
   beat('swarm'), waitBeat, { wait: 0.8 },
-  { camera: [11.5, 155], duration: 1.0 }, { wait: 0.4 },
+  { camera: midCam(-24), duration: 1.0 }, { wait: 0.4 },
   P('으...윽 이런..!'), K('아 안돼..'), close,
-  { camera: [11.5, 151.5], duration: 0.8 },
+  { camera: midCam(-152), duration: 0.8 },
   beat('gather'), waitBeat,
   beat('rescue'), waitBeat,
-  { camera: [11.5, 154.5], duration: 0.9 },
+  { camera: midCam(-40), duration: 0.9 },
   all('!'),
   J('어서 가자!!'), Y('후후후 내 레이저로 지원해드리겠..슴 ;;'), close,
   { set: { castle_cathedral_rescue_done: true } },
