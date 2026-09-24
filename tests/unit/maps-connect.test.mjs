@@ -11,7 +11,7 @@ const WALK = new Set(['t', 'u', 'w', 'n', 'd', 'r', 'R', 'a', 'A', 'j', 'E', 'x'
 WALK.add('≈');
 WALK.add('⌂');
 WALK.add('⌁');
-for (const char of ['♜', '♠', '♣', '♦', '♤', '♧']) WALK.add(char);
+for (const char of ['♜', '♠', '♣', '♦', '♤', '♧', '░', '▱']) WALK.add(char);
 for (const id of idx) {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, `assets/maps/${id}.json`), 'utf8'));
   if (!m.rows) continue;

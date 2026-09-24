@@ -1,0 +1,84 @@
+{
+  "asset": "column",
+  "raw_mode": "RGBA",
+  "raw_size": [
+    866,
+    1817
+  ],
+  "backend": "Codex built-in imagegen; backend model/quality/usage unknown",
+  "processor_command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/export-2528a5d43926b319/bin/python3",
+    "/Users/khope@sionic.ai/.codex/skills/generate2dsprite/scripts/generate2dsprite.py",
+    "process",
+    "--input",
+    "/private/tmp/subtarune-orb311/assets/source/cathedral321/column/generated-raw.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/private/tmp/subtarune-orb311/assets/source/cathedral321/column/processor",
+    "--cell-size",
+    "256",
+    "--threshold",
+    "0",
+    "--edge-threshold",
+    "90",
+    "--trim-border",
+    "0",
+    "--edge-clean-depth",
+    "0",
+    "--component-mode",
+    "all",
+    "--component-padding",
+    "0",
+    "--min-component-area",
+    "1",
+    "--fit-scale",
+    "0.90",
+    "--align",
+    "center",
+    "--strict-qc",
+    "--allow-source-edge-touch"
+  ],
+  "raw_alpha_preserved": false,
+  "background": "generated alpha preserved except border-connected magenta distance <90",
+  "crop_bbox": [
+    184,
+    265,
+    683,
+    1586
+  ],
+  "crop_detection_min_alpha": 2,
+  "crop_alpha_policy": "retain all original alpha inside crop; exclude distant alpha=1 noise",
+  "nominal_uniform_scale": 0.11809235427706283,
+  "resized_size": [
+    59,
+    156
+  ],
+  "integer_rounding": "nearest pixel",
+  "resampling": "NEAREST",
+  "canvas_size": [
+    80,
+    160
+  ],
+  "paste_offset": [
+    10,
+    2
+  ],
+  "alpha_bbox": [
+    10,
+    2,
+    69,
+    158
+  ],
+  "source_edge_exception": true,
+  "source_edge_reason": "invisible alpha fringe at x=0; complete visible subject reviewed",
+  "opaque_or_partial_pixels": 7545,
+  "residual_magenta_pixels": 0,
+  "qc": "PNG decoded; exact dimensions; nonempty; no output edge contact; no residual magenta"
+}

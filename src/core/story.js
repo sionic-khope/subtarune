@@ -759,5 +759,6 @@ for (const [id, map, stage, desc] of [
   ['castle_dark_chase_intro', 'gajaeman_castle_dark_arrival', 'castle_dark_path_seen', '어둠의 미로 · 뒤에서 들리는 포효'],
   ['castle_dark_chase', 'gajaeman_castle_dark_arrival', 'castle_dark_chase_seen', '어둠의 미로 · 추격 중 재개'],
   ['castle_dark_refuge', 'gajaeman_castle_dark_refuge', 'castle_dark_chase_done', '추격 탈출 · 마나샘과 마지막 대문'],
+  ['castle_cathedral', 'gajaeman_castle_cathedral', 'castle_dark_chase_done', '검은 대성당 · 중앙 계단과 삼열 회랑'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn: 'start', stage,
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });

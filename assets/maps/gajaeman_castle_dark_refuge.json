@@ -54,6 +54,11 @@
    "x": 372,
    "y": 336,
    "facing": "up"
+  },
+  "from_cathedral": {
+   "x": 372,
+   "y": 360,
+   "facing": "down"
   }
  },
  "meta": {
@@ -101,6 +106,18 @@
    "to": "gajaeman_castle_dark_arrival",
    "spawn": "from_refuge",
    "interact": false,
+   "sfx": false
+  },
+  {
+   "type": "door",
+   "id": "castle_cathedral_entry",
+   "x": 296,
+   "y": 312,
+   "w": 176,
+   "h": 16,
+   "to": "gajaeman_castle_cathedral",
+   "spawn": "start",
+   "interact": true,
    "sfx": false
   }
  ]

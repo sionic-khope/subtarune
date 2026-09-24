@@ -12,6 +12,8 @@ SOLID_CHARS.add('▥');
 SOLID_CHARS.add('▦');
 SOLID_CHARS.add('♨');
 SOLID_CHARS.add('♩');
+for (const char of ['╞', '╡']) SOLID_CHARS.add(char);
+for (const char of ['░', '▱']) EDGE_OPEN.add(char);
 EDGE_OPEN.add('≈');
 for (const char of ['⌂', '⌁', '♜', '♠', '♣', '♦', '♤', '♧']) EDGE_OPEN.add(char);
 const PW = 24, PH = 16;   // 주인공 히트박스 (스폰 x,y = 히트박스 왼쪽 위)

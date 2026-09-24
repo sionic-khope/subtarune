@@ -247,8 +247,8 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   await finishDialogues(() => !game.dialogue.running); assert.ok(await ready());
   await walk('ArrowLeft', () => game.player.x <= 372, 'return central door column');
   await walk('ArrowUp', () => game.player.y <= 326, 'approach final gate');
-  const beforeDoor = await state(); await page.keyboard.down('ArrowUp'); await page.waitForTimeout(450); await page.keyboard.up('ArrowUp'); await key('KeyC'); await shot('final-closed-door');
-  check('last gate remains closed with no unrequested new story', (await state()).map === 'gajaeman_castle_dark_refuge' && (await state()).xy[1] >= 319 && !(await state()).dialogue && !(await state()).blocked, JSON.stringify({ before: beforeDoor.xy, after: (await state()).xy }));
+  const beforeDoor = await state(); await page.keyboard.down('ArrowUp'); await page.waitForTimeout(450); await page.keyboard.up('ArrowUp'); await shot('final-closed-door');
+  check('last gate waits for C after walking against it', (await state()).map === 'gajaeman_castle_dark_refuge' && (await state()).xy[1] >= 319 && !(await state()).dialogue && !(await state()).blocked, JSON.stringify({ before: beforeDoor.xy, after: (await state()).xy }));
   await key('Escape'); await continueTitle(); assert.ok(await ready());
   check('refuge Continue retains done flag party health and clean scene', (await state()).done && !(await state()).chase && !(await state()).dark && (await state()).party.length === 2 && (await state()).hp.every(([, hp, max]) => hp === max));
   await dump();

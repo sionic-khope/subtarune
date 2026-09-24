@@ -1,0 +1,83 @@
+{
+  "asset": "window",
+  "raw_mode": "RGB",
+  "raw_size": [
+    802,
+    1961
+  ],
+  "backend": "Codex built-in imagegen; backend model/quality/usage unknown",
+  "processor_command": [
+    "/Users/khope@sionic.ai/.cache/uv/environments-v2/export-2528a5d43926b319/bin/python3",
+    "/Users/khope@sionic.ai/.codex/skills/generate2dsprite/scripts/generate2dsprite.py",
+    "process",
+    "--input",
+    "/private/tmp/subtarune-orb311/assets/source/cathedral321/window/generated-raw.png",
+    "--target",
+    "asset",
+    "--mode",
+    "single",
+    "--rows",
+    "1",
+    "--cols",
+    "1",
+    "--output-dir",
+    "/private/tmp/subtarune-orb311/assets/source/cathedral321/window/processor",
+    "--cell-size",
+    "256",
+    "--threshold",
+    "0",
+    "--edge-threshold",
+    "90",
+    "--trim-border",
+    "0",
+    "--edge-clean-depth",
+    "0",
+    "--component-mode",
+    "all",
+    "--component-padding",
+    "0",
+    "--min-component-area",
+    "1",
+    "--fit-scale",
+    "0.90",
+    "--align",
+    "center",
+    "--strict-qc"
+  ],
+  "raw_alpha_preserved": false,
+  "background": "generated alpha preserved except border-connected magenta distance <90",
+  "crop_bbox": [
+    165,
+    319,
+    637,
+    1560
+  ],
+  "crop_detection_min_alpha": 2,
+  "crop_alpha_policy": "retain all original alpha inside crop; exclude distant alpha=1 noise",
+  "nominal_uniform_scale": 0.1385979049153908,
+  "resized_size": [
+    65,
+    172
+  ],
+  "integer_rounding": "nearest pixel",
+  "resampling": "NEAREST",
+  "canvas_size": [
+    72,
+    176
+  ],
+  "paste_offset": [
+    3,
+    2
+  ],
+  "alpha_bbox": [
+    3,
+    2,
+    68,
+    174
+  ],
+  "source_edge_exception": false,
+  "source_edge_reason": null,
+  "opaque_or_partial_pixels": 10273,
+  "residual_magenta_pixels": 0,
+  "qc": "PNG decoded; exact dimensions; nonempty; no output edge contact; no residual magenta"
+}

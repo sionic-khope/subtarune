@@ -105,7 +105,8 @@ def main() -> None:
                     'assets/props/blue_buff.png'],
         'spawns': {'start': {'x': 372, 'y': 560, 'facing': 'up'},
                    'spring': {'x': 548, 'y': 516, 'facing': 'up'},
-                   'final_door': {'x': 372, 'y': 336, 'facing': 'up'}},
+                   'final_door': {'x': 372, 'y': 336, 'facing': 'up'},
+                   'from_cathedral': {'x': 372, 'y': 360, 'facing': 'down'}},
         'meta': {'connected': True},
         'entities': [
             {'type': 'prop', 'id': 'castle_dark_refuge_spring',
@@ -119,6 +120,9 @@ def main() -> None:
             {'type': 'door', 'id': 'castle_dark_refuge_return',
              'x': 288, 'y': 694, 'w': 192, 'h': 10,
              'to': ARRIVAL_ID, 'spawn': 'from_refuge', 'interact': False, 'sfx': False},
+            {'type': 'door', 'id': 'castle_cathedral_entry',
+             'x': 296, 'y': 312, 'w': 176, 'h': 16,
+             'to': 'gajaeman_castle_cathedral', 'spawn': 'start', 'interact': True, 'sfx': False},
         ],
     }
     index_path = Path('assets/maps/index.json')

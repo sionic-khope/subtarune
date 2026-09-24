@@ -16,7 +16,7 @@ const WALK = new Set([...ROAD, 'd', 'F', 'H', 'N', '&', '+', '^', '-']);   // - 
 const pngH = (p) => fs.readFileSync(root + p).readUInt32BE(20);
 ROAD.add('≈');
 WALK.add('≈');
-for (const char of ['⌂', '⌁', '♜', '♠', '♣', '♦', '♤', '♧']) { ROAD.add(char); WALK.add(char); }
+for (const char of ['⌂', '⌁', '♜', '♠', '♣', '♦', '♤', '♧', '░', '▱']) { ROAD.add(char); WALK.add(char); }
 const maps = JSON.parse(fs.readFileSync(root + 'assets/maps/index.json', 'utf-8')).maps.map((id) => JSON.parse(fs.readFileSync(root + `assets/maps/${id}.json`, 'utf-8'))).filter((m) => m.rows);
 
 const tileAt = (m, x, y) => { const r = Math.floor(y / TILE), c = Math.floor(x / TILE); return (m.rows[r] || '')[c] ?? ' '; };
