@@ -10,7 +10,7 @@ const talkCamera = { camera: [20, 19], duration: 1.3 };
 const ready = { action: game => {
   const pipe = game.entities.find(entity => entity.id === PIPE);
   const mario = game.entities.find(entity => entity.id === MARIO);
-  pipe.visible = true; pipe.solid = true; mario.visible = true;
+  pipe.visible = true; pipe.solid = true; mario.visible = true; mario.solid = true;
 } };
 
 /** Runs after the orb-room exit fade, or restores the same waiting pipe on Continue. */
@@ -22,7 +22,8 @@ export const castle_pipe_emerge = Object.assign([
   at(MARIO, 'castle_pipe_mouth', [0, 0], { speed: 4000 }),
   { sfx: 'mario_pipe' }, { emerge: MARIO, depth: 48, duration: 0.55 },
   { hop: MARIO, by: [52, 42], height: 36, duration: 0.6, keep: true, sfx: 'mario_jump' },
-  { face: MARIO, dir: 'toward:player' }, { wait: 0.5 },
+  { face: MARIO, dir: 'toward:player' }, { wait: 0.8 }, ready,
+  { text: '* 토관을 타라는 것 같다.', voice: 'narrator' },
   { set: { castle_pipe_ready: true } },
   { camera: 'player' }, { end: true },
   { label: 'ready' }, ready,

@@ -27,6 +27,27 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
     }
     await page.setViewportSize({ width: 1000, height: 780 });
   };
+  const marioCollision = async label => {
+    const original = await page.evaluate(() => [game.player.x, game.player.y, game.player.facing]);
+    await fixture(`${label}-mario-approach`, 'Place player 24px south of Mario then hold real Up through his feet for 900ms; no collider or progression mutation.', () => {
+      const mario = game.entities.find(e => e.id === 'castle_return_mario');
+      game.player.x = mario.x + (mario.w - game.player.w) / 2; game.player.y = mario.y + mario.h + 24;
+      game.player.facing = 'up'; game.player.trail = []; game.camera.snap();
+    });
+    const before = await page.evaluate(() => ({ x: game.player.x, y: game.player.y }));
+    await page.keyboard.down('ArrowUp'); await page.waitForTimeout(900); await page.keyboard.up('ArrowUp');
+    const actual = await page.evaluate(() => {
+      const mario = game.entities.find(e => e.id === 'castle_return_mario');
+      return { player: { x: game.player.x, y: game.player.y, h: game.player.h }, mario: { x: mario.x, y: mario.y, w: mario.w, h: mario.h, solid: mario.solid },
+        overlap: mario.overlaps(game.player.rect), field: game.state === 'field' && !game.dialogue.running };
+    });
+    check(`${label} Mario blocks real movement without overlap or passthrough`, actual.mario.solid && actual.field && !actual.overlap
+      && actual.player.y >= actual.mario.y + actual.mario.h - 0.1 && actual.player.y < before.y - 5, JSON.stringify({ before, ...actual }));
+    await shot(`${label}-mario-collision`);
+    await fixture(`${label}-restore-position`, 'Restore position after isolated collision approach; no flags, NPC or collider mutation.', ([x, y, facing]) => {
+      game.player.x = x; game.player.y = y; game.player.facing = facing; game.player.trail = []; game.camera.snap();
+    }, original);
+  };
   const continueFromTitle = async () => {
     assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 5000));
     await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
@@ -97,12 +118,28 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
   const before = await state(); await observe();
   await page.keyboard.down('KeyC');
   await walk('ArrowDown', () => game.mapId === 'gajaeman_torii_end', 'activated orb actual south exit');
-  assert.ok(await until(() => game.flags.castle_pipe_ready && !game.dialogue.running, 15000));
+  assert.ok(await until(() => game.textbox.isOpen || (game.flags.castle_pipe_ready && !game.dialogue.running), 15000));
+  const hasNarrator = await page.evaluate(() => game.textbox.isOpen && game.textbox.node?.text === '* 토관을 타라는 것 같다.');
+  check('emergence shows exact narrator after Mario jump', hasNarrator);
+  if (hasNarrator) {
+    assert.ok(await until(() => game.textbox.state === 'waiting', 10000));
+    const hint = await page.evaluate(() => ({ node: game.textbox.node, y: game.player.y,
+      marioHop: game.entities.find(e => e.id === 'castle_return_mario').hopY || 0, ready: game.flags.castle_pipe_ready }));
+    check('hint is narrator without character name or portrait after landing', hint.node.voice === 'narrator' && !hint.node.speaker && !hint.node.portrait && hint.marioHop === 0, JSON.stringify(hint));
+    await page.keyboard.down('ArrowDown'); await page.waitForTimeout(500); await page.keyboard.up('ArrowDown');
+    check('held C and directions cannot skip narrator or move player', await page.evaluate(y => game.textbox.isOpen && game.dialogue.running && game.player.y === y, hint.y));
+    await sizes('pipe-narrator');
+    await page.keyboard.up('KeyC'); await key('KeyC'); assert.ok(await field());
+  }
   await page.waitForTimeout(850);
   check('holding C from exit does not auto-board', (await state()).map === 'gajaeman_torii_end' && (await state()).inputReady && !(await state()).flags.castle_pipe_returned);
   await page.keyboard.up('KeyC');
   const emergence = await exportEvidence('emergence');
   const outside = emergence.samples.filter(s => s.map === 'gajaeman_torii_end');
+  const hintFrame = outside.findIndex(s => s.text === '* 토관을 타라는 것 같다.');
+  check('narrator follows completed jump exactly once', hintFrame > 0
+    && outside.slice(0, hintFrame).some(s => s.actors.some(a => a.id === 'castle_return_mario' && a.hop > 15))
+    && emergence.lines.filter(line => line === '* 토관을 타라는 것 같다.').length === 1);
   const clear = outside.find(s => s.fade < 0.01);
   const rise = outside.find(s => s.actors.some(a => a.id === 'castle_return_pipe' && a.visible && a.customDraw));
   check('pipe rise starts after 1.5 seconds of fully visible corridor', !!clear && !!rise && rise.at - clear.at >= 1460, JSON.stringify({ clear: clear?.at, rise: rise?.at, delay: rise && clear ? rise.at - clear.at : null }));
@@ -112,6 +149,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
   check('emergence starts once and keeps the original solo party and resources', emergence.audio.filter(s => s.name === 'mario_pipe').length === 2
     && (await state()).party.length === 0 && (await state()).money === before.money && JSON.stringify((await state()).inventory) === JSON.stringify(before.inventory));
   await sizes('outside-ready');
+  await marioCollision('naturally-ready');
   check('ready pipe and Mario fit entirely above bottom of view', await page.evaluate(() => {
     const pipe = game.entities.find(e => e.id === 'castle_return_pipe'), mario = game.entities.find(e => e.id === 'castle_return_mario');
     return pipe.drawY + pipe.ih <= game.camera.y + 360 && mario.y + mario.h <= game.camera.y + 360;
@@ -122,6 +160,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
     && game.mapId === 'gajaeman_torii_end' && game.party.length === 0 && game.entities.filter(e => e.id === 'castle_return_pipe' && e.visible && !e.dead).length === 1
     && game.entities.filter(e => e.id === 'castle_return_mario' && e.visible && !e.dead).length === 1));
   await shot('ready-continued');
+  await marioCollision('continued-ready');
   await fixture('ready-pipe-approach', 'Position south of the waiting pipe after Continue, then use real Up and C. Only skips walking from the door; does not start boarding.', () => {
     game.player.x = 692; game.player.y = 430; game.player.facing = 'up'; game.player.trail = []; game.camera.snap();
   });
@@ -203,6 +242,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
   await shot('completed-corridor-reentry');
 
   await open({ qa: 'castle_pipe_ready' }); assert.ok(await field()); await observe();
+  await marioCollision('qa-ready');
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_return_pipe', 'ready QA reaches pipe'); await key('KeyC');
   assert.ok(await until(() => game.mapId === 'gajaeman_castle_lobby' && game.textbox.isOpen, 30000));
   await shot('interruption-before-completion'); await key('Escape');
