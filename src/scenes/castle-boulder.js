@@ -1,14 +1,15 @@
 import { FX } from '../data/fx.js';
 import { Input } from '../core/input.js';
 import { loopCharacterMotion } from '../world/character-motion.js';
+import { makeWaiter } from '../ui/cutscene.js';
 
 export const CASTLE_BOULDER = Object.freeze({
-  map: 'gajaeman_castle_boulder', flag: 'castle_boulder_done', bgm: 'baron_intro',
+  map: 'gajaeman_castle_boulder', flag: 'castle_boulder_done', bgm: 'baron_intro', pushBgm: 'castle_battle',
   rock: 'assets/props/castle-boulder316.png', wall: 'assets/props/castle-boulder-wall316.png',
   monster: 'assets/enemies/nunusub316.png', rockCenter: [1810, 628], radius: 192, rockScale: 1.5,
   monsterFeet: [2140, 795], monsterCell: 384, monsterPivot: [192, 360], monsterScale: 1.3,
   wallX: 3424, wallRockX: 3304, surgeDistance: 100, beats: { reveal: 2.8, roar: 1.8, surge: 2.2, launch: 5.6 },
-  sounds: ['baron_roar', 'baron_slam', 'rumble', 'furnace_blast', 'break1', 'laugh_junhee', 'mario_jump', 'chime', 'great_shine', 'click', 'cancel'],
+  sounds: ['laser_zap', 'baron_roar', 'baron_slam', 'rumble', 'furnace_blast', 'break1', 'laugh_junhee', 'mario_jump', 'chime', 'great_shine', 'click', 'cancel'],
 });
 export const BOULDER_ACTORS = Object.freeze({ youngcle: 'boulder_youngcle', junhee: 'boulder_junhee',
   bidet: 'boulder_bidet', mario: 'boulder_mario', ttuulla: 'boulder_ttuulla', park: 'boulder_park' });
@@ -65,6 +66,7 @@ export class CastleBoulderScene {
   setBeat(name) {
     if (this.disposed || this.beat === name) return;
     this.beat = name; this.elapsed = 0;
+    if (name === 'focus') this.nextShot = this.time;
     if (name === 'roar') {
       this.sound('baron_roar', 0.72); this.game.shake = { time: 1.35, amp: 5 };
       this.waves.push({ x: this.monsterX - 60, y: 470, age: 0 });
@@ -89,6 +91,13 @@ export class CastleBoulderScene {
     if (this.done) return Promise.resolve();
     return new Promise(resolve => this.waiters.push(resolve));
   }
+  panTo(x, y, zoom, duration = 1.4) {
+    if (this.disposed) return Promise.resolve();
+    const waiter = makeWaiter(this.game, { parallel: [
+      { camera: [(x - 16) / 32, (y - 16) / 32], duration }, { zoom, duration },
+    ] });
+    return new Promise(resolve => { this.pan = { waiter, resolve }; });
+  }
   say(node) {
     if (this.disposed) return Promise.resolve();
     return new Promise(resolve => {
@@ -112,6 +121,7 @@ export class CastleBoulderScene {
     const from = [this.youngcle.x + this.youngcle.w / 2 + (this.youngcle.flyX || 0), this.youngcle.y - 22 + (this.youngcle.flyY || 0)];
     const to = [this.rockX - 160, 575 + Math.sin(this.time * 1.9) * 38];
     this.beams.push({ from, to, age: 0 });
+    if (this.beat === 'focus' || this.beat === 'talk') this.sound('laser_zap', 0.28);
     this.debris(to[0], to[1], 7, 55);
   }
   debris(x, y, count, force) {
@@ -131,6 +141,9 @@ export class CastleBoulderScene {
     if (this.disposed) return;
     if (this.game.map !== this.map || this.game.dialogue.script !== this.script) { finishCastleBoulder(this.game, true); return; }
     this.time += dt; this.elapsed += dt; this.exert = Math.max(0, this.exert - dt);
+    if (this.pan?.waiter.update(dt, Input)) {
+      const { resolve } = this.pan; this.pan = null; resolve();
+    }
     if (this.ownedDialogue) this.game.textbox.update(dt, Input);
     for (const beam of this.beams) beam.age += dt;
     this.beams = this.beams.filter(beam => beam.age < 0.24);
@@ -138,13 +151,13 @@ export class CastleBoulderScene {
     this.chips = this.chips.filter(chip => chip.age < 1.5);
     for (const wave of this.waves) wave.age += dt;
     this.waves = this.waves.filter(wave => wave.age < 1.6);
-    if (['holding', 'reveal', 'roar', 'talk', 'push', 'surge', 'surge_hold', 'mash'].includes(this.beat)) {
+    if (['holding', 'reveal', 'focus', 'roar', 'talk', 'push', 'surge_pan', 'surge', 'surge_hold', 'surge_return', 'mash'].includes(this.beat)) {
       this.youngcle.flyX = Math.sin(this.time * 2.1) * 16;
       this.youngcle.flyY = Math.cos(this.time * 2.1) * 8;
       this.youngcle.spin = Math.sin(this.time * 2.1) * 0.15;
       this.youngcle.facing = this.beat === 'talk' ? 'left' : ['right', 'down', 'left', 'up'][Math.floor(this.time * 1.6) % 4];
       this.junhee.flyX = Math.sin(this.time * 21) * 1.2;
-      if (['holding', 'reveal', 'roar', 'talk'].includes(this.beat)) {
+      if (['holding', 'reveal', 'focus', 'roar', 'talk'].includes(this.beat)) {
         this.rockX = CASTLE_BOULDER.rockCenter[0] + Math.sin(this.time * 3) * 1.5;
         this.monsterX = CASTLE_BOULDER.monsterFeet[0];
         this.rockAngle = Math.sin(this.time * 3) * 0.014;
@@ -156,8 +169,8 @@ export class CastleBoulderScene {
       this.rockX += remaining * 52; this.rockAngle += remaining * 0.36;
       this.monsterX = CASTLE_BOULDER.monsterFeet[0] + remaining * 52;
     }
-    if (['push', 'surge', 'surge_hold', 'mash'].includes(this.beat)) {
-      const surge = this.beat === 'push' ? 0 : CASTLE_BOULDER.surgeDistance * (this.beat === 'surge' ? ease(this.elapsed / 1.1) : 1);
+    if (['push', 'surge_pan', 'surge', 'surge_hold', 'surge_return', 'mash'].includes(this.beat)) {
+      const surge = ['push', 'surge_pan'].includes(this.beat) ? 0 : CASTLE_BOULDER.surgeDistance * (this.beat === 'surge' ? ease(this.elapsed / 1.1) : 1);
       const displacement = this.stageNumber * 3 + surge;
       this.rockX = CASTLE_BOULDER.rockCenter[0] + displacement;
       this.monsterX = CASTLE_BOULDER.monsterFeet[0] + displacement;
@@ -224,6 +237,7 @@ export class CastleBoulderScene {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.pan?.resolve(); this.pan = null;
     this.closeOwnedDialogue();
     this.releaseBrace();
     for (const actor of [this.youngcle, this.junhee, ...this.pushers]) { actor.flyX = 0; actor.flyY = 0; actor.spin = 0; }
@@ -237,6 +251,7 @@ export async function prepareCastleBoulder(game) {
   finishCastleBoulder(game);
   const scene = new CastleBoulderScene(game); game.castleBoulder = scene;
   game.sound.preloadBgm(CASTLE_BOULDER.bgm);
+  game.sound.preloadBgm(CASTLE_BOULDER.pushBgm);
   await Promise.all([game.sound.loadSfxFiles(CASTLE_BOULDER.sounds),
     ...[CASTLE_BOULDER.rock, CASTLE_BOULDER.monster, CASTLE_BOULDER.wall].map(src => game.requestPropImage(src))]);
   return scene;
@@ -246,7 +261,7 @@ export function finishCastleBoulder(game, abort = false) {
   const scene = game.castleBoulder;
   if (!scene) return;
   scene.dispose(); game.castleBoulder = null;
-  if (abort && game.sound.bgmName === CASTLE_BOULDER.bgm) game.sound.stopBgm(0.2);
+  if (abort && [CASTLE_BOULDER.bgm, CASTLE_BOULDER.pushBgm].includes(game.sound.bgmName)) game.sound.stopBgm(0.2);
 }
 
 export function drawCastleBoulder(ctx, game, cam) { game.castleBoulder?.draw(ctx, cam); }

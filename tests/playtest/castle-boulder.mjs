@@ -19,10 +19,14 @@ const STELES = ['나도 너희들이 하라고해서 한거야, 진정으로 내
 
 await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const phase = process.env.BOULDER_PHASE || 'main';
+  const bounded = ['audio-baseline', 'audio-staging', 'audio-cancel'].includes(phase);
   const sourceRoot = process.env.QA_RESULT_FILE
     ? JSON.parse(fs.readFileSync(path.join(path.dirname(process.env.QA_RESULT_FILE), '..', 'summary.json'), 'utf8')).cwd
     : process.cwd();
-  for (const file of ['src/data/cutscenes/castle_boulder.js', 'src/scenes/castle-boulder.js', 'src/scenes/castle-boulder-push.js', 'assets/maps/gajaeman_castle_boulder.json']) {
+  const boundSources = ['src/data/cutscenes/castle_boulder.js', 'src/scenes/castle-boulder.js', 'src/scenes/castle-boulder-push.js', 'assets/maps/gajaeman_castle_boulder.json'];
+  if (bounded) boundSources.push('src/core/audio.js', 'src/data/build.js', 'assets/audio/bgm/baron_intro.mp3', 'assets/audio/bgm/castle_battle.mp3',
+    'assets/audio/sfx/laser_zap.mp3', 'assets/audio/sfx/rumble.mp3', 'assets/audio/sfx/baron_roar.mp3');
+  for (const file of boundSources) {
     const local = fs.readFileSync(path.join(sourceRoot, file));
     const response = await fetch(new URL(file, process.env.QA_BASE_URL));
     const served = Buffer.from(await response.arrayBuffer());
@@ -46,7 +50,9 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
   const snap = () => page.evaluate(() => ({ map: game.mapId, state: game.state, x: game.player.x, y: game.player.y,
     party: [...game.party], flags: { done: !!game.flags.castle_boulder_done, left: !!game.flags.castle_left_seal_active, right: !!game.flags.castle_right_seal_active },
     dialogue: game.dialogue.running, text: game.textbox.node?.text, speaker: game.textbox.node?.speaker, voice: game.textbox.node?.voice,
-    textbox: game.textbox.state, textboxOpen: game.textbox.isOpen, bgm: game.sound.bgmName, locked: game.camera.locked, fade: game.fade.alpha,
+    textbox: game.textbox.state, textboxOpen: game.textbox.isOpen, bgm: game.sound.bgmName,
+    bgmTime: game.sound.bgm?.currentTime, bgmPaused: game.sound.bgm?.paused,
+    camera: { x: game.camera.x, y: game.camera.y, zoom: game.zoom.s }, locked: game.camera.locked, fade: game.fade.alpha,
     scene: game.castleBoulder && { beat: game.castleBoulder.beat, elapsed: game.castleBoulder.elapsed, rockX: game.castleBoulder.rockX,
       angle: game.castleBoulder.rockAngle, monsterX: game.castleBoulder.monsterX, beams: game.castleBoulder.beams.length, crashed: game.castleBoulder.crashed },
     push: game.castleBoulderPush && { stage: game.castleBoulderPush.stage, phase: game.castleBoulderPush.phase,
@@ -65,18 +71,35 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
   let shotPrefix = '', captured = new Set();
   const capture = async (label, condition = true) => {
     if (shotPrefix.startsWith('cancel-')) return;
+    if (bounded && !['giant-reveal', 'giant-reveal-settled', 'laser-contact', 'gauge-lead-settled', 'timing-start',
+      'ten-hit-interlude-start', 'ten-hit-shove-mid', 'ten-hit-nunu-roar', 'ten-hit-final-sprint-line-1', 'mash-start', 'rolling-mid', 'wall-crash'].includes(label)) return;
     if (condition && !captured.has(label)) { captured.add(label); await shot(`${shotPrefix}${label}`); }
   };
   const observe = async () => {
     const s = await snap();
     await capture('giant-reveal', s.scene?.beat === 'reveal' && s.scene.elapsed > 1.1);
-    await capture('giant-reveal-settled', s.scene?.beat === 'reveal' && s.scene.elapsed > 2.5);
-    await capture('laser-contact', s.scene?.beams > 0 && s.scene.beat === 'reveal');
+    const settledReveal = phase === 'audio-baseline' ? s.scene?.beat === 'reveal' && s.scene.elapsed > 2.5
+      : s.scene?.beat === 'focus' && s.scene.elapsed > 0.35;
+    await capture('giant-reveal-settled', settledReveal);
+    await capture('laser-contact', s.scene?.beams > 0 && [phase === 'audio-baseline' ? 'reveal' : 'focus'].includes(s.scene.beat));
     await capture('nunu-roar', s.scene?.beat === 'roar' && s.scene.elapsed > 0.6);
     await capture('ten-hit-shove-mid', s.scene?.beat === 'surge' && s.scene.elapsed > 0.4);
     await capture('ten-hit-nunu-roar', s.scene?.beat === 'surge' && s.scene.elapsed > 1.3);
     await capture('rolling-mid', s.scene?.beat === 'launch' && s.scene.elapsed > 1.5 && s.scene.elapsed < 3.5);
     await capture('wall-crash', s.scene?.crashed && s.scene.elapsed > 4.3);
+    if (bounded && settledReveal && !captured.has('reveal-audio-checked')) {
+      captured.add('reveal-audio-checked');
+      check('first Youngcle-rock reveal plays advancing tense music', s.bgm === 'baron_intro' && s.bgmTime > 0.1 && !s.bgmPaused, JSON.stringify(s));
+    }
+    if (bounded && s.text === '* 다들 붙으시죠' && s.textbox === 'waiting' && !captured.has('spectators')) {
+      captured.add('spectators');
+      const group = await page.evaluate(() => {
+        const junhee = game.entities.find(e => e.id === 'boulder_junhee');
+        return { junhee: { x: junhee.x, y: junhee.y }, spectators: [game.player, ...['gyeongsub', 'ppaman', 'boulder_bidet', 'boulder_mario', 'boulder_ttuulla', 'boulder_park'].map(id => game.entities.find(e => e.id === id))].map(e => ({ id: e.id, x: e.x, y: e.y, w: e.w })) };
+      });
+      check('spectators stay left behind Junhee until invitation', group.spectators.every(e => e.x + e.w <= group.junhee.x - 40), JSON.stringify(group));
+      if (phase !== 'audio-cancel') await responsive('spectators-before-joining');
+    }
     return s;
   };
   const advanceStory = async (stop, label, timeout = 100000) => {
@@ -106,30 +129,47 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     }
     assert.ok(begun, 'boulder QA scene starts');
     await fixture('scene-observer', 'Record production SFX/BGM and phase timing only; no timeline, HP, flags or position changes. Audio call observation is not subjective listening approval.', () => {
-      window.boulderSounds = []; window.boulderTimeline = [];
+      window.boulderSounds = []; window.boulderTimeline = []; window.boulderAudioHandles = [];
       for (const method of ['sfx', 'playBgm', 'stopBgm']) {
         const original = game.sound[method].bind(game.sound);
         game.sound[method] = (...args) => {
-          boulderSounds.push({ method, name: args[0], at: performance.now(), beat: game.castleBoulder?.beat,
-            text: game.textbox.node?.text, phase: game.castleBoulderPush?.phase, elapsed: game.castleBoulderPush?.elapsed });
-          return original(...args);
+          const event = { method, name: args[0], at: performance.now(), beat: game.castleBoulder?.beat,
+            text: game.textbox.node?.text, phase: game.castleBoulderPush?.phase, elapsed: game.castleBoulderPush?.elapsed,
+            camera: { x: game.camera.x, y: game.camera.y, zoom: game.zoom.s } };
+          if (args[0] === 'laser_zap' && game.castleBoulder) {
+            const scene = game.castleBoulder, beam = scene.beams.at(-1), z = game.zoom.s;
+            const project = (x, y) => ({ x: (x - game.camera.x - 240) * z + 240, y: (y - game.camera.y - 180) * z + 180 });
+            event.focus = beam && { emitter: project(...beam.from), rockContact: project(...beam.to) };
+          }
+          const result = original(...args), handle = method === 'playBgm' ? game.sound.bgm : result;
+          boulderSounds.push(event);
+          if (handle instanceof HTMLMediaElement) {
+            event.audio = { src: handle.src, initialTime: handle.currentTime, maxTime: handle.currentTime, playingSamples: 0, volume: handle.volume };
+            boulderAudioHandles.push({ event, handle });
+          }
+          return result;
         };
       }
       const scene = game.castleBoulder; let previous = '';
       const observe = () => {
         if (game.castleBoulder !== scene) return;
+        for (const { event, handle } of boulderAudioHandles) {
+          event.audio.maxTime = Math.max(event.audio.maxTime, handle.currentTime);
+          event.audio.volume = Math.max(event.audio.volume, handle.volume);
+          if (!handle.paused && handle.currentTime > event.audio.initialTime) event.audio.playingSamples++;
+        }
         const push = game.castleBoulderPush;
         const state = `${scene.beat}:${push?.phase || ''}:${game.textbox.isOpen ? game.textbox.node?.text : ''}`;
         if (state !== previous) { previous = state; boulderTimeline.push({ at: performance.now(), beat: scene.beat,
           phase: push?.phase, elapsed: push?.elapsed, stage: push?.stage, text: game.textbox.isOpen ? game.textbox.node?.text : null,
-          rockX: scene.rockX, bgm: game.sound.bgmName }); }
+          rockX: scene.rockX, bgm: game.sound.bgmName, camera: { x: game.camera.x, y: game.camera.y, zoom: game.zoom.s } }); }
         requestAnimationFrame(observe);
       }; requestAnimationFrame(observe);
     });
     const pages = await advanceStory(() => !!game.castleBoulderPush, 'introduction reaches timing game');
     check(`${prefix} exact introduction dialogue order`, JSON.stringify(pages) === JSON.stringify(INTRO), JSON.stringify(pages));
     check(`${prefix} gauge entrance keeps three-person party and no completion flag`, await page.evaluate(() => game.party.join() === 'gyeongsub,ppaman'
-      && !game.flags.castle_boulder_done && game.castleBoulderPush.phase === 'intro' && game.castleBoulderPush.stage === 0 && game.sound.bgmName === 'baron_intro'));
+      && !game.flags.castle_boulder_done && game.castleBoulderPush.phase === 'intro' && game.castleBoulderPush.stage === 0 && game.sound.bgmName === 'castle_battle'));
     check(`${prefix} generated rock monster and embedded wall images decoded`, await page.evaluate(() => ['assets/props/castle-boulder316.png',
       'assets/enemies/nunusub316.png', 'assets/props/castle-boulder-wall316.png'].every(src => game.propImages[src]?.width > 0)));
     const lineup = await page.evaluate(() => ({ pushers: game.castleBoulder.pushers.map(a => ({ id: a.id, x: a.x, y: a.y })),
@@ -163,10 +203,11 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
       phases: boulderTimeline.filter(s => s.phase === 'intro' || s.phase === 'timing'),
       instruction: boulderTimeline.find(s => s.text?.includes('타이밍에 맞춰서 c를 눌러')),
       audio: { name: game.sound.bgmName, time: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused } }));
-    const music = entrance.sounds.filter(s => s.method === 'playBgm' && s.name === 'baron_intro');
+    const music = entrance.sounds.filter(s => s.method === 'playBgm' && s.name === 'castle_battle');
     const introAt = entrance.phases.find(s => s.phase === 'intro'), activeAt = entrance.phases.find(s => s.phase === 'timing');
     check(`${prefix} music begins after instruction and plays through gauge entrance`, music.length === 1 && music[0].at >= entrance.instruction?.at
-      && entrance.audio.name === 'baron_intro' && entrance.audio.time > 0 && !entrance.audio.paused, JSON.stringify(entrance));
+      && Math.abs(music[0].at - introAt?.at) < 150 && entrance.audio.name === 'castle_battle' && entrance.audio.time >= 2.6
+      && !entrance.audio.paused && music[0].audio?.playingSamples > 0, JSON.stringify(entrance));
     check(`${prefix} timing input activates after two-second lead plus fade`, activeAt?.at - introAt?.at >= 2600 && activeAt.elapsed >= 2.7, JSON.stringify(entrance.phases));
   };
   const hit = async () => {
@@ -210,11 +251,20 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     check(`${shotPrefix} Junhee final sprint line precedes mash`, JSON.stringify(interlude) === JSON.stringify([INTERLUDE]), JSON.stringify(interlude));
     check(`${shotPrefix} ten-hit interlude visibly shoves the rock forward`, (await snap()).scene.rockX > beforeInterlude.scene.rockX + 20);
     const transition = await page.evaluate(() => ({ sounds: boulderSounds.filter(s => s.beat === 'surge'),
-      phases: boulderTimeline.filter(s => ['surge', 'surge_hold', 'mash'].includes(s.beat)) }));
+      phases: boulderTimeline.filter(s => ['surge_pan', 'surge', 'surge_hold', 'surge_return', 'mash'].includes(s.beat)) }));
     const rumble = transition.sounds.find(s => s.name === 'rumble'), roar = transition.sounds.find(s => s.name === 'baron_roar');
     const speech = transition.phases.find(s => s.text?.includes('마지막 스퍼트다'));
     check(`${shotPrefix} interlude rumble then roar then speech precede mash`, rumble && roar && speech && rumble.at < roar.at && roar.at < speech.at
       && transition.phases.some(s => s.phase === 'mash' && s.at >= speech.at), JSON.stringify(transition));
+    if (bounded) {
+      const pan = transition.phases.find(s => s.beat === 'surge_pan'), surge = transition.phases.find(s => s.beat === 'surge');
+      const back = transition.phases.find(s => s.beat === 'surge_return'), mash = await snap();
+      check('ten-hit camera pans right before shove and roar, then returns before mash', pan && surge && back && roar
+        && surge.at - pan.at >= 1200 && roar.camera.x > beforeInterlude.camera.x + 200
+        && back.at >= speech.at && Math.abs(mash.camera.x - beforeInterlude.camera.x) < 20, JSON.stringify({ beforeInterlude, transition, mash }));
+      check('interlude rumble and roar have advancing audible playback handles', [rumble, roar].every(s => s?.audio?.playingSamples > 0
+        && s.audio.maxTime > 0 && s.audio.volume > 0), JSON.stringify(transition.sounds));
+    }
     check(`${shotPrefix} all ten timing stages precede mash`, (await snap()).push.stage === 10 && (await snap()).push.count === 0);
     await capture('mash-start');
     if (deliberate) {
@@ -247,6 +297,48 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));
   };
 
+  if (phase === 'audio-baseline') {
+    await begin('');
+    const audio = await page.evaluate(() => boulderSounds);
+    check('focused laser has real audible playback before rhythm', audio.some(s => s.name === 'laser_zap' && !s.phase
+      && s.audio?.playingSamples > 0 && s.audio.maxTime > 0 && s.audio.volume > 0), JSON.stringify(audio));
+    return;
+  }
+
+  if (phase === 'audio-cancel') {
+    for (const boundary of ['camera-lifecycle', 'surge-keyboard']) {
+      await begin('cancel-audio-');
+      await pushToLaunch(false, true);
+      if (boundary === 'camera-lifecycle') assert.ok(await until(() => game.castleBoulder?.beat === 'surge_pan' && game.castleBoulder.elapsed > 0.25, 3000));
+      else assert.ok(await until(() => game.castleBoulder?.beat === 'surge' && !game.zoom.tween, 3000));
+      const before = await snap();
+      check(`${boundary} cancellation targets the real interlude before mash`, before.scene.beat === (boundary === 'camera-lifecycle' ? 'surge_pan' : 'surge')
+        && before.scene.elapsed < 1.2 && before.push.phase === 'interlude' && before.push.count === 0, JSON.stringify(before));
+      await fixture('remember-cancelled-pan', 'Keep read-only references to production scene, controller and BGM element; never alter their state. Detect late async pan/phase or audio resurrection after cancellation.', () => {
+        window.cancelledBoulderController = game.castleBoulderPush;
+        window.cancelledBoulderScene = game.castleBoulder;
+        window.cancelledBoulderMusic = game.sound.bgm;
+      });
+      if (boundary === 'camera-lifecycle') {
+        await shot('cancel-surge-pan-before');
+        await fixture('mid-pan-title-lifecycle', 'Production toTitle() during an active camera/zoom tests lifecycle teardown, not user keyboard cancellation. Existing global Escape guard intentionally rejects input until zoom ends; that real input is tested separately.', () => game.toTitle());
+      } else await key('Escape');
+      assert.ok(await until(() => game.state === 'title' && !game.castleBoulderPush && !game.castleBoulder, 6000));
+      await page.waitForTimeout(2800);
+      check(`${boundary} leaves no scene, camera lock, music, dialogue or completed flag`, await page.evaluate(() => !game.flags.castle_boulder_done
+        && !game.dialogue.running && !game.castleBoulder && !game.castleBoulderPush && !game.camera.locked
+        && !['baron_intro', 'castle_battle'].includes(game.sound.bgmName) && cancelledBoulderMusic.paused));
+      await continueTitle();
+      check(`${boundary} Continue preserves unfinished party without stale controller resurrection`, await page.evaluate(() => game.mapId === 'gajaeman_castle_boulder'
+        && !game.flags.castle_boulder_done && game.party.join() === 'gyeongsub,ppaman' && cancelledBoulderController.settled
+        && cancelledBoulderController.phase === 'interlude' && cancelledBoulderController.count === 0
+        && game.castleBoulderPush !== cancelledBoulderController && game.castleBoulder !== cancelledBoulderScene));
+      if (boundary === 'surge-keyboard') await shot('cancel-surge-keyboard-continued');
+    }
+    check('no bounded cancellation scene or asset errors', errors.length === 0 && requiredFailures.length === 0, JSON.stringify({ errors, requiredFailures }));
+    return;
+  }
+
   if (phase === 'reveal') {
     await open({ qa: 'castle_boulder' });
     assert.ok(await until(() => window.game?.mapId === 'gajaeman_castle_boulder' && !!game.castleBoulder, 30000));
@@ -269,7 +361,7 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
       assert.ok(await until(() => game.state === 'title' && !game.castleBoulderPush && !game.castleBoulder, 6000));
       await page.waitForTimeout(900);
       check(`${boundary} cancellation clears scene without false completion`, await page.evaluate(() => !game.flags.castle_boulder_done
-        && !game.dialogue.running && !game.castleBoulder && !game.castleBoulderPush && !game.camera.locked && game.sound.bgmName !== 'baron_intro'));
+        && !game.dialogue.running && !game.castleBoulder && !game.castleBoulderPush && !game.camera.locked && !['baron_intro', 'castle_battle'].includes(game.sound.bgmName)));
       await shot(`cancel-${boundary}-title`);
       await continueTitle();
       check(`${boundary} continue preserves three-person unfinished state`, await page.evaluate(() => game.mapId === 'gajaeman_castle_boulder'
@@ -332,7 +424,7 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     await responsive('completed-wall-party');
   }
   else {
-    await begin(''); await pushToLaunch(true);
+    await begin(''); await pushToLaunch(!bounded);
     if (phase === 'feedback') {
       check('feedback capture leaves real unfinished timing state', (await snap()).push.stage === 1 && !(await snap()).flags.done);
       check('no feedback scene errors', errors.length === 0 && requiredFailures.length === 0, JSON.stringify({ errors, requiredFailures }));
@@ -348,15 +440,21 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     check('completion leaves solo player and eight visible waiting allies with real sheets', await page.evaluate(() => game.party.length === 0 && !game.castleBoulderPush && !game.castleBoulder
       && !game.camera.locked && game.entities.filter(e => /^boulder_/.test(e.id) && e.def.type === 'npc' && e.visible).length >= 8
       && game.entities.filter(e => /^boulder_/.test(e.id) && e.visible && e.sprite).every(e => !e.sprite.fallback)));
-    await responsive('completed-wall-party');
-    check('laser remains silent while roar rumble and crash cues play', await page.evaluate(() => !boulderSounds.some(s => s.name === 'laser_zap')
-      && ['rumble', 'baron_roar', 'furnace_blast', 'break1'].every(name => boulderSounds.some(s => s.method === 'sfx' && s.name === name))));
+    if (bounded) await shot('completed-staging');
+    else await responsive('completed-wall-party');
+    const audio = await page.evaluate(() => boulderSounds);
+    check('focused laser is audible but minigame lasers remain silent', audio.some(s => s.name === 'laser_zap' && !s.phase
+      && s.audio?.playingSamples > 0 && s.audio.maxTime > 0 && s.audio.volume > 0) && !audio.some(s => s.name === 'laser_zap' && s.phase), JSON.stringify(audio));
+    const laser = audio.filter(s => s.name === 'laser_zap');
+    check('every audible laser is camera-focused with visible emitter and rock contact', laser.length > 0 && laser.every(s => ['focus', 'talk'].includes(s.beat)
+      && s.focus && Object.values(s.focus).every(p => p.x >= 0 && p.x <= 480 && p.y >= 0 && p.y <= 360)), JSON.stringify(laser));
+    check('roar rumble and crash cues play', ['rumble', 'baron_roar', 'furnace_blast', 'break1'].every(name => audio.some(s => s.method === 'sfx' && s.name === name)));
     const timingSounds = await page.evaluate(() => boulderSounds.filter(sound => sound.method === 'sfx' && sound.beat === 'push').map(sound => sound.name));
     check('successful timing uses great_shine and never ember', timingSounds.includes('great_shine') && !timingSounds.includes('ember'), JSON.stringify(timingSounds));
     check('push music stops after the crash before completed field control', (await snap()).bgm === null
       && await page.evaluate(() => { const crash = boulderSounds.find(s => s.name === 'furnace_blast');
         return crash && boulderSounds.some(s => s.method === 'stopBgm' && s.at > crash.at); }));
-    if (phase === 'focus') {
+    if (['focus', 'audio-staging'].includes(phase)) {
       check('no focused scene errors', errors.length === 0 && requiredFailures.length === 0, JSON.stringify({ errors, requiredFailures }));
       return;
     }

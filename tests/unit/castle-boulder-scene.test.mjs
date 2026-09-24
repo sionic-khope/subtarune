@@ -5,6 +5,7 @@ import { CASTLE_BOULDER as C, BOULDER_ACTORS as A, CastleBoulderScene,
   finishCastleBoulder, restoreCastleBoulder, separateBoulderParty } from '../../src/scenes/castle-boulder.js';
 import { castle_boulder_intro, castle_boulder_left_block, castle_boulder_orb_enter, BOULDER_FINAL_SPURT } from '../../src/data/cutscenes/castle_boulder.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
+import { clearCastleBoulderPush } from '../../src/scenes/castle-boulder-push.js';
 
 const mapDef = JSON.parse(readFileSync(new URL('../../assets/maps/gajaeman_castle_boulder.json', import.meta.url), 'utf8'));
 function setup() {
@@ -143,8 +144,87 @@ test('test_boulder317_visual_lasers_continue_during_push_without_repeated_audio'
   scene.setBeat('push'); scene.update(0.7);
   assert.equal(scene.beams.length, 1);
   assert.equal(cues.includes('laser_zap'), false);
-  assert.equal(C.sounds.includes('laser_zap'), false);
+  assert.equal(C.sounds.includes('laser_zap'), true);
   assert.ok(scene.youngcle.y < scene.junhee.y - 80);
+});
+
+test('test_boulder319_focused_laser_has_sound_but_offscreen_and_minigame_shots_stay_silent', () => {
+  const { scene, cues } = setup();
+  scene.update(0.7);
+  assert.equal(cues.includes('laser_zap'), false);
+  scene.setBeat('focus'); scene.update(0.05);
+  assert.equal(cues.filter(key => key === 'laser_zap').length, 1);
+  scene.setBeat('holding'); scene.update(3);
+  scene.setBeat('push'); scene.update(3);
+  assert.equal(cues.filter(key => key === 'laser_zap').length, 1);
+  assert.ok(scene.beams.length > 0);
+});
+
+test('test_boulder319_reveal_uses_tension_then_timing_uses_from_now_on', () => {
+  const music = castle_boulder_intro.filter(node => node.bgm);
+  assert.deepEqual(music.map(node => node.bgm), ['baron_intro', 'castle_battle']);
+  const reveal = castle_boulder_intro.findIndex(node => node.boulderBeat === 'reveal');
+  const firstTalk = castle_boulder_intro.findIndex(node => node.text === '* 어 ㅎ2');
+  assert.ok(castle_boulder_intro.indexOf(music[0]) > reveal && castle_boulder_intro.indexOf(music[0]) < firstTalk);
+  const instruction = castle_boulder_intro.findIndex(node => node.text === '* 타이밍에 맞춰서 c를 눌러, 합 맞춰서 미는거야!');
+  assert.ok(castle_boulder_intro.indexOf(music[1]) > instruction);
+  const { game } = setup(); game.sound.bgmName = 'castle_battle';
+  finishCastleBoulder(game, true); assert.equal(game.sound.bgmName, null);
+});
+
+test('test_boulder319_spectators_wait_left_of_junhee_until_invited_to_push', () => {
+  const { game, scene } = setup();
+  const arrival = castle_boulder_intro.findIndex(node => node.fade === 'out');
+  castle_boulder_intro[arrival + 1].action(game);
+  for (const id of ['player', 'gyeongsub', 'ppaman', A.bidet, A.mario]) {
+    const actor = id === 'player' ? game.player : game.entities.find(e => e.id === id);
+    assert.ok(actor.x + actor.w <= scene.junhee.x - 90, `${id} must watch from behind, not stand beside Junhee`);
+  }
+  const invitation = castle_boulder_intro.findIndex(node => node.text === '* 다들 붙으시죠');
+  assert.ok(invitation < castle_boulder_intro.findIndex(node => node.boulderBeat === 'push'));
+});
+
+test('test_boulder319_tenth_hit_pans_to_nunu_before_shove_and_returns_before_mash', async () => {
+  const { game, scene } = setup();
+  game.map.pxW = 3584; game.map.pxH = 1536;
+  game.camera = { x: 1320, y: 440, locked: true };
+  game.zoomTo = (zoom, focus, duration, done) => { game.zoom = zoom; done(); };
+  scene.setBeat('push'); scene.stage(10); scene.update(0.1);
+  const battle = castle_boulder_intro.findIndex(node => node.bgm === 'castle_battle');
+  const minigame = castle_boulder_intro[battle + 1].action(game);
+  const interlude = game.castleBoulderPush.config.onTimingComplete();
+  assert.equal(scene.beat, 'surge_pan');
+  scene.update(0.7);
+  assert.ok(game.camera.x > 1320 && game.camera.x < 1860);
+  assert.equal(scene.rockX, 1840);
+  scene.update(0.7); await Promise.resolve();
+  assert.equal(scene.beat, 'surge'); assert.equal(game.camera.x, 1860);
+  scene.update(2.2); await Promise.resolve();
+  assert.equal(scene.beat, 'surge_hold'); assert.equal(scene.rockX, 1940);
+  assert.equal(game.textbox.node.text, BOULDER_FINAL_SPURT.text);
+  game.textbox.done(); await Promise.resolve();
+  assert.equal(scene.beat, 'surge_return');
+  scene.update(1.4); await interlude;
+  assert.equal(scene.beat, 'mash'); assert.equal(game.camera.x, 1320);
+  clearCastleBoulderPush(game); await minigame;
+});
+
+test('test_boulder319_cancelling_right_pan_cannot_move_camera_or_restart_mash', async () => {
+  const { game, scene } = setup();
+  game.map.pxW = 3584; game.map.pxH = 1536;
+  game.camera = { x: 1320, y: 440, locked: true };
+  game.zoomTo = (zoom, focus, duration, done) => done();
+  scene.setBeat('push'); scene.stage(10);
+  const battle = castle_boulder_intro.findIndex(node => node.bgm === 'castle_battle');
+  const minigame = castle_boulder_intro[battle + 1].action(game);
+  const interlude = game.castleBoulderPush.config.onTimingComplete();
+  scene.update(0.4);
+  finishCastleBoulder(game, true); clearCastleBoulderPush(game);
+  const x = game.camera.x;
+  await interlude; await minigame; scene.update(5);
+  assert.equal(scene.pan, null); assert.equal(game.camera.x, x);
+  assert.equal(scene.beat, 'surge_pan'); assert.equal(game.castleBoulderPush, null);
+  assert.equal(game.flags.castle_boulder_done, undefined);
 });
 
 test('test_boulder317_timing_completion_shoves_everyone_then_roars_and_cleans_owned_dialogue', async () => {
