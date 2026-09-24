@@ -2,11 +2,11 @@ import { SCREEN_W } from '../core/layout.js';
 import { FONT } from '../ui/font.js';
 
 /**
- * BUILD328 prophecy hall. Panels hang on a far wall (0.3× camera speed): each fades in right of centre when the
- * leader reaches its `at`, then drifts to the left side while the next one appears (~3s apart).
+ * BUILD328 prophecy hall. Panels hang on a far wall (0.18× camera speed): each fades in right of centre when the
+ * leader reaches its `at`, then drifts to the left side while the next one appears (~5s apart, BUILD331).
  */
 export const PROPHECY = Object.freeze({
-  map: 'gajaeman_castle_prophecy', fade: 1.2, parallax: 0.3, revealCenter: 320, bottom: 270,
+  map: 'gajaeman_castle_prophecy', fade: 1.2, parallax: 0.18, revealCenter: 320, bottom: 270,
   textGap: 8, textColor: '#b8c2ff', textShadow: '#05060f', leaderOffset: 228,
 });
 

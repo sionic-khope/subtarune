@@ -1,0 +1,5 @@
+A SEAMLESS TILEABLE top-down floor texture for a Deltarune-style 16-bit pixel-art RPG, filling the entire square canvas edge to edge (the left edge must continue into the right edge and the top edge into the bottom edge). No objects, no characters, no text, no border, no vignette, no perspective, flat orthographic top view.
+
+Material: a floor of polished SAPPHIRE crystal stone. Irregular faceted sapphire slabs and crystal chunks of different sizes fitted together with thin dark seams, each facet cut like a gemstone: deep royal blue and midnight navy (#050b2e to #1c3a9e) with sharp lighter facet planes (#2f5fd8, #4f86ff) and tiny crisp white-blue specular glints (#cfe8ff) on some facet edges. Scattered small LUMINOUS glowing crystal specks and thin glowing veins in cyan/ice blue (#6fe3ff) inside the stone, like glowing ore, softly lighting their neighbourhood. Glossy, precious, mysterious, dark overall — mostly deep navy with gem highlights, not bright.
+
+Style: crisp pixel art, stepped hard edges, limited palette of blues, same chunky logical pixel density as a 16-bit RPG (each logical pixel about 6x6 output pixels), no smooth gradients, no photorealism.

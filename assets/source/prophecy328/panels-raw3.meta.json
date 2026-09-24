@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/prophecy328/refs/panels-ref2.png"
+  ],
+  "elapsed_seconds": 45.6,
+  "usage": {
+    "input_tokens": 1331,
+    "output_tokens": 1372,
+    "total_tokens": 2703,
+    "input_tokens_details": {
+      "image_tokens": 416,
+      "text_tokens": 915
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790266590,
+  "outputs": [
+    {
+      "file": "assets/source/prophecy328/panels-raw3.png",
+      "bytes": 1818655,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

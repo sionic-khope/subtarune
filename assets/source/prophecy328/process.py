@@ -39,7 +39,7 @@ def shrink(im: np.ndarray, target_h: int) -> np.ndarray:
 
 
 def main() -> None:
-    sheet = key_out(np.array(Image.open(HERE / 'panels-raw.png').convert('RGBA')))
+    sheet = key_out(np.array(Image.open(HERE / 'panels-raw3.png').convert('RGBA')))
     outs = []
     for i in range(6):
         row, col = divmod(i, 3)

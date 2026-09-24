@@ -15,19 +15,22 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_prophecy'
-ROWS: Final = 14
-COLS: Final = 155
+ROWS: Final = 20
+COLS: Final = 242
 PATH_ROWS: Final = (10, 11)
-PATH_END: Final = 153
+PATH_END: Final = 241   # (PATH_END−1)×32 가 192의 배수 — 바닥 띠가 길 끝에서 딱 끝난다
+# BUILD331: 샘 방에서 올라온 흐름 그대로 — 아래에서 위로 올라갔다가 오른쪽으로 꺾는다
+STUB_COLS: Final = (1, 2)
+STUB_ROWS: Final = range(12, 20)
 FLOOR: Final = '▓'
-# walking speed 218.4px/s × 3s ≈ 655px between reveals
+# walking speed 218.4px/s × 5s ≈ 1092px between reveals (BUILD331 사용자 “5초에 하나씩”)
 FIRST_AT: Final = 400
-STEP: Final = 650
-PANELS: Final = [('prophecy328_1.png', 179, '인생의 시작'), ('prophecy328_2.png', 137, '실패와 고통'),
-                 ('prophecy328_3.png', 139, '성공의 갈망, 후회'), ('prophecy328_4.png', 169, '외딴섬'),
-                 ('prophecy328_5.png', 126, '다시 시작.'), ('prophecy328_6.png', 146, '끝')]
+STEP: Final = 1092
+PANELS: Final = [('prophecy328_1.png', 163, '인생의 시작'), ('prophecy328_2.png', 141, '실패와 고통'),
+                 ('prophecy328_3.png', 123, '성공의 갈망, 후회'), ('prophecy328_4.png', 184, '외딴섬'),
+                 ('prophecy328_5.png', 137, '다시 시작.'), ('prophecy328_6.png', 151, '끝')]
 PANEL_H: Final = 140
-DOOR_X: Final = 4700
+DOOR_X: Final = 7400
 DOOR_W, DOOR_H = 202, 264
 
 
@@ -38,7 +41,10 @@ def main() -> None:
         raise SystemExit(2)
     cells = [[' '] * COLS for _ in range(ROWS)]
     for row in PATH_ROWS:
-        for col in range(0, PATH_END):
+        for col in range(STUB_COLS[0], PATH_END):
+            cells[row][col] = FLOOR
+    for row in STUB_ROWS:
+        for col in STUB_COLS:
             cells[row][col] = FLOOR
     entities, prophecy = [], []
     # 그림은 소품이 아니라 장면(src/scenes/prophecy-hall.js)이 먼 벽처럼 반 속도로 그린다: at = 드러나는 주인공 x
@@ -53,13 +59,22 @@ def main() -> None:
                     ('prophecy_stand_ppaman', DOOR_X + 52)):
         entities.append({'type': 'prop', 'id': name, 'image': 'assets/tiles/castle306_floor.png',
                          'x': x, 'y': 322, 'w': 24, 'h': 16, 'solid': False, 'hidden': True})
-    entities.append({'type': 'trigger', 'id': 'prophecy_back', 'x': 0, 'y': 320, 'w': 10, 'h': 64,
+    # BUILD331 사파이어 바닥(아주 어둡게) + 길 위쪽 그림자
+    for x in range(STUB_COLS[0] * 32, PATH_END * 32, 192):
+        entities.append({'type': 'prop', 'id': f'prophecy_floor_{x}', 'image': 'assets/props/castle331_prophecy_strip.png',
+                         'x': x, 'y': PATH_ROWS[0] * 32, 'w': 192, 'h': 2, 'solid': False, 'sortY': -2})
+        entities.append({'type': 'prop', 'id': f'prophecy_shadow_{x}', 'image': 'assets/props/castle331_shadow_top_long.png',
+                         'x': x, 'y': PATH_ROWS[0] * 32, 'w': 192, 'h': 2, 'solid': False, 'sortY': -0.5})
+    for y in (STUB_ROWS[0] * 32, STUB_ROWS[0] * 32 + 192):
+        entities.append({'type': 'prop', 'id': f'prophecy_floor_stub_{y}', 'image': 'assets/props/castle331_prophecy_strip_v.png',
+                         'x': STUB_COLS[0] * 32, 'y': y, 'w': 64, 'h': 2, 'solid': False, 'sortY': -2})
+    entities.append({'type': 'trigger', 'id': 'prophecy_back', 'x': STUB_COLS[0] * 32, 'y': ROWS * 32 - 10, 'w': 64, 'h': 10,
                      'script': 'castle_spire_back'})
     data = {
         'id': MAP_ID, 'name': '가재맨성 예언의 회랑', 'stage': 'castle_prophecy_seen',
         'bgm': 'dark_place', 'bgmVolume': 0.5, 'followScreenY': 300, 'rows': [''.join(row) for row in cells],
         'preload': [f'assets/props/{image}' for image, _, _ in PANELS] + ['assets/props/prophecy328_door.png'],
-        'spawns': {'start': {'x': 48, 'y': 336, 'facing': 'right'},
+        'spawns': {'start': {'x': STUB_COLS[0] * 32 + 20, 'y': ROWS * 32 - 44, 'facing': 'up'},
                    'door': {'x': DOOR_X - 12, 'y': 336, 'facing': 'up'}},
         'meta': {'connected': True, 'prophecy': prophecy},
         'entities': entities,

@@ -11,16 +11,16 @@ test('test_prophecy_six_panels_reveal_about_three_seconds_apart_on_the_left_of_t
   assert.deepEqual(list.map(p => p.text), ['인생의 시작', '실패와 고통', '성공의 갈망, 후회', '외딴섬', '다시 시작.', '끝']);
   for (let i = 1; i < list.length; i++) {
     const seconds = (list[i].at - list[i - 1].at) / WALK;
-    assert.ok(seconds > 2.7 && seconds < 3.3, `gap ${i}: ${seconds}`);
+    assert.ok(seconds > 4.7 && seconds < 5.3, `gap ${i}: ${seconds}`);
   }
   const { panelRect } = await import('../../src/scenes/prophecy-hall.js');
   for (const p of list) {
     assert.ok(fs.existsSync(p.image));
-    // 드러날 때는 화면 오른쪽 가운데, 3초 뒤(다음 그림이 나올 때)에는 왼쪽 절반 안에 온전히 남는다
+    // 드러날 때는 화면 오른쪽 가운데, 5초 뒤(다음 그림이 나올 때)에는 왼쪽 절반 안에 온전히 남는다
     const camAt = seconds => p.at - 228 + seconds * WALK;
-    const now = panelRect(p, camAt(0)), later = panelRect(p, camAt(3));
+    const now = panelRect(p, camAt(0)), later = panelRect(p, camAt(5));
     assert.ok(now.x > 160 && now.x + now.w < 480, `${p.text} appears inside the view`);
-    assert.ok(later.x >= 0 && later.x + later.w <= 240, `${p.text} on the left half 3s later: ${later.x}`);
+    assert.ok(later.x >= 0 && later.x + later.w <= 240, `${p.text} on the left half 5s later: ${later.x}`);
     assert.ok(now.y - 20 > 40, 'label stays below the view top');
   }
 });
@@ -28,10 +28,20 @@ test('test_prophecy_six_panels_reveal_about_three_seconds_apart_on_the_left_of_t
 test('test_prophecy_path_is_narrow_and_ends_under_the_grand_door', async () => {
   const world = new TileMap(map);
   assert.equal(new Set(map.rows.join('').replace(/ /g, '')).size, 1);
-  assert.equal(map.rows.filter(row => row.includes('▓')).length, 2, 'two-tile path');
-  for (let x = 0; x <= map.spawns.door.x; x += 8) assert.equal(world.solidRect(x, 336, 24, 16), false);
+  // BUILD331: 아래에서 위로 올라갔다가(입구 2칸 폭) 오른쪽으로 꺾는 2칸 폭 길
+  for (let y = map.spawns.start.y; y >= 336; y -= 8) assert.equal(world.solidRect(map.spawns.start.x, y, 24, 16), false);
+  for (let x = map.spawns.start.x; x <= map.spawns.door.x; x += 8) assert.equal(world.solidRect(x, 336, 24, 16), false);
+  assert.equal(world.solidRect(map.spawns.start.x + 64, map.spawns.start.y, 24, 16), true, 'no shortcut to the right at the bottom');
+  assert.equal(map.spawns.start.facing, 'up');
   const door = map.entities.find(entity => entity.id === 'prophecy_door');
   assert.equal(door.script, 'castle_prophecy_door');
+  // 대문 앞에서 카메라가 문을 가운데 둘 수 있을 만큼 맵이 넓고, 그때 마지막 그림은 문과 겹치지 않는다
+  const doorCenter = door.ix + 101, world_w = map.rows[0].length * 32;
+  assert.ok(doorCenter + 240 <= world_w, 'camera can centre the door');
+  const { panelRect } = await import('../../src/scenes/prophecy-hall.js');
+  const last = map.meta.prophecy.at(-1), camX = map.spawns.door.x + 12 - 240;
+  const r = panelRect(last, camX), doorScreenX = door.ix - camX;
+  assert.ok(r.x + r.w <= doorScreenX, `last panel ends (${r.x + r.w}) before the door (${doorScreenX})`);
   assert.ok(door.x < map.spawns.door.x && door.x + door.w > map.spawns.door.x + 24);
   assert.equal(map.bgm, 'dark_place');
   assert.ok(fs.existsSync('assets/audio/bgm/dark_place.mp3'));

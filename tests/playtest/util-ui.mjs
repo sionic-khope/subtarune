@@ -9,7 +9,7 @@ await runScenario({ name: 'util-ui', launchOptions: { args: ['--autoplay-policy=
   if (sawLoading) { await page.waitForTimeout(300); await shot('01-boot-loading'); }
   check('boot loading screen shows while assets load', sawLoading);
   const progress = await page.evaluate(() => ({ ...game.bootLoad }));
-  check('progress has a map total', progress.total > 50, JSON.stringify(progress));
+  check('boot loads only the needed maps (first room / saved map and neighbours)', progress.total >= 1 && progress.total <= 20, JSON.stringify(progress));
   assert.ok(await until(() => game.bootLoad && !game.bootLoad.active, 240000), 'boot load finishes');
   await page.keyboard.press('KeyZ');
   check('keys during loading did not skip ahead; a key after loading starts the intro', await until(() => game.title.phase !== 'wait', 5000));
@@ -36,6 +36,9 @@ await runScenario({ name: 'util-ui', launchOptions: { args: ['--autoplay-policy=
   await page.keyboard.press('KeyC');
   assert.ok(await until(() => game.state === 'field' && !game.transitioning, 30000), 'QA jump to the selected point works');
   await until(() => !game.dialogue.running, 15000);
+  // 플레이 중 앞쪽 맵 미리 받기: 도착한 맵에서 문으로 이어진 맵이 대기열에 오르고 곧 준비된다
+  const ahead = await page.waitForFunction(() => (game.prefetchQueue || []).some(id => game.preparedMaps?.has(id)), null, { timeout: 20000, polling: 200 }).then(() => true, () => false);
+  check('maps ahead are prefetched during play', ahead, JSON.stringify(await page.evaluate(() => ({ map: game.mapId, queue: game.prefetchQueue, prepared: [...(game.preparedMaps || [])] }))));
   await page.waitForTimeout(500);
   await page.keyboard.press('Escape');
   assert.ok(await until(() => !!game.escConfirm, 3000), 'Esc opens the confirm');

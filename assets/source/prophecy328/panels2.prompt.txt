@@ -1,0 +1,16 @@
+Create a sheet of SIX separate "prophecy panel" images in the exact style of the Deltarune prophecy murals, arranged in EXACTLY 3 columns x 2 rows on a 1536x1024 canvas with invisible equal 512x512 cells. Solid pure #FF00FF magenta background everywhere between and around the panels. No text, no letters, no labels, no frames, no borders, no ground, no shadows, no grid lines.
+
+Reference image roles (one combined reference image, left to right):
+- Image1 (left, dark screenshot): STYLE reference only. Copy the prophecy look: flat, blocky, slightly skewed silhouettes filled with a glowing liquid marble texture of violet, lavender, periwinkle blue and white swirls, with a few solid near-black cut-out shapes inside (like the dark heart). Chunky low-resolution pixel blocks, soft pixel noise inside the fill, hard stepped edges. Ignore the text and the two kids.
+- Image2 (middle, small grey chibi pixel sprite with a very big round NOSE, round glasses, big messy dark hair, big head on a small body): IDENTITY reference for "Gajaeman". This is the in-game character and he MUST be recognisable: keep his chibi proportions (huge head, small body), his messy spiky hair mass, his round glasses, and above all his signature BIG bulbous round nose sticking out of the middle of the face — the nose must read clearly in the silhouette (a big round bump in profile, a big round shape seen from the front). Do not draw eyes or a mouth; the glasses may be two dark round cut-outs and the nose a lighter round form.
+- Image3 (right, pixel sprite of a boy with black hair, round glasses, white T-shirt, dark shorts): IDENTITY reference for "Hyungsub", used only in panel 5 as a small faceless silhouette.
+
+Every figure is a faceless prophecy silhouette (Gajaeman always with the chibi proportions and the big round nose from Image2) filled with the violet/blue marble texture, no skin colors, no realistic shading. Each panel's figure fills the central 70% of its cell and never touches the cell edges.
+
+Panels (row-major order):
+1. (row1 col1) "The beginning of life": Gajaeman sitting at a desk streaming a broadcast — a microphone on a stand in front of him, a monitor/webcam shape, one hand raised as if talking to viewers.
+2. (row1 col2) "Failure and pain": Gajaeman hunched and shrinking, glancing nervously sideways over his shoulder, arms pulled in, as if watching others' reactions timidly. A few small dark eye-like cut-outs float around him, watching.
+3. (row1 col3) "Craving success, regret": Gajaeman furious, standing tall, one arm stretched straight up reaching to the sky with an open clawing hand, the other fist clenched; jagged dark cracks burst from him.
+4. (row2 col1) "Lonely island": a small island with a single standing Gajaeman silhouette on it, seen from the side, watching several tiny boats with many small figures sailing away from the island across flat water.
+5. (row2 col2) "Starting again": a smaller faceless Hyungsub silhouette (boy with glasses shape and T-shirt) standing, and a larger Gajaeman silhouette gradually emerging and rising out of his body like a ghostly double, the two shapes merged at the boy's chest.
+6. (row2 col3) "The end": one huge explosion — a blocky radial burst with shattered fragments and debris flying outward, everything being destroyed; no figures remain, only the blast.

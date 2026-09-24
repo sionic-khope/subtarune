@@ -36,6 +36,22 @@ def main() -> None:
     for y in range(0, ROWS * 32, 192):
         entities.append({'type': 'prop', 'id': f'spire_floor_{y}', 'image': 'assets/tiles/castle327_aisle.png',
                          'x': 288, 'y': y, 'w': 192, 'h': 2, 'solid': False, 'sortY': -1})
+    # BUILD331 사파이어 바닥: 샘 방 한 장(통로 카펫과 같은 위상) + 벽 쪽 그림자 띠
+    entities.append({'type': 'prop', 'id': 'spire_room_floor', 'image': 'assets/props/castle331_spire_room.png',
+                     'x': 128, 'y': 128, 'w': 512, 'h': 2, 'solid': False, 'sortY': -2})
+    for y in list(range(0, 128, 192)) + list(range(576, ROWS * 32, 192)):
+        entities.append({'type': 'prop', 'id': f'spire_shadow_l_{y}', 'image': 'assets/props/castle331_shadow_left.png',
+                         'x': 288, 'y': y, 'w': 28, 'h': 2, 'solid': False, 'sortY': -0.5})
+        entities.append({'type': 'prop', 'id': f'spire_shadow_r_{y}', 'image': 'assets/props/castle331_shadow_right.png',
+                         'x': 452, 'y': y, 'w': 28, 'h': 2, 'solid': False, 'sortY': -0.5})
+    for y in (128, 320):
+        entities.append({'type': 'prop', 'id': f'spire_room_shadow_l_{y}', 'image': 'assets/props/castle331_shadow_left.png',
+                         'x': 128, 'y': y, 'w': 28, 'h': 2, 'solid': False, 'sortY': -0.5})
+        entities.append({'type': 'prop', 'id': f'spire_room_shadow_r_{y}', 'image': 'assets/props/castle331_shadow_right.png',
+                         'x': 612, 'y': y, 'w': 28, 'h': 2, 'solid': False, 'sortY': -0.5})
+    for x in (128, 480):
+        entities.append({'type': 'prop', 'id': f'spire_room_shadow_top_{x}', 'image': 'assets/props/castle331_shadow_top.png',
+                         'x': x, 'y': 128, 'w': 160, 'h': 2, 'solid': False, 'sortY': -0.5})
     for y in range(624, (ROWS - 3) * 32, 160):
         for side, x in (('left', 204), ('right', 524)):
             entities.append({'type': 'prop', 'id': f'spire_sconce_{side}_{y}', 'image': 'assets/props/castle321_sconce.png',

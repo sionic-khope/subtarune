@@ -981,7 +981,7 @@ class Game {
         onComplete: () => { this.setFlag(MAILLARD_SUNRISE.completionFlag); if (!this.ride) this.autosave(); },
       });
     };
-    const enter = () => { if (runEnter) this.runMapEnter(mapId); };
+    const enter = () => { this.prefetchAround?.(mapId); if (runEnter) this.runMapEnter(mapId); };
     if (instant) { go(); enter(); return; }
     this.transitioning = true;
     const early = !!MAPS[mapId].enter?.early;   // enter.early: 검은 화면이 걷히기 전에 시작 — 첫 노드로 카메라를 옮겨 두면 플레이어가 잠깐도 안 보인다(void11)
@@ -1775,26 +1775,73 @@ class Game {
     });
     ctx.textAlign = 'left';
   }
-  /** 부팅 때 전체 맵 에셋(맵 그림·타일·캐릭터 시트·전투 미리 준비)을 미리 받는다. 이미 받은 것은 캐시에서 건너뛴다. QA 주소(?qa=…)·자동화 브라우저는 생략하고 ?bootload=1 이면 강제로 켠다. */
-  async bootPreload() {
+  /** 미리 받기 사용 여부: QA 주소(?qa=…)·자동화 브라우저는 끄고 ?bootload=1 이면 켠다. */
+  get prefetchEnabled() {
+    if (typeof location === 'undefined' || typeof URLSearchParams === 'undefined') return false;
     const params = new URLSearchParams(location.search);
-    if (!params.has('bootload') && (location.search || navigator.webdriver)) return;
+    return params.has('bootload') || !(location.search || navigator.webdriver);
+  }
+  /** 이 맵에서 갈 수 있는 맵: 문(`to`)과 이 맵 스크립트의 {map} 이동. */
+  async mapNeighbors(mapId) {
+    const def = await this.mapAssets.definition(mapId).catch(() => null);
+    if (!def) return [];
+    const out = new Set();
+    const visit = node => {
+      if (Array.isArray(node)) { node.forEach(visit); return; }
+      if (!node || typeof node !== 'object') return;
+      if (typeof node.map === 'string') out.add(node.map);
+      if (node.parallel) visit(node.parallel);
+      if (node.async) visit(node.async);
+    };
+    for (const e of def.entities || []) {
+      if (typeof e.to === 'string') out.add(e.to);
+      for (const id of [e.script, e.lockedScript]) if (SCRIPTS[id]) visit(SCRIPTS[id]);
+    }
+    if (SCRIPTS[def.enter?.script]) visit(SCRIPTS[def.enter.script]);
+    out.delete(mapId);
+    return [...out];
+  }
+  /**
+   * 부팅(BUILD332 사용자 “필요한 맵만 받고 앞쪽 맵은 플레이 중에”): 첫 방·세이브가 있는 맵과 그 옆 맵만 받는 동안
+   * “섭타룬을 로딩하고있습니다.” + 진행 막대. 나머지는 플레이 중 prefetchAround 가 앞쪽부터 받는다.
+   */
+  async bootPreload() {
+    if (!this.prefetchEnabled) return;
     const load = this.bootLoad = { active: true, done: 0, total: 1 };
     try {
-      const response = await fetch(`assets/maps/index.json?v=${BUILD}`);
-      const ids = response.ok ? (await response.json()).maps || [] : [];
-      load.total = ids.length || 1;
-      let next = 0;
-      const worker = async () => {
-        while (next < ids.length) {
-          const id = ids[next++];
-          try { await this.prepareMap(id); } catch (error) { console.warn('[boot] 맵 준비 실패', id, error); }
-          load.done++;
-        }
-      };
-      await Promise.all([worker(), worker(), worker(), worker()]);
-    } catch (error) { console.warn('[boot] 에셋 목록 실패', error); }
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(Game.SAVE_KEY))?.map || null; } catch {}
+      const first = [...new Set(['room', saved].filter(Boolean))];
+      const ids = new Set(first);
+      for (const id of first) for (const next of await this.mapNeighbors(id)) ids.add(next);
+      load.total = ids.size;
+      await Promise.all([...ids].map(id => this.prepareMap(id).catch(error => console.warn('[boot] 맵 준비 실패', id, error)).finally(() => { load.done++; })));
+      if (saved) this.prefetchAround(saved);
+    } catch (error) { console.warn('[boot] 로딩 실패', error); }
     finally { load.done = load.total; load.active = false; }
+  }
+  /** 도착한 맵에서 문으로 depth 칸 안의 맵을 가까운 것부터 하나씩 받는다. 전환·맵 준비 중에는 쉬었다가 잇는다. */
+  prefetchAround(mapId, depth = 2) {
+    if (!this.prefetchEnabled || !mapId) return;
+    const token = this.prefetchToken = {};
+    void (async () => {
+      const seen = new Set([mapId]);
+      let layer = [mapId];
+      const queue = [];
+      for (let d = 0; d < depth && layer.length; d++) {
+        const next = [];
+        for (const id of layer) for (const n of await this.mapNeighbors(id)) if (!seen.has(n)) { seen.add(n); next.push(n); queue.push(n); }
+        layer = next;
+      }
+      this.prefetchQueue = queue;
+      for (const id of queue) {
+        if (this.prefetchToken !== token) return;
+        while (this.loadingMap || this.transitioning) await new Promise(r => setTimeout(r, 200));
+        if (this.prefetchToken !== token) return;
+        if (this.preparedMaps?.has(id)) continue;
+        try { await this.prepareMap(id); } catch (error) { console.warn('[prefetch] 맵 준비 실패', id, error); }
+      }
+    })();
   }
 
   drawMenu(ctx) {

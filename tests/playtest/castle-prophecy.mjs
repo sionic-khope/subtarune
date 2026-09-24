@@ -14,6 +14,10 @@ await runScenario({ name: 'castle-prophecy', launchOptions: { args: ['--autoplay
   assert.ok(await until(() => !game.transitioning && game.fade.alpha < 0.05, 10000));
   await page.waitForTimeout(600); await shot('00-start');
   check('dark place plays', await page.evaluate(() => game.sound.bgmName === 'dark_place'));
+  // BUILD331: 입구는 아래 → 위로 올라간 뒤 오른쪽
+  await page.keyboard.down('ArrowUp');
+  try { assert.ok(await until(() => game.player.y <= 340, 8000), 'walk up the entry'); } finally { await page.keyboard.up('ArrowUp'); }
+  await shot('00b-turn');
   const reveals = [];
   await page.keyboard.down('ArrowRight');
   const t0 = Date.now();
@@ -26,10 +30,10 @@ await runScenario({ name: 'castle-prophecy', launchOptions: { args: ['--autoplay
       const r = await page.evaluate(async n => { const { panelRect } = await import('/src/scenes/prophecy-hall.js'); return panelRect(game.prophecyHall.panels[n], game.camera.x); }, i);
       check(`panel ${i + 1} fully in view after fading in`, r.x >= 0 && r.x + r.w <= 480, JSON.stringify(r));
     }
-    assert.ok(await until(() => game.player.x > 4600, 12000));
+    assert.ok(await until(() => game.player.x > 7300, 15000));
   } finally { await page.keyboard.up('ArrowRight'); }
   const gaps = reveals.slice(1).map((t, i) => +(t - reveals[i]).toFixed(2));
-  check('panels about 3s apart', gaps.every(g => g > 2.4 && g < 3.8), JSON.stringify(gaps));
+  check('panels about 5s apart', gaps.every(g => g > 4.4 && g < 5.8), JSON.stringify(gaps));
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp');
   await shot('door-before');
   await key('KeyC');

@@ -10,14 +10,16 @@ const stand = id => [
 ];
 const faceAll = dir => PARTY.map(id => ({ face: id, dir }));
 
-export const PROPHECY_DOOR = Object.freeze({ flag: 'castle_prophecy_door_done', camera: [146.375, 5.75] });
+// camera: 문 전체를 먼저 보여 주는 구도 / talk: 대사 동안 세 사람이 대화창 위(화면 230px 안)에 보이는 구도
+export const PROPHECY_DOOR = Object.freeze({ flag: 'castle_prophecy_door_done', camera: [230.75, 5.75], talk: [230.75, 8.6] });
 
 export const castle_prophecy_door = Object.assign([
   { if: flags => !!flags[PROPHECY_DOOR.flag], goto: 'end' },
   close,
   { parallel: [stand('player'), [{ wait: 0.2 }, ...stand('gyeongsub')], [{ wait: 0.35 }, ...stand('ppaman')]] },
   ...faceAll('up'),
-  { camera: PROPHECY_DOOR.camera, duration: 1.4 }, { wait: 0.6 },
+  { camera: PROPHECY_DOOR.camera, duration: 1.4 }, { wait: 0.8 },
+  { camera: PROPHECY_DOOR.talk, duration: 0.8 }, { wait: 0.2 },
   P('...'),
   { face: 'ppaman', dir: 'left' },
   P('요플래형, 경섭이형'),
