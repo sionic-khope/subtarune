@@ -72,6 +72,7 @@ import { updateCastleBoulderPush, drawCastleBoulderPush, clearCastleBoulderPush 
 import { CastleDarkPath } from './scenes/castle-dark-path.js';
 import { CastleDarkChase } from './scenes/castle-dark-chase.js';
 import { CastleCathedral, finishCastleCathedral } from './scenes/castle-cathedral.js';
+import { CastleCathedral2 } from './scenes/castle-cathedral2.js';
 import { updateCastleGate, drawCastleGate, finishCastleGate } from './scenes/castle-gate.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
@@ -941,7 +942,7 @@ class Game {
       this.spawnParty();
       this.castleDarkPath = def.meta?.darkPath ? new CastleDarkPath(this) : null;
       this.castleDarkChase = def.meta?.darkChase && !this.has('castle_dark_chase_done') ? new CastleDarkChase(this) : null;
-      this.castleCathedral = def.meta?.cathedralClimb ? new CastleCathedral(this) : null;
+      this.castleCathedral = def.meta?.cathedralClimb?.part === 2 ? new CastleCathedral2(this) : def.meta?.cathedralClimb ? new CastleCathedral(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,

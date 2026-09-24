@@ -57,7 +57,7 @@ await runScenario({ name: 'castle-cathedral-climb', launchOptions: { args: ['--a
   assert.ok(await until(() => game.castleCathedral?.beat === 'arrive', 8000)); await page.waitForTimeout(700); await shot('09a-arrive-mid');
   assert.ok(await until(() => game.castleCathedral?.beat === 'forge', 8000)); await page.waitForTimeout(1600); await shot('09-forge-mid');
   check('wind loop is playing during the gust', await page.evaluate(() => { const h = game.castleCathedral?.windHandle; return !!h && !h.paused && h.volume > 0.2; }));
-  assert.ok(await until(() => game.castleCathedral?.beat === 'idle' && game.camera.y < 60, 6000)); await shot('10-forge-done'); obs.beats.forge = await snap();
+  assert.ok(await until(() => game.castleCathedral?.beat === 'idle' && game.camera.y < 200, 6000)); await shot('10-forge-done'); obs.beats.forge = await snap();
   assert.ok(await until(() => game.state === 'field' && !game.dialogue.running && game.castleCathedral?.climbing, 10000));
   await page.waitForTimeout(300); await shot('11-climb-start'); obs.beats.climb = await snap();
   check('climb arms heart, drag and the specified track', obs.beats.climb.scene.heart && obs.beats.climb.bgm === 'cathedral_climb', JSON.stringify(obs.beats.climb));

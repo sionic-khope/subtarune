@@ -13,7 +13,7 @@ test('test_castle321_closed_refuge_gate_connects_by_confirm_to_a_safe_landing', 
   assert.equal(door.interact, true);
   const map = readMap(id), world = new TileMap(map), spawn = map.spawns[door.spawn];
   assert.equal(world.solidRect(spawn.x, spawn.y, 24, 16), false);
-  const back = map.entities.find(entity => entity.type === 'door');
+  const back = map.entities.find(entity => entity.id === 'cathedral_return');
   assert.equal(back.interact, false);
   assert.equal(back.to, refuge.id);
   assert.equal(back.y + back.h, world.pxH);
@@ -25,12 +25,13 @@ test('test_castle321_closed_refuge_gate_connects_by_confirm_to_a_safe_landing', 
 test('test_castle321_all_three_lanes_reach_the_visible_north_passage_without_a_dummy_exit', () => {
   const map = readMap(id), world = new TileMap(map);
   for (const x of [308, 372, 436]) {
-    for (let y = 64; y <= 7552; y += 8) assert.equal(world.solidRect(x, y, 24, 16), false);
-    assert.equal(world.solidRect(x, 63, 24, 16), true);
+    for (let y = 0; y <= 7552; y += 8) assert.equal(world.solidRect(x, y, 24, 16), false);
   }
   assert.equal(world.solidRect(280, 4000, 24, 16), true);
   assert.equal(world.solidRect(472, 4000, 24, 16), true);
-  assert.equal(map.entities.some(entity => entity.type === 'door' && entity.y < 7552), false);
+  // BUILD325: 북쪽 끝은 맵 가장자리의 밟는 문으로 둘째 회랑에 이어진다(가짜 중간 출구는 없다)
+  const north = map.entities.filter(entity => entity.type === 'door' && entity.y < 7552);
+  assert.deepEqual(north.map(door => [door.to, door.y, door.interact]), [['gajaeman_castle_cathedral2', 0, false]]);
   // BUILD323: 입장 연출은 도착 스크립트로(사용자 요청). 회랑 자체에 가짜 출구는 여전히 없다
   assert.deepEqual(map.enter, { script: 'castle_cathedral_intro' });
   assert.equal(map.bgm, null);
@@ -58,8 +59,7 @@ test('test_castle321_north_stop_keeps_the_leader_visible_and_stairs_leave_rear_p
   camera.target = { x: 372, y: 64, w: 24, h: 16 };
   camera.snap();
   assert.ok(camera.target.y + 16 - 64 - camera.y >= 0);
-  assert.equal(map.rows[0].trim(), '');
-  assert.equal(map.rows[1].trim(), '');
+  assert.ok(map.rows[0].includes('░') && map.rows[1].includes('░'), 'aisle reaches the north edge');
   assert.equal(map.followScreenY, 176);
 });
 

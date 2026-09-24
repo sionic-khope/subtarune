@@ -85,3 +85,4 @@ export function harnessResultErrors(detail) {
 }
 BASE_URL_SCENARIOS.add('castle-cathedral-climb');
 BASE_URL_SCENARIOS.add('castle-refuge-arrival');
+BASE_URL_SCENARIOS.add('castle-cathedral2');

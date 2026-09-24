@@ -31,7 +31,8 @@ def main() -> None:
         print('Unknown argument. Use --help.', file=sys.stderr)
         raise SystemExit(2)
     cells = [[' '] * 24 for _ in range(251)]
-    for row in range(2, 240):
+    # BUILD325: the aisle now runs to the north edge and continues into the second hall
+    for row in range(0, 240):
         cells[row][8] = '╞'
         cells[row][15] = '╡'
         for col in range(9, 15):
@@ -73,6 +74,8 @@ def main() -> None:
     entities.append({'type': 'npc', 'id': 'cathedral_gajaeman', 'sprite': 'gajaeman_shadow',
                      'x': 360, 'y': 7584, 'facing': 'down', 'solid': False, 'wander': 0,
                      'hidden': True, 'visualScale': 1.89})
+    entities.append({'type': 'door', 'id': 'cathedral_to_hall2', 'x': 288, 'y': 0, 'w': 192, 'h': 10,
+                     'to': 'gajaeman_castle_cathedral2', 'spawn': 'start', 'interact': False, 'sfx': False})
     entities.append({'type': 'door', 'id': 'cathedral_return',
                      'x': 352, 'y': 8022, 'w': 64, 'h': 10,
                      'to': 'gajaeman_castle_dark_refuge', 'spawn': 'from_cathedral',

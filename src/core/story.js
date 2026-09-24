@@ -52,6 +52,7 @@ export function storyBgm(mapId, flags) {
   if (mapId === 'gajaeman_castle_dark_arrival') return flags.castle_dark_chase_seen && !flags.castle_dark_chase_done ? 'baron_intro' : 'castle_dark_path';
   if (mapId === 'gajaeman_castle_dark_refuge') return 'castle_dark_path';
   if (mapId === 'gajaeman_castle_cathedral' && flags.castle_cathedral_climb) return 'cathedral_climb';
+  if (mapId === 'gajaeman_castle_cathedral2') return 'cathedral_climb';
   if (mapId === 'gajaeman_castle_dark_path' && flags.castle_dark_path_seen) return 'castle_dark_path';
   if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
@@ -770,3 +771,9 @@ for (const [id, spawn, stage, desc] of [
   ['castle_cathedral_climb', 'climb', 'castle_cathedral_climb', '검은 대성당 · 바람 속 검 피하며 오르기'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_cathedral', spawn, stage,
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });
+for (const [id, spawn, extra, desc] of [
+  ['castle_cathedral2', 'start', {}, '대성당 둘째 회랑 · 입구(중간에 검 아홉 자루 대치)'],
+  ['castle_cathedral2_rescue', 'rescue', {}, '대성당 둘째 회랑 · 중간 대치 직전'],
+  ['castle_cathedral2_support', 'rescue', { castle_cathedral_rescue_done: true }, '대성당 둘째 회랑 · 영클 레이저 지원·쥰희 합류 후'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_cathedral2', spawn, stage: 'castle_cathedral_climb',
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, ...extra } });

@@ -4,6 +4,8 @@ import { CATHEDRAL } from '../../scenes/castle-cathedral.js';
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const A = text => ({ speaker: '가재맨', voice: 'gajaeman_shadow', text: `* ${text}` });
+const J = text => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: `* ${text}` });
+const Y = text => ({ speaker: '영클', portrait: 'youngcle_tv_smirk', voice: 'youngcle', text: `* ${text}` });
 const G = CATHEDRAL.actor;
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const close = { action: game => game.textbox.close() };
@@ -56,7 +58,7 @@ export const castle_cathedral_intro = Object.assign([
   { wait: 0.5 },
   P('으윽..'),
   K('어떻게든 뚫고가야해'), close,
-  { camera: [11.5, 4], duration: 1.6 },
+  { camera: [11.5, 9], duration: 1.6 },
   beat('arrive'),
   { parallel: [waitBeat, { darkSmoke: { mode: 'cloak', from: G, duration: CATHEDRAL.duration.arrive,
     veil: 0, behindActors: true, aura: { at: G, colors: ['#090711', '#3e245a'] } } }] },
@@ -64,5 +66,31 @@ export const castle_cathedral_intro = Object.assign([
   { action: game => game.castleCathedral?.panToPlayer(1.1) },
   { action: game => { game.castleCathedral?.setWind(0.75); game.castleCathedral?.start(); } },
   { stage: CATHEDRAL.stage },
+  { label: 'end' }, { end: true },
+], { silent: true });
+
+const stand2 = id => [
+  { move: id, rel: `cath2_mid_${id}`, at: 'bottom', by: [0, 0], axis: 'x', facing: 'up', speed: 70 },
+  { move: id, rel: `cath2_mid_${id}`, at: 'bottom', by: [0, 0], axis: 'y', facing: 'up', speed: 70 },
+];
+
+// BUILD325 사용자 원문(2026-09-24): 둘째 회랑 중간의 검 아홉 자루 대치와 영클·쥰희 지원.
+export const castle_cathedral_rescue = Object.assign([
+  { if: flags => !!flags.castle_cathedral_rescue_done, goto: 'end' },
+  close,
+  { parallel: [stand2('player'), [{ wait: 0.2 }, ...stand2('gyeongsub')], [{ wait: 0.35 }, ...stand2('ppaman')]] },
+  ...PARTY.map(id => ({ face: id, dir: 'up' })),
+  { camera: [11.5, 149.5], duration: 1.0 },
+  beat('swarm'), waitBeat, { wait: 0.8 },
+  { camera: [11.5, 155], duration: 1.0 }, { wait: 0.4 },
+  P('으...윽 이런..!'), K('아 안돼..'), close,
+  { camera: [11.5, 151.5], duration: 0.8 },
+  beat('gather'), waitBeat,
+  beat('rescue'), waitBeat,
+  { camera: [11.5, 154.5], duration: 0.9 },
+  all('!'),
+  J('어서 가자!!'), Y('후후후 내 레이저로 지원해드리겠..슴 ;;'), close,
+  { set: { castle_cathedral_rescue_done: true } },
+  { action: game => game.castleCathedral?.finishRescue() },
   { label: 'end' }, { end: true },
 ], { silent: true });
