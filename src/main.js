@@ -923,7 +923,7 @@ class Game {
       this.entities.push(this.player);
       this.spawnParty();
       this.castleDarkPath = def.meta?.darkPath ? new CastleDarkPath(this) : null;
-      this.castleDarkChase = def.meta?.darkChase ? new CastleDarkChase(this) : null;
+      this.castleDarkChase = def.meta?.darkChase && !this.has('castle_dark_chase_done') ? new CastleDarkChase(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
@@ -969,6 +969,8 @@ class Game {
   /** 맵 JSON `enter: { script, flag?, early? }` — 도착 직후 스크립트 1회. flag 가 있으면 그 플래그로 영구 1회(스크립트 시작 때 섬 — 세이브는 컷신 중엔 안 되므로, 중간에 끄면 이어하기 때 처음부터) */
   runMapEnter(mapId = this.mapId) {
     if (this.dialogue.running) return;
+    // Escape is durable before dialogue locks autosaving; an interrupted arrival must stay safe.
+    if (mapId === 'gajaeman_castle_dark_refuge') this.setFlag('castle_dark_chase_done');
     if (mapId === 'jjajang_sakura6') restoreChoimisChaseRaft(this);
     if (mapId === 'maillard_captain' && this.has('captain_mankatsuki_defeated') && !this.has('captain_aftermath_done')) {
       this.runScript('captain_aftermath');

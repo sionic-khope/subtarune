@@ -48,7 +48,7 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
-  if (mapId === 'gajaeman_castle_dark_arrival') return flags.castle_dark_chase_seen ? 'baron_intro' : 'castle_dark_path';
+  if (mapId === 'gajaeman_castle_dark_arrival') return flags.castle_dark_chase_seen && !flags.castle_dark_chase_done ? 'baron_intro' : 'castle_dark_path';
   if (mapId === 'gajaeman_castle_dark_refuge') return 'castle_dark_path';
   if (mapId === 'gajaeman_castle_dark_path' && flags.castle_dark_path_seen) return 'castle_dark_path';
   if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
@@ -94,6 +94,7 @@ export function restoreChoimisChaseRaft(game) {
 
 /** 납치 추격 중에는 문으로 우회하거나 직전 구역으로 돌아갈 수 없다. */
 export function storyExitScript(mapId, destination, flags) {
+  if (mapId === 'gajaeman_castle_dark_refuge' && destination === 'gajaeman_castle_dark_arrival' && flags.castle_dark_chase_done) return 'castle_dark_refuge_locked';
   if (!flags.choimis_rescued && flags.captain_attack_done && isShipPursuitMap(mapId) && SHIP_ASSAULT.pursuit[mapId] !== destination) return 'ship_pursuit_backtrack';
   if (!flags.obj4_abduction_done || flags.obj5_maillard_done) return undefined;
   if (Object.hasOwn(PURSUIT_EXITS, mapId) && PURSUIT_EXITS[mapId] !== destination) return 'chase_route_block';

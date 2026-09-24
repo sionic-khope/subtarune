@@ -59,6 +59,12 @@ await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autopla
   await page.setViewportSize({ width: 1280, height: 900 });
   await bindSources();
   await open({ qa: 'castle_dark_refuge' });
+  assert.ok(await until(() => window.game?.mapId === 'gajaeman_castle_dark_refuge' && !game.transitioning, 30000));
+  for (const text of ['* 와 겨우 나왔네요 ㅈ될뻔', '* 후.. 저 앞에 문이 있네', '* 얼른 가보죠']) {
+    assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 10000));
+    check('refuge arrival dialogue precedes cathedral gate traversal', await page.evaluate(expected => game.textbox.node.text === expected, text), text);
+    await key('KeyC');
+  }
   assert.ok(await ready());
   await fixture('read-only-frame-observer', 'Wrap completed production draws to record actual positions, fade, camera, HP and dialogue. No movement, clocks, input or story flags are injected.', () => {
     const q = window.__cathedralQA = { samples: [] }, draw = game.draw.bind(game);

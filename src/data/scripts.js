@@ -69,7 +69,7 @@ import { castle_lobby_left_enter, castle_regret_sign, castle_regret_enter,
   castle_regret_stele4, castle_regret_stele5, castle_regret_stele6 } from './cutscenes/castle_regret.js';
 import { castle_boulder_intro, castle_boulder_left_block, castle_boulder_waiting, castle_boulder_orb_enter } from './cutscenes/castle_boulder.js';
 import { castle_gate_reunion, castle_gate_enter, castle_dark_path_intro } from './cutscenes/castle_gate.js';
-import { castle_dark_chase_intro, castle_dark_chase_finish } from './cutscenes/castle_dark_chase.js';
+import { castle_dark_chase_intro, castle_dark_chase_finish, castle_dark_refuge_locked } from './cutscenes/castle_dark_chase.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
 import { torii_janitor } from './cutscenes/jjajang_torii.js';
@@ -185,7 +185,7 @@ export const SCRIPTS = {
   castle_boulder_intro, castle_boulder_back: castle_boulder_left_block,
   castle_boulder_left_block, castle_boulder_waiting, castle_boulder_orb_enter,
   castle_gate_reunion, castle_gate_enter, castle_dark_path_intro,
-  castle_dark_chase_intro, castle_dark_chase_finish,
+  castle_dark_chase_intro, castle_dark_chase_finish, castle_dark_refuge_locked,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,

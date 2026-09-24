@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { runScenario } from './lib/harness.mjs';
 
-await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
+await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--disable-gpu'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const mode = process.env.QA_CHASE_MODE || 'main';
   const width = Number(process.env.QA_WIDTH || 1280);
   await page.setViewportSize({ width, height: 900 });
@@ -13,6 +13,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   const state = () => page.evaluate(() => ({ map: game.mapId, state: game.state, xy: [game.player.x, game.player.y],
     party: game.party, hp: ['hyungsub', ...game.party].map(id => [id, game.hpOf(id), game.maxHpOf(id)]),
     inventory: game.inventory, seen: !!game.flags.castle_dark_chase_seen, done: !!game.flags.castle_dark_chase_done,
+    refugeDialogueDone: !!game.flags.castle_dark_refuge_dialogue_done,
     chase: game.castleDarkChase?.snapshot, dark: !!game.castleDarkPath, pulses: game.castleDarkPath?.pulses.length ?? 0,
     locked: game.camera.locked, zoom: game.zoom.s, dialogue: game.dialogue.running,
     bgm: game.sound.bgmName, clock: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused,
@@ -22,7 +23,8 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     try { assert.ok(await until(predicate, timeout), label); }
     finally { await page.keyboard.up(code); }
   };
-  const observe = () => fixture('read-only-scene-observer', 'Wrap production draw, sound and textbox entry to record real phase/position/audio handles. No flags, position, clocks or inputs are changed.', () => {
+  const observe = () => fixture('read-only-scene-observer', 'Wrap production draw, sound and textbox entry to record real phase/position/audio handles. No flags, position, clocks or inputs are changed.', async () => {
+    const { CHAR_SCALE } = await import('./src/world/world.js');
     const q = window.__chaseQA = { samples: [], texts: [], sounds: [], audio: [], radii: [] };
     const sfx = game.sound.sfx.bind(game.sound), draw = game.draw.bind(game), show = game.textbox.show.bind(game.textbox);
     game.textbox.show = (...args) => { q.texts.push({ at: performance.now(), text: args[0]?.text }); return show(...args); };
@@ -36,6 +38,10 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
       const result = draw(...args);
       if (!q.samples.length || performance.now() - q.samples.at(-1).at > 70) {
         const c = game.castleDarkChase;
+        const z = game.zoom, focus = z.fy - game.camera.y;
+        const amount = z.smax > 1 ? Math.min(1, (z.s - 1) / (z.smax - 1)) : 1;
+        const center = focus + (180 - focus) * amount;
+        const project = y => z.s > 1.0001 ? center + (y - game.camera.y - focus) * z.s : (y - game.camera.y - 180) * z.s + 180;
         q.samples.push({ at: performance.now(), state: game.state, map: game.mapId, xy: [game.player?.x, game.player?.y],
           phase: c?.phase, monster: c ? [c.x, c.y] : null, monsterInWall: c ? game.map.tileAt(Math.floor(c.x / 32), Math.floor(c.y / 32)).solid : null,
           camera: [game.camera.x, game.camera.y], separation: c ? Math.hypot(c.x - game.player.x - game.player.w / 2, c.y - game.player.y - game.player.h / 2) : null,
@@ -45,6 +51,8 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
           pulses: game.castleDarkPath?.pulses.length ?? 0, zoom: game.zoom.s,
           bgm: game.sound.bgmName, clock: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused,
           facing: [game.player, ...game.entities.filter(e => e.def?.type === 'follower')].map(e => e?.facing),
+          actors: [game.player, ...game.entities.filter(e => e.def?.type === 'follower')].map(e => ({ id: e.id, x: e.x, y: e.y, moving: !!e.moving,
+            top: project(e.y + e.h - Math.round((e.sprite?.fh || 0) / (e.sprite?.px || 1) * CHAR_SCALE * (e.def.visualScale || 1))), bottom: project(e.y + e.h) })),
           emotes: [game.player, ...game.entities.filter(e => e.def?.type === 'follower')].map(e => e?.emote?.kind),
           audio: q.audio.map(({ name, handle: a }) => ({ name, time: a.currentTime, paused: a.paused, ended: a.ended, source: a.currentSrc, ready: a.readyState })) });
       }
@@ -94,14 +102,125 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     });
     check(`${label} pulses never reveal outside real floor`, observed.tested > 1000 && observed.lit === 0, JSON.stringify(observed));
   };
-  for (const file of ['src/scenes/castle-dark-chase.js', 'src/data/cutscenes/castle_dark_chase.js', 'src/scenes/castle-dark-path.js', 'assets/maps/gajaeman_castle_dark_arrival.json', 'assets/maps/gajaeman_castle_dark_refuge.json']) {
+  const refugeLines = ['* 와 겨우 나왔네요 ㅈ될뻔', '* 후.. 저 앞에 문이 있네', '* 얼른 가보죠'];
+  const readRefugeLines = async (capture = false) => {
+    for (let index = 0; index < refugeLines.length; index++) {
+      assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 10000), `refuge line ${index + 1} appears`);
+      const node = await page.evaluate(() => ({ text: game.textbox.node.text, speaker: game.textbox.node.speaker, portrait: game.textbox.node.portrait }));
+      const portrait = index === 1 ? 'gyeongsub' : 'ppaman', speaker = index === 1 ? '경섭' : '억빠맨';
+      check(`refuge line ${index + 1} exact speaker text and portrait`, node.text === refugeLines[index] && node.speaker === speaker && node.portrait === portrait, JSON.stringify(node));
+      check(`refuge line ${index + 1} already safe but not prematurely completed`, (await state()).done && !(await state()).refugeDialogueDone && !(await state()).chase && !(await state()).dark && (await state()).bgm !== 'baron_intro');
+      if (capture) {
+        await shot(`refuge-line-${index + 1}-1280`);
+        const framing = await page.evaluate(async () => {
+          const { CHAR_SCALE } = await import('./src/world/world.js');
+          const z = game.zoom, focus = z.fy - game.camera.y;
+          const amount = z.smax > 1 ? Math.min(1, (z.s - 1) / (z.smax - 1)) : 1;
+          const center = focus + (180 - focus) * amount;
+          const project = y => z.s > 1.0001 ? center + (y - game.camera.y - focus) * z.s : (y - game.camera.y - 180) * z.s + 180;
+          return [game.player, ...game.entities.filter(e => e.def?.type === 'follower')].map(e => ({ id: e.id,
+            top: project(e.y + e.h - Math.round(e.sprite.fh / e.sprite.px * CHAR_SCALE * (e.def.visualScale || 1))),
+            bottom: project(e.y + e.h), fallback: !!e.sprite.fallback }));
+        });
+        check(`refuge line ${index + 1} shows all three decoded party sprites above textbox`, framing.length === 3 && framing.every(e => e.top >= -1 && e.bottom <= 230 && !e.fallback), JSON.stringify(framing));
+        if (index === 0) {
+          check('first line stays at refuge entrance before walking', await page.evaluate(() => Math.abs(game.player.x - 372) < 1 && Math.abs(game.player.y - 560) < 1 && game.zoom.s > 1 && game.zoom.s <= 1.1));
+          for (const w of [375, 768]) {
+            await page.setViewportSize({ width: w, height: 900 }); await shot(`refuge-line-1-${w}`);
+            check(`refuge dialogue canvas fits ${w}px`, await page.evaluate(() => { const r = game.canvas.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1; }));
+          }
+          await page.setViewportSize({ width: 1280, height: 900 });
+        }
+      }
+      const moveStartedAt = capture && index === 0 ? await page.evaluate(() => performance.now()) : null;
+      await key('KeyC');
+      if (capture && index === 0) {
+        check('first C closes textbox and moves party north visibly', await until(() => !game.textbox.isOpen && game.player.y < 550 && game.player.y > 416, 2000));
+        await shot('refuge-walk-north-mid');
+        assert.ok(await until(() => game.player.y <= 417 && game.entities.some(e => e.id === 'gyeongsub' && e.x < 352 && e.x > 306), 8000), 'north walk reaches visible fanout');
+        await shot('refuge-fanout-mid');
+        check('party spreads only after leader has passed north of spring', await page.evaluate(() => !game.textbox.isOpen && game.player.y < 480));
+        assert.ok(await until(() => game.textbox.state === 'waiting' && game.textbox.node?.speaker === '경섭', 8000));
+        const motion = await page.evaluate(at => window.__chaseQA.samples.filter(s => s.at >= at && s.map === 'gajaeman_castle_dark_refuge'), moveStartedAt);
+        check('north walk and fanout keep every party sprite in canvas', motion.length > 10 && motion.every(s => s.actors.length === 3 && s.actors.every(e => e.top >= -1 && e.bottom <= 361)), JSON.stringify({ samples: motion.length, clipped: motion.filter(s => s.actors.some(e => e.top < -1 || e.bottom > 361)).map(s => ({ at: s.at, actors: s.actors })) }));
+      }
+      if (capture && index === 1) check('door line occurs only after whole party stands north of spring', await page.evaluate(() => [game.player, ...game.entities.filter(e => e.def?.type === 'follower')].every(e => Math.abs(e.y - 416) < 1)));
+    }
+    assert.ok(await ready());
+    check('third C completes and saves refuge dialogue once', (await state()).refugeDialogueDone && await page.evaluate(() => JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)).flags.castle_dark_refuge_dialogue_done));
+  };
+  for (const file of ['index.html', 'src/data/build.js', 'src/main.js', 'src/core/story.js', 'src/core/input.js', 'src/data/scripts.js', 'src/scenes/castle-dark-chase.js', 'src/data/cutscenes/castle_dark_chase.js', 'src/scenes/castle-dark-path.js', 'assets/maps/gajaeman_castle_dark_arrival.json', 'assets/maps/gajaeman_castle_dark_refuge.json']) {
     const local = fs.readFileSync(path.join(process.env.QA_SOURCE_ROOT, file));
     const remote = Buffer.from(await (await page.request.get(new URL(file, process.env.QA_BASE_URL).href)).body());
     check(`served source ${file}`, local.equals(remote), crypto.createHash('sha256').update(local).digest('hex'));
   }
-  await open({ qa: mode === 'old-save' ? 'castle_dark_chase' : 'castle_dark_chase_intro' });
+  await open({ qa: mode === 'old-save' || mode.startsWith('refuge-') ? 'castle_dark_chase' : 'castle_dark_chase_intro' });
   assert.ok(await until(() => window.game?.mapId === 'gajaeman_castle_dark_arrival' && !!game.castleDarkChase, 30000));
   await observe();
+  if (mode === 'refuge-return' || mode === 'refuge-interrupt') {
+    assert.ok(await ready());
+    await fixture('unfinished-save-near-final-exit', 'Prepare an unfinished chase save at (5060,180,up), skipping the unchanged fifty-second maze. Preserve party, HP and inventory. Real Escape/Continue and all following movement/dialogue inputs test runtime transitions; no runtime positions, clocks or completion flags are injected.', () => {
+      const key = game.constructor.SAVE_KEY, saved = JSON.parse(localStorage.getItem(key));
+      Object.assign(saved, { x: 5060, y: 180, facing: 'up' });
+      localStorage.setItem(key, JSON.stringify(saved));
+    });
+    await key('Escape'); await continueTitle(); assert.ok(await ready());
+    const initial = await state();
+    check('unfinished Continue still resumes chase with a safe lead', initial.chase?.phase === 'chase' && !initial.done && initial.bgm === 'baron_intro' && Math.hypot(initial.chase.x - initial.xy[0] - 12, initial.chase.y - initial.xy[1] - 12) > 180, JSON.stringify(initial));
+    await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'actual unfinished chase exit into refuge');
+    assert.ok(await until(() => game.textbox.state === 'waiting' && game.textbox.node?.text === '* 와 겨우 나왔네요 ㅈ될뻔', 10000));
+    const first = await state();
+    check('natural exit preserves party HP inventory and immediately ends pursuit', first.done && !first.refugeDialogueDone && !first.chase && !first.dark && JSON.stringify(first.hp) === JSON.stringify(initial.hp) && JSON.stringify(first.party) === JSON.stringify(initial.party) && JSON.stringify(first.inventory) === JSON.stringify(initial.inventory));
+    if (mode === 'refuge-interrupt') {
+      await shot('refuge-first-line-before-interrupt'); await key('Escape');
+      assert.ok(await until(() => game.state === 'title', 10000));
+      check('first-line interruption retains safety completion but not dialogue completion in save', await page.evaluate(() => { const saved = JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)); return saved.map === 'gajaeman_castle_dark_refuge' && saved.flags.castle_dark_chase_done && !saved.flags.castle_dark_refuge_dialogue_done; }));
+      await continueTitle();
+      await readRefugeLines(true);
+      await shot('refuge-interrupted-continued-complete');
+    } else {
+      await readRefugeLines(true);
+    }
+    const completed = await state();
+    await walk('ArrowDown', () => game.textbox.isOpen, 'downward attempt reaches locked south exit');
+    assert.ok(await until(() => game.textbox.state === 'waiting', 5000)); await shot('refuge-south-exit-locked');
+    check('south exit says exact locked narration and keeps refuge safe', await page.evaluate(() => game.mapId === 'gajaeman_castle_dark_refuge' && game.textbox.node.text === '* 잠긴 것 같다.' && !game.textbox.node.speaker && !game.castleDarkChase && game.sound.bgmName !== 'baron_intro'));
+    await key('KeyC'); assert.ok(await ready());
+    const lockedCount = await page.evaluate(() => window.__chaseQA.texts.length);
+    await page.keyboard.down('ArrowDown'); await page.waitForTimeout(1500); await page.keyboard.up('ArrowDown');
+    check('holding at locked exit neither repeats nor transitions or damages party', await page.evaluate(n => window.__chaseQA.texts.length === n && game.mapId === 'gajaeman_castle_dark_refuge' && !game.dialogue.running, lockedCount) && JSON.stringify((await state()).hp) === JSON.stringify(completed.hp));
+    const count = await page.evaluate(() => window.__chaseQA.texts.length);
+    await walk('ArrowUp', () => game.player.y <= 324, 'walk to north cathedral gate');
+    await key('KeyC'); assert.ok(await until(() => game.mapId === 'gajaeman_castle_cathedral', 10000)); assert.ok(await ready());
+    await shot('cathedral-forward-entry');
+    check('north C still enters cathedral with party HP inventory intact', JSON.stringify((await state()).hp) === JSON.stringify(completed.hp) && JSON.stringify((await state()).inventory) === JSON.stringify(completed.inventory) && !(await state()).chase);
+    await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_dark_refuge', 'return from cathedral to completed refuge'); assert.ok(await ready());
+    await shot('refuge-return-no-repeat');
+    check('completed refuge reentry never repeats dialogue', await page.evaluate(n => window.__chaseQA.texts.length === n, count));
+    await key('Escape'); await continueTitle(); assert.ok(await ready()); await shot('refuge-continue-no-repeat');
+    const continued = await state();
+    check('completed refuge Continue keeps dialogue done HP inventory party and safe state', continued.refugeDialogueDone && continued.done && !continued.chase && !continued.dark && !continued.dialogue && continued.bgm === 'castle_dark_path' && JSON.stringify(continued.hp) === JSON.stringify(initial.hp) && JSON.stringify(continued.inventory) === JSON.stringify(initial.inventory) && JSON.stringify(continued.party) === JSON.stringify(initial.party) && await page.evaluate(n => window.__chaseQA.texts.length === n, count));
+    if (mode === 'refuge-return') {
+      await fixture('legacy-cleared-save-on-old-map', 'Prepare a legacy cleared save on the chase map at (5060,180,up) with seen/done true and no new dialogue flag. Runtime remains untouched until real Escape/Continue; this tests old save compatibility separately from natural completed traversal.', () => {
+        const key = game.constructor.SAVE_KEY, saved = JSON.parse(localStorage.getItem(key));
+        Object.assign(saved, { map: 'gajaeman_castle_dark_arrival', x: 5060, y: 180, facing: 'up' });
+        saved.flags.castle_dark_chase_seen = true; saved.flags.castle_dark_chase_done = true;
+        delete saved.flags.castle_dark_refuge_dialogue_done;
+        localStorage.setItem(key, JSON.stringify(saved));
+      });
+      await key('Escape'); await continueTitle(); assert.ok(await ready());
+      const safeAt = await page.evaluate(() => performance.now());
+      await page.waitForTimeout(10000); await shot('legacy-cleared-continue-safe-ten-seconds');
+      const legacy = await state();
+      const safeSamples = await page.evaluate(at => window.__chaseQA.samples.filter(s => s.at >= at && s.map === 'gajaeman_castle_dark_arrival'), safeAt);
+      const safeSounds = await page.evaluate(at => window.__chaseQA.sounds.filter(s => s.at >= at), safeAt);
+      check('legacy cleared old-map Continue stays safe for ten real seconds', legacy.map === 'gajaeman_castle_dark_arrival' && legacy.done && !legacy.chase && !legacy.dialogue && legacy.bgm === 'castle_dark_path' && JSON.stringify(legacy.hp) === JSON.stringify(initial.hp) && JSON.stringify(legacy.inventory) === JSON.stringify(initial.inventory) && safeSamples.length > 100 && safeSamples.every(s => !s.monster && s.bgm !== 'baron_intro') && safeSounds.every(s => s.name !== 'baron_roar' && s.name !== 'damage'), JSON.stringify({ state: legacy, samples: safeSamples.length, sounds: safeSounds }));
+      await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'legacy cleared save enters refuge');
+      await readRefugeLines();
+      check('legacy cleared save can complete new refuge conversation without pursuit', (await state()).refugeDialogueDone && !(await state()).chase);
+    }
+    await dump(); return;
+  }
   if (mode === 'old-save') {
     assert.ok(await ready());
     await fixture('legacy319-save-position', 'Prepare only the saved x/y/facing fields in the retained old north-end stub (3268,72,up). Real Escape/Continue must restore it and real arrows must reach the extended exit; no runtime position/progress mutation.', () => {
@@ -115,7 +234,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     await walk('ArrowRight', () => game.player.x >= 4164, 'new upper east leg');
     await walk('ArrowDown', () => game.player.y >= 1448, 'new south leg');
     await walk('ArrowRight', () => game.player.x >= 5060, 'new lower east leg');
-    await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'legacy save reaches new exit'); assert.ok(await ready());
+    await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'legacy save reaches new exit'); await readRefugeLines();
     await shot('legacy-save-refuge');
     check('legacy save naturally reaches refuge with party and scene cleanup', (await state()).done && !(await state()).chase && !(await state()).dark && (await state()).party.length === 2);
     await dump(); return;
@@ -213,8 +332,10 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   await walk('ArrowRight', () => game.player.x >= 4164, 'extended upper east leg'); await shot('chase-upper-extension');
   await walk('ArrowDown', () => game.player.y >= 1448, 'extended south leg'); await shot('chase-extension');
   await walk('ArrowRight', () => game.player.x >= 5060, 'last east leg');
-  await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'north refuge exit'); assert.ok(await ready());
-  const duration = Date.now() - startTime, arrived = await state(); await shot('refuge-arrival');
+  await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'north refuge exit');
+  const duration = Date.now() - startTime;
+  await readRefugeLines();
+  const arrived = await state(); await shot('refuge-arrival');
   check('natural extended traversal reaches refuge in about fifty seconds', arrived.done && !arrived.chase && !arrived.dark && !arrived.blocked && duration >= 45000 && duration <= 58000 && arrived.hp[0][1] > 0 && JSON.stringify(arrived.hp.slice(1)) === JSON.stringify(wounded.hp.slice(1)) && JSON.stringify(arrived.inventory) === JSON.stringify(wounded.inventory), `wall time ${duration}ms; HP ${JSON.stringify(arrived.hp)}`);
   const q = await dump();
   const travel = q.samples.filter(s => s.at >= routeClock && s.map === 'gajaeman_castle_dark_arrival' && s.state === 'field' && !s.dialogue);
