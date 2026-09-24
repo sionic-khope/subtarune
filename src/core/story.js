@@ -40,6 +40,7 @@ export const STAGES = [
   { id: 'castle_dark_chase_seen', desc: '어둠의 미로 · 보라 구체의 추격', map: 'gajaeman_castle_dark_arrival', spawn: 'start' },
   { id: 'castle_dark_chase_done', desc: '추격 탈출 · 희미한 빛의 마나샘', map: 'gajaeman_castle_dark_refuge', spawn: 'start' },
   { id: 'castle_cathedral_climb', desc: '검은 대성당 · 가재맨의 바람과 검 사이를 오른다', map: 'gajaeman_castle_cathedral', spawn: 'climb' },
+  { id: 'castle_spire_arrived', desc: '남색 오르막 · 바람이 멎고 위에 마법의 샘', map: 'gajaeman_castle_spire', spawn: 'after' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -53,6 +54,8 @@ export function storyBgm(mapId, flags) {
   if (mapId === 'gajaeman_castle_dark_refuge') return 'castle_dark_path';
   if (mapId === 'gajaeman_castle_cathedral' && flags.castle_cathedral_climb) return 'cathedral_climb';
   if (mapId === 'gajaeman_castle_cathedral2') return 'cathedral_climb';
+  // BUILD327: 바람은 멎어도 추격은 이어진다 — 오르기 곡을 끊지 않는다
+  if (mapId === 'gajaeman_castle_spire') return 'cathedral_climb';
   if (mapId === 'gajaeman_castle_dark_path' && flags.castle_dark_path_seen) return 'castle_dark_path';
   if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
@@ -777,3 +780,8 @@ for (const [id, spawn, extra, desc] of [
   ['castle_cathedral2_support', 'rescue', { castle_cathedral_rescue_done: true }, '대성당 둘째 회랑 · 영클 레이저 지원·쥰희 합류 후'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_cathedral2', spawn, stage: 'castle_cathedral_climb',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, ...extra } });
+for (const [id, spawn, stage, desc] of [
+  ['castle_spire', 'start', 'castle_cathedral_climb', '남색 오르막 · 가재맨·쥰희·영클이 먼저 올라가는 도착 연출'],
+  ['castle_spire_after', 'after', 'castle_spire_arrived', '남색 오르막 · 도착 연출 뒤 마법의 샘 방으로'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_spire', spawn, stage,
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true } });

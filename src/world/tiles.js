@@ -146,6 +146,10 @@ registerTile('░', { name: 'castle321_floor', solid: false, draw: flat('#442052
 registerTile('▱', { name: 'castle321_steps', solid: false, draw: flat('#6b2d85') });
 registerTile('╞', { name: 'castle321_edge_left', solid: true, draw: flat('#442052') });
 registerTile('╡', { name: 'castle321_edge_right', solid: true, draw: flat('#442052') });
+// BUILD327 남색 오르막(샘 회랑): castle321 모양 그대로 남색으로 칠한 세트(tools/art/castle327_spire_set.py)
+registerTile('▒', { name: 'castle327_floor', solid: false, draw: flat('#1b2350') });
+registerTile('╟', { name: 'castle327_edge_left', solid: true, draw: flat('#1b2350') });
+registerTile('╢', { name: 'castle327_edge_right', solid: true, draw: flat('#1b2350') });
 registerTile('⌂', { name: 'gajaeman_castle_floor', solid: false, draw: flat('#30283e') });
 registerTile('⌁', { name: 'gajaeman_castle_cracked', solid: false, draw: flat('#30283e') });
 registerTile('▥', { name: 'gajaeman_castle_wall', solid: true, draw: flat('#171421') });

@@ -49,6 +49,9 @@ def main() -> None:
          'facing': 'right', 'solid': False, 'wander': 0, 'hidden': True},
         {'type': 'npc', 'id': 'cath2_junhee', 'sprite': 'junhee', 'x': 700, 'y': MID_Y - 160,
          'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True},
+        # BUILD327: 꼭대기(성공 지점)는 맵 가장자리의 밟는 문으로 남색 오르막에 이어진다
+        {'type': 'door', 'id': 'cathedral2_to_spire', 'x': 288, 'y': 0, 'w': 192, 'h': 10,
+         'to': 'gajaeman_castle_spire', 'spawn': 'start', 'interact': False, 'sfx': False},
     ])
     data = {
         'id': MAP_ID, 'name': '가재맨성 검은 대성당 둘째 회랑', 'stage': 'castle_cathedral_climb',
@@ -59,7 +62,7 @@ def main() -> None:
                    'end': {'x': 360, 'y': 104, 'facing': 'up'}},
         'meta': {'connected': True, 'corridorWidth': 192, 'laneWidth': 64,
                  'cathedralClimb': {'part': 2, 'startY': (ROWS - 2) * 32 - 80, 'stopY': 560, 'topY': 120,
-                                    'midY': MID_Y, 'leaveY': 0}},
+                                    'midY': MID_Y, 'leaveY': 560}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

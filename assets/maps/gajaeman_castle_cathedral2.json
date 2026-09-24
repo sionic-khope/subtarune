@@ -311,7 +311,7 @@
    "stopY": 560,
    "topY": 120,
    "midY": 5260,
-   "leaveY": 0
+   "leaveY": 560
   }
  },
  "entities": [
@@ -2074,6 +2074,18 @@
    "solid": false,
    "wander": 0,
    "hidden": true
+  },
+  {
+   "type": "door",
+   "id": "cathedral2_to_spire",
+   "x": 288,
+   "y": 0,
+   "w": 192,
+   "h": 10,
+   "to": "gajaeman_castle_spire",
+   "spawn": "start",
+   "interact": false,
+   "sfx": false
   }
  ]
 }
