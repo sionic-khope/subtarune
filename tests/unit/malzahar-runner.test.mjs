@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { createRunner, stepRunner, RUNNER } from '../../src/world/runner-core.js';
 import { createMalzaharRunner } from '../../src/battle/modes/malzahar-runner.js';
 import { MALZAHAR_RUNNER as C } from '../../src/data/malzahar-runner.js';
+import { createMalzaharRunnerSupport } from '../../src/battle/support/malzahar-runner.js';
+import { Runner } from '../../src/world/runner.js';
 
 const DT = 1 / 120;
 function fixture(state) {
@@ -17,6 +19,56 @@ function step(mode, seconds, decide = () => ({})) {
   for (let t = 0; t < seconds; t += DT) { const keys = decide(mode.snapshot); mode.update(DT, { just: key => !!keys[key] }); }
 }
 const counterInput = s => ({ confirm: s.phase === 'dash' && s.boss.x < s.player.x + 75 && !s.runner.attack });
+
+test('test_malzahar_slow_loading_loops_the_corridor_without_braking_or_resetting_jump', () => {
+  const game = { player: { x: 3839, y: 680, w: 24, h: 16 }, entities: [],
+    map: { pxW: 4608, pxH: 1088, def: { meta: {} } }, camera: { x: 3745, y: 504 },
+    sound: { sfx() {}, walk() {} }, battle: { state: 'load' } };
+  const runner = game.runner = new Runner(game, { startX: 1120, endX: 4320, speed: 420, water: false, encounter: 'malzahar_runner' });
+  Object.assign(runner.core, { phase: 'run', vx: 420, endX: Infinity, anim: 'run', animT: 7.5 });
+  runner.encounterStarted = true;
+  const before = game.player.x - game.camera.x;
+  runner.update(DT, { just: key => key === 'cancel' });
+  assert.ok(runner.core.x < 2000, 'loading corridor wraps before the finite map edge');
+  assert.ok(Math.abs((game.player.x - game.camera.x) - before) < 5, 'player stays in the same screen position');
+  assert.ok(runner.core.airY > 0 && !runner.core.grounded, 'jump continues across the wrap');
+  assert.ok(runner.core.trail.every(point => Math.abs(point.x - runner.core.x) < 50));
+  runner.update(DT, { just: key => key === 'confirm' });
+  assert.equal(runner.core.attack.kind, 'airslash');
+  for (let t = 0; t < 15; t += DT) runner.update(DT, { just: () => false });
+  assert.equal(game.runner, runner);
+  assert.equal(runner.core.phase, 'run');
+  assert.ok(runner.core.x > 1500 && runner.core.x < 3840);
+});
+
+test('test_malzahar_loading_handoff_uses_the_latest_running_pose_and_camera', () => {
+  const core = createRunner({ x: 1200, endX: 4320 });
+  const { battle } = fixture(structuredClone(core));
+  let finished = false;
+  battle.enemies = [{ def: { support: 'malzahar_runner' } }];
+  battle.game.player = { x: 1800, y: 680, w: 24, h: 16 };
+  battle.game.camera = { x: 1700, y: 504 };
+  battle.game.runner = { core, finish() { finished = true; } };
+  for (let t = 0; t < 4; t += DT) stepRunner(core, DT);
+  stepRunner(core, DT, { jump: true });
+  const support = createMalzaharRunnerSupport(battle);
+  assert.equal(support.preemptiveMode(), 'malzahar_runner');
+  assert.equal(finished, true);
+  assert.equal(battle.cfg.runnerState.x, core.x);
+  assert.equal(battle.cfg.runnerState.airY, core.airY);
+  assert.deepEqual(battle.cfg.runnerView, { x: 112, groundY: 192, cameraX: 1700, cameraY: 504 });
+});
+
+test('test_malzahar_entry_gradually_reveals_battle_hud_while_the_runner_keeps_moving', () => {
+  const { mode } = fixture();
+  const startX = mode.snapshot.runner.x;
+  assert.equal(mode.hudAlpha, 0);
+  step(mode, C.entrySeconds / 2);
+  assert.ok(mode.hudAlpha > 0.4 && mode.hudAlpha < 0.6);
+  assert.ok(mode.snapshot.runner.x > startX);
+  step(mode, C.entrySeconds / 2 + DT);
+  assert.equal(mode.hudAlpha, 1);
+});
 
 test('test_malzahar_continuation_keeps_runner_jump_and_slash_physics', () => {
   const core = createRunner({ x: 900, endX: Infinity });

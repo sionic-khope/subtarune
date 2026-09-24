@@ -8,12 +8,12 @@
  "followScreenY": 250,
  "rows": [
   "                                                                                                                                            ",
-  "                                                                                                                                            ",
-  "                                                                                                                                            ",
-  "                                                                                                                                            ",
-  "                                                                                                                                            ",
-  "                                                                                                                                            ",
-  "                    ▦▦▦▦▦▦                                                                                                                  ",
+  "                  ▦▦▦▦▦▦▦▦▦▦                                                                                                                ",
+  "                  ▦▦▦▦▦▦▦▦▦▦                                                                                                                ",
+  "                  ▦▦▦▦▦▦▦▦▦▦                                                                                                                ",
+  "                  ▦▦▦▦▦▦▦▦▦▦                                                                                                                ",
+  "                  ▦▦▦▦▦▦▦▦▦▦                                                                                                                ",
+  "                  ▦▦▦▦▦▦▦▦▦▦                                                                                                                ",
   "                   ▦♤♤♧♤♤♤▦                                                                                                                 ",
   "                   ▦♧♤♤♤♤♤▦                                                                                                                 ",
   "                   ▦♤♤♤♤♤♧▦                                                                                                                 ",
@@ -63,7 +63,7 @@
    "facing": "right"
   },
   "torii": {
-   "x": 1188,
+   "x": 960,
    "y": 680,
    "facing": "right"
   }
@@ -140,20 +140,18 @@
     22
    ]
   ],
-  "runs": {
-   "a": {
-    "dir": 1,
-    "startX": 1248,
-    "endX": 4320,
-    "groundY": 680,
-    "speed": 420,
-    "water": false,
-    "obstacles": false,
-    "seed": 31,
-    "keepFollowersHidden": true,
-    "leadInSeconds": 3,
-    "encounter": "malzahar_runner"
-   }
+  "run": {
+   "dir": 1,
+   "startX": 1120,
+   "endX": 4320,
+   "groundY": 680,
+   "speed": 420,
+   "water": false,
+   "obstacles": false,
+   "seed": 31,
+   "keepFollowersHidden": true,
+   "leadInSeconds": 3,
+   "encounter": "malzahar_runner"
   }
  },
  "entities": [
@@ -304,6 +302,26 @@
    "sortY": 0
   },
   {
+   "type": "prop",
+   "id": "castle_north_barrier",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 640,
+   "y": 384,
+   "w": 192,
+   "h": 16,
+   "hidden": true,
+   "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "castle_north_warning",
+   "x": 640,
+   "y": 400,
+   "w": 192,
+   "h": 24,
+   "script": "castle_malzahar_north_block"
+  },
+  {
    "type": "npc",
    "id": "castle_warm_bidet",
    "sprite": "warm_bidet",
@@ -360,12 +378,11 @@
   {
    "type": "trigger",
    "id": "castle_torii_start",
-   "x": 1248,
+   "x": 1088,
    "y": 640,
-   "w": 64,
+   "w": 32,
    "h": 96,
-   "script": "castle_malzahar_run",
-   "requires": "castle_malzahar_split"
+   "script": "jjajang_run_start"
   },
   {
    "type": "prop",
@@ -393,7 +410,6 @@
   }
  ],
  "enter": {
-  "script": "castle_malzahar_intro",
-  "early": true
+  "script": "castle_malzahar_intro"
  }
 }

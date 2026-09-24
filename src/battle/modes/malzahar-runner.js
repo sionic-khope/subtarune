@@ -12,7 +12,7 @@ const rectangleOverlap = (x, y, w, h, left, top, right, bottom) => x + w > left 
 /** Fullscreen runner mode using the field runner's simulation, frames and input edges. */
 export function createMalzaharRunner(battle, { enemy }) {
   const g = battle.game, view = battle.cfg.runnerView || {};
-  const run = Object.values(g.map?.def?.meta?.runs || {}).find(config => config.encounter === 'malzahar_runner');
+  const run = g.map?.def?.meta?.run;
   const runner = battle.cfg.runnerState ? structuredClone(battle.cfg.runnerState) : createRunner({ x: 0, endX: Infinity });
   runner.phase = 'run'; runner.endX = Infinity; runner.vx = runner.speed;
   runner.obstacles = null; runner.finale = null; runner.tutorial = null;
@@ -29,6 +29,7 @@ export function createMalzaharRunner(battle, { enemy }) {
   const chargingOrbs = () => phase !== 'enter' && cycleTime >= C.q.at && cycleTime < C.q.at + C.q.warn
     ? Array.from({ length: C.q.count }, (_, index) => ({ x: C.q.x + index * C.q.spacing, y: playerPosition().groundY - C.q.height, progress: (cycleTime - C.q.at) / C.q.warn })) : [];
   const playerScale = () => lerp(1, C.player.scale, smooth(elapsed / C.entrySeconds));
+  const entryProgress = () => smooth(elapsed / C.entrySeconds);
   const sound = (key, volume = 1) => battle.sfx(C.sfx[key] || key, { volume });
   const change = next => { phase = next; phaseTime = 0; };
   const burst = (x, y, count = C.effects.particles) => {
@@ -162,7 +163,7 @@ export function createMalzaharRunner(battle, { enemy }) {
       ctx.globalAlpha = 0.12 * (i + 1) / runner.trail.length;
       drawRunnerFrame(ctx, fr.frame.image, fr.frame, fr.scale, p.x + trail.x - runner.x, p.groundY - trail.airY, trail.angle, runner.dir);
     }
-    ctx.globalAlpha = invulnerability > 0 && Math.floor(invulnerability * 16) % 2 ? 0.38 : C.player.alpha;
+    ctx.globalAlpha = invulnerability > 0 && Math.floor(invulnerability * 16) % 2 ? 0.38 : lerp(1, C.player.alpha, entryProgress());
     const fr = frameOf(runner.anim, runner.frame);
     if (fr) drawRunnerFrame(ctx, fr.frame.image, fr.frame, fr.scale, p.x, p.groundY - runner.airY, runner.tilt, runner.dir);
     ctx.globalAlpha = 1;
@@ -175,6 +176,7 @@ export function createMalzaharRunner(battle, { enemy }) {
       } else drawRunnerAura(ctx, p.x + 18, p.groundY - runner.airY - 26, 44, -Math.PI * 0.95, -Math.PI * 0.95 + Math.PI * 1.25 * Math.min(1, k * 1.5), 1 - k * k);
     }
     ctx.restore();
+    ctx.globalAlpha = entryProgress();
     if (invulnerability <= 0 || Math.floor(invulnerability * 16) % 2 === 0) battle.heart(ctx, Math.round(p.x + 3), Math.round(p.groundY - runner.airY - C.player.heartHeight * playerScale() / C.player.scale));
     ctx.restore();
   }
@@ -207,6 +209,7 @@ export function createMalzaharRunner(battle, { enemy }) {
   }
   return {
     fullscreen: true, hpStrip: true, preserveFinalFrame: true,
+    get hudAlpha() { return entryProgress(); },
     get snapshot() { return { phase, phaseTime, elapsed, cycle, cycleTime, counters, dashes, disposed, invulnerability, hp: enemy.hp, hpMax, hpDisplay, hpTrail, boss: { ...boss }, player: playerPosition(), runner: { ...runner, attack: runner.attack && { ...runner.attack }, trail: runner.trail.map(t => ({ ...t })) }, hazards: hazards.map(h => ({ ...h })), chargingOrbs: chargingOrbs(), dashTrail: dashTrail.map(point => ({ ...point })), flash, hurtFlash, particles: particles.length }; },
     update(dt, input) {
       if (disposed || phase === 'done') return true;
@@ -231,7 +234,7 @@ export function createMalzaharRunner(battle, { enemy }) {
           if (offset + 480 > width) ctx.drawImage(g.map.canvas, run.startX, 0, width, g.map.pxH, width - Math.round(offset), -y, width, g.map.pxH);
         } else g.map.draw(ctx, { x: Math.min(g.map.pxW - 480, (view.cameraX ?? 0) + travel), y });
       }
-      ctx.fillStyle = 'rgba(14,4,27,0.28)'; ctx.fillRect(0, 0, 480, 320);
+      ctx.fillStyle = `rgba(14,4,27,${0.28 * entryProgress()})`; ctx.fillRect(0, 0, 480, 320);
       drawMalzaharBackground(ctx, elapsed, battle);
       for (let i = 0; i < 10; i++) { ctx.fillStyle = `rgba(232,232,255,${0.16 * runner.vx / runner.speed})`; const x = 480 - ((elapsed * (230 + i * 14) + i * 49) % 550); ctx.fillRect(Math.round(x), 25 + i * 25, 32 + i % 3 * 8, 1); }
       ctx.save();
@@ -282,6 +285,7 @@ export function createMalzaharRunner(battle, { enemy }) {
       ctx.globalAlpha = 1;
       if (flash > 0) { ctx.fillStyle = `rgba(245,232,255,${flash / C.effects.flash * 0.65})`; ctx.fillRect(0, 0, 480, 320); }
       if (hurtFlash > 0) { ctx.fillStyle = `rgba(220,15,40,${hurtFlash / C.effects.hurtFlash * 0.25})`; ctx.fillRect(0, 0, 480, 320); }
+      ctx.globalAlpha = entryProgress();
       ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.textBaseline = 'top'; ctx.fillStyle = '#fff';
       ctx.fillText(`${C.text.title}  ${Math.max(0, enemy.hp)}/${hpMax}`, 18, 22);
       ctx.fillStyle = '#100817'; ctx.fillRect(C.hpHud.x, C.hpHud.y, C.hpHud.width, C.hpHud.height);

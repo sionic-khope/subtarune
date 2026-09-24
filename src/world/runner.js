@@ -9,6 +9,7 @@ import { SCREEN_W, SCREEN_H } from '../core/layout.js';
 import { makeCanvas, loadImageOptional } from '../core/gfx.js';
 import { WATER_WALK } from '../data/footsteps.js';
 import { drawRunnerFrame, drawRunnerAura as drawAura } from './runner-render.js';
+import { TILE } from './tiles.js';
 
 // 준비동작 = wing(휘융, 사용자 링크 myinstants deltarune-wing = 델타룬 snd_wing), 달리기 시작 = weaponpull(핑!) — BUILD286 사용자 “달리기 이전에 wing 이 나오고(준비동작) 달리기 시작할 때 핑!, 지금 순서가 반대”
 const SFX = Object.freeze({ draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape', deflect: 'deflect', hurt: 'hurt_dr' });
@@ -59,6 +60,11 @@ export class Runner {
   update(dt, input) {
     const s = this.core, g = this.game, p = g.player;
     const events = stepRunner(s, dt, { jump: input.just('cancel'), attack: input.just('confirm') });
+    if (this.encounterStarted && g.battle?.state === 'load' && s.x >= this.cfg.endX - SCREEN_W) {
+      const shift = Math.floor((this.cfg.endX - this.cfg.startX - SCREEN_W * 2) / TILE) * TILE;
+      s.x -= shift; g.camera.x -= shift;
+      for (const point of [...s.trail, ...this.streaks, ...this.spray, ...this.leafBits]) point.x -= shift;
+    }
     p.x = s.x; p.y = this.groundY; p.moving = s.vx > 0; p.facing = s.dir > 0 ? 'right' : 'left';
     for (const ev of events) {
       if (SFX[ev]) { g.sound?.sfx(SFX[ev]); this.sfxLog.push(SFX[ev]); }

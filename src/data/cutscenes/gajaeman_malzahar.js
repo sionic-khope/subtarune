@@ -10,7 +10,7 @@ const at = (id, rel, extra = {}) => ({ move: id, rel, at: 'bottom', exact: true,
 const meetingCamera = { camera: [13, 21], duration: 1.3 };
 const openAperture = { action: game => {
   game.entities.find(entity => entity.id === 'castle_monster_aperture').doorOpening = {
-    inset: [34, 68, 188, 240], progress: 1,
+    inset: [68, 104, 120, 196], archRise: 64, progress: 1,
   };
 } };
 
@@ -36,12 +36,13 @@ export const castle_malzahar_intro = Object.assign([
   openAperture,
   { if: flags => !!flags.castle_malzahar_split, goto: 'after' },
   close,
+  { wait: 0.65 },
   { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 0.9, hold: 0.45, sfx: 'chime' })) },
   { camera: [13.5, 20.5], duration: 1.4 }, { wait: 0.6 },
   { parallel: [meetingCamera, ...PARTY.map(id => at(id, `fork_${id}`, { speed: 72 }))] },
   { face: BIDET, dir: 'down' }, { face: MARIO, dir: 'down' }, { wait: 0.5 },
   P('오 ㅎㅇ'), B('오.'), close,
-  { hop: MARIO, by: [0, 0], height: 22, duration: 0.45, sfx: 'jump' }, { wait: 0.5 },
+  { hop: MARIO, by: [0, 0], height: 22, duration: 0.45, sfx: 'mario_jump' }, { wait: 0.5 },
   B('하이'), K('어 비데야 여기서 뭐하고있어?'),
   B('보다싶이, 여기를 조사하고 있는데요'), B('문제가 있어요.'), K('응 어떤문제?'),
   B('저기 오른쪽에'), close,
@@ -77,11 +78,12 @@ export const castle_malzahar_intro = Object.assign([
   { label: 'after' }, { action: restoreCastleDefenders }, { camera: 'player' }, { end: true },
 ], { silent: true });
 
-export const castle_malzahar_run = Object.assign([
-  { action: game => {
-    if (game.runner || game.player.facing !== 'right') return;
-    game.startRunner({ ...game.map.def.meta.runs.a, id: 'a' });
-  } }, { end: true },
+export const castle_malzahar_north_block = Object.assign([
+  P('몸조심하세요 형.'),
+], { silent: true });
+
+export const castle_malzahar_backtrack = Object.assign([
+  N('앞이 먼저다.'),
 ], { silent: true });
 
 export const castle_malzahar_end_door = Object.assign([

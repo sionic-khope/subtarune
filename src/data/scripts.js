@@ -61,7 +61,7 @@ import { castle_memory_sign, castle_memory_enter,
   castle_memory_stele1, castle_memory_stele2, castle_memory_stele3,
   castle_memory_stele4, castle_memory_stele5, castle_memory_stele6 } from './cutscenes/castle_memory.js';
 import { ship_castle } from './cutscenes/ship_castle.js';
-import { castle_malzahar_intro, castle_malzahar_run, castle_malzahar_end_door } from './cutscenes/gajaeman_malzahar.js';
+import { castle_malzahar_intro, castle_malzahar_north_block, castle_malzahar_backtrack, castle_malzahar_end_door } from './cutscenes/gajaeman_malzahar.js';
 import { castle_orb_touch, castle_orb_return } from './cutscenes/castle_orb.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
@@ -169,7 +169,7 @@ export const SCRIPTS = {
   castle_memory_sign, castle_memory_enter,
   castle_memory_stele1, castle_memory_stele2, castle_memory_stele3,
   castle_memory_stele4, castle_memory_stele5, castle_memory_stele6,
-  castle_malzahar_intro, castle_malzahar_run, castle_malzahar_end_door,
+  castle_malzahar_intro, castle_malzahar_north_block, castle_malzahar_backtrack, castle_malzahar_end_door,
   castle_orb_touch, castle_orb_return,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,

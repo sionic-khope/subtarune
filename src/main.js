@@ -682,6 +682,7 @@ class Game {
   startRunnerEncounter(runner) {
     if (this.battle || runner.encounterStarted) return;
     runner.encounterStarted = true;
+    runner.core.endX = Infinity;
     const runnerState = structuredClone(runner.core);
     const runnerView = { x: this.player.x + this.player.w / 2 - this.camera.x,
       groundY: this.player.y + this.player.h - this.camera.y, cameraX: this.camera.x, cameraY: this.camera.y };
@@ -1309,7 +1310,12 @@ class Game {
       ]);
       return;
     }
-    if (this.battle) { this.battle.update(dt, Input); if (this.dialogue.running) this.dialogue.update(dt, Input); return; }   // 전투 중: 전투 + 컷신 대기자만
+    if (this.battle) {
+      if (this.battle.state === 'load' && this.battle.cfg.seamlessIntro && this.runner) this.runner.update(dt, Input);
+      this.battle.update(dt, Input);
+      if (this.dialogue.running) this.dialogue.update(dt, Input);
+      return;
+    }
     // 오버레이 씬(섭리오) 안에서 Tab/V 로 연 인게임 메뉴: 컷신이 scene3d 노드에서 기다리는 중이라 여기서 메뉴만 돌린다 (씬은 멈춰 있음)
     if (this.scene3d && this.state === 'menu') { this.updateMenu(); return; }
     this.coastChatter?.update(dt);
@@ -1498,7 +1504,7 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
-    if (this.battle) {                                   // 전투 화면 (흔들림·페이드만 공유)
+    if (this.battle && !(this.battle.state === 'load' && this.battle.cfg.seamlessIntro && this.runner)) {
       ctx.save(); if (this.shake) { const a = this.shake.amp || 3; ctx.translate(Math.round((Math.random() * 2 - 1) * a), Math.round((Math.random() * 2 - 1) * a)); }
       this.battle.draw(ctx); ctx.restore();
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }

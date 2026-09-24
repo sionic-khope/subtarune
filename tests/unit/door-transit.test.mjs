@@ -56,6 +56,24 @@ function context() {
   };
 }
 
+test('arched castle aperture preserves its pointed stone frame at map scale', () => {
+  const ctx = context(), path = [];
+  ctx.moveTo = (...point) => path.push(['move', ...point]);
+  ctx.lineTo = (...point) => path.push(['line', ...point]);
+  ctx.quadraticCurveTo = (...point) => path.push(['curve', ...point]);
+  ctx.closePath = () => path.push(['close']);
+  const door = { x: 640, y: 224, drawX: 640, drawY: 60, scale: 0.5625, def: {}, image: {},
+    doorOpening: { inset: [68, 104, 120, 196], archRise: 64, progress: 1 } };
+  drawDoorOpening(ctx, door, { x: 464, y: 28 });
+  assert.deepEqual(path, [
+    ['move', 214, 201.25], ['line', 214, 127],
+    ['curve', 214, 109, 247.75, 91], ['curve', 281.5, 109, 281.5, 127],
+    ['line', 281.5, 201.25], ['close'],
+  ]);
+  assert.equal(ctx.activeClip, null);
+  assert.equal(ctx.stack.length, 0);
+});
+
 test('door_and_character_renderers_use_bounded_clips_and_restore_caller_state', () => {
   const { door, actor } = fixture();
   const ctx = context(), cam = { x: 800, y: 20 };

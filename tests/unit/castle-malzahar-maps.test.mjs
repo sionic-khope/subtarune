@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { Camera, Entity, TileMap } from '../../src/world/world.js';
+import { Camera, Character, Entity, TileMap, Trigger } from '../../src/world/world.js';
 import { makeWaiter } from '../../src/ui/cutscene.js';
 import { castle_malzahar_intro, restoreCastleDefenders, separateCastleParty } from '../../src/data/cutscenes/gajaeman_malzahar.js';
 
@@ -18,7 +18,7 @@ test('memory north exit reaches the fork without changing prior encounters or to
 
 test('fork keeps the torii corridor traversable and gives the encounter a full three second lead-in', () => {
   const fork = read('gajaeman_castle_fork'), map = new TileMap(fork);
-  const run = fork.meta.runs.a;
+  const run = fork.meta.run;
   assert.equal(fork.enter.script, 'castle_malzahar_intro');
   assert.equal(run.dir, 1);
   assert.equal(run.water, false);
@@ -27,6 +27,57 @@ test('fork keeps the torii corridor traversable and gives the encounter a full t
   for (let x = 740; x < run.endX; x += 24) assert.equal(map.solidRect(x, run.groundY, 24, 16), false, `road ${x}`);
   for (const point of Object.values(fork.meta.stage)) assert.equal(map.solidRect(...point, 24, 16), false, String(point));
   for (const id of ['castle_warm_bidet', 'castle_dot_mario']) assert.equal(fork.entities.find(entity => entity.id === id).hidden, undefined);
+});
+
+test('entry shows the party after the map fade before the exclamation and uses Mario audio', () => {
+  const fork = read('gajaeman_castle_fork');
+  const exclamation = castle_malzahar_intro.findIndex(node => node.parallel?.some(child => child.emote));
+  assert.notEqual(fork.enter.early, true);
+  assert.ok(castle_malzahar_intro.slice(0, exclamation).some(node => node.wait >= 0.5));
+  assert.equal(castle_malzahar_intro.find(node => node.hop === 'castle_dot_mario').sfx, 'mario_jump');
+});
+
+test('purple torii starts automatically at its visible gap on the first visit', () => {
+  const fork = read('gajaeman_castle_fork');
+  const trigger = fork.entities.find(entity => entity.id === 'castle_torii_start');
+  const front = fork.entities.find(entity => entity.id === 'castle_torii_front');
+  const back = fork.entities.find(entity => entity.id === 'castle_torii_back');
+  assert.equal(trigger.script, 'jjajang_run_start');
+  assert.equal(trigger.requires, undefined);
+  assert.ok(trigger.x > front.x + front.w && trigger.x + trigger.w <= back.x);
+  assert.ok(fork.spawns.torii.x + 24 < trigger.x);
+});
+
+test('north aperture sits in castle masonry with a sealed top boundary', () => {
+  const fork = read('gajaeman_castle_fork');
+  const aperture = fork.entities.find(entity => entity.id === 'castle_monster_aperture');
+  for (let y = aperture.iy; y < aperture.y; y += 16) {
+    for (const x of [aperture.ix - 16, aperture.ix + aperture.w + 16]) {
+      assert.equal(fork.rows[Math.floor(y / 32)][Math.floor(x / 32)], '▦');
+    }
+  }
+});
+
+for (const [mapId, barrierId, triggerId, direction, script] of [
+  ['gajaeman_castle_fork', 'castle_north_barrier', 'castle_north_warning', 'up', 'castle_malzahar_north_block'],
+  ['gajaeman_torii_end', 'castle_end_left_barrier', 'castle_end_left_warning', 'left', 'castle_malzahar_backtrack'],
+]) test(`${mapId} warns on approach and physically blocks the forbidden route`, () => {
+  const def = read(mapId);
+  const barrier = def.entities.find(entity => entity.id === barrierId);
+  const triggerDef = def.entities.find(entity => entity.id === triggerId);
+  assert.ok(barrier?.solid && triggerDef);
+  const scripts = [];
+  const game = { map: new TileMap(def), entities: [new Entity(barrier, {})], dialogue: { running: false },
+    runScript: (key, done) => { scripts.push(key); done(); }, has: () => true };
+  game.player = new Entity({ x: triggerDef.x + (direction === 'left' ? triggerDef.w + 2 : 24),
+    y: triggerDef.y + (direction === 'up' ? triggerDef.h + 2 : 24) }, game);
+  const trigger = new Trigger(triggerDef, game);
+  for (let tick = 0; tick < 80; tick++) {
+    Character.prototype.moveBy.call(game.player, direction === 'left' ? -2 : 0, direction === 'up' ? -2 : 0);
+    trigger.update(1 / 60);
+  }
+  assert.deepEqual(scripts, [script]);
+  assert.equal(direction === 'up' ? game.player.y >= barrier.y + barrier.h : game.player.x >= barrier.x + barrier.w, true);
 });
 
 test('arrival has a reachable north door and restores castle field music', () => {

@@ -76,6 +76,26 @@
    "solid": true,
    "sortY": 0,
    "script": "castle_malzahar_end_door"
+  },
+  {
+   "type": "prop",
+   "id": "castle_end_left_barrier",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 584,
+   "y": 416,
+   "w": 24,
+   "h": 160,
+   "hidden": true,
+   "solid": true
+  },
+  {
+   "type": "trigger",
+   "id": "castle_end_left_warning",
+   "x": 608,
+   "y": 416,
+   "w": 24,
+   "h": 160,
+   "script": "castle_malzahar_backtrack"
   }
  ]
 }

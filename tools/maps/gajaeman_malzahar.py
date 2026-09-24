@@ -47,6 +47,10 @@ def main() -> None:
                     cells[y][x] = '▦'
         for col, row in floor:
             cells[row][col] = '♧' if (col * 3 + row * 7) % 23 < 2 else '♤'
+        if fork:
+            for row in range(1, 7):
+                for col in range(18, 28):
+                    cells[row][col] = '▦'
         stage = {
             'fork_player': [388, 708], 'fork_gyeongsub': [460, 716], 'fork_ppaman': [316, 716],
             'fork_bidet_meet': [388, 624], 'fork_mario_meet': [484, 600],
@@ -66,6 +70,11 @@ def main() -> None:
                  'image': 'assets/props/castle306_gate.png', 'scale': 0.5625,
                  'x': 640, 'y': 224, 'w': 144, 'h': 16, 'ix': 640, 'iy': 60,
                  'solid': True, 'sortY': 0},
+                {'type': 'prop', 'id': 'castle_north_barrier',
+                 'image': 'assets/tiles/castle307_floor.png',
+                 'x': 640, 'y': 384, 'w': 192, 'h': 16, 'hidden': True, 'solid': True},
+                {'type': 'trigger', 'id': 'castle_north_warning',
+                 'x': 640, 'y': 400, 'w': 192, 'h': 24, 'script': 'castle_malzahar_north_block'},
                 {'type': 'npc', 'id': 'castle_warm_bidet', 'sprite': 'warm_bidet',
                  'x': 388, 'y': 624, 'facing': 'up', 'solid': False, 'wander': 0},
                 {'type': 'npc', 'id': 'castle_dot_mario', 'sprite': 'mini_mario',
@@ -77,8 +86,8 @@ def main() -> None:
                 {'type': 'door', 'id': 'castle_fork_return', 'x': 256, 'y': height * TILE - 10,
                  'w': 352, 'h': 10, 'to': 'gajaeman_memory2', 'spawn': 'from_fork',
                  'interact': False, 'sfx': False},
-                {'type': 'trigger', 'id': 'castle_torii_start', 'x': 1248, 'y': 640,
-                 'w': 64, 'h': 96, 'script': 'castle_malzahar_run', 'requires': 'castle_malzahar_split'},
+                {'type': 'trigger', 'id': 'castle_torii_start', 'x': 1088, 'y': 640,
+                 'w': 32, 'h': 96, 'script': 'jjajang_run_start'},
             ]
             # The old torii's near/far bases and split-image offsets are unchanged.
             near_x, near_y = 1008, 738
@@ -95,18 +104,23 @@ def main() -> None:
             ])
             spawns = {'start': {'x': 388, 'y': 952, 'facing': 'up'},
                       'after_split': {'x': 688, 'y': 488, 'facing': 'right'},
-                      'torii': {'x': 1188, 'y': 680, 'facing': 'right'}}
+                      'torii': {'x': 960, 'y': 680, 'facing': 'right'}}
             meta = {'connected': True, 'stage': stage, 'route': [[12, 30], [12, 21], [40, 21]],
                     'runRoadRows': [[20, 22]],
-                    'runs': {'a': {'dir': 1, 'startX': 1248, 'endX': 4320, 'groundY': 680,
+                    'run': {'dir': 1, 'startX': 1120, 'endX': 4320, 'groundY': 680,
                                    'speed': 420, 'water': False, 'obstacles': False, 'seed': 31,
                                    'keepFollowersHidden': True, 'leadInSeconds': 3,
-                                   'encounter': 'malzahar_runner'}}}
+                                   'encounter': 'malzahar_runner'}}
         else:
             entities = [{'type': 'prop', 'id': 'castle_torii_end_door',
                          'image': 'assets/props/castle-memory-door.png',
                          'x': 656, 'y': 160, 'w': 96, 'h': 16, 'ix': 656, 'iy': 48,
-                         'solid': True, 'sortY': 0, 'script': 'castle_malzahar_end_door'}]
+                         'solid': True, 'sortY': 0, 'script': 'castle_malzahar_end_door'},
+                        {'type': 'prop', 'id': 'castle_end_left_barrier',
+                         'image': 'assets/tiles/castle307_floor.png',
+                         'x': 584, 'y': 416, 'w': 24, 'h': 160, 'hidden': True, 'solid': True},
+                        {'type': 'trigger', 'id': 'castle_end_left_warning',
+                         'x': 608, 'y': 416, 'w': 24, 'h': 160, 'script': 'castle_malzahar_backtrack'}]
             spawns = {'start': {'x': 692, 'y': 280, 'facing': 'up'},
                       'from_orb': {'x': 692, 'y': 208, 'facing': 'down'}}
             meta = {'connected': True, 'route': [[21, 8], [21, 6]]}
@@ -124,7 +138,7 @@ def main() -> None:
             'spawns': spawns, 'meta': meta, 'entities': entities,
         }
         if fork:
-            map_data['enter'] = {'script': 'castle_malzahar_intro', 'early': True}
+            map_data['enter'] = {'script': 'castle_malzahar_intro'}
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == map_data

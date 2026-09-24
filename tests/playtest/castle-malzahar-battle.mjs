@@ -127,20 +127,32 @@ await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--a
   const combatAudio = audio.slice(soundsBefore).filter(entry => /malzahar_(q|w|dash)\.mp3/.test(entry.src));
   check('Q W and dash cues really play at all five cycles', ['q', 'w', 'dash'].every(key => combatAudio.filter(entry => entry.src.includes(`malzahar_${key}.mp3`) && entry.resolved && entry.later > entry.start).length === 5), JSON.stringify(combatAudio));
   check('audio playback has no swallowed rejection or media errors', audio.filter(entry => /malzahar_|castle_battle|castle_right/.test(entry.src)).every(entry => !entry.error && !entry.mediaError), JSON.stringify(audio.filter(entry => entry.error || entry.mediaError)));
+  await page.keyboard.down('ArrowDown');
+  try { assert.ok(await until(() => game.player.y >= 480, 6000)); }
+  finally { await page.keyboard.up('ArrowDown'); }
+  await page.keyboard.down('ArrowLeft');
+  try { assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 6000)); }
+  finally { await page.keyboard.up('ArrowLeft'); }
+  check('natural victory left backtrack is blocked with narrator feedback', await page.evaluate(() => game.player.x >= 608
+    && game.textbox.node.text === '* 앞이 먼저다.' && game.mapId === 'gajaeman_torii_end'));
+  await shot('natural-arrival-left-barrier'); await press('KeyC', { delay: 45 }); assert.ok(await field());
+  await page.keyboard.down('ArrowRight');
+  try { assert.ok(await until(() => game.player.x >= 692, 5000)); }
+  finally { await page.keyboard.up('ArrowRight'); }
   await page.keyboard.down('ArrowUp');
   try { assert.ok(await until(() => game.player.probe()?.id === 'castle_torii_end_door', 12000)); }
   finally { await page.keyboard.up('ArrowUp'); }
   await press('KeyC', { delay: 45 });
-  assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 5000));
-  check('north door responds after natural victory', await page.evaluate(() => game.textbox.node.text === '* 문이 잠겨 있다.' && game.mapId === 'gajaeman_torii_end'));
-  await shot('natural-arrival-north-door'); await press('KeyC', { delay: 45 });
+  assert.ok(await until(() => game.mapId === 'gajaeman_castle_orb' && !game.transitioning && !game.dialogue.running, 10000));
+  check('north door reaches the orb room after natural victory', await page.evaluate(() => game.mapId === 'gajaeman_castle_orb' && game.flags.castle_malzahar_won));
+  await shot('natural-arrival-orb-room');
   await press('Escape', { delay: 45 });
   assert.ok(await until(() => game.state === 'title' && !game.transitioning, 5000));
   await press('KeyC', { delay: 45 });
   assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.1, 10000));
   await press('KeyC', { delay: 45 }); assert.ok(await field());
-  check('natural victory persists through real title continue', await page.evaluate(() => game.mapId === 'gajaeman_torii_end' && game.flags.castle_malzahar_won
-    && game.party.length === 0 && game.attack === 5 && game.hpBonus === 80 && !game.battle && !game.runner && game.sound.bgmName === 'castle_right'));
+  check('natural victory persists through real title continue in the orb room', await page.evaluate(() => game.mapId === 'gajaeman_castle_orb' && game.flags.castle_malzahar_won
+    && game.party.length === 0 && game.attack === 5 && game.hpBonus === 80 && !game.battle && !game.runner && game.sound.bgmName === 'castle_orb'));
   await shot('continued-natural-arrival');
 
   await enter('retry-fixture-');

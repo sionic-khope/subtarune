@@ -37,13 +37,22 @@ export function doorTransitWaiter(game, actor, door, options) {
   } };
 }
 
+/** Draw the moving door leaf within its rectangular or pointed-arch aperture. */
 export function drawDoorOpening(ctx, door, cam) {
   if (!door.doorOpening || !door.image) return;
-  const { inset, progress } = door.doorOpening;
+  const { inset, progress, archRise } = door.doorOpening;
   const [x, y, w, h] = openingRect(door, inset);
   const dx = Math.round(x - cam.x), dy = Math.round(y - cam.y);
   ctx.save();
-  ctx.beginPath(); ctx.rect(dx, dy, w, h); ctx.clip();
+  ctx.beginPath();
+  if (archRise) {
+    const rise = archRise * (door.scale ?? door.def.scale ?? 1);
+    ctx.moveTo(dx, dy + h); ctx.lineTo(dx, dy + rise);
+    ctx.quadraticCurveTo(dx, dy + rise / 2, dx + w / 2, dy);
+    ctx.quadraticCurveTo(dx + w, dy + rise / 2, dx + w, dy + rise);
+    ctx.lineTo(dx + w, dy + h); ctx.closePath();
+  } else ctx.rect(dx, dy, w, h);
+  ctx.clip();
   ctx.fillStyle = '#000'; ctx.fillRect(dx, dy, w, h);
   ctx.drawImage(door.image, ...inset, dx - Math.round(w * progress), dy, w, h);
   ctx.restore();
