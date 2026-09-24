@@ -66,6 +66,13 @@ await runScenario({ name: 'castle-cathedral-climb', launchOptions: { args: ['--a
     const moved = y0 - await page.evaluate(() => game.player.y);
     check('climb walk is forced to the X slow-walk speed (~124.8px/s)', await page.evaluate(() => !!game.windWalk) && moved > 90 && moved < 150, String(moved));
   }
+  {
+    // BUILD329: 오르는 중 아래(뒤)로는 걷지 못한다 — 맞아서 밀리는 것만 예외라 무적 시간 동안 잰다
+    await page.evaluate(() => { game.invuln = 5; });
+    const y0 = await page.evaluate(() => game.player.y); await page.keyboard.down('ArrowDown'); await page.waitForTimeout(1200); await page.keyboard.up('ArrowDown');
+    const back = await page.evaluate(() => game.player.y) - y0;
+    check('holding Down during the climb does not walk back', back <= 0.5, String(back));
+  }
   check('stage saved at climb start', await page.evaluate(() => !!game.flags.castle_cathedral_climb && JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)).flags.castle_cathedral_climb));
   const hp0 = obs.beats.climb.hp;
   // 회피 없이 위로만: 검 예고·발사·피격을 실제 경로에서 관찰한다.

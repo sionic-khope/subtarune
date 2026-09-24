@@ -439,7 +439,9 @@ export class Player extends Character {
       return;
     }
     const startX = this.x, startY = this.y;
-    const a = input.axis();
+    const a = { ...input.axis() };
+    // 대성당 오르기(BUILD329 사용자 “뒤로 아예 안가지게”): 바람 속에서는 아래(뒤)로 걷지 못한다 — 맞았을 때 밀림(knock)은 그대로
+    if (this.game.windWalk && a.y > 0) a.y = 0;
     if (a.x !== 0 || a.y !== 0) {
       if (a.x) this.facing = a.x > 0 ? 'right' : 'left';
       if (a.y && !a.x) this.facing = a.y > 0 ? 'down' : 'up';
