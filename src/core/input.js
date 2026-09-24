@@ -10,7 +10,7 @@ const KEYMAP = {
   F1: 'debug',
   KeyV: 'menu', Tab: 'menu',   // 비상탈출은 메뉴 안의 한 칸(Tab 자체가 탈출이 아님 — 2026-09-10)
   KeyT: 'test',
-  KeyQ: 'qa',       // 타이틀: QA 바로가기 목록
+  KeyQ: 'qa',       // 타이틀: QA 바로가기 목록(Shift+Q 만, 사용자 2026-09-25)
 };
 
 // 게임패드(표준 매핑): A/B 위치는 델타룬처럼 A=확인, B=취소
@@ -27,6 +27,8 @@ export const Input = {
       if (this.onAnyKey) this.onAnyKey();
       const action = KEYMAP[e.code];
       if (!action) return;
+      // QA 목록·테스트룸은 Shift+Q / Shift+T 로만(사용자 2026-09-25) — 그냥 Q·T 는 아무 것도 하지 않는다
+      if ((action === 'qa' || action === 'test') && !e.shiftKey) return;
       e.preventDefault();
       if (!this.held[action]) {
         this.held[action] = true;

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 const ENCOUNTERS = [
   { id: 'seobruto', qa: 'memory_seobruto', direction: 'ArrowRight', ids: ['seobruto'], prefixes: ['memory_'] },
@@ -79,7 +80,7 @@ await runScenario({ name: 'castle-damage' }, async ({ page, open, until, press, 
     }
     check(`${config.id} natural enemy phase returns to menu`, trace.done && await page.evaluate(() => game.battle.bullets.length === 0));
     await shot(`${config.id}-returned-menu`);
-    await key('Escape');
+    await escToTitle(page);
     assert.ok(await until(() => game.state === 'title', 5000));
   }
 });

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 const ASSET_WAIT_MS = 15000;
 const REPEAT_WAIT_MS = 12000;
@@ -211,7 +212,7 @@ await runScenario({ name: 'loading-performance' }, async ({ page, check, until, 
   check('battle intro has enemy art loaded', introState.enemies.length > 0 && introState.enemies.every(enemy => enemy.loaded), JSON.stringify(introState));
 
   const escapeNetworkStart = network.mark();
-  await page.keyboard.press('Escape');
+  await escToTitle(page);
   const escaped = await page.waitForFunction(() => !window.game?.battle && !window.game?.transitioning, undefined, { timeout: 6000, polling: 30 }).then(() => true).catch(() => false);
   const postEscape = await collectMetrics(page, network, { scenario: 'post-entry-escape', networkStart: escapeNetworkStart });
   metrics.push(postEscape);

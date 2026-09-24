@@ -2,6 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'choimis-karaoke', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, check, fixture }) => {
   const evidence = { sources: [], frames: [], limitations: 'Direct QA battle with opening skipped. One short segment plays on the real audio clock; other cues use explicitly disclosed pause/seeks of that same HTMLAudioElement. Real C queues the enemy turn; no battle result, clock, drawing, HP, or lyric data is injected. Canvas instrumentation only records calls and full Game.draw frames. This is lyric-effect QA, not full battle or human-listening evidence.' };
@@ -113,7 +114,7 @@ await runScenario({ name: 'choimis-karaoke', launchOptions: { args: ['--autoplay
   const frontAlpha = frame => frame.calls.find(c => c.method === 'fillText' && c.style === '#ff78b8')?.alpha;
   check('attack dims foreground and echoes together to0.68 of menu', attack.battle === 'bullets' && Math.abs(frontAlpha(attack) / frontAlpha(menuFrame) - 0.68) < 0.005 && Math.abs(ghosts(attack)[0].alpha / ghosts(menuFrame)[0].alpha - 0.68) < 0.005);
   check('enemy turn returns to menu without lyric state leakage', await until(() => game.battle.state === 'menu', 15000));
-  await press('Escape', { delay: 55 }); check('physical Escape reaches title', await until(() => game.state === 'title', 5000));
+  await escToTitle(page, { delay: 55 }); check('physical Escape reaches title', await until(() => game.state === 'title', 5000));
   await page.evaluate(() => { window.__lyricsQa.pending = 'title-after-abort'; window.__lyricsQa.requestedTime = null; });
   check('end state has no retained karaoke draw calls', await until(() => window.__lyricsQa.frames['title-after-abort']?.calls.length === 0, 3000));
   const frames = await page.evaluate(() => window.__lyricsQa.frames);

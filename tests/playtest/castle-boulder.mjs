@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 const INTRO = ['흠.. 영클형이 이쯤에서... 있었던거같은데', '음..', '2런 시발', '어 ㅎ2', '이게 무슨일이야?',
   '저 뒤에서 이 미친 돌을 밀고있음.', '잔말말고 빨리 도와 씨발 !!!!', '난 도움이 안될거같아서 일단 레이저쏘는중',
@@ -322,7 +323,7 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
       if (boundary === 'camera-lifecycle') {
         await shot('cancel-surge-pan-before');
         await fixture('mid-pan-title-lifecycle', 'Production toTitle() during an active camera/zoom tests lifecycle teardown, not user keyboard cancellation. Existing global Escape guard intentionally rejects input until zoom ends; that real input is tested separately.', () => game.toTitle());
-      } else await key('Escape');
+      } else await escToTitle(page);
       assert.ok(await until(() => game.state === 'title' && !game.castleBoulderPush && !game.castleBoulder, 6000));
       await page.waitForTimeout(2800);
       check(`${boundary} leaves no scene, camera lock, music, dialogue or completed flag`, await page.evaluate(() => !game.flags.castle_boulder_done
@@ -357,7 +358,7 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
         check('cancellation occurs before mash can begin', (await snap()).push.phase === 'interlude' && (await snap()).push.count === 0);
         await fixture('remember-cancelled-interlude', 'Retain a read-only reference to the current controller to detect any late async resurrection after title/Continue.', () => { window.cancelledBoulderController = game.castleBoulderPush; });
       }
-      await shot(`cancel-${boundary}-before`); await key('Escape');
+      await shot(`cancel-${boundary}-before`); await escToTitle(page);
       assert.ok(await until(() => game.state === 'title' && !game.castleBoulderPush && !game.castleBoulder, 6000));
       await page.waitForTimeout(900);
       check(`${boundary} cancellation clears scene without false completion`, await page.evaluate(() => !game.flags.castle_boulder_done
@@ -373,7 +374,7 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     await open({ qa: 'castle_left_orb' }); assert.ok(await field());
     await walk('ArrowUp', () => game.player.probe()?.id === 'castle_seal_orb', 'left orb cancel approach');
     await narrateOrb('cancel-left'); assert.ok(await until(() => game.castleOrb?.beat === 'pan', 12000));
-    await shot('cancel-left-pan'); await key('Escape');
+    await shot('cancel-left-pan'); await escToTitle(page);
     assert.ok(await until(() => game.state === 'title' && !game.castleOrb, 6000));
     await page.waitForTimeout(500);
     await continueTitle(); assert.ok(await field());
@@ -428,7 +429,7 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
     if (phase === 'feedback') {
       check('feedback capture leaves real unfinished timing state', (await snap()).push.stage === 1 && !(await snap()).flags.done);
       check('no feedback scene errors', errors.length === 0 && requiredFailures.length === 0, JSON.stringify({ errors, requiredFailures }));
-      await key('Escape'); assert.ok(await until(() => game.state === 'title' && !game.castleBoulderPush && !game.castleBoulder, 6000));
+      await escToTitle(page); assert.ok(await until(() => game.state === 'title' && !game.castleBoulderPush && !game.castleBoulder, 6000));
       return;
     }
     const launch = await snap();

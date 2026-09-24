@@ -2,6 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot: rawShot, check, fixture }) => {
   const build303 = process.env.QA_BUILD303 === '1';
@@ -224,7 +225,7 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
   check('retry: party and boss HP restored', retry.party.every(m => m.hp === m.maxHp && !m.down) && retry.hp === 200);
   for (let i = 0; i < 30 && !await page.evaluate(() => game.battle?.gimmick?.snapshot?.phase === 'intro'); i++) { await press('KeyC', { delay: 70 }); await page.waitForTimeout(180); }
   check('retry: fresh video begins at zero without duplicate result', (await snapshot()).mode.bites === 0 && (await snapshot()).media.time < 2);
-  await press('Escape', { delay: 70 });
+  await escToTitle(page, { delay: 70 });
   check('escape: real title input cancels active video', await until(() => game.state === 'title', 5000));
   const cancelled = await record('escape-cleanup');
   check('escape: mode disposed and video silent', cancelled.mode.disposed && cancelled.media.paused && cancelled.media.src === null);

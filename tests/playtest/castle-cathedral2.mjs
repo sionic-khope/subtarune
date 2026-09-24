@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 // BUILD325: 대성당1 꼭대기 → 가재맨 이동 → 둘째 회랑(브금 연속) → 중간 검 9개 대치·구출 → 레이저 지원 3자루 → 이어하기.
 await runScenario({ name: 'castle-cathedral2', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
@@ -71,7 +72,7 @@ await runScenario({ name: 'castle-cathedral2', launchOptions: { args: ['--autopl
   } finally { await page.keyboard.up('ArrowUp'); }
   check('triple volley: youngcle alerts then opens one lane that is not the player lane', warned && lasered && obs.triples.every(t => t.swords.filter(w => w.phase === 'broken').every(w => w.lane !== t.lane)), JSON.stringify(obs.triples));
   // 이어하기: 합류 상태 복원
-  await key('Escape'); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
+  await escToTitle(page); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
   await key('KeyC'); assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const requiredFailures = [];
@@ -146,7 +147,7 @@ await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--a
   assert.ok(await until(() => game.mapId === 'gajaeman_castle_orb' && !game.transitioning && !game.dialogue.running, 10000));
   check('north door reaches the orb room after natural victory', await page.evaluate(() => game.mapId === 'gajaeman_castle_orb' && game.flags.castle_malzahar_won));
   await shot('natural-arrival-orb-room');
-  await press('Escape', { delay: 45 });
+  await escToTitle(page, { delay: 45 });
   assert.ok(await until(() => game.state === 'title' && !game.transitioning, 5000));
   await press('KeyC', { delay: 45 });
   assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.1, 10000));
@@ -172,7 +173,7 @@ await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--a
     && retry.battle.mode.phase === 'enter' && retry.battle.members[0].hp === 180 && retry.bgm === 'castle_battle', JSON.stringify(retry));
   await shot('retry-fresh-entry');
   await page.evaluate(() => { window.qaRetryMode = game.battle.gimmick; });
-  await press('Escape', { delay: 45 });
+  await escToTitle(page, { delay: 45 });
   assert.ok(await until(() => game.state === 'title' && !game.transitioning, 5000));
   check('Escape cleans runner battle camera and retry resources', await page.evaluate(() => qaRetryMode.snapshot.disposed && !game.battle && !game.runner && !game.camera.locked && !game.sound.bgmName));
   await shot('escape-title');

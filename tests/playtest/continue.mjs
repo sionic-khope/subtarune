@@ -3,6 +3,7 @@
 //   → ?qa=key(억빠맨만) → 이어하기 → 동료 1 이 주인공 옆에. 세이브에 spawn 이 있고, 컷신 중엔 세이브가 안 바뀐다.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
+import { escToTitle } from './lib/esc.mjs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -41,7 +42,7 @@ check('continue → teal3 with both followers standing next to the player (not l
 await page.screenshot({ path: `${S}/continue_01_teal3.png` });
 
 // 3) 같은 세션에서 Esc → 타이틀 Q → 'void'(동료 없음): 상태가 섞이지 않는다
-await page.keyboard.press('Escape');
+await escToTitle(page);
 await titleLocked();
 await page.keyboard.press('KeyQ'); await page.waitForTimeout(200);
 const idx = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.findIndex((x) => x.id === 'void'));

@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'ship-ending', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, check, shot, until, press, fixture }) => {
   const snapshot = () => page.evaluate(() => {
@@ -161,7 +162,7 @@ await runScenario({ name: 'ship-ending', launchOptions: { args: ['--autoplay-pol
   check('real win callback enters ending once with silent BGM', s.flags.ship_tvform_won && !s.flags.ship_ending_done && !s.bgm && s.actors.ship_youngcle.sprite === 'youngcle_tvform');
   await press('KeyC');
   check('real victory C also starts tremble', await until(() => window.game.entities.find(e => e.id === 'ship_youngcle')?.jitter, 1500));
-  await press('Escape');
+  await escToTitle(page);
   check('Escape during tremble returns to clean title', await until(() => {
     const g = window.game;
     return g.state === 'title' && !g.dialogue.running && !g.dialogue.wait && !g.darkSmoke && !g.flags.ship_ending_done && !g.entities.some(e => e.jitter || e.motion);

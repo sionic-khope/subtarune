@@ -2,6 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { escToTitle } from './lib/esc.mjs';
 
 async function runBuild299({ page, open, until, press, shot, check, fixture }) {
   const opening303 = process.env.QA_BUILD303_OPENING === '1';
@@ -749,7 +750,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     check('retry restores full HP, enemy HP 200, and standing party', !!retried && retryState.battle?.enemies?.[0]?.hp === 200 && retryState.battle?.members?.every(m => !m.down && m.hp === m.maxHp), json(retryState.battle));
     await shot('19_retry_intro_restored');
 
-    await press('Escape');
+    await escToTitle(page);
     const titleLoaded = await until(() => window.game?.state === 'title' && window.game.fade.alpha === 0 && !window.game.transitioning, 60000);
     if (!titleLoaded) {
       check('Escape reaches a stable title surface before title input', false, json(await snapshot()));

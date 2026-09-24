@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const cathedral = 'gajaeman_castle_cathedral';
@@ -99,7 +100,7 @@ await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autopla
   }
   await page.setViewportSize({ width: 1280, height: 900 });
   // 연출 도중 타이틀 → 이어하기: 완료 단계가 없으므로 입장 연출을 처음부터 다시 본다.
-  await key('Escape'); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
+  await escToTitle(page); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
   await key('KeyC'); assert.ok(await until(() => game.state === 'field', 20000));

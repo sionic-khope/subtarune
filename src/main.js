@@ -208,6 +208,7 @@ class Game {
     this.portraits = this.makePortraits();
     this.title = new TitleScreen(this);
     this.title.enter();
+    void this.bootPreload();
     this.textbox = new TextBox(this.sound, this.portraits);
     this.coastChatter = new NightCoastChatter(this);
     this.dialogue = new ScriptRunner(this.textbox, this);
@@ -1215,7 +1216,9 @@ class Game {
     this.time += dt;
     Input.poll();
     if (Input.just('debug')) this.debug = !this.debug;
-    if (Input.just('title') && this.state !== 'title' && !this.transitioning && !this.scene3d && !this.zoom.tween) { this.toTitle(); return; }
+    // Esc: 바로 타이틀로 가지 않고 경고 + 예/아니요(사용자 2026-09-25). 창이 떠 있는 동안 게임은 멈춘다
+    if (this.escConfirm) { this.updateEscConfirm(); return; }
+    if (Input.just('title') && this.state !== 'title' && !this.transitioning && !this.scene3d && !this.zoom.tween) { this.escConfirm = { i: 1 }; this.sound.sfx('menu'); return; }
     this.textbox.charDelay = TEXT_SPEEDS[this.settings.textSpeed].delay;
     if (this.sound.muted !== !this.settings.sound) { this.sound.muted = !this.settings.sound; if (this.sound.bgm) this.sound._ramp(this.sound.bgm, this.sound.muted ? 0 : (this.sound.bgmVolume ?? 0.35), 0.2); }
     this.sunrise.update();
@@ -1746,6 +1749,54 @@ class Game {
     if (this.debug) this.drawDebug(ctx, cam);
   }
 
+  updateEscConfirm() {
+    const c = this.escConfirm;
+    if (Input.just('left') || Input.just('right') || Input.just('up') || Input.just('down')) { c.i = 1 - c.i; this.sound.sfx('menu'); }
+    if (Input.just('cancel') || Input.just('title')) { this.escConfirm = null; this.sound.sfx('cancel'); return; }
+    if (!Input.just('confirm')) return;
+    this.escConfirm = null;
+    if (c.i === 0) { this.sound.sfx('confirm'); this.toTitle(); } else this.sound.sfx('cancel');
+  }
+  /** Esc 경고창: 프레임 마지막(모든 화면 위)에 그린다. */
+  drawEscConfirm(ctx) {
+    if (!this.escConfirm || this.state === 'title') return;
+    ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+    const w = 420, h = 104, x = Math.round((SCREEN_W - w) / 2), y = Math.round((SCREEN_H - h) / 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    drawBox(ctx, x, y, w, h);
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff6060'; ctx.fillText(L.esc_confirm_title, SCREEN_W / 2, y + 10);
+    ctx.fillStyle = '#fff';
+    L.esc_confirm_lines.forEach((line, k) => ctx.fillText(line, SCREEN_W / 2, y + 30 + k * F.lineH));
+    [L.esc_confirm_yes, L.esc_confirm_no].forEach((label, k) => {
+      const ox = SCREEN_W / 2 + (k ? 50 : -50), on = this.escConfirm.i === k;
+      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(label, ox, y + h - 26);
+      if (on) drawHeart(ctx, ox - Math.round(ctx.measureText(label).width / 2) - 14, y + h - 26 + Math.round(F.size / 2) - 3);
+    });
+    ctx.textAlign = 'left';
+  }
+  /** 부팅 때 전체 맵 에셋(맵 그림·타일·캐릭터 시트·전투 미리 준비)을 미리 받는다. 이미 받은 것은 캐시에서 건너뛴다. QA 주소(?qa=…)·자동화 브라우저는 생략하고 ?bootload=1 이면 강제로 켠다. */
+  async bootPreload() {
+    const params = new URLSearchParams(location.search);
+    if (!params.has('bootload') && (location.search || navigator.webdriver)) return;
+    const load = this.bootLoad = { active: true, done: 0, total: 1 };
+    try {
+      const response = await fetch(`assets/maps/index.json?v=${BUILD}`);
+      const ids = response.ok ? (await response.json()).maps || [] : [];
+      load.total = ids.length || 1;
+      let next = 0;
+      const worker = async () => {
+        while (next < ids.length) {
+          const id = ids[next++];
+          try { await this.prepareMap(id); } catch (error) { console.warn('[boot] 맵 준비 실패', id, error); }
+          load.done++;
+        }
+      };
+      await Promise.all([worker(), worker(), worker(), worker()]);
+    } catch (error) { console.warn('[boot] 에셋 목록 실패', error); }
+    finally { load.done = load.total; load.active = false; }
+  }
+
   drawMenu(ctx) {
     const m = this.menu;
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
@@ -1935,6 +1986,7 @@ function frame(now) {
   game.dt = dt;
   game.update(dt);
   game.draw();
+  game.drawEscConfirm(game.ctx);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

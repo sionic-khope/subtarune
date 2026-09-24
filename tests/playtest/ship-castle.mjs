@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, check, until, open, press, shot, fixture }) => {
   if (process.env.QA_SHIP_CASTLE_FOCUS === 'powershot') {
@@ -10,7 +11,7 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await page.keyboard.down('ArrowUp');
   check('interrupt audit first reaches the event through real walking', !!await until(() => game.flags.ship_castle_started && game.dialogue.running && game.shipCastle, 12000));
   await page.keyboard.up('ArrowUp');
-  await press('Escape');
+  await escToTitle(page);
   check('Escape interrupts the active scene and returns to title', !!await until(() => game.state === 'title' && !game.shipCastle && !game.dialogue.running, 5000));
   const interrupted = await page.evaluate(() => ({ bgm: game.sound.bgmName, saved: JSON.parse(localStorage.getItem('subtarune.save.v1')) }));
   check('interruption cleans scene audio and does not save the once flag', interrupted.bgm !== 'ship_castle' && !interrupted.saved.flags.ship_castle_started && !interrupted.saved.flags.ship_castle_done, JSON.stringify(interrupted));
@@ -439,6 +440,6 @@ async function powershotFocus({ page, check, until, open, press, shot, fixture }
     game.shipCastle.setBeat('castle_reveal');
   });
   check('second reveal starts one fresh real clip for abort test', !!await until(() => window.__powershot.handle.currentTime > 0.1 && !window.__powershot.handle.paused, 3000));
-  await press('Escape');
+  await escToTitle(page);
   check('Escape releases powershot and scene without falsely completing story', !!await until(() => game.state === 'title' && !game.shipCastle && window.__powershot.handle.paused && !game.flags.ship_castle_done, 3000));
 }

@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'jjajang-shore', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({
   page, check, until, open, press, shot, fixture,
@@ -70,7 +71,7 @@ await runScenario({ name: 'jjajang-shore', launchOptions: { args: ['--autoplay-p
     && saved.party.length === 0 && saved.flags.ship_sinking_done && saved.flags.ship_castle_cord_stolen
     && !saved.inventory.includes('보라색 코드 ?'), JSON.stringify(saved));
 
-  await press('Escape');
+  await escToTitle(page);
   check('Escape returns to title without deleting shore save', !!await until(() => game.state === 'title' && game.hasSave(), 10000));
   await press('KeyZ');
   await page.waitForTimeout(300);

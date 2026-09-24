@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const mode = process.env.QA_GATE_MODE || 'main';
@@ -134,7 +135,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
       await dialogue(phase === 'fade'
         ? () => game.mapId === 'gajaeman_castle_lobby' && game.fade.alpha < 0.8 && game.fade.alpha > 0.1
         : () => game.mapId === 'gajaeman_castle_lobby' && game.fade.alpha < 0.01 && game.player.moving, false);
-      await shot(`entry-cancel-${phase}`); await key('Escape');
+      await shot(`entry-cancel-${phase}`); await escToTitle(page);
       assert.ok(await until(() => game.state === 'title' && !game.castleGate, 6000));
       check(`${phase} interruption disposes entry without completion`, await page.evaluate(() => !game.dialogue.running && !game.flags.castle_gate_open
         && !game.flags.castle_gate_reunion_done && game.entities.every(e => !e.doorTransit)));
@@ -174,7 +175,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     check('actual rendered radius is substantially broader than former 110px', Math.max(...q.radii) >= 155 && constants.radius >= 170,
       JSON.stringify({ constants, maximumRenderedRadius: Math.max(...q.radii) }));
     check('corner stays traversable with party and no collision penetration', (await state()).party.length === 2 && !(await state()).blocked);
-    await key('Escape'); check('sparse ring scene disposes at title', await page.evaluate(() => !game.castleDarkPath));
+    await escToTitle(page); check('sparse ring scene disposes at title', await page.evaluate(() => !game.castleDarkPath));
     fs.writeFileSync(path.join(process.env.SHOT_DIR, 'dark319-observations.json'), JSON.stringify({ constants, ...q }, null, 2));
     return;
   }
@@ -270,7 +271,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     }
     await shot('short-taps-blocked');
     check('blocked short taps create neither movement nor false rings', Math.abs((await state()).xy[0] - wall[0]) < 0.01 && blockedPulses === 0);
-    await key('Escape'); check('short-tap scene disposes at title', await page.evaluate(() => !game.castleDarkPath));
+    await escToTitle(page); check('short-tap scene disposes at title', await page.evaluate(() => !game.castleDarkPath));
     await open(); await continueTitle(); assert.ok(await ready());
     check('true page reload Continue preserves open flags party and 13am', (await state()).open && (await state()).reunion
       && (await state()).party.join() === 'gyeongsub,ppaman' && (await state()).bgm === 'castle_dark_path');
@@ -281,7 +282,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     for (const beat of ['opening', 'transit']) {
       if (beat === 'transit') await start();
       await dialogue(beat === 'opening' ? () => game.castleGate?.opening?.elapsed > 0.3 : () => game.castleGate?.passengers.length > 0, false);
-      await shot(`cancel-${beat}-before`); await key('Escape');
+      await shot(`cancel-${beat}-before`); await escToTitle(page);
       assert.ok(await until(() => game.state === 'title' && !game.castleGate, 6000));
       check(`${beat} interruption removes scene and actor transit state`, await page.evaluate(() => !game.dialogue.running && !game.castleGate
         && game.entities.every(e => !e.doorTransit) && !game.flags.castle_gate_open && !game.flags.castle_gate_reunion_done));
@@ -312,7 +313,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     check('locker and rumble are actual opening calls', ['locker', 'rumble'].every(name => q.sounds.some(s => s.name === name)));
     check('boulder-to-lobby transition includes black fade and stays silent', q.samples.some(s => s.map === 'gajaeman_castle_boulder' && s.fade > 0.95)
       && q.samples.filter(s => s.map === 'gajaeman_castle_lobby').every(s => !s.bgm));
-    await key('Escape'); await continueTitle(); assert.ok(await ready());
+    await escToTitle(page); await continueTitle(); assert.ok(await ready());
     check('production autosave and title Continue preserve gate and party', (await state()).open && (await state()).reunion && (await state()).party.join() === 'gyeongsub,ppaman');
     await observe();
     await walk('ArrowUp', () => game.player.probe()?.id === 'castle_lobby_open_door', 'approach open gate');
@@ -330,7 +331,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     await page.waitForTimeout(1750); await shot('black-rings-cleared');
     check('idle clears rings while BGM clock advances', (await state()).pulses === 0 && (await state()).clock > clock + 1.5);
     observations.push({ phase: 'dark-first-entry', ...await page.evaluate(() => window.__gateQA) });
-    await key('Escape');
+    await escToTitle(page);
     check('title disposes dark path pulses', await page.evaluate(() => !game.castleDarkPath));
     await continueTitle(); assert.ok(await ready()); await observe();
     assert.ok(await until(() => game.sound.bgmName === 'castle_dark_path' && game.sound.bgm?.currentTime > 0.15 && !game.sound.bgm.paused, 8000));
@@ -353,7 +354,7 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_lobby', 'return south to open lobby'); assert.ok(await ready()); await shot('lobby-return-restored');
     check('return disposes darkness and restores full party brightness', !(await state()).dark && (await state()).party.length === 2
       && await page.evaluate(() => window.__gateQA.alpha.some(a => a.map === 'gajaeman_castle_lobby' && a.alpha === 1)));
-    await key('Escape'); await continueTitle(); assert.ok(await ready());
+    await escToTitle(page); await continueTitle(); assert.ok(await ready());
     check('return save Continue keeps open gate and party without reunion replay', (await state()).open && (await state()).reunion && (await state()).party.length === 2 && !await page.evaluate(() => !!game.castleGate));
   }
   const evidence = await page.evaluate(() => window.__gateQA);

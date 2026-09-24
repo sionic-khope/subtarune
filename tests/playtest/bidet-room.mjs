@@ -1,6 +1,7 @@
 // 비데 방(youngcle9) BUILD167: 브금 없다가 연출 시작에 등장 곡, 마리오가 눕힌 토관 입구에서 비데 머리 위로, 거대 스크린 줌아웃(0.5), 토관 입구로 걸어 들어가면 섭리오. 실행: tests/playtest/run.sh bidet-room
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { escToTitle } from './lib/esc.mjs';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -56,7 +57,7 @@ try {
   const opened = await page.waitForFunction(() => !!window.__subrio, null, { timeout: 15000 }).then(() => true).catch(() => false);
   await page.waitForTimeout(900); await cap('subrio_open');
   check(opened, '섭리오 오버레이 열림');
-  await page.keyboard.press('Escape');
+  await escToTitle(page);
   await page.waitForFunction(() => !window.__subrio, null, { timeout: 8000 }).catch(() => {});
   const back = await runUntil(s => !s.running && s.player[2], 'back', 20000, 300);
   check(!!back && back.player[0] < 340 && back.bgm === 'editor_union_stage', '토관 입구로 나와 등장 곡 복귀 ' + JSON.stringify(back && [back.player, back.bgm]));

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { escToTitle } from './lib/esc.mjs';
 
 const base = process.env.BASE_URL || 'http://localhost:8777';
 const shots = process.env.SHOT_DIR || '/tmp/storage119-playtest';
@@ -155,7 +156,7 @@ try {
   await approachActor();
   await page.waitForFunction(() => game.textbox.node?.text === '* 강퇴당했다' && game.textbox.state === 'waiting');
   await shot('13-repeat'); await next(); await ready();
-  await page.keyboard.press('Escape'); await page.waitForFunction(() => game.state === 'title');
+  await escToTitle(page); await page.waitForFunction(() => game.state === 'title');
   check('Esc exits to title', await page.evaluate(() => game.state === 'title'));
   await page.goto(base); await page.waitForFunction(() => window.game?.state === 'title' && game.title?.phase === 'wait');
   await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'zoom');
@@ -173,7 +174,7 @@ try {
     game.runScript([{ bgm: 'storage_show' }, { musicCamera: { ...STORAGE_DANCE, at: 'expelled_viewer' } }]);
   });
   await page.waitForFunction(() => game.musicCamera?.cue?.elapsed > 0.3);
-  await page.keyboard.press('Escape');
+  await escToTitle(page);
   await page.waitForFunction(() => game.state === 'title' && !game.transitioning);
   check('Escape cancels cue and never resurrects its paused track', await page.evaluate(() => !game.musicCamera && !game.sound.paused && game.sound.bgmName !== 'storage_show' && game.zoom.s === 1));
   check('no runtime errors', report.errors.length === 0, report.errors);

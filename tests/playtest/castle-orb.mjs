@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const failures = [];
@@ -144,7 +145,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
   check('reinteraction does not replay activation', await page.evaluate(() => !game.castleOrb && game.textbox.node.text === '* 구체가 보라색으로 빛나고 있다.'));
   await shot('orb-repeat-dialogue'); await key('KeyC'); assert.ok(await field());
   await fixture('save-completed-orb', 'Save only naturally completed state through production autosave; no save edits.', () => game.autosave());
-  await key('Escape'); await continueFromTitle();
+  await escToTitle(page); await continueFromTitle();
   check('real title continue preserves activated seal solo party and room camera', (await snapshot()).flag && (await snapshot()).party.length === 0
     && (await snapshot()).map === 'gajaeman_castle_orb' && JSON.stringify((await snapshot()).camera) === JSON.stringify(before.camera));
   await shot('orb-continued');
@@ -180,7 +181,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
     const label = post ? 'post-flag' : 'pre-flag';
     await open({ qa: 'castle_orb' }); assert.ok(await field()); await approach(); await narrate(label);
     assert.ok(await until(post ? () => game.castleOrb?.beat === 'hold' && game.flags.castle_right_seal_active : () => game.castleOrb?.beat === 'charge', 12000));
-    await shot(`${label}-cancel-before`); await key('Escape');
+    await shot(`${label}-cancel-before`); await escToTitle(page);
     assert.ok(await until(() => game.state === 'title' && !game.castleOrb, 5000));
     check(`${label} Escape disposes cutaway and audio without late scene resume`, await page.evaluate(() => !game.castleOrb && !game.dialogue.running && game.sound.bgmName !== 'castle_orb'));
     await continueFromTitle(); await shot(`${label}-continued`);
@@ -230,7 +231,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
       && game.textbox.node.text === '* 구체가 보라색으로 빛나고 있다.' && game.textbox.node.voice === 'narrator'));
     await shot('left-repeat'); await key('KeyC'); assert.ok(await field());
     await fixture('save-completed-left-orb', 'Production autosave after naturally completed C interaction; no state edits.', () => game.autosave());
-    await key('Escape'); await continueFromTitle();
+    await escToTitle(page); await continueFromTitle();
     const continued = await snapshot();
     check('title continue preserves both seals solo party and fixed left-room camera', continued.flag && continued.leftFlag
       && continued.map === 'gajaeman_castle_left_orb' && !continued.blocked && continued.party.length === 0 && JSON.stringify(continued.camera) === '[0,12]');
@@ -250,7 +251,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
       const label = post ? 'left-post-flag' : 'left-pre-flag';
       await open({ qa: 'castle_left_orb' }); assert.ok(await field()); await approach(); await narrate(label);
       assert.ok(await until(post ? () => game.castleOrb?.beat === 'hold' && game.flags.castle_left_seal_active : () => game.castleOrb?.beat === 'charge', 12000));
-      await shot(`${label}-cancel`); await key('Escape');
+      await shot(`${label}-cancel`); await escToTitle(page);
       assert.ok(await until(() => game.state === 'title' && !game.castleOrb, 5000));
       await continueFromTitle(); const restored = await snapshot();
       check(`${label} abort preserves old right seal and discards incomplete left activation`, restored.flag && !restored.leftFlag);

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const key = async code => { await press(code, { delay: 45 }); await page.waitForTimeout(110); };
@@ -174,11 +175,11 @@ await runScenario({ name: 'castle-lobby', launchOptions: { args: ['--autoplay-po
   }
   assert.ok(await until(() => game.castleLobby?.beat === 'descend' && game.darkSmoke && game.sound.bgmName === 'castle_gajaeman', 3000));
   await shot('cancel-active-smoke');
-  await key('Escape');
+  await escToTitle(page);
   check('Escape cancels cinematic to title without completion, smoke or encounter music', Boolean(await until(() => game.state === 'title' && !game.castleLobby && !game.darkSmoke && !game.flags.castle_lobby_seen && game.sound.bgmName !== 'castle_gajaeman')));
   await open({ qa: 'gajaeman_castle_lobby' });
   check('cancelled encounter can start again', Boolean(await until(() => game.castleLobby?.beat === 'raid' && !game.flags.castle_lobby_seen, 25000)));
-  await shot('reentry-after-cancel'); await key('Escape');
+  await shot('reentry-after-cancel'); await escToTitle(page);
   await open({ qa: 'gajaeman_castle_lobby_after' }); assert.ok(await field());
   check('post-intro QA checkpoint has completed party and no cinematic', (await state()).seen && !(await state()).scene && (await state()).party.join() === 'gyeongsub,ppaman');
   await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_approach'); assert.ok(await field());

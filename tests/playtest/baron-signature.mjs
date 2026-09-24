@@ -38,7 +38,7 @@ async function titleSelection() {
   await until(() => ['zoom', 'locked'].includes(game.title.phase));
   if (await page.evaluate(() => game.title.phase === 'zoom')) await page.keyboard.press('KeyC');
   await until(() => game.title.phase === 'locked');
-  await page.keyboard.press('KeyQ');
+  await page.keyboard.press('Shift+KeyQ');
   await until(() => !!game.title.qa);
   const index = await page.evaluate(async () => {
     const { QA_POINTS } = await import('/src/core/story.js');

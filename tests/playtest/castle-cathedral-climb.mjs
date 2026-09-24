@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 // BUILD323: 대성당 입장 연출(무음 입장 → 가재맨 등장 → 상승 → 바람 → 검 생성) 과 3열 검 회피 오르기.
 await runScenario({ name: 'castle-cathedral-climb', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
@@ -99,7 +100,7 @@ await runScenario({ name: 'castle-cathedral-climb', launchOptions: { args: ['--a
   const doubles = obs.volleys.filter(v => v.charging === 2);
   check('doubles appear only after the early section', doubles.length > 0 && doubles.every(v => v.p >= 0.3), JSON.stringify(doubles.slice(0, 5)));
   // 이어하기: 오르기가 저장 상태에서 다시 무장된다.
-  await key('Escape'); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
+  await escToTitle(page); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
   await key('KeyC'); assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));

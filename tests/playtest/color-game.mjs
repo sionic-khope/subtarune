@@ -3,6 +3,7 @@
 // 실행: tests/playtest/run.sh color-game
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { escToTitle } from './lib/esc.mjs';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -28,7 +29,7 @@ try {
   await page.goto('http://localhost:8000/?qa=furnace_color');
   await page.waitForFunction(() => !!window.__colorgame, null, { timeout: 25000 });
   // ⓪ Esc → “바탕화면으로 돌아가시겠습니까?” 예/아니오(사용자): 기본은 아니오, 왼쪽으로 예 → C 로 나가면 씬이 끝나고 맵 브금 복귀. 그 뒤 다시 들어와 이어서 검사
-  await page.waitForTimeout(600); await page.keyboard.press('Escape'); await page.waitForTimeout(150); let s = await st(); await cap('quit_confirm');
+  await page.waitForTimeout(600); await escToTitle(page); await page.waitForTimeout(150); let s = await st(); await cap('quit_confirm');
   check(s.confirm === 1, 'Esc → 확인 상자(기본 아니오) ' + JSON.stringify(s.confirm));
   const tvBefore = s.tvY; await page.waitForTimeout(400); s = await st();
   check(s.confirm === 1 && s.tvY === tvBefore, '상자가 열린 동안 게임이 멈춘다(TV 안 내려옴) ' + JSON.stringify([s.tvY, tvBefore]));
@@ -58,7 +59,7 @@ try {
   await cap('call_red'); s = await st();
   check(s.phase === 'round' && s.stage === 0 && s.screen === 'color' && s.screenId === 'red', '1판: TV 화면이 빨강 + RED 글자 ' + JSON.stringify([s.phase, s.stage, s.screen, s.screenId]));
   // 판 중 Esc: 상자가 뜨고 판 시간이 멈춘다 → X(아니오) 로 닫으면 이어서
-  await page.keyboard.press('Escape'); await page.waitForTimeout(120); s = await st(); const tHold = s.round.t; await page.waitForTimeout(400); s = await st();
+  await escToTitle(page); await page.waitForTimeout(120); s = await st(); const tHold = s.round.t; await page.waitForTimeout(400); s = await st();
   check(s.confirm === 1 && s.round.t === tHold, '판 중 Esc → 상자, 판 시간 멈춤 ' + JSON.stringify([s.confirm, tHold, s.round.t]));
   await page.keyboard.press('KeyX'); await page.waitForTimeout(300); s = await st();
   check(s.confirm === null && s.phase === 'round' && s.round.t > tHold, 'X → 닫히고 판이 이어진다 ' + JSON.stringify([s.confirm, s.phase, s.round.t]));

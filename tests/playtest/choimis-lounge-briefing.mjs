@@ -2,6 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { escToTitle } from './lib/esc.mjs';
 
 const BRIEFING_LINES = ['진짜 뒤질뻔했네요 이얍!', 'ㅋㅋ', '반갑노 게이들아', '저새끼 어떻게든 잘 잡아왔노 ㅅㄱㅅㄱ', '네 형 그래서 이제 어떻게 할거에요?', '뭘 어떻게하긴 뭘 어떻게함', '내일 당장 그 더러운 성을 침공할거임', '내일..?', 'ㅇㅇ', '지금 우리 전함에 약 8억 5700만 1293개 쯤 되는 무기들이 존재함', '살상 무기를 한번에 끝까지 쫒아가서 다 때려박은뒤에 우린 집가면됨 ㅇㅇ', '내가 그중에서 가장 대단한 무기를 만들었는데', '그래서 니들은 일단 여기서 준비만 하면 될거고 뭐 상점이나 들리던가 애들하고 얘기나 좀 하던가 ㅇㅇ', '내가 생각해봤을때 가재맨을 제대로 처리할수있는건 요플래. 너밖에 없는거같음', '그리고 우리는 죽이는게 끝이 아니라 형섭이를 되찾아야하니까', 'ㅇㅇ 굿', '난 저기 옆에 있을테니 좀 라운지 둘러보다가 준비되면 말거샘', '...', '일단 좀 둘러볼까요 상점이나 가볼까'];
 
@@ -93,7 +94,7 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
       if (abortOnly) {
         check('abort begins while owned laugh is genuinely playing', await until(() => game.loungeBriefingLaugh && !game.loungeBriefingLaugh.paused && game.loungeBriefingLaugh.currentTime > 0.02, 600));
         evidence.abortBefore = await page.evaluate(() => ({ state: game.state, paused: game.loungeBriefingLaugh?.paused, audioTime: game.loungeBriefingLaugh?.currentTime, briefed: !!game.flags.ship_lounge_briefed }));
-        await press('Escape', { delay: 55 });
+        await escToTitle(page, { delay: 55 });
         check('actual Escape aborts to title during the laugh', await until(() => game.state === 'title', 5000));
         await page.waitForTimeout(1100);
         const result = await page.evaluate(() => ({ handleCleared: !game.loungeBriefingLaugh, motionCleared: !game.entities.find(e => e.id === 'lounge_return_junhee')?.motion, briefed: !!game.flags.ship_lounge_briefed, running: game.dialogue.running, audio: window.__briefQa.audio.filter(a => a.name === 'laugh_junhee') }));
@@ -181,7 +182,7 @@ await runScenario({ name: 'choimis-lounge-briefing', launchOptions: { args: ['--
   await page.waitForTimeout(150); await key('KeyC');
   check('Yes starts the implemented invasion rally', await until(() => game.flags.ship_invasion_ready && game.flags.ship_invasion_started && game.mapId === 'ship_lounge' && game.dialogue.running && game.textbox.node?.text === '* ...' && game.fade.alpha === 0, 15000));
   await shot('ready-yes-invasion-rally');
-  await key('Escape');
+  await escToTitle(page);
   check('departure can return to title without advancing its saved checkpoint', await until(() => game.state === 'title' && !game.dialogue.running, 3000));
   await fixture('continue-completed-briefing', 'Exercise the normal continue path on that unmodified save.', () => game.continueGame());
   check('saved briefing restores preparation without replaying arrival or committing interrupted invasion', await field() && await page.evaluate(() => game.flags.ship_lounge_briefed && !game.flags.ship_invasion_started && !game.flags.ship_invasion_ready && game.mapId === 'ship_lounge'));

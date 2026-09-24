@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--disable-gpu'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const mode = process.env.QA_CHASE_MODE || 'main';
@@ -164,7 +165,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
       Object.assign(saved, { x: 5060, y: 180, facing: 'up' });
       localStorage.setItem(key, JSON.stringify(saved));
     });
-    await key('Escape'); await continueTitle(); assert.ok(await ready());
+    await escToTitle(page); await continueTitle(); assert.ok(await ready());
     const initial = await state();
     check('unfinished Continue still resumes chase with a safe lead', initial.chase?.phase === 'chase' && !initial.done && initial.bgm === 'baron_intro' && Math.hypot(initial.chase.x - initial.xy[0] - 12, initial.chase.y - initial.xy[1] - 12) > 180, JSON.stringify(initial));
     await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'actual unfinished chase exit into refuge');
@@ -172,7 +173,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     const first = await state();
     check('natural exit preserves party HP inventory and immediately ends pursuit', first.done && !first.refugeDialogueDone && !first.chase && !first.dark && JSON.stringify(first.hp) === JSON.stringify(initial.hp) && JSON.stringify(first.party) === JSON.stringify(initial.party) && JSON.stringify(first.inventory) === JSON.stringify(initial.inventory));
     if (mode === 'refuge-interrupt') {
-      await shot('refuge-first-line-before-interrupt'); await key('Escape');
+      await shot('refuge-first-line-before-interrupt'); await escToTitle(page);
       assert.ok(await until(() => game.state === 'title', 10000));
       check('first-line interruption retains safety completion but not dialogue completion in save', await page.evaluate(() => { const saved = JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)); return saved.map === 'gajaeman_castle_dark_refuge' && saved.flags.castle_dark_chase_done && !saved.flags.castle_dark_refuge_dialogue_done; }));
       await continueTitle();
@@ -197,7 +198,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_dark_refuge', 'return from cathedral to completed refuge'); assert.ok(await ready());
     await shot('refuge-return-no-repeat');
     check('completed refuge reentry never repeats dialogue', await page.evaluate(n => window.__chaseQA.texts.length === n, count));
-    await key('Escape'); await continueTitle(); assert.ok(await ready()); await shot('refuge-continue-no-repeat');
+    await escToTitle(page); await continueTitle(); assert.ok(await ready()); await shot('refuge-continue-no-repeat');
     const continued = await state();
     check('completed refuge Continue keeps dialogue done HP inventory party and safe state', continued.refugeDialogueDone && continued.done && !continued.chase && !continued.dark && !continued.dialogue && continued.bgm === 'castle_dark_path' && JSON.stringify(continued.hp) === JSON.stringify(initial.hp) && JSON.stringify(continued.inventory) === JSON.stringify(initial.inventory) && JSON.stringify(continued.party) === JSON.stringify(initial.party) && await page.evaluate(n => window.__chaseQA.texts.length === n, count));
     if (mode === 'refuge-return') {
@@ -208,7 +209,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
         delete saved.flags.castle_dark_refuge_dialogue_done;
         localStorage.setItem(key, JSON.stringify(saved));
       });
-      await key('Escape'); await continueTitle(); assert.ok(await ready());
+      await escToTitle(page); await continueTitle(); assert.ok(await ready());
       const safeAt = await page.evaluate(() => performance.now());
       await page.waitForTimeout(10000); await shot('legacy-cleared-continue-safe-ten-seconds');
       const legacy = await state();
@@ -227,7 +228,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
       const key = game.constructor.SAVE_KEY, saved = JSON.parse(localStorage.getItem(key));
       Object.assign(saved, { x: 3268, y: 72, facing: 'up' }); localStorage.setItem(key, JSON.stringify(saved));
     });
-    await key('Escape'); await continueTitle(); assert.ok(await ready()); await shot('legacy-save-restored');
+    await escToTitle(page); await continueTitle(); assert.ok(await ready()); await shot('legacy-save-restored');
     const restored = await state();
     check('old319 saved north corridor restores on walkable floor', Math.hypot(restored.xy[0] - 3268, restored.xy[1] - 72) < 1 && !restored.blocked && restored.seen);
     await walk('ArrowDown', () => game.player.y >= 104, 'leave retained old stub toward new turn');
@@ -241,7 +242,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   }
   if (mode === 'cancel') {
     await finishDialogues(() => game.castleDarkChase?.phase === 'reveal');
-    await shot('reveal-before-cancel'); await key('Escape');
+    await shot('reveal-before-cancel'); await escToTitle(page);
     assert.ok(await until(() => game.state === 'title', 5000));
     check('cancel stops the owned roar handle immediately', await page.evaluate(() => window.__chaseQA.audio.filter(a => a.name === 'baron_roar').every(a => a.handle.paused || a.handle.ended)));
     await page.waitForTimeout(2500);
@@ -249,7 +250,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     await continueTitle(); await finishDialogues(() => !game.dialogue.running && game.castleDarkChase?.phase === 'chase');
     assert.ok(await ready());
     check('cancel Continue replays safely into chase', (await state()).seen && !(await state()).locked && (await state()).party.length === 2);
-    await key('Escape'); await page.waitForTimeout(1000);
+    await escToTitle(page); await page.waitForTimeout(1000);
     check('active chase title removes threat and loop', await page.evaluate(() => !game.castleDarkChase && game.sound.bgmName !== 'baron_intro'));
     await continueTitle(); await finishDialogues(() => !game.dialogue.running && game.castleDarkChase?.phase === 'chase'); assert.ok(await ready());
     await shot('chase-continued'); await page.waitForTimeout(600); await shot('chase-continued-settled');
@@ -370,7 +371,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   await walk('ArrowUp', () => game.player.y <= 326, 'approach final gate');
   const beforeDoor = await state(); await page.keyboard.down('ArrowUp'); await page.waitForTimeout(450); await page.keyboard.up('ArrowUp'); await shot('final-closed-door');
   check('last gate waits for C after walking against it', (await state()).map === 'gajaeman_castle_dark_refuge' && (await state()).xy[1] >= 319 && !(await state()).dialogue && !(await state()).blocked, JSON.stringify({ before: beforeDoor.xy, after: (await state()).xy }));
-  await key('Escape'); await continueTitle(); assert.ok(await ready());
+  await escToTitle(page); await continueTitle(); assert.ok(await ready());
   check('refuge Continue retains done flag party health and clean scene', (await state()).done && !(await state()).chase && !(await state()).dark && (await state()).party.length === 2 && (await state()).hp.every(([, hp, max]) => hp === max));
   await dump();
   check('audio evidence is playback observation, not subjective listening', true);

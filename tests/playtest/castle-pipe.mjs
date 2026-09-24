@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const key = async code => { await press(code, { delay: 45 }); await page.waitForTimeout(100); };
@@ -155,7 +156,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
     return pipe.drawY + pipe.ih <= game.camera.y + 360 && mario.y + mario.h <= game.camera.y + 360;
   }));
   await fixture('save-ready-pipe', 'Production autosave after the pipe naturally emerges. No save or story mutation.', () => game.autosave());
-  await key('Escape'); await continueFromTitle();
+  await escToTitle(page); await continueFromTitle();
   check('title Continue restores waiting pipe without replay or boarding', await page.evaluate(() => game.flags.castle_pipe_ready && !game.flags.castle_pipe_returned
     && game.mapId === 'gajaeman_torii_end' && game.party.length === 0 && game.entities.filter(e => e.id === 'castle_return_pipe' && e.visible && !e.dead).length === 1
     && game.entities.filter(e => e.id === 'castle_return_mario' && e.visible && !e.dead).length === 1));
@@ -225,7 +226,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
   await walk('ArrowLeft', () => game.player.x < 435 || game.dialogue.running, 'cross former left guard');
   check('completed reunion disables former left-block warning', await page.evaluate(() => game.player.x < 435 && !game.dialogue.running));
   await fixture('save-completed-pipe', 'Save naturally completed reunion through production autosave without editing stored state.', () => game.autosave());
-  const saved = await state(); await key('Escape'); await continueFromTitle();
+  const saved = await state(); await escToTitle(page); await continueFromTitle();
   const continued = await state();
   check('title Continue preserves completed party and resources without duplicate actors', continued.flags.castle_pipe_returned && continued.party.join() === 'gyeongsub,ppaman'
     && continued.money === saved.money && JSON.stringify(continued.hp) === JSON.stringify(saved.hp)
@@ -245,7 +246,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
   await marioCollision('qa-ready');
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_return_pipe', 'ready QA reaches pipe'); await key('KeyC');
   assert.ok(await until(() => game.mapId === 'gajaeman_castle_lobby' && game.textbox.isOpen, 30000));
-  await shot('interruption-before-completion'); await key('Escape');
+  await shot('interruption-before-completion'); await escToTitle(page);
   check('Escape interrupts reunion before completion flag', Boolean(await until(() => game.state === 'title' && !game.flags.castle_pipe_returned && !game.dialogue.running, 5000)));
   await continueFromTitle();
   check('interrupted reunion Continue returns to retryable solo waiting pipe', (await state()).map === 'gajaeman_torii_end'
@@ -253,7 +254,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
   await shot('interrupted-continued');
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_return_pipe', 'retry restored waiting pipe'); await key('KeyC');
   assert.ok(await until(() => game.castlePipe && game.player.hopY > 10, 5000));
-  await shot('interruption-mid-jump'); await key('Escape');
+  await shot('interruption-mid-jump'); await escToTitle(page);
   check('Escape during pipe jump disposes temporary owner before title', Boolean(await until(() => game.state === 'title' && !game.castlePipe && !game.dialogue.running, 5000)));
   await continueFromTitle();
   check('mid-jump Continue restores visible unscaled player and retryable pipe', await page.evaluate(() => game.mapId === 'gajaeman_torii_end'

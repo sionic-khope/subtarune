@@ -8,6 +8,22 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { BUILD } from '../main.js';
 import L from '../data/locale/ko.js';
 import { QA_POINTS } from '../core/story.js';
+import { qaStep } from './qa-list.js';
+
+const QA_FONT = '9px "Galmuri9", "Galmuri11", "NeoDunggeunmo", monospace';
+
+
+/** 부팅 에셋 로딩 화면: 문구 + 진행 막대 (loaded/total). */
+export function drawBootLoading(ctx, load) {
+  const k = load.total > 0 ? Math.min(1, load.done / load.total) : 0;
+  const w = 240, h = 10, x = Math.round((SCREEN_W - w) / 2), y = Math.round(SCREEN_H / 2 + 6);
+  ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+  ctx.fillText(L.boot_loading, SCREEN_W / 2, y - 28);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
+  ctx.fillStyle = '#ffe066'; ctx.fillRect(x, y, Math.round(w * k), h);
+  ctx.font = QA_FONT; ctx.fillStyle = '#8a8aa0'; ctx.fillText(`${Math.round(k * 100)}%`, SCREEN_W / 2, y + h + 8);
+  ctx.textAlign = 'left';
+}
 // 메뉴에 보이는 QA 지점: hidden 은 뺀다(?qa= 주소로는 그대로 간다 — 재입장 검사용 대치 상태 같은 것)
 const QA_MENU = QA_POINTS.filter(p => !p.hidden);
 
@@ -139,7 +155,8 @@ export class TitleScreen {
     this.shakeAmp = 0;
   }
 
-  static QA_ROWS = 8;      // 한 번에 보이는 줄 수 (22px × 8 = 176px, 상자 안)
+  static QA_ROWS = 24;     // 한 번에 보이는 줄 수 (작은 글씨 12px × 24, 사용자 2026-09-25 "한번에 많은 것들")
+  static QA_REPEAT = { delay: 0.3, every: 0.045 };   // 위아래 꾹 누르면 연속 이동
   /** QA 목록: 커서가 창 밖으로 나가면 창(top)을 민다 — 목록이 길어져도 상자 밖으로 안 나간다 (2026-09-10 '밑이 뚫린다') */
   _qaScroll() {
     const q = this.qa, n = QA_MENU.length, R = TitleScreen.QA_ROWS;
@@ -148,36 +165,37 @@ export class TitleScreen {
     q.top = Math.max(0, Math.min(q.top, Math.max(0, n - R)));
   }
   _drawQa(ctx) {
-    const q = this.qa, n = QA_MENU.length, R = TitleScreen.QA_ROWS, ROW = 22;
-    const bx = 40, by = 40, bw = SCREEN_W - 80, bh = SCREEN_H - 80, listY = 82;
-    ctx.fillStyle = 'rgba(0,0,0,0.96)'; ctx.fillRect(bx, by, bw, bh);
+    const q = this.qa, n = QA_MENU.length, R = TitleScreen.QA_ROWS, ROW = 12;
+    const bx = 8, by = 8, bw = SCREEN_W - 16, bh = SCREEN_H - 16, listY = 34;
+    ctx.fillStyle = '#000'; ctx.fillRect(bx, by, bw, bh);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    ctx.fillStyle = '#ffe066'; ctx.fillText('QA 바로가기', bx + 20, 52);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#8a8aa0'; ctx.fillText(`${q.i + 1} / ${n}`, bx + bw - 20, 52); ctx.textAlign = 'left';
-    ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 16, 72, bw - 32, 1);                    // 제목 아래 구분선
+    ctx.font = QA_FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    const pages = Math.max(1, Math.ceil(n / R)), page = Math.floor(q.i / R) + 1;
+    ctx.fillStyle = '#ffe066'; ctx.fillText('QA 바로가기', bx + 12, 16);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#8a8aa0'; ctx.fillText(`${q.i + 1} / ${n}   ${page}/${pages}쪽`, bx + bw - 12, 16); ctx.textAlign = 'left';
+    ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 8, 29, bw - 16, 1);                    // 제목 아래 구분선
     ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, listY - 4, bw - 4, R * ROW + 4); ctx.clip();   // 목록은 창 안에서만
     for (let k = 0; k < R; k++) {
       const i = q.top + k; if (i >= n) break;
       const pt = QA_MENU[i], y = listY + k * ROW, on = i === q.i;
       // 긴 설명은 상자 오른쪽 여백 앞에서 말줄임 — 글자가 테두리에 걸려 잘린 채 보이지 않게 (2026-09-14 '마지막 QA 지점 화면 깨짐')
-      const maxW = bx + bw - 32 - (bx + 40);
+      const maxW = bw - 48;
       let label = `${pt.id}  —  ${pt.desc}`;
       if (ctx.measureText(label).width > maxW) {
         let cut = label.length;
         while (cut > 1 && ctx.measureText(label.slice(0, cut) + '…').width > maxW) cut--;
         label = label.slice(0, cut) + '…';
       }
-      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(label, bx + 40, y);
-      if (on) drawHeart(ctx, bx + 24, y + 5);
+      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(label, bx + 26, y + 1);
+      if (on) drawHeart(ctx, bx + 12, y + 2);
     }
     ctx.restore();
     const tri = (x, y, up) => { ctx.beginPath(); if (up) { ctx.moveTo(x - 4, y + 4); ctx.lineTo(x + 4, y + 4); ctx.lineTo(x, y - 1); } else { ctx.moveTo(x - 4, y - 1); ctx.lineTo(x + 4, y - 1); ctx.lineTo(x, y + 4); } ctx.closePath(); ctx.fill(); };
     ctx.fillStyle = '#fff';
-    if (q.top > 0) tri(bx + bw - 24, listY - 8, true);                                     // 위에 더 있음
-    if (q.top + R < n) tri(bx + bw - 24, listY + R * ROW + 4, false);                      // 아래에 더 있음
-    ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 16, by + bh - 30, bw - 32, 1);              // 안내 위 구분선
-    ctx.fillStyle = '#8a8aa0'; ctx.fillText('위아래: 고르기   C: 이동   X: 닫기', bx + 20, by + bh - 24);
+    if (q.top > 0) tri(bx + bw - 14, listY - 3, true);                                     // 위에 더 있음
+    if (q.top + R < n) tri(bx + bw - 14, listY + R * ROW + 2, false);                      // 아래에 더 있음
+    ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 8, by + bh - 19, bw - 16, 1);              // 안내 위 구분선
+    ctx.fillStyle = '#8a8aa0'; ctx.fillText(L.qa_help, bx + 12, by + bh - 15);
   }
   enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; this.qa = null; }
 
@@ -220,6 +238,7 @@ export class TitleScreen {
     if (this.shakeAmp > 0) this.shakeAmp = Math.max(0, this.shakeAmp - dt * 14);
 
     if (this.phase === 'wait') {
+      if (this.game.bootLoad?.active) return;
       if (Object.keys(input.pressed).length) this._startIntro();
       return;
     }
@@ -233,15 +252,28 @@ export class TitleScreen {
     }
     // locked
     if (this.leaving) return;
-    if (input.just('test')) {                 // T: 테스트룸 바로 가기
+    if (input.just('test')) {                 // Shift+T: 테스트룸 바로 가기
       this.leaving = true;
       this.game.sound.stopIntro(0.3); this.game.sound.stopBgm(0.3);
       this.game.fadeTo(1, 0.3, async () => { await this.game.devJump({ map: 'test', spawn: 'start' }); this.game.fadeTo(0, 0.3); });
       return;
     }
     if (this.qa) {                                                 // QA 바로가기 목록
-      if (input.just('up')) { this.qa.i = (this.qa.i + QA_MENU.length - 1) % QA_MENU.length; this._qaScroll(); this.game.sound.sfx('menu'); }
-      if (input.just('down')) { this.qa.i = (this.qa.i + 1) % QA_MENU.length; this._qaScroll(); this.game.sound.sfx('menu'); }
+      const q = this.qa, n = QA_MENU.length, R = TitleScreen.QA_ROWS, rep = TitleScreen.QA_REPEAT;
+      const dir = input.down('down') ? 1 : input.down('up') ? -1 : 0;
+      if (input.just('up') || input.just('down')) { q.i = qaStep(q.i, n, dir || (input.just('down') ? 1 : -1), true); q.hold = 0; q.rep = 0; this._qaScroll(); this.game.sound.sfx('menu'); }
+      else if (dir) {
+        q.hold = (q.hold || 0) + dt;
+        if (q.hold >= rep.delay) {
+          q.rep = (q.rep || 0) + dt;
+          while (q.rep >= rep.every) { q.rep -= rep.every; q.i = qaStep(q.i, n, dir, false); }
+          this._qaScroll();
+        }
+      } else { q.hold = 0; q.rep = 0; }
+      if (input.just('left') || input.just('right')) {
+        const d = input.just('right') ? R : -R;
+        q.i = qaStep(q.i, n, d, false); q.top = Math.max(0, Math.min(q.top + d, Math.max(0, n - R))); this._qaScroll(); this.game.sound.sfx('menu');
+      }
       if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
       if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; this._leave(async () => { await this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
       return;
@@ -270,6 +302,7 @@ export class TitleScreen {
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
 
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#33334a'; ctx.fillText('build ' + BUILD, 6, SCREEN_H - 20);
+    if (this.phase === 'wait' && this.game.bootLoad?.active) { drawBootLoading(ctx, this.game.bootLoad); return; }
     if (this.phase === 'wait') {
       if ((this.time % 1.2) < 0.8) this._drawText(ctx, '아무 키나 누르세요', SCREEN_H * 0.5 - 6, '#8a8aa0');
       return;
@@ -303,7 +336,6 @@ export class TitleScreen {
       const hasSave = this.game.hasSave();
       if (on) this._drawText(ctx, hasSave ? (this.confirmNew > 0 ? L.title_confirm_new : L.title_continue) : L.title_start, SCREEN_H * 0.7);
       if (hasSave && this.confirmNew <= 0) this._drawText(ctx, L.title_new, SCREEN_H * 0.7 + 22, '#8a8aa0');
-      this._drawText(ctx, 'T: 테스트룸   Q: QA 지점', SCREEN_H - 20, '#55556b');
     }
     if (this.qa) this._drawQa(ctx);                                 // QA 목록 오버레이 (상자 안 스크롤 창)
     if (this.flash > 0) {

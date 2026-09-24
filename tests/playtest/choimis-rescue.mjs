@@ -2,6 +2,7 @@ import { runScenario } from './lib/harness.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
   const evidence = { source: [], captures: [], limitations: 'The registered postvictory QA checkpoint prepares story flags. All subsequent dialogue uses physical C input and real-time scene updates. No beat/time/return flag injection. This tests rescue continuation and return, not natural boss victory or subjective audio listening.' };
@@ -107,7 +108,7 @@ await runScenario({ name: 'choimis-rescue', launchOptions: { args: ['--autoplay-
   }
   await page.evaluate(() => { window.__abortApproach = game.choimisRescue?.approach; });
   check('approach is playing in catch before actual Escape abort', await page.evaluate(() => game.choimisRescue?.beat === 'catch' && !!window.__abortApproach && !window.__abortApproach.paused));
-  await press('Escape'); await page.waitForTimeout(700);
+  await escToTitle(page); await page.waitForTimeout(700);
   evidence.titleAbort = await page.evaluate(() => ({ state: game.state, scene: !!game.choimisRescue, paused: window.__abortApproach?.paused, completed: !!game.flags.choimis_rescued }));
   check('Escape stops the owned approach and returns to title without completion', evidence.titleAbort.state === 'title' && !evidence.titleAbort.scene && evidence.titleAbort.paused && !evidence.titleAbort.completed, JSON.stringify(evidence.titleAbort));
   await shot('jet-title-abort');

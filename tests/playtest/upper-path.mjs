@@ -1,6 +1,7 @@
 // BUILD174: QA 보스전 직행(subrio_boss) + 무대 위 윗길(youngcle10, 마나샘) 연결. 실행: tests/playtest/run.sh upper-path
 import fs from 'node:fs'; import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { escToTitle } from './lib/esc.mjs';
 const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -19,7 +20,7 @@ try {
   await page.waitForFunction(() => window.__subrio?.state.intro, null, { timeout: 8000 }).catch(() => {});
   const intro = await page.evaluate(() => ({ intro: !!window.__subrio?.state.intro, bgm: game.sound.bgmName ?? null }));
   check(intro.intro && intro.bgm === null, '착지 뒤 오프닝 시작·무음 ' + JSON.stringify(intro)); await cap('boss_jump_intro');
-  await page.keyboard.press('Escape');
+  await escToTitle(page);
   await page.waitForFunction(() => !window.__subrio, null, { timeout: 8000 }).catch(() => {});
   await page.waitForFunction(() => !game.dialogue.running && game.player.visible, null, { timeout: 15000 }).catch(() => {});
   const back = await page.evaluate(() => ({ map: game.mapId, visible: game.player.visible, x: Math.round(game.player.x), zoom: Math.round(game.zoom.s * 100) / 100 }));
