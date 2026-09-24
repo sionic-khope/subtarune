@@ -31,7 +31,8 @@ test('test_castle321_all_three_lanes_reach_the_visible_north_passage_without_a_d
   assert.equal(world.solidRect(280, 4000, 24, 16), true);
   assert.equal(world.solidRect(472, 4000, 24, 16), true);
   assert.equal(map.entities.some(entity => entity.type === 'door' && entity.y < 7552), false);
-  assert.equal(map.enter, undefined);
+  // BUILD323: 입장 연출은 도착 스크립트로(사용자 요청). 회랑 자체에 가짜 출구는 여전히 없다
+  assert.deepEqual(map.enter, { script: 'castle_cathedral_intro' });
   assert.equal(map.bgm, null);
   assert.equal(map.backdrop, undefined);
   assert.ok(7488 / 124.8 >= 59 && 7488 / 124.8 <= 61);

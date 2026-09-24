@@ -39,6 +39,7 @@ export const STAGES = [
   { id: 'castle_dark_path_seen', desc: '대문 너머 어둠의 통로 · 세 사람의 전진', map: 'gajaeman_castle_dark_path', spawn: 'start' },
   { id: 'castle_dark_chase_seen', desc: '어둠의 미로 · 보라 구체의 추격', map: 'gajaeman_castle_dark_arrival', spawn: 'start' },
   { id: 'castle_dark_chase_done', desc: '추격 탈출 · 희미한 빛의 마나샘', map: 'gajaeman_castle_dark_refuge', spawn: 'start' },
+  { id: 'castle_cathedral_climb', desc: '검은 대성당 · 가재맨의 바람과 검 사이를 오른다', map: 'gajaeman_castle_cathedral', spawn: 'climb' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -50,6 +51,7 @@ export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang
 export function storyBgm(mapId, flags) {
   if (mapId === 'gajaeman_castle_dark_arrival') return flags.castle_dark_chase_seen && !flags.castle_dark_chase_done ? 'baron_intro' : 'castle_dark_path';
   if (mapId === 'gajaeman_castle_dark_refuge') return 'castle_dark_path';
+  if (mapId === 'gajaeman_castle_cathedral' && flags.castle_cathedral_climb) return 'cathedral_climb';
   if (mapId === 'gajaeman_castle_dark_path' && flags.castle_dark_path_seen) return 'castle_dark_path';
   if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
@@ -762,4 +764,9 @@ for (const [id, map, stage, desc] of [
   ['castle_dark_refuge', 'gajaeman_castle_dark_refuge', 'castle_dark_chase_done', '추격 탈출 · 마나샘과 마지막 대문'],
   ['castle_cathedral', 'gajaeman_castle_cathedral', 'castle_dark_chase_done', '검은 대성당 · 중앙 계단과 삼열 회랑'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn: 'start', stage,
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });
+for (const [id, spawn, stage, desc] of [
+  ['castle_cathedral_intro', 'entry', 'castle_dark_chase_done', '검은 대성당 · 입장과 가재맨 등장'],
+  ['castle_cathedral_climb', 'climb', 'castle_cathedral_climb', '검은 대성당 · 바람 속 검 피하며 오르기'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_cathedral', spawn, stage,
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });

@@ -71,6 +71,7 @@ import { restoreCastleBoulder, finishCastleBoulder, drawCastleBoulder } from './
 import { updateCastleBoulderPush, drawCastleBoulderPush, clearCastleBoulderPush } from './scenes/castle-boulder-push.js';
 import { CastleDarkPath } from './scenes/castle-dark-path.js';
 import { CastleDarkChase } from './scenes/castle-dark-chase.js';
+import { CastleCathedral, finishCastleCathedral } from './scenes/castle-cathedral.js';
 import { updateCastleGate, drawCastleGate, finishCastleGate } from './scenes/castle-gate.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
@@ -259,6 +260,7 @@ class Game {
   resetState() {
     this.castleDarkPath?.dispose();
     this.castleDarkChase?.dispose();
+    finishCastleCathedral(this, true);
     finishCastleGate(this, true);
     cancelCastlePipe(this);
     finishCastleOrb(this);
@@ -346,20 +348,27 @@ class Game {
   /** 피격(낙석 등): 붉은 섬광 + 흔들림 + 무적 0.9s + **왼쪽으로 슬라이드**(순간이동·벽 튕김 금지). silent:true 면 소리 없음(낙석). HP 없음 */
   /** 전투 밖 피해 띠(BUILD240): 전투 HP 띠(battle.drawHpStrip)와 같은 자리·모양 — 초상화·이름·HP 바·숫자, 위에 붉은 −10 이 살짝 떠오른다. 0.2초 페이드 인 → 유지 → 0.45초 페이드 아웃 */
   drawHpPopup(ctx) {
-    const pop = this.hpPopup, c = CHARACTERS[pop.id]; if (!c) return;
+    const pop = this.hpPopup, ids = pop.ids || [pop.id];
     const a = pop.t < HP_POPUP.fadeIn ? pop.t / HP_POPUP.fadeIn : pop.t > pop.dur - HP_POPUP.fadeOut ? (pop.dur - pop.t) / HP_POPUP.fadeOut : 1;
-    const hp = this.hpOf(pop.id), max = this.maxHpOf(pop.id);
-    const x = HP_POPUP.x, y = HP_POPUP.y;
     ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, a)); ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(x - 6, y - 4, HP_POPUP.w, 34);
-    const face = this.portraits?.[pop.id]; if (face) ctx.drawImage(face, x + 4, y + 2, 26, 26);
+    ids.forEach((id, index) => this.drawHpPopupEntry(ctx, pop, id, index, ids.length));
+    ctx.restore();
+  }
+  /** 전투 HP 띠의 한 칸과 같은 자리·모양. 여러 명이면 440/3 간격으로 나란히 */
+  drawHpPopupEntry(ctx, pop, id, index, count) {
+    const c = CHARACTERS[id]; if (!c) return;
+    const delta = pop.deltas ? pop.deltas[index] : pop.delta;
+    const hp = this.hpOf(id), max = this.maxHpOf(id);
+    const x = HP_POPUP.x + index * Math.floor(440 / 3), y = HP_POPUP.y;
+    ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(x - 6, y - 4, count > 1 ? Math.floor(440 / 3) - 4 : HP_POPUP.w, 34);
+    const face = this.portraits?.[id]; if (face) ctx.drawImage(face, x + 4, y + 2, 26, 26);
     ctx.font = FONT; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText(c.name, x + 34, y + 6);
     const nameW = Math.ceil(ctx.measureText(c.name).width), bx = x + 34 + nameW + 24, bw = Math.min(96, x + Math.floor(440 / 3) - 6 - bx);   // 전투 HP 띠 첫 칸과 같은 바 길이
     ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.fillText('HP', bx - 19, y + 15);
     ctx.fillStyle = '#7a1b1b'; ctx.fillRect(bx, y + 16, bw, 9); ctx.fillStyle = c.hpColor || '#ffd23b'; ctx.fillRect(bx, y + 16, Math.round(bw * hp / max), 9);
     ctx.font = FONT; ctx.textAlign = 'right'; ctx.fillStyle = '#fff'; ctx.fillText(`${hp}/ ${max}`, bx + bw, y + 3);
-    const rise = Math.min(1, pop.t / 0.5); ctx.fillStyle = '#ff5c5c'; ctx.fillText(pop.delta > 0 ? `+${pop.delta}` : String(pop.delta), bx + bw, y - 14 - Math.round(rise * 8));
-    ctx.restore();
+    if (!delta) return;
+    const rise = Math.min(1, pop.t / 0.5); ctx.fillStyle = '#ff5c5c'; ctx.fillText(delta > 0 ? `+${delta}` : String(delta), bx + bw, y - 14 - Math.round(rise * 8));
   }
   hurtPlayer(src, { silent = false, dir = -1, push = 240 } = {}) {
     if (this.invuln > 0) return;
@@ -587,6 +596,7 @@ class Game {
   toTitle() {
     this.castleDarkPath?.dispose();
     this.castleDarkChase?.dispose();
+    finishCastleCathedral(this, true);
     finishCastleGate(this, true);
     cancelCastlePipe(this);
     finishCastleOrb(this);
@@ -653,6 +663,12 @@ class Game {
     this.partyHp[id] = Math.max(1, before - amount);
     this.hpPopup = { id, delta: this.partyHp[id] - before, t: 0, dur: HP_POPUP.dur };
     return this.partyHp[id];
+  }
+  /** 일행 전원이 같은 피해를 한 번 받는다(BUILD323 대성당 검). 표시는 전원 띠를 나란히 */
+  damagePartyAll(amount) {
+    const ids = ['hyungsub', ...this.party];
+    const deltas = ids.map(id => { const before = this.hpOf(id); this.partyHp[id] = Math.max(1, before - amount); return this.partyHp[id] - before; });
+    this.hpPopup = { ids, deltas, t: 0, dur: HP_POPUP.dur };
   }
   /** 메뉴에서 힐템 사용: 인벤토리에서 빼고 partyHp 회복 (2026-09-10) */
   useItemOn(name, id) {
@@ -885,6 +901,7 @@ class Game {
     const go = () => {
       this.castleDarkPath?.dispose();
       this.castleDarkChase?.dispose();
+      finishCastleCathedral(this, true);
       finishCastleGate(this, true);
       cancelCastlePipe(this);
       finishCastleOrb(this);
@@ -924,6 +941,7 @@ class Game {
       this.spawnParty();
       this.castleDarkPath = def.meta?.darkPath ? new CastleDarkPath(this) : null;
       this.castleDarkChase = def.meta?.darkChase && !this.has('castle_dark_chase_done') ? new CastleDarkChase(this) : null;
+      this.castleCathedral = def.meta?.cathedralClimb ? new CastleCathedral(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
@@ -1291,6 +1309,7 @@ class Game {
     this.castleLobby?.update(dt);
     this.castleBoulder?.update(dt);
     this.castleDarkChase?.update(dt);
+    this.castleCathedral?.update(dt);
     updateCastleBoulderPush(this, dt, Input);
     updateCastleGate(this, dt);
     updateCastleOrb(this, dt);
@@ -1638,6 +1657,7 @@ class Game {
     drawCastleBoulder(ctx, this, cam);
     drawCastleOrbWorld(ctx, this, cam);
     this.castleDarkChase?.draw(ctx, cam);
+    this.castleCathedral?.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})

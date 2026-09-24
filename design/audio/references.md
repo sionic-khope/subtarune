@@ -1,5 +1,13 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 검은 대성당 입장·검 회피 오르기 (BUILD323, 2026-09-24)
+- 오르기 곡 `bgm/cathedral_climb.mp3`: 사용자 지정 [z2IT2YzscSE](https://www.youtube.com/watch?v=z2IT2YzscSE), yt-dlp 제목 `66. Crumbling Tower (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 원본174초. 사용자 지시 “16초부터”대로 16.000초 앞을 잘라 MP3 q2 변환(157.59초). 원본 webm은 `assets/source/cathedral323/audio/climb-bgm-source.webm`.
+- 가재맨 등장 긴박곡: 기존 `castle_gajaeman`(SPAWN, 로비 등장곡) 재사용.
+- 검 차징: 기존 `spearappear`(따뜻한 비데 상승 `bossVanish`와 같은 키, 사용자 “따뜻한비데 상승 효과음같은거”).
+- 검 발사 `sfx/knight_cut.mp3`: 사용자 지정 myinstants “roaring-knight-cut-8236”은 Cloudflare 403(curl·브라우저 확장 미연결)으로 받지 못했다. **임시로 기존 `bigcut.mp3`(DELTARUNE snd_bigcut) 사본**이며, 원본을 받으면 같은 파일명으로 교체한다.
+- 가재맨 상승: 기존 `captain_thunder`(snd_punchheavythunder 계열, 웅장한 효과음) + `wing`. 등장 하강: 로비와 같은 `captain_transform`.
+- 바람: 요청 없는 루프 효과음은 넣지 않았다(`whoosh`는 사용자 거부 소리). 화면 효과와 흔들림만.
+
 ## 거석 다리 뒤 어두운 길 (BUILD318, 2026-09-24)
 
 - `bgm/castle_dark_path.mp3`: 사용자 지정 [62. 13am — Toby Fox](https://www.youtube.com/watch?v=sbzmYjE49N4). 영상 ID `sbzmYjE49N4`, 업로더 `Toby Fox`, 게시일2025-06-04, 오디오 포맷251 전체를 MP3 q2로 변환했다. **91.254438초,48kHz stereo,946460바이트**. 트리밍·속도·피치·페이드·음량 변경 없이 전체 원본을 사용한다.

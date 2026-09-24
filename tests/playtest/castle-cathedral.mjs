@@ -85,66 +85,26 @@ await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autopla
   const atGate = await state(); await shot('refuge-closed-gate');
   check('closed gate stops real upward approach until C', atGate.map === 'gajaeman_castle_dark_refuge' && atGate.xy[1] >= 319 && !atGate.dialogue);
   await key('KeyC');
-  assert.ok(await until(() => game.mapId === 'gajaeman_castle_cathedral', 10000)); assert.ok(await ready());
+  assert.ok(await until(() => game.mapId === 'gajaeman_castle_cathedral', 10000));
+  // BUILD323: 대성당 입장은 사용자 지정 연출로 시작한다. 긴 회랑 보행·검 회피는 castle-cathedral-climb 이 검사한다.
+  const firstLine = () => until(() => game.textbox.isOpen && game.textbox.state === 'waiting' && game.textbox.node?.text === '* 여긴 어딜까요', 20000);
+  assert.ok(await firstLine(), 'intro first line');
   const entry = await state(); await shot('entry-1280'); await partyFraming('landing');
-  check('C enters safe cathedral landing with intact party and HP', entry.party.length === 2 && entry.followers.length === 2 && !entry.blocked && !entry.chase && !entry.dark && JSON.stringify(entry.hp) === JSON.stringify(initial.hp));
-  check('gate transition includes black fade and adds no dialogue', await page.evaluate(() => window.__cathedralQA.samples.some(s => s.fade > 0.95) && window.__cathedralQA.samples.every(s => !s.dialogue)));
+  check('C enters the cathedral, party walks in and the intro starts with HP intact', entry.party.length === 2 && entry.followers.length === 2 && !entry.blocked && !entry.chase && !entry.dark && entry.dialogue && JSON.stringify(entry.hp) === JSON.stringify(initial.hp), JSON.stringify(entry));
+  check('gate transition includes black fade', await page.evaluate(() => window.__cathedralQA.samples.some(s => s.fade > 0.95)));
+  check('walk-in is silent until the laugh', !entry.bgm, entry.bgm);
   for (const width of [375, 768]) {
     await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(100); await shot(`entry-${width}`);
     check(`entry canvas fits ${width}px viewport`, await page.evaluate(() => { const r = game.canvas.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1; }));
   }
   await page.setViewportSize({ width: 1280, height: 900 });
-  await walk('ArrowUp', () => game.player.y <= 7612, 'walk landing to stairs');
-  await partyFraming('stairs-immediate'); await page.waitForTimeout(600);
-  await shot('stairs'); await partyFraming('stairs-settled');
-  await page.keyboard.down('KeyX');
-  try {
-    await walk('ArrowUp', () => game.player.y <= 7552, 'reach start of long aisle at slow speed');
-    const begin = await state(), started = Date.now();
-    await page.keyboard.down('ArrowUp');
-    try {
-      assert.ok(await until(() => game.player.y <= 4064, 40000), 'slow walk reaches middle');
-      await shot('aisle-middle');
-      const reached = await until(() => game.player.y <= 68, 40000);
-      if (!reached) { await shot('north-traversal-failure'); await saveEvidence(); }
-      assert.ok(reached, `slow walk reaches open north edge: ${JSON.stringify(await state())}`);
-    } finally { await page.keyboard.up('ArrowUp'); }
-    const end = await state(), ms = Date.now() - started;
-    observations.timing = { start: begin.xy, end: end.xy, milliseconds: ms, pixelsPerSecond: (begin.xy[1] - end.xy[1]) / (ms / 1000) };
-    check('full aisle takes about one minute with real X plus Up', ms >= 58000 && ms <= 64000, JSON.stringify(observations.timing));
-  } finally { await page.keyboard.up('KeyX'); }
-  await hold('ArrowUp', 600); await shot('north-open-edge'); await partyFraming('north end');
-  check('open north passage stops safely without an invented next scene', (await state()).map === cathedral && (await state()).xy[1] >= 64 && (await state()).xy[1] <= 68 && !(await state()).dialogue);
-  await walk('ArrowDown', () => game.player.y >= 3864, 'default speed return to middle', 25000);
-  await hold('ArrowLeft', 1100); const left = await state();
-  await hold('ArrowRight', 1500); const right = await state();
-  check('all three lanes are traversable and both outer edges block', left.xy[0] >= 287 && left.xy[0] < 292 && right.xy[0] > 452 && right.xy[0] <= 456.1 && !left.blocked && !right.blocked, JSON.stringify({ left: left.xy, right: right.xy }));
-  await walk('ArrowLeft', () => game.player.x <= 374, 'return center lane'); await shot('three-lane-middle');
-  const beforeContinue = await state();
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem(game.constructor.SAVE_KEY)));
+  // 연출 도중 타이틀 → 이어하기: 완료 단계가 없으므로 입장 연출을 처음부터 다시 본다.
   await key('Escape'); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
-  await key('KeyC'); assert.ok(await until(() => game.state === 'field', 20000)); assert.ok(await ready());
+  await key('KeyC'); assert.ok(await until(() => game.state === 'field', 20000));
+  assert.ok(await firstLine(), 'intro replays after an interrupted entry');
   const continued = await state();
-  observations.continue = { before: beforeContinue, saved: { map: saved.map, x: saved.x, y: saved.y, party: saved.party, partyHp: saved.partyHp }, after: continued };
-  check('Escape Continue restores saved cathedral checkpoint with party HP and inventory', continued.map === cathedral && continued.map === saved.map && Math.hypot(continued.xy[0] - saved.x, continued.xy[1] - saved.y) < 1 && JSON.stringify(continued.hp) === JSON.stringify(initial.hp) && JSON.stringify(continued.party) === JSON.stringify(initial.party) && JSON.stringify(continued.inventory) === JSON.stringify(initial.inventory) && !continued.blocked, JSON.stringify(observations.continue));
-  await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_dark_refuge', 'return through south opening', 25000); assert.ok(await ready()); await shot('refuge-return');
-  const returned = await state(); await page.waitForTimeout(800);
-  check('south return is safe and stable without a transition loop', returned.map === 'gajaeman_castle_dark_refuge' && (await state()).map === returned.map && !returned.blocked && JSON.stringify(returned.hp) === JSON.stringify(initial.hp));
-  for (const side of ['left', 'right']) {
-    await walk('ArrowDown', () => game.player.y >= 368, `${side} approach backs away from door`);
-    await walk(side === 'left' ? 'ArrowLeft' : 'ArrowRight', side === 'left' ? () => game.player.x <= 308 : () => game.player.x >= 436, `${side} approach offset`);
-    await walk('ArrowUp', () => game.player.y <= 324, `${side} approach reaches closed gate`); await hold('ArrowUp', 350);
-    const before = await state(); await key('KeyC');
-    assert.ok(await until(() => game.mapId === 'gajaeman_castle_cathedral', 10000), `${side} C activates gate`); assert.ok(await ready());
-    observations.approaches.push({ side, before, after: await state() });
-    check(`${side} end approach C enters safely with preserved HP`, !(await state()).blocked && JSON.stringify((await state()).hp) === JSON.stringify(initial.hp));
-    await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_dark_refuge', `${side} return to refuge`); assert.ok(await ready());
-  }
-  check('cathedral traversal does not invent hazards damage or dialogue', await page.evaluate(() => {
-    const samples = window.__cathedralQA.samples.filter(s => s.map === 'gajaeman_castle_cathedral' && s.fade < 0.01);
-    return samples.length > 500 && samples.every(s => !s.dialogue && JSON.stringify(s.hp) === JSON.stringify(samples[0].hp));
-  }));
+  check('interrupted intro resumes safely in the cathedral with the same HP', continued.map === cathedral && !continued.blocked && JSON.stringify(continued.hp) === JSON.stringify(initial.hp) && !(await page.evaluate(() => game.flags.castle_cathedral_climb)), JSON.stringify(continued));
   await saveEvidence();
 });

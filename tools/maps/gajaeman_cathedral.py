@@ -65,6 +65,14 @@ def main() -> None:
              'image': 'assets/props/castle321_column.png', 'x': column_x, 'y': 7728,
              'w': 80, 'h': 16, 'ix': column_x, 'iy': 7584, 'solid': True},
         ])
+    # BUILD323 entrance: hidden stand anchors (64px talk spacing) and the gajaeman who descends between the columns
+    for name, x, y in (('cath_stand_player', 360, 7708), ('cath_stand_gyeongsub', 296, 7752),
+                       ('cath_stand_ppaman', 424, 7752)):
+        entities.append({'type': 'prop', 'id': name, 'image': 'assets/tiles/castle306_floor.png',
+                         'x': x, 'y': y, 'w': 24, 'h': 16, 'solid': False, 'hidden': True})
+    entities.append({'type': 'npc', 'id': 'cathedral_gajaeman', 'sprite': 'gajaeman_shadow',
+                     'x': 360, 'y': 7584, 'facing': 'down', 'solid': False, 'wander': 0,
+                     'hidden': True, 'visualScale': 1.89})
     entities.append({'type': 'door', 'id': 'cathedral_return',
                      'x': 352, 'y': 8022, 'w': 64, 'h': 10,
                      'to': 'gajaeman_castle_dark_refuge', 'spawn': 'from_cathedral',
@@ -72,13 +80,17 @@ def main() -> None:
     data = {
         'id': MAP_ID, 'name': '가재맨성 검은 대성당', 'stage': 'castle_dark_chase_done',
         'bgm': None, 'followScreenY': 176, 'rows': [''.join(row) for row in cells],
-        'spawns': {'start': {'x': 372, 'y': 7726, 'facing': 'up'},
+        'enter': {'script': 'castle_cathedral_intro'},
+        'preload': ['assets/props/cathedral323_sword.png'],
+        'spawns': {'entry': {'x': 360, 'y': 7958, 'facing': 'up'},
+                   'start': {'x': 372, 'y': 7726, 'facing': 'up'},
+                   'climb': {'x': 360, 'y': 7400, 'facing': 'up'},
                    'stairs': {'x': 372, 'y': 7704, 'facing': 'up'},
                    'aisle': {'x': 372, 'y': 7464, 'facing': 'up'},
                    'middle': {'x': 372, 'y': 3816, 'facing': 'up'},
                    'end': {'x': 372, 'y': 104, 'facing': 'up'}},
         'meta': {'connected': True, 'corridorWidth': 192, 'laneWidth': 64,
-                 'aisleLength': 7488, 'slowWalkSeconds': 60},
+                 'aisleLength': 7488, 'slowWalkSeconds': 60, 'cathedralClimb': True},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

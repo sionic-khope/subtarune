@@ -116,7 +116,7 @@
    "w": 176,
    "h": 16,
    "to": "gajaeman_castle_cathedral",
-   "spawn": "start",
+   "spawn": "entry",
    "interact": true,
    "sfx": false
   }

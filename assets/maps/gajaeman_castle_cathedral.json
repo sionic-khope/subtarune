@@ -257,10 +257,26 @@
   "          ╞░░╡          ",
   "          ╞░░╡          "
  ],
+ "enter": {
+  "script": "castle_cathedral_intro"
+ },
+ "preload": [
+  "assets/props/cathedral323_sword.png"
+ ],
  "spawns": {
+  "entry": {
+   "x": 360,
+   "y": 7958,
+   "facing": "up"
+  },
   "start": {
    "x": 372,
    "y": 7726,
+   "facing": "up"
+  },
+  "climb": {
+   "x": 360,
+   "y": 7400,
    "facing": "up"
   },
   "stairs": {
@@ -289,7 +305,8 @@
   "corridorWidth": 192,
   "laneWidth": 64,
   "aisleLength": 7488,
-  "slowWalkSeconds": 60
+  "slowWalkSeconds": 60,
+  "cathedralClimb": true
  },
  "entities": [
   {
@@ -1800,6 +1817,51 @@
    "ix": 472,
    "iy": 7584,
    "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "cath_stand_player",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 360,
+   "y": 7708,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "cath_stand_gyeongsub",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 296,
+   "y": 7752,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "cath_stand_ppaman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 424,
+   "y": 7752,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "cathedral_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": 360,
+   "y": 7584,
+   "facing": "down",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.89
   },
   {
    "type": "door",

@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1536",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/cathedral323/sword-ref.png"
+  ],
+  "elapsed_seconds": 32.1,
+  "usage": {
+    "input_tokens": 972,
+    "output_tokens": 1372,
+    "total_tokens": 2344,
+    "input_tokens_details": {
+      "image_tokens": 481,
+      "text_tokens": 491
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790249252,
+  "outputs": [
+    {
+      "file": "assets/source/cathedral323/sword-raw.png",
+      "bytes": 1384375,
+      "size": [
+        1024,
+        1536
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

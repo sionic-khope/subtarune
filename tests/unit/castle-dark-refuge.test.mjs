@@ -20,7 +20,7 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
   TileMap: class extends TileMap { bake() {} }, createEntity: (entity, game) => new Entity(entity, game),
   MAILLARD_CART: { map: 'maillard_path' },
   ...Object.fromEntries(['finishCastleGate', 'cancelCastlePipe', 'finishCastleOrb', 'finishCastleBoulder',
-    'clearCastleBoulderPush', 'finishCastleLobby', 'finishShipInvasion', 'clearShipDeckPoses', 'restoreCastleBoulder'].map(key => [key, () => {}])),
+    'clearCastleBoulderPush', 'finishCastleLobby', 'finishShipInvasion', 'clearShipDeckPoses', 'restoreCastleBoulder', 'finishCastleCathedral'].map(key => [key, () => {}])),
   localStorage: { setItem(key, value) { saved.set(key, value); } },
 });
 

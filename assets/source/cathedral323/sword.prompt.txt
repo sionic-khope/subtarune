@@ -1,0 +1,10 @@
+Create ONE single dark sword sprite for a Deltarune-style pixel-art game, centered on a solid pure #FF00FF magenta background. Vertical composition, blade pointing straight DOWN, hilt at the top. No text, no labels, no border, no ground, no shadow, no extra objects.
+
+Reference image roles (one combined reference image, left to right):
+- Image1 (left, white-outline swords on black): SILHOUETTE reference only. Copy the Roaring Knight sword structure: a tall cross-shaped top/hilt, a ragged flame-like guard spreading to both sides, one round eye-like emblem in the middle of the guard, and a long tapering blade that ends in a sharp point at the bottom. Do NOT copy its white outline style.
+- Image2 (middle, photo of a young man): IDENTITY/FORM reference. Blend this man's form into the sword the same way the game already fused him into a castle (Image3): the hilt top is his head with short messy black hair and round glasses and a wide grinning open mouth; his shoulders and arms form the wide ragged guard; the round emblem in the middle is replaced by the symmetric inkblot shape from his T-shirt; his round clenched fist shape swells at the base of the guard where the blade begins. Realistic sculpted anatomy, like a statue made of obsidian, eerie and menacing.
+- Image3 (right, purple castle shaped like the same man): CONCEPT reference for how his body is merged into an object. Match only this fusion idea and the dense pixel detail, not the castle or the purple colors.
+
+Color: almost entirely BLACK and very dark charcoal (#050308 to #2a2433) with a thin dark violet rim light (#5a3a86) on edges so the silhouette reads against a dark purple floor. The glasses lenses and the inkblot emblem may have a faint cold violet glint. No bright colors, no skin tones.
+
+Style: detailed pixel art, crisp stepped dark outline, limited shades, same sparse logical pixel density as a 16-bit RPG sprite; realistic shading inside the black. Tall and narrow: the whole sword fits within the central 70% of the canvas height and roughly 35% of the canvas width, nothing touches the canvas edges.

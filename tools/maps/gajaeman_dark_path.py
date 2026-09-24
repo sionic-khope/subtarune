@@ -122,7 +122,7 @@ def main() -> None:
              'to': ARRIVAL_ID, 'spawn': 'from_refuge', 'interact': False, 'sfx': False},
             {'type': 'door', 'id': 'castle_cathedral_entry',
              'x': 296, 'y': 312, 'w': 176, 'h': 16,
-             'to': 'gajaeman_castle_cathedral', 'spawn': 'start', 'interact': True, 'sfx': False},
+             'to': 'gajaeman_castle_cathedral', 'spawn': 'entry', 'interact': True, 'sfx': False},
         ],
     }
     index_path = Path('assets/maps/index.json')

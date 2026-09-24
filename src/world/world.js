@@ -433,7 +433,7 @@ export class Player extends Character {
     if (!g_frame_skip(this)) this.unstick();
     if (this.knock) {                       // 피격 슬라이드: 입력 없이 옆으로 미끄러진다(벽에 부딪히는 느낌 금지) — game.hurtPlayer 가 건다
       const k = this.knock; k.t -= dt;
-      this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, 0);
+      this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, (k.vy || 0) * Math.max(0, k.t / k.dur) * dt);
       if (k.t <= 0) this.knock = null;
       this.moving = false; this.animate(dt);
       return;
@@ -446,8 +446,10 @@ export class Player extends Character {
       const run = input.down('cancel') ? this.slowMul : 1;
       const len = Math.hypot(a.x, a.y);
       const step = this.speed * run * dt;
+      // 맞바람(BUILD323 대성당): 위로 가는 성분만 느려진다. 기본 1
+      const resist = a.y < 0 ? (this.game.windResist ?? 1) : 1;
       // 소수점 누적 이동 (도트 튐 방지: 렌더 시 round)
-      this.moveBy((a.x / len) * step, (a.y / len) * step);
+      this.moveBy((a.x / len) * step, (a.y / len) * step * resist);
     }
     this.moving = this.x !== startX || this.y !== startY;
     const prevFrame = this.frame;
@@ -465,6 +467,8 @@ export class Player extends Character {
   /** 러너 기믹 중엔 runner.js 가 잔상·프레임·이펙트를 그린다 */
   drawSprite(ctx, cam) {
     if (this.game.runner) { this.game.runner.drawPlayer(ctx, cam); return; }
+    const climb = this.game.castleCathedral;
+    if (climb?.heart) { climb.drawPlayer(ctx, cam, this, () => super.drawSprite(ctx, cam)); return; }
     super.drawSprite(ctx, cam);
   }
   /** 발 접촉 프레임(1·3): stepSfx 재질음과 물결 거리는 독립적이다. 물의 소리는 기존 Sound.walk 루프만 사용한다. */
@@ -1123,7 +1127,7 @@ export class Follower extends Character {
   update(dt) {
     const p = this.game.player; if (!p) return;
     if (this.knock) {                                // 주인공이 피격 슬라이드 중이면 같이 미끄러진다(간격 유지, 겹침 방지)
-      const k = this.knock; k.t -= dt; this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, 0);
+      const k = this.knock; k.t -= dt; this.moveBy(k.vx * Math.max(0, k.t / k.dur) * dt, (k.vy || 0) * Math.max(0, k.t / k.dur) * dt);
       if (k.t <= 0) this.knock = null; this.moving = false; this.animate(dt); return;
     }
     if (this.game.dialogue.running) return;          // 컷신 중엔 컷신(move)이 움직인다 — 발자국 추종과 싸우지 않게

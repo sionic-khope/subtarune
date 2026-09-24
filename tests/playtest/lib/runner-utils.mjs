@@ -83,3 +83,4 @@ export function harnessResultErrors(detail) {
   if (!Array.isArray(detail.checks) || !detail.checks.length || detail.checks.some(check => check.passed !== true)) return ['invalid harness checks'];
   return [];
 }
+BASE_URL_SCENARIOS.add('castle-cathedral-climb');

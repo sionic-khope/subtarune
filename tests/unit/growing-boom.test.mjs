@@ -28,7 +28,7 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
   clearLoungeBriefing, finishChoimisRescue, finishShipInvasion, finishCastleLobby, clearShipDeckPoses,
   updateCastleOrb, finishCastleOrb, cancelCastlePipe,
   finishCastleBoulder, restoreCastleBoulder, updateCastleBoulderPush, clearCastleBoulderPush,
-  updateCastleGate, finishCastleGate,
+  updateCastleGate, finishCastleGate, finishCastleCathedral: () => {},
   TileMap: class { constructor(def) { this.def = def; } bake() {} },
   createEntity: definition => ({ ...definition, def: definition }),
 });
