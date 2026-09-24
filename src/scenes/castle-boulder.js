@@ -1,13 +1,14 @@
 import { FX } from '../data/fx.js';
+import { Input } from '../core/input.js';
 import { loopCharacterMotion } from '../world/character-motion.js';
 
 export const CASTLE_BOULDER = Object.freeze({
   map: 'gajaeman_castle_boulder', flag: 'castle_boulder_done', bgm: 'baron_intro',
   rock: 'assets/props/castle-boulder316.png', wall: 'assets/props/castle-boulder-wall316.png',
-  monster: 'assets/enemies/nunusub316.png', rockCenter: [1810, 628], radius: 128,
-  monsterFeet: [2024, 690], monsterCell: 384, monsterPivot: [192, 360], monsterScale: 0.88,
-  wallX: 3424, beats: { reveal: 2.8, roar: 1.8, launch: 5.6 },
-  sounds: ['laser_zap', 'baron_roar', 'baron_slam', 'rumble', 'furnace_blast', 'break1', 'laugh_junhee', 'mario_jump', 'chime', 'great_shine', 'click', 'cancel'],
+  monster: 'assets/enemies/nunusub316.png', rockCenter: [1810, 628], radius: 192, rockScale: 1.5,
+  monsterFeet: [2140, 795], monsterCell: 384, monsterPivot: [192, 360], monsterScale: 1.3,
+  wallX: 3424, wallRockX: 3304, surgeDistance: 100, beats: { reveal: 2.8, roar: 1.8, surge: 2.2, launch: 5.6 },
+  sounds: ['baron_roar', 'baron_slam', 'rumble', 'furnace_blast', 'break1', 'laugh_junhee', 'mario_jump', 'chime', 'great_shine', 'click', 'cancel'],
 });
 export const BOULDER_ACTORS = Object.freeze({ youngcle: 'boulder_youngcle', junhee: 'boulder_junhee',
   bidet: 'boulder_bidet', mario: 'boulder_mario', ttuulla: 'boulder_ttuulla', park: 'boulder_park' });
@@ -52,7 +53,9 @@ export class CastleBoulderScene {
     this.previousJunheeMotion = this.junhee.motion;
     loopCharacterMotion(this.junhee, game.characterMotions?.junhee?.boulder_push);
     this.braceMotion = this.junhee.motion;
-    this.junhee.x = 1656;
+    this.junhee.x = 1600;
+    this.youngcle.x = 1500; this.youngcle.y = 550;
+    this.surgeRoared = false; this.ownedDialogue = null;
   }
   get done() { return this.disposed || this.elapsed >= (CASTLE_BOULDER.beats[this.beat] || 0); }
   sound(key, volume = 0.6) {
@@ -71,6 +74,9 @@ export class CastleBoulderScene {
       this.pushOrigins = new Map(this.pushers.map(actor => [actor, actor.x]));
       this.youngcle.flyX = 0; this.youngcle.flyY = 0; this.youngcle.spin = 0;
     }
+    if (name === 'surge') {
+      this.sound('rumble', 0.65); this.game.shake = { time: 1.3, amp: 6 };
+    }
     if (name === 'launch') {
       this.releaseBrace();
       this.launchX = this.rockX; this.launchMonsterX = this.monsterX;
@@ -83,6 +89,18 @@ export class CastleBoulderScene {
     if (this.done) return Promise.resolve();
     return new Promise(resolve => this.waiters.push(resolve));
   }
+  say(node) {
+    if (this.disposed) return Promise.resolve();
+    return new Promise(resolve => {
+      this.ownedDialogue = resolve;
+      this.game.textbox.show(node, this.game.ctx, () => this.closeOwnedDialogue());
+    });
+  }
+  closeOwnedDialogue() {
+    if (!this.ownedDialogue) return;
+    const resolve = this.ownedDialogue; this.ownedDialogue = null;
+    this.game.textbox.close(); resolve();
+  }
   stage(number) {
     this.stageNumber = number; this.exert = 0.4;
     for (const [actor, x] of this.pushOrigins) actor.x = x + number * 3;
@@ -92,9 +110,8 @@ export class CastleBoulderScene {
   }
   fire() {
     const from = [this.youngcle.x + this.youngcle.w / 2 + (this.youngcle.flyX || 0), this.youngcle.y - 22 + (this.youngcle.flyY || 0)];
-    const to = [this.rockX - 120, 575 + Math.sin(this.time * 1.9) * 38];
+    const to = [this.rockX - 160, 575 + Math.sin(this.time * 1.9) * 38];
     this.beams.push({ from, to, age: 0 });
-    this.sound('laser_zap', 0.24);
     this.debris(to[0], to[1], 7, 55);
   }
   debris(x, y, count, force) {
@@ -114,20 +131,24 @@ export class CastleBoulderScene {
     if (this.disposed) return;
     if (this.game.map !== this.map || this.game.dialogue.script !== this.script) { finishCastleBoulder(this.game, true); return; }
     this.time += dt; this.elapsed += dt; this.exert = Math.max(0, this.exert - dt);
+    if (this.ownedDialogue) this.game.textbox.update(dt, Input);
     for (const beam of this.beams) beam.age += dt;
     this.beams = this.beams.filter(beam => beam.age < 0.24);
     for (const chip of this.chips) { chip.age += dt; chip.x += chip.vx * dt; chip.y += chip.vy * dt; chip.vy += 240 * dt; }
     this.chips = this.chips.filter(chip => chip.age < 1.5);
     for (const wave of this.waves) wave.age += dt;
     this.waves = this.waves.filter(wave => wave.age < 1.6);
-    if (['holding', 'reveal', 'roar', 'talk'].includes(this.beat)) {
+    if (['holding', 'reveal', 'roar', 'talk', 'push', 'surge', 'surge_hold', 'mash'].includes(this.beat)) {
       this.youngcle.flyX = Math.sin(this.time * 2.1) * 16;
       this.youngcle.flyY = Math.cos(this.time * 2.1) * 8;
       this.youngcle.spin = Math.sin(this.time * 2.1) * 0.15;
       this.youngcle.facing = this.beat === 'talk' ? 'left' : ['right', 'down', 'left', 'up'][Math.floor(this.time * 1.6) % 4];
       this.junhee.flyX = Math.sin(this.time * 21) * 1.2;
-      this.rockX = CASTLE_BOULDER.rockCenter[0] + Math.sin(this.time * 3) * 1.5;
-      this.rockAngle = Math.sin(this.time * 3) * 0.014;
+      if (['holding', 'reveal', 'roar', 'talk'].includes(this.beat)) {
+        this.rockX = CASTLE_BOULDER.rockCenter[0] + Math.sin(this.time * 3) * 1.5;
+        this.monsterX = CASTLE_BOULDER.monsterFeet[0];
+        this.rockAngle = Math.sin(this.time * 3) * 0.014;
+      }
       if (this.time >= this.nextShot) { this.nextShot = this.time + 2.6; this.fire(); }
     }
     if (this.beat === 'reveal') {
@@ -135,14 +156,22 @@ export class CastleBoulderScene {
       this.rockX += remaining * 52; this.rockAngle += remaining * 0.36;
       this.monsterX = CASTLE_BOULDER.monsterFeet[0] + remaining * 52;
     }
-    if (this.beat === 'push') {
-      this.rockX = CASTLE_BOULDER.rockCenter[0] + this.stageNumber * 3;
-      this.monsterX = CASTLE_BOULDER.monsterFeet[0] + this.stageNumber * 3;
-      this.rockAngle = this.stageNumber * 0.035;
+    if (['push', 'surge', 'surge_hold', 'mash'].includes(this.beat)) {
+      const surge = this.beat === 'push' ? 0 : CASTLE_BOULDER.surgeDistance * (this.beat === 'surge' ? ease(this.elapsed / 1.1) : 1);
+      const displacement = this.stageNumber * 3 + surge;
+      this.rockX = CASTLE_BOULDER.rockCenter[0] + displacement;
+      this.monsterX = CASTLE_BOULDER.monsterFeet[0] + displacement;
+      this.rockAngle = displacement / CASTLE_BOULDER.radius;
+      for (const [actor, x] of this.pushOrigins) actor.x = x + displacement;
+      if (this.beat === 'surge' && this.elapsed >= 1.05 && !this.surgeRoared) {
+        this.surgeRoared = true; this.sound('baron_roar', 0.8);
+        this.game.shake = { time: 1, amp: 8 };
+        this.waves.push({ x: this.monsterX - 80, y: 470, age: 0 });
+      }
     }
     if (this.beat === 'launch') {
       const k = clamp(this.elapsed / 4.15), travel = k * k * (3 - 2 * k);
-      this.rockX = this.launchX + (CASTLE_BOULDER.wallX - 80 - this.launchX) * travel;
+      this.rockX = this.launchX + (CASTLE_BOULDER.wallRockX - this.launchX) * travel;
       this.monsterX = this.launchMonsterX + (CASTLE_BOULDER.wallX + 58 - this.launchMonsterX) * travel;
       this.rockAngle = (this.rockX - this.launchX) / CASTLE_BOULDER.radius;
       for (const actor of this.pushers) { actor.flyX = 0; actor.spin = 0; }
@@ -155,20 +184,22 @@ export class CastleBoulderScene {
     const rock = this.game.propImages[CASTLE_BOULDER.rock], monster = this.game.propImages[CASTLE_BOULDER.monster];
     ctx.save();
     if (!this.crashed && monster) {
-      const frame = this.beat === 'roar' ? 2 : this.beat === 'launch' ? 3 : Math.floor(this.time * 2) % 2;
+      const frame = this.beat === 'roar' || this.beat === 'surge' && this.surgeRoared ? 2 : this.beat === 'launch' ? 3 : Math.floor(this.time * 2) % 2;
       const cell = CASTLE_BOULDER.monsterCell, scale = CASTLE_BOULDER.monsterScale;
       const [px, py] = CASTLE_BOULDER.monsterPivot;
       const bob = this.beat === 'launch' ? -Math.sin(clamp(this.elapsed / 4.15) * Math.PI) * 24 : Math.sin(this.time * 2.3) * 2;
       ctx.drawImage(monster, frame % 2 * cell, Math.floor(frame / 2) * cell, cell, cell,
-        Math.round(this.monsterX - cam.x - px * scale), Math.round(690 - cam.y - py * scale + bob), cell * scale, cell * scale);
+        Math.round(this.monsterX - cam.x - px * scale), Math.round(CASTLE_BOULDER.monsterFeet[1] - cam.y - py * scale + bob), cell * scale, cell * scale);
     }
     if (!this.crashed && rock) {
       ctx.save(); ctx.translate(Math.round(this.rockX - cam.x), Math.round(628 - cam.y)); ctx.rotate(this.rockAngle);
-      ctx.drawImage(rock, -128, -128, 256, 256); ctx.restore();
+      const diameter = CASTLE_BOULDER.radius * 2;
+      ctx.drawImage(rock, -CASTLE_BOULDER.radius, -CASTLE_BOULDER.radius, diameter, diameter); ctx.restore();
     }
     if (this.crashed && !find(this.game, 'castle_boulder_wall')) {
       const wall = this.game.propImages[CASTLE_BOULDER.wall];
-      if (wall) ctx.drawImage(wall, 3200 - cam.x, 452 - cam.y);
+      const def = this.game.map.def.entities.find(entity => entity.id === 'castle_boulder_wall');
+      if (wall) ctx.drawImage(wall, def.ix - cam.x, def.iy - cam.y, wall.width * def.scale, wall.height * def.scale);
     }
     for (const beam of this.beams) {
       ctx.globalAlpha = 1 - beam.age / 0.24;
@@ -193,6 +224,7 @@ export class CastleBoulderScene {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.closeOwnedDialogue();
     this.releaseBrace();
     for (const actor of [this.youngcle, this.junhee, ...this.pushers]) { actor.flyX = 0; actor.flyY = 0; actor.spin = 0; }
     for (const handle of this.handles) handle.pause();

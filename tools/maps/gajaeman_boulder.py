@@ -47,7 +47,7 @@ def main() -> None:
     width, height = 112, 48
     floor = {(col, row) for col in range(7, 16) for row in range(14, height)}
     floor.update((col, row) for col in range(7, 107) for row in range(14, 25))
-    floor.update((col, row) for col in range(96, 102) for row in range(12, 15))
+    floor.update((col, row) for col in range(90, 96) for row in range(12, 15))
     cells = [[' '] * width for _ in range(height)]
     for col, row in floor:
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
@@ -57,22 +57,33 @@ def main() -> None:
     for col, row in floor:
         variation = (col * 7 + row * 11) % 17
         cells[row][col] = '♠' if variation < 3 else '♣' if variation < 5 else '♦' if variation == 5 else '♜'
+    for row in range(7, 32):
+        for col in range(107, width):
+            cells[row][col] = '▥'
+    for row in (*range(7, 14), *range(25, 32)):
+        for col in range(102, 107):
+            cells[row][col] = '▥'
+    for row in range(7, 14):
+        for col in range(96, 102):
+            cells[row][col] = '▥'
     anchors = {'start': [356, 1416], 'bend': [356, 648], 'approach': [804, 648],
                'push': [1540, 648], 'finish': [3044, 648], 'guard_return': [2960, 648],
-               'nunu': [2070, 690], 'boulder': [1810, 628]}
+               'nunu': [2140, 795], 'boulder': [1810, 628]}
     actor_positions = [
         ('boulder_bidet', 'warm_bidet', 340, 1240, 'up', False),
         ('boulder_mario', 'mini_mario', 404, 1176, 'up', False),
-        ('boulder_youngcle', 'youngcle_hover', 1420, 584, 'right', False),
-        ('boulder_junhee', 'junhee', 1650, 640, 'right', False),
+        ('boulder_youngcle', 'youngcle_hover', 1500, 550, 'right', False),
+        ('boulder_junhee', 'junhee', 1600, 640, 'right', False),
         ('boulder_ttuulla', 'ttuulla', 692, 612, 'right', True),
-        ('boulder_park', 'park_guardian', 628, 688, 'right', True),
+        ('boulder_park', 'park_guardian_costume', 628, 688, 'right', True),
         ('boulder_gyeongsub', 'gyeongsub', 2896, 576, 'right', True),
         ('boulder_ppaman', 'ppaman', 2960, 704, 'right', True),
     ]
     entities = [
         {'type': 'npc', 'id': actor_id, 'sprite': sprite, 'x': x, 'y': y,
-         'facing': facing, 'solid': True, 'wander': 0, 'hidden': hidden}
+         'facing': facing, 'solid': True, 'wander': 0, 'hidden': hidden,
+         **({'visualScale': 2.22} if actor_id == 'boulder_park' else {}),
+         **({'visualScale': 1.79} if actor_id == 'boulder_ttuulla' else {})}
         for actor_id, sprite, x, y, facing, hidden in actor_positions
     ]
     entities.extend([
@@ -81,12 +92,12 @@ def main() -> None:
          'to': 'gajaeman_regret2', 'spawn': 'from_boulder', 'interact': False, 'sfx': False},
         {'type': 'prop', 'id': 'castle_boulder_orb_door',
          'image': 'assets/props/castle-memory-door.png',
-         'x': 3104, 'y': 384, 'w': 96, 'h': 16, 'ix': 3104, 'iy': 272,
+         'x': 2912, 'y': 384, 'w': 96, 'h': 16, 'ix': 2912, 'iy': 272,
          'solid': True, 'sortY': 0, 'script': 'castle_boulder_orb_enter'},
         {'type': 'prop', 'id': 'castle_boulder_wall',
          'image': 'assets/props/castle-boulder-wall316.png',
-         'x': 3304, 'y': 480, 'w': 120, 'h': 304, 'ix': 3200, 'iy': 452,
-         'solid': True, 'requires': 'castle_boulder_done'},
+         'x': 3144, 'y': 466, 'w': 280, 'h': 378, 'ix': 3088, 'iy': 364,
+         'scale': 1.5, 'solid': True, 'requires': 'castle_boulder_done'},
         {'type': 'trigger', 'id': 'castle_boulder_back_guard',
          'x': 2816, 'y': 448, 'w': 32, 'h': 352,
          'script': 'castle_boulder_back'},
@@ -97,18 +108,20 @@ def main() -> None:
         'enter': {'script': 'castle_boulder_intro'},
         'rows': [''.join(row) for row in cells],
         'preload': ['assets/backdrops/castle-regret-depth.png',
+                    'assets/tiles/gajaeman_castle_wall.png',
+                    'assets/sprites/park_guardian_costume.png', 'assets/sprites/ttuulla.png',
                     'assets/props/castle-memory-door.png',
                     'assets/props/castle-boulder316.png', 'assets/props/castle-boulder-wall316.png',
                     'assets/enemies/nunusub316.png'],
         'spawns': {'start': {'x': 356, 'y': 1416, 'facing': 'up'},
-                   'from_orb': {'x': 3140, 'y': 544, 'facing': 'down'},
-                   'orb_door': {'x': 3140, 'y': 448, 'facing': 'up'},
+                   'from_orb': {'x': 2948, 'y': 544, 'facing': 'down'},
+                   'orb_door': {'x': 2948, 'y': 448, 'facing': 'up'},
                    **{f'boulder_{key}': {'x': value[0], 'y': value[1], 'facing': 'right'}
                       for key, value in anchors.items() if key not in ('nunu', 'boulder')}},
         'meta': {'connected': True,
                  'boulder': {'bridge': [224, 448, 3200, 352], 'anchors': anchors,
                              'wallX': 3424, 'guardX': 2848,
-                             'orbDoor': [3104, 384, 96, 16]}},
+                             'orbDoor': [2912, 384, 96, 16]}},
         'entities': entities,
     }
     orb: OrbMap = json.loads(Path('assets/maps/gajaeman_castle_orb.json').read_text(encoding='utf-8'))

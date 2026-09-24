@@ -3,13 +3,14 @@ import { FONT } from '../ui/font.js';
 import L from '../data/locale/ko.js';
 
 export const BOULDER_PUSH = Object.freeze({ stages: 10, mashTarget: 35, feedback: 0.58,
+  introDelay: 2, introFade: 0.7, targetColor: '#b45ffc',
   finishHold: 0.65, gauge: { x: 110, y: 45, w: 260, h: 14 } });
 const RESTORED = ['flyX', 'hopY', 'spin', 'moving', 'frame', 'animPhase', 'hoverT', 'driven', 'facing'];
 const entity = (game, id) => id === 'player' ? game.player : game.entities.find(e => e.id === id);
 const clamp = value => Math.max(0, Math.min(1, value));
 
 /** Fresh confirm edges advance ten timing stages, then a separate final mash.
- * onStage(stage, delta) owns persistent world displacement; onFinish owns launch effects.
+ * onStage(stage, delta) owns displacement; async onTimingComplete gates the mash; onFinish owns launch effects.
  * Call update while the script action awaits, draw after the world, and clear on map/title/QA.
  * Cancellation resolves {completed:false}; this controller never writes story/save flags.
  */
@@ -22,7 +23,7 @@ export function startCastleBoulderPush(game, config = {}) {
     .map(actor => [actor, Object.fromEntries(RESTORED.map(key => [key, actor[key]]))]));
   return new Promise(resolve => {
     game.castleBoulderPush = { config, resolve, pushers, tremble, originals, map: game.map,
-      stage: 0, phase: 'timing', marker: 0, travel: 0, count: 0, elapsed: 0,
+      stage: 0, phase: 'intro', marker: 0, travel: 0, count: 0, elapsed: 0,
       feedback: 0, press: 0, exert: 0, idle: 0, armed: false, settled: false,
       bark: '', barkTime: 0, barkShown: 0, sparks: [], result: null, judgedStage: 0 };
   });
@@ -60,6 +61,12 @@ function exert(game, state, strength) {
   game.shake = { time: 0.12, amp: strength > 0.8 ? 2 : 1 };
 }
 
+function beginMash(game, state) {
+  if (state.settled || game.castleBoulderPush !== state || game.map !== state.map) return;
+  state.phase = 'mash'; state.result = null; state.armed = false;
+  state.bark = ''; state.barkTime = 0;
+}
+
 export function updateCastleBoulderPush(game, dt, input) {
   const state = game.castleBoulderPush;
   if (!state) return;
@@ -84,6 +91,12 @@ export function updateCastleBoulderPush(game, dt, input) {
     + Math.sin(state.elapsed * 55) * (0.4 + state.exert * 1.5);
   for (const spark of state.sparks) { spark.t += dt; spark.x += spark.vx * dt; spark.y += spark.vy * dt; }
   state.sparks = state.sparks.filter(spark => spark.t < spark.life);
+  if (state.phase === 'intro') {
+    if (state.elapsed >= BOULDER_PUSH.introDelay + BOULDER_PUSH.introFade) state.phase = 'timing';
+    state.armed = false;
+    return;
+  }
+  if (state.phase === 'interlude') { state.armed = false; return; }
   if (state.phase === 'complete') {
     state.feedback -= dt;
     if (state.feedback <= 0) {
@@ -100,8 +113,10 @@ export function updateCastleBoulderPush(game, dt, input) {
   if (state.feedback > 0) {
     state.feedback = Math.max(0, state.feedback - dt);
     if (state.feedback === 0 && state.stage === BOULDER_PUSH.stages) {
-      state.phase = 'mash'; state.result = null; state.armed = false;
-      state.bark = ''; state.barkTime = 0;
+      if (state.config.onTimingComplete) {
+        state.phase = 'interlude'; state.armed = false;
+        Promise.resolve(state.config.onTimingComplete()).then(() => beginMash(game, state));
+      } else beginMash(game, state);
     }
     return;
   }
@@ -153,11 +168,14 @@ function outlinedText(ctx, text, x, y, color) {
 
 export function drawCastleBoulderPush(game, ctx) {
   const state = game.castleBoulderPush;
-  if (!state) return;
+  if (!state || state.phase === 'interlude') return;
+  const opacity = clamp((state.elapsed - BOULDER_PUSH.introDelay) / BOULDER_PUSH.introFade);
+  if (opacity === 0) return;
   const { x, y, w, h } = BOULDER_PUSH.gauge;
-  const mash = state.phase !== 'timing';
+  const mash = state.phase === 'mash' || state.phase === 'complete';
   ctx.save(); ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
-  outlinedText(ctx, mash ? L.boulder_push_mash : `${state.stage} / ${BOULDER_PUSH.stages}`, SCREEN_W / 2, 18, '#fff');
+  ctx.globalAlpha = opacity;
+  outlinedText(ctx, mash ? L.boulder_push_mash : `${state.stage} / ${BOULDER_PUSH.stages}`, mash ? SCREEN_W / 2 : 65, 18, '#fff');
   ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
   ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
   if (mash) {
@@ -166,7 +184,7 @@ export function drawCastleBoulderPush(game, ctx) {
   } else {
     const zone = castleBoulderTarget(state.feedback > 0 ? state.judgedStage : state.stage);
     const zx = Math.round(x + w * zone.left), zw = Math.round(w * (zone.right - zone.left));
-    ctx.fillStyle = '#ffe066'; ctx.fillRect(zx, y, zw, h);
+    ctx.fillStyle = BOULDER_PUSH.targetColor; ctx.fillRect(zx, y, zw, h);
     ctx.fillStyle = '#fff'; ctx.fillRect(zx, y - 5, 2, 3); ctx.fillRect(zx + zw - 2, y - 5, 2, 3);
     const mx = Math.round(x + state.marker * w);
     ctx.fillStyle = state.result === 'miss' && state.feedback > 0 ? '#ff2b4a' : '#fff';
@@ -177,9 +195,9 @@ export function drawCastleBoulderPush(game, ctx) {
   ctx.fillRect(x + w + 13, y - 4 + (state.press > 0 ? 2 : 0), 24, 24);
   ctx.fillStyle = '#000'; ctx.fillRect(x + w + 15, y - 2 + (state.press > 0 ? 2 : 0), 20, 20);
   outlinedText(ctx, 'C', x + w + 25, y + (state.press > 0 ? 4 : 2), '#fff');
-  if (state.barkTime > 0) outlinedText(ctx, state.bark.slice(0, state.barkShown), SCREEN_W / 2, y + 31, '#fff');
+  if (state.barkTime > 0) outlinedText(ctx, state.bark.slice(0, state.barkShown), SCREEN_W / 2 + 20, 18, '#fff');
   for (const spark of state.sparks) {
-    ctx.globalAlpha = 1 - spark.t / spark.life; ctx.fillStyle = '#ffe066';
+    ctx.globalAlpha = opacity * (1 - spark.t / spark.life); ctx.fillStyle = '#ffe066';
     ctx.fillRect(Math.round(x + spark.k * w + spark.x), Math.round(y + spark.y), 2, 2);
   }
   ctx.restore();

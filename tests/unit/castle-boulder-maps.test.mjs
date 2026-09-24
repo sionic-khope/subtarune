@@ -42,7 +42,13 @@ test('regret north exit leads into a wide collision-bounded east boulder bridge'
   const wall = map.entities.find(entity => entity.id === 'castle_boulder_wall');
   assert.equal(wall.requires, 'castle_boulder_done');
   assert.equal(wall.solid, true);
-  assert.deepEqual([wall.ix, wall.iy], [3200, 452]);
+  assert.equal(wall.scale, 1.5);
+  assert.equal(wall.ix + 224 * wall.scale, map.meta.boulder.wallX);
+  assert.equal(wall.iy + 176 * wall.scale, map.meta.boulder.anchors.boulder[1]);
+  const wallImage = fs.readFileSync(wall.image);
+  assert.equal(wall.y + wall.h, wall.iy + wallImage.readUInt32BE(20) * wall.scale);
+  const returning = map.spawns.from_orb;
+  assert.ok(returning.x + 24 <= wall.x);
 });
 
 test('test_boulder316_first_entry_retains_the_guard_when_completion_changes_without_reload', () => {
@@ -57,6 +63,29 @@ test('test_boulder316_first_entry_retains_the_guard_when_completion_changes_with
   flags.castle_boulder_done = true;
   assert.equal(firstEntry.some(entity => entity.id === 'castle_boulder_back_guard'), true);
   assert.equal(castle_boulder_left_block[0].if(flags), false);
+});
+
+test('test_boulder317_helpers_reuse_established_lounge_identity_and_world_scale', () => {
+  const bridge = readMap('gajaeman_castle_boulder'), lounge = readMap('ship_lounge');
+  for (const [bridgeId, loungeId] of [['boulder_park', 'lounge_park_guardian'], ['boulder_ttuulla', 'lounge_ttuulla']]) {
+    const actor = bridge.entities.find(entity => entity.id === bridgeId);
+    const reference = lounge.entities.find(entity => entity.id === loungeId);
+    assert.equal(actor.sprite, reference.sprite);
+    assert.equal(actor.visualScale, reference.visualScale);
+  }
+});
+
+test('test_boulder317_east_wall_is_continuous_castle_masonry_behind_the_embedded_rock', () => {
+  const map = readMap('gajaeman_castle_boulder');
+  const col = map.meta.boulder.wallX / 32;
+  for (let row = 7; row <= 31; row++) {
+    assert.equal(map.rows[row][col], '▥');
+    assert.equal(map.rows[row][col + 1], '▥');
+  }
+  for (let x = 102; x <= col; x++) {
+    assert.equal(map.rows[13][x], '▥');
+    assert.equal(map.rows[25][x], '▥');
+  }
 });
 
 test('left orb chamber retains the right orb room geometry with left-seal interaction', () => {

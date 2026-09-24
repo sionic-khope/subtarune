@@ -47,6 +47,29 @@ test('test_boulder_push_entry_and_held_edges_require_release', () => {
   clearCastleBoulderPush(game);
 });
 
+test('test_boulder_push_intro_delays_then_fades_without_movement_or_early_input', () => {
+  const { game, events } = fixture();
+  const state = game.castleBoulderPush;
+  const fills = [], ctx = { globalAlpha: 1, save() {}, restore() {}, fillText() {},
+    fillRect(...rect) { fills.push({ rect, alpha: this.globalAlpha, color: this.fillStyle }); } };
+  tick(game, 1.9, press); drawCastleBoulderPush(game, ctx);
+  assert.equal(fills.length, 0);
+  tick(game, 0.45, idle); drawCastleBoulderPush(game, ctx);
+  assert.equal(state.phase, 'intro');
+  assert.ok(fills.length > 0 && fills.every(fill => Math.abs(fill.alpha - 0.5) < 1e-8));
+  assert.ok(fills.some(fill => fill.color === '#b45ffc'));
+  assert.equal(state.marker, 0); assert.equal(state.travel, 0);
+  assert.equal(state.armed, false); assert.equal(state.stage, 0);
+  tick(game, 0.35, press);
+  assert.equal(state.phase, 'timing');
+  assert.equal(state.marker, 0); assert.equal(state.stage, 0);
+  tick(game, 0.6, hold); tick(game, 0, press);
+  assert.equal(events.filter(event => event[0] === 'stage').length, 0);
+  hit(game);
+  assert.equal(state.stage, 1);
+  clearCastleBoulderPush(game);
+});
+
 test('test_boulder_push_miss_loses_one_stage_with_zero_floor', () => {
   const { game, events } = fixture();
   hit(game); hit(game); hit(game);
@@ -118,6 +141,39 @@ test('test_boulder_push_mash_rest_and_decay_remain_recoverable', () => {
   clearCastleBoulderPush(game);
 });
 
+test('test_boulder_push_tenth_success_waits_for_scene_beat_before_fresh_mash', async () => {
+  const { game } = fixture();
+  const state = game.castleBoulderPush;
+  let release, calls = 0;
+  state.config.onTimingComplete = () => { calls++; return new Promise(resolve => { release = resolve; }); };
+  for (let i = 0; i < 10; i++) hit(game);
+  assert.equal(state.phase, 'interlude'); assert.equal(calls, 1);
+  for (let i = 0; i < 15; i++) { tick(game, 0.1); tick(game, 0.1, press); }
+  assert.equal(state.count, 0); assert.equal(calls, 1);
+  drawCastleBoulderPush(game, { save() { assert.fail('interlude hides the gauge'); } });
+  release(); await Promise.resolve();
+  assert.equal(state.phase, 'mash'); assert.equal(state.armed, false);
+  tick(game, 0.1, press); assert.equal(state.count, 0);
+  mash(game, 1); assert.equal(state.count, 1);
+  clearCastleBoulderPush(game);
+});
+
+test('test_boulder_push_cancelled_timing_hook_cannot_resume_or_overwrite_replacement', async () => {
+  const { game, promise } = fixture();
+  const state = game.castleBoulderPush;
+  let release;
+  state.config.onTimingComplete = () => new Promise(resolve => { release = resolve; });
+  for (let i = 0; i < 10; i++) hit(game);
+  const replacementPromise = startCastleBoulderPush(game);
+  const replacement = game.castleBoulderPush;
+  assert.deepEqual(await promise, { completed: false });
+  release(); await Promise.resolve();
+  assert.equal(game.castleBoulderPush, replacement);
+  assert.equal(replacement.phase, 'intro'); assert.equal(replacement.stage, 0);
+  assert.equal(state.phase, 'interlude');
+  clearCastleBoulderPush(game); await replacementPromise;
+});
+
 test('test_boulder_push_clear_map_replacement_cancel_without_finish', async () => {
   for (const mode of ['clear', 'map', 'replace']) {
     const { game, actor, promise, events } = fixture();
@@ -134,6 +190,7 @@ test('test_boulder_push_clear_map_replacement_cancel_without_finish', async () =
 
 test('test_boulder_push_render_preserves_judged_zone_and_canvas_state', () => {
   const { game } = fixture();
+  tick(game, BOULDER_PUSH.introDelay + BOULDER_PUSH.introFade);
   const state = game.castleBoulderPush;
   state.stage = 2; state.judgedStage = 3; state.feedback = 0.3; state.result = 'miss';
   const calls = [], ctx = { save() { calls.push('save'); }, restore() { calls.push('restore'); },
@@ -143,5 +200,21 @@ test('test_boulder_push_render_preserves_judged_zone_and_canvas_state', () => {
   assert.ok(calls.some(call => Array.isArray(call) && call[0] === Math.round(gauge.x + gauge.w * zone.left)
     && call[2] === Math.round(gauge.w * (zone.right - zone.left))));
   assert.equal(calls.at(-1), 'restore');
+  clearCastleBoulderPush(game);
+});
+
+test('test_boulder_push_feedback_stays_above_gauge_and_clear_of_stage_counter', () => {
+  const { game } = fixture();
+  tick(game, BOULDER_PUSH.introDelay + BOULDER_PUSH.introFade);
+  const state = game.castleBoulderPush;
+  state.bark = '좀만 더 합을 맞춰서!!'; state.barkShown = state.bark.length; state.barkTime = 0.4;
+  const texts = [], ctx = { save() {}, restore() {}, fillRect() {},
+    fillText(text, x, y) { if (this.fillStyle === '#fff') texts.push({ text, x, y }); } };
+  drawCastleBoulderPush(game, ctx);
+  const bark = texts.find(item => item.text === state.bark);
+  const counter = texts.find(item => item.text === '0 / 10');
+  assert.equal(bark.y, 18);
+  assert.ok(bark.y + 16 < BOULDER_PUSH.gauge.y - 5);
+  assert.ok(counter.x + counter.text.length * 8 < bark.x - bark.text.length * 8);
   clearCastleBoulderPush(game);
 });

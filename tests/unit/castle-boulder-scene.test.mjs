@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { CASTLE_BOULDER as C, BOULDER_ACTORS as A, CastleBoulderScene,
   finishCastleBoulder, restoreCastleBoulder, separateBoulderParty } from '../../src/scenes/castle-boulder.js';
-import { castle_boulder_intro, castle_boulder_left_block, castle_boulder_orb_enter } from '../../src/data/cutscenes/castle_boulder.js';
+import { castle_boulder_intro, castle_boulder_left_block, castle_boulder_orb_enter, BOULDER_FINAL_SPURT } from '../../src/data/cutscenes/castle_boulder.js';
 import { CHARACTER_MOTIONS } from '../../src/data/character-motions.js';
 
 const mapDef = JSON.parse(readFileSync(new URL('../../assets/maps/gajaeman_castle_boulder.json', import.meta.url), 'utf8'));
@@ -13,6 +13,7 @@ function setup() {
   const player = { id: 'player', x: 356, y: 1416, w: 24, h: 16, visible: true, def: { type: 'player' } };
   entities.push(player, ...['gyeongsub', 'ppaman'].map((id, i) => ({ id, x: 356, y: 1436 + i * 32, w: 24, h: 16, visible: true, def: { type: 'follower' } })));
   const game = { mapId: C.map, map: { def: mapDef }, dialogue: { script: castle_boulder_intro }, flags: {}, entities, player,
+    textbox: { show(node, ctx, done) { this.node = node; this.done = done; }, close() { this.node = null; }, update() {} },
     characterMotions: { junhee: { boulder_push: CHARACTER_MOTIONS.junhee.boulder_push } },
     sound: { sfx(key) { cues.push(key); const handle = { pause() { this.paused = true; } }; handles.push(handle); return handle; },
       stopBgm() { this.bgmName = null; } }, playBoom: data => booms.push(data), spawn(def) { entities.push({ ...def, def }); } };
@@ -55,7 +56,7 @@ test('test_boulder316_launch_waits_for_contact_then_crashes_once', async () => {
   assert.ok(scene.rockX > 2200 && scene.rockX < C.wallX);
   scene.update(1.65);
   assert.equal(scene.crashed, true); assert.equal(booms.length, 1);
-  assert.equal(scene.rockX, 3344); assert.equal(settled, false);
+  assert.equal(scene.rockX, 3304); assert.equal(settled, false);
   scene.update(1.5); await Promise.resolve();
   assert.equal(settled, true);
   scene.update(10);
@@ -95,12 +96,16 @@ test('test_boulder316_script_uses_the_requested_cues_and_only_commits_after_epil
   const lines = castle_boulder_intro.filter(node => node.text).map(node => node.text.slice(2));
   assert.equal(lines[0], '흠.. 영클형이 이쯤에서... 있었던거같은데');
   assert.ok(lines.indexOf('가재맨 모양의 누누와윌럼프가 있음') < lines.indexOf('형님들!'));
-  assert.ok(lines.indexOf('밀어!!!!!!') < lines.indexOf('히야아ㅏ아아아아아아ㅏㅏ아아아압!'));
+  assert.ok(lines.indexOf('타이밍에 맞춰서 c를 눌러, 합 맞춰서 미는거야!') < lines.indexOf('히야아ㅏ아아아아아아ㅏㅏ아아아압!'));
+  assert.equal(BOULDER_FINAL_SPURT.text, '* 거의다 온거같아 마지막 스퍼트다 밀어!!!!!');
   assert.equal(lines.at(-1), '잘했음 ㅇㅇ');
   const commit = castle_boulder_intro.findIndex(node => node.stage === C.flag);
   assert.ok(commit > castle_boulder_intro.findIndex(node => node.text === '* 잘했음 ㅇㅇ'));
   assert.equal(castle_boulder_intro.filter(node => node.stage).length, 1);
   assert.ok(castle_boulder_intro.some(node => node.bgm === 'baron_intro'));
+  const launch = castle_boulder_intro.findIndex(node => node.boulderBeat === 'launch');
+  const aftermath = castle_boulder_intro.findIndex(node => node.text === '* 맛이 어떠냐 쓰레기년');
+  assert.ok(castle_boulder_intro.slice(launch, aftermath).some(node => node.bgm === null && node.fadeOut === 0.6));
   assert.ok(castle_boulder_left_block.some(node => node.text === '* 빨리 갔다와.'));
   assert.ok(castle_boulder_orb_enter.some(node => node.map === 'gajaeman_castle_left_orb'));
 });
@@ -111,11 +116,51 @@ test('test_boulder316_junhee_brace_uses_four_real_frames_then_releases_before_la
   assert.equal(scene.junhee.motion.frames.length, 4);
   assert.equal(scene.junhee.motion.src, 'assets/sprites/junhee-boulder-push316.png');
   assert.equal(scene.junhee.motion.scale, 0.5);
-  assert.equal(scene.junhee.x, 1656);
+  assert.equal(scene.junhee.x, 1600);
   scene.setBeat('push'); assert.equal(scene.junhee.motion, scene.braceMotion);
   scene.setBeat('launch'); assert.equal(scene.junhee.motion, null);
   const laugh = { name: 'laugh' }; scene.junhee.motion = laugh;
   scene.dispose(); assert.equal(scene.junhee.motion, laugh);
   assert.ok(C.sounds.includes('great_shine') && C.sounds.includes('click') && C.sounds.includes('cancel'));
   assert.equal(C.sounds.includes('ember'), false);
+});
+
+test('test_boulder317_giants_keep_native_proportions_and_nunu_is_offscreen_at_first_reveal', () => {
+  assert.equal(C.radius * 2, 384);
+  assert.equal(C.monsterScale, 1.3);
+  const firstReveal = castle_boulder_intro.findIndex(node => node.boulderBeat === 'reveal');
+  const shot = castle_boulder_intro[firstReveal + 1].parallel;
+  const centerX = shot[0].camera[0] * 32 + 16;
+  assert.equal(shot[1].zoom, 1);
+  assert.ok(C.monsterFeet[0] + (35 - C.monsterPivot[0]) * C.monsterScale > centerX + 240);
+  const wall = mapDef.entities.find(entity => entity.id === 'castle_boulder_wall');
+  assert.equal(wall.ix + 144 * wall.scale, C.wallRockX);
+  assert.equal(wall.iy + 176 * wall.scale, C.rockCenter[1]);
+});
+
+test('test_boulder317_visual_lasers_continue_during_push_without_repeated_audio', () => {
+  const { scene, cues } = setup();
+  scene.setBeat('push'); scene.update(0.7);
+  assert.equal(scene.beams.length, 1);
+  assert.equal(cues.includes('laser_zap'), false);
+  assert.equal(C.sounds.includes('laser_zap'), false);
+  assert.ok(scene.youngcle.y < scene.junhee.y - 80);
+});
+
+test('test_boulder317_timing_completion_shoves_everyone_then_roars_and_cleans_owned_dialogue', async () => {
+  const { scene, game, cues } = setup();
+  scene.setBeat('push'); const before = scene.pushers.map(actor => actor.x);
+  scene.stage(10); scene.setBeat('surge');
+  const wait = scene.wait(); scene.update(2.2); await wait;
+  scene.pushers.forEach((actor, i) => assert.equal(actor.x, before[i] + 130));
+  assert.equal(scene.rockX, C.rockCenter[0] + 130);
+  assert.equal(scene.monsterX, C.monsterFeet[0] + 130);
+  assert.equal(cues.filter(key => key === 'rumble').length, 1);
+  assert.equal(cues.filter(key => key === 'baron_roar').length, 1);
+  scene.setBeat('surge_hold');
+  const speech = scene.say(BOULDER_FINAL_SPURT);
+  assert.equal(game.textbox.node.text, BOULDER_FINAL_SPURT.text);
+  scene.dispose(); await speech;
+  assert.equal(game.textbox.node, null);
+  assert.equal(game.flags.castle_boulder_done, undefined);
 });
