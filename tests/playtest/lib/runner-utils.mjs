@@ -84,3 +84,4 @@ export function harnessResultErrors(detail) {
   return [];
 }
 BASE_URL_SCENARIOS.add('castle-cathedral-climb');
+BASE_URL_SCENARIOS.add('castle-refuge-arrival');

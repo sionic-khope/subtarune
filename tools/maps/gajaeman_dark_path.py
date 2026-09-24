@@ -96,6 +96,11 @@ def main() -> None:
     for row in range(9):
         for col in range(3, 21):
             refuge_cells[row][col] = '▥'
+    # BUILD323: 아래 입구 통로 양옆도 벽으로 닫는다 — 도착 구도에서 원경이 뚫린 구멍처럼 비치지 않게
+    for row in (20, 21):
+        for col in range(3, 21):
+            if (col, row) not in refuge_floor:
+                refuge_cells[row][col] = '▥'
     refuge = {
         'id': REFUGE_ID, 'name': '가재맨성 마지막 문 앞', 'stage': 'castle_gate_reunion_done',
         'bgm': None, 'bgmVolume': 0.2, 'backdrop': 'castle-regret-depth', 'dim': 0.18, 'followScreenY': 250,

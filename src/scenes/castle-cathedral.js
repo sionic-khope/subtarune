@@ -12,9 +12,9 @@ export const CATHEDRAL = Object.freeze({
   // Difficulty follows climb progress (0 at the aisle foot, 1 near the top).
   interval: [1.9, 1.05], doubleFrom: [0.3, 0.6], doubleChance: [0.4, 0.75], chaseLane: 0.6,
   startY: 7560, stopY: 560, topY: 120,
-  windResist: 0.72, heartAlpha: 0.76, focusDrop: 74,
+  windResist: 0.85, heartAlpha: 0.76, focusDrop: 74,
   top: [360, 260], hover: { amplitude: 5, period: 2.6 },
-  duration: { descend: 2.1, rise: 1.2, forge: 1.8 }, entryHeight: 300, riseHeight: 900,
+  duration: { descend: 2.1, rise: 1.2, arrive: 1.4, forge: 3.8 }, entryHeight: 300, riseHeight: 900, arriveHeight: 280, hoverLift: 10,
   fan: [[-128, 34, -0.3], [-64, 14, -0.15], [0, 0, 0], [64, 14, 0.15], [128, 34, 0.3]],
 });
 
@@ -60,7 +60,7 @@ export class CastleCathedral {
     this.climbing = false; this.heart = false; this.handles = new Set(); this.disposed = false;
     this.focus = { x: 0, y: 0, w: 0, h: 0 };
     for (let i = 0; i < 110; i++) this.streaks.push(this.newStreak(true));
-    void game.sound.loadSfxFiles?.(['spearappear', 'knight_cut', 'captain_thunder', 'captain_transform', 'wing', 'damage', 'chime']);
+    void game.sound.loadSfxFiles?.(['spearappear', 'knight_cut', 'captain_thunder', 'captain_transform', 'wing', 'damage', 'chime', 'cathedral_wind']);
     if (game.has(CATHEDRAL.stage)) this.resume();
   }
   get done() { return this.disposed || this.elapsed >= (CATHEDRAL.duration[this.beat] || 0); }
@@ -95,7 +95,11 @@ export class CastleCathedral {
       this.sound('captain_transform', 0.35);
     }
     if (name === 'rise') { this.riseFrom = this.actor.y; this.sound('captain_thunder', 0.7); this.sound('wing', 0.5); }
-    if (name === 'forge') { this.placeAtTop(); this.fan = 0; this.sound('spearappear', 0.7); }
+    if (name === 'arrive') {
+      this.placeAtTop(); this.fan = 0; this.actor.y = CATHEDRAL.top[1] - CATHEDRAL.arriveHeight;
+      this.sound('captain_transform', 0.3);
+    }
+    if (name === 'forge') { this.fan = 0; this.drawn = 0; }
   }
   setWind(value) { this.windTarget = value; if (value > 0 && this.wind < 0.05) this.game.shake = { time: 0.5, amp: 3 }; }
   /** Fast camera return that the DSL awaits before the hazard starts. */
@@ -128,6 +132,16 @@ export class CastleCathedral {
     this.focus.x = p.x; this.focus.w = p.w; this.focus.h = p.h;
     this.focus.y = p.y - (this.climbing ? CATHEDRAL.focusDrop : 0);
   }
+  /** DELTARUNE “Wind (High Place)” loop: loud on the gust, lower under the climb music. */
+  updateWindSound() {
+    if (this.wind < 0.02) return;
+    if (!this.windHandle) {
+      const handle = this.game.sound.sfx('cathedral_wind', { volume: 0 });
+      if (!handle || typeof handle !== 'object') return;
+      handle.loop = true; this.windHandle = handle; this.handles.add(handle);
+    }
+    this.windHandle.volume = Math.max(0, Math.min(1, 0.85 * this.wind * this.wind));
+  }
   newStreak(anywhere = false) {
     const r = this.rnd;
     return { x: r() * (SCREEN_W + 120) - 60, y: anywhere ? r() * SCREEN_H : -80 - r() * 120,
@@ -141,19 +155,26 @@ export class CastleCathedral {
     const seconds = Math.max(0, dt);
     this.time += seconds; this.elapsed += seconds; this.hover += seconds;
     this.wind += (this.windTarget - this.wind) * Math.min(1, seconds * 3);
+    this.updateWindSound();
     for (const s of this.streaks) {
       s.y += s.speed * (0.35 + this.wind) * seconds; s.x += Math.sin(this.time * 2 + s.sway) * 18 * seconds;
       if (s.y > SCREEN_H + 60) Object.assign(s, this.newStreak());
     }
     const a = this.actor;
-    if (a && a.visible && this.beat !== 'rise') a.flyY = Math.sin(this.hover * Math.PI * 2 / c.hover.period) * c.hover.amplitude;
+    const lift = this.fan > 0 || this.beat === 'arrive' || this.beat === 'forge' ? c.hoverLift : 0;
+    if (a && a.visible && this.beat !== 'rise') a.flyY = -lift + Math.sin(this.hover * Math.PI * 2 / c.hover.period) * c.hover.amplitude;
+    if (a && this.beat === 'arrive') a.y = c.top[1] - c.arriveHeight * (1 - ease(this.elapsed / c.duration.arrive));
     if (a && this.beat === 'descend') a.y = this.origin[1] - c.entryHeight * (1 - ease(this.elapsed / c.duration.descend));
     if (a && this.beat === 'rise') {
       const k = clamp01(this.elapsed / c.duration.rise);
       a.y = this.riseFrom - c.riseHeight * k * k;
       if (k === 1) a.visible = false;
     }
-    if (this.beat === 'forge') this.fan = clamp01(this.elapsed / c.duration.forge);
+    if (this.beat === 'forge') {
+      this.fan = clamp01(this.elapsed / c.duration.forge);
+      const drawn = Math.min(c.fan.length, Math.floor(this.fan * c.fan.length + 0.35));
+      while ((this.drawn || 0) < drawn) { this.drawn = (this.drawn || 0) + 1; this.sound('spearappear', 0.45); }
+    }
     if (g.darkSmoke?.aura?.actor === a && a) {
       g.darkSmoke.source.x = a.x + a.w / 2;
       g.darkSmoke.source.y = a.y + a.h + (a.flyY || 0) - 30;
@@ -212,7 +233,8 @@ export class CastleCathedral {
       const appear = clamp01(this.fan * CATHEDRAL.fan.length - i);
       if (appear <= 0) return;
       const flicker = appear < 1 && Math.floor(this.time * 30) % 2 ? 0.35 : 1;
-      const x = tx + 12 + dx - cam.x, top = head - CATHEDRAL.swordH * 0.9 + dy + bob - cam.y;
+      const rise = (1 - ease(appear)) * 36;
+      const x = tx + 12 + dx - cam.x, top = head - CATHEDRAL.swordH * 0.9 + dy + bob + rise - cam.y;
       this.drawSword(ctx, image, x, top, appear * flicker, angle, 0.9);
       if (appear < 1) {
         ctx.save(); ctx.globalAlpha = 1 - appear; ctx.strokeStyle = '#6a4bd6'; ctx.lineWidth = 2; ctx.beginPath();
