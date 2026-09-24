@@ -45,7 +45,7 @@ test('castle memory has nine registered finite attacks and phase-driven body pos
 test('castle memory defaults preserve requested health, fixed damage and neutral-only idle', () => {
   for (const id of ['seobruto', 'jiroesub', 'udyrsub']) {
     const e = ENEMIES[id];
-    assert.equal(e.hp, 50); assert.equal(e.damage, 15); assert.equal(e.damageStep, 0);
+    assert.equal(e.hp, 50); assert.equal(e.damage, 25); assert.equal(e.damageStep, 0);
     assert.equal(e.sheet.count, 1); assert.equal(e.actions.cast.count, 4);
     assert.deepEqual(e.pivot, [64, 120]); assert.equal(e.patterns.length, 3);
     assert.ok(e.patterns.every(p => CASTLE_MEMORY_PATTERNS[p.type]));

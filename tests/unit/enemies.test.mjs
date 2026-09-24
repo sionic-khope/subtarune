@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ENEMIES } from '../../src/data/enemies.js';
-import { PATTERNS } from '../../src/battle/bullets.js';
+import { Bullet, PATTERNS } from '../../src/battle/bullets.js';
 import { getBattleMode } from '../../src/battle/modes.js';
 import fs from 'node:fs';
 
@@ -40,4 +40,30 @@ test('test_baron_has_250_hp_cannon_support_and_standard_enemy_patterns', () => {
   assert.equal(baron.sheet.px, 1);
   assert.equal(baron.idle.swayX, 0);
   assert.equal(baron.idle.swayY, 0);
+});
+
+test('test_castle_regular_enemy_damage_is_25_without_pattern_or_bullet_overrides', () => {
+  const health = { yisub: 45, syndrasub: 45, taliyahsub: 45, aurelionsub: 45,
+    seobruto: 50, jiroesub: 50, udyrsub: 50 };
+  for (const [id, hp] of Object.entries(health)) {
+    const enemy = ENEMIES[id];
+    assert.equal(enemy.hp, hp, id);
+    assert.equal(enemy.damage, 25, id);
+    assert.equal(enemy.damageStep, 0, id);
+    for (const config of enemy.patterns) {
+      assert.equal(config.damage, undefined, `${id}/${config.type} inherits enemy damage`);
+      const pattern = PATTERNS[config.type](config), emitted = [];
+      const api = { box: { x: 120, y: 130, w: 240, h: 170 }, soul: { x: 240, y: 210, r: 6 },
+        rnd: () => 0.4, sfx() {}, present() {},
+        emit(spec) { const bullet = new Bullet(spec); emitted.push(bullet); return bullet; } };
+      for (let t = 0; t <= pattern.duration + 0.1; t += 1 / 60) pattern.update(t, 1 / 60, api);
+      assert.ok(emitted.some(bullet => !bullet.harmless), `${id}/${config.type} emits attacks`);
+      for (const bullet of emitted.filter(b => !b.harmless)) {
+        assert.equal(bullet.dmg, null, `${id}/${config.type} inherits pattern damage`);
+      }
+    }
+  }
+  for (const id of ['malzahar_sub', 'choimis_flower', 'drum_devil', 'youngcle_tvform', 'obangsun', 'naram_giant']) {
+    assert.equal(ENEMIES[id].damage, 15, `${id} is outside the regular castle roster`);
+  }
 });

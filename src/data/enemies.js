@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 export const ENEMIES = {
   yisub: {
-    name: '마스터이섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '마스터이섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/yisub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/yisub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
@@ -28,7 +28,7 @@ export const ENEMIES = {
       speak: ['니애미따라가라 일격필살.'], die: '* 마스터이섭이 흩어졌다.' },
   },
   syndrasub: {
-    name: '신드라섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '신드라섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/syndrasub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/syndrasub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
@@ -42,7 +42,7 @@ export const ENEMIES = {
       speak: ['니애미따라가드라.'], die: '* 신드라섭이 흩어졌다.' },
   },
   taliyahsub: {
-    name: '탈리야섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '탈리야섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/taliyahsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/taliyahsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 170], idle: { swayX: 0, swayY: 0 },
@@ -56,7 +56,7 @@ export const ENEMIES = {
       speak: ['니애미따라가리야.'], die: '* 탈리야섭이 흩어졌다.' },
   },
   aurelionsub: {
-    name: '아우솔섭', hp: 45, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '아우솔섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     dx: 29,
     sheet: { src: 'assets/enemies/aurelionsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/aurelionsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
@@ -81,7 +81,7 @@ export const ENEMIES = {
     lines: { appear: '* 말자하섭이 길을 막았다.', idle: ['* 보라색 기운이 일렁인다.'], speak: [], die: '* 말자하섭이 흩어졌다.' },
   },
   seobruto: {
-    name: '섭루토', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '섭루토', hp: 50, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
@@ -93,7 +93,7 @@ export const ENEMIES = {
     },
   },
   jiroesub: {
-    name: '지뢰섭', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '지뢰섭', hp: 50, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/jiroesub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: {
       cast: { src: 'assets/enemies/jiroesub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 },
@@ -109,7 +109,7 @@ export const ENEMIES = {
     },
   },
   udyrsub: {
-    name: '우디르섭', hp: 50, damage: 15, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '우디르섭', hp: 50, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/udyrsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/udyrsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
