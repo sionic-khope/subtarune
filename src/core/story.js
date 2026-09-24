@@ -33,6 +33,7 @@ export const STAGES = [
   { id: 'castle_lobby_seen', desc: '성 로비 · 두 구체의 봉인문과 오른쪽 조사', map: 'gajaeman_castle_lobby', spawn: 'after_intro' },
   { id: 'castle_malzahar_split', desc: '성 갈림길 · 동료들의 엄호와 요플래 단독 돌파', map: 'gajaeman_castle_fork', spawn: 'after_split' },
   { id: 'castle_malzahar_won', desc: '보라 토리이 · 말자하섭 돌파 후 북쪽 문', map: 'gajaeman_torii_end', spawn: 'start' },
+  { id: 'castle_pipe_returned', desc: '오른쪽 봉인 점등 · 토관 귀환과 왼쪽 조사 합류', map: 'gajaeman_castle_lobby', spawn: 'after_intro' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -178,7 +179,7 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 /** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
-export const partyFromFlags = (flags) => flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
+export const partyFromFlags = (flags) => flags?.castle_pipe_returned ? ['gyeongsub', 'ppaman'] : flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
   ? (flags?.choimis_rescued || flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
     : flags?.sakura8_split_done ? []
     : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
@@ -700,4 +701,20 @@ for (const active of [false, true]) QA_POINTS.push({
   map: 'gajaeman_castle_orb', spawn: 'start',
   flags: { ...memoryCleared, castle_malzahar_split: true, castle_malzahar_won: true,
     ...(active ? { castle_right_seal_active: true } : {}) },
+});
+for (const [id, desc, ready] of [
+  ['castle_pipe_outside', '오른쪽 구체 퇴실 · 마리오 토관 등장', false],
+  ['castle_pipe_ready', '마리오 토관 · C 탑승과 중앙 문 귀환', true],
+]) QA_POINTS.push({
+  ...QA_POINTS.find(point => point.id === 'castle_orb_after'),
+  id, desc, map: 'gajaeman_torii_end', spawn: ready ? 'pipe_ready' : 'from_orb',
+  flags: { ...QA_POINTS.find(point => point.id === 'castle_orb_after').flags,
+    ...(ready ? { castle_pipe_ready: true } : {}) },
+});
+QA_POINTS.push({
+  ...QA_POINTS.find(point => point.id === 'castle_pipe_ready'),
+  id: 'castle_pipe_after', desc: '중앙 문 귀환 완료 · 세 사람의 왼쪽 조사',
+  map: 'gajaeman_castle_lobby', spawn: 'after_pipe', stage: 'castle_pipe_returned',
+  party: ['gyeongsub', 'ppaman'],
+  flags: { ...QA_POINTS.find(point => point.id === 'castle_pipe_ready').flags, castle_pipe_returned: true },
 });

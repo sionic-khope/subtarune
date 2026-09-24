@@ -10,7 +10,9 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
   // and TileMap.bake's void skip establish these exact non-required paths.
   const optionalProbes = new Set([
     '/assets/tiles/void.png',
-    ...['youngcle', 'youngcle_hover', 'gajaeman_shadow'].map(name => `/assets/portraits/${name}.png`),
+    // BUILD313 visits Mario/Bidet; makePortraits derives Bidet's face from his loaded sheet.
+    // prepareMapAssets probes a separate portrait PNG optionally, even for silent Mario.
+    ...['youngcle', 'youngcle_hover', 'gajaeman_shadow', 'mini_mario', 'warm_bidet'].map(name => `/assets/portraits/${name}.png`),
     ...['default', 'hero', 'low', 'cat', 'robot', 'dao', 'bazzi'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/voices/${name}.${ext}`)),
     ...['chime', 'open', 'close'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/sfx/${name}.${ext}`)),
   ]);

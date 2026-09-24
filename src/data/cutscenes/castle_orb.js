@@ -1,4 +1,5 @@
 import { activateCastleOrb } from '../../scenes/castle-orb.js';
+import { castle_pipe_emerge } from './castle_pipe.js';
 
 const N = text => ({ voice: 'narrator', text: `* ${text}` });
 const close = { action: game => game.textbox.close() };
@@ -14,5 +15,5 @@ export const castle_orb_return = Object.assign([
   close, { fade: 'out', duration: 0.55 },
   { map: 'gajaeman_torii_end', spawn: 'from_orb' },
   { bgm: 'castle_right', volume: 0.5, fadeIn: 0.7 },
-  { fade: 'in', duration: 0.7 }, { end: true },
+  { fade: 'in', duration: 0.7 }, ...castle_pipe_emerge,
 ], { silent: true });

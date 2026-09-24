@@ -10,6 +10,7 @@ import { finishChoimisRescue } from '../../src/scenes/choimis-rescue.js';
 import { finishShipInvasion } from '../../src/scenes/ship-invasion.js';
 import { finishCastleLobby } from '../../src/scenes/castle-lobby.js';
 import { updateCastleOrb, finishCastleOrb } from '../../src/scenes/castle-orb.js';
+import { cancelCastlePipe } from '../../src/scenes/castle-pipe.js';
 import { clearShipDeckPoses } from '../../src/scenes/ship-deck-poses.js';
 import { darkSmokeWaiter } from '../../src/ui/dark-smoke.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from '../../src/data/cutscenes/captain_reveal.js';
@@ -22,7 +23,7 @@ const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source
   MAPS: { maillard_captain: room, other: { entities: [], spawns: { start: {} } } },
   MAILLARD_CART: {}, darkSmokeWaiter, CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL, clearEditorUnionStage, clearChoimisFlowerEffects, clearChoimisSky,
   clearLoungeBriefing, finishChoimisRescue, finishShipInvasion, finishCastleLobby, clearShipDeckPoses,
-  updateCastleOrb, finishCastleOrb,
+  updateCastleOrb, finishCastleOrb, cancelCastlePipe,
   TileMap: class { constructor(def) { this.def = def; } bake() {} },
   createEntity: definition => ({ ...definition, def: definition }),
 });

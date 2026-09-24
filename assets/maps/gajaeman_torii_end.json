@@ -35,7 +35,8 @@
   "assets/tiles/castle308_wall.png",
   "assets/tiles/castle307_floor.png",
   "assets/tiles/castle307_moss.png",
-  "assets/props/castle-memory-door.png"
+  "assets/props/castle-memory-door.png",
+  "assets/props/mario_pipe.png"
  ],
  "spawns": {
   "start": {
@@ -47,6 +48,11 @@
    "x": 692,
    "y": 208,
    "facing": "down"
+  },
+  "pipe_ready": {
+   "x": 692,
+   "y": 416,
+   "facing": "up"
   }
  },
  "meta": {
@@ -63,6 +69,42 @@
   ]
  },
  "entities": [
+  {
+   "type": "prop",
+   "id": "castle_return_pipe",
+   "image": "assets/props/mario_pipe.png",
+   "x": 672,
+   "y": 314,
+   "w": 64,
+   "h": 34,
+   "ix": 672,
+   "iy": 284,
+   "solid": false,
+   "hidden": true,
+   "script": "castle_pipe_board"
+  },
+  {
+   "type": "prop",
+   "id": "castle_pipe_mouth",
+   "image": "assets/tiles/castle307_floor.png",
+   "x": 692,
+   "y": 272,
+   "w": 24,
+   "h": 16,
+   "hidden": true,
+   "solid": false
+  },
+  {
+   "type": "npc",
+   "id": "castle_return_mario",
+   "sprite": "mini_mario",
+   "x": 744,
+   "y": 314,
+   "facing": "left",
+   "solid": false,
+   "hidden": true,
+   "wander": 0
+  },
   {
    "type": "prop",
    "id": "castle_torii_end_door",
@@ -97,5 +139,8 @@
    "h": 160,
    "script": "castle_malzahar_backtrack"
   }
- ]
+ ],
+ "enter": {
+  "script": "castle_pipe_emerge"
+ }
 }

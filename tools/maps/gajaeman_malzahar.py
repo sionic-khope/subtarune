@@ -112,7 +112,16 @@ def main() -> None:
                                    'keepFollowersHidden': True, 'leadInSeconds': 3,
                                    'encounter': 'malzahar_runner'}}
         else:
-            entities = [{'type': 'prop', 'id': 'castle_torii_end_door',
+            entities = [{'type': 'prop', 'id': 'castle_return_pipe',
+                         'image': 'assets/props/mario_pipe.png',
+                         'x': 672, 'y': 314, 'w': 64, 'h': 34, 'ix': 672, 'iy': 284,
+                         'solid': False, 'hidden': True, 'script': 'castle_pipe_board'},
+                        {'type': 'prop', 'id': 'castle_pipe_mouth',
+                         'image': 'assets/tiles/castle307_floor.png',
+                         'x': 692, 'y': 272, 'w': 24, 'h': 16, 'hidden': True, 'solid': False},
+                        {'type': 'npc', 'id': 'castle_return_mario', 'sprite': 'mini_mario',
+                         'x': 744, 'y': 314, 'facing': 'left', 'solid': False, 'hidden': True, 'wander': 0},
+                        {'type': 'prop', 'id': 'castle_torii_end_door',
                          'image': 'assets/props/castle-memory-door.png',
                          'x': 656, 'y': 160, 'w': 96, 'h': 16, 'ix': 656, 'iy': 48,
                          'solid': True, 'sortY': 0, 'script': 'castle_malzahar_end_door'},
@@ -122,7 +131,8 @@ def main() -> None:
                         {'type': 'trigger', 'id': 'castle_end_left_warning',
                          'x': 608, 'y': 416, 'w': 24, 'h': 160, 'script': 'castle_malzahar_backtrack'}]
             spawns = {'start': {'x': 692, 'y': 280, 'facing': 'up'},
-                      'from_orb': {'x': 692, 'y': 208, 'facing': 'down'}}
+                      'from_orb': {'x': 692, 'y': 208, 'facing': 'down'},
+                      'pipe_ready': {'x': 692, 'y': 416, 'facing': 'up'}}
             meta = {'connected': True, 'route': [[21, 8], [21, 6]]}
         map_data = {
             'id': map_id, 'name': '가재맨성 결계 갈림길' if fork else '결계 너머 회랑',
@@ -134,11 +144,13 @@ def main() -> None:
                         *(['assets/props/jjajang_torii_purple_back.png',
                            'assets/props/jjajang_torii_purple_front.png',
                            'assets/props/castle306_gate.png'] if fork
-                          else ['assets/props/castle-memory-door.png'])],
+                          else ['assets/props/castle-memory-door.png', 'assets/props/mario_pipe.png'])],
             'spawns': spawns, 'meta': meta, 'entities': entities,
         }
         if fork:
             map_data['enter'] = {'script': 'castle_malzahar_intro'}
+        else:
+            map_data['enter'] = {'script': 'castle_pipe_emerge'}
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == map_data

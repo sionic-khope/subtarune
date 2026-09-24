@@ -46,6 +46,7 @@ def main() -> None:
         'lobby_entry_gyeongsub': [676, 912], 'lobby_entry_ppaman': [532, 912],
         'lobby_left_turn': [532, 656], 'lobby_left_door': [276, 520],
         'lobby_left_block_return': [484, 656],
+        'lobby_pipe_mouth': [632, 508],
     }
     hover_stage = {'lobby_gajaeman': [844, 416]}
     actor_stage = {**stage, **hover_stage}
@@ -74,6 +75,17 @@ def main() -> None:
          **({'script': 'castle_lobby_right_enter'} if side == 'right' else {})}
         for side, center in (('left', 288), ('right', 992))
     ]
+    return_actors = [
+        {'type': 'npc', 'id': name, 'sprite': sprite, 'x': x, 'y': y,
+         'facing': facing, 'solid': False, 'wander': 0,
+         'requires': 'castle_pipe_ready', 'unless': 'castle_pipe_returned',
+         'hidden': name == 'castle_return_mario'}
+        for name, sprite, x, y, facing in (
+            ('gyeongsub', 'gyeongsub', 704, 552, 'down'),
+            ('ppaman', 'ppaman', 524, 616, 'right'),
+            ('castle_return_bidet', 'warm_bidet', 480, 552, 'down'),
+            ('castle_return_mario', 'mini_mario', 692, 616, 'left'))
+    ]
     map_data = {
         'id': MAP_ID, 'name': '가재맨성 로비', 'stage': 'ship_invasion_arrived',
         'bgm': None, 'backdrop': 'castle306_distant', 'followScreenY': 250,
@@ -81,21 +93,29 @@ def main() -> None:
         'rows': [''.join(row) for row in cells],
         'preload': ['assets/backdrops/castle306_distant.png', 'assets/fx/explosion.png',
                     'assets/props/castle306_gate.png', 'assets/props/castle307_sealed_gate.png',
+                    'assets/props/mario_pipe.png',
                     'assets/tiles/gajaeman_castle_wall.png',
                     *[f'assets/tiles/castle306_{suffix}.png'
                       for suffix in ('floor', 'moss', 'cracked', 'moss_dense')]],
         'spawns': {'start': {'x': 604, 'y': 864, 'facing': 'up'},
                    'after_intro': {'x': 604, 'y': 568, 'facing': 'right'},
-                   'from_right': {'x': 980, 'y': 600, 'facing': 'down'}},
+                   'from_right': {'x': 980, 'y': 600, 'facing': 'down'},
+                   'from_pipe': {'x': 604, 'y': 624, 'facing': 'up'},
+                   'after_pipe': {'x': 604, 'y': 624, 'facing': 'up'}},
         'meta': {'connected': True, 'stage': stage, 'hoverStage': hover_stage, 'seals': 2},
-        'entities': [*anchors, *actors, *side_doors,
+        'entities': [*anchors, *actors, *side_doors, *return_actors,
+                     {'type': 'prop', 'id': 'castle_return_pipe',
+                      'image': 'assets/props/mario_pipe.png',
+                      'x': 612, 'y': 550, 'w': 64, 'h': 34, 'ix': 612, 'iy': 520,
+                      'hidden': True, 'solid': False,
+                      'requires': 'castle_pipe_ready', 'unless': 'castle_pipe_returned'},
                      {'type': 'prop', 'id': 'castle_lobby_sealed_door',
                       'image': 'assets/props/castle307_sealed_gate.png', 'scale': 0.75,
                       'x': 520, 'y': 336, 'w': 240, 'h': 16, 'ix': 520, 'iy': 64,
                       'solid': True, 'sortY': 0, 'script': 'castle_lobby_sealed'},
                      {'type': 'trigger', 'id': 'castle_lobby_left_guard',
                       'x': 416, 'y': 576, 'w': 64, 'h': 160,
-                      'script': 'castle_lobby_left_block'},
+                      'script': 'castle_lobby_left_block', 'unless': 'castle_pipe_returned'},
                      {'type': 'door', 'id': 'castle_lobby_return',
                       'x': 448, 'y': HEIGHT * 32 - 10, 'w': 384, 'h': 10,
                       'to': 'gajaeman_castle_approach', 'spawn': 'from_lobby',

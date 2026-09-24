@@ -115,7 +115,8 @@ test('test_castle_qa_includes_consumed_rescue_upgrades_once_with_full_maximum_hp
     assert.equal(state.hpBonus, beforePurchase.hpBonus + 20);
     assert.equal(state.money, beforePurchase.money - 20);
     assert.deepEqual(state.inventory, beforePurchase.inventory);
-    assert.deepEqual(['hyungsub', ...point.party].map(id => (CHARACTERS[id].hp ?? 100) + state.hpBonus), point.flags.castle_malzahar_split ? [180] : [180, 200, 170]);
+    const solo = point.flags.castle_malzahar_split && !point.flags.castle_pipe_returned;
+    assert.deepEqual(['hyungsub', ...point.party].map(id => (CHARACTERS[id].hp ?? 100) + state.hpBonus), solo ? [180] : [180, 200, 170]);
     assert.deepEqual(derive(point), state, 'repeated QA reconstruction must not accumulate upgrades');
     assert.deepEqual(point.flags, flagsBefore);
   }

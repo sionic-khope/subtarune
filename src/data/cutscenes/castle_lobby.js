@@ -91,7 +91,7 @@ export const castle_lobby_intro = Object.assign([
 ], { silent: true });
 
 export const castle_lobby_left_block = Object.assign([
-  { if: flags => !flags.castle_lobby_seen, goto: 'end' },
+  { if: flags => !flags.castle_lobby_seen || flags.castle_pipe_returned, goto: 'end' },
   { face: 'ppaman', dir: 'toward:player' }, P('형 여기가 아니에요.'), close,
   at('player', 'lobby_left_block_return', [0, 0], { speed: 60 }),
   { face: 'player', dir: 'right' }, { regroup: true }, { label: 'end' }, { end: true },

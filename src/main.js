@@ -65,6 +65,7 @@ import { finishChoimisRescue } from './scenes/choimis-rescue.js';
 import { finishShipInvasion } from './scenes/ship-invasion.js';
 import { finishCastleLobby } from './scenes/castle-lobby.js';
 import { updateCastleOrb, drawCastleOrbGround, drawCastleOrbWorld, drawCastleOrbCutaway, finishCastleOrb } from './scenes/castle-orb.js';
+import { cancelCastlePipe } from './scenes/castle-pipe.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
 
@@ -250,6 +251,7 @@ class Game {
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
+    cancelCastlePipe(this);
     finishCastleOrb(this);
     finishCastleLobby(this, true);
     finishShipInvasion(this, true);
@@ -572,6 +574,7 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    cancelCastlePipe(this);
     finishCastleOrb(this);
     finishCastleLobby(this, true);
     finishShipInvasion(this, true);
@@ -862,6 +865,7 @@ class Game {
     }
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
+      cancelCastlePipe(this);
       finishCastleOrb(this);
       finishCastleLobby(this, true);
       if (mapId !== 'ship_lounge') finishShipInvasion(this, true);
