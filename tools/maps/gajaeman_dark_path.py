@@ -17,6 +17,7 @@ from typing import Final, TypedDict
 
 PATH_ID: Final = 'gajaeman_castle_dark_path'
 ARRIVAL_ID: Final = 'gajaeman_castle_dark_arrival'
+REFUGE_ID: Final = 'gajaeman_castle_dark_refuge'
 
 
 class MapIndex(TypedDict):
@@ -24,7 +25,7 @@ class MapIndex(TypedDict):
 
 
 def main() -> None:
-    """Emit an up-right-up path and a single-screen arrival room."""
+    """Emit the connected castle darkness route from its collision tiles."""
     if '--help' in sys.argv:
         print('Usage: uv run tools/maps/gajaeman_dark_path.py [--check]')
         return
@@ -56,23 +57,72 @@ def main() -> None:
              'to': ARRIVAL_ID, 'spawn': 'start', 'interact': False, 'sfx': False},
         ],
     }
-    arrival_cells = [[' '] * 15 for _ in range(12)]
-    for row in range(2, 12):
-        for col in range(3, 12):
-            arrival_cells[row][col] = '♤'
+    chase_route = [[228, 240], [228, 104], [1188, 104], [1188, 1480],
+                   [2276, 1480], [2276, 680], [3268, 680], [3268, 40]]
+    arrival_cells = [[' '] * 108 for _ in range(50)]
+    chase_floor = {(col, row) for col in range(6, 9) for row in range(2, 20)}
+    for (x0, y0), (x1, y1) in zip(chase_route, chase_route[1:]):
+        for col in range((min(x0, x1) + 12) // 32 - 1, (max(x0, x1) + 12) // 32 + 2):
+            for row in range(max(0, (min(y0, y1) + 8) // 32 - 1), (max(y0, y1) + 8) // 32 + 2):
+                chase_floor.add((col, row))
+    for col, row in chase_floor:
+        arrival_cells[row][col] = '♤'
     arrival = {
-        'id': ARRIVAL_ID, 'name': '검은 길 끝', 'stage': 'castle_gate_reunion_done', 'bgm': None,
+        'id': ARRIVAL_ID, 'name': '가재맨성 어둠의 추격로', 'stage': 'castle_gate_reunion_done', 'bgm': None,
         'rows': [''.join(row) for row in arrival_cells],
-        'spawns': {'start': {'x': 228, 'y': 240, 'facing': 'up'}},
-        'meta': {'connected': True, 'darkPath': True},
-        'entities': [{'type': 'door', 'id': 'castle_dark_arrival_return',
-                      'x': 96, 'y': 374, 'w': 288, 'h': 10,
-                      'to': PATH_ID, 'spawn': 'from_next', 'interact': False, 'sfx': False}],
+        'enter': {'script': 'castle_dark_chase_intro'},
+        'preload': ['assets/enemies/castle-dark-pursuer.png'],
+        'spawns': {'start': {'x': 228, 'y': 240, 'facing': 'up'},
+                   'from_refuge': {'x': 3268, 'y': 136, 'facing': 'down'},
+                   'end': {'x': 3268, 'y': 40, 'facing': 'up'}},
+        'meta': {'connected': True, 'darkPath': True, 'corridorWidth': 96,
+                 'darkChase': {'entry': [228, 240], 'monsterSpawn': [228, 540], 'route': chase_route}},
+        'entities': [{'type': 'door', 'id': 'castle_dark_chase_exit',
+                      'x': 3232, 'y': 0, 'w': 96, 'h': 10,
+                      'to': REFUGE_ID, 'spawn': 'start', 'interact': False, 'sfx': False}],
+    }
+    refuge_cells = [[' '] * 24 for _ in range(22)]
+    refuge_floor = {(col, row) for col in range(4, 20) for row in range(10, 20)}
+    refuge_floor.update((col, row) for col in range(9, 15) for row in range(20, 22))
+    for col, row in refuge_floor:
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            x, y = col + dx, row + dy
+            if 0 <= x < 24 and 0 <= y < 22 and (x, y) not in refuge_floor:
+                refuge_cells[y][x] = '▥'
+        variation = (col * 7 + row * 11) % 17
+        refuge_cells[row][col] = '♠' if variation < 3 else '♣' if variation < 5 else '♦' if variation == 5 else '♜'
+    for row in range(9):
+        for col in range(3, 21):
+            refuge_cells[row][col] = '▥'
+    refuge = {
+        'id': REFUGE_ID, 'name': '가재맨성 마지막 문 앞', 'stage': 'castle_gate_reunion_done',
+        'bgm': None, 'bgmVolume': 0.2, 'backdrop': 'castle-regret-depth', 'dim': 0.18, 'followScreenY': 250,
+        'rows': [''.join(row) for row in refuge_cells],
+        'enter': {'script': 'castle_dark_chase_finish'},
+        'preload': ['assets/backdrops/castle-regret-depth.png', 'assets/props/castle307_sealed_gate.png',
+                    'assets/props/blue_buff.png'],
+        'spawns': {'start': {'x': 372, 'y': 560, 'facing': 'up'},
+                   'spring': {'x': 548, 'y': 516, 'facing': 'up'},
+                   'final_door': {'x': 372, 'y': 336, 'facing': 'up'}},
+        'meta': {'connected': True},
+        'entities': [
+            {'type': 'prop', 'id': 'castle_dark_refuge_spring',
+             'image': 'assets/props/blue_buff.png', 'anim': {'cols': 3, 'fps': 4},
+             'x': 544, 'y': 480, 'w': 32, 'h': 12, 'ix': 540, 'iy': 448,
+             'solid': True, 'script': 'maillard_spring'},
+            {'type': 'prop', 'id': 'castle_final_gate',
+             'image': 'assets/props/castle307_sealed_gate.png', 'scale': 0.75,
+             'x': 264, 'y': 304, 'w': 240, 'h': 16, 'ix': 264, 'iy': 32,
+             'solid': True, 'sortY': 0},
+            {'type': 'door', 'id': 'castle_dark_refuge_return',
+             'x': 288, 'y': 694, 'w': 192, 'h': 10,
+             'to': ARRIVAL_ID, 'spawn': 'from_refuge', 'interact': False, 'sfx': False},
+        ],
     }
     index_path = Path('assets/maps/index.json')
     index: MapIndex = json.loads(index_path.read_text(encoding='utf-8'))
     synchronized = True
-    for map_id, data in ((PATH_ID, path), (ARRIVAL_ID, arrival)):
+    for map_id, data in ((PATH_ID, path), (ARRIVAL_ID, arrival), (REFUGE_ID, refuge)):
         output = Path(f'assets/maps/{map_id}.json')
         if '--check' in sys.argv:
             same = output.exists() and json.loads(output.read_text(encoding='utf-8')) == data

@@ -70,6 +70,7 @@ import { cancelCastlePipe } from './scenes/castle-pipe.js';
 import { restoreCastleBoulder, finishCastleBoulder, drawCastleBoulder } from './scenes/castle-boulder.js';
 import { updateCastleBoulderPush, drawCastleBoulderPush, clearCastleBoulderPush } from './scenes/castle-boulder-push.js';
 import { CastleDarkPath } from './scenes/castle-dark-path.js';
+import { CastleDarkChase } from './scenes/castle-dark-chase.js';
 import { updateCastleGate, drawCastleGate, finishCastleGate } from './scenes/castle-gate.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
@@ -257,6 +258,7 @@ class Game {
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
     this.castleDarkPath?.dispose();
+    this.castleDarkChase?.dispose();
     finishCastleGate(this, true);
     cancelCastlePipe(this);
     finishCastleOrb(this);
@@ -584,6 +586,7 @@ class Game {
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
     this.castleDarkPath?.dispose();
+    this.castleDarkChase?.dispose();
     finishCastleGate(this, true);
     cancelCastlePipe(this);
     finishCastleOrb(this);
@@ -719,7 +722,7 @@ class Game {
     const name = override === undefined ? def.bgm : override;
     const gated = def.bgmFlag && !this.has(def.bgmFlag);
     const at = this.bgmResume?.name === name ? this.bgmResume.at : 0; this.bgmResume = null;
-    if (name && !gated) this.sound.playBgm(name, { volume: 0.45, at });
+    if (name && !gated) this.sound.playBgm(name, { volume: def.bgmVolume ?? 0.45, at });
     else if (name === null || gated) this.sound.stopBgm(0.4);
   }
   endBattle(result) {
@@ -881,6 +884,7 @@ class Game {
     if (MAPS[mapId].meta?.sunriseCart && !this.has(MAILLARD_CART.completionFlag)) this.sound.preloadBgm(MAILLARD_SUNRISE.bgm);
     const go = () => {
       this.castleDarkPath?.dispose();
+      this.castleDarkChase?.dispose();
       finishCastleGate(this, true);
       cancelCastlePipe(this);
       finishCastleOrb(this);
@@ -919,6 +923,7 @@ class Game {
       this.entities.push(this.player);
       this.spawnParty();
       this.castleDarkPath = def.meta?.darkPath ? new CastleDarkPath(this) : null;
+      this.castleDarkChase = def.meta?.darkChase ? new CastleDarkChase(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
@@ -943,7 +948,7 @@ class Game {
         const gated = def.bgmFlag && !this.has(def.bgmFlag);                        // bgmFlag: 이 플래그가 켜진 뒤에만 맵 브금 — 첫 도착 컷신이 대사 중간에 직접 켜는 맵(void11)
         const override = storyBgm(mapId, this.flags);
         const name = override === undefined ? def.bgm : override;
-        if (name && !gated) this.sound.playBgm(name, { volume: 0.45 });
+        if (name && !gated) this.sound.playBgm(name, { volume: def.bgmVolume ?? 0.45 });
         else if (gated || name === null) this.sound.stopBgm(0.4);
       }
       if (def.backdrop === 'maillard_sunrise') this.sunrise.enter({
@@ -1283,6 +1288,7 @@ class Game {
     this.shipInvasion?.update(dt);
     this.castleLobby?.update(dt);
     this.castleBoulder?.update(dt);
+    this.castleDarkChase?.update(dt);
     updateCastleBoulderPush(this, dt, Input);
     updateCastleGate(this, dt);
     updateCastleOrb(this, dt);
@@ -1629,6 +1635,7 @@ class Game {
     this.castleLobby?.draw(ctx, cam);
     drawCastleBoulder(ctx, this, cam);
     drawCastleOrbWorld(ctx, this, cam);
+    this.castleDarkChase?.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})

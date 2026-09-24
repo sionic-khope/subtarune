@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
 import { MapAssetCache } from '../../src/core/map-assets.js';
 
 test('test_map_asset_cache_retries_a_failed_image_on_the_next_request', async () => {
@@ -30,7 +31,29 @@ test('test_image_loader_retries_and_character_sprites_do_not_pin_the_fallback', 
 test('test_cutscene_spawn_sprites_are_prepared_with_the_map_and_map_bgm_resumes_after_a_fight', () => {
   const main = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
   assert.ok(/if \(node\.spawn\?\.sprite\) sprites\.add\(node\.spawn\.sprite\)/.test(main) && /\.\.\.scriptAssets\.sprites,/.test(main), '컷신 spawn 배우의 시트·모션을 맵과 함께 준비(토리이 청소부 등)');
-  assert.ok(/this\.bgmResume = this\.sound\.bgmName \?/.test(main) && /playBgm\(name, \{ volume: 0\.45, at \}\)/.test(main), '조우 전 브금 위치를 기억하고 전투 뒤 그 자리부터');
+  const maps = { field: { bgm: 'field_music' } };
+  const Game = runInNewContext(main.slice(main.indexOf('class Game {'), main.indexOf('// ── 부트')) + '\nGame;', {
+    MAPS: maps, storyBgm: () => undefined, battleEntry: () => [],
+  });
+  for (const volume of [undefined, 0.2]) {
+    maps.field.bgmVolume = volume;
+    const played = [], game = Object.create(Game.prototype);
+    Object.assign(game, { mapId: 'field', flags: {}, dialogue: { running: false }, player: { moving: true },
+      sound: { bgmName: 'field_music', bgm: { currentTime: 37.25 }, playBgm: (name, options) => played.push({ name, ...options }) },
+      runScript(nodes) { this.encounterNodes = nodes; }, has: () => false });
+    const enemy = { id: 'test_enemy', def: {} };
+    game.startEncounter(enemy);
+    assert.equal(game.bgmResume.name, 'field_music');
+    assert.equal(game.bgmResume.at, 37.25, '조우 직전의 실제 재생 위치를 기억한다');
+    game.sound.bgm.currentTime = 0; game.lastBattle = { win: true };
+    game.encounterNodes.find(node => node.action).action(game);
+    assert.deepEqual(played, [{ name: 'field_music', volume: volume ?? 0.45, at: 37.25 }], '전투 뒤 같은 곡의 저장 위치와 지도 음량을 전달한다');
+    assert.equal(game.bgmResume, null);
+    assert.equal(enemy.dead, true);
+    game.bgmResume = { name: 'other_music', at: 99 };
+    game.resumeMapBgm();
+    assert.equal(played.at(-1).at, 0, '다른 곡의 위치로 건너뛰지 않는다');
+  }
   const audio = readFileSync(new URL('../../src/core/audio.js', import.meta.url), 'utf8');
   assert.ok(/at = 0 \} = \{\}\)/.test(audio) && /a\.currentTime = at/.test(audio), 'playBgm at 옵션');
 });

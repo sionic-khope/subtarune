@@ -37,6 +37,8 @@ export const STAGES = [
   { id: 'castle_boulder_done', desc: '거대 바위 협동 밀기 완료 · 요플래의 왼쪽 구체 조사', map: 'gajaeman_castle_boulder', spawn: 'boulder_finish' },
   { id: 'castle_gate_reunion_done', desc: '두 봉인의 대문 개방 · 동료들이 먼저 진입', map: 'gajaeman_castle_lobby', spawn: 'from_dark' },
   { id: 'castle_dark_path_seen', desc: '대문 너머 어둠의 통로 · 세 사람의 전진', map: 'gajaeman_castle_dark_path', spawn: 'start' },
+  { id: 'castle_dark_chase_seen', desc: '어둠의 미로 · 보라 구체의 추격', map: 'gajaeman_castle_dark_arrival', spawn: 'start' },
+  { id: 'castle_dark_chase_done', desc: '추격 탈출 · 희미한 빛의 마나샘', map: 'gajaeman_castle_dark_refuge', spawn: 'start' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -46,6 +48,8 @@ const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
 //   그 뒤 맵들은 같은 이름을 돌려줘 맵을 옮겨도 playBgm 이 다시 틀지 않는다(“다음 맵으로 갔을 때 브금 다시 재생되게 ㄴㄴ”)
 export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang_pines', 'jjajang_statue', 'jjajang_run', 'jjajang_run2', 'jjajang_drum', 'jjajang_chin1', 'jjajang_chin2', 'jjajang_think', 'jjajang_bend2'];   // 드럼통 길부터는 청소부가 떠난 뒤에도 브금은 이어진다(지정 없음 → 직전 상태 유지)
 export function storyBgm(mapId, flags) {
+  if (mapId === 'gajaeman_castle_dark_arrival') return flags.castle_dark_chase_seen ? 'baron_intro' : 'castle_dark_path';
+  if (mapId === 'gajaeman_castle_dark_refuge') return 'castle_dark_path';
   if (mapId === 'gajaeman_castle_dark_path' && flags.castle_dark_path_seen) return 'castle_dark_path';
   if (mapId === 'ship_lounge' && flags.ship_lounge_briefed) return 'ship_lounge';
   if (mapId === 'jjajang_sakura5' && flags.choimis_runaway_done) return null;
@@ -750,4 +754,10 @@ for (const [id, map, spawn, desc] of [
   ['castle_gate_after', 'gajaeman_castle_lobby', 'from_dark', '열린 대문 · C로 어둠의 통로 진입'],
   ['castle_dark_path', 'gajaeman_castle_dark_path', 'start', '어둠의 통로 · 세 사람의 입장 대화'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_gate_reunion_done',
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });
+for (const [id, map, stage, desc] of [
+  ['castle_dark_chase_intro', 'gajaeman_castle_dark_arrival', 'castle_dark_path_seen', '어둠의 미로 · 뒤에서 들리는 포효'],
+  ['castle_dark_chase', 'gajaeman_castle_dark_arrival', 'castle_dark_chase_seen', '어둠의 미로 · 추격 중 재개'],
+  ['castle_dark_refuge', 'gajaeman_castle_dark_refuge', 'castle_dark_chase_done', '추격 탈출 · 마나샘과 마지막 대문'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn: 'start', stage,
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true } });

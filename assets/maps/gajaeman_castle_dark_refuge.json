@@ -1,0 +1,107 @@
+{
+ "id": "gajaeman_castle_dark_refuge",
+ "name": "가재맨성 마지막 문 앞",
+ "stage": "castle_gate_reunion_done",
+ "bgm": null,
+ "bgmVolume": 0.2,
+ "backdrop": "castle-regret-depth",
+ "dim": 0.18,
+ "followScreenY": 250,
+ "rows": [
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "   ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥   ",
+  "    ▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥▥    ",
+  "   ▥♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜♦▥   ",
+  "   ▥♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜♜▥   ",
+  "   ▥♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣♜▥   ",
+  "   ▥♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜♣▥   ",
+  "   ▥♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜♜▥   ",
+  "   ▥♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠♜▥   ",
+  "   ▥♠♜♜♣♜♠♜♜♦♜♠♜♜♜♜♣▥   ",
+  "   ▥♜♠♜♜♦♜♠♜♜♜♜♣♜♠♜♜▥   ",
+  "   ▥♦♜♠♜♜♜♜♣♜♠♜♜♣♜♠♜▥   ",
+  "   ▥♜♜♜♣♜♠♜♜♣♜♠♜♜♦♜♠▥   ",
+  "    ▥▥▥▥▥♜♠♜♜♦♜▥▥▥▥▥    ",
+  "        ▥♦♜♠♜♜♜▥        "
+ ],
+ "enter": {
+  "script": "castle_dark_chase_finish"
+ },
+ "preload": [
+  "assets/backdrops/castle-regret-depth.png",
+  "assets/props/castle307_sealed_gate.png",
+  "assets/props/blue_buff.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 372,
+   "y": 560,
+   "facing": "up"
+  },
+  "spring": {
+   "x": 548,
+   "y": 516,
+   "facing": "up"
+  },
+  "final_door": {
+   "x": 372,
+   "y": 336,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "castle_dark_refuge_spring",
+   "image": "assets/props/blue_buff.png",
+   "anim": {
+    "cols": 3,
+    "fps": 4
+   },
+   "x": 544,
+   "y": 480,
+   "w": 32,
+   "h": 12,
+   "ix": 540,
+   "iy": 448,
+   "solid": true,
+   "script": "maillard_spring"
+  },
+  {
+   "type": "prop",
+   "id": "castle_final_gate",
+   "image": "assets/props/castle307_sealed_gate.png",
+   "scale": 0.75,
+   "x": 264,
+   "y": 304,
+   "w": 240,
+   "h": 16,
+   "ix": 264,
+   "iy": 32,
+   "solid": true,
+   "sortY": 0
+  },
+  {
+   "type": "door",
+   "id": "castle_dark_refuge_return",
+   "x": 288,
+   "y": 694,
+   "w": 192,
+   "h": 10,
+   "to": "gajaeman_castle_dark_arrival",
+   "spawn": "from_refuge",
+   "interact": false,
+   "sfx": false
+  }
+ ]
+}

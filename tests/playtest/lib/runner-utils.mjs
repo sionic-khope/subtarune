@@ -22,6 +22,7 @@ BASE_URL_SCENARIOS.add('castle-malzahar-scene');
 BASE_URL_SCENARIOS.add('castle-orb');
 BASE_URL_SCENARIOS.add('castle-boulder');
 BASE_URL_SCENARIOS.add('castle-gate');
+BASE_URL_SCENARIOS.add('castle-dark-chase');
 BASE_URL_SCENARIOS.add('castle-pipe');
 BASE_URL_SCENARIOS.add('castle-malzahar-battle');
 BASE_URL_SCENARIOS.add('castle-malzahar-battle-resize');
