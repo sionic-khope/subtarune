@@ -62,6 +62,9 @@ def main() -> None:
          'facing': 'up', 'solid': False, 'wander': 0, 'hidden': True},
         {'type': 'npc', 'id': 'spire_youngcle', 'sprite': 'youngcle_hover', 'x': 296, 'y': 2030,
          'facing': 'up', 'solid': False, 'wander': 0, 'hidden': True},
+        # BUILD328: 샘 방 북쪽 통로 끝은 밟는 문으로 예언의 회랑에 이어진다
+        {'type': 'door', 'id': 'spire_to_prophecy', 'x': 288, 'y': 0, 'w': 192, 'h': 10,
+         'to': 'gajaeman_castle_prophecy', 'spawn': 'start', 'interact': False, 'sfx': False},
         {'type': 'trigger', 'id': 'spire_back', 'x': 288, 'y': 2038, 'w': 192, 'h': 10, 'script': 'castle_spire_back'},
     ])
     data = {

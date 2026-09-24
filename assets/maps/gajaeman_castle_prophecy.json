@@ -1,0 +1,156 @@
+{
+ "id": "gajaeman_castle_prophecy",
+ "name": "가재맨성 예언의 회랑",
+ "stage": "castle_prophecy_seen",
+ "bgm": "dark_place",
+ "bgmVolume": 0.5,
+ "followScreenY": 300,
+ "rows": [
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           ",
+  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ",
+  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ",
+  "                                                                                                                                                           ",
+  "                                                                                                                                                           "
+ ],
+ "preload": [
+  "assets/props/prophecy328_1.png",
+  "assets/props/prophecy328_2.png",
+  "assets/props/prophecy328_3.png",
+  "assets/props/prophecy328_4.png",
+  "assets/props/prophecy328_5.png",
+  "assets/props/prophecy328_6.png",
+  "assets/props/prophecy328_door.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 48,
+   "y": 336,
+   "facing": "right"
+  },
+  "door": {
+   "x": 4688,
+   "y": 336,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "prophecy": [
+   {
+    "image": "assets/props/prophecy328_1.png",
+    "w": 179,
+    "h": 140,
+    "at": 400,
+    "text": "인생의 시작"
+   },
+   {
+    "image": "assets/props/prophecy328_2.png",
+    "w": 137,
+    "h": 140,
+    "at": 1050,
+    "text": "실패와 고통"
+   },
+   {
+    "image": "assets/props/prophecy328_3.png",
+    "w": 139,
+    "h": 140,
+    "at": 1700,
+    "text": "성공의 갈망, 후회"
+   },
+   {
+    "image": "assets/props/prophecy328_4.png",
+    "w": 169,
+    "h": 140,
+    "at": 2350,
+    "text": "외딴섬"
+   },
+   {
+    "image": "assets/props/prophecy328_5.png",
+    "w": 126,
+    "h": 140,
+    "at": 3000,
+    "text": "다시 시작."
+   },
+   {
+    "image": "assets/props/prophecy328_6.png",
+    "w": 146,
+    "h": 140,
+    "at": 3650,
+    "text": "끝"
+   }
+  ]
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "prophecy_door",
+   "image": "assets/props/prophecy328_door.png",
+   "x": 4620,
+   "y": 304,
+   "w": 160,
+   "h": 16,
+   "ix": 4599,
+   "iy": 56,
+   "solid": true,
+   "script": "castle_prophecy_door",
+   "aura": {
+    "rgb": "110,140,255",
+    "radius": 130,
+    "alpha": 0.32,
+    "pulse": 1.4,
+    "centerY": 0.55
+   }
+  },
+  {
+   "type": "prop",
+   "id": "prophecy_stand_player",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 4688,
+   "y": 322,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "prophecy_stand_gyeongsub",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 4624,
+   "y": 322,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "prophecy_stand_ppaman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 4752,
+   "y": 322,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "trigger",
+   "id": "prophecy_back",
+   "x": 0,
+   "y": 320,
+   "w": 10,
+   "h": 64,
+   "script": "castle_spire_back"
+  }
+ ]
+}

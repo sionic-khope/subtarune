@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/prophecy328/refs/gate-ref.png"
+  ],
+  "elapsed_seconds": 40.4,
+  "usage": {
+    "input_tokens": 1174,
+    "output_tokens": 1756,
+    "total_tokens": 2930,
+    "input_tokens_details": {
+      "image_tokens": 832,
+      "text_tokens": 342
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790262375,
+  "outputs": [
+    {
+      "file": "assets/source/prophecy328/door-raw.png",
+      "bytes": 1363438,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

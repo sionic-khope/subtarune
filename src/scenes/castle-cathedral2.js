@@ -5,7 +5,7 @@ import { CATHEDRAL, CastleCathedral } from './castle-cathedral.js';
 
 /** BUILD325 second hall: mid-hall nine-sword stand-off, Youngcle/Junhee rescue, then laser-assisted triple volleys. */
 export const CATHEDRAL2 = Object.freeze({
-  map: 'gajaeman_castle_cathedral2', midY: 5260, rescueFlag: 'castle_cathedral_rescue_done', rescueScript: 'castle_cathedral_rescue',
+  map: 'gajaeman_castle_cathedral2', midY: 6260, rescueFlag: 'castle_cathedral_rescue_done', rescueScript: 'castle_cathedral_rescue',
   youngcle: 'cath2_youngcle', junhee: 'cath2_junhee',
   duration: { swarm: 1.9, gather: 3.0, rescue: 2.8 },
   // Nine overlapping swords hovering ahead of the party (x offset, y offset, tilt).
@@ -37,7 +37,8 @@ export class CastleCathedral2 extends CastleCathedral {
     this.event = false; this.volleyCount = 0; this.lastTriple = -99;
     this.rescued = game.has(CATHEDRAL2.rescueFlag);
     void game.sound.loadSfxFiles?.(['laser_zap', 'break1', 'jump', 'impact', 'laser_charge', 'chime']);
-    this.placeAtTop(); this.fan = 1; this.wind = this.windTarget = 0.75;
+    // BUILD328: 가재맨은 이미 다음 맵(남색 오르막)으로 가 있어 이 회랑에는 없다 — 검만 위에서 내려온다
+    this.fan = 0; this.wind = this.windTarget = 0.75;
     this.start(false);
     if (this.rescued) this.setupSupport(true);
   }

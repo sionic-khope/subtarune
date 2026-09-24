@@ -57,6 +57,7 @@ test('test_cathedral2_mid_event_matches_map_and_hall_length_fits_ninety_seconds'
   assert.equal(c.midY, CATHEDRAL2.midY);
   const walk = (c.startY - c.topY) / slowWalk;
   assert.ok(walk > 60 && walk < 75, `walk ${walk}s + ~20s rescue ≈ 90s`);
-  assert.ok((c.startY - c.midY) / (c.startY - c.topY) < 0.42, 'rescue about 20% earlier than the old half-way point');
+  // BUILD328: 입구에서 느린 걸음(124.8px/s) 약19초 — 이전(약27초)보다 8초 앞
+  assert.ok((c.startY - c.midY) / 124.8 > 18 && (c.startY - c.midY) / 124.8 < 20, 'rescue ~19s after the entrance');
   for (let lane = 0; lane < 3; lane++) for (const r of [0, 0.5, 0.99]) assert.notEqual(laserLane(lane, () => r), lane);
 });

@@ -41,6 +41,7 @@ export const STAGES = [
   { id: 'castle_dark_chase_done', desc: '추격 탈출 · 희미한 빛의 마나샘', map: 'gajaeman_castle_dark_refuge', spawn: 'start' },
   { id: 'castle_cathedral_climb', desc: '검은 대성당 · 가재맨의 바람과 검 사이를 오른다', map: 'gajaeman_castle_cathedral', spawn: 'climb' },
   { id: 'castle_spire_arrived', desc: '남색 오르막 · 바람이 멎고 위에 마법의 샘', map: 'gajaeman_castle_spire', spawn: 'after' },
+  { id: 'castle_prophecy_seen', desc: '예언의 회랑 · 여섯 예언과 남색 대문', map: 'gajaeman_castle_prophecy', spawn: 'start' },
 ];
 
 const INDEX = new Map(STAGES.map((s, i) => [s.id, i]));
@@ -784,4 +785,9 @@ for (const [id, spawn, stage, desc] of [
   ['castle_spire', 'start', 'castle_cathedral_climb', '남색 오르막 · 가재맨·쥰희·영클이 먼저 올라가는 도착 연출'],
   ['castle_spire_after', 'after', 'castle_spire_arrived', '남색 오르막 · 도착 연출 뒤 마법의 샘 방으로'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_spire', spawn, stage,
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true } });
+for (const [id, spawn, desc] of [
+  ['castle_prophecy', 'start', '예언의 회랑 · 입구(걸으며 예언 여섯 장)'],
+  ['castle_prophecy_door', 'door', '예언의 회랑 · 끝의 남색 대문 앞'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_prophecy', spawn, stage: 'castle_spire_arrived',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true } });

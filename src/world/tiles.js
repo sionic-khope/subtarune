@@ -150,6 +150,8 @@ registerTile('╡', { name: 'castle321_edge_right', solid: true, draw: flat('#44
 registerTile('▒', { name: 'castle327_floor', solid: false, draw: flat('#1b2350') });
 registerTile('╟', { name: 'castle327_edge_left', solid: true, draw: flat('#1b2350') });
 registerTile('╢', { name: 'castle327_edge_right', solid: true, draw: flat('#1b2350') });
+// BUILD328 예언 회랑: 검은 배경 위 보일 듯 말 듯한 어두운 남색 바닥
+registerTile('▓', { name: 'castle328_void_floor', solid: false, draw: flat('#0b0f2a') });
 registerTile('⌂', { name: 'gajaeman_castle_floor', solid: false, draw: flat('#30283e') });
 registerTile('⌁', { name: 'gajaeman_castle_cracked', solid: false, draw: flat('#30283e') });
 registerTile('▥', { name: 'gajaeman_castle_wall', solid: true, draw: flat('#171421') });

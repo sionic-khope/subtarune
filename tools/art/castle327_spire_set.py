@@ -43,6 +43,13 @@ def main() -> None:
         aisle.vline(x, 0, 192, hexc(LINE))
         aisle.vline(x + 1, 0, 192, hexc(LINE_HI))
     aisle.save(output / 'castle327_aisle.png')
+    # BUILD328 prophecy hall: barely-visible dark navy floor on black (colour only, faint seams)
+    void_floor = Canvas(32, 32)
+    void_floor.rect(0, 0, 32, 32, hexc('#0b0f2a'))
+    void_floor.hline(0, 31, 32, hexc('#080b20'))
+    void_floor.vline(31, 0, 32, hexc('#080b20'))
+    void_floor.rect(2, 2, 2, 2, hexc('#10163a'))
+    void_floor.save(output / 'castle328_void_floor.png')
 
 
 if __name__ == '__main__':

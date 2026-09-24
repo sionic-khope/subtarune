@@ -10,7 +10,9 @@ test('test_spire_hall2_top_edge_leads_to_the_spire_and_boss_leaves_first', () =>
   const door = hall.entities.find(entity => entity.type === 'door' && entity.to === spire.id);
   assert.ok(door, 'hall 2 success edge needs a real next map');
   assert.deepEqual([door.y, door.interact, door.spawn], [0, false, 'start']);
-  assert.ok(hall.meta.cathedralClimb.leaveY > hall.meta.cathedralClimb.topY, 'gajaeman leaves before the leader reaches the edge');
+  // BUILD328: 가재맨은 이미 다음 맵으로 갔다 — 둘째 회랑 끝에는 없다
+  assert.equal(hall.entities.some(entity => entity.sprite === 'gajaeman_shadow'), false);
+  assert.equal(hall.meta.cathedralClimb.leaveY, 0);
   assert.equal(new TileMap(spire).solidRect(spire.spawns.start.x, spire.spawns.start.y, 24, 16), false);
 });
 
@@ -21,8 +23,8 @@ test('test_spire_is_one_windless_navy_aisle_up_to_the_spring_room_with_an_open_n
   const tiles = new Set(map.rows.join('').replace(/ /g, ''));
   assert.deepEqual([...tiles].sort(), ['▒', '╟', '╢'].sort());
   for (const x of [308, 372, 436]) for (let y = 0; y <= map.spawns.start.y; y += 8) assert.equal(world.solidRect(x, y, 24, 16), false);
-  // 다음 맵이 아직 없어서 북쪽 통로는 열어 두고 문·대사를 만들지 않는다
-  assert.equal(map.entities.some(entity => entity.type === 'door'), false);
+  // BUILD328: 북쪽 끝은 밟는 문으로 예언의 회랑에 이어진다
+  assert.deepEqual(map.entities.filter(entity => entity.type === 'door').map(door => [door.to, door.y, door.interact]), [['gajaeman_castle_prophecy', 0, false]]);
   const spring = map.entities.find(entity => entity.id === 'spire_spring');
   assert.equal(spring.script, 'maillard_spring');
   assert.ok(spring.y > 128 && spring.y < 576, 'spring sits in the top room');

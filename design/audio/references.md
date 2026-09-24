@@ -1,5 +1,8 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 예언의 회랑 (BUILD328, 2026-09-25)
+- `bgm/dark_place.mp3`: 사용자 지정 [SG177cepVfk](https://www.youtube.com/watch?v=SG177cepVfk), yt-dlp 제목 `64. Dark Place (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`. 전곡 MP3 q2 변환(63.67초, 1,297,868바이트, SHA256 `51aaa3bdcf4ee28ac137e8fda0a5c2b3dac01369f2a197b643a380ac04842a73`), 원본 `assets/source/prophecy328/audio/bgm-source.webm`.
+
 ## 검은 대성당 입장·검 회피 오르기 (BUILD323, 2026-09-24)
 - 오르기 곡 `bgm/cathedral_climb.mp3`: 사용자 지정 [z2IT2YzscSE](https://www.youtube.com/watch?v=z2IT2YzscSE), yt-dlp 제목 `66. Crumbling Tower (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 원본174초. 사용자 지시 “16초부터”대로 16.000초 앞을 잘라 MP3 q2 변환(157.59초). 원본 webm은 `assets/source/cathedral323/audio/climb-bgm-source.webm`.
 - 가재맨 등장 긴박곡: 기존 `castle_gajaeman`(SPAWN, 로비 등장곡) 재사용.

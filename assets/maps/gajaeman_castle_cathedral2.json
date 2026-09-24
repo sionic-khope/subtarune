@@ -292,7 +292,7 @@
   },
   "rescue": {
    "x": 360,
-   "y": 5480,
+   "y": 6480,
    "facing": "up"
   },
   "end": {
@@ -310,8 +310,8 @@
    "startY": 8656,
    "stopY": 560,
    "topY": 120,
-   "midY": 5260,
-   "leaveY": 560
+   "midY": 6260,
+   "leaveY": 0
   }
  },
  "entities": [
@@ -2014,7 +2014,7 @@
    "id": "cath2_mid_player",
    "image": "assets/tiles/castle306_floor.png",
    "x": 360,
-   "y": 5260,
+   "y": 6260,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -2025,7 +2025,7 @@
    "id": "cath2_mid_gyeongsub",
    "image": "assets/tiles/castle306_floor.png",
    "x": 296,
-   "y": 5308,
+   "y": 6308,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -2036,7 +2036,7 @@
    "id": "cath2_mid_ppaman",
    "image": "assets/tiles/castle306_floor.png",
    "x": 424,
-   "y": 5308,
+   "y": 6308,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -2044,21 +2044,10 @@
   },
   {
    "type": "npc",
-   "id": "cathedral_gajaeman",
-   "sprite": "gajaeman_shadow",
-   "x": 360,
-   "y": 260,
-   "facing": "down",
-   "solid": false,
-   "wander": 0,
-   "visualScale": 1.89
-  },
-  {
-   "type": "npc",
    "id": "cath2_youngcle",
    "sprite": "youngcle_hover",
    "x": 60,
-   "y": 5140,
+   "y": 6140,
    "facing": "right",
    "solid": false,
    "wander": 0,
@@ -2069,7 +2058,7 @@
    "id": "cath2_junhee",
    "sprite": "junhee",
    "x": 700,
-   "y": 5100,
+   "y": 6100,
    "facing": "left",
    "solid": false,
    "wander": 0,

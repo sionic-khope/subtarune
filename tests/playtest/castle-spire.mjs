@@ -20,8 +20,9 @@ await runScenario({ name: 'castle-spire', launchOptions: { args: ['--autoplay-po
   await page.keyboard.down('ArrowUp');
   let before;
   try {
-    assert.ok(await until(() => game.castleCathedral?.beat === 'leave', 20000), 'hall-2 boss leaves near the top');
+    await page.waitForTimeout(1500);
     before = await snap();
+    check('hall 2 has no gajaeman at the end', await page.evaluate(() => !game.entities.some(e => e.id === 'cathedral_gajaeman' && !e.dead)));
     assert.ok(await until(() => game.mapId === 'gajaeman_castle_spire', 30000), 'hall-2 north edge leads to the spire');
   } finally { await page.keyboard.up('ArrowUp'); }
   const frames = [];

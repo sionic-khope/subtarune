@@ -590,6 +590,18 @@
    "hidden": true
   },
   {
+   "type": "door",
+   "id": "spire_to_prophecy",
+   "x": 288,
+   "y": 0,
+   "w": 192,
+   "h": 10,
+   "to": "gajaeman_castle_prophecy",
+   "spawn": "start",
+   "interact": false,
+   "sfx": false
+  },
+  {
    "type": "trigger",
    "id": "spire_back",
    "x": 288,

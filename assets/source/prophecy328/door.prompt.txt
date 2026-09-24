@@ -1,0 +1,7 @@
+Create ONE single huge grand double door (a final boss gate) for a Deltarune-style top-down pixel-art RPG, front view, centered on a solid pure #FF00FF magenta background. No text, no labels, no border, no floor, no shadow, no characters, no extra objects.
+
+Reference Image1 (the only reference) is an approved castle gate from the same game: copy its pixel density, stepped dark outline, front-facing flat perspective and proportions of an arched double door set in a thick stone frame. Do NOT copy its colors.
+
+The new door: very tall and majestic, an ornate pointed cathedral arch taller than it is wide, two closed heavy door leaves meeting in the center, a thick carved frame with pillars on both sides, a large round emblem or rose-window medallion above the doors, fine symmetric gothic tracery and rivets. Color: deep NAVY and midnight blue (#070b24 to #1c2a66) with GLOSSY polished highlights — bright sharp specular streaks of periwinkle and pale blue-white (#6f8ad6, #c8d6ff) running along the edges, like lacquered enamel or polished obsidian glass reflecting light. A faint cold blue glow seeps from the gap between the two leaves. Mysterious, sacred, final.
+
+Style: detailed pixel art, crisp stepped outlines, limited shades, same sparse logical pixel density as Image1. The door fills the central 75% of the canvas height and about 60% of the canvas width, symmetric, nothing touches the canvas edges.

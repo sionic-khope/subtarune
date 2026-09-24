@@ -6,7 +6,7 @@
 # ─── How to run ───
 # Run: uv run tools/maps/gajaeman_cathedral2.py [--check]
 # ──────────────────
-"""BUILD325/326 second cathedral hall: ~70s at the forced slow walk (124.8px/s) + mid rescue ≈ 1분30초."""
+"""BUILD325/326/328 second cathedral hall (no gajaeman: he has already gone ahead to the spire): ~70s at the forced slow walk (124.8px/s) + mid rescue ≈ 1분30초."""
 from __future__ import annotations
 
 import json
@@ -16,7 +16,7 @@ from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_cathedral2'
 ROWS: Final = 275
-MID_Y: Final = 5260
+MID_Y: Final = 6260
 
 
 def main() -> None:
@@ -43,8 +43,6 @@ def main() -> None:
         entities.append({'type': 'prop', 'id': name, 'image': 'assets/tiles/castle306_floor.png',
                          'x': x, 'y': y, 'w': 24, 'h': 16, 'solid': False, 'hidden': True})
     entities.extend([
-        {'type': 'npc', 'id': 'cathedral_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 360, 'y': 260,
-         'facing': 'down', 'solid': False, 'wander': 0, 'visualScale': 1.89},
         {'type': 'npc', 'id': 'cath2_youngcle', 'sprite': 'youngcle_hover', 'x': 60, 'y': MID_Y - 120,
          'facing': 'right', 'solid': False, 'wander': 0, 'hidden': True},
         {'type': 'npc', 'id': 'cath2_junhee', 'sprite': 'junhee', 'x': 700, 'y': MID_Y - 160,
@@ -62,7 +60,7 @@ def main() -> None:
                    'end': {'x': 360, 'y': 104, 'facing': 'up'}},
         'meta': {'connected': True, 'corridorWidth': 192, 'laneWidth': 64,
                  'cathedralClimb': {'part': 2, 'startY': (ROWS - 2) * 32 - 80, 'stopY': 560, 'topY': 120,
-                                    'midY': MID_Y, 'leaveY': 560}},
+                                    'midY': MID_Y, 'leaveY': 0}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')
