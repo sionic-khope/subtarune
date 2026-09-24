@@ -1,7 +1,7 @@
 import { TILE } from '../core/layout.js';
 
-export const CASTLE_DARK_PATH = Object.freeze({ radius: 110, lifetime: 1.5, maxPulses: 10,
-  firstStepDistance: 8, stepDistance: 24, actorAlpha: 0.48 });
+export const CASTLE_DARK_PATH = Object.freeze({ radius: 180, lifetime: 1.3, maxPulses: 2,
+  firstStepDistance: 8, stepDistance: 80, actorAlpha: 0.48 });
 
 export function darkPathWalkableRects(map) {
   const rectangles = [], previous = new Map();
@@ -53,7 +53,8 @@ export class CastleDarkPath {
     }
     this.distance += distance;
     const threshold = this.hasStepped ? CASTLE_DARK_PATH.stepDistance : CASTLE_DARK_PATH.firstStepDistance;
-    if (this.distance < threshold || (!landed && this.distance < CASTLE_DARK_PATH.stepDistance * 1.5)) return;
+    const tappedDistance = this.hasStepped ? CASTLE_DARK_PATH.stepDistance : 36;
+    if (this.distance < threshold || (!landed && this.distance < tappedDistance)) return;
     this.distance = 0; this.hasStepped = true;
     this.pulses.push({ x: player.x + player.w / 2, y: player.y + player.h - 2, age: 0 });
     if (this.pulses.length > CASTLE_DARK_PATH.maxPulses) this.pulses.shift();

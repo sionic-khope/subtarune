@@ -7,6 +7,9 @@ import { castle_gate_reunion, castle_gate_enter, castle_dark_path_intro, placeCa
 import { castle_left_orb_return } from '../../src/data/cutscenes/castle_orb.js';
 import { partyFromFlags, QA_POINTS, storyBgm } from '../../src/core/story.js';
 import { drawCastleOrbWorld } from '../../src/scenes/castle-orb.js';
+import { TileMap, CHAR_SCALE } from '../../src/world/world.js';
+import { CHARACTERS } from '../../src/data/characters.js';
+import { makeWaiter } from '../../src/ui/cutscene.js';
 
 const def = JSON.parse(readFileSync(new URL('../../assets/maps/gajaeman_castle_lobby.json', import.meta.url)));
 function setup(open = false) {
@@ -78,6 +81,44 @@ test('gate318_party_placement_preserves_collision_and_uses_map_owned_anchors', (
   assert.ok(GATE_ALLIES.every(id => game.entities.find(e => e.id === id).visible));
 });
 
+test('gate319_return_stays_black_until_all_nine_actors_and_camera_are_prepared', () => {
+  const arrival = castle_left_orb_return.findIndex(node => node.map === G.map);
+  const end = castle_left_orb_return.findIndex((node, i) => i > arrival && node.end);
+  assert.equal(castle_left_orb_return.slice(arrival, end).some(node => node.fade === 'in'), false);
+  const reveal = castle_gate_reunion.findIndex(node => node.fade === 'in');
+  const placement = castle_gate_reunion.findIndex(node => node.action === placeCastleGateParty);
+  const preload = castle_gate_reunion.findIndex(node => node.action === prepareCastleGate);
+  assert.ok(reveal > placement && reveal > preload);
+  assert.ok(castle_gate_reunion.slice(0, placement).some(node => node.fade === 'out'));
+  assert.ok(castle_gate_reunion.slice(placement, reveal).some(node => node.camera && node.duration === 0));
+  assert.ok(castle_gate_reunion.findIndex(node => node.parallel?.some(child => child.move)) > reveal);
+});
+
+test('gate319_all_nine_keep_canonical_sizes_and_safe_feet_through_entry_assembly_and_door_approaches', () => {
+  const { game } = setup(true); game.map = new TileMap(def);
+  placeCastleGateParty(game);
+  const actors = [game.player, ...['gyeongsub', 'ppaman', ...GATE_ALLIES].map(id => game.entities.find(e => e.id === id))];
+  const check = () => {
+    for (const actor of actors) {
+      const original = def.entities.find(e => e.id === actor.id);
+      assert.equal(actor.visualScale, original?.visualScale);
+      assert.equal(game.map.solidRect(actor.x, actor.y, actor.w, actor.h), false, `${actor.id} collision at ${actor.x},${actor.y}`);
+      const pivot = CHARACTERS[actor.sprite]?.stillPivot?.[0] ?? 16;
+      const halfWidth = pivot * CHAR_SCALE * (actor.visualScale ?? 1) / 2;
+      const center = actor.x + actor.w / 2;
+      assert.ok(center - halfWidth >= 480 && center + halfWidth <= 800, `${actor.id} overlaps side railing at ${actor.x},${actor.y}`);
+    }
+  };
+  check();
+  const moves = nodes => nodes.flatMap(node => Array.isArray(node) ? moves(node) : node.parallel ? moves(node.parallel) : node.move ? [node] : []);
+  for (const node of moves(castle_gate_reunion)) {
+    const waiter = makeWaiter(game, node);
+    let ended = false;
+    for (let frame = 0; frame < 600 && !ended; frame++) { ended = waiter.update(1 / 60); check(); }
+    assert.equal(ended, true, `${node.move} reaches its waypoint`);
+  }
+});
+
 test('gate318_narrative_preserves_exact_lines_mosaic_only_no_and_completion_order', () => {
   const text = castle_gate_reunion.filter(n => n.text).map(n => n.text.slice(2));
   assert.deepEqual(text, ['흠..', '이제 들어가면 되는거같음', '저기 뒤엔 뭐가있을까', '열어볼게.', '오 시발.',
@@ -120,7 +161,7 @@ test('gate318_completed_left_orb_return_bypasses_boulder_guard_without_repeating
   assert.equal(completedFlags.castle_gate_open, true);
   const first = route({ castle_left_seal_active: true, castle_right_seal_active: true });
   assert.deepEqual(first.filter(n => n.map).map(n => n.map), ['gajaeman_castle_boulder', 'gajaeman_castle_lobby']);
-  assert.deepEqual(first.filter(n => n.text).map(n => n.text), ['* 다 됐노?', '* 이제 빨리 다시 가운데 맵으로 가볼까', '* ㅇㅋ요']);
+  assert.deepEqual(first.filter(n => n.text).map(n => n.text), ['* 다 됐노?', '* 이제 빨리 다시 그 문앞으로 가볼까', '* ㅇㅋ요']);
 });
 
 test('gate318_open_or_moving_door_has_no_floating_closed_seal_overlay', () => {

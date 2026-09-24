@@ -7,7 +7,7 @@ const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub
 export const GATE_ALLIES = ['gate_youngcle', 'gate_junhee', 'gate_bidet', 'gate_mario', 'gate_ttuulla', 'gate_park'];
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
 const ALL = [...PARTY, ...GATE_ALLIES];
-const OFFSETS = [[0, 10], [-80, 40], [85, 40], [-110, -110], [0, -120], [130, -60], [190, -10], [-180, -10], [-230, -75]];
+const OFFSETS = [[0, 60], [-80, 60], [85, 60], [-112, -120], [0, -130], [96, -100], [112, -20], [0, -20], [-100, -20]];
 const close = { action: game => game.textbox.close() };
 const point = (game, name, by) => game.map.def.meta.gate[name].map((value, i) => value + by[i]);
 const at = (id, name, by = [0, 0], extra = {}) => ({ move: id, px: game => point(game, name, by), exact: true, ...extra });
@@ -25,21 +25,23 @@ export function placeCastleGateParty(game) {
 
 export const castle_gate_reunion = Object.assign([
   { if: flags => !flags.castle_right_seal_active || !flags.castle_left_seal_active || flags.castle_gate_reunion_done, goto: 'gate-reunion-end' },
-  close, { bgm: null }, { join: 'gyeongsub' }, { join: 'ppaman' },
+  close, { bgm: null }, { fade: 'out', duration: 0.45 }, { join: 'gyeongsub' }, { join: 'ppaman' },
   { action: placeCastleGateParty }, { action: prepareCastleGate },
-  camera(640, 790, 0), { zoom: 0.8, duration: 0 }, { wait: 0.5 },
-  { parallel: [camera(640, 540, 2.1), ...ALL.map((id, i) => at(id, 'assembly', OFFSETS[i], { speed: 76 }))] },
+  camera(640, 830, 0), { zoom: 0.8, duration: 0 }, { fade: 'in', duration: 0.8 }, { wait: 0.5 },
+  { parallel: [camera(640, 580, 2.1), ...ALL.map((id, i) => at(id, 'assembly', OFFSETS[i], { speed: 76 }))] },
   ...face(ALL, 'up'), { wait: 0.7 },
   V('흠..'), V('이제 들어가면 되는거같음'), J('저기 뒤엔 뭐가있을까'), J('열어볼게.'), close,
   { parallel: [camera(640, 245, 1.6), { zoom: 1, duration: 1.2 }, at('gate_junhee', 'approach', [0, 0], { speed: 68 })] },
   { action: openCastleGate },
   { emote: 'gate_junhee', kind: '!', duration: 0.65, hold: 0.1, sfx: 'chime' },
-  { parallel: [at('gate_junhee', 'retreat', [0, 0], { dash: true, facing: 'up' }), camera(640, 540, 1.2), { zoom: 0.8, duration: 1.2 }] },
+  { parallel: [at('gate_junhee', 'retreat', [0, -80], { dash: true, facing: 'up' }), camera(640, 580, 1.2), { zoom: 0.8, duration: 1.2 }] },
   { wait: 0.8 }, J('오 시발.'), V('ㅈㄴ소름끼치게 생김'), K('오...'),
   { ...V('일단 편집노조들 같이 ㄱㄱ'), mosaic: { text: '노', block: 2 } },
   J('나도 같이가'), V('ㅇㅇ'), close,
   { parallel: [camera(640, 300, 1.6),
-    ...GATE_ALLIES.map((id, i) => [{ wait: i * 0.38 }, at(id, 'approach', [-12, 16], { run: true }),
+    ...GATE_ALLIES.map((id, i) => [{ wait: i * 0.38 },
+      { move: id, rel: 'castle_lobby_open_door', at: 'bottom', axis: 'x', exact: true, run: true },
+      at(id, 'approach', [-12, 16], { run: true }),
       { action: game => walkIntoCastleGate(game, id) }, { remove: id }]) ] },
   { wait: 0.7 }, camera(640, 660, 1.6),
   ...face(PARTY, 'up'), P('...'), P('쓰으으으으으으읍 미스'),

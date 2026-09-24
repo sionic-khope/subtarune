@@ -41,6 +41,8 @@ test('test_dark_path_requires_actual_motion_and_foot_contact_not_idle_or_wall_pu
   game.player.y += 12; game.player.frame = 1;
   path.update(0.1); assert.equal(path.pulses.length, 1);
   game.player.y += 13; game.player.frame = 3;
+  path.update(0.1); assert.equal(path.pulses.length, 1);
+  game.player.y += 55; game.player.frame = 1;
   path.update(0.1); assert.equal(path.pulses.length, 2);
   game.player.moving = false;
   path.update(C.lifetime); assert.equal(path.pulses.length, 0);
@@ -67,6 +69,22 @@ test('test_dark_path_short_taps_reveal_guidance_even_when_walk_frame_resets', ()
     path.update(1 / 60);
   }
   assert.equal(path.pulses.length, 0, 'stationary wall pressure must not create new guidance');
+});
+
+test('test_dark_path_wide_ripples_do_not_stack_into_many_repeated_circles', () => {
+  const { game, path } = fixture();
+  step(game, path, 10);
+  for (let i = 0; i < 7; i++) step(game, path, 10, 0.02);
+  assert.equal(path.pulses.length, 1, 'less than 80px after the first step should not create another circle');
+  step(game, path, 10, 0.02);
+  assert.equal(path.pulses.length, 2);
+  for (let i = 0; i < 24; i++) step(game, path, 10, 0.02);
+  assert.ok(path.pulses.length <= 2, 'only two broad ripples may overlap');
+  const radii = [], ctx = { save() {}, restore() {}, beginPath() {}, rect() {}, clip() {},
+    createRadialGradient(...args) { radii.push(args[5]); return { addColorStop() {} }; },
+    fillRect() {}, arc() {}, stroke() {} };
+  game.player.moving = false; path.update(0.7); path.drawGround(ctx, { x: 0, y: 0 });
+  assert.ok(radii.some(radius => radius > 160), 'the broad wave should spread well beyond the old 110px radius');
 });
 
 test('test_dark_path_intro_menu_transition_and_teleport_do_not_emit_pulses', () => {
