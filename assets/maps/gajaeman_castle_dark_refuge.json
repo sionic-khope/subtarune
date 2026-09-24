@@ -36,7 +36,7 @@
  },
  "preload": [
   "assets/backdrops/castle-regret-depth.png",
-  "assets/props/castle307_sealed_gate.png",
+  "assets/props/castle306_gate.png",
   "assets/props/blue_buff.png"
  ],
  "spawns": {
@@ -80,14 +80,14 @@
   {
    "type": "prop",
    "id": "castle_final_gate",
-   "image": "assets/props/castle307_sealed_gate.png",
-   "scale": 0.75,
-   "x": 264,
+   "image": "assets/props/castle306_gate.png",
+   "scale": 0.6875,
+   "x": 296,
    "y": 304,
-   "w": 240,
+   "w": 176,
    "h": 16,
-   "ix": 264,
-   "iy": 32,
+   "ix": 296,
+   "iy": 100,
    "solid": true,
    "sortY": 0
   },

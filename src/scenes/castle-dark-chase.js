@@ -1,14 +1,18 @@
 import { SCREEN_W, SCREEN_H } from '../core/layout.js';
 
 export const CASTLE_DARK_CHASE = Object.freeze({ image: 'assets/enemies/castle-dark-pursuer.png',
-  speed: 35, lead: 300, bodyRadius: 40, size: 192, revealRise: 120, revealSeconds: 2.2,
-  fadeOutSeconds: 0.3, fadeInSeconds: 0.4, cameraSeconds: 0.7, cameraBelow: 65 });
+  speed: 35, catchupSpeed: 285, nearDistance: 100, farDistance: 240, lead: 300,
+  bodyRadius: 40, size: 192, damage: 15, recoilDistance: 150, recoilSeconds: 0.5,
+  contactCooldown: 1.1, rearmDistance: 64, cameraWeight: 0.4, cameraMaxOffset: 96,
+  revealRise: 120, revealSeconds: 2.2, cameraSeconds: 0.7, cameraBelow: 65 });
 
-/** Map-local wall-ignoring pursuit; contacts restart the entrance without touching combat HP. */
+/** Map-local pursuit owns its camera and orb recoil; contact never relocates or knocks the party. */
 export class CastleDarkChase {
   constructor(game) {
     this.game = game; this.map = game.map; this.meta = game.map.def.meta.darkChase;
     this.phase = 'dormant'; this.elapsed = 0; this.disposed = false;
+    this.contactArmed = true; this.cooldown = 0; this.lastDirection = { x: 0, y: -1 };
+    this.focus = { x: 0, y: 0, w: 0, h: 0 };
     [this.x, this.y] = this.meta.monsterSpawn;
   }
   get snapshot() { return { phase: this.phase, x: this.x, y: this.y, visible: !this.disposed && this.phase !== 'dormant' }; }
@@ -30,19 +34,23 @@ export class CastleDarkChase {
   start() {
     if (this.disposed) return;
     if (this.phase === 'dormant') {
-      this.x = this.game.player.x + this.game.player.w / 2;
-      this.y = this.game.player.y + this.game.player.h / 2 + CASTLE_DARK_CHASE.lead;
+      const p = this.game.player;
+      const [dx, dy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[p.facing] || [0, -1];
+      this.x = p.x + p.w / 2 - dx * CASTLE_DARK_CHASE.lead;
+      this.y = p.y + p.h / 2 - dy * CASTLE_DARK_CHASE.lead;
+      this.lastDirection = { x: dx, y: dy };
     }
     this.phase = 'chase'; this.elapsed = 0;
-    this.game.camera.locked = false; this.game.camera.target = this.game.player;
+    this.game.camera.locked = false; this.updateFocus(); this.game.camera.target = this.focus;
     this.game.sound.playBgm('baron_intro', { volume: 0.4 });
   }
   update(dt) {
     if (this.disposed) return;
     const g = this.game, c = CASTLE_DARK_CHASE;
     if (g.map !== this.map || g.state === 'title') { this.dispose(); return; }
-    this.elapsed += Math.max(0, dt);
+    const seconds = Math.max(0, dt);
     if (this.phase === 'reveal') {
+      this.elapsed += seconds;
       this.y = this.meta.monsterSpawn[1] + c.revealRise * (1 - Math.min(1, this.elapsed / c.revealSeconds));
       const k = 1 - (1 - Math.min(1, this.elapsed / c.cameraSeconds)) ** 3;
       g.camera.x = this.cameraStart[0] + (this.cameraEnd[0] - this.cameraStart[0]) * k;
@@ -50,27 +58,44 @@ export class CastleDarkChase {
       if (this.elapsed >= c.revealSeconds) this.phase = 'revealed';
       return;
     }
-    if (this.phase === 'caught' && this.elapsed >= c.fadeOutSeconds) {
-      [g.player.x, g.player.y] = this.meta.entry;
-      g.player.facing = 'up'; g.player.moving = false;
-      g.spawnParty(); g.camera.snap();
-      [this.x, this.y] = this.meta.monsterSpawn;
-      this.phase = 'recover'; this.elapsed = 0; g.fadeTo(0, c.fadeInSeconds);
-      return;
+    if (!['chase', 'recoil'].includes(this.phase) || g.state !== 'field' || g.dialogue.running || g.transitioning) return;
+    this.cooldown = Math.max(0, this.cooldown - seconds);
+    if (this.phase === 'recoil') {
+      this.elapsed = Math.min(c.recoilSeconds, this.elapsed + seconds);
+      const progress = this.elapsed / c.recoilSeconds, distance = c.recoilDistance * (1 - (1 - progress) ** 2);
+      this.x = this.recoil.x + this.recoil.dx * distance;
+      this.y = this.recoil.y + this.recoil.dy * distance;
+      if (progress === 1) this.phase = 'chase';
+      this.updateFocus(); return;
     }
-    if (this.phase === 'recover' && this.elapsed >= c.fadeInSeconds) {
-      this.phase = 'chase'; g.transitioning = false; this.ownsTransition = false;
-      return;
-    }
-    if (this.phase !== 'chase' || g.state !== 'field' || g.dialogue.running || g.transitioning) return;
     const px = g.player.x + g.player.w / 2, py = g.player.y + g.player.h / 2;
-    const dx = px - this.x, dy = py - this.y, distance = Math.hypot(dx, dy);
-    const step = Math.min(distance, c.speed * Math.max(0, dt));
-    if (distance) { this.x += dx / distance * step; this.y += dy / distance * step; }
-    if (distance - step <= c.bodyRadius) {
-      this.phase = 'caught'; this.elapsed = 0; this.ownsTransition = true;
-      g.transitioning = true; g.player.moving = false; g.fadeTo(1, c.fadeOutSeconds);
-    }
+    if (!this.contactArmed && !this.cooldown && Math.hypot(px - this.x, py - this.y) > c.rearmDistance) this.contactArmed = true;
+    let left = seconds;
+    do {
+      const slice = Math.min(left, 1 / 60), dx = px - this.x, dy = py - this.y, distance = Math.hypot(dx, dy);
+      const mix = Math.max(0, Math.min(1, (distance - c.nearDistance) / (c.farDistance - c.nearDistance)));
+      const speed = c.speed + (c.catchupSpeed - c.speed) * mix * mix * (3 - 2 * mix);
+      const step = Math.min(distance, speed * slice);
+      if (distance) {
+        this.lastDirection = { x: dx / distance, y: dy / distance };
+        this.x += this.lastDirection.x * step; this.y += this.lastDirection.y * step;
+      }
+      if (distance - step <= c.bodyRadius && this.contactArmed && !(g.invuln > 0)) {
+        this.contactArmed = false; this.cooldown = c.contactCooldown;
+        g.damageParty('hyungsub', c.damage); g.invuln = 0.9; g.hurt = 0.32; g.shake = { time: 0.25, amp: 3 };
+        this.hitHandle = g.sound.sfx('damage', { volume: 0.8 });
+        this.recoil = { x: this.x, y: this.y, dx: -this.lastDirection.x, dy: -this.lastDirection.y };
+        this.phase = 'recoil'; this.elapsed = 0; break;
+      }
+      left -= slice;
+    } while (left > 1e-8);
+    this.updateFocus();
+  }
+  updateFocus() {
+    const p = this.game.player, c = CASTLE_DARK_CHASE;
+    const px = p.x + p.w / 2, py = p.y + p.h / 2, dx = this.x - px, dy = this.y - py;
+    const distance = Math.hypot(dx, dy), weight = Math.min(c.cameraWeight, c.cameraMaxOffset / (distance || 1));
+    this.focus.x = px + dx * weight; this.focus.y = py + dy * weight;
   }
   /** The approved sprite contains its glow; no light is projected onto hidden floor. */
   draw(ctx, cam) {
@@ -82,9 +107,10 @@ export class CastleDarkChase {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    if (this.roarHandle) { this.roarHandle.pause(); this.roarHandle.src = ''; this.roarHandle = null; }
-    if (this.ownsTransition) { this.game.transitioning = false; this.ownsTransition = false; }
-    if (this.phase === 'reveal' || this.phase === 'revealed') this.game.camera.locked = false;
+    for (const handle of [this.roarHandle, this.hitHandle]) if (handle) { handle.pause(); handle.src = ''; }
+    this.roarHandle = null; this.hitHandle = null;
+    this.game.camera.locked = false;
+    if (this.game.camera.target === this.focus) this.game.camera.target = this.game.player;
     if (this.game.sound.bgmName === 'baron_intro') this.game.sound.stopBgm(0.3);
     if (this.game.castleDarkChase === this) this.game.castleDarkChase = null;
   }

@@ -58,13 +58,15 @@ def main() -> None:
         ],
     }
     chase_route = [[228, 240], [228, 104], [1188, 104], [1188, 1480],
-                   [2276, 1480], [2276, 680], [3268, 680], [3268, 40]]
-    arrival_cells = [[' '] * 108 for _ in range(50)]
+                   [2276, 1480], [2276, 680], [3268, 680], [3268, 104],
+                   [4164, 104], [4164, 1448], [5060, 1448], [5060, 40]]
+    arrival_cells = [[' '] * 162 for _ in range(50)]
     chase_floor = {(col, row) for col in range(6, 9) for row in range(2, 20)}
     for (x0, y0), (x1, y1) in zip(chase_route, chase_route[1:]):
         for col in range((min(x0, x1) + 12) // 32 - 1, (max(x0, x1) + 12) // 32 + 2):
             for row in range(max(0, (min(y0, y1) + 8) // 32 - 1), (max(y0, y1) + 8) // 32 + 2):
                 chase_floor.add((col, row))
+    chase_floor.update((col, 1) for col in range(101, 104))
     for col, row in chase_floor:
         arrival_cells[row][col] = '♤'
     arrival = {
@@ -73,12 +75,12 @@ def main() -> None:
         'enter': {'script': 'castle_dark_chase_intro'},
         'preload': ['assets/enemies/castle-dark-pursuer.png'],
         'spawns': {'start': {'x': 228, 'y': 240, 'facing': 'up'},
-                   'from_refuge': {'x': 3268, 'y': 136, 'facing': 'down'},
-                   'end': {'x': 3268, 'y': 40, 'facing': 'up'}},
+                   'from_refuge': {'x': 5060, 'y': 136, 'facing': 'down'},
+                   'end': {'x': 5060, 'y': 40, 'facing': 'up'}},
         'meta': {'connected': True, 'darkPath': True, 'corridorWidth': 96,
                  'darkChase': {'entry': [228, 240], 'monsterSpawn': [228, 540], 'route': chase_route}},
         'entities': [{'type': 'door', 'id': 'castle_dark_chase_exit',
-                      'x': 3232, 'y': 0, 'w': 96, 'h': 10,
+                      'x': 5024, 'y': 0, 'w': 96, 'h': 10,
                       'to': REFUGE_ID, 'spawn': 'start', 'interact': False, 'sfx': False}],
     }
     refuge_cells = [[' '] * 24 for _ in range(22)]
@@ -99,7 +101,7 @@ def main() -> None:
         'bgm': None, 'bgmVolume': 0.2, 'backdrop': 'castle-regret-depth', 'dim': 0.18, 'followScreenY': 250,
         'rows': [''.join(row) for row in refuge_cells],
         'enter': {'script': 'castle_dark_chase_finish'},
-        'preload': ['assets/backdrops/castle-regret-depth.png', 'assets/props/castle307_sealed_gate.png',
+        'preload': ['assets/backdrops/castle-regret-depth.png', 'assets/props/castle306_gate.png',
                     'assets/props/blue_buff.png'],
         'spawns': {'start': {'x': 372, 'y': 560, 'facing': 'up'},
                    'spring': {'x': 548, 'y': 516, 'facing': 'up'},
@@ -111,8 +113,8 @@ def main() -> None:
              'x': 544, 'y': 480, 'w': 32, 'h': 12, 'ix': 540, 'iy': 448,
              'solid': True, 'script': 'maillard_spring'},
             {'type': 'prop', 'id': 'castle_final_gate',
-             'image': 'assets/props/castle307_sealed_gate.png', 'scale': 0.75,
-             'x': 264, 'y': 304, 'w': 240, 'h': 16, 'ix': 264, 'iy': 32,
+             'image': 'assets/props/castle306_gate.png', 'scale': 0.6875,
+             'x': 296, 'y': 304, 'w': 176, 'h': 16, 'ix': 296, 'iy': 100,
              'solid': True, 'sortY': 0},
             {'type': 'door', 'id': 'castle_dark_refuge_return',
              'x': 288, 'y': 694, 'w': 192, 'h': 10,

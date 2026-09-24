@@ -38,6 +38,9 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
         const c = game.castleDarkChase;
         q.samples.push({ at: performance.now(), state: game.state, map: game.mapId, xy: [game.player?.x, game.player?.y],
           phase: c?.phase, monster: c ? [c.x, c.y] : null, monsterInWall: c ? game.map.tileAt(Math.floor(c.x / 32), Math.floor(c.y / 32)).solid : null,
+          camera: [game.camera.x, game.camera.y], separation: c ? Math.hypot(c.x - game.player.x - game.player.w / 2, c.y - game.player.y - game.player.h / 2) : null,
+          onScreen: c ? Math.abs(c.x - game.camera.x - 240) < 240 / game.zoom.s + 96 && Math.abs(c.y - game.camera.y - 180) < 180 / game.zoom.s + 96 : false,
+          hp: ['hyungsub', ...game.party].map(id => [id, game.hpOf(id)]), chaseSnapshot: c?.snapshot, moving: !!game.player.moving,
           dialogue: game.dialogue.running, text: game.textbox.node?.text, fade: game.fade.alpha,
           pulses: game.castleDarkPath?.pulses.length ?? 0, zoom: game.zoom.s,
           bgm: game.sound.bgmName, clock: game.sound.bgm?.currentTime, paused: game.sound.bgm?.paused,
@@ -82,7 +85,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
       bounds.push(...game.castleDarkPath.rectangles);
       let tested = 0, lit = 0;
       for (let y = 10; y < 345; y++) for (let x = 5; x < 475; x++) {
-        const wx = x + cam.x, wy = y + cam.y;
+        const wx = (x - 240) / game.zoom.s + 240 + cam.x, wy = (y - 180) / game.zoom.s + 180 + cam.y;
         if (bounds.some(([a, b, w, h]) => wx >= a - 2 && wx <= a + w + 2 && wy >= b - 2 && wy <= b + h + 2)) continue;
         const i = (Math.floor((y + 0.5) * scale) * game.canvas.width + Math.floor((x + 0.5) * scale)) * 4;
         tested++; if (data[i] || data[i + 1] || data[i + 2]) lit++;
@@ -96,9 +99,27 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     const remote = Buffer.from(await (await page.request.get(new URL(file, process.env.QA_BASE_URL).href)).body());
     check(`served source ${file}`, local.equals(remote), crypto.createHash('sha256').update(local).digest('hex'));
   }
-  await open({ qa: 'castle_dark_chase_intro' });
+  await open({ qa: mode === 'old-save' ? 'castle_dark_chase' : 'castle_dark_chase_intro' });
   assert.ok(await until(() => window.game?.mapId === 'gajaeman_castle_dark_arrival' && !!game.castleDarkChase, 30000));
   await observe();
+  if (mode === 'old-save') {
+    assert.ok(await ready());
+    await fixture('legacy319-save-position', 'Prepare only the saved x/y/facing fields in the retained old north-end stub (3268,72,up). Real Escape/Continue must restore it and real arrows must reach the extended exit; no runtime position/progress mutation.', () => {
+      const key = game.constructor.SAVE_KEY, saved = JSON.parse(localStorage.getItem(key));
+      Object.assign(saved, { x: 3268, y: 72, facing: 'up' }); localStorage.setItem(key, JSON.stringify(saved));
+    });
+    await key('Escape'); await continueTitle(); assert.ok(await ready()); await shot('legacy-save-restored');
+    const restored = await state();
+    check('old319 saved north corridor restores on walkable floor', Math.hypot(restored.xy[0] - 3268, restored.xy[1] - 72) < 1 && !restored.blocked && restored.seen);
+    await walk('ArrowDown', () => game.player.y >= 104, 'leave retained old stub toward new turn');
+    await walk('ArrowRight', () => game.player.x >= 4164, 'new upper east leg');
+    await walk('ArrowDown', () => game.player.y >= 1448, 'new south leg');
+    await walk('ArrowRight', () => game.player.x >= 5060, 'new lower east leg');
+    await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'legacy save reaches new exit'); assert.ok(await ready());
+    await shot('legacy-save-refuge');
+    check('legacy save naturally reaches refuge with party and scene cleanup', (await state()).done && !(await state()).chase && !(await state()).dark && (await state()).party.length === 2);
+    await dump(); return;
+  }
   if (mode === 'cancel') {
     await finishDialogues(() => game.castleDarkChase?.phase === 'reveal');
     await shot('reveal-before-cancel'); await key('Escape');
@@ -112,7 +133,45 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     await key('Escape'); await page.waitForTimeout(1000);
     check('active chase title removes threat and loop', await page.evaluate(() => !game.castleDarkChase && game.sound.bgmName !== 'baron_intro'));
     await continueTitle(); await finishDialogues(() => !game.dialogue.running && game.castleDarkChase?.phase === 'chase'); assert.ok(await ready());
-    await shot('chase-continued'); await dump(); return;
+    await shot('chase-continued'); await page.waitForTimeout(600); await shot('chase-continued-settled');
+    const actors = await page.evaluate(async () => {
+      const { CHAR_SCALE } = await import('./src/world/world.js');
+      return game.entities.filter(e => e === game.player || e.def?.type === 'follower').map(e => ({
+        id: e.id, top: e.y + e.h - Math.round(e.sprite.fh / e.sprite.px * CHAR_SCALE * (e.def.visualScale || 1)) - game.camera.y,
+        bottom: e.y + e.h - game.camera.y,
+      }));
+    });
+    check('Continue framing keeps all three full-height party sprites visible', actors.length === 3 && actors.every(e => e.top >= -1 && e.bottom <= 361), JSON.stringify(actors));
+    await dump(); return;
+  }
+
+  if (mode === 'contacts') {
+    await finishDialogues(() => !game.dialogue.running && game.castleDarkChase?.phase === 'chase'); assert.ok(await ready());
+    await walk('ArrowUp', () => game.player.y <= 104, 'north before contact test');
+    await walk('ArrowRight', () => game.player.x >= 548, 'leave entrance before contact test');
+    await key('KeyV'); assert.ok(await until(() => game.state === 'menu', 3000));
+    const paused = await state(); await page.waitForTimeout(1000);
+    check('V menu pauses pursuer and player without damage', JSON.stringify((await state()).chase) === JSON.stringify(paused.chase) && JSON.stringify((await state()).xy) === JSON.stringify(paused.xy) && JSON.stringify((await state()).hp) === JSON.stringify(paused.hp));
+    await key('KeyX'); assert.ok(await ready()); await shot('contact-approach');
+    for (let hit = 1; hit <= 2; hit++) {
+      const before = await state(), hp = before.hp[0][1];
+      assert.ok(await page.waitForFunction(value => game.hpOf('hyungsub') < value, hp, { timeout: 12000, polling: 16 }));
+      const after = await state(); await shot(`contact-${hit}`);
+      check(`contact ${hit} subtracts exactly 15 only from leader`, hp - after.hp[0][1] === 15 && JSON.stringify(after.hp.slice(1)) === JSON.stringify(before.hp.slice(1)));
+      check(`contact ${hit} never resets entrance or shifts player`, Math.hypot(after.xy[0] - before.xy[0], after.xy[1] - before.xy[1]) < 1 && after.xy[0] >= 548 && !after.blocked);
+      const distance = await page.evaluate(() => Math.hypot(game.castleDarkChase.x - game.player.x - game.player.w / 2, game.castleDarkChase.y - game.player.y - game.player.h / 2));
+      await page.waitForTimeout(300);
+      const later = await state(), recoiled = await page.evaluate(() => Math.hypot(game.castleDarkChase.x - game.player.x - game.player.w / 2, game.castleDarkChase.y - game.player.y - game.player.h / 2));
+      check(`contact ${hit} recoils the sphere and avoids stacked damage`, recoiled > distance + 5 && later.hp[0][1] === after.hp[0][1] && !later.blocked, JSON.stringify({ distance, recoiled, hp: later.hp[0][1] }));
+      if (hit === 1) {
+        await shot('contact-recoil-mid');
+        assert.ok(await until(() => game.castleDarkChase?.phase === 'chase', 2000)); await shot('contact-recoil-settled');
+      }
+    }
+    const q = await dump();
+    const drops = q.samples.slice(1).filter((s, i) => s.hp[0][1] < q.samples[i].hp[0][1]);
+    check('observed damage increments never stack within a contact', drops.length >= 2 && drops.every(s => q.samples[q.samples.indexOf(s) - 1].hp[0][1] - s.hp[0][1] === 15));
+    return;
   }
 
   const lines = [];
@@ -139,26 +198,29 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   check('party turns down before threat reveal', reveal.some(s => s.phase === 'reveal' && s.facing.length === 3 && s.facing.every(f => f === 'down')));
   check('all three exclamation emotes occur before reveal', reveal.some(s => s.emotes.length === 3 && s.emotes.every(kind => kind === '!')));
   await key('KeyC'); assert.ok(await ready());
-  await fixture('initial-wounded-party', 'Set three current HP values below max once at chase start to verify non-damaging catch/reset and later real fountain healing. No positions, flags, item inventory or progress injected.', () => {
+  await fixture('initial-wounded-party', 'Set three current HP values below max once at chase start to verify real fountain healing after natural traversal. No positions, flags, item inventory or progress injected.', () => {
     for (const id of ['hyungsub', ...game.party]) game.partyHp[id] = game.maxHpOf(id) - 37;
   });
   const wounded = await state();
-  assert.ok(await until(() => game.castleDarkChase?.phase === 'caught', 16000)); await shot('caught-fade');
-  assert.ok(await until(() => game.castleDarkChase?.phase === 'chase' && !game.transitioning && game.fade.alpha < 0.01, 5000));
-  check('catch restores entrance with zero HP/item loss', JSON.stringify((await state()).hp) === JSON.stringify(wounded.hp)
-    && JSON.stringify((await state()).inventory) === JSON.stringify(wounded.inventory)
-    && Math.hypot((await state()).xy[0] - 228, (await state()).xy[1] - 240) < 1);
-  const startTime = Date.now();
+  const startTime = Date.now(), routeClock = await page.evaluate(() => performance.now());
   await walk('ArrowUp', () => game.player.y <= 104, 'first north turn');
   await walk('ArrowRight', () => game.player.x >= 1188, 'east across first leg'); await shot('chase-first-corner'); await mask('first corner');
   await walk('ArrowDown', () => game.player.y >= 1480, 'long south leg');
   await walk('ArrowRight', () => game.player.x >= 2276, 'east across lower leg');
   await walk('ArrowUp', () => game.player.y <= 680, 'middle north leg'); await shot('chase-middle-pulses'); await mask('middle corner');
   await walk('ArrowRight', () => game.player.x >= 3268, 'east across upper leg');
+  await walk('ArrowUp', () => game.player.y <= 104, 'preserved north corridor to new turn');
+  await walk('ArrowRight', () => game.player.x >= 4164, 'extended upper east leg'); await shot('chase-upper-extension');
+  await walk('ArrowDown', () => game.player.y >= 1448, 'extended south leg'); await shot('chase-extension');
+  await walk('ArrowRight', () => game.player.x >= 5060, 'last east leg');
   await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_refuge', 'north refuge exit'); assert.ok(await ready());
   const duration = Date.now() - startTime, arrived = await state(); await shot('refuge-arrival');
-  check('natural winding traversal reaches refuge without extra catch', arrived.done && !arrived.chase && !arrived.dark && !arrived.blocked && JSON.stringify(arrived.hp) === JSON.stringify(wounded.hp), `wall time ${duration}ms`);
+  check('natural extended traversal reaches refuge in about fifty seconds', arrived.done && !arrived.chase && !arrived.dark && !arrived.blocked && duration >= 45000 && duration <= 58000 && arrived.hp[0][1] > 0 && JSON.stringify(arrived.hp.slice(1)) === JSON.stringify(wounded.hp.slice(1)) && JSON.stringify(arrived.inventory) === JSON.stringify(wounded.inventory), `wall time ${duration}ms; HP ${JSON.stringify(arrived.hp)}`);
   const q = await dump();
+  const travel = q.samples.filter(s => s.at >= routeClock && s.map === 'gajaeman_castle_dark_arrival' && s.state === 'field' && !s.dialogue);
+  const visibility = { samples: travel.length, visible: travel.filter(s => s.onScreen).length, fraction: travel.filter(s => s.onScreen).length / travel.length, separationMax: Math.max(...travel.map(s => s.separation)) };
+  fs.writeFileSync(path.join(process.env.SHOT_DIR, 'visibility.json'), JSON.stringify(visibility, null, 2));
+  check('pursuer remains visibly threatening throughout moving route', visibility.samples > 400 && visibility.fraction >= 0.75, JSON.stringify(visibility));
   check('threat crosses solid walls independently of player route', q.samples.some(s => s.phase === 'chase' && s.monsterInWall));
   check('real steps show broad but sparse pulses', Math.max(...q.samples.map(s => s.pulses)) > 0 && Math.max(...q.samples.map(s => s.pulses)) <= 2 && Math.max(...q.radii) > 165);
   // Draw snapshots can straddle catch-up frames; measure sustained one-second windows.
@@ -174,7 +236,7 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
     }
   }
   const speedEvidence = { windows: speeds.length, minimum: Math.min(...speeds), maximum: Math.max(...speeds), mean: speeds.reduce((a, b) => a + b, 0) / speeds.length };
-  check('visible pursuit speed remains slow over sustained windows', speeds.length > 100 && speedEvidence.maximum < 38 && speedEvidence.mean > 32 && speedEvidence.mean < 36, JSON.stringify(speedEvidence));
+  check('continuous pursuit has no entrance-reset discontinuity', speeds.length > 100 && speedEvidence.maximum < 360, JSON.stringify(speedEvidence));
   assert.ok(await until(() => game.sound.bgmName === 'castle_dark_path' && game.sound.bgm?.currentTime > 0.1 && !game.sound.bgm.paused, 8000));
   const clock = (await state()).clock; await page.waitForTimeout(400);
   check('refuge music has real advancing clock', (await state()).clock > clock + 0.2);
