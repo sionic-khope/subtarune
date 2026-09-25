@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // 대사 시스템
 //  - 태그:  {s=2}속도x2  {s=0.5}느리게 {/s}속도 복귀  {w=0.4}0.4초 멈춤  {c=red}색{/c}
-//           {shake}흔들림{/shake}  {wave}물결{/wave}  {n} 줄바꿈
+//           {shake}흔들림{/shake}  {shake2}더 세게 흔들림{/shake2}  {wave}물결{/wave}  {n} 줄바꿈
 //  - 한 글자 나올 때마다 화자 음색으로 0.1초 블립
 //  - C: 타이핑 중이면 전부 표시 / 끝났으면 다음   X: 즉시 전부 표시
 // ─────────────────────────────────────────────────────────────
@@ -43,6 +43,8 @@ export function parseText(text) {
           case '/c': color = null; break;
           case 'shake': shake = true; break;
           case '/shake': shake = false; break;
+          case 'shake2': shake = 2; break;
+          case '/shake2': shake = false; break;
           case 'wave': wave = true; break;
           case '/wave': wave = false; break;
           case 'n': tokens.push({ ch: '\n' }); break;
@@ -338,7 +340,7 @@ export class TextBox {
         idx++;
         if (!t.ch) continue;
         let dx = 0, dy = 0;
-        if (t.shake) { dx = Math.round(Math.random() * 2 - 1); dy = Math.round(Math.random() * 2 - 1); }
+        if (t.shake) { const a = t.shake === 2 ? 2 : 1; dx = Math.round((Math.random() * 2 - 1) * a); dy = Math.round((Math.random() * 2 - 1) * a); }
         if (t.wave) { dy = Math.round(Math.sin(this.time * 8 + x * 0.25) * 2); }
         ctx.fillStyle = t.color || '#ffffff';
         drawMosaicText(ctx, t.ch, x + dx, y + dy, t.mosaic, t.mosaicDetail);
@@ -396,7 +398,7 @@ TextBox.prototype.drawNarration = function (ctx) {
       idx++;
       if (!t.ch) continue;
       let dx = 0, dy = 0;
-      if (t.shake) { dx = Math.round(Math.random() * 2 - 1); dy = Math.round(Math.random() * 2 - 1); }
+      if (t.shake) { const a = t.shake === 2 ? 2 : 1; dx = Math.round((Math.random() * 2 - 1) * a); dy = Math.round((Math.random() * 2 - 1) * a); }
       if (t.wave) dy = Math.round(Math.sin(this.time * 8 + x * 0.25) * 2);
       ctx.fillStyle = t.color || '#ffffff';
       drawMosaicText(ctx, t.ch, x + dx, y + dy, t.mosaic, t.mosaicDetail);

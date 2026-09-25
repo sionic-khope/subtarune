@@ -94,3 +94,4 @@ BASE_URL_SCENARIOS.add('castle-stairs');
 BASE_URL_SCENARIOS.add('castle-summit');
 BASE_URL_SCENARIOS.add('teen-battle');
 BASE_URL_SCENARIOS.add('teen-battle-p2');
+BASE_URL_SCENARIOS.add('teen-finale');

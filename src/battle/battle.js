@@ -648,13 +648,15 @@ export class Battle {
     this.retrying = true; this.retryT = this.cfg.seamlessIntro ? 0.35 : RETRY_JINGLE;
   }
   /** 전투 끝. `{ white: true }` 면 흰 화면을 그대로 유지한 채 넘어간다(점프슬램 뒤 전투 기본 화면이 잠깐 보이던 것 — 사용자 2026-09-17) */
-  finish(win, { white = false } = {}) {
+  finish(win, { white = false, seamless = false } = {}) {
     if (this.state === 'ending') return;
     this.cancelPendingBgm();
     this.disposeGimmick(); this.discardPreparedRapVideo(); this.interlude?.dispose?.(); this.interlude = null; this.support?.dispose?.();
     for (const m of this.members) this.game.partyHp[m.id] = m.hp;
     this.result = { win }; this.state = 'ending'; this.whiteout = white;
     if (white) { this.game.fadeTo(1, 0, undefined, 'white'); this.game.endBattle(this.result); return; }
+    // seamless: 검은 화면 없이 그대로 필드로(청소년 2페이즈 격파 뒤 연출이 같은 화면에서 이어진다)
+    if (seamless) { this.game.endBattle(this.result); return; }
     this.game.fadeTo(1, win && this.bossBattle ? BOSS_VICTORY_FADE : 0.35, () => this.game.endBattle(this.result), 'black');
   }
 

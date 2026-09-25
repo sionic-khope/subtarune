@@ -23,6 +23,7 @@ export function createTeenBossSupport(battle) {
   let downDealt = 0;
   // 2페이즈: pendingP2(1페이즈 HP 1) → trans(전투 안 연출 단계) → phase 'p2'
   const P2 = C.phase2;
+  let pendingFinale = false, tremble = false;
   let pendingP2 = false, trans = null, cam = null, burst = null, burstPuffs = [], healT = null, exclaim = 0, standT = null, coreK = 0, p2Idx = 0, tauntIdx = 0;
   let finalClean = false;
   let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, planned = null, motes = [], crits = [], puffs = [];
@@ -217,8 +218,12 @@ export function createTeenBossSupport(battle) {
     /** 쓰러진 동안 일반 공격은 한 대 80 */
     adjustDamage(target, dmg, source) {
       if (target !== enemy) return dmg;
-      // 2페이즈: 코어를 칠 때마다 20
-      if (phase === 'p2' && source === 'ordinary') return P2.coreDamage;
+      // 2페이즈: 코어를 칠 때마다 42. 쓰러뜨리지 않고 HP 1 에서 멈춰 격파 연출(필드)로
+      if (phase === 'p2' && source === 'ordinary') {
+        if (enemy.hp - P2.coreDamage <= 0) { pendingFinale = true; return Math.max(0, enemy.hp - 1); }
+        return P2.coreDamage;
+      }
+      if (phase === 'p2' && enemy.hp - dmg <= 0) return Math.max(0, enemy.hp - 1);
       // 쓰러진 동안 일반 공격은 한 대 35
       const d = phase === 'down' && source === 'ordinary' ? C.downHit.damage : dmg;
       // 1페이즈는 쓰러뜨려지지 않는다 — HP 1 에서 2페이즈 연출(낙석도 HP 를 0 으로 만들지 못한다)
@@ -248,6 +253,14 @@ export function createTeenBossSupport(battle) {
     popupAt(e) { if (e !== enemy) return null; return phase === 'p2' || trans ? [P2.core[0], P2.core[1] - 34] : [C.downSpot[0] + 40, C.downSpot[1] - 60]; },
     /** 1페이즈 HP 가 1 남은 공격 뒤: 남은 공격은 버리고 2페이즈 전환 연출 */
     afterAction(plan) {
+      if (pendingFinale) {
+        pendingFinale = false;
+        const i = battle.plans.indexOf(plan); if (i >= 0) battle.plans.length = i + 1;
+        // 브금이 꺼지며 청소년가재맨이 떨린다 → 같은 화면 그대로 필드 연출로
+        battle.game.sound.stopBgm(1.4); tremble = true; battle.sfx('rumble'); battle.game.shake = { time: 1.6, amp: 2 };
+        let t = 0;
+        return { update(dt) { t += dt; if (t > 1.7) { battle.game.castleSummit?.enterFinale?.(); battle.finish(true, { seamless: true }); } return false; }, draw() {} };
+      }
       if (!pendingP2 || trans) return null;
       pendingP2 = false;
       const i = battle.plans.indexOf(plan); if (i >= 0) battle.plans.length = i + 1;
@@ -270,7 +283,7 @@ export function createTeenBossSupport(battle) {
         const pp = target.patternPose;
         if (pp?.sheet === 'vacuum') return { ...pp, sheet: 'p2vacuum', x: (pp.x ?? enemy.x) - 20, y: (pp.y ?? enemy.y) - 8 };
         if (pp?.sheet === 'slam') return { ...pp, sheet: 'p2slam' };
-        return { sheet: 'p2' };
+        return tremble ? { sheet: 'p2', x: enemy.x + Math.round(Math.sin(time * 60) * 2), y: enemy.y } : { sheet: 'p2' };
       }
       return target.patternPose || null;
     },

@@ -64,4 +64,13 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
     assert.ok(await until(() => game.battle.state === 'menu', 40000), 'menu after pattern');
     for (let m = 0; m < 3; m++) { await press('ArrowRight'); await press('KeyC'); }
   }
+  // 2페이즈 격파: HP 1 에서 멈추고 브금이 꺼지며 같은 화면 그대로 필드 연출로
+  await page.evaluate(() => { game.battle.soul.invuln = 99; });
+  assert.ok(await until(() => game.battle?.state === 'menu', 60000), 'menu before the kill');
+  await fixture('p2-almost-dead', 'Leave phase-2 HP low so this attack round hits the HP-1 floor.', () => { game.battle.enemies[0].hp = 30; });
+  for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
+  assert.ok(await until(() => !game.battle && game.state === 'field', 30000), 'battle hands over to the field');
+  await page.waitForTimeout(600); await shot('p2-finale-start');
+  const fin = await page.evaluate(() => ({ form: game.castleSummit?.form, won: !!game.flags.castle_teen_won, text: game.textbox.node?.text }));
+  check('phase-2 kill hands over to the finale on the same screen', fin.form === 'p2' && fin.won, JSON.stringify(fin));
 });
