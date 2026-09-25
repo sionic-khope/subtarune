@@ -1,0 +1,9 @@
+# imagegen 2026-09-25 15:36:18
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: teen-small.png
+
+Redraw the SAME character from the reference (Image1) in EXACTLY the same art style: solid BLACK fill with crisp thin WHITE contour lines, dark crimson rolled sleeves, dark brown apron with a small bow, long wavy black hair drawn with white lines, bangs hiding the eyes, no mouth, enormous muscular arms, the lower body dissolving into black smoke puffs with white outlines. Same size and scale as the reference, solid pure #FF00FF magenta background, no text, no ground.
+
+New pose: facing LEFT, she thrusts her near arm straight out to the LEFT with the huge hand wide OPEN, palm facing left, and a dark round HOLE glowing faint purple in the centre of the palm (a vacuum sucking everything in). Her body leans slightly forward to the left. Canvas 1024x1536, the figure fills the height; the outstretched open palm reaches the LEFT edge.

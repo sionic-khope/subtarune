@@ -1,0 +1,11 @@
+# imagegen 2026-09-25 15:34:53
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/teen342/walkway-ref.png
+
+Redraw the reference image (Image1) EXACTLY: same pixel-art style, same camera angle, same walkway height, same floor tiles with glowing blue diamond inlays, same stone front face, same torch posts with blue flames and chains, same floating rock debris in the dark navy sky, same black clouds with thin white outlines along the bottom.
+
+Change only this: the walkway runs from the LEFT edge of the image and ends abruptly at about 68% of the image width in a jagged BROKEN edge — cracked tiles, a few chunks of stone breaking off and falling down, a snapped chain hanging. To the RIGHT of the broken edge there is only empty dark void (no walkway, no posts), filled with slowly drifting BLACK smoke clouds with subtle dark purple tint, and the same black outlined clouds at the bottom.
+
+The left 60% of the walkway must look identical in height and perspective to the reference so it can be joined seamlessly with it. No characters, no text.

@@ -565,72 +565,93 @@ export class CastleArena {
    * A blue-black shadow falls over everyone else.
    */
   drawFountain(ctx, cam) {
-    const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit;
-    const h = this.fountainHeight(), st = this.surgeT(), open = st < 0 ? 0 : easeOut(st / 0.7);
+    const F = ARENA.fountain, f = this.fountain, [px, py, prx, pry] = this.pit;
+    const h = this.fountainHeight(), st = this.surgeT();
     if (st < 0) { this.drawTrickle(ctx, cam); return; }
-    // 기둥 폭 = 구덩이 폭(사용자 “원형하고 안맞고”): 구덩이 가장자리까지 차오른다
-    const width = 24 + (prx * 2 * 0.92 - 24) * open;
-    // 줌아웃 중에는 화면보다 넓게 보이므로 화면 밖으로 넉넉히 그린다(잘려 보이지 않게)
-    const baseY = py - cam.y, topY = baseY - h, cx = px - cam.x, visTop = Math.max(topY, -SCREEN_H * 1.5), visBot = SCREEN_H * 2.5;
+    // 레퍼런스(델타룬 거인 소환): 구덩이 전체가 한꺼번에 뿜어 올린다. 밑동 = 구덩이 앞 테두리 곡선, 잘린 선 없음
+    const open = easeOut(clamp01(st / 0.45)), t = this.time;
+    const baseY = py - cam.y, cx = px - cam.x, topY = baseY - h;
+    const visTop = Math.max(topY, -SCREEN_H * 1.5);
+    const R = 8 + (prx * 0.97 - 8) * open, RY = pry * 0.97 * (R / prx), width = R * 2;
     ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
-    for (let r = 0; r < 3; r++) {
-      const ring = ((this.time * 0.8 + r / 3) % 1);
-      ctx.strokeStyle = `rgba(110,220,255,${0.6 * (1 - ring)})`; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(cx, baseY, prx * (0.3 + 0.7 * ring), prx * 0.32 * (0.3 + 0.7 * ring), 0, 0, Math.PI * 2); ctx.stroke();
-    }
-    if (visTop > visBot) return;
-    const wob = y => Math.sin(this.time * 2.6 + y * 0.011) * 9 * open;
-    const edge = (inset, side, y) => cx + side * (width / 2 - inset) + wob(y + (side > 0 ? 90 : 0)) * (0.6 + 0.4 * Math.sin(y * 0.004));
-    const band = (inset, color) => {
-      if (width / 2 - inset < 1) return;
-      ctx.fillStyle = color; ctx.beginPath();
-      for (let y = Math.min(baseY, visBot); y >= visTop; y -= 10) ctx.lineTo(edge(inset, -1, y), y);
-      for (let y = visTop; y <= Math.min(baseY, visBot); y += 10) ctx.lineTo(edge(inset, 1, y), y);
-      ctx.closePath(); ctx.fill();
+    this.drawPitWater(ctx, cx, baseY, prx, pry, 1);
+    // 밑동 위로 조금 부풀었다가(불꽃처럼) 곧게 오르고, 꼭대기는 둥글다
+    const half = y => {
+      const up = baseY - y;
+      const flare = 1 + 0.09 * Math.sin(clamp01(up / 240) * Math.PI) * open;
+      const dome = up > h - R ? Math.sqrt(clamp01((h - up) / R)) : 1;
+      return R * flare * dome;
+    };
+    const wav = (y, side) => (Math.sin((y + t * 300) * 0.011 + side * 1.9) * 8 + Math.sin((y + t * 520) * 0.029 + side) * 3) * open * clamp01((baseY - y) / 70);
+    const yTop = Math.max(visTop, topY);
+    const silhouette = inset => {
+      const r = Math.max(0, R - inset), ry = RY * (r / Math.max(1, R));
+      ctx.beginPath();
+      for (let y = baseY; y >= yTop; y -= 8) ctx.lineTo(cx - Math.max(0, half(y) - inset) + wav(y, -1), y);
+      ctx.lineTo(cx + wav(yTop, 0), yTop);
+      for (let y = yTop; y <= baseY; y += 8) ctx.lineTo(cx + Math.max(0, half(y) - inset) + wav(y, 1), y);
+      for (let a = 0; a <= Math.PI + 0.001; a += Math.PI / 32) ctx.lineTo(cx + Math.cos(a) * r, baseY + Math.sin(a) * ry);
+      ctx.closePath();
     };
     this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, false);
-    // 구덩이 안이 빛으로 가득 찬다(타원 그대로), 기둥은 그 안에서 솟는다
-    const pry = this.pit[3];
-    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, baseY, prx, pry, 0, 0, Math.PI * 2); ctx.clip();
-    const foot = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, prx);
-    foot.addColorStop(0, 'rgba(226,251,248,0.95)'); foot.addColorStop(0.6, 'rgba(95,224,240,0.75)'); foot.addColorStop(1, 'rgba(30,110,190,0.55)');
-    ctx.fillStyle = foot; ctx.fillRect(cx - prx, baseY - pry, prx * 2, pry * 2); ctx.restore();
-    band(0, '#2fb6e0'); band(width * 0.05, '#5fe0f0'); band(width * 0.12, '#c8f4f2'); band(width * 0.24, '#e6fcf9');
-    // 기둥 안을 비스듬히 훑고 올라가는 짙은 파랑 띠(참고 스크린샷의 큰 대각선 덩어리)
-    ctx.save();
-    ctx.beginPath(); ctx.rect(cx - width / 2, visTop, width, Math.min(baseY, visBot) - visTop); ctx.clip();
-    const period = 760, shift = ((this.time * 420 + cam.y) % period + period) % period;
+    for (const [inset, color] of [[0, '#2aa8dc'], [R * 0.06, '#56d8f0'], [R * 0.15, '#bff0ef'], [R * 0.28, '#e0faf6']]) {
+      if (R - inset < 1) continue;
+      ctx.fillStyle = color; silhouette(inset); ctx.fill();
+    }
+    // 기둥 안쪽만: 비스듬한 짙은 파랑 덩어리(가장자리 들쭉날쭉)와 위로 흐르는 붓자국
+    ctx.save(); silhouette(0); ctx.clip();
+    const period = 760, shift = ((t * 420 + cam.y) % period + period) % period;
     for (let i = 0; i < F.bands; i++) {
       for (let rep = -2; rep <= 3; rep++) {
-        const yy = i * period / F.bands + rep * period - shift, thick = i % 2 ? 110 : 70, drop = 260;
-        ctx.fillStyle = i % 2 ? 'rgba(74,168,232,0.9)' : 'rgba(95,200,240,0.55)';
+        const yy = i * period / F.bands + rep * period - shift, thick = i % 2 ? 110 : 70, drop = width * 0.62;
+        if (yy + drop > baseY + RY + thick || yy - drop < yTop - thick) continue;
+        ctx.fillStyle = i % 2 ? 'rgba(74,168,232,0.88)' : 'rgba(95,200,240,0.5)';
         ctx.beginPath();
-        ctx.moveTo(cx - width / 2 - 20, yy - drop / 2); ctx.lineTo(cx + width / 2 + 20, yy + drop / 2);
-        ctx.lineTo(cx + width / 2 + 20, yy + drop / 2 + thick); ctx.lineTo(cx - width / 2 - 20, yy - drop / 2 + thick * 0.4);
+        const x0 = cx - R - 30, x1 = cx + R + 30, n = 10;
+        for (let k = 0; k <= n; k++) { const x = x0 + (x1 - x0) * k / n; ctx.lineTo(x, yy - drop / 2 + drop * k / n + Math.sin(k * 2.3 + i) * 7); }
+        for (let k = n; k >= 0; k--) { const x = x0 + (x1 - x0) * k / n; ctx.lineTo(x, yy - drop / 2 + drop * k / n + thick * (0.45 + 0.55 * k / n) + Math.sin(k * 1.7 + i) * 9); }
         ctx.closePath(); ctx.fill();
       }
     }
+    ctx.strokeStyle = 'rgba(90,190,235,0.55)'; ctx.lineCap = 'round';
+    for (let i = 0; i < 14; i++) {
+      const lane = ((i * 0.37) % 1) * 1.6 - 0.8, len = 26 + (i % 4) * 14, speed = 260 + (i % 3) * 90;
+      const yy = ((i * 97 - t * speed - cam.y) % 520 + 520) % 520 + yTop - 40;
+      if (yy > baseY) continue;
+      ctx.lineWidth = 2 + (i % 3);
+      ctx.beginPath(); ctx.moveTo(cx + lane * half(yy), yy); ctx.quadraticCurveTo(cx + lane * half(yy) + 5, yy - len / 2, cx + lane * half(yy) - 2, yy - len); ctx.stroke();
+    }
+    // 밑동이 구덩이 빛과 한 덩어리로 보이게 아래쪽을 하얗게 번지게
+    const foot = ctx.createRadialGradient(cx, baseY + RY * 0.4, 0, cx, baseY + RY * 0.4, R * 1.1);
+    foot.addColorStop(0, 'rgba(240,255,252,0.9)'); foot.addColorStop(0.55, 'rgba(210,248,246,0.45)'); foot.addColorStop(1, 'rgba(210,248,246,0)');
+    ctx.fillStyle = foot; ctx.fillRect(cx - R * 1.2, baseY - R, R * 2.4, R + RY * 2);
     ctx.restore();
     this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, true);
-    // 파동 둘레의 더 웅장한 바람 오오라: 넓은 반투명 호가 빠르게 감아 오른다
+    // 둘레를 감아 오르는 반투명 바람 호
     ctx.save(); ctx.lineCap = 'round';
     for (let i = 0; i < 6; i++) {
-      const period = 480, y0 = ((i * 80 - this.time * 520 - cam.y) % period + period) % period - 60, R = width * (0.85 + 0.12 * (i % 3));
+      const per = 480, y0 = ((i * 80 - t * 520 - cam.y) % per + per) % per - 60, RR = R * (1.15 + 0.1 * (i % 3));
       for (let rep = 0; rep < 2; rep++) {
-        const yy = y0 + rep * period;
-        if (yy > baseY || yy < visTop) continue;
+        const yy = y0 + rep * per;
+        if (yy > baseY || yy < yTop) continue;
         ctx.strokeStyle = `rgba(210,245,255,${(0.16 + 0.08 * (i % 2)) * open})`; ctx.lineWidth = 3 + (i % 3) * 2;
-        ctx.beginPath(); ctx.ellipse(cx, yy, R, R * 0.22, 0, Math.PI * (0.05 + (i % 2) * 0.9), Math.PI * (0.9 + (i % 2) * 0.9)); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(cx, yy, RR, RR * 0.22, 0, Math.PI * (0.05 + (i % 2) * 0.9), Math.PI * (0.9 + (i % 2) * 0.9)); ctx.stroke();
       }
     }
     ctx.restore();
-    // 위로 퍼지는 충격 고리
-    for (let r = 0; r < 3; r++) {
-      const ring = ((this.time * 0.7 + r / 3) % 1), yy = baseY - ring * Math.min(h, SCREEN_H * 3);
-      ctx.strokeStyle = `rgba(200,245,255,${0.35 * (1 - ring) * open})`; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(cx, yy, width * (0.7 + ring * 0.6), width * 0.14, 0, 0, Math.PI * 2); ctx.stroke();
-    }
     ctx.fillStyle = `rgba(226,251,248,${0.45 * (1 - clamp01(st / 0.6))})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
+  }
+  /** Pit surface: a dark teal pool filling the hole's ellipse from the middle, with light swirl ripples turning on it. */
+  drawPitWater(ctx, cx, baseY, prx, pry, fill) {
+    const r = prx * (0.2 + 0.8 * fill), ry = pry * (0.2 + 0.8 * fill), t = this.time;
+    ctx.save();
+    ctx.fillStyle = `rgba(62,110,140,${0.3 + 0.3 * fill})`; ctx.beginPath(); ctx.ellipse(cx, baseY, r, ry, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `rgba(150,225,245,${0.35 + 0.3 * fill})`; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for (let i = 0; i < 5; i++) {
+      const k = 0.2 + i * 0.17, a0 = t * (1.4 - i * 0.18) + i * 1.9;
+      ctx.beginPath(); ctx.ellipse(cx, baseY, r * k, ry * k, 0, a0, a0 + 1.6 + (i % 2)); ctx.stroke();
+    }
+    ctx.restore();
   }
   /** Ribbons coil around the column: the back half before the column is drawn, short front arcs over its edges. */
   drawRibbons(ctx, cam, cx, width, baseY, visTop, open, front) {
@@ -644,10 +665,10 @@ export class CastleArena {
         ctx.strokeStyle = front ? (r.dir > 0 ? 'rgba(90,190,240,0.95)' : 'rgba(60,150,190,0.9)') : 'rgba(30,90,120,0.7)';
         ctx.lineWidth = (front ? 12 : 9) * (0.4 + 0.6 * open);
         ctx.beginPath();
-        const from = front ? -0.5 : Math.PI - 0.3, to = front ? 0.45 : Math.PI * 2 - 0.2;
+        const from = front ? -0.15 : Math.PI - 0.3, to = front ? Math.PI + 0.15 : Math.PI * 2 - 0.2;
         for (let a = from; a <= to; a += 0.08) {
           const x = cx + Math.cos(a) * r.dir * (width * 0.62 + 18 * Math.sin(a * 3));
-          const y = y0 + Math.sin(a) * 34 - (a - from) * 40;
+          const y = y0 + Math.sin(a) * 30 - (a - from) * 60;
           if (a === from) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
         ctx.stroke();
@@ -659,34 +680,33 @@ export class CastleArena {
    * bright at the base and fading upward (사용자 “잘려보이잖아 이어져있는게 아니고”), with wisps curling round it.
    */
   drawTrickle(ctx, cam) {
-    const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit, k = clamp01(f.t / F.build);
+    const F = ARENA.fountain, f = this.fountain, [px, py, prx, pry] = this.pit, k = clamp01(f.t / F.build), t = this.time;
     const baseY = py - cam.y, cx = px - cam.x, reach = clamp01(f.t / 1.2), top = baseY - (baseY + 60) * reach;
     ctx.fillStyle = `rgba(2,10,34,${0.35 * k})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
-    // 구덩이 깊은 곳부터 푸른빛이 차오른다(구덩이 타원 안만)
-    const pry = this.pit[3];
-    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, baseY, prx, pry, 0, 0, Math.PI * 2); ctx.clip();
-    const glow = ctx.createRadialGradient(cx, baseY + pry * 0.2, 0, cx, baseY, prx * (0.3 + 0.7 * k));
-    glow.addColorStop(0, `rgba(160,235,255,${0.25 + 0.45 * k})`); glow.addColorStop(1, 'rgba(40,120,200,0)');
-    ctx.fillStyle = glow; ctx.fillRect(cx - prx, baseY - pry, prx * 2, pry * 2); ctx.restore();
-    const w = 6 + 10 * k + Math.sin(this.time * 17) * 1.5;
-    for (const [inset, rgb, alpha] of [[0, '47,182,224', 0.75], [w * 0.3, '220,250,250', 0.95]]) {
-      const g = ctx.createLinearGradient(0, baseY, 0, top);
-      g.addColorStop(0, `rgba(${rgb},${alpha})`); g.addColorStop(0.7, `rgba(${rgb},${alpha * 0.55})`); g.addColorStop(1, `rgba(${rgb},0.05)`);
-      ctx.fillStyle = g; ctx.beginPath();
-      for (let y = baseY; y >= top; y -= 6) ctx.lineTo(cx - w / 2 + inset + Math.sin(y * 0.04 + this.time * 6) * 3, y);
-      for (let y = top; y <= baseY; y += 6) ctx.lineTo(cx + w / 2 - inset + Math.sin(y * 0.04 + this.time * 6 + 1) * 3, y);
-      ctx.closePath(); ctx.fill();
-    }
+    // 레퍼런스 1: 구덩이 안이 청록 수면으로 차오르고, 그 한가운데로 곧은 빛줄기 하나
+    this.drawPitWater(ctx, cx, baseY, prx, pry, easeOut(clamp01(f.t / 2.5)));
+    // 줄기 둘레를 크게 휘감는 물살 두 가닥(뒤 반쪽은 어둡게, 앞 반쪽은 밝게)
     ctx.lineCap = 'round';
-    for (let i = 0; i < 7; i++) {
-      const phase = (i / 7 + this.time * 0.45) % 1, y0 = baseY - phase * (baseY - top), rr = 12 + 30 * k * (1 - phase * 0.6);
-      ctx.strokeStyle = `rgba(95,200,240,${0.6 * (1 - phase)})`; ctx.lineWidth = 2 + 3 * k;
-      const a0 = (i * 1.3 + this.time * 3) % (Math.PI * 2);
-      ctx.beginPath(); ctx.ellipse(cx, y0, rr, rr * 0.35, 0, a0, a0 + 2.4); ctx.stroke();
+    for (let i = 0; i < 2; i++) {
+      const spin = t * 1.6 + i * Math.PI, rr = prx * (0.55 + 0.25 * k), lift = (baseY - top) * 0.55;
+      for (const front of [false, true]) {
+        ctx.strokeStyle = front ? `rgba(90,210,245,${0.5 + 0.4 * k})` : `rgba(30,90,120,${0.4 + 0.3 * k})`;
+        ctx.lineWidth = 3 + 5 * k; ctx.beginPath();
+        for (let a = 0; a <= 1; a += 0.04) {
+          const ang = spin + a * Math.PI * 1.3, x = cx + Math.cos(ang) * rr * (1 - a * 0.55), y = baseY + Math.sin(ang) * pry * 0.8 * (1 - a * 0.55) - a * lift;
+          if ((Math.sin(ang) > 0) !== front) { ctx.moveTo(x, y); continue; }
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
     }
-    ctx.strokeStyle = `rgba(110,220,255,${0.25 + 0.3 * k})`; ctx.lineWidth = 2;
-    const ring = (this.time * 0.6) % 1;
-    ctx.beginPath(); ctx.ellipse(cx, baseY, prx * 0.25 * (1 + ring), prx * 0.08 * (1 + ring), 0, 0, Math.PI * 2); ctx.stroke();
+    const w = 5 + 7 * k;
+    for (const [inset, color] of [[0, `rgba(47,182,224,0.85)`], [w * 0.3, 'rgba(230,252,250,0.97)']]) {
+      ctx.fillStyle = color; ctx.fillRect(Math.round(cx - w / 2 + inset), Math.round(top), Math.round(w - inset * 2), Math.round(baseY - top));
+    }
+    ctx.strokeStyle = `rgba(200,245,255,${0.5 + 0.3 * k})`; ctx.lineWidth = 2;
+    const ring = (t * 0.9) % 1;
+    ctx.beginPath(); ctx.ellipse(cx, baseY, 10 + prx * 0.3 * ring, (10 + prx * 0.3 * ring) * (pry / prx), 0, 0, Math.PI * 2); ctx.stroke();
   }
   dispose() {
     if (this.disposed) return;

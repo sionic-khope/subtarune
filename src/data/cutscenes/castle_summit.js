@@ -12,7 +12,9 @@ const stand = id => [
   { move: id, rel: `summit_stand_${id}`, at: 'bottom', by: [0, 0], axis: 'x', facing: 'right' },
   { move: id, rel: `summit_stand_${id}`, at: 'bottom', by: [0, 0], axis: 'y', facing: 'right' },
 ];
-export const SUMMIT_SCENE = Object.freeze({ stage: 'castle_summit_ready', cam: { talk: at(3830, 400), face: at(4090, 300) } });
+// BUILD342: 대치 내내 전투와 같은 한 화면(TEEN_BATTLE.view.cam 이 왼쪽 위) — 왼쪽 끝길에 일행, 오른쪽 연기 속 청소년(사용자 참고 델타룬 거인전 비율)
+const VIEW_CENTER = [TEEN_BATTLE.view.cam[0] + 240, TEEN_BATTLE.view.cam[1] + 180];
+export const SUMMIT_SCENE = Object.freeze({ stage: 'castle_summit_ready', cam: { talk: at(...VIEW_CENTER), face: at(...VIEW_CENTER) } });
 const C = SUMMIT_SCENE.cam;
 
 export const castle_summit_confront = Object.assign([
@@ -31,7 +33,7 @@ export const castle_summit_confront = Object.assign([
   // 브금(사용자 지정 L0MAep7ml3A “Gallery”) → 카메라 살짝 오른쪽 → 검은 연기에서 청소년 상체가 천천히 나온다
   { bgm: 'gallery', volume: 0.5, fadeIn: 0.8 },
   ...PARTY.map(id => ({ face: id, dir: 'right' })),
-  { parallel: [{ camera: C.face, duration: 1.4 }, { zoom: 0.55, duration: 1.4 }, summit(s => s.revealGiant())] },
+  { parallel: [{ camera: C.face, duration: 0.4 }, summit(s => s.revealGiant())] },
   { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) },
   P('...'), P('야 니.. 니녀석..님? 어머님..?'), P('우리는 세상을 구할거고 요플래가 우리 옆에있어.'),
   P('꼭 그렇게 우리를 저지해야겠다면,'), P('그 그렇게 쉽게 되진 않..않을거다.'), close,

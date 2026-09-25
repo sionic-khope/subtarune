@@ -1,3 +1,4 @@
+import { TEEN_BATTLE } from '../data/teen-battle.js';
 // ─────────────────────────────────────────────────────────────
 // 전투 배경 레지스트리 (2026-09-11, 사용자 "전투맵을 색다르게 — 기믹 확장성"): 전투 cfg.bg 이름 → 그리기 함수 (ctx, battle).
 //   registerBattleBg('name', fn) 로 새 배경을 끼운다. 맵 JSON `battleBg` 또는 컷신 { battle:{ bg } } 로 고른다. 없는 이름은 검정.
@@ -21,11 +22,11 @@ registerBattleBg('castle_memory', drawCastleMemoryBackground);
 
 // BUILD339 청소년전: 꼭대기 끝길 그대로(부서진 끝 조각 왼쪽 절반을 화면에) — 사용자 “맵은 그냥 거기서 바로 진행”
 registerBattleBg('castle_summit', (ctx, battle) => {
-  // 부서진 끝 조각: 일행은 왼쪽 끝길 위, 오른쪽은 허공(청소년이 그 자리를 채운다) — 사용자 참고(델타룬 거인전 구도)
-  const img = battle.game.propImages['assets/props/summit336_chunk_2.png'];
+  // BUILD342: 필드 대치 화면 그대로(같은 카메라의 끝길 그림 + 뒤 연기) — 전투로 넘어가도 배경이 바뀌지 않는다(사용자 “전투화면과 일반화면이 이질감없게”)
+  const [cx, cy] = TEEN_BATTLE.view.cam, images = battle.game.propImages;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 480, 360);
-  if (img) ctx.drawImage(img, 300, 300, 400, 300, 0, 0, 480, 360);
-  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 0, 480, 360);
+  for (let i = 0; i < 2; i++) { const img = images[`assets/props/summit336_chunk_${i}.png`]; if (img) ctx.drawImage(img, i * 1152 - cx, -cy); }
+  battle.support?.smoke?.draw(ctx, { x: cx, y: cy }, 'back');
 });
 
 const drumNestCaches = new WeakMap();

@@ -3,6 +3,7 @@
 ## 청소년 보스전 (BUILD339, 2026-09-25)
 - `bgm/guardian.mp3`: 사용자 지정 [nP9mB1sVJz4](https://www.youtube.com/watch?v=nP9mB1sVJz4) `68. GUARDIAN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 226.3초까지(끝 무음 4.4초 제거) MP3 q2, SHA256 `ab2baa5d22c3adeba157857c2f0cfd6a33a871ac77f04ca5593be7c431a73f16`.
 - 전투 시작 `weaponpull`(조우음 없음, 사용자 지시).
+- `sfx/teen_roar.mp3`(4.4초): 청소년 포효 — 첫 공격 턴 시작과 쓰러질 때(사용자 “누누와 윌럼프 소리지르는거마냥”). 롤 공식 위키 `Nunu_Original_R_Willump.ogg`(Riot 저작물, 비수익 팬게임 용도) 앞뒤 무음 제거·음량 정규화. 원본 `assets/source/teen342/audio/`.
 - `sfx/gajaeman_knee.mp3`: 무릎 올릴 때. 사용자 지정 myinstants `neoheulge-gajaemaen-67533`(403) 대신 YouTube cprvWNhZlgk `가재맨 "넣을게~" 효과음` **임시**.
 - `sfx/gajaeman_kick.mp3`: 강제퇴장 버튼 누를 때. 사용자 지정 myinstants `gajaemaen-neon-ddaragara-45852`(403) 대신 YouTube yjsiYHSz_Rs **임시**. 원본을 받으면 같은 이름으로 교체.
 

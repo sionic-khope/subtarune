@@ -17,14 +17,22 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   check('intro lines verbatim', ['* 형들 일단 여기서 공격하는건 자살행위에요', '* 그렇지 그럼 어떻게 할까???', '* 기회를 노려야죠,,', '* (공격하기가 비활성화 되었다.)', '* (방어하기 버튼이 생겼다.)'].every(t => lines.includes(t)), JSON.stringify(lines));
   assert.ok(await until(() => game.battle.state === 'menu', 5000));
   await shot('menu-locked');
+  // BUILD342: 행동 창 문구는 한 줄 전체(예전엔 문자열에서 글자 하나를 뽑아 “지”·“막”만 보였다)
+  await page.waitForTimeout(900);
+  check('menu flavor line is a whole line', ['* 마지막이다.', '* 끝이다.', '* 이것이 마지막 싸움이다.', '* 모든 것의 끝이 다가온다.'].includes((await B()).text), (await B()).text);
+  const homes = await page.evaluate(() => Object.fromEntries(game.battle.members.map(m => [m.id, m.home])));
+  check('party stands on the broken end at the field feet (same screen as the standoff)', JSON.stringify(homes) === JSON.stringify({ hyungsub: [125, 176], gyeongsub: [93, 204], ppaman: [61, 232] }), JSON.stringify(homes));
+  check('cleaning gauge hidden outside the cleaning pattern', (await B()).sup.gaugeAlpha < 0.1, JSON.stringify((await B()).sup));
   await press('KeyC');
   check('locked 공격하기 does nothing', (await B()).state === 'menu');
   // 방어하기(세 번째 버튼)
   await press('ArrowRight'); await press('ArrowRight'); await press('KeyC');
   assert.ok(await until(() => game.battle.state === 'bullets', 8000), 'enemy turn after defend');
   check('defending this turn', (await B()).sup.defending);
-  await page.waitForTimeout(1800); await shot('vacuum-1'); await page.waitForTimeout(2500); await shot('vacuum-2');
-  assert.ok(await until(() => game.battle.state === 'menu', 20000));
+  await page.waitForTimeout(1000); await shot('vacuum-prep'); await page.waitForTimeout(3000); await shot('vacuum-1');
+  check('cleaning gauge faded in during the cleaning pattern', (await B()).sup.gaugeAlpha > 0.8, JSON.stringify((await B()).sup));
+  await page.waitForTimeout(5000); await shot('vacuum-2');
+  assert.ok(await until(() => game.battle.state === 'menu', 25000));
   const g1 = (await B()).sup.gauge;
   check('dodging debris fills the cleaning gauge', g1 > 0, String(g1));
   // 두 턴 더(3턴째 주먹)
@@ -36,11 +44,16 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
     while ((await B()).state === 'interlude') await press('KeyC');
   }
   // 게이지를 채워 쓰러짐을 본다
-  await fixture('fill-gauge', 'Credit enough dodges to reach 100% (the dodge counting itself is checked above).', () => { for (let i = 0; i < 80; i++) game.battle.support.onProjectile({ type: 'teen_dodge' }); });
+  await fixture('fill-gauge', 'Credit enough dodges to reach 100% (the dodge counting itself is checked above).', () => { for (let i = 0; i < 110; i++) game.battle.support.onProjectile({ type: 'teen_dodge' }); });
   await press('ArrowRight'); await press('ArrowRight'); await press('KeyC');
   assert.ok(await until(() => game.battle.state === 'interlude', 30000), 'collapse interlude');
+  // 쓰러지는 연출이 몇 초 이어진 뒤에야 대사(사용자 “바로 대사가 뜨는게아니라 쓰러지는 연출도 몇초”)
+  await page.waitForTimeout(700); await shot('collapse-1');
+  check('collapsing before the line', (await B()).sup.fall === 'collapse' && (await B()).text !== '* 지금이에요 공격해요!!', JSON.stringify(await B()));
+  await page.waitForTimeout(1100); await shot('collapse-2');
+  assert.ok(await until(() => game.battle.text === '* 지금이에요 공격해요!!', 6000), 'down line after the collapse');
   await page.waitForTimeout(600); await shot('down-line');
-  check('down line', (await B()).text === '* 지금이에요 공격해요!!');
+  check('gajaeman left the shoulder to hover behind the fallen 청소년', (await B()).sup.gajaeman === 'hover', JSON.stringify((await B()).sup));
   while ((await B()).state === 'interlude') await press('KeyC');
   assert.ok(await until(() => game.battle.state === 'menu', 5000));
   check('phase down and fight unlocked', (await B()).sup.phase === 'down');

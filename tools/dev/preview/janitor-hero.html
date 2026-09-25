@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>청소부 영웅(붉은 깃발) 스프라이트</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #dfe6f0; font: 14px/1.6 system-ui, sans-serif; padding: 24px 28px 48px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 15px; color: #9fb2cc; margin: 30px 0 12px; font-weight: 600; }
+  p.note { margin: 0 0 8px; color: #8fa0b8; }
+  .row { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-end; }
+  figure { margin: 0; text-align: center; }
+  figcaption { margin-top: 10px; color: #b9c6d8; font-size: 13px; }
+  .card { background: #11151d; border: 1px solid #222a36; border-radius: 6px; padding: 18px 20px; }
+  img { image-rendering: pixelated; display: block; }
+  .anim { image-rendering: pixelated; background-repeat: no-repeat; }
+  /* 2x2 시트(셀 128) 를 3배로 */
+  .sheet3 { width: 384px; height: 384px; background-size: 768px 768px; }
+  @keyframes f4 {
+    0%, 24.9%   { background-position: 0 0; }
+    25%, 49.9%  { background-position: -384px 0; }
+    50%, 74.9%  { background-position: 0 -384px; }
+    75%, 100%   { background-position: -384px -384px; }
+  }
+  .dance { background-image: url('/assets/enemies/janitor-dance.png'); animation: f4 0.52s infinite; }
+  .stanceR { background-image: url('/assets/enemies/janitor-stance-right.png'); animation: f4 0.72s infinite; }
+  .stanceL { background-image: url('/assets/enemies/janitor-stance-left.png'); animation: f4 0.72s infinite; }
+  .frames { display: flex; gap: 14px; }
+  .frames div { width: 160px; height: 160px; background-size: 320px 320px; image-rendering: pixelated; border: 1px solid #1c2534; border-radius: 4px; }
+  .scale { display: flex; gap: 24px; align-items: flex-end; background: #0e1420; border: 1px solid #1c2534; border-radius: 6px; padding: 18px 22px; }
+  .scale img { height: 150px; width: auto; }
+</style>
+<h1>청소부 영웅 모습 — 붉은 깃발 스프라이트 (이미 만들어 둔 것)</h1>
+<p class="note">BUILD226 에 만든 깃발 청소부입니다. 아래는 저장소에 있는 파일 그대로입니다.</p>
+
+<h2>코사크 댄스 (assets/enemies/janitor-dance.png)</h2>
+<div class="row">
+  <figure class="card"><div class="anim sheet3 dance"></div><figcaption>4프레임 반복 · 3배</figcaption></figure>
+  <figure class="card">
+    <div class="frames">
+      <div style="background-image:url('/assets/enemies/janitor-dance.png');background-position:0 0"></div>
+      <div style="background-image:url('/assets/enemies/janitor-dance.png');background-position:-160px 0"></div>
+      <div style="background-image:url('/assets/enemies/janitor-dance.png');background-position:0 -160px"></div>
+      <div style="background-image:url('/assets/enemies/janitor-dance.png');background-position:-160px -160px"></div>
+    </div>
+    <figcaption>프레임 1~4</figcaption>
+  </figure>
+</div>
+
+<h2>전투 자세 (assets/enemies/janitor-stance-right.png / -left.png)</h2>
+<div class="row">
+  <figure class="card"><div class="anim sheet3 stanceR"></div><figcaption>오른쪽 보기</figcaption></figure>
+  <figure class="card"><div class="anim sheet3 stanceL"></div><figcaption>왼쪽 보기</figcaption></figure>
+</div>
+
+<h2>게임 안 크기</h2>
+<div class="scale">
+  <img src="/assets/enemies/janitor-dance.png" style="height:128px" title="댄스 시트(원본 1배, 셀 128)">
+  <img src="/assets/enemies/janitor-stance-right.png" style="height:128px" title="자세 시트(원본 1배)">
+</div>
+<p class="note">시트 원본 1배입니다. 한 셀이 128px, 인물은 그 안에서 약 90px 입니다.</p>

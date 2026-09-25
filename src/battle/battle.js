@@ -674,6 +674,7 @@ export class Battle {
       ctx.save(); ctx.globalAlpha *= actorAlpha;
       this.support?.draw?.(ctx);
       for (const e of this.enemies) this.drawEnemy(ctx, e);
+      this.support?.drawOverEnemies?.(ctx);
       const idle = this.members.filter((m) => !m.action || m.action.mode === 'idle'), busy = this.members.filter((m) => m.action && m.action.mode !== 'idle');
       for (const m of idle) this.drawMember(ctx, m);
       for (const m of busy) this.drawMember(ctx, m);

@@ -1,0 +1,10 @@
+# imagegen 2026-09-25 15:35:17
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+
+Create a sprite sheet of SIX different rubble pieces for a Deltarune-style pixel-art RPG battle, arranged in EXACTLY 3 columns x 2 rows on a 1536x1024 canvas with invisible equal 512x512 cells, one object per cell, each filling the central 55% of its cell. Solid pure #FF00FF magenta background. No text, no labels, no borders, no shadows.
+
+All six are broken pieces of a dark navy stone castle walkway being torn apart: 1. a large jagged stone block; 2. a small cracked rock chunk; 3. a flat broken floor tile with a thin glowing blue inlay line; 4. a pointed stone shard; 5. a cluster of three small pebbles; 6. a broken piece of carved pillar.
+
+Style: crisp pixel art with dark stepped outlines, limited palette of slate grey, navy and indigo stone with a few cold blue highlights, chunky pixels, same style as a 16-bit RPG, each slightly rotated as if tumbling.

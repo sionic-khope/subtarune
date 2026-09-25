@@ -1,33 +1,55 @@
 import { TEEN_BATTLE as C } from '../../data/teen-battle.js';
 import { createTalk } from './talk.js';
 import { clearTeenTimers, TEEN_DEBRIS } from '../teen-patterns.js';
+import { SummitSmoke } from '../../scenes/summit-smoke.js';
 
 /**
  * BUILD339 청소년 보스전 지원 모듈(사용자 2026-09-25 브리핑). 공격하기는 잠겨 있고(X), 방어하기로 버티며 잔해를 피해 청소 용량을
  * 채운다 → 100% 면 과부하로 쓰러져 3턴 동안 공격 가능, 그동안 가재맨이 내려와 공격한다. 주먹 패턴은 무피격이면 낙석 50.
+ * BUILD342: 필드 대치와 같은 한 화면(TEEN_BATTLE.view) — 일행은 끝길 위 같은 발 자리, 청소년은 같은 그림·같은 자리, 연기가 아래를 덮는다.
  */
 export function createTeenBossSupport(battle) {
   const enemy = battle.enemies.find(e => e.def.support === 'teen_boss');
   if (!enemy) return null;
-  let phase = 'guard', gauge = 0, turn = 0, downLeft = 0, gjIdx = 0, defending = false, time = 0;
-  let defendImages = {}, gajaeman = null, gj = { y: -80, target: -80 }, palm = null, vac = null, nextType = null;
+  const V = C.view, CF = C.collapse, GF = C.gajaemanFly;
+  let phase = 'guard', gauge = 0, turn = 0, downLeft = 0, gjIdx = 0, defending = false, time = 0, gaugeA = 0;
+  let defendImages = {}, gajaeman = null, images = {}, vac = null, nextType = null;
+  // 가재맨: 어깨 위(perch) → 쓰러지면 천천히 내려와 쓰러진 몸 뒤에서 맴돈다(hover) → 일어나면 다시 어깨로
+  let gj = { mode: 'perch', t: 0, from: [...V.shoulder] };
+  // 쓰러짐(collapse)·일어남(rise) 연출 시간
+  let fall = null;
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
-  const collapse = { t: 1 };
+  // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
+  const smoke = battle.game.castleSummit?.smoke || new SummitSmoke();
+  const homes = new Map();
+  for (const m of battle.members) if (V.party[m.id]) { homes.set(m, [...m.home]); m.home = [...V.party[m.id]]; }
+  const hoverAt = t => [V.hover[0] + Math.cos(t * GF.speed) * GF.radius[0], V.hover[1] + Math.sin(t * GF.speed * 2) * GF.radius[1]];
+  const gjPos = () => {
+    if (gj.mode === 'perch') return V.shoulder;
+    const k = Math.min(1, gj.t / GF.descend), e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+    const to = gj.mode === 'hover' ? hoverAt(time) : V.shoulder;
+    return [gj.from[0] + (to[0] - gj.from[0]) * e, gj.from[1] + (to[1] - gj.from[1]) * e - Math.sin(k * Math.PI) * 30];
+  };
+  const flyTo = mode => { gj = { mode, t: 0, from: gjPos() }; };
   const self = {
     get phase() { return phase; },
     get gauge() { return gauge; },
-    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, defending, turn }; },
+    get smoke() { return smoke; },
+    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, defending, turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode }; },
     async load(loadImage) {
       const ids = battle.members.map(m => m.id);
       const imgs = await Promise.all(ids.map(id => loadImage(C.images.defend(id)).catch(() => null)));
       defendImages = Object.fromEntries(ids.map((id, i) => [id, imgs[i]]));
       gajaeman = await loadImage(C.images.gajaeman).catch(() => null);
-      palm = await loadImage('assets/props/teenboss339_palm.png').catch(() => null);
+      for (const src of [V.giant.image, V.down.image]) images[src] = await loadImage(src).catch(() => null);
+      // 배경(끝길 그림)은 필드에서 이미 읽었지만, QA 로 전투부터 열 때도 같은 화면이 되게
+      const props = battle.game.propImages || (battle.game.propImages = {});
+      for (let i = 0; i < 2; i++) { const src = `assets/props/summit336_chunk_${i}.png`; if (!props[src]) props[src] = await loadImage(src).catch(() => null); }
       const debris = await Promise.all(TEEN_DEBRIS.map(src => loadImage(src).catch(() => null)));
       globalThis.__teenImages = Object.fromEntries(TEEN_DEBRIS.map((src, i) => [src, debris[i]]));
-      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum']);
+      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'teen_roar']);
     },
-    reset() { phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defending = false; gj = { y: -80, target: -80 }; clearTeenTimers(); enemy.patternPose = null; },
+    reset() { phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defending = false; gj = { mode: 'perch', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
     buttons() {
       return [
         { label: C.labels.fight, kind: 'fight', enabled: phase === 'down' },
@@ -37,21 +59,21 @@ export function createTeenBossSupport(battle) {
     },
     get hint() { return ''; },
     onVacuum(on, seconds) { vac = on ? { t: 0, d: seconds } : null; },
-    /** 상자는 조금 오른쪽(왼쪽 파티와 겹치지 않게) */
     /** 이번(또는 곧 올) 적 턴이 청소기인가: 준비 단계 상자 크기는 patternsFor 전에 정해지므로 턴 번호로 미리 본다 */
     vacuumTurn() {
       if (phase !== 'guard') return false;
       const upcoming = battle.state === 'bullets' || battle.state === 'board-close' ? turn : turn + 1;
       return upcoming % C.slamEvery !== 0;
     },
-    get boardCenter() { return this.vacuumTurn() ? [236, 214] : [274, 214]; },
-    boardSizeFor() { return this.vacuumTurn() ? [160, 110] : null; },
+    // 상자는 끝길 일행 오른쪽(겹치지 않게). 청소기는 손바닥 구멍(205,136) 오른쪽 아래로 넓게(사용자 “더 넓혀”)
+    get boardCenter() { return this.vacuumTurn() ? [292, 216] : [300, 214]; },
+    boardSizeFor() { return this.vacuumTurn() ? [220, 130] : [250, 140]; },
     action(id) {
       if (id !== 'defend') return null;
       defending = true;
       return { type: 'skip', member: battle.members[battle.memberIdx] };
     },
-    idleFor() { return phase === 'down' ? C.idle.down : C.idle.guard[turn % C.idle.guard.length]; },
+    idleFor() { return [phase === 'down' ? C.idle.down : C.idle.guard[turn % C.idle.guard.length]]; },
     speechFor() { return ['...']; },
     /** 방어하기: 이번 적 턴 피해 −3 */
     adjustPartyDamage(member, dmg) { return defending ? Math.max(1, dmg - C.defend.reduce) : dmg; },
@@ -62,6 +84,8 @@ export function createTeenBossSupport(battle) {
       clearTeenTimers();
       if (phase === 'down') return [{ type: C.gajaemanPatterns[gjIdx++ % C.gajaemanPatterns.length], damage: 15 }];
       turn++;
+      // 첫 공격 전에 한 번 크게 포효(사용자 “누누와 윌럼프 소리지르는거마냥”)
+      if (turn === 1) { battle.sfx('teen_roar'); battle.game.shake = { time: 1.6, amp: 4 }; }
       nextType = turn % C.slamEvery === 0 ? 'teen_slam' : 'teen_vacuum';
       return [{ type: nextType, damage: 15 }];
     },
@@ -77,82 +101,89 @@ export function createTeenBossSupport(battle) {
     },
     poseFor(target) {
       if (target !== enemy) return null;
-      if (target.patternPose) return target.patternPose;
-      if (phase === 'down') return { sheet: 'all', frame: C.frames.down, scaleY: 1 - 0.01 * Math.sin(time * 1.4) };
-      // 숨 쉬듯: 거의 움직이지 않고 가슴만 천천히 오르내린다
-      const k = Math.sin(time * Math.PI * 2 / 3.4);
-      return { sheet: 'all', frame: k > 0.55 ? C.frames.breathe : C.frames.idle, scaleY: 1 + 0.012 * k };
+      // 쓰러지는/일어나는 동안은 draw() 가 직접 그린다(기울기·가라앉음)
+      if (fall) return { hidden: true };
+      if (phase === 'down') return { sheet: 'down' };
+      return target.patternPose || null;
     },
     update(dt) {
       if (vac) { vac.t += dt; if (vac.t > vac.d) vac = null; }
-      time += dt; collapse.t = Math.min(1, collapse.t + dt);
-      gj.y += (gj.target - gj.y) * Math.min(1, dt * 2.2);
+      time += dt; gj.t += dt;
+      if (fall) { fall.t += dt; if (fall.kind === 'rise' && fall.t >= CF.rise) fall = null; }
+      if (!battle.game.castleSummit) smoke.update(dt);
+      const want = phase === 'guard' && this.vacuumTurn() && ['enemy-prep', 'bullets', 'board-close'].includes(battle.state) ? 1 : 0;
+      gaugeA += (want - gaugeA) * Math.min(1, dt * 5);
     },
     afterEnemyPhase() {
       defending = false;
       if (!live()) return null;
       if (phase === 'guard' && gauge >= C.gauge.max) {
-        phase = 'down'; downLeft = C.downTurns; gj.target = 64; collapse.t = 0;
-        battle.game.shake = { time: 0.6, amp: 5 }; battle.sfx('baron_slam');
-        const talk = createTalk(battle, [C.downLine]);
-        return { update: (dt, input) => talk.update(dt, input), draw: ctx => battle.drawTextBox(ctx) };
+        // 과부하: 몇 초 동안 앞으로 기울며 무너져 끝길 쪽으로 엎어진다(애니처럼) → 정적 → 억빠맨
+        phase = 'down'; downLeft = C.downTurns; fall = { kind: 'collapse', t: 0, landed: false };
+        battle.sfx('teen_roar'); battle.sfx('rumble'); battle.game.shake = { time: CF.tilt, amp: 3 };
+        let talk = null, hold = CF.hold;
+        return {
+          update: (dt, input) => {
+            if (fall && !fall.landed && fall.t >= CF.tilt) { fall.landed = true; battle.game.shake = { time: 0.7, amp: 7 }; battle.sfx('baron_slam'); battle.sfx('impact'); flyTo('hover'); }
+            if (fall && fall.t >= CF.tilt + CF.land) fall = null;
+            if (fall) return false;
+            if (!talk) { hold -= dt; if (hold > 0) return false; talk = createTalk(battle, [C.downLine]); }
+            return talk.update(dt, input);
+          },
+          draw: ctx => { if (talk) battle.drawTextBox(ctx); },
+        };
       }
       if (phase === 'down') {
         downLeft--;
-        if (downLeft <= 0) { phase = 'guard'; gauge = 0; gj.target = -80; battle.sfx('rumble'); }
+        if (downLeft <= 0) { phase = 'guard'; gauge = 0; fall = { kind: 'rise', t: 0 }; flyTo('perch'); battle.sfx('rumble'); }
       }
       return null;
     },
-    /** Behind the actors: gajaeman hovering beside the fallen 청소년 with a dark aura. */
+    /** Behind the 청소년: collapse/rise drawn by hand, and gajaeman hovering behind the fallen body. */
     draw(ctx) {
-      if (!gajaeman || gj.y < -60) return;
-      const fw = 64, x = 300, y = Math.round(gj.y + Math.sin(time * 2.4) * 3), s = 1.6;
+      const up = images[V.giant.image], down = images[V.down.image];
+      if (fall && up && down) {
+        const collapse = fall.kind === 'collapse';
+        const k = collapse ? Math.min(1, fall.t / CF.tilt) : 1 - Math.min(1, fall.t / CF.rise), e = k * k;
+        const land = collapse ? Math.min(1, Math.max(0, (fall.t - CF.tilt * 0.8) / (CF.land + CF.tilt * 0.2))) : 1 - Math.min(1, fall.t / (CF.rise * 0.6));
+        // 선 자세: 아래 가운데를 축으로 앞(왼쪽)으로 기울며 가라앉는다
+        ctx.save(); ctx.globalAlpha *= 1 - land;
+        const pvx = V.giant.x + up.width * 0.55, pvy = V.giant.y + up.height;
+        ctx.translate(pvx, pvy + e * 60); ctx.rotate(-0.55 * e); ctx.drawImage(up, -up.width * 0.55, -up.height);
+        ctx.restore();
+        ctx.save(); ctx.globalAlpha *= land; ctx.drawImage(down, V.down.x, V.down.y + (1 - land) * -24); ctx.restore();
+      }
+      if (gajaeman && gj.mode !== 'perch' && phase === 'down') this.drawGajaeman(ctx);
+    },
+    drawGajaeman(ctx) {
+      const [x, y] = gjPos(), s = 1.89, bob = Math.round(Math.sin(time * 2.4) * 3);
       ctx.save();
-      ctx.fillStyle = 'rgba(40,12,70,0.35)'; ctx.beginPath(); ctx.ellipse(x, y + 36, 34, 12, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.drawImage(gajaeman, 0, 0, fw, fw, Math.round(x - fw * s / 2), Math.round(y - fw * s / 2), Math.round(fw * s), Math.round(fw * s));
+      ctx.fillStyle = 'rgba(40,12,70,0.35)'; ctx.beginPath(); ctx.ellipse(x, y + 4, 22, 7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.drawImage(gajaeman, 0, 128, 64, 64, Math.round(x - 32 * s), Math.round(y - 61 * s + bob), Math.round(64 * s), Math.round(64 * s));
       ctx.restore();
     },
-    /** Behind the bullet box during the vacuum: the palm reaching in from the right and a violent triangular vortex funnel. */
-    drawUnderBoard(ctx) {
-      if (!vac || battle.state !== 'bullets') return;
-      const b = battle.board, t = vac.t, k = Math.min(1, t / 0.5), hx = b.x + b.w + 70 + (1 - k) * 200, hy = b.y + b.h / 2;
-      ctx.save();
-      // 삼각형 소용돌이: 손바닥 구멍(꼭짓점)에서 왼쪽으로 벌어지는 깔때기, 소용돌이 줄이 빨려 든다
-      const apexX = hx - 36, openX = b.x - 30, spread = b.h * 0.95;
-      const g = ctx.createLinearGradient(openX, 0, apexX, 0);
-      g.addColorStop(0, 'rgba(120,70,220,0.05)'); g.addColorStop(0.7, 'rgba(150,90,255,0.28)'); g.addColorStop(1, 'rgba(230,200,255,0.55)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(apexX, hy); ctx.lineTo(openX, hy - spread); ctx.lineTo(openX, hy + spread); ctx.closePath(); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(apexX, hy); ctx.lineTo(openX, hy - spread); ctx.lineTo(openX, hy + spread); ctx.closePath(); ctx.clip();
-      ctx.lineCap = 'round';
-      for (let i = 0; i < 14; i++) {
-        const ph = ((i / 14) + t * 1.4) % 1, x = openX + (apexX - openX) * ph, r = spread * (1 - ph);
-        ctx.strokeStyle = `rgba(235,215,255,${0.25 + 0.6 * ph})`; ctx.lineWidth = 1 + 2.5 * ph;
-        const a0 = t * 9 + i * 1.7;
-        ctx.beginPath(); ctx.ellipse(x, hy, Math.max(2, r * 0.18), r, 0, a0, a0 + 2.2); ctx.stroke();
-      }
-      ctx.restore();
-      if (palm) {
-        const s = 0.85, w = palm.width * s, h = palm.height * s, shake = Math.sin(t * 60) * 1.5;
-        ctx.drawImage(palm, Math.round(hx - w * 0.26 + shake), Math.round(hy - h * 0.52), Math.round(w), Math.round(h));
-      }
+    /** Over the 청소년: smoke swallowing her lower body, then gajaeman on her shoulder. */
+    drawOverEnemies(ctx) {
+      const [cx, cy] = V.cam;
+      smoke.draw(ctx, { x: cx, y: cy }, 'front', 0.3);
+      if (gajaeman && (gj.mode === 'perch' || phase !== 'down')) this.drawGajaeman(ctx);
     },
-    /** Right-side gauge: 청소 용량. */
+    /** Right-side gauge: 청소 용량 — only fades in during the cleaning pattern (사용자 “청소패턴일때만 페이드인”). */
     drawOverlay(ctx) {
-      if (battle.state === 'load' || battle.state === 'win') return;
-      // 오른쪽 끝의 독립된 검은 패널(보스 그림 위에 겹쳐도 글자·막대가 잘리지 않게)
+      if (battle.state === 'load' || battle.state === 'win' || gaugeA < 0.02) return;
       const px = 440, py = 52, pw = 36, ph = 190, w = 12, x = px + (pw - w) / 2, y = py + 34, h = ph - 58, k = gauge / C.gauge.max;
-      ctx.save();
+      ctx.save(); ctx.globalAlpha *= gaugeA;
       ctx.fillStyle = 'rgba(0,0,0,0.92)'; ctx.fillRect(px, py, pw, ph);
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
       ctx.font = '9px "Galmuri9", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#fff';
       const [a1, a2] = [C.labels.gauge.slice(0, 2), C.labels.gauge.slice(-2)];
       ctx.fillText(a1, px + pw / 2, py + 5); ctx.fillText(a2, px + pw / 2, py + 17);
       ctx.strokeRect(x - 1.5, y - 1.5, w + 3, h + 3);
-      ctx.fillStyle = phase === 'down' ? '#ffe066' : '#6fe3ff'; ctx.fillRect(x, y + Math.round(h * (1 - k)), w, Math.round(h * k));
+      ctx.fillStyle = '#b48cff'; ctx.fillRect(x, y + Math.round(h * (1 - k)), w, Math.round(h * k));
       ctx.fillStyle = '#fff'; ctx.fillText(`${Math.round(gauge)}%`, px + pw / 2, y + h + 6);
       ctx.restore();
     },
-    dispose() { clearTeenTimers(); },
+    dispose() { clearTeenTimers(); for (const [m, h] of homes) m.home = h; },
   };
   return self;
 }
