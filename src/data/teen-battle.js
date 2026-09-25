@@ -8,14 +8,15 @@ export const TEEN_BATTLE = Object.freeze({
   gauge: { perDodge: 0.7, max: 100 },
   slamEvery: 3,
   downTurns: 3,
-  rockDamage: 50,
+  // 주먹 패턴 무피격 낙석도 같은 비율로 35
+  rockDamage: 35,
   // 세 번째 청소(그 뒤로 세 번마다)는 C 연타 버티기: 연타마다 하트가 구멍에서 밀려나고, 끝까지 빨려 들어가면 전원 50(사용자 2026-09-25)
   // 아래 방향키로는 못 내려간다(좌우·위만), 아래에서 솟는 돌을 좌우로 피하면서 연타(사용자 “더 어렵게, 피하는 기믹”)
   mash: { every: 3, push: 13, pull: [40, 128], ramp: 0.5, damage: 50, duration: 13, rock: { every: [1.1, 0.55], warn: 0.5, speed: 190 } },
   // 청소 중 가끔(패턴당 1~2개) 천천히 날아오는 초록 1UP 버섯: 하트로 먹으면 일행 전원 +30(사용자 2026-09-25)
   mushroom: { image: 'assets/props/teen346_mushroom.png', heal: 30, second: 0.5, speed: 38 },
-  // 쓰러진 동안 일반 공격 한 대 = 50(사용자 2026-09-25, 80 → 50), 매번 치명타 이펙트 + 릴리즈샷 소리
-  downHit: { damage: 50, sfx: 'deltarune_release_shoot', fx: 0.55 },
+  // 쓰러진 동안 일반 공격 한 대 = 35(50 에서 30% 너프, 사용자 2026-09-25) — 한 번 쓰러질 때 9대 = 315, 세 번 945 < 999 → 네 번째 쓰러짐에 잡힌다. 매번 치명타 이펙트 + 릴리즈샷 소리
+  downHit: { damage: 35, sfx: 'deltarune_release_shoot', fx: 0.55 },
   /**
    * BUILD342 필드 대치와 전투가 같은 한 화면(사용자 참고: 델타룬 거인전 — 왼쪽 약 35% 끝길 위에 일행, 오른쪽 60% 를 청소년이 채우고 왼쪽을 본다).
    * 모두 화면 좌표(480×360). cam = 그 화면의 월드 왼쪽 위(꼭대기 맵 tools/maps/gajaeman_summit.py 의 VIEW 와 같은 값).

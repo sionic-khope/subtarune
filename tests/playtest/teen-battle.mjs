@@ -93,8 +93,8 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   assert.ok(await until(() => game.battle.state === 'enemy-prep' || game.battle.state === 'bullets', 20000), 'attacks resolved');
   await page.waitForTimeout(200); await shot('attack-crit');
   const hp1 = (await B()).hp;
-  // 공격은 타이밍 입력이라 자동 연타가 빗나갈 수 있다 — 들어간 공격마다 정확히 50 인지 본다
-  check('each hit on the fallen 청소년 deals 50', hp0 - hp1 >= 50 && (hp0 - hp1) % 50 === 0, `${hp0}->${hp1}`);
+  // 공격은 타이밍 입력이라 자동 연타가 빗나갈 수 있다 — 들어간 공격마다 정확히 35 인지 본다
+  check('each hit on the fallen 청소년 deals 35', hp0 - hp1 >= 35 && (hp0 - hp1) % 35 === 0, `${hp0}->${hp1}`);
   const gjPatterns = [], gjLines = [], riseTexts = [];
   for (let turn = 0; turn < 3; turn++) {
     assert.ok(await until(() => game.battle.state === 'enemy-prep' && !!game.battle.bubble, 20000));
@@ -109,6 +109,7 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   }
   check('gajaeman says his line before each pattern', JSON.stringify(gjLines) === JSON.stringify(['너검없냐?', '넣을게~', '니애미따라가라']), JSON.stringify(gjLines));
   check('gajaeman speaks the first rise lines before 청소년 stands up', JSON.stringify(riseTexts) === JSON.stringify(['* 의미없는 발버둥을', '* 아무리 발악해봐야 너희는 곧 죽는다', '* 이런이런 그릇이 너무 강력해서 섭타룬의 힘을 저항하고 있는건가']), JSON.stringify(riseTexts));
+  check('one collapse deals at most 315 (9 hits), so 청소년 falls on the fourth collapse', hp0 - (await B()).hp <= 315 && 315 * 3 < 999, `${hp0}->${(await B()).hp}`);
   const end = await B();
   check('attacks hurt the fallen 청소년', end.hp < hp0, `${hp0}->${end.hp}`);
   check('after three turns 청소년 is back up with an empty gauge', end.sup.phase === 'guard' && end.sup.gauge === 0, JSON.stringify(end.sup));

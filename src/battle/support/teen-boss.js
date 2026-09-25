@@ -20,6 +20,7 @@ export function createTeenBossSupport(battle) {
   let gj = { mode: 'hidden', t: 0, from: [...V.shoulder] };
   // 쓰러짐(collapse)·일어남(rise) 연출 시간
   let steam = [], sparks = [];
+  let downDealt = 0;
   let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, planned = null, motes = [], crits = [], puffs = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
@@ -54,7 +55,7 @@ export function createTeenBossSupport(battle) {
       globalThis.__teenImages = Object.fromEntries(TEEN_DEBRIS.map((src, i) => [src, debris[i]]));
       await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing', 'heal', 'mario_jump', 'static_burst', 'sizzle']);
     },
-    reset() { downs = 0; phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
+    reset() { downDealt = 0; downs = 0; phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
     buttons() {
       // 공격하기 바로 옆에 방어하기(사용자), 공격하기가 잠겨 있으면 커서는 방어하기에서 시작(defaultMenuIdx)
       return [
@@ -141,7 +142,11 @@ export function createTeenBossSupport(battle) {
       if (p?.type === 'teen_rock' && live()) { battle.hitEnemy(enemy, null, C.rockDamage, { source: 'teen_rock' }); battle.game.shake = { time: 0.4, amp: 5 }; }
     },
     /** 쓰러진 동안 일반 공격은 한 대 80 */
-    adjustDamage(target, dmg, source) { return target === enemy && phase === 'down' && source === 'ordinary' ? C.downHit.damage : dmg; },
+    adjustDamage(target, dmg, source) {
+      if (target !== enemy || phase !== 'down' || source !== 'ordinary') return dmg;
+      downDealt += C.downHit.damage;
+      return C.downHit.damage;
+    },
     /** 쓰러진 동안 맞을 때마다 치명타: 릴리즈샷 소리 + 섬광·방사 줄기 + 흔들림 */
     onHit(target, damage, source) {
       if (target !== enemy || phase !== 'down' || source !== 'ordinary') return;
@@ -199,7 +204,7 @@ export function createTeenBossSupport(battle) {
         // 과부하: 몇 초 동안 앞으로 기울며 무너져 끝길 쪽으로 엎어진다(애니처럼) → 정적 → 억빠맨
         battle.soul.hidden = false;
         // 과부하 먼저: 지지직 스파크 → 퓌시이익 김·연기 → 그다음 쓰러짐
-        phase = 'down'; downs++; downLeft = C.downTurns; fall = { kind: 'overload', t: 0, hissed: false };
+        phase = 'down'; downs++; downDealt = 0; downLeft = C.downTurns; fall = { kind: 'overload', t: 0, hissed: false };
         battle.sfx('static_burst'); battle.game.shake = { time: CF.overload, amp: 2 };
         let talk = null, hold = CF.hold;
         return {
