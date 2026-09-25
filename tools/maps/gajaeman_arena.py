@@ -89,6 +89,9 @@ def main() -> None:
             entities.append({'type': 'prop', 'id': prop_id, 'image': f'assets/props/arena332_{n}.png',
                              'x': start_x, 'y': feet - hh + TOP_PAD, 'solid': False, 'hidden': True})
             summons.append({'id': prop_id, 'side': side, 'x': final_x, 'y': feet - hh + TOP_PAD})
+    # BUILD334: 오른쪽 테라스 끝으로 가면 무너지는 계단으로
+    entities.append({'type': 'door', 'id': 'arena_to_stairs', 'x': W - 10, 'y': 216 + TOP_PAD, 'w': 10, 'h': 146,
+                     'to': 'gajaeman_castle_stairs', 'spawn': 'start', 'interact': False, 'sfx': False})
     entities.append({'type': 'trigger', 'id': 'arena_back', 'x': 480, 'y': ROWS * 32 - 10, 'w': 142, 'h': 10,
                      'script': 'castle_spire_back'})
     data = {

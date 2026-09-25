@@ -792,5 +792,10 @@ for (const [id, spawn, desc] of [
   ['castle_prophecy_door', 'door', '예언의 회랑 · 끝의 남색 대문 앞'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_prophecy', spawn, stage: 'castle_spire_arrived',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true } });
+for (const [id, spawn, extra, desc] of [
+  ['castle_stairs', 'start', {}, '무너지는 계단 · 입구(주먹이 뒤 계단을 부수고, 몬스터·누누와 윌럼프)'],
+  ['castle_stairs_top', 'top', { castle_stairs_monsters_done: true, castle_stairs_nunu_done: true }, '무너지는 계단 · 꼭대기'],
+]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_stairs', spawn, stage: 'castle_arena_seen',
+  party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true, ...extra } });
 QA_POINTS.push({ ...gateReady, id: 'castle_arena', desc: '결전지 · 도착 연출(가재맨·소환·지원군·청소년 구슬·푸른 파동)', map: 'gajaeman_castle_arena', spawn: 'start', stage: 'castle_prophecy_seen',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true } });

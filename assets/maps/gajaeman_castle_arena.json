@@ -565,6 +565,18 @@
    "hidden": true
   },
   {
+   "type": "door",
+   "id": "arena_to_stairs",
+   "x": 1142,
+   "y": 2616,
+   "w": 10,
+   "h": 146,
+   "to": "gajaeman_castle_stairs",
+   "spawn": "start",
+   "interact": false,
+   "sfx": false
+  },
+  {
    "type": "trigger",
    "id": "arena_back",
    "x": 480,
