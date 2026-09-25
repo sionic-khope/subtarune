@@ -223,7 +223,7 @@ export const TEEN_PATTERNS = {
     // 끝까지(상자 위 벽) 빨려 가면 구멍으로 들어가 전원 50, 그 뒤 흡입이 멎는다
     const VC = TEEN_BATTLE.view.vacuum, M = TEEN_BATTLE.mash, ready = VC.approach + VC.open, duration = M.duration + ready;
     const to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]], from = TEEN_BATTLE.view.giant, lv = Math.min(4, o.level ?? 0);
-    let started = false, opened = false, sucking = false, sucked = 0, next = ready + 0.3, n = 0, presses = 0, jolt = 0, gulp = null, lockY = null, nextRock = ready + 1.2, flash = 0;
+    let started = false, opened = false, sucking = false, sucked = 0, next = ready + 0.3, n = 0, presses = 0, jolt = 0, gulp = null, lockY = null, nextRock = ready + 1.2, flash = 0, endAt = null;
     /** 누르라는 C 키: 상자 아래 가운데에 고정, 맥동(눌렀을 때 색만 바뀌고 움직이지 않는다) */
     const drawKey = (ctx, b) => {
       if (sucked) return;
@@ -249,7 +249,8 @@ export const TEEN_PATTERNS = {
       for (let i = 0; i < 12; i++) { const an = i * TAU / 12 + 0.3, rr = 10 + 70 * k; ctx.fillStyle = i % 2 ? '#ff4d6d' : '#d0a0ff'; ctx.fillRect(Math.round(ax + Math.cos(an) * rr) - 2, Math.round(ay + Math.sin(an) * rr) - 2, 4, 4); }
       ctx.restore();
     };
-    return { duration, update(t, dt, api) {
+    // 빨려 들어가 터지면 그 자리에서 이번 적 턴을 끝낸다(duration 을 줄인다)
+    return { get duration() { return endAt ?? duration; }, update(t, dt, api) {
       const box = api.box, [px, py] = VC.palm, soul = api.soul;
       if (!started) {
         started = true; api.sfx?.('rumble', { volume: 0.6 }); api.vacuum?.(true, duration);
@@ -267,7 +268,7 @@ export const TEEN_PATTERNS = {
       if (gulp) {
         soul.x = gulp.x; soul.y = gulp.y;
         if (t - gulp.t > 0.6 && !gulp.boom) { gulp.boom = true; api.sfx?.('explosion', { volume: 0.9 }); api.shake?.(0.6, 8); api.trackProjectile?.({ type: 'teen_sucked' }); }
-        if (t - gulp.t > 1.3) { soul.hidden = false; soul.x = box.x + box.w / 2; soul.y = box.y + box.h - soul.r - 8; gulp = null; }
+        if (t - gulp.t > 1.5 && endAt === null) { endAt = t; api.clearHazards?.(); }
       } else if (!sucked && t < duration - 1) {
         // 점점 세게 위(손바닥 구멍)로
         const pull = (M.pull[0] + (M.pull[1] - M.pull[0]) * Math.min(1, (t - ready) / (M.duration * M.ramp))) * (1 + 0.08 * lv);

@@ -310,6 +310,8 @@ export function createTeenBossSupport(battle) {
     },
     afterEnemyPhase() {
       defenders.clear();
+      // 빨려 들어가 감춰졌던 하트는 메뉴로 돌아오면 다시
+      battle.soul.hidden = false;
       if (!live()) return null;
       if (phase === 'guard' && gauge >= C.gauge.max) {
         // 과부하: 몇 초 동안 앞으로 기울며 무너져 끝길 쪽으로 엎어진다(애니처럼) → 정적 → 억빠맨
