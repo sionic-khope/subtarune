@@ -54,7 +54,7 @@ export function createTeenBossSupport(battle) {
       { name: 'burst', d: T.burst, start: () => { burst = { t: 0 }; battle.sfx('captain_thunder'); battle.sfx('baron_roar'); battle.game.shake = { time: T.burst, amp: 8 }; } },
       { name: 'heal', d: T.heal, start: () => { healT = { t: 0, from: enemy.hp }; enemy.popup = { t: 0, text: `+${P2.heal}`, color: '#7cff7c' }; battle.sfx('heal'); } },
       // 일행 느낌표와 함께 카메라가 제자리로(당겨진 동안엔 일행이 화면 밖이라 같이 돌아오며 보이게)
-      { name: 'exclaim', d: Math.max(T.exclaim, T.focusOut), start: () => { burst = null; healT = null; enemy.hp = P2.heal; exclaim = T.exclaim; camTo(null, T.focusOut); battle.sfx('impact'); } },
+      { name: 'exclaim', d: Math.max(T.exclaim, T.focusOut), start: () => { burst = null; healT = null; enemy.hp = P2.hp; exclaim = T.exclaim; camTo(null, T.focusOut); battle.sfx('impact'); } },
       { name: 'party', talk: () => P2.partyLines },
       { name: 'stand', d: T.stand, start: () => { cam = null; phase = 'p2'; standT = { t: 0 }; battle.sfx('rumble'); battle.game.shake = { time: T.stand, amp: 4 }; } },
       { name: 'core', d: T.core, start: () => { standT = null; coreK = 0.001; battle.sfx('laser_charge'); } },
@@ -76,7 +76,7 @@ export function createTeenBossSupport(battle) {
         else { t += dt; if (t >= st.d) next(); }
         if (i >= steps.length) {
           // 2페이즈 시작: 적 이름 가재맨, HP 999, 공격 가능
-          trans = null; phase = 'p2'; coreK = 1; enemy.name = P2.name; enemy.hp = P2.heal; enemy.maxHp = Math.max(enemy.maxHp, P2.heal);
+          trans = null; phase = 'p2'; coreK = 1; enemy.name = P2.name; enemy.hp = P2.hp; enemy.maxHp = P2.hp;
           battle.setText('');
           return true;
         }
@@ -297,7 +297,7 @@ export function createTeenBossSupport(battle) {
       if (exclaim > 0) exclaim -= dt;
       if (standT) standT.t += dt;
       if (coreK > 0 && coreK < 1) coreK = Math.min(1, coreK + dt / P2.time.core);
-      if (healT) { healT.t += dt; enemy.hp = Math.round(healT.from + (P2.heal - healT.from) * Math.min(1, healT.t / P2.time.heal)); }
+      if (healT) { healT.t += dt; enemy.hp = Math.round(healT.from + (P2.hp - healT.from) * Math.min(1, healT.t / P2.time.heal)); }
       if (burst) {
         burst.t += dt;
         if (burst.t < P2.time.burst) for (let i = 0; i < 4; i++) { const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 160; burstPuffs.push({ x: P2.inside[0], y: P2.inside[1], vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, r: 8 + Math.random() * 10, t: 0, life: 0.9 + Math.random() * 0.8, purple: Math.random() < 0.45 }); }
