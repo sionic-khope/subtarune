@@ -32,7 +32,7 @@ export class CastleSummit {
   /** 청소년 slowly rises out of the black smoke (smoke thickens around her first). */
   revealGiant() {
     this.giant = { t: 0 };
-    for (let i = 0; i < 30; i++) this.spawnCloud(true);
+    for (let i = 0; i < 60; i++) this.spawnCloud(true);
     this.game.sound.sfx('rumble', { volume: 0.8 }); this.game.shake = { time: SUMMIT.reveal, amp: 1 };
     return this.waitFor(() => this.giant.t >= SUMMIT.reveal);
   }
@@ -100,7 +100,8 @@ export class CastleSummit {
     if (img) {
       const k = clamp01(this.giant.t / SUMMIT.reveal), breath = Math.sin(this.time * Math.PI * 2 / SUMMIT.breathe);
       const w = img.width * (1 + 0.008 * breath), h = img.height * (1 + 0.018 * breath);
-      const rise = (1 - ease(k)) * 160, x = G.x - w / 2 - cam.x, y = G.bottom - h - cam.y + rise - breath * 4;
+      // 제자리에서 연기가 걷히며 드러난다(올라오지 않는다, 사용자 “연기가 걷어지면서 나오는거야”)
+      const x = G.x - w / 2 - cam.x, y = G.bottom - h - cam.y - breath * 4;
       ctx.globalAlpha = ease(k);
       ctx.drawImage(img, Math.round(x), Math.round(y), Math.round(w), Math.round(h));
       const neck = ctx.createLinearGradient(0, y - 20, 0, y + 70);
@@ -112,7 +113,8 @@ export class CastleSummit {
     if (this.actor?.visible && img) this.actor.draw(ctx, cam);
     for (const c of this.clouds) {
       const fade = Math.min(1, c.age / 0.6, (c.life - c.age) / 0.8);
-      const thin = this.giant ? 0.35 + 0.65 * (1 - clamp01(this.giant.t / SUMMIT.reveal)) : 1;
+      // 드러나기 전엔 연기가 짙게 덮고, 걷히면서 옅어진다
+      const thin = this.giant ? 0.3 + 0.9 * (1 - clamp01(this.giant.t / SUMMIT.reveal)) : 1;
       ctx.globalAlpha = Math.max(0, fade * 0.85 * thin); ctx.fillStyle = c.r > 50 ? '#120c1c' : '#040307';
       const r = Math.round(c.r), cx = c.x - cam.x, cy = c.y - cam.y;
       if (cx < -r || cx > SCREEN_W * 3 + r || cy < -r - SCREEN_H || cy > SCREEN_H * 3 + r) continue;

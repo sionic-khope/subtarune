@@ -1,0 +1,5 @@
+Create a sprite sheet of SIX different debris objects for a Deltarune-style pixel-art RPG battle, arranged in EXACTLY 3 columns x 2 rows on a 1536x1024 canvas with invisible equal 512x512 cells, one object per cell, each filling the central 60% of its cell. Solid pure #FF00FF magenta background. No text, no labels, no borders, no shadows.
+
+The objects are junk being sucked up from a dark sapphire castle chamber: 1. a broken old CRT monitor with a cracked glowing blue static screen; 2. a small golden trophy cup, dented; 3. a glass jar with a glowing sapphire crystal inside; 4. a jagged chunk of navy stone floor with a glowing blue inlay line; 5. a broken wooden chair; 6. a thick iron chain segment with a broken link.
+
+Style: crisp pixel art with dark stepped outlines, limited palette of navy, indigo, cold sapphire blue glow, some gold and brown, chunky pixels, same style as a 16-bit RPG, tumbling slightly rotated.

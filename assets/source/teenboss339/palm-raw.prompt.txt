@@ -1,0 +1,11 @@
+# imagegen 2026-09-25 14:41:08
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/teenboss339/refs/teen-ref.png
+
+Create ONE object sprite for a Deltarune-style pixel-art battle, horizontal composition, centered on a solid pure #FF00FF magenta background. No text, no border, no ground.
+
+Reference (Image1): copy EXACTLY this art style: solid BLACK fill with thin crisp WHITE contour lines, dark pink rolled short sleeve, enormous muscular arm with white muscle lines.
+
+Subject: a GIANT muscular forearm and hand reaching in from the RIGHT edge of the canvas toward the LEFT, the hand WIDE OPEN with thick fingers spread, palm facing the viewer, and in the CENTER of the palm a large round swirling black HOLE (a vortex spiral drawn with white spiral lines, sucking inward). The arm spans about 80% of the canvas width, the hand on the left side, the forearm going off the right edge. The black fill must be solid, no magenta inside.

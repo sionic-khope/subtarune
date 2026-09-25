@@ -185,10 +185,11 @@ export const ENEMIES = {
     name: '청소년', hp: 999, damage: 15, money: 0, boss: true, support: 'teen_boss', voice: 'narrator',
     sheet: { src: 'assets/enemies/teenboss339.png', cols: 3, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { all: { src: 'assets/enemies/teenboss339.png', cols: 3, rows: 2, count: 6, fps: 1, px: 1 } },
-    pivot: [128, 250], scale: 1, dx: -20, dy: 70, board: [300, 150], idle: { swayX: 0, swayY: 0 },
+    // BUILD340 사용자 “더 거대해서 상체만”: 1.35배, 어깨가 화면 위로 넘어가 목이 안 보이게
+    pivot: [128, 250], scale: 1.35, dx: 10, dy: 78, board: [300, 150], idle: { swayX: 0, swayY: 0 },
     projectiles: { sword: 'assets/props/cathedral323_sword.png', knee: 'assets/props/teenboss339_knee.png', arm: 'assets/props/arena332_arm.png' },
     patterns: [{ type: 'teen_vacuum' }],
-    lines: { appear: '* 청소년이 앞을 막아섰다.', idle: ['* 청소년이 거칠게 숨을 쉰다.'], speak: ['...'], die: '* 청소년이 쓰러졌다.' },
+    lines: { appear: '* 청소년이 앞을 막아섰다.', idle: ['* 마지막이다.', '* 끝이다.'], speak: ['...'], die: '* 청소년이 쓰러졌다.' },
   },
   drum_devil: {
     name: '드럼통의 악마', hp: 300, damage: 15, money: 0, boss: true, support: 'drum_devil',

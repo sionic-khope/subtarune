@@ -17,12 +17,12 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_summit'
-W, H = 4608, 768
+W, H = 3456, 768   # BUILD340: 한 조각 줄였다(사용자 “오른쪽길 너무 긴듯”)
 FLOOR: Final = '▓'
 # 걷는 곳: 구름에서 올라오는 계단, 오른쪽으로 이어진 길(부서진 끝 앞까지)
-WALK: Final = [(112, 380, 236, 340), (112, 350, 3848, 86)]
-TALK_X: Final = 3800
-GIANT: Final = {'x': 4330, 'bottom': 620, 'image': 'assets/props/summit336_teen.png', 'shoulder': [4470, 215]}
+WALK: Final = [(112, 380, 236, 340), (112, 350, 2696, 86)]
+TALK_X: Final = 2648
+GIANT: Final = {'x': 3110, 'bottom': 768, 'image': 'assets/props/summit336_teen.png', 'shoulder': [3270, 60]}
 
 
 def anchor(name: str, x: int, y: int) -> dict:
@@ -46,18 +46,19 @@ def main() -> None:
                        ('summit_stand_ppaman', TALK_X - 70, 410)):
         entities.append(anchor(name, x, y))
     entities.extend([
-        {'type': 'npc', 'id': 'summit_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 4150, 'y': -300,
+        {'type': 'npc', 'id': 'summit_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 3000, 'y': -300,
          'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.89},
         # 대치 → 전투. 이긴 뒤엔 스크립트가 바로 끝난다(이어하기에서 대치 뒤 저장이면 전투부터)
-        {'type': 'trigger', 'id': 'summit_confront', 'x': 3480, 'y': 340, 'w': 24, 'h': 110, 'script': 'castle_summit_confront'},
+        {'type': 'trigger', 'id': 'summit_confront', 'x': 2328, 'y': 340, 'w': 24, 'h': 110, 'script': 'castle_summit_confront'},
         {'type': 'trigger', 'id': 'summit_back', 'x': 112, 'y': H - 58, 'w': 236, 'h': 10, 'script': 'castle_spire_back'},
     ])
     data = {
         'id': MAP_ID, 'name': '가재맨성 꼭대기', 'stage': 'castle_arena_seen',
-        'bgm': None, 'followScreenY': 200, 'rows': [''.join(row) for row in cells],
+        # 들어오면 바람 소리만(사용자 “들어왔을때 바람소리만”) → 대치 중 Gallery
+        'bgm': 'wind', 'bgmVolume': 0.35, 'followScreenY': 200, 'rows': [''.join(row) for row in cells],
         'preload': [f'assets/props/summit336_chunk_{i}.png' for i in range(W // 1152)] + [GIANT['image']],
         'spawns': {'start': {'x': 218, 'y': 690, 'facing': 'up'}, 'confront': {'x': TALK_X, 'y': 386, 'facing': 'right'}},
-        'meta': {'connected': True, 'summit': {'giant': GIANT, 'smoke': [3990, W], 'gajaeman': 'summit_gajaeman'}},
+        'meta': {'connected': True, 'summit': {'giant': GIANT, 'smoke': [2838, W], 'gajaeman': 'summit_gajaeman'}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

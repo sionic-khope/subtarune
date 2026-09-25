@@ -21,9 +21,10 @@ registerBattleBg('castle_memory', drawCastleMemoryBackground);
 
 // BUILD339 청소년전: 꼭대기 끝길 그대로(부서진 끝 조각 왼쪽 절반을 화면에) — 사용자 “맵은 그냥 거기서 바로 진행”
 registerBattleBg('castle_summit', (ctx, battle) => {
-  const img = battle.game.propImages['assets/props/summit336_chunk_3.png'] || battle.game.propImages['assets/props/summit336_chunk_2.png'];
+  // 부서진 끝 조각: 일행은 왼쪽 끝길 위, 오른쪽은 허공(청소년이 그 자리를 채운다) — 사용자 참고(델타룬 거인전 구도)
+  const img = battle.game.propImages['assets/props/summit336_chunk_2.png'];
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 480, 360);
-  if (img) ctx.drawImage(img, 60, 60, 640, 480, 0, 0, 480, 360);
+  if (img) ctx.drawImage(img, 300, 300, 400, 300, 0, 0, 480, 360);
   ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 0, 480, 360);
 });
 

@@ -1,0 +1,38 @@
+{
+  "endpoint": "images/generations",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [],
+  "elapsed_seconds": 28.8,
+  "usage": {
+    "input_tokens": 234,
+    "output_tokens": 1372,
+    "total_tokens": 1606,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 234
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790314868,
+  "outputs": [
+    {
+      "file": "assets/source/teenboss339/debris-raw.png",
+      "bytes": 1531889,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

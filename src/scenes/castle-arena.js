@@ -306,12 +306,6 @@ export class CastleArena {
       }
     }
     this.flung = this.flung.filter(f => !f.done);
-    if (this.fountain && this.surgeT() >= 0 && !this.fountain.fadeOut) {
-      for (let i = 0; i < 6; i++) {
-        const side = this.rnd() * 2 - 1, [px] = this.pit, w = ARENA.fountain.width;
-        this.sparks.push({ x: px + side * w * (0.55 + this.rnd() * 0.5), y: g.camera.y + SCREEN_H * (1.2 + this.rnd()), vy: -(700 + this.rnd() * 700), age: 0, len: 10 + this.rnd() * 30, big: this.rnd() < 0.2 });
-      }
-    }
     for (const sp of this.sparks) { sp.age += s; sp.y += sp.vy * s; }
     this.sparks = this.sparks.filter(sp => sp.age < 2.2);
     if (this.fountain?.fadeOut) { const fo = this.fountain.fadeOut; fo.t += s; if (fo.t >= fo.d) this.fountain = null; }
@@ -352,11 +346,13 @@ export class CastleArena {
         const k = clamp01(w.t / S.fly), e = k * k;
         w.flash = 0;
         w.x = w.sx + (w.tx - w.sx) * e; w.y = w.sy + (w.ty - w.sy) * e; w.angle = w.sa * (1 - k);
-        if (k >= 1) {
-          w.phase = 'stuck'; w.flash = 0.25;
-          for (let i = 0; i < 6; i++) this.dust.push({ x: w.tx, y: w.ty + 20, vx: (this.rnd() - 0.5) * 120, vy: -60 - this.rnd() * 80, age: 0 });
-          if (this.swords.every(x => x.phase === 'stuck')) { this.sfx('baron_slam', 0.85); this.game.shake = { time: 0.6, amp: 6 }; }
-          else this.sfx('impact', 0.35);
+        if (k >= 1) { w.phase = 'sink'; w.st = 0; }
+      } else if (w.phase === 'sink') {
+        // 구덩이 속으로 그대로 빨려 들어간다: 계속 떨어지며 작아지고 어둠에 잠긴다(사용자 “꽂히는 게 아니라 그대로 안에 들어가는 느낌”)
+        w.st += s;
+        if (w.st >= 0.45) {
+          w.phase = 'stuck';
+          if (this.swords.every(x => x.phase === 'stuck')) { this.sfx('baron_slam', 0.85); this.game.shake = { time: 0.9, amp: 5 }; }
         }
       }
     }
@@ -541,7 +537,9 @@ export class CastleArena {
       if (w.phase === 'forming' && w.t < 0) continue;
       const appear = w.phase === 'forming' ? clamp01(w.t / 0.3) : 1;
       const flicker = appear < 1 && Math.floor(this.time * 30) % 2 ? 0.35 : 1;
-      const sw = S.w * S.scale, sh = S.h * S.scale, stuckSink = w.phase === 'stuck' ? sh * 0.45 : 0;
+      if (w.phase === 'stuck') continue;
+      const sink = w.phase === 'sink' ? clamp01(w.st / 0.45) : 0;
+      const sw = S.w * S.scale * (1 - 0.7 * sink), sh = S.h * S.scale * (1 - 0.7 * sink), stuckSink = sink * 26;
       // 빠르게 내리꽂히는 흰 잔상 빛줄기 + 꽂힌 순간 번쩍
       if (w.phase === 'fly' && w.t >= 0) {
         const x = Math.round(w.x - cam.x), y = Math.round(w.y - cam.y), g = ctx.createLinearGradient(0, y - S.trail - sh / 2, 0, y);
@@ -554,9 +552,9 @@ export class CastleArena {
         ctx.beginPath(); ctx.ellipse(Math.round(w.tx - cam.x), Math.round(w.ty - cam.y + 22), 26, 8, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillRect(Math.round(w.tx - cam.x) - 1, Math.round(w.ty - cam.y) - 60, 3, 80); ctx.restore();
       }
-      ctx.save(); ctx.globalAlpha = appear * flicker;
+      ctx.save(); ctx.globalAlpha = appear * flicker * (1 - sink);
       ctx.translate(Math.round(w.x - cam.x), Math.round(w.y - cam.y + stuckSink)); ctx.rotate(w.angle || 0);
-      if (w.phase === 'stuck') { ctx.beginPath(); ctx.rect(-sw, -sh, sw * 2, sh * 0.55); ctx.clip(); }
+      if (sink > 0) ctx.filter = `brightness(${1 - 0.8 * sink})`;
       ctx.drawImage(img, -Math.round(sw / 2), -Math.round(sh / 2), Math.round(sw), Math.round(sh));
       ctx.restore();
     }
@@ -570,7 +568,8 @@ export class CastleArena {
     const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit;
     const h = this.fountainHeight(), st = this.surgeT(), open = st < 0 ? 0 : easeOut(st / 0.7);
     if (st < 0) { this.drawTrickle(ctx, cam); return; }
-    const width = 24 + (F.width - 24) * open;
+    // 기둥 폭 = 구덩이 폭(사용자 “원형하고 안맞고”): 구덩이 가장자리까지 차오른다
+    const width = 24 + (prx * 2 * 0.92 - 24) * open;
     // 줌아웃 중에는 화면보다 넓게 보이므로 화면 밖으로 넉넉히 그린다(잘려 보이지 않게)
     const baseY = py - cam.y, topY = baseY - h, cx = px - cam.x, visTop = Math.max(topY, -SCREEN_H * 1.5), visBot = SCREEN_H * 2.5;
     ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
@@ -590,9 +589,12 @@ export class CastleArena {
       ctx.closePath(); ctx.fill();
     };
     this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, false);
-    const foot = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, width * 0.9);
-    foot.addColorStop(0, 'rgba(226,251,248,0.95)'); foot.addColorStop(0.5, 'rgba(95,224,240,0.6)'); foot.addColorStop(1, 'rgba(47,182,224,0)');
-    ctx.fillStyle = foot; ctx.beginPath(); ctx.ellipse(cx, baseY, width * 0.9, width * 0.28, 0, 0, Math.PI * 2); ctx.fill();
+    // 구덩이 안이 빛으로 가득 찬다(타원 그대로), 기둥은 그 안에서 솟는다
+    const pry = this.pit[3];
+    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, baseY, prx, pry, 0, 0, Math.PI * 2); ctx.clip();
+    const foot = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, prx);
+    foot.addColorStop(0, 'rgba(226,251,248,0.95)'); foot.addColorStop(0.6, 'rgba(95,224,240,0.75)'); foot.addColorStop(1, 'rgba(30,110,190,0.55)');
+    ctx.fillStyle = foot; ctx.fillRect(cx - prx, baseY - pry, prx * 2, pry * 2); ctx.restore();
     band(0, '#2fb6e0'); band(width * 0.05, '#5fe0f0'); band(width * 0.12, '#c8f4f2'); band(width * 0.24, '#e6fcf9');
     // 기둥 안을 비스듬히 훑고 올라가는 짙은 파랑 띠(참고 스크린샷의 큰 대각선 덩어리)
     ctx.save();
@@ -622,13 +624,6 @@ export class CastleArena {
       }
     }
     ctx.restore();
-    // 기둥 둘레로 솟구치는 빛 입자
-    for (const sp of this.sparks) {
-      ctx.globalAlpha = Math.max(0, 1 - sp.age / 2.2);
-      ctx.fillStyle = sp.big ? '#ffffff' : '#9fe6ff';
-      ctx.fillRect(Math.round(sp.x - cam.x), Math.round(sp.y - cam.y), sp.big ? 3 : 2, Math.round(sp.len));
-    }
-    ctx.globalAlpha = 1;
     // 위로 퍼지는 충격 고리
     for (let r = 0; r < 3; r++) {
       const ring = ((this.time * 0.7 + r / 3) % 1), yy = baseY - ring * Math.min(h, SCREEN_H * 3);
@@ -667,9 +662,12 @@ export class CastleArena {
     const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit, k = clamp01(f.t / F.build);
     const baseY = py - cam.y, cx = px - cam.x, reach = clamp01(f.t / 1.2), top = baseY - (baseY + 60) * reach;
     ctx.fillStyle = `rgba(2,10,34,${0.35 * k})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
-    const glow = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, prx * 0.45);
-    glow.addColorStop(0, `rgba(160,235,255,${0.35 + 0.25 * k})`); glow.addColorStop(1, 'rgba(60,160,220,0)');
-    ctx.fillStyle = glow; ctx.fillRect(cx - prx * 0.5, baseY - prx * 0.2, prx, prx * 0.4);
+    // 구덩이 깊은 곳부터 푸른빛이 차오른다(구덩이 타원 안만)
+    const pry = this.pit[3];
+    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, baseY, prx, pry, 0, 0, Math.PI * 2); ctx.clip();
+    const glow = ctx.createRadialGradient(cx, baseY + pry * 0.2, 0, cx, baseY, prx * (0.3 + 0.7 * k));
+    glow.addColorStop(0, `rgba(160,235,255,${0.25 + 0.45 * k})`); glow.addColorStop(1, 'rgba(40,120,200,0)');
+    ctx.fillStyle = glow; ctx.fillRect(cx - prx, baseY - pry, prx * 2, pry * 2); ctx.restore();
     const w = 6 + 10 * k + Math.sin(this.time * 17) * 1.5;
     for (const [inset, rgb, alpha] of [[0, '47,182,224', 0.75], [w * 0.3, '220,250,250', 0.95]]) {
       const g = ctx.createLinearGradient(0, baseY, 0, top);

@@ -25,6 +25,7 @@ export const TEEN_BATTLE = Object.freeze({
   ],
   downLine: { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 지금이에요 공격해요!!' },
   labels: { fight: '공격하기', item: '아이템', defend: '방어하기', gauge: '청소 용량' },
-  idle: { guard: '* 청소년이 거칠게 숨을 쉰다.', down: '* 청소년이 쓰러져 있다!' },
+  // 행동 창 문구(사용자 2026-09-25 “마지막이다. 끝이다. 이런류”) — 턴마다 돌아가며
+  idle: { guard: ['* 마지막이다.', '* 끝이다.', '* 이것이 마지막 싸움이다.', '* 모든 것의 끝이 다가온다.'], down: '* 청소년이 쓰러져 있다!' },
   defendText: '* 모두 팔을 교차해 막을 준비를 했다.',
 });

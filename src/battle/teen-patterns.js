@@ -15,6 +15,15 @@ const drawRock = (ctx, b) => {
   ctx.fillStyle = '#fff'; ctx.beginPath(); b.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#000'; ctx.fillRect(-1, -1, 2, 2); ctx.restore();
 };
+const DEBRIS = Array.from({ length: 6 }, (_, i) => `assets/props/teenboss339_debris_${i}.png`);
+/** 컬러 잔해 스프라이트(모니터·트로피·유리병·돌판·의자·사슬) — 그림이 없으면 흰 돌 */
+const drawDebris = (ctx, b) => {
+  const img = globalThis.__teenImages?.[DEBRIS[b.debris]];
+  if (!img) { if (!b.pts) b.pts = rockPoints(b.r, b.debris + 1); drawRock(ctx, b); return; }
+  ctx.save(); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(b.rot);
+  ctx.drawImage(img, -Math.round(img.width / 2), -Math.round(img.height / 2)); ctx.restore();
+};
+export const TEEN_DEBRIS = DEBRIS;
 const warnArrow = (ctx, b) => {
   if (Math.floor(b.age * 12) % 2) return;
   ctx.fillStyle = '#ff4d4d'; const x = Math.round(b.x), y = Math.round(b.y);
@@ -22,32 +31,27 @@ const warnArrow = (ctx, b) => {
 };
 
 export const TEEN_PATTERNS = {
+  // BUILD340 재설계(사용자 “오른쪽에 손이 뻗어진 느낌, 가운데 피하는 영역은 좁고, 삼각형 소용돌이 흡입, 더 강렬, 잔해는 스프라이트”):
+  //   오른쪽 밖에서 손바닥(구멍)이 뻗어 오고, 그 앞 삼각형 소용돌이가 하트를 오른쪽으로 빨아들인다. 컬러 잔해가 왼쪽에서 날아와 구멍으로 빨려 간다.
+  //   손·소용돌이 그림은 support.drawUnderBoard(상자 밖)에서, 이 패턴은 힘·잔해·예고만.
   teen_vacuum: (o = {}) => {
     const duration = o.duration ?? 8.4;
-    let next = 0.6, n = 0, hole = null;
+    let next = 0.7, n = 0, started = false;
     return { duration, update(t, dt, api) {
       const box = api.box, cy = box.y + box.h / 2;
-      if (!hole) {
-        api.present?.({ sheet: 'all', frame: 4 });
-        api.sfx?.('laser_charge', { volume: 0.5 });
-        hole = keep(api, { x: box.x + 2, y: cy, r: 16, life: duration, drawShape(ctx, b) {
-          ctx.save(); clip(ctx, api.box); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-          for (let k = 0; k < 3; k++) { const r = 6 + k * 6 + (b.age * 18 % 6); ctx.beginPath(); ctx.arc(b.x, b.y, r, b.age * 6 + k, b.age * 6 + k + 4.2); ctx.stroke(); }
-          ctx.restore();
-        } });
-      }
-      // 빨아들이는 힘: 점점 세진다
-      const pull = 24 + 26 * Math.min(1, t / (duration * 0.8));
-      api.soul.x = clamp(api.soul.x - pull * dt, box.x + api.soul.r + 4, box.x + box.w - api.soul.r - 4);
-      const every = Math.max(0.28, 0.46 - t * 0.02);
+      if (!started) { started = true; api.present?.({ sheet: 'all', frame: 4 }); api.sfx?.('teen_vacuum', { volume: 0.9 }); api.vacuum?.(true, duration); }
+      // 빨아들이는 힘: 오른쪽으로, 점점 세진다(끝까지 가만히 있으면 벽에 붙는다)
+      const pull = 30 + 44 * Math.min(1, t / (duration * 0.7));
+      api.soul.x = clamp(api.soul.x + pull * dt, box.x + api.soul.r + 4, box.x + box.w - api.soul.r - 4);
+      const every = Math.max(0.26, 0.5 - t * 0.03);
       while (t >= next && t < duration - 1) {
         next += every; n++;
-        const y = box.y + 10 + api.rnd() * (box.h - 20), warn = 0.35, speed = 130 + api.rnd() * 70, r = 9 + Math.floor(api.rnd() * 6);
-        api.emit({ x: box.x + 4, y, r: 0, harmless: true, life: warn, drawShape: warnArrow });
-        const seed = n;
-        api.emit({ x: box.x - 14, y, r, vx: 0, spin: (api.rnd() - 0.5) * 8, pts: rockPoints(r, seed), drawShape: drawRock,
-          steer(b) {
+        const y = box.y + 12 + api.rnd() * (box.h - 24), warn = 0.4, speed = 170 + api.rnd() * 90, kind = Math.floor(api.rnd() * 6);
+        api.emit({ x: box.x + 6, y, r: 0, harmless: true, life: warn, drawShape: warnArrow });
+        api.emit({ x: box.x - 30, y, r: 11, vx: 0, spin: (api.rnd() - 0.5) * 9, kind: 'debris', debris: kind, drawShape: drawDebris,
+          steer(b, d) {
             if (b.age >= warn && !b.vx) b.vx = speed;
+            if (b.vx) b.vy += (cy - b.y) * 1.6 * d;
             if (!b.touched && b.hits(api.soul)) b.touched = true;
             if (!b.counted && b.x > api.box.x + api.box.w + 6) { b.counted = true; if (!b.touched) api.trackProjectile?.({ type: 'teen_dodge' }); }
           } });

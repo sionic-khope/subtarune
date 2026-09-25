@@ -1576,7 +1576,8 @@ class Game {
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }
       return;
     }
-    if (this.battle && !(this.battle.state === 'load' && this.battle.cfg.seamlessIntro && this.runner)) {
+    // 이어지는 전투(seamlessIntro)는 전투 그림이 준비될 때까지 필드를 그대로 보여 준다(검은 화면 없이, BUILD340 청소년전)
+    if (this.battle && !(this.battle.state === 'load' && this.battle.cfg.seamlessIntro)) {
       ctx.save(); if (this.shake) { const a = this.shake.amp || 3; ctx.translate(Math.round((Math.random() * 2 - 1) * a), Math.round((Math.random() * 2 - 1) * a)); }
       this.battle.draw(ctx); ctx.restore();
       if (this.fade.alpha > 0) { ctx.fillStyle = `rgba(${this.fade.color},${this.fade.alpha})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H); }

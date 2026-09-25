@@ -46,7 +46,7 @@ export class Board {
   get rect() { return { x: this.x, y: this.y, w: this.w, h: this.h }; }
   draw(ctx) {
     ctx.fillStyle = '#000'; ctx.fillRect(Math.round(this.x), Math.round(this.y), Math.round(this.w), Math.round(this.h));
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(Math.round(this.x) + 1.5, Math.round(this.y) + 1.5, Math.round(this.w) - 3, Math.round(this.h) - 3);
+    ctx.strokeStyle = this.color || '#fff'; ctx.lineWidth = 3; ctx.strokeRect(Math.round(this.x) + 1.5, Math.round(this.y) + 1.5, Math.round(this.w) - 3, Math.round(this.h) - 3);
   }
 }
 

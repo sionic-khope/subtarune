@@ -14,7 +14,7 @@ ap = importlib.util.module_from_spec(spec); spec.loader.exec_module(ap)
 
 
 def main() -> None:
-    teen = ap.fade_bottom(ap.shrink(ap.key_out(ap.thicken_lines(HERE / 'teen-raw.png', 3)), 620), 0.2)
+    teen = ap.fade_bottom(ap.shrink(ap.key_out(ap.thicken_lines(HERE / 'teen-raw2.png', 3)), 760), 0.15)
     Image.fromarray(teen).save('assets/props/summit336_teen.png')
     print(teen.shape[1], 'x', teen.shape[0])
 

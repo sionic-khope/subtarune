@@ -126,7 +126,7 @@ export class Battle {
     const eys = ENEMY_YS[cfg.enemies.length] || ENEMY_YS[3];
     this.enemies = cfg.enemies.map((id, i) => { const def = ENEMIES[id]; return { id, def, name: def.name, hp: def.hp, maxHp: def.hp, x: ENEMY_X + (def.dx || 0), y: eys[i] + (def.dy || 0), img: null, dead: false, dying: 0, shake: 0, blink: 0, popup: null, patternIdx: 0, animationTime: 0 }; });
     this.state = 'load'; this.t = 0; this.memberIdx = 0; this.menuIdx = 0; this.targetIdx = 0; this.itemIdx = 0; this.plans = []; this.text = ''; this.textT = 0;
-    this.board = new Board(); this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random; this.rapVideo = null; this.preparedRapVideo = null;
+    this.board = new Board(); this.board.color = cfg.boardColor; this.soul = new Soul(); this.bullets = []; this.patterns = []; this.rnd = Math.random; this.rapVideo = null; this.preparedRapVideo = null;
     this.modes = { attack: cfg.modes?.attack || 'rush', enemy: cfg.modes?.enemy || 'bullets' }; this.gimmick = null;   // 기믹 모드(src/battle/modes.js): 공격/적 턴을 미니게임으로 바꿔 끼움
     this.result = null; this.pressed = false; this.fx = []; this.retryT = undefined; this.openingShown = false;   // fx: 회복 반짝임(쓰러진 동료 위)
     this.support = createBattleSupport(this); this.interlude = null;
@@ -444,7 +444,7 @@ export class Battle {
   }
 
   // ── 적 턴 ──
-  boardSize() { const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
+  boardSize() { const custom = this.support?.boardSizeFor?.(); if (custom) return custom; const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
   /** Read the next ordinary pattern config without advancing its cycle. */
   nextPatternConfig(enemy) { return nextPatternConfig(enemy); }
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
@@ -526,6 +526,7 @@ export class Battle {
       api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
       api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
       api.trackProjectile = projectile => this.support?.onProjectile?.(projectile);
+      api.vacuum = (on, seconds) => this.support?.onVacuum?.(on, seconds);
       api.interceptionActive = () => this.support?.interceptionActive ?? false;
       api.clearHazards = () => { this.bullets = []; };
       api.penalty = damage => { this.bullets = []; this.hurtAllParty(damage); };
@@ -683,7 +684,7 @@ export class Battle {
     ctx.globalAlpha = 1;
     if (this.interlude) this.interlude.draw(ctx);
     else if (this.gimmick) { if (this.gimmick.draw) this.gimmick.draw(ctx); else this.drawTextBox(ctx); }
-    else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.drawBattleBoard(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
+    else if (['enemy-prep', 'bullets', 'board-close'].includes(this.state)) { this.support?.drawUnderBoard?.(ctx); this.drawBattleBoard(ctx); if (this.state === 'bullets' || (this.state === 'enemy-prep' && this.t > PREP_OPEN)) { for (const b of this.bullets) b.draw(ctx); this.soul.draw(ctx); } }
     else if (this.state !== 'lose') this.drawPanel(ctx);
     if (this.bubble) this.drawBubble(ctx);                          // 적 말풍선(준비 단계)
     this.support?.drawOverlay?.(ctx);

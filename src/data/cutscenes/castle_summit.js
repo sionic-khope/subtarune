@@ -47,6 +47,6 @@ export const castle_summit_confront = Object.assign([
   // 그 자리에서 바로 전투: 조우음 없이 검 뽑는 소리(사용자 “조우 효과음은 없고 그냥 바로 검뽑기 효과음과 함께”)
   { label: 'fight' },
   { sfx: 'weaponpull', volume: 0.9 }, { shake: 0.3, amp: 3 },
-  { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', flag: 'castle_teen_won', seamlessIntro: true, intro: TEEN_BATTLE.intro } },
+  { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', boardColor: '#a060ff', flag: 'castle_teen_won', seamlessIntro: true, intro: TEEN_BATTLE.intro } },
   { label: 'end' }, { end: true },
 ], { silent: true });

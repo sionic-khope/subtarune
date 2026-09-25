@@ -47,6 +47,7 @@ await runScenario({ name: 'castle-prophecy', launchOptions: { args: ['--autoplay
     await key('KeyC'); await page.waitForTimeout(250);
   }
   check('all 12 lines shown', lines.length === 12, JSON.stringify(lines));
-  assert.ok(await until(() => !game.dialogue.running && game.state === 'field', 8000));
+  // BUILD332: 대문 대화가 끝나면 결전지로 넘어간다
+  assert.ok(await until(() => game.mapId === 'gajaeman_castle_arena', 12000));
   check('door talk saved', await page.evaluate(() => game.flags.castle_prophecy_door_done === true));
 });

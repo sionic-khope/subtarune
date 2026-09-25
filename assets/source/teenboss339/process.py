@@ -60,6 +60,12 @@ def main():
     sheet(cells(HERE / 'knee-raw.png', 2, 2, 512), 0.27, 4, 'assets/props/teenboss339_knee.png')
     for n in ('hyungsub', 'gyeongsub', 'ppaman'):
         defend(n)
+    # BUILD340 청소기 재설계: 컬러 잔해 6종(각 높이 34), 오른쪽에서 뻗는 손바닥(높이 220)
+    for i, cell in enumerate(cells(HERE / 'debris-raw.png', 3, 2, 512)):
+        Image.fromarray(ap.shrink(cell, 34)).save(f'assets/props/teenboss339_debris_{i}.png')
+    palm = ap.shrink(ap.key_out(ap.thicken_lines(HERE / 'palm-raw.png', 5)), 220)
+    Image.fromarray(palm).save('assets/props/teenboss339_palm.png')
+    print('palm', palm.shape[1], palm.shape[0])
 
 
 if __name__ == '__main__':
