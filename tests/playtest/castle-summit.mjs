@@ -27,7 +27,7 @@ await runScenario({ name: 'castle-summit', launchOptions: { args: ['--autoplay-p
   }
   await shot('end');
   const end = await page.evaluate(() => ({ stage: !!game.flags.castle_summit_ready, bgm: game.sound.bgmName, scene: game.castleSummit?.snapshot, battle: game.battle?.enemies.map(e => e.id) }));
-  check('all 23 lines', lines.length === 23, JSON.stringify(lines));
+  check('all 25 lines', lines.length === 25, JSON.stringify(lines));
   // 가재맨은 어깨 뒤로 들어가 보이지 않는다(전투에서도 쓰러질 때만 나온다, 사용자 2026-09-25)
   check('the giant is fully revealed and gajaeman has gone behind her', end.scene.giant === 1 && !end.scene.gajaeman, JSON.stringify(end));
   check('the battle starts right there', JSON.stringify(end.battle) === '["teen_giant"]', JSON.stringify(end));

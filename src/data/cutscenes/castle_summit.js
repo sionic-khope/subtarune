@@ -45,6 +45,7 @@ export const castle_summit_confront = Object.assign([
   A('요플래..'), A('우리의 악연도 여기서 끝을 내야겠군..'), close,
   // 거대한 오오라를 뿜으며 위로 → 청소년 뒤 어깨에 안착
   summit(s => s.auraAndPerch()), { wait: 0.4 },
+  P('...'), K('요플래, 그리고 빠맨아 준비됐어?'),
   P('가볼까요.'), K('가자!'), close,
   { stage: SUMMIT_SCENE.stage },
   // 그 자리에서 바로 전투: 조우음 없이 검 뽑는 소리(사용자 “조우 효과음은 없고 그냥 바로 검뽑기 효과음과 함께”) — 소리는 전투가 캐릭터를 전투 모션으로 바꾸는 순간 낸다(battle.js)
