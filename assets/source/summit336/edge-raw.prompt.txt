@@ -1,0 +1,13 @@
+# imagegen 2026-09-25 12:31:17
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/summit336/refs/scene-ref.png
+
+Create a pixel-art game background piece for a Deltarune-style RPG: the BROKEN END of a horizontal stone walkway high above the clouds, seen from a 3/4 side-top view like Image1 (left). Landscape composition.
+
+Reference image roles (one combined reference, left to right):
+- Image1 (left, Deltarune ledge scene): the broken ledge shape: the walkway ends on the right in a jagged, crumbling break with loose stones and a hanging broken railing; beyond the break is only darkness. Below: the black cloud sea with thin white outline strokes. No characters.
+- Image2 (right): MATERIAL and PALETTE: polished navy/indigo stone with glowing sapphire inlay lines, dark iron posts, cold blue crystal lamps.
+
+Layout (keep exactly): the walkway enters from the LEFT edge as a horizontal band whose walkable top surface is at about 45%-60% of the canvas height with a front stone face below it to about 70% — EXACTLY matching a repeating walkway so they join seamlessly at the left edge. At about 45% of the canvas width the walkway breaks off in a jagged crumbling edge with falling debris; the right 55% is empty dark air: very dark navy night sky with thick drifting BLACK SMOKE clouds near the break. Bottom 30%: black cloud sea with thin white outline strokes. Crisp pixel art, limited palette, chunky pixels, no characters, no text, no border.

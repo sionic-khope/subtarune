@@ -62,6 +62,9 @@ def main() -> None:
     for name, w, h, x in monsters:
         entities.append({'type': 'prop', 'id': f'stairs_mon_{name}', 'image': f'assets/props/arena332_{name}.png',
                          'x': x - w // 2, 'y': 2690 - h, 'solid': False, 'hidden': True})
+    # BUILD337: 꼭대기 통로 끝(맵 위 가장자리)을 밟으면 꼭대기 길로
+    entities.append({'type': 'door', 'id': 'stairs_to_summit', 'x': 400, 'y': 0, 'w': 160, 'h': 12,
+                     'to': 'gajaeman_castle_summit', 'spawn': 'start', 'interact': False, 'sfx': False})
     entities.append({'type': 'trigger', 'id': 'stairs_back', 'x': 0, 'y': 6940, 'w': 10, 'h': 160, 'script': 'castle_spire_back'})
     data = {
         'id': MAP_ID, 'name': '가재맨성 무너지는 계단', 'stage': 'castle_arena_seen',

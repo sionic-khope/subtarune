@@ -1,0 +1,9 @@
+# imagegen 2026-09-25 12:47:55
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/summit336/refs/walkway-small.png
+
+Extend Image1 (our pixel-art tower-summit walkway above a black cloud sea) with its LEFT END: create the piece that comes BEFORE Image1 on the left. Landscape composition, same size, same palette, same pixel density, same sky with floating debris and the same black-and-white-outline cloud sea at the bottom.
+
+In this piece: a stone STAIRCASE rises from the cloud sea at the bottom LEFT, going UP toward the viewer's top (straight up, 3/4 top view, about 6 wide steps, same navy stone with glowing sapphire edge lines and blue crystal lamp posts at its sides), and at the top it opens onto the walkway which then runs horizontally to the RIGHT edge of the canvas, at EXACTLY the same height and with the same floor, front face, railing posts and lamps as Image1, so the right edge of this piece joins Image1's left edge seamlessly. The stair and the walkway corner are one built structure (a landing where the stair meets the walkway), not pasted separately. No characters, no text, no border.

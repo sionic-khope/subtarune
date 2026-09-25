@@ -1,0 +1,5 @@
+Create ONE boss sprite for a Deltarune-style pixel-art RPG, centered on a solid pure #FF00FF magenta background. No text, no border, no ground, no background.
+
+Reference (Image1): copy EXACTLY this art style and character design: the colossal "Teen Giant" drawn as solid BLACK fill with thin crisp WHITE contour lines, dark pink rolled short sleeves, dark beige apron with a small bow, long wavy hair strands drawn in white lines, enormous muscular arms with white muscle lines, huge fists.
+
+New pose: the same giant's UPPER BODY (from the neck/shoulders down to the waist), turned in a THREE-QUARTER view facing toward the LEFT (her left shoulder nearer the viewer on the left side), leaning slightly forward menacingly toward the left. The head is NOT visible: the top of the object ends at the neck in black shadow (face hidden). Both huge arms visible: the near (left) arm raised with a massive clenched fist in front, the far arm hanging with a fist. Fill about 90% of the canvas height and 80% of the width. The black fill must be solid, no magenta inside the figure.

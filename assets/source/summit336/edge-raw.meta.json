@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/summit336/refs/scene-ref.png"
+  ],
+  "elapsed_seconds": 28.6,
+  "usage": {
+    "input_tokens": 845,
+    "output_tokens": 1372,
+    "total_tokens": 2217,
+    "input_tokens_details": {
+      "image_tokens": 525,
+      "text_tokens": 320
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790307076,
+  "outputs": [
+    {
+      "file": "assets/source/summit336/edge-raw.png",
+      "bytes": 1150996,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

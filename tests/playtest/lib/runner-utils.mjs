@@ -91,3 +91,4 @@ BASE_URL_SCENARIOS.add('castle-prophecy');
 BASE_URL_SCENARIOS.add('util-ui');
 BASE_URL_SCENARIOS.add('castle-arena');
 BASE_URL_SCENARIOS.add('castle-stairs');
+BASE_URL_SCENARIOS.add('castle-summit');

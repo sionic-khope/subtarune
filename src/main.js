@@ -76,6 +76,7 @@ import { CastleCathedral2 } from './scenes/castle-cathedral2.js';
 import { ProphecyHall } from './scenes/prophecy-hall.js';
 import { CastleArena } from './scenes/castle-arena.js';
 import { CastleStairs } from './scenes/castle-stairs.js';
+import { CastleSummit } from './scenes/castle-summit.js';
 import { updateCastleGate, drawCastleGate, finishCastleGate } from './scenes/castle-gate.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
@@ -950,6 +951,7 @@ class Game {
       this.prophecyHall = def.meta?.prophecy ? new ProphecyHall(this) : null;
       this.castleArena = def.meta?.arena ? new CastleArena(this) : null;
       this.castleStairs?.dispose(); this.castleStairs = def.meta?.stairs ? new CastleStairs(this) : null;
+      this.castleSummit?.dispose(); this.castleSummit = def.meta?.summit ? new CastleSummit(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
@@ -1323,6 +1325,7 @@ class Game {
     this.prophecyHall?.update(dt);
     this.castleArena?.update(dt);
     this.castleStairs?.update(dt);
+    this.castleSummit?.update(dt);
     updateCastleBoulderPush(this, dt, Input);
     updateCastleGate(this, dt);
     updateCastleOrb(this, dt);
@@ -1677,6 +1680,7 @@ class Game {
     this.prophecyHall?.draw(ctx, cam);
     this.castleArena?.draw(ctx, cam);
     this.castleStairs?.draw(ctx, cam);
+    this.castleSummit?.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})

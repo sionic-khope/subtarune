@@ -1,0 +1,182 @@
+{
+ "id": "gajaeman_castle_summit",
+ "name": "가재맨성 꼭대기",
+ "stage": "castle_arena_seen",
+ "bgm": null,
+ "followScreenY": 200,
+ "rows": [
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "                                                                                                                                                ",
+  "   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                    ",
+  "   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                    ",
+  "   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                    ",
+  "   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                    ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "   ▓▓▓▓▓▓▓▓                                                                                                                                     ",
+  "                                                                                                                                                "
+ ],
+ "preload": [
+  "assets/props/summit336_chunk_0.png",
+  "assets/props/summit336_chunk_1.png",
+  "assets/props/summit336_chunk_2.png",
+  "assets/props/summit336_chunk_3.png",
+  "assets/props/summit336_teen.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 218,
+   "y": 690,
+   "facing": "up"
+  },
+  "confront": {
+   "x": 3800,
+   "y": 386,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "summit": {
+   "giant": {
+    "x": 4330,
+    "bottom": 620,
+    "image": "assets/props/summit336_teen.png",
+    "shoulder": [
+     4470,
+     215
+    ]
+   },
+   "smoke": [
+    3990,
+    4608
+   ],
+   "gajaeman": "summit_gajaeman"
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "summit_chunk_0",
+   "image": "assets/props/summit336_chunk_0.png",
+   "x": 0,
+   "y": 0,
+   "w": 1152,
+   "h": 2,
+   "solid": false,
+   "sortY": -3
+  },
+  {
+   "type": "prop",
+   "id": "summit_chunk_1",
+   "image": "assets/props/summit336_chunk_1.png",
+   "x": 1152,
+   "y": 0,
+   "w": 1152,
+   "h": 2,
+   "solid": false,
+   "sortY": -3
+  },
+  {
+   "type": "prop",
+   "id": "summit_chunk_2",
+   "image": "assets/props/summit336_chunk_2.png",
+   "x": 2304,
+   "y": 0,
+   "w": 1152,
+   "h": 2,
+   "solid": false,
+   "sortY": -3
+  },
+  {
+   "type": "prop",
+   "id": "summit_chunk_3",
+   "image": "assets/props/summit336_chunk_3.png",
+   "x": 3456,
+   "y": 0,
+   "w": 1152,
+   "h": 2,
+   "solid": false,
+   "sortY": -3
+  },
+  {
+   "type": "prop",
+   "id": "summit_stand_player",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 3800,
+   "y": 386,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "summit_stand_gyeongsub",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 3730,
+   "y": 366,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "summit_stand_ppaman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 3730,
+   "y": 410,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "summit_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": 4150,
+   "y": -300,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.89
+  },
+  {
+   "type": "trigger",
+   "id": "summit_confront",
+   "x": 3480,
+   "y": 340,
+   "w": 24,
+   "h": 110,
+   "once": true,
+   "flag": "castle_summit_seen",
+   "script": "castle_summit_confront"
+  },
+  {
+   "type": "trigger",
+   "id": "summit_back",
+   "x": 112,
+   "y": 710,
+   "w": 236,
+   "h": 10,
+   "script": "castle_spire_back"
+  }
+ ]
+}

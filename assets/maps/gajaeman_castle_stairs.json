@@ -534,6 +534,18 @@
    "hidden": true
   },
   {
+   "type": "door",
+   "id": "stairs_to_summit",
+   "x": 400,
+   "y": 0,
+   "w": 160,
+   "h": 12,
+   "to": "gajaeman_castle_summit",
+   "spawn": "start",
+   "interact": false,
+   "sfx": false
+  },
+  {
    "type": "trigger",
    "id": "stairs_back",
    "x": 0,

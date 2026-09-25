@@ -75,6 +75,7 @@ import { castle_spire_intro, castle_spire_back } from './cutscenes/castle_spire.
 import { castle_prophecy_door } from './cutscenes/castle_prophecy.js';
 import { castle_arena_intro } from './cutscenes/castle_arena.js';
 import { castle_stairs_monsters, castle_stairs_nunu } from './cutscenes/castle_stairs.js';
+import { castle_summit_confront } from './cutscenes/castle_summit.js';
 import { shipSinkingScripts } from './cutscenes/ship_sinking.js';
 import { jjajangShoreScripts } from './cutscenes/jjajang_shore.js';
 import { torii_janitor } from './cutscenes/jjajang_torii.js';
@@ -191,7 +192,7 @@ export const SCRIPTS = {
   castle_boulder_left_block, castle_boulder_waiting, castle_boulder_orb_enter,
   castle_gate_reunion, castle_gate_enter, castle_dark_path_intro,
   castle_dark_chase_intro, castle_dark_chase_finish, castle_dark_refuge_locked,
-  castle_cathedral_intro, castle_cathedral_rescue, castle_spire_intro, castle_spire_back, castle_prophecy_door, castle_arena_intro, castle_stairs_monsters, castle_stairs_nunu,
+  castle_cathedral_intro, castle_cathedral_rescue, castle_spire_intro, castle_spire_back, castle_prophecy_door, castle_arena_intro, castle_stairs_monsters, castle_stairs_nunu, castle_summit_confront,
   youngcle_intro, youngcle_tv_off, youngcle_left_door_locked,
   youngcle_lounge_plan_b,
   editor_union_stage, editor_union_stage_wait, park_guardian_aftermath, park_guardian_aftermath_enter,

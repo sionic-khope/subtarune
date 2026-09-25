@@ -1,5 +1,8 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 꼭대기 (BUILD337, 2026-09-25)
+- `bgm/gallery.mp3`: 사용자 지정 [L0MAep7ml3A](https://www.youtube.com/watch?v=L0MAep7ml3A), yt-dlp 제목 `Gallery`(Toby Fox), 전곡 12.82초 MP3 q2(무음 없음, 반복). BUILD337 꼭대기 “이미 우리 앞에있어.”부터. 원본 `assets/source/summit336/audio/`.
+
 ## 결전지 (BUILD332, 2026-09-25)
 - 도착: 브금 끔(사용자 “[브금이 꺼짐]”). 영클이 벽에 꽂힌 뒤 사용자 지정 [iRMn2HlCRFI](https://www.youtube.com/watch?v=iRMn2HlCRFI) = 기존 `castle_gajaeman`(SPAWN) 재사용.
 - `sfx/fountain_draw.mp3`(0~1.6초, 검 여러 발 뽑는 소리)·`sfx/fountain_erupt.mp3`(1.6~10.2초, 아래서 위로 뿜는 소리): 사용자 지정 myinstants `deltarune-dark-fountain-52016`이 Cloudflare 403이라 같은 델타룬 분수 생성음 YouTube [SzVNiAmylpc](https://www.youtube.com/watch?v=SzVNiAmylpc) “Deltarune fountain making sound”에서 잘랐다(**임시**, 원본 파일을 받으면 같은 이름으로 교체). 원본 `assets/source/arena332/audio/`.
