@@ -7,6 +7,8 @@ export const TEEN_BATTLE = Object.freeze({
   slamEvery: 3,
   downTurns: 3,
   rockDamage: 50,
+  // 쓰러진 동안 일반 공격 한 대 = 80, 매번 치명타 이펙트 + 릴리즈샷 소리(사용자 2026-09-25)
+  downHit: { damage: 80, sfx: 'deltarune_release_shoot', fx: 0.55 },
   /**
    * BUILD342 필드 대치와 전투가 같은 한 화면(사용자 참고: 델타룬 거인전 — 왼쪽 약 35% 끝길 위에 일행, 오른쪽 60% 를 청소년이 채우고 왼쪽을 본다).
    * 모두 화면 좌표(480×360). cam = 그 화면의 월드 왼쪽 위(꼭대기 맵 tools/maps/gajaeman_summit.py 의 VIEW 와 같은 값).
@@ -35,6 +37,8 @@ export const TEEN_BATTLE = Object.freeze({
     defend: id => `assets/battle/${id}-defend.png`,
   },
   gajaemanPatterns: ['gj_swords', 'gj_knee', 'gj_mouse'],
+  // 가재맨이 패턴 들어가기 전에 치는 대사(사용자 원문 그대로)
+  gajaemanLines: { gj_mouse: '니애미따라가라', gj_swords: '너검없냐?', gj_knee: '넣을게~' },
   intro: [
     { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형들 일단 여기서 공격하는건 자살행위에요' },
     { speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* 그렇지 그럼 어떻게 할까???' },

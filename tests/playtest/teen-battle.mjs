@@ -65,8 +65,15 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   const hp0 = (await B()).hp;
   for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
   await page.waitForTimeout(500); await shot('attack-run');
-  const gjPatterns = [];
+  assert.ok(await until(() => game.battle.state === 'enemy-prep' || game.battle.state === 'bullets', 20000), 'attacks resolved');
+  await page.waitForTimeout(200); await shot('attack-crit');
+  const hp1 = (await B()).hp;
+  // 공격은 타이밍 입력이라 자동 연타가 빗나갈 수 있다 — 들어간 공격마다 정확히 80 인지 본다
+  check('each hit on the fallen 청소년 deals 80', hp0 - hp1 >= 80 && (hp0 - hp1) % 80 === 0, `${hp0}->${hp1}`);
+  const gjPatterns = [], gjLines = [];
   for (let turn = 0; turn < 3; turn++) {
+    assert.ok(await until(() => game.battle.state === 'enemy-prep' && !!game.battle.bubble, 20000));
+    gjLines.push(await page.evaluate(() => game.battle.bubble?.text)); await page.waitForTimeout(500); await shot(`gajaeman-line-${turn}`);
     assert.ok(await until(() => game.battle.state === 'bullets', 20000));
     await page.waitForTimeout(2600); await shot(`gajaeman-${turn}`); gjPatterns.push(await page.evaluate(() => game.battle.patterns.map(p => p.p.duration)));
     assert.ok(await until(() => game.battle.state === 'menu' || game.battle.state === 'interlude', 25000));
@@ -74,6 +81,7 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
     await heal();
     if (turn < 2) for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
   }
+  check('gajaeman says his line before each pattern', JSON.stringify(gjLines) === JSON.stringify(['너검없냐?', '넣을게~', '니애미따라가라']), JSON.stringify(gjLines));
   const end = await B();
   check('attacks hurt the fallen 청소년', end.hp < hp0, `${hp0}->${end.hp}`);
   check('after three turns 청소년 is back up with an empty gauge', end.sup.phase === 'guard' && end.sup.gauge === 0, JSON.stringify(end.sup));

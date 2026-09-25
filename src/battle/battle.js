@@ -480,7 +480,7 @@ export class Battle {
     }
     const speakSfx = selected?.config?.speakSfx || e.def.lines?.speakSfx;
     this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0,
-      voice: selected?.config?.speakSfx ? 'none' : e.formDef?.voice || e.def.voice || 'narrator',
+      voice: selected?.config?.speakSfx ? 'none' : this.support?.speechVoiceFor?.(e) || e.formDef?.voice || e.def.voice || 'narrator',
       minDuration: selected?.config?.speakDuration || 0 };
     if (speakSfx) this.sfx(speakSfx);
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
@@ -874,7 +874,9 @@ export class Battle {
     ctx.save(); ctx.font = SMALL; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
     const w = 172, pad = 10, lh = 14; const lines = menuTextLines(ctx, b.text, w - pad * 2, 20);
     const h = Math.max(50, lines.length * lh + pad * 2);
-    const x = Math.round(e.x - 66 - w), cy = b.patternHold ? 28 + h / 2 : Math.max(6 + h / 2, Math.round(e.y - 62)), y = Math.round(cy - h / 2);
+    // 지원 모듈이 말하는 자리(꼬리 끝)를 정할 수 있다(청소년전: 말하는 가재맨 옆)
+    const anchor = this.support?.bubbleAnchor?.(b);
+    const x = anchor ? Math.round(anchor[0] - 20 - w) : Math.round(e.x - 66 - w), cy = anchor ? Math.max(6 + h / 2, anchor[1]) : b.patternHold ? 28 + h / 2 : Math.max(6 + h / 2, Math.round(e.y - 62)), y = Math.round(cy - h / 2);
     ctx.fillStyle = '#fff'; this.roundRect(ctx, x, y, w, h, 9); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x + w - 2, cy - 10); ctx.lineTo(x + w + 18, cy + 1); ctx.lineTo(x + w - 2, cy + 8); ctx.closePath(); ctx.fill();   // 꼬리(적 쪽)
     ctx.fillStyle = '#000';

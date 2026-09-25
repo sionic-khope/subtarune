@@ -17,7 +17,7 @@ export function createTeenBossSupport(battle) {
   // 가재맨: 어깨 위(perch) → 쓰러지면 천천히 내려와 쓰러진 몸 뒤에서 맴돈다(hover) → 일어나면 다시 어깨로
   let gj = { mode: 'perch', t: 0, from: [...V.shoulder] };
   // 쓰러짐(collapse)·일어남(rise) 연출 시간
-  let fall = null, vacTurns = 0, motes = [];
+  let fall = null, vacTurns = 0, motes = [], crits = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
   const smoke = battle.game.castleSummit?.smoke || new SummitSmoke();
@@ -48,7 +48,7 @@ export function createTeenBossSupport(battle) {
       for (let i = 0; i < 2; i++) { const src = `assets/props/summit336_chunk_${i}.png`; if (!props[src]) props[src] = await loadImage(src).catch(() => null); }
       const debris = await Promise.all(TEEN_DEBRIS.map(src => loadImage(src).catch(() => null)));
       globalThis.__teenImages = Object.fromEntries(TEEN_DEBRIS.map((src, i) => [src, debris[i]]));
-      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar']);
+      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing']);
     },
     reset() { phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defending = false; gj = { mode: 'perch', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
     buttons() {
@@ -76,7 +76,11 @@ export function createTeenBossSupport(battle) {
       return { type: 'skip', member: battle.members[battle.memberIdx] };
     },
     idleFor() { return [phase === 'down' ? C.idle.down : C.idle.guard[turn % C.idle.guard.length]]; },
-    speechFor() { return ['...']; },
+    /** 쓰러진 동안엔 가재맨이 이번 패턴의 대사를 치고 들어간다 */
+    speechFor() { return phase === 'down' ? [C.gajaemanLines[C.gajaemanPatterns[gjIdx % C.gajaemanPatterns.length]]] : ['...']; },
+    speechVoiceFor() { return phase === 'down' ? 'gajaeman_shadow' : null; },
+    /** 말풍선 꼬리: 쓰러진 동안엔 떠 있는 가재맨 옆, 평소엔 청소년 머리 왼쪽 */
+    bubbleAnchor() { if (phase !== 'down') return [236, 60]; const [x, y] = gjPos(); return [x - 30, y - 70]; },
     /** 방어하기: 이번 적 턴 피해 −3 */
     adjustPartyDamage(member, dmg) { return defending ? Math.max(1, dmg - C.defend.reduce) : dmg; },
     /** 쓰러지기 전에는 공격이 통하지 않는다(버튼도 잠김). 낙석은 언제나 들어간다 */
@@ -97,6 +101,16 @@ export function createTeenBossSupport(battle) {
       if (p?.type === 'teen_dodge' && phase === 'guard') gauge = Math.min(C.gauge.max, gauge + C.gauge.perDodge);
       if (p?.type === 'teen_rock' && live()) { battle.hitEnemy(enemy, null, C.rockDamage, { source: 'teen_rock' }); battle.game.shake = { time: 0.4, amp: 5 }; }
     },
+    /** 쓰러진 동안 일반 공격은 한 대 80 */
+    adjustDamage(target, dmg, source) { return target === enemy && phase === 'down' && source === 'ordinary' ? C.downHit.damage : dmg; },
+    /** 쓰러진 동안 맞을 때마다 치명타: 릴리즈샷 소리 + 섬광·방사 줄기 + 흔들림 */
+    onHit(target, damage, source) {
+      if (target !== enemy || phase !== 'down' || source !== 'ordinary') return;
+      battle.sfx(C.downHit.sfx); battle.sfx('criticalswing');
+      battle.game.shake = { time: 0.35, amp: 6 };
+      const [x, y] = C.downSpot;
+      crits.push({ x: x + 40 + (Math.random() - 0.5) * 30, y: y - 30 + (Math.random() - 0.5) * 30, t: 0, rot: Math.random() * Math.PI });
+    },
     /** 쓰러진 청소년 앞(낮아진 몸)까지만 달려간다 */
     attackSpot(target) { return target === enemy && phase === 'down' ? C.downSpot : null; },
     memberImage(m) {
@@ -113,6 +127,8 @@ export function createTeenBossSupport(battle) {
     update(dt) {
       if (vac) { vac.t += dt; if (vac.t > vac.d) vac = null; }
       time += dt; gj.t += dt;
+      for (const c of crits) c.t += dt;
+      crits = crits.filter(c => c.t < C.downHit.fx);
       // 가재맨 둘레로 보라·검은 오오라 입자가 피어오른다
       if (Math.random() < 0.6) { const [x, y] = gjPos(), side = Math.random() * 2 - 1; motes.push({ x: x + side * 14, y: y - 6 - Math.random() * 26, vx: side * 10, vy: -(30 + Math.random() * 40), age: 0, life: 0.7 + Math.random() * 0.6, size: 2 + Math.floor(Math.random() * 2), purple: Math.random() < 0.55 }); }
       for (const m of motes) { m.age += dt; m.x += m.vx * dt; m.y += m.vy * dt; }
@@ -164,6 +180,22 @@ export function createTeenBossSupport(battle) {
         ctx.save(); ctx.globalAlpha *= land; ctx.drawImage(down, V.down.x, V.down.y + (1 - land) * -18); ctx.restore();
       }
     },
+    /** 치명타 섬광: 하얀-노란 중심 번쩍 + 방사형 날카로운 줄기 + 보라 충격 고리 */
+    drawCrit(ctx, c) {
+      const k = c.t / C.downHit.fx, a = 1 - k;
+      ctx.save(); ctx.translate(Math.round(c.x), Math.round(c.y));
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#fff6b0'; ctx.beginPath(); ctx.arc(0, 0, 10 + 18 * (1 - a) * 0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.rotate(c.rot);
+      for (let i = 0; i < 8; i++) {
+        const len = (i % 2 ? 26 : 44) * (0.4 + 0.9 * Math.min(1, k * 3)), w = i % 2 ? 3 : 5;
+        ctx.fillStyle = i % 2 ? '#ffd23b' : '#ffffff';
+        ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.lineTo(0, -len); ctx.lineTo(w / 2, 0); ctx.closePath(); ctx.fill();
+        ctx.rotate(Math.PI / 4);
+      }
+      ctx.strokeStyle = '#b070ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 12 + 46 * k, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    },
     gajaemanInFront() {
       const k = Math.min(1, gj.t / GF.descend);
       return gj.mode === 'hover' ? k > 0.35 : gj.mode === 'back' && k < 0.65;
@@ -184,6 +216,7 @@ export function createTeenBossSupport(battle) {
       const [cx, cy] = V.cam;
       smoke.draw(ctx, { x: cx, y: cy }, 'front', 0.3);
       if (gajaeman && this.gajaemanInFront()) this.drawGajaeman(ctx);
+      for (const c of crits) this.drawCrit(ctx, c);
     },
     /** Right-side gauge: 청소 용량 — only fades in during the cleaning pattern (사용자 “청소패턴일때만 페이드인”). */
     drawOverlay(ctx) {
