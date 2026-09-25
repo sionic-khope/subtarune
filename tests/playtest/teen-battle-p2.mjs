@@ -34,7 +34,7 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
   check('gajaeman lines verbatim', ['* 이런... 말도안돼', '* 이 쓸모없는 녀석..', '* 뭐 상관없어.', '* 이제 끝을보자,', '* 내가 상대해주지'].every(t => lines.includes(t)), JSON.stringify(lines));
   check('party lines verbatim', ['* 이런..', '* 아직 끝이 아닌거같군', '* 언제까지.. 이 싸움을 해야할까요', '* 빠맨아 약해지지말자.', '* 네 알았어요 형..'].every(t => lines.includes(t)), JSON.stringify(lines));
   const p2 = (await B()).sup;
-  check('phase 2: enemy is 가재맨 with 600 HP', p2.phase === 'p2' && p2.name === '가재맨' && p2.hp === 600, JSON.stringify(p2));
+  check('phase 2: enemy is 가재맨 with 999 HP', p2.phase === 'p2' && p2.name === '가재맨' && p2.hp === 999, JSON.stringify(p2));
   // 2페이즈 첫 적 턴: 가재맨 대사 → 패턴
   assert.ok(await until(() => game.battle.state === 'enemy-prep' && !!game.battle.bubble, 30000), 'phase-2 enemy turn');
   check('gajaeman taunts on attack', ['죽어.', '죽여줄게', '니애미따라가'].includes((await B()).bubble), (await B()).bubble);
@@ -48,5 +48,5 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
   for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
   assert.ok(await until(() => game.battle.state === 'enemy-prep' || game.battle.state === 'bullets', 20000), 'attacks resolved');
   const hp1 = (await B()).sup.hp;
-  check('each hit on the core deals 20', hp0 - hp1 >= 20 && (hp0 - hp1) % 20 === 0, `${hp0}->${hp1}`);
+  check('each hit on the core deals 34 (10 turns)', hp0 - hp1 >= 34 && (hp0 - hp1) % 34 === 0, `${hp0}->${hp1}`);
 });

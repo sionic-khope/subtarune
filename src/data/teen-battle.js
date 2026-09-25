@@ -62,8 +62,8 @@ export const TEEN_BATTLE = Object.freeze({
    * 2페이즈: 적 이름 가재맨, 보라 갑옷·칼날 모습, 코어를 칠 때마다 20, 게이지 없음, 매 턴 가재맨 대사.
    */
   phase2: {
-    // HP 600(사용자 2026-09-26), 회복 연출 숫자는 +999 그대로
-    name: '가재맨', hp: 600, heal: 999, coreDamage: 20,
+    // HP 999, 코어 한 대 34 — 세 명이 매 턴 다 맞히면 9턴 918, 10턴에 잡힌다(사용자 2026-09-26 “10턴으로”)
+    name: '가재맨', hp: 999, heal: 999, coreDamage: 34,
     images: { idle: 'assets/props/teen347_p2.png', vacuum: 'assets/props/teen347_p2_vacuum.png', slam: 'assets/props/teen347_p2_slam.png' },
     core: [300, 176], coreSpot: [256, 206], near: [226, 150], inside: [320, 170],
     patterns: ['teen_slam', 'gj_swords', 'teen_vacuum', 'gj_knee', 'gj_mouse'],
