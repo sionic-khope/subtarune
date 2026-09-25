@@ -6,3 +6,8 @@
 - 청소년 `cheong.prompt.txt`(참조: 사용자 그림 + 형섭 시트) → `arena332_cheong.png` 56px.
 - 근육팔 `arm2.prompt.txt` → `arena332_arm.png` 높이130. 청소년거인 상체 `giant.prompt.txt` → `arena332_giant.png` 높이480.
 - 후처리 `process.py`(마젠타 키·BOX 한 번·알파 이진화). 참고 이미지(분수·청소년 원본)는 `refs/`.
+
+## BUILD333 교정
+- 배경: `arena-wide.prompt.txt`(원본을 가운데 둔 1536 캔버스 참조) → `arena-wide-raw.png`, 1152×768로 사용. 위쪽 확장도 이 그림의 선반 띠에서.
+- 청소년: `cheong2.prompt.txt` → `cheong-raw2.png`(입 없음·앞머리 그림자). 구슬 속 `arena332_cheong_orb.png`는 보랏빛으로 섞은 판.
+- 근육팔 `arm3.prompt.txt` → `arm-raw3.png`, 청소년거인 `giant2.prompt.txt` → `giant-raw2.png`: 사용자 참고 `refs/lineart-fist-ref.png`(검은 채움+흰 윤곽선). 흰 선은 축소 전 MaxFilter로 두껍게.

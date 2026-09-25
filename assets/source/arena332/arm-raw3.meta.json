@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/arena332/refs/lineart-fist-ref.png"
+  ],
+  "elapsed_seconds": 23.9,
+  "usage": {
+    "input_tokens": 1724,
+    "output_tokens": 1372,
+    "total_tokens": 3096,
+    "input_tokens_details": {
+      "image_tokens": 1456,
+      "text_tokens": 268
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790301844,
+  "outputs": [
+    {
+      "file": "assets/source/arena332/arm-raw3.png",
+      "bytes": 1271164,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

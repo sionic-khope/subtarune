@@ -1,0 +1,11 @@
+# imagegen 2026-09-25 11:04:19
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/arena332/refs/lineart-fist-ref.png
+
+Create ONE boss illustration sprite for a Deltarune-style pixel-art RPG, front view, centered on a solid pure #FF00FF magenta background. No text, no border, no ground, no background scenery.
+
+Reference (Image1): the exact STYLE to copy — Deltarune titan drawing: shapes filled with pure BLACK (#000000) and drawn only with thin crisp WHITE pixel contour lines (1-2 px), a few sharp white accent strokes and small white four-point sparkles. Minimal, simplified, eerie and huge.
+
+Subject: the UPPER BODY of a colossal monster, from the neck down to the waist, head NOT shown (the neck fades into black at the top edge). Enormous wide torso and two absurdly huge muscular arms hanging down with giant clenched fists at the bottom corners, as if about to smash. White contour lines outline the clothing: a short-sleeve T-shirt (sleeves rolled, the sleeve areas filled very dark pink #3a0f1e), an apron over the chest with a small bow at the center (apron area filled very dark beige #2a241c), long wavy hair strands over one shoulder drawn in white lines. White lines trace the massive muscles of the arms and shoulders. Everything else is solid black fill. The figure fills about 90% of the canvas width; the lower edge (waist) fades into black. The black fill must be solid (no magenta inside the figure).

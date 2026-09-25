@@ -9,9 +9,12 @@ test('test_arena_causeway_reaches_the_rim_and_the_camera_has_room_to_climb', () 
   const world = new TileMap(map), pad = map.meta.arena.topPad;
   assert.ok(pad >= 2000, 'a long climb above the chamber');
   for (let y = map.spawns.start.y; y >= map.spawns.rim.y; y -= 8) assert.equal(world.solidRect(map.spawns.start.x, y, 24, 16), false);
-  for (let x = 40; x <= 704; x += 8) assert.equal(world.solidRect(x, map.spawns.rim.y, 24, 16), false, `rim walkable at ${x}`);
+  for (let x = 330; x <= 770; x += 8) assert.equal(world.solidRect(x, map.spawns.rim.y, 24, 16), false, `rim walkable at ${x}`);
+  // BUILD333: 넓힌 좌우 테라스(몬스터·지원군 자리)도 걸을 수 있다
+  for (const x of [40, 200, 900, 1100]) assert.equal(world.solidRect(x, 300 + pad, 24, 16), false, `terrace at ${x}`);
+  assert.ok(world.pxW >= 1152, 'the chamber is wide enough for camera pans');
   assert.equal(map.bgm, null, 'arrival starts in silence');
-  for (const src of ['arena332_room', 'arena332_upper', 'arena332_cheong', 'arena332_arm', 'arena332_giant']) assert.ok(fs.existsSync(`assets/props/${src}.png`));
+  for (const src of ['arena332_room', 'arena332_upper', 'arena332_cheong_orb', 'arena332_arm', 'arena332_giant']) assert.ok(fs.existsSync(`assets/props/${src}.png`));
 });
 
 test('test_arena_summons_five_varied_monsters_on_each_side', () => {
@@ -20,7 +23,7 @@ test('test_arena_summons_five_varied_monsters_on_each_side', () => {
   assert.equal(list.filter(s => s.side === 'right').length, 5);
   const heights = list.map(s => map.entities.find(e => e.id === s.id)).map(e => e && fs.existsSync(e.image));
   assert.ok(heights.every(Boolean));
-  for (const s of list) assert.ok(s.side === 'left' ? s.x < 300 : s.x > 470, `${s.id} stays on its wing`);
+  for (const s of list) assert.ok(s.side === 'left' ? s.x + 60 < 330 : s.x > 780, `${s.id} stays on its terrace`);
 });
 
 test('test_arena_intro_uses_the_user_lines_verbatim_in_order', async () => {

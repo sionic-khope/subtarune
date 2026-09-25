@@ -1,0 +1,13 @@
+# imagegen 2026-09-25 11:01:06
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/arena332/refs/arena-wide-canvas.png
+
+OUTPAINT: the reference image is a pixel-art top-down final-battle chamber in the CENTER, with solid magenta (#FF00FF) empty bands on the LEFT and RIGHT sides. Fill ONLY the magenta side bands so the chamber continues seamlessly outward on both sides, and keep the center artwork exactly as it is (same layout, same colours, same pixel style).
+
+What continues into the new side areas:
+- The enormous dark shelves with glowing CRT monitors, trophies and sapphire jars keep going on the back wall, curving around like a huge round hall.
+- The polished navy stone RING PLATFORM around the giant black pit keeps curving outward on both sides into WIDE walkable stone terraces (flagstones with sapphire inlays, iron railing posts and chains along the pit edge), so there is plenty of floor space on the far left and far right at the same height as the pit's south rim.
+- Below the terraces: the same dark void with tall pillars, hanging banners and cold blue crystal braziers, fading into black at the bottom corners.
+No characters, no text, no border. Crisp pixel art, same chunky pixel density and palette as the center.

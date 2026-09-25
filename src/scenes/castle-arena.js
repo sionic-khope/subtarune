@@ -14,14 +14,17 @@ export const ARENA = Object.freeze({
   summon: { puff: 22, life: 0.7 },
   charge: { duration: 3.0, radius: 26, below: 18 },
   hover: { amplitude: 4, period: 2.4, lift: 10 },
-  orb: { radius: 34, descend: 4.4, from: 420, sway: 46, front: 70, spin: 2.2, trail: 7, trailEvery: 0.07, image: 'assets/props/arena332_cheong.png' },
+  // BUILD333: 더 천천히(7.5초), 잔상 더 길게, 가재맨 머리 위(above)에서 들고 있는다. 속의 청소년은 보랏빛으로 물든 그림
+  orb: { radius: 34, descend: 7.5, from: 560, sway: 50, above: 118, spin: 1.8, trail: 10, trailEvery: 0.09, image: 'assets/props/arena332_cheong_orb.png' },
   rise: { height: 300, duration: 1.0 },
   laser: { life: 0.55 },
   throwOrb: { duration: 0.75 },
   swords: { count: 9, every: 0.16, fly: 0.26, stagger: 0.06, trail: 90, image: 'assets/props/cathedral323_sword.png', w: 76, h: 160, scale: 0.7 },
   // build: 가운데에서 바람처럼 조금 새어 나오는 시간(사용자 “5초”), 그 뒤 갑자기 주변으로 파동(surge)
-  fog: { blobs: 46 },
-  arm: { image: 'assets/props/arena332_arm.png', reach: 330, pivotY: 65, windup: 0.35, swing: 0.28, hold: 0.45, from: 1.0, to: -0.5 },
+  fog: { blobs: 60, veil: 0.96, clearRadius: 190 },
+  giant: { breathe: 1.3, scale: 0.018, bob: 4, fade: 0.8 },
+  track: { rate: 9 },
+  arm: { image: 'assets/props/arena332_arm.png', reach: 350, pivotY: 65, windup: 0.35, swing: 0.28, hold: 0.45, from: 1.0, to: -0.5 },
   fountain: { build: 5.0, grow: 2.6, height: 3400, width: 380, ribbons: 4, bands: 2, shadow: 0.62 },
 });
 
@@ -39,9 +42,9 @@ export class CastleArena {
     this.level = 0; this.time = 0; this.spawnAcc = 0;
     this.motes = []; this.puffs = []; this.eruption = null; this.chargeState = null;
     this.orb = null; this.rising = null; this.lasers = []; this.swords = []; this.fountain = null; this.dust = [];
-    this.fog = { level: 0, target: 0, speed: 1 }; this.pacing = null; this.flying = null; this.arms = []; this.flung = [];
+    this.fog = { level: 0, target: 0, speed: 1, clear: null }; this.tracking = null; this.giant = null; this.pacing = null; this.flying = null; this.arms = []; this.flung = [];
     void game.sound.loadSfxFiles?.(['captain_transform', 'captain_thunder', 'rumble', 'laser_charge', 'cannon_charge', 'laser_beam', 'laser_zap',
-      'impact', 'hit', 'thud', 'power', 'wing', 'heavyswing', 'knight_cut', 'baron_slam', 'fountain_draw', 'fountain_erupt', 'spearappear', 'furnace_blast', 'explosion', 'punch']);
+      'impact', 'hit', 'thud', 'power', 'wing', 'heavyswing', 'knight_cut', 'baron_slam', 'fountain_draw', 'fountain_erupt', 'spearappear', 'furnace_blast', 'explosion', 'punch', 'cathedral_gust']);
   }
   get snapshot() {
     return { level: this.level, erupting: !!this.eruption, charging: this.chargeState ? +clamp01(this.chargeState.t / ARENA.charge.duration).toFixed(2) : 0,
@@ -91,7 +94,7 @@ export class CastleArena {
   /** Gajaeman gathers power, then the orb with 청소년 spins down from above and settles in front of him. */
   summonOrb() {
     const c = this.center(), o = ARENA.orb;
-    this.orb = { phase: 'descend', t: 0, x: c.x, y: c.y - o.from, fromY: c.y - o.from, toY: c.y + o.front, trail: [], trailT: 0, spin: 0 };
+    this.orb = { phase: 'descend', t: 0, x: c.x, y: c.y - o.from, fromY: c.y - o.from, toY: c.y - o.above, trail: [], trailT: 0, spin: 0 };
     this.sfx('power', 0.6); this.sfx('spearappear', 0.35);
     return this.waitFor(() => !this.orb || this.orb.phase !== 'descend');
   }
@@ -111,6 +114,8 @@ export class CastleArena {
     const o = this.orb, [px, py] = this.pit;
     if (o) { o.phase = 'thrown'; o.t = 0; o.sx = o.x; o.sy = o.y; o.tx = px; o.ty = py; this.sfx('heavyswing', 0.8); }
     return this.waitFor(() => !this.orb).then(() => {
+      // 검을 뽑는 동안 카메라는 가재맨 쪽으로 올라간다
+      this.track(() => { const cc = this.center(); return { x: cc.x, y: cc.y - 40 }; });
       this.sfx('fountain_draw', 0.9);
       const c = this.center(), S = ARENA.swords;
       this.swords = Array.from({ length: S.count }, (_, i) => {
@@ -121,13 +126,17 @@ export class CastleArena {
     }).then(() => {
       this.sfx('knight_cut', 0.75);
       this.swords.forEach((s, i) => { s.phase = 'fly'; s.t = -i * ARENA.swords.stagger; s.sx = s.x; s.sy = s.y; s.sa = s.angle; });
-      return this.waitFor(() => this.swords.every(s => s.phase === 'stuck'));
+      // 떨어지는 검을 따라 카메라가 빠르게 내려간다
+      const lead = this.swords[Math.floor(this.swords.length / 2)];
+      this.track(() => ({ x: lead.x, y: lead.y + 30 }));
+      return this.waitFor(() => this.swords.every(s => s.phase === 'stuck')).then(() => this.untrack());
     });
   }
   /** The pit answers: a giant pale-blue wave column (Deltarune dark fountain) rising while everyone is thrown into shadow. */
   fountainRise() {
     this.fountain = { t: 0, ribbons: Array.from({ length: ARENA.fountain.ribbons }, (_, i) => ({ phase: i / ARENA.fountain.ribbons, speed: 0.35 + (i % 3) * 0.12, dir: i % 2 ? 1 : -1 })) };
-    this.sfx('fountain_erupt', 1);
+    // 작은 버전은 바람 소리만, 큰 파동이 터질 때 분수 굉음(사용자 “작은버전나올때는 바람소리만”)
+    this.sfx('cathedral_gust', 0.5);
     this.game.shake = { time: ARENA.fountain.build, amp: 1 };
     return this.waitFor(() => !this.fountain || this.fountain.t >= ARENA.fountain.build);
   }
@@ -146,6 +155,17 @@ export class CastleArena {
     this.sfx('rumble', 0.4);
     return this.waitFor(() => !this.fountain);
   }
+  /** Camera follows a moving point (orb, lead sword, column top, an actor) — fn returns a world point or null to stop. */
+  track(fn) { this.tracking = fn; this.game.camera.locked = true; }
+  untrack() { this.tracking = null; }
+  trackActor(id, dy = 0) {
+    const e = this.game.entities.find(x => x.id === id);
+    if (e) this.track(() => ({ x: e.x + e.w / 2, y: e.y + dy }));
+  }
+  /** 청소년거인(선화): fades in and keeps breathing. */
+  showGiant() { this.giant = { t: 0 }; }
+  /** Clear spot in the fog: world point, 'screen' (follows the camera centre while an action is tracked) or null. */
+  setFogClear(x, y) { this.fog.clear = x === null ? null : x === 'screen' ? 'screen' : { x, y }; }
   setFog(level, seconds = 1) { this.fog.target = level; this.fog.speed = Math.abs(level - this.fog.level) / Math.max(0.05, seconds); }
   /** Youngcle hovers left and right, flustered. */
   pace(id) {
@@ -239,6 +259,16 @@ export class CastleArena {
     this.updateSwords(s);
     for (const d of this.dust) { d.age += s; d.x += d.vx * s; d.y += d.vy * s; d.vy += 200 * s; }
     this.dust = this.dust.filter(d => d.age < 0.9);
+    if (this.tracking) {
+      const pt = this.tracking();
+      if (!pt) this.tracking = null;
+      else {
+        const cam = g.camera, z = g.zoom?.s ?? 1, k = Math.min(1, ARENA.track.rate * s);
+        const tx = Math.max(0, Math.min(this.map.pxW - SCREEN_W, pt.x - SCREEN_W / 2)), ty = Math.max(0, Math.min(this.map.pxH - SCREEN_H, pt.y - SCREEN_H / 2));
+        cam.locked = true; cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; void z;
+      }
+    }
+    if (this.giant) this.giant.t += s;
     const fg = this.fog;
     if (fg.level !== fg.target) fg.level = fg.level < fg.target ? Math.min(fg.target, fg.level + fg.speed * s) : Math.max(fg.target, fg.level - fg.speed * s);
     if (this.pacing) { const p = this.pacing; p.t += s; const v = Math.cos(p.t * 2.6); p.e.x = p.base + Math.sin(p.t * 2.6) * 26; p.e.facing = v > 0 ? 'right' : 'left'; }
@@ -267,7 +297,7 @@ export class CastleArena {
     if (this.fountain) {
       const before = this.surgeT();
       this.fountain.t += s;
-      if (before < 0 && this.surgeT() >= 0) { this.sfx('captain_thunder', 0.9); this.game.shake = { time: 1.6, amp: 6 }; }
+      if (before < 0 && this.surgeT() >= 0) { this.sfx('fountain_erupt', 1); this.sfx('captain_thunder', 0.8); this.game.shake = { time: 1.8, amp: 6 }; }
     }
   }
   updateOrb(s) {
@@ -318,6 +348,7 @@ export class CastleArena {
   draw(ctx, cam) {
     if (this.disposed) return;
     ctx.save();
+    if (this.giant) this.drawGiant(ctx, cam);
     const c = this.center();
     if (this.level > 0 && this.actor) {
       const k = this.level === 2 ? 1 : 0.6, pulse = 0.85 + 0.15 * Math.sin(this.time * 5);
@@ -354,15 +385,9 @@ export class CastleArena {
       ctx.save(); if (this.fountain.fadeOut) ctx.globalAlpha = 1 - clamp01(this.fountain.fadeOut.t / this.fountain.fadeOut.d);
       this.drawFountain(ctx, cam); ctx.restore();
     }
-    this.drawArms(ctx, cam);
-    // 청소년거인: 얼굴은 목부터 짙은 그림자 속으로 사라진다
-    const giant = this.game.entities.find(e => e.id === 'arena_giant' && e.visible);
-    if (giant) {
-      const x = giant.drawX - cam.x, y = giant.drawY - cam.y, g = ctx.createLinearGradient(0, y - 40, 0, y + 110);
-      g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.45, 'rgba(0,0,0,0.85)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = g; ctx.fillRect(x - 20, y - 40, giant.iw + 40, 150);
-    }
+    // 팔은 연기를 뚫고 나온다(연기 위에 그린다)
     if (this.fog.level > 0.01) this.drawFog(ctx);
+    this.drawArms(ctx, cam);
     ctx.restore();
   }
   drawArms(ctx, cam) {
@@ -379,24 +404,42 @@ export class CastleArena {
       ctx.restore();
     }
   }
-  /** Eerie horror smoke: a dark veil and slow drifting grey-violet pixel clouds over everything. */
+  drawGiant(ctx, cam) {
+    const G = ARENA.giant, meta = this.meta.giant, img = meta && this.image(meta.image);
+    if (!img) return;
+    const t = this.giant.t, breath = Math.sin(t * Math.PI * 2 / (G.breathe * 3));
+    const sy = 1 + G.scale * breath, sx = 1 + G.scale * 0.4 * breath;
+    const w = img.width * sx, h = img.height * sy, x = meta.x - w / 2 - cam.x, y = meta.bottom - h - cam.y - G.bob * breath;
+    ctx.save(); ctx.globalAlpha = clamp01(t / G.fade);
+    ctx.drawImage(img, Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    const neck = ctx.createLinearGradient(0, y - 30, 0, y + 90);
+    neck.addColorStop(0, 'rgba(0,0,0,1)'); neck.addColorStop(0.5, 'rgba(0,0,0,0.8)'); neck.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = neck; ctx.fillRect(Math.round(x) - 20, Math.round(y) - 30, Math.round(w) + 40, 120);
+    ctx.restore();
+  }
+  /** Eerie horror smoke (사용자 “검은연기가 더 짙어야함”): a near-opaque veil that only thins right around the heroes, plus drifting clouds. */
   drawFog(ctx) {
-    const L = this.fog.level;
-    ctx.fillStyle = `rgba(6,5,12,${0.82 * L})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-    for (let i = 0; i < ARENA.fog.blobs; i++) {
+    const L = this.fog.level, F = ARENA.fog, cam = this.game.camera, c = this.fog.clear;
+    if (c) {
+      const cx = c === 'screen' ? SCREEN_W / 2 : c.x - cam.x, cy = c === 'screen' ? SCREEN_H / 2 : c.y - cam.y, g = ctx.createRadialGradient(cx, cy, F.clearRadius * 0.25, cx, cy, F.clearRadius);
+      g.addColorStop(0, `rgba(5,4,10,${0.3 * L})`); g.addColorStop(1, `rgba(5,4,10,${F.veil * L})`);
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = `rgba(5,4,10,${F.veil * L})`;
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    for (let i = 0; i < F.blobs; i++) {
       const x = ((i * 97.3 + this.time * (8 + (i % 5) * 4)) % (SCREEN_W + 160)) - 80;
       const y = ((i * 53.7 + Math.sin(this.time * 0.4 + i) * 20) % (SCREEN_H + 80)) - 40;
-      const r = 18 + (i % 6) * 7;
-      ctx.globalAlpha = L * (0.18 + (i % 4) * 0.06);
-      ctx.fillStyle = i % 3 ? '#1d1828' : '#2c2340';
-      for (let row = -r; row < r; row += 3) {
-        const half = Math.round(Math.sqrt(1 - ((row + 1) / r) ** 2) * r * 1.6);
-        ctx.fillRect(Math.round(x - half), Math.round(y + row), half * 2, 3);
+      const r = 16 + (i % 6) * 8;
+      ctx.globalAlpha = L * (0.2 + (i % 4) * 0.07);
+      ctx.fillStyle = i % 3 ? '#15111f' : '#241c35';
+      for (let row = -r; row < r; row += 2) {
+        const wob = Math.round(Math.sin(row * 0.3 + this.time + i) * 3);
+        const half = Math.round(Math.sqrt(1 - ((row + 1) / r) ** 2) * r * 1.7);
+        ctx.fillRect(Math.round(x - half + wob), Math.round(y + row), half * 2, 2);
       }
     }
     ctx.globalAlpha = 1;
   }
-  /** Darkness shot upward: a column of pixel smoke lobes (no hard rectangles) that climbs and then thins out. */
   drawEruption(ctx, cam, c) {
     const t = this.eruption.t / ARENA.erupt.duration, up = clamp01(t / 0.35), fade = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
     const base = c.y - cam.y, reach = (base + 420) * up, cx = c.x - cam.x;
@@ -523,6 +566,18 @@ export class CastleArena {
     }
     ctx.restore();
     this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, true);
+    // 파동 둘레의 더 웅장한 바람 오오라: 넓은 반투명 호가 빠르게 감아 오른다
+    ctx.save(); ctx.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      const period = 480, y0 = ((i * 80 - this.time * 520 - cam.y) % period + period) % period - 60, R = width * (0.85 + 0.12 * (i % 3));
+      for (let rep = 0; rep < 2; rep++) {
+        const yy = y0 + rep * period;
+        if (yy > baseY || yy < visTop) continue;
+        ctx.strokeStyle = `rgba(210,245,255,${(0.16 + 0.08 * (i % 2)) * open})`; ctx.lineWidth = 3 + (i % 3) * 2;
+        ctx.beginPath(); ctx.ellipse(cx, yy, R, R * 0.22, 0, Math.PI * (0.05 + (i % 2) * 0.9), Math.PI * (0.9 + (i % 2) * 0.9)); ctx.stroke();
+      }
+    }
+    ctx.restore();
     ctx.fillStyle = `rgba(226,251,248,${0.45 * (1 - clamp01(st / 0.6))})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
   }
   /** Ribbons coil around the column: the back half before the column is drawn, short front arcs over its edges. */

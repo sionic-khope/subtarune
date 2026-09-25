@@ -1,0 +1,5 @@
+Create ONE single object sprite for a Deltarune-style pixel-art RPG cutscene, horizontal composition, centered on a solid pure #FF00FF magenta background. No text, no border, no ground, no effects.
+
+Reference (Image1): the exact STYLE to copy — a Deltarune-titan-like drawing: the shape is filled with pure BLACK (#000000) and drawn only with thin crisp WHITE pixel contour lines (1-2 px), a few sharp white claw-like accent strokes and one small white four-point sparkle. Minimal, simplified, eerie.
+
+Subject: a GIANT over-muscled arm reaching from the LEFT edge to the RIGHT, ending in a huge clenched FIST (or claw-like fingers) as in Image1. White contour lines describe the huge bicep, forearm muscles and knuckles. At the shoulder end on the left a rolled-up short T-shirt sleeve is drawn with white lines and filled with very dark pink (#3a0f1e). Everything else is black fill with white lines. The arm spans about 80% of the canvas width and 40% of its height, nothing touches the canvas edges. The black fill must be solid (no magenta inside the arm).

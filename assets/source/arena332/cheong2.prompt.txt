@@ -1,0 +1,11 @@
+Create ONE single field character sprite for a Deltarune-style top-down pixel-art RPG, front view, standing still, arms hanging limp, centered on a solid pure #FF00FF magenta background. No text, no labels, no border, no ground, no shadow on the ground, no bubble, no effects.
+
+Reference image roles (one combined reference, left to right):
+- Image1 (left, cartoon illustration): IDENTITY for the character "청소년": long wavy dark-brown hair falling over one shoulder, round thin glasses, pink long-sleeve top with rolled sleeves, beige apron with a small brown bow, brown skirt, bare legs, small red-pink flat shoes.
+- Image2 (right, our game's chibi field sprite): STYLE and PROPORTION reference: big head, SHORT compact body (about 1.3 heads tall), dark stepped outline, flat limited shading, sparse chunky pixel density.
+
+Face rules (important):
+- NO MOUTH at all. The lower face is a plain skin-colored area with only the round nose shape, like the reference sprite style where the mouth is not drawn.
+- EYES HIDDEN BY SHADOW the Deltarune way: her bangs/hair cast a hard, flat, pitch-black shadow band across the whole upper half of the face (from the hairline down to just below the glasses), so the eyes are completely hidden in black. Only the thin rims of the round glasses show faintly as dim grey lines on top of that black shadow. The shadow edge is a clean hard pixel line, not a gradient and not purple.
+
+The character fills the central 60% of the canvas height, nothing touches the edges.

@@ -7,7 +7,7 @@ Run: uv run --with pillow --with numpy python3 assets/source/arena332/process.py
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 HERE = Path(__file__).parent
 # (sheet, cell index, runtime name, target height px) — sizes vary on purpose (user: "크기 다양하고 특징 다양한")
@@ -44,24 +44,57 @@ def shrink(im: np.ndarray, target_h: int) -> np.ndarray:
     return out
 
 
+def thicken_lines(path: Path, size: int = 5) -> np.ndarray:
+    """White contour lines survive the downscale: dilate bright pixels on the RGB before keying."""
+    im = Image.open(path).convert('RGB')
+    return np.array(im.filter(ImageFilter.MaxFilter(size)).convert('RGBA'))
+
+
+def darken(im: np.ndarray, k: float = 0.52) -> np.ndarray:
+    """Ominous look (user: “색깔이 너무 밝고 선명… 어두운느낌”): desaturate, darken, push shadows toward violet-navy."""
+    rgb = im[..., :3].astype(float)
+    grey = rgb.mean(axis=2, keepdims=True)
+    rgb = grey + (rgb - grey) * 0.55
+    rgb = rgb * k + np.array([18, 10, 34]) * (1 - k) * 0.6
+    out = im.copy(); out[..., :3] = np.clip(rgb, 0, 255).astype(np.uint8)
+    return out
+
+
+def fade_bottom(im: np.ndarray, part: float) -> np.ndarray:
+    """Lower `part` of the image melts into black (alpha kept, colour → near black)."""
+    h = im.shape[0]; start = int(h * (1 - part)); out = im.copy()
+    for y in range(start, h):
+        k = (y - start) / max(1, h - start)
+        out[y, :, :3] = (out[y, :, :3].astype(float) * (1 - k) + np.array([4, 3, 10]) * k).astype(np.uint8)
+    return out
+
+
 def main() -> None:
-    room = Image.open(HERE / 'arena-raw.png').convert('RGB').resize((768, 1152), Image.BOX)
+    # BUILD333: 좌우로 넓힌 결전지(arena-wide-raw, 1536×1024) → 1152×768(사용자 “왼쪽 오른쪽 공간을 넓혀서 카메라이동으로”)
+    room = Image.open(HERE / 'arena-wide-raw.png').convert('RGB').resize((1152, 768), Image.BOX)
     room.save('assets/props/arena332_room.png')
     # 위쪽 확장(카메라 대상승용 2400px): 선반 윗띠(240px, 난간 제외)를 위로 이어 붙이고 올라갈수록 어둠으로 사라진다
-    band = np.asarray(room)[:240].astype(float)
-    upper = np.zeros((2400, 768, 3))
+    band = np.asarray(room)[:200].astype(float)
+    upper = np.zeros((2400, 1152, 3))
     for y in range(2400):
         k = (y / 2400) ** 1.6
-        upper[y] = band[(y - 2400) % 240] * (0.08 + 0.92 * k)
+        upper[y] = band[(y - 2400) % 200] * (0.08 + 0.92 * k)
     Image.fromarray(np.clip(upper, 0, 255).astype(np.uint8)).save('assets/props/arena332_upper.png')
     # 청소년(구슬 속): 키 56px
-    cheong = shrink(key_out(np.array(Image.open(HERE / 'cheong-raw.png').convert('RGBA'))), 56)
+    # BUILD333 재생성(cheong-raw2): 입 없음, 앞머리 그림자가 눈을 가림. 구슬 안에서는 보랏빛으로 물든 버전을 쓴다
+    cheong = shrink(key_out(np.array(Image.open(HERE / 'cheong-raw2.png').convert('RGBA'))), 56)
     Image.fromarray(cheong).save('assets/props/arena332_cheong.png')
+    tinted = cheong.copy()
+    rgb = tinted[..., :3].astype(float)
+    tinted[..., :3] = np.clip(rgb * 0.5 + np.array([110, 50, 190]) * 0.5, 0, 255).astype(np.uint8)
+    Image.fromarray(tinted).save('assets/props/arena332_cheong_orb.png')
     # 거대한 근육 팔(청소년 분홍 반팔): 높이 130px — 어깨가 왼쪽 끝, 손이 오른쪽
-    arm = shrink(key_out(np.array(Image.open(HERE / 'arm-raw.png').convert('RGBA'))), 130)
+    # BUILD333: 델타룬 타이탄식(검은 채움 + 흰 윤곽선, 사용자 참고 lineart-fist-ref) 팔
+    arm = shrink(key_out(thicken_lines(HERE / 'arm-raw3.png')), 150)
     Image.fromarray(arm).save('assets/props/arena332_arm.png')
     # 청소년거인 상체(목까지, 얼굴은 그림자): 높이 480px
-    giant = shrink(key_out(np.array(Image.open(HERE / 'giant-raw.png').convert('RGBA'))), 480)
+    # 더 거대하게(높이 820) + 어둡게 + 아래는 어둠으로 사라진다(하체가 잘려 보이지 않게)
+    giant = fade_bottom(shrink(key_out(thicken_lines(HERE / 'giant-raw2.png', 3)), 820), 0.18)
     Image.fromarray(giant).save('assets/props/arena332_giant.png')
     sheets = {}
     board = []

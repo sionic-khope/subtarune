@@ -6,10 +6,11 @@
 # ─── How to run ───
 # Run: uv run tools/maps/gajaeman_arena.py [--check]
 # ──────────────────
-"""BUILD332 final-battle chamber: one generated backdrop (assets/source/arena332) over a walkable causeway + pit ring.
+"""BUILD332/333 final-battle chamber: one generated backdrop (assets/source/arena332) over walkable stone.
 
-The causeway runs up from the bottom edge to the pit's south rim; the ring wings left/right are where the summoned
-monsters and the arriving allies stand. Gajaeman floats above the far (north) side of the pit, seen from behind.
+BUILD333 (사용자 “너무 붙어있음… 왼쪽 오른쪽 공간을 넓혀서 카메라이동으로 커버”): the room is the widened art
+(1152×768). The causeway runs up to the pit's south rim; wide terraces on the far left/right hold the summoned
+monsters and the arriving allies, well apart from the party. 2400px of darkness above lets the camera climb.
 """
 from __future__ import annotations
 
@@ -19,20 +20,32 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_arena'
-TOP_PAD: Final = 2400             # 카메라가 위로 한참 올라가는 빈 공간(선반이 어둠으로 사라진다)
-COLS, ROWS = 24, 36 + TOP_PAD // 32
+TOP_PAD: Final = 2400
+W, H = 1152, 768
+COLS, ROWS = W // 32, (H + TOP_PAD) // 32
 FLOOR: Final = '▓'
-CAUSEWAY: Final = (9, 15)          # cols 9..14 (x 288..480)
-RING_ROWS: Final = (18 + TOP_PAD // 32, 21 + TOP_PAD // 32)   # 원래 rows 18..20 (y 576..672)
-ROW_Y: Final = 612 + TOP_PAD       # the line the party stands on (south rim)
-PARTY_X: Final = {'youngcle': 244, 'gyeongsub': 308, 'player': 372, 'ppaman': 436, 'junhee': 500}
-# (name, image w, image h, final image-left x, final feet y, start offset toward the wall)
-LEFT: Final = [('chogath', 116, 112, 20, 628), ('thresh', 84, 92, 96, 606), ('blitzcrank', 104, 100, 40, 672),
-               ('ahri', 84, 72, 104, 662), ('teemo', 60, 44, 152, 648)]
-RIGHT: Final = [('darius', 92, 90, 0, 628), ('nasus', 92, 96, 0, 606), ('malphite', 123, 118, 0, 672),
-                ('fiddlesticks', 88, 94, 0, 662), ('lux', 54, 58, 0, 648)]
-ALLIES: Final = [('arena_mario', 'mini_mario', 196, 598, 'left', None), ('arena_bidet', 'warm_bidet', 168, 640, 'left', None),
-                 ('arena_park', 'park_guardian_costume', 572, 640, 'right', 2.22), ('arena_ttuulla', 'ttuulla', 548, 598, 'right', 1.79)]
+# 걷는 곳(배경 그림 기준 px): 둑길, 구덩이 앞 테두리, 왼쪽·오른쪽 테라스, 테라스와 테두리 연결
+WALK: Final = [(480, 440, 142, 328), (320, 396, 480, 56), (8, 216, 322, 146), (822, 216, 322, 146),
+               (296, 352, 96, 60), (760, 352, 96, 60)]
+ROW_Y: Final = 420 + TOP_PAD
+PARTY_X: Final = {'youngcle': 371, 'gyeongsub': 457, 'player': 543, 'ppaman': 629, 'junhee': 715}
+PIT: Final = [555, 307 + TOP_PAD, 217, 90]
+# (name, image w, image h, image-left x on the left terrace, feet y) — mirrored for the right side
+LEFT: Final = [('chogath', 116, 112, 20, 300), ('thresh', 84, 92, 150, 262), ('blitzcrank', 104, 100, 60, 356),
+               ('ahri', 84, 72, 188, 340), ('teemo', 60, 44, 258, 354)]
+RIGHT_NAMES: Final = [('darius', 92, 90), ('nasus', 92, 96), ('malphite', 123, 118), ('fiddlesticks', 88, 94), ('lux', 54, 58)]
+ALLIES: Final = [('arena_mario', 'mini_mario', 284, 352, 'left', None), ('arena_bidet', 'warm_bidet', 312, 396, 'left', None),
+                 ('arena_park', 'park_guardian_costume', 814, 396, 'right', 2.22), ('arena_ttuulla', 'ttuulla', 844, 352, 'right', 1.79)]
+JOIN: Final = {'bidet': 486, 'mario': 522, 'ttuulla': 562, 'park': 598}
+# 오른쪽으로 튈 때 땅을 따라가는 길목: 테두리 오른쪽 끝 → 테라스로 올라가 → 오른쪽 끝
+ESCAPE: Final = [('arena_escape_1', 776, ROW_Y), ('arena_escape_2', 800, 300 + TOP_PAD), ('arena_escape_3', 1110, 300 + TOP_PAD)]
+# 비데·마리오가 영클 쪽(왼쪽)으로 달려가는 길목
+RUSH: Final = [('arena_rush_1', 360, ROW_Y), ('arena_rush_2', 330, 300 + TOP_PAD)]
+
+
+def anchor(name: str, x: int, y: int) -> dict:
+    return {'type': 'prop', 'id': name, 'image': 'assets/tiles/castle306_floor.png',
+            'x': x, 'y': y, 'w': 24, 'h': 16, 'solid': False, 'hidden': True}
 
 
 def main() -> None:
@@ -41,58 +54,55 @@ def main() -> None:
         print('Usage: uv run tools/maps/gajaeman_arena.py [--check]', file=sys.stderr)
         raise SystemExit(2)
     cells = [[' '] * COLS for _ in range(ROWS)]
-    for row in range(RING_ROWS[0], ROWS):
-        for col in range(*CAUSEWAY):
-            cells[row][col] = FLOOR
-    for row in range(*RING_ROWS):
-        for col in range(1, COLS - 1):
-            cells[row][col] = FLOOR
+    for x, y, w, h in WALK:
+        for row in range((y + TOP_PAD) // 32, (y + TOP_PAD + h + 31) // 32):
+            for col in range(x // 32, min(COLS, (x + w + 31) // 32)):
+                if 0 <= row < ROWS:
+                    cells[row][col] = FLOOR
     entities = [{'type': 'prop', 'id': 'arena_upper', 'image': 'assets/props/arena332_upper.png',
-                 'x': 0, 'y': 0, 'w': COLS * 32, 'h': 2, 'solid': False, 'sortY': -3},
+                 'x': 0, 'y': 0, 'w': W, 'h': 2, 'solid': False, 'sortY': -3},
                 {'type': 'prop', 'id': 'arena_room', 'image': 'assets/props/arena332_room.png',
-                 'x': 0, 'y': TOP_PAD, 'w': COLS * 32, 'h': 2, 'solid': False, 'sortY': -3}]
+                 'x': 0, 'y': TOP_PAD, 'w': W, 'h': 2, 'solid': False, 'sortY': -3}]
     for name, x in PARTY_X.items():
-        entities.append({'type': 'prop', 'id': f'arena_stand_{name}', 'image': 'assets/tiles/castle306_floor.png',
-                         'x': x, 'y': ROW_Y, 'w': 24, 'h': 16, 'solid': False, 'hidden': True})
-    # 편집노조가 달려와 합류하는 자리(일행 뒷줄, 둑길 위)
-    for name, x in (('bidet', 290), ('mario', 330), ('ttuulla', 414), ('park', 454)):
-        entities.append({'type': 'prop', 'id': f'arena_join_{name}', 'image': 'assets/tiles/castle306_floor.png',
-                         'x': x, 'y': ROW_Y + 52, 'w': 24, 'h': 16, 'solid': False, 'hidden': True})
-    # 청소년거인 상체: 결전지 위 어둠 속(카메라가 페이드로 비출 때만 보인다)
-    entities.append({'type': 'prop', 'id': 'arena_giant', 'image': 'assets/props/arena332_giant.png',
-                     'x': 127, 'y': TOP_PAD - 300, 'w': 515, 'h': 2, 'solid': False, 'hidden': True, 'sortY': -1})
+        entities.append(anchor(f'arena_stand_{name}', x, ROW_Y))
+    for name, x in JOIN.items():
+        entities.append(anchor(f'arena_join_{name}', x, ROW_Y + 60))
+    for name, x, y in ESCAPE + RUSH:
+        entities.append(anchor(name, x, y))
     entities.extend([
-        {'type': 'npc', 'id': 'arena_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 360, 'y': 390 + TOP_PAD,
+        {'type': 'npc', 'id': 'arena_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 543, 'y': 240 + TOP_PAD,
          'facing': 'up', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.89},
-        {'type': 'npc', 'id': 'arena_youngcle', 'sprite': 'youngcle_hover', 'x': 312, 'y': 1116 + TOP_PAD,
+        {'type': 'npc', 'id': 'arena_youngcle', 'sprite': 'youngcle_hover', 'x': 510, 'y': 730 + TOP_PAD,
          'facing': 'up', 'solid': False, 'wander': 0},
-        {'type': 'npc', 'id': 'arena_junhee', 'sprite': 'junhee', 'x': 432, 'y': 1116 + TOP_PAD,
+        {'type': 'npc', 'id': 'arena_junhee', 'sprite': 'junhee', 'x': 580, 'y': 730 + TOP_PAD,
          'facing': 'up', 'solid': False, 'wander': 0},
     ])
     for actor_id, sprite, x, y, facing, scale in ALLIES:
         entities.append({'type': 'npc', 'id': actor_id, 'sprite': sprite, 'x': x, 'y': y + TOP_PAD, 'facing': facing,
                          'solid': False, 'wander': 0, 'hidden': True, **({'visualScale': scale} if scale else {})})
     summons = []
-    for side, group in (('left', LEFT), ('right', RIGHT)):
-        for index, (name, w, h, x, feet) in enumerate(group):
-            final_x = x if side == 'left' else COLS * 32 - LEFT[index][3] - w
-            start_x = final_x - 96 if side == 'left' else final_x + 96
-            prop_id = f'arena_mon_{name}'
-            entities.append({'type': 'prop', 'id': prop_id, 'image': f'assets/props/arena332_{name}.png',
-                             'x': start_x, 'y': feet - h + TOP_PAD, 'solid': False, 'hidden': True})
-            summons.append({'id': prop_id, 'side': side, 'x': final_x, 'y': feet - h + TOP_PAD})
-    entities.append({'type': 'trigger', 'id': 'arena_back', 'x': CAUSEWAY[0] * 32, 'y': ROWS * 32 - 10, 'w': 192, 'h': 10,
+    for index, (name, w, h, x, feet) in enumerate(LEFT):
+        for side, (n, ww, hh) in (('left', (name, w, h)), ('right', RIGHT_NAMES[index])):
+            final_x = x if side == 'left' else W - x - ww
+            start_x = final_x - 110 if side == 'left' else final_x + 110
+            prop_id = f'arena_mon_{n}'
+            entities.append({'type': 'prop', 'id': prop_id, 'image': f'assets/props/arena332_{n}.png',
+                             'x': start_x, 'y': feet - hh + TOP_PAD, 'solid': False, 'hidden': True})
+            summons.append({'id': prop_id, 'side': side, 'x': final_x, 'y': feet - hh + TOP_PAD})
+    entities.append({'type': 'trigger', 'id': 'arena_back', 'x': 480, 'y': ROWS * 32 - 10, 'w': 142, 'h': 10,
                      'script': 'castle_spire_back'})
     data = {
         'id': MAP_ID, 'name': '가재맨성 결전지', 'stage': 'castle_prophecy_seen',
         'bgm': None, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_arena_intro', 'early': True},
-        'preload': ['assets/props/arena332_room.png', 'assets/props/arena332_upper.png', 'assets/props/cathedral323_sword.png', 'assets/props/arena332_cheong.png', 'assets/props/arena332_arm.png', 'assets/props/arena332_giant.png'] + [f'assets/props/arena332_{n}.png' for n, *_ in LEFT + RIGHT],
-        'spawns': {'start': {'x': 360, 'y': 1096 + TOP_PAD, 'facing': 'up'},
-                   'rim': {'x': 360, 'y': ROW_Y, 'facing': 'up'}},
-        # 구덩이 중심·반지름(배경 그림 기준, 원본 1024×1536의 0.75배)
+        'preload': ['assets/props/arena332_room.png', 'assets/props/arena332_upper.png', 'assets/props/cathedral323_sword.png',
+                    'assets/props/arena332_cheong_orb.png', 'assets/props/arena332_arm.png', 'assets/props/arena332_giant.png']
+        + [f'assets/props/arena332_{n}.png' for n, *_ in LEFT + RIGHT_NAMES],
+        'spawns': {'start': {'x': 540, 'y': 700 + TOP_PAD, 'facing': 'up'},
+                   'rim': {'x': 540, 'y': ROW_Y, 'facing': 'up'}},
         'meta': {'connected': True, 'arena': {'summons': summons, 'gajaeman': 'arena_gajaeman', 'youngcle': 'arena_youngcle',
-                                              'pit': [384, 457 + TOP_PAD, 322, 124], 'topPad': TOP_PAD}},
+                                              'pit': PIT, 'topPad': TOP_PAD,
+                                              'giant': {'x': 555, 'bottom': TOP_PAD + 120, 'image': 'assets/props/arena332_giant.png'}}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')
