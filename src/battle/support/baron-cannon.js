@@ -6,8 +6,11 @@ import { createYoungcleTvformSupport } from './youngcle-tvform.js';
 import { createDrumDevilSupport } from './drum-devil.js';
 import { createMalzaharRunnerSupport } from './malzahar-runner.js';
 
+import { createTeenBossSupport } from './teen-boss.js';
 /** Battle-local support controller; no story flag survives victory or retry. */
 export function createBattleSupport(battle) {
+  const teen = createTeenBossSupport(battle);
+  if (teen) return teen;
   const malzahar = createMalzaharRunnerSupport(battle);
   if (malzahar) return malzahar;
   const drum = createDrumDevilSupport(battle);

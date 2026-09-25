@@ -1,0 +1,11 @@
+Create a battle sprite sheet of SIX poses of the same colossal boss "Teen Giant" for a Deltarune-style RPG, arranged in EXACTLY 2 columns x 3 rows on a 1024x1536 canvas with invisible equal 512x512 cells. Solid pure #FF00FF magenta background everywhere. No text, no labels, no borders, no ground, no effects outside the body.
+
+Reference (Image1): copy EXACTLY the character and art style: upper body only (neck to waist, the head hidden in black shadow at the top), solid BLACK fill with thin crisp WHITE contour lines, dark pink rolled short sleeves, dark beige apron with a small bow, long wavy hair strands in white lines, enormous muscular arms with white muscle lines, huge fists. Three-quarter view facing LEFT (toward the heroes on the left).
+
+Same scale and same body position in every cell (the torso stays in place so the animation does not jump), each pose fills the central 75% of its cell:
+1. (row1 col1) idle: arms hanging, fists down.
+2. (row1 col2) idle breathing: same as 1 but the chest and shoulders slightly raised and expanded (inhale).
+3. (row2 col1) punch: the near (left) arm thrust straight out to the LEFT with the fist forward, the other arm pulled back.
+4. (row2 col2) overhead slam wind-up: both arms raised high, fists together above, about to smash down.
+5. (row3 col1) vacuum: the near arm stretched out to the LEFT with the hand wide open, palm facing the viewer, and a round dark swirling HOLE (black with white spiral lines) in the middle of the palm.
+6. (row3 col2) overloaded collapse: slumped forward and down, shoulders dropped, both arms limp on the ground in front, exhausted, small white steam puffs rising from the shoulders.

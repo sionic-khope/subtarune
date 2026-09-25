@@ -166,6 +166,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'ship_tvform_won', enemies: ['youngcle_tvform'] },
   { flag: 'choimis_flower_won', enemies: ['choimis_flower'] },
   { flag: 'castle_malzahar_won', enemies: ['malzahar_sub'] },
+  { flag: 'castle_teen_won', enemies: ['teen_giant'] },                                                                  // 꼭대기 청소년 보스전(돈 0) — castle_summit.js(BUILD339)
   // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
   { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
   { flag: 'sakura5_duo_won', enemies: ['domijorim', 'dohyun'] },                                                          // 벚꽃 숲 5 공터 도미조림·도현 전투(각 45원) — jjajang_sakura5.js(BUILD276)

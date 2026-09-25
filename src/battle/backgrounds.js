@@ -19,6 +19,14 @@ registerBattleBg('editor_union_stage', drawParkGuardianBackground);
 registerBattleBg('choimis_sky', drawChoimisSkyBackground);
 registerBattleBg('castle_memory', drawCastleMemoryBackground);
 
+// BUILD339 청소년전: 꼭대기 끝길 그대로(부서진 끝 조각 왼쪽 절반을 화면에) — 사용자 “맵은 그냥 거기서 바로 진행”
+registerBattleBg('castle_summit', (ctx, battle) => {
+  const img = battle.game.propImages['assets/props/summit336_chunk_3.png'] || battle.game.propImages['assets/props/summit336_chunk_2.png'];
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 480, 360);
+  if (img) ctx.drawImage(img, 60, 60, 640, 480, 0, 0, 480, 360);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 0, 480, 360);
+});
+
 const drumNestCaches = new WeakMap();
 registerBattleBg('drum_nest', (ctx, battle) => {
   let canvas = drumNestCaches.get(battle.game);

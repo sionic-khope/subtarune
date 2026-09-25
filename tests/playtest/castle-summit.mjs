@@ -20,14 +20,15 @@ await runScenario({ name: 'castle-summit', launchOptions: { args: ['--autoplay-p
   } finally { await page.keyboard.up('ArrowRight'); }
   const lines = [];
   for (let i = 0; i < 600; i++) {
-    const s = await page.evaluate(() => ({ running: game.dialogue.running, waiting: game.textbox.isOpen && game.textbox.state === 'waiting', text: game.textbox.node?.text, scene: game.castleSummit?.snapshot, bgm: game.sound.bgmName }));
+    const s = await page.evaluate(() => ({ battle: !!game.battle, running: game.dialogue.running, waiting: game.textbox.isOpen && game.textbox.state === 'waiting', text: game.textbox.node?.text, scene: game.castleSummit?.snapshot, bgm: game.sound.bgmName }));
     if (s.waiting) { if (lines.at(-1) !== s.text || true) { lines.push(s.text); if (lines.length % 3 === 1) await shot(`line-${String(lines.length).padStart(2, '0')}`); } await page.keyboard.press('KeyC'); await page.waitForTimeout(140); }
     else { if (i % 8 === 0) await shot(`f-${String(n++).padStart(3, '0')}`); await page.waitForTimeout(150); }
-    if (!s.running && i > 5) break;
+    if (s.battle || (!s.running && i > 5)) break;
   }
   await shot('end');
-  const end = await page.evaluate(() => ({ stage: !!game.flags.castle_summit_ready, bgm: game.sound.bgmName, scene: game.castleSummit?.snapshot }));
+  const end = await page.evaluate(() => ({ stage: !!game.flags.castle_summit_ready, bgm: game.sound.bgmName, scene: game.castleSummit?.snapshot, battle: game.battle?.enemies.map(e => e.id) }));
   check('all 23 lines', lines.length === 23, JSON.stringify(lines));
-  check('gallery plays and the giant is fully revealed with gajaeman perched', end.bgm === 'gallery' && end.scene.giant === 1 && end.scene.gajaeman, JSON.stringify(end));
+  check('the giant is fully revealed with gajaeman perched', end.scene.giant === 1 && end.scene.gajaeman, JSON.stringify(end));
+  check('the battle starts right there', JSON.stringify(end.battle) === '["teen_giant"]', JSON.stringify(end));
   check('ready for the battle', end.stage);
 });

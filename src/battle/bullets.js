@@ -169,7 +169,9 @@ export class Bullet {
 }
 
 /** 패턴 라이브러리. 각 패턴은 { duration, update(t, dt, api) } 를 돌려준다. */
+import { TEEN_PATTERNS } from './teen-patterns.js';
 export const PATTERNS = {
+  ...TEEN_PATTERNS,        // 청소년 보스전(BUILD339)
   ...CASTLE_MEMORY_PATTERNS,
   ...CASTLE_REGRET_DUEL_PATTERNS,
   ...CASTLE_REGRET_COSMIC_PATTERNS,

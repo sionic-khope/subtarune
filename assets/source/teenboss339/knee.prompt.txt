@@ -1,0 +1,11 @@
+Create a sprite sheet of FOUR frames of one character for a Deltarune-style pixel-art battle, arranged in EXACTLY 2 columns x 2 rows on a 1024x1024 canvas with invisible equal 512x512 cells. Solid pure #FF00FF magenta background. No text, no labels, no borders, no ground, no effects.
+
+Reference image roles (one combined image, left to right):
+- Image1 (left, photo): the POSE: a grinning young man with glasses crouching low toward the viewer, both arms spread wide, one KNEE raised high straight up in the middle toward the camera, a symmetric inkblot print on his T-shirt.
+- Image2 (right, pixel sprite): IDENTITY and STYLE: "Gajaeman" chibi proportions, messy dark hair, round glasses, big round nose, dark stepped outline, chunky pixel density.
+
+Draw Gajaeman in this pose as a dark evil version: the whole character colored only in BLACK and deep PURPLE (#0a0610 to #5a2a8a) with a thin violet rim light, glasses glinting violet, an evil grin, the inkblot on the shirt in pale purple. Front view facing the viewer. Same scale and same feet position in every cell:
+1. crouch, knee down, arms wide.
+2. knee half raised.
+3. knee raised high straight up in the center (the attack).
+4. crouch leaning to the right (moving sideways).

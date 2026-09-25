@@ -48,8 +48,8 @@ def main() -> None:
     entities.extend([
         {'type': 'npc', 'id': 'summit_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 4150, 'y': -300,
          'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.89},
-        {'type': 'trigger', 'id': 'summit_confront', 'x': 3480, 'y': 340, 'w': 24, 'h': 110, 'once': True,
-         'flag': 'castle_summit_seen', 'script': 'castle_summit_confront'},
+        # 대치 → 전투. 이긴 뒤엔 스크립트가 바로 끝난다(이어하기에서 대치 뒤 저장이면 전투부터)
+        {'type': 'trigger', 'id': 'summit_confront', 'x': 3480, 'y': 340, 'w': 24, 'h': 110, 'script': 'castle_summit_confront'},
         {'type': 'trigger', 'id': 'summit_back', 'x': 112, 'y': H - 58, 'w': 236, 'h': 10, 'script': 'castle_spire_back'},
     ])
     data = {

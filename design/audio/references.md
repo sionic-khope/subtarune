@@ -1,5 +1,11 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 청소년 보스전 (BUILD339, 2026-09-25)
+- `bgm/guardian.mp3`: 사용자 지정 [nP9mB1sVJz4](https://www.youtube.com/watch?v=nP9mB1sVJz4) `68. GUARDIAN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 226.3초까지(끝 무음 4.4초 제거) MP3 q2, SHA256 `ab2baa5d22c3adeba157857c2f0cfd6a33a871ac77f04ca5593be7c431a73f16`.
+- 전투 시작 `weaponpull`(조우음 없음, 사용자 지시).
+- `sfx/gajaeman_knee.mp3`: 무릎 올릴 때. 사용자 지정 myinstants `neoheulge-gajaemaen-67533`(403) 대신 YouTube cprvWNhZlgk `가재맨 "넣을게~" 효과음` **임시**.
+- `sfx/gajaeman_kick.mp3`: 강제퇴장 버튼 누를 때. 사용자 지정 myinstants `gajaemaen-neon-ddaragara-45852`(403) 대신 YouTube yjsiYHSz_Rs **임시**. 원본을 받으면 같은 이름으로 교체.
+
 ## 꼭대기 (BUILD337, 2026-09-25)
 - `bgm/gallery.mp3`: 사용자 지정 [L0MAep7ml3A](https://www.youtube.com/watch?v=L0MAep7ml3A), yt-dlp 제목 `Gallery`(Toby Fox), 전곡 12.82초 MP3 q2(무음 없음, 반복). BUILD337 꼭대기 “이미 우리 앞에있어.”부터. 원본 `assets/source/summit336/audio/`.
 

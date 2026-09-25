@@ -180,6 +180,16 @@ export const ENEMIES = {
       die: '* 최미스를 쓰러뜨렸다.',
     },
   },
+  // BUILD339 청소년(사용자 2026-09-25): 선화 상체 보스. 공격은 지원 모듈(support/teen-boss.js)이 잠그고 푼다. 시트 3×2 = 대기·숨·주먹·내려찍기·청소기·쓰러짐
+  teen_giant: {
+    name: '청소년', hp: 999, damage: 15, money: 0, boss: true, support: 'teen_boss', voice: 'narrator',
+    sheet: { src: 'assets/enemies/teenboss339.png', cols: 3, rows: 2, count: 1, fps: 1, px: 1 },
+    actions: { all: { src: 'assets/enemies/teenboss339.png', cols: 3, rows: 2, count: 6, fps: 1, px: 1 } },
+    pivot: [128, 250], scale: 1, dx: -20, dy: 70, board: [300, 150], idle: { swayX: 0, swayY: 0 },
+    projectiles: { sword: 'assets/props/cathedral323_sword.png', knee: 'assets/props/teenboss339_knee.png', arm: 'assets/props/arena332_arm.png' },
+    patterns: [{ type: 'teen_vacuum' }],
+    lines: { appear: '* 청소년이 앞을 막아섰다.', idle: ['* 청소년이 거칠게 숨을 쉰다.'], speak: ['...'], die: '* 청소년이 쓰러졌다.' },
+  },
   drum_devil: {
     name: '드럼통의 악마', hp: 300, damage: 15, money: 0, boss: true, support: 'drum_devil',
     sheet: { src: 'assets/enemies/drum-devil-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },

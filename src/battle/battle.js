@@ -297,6 +297,7 @@ export class Battle {
     if (btn.hint && (input.just('left') || input.just('right'))) this.setText(this.support.hint);
     if (input.just('confirm')) {
       this.sfx('confirm');
+      if (btn.kind === 'fight' && btn.enabled === false) { this.sfx('cancel'); return; }   // 잠긴 공격하기(청소년전 BUILD339): X 표시, 눌러도 안 된다
       if (btn.kind === 'fight') { this.state = 'target'; this.targetIdx = 0; this.t = 0; }
       else if (btn.kind === 'support') {
         const action = this.support?.action(btn.id);
@@ -376,7 +377,8 @@ export class Battle {
     if (typeof create === 'function') { this.gimmick = create(this, { plan, member: plan.member, target }); this.cur = { plan, gimmick: true }; return; }
     if (create !== NATIVE) console.warn('[battle] 모르는 공격 모드', modeName);
     const def = BATTLE_SPRITES[plan.member.id]; const attackT = def.attack.reduce((s, f) => s + f.duration, 0);
-    const action = new FastAction(plan.member.home, [target.x - 44, target.y + 6], attackT / ATTACK_SPEEDUP); action.start();
+    const spot = this.support?.attackSpot?.(target, plan.member) || [target.x - 44, target.y + 6];   // 쓰러진 청소년처럼 자세가 바뀐 적은 지원 모듈이 멈출 자리를 준다
+    const action = new FastAction(plan.member.home, spot, attackT / ATTACK_SPEEDUP); action.start();
     plan.member.action = action; this.cur = { plan, action, hit: false };
   }
   hitEnemy(e, by, dmg = this.game.attack || 1, { source = 'ordinary', sound = true } = {}) {
@@ -731,7 +733,9 @@ export class Battle {
     if (!act?.airborne && this.cfg.bg !== 'choimis_sky') { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(px), Math.round(py + 2), 15, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.save(); ctx.translate(Math.round(px), Math.round(py)); if (mode === 'return') ctx.scale(-1, 1);
     if (act?.rotation) { ctx.translate(0, -30); ctx.rotate(act.rotation); ctx.translate(0, 30); }
-    ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
+    const special = !act ? this.support?.memberImage?.(m) : null;   // 방어하기 자세(청소년전): 대기 첫 프레임과 같은 규격 384×512
+    if (special) ctx.drawImage(special, Math.round(-seq[0].pivot[0] * scale), Math.round(-seq[0].pivot[1] * scale), Math.round(special.width * scale), Math.round(special.height * scale));
+    else ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
     ctx.restore();
     if (m.popup) this.drawPopup(ctx, px, py - 70, m.popup.text, m.popup.t, m.popup.heal ? '#7cff7c' : '#ff5c5c');
   }
@@ -888,14 +892,16 @@ export class Battle {
       const by = 292; ctx.fillStyle = '#ffe066'; ctx.fillText(m.name, 36, by + 2);                    // 누구 차례인지
       let bx = 36 + Math.ceil(ctx.measureText(m.name).width) + 16;
       const buttons = this.menuButtons();
-      buttons.forEach(({ label, enabled, icon }, k) => { const bw = Math.ceil(ctx.measureText(label).width) + (icon ? 44 : 30), bh = icon ? 24 : 20; const sel = this.menuIdx === k;
+      buttons.forEach(({ label, enabled, icon, kind }, k) => { const bw = Math.ceil(ctx.measureText(label).width) + (icon ? 44 : 30), bh = icon ? 24 : 20; const sel = this.menuIdx === k;
         ctx.fillStyle = sel ? '#3a3000' : '#000'; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = sel ? '#ffe066' : '#9a9ab0'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
         if (icon) this.drawIcon(ctx, icon, bx + 18, by + 4);
         if (icon && this.support?.requiredHits) {
           const step = Math.floor((bw - 12) / this.support.requiredHits);
           for (let i = 0; i < this.support.requiredHits; i++) { ctx.fillStyle = i < this.support.charge ? '#ffe066' : '#45404d'; ctx.fillRect(bx + 6 + i * step, by + 20, step - 2, 2); }
         }
-        ctx.fillStyle = !enabled ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + (icon ? 32 : 18), by + 2); if (sel) this.heart(ctx, bx + 6, by + 6); bx += bw + 8; });
+        ctx.fillStyle = !enabled ? '#777' : sel ? '#ffe066' : '#fff'; ctx.fillText(label, bx + (icon ? 32 : 18), by + 2); if (sel) this.heart(ctx, bx + 6, by + 6);
+        if (!enabled && kind === 'fight') { ctx.strokeStyle = '#ff4d4d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx + 6, by + 4); ctx.lineTo(bx + bw - 6, by + bh - 4); ctx.moveTo(bx + bw - 6, by + 4); ctx.lineTo(bx + 6, by + bh - 4); ctx.stroke(); }
+        bx += bw + 8; });
     } else if (this.state === 'target') {                          // 델타룬 FIGHT: 적 목록 + HP 바, 하트 커서
       this.targets().forEach((e, i) => { const y = row(i), sel = i === this.targetIdx; if (sel) this.heart(ctx, 38, y + 5); ctx.fillStyle = sel ? '#ffe066' : '#fff'; ctx.fillText(e.name, 54, y);
         this.hpBar(ctx, 250, y + 4, 90, e.hp, e.maxHp, '#4cd964', '#7a1b1b'); ctx.fillStyle = '#fff'; ctx.fillText(`${e.hp}/${e.maxHp}`, 350, y); });

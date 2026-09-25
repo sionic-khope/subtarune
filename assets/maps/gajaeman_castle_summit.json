@@ -165,8 +165,6 @@
    "y": 340,
    "w": 24,
    "h": 110,
-   "once": true,
-   "flag": "castle_summit_seen",
    "script": "castle_summit_confront"
   },
   {
