@@ -14,6 +14,7 @@ walk = (xs < 612) & (ys > 318) & (ys < 640) & (lum > 22)
 # 부서진 끝 바로 앞 마지막 난간 기둥(불꽃·끊어진 사슬 포함)은 영역째
 post = (xs >= 600) & (xs <= 668) & (ys >= 200) & (ys <= 330) & (lum > 18)
 rail = (xs < 600) & (ys > 225) & (ys <= 318) & (lum > 38)
-a = ((walk | post | rail) * 255).astype(np.uint8)
+# 마지막 기둥은 맵에서 지웠다(BUILD349) — 다리와 난간만
+a = ((walk | rail) * 255).astype(np.uint8)
 Image.fromarray(np.dstack([im.astype(np.uint8), a]), 'RGBA').save('assets/props/summit342_front.png')
 print('ok')

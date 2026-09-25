@@ -10,7 +10,7 @@ export const TEEN_BATTLE = Object.freeze({
   downTurns: 3,
   rockDamage: 50,
   // 세 번째 청소(그 뒤로 세 번마다)는 C 연타 버티기: 연타마다 하트가 구멍에서 밀려나고, 끝까지 빨려 들어가면 전원 50(사용자 2026-09-25)
-  mash: { every: 3, push: 15, pull: [30, 100], damage: 50, duration: 13 },
+  mash: { every: 3, push: 18, pull: [30, 90], damage: 50, duration: 13 },
   // 청소 중 가끔(패턴당 1~2개) 천천히 날아오는 초록 1UP 버섯: 하트로 먹으면 일행 전원 +30(사용자 2026-09-25)
   mushroom: { image: 'assets/props/teen346_mushroom.png', heal: 30, second: 0.5, speed: 38 },
   // 쓰러진 동안 일반 공격 한 대 = 50(사용자 2026-09-25, 80 → 50), 매번 치명타 이펙트 + 릴리즈샷 소리

@@ -64,6 +64,8 @@ export class Soul {
     if (this.invuln > 0) this.invuln -= dt;
   }
   draw(ctx) {
+    // hidden: 패턴이 하트를 잠시 감춘다(청소년 구멍에 빨려 들어가는 연출)
+    if (this.hidden) return;
     if (this.invuln > 0 && Math.floor(this.invuln * 16) % 2) return;   // 무적 깜빡임
     const x = Math.round(this.x), y = Math.round(this.y);
     ctx.fillStyle = '#ff0000';

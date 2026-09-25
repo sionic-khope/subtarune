@@ -19,7 +19,7 @@ export function createTeenBossSupport(battle) {
   // 가재맨: 어깨 위(perch) → 쓰러지면 천천히 내려와 쓰러진 몸 뒤에서 맴돈다(hover) → 일어나면 다시 어깨로
   let gj = { mode: 'hidden', t: 0, from: [...V.shoulder] };
   // 쓰러짐(collapse)·일어남(rise) 연출 시간
-  let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, motes = [], crits = [], puffs = [];
+  let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, planned = null, motes = [], crits = [], puffs = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
   const smoke = battle.game.castleSummit?.smoke || new SummitSmoke();
@@ -36,6 +36,8 @@ export function createTeenBossSupport(battle) {
   const self = {
     get phase() { return phase; },
     get gauge() { return gauge; },
+    /** QA: 청소 용량 직접 지정 */
+    set gauge(v) { gauge = Math.max(0, Math.min(C.gauge.max, v)); },
     get smoke() { return smoke; },
     get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, downs, vacTurns, suckedCount, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode }; },
     async load(loadImage) {
@@ -73,8 +75,15 @@ export function createTeenBossSupport(battle) {
     // 상자는 끝길 일행 오른쪽(겹치지 않게). 청소기는 손바닥 구멍(205,136) 오른쪽 아래로 넓게(사용자 “더 넓혀”)
     // 청소기는 손바닥 구멍(view.vacuum.palm)이 상자 왼쪽 위 대각선, 게이지 패널(x 440)과 겹치지 않게
     // 피하는 상자는 너무 오른쪽이지 않게(사용자) — 일행(x≤145) 바로 오른쪽
-    get boardCenter() { return this.vacuumTurn() ? [300, 194] : [300, 214]; },
-    boardSizeFor() { return this.vacuumTurn() ? [180, 130] : [220, 140]; },
+    /** 이번(곧 올) 청소가 C 연타 버티기인가 */
+    mashTurn() {
+      // 이번 턴 패턴이 이미 정해졌으면 그것으로, 아니면 다음 청소 차례를 예측
+      if (planned && planned.turn === turn && planned.phase === phase) return planned.type === 'teen_vacuum_mash';
+      return this.vacuumTurn() && (vacTurns + 1) % C.mash.every === 0;
+    },
+    // C 연타는 상자를 위로 길게 — 상자 위쪽이 손바닥 구멍 바로 아래(거기 닿으면 빨려 들어간다)
+    get boardCenter() { return this.mashTurn() ? [304, 158] : this.vacuumTurn() ? [300, 194] : [300, 214]; },
+    boardSizeFor() { return this.mashTurn() ? [170, 200] : this.vacuumTurn() ? [180, 130] : [220, 140]; },
     action(id) {
       if (id !== 'defend') return null;
       const member = battle.members[battle.memberIdx];
@@ -110,7 +119,9 @@ export function createTeenBossSupport(battle) {
       // 세 번째 청소부터 가재맨이 중간중간 검·무릎으로 방해(사용자 2026-09-25)
       if (nextType === 'teen_vacuum') vacTurns++;
       // 세 번째 청소마다 C 연타 버티기
-      if (nextType === 'teen_vacuum' && vacTurns % C.mash.every === 0) return [{ type: 'teen_vacuum_mash', damage: 15, level: Math.max(0, vacTurns - 1) }];
+      const mash = nextType === 'teen_vacuum' && vacTurns % C.mash.every === 0;
+      planned = { turn, phase, type: mash ? 'teen_vacuum_mash' : nextType };
+      if (mash) return [{ type: 'teen_vacuum_mash', damage: 15, level: Math.max(0, vacTurns - 1) }];
       return [{ type: nextType, damage: 15, harass: nextType === 'teen_vacuum' && vacTurns >= 3, level: Math.max(0, vacTurns - 1) }];
     },
     onProjectile(p) {

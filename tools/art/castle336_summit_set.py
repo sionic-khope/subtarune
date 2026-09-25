@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow"]
+# dependencies = ["pillow", "numpy"]
 # ///
 # ─── How to run ───
 # Run: uv run tools/art/castle336_summit_set.py
@@ -15,11 +15,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
 
 SRC = Path('assets/source/summit336')
 SCALE = 0.75
 PIECE_W, H = 1152, 768
+POST = (560, 720, 120, 334)   # 끝 조각(자른 뒤) 안의 마지막 기둥·사슬·밑동 영역: x0, x1, y0, y1
 CUT = 60                 # 끝 조각 왼쪽에서 버릴 폭(이음새 기둥 중복)
 STUB = (64, 208, 400, 720)   # 위로 올라오는 짧은 계단: x0, x1, 위 y, 아래 y
 
@@ -36,6 +38,16 @@ def main() -> None:
     trimmed = Image.new('RGB', (PIECE_W, H))
     trimmed.paste(edge.crop((CUT, 0, PIECE_W, H)), (0, 0))
     trimmed.paste(edge.crop((PIECE_W - CUT, 0, PIECE_W, H)).transpose(Image.FLIP_LEFT_RIGHT), (PIECE_W - CUT, 0))
+    # BUILD349: 부서진 끝 바로 앞 마지막 난간 기둥은 지운다(청소년·가재맨과 겹쳐 부자연스러움, 사용자 “뒤에 기둥을 없애던가”) — 오른쪽 하늘로 덮는다
+    px0, px1, py0, py1 = POST
+    # 줄마다 오른쪽 하늘(x 700~1150)의 중앙값 색으로 칠한다(떠 있는 돌·연기를 반쪽으로 복사하지 않게). 바닥 돌 픽셀(밝은 것)은 남긴다
+    arr = np.asarray(trimmed).copy()
+    sky = np.median(arr[py0:py1, 700:1150], axis=1).astype(np.uint8)
+    for y in range(py0, py1):
+        row = arr[y, px0:px1]
+        keep = (row.mean(axis=1) > 70) & (y > 318) & (np.arange(px0, px1) < 612)
+        row[~keep] = sky[y - py0]
+    trimmed = Image.fromarray(arr)
     order = [piece('start'), trimmed]
     full = Image.new('RGB', (PIECE_W * len(order), H), (0, 0, 0))
     for i, im in enumerate(order):

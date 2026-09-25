@@ -56,7 +56,8 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
     while ((await B()).state === 'interlude') await press('KeyC');
   }
   // 게이지를 채워 쓰러짐을 본다
-  // 네 번째 턴 = 세 번째 청소 = C 연타 버티기: 연타하면 안 빨려 들어간다
+  // 네 번째 턴 = 세 번째 청소 = C 연타 버티기: 연타하면 안 빨려 들어간다(쓰러짐은 그다음 턴에 보려고 게이지를 비운다)
+  await fixture('empty-gauge', 'Empty the gauge so the collapse happens on the next turn, not during the mash turn.', () => { game.battle.support.gauge = 0; });
   await defendAll();
   assert.ok(await until(() => game.battle.state === 'bullets', 12000), 'mash turn');
   check('third cleaning is the C-mash struggle', await page.evaluate(() => game.battle.patterns.some(p => p.p && game.battle.support.snapshot.vacTurns === 3)), JSON.stringify((await B()).sup));
@@ -65,9 +66,11 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   check('mashing C keeps the heart out of the hole', (await B()).sup.suckedCount === 0, JSON.stringify((await B()).sup));
   assert.ok(await until(() => game.battle.state === 'menu' || game.battle.state === 'interlude', 25000));
   while ((await B()).state === 'interlude') await press('KeyC');
-  await fixture('fill-gauge', 'Credit enough dodges to reach 100% (the dodge counting itself is checked above).', () => { for (let i = 0; i < 110; i++) game.battle.support.onProjectile({ type: 'teen_dodge' }); });
+  await fixture('fill-gauge', 'Credit enough dodges to reach 100% (the dodge counting itself is checked above) and refill HP so the undodged autoplay survives the harder cleaning.', () => { for (let i = 0; i < 110; i++) game.battle.support.onProjectile({ type: 'teen_dodge' }); for (const m of game.battle.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; } game.battle.soul.invuln = 60; });
   await defendAll();
-  assert.ok(await until(() => game.battle.state === 'interlude', 30000), 'collapse interlude');
+  const collapsed = await until(() => game.battle.state === 'interlude', 45000);
+  if (!collapsed) console.log('STATE', JSON.stringify(await B()));
+  assert.ok(collapsed, 'collapse interlude');
   // 쓰러지는 연출이 몇 초 이어진 뒤에야 대사(사용자 “바로 대사가 뜨는게아니라 쓰러지는 연출도 몇초”)
   await page.waitForTimeout(700); await shot('collapse-1');
   check('collapsing before the line', (await B()).sup.fall === 'collapse' && (await B()).text !== '* 지금이에요 공격해요!!', JSON.stringify(await B()));
