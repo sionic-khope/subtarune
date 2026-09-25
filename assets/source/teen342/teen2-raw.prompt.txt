@@ -1,0 +1,12 @@
+# imagegen 2026-09-25 16:25:09
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: assets/source/teen342/teen2-ref.png
+
+Create ONE boss sprite for a Deltarune-style pixel-art RPG on a solid pure #FF00FF magenta background. No text, no border, no ground.
+
+Image1 has two references: (1) a Deltarune battle screenshot — copy its idea of a COLOSSAL titan standing on the right and facing LEFT toward tiny heroes; (2) our boss "Teen Giant" — copy EXACTLY her outfit and style: solid BLACK fill with THIN crisp WHITE contour lines, dark crimson rolled short sleeves, dark brown apron with a small bow, long wavy black hair, enormous muscular arms.
+
+Draw her as a FULL colossal figure seen in strict SIDE PROFILE, her whole BODY and torso turned to face LEFT (we see her left side: the near shoulder and near arm are in front, chest pointing left, apron seen from the side, the far arm mostly hidden behind the body). Her head is turned left too, but her FACE IS NOT VISIBLE: long hair falls over the whole face and covers it completely — no skin, no eyes, no mouth, only hair. Extremely WIDE, massive shoulders and a huge back, gigantic muscular near arm hanging forward in front of her with a giant fist. Muscle separation drawn with a few THIN white lines only (not thick). The lower body below the hips dissolves into black smoke puffs with thin white outlines.
+The figure fills the whole canvas height and width. Solid black fill inside the figure, no magenta inside. All white lines must be thin and delicate.

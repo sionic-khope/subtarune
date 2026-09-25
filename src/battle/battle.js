@@ -155,6 +155,8 @@ export class Battle {
     } catch (err) { console.warn('[battle] 에셋 로드 실패', err); }
     if (this.bgmLoadToken !== loadToken) return;
     if (!this.cfg.seamlessIntro || this.retrying) this.game.fadeTo(0, 0.12);
+    // 이어지는 전투의 첫 진입: 필드 캐릭터가 전투 모션으로 바뀌는 바로 그 순간 검 뽑는 소리(사용자 “검뽑는 사운드 나는 동시에 스프라이트도 모션과 함께 전환”)
+    else if (this.cfg.seamlessSfx) { this.sfx(this.cfg.seamlessSfx); this.game.shake = { time: 0.3, amp: 3 }; }
     this.retrying = false;
     this.bgmWait = Math.max(BGM_DELAY, ...this.enemies.map(enemy => enemy.def.bgmDelay ?? 0));
     const preemptive = this.support?.preemptiveMode?.();

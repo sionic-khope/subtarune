@@ -1,0 +1,16 @@
+# imagegen 2026-09-25 16:26:18
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: assets/source/teen342/teen3-ref.png
+
+Redraw the character from the reference (Image1, right side) in EXACTLY the same art style: solid BLACK fill, THIN crisp WHITE contour lines, dark crimson rolled short sleeves, dark brown apron with a small bow, long wavy black hair, enormous muscular arms. Solid pure #FF00FF magenta background, no text, no ground.
+
+POSE — a strict 90-degree SIDE VIEW, the entire body facing the LEFT edge of the image, like a person walking toward the left seen from the side:
+- her chest and the front of the apron point to the LEFT: the apron front panel is on the LEFT edge of her torso, seen edge-on as a narrow strip; the apron ties and bow are on her back on the RIGHT side
+- her BACK is on the RIGHT side of the image, long wavy hair flowing down her back on the right
+- her head is in profile facing left, but the face is completely hidden by hair falling forward (no skin, no eyes, no mouth visible)
+- extremely broad, massive shoulders; the near arm (her left arm) is gigantic and hangs forward in front of her chest toward the left with a huge clenched fist; the far arm is hidden behind her body
+- muscle separation drawn with a few THIN white lines only
+- below the hips the body dissolves into black smoke puffs with thin white outlines
+Colossal: the figure fills the whole canvas height and width.

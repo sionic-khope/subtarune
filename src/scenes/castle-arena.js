@@ -572,13 +572,14 @@ export class CastleArena {
     const open = easeOut(clamp01(st / 0.45)), t = this.time;
     const baseY = py - cam.y, cx = px - cam.x, topY = baseY - h;
     const visTop = Math.max(topY, -SCREEN_H * 1.5);
-    const R = 8 + (prx * 0.97 - 8) * open, RY = pry * 0.97 * (R / prx), width = R * 2;
+    // 구덩이의 약 90% 만 채운다(사용자 “울타리도 그렇고 90퍼정도만”): 부풂·출렁임까지 더해도 테두리 난간 안쪽
+    const R = 8 + (prx * 0.8 - 8) * open, RY = pry * (R / prx), width = R * 2, rim = baseY - pry * 1.6;
     ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
     this.drawPitWater(ctx, cx, baseY, prx, pry, 1);
     // 밑동 위로 조금 부풀었다가(불꽃처럼) 곧게 오르고, 꼭대기는 둥글다
     const half = y => {
       const up = baseY - y;
-      const flare = 1 + 0.09 * Math.sin(clamp01(up / 240) * Math.PI) * open;
+      const flare = 1 + 0.05 * Math.sin(clamp01(up / 240) * Math.PI) * open;
       const dome = up > h - R ? Math.sqrt(clamp01((h - up) / R)) : 1;
       return R * flare * dome;
     };
@@ -593,7 +594,7 @@ export class CastleArena {
       for (let a = 0; a <= Math.PI + 0.001; a += Math.PI / 32) ctx.lineTo(cx + Math.cos(a) * r, baseY + Math.sin(a) * ry);
       ctx.closePath();
     };
-    this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, false);
+    this.drawRibbons(ctx, cam, cx, width, rim, visTop, open, false);
     for (const [inset, color] of [[0, '#2aa8dc'], [R * 0.06, '#56d8f0'], [R * 0.15, '#bff0ef'], [R * 0.28, '#e0faf6']]) {
       if (R - inset < 1) continue;
       ctx.fillStyle = color; silhouette(inset); ctx.fill();
@@ -626,14 +627,14 @@ export class CastleArena {
     foot.addColorStop(0, 'rgba(240,255,252,0.9)'); foot.addColorStop(0.55, 'rgba(210,248,246,0.45)'); foot.addColorStop(1, 'rgba(210,248,246,0)');
     ctx.fillStyle = foot; ctx.fillRect(cx - R * 1.2, baseY - R, R * 2.4, R + RY * 2);
     ctx.restore();
-    this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, true);
+    this.drawRibbons(ctx, cam, cx, width, rim, visTop, open, true);
     // 둘레를 감아 오르는 반투명 바람 호
     ctx.save(); ctx.lineCap = 'round';
     for (let i = 0; i < 6; i++) {
-      const per = 480, y0 = ((i * 80 - t * 520 - cam.y) % per + per) % per - 60, RR = R * (1.15 + 0.1 * (i % 3));
+      const per = 480, y0 = ((i * 80 - t * 520 - cam.y) % per + per) % per - 60, RR = R * (1.05 + 0.08 * (i % 3));
       for (let rep = 0; rep < 2; rep++) {
         const yy = y0 + rep * per;
-        if (yy > baseY || yy < yTop) continue;
+        if (yy > rim || yy < yTop) continue;
         ctx.strokeStyle = `rgba(210,245,255,${(0.16 + 0.08 * (i % 2)) * open})`; ctx.lineWidth = 3 + (i % 3) * 2;
         ctx.beginPath(); ctx.ellipse(cx, yy, RR, RR * 0.22, 0, Math.PI * (0.05 + (i % 2) * 0.9), Math.PI * (0.9 + (i % 2) * 0.9)); ctx.stroke();
       }
@@ -688,12 +689,12 @@ export class CastleArena {
     // 줄기 둘레를 크게 휘감는 물살 두 가닥(뒤 반쪽은 어둡게, 앞 반쪽은 밝게)
     ctx.lineCap = 'round';
     for (let i = 0; i < 2; i++) {
-      const spin = t * 1.6 + i * Math.PI, rr = prx * (0.55 + 0.25 * k), lift = (baseY - top) * 0.55;
+      const spin = t * 1.6 + i * Math.PI, rr = prx * (0.45 + 0.2 * k), lift = (baseY - top) * 0.55;
       for (const front of [false, true]) {
         ctx.strokeStyle = front ? `rgba(90,210,245,${0.5 + 0.4 * k})` : `rgba(30,90,120,${0.4 + 0.3 * k})`;
         ctx.lineWidth = 3 + 5 * k; ctx.beginPath();
         for (let a = 0; a <= 1; a += 0.04) {
-          const ang = spin + a * Math.PI * 1.3, x = cx + Math.cos(ang) * rr * (1 - a * 0.55), y = baseY + Math.sin(ang) * pry * 0.8 * (1 - a * 0.55) - a * lift;
+          const ang = spin + a * Math.PI * 1.3, x = cx + Math.cos(ang) * rr * (1 - a * 0.55), y = baseY + Math.sin(ang) * pry * 0.6 * (1 - a * 0.55) - a * lift;
           if ((Math.sin(ang) > 0) !== front) { ctx.moveTo(x, y); continue; }
           ctx.lineTo(x, y);
         }

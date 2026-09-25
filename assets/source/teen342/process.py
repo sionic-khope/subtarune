@@ -13,8 +13,9 @@ from PIL import Image
 HERE = Path(__file__).parent
 spec = importlib.util.spec_from_file_location('arena_process', HERE.parent / 'arena332' / 'process.py')
 ap = importlib.util.module_from_spec(spec); spec.loader.exec_module(ap)
-# 서 있는 자세 캔버스 1536 → 화면 높이 430(델타룬 거인전 비율: 화면 오른쪽 60%)
-SCALE = 430 / 1536
+# BUILD343: 몸 전체가 왼쪽을 향한 옆모습(teen3·vacuum3·slam3·down4), 캔버스 1536 → 600(사용자 “더 거대하고 어깨도 팔도”) — 머리 위·아래는 화면 밖
+SCALE = 600 / 1536
+POSES = {'teen': 'teen3', 'vacuum': 'vacuum3', 'slam': 'slam3', 'down': 'down4'}
 
 
 def scale_canvas(im: np.ndarray, k: float) -> np.ndarray:
@@ -31,8 +32,9 @@ def scale_canvas(im: np.ndarray, k: float) -> np.ndarray:
 
 
 def main() -> None:
-    for name in ('teen', 'vacuum', 'slam', 'down'):
-        im = scale_canvas(ap.key_out(ap.thicken_lines(HERE / f'{name}-raw.png', 5)), SCALE)
+    for name, raw in POSES.items():
+        # 흰 선은 얇게(사용자 “근육갈라짐과 흰색 도트는 더 얇고”): 굵히기 3
+        im = scale_canvas(ap.key_out(ap.thicken_lines(HERE / f'{raw}-raw.png', 3)), SCALE)
         out = 'assets/props/summit342_teen.png' if name == 'teen' else f'assets/props/teen342_{name}.png'
         Image.fromarray(im).save(out)
         print(out, im.shape[1], 'x', im.shape[0])

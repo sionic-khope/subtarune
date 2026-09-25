@@ -58,6 +58,9 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   assert.ok(await until(() => game.battle.state === 'menu', 5000));
   check('phase down and fight unlocked', (await B()).sup.phase === 'down');
   await shot('menu-unlocked');
+  // 자동 입력은 피하지 않으므로(청소 16.8초 ×여러 번) 가재맨 턴을 보기 전에 체력을 채운다 — 패턴·흐름만 본다
+  const heal = () => page.evaluate(() => { for (const m of game.battle.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; } });
+  await fixture('heal-before-gajaeman', 'Refill party HP so the undodged autoplay survives the gajaeman turns.', () => { for (const m of game.battle.members) { m.hp = m.maxHp; m.down = false; m.downTurns = 0; } });
   // 공격: 세 명 모두
   const hp0 = (await B()).hp;
   for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
@@ -68,6 +71,7 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
     await page.waitForTimeout(2600); await shot(`gajaeman-${turn}`); gjPatterns.push(await page.evaluate(() => game.battle.patterns.map(p => p.p.duration)));
     assert.ok(await until(() => game.battle.state === 'menu' || game.battle.state === 'interlude', 25000));
     while ((await B()).state === 'interlude') await press('KeyC');
+    await heal();
     if (turn < 2) for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
   }
   const end = await B();

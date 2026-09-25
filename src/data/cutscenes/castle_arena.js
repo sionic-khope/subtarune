@@ -148,11 +148,11 @@ export const castle_arena_intro = Object.assign([
   // 모두 구덩이(앞)를 본다
   ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee, 'arena_bidet', 'arena_mario', 'arena_park', 'arena_ttuulla'].map(id => ({ face: id, dir: 'up' })),
   arena(s => s.fountainRise()),
-  // 큰 파동이 터지면: 주인공들 자리에서 소리와 함께 2초 보여 주고 → 놀라서 느낌표·살짝 뒷걸음 → 그 뒤 상승
-  { parallel: [{ camera: at(555, 360), duration: 0.5 }] }, { wait: 1.5 },
-  { parallel: ['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee, 'arena_bidet', 'arena_mario', 'arena_park', 'arena_ttuulla'].map(id => ({ emote: id, kind: '!', duration: 0.7, hold: 0.3 })) },
-  { parallel: ['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee].map(id => ({ move: id, by: [0, 10], speed: 70, facing: 'up' })) },
-  { wait: 0.4 },
+  // 세게 솟는 그 순간: 모두 놀라(!) 곧바로 뒤로 물러선다(사용자 “쎄게 올라가는순간 뒤로 물러나기도”) → 그 자리에서 2초 보여 준다
+  { parallel: [{ camera: at(555, 360), duration: 0.5 },
+    ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee, 'arena_bidet', 'arena_mario', 'arena_park', 'arena_ttuulla'].map(id => ({ emote: id, kind: '!', duration: 0.7, hold: 0.3 })),
+    ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee].map(id => ({ move: id, by: [0, 12], speed: 150, facing: 'up' }))] },
+  { wait: 1.6 },
   { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -2150), duration: ARENA_SCENE.rise }] },
   { wait: 1.2 },
   // 파동이 사라지고 호러한 연기로 아무것도 안 보이는 채 카메라가 다시 주인공들 쪽으로

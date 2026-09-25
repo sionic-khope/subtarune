@@ -13,18 +13,22 @@ export const TEEN_BATTLE = Object.freeze({
    */
   view: {
     cam: [1592, 188],
-    giant: { image: 'assets/props/summit342_teen.png', x: 175, y: 2 },
-    down: { image: 'assets/props/teen342_down.png', x: 165, y: 30 },
+    // BUILD343: 몸 전체가 왼쪽을 향한 옆모습, 600px(머리 위·몸 아래는 화면 밖 — 거대해서 상체만 보이게). 자세 4종이 같은 캔버스
+    giant: { image: 'assets/props/summit342_teen.png', x: 150, y: -40 },
+    down: { image: 'assets/props/teen342_down.png', x: 150, y: -40 },
+    // 청소 자세는 20px 위로(손바닥 구멍이 상자 왼쪽 가운데에 오게)
+    vacuumPose: [170, -60], palm: [267, 224],
     // 일행 발 위치: 끝길 위에 대각선으로 붙여 선다
     party: { hyungsub: [125, 176], gyeongsub: [93, 204], ppaman: [61, 232] },
-    // 가재맨이 앉는 앞 어깨, 쓰러진 뒤 맴도는 곳(쓰러진 몸 뒤)
-    shoulder: [285, 97], hover: [372, 104],
+    // 가재맨: 평소엔 청소년 등 뒤(가려져 안 보임) → 쓰러질 때만 천천히 왼쪽으로 날아와 쓰러진 몸 위에 떠 있다 → 일어서면 다시 뒤로
+    // (사용자 “평소엔 안보이다가 쓰러질때만 천천히 왼쪽으로 날아오고 위에 떠있게, 일어서면 다시 뒤로”). 크기는 필드와 같은 1.89
+    shoulder: [352, 70], hover: [300, 118], gajaemanScale: 1.89,
   },
   // 쓰러지는 연출: 앞으로 기울며 가라앉고(tilt) → 엎드린 그림으로 바뀌며 쿵(land) → 잠깐 정적(hold) 뒤 대사
   collapse: { tilt: 1.5, land: 0.5, hold: 1.2, rise: 1.0 },
-  gajaemanFly: { descend: 3.2, radius: [34, 14], speed: 0.9 },
+  gajaemanFly: { descend: 3.6, radius: [18, 8], speed: 0.9 },
   // 쓰러진 청소년에게 달려갈 자리(엎드린 몸 앞, 끝길 가장자리)
-  downSpot: [214, 196],
+  downSpot: [208, 206],
   images: {
     sword: 'assets/props/cathedral323_sword.png', knee: 'assets/props/teenboss339_knee.png',
     arm: 'assets/props/arena332_arm.png', gajaeman: 'assets/sprites/gajaeman_shadow.png',

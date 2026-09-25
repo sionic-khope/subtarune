@@ -44,8 +44,8 @@ export class CastleSummit {
   /** Gajaeman slowly floats down from above to hover beside 청소년. */
   descend() {
     const a = this.actor; if (!a) return undefined;
-    // 청소년 얼굴 앞 허공(일행과 청소년 사이 위쪽)으로 천천히
-    const [hx, hy] = world([250, 96]);
+    // 청소년 머리 왼쪽 위 허공으로 천천히(대사 동안 보인다) → auraAndPerch 로 등 뒤(가려짐)에 앉는다
+    const [hx, hy] = world([214, 98]);
     a.visible = true; a.x = hx - a.w / 2; a.y = hy - a.h - 320; a.facing = 'left'; this.aura = 1;
     this.game.sound.sfx('captain_transform', { volume: 0.4 });
     return this.tweenActor(hx - a.w / 2, hy - a.h, SUMMIT.descend);
@@ -107,8 +107,6 @@ export class CastleSummit {
     this.smoke.draw(ctx, cam, 'front', veil * 0.3);
     // 드러나는 동안: 떠다니던 연기가 청소년 앞을 덮고 있다가 걷힌다
     if (veil > 0.01) this.smoke.draw(ctx, cam, 'back', 0.6, veil);
-    // 가재맨은 청소년 앞(어깨 위)에 보이게 한 번 더 위에 그린다
-    if (this.actor?.visible && img) this.actor.draw(ctx, cam);
     for (const m of this.motes) {
       ctx.globalAlpha = Math.max(0, 1 - m.age / m.life); ctx.fillStyle = m.purple ? '#4a2478' : '#050208';
       ctx.fillRect(Math.round(m.x - cam.x), Math.round(m.y - cam.y), m.size, m.size + 1);

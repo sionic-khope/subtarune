@@ -46,9 +46,8 @@ export const castle_summit_confront = Object.assign([
   summit(s => s.auraAndPerch()), { wait: 0.4 },
   P('가볼까요.'), K('가자!'), close,
   { stage: SUMMIT_SCENE.stage },
-  // 그 자리에서 바로 전투: 조우음 없이 검 뽑는 소리(사용자 “조우 효과음은 없고 그냥 바로 검뽑기 효과음과 함께”)
+  // 그 자리에서 바로 전투: 조우음 없이 검 뽑는 소리(사용자 “조우 효과음은 없고 그냥 바로 검뽑기 효과음과 함께”) — 소리는 전투가 캐릭터를 전투 모션으로 바꾸는 순간 낸다(battle.js)
   { label: 'fight' },
-  { sfx: 'weaponpull', volume: 0.9 }, { shake: 0.3, amp: 3 },
-  { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', boardColor: '#a060ff', flag: 'castle_teen_won', seamlessIntro: true, intro: TEEN_BATTLE.intro } },
+  { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', boardColor: '#a060ff', flag: 'castle_teen_won', seamlessIntro: true, seamlessSfx: 'weaponpull', intro: TEEN_BATTLE.intro } },
   { label: 'end' }, { end: true },
 ], { silent: true });
