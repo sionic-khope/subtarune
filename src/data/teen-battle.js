@@ -56,6 +56,28 @@ export const TEEN_BATTLE = Object.freeze({
     defend: id => `assets/battle/${id}-defend.png`,
   },
   gajaemanPatterns: ['gj_swords', 'gj_knee', 'gj_mouse'],
+  /**
+   * 2페이즈(사용자 2026-09-26): 1페이즈 HP 가 1 남으면 전투 안 연출 — 가재맨이 다가와 대사 → 검은 연기로 청소년 안에 들어감 → 청소년 쪽으로 카메라 →
+   * 2초 뒤 검은 힘·연기·오오라 폭발 + 진동 → HP +999 → 일행 느낌표 → 카메라 복귀 → 일행 대사 → 청소년이 일어서고 앞에 보라 코어가 아래에서 위이잉.
+   * 2페이즈: 적 이름 가재맨, 보라 갑옷·칼날 모습, 코어를 칠 때마다 20, 게이지 없음, 매 턴 가재맨 대사.
+   */
+  phase2: {
+    name: '가재맨', heal: 999, coreDamage: 20,
+    images: { idle: 'assets/props/teen347_p2.png', vacuum: 'assets/props/teen347_p2_vacuum.png', slam: 'assets/props/teen347_p2_slam.png' },
+    core: [300, 176], coreSpot: [256, 206], near: [226, 150], inside: [320, 170],
+    patterns: ['teen_slam', 'gj_swords', 'teen_vacuum', 'gj_knee', 'gj_mouse'],
+    taunts: ['죽어.', '죽여줄게', '니애미따라가'],
+    gajaemanLines: ['이런... 말도안돼', '이 쓸모없는 녀석..', '뭐 상관없어.', '이제 끝을보자,', '내가 상대해주지'],
+    partyLines: [
+      { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 이런..' },
+      { speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* 아직 끝이 아닌거같군' },
+      { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 언제까지.. 이 싸움을 해야할까요' },
+      { speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* 빠맨아 약해지지말자.' },
+      { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 네 알았어요 형..' },
+    ],
+    time: { settle: 0.8, approach: 2.6, enter: 1.4, focusIn: 0.7, focusHold: 2.0, burst: 1.8, heal: 1.2, exclaim: 0.9, focusOut: 0.8, stand: 1.6, core: 1.3 },
+    focus: { x: 330, y: 170, s: 1.35 },
+  },
   // 쓰러졌던 청소년이 일어설 때 가재맨 대사(몇 번째 쓰러짐인지에 따라, 사용자 원문 그대로)
   riseLines: [
     ['의미없는 발버둥을', '아무리 발악해봐야 너희는 곧 죽는다', '이런이런 그릇이 너무 강력해서 섭타룬의 힘을 저항하고 있는건가'],

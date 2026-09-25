@@ -17,12 +17,14 @@ tp = load('tp', HERE.parent / 'teen342' / 'process.py')
 SCALE = 700 / 1536
 # 쓰러짐은 머리를 숙여 박는 ddown2(사용자 “머리를 엎드려서 박아도 돼”) — 머리가 캔버스 안이라 목 맞춤 없이 서기와 같은 자리
 POSES = {'teen': 'face4', 'vacuum': 'dvac', 'slam': 'dslam', 'down': 'ddown2'}
+# 2페이즈(보라 갑옷·칼날): 같은 캔버스·같은 배율
+P2 = {'p2': 'p2idle', 'p2_vacuum': 'p2vac', 'p2_slam': 'p2slam'}
 
 
 def main() -> None:
-    for name, raw in POSES.items():
+    for name, raw in {**POSES, **P2}.items():
         im = tp.scale_canvas(ap.key_out(ap.thicken_lines(HERE / f'{raw}-raw.png', 3)), SCALE)
-        out = 'assets/props/summit342_teen.png' if name == 'teen' else f'assets/props/teen342_{name}.png'
+        out = 'assets/props/summit342_teen.png' if name == 'teen' else f'assets/props/teen347_{name}.png' if name.startswith('p2') else f'assets/props/teen342_{name}.png'
         Image.fromarray(im).save(out)
         w = im.shape[1]
         # 목: 캔버스 왼쪽 25~42% 열 띠에서 가장 위 불투명 줄

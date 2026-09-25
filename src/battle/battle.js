@@ -671,6 +671,9 @@ export class Battle {
       return;
     }
     if (this.interlude?.fullscreen) { this.interlude.draw(ctx); this.drawHpStrip(ctx); return; }
+    // 지원 모듈의 연출 카메라(청소년 2페이즈 전환: 청소년 쪽으로 잠깐 당겨 본다) — 배경·배우에만
+    const view = this.support?.camera?.();
+    if (view) { ctx.save(); ctx.translate(view.x, view.y); ctx.scale(view.s, view.s); }
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
     this.rapVideo?.draw(ctx, { x: 0, y: 0, w: SCREEN_W, h: SCREEN_H });
     ctx.font = FONT; ctx.textBaseline = 'top';
@@ -687,6 +690,7 @@ export class Battle {
         if (f.plus) { ctx.fillRect(X - 3, Y, 8, 2); ctx.fillRect(X, Y - 3, 2, 8); } else ctx.fillRect(X, Y, 3, 3); }
       ctx.restore();
     }
+    if (view) ctx.restore();
     ctx.globalAlpha = 1;
     if (this.interlude) this.interlude.draw(ctx);
     else if (this.gimmick) { if (this.gimmick.draw) this.gimmick.draw(ctx); else this.drawTextBox(ctx); }
@@ -766,7 +770,9 @@ export class Battle {
     const scale = pose?.scale ?? e.def.scale ?? 1;
     const scaleY = pose?.scaleY ?? action?.scaleY ?? e.formDef?.scaleY ?? e.def.scaleY ?? 1;
     const sx = (e.shake > 0 ? Math.round(Math.sin(e.shake * 60) * 3) : 0) + Math.round(pose ? 0 : e.ox || 0), sy = Math.round(pose ? 0 : e.oy || 0);
-    if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, x, y - 60, e.popup.text, e.popup.t, '#fff'); return; }
+    // 지원 모듈이 피해 숫자 자리를 정할 수 있다(청소년: 그림 기준점이 화면 위라 몸 가운데·코어에)
+    const pop = this.support?.popupAt?.(e) || [x, y - 60];
+    if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, pop[0], pop[1], e.popup.text, e.popup.t, e.popup.color || '#fff'); return; }
     ctx.save(); if (e.dying > 0) ctx.globalAlpha = Math.max(0, e.dying / 0.5);
     if (img && sh && sh.count) {
       const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / (sh.rows || 1));
@@ -798,7 +804,7 @@ export class Battle {
       ctx.drawImage(img, Math.round(x - pvx * scale + sx), Math.round(y - pvy * scale * scaleY + sy), dw, dh);
     } else { ctx.fillStyle = '#7a8'; ctx.fillRect(x - 20 + sx, y - 44 + sy, 40, 44); }
     ctx.restore();
-    if (e.popup) this.drawPopup(ctx, x, y - 60, e.popup.text, e.popup.t, '#fff');
+    if (e.popup) this.drawPopup(ctx, pop[0], pop[1], e.popup.text, e.popup.t, e.popup.color || '#fff');
   }
   drawPopup(ctx, x, y, text, t, col) {
     ctx.save(); ctx.globalAlpha = t < 0.6 ? 1 : Math.max(0, 1 - (t - 0.6) / 0.3); ctx.fillStyle = col; ctx.textAlign = 'center';

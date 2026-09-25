@@ -1,0 +1,9 @@
+# imagegen 2026-09-26 00:03:45
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: face4-small.png
+
+Redraw the SAME character from the reference (Image1) in EXACTLY the same art style, size, scale, 3/4 angle (facing the LEFT edge) and framing (the canvas top cuts through her neck: no head, no face): solid BLACK fill with THIN crisp WHITE lines, dark crimson sleeves, dark brown apron, gigantic muscular arms, lower body dissolving into black smoke puffs with thin white outlines. Same 1024x1536 canvas. Solid pure #FF00FF magenta background, no text, no ground.
+SECOND PHASE (possessed and empowered): add jagged dark PURPLE ARMOR plates on her shoulders, forearms and chest over the outfit (purple with thin light-lilac edge lines), wisps of dark purple energy flaring around her, and several sharp black-and-purple BLADE-like spikes erupting out of the muscles of her arms and shoulders. Keep the black fill + thin white line style; the purple is dark and moody, not bright.
+Pose: she reaches the far arm (on the left of the image) forward and UP toward the upper-left, the huge armored hand wide OPEN with the palm facing DOWN-LEFT and a dark round HOLE glowing purple in the palm. The open hand is in the upper-left part of the canvas.

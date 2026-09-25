@@ -189,6 +189,10 @@ export const ENEMIES = {
       vacuum: { src: 'assets/props/teen342_vacuum.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
       slam: { src: 'assets/props/teen342_slam.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 109] },
       down: { src: 'assets/props/teen342_down.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
+      // 2페이즈(가재맨이 들어간 보라 갑옷·칼날 모습)
+      p2: { src: 'assets/props/teen347_p2.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
+      p2vacuum: { src: 'assets/props/teen347_p2_vacuum.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
+      p2slam: { src: 'assets/props/teen347_p2_slam.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 98] },
     },
     pivot: [0, 0], scale: 1, dx: -246, dy: -236, board: [300, 150], idle: { swayX: 0, swayY: 0 },
     projectiles: { sword: 'assets/props/cathedral323_sword.png', knee: 'assets/props/teenboss339_knee.png', arm: 'assets/props/arena332_arm.png' },
