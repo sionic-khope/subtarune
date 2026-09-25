@@ -5,24 +5,27 @@ export const TEEN_BATTLE = Object.freeze({
   // 청소년전 적 공격 한 대 피해: 20~25 무작위(사용자 2026-09-25), 방어한 멤버만 −3
   enemyHit: [20, 25],
   // BUILD342 청소 패턴 두 배 길이(사용자 “지금보다 두배는 더”) → 피한 잔해 하나당 1%
-  gauge: { perDodge: 1.0, max: 100 },
+  gauge: { perDodge: 0.7, max: 100 },
   slamEvery: 3,
   downTurns: 3,
   rockDamage: 50,
-  // 쓰러진 동안 일반 공격 한 대 = 80, 매번 치명타 이펙트 + 릴리즈샷 소리(사용자 2026-09-25)
-  downHit: { damage: 80, sfx: 'deltarune_release_shoot', fx: 0.55 },
+  // 쓰러진 동안 일반 공격 한 대 = 50(사용자 2026-09-25, 80 → 50), 매번 치명타 이펙트 + 릴리즈샷 소리
+  downHit: { damage: 50, sfx: 'deltarune_release_shoot', fx: 0.55 },
   /**
    * BUILD342 필드 대치와 전투가 같은 한 화면(사용자 참고: 델타룬 거인전 — 왼쪽 약 35% 끝길 위에 일행, 오른쪽 60% 를 청소년이 채우고 왼쪽을 본다).
    * 모두 화면 좌표(480×360). cam = 그 화면의 월드 왼쪽 위(꼭대기 맵 tools/maps/gajaeman_summit.py 의 VIEW 와 같은 값).
    */
   view: {
     cam: [1592, 188],
-    // BUILD343: 몸 전체가 왼쪽을 향한 옆모습, 600px(머리 위·몸 아래는 화면 밖 — 거대해서 상체만 보이게). 자세 4종이 같은 캔버스
-    giant: { image: 'assets/props/summit342_teen.png', x: 150, y: -40 },
-    down: { image: 'assets/props/teen342_down.png', x: 150, y: -40 },
+    // 끝길 다리·마지막 기둥만 남긴 전경(청소년이 그 뒤에, 일행은 그 앞에)
+    front: 'assets/props/summit342_front.png',
+    // BUILD346: 사용자가 고른 D안(결전지 거인 디자인, 주인공 쪽을 내려다보는 3/4), 700px — 목 위는 화면 밖(얼굴 없음), 살짝 더 왼쪽.
+    // 자세 4종이 같은 캔버스. 주먹·쓰러짐은 몸이 내려가 목 단면이 보이지 않게 그만큼 위로(assets/source/teen345/process.py 의 neckTop)
+    giant: { image: 'assets/props/summit342_teen.png', x: 121, y: -6 },
+    down: { image: 'assets/props/teen342_down.png', x: 121, y: -77 },
     // 청소: 손바닥 구멍이 상자 왼쪽 위 대각선(palm)에 오도록 자세를 옮긴다. palmInSprite = 청소 자세 그림 속 구멍 자리
     // approach 동안 손을 가져다 대고, open 동안 구멍이 열리며 충전 → 그 뒤에야 빨아들인다(사용자 “공격준비 시간, 웅장하게”)
-    vacuum: { palm: [200, 150], palmInSprite: [97, 284], approach: 1.0, open: 1.3 },
+    vacuum: { palm: [197, 101], palmInSprite: [76, 107], reach: [30, 40], approach: 1.0, open: 1.3 },
     // 일행 발 위치: 끝길 위에 대각선으로 붙여 선다
     party: { hyungsub: [125, 176], gyeongsub: [93, 204], ppaman: [61, 232] },
     // 가재맨: 평소엔 아예 안 보인다 → 쓰러질 때만 청소년 오른쪽 아래 어깨 라인(shoulder)에서 나와 천천히 왼쪽으로 날아와 위에 떠 있다

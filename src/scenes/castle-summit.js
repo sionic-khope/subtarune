@@ -1,4 +1,4 @@
-import { SummitSmoke } from './summit-smoke.js';
+import { SummitSmoke, drawFlutter } from './summit-smoke.js';
 import { TEEN_BATTLE } from '../data/teen-battle.js';
 
 /**
@@ -91,15 +91,35 @@ export class CastleSummit {
     for (const m of this.motes) { m.age += s; m.x += m.vx * s; m.y += m.vy * s; }
     this.motes = this.motes.filter(m => m.age < m.life);
   }
-  /** Back smoke, the 청소년 (same picture and place as in the battle), front smoke over her lower body, gajaeman, aura motes. */
+  /**
+   * Before the actors (after the floor chunks): sky smoke far behind, the 청소년 (same picture and place as in the battle,
+   * fluttering slightly in the wind), then the walkway and its last post in front of her — the party stands in front of all of it.
+   */
+  drawBehind(ctx, cam) {
+    if (this.disposed) return;
+    const img = this.giant && this.game.propImages[V.giant.image];
+    const k = this.giant ? Math.min(1, this.giant.t / SUMMIT.reveal) : 0, veil = this.giant ? 1 - ease(k) : 0;
+    ctx.save();
+    this.smoke.draw(ctx, cam, 'back');
+    if (img) {
+      const [x, y] = world([V.giant.x, V.giant.y]);
+      ctx.globalAlpha = ease(k);
+      drawFlutter(ctx, img, x - cam.x, y - cam.y, this.time);
+      ctx.globalAlpha = 1;
+      // 드러나는 동안: 짙은 연기가 청소년 앞을 덮고 있다가 걷힌다
+      if (veil > 0.01) this.smoke.draw(ctx, cam, 'front', 0.8, veil * 1.6);
+    }
+    const front = this.game.propImages[V.front];
+    if (front) ctx.drawImage(front, Math.round(1152 - cam.x), Math.round(-cam.y));
+    ctx.restore();
+  }
+  /** After the actors: smoke under the 청소년 (right of the broken end only), the airborne gajaeman, aura motes. */
   draw(ctx, cam) {
     if (this.disposed) return;
     ctx.save();
-    const img = this.giant && this.game.propImages[V.giant.image];
-    // 드러나기 전엔 연기가 짙게 덮고, 걷히면서 옅어진다(제자리, 올라오지 않음). 숨쉬기 없음(사용자 “숨쉬는듯한느낌도 빼”)
     const k = this.giant ? Math.min(1, this.giant.t / SUMMIT.reveal) : 0, veil = this.giant ? 1 - ease(k) : 0;
-    this.smoke.draw(ctx, cam, 'back', veil * 0.5);
-    // 허공에 떠 있는 가재맨은 연기 위에 또렷이(보라 빛무리와 함께). 등 뒤에 앉으면 청소년에 가려진다
+    this.smoke.draw(ctx, cam, 'front', veil * 0.3);
+    // 허공에 떠 있는 가재맨은 연기 위에 또렷이(보라 빛무리와 함께). 등 뒤로 들어가면 안 보인다
     const a = this.actor;
     if (a?.visible && !this.onBack) {
       const x = a.x + a.w / 2 - cam.x, y = a.y + a.h - 50 - cam.y + (a.flyY || 0);
@@ -108,15 +128,6 @@ export class CastleSummit {
       ctx.fillStyle = glow; ctx.fillRect(x - 70, y - 70, 140, 140);
       a.draw(ctx, cam);
     }
-    if (img) {
-      const [x, y] = world([V.giant.x, V.giant.y]);
-      ctx.globalAlpha = ease(k);
-      ctx.drawImage(img, Math.round(x - cam.x), Math.round(y - cam.y));
-      ctx.globalAlpha = 1;
-    }
-    this.smoke.draw(ctx, cam, 'front', veil * 0.3);
-    // 드러나는 동안: 떠다니던 연기가 청소년 앞을 덮고 있다가 걷힌다
-    if (veil > 0.01) this.smoke.draw(ctx, cam, 'back', 0.6, veil);
     for (const m of this.motes) {
       ctx.globalAlpha = Math.max(0, 1 - m.age / m.life); ctx.fillStyle = m.purple ? '#4a2478' : '#050208';
       ctx.fillRect(Math.round(m.x - cam.x), Math.round(m.y - cam.y), m.size, m.size + 1);

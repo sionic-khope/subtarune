@@ -60,7 +60,7 @@ def main() -> None:
         'id': MAP_ID, 'name': '가재맨성 꼭대기', 'stage': 'castle_arena_seen',
         # 들어오면 바람 소리만(사용자 “들어왔을때 바람소리만”) → 대치 중 Gallery
         'bgm': 'wind', 'bgmVolume': 0.35, 'followScreenY': 200, 'rows': [''.join(row) for row in cells],
-        'preload': [f'assets/props/summit336_chunk_{i}.png' for i in range(W // 1152)] + [GIANT_IMAGE, 'assets/props/teen342_down.png', 'assets/props/teen342_vacuum.png', 'assets/props/teen342_slam.png'] + [f'assets/props/teen342_rock_{i}.png' for i in range(6)] + [f'assets/props/teenboss339_debris_{i}.png' for i in range(6)] + ['assets/props/teenboss339_knee.png', 'assets/props/cathedral323_sword.png', 'assets/props/arena332_arm.png'],
+        'preload': [f'assets/props/summit336_chunk_{i}.png' for i in range(W // 1152)] + [GIANT_IMAGE, 'assets/props/summit342_front.png', 'assets/props/teen342_down.png', 'assets/props/teen342_vacuum.png', 'assets/props/teen342_slam.png'] + [f'assets/props/teen342_rock_{i}.png' for i in range(6)] + [f'assets/props/teenboss339_debris_{i}.png' for i in range(6)] + ['assets/props/teenboss339_knee.png', 'assets/props/cathedral323_sword.png', 'assets/props/arena332_arm.png'],
         'spawns': {'start': {'x': 218, 'y': 690, 'facing': 'up'}, 'confront': {'x': VIEW[0] + FEET['player'][0] - 12, 'y': VIEW[1] + FEET['player'][1] - 24, 'facing': 'right'}},
         'meta': {'connected': True, 'summit': {'edge': EDGE, 'gajaeman': 'summit_gajaeman'}},
         'entities': entities,

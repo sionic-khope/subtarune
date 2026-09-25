@@ -784,7 +784,8 @@ export class Battle {
         }
         ctx.restore();
       }
-      ctx.drawImage(img, (i % sh.cols) * fw, Math.floor(i / sh.cols) * fh, fw, fh, left, top, dw, dh);
+      // 지원 모듈이 그림을 직접 그릴 수 있다(청소년: 바람에 살짝 흩날림)
+      if (!this.support?.drawEnemyImage?.(ctx, e, img, left, top, dw, dh)) ctx.drawImage(img, (i % sh.cols) * fw, Math.floor(i / sh.cols) * fh, fw, fh, left, top, dw, dh);
     } else if (img && sh) {
       const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / sh.rows); const frames = sh.frames || [0]; const col = frames[Math.floor(this.t * (sh.fps || 2)) % frames.length];
       const dw = Math.round(fw / 2 * scale), dh = Math.round(fh / 2 * scale * scaleY);

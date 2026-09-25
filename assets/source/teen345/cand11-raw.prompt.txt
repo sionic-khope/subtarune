@@ -1,0 +1,10 @@
+# imagegen 2026-09-25 19:50:54
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: mid-ref.png
+
+Create ONE boss sprite for a Deltarune-style pixel-art RPG on a solid pure #FF00FF magenta background. No text, no border, no ground.
+Image1 shows the SAME character twice: LEFT = strict side profile facing left (too much to the side), RIGHT = front view (too frontal). Draw her at the angle EXACTLY HALFWAY between them: a THREE-QUARTER view turned about 45 degrees toward the LEFT. We see the front of her chest and apron but angled toward the left; her LEFT shoulder (near, on the left of the image) is large and fully visible, her far shoulder is also visible but smaller and further back on the right. Her head is turned left and tilted down so the bangs completely hide the face (no skin, no eyes, no mouth). Hair is modest, mostly behind her.
+Keep EXACTLY the same art style: solid BLACK fill with THIN crisp WHITE lines, dark crimson rolled sleeves, dark brown apron with a small bow, extremely broad shoulders, gigantic muscular arms with a few thin white muscle lines, the lower body dissolving into black smoke puffs with thin white outlines. Figure fills the whole 1024x1536 canvas. Solid black fill inside, no magenta inside.
+Pose: the near fist raised in front of her chest, ready to strike toward the left.

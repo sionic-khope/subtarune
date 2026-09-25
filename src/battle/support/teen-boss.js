@@ -1,7 +1,7 @@
 import { TEEN_BATTLE as C } from '../../data/teen-battle.js';
 import { createTalk } from './talk.js';
 import { clearTeenTimers, TEEN_DEBRIS } from '../teen-patterns.js';
-import { SummitSmoke } from '../../scenes/summit-smoke.js';
+import { SummitSmoke, drawFlutter } from '../../scenes/summit-smoke.js';
 
 /**
  * BUILD339 청소년 보스전 지원 모듈(사용자 2026-09-25 브리핑). 공격하기는 잠겨 있고(X), 방어하기로 버티며 잔해를 피해 청소 용량을
@@ -43,7 +43,7 @@ export function createTeenBossSupport(battle) {
       const imgs = await Promise.all(ids.map(id => loadImage(C.images.defend(id)).catch(() => null)));
       defendImages = Object.fromEntries(ids.map((id, i) => [id, imgs[i]]));
       gajaeman = await loadImage(C.images.gajaeman).catch(() => null);
-      for (const src of [V.giant.image, V.down.image]) images[src] = await loadImage(src).catch(() => null);
+      for (const src of [V.giant.image, V.down.image, V.front]) images[src] = await loadImage(src).catch(() => null);
       // 배경(끝길 그림)은 필드에서 이미 읽었지만, QA 로 전투부터 열 때도 같은 화면이 되게
       const props = battle.game.propImages || (battle.game.propImages = {});
       for (let i = 0; i < 2; i++) { const src = `assets/props/summit336_chunk_${i}.png`; if (!props[src]) props[src] = await loadImage(src).catch(() => null); }
@@ -191,9 +191,9 @@ export function createTeenBossSupport(battle) {
         // 선 자세: 아래 가운데를 축으로 앞(왼쪽)으로 기울며 가라앉는다 → 같은 자리의 숙인 자세로 겹쳐 바뀐다
         ctx.save(); ctx.globalAlpha *= 1 - land;
         const pvx = V.giant.x + up.width * 0.5, pvy = V.giant.y + up.height;
-        ctx.translate(pvx, pvy + e * 40); ctx.rotate(-0.22 * e); ctx.drawImage(up, -up.width * 0.5, -up.height);
+        ctx.translate(pvx, pvy + e * 40); ctx.rotate(-0.22 * e); drawFlutter(ctx, up, -up.width * 0.5, -up.height, time);
         ctx.restore();
-        ctx.save(); ctx.globalAlpha *= land; ctx.drawImage(down, V.down.x, V.down.y + (1 - land) * -18); ctx.restore();
+        ctx.save(); ctx.globalAlpha *= land; drawFlutter(ctx, down, V.down.x, V.down.y + (1 - land) * -18, time); ctx.restore();
       }
     },
     /** 치명타 섬광: 하얀-노란 중심 번쩍 + 방사형 날카로운 줄기 + 보라 충격 고리 */
@@ -234,9 +234,13 @@ export function createTeenBossSupport(battle) {
       ctx.drawImage(gajaeman, 0, 128, 64, 64, Math.round(x - 32 * s), Math.round(y - 61 * s + bob), Math.round(64 * s), Math.round(64 * s));
       ctx.restore();
     },
-    /** Over the 청소년: smoke swallowing her lower body. */
+    /** 청소년 그림은 바람에 아주 살짝 흩날리게(필드와 같은 효과) */
+    drawEnemyImage(ctx, e, img, left, top) { if (e !== enemy) return false; drawFlutter(ctx, img, left, top, time); return true; },
+    /** Over the 청소년: the walkway in front of her, smoke under her. */
     drawOverEnemies(ctx) {
       const [cx, cy] = V.cam;
+      // 끝길 다리·마지막 기둥이 청소년 앞(일행은 그 앞에 그려진다), 그 뒤 부서진 끝 오른쪽 아래 연기
+      if (images[V.front]) ctx.drawImage(images[V.front], 1152 - cx, -cy);
       smoke.draw(ctx, { x: cx, y: cy }, 'front', 0.3);
       if (gajaeman && this.gajaemanShown() && this.gajaemanInFront()) this.drawGajaeman(ctx);
       for (const c of crits) this.drawCrit(ctx, c);

@@ -75,8 +75,8 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   assert.ok(await until(() => game.battle.state === 'enemy-prep' || game.battle.state === 'bullets', 20000), 'attacks resolved');
   await page.waitForTimeout(200); await shot('attack-crit');
   const hp1 = (await B()).hp;
-  // 공격은 타이밍 입력이라 자동 연타가 빗나갈 수 있다 — 들어간 공격마다 정확히 80 인지 본다
-  check('each hit on the fallen 청소년 deals 80', hp0 - hp1 >= 80 && (hp0 - hp1) % 80 === 0, `${hp0}->${hp1}`);
+  // 공격은 타이밍 입력이라 자동 연타가 빗나갈 수 있다 — 들어간 공격마다 정확히 50 인지 본다
+  check('each hit on the fallen 청소년 deals 50', hp0 - hp1 >= 50 && (hp0 - hp1) % 50 === 0, `${hp0}->${hp1}`);
   const gjPatterns = [], gjLines = [];
   for (let turn = 0; turn < 3; turn++) {
     assert.ok(await until(() => game.battle.state === 'enemy-prep' && !!game.battle.bubble, 20000));

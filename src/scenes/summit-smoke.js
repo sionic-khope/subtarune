@@ -6,10 +6,22 @@ import { SCREEN_W, SCREEN_H } from '../core/layout.js';
  * front: 청소년 아래를 덮는 짙은 연기(거대해서 상체만 보이게, 사용자 “연기도 가려져있어야”)
  */
 export const SMOKE = Object.freeze({
-  x: [1740, 2304],
-  back: { count: 26, y: [60, 700], r: [40, 90], vx: [-6, 6], vy: [-5, -1], life: [7, 12] },
-  front: { count: 34, y: [470, 700], r: [34, 70], vx: [-10, 10], vy: [-9, -3], life: [3.5, 6] },
+  // back: 하늘 뒷배경에서만(끝길 다리 위쪽, 일행 뒤) — 사용자 “연기가 주인공들을 너무 가린다, 뒷배경에 아예 뒤에”
+  back: { count: 22, x: [1540, 2304], y: [40, 300], r: [36, 80], vx: [-6, 6], vy: [-4, -1], life: [7, 12] },
+  // front: 부서진 끝 오른쪽, 청소년 아래만
+  front: { count: 26, x: [1770, 2304], y: [440, 600], r: [34, 70], vx: [-8, 8], vy: [-8, -3], life: [3.5, 6] },
 });
+/**
+ * 바람에 아주 살짝 흩날리는 그림: 가로 줄마다 1~2px 씩 느린 물결로 어긋나게 그린다(위쪽 어깨·머리카락이 더, 아래는 거의 그대로).
+ * 사용자 “바람이나 리본같은게 아주살짝씩 휘날리는듯한 스프라이트모션”
+ */
+export function drawFlutter(ctx, img, x, y, t, amp = 1.6) {
+  const h = img.height, w = img.width, strip = 3;
+  for (let row = 0; row < h; row += strip) {
+    const k = 1 - row / h, off = Math.round(Math.sin(t * 2.1 + row * 0.05) * amp * (0.25 + 0.75 * k) + Math.sin(t * 3.7 + row * 0.11) * 0.5 * k);
+    ctx.drawImage(img, 0, row, w, Math.min(strip, h - row), Math.round(x) + off, Math.round(y) + row, w, Math.min(strip, h - row));
+  }
+}
 
 const lerp = (a, b, k) => a + (b - a) * k;
 
@@ -21,7 +33,7 @@ export class SummitSmoke {
   spawn(layer, anywhere = false) {
     const L = SMOKE[layer], r = this.rnd;
     const life = lerp(L.life[0], L.life[1], r());
-    this.puffs.push({ layer, x: lerp(SMOKE.x[0], SMOKE.x[1], r()), y: lerp(L.y[0], L.y[1], r()), r: lerp(L.r[0], L.r[1], r()),
+    this.puffs.push({ layer, x: lerp(L.x[0], L.x[1], r()), y: lerp(L.y[0], L.y[1], r()), r: lerp(L.r[0], L.r[1], r()),
       vx: lerp(L.vx[0], L.vx[1], r()), vy: lerp(L.vy[0], L.vy[1], r()), age: anywhere ? r() * life : 0, life, tint: r() < 0.4 });
   }
   update(dt) {

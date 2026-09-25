@@ -126,7 +126,8 @@ export const TEEN_PATTERNS = {
     // 사용자 교정 누적: 대각선 위 손바닥에서 빨아들임(“대각선 위에서 좋았는데”), 비어 보이지 않게 상자를 바람·잔해로 채움,
     // 손을 가져다 대고 벌리는 준비 시간(approach → open), 두 배 길이·느린 잔해, 세 번째 청소부터 가재맨 방해
     const VC = TEEN_BATTLE.view.vacuum, ready = VC.approach + VC.open, duration = o.duration ?? 16.8 + ready - 1.8;
-    const from = TEEN_BATTLE.view.giant, to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]];
+    // 손을 오른쪽 아래(reach)에서 구멍 자리로 가져다 댄다
+    const to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]], from = { x: to[0] + VC.reach[0], y: to[1] + VC.reach[1] };
     let next = ready + 0.2, n = 0, started = false, opened = false, sucking = false, trophy = false, nextHarass = ready + 2.2, h = 0;
     return { duration, update(t, dt, api) {
       const box = api.box, [px, py] = VC.palm;
@@ -167,7 +168,9 @@ export const TEEN_PATTERNS = {
             bb.vx += (tx - bb.vx) * Math.min(1, dd * 3); bb.vy += (ty - bb.vy) * Math.min(1, dd * 3);
             bb.shrink = Math.min(1, dist / 40);
             if (!bb.touched && bb.hits(api.soul)) bb.touched = true;
-            if (!bb.counted && dist < 14) { bb.counted = true; bb.life = bb.age; if (!bb.touched) api.trackProjectile?.({ type: 'teen_dodge' }); }
+            // 구멍은 상자 대각선 위 밖 — 상자 위·왼쪽 벽을 빠져나가 구멍 쪽으로 빨려 가면 피한 것(상자 밖 여유선에서 지워지기 전에 센다)
+            const gone = dist < 14 || bb.y < api.box.y - 4 || bb.x < api.box.x - 4;
+            if (!bb.counted && gone) { bb.counted = true; if (dist < 14) bb.life = bb.age; if (!bb.touched) api.trackProjectile?.({ type: 'teen_dodge' }); }
           } });
       }
       if (o.harass && t >= nextHarass && t < duration - 2) {

@@ -1,0 +1,10 @@
+# imagegen 2026-09-25 19:56:19
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: giant-small.png
+
+Redraw the character from the reference (Image1) in EXACTLY the same art style and design: solid BLACK fill with THIN crisp WHITE contour lines, dark crimson short sleeves, dark brown apron with a small bow, gigantic muscular arms with thin white muscle lines, huge fists. Solid pure #FF00FF magenta background, no text, no ground.
+Like the reference, the canvas TOP cuts through her NECK: the head is above the frame and NOT drawn at all (no face, no hair on top, only a little hair falling on the shoulders).
+NEW ANGLE: she is a boss GLARING DOWN at tiny heroes standing on the LEFT side of the screen. Turn her whole body about 35 degrees so her chest and apron FACE TOWARD THE LEFT EDGE of the image. Therefore the shoulder on the RIGHT side of the image is closer to the viewer and larger, the shoulder on the LEFT side of the image is further away and a bit smaller, and BOTH shoulders with their whole top surface are fully visible. Extremely broad, massive shoulders. The lower body below the waist dissolves into black smoke puffs with thin white outlines. Figure fills the whole 1024x1536 canvas.
+Pose: both huge fists clenched in front of her waist, knuckles toward the left.
