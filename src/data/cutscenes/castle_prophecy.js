@@ -31,7 +31,7 @@ export const castle_prophecy_door = Object.assign([
   K('응 당연하지.'),
   close, ...faceAll('up'), { wait: 0.4 },
   K('구하자 형섭이'),
-  K('구하자. 세상을.'),
+  K('구하자.{w=0.6} 세상을.'),
   close, { wait: 0.6 },
   N('...'),
   N('지금까지 길고길었던 모험의 끝이 보이는 듯 하다.'),

@@ -47,7 +47,7 @@ test('test_prophecy_path_is_narrow_and_ends_under_the_grand_door', async () => {
   assert.ok(fs.existsSync('assets/audio/bgm/dark_place.mp3'));
   assert.equal(map.entities.some(entity => entity.type === 'door'), false, 'next map not made yet');
   const { SCRIPTS } = await import('../../src/data/scripts.js');
-  assert.deepEqual(SCRIPTS.castle_prophecy_door.filter(node => node.text).map(node => `${node.speaker || '나레이션'}: ${node.text.slice(2)}`), [
+  assert.deepEqual(SCRIPTS.castle_prophecy_door.filter(node => node.text).map(node => `${node.speaker || '나레이션'}: ${node.text.slice(2).replace(/\{w=[0-9.]+\}/g, '')}`), [
     '억빠맨: ...', '억빠맨: 요플래형, 경섭이형', '경섭: 응 빠맨아', '억빠맨: 저는 그리고 저희는, 형들과 함께라서 기뻐요', '경섭: ...',
     '억빠맨: 우리는 꼭 형섭이형을 구해 돌아갈거에요 그렇죠?', '경섭: 응 당연하지.', '경섭: 구하자 형섭이', '경섭: 구하자. 세상을.',
     '나레이션: ...', '나레이션: 지금까지 길고길었던 모험의 끝이 보이는 듯 하다.', '나레이션: 결전의 시간이다.']);
