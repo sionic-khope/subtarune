@@ -803,6 +803,8 @@ for (const [id, spawn, extra, desc] of [
   ['castle_summit', 'start', {}, '꼭대기 · 구름 위 계단에서 부서진 끝길로'],
   ['castle_summit_confront', 'confront', {}, '꼭대기 · 끝길 대치 직전'],
 ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_summit', spawn, stage: 'castle_arena_seen',
+  // 청소년 보스전 확인용 회복템(사용자 “기름떡볶이나 그런 힐템들 qa 점프할 때”)
+  extraItems: ['기름떡볶이', '기름떡볶이', '기름떡볶이', '핫도그', '핫도그', '위장약', '에그타르트', '에그타르트'],
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true, castle_stairs_monsters_done: true, castle_stairs_nunu_done: true, ...extra } });
 QA_POINTS.push({ ...gateReady, id: 'castle_arena', desc: '결전지 · 도착 연출(가재맨·소환·지원군·청소년 구슬·푸른 파동)', map: 'gajaeman_castle_arena', spawn: 'start', stage: 'castle_prophecy_seen',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true } });
