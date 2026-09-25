@@ -62,11 +62,12 @@ export const TEEN_BATTLE = Object.freeze({
    * 2페이즈: 적 이름 가재맨, 보라 갑옷·칼날 모습, 코어를 칠 때마다 20, 게이지 없음, 매 턴 가재맨 대사.
    */
   phase2: {
-    // HP 999, 코어 한 대 34 — 세 명이 매 턴 다 맞히면 9턴 918, 10턴에 잡힌다(사용자 2026-09-26 “10턴으로”)
-    name: '가재맨', hp: 999, heal: 999, coreDamage: 34,
+    // HP 999, 코어 한 대 42 — 세 명이 매 턴 다 맞히면 7턴 882, 8턴에 잡힌다(사용자 2026-09-26 “8턴만에”)
+    name: '가재맨', hp: 999, heal: 999, coreDamage: 42,
     images: { idle: 'assets/props/teen347_p2.png', vacuum: 'assets/props/teen347_p2_vacuum.png', slam: 'assets/props/teen347_p2_slam.png' },
     core: [300, 176], coreSpot: [256, 206], near: [226, 150], inside: [320, 170],
-    patterns: ['teen_slam', 'gj_swords', 'teen_vacuum', 'gj_knee', 'gj_mouse'],
+    // 2페이즈 전용 패턴(검 비·엄.·주먹 연타·칼날 청소기) — 1페이즈와 다르게, 공격 위주
+    patterns: ['p2_blade_rain', 'p2_eom', 'p2_fist_barrage', 'p2_blade_vortex'],
     taunts: ['죽어.', '죽여줄게', '니애미따라가'],
     gajaemanLines: ['이런... 말도안돼', '이 쓸모없는 녀석..', '뭐 상관없어.', '이제 끝을보자,', '내가 상대해주지'],
     partyLines: [
@@ -79,6 +80,8 @@ export const TEEN_BATTLE = Object.freeze({
     time: { settle: 0.8, approach: 2.6, enter: 1.4, focusIn: 0.7, focusHold: 2.0, burst: 1.8, heal: 1.2, exclaim: 0.9, focusOut: 0.8, stand: 1.6, core: 1.3 },
     focus: { x: 330, y: 170, s: 1.35 },
   },
+  // 세 번째로 일어선 뒤(“그래 인정해주지…”) 다음 적 턴은 반드시 청소 — 이 한 번으로 청소 용량 100%(시간에 따라 차고 피한 잔해는 더)
+  finalClean: { afterDowns: 3, perDodge: 4 },
   // 쓰러졌던 청소년이 일어설 때 가재맨 대사(몇 번째 쓰러짐인지에 따라, 사용자 원문 그대로)
   riseLines: [
     ['의미없는 발버둥을', '아무리 발악해봐야 너희는 곧 죽는다', '이런이런 그릇이 너무 강력해서 섭타룬의 힘을 저항하고 있는건가'],

@@ -1,0 +1,2 @@
+Create ONE small projectile sprite for a Deltarune-style pixel-art RPG battle, centered on a solid pure #FF00FF magenta background. No text, no border, no shadow.
+A cartoon pixel-art bust (head and shoulders only) of the person in the reference (Image1): a black fedora hat pulled low so its brim hides the eyes, pale round face with pursed lips, short dark hair, navy shirt. Simple chunky pixel art with a dark outline, limited palette, slightly comical meme feel, facing forward. The bust fills the central 70% of the canvas.

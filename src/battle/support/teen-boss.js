@@ -24,6 +24,7 @@ export function createTeenBossSupport(battle) {
   // 2페이즈: pendingP2(1페이즈 HP 1) → trans(전투 안 연출 단계) → phase 'p2'
   const P2 = C.phase2;
   let pendingP2 = false, trans = null, cam = null, burst = null, burstPuffs = [], healT = null, exclaim = 0, standT = null, coreK = 0, p2Idx = 0, tauntIdx = 0;
+  let finalClean = false;
   let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, planned = null, motes = [], crits = [], puffs = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
@@ -90,8 +91,10 @@ export function createTeenBossSupport(battle) {
     get gauge() { return gauge; },
     /** QA: 청소 용량 직접 지정 */
     set gauge(v) { gauge = Math.max(0, Math.min(C.gauge.max, v)); },
+    /** QA: 세 번째로 일어선 뒤의 마지막 청소 상태로 */
+    set finalClean(v) { finalClean = !!v; },
     get smoke() { return smoke; },
-    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, downs, vacTurns, suckedCount, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode, trans: trans?.step ?? null, name: enemy.name, hp: enemy.hp }; },
+    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, downs, vacTurns, suckedCount, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode, finalClean, trans: trans?.step ?? null, name: enemy.name, hp: enemy.hp }; },
     async load(loadImage) {
       const ids = battle.members.map(m => m.id);
       const imgs = await Promise.all(ids.map(id => loadImage(C.images.defend(id)).catch(() => null)));
@@ -103,9 +106,9 @@ export function createTeenBossSupport(battle) {
       for (let i = 0; i < 2; i++) { const src = `assets/props/summit336_chunk_${i}.png`; if (!props[src]) props[src] = await loadImage(src).catch(() => null); }
       const debris = await Promise.all(TEEN_DEBRIS.map(src => loadImage(src).catch(() => null)));
       globalThis.__teenImages = Object.fromEntries(TEEN_DEBRIS.map((src, i) => [src, debris[i]]));
-      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing', 'heal', 'mario_jump', 'static_burst', 'sizzle', 'captain_transform', 'captain_thunder']);
+      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing', 'heal', 'mario_jump', 'static_burst', 'sizzle', 'captain_transform', 'captain_thunder', 'gajaeman_eom', 'punch']);
     },
-    reset() { downDealt = 0; downs = 0; phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
+    reset() { finalClean = false; downDealt = 0; downs = 0; phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
     buttons() {
       // 공격하기 바로 옆에 방어하기(사용자), 공격하기가 잠겨 있으면 커서는 방어하기에서 시작(defaultMenuIdx)
       return [
@@ -120,8 +123,9 @@ export function createTeenBossSupport(battle) {
     onVacuum(on, seconds) { vac = on ? { t: 0, d: seconds } : null; },
     /** 이번(또는 곧 올) 적 턴이 청소기인가: 준비 단계 상자 크기는 patternsFor 전에 정해지므로 턴 번호로 미리 본다 */
     vacuumTurn() {
-      if (phase === 'p2') return !!(planned && planned.phase === 'p2' && planned.turn === turn && planned.type === 'teen_vacuum');
+      if (phase === 'p2') return !!(planned && planned.phase === 'p2' && planned.turn === turn && planned.type === 'p2_blade_vortex');
       if (phase !== 'guard') return false;
+      if (finalClean || planned?.final && planned.turn === turn) return true;
       const upcoming = battle.state === 'bullets' || battle.state === 'board-close' ? turn : turn + 1;
       return upcoming % C.slamEvery !== 0;
     },
@@ -132,7 +136,7 @@ export function createTeenBossSupport(battle) {
     mashTurn() {
       // 이번 턴 패턴이 이미 정해졌으면 그것으로, 아니면 다음 청소 차례를 예측
       if (planned && planned.turn === turn && planned.phase === phase) return planned.type === 'teen_vacuum_mash';
-      return this.vacuumTurn() && (vacTurns + 1) % C.mash.every === 0;
+      return !finalClean && this.vacuumTurn() && (vacTurns + 1) % C.mash.every === 0;
     },
     // C 연타는 상자를 위로 길게 — 상자 위쪽이 손바닥 구멍 바로 아래(거기 닿으면 빨려 들어간다)
     get boardCenter() { return this.mashTurn() ? [304, 158] : this.vacuumTurn() ? [300, 194] : [300, 214]; },
@@ -188,12 +192,12 @@ export function createTeenBossSupport(battle) {
       }
       // 첫 공격 전에 한 번 크게 포효 — 계단 누누와 윌럼프 포효와 같은 소리(사용자 “우리가 쓰는 사운드, 바론”)
       if (turn === 1) { battle.sfx('baron_roar'); battle.game.shake = { time: 1.6, amp: 4 }; }
-      nextType = turn % C.slamEvery === 0 ? 'teen_slam' : 'teen_vacuum';
+      nextType = finalClean ? 'teen_vacuum' : turn % C.slamEvery === 0 ? 'teen_slam' : 'teen_vacuum';
       // 세 번째 청소부터 가재맨이 중간중간 검·무릎으로 방해(사용자 2026-09-25)
       if (nextType === 'teen_vacuum') vacTurns++;
       // 세 번째 청소마다 C 연타 버티기
-      const mash = nextType === 'teen_vacuum' && vacTurns % C.mash.every === 0;
-      planned = { turn, phase, type: mash ? 'teen_vacuum_mash' : nextType };
+      const mash = !finalClean && nextType === 'teen_vacuum' && vacTurns % C.mash.every === 0;
+      planned = { turn, phase, type: mash ? 'teen_vacuum_mash' : nextType, final: finalClean };
       if (mash) return [{ type: 'teen_vacuum_mash', damage: 15, level: Math.max(0, vacTurns - 1) }];
       return [{ type: nextType, damage: 15, harass: nextType === 'teen_vacuum' && vacTurns >= 3, level: Math.max(0, vacTurns - 1) }];
     },
@@ -207,7 +211,7 @@ export function createTeenBossSupport(battle) {
         for (const m of battle.members) if (!m.down && m.hp > 0) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + C.mushroom.heal); m.popup = { t: 0, text: `+${m.hp - before}`, heal: true }; }
         battle.sfx('heal'); battle.sfx('mario_jump');
       }
-      if (p?.type === 'teen_dodge' && phase === 'guard') gauge = Math.min(C.gauge.max, gauge + C.gauge.perDodge);
+      if (p?.type === 'teen_dodge' && phase === 'guard') gauge = Math.min(C.gauge.max, gauge + (planned?.final && planned.turn === turn ? C.finalClean.perDodge : C.gauge.perDodge));
       if (p?.type === 'teen_rock' && live()) { battle.hitEnemy(enemy, null, C.rockDamage, { source: 'teen_rock' }); battle.game.shake = { time: 0.4, amp: 5 }; }
     },
     /** 쓰러진 동안 일반 공격은 한 대 80 */
@@ -271,7 +275,12 @@ export function createTeenBossSupport(battle) {
       return target.patternPose || null;
     },
     update(dt) {
-      if (vac) { vac.t += dt; if (vac.t > vac.d) vac = null; }
+      if (vac) {
+        vac.t += dt;
+        // 마지막 청소: 끝날 때 100% 가 되게 시간에 따라 채운다
+        if (planned?.final && planned.turn === turn && phase === 'guard') gauge = Math.max(gauge, Math.min(C.gauge.max, C.gauge.max * vac.t / Math.max(1, vac.d - 0.5)));
+        if (vac.t > vac.d) vac = null;
+      }
       time += dt; gj.t += dt;
       if (gj.mode === 'pop' && gj.t > 2.2) flyTo('back', 0.6);
       for (const c of crits) c.t += dt;
@@ -310,6 +319,7 @@ export function createTeenBossSupport(battle) {
     },
     afterEnemyPhase() {
       defenders.clear();
+      if (planned?.final && planned.turn === turn) { finalClean = false; gauge = C.gauge.max; }
       // 빨려 들어가 감춰졌던 하트는 메뉴로 돌아오면 다시
       battle.soul.hidden = false;
       if (!live()) return null;
@@ -340,7 +350,7 @@ export function createTeenBossSupport(battle) {
       if (phase === 'down') {
         downLeft--;
         if (downLeft <= 0) {
-          const rise = () => { phase = 'guard'; gauge = 0; fall = { kind: 'rise', t: 0 }; flyTo('back'); battle.sfx('rumble'); };
+          const rise = () => { phase = 'guard'; gauge = 0; fall = { kind: 'rise', t: 0 }; flyTo('back'); battle.sfx('rumble'); if (downs === C.finalClean.afterDowns) finalClean = true; };
           // 일어서기 전에 떠 있는 가재맨이 대사를 친다(몇 번째 쓰러짐인지에 따라) → 끝나면 일어서고 가재맨은 뒤로
           const lines = C.riseLines[downs - 1];
           if (!lines) { rise(); return null; }

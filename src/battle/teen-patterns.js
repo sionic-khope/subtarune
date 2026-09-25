@@ -34,7 +34,8 @@ const drawMushroom = (ctx, b) => {
   ctx.restore();
   drawDebris(ctx, b);
 };
-const DEBRIS = [...ROCKS, ...JUNK, TROPHY, MUSHROOM];
+const EOM = 'assets/props/teen348_eom.png';
+const DEBRIS = [...ROCKS, ...JUNK, TROPHY, MUSHROOM, EOM];
 /** 가재맨 공격 그림은 흰색 대신 보라로 물들인다(사용자 “흰색색감좀 쓰지마”). 캔버스가 없으면(단위 테스트) 원본 */
 const PURPLE = new WeakMap();
 const purpleSprite = img => {
@@ -316,6 +317,128 @@ export const TEEN_PATTERNS = {
             const dp = Math.hypot(px - bb.x, py - bb.y); bb.shrink = Math.min(1, dp / 40);
             if (!bb.counted && dp < 16) { bb.counted = true; bb.life = bb.age; api.trackProjectile?.({ type: 'teen_dodge' }); }
           } });
+      }
+    } };
+  },
+
+  // ── 2페이즈(가재맨이 들어간 청소년, 사용자 2026-09-26 “색다르게, 검·주먹, 공격 위주”) ──
+  /** 검 비: 보라 검이 오른쪽 위에서 비스듬히 쏟아지고(틈 하나), 사이사이 거대한 보라 주먹이 하트 줄을 내려찍는다 */
+  p2_blade_rain: (o = {}) => {
+    const duration = o.duration ?? 9;
+    let nextWave = 0.6, nextFist = 2.2, wave = 0;
+    return { duration, update(t, dt, api) {
+      const box = api.box, img = purpleSprite(api.images?.sword);
+      if (t < 0.05) api.present?.({ sheet: 'idle' });
+      while (t >= nextWave && t < duration - 1) {
+        nextWave += Math.max(0.55, 0.9 - wave * 0.04); wave++;
+        const n = 7, gap = Math.floor(api.rnd() * n), step = (box.w + 60) / n, ang = 0.35;
+        api.sfx?.('spearappear', { volume: 0.35 });
+        for (let i = 0; i < n; i++) {
+          if (i === gap) continue;
+          const x = box.x - 20 + i * step + step / 2, y = box.y - 30, sp = 190 + wave * 4;
+          api.emit({ x, y, r: 6, vx: -Math.sin(ang) * sp, vy: Math.cos(ang) * sp, rot: ang, drawShape(ctx, b) {
+            if (!img) { ctx.fillStyle = '#9a50ff'; ctx.fillRect(Math.round(b.x) - 2, Math.round(b.y) - 12, 4, 24); return; }
+            ctx.save(); clip(ctx, api.box); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(b.rot + Math.PI);
+            const h = 40, w = h * img.width / img.height; ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore();
+          } });
+        }
+      }
+      if (t >= nextFist && t < duration - 1.5) {
+        nextFist += 2.6;
+        const w = 46, x = clamp(api.soul.x, box.x + w / 2, box.x + box.w - w / 2), warn = 0.6, arm = api.images?.arm;
+        api.sfx?.('heavyswing', { volume: 0.5 }); api.present?.({ sheet: 'slam' });
+        api.emit({ zone: true, x: x - w / 2, y: box.y, w, h: box.h, warn, life: warn + 0.3,
+          drawShape(ctx, b) {
+            ctx.save(); clip(ctx, api.box);
+            if (b.age < b.warn) { ctx.fillStyle = `rgba(170,90,255,${0.15 + 0.3 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h); }
+            const drop = Math.min(1, Math.max(0, (b.age - b.warn + 0.14) / 0.14));
+            if (arm && b.age > b.warn - 0.14) { const s = b.w / arm.height, len = arm.width * s; ctx.translate(b.x + b.w / 2, b.y + b.h - (1 - drop) * (b.h + 20)); ctx.rotate(Math.PI / 2); ctx.drawImage(purpleSprite(arm), -len + 8, -arm.height * s / 2, len, arm.height * s); }
+            ctx.restore();
+          } });
+        setTimeoutLike(api, warn, () => { api.sfx?.('furnace_blast', { volume: 0.5 }); api.shake?.(0.3, 5); api.present?.({ sheet: 'idle' }); });
+      }
+      tickTimers(api, dt);
+    } };
+  },
+
+  /** 주먹 연타: 오른쪽에서 거대한 보라 주먹이 줄 두 개씩 가로로 내지른다(예고 줄 → 빠르게 왼쪽으로), 번갈아 높이가 바뀐다 */
+  p2_fist_barrage: (o = {}) => {
+    const duration = o.duration ?? 8.5, rows = 4;
+    let next = 0.7, k = 0;
+    return { duration, update(t, dt, api) {
+      const box = api.box, rh = box.h / rows, arm = api.images?.arm;
+      if (t < 0.05) api.present?.({ sheet: 'slam' });
+      while (t >= next && t < duration - 1.2) {
+        next += Math.max(0.7, 1.15 - k * 0.05); k++;
+        const safe = Math.floor(api.rnd() * rows), hit = [0, 1, 2, 3].filter(r => r !== safe && r !== (safe + 1) % rows).slice(0, 2);
+        api.sfx?.('heavyswing', { volume: 0.45 });
+        for (const r of hit) {
+          const y = box.y + r * rh, warn = 0.55;
+          api.emit({ zone: true, x: box.x, y: y + 2, w: box.w, h: rh - 4, warn, life: warn + 0.35,
+            drawShape(ctx, b) {
+              ctx.save(); clip(ctx, api.box);
+              if (b.age < b.warn) { ctx.fillStyle = `rgba(170,90,255,${0.12 + 0.3 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h); }
+              const go = Math.min(1, Math.max(0, (b.age - b.warn + 0.12) / 0.16));
+              if (arm && b.age > b.warn - 0.12) { const s = b.h / arm.height * 1.3, len = arm.width * s; ctx.translate(b.x + b.w + 10 - go * (b.w + 20), b.y + b.h / 2); ctx.scale(-1, 1); ctx.drawImage(purpleSprite(arm), -10, -arm.height * s / 2, len, arm.height * s); }
+              ctx.restore();
+            } });
+        }
+        setTimeoutLike(api, 0.55, () => { api.sfx?.('punch', { volume: 0.6 }); api.shake?.(0.2, 4); });
+      }
+      tickTimers(api, dt);
+    } };
+  },
+
+  /** 칼날 청소기: 손바닥 구멍이 하트를 끌어당기는 동안, 상자 둘레에서 보라 검이 소용돌이치며 구멍으로 빨려 든다(맞으면 피해). 게이지 없음 */
+  p2_blade_vortex: (o = {}) => {
+    const VC = TEEN_BATTLE.view.vacuum, ready = VC.approach + VC.open, duration = o.duration ?? 12 + ready;
+    const to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]], from = TEEN_BATTLE.view.giant;
+    let started = false, opened = false, next = ready + 0.2, n = 0;
+    return { duration, update(t, dt, api) {
+      const box = api.box, [px, py] = VC.palm, soul = api.soul, img = purpleSprite(api.images?.sword);
+      if (!started) { started = true; api.sfx?.('rumble', { volume: 0.6 }); api.emit({ x: box.x, y: box.y, r: 0, harmless: true, life: duration, box, drawShape: drawVortex }); }
+      const k = Math.min(1, t / VC.approach), e = 1 - (1 - k) ** 3;
+      api.present?.({ sheet: 'vacuum', x: Math.round(from.x + (to[0] - from.x) * e), y: Math.round(from.y + (to[1] - from.y) * e) });
+      if (t < ready) { if (t > VC.approach && !opened) { opened = true; api.sfx?.('power', { volume: 0.6 }); api.sfx?.('teen_vacuum', { volume: 0.8 }); } return; }
+      const pull = 20 + 24 * Math.min(1, (t - ready) / 6), dx = px - soul.x, dy = py - soul.y, d = Math.max(1, Math.hypot(dx, dy));
+      soul.x = clamp(soul.x + dx / d * pull * dt, box.x + soul.r + 4, box.x + box.w - soul.r - 4);
+      soul.y = clamp(soul.y + dy / d * pull * dt, box.y + soul.r + 4, box.y + box.h - soul.r - 4);
+      while (t >= next && t < duration - 1.2) {
+        next += Math.max(0.28, 0.5 - (t - ready) * 0.02); n++;
+        // 상자 둘레 아무 데서나 → 소용돌이치며 구멍으로
+        const a = api.rnd() * Math.PI * 2, R = Math.max(box.w, box.h) * 0.75, cx = box.x + box.w / 2, cy = box.y + box.h / 2, spin = api.rnd() < 0.5 ? 1 : -1;
+        api.emit({ x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R, r: 6, free: true, life: 5, spin: 0, drawShape(ctx, b) {
+            ctx.save(); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
+            if (img) { const h = 30, w = h * img.width / img.height; ctx.drawImage(img, -w / 2, -h / 2, w, h); } else { ctx.fillStyle = '#9a50ff'; ctx.fillRect(-2, -10, 4, 20); }
+            ctx.restore();
+          },
+          steer(b, dd) {
+            const ex = px - b.x, ey = py - b.y, dist = Math.max(1, Math.hypot(ex, ey)), v = 120 + 90 * Math.max(0, 1 - dist / 160);
+            const tx = ex / dist * v + (-ey / dist) * v * 0.55 * spin, ty = ey / dist * v + (ex / dist) * v * 0.55 * spin;
+            b.vx += (tx - b.vx) * Math.min(1, dd * 3); b.vy += (ty - b.vy) * Math.min(1, dd * 3);
+            if (dist < 14) b.life = b.age;
+          } });
+      }
+    } };
+  },
+
+  /** “엄.”: 가재맨 효과음과 함께 엄준식 얼굴들을 부채꼴로 하트 쪽에 쏜다(점점 빠르게, 한 번에 더 많이) */
+  p2_eom: (o = {}) => {
+    const duration = o.duration ?? 8.5;
+    let next = 0.8, v = 0;
+    return { duration, update(t, dt, api) {
+      const box = api.box;
+      if (t < 0.05) api.present?.({ sheet: 'idle' });
+      while (t >= next && t < duration - 1) {
+        next += Math.max(0.6, 1.05 - v * 0.06); v++;
+        api.sfx?.('gajaeman_eom', { volume: 1 });
+        // 코어 쪽(상자 오른쪽 위 밖)에서 하트를 겨냥한 부채꼴
+        const sx = box.x + box.w + 18, sy = box.y - 10, base = Math.atan2(api.soul.y - sy, api.soul.x - sx), count = 3 + Math.min(3, Math.floor(v / 3)), spread = 0.22, sp = 150 + v * 6;
+        for (let i = 0; i < count; i++) {
+          const a = base + (i - (count - 1) / 2) * spread;
+          // 상자 안에서만 보이게(상자 밖 화면을 날아다니지 않게)
+          api.emit({ x: sx, y: sy, r: 9, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, spin: (i % 2 ? 1 : -1) * 2, src: EOM, seed: v * 10 + i, drawShape: (ctx, b) => { ctx.save(); clip(ctx, api.box); drawDebris(ctx, b); ctx.restore(); } });
+        }
       }
     } };
   },

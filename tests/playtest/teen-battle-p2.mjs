@@ -12,9 +12,14 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
   const press = async k => { await page.keyboard.press(k); await page.waitForTimeout(120); };
   for (let i = 0; i < 40 && (await B()).state !== 'menu'; i++) await press('KeyC');
   // 첫 턴 뒤 바로 쓰러지게: 게이지 100, 무적
-  await fixture('overload-now', 'Fill the gauge and make the autoplay invulnerable so the first enemy turn ends in a collapse.', () => { game.battle.support.gauge = 100; game.battle.soul.invuln = 99; });
+  // 세 번째로 일어선 뒤의 마지막 청소: 이 한 번으로 청소 용량 100%
+  await fixture('final-clean', 'Put the battle in the state after the third rise (final cleaning) and make the autoplay invulnerable.', () => { game.battle.support.finalClean = true; game.battle.soul.invuln = 99; });
   for (let m = 0; m < 3; m++) await press('KeyC');
+  assert.ok(await until(() => game.battle.state === 'bullets', 15000), 'final cleaning starts');
+  check('the final cleaning is a vacuum (not slam or C-mash)', await page.evaluate(() => game.battle.patterns.every(p => game.battle.support.vacuumTurn() && !game.battle.support.mashTurn())), JSON.stringify((await B()).sup));
+  await page.evaluate(() => { game.battle.soul.invuln = 99; });
   assert.ok(await until(() => game.battle.state === 'interlude', 45000), 'collapse');
+  check('one final cleaning filled the gauge to 100%', (await B()).sup.gauge === 100, JSON.stringify((await B()).sup));
   while ((await B()).state === 'interlude') await press('KeyC');
   assert.ok(await until(() => game.battle.state === 'menu' && game.battle.support.snapshot.phase === 'down', 10000), 'down menu');
   // HP 를 조금만 남겨 이번 공격으로 1 이 되게
@@ -48,5 +53,15 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
   for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
   assert.ok(await until(() => game.battle.state === 'enemy-prep' || game.battle.state === 'bullets', 20000), 'attacks resolved');
   const hp1 = (await B()).sup.hp;
-  check('each hit on the core deals 34 (10 turns)', hp0 - hp1 >= 34 && (hp0 - hp1) % 34 === 0, `${hp0}->${hp1}`);
+  check('each hit on the core deals 42 (8 turns)', hp0 - hp1 >= 42 && (hp0 - hp1) % 42 === 0, `${hp0}->${hp1}`);
+  // 2페이즈 전용 패턴 네 가지를 차례로 본다(무적, 방어만)
+  const pats = [];
+  for (let i = 0; i < 4; i++) {
+    assert.ok(await until(() => game.battle.state === 'bullets', 40000), `phase-2 pattern ${i}`);
+    pats.push(await page.evaluate(() => game.battle.support.snapshot && game.battle.patterns.map(p => p.p.duration).join()));
+    await page.evaluate(() => { game.battle.soul.invuln = 99; });
+    await page.waitForTimeout(2600); await shot(`p2-pat-${i}a`); await page.waitForTimeout(2400); await shot(`p2-pat-${i}b`);
+    assert.ok(await until(() => game.battle.state === 'menu', 40000), 'menu after pattern');
+    for (let m = 0; m < 3; m++) { await press('ArrowRight'); await press('KeyC'); }
+  }
 });
