@@ -1,0 +1,11 @@
+# imagegen 2026-09-25 11:59:22
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/stairs334/stairs-style-ref.png
+
+Create ONE pixel-art TEXTURE of a square stone LANDING platform (a staircase landing) for a Deltarune-style RPG, seen from a 3/4 top-down angle, filling the ENTIRE canvas edge to edge. No characters, no text, no border, no stairs.
+
+Reference (Image1): copy the exact material, palette and pixel density: polished navy/indigo flagstones with thin glowing sapphire inlay lines and diamond emblems, a few hairline cracks.
+
+The landing: large polished navy flagstones in a regular grid with sapphire inlay seams, a round sapphire emblem in the middle, a slightly raised ornate border band of darker stone around the outer edge. Crisp pixel art, limited palette, same chunky pixel density as the reference.

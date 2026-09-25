@@ -13,6 +13,7 @@ export const STAIRS = Object.freeze({
   fist: { image: 'assets/props/arena332_arm.png', drop: 0.22, hold: 0.45, fade: 0.35, behind: 150, span: 110, height: 420 },
   nunu: { cell: 384, scale: 0.6, drop: 0.7 },
   fall: { vx: 230, vup: 260, gravity: 900, life: 1.6 },
+  step: 31,   // 생성 계단의 한 칸 높이(tools/art/castle334_stairs_set.py 의 step pitch)
 });
 
 const clamp01 = v => Math.max(0, Math.min(1, v));
@@ -29,11 +30,11 @@ export class CastleStairs {
     this.smash = meta.smash.map(([x, y]) => ({ s: this.project(x, y).s, fired: false }));
     this.enc = Object.fromEntries(Object.entries(meta.encounters).map(([k, [x, y]]) => [k, this.project(x, y).s]));
     this.allies = meta.allies.map(([id, lead], i) => ({ id, lead, lateral: STAIRS.lateral[i] || 0, s: null, e: game.entities.find(e => e.id === id) }));
-    this.progress = 0; this.fists = []; this.holes = []; this.debris = []; this.fallers = []; this.nunu = null; this.alliesPaused = false; this.time = 0;
+    this.progress = 0; this.clouds = []; this.bobs = new Map(); this.stepDist = 0; this.fists = []; this.holes = []; this.debris = []; this.fallers = []; this.nunu = null; this.alliesPaused = false; this.time = 0;
     if (game.has(STAIRS.flags.monsters)) this.removeAlly('stairs_park', 'stairs_ttuulla');
     if (game.has(STAIRS.flags.nunu)) this.removeAlly('stairs_junhee');
     game.windWalk = true;
-    void game.sound.loadSfxFiles?.(['furnace_blast', 'baron_slam', 'baron_roar', 'impact', 'heavyswing', 'thud', 'captain_transform', 'rumble', 'jump']);
+    void game.sound.loadSfxFiles?.(['furnace_blast', 'baron_slam', 'baron_roar', 'impact', 'heavyswing', 'thud', 'captain_transform', 'rumble', 'jump', 'iron_step_1', 'iron_step_2']);
     const p = game.player;
     if (p) { this.progress = this.project(p.x + p.w / 2, p.y + p.h / 2).s; for (const sm of this.smash) if (sm.s < this.progress) sm.fired = true; }
     for (const a of this.allies) if (a.e) a.s = this.progress + a.lead;
@@ -89,9 +90,26 @@ export class CastleStairs {
       a.s += Math.sign(target - a.s) * Math.min(Math.abs(target - a.s), STAIRS.allySpeed * s);
       const pt = this.pointAt(a.s);
       a.e.x = pt.x + a.lateral - a.e.w / 2; a.e.y = pt.y - a.e.h / 2;
-      a.e.moving = Math.abs(a.s - before) > 0.1; if (a.e.moving) a.e.animate?.(s, 8);
+      a.e.moving = Math.abs(a.s - before) > 0.1;
+      // 걷는 모션: 이 틱에 직접 움직였음을 알려 NPC 정지 처리가 프레임을 0으로 덮지 않게
+      if (a.e.moving) { a.e.animate?.(s, 8); a.e.driven = true; }
       a.e.facing = 'up';
     }
+    // 계단 느낌: 움직이는 모두가 한 칸마다 몸이 들썩이고, 주인공 발소리
+    const climbers = [p, ...g.entities.filter(e => e.def?.type === 'follower' && !e.dead), ...this.allies.filter(a => a.e && !a.gone && !a.e.dead).map(a => a.e)];
+    for (const e of climbers) {
+      if (!e) continue;
+      const last = this.bobs.get(e) || { x: e.x, y: e.y, d: 0 };
+      const moved = Math.hypot(e.x - last.x, e.y - last.y);
+      last.d += moved; last.x = e.x; last.y = e.y; this.bobs.set(e, last);
+      if (!this.fallers.some(f => f.e === e)) e.hopY = moved > 0.05 ? Math.round(Math.abs(Math.sin(last.d * Math.PI / STAIRS.step)) * 3) : 0;
+    }
+    if (p && !g.dialogue.running) {
+      const b = this.bobs.get(p);
+      if (b && b.d - this.stepDist >= STAIRS.step) { this.stepDist = b.d; this.sfx(Math.floor(b.d / STAIRS.step) % 2 ? 'iron_step_1' : 'iron_step_2', 0.22); }
+    }
+    for (const c of this.clouds) { c.age += s; c.x += c.vx * s; c.y += c.vy * s; c.vx *= 0.96; c.vy *= 0.96; c.r += 10 * s; }
+    this.clouds = this.clouds.filter(c => c.age < c.life);
     for (const f of this.fists) {
       f.t += s;
       if (!f.hit && f.t >= STAIRS.fist.drop) {
@@ -118,15 +136,39 @@ export class CastleStairs {
     this.fists.push({ s, x: pt.x, y: pt.y, t: 0, hit: false });
     this.sfx('heavyswing', 0.6);
   }
-  /** Three monsters appear on the landing above in a dark puff. */
-  showMonsters(ids) {
-    for (const id of ids) {
-      const e = this.game.entities.find(x => x.id === id);
-      if (!e) continue;
-      e.visible = true;
-      for (let i = 0; i < 12; i++) this.debris.push({ x: e.x + e.w / 2, y: e.y + e.h, vx: (this.rnd() - 0.5) * 160, vy: -60 - this.rnd() * 120, age: 0.6, size: 5, dark: true });
+  /** Walk the remaining allies (walking frames) to a neat row on the steps just below the threat, facing it. */
+  arrangeAllies(baseS, gap = 34, seconds = 0.8) {
+    const g = this.game, live = this.allies.filter(a => a.e && !a.gone && !a.e.dead);
+    const jobs = live.map((a, i) => { const pt = this.pointAt(baseS + i * gap); return { a, fx: a.e.x, fy: a.e.y, tx: pt.x + (i - (live.length - 1) / 2) * 34 - a.e.w / 2, ty: pt.y - a.e.h / 2 }; });
+    let t = 0;
+    return new Promise(resolve => g.background.push({ update: dt => {
+      t = Math.min(1, t + dt / seconds);
+      for (const j of jobs) { j.a.e.x = j.fx + (j.tx - j.fx) * t; j.a.e.y = j.fy + (j.ty - j.fy) * t; j.a.e.moving = t < 1; if (t < 1) { j.a.e.animate?.(dt, 8); j.a.e.driven = true; } j.a.e.facing = 'up'; j.a.s = baseS; }
+      if (t < 1) return false;
+      resolve(); return true;
+    } }));
+  }
+  /** A thick dark smoke cloud billows up where a monster is summoned. */
+  smoke(x, y, count = 26) {
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2;
+      this.clouds.push({ x: x + Math.cos(a) * 10, y: y - 20 + Math.sin(a) * 6, vx: Math.cos(a) * (30 + this.rnd() * 50), vy: -20 - this.rnd() * 50, r: 12 + this.rnd() * 14, age: 0, life: 1.4 + this.rnd() * 0.6 });
     }
-    this.sfx('captain_transform', 0.45);
+  }
+  /** The three monsters are summoned one by one inside dark smoke (사용자 “소환되는거 연기랑 함께”). */
+  showMonsters(ids) {
+    const g = this.game, list = ids.map(id => g.entities.find(x => x.id === id)).filter(Boolean);
+    let t = 0;
+    const jobs = list.map((e, i) => ({ e, at: i * 0.55, started: false, shown: false }));
+    return new Promise(resolve => g.background.push({ update: dt => {
+      t += dt;
+      for (const j of jobs) {
+        if (!j.started && t >= j.at) { j.started = true; this.smoke(j.e.x + (j.e.iw || j.e.w) / 2, j.e.y + j.e.h); this.sfx('captain_transform', 0.4); }
+        if (j.started && !j.shown && t >= j.at + 0.35) { j.shown = true; j.e.visible = true; g.shake = { time: 0.2, amp: 2 }; }
+      }
+      if (!(jobs.every(j => j.shown) && t > jobs.at(-1).at + 0.9)) return false;
+      resolve(); return true;
+    } }));
   }
   /** A body flies off the side of the stairs and falls into the dark. */
   fallOff(ids, dir) {
@@ -217,6 +259,11 @@ export class CastleStairs {
     for (const d of this.debris) {
       ctx.globalAlpha = Math.max(0, 1 - d.age / 1.6); ctx.fillStyle = d.dark ? '#1a0d2c' : d.size > 5 ? '#34437f' : '#1a2150';
       ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.size, d.size);
+    }
+    for (const c of this.clouds) {
+      ctx.globalAlpha = Math.min(0.9, (1 - c.age / c.life) * 1.3); ctx.fillStyle = c.r > 22 ? '#1a0d2c' : '#07030d';
+      const r = Math.round(c.r), cx = c.x - cam.x, cy = c.y - cam.y;
+      for (let row = -r; row < r; row += 2) { const half = Math.round(Math.sqrt(1 - ((row + 1) / r) ** 2) * r); ctx.fillRect(Math.round(cx - half), Math.round(cy + row), half * 2, 2); }
     }
     ctx.globalAlpha = 1;
     this.drawNunu(ctx, cam);

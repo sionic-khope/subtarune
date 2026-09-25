@@ -33,6 +33,6 @@ test('test_stairs_path_takes_about_a_minute_at_stair_pace_and_stays_walkable', (
 test('test_stairs_scripts_use_the_user_lines', async () => {
   const { SCRIPTS } = await import('../../src/data/scripts.js');
   const text = id => SCRIPTS[id].filter(n => n.text).map(n => `${n.speaker}: ${n.text.slice(2)}`);
-  assert.deepEqual(text('castle_stairs_monsters'), ['억빠맨: 으윽,,,몬스터네요 어떡하죠.', '파크가디언: ...', '뚜울라알라: ...', '파크가디언: 이얍!', '뚜울라알라: 이얍!']);
+  assert.deepEqual(text('castle_stairs_monsters'), ['억빠맨: 으윽,,,몬스터네요 어떡하죠.', '파크가디언: ...', '뚜울라알라: ...', '파크가디언: 이얍!', '뚜울라알라: 이얍!', '억빠맨: 윽 이런.. 고 고맙다..']);
   assert.deepEqual(text('castle_stairs_nunu'), ['쥰희: 잘... 부탁한다 너네들 살아서보자.', '쥰희: 이얍!']);
 });

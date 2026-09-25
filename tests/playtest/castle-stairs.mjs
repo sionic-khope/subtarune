@@ -45,7 +45,7 @@ await runScenario({ name: 'castle-stairs', launchOptions: { args: ['--autoplay-p
   check('reached the top landing', snap.scene.progress >= snap.scene.total - 1080, JSON.stringify(snap.scene));
   check('the fist smashed the steps behind six times', snap.scene.smashed === 6, JSON.stringify(snap.scene));
   check('monster and nunu encounters both played', snap.flags.every(Boolean), JSON.stringify(snap.flags));
-  check('lines verbatim', ['* 으윽,,,몬스터네요 어떡하죠.', '* ...', '* ...', '* 이얍!', '* 이얍!', '* 잘... 부탁한다 너네들 살아서보자.', '* 이얍!'].every((t, i) => lines[i] === t), JSON.stringify(lines));
+  check('lines verbatim', ['* 으윽,,,몬스터네요 어떡하죠.', '* ...', '* ...', '* 이얍!', '* 이얍!', '* 윽 이런.. 고 고맙다..', '* 잘... 부탁한다 너네들 살아서보자.', '* 이얍!'].every((t, i) => lines[i] === t), JSON.stringify(lines));
   check('allies all gone after their sacrifices', snap.scene.allies.length === 0, JSON.stringify(snap.scene.allies));
   const walkSeconds = walkMs / 1000;
   check('about a minute of climbing', walkSeconds > 48 && walkSeconds < 68, walkSeconds.toFixed(1));

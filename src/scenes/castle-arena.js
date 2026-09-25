@@ -15,20 +15,23 @@ export const ARENA = Object.freeze({
   charge: { duration: 3.0, radius: 26, below: 18 },
   hover: { amplitude: 4, period: 2.4, lift: 10 },
   // BUILD333: 더 천천히(7.5초), 잔상 더 길게, 가재맨 머리 위(above)에서 들고 있는다. 속의 청소년은 보랏빛으로 물든 그림
-  orb: { radius: 34, descend: 7.5, from: 560, sway: 50, above: 118, spin: 1.8, trail: 10, trailEvery: 0.09, image: 'assets/props/arena332_cheong_orb.png' },
+  orb: { radius: 52, descend: 7.5, from: 560, sway: 50, above: 118, spin: 1.8, trail: 10, trailEvery: 0.09, image: 'assets/props/arena332_cheong_orb.png' },
   rise: { height: 300, duration: 1.0 },
   laser: { life: 0.55 },
   throwOrb: { duration: 0.75 },
   swords: { count: 9, every: 0.16, fly: 0.26, stagger: 0.06, trail: 90, image: 'assets/props/cathedral323_sword.png', w: 76, h: 160, scale: 0.7 },
   // build: 가운데에서 바람처럼 조금 새어 나오는 시간(사용자 “5초”), 그 뒤 갑자기 주변으로 파동(surge)
   fog: { blobs: 60, veil: 0.96, clearRadius: 190 },
-  giant: { breathe: 1.3, scale: 0.018, bob: 4, fade: 0.8 },
+  giant: { breathe: 1.3, scale: 0.018, bob: 4, fade: 3.0 },
   track: { rate: 9 },
-  arm: { image: 'assets/props/arena332_arm.png', reach: 350, pivotY: 65, windup: 0.35, swing: 0.28, hold: 0.45, from: 1.0, to: -0.5 },
+  // BUILD335: 휘두르기 대신 화면 밖 어깨에서 주먹을 내지른다(굵고 크게, 사용자 “주먹을 날려야함”)
+  arm: { image: 'assets/props/arena332_arm.png', reach: 640, pivotY: 130, windup: 0.4, swing: 0.16, hold: 0.5, pull: 260, tilt: 0.12 },
   fountain: { build: 5.0, grow: 2.6, height: 3400, width: 380, ribbons: 4, bands: 2, shadow: 0.62 },
 });
 
 const clamp01 = value => Math.max(0, Math.min(1, value));
+/** Slower camera follow while panning up to the sword draw. */
+const ARENA_TRACK_SLOW = { on: false };
 const easeInOut = k => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2);
 const easeOut = k => 1 - (1 - clamp01(k)) ** 3;
 
@@ -114,8 +117,16 @@ export class CastleArena {
     const o = this.orb, [px, py] = this.pit;
     if (o) { o.phase = 'thrown'; o.t = 0; o.sx = o.x; o.sy = o.y; o.tx = px; o.ty = py; this.sfx('heavyswing', 0.8); }
     return this.waitFor(() => !this.orb).then(() => {
-      // 검을 뽑는 동안 카메라는 가재맨 쪽으로 올라간다
+      // 구슬이 빠진 구덩이를 잠깐 보여 준 뒤(간격), 카메라가 천천히 가재맨 쪽으로 올라간다
+      const t0 = this.time;
+      return this.waitFor(() => this.time - t0 > 1.3);
+    }).then(() => {
+      ARENA_TRACK_SLOW.on = true;
       this.track(() => { const cc = this.center(); return { x: cc.x, y: cc.y - 40 }; });
+      const t0 = this.time;
+      return this.waitFor(() => this.time - t0 > 1.1);
+    }).then(() => {
+      ARENA_TRACK_SLOW.on = false;
       this.sfx('fountain_draw', 0.9);
       const c = this.center(), S = ARENA.swords;
       this.swords = Array.from({ length: S.count }, (_, i) => {
@@ -194,11 +205,12 @@ export class CastleArena {
     this.sfx('heavyswing', 0.9);
     return this.waitFor(() => !this.arms.includes(arm));
   }
-  armAngle(arm) {
+  armAngle() { return ARENA.arm.tilt; }
+  /** How far the fist is pulled back (1 = wound up off-screen, 0 = landed). */
+  armPull(arm) {
     const A = ARENA.arm, t = arm.t;
-    if (t < A.windup) return A.from;
-    const k = clamp01((t - A.windup) / A.swing);
-    return A.from + (A.to - A.from) * easeOut(k);
+    if (t < A.windup) return 1 - 0.15 * clamp01(t / A.windup);
+    return 0.85 * (1 - easeOut(clamp01((t - A.windup) / A.swing)));
   }
   /** Youngcle slammed into the wall: shoots to the wall, crash, then gone. */
   slamIntoWall(id, wallX) {
@@ -263,7 +275,7 @@ export class CastleArena {
       const pt = this.tracking();
       if (!pt) this.tracking = null;
       else {
-        const cam = g.camera, z = g.zoom?.s ?? 1, k = Math.min(1, ARENA.track.rate * s);
+        const cam = g.camera, z = g.zoom?.s ?? 1, k = Math.min(1, (ARENA_TRACK_SLOW.on ? 2.2 : ARENA.track.rate) * s);
         const tx = Math.max(0, Math.min(this.map.pxW - SCREEN_W, pt.x - SCREEN_W / 2)), ty = Math.max(0, Math.min(this.map.pxH - SCREEN_H, pt.y - SCREEN_H / 2));
         cam.locked = true; cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; void z;
       }
@@ -395,9 +407,9 @@ export class CastleArena {
     if (!img) return;
     for (const arm of this.arms) {
       const out = arm.t > A.windup + A.swing ? clamp01((arm.t - A.windup - A.swing) / A.hold) : 0;
-      const slideIn = 1 - clamp01(arm.t / 0.15);
-      ctx.save(); ctx.globalAlpha = 1 - out * out;
-      ctx.translate(Math.round(arm.px - cam.x - arm.dir * slideIn * 200), Math.round(arm.py - cam.y));
+      const back = this.armPull(arm) * A.pull + out * A.pull * 1.4;
+      ctx.save();
+      ctx.translate(Math.round(arm.px - cam.x - arm.dir * back), Math.round(arm.py - cam.y));
       if (arm.dir < 0) ctx.scale(-1, 1);
       ctx.rotate(-this.armAngle(arm));
       ctx.drawImage(img, -10, -A.pivotY);
@@ -471,28 +483,47 @@ export class CastleArena {
     const ring = (this.time * 2) % 1;
     ctx.beginPath(); ctx.ellipse(x, y, r * (1 + 2 * (1 - ring)), r * 0.6 * (1 + 2 * (1 - ring)), 0, 0, Math.PI * 2); ctx.stroke();
   }
-  /** Purple glass orb; the girl inside turns left/right (x-scale by the spin) and old positions leave afterimages. */
+  /** Big glossy purple glass orb (사용자 “더 크고 유광… 구슬 같은 질감”): dark rim, deep inner gradient, swirling inner mist,
+   *  the purple-tinted girl turning left/right inside, a sharp window highlight, a soft rim light and afterimages. */
   drawOrb(ctx, cam) {
     const o = this.orb;
     if (!o) return;
     const img = this.image(ARENA.orb.image);
-    const one = (x, y, spin, alpha, scale) => {
+    const one = (x, y, spin, alpha, scale, full) => {
       const R = ARENA.orb.radius * scale, sx = Math.round(x - cam.x), sy = Math.round(y - cam.y);
       ctx.save(); ctx.globalAlpha = alpha;
-      const g = ctx.createRadialGradient(sx - R * 0.3, sy - R * 0.35, R * 0.1, sx, sy, R);
-      g.addColorStop(0, 'rgba(230,200,255,0.55)'); g.addColorStop(0.5, 'rgba(140,70,220,0.35)'); g.addColorStop(1, 'rgba(90,30,170,0.75)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, R, 0, Math.PI * 2); ctx.fill();
-      if (img) {
-        const turn = Math.cos(spin), w = Math.max(2, Math.round(img.width * Math.abs(turn) * scale)), h = Math.round(img.height * scale);
-        ctx.save(); ctx.translate(sx, sy); if (turn < 0) ctx.scale(-1, 1);
-        ctx.drawImage(img, -Math.round(w / 2), -Math.round(h / 2) + 2, w, h); ctx.restore();
+      const body = ctx.createRadialGradient(sx + R * 0.25, sy + R * 0.3, R * 0.1, sx, sy, R);
+      body.addColorStop(0, 'rgba(120,60,200,0.55)'); body.addColorStop(0.7, 'rgba(60,20,120,0.65)'); body.addColorStop(1, 'rgba(20,6,50,0.95)');
+      ctx.fillStyle = body; ctx.beginPath(); ctx.arc(sx, sy, R, 0, Math.PI * 2); ctx.fill();
+      if (full) {
+        ctx.save(); ctx.beginPath(); ctx.arc(sx, sy, R - 2, 0, Math.PI * 2); ctx.clip();
+        for (let i = 0; i < 5; i++) {
+          const a0 = this.time * 0.8 + i * 1.3;
+          ctx.strokeStyle = `rgba(200,150,255,${0.18 + 0.06 * (i % 2)})`; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.ellipse(sx, sy, R * (0.5 + 0.08 * i), R * 0.22, a0, 0, Math.PI * 1.2); ctx.stroke();
+        }
+        if (img) {
+          const turn = Math.cos(spin), w = Math.max(2, Math.round(img.width * Math.abs(turn) * scale * 1.1)), h = Math.round(img.height * scale * 1.1);
+          ctx.save(); ctx.translate(sx, sy); if (turn < 0) ctx.scale(-1, 1);
+          ctx.drawImage(img, -Math.round(w / 2), -Math.round(h / 2) + 3, w, h); ctx.restore();
+        }
+        const shade = ctx.createRadialGradient(sx - R * 0.35, sy - R * 0.4, R * 0.2, sx, sy, R);
+        shade.addColorStop(0, 'rgba(255,255,255,0)'); shade.addColorStop(0.75, 'rgba(40,10,90,0.1)'); shade.addColorStop(1, 'rgba(20,4,50,0.6)');
+        ctx.fillStyle = shade; ctx.fillRect(sx - R, sy - R, R * 2, R * 2);
+        ctx.restore();
+        // 유광: 창문 모양 반사 + 아래쪽 반사광 + 테두리 빛
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath(); ctx.ellipse(sx - R * 0.38, sy - R * 0.45, R * 0.22, R * 0.12, -0.6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(sx - Math.round(R * 0.12), sy - Math.round(R * 0.62), 4, 4);
+        ctx.strokeStyle = 'rgba(230,200,255,0.45)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(sx, sy, R * 0.82, Math.PI * 0.15, Math.PI * 0.75); ctx.stroke();
       }
-      ctx.strokeStyle = 'rgba(200,150,255,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, R, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(sx - Math.round(R * 0.45), sy - Math.round(R * 0.55), 4, 3);
+      ctx.strokeStyle = 'rgba(210,160,255,0.95)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, R, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(40,10,80,0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(sx, sy, R + 2, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
     };
-    o.trail.forEach((p, i) => one(p.x, p.y, p.spin, 0.22 * (1 - i / ARENA.orb.trail), o.scale ?? 1));
-    one(o.x, o.y, o.spin, 1, o.scale ?? 1);
+    o.trail.forEach((p, i) => one(p.x, p.y, p.spin, 0.2 * (1 - i / ARENA.orb.trail), o.scale ?? 1, false));
+    one(o.x, o.y, o.spin, 1, o.scale ?? 1, true);
   }
   drawSwords(ctx, cam) {
     const img = this.image(ARENA.swords.image), S = ARENA.swords;
@@ -529,7 +560,7 @@ export class CastleArena {
   drawFountain(ctx, cam) {
     const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit;
     const h = this.fountainHeight(), st = this.surgeT(), open = st < 0 ? 0 : easeOut(st / 0.7);
-    if (st < 0) { this.drawTrickle(ctx, cam, h); return; }
+    if (st < 0) { this.drawTrickle(ctx, cam); return; }
     const width = 24 + (F.width - 24) * open;
     const baseY = py - cam.y, topY = baseY - h, cx = px - cam.x, visTop = Math.max(topY, -40);
     ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
@@ -549,6 +580,9 @@ export class CastleArena {
       ctx.closePath(); ctx.fill();
     };
     this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, false);
+    const foot = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, width * 0.9);
+    foot.addColorStop(0, 'rgba(226,251,248,0.95)'); foot.addColorStop(0.5, 'rgba(95,224,240,0.6)'); foot.addColorStop(1, 'rgba(47,182,224,0)');
+    ctx.fillStyle = foot; ctx.beginPath(); ctx.ellipse(cx, baseY, width * 0.9, width * 0.28, 0, 0, Math.PI * 2); ctx.fill();
     band(0, '#2fb6e0'); band(width * 0.05, '#5fe0f0'); band(width * 0.12, '#c8f4f2'); band(width * 0.24, '#e6fcf9');
     // 기둥 안을 비스듬히 훑고 올라가는 짙은 파랑 띠(참고 스크린샷의 큰 대각선 덩어리)
     ctx.save();
@@ -602,27 +636,36 @@ export class CastleArena {
       }
     }
   }
-  /** Before the surge: a thin wind-like stream in the middle of the pit with a few wisps curling around it. */
-  drawTrickle(ctx, cam, h) {
+  /**
+   * Before the surge: one continuous thin stream rising from the middle of the pit to the top of the view,
+   * bright at the base and fading upward (사용자 “잘려보이잖아 이어져있는게 아니고”), with wisps curling round it.
+   */
+  drawTrickle(ctx, cam) {
     const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit, k = clamp01(f.t / F.build);
-    const baseY = py - cam.y, cx = px - cam.x;
+    const baseY = py - cam.y, cx = px - cam.x, reach = clamp01(f.t / 1.2), top = baseY - (baseY + 60) * reach;
     ctx.fillStyle = `rgba(2,10,34,${0.35 * k})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-    ctx.strokeStyle = `rgba(110,220,255,${0.25 + 0.3 * k})`; ctx.lineWidth = 2;
-    const ring = (this.time * 0.6) % 1;
-    ctx.beginPath(); ctx.ellipse(cx, baseY, prx * 0.25 * (1 + ring), prx * 0.08 * (1 + ring), 0, 0, Math.PI * 2); ctx.stroke();
-    const w = 6 + 10 * k + Math.sin(this.time * 17) * 2;
-    for (const [inset, color] of [[0, 'rgba(47,182,224,0.55)'], [w * 0.3, 'rgba(200,244,242,0.85)']]) {
-      ctx.fillStyle = color; ctx.beginPath();
-      for (let y = baseY; y >= baseY - h; y -= 8) ctx.lineTo(cx - w / 2 + inset + Math.sin(y * 0.05 + this.time * 6) * 3 * (1 - (baseY - y) / h), y);
-      for (let y = baseY - h; y <= baseY; y += 8) ctx.lineTo(cx + w / 2 - inset + Math.sin(y * 0.05 + this.time * 6 + 1) * 3 * (1 - (baseY - y) / h), y);
+    const glow = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, prx * 0.45);
+    glow.addColorStop(0, `rgba(160,235,255,${0.35 + 0.25 * k})`); glow.addColorStop(1, 'rgba(60,160,220,0)');
+    ctx.fillStyle = glow; ctx.fillRect(cx - prx * 0.5, baseY - prx * 0.2, prx, prx * 0.4);
+    const w = 6 + 10 * k + Math.sin(this.time * 17) * 1.5;
+    for (const [inset, rgb, alpha] of [[0, '47,182,224', 0.75], [w * 0.3, '220,250,250', 0.95]]) {
+      const g = ctx.createLinearGradient(0, baseY, 0, top);
+      g.addColorStop(0, `rgba(${rgb},${alpha})`); g.addColorStop(0.7, `rgba(${rgb},${alpha * 0.55})`); g.addColorStop(1, `rgba(${rgb},0.05)`);
+      ctx.fillStyle = g; ctx.beginPath();
+      for (let y = baseY; y >= top; y -= 6) ctx.lineTo(cx - w / 2 + inset + Math.sin(y * 0.04 + this.time * 6) * 3, y);
+      for (let y = top; y <= baseY; y += 6) ctx.lineTo(cx + w / 2 - inset + Math.sin(y * 0.04 + this.time * 6 + 1) * 3, y);
       ctx.closePath(); ctx.fill();
     }
     ctx.lineCap = 'round';
-    for (let i = 0; i < 5; i++) {
-      const phase = (i / 5 + this.time * 0.45) % 1, y0 = baseY - phase * h, rr = 14 + 30 * k * (1 - phase);
-      ctx.strokeStyle = `rgba(95,200,240,${0.55 * (1 - phase)})`; ctx.lineWidth = 2 + 3 * k;
-      ctx.beginPath(); ctx.ellipse(cx, y0, rr, rr * 0.35, 0, (i * 1.3 + this.time * 3) % (Math.PI * 2), (i * 1.3 + this.time * 3) % (Math.PI * 2) + 2.2); ctx.stroke();
+    for (let i = 0; i < 7; i++) {
+      const phase = (i / 7 + this.time * 0.45) % 1, y0 = baseY - phase * (baseY - top), rr = 12 + 30 * k * (1 - phase * 0.6);
+      ctx.strokeStyle = `rgba(95,200,240,${0.6 * (1 - phase)})`; ctx.lineWidth = 2 + 3 * k;
+      const a0 = (i * 1.3 + this.time * 3) % (Math.PI * 2);
+      ctx.beginPath(); ctx.ellipse(cx, y0, rr, rr * 0.35, 0, a0, a0 + 2.4); ctx.stroke();
     }
+    ctx.strokeStyle = `rgba(110,220,255,${0.25 + 0.3 * k})`; ctx.lineWidth = 2;
+    const ring = (this.time * 0.6) % 1;
+    ctx.beginPath(); ctx.ellipse(cx, baseY, prx * 0.25 * (1 + ring), prx * 0.08 * (1 + ring), 0, 0, Math.PI * 2); ctx.stroke();
   }
   dispose() {
     if (this.disposed) return;

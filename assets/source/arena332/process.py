@@ -90,11 +90,11 @@ def main() -> None:
     Image.fromarray(tinted).save('assets/props/arena332_cheong_orb.png')
     # 거대한 근육 팔(청소년 분홍 반팔): 높이 130px — 어깨가 왼쪽 끝, 손이 오른쪽
     # BUILD333: 델타룬 타이탄식(검은 채움 + 흰 윤곽선, 사용자 참고 lineart-fist-ref) 팔
-    arm = shrink(key_out(thicken_lines(HERE / 'arm-raw3.png')), 150)
+    arm = shrink(key_out(thicken_lines(HERE / 'arm-raw3.png', 7)), 260)
     Image.fromarray(arm).save('assets/props/arena332_arm.png')
     # 청소년거인 상체(목까지, 얼굴은 그림자): 높이 480px
     # 더 거대하게(높이 820) + 어둡게 + 아래는 어둠으로 사라진다(하체가 잘려 보이지 않게)
-    giant = fade_bottom(shrink(key_out(thicken_lines(HERE / 'giant-raw2.png', 3)), 820), 0.18)
+    giant = fade_bottom(shrink(key_out(thicken_lines(HERE / 'giant-raw2.png', 3)), 1100), 0.18)
     Image.fromarray(giant).save('assets/props/arena332_giant.png')
     sheets = {}
     board = []

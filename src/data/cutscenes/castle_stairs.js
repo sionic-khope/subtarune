@@ -11,17 +11,19 @@ const surprise = ids => ({ parallel: ids.map(id => ({ emote: id, kind: '!', dura
 export const STAIRS_SCENE = Object.freeze({
   monsters: ['stairs_mon_blitzcrank', 'stairs_mon_darius', 'stairs_mon_fiddlesticks'],
   // 대사 구도: 위협(몬스터·누누)과 일행이 함께 대화창 위에 들어오게 조금 멀리서
-  cam: { monsters: at(1120, 2630), talk: at(1060, 2857), tackle: at(1060, 2800), nunu: at(520, 1150), talkNunu: at(520, 1310), fall: at(560, 1300) },
+  cam: { talk: at(1080, 2846), tackle: at(1080, 2820), talkNunu: at(520, 1300), fall: at(540, 1290) },
+  // 동료들이 서는 자리: 조우 지점에서 길을 따라 이만큼 위(위협 바로 아래 계단)
+  allyRow: { monsters: 24, nunu: 20 },
 });
 const C = STAIRS_SCENE.cam;
 
 export const castle_stairs_monsters = Object.assign([
   { if: flags => !!flags.castle_stairs_monsters_done, goto: 'end' },
   close, stairs(s => s.pauseAllies(true)),
-  { camera: C.monsters, duration: 1.2 },
-  stairs(s => s.showMonsters(STAIRS_SCENE.monsters)), { wait: 0.6 },
+  // 한 구도(일행·동료·층계참)로 물러난 뒤 → 동료들이 계단에 나란히 → 층계참에 연기와 함께 몬스터가 하나씩 소환
+  { parallel: [{ camera: C.talk, duration: 1.0 }, { zoom: 0.62, duration: 1.0 }, stairs(s => s.arrangeAllies(s.enc.monsters + STAIRS_SCENE.allyRow.monsters))] },
+  stairs(s => s.showMonsters(STAIRS_SCENE.monsters)),
   surprise([...PARTY, 'stairs_park', 'stairs_ttuulla', 'stairs_junhee']),
-  { parallel: [{ camera: C.talk, duration: 0.9 }, { zoom: 0.6, duration: 0.9 }] },
   P('으윽,,,몬스터네요 어떡하죠.'), PG('...'), T('...'), close,
   { wait: 0.3 },
   PG('이얍!'), T('이얍!'), close,
@@ -33,6 +35,7 @@ export const castle_stairs_monsters = Object.assign([
   ] },
   { wait: 0.5 },
   surprise(PARTY),
+  P('윽 이런.. 고 고맙다..'), close,
   { zoom: 1, duration: 0.5 },
   { set: { castle_stairs_monsters_done: true } },
   stairs(s => s.pauseAllies(false)), { camera: 'player' },
@@ -42,10 +45,9 @@ export const castle_stairs_monsters = Object.assign([
 export const castle_stairs_nunu = Object.assign([
   { if: flags => !!flags.castle_stairs_nunu_done, goto: 'end' },
   close, stairs(s => s.pauseAllies(true)),
-  { camera: C.nunu, duration: 1.0 },
+  { parallel: [{ camera: C.talkNunu, duration: 1.0 }, { zoom: 0.55, duration: 1.0 }, stairs(s => s.arrangeAllies(s.enc.nunu + STAIRS_SCENE.allyRow.nunu))] },
   stairs(s => s.showNunu()), { wait: 0.4 },
   surprise([...PARTY, 'stairs_junhee']),
-  { parallel: [{ camera: C.talkNunu, duration: 0.8 }, { zoom: 0.55, duration: 0.8 }] },
   J('잘... 부탁한다 너네들 살아서보자.'), J('이얍!'), close,
   // 쥰희가 누누와 윌럼프를 박치기해 함께 계단 옆으로 떨어진다
   { parallel: [{ camera: C.fall, duration: 0.5 }, stairs(s => s.junheeHeadbutt('stairs_junhee', 1))] },
