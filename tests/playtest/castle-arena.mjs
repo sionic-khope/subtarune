@@ -30,8 +30,9 @@ await runScenario({ name: 'castle-arena', launchOptions: { args: ['--autoplay-po
   check('opening lines verbatim and in order', expected.every((t, i) => lines[i]?.endsWith(`* ${t}`)), JSON.stringify(lines.slice(0, 12)));
   check('all 47 lines shown', lines.length === 47, `${lines.length} ${JSON.stringify(lines)}`);
   check('the full sequence ran: aura, eruption, charge, orb, swords stuck, fountain', ['true', 'held', 'stuck'].every(k => beats.some(b => b.key.includes(k))) && maxFountain > 3000, JSON.stringify(beats));
-  check('camera climbs far above the arena, then returns to the heroes', minCamY < 400 && final.cam[1] > 2600, JSON.stringify([minCamY, final.cam]));
+  check('camera climbs far above the arena', minCamY < 400, JSON.stringify([minCamY, final.cam]));
+  check('runs right into the stairs map on its own', await until(() => game.mapId === 'gajaeman_castle_stairs', 8000));
   check('arrival saved as a stage', final.stage);
-  check('tense bgm (SPAWN) plays after youngcle is struck', await page.evaluate(() => game.sound.bgmName === 'castle_gajaeman'));
+  check('tense bgm (SPAWN) keeps playing into the stairs', await page.evaluate(() => game.sound.bgmName === 'castle_gajaeman'));
   console.log('BEATS', JSON.stringify(beats));
 });

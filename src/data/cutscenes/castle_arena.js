@@ -148,6 +148,11 @@ export const castle_arena_intro = Object.assign([
   // 모두 구덩이(앞)를 본다
   ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee, 'arena_bidet', 'arena_mario', 'arena_park', 'arena_ttuulla'].map(id => ({ face: id, dir: 'up' })),
   arena(s => s.fountainRise()),
+  // 큰 파동이 터지면: 주인공들 자리에서 소리와 함께 2초 보여 주고 → 놀라서 느낌표·살짝 뒷걸음 → 그 뒤 상승
+  { parallel: [{ camera: at(555, 360), duration: 0.5 }] }, { wait: 1.5 },
+  { parallel: ['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee, 'arena_bidet', 'arena_mario', 'arena_park', 'arena_ttuulla'].map(id => ({ emote: id, kind: '!', duration: 0.7, hold: 0.3 })) },
+  { parallel: ['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee].map(id => ({ move: id, by: [0, 10], speed: 70, facing: 'up' })) },
+  { wait: 0.4 },
   { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -2150), duration: ARENA_SCENE.rise }] },
   { wait: 1.2 },
   // 파동이 사라지고 호러한 연기로 아무것도 안 보이는 채 카메라가 다시 주인공들 쪽으로
@@ -206,5 +211,12 @@ export const castle_arena_intro = Object.assign([
   { camera: C.party, duration: 0.6 },
   P('형 빨리 도망가요'), close,
   { stage: ARENA_SCENE.stage },
+  // 그대로 주인공들이 땅을 따라 오른쪽으로 달려가고 → 계단 맵으로
+  { camera: 'player' },
+  { parallel: ['player', 'gyeongsub', 'ppaman'].map((id, i) => [{ wait: i * 0.12 },
+    ...via(id, ['arena_escape_1', 'arena_escape_2', 'arena_escape_3'], { facing: 'right' })]) },
+  { fade: 'out', duration: 0.5 },
+  { map: 'gajaeman_castle_stairs', spawn: 'start', enter: true },
+  { fade: 'in', duration: 0.6 },
   { label: 'end' }, { end: true },
 ], { silent: true });
