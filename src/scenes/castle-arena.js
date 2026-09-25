@@ -45,6 +45,7 @@ export class CastleArena {
     this.level = 0; this.time = 0; this.spawnAcc = 0;
     this.motes = []; this.puffs = []; this.eruption = null; this.chargeState = null;
     this.orb = null; this.rising = null; this.lasers = []; this.swords = []; this.fountain = null; this.dust = [];
+    this.sparks = [];
     this.fog = { level: 0, target: 0, speed: 1, clear: null }; this.tracking = null; this.giant = null; this.pacing = null; this.flying = null; this.arms = []; this.flung = [];
     void game.sound.loadSfxFiles?.(['captain_transform', 'captain_thunder', 'rumble', 'laser_charge', 'cannon_charge', 'laser_beam', 'laser_zap',
       'impact', 'hit', 'thud', 'power', 'wing', 'heavyswing', 'knight_cut', 'baron_slam', 'fountain_draw', 'fountain_erupt', 'spearappear', 'furnace_blast', 'explosion', 'punch', 'cathedral_gust']);
@@ -305,6 +306,14 @@ export class CastleArena {
       }
     }
     this.flung = this.flung.filter(f => !f.done);
+    if (this.fountain && this.surgeT() >= 0 && !this.fountain.fadeOut) {
+      for (let i = 0; i < 6; i++) {
+        const side = this.rnd() * 2 - 1, [px] = this.pit, w = ARENA.fountain.width;
+        this.sparks.push({ x: px + side * w * (0.55 + this.rnd() * 0.5), y: g.camera.y + SCREEN_H * (1.2 + this.rnd()), vy: -(700 + this.rnd() * 700), age: 0, len: 10 + this.rnd() * 30, big: this.rnd() < 0.2 });
+      }
+    }
+    for (const sp of this.sparks) { sp.age += s; sp.y += sp.vy * s; }
+    this.sparks = this.sparks.filter(sp => sp.age < 2.2);
     if (this.fountain?.fadeOut) { const fo = this.fountain.fadeOut; fo.t += s; if (fo.t >= fo.d) this.fountain = null; }
     if (this.fountain) {
       const before = this.surgeT();
@@ -437,7 +446,7 @@ export class CastleArena {
       g.addColorStop(0, `rgba(5,4,10,${0.3 * L})`); g.addColorStop(1, `rgba(5,4,10,${F.veil * L})`);
       ctx.fillStyle = g;
     } else ctx.fillStyle = `rgba(5,4,10,${F.veil * L})`;
-    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
     for (let i = 0; i < F.blobs; i++) {
       const x = ((i * 97.3 + this.time * (8 + (i % 5) * 4)) % (SCREEN_W + 160)) - 80;
       const y = ((i * 53.7 + Math.sin(this.time * 0.4 + i) * 20) % (SCREEN_H + 80)) - 40;
@@ -455,7 +464,7 @@ export class CastleArena {
   drawEruption(ctx, cam, c) {
     const t = this.eruption.t / ARENA.erupt.duration, up = clamp01(t / 0.35), fade = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
     const base = c.y - cam.y, reach = (base + 420) * up, cx = c.x - cam.x;
-    ctx.fillStyle = `rgba(0,0,0,${0.3 * fade})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.fillStyle = `rgba(0,0,0,${0.3 * fade})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
     for (let i = 0; i < 70; i++) {
       const f = ((i * 0.618034) % 1), y = base - f * reach - ((this.time * 260 + i * 37) % 60);
       const spread = ARENA.erupt.width * (0.25 + 0.75 * f) * 0.5, x = cx + Math.sin(i * 2.399 + this.time * 3) * spread;
@@ -562,21 +571,22 @@ export class CastleArena {
     const h = this.fountainHeight(), st = this.surgeT(), open = st < 0 ? 0 : easeOut(st / 0.7);
     if (st < 0) { this.drawTrickle(ctx, cam); return; }
     const width = 24 + (F.width - 24) * open;
-    const baseY = py - cam.y, topY = baseY - h, cx = px - cam.x, visTop = Math.max(topY, -40);
-    ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    // 줌아웃 중에는 화면보다 넓게 보이므로 화면 밖으로 넉넉히 그린다(잘려 보이지 않게)
+    const baseY = py - cam.y, topY = baseY - h, cx = px - cam.x, visTop = Math.max(topY, -SCREEN_H * 1.5), visBot = SCREEN_H * 2.5;
+    ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
     for (let r = 0; r < 3; r++) {
       const ring = ((this.time * 0.8 + r / 3) % 1);
       ctx.strokeStyle = `rgba(110,220,255,${0.6 * (1 - ring)})`; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.ellipse(cx, baseY, prx * (0.3 + 0.7 * ring), prx * 0.32 * (0.3 + 0.7 * ring), 0, 0, Math.PI * 2); ctx.stroke();
     }
-    if (visTop > SCREEN_H + 40 || baseY < -40 && topY > SCREEN_H) return;
+    if (visTop > visBot) return;
     const wob = y => Math.sin(this.time * 2.6 + y * 0.011) * 9 * open;
     const edge = (inset, side, y) => cx + side * (width / 2 - inset) + wob(y + (side > 0 ? 90 : 0)) * (0.6 + 0.4 * Math.sin(y * 0.004));
     const band = (inset, color) => {
       if (width / 2 - inset < 1) return;
       ctx.fillStyle = color; ctx.beginPath();
-      for (let y = Math.min(baseY, SCREEN_H + 40); y >= visTop; y -= 10) ctx.lineTo(edge(inset, -1, y), y);
-      for (let y = visTop; y <= Math.min(baseY, SCREEN_H + 40); y += 10) ctx.lineTo(edge(inset, 1, y), y);
+      for (let y = Math.min(baseY, visBot); y >= visTop; y -= 10) ctx.lineTo(edge(inset, -1, y), y);
+      for (let y = visTop; y <= Math.min(baseY, visBot); y += 10) ctx.lineTo(edge(inset, 1, y), y);
       ctx.closePath(); ctx.fill();
     };
     this.drawRibbons(ctx, cam, cx, width, baseY, visTop, open, false);
@@ -586,10 +596,10 @@ export class CastleArena {
     band(0, '#2fb6e0'); band(width * 0.05, '#5fe0f0'); band(width * 0.12, '#c8f4f2'); band(width * 0.24, '#e6fcf9');
     // 기둥 안을 비스듬히 훑고 올라가는 짙은 파랑 띠(참고 스크린샷의 큰 대각선 덩어리)
     ctx.save();
-    ctx.beginPath(); ctx.rect(cx - width / 2, visTop, width, Math.min(baseY, SCREEN_H + 40) - visTop); ctx.clip();
+    ctx.beginPath(); ctx.rect(cx - width / 2, visTop, width, Math.min(baseY, visBot) - visTop); ctx.clip();
     const period = 760, shift = ((this.time * 420 + cam.y) % period + period) % period;
     for (let i = 0; i < F.bands; i++) {
-      for (let rep = -1; rep <= 2; rep++) {
+      for (let rep = -2; rep <= 3; rep++) {
         const yy = i * period / F.bands + rep * period - shift, thick = i % 2 ? 110 : 70, drop = 260;
         ctx.fillStyle = i % 2 ? 'rgba(74,168,232,0.9)' : 'rgba(95,200,240,0.55)';
         ctx.beginPath();
@@ -612,15 +622,28 @@ export class CastleArena {
       }
     }
     ctx.restore();
-    ctx.fillStyle = `rgba(226,251,248,${0.45 * (1 - clamp01(st / 0.6))})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    // 기둥 둘레로 솟구치는 빛 입자
+    for (const sp of this.sparks) {
+      ctx.globalAlpha = Math.max(0, 1 - sp.age / 2.2);
+      ctx.fillStyle = sp.big ? '#ffffff' : '#9fe6ff';
+      ctx.fillRect(Math.round(sp.x - cam.x), Math.round(sp.y - cam.y), sp.big ? 3 : 2, Math.round(sp.len));
+    }
+    ctx.globalAlpha = 1;
+    // 위로 퍼지는 충격 고리
+    for (let r = 0; r < 3; r++) {
+      const ring = ((this.time * 0.7 + r / 3) % 1), yy = baseY - ring * Math.min(h, SCREEN_H * 3);
+      ctx.strokeStyle = `rgba(200,245,255,${0.35 * (1 - ring) * open})`; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(cx, yy, width * (0.7 + ring * 0.6), width * 0.14, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.fillStyle = `rgba(226,251,248,${0.45 * (1 - clamp01(st / 0.6))})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
   }
   /** Ribbons coil around the column: the back half before the column is drawn, short front arcs over its edges. */
   drawRibbons(ctx, cam, cx, width, baseY, visTop, open, front) {
     const f = this.fountain, period = 620;
     ctx.lineCap = 'round';
     for (const r of f.ribbons) {
-      const phase = (r.phase + this.time * r.speed) % 1, start = Math.floor((cam.y - 80) / period) * period;
-      for (let wy = start; wy < cam.y + SCREEN_H + period; wy += period) {
+      const phase = (r.phase + this.time * r.speed) % 1, start = Math.floor((cam.y - SCREEN_H * 1.5) / period) * period;
+      for (let wy = start; wy < cam.y + SCREEN_H * 2.5 + period; wy += period) {
         const y0 = wy - cam.y + (1 - phase) * period + r.phase * 180;
         if (y0 > baseY || y0 < visTop - 80) continue;
         ctx.strokeStyle = front ? (r.dir > 0 ? 'rgba(90,190,240,0.95)' : 'rgba(60,150,190,0.9)') : 'rgba(30,90,120,0.7)';
@@ -643,7 +666,7 @@ export class CastleArena {
   drawTrickle(ctx, cam) {
     const F = ARENA.fountain, f = this.fountain, [px, py, prx] = this.pit, k = clamp01(f.t / F.build);
     const baseY = py - cam.y, cx = px - cam.x, reach = clamp01(f.t / 1.2), top = baseY - (baseY + 60) * reach;
-    ctx.fillStyle = `rgba(2,10,34,${0.35 * k})`; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    ctx.fillStyle = `rgba(2,10,34,${0.35 * k})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
     const glow = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, prx * 0.45);
     glow.addColorStop(0, `rgba(160,235,255,${0.35 + 0.25 * k})`); glow.addColorStop(1, 'rgba(60,160,220,0)');
     ctx.fillStyle = glow; ctx.fillRect(cx - prx * 0.5, baseY - prx * 0.2, prx, prx * 0.4);

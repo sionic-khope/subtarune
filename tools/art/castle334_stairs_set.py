@@ -39,27 +39,47 @@ def keyed(im: Image.Image) -> Image.Image:
     return Image.fromarray(a)
 
 
-def step_unit() -> Image.Image:
-    """One step (lip line to lip line) from the middle of the generated staircase, scaled to the band width."""
-    raw = Image.open(SRC / 'flight-raw.png').convert('RGB')
-    band = raw.crop((258, 508, 766, 612))
-    h = round(band.height * STEP_W / band.width)
-    return band.resize((STEP_W, h), Image.BOX)
+def flight_strip(length: int) -> Image.Image:
+    """The generated straight staircase (steps + railings + lamps, magenta keyed), tiled to `length` px tall."""
+    raw = Image.open(SRC / 'flight-raw.png').convert('RGB').crop((96, 404, 928, 404 + 104 * 8))
+    unit = keyed(raw)
+    w = STEP_W + 70
+    unit = unit.resize((w, round(unit.height * w / unit.width)), Image.BOX)
+    strip = Image.new('RGBA', (w, length), (0, 0, 0, 0))
+    for y in range(length - unit.height, -unit.height, -unit.height):
+        strip.alpha_composite(unit, (0, y))
+    return strip
 
 
-def lamp_post() -> Image.Image:
-    post = keyed(Image.open(SRC / 'flight-raw.png').crop((150, 610, 250, 870)))
-    return post.resize((round(post.width * 0.3), round(post.height * 0.3)), Image.BOX)
+def sheared(strip: Image.Image, dx: float) -> Image.Image:
+    """Slant the whole flight: row y shifts by dx*(1 - y/h) so the top is dx to the side (one continuous railing)."""
+    h = strip.height
+    out = Image.new('RGBA', (strip.width + int(abs(dx)) + 2, h), (0, 0, 0, 0))
+    src = np.array(strip); dst = np.array(out)
+    base = int(abs(dx)) if dx < 0 else 0
+    for y in range(h):
+        off = base + int(round(dx * (1 - y / h)))
+        dst[y, off:off + strip.width] = src[y]
+    return Image.fromarray(dst)
 
 
-def wall() -> Image.Image:
-    room = Image.open('assets/props/arena332_room.png').convert('RGB')
-    band = ImageEnhance.Brightness(room.crop((0, 0, room.width, 160))).enhance(0.62)
-    out = Image.new('RGB', (W, H))
-    for y in range(0, H, band.height):
-        for x in range(0, W, band.width):
-            out.paste(band, (x - (y // band.height % 2) * 192, y))
-    return out
+def background() -> Image.Image:
+    """Black void with drifting dark smoke baked in (사용자 “배경 그냥 검은색으로 해줘 연기있고”)."""
+    rng = np.random.default_rng(334)
+    out = Image.new('RGB', (W, H), (3, 3, 8))
+    layer = np.zeros((H, W), float)
+    yy, xx = np.mgrid[0:H:4, 0:W:4]
+    for _ in range(260):
+        cx, cy, r = rng.uniform(0, W), rng.uniform(0, H), rng.uniform(40, 140)
+        d = ((xx - cx) ** 2 + ((yy - cy) * 1.6) ** 2) / r ** 2
+        layer[::4, ::4] += np.clip(1 - d, 0, 1) * rng.uniform(0.15, 0.4)
+    small = Image.fromarray((np.clip(layer[::4, ::4], 0, 1) * 255).astype(np.uint8)).resize((W // 4, H // 4))
+    mask = np.asarray(small.resize((W, H), Image.NEAREST)).astype(float) / 255
+    mask = np.floor(mask * 4) / 4
+    col = np.array(out).astype(float)
+    tint = np.array([34, 26, 50])
+    col = col * (1 - mask[..., None] * 0.9) + tint * mask[..., None] * 0.9
+    return Image.fromarray(col.astype(np.uint8))
 
 
 def landing_art(w: int, h: int) -> Image.Image:
@@ -71,34 +91,19 @@ def landing_art(w: int, h: int) -> Image.Image:
 
 
 def main() -> None:
-    full = wall()
-    shade = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    step, post = step_unit(), lamp_post()
-    pitch = step.height
-    # 계단 아래 그림자(벽에 드리운)
-    sh = np.array(shade)
-    for (x0, y0), (x1, y1) in FLIGHTS:
-        n = int((y0 - y1) // pitch)
-        for i in range(n):
-            t = i / n; x = int(x0 + (x1 - x0) * t); y = int(y0 - i * pitch)
-            sh[max(0, y):min(H, y + 70), max(0, x - STEP_W // 2 - 6):min(W, x + STEP_W // 2 + 6)] = (2, 3, 12, 210)
-    full.paste(Image.fromarray(sh), (0, 0), Image.fromarray(sh))
+    full = background()
     for x, y, w, h in LANDINGS:
         full.paste(landing_art(w, h), (x, y))
     for (x0, y0), (x1, y1) in FLIGHTS:
-        n = int((y0 - y1) // pitch)
-        for i in range(n + 1):
-            t = i / n; x = x0 + (x1 - x0) * t; y = int(y0 - (i + 1) * pitch)
-            full.paste(step, (int(x - STEP_W / 2), y))
-        for i in range(0, n + 1, LAMP_EVERY):
-            t = i / n; x = x0 + (x1 - x0) * t; y = int(y0 - (i + 1) * pitch)
-            for side in (-1, 1):
-                p = post if side < 0 else post.transpose(Image.FLIP_LEFT_RIGHT)
-                full.paste(p, (int(x + side * (STEP_W / 2 + 4) - p.width / 2), y - p.height + pitch), p)
+        length = y0 - y1 + 40
+        strip = sheared(flight_strip(length), x1 - x0)
+        left = int(min(x0, x1) - strip.width // 2 + abs(x1 - x0) // 2 * 0) - (STEP_W + 70) // 2
+        left = int(min(x0, x1)) - (STEP_W + 70) // 2
+        full.paste(strip, (left, int(y1) - 20), strip)
     for i, top in enumerate(range(0, H, CHUNK)):
         full.crop((0, top, W, min(H, top + CHUNK))).save(f'assets/props/stairs334_chunk_{i}.png')
     full.resize((W // 8, H // 8), Image.BOX).save(SRC / 'overview.png')
-    print('chunks', math.ceil(H / CHUNK), 'step pitch', pitch)
+    print('chunks', math.ceil(H / CHUNK))
 
 
 if __name__ == '__main__':

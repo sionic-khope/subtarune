@@ -18,7 +18,7 @@ export const ARENA_SCENE = Object.freeze({
   cam: { gajaeman: at(555, 215), party: at(555, 394), wide: at(555, 330), left: at(250, 318), right: at(902, 318),
     leftAlly: at(300, 330), rightAlly: at(852, 330), pit: at(555, 300), orbTop: at(555, -300), above: at(555, 250), giant: at(555, -560),
     rushLeft: at(300, 300) },
-  summonEvery: 0.45, approach: 1.3, rise: 3.2, pad: PAD,
+  summonEvery: 0.45, approach: 1.3, rise: 5.2, pad: PAD,
 });
 const C = ARENA_SCENE.cam;
 const close = { action: game => game.textbox.close() };
@@ -69,9 +69,8 @@ export const castle_arena_intro = Object.assign([
   { if: flags => !!flags[ARENA_SCENE.stage], goto: 'end' },
   close, { bgm: null, fadeOut: 0.6 },
   { show: ARENA_SCENE.gajaeman }, { camera: 'player' },
-  // 주인공들이 위로 올라감(영클·쥰희도 함께)
-  { parallel: [walkUp('player'), [{ wait: 0.2 }, ...walkUp('gyeongsub')], [{ wait: 0.35 }, ...walkUp('ppaman')],
-    [{ wait: 0.1 }, ...walkUp('youngcle')], [{ wait: 0.45 }, ...walkUp('junhee')]] },
+  // 주인공들이 위로 올라감 — 영클·쥰희는 먼저 도착해 테두리 양 끝에서 기다리고 있다
+  { parallel: [walkUp('player'), [{ wait: 0.2 }, ...walkUp('gyeongsub')], [{ wait: 0.35 }, ...walkUp('ppaman')]] },
   ...faceAll('up'), { wait: 0.4 },
   arena(s => s.setAura(1)),
   { camera: C.gajaeman, duration: 3.2 }, { wait: 0.8 },
@@ -111,7 +110,8 @@ export const castle_arena_intro = Object.assign([
   { motion: 'arena_park', name: 'bow' },
   PG('응 잘가세연'), close,
   { parallel: [{ zoom: 1, duration: 0.8 }, { camera: C.party, duration: 1.0 }] },
-  { face: 'player', dir: 'up' }, { face: ARENA_SCENE.youngcle, dir: 'up' },
+  // 지원군이 막아 준 뒤: 다섯 명 모두 다시 앞(가재맨)을 본다
+  ...faceAll('up'),
   Y('쟤들한테 맡기고 이제 니를 참교육 해주겠음.'),
   Y('엄청대박인배 슈퍼 웨폰마스터 시리즈중 하나인, 나의 초대형 레이저맛을 보샘'), close,
   { zoom: 1.35, at: ARENA_SCENE.youngcle, offset: [0, 20], duration: 0.6 },
@@ -151,7 +151,8 @@ export const castle_arena_intro = Object.assign([
   { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -2150), duration: ARENA_SCENE.rise }] },
   { wait: 1.2 },
   // 파동이 사라지고 호러한 연기로 아무것도 안 보이는 채 카메라가 다시 주인공들 쪽으로
-  arena(s => { s.setAura(0); return s.fountainEnd(1.8); }), { hide: ARENA_SCENE.gajaeman },
+  // 위에서: 파동이 사라지며 검은 연기가 차오르는 것을 보여 준 뒤 → 아래로
+  arena(s => { s.setAura(0); return s.fountainEnd(2.2); }), { hide: ARENA_SCENE.gajaeman }, { wait: 1.2 },
   { action: game => { for (const e of game.entities) if (e.id?.startsWith('arena_mon_')) e.visible = false; } },
   { parallel: [{ zoom: 1, duration: 1.0 }, { camera: C.party, duration: 3.0 }] },
   arena(s => { s.setFogClear(555, 420 + PAD); s.setFog(0.9, 1.6); }), { wait: 1.4 },
@@ -194,8 +195,9 @@ export const castle_arena_intro = Object.assign([
   J('저..저게... 저게뭐야!!!!'), close,
   // 연기 속에서 천천히: 연기가 걷히며 형체가 점점 드러난다(상체만 가깝게)
   { fade: 'out', duration: 0.5 }, arena(s => { s.setFog(1, 0.05); s.setFogClear(null); s.showGiant(); }),
-  { camera: C.giant, duration: 0.01 }, { zoom: 0.85, duration: 0.01 }, { fade: 'in', duration: 0.8 },
-  arena(s => s.setFog(0.2, 3.2)), { wait: 3.2 }, { shake: 0.6, amp: 3 }, { wait: 0.4 },
+  // 가까이 몸통 → 연기가 걷히며 팔까지 보이게 뒤로 물러난다
+  { camera: C.giant, duration: 0.01 }, { zoom: 1.4, at: [555, 1860], duration: 0.01 }, { fade: 'in', duration: 0.8 },
+  { parallel: [arena(s => s.setFog(0.2, 3.2)), { zoom: 0.46, duration: 3.2 }] }, { shake: 0.6, amp: 3 }, { wait: 0.4 },
   J('괴물이잖아!!!!!!!!!!'), close,
   { fade: 'out', duration: 0.4 }, arena(s => { s.setFog(0.9, 0.05); s.setFogClear(555, 420 + PAD); }), { zoom: 1, duration: 0.01 }, { camera: C.party, duration: 0.01 }, { fade: 'in', duration: 0.5 },
   J('오 오른쪽으로 튀어!!!'), close,

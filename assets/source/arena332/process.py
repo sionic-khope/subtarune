@@ -74,11 +74,21 @@ def main() -> None:
     room = Image.open(HERE / 'arena-wide-raw.png').convert('RGB').resize((1152, 768), Image.BOX)
     room.save('assets/props/arena332_room.png')
     # 위쪽 확장(카메라 대상승용 2400px): 선반 윗띠(240px, 난간 제외)를 위로 이어 붙이고 올라갈수록 어둠으로 사라진다
-    band = np.asarray(room)[:200].astype(float)
+    # BUILD336: 생성한 탑 벽(upper-raw, 위아래 이어지게)을 반복하고, 방 그림 윗부분과는 80px 섞어 이음새 없이. 위로 갈수록 어두워진다
+    tower = np.asarray(Image.open(HERE / 'upper-raw.png').convert('RGB').resize((1152, 1728), Image.BOX)).astype(float)
+    th = tower.shape[0]; blend = 96
+    for i in range(blend):
+        w = 0.5 * (1 - i / blend)
+        a_, b_ = tower[i].copy(), tower[th - 1 - i].copy()
+        tower[i] = a_ * (1 - w) + b_ * w; tower[th - 1 - i] = b_ * (1 - w) + a_ * w
     upper = np.zeros((2400, 1152, 3))
     for y in range(2400):
-        k = (y / 2400) ** 1.6
-        upper[y] = band[(y - 2400) % 200] * (0.08 + 0.92 * k)
+        k = (y / 2400) ** 1.3
+        upper[y] = tower[(y - 2400) % th] * (0.1 + 0.9 * k) * 0.8
+    top = np.asarray(room)[:80].astype(float)
+    for i in range(80):
+        w = i / 80
+        upper[2400 - 80 + i] = upper[2400 - 80 + i] * (1 - w) + top[i] * w
     Image.fromarray(np.clip(upper, 0, 255).astype(np.uint8)).save('assets/props/arena332_upper.png')
     # 청소년(구슬 속): 키 56px
     # BUILD333 재생성(cheong-raw2): 입 없음, 앞머리 그림자가 눈을 가림. 구슬 안에서는 보랏빛으로 물든 버전을 쓴다

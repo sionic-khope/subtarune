@@ -26,7 +26,7 @@ COLS, ROWS = W // 32, (H + TOP_PAD) // 32
 FLOOR: Final = '▓'
 # 걷는 곳(배경 그림 기준 px): 둑길, 구덩이 앞 테두리, 왼쪽·오른쪽 테라스, 테라스와 테두리 연결
 WALK: Final = [(480, 440, 142, 328), (320, 396, 480, 56), (8, 216, 322, 146), (822, 216, 322, 146),
-               (296, 352, 96, 60), (760, 352, 96, 60), (780, 352, W - 780, 100)]
+               (296, 352, 96, 60), (760, 352, 96, 60)]
 ROW_Y: Final = 420 + TOP_PAD
 PARTY_X: Final = {'youngcle': 371, 'gyeongsub': 457, 'player': 543, 'ppaman': 629, 'junhee': 715}
 PIT: Final = [555, 307 + TOP_PAD, 217, 90]
@@ -72,9 +72,10 @@ def main() -> None:
     entities.extend([
         {'type': 'npc', 'id': 'arena_gajaeman', 'sprite': 'gajaeman_shadow', 'x': 543, 'y': 240 + TOP_PAD,
          'facing': 'up', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.89},
-        {'type': 'npc', 'id': 'arena_youngcle', 'sprite': 'youngcle_hover', 'x': 510, 'y': 730 + TOP_PAD,
+        # BUILD336: 영클·쥰희는 먼저 도착해 자기 자리에 서 있다(사용자 “먼저 도착해있는느낌”)
+        {'type': 'npc', 'id': 'arena_youngcle', 'sprite': 'youngcle_hover', 'x': PARTY_X['youngcle'], 'y': ROW_Y,
          'facing': 'up', 'solid': False, 'wander': 0},
-        {'type': 'npc', 'id': 'arena_junhee', 'sprite': 'junhee', 'x': 580, 'y': 730 + TOP_PAD,
+        {'type': 'npc', 'id': 'arena_junhee', 'sprite': 'junhee', 'x': PARTY_X['junhee'], 'y': ROW_Y,
          'facing': 'up', 'solid': False, 'wander': 0},
     ])
     for actor_id, sprite, x, y, facing, scale in ALLIES:
@@ -90,8 +91,8 @@ def main() -> None:
                              'x': start_x, 'y': feet - hh + TOP_PAD, 'solid': False, 'hidden': True})
             summons.append({'id': prop_id, 'side': side, 'x': final_x, 'y': feet - hh + TOP_PAD})
     # BUILD334: 오른쪽 테라스 끝으로 가면 무너지는 계단으로
-    # 화면 끝(맵 오른쪽 끝)에 닿으면 바로 넘어간다: 테두리에서 오른쪽으로 계속 걸어도 끝까지 이어지고, 문은 그 높이 전체(사용자 “화면 밖으로 가면 바로 이동”)
-    entities.append({'type': 'door', 'id': 'arena_to_stairs', 'x': W - 12, 'y': 216 + TOP_PAD, 'w': 12, 'h': 236,
+    # 오른쪽 테라스 끝(맵 끝)에 닿으면 바로 넘어간다. 테라스 아래 허공으로는 걷지 않는다(사용자 “화면 밖으로 가면 바로 이동”)
+    entities.append({'type': 'door', 'id': 'arena_to_stairs', 'x': W - 12, 'y': 216 + TOP_PAD, 'w': 12, 'h': 146,
                      'to': 'gajaeman_castle_stairs', 'spawn': 'start', 'interact': False, 'sfx': False})
     entities.append({'type': 'trigger', 'id': 'arena_back', 'x': 480, 'y': ROWS * 32 - 10, 'w': 142, 'h': 10,
                      'script': 'castle_spire_back'})

@@ -26,7 +26,7 @@ test('test_stairs_path_takes_about_a_minute_at_stair_pace_and_stays_walkable', (
   }
   const toTopLanding = length - Math.hypot(0, path.at(-2)[1] - path.at(-1)[1]);
   assert.ok(toTopLanding / 124.8 > 52 && toTopLanding / 124.8 < 66, `${(toTopLanding / 124.8).toFixed(1)}s`);
-  assert.equal(map.meta.stairs.smash.length, 6);
+  assert.equal(map.meta.stairs.smash.length, 10);
   assert.deepEqual(map.meta.stairs.allies.map(a => a[0]), ['stairs_park', 'stairs_ttuulla', 'stairs_junhee']);
 });
 
@@ -34,5 +34,5 @@ test('test_stairs_scripts_use_the_user_lines', async () => {
   const { SCRIPTS } = await import('../../src/data/scripts.js');
   const text = id => SCRIPTS[id].filter(n => n.text).map(n => `${n.speaker}: ${n.text.slice(2)}`);
   assert.deepEqual(text('castle_stairs_monsters'), ['억빠맨: 으윽,,,몬스터네요 어떡하죠.', '파크가디언: ...', '뚜울라알라: ...', '파크가디언: 이얍!', '뚜울라알라: 이얍!', '억빠맨: 윽 이런.. 고 고맙다..']);
-  assert.deepEqual(text('castle_stairs_nunu'), ['쥰희: 잘... 부탁한다 너네들 살아서보자.', '쥰희: 이얍!']);
+  assert.deepEqual(text('castle_stairs_nunu'), ['쥰희: ...', '쥰희: 잘... 부탁한다 너네들 살아서보자.', '쥰희: 이얍!', '경섭: 고맙다.. 쥰희야.']);
 });

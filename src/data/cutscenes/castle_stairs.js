@@ -1,5 +1,6 @@
 // BUILD334 사용자 브리핑(2026-09-25): 무너지는 계단. 대사·표기 원문 그대로(“이얍!”은 브리핑의 기합).
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
+const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const J = text => ({ speaker: '쥰희', portrait: 'junhee', voice: 'junhee', text: `* ${text}` });
 const PG = text => ({ speaker: '파크가디언', portrait: 'park_guardian_costume', voice: 'park_guardian_costume', text: `* ${text}` });
 const T = text => ({ speaker: '뚜울라알라', portrait: 'ttuulla', voice: 'ttuulla', text: `* ${text}` });
@@ -48,12 +49,13 @@ export const castle_stairs_nunu = Object.assign([
   { parallel: [{ camera: C.talkNunu, duration: 1.0 }, { zoom: 0.55, duration: 1.0 }, stairs(s => s.arrangeAllies(s.enc.nunu + STAIRS_SCENE.allyRow.nunu))] },
   stairs(s => s.showNunu()), { wait: 0.4 },
   surprise([...PARTY, 'stairs_junhee']),
-  J('잘... 부탁한다 너네들 살아서보자.'), J('이얍!'), close,
+  J('...'), J('잘... 부탁한다 너네들 살아서보자.'), J('이얍!'), close,
   // 쥰희가 누누와 윌럼프를 박치기해 함께 계단 옆으로 떨어진다
   { parallel: [{ camera: C.fall, duration: 0.5 }, stairs(s => s.junheeHeadbutt('stairs_junhee', 1))] },
   { wait: 0.5 },
   surprise(PARTY),
   { zoom: 1, duration: 0.5 },
+  K('고맙다.. 쥰희야.'), close,
   { set: { castle_stairs_nunu_done: true } },
   stairs(s => s.pauseAllies(false)), { camera: 'player' },
   { label: 'end' }, { end: true },
