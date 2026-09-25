@@ -86,7 +86,8 @@ export class Bullet {
       if (this.y + this.r > board.y + board.h - 3 && this.vy > 0) { this.y = board.y + board.h - 3 - this.r; this.vy = -this.vy; }
     }
   }
-  out(board) { if (this.life && this.age >= this.life) return true; const m = 40; return this.x < board.x - m || this.x > board.x + board.w + m || this.y < board.y - m || this.y > board.y + board.h + m; }
+  // free: 상자 밖을 도는 탄(청소년 C 연타 잔해·표시)은 수명으로만 사라진다
+  out(board) { if (this.life && this.age >= this.life) return true; if (this.free) return false; const m = 40; return this.x < board.x - m || this.x > board.x + board.w + m || this.y < board.y - m || this.y > board.y + board.h + m; }
   hits(soul) {
     if (this.harmless) return false;
     if (this.hitShape) return this.hitShape(this, soul);

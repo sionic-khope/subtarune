@@ -204,6 +204,64 @@ export const TEEN_PATTERNS = {
     } };
   },
 
+  teen_vacuum_mash: (o = {}) => {
+    // 세 번째 청소: 하트가 위쪽 구멍으로 점점 세게 빨려 간다 — C 를 연타할 때마다 밀어낸다. 잔해는 상자 바깥으로 돌아 구멍에 빨려 들며(안 맞음) 게이지만 채운다.
+    // 끝까지(상자 위 벽) 빨려 가면 구멍으로 들어가 전원 50, 그 뒤 흡입이 멎는다
+    const VC = TEEN_BATTLE.view.vacuum, M = TEEN_BATTLE.mash, ready = VC.approach + VC.open, duration = M.duration + ready;
+    const to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]], from = TEEN_BATTLE.view.giant, lv = Math.min(4, o.level ?? 0);
+    let started = false, opened = false, sucking = false, sucked = 0, next = ready + 0.3, n = 0, presses = 0, flash = 0;
+    const keyHint = (ctx, b) => {
+      // 하트 옆에서 깜빡이는 C 키
+      if (sucked || b.age < 0.2 || Math.floor(b.age * 6) % 2 === 1) return;
+      const x = Math.round(b.api.soul.x + 14), y = Math.round(b.api.soul.y - 22) + (flash > 0 ? 2 : 0);
+      ctx.fillStyle = flash > 0 ? '#b070ff' : '#1a0b2e'; ctx.fillRect(x, y, 14, 14); ctx.strokeStyle = '#d0b0ff'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, 13, 13);
+      ctx.fillStyle = '#e8d8ff'; ctx.font = '10px "Galmuri9", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', x + 7, y + 8);
+    };
+    return { duration, update(t, dt, api) {
+      const box = api.box, [px, py] = VC.palm, soul = api.soul;
+      if (!started) {
+        started = true; api.sfx?.('rumble', { volume: 0.6 }); api.vacuum?.(true, duration);
+        api.emit({ x: box.x, y: box.y, r: 0, harmless: true, life: duration, box, drawShape: drawVortex });
+      }
+      const k = Math.min(1, t / VC.approach), e = 1 - (1 - k) ** 3;
+      api.present?.({ sheet: 'vacuum', x: Math.round(from.x + (to[0] - from.x) * e), y: Math.round(from.y + (to[1] - from.y) * e) });
+      tickTimers(api, dt);
+      if (t < ready) { if (t > VC.approach && !opened) { opened = true; api.sfx?.('power', { volume: 0.6 }); api.shake?.(VC.open, 2); } return; }
+      if (!sucking) { sucking = true; api.sfx?.('teen_vacuum', { volume: 1 }); api.shake?.(0.6, 5); api.emit({ x: 0, y: 0, r: 0, harmless: true, free: true, life: duration, api, drawShape: keyHint }); }
+      flash -= dt;
+      if (!sucked && t < duration - 1) {
+        // 점점 세게 위(구멍)로
+        const pull = (M.pull[0] + (M.pull[1] - M.pull[0]) * Math.min(1, (t - ready) / (M.duration * 0.7))) * (1 + 0.08 * lv);
+        const dx = px - soul.x, dy = py - soul.y, d = Math.max(1, Math.hypot(dx, dy));
+        soul.x += dx / d * pull * 0.35 * dt; soul.y += dy / d * pull * dt;
+        if (api.just?.('confirm')) { presses++; flash = 0.08; soul.y += M.push; soul.x -= dx / d * 3; api.sfx?.('menu', { volume: 0.25 }); }
+        soul.x = clamp(soul.x, box.x + soul.r + 4, box.x + box.w - soul.r - 4);
+        soul.y = clamp(soul.y, box.y + soul.r + 2, box.y + box.h - soul.r - 4);
+        if (soul.y <= box.y + soul.r + 3) {
+          // 구멍까지 빨려 들어갔다
+          sucked = t; api.sfx?.('furnace_blast', { volume: 0.8 }); api.trackProjectile?.({ type: 'teen_sucked' });
+          soul.x = box.x + box.w / 2; soul.y = box.y + box.h - soul.r - 6;
+        }
+      }
+      // 잔해: 상자 바깥(양옆·아래 밖)으로 돌아 구멍에 빨려 든다 — 하트엔 안 맞고 게이지만 채운다
+      const every = Math.max(0.16, 0.3 * (1 - 0.06 * lv));
+      while (t >= next && t < duration - 1.2) {
+        next += every; n++;
+        const left = api.rnd() < 0.5, x = left ? box.x - 30 - api.rnd() * 30 : box.x + box.w + 30 + api.rnd() * 30, y = box.y + api.rnd() * (box.h + 60);
+        const src = ROCKS[Math.floor(api.rnd() * ROCKS.length)], speed = 110 + api.rnd() * 60;
+        api.emit({ x, y, r: 8, harmless: true, free: true, spin: (api.rnd() - 0.5) * 8, src, seed: n, drawShape: drawDebris, life: 6,
+          steer(bb, dd) {
+            // 상자 옆벽 바깥을 따라 올라가 위에서 구멍으로
+            const tx = bb.y > box.y - 10 ? (left ? box.x - 26 : box.x + box.w + 26) : px, ty = bb.y > box.y - 10 ? box.y - 30 : py;
+            const ex = tx - bb.x, ey = ty - bb.y, dist = Math.max(1, Math.hypot(ex, ey));
+            bb.vx += (ex / dist * speed - bb.vx) * Math.min(1, dd * 4); bb.vy += (ey / dist * speed - bb.vy) * Math.min(1, dd * 4);
+            const dp = Math.hypot(px - bb.x, py - bb.y); bb.shrink = Math.min(1, dp / 40);
+            if (!bb.counted && dp < 16) { bb.counted = true; bb.life = bb.age; api.trackProjectile?.({ type: 'teen_dodge' }); }
+          } });
+      }
+    } };
+  },
+
   teen_slam: (o = {}) => {
     const duration = o.duration ?? 8.2;
     const slams = [0.7, 1.8, 2.9, 4.0], giantAt = 5.2, giantWarn = 1.1;

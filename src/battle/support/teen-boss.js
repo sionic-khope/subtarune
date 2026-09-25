@@ -19,7 +19,7 @@ export function createTeenBossSupport(battle) {
   // 가재맨: 어깨 위(perch) → 쓰러지면 천천히 내려와 쓰러진 몸 뒤에서 맴돈다(hover) → 일어나면 다시 어깨로
   let gj = { mode: 'hidden', t: 0, from: [...V.shoulder] };
   // 쓰러짐(collapse)·일어남(rise) 연출 시간
-  let fall = null, downs = 0, vacTurns = 0, motes = [], crits = [], puffs = [];
+  let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, motes = [], crits = [], puffs = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
   const smoke = battle.game.castleSummit?.smoke || new SummitSmoke();
@@ -37,7 +37,7 @@ export function createTeenBossSupport(battle) {
     get phase() { return phase; },
     get gauge() { return gauge; },
     get smoke() { return smoke; },
-    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, downs, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode }; },
+    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, downs, vacTurns, suckedCount, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode }; },
     async load(loadImage) {
       const ids = battle.members.map(m => m.id);
       const imgs = await Promise.all(ids.map(id => loadImage(C.images.defend(id)).catch(() => null)));
@@ -92,6 +92,8 @@ export function createTeenBossSupport(battle) {
     bubbleAnchor() { if (phase !== 'down' && !this.gajaemanShown()) return [236, 60]; const [x, y] = gjPos(); return [x - 30, y - 70 * V.gajaemanScale]; },
     /** 방어하기: 이번 적 턴 피해 −3 */
     adjustPartyDamage(member) {
+      // 구멍에 빨려 들어간 벌: 무작위·방어 없이 그대로
+      if (rawHit) return rawHit;
       const [lo, hi] = C.enemyHit, dmg = lo + Math.floor(battle.rnd() * (hi - lo + 1));
       return defenders.has(member.id) ? Math.max(1, dmg - C.defend.reduce) : dmg;
     },
@@ -107,11 +109,15 @@ export function createTeenBossSupport(battle) {
       nextType = turn % C.slamEvery === 0 ? 'teen_slam' : 'teen_vacuum';
       // 세 번째 청소부터 가재맨이 중간중간 검·무릎으로 방해(사용자 2026-09-25)
       if (nextType === 'teen_vacuum') vacTurns++;
+      // 세 번째 청소마다 C 연타 버티기
+      if (nextType === 'teen_vacuum' && vacTurns % C.mash.every === 0) return [{ type: 'teen_vacuum_mash', damage: 15, level: Math.max(0, vacTurns - 1) }];
       return [{ type: nextType, damage: 15, harass: nextType === 'teen_vacuum' && vacTurns >= 3, level: Math.max(0, vacTurns - 1) }];
     },
     onProjectile(p) {
       // 방해하러 잠깐 튀어나온다 → 1.3초 뒤 다시 들어간다
       if (p?.type === 'gj_pop' && phase === 'guard') flyTo('pop', 0.6);
+      // C 연타에 지고 구멍까지 빨려 들어갔다: 전원 50
+      if (p?.type === 'teen_sucked') { suckedCount++; rawHit = C.mash.damage; battle.hurtAllParty(C.mash.damage); rawHit = 0; battle.game.shake = { time: 0.6, amp: 7 }; battle.sfx('baron_slam'); }
       // 1UP 버섯을 먹었다: 쓰러지지 않은 일행 전원 회복
       if (p?.type === 'teen_heal') {
         for (const m of battle.members) if (!m.down && m.hp > 0) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + C.mushroom.heal); m.popup = { t: 0, text: `+${m.hp - before}`, heal: true }; }

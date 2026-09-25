@@ -535,6 +535,8 @@ export class Battle {
       api.penalty = damage => { this.bullets = []; this.hurtAllParty(damage); };
       api.flash = duration => { this.game.fadeTo(0.8, 0, undefined, 'white'); this.game.fadeTo(0, duration); };
       api.shake = (time, amp) => { this.game.shake = { time, amp }; };
+      // 패턴이 키 입력을 볼 수 있다(청소년전 C 연타 버티기)
+      api.just = key => !!input?.just?.(key);
       api.say = (text, hold = 2) => { this.bubble = { enemy: pat.enemy, text, shown: 0, t: 0, voice: pat.enemy?.def.voice || 'narrator', patternHold: hold }; };
       api.startRapVideo = options => this.startRapVideo(options);
       api.stopRapVideo = handle => this.stopRapVideo(handle);
