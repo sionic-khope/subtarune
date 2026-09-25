@@ -272,7 +272,7 @@ export class Battle {
   }
   beginMenu() {
     this.clearPatternPresentation();
-    this.state = 'menu'; this.t = 0; this.plans = []; this.memberIdx = 0; this.menuIdx = 0;
+    this.state = 'menu'; this.t = 0; this.plans = []; this.memberIdx = 0; this.menuIdx = this.support?.defaultMenuIdx?.() ?? 0;
     while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
     const live = this.living(); const e = live[Math.floor(this.rnd() * Math.max(1, live.length))]; const idle = this.support?.idleFor?.(e) || e?.def.lines?.idle || [];
     this.setText(idle.length ? idle[Math.floor(this.rnd() * idle.length)] : '');   // 잡담 문구는 행동 선택 화면([공격하기][아이템])과 같은 패널에 공존 (사용자 2026-09-10)
@@ -311,7 +311,7 @@ export class Battle {
       return;
     }
     if (input.just('cancel') && this.plans.length) {           // 이전 멤버로 되돌아가기 (델타룬처럼)
-      this.sfx('cancel'); this.support?.onPlanCancel?.(this.plans.pop()); this.memberIdx--; while (this.memberIdx > 0 && this.members[this.memberIdx].down) this.memberIdx--; this.menuIdx = 0;
+      this.sfx('cancel'); this.support?.onPlanCancel?.(this.plans.pop()); this.memberIdx--; while (this.memberIdx > 0 && this.members[this.memberIdx].down) this.memberIdx--; this.menuIdx = this.support?.defaultMenuIdx?.() ?? 0;
     }
   }
   updateTarget(input) {
@@ -340,7 +340,7 @@ export class Battle {
   }
   nextMember() {
     this.memberIdx++; while (this.memberIdx < this.members.length && this.members[this.memberIdx].down) this.memberIdx++;
-    this.menuIdx = 0; this.state = 'menu'; this.t = 0;
+    this.menuIdx = this.support?.defaultMenuIdx?.() ?? 0; this.state = 'menu'; this.t = 0;
     if (this.memberIdx >= this.members.length) { this.beginAct(); return; }
     // cfg.memberIntro[id]: 그 동료의 첫 차례가 오면 대사를 먼저(청소부 “뭐 뭐라고? 공격을 하라고?”, BUILD227) → 끝나면 그 동료의 메뉴
     const member = this.members[this.memberIdx], intro = this.cfg.memberIntro?.[member.id];

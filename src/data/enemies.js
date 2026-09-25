@@ -183,14 +183,14 @@ export const ENEMIES = {
   // BUILD339 청소년(사용자 2026-09-25): 선화 상체 보스. 공격은 지원 모듈(support/teen-boss.js)이 잠그고 푼다. 시트 3×2 = 대기·숨·주먹·내려찍기·청소기·쓰러짐
   teen_giant: {
     name: '청소년', hp: 999, damage: 15, money: 0, boss: true, support: 'teen_boss', voice: 'narrator', bgmDelay: 0.9,
-    // BUILD342: 필드 대치와 같은 그림·같은 화면 자리(teen-battle.js view.giant = 121,-6 → ENEMY_X 396/ENEMY_YS 176 기준 dx·dy). 숨쉬기 없음
+    // BUILD342: 필드 대치와 같은 그림·같은 화면 자리(teen-battle.js view.giant = 150,-60 → ENEMY_X 396/ENEMY_YS 176 기준 dx·dy). 숨쉬기 없음
     sheet: { src: 'assets/props/summit342_teen.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
     actions: {
       vacuum: { src: 'assets/props/teen342_vacuum.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
       slam: { src: 'assets/props/teen342_slam.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 109] },
-      down: { src: 'assets/props/teen342_down.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 71] },
+      down: { src: 'assets/props/teen342_down.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
     },
-    pivot: [0, 0], scale: 1, dx: -275, dy: -182, board: [300, 150], idle: { swayX: 0, swayY: 0 },
+    pivot: [0, 0], scale: 1, dx: -246, dy: -236, board: [300, 150], idle: { swayX: 0, swayY: 0 },
     projectiles: { sword: 'assets/props/cathedral323_sword.png', knee: 'assets/props/teenboss339_knee.png', arm: 'assets/props/arena332_arm.png' },
     patterns: [{ type: 'teen_vacuum' }],
     lines: { appear: '* 청소년이 앞을 막아섰다.', idle: ['* 마지막이다.', '* 끝이다.'], speak: ['...'], die: '* 청소년이 쓰러졌다.' },

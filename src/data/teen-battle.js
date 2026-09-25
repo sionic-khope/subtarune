@@ -9,6 +9,8 @@ export const TEEN_BATTLE = Object.freeze({
   slamEvery: 3,
   downTurns: 3,
   rockDamage: 50,
+  // 청소 중 가끔(패턴당 1~2개) 천천히 날아오는 초록 1UP 버섯: 하트로 먹으면 일행 전원 +30(사용자 2026-09-25)
+  mushroom: { image: 'assets/props/teen346_mushroom.png', heal: 30, second: 0.5, speed: 38 },
   // 쓰러진 동안 일반 공격 한 대 = 50(사용자 2026-09-25, 80 → 50), 매번 치명타 이펙트 + 릴리즈샷 소리
   downHit: { damage: 50, sfx: 'deltarune_release_shoot', fx: 0.55 },
   /**
@@ -21,18 +23,22 @@ export const TEEN_BATTLE = Object.freeze({
     front: 'assets/props/summit342_front.png',
     // BUILD346: 사용자가 고른 D안(결전지 거인 디자인, 주인공 쪽을 내려다보는 3/4), 700px — 목 위는 화면 밖(얼굴 없음), 살짝 더 왼쪽.
     // 자세 4종이 같은 캔버스. 주먹·쓰러짐은 몸이 내려가 목 단면이 보이지 않게 그만큼 위로(assets/source/teen345/process.py 의 neckTop)
-    giant: { image: 'assets/props/summit342_teen.png', x: 121, y: -6 },
-    down: { image: 'assets/props/teen342_down.png', x: 121, y: -77 },
+    // 상체를 더 올려 목이 덜 보이게, 기둥과는 기둥이 앞에 자연스럽게 겹치는 정도(사용자 교정)
+    giant: { image: 'assets/props/summit342_teen.png', x: 150, y: -60 },
+    down: { image: 'assets/props/teen342_down.png', x: 150, y: -60 },
     // 청소: 손바닥 구멍이 상자 왼쪽 위 대각선(palm)에 오도록 자세를 옮긴다. palmInSprite = 청소 자세 그림 속 구멍 자리
     // approach 동안 손을 가져다 대고, open 동안 구멍이 열리며 충전 → 그 뒤에야 빨아들인다(사용자 “공격준비 시간, 웅장하게”)
-    vacuum: { palm: [197, 101], palmInSprite: [76, 107], reach: [30, 40], approach: 1.0, open: 1.3 },
+    // 손은 기둥과 겹치지 않게 오른쪽 위에서 뻗어, 구멍이 가운데 상자 위쪽에 온다(사용자 “기둥도”, “가운데에 피하는 화면”)
+    vacuum: { palm: [304, 40], palmInSprite: [76, 107], approach: 1.2, open: 1.3 },
     // 일행 발 위치: 끝길 위에 대각선으로 붙여 선다
     party: { hyungsub: [125, 176], gyeongsub: [93, 204], ppaman: [61, 232] },
     // 가재맨: 평소엔 아예 안 보인다 → 쓰러질 때만 청소년 오른쪽 아래 어깨 라인(shoulder)에서 나와 천천히 왼쪽으로 날아와 위에 떠 있다
     // → 일어서면 다시 어깨 라인 뒤로 사라진다(사용자 “안 보여야”, “오른쪽 아래 어깨쪽 라인에서 나오게”, “너무 크다”)
     shoulder: [430, 210], hover: [300, 118], gajaemanScale: 1.0,
     // 청소 중 방해: 어깨 라인에서 잠깐 튀어나와 치고 다시 들어간다(독립적으로 나와서 때리는 느낌)
-    pop: [452, 128],
+    pop: [396, 104],
+    // 방해하러 튀어나올 때 대사(사용자 예시 “쉽게 피하게 둘까보냐 ㅋㅋ”, 두 가지를 번갈아)
+    popLines: ['쉽게 피하게 둘까보냐 ㅋㅋ', '어딜 도망가려고 ㅋㅋ'],
   },
   // 쓰러지는 연출: 앞으로 기울며 가라앉고(tilt) → 엎드린 그림으로 바뀌며 쿵(land) → 잠깐 정적(hold) 뒤 대사
   collapse: { tilt: 1.5, land: 0.5, hold: 1.2, rise: 1.0 },
@@ -45,6 +51,12 @@ export const TEEN_BATTLE = Object.freeze({
     defend: id => `assets/battle/${id}-defend.png`,
   },
   gajaemanPatterns: ['gj_swords', 'gj_knee', 'gj_mouse'],
+  // 쓰러졌던 청소년이 일어설 때 가재맨 대사(몇 번째 쓰러짐인지에 따라, 사용자 원문 그대로)
+  riseLines: [
+    ['의미없는 발버둥을', '아무리 발악해봐야 너희는 곧 죽는다', '이런이런 그릇이 너무 강력해서 섭타룬의 힘을 저항하고 있는건가'],
+    ['도대체 왜이렇게 끈질긴거야', '당장 죽어 갈기갈기 찢겨지라고'],
+    ['그래 인정해주지 더이상 봐주는건 없다'],
+  ],
   // 가재맨이 패턴 들어가기 전에 치는 대사(사용자 원문 그대로)
   gajaemanLines: { gj_mouse: '니애미따라가라', gj_swords: '너검없냐?', gj_knee: '넣을게~' },
   // 전투가 열리면 먼저 “마지막이다.”, C 를 누르면 억빠맨

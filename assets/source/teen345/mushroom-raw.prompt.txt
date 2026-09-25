@@ -1,0 +1,7 @@
+# imagegen 2026-09-25 20:32:55
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+
+Create ONE small item sprite for a Deltarune-style pixel-art RPG, centered on a solid pure #FF00FF magenta background, no text, no border, no shadow.
+A classic green 1-UP mushroom: rounded green cap with big white spots, cream-colored stem with two small black oval eyes, crisp chunky pixel art with a dark outline, limited palette, cheerful. The mushroom fills the central 60% of the canvas.

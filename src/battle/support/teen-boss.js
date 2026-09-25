@@ -19,7 +19,7 @@ export function createTeenBossSupport(battle) {
   // 가재맨: 어깨 위(perch) → 쓰러지면 천천히 내려와 쓰러진 몸 뒤에서 맴돈다(hover) → 일어나면 다시 어깨로
   let gj = { mode: 'hidden', t: 0, from: [...V.shoulder] };
   // 쓰러짐(collapse)·일어남(rise) 연출 시간
-  let fall = null, vacTurns = 0, motes = [], crits = [], puffs = [];
+  let fall = null, downs = 0, vacTurns = 0, motes = [], crits = [], puffs = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
   const smoke = battle.game.castleSummit?.smoke || new SummitSmoke();
@@ -37,7 +37,7 @@ export function createTeenBossSupport(battle) {
     get phase() { return phase; },
     get gauge() { return gauge; },
     get smoke() { return smoke; },
-    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode }; },
+    get snapshot() { return { phase, gauge: Math.round(gauge), downLeft, downs, defending: defenders.size > 0, defenders: [...defenders], turn, fall: fall?.kind || null, gaugeAlpha: +gaugeA.toFixed(2), gajaeman: gj.mode }; },
     async load(loadImage) {
       const ids = battle.members.map(m => m.id);
       const imgs = await Promise.all(ids.map(id => loadImage(C.images.defend(id)).catch(() => null)));
@@ -49,15 +49,18 @@ export function createTeenBossSupport(battle) {
       for (let i = 0; i < 2; i++) { const src = `assets/props/summit336_chunk_${i}.png`; if (!props[src]) props[src] = await loadImage(src).catch(() => null); }
       const debris = await Promise.all(TEEN_DEBRIS.map(src => loadImage(src).catch(() => null)));
       globalThis.__teenImages = Object.fromEntries(TEEN_DEBRIS.map((src, i) => [src, debris[i]]));
-      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing']);
+      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing', 'heal', 'mario_jump']);
     },
-    reset() { phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
+    reset() { downs = 0; phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
     buttons() {
+      // 공격하기 바로 옆에 방어하기(사용자), 공격하기가 잠겨 있으면 커서는 방어하기에서 시작(defaultMenuIdx)
       return [
         { label: C.labels.fight, kind: 'fight', enabled: phase === 'down' },
-        { label: C.labels.item, kind: 'item', enabled: true },
         { label: C.labels.defend, kind: 'support', id: 'defend', enabled: true },
+        { label: C.labels.item, kind: 'item', enabled: true },
       ];
+    },
+    defaultMenuIdx() { return phase === 'down' ? 0 : 1;
     },
     get hint() { return ''; },
     onVacuum(on, seconds) { vac = on ? { t: 0, d: seconds } : null; },
@@ -70,7 +73,7 @@ export function createTeenBossSupport(battle) {
     // 상자는 끝길 일행 오른쪽(겹치지 않게). 청소기는 손바닥 구멍(205,136) 오른쪽 아래로 넓게(사용자 “더 넓혀”)
     // 청소기는 손바닥 구멍(view.vacuum.palm)이 상자 왼쪽 위 대각선, 게이지 패널(x 440)과 겹치지 않게
     // 피하는 상자는 너무 오른쪽이지 않게(사용자) — 일행(x≤145) 바로 오른쪽
-    get boardCenter() { return this.vacuumTurn() ? [300, 236] : [300, 214]; },
+    get boardCenter() { return this.vacuumTurn() ? [300, 194] : [300, 214]; },
     boardSizeFor() { return this.vacuumTurn() ? [180, 130] : [220, 140]; },
     action(id) {
       if (id !== 'defend') return null;
@@ -86,7 +89,7 @@ export function createTeenBossSupport(battle) {
     speechFor() { return phase === 'down' ? [C.gajaemanLines[C.gajaemanPatterns[gjIdx % C.gajaemanPatterns.length]]] : ['...']; },
     speechVoiceFor() { return phase === 'down' ? 'gajaeman_shadow' : null; },
     /** 말풍선 꼬리: 쓰러진 동안엔 떠 있는 가재맨 옆, 평소엔 청소년 머리 왼쪽 */
-    bubbleAnchor() { if (phase !== 'down') return [236, 60]; const [x, y] = gjPos(); return [x - 30, y - 70]; },
+    bubbleAnchor() { if (phase !== 'down' && !this.gajaemanShown()) return [236, 60]; const [x, y] = gjPos(); return [x - 30, y - 70 * V.gajaemanScale]; },
     /** 방어하기: 이번 적 턴 피해 −3 */
     adjustPartyDamage(member) {
       const [lo, hi] = C.enemyHit, dmg = lo + Math.floor(battle.rnd() * (hi - lo + 1));
@@ -104,11 +107,16 @@ export function createTeenBossSupport(battle) {
       nextType = turn % C.slamEvery === 0 ? 'teen_slam' : 'teen_vacuum';
       // 세 번째 청소부터 가재맨이 중간중간 검·무릎으로 방해(사용자 2026-09-25)
       if (nextType === 'teen_vacuum') vacTurns++;
-      return [{ type: nextType, damage: 15, harass: nextType === 'teen_vacuum' && vacTurns >= 3 }];
+      return [{ type: nextType, damage: 15, harass: nextType === 'teen_vacuum' && vacTurns >= 3, level: Math.max(0, vacTurns - 1) }];
     },
     onProjectile(p) {
       // 방해하러 잠깐 튀어나온다 → 1.3초 뒤 다시 들어간다
-      if (p?.type === 'gj_pop' && phase === 'guard') flyTo('pop', 0.35);
+      if (p?.type === 'gj_pop' && phase === 'guard') flyTo('pop', 0.6);
+      // 1UP 버섯을 먹었다: 쓰러지지 않은 일행 전원 회복
+      if (p?.type === 'teen_heal') {
+        for (const m of battle.members) if (!m.down && m.hp > 0) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + C.mushroom.heal); m.popup = { t: 0, text: `+${m.hp - before}`, heal: true }; }
+        battle.sfx('heal'); battle.sfx('mario_jump');
+      }
       if (p?.type === 'teen_dodge' && phase === 'guard') gauge = Math.min(C.gauge.max, gauge + C.gauge.perDodge);
       if (p?.type === 'teen_rock' && live()) { battle.hitEnemy(enemy, null, C.rockDamage, { source: 'teen_rock' }); battle.game.shake = { time: 0.4, amp: 5 }; }
     },
@@ -125,7 +133,8 @@ export function createTeenBossSupport(battle) {
     /** 쓰러진 청소년 앞(낮아진 몸)까지만 달려간다 */
     attackSpot(target) { return target === enemy && phase === 'down' ? C.downSpot : null; },
     memberImage(m) {
-      if (!defenders.has(m.id) || !['bullets', 'board-open', 'board-close', 'enemy-prep', 'prep'].includes(battle.state)) return null;
+      // 방어를 고른 순간부터 적 턴이 끝날 때까지(다른 멤버가 아이템을 쓰는 동안에도) 방어 자세
+      if (!defenders.has(m.id) || m.down || battle.state === 'win') return null;
       return defendImages[m.id] || null;
     },
     poseFor(target) {
@@ -138,7 +147,7 @@ export function createTeenBossSupport(battle) {
     update(dt) {
       if (vac) { vac.t += dt; if (vac.t > vac.d) vac = null; }
       time += dt; gj.t += dt;
-      if (gj.mode === 'pop' && gj.t > 1.3) flyTo('back', 0.4);
+      if (gj.mode === 'pop' && gj.t > 2.2) flyTo('back', 0.6);
       for (const c of crits) c.t += dt;
       crits = crits.filter(c => c.t < C.downHit.fx);
       // 가재맨 둘레로 보라·검은 오오라 입자가 피어오른다
@@ -159,7 +168,7 @@ export function createTeenBossSupport(battle) {
       if (!live()) return null;
       if (phase === 'guard' && gauge >= C.gauge.max) {
         // 과부하: 몇 초 동안 앞으로 기울며 무너져 끝길 쪽으로 엎어진다(애니처럼) → 정적 → 억빠맨
-        phase = 'down'; downLeft = C.downTurns; fall = { kind: 'collapse', t: 0, landed: false };
+        phase = 'down'; downs++; downLeft = C.downTurns; fall = { kind: 'collapse', t: 0, landed: false };
         battle.sfx('baron_roar'); battle.sfx('rumble'); battle.game.shake = { time: CF.tilt, amp: 3 };
         let talk = null, hold = CF.hold;
         return {
@@ -175,7 +184,14 @@ export function createTeenBossSupport(battle) {
       }
       if (phase === 'down') {
         downLeft--;
-        if (downLeft <= 0) { phase = 'guard'; gauge = 0; fall = { kind: 'rise', t: 0 }; flyTo('back'); battle.sfx('rumble'); }
+        if (downLeft <= 0) {
+          const rise = () => { phase = 'guard'; gauge = 0; fall = { kind: 'rise', t: 0 }; flyTo('back'); battle.sfx('rumble'); };
+          // 일어서기 전에 떠 있는 가재맨이 대사를 친다(몇 번째 쓰러짐인지에 따라) → 끝나면 일어서고 가재맨은 뒤로
+          const lines = C.riseLines[downs - 1];
+          if (!lines) { rise(); return null; }
+          const talk = createTalk(battle, lines.map(text => ({ speaker: '가재맨', voice: 'gajaeman_shadow', text: `* ${text}` })));
+          return { update: (dt, input) => { const done = talk.update(dt, input); if (done) rise(); return done; }, draw: ctx => battle.drawTextBox(ctx) };
+        }
       }
       return null;
     },
@@ -221,6 +237,9 @@ export function createTeenBossSupport(battle) {
     drawGajaeman(ctx) {
       const [x, y] = gjPos(), s = V.gajaemanScale, bob = Math.round(Math.sin(time * 2.4) * 3);
       ctx.save();
+      // 어깨 라인에서 서서히 나타나고 들어갈 때 서서히 사라진다(툭 튀어나오지 않게)
+      const kk = Math.min(1, gj.t / (gj.d || GF.descend));
+      ctx.globalAlpha *= gj.mode === 'back' ? 1 - kk : gj.mode === 'pop' || gj.mode === 'hover' ? Math.min(1, kk * 1.6) : 1;
       const glow = ctx.createRadialGradient(x, y - 30 * s, 0, x, y - 30 * s, 40 * s);
       glow.addColorStop(0, 'rgba(90,30,150,0.45)'); glow.addColorStop(1, 'rgba(20,6,40,0)');
       ctx.fillStyle = glow; ctx.fillRect(x - 40 * s, y - 70 * s, 80 * s, 80 * s);

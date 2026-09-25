@@ -15,7 +15,8 @@ load = lambda n, p: (lambda s: (s.loader.exec_module(m := importlib.util.module_
 ap = load('ap', HERE.parent / 'arena332' / 'process.py')
 tp = load('tp', HERE.parent / 'teen342' / 'process.py')
 SCALE = 700 / 1536
-POSES = {'teen': 'face4', 'vacuum': 'dvac', 'slam': 'dslam', 'down': 'ddown'}
+# 쓰러짐은 머리를 숙여 박는 ddown2(사용자 “머리를 엎드려서 박아도 돼”) — 머리가 캔버스 안이라 목 맞춤 없이 서기와 같은 자리
+POSES = {'teen': 'face4', 'vacuum': 'dvac', 'slam': 'dslam', 'down': 'ddown2'}
 
 
 def main() -> None:
@@ -29,6 +30,8 @@ def main() -> None:
         neck = int(np.argmax(band.any(axis=1)))
         ys, xs = np.nonzero(im[..., 3])
         print(f'{name}: {w}x{im.shape[0]} neckTop={neck} left={xs.min()}')
+    # 청소 중 가끔 날아오는 초록 1UP 버섯(먹으면 전원 회복)
+    Image.fromarray(ap.shrink(ap.key_out(np.array(Image.open(HERE / 'mushroom-raw.png').convert('RGBA'))), 20)).save('assets/props/teen346_mushroom.png')
 
 
 if __name__ == '__main__':
