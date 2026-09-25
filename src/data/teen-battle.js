@@ -10,7 +10,8 @@ export const TEEN_BATTLE = Object.freeze({
   downTurns: 3,
   rockDamage: 50,
   // 세 번째 청소(그 뒤로 세 번마다)는 C 연타 버티기: 연타마다 하트가 구멍에서 밀려나고, 끝까지 빨려 들어가면 전원 50(사용자 2026-09-25)
-  mash: { every: 3, push: 18, pull: [30, 90], damage: 50, duration: 13 },
+  // 아래 방향키로는 못 내려간다(좌우·위만), 아래에서 솟는 돌을 좌우로 피하면서 연타(사용자 “더 어렵게, 피하는 기믹”)
+  mash: { every: 3, push: 13, pull: [40, 128], ramp: 0.5, damage: 50, duration: 13, rock: { every: [1.1, 0.55], warn: 0.5, speed: 190 } },
   // 청소 중 가끔(패턴당 1~2개) 천천히 날아오는 초록 1UP 버섯: 하트로 먹으면 일행 전원 +30(사용자 2026-09-25)
   mushroom: { image: 'assets/props/teen346_mushroom.png', heal: 30, second: 0.5, speed: 38 },
   // 쓰러진 동안 일반 공격 한 대 = 50(사용자 2026-09-25, 80 → 50), 매번 치명타 이펙트 + 릴리즈샷 소리
@@ -43,7 +44,8 @@ export const TEEN_BATTLE = Object.freeze({
     popLines: ['쉽게 피하게 둘까보냐 ㅋㅋ', '어딜 도망가려고 ㅋㅋ'],
   },
   // 쓰러지는 연출: 앞으로 기울며 가라앉고(tilt) → 엎드린 그림으로 바뀌며 쿵(land) → 잠깐 정적(hold) 뒤 대사
-  collapse: { tilt: 1.5, land: 0.5, hold: 1.2, rise: 1.0 },
+  // 과부하: 지지직(스파크) → 퓌시이익(김·연기) → 앞으로 기울며 쓰러짐
+  collapse: { overload: 1.8, tilt: 1.5, land: 0.5, hold: 1.2, rise: 1.0 },
   gajaemanFly: { descend: 3.6, radius: [18, 8], speed: 0.9 },
   // 쓰러진 청소년에게 달려갈 자리(엎드린 몸 앞, 끝길 가장자리)
   downSpot: [208, 206],

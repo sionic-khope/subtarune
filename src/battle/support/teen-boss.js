@@ -19,6 +19,7 @@ export function createTeenBossSupport(battle) {
   // 가재맨: 어깨 위(perch) → 쓰러지면 천천히 내려와 쓰러진 몸 뒤에서 맴돈다(hover) → 일어나면 다시 어깨로
   let gj = { mode: 'hidden', t: 0, from: [...V.shoulder] };
   // 쓰러짐(collapse)·일어남(rise) 연출 시간
+  let steam = [], sparks = [];
   let fall = null, downs = 0, vacTurns = 0, rawHit = 0, suckedCount = 0, planned = null, motes = [], crits = [], puffs = [];
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   // 필드에서 이어진 연기(같은 장면이면 그대로 이어 받는다)
@@ -51,7 +52,7 @@ export function createTeenBossSupport(battle) {
       for (let i = 0; i < 2; i++) { const src = `assets/props/summit336_chunk_${i}.png`; if (!props[src]) props[src] = await loadImage(src).catch(() => null); }
       const debris = await Promise.all(TEEN_DEBRIS.map(src => loadImage(src).catch(() => null)));
       globalThis.__teenImages = Object.fromEntries(TEEN_DEBRIS.map((src, i) => [src, debris[i]]));
-      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing', 'heal', 'mario_jump']);
+      await battle.game.sound.loadSfxFiles?.(['gajaeman_knee', 'gajaeman_kick', 'knight_cut', 'spearappear', 'heavyswing', 'furnace_blast', 'baron_slam', 'impact', 'power', 'laser_charge', 'weaponpull', 'thud', 'rumble', 'teen_vacuum', 'baron_roar', C.downHit.sfx, 'criticalswing', 'heal', 'mario_jump', 'static_burst', 'sizzle']);
     },
     reset() { downs = 0; phase = 'guard'; gauge = 0; turn = 0; downLeft = 0; gjIdx = 0; defenders.clear(); gj = { mode: 'hidden', t: 0, from: [...V.shoulder] }; fall = null; clearTeenTimers(); enemy.patternPose = null; },
     buttons() {
@@ -111,6 +112,8 @@ export function createTeenBossSupport(battle) {
     patternsFor(target) {
       if (target !== enemy) return null;
       clearTeenTimers();
+      // 앞 패턴(C 연타)이 빨려 들어가는 도중에 끝나도 하트는 다시 보이게
+      battle.soul.hidden = false;
       if (phase === 'down') return [{ type: C.gajaemanPatterns[gjIdx++ % C.gajaemanPatterns.length], damage: 15 }];
       turn++;
       // 첫 공격 전에 한 번 크게 포효 — 계단 누누와 윌럼프 포효와 같은 소리(사용자 “우리가 쓰는 사운드, 바론”)
@@ -157,6 +160,7 @@ export function createTeenBossSupport(battle) {
     poseFor(target) {
       if (target !== enemy) return null;
       // 쓰러지는/일어나는 동안은 draw() 가 직접 그린다(기울기·가라앉음)
+      if (fall?.kind === 'overload') return { x: enemy.x + Math.round(Math.sin(time * 70) * 2), y: enemy.y };
       if (fall) return { hidden: true };
       if (phase === 'down') return { sheet: 'down' };
       return target.patternPose || null;
@@ -166,6 +170,14 @@ export function createTeenBossSupport(battle) {
       time += dt; gj.t += dt;
       if (gj.mode === 'pop' && gj.t > 2.2) flyTo('back', 0.6);
       for (const c of crits) c.t += dt;
+      // 과부하 스파크·김
+      if (fall?.kind === 'overload') {
+        const gx = V.giant.x, gy = V.giant.y;
+        if (Math.random() < 0.5) sparks.push({ x: gx + 80 + Math.random() * 300, y: gy + 90 + Math.random() * 280, t: 0, life: 0.12 + Math.random() * 0.1, seed: Math.random() * 99 });
+        if (fall.t > CF.overload * 0.4 && Math.random() < 0.7) steam.push({ x: gx + 100 + Math.random() * 260, y: gy + 120 + Math.random() * 200, vx: (Math.random() - 0.5) * 30, vy: -(50 + Math.random() * 60), r: 6 + Math.random() * 8, t: 0, life: 1 + Math.random() * 0.6 });
+      }
+      for (const p of sparks) p.t += dt; sparks = sparks.filter(p => p.t < p.life);
+      for (const p of steam) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += 14 * dt; } steam = steam.filter(p => p.t < p.life);
       crits = crits.filter(c => c.t < C.downHit.fx);
       // 가재맨 둘레로 보라·검은 오오라 입자가 피어오른다
       if (this.gajaemanShown() && Math.random() < 0.6) { const [x, y] = gjPos(), side = Math.random() * 2 - 1; motes.push({ x: x + side * 14, y: y - 6 - Math.random() * 26, vx: side * 10, vy: -(30 + Math.random() * 40), age: 0, life: 0.7 + Math.random() * 0.6, size: 2 + Math.floor(Math.random() * 2), purple: Math.random() < 0.55 }); }
@@ -185,11 +197,19 @@ export function createTeenBossSupport(battle) {
       if (!live()) return null;
       if (phase === 'guard' && gauge >= C.gauge.max) {
         // 과부하: 몇 초 동안 앞으로 기울며 무너져 끝길 쪽으로 엎어진다(애니처럼) → 정적 → 억빠맨
-        phase = 'down'; downs++; downLeft = C.downTurns; fall = { kind: 'collapse', t: 0, landed: false };
-        battle.sfx('baron_roar'); battle.sfx('rumble'); battle.game.shake = { time: CF.tilt, amp: 3 };
+        battle.soul.hidden = false;
+        // 과부하 먼저: 지지직 스파크 → 퓌시이익 김·연기 → 그다음 쓰러짐
+        phase = 'down'; downs++; downLeft = C.downTurns; fall = { kind: 'overload', t: 0, hissed: false };
+        battle.sfx('static_burst'); battle.game.shake = { time: CF.overload, amp: 2 };
         let talk = null, hold = CF.hold;
         return {
           update: (dt, input) => {
+            if (fall?.kind === 'overload') {
+              if (!fall.hissed && fall.t > CF.overload * 0.4) { fall.hissed = true; battle.sfx('sizzle'); }
+              if (fall.t < CF.overload) return false;
+              fall = { kind: 'collapse', t: 0, landed: false };
+              battle.sfx('baron_roar'); battle.sfx('rumble'); battle.game.shake = { time: CF.tilt, amp: 3 };
+            }
             if (fall && !fall.landed && fall.t >= CF.tilt) { fall.landed = true; battle.game.shake = { time: 0.7, amp: 7 }; battle.sfx('baron_slam'); battle.sfx('impact'); flyTo('hover'); }
             if (fall && fall.t >= CF.tilt + CF.land) fall = null;
             if (fall) return false;
@@ -217,7 +237,7 @@ export function createTeenBossSupport(battle) {
       const up = images[V.giant.image], down = images[V.down.image];
       // 가재맨: 평소·오갈 때 초반은 청소년 뒤(등에 가려 안 보인다), 날아 나와 떠 있을 때는 앞(drawOverEnemies)
       if (gajaeman && this.gajaemanShown() && !this.gajaemanInFront()) this.drawGajaeman(ctx);
-      if (fall && up && down) {
+      if (fall && fall.kind !== 'overload' && up && down) {
         const collapse = fall.kind === 'collapse';
         const k = collapse ? Math.min(1, fall.t / CF.tilt) : 1 - Math.min(1, fall.t / CF.rise), e = k * k;
         const land = collapse ? Math.min(1, Math.max(0, (fall.t - CF.tilt * 0.6) / (CF.land + CF.tilt * 0.4))) : 1 - Math.min(1, fall.t / (CF.rise * 0.6));
@@ -280,6 +300,19 @@ export function createTeenBossSupport(battle) {
       smoke.draw(ctx, { x: cx, y: cy }, 'front', 0.3);
       if (gajaeman && this.gajaemanShown() && this.gajaemanInFront()) this.drawGajaeman(ctx);
       for (const c of crits) this.drawCrit(ctx, c);
+      // 지지직: 흰·보라 번개 조각
+      for (const p of sparks) {
+        ctx.save(); ctx.strokeStyle = p.seed % 2 < 1 ? '#ffffff' : '#c890ff'; ctx.lineWidth = 2; ctx.beginPath();
+        let x = p.x, y = p.y; ctx.moveTo(x, y);
+        for (let i = 0; i < 5; i++) { x += Math.sin(p.seed + i * 2.1) * 10; y += 6 + Math.cos(p.seed * 1.7 + i) * 5; ctx.lineTo(Math.round(x), Math.round(y)); }
+        ctx.stroke(); ctx.restore();
+      }
+      // 퓌시이익: 옅은 김과 연기
+      for (const p of steam) {
+        ctx.save(); ctx.globalAlpha = Math.max(0, 1 - p.t / p.life) * 0.6; ctx.fillStyle = p.r > 14 ? '#6a5a80' : '#d8d0e8';
+        const r = Math.round(p.r); for (let row = -r; row < r; row += 2) { const half = Math.round(Math.sqrt(Math.max(0, 1 - ((row + 1) / r) ** 2)) * r); ctx.fillRect(Math.round(p.x - half), Math.round(p.y + row), half * 2, 2); }
+        ctx.restore();
+      }
     },
     /** Right-side gauge: 청소 용량 — only fades in during the cleaning pattern (사용자 “청소패턴일때만 페이드인”). */
     drawOverlay(ctx) {

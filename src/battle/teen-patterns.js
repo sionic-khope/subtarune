@@ -161,7 +161,7 @@ export const TEEN_PATTERNS = {
       if (t < ready) { if (t > VC.approach && !opened) { opened = true; api.sfx?.('power', { volume: 0.6 }); api.shake?.(VC.open, 2); } return; }
       if (!sucking) { sucking = true; api.sfx?.('teen_vacuum', { volume: 0.9 }); api.shake?.(0.5, 4); }
       // 구멍 쪽(왼쪽 위)으로 끌려간다, 점점 세게
-      const pull = (22 + 48 * Math.min(1, (t - ready) / (duration * 0.6))) * (1 + 0.12 * lv), dx = px - api.soul.x, dy = py - api.soul.y, d = Math.max(1, Math.hypot(dx, dy));
+      const pull = (14 + 30 * Math.min(1, (t - ready) / (duration * 0.6))) * (1 + 0.1 * lv), dx = px - api.soul.x, dy = py - api.soul.y, d = Math.max(1, Math.hypot(dx, dy));
       api.soul.x = clamp(api.soul.x + dx / d * pull * dt, box.x + api.soul.r + 4, box.x + box.w - api.soul.r - 4);
       api.soul.y = clamp(api.soul.y + dy / d * pull * dt, box.y + api.soul.r + 4, box.y + box.h - api.soul.r - 4);
       const every = Math.max(0.16, (0.32 - (t - ready) * 0.01) * (1 - 0.07 * lv));
@@ -223,7 +223,17 @@ export const TEEN_PATTERNS = {
     // 끝까지(상자 위 벽) 빨려 가면 구멍으로 들어가 전원 50, 그 뒤 흡입이 멎는다
     const VC = TEEN_BATTLE.view.vacuum, M = TEEN_BATTLE.mash, ready = VC.approach + VC.open, duration = M.duration + ready;
     const to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]], from = TEEN_BATTLE.view.giant, lv = Math.min(4, o.level ?? 0);
-    let started = false, opened = false, sucking = false, sucked = 0, next = ready + 0.3, n = 0, presses = 0, jolt = 0, gulp = null;
+    let started = false, opened = false, sucking = false, sucked = 0, next = ready + 0.3, n = 0, presses = 0, jolt = 0, gulp = null, lockY = null, nextRock = ready + 1.2, flash = 0;
+    /** 누르라는 C 키: 상자 아래 가운데에 고정, 맥동(눌렀을 때 색만 바뀌고 움직이지 않는다) */
+    const drawKey = (ctx, b) => {
+      if (sucked) return;
+      const box = b.box, x = Math.round(box.x + box.w / 2 - 9), y = Math.round(box.y + box.h + 8), pulse = 0.6 + 0.4 * Math.abs(Math.sin(b.age * 7));
+      ctx.save(); ctx.globalAlpha = flash > 0 ? 1 : pulse;
+      ctx.fillStyle = flash > 0 ? '#c890ff' : '#1a0b2e'; ctx.fillRect(x, y, 18, 18);
+      ctx.strokeStyle = '#d8b8ff'; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, 16, 16);
+      ctx.fillStyle = flash > 0 ? '#1a0b2e' : '#f0e4ff'; ctx.font = '12px "Galmuri11", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', x + 9, y + 10);
+      ctx.restore();
+    };
     /** 손바닥에 닿은 하트가 소용돌이치며 구멍으로 빨려 들어가고(0.6초) → 터진다(보라·흰 폭발) */
     const drawGulp = (ctx, b) => {
       const g = b.g, t = b.age, [ax, ay] = VC.palm;
@@ -249,7 +259,10 @@ export const TEEN_PATTERNS = {
       api.present?.({ sheet: 'vacuum', x: Math.round(from.x + (to[0] - from.x) * e), y: Math.round(from.y + (to[1] - from.y) * e) });
       tickTimers(api, dt);
       if (t < ready) { if (t > VC.approach && !opened) { opened = true; api.sfx?.('power', { volume: 0.6 }); api.shake?.(VC.open, 2); } return; }
-      if (!sucking) { sucking = true; api.sfx?.('teen_vacuum', { volume: 1 }); api.shake?.(0.6, 5); soul.x = box.x + box.w / 2; soul.y = box.y + box.h - soul.r - 8; }
+      if (!sucking) { sucking = true; api.sfx?.('teen_vacuum', { volume: 1 }); api.shake?.(0.6, 5); soul.x = box.x + box.w / 2; soul.y = box.y + box.h - soul.r - 8; lockY = soul.y; api.emit({ x: box.x, y: box.y, r: 0, harmless: true, free: true, life: duration, box, drawShape: drawKey }); }
+      flash -= dt;
+      // 아래 방향키로는 못 내려간다(좌우·위만)
+      if (lockY !== null && !gulp && soul.y > lockY) soul.y = lockY;
       // 빨려 들어가는 중: 하트는 감추고, 끝나면 상자 아래에서 다시
       if (gulp) {
         soul.x = gulp.x; soul.y = gulp.y;
@@ -257,16 +270,31 @@ export const TEEN_PATTERNS = {
         if (t - gulp.t > 1.3) { soul.hidden = false; soul.x = box.x + box.w / 2; soul.y = box.y + box.h - soul.r - 8; gulp = null; }
       } else if (!sucked && t < duration - 1) {
         // 점점 세게 위(손바닥 구멍)로
-        const pull = (M.pull[0] + (M.pull[1] - M.pull[0]) * Math.min(1, (t - ready) / (M.duration * 0.7))) * (1 + 0.08 * lv);
+        const pull = (M.pull[0] + (M.pull[1] - M.pull[0]) * Math.min(1, (t - ready) / (M.duration * M.ramp))) * (1 + 0.08 * lv);
         const dx = px - soul.x, dy = py - soul.y, d = Math.max(1, Math.hypot(dx, dy));
         soul.x += dx / d * pull * 0.35 * dt; soul.y += dy / d * pull * dt;
         // C 한 번마다 하트가 아래로 튕겨 나간다(작게 흔들려 반응이 보이게)
-        if (api.just?.('confirm')) { presses++; jolt = 0.1; soul.y += M.push; soul.x -= dx / d * 3; }
+        if (api.just?.('confirm')) { presses++; jolt = 0.1; flash = 0.08; soul.y += M.push; soul.x -= dx / d * 3; }
         if (jolt > 0) { jolt -= dt; soul.x += Math.sin(t * 90) * 1.2; }
         soul.x = clamp(soul.x, box.x + soul.r + 4, box.x + box.w - soul.r - 4);
         soul.y = Math.min(soul.y, box.y + box.h - soul.r - 4);
         // 상자 위쪽은 손바닥 구멍 바로 아래 — 거기(손)까지 끌려가면 빨려 들어간다
-        if (soul.y <= box.y + soul.r + 4) {
+        lockY = soul.y;
+        // 아래에서 솟는 돌(맞으면 피해): 하트 근처 줄에 예고 → 빠르게 위(구멍)로
+        const R = M.rock, rk = Math.min(1, (t - ready) / (M.duration * 0.8)), rockEvery = R.every[0] + (R.every[1] - R.every[0]) * rk;
+        if (t >= nextRock && t < duration - 1.5) {
+          nextRock = t + rockEvery;
+          const x = clamp(soul.x + (api.rnd() - 0.5) * 50, box.x + 14, box.x + box.w - 14);
+          api.emit({ zone: true, x: x - 12, y: box.y, w: 24, h: box.h, warn: R.warn, life: R.warn + 0.05, harmless: true,
+            drawShape(ctx, b) { ctx.save(); clip(ctx, api.box); ctx.fillStyle = `rgba(200,120,255,${0.12 + 0.25 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h);
+              if (Math.floor(b.age * 12) % 2 === 0) { ctx.fillStyle = '#c070ff'; const cx = b.x + b.w / 2, by = api.box.y + api.box.h - 6; ctx.beginPath(); ctx.moveTo(cx - 7, by); ctx.lineTo(cx, by - 8); ctx.lineTo(cx + 7, by); ctx.closePath(); ctx.fill(); }
+              ctx.restore(); } });
+          setTimeoutLike(api, R.warn, () => {
+            api.sfx?.('spearappear', { volume: 0.35 });
+            api.emit({ x, y: box.y + box.h + 8, r: 9, vy: -R.speed * (1 + 0.1 * lv), spin: 6, src: ROCKS[Math.floor(api.rnd() * ROCKS.length)], seed: n++, drawShape: drawDebris });
+          });
+        }
+        if (soul.y <= box.y + soul.r + 4 && t < duration - 1.6) {
           sucked = t; gulp = { t, x: soul.x, y: soul.y, boom: false }; soul.hidden = true;
           api.sfx?.('teen_vacuum', { volume: 1 });
           api.emit({ x: soul.x, y: soul.y, r: 0, harmless: true, free: true, life: 1.3, g: { x: soul.x, y: soul.y }, drawShape: drawGulp });

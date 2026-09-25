@@ -740,7 +740,8 @@ export class Battle {
     if (!act?.airborne && this.cfg.bg !== 'choimis_sky') { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(px), Math.round(py + 2), 15, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.save(); ctx.translate(Math.round(px), Math.round(py)); if (mode === 'return') ctx.scale(-1, 1);
     if (act?.rotation) { ctx.translate(0, -30); ctx.rotate(act.rotation); ctx.translate(0, 30); }
-    const special = !act ? this.support?.memberImage?.(m) : null;   // 방어하기 자세(청소년전): 대기 첫 프레임과 같은 규격 384×512
+    // 공격을 한 번 한 멤버는 action 이 idle 로 남는다 — idle 이면 방어 자세를 보여 준다(후반에 방어 자세가 안 나오던 버그)
+    const special = !act || act.mode === 'idle' ? this.support?.memberImage?.(m) : null;   // 방어하기 자세(청소년전): 대기 첫 프레임과 같은 규격 384×512
     if (special) ctx.drawImage(special, Math.round(-seq[0].pivot[0] * scale), Math.round(-seq[0].pivot[1] * scale), Math.round(special.width * scale), Math.round(special.height * scale));
     else ctx.drawImage(fr.image, Math.round(-fr.pivot[0] * scale), Math.round(-fr.pivot[1] * scale), Math.round(fr.image.width * scale), Math.round(fr.image.height * scale));
     ctx.restore();

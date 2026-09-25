@@ -62,7 +62,8 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   assert.ok(await until(() => game.battle.state === 'bullets', 12000), 'mash turn');
   check('third cleaning is the C-mash struggle', await page.evaluate(() => game.battle.patterns.some(p => p.p && game.battle.support.snapshot.vacTurns === 3)), JSON.stringify((await B()).sup));
   await page.waitForTimeout(3200); await shot('mash-1');
-  for (let i = 0; i < 90 && (await B()).state === 'bullets'; i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(60); if (i === 40) await shot('mash-2'); }
+  // 초당 10번 넘게 연타(8번 미만이면 빨려 들어가게 맞춰 두었다)
+  for (let i = 0; i < 160; i++) { if (i % 20 === 0 && (await B()).state !== 'bullets') break; await page.keyboard.press('KeyC'); await page.waitForTimeout(45); if (i === 60) await shot('mash-2'); }
   check('mashing C keeps the heart out of the hole', (await B()).sup.suckedCount === 0, JSON.stringify((await B()).sup));
   assert.ok(await until(() => game.battle.state === 'menu' || game.battle.state === 'interlude', 25000));
   while ((await B()).state === 'interlude') await press('KeyC');
@@ -73,9 +74,9 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   assert.ok(collapsed, 'collapse interlude');
   // 쓰러지는 연출이 몇 초 이어진 뒤에야 대사(사용자 “바로 대사가 뜨는게아니라 쓰러지는 연출도 몇초”)
   await page.waitForTimeout(700); await shot('collapse-1');
-  check('collapsing before the line', (await B()).sup.fall === 'collapse' && (await B()).text !== '* 지금이에요 공격해요!!', JSON.stringify(await B()));
+  check('overloading (sparks and steam) then collapsing before the line', ['overload', 'collapse'].includes((await B()).sup.fall) && (await B()).text !== '* 지금이에요 공격해요!!', JSON.stringify(await B()));
   await page.waitForTimeout(1100); await shot('collapse-2');
-  assert.ok(await until(() => game.battle.text === '* 지금이에요 공격해요!!', 6000), 'down line after the collapse');
+  assert.ok(await until(() => game.battle.text === '* 지금이에요 공격해요!!', 9000), 'down line after the collapse');
   await page.waitForTimeout(600); await shot('down-line');
   check('gajaeman left the shoulder to hover behind the fallen 청소년', (await B()).sup.gajaeman === 'hover', JSON.stringify((await B()).sup));
   while ((await B()).state === 'interlude') await press('KeyC');
