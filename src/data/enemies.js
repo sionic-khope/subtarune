@@ -182,7 +182,7 @@ export const ENEMIES = {
   },
   // BUILD339 청소년(사용자 2026-09-25): 선화 상체 보스. 공격은 지원 모듈(support/teen-boss.js)이 잠그고 푼다. 시트 3×2 = 대기·숨·주먹·내려찍기·청소기·쓰러짐
   teen_giant: {
-    name: '청소년', hp: 999, damage: 15, money: 0, boss: true, support: 'teen_boss', voice: 'narrator',
+    name: '청소년', hp: 999, damage: 15, money: 0, boss: true, support: 'teen_boss', voice: 'narrator', bgmDelay: 0.9,
     // BUILD342: 필드 대치와 같은 그림·같은 화면 자리(teen-battle.js view.giant = 150,-40 → ENEMY_X 396/ENEMY_YS 176 기준 dx·dy). 숨쉬기 없음
     sheet: { src: 'assets/props/summit342_teen.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [0, 0] },
     actions: {

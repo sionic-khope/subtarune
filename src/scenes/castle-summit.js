@@ -59,12 +59,13 @@ export class CastleSummit {
     return this.tweenActor(a.x, a.y - 260, SUMMIT.burst, k => k * k).then(() => {
       this.game.sound.sfx('wing', { volume: 0.5 });
       return this.tweenActor(sx - a.w / 2, sy - a.h, SUMMIT.perch);
-    }).then(() => { this.aura = 1; this.game.sound.sfx('thud', { volume: 0.5 }); });
+    }).then(() => { this.aura = 0; this.onBack = true; a.visible = false; this.game.sound.sfx('thud', { volume: 0.5 }); });
   }
   perch(instant) {
     const a = this.actor; if (!a) return;
     const [sx, sy] = world(V.shoulder);
-    a.visible = true; a.facing = 'left'; if (instant) { a.x = sx - a.w / 2; a.y = sy - a.h; }
+    // 청소년 뒤로 들어가 보이지 않는다(전투에서도 쓰러질 때만 나온다)
+    a.visible = false; a.facing = 'left'; this.onBack = true; if (instant) { a.x = sx - a.w / 2; a.y = sy - a.h; }
   }
   update(dt) {
     const g = this.game;
@@ -98,6 +99,15 @@ export class CastleSummit {
     // 드러나기 전엔 연기가 짙게 덮고, 걷히면서 옅어진다(제자리, 올라오지 않음). 숨쉬기 없음(사용자 “숨쉬는듯한느낌도 빼”)
     const k = this.giant ? Math.min(1, this.giant.t / SUMMIT.reveal) : 0, veil = this.giant ? 1 - ease(k) : 0;
     this.smoke.draw(ctx, cam, 'back', veil * 0.5);
+    // 허공에 떠 있는 가재맨은 연기 위에 또렷이(보라 빛무리와 함께). 등 뒤에 앉으면 청소년에 가려진다
+    const a = this.actor;
+    if (a?.visible && !this.onBack) {
+      const x = a.x + a.w / 2 - cam.x, y = a.y + a.h - 50 - cam.y + (a.flyY || 0);
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, 70);
+      glow.addColorStop(0, 'rgba(110,40,180,0.45)'); glow.addColorStop(1, 'rgba(20,6,40,0)');
+      ctx.fillStyle = glow; ctx.fillRect(x - 70, y - 70, 140, 140);
+      a.draw(ctx, cam);
+    }
     if (img) {
       const [x, y] = world([V.giant.x, V.giant.y]);
       ctx.globalAlpha = ease(k);

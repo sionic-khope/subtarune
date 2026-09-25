@@ -304,13 +304,14 @@ export class Battle {
       else if (btn.kind === 'support') {
         const action = this.support?.action(btn.id);
         if (action?.type === 'text') { this.setText(action.text); this.state = 'text'; this.after = 'menu'; this.t = 0; }   // 문구만 보여 주고 메뉴로
+        else if (action?.queue) { this.plans.push(action); this.nextMember(); }   // 멤버별 지원 행동(청소년전 방어하기): 앞 멤버의 선택을 지우지 않는다
         else if (action) { this.plans = [action]; this.beginAct(); }
         else this.setText(this.support.hint);
       } else { const items = plainItems(this.game.inventory); if (!items.length) { this.setText(L.battle_no_items); this.state = 'text'; this.after = 'menu'; this.t = 0; } else { this.state = 'item'; this.itemIdx = 0; this.t = 0; } }
       return;
     }
     if (input.just('cancel') && this.plans.length) {           // 이전 멤버로 되돌아가기 (델타룬처럼)
-      this.sfx('cancel'); this.plans.pop(); this.memberIdx--; while (this.memberIdx > 0 && this.members[this.memberIdx].down) this.memberIdx--; this.menuIdx = 0;
+      this.sfx('cancel'); this.support?.onPlanCancel?.(this.plans.pop()); this.memberIdx--; while (this.memberIdx > 0 && this.members[this.memberIdx].down) this.memberIdx--; this.menuIdx = 0;
     }
   }
   updateTarget(input) {

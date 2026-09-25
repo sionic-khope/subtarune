@@ -42,36 +42,51 @@ const drawDebris = (ctx, b) => {
   ctx.drawImage(img, -Math.round(img.width * k / 2), -Math.round(img.height * k / 2), Math.round(img.width * k), Math.round(img.height * k)); ctx.restore();
 };
 export const TEEN_DEBRIS = DEBRIS;
-/** 상자를 덮는 소용돌이 깔때기: 왼쪽 손바닥 구멍(꼭짓점)에서 오른쪽으로 벌어지며, 고리·바람 줄기가 구멍으로 빨려 든다 */
+/** 상자를 덮는 소용돌이 깔때기: 왼쪽 위 손바닥 구멍(꼭짓점)에서 상자 오른쪽 아래로 대각선으로 벌어지고, 고리·바람 줄기가 구멍으로 빨려 든다 */
 const drawVortex = (ctx, b) => {
-  const t = b.age, k = Math.min(1, t / b.prep), [ax, ay] = TEEN_BATTLE.view.palm, box = b.box, len = box.x + box.w - ax + 30;
-  ctx.save();
-  ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip();
-  const spread = box.h * 0.75 * k;
-  const g = ctx.createLinearGradient(ax, 0, ax + len, 0);
-  g.addColorStop(0, `rgba(200,150,255,${0.5 * k})`); g.addColorStop(0.4, `rgba(120,60,220,${0.3 * k})`); g.addColorStop(1, `rgba(60,20,120,${0.16 * k})`);
-  ctx.fillStyle = g; ctx.fillRect(box.x, box.y, box.w, box.h);
-  ctx.translate(ax, ay); ctx.lineCap = 'round';
-  // 구멍으로 조여 드는 소용돌이 고리
-  for (let i = 0; i < 16; i++) {
-    const ph = 1 - (((i / 16) + t * (0.45 + 0.8 * k)) % 1), x = len * ph, r = spread * ph + 6;
-    ctx.strokeStyle = `rgba(190,140,255,${(0.2 + 0.6 * (1 - ph)) * k})`; ctx.lineWidth = 1 + 2.5 * (1 - ph);
-    const a0 = t * 7 + i * 1.9;
-    ctx.beginPath(); ctx.ellipse(x, 0, Math.max(2, r * 0.3), r, 0, a0, a0 + 2.6); ctx.stroke();
+  const VC = TEEN_BATTLE.view.vacuum, ready = VC.approach + VC.open, t = b.age, box = b.box, [ax, ay] = VC.palm;
+  // 여는 동안 서서히, 빨아들이기 시작하면 완전히
+  const k = Math.min(1, Math.max(0, (t - VC.approach) / VC.open)), on = t >= ready ? 1 : 0.35 * k;
+  const fx = box.x + box.w + 10, fy = box.y + box.h + 10, len = Math.hypot(fx - ax, fy - ay), ang = Math.atan2(fy - ay, fx - ax);
+  if (on > 0) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip();
+    const g = ctx.createLinearGradient(ax, ay, fx, fy);
+    g.addColorStop(0, `rgba(210,160,255,${0.5 * on})`); g.addColorStop(0.45, `rgba(120,60,220,${0.3 * on})`); g.addColorStop(1, `rgba(50,16,110,${0.18 * on})`);
+    ctx.fillStyle = g; ctx.fillRect(box.x, box.y, box.w, box.h);
+    ctx.translate(ax, ay); ctx.rotate(ang); ctx.lineCap = 'round';
+    const spread = box.h * 0.9 * on;
+    // 나선으로 조여 드는 이중 고리
+    for (let i = 0; i < 14; i++) {
+      const ph = 1 - (((i / 14) + t * 0.9) % 1), x = len * ph, r = spread * ph + 6;
+      for (const tw of [0, Math.PI]) {
+        ctx.strokeStyle = `rgba(200,150,255,${(0.2 + 0.6 * (1 - ph)) * on})`; ctx.lineWidth = 1 + 2.5 * (1 - ph);
+        const a0 = t * 8 + i * 1.3 + tw;
+        ctx.beginPath(); ctx.ellipse(x, 0, Math.max(2, r * 0.28), r, 0, a0, a0 + 1.9); ctx.stroke();
+      }
+    }
+    // 상자 전체에서 구멍으로 빨려 드는 바람 줄기(빈 곳 없이)
+    for (let i = 0; i < 30; i++) {
+      const ph = ((i * 0.381 + t * (0.8 + (i % 3) * 0.3)) % 1), lane = ((i * 0.618) % 1) * 2 - 1;
+      const x = len * (1 - ph), y = lane * spread * (1 - ph * 0.85);
+      ctx.strokeStyle = `rgba(175,125,255,${0.6 * ph * on})`; ctx.lineWidth = 1 + (i % 2);
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x - 16, y * 0.92 + 4 * Math.sin(t * 6 + i), x - 34, y * 0.84); ctx.stroke();
+    }
+    ctx.restore();
   }
-  // 상자 전체를 가로질러 구멍으로 빨려 드는 바람 줄기(빈 곳 없이)
-  for (let i = 0; i < 26; i++) {
-    const ph = ((i * 0.381 + t * (0.9 + (i % 3) * 0.25)) % 1), lane = ((i * 0.618) % 1) * 2 - 1;
-    const x = len * (1 - ph), y = lane * box.h * 0.55 * (1 - ph * 0.85);
-    ctx.strokeStyle = `rgba(170,120,255,${0.55 * ph * k})`; ctx.lineWidth = 1 + (i % 2);
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x - 14, y * 0.93 + 4 * Math.sin(t * 6 + i), x - 30, y * 0.85); ctx.stroke();
-  }
-  ctx.restore();
-  // 구멍: 보라빛 고리가 맥동
+  // 구멍: 여는 동안 점점 커지며 충전(보라 빛이 모여든다) → 열리면 맥동
+  if (t < VC.approach * 0.6) return;
   ctx.save();
-  const pr = 8 + 10 * k + Math.sin(t * 14) * 2;
-  ctx.strokeStyle = `rgba(190,120,255,${0.9 * k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(ax, ay, pr, 0, TAU); ctx.stroke();
-  ctx.strokeStyle = `rgba(120,60,220,${0.7 * k})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(ax, ay, pr + 5 + (t * 30) % 10, 0, TAU); ctx.stroke();
+  const pr = (4 + 16 * k) + (t >= ready ? Math.sin(t * 14) * 2 : 0);
+  const glow = ctx.createRadialGradient(ax, ay, 0, ax, ay, pr * 2.6);
+  glow.addColorStop(0, `rgba(40,0,70,${0.9 * k})`); glow.addColorStop(0.45, `rgba(170,90,255,${0.55 * k})`); glow.addColorStop(1, 'rgba(120,60,220,0)');
+  ctx.fillStyle = glow; ctx.fillRect(ax - pr * 3, ay - pr * 3, pr * 6, pr * 6);
+  ctx.strokeStyle = `rgba(200,130,255,${0.95 * Math.max(k, 0.3)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(ax, ay, pr, 0, TAU); ctx.stroke();
+  if (t < ready) for (let i = 0; i < 8; i++) {
+    // 충전: 둘레에서 구멍으로 모여드는 빛 조각
+    const ph = ((i / 8) + t * 1.6) % 1, a = i * 0.785 + t, r = pr + 34 * (1 - ph);
+    ctx.fillStyle = `rgba(220,180,255,${ph})`; ctx.fillRect(Math.round(ax + Math.cos(a) * r), Math.round(ay + Math.sin(a) * r), 2, 2);
+  }
   ctx.restore();
 };
 /** 방해용 가재맨 검 한 자루(세로 칸 예고 → 보라 검이 내리꽂힘) */
@@ -92,7 +107,7 @@ const harassSword = (api, x) => {
 /** 방해용 가재맨 무릎(아래에서 솟는 무릎, “넣을게~”) */
 const harassKnee = (api, x) => {
   const box = api.box, img = api.images?.knee, cw = img ? img.width / 4 : 60, ch = img ? img.height : 60, s = 0.55, w = cw * s, h = ch * s, warn = 0.55;
-  api.sfx?.('gajaeman_knee', { volume: 0.8 });
+  api.sfx?.('gajaeman_knee', { volume: 1 });
   api.emit({ zone: true, x: x - 20, y: box.y + box.h - 78, w: 40, h: 78, warn, life: warn + 0.5,
     drawShape(ctx, b) {
       ctx.save(); clip(ctx, api.box);
@@ -108,56 +123,57 @@ export const TEEN_PATTERNS = {
   //   오른쪽 밖에서 손바닥(구멍)이 뻗어 오고, 그 앞 삼각형 소용돌이가 하트를 오른쪽으로 빨아들인다. 컬러 잔해가 왼쪽에서 날아와 구멍으로 빨려 간다.
   //   손·소용돌이 그림은 support.drawUnderBoard(상자 밖)에서, 이 패턴은 힘·잔해·예고만.
   teen_vacuum: (o = {}) => {
-    // BUILD343(사용자 “비어보임”, “맵 위로 소용돌이”, “더 넓혀”, “두배는 더 오래·느리게”, “3번째부터 가재맨이 검·넣을게로 방해”):
-    //   왼쪽 손바닥 구멍(view.palm)이 상자 왼쪽 가운데에서 빨아들인다. 잔해는 오른쪽·위·아래 벽 밖에서 생겨 상자를 가로질러 구멍으로.
-    const duration = o.duration ?? 16.8, prep = 1.8, V = TEEN_BATTLE.view;
-    let next = prep + 0.2, n = 0, started = false, trophy = false, nextHarass = prep + 2.2, h = 0;
+    // 사용자 교정 누적: 대각선 위 손바닥에서 빨아들임(“대각선 위에서 좋았는데”), 비어 보이지 않게 상자를 바람·잔해로 채움,
+    // 손을 가져다 대고 벌리는 준비 시간(approach → open), 두 배 길이·느린 잔해, 세 번째 청소부터 가재맨 방해
+    const VC = TEEN_BATTLE.view.vacuum, ready = VC.approach + VC.open, duration = o.duration ?? 16.8 + ready - 1.8;
+    const from = TEEN_BATTLE.view.giant, to = [VC.palm[0] - VC.palmInSprite[0], VC.palm[1] - VC.palmInSprite[1]];
+    let next = ready + 0.2, n = 0, started = false, opened = false, sucking = false, trophy = false, nextHarass = ready + 2.2, h = 0;
     return { duration, update(t, dt, api) {
-      const box = api.box, [px, py] = V.palm;
+      const box = api.box, [px, py] = VC.palm;
       if (!started) {
-        started = true; api.present?.({ sheet: 'vacuum', x: V.vacuumPose[0], y: V.vacuumPose[1] }); api.sfx?.('teen_vacuum', { volume: 0.9 }); api.vacuum?.(true, duration);
-        api.emit({ x: box.x, y: box.y, r: 0, harmless: true, life: duration, box, prep, drawShape: drawVortex });
+        started = true; api.sfx?.('rumble', { volume: 0.6 }); api.vacuum?.(true, duration);
+        api.emit({ x: box.x, y: box.y, r: 0, harmless: true, life: duration, box, drawShape: drawVortex });
       }
+      // 손을 가져다 댄다(선 자세 자리 → 구멍이 대각선 위에 오는 자리)
+      const k = Math.min(1, t / VC.approach), e = 1 - (1 - k) ** 3;
+      api.present?.({ sheet: 'vacuum', x: Math.round(from.x + (to[0] - from.x) * e), y: Math.round(from.y + (to[1] - from.y) * e) });
       tickTimers(api, dt);
-      if (t < prep) return;
-      // 구멍 쪽(왼쪽)으로 끌려간다, 점점 세게
-      const pull = 16 + 38 * Math.min(1, (t - prep) / (duration * 0.6)), dx = px - api.soul.x, dy = py - api.soul.y, d = Math.max(1, Math.hypot(dx, dy));
+      if (t < ready) { if (t > VC.approach && !opened) { opened = true; api.sfx?.('power', { volume: 0.6 }); api.shake?.(VC.open, 2); } return; }
+      if (!sucking) { sucking = true; api.sfx?.('teen_vacuum', { volume: 0.9 }); api.shake?.(0.5, 4); }
+      // 구멍 쪽(왼쪽 위)으로 끌려간다, 점점 세게
+      const pull = 16 + 40 * Math.min(1, (t - ready) / (duration * 0.6)), dx = px - api.soul.x, dy = py - api.soul.y, d = Math.max(1, Math.hypot(dx, dy));
       api.soul.x = clamp(api.soul.x + dx / d * pull * dt, box.x + api.soul.r + 4, box.x + box.w - api.soul.r - 4);
-      api.soul.y = clamp(api.soul.y + dy / d * pull * 0.6 * dt, box.y + api.soul.r + 4, box.y + box.h - api.soul.r - 4);
-      const every = Math.max(0.24, 0.4 - (t - prep) * 0.012);
+      api.soul.y = clamp(api.soul.y + dy / d * pull * dt, box.y + api.soul.r + 4, box.y + box.h - api.soul.r - 4);
+      const every = Math.max(0.24, 0.4 - (t - ready) * 0.012);
       while (t >= next && t < duration - 1.2) {
         next += every; n++;
-        const side = api.rnd(), warn = 0.5, speed = 80 + api.rnd() * 45;
-        let x, y, wx, wy, dir;
-        if (side < 0.5) { x = box.x + box.w + 24; y = box.y + 10 + api.rnd() * (box.h - 20); wx = box.x + box.w - 7; wy = y; dir = 'left'; }
-        else if (side < 0.75) { x = box.x + 40 + api.rnd() * (box.w - 50); y = box.y - 24; wx = x; wy = box.y + 7; dir = 'down'; }
-        else { x = box.x + 40 + api.rnd() * (box.w - 50); y = box.y + box.h + 24; wx = x; wy = box.y + box.h - 7; dir = 'up'; }
+        // 오른쪽 벽·아래 벽 밖에서 생겨 대각선으로 구멍에 빨려 든다
+        const fromRight = api.rnd() < 0.5, warn = 0.5, speed = 80 + api.rnd() * 45;
+        const x = fromRight ? box.x + box.w + 24 : box.x + 20 + api.rnd() * (box.w - 30), y = fromRight ? box.y + 10 + api.rnd() * (box.h - 20) : box.y + box.h + 24;
+        const wx = fromRight ? box.x + box.w - 7 : x, wy = fromRight ? y : box.y + box.h - 7;
         let src;
         if (!trophy && n > 8 && api.rnd() < 0.06) { src = TROPHY; trophy = true; } else src = api.rnd() < 0.14 ? JUNK[Math.floor(api.rnd() * JUNK.length)] : ROCKS[Math.floor(api.rnd() * ROCKS.length)];
-        api.emit({ x: wx, y: wy, r: 0, harmless: true, life: warn, drawShape: (ctx, b) => {
-          if (Math.floor(b.age * 12) % 2) return;
+        api.emit({ x: wx, y: wy, r: 0, harmless: true, life: warn, drawShape: (ctx, bb) => {
+          if (Math.floor(bb.age * 12) % 2) return;
           ctx.fillStyle = '#b070ff'; ctx.beginPath();
-          if (dir === 'left') { ctx.moveTo(wx + 4, wy - 6); ctx.lineTo(wx - 4, wy); ctx.lineTo(wx + 4, wy + 6); }
-          else if (dir === 'down') { ctx.moveTo(wx - 6, wy - 4); ctx.lineTo(wx, wy + 4); ctx.lineTo(wx + 6, wy - 4); }
-          else { ctx.moveTo(wx - 6, wy + 4); ctx.lineTo(wx, wy - 4); ctx.lineTo(wx + 6, wy + 4); }
+          if (fromRight) { ctx.moveTo(wx + 4, wy - 6); ctx.lineTo(wx - 4, wy); ctx.lineTo(wx + 4, wy + 6); } else { ctx.moveTo(wx - 6, wy + 4); ctx.lineTo(wx, wy - 4); ctx.lineTo(wx + 6, wy + 4); }
           ctx.closePath(); ctx.fill();
         } });
         api.emit({ x, y, r: 10, vx: 0, vy: 0, spin: (api.rnd() - 0.5) * 7, kind: 'debris', src, seed: n, drawShape: drawDebris,
-          steer(b, dd) {
-            if (b.age < warn) return;
-            // 구멍을 향해 소용돌이치며 가속
-            const ex = px - b.x, ey = py - b.y, dist = Math.max(1, Math.hypot(ex, ey)), v = speed * (1 + 1.3 * Math.max(0, 1 - dist / 150));
+          steer(bb, dd) {
+            if (bb.age < warn) return;
+            const ex = px - bb.x, ey = py - bb.y, dist = Math.max(1, Math.hypot(ex, ey)), v = speed * (1 + 1.3 * Math.max(0, 1 - dist / 150));
             const tx = ex / dist * v + (-ey / dist) * v * 0.3, ty = ey / dist * v + (ex / dist) * v * 0.3;
-            b.vx += (tx - b.vx) * Math.min(1, dd * 3); b.vy += (ty - b.vy) * Math.min(1, dd * 3);
-            b.shrink = Math.min(1, dist / 40);
-            if (!b.touched && b.hits(api.soul)) b.touched = true;
-            if (!b.counted && dist < 14) { b.counted = true; b.life = b.age; if (!b.touched) api.trackProjectile?.({ type: 'teen_dodge' }); }
+            bb.vx += (tx - bb.vx) * Math.min(1, dd * 3); bb.vy += (ty - bb.vy) * Math.min(1, dd * 3);
+            bb.shrink = Math.min(1, dist / 40);
+            if (!bb.touched && bb.hits(api.soul)) bb.touched = true;
+            if (!bb.counted && dist < 14) { bb.counted = true; bb.life = bb.age; if (!bb.touched) api.trackProjectile?.({ type: 'teen_dodge' }); }
           } });
       }
-      // 세 번째 청소부터: 가재맨이 중간중간 검·무릎으로 방해
       if (o.harass && t >= nextHarass && t < duration - 2) {
         nextHarass = t + 2.4 + api.rnd() * 0.8; h++;
         const x = clamp(api.soul.x + (api.rnd() - 0.5) * 30, box.x + 24, box.x + box.w - 24);
+        api.trackProjectile?.({ type: 'gj_pop' });
         if (h % 2) harassSword(api, x); else harassKnee(api, x);
       }
     } };
@@ -261,7 +277,7 @@ export const TEEN_PATTERNS = {
       if (b.phase === 'walk') {
         b.x += b.dir * 95 * dt; b.frame = 3;
         if (b.x > box.x + box.w - w / 2 - 4) b.dir = -1; if (b.x < box.x + w / 2 + 4) b.dir = 1;
-        if (t >= next && t < duration - 1) { next = t + every; b.phase = 'raise'; b.pt = 0; b.frame = 1; api.sfx?.('gajaeman_knee', { volume: 0.8 });
+        if (t >= next && t < duration - 1) { next = t + every; b.phase = 'raise'; b.pt = 0; b.frame = 1; api.sfx?.('gajaeman_knee', { volume: 1 });
           const kx = b.x;
           api.emit({ zone: true, x: kx - 18, y: box.y, w: 36, h: box.h - h + 6, warn: 0.42, life: 0.72 });
           setTimeoutLike(api, 0.42, () => { api.sfx?.('impact', { volume: 0.55 }); api.shake?.(0.2, 3); strikes++;

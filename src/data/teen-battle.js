@@ -2,6 +2,8 @@
 export const TEEN_BATTLE = Object.freeze({
   enemy: 'teen_giant', hp: 999,
   defend: { reduce: 3 },
+  // 청소년전 적 공격 한 대 피해: 20~25 무작위(사용자 2026-09-25), 방어한 멤버만 −3
+  enemyHit: [20, 25],
   // BUILD342 청소 패턴 두 배 길이(사용자 “지금보다 두배는 더”) → 피한 잔해 하나당 1%
   gauge: { perDodge: 1.0, max: 100 },
   slamEvery: 3,
@@ -18,13 +20,16 @@ export const TEEN_BATTLE = Object.freeze({
     // BUILD343: 몸 전체가 왼쪽을 향한 옆모습, 600px(머리 위·몸 아래는 화면 밖 — 거대해서 상체만 보이게). 자세 4종이 같은 캔버스
     giant: { image: 'assets/props/summit342_teen.png', x: 150, y: -40 },
     down: { image: 'assets/props/teen342_down.png', x: 150, y: -40 },
-    // 청소 자세는 20px 위로(손바닥 구멍이 상자 왼쪽 가운데에 오게)
-    vacuumPose: [170, -60], palm: [267, 224],
+    // 청소: 손바닥 구멍이 상자 왼쪽 위 대각선(palm)에 오도록 자세를 옮긴다. palmInSprite = 청소 자세 그림 속 구멍 자리
+    // approach 동안 손을 가져다 대고, open 동안 구멍이 열리며 충전 → 그 뒤에야 빨아들인다(사용자 “공격준비 시간, 웅장하게”)
+    vacuum: { palm: [200, 150], palmInSprite: [97, 284], approach: 1.0, open: 1.3 },
     // 일행 발 위치: 끝길 위에 대각선으로 붙여 선다
     party: { hyungsub: [125, 176], gyeongsub: [93, 204], ppaman: [61, 232] },
-    // 가재맨: 평소엔 청소년 등 뒤(가려져 안 보임) → 쓰러질 때만 천천히 왼쪽으로 날아와 쓰러진 몸 위에 떠 있다 → 일어서면 다시 뒤로
-    // (사용자 “평소엔 안보이다가 쓰러질때만 천천히 왼쪽으로 날아오고 위에 떠있게, 일어서면 다시 뒤로”). 크기는 필드와 같은 1.89
-    shoulder: [352, 70], hover: [300, 118], gajaemanScale: 1.89,
+    // 가재맨: 평소엔 아예 안 보인다 → 쓰러질 때만 청소년 오른쪽 아래 어깨 라인(shoulder)에서 나와 천천히 왼쪽으로 날아와 위에 떠 있다
+    // → 일어서면 다시 어깨 라인 뒤로 사라진다(사용자 “안 보여야”, “오른쪽 아래 어깨쪽 라인에서 나오게”, “너무 크다”)
+    shoulder: [430, 210], hover: [300, 118], gajaemanScale: 1.0,
+    // 청소 중 방해: 어깨 라인에서 잠깐 튀어나와 치고 다시 들어간다(독립적으로 나와서 때리는 느낌)
+    pop: [452, 128],
   },
   // 쓰러지는 연출: 앞으로 기울며 가라앉고(tilt) → 엎드린 그림으로 바뀌며 쿵(land) → 잠깐 정적(hold) 뒤 대사
   collapse: { tilt: 1.5, land: 0.5, hold: 1.2, rise: 1.0 },
@@ -39,7 +44,9 @@ export const TEEN_BATTLE = Object.freeze({
   gajaemanPatterns: ['gj_swords', 'gj_knee', 'gj_mouse'],
   // 가재맨이 패턴 들어가기 전에 치는 대사(사용자 원문 그대로)
   gajaemanLines: { gj_mouse: '니애미따라가라', gj_swords: '너검없냐?', gj_knee: '넣을게~' },
+  // 전투가 열리면 먼저 “마지막이다.”, C 를 누르면 억빠맨
   intro: [
+    { voice: 'narrator', text: '* 마지막이다.' },
     { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 형들 일단 여기서 공격하는건 자살행위에요' },
     { speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: '* 그렇지 그럼 어떻게 할까???' },
     { speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: '* 기회를 노려야죠,,' },

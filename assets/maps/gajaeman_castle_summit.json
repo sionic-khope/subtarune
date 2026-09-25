@@ -35,7 +35,24 @@
   "assets/props/summit336_chunk_0.png",
   "assets/props/summit336_chunk_1.png",
   "assets/props/summit342_teen.png",
-  "assets/props/teen342_down.png"
+  "assets/props/teen342_down.png",
+  "assets/props/teen342_vacuum.png",
+  "assets/props/teen342_slam.png",
+  "assets/props/teen342_rock_0.png",
+  "assets/props/teen342_rock_1.png",
+  "assets/props/teen342_rock_2.png",
+  "assets/props/teen342_rock_3.png",
+  "assets/props/teen342_rock_4.png",
+  "assets/props/teen342_rock_5.png",
+  "assets/props/teenboss339_debris_0.png",
+  "assets/props/teenboss339_debris_1.png",
+  "assets/props/teenboss339_debris_2.png",
+  "assets/props/teenboss339_debris_3.png",
+  "assets/props/teenboss339_debris_4.png",
+  "assets/props/teenboss339_debris_5.png",
+  "assets/props/teenboss339_knee.png",
+  "assets/props/cathedral323_sword.png",
+  "assets/props/arena332_arm.png"
  ],
  "spawns": {
   "start": {

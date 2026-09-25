@@ -25,10 +25,17 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   check('cleaning gauge hidden outside the cleaning pattern', (await B()).sup.gaugeAlpha < 0.1, JSON.stringify((await B()).sup));
   await press('KeyC');
   check('locked 공격하기 does nothing', (await B()).state === 'menu');
-  // 방어하기(세 번째 버튼)
+  // 방어하기는 멤버마다 따로(공격하기처럼) — 모두 방어
+  const defendAll = async () => { for (let m = 0; m < 3; m++) { if ((await B()).state !== 'menu') break; await press('ArrowRight'); await press('ArrowRight'); await press('KeyC'); } };
+  // 첫 턴: 형섭은 아이템(핫도그), 경섭·억빠맨은 방어 → 아이템이 방어 선택에 지워지지 않고 쓰인다(사용자 “아이템쓰기 하면 회복이 잘 안되는”)
+  await fixture('hurt-and-hotdog', 'Hurt 형섭 and give one 핫도그 so the item turn is visible.', () => { game.battle.members[0].hp = 50; game.inventory.length = 0; game.inventory.push('핫도그'); });
+  await press('ArrowRight'); await press('KeyC'); await press('KeyC'); await press('KeyC');
   await press('ArrowRight'); await press('ArrowRight'); await press('KeyC');
-  assert.ok(await until(() => game.battle.state === 'bullets', 8000), 'enemy turn after defend');
-  check('defending this turn', (await B()).sup.defending);
+  await press('ArrowRight'); await press('ArrowRight'); await press('KeyC');
+  assert.ok(await until(() => game.battle.state === 'bullets', 12000), 'enemy turn after item + defends');
+  const afterItem = await page.evaluate(() => ({ hp: game.battle.members[0].hp, inv: game.inventory.length }));
+  check('item used even though later members defended', afterItem.hp > 50 && afterItem.inv === 0, JSON.stringify(afterItem));
+  check('only the members who chose defend are defending', JSON.stringify((await B()).sup.defenders) === JSON.stringify(['gyeongsub', 'ppaman']), JSON.stringify((await B()).sup));
   await page.waitForTimeout(1000); await shot('vacuum-prep'); await page.waitForTimeout(3000); await shot('vacuum-1');
   check('cleaning gauge faded in during the cleaning pattern', (await B()).sup.gaugeAlpha > 0.8, JSON.stringify((await B()).sup));
   await page.waitForTimeout(5000); await shot('vacuum-2');
@@ -37,7 +44,7 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   check('dodging debris fills the cleaning gauge', g1 > 0, String(g1));
   // 두 턴 더(3턴째 주먹)
   for (let turn = 2; turn <= 3; turn++) {
-    await press('ArrowRight'); await press('ArrowRight'); await press('KeyC');
+    await defendAll();
     assert.ok(await until(() => game.battle.state === 'bullets', 8000));
     if (turn === 3) { await page.waitForTimeout(1300); await shot('slam-1'); await page.waitForTimeout(4200); await shot('slam-giant'); }
     assert.ok(await until(() => game.battle.state === 'menu' || game.battle.state === 'interlude', 20000));
@@ -45,7 +52,7 @@ await runScenario({ name: 'teen-battle', launchOptions: { args: ['--autoplay-pol
   }
   // 게이지를 채워 쓰러짐을 본다
   await fixture('fill-gauge', 'Credit enough dodges to reach 100% (the dodge counting itself is checked above).', () => { for (let i = 0; i < 110; i++) game.battle.support.onProjectile({ type: 'teen_dodge' }); });
-  await press('ArrowRight'); await press('ArrowRight'); await press('KeyC');
+  await defendAll();
   assert.ok(await until(() => game.battle.state === 'interlude', 30000), 'collapse interlude');
   // 쓰러지는 연출이 몇 초 이어진 뒤에야 대사(사용자 “바로 대사가 뜨는게아니라 쓰러지는 연출도 몇초”)
   await page.waitForTimeout(700); await shot('collapse-1');

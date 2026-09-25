@@ -29,9 +29,10 @@ export const castle_summit_confront = Object.assign([
   P('후.. 가재맨은... 그래서 어디있는걸까요'),
   { face: 'gyeongsub', dir: 'down' }, K('빠맨아'),
   P('일단 청소년부터 족쳐야죠'), P('그녀석부터 찾을까요?'),
-  K('응 그렇지'), { face: 'gyeongsub', dir: 'right' }, K('그리고...'), K('이미 우리 앞에있어.'), close,
-  // 브금(사용자 지정 L0MAep7ml3A “Gallery”) → 카메라 살짝 오른쪽 → 검은 연기에서 청소년 상체가 천천히 나온다
-  { bgm: 'gallery', volume: 0.5, fadeIn: 0.8 },
+  K('응 그렇지'), { face: 'gyeongsub', dir: 'right' }, K('그리고...'),
+  // 브금은 “이미 우리 앞에있어.” 와 함께(사용자 지정 L0MAep7ml3A “Gallery”)
+  { bgm: 'gallery', volume: 0.5, fadeIn: 0.8 }, K('이미 우리 앞에있어.'), close,
+  // 검은 연기가 걷히며 청소년 상체가 드러난다
   ...PARTY.map(id => ({ face: id, dir: 'right' })),
   { parallel: [{ camera: C.face, duration: 0.4 }, summit(s => s.revealGiant())] },
   { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) },
@@ -48,6 +49,8 @@ export const castle_summit_confront = Object.assign([
   { stage: SUMMIT_SCENE.stage },
   // 그 자리에서 바로 전투: 조우음 없이 검 뽑는 소리(사용자 “조우 효과음은 없고 그냥 바로 검뽑기 효과음과 함께”) — 소리는 전투가 캐릭터를 전투 모션으로 바꾸는 순간 낸다(battle.js)
   { label: 'fight' },
+  // 브금이 잠깐 꺼지고 1초 뒤 검 뽑는 소리와 함께 전투로 → 그 뒤 전투 브금(사용자 2026-09-25)
+  { action: game => game.sound.preloadBgm?.('guardian') }, { bgm: null, fadeOut: 0.4 }, { wait: 1.0 },
   { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', boardColor: '#a060ff', flag: 'castle_teen_won', seamlessIntro: true, seamlessSfx: 'weaponpull', intro: TEEN_BATTLE.intro } },
   { label: 'end' }, { end: true },
 ], { silent: true });
