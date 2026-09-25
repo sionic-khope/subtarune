@@ -1,0 +1,7 @@
+Create ONE single object sprite for a Deltarune-style pixel-art RPG cutscene: a GIANT cartoon monster arm, horizontal composition, centered on a solid pure #FF00FF magenta background. No body, no head, no text, no border, no ground, no shadow, no effects.
+
+The arm: huge and comically over-muscled like a cartoon strongman's arm (big round bicep, thick forearm), light peach skin, wearing a short rolled-up PINK T-shirt sleeve (#e8577f) at the shoulder end on the LEFT edge of the object. The arm reaches horizontally to the RIGHT and ends in a huge open hand with thick fingers spread, mid-swing, like a giant slapping hand. Strong dark stepped outline, flat limited shading, bold simple muscle shapes, menacing boss energy.
+
+The arm spans about 80% of the canvas width and about 35% of its height, nothing touches the canvas edges.
+
+Style: crisp pixel art, chunky logical pixels (about 5x5 output pixels each), limited palette, 16-bit RPG style, no smooth gradients.

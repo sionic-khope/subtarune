@@ -1,0 +1,15 @@
+# imagegen 2026-09-25 10:18:08
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/arena332/refs/cheong-ref.png
+
+Create ONE single field character sprite for a Deltarune-style top-down pixel-art RPG, front view, standing still, centered on a solid pure #FF00FF magenta background. No text, no labels, no border, no ground, no shadow, no bubble, no effects, no extra objects.
+
+Reference image roles (one combined reference, left to right):
+- Image1 (left, cartoon illustration of a woman): IDENTITY reference for the character "청소년". Keep: long wavy dark-brown hair falling over one shoulder, round thin glasses, a round simple face with a big round nose shape, pink long-sleeve top with the sleeves rolled, a beige apron with a small brown bow at the chest, brown skirt, bare legs, small red-pink flat shoes. Her arms hang slightly out from the body.
+- Image2 (right, our game's chibi field sprite of a boy): STYLE and PROPORTION reference. Copy its chibi proportions (big head, SHORT compact body about 1.3 heads tall), its dark stepped outline, flat limited shading and sparse chunky pixel density exactly.
+
+Special state: her EYES are hidden in dark shadow — the upper face under the glasses is shaded dark purple-grey so no eyes are visible, like she is possessed or unconscious. Keep the glasses rim faintly visible over the shadow. Mouth a small neutral line.
+
+The character fills the central 60% of the canvas height, nothing touches the edges.

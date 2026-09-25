@@ -1,0 +1,13 @@
+Create a sheet of SIX different small monster characters for a Deltarune-style pixel-art RPG, arranged in EXACTLY 3 columns x 2 rows on a 1536x1024 canvas with invisible equal 512x512 cells, one character per cell, all facing the viewer (front view, standing). Solid pure #FF00FF magenta background everywhere. No text, no labels, no frames, no shadows, no ground, no effects, no weapons touching the cell edges.
+
+Reference image (Image1: two existing monsters, left "Udyr-sub", right "Taliyah-sub"): copy EXACTLY their shared identity and art style — chibi proportions with a huge head, the same GREY skin, the same small round black-rimmed GLASSES, the same big round bulbous NOSE and tiny mouth, the same dark stepped outline, flat limited shading and sparse chunky pixel density. Each new monster is this same grey glasses-and-big-nose guy cosplaying a League of Legends champion through costume, hair, accessories and body shape.
+
+Each character fills the central 70% of its cell. Vary their body SIZE and silhouette strongly within the cell as noted.
+
+Row-major order:
+1. "Lux-sub": SMALL, golden blonde hair, white and gold light mage outfit, a short wand with a glowing star tip.
+2. "Nasus-sub": TALL, jackal-dog head mask with long ears over the grey face, purple and gold Egyptian armour, a big staff.
+3. "Malphite-sub": HUGE, body made of craggy brown-orange boulders with glowing cracks, the grey glasses face embedded in the rock head. FILL the cell (largest).
+4. "Fiddlesticks-sub": tall creepy scarecrow, patched burlap cloak, straw sticking out, a crooked scythe, crows on the shoulder.
+5. "Jax-sub": medium, purple hooded fighter with a glowing visor pushed up above the glasses and a lamppost weapon.
+6. "Zed-sub": slim ninja in dark grey-red armour with shuriken blades on the arms and a shadowy scarf.

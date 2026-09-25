@@ -1,0 +1,9 @@
+Create ONE boss illustration sprite for a Deltarune-style pixel-art RPG: the UPPER BODY of a colossal monster called "Teen Giant", seen from the front, centered on a solid pure #FF00FF magenta background. No text, no labels, no border, no ground, no background scenery.
+
+Framing: from the neck down to the waist only. The head is NOT shown — the top of the object is the neck and the lower jaw fading into pitch-black shadow (face completely hidden in darkness). The torso is enormous and wide, filling about 85% of the canvas width.
+
+Clothing (keep exactly): a PINK short-sleeve T-shirt (#e8577f) whose sleeves are rolled up high, and a BEIGE apron (#e6d6b8) over the chest with a small brown bow; long wavy dark-brown hair strands falling over one shoulder from the hidden head.
+
+Arms: two absurdly huge cartoon strongman arms hanging at the sides and slightly raised as if about to swing, light peach skin, with bold WHITE highlight lines tracing the giant muscle shapes (biceps, forearms, shoulders) — like glowing white contour strokes over the muscles — and thick dark stepped outlines. Big clenched fists at the bottom corners. The whole figure is lit from below with a cold blue rim light and dark purple shadows, ominous and scary.
+
+Style: crisp pixel art, chunky logical pixels (about 5x5 output pixels each), flat limited shading, 16-bit RPG boss style, no smooth gradients, nothing touches the canvas edges except nothing.

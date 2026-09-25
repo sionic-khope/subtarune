@@ -1,0 +1,7 @@
+Create ONE single giant muscular ARM for a Deltarune-style pixel-art RPG cutscene, horizontal composition, centered on a solid pure #FF00FF magenta background. No body, no head, no text, no border, no ground, no shadow, no effects.
+
+Reference image (Image1, left: the character "청소년" — pink long-sleeve top, beige apron; right: our game's pixel sprite of her): IDENTITY for the clothing and skin tone only.
+
+The arm: an absurdly huge, bulging, veiny, heavily muscular arm (bodybuilder biceps, triceps and forearm) wearing a rolled-up SHORT pink sleeve from her pink top at the shoulder end on the LEFT edge of the object; the arm extends horizontally to the RIGHT and ends in a huge open hand with thick fingers spread, palm facing the viewer, mid-swing. Light peach skin like Image1, strong dark stepped outline, flat limited shading with bold muscle definition, slightly menacing. The arm spans about 80% of the canvas width and 35% of its height, nothing touches the canvas edges.
+
+Style: crisp pixel art, chunky logical pixels (about 5x5 output pixels each), limited palette, same art style as a 16-bit RPG, no smooth gradients.

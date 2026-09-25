@@ -1,5 +1,10 @@
 # 오디오 레퍼런스 (사용자 지정)
 
+## 결전지 (BUILD332, 2026-09-25)
+- 도착: 브금 끔(사용자 “[브금이 꺼짐]”). 영클이 벽에 꽂힌 뒤 사용자 지정 [iRMn2HlCRFI](https://www.youtube.com/watch?v=iRMn2HlCRFI) = 기존 `castle_gajaeman`(SPAWN) 재사용.
+- `sfx/fountain_draw.mp3`(0~1.6초, 검 여러 발 뽑는 소리)·`sfx/fountain_erupt.mp3`(1.6~10.2초, 아래서 위로 뿜는 소리): 사용자 지정 myinstants `deltarune-dark-fountain-52016`이 Cloudflare 403이라 같은 델타룬 분수 생성음 YouTube [SzVNiAmylpc](https://www.youtube.com/watch?v=SzVNiAmylpc) “Deltarune fountain making sound”에서 잘랐다(**임시**, 원본 파일을 받으면 같은 이름으로 교체). 원본 `assets/source/arena332/audio/`.
+- 검이 꽂힐 때 쿠웅: 기존 `baron_slam`. 구슬 던짐 `heavyswing`, 검 발사 `knight_cut`, 근육팔 타격 `furnace_blast`(꾸와아앙), 벽 충돌 `punch`, 펑 `explosion`.
+
 ## 예언의 회랑 (BUILD328, 2026-09-25)
 - `bgm/dark_place.mp3`: 사용자 지정 [SG177cepVfk](https://www.youtube.com/watch?v=SG177cepVfk), yt-dlp 제목 `64. Dark Place (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`. BUILD331: 원본 58.99초 이후 무음 4.68초(silencedetect −50dB)를 잘라 59.000초 MP3 q2(1,279,484바이트, SHA256 `1aa90316c59475282b7ae0e09c88386889a961788ed8f64f38b7d8750758a2f8`) — 반복 사이 공백 제거(사용자 “브금끝나고 공백시간”), 원본 `assets/source/prophecy328/audio/bgm-source.webm`.
 

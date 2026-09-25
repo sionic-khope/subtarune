@@ -1,0 +1,19 @@
+# imagegen 2026-09-25 10:12:17
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/arena332/refs/subs-ref.png
+
+Create a sheet of SIX different small monster characters for a Deltarune-style pixel-art RPG, arranged in EXACTLY 3 columns x 2 rows on a 1536x1024 canvas with invisible equal 512x512 cells, one character per cell, all facing the viewer (front view, standing). Solid pure #FF00FF magenta background everywhere. No text, no labels, no frames, no shadows, no ground, no effects, no weapons touching the cell edges.
+
+Reference image (Image1: two existing monsters, left "Udyr-sub", right "Taliyah-sub"): copy EXACTLY their shared identity and art style — chibi proportions with a huge head, the same GREY skin, the same small round black-rimmed GLASSES, the same big round bulbous NOSE and tiny mouth, the same dark stepped outline, flat limited shading and sparse chunky pixel density. Each new monster is this same grey glasses-and-big-nose guy cosplaying a League of Legends champion through costume, hair, accessories and body shape.
+
+Each character fills the central 70% of its cell. Vary their body SIZE and silhouette strongly within the cell as noted (tiny ones still centred).
+
+Row-major order:
+1. "Cho'Gath-sub": huge hulking purple-black spiky void beast body with rows of spines on the back and big claws, the grey glasses-and-nose face on its head. FILL the cell (largest).
+2. "Teemo-sub": TINY (about half the height of the others) with a green scout hat with a feather, small brown fur cape and a blowgun at his side.
+3. "Thresh-sub": tall and thin, green ghostly lantern in one hand, a hooked chain, dark armour with spiky shoulder plates, green glow on the chest.
+4. "Blitzcrank-sub": BIG round golden-brass steam robot body with huge long mechanical arms and a chimney, the face on a small head plate.
+5. "Ahri-sub": medium, fox ears and nine white-tipped fluffy fox tails fanning behind, red-white robes, a glowing blue orb floating by her hand.
+6. "Darius-sub": broad, heavy crimson and black armour with horned helm pushed up, a huge axe resting on the shoulder (kept inside the cell), scary eyebrows.

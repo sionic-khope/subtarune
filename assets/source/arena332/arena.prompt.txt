@@ -1,0 +1,14 @@
+Create ONE full-screen top-down (3/4 overhead, like classic Deltarune rooms) pixel-art MAP BACKGROUND of a grand final-battle chamber for a Deltarune-style RPG, portrait composition, filling the whole canvas edge to edge. No characters, no creatures, no text, no UI, no border.
+
+Reference image roles (one combined reference, left to right):
+- Image1 (left, Deltarune dark room with bookshelves, a railed circular pit and stairs): LAYOUT and camera-angle reference only. Keep the idea: a raised round platform ring around a pit, railings on the pit rim, tall furniture on the back wall, a staircase/path coming up from the bottom.
+- Image2 (right, glossy navy gothic door): COLOUR and MATERIAL reference of our game's final area: deep navy / midnight blue, glossy sapphire highlights, cold blue glow.
+
+The new chamber (make it far more epic than Image1):
+- TOP third: the back wall is lined with ENORMOUS towering shelves (NOT bookshelves): colossal dark iron-and-obsidian shelving racks reaching up out of view, stacked with rows of old glowing CRT monitors and broadcast screens (some flickering pale blue static), streaming trophies, microphone stands and sealed glowing sapphire jars. Heavy chains hang between the shelves. The shelves frame the scene on the left and right and recede into darkness at the top center.
+- CENTER: a HUGE circular pit, much bigger than in Image1 — it spans about 75% of the canvas width and about 30% of the canvas height — an abyss of pure black with a faint deep-purple glow at its very bottom and a few dark wisps rising. Its rim is a polished navy stone ring with an ornate railing of dark iron posts and chains all around, broken open only at the bottom (south) where the path meets the rim.
+- The platform ring around the pit: wide walkable navy stone flagstones with glossy sapphire inlays, cracks, a few fallen tiles.
+- BOTTOM third (the path in): NOT plain stairs — a grand, wide ceremonial causeway / bridge of dark sapphire slabs flanked by two rows of tall pillars with cold blue glowing crystal braziers, the causeway running straight up from the bottom edge of the canvas to the south rim of the pit, with black void on both sides of the causeway.
+- Mood: the final confrontation arena — majestic, oppressive, sacred, dark. Mostly deep navy, black and indigo, with cold sapphire/ice-blue light accents and a little purple. Readable walkable floor (mid-value navy) versus black void.
+
+Style: crisp pixel art with stepped hard edges, limited palette, chunky logical pixels (about 4x4 output pixels each), flat shading like a 16-bit RPG background, strong silhouettes, no photorealism, no soft blur.

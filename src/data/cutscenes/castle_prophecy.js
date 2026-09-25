@@ -38,6 +38,10 @@ export const castle_prophecy_door = Object.assign([
   N('결전의 시간이다.'),
   close,
   { set: { [PROPHECY_DOOR.flag]: true } },
-  { camera: 'player' },
-  { label: 'end' }, { end: true },
+  // BUILD332: 결전지로(브금은 꺼지고 결전지 도착 연출이 이어진다)
+  { label: 'end' },
+  { bgm: null, fadeOut: 1.2 }, { fade: 'out', duration: 1.0 },
+  { map: 'gajaeman_castle_arena', spawn: 'start', enter: true, bgm: false },
+  { fade: 'in', duration: 0.8 },
+  { end: true },
 ], { silent: true });

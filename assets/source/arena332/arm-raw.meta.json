@@ -1,0 +1,38 @@
+{
+  "endpoint": "images/generations",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "refs": [],
+  "elapsed_seconds": 27.5,
+  "usage": {
+    "input_tokens": 235,
+    "output_tokens": 1372,
+    "total_tokens": 1607,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 235
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790300126,
+  "outputs": [
+    {
+      "file": "assets/source/arena332/arm-raw.png",
+      "bytes": 1265906,
+      "size": [
+        1536,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}
