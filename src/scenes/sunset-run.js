@@ -121,6 +121,15 @@ export class SunsetRun {
       }
       ctx.globalAlpha = 1;
     }
+    const fly = this.game.propImages?.[C.flySheet];
+    if (fly && b.lie > 0.5) {
+      const cw = fly.width / 4, fs = C.flyH / fly.height, f = (b.aura > 2 ? 2 : 0) + Math.floor(this.time * 8) % 2;
+      const blit = (x, yy, a) => { ctx.save(); ctx.globalAlpha *= a; ctx.drawImage(fly, f * cw, 0, cw, fly.height, Math.round(x - cw * fs / 2), Math.round(yy - fly.height * fs / 2), Math.round(cw * fs), Math.round(fly.height * fs)); ctx.restore(); };
+      if (!paintOnly) (b.trail || []).forEach((t, i) => blit(t.x, t.y, 0.32 * (1 - i / 5) * b.alpha));
+      blit(b.x + jx, y, b.alpha);
+      return;
+    }
+    if (!paintOnly && b.lie > 0.5) (b.trail || []).forEach((t, i) => { ctx.save(); ctx.globalAlpha *= 0.3 * (1 - i / 5); ctx.translate(Math.round(t.x), Math.round(t.y)); ctx.rotate(-Math.PI / 2 * b.lie); ctx.drawImage(img, -Math.round(dw / 2), -Math.round(dh / 2), dw, dh); ctx.restore(); });
     ctx.save(); ctx.globalAlpha *= b.alpha;
     ctx.translate(Math.round(b.x + jx), Math.round(y));
     if (b.lie > 0) ctx.rotate(-Math.PI / 2 * b.lie);

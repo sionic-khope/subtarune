@@ -1605,6 +1605,7 @@ class Game {
     else if (MAPS[this.mapId]?.backdrop === 'purple_fire') this.drawBackdrop(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'teal_bush') this.drawBackdropTeal(ctx, cam);
     else if (MAPS[this.mapId]?.backdrop === 'obj_forest') this.drawBackdropTeal(ctx, cam, BACKDROP_OBJ);
+    else if (MAPS[this.mapId]?.backdrop === 'castle_sunset_sky') this.castleDescent?.drawSky(ctx, cam);   // 결말 갑판 노을(BUILD365)
     else if (MAPS[this.mapId]?.backdrop === 'jjajang_night_sea') {
       const sea = this.propImages['assets/backdrops/jjajang_night_sea.png'];
       if (sea) {

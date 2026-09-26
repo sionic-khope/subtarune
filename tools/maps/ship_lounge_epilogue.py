@@ -22,7 +22,9 @@ P: Final = 'assets/props/'
 PARADE: Final = [('bidet', 'warm_bidet', 150, 430, None), ('mario', 'mini_mario', 120, 460, None),
                  ('park', 'park_guardian_costume', 640, 440, 2.22), ('ttuulla', 'ttuulla', 660, 470, 1.79),
                  ('obangsun', 'obangsun', 130, 440, None), ('naram', 'naram_giant', 640, 450, None),
-                 ('yongjun', 'yongjun', 700, 380, None), ('junhee', 'junhee', 120, 400, None)]
+                 ('yongjun', 'yongjun', 700, 380, None), ('junhee', 'junhee', 120, 400, None),
+                 # BUILD365: 최미스를 점례가 문 밖으로 차낸다
+                 ('choimis', 'choimis', 250, 330, None), ('jeomnye', 'jeomnye', 150, 360, None)]
 # 지켜보는 일행(뒷모습): 억빠맨 왼쪽 · 경섭+김형섭 어깨동무(장면이 그림) 가운데 · 영클 오른쪽
 WATCH: Final = {'ppaman': (322, 368), 'pair': (384, 372), 'youngcle': (456, 364)}
 DOOR: Final = {'x': 304, 'y': 16, 'w': 160, 'h': 192, 'enter': [424, 214], 'front': [424, 240]}

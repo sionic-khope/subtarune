@@ -1,0 +1,404 @@
+{
+ "id": "ship_deck_epilogue",
+ "name": "엄청대박인배 갑판",
+ "stage": "castle_summit_ready",
+ "bgm": "wind",
+ "bgmVolume": 0.35,
+ "backdrop": "castle_sunset_sky",
+ "followScreenY": 280,
+ "rows": [
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GFFFFFFFFFFFFFFFFFFF!!!!!!!!!!!!",
+  "GGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!"
+ ],
+ "enter": {
+  "script": "ship_deck_epilogue",
+  "early": true
+ },
+ "preload": [
+  "assets/tiles/youngcle_iron_blue.png",
+  "assets/tiles/youngcle_iron_blue_wall.png",
+  "assets/props/iron_fence_short.png",
+  "assets/props/ship_rail_r.png",
+  "assets/backdrops/castle_sunset359.png",
+  "assets/props/maillard_sun.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 600,
+   "y": 376,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "stage": {
+   "deck_lookout": [
+    600,
+    376
+   ],
+   "deck_ppaman_entry": [
+    160,
+    344
+   ],
+   "deck_gyeongsub_entry": [
+    96,
+    408
+   ],
+   "deck_ppaman_near": [
+    536,
+    344
+   ],
+   "deck_gyeongsub_near": [
+    536,
+    408
+   ]
+  },
+  "descent": {
+   "kind": "deck",
+   "band": [
+    0,
+    0
+   ],
+   "horizonY": 200,
+   "sunX": 380,
+   "lookout": [
+    612,
+    392
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "deck_rail_1",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 32,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 32,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_2",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 64,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 64,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_3",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 96,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 96,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_4",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 128,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 128,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_5",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 160,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 160,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_6",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 192,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 192,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_7",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 224,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 224,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_8",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 256,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 256,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_9",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 288,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 288,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_10",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 320,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 320,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_11",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 352,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 352,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_12",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 384,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 384,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_13",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 416,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 416,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_14",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 448,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 448,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_15",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 480,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 480,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_16",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 512,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 512,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_17",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 544,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 544,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_18",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 576,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 576,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_19",
+   "image": "assets/props/iron_fence_short.png",
+   "x": 608,
+   "y": 282,
+   "w": 32,
+   "h": 6,
+   "ix": 608,
+   "iy": 266,
+   "solid": true,
+   "sortY": 282
+  },
+  {
+   "type": "prop",
+   "id": "deck_rail_right",
+   "image": "assets/props/ship_rail_r.png",
+   "x": 632,
+   "y": 288,
+   "w": 8,
+   "h": 288,
+   "ix": 632,
+   "iy": 288,
+   "scale": 0.375,
+   "solid": true,
+   "sortY": 576
+  },
+  {
+   "type": "prop",
+   "id": "deck_lookout",
+   "image": "assets/props/ship_floor_logo.png",
+   "x": 600,
+   "y": 376,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "deck_ppaman_entry",
+   "image": "assets/props/ship_floor_logo.png",
+   "x": 160,
+   "y": 344,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "deck_gyeongsub_entry",
+   "image": "assets/props/ship_floor_logo.png",
+   "x": 96,
+   "y": 408,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "deck_ppaman_near",
+   "image": "assets/props/ship_floor_logo.png",
+   "x": 536,
+   "y": 344,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "deck_gyeongsub_near",
+   "image": "assets/props/ship_floor_logo.png",
+   "x": 536,
+   "y": 408,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  }
+ ]
+}

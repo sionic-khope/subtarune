@@ -52,6 +52,19 @@ export function createGajaemanRunner(battle, { enemy }) {
     dash = { y: run.groundY - C.dash.height, vx: -C.dash.speed, countered: false, hit: false };
     boss.y = dash.y; sfx(C.sfx.dashGo, 0.8); change('dash');
   };
+  // 돌진 뒤편에서 폭죽처럼 팡팡 — 타닥타닥 튀기는 소리(폭발음 아님)
+  let popClock = 0, trailClock = 0; const crackles = [];
+  const firework = dt => {
+    popClock += dt; trailClock += dt;
+    if (trailClock >= C.dash.trailEvery) { trailClock = 0; boss.trail = [{ x: boss.x, y: boss.y }, ...(boss.trail || [])].slice(0, 5); }
+    if (popClock >= C.dash.pop) {
+      popClock = 0;
+      const x = boss.x + 46 + run.rnd() * 40, y = boss.y + (run.rnd() - 0.5) * 34, c = C.rainbow[Math.floor(run.rnd() * C.rainbow.length)];
+      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, v = 70 + run.rnd() * 50; run.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 0.35, s: 2, color: i % 3 ? c : '#ffffff', g: 40, drag: 0.94 }); }
+      for (let i = 0; i < 3; i++) crackles.push(i * 0.045);
+    }
+    for (let i = crackles.length - 1; i >= 0; i--) { crackles[i] -= dt; if (crackles[i] <= 0) { crackles.splice(i, 1); sfx(C.sfx.crackle, 0.32); } }
+  };
   const counter = () => {
     if (dash.countered || disposed) return;
     dash.countered = true;
@@ -63,7 +76,7 @@ export function createGajaemanRunner(battle, { enemy }) {
     run.burst(boss.x, boss.y, 46, { speed: 190 }); run.burst(boss.x, boss.y, 18, { rainbow: false, speed: 120 });
     run.flash = 0.16; run.flashColor = '255,244,255'; g.shake = { time: 0.35, amp: 6 }; boss.shake = 0.3;
     run.slashFx.push({ kind: 'slash', up: false, t: 0, dur: 0.34 }, { kind: 'airslash', up: false, t: 0.05, dur: 0.4 });
-    returnFrom = { x: boss.x, y: boss.y };
+    returnFrom = { x: boss.x, y: boss.y }; boss.trail = [];
     change(counters >= C.counters ? 'final_gather' : 'recoil');
   };
   function tick(dt, keys) {
@@ -90,11 +103,12 @@ export function createGajaemanRunner(battle, { enemy }) {
       if (phaseTime >= C.dash.warn) launchDash();
     } else if (phase === 'dash') {
       boss.x += dash.vx * dt;
+      firework(dt);
       if (run.rnd() < 0.8) run.particles.push({ x: boss.x + 30, y: boss.y + (run.rnd() - 0.5) * 20, vx: 80, vy: 0, t: 0, life: 0.3, s: 3, color: run.rnd() < 0.5 ? '#a851ff' : '#1a0830', g: 0 });
       const s = slashBox();
       if (s && overlap(boss.x, boss.y, C.dash.halfW, C.dash.halfH, ...s)) counter();
       else if (!dash.hit && overlap(boss.x, boss.y, C.dash.halfW, C.dash.halfH, ...bodyBox())) { dash.hit = true; hurt(); }
-      if (phase === 'dash' && boss.x < C.dash.endX) { boss.x = 560; boss.lie = 0; returnFrom = { x: 560, y: home[1] }; change('return'); }
+      if (phase === 'dash' && boss.x < C.dash.endX) { boss.trail = []; boss.x = 560; boss.lie = 0; returnFrom = { x: 560, y: home[1] }; change('return'); }
     } else if (phase === 'recoil') {
       const k = Math.sin(Math.min(1, phaseTime / C.dash.recoil) * Math.PI / 2);
       boss.x = returnFrom.x + k * 150; boss.y = returnFrom.y - k * 60; boss.lie = 1 - k;
@@ -122,6 +136,7 @@ export function createGajaemanRunner(battle, { enemy }) {
       const tx = p.x + 20, ty = p.y - 16, dx = tx - boss.x, dy = ty - boss.y, d = Math.hypot(dx, dy) || 1;
       dash.vx = lerp(dash.vx, dx / d * C.final.speed, Math.min(1, dt * C.final.homing)); dash.vy = lerp(dash.vy, dy / d * C.final.speed, Math.min(1, dt * C.final.homing));
       boss.x += dash.vx * dt; boss.y += dash.vy * dt; boss.lie = 1; boss.aura = 3.5;
+      firework(dt);
       popT += dt;
       if (popT >= C.final.pop) {
         popT = 0; const big = Math.floor(phaseTime / C.final.pop) % 4 === 3;
@@ -243,6 +258,10 @@ export function createGajaemanRunner(battle, { enemy }) {
     },
     draw(ctx) {
       ctx.save();
+      const zk = phase === 'lock' ? smooth(phaseTime / 0.5) : 0, zoom = 1 + (C.lock.zoom - 1) * zk;
+      const zx = C.lock.playerX + C.lock.gap * 0.45, zy = run.groundY - 24;
+      ctx.save();
+      if (zoom > 1) { ctx.translate(zx, zy); ctx.scale(zoom, zoom); ctx.translate(-zx + (240 - zx) * zk / zoom, -zy + (200 - zy) * zk / zoom); }
       run.drawBackground(ctx);
       if (phase === 'swords' && phaseTime < C.sword.warn) {
         // 예고: 가재맨 손에 검이 번쩍
@@ -257,6 +276,7 @@ export function createGajaemanRunner(battle, { enemy }) {
       const p = player();
       battle.heart(ctx, Math.round(p.x + 2), Math.round(p.y - C.player.heartHeight));
       run.drawParticles(ctx);
+      ctx.restore();
       if (hurtFlash > 0) { ctx.fillStyle = `rgba(220,15,40,${hurtFlash})`; ctx.fillRect(0, 0, 480, 360); }
       if (phase === 'clash_wait') {
         const blink = Math.floor(elapsed * 4) % 2;

@@ -1,0 +1,6 @@
+Use case: identity-preserve. The reference is the approved overworld sprite sheet of GAJAEMAN (exact identity, outfit, colors and pixel density — copy his head, hair, face, clothes and dark shadowy look exactly).
+
+Create a separate 2 by 2 four-frame sprite sheet of Gajaeman FLYING HORIZONTALLY like a missile toward the LEFT, body lying flat and straight (horizontal, head on the LEFT leading, feet trailing to the RIGHT), arms pressed along the body, while his FACE turns to look straight at the VIEWER (front-facing face on a horizontal body), menacing.
+- top left and top right: the dash pose, two slight variations (clothes/hair flapping backward in the wind);
+- bottom left and bottom right: the same dash with a dark purple aura streaming off his body toward the right (two variations).
+Keep his exact identity and the same pixel size, dark stepped outline and palette as the reference; same scale in all four frames. Exactly four equally-spaced figures in 2x2 equal cells with generous clear margins, nothing clipped. Flat solid magenta #FF00FF background, no labels, no text, no ground, no motion lines.

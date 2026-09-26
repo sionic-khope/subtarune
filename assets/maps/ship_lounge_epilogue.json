@@ -377,6 +377,28 @@
   },
   {
    "type": "npc",
+   "id": "epi_choimis",
+   "sprite": "choimis",
+   "x": 238,
+   "y": 306,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_jeomnye",
+   "sprite": "jeomnye",
+   "x": 138,
+   "y": 336,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
    "id": "epi_ppaman",
    "sprite": "ppaman",
    "x": 310,

@@ -10,7 +10,8 @@
  */
 export const RISE = Object.freeze({
   bgm: 'save_the_world_rise',
-  handoff: 0, castleEnd: 8, clear: 9.4, flash: 12.0, mapAt: 12.3, land: 18.2,
+  // BUILD365(사용자 “곡 42초~1분 3초에 딱 맞게, 곡이 끝나면 버튼”): 원곡 58초 노을 땅, 63.9초(곡 끝) 착지
+  handoff: 0, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
   riseSheet: 'assets/sprites/hyungsub-rise.png', landSheet: 'assets/sprites/hyungsub-land.png',
   backdrop: 'assets/backdrops/castle_sunset359.png', sun: 'assets/props/maillard_sun.png', sunCrop: Object.freeze([53, 53, 151, 150]),
   // 생성 배경의 수평선 높이(비율)
@@ -19,7 +20,7 @@ export const RISE = Object.freeze({
   // 상승 중 요플래 키(px) — 필드 캐릭터(52px)보다 조금 크게, 연출 화면이라
   riseH: 54, landH: 50,
   // 상승 중 카메라가 요플래 쪽으로 30% 다가간다
-  zoom: 1.3,
+  zoom: 1.45,
   // 노을 땅 앞덤블링: 착지 전 몇 초·몇 바퀴(사용자 “극단적으로 빠르게, 착착 대면서 바로 착지”)
   tumble: 1.1, tumbleTurns: 4,
 });

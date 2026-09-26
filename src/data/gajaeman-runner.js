@@ -15,18 +15,21 @@ export const GJ_RUNNER = Object.freeze({
   aura: { gather: 2.2, burst: 0.5 },
   cycle: { first: 1.2, rest: 1.1 },
   sword: { count: 3, every: 0.72, warn: 0.55, speed: 360, aimAhead: 26, aimHeight: 14, halfW: 20, halfH: 7, w: 34, h: 136 },
-  dash: { warn: 1.25, speed: 330, height: 20, halfW: 30, halfH: 12, recoil: 0.7, returnSeconds: 1.0, endX: -120 },
+  // BUILD365(사용자 “돌진 좀만 더 천천히, 잔상, 지나간 뒷자리에 팡팡 폭죽처럼 — 타닥타닥”)
+  dash: { warn: 1.25, speed: 240, pop: 0.16, trailEvery: 0.05, height: 20, halfW: 30, halfH: 12, recoil: 0.7, returnSeconds: 1.0, endX: -120 },
   final: { gather: 2.4, back: [520, 206], backSeconds: 0.6, speed: 150, homing: 2.4, pop: 0.22, clashDist: 72, slow: 0.08, clashHold: 1.4 },
   slash: { from: 0.04, until: 0.85 },
   // 마지막 맞받아치기(사용자 참고 델타룬 영상 6:24~6:31): 칼 경합 — C 연타 약 6초면 가득(누를 때 소리 없음, 인물만 흔들림) → 큰 릴리즈샷 → 흰 화면 그림자·거대 검기 슬로우 베기
-  lock: { playerX: 196, gap: 44, presses: 40, decay: 0.035, shake: 0.08, pose: 'assets/sprites/hyungsub-clash.png' },
+  lock: { zoom: 1.7, playerX: 196, gap: 44, presses: 40, decay: 0.035, shake: 0.08, pose: 'assets/sprites/hyungsub-clash.png' },
   release: { white: 0.35, slash: 2.6, endPlayerX: 336, bossTo: [190, 104] },
   // 벤 뒤: 가재맨은 하늘에 멈춰 디디디딕, 요플래는 검을 든 채 뒤돌아 땅을 본다 → 대사 → 검은 연기가 모여 쾅 쿠와아앙 → 연기는 하늘로
   after: { lift: 1.1, smoke: 2.6, rise: 3.2 },
   sfx: { draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape',
     sword: 'spearappear', swordFly: 'heavyswing', deflect: 'deflect', kickVoice: 'gajaeman_kick', dashGo: 'ultraswing',
     counter: 'deltarune_release_shoot', counterHit: 'impact', gather: 'power', charge: 'laser_charge', burst: 'deltarune_release_shoot',
-    back: 'baron_slam', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
+    back: 'baron_slam', crackle: 'pop', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
+  // 누워 날아가는 전용 그림(생성, assets/source/gjfly365) — 머리가 왼쪽, 얼굴은 앞
+  flySheet: 'assets/sprites/gajaeman-fly.png', flyH: 34,
   rainbow: ['#ff5a5a', '#ffae3c', '#ffe45a', '#6ee66e', '#5ac8ff', '#7a7aff', '#d27aff'],
   colors: { aura: '#a851ff', dark: '#1a0830', core: '#ecbeff' },
   text: { controls: 'X 점프  ·  C 베기', title: '가재맨', button: 'SAVE THE WORLD', press: 'C' },

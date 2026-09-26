@@ -41,7 +41,7 @@ export class CastleDescent {
     this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
     if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
     if (this.kind === 'sunset' && game.player) game.player.def.visualScale = this.meta.charScale || 1;
-    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['item', 'pop', 'great_shine', 'power', 'static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
+    if (['sunset', 'lounge', 'deck'].includes(this.kind)) { void game.sound.loadSfxFiles?.(['laugh_junhee', 'punch', 'impact', 'item', 'pop', 'great_shine', 'power', 'static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -234,20 +234,20 @@ export class CastleDescent {
   /** 동시에 점프! 뗏목이 요플래를 태우고 벽을 따라 치솟는다(둘은 뗏목 밑을 받치고 함께) — RISE.handoff 뒤 화면 전체 상승으로. */
   launch() {
     const r = this.raft, p = this.game.player;
-    const riders = this.divers.map(v => ({ e: v.e, side: v.side }));
-    for (const v of riders) { v.e.visible = true; v.e.hopY = 0; }
-    this.divers = []; r.bob = false;
-    this.sfx('splash', 0.5);
-    this.splash(r.x, r.y + 10, 30); this.game.shake = { time: 0.3, amp: 3 };
-    // 뛰는 순간부터 요플래는 상승 자세 — 뗏목과 둘을 발 아래 두고 빠르게 솟는다(뒤에 페이드 → 화면 전체 상승)
-    this.launching = true; p.visible = false;
-    let v = 300;
+    // 둘은 물 속에서 힘껏 뛰었다가 다시 물로 — 뗏목(요플래)만 위로 날아간다
+    const divers = this.divers; this.divers = [];
+    this.sfx('splash', 0.6); this.splash(r.x, r.y + 10, 34); this.game.shake = { time: 0.3, amp: 3 };
+    for (const v of divers) {
+      const e = v.e, from = [v.x, v.y]; e.visible = true;
+      this.arc(e, from, from, 46, 0.7).then(() => { e.visible = false; this.divers.push({ ...v, depth: 0.55 }); this.splash(from[0], from[1] - 4, 12); this.sfx('splash', 0.4); });
+    }
+    this.launching = true; p.visible = false; r.bob = false;
+    let v = 160;
     this.track(() => ({ x: r.x, y: r.y - 66 }));
-    return this.job(1.3, (k, dt) => {
-      v = Math.min(950, v + 760 * dt); r.y -= v * dt;
+    return this.job(3.3, (k, dt) => {
+      v = Math.min(460, v + 170 * dt); r.y -= v * dt;
       this.setFeet(p, r.x, r.y + 4);
-      for (const w of riders) this.setFeet(w.e, r.x + w.side * 34, r.y + 34);
-      if (this.rnd() < 0.7) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 80, age: 0, life: 0.5, size: 2, color: '#9fd6ff', g: 200 });
+      if (this.rnd() < 0.6) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 80, age: 0, life: 0.5, size: 2, color: '#9fd6ff', g: 200 });
     });
   }
   /** 화면 전체 상승(성벽 → 노을 바다) — 곡 위치가 RISE.flash 에 닿으면 끝난다(뒤에 흰 번쩍임·맵 전환). */
@@ -547,6 +547,49 @@ export class CastleDescent {
     if (c.text && c.alpha > 0) { ctx.globalAlpha = c.alpha; ctx.font = FONT.replace(/^\d+px/, '14px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff'; ctx.fillText(c.text, 240, 180); }
     ctx.restore();
   }
+  // ── 갑판 노을(사용자 2026-09-26): 요플래(빛)가 노을을 보고, 경섭·억빠맨이 온다. 역광과 긴 그림자 ──
+  /** 맵 backdrop 'castle_sunset_sky' — 타일보다 먼저(화면 좌표) */
+  drawSky(ctx, cam) {
+    const m = this.meta;
+    drawSunsetSky(ctx, this.game.propImages, { horizonY: m.horizonY, width: 760, shiftX: -cam.x * 0.08, sunX: m.sunX - cam.x * 0.08, sunD: 60, time: this.time, rays: this.rays, rayStrength: 0.7 });
+  }
+  deckSetup() {
+    const g = this.game, p = g.player, [lx, ly] = this.meta.lookout;
+    p.visible = false; this.setFeet(p, lx, ly);
+    this.lightForm = { x: lx, y: ly, alpha: 1, facing: 'right' };
+    for (const e of g.entities) if (e.def?.type === 'follower') e.visible = false;
+  }
+  /** 경섭·억빠맨이 왼쪽에서 걸어와 요플래 곁에 선다 */
+  deckFriendsIn() {
+    const cam = this.game.camera, st = this.meta.lookout, list = [['ppaman', [st[0] - 66, st[1] - 30], 0], ['gyeongsub', [st[0] - 70, st[1] + 22], 0.2]];
+    return Promise.all(list.map(([id, to, d]) => { const e = this.ent(id); if (!e) return Promise.resolve();
+      e.visible = true; e.facing = 'right'; this.setFeet(e, cam.x - 30, to[1]);
+      return this.delay(d).then(() => this.job(3.2, (k, dt) => { this.setFeet(e, lerpN(cam.x - 30, to[0], k), to[1]); e.moving = k < 1; e.animate?.(dt, 8); if (k >= 1) e.moving = false; })); }));
+  }
+  deckFriendsLeave(seconds = 4) {
+    const list = ['ppaman', 'gyeongsub'].map(id => this.ent(id)).filter(Boolean), from = list.map(e => this.feet(e));
+    for (const e of list) e.facing = 'left';
+    return this.job(seconds, (k, dt) => list.forEach((e, i) => { this.setFeet(e, from[i][0] - k * 260, from[i][1]); e.moving = true; e.animate?.(dt, 8); }));
+  }
+  /** 해를 등진 긴 그림자(발에서 해 반대쪽으로, 부드럽게) */
+  drawLongShadows(ctx, cam) {
+    const sun = this.meta.sunX, figs = this.chars().map(e => this.feet(e));
+    if (this.lightForm) figs.push([this.lightForm.x, this.lightForm.y]);
+    for (const [fx, fy] of figs) {
+      const x = fx - cam.x, y = fy - cam.y, dir = x < sun ? -1 : 1, len = 60;
+      const g = ctx.createLinearGradient(x, 0, x + dir * len, 0);
+      g.addColorStop(0, 'rgba(10,4,20,0.5)'); g.addColorStop(1, 'rgba(10,4,20,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 7, y - 2); ctx.lineTo(x + dir * len, y - 6); ctx.lineTo(x + dir * len, y + 6); ctx.lineTo(x + 7, y + 3); ctx.closePath(); ctx.fill();
+    }
+  }
+  // ── 라운지: 점례가 최미스를 문 밖으로 차낸다 ──
+  kickInto(id) {
+    const e = this.ent(id), D = this.meta.door; if (!e) return undefined;
+    const from = this.feet(e);
+    this.sfx('punch', 0.9); this.sfx('impact', 0.8); this.game.shake = { time: 0.25, amp: 3 };
+    return this.job(0.55, k => { this.setFeet(e, lerpN(from[0], D.enter[0], k), lerpN(from[1], D.enter[1], k)); e.hopY = Math.sin(Math.PI * k) * 40; e.spin = k * Math.PI * 4; })
+      .then(() => { e.visible = false; e.hopY = 0; e.spin = 0; this.sfx('great_shine', 0.3); for (let i = 0; i < 14; i++) this.bits.push({ x: D.enter[0], y: D.enter[1] - 20, vx: (this.rnd() - 0.5) * 120, vy: -40 - this.rnd() * 80, age: 0, life: 0.7, size: 2, color: '#fff6d0', g: 60 }); });
+  }
   // ── 라운지 결말 퍼레이드(사용자 2026-09-26): 한쪽이 열린 보라 문 너머 밝은 빛, 들어가면 그림자가 진다 ──
   loungeSetup() {
     const g = this.game;
@@ -760,6 +803,7 @@ export class CastleDescent {
     if (this.kind === 'raft') this.drawPool(ctx, cam);
     if (this.kind === 'sunset') this.drawSunset(ctx, cam);
     if (this.kind === 'lounge') this.drawLoungeFloor(ctx, cam);
+    if (this.kind === 'deck') this.drawLongShadows(ctx, cam);
     ctx.restore();
   }
   drawPool(ctx, cam) {
@@ -862,6 +906,13 @@ export class CastleDescent {
       drawCell(ctx, this.game.propImages[RISE.riseSheet], Math.floor(this.time * 2.6) % 4, fx - cam.x, fy - cam.y, RISE.riseH);
     }
     if (this.kind === 'lounge') this.drawLounge(ctx, cam);
+    if (this.kind === 'deck') {
+      // 빛의 요플래 · 역광(해 쪽 가장자리만 따뜻하게)
+      this.paintEpilogueFigures(ctx, cam);
+      const sun = [this.meta.sunX - cam.x * 0.08, this.meta.horizonY], list = this.chars();
+      this.backlight.apply(ctx, c => { for (const e of list) e.draw(c, cam); }, sun, 0.8);
+      this.drawEpilogueFx(ctx, cam);
+    }
     if (this.rise) drawRise(ctx, this.rise, this.game.riseT ?? 0, this.game.propImages, this.time);
     ctx.restore();
   }

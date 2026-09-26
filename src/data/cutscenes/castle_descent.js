@@ -112,10 +112,11 @@ export const castle_raft_intro = Object.assign([
   // 동시에 점프! 브금이 잠깐 꺼지고 뗏목이 빠르게 솟는다 → 페이드 아웃·인 → 화면 전체 상승과 함께 곡(원곡 42.7초부터)
   { bgm: null, fadeOut: 0.5 },
   scene(s => s.launch()),
-  { fade: 'out', duration: 0.45 },
-  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.02 }); } },
+  // 하늘로 넘어가는 페이드 아웃·인 약 1.5초 → 그 뒤 곡(원곡 42.7~63.9초 한 번)
+  { fade: 'out', duration: 0.75 },
   scene(s => { s.ascend(); }),
-  { fade: 'in', duration: 0.5 },
+  { fade: 'in', duration: 0.75 },
+  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.02, loop: false }); } },
   scene(s => s.waitRise(RISE.flash)),
   // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
   { fade: 'white', duration: 0.3 },
@@ -132,7 +133,7 @@ export const castle_sunset_arrival = Object.assign([
   { if: flags => !!flags.castle_sunset_arrived, goto: 'button' },
   close,
   // QA 로 바로 온 경우: 곡을 원곡 55초 자리부터
-  { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt }); } } },
+  { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt, loop: false }); } } },
   { camera: at(300, 204), duration: 0.01 },
   { parallel: [{ fade: 'in', duration: 0.7 }, scene(s => s.arrive())] },
   { set: { castle_sunset_arrived: true } },
@@ -236,11 +237,52 @@ export const ship_lounge_epilogue = Object.assign([
   ...vignette([{ wait: 0.6 }, { show: 'epi_yongjun' }, { sfx: 'whoosh', volume: 0.7 }, { move: 'epi_yongjun', px: DOOR_FRONT, dash: true, facing: 'up' }, scene(s => s.enterDoor('epi_yongjun', 0.3))],
     [{ wait: 2.0 }, { show: 'epi_junhee' }, { hop: 'epi_junhee', by: [100, -60], height: 30, duration: 0.55 }, { hop: 'epi_junhee', by: [100, -50], height: 30, duration: 0.55 }, { move: 'epi_junhee', px: DOOR_FRONT, run: true, facing: 'up' },
       { face: 'epi_junhee', dir: 'down' }, { wait: 0.4 }, { motion: 'epi_junhee', name: 'laugh', sfx: 'laugh_junhee' }, { wait: 0.3 }, { face: 'epi_junhee', dir: 'up' }, scene(s => s.enterDoor('epi_junhee'))]),
-  // 5. 지켜보는 일행 — 빛을 바라보며
+  // 5. 점례가 최미스를 문 밖으로 역동적으로 차낸 뒤, 문가에 올라가 아래를 잠깐 보고 다시 들어간다
+  ...vignette([{ wait: 0.5 }, { show: 'epi_choimis' }, { show: 'epi_jeomnye' }, { move: 'epi_choimis', px: [390, 262], facing: 'up' },
+    { hop: 'epi_jeomnye', by: [150, -70], height: 26, duration: 0.6 }, scene(s => s.kickInto('epi_choimis')), { wait: 0.4 },
+    { move: 'epi_jeomnye', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_jeomnye', dir: 'down' }, { wait: 1.0 }, { face: 'epi_jeomnye', dir: 'up' }, scene(s => s.enterDoor('epi_jeomnye'))]),
+  // 6. 지켜보는 일행 — 빛을 바라보며
   { zoom: 1.25, at: [384, 330], duration: 0.01 },
   { fade: 'in', duration: 1.2 }, { wait: 7 },
   { set: { ship_lounge_epilogue_seen: true } },
-  // 다음 이야기는 사용자 다음 브리핑 — 이 장면에 머문다
+  // 페이드 인·아웃 연출이 끝나면 갑판의 노을로
+  { fade: 'out', duration: 1.4 }, { zoom: 1, duration: 0.01 },
+  { map: 'ship_deck_epilogue', spawn: 'start', enter: true, bgm: false },
+  { label: 'end' }, { end: true },
+], { silent: true });
+
+/** 갑판 노을(사용자 2026-09-26): 바람만 — 요플래(빛)가 노을을 보다가 경섭·억빠맨이 온다. 대사 원문. 끝나면 천천히 페이드 아웃. */
+export const ship_deck_epilogue = Object.assign([
+  { if: flags => !!flags.ship_deck_epilogue_seen, goto: 'end' },
+  close,
+  scene(s => s.deckSetup()),
+  { bgm: 'wind', volume: 0.35, fadeIn: 1.5 },
+  { fade: 'in', duration: 2.0 }, { wait: 2.0 },
+  P('뭐해요?'), close,
+  // 경섭·억빠맨이 왼쪽에서 다가오고 요플래가 왼쪽을 본다
+  { parallel: [scene(s => s.deckFriendsIn()), [{ wait: 1.2 }, scene(s => { if (s.lightForm) s.lightForm.facing = 'left'; })]] },
+  { wait: 0.4 },
+  P('여기계셨네요'), K('슬슬 우리도 갈 예정이야.'),
+  N('...'), N('나는 고맙다는 말을 전했다.'),
+  K('ㅋㅋㅋ 새삼스럽게'),
+  P('뭔가 일들이 많았고 위기도 많았지만'), P('즐거웠던거같아요.'),
+  K('응 나도 즐거웠어.'), K('요플래 넌 어쩔샘이야?'),
+  N('나는 이 세상을 지울 수 없다고 말했다.'),
+  K('그게 무슨소리야?'),
+  N('가재맨은 아직 내 안에 살아있고'), N('나와 함께 공존해 나가야한다고 말했다.'), N('그리고'), N('누군가는 김형섭의 컴퓨터를 지켜야한다고 말했다.'),
+  K('...'), K('그렇지 허허'),
+  P('그럼 언젠간 저희 다시 만날 수 있는건가요?'),
+  N('...'), N('나는 긍정했다.'),
+  P('언젠가 또 봤으면 좋겠어요'),
+  K('그치'), K('... 요플래 그리고 가재맨'), K('둘다 우리에게는 멋진 방송인일거야.'),
+  P('멋진 사장님이기도 하구요'),
+  N('...'),
+  K('자 이제 돌아가볼까?'),
+  P('집에 가요, 편집 밀린거 헤야해요.'), close,
+  // 왼쪽으로 걸어가고 천천히 페이드 아웃
+  { parallel: [scene(s => s.deckFriendsLeave()), [{ wait: 1.5 }, { fade: 'out', duration: 3.5 }]] },
+  { set: { ship_deck_epilogue_seen: true } },
+  // 다음 이야기는 사용자 다음 브리핑 — 검은 화면에 머문다
   { wait: 3600 },
   { label: 'end' }, { end: true },
 ], { silent: true });
