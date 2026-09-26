@@ -18,6 +18,8 @@ import { RISE, tickRiseClock, updateRise, drawRise, drawCell, Backlight, SunRays
  *       and jump — the raft climbs the wall with all three to the ledge on top.
  */
 // SAVE THE WORLD 누름(BUILD373): squash 초 동안 depth 만큼 눌렸다 돌아오고, wrap 초 동안 흰 빛이 radius 까지 번져 화면을 감싼다
+// 흰 화면이 다 덮은 뒤 SAVE THE WORLD 글자가 떠오르며 사라지는 시간(초)
+const SAVE_TEXT_FADE = 1.1;
 const BUTTON_PRESS = Object.freeze({ squash: 0.22, depth: 0.12, wrap: RISE.white - RISE.press, radius: 520 });
 export const DESCENT = Object.freeze({
   sword: 'assets/props/cathedral323_sword.png', swordW: 40, swordH: 160,
@@ -360,7 +362,7 @@ export class CastleDescent {
       const T = this.game.riseT ?? 0;
       if (!b.pressed && T >= RISE.press) { b.pressed = b.t; this.sfx('confirm_echo', 1); }
       // 흰 빛이 다 감싸면 흰 화면 그대로 달리기 준비로(whiteHold)
-      if (b.pressed && T >= RISE.white) { this.button = null; this.whiteHold = true; return true; }
+      if (b.pressed && T >= RISE.white) { this.button = null; this.whiteHold = true; this.saveText = { t0: this.time }; return true; }
       return false;
     } }));
   }
@@ -886,6 +888,19 @@ export class CastleDescent {
     if (!run) return undefined;
     return this.job(1.0, k => { run.alpha = 1 - k; }).then(() => { this.run = null; });
   }
+  /** SAVE THE WORLD 무지개 글자(짙은 테두리) — 흰 화면 위에서도 보인다. sq: 눌림 배율(가운데 기준) */
+  paintSaveText(ctx, cx, cy, alpha, sq = 1) {
+    if (alpha <= 0) return;
+    ctx.save(); ctx.globalAlpha = alpha;
+    ctx.font = FONT.replace(/^\d+px/, '24px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(GJ.text.button).width, grad = ctx.createLinearGradient(cx - tw / 2, 0, cx + tw / 2, 0), shift = (this.time * 0.5) % 1;
+    GJ.rainbow.forEach((c, i) => grad.addColorStop(((i / (GJ.rainbow.length - 1)) + shift) % 1, c));
+    // 무지개 그라데이션이 화면 좌표라 가운데 기준으로만 배율을 준다
+    ctx.translate(cx, cy); ctx.scale(sq, sq); ctx.translate(-cx, -cy);
+    ctx.fillStyle = '#1a0830'; for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2]]) ctx.fillText(GJ.text.button, cx + dx, cy + dy);
+    ctx.fillStyle = grad; ctx.fillText(GJ.text.button, cx, cy);
+    ctx.restore();
+  }
   drawButton(ctx) {
     const b = this.button; if (!b) return;
     const cx = 240, cy = 64, appear = Math.min(1, b.t / (b.auto ? 0.15 : 0.6)), pt = b.pressed ? b.t - b.pressed : 0, fly = 0;
@@ -927,13 +942,12 @@ export class CastleDescent {
       ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.fillRect(0, 0, 480, 360);
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, (e - 0.55) / 0.45).toFixed(3)})`; ctx.fillRect(0, 0, 480, 360);
       // 글자는 끝 무렵에만 흰 화면 속으로 스르르(완전히 하얘지는 순간 뚝 사라지지 않게)
-      ctx.globalAlpha = 1 - Math.max(0, (k - 0.8) / 0.2);
+      // 판(회색 박스)은 흰 빛에 같이 묻히고, 무지개 글자만 끝까지 또렷하게(BUILD385 사용자)
+      ctx.globalAlpha = Math.max(0, 1 - e * 1.4);
       ctx.fillStyle = 'rgba(8,4,14,0.85)'; ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy - bh / 2), Math.round(bw), Math.round(bh));
-      // 무지개 그라데이션이 화면 좌표라 가운데 기준으로만 눌림 배율을 준다
-      ctx.save(); ctx.translate(cx, cy); ctx.scale(sq, sq); ctx.translate(-cx, -cy);
-      ctx.fillStyle = '#1a0830'; for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2]]) ctx.fillText(GJ.text.button, cx + dx, cy + dy);
-      ctx.fillStyle = grad; ctx.fillText(GJ.text.button, cx, cy); ctx.restore();
-      ctx.restore(); return;
+      ctx.restore();
+      this.paintSaveText(ctx, cx, cy, 1, sq);
+      return;
     }
     ctx.fillStyle = grad; ctx.fillText(GJ.text.button, cx, Math.round(y));
     ctx.restore();
@@ -946,6 +960,11 @@ export class CastleDescent {
     if (this.run && (!this.game.battle || this.game.battle.state === 'load')) this.run.draw(ctx);
     this.drawWaveHud(ctx);
     this.drawButton(ctx);
+    // 흰 화면이 다 덮은 뒤에도 글자만 남아 위로 떠오르며 사라진다(흰 화면·그림자 준비 동작 위)
+    if (this.saveText) {
+      const k = (this.time - this.saveText.t0) / SAVE_TEXT_FADE;
+      if (k >= 1) this.saveText = null; else this.paintSaveText(ctx, 240, 64 - 22 * (1 - (1 - k) ** 2), 1 - k * k);
+    }
     this.drawCard(ctx);
     this.drawCredits(ctx);
   }

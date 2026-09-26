@@ -218,6 +218,9 @@ export function createGajaemanRunner(battle, { enemy }) {
       } else if (sw.straight && sw.y >= run.groundY - C.sword.aimHeight) { sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.ang = Math.PI; }
       if (!sw.landed && sw.y >= run.groundY - C.sword.aimHeight) { sw.landed = true; sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.vx = -C.sword.speed; sw.ang = Math.PI; }
       sw.x += sw.vx * dt; sw.y += sw.vy * dt;
+      // 잔상(BUILD385 사용자 “검 쏠 때 잔상 살짝”): 움직이는 동안 지나온 자리 몇 개
+      sw.trailT = (sw.trailT || 0) + dt;
+      if (sw.trailT >= 0.035) { sw.trailT = 0; sw.trail = [{ x: sw.x, y: sw.y, ang: sw.ang }, ...(sw.trail || [])].slice(0, 4); }
       if (sw.dead) continue;
       if (s && overlap(sw.x, sw.y, C.sword.halfW, C.sword.halfH, ...s)) { sw.dead = true; sw.vx = 0; sw.vy = 0; sw.flyV = [260, -320]; sfx(C.sfx.swordHit, 0.9); sfx(C.sfx.counter, 0.6); run.burst(sw.x, sw.y, 12, { speed: 110, life: 0.45 });
         // 더 화려하게(BUILD373): 무지개 파편 · 흰 충격파 고리 둘 · 십자 섬광
@@ -272,6 +275,7 @@ export function createGajaemanRunner(battle, { enemy }) {
   }
   function drawSword(ctx, sw) {
     const img = g.propImages?.['assets/props/cathedral323_sword.png']; if (!img) return;
+    if (!sw.dead && sw.trail) sw.trail.forEach((t, i) => { ctx.save(); ctx.globalAlpha = 0.28 * (1 - i / sw.trail.length); ctx.translate(Math.round(t.x), Math.round(t.y)); ctx.rotate(t.ang - Math.PI / 2); ctx.drawImage(img, -C.sword.w * C.sword.draw / 2, -C.sword.h * C.sword.draw / 2, C.sword.w * C.sword.draw, C.sword.h * C.sword.draw); ctx.restore(); });
     ctx.save(); ctx.translate(Math.round(sw.x), Math.round(sw.y));
     // 그림은 칼끝이 아래 → 진행 방향으로
     ctx.rotate(sw.ang - Math.PI / 2);
