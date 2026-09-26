@@ -166,7 +166,8 @@ export const STATE_FROM_FLAGS = [
   { flag: 'ship_tvform_won', enemies: ['youngcle_tvform'] },
   { flag: 'choimis_flower_won', enemies: ['choimis_flower'] },
   { flag: 'castle_malzahar_won', enemies: ['malzahar_sub'] },
-  { flag: 'castle_teen_won', enemies: ['teen_giant'] },                                                                  // 꼭대기 청소년 보스전(돈 0) — castle_summit.js(BUILD339)
+  { flag: 'castle_teen_won', enemies: ['teen_giant'] },
+  { flag: 'castle_gajaeman_clash', enemies: ['gajaeman_runner'] },                                                      // 노을 땅 가재맨 달리기 결전(돈 0) — gajaeman-runner.js(BUILD363)                                                                  // 꼭대기 청소년 보스전(돈 0) — castle_summit.js(BUILD339)
   // 비데 방 도트마리오 버섯: 공격 +1(청록숲 축복 2 → 3, 상점 강화는 아래에서 +1), 최대 HP +20 — bidet_arcade.js
   { flag: 'bidet_arcade_done', attack: 3, hpBonus: 20 },
   { flag: 'sakura5_duo_won', enemies: ['domijorim', 'dohyun'] },                                                          // 벚꽃 숲 5 공터 도미조림·도현 전투(각 45원) — jjajang_sakura5.js(BUILD276)
@@ -825,6 +826,7 @@ for (const [id, spawn, extra, desc] of [
     ['castle_road_end', 'gajaeman_castle_skyroad', 'end', road, '끝없는 길 · 끝(검 넷·영클 레이저)'],
     ['castle_raft', 'gajaeman_castle_raft', 'start', { ...road, castle_road_done: true }, '뗏목 웅덩이 · 가재맨 상승 → 뗏목 점프 → 상승 연출'],
     ['castle_sunset', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true }, '노을 땅 · 앞덤블링 착지(가재맨 도망)'],
+    ['castle_sunset_run', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true }, '노을 땅 · SAVE THE WORLD → 가재맨 달리기 결전'],
   ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_summit_ready',
     extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...after, ...extra } });
 }

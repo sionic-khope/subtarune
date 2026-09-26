@@ -1,4 +1,8 @@
 import { CHAR_SCALE } from '../world/world.js';
+import { Input } from '../core/input.js';
+import { FONT } from '../ui/font.js';
+import { SunsetRun } from './sunset-run.js';
+import { GJ_RUNNER as GJ } from '../data/gajaeman-runner.js';
 import { RISE, tickRiseClock, updateRise, drawRise, drawCell, Backlight, SunRays, Motes, drawSunsetSky, glow } from './castle-rise.js';
 
 /**
@@ -37,7 +41,7 @@ export class CastleDescent {
     this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
     if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
     if (this.kind === 'sunset' && game.player) game.player.def.visualScale = this.meta.charScale || 1;
-    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
+    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -283,6 +287,7 @@ export class CastleDescent {
       if (!tb.landed && T >= RISE.land) {
         tb.landed = T;
         this.sfx('switch_noise', 0.9); this.sfx('thud', 0.3); g.shake = { time: 0.18, amp: 2 };
+        g.sound.stopBgm(1.2);
         for (let i = 0; i < 14; i++) this.dust.push({ x: lx + (i - 6.5) * 3, y: ly - 2, vx: (i - 6.5) * (10 + this.rnd() * 14), vy: -12 - this.rnd() * 22, age: 0, life: 0.7 + this.rnd() * 0.4, s: 2 + (i % 3) });
       }
       if (tb.landed && T >= tb.landed + 1.5) {
@@ -292,6 +297,124 @@ export class CastleDescent {
       }
       return false;
     } }));
+  }
+  // ── SAVE THE WORLD → 달리기 ──────────────────────────────
+  /** 화면 위 SAVE THE WORLD 버튼(무지개 오오라가 모여든다) → 옆에 하트 띡 → C: 에코 띠링, 무지개 글자가 위로 떠 사라진다 */
+  saveButton() {
+    this.button = { t: 0, heart: false, pressed: 0, motes: [] };
+    return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => {
+      const b = this.button; if (!b) return true;
+      if (!b.heart && b.t >= 1.5) { b.heart = true; this.sfx('menumove', 0.9); }
+      if (b.heart && !b.pressed && Input.just('confirm')) { b.pressed = b.t; this.sfx('confirm_echo', 1); }
+      if (b.pressed && b.t >= b.pressed + 0.9) { this.button = null; return true; }
+      return false;
+    } }));
+  }
+  /** 화면이 하얘지고 요플래 그림자가 준비 동작 → 달리는 순간 흰 화면이 걷히며 곡(원곡 1분 3초부터) */
+  startRun() {
+    const g = this.game, run = this.run = new SunsetRun(g, { rnd: this.rnd });
+    g.player.visible = false; this.hideGajaeman();
+    this.delay(GJ.white.hold).then(() => run.begin(() => { g.sound.playBgm(GJ.bgm, { volume: 0.7, fadeIn: 0.02 }); }));
+    return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => run.reveal >= 1 }));
+  }
+  /** 달린 지 2~3초 뒤 오른쪽에서 천천히 가재맨 */
+  gajaemanRunIn() {
+    const run = this.run, b = run.boss;
+    return this.delay(GJ.boss.enterAt).then(() => {
+      b.visible = true; b.x = GJ.boss.from[0]; b.y = GJ.boss.from[1]; b.aura = 1; this.sfx('wing', 0.6);
+      return this.job(GJ.boss.enter, k => { const e = 1 - (1 - k) ** 3; b.x = lerpN(GJ.boss.from[0], GJ.boss.home[0], e); b.y = lerpN(GJ.boss.from[1], GJ.boss.home[1], e); });
+    });
+  }
+  /** 엄청난 오오라를 모아 힘을 폭발시킨다 */
+  auraBurst() {
+    const run = this.run, b = run.boss, g = this.game;
+    this.sfx('captain_transform', 0.9); this.sfx('laser_charge', 0.8); this.sfx('cannon_charge', 0.6);
+    return this.job(GJ.aura.gather, (k, dt) => {
+      b.aura = 1 + k * 3; b.shake = 0.1; g.shake = { time: 0.05, amp: 1 + k * 2 };
+      if (this.rnd() < 0.9) for (let i = 0; i < 2; i++) { const a = this.rnd() * Math.PI * 2, r = 80 + this.rnd() * 60; run.particles.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 2.2, vy: -Math.sin(a) * r * 2.2, t: 0, life: 0.42, s: 2 + (i % 2), color: this.rnd() < 0.6 ? '#a851ff' : '#1a0830', g: 0 }); }
+    }).then(() => {
+      this.sfx('deltarune_release_shoot', 1); this.sfx('explosion', 0.7);
+      run.flash = 0.45; run.flashColor = '245,225,255'; g.shake = { time: 0.7, amp: 7 };
+      run.burst(b.x, b.y, 70, { rainbow: false, speed: 260, life: 0.9 }); run.burst(b.x, b.y, 30, { speed: 200, life: 0.8 });
+      b.aura = 1.8;
+      return this.delay(GJ.aura.burst);
+    });
+  }
+  /** 벤 뒤: 그림자가 걷히며 가재맨은 하늘에 멈춰 디디디딕(엄청난 오오라가 흔들림), 요플래는 검을 든 채 뒤돌아 땅을 본다 */
+  afterSlash() {
+    const run = this.run; if (!run) return undefined;
+    const b = run.boss;
+    run.frozen = true; run.pose = 3; run.poseFlip = false; run.pxOverride = GJ.release.endPlayerX;
+    b.visible = true; b.x = GJ.release.bossTo[0]; b.y = GJ.release.bossTo[1]; b.lie = 0; b.face = 'right'; b.jitter = true; b.aura = 3;
+    this.sfx('static_burst', 0.45);
+    return this.job(GJ.after.lift, k => { run.shade = 1 - k * k * (3 - 2 * k); });
+  }
+  /** 검은 연기가 점점 모여 — 쾅, 쿠와아앙 — 터지고, 연기는 하늘로 */
+  farewell() {
+    const run = this.run; if (!run) return undefined;
+    const b = run.boss, g = this.game;
+    this.sfx('rumble', 0.7);
+    return this.job(GJ.after.smoke, k => {
+      b.aura = 3 + k * 2; b.shake = 0.1; g.shake = { time: 0.05, amp: 1 + k * 3 };
+      const n = 1 + Math.floor(k * 4);
+      for (let i = 0; i < n; i++) { const a = this.rnd() * Math.PI * 2, r = 90 + this.rnd() * 70; run.smoke.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r * 0.8, vx: -Math.cos(a) * r * 1.6, vy: -Math.sin(a) * r * 1.3, t: 0, life: 0.6, r: 4 + this.rnd() * 5, grow: -4, drag: 0.99 }); }
+    }).then(() => {
+      this.sfx('baron_slam', 1); this.sfx('furnace_blast', 1);
+      g.shake = { time: 1.1, amp: 9 }; run.flash = 0.35; run.flashColor = '255,236,220';
+      b.visible = false; b.jitter = false;
+      for (let i = 0; i < 70; i++) { const a = this.rnd() * Math.PI * 2, v = 60 + this.rnd() * 220; run.smoke.push({ x: b.x, y: b.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.7 - 30, t: 0, life: GJ.after.rise * (0.6 + this.rnd() * 0.5), r: 6 + this.rnd() * 10, grow: 6, drag: 0.96, color: i % 5 ? '#050308' : '#2a1640' }); }
+      run.burst(b.x, b.y, 40, { rainbow: false, speed: 200, life: 0.8 });
+      // 터짐이 끝나면 남은 연기가 하늘로 천천히
+      return this.job(GJ.after.rise, (k, dt) => { for (const p of run.smoke) { p.vy = Math.min(p.vy, 0) - 70 * dt; p.vx *= 0.98; } });
+    });
+  }
+  /** 달리기 화면을 걷고 필드로(요플래는 뒤돌아본 자리 그대로) — 다음 연출은 사용자 다음 브리핑 */
+  endRun() {
+    const run = this.run, p = this.game.player, cam = this.game.camera;
+    p.visible = true; p.facing = 'left';
+    if (run) this.setFeet(p, run.x + cam.x, run.groundY + cam.y);
+    if (!run) return undefined;
+    return this.job(1.0, k => { run.alpha = 1 - k; }).then(() => { this.run = null; });
+  }
+  drawButton(ctx) {
+    const b = this.button; if (!b) return;
+    const cx = 240, cy = 64, appear = Math.min(1, b.t / 0.6), fly = b.pressed ? Math.min(1, (b.t - b.pressed) / 0.9) : 0;
+    // 무지개 오오라가 버튼 안으로 모여든다
+    if (!b.pressed && this.rnd() < 0.9) { const a = this.rnd() * Math.PI * 2, r = 90 + this.rnd() * 50; b.motes.push({ x: cx + Math.cos(a) * r * 1.4, y: cy + Math.sin(a) * r * 0.6, t: 0, life: 0.7, c: GJ.rainbow[Math.floor(this.rnd() * GJ.rainbow.length)] }); }
+    for (const m of b.motes) { m.t += 1 / 60; const k = m.t / m.life; m.x += (cx - m.x) * 0.08; m.y += (cy - m.y) * 0.08; }
+    b.motes = b.motes.filter(m => m.t < m.life);
+    ctx.save();
+    glow(ctx, cx, cy, 120, 'rgba(255,230,160,A)', 0.25 * appear * (1 - fly));
+    for (const m of b.motes) { ctx.globalAlpha = Math.sin(Math.PI * m.t / m.life) * appear * (1 - fly); ctx.fillStyle = m.c; ctx.fillRect(Math.round(m.x), Math.round(m.y), 3, 3); }
+    ctx.globalAlpha = appear * (1 - fly);
+    ctx.font = FONT.replace(/^\d+px/, '24px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(GJ.text.button).width, y = cy - fly * 60;
+    const grad = ctx.createLinearGradient(cx - tw / 2, 0, cx + tw / 2, 0), shift = (this.time * 0.5) % 1;
+    GJ.rainbow.forEach((c, i) => grad.addColorStop(((i / (GJ.rainbow.length - 1)) + shift) % 1, c));
+    if (!b.pressed) {
+      // 버튼 판: 검은 바탕 + 무지개 테두리(선택된 느낌으로 반짝)
+      const bw = tw + 36, bh = 38, pulse = 0.75 + 0.25 * Math.sin(this.time * 6);
+      ctx.fillStyle = 'rgba(8,4,14,0.85)'; ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy - bh / 2), Math.round(bw), bh);
+      ctx.globalAlpha = appear * pulse; ctx.fillStyle = grad;
+      ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy - bh / 2), Math.round(bw), 3); ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy + bh / 2 - 3), Math.round(bw), 3);
+      ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy - bh / 2), 3, bh); ctx.fillRect(Math.round(cx + bw / 2 - 3), Math.round(cy - bh / 2), 3, bh);
+      ctx.globalAlpha = appear;
+      if (b.heart) {
+        // 하트(소울)
+        const hx = Math.round(cx - bw / 2 - 22), hy = Math.round(cy - 6);
+        ctx.fillStyle = '#ff2020';
+        for (const [dx, dy, w] of [[1, 0, 3], [6, 0, 3], [0, 1, 10], [0, 2, 10], [0, 3, 10], [1, 4, 8], [2, 5, 6], [3, 6, 4], [4, 7, 2]]) ctx.fillRect(hx + dx, hy + dy, w, 1);
+        ctx.fillRect(hx, hy + 1, 10, 4);
+      }
+    }
+    ctx.fillStyle = grad; ctx.fillText(GJ.text.button, cx, Math.round(y));
+    ctx.restore();
+  }
+  /** 화면 좌표: 버튼, 달리기 화면(전투 전) */
+  drawHud(ctx) {
+    if (this.disposed) return;
+    if (this.run && !this.game.battle) this.run.draw(ctx);
+    this.drawButton(ctx);
   }
   /** 앞덤블링(동그라미 궤적 + 몸 회전 + 잔상) → 웅크린 착지 → 무릎 꿇기. world 좌표. */
   drawTumble(ctx, cam, bare = false) {
@@ -363,6 +486,8 @@ export class CastleDescent {
     if (g.map !== this.map || g.state === 'title') { this.dispose(); return; }
     const s = Math.max(0, dt); this.time += s;
     const T = tickRiseClock(g, s);
+    if (this.button) this.button.t += s;
+    if (this.run && !g.battle) this.run.update(s);
     if (this.rise && T != null) updateRise(this.rise, T, s);
     if (this.kind === 'sunset') this.warm.update(s, { rate: 5, vy: -10, warm: true });
     for (const d of this.dust) { d.age += s; d.x += d.vx * s; d.y += d.vy * s; d.vx *= 0.92; d.vy += 30 * s; }

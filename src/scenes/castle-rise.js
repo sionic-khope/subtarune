@@ -10,7 +10,7 @@
  */
 export const RISE = Object.freeze({
   bgm: 'save_the_world_rise',
-  handoff: 0, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
+  handoff: 0, castleEnd: 8, clear: 9.4, flash: 12.0, mapAt: 12.3, land: 18.2,
   riseSheet: 'assets/sprites/hyungsub-rise.png', landSheet: 'assets/sprites/hyungsub-land.png',
   backdrop: 'assets/backdrops/castle_sunset359.png', sun: 'assets/props/maillard_sun.png', sunCrop: Object.freeze([53, 53, 151, 150]),
   // 생성 배경의 수평선 높이(비율)
@@ -216,15 +216,20 @@ export function drawRise(ctx, state, T, images, time) {
       const off = (state.d * speed) % step;
       for (let y = off - step; y < H; y += step) ctx.drawImage(wall, 0, p0, wall.width, ph, Math.round(x), Math.round(y), Math.round(width), Math.ceil(step) + 1);
       ctx.restore();
-      // 꼭대기 모서리: 햇빛이 닿아 따뜻하게(부드러운 빛 띠)
+      // 꼭대기: 같은 돌 그림으로 성가퀴(톱니)를 올리고 햇빛이 닿는 윗면을 따뜻하게
       if (open > 0 && top < H) {
+        const mw = width / 11, mh = 18 * (width / 316), s = width / wall.width;
+        ctx.save(); ctx.globalAlpha = state.alpha * alpha;
+        for (let i = 0; i < 11; i += 2) ctx.drawImage(wall, (i * mw) / s, p0, mw / s, mh / s, Math.round(x + i * mw), Math.round(top - mh), Math.ceil(mw), Math.ceil(mh));
+        ctx.restore();
+        const lip = ctx.createLinearGradient(0, top - mh - 6, 0, top - mh + 10);
+        lip.addColorStop(0, 'rgba(255,190,110,0)'); lip.addColorStop(0.5, `rgba(255,205,140,${0.45 * alpha * state.alpha})`); lip.addColorStop(1, 'rgba(255,170,90,0)');
+        ctx.fillStyle = lip; for (let i = 0; i < 11; i += 2) ctx.fillRect(Math.round(x + i * mw), Math.round(top - mh - 6), Math.ceil(mw), 16);
         const g = ctx.createLinearGradient(0, top - 10, 0, top + 14);
         g.addColorStop(0, 'rgba(255,190,110,0)'); g.addColorStop(0.45, `rgba(255,200,130,${0.55 * alpha * state.alpha})`); g.addColorStop(1, 'rgba(255,170,90,0)');
         ctx.fillStyle = g; ctx.fillRect(x, top - 10, width, 24);
       }
     };
-    column(-70, 150, 0.45, 0.28);
-    column(400, 150, 0.45, 0.28);
     column(82, 316, 1, 1);
   }
   // 3) 빛: 성벽 구간은 차가운 푸른 빛, 트이면 따뜻한 빛이 화면을 한 번 가득 채운다

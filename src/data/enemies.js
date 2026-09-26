@@ -70,6 +70,13 @@ export const ENEMIES = {
       idle: ['* 아우솔섭의 꼬리에 별빛이 맺힌다.', '* 아우솔섭이 고개를 치켜든다.'],
       speak: ['니애미따라가솔.'], die: '* 아우솔섭이 흩어졌다.' },
   },
+  // BUILD363 노을 땅 달리기 결전(src/battle/modes/gajaeman-runner.js): 쳐냄 다섯 번 + 마지막 맞붙기 C = hp 6
+  gajaeman_runner: {
+    name: '최후의 결전', hp: 6, damage: 20, damageStep: 0, money: 0, boss: true,
+    support: 'gajaeman_runner', defense: 'gajaeman_runner',
+    image: 'assets/sprites/gajaeman_shadow.png', idle: { swayX: 0, swayY: 0 },
+    lines: { appear: '* 노을 속으로 달린다.', idle: ['* 노을 속으로 달린다.'], die: '* 검이 맞부딪친다.' },
+  },
   malzahar_sub: {
     name: '말자하섭', hp: 5, damage: 15, damageStep: 0, money: 0, boss: true,
     support: 'malzahar_runner', defense: 'malzahar_runner',

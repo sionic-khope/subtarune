@@ -25,7 +25,9 @@
  "preload": [
   "assets/backdrops/castle_sunset359.png",
   "assets/props/maillard_sun.png",
-  "assets/sprites/hyungsub-land.png"
+  "assets/sprites/hyungsub-land.png",
+  "assets/sprites/hyungsub-clash.png",
+  "assets/props/cathedral323_sword.png"
  ],
  "spawns": {
   "arrive": {

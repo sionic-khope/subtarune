@@ -1,5 +1,8 @@
 // BUILD358 사용자 브리핑(2026-09-26): 꼭대기에서 뛰어내린 뒤 — 끝없는 길(섭 몬스터·편집노조·영클 레이저) → 뗏목 웅덩이(벽 타고 상승). 대사·표기 원문 그대로.
 import { RISE } from '../../scenes/castle-rise.js';
+import { GJ_RUNNER as GJ } from '../gajaeman-runner.js';
+
+const A = text => ({ speaker: '가재맨', voice: 'gajaeman_shadow', text: `* ${text}` });
 
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
@@ -122,13 +125,37 @@ export const castle_raft_intro = Object.assign([
 
 /** 노을 땅 도착: 가재맨이 먼저 올라와 있다가 오른쪽으로 도망 → 요플래가 땅 앞에서 동그랗게 앞덤블링하며 올라와 원곡 64초에 무릎 꿇고 착지(챱). */
 export const castle_sunset_arrival = Object.assign([
-  { if: flags => !!flags.castle_sunset_arrived, goto: 'end' },
+  { if: flags => !!flags.castle_gajaeman_clash, goto: 'end' },
+  { if: flags => !!flags.castle_sunset_arrived, goto: 'button' },
   close,
-  // QA 로 바로 온 경우: 곡을 원곡 58초 자리부터
+  // QA 로 바로 온 경우: 곡을 원곡 55초 자리부터
   { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt }); } } },
   { camera: at(300, 204), duration: 0.01 },
   { parallel: [{ fade: 'in', duration: 0.7 }, scene(s => s.arrive())] },
   { set: { castle_sunset_arrived: true } },
-  { camera: 'player' },
+  // BUILD363 착지 뒤: 요플래 쪽으로 살짝 다가가고 우우웅만(브금 없음) → SAVE THE WORLD 버튼·하트 → C
+  { label: 'button' },
+  close,
+  { action: game => { game.sound.stopBgm(0.6); game.sound.preloadBgm?.(GJ.bgm); } },
+  { camera: at(300, 204), duration: 0.01 },
+  { zoom: 1.22, at: 'player', offset: [0, -14], duration: 1.8 },
+  { bgm: GJ.hum, volume: 0.35, fadeIn: 1.2 },
+  scene(s => s.saveButton()),
+  { bgm: null, fadeOut: 0.15 },
+  { zoom: 1, duration: 0.01 },
+  // 흰 화면·요플래 그림자 준비 동작 → 달리는 순간 걷히며 곡(원곡 1분 3초부터)과 무지개 레터박스
+  scene(s => s.startRun()),
+  scene(s => s.gajaemanRunIn()),
+  A('요플래..'), A('꼭 그렇게 나를 막고싶다면'), A('여기서 끝을 보자.'), close,
+  scene(s => s.auraBurst()),
+  { battle: { enemies: ['gajaeman_runner'], bgm: GJ.bgm, seamlessIntro: true, skipVictoryText: true, flag: 'castle_gajaeman_clash' } },
+  // 벤 뒤(사용자 2026-09-26): 그림자가 걷히며 하늘에 멈춘 가재맨 디디디딕 · 요플래는 뒤돌아 땅을 본다
+  // 보스 승리 전환이 화면을 덮어 둔 채라 곧바로 걷는다(달리기 화면의 흰 그림자가 그대로 보인다)
+  { fade: 'in', duration: 0.01 },
+  scene(s => s.afterSlash()), { wait: 0.8 },
+  A('...'), A('...그.. 그래..'), A('...'), A('... ... ...'), A('뭐...'), A('롤..이나 하러.. 가야겠군'), close,
+  scene(s => s.farewell()),
+  { wait: 0.6 },
+  scene(s => s.endRun()),
   { label: 'end' }, { end: true },
 ], { silent: true });
