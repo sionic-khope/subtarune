@@ -51,13 +51,13 @@ def main() -> None:
         entities.append(anchor(f'summit_stand_{name}', VIEW[0] + fx - 12, VIEW[1] + fy - 16))
     # BUILD352 2페이즈 격파 뒤 연출 배우(처음엔 숨김): 박용준·쥰희·영클·편집노조, 그리고 멈춰 설 자리(앵커 아래 가운데 = 발)
     for name, sprite, fx, fy, extra in (
-        ('yongjun', 'yongjun', 1060, 404, {'facing': 'right'}),
+        ('yongjun', 'yongjun', 640, 404, {'facing': 'right'}),
         ('junhee', 'junhee', 1330, 392, {'facing': 'right'}),
-        ('youngcle', 'youngcle_hover', 960, 360, {'facing': 'right'}),
-        ('bidet', 'warm_bidet', 930, 372, {'facing': 'right'}),
-        ('mario', 'mini_mario', 910, 430, {'facing': 'right'}),
-        ('ttuulla', 'ttuulla', 885, 432, {'facing': 'right', 'visualScale': 1.79}),
-        ('park', 'park_guardian_costume', 860, 380, {'facing': 'right', 'visualScale': 2.22}),
+        ('youngcle', 'youngcle_hover', 1300, 360, {'facing': 'right'}),
+        ('bidet', 'warm_bidet', 1270, 372, {'facing': 'right'}),
+        ('mario', 'mini_mario', 1250, 430, {'facing': 'right'}),
+        ('ttuulla', 'ttuulla', 1225, 432, {'facing': 'right', 'visualScale': 1.79}),
+        ('park', 'park_guardian_costume', 1200, 380, {'facing': 'right', 'visualScale': 2.22}),
     ):
         entities.append({'type': 'npc', 'id': f'finale_{name}', 'sprite': sprite, 'x': fx - 12, 'y': fy - 24, 'solid': False, 'wander': 0, 'hidden': True, **extra})
     for name, fx, fy in (('junhee', 1752, 392), ('youngcle', 1628, 360), ('mario', 1592, 430), ('bidet', 1562, 372), ('ttuulla', 1532, 432), ('park', 1500, 380)):

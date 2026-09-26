@@ -24,7 +24,8 @@ export const FINALE = Object.freeze({
   },
   bladeAt: [1960, 220], partyAim: [1690, 372], bladeScale: 4.2, bladePull: 200,
   // 박용준·용준대포는 끝길 훨씬 뒤(왼쪽), 대포는 필드 크기(2배). 바론은 그 앞에서 솟고 막은 뒤 박용준 뒤로 물러난다
-  cannon: [1200, 408], cannonScale: 2, yongjun: [1060, 404], baron: [1500, 436], baronRest: [930, 420], baronScale: 1.125, block: [1752, 392],
+  // 박용준·대포는 끝길 훨씬 뒤, 바론은 박용준(대포) 바로 앞에서 솟아 그 자리에 남는다
+  cannon: [780, 408], cannonScale: 2, yongjun: [640, 404], baron: [1010, 436], baronRest: [1010, 436], baronScale: 1.125, block: [1752, 392],
   gjOut: [1905, 150], flee: [2420, 40],
 });
 /** 대치 화면의 화면 좌표 → 월드 */
@@ -146,7 +147,8 @@ export class CastleSummit {
       if (veil > 0.01) this.smoke.draw(ctx, cam, 'front', 0.8, veil * 1.6);
     }
     const front = this.game.propImages[V.front];
-    if (front) ctx.drawImage(front, Math.round(1152 - cam.x), Math.round(-cam.y));
+    // 쓰러지는 동안엔 청소년을 다리 그림 위에(잘리지 않게) — 일행·쥰희는 배우라 여전히 그 앞
+    if (front && !this.tp) ctx.drawImage(front, Math.round(1152 - cam.x), Math.round(-cam.y));
     this.drawFinaleBack(ctx, cam);
     ctx.restore();
   }
@@ -274,7 +276,7 @@ export class CastleSummit {
     const [sx, sy] = world(P2.core), [tx, ty] = FINALE.yongjun;
     this.game.sound.sfx('spearappear', { volume: 1 }); this.game.sound.sfx('great_shine', { volume: 0.6 });
     this.sleep(0.25).then(() => { this.game.sound.sfx('ultraswing', { volume: 1 }); this.game.sound.sfx('knight_cut', { volume: 0.7 }); });
-    for (let i = 0; i < 7; i++) this.swords.push({ x: sx + (Math.random() - 0.5) * 60, y: sy - 80 + (Math.random() - 0.5) * 60, tx: tx + (Math.random() - 0.5) * 30, ty: ty - 40 + (Math.random() - 0.5) * 30, t: -i * 0.14, d: 1.7, state: 'fly' });
+    for (let i = 0; i < 7; i++) this.swords.push({ x: sx + (Math.random() - 0.5) * 60, y: sy - 80 + (Math.random() - 0.5) * 60, tx: tx + (Math.random() - 0.5) * 30, ty: ty - 40 + (Math.random() - 0.5) * 30, t: -i * 0.14, d: 2.2, state: 'fly' });
     return this.sleep(0.3);
   }
   baronRise() {
@@ -300,7 +302,7 @@ export class CastleSummit {
   cannonAtGiant() {
     const [cx, cy] = FINALE.cannon, [gx, gy] = world(P2.core);
     this.game.sound.sfx('cannon_guard_fire', { volume: 1 }); this.recoil = 1; this.booms.push({ x: cx + 118, y: cy - 110, t: 0, life: 0.4 });
-    this.balls.push({ x: cx + 118, y: cy - 110, tx: gx, ty: gy, t: 0, d: 0.45, onHit: () => {
+    this.balls.push({ x: cx + 118, y: cy - 110, tx: gx, ty: gy, t: 0, d: 0.75, onHit: () => {
       this.game.sound.sfx('explosion', { volume: 1 }); this.game.shake = { time: 0.8, amp: 9 }; this.booms.push({ x: gx, y: gy, t: 0, life: 0.8 }); this.tremble = 1.5;
     } });
     return this.waitFor(() => !this.balls.length).then(() => this.sleep(0.5));
@@ -352,7 +354,7 @@ export class CastleSummit {
       this.game.fadeTo(1, 0.06, () => this.game.fadeTo(0, 0.7), 'white'); this.game.shake = { time: 1.0, amp: 10 };
       this.arm = null; this.core = false; this.fall = { t: 0, from: this.toppleAngle() }; this.tp = null; this.tremble = 0;
       return this.sleep(1.8);
-    }).then(() => { if (this.lean) { this.lean.e.x = this.lean.x0; this.lean = null; } });
+    }).then(() => { if (this.lean) { this.lean.e.x = this.lean.x0; this.lean.e.visible = true; this.lean = null; } });
   }
   toppleAngle() {
     const tp = this.tp; if (!tp) return 0;
