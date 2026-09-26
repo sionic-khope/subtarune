@@ -676,10 +676,13 @@ export class CastleDescent {
   }
   /** 곡이 끝날 때까지(최대 여유 extra 초) */
   waitBgmEnd(name, extra = 3) {
-    const s = this.game.sound; let spare = extra;
+    const s = this.game.sound, start = performance.now(); let spare = extra;
     return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => {
       const a = s.bgm;
       if (s.bgmName !== name || !a || a.ended) return true;
+      // 곡을 못 불러오거나(네트워크·디코드 오류) 멈춰도 엔딩이 영원히 기다리지 않게: 오류면 바로, 아니면 곡 길이(모르면 110초)+여유 뒤 넘어간다
+      if (a.error || a.networkState === 3) return true;
+      if ((performance.now() - start) / 1000 > (isFinite(a.duration) && a.duration > 0 ? a.duration : 110) + extra + 5) return true;
       if (a.paused) { spare -= 1 / 60; return spare <= 0; }
       return false;
     } }));
@@ -812,11 +815,14 @@ export class CastleDescent {
     const Ph = C.photo, photos = C.photos, t0 = C.intro + Ph.lead, span = Math.max(1, dur - C.outro - Ph.tail - t0) / Math.max(1, photos.length);
     photos.forEach((src, i) => {
       const show = span - (Ph.gap || 0), img = this.game.propImages[src], u = T - (t0 + i * span); if (!img || u < 0 || u > show) return;
-      const a = Math.min(1, u / Ph.fade, (show - u) / Ph.fade), k = Math.min(Ph.w / img.width, Ph.h / img.height);
-      const w = Math.round(img.width * k), h = Math.round(img.height * k), x = Math.round(Ph.x - w / 2), y = Math.round(Ph.y - h / 2 - u * Ph.drift);
+      // 가로 그림은 넓은 칸(wideW·wideX)에 맞춘다
+      const wide = img.width > img.height, a = Math.min(1, u / Ph.fade, (show - u) / Ph.fade), k = Math.min((wide ? Ph.wideW : Ph.w) / img.width, Ph.h / img.height);
+      const w = Math.round(img.width * k), h = Math.round(img.height * k), x = Math.round((wide ? Ph.wideX : Ph.x) - w / 2), y = Math.round(Ph.y - h / 2 - u * Ph.drift);
       ctx.globalAlpha = a;
       ctx.fillStyle = '#f4ecdc'; ctx.fillRect(x - Ph.frame, y - Ph.frame, w + Ph.frame * 2, h + Ph.frame * 2);
       ctx.drawImage(img, x, y, w, h);
+      const cap = C.captions?.[src];
+      if (cap) { ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#e8e2f4'; ctx.fillText(cap, x + Math.round(w / 2), y + h + Ph.frame + 8); ctx.textAlign = 'left'; }
     });
     // 마지막: 로고가 다시 올라오고 아래에 The End 가 천천히
     const endT = dur - C.outro;

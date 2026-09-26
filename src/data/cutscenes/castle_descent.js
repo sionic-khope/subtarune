@@ -121,7 +121,7 @@ export const castle_sunset_arrival = Object.assign([
   { if: flags => !!flags.castle_sunset_arrived, goto: 'button' },
   close,
   // QA 로 바로 온 경우: 곡을 원곡 55초 자리부터
-  { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt, loop: false, then: GJ.bgmLoop }); } } },
+  { action: game => { if (game.riseT == null || game.sound.bgmName !== RISE.bgm) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt, loop: false, then: GJ.bgmLoop }); } } },
   { camera: at(300, 204), duration: 0.01 },
   { parallel: [{ fade: 'in', duration: 0.7 }, scene(s => s.arrive())] },
   { set: { castle_sunset_arrived: true } },

@@ -293,6 +293,7 @@ class Game {
     this.sunrise.dispose();
     this.seaChase?.dispose(); this.seaChase = null;
     this.battle?.disposeGimmick();
+    this.riseT = null;   // 노을 상승 곡 시계 — 새 게임·이어하기마다 비운다(같은 탭 두 번째 방문에 옛 시계가 남던 문제)
     this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0; this.attack = 1; this.hpBonus = 0;   // 공격력·최대 HP 보너스(레드·블루 버프)
     this.battle = null; this.lastBattle = null; this.battleFlag = null; this.encountering = false; this.ride = null;
     this.runner?.finish?.(); this.runner = null; this.hpPopup = null;   // 러너 기믹(파란 토리이, BUILD230) — 있으면 자동 달리기·X 점프·C 베기가 입력을 가져간다. 리셋 경로에서도 카메라 잠금을 푼다
@@ -2064,9 +2065,14 @@ function frame(now) {
   const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
   last = now;
   game.dt = dt;
-  game.update(dt);
-  game.draw();
-  game.drawEscConfirm(game.ctx);
+  // 한 프레임의 예외가 게임 루프 전체를 멈추지 않게(배포 전 점검 BUILD384) — 기록만 하고 다음 프레임은 계속, Esc 로 타이틀도 된다
+  try {
+    game.update(dt);
+    game.draw();
+    game.drawEscConfirm(game.ctx);
+  } catch (error) {
+    if (!game._frameErrorLogged) { console.error('[frame] 이번 프레임 오류(루프는 계속)', error); game._frameErrorLogged = true; }
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

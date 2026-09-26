@@ -414,7 +414,7 @@ export function makeWaiter(game, node) {
   }
   if (node.tiles) { game.applyTiles(node.tiles); return done; }
   if (node.action) {                                   // { action:fn } — 가지(parallel/async/sequence) 안에서도 실행(맨 위에서는 dialogue.js 가 먼저 처리한다). 프로미스를 돌려주면 끝날 때까지 기다림
-    const result = node.action(game); if (result?.then) { let finished = false; result.then(() => { finished = true; }); return { update: () => finished }; }
+    const result = node.action(game); if (result?.then) { let finished = false; result.then(() => { finished = true; }, (error) => { console.warn('[cutscene] action 실패 → 다음으로', error); finished = true; }); return { update: () => finished }; }
     return done;
   }
   if (node.set) { for (const [k, v] of Object.entries(node.set)) game.setFlag(k, v); return done; }   // { set:{flag:true} } 가지 안에서도

@@ -481,7 +481,8 @@ export class ScriptRunner {
         const result = node.action(this.game);
         if (result?.then) {
           let finished = false;
-          result.then(() => { finished = true; });
+          // 실패한 약속도 끝난 것으로 — 컷신이 영원히 기다리지 않게
+          result.then(() => { finished = true; }, (error) => { console.warn('[script] action 실패 → 다음으로', error); finished = true; });
           this.wait = { update: () => finished };
           return;
         }

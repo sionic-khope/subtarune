@@ -14,10 +14,14 @@ export const CREDITS = Object.freeze({
   // 오른쪽 사진(그림풍 일러스트 assets/credits/photoNN.png): 크레딧 스크롤 시간에 고르게 한 장씩. 가운데 (x, y), 최대 w×h, 액자 테두리, drift px/초(0 = 제자리)
   // drift 0: 느린 이동을 정수 픽셀로 찍으면 그림이 버벅여 보였다(사용자 BUILD372) — 제자리에서 페이드만
   //   gap: 사진과 사진 사이 빈 시간(BUILD378 “간격 더”), lead: 첫 사진까지 기다림(“첫 사진도 텀 더”)
-  photo: { x: 360, y: 176, w: 176, h: 264, frame: 3, fade: 1.2, drift: 0, lead: 4.0, tail: 1.0, gap: 1.6 },
+  //   wideX/wideW: 가로 그림(키 아트 등)은 넓은 칸 — 왼쪽 크레딧 글(오른쪽 끝 약 256px)과 화면 끝(480) 사이를 넘치지 않게
+  photo: { x: 360, y: 176, w: 176, h: 264, wideX: 368, wideW: 208, frame: 3, fade: 1.2, drift: 0, lead: 4.0, tail: 1.0, gap: 1.6 },
   // BUILD372 그림풍 삽화 11장(assets/source/credits371, 사용자 지정 장면 순서) — 라운지 작별 맵이 미리 불러 둔다
   //   BUILD378: 편집노조가 모여 있는 06 은 뺀다(사용자)
-  photos: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11].map(i => `assets/credits/photo${String(i).padStart(2, '0')}.png`),
+  //   BUILD384: 사용자가 준 키 아트(경섭·요플래·억빠맨 + 로고, assets/source/keyart384)를 맨 앞에
+  // 사진 아래 한 줄(사진과 함께 떴다 사라짐) — 사용자 지정 문구
+  captions: { 'assets/credits/keyart.png': '그려주신 k2님 감사합니다' },
+  photos: ['assets/credits/keyart.png', ...[1, 2, 3, 4, 5, 7, 8, 9, 10, 11].map(i => `assets/credits/photo${String(i).padStart(2, '0')}.png`)],
   sections: [
     role('기획'), role('시나리오'), role('연출'), role('게임 디자인'), role('레벨 디자인'),
     role('프로그래밍'), role('전투 시스템'), role('캐릭터 디자인'), role('배경 디자인'), role('도트 그래픽'),
