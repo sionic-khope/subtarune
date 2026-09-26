@@ -68,8 +68,11 @@ export const cookie_photo = [
   HS('* 응?{w=0.3} 이건 뭐지?'),
   HS('* 두고..{w=0.5} 간 사진..{w=0.5} 보내드립니다..?'),
   { dialog: 'press' }, { sfx: 'click' },
-  { wait: 0.4 },
+  { wait: 0.3 },
   { dialog: null },
+  // 사진이 연달아 도착하는 띠링 세 번 → 1초 뒤 사진이 천천히(BUILD386 사용자)
+  { sfx: 'confirm' }, { wait: 0.28 }, { sfx: 'confirm' }, { wait: 0.28 }, { sfx: 'confirm' },
+  { wait: 1.0 },
   { action: game => { game.cookiePhoto = new CookiePhoto(game); } },
   // 사진 화면이 C·곡 끝에서 메인 메뉴로 보낸다
   { wait: 3600 },

@@ -21,7 +21,8 @@ export const CREDITS = Object.freeze({
   //   BUILD384: 사용자가 준 키 아트(경섭·요플래·억빠맨 + 로고, assets/source/keyart384)를 맨 앞에
   // 사진 아래 한 줄(사진과 함께 떴다 사라짐) — 사용자 지정 문구
   captions: { 'assets/credits/keyart.png': '그려주신 k2님 감사합니다' },
-  photos: ['assets/credits/keyart.png', ...[1, 2, 3, 4, 5, 7, 8, 9, 10, 11].map(i => `assets/credits/photo${String(i).padStart(2, '0')}.png`)],
+  //   k2님 키 아트는 세 번째(BUILD386 사용자)
+  photos: ['assets/credits/photo01.png', 'assets/credits/photo02.png', 'assets/credits/keyart.png', ...[3, 4, 5, 7, 8, 9, 10, 11].map(i => `assets/credits/photo${String(i).padStart(2, '0')}.png`)],
   sections: [
     role('기획'), role('시나리오'), role('연출'), role('게임 디자인'), role('레벨 디자인'),
     role('프로그래밍'), role('전투 시스템'), role('캐릭터 디자인'), role('배경 디자인'), role('도트 그래픽'),
