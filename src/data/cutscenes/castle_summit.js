@@ -79,25 +79,29 @@ export const castle_summit_confront = Object.assign([
   { camera: C.talk, duration: 0.8 },
   A('잘.. 가라..'), A('이제 끝내자.'), close,
   // 우웅 — 연기를 걷어내며 거대한 칼날, 일행을 겨눈다
-  summit(s => s.formBlade()),
-  A('{shake}죽어!!{/shake}'), close,
+  summit(s => s.formBlade()), { wait: 0.5 },
+  A('{shake}죽어!!{/shake}'), close, { wait: 0.3 },
   // 뒤로 당겼다가 날아온다: 칼 쪽으로 살짝 확대, 점점 슬로우모션, 닿기 직전 멈춤
-  { parallel: [summit(s => s.launchBlade()), [{ wait: 0.8 }, { zoom: 1.3, at: [1790, 318], duration: 0.7 }]] },
+  { parallel: [summit(s => s.launchBlade()), [{ wait: 1.1 }, { zoom: 1.3, at: [1780, 330], duration: 0.8 }]] },
   // 쾅! 용준대포알이 날아와 칼을 날려 버린다 → 모두 느낌표
   summit(s => s.cannonSmash()), { wait: 0.6 }, { zoom: 1, duration: 0.6 },
   { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6 })) }, { wait: 0.6 },
   // 뒤를 돌아보고 → 카메라가 천천히 뒤로 — 끝길 맨 뒤에 박용준과 용준대포
   { show: 'finale_yongjun' }, summit(s => s.showCannon()),
   ...PARTY.map(id => ({ face: id, dir: 'left' })), { wait: 0.5 },
-  { parallel: [{ camera: C.back, duration: 2.6 }, { bgm: 'save_the_world', volume: 0.6, fadeIn: 1.0 }] }, { wait: 0.6 },
+  { parallel: [{ camera: C.back, duration: 2.6 }, { bgm: 'save_the_world', volume: 0.6, fadeIn: 1.0 }] }, { wait: 0.3 },
+  // 용준이 잡히는 순간: 파앗 — 용준 쪽으로 빠르게 확대했다가 돌아온다
+  { parallel: [{ zoom: 1.6, at: 'finale_yongjun', offset: [20, -10], duration: 0.16 }, { sfx: 'great_shine', volume: 0.8 }, { shake: 0.2, amp: 3 }] },
+  { wait: 0.8 }, { zoom: 1, duration: 0.45 }, { wait: 0.2 },
   YJ('하이요 형들ㅋㅋ'),
   P('용.. 용준아 살아있었구나!!'), YJ('아 당연하죠 형님들 ㅋㅋ'), close,
   { camera: C.talk, duration: 0.9 },
   A('{shake}이... 이...녀석들이!!!{/shake}'), close,
   // 작은 검들을 여러 개 소환해 박용준에게 → 용준·대포 앞 바닥에서 바론이 튀어나와 날려 버리고 포효
   // 바론이 들어갈 만큼 조금 멀리서
-  summit(s => s.swordsAtYongjun()), { parallel: [{ camera: C.back, duration: 0.35 }, { zoom: 0.8, duration: 0.35 }] },
-  summit(s => s.baronRise()), { wait: 0.4 },
+  // 검들이 박용준에게 날아가는 걸 따라가다 → 용준 앞 바닥에서 바론이 솟아 몸으로 막는다
+  summit(s => s.swordsAtYongjun()), { parallel: [{ camera: C.back, duration: 0.9 }, { zoom: 0.8, duration: 0.9 }] },
+  { parallel: [{ emote: 'finale_yongjun', kind: '!', duration: 0.6, hold: 0.2 }, summit(s => s.baronRise())] }, { wait: 0.4 },
   { parallel: [{ camera: C.talk, duration: 0.7 }, { zoom: 1, duration: 0.7 }] }, { wait: 0.3 }, A('?!'), close,
   { parallel: [{ camera: C.back, duration: 0.8 }, { zoom: 0.8, duration: 0.8 }] },
   YJ('으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!'), summit(s => s.roar()), YJ('죽어라 괴물!!!'), close,
@@ -136,8 +140,10 @@ export const castle_summit_confront = Object.assign([
   YC('빨리 쫒아가자 이딴 상처 아무것도 아님.'), close,
   // 영클, 이어서 편집노조가 점프해서 오른쪽으로 쭉
   { camera: C.talk, duration: 0.6 },
-  ...['finale_youngcle', 'finale_bidet', 'finale_mario', 'finale_ttuulla', 'finale_park'].flatMap(id => [
-    { hop: id, by: [260, -30], height: 60, duration: 0.7 }, { hide: id }, { wait: 0.15 }]),
+  // 한 명씩 차례로 달려가 부서진 끝에서 뛰어내린다(아래로 떨어져 사라진다)
+  { parallel: ['finale_youngcle', 'finale_bidet', 'finale_mario', 'finale_ttuulla', 'finale_park'].map((id, i) => [{ wait: i * 0.45 },
+    { move: id, px: [1726, 380], run: true, facing: 'right' }, summit(s => s.leapOff(id))]) },
+  { wait: 0.6 },
   { set: { castle_teen_finale_seen: true } },
   { label: 'end' }, { end: true },
 ], { silent: true });
