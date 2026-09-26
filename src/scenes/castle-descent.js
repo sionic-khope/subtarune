@@ -915,12 +915,18 @@ export class CastleDescent {
       // 눌림: 판이 살짝 눌려 작아졌다가 돌아오고, 버튼에서 흰 빛이 번져 화면 전체를 감싼다
       const B = BUTTON_PRESS, sq = pt < B.squash ? 1 - B.depth * Math.sin(Math.PI * pt / B.squash) : 1, bw = (tw + 36) * sq, bh = 38 * sq;
       const k = Math.min(1, pt / B.wrap), e = k * k * (3 - 2 * k);
-      ctx.fillStyle = 'rgba(8,4,14,0.85)'; ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy - bh / 2), Math.round(bw), Math.round(bh));
-      ctx.fillStyle = grad; ctx.save(); ctx.translate(cx, cy); ctx.scale(sq, sq); ctx.fillText(GJ.text.button, 0, 0); ctx.restore();
+      // 흰 빛을 먼저 깔고 → 그 위에 판·무지개 글자(짙은 테두리)를 그려 빛에 묻히지 않게(BUILD383 사용자 “텍스트가 흰 화면에 가려 덜 보임”)
       const R = 30 + e * B.radius, g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
       g.addColorStop(0, `rgba(255,255,255,${Math.min(1, 0.4 + e)})`); g.addColorStop(0.6, `rgba(255,252,240,${Math.min(1, e * 1.2)})`); g.addColorStop(1, 'rgba(255,250,235,0)');
       ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.fillRect(0, 0, 480, 360);
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, (e - 0.55) / 0.45).toFixed(3)})`; ctx.fillRect(0, 0, 480, 360);
+      // 글자는 끝 무렵에만 흰 화면 속으로 스르르(완전히 하얘지는 순간 뚝 사라지지 않게)
+      ctx.globalAlpha = 1 - Math.max(0, (k - 0.8) / 0.2);
+      ctx.fillStyle = 'rgba(8,4,14,0.85)'; ctx.fillRect(Math.round(cx - bw / 2), Math.round(cy - bh / 2), Math.round(bw), Math.round(bh));
+      // 무지개 그라데이션이 화면 좌표라 가운데 기준으로만 눌림 배율을 준다
+      ctx.save(); ctx.translate(cx, cy); ctx.scale(sq, sq); ctx.translate(-cx, -cy);
+      ctx.fillStyle = '#1a0830'; for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2]]) ctx.fillText(GJ.text.button, cx + dx, cy + dy);
+      ctx.fillStyle = grad; ctx.fillText(GJ.text.button, cx, cy); ctx.restore();
       ctx.restore(); return;
     }
     ctx.fillStyle = grad; ctx.fillText(GJ.text.button, cx, Math.round(y));
