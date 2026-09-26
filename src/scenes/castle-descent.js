@@ -1,4 +1,4 @@
-import { CHAR_SCALE } from '../world/world.js';
+import { CHAR_SCALE, drawEmote } from '../world/world.js';
 import { Input } from '../core/input.js';
 import { characterMotionWaiter } from '../world/character-motion.js';
 import { FONT } from '../ui/font.js';
@@ -21,7 +21,10 @@ export const DESCENT = Object.freeze({
   // 구간마다 누가 어디서 들어오는가(사용자 원문): 1 오른쪽 위 비데 · 2 왼쪽 아래 파크가디언 · 3 오른쪽 위 뚜울라·도트마리오
   allies: { 1: [['road_bidet', 'upRight']], 2: [['road_park', 'downLeft']], 3: [['road_ttuulla', 'upRight'], ['road_mario', 'upRight']] },
   laserLife: 0.3,
-  raftScale: 1.4, charge: 2.0, launch: 2.6,
+  raftScale: 1.4, charge: 2.0,
+  // 뗏목 발사(사용자 2026-09-26): 함께 솟다가 detach 초에 요플래만 떨어져 나와 더 올라가고 뗏목은 떨어진다 → 페이드 → 빙글빙글·곡
+  //   top: 요플래 발이 멈춰 떠 있는 맵 y(맵 위 끝에서 화면 안), share: 떨어지기 전까지 오르는 몫, settle: 떨어진 뒤 감속해 멈추는 초
+  launch: { rise: 4.4, detach: 2.4, top: 110, share: 0.8, settle: 1.0, raftGravity: 900, raftFade: 1.2 },
 });
 
 const clamp01 = v => Math.max(0, Math.min(1, v));
@@ -270,27 +273,31 @@ export class CastleDescent {
     }
     // 뗏목이 솟는 동안 요플래는 기본 모습(뗏목 위에 서 있다)
     this.launching = true; p.visible = true; p.facing = 'right'; r.bob = false;
-    let v = 160;
-    this.track(() => ({ x: r.x, y: r.y - 66 }));
-    return this.job(3.3, (k, dt) => {
-      v = Math.min(460, v + 170 * dt); r.y -= v * dt;
-      this.setFeet(p, r.x, r.y + 4);
-      if (this.rnd() < 0.6) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 80, age: 0, life: 0.5, size: 2, color: '#9fd6ff', g: 200 });
+    const L = DESCENT.launch;
+    const y0 = r.y, dist = Math.max(0, y0 - L.top);
+    let py = y0, rv = 0, t = 0, off = false;
+    this.track(() => ({ x: r.x, y: py - 66 }));
+    return this.job(L.rise, (k, dt) => {
+      t += dt;
+      // 함께 점점 빠르게 솟다가 → 떨어져 나온 요플래는 조금 더 올라가며 감속해 화면 안에 떠 있다(맵 밖으로 나가지 않게)
+      const u = Math.min(1, (t - L.detach) / L.settle);
+      py = t < L.detach ? y0 - dist * L.share * (t / L.detach) ** 1.6
+        : y0 - dist * (L.share + (1 - L.share) * (1 - (1 - u) ** 2)) + (u >= 1 ? Math.sin((t - L.detach - L.settle) * 3) * 2 : 0);
+      // 떨어져 나오는 순간: 뗏목은 힘이 빠져 아래로 떨어지며 흐려진다
+      if (!off && t >= L.detach) { off = true; rv = -140; this.sfx('wing', 0.5); }
+      if (off) { rv += L.raftGravity * dt; r.y += rv * dt; r.alpha = Math.max(0, (r.alpha ?? 1) - dt / L.raftFade); } else r.y = py;
+      this.setFeet(p, r.x, py + 4);
+      if (!off && this.rnd() < 0.6) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 80, age: 0, life: 0.5, size: 2, color: '#9fd6ff', g: 200 });
     });
   }
   /** 화면 전체 상승(성벽 → 노을 바다) — 곡 위치가 RISE.flash 에 닿으면 끝난다(뒤에 흰 번쩍임·맵 전환). */
   ascend() {
     this.launching = false;
-    const p = this.game.player, sp = p.sprite, img = sp?.right?.[0] || sp?.down?.[0];
-    const k = sp ? CHAR_SCALE / sp.px : 1;
+    const p = this.game.player;
     this.rise ||= { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight,
-      pre: { t: 0, detached: false, raftY: 0, raftV: 0, raftA: 1 }, stand: img ? { img, w: sp.fw * k, h: sp.fh * k } : null };
+      pre: null, stand: null };
     p.visible = false;
     return this.waitRise(RISE.flash);
-  }
-  /** 하늘에서 뗏목을 탄 채 잠깐 → 뗏목이 떨어져 나가고 빙글빙글 시작(이때 곡) */
-  detach(after = 1.0) {
-    return this.delay(after).then(() => { if (this.rise?.pre) { this.rise.pre.detached = true; this.sfx('wing', 0.5); } });
   }
   /** 곡 위치(game.riseT)가 at 초에 닿을 때까지 기다린다. */
   waitRise(at) { return new Promise(resolve => { this.jobs.push({ t: 0, d: Infinity, until: () => (this.game.riseT ?? 0) >= at, step: () => {}, resolve }); }); }
@@ -639,14 +646,8 @@ export class CastleDescent {
     for (const e of g.entities) if (e.def?.type === 'follower') e.visible = false;
     this.pairFacing = 'back';
   }
-  /** 소품(롤 몬스터 그림)이 통통 튀며 문으로 걸어가 들어간다 */
-  propOut(id, seconds = 2.6) {
-    const e = this.ent(id), D = this.meta.door; if (!e) return undefined;
-    e.visible = true;
-    const from = this.feet(e), to = D.front;
-    return this.job(seconds, k => { this.setFeet(e, lerpN(from[0], to[0], k), lerpN(from[1], to[1], k)); e.hopY = Math.abs(Math.sin(k * Math.PI * 7)) * 4; })
-      .then(() => { e.hopY = 0; return this.enterDoor(id); });
-  }
+  /** 어깨동무한 경섭(장면이 그리는 그림) 머리 위 이모트 */
+  pairEmoteShow(kind = '?', life = 1.4) { this.pairEmote = { kind, t: 0, life }; }
   /** 지켜보던 일행이 한꺼번에 돌아본다(down) / 다시 문을 본다(up) */
   partyFace(dir) {
     this.pairFacing = dir === 'down' ? 'front' : 'back';
@@ -696,25 +697,26 @@ export class CastleDescent {
     this.setDoor(true);
     return this.delay(0.4).then(() => this.walkTo(e, D.front, 1.2)).then(() => this.enterDoor(id)).then(() => this.delay(0.5)).then(() => this.setDoor(false));
   }
-  /** 경섭과 김형섭이 앞으로 걸어가 문을 연다 — 김형섭을 먼저 들여보내고 경섭은 문가에서 뒤를 돌아본다(역광) */
+  /** 경섭과 김형섭이 앞으로 걸어가 문을 열고 문 안(빛)까지 더 들어간다 — 거기서 김형섭을 먼저 들여보내고 경섭은 뒤를 돌아본다(역광) */
   pairIntoDoor() {
-    const D = this.meta.door, from = this.pairPos, to = [D.front[0] - 6, D.front[1] + 6];
+    const D = this.meta.door, from = this.pairPos, to = [D.front[0] - 6, D.front[1] + 6], inDoor = [D.enter[0], D.y + D.h - 2];
     return this.job(2.2, k => { this.pairPos = [lerpN(from[0], to[0], k), lerpN(from[1], to[1], k)]; })
       .then(() => { this.setDoor(true); return this.delay(0.5); })
+      .then(() => this.job(1.2, k => { this.pairPos = [lerpN(to[0], inDoor[0], k), lerpN(to[1], inDoor[1], k)]; }))
       .then(() => {
         this.pairPos = null;
-        this.hs = { x: to[0] + 10, y: to[1], alpha: 1 };
-        this.gyLook = { x: to[0] - 10, y: to[1], frame: 2 };
-        return this.job(1.1, k => { this.hs.y = lerpN(to[1], D.enter[1], k); this.hs.alpha = 1 - k * k; });
+        this.hs = { x: inDoor[0] + 10, y: inDoor[1], alpha: 1 };
+        this.gyLook = { x: inDoor[0] - 8, y: inDoor[1], frame: 2 };
+        return this.job(1.1, k => { this.hs.y = lerpN(inDoor[1], inDoor[1] - 26, k); this.hs.alpha = 1 - k * k; });
       })
       .then(() => { this.hs = null; this.sfx('great_shine', 0.25); return this.delay(0.5); })
       .then(() => { this.gyLook.frame = 0; });
   }
-  /** 경섭이 다시 앞을 보고 문 밖으로 */
+  /** 경섭이 다시 앞(문 안)을 보고 빛 속으로 */
   gyeongsubLeave() {
-    const g = this.gyLook, D = this.meta.door; if (!g) return undefined;
+    const g = this.gyLook; if (!g) return undefined;
     g.frame = 2;
-    return this.delay(0.5).then(() => { g.frame = 3; const y0 = g.y; return this.job(1.0, k => { g.y = lerpN(y0, D.enter[1], k); g.alpha = 1 - k * k; }); })
+    return this.delay(0.5).then(() => { g.frame = 3; const y0 = g.y; return this.job(1.0, k => { g.y = lerpN(y0, y0 - 26, k); g.alpha = 1 - k * k; }); })
       .then(() => { this.gyLook = null; return this.delay(0.4); });
   }
   drawFarewell(ctx, cam) {
@@ -725,7 +727,8 @@ export class CastleDescent {
     }
     const g = this.gyLook, img = this.game.propImages['assets/sprites/gyeongsub-lookback.png'];
     if (g && img) {
-      const cw = img.width / 4, s = 60 / img.height, f = g.frame < 2 ? Math.floor(this.time / 0.8) % 2 : g.frame;
+      // 필드 경섭과 같은 키(시트 칸 속 몸 98px ÷ 2 × CHAR_SCALE ≈ 70px)
+      const cw = img.width / 4, s = (98 / 2 * CHAR_SCALE) / img.height, f = g.frame < 2 ? Math.floor(this.time / 0.8) % 2 : g.frame;
       const paint = c => { c.save(); c.globalAlpha = g.alpha ?? 1; c.drawImage(img, f * cw, 0, cw, img.height, Math.round(g.x - cam.x - cw * s / 2), Math.round(g.y - cam.y - img.height * s), Math.round(cw * s), Math.round(img.height * s)); c.restore(); };
       paint(ctx);
       // 문빛을 등져 그림자 진 경섭(가장자리만 따뜻하게)
@@ -735,12 +738,13 @@ export class CastleDescent {
     this.drawEpilogueFx(ctx, cam);
   }
   // ── 엔딩 크레딧 ──
-  /** 문이 닫히고 0.8초 뒤: 곡과 함께 검은 화면·섭타룬 로고 → 왼쪽에서 크레딧 → 마지막에 로고와 The End */
+  /** 문이 닫히고 2초 뒤(갑자기 전환): 곡과 함께 검은 화면·섭타룬 로고 → 왼쪽에서 크레딧 → 마지막에 로고와 The End */
   creditsRoll() {
+    // 문이 닫힌 라운지를 delay 초 보여 준 뒤 페이드 없이 곧바로 검은 화면·로고·곡
     this.credits = { t: 0, black: 0 };
     return this.job(CREDITS.delay, () => {}).then(() => {
-      this.game.sound.playBgm(CREDITS.bgm, { volume: 0.7, fadeIn: 0.5, loop: false });
-      this.credits.started = true;
+      this.game.sound.playBgm(CREDITS.bgm, { volume: 0.7, fadeIn: 0, loop: false });
+      this.credits.started = true; this.credits.black = 1;
     });
   }
   creditsLayout() {
@@ -758,7 +762,8 @@ export class CastleDescent {
   drawCredits(ctx) {
     const c = this.credits; if (!c) return;
     const C = CREDITS, L = C.column, a = this.game.sound.bgmName === C.bgm ? this.game.sound.bgm : null;
-    const dur = a && isFinite(a.duration) && a.duration > 0 ? a.duration : 99.7, T = c.started ? (a && a.currentTime > 0 ? a.currentTime : c.t) + (c.offset || 0) : 0;   // offset: 검수용 건너뛰기
+    // offset: 검수용 건너뛰기
+    const dur = a && isFinite(a.duration) && a.duration > 0 ? a.duration : 99.7, T = c.started ? c.t + (c.offset || 0) : 0;
     ctx.save();
     ctx.fillStyle = `rgba(0,0,0,${Math.min(1, c.black)})`; ctx.fillRect(0, 0, 480, 360);
     if (!c.started) { ctx.restore(); return; }
@@ -766,8 +771,8 @@ export class CastleDescent {
     const { lines, height } = this.creditsLayout();
     const speed = (height + 360) / Math.max(10, dur - C.intro - C.outro), scroll = Math.max(0, T - C.intro) * speed;
     // 처음: 가운데 로고 → 크레딧과 함께 위로
-    const logoY = 150 - scroll, introA = Math.min(1, T / 1.5);
-    if (logoY + lh > 0) { ctx.globalAlpha = introA; ctx.drawImage(logo, Math.round(240 - lw / 2), Math.round(logoY - lh / 2), lw, lh); }
+    const logoY = 150 - scroll;
+    if (logoY + lh > 0) { ctx.globalAlpha = 1; ctx.drawImage(logo, Math.round(240 - lw / 2), Math.round(logoY - lh / 2), lw, lh); }
     // 크레딧: 왼쪽 열(오른쪽은 사진 자리)
     ctx.textBaseline = 'top'; ctx.textAlign = 'left';
     for (const ln of lines) {
@@ -776,10 +781,16 @@ export class CastleDescent {
       ctx.font = FONT.replace(/^\d+px/, `${ln.title ? L.title : L.name}px`); ctx.fillStyle = ln.title ? '#9aa4d8' : '#ffffff';
       ctx.fillText(ln.text, L.x, Math.round(y));
     }
-    for (const ph of C.photos) {
-      const img = this.game.propImages[ph.src]; if (!img || T < ph.at) continue;
-      ctx.globalAlpha = Math.min(1, (T - ph.at) / 1.5); const h = img.height * (ph.w / img.width); ctx.drawImage(img, ph.x, ph.y, ph.w, h);
-    }
+    // 오른쪽 사진: 크레딧이 올라가는 동안 한 장씩 고르게 나눠 천천히 나타났다 사라진다
+    const Ph = C.photo, photos = C.photos, t0 = C.intro + Ph.lead, span = Math.max(1, dur - C.outro - Ph.tail - t0) / Math.max(1, photos.length);
+    photos.forEach((src, i) => {
+      const img = this.game.propImages[src], u = T - (t0 + i * span); if (!img || u < 0 || u > span) return;
+      const a = Math.min(1, u / Ph.fade, (span - u) / Ph.fade), k = Math.min(Ph.w / img.width, Ph.h / img.height);
+      const w = Math.round(img.width * k), h = Math.round(img.height * k), x = Math.round(Ph.x - w / 2), y = Math.round(Ph.y - h / 2 - u * Ph.drift);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#f4ecdc'; ctx.fillRect(x - Ph.frame, y - Ph.frame, w + Ph.frame * 2, h + Ph.frame * 2);
+      ctx.drawImage(img, x, y, w, h);
+    });
     // 마지막: 로고가 다시 올라오고 아래에 The End 가 천천히
     const endT = dur - C.outro;
     if (T >= endT) {
@@ -824,6 +835,7 @@ export class CastleDescent {
     if (img && pairAt) {
       const [px, py] = pairAt, fw = img.width / 2, s = 76 / img.height, f = Math.floor(this.time / 0.9) % 2;
       ctx.drawImage(img, f * fw, 0, fw, img.height, Math.round(px - cam.x - fw * s / 2), Math.round(py - cam.y - img.height * s), Math.round(fw * s), Math.round(img.height * s));
+      if (this.pairEmote) drawEmote(ctx, this.pairEmote, Math.round(px - cam.x), Math.round(py - cam.y - img.height * s));
     }
   }
   /** 연기가 하늘로 오른 뒤: 토리이 러너 준비 소리(검 뽑는 소리 아님)와 함께 무릎을 꿇고 1초 — 결말의 무릎 꿇은 요플래로 이어진다 */
@@ -952,7 +964,13 @@ export class CastleDescent {
     const s = Math.max(0, dt); this.time += s;
     const T = tickRiseClock(g, s);
     if (this.button) this.button.t += s;
-    if (this.credits) { if (this.credits.started) this.credits.t += s; this.credits.black = Math.min(1, this.credits.black + s / 0.6); }
+    if (this.pairEmote) { this.pairEmote.t += s; if (this.pairEmote.t >= this.pairEmote.life) this.pairEmote = null; }
+    if (this.credits?.started) {
+      // 크레딧 시계: 프레임마다 고르게 흐르고 곡 위치에는 조금씩만 맞춘다(currentTime 은 듬성듬성 갱신돼 그대로 쓰면 스크롤이 끊긴다)
+      const c = this.credits, a = this.game.sound.bgmName === CREDITS.bgm ? this.game.sound.bgm : null;
+      c.t += s;
+      if (a && !a.paused && a.currentTime > 0.05) { const diff = a.currentTime - c.t; if (Math.abs(diff) > 1) c.t = a.currentTime; else c.t += Math.max(-s * 0.3, Math.min(s * 0.3, diff)); }
+    }
     for (const x of [...this.waiters]) if (x.w.update(s)) { this.waiters.splice(this.waiters.indexOf(x), 1); x.resolve(); }
     // 끝없는 길: 걸어가며 구간을 지나면 편집노조 한 판(멈추지 않는다)
     if (this.kind === 'road' && !g.dialogue.running) for (const z of this.meta.zones || []) if (!g.flags?.[z.flag] && g.player.x >= z.x - 80) { g.setFlag?.(z.flag); void this.ambient(z.n); }
@@ -1041,7 +1059,10 @@ export class CastleDescent {
     const r = this.raft, img = this.game.propImages[this.meta.raft]; if (!r || !img) return;
     const s = DESCENT.raftScale, w = Math.round(img.width * s), h = Math.round(img.height * s);
     const bob = r.bob ? Math.round(Math.sin(this.time * 2) * 1.5) : 0, dip = r.dip ? Math.round(Math.sin(r.dip * 16) * r.dip * 6) : 0;
+    if (r.alpha === 0) return;
+    ctx.save(); ctx.globalAlpha *= r.alpha ?? 1;
     ctx.drawImage(img, Math.round(r.x - w / 2 - cam.x), Math.round(r.y - h / 2 - cam.y) + bob + dip, w, h);
+    ctx.restore();
   }
   /** After the actors: gajaeman's aura and trail, swords, lasers, particles. */
   draw(ctx, cam) {

@@ -1,0 +1,14 @@
+# imagegen 2026-09-26 19:58:40
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/clash363/ref.png
+
+Use case: identity-preserve. Image1 (left part of the reference) is the approved overworld sprite sheet of Yoplait (exact identity AND pixel density): a short squat chibi human with black messy hair, round glasses, white T-shirt, navy shorts, navy shoes; small U-shaped nose and absolutely NO mouth. Image2 (right part) shows his side-view running-battle sprites WITH HIS SWORD — copy that sword design and that side-view body style exactly.
+
+Create a separate 2 by 2 four-frame full-body sprite sheet, side view, same style and scale as Image2. All four frames are a BLADE LOCK with the sword held VERTICALLY (upright, blade pointing straight UP, like blocking an enemy sword that presses against it from the right):
+- top left: facing RIGHT, feet planted wide and braced, body leaning forward, both hands gripping the hilt in front of his chest, the blade standing straight upright in front of his face, pushing forward, straining;
+- top right: same vertical blade lock, lower stance, more strain, head tucked slightly behind the upright blade, front knee bent deep;
+- bottom left: same as top left but the blade tilted only slightly forward (still mostly vertical);
+- bottom right: same as top right but the blade tilted only slightly forward (still mostly vertical).
+Match the squat chibi proportions and coarse flat square pixel clusters, simple dark stepped outline, exact outfit/head/glasses/hair invariants, same scale in all four frames. Exactly four distinct equally-spaced figures in 2x2 equal cells with generous clear margins, nothing clipped (the upright blade tip must fit inside its cell). Flat solid magenta #FF00FF background, no labels, no text except the shirt's small logo, no ground, no shadow, no motion lines, no effects, no extra facial features.

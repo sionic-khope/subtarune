@@ -43,8 +43,9 @@ export function createGajaemanRunner(battle, { enemy }) {
   // ── 검 ──
   const throwSword = index => {
     if (index % 2 === 1) {
-      // 뒤(오른쪽 위)로 한 번 뺐다가 → 요플래에게 일직선
-      swords.push({ x: boss.x - 10, y: boss.y + 6, vx: 170, vy: -60, ang: Math.PI, landed: true, straight: true, back: C.sword.back, dead: false, t: 0 });
+      // 대각선 아래 끝(오른쪽 아래)으로 내려가 멈췄다가 → 땅 높이로 요플래에게 일직선
+      const [lx, ly] = C.sword.low, bx = boss.x - 10, by = boss.y + 6;
+      swords.push({ x: bx, y: by, vx: (lx - bx) / (C.sword.back - 0.18), vy: (ly - by) / (C.sword.back - 0.18), ang: Math.atan2(ly - by, lx - bx), landed: true, straight: true, back: C.sword.back, low: [lx, ly], dead: false, t: 0 });
       sfx(C.sfx.sword, 0.5);
       return;
     }
@@ -104,8 +105,8 @@ export function createGajaemanRunner(battle, { enemy }) {
       if (thrown < C.sword.count && phaseTime >= next) { throwSword(thrown + cycleN); thrown++; }
       if (thrown >= C.sword.count && phaseTime >= next + 0.9) { change('dash_warn'); sfx(C.sfx.kickVoice, 1.0); }
     } else if (phase === 'dash_warn') {
-      // “니애미 따라가라” — 몸을 가로로 눕히며 땅 높이로 내려와 기를 모은다
-      boss.lie = 0; boss.aura = 1.4 + 1.6 * smooth(phaseTime / 0.6); boss.shake = 0.1;
+      // “니애미 따라가라” — 목소리와 함께 이미 가로로 누운 돌진 그림으로 땅 높이로 내려와 기를 모은다
+      boss.lie = 1; boss.aura = 1.4 + 1.6 * smooth(phaseTime / 0.6); boss.shake = 0.1;
       boss.y = lerp(home[1], run.groundY - C.dash.height, smooth(phaseTime / 0.8)); boss.x = lerp(boss.x, 430, Math.min(1, dt * 3));
       for (let i = 0; i < 3; i++) { const a = run.rnd() * Math.PI * 2, r = 16 + run.rnd() * 26; run.particles.push({ x: boss.x + Math.cos(a) * r, y: boss.y + Math.sin(a) * r, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90 - 40, t: 0, life: 0.5, s: 3 + (i % 2), color: i % 2 ? '#a851ff' : '#1a0830', g: -30 }); }
       if (phaseTime >= C.dash.warn) launchDash();
@@ -162,6 +163,8 @@ export function createGajaemanRunner(battle, { enemy }) {
       // 맞붙기 직전 — 거의 멈춘 시간, C 로 맞받아친다
       if (keys.attack) {
         change('lock'); sfx(C.sfx.counter, 1.0); sfx(C.sfx.counterHit, 0.9); g.shake = { time: 0.5, amp: 7 };
+        // 경합 동안은 곡을 끄고 경합 소리만(사용자 2026-09-26)
+        g.sound?.stopBgm?.(0.35);
         run.frozen = true; run.core.airY = 0; run.core.attack = null; run.pose = 0; lock.gauge = 0;
         lockFrom = { px: run.x, bx: boss.x, by: boss.y };
         run.burst(boss.x - 24, boss.y, 60, { speed: 230, life: 0.8 });
@@ -203,8 +206,10 @@ export function createGajaemanRunner(battle, { enemy }) {
     for (const sw of swords) {
       sw.t += dt;
       if (sw.straight && sw.back > 0) {
-        sw.back -= dt; sw.vx *= 0.9; sw.vy *= 0.9;
-        if (sw.back <= 0) { const p = player(), tx = p.x, ty = run.groundY - 16, dx = tx - sw.x, dy = ty - sw.y, d = Math.hypot(dx, dy) || 1; sw.vx = dx / d * C.sword.line; sw.vy = dy / d * C.sword.line; sw.ang = Math.atan2(dy, dx); sfx(C.sfx.swordFly, 0.8); }
+        sw.back -= dt;
+        // 끝자리에 닿으면 멈춰 칼끝을 요플래 쪽으로 돌리고 잠깐 뒤 일직선
+        if (sw.back <= 0.18 && sw.low) { sw.x = sw.low[0]; sw.y = sw.low[1]; sw.vx = 0; sw.vy = 0; sw.ang = Math.PI; sw.low = null; }
+        if (sw.back <= 0) { sw.y = run.groundY - C.sword.aimHeight; sw.vx = -C.sword.line; sw.vy = 0; sw.ang = Math.PI; sfx(C.sfx.swordFly, 0.8); }
       } else if (sw.straight && sw.y >= run.groundY - C.sword.aimHeight) { sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.ang = Math.PI; }
       if (!sw.landed && sw.y >= run.groundY - C.sword.aimHeight) { sw.landed = true; sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.vx = -C.sword.speed; sw.ang = Math.PI; }
       sw.x += sw.vx * dt; sw.y += sw.vy * dt;

@@ -26,7 +26,7 @@ await runScenario({ name: 'ship-farewell', launchOptions: { args: ['--autoplay-p
     await page.waitForTimeout(120);
   }
   for (let i = 0; i < 6; i++) { await page.waitForTimeout(3000); await shot(`c-${i}`); }
-  await page.evaluate(() => { const c = game.castleDescent.credits, a = game.sound.bgm; c.offset = (isFinite(a?.duration) ? a.duration : 99.7) - 6 - (a?.currentTime || c.t); });
+  await page.evaluate(() => { const c = game.castleDescent.credits, a = game.sound.bgm; c.offset = (isFinite(a?.duration) ? a.duration : 99.7) - 6 - c.t; });
   await page.waitForTimeout(5000); await shot('the-end');
   const plain = lines.map(t => (t || '').replace(/\{[^}]*\}/g, ''));
   const expect = ['...', '그럼 ㅅㄱ', '즐거웠음', '요플래형. 고마웠어요.', '뭐 또 볼 날이 있겠죠', '요플래', '아니', '가재맨', '우리의 밤을 지켜줘서 고마워.'];

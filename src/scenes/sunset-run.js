@@ -18,7 +18,7 @@ export class SunsetRun {
     this.game = game; this.rnd = rnd;
     this.core = createRunner({ x: 0, endX: Infinity });
     this.time = 0; this.started = false;
-    this.white = 1; this.whiteT = 0; this.reveal = 0; this.revealing = false;
+    this.white = 1; this.whiteT = 0; this.reveal = 0; this.revealing = false; this.dashFlash = 0;
     this.boss = { x: C.boss.from[0], y: C.boss.from[1], visible: false, alpha: 1, lie: 0, aura: 1, face: 'left', shake: 0 };
     this.particles = []; this.puffs = []; this.slashFx = []; this.flash = 0; this.flashColor = '255,255,255';
     this.rays = new SunRays(); this.backlight = new Backlight();
@@ -37,8 +37,9 @@ export class SunsetRun {
     if (this.started && !this.frozen) {
       const events = stepRunner(this.core, dt, keys);
       for (const ev of events) {
-        if (['draw', 'dash', 'jump', 'slash', 'airslash'].includes(ev)) this.sfx(ev, ev === 'draw' || ev === 'dash' ? 0.45 : 0.7);
-        if (ev === 'dash') { this.revealing = true; this.onDash?.(); }
+        if (['draw', 'jump', 'slash', 'airslash'].includes(ev)) this.sfx(ev, ev === 'draw' ? 0.45 : 0.7);
+        // 출발: 곡과 함께 검 뽑는 소리·번쩍임·잔상 하나
+        if (ev === 'dash') { this.sfx(C.sfx.dash, C.white.dashVolume); this.dashFlash = C.white.burst; this.revealing = true; this.onDash?.(); }
         if (ev === 'slash' || ev === 'airslash') this.slashFx.push({ kind: ev, up: !!this.core.attack?.up, t: 0, dur: ev === 'slash' ? 0.26 : RUNNER.airSlashTime });
         if (ev === 'step') for (let i = 0; i < 3; i++) this.puffs.push({ x: this.x - 4, y: this.groundY - 2, vx: -60 - this.rnd() * 80, vy: -10 - this.rnd() * 20, t: 0, life: 0.45, s: 2 + (i % 2) });
       }
@@ -52,6 +53,7 @@ export class SunsetRun {
     for (const p of this.puffs) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
     this.puffs = this.puffs.filter(p => p.t < p.life);
     this.flash = Math.max(0, this.flash - dt);
+    this.dashFlash = Math.max(0, this.dashFlash - dt);
     this.boss.shake = Math.max(0, this.boss.shake - dt);
     this.jolt = Math.max(0, this.jolt - dt);
     for (const p of this.smoke) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= p.drag ?? 1; p.vy *= p.drag ?? 1; p.r += (p.grow ?? 0) * dt; }
@@ -89,7 +91,8 @@ export class SunsetRun {
     const gc = this.groundCanvas();
     if (gc) {
       const off = ((this.travel() % gc.width) + gc.width) % gc.width;
-      ctx.drawImage(gc, -Math.round(off), C.stage.groundTop); ctx.drawImage(gc, gc.width - Math.round(off), C.stage.groundTop);
+      // 두 장 이음새는 1px 겹친다(확대 경합 때 세로 실선으로 보였다)
+      ctx.drawImage(gc, -Math.round(off), C.stage.groundTop); ctx.drawImage(gc, gc.width - Math.round(off) - 1, C.stage.groundTop);
     }
     // 달리는 느낌: 발밑에서 뒤로 흩어지는 흙먼지 덩어리
     for (const p of this.puffs) { ctx.globalAlpha = (1 - p.t / p.life) * 0.7; ctx.fillStyle = '#3a2a3a'; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s, p.s); }
@@ -198,11 +201,19 @@ export class SunsetRun {
         this.backlight.apply(ctx, c => { this.paintPlayer(c, { trail: false }); }, [W, 0], 0);
         const dark = this.backlight.tinted(this.backlight.c, 'rgba(58,44,70,1)', 'shadow');
         ctx.drawImage(dark, 0, 0, W, H);
+        // 출발 순간 잔상 하나: 그림자가 앞으로 튀어 나가며 커지고 흐려진다
+        if (this.dashFlash > 0) {
+          const u = 1 - this.dashFlash / C.white.burst, cx = this.x, cy = this.groundY - 20, sc = 1 + u * C.white.ghostScale;
+          ctx.globalAlpha = 0.6 * (1 - u); ctx.translate(cx + u * C.white.ghostDrift, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
+          ctx.drawImage(dark, 0, 0, W, H);
+        }
         ctx.restore();
         // 걷히는 가장자리: 무지개 빛
         for (const y of [top, bottom]) this.rainbowBand(ctx, y, 6, 0.8);
       }
     }
+    // 출발 번쩍임: 화면 전체가 한 번 더 하얗게 빛났다가 빠진다
+    if (this.dashFlash > 0) { const k = this.dashFlash / C.white.burst; ctx.fillStyle = `rgba(255,251,238,${(0.95 * k * Math.sqrt(k)).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
     if (this.reveal > 0) {
       // 무지개 선: 위 선은 위에서 내려오고 아래 선은 아래에서 올라와 자리 잡는다
       const a = smooth(this.reveal);

@@ -51,11 +51,7 @@
   "assets/props/ship_lounge_grand_door_open_both.png",
   "assets/props/ship_lounge_bandage.png",
   "assets/props/pair_hug_front.png",
-  "assets/props/pair_hug_back.png",
-  "assets/props/arena332_teemo.png",
-  "assets/props/arena332_thresh.png",
-  "assets/props/arena332_blitzcrank.png",
-  "assets/props/arena332_ahri.png"
+  "assets/props/pair_hug_back.png"
  ],
  "spawns": {
   "start": {
@@ -468,39 +464,80 @@
    "hidden": true
   },
   {
-   "type": "prop",
-   "id": "epi_mon_teemo",
-   "image": "assets/props/arena332_teemo.png",
-   "x": 570,
-   "y": 380,
+   "type": "npc",
+   "id": "epi_scuttle",
+   "sprite": "scuttle",
+   "x": 588,
+   "y": 416,
+   "facing": "up",
    "solid": false,
+   "wander": 0,
    "hidden": true
   },
   {
-   "type": "prop",
-   "id": "epi_mon_thresh",
-   "image": "assets/props/arena332_thresh.png",
-   "x": 620,
-   "y": 370,
+   "type": "npc",
+   "id": "epi_krug",
+   "sprite": "krug",
+   "x": 648,
+   "y": 446,
+   "facing": "up",
    "solid": false,
+   "wander": 0,
    "hidden": true
   },
   {
-   "type": "prop",
-   "id": "epi_mon_blitzcrank",
-   "image": "assets/props/arena332_blitzcrank.png",
-   "x": 670,
-   "y": 410,
+   "type": "npc",
+   "id": "epi_toad",
+   "sprite": "toad",
+   "x": 688,
+   "y": 406,
+   "facing": "up",
    "solid": false,
+   "wander": 0,
    "hidden": true
   },
   {
-   "type": "prop",
-   "id": "epi_mon_ahri",
-   "image": "assets/props/arena332_ahri.png",
-   "x": 530,
-   "y": 410,
+   "type": "npc",
+   "id": "epi_wolf",
+   "sprite": "wolf",
+   "x": 128,
+   "y": 456,
+   "facing": "up",
    "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_razorbeak",
+   "sprite": "razorbeak",
+   "x": 78,
+   "y": 426,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_red",
+   "sprite": "red",
+   "x": 608,
+   "y": 476,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_blue",
+   "sprite": "blue",
+   "x": 158,
+   "y": 486,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
    "hidden": true
   },
   {

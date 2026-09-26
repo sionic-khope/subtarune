@@ -10,13 +10,15 @@ export const GJ_RUNNER = Object.freeze({
   // 무대(노을 땅 맵과 같은 비율): 수평선·땅 윗면·앞 테두리, 달리는 발 높이, 요플래 x, 마지막 결전이라 인물은 작게
   stage: { horizonY: 168, groundTop: 190, edgeY: 288, groundY: 252, playerX: 118, scale: 0.72, sunX: 300 },
   player: { halfWidth: 8, height: 32, heartHeight: 26 },
-  // 흰 화면은 천천히 나지막이 걷힌다(BUILD369)
-  white: { hold: 0.55, reveal: 1.7 },
-  boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [372, 150], scale: 1.56, bob: 5 },
+  // 흰 화면은 천천히 나지막이 걷힌다(BUILD369). 곡이 시작되는 출발 순간: 검 뽑는 소리를 크게, 번쩍임 burst 초, 잔상 하나가 튀어 나간다(사용자 2026-09-26)
+  white: { hold: 0.55, reveal: 1.7, burst: 0.6, dashVolume: 0.95, ghostScale: 0.5, ghostDrift: 22 },
+  // home x: 요플래와의 대치 간격을 10% 더 멀리(사용자 2026-09-26, 254px → 279px)
+  boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [397, 150], scale: 1.56, bob: 5 },
   aura: { gather: 2.2, burst: 0.5 },
   cycle: { first: 1.2, rest: 1.1 },
-  // BUILD369: 검 더 크게, 대각선 · 뒤로 뺐다가 일직선 두 가지
-  sword: { count: 3, every: 0.72, warn: 0.55, speed: 360, aimAhead: 26, aimHeight: 14, halfW: 26, halfH: 9, w: 34, h: 136, draw: 0.95, back: 0.4, line: 430 },
+  // BUILD369: 검 더 크게. BUILD371(사용자): 그림 비율 그대로(76×160, 가로로 납작하지 않게), 더 느리게,
+  //   대각선으로 날아와 땅을 스치는 검 · 오른쪽 아래 끝(low)으로 대각선으로 내려갔다가 땅 높이로 일직선 발사하는 검
+  sword: { count: 3, every: 1.0, warn: 0.6, speed: 260, aimAhead: 26, aimHeight: 14, halfW: 26, halfH: 9, w: 55, h: 116, draw: 1, back: 0.55, low: [462, 238], line: 300 },
   // BUILD365(사용자 “돌진 좀만 더 천천히, 잔상, 지나간 뒷자리에 팡팡 폭죽처럼 — 타닥타닥”)
   dash: { warn: 1.25, speed: 240, pop: 0.16, trailEvery: 0.05, height: 20, halfW: 30, halfH: 12, recoil: 0.7, returnSeconds: 1.0, endX: -120 },
   final: { gather: 2.4, back: [520, 206], backSeconds: 0.6, speed: 150, homing: 2.4, pop: 0.13, clashDist: 72, slow: 0.08, clashHold: 1.4 },

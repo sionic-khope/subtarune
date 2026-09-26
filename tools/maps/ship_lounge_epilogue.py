@@ -28,9 +28,10 @@ PARADE: Final = [('bidet', 'warm_bidet', 150, 430, None), ('mario', 'mini_mario'
                  # BUILD369: 김은별컴퍼니·김예림, 미니언들, 청소부(몰래)
                  ('eunbyeol', 'eunbyeol', 140, 430, None), ('yerim', 'yerim', 650, 430, None),
                  ('cs_red', 'cs_red', 120, 440, None), ('cs_blue', 'cs_blue', 160, 470, None), ('cannon', 'cannon', 200, 450, None),
-                 ('janitor', 'janitor', 700, 330, None)]
-# 롤 몬스터(결전지 소환 그림, 소품): (이름, 시작 발 x, 발 y)
-LOL: Final = [('teemo', 600, 440), ('thresh', 650, 430), ('blitzcrank', 700, 470), ('ahri', 560, 470)]
+                 ('janitor', 'janitor', 700, 330, None),
+                 # BUILD371(사용자): 롤 몬스터는 가재맨 버전 챔피언이 아니라 정글 몹 — 바위게·돌거북(골렘)·두꺼비·늑대·칼날부리·레드·블루
+                 ('scuttle', 'scuttle', 600, 440, None), ('krug', 'krug', 660, 470, None), ('toad', 'toad', 700, 430, None),
+                 ('wolf', 'wolf', 140, 480, None), ('razorbeak', 'razorbeak', 90, 450, None), ('red', 'red', 620, 500, None), ('blue', 'blue', 170, 510, None)]
 # 지켜보는 일행(뒷모습): 억빠맨 왼쪽 · 경섭+김형섭 어깨동무(장면이 그림) 가운데 · 영클 오른쪽
 WATCH: Final = {'ppaman': (322, 368), 'pair': (384, 372), 'youngcle': (456, 364)}
 DOOR: Final = {'x': 304, 'y': 16, 'w': 160, 'h': 192, 'enter': [384, 214], 'front': [384, 240]}
@@ -53,8 +54,6 @@ def main() -> None:
     for name, sprite, x, y, scale in PARADE:
         entities.append({'type': 'npc', 'id': f'epi_{name}', 'sprite': sprite, 'x': x - 12, 'y': y - 24, 'facing': 'up',
                          'solid': False, 'wander': 0, 'hidden': True, **({'visualScale': scale} if scale else {})})
-    for name, x, y in LOL:
-        entities.append({'type': 'prop', 'id': f'epi_mon_{name}', 'image': f'assets/props/arena332_{name}.png', 'x': x - 30, 'y': y - 60, 'solid': False, 'hidden': True})
     for name, sprite, scale in (('ppaman', 'ppaman', None), ('youngcle', 'youngcle', 2)):
         x, y = WATCH[name]
         entities.append({'type': 'npc', 'id': f'epi_{name}', 'sprite': sprite, 'x': x - 12, 'y': y - 24, 'facing': 'up',
@@ -63,7 +62,7 @@ def main() -> None:
         'id': MAP_ID, 'name': '엄청대박인배 라운지', 'stage': 'castle_summit_ready',
         'bgm': 'lounge_parade', 'bgmVolume': 0.6, 'dim': src.get('dim', 0), 'rows': src['rows'],
         'enter': {'script': 'ship_lounge_epilogue', 'early': True},
-        'preload': [P + 'ship_lounge_grand_door_open_both.png', P + 'ship_lounge_bandage.png', P + 'pair_hug_front.png', P + 'pair_hug_back.png'] + [f'assets/props/arena332_{n}.png' for n, _, _ in LOL],
+        'preload': [P + 'ship_lounge_grand_door_open_both.png', P + 'ship_lounge_bandage.png', P + 'pair_hug_front.png', P + 'pair_hug_back.png'],
         'spawns': {'start': {'x': 372, 'y': 520, 'facing': 'up'}},
         'meta': {'connected': False, 'descent': {'kind': 'lounge', 'band': [0, 0], 'door': DOOR, 'pair': list(WATCH['pair'])}},
         'entities': entities,
