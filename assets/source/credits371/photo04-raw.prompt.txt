@@ -1,0 +1,19 @@
+# imagegen 2026-09-26 20:12:07
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: assets/source/credits371/refs/ref04.png
+
+STYLE (identical for the whole series of 11 credit illustrations): portrait 2:3 vertical illustration. Warm hand-painted storybook illustration, soft gouache and watercolor texture with visible paper grain, clean confident dark-brown ink linework, cute chibi proportions (big heads, short bodies) faithful to the reference sprites, rich cinematic lighting with warm rim light, gentle color bloom, Deltarune / Undertale fan-art mood, cinematic composition with clear foreground/midground/background. NOT pixel art, no pixels, no dithering. Absolutely no text, no letters, no captions, no speech bubbles, no logos with writing, no watermark, no signature, no UI, no borders, no frames.
+
+The reference image is a labelled contact sheet of small PIXEL SPRITES from the game (plus sometimes a screenshot of the place). The labels are only for you; never draw them. REINTERPRET the sprites as painted characters while keeping every identity detail recognisable (colors, hair, glasses, species, outfit).
+
+CHARACTER IDENTITY RULES (only for characters that appear):
+- Yoplae / Kim Hyungsub (the hero): small chibi boy, messy short black hair, big ROUND BLACK-RIMMED GLASSES, round peach face with a small round nose, NO MOUTH at all (never draw a mouth), plain white short-sleeve T-shirt, navy shorts, dark shoes.
+- Kim Gyeongsub: chibi young man with long straight black hair to the shoulders covering the sides of his face, thin round glasses, dark navy T-shirt with a small purple square emblem on the chest, dark pants.
+- Eokppaman: a chubby periwinkle-blue teddy BEAR standing upright, round ears with pink insides, cream-colored belly and muzzle, black nose, small black eyes.
+- Junhee: a pink PIG standing upright on two legs, big snout with two nostrils, angry slanted eyebrows, curly tail, pink floppy ears.
+- Park Yongjun: a chubby round-faced boy with a black bowl-cut, sleepy narrow eyes, white T-shirt, navy shorts.
+- Youngcle: a round PINK head like a ball with one big spiral swirl eye in the middle, a little brown sprout/antenna on top, red cheek, light-blue T-shirt with a small green pocket, navy shorts.
+
+SCENE: A dramatic chase. Baron, a gigantic purple void serpent-worm monster with spiky crest, glowing green eyes, purple scales and clawed arms, rears up and slithers away carrying Park Yongjun (chubby bowl-cut boy in white T-shirt) clutched in its grip, Yongjun flailing and shouting in panic. Behind them, in the foreground, Yoplae (hero), Kim Gyeongsub and Eokppaman the blue bear run after it, shocked, with surprised expressions (Yoplae still has no mouth; show shock with wide eyes behind his glasses and sweat drops). Dark purple jungle-cave atmosphere with violet glow. Reference: image shows Baron, Yongjun, Yoplae, Gyeongsub, Eokppaman.

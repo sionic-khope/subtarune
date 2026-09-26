@@ -13,7 +13,8 @@ export const CREDITS = Object.freeze({
   column: { x: 36, width: 220, title: 11, name: 14, gap: 30, line: 20 },
   // 오른쪽 사진(그림풍 일러스트 assets/credits/photoNN.png): 크레딧 스크롤 시간에 고르게 한 장씩. 가운데 (x, y), 최대 w×h, 액자 테두리, 천천히 위로 drift px/초
   photo: { x: 360, y: 176, w: 176, h: 264, frame: 3, fade: 1.2, drift: 1.2, lead: 1.0, tail: 1.0 },
-  photos: [],
+  // BUILD372 그림풍 삽화 11장(assets/source/credits371, 사용자 지정 장면 순서) — 라운지 작별 맵이 미리 불러 둔다
+  photos: Array.from({ length: 11 }, (_, i) => `assets/credits/photo${String(i + 1).padStart(2, '0')}.png`),
   sections: [
     role('기획'), role('시나리오'), role('연출'), role('게임 디자인'), role('레벨 디자인'),
     role('프로그래밍'), role('전투 시스템'), role('캐릭터 디자인'), role('배경 디자인'), role('도트 그래픽'),

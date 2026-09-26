@@ -47,7 +47,8 @@ def main() -> None:
         'bgm': None, 'dim': src.get('dim', 0), 'rows': src['rows'],
         'enter': {'script': 'ship_lounge_farewell', 'early': True},
         'preload': [P + 'ship_lounge_grand_door.png', P + 'ship_lounge_grand_door_open.png', P + 'ship_lounge_bandage.png',
-                    P + 'pair_hug_back.png', P + 'pair_hug_front.png', 'assets/sprites/gyeongsub-lookback.png'],
+                    P + 'pair_hug_back.png', P + 'pair_hug_front.png', 'assets/sprites/gyeongsub-lookback.png']
+                   + [f'assets/credits/photo{i:02d}.png' for i in range(1, 12)],
         'spawns': {'start': {'x': 372, 'y': 560, 'facing': 'up'}},
         'meta': {'connected': False, 'descent': {'kind': 'farewell', 'band': [0, 0], 'door': DOOR, 'line': {k: list(v) for k, v in LINE.items()},
                                                  'pair': list(LINE['pair']), 'charScale': 1}},

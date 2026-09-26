@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1536",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/credits371/refs/ref04.png"
+  ],
+  "elapsed_seconds": 39.9,
+  "usage": {
+    "input_tokens": 1148,
+    "output_tokens": 1372,
+    "total_tokens": 2520,
+    "input_tokens_details": {
+      "image_tokens": 481,
+      "text_tokens": 667
+    },
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790421122,
+  "outputs": [
+    {
+      "file": "assets/source/credits371/photo04-raw.png",
+      "bytes": 3018786,
+      "size": [
+        1024,
+        1536
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

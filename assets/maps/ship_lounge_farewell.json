@@ -52,7 +52,18 @@
   "assets/props/ship_lounge_bandage.png",
   "assets/props/pair_hug_back.png",
   "assets/props/pair_hug_front.png",
-  "assets/sprites/gyeongsub-lookback.png"
+  "assets/sprites/gyeongsub-lookback.png",
+  "assets/credits/photo01.png",
+  "assets/credits/photo02.png",
+  "assets/credits/photo03.png",
+  "assets/credits/photo04.png",
+  "assets/credits/photo05.png",
+  "assets/credits/photo06.png",
+  "assets/credits/photo07.png",
+  "assets/credits/photo08.png",
+  "assets/credits/photo09.png",
+  "assets/credits/photo10.png",
+  "assets/credits/photo11.png"
  ],
  "spawns": {
   "start": {
