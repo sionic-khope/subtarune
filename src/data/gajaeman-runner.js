@@ -27,7 +27,7 @@ export const GJ_RUNNER = Object.freeze({
   sfx: { draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape',
     sword: 'spearappear', swordFly: 'heavyswing', deflect: 'deflect', kickVoice: 'gajaeman_kick', dashGo: 'ultraswing',
     counter: 'deltarune_release_shoot', counterHit: 'impact', gather: 'power', charge: 'laser_charge', burst: 'deltarune_release_shoot',
-    back: 'baron_slam', crackle: 'pop', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
+    back: 'baron_slam', crackle: 'pop', swordHit: 'metalhit', lockWhine: 'blade_lock_whine', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
   // 누워 날아가는 전용 그림(생성, assets/source/gjfly365) — 머리가 왼쪽, 얼굴은 앞
   flySheet: 'assets/sprites/gajaeman-fly.png', flyH: 34,
   rainbow: ['#ff5a5a', '#ffae3c', '#ffe45a', '#6ee66e', '#5ac8ff', '#7a7aff', '#d27aff'],

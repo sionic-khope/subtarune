@@ -8,12 +8,14 @@ await runScenario({ name: 'castle-descent', launchOptions: { args: ['--autoplay-
   assert.ok(await until(() => window.game?.mapId === 'gajaeman_castle_skyroad', 30000));
   const S = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, waiting: game.textbox.isOpen && game.textbox.state === 'waiting', text: game.textbox.node?.text,
     px: Math.round(game.player.x), scene: game.castleDescent?.snapshot, bgm: game.sound.bgmName }));
-  const lines = []; let n = 0, holding = false, maxSwords = 0;
+  const lines = []; let n = 0, holding = false, maxSwords = 0, zoneStops = 0;
   const seenMaps = new Set();
   for (let i = 0; i < 1600; i++) {
     const s = await S();
     seenMaps.add(s.map);
     maxSwords = Math.max(maxSwords, s.scene?.swords || 0);
+    if (s.map === 'gajaeman_castle_sunset') break;
+    if (s.map === 'gajaeman_castle_skyroad' && s.running && s.px > 300 && s.px < 2150) zoneStops++;
     if (s.waiting) {
       if (holding) { await page.keyboard.up('ArrowRight'); holding = false; }
       if (lines.at(-1) !== s.text) { lines.push(s.text); await shot(`l-${String(lines.length).padStart(2, '0')}`); }
@@ -38,6 +40,7 @@ await runScenario({ name: 'castle-descent', launchOptions: { args: ['--autoplay-
   const expect = ['빨리 가샘 가서 족치고오샘 ㅇㅇ', '올라갔어요!', '윽.', '경섭이형', '응', '지금 저랑 같은생각 하고 계시죠', '그런것같다.', '갈까요!!! 요플래형 부탁해요'];
   check('lines verbatim and in order', expect.every((e, i) => plain.findIndex(t => t.includes(e)) >= 0 && (i === 0 || plain.findIndex(t => t.includes(e)) > plain.findIndex(t => t.includes(expect[i - 1])))), JSON.stringify(plain));
   check('road → raft room → sunset ground', seenMaps.has('gajaeman_castle_skyroad') && seenMaps.has('gajaeman_castle_raft') && end.map === 'gajaeman_castle_sunset', JSON.stringify([...seenMaps]));
+  check('road stretches never stopped the walk', !zoneStops, String(zoneStops));
   check('all road beats played', end.flags.length === 6, JSON.stringify(end.flags));
   check('four swords came in', maxSwords === 4, maxSwords);
   check('the rise track took over at the jump', end.bgm === 'save_the_world_rise', end.bgm);

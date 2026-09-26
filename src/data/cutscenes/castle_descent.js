@@ -45,22 +45,7 @@ export const castle_road_intro = Object.assign([
   { label: 'end' }, { end: true },
 ], { silent: true });
 
-/** 구간 하나: 섭 몬스터가 위·아래에서 뛰어들고 → 일행 ! → 다가섬 → 편집노조가 들어와 날려 버린다. */
-const zone = (n, flag, strike) => Object.assign([
-  { if: flags => !!flags[flag], goto: 'end' }, { set: { [flag]: true } },
-  close, ...faceAll('right'),
-  scene(s => s.ambush(n)),
-  { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) },
-  scene(s => s.creep(n)),
-  scene(s => s.allyIn(n)), { wait: 0.15 },
-  ...strike,
-  { wait: 0.6 },
-  { label: 'end' }, { end: true },
-], { silent: true });
-// 1: 오른쪽 위에서 비데(도끼) · 2: 왼쪽 아래에서 파크가디언(인사) · 3: 오른쪽 위에서 뚜울라와 도트마리오(밟기)
-export const castle_road_z1 = zone(1, 'castle_road_z1', [{ parallel: [{ motion: 'road_bidet', name: 'axe_strike' }, [{ wait: 0.45 }, scene(s => s.knock(1))]] }]);
-export const castle_road_z2 = zone(2, 'castle_road_z2', [scene(s => s.knock(2)), { motion: 'road_park', name: 'bow' }]);
-export const castle_road_z3 = zone(3, 'castle_road_z3', [{ parallel: [{ hop: 'road_mario', by: [0, 0], height: 34, sfx: 'mario_jump' }, [{ wait: 0.3 }, scene(s => s.knock(3))]] }]);
+// BUILD366: 구간 셋(비데 · 파크가디언 · 뚜울라·도트마리오)은 컷신이 아니라 걷는 동안의 장면(src/scenes/castle-descent.js ambient)
 
 /** 길 끝: 검 네 자루가 날아오고 영클이 세 번 쏴서 지켜 준다 → “빨리 가샘” → 뗏목 웅덩이로. */
 export const castle_road_end = Object.assign([

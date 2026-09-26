@@ -106,6 +106,23 @@
      "w": 88,
      "h": 94
     }
+   ],
+   "zones": [
+    {
+     "n": 1,
+     "x": 520,
+     "flag": "castle_road_z1"
+    },
+    {
+     "n": 2,
+     "x": 1120,
+     "flag": "castle_road_z2"
+    },
+    {
+     "n": 3,
+     "x": 1720,
+     "flag": "castle_road_z3"
+    }
    ]
   }
  },
@@ -241,33 +258,6 @@
    "solid": false,
    "wander": 0,
    "hidden": true
-  },
-  {
-   "type": "trigger",
-   "id": "road_z1",
-   "x": 520,
-   "y": 96,
-   "w": 24,
-   "h": 256,
-   "script": "castle_road_z1"
-  },
-  {
-   "type": "trigger",
-   "id": "road_z2",
-   "x": 1120,
-   "y": 96,
-   "w": 24,
-   "h": 256,
-   "script": "castle_road_z2"
-  },
-  {
-   "type": "trigger",
-   "id": "road_z3",
-   "x": 1720,
-   "y": 96,
-   "w": 24,
-   "h": 256,
-   "script": "castle_road_z3"
   },
   {
    "type": "trigger",

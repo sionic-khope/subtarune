@@ -157,6 +157,9 @@ export function createGajaemanRunner(battle, { enemy }) {
       const k = smooth(phaseTime / 0.35);
       run.pxOverride = lerp(lockFrom.px, C.lock.playerX, k);
       boss.x = lerp(lockFrom.bx, C.lock.playerX + C.lock.gap, k); boss.y = lerp(lockFrom.by, run.groundY - 22, k); boss.lie = 1; boss.aura = 2.4;
+      lock.whine = (lock.whine ?? 0) - dt;
+      // 참고 영상(lX0SKoUXI5Y 6:29~) 경합 위이이잉 4.7초 — 4.2초마다 겹쳐 끊기지 않게
+      if (lock.whine <= 0) { lock.whine = 4.2; sfx(C.sfx.lockWhine, 0.75); }
       if (keys.attack) { lock.gauge = Math.min(1, lock.gauge + 1 / C.lock.presses); run.jolt = C.lock.shake; boss.shake = C.lock.shake; run.pose = run.pose === 0 ? 1 : 0; }
       if (lock.gauge < 1) lock.gauge = Math.max(0, lock.gauge - C.lock.decay * dt);
       if (run.rnd() < 0.7) { const a = run.rnd() * Math.PI * 2, v = 120 + run.rnd() * 160; run.particles.push({ x: C.lock.playerX + C.lock.gap * 0.5, y: run.groundY - 24, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, t: 0, life: 0.35, s: 2, color: run.rnd() < 0.5 ? '#ffffff' : '#fff2a0', g: 300 }); }
@@ -188,7 +191,9 @@ export function createGajaemanRunner(battle, { enemy }) {
       if (!sw.landed && sw.y >= run.groundY - C.sword.aimHeight) { sw.landed = true; sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.vx = -C.sword.speed; sw.ang = Math.PI; }
       sw.x += sw.vx * dt; sw.y += sw.vy * dt;
       if (sw.dead) continue;
-      if (s && overlap(sw.x, sw.y, C.sword.halfW, C.sword.halfH, ...s)) { sw.dead = true; sw.flyV = [260, -320]; sfx(C.sfx.deflect, 0.8); run.burst(sw.x, sw.y, 12, { speed: 110, life: 0.45 }); }
+      if (s && overlap(sw.x, sw.y, C.sword.halfW, C.sword.halfH, ...s)) { sw.dead = true; sw.flyV = [260, -320]; sfx(C.sfx.deflect, 0.8); sfx(C.sfx.swordHit, 0.8); run.burst(sw.x, sw.y, 12, { speed: 110, life: 0.45 });
+        for (let i = 0; i < 16; i++) { const a = run.rnd() * Math.PI * 2, v = 120 + run.rnd() * 180; run.particles.push({ x: sw.x, y: sw.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, t: 0, life: 0.3, s: 2, color: i % 3 ? '#fff2a0' : '#ffffff', g: 420 }); }
+        run.flash = 0.05; g.shake = { time: 0.1, amp: 2 }; }
       else if (overlap(sw.x, sw.y, C.sword.halfW, C.sword.halfH, ...bodyBox())) { sw.dead = true; sw.gone = true; hurt(); }
     }
     for (const sw of swords) if (sw.flyV) { sw.x += sw.flyV[0] * dt; sw.y += sw.flyV[1] * dt; sw.flyV[1] += 900 * dt; sw.ang += 18 * dt; }

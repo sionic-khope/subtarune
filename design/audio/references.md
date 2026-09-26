@@ -6,6 +6,7 @@
 - `bgm/save_the_world.mp3`(42초): 청소년전 격파 뒤 박용준 등장(“하이요 형들ㅋㅋ”)부터. 사용자 지정 YouTube LAn-JYzKm5M “SAVE The World” 0~42초만(사용자 “42초까지만 반복재생”), 끝 0.15초 페이드. 원본 `assets/source/finale352/audio/`.
 - `bgm/save_the_world_rise.mp3`(21.2초, BUILD365 재가공): 뗏목 점프 → 상승 연출 → 노을 땅 착지. 같은 곡(사용자 지정 YouTube LAn-JYzKm5M “SAVE The World”)의 42.7초(음이 조용해지며 바뀌는 지점, RMS 분석)부터 63.9초(다시 커지기 직전)까지만, 끝 0.3초 페이드, 한 번만(루프 없음). 곡이 끝나며 착지 → SAVE THE WORLD 버튼(사용자 “곡이 딱 끝나면 버튼”). 원곡 58초 = 맵 전환, 64.0초(다시 커지는 지점) = 착지. 원본 `assets/source/rise359/audio/stw.mp3`.
 - `sfx/switch_noise.mp3`(BUILD360): 노을 땅 무릎 착지 “챱”(사용자 “언더테일 레버 당기는 소리”). 원본 UNDERTALE/DELTARUNE `snd_noise.wav`(레버·스위치 소리, `assets/library/sfx/deltarune/snd_noise.wav`) MP3 q2 변환, 가공 없음. 가벼운 `thud` 0.3 을 겹친다.
+- `sfx/blade_lock_whine.mp3`(4.7초, BUILD366): 가재맨 결전 마지막 칼 경합(C 연타) 동안 “위이이잉”. 사용자 지정 참고 영상 YouTube lX0SKoUXI5Y 6:29.2~6:33.9(약 290Hz 지속음) 잘라 앞뒤 페이드, 경합 중 4.2초마다 겹쳐 재생. 영상 음원이라 배경 음악이 조금 섞일 수 있다. 원본 `assets/source/clash363/ref.webm`.
 - `bgm/save_the_world_run.mp3`(50.3초, BUILD363): 노을 땅 달리기 결전. 같은 곡 LAn-JYzKm5M 1분 3초부터 끝까지(사용자 “1분 3초부터”). 원본 `assets/source/rise359/audio/stw.mp3`.
 - `bgm/sunset_hum.mp3`(9초 루프, BUILD363): SAVE THE WORLD 버튼 동안 “우우우웅~” — sine 98/147/196Hz 합성·2.2초 주기로 부풀고 lowpass·aecho(**임시**, 사용자가 고르면 교체).
 - `sfx/confirm_echo.mp3`(2.3초, BUILD363): SAVE THE WORLD 누를 때 “띠링” — 선택지 확정음 `confirm` 에 aecho(180/360/540ms) 로 퍼지게.

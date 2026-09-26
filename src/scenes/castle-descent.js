@@ -1,5 +1,6 @@
 import { CHAR_SCALE } from '../world/world.js';
 import { Input } from '../core/input.js';
+import { characterMotionWaiter } from '../world/character-motion.js';
 import { FONT } from '../ui/font.js';
 import { SunsetRun } from './sunset-run.js';
 import { GJ_RUNNER as GJ } from '../data/gajaeman-runner.js';
@@ -36,12 +37,12 @@ export class CastleDescent {
     // 뗏목: 가운데 떠 있고, 잠수한 사람은 물결선 아래가 안 보이게 따로 그린다
     const [px, py, pw, ph] = this.meta.pool || [0, 0, 0, 0];
     this.raft = this.kind === 'raft' ? { x: px + pw / 2, y: py + ph / 2 + 4, bob: true } : null;
-    this.divers = [];
+    this.divers = []; this.waiters = [];
     void game.sound.loadSfxFiles?.(['wing', 'thud', 'jump', 'impact', 'captain_transform', 'spearappear', 'laser_zap', 'laser_charge', 'break1', 'splash', 'maillard_splash', 'maillard_water_lift', 'power', 'rumble', 'mario_jump', 'heavyswing', 'chime']);
     this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
     if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
     if (this.kind === 'sunset' && game.player) game.player.def.visualScale = this.meta.charScale || 1;
-    if (['sunset', 'lounge', 'deck'].includes(this.kind)) { void game.sound.loadSfxFiles?.(['laugh_junhee', 'punch', 'impact', 'item', 'pop', 'great_shine', 'power', 'static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
+    if (['sunset', 'lounge', 'deck'].includes(this.kind)) { void game.sound.loadSfxFiles?.(['blade_lock_whine', 'metalhit', 'laugh_junhee', 'punch', 'impact', 'item', 'pop', 'great_shine', 'power', 'static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -96,14 +97,14 @@ export class CastleDescent {
 
   // ── 길: 섭 몬스터와 편집노조 ──────────────────────────────
   /** 이 구간의 섭 몬스터가 길 위·아래 허공에서 뛰어올라 일행 앞(오른쪽)에 내려선다. */
-  ambush(zone) {
+  ambush(zone, ahead = 110) {
     const p = this.game.player, [px, py] = this.feet(p), [top, bottom] = this.band();
     const list = this.meta.monsters.filter(m => m.zone === zone);
     let tops = 0, bottoms = 0;
     const jobs = list.map((m, i) => {
       const e = this.ent(m.id); if (!e) return Promise.resolve();
       const up = m.side === 'top', n = up ? tops++ : bottoms++;
-      const lx = px + (up ? 110 + n * 110 : 180 + n * 90);
+      const lx = px + (up ? ahead + n * 110 : ahead + 70 + n * 90);
       const ly = Math.max(top + 30, Math.min(bottom - 6, up ? py - 34 - n * 6 : py + 62));
       m.land = [lx, ly];
       const sx = lx + 60, sy = up ? top - 150 : bottom + 170;
@@ -125,19 +126,43 @@ export class CastleDescent {
     return this.job(0.6, k => list.forEach(([m, e], i) => { e.x = Math.round(start[i] - by * ease(k)); e.hopY = Math.round(Math.abs(Math.sin(k * Math.PI * 2)) * 4); }));
   }
   /** 편집노조가 들어온다: 오른쪽 위 허공 / 왼쪽 아래 허공에서 크게 뛰어 몬스터와 일행 사이에 착지. */
-  allyIn(zone) {
+  allyIn(zone, nearMonsters = false, seconds = 0.75) {
     const p = this.game.player, [px, py] = this.feet(p), [top, bottom] = this.band(), cam = this.camera();
     const list = DESCENT.allies[zone] || [];
+    const lands = this.meta.monsters.filter(m => m.zone === zone && m.land).map(m => m.land[0]);
+    const front = nearMonsters && lands.length ? Math.min(...lands) - 42 : null;
     return Promise.all(list.map(([id, from], i) => {
       const e = this.ent(id); if (!e) return Promise.resolve();
-      const tx = px + 64 + i * 26, ty = Math.max(top + 30, Math.min(bottom - 6, py + (i ? 22 : -10)));
+      const tx = front != null ? front - i * 26 : px + 64 + i * 26, ty = Math.max(top + 30, Math.min(bottom - 6, py + (i ? 22 : -10)));
       const start = from === 'upRight' ? [cam.x + 520, top - 170] : [cam.x - 40, bottom + 190];
       e.facing = 'right';
       return this.delay(i * 0.22).then(() => {
         this.sfx(id === 'road_mario' ? 'mario_jump' : 'jump', 0.7);
-        return this.arc(e, start, [tx, ty], from === 'upRight' ? 60 : 140, 0.75, k => k);
+        return this.arc(e, start, [tx, ty], from === 'upRight' ? 60 : 140, seconds, k => k);
       }).then(() => { this.sfx('thud', 0.8); this.game.shake = { time: 0.22, amp: 3 }; });
     }));
+  }
+  /** 캐릭터 동작 한 번(컷신 {motion} 과 같은 그림) — 조작을 멈추지 않는다 */
+  playMotion(id, name) {
+    const e = this.ent(id), def = this.game.characterMotions?.[e?.def.sprite]?.[name];
+    if (!e || !def) return Promise.resolve();
+    const w = characterMotionWaiter(e, def);
+    return new Promise(resolve => this.waiters.push({ w, resolve }));
+  }
+  /**
+   * BUILD366(사용자 “멈춰서 연출이 아니라 걷다가 쭉 걸을 수 있고 타이밍 맞춰 잡아주게”): 걸어가며 구간을 지나면 섭 몬스터가 앞에서 뛰어들고
+   * 편집노조가 바로 그 앞에 내려와 날려 버린다 — 조작은 그대로(영클 레이저 끝 구간만 연출).
+   */
+  ambient(n) {
+    const party = [this.game.player, this.ent('gyeongsub'), this.ent('ppaman')];
+    void this.ambush(n, 250);
+    this.delay(0.25).then(() => { for (const e of party) if (e) e.emote = { kind: '!', t: 0, life: 0.7 }; this.sfx('chime', 0.5); });
+    return this.delay(0.2).then(() => this.allyIn(n, true, 0.55)).then(() => {
+      if (n === 1) { void this.playMotion('road_bidet', 'axe_strike'); return this.delay(0.4).then(() => this.knock(1)); }
+      if (n === 2) return this.knock(2).then(() => this.playMotion('road_park', 'bow'));
+      const m = this.ent('road_mario'); if (m) { this.sfx('mario_jump', 0.6); void this.arc(m, this.feet(m), this.feet(m), 30, 0.4); }
+      return this.delay(0.2).then(() => this.knock(3));
+    });
   }
   /** 몬스터가 전부 뒤로 튕겨 날아간다(위쪽 것은 위로, 아래쪽 것은 아래로). */
   knock(zone) {
@@ -753,6 +778,9 @@ export class CastleDescent {
     const s = Math.max(0, dt); this.time += s;
     const T = tickRiseClock(g, s);
     if (this.button) this.button.t += s;
+    for (const x of [...this.waiters]) if (x.w.update(s)) { this.waiters.splice(this.waiters.indexOf(x), 1); x.resolve(); }
+    // 끝없는 길: 걸어가며 구간을 지나면 편집노조 한 판(멈추지 않는다)
+    if (this.kind === 'road' && !g.dialogue.running) for (const z of this.meta.zones || []) if (!g.flags?.[z.flag] && g.player.x >= z.x - 80) { g.setFlag?.(z.flag); void this.ambient(z.n); }
     if (this.run && !g.battle) this.run.update(s);
     if (this.rise && T != null) updateRise(this.rise, T, s);
     if (this.kind === 'sunset') this.warm.update(s, { rate: 5, vy: -10, warm: true });

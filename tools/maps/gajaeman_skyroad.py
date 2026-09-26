@@ -52,7 +52,8 @@ def main() -> None:
     for actor_id, sprite, scale in ALLIES:
         entities.append({'type': 'npc', 'id': actor_id, 'sprite': sprite, 'x': 0, 'y': -400, 'facing': 'left',
                          'solid': False, 'wander': 0, 'hidden': True, **({'visualScale': scale} if scale else {})})
-    for trigger_id, x in ZONES:
+    # 구간 셋은 걷는 동안의 장면(맵 meta.descent.zones, BUILD366) — 끝 구간만 트리거(영클 레이저 연출)
+    for trigger_id, x in ZONES[-1:]:
         entities.append({'type': 'trigger', 'id': trigger_id, 'x': x, 'y': BAND[0], 'w': 24, 'h': BAND[1] - BAND[0],
                          'script': f'castle_{trigger_id}'})
     data = {
@@ -63,7 +64,8 @@ def main() -> None:
         'preload': ['assets/props/cathedral323_sword.png'] + [f'assets/props/arena332_{n}.png' for _, n, *_ in MONSTERS],
         'spawns': {'start': {'x': 72, 'y': 124, 'facing': 'right'}, 'end': {'x': 2200, 'y': 224, 'facing': 'right'}},
         'meta': {'connected': True, 'descent': {'kind': 'road', 'band': list(BAND), 'gajaeman': 'road_gajaeman',
-                                                'monsters': [{'zone': z, 'id': f'road_mon_{n}', 'side': s, 'w': w, 'h': h} for z, n, s, w, h in MONSTERS]}},
+                                                'monsters': [{'zone': z, 'id': f'road_mon_{n}', 'side': s, 'w': w, 'h': h} for z, n, s, w, h in MONSTERS],
+                                                'zones': [{'n': i + 1, 'x': x, 'flag': f'castle_{zid}'} for i, (zid, x) in enumerate(ZONES[:-1])]}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')
