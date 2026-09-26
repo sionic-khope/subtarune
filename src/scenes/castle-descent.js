@@ -41,7 +41,7 @@ export class CastleDescent {
     this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
     if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
     if (this.kind === 'sunset' && game.player) game.player.def.visualScale = this.meta.charScale || 1;
-    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
+    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['item', 'pop', 'great_shine', 'power', 'static_burst', 'rumble', 'baron_slam', 'furnace_blast', 'menumove', 'confirm_echo', 'captain_transform', 'laser_charge', 'cannon_charge', 'explosion', 'deltarune_release_shoot', 'wing', 'weaponpull', 'swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -368,6 +368,227 @@ export class CastleDescent {
       return this.job(GJ.after.rise, (k, dt) => { for (const p of run.smoke) { p.vy = Math.min(p.vy, 0) - 70 * dt; p.vx *= 0.98; } });
     });
   }
+  // ── 결말(사용자 2026-09-26): 동료 합류 → 하트 상승·빛의 파장 → 김형섭 복귀 → 나레이션 → 빛의 요플래 → 영클 ──
+  /** 달리기 화면이 끝나면(페이드 속) 요플래는 무릎 꿇고 힘들어한다. 동료(경섭·억빠맨·영클)는 왼쪽 화면 밖 */
+  epilogueStart() {
+    const g = this.game, p = g.player, cam = g.camera;
+    this.run = null; this.button = null;
+    p.visible = false; this.kneel = { t: 0 };
+    const [lx, ly] = this.meta.epilogue.yoplae; this.setFeet(p, lx, ly); p.facing = 'right';
+    const scale = this.meta.charScale || 1;
+    for (const [id, dy] of [['gyeongsub', -14], ['ppaman', 16], ['sunset_youngcle', -34]]) {
+      const e = this.ent(id); if (!e) continue;
+      e.def.visualScale = scale; e.visible = true; e.facing = 'right'; this.setFeet(e, cam.x - 40, ly + dy);
+    }
+  }
+  /** 요플래 몸에서 밝은 빛이 돌기 시작한다(점점 세진다) */
+  lightUp(seconds = 2.4) {
+    this.light = { level: 0 };
+    this.sfx('great_shine', 0.6); this.sfx('power', 0.5);
+    return this.job(seconds, k => { this.light.level = k; });
+  }
+  /** 하트가 몸에서 천천히 올라와 하늘로 — 곡(heart_rise, 24.3초)에 맞춰 잔상·어둠 빨아들임 → 8초 세로 빛의 파장 → 끝날 즈음 정상화, 경섭이 달려가 받는다 */
+  heartSeq() {
+    const g = this.game, p = g.player, cam = g.camera, E = this.meta.epilogue;
+    const [px, py] = this.feet(p);
+    const heart = this.heart = { x: px, y: py - 26, trail: [], alpha: 1 };
+    g.sound.playBgm('heart_rise', { volume: 0.7, fadeIn: 0.05, loop: false });
+    this.wave = { w: 0, bright: 0 };
+    let caught = false, fallen = false;
+    const gy = this.ent('gyeongsub');
+    return this.job(E.heartSeconds, (k, dt) => {
+      const t = k * E.heartSeconds;
+      // 하늘로(처음 8초에 대부분, 이후 천천히)
+      heart.y = lerpN(py - 26, cam.y + 60, 1 - (1 - Math.min(1, t / 9)) ** 2) - Math.max(0, t - 9) * 1.2;
+      heart.x = px + Math.sin(t * 0.9) * 6;
+      heart.trail.unshift([heart.x, heart.y]); heart.trail.length = Math.min(heart.trail.length, 18);
+      // 어둠을 빨아들인다: 화면 가장자리에서 검은 알갱이가 하트로
+      if (this.rnd() < 0.8) { const a = this.rnd() * Math.PI * 2, r = 220; this.motes.push({ x: heart.x + Math.cos(a) * r, y: heart.y + Math.sin(a) * r * 0.7, tx: heart.x, ty: heart.y, age: 0, life: 1.1, size: 3, color: this.rnd() < 0.7 ? '#0a0612' : '#3a1a5a' }); }
+      this.light.level = 1;
+      // 8초부터 세로 빛의 파장이 아주 천천히 펼쳐진다
+      if (t >= E.waveAt) { const w = (t - E.waveAt) / (E.normalAt - E.waveAt); this.wave.w = Math.min(1, w); this.wave.bright = Math.min(0.55, w * 0.6); }
+      // 곡이 끝날 즈음 정상화
+      if (t >= E.normalAt) { const n = Math.min(1, (t - E.normalAt) / 1.6); this.wave.bright = 0.55 * (1 - n); this.wave.fade = n; heart.alpha = 1 - n; this.light.level = 1 - n; }
+      // 쓰러지기 전에 경섭이 달려가 받는다
+      if (!caught && t >= E.catchAt && gy) { caught = true; const [gx, gyy] = this.feet(gy); this.arc(gy, [gx, gyy], [px - 22, py], 8, 0.7, easeOut); gy.facing = 'right'; }
+      if (!fallen && t >= E.fallAt) { fallen = true; this.kneel = null; this.lean = { t: 0 }; this.sfx('thud', 0.4); }
+      if (this.lean) this.lean.t += dt;
+    }).then(() => { this.heart = null; this.wave = null; this.light = null; g.sound.playBgm('wind', { volume: 0.35, fadeIn: 1.5 }); });
+  }
+  /** 오른쪽에서 하트가 천천히 날아와 일행 앞에 뜬다 */
+  heartReturn() {
+    const p = this.game.player, cam = this.game.camera, [px, py] = this.feet(p);
+    const heart = this.heart = { x: cam.x + 520, y: py - 90, trail: [], alpha: 1 };
+    this.sfx('wing', 0.4);
+    const from = [heart.x, heart.y], to = [px + 44, py - 70];
+    return this.job(3.2, k => { const e = 1 - (1 - k) ** 3; heart.x = lerpN(from[0], to[0], e); heart.y = lerpN(from[1], to[1], e) + Math.sin(k * 9) * 4; heart.trail.unshift([heart.x, heart.y]); heart.trail.length = 14; });
+  }
+  /** 보라색 코드를 천천히 빙글빙글 돌려 소환 → 경섭 주머니 속으로 */
+  codeSummon() {
+    const h = this.heart, gy = this.ent('gyeongsub'); if (!h || !gy) return undefined;
+    this.code = { x: h.x, y: h.y - 30, spin: 0, scale: 0, alpha: 1 };
+    this.sfx('great_shine', 0.5);
+    return this.job(2.6, (k, dt) => { this.code.spin += dt * 2.4; this.code.scale = Math.min(1, k * 1.6); this.code.y = h.y - 30 - k * 10; })
+      .then(() => { const [gx, gyy] = this.feet(gy), from = [this.code.x, this.code.y]; this.sfx('item', 0.7);
+        return this.job(1.2, (k, dt) => { const e = k * k; this.code.x = lerpN(from[0], gx + 4, e); this.code.y = lerpN(from[1], gyy - 16, e); this.code.spin += dt * 6; this.code.scale = 1 - k * 0.8; }); })
+      .then(() => { this.code = null; this.sfx('pop', 0.5); });
+  }
+  /** 하트에 오오라가 빨려 들어오더니 빛의 형상을 띤 김형섭(요플래)으로 변해 땅에 내려온다 */
+  heartToLight() {
+    const h = this.heart, p = this.game.player; if (!h) return undefined;
+    this.sfx('power', 0.6); this.sfx('laser_charge', 0.5);
+    return this.job(1.8, () => {
+      if (this.rnd() < 0.9) for (let i = 0; i < 2; i++) { const a = this.rnd() * Math.PI * 2, r = 70 + this.rnd() * 40; this.motes.push({ x: h.x + Math.cos(a) * r, y: h.y + Math.sin(a) * r, tx: h.x, ty: h.y, age: 0, life: 0.5, size: 2, color: this.rnd() < 0.5 ? '#fff4c0' : '#c9a0ff' }); }
+    }).then(() => {
+      this.sfx('great_shine', 0.8); this.game.shake = { time: 0.2, amp: 2 };
+      const [, py] = this.feet(p), from = [h.x, h.y];
+      this.heart = null; this.lightForm = { x: from[0], y: from[1] + 30, alpha: 0 };
+      return this.job(1.6, k => { const e = 1 - (1 - k) ** 2; this.lightForm.y = lerpN(from[1] + 30, py, e); this.lightForm.alpha = Math.min(1, k * 2); });
+    });
+  }
+  /** 영클이 앞으로 날아와 경섭과 빛의 요플래 사이에 선다(아래를 본다) */
+  youngcleBetween() {
+    const y = this.ent('sunset_youngcle'), gy = this.ent('gyeongsub'), lf = this.lightForm; if (!y || !gy || !lf) return undefined;
+    const [gx, gyy] = this.feet(gy), to = [(gx + lf.x) / 2, gyy - 16];
+    y.facing = 'down'; this.sfx('wing', 0.5);
+    return this.arc(y, this.feet(y), to, 30, 0.9, easeOut);
+  }
+  /** 모두 왼쪽으로 걸어간다(빛의 요플래·기대 선 김형섭도) */
+  walkAwayLeft(seconds = 3.2) {
+    const cam = this.game.camera, list = ['gyeongsub', 'ppaman', 'sunset_youngcle'].map(id => this.ent(id)).filter(Boolean);
+    for (const e of list) { e.facing = 'left'; e.moving = true; }
+    const starts = list.map(e => this.feet(e)), lf = this.lightForm, lf0 = lf ? lf.x : 0;
+    return this.job(seconds, (k, dt) => {
+      list.forEach((e, i) => { this.setFeet(e, starts[i][0] - k * 200, starts[i][1]); e.animate?.(dt, 8); });
+      if (lf) lf.x = lf0 - k * 200;
+      this.leanShift = -k * 200;
+    });
+  }
+  /** 검은 화면 가운데 나레이션(천천히, 줄마다 페이드) */
+  blackCard(lines, { delay = 2.0, fadeIn = 0.9, hold = 2.4, fadeOut = 0.7, skipBlack = false } = {}) {
+    this.card ||= { text: '', alpha: 0, black: 0 };
+    const each = fadeIn + hold + fadeOut;
+    return this.job(skipBlack ? 0 : 1.2, k => { this.card.black = skipBlack ? 1 : k; })
+      .then(() => this.delay(delay))
+      .then(() => this.job(each * lines.length, k => {
+        const t = k * each * lines.length, i = Math.min(lines.length - 1, Math.floor(t / each)), u = t - i * each;
+        this.card.text = lines[i]; this.card.alpha = u < fadeIn ? u / fadeIn : u < fadeIn + hold ? 1 : Math.max(0, 1 - (u - fadeIn - hold) / fadeOut);
+      }));
+  }
+  /** 결말 그림(월드 좌표, 액터 뒤): 무릎 꿇은 요플래·기댄 김형섭·빛·하트·세로 파장·보라 코드·빛의 요플래 */
+  paintEpilogueFigures(ctx, cam, withLight = true) {
+    const p = this.game.player, [px, py] = this.feet(p);
+    if (this.kneel) {
+      const img = this.game.propImages[RISE.landSheet], k = this.standH() / 101, jx = Math.round(Math.sin(this.time * 38) * 1);
+      if (img) drawCell(ctx, img, 3, px - cam.x + jx, py - cam.y, img.height * k);
+    }
+    if (this.lean) {
+      const a = -0.42 * Math.min(1, this.lean.t / 0.6);
+      p.visible = true; ctx.save(); const fx = px - cam.x + (this.leanShift || 0), fy = py - cam.y;
+      ctx.translate(fx, fy); ctx.rotate(a); ctx.translate(-fx, -fy); ctx.translate(this.leanShift || 0, 0); p.draw(ctx, cam); ctx.restore(); p.visible = false;
+    }
+    const lf = this.lightForm, sp = p.sprite;
+    if (withLight && lf && sp) {
+      const img = sp[lf.facing || 'down']?.[0];
+      if (img) {
+        const s = CHAR_SCALE * (this.meta.charScale || 1) / sp.px, dw = Math.round(sp.fw * s), dh = Math.round(sp.fh * s);
+        ctx.save(); ctx.globalAlpha = lf.alpha * (0.85 + 0.15 * Math.sin(this.time * 4));
+        ctx.drawImage(this.backlight.tinted(img, 'rgba(255,244,200,1)', 'lightform'), Math.round(lf.x - cam.x - dw / 2), Math.round(lf.y - cam.y - dh), dw, dh);
+        ctx.globalAlpha = lf.alpha * 0.45; ctx.drawImage(img, Math.round(lf.x - cam.x - dw / 2), Math.round(lf.y - cam.y - dh), dw, dh);
+        ctx.restore();
+      }
+    }
+  }
+  drawEpilogueFx(ctx, cam) {
+    const p = this.game.player, [px, py] = this.feet(p);
+    if (this.light?.level > 0) {
+      const L = this.light.level, x = px - cam.x, y = py - cam.y - 18;
+      glow(ctx, x, y, 40 + 40 * L, 'rgba(255,245,200,A)', 0.55 * L);
+      for (let i = 0; i < 10; i++) { const a = this.time * 2.2 + i * 0.628, r = 16 + 6 * Math.sin(this.time * 3 + i); ctx.globalAlpha = L * (0.6 + 0.4 * Math.sin(this.time * 6 + i)); ctx.fillStyle = i % 2 ? '#fff6d0' : '#ffe08a'; ctx.fillRect(Math.round(x + Math.cos(a) * r), Math.round(y + Math.sin(a) * r * 0.5), 2, 2); }
+      ctx.globalAlpha = 1;
+    }
+    const lf = this.lightForm;
+    if (lf) { glow(ctx, lf.x - cam.x, lf.y - cam.y - 14, 36, 'rgba(255,240,190,A)', 0.5 * lf.alpha); for (let i = 0; i < 4; i++) { const a = this.time * 1.5 + i * 1.57; ctx.globalAlpha = lf.alpha * 0.8; ctx.fillStyle = '#fff8e0'; ctx.fillRect(Math.round(lf.x - cam.x + Math.cos(a) * 14), Math.round(lf.y - cam.y - 16 + Math.sin(a) * 18), 2, 2); } ctx.globalAlpha = 1; }
+    const h = this.heart;
+    if (h) {
+      h.trail.forEach(([tx, ty], i) => { if (i % 3) return; ctx.globalAlpha = h.alpha * 0.28 * (1 - i / h.trail.length); this.drawHeart(ctx, tx - cam.x, ty - cam.y, 2, '#ffd0d0'); });
+      ctx.globalAlpha = h.alpha; glow(ctx, h.x - cam.x, h.y - cam.y, 50, 'rgba(255,200,200,A)', 0.5 * h.alpha);
+      for (let i = 0; i < 8; i++) { const a = this.time * 3 + i * 0.785, r = 20; ctx.globalAlpha = h.alpha * 0.8; ctx.fillStyle = i % 2 ? '#ffffff' : '#ffd6e0'; ctx.fillRect(Math.round(h.x - cam.x + Math.cos(a) * r), Math.round(h.y - cam.y + Math.sin(a) * r * 0.55), 2, 2); }
+      ctx.globalAlpha = h.alpha; this.drawHeart(ctx, h.x - cam.x, h.y - cam.y, 2, '#ff2030'); ctx.globalAlpha = 1;
+    }
+    const c = this.code;
+    if (c) {
+      const x = c.x - cam.x, y = c.y - cam.y, s = 12 * c.scale;
+      glow(ctx, x, y, 30 * c.scale + 4, 'rgba(170,90,255,A)', 0.6);
+      ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.scale(Math.cos(c.spin), 1);
+      ctx.fillStyle = '#6a2ad0'; ctx.fillRect(-s, -s, s * 2, s * 2);
+      ctx.fillStyle = '#c9a0ff'; ctx.fillRect(-s + 2, -s + 2, s * 2 - 4, 2); ctx.fillRect(-s + 2, s - 4, s * 2 - 4, 2);
+      ctx.fillStyle = '#ffffff'; for (let r = 0; r < 3; r++) ctx.fillRect(-s + 4, -s + 6 + r * Math.max(2, s * 0.5), Math.max(2, s * (0.6 + (r % 2) * 0.5)), 2);
+      ctx.restore();
+    }
+  }
+  /** 세로 빛의 파장·밝아짐은 화면 좌표(확대와 무관하게 화면 전체) — 하트는 화면 가운데 위로 올라가 있다 */
+  drawWaveHud(ctx) {
+    const w = this.wave; if (!w || !(w.w > 0)) return;
+    const hx = 240, half = 16 + w.w * 280, a = 0.75 * (1 - (w.fade || 0));
+    const g = ctx.createLinearGradient(hx - half, 0, hx + half, 0);
+    g.addColorStop(0, 'rgba(255,250,225,0)'); g.addColorStop(0.35, `rgba(255,250,225,${a * 0.6})`); g.addColorStop(0.5, `rgba(255,255,245,${a})`); g.addColorStop(0.65, `rgba(255,250,225,${a * 0.6})`); g.addColorStop(1, 'rgba(255,250,225,0)');
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(Math.round(hx - half), 0, Math.round(half * 2), 360); ctx.restore();
+    if (w.bright > 0) { ctx.fillStyle = `rgba(255,252,236,${w.bright})`; ctx.fillRect(0, 0, 480, 360); }
+  }
+  drawHeart(ctx, x, y, k, color) {
+    ctx.fillStyle = color; const hx = Math.round(x - 5 * k), hy = Math.round(y - 4 * k);
+    for (const [dx, dy, w] of [[1, 0, 3], [6, 0, 3], [0, 1, 10], [0, 2, 10], [0, 3, 10], [1, 4, 8], [2, 5, 6], [3, 6, 4], [4, 7, 2]]) ctx.fillRect(hx + dx * k, hy + dy * k, w * k, k);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(hx + 2 * k, hy + 1 * k, k, k);
+  }
+  drawCard(ctx) {
+    const c = this.card; if (!c) return;
+    ctx.save(); ctx.fillStyle = `rgba(0,0,0,${c.black})`; ctx.fillRect(0, 0, 480, 360);
+    if (c.text && c.alpha > 0) { ctx.globalAlpha = c.alpha; ctx.font = FONT.replace(/^\d+px/, '14px'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff'; ctx.fillText(c.text, 240, 180); }
+    ctx.restore();
+  }
+  // ── 라운지 결말 퍼레이드(사용자 2026-09-26): 한쪽이 열린 보라 문 너머 밝은 빛, 들어가면 그림자가 진다 ──
+  loungeSetup() {
+    const g = this.game;
+    g.player.visible = false;
+    for (const e of g.entities) if (e.def?.type === 'follower') e.visible = false;
+    this.pairFacing = 'back';
+  }
+  /** 문 앞까지 걸어간 배우가 빛 속으로 들어가 사라진다(가까울수록 그림자, 문턱에서 반짝) */
+  enterDoor(id, seconds = 0.8) {
+    const e = this.ent(id), D = this.meta.door; if (!e) return undefined;
+    const from = this.feet(e); e.facing = 'up';
+    return this.job(seconds, (k, dt) => { this.setFeet(e, lerpN(from[0], D.enter[0], k), lerpN(from[1], D.enter[1], k)); e.moving = true; e.animate?.(dt, 8); })
+      .then(() => { e.visible = false; e.moving = false; this.sfx('great_shine', 0.25); for (let i = 0; i < 10; i++) this.bits.push({ x: D.enter[0], y: D.enter[1] - 20, vx: (this.rnd() - 0.5) * 60, vy: -30 - this.rnd() * 50, age: 0, life: 0.7, size: 2, color: '#fff6d0', g: -20 }); });
+  }
+  doorScreen(cam) { const D = this.meta.door; return [D.enter[0] - cam.x, D.y + 110 - cam.y]; }
+  /** 바닥으로 번지는 문빛(배우 뒤) */
+  drawLoungeFloor(ctx, cam) {
+    const D = this.meta.door, x = D.enter[0] - cam.x, y = D.y + D.h - cam.y;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createLinearGradient(0, y, 0, y + 200);
+    g.addColorStop(0, 'rgba(255,236,170,0.34)'); g.addColorStop(1, 'rgba(255,236,170,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 38, y); ctx.lineTo(x + 38, y); ctx.lineTo(x + 110, y + 200); ctx.lineTo(x - 110, y + 200); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  /** 문 너머 빛·문가 역광 그림자·어깨동무한 경섭과 김형섭(배우 앞) */
+  drawLounge(ctx, cam) {
+    const [dx, dy] = this.doorScreen(cam), D = this.meta.door;
+    const pulse = 0.85 + 0.15 * Math.sin(this.time * 1.6);
+    glow(ctx, dx, dy, 120, 'rgba(255,240,190,A)', 0.45 * pulse);
+    glow(ctx, dx, dy, 50, 'rgba(255,255,240,A)', 0.55 * pulse);
+    // 문에 가까운 배우는 빛을 등져 그림자가 진다
+    const near = this.game.entities.filter(e => e.visible && e.def?.type === 'npc' && this.feet(e)[1] < D.front[1] + 60);
+    if (near.length) {
+      const k = Math.max(...near.map(e => 1 - Math.min(1, (this.feet(e)[1] - D.enter[1]) / 90)));
+      this.backlight.apply(ctx, c => { for (const e of near) e.draw(c, cam); }, [dx, dy - 200], Math.max(0.3, k));
+    }
+    const img = this.game.propImages[`assets/props/pair_hug_${this.pairFacing}.png`];
+    if (img) {
+      const [px, py] = this.meta.pair, fw = img.width / 2, s = 52 / img.height, f = Math.floor(this.time / 0.9) % 2;
+      ctx.drawImage(img, f * fw, 0, fw, img.height, Math.round(px - cam.x - fw * s / 2), Math.round(py - cam.y - img.height * s), Math.round(fw * s), Math.round(img.height * s));
+    }
+  }
   /** 달리기 화면을 걷고 필드로(요플래는 뒤돌아본 자리 그대로) — 다음 연출은 사용자 다음 브리핑 */
   endRun() {
     const run = this.run, p = this.game.player, cam = this.game.camera;
@@ -414,7 +635,9 @@ export class CastleDescent {
   drawHud(ctx) {
     if (this.disposed) return;
     if (this.run && !this.game.battle) this.run.draw(ctx);
+    this.drawWaveHud(ctx);
     this.drawButton(ctx);
+    this.drawCard(ctx);
   }
   /** 앞덤블링(동그라미 궤적 + 몸 회전 + 잔상) → 웅크린 착지 → 무릎 꿇기. world 좌표. */
   drawTumble(ctx, cam, bare = false) {
@@ -532,10 +755,11 @@ export class CastleDescent {
     const [top, bottom] = this.band();
     ctx.save();
     // 길 가장자리: 가는 사파이어 선(검은 허공과 경계)
-    ctx.fillStyle = this.kind === 'sunset' ? 'rgba(0,0,0,0)' : 'rgba(90,130,255,0.55)';
+    ctx.fillStyle = this.kind === 'road' || this.kind === 'raft' ? 'rgba(90,130,255,0.55)' : 'rgba(0,0,0,0)';
     ctx.fillRect(0, Math.round(top - cam.y) - 1, 480, 1); ctx.fillRect(0, Math.round(bottom - cam.y), 480, 1);
     if (this.kind === 'raft') this.drawPool(ctx, cam);
     if (this.kind === 'sunset') this.drawSunset(ctx, cam);
+    if (this.kind === 'lounge') this.drawLoungeFloor(ctx, cam);
     ctx.restore();
   }
   drawPool(ctx, cam) {
@@ -620,8 +844,9 @@ export class CastleDescent {
     ctx.globalAlpha = 1;
     if (this.kind === 'sunset') {
       this.drawTumble(ctx, cam);
+      this.paintEpilogueFigures(ctx, cam);
       const sun = this.sunScreen(cam), list = this.chars();
-      this.backlight.apply(ctx, c => { for (const e of list) e.draw(c, cam); this.drawTumble(c, cam, true); }, sun, 1);
+      this.backlight.apply(ctx, c => { for (const e of list) e.draw(c, cam); this.drawTumble(c, cam, true); this.paintEpilogueFigures(c, cam, false); }, sun, 1);
       // 햇빛이 화면 전체로 번진다(인물 위로도 옅게)
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 480, Math.round(this.meta.groundTop - cam.y)); ctx.clip();
       this.rays.draw(ctx, sun[0], sun[1], this.time, 0.28);
@@ -630,11 +855,13 @@ export class CastleDescent {
       for (const d of this.dust) { ctx.globalAlpha = Math.max(0, 1 - d.age / d.life) * 0.8; ctx.fillStyle = d.wind ? '#fff4e0' : d.s > 3 ? '#3a2a3a' : '#5a4050'; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.s, d.s); }
       ctx.globalAlpha = 1;
       this.warm.draw(ctx, this.time);
+      this.drawEpilogueFx(ctx, cam);
     }
     if (this.launching && this.kind === 'raft') {
       const p = this.game.player, [fx, fy] = this.feet(p);
       drawCell(ctx, this.game.propImages[RISE.riseSheet], Math.floor(this.time * 2.6) % 4, fx - cam.x, fy - cam.y, RISE.riseH);
     }
+    if (this.kind === 'lounge') this.drawLounge(ctx, cam);
     if (this.rise) drawRise(ctx, this.rise, this.game.riseT ?? 0, this.game.propImages, this.time);
     ctx.restore();
   }

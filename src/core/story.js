@@ -826,6 +826,8 @@ for (const [id, spawn, extra, desc] of [
     ['castle_road_end', 'gajaeman_castle_skyroad', 'end', road, '끝없는 길 · 끝(검 넷·영클 레이저)'],
     ['castle_raft', 'gajaeman_castle_raft', 'start', { ...road, castle_road_done: true }, '뗏목 웅덩이 · 가재맨 상승 → 뗏목 점프 → 상승 연출'],
     ['castle_sunset', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true }, '노을 땅 · 앞덤블링 착지(가재맨 도망)'],
+    ['castle_epilogue', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true }, '노을 땅 · 결전 뒤 결말(하트·김형섭 복귀·나레이션)'],
+    ['ship_lounge_epilogue', 'ship_lounge_epilogue', 'start', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true, castle_epilogue_done: true }, '라운지 결말 퍼레이드(문 너머 빛)'],
     ['castle_sunset_run', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true }, '노을 땅 · SAVE THE WORLD → 가재맨 달리기 결전'],
   ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_summit_ready',
     extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...after, ...extra } });

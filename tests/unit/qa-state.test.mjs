@@ -123,7 +123,7 @@ test('test_castle_qa_includes_consumed_rescue_upgrades_once_with_full_maximum_hp
 });
 
 test('test_precastle_qa_preserves_optional_rescue_shop_purchase_and_immediate_consumption', () => {
-  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory|regret|torii)/.test(point.map || ''))) {
+  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory|regret|torii)|^ship_lounge_epilogue$/.test(point.map || ''))) {
     assert.equal(!!point.flags?.shop_yongjun_strong_cialis, false, point.id);
     assert.equal(!!point.flags?.shop_yongjun_strong_vaseline, false, point.id);
   }

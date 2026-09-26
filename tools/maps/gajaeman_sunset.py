@@ -39,16 +39,21 @@ def main() -> None:
     entities = [
         {'type': 'npc', 'id': 'sunset_gajaeman', 'sprite': 'gajaeman_shadow', 'x': GAJAEMAN[0] - 12, 'y': GAJAEMAN[1] - 24,
          'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.36},
+        # BUILD364 결말: 경섭·억빠맨과 함께 왼쪽에서 달려오는 영클
+        {'type': 'npc', 'id': 'sunset_youngcle', 'sprite': 'youngcle_hover', 'x': -60, 'y': 240, 'facing': 'right',
+         'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 0.72},
     ]
     data = {
         'id': MAP_ID, 'name': '가재맨성 노을 끝', 'stage': 'castle_summit_ready',
         'bgm': 'save_the_world_rise', 'bgmVolume': 0.7, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_sunset_arrival', 'early': True},
-        'preload': ['assets/backdrops/castle_sunset359.png', 'assets/props/maillard_sun.png', 'assets/sprites/hyungsub-land.png', 'assets/sprites/hyungsub-clash.png', 'assets/props/cathedral323_sword.png'],
+        'preload': ['assets/backdrops/castle_sunset359.png', 'assets/props/maillard_sun.png', 'assets/sprites/hyungsub-land.png', 'assets/sprites/hyungsub-clash.png', 'assets/props/cathedral323_sword.png', 'assets/sprites/youngcle_hover.png'],
         'spawns': {'arrive': {'x': LAND[0] - 12, 'y': LAND[1] - 24, 'facing': 'right'}},
         'meta': {'connected': True, 'descent': {'kind': 'sunset', 'band': list(BAND), 'gajaeman': 'sunset_gajaeman',
                                                 'land': list(LAND), 'gajaemanAt': list(GAJAEMAN), 'groundTop': GROUND_TOP,
-                                                'edgeY': EDGE, 'horizonY': 192, 'charScale': 0.72, 'sunDx': 70}},
+                                                'edgeY': EDGE, 'horizonY': 192, 'charScale': 0.72,
+                                                # 결말 타이밍(곡 heart_rise 24.3초 기준): 8초 세로 빛의 파장, 17.4초 경섭이 달려감, 18.6초 쓰러짐, 18.8초부터 정상화
+                                                'epilogue': {'yoplae': [396, 276], 'heartSeconds': 24.3, 'waveAt': 8, 'catchAt': 17.4, 'fallAt': 18.6, 'normalAt': 18.8}, 'sunDx': 70}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

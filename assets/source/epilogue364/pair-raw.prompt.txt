@@ -1,0 +1,14 @@
+# imagegen 2026-09-26 15:25:52
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/epilogue364/ref-pair.png
+
+Use case: identity-preserve. The reference shows two approved overworld sprite sheets (exact identity AND pixel density): LEFT = Hyungsub (short squat chibi, black messy hair, round glasses, white T-shirt, navy shorts, U-shaped nose, NO mouth); RIGHT = Gyeongsub (copy his hair, face, outfit and colors exactly from the right sheet).
+
+Create a separate 2 by 2 four-frame sprite sheet of the TWO OF THEM STANDING SIDE BY SIDE AS ONE FIGURE GROUP: Gyeongsub has his arm around Hyungsub's shoulders (friendly shoulder hug, 어깨동무), both calm and warm.
+- top left: FRONT view facing the viewer, Gyeongsub on the left with his right arm over Hyungsub's shoulders, Hyungsub on the right;
+- top right: same front view, a gentle idle variation (heads tilted slightly toward each other);
+- bottom left: BACK view (seen from behind, both facing away, looking up ahead), Gyeongsub's arm across Hyungsub's back/shoulders;
+- bottom right: same back view, idle variation (Gyeongsub's hand pats Hyungsub's shoulder).
+Match the squat chibi proportions, the same pixel size and dark stepped outline as the reference sheets, exact outfit/hair/face invariants for both, same scale in all frames. Exactly four equally-spaced groups in 2x2 equal cells with generous clear margins, nothing clipped. Flat solid magenta #FF00FF background, no labels, no text, no ground, no shadow, no effects.

@@ -1,0 +1,400 @@
+{
+ "id": "ship_lounge_epilogue",
+ "name": "엄청대박인배 라운지",
+ "stage": "castle_summit_ready",
+ "bgm": "lounge_parade",
+ "bgmVolume": 0.6,
+ "dim": 0.06,
+ "rows": [
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGG",
+  "G;;;;;;;;;////;;;;;;;;;G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G:::::::::////:::::::::G",
+  "G;;;;;;;;;;;;;;;;;;;;;;G",
+  "GGGGGGGGGGGGGGGGGGGGGGGG"
+ ],
+ "enter": {
+  "script": "ship_lounge_epilogue",
+  "early": true
+ },
+ "preload": [
+  "assets/props/ship_lounge_grand_door_open.png",
+  "assets/props/ship_lounge_bandage.png",
+  "assets/props/pair_hug_front.png",
+  "assets/props/pair_hug_back.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 372,
+   "y": 520,
+   "facing": "up"
+  }
+ },
+ "meta": {
+  "connected": false,
+  "descent": {
+   "kind": "lounge",
+   "band": [
+    0,
+    0
+   ],
+   "door": {
+    "x": 304,
+    "y": 16,
+    "w": 160,
+    "h": 192,
+    "enter": [
+     424,
+     214
+    ],
+    "front": [
+     424,
+     240
+    ]
+   },
+   "pair": [
+    384,
+    372
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "epi_door",
+   "image": "assets/props/ship_lounge_grand_door_open.png",
+   "x": 304,
+   "y": 184,
+   "w": 160,
+   "h": 24,
+   "ix": 304,
+   "iy": 16,
+   "solid": true,
+   "sortY": 0
+  },
+  {
+   "type": "prop",
+   "id": "ship_lounge_window_0",
+   "image": "assets/props/ship_lounge_window.png",
+   "x": 60,
+   "y": 176,
+   "w": 76,
+   "h": 16,
+   "ix": 40,
+   "iy": 40,
+   "solid": false,
+   "sortY": 0
+  },
+  {
+   "type": "prop",
+   "id": "ship_lounge_window_1",
+   "image": "assets/props/ship_lounge_window.png",
+   "x": 652,
+   "y": 176,
+   "w": 76,
+   "h": 16,
+   "ix": 632,
+   "iy": 40,
+   "solid": false,
+   "sortY": 0
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_0",
+   "image": "assets/props/backstage_couch.png",
+   "x": 104,
+   "y": 426,
+   "w": 96,
+   "h": 40,
+   "ix": 104,
+   "iy": 368,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_1",
+   "image": "assets/props/backstage_couch.png",
+   "x": 548,
+   "y": 426,
+   "w": 96,
+   "h": 40,
+   "ix": 548,
+   "iy": 368,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_2",
+   "image": "assets/props/backstage_couch.png",
+   "x": 104,
+   "y": 826,
+   "w": 96,
+   "h": 40,
+   "ix": 104,
+   "iy": 768,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_sofa_3",
+   "image": "assets/props/backstage_couch.png",
+   "x": 548,
+   "y": 650,
+   "w": 96,
+   "h": 40,
+   "ix": 548,
+   "iy": 592,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_table_0",
+   "image": "assets/props/table_low.png",
+   "x": 116,
+   "y": 500,
+   "w": 72,
+   "h": 26,
+   "ix": 112,
+   "iy": 480,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_table_1",
+   "image": "assets/props/table_low.png",
+   "x": 560,
+   "y": 500,
+   "w": 72,
+   "h": 26,
+   "ix": 556,
+   "iy": 480,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_table_2",
+   "image": "assets/props/table_low.png",
+   "x": 560,
+   "y": 724,
+   "w": 72,
+   "h": 26,
+   "ix": 556,
+   "iy": 704,
+   "solid": true
+  },
+  {
+   "type": "prop",
+   "id": "lounge_conduit_0",
+   "image": "assets/props/ship_conduit.png",
+   "x": 176,
+   "y": 128,
+   "w": 98,
+   "h": 24,
+   "ix": 176,
+   "iy": 20,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "lounge_conduit_1",
+   "image": "assets/props/ship_conduit.png",
+   "x": 494,
+   "y": 128,
+   "w": 98,
+   "h": 24,
+   "ix": 494,
+   "iy": 20,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "lounge_holo",
+   "image": "assets/props/ship_holo_table.png",
+   "x": 548,
+   "y": 944,
+   "w": 96,
+   "h": 28,
+   "ix": 548,
+   "iy": 900,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 5
+   }
+  },
+  {
+   "type": "prop",
+   "id": "lounge_tv",
+   "image": "assets/props/ship_tv.png",
+   "x": 112,
+   "y": 720,
+   "w": 80,
+   "h": 24,
+   "ix": 112,
+   "iy": 672,
+   "solid": true,
+   "anim": {
+    "cols": 2,
+    "fps": 6
+   }
+  },
+  {
+   "type": "prop",
+   "id": "epi_bandage",
+   "image": "assets/props/ship_lounge_bandage.png",
+   "x": 196,
+   "y": 236,
+   "solid": false,
+   "sortY": -2
+  },
+  {
+   "type": "npc",
+   "id": "epi_bidet",
+   "sprite": "warm_bidet",
+   "x": 138,
+   "y": 406,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_mario",
+   "sprite": "mini_mario",
+   "x": 108,
+   "y": 436,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_park",
+   "sprite": "park_guardian_costume",
+   "x": 628,
+   "y": 416,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 2.22
+  },
+  {
+   "type": "npc",
+   "id": "epi_ttuulla",
+   "sprite": "ttuulla",
+   "x": 648,
+   "y": 446,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.79
+  },
+  {
+   "type": "npc",
+   "id": "epi_obangsun",
+   "sprite": "obangsun",
+   "x": 118,
+   "y": 416,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_naram",
+   "sprite": "naram_giant",
+   "x": 628,
+   "y": 426,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_yongjun",
+   "sprite": "yongjun",
+   "x": 688,
+   "y": 356,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_junhee",
+   "sprite": "junhee",
+   "x": 108,
+   "y": 376,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_ppaman",
+   "sprite": "ppaman",
+   "x": 310,
+   "y": 344,
+   "facing": "up",
+   "solid": false,
+   "wander": 0
+  },
+  {
+   "type": "npc",
+   "id": "epi_youngcle",
+   "sprite": "youngcle",
+   "x": 444,
+   "y": 340,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "visualScale": 2
+  }
+ ]
+}

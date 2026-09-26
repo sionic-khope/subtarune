@@ -11,6 +11,8 @@ const close = { action: game => game.textbox.close() };
 const scene = fn => ({ action: game => (game.castleDescent ? fn(game.castleDescent, game) : undefined) });
 const at = (x, y) => [(x - 16) / 32, (y - 16) / 32];
 const PARTY = ['player', 'gyeongsub', 'ppaman'];
+const FRIENDS = ['gyeongsub', 'ppaman', 'sunset_youngcle'];
+const N = text => ({ voice: 'narrator', text: '* ' + text });
 const faceAll = dir => PARTY.map(id => ({ face: id, dir }));
 
 /** 꼭대기 부서진 끝에서 일행이 차례로 뛰어내린다 → 페이드 → 끝없는 길(격파 연출 끝·다시 끝에 닿았을 때 공용). */
@@ -125,7 +127,8 @@ export const castle_raft_intro = Object.assign([
 
 /** 노을 땅 도착: 가재맨이 먼저 올라와 있다가 오른쪽으로 도망 → 요플래가 땅 앞에서 동그랗게 앞덤블링하며 올라와 원곡 64초에 무릎 꿇고 착지(챱). */
 export const castle_sunset_arrival = Object.assign([
-  { if: flags => !!flags.castle_gajaeman_clash, goto: 'end' },
+  { if: flags => !!flags.castle_epilogue_done, goto: 'end' },
+  { if: flags => !!flags.castle_gajaeman_clash, goto: 'epilogue' },
   { if: flags => !!flags.castle_sunset_arrived, goto: 'button' },
   close,
   // QA 로 바로 온 경우: 곡을 원곡 55초 자리부터
@@ -156,6 +159,88 @@ export const castle_sunset_arrival = Object.assign([
   A('...'), A('...그.. 그래..'), A('...'), A('... ... ...'), A('뭐...'), A('롤..이나 하러.. 가야겠군'), close,
   scene(s => s.farewell()),
   { wait: 0.6 },
-  scene(s => s.endRun()),
+  { label: 'epilogue' },
+  // BUILD364 결말(사용자 2026-09-26): 페이드 아웃·인 → 일반 화면. 요플래는 무릎 꿇고 힘들어한다
+  { fade: 'out', duration: 0.8 },
+  scene(s => s.epilogueStart()),
+  { camera: at(300, 204), duration: 0.01 },
+  { fade: 'in', duration: 0.8 }, { wait: 0.5 },
+  // 억빠맨과 경섭, 영클이 왼쪽에서 달려온다
+  { parallel: [['ppaman', 0, [334, 292]], ['gyeongsub', 0.12, [346, 262]], ['sunset_youngcle', 0.24, [314, 244]]].map(([id, d, px]) => [{ wait: d }, { move: id, px, run: true, facing: 'right' }]) },
+  { wait: 0.4 },
+  P('요 요플래형!!'), K('괜찮아?!'), close,
+  // 좌우를 살피는 영클·경섭·억빠맨
+  { parallel: FRIENDS.map((id, i) => [{ wait: i * 0.12 }, { face: id, dir: 'left' }, { wait: 0.55 }, { face: id, dir: 'right' }, { wait: 0.55 }, { face: id, dir: 'left' }, { wait: 0.45 }, { face: id, dir: 'right' }]) },
+  { wait: 0.3 },
+  P('쓰 쓰러트린건가?!'), K('그.. 그런거같아..'), close,
+  // 요플래 몸에서 밝은 빛이 돌기 시작 — 동료들 ! 하며 바라보고, 요플래가 화면 가운데로
+  { parallel: [scene(s => s.lightUp()), [{ wait: 0.3 }, { parallel: FRIENDS.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) }], { zoom: 1.25, at: 'player', offset: [0, -24], duration: 1.8 }] },
+  P('저 저건..'), close,
+  // 하트가 몸에서 올라와 하늘로(곡 heart_rise) — 8초 세로 빛의 파장, 끝날 즈음 정상화·경섭이 달려가 받는다(김형섭으로 돌아옴) → 바람
+  { parallel: [scene(s => s.heartSeq()), [{ wait: 18.8 }, { zoom: 1, duration: 1.6 }]] },
+  { wait: 0.8 },
+  K('...'), K('돌아왔구나 형섭아.'), close,
+  // 오른쪽에서 다시 하트가 천천히
+  scene(s => s.heartReturn()),
+  { parallel: FRIENDS.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) },
+  N('가재맨과 요플래는 다시 하나가 되었습니다.'), N('저를 도와주셔서 고마웠습니다.'), N('가재맨은.. 그저 상처만 가지고 있었을 뿐이에요.'),
+  N('모두가 김형섭을 구하기위해 달리는 모습을 보고'), N('다시 한번 사랑받고 있음을.'), N('느낀것같습니다.'),
+  K('... 요플래'),
+  N('이제 집에 갈 시간입니다.'), close,
+  // 보라색 코드를 천천히 빙글빙글 소환 → 경섭 주머니 속으로
+  scene(s => s.codeSummon()),
+  K('...'), close,
+  // 하트에 오오라가 빨려 들어오더니 빛의 형상을 띤 김형섭(요플래)으로 땅에 내려온다
+  scene(s => s.heartToLight()),
+  { parallel: FRIENDS.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) },
+  N('뭐.. 집에 가려면 일단 저 배부터 고쳐야하니까'), N('같이 가시죠.'),
+  YC('ㅇㅈ'), close,
+  // 영클이 앞으로 날아와 경섭과 요플래 사이에 서서 아래를 보고, 요플래·경섭은 위를 본다
+  scene(s => s.youngcleBetween()),
+  { face: 'gyeongsub', dir: 'up' }, scene(s => { if (s.lightForm) s.lightForm.facing = 'up'; }),
+  YC('ㅅㅂ 내가어떻게만든 전함인데'), YC('수리를 빨리 도와라'), YC('그리고'), YC('요플래 니도 우리 엄청대박인배 동료임 ㅇㅇ'),
+  K('하하하'), K('가자. 집에'), close,
+  // 모두 왼쪽으로 걸어가며 페이드
+  { parallel: [scene(s => s.walkAwayLeft()), [{ wait: 1.6 }, { fade: 'out', duration: 1.4 }]] },
+  { bgm: null, fadeOut: 1.0 },
+  // 검은 화면이 천천히 — 2초 뒤 가운데 나레이션
+  scene(s => { s.card = { text: '', alpha: 0, black: 1 }; }),
+  { fade: 'in', duration: 0.01 },
+  scene(s => s.blackCard(['...', '그렇게 우리는, 김형섭과 세상을 구했다.', '요플래와 우리는 엄청대박인배를 고치고', '모두를 모았으며, 집에 갈 준비를 마쳤다.'], { skipBlack: true })),
+  { fade: 'out', duration: 0.01 },
+  { set: { castle_epilogue_done: true } },
+  { map: 'ship_lounge_epilogue', spawn: 'start', enter: true, bgm: false },
+  { end: true },
+  { label: 'end' }, { end: true },
+], { silent: true });
+
+/** 라운지 결말 퍼레이드(사용자 2026-09-26): 대사 없이 곡(lounge_parade, P89rxnT7lKw)과 함께 — 한쪽 열린 보라 문 너머 빛으로 모두가 나간다.
+ *  영클 오른쪽 · 경섭이 김형섭을 어깨동무 · 억빠맨. 페이드 아웃·인으로 다섯 장면. */
+const DOOR_FRONT = [424, 244];
+const walkOut = (id, wait = 0) => [{ wait }, { show: id }, { move: id, px: DOOR_FRONT, facing: 'up' }, scene(s => s.enterDoor(id))];
+const vignette = (...branches) => [{ fade: 'in', duration: 0.9 }, { parallel: branches }, { wait: 0.9 }, { fade: 'out', duration: 0.9 }, { wait: 0.3 }];
+export const ship_lounge_epilogue = Object.assign([
+  { if: flags => !!flags.ship_lounge_epilogue_seen, goto: 'end' },
+  close,
+  scene(s => s.loungeSetup()),
+  { camera: at(384, 226), duration: 0.01 }, { zoom: 0.86, at: [384, 226], duration: 0.01 },
+  { bgm: 'lounge_parade', volume: 0.6, fadeIn: 0.8 },
+  // 1. 따듯한비데와 도트마리오
+  ...vignette(walkOut('epi_bidet', 0.8), walkOut('epi_mario', 1.6)),
+  // 2. 파크가디언: 문 앞에서 돌아서 인사하고 들어간다 · 뚜울라가 뒤따른다
+  ...vignette([{ wait: 0.6 }, { show: 'epi_park' }, { move: 'epi_park', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_park', dir: 'down' }, { wait: 0.3 }, { motion: 'epi_park', name: 'bow' }, { face: 'epi_park', dir: 'up' }, scene(s => s.enterDoor('epi_park'))],
+    walkOut('epi_ttuulla', 2.4)),
+  // 3. 오방순과 나람
+  ...vignette(walkOut('epi_obangsun', 0.6), walkOut('epi_naram', 1.2)),
+  // 4. 용준이 먼저 쌩 — 쥰희는 점프해 가다가 뒤돌아 한 번 웃고 들어간다
+  ...vignette([{ wait: 0.6 }, { show: 'epi_yongjun' }, { sfx: 'whoosh', volume: 0.7 }, { move: 'epi_yongjun', px: DOOR_FRONT, dash: true, facing: 'up' }, scene(s => s.enterDoor('epi_yongjun', 0.3))],
+    [{ wait: 2.0 }, { show: 'epi_junhee' }, { hop: 'epi_junhee', by: [100, -60], height: 30, duration: 0.55 }, { hop: 'epi_junhee', by: [100, -50], height: 30, duration: 0.55 }, { move: 'epi_junhee', px: DOOR_FRONT, run: true, facing: 'up' },
+      { face: 'epi_junhee', dir: 'down' }, { wait: 0.4 }, { motion: 'epi_junhee', name: 'laugh', sfx: 'laugh_junhee' }, { wait: 0.3 }, { face: 'epi_junhee', dir: 'up' }, scene(s => s.enterDoor('epi_junhee'))]),
+  // 5. 지켜보는 일행 — 빛을 바라보며
+  { zoom: 1.25, at: [384, 330], duration: 0.01 },
+  { fade: 'in', duration: 1.2 }, { wait: 7 },
+  { set: { ship_lounge_epilogue_seen: true } },
+  // 다음 이야기는 사용자 다음 브리핑 — 이 장면에 머문다
+  { wait: 3600 },
   { label: 'end' }, { end: true },
 ], { silent: true });
