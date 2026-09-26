@@ -311,7 +311,8 @@ export class Battle {
       return;
     }
     if (input.just('cancel') && this.plans.length) {           // 이전 멤버로 되돌아가기 (델타룬처럼)
-      this.sfx('cancel'); this.support?.onPlanCancel?.(this.plans.pop()); this.memberIdx--; while (this.memberIdx > 0 && this.members[this.memberIdx].down) this.memberIdx--; this.menuIdx = this.support?.defaultMenuIdx?.() ?? 0;
+      // pop 은 support 훅이 없어도 반드시(옵셔널 체이닝이 인자까지 건너뛰어 앞 멤버 행동이 두 번 나가던 버그, BUILD387)
+      this.sfx('cancel'); const undone = this.plans.pop(); this.support?.onPlanCancel?.(undone); this.memberIdx--; while (this.memberIdx > 0 && this.members[this.memberIdx].down) this.memberIdx--; this.menuIdx = this.support?.defaultMenuIdx?.() ?? 0;
     }
   }
   updateTarget(input) {

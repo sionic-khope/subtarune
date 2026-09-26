@@ -895,11 +895,14 @@ class Game {
     const request = this.mapRequest = (this.mapRequest || 0) + 1;
     if (!this.preparedMaps?.has(mapId) || [this.playerSprite || 'hyungsub', ...this.party].some(name => !this.preparedCharacters?.has(name))) {
       this.transitioning = true;
+      // 불러오는 동안 검게 덮은 만큼만 나중에 되돌린다(즉시 전환은 스스로 페이드 인을 안 해 화면이 계속 검던 버그, BUILD387). 원래 검었으면 그대로
+      const prior = this.fade?.alpha ?? 0;
       if (this.state !== 'title') this.fadeTo(1, 0.25, null, 'black');
       return this.waitForMap(mapId).then(() => {
         if (request !== this.mapRequest) return;
         if (instant) this.transitioning = false;
         this.changeMap(mapId, spawnId, instant, { bgm, enter: runEnter });
+        if (instant && this.state !== 'title' && prior < 1) this.fadeTo(prior, 0.25, null, 'black');
       }).catch(error => {
         if (request !== this.mapRequest) return;
         this.transitioning = false;
@@ -2071,7 +2074,8 @@ function frame(now) {
     game.draw();
     game.drawEscConfirm(game.ctx);
   } catch (error) {
-    if (!game._frameErrorLogged) { console.error('[frame] 이번 프레임 오류(루프는 계속)', error); game._frameErrorLogged = true; }
+    // 한 번은 밖으로도 던져 둔다(개발 도구·테스트의 페이지 오류로 보이게) — 루프는 이미 다음 프레임을 예약한다
+    if (!game._frameErrorLogged) { console.error('[frame] 이번 프레임 오류(루프는 계속)', error); game._frameErrorLogged = true; setTimeout(() => { throw error; }, 0); }
   }
   requestAnimationFrame(frame);
 }
