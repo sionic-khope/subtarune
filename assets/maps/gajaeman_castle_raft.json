@@ -59,7 +59,10 @@
  },
  "preload": [
   "assets/props/raft358_wall.png",
-  "assets/props/raft.png"
+  "assets/props/raft.png",
+  "assets/sprites/hyungsub-rise.png",
+  "assets/backdrops/castle_sunset359.png",
+  "assets/props/maillard_sun.png"
  ],
  "spawns": {
   "start": {

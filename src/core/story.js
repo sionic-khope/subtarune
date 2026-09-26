@@ -823,7 +823,8 @@ for (const [id, spawn, extra, desc] of [
   for (const [id, map, spawn, extra, desc] of [
     ['castle_road', 'gajaeman_castle_skyroad', 'start', {}, '끝없는 길 · 가재맨 도망·착지 → 섭 몬스터와 편집노조'],
     ['castle_road_end', 'gajaeman_castle_skyroad', 'end', road, '끝없는 길 · 끝(검 넷·영클 레이저)'],
-    ['castle_raft', 'gajaeman_castle_raft', 'start', { ...road, castle_road_done: true }, '뗏목 웅덩이 · 가재맨 상승 → 뗏목 점프'],
+    ['castle_raft', 'gajaeman_castle_raft', 'start', { ...road, castle_road_done: true }, '뗏목 웅덩이 · 가재맨 상승 → 뗏목 점프 → 상승 연출'],
+    ['castle_sunset', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true }, '노을 땅 · 앞덤블링 착지(가재맨 도망)'],
   ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_summit_ready',
     extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...after, ...extra } });
 }

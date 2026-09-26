@@ -1,0 +1,7 @@
+Create a wide pixel-art game BACKDROP for a Deltarune-style RPG: a breathtaking sunset seen from high on a clifftop, landscape composition.
+
+Reference image roles (one combined reference, left to right):
+- Image1 (left, our game's sunset sea backdrop): PALETTE, pixel style and the look of the sky: violet-indigo upper sky, layered stepped orange/pink/gold clouds, glowing orange horizon, deep blue sea with orange sparkle reflections.
+- Image2 (right, layout reference): a 2D side-view stage; use it only for the silhouette idea of tall craggy rock spires/mesas standing against the sunset. Do not copy its character or its purple ground.
+
+Composition (keep exactly): the sky fills the top 70% of the canvas; the SEA HORIZON is a straight line at about 70% of the canvas height; below it the calm sea with warm orange sparkle reflections down to the bottom edge. Along the horizon, add dark purple-navy SILHOUETTES: a few distant jagged MOUNTAINS on the left, several small rocky ISLANDS with tall spires scattered across the sea near the horizon, one bigger island with craggy peaks on the right; farther ones hazier and lighter, nearer ones darker. Leave the CENTER of the horizon open and brightest (a sun will be drawn there separately) — do NOT draw the sun itself. Soft warm god-light glow around the center of the horizon. Crisp pixel art, limited palette, chunky pixels, no characters, no text, no border, no ground in the foreground.

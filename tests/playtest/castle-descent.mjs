@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { runScenario } from './lib/harness.mjs';
 
-// BUILD358: 꼭대기 뒤 — 끝없는 길(가재맨 도망·착지·섭 몬스터 셋 구간·검 넷과 영클 레이저) → 뗏목 웅덩이(가재맨 상승·대사·뗏목 점프로 벽 꼭대기).
+// BUILD358/359: 꼭대기 뒤 — 끝없는 길(가재맨 도망·착지·섭 몬스터 셋 구간·검 넷과 영클 레이저) → 뗏목 웅덩이(가재맨 상승·대사·뗏목 점프) → 상승 연출 → 노을 땅(착지는 castle-rise).
 await runScenario({ name: 'castle-descent', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, shot, check }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await open({ qa: 'castle_road' });
@@ -24,7 +24,8 @@ await runScenario({ name: 'castle-descent', launchOptions: { args: ['--autoplay-
       if (i % 3 === 0) await shot(`f-${String(n++).padStart(3, '0')}`);
       await page.waitForTimeout(150); continue;
     }
-    if (s.map === 'gajaeman_castle_raft') { if (await page.evaluate(() => !!game.flags.castle_raft_launched)) break; await page.waitForTimeout(150); continue; }
+    if (s.map === 'gajaeman_castle_sunset') break;
+    if (s.map === 'gajaeman_castle_raft') { await page.waitForTimeout(150); continue; }
     if (!holding) { await page.keyboard.down('ArrowRight'); holding = true; }
     if (i % 6 === 0) await shot(`w-${String(n++).padStart(3, '0')}`);
     await page.waitForTimeout(150);
@@ -36,9 +37,8 @@ await runScenario({ name: 'castle-descent', launchOptions: { args: ['--autoplay-
   const plain = lines.map(t => (t || '').replace(/\{[^}]*\}/g, ''));
   const expect = ['빨리 가샘 가서 족치고오샘 ㅇㅇ', '올라갔어요!', '윽.', '경섭이형', '응', '지금 저랑 같은생각 하고 계시죠', '그런것같다.', '갈까요!!! 요플래형 부탁해요'];
   check('lines verbatim and in order', expect.every((e, i) => plain.findIndex(t => t.includes(e)) >= 0 && (i === 0 || plain.findIndex(t => t.includes(e)) > plain.findIndex(t => t.includes(expect[i - 1])))), JSON.stringify(plain));
-  check('road → raft room', seenMaps.has('gajaeman_castle_skyroad') && end.map === 'gajaeman_castle_raft', JSON.stringify([...seenMaps]));
+  check('road → raft room → sunset ground', seenMaps.has('gajaeman_castle_skyroad') && seenMaps.has('gajaeman_castle_raft') && end.map === 'gajaeman_castle_sunset', JSON.stringify([...seenMaps]));
   check('all road beats played', end.flags.length === 6, JSON.stringify(end.flags));
   check('four swords came in', maxSwords === 4, maxSwords);
-  check('raft carried the party up to the ledge', end.raft && end.raft.y < 200 && end.py < 220, JSON.stringify(end));
-  check('SAVE The World keeps playing', end.bgm === 'save_the_world', end.bgm);
+  check('the rise track took over at the jump', end.bgm === 'save_the_world_rise', end.bgm);
 });

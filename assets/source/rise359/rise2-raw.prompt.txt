@@ -1,0 +1,15 @@
+# imagegen 2026-09-26 13:09:12
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/rise359/ref-hyungsub.png
+
+Use case: identity-preserve. The reference image is the approved overworld sprite sheet of Yoplait (exact character identity AND low-resolution pixel density): a short squat chibi human with black messy hair, round glasses, white T-shirt, navy shorts, navy shoes; face has a small U-shaped nose and absolutely NO mouth.
+
+Create a separate 2 by 2 four-frame full-body sprite sheet of Yoplait FLOATING UPWARD in an ecstatic, rapturous ascension pose, the same pose seen from four sides as he slowly turns in the air:
+- both arms stretched straight DOWN and slightly out to the sides (about 30 degrees from the body), hands open with fingers spread, like being lifted by light;
+- head tilted back, gazing straight UP at the sky;
+- legs together and straight, toes pointing down, feet not touching anything;
+- shirt hem and hair lifted slightly by the updraft.
+Reading order (keep exactly): top left = facing RIGHT (side view, head tilted up to the right); top right = facing the viewer (FRONT, chin raised, glasses catching light, looking up); bottom left = facing LEFT (side view, mirror of top left); bottom right = seen from BEHIND (back of the head, face turned up, arms down and out).
+Match the reference's squat chibi proportions and coarse flat square pixel clusters closely, simple dark stepped outline, exact outfit/head/glasses/hair invariants, same body height and scale in all four frames, head and feet aligned between frames. Exactly four distinct equally-spaced full bodies in 2x2 equal cells with generous clear margins, nothing clipped. Flat solid magenta #FF00FF background, no labels, no text except the shirt's small logo, no ground, no shadow, no glow, no gradients, no extra facial features.

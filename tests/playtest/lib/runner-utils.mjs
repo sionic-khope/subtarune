@@ -96,4 +96,5 @@ BASE_URL_SCENARIOS.add('teen-battle');
 BASE_URL_SCENARIOS.add('teen-battle-p2');
 BASE_URL_SCENARIOS.add('teen-finale');
 BASE_URL_SCENARIOS.add('castle-descent');
+BASE_URL_SCENARIOS.add('castle-rise');
 BASE_URL_SCENARIOS.add('teen-qa-points');

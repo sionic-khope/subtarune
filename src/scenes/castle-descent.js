@@ -1,3 +1,6 @@
+import { CHAR_SCALE } from '../world/world.js';
+import { RISE, tickRiseClock, updateRise, drawRise, drawCell, Backlight, SunRays, Motes, drawSunsetSky, glow } from './castle-rise.js';
+
 /**
  * BUILD358 after the summit (사용자 2026-09-26 브리핑): the straight road below the summit (kind 'road') and the raft
  * pool at the foot of the colossal wall (kind 'raft'). One scene class serves both maps through `meta.descent`.
@@ -17,6 +20,7 @@ export const DESCENT = Object.freeze({
 const clamp01 = v => Math.max(0, Math.min(1, v));
 const ease = k => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2);
 const easeOut = k => 1 - (1 - k) ** 3;
+const lerpN = (a, b, k) => a + (b - a) * k;
 
 export class CastleDescent {
   constructor(game, { rnd = Math.random } = {}) {
@@ -30,6 +34,9 @@ export class CastleDescent {
     this.raft = this.kind === 'raft' ? { x: px + pw / 2, y: py + ph / 2 + 4, bob: true } : null;
     this.divers = [];
     void game.sound.loadSfxFiles?.(['wing', 'thud', 'jump', 'impact', 'captain_transform', 'spearappear', 'laser_zap', 'laser_charge', 'break1', 'splash', 'maillard_splash', 'maillard_water_lift', 'power', 'rumble', 'mario_jump', 'heavyswing', 'chime']);
+    this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
+    if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
+    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['ralsei_splat', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -219,10 +226,9 @@ export class CastleDescent {
       if (this.rnd() < 0.3) { const v = this.divers[Math.floor(this.rnd() * this.divers.length)]; if (v) this.bits.push({ x: v.x + (this.rnd() - 0.5) * 16, y: v.y - 4, vx: 0, vy: -30, age: 0, life: 0.5, size: 2, color: '#bfe6ff', g: 0 }); }
     }).then(() => { this.gathering = false; });
   }
-  /** 동시에 점프! 뗏목이 요플래를 태우고 벽을 따라 꼭대기 턱까지 치솟는다(둘은 뗏목 밑을 받치고 함께). */
+  /** 동시에 점프! 뗏목이 요플래를 태우고 벽을 따라 치솟는다(둘은 뗏목 밑을 받치고 함께) — RISE.handoff 뒤 화면 전체 상승으로. */
   launch() {
-    const r = this.raft, p = this.game.player, [lx, ly, lw] = this.meta.ledge;
-    const y0 = r.y, y1 = ly + 76, x0 = r.x, x1 = lx + lw / 2;
+    const r = this.raft, p = this.game.player;
     const riders = this.divers.map(v => ({ e: v.e, side: v.side }));
     for (const v of riders) { v.e.visible = true; v.e.hopY = 0; }
     this.divers = []; r.bob = false;
@@ -230,18 +236,113 @@ export class CastleDescent {
     this.splash(r.x, r.y + 10, 30); this.game.shake = { time: 0.4, amp: 5 };
     this.launching = true;
     this.track(() => ({ x: r.x, y: r.y - 60 }));
-    return this.job(DESCENT.launch, k => {
-      const c = easeOut(k);
-      r.x = x0 + (x1 - x0) * c; r.y = y0 + (y1 - y0) * c;
+    let v = 620;
+    return this.job(RISE.handoff, (k, dt) => {
+      r.y -= v * dt; v = Math.max(380, v - 160 * dt);
       this.setFeet(p, r.x, r.y + 4);
-      for (const v of riders) this.setFeet(v.e, r.x + v.side * 34, r.y + 34);
+      for (const w of riders) this.setFeet(w.e, r.x + w.side * 34, r.y + 34);
       if (this.rnd() < 0.6) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 60, age: 0, life: 0.6, size: 2, color: '#9fd6ff', g: 200 });
-    }).then(() => {
-      // 꼭대기 턱에 내려선다: 둘은 뗏목 양옆 바닥으로
-      this.launching = false; this.sfx('thud', 0.9); this.game.shake = { time: 0.25, amp: 3 };
-      return Promise.all(riders.map(v => this.arc(v.e, this.feet(v.e), [r.x + v.side * 64, r.y + 10], 26, 0.45)));
-    }).then(() => { this.untrack(); p.trail = []; });
+    }).then(() => { this.launching = false; });
   }
+  /** 화면 전체 상승(성벽 → 노을 바다) — 곡 위치가 RISE.flash 에 닿으면 끝난다(뒤에 흰 번쩍임·맵 전환). */
+  ascend() {
+    this.rise = { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight };
+    return this.waitRise(RISE.flash);
+  }
+  /** 곡 위치(game.riseT)가 at 초에 닿을 때까지 기다린다. */
+  waitRise(at) { return new Promise(resolve => { this.jobs.push({ t: 0, d: Infinity, until: () => (this.game.riseT ?? 0) >= at, step: () => {}, resolve }); }); }
+  // ── 노을 땅: 앞덤블링 도착 ─────────────────────────────
+  /** 필드에서 서 있는 요플래의 그려지는 키(px) — 착지 자세를 같은 크기로 */
+  standH() { const sp = this.game.player?.sprite; return sp?.fh ? Math.round(sp.fh / sp.px * CHAR_SCALE) : 52; }
+  /**
+   * 가재맨이 먼저 올라와 서 있다가 오른쪽으로 도망가고, 요플래가 화면 앞(땅 아래 앞쪽)에서 동그랗게 앞덤블링하며 천천히 올라와
+   * 곡 64초(RISE.land)에 무릎 꿇고 착지 — 챱.
+   */
+  arrive() {
+    const g = this.game, p = g.player, a = this.gj, [lx, ly] = this.meta.land;
+    p.visible = false;
+    for (const id of ['gyeongsub', 'ppaman']) { const e = this.ent(id); if (e) e.visible = false; }
+    if (a) { a.visible = true; a.facing = 'left'; this.setFeet(a, ...this.meta.gajaemanAt); this.aura = 1; }
+    const start = RISE.mapAt + 0.3;
+    this.tumble = { u: 0, trail: [], landed: 0 };
+    let fled = false;
+    return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => {
+      const T = g.riseT ?? 0, tb = this.tumble;
+      if (!fled && a && T >= RISE.mapAt + 1.4) {
+        fled = true;
+        const [ax, ay] = this.feet(a);
+        this.gajaemanDash([ax, ay], [ax + 560, ay - 110], 2.6).then(() => this.hideGajaeman());
+      }
+      tb.u = clamp01((T - start) / (RISE.land - start));
+      if (!tb.landed && T >= RISE.land) {
+        tb.landed = T;
+        this.sfx('ralsei_splat', 0.9); this.sfx('thud', 0.45); g.shake = { time: 0.18, amp: 2 };
+        for (let i = 0; i < 14; i++) this.dust.push({ x: lx + (i - 6.5) * 3, y: ly - 2, vx: (i - 6.5) * (10 + this.rnd() * 14), vy: -12 - this.rnd() * 22, age: 0, life: 0.7 + this.rnd() * 0.4, s: 2 + (i % 3) });
+      }
+      if (tb.landed && T >= tb.landed + 1.5) {
+        p.visible = true; p.facing = 'right'; this.setFeet(p, lx, ly); p.trail = [];
+        this.tumble = null; g.riseT = null;
+        return true;
+      }
+      return false;
+    } }));
+  }
+  /** 앞덤블링(동그라미 궤적 + 몸 회전 + 잔상) → 웅크린 착지 → 무릎 꿇기. world 좌표. */
+  drawTumble(ctx, cam, bare = false) {
+    const tb = this.tumble; if (!tb) return;
+    const img = this.game.propImages[RISE.landSheet]; if (!img) return;
+    const [lx, ly] = this.meta.land, k = this.standH() / 101, cellH = img.height * k;
+    const at = (x, y) => [x - cam.x, y - cam.y];
+    if (tb.landed) { const [x, y] = at(lx, ly); drawCell(ctx, img, 3, x, y, cellH); return; }
+    const u = tb.u, split = 0.74;
+    if (u > 0.955) { const [x, y] = at(lx, ly); drawCell(ctx, img, 2, x, y, cellH); return; }
+    const cy = u < split ? lerpN(500, 136, 1 - (1 - u / split) ** 2) : lerpN(136, ly - cellH * 0.45, ((u - split) / (1 - split)) ** 2);
+    const cx = lerpN(262, lx, u);
+    const theta = Math.PI * 2 * 5 * (1 - (1 - u) ** 1.5), R = 18 * (1 - u) + 3, z = lerpN(1.75, 1, 1 - (1 - u) ** 2);
+    const bx = cx + Math.sin(theta) * R, by = cy - Math.cos(theta) * R;
+    if (!bare) {
+      tb.trail.unshift([bx, by, theta, z]); tb.trail.length = Math.min(tb.trail.length, 10);
+      for (let i = 9; i >= 2; i -= 2) { const t = tb.trail[i]; if (!t) continue; const [x, y] = at(t[0], t[1]); ctx.save(); ctx.globalAlpha = 0.16 * (1 - i / 10); drawCell(ctx, this.backlight.tinted?.(img, 'rgba(255,200,140,1)', 'trail') || img, 0, x, y, cellH * t[3] * 0.92, { angle: t[2], pivotY: 0.5 }); ctx.restore(); }
+    }
+    const [x, y] = at(bx, by);
+    drawCell(ctx, img, 0, x, y, cellH * z * 0.92, { angle: theta, pivotY: 0.5 });
+  }
+  /** 검은 땅(참고 그림 비율: 위 40% 하늘 · 넓은 윗면 · 앞 테두리 · 아래 띠) — 한 번 그려 둔다. */
+  groundCanvas() {
+    if (this.ground) return this.ground;
+    const m = this.meta, w = this.map.pxW, top = m.groundTop, edge = m.edgeY, h = this.map.pxH - top;
+    try { this.ground = document.createElement('canvas'); this.ground.width = w; this.ground.height = h; } catch { return null; }
+    const x = this.ground.getContext('2d');
+    let seed = 7; const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    x.fillStyle = '#060408'; x.fillRect(0, 0, w, edge - top);
+    // 윗면: 멀수록(위) 해빛을 받아 살짝 따뜻하게
+    const sheen = x.createLinearGradient(0, 0, 0, 40); sheen.addColorStop(0, 'rgba(120,60,70,0.28)'); sheen.addColorStop(1, 'rgba(40,20,40,0)');
+    x.fillStyle = sheen; x.fillRect(0, 0, w, 40);
+    for (let i = 0; i < w * 0.9; i++) { const px = Math.floor(r() * w / 2) * 2, py = Math.floor(r() * (edge - top) / 2) * 2; x.fillStyle = r() < 0.5 ? '#0e0b16' : '#140f1c'; x.fillRect(px, py, 2 + (r() < 0.3 ? 2 : 0), 2); }
+    // 앞 테두리
+    x.fillStyle = '#1a1222'; x.fillRect(0, edge - top, w, 12);
+    const rim = x.createLinearGradient(0, edge - top - 2, 0, edge - top + 6); rim.addColorStop(0, 'rgba(255,170,110,0)'); rim.addColorStop(0.4, 'rgba(255,170,110,0.35)'); rim.addColorStop(1, 'rgba(255,170,110,0)');
+    x.fillStyle = rim; x.fillRect(0, edge - top - 2, w, 8);
+    for (let i = 0; i < w / 6; i++) { x.fillStyle = r() < 0.5 ? '#2a1c30' : '#0f0a14'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + 2 + Math.floor(r() * 4) * 2, 4, 2); }
+    // 아래 띠
+    x.fillStyle = '#040206'; x.fillRect(0, edge - top + 12, w, h - (edge - top + 12));
+    for (let i = 0; i < w * 0.25; i++) { x.fillStyle = r() < 0.5 ? '#0d0812' : '#120b18'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + 14 + Math.floor(r() * (h - edge + top - 14) / 2) * 2, 2 + (r() < 0.2 ? 4 : 0), 2); }
+    return this.ground;
+  }
+  sunScreen(cam) { const m = this.meta, shift = -cam.x * 0.18; return [240 + shift + m.sunDx, m.horizonY - cam.y]; }
+  drawSunset(ctx, cam) {
+    const m = this.meta, shift = -cam.x * 0.18;
+    drawSunsetSky(ctx, this.game.propImages, { horizonY: m.horizonY - cam.y, width: 640, shiftX: shift, sunX: this.sunScreen(cam)[0], sunD: 64, time: this.time, rays: this.rays, rayStrength: 0.8 });
+    const gc = this.groundCanvas();
+    if (gc) ctx.drawImage(gc, Math.round(-cam.x), Math.round(m.groundTop - cam.y));
+    // 역광이라 그림자는 앞(아래)으로 길게, 부드럽게
+    for (const e of this.chars()) {
+      const [fx, fy] = this.feet(e), x = fx - cam.x, y = fy - cam.y;
+      const g = ctx.createRadialGradient(x, y + 10, 2, x, y + 10, 26); g.addColorStop(0, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.save(); ctx.translate(x, y + 10); ctx.scale(0.8, 0.55); ctx.translate(-x, -(y + 10)); ctx.fillStyle = g; ctx.fillRect(x - 26, y - 16, 52, 52); ctx.restore();
+    }
+  }
+  chars() { return this.game.entities.filter(e => e.visible && (e === this.game.player || e.def?.type === 'npc' || e.def?.type === 'follower')); }
   splash(x, y, n) {
     for (let i = 0; i < n; i++) this.bits.push({ x, y, vx: (this.rnd() - 0.5) * 160, vy: -120 - this.rnd() * 160, age: 0, life: 0.8, size: 2 + (i % 2), color: i % 3 ? '#9fd6ff' : '#ffffff', g: 500 });
   }
@@ -251,7 +352,13 @@ export class CastleDescent {
     if (this.disposed) return;
     if (g.map !== this.map || g.state === 'title') { this.dispose(); return; }
     const s = Math.max(0, dt); this.time += s;
+    const T = tickRiseClock(g, s);
+    if (this.rise && T != null) updateRise(this.rise, T, s);
+    if (this.kind === 'sunset') this.warm.update(s, { rate: 5, vy: -10, warm: true });
+    for (const d of this.dust) { d.age += s; d.x += d.vx * s; d.y += d.vy * s; d.vx *= 0.92; d.vy += 30 * s; }
+    this.dust = this.dust.filter(d => d.age < d.life);
     for (const j of [...this.jobs]) {
+      if (j.until) { if (j.until()) { this.jobs.splice(this.jobs.indexOf(j), 1); j.resolve(); } continue; }
       j.t += s; const k = j.d > 0 ? clamp01(j.t / j.d) : 1;
       j.step(k, s);
       if (k >= 1) { this.jobs.splice(this.jobs.indexOf(j), 1); j.resolve(); }
@@ -290,9 +397,10 @@ export class CastleDescent {
     const [top, bottom] = this.band();
     ctx.save();
     // 길 가장자리: 가는 사파이어 선(검은 허공과 경계)
-    ctx.fillStyle = 'rgba(90,130,255,0.55)';
+    ctx.fillStyle = this.kind === 'sunset' ? 'rgba(0,0,0,0)' : 'rgba(90,130,255,0.55)';
     ctx.fillRect(0, Math.round(top - cam.y) - 1, 480, 1); ctx.fillRect(0, Math.round(bottom - cam.y), 480, 1);
     if (this.kind === 'raft') this.drawPool(ctx, cam);
+    if (this.kind === 'sunset') this.drawSunset(ctx, cam);
     ctx.restore();
   }
   drawPool(ctx, cam) {
@@ -374,6 +482,21 @@ export class CastleDescent {
       ctx.globalAlpha = Math.max(0, Math.min(1, (b.life - b.age) * 3)); ctx.fillStyle = b.color;
       ctx.fillRect(Math.round(b.x - cam.x), Math.round(b.y - cam.y), b.size, b.size);
     }
+    ctx.globalAlpha = 1;
+    if (this.kind === 'sunset') {
+      this.drawTumble(ctx, cam);
+      const sun = this.sunScreen(cam), list = this.chars();
+      this.backlight.apply(ctx, c => { for (const e of list) e.draw(c, cam); this.drawTumble(c, cam, true); }, sun, 1);
+      // 햇빛이 화면 전체로 번진다(인물 위로도 옅게)
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 480, Math.round(this.meta.groundTop - cam.y)); ctx.clip();
+      this.rays.draw(ctx, sun[0], sun[1], this.time, 0.28);
+      ctx.restore();
+      glow(ctx, sun[0], sun[1], 160, 'rgba(255,150,90,A)', 0.1);
+      for (const d of this.dust) { ctx.globalAlpha = Math.max(0, 1 - d.age / d.life) * 0.8; ctx.fillStyle = d.s > 3 ? '#3a2a3a' : '#5a4050'; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.s, d.s); }
+      ctx.globalAlpha = 1;
+      this.warm.draw(ctx, this.time);
+    }
+    if (this.rise) drawRise(ctx, this.rise, this.game.riseT ?? 0, this.game.propImages, this.time);
     ctx.restore();
   }
   rimOf(img) {

@@ -1,0 +1,8 @@
+Use case: identity-preserve. The reference image is the approved overworld sprite sheet of Yoplait (exact character identity AND low-resolution pixel density): a short squat chibi human with black messy hair, round glasses, white T-shirt, navy shorts, navy shoes; face has a small U-shaped nose and absolutely NO mouth.
+
+Create a separate 2 by 2 four-frame full-body sprite sheet of Yoplait, all frames in SIDE VIEW FACING RIGHT, for an acrobatic arrival:
+- top left: tucked FORWARD SOMERSAULT, body curled into a tight ball, knees hugged to chest, head tucked, seen mid-flip (upright orientation);
+- top right: same tucked forward somersault ball, rotated a quarter turn forward (head toward the right-bottom), still curled tight;
+- bottom left: the instant of LANDING: deep crouch, both feet planted, knees bent low, one hand reaching down toward the ground, body leaning forward;
+- bottom right: KNEELING LANDING POSE (hero landing): right knee down on the ground, left foot planted forward with knee up, right fist pressed on the ground beside the knee, left arm back, head raised looking forward-right, calm and cool.
+Match the reference's squat chibi proportions and coarse flat square pixel clusters closely, simple dark stepped outline, exact outfit/head/glasses/hair invariants, same scale in all four frames. Exactly four distinct equally-spaced figures in 2x2 equal cells with generous clear margins, nothing clipped. Flat solid magenta #FF00FF background, no labels, no text except the shirt's small logo, no ground line, no shadow, no motion lines, no gradients, no extra facial features.

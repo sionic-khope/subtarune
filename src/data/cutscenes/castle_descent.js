@@ -1,4 +1,6 @@
 // BUILD358 사용자 브리핑(2026-09-26): 꼭대기에서 뛰어내린 뒤 — 끝없는 길(섭 몬스터·편집노조·영클 레이저) → 뗏목 웅덩이(벽 타고 상승). 대사·표기 원문 그대로.
+import { RISE } from '../../scenes/castle-rise.js';
+
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const YC = (text, face = 'smirk') => ({ speaker: '영클', portrait: `youngcle_tv_${face}`, voice: 'youngcle', text: `* ${text}` });
@@ -79,6 +81,7 @@ export const castle_road_end = Object.assign([
 export const castle_raft_intro = Object.assign([
   { if: flags => !!flags.castle_raft_launched, goto: 'end' },
   close,
+  { action: game => game.sound.preloadBgm?.(RISE.bgm) },
   { camera: at(470, 1250), duration: 0.01 },
   { fade: 'in', duration: 0.8 }, { wait: 0.2 },
   // 가재맨이 쭉 앞으로 가다가 벽 앞에서 위로 상승
@@ -101,9 +104,27 @@ export const castle_raft_intro = Object.assign([
   { wait: 0.5 },
   // 물 아래에서 2초 동안 진동하며 가라앉아 기를 모은다 → 동시에 점프! 뗏목과 요플래가 벽을 따라 위로
   scene(s => s.gather()),
+  // 동시에 점프! — 곡이 원곡 42.7초(음이 바뀌는 지점)부터. 뗏목이 솟다가 화면 전체 상승(성벽 → 노을 바다, 점점 슬로우모션)
+  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.02 }); } },
   scene(s => s.launch()),
-  { wait: 0.4 },
+  scene(s => s.ascend()),
+  // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
+  { fade: 'white', duration: 0.3 },
   { set: { castle_raft_launched: true } },
+  { map: 'gajaeman_castle_sunset', spawn: 'arrive', enter: true, bgm: false },
+  { end: true },
+  { label: 'end' }, { end: true },
+], { silent: true });
+
+/** 노을 땅 도착: 가재맨이 먼저 올라와 있다가 오른쪽으로 도망 → 요플래가 땅 앞에서 동그랗게 앞덤블링하며 올라와 원곡 64초에 무릎 꿇고 착지(챱). */
+export const castle_sunset_arrival = Object.assign([
+  { if: flags => !!flags.castle_sunset_arrived, goto: 'end' },
+  close,
+  // QA 로 바로 온 경우: 곡을 원곡 58초 자리부터
+  { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt }); } } },
+  { camera: at(300, 204), duration: 0.01 },
+  { parallel: [{ fade: 'in', duration: 0.7 }, scene(s => s.arrive())] },
+  { set: { castle_sunset_arrived: true } },
   { camera: 'player' },
   { label: 'end' }, { end: true },
 ], { silent: true });

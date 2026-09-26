@@ -62,7 +62,7 @@ def main() -> None:
         'id': MAP_ID, 'name': '가재맨성 뗏목 웅덩이', 'stage': 'castle_summit_ready',
         'bgm': 'save_the_world', 'bgmVolume': 0.6, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_raft_intro', 'early': True},
-        'preload': [WALL['image'], 'assets/props/raft.png'],
+        'preload': [WALL['image'], 'assets/props/raft.png', 'assets/sprites/hyungsub-rise.png', 'assets/backdrops/castle_sunset359.png', 'assets/props/maillard_sun.png'],
         'spawns': {'start': {'x': 24, 'y': 1310, 'facing': 'right'}, 'top': {'x': 468, 'y': 110, 'facing': 'down'}},
         # 꼭대기 턱은 뗏목 연출로만 올라간다(걸어서 닿지 않음) — 연결 검사 대상 아님
         'meta': {'connected': False, 'descent': {'kind': 'raft', 'band': list(BAND), 'gajaeman': 'raft_gajaeman',

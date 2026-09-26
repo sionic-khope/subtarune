@@ -4,6 +4,7 @@
 - `bgm/guardian.mp3`: 사용자 지정 [nP9mB1sVJz4](https://www.youtube.com/watch?v=nP9mB1sVJz4) `68. GUARDIAN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox`, 226.3초까지(끝 무음 4.4초 제거) MP3 q2, SHA256 `ab2baa5d22c3adeba157857c2f0cfd6a33a871ac77f04ca5593be7c431a73f16`.
 - 전투 시작 `weaponpull`(조우음 없음, 사용자 지시).
 - `bgm/save_the_world.mp3`(42초): 청소년전 격파 뒤 박용준 등장(“하이요 형들ㅋㅋ”)부터. 사용자 지정 YouTube LAn-JYzKm5M “SAVE The World” 0~42초만(사용자 “42초까지만 반복재생”), 끝 0.15초 페이드. 원본 `assets/source/finale352/audio/`.
+- `bgm/save_the_world_rise.mp3`(70.6초): 뗏목 점프 → 상승 연출 → 노을 땅 착지. 같은 곡(사용자 지정 YouTube LAn-JYzKm5M “SAVE The World”)의 42.7초(음이 조용해지며 바뀌는 지점, RMS 분석)부터 끝까지. 원곡 58초 = 맵 전환, 64.0초(다시 커지는 지점) = 착지. 원본 `assets/source/rise359/audio/stw.mp3`.
 - `sfx/gajaeman_eom.mp3`(0.24초): 2페이즈 “엄.” 패턴. 사용자 지정 myinstants `gajaemaen-eom-88122`(403) 대신 YouTube rYfJ3OikoCg `가재맨 “엄” 효과음` **임시**, 앞뒤 무음 제거. 원본 `assets/source/teen348/audio/`.
 - `sfx/gajaeman_knee.mp3`: 무릎 올릴 때. 사용자 지정 myinstants `neoheulge-gajaemaen-67533`(403) 대신 YouTube cprvWNhZlgk `가재맨 "넣을게~" 효과음` **임시**.
 - `sfx/gajaeman_kick.mp3`: 강제퇴장 버튼 누를 때. 사용자 지정 myinstants `gajaemaen-neon-ddaragara-45852`(403) 대신 YouTube yjsiYHSz_Rs **임시**. 원본을 받으면 같은 이름으로 교체.

@@ -1,0 +1,74 @@
+{
+ "id": "gajaeman_castle_sunset",
+ "name": "가재맨성 노을 끝",
+ "stage": "castle_summit_ready",
+ "bgm": "save_the_world_rise",
+ "bgmVolume": 0.7,
+ "rows": [
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  "                              ",
+  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
+  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
+  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
+  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
+  "                              ",
+  "                              "
+ ],
+ "enter": {
+  "script": "castle_sunset_arrival",
+  "early": true
+ },
+ "preload": [
+  "assets/backdrops/castle_sunset359.png",
+  "assets/props/maillard_sun.png",
+  "assets/sprites/hyungsub-land.png"
+ ],
+ "spawns": {
+  "arrive": {
+   "x": 288,
+   "y": 238,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "descent": {
+   "kind": "sunset",
+   "band": [
+    192,
+    320
+   ],
+   "gajaeman": "sunset_gajaeman",
+   "land": [
+    300,
+    262
+   ],
+   "gajaemanAt": [
+    452,
+    252
+   ],
+   "groundTop": 168,
+   "edgeY": 300,
+   "horizonY": 146,
+   "sunDx": 70
+  }
+ },
+ "entities": [
+  {
+   "type": "npc",
+   "id": "sunset_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": 440,
+   "y": 228,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.89
+  }
+ ]
+}
