@@ -1,0 +1,37 @@
+# imagegen 2026-09-26 22:39:47
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/cookie373/ref5.png
+
+STYLE: PIXEL ART in exactly the same style as the reference game sprites — a 16-bit RPG screenshot look like Deltarune: chunky square pixels (every character built from coarse blocky pixel clusters at the SAME pixel density as the reference sprites), simple stepped dark outlines, flat limited colors with at most one shade, no anti-aliasing, no gradients, no painterly or cartoon-illustration rendering, not anime, not 3D. Characters keep the sprite PROPORTIONS and FACES EXACTLY: redraw each sprite as a pixel sprite of the same design, same big head / small body chibi ratio, same eyes, same noses, same glasses, same outfit colors. The room is the in-game lounge map in the same pixel tile style (top-down 3/4 view like the screenshot). No text anywhere except GAP on Choimis's shirt; no UI, no dialogue box, no frame.
+
+The reference image is a sheet of the actual game sprites enlarged with nearest-neighbour (labels only for you, never draw them) plus the in-game lounge screenshot and door. Match them pixel-art for pixel-art.
+
+FACE RULES FROM THE SPRITES (must keep):
+- Yoplae (hero): black messy hair, round black-rimmed glasses, a BIG ROUND PEACH-COLORED NOSE in the middle of the face under the glasses, NO MOUTH, white T-shirt, navy shorts, navy shoes.
+- Kim Gyeongsub: long straight black hair framing the face, round glasses, the same kind of BIG ROUND NOSE, small mouth, navy T-shirt with a small purple square emblem, black pants.
+- Eokppaman: periwinkle-blue bear, pink inner ears, cream belly, big dark brown oval nose.
+- Junhee: pink pig standing, blue angry eyes, big snout.
+- Park Yongjun: black bowl cut, round face, narrow eyes, round nose, white T-shirt, navy shorts.
+- every other character: copy its sprite's face, nose, hair and outfit exactly.
+
+SCENE: a CHAOTIC, lively commemorative group photo inside the lounge of Youngcle's battleship: dark slate-navy metal walls with yellow-black warning-stripe panels, a dark purple carpet runner, a red tufted sofa, a cyan hologram console table, and the big ornate PURPLE double door with gold trim in the center back. NOBODY stands neatly in rows: everyone strikes a different free pose — arms around shoulders, jumping in the air, lying on the floor, piggyback rides, pulling each other's cheeks, photobombing, looking the wrong way, someone diving into the frame, sitting on the sofa back, peace signs everywhere. Busy but readable, every face visible and cleanly drawn.
+
+LAYOUT IN THREE RINGS (must follow):
+1) FRONT CENTER, BIGGEST and closest to the camera, grouped tightly together: the MAIN PARTY —
+   Yoplae in the EXACT CENTER doing a big cheerful "kimchi!" V-sign pose (the most detailed, clearest character in the picture): small chibi boy, messy short black hair, big ROUND BLACK-RIMMED GLASSES, round peach face with a small round nose, NO MOUTH AT ALL (below his nose the face is completely blank skin, no smile line, no dot; happiness only from crescent eyes and pink blush), plain white T-shirt, navy shorts, navy shoes;
+   around him arm-in-arm: Kim Gyeongsub, Eokppaman the blue bear, Junhee the pink pig, Park Yongjun.
+2) RIGHT AROUND THE PARTY (second ring, medium size): the major characters — Warm Bidet, Park Guardian, Dot, Ttuulla, Obangsun, Naram, Eunbyeol, Yerim, Jeomnye.
+3) LEFT AND RIGHT EDGES AND BACK (outer ring, smaller): the side characters — the six Gasuni girls, Dohyun, Domijorim, Lucky Guy, Yakulbeol, Mabaem, Park Wonsung, Chakgeom, Wemix, Parang, Norang.
+SPECIAL SPOTS:
+- FAR LEFT CORNER, a little apart: Youngcle (round pink ball head with one big black-and-white spiral eye, little brown curled sprout on top, red cheek, light-blue T-shirt with a green pocket, navy shorts), a bit awkward.
+- BOTTOM CORNER on the floor: Choimis TIED UP with thick rope around the body, sitting helplessly — a chubby person with messy white hair, big square glasses, pale face, pink sweatshirt with the big dark letters GAP on the chest, black shorts.
+- RIGHT BACK CORNER: the Janitor secretly HIDING behind the hologram console, only his head peeking out — old man, red bandana, round glasses, stubble, big nose.
+- There is NO dark twin, NO grey-skinned red-eyed figure, NO purple-aura floating figure anywhere.
+
+EVERYONE ELSE (each EXACTLY ONCE, identity exactly as the sprite):
+Kim Gyeongsub; Eokppaman (chubby periwinkle-blue teddy bear, pink inner ears, cream belly and muzzle, big black nose); Junhee (pink pig standing upright, big snout, blue eyes, curly tail, grinning); Park Yongjun (chubby boy, black bowl-cut, narrow eyes, white T-shirt, navy shorts); Warm Bidet (spiky black hair with a white streak, dark grey plate armor with red trim, huge battle axe); Park Guardian (someone in a black-and-white cute imp mascot suit: black hood with two pointed ears tipped with pink pompoms and a pink skull badge, white body, devil tail); Dot (a tiny round friend in a red cap and red overalls, brown mustache, drawn in the same smooth cartoon style); Obangsun (pale woman, crimson braided dreadlocks piled high with many round red bead ornaments, pink eye makeup, dark lips, black outfit); Naram (chubby cheerful man with shaved head, olive camouflage military shirt and pants); Eunbyeol (small girl with black low twin pigtails, round glasses, black suit and tie); Yerim (slim schoolgirl, very long straight black hair, red hair bow, white sailor blouse with navy collar, navy pleated skirt, knee socks); Jeomnye (sweet girl, long brown hair, white dress); Ttuulla (brown cartoon mouse standing upright, big round pink ears, cream belly, long tail); the six Gasuni girls (little girls with brown bob hair and hair clips — three in orange tops with red skirts, one in a light-blue top with navy skirt, one in a green dress, one with double buns in a lavender top) playing together as a group; Dohyun (thin pale boy, black bowl hair, white shirt, dark pants); Domijorim (a man with a big round realistic-looking cartoon face, grey curly perm hair, big open-mouth laugh, navy shirt with a strap and a fishing rod); Lucky Guy (round yellow head with a black number 7 and red cheeks, green shirt with a four-leaf clover, navy shorts); Yakulbeol (a round yellow bee with big black eyes, pink blush, pale teal wings, black stripes); Mabaem (a cyan cartoon lizard with big round eyes sitting in a grey wheelchair); Park Wonsung (a monkey body with brown fur and a smiling middle-aged man's face with black hair); Chakgeom (a white hooded figure with round black glasses and a big nose, white bodysuit); Wemix (a character whose round head is swirled tie-dye pink, purple, white and blue, purple and blue shirt, grey shorts); Parang (a bright blue round blob man with tiny red mouth and a small black hat); Norang (a bright yellow round blob girl with a red ribbon bow).
+COUNT CHECK: exactly SIX Gasuni girls (not five, not seven), exactly ONE Lucky Guy, ONE Dohyun, ONE Dot (red CAP, not a bandana), ONE Yoplae — about 32 characters in total, each once. No extra people beyond this list.
+
+COMPOSITION FOR THIS VERSION: party in front center jumping, others celebrating around, some sitting on the sofa at the left edge.
