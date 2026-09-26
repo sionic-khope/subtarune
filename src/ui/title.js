@@ -5,7 +5,6 @@
 import { FONT } from './font.js';
 import { drawHeart, makeCanvas } from '../core/gfx.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
-import { BUILD } from '../main.js';
 import L from '../data/locale/ko.js';
 import { QA_POINTS } from '../core/story.js';
 import { qaStep } from './qa-list.js';
@@ -305,7 +304,7 @@ export class TitleScreen {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
 
-    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.fillStyle = '#33334a'; ctx.fillText('build ' + BUILD, 6, SCREEN_H - 20);
+    // 배포 전(BUILD382, 사용자): 왼쪽 아래 빌드 번호 표시는 없앤다 — 번호는 캐시 무효화(?v=)에만 쓴다
     if (this.phase === 'wait' && this.game.bootLoad?.active) { drawBootLoading(ctx, this.game.bootLoad); return; }
     if (this.phase === 'wait') {
       if ((this.time % 1.2) < 0.8) this._drawText(ctx, '아무 키나 누르세요', SCREEN_H * 0.5 - 6, '#8a8aa0');

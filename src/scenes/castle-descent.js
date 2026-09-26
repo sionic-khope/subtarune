@@ -344,7 +344,7 @@ export class CastleDescent {
       }
       if (tb.landed && T >= tb.landed + 1.5) {
         // 무릎 꿇은 채로 남는다(SAVE THE WORLD 버튼까지, 사용자 “계속 무릎꿇고 있어야지”)
-        this.setFeet(p, lx, ly); p.trail = []; g.riseT = null;
+        this.setFeet(p, lx, ly); p.trail = [];
         return true;
       }
       return false;

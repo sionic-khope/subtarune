@@ -71,11 +71,9 @@ export const castle_summit_confront = Object.assign([
   // BUILD352 2페이즈 격파 뒤 연출(사용자 2026-09-26 브리핑, 대사 원문 그대로). 전투는 HP 1 에서 끊겨 같은 화면으로 이어진다
   { label: 'finale' },
   summit(s => s.enterFinale()), { camera: C.talk, duration: 0.01 },
-  // 쓰러진 채로 넘어와 → 검은 연기가 한 번 팡 → 일행이 하나씩 일어난 뒤 대사
-  ...PARTY.map(id => ({ pose: id, to: 'lying' })),
-  { wait: 0.6 }, summit(s => s.smokePop()), { wait: 1.0 },
-  ...PARTY.flatMap(id => [{ wait: 0.35 }, { pose: id, to: 'stand' }, { face: id, dir: 'right' }, { sfx: 'thud', volume: 0.4 }]),
-  { wait: 0.7 },
+  // 검은 연기가 한 번 팡 → 대사(BUILD382 사용자 “전환될 때 왜 눕는 거임, 눕는 거 빼”: 일행은 선 채로)
+  ...PARTY.map(id => ({ face: id, dir: 'right' })),
+  { wait: 0.6 }, summit(s => s.smokePop()), { wait: 1.2 },
   A('{shake}말..말도안돼...{/shake}'), A('이건... 이럴수가 없어.'), A('도대체 언제까지..'),
   A('{shake}나는 이렇게 모두에게 사랑받지 못하고 살아야하는건데!!!{/shake}'), A('질 수 없어'), A('너희가 나를 막게 둘수없다!!!'), close,
   // 엄청난 오오라가 모이고 3초 뒤 릴리즈샷과 함께 퍼어엉 → 일행 HP 1

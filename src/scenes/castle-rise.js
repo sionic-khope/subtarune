@@ -19,7 +19,9 @@ export const RISE = Object.freeze({
   press: 18.59, white: 19.92, dash: 21.10,
   // BUILD365(사용자 “곡 42초~1분 3초에 딱 맞게, 곡이 끝나면 버튼”): 원곡 58초 노을 땅, 63.9초(곡 끝) 착지
   // BUILD369: 하늘을 0.9초 더 오르고(원곡 58.9초 노을 땅), 착지는 곡 끝(64.05초)
-  handoff: 0, castleEnd: 11.2, clear: 12.76, flash: 14.76, mapAt: 15.06, land: 18.26,
+  // BUILD382(사용자 “태양이 1.8초 더 빨리, 올라가는 시간 자체는 같게”): 성벽 구간을 1.8초 줄여 바다·해가 일찍 열리고 노을 속 상승이 길다
+  //   착지 뒤 곡 시계(riseT)는 그대로 흐른다 — SAVE THE WORLD 가 이 시계로 저절로 눌린다(착지 때 비우던 것이 멈춤 원인)
+  handoff: 0, castleEnd: 9.4, clear: 10.96, flash: 14.76, mapAt: 15.06, land: 18.26,
   riseSheet: 'assets/sprites/hyungsub-rise.png', landSheet: 'assets/sprites/hyungsub-land.png',
   backdrop: 'assets/backdrops/castle_sunset359.png', sun: 'assets/props/maillard_sun.png', sunCrop: Object.freeze([53, 53, 151, 150]),
   // 생성 배경의 수평선 높이(비율)

@@ -131,7 +131,7 @@ export const castle_sunset_arrival = Object.assign([
   close,
   scene(s => { if (!s.tumble) s.kneelHold(); }),
   // 이어하기·QA 로 여기부터 오면 곡을 착지 1초 전 자리부터
-  { action: game => { if (game.sound.bgmName !== RISE.bgm) { game.riseT = RISE.land - 1; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.2, at: RISE.land - 1, loop: false, then: GJ.bgmLoop }); } } },
+  { action: game => { if (game.riseT == null || game.sound.bgmName !== RISE.bgm) { game.riseT = RISE.land - 1; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.2, at: RISE.land - 1, loop: false, then: GJ.bgmLoop }); } } },
   { parallel: [scene(s => s.autoSave()), { zoom: 1.3, at: 'player', offset: [30, -14], duration: 0.8 }] },
   { zoom: 1, duration: 0.01 },
   scene(s => s.startRun()),

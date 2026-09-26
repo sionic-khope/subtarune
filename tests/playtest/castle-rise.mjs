@@ -17,9 +17,13 @@ await runScenario({ name: 'castle-rise', launchOptions: { args: ['--autoplay-pol
     if (s.waiting) { await page.keyboard.press('KeyC'); await page.waitForTimeout(120); continue; }
     if (s.T != null || s.launching || s.fade > 0.05 || s.map === 'gajaeman_castle_sunset') { await shot(`r-${String(n++).padStart(3, '0')}`); await page.waitForTimeout(260); }
     else await page.waitForTimeout(150);
-    if ((s.button || !s.running) && s.map === 'gajaeman_castle_sunset' && i > 5) break;
+    if ((s.button || s.tumble?.landed || !s.running) && s.map === 'gajaeman_castle_sunset' && i > 5) break;
   }
   await shot('end');
+  // 착지 뒤 SAVE THE WORLD 가 저절로 눌려 달리기까지 이어져야 한다(착지 때 곡 시계를 비워 버튼에서 멈추던 버그)
+  const ran = await until(() => !!window.game.castleDescent?.run?.started, 15000);
+  await shot('run-started');
+  check('after landing the button presses itself and the run starts', !!ran, String(ran));
   const end = await page.evaluate(() => ({ map: game.mapId, arrived: !!game.flags.castle_sunset_arrived, visible: game.player.visible, feet: [Math.round(game.player.x + game.player.w / 2), Math.round(game.player.y + game.player.h)], bgm: game.sound.bgmName }));
   check('rise ends on the sunset ground', end.map === 'gajaeman_castle_sunset' && end.arrived, JSON.stringify(end));
   check('the same song keeps playing after landing', end.bgm === 'save_the_world_full', end.bgm);
