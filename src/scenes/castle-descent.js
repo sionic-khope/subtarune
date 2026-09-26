@@ -28,7 +28,8 @@ export const DESCENT = Object.freeze({
   // 뗏목 발사(사용자 2026-09-26): 함께 솟다가 detach 초에 요플래만 떨어져 나와 더 올라가고 뗏목은 떨어진다 → 페이드 → 빙글빙글·곡
   //   top: 요플래 발이 멈춰 떠 있는 맵 y(맵 위 끝에서 화면 안), share: 떨어지기 전까지 오르는 몫, settle: 떨어진 뒤 감속해 멈추는 초
   //   BUILD373(사용자 “둥둥 떠 있는 느낌 빼, 점프 소리”): 떨어져 나오면 점프 소리와 함께 위로 휙 날아 화면 밖으로 — lead 초 뒤 페이드가 겹친다
-  launch: { detach: 2.4, top: 110, share: 0.75, jumpV: 620, jumpAcc: 380, lead: 0.3, fly: 1.6, raftGravity: 900, raftFade: 1.2 },
+  //   BUILD378(사용자 “곡 나오기 전 상승을 더 빨리, 폭을 좁히자”): 함께 솟는 시간 2.4 → 1.4초, 점프도 더 세게
+  launch: { detach: 1.4, top: 110, share: 0.75, jumpV: 780, jumpAcc: 480, lead: 0.25, fly: 1.4, raftGravity: 900, raftFade: 1.0 },
 });
 
 const clamp01 = v => Math.max(0, Math.min(1, v));
@@ -315,7 +316,7 @@ export class CastleDescent {
   standH() { const sp = this.game.player?.sprite; return (sp?.fh ? Math.round(sp.fh / sp.px * CHAR_SCALE) : 52) * (this.meta.charScale || 1); }
   /**
    * 가재맨이 먼저 올라와 서 있다가 오른쪽으로 도망가고, 요플래가 화면 앞(땅 아래 앞쪽)에서 동그랗게 앞덤블링하며 천천히 올라와
-   * 곡 64초(RISE.land)에 무릎 꿇고 착지 — 챱.
+   * 곡 RISE.land(원곡 60.96초)에 무릎 꿇고 착지 — 챱.
    */
   arrive() {
     const g = this.game, p = g.player, a = this.gj, [lx, ly] = this.meta.land;
@@ -810,8 +811,8 @@ export class CastleDescent {
     // 오른쪽 사진: 크레딧이 올라가는 동안 한 장씩 고르게 나눠 천천히 나타났다 사라진다
     const Ph = C.photo, photos = C.photos, t0 = C.intro + Ph.lead, span = Math.max(1, dur - C.outro - Ph.tail - t0) / Math.max(1, photos.length);
     photos.forEach((src, i) => {
-      const img = this.game.propImages[src], u = T - (t0 + i * span); if (!img || u < 0 || u > span) return;
-      const a = Math.min(1, u / Ph.fade, (span - u) / Ph.fade), k = Math.min(Ph.w / img.width, Ph.h / img.height);
+      const show = span - (Ph.gap || 0), img = this.game.propImages[src], u = T - (t0 + i * span); if (!img || u < 0 || u > show) return;
+      const a = Math.min(1, u / Ph.fade, (show - u) / Ph.fade), k = Math.min(Ph.w / img.width, Ph.h / img.height);
       const w = Math.round(img.width * k), h = Math.round(img.height * k), x = Math.round(Ph.x - w / 2), y = Math.round(Ph.y - h / 2 - u * Ph.drift);
       ctx.globalAlpha = a;
       ctx.fillStyle = '#f4ecdc'; ctx.fillRect(x - Ph.frame, y - Ph.frame, w + Ph.frame * 2, h + Ph.frame * 2);

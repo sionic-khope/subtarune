@@ -36,6 +36,7 @@ export const ending_cookie_wake = [
 /** 컴퓨터(코드 없음) */
 export const cookie_pc_nocord = [
   HS('* ?!{w=0.4} 아 코드 또없네 시바'),
+  HS('* 아 또 코드가없네{w=0.3} 거실에서 챙겨와야겠다'),
 ];
 
 /** 거실 TV 서랍: 처음 코드 찾기와 같은 이벤트, 이번엔 평범한 검은 코드 */

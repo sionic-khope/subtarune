@@ -9,7 +9,8 @@ import { CREDITS } from '../data/credits.js';
 
 export const COOKIE_PHOTO = Object.freeze({
   bgm: 'good_night', volume: 0.6, bgmFade: 3.0,
-  fadeIn: 3.0, zoom: 1.06, zoomTime: 8.0, leave: 1.4,
+  // BUILD378(사용자): 사진은 약 3초 동안 천천히(부드러운 곡선) 떠오르고, 끝날 땐 5초 동안 천천히 사라진다
+  fadeIn: 3.2, zoom: 1.06, zoomTime: 8.0, leave: 5.0,
   photo: 'assets/credits/group_photo.png',
   // 모니터 베젤 · 화면 · 뷰어 창 · 큰 사진 칸 · 아래 그리드(칸 크기·간격)
   bezel: [14, 12, 452, 316], screen: [26, 24, 428, 286], window: [40, 36, 400, 260],
@@ -29,7 +30,8 @@ export class CookiePhoto {
   img(src) { const i = this.images[src]; return i && i.complete && i.naturalWidth ? i : null; }
   update(dt) {
     const C = COOKIE_PHOTO, g = this.game;
-    this.t += dt;
+    // 사진이 다 불러와진 뒤부터 시계를 돌린다(늦게 불러와 갑자기 튀어나오지 않게)
+    if (this.img(C.photo) || this.waited > 2) this.t += dt; else this.waited = (this.waited || 0) + dt;
     if (!this.leaving) {
       const s = g.sound, ended = this.t > C.fadeIn + 1 && (s.bgmName !== C.bgm || !s.bgm || s.bgm.ended);
       if ((this.t >= C.fadeIn && Input.just('confirm')) || ended) { this.leaving = 1e-6; s.stopBgm(C.leave); }
@@ -47,7 +49,7 @@ export class CookiePhoto {
     const C = COOKIE_PHOTO, t = this.t;
     ctx.save();
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-    ctx.globalAlpha = Math.min(1, t / C.fadeIn);
+    const f = Math.min(1, t / C.fadeIn); ctx.globalAlpha = f * f * (3 - 2 * f);
     // 8초 동안 아주 미세하게 확대되다 멈춘다
     const k = Math.min(1, t / C.zoomTime), z = 1 + (C.zoom - 1) * (1 - (1 - k) ** 2);
     ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
@@ -84,6 +86,6 @@ export class CookiePhoto {
       x += T.size + T.gap;
     }
     ctx.restore();
-    if (this.leaving) { ctx.fillStyle = `rgba(0,0,0,${Math.min(1, this.leaving / C.leave)})`; ctx.fillRect(0, 0, W, H); }
+    if (this.leaving) { const k = Math.min(1, this.leaving / C.leave); ctx.fillStyle = `rgba(0,0,0,${(k * k * (3 - 2 * k)).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
   }
 }

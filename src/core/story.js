@@ -843,3 +843,9 @@ for (const [id, spawn, extra, desc] of [
 }
 QA_POINTS.push({ ...gateReady, id: 'castle_arena', desc: '결전지 · 도착 연출(가재맨·소환·지원군·청소년 구슬·푸른 파동)', map: 'gajaeman_castle_arena', spawn: 'start', stage: 'castle_prophecy_seen',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true } });
+// QA 목록은 이야기 순서로(BUILD378, 사용자 “QA 이상한 거 같은데”): 나중에 덧붙인 지점을 제자리로 옮긴다
+for (const [id, after] of [['castle_arena', 'castle_prophecy_door'], ['castle_sunset_run', 'castle_sunset']]) {
+  const from = QA_POINTS.findIndex(p => p.id === id); if (from < 0) continue;
+  const [pt] = QA_POINTS.splice(from, 1), to = QA_POINTS.findIndex(p => p.id === after);
+  QA_POINTS.splice(to < 0 ? QA_POINTS.length : to + 1, 0, pt);
+}

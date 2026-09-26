@@ -275,10 +275,14 @@ export class TitleScreen {
         q.i = qaStep(q.i, n, d, false); q.top = Math.max(0, Math.min(q.top + d, Math.max(0, n - R))); this._qaScroll(); this.game.sound.sfx('menu');
       }
       if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
-      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; this._leave(async () => { await this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
+      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; try { localStorage.setItem('subtarune_qa_last', pt.id); } catch { /* 저장 불가 */ } this._leave(async () => { await this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
       return;
     }
-    if (input.just('qa')) { this.qa = { i: 0, top: 0 }; this.game.sound.sfx('menu'); return; }
+    if (input.just('qa')) {
+      // 마지막으로 고른 지점에서 다시 연다(브라우저 저장, 없으면 맨 위)
+      let last = 0; try { last = Math.max(0, QA_MENU.findIndex(p => p.id === localStorage.getItem('subtarune_qa_last'))); } catch { last = 0; }
+      this.qa = { i: last, top: 0 }; this._qaScroll(); this.game.sound.sfx('menu'); return;
+    }
     if (this.time <= PROMPT_DELAY) return;
     const hasSave = this.game.hasSave();
     if (input.just('confirm')) {                                   // C: 세이브 있으면 이어하기, 없으면 새 게임

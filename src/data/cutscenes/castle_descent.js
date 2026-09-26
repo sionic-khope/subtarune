@@ -114,7 +114,7 @@ export const castle_raft_intro = Object.assign([
   { label: 'end' }, { end: true },
 ], { silent: true });
 
-/** 노을 땅 도착: 가재맨이 먼저 올라와 있다가 오른쪽으로 도망 → 요플래가 땅 앞에서 동그랗게 앞덤블링하며 올라와 원곡 64초에 무릎 꿇고 착지(챱). */
+/** 노을 땅 도착: 가재맨이 먼저 올라와 있다가 오른쪽으로 도망 → 요플래가 땅 앞에서 동그랗게 앞덤블링하며 올라와 원곡 60.96초(RISE.land)에 무릎 꿇고 착지(챱). */
 export const castle_sunset_arrival = Object.assign([
   { if: flags => !!flags.castle_epilogue_done, goto: 'end' },
   { if: flags => !!flags.castle_gajaeman_clash, goto: 'epilogue' },
@@ -207,15 +207,17 @@ export const castle_sunset_arrival = Object.assign([
 const DOOR_FRONT = [384, 244];
 const walkOut = (id, wait = 0, extra = {}) => [{ wait }, { show: id }, { move: id, px: DOOR_FRONT, facing: 'up', ...extra }, scene(s => s.enterDoor(id))];
 const vignette = (...branches) => [{ fade: 'in', duration: 0.9 }, { parallel: branches }, { wait: 0.9 }, { fade: 'out', duration: 0.9 }, { wait: 0.3 }];
+// 퍼레이드에 들어가는 첫 장면만 페이드 인 1초 더(사용자 BUILD378)
+const firstVignette = (...branches) => [{ fade: 'in', duration: 1.9 }, ...vignette(...branches).slice(1)];
 export const ship_lounge_epilogue = Object.assign([
   { if: flags => !!flags.ship_lounge_epilogue_seen, goto: 'end' },
   close,
   scene(s => s.loungeSetup()),
   { camera: at(384, 226), duration: 0.01 }, { zoom: 0.86, at: [384, 226], duration: 0.01 },
   // 곡(lost girl, P89rxnT7lKw)은 반복 없이 끝까지 — 끝나면 갑판으로
-  { action: game => game.sound.playBgm('lounge_parade', { volume: 0.6, fadeIn: 0.8, loop: false }) },
+  { action: game => game.sound.playBgm('lounge_parade', { volume: 0.6, fadeIn: 1.8, loop: false }) },
   // 1. 따듯한비데와 도트마리오
-  ...vignette(walkOut('epi_bidet', 0.6), walkOut('epi_mario', 1.3)),
+  ...firstVignette(walkOut('epi_bidet', 0.6), walkOut('epi_mario', 1.3)),
   // 2. 파크가디언: 문 앞에서 돌아서 인사하고 들어간다 · 뚜울라가 뒤따른다
   ...vignette([{ wait: 0.5 }, { show: 'epi_park' }, { move: 'epi_park', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_park', dir: 'down' }, { wait: 0.3 }, { motion: 'epi_park', name: 'bow' }, { face: 'epi_park', dir: 'up' }, scene(s => s.enterDoor('epi_park'))],
     walkOut('epi_ttuulla', 2.2)),
