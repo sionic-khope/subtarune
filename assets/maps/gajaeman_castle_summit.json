@@ -315,6 +315,16 @@
   },
   {
    "type": "trigger",
+   "id": "summit_leap",
+   "x": 1743,
+   "y": 340,
+   "w": 14,
+   "h": 110,
+   "script": "castle_summit_leap",
+   "requires": "castle_teen_finale_seen"
+  },
+  {
+   "type": "trigger",
    "id": "summit_back",
    "x": 112,
    "y": 710,

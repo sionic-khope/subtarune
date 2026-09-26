@@ -1,0 +1,165 @@
+{
+ "id": "gajaeman_castle_raft",
+ "name": "가재맨성 뗏목 웅덩이",
+ "stage": "castle_summit_ready",
+ "bgm": "save_the_world",
+ "bgmVolume": 0.6,
+ "rows": [
+  "                         ",
+  "                         ",
+  "          ▒▒▒▒▒▒▒▒▒▒     ",
+  "          ▒▒▒▒▒▒▒▒▒▒     ",
+  "          ▒▒▒▒▒▒▒▒▒▒     ",
+  "          ▒▒▒▒▒▒▒▒▒▒     ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "                         ",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "                         "
+ ],
+ "enter": {
+  "script": "castle_raft_intro",
+  "early": true
+ },
+ "preload": [
+  "assets/props/raft358_wall.png",
+  "assets/props/raft.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 24,
+   "y": 1310,
+   "facing": "right"
+  },
+  "top": {
+   "x": 468,
+   "y": 110,
+   "facing": "down"
+  }
+ },
+ "meta": {
+  "connected": false,
+  "descent": {
+   "kind": "raft",
+   "band": [
+    1216,
+    1472
+   ],
+   "gajaeman": "raft_gajaeman",
+   "pool": [
+    416,
+    1280,
+    128,
+    96
+   ],
+   "wall": {
+    "image": "assets/props/raft358_wall.png",
+    "x": 322,
+    "bottom": 1260,
+    "w": 316,
+    "h": 1068
+   },
+   "ledge": [
+    320,
+    64,
+    320,
+    128
+   ],
+   "raft": "assets/props/raft.png"
+  }
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "raft_wall",
+   "image": "assets/props/raft358_wall.png",
+   "x": 322,
+   "y": 192,
+   "w": 316,
+   "h": 2,
+   "solid": false,
+   "sortY": -3
+  },
+  {
+   "type": "npc",
+   "id": "raft_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": -120,
+   "y": 1200,
+   "facing": "right",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.89
+  },
+  {
+   "type": "prop",
+   "id": "raft_stand_player",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 372,
+   "y": 1308,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "raft_stand_gyeongsub",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 328,
+   "y": 1282,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "raft_stand_ppaman",
+   "image": "assets/tiles/castle306_floor.png",
+   "x": 328,
+   "y": 1338,
+   "w": 24,
+   "h": 16,
+   "solid": false,
+   "hidden": true
+  }
+ ]
+}

@@ -69,6 +69,8 @@ def main() -> None:
          'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.89},
         # 대치 → 전투. 이긴 뒤엔 스크립트가 바로 끝난다(이어하기에서 대치 뒤 저장이면 전투부터)
         {'type': 'trigger', 'id': 'summit_confront', 'x': EDGE - 380, 'y': 340, 'w': 24, 'h': 110, 'script': 'castle_summit_confront'},
+        # BUILD358: 격파 연출을 본 뒤 부서진 끝에 다시 닿으면 뛰어내려 끝없는 길로
+        {'type': 'trigger', 'id': 'summit_leap', 'x': EDGE - 14, 'y': 340, 'w': 14, 'h': 110, 'script': 'castle_summit_leap', 'requires': 'castle_teen_finale_seen'},
         {'type': 'trigger', 'id': 'summit_back', 'x': 112, 'y': H - 58, 'w': 236, 'h': 10, 'script': 'castle_spire_back'},
     ])
     data = {

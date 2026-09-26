@@ -77,6 +77,7 @@ import { ProphecyHall } from './scenes/prophecy-hall.js';
 import { CastleArena } from './scenes/castle-arena.js';
 import { CastleStairs } from './scenes/castle-stairs.js';
 import { CastleSummit } from './scenes/castle-summit.js';
+import { CastleDescent } from './scenes/castle-descent.js';
 import { updateCastleGate, drawCastleGate, finishCastleGate } from './scenes/castle-gate.js';
 import { clearShipDeckPoses } from './scenes/ship-deck-poses.js';
 import { clearLoungeBriefing } from './data/cutscenes/ship_lounge_briefing.js';
@@ -953,6 +954,7 @@ class Game {
       this.castleArena = def.meta?.arena ? new CastleArena(this) : null;
       this.castleStairs?.dispose(); this.castleStairs = def.meta?.stairs ? new CastleStairs(this) : null;
       this.castleSummit?.dispose(); this.castleSummit = def.meta?.summit ? new CastleSummit(this) : null;
+      this.castleDescent?.dispose(); this.castleDescent = def.meta?.descent ? new CastleDescent(this) : null;
       restoreCastleBoulder(this);
       if (mapId === 'maillard_captain' && this.has('captain_reveal_done') && !this.has('captain_aftermath_done')) {
         darkSmokeWaiter(this, { mode: 'veil', duration: 0.01, veil: CAPTAIN_REVEAL_VEIL,
@@ -1327,6 +1329,7 @@ class Game {
     this.castleArena?.update(dt);
     this.castleStairs?.update(dt);
     this.castleSummit?.update(dt);
+    this.castleDescent?.update(dt);
     updateCastleBoulderPush(this, dt, Input);
     updateCastleGate(this, dt);
     updateCastleOrb(this, dt);
@@ -1654,6 +1657,8 @@ class Game {
     let smokeBehindPending = !!this.darkSmoke?.behindActors;
     // 꼭대기 청소년은 바닥 조각 다음·배우 앞(끝길 다리와 일행이 그 앞에 선다, BUILD346)
     let summitBehindPending = !!this.castleSummit;
+    // 끝없는 길·뗏목 웅덩이: 길 테두리·웅덩이·잠수·뗏목은 바닥 소품(벽) 다음·배우 앞(BUILD358)
+    let descentBehindPending = !!this.castleDescent;
     // y 정렬: 아래 있는 엔티티가 앞. 누운 플레이어는 침대 위에 보여야 하므로 맨 뒤(위)에 그린다
     const onProp = (e) => e === this.player && this.entities.some((p) => p.def.type === 'prop' && p.solid && p.overlaps(e.rect));
     const key = (e) => (e.def?.sortY ?? (e.y + e.h)) + (e.pose === 'lying' || onProp(e) || (this.ride && e === this.player) ? 10000 : 0);   // sortY: 항상 뒤에 그릴 소품 / 탈것에 탄 플레이어는 항상 위(덮이지 않게)
@@ -1665,6 +1670,7 @@ class Game {
       // 배우 뒤 연기는 바닥 소품(sortY<0, 대성당 회랑 바닥 등) 다음에 — 바닥이 연기를 잘라 덮지 않게(BUILD323)
       if (smokeBehindPending && key(e) >= 0) { drawDarkSmoke(ctx, this, cam); smokeBehindPending = false; }
       if (summitBehindPending && key(e) >= 0) { this.castleSummit.drawBehind(ctx, cam); summitBehindPending = false; }
+      if (descentBehindPending && key(e) >= 0) { this.castleDescent.drawBehind(ctx, cam); descentBehindPending = false; }
       if (!skyPollenDrawn && this.choimisSky.actors.includes(e)) {
         drawChoimisSkyPollen(ctx, this, cam);
         skyPollenDrawn = true;
@@ -1676,6 +1682,7 @@ class Game {
     if (!skyPollenDrawn) drawChoimisSkyPollen(ctx, this, cam);
     if (smokeBehindPending) drawDarkSmoke(ctx, this, cam);
     if (summitBehindPending) this.castleSummit.drawBehind(ctx, cam);
+    if (descentBehindPending) this.castleDescent.drawBehind(ctx, cam);
     this.runner?.drawAir(ctx, cam);      // 러너 기믹: 바람 줄기·물보라(엔티티 위)
     if (!this.darkSmoke?.behindActors) drawDarkSmoke(ctx, this, cam);
     this.castleLobby?.draw(ctx, cam);
@@ -1687,6 +1694,7 @@ class Game {
     this.castleArena?.draw(ctx, cam);
     this.castleStairs?.draw(ctx, cam);
     this.castleSummit?.draw(ctx, cam);
+    this.castleDescent?.draw(ctx, cam);
     for (const f of this.fx) { ctx.fillStyle = f.color; ctx.fillRect(Math.round(f.x - cam.x), Math.round(f.y - cam.y), 2, 2); }   // 물방울 등 작은 점
     if (this.sparks) { for (const p of this.sparks) { if (!(p.a > 0)) continue; ctx.globalAlpha = Math.min(1, p.a); ctx.fillStyle = p.color; const sz = p.size ?? (Math.floor(p.ang * 3) % 2 ? 4 : 2); ctx.fillRect(Math.round(p.x - cam.x) - sz / 2, Math.round(p.y - cam.y) - sz / 2, sz, sz); } ctx.globalAlpha = 1; }
     if (this.flames.length) { for (const p of this.flames) { const k = p.t / p.life; ctx.globalAlpha = 0.9 * (1 - k * k); ctx.fillStyle = k < 0.25 ? '#fff2a0' : k < 0.5 ? '#ffb43a' : k < 0.8 ? '#ff5a2a' : '#6a2a1a'; const sz = Math.max(1, Math.round(p.size * (1 - k * 0.6))); ctx.fillRect(Math.round(p.x - cam.x) - (sz >> 1), Math.round(p.y - cam.y) - (sz >> 1), sz, sz); } ctx.globalAlpha = 1; }   // 불꽃(컷신 {fire}/{rocket})

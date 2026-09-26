@@ -47,6 +47,8 @@ export class CastleSummit {
     this.form = 'p1'; this.core = false; this.tremble = 0; this.fx = []; this.blade = null; this.balls = []; this.booms = [];
     this.swords = []; this.baron = null; this.cannonOn = false; this.arm = null; this.fall = null; this.lying = null; this.gather = null; this.waves = [];
     void game.sound.loadSfxFiles?.(['captain_transform', 'captain_thunder', 'rumble', 'wing', 'power', 'thud']);
+    // BUILD358: 뛰어내린 뒤의 끝없는 길을 미리 준비(페이드 뒤 검은 화면이 길게 남지 않게)
+    if (game.has(SUMMIT.stage)) void game.waitForMap?.('gajaeman_castle_skyroad')?.catch?.(() => {});
     // 대치가 끝난 저장에서는 청소년·가재맨이 이미 자리에 있다
     if (game.has(SUMMIT.stage)) { this.giant = { t: SUMMIT.reveal }; this.aura = 1; this.perch(true); }
     // 격파 연출을 본 뒤: 청소년은 넘어가 사라졌고 가재맨은 도망갔다
@@ -513,7 +515,7 @@ export class CastleSummit {
   }
   /** 부서진 끝에서 오른쪽으로 뛰어내려 아래로 떨어져 사라진다(뿅 사라지지 않게) */
   leapOff(id) {
-    const e = this.game.entities.find(x => x.id === id); if (!e) return undefined;
+    const e = id === 'player' ? this.game.player : this.game.entities.find(x => x.id === id); if (!e) return undefined;
     const x0 = e.x, y0 = e.y; let t = 0; const d = 1.3;
     this.game.sound.sfx('jump', { volume: 0.6 });
     return this.waitFor(() => {

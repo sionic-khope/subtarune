@@ -1,6 +1,7 @@
 // BUILD337 사용자 브리핑(2026-09-25): 꼭대기 끝길의 대치. 대사·표기 원문 그대로. 전투는 아직 만들지 않는다(사용자 “일단 전투는 만들지마”).
 import { TEEN_BATTLE } from '../teen-battle.js';
 import { FX } from '../fx.js';
+import { SUMMIT_LEAP } from './castle_descent.js';
 
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
@@ -160,6 +161,11 @@ export const castle_summit_confront = Object.assign([
   { parallel: ['finale_youngcle', 'finale_bidet', 'finale_mario', 'finale_ttuulla', 'finale_park'].map((id, i) => [{ wait: i * 0.45 },
     { move: id, px: [1726, 380], run: true, facing: 'right' }, summit(s => s.leapOff(id))]) },
   { wait: 0.6 },
+  // BUILD358: 편집자들이 다 뛰어내리고 나면 — 억빠맨 한마디 뒤 일행도 차례로 뛰어내려 페이드로 끝없는 길
+  ...PARTY.map(id => ({ face: id, dir: 'right' })), { wait: 0.4 },
+  P('저.. 저희도 빨리 따라가죠!!'), close,
   { set: { castle_teen_finale_seen: true } },
+  ...SUMMIT_LEAP,
+  { end: true },
   { label: 'end' }, { end: true },
 ], { silent: true });

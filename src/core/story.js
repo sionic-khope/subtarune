@@ -817,6 +817,15 @@ for (const [id, spawn, extra, desc] of [
     ['castle_teen_after', { castle_teen_won: true, castle_teen_finale_seen: true }, null, '꼭대기 · 격파 연출 뒤'],
   ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_summit', spawn: 'confront', stage: 'castle_summit_ready',
     extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...summitFlags, ...extra }, ...(script ? { script } : {}) });
+  // BUILD358 꼭대기 뒤: 끝없는 길(착지·구간 셋·끝) · 뗏목 웅덩이
+  const after = { ...summitFlags, castle_teen_won: true, castle_teen_finale_seen: true };
+  const road = { castle_road_landed: true, castle_road_z1: true, castle_road_z2: true, castle_road_z3: true };
+  for (const [id, map, spawn, extra, desc] of [
+    ['castle_road', 'gajaeman_castle_skyroad', 'start', {}, '끝없는 길 · 가재맨 도망·착지 → 섭 몬스터와 편집노조'],
+    ['castle_road_end', 'gajaeman_castle_skyroad', 'end', road, '끝없는 길 · 끝(검 넷·영클 레이저)'],
+    ['castle_raft', 'gajaeman_castle_raft', 'start', { ...road, castle_road_done: true }, '뗏목 웅덩이 · 가재맨 상승 → 뗏목 점프'],
+  ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_summit_ready',
+    extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...after, ...extra } });
 }
 QA_POINTS.push({ ...gateReady, id: 'castle_arena', desc: '결전지 · 도착 연출(가재맨·소환·지원군·청소년 구슬·푸른 파동)', map: 'gajaeman_castle_arena', spawn: 'start', stage: 'castle_prophecy_seen',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true } });

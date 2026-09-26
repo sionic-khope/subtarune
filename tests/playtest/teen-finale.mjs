@@ -17,11 +17,13 @@ await runScenario({ name: 'teen-finale', launchOptions: { args: ['--autoplay-pol
     else { if (i % 5 === 0) await shot(`f-${String(n++).padStart(3, '0')}`); await page.waitForTimeout(160); }
     if (!s.running && i > 5) break;
   }
-  const end = await page.evaluate(() => ({ seen: !!game.flags.castle_teen_finale_seen, bgm: game.sound.bgmName, hp: { ...game.partyHp } }));
-  const expect = ['말..말도안돼', '이건... 이럴수가 없어.', '너희가 나를 막게 둘수없다!!!', '헉... 헉... 미친.. 말도안돼', '...윽.. 이대로 지는건가..', '잘.. 가라..', '이제 끝내자.', '죽어!!', '하이요 형들ㅋㅋ', '용.. 용준아 살아있었구나!!', '아 당연하죠 형님들 ㅋㅋ', '이... 이...녀석들이!!!', '?!', '으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!', '죽어라 괴물!!!', '?! 타코', '너까지 살아있었구나', '바보같은 소리하지마라 가재맨!!!!!', '우리가 가재맨을 싫어한다고?', '지랄도 정도껏이지.', '가재맨 바로 너란말이다!!!!!!!!', '앞을 부탁한다.. 너네들,,,', '이번엔 내가 맡지!', '영클아 그리고 너희들..', '빨리 쫒아가자 이딴 상처 아무것도 아님.'];
+  await until(() => game.mapId === 'gajaeman_castle_skyroad' && !game.dialogue.running, 30000);
+  const end = await page.evaluate(() => ({ map: game.mapId, seen: !!game.flags.castle_teen_finale_seen, bgm: game.sound.bgmName, hp: { ...game.partyHp } }));
+  const expect = ['말..말도안돼', '이건... 이럴수가 없어.', '너희가 나를 막게 둘수없다!!!', '헉... 헉... 미친.. 말도안돼', '...윽.. 이대로 지는건가..', '잘.. 가라..', '이제 끝내자.', '죽어!!', '하이요 형들ㅋㅋ', '용.. 용준아 살아있었구나!!', '아 당연하죠 형님들 ㅋㅋ', '이... 이...녀석들이!!!', '?!', '으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!', '죽어라 괴물!!!', '?! 타코', '너까지 살아있었구나', '바보같은 소리하지마라 가재맨!!!!!', '우리가 가재맨을 싫어한다고?', '지랄도 정도껏이지.', '가재맨 바로 너란말이다!!!!!!!!', '앞을 부탁한다.. 너네들,,,', '이번엔 내가 맡지!', '영클아 그리고 너희들..', '빨리 쫒아가자 이딴 상처 아무것도 아님.', '저.. 저희도 빨리 따라가죠!!'];
   const plain = lines.map(t => (t || '').replace(/\{[^}]*\}/g, ''));
   check('finale lines verbatim and in order', expect.every(e => plain.some(t => t.includes(e))), JSON.stringify(plain));
   check('party left at 1 HP by the release blast', Object.values(end.hp).every(v => v === 1), JSON.stringify(end.hp));
   check('SAVE The World plays once 박용준 arrives', end.bgm === 'save_the_world', end.bgm);
   check('finale marked seen', end.seen);
+  check('party leaps off into the straight road', end.map === 'gajaeman_castle_skyroad', end.map);
 });

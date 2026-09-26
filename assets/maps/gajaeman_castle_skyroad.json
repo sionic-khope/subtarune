@@ -1,0 +1,282 @@
+{
+ "id": "gajaeman_castle_skyroad",
+ "name": "가재맨성 끝없는 길",
+ "stage": "castle_summit_ready",
+ "bgm": "save_the_world",
+ "bgmVolume": 0.6,
+ "rows": [
+  "                                                                                ",
+  "                                                                                ",
+  "                                                                                ",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+  "                                                                                ",
+  "                                                                                ",
+  "                                                                                "
+ ],
+ "enter": {
+  "script": "castle_road_intro",
+  "early": true
+ },
+ "preload": [
+  "assets/props/cathedral323_sword.png",
+  "assets/props/arena332_teemo.png",
+  "assets/props/arena332_ahri.png",
+  "assets/props/arena332_darius.png",
+  "assets/props/arena332_nasus.png",
+  "assets/props/arena332_thresh.png",
+  "assets/props/arena332_blitzcrank.png",
+  "assets/props/arena332_fiddlesticks.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 72,
+   "y": 124,
+   "facing": "right"
+  },
+  "end": {
+   "x": 2200,
+   "y": 224,
+   "facing": "right"
+  }
+ },
+ "meta": {
+  "connected": true,
+  "descent": {
+   "kind": "road",
+   "band": [
+    96,
+    384
+   ],
+   "gajaeman": "road_gajaeman",
+   "monsters": [
+    {
+     "zone": 1,
+     "id": "road_mon_teemo",
+     "side": "top",
+     "w": 60,
+     "h": 44
+    },
+    {
+     "zone": 1,
+     "id": "road_mon_ahri",
+     "side": "bottom",
+     "w": 84,
+     "h": 72
+    },
+    {
+     "zone": 2,
+     "id": "road_mon_darius",
+     "side": "top",
+     "w": 92,
+     "h": 90
+    },
+    {
+     "zone": 2,
+     "id": "road_mon_nasus",
+     "side": "bottom",
+     "w": 92,
+     "h": 96
+    },
+    {
+     "zone": 3,
+     "id": "road_mon_thresh",
+     "side": "top",
+     "w": 84,
+     "h": 92
+    },
+    {
+     "zone": 3,
+     "id": "road_mon_blitzcrank",
+     "side": "bottom",
+     "w": 104,
+     "h": 100
+    },
+    {
+     "zone": 3,
+     "id": "road_mon_fiddlesticks",
+     "side": "top",
+     "w": 88,
+     "h": 94
+    }
+   ]
+  }
+ },
+ "entities": [
+  {
+   "type": "npc",
+   "id": "road_gajaeman",
+   "sprite": "gajaeman_shadow",
+   "x": -120,
+   "y": 120,
+   "facing": "right",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.89
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_teemo",
+   "image": "assets/props/arena332_teemo.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_ahri",
+   "image": "assets/props/arena332_ahri.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_darius",
+   "image": "assets/props/arena332_darius.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_nasus",
+   "image": "assets/props/arena332_nasus.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_thresh",
+   "image": "assets/props/arena332_thresh.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_blitzcrank",
+   "image": "assets/props/arena332_blitzcrank.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "road_mon_fiddlesticks",
+   "image": "assets/props/arena332_fiddlesticks.png",
+   "x": 0,
+   "y": -400,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "road_bidet",
+   "sprite": "warm_bidet",
+   "x": 0,
+   "y": -400,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "road_park",
+   "sprite": "park_guardian_costume",
+   "x": 0,
+   "y": -400,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 2.22
+  },
+  {
+   "type": "npc",
+   "id": "road_ttuulla",
+   "sprite": "ttuulla",
+   "x": 0,
+   "y": -400,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true,
+   "visualScale": 1.79
+  },
+  {
+   "type": "npc",
+   "id": "road_mario",
+   "sprite": "mini_mario",
+   "x": 0,
+   "y": -400,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "road_youngcle",
+   "sprite": "youngcle_hover",
+   "x": 0,
+   "y": -400,
+   "facing": "left",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "trigger",
+   "id": "road_z1",
+   "x": 520,
+   "y": 96,
+   "w": 24,
+   "h": 288,
+   "script": "castle_road_z1"
+  },
+  {
+   "type": "trigger",
+   "id": "road_z2",
+   "x": 1120,
+   "y": 96,
+   "w": 24,
+   "h": 288,
+   "script": "castle_road_z2"
+  },
+  {
+   "type": "trigger",
+   "id": "road_z3",
+   "x": 1720,
+   "y": 96,
+   "w": 24,
+   "h": 288,
+   "script": "castle_road_z3"
+  },
+  {
+   "type": "trigger",
+   "id": "road_end",
+   "x": 2240,
+   "y": 96,
+   "w": 24,
+   "h": 288,
+   "script": "castle_road_end"
+  }
+ ]
+}
