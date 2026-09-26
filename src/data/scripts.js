@@ -6,6 +6,7 @@
 import { opening } from './cutscenes/opening.js';
 import { living_enter } from './cutscenes/living_enter.js';
 import { pc_stream } from './cutscenes/pc_stream.js';
+import { cookie_pc_nocord, cookie_tv, cookie_photo } from './cutscenes/ending_cookie.js';
 import { void4_arrive, void4_lever } from './cutscenes/void4.js';
 import { void4_ppaman_talk } from './cutscenes/void4_ppaman.js';
 import { void4_door } from './cutscenes/void4_key.js';
@@ -221,6 +222,9 @@ export const SCRIPTS = {
 
   // ── 형섭의 방 (우이동) ──────────────────────────────────
   room_computer: [
+    // 엔딩 쿠키(BUILD373): 코드가 또 없다 → 검은 코드를 꽂으면 사진 메시지
+    { if: (f) => f.ending_cookie && f.cookie_cord, goto: 'cookie_photo' },
+    { if: (f) => f.ending_cookie, goto: 'cookie_nocord' },
     { if: (f) => f.cord_found, goto: 'stream' },     // 코드를 챙긴 뒤: 꽂고 방송 시작 (컷신)
     { if: (f) => f.pc_checked, goto: 'again' },
     HS('* ???{w=0.4} 어 뭐야'),
@@ -231,6 +235,12 @@ export const SCRIPTS = {
     { end: true },
     { label: 'again' },
     { text: '* (코드가 없다.{w=0.3} 엄마한테 가야 된다.)', voice: 'narrator' },
+    { end: true },
+    { label: 'cookie_nocord' },
+    ...cookie_pc_nocord,
+    { end: true },
+    { label: 'cookie_photo' },
+    ...cookie_photo,
     { end: true },
     { label: 'stream' },
     ...pc_stream,
@@ -336,6 +346,8 @@ export const SCRIPTS = {
   ],
   // 티비: 서랍 3D 씬에서 보라색 코드를 찾는다 (src/scenes/drawer.js). 2D 줌인 → 3D 크로스페이드 → 획득 → 줌아웃
   living_tv: [
+    // 엔딩 쿠키(BUILD373): 같은 서랍 이벤트로 이번엔 검은 코드
+    { if: (f) => f.ending_cookie, goto: 'cookie' },
     { if: (f) => f.cord_found, goto: 'done' },
     HS('* 빈 코드를 뒤져봐야겠다.'),
     { zoom: 2.8, at: 'tv', offset: [0, -10], duration: 0.9 },
@@ -352,6 +364,8 @@ export const SCRIPTS = {
     { text: '* 보라색 코드를 주머니에 넣었다.', voice: 'narrator' },
     { action: (g) => { if (!g.inventory.includes('보라색 코드 ?')) g.inventory.push('보라색 코드 ?'); } },
     { end: true },
+    { label: 'cookie' },
+    ...cookie_tv,
     { label: 'later' },
     { text: '* (나중에 다시 뒤지자.)', voice: 'narrator' },
     { end: true },

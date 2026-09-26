@@ -1,0 +1,7 @@
+Use case: identity-preserve. Image1 (left part of the reference) is the approved sprite strip of Gyeongsub seen from BEHIND and looking back (exact identity AND pixel density): a short squat chibi man with long black bob hair covering the back of his head, round glasses, navy T-shirt, navy shorts, navy shoes. The right part shows his standard overworld sprite sheet for the same character.
+
+Create a separate 2 by 2 four-frame full-body sprite sheet at the SAME pixel scale and style as the left strip:
+- all four frames: seen from BEHIND (back view, facing away from the viewer, walking into a doorway), standing still, his LEFT arm raised to shoulder height and his left hand resting flat against a door/wall that is just to his LEFT (the door itself is NOT drawn — only his arm reaching out to the left with the palm flat as if leaning a hand on a door edge), right arm hanging relaxed;
+- top left and top right: head straight, back of the hair visible;
+- bottom left and bottom right: same pose with the head tilted very slightly down.
+Match the squat chibi proportions, coarse flat square pixel clusters, simple dark stepped outline, exact hair/outfit invariants, same scale in all four frames. Exactly four distinct equally-spaced figures in 2x2 equal cells with generous clear margins, nothing clipped. Flat solid magenta #FF00FF background, no labels, no text, no ground, no shadow, no door, no effects.

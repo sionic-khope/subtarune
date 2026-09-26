@@ -101,4 +101,5 @@ BASE_URL_SCENARIOS.add('gajaeman-runner');
 BASE_URL_SCENARIOS.add('castle-epilogue');
 BASE_URL_SCENARIOS.add('ship-deck-epilogue');
 BASE_URL_SCENARIOS.add('ship-farewell');
+BASE_URL_SCENARIOS.add('home-cookie');
 BASE_URL_SCENARIOS.add('teen-qa-points');

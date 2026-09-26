@@ -123,7 +123,8 @@ test('test_castle_qa_includes_consumed_rescue_upgrades_once_with_full_maximum_hp
 });
 
 test('test_precastle_qa_preserves_optional_rescue_shop_purchase_and_immediate_consumption', () => {
-  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory|regret|torii)|^ship_(lounge|deck)_epilogue$|^ship_lounge_farewell$/.test(point.map || ''))) {
+  // 엔딩(성 이후·결말·쿠키) 지점은 상점 뒤라 제외
+  for (const point of QA_POINTS.filter(point => !/^gajaeman_(castle|memory|regret|torii)|^ship_(lounge|deck)_epilogue$|^ship_lounge_farewell$/.test(point.map || '') && !/^home_cookie/.test(point.id))) {
     assert.equal(!!point.flags?.shop_yongjun_strong_cialis, false, point.id);
     assert.equal(!!point.flags?.shop_yongjun_strong_vaseline, false, point.id);
   }

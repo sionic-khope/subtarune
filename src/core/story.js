@@ -199,7 +199,8 @@ export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } 
 /** 동료 가입 플래그 → 동료 id. QA 지점의 party 가 없으면 flags 에서 유도하고, 있으면 이 규칙과 맞는지 단위 테스트가 검사한다 (2026-09-10 상태 관리) */
 export const PARTY_FLAGS = [['void11_done', 'gyeongsub'], ['ppaman_joined', 'ppaman']];   // 순서는 걷는 순서(경섭 → 빠맨)와 같게; 최종 순서는 normalizeParty 가 보장
 // 침몰 뒤 짜장섬은 요플래 단독 → 토리이 길에서 청소부(허약)가 합류하면 청소부만(BUILD226)
-export const partyFromFlags = (flags) => flags?.castle_gate_reunion_done ? ['gyeongsub', 'ppaman'] : flags?.castle_boulder_done ? [] : flags?.castle_pipe_returned ? ['gyeongsub', 'ppaman'] : flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
+// ending_cookie(BUILD373): 크레딧 뒤 처음 집은 형섭 혼자
+export const partyFromFlags = (flags) => flags?.ending_cookie ? [] : flags?.castle_gate_reunion_done ? ['gyeongsub', 'ppaman'] : flags?.castle_boulder_done ? [] : flags?.castle_pipe_returned ? ['gyeongsub', 'ppaman'] : flags?.castle_malzahar_split ? [] : flags?.ship_sinking_done
   ? (flags?.choimis_rescued || flags?.choimis_flower_done ? ['gyeongsub', 'ppaman']
     : flags?.sakura8_split_done ? []
     : flags?.party_regrouped ? ['gyeongsub', 'ppaman']                          // 드럼통의 악마 뒤 동상 앞에서 억빠맨·경섭 재합류(party_regrouped, BUILD254)
@@ -834,6 +835,11 @@ for (const [id, spawn, extra, desc] of [
     ['castle_sunset_run', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true }, '노을 땅 · SAVE THE WORLD → 가재맨 달리기 결전'],
   ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_summit_ready',
     extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...after, ...extra } });
+  // BUILD373 엔딩 쿠키: 크레딧 뒤 처음 집(방) — 동료 없이 형섭 혼자
+  const done = { ...after, ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true, castle_epilogue_done: true,
+    ship_lounge_epilogue_seen: true, ship_deck_epilogue_seen: true, ship_lounge_farewell_seen: true, ending_cookie: true };
+  QA_POINTS.push({ ...gateReady, id: 'home_cookie', desc: '엔딩 쿠키 · 처음 집(코드 없음 → TV 검은 코드 → 사진)', map: 'room', spawn: 'up', stage: 'castle_summit_ready', party: [], flags: done });
+  QA_POINTS.push({ ...gateReady, id: 'home_cookie_photo', desc: '엔딩 쿠키 · 검은 코드 챙김 → 컴퓨터에서 사진', map: 'room', spawn: 'pc', stage: 'castle_summit_ready', party: [], flags: { ...done, cookie_cord: true } });
 }
 QA_POINTS.push({ ...gateReady, id: 'castle_arena', desc: '결전지 · 도착 연출(가재맨·소환·지원군·청소년 구슬·푸른 파동)', map: 'gajaeman_castle_arena', spawn: 'start', stage: 'castle_prophecy_seen',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true } });

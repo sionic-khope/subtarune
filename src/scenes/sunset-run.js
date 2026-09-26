@@ -44,7 +44,7 @@ export class SunsetRun {
         if (ev === 'step') for (let i = 0; i < 3; i++) this.puffs.push({ x: this.x - 4, y: this.groundY - 2, vx: -60 - this.rnd() * 80, vy: -10 - this.rnd() * 20, t: 0, life: 0.45, s: 2 + (i % 2) });
       }
     }
-    if (this.revealing) this.reveal = Math.min(1, this.reveal + dt / C.white.reveal);
+    if (this.revealing) { this.reveal = Math.min(1, this.reveal + dt / C.white.reveal); this.barsT = (this.barsT || 0) + dt; }
     this.white = 1 - smooth(this.reveal);
     for (const f of this.slashFx) f.t += dt;
     this.slashFx = this.slashFx.filter(f => f.t < f.dur);
@@ -215,10 +215,14 @@ export class SunsetRun {
     // 출발 번쩍임: 화면 전체가 한 번 더 하얗게 빛났다가 빠진다
     if (this.dashFlash > 0) { const k = this.dashFlash / C.white.burst; ctx.fillStyle = `rgba(255,251,238,${(0.95 * k * Math.sqrt(k)).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
     if (this.reveal > 0) {
-      // 무지개 선: 위 선은 위에서 내려오고 아래 선은 아래에서 올라와 자리 잡는다
-      const a = smooth(this.reveal);
-      this.rainbowLine(ctx, lerp(-4, 12, a), a);
-      this.rainbowLine(ctx, lerp(H + 2, 320, a), a);
+      // 무지개 선(BUILD373): 흰 화면이 걷히기 시작하면 위 선은 위에서, 아래 선은 아래에서 휙 들어와 자리 잡고
+      // 선 바깥(위·아래)의 검은 레터박스도 함께 따라 들어온다
+      const k = Math.min(1, (this.barsT || 0) / C.bars.swoop), e = 1 - (1 - k) ** 3;
+      const top = lerp(-C.bars.from, C.bars.top, e), bottom = lerp(H + C.bars.from, C.bars.bottom, e);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, W, Math.max(0, Math.round(top))); ctx.fillRect(0, Math.round(bottom) + 2, W, H);
+      this.rainbowLine(ctx, top, 1);
+      this.rainbowLine(ctx, bottom, 1);
     }
   }
   /** 흰 화면에 그림자만(요플래·가재맨) + 슬로우로 화면을 가르는 거대 검기 그림자 */

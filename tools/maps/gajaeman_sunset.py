@@ -45,7 +45,7 @@ def main() -> None:
     ]
     data = {
         'id': MAP_ID, 'name': '가재맨성 노을 끝', 'stage': 'castle_summit_ready',
-        'bgm': 'save_the_world_rise', 'bgmVolume': 0.7, 'rows': [''.join(row) for row in cells],
+        'bgm': None, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_sunset_arrival', 'early': True},
         'preload': ['assets/backdrops/castle_sunset359.png', 'assets/props/maillard_sun.png', 'assets/sprites/hyungsub-land.png', 'assets/sprites/hyungsub-clash.png', 'assets/props/cathedral323_sword.png', 'assets/sprites/youngcle_hover.png', 'assets/sprites/gajaeman-fly.png', 'assets/props/purple_cord.png'],
         'spawns': {'arrive': {'x': LAND[0] - 12, 'y': LAND[1] - 24, 'facing': 'right'}},
@@ -53,7 +53,7 @@ def main() -> None:
                                                 'land': list(LAND), 'gajaemanAt': list(GAJAEMAN), 'groundTop': GROUND_TOP,
                                                 'edgeY': EDGE, 'horizonY': 192, 'charScale': 0.72,
                                                 # 결말 타이밍(곡 heart_rise 24.3초 기준): 8초 세로 빛의 파장, 17.4초 경섭이 달려감, 18.6초 쓰러짐, 18.8초부터 정상화
-                                                'epilogue': {'yoplae': [396, 276], 'heartSeconds': 24.3, 'waveAt': 8, 'catchAt': 17.4, 'fallAt': 18.6, 'normalAt': 18.8}, 'sunDx': 70}},
+                                                'epilogue': {'yoplae': [396, 276], 'heartSeconds': 22.7, 'waveAt': 6.4, 'catchAt': 15.8, 'fallAt': 17.0, 'normalAt': 17.2}, 'sunDx': 70}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

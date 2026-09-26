@@ -602,6 +602,7 @@ class Game {
 
   /** ESC: 메인(타이틀)으로 */
   toTitle() {
+    this.cookiePhoto = null;
     this.castleDarkPath?.dispose();
     this.castleDarkChase?.dispose();
     finishCastleCathedral(this, true);
@@ -1280,6 +1281,7 @@ class Game {
     }
     if (this.caption) { this.caption.time += dt; if (this.caption.time >= this.caption.duration) this.caption = null; }
     this.chat.update(dt); this.sysdialog.update(dt); this.vortex.update(dt); this.bubble.update(dt); this.balloon.update(dt);
+    this.cookiePhoto?.update(dt);
     // 컷신 footsteps 오버라이드: 주인공 update 가 대화 중 돌지 않아도 이 구역 걸음 루프를 매 프레임 살려 둔다(BUILD226 “뒤에서 또 다른 걸음소리”)
     if (this.footstepsOverride) this.sound?.walk?.(this.footstepsOverride);
     if (this.worldSpin?.speed) {   // 컷신 { worldSpin, turns }: turns 바퀴를 돌면 멈추고 원위치
@@ -1756,6 +1758,8 @@ class Game {
     // 방송 채팅창(물리 해상도, 오른쪽) → 오류창 → 대화창 순서로 겹친다
     if (this.chat.open) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); this.chat.draw(ctx, 244); ctx.restore(); }
     this.sysdialog.draw(ctx);
+    // 엔딩 쿠키 사진 화면(BUILD373)은 모든 것 위
+    this.cookiePhoto?.draw(ctx);
     this.shipAssault?.drawDust(ctx);
     this.shipPursuitAmbient?.draw(ctx);
     this.shipCastle?.draw(ctx);

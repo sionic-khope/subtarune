@@ -9,6 +9,8 @@
 - `sfx/blade_lock_whine.mp3`(4.7초, BUILD366): 가재맨 결전 마지막 칼 경합(C 연타) 동안 “위이이잉”. 사용자 지정 참고 영상 YouTube lX0SKoUXI5Y 6:29.2~6:33.9(약 290Hz 지속음) 잘라 앞뒤 페이드, 경합 중 4.2초마다 겹쳐 재생. 영상 음원이라 배경 음악이 조금 섞일 수 있다. 원본 `assets/source/clash363/ref.webm`.
 - `bgm/save_the_world_run.mp3`·`bgm/save_the_world_loop.mp3`(BUILD369): 달리기 결전 — 처음 한 번 원곡 1:03~1:47(끝 페이드·무음 앞까지), 이어서 하이라이트 63.9초~1:47 을 공백 없이 반복(`playBgm({then})`).
 - `bgm/ending_credits.mp3`(99.8초, BUILD370): 엔딩 크레딧. 사용자 지정 YouTube _BEWbq64zyU 전체, 한 번. 원본 `assets/source/farewell370/audio/ending.mp3`.
+- `bgm/good_night.mp3`(29.46초, BUILD373): 엔딩 쿠키 — 컴퓨터 사진 뷰어. 사용자 지정 YouTube 9ZhG4XIqz9w `101. Good Night (UNDERTALE Soundtrack) - Toby Fox`, 끝 무음 5.2초 잘라냄, 한 번(끝나면 메인 메뉴). 원본 `assets/source/cookie373/audio/photo_bgm.mp3`.
+- BUILD373: `bgm/heart_rise.mp3` 앞 무음 1.6초 잘라 22.69초(하트가 나오는 순간 곡), 결말 타이밍 전부 1.6초 당김. 노을 땅 맵 필드 브금은 없앰(전투 뒤 SAVE The World 가 다시 나오던 문제). 라운지 작별 맵은 브금 대신 `wind` 0.08.
 - `bgm/save_the_world_run.mp3`(50.3초, BUILD363): 노을 땅 달리기 결전. 같은 곡 LAn-JYzKm5M 1분 3초부터 끝까지(사용자 “1분 3초부터”). 원본 `assets/source/rise359/audio/stw.mp3`.
 - `bgm/sunset_hum.mp3`(9초 루프, BUILD363): SAVE THE WORLD 버튼 동안 “우우우웅~” — sine 98/147/196Hz 합성·2.2초 주기로 부풀고 lowpass·aecho(**임시**, 사용자가 고르면 교체).
 - `sfx/confirm_echo.mp3`(2.3초, BUILD363): SAVE THE WORLD 누를 때 “띠링” — 선택지 확정음 `confirm` 에 aecho(180/360/540ms) 로 퍼지게.

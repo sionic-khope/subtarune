@@ -1,6 +1,8 @@
 // BUILD358 사용자 브리핑(2026-09-26): 꼭대기에서 뛰어내린 뒤 — 끝없는 길(섭 몬스터·편집노조·영클 레이저) → 뗏목 웅덩이(벽 타고 상승). 대사·표기 원문 그대로.
 import { RISE } from '../../scenes/castle-rise.js';
 import { GJ_RUNNER as GJ } from '../gajaeman-runner.js';
+import { CREDITS } from '../credits.js';
+import { ending_cookie_wake } from './ending_cookie.js';
 
 const A = text => ({ speaker: '가재맨', voice: 'gajaeman_shadow', text: `* ${text}` });
 
@@ -128,9 +130,10 @@ export const castle_sunset_arrival = Object.assign([
   close,
   scene(s => { if (!s.tumble) s.kneelHold(); }),
   { action: game => { game.sound.stopBgm(0.6); game.sound.preloadBgm?.(GJ.bgm); } },
+  // 우우웅은 확대보다 먼저(사용자 BUILD373 “2초 더 빨리”)
+  { bgm: GJ.hum, volume: 0.35, fadeIn: 2.0 },
   { camera: at(300, 204), duration: 0.01 },
   { zoom: 1.45, at: 'player', offset: [44, -18], duration: 1.8 },
-  { bgm: GJ.hum, volume: 0.35, fadeIn: 2.0 },
   scene(s => s.saveButton()),
   { bgm: null, fadeOut: 0.15 },
   { zoom: 1, duration: 0.01 },
@@ -165,7 +168,8 @@ export const castle_sunset_arrival = Object.assign([
   { parallel: [scene(s => s.lightUp()), [{ wait: 0.3 }, { parallel: FRIENDS.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) }], { zoom: 1.25, at: 'player', offset: [0, -24], duration: 1.8 }] },
   P('저 저건..'), close,
   // 하트가 몸에서 올라와 하늘로(곡 heart_rise) — 8초 세로 빛의 파장, 끝날 즈음 정상화·경섭이 달려가 받는다(김형섭으로 돌아옴) → 바람
-  { parallel: [scene(s => s.heartSeq()), [{ wait: 18.8 }, { zoom: 1, duration: 1.6 }]] },
+  // BUILD373: 곡 앞 무음 1.6초를 잘라 하트가 나오는 순간 곡이 들어온다(타이밍 전부 1.6초 당김)
+  { parallel: [scene(s => s.heartSeq()), [{ wait: 17.2 }, { zoom: 1, duration: 1.6 }]] },
   { wait: 0.8 },
   K('...'), K('돌아왔구나 형섭아.'), close,
   // 오른쪽에서 다시 하트가 천천히
@@ -233,9 +237,10 @@ export const ship_lounge_epilogue = Object.assign([
   ...vignette([{ wait: 0.4 }, { show: 'epi_choimis' }, { show: 'epi_jeomnye' }, { move: 'epi_choimis', px: [350, 262], facing: 'up' },
     { hop: 'epi_jeomnye', by: [150, -70], height: 26, duration: 0.6 }, scene(s => s.kickInto('epi_choimis')), { wait: 0.4 },
     { move: 'epi_jeomnye', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_jeomnye', dir: 'down' }, { wait: 1.0 }, { face: 'epi_jeomnye', dir: 'up' }, scene(s => s.enterDoor('epi_jeomnye'))]),
-  // 7. 일행이 잠깐 뒤돌아본 사이, 청소부가 몰래 살금살금 나간다 — 문가에서 뒤돌아보면 일행 머리 위에 ? 가 뜨고 문 쪽을 돌아본다
-  ...vignette([{ wait: 0.4 }, scene(s => s.partyFace('down')), { wait: 0.6 }, { show: 'epi_janitor' }, { move: 'epi_janitor', px: DOOR_FRONT, speed: 40, facing: 'up' },
-    { face: 'epi_janitor', dir: 'down' }, { wait: 0.6 },
+  // 7. 억빠맨과 경섭이 마주 보고 통통 튀며 수다 떠는 사이(영클은 뒤돌아 있음), 청소부가 몰래 살금살금 나간다
+  //    — 문가에서 뒤돌아보면 일행 머리 위에 ? 가 뜨고 문 쪽을 돌아본다
+  ...vignette([{ wait: 0.4 }, scene(s => s.partyFace('down')), scene(s => s.chatter(true)), { wait: 0.6 }, { show: 'epi_janitor' }, { move: 'epi_janitor', px: DOOR_FRONT, speed: 40, facing: 'up' },
+    { face: 'epi_janitor', dir: 'down' }, { wait: 0.6 }, scene(s => s.chatter(false)),
     { parallel: [{ emote: 'epi_ppaman', kind: '?', sfx: false, duration: 1.4, hold: 0.6 }, { emote: 'epi_youngcle', kind: '?', sfx: false, duration: 1.4, hold: 0.6 }, scene(s => s.pairEmoteShow('?', 1.4))] },
     scene(s => s.partyFace('up')), { wait: 0.3 }, { face: 'epi_janitor', dir: 'up' },
     scene(s => s.enterDoor('epi_janitor', 0.6)), { wait: 0.5 }]),
@@ -294,7 +299,8 @@ export const ship_lounge_farewell = Object.assign([
   close,
   scene(s => s.farewellSetup()),
   { camera: at(384, 250), duration: 0.01 }, { zoom: 1.15, at: [384, 280], duration: 0.01 },
-  { bgm: null, fadeOut: 0.5 },
+  // 브금 대신 아주 작게 깔리는 잔잔한 바람(크레딧 곡이 시작되면 바로 바뀐다)
+  { bgm: 'wind', volume: 0.08, fadeIn: 2.5 },
   { fade: 'in', duration: 1.5 },
   scene(s => s.comeUp()), { wait: 0.8 },
   YC('...'), YC('그럼 ㅅㄱ'), YC('...'), YC('즐거웠음'), close,
@@ -309,8 +315,8 @@ export const ship_lounge_farewell = Object.assign([
   { wait: 1.5 },
   scene(s => s.pairIntoDoor()), { wait: 0.4 },
   K('요플래'), K('아니'), K('가재맨'), close,
-  // 대사 창 없이 웃으며 뒤돌아보는 경섭을 잠깐 보여 준 뒤 마지막 한 마디
-  { wait: 1.4 },
+  // “가재맨” 뒤에야 웃으며 뒤돌아본다 — 대사 창 없이 잠깐 보여 준 뒤 마지막 한 마디
+  { wait: 0.5 }, scene(s => s.gyeongsubLookBack()), { wait: 1.4 },
   { ...K('우리의 밤을 지켜줘서 고마워.'), hold: 2 }, close,
   // 경섭이 돌아서 문 밖으로 — 문이 철컥 닫힌다
   scene(s => s.gyeongsubLeave()),
@@ -318,7 +324,9 @@ export const ship_lounge_farewell = Object.assign([
   { set: { ship_lounge_farewell_seen: true } },
   { label: 'credits' },
   scene(s => s.creditsRoll()),
-  // 크레딧 끝 — The End 에 머문다
-  { wait: 3600 },
+  // 크레딧 곡이 끝나면 The End 에 3초 머문 뒤 엔딩 쿠키(처음 집)로
+  scene(s => s.waitBgmEnd(CREDITS.bgm, 4)),
+  { wait: 3.0 },
+  ...ending_cookie_wake,
   { label: 'end' }, { end: true },
 ], { silent: true });

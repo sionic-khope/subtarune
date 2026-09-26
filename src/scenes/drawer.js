@@ -207,7 +207,7 @@ function buildTV(scene, standH, mats) {
 }
 
 /** 서랍 속 물건들 + 보라색 코드. 반환 { items:Mesh[], cord:Group } (모두 drawer 그룹 로컬 좌표) */
-function buildContents(drawer, inner, mats) {
+function buildContents(drawer, inner, mats, colors = { cord: C.cord, cordD: C.cordD }) {
   const items = [];
   const y0 = -inner.ih / 2 + 0.012;                   // 서랍 바닥 윗면(로컬)
   const std = (opt) => new THREE.MeshStandardMaterial(opt);
@@ -222,7 +222,7 @@ function buildContents(drawer, inner, mats) {
   const pts = []; const cx = rand(-halfW * 0.7, halfW * 0.7), cz = rand(-halfD * 0.6, halfD * 0.6);
   for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2 * 2.6; const r = 0.036 + Math.sin(i * 1.7) * 0.008; pts.push(new THREE.Vector3(cx + Math.cos(a) * r * 1.2, 0.004 + (i % 7) * 0.0008, cz + Math.sin(a) * r * 0.85)); }
   const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.6);
-  const cordMat = std({ color: C.cord, roughness: 0.55, metalness: 0.05, emissive: C.cordD, emissiveIntensity: 0.1 });
+  const cordMat = std({ color: colors.cord, roughness: 0.55, metalness: 0.05, emissive: colors.cordD, emissiveIntensity: 0.1 });
   const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 240, 0.0034, 10, false), cordMat); tube.castShadow = true; tube.receiveShadow = true; cord.add(tube);
   const end = pts[pts.length - 1];
   const plug = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.026), std({ color: C.plug, roughness: 0.6 })); plug.position.copy(end).add(new THREE.Vector3(0.012, 0.004, 0)); plug.castShadow = true; cord.add(plug);
@@ -321,7 +321,8 @@ export function run(game, node = {}) {
     buildRoom(scene, mats);
     const stand = buildStand(scene, mats);
     const tv = buildTV(scene, stand.H, mats);
-    const { items, cord } = buildContents(stand.drawer, stand.inner, mats);
+    // node.cord === 'black': 엔딩 쿠키(BUILD373) — 이번엔 보라색이 아니라 평범한 검은 코드
+    const { items, cord } = buildContents(stand.drawer, stand.inner, mats, node.cord === 'black' ? { cord: 0x222228, cordD: 0x0c0c10 } : undefined);
     const dust = buildDust(scene);
 
     // 조명: 따뜻한 천장등(그림자) + 서랍용 스팟 + 반구광 + TV 푸른빛

@@ -2,8 +2,7 @@
  "id": "gajaeman_castle_sunset",
  "name": "가재맨성 노을 끝",
  "stage": "castle_summit_ready",
- "bgm": "save_the_world_rise",
- "bgmVolume": 0.7,
+ "bgm": null,
  "rows": [
   "                              ",
   "                              ",
@@ -65,11 +64,11 @@
      396,
      276
     ],
-    "heartSeconds": 24.3,
-    "waveAt": 8,
-    "catchAt": 17.4,
-    "fallAt": 18.6,
-    "normalAt": 18.8
+    "heartSeconds": 22.7,
+    "waveAt": 6.4,
+    "catchAt": 15.8,
+    "fallAt": 17.0,
+    "normalAt": 17.2
    },
    "sunDx": 70
   }

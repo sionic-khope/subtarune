@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // 시스템 오류창 (윈도우 98 느낌). 컴퓨터 화면에 뜬 것처럼 게임 화면 가운데 위에 그린다.
-//   game.sysdialog.show({title,text,button}) / press() / hide()
+//   game.sysdialog.show({title,text,button,icon?:'error'|'info'}) / press() / hide()
 //   컷신 노드: { dialog:{title,text,button} } { dialog:'press' } { dialog:null }
 // ─────────────────────────────────────────────────────────────
 import { FONT, F } from './font.js';
@@ -8,7 +8,7 @@ import { SCREEN_W } from '../world/world.js';
 
 export class SysDialog {
   constructor() { this.visible = false; this.title = ''; this.text = ''; this.button = ''; this.pressed = 0; this.time = 0; }
-  show({ title = '오류', text = '', button = '확인' } = {}) { Object.assign(this, { title, text, button, visible: true, pressed: 0, time: 0 }); }
+  show({ title = '오류', text = '', button = '확인', icon = 'error' } = {}) { Object.assign(this, { title, text, button, icon, visible: true, pressed: 0, time: 0 }); }
   press() { this.pressed = 0.35; }
   hide() { this.visible = false; }
   update(dt) { if (!this.visible) return; this.time += dt; if (this.pressed > 0) this.pressed -= dt; }
@@ -30,8 +30,14 @@ export class SysDialog {
     ctx.fillStyle = '#000'; ctx.fillRect(x + w - 17, y + 8, 2, 2); ctx.fillRect(x + w - 15, y + 10, 2, 2); ctx.fillRect(x + w - 13, y + 12, 2, 2); ctx.fillRect(x + w - 13, y + 8, 2, 2); ctx.fillRect(x + w - 17, y + 12, 2, 2);
     // 오류 아이콘 (빨간 원 + 흰 X)
     const ix = x + 24, iy = y + 44;
-    ctx.fillStyle = '#d22'; ctx.beginPath(); ctx.arc(ix, iy, 11, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(ix - 5, iy - 5); ctx.lineTo(ix + 5, iy + 5); ctx.moveTo(ix + 5, iy - 5); ctx.lineTo(ix - 5, iy + 5); ctx.stroke();
+    if (this.icon === 'info') {
+      // 알림(파란 원 + 흰 i) — 엔딩 쿠키의 사진 메시지
+      ctx.fillStyle = '#1c5fd0'; ctx.beginPath(); ctx.arc(ix, iy, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillRect(ix - 1, iy - 6, 3, 3); ctx.fillRect(ix - 1, iy - 1, 3, 7);
+    } else {
+      ctx.fillStyle = '#d22'; ctx.beginPath(); ctx.arc(ix, iy, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(ix - 5, iy - 5); ctx.lineTo(ix + 5, iy + 5); ctx.moveTo(ix + 5, iy - 5); ctx.lineTo(ix - 5, iy + 5); ctx.stroke();
+    }
     // 본문 (글자 단위 줄바꿈)
     ctx.fillStyle = '#000'; const maxW = w - 60; let line = '', ly = y + 32;
     for (const ch of this.text) { if (ctx.measureText(line + ch).width > maxW) { ctx.fillText(line, x + 46, ly); line = ch; ly += F.lineH; } else line += ch; }

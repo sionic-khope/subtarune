@@ -13,6 +13,8 @@ export const GJ_RUNNER = Object.freeze({
   // 흰 화면은 천천히 나지막이 걷힌다(BUILD369). 곡이 시작되는 출발 순간: 검 뽑는 소리를 크게, 번쩍임 burst 초, 잔상 하나가 튀어 나간다(사용자 2026-09-26)
   white: { hold: 0.55, reveal: 1.7, burst: 0.6, dashVolume: 0.95, ghostScale: 0.5, ghostDrift: 22 },
   // home x: 요플래와의 대치 간격을 10% 더 멀리(사용자 2026-09-26, 254px → 279px)
+  // 무지개 레터박스 선: swoop 초 동안 화면 밖 from px 에서 top·bottom 자리로 휙(BUILD373)
+  bars: { swoop: 0.55, from: 40, top: 12, bottom: 320 },
   boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [397, 150], scale: 1.56, bob: 5 },
   aura: { gather: 2.2, burst: 0.5 },
   cycle: { first: 1.2, rest: 1.1 },
