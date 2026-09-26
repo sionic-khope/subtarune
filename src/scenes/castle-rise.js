@@ -35,7 +35,13 @@ export function tickRiseClock(game, dt) {
   if (game.riseT == null) return null;
   game.riseT += dt;
   const s = game.sound, a = s?.bgm;
-  if (s?.bgmName === RISE.bgm && a && !a.paused && a.currentTime > 0.05 && Math.abs(a.currentTime - game.riseT) > 0.08) game.riseT = a.currentTime;
+  // 곡 위치에 맞추되 튀지 않게(BUILD367 “전환될 때 버벅임”): 뒤로 되감지 않고, 차이는 조금씩 따라잡는다
+  if (s?.bgmName === RISE.bgm && a && !a.paused && a.currentTime > 0.05) {
+    const diff = a.currentTime - game.riseT;
+    if (diff > 1) game.riseT = a.currentTime;
+    else if (diff > 0.02) game.riseT += Math.min(diff, dt * 0.5);
+    else if (diff < -0.02) game.riseT -= Math.min(-diff, dt * 0.3);
+  }
   return game.riseT;
 }
 

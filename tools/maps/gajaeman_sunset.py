@@ -47,7 +47,7 @@ def main() -> None:
         'id': MAP_ID, 'name': '가재맨성 노을 끝', 'stage': 'castle_summit_ready',
         'bgm': 'save_the_world_rise', 'bgmVolume': 0.7, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_sunset_arrival', 'early': True},
-        'preload': ['assets/backdrops/castle_sunset359.png', 'assets/props/maillard_sun.png', 'assets/sprites/hyungsub-land.png', 'assets/sprites/hyungsub-clash.png', 'assets/props/cathedral323_sword.png', 'assets/sprites/youngcle_hover.png', 'assets/sprites/gajaeman-fly.png'],
+        'preload': ['assets/backdrops/castle_sunset359.png', 'assets/props/maillard_sun.png', 'assets/sprites/hyungsub-land.png', 'assets/sprites/hyungsub-clash.png', 'assets/props/cathedral323_sword.png', 'assets/sprites/youngcle_hover.png', 'assets/sprites/gajaeman-fly.png', 'assets/props/purple_cord.png'],
         'spawns': {'arrive': {'x': LAND[0] - 12, 'y': LAND[1] - 24, 'facing': 'right'}},
         'meta': {'connected': True, 'descent': {'kind': 'sunset', 'band': list(BAND), 'gajaeman': 'sunset_gajaeman',
                                                 'land': list(LAND), 'gajaemanAt': list(GAJAEMAN), 'groundTop': GROUND_TOP,

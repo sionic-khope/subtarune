@@ -25,5 +25,5 @@ await runScenario({ name: 'castle-rise', launchOptions: { args: ['--autoplay-pol
   check('rise track stops after landing (hum only)', end.bgm !== 'save_the_world_rise', end.bgm);
   check('gajaeman was up there first', sawGajaeman);
   check('tumble played and landed on the 64s drop', sawTumble && landedAt != null && landedAt >= 21.1 && landedAt < 21.8, String(landedAt));
-  check('yoplae standing on the ground after the landing', end.visible && Math.abs(end.feet[0] - 300) < 4 && Math.abs(end.feet[1] - 262) < 4, JSON.stringify(end.feet));
+  check('yoplae stays kneeling on the landing spot', !end.visible && Math.abs(end.feet[0] - 300) < 4 && Math.abs(end.feet[1] - 262) < 4, JSON.stringify(end.feet));
 });

@@ -11,13 +11,13 @@ export const GJ_RUNNER = Object.freeze({
   stage: { horizonY: 168, groundTop: 190, edgeY: 288, groundY: 252, playerX: 118, scale: 0.72, sunX: 300 },
   player: { halfWidth: 8, height: 32, heartHeight: 26 },
   white: { hold: 0.55, reveal: 0.7 },
-  boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [372, 150], scale: 1.36, bob: 5 },
+  boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [372, 150], scale: 1.56, bob: 5 },
   aura: { gather: 2.2, burst: 0.5 },
   cycle: { first: 1.2, rest: 1.1 },
   sword: { count: 3, every: 0.72, warn: 0.55, speed: 360, aimAhead: 26, aimHeight: 14, halfW: 20, halfH: 7, w: 34, h: 136 },
   // BUILD365(사용자 “돌진 좀만 더 천천히, 잔상, 지나간 뒷자리에 팡팡 폭죽처럼 — 타닥타닥”)
   dash: { warn: 1.25, speed: 240, pop: 0.16, trailEvery: 0.05, height: 20, halfW: 30, halfH: 12, recoil: 0.7, returnSeconds: 1.0, endX: -120 },
-  final: { gather: 2.4, back: [520, 206], backSeconds: 0.6, speed: 150, homing: 2.4, pop: 0.22, clashDist: 72, slow: 0.08, clashHold: 1.4 },
+  final: { gather: 2.4, back: [520, 206], backSeconds: 0.6, speed: 150, homing: 2.4, pop: 0.13, clashDist: 72, slow: 0.08, clashHold: 1.4 },
   slash: { from: 0.04, until: 0.85 },
   // 마지막 맞받아치기(사용자 참고 델타룬 영상 6:24~6:31): 칼 경합 — C 연타 약 6초면 가득(누를 때 소리 없음, 인물만 흔들림) → 큰 릴리즈샷 → 흰 화면 그림자·거대 검기 슬로우 베기
   lock: { zoom: 1.7, playerX: 196, gap: 44, presses: 40, decay: 0.035, shake: 0.08, pose: 'assets/sprites/hyungsub-clash.png' },
@@ -27,9 +27,9 @@ export const GJ_RUNNER = Object.freeze({
   sfx: { draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape',
     sword: 'spearappear', swordFly: 'heavyswing', deflect: 'deflect', kickVoice: 'gajaeman_kick', dashGo: 'ultraswing',
     counter: 'deltarune_release_shoot', counterHit: 'impact', gather: 'power', charge: 'laser_charge', burst: 'deltarune_release_shoot',
-    back: 'baron_slam', crackle: 'pop', swordHit: 'metalhit', lockWhine: 'blade_lock_whine', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
+    back: 'baron_slam', crackle: 'pop', swordHit: 'damage', lockWhine: 'blade_lock_whine', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
   // 누워 날아가는 전용 그림(생성, assets/source/gjfly365) — 머리가 왼쪽, 얼굴은 앞
-  flySheet: 'assets/sprites/gajaeman-fly.png', flyH: 34,
+  flySheet: 'assets/sprites/gajaeman-fly.png', flyH: 39,
   rainbow: ['#ff5a5a', '#ffae3c', '#ffe45a', '#6ee66e', '#5ac8ff', '#7a7aff', '#d27aff'],
   colors: { aura: '#a851ff', dark: '#1a0830', core: '#ecbeff' },
   text: { controls: 'X 점프  ·  C 베기', title: '가재맨', button: 'SAVE THE WORLD', press: 'C' },

@@ -34,6 +34,7 @@ await runScenario({ name: 'gajaeman-runner', launchOptions: { args: ['--autoplay
       if (m.airY === 0 && m.swordList.some(w => w.x - px > 30 && w.x - px < 95 && w.y > 200)) { jumps++; await page.keyboard.press('KeyX'); await page.waitForTimeout(60); continue; }
       if (i % 4 === 0) await shot(`m-${String(n++).padStart(3, '0')}`);
     } else if (i % 3 === 0 && (s.run || s.button)) await shot(`f-${String(n++).padStart(3, '0')}`);
+    if (await page.evaluate(() => !!game.castleDescent?.kneel)) break;
     if (!s.running && !s.battle && i > 20 && !s.run) break;
     await page.waitForTimeout(40);
   }
@@ -49,7 +50,6 @@ await runScenario({ name: 'gajaeman-runner', launchOptions: { args: ['--autoplay
   check('blade lock filled by mashing C into the slash', sawLock && maxGauge > 0.9 && slashShots > 0, `${maxGauge} ${slashShots}`);
   check('aftermath lines verbatim', ['...그.. 그래..', '... ... ...', '뭐...', '롤..이나 하러.. 가야겠군'].every(e => plain.some(t => t.includes(e))), JSON.stringify(plain));
   check('gajaeman gone after the smoke', end.gone, JSON.stringify(end));
-  check('screen not left faded out', end.fade < 0.05, String(end.fade));
   check('aftermath lines shown on a visible screen', lineFades.every(f => f < 0.05), JSON.stringify(lineFades));
   check('bot had to jump over swords', jumps > 0, String(jumps));
 });

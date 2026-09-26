@@ -23,12 +23,12 @@ W, H = 800, 1504
 FLOOR: Final = '▒'
 BAND: Final = (1216, 1472)
 # 웅덩이(걷지 못함): x, y, w, h — 벽 바로 앞
-POOL: Final = (403, 1276, 154, 116)   # BUILD362: 20% 넓게(사용자)
+POOL: Final = (384, 1280, 160, 128)   # BUILD362 20% 넓게 → BUILD367 타일 칸에 맞춤(5×4칸, 사용자 “칸이 안 맞고”)
 WALL: Final = {'image': 'assets/props/raft358_wall.png', 'x': 322, 'bottom': 1260, 'w': 316, 'h': 1068}
 # 벽 꼭대기 턱(걷는 곳)
 LEDGE: Final = (320, 64, 320, 128)
 # 웅덩이 옆에 멈춰 서는 자리(발)
-STAND: Final = {'player': (372, 1330), 'gyeongsub': (328, 1302), 'ppaman': (328, 1358)}
+STAND: Final = {'player': (356, 1340), 'gyeongsub': (316, 1310), 'ppaman': (316, 1370)}
 
 
 def anchor(name: str, x: int, y: int) -> dict:

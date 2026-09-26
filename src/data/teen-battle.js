@@ -63,7 +63,8 @@ export const TEEN_BATTLE = Object.freeze({
    */
   phase2: {
     // HP 999, 코어 한 대 42 — 세 명이 매 턴 다 맞히면 7턴 882, 8턴에 잡힌다(사용자 2026-09-26 “8턴만에”)
-    name: '가재맨', hp: 999, heal: 999, coreDamage: 42,
+    // BUILD367 난이도 하향(사용자 “2페이즈 공격력 10씩 증가”): 42 → 52 (999 / 52 ≈ 20번 → 약 7턴)
+    name: '가재맨', hp: 999, heal: 999, coreDamage: 52,
     images: { idle: 'assets/props/teen347_p2.png', vacuum: 'assets/props/teen347_p2_vacuum.png', slam: 'assets/props/teen347_p2_slam.png' },
     core: [300, 176], coreSpot: [256, 206], near: [226, 150], inside: [320, 170],
     // 2페이즈 전용 패턴(검 비·엄.·주먹 연타·칼날 청소기) — 1페이즈와 다르게, 공격 위주

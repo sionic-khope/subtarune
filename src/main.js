@@ -849,7 +849,7 @@ class Game {
         .map(resolvePortraitKey).filter(name => CHARACTERS[name]),
     ]);
     const playerMotions = scriptAssets.playerMotions;
-    if (def.meta?.run || def.meta?.runs) for (const name of Object.keys(CHARACTER_MOTIONS.hyungsub)) if (name.startsWith('runner_')) playerMotions.add(name);
+    if (def.meta?.run || def.meta?.runs || def.meta?.descent?.kind === 'sunset') for (const name of Object.keys(CHARACTER_MOTIONS.hyungsub)) if (name.startsWith('runner_')) playerMotions.add(name);
     if (mapId === 'jjajang_nest') playerMotions.add('battle_ready');
     const motionNames = [...names].filter(name => CHARACTER_MOTIONS[name] && (name !== 'hyungsub' || playerMotions.size));
     await Promise.all(motionNames.map(async name => {

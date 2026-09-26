@@ -72,16 +72,14 @@ export class SunsetRun {
     try { this.ground = document.createElement('canvas'); this.ground.width = w; this.ground.height = h; } catch { return null; }
     const x = this.ground.getContext('2d');
     let seed = 11; const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    x.fillStyle = '#060408'; x.fillRect(0, 0, w, edge - top);
+    x.fillStyle = '#060408'; x.fillRect(0, 0, w, h);
     const sheen = x.createLinearGradient(0, 0, 0, 40); sheen.addColorStop(0, 'rgba(120,60,70,0.28)'); sheen.addColorStop(1, 'rgba(40,20,40,0)');
     x.fillStyle = sheen; x.fillRect(0, 0, w, 40);
     for (let i = 0; i < w * 0.9; i++) { x.fillStyle = r() < 0.5 ? '#0e0b16' : '#140f1c'; x.fillRect(Math.floor(r() * w / 2) * 2, Math.floor(r() * (edge - top) / 2) * 2, 2 + (r() < 0.3 ? 2 : 0), 2); }
-    x.fillStyle = '#1a1222'; x.fillRect(0, edge - top, w, 12);
-    const rim = x.createLinearGradient(0, edge - top - 2, 0, edge - top + 6); rim.addColorStop(0, 'rgba(255,170,110,0)'); rim.addColorStop(0.4, 'rgba(255,170,110,0.35)'); rim.addColorStop(1, 'rgba(255,170,110,0)');
-    x.fillStyle = rim; x.fillRect(0, edge - top - 2, w, 8);
-    for (let i = 0; i < w / 6; i++) { x.fillStyle = r() < 0.5 ? '#2a1c30' : '#0f0a14'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + 2 + Math.floor(r() * 4) * 2, 4, 2); }
-    x.fillStyle = '#040206'; x.fillRect(0, edge - top + 12, w, h - (edge - top + 12));
-    for (let i = 0; i < w * 0.25; i++) { x.fillStyle = r() < 0.5 ? '#0d0812' : '#120b18'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + 14 + Math.floor(r() * (h - edge + top - 14) / 2) * 2, 2 + (r() < 0.2 ? 4 : 0), 2); }
+    // BUILD367(사용자 “바깥의 검은 길은 없애던가”): 앞 테두리·아래 띠 없이 윗면이 화면 아래까지 이어지고 아래로 갈수록 조금 더 어둡다
+    for (let i = 0; i < w * 0.5; i++) { x.fillStyle = r() < 0.5 ? '#0e0b16' : '#140f1c'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + Math.floor(r() * (h - edge + top) / 2) * 2, 2 + (r() < 0.3 ? 2 : 0), 2); }
+    const deep = x.createLinearGradient(0, edge - top - 60, 0, h); deep.addColorStop(0, 'rgba(0,0,0,0)'); deep.addColorStop(1, 'rgba(0,0,0,0.45)');
+    x.fillStyle = deep; x.fillRect(0, edge - top - 60, w, h - edge + top + 60);
     return this.ground;
   }
   // ── 그리기 ────────────────────────────────────────────────

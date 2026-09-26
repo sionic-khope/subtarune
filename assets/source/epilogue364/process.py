@@ -25,7 +25,8 @@ def single(name, out, width):
 if __name__ == '__main__':
     single('door', 'assets/props/ship_lounge_grand_door_open.png', 160)
     single('bandage', 'assets/props/ship_lounge_bandage.png', 120)
-    rise.strip('pair', str(SRC / 'pair-strip.png'))
+    # BUILD368: 김형섭은 기절해 경섭에게 기댄 모습(pair-faint, 사용자 “기절해있어서 기대고있는 모습”)
+    rise.strip('pair-faint', str(SRC / 'pair-strip.png'))
     strip = Image.open(SRC / 'pair-strip.png'); cw = strip.width // 4
     for part, cells in (('front', (0, 1)), ('back', (2, 3))):
         out = Image.new('RGBA', (cw * 2, strip.height))

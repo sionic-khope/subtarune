@@ -312,12 +312,12 @@ export class CastleDescent {
       if (!tb.landed && T >= RISE.land) {
         tb.landed = T;
         this.sfx('switch_noise', 0.9); this.sfx('thud', 0.3); g.shake = { time: 0.18, amp: 2 };
-        g.sound.stopBgm(1.2);
+        g.sound.stopBgm(2.2);
         for (let i = 0; i < 14; i++) this.dust.push({ x: lx + (i - 6.5) * 3, y: ly - 2, vx: (i - 6.5) * (10 + this.rnd() * 14), vy: -12 - this.rnd() * 22, age: 0, life: 0.7 + this.rnd() * 0.4, s: 2 + (i % 3) });
       }
       if (tb.landed && T >= tb.landed + 1.5) {
-        p.visible = true; p.facing = 'right'; this.setFeet(p, lx, ly); p.trail = [];
-        this.tumble = null; g.riseT = null;
+        // 무릎 꿇은 채로 남는다(SAVE THE WORLD 버튼까지, 사용자 “계속 무릎꿇고 있어야지”)
+        this.setFeet(p, lx, ly); p.trail = []; g.riseT = null;
         return true;
       }
       return false;
@@ -336,7 +336,10 @@ export class CastleDescent {
     } }));
   }
   /** 화면이 하얘지고 요플래 그림자가 준비 동작 → 달리는 순간 흰 화면이 걷히며 곡(원곡 1분 3초부터) */
+  /** 이어하기·QA 로 버튼부터 올 때도 무릎 꿇은 요플래 */
+  kneelHold() { const p = this.game.player, [lx, ly] = this.meta.land; p.visible = false; this.setFeet(p, lx, ly); this.tumble = { u: 1, trail: [], landed: 1 }; }
   startRun() {
+    this.tumble = null;
     const g = this.game, run = this.run = new SunsetRun(g, { rnd: this.rnd });
     g.player.visible = false; this.hideGajaeman();
     this.delay(GJ.white.hold).then(() => run.begin(() => { g.sound.playBgm(GJ.bgm, { volume: 0.7, fadeIn: 0.02 }); }));
@@ -358,7 +361,7 @@ export class CastleDescent {
       b.aura = 1 + k * 3; b.shake = 0.1; g.shake = { time: 0.05, amp: 1 + k * 2 };
       if (this.rnd() < 0.9) for (let i = 0; i < 2; i++) { const a = this.rnd() * Math.PI * 2, r = 80 + this.rnd() * 60; run.particles.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 2.2, vy: -Math.sin(a) * r * 2.2, t: 0, life: 0.42, s: 2 + (i % 2), color: this.rnd() < 0.6 ? '#a851ff' : '#1a0830', g: 0 }); }
     }).then(() => {
-      this.sfx('deltarune_release_shoot', 1); this.sfx('explosion', 0.7);
+      this.sfx('deltarune_release_shoot', 1); this.sfx('power', 0.7);
       run.flash = 0.45; run.flashColor = '245,225,255'; g.shake = { time: 0.7, amp: 7 };
       run.burst(b.x, b.y, 70, { rainbow: false, speed: 260, life: 0.9 }); run.burst(b.x, b.y, 30, { speed: 200, life: 0.8 });
       b.aura = 1.8;
@@ -370,7 +373,7 @@ export class CastleDescent {
     const run = this.run; if (!run) return undefined;
     const b = run.boss;
     run.frozen = true; run.pose = 3; run.poseFlip = false; run.pxOverride = GJ.release.endPlayerX;
-    b.visible = true; b.x = GJ.release.bossTo[0]; b.y = GJ.release.bossTo[1]; b.lie = 0; b.face = 'right'; b.jitter = true; b.aura = 3;
+    b.visible = true; b.x = GJ.release.bossTo[0]; b.y = GJ.release.bossTo[1]; b.lie = 0; b.face = 'left'; b.jitter = true; b.aura = 3;
     this.sfx('static_burst', 0.45);
     return this.job(GJ.after.lift, k => { run.shade = 1 - k * k * (3 - 2 * k); });
   }
@@ -419,12 +422,15 @@ export class CastleDescent {
     const heart = this.heart = { x: px, y: py - 26, trail: [], alpha: 1 };
     g.sound.playBgm('heart_rise', { volume: 0.7, fadeIn: 0.05, loop: false });
     this.wave = { w: 0, bright: 0 };
-    let caught = false, fallen = false;
+    let caught = false, fallen = false, returned = false;
     const gy = this.ent('gyeongsub');
+
     return this.job(E.heartSeconds, (k, dt) => {
       const t = k * E.heartSeconds;
       // 하늘로(처음 8초에 대부분, 이후 천천히)
-      heart.y = lerpN(py - 26, cam.y + 60, 1 - (1 - Math.min(1, t / 9)) ** 2) - Math.max(0, t - 9) * 1.2;
+      heart.y = lerpN(py - 26, 70, 1 - (1 - Math.min(1, t / 9)) ** 2) - Math.max(0, t - 9) * 1.2;
+      // 확대된 화면이 하트를 따라 올라간다(맵이 낮아 카메라 대신 확대 중심을 옮긴다) — 정상화 전까지
+      if (t < E.normalAt) { const z = g.zoom; z.fx += (heart.x - z.fx) * Math.min(1, dt * 2.5); z.fy += (heart.y + 20 - z.fy) * Math.min(1, dt * 2.5); }
       heart.x = px + Math.sin(t * 0.9) * 6;
       heart.trail.unshift([heart.x, heart.y]); heart.trail.length = Math.min(heart.trail.length, 18);
       // 어둠을 빨아들인다: 화면 가장자리에서 검은 알갱이가 하트로
@@ -485,7 +491,7 @@ export class CastleDescent {
     const starts = list.map(e => this.feet(e)), lf = this.lightForm, lf0 = lf ? lf.x : 0;
     return this.job(seconds, (k, dt) => {
       list.forEach((e, i) => { this.setFeet(e, starts[i][0] - k * 200, starts[i][1]); e.animate?.(dt, 8); });
-      if (lf) lf.x = lf0 - k * 200;
+      if (lf) { lf.x = lf0 - k * 200; lf.facing = 'left'; lf.walking = true; }
       this.leanShift = -k * 200;
     });
   }
@@ -514,7 +520,7 @@ export class CastleDescent {
     }
     const lf = this.lightForm, sp = p.sprite;
     if (withLight && lf && sp) {
-      const img = sp[lf.facing || 'down']?.[0];
+      const frames = sp[lf.facing || 'down'], img = frames?.[lf.walking ? Math.floor(this.time * 8) % frames.length : 0];
       if (img) {
         const s = CHAR_SCALE * (this.meta.charScale || 1) / sp.px, dw = Math.round(sp.fw * s), dh = Math.round(sp.fh * s);
         ctx.save(); ctx.globalAlpha = lf.alpha * (0.85 + 0.15 * Math.sin(this.time * 4));
@@ -545,10 +551,9 @@ export class CastleDescent {
     if (c) {
       const x = c.x - cam.x, y = c.y - cam.y, s = 12 * c.scale;
       glow(ctx, x, y, 30 * c.scale + 4, 'rgba(170,90,255,A)', 0.6);
-      ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.scale(Math.cos(c.spin), 1);
-      ctx.fillStyle = '#6a2ad0'; ctx.fillRect(-s, -s, s * 2, s * 2);
-      ctx.fillStyle = '#c9a0ff'; ctx.fillRect(-s + 2, -s + 2, s * 2 - 4, 2); ctx.fillRect(-s + 2, s - 4, s * 2 - 4, 2);
-      ctx.fillStyle = '#ffffff'; for (let r = 0; r < 3; r++) ctx.fillRect(-s + 4, -s + 6 + r * Math.max(2, s * 0.5), Math.max(2, s * (0.6 + (r % 2) * 0.5)), 2);
+      const cord = this.game.propImages['assets/props/purple_cord.png'], k2 = c.scale;
+      ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(c.spin);
+      if (cord) ctx.drawImage(cord, Math.round(-cord.width * k2 / 2), Math.round(-cord.height * k2 / 2), Math.round(cord.width * k2), Math.round(cord.height * k2));
       ctx.restore();
     }
   }
@@ -653,7 +658,7 @@ export class CastleDescent {
     }
     const img = this.game.propImages[`assets/props/pair_hug_${this.pairFacing}.png`];
     if (img) {
-      const [px, py] = this.meta.pair, fw = img.width / 2, s = 52 / img.height, f = Math.floor(this.time / 0.9) % 2;
+      const [px, py] = this.meta.pair, fw = img.width / 2, s = 62 / img.height, f = Math.floor(this.time / 0.9) % 2;
       ctx.drawImage(img, f * fw, 0, fw, img.height, Math.round(px - cam.x - fw * s / 2), Math.round(py - cam.y - img.height * s), Math.round(fw * s), Math.round(img.height * s));
     }
   }
@@ -738,19 +743,16 @@ export class CastleDescent {
     try { this.ground = document.createElement('canvas'); this.ground.width = w; this.ground.height = h; } catch { return null; }
     const x = this.ground.getContext('2d');
     let seed = 7; const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    x.fillStyle = '#060408'; x.fillRect(0, 0, w, edge - top);
+    x.fillStyle = '#060408'; x.fillRect(0, 0, w, h);
     // 윗면: 멀수록(위) 해빛을 받아 살짝 따뜻하게
     const sheen = x.createLinearGradient(0, 0, 0, 40); sheen.addColorStop(0, 'rgba(120,60,70,0.28)'); sheen.addColorStop(1, 'rgba(40,20,40,0)');
     x.fillStyle = sheen; x.fillRect(0, 0, w, 40);
     for (let i = 0; i < w * 0.9; i++) { const px = Math.floor(r() * w / 2) * 2, py = Math.floor(r() * (edge - top) / 2) * 2; x.fillStyle = r() < 0.5 ? '#0e0b16' : '#140f1c'; x.fillRect(px, py, 2 + (r() < 0.3 ? 2 : 0), 2); }
     // 앞 테두리
-    x.fillStyle = '#1a1222'; x.fillRect(0, edge - top, w, 12);
-    const rim = x.createLinearGradient(0, edge - top - 2, 0, edge - top + 6); rim.addColorStop(0, 'rgba(255,170,110,0)'); rim.addColorStop(0.4, 'rgba(255,170,110,0.35)'); rim.addColorStop(1, 'rgba(255,170,110,0)');
-    x.fillStyle = rim; x.fillRect(0, edge - top - 2, w, 8);
-    for (let i = 0; i < w / 6; i++) { x.fillStyle = r() < 0.5 ? '#2a1c30' : '#0f0a14'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + 2 + Math.floor(r() * 4) * 2, 4, 2); }
-    // 아래 띠
-    x.fillStyle = '#040206'; x.fillRect(0, edge - top + 12, w, h - (edge - top + 12));
-    for (let i = 0; i < w * 0.25; i++) { x.fillStyle = r() < 0.5 ? '#0d0812' : '#120b18'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + 14 + Math.floor(r() * (h - edge + top - 14) / 2) * 2, 2 + (r() < 0.2 ? 4 : 0), 2); }
+    // BUILD367(사용자 “바깥의 검은 길은 없애던가”): 앞 테두리·아래 띠 없이 윗면이 화면 아래까지 이어지고 아래로 갈수록 조금 더 어둡다
+    for (let i = 0; i < w * 0.5; i++) { x.fillStyle = r() < 0.5 ? '#0e0b16' : '#140f1c'; x.fillRect(Math.floor(r() * w / 2) * 2, edge - top + Math.floor(r() * (h - edge + top) / 2) * 2, 2 + (r() < 0.3 ? 2 : 0), 2); }
+    const deep = x.createLinearGradient(0, edge - top - 60, 0, h); deep.addColorStop(0, 'rgba(0,0,0,0)'); deep.addColorStop(1, 'rgba(0,0,0,0.45)');
+    x.fillStyle = deep; x.fillRect(0, edge - top - 60, w, h - edge + top + 60);
     return this.ground;
   }
   sunScreen(cam) { const m = this.meta, shift = -cam.x * 0.18; return [240 + shift + m.sunDx, m.horizonY - cam.y]; }

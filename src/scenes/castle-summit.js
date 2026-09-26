@@ -194,6 +194,13 @@ export class CastleSummit {
       e.facing = 'right'; e.follow = false;
     }
   }
+  /** BUILD367(사용자 “잡았을 때 바로 으으윽 말고 검은 연기 한 번 팡 터지고 캐릭터들 일어나서”): 코어에서 검은 연기가 팡 */
+  smokePop() {
+    const [cx, cy] = world(P2.core), g = this.game;
+    g.sound.sfx('cannon_puff', { volume: 1 }); g.sound.sfx('impact', { volume: 0.8 });
+    g.shake = { time: 0.45, amp: 5 };
+    for (let i = 0; i < 60; i++) { const a = Math.random() * Math.PI * 2, sp = 90 + Math.random() * 260; this.fx.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.7, t: 0, life: 0.9 + Math.random() * 0.8, r: 8 + Math.random() * 14, dark: true }); }
+  }
   setTremble(v) { this.tremble = v; }
   drawCore(ctx, cam) {
     const [cx, cy] = world(P2.core), x = cx - cam.x, y = cy - cam.y, pulse = 1 + 0.08 * Math.sin(this.time * 5);

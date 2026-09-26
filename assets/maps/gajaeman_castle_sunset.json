@@ -29,7 +29,8 @@
   "assets/sprites/hyungsub-clash.png",
   "assets/props/cathedral323_sword.png",
   "assets/sprites/youngcle_hover.png",
-  "assets/sprites/gajaeman-fly.png"
+  "assets/sprites/gajaeman-fly.png",
+  "assets/props/purple_cord.png"
  ],
  "spawns": {
   "arrive": {

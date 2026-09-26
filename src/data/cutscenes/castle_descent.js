@@ -95,13 +95,13 @@ export const castle_raft_intro = Object.assign([
   // 물 아래에서 2초 동안 진동하며 가라앉아 기를 모은다 → 동시에 점프! 뗏목과 요플래가 벽을 따라 위로
   scene(s => s.gather()),
   // 동시에 점프! 브금이 잠깐 꺼지고 뗏목이 빠르게 솟는다 → 페이드 아웃·인 → 화면 전체 상승과 함께 곡(원곡 42.7초부터)
-  { bgm: null, fadeOut: 0.5 },
+  { bgm: null, fadeOut: 1.2 },
   scene(s => s.launch()),
   // 하늘로 넘어가는 페이드 아웃·인 약 1.5초 → 그 뒤 곡(원곡 42.7~63.9초 한 번)
   { fade: 'out', duration: 0.75 },
   scene(s => { s.ascend(); }),
   { fade: 'in', duration: 0.75 },
-  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.02, loop: false }); } },
+  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.9, loop: false }); } },
   scene(s => s.waitRise(RISE.flash)),
   // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
   { fade: 'white', duration: 0.3 },
@@ -125,10 +125,11 @@ export const castle_sunset_arrival = Object.assign([
   // BUILD363 착지 뒤: 요플래 쪽으로 살짝 다가가고 우우웅만(브금 없음) → SAVE THE WORLD 버튼·하트 → C
   { label: 'button' },
   close,
+  scene(s => { if (!s.tumble) s.kneelHold(); }),
   { action: game => { game.sound.stopBgm(0.6); game.sound.preloadBgm?.(GJ.bgm); } },
   { camera: at(300, 204), duration: 0.01 },
-  { zoom: 1.22, at: 'player', offset: [0, -14], duration: 1.8 },
-  { bgm: GJ.hum, volume: 0.35, fadeIn: 1.2 },
+  { zoom: 1.45, at: 'player', offset: [44, -18], duration: 1.8 },
+  { bgm: GJ.hum, volume: 0.35, fadeIn: 2.0 },
   scene(s => s.saveButton()),
   { bgm: null, fadeOut: 0.15 },
   { zoom: 1, duration: 0.01 },
@@ -251,7 +252,7 @@ export const ship_deck_epilogue = Object.assign([
   N('...'), N('나는 고맙다는 말을 전했다.'),
   K('ㅋㅋㅋ 새삼스럽게'),
   P('뭔가 일들이 많았고 위기도 많았지만'), P('즐거웠던거같아요.'),
-  K('응 나도 즐거웠어.'), K('요플래 넌 어쩔샘이야?'),
+  K('응 나도 즐거웠어.'), K('요플래 넌 어쩔셈이야?'),
   N('나는 이 세상을 지울 수 없다고 말했다.'),
   K('그게 무슨소리야?'),
   N('가재맨은 아직 내 안에 살아있고'), N('나와 함께 공존해 나가야한다고 말했다.'), N('그리고'), N('누군가는 김형섭의 컴퓨터를 지켜야한다고 말했다.'),
@@ -263,7 +264,7 @@ export const ship_deck_epilogue = Object.assign([
   P('멋진 사장님이기도 하구요'),
   N('...'),
   K('자 이제 돌아가볼까?'),
-  P('집에 가요, 편집 밀린거 헤야해요.'), close,
+  P('집에 가요, 편집 밀린거 해야해요.'), close,
   // 왼쪽으로 걸어가고 천천히 페이드 아웃
   { parallel: [scene(s => s.deckFriendsLeave()), [{ wait: 1.5 }, { fade: 'out', duration: 3.5 }]] },
   { set: { ship_deck_epilogue_seen: true } },

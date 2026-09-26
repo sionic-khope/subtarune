@@ -53,7 +53,7 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
   for (let m = 0; m < 3; m++) { await press('KeyC'); await press('KeyC'); }
   assert.ok(await until(() => game.battle.state === 'enemy-prep' || game.battle.state === 'bullets', 20000), 'attacks resolved');
   const hp1 = (await B()).sup.hp;
-  check('each hit on the core deals 42 (8 turns)', hp0 - hp1 >= 42 && (hp0 - hp1) % 42 === 0, `${hp0}->${hp1}`);
+  check('each hit on the core deals 52 (BUILD367 난이도 하향)', hp0 - hp1 >= 52 && (hp0 - hp1) % 52 === 0, `${hp0}->${hp1}`);
   // 2페이즈 전용 패턴 네 가지를 차례로 본다(무적, 방어만)
   const pats = [];
   for (let i = 0; i < 6; i++) {
