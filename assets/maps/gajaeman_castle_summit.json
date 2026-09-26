@@ -55,8 +55,8 @@
   "assets/props/cathedral323_sword.png",
   "assets/props/arena332_arm.png",
   "assets/props/teen347_p2.png",
-  "assets/battle/cannon-guard/cannon.png",
-  "assets/battle/cannon-guard/shot.png",
+  "assets/props/wooden_cannon.png",
+  "assets/props/ship_cannonball.png",
   "assets/enemies/baron-roar-idle.png"
  ],
  "spawns": {

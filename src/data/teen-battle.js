@@ -67,7 +67,7 @@ export const TEEN_BATTLE = Object.freeze({
     images: { idle: 'assets/props/teen347_p2.png', vacuum: 'assets/props/teen347_p2_vacuum.png', slam: 'assets/props/teen347_p2_slam.png' },
     core: [300, 176], coreSpot: [256, 206], near: [226, 150], inside: [320, 170],
     // 2페이즈 전용 패턴(검 비·엄.·주먹 연타·칼날 청소기) — 1페이즈와 다르게, 공격 위주
-    patterns: ['p2_blade_rain', 'p2_eom', 'p2_fist_barrage', 'p2_blade_vortex'],
+    patterns: ['p2_blade_rain', 'p2_titan_slam', 'p2_eom', 'p2_fist_barrage', 'p2_knee_storm', 'p2_blade_vortex'],
     taunts: ['죽어.', '죽여줄게', '니애미따라가'],
     gajaemanLines: ['이런... 말도안돼', '이 쓸모없는 녀석..', '뭐 상관없어.', '이제 끝을보자,', '내가 상대해주지'],
     partyLines: [

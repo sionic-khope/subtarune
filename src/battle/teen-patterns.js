@@ -38,20 +38,21 @@ const EOM = 'assets/props/teen348_eom.png';
 const DEBRIS = [...ROCKS, ...JUNK, TROPHY, MUSHROOM, EOM];
 /** 가재맨 공격 그림은 흰색 대신 보라로 물들인다(사용자 “흰색색감좀 쓰지마”). 캔버스가 없으면(단위 테스트) 원본 */
 const PURPLE = new WeakMap();
-const purpleSprite = img => {
+const purpleSprite = (img, alpha = 0.78) => {
   if (!img) return null;
-  let c = PURPLE.get(img);
+  const cache = PURPLE.get(img) || new Map(); PURPLE.set(img, cache);
+  let c = cache.get(alpha);
   if (!c) {
     try {
       c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
-      const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(150,80,255,0.78)'; x.fillRect(0, 0, c.width, c.height);
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = `rgba(150,80,255,${alpha})`; x.fillRect(0, 0, c.width, c.height);
     } catch { c = img; }
-    PURPLE.set(img, c);
+    cache.set(alpha, c);
   }
   return c;
 };
 const drawDebris = (ctx, b) => {
-  const img = globalThis.__teenImages?.[b.src];
+  const img = b.purple ? purpleSprite(globalThis.__teenImages?.[b.src], 0.5) : globalThis.__teenImages?.[b.src];
   if (!img) { if (!b.pts) b.pts = rockPoints(b.r, b.seed || 1); drawRock(ctx, b); return; }
   ctx.save(); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(b.rot);
   const k = b.shrink ?? 1;
@@ -335,10 +336,10 @@ export const TEEN_PATTERNS = {
         api.sfx?.('spearappear', { volume: 0.35 });
         for (let i = 0; i < n; i++) {
           if (i === gap) continue;
-          const x = box.x - 20 + i * step + step / 2, y = box.y - 30, sp = 190 + wave * 4;
+          const x = box.x - 20 + i * step + step / 2, y = box.y - 30, sp = 215 + wave * 5;
           api.emit({ x, y, r: 6, vx: -Math.sin(ang) * sp, vy: Math.cos(ang) * sp, rot: ang, drawShape(ctx, b) {
             if (!img) { ctx.fillStyle = '#9a50ff'; ctx.fillRect(Math.round(b.x) - 2, Math.round(b.y) - 12, 4, 24); return; }
-            ctx.save(); clip(ctx, api.box); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(b.rot + Math.PI);
+            ctx.save(); clip(ctx, api.box); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(Math.atan2(b.vy, b.vx) - Math.PI / 2);
             const h = 40, w = h * img.width / img.height; ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore();
           } });
         }
@@ -361,29 +362,112 @@ export const TEEN_PATTERNS = {
     } };
   },
 
-  /** 주먹 연타: 오른쪽에서 거대한 보라 주먹이 줄 두 개씩 가로로 내지른다(예고 줄 → 빠르게 왼쪽으로), 번갈아 높이가 바뀐다 */
+  /** 거신의 주먹 연타: 오른쪽에서 거대한 보라 주먹이 한 번에 두 줄을 덮으며 천천히·무겁게 가로질러 온다(긴 예고 → 잔상 → 벽에 쾅, 파편) */
   p2_fist_barrage: (o = {}) => {
-    const duration = o.duration ?? 8.5, rows = 4;
-    let next = 0.7, k = 0;
+    const duration = o.duration ?? 11, rows = 4, warn = 1.0, travel = 0.5;
+    let next = 0.8, k = 0;
     return { duration, update(t, dt, api) {
       const box = api.box, rh = box.h / rows, arm = api.images?.arm;
       if (t < 0.05) api.present?.({ sheet: 'slam' });
-      while (t >= next && t < duration - 1.2) {
-        next += Math.max(0.7, 1.15 - k * 0.05); k++;
-        const safe = Math.floor(api.rnd() * rows), hit = [0, 1, 2, 3].filter(r => r !== safe && r !== (safe + 1) % rows).slice(0, 2);
-        api.sfx?.('heavyswing', { volume: 0.45 });
-        for (const r of hit) {
-          const y = box.y + r * rh, warn = 0.55;
-          api.emit({ zone: true, x: box.x, y: y + 2, w: box.w, h: rh - 4, warn, life: warn + 0.35,
+      while (t >= next && t < duration - 2) {
+        next += Math.max(1.35, 1.8 - k * 0.08); k++;
+        // 연속한 두 줄(가끔 세 줄)을 덮는다 — 안전한 줄은 남은 곳
+        const span = k > 4 && api.rnd() < 0.35 ? 3 : 2, top = Math.floor(api.rnd() * (rows - span + 1));
+        const y = box.y + top * rh, h = rh * span;
+        api.sfx?.('heavyswing', { volume: 0.7 }); api.sfx?.('power', { volume: 0.35 });
+        api.emit({ zone: true, x: box.x, y: y + 2, w: box.w, h: h - 4, warn, life: warn + travel + 0.25,
+          drawShape(ctx, b) {
+            ctx.save(); clip(ctx, api.box);
+            if (b.age < b.warn) {
+              const p = b.age / b.warn; ctx.fillStyle = `rgba(170,90,255,${0.1 + 0.3 * p})`; ctx.fillRect(b.x, b.y, b.w, b.h);
+              if (Math.floor(b.age * 10) % 2 === 0) { ctx.strokeStyle = '#c070ff'; ctx.lineWidth = 2; ctx.strokeRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2); }
+              // 오른쪽 벽 밖에서 주먹이 뒤로 당겨진다(그림자)
+              ctx.fillStyle = `rgba(40,10,70,${0.5 * p})`; ctx.fillRect(b.x + b.w - 14 * p, b.y, 14 * p, b.h);
+            }
+            const go = Math.min(1, Math.max(0, (b.age - b.warn) / travel)), e = go * go;
+            if (arm && b.age > b.warn - 0.05) {
+              const s = b.h / arm.height * 1.5, len = arm.width * s, fx = b.x + b.w + 30 - e * (b.w + 40);
+              for (let g = 2; g >= 0; g--) {
+                ctx.save(); ctx.globalAlpha = g ? 0.25 / g : 1; ctx.translate(fx + g * 26, b.y + b.h / 2); ctx.scale(-1, 1);
+                ctx.drawImage(purpleSprite(arm), -10, -arm.height * s / 2, len, arm.height * s); ctx.restore();
+              }
+            }
+            ctx.restore();
+          } });
+        setTimeoutLike(api, warn + travel, () => {
+          api.sfx?.('baron_slam', { volume: 0.7 }); api.sfx?.('punch', { volume: 0.7 }); api.shake?.(0.45, 7);
+          for (let i = 0; i < 6; i++) api.emit({ x: box.x + 10, y: y + h / 2 + (api.rnd() - 0.5) * h, r: 4, vx: 60 + api.rnd() * 120, vy: (api.rnd() - 0.5) * 160, ay: 240, life: 1.4, pts: rockPoints(4, i + k), drawShape: drawRock, spin: 6 });
+        });
+      }
+      tickTimers(api, dt);
+    } };
+  },
+
+  /** 거신 내려찍기: 하트 위로 거대한 주먹 그림자가 커지다(긴 예고) 쾅 → 바닥을 타고 양쪽으로 충격파·위에서 파편. 마지막엔 양쪽 두 주먹, 가운데만 안전 */
+  p2_titan_slam: (o = {}) => {
+    const duration = o.duration ?? 11;
+    const times = [0.8, 2.8, 4.8, 6.9], warn = 1.1;
+    let fired = 0;
+    return { duration, update(t, dt, api) {
+      const box = api.box, soul = api.soul, arm = api.images?.arm;
+      if (t < 0.05) api.present?.({ sheet: 'slam' });
+      while (fired < times.length && t >= times[fired]) {
+        const last = fired === times.length - 1; fired++;
+        const w = last ? box.w * 0.4 : box.w * 0.55, xs = last ? [box.x + w / 2, box.x + box.w - w / 2] : [clamp(soul.x, box.x + w / 2, box.x + box.w - w / 2)];
+        api.sfx?.('heavyswing', { volume: 0.8 }); api.sfx?.('laser_charge', { volume: 0.35 });
+        for (const x of xs) {
+          api.emit({ zone: true, x: x - w / 2, y: box.y, w, h: box.h, warn, life: warn + 0.35,
             drawShape(ctx, b) {
               ctx.save(); clip(ctx, api.box);
-              if (b.age < b.warn) { ctx.fillStyle = `rgba(170,90,255,${0.12 + 0.3 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h); }
-              const go = Math.min(1, Math.max(0, (b.age - b.warn + 0.12) / 0.16));
-              if (arm && b.age > b.warn - 0.12) { const s = b.h / arm.height * 1.3, len = arm.width * s; ctx.translate(b.x + b.w + 10 - go * (b.w + 20), b.y + b.h / 2); ctx.scale(-1, 1); ctx.drawImage(purpleSprite(arm), -10, -arm.height * s / 2, len, arm.height * s); }
+              if (b.age < b.warn) {
+                const p = b.age / b.warn;
+                ctx.fillStyle = `rgba(60,10,110,${0.2 + 0.45 * p})`; ctx.beginPath(); ctx.ellipse(b.x + b.w / 2, b.y + b.h - 8, b.w / 2 * (0.4 + 0.6 * p), 10 + 8 * p, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = `rgba(170,90,255,${0.08 + 0.2 * p})`; ctx.fillRect(b.x, b.y, b.w, b.h);
+              }
+              const drop = Math.min(1, Math.max(0, (b.age - b.warn + 0.18) / 0.18));
+              if (arm && b.age > b.warn - 0.18) { const s = b.w / arm.height * 1.1, len = arm.width * s; ctx.translate(b.x + b.w / 2, b.y + b.h - (1 - drop) * (b.h + 40)); ctx.rotate(Math.PI / 2); ctx.drawImage(purpleSprite(arm), -len + 12, -arm.height * s / 2, len, arm.height * s); }
               ctx.restore();
             } });
         }
-        setTimeoutLike(api, 0.55, () => { api.sfx?.('punch', { volume: 0.6 }); api.shake?.(0.2, 4); });
+        setTimeoutLike(api, warn, () => {
+          api.sfx?.('baron_slam', { volume: 1 }); api.sfx?.('furnace_blast', { volume: 0.6 }); api.shake?.(0.7, 10);
+          for (const x of xs) {
+            for (const dir of [-1, 1]) for (let r = 0; r < 2; r++) api.emit({ x, y: box.y + box.h - 8 - r * 10, r: 7, vx: dir * (190 + r * 60), pts: rockPoints(7, fired + dir + r), drawShape: drawRock, spin: dir * 7 });
+          }
+          for (let i = 0; i < 5 + fired; i++) api.emit({ x: box.x + 10 + api.rnd() * (box.w - 20), y: box.y - 10 - api.rnd() * 30, r: 4, vy: 90 + api.rnd() * 60, ay: 160, pts: rockPoints(4, i), drawShape: drawRock, spin: 4 });
+        });
+      }
+      tickTimers(api, dt);
+    } };
+  },
+
+  /** 넣을게 폭풍: 보라 무릎 가재맨이 아래에서 여러 줄로 솟는다(“넣을게~”), 갈수록 한 번에 더 많이·빨리, 마지막엔 한 칸만 빈다 */
+  p2_knee_storm: (o = {}) => {
+    const duration = o.duration ?? 10, cols = 5;
+    let next = 0.7, wave = 0;
+    return { duration, update(t, dt, api) {
+      const box = api.box, img = api.images?.knee, cw = img ? img.width / 4 : 60, ch = img ? img.height : 60, s = 0.55, w = cw * s, h = ch * s, colW = box.w / cols;
+      if (t < 0.05) api.present?.({ sheet: 'idle' });
+      while (t >= next && t < duration - 1.2) {
+        next += Math.max(0.75, 1.25 - wave * 0.07); wave++;
+        const n = Math.min(cols - 1, 1 + Math.floor(wave / 2)), picks = [];
+        const safe = Math.floor(api.rnd() * cols);
+        const pool = [...Array(cols).keys()].filter(c => c !== safe);
+        while (picks.length < n) { const c = pool.splice(Math.floor(api.rnd() * pool.length), 1)[0]; picks.push(c); }
+        api.sfx?.('gajaeman_knee', { volume: 1 });
+        const warn = Math.max(0.5, 0.75 - wave * 0.02);
+        for (const c of picks) {
+          const x = box.x + colW * c + colW / 2;
+          api.emit({ zone: true, x: x - colW / 2 + 3, y: box.y + box.h - 90, w: colW - 6, h: 90, warn, life: warn + 0.45,
+            drawShape(ctx, b) {
+              ctx.save(); clip(ctx, api.box);
+              if (b.age < b.warn) { ctx.fillStyle = `rgba(160,90,255,${0.14 + 0.3 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h); }
+              if (img) { const up = Math.min(1, Math.max(0, (b.age - b.warn + 0.1) / 0.14)), frame = b.age < b.warn ? 1 : 2;
+                ctx.drawImage(img, frame * cw, 0, cw, ch, Math.round(b.x + b.w / 2 - w / 2), Math.round(box.y + box.h - up * h), Math.round(w), Math.round(h)); }
+              ctx.restore();
+            } });
+        }
+        setTimeoutLike(api, warn, () => { api.sfx?.('impact', { volume: 0.6 }); api.shake?.(0.25, 4); });
       }
       tickTimers(api, dt);
     } };
@@ -400,20 +484,20 @@ export const TEEN_PATTERNS = {
       const k = Math.min(1, t / VC.approach), e = 1 - (1 - k) ** 3;
       api.present?.({ sheet: 'vacuum', x: Math.round(from.x + (to[0] - from.x) * e), y: Math.round(from.y + (to[1] - from.y) * e) });
       if (t < ready) { if (t > VC.approach && !opened) { opened = true; api.sfx?.('power', { volume: 0.6 }); api.sfx?.('teen_vacuum', { volume: 0.8 }); } return; }
-      const pull = 20 + 24 * Math.min(1, (t - ready) / 6), dx = px - soul.x, dy = py - soul.y, d = Math.max(1, Math.hypot(dx, dy));
+      const pull = 30 + 40 * Math.min(1, (t - ready) / 5), dx = px - soul.x, dy = py - soul.y, d = Math.max(1, Math.hypot(dx, dy));
       soul.x = clamp(soul.x + dx / d * pull * dt, box.x + soul.r + 4, box.x + box.w - soul.r - 4);
       soul.y = clamp(soul.y + dy / d * pull * dt, box.y + soul.r + 4, box.y + box.h - soul.r - 4);
       while (t >= next && t < duration - 1.2) {
-        next += Math.max(0.28, 0.5 - (t - ready) * 0.02); n++;
+        next += Math.max(0.18, 0.38 - (t - ready) * 0.02); n++;
         // 상자 둘레 아무 데서나 → 소용돌이치며 구멍으로
         const a = api.rnd() * Math.PI * 2, R = Math.max(box.w, box.h) * 0.75, cx = box.x + box.w / 2, cy = box.y + box.h / 2, spin = api.rnd() < 0.5 ? 1 : -1;
         api.emit({ x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R, r: 6, free: true, life: 5, spin: 0, drawShape(ctx, b) {
-            ctx.save(); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
+            ctx.save(); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(Math.atan2(b.vy, b.vx) - Math.PI / 2);
             if (img) { const h = 30, w = h * img.width / img.height; ctx.drawImage(img, -w / 2, -h / 2, w, h); } else { ctx.fillStyle = '#9a50ff'; ctx.fillRect(-2, -10, 4, 20); }
             ctx.restore();
           },
           steer(b, dd) {
-            const ex = px - b.x, ey = py - b.y, dist = Math.max(1, Math.hypot(ex, ey)), v = 120 + 90 * Math.max(0, 1 - dist / 160);
+            const ex = px - b.x, ey = py - b.y, dist = Math.max(1, Math.hypot(ex, ey)), v = 145 + 110 * Math.max(0, 1 - dist / 160);
             const tx = ex / dist * v + (-ey / dist) * v * 0.55 * spin, ty = ey / dist * v + (ex / dist) * v * 0.55 * spin;
             b.vx += (tx - b.vx) * Math.min(1, dd * 3); b.vy += (ty - b.vy) * Math.min(1, dd * 3);
             if (dist < 14) b.life = b.age;
@@ -430,14 +514,14 @@ export const TEEN_PATTERNS = {
       const box = api.box;
       if (t < 0.05) api.present?.({ sheet: 'idle' });
       while (t >= next && t < duration - 1) {
-        next += Math.max(0.6, 1.05 - v * 0.06); v++;
+        next += Math.max(0.5, 0.95 - v * 0.06); v++;
         api.sfx?.('gajaeman_eom', { volume: 1 });
         // 코어 쪽(상자 오른쪽 위 밖)에서 하트를 겨냥한 부채꼴
         const sx = box.x + box.w + 18, sy = box.y - 10, base = Math.atan2(api.soul.y - sy, api.soul.x - sx), count = 3 + Math.min(3, Math.floor(v / 3)), spread = 0.22, sp = 150 + v * 6;
         for (let i = 0; i < count; i++) {
           const a = base + (i - (count - 1) / 2) * spread;
           // 상자 안에서만 보이게(상자 밖 화면을 날아다니지 않게)
-          api.emit({ x: sx, y: sy, r: 9, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, spin: (i % 2 ? 1 : -1) * 2, src: EOM, seed: v * 10 + i, drawShape: (ctx, b) => { ctx.save(); clip(ctx, api.box); drawDebris(ctx, b); ctx.restore(); } });
+          api.emit({ x: sx, y: sy, r: 9, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, spin: (i % 2 ? 1 : -1) * 2, src: EOM, purple: true, seed: v * 10 + i, drawShape: (ctx, b) => { ctx.save(); clip(ctx, api.box); drawDebris(ctx, b); ctx.restore(); } });
         }
       }
     } };

@@ -56,11 +56,11 @@ await runScenario({ name: 'teen-battle-p2', launchOptions: { args: ['--autoplay-
   check('each hit on the core deals 42 (8 turns)', hp0 - hp1 >= 42 && (hp0 - hp1) % 42 === 0, `${hp0}->${hp1}`);
   // 2페이즈 전용 패턴 네 가지를 차례로 본다(무적, 방어만)
   const pats = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     assert.ok(await until(() => game.battle.state === 'bullets', 40000), `phase-2 pattern ${i}`);
     pats.push(await page.evaluate(() => game.battle.support.snapshot && game.battle.patterns.map(p => p.p.duration).join()));
     await page.evaluate(() => { game.battle.soul.invuln = 99; });
-    await page.waitForTimeout(2600); await shot(`p2-pat-${i}a`); await page.waitForTimeout(2400); await shot(`p2-pat-${i}b`);
+    await page.waitForTimeout(1800); await shot(`p2-pat-${i}a`); await page.waitForTimeout(2600); await shot(`p2-pat-${i}b`);
     assert.ok(await until(() => game.battle.state === 'menu', 40000), 'menu after pattern');
     for (let m = 0; m < 3; m++) { await press('ArrowRight'); await press('KeyC'); }
   }

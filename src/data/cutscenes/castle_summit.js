@@ -73,8 +73,9 @@ export const castle_summit_confront = Object.assign([
   A('{shake}나는 이렇게 모두에게 사랑받지 못하고 살아야하는건데!!!{/shake}'), A('질 수 없어'), A('너희가 나를 막게 둘수없다!!!'), close,
   // 엄청난 오오라가 모이고 3초 뒤 릴리즈샷과 함께 퍼어엉 → 일행 HP 1
   summit(s => s.gatherAura(3)), summit(s => s.releaseBurst()),
-  { camera: C.party, duration: 0.8 },
+  { camera: C.party, duration: 1.4 }, { wait: 0.6 },
   P('헉... 헉... 미친.. 말도안돼'), K('...윽.. 이대로 지는건가..'), close,
+  summit(s => s.hideHud()),
   { camera: C.talk, duration: 0.8 },
   A('잘.. 가라..'), A('이제 끝내자.'), close,
   // 우웅 — 연기를 걷어내며 거대한 칼날, 일행을 겨눈다
@@ -83,43 +84,50 @@ export const castle_summit_confront = Object.assign([
   // 뒤로 당겼다가 날아온다: 칼 쪽으로 살짝 확대, 점점 슬로우모션, 닿기 직전 멈춤
   { parallel: [summit(s => s.launchBlade()), [{ wait: 0.8 }, { zoom: 1.3, at: [1790, 318], duration: 0.7 }]] },
   // 쾅! 용준대포알이 날아와 칼을 날려 버린다 → 모두 느낌표
-  summit(s => s.cannonSmash()), { zoom: 1, duration: 0.25 },
-  { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 0.8, hold: 0.4 })) },
-  // 카메라가 빠르게 뒤로 — 끝길 맨 뒤에 박용준과 용준대포
+  summit(s => s.cannonSmash()), { wait: 0.6 }, { zoom: 1, duration: 0.6 },
+  { parallel: PARTY.map(id => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6 })) }, { wait: 0.6 },
+  // 뒤를 돌아보고 → 카메라가 천천히 뒤로 — 끝길 맨 뒤에 박용준과 용준대포
   { show: 'finale_yongjun' }, summit(s => s.showCannon()),
-  ...PARTY.map(id => ({ face: id, dir: 'left' })),
-  { parallel: [{ camera: C.back, duration: 0.45 }, { bgm: 'save_the_world', volume: 0.6, fadeIn: 0.2 }] },
+  ...PARTY.map(id => ({ face: id, dir: 'left' })), { wait: 0.5 },
+  { parallel: [{ camera: C.back, duration: 2.6 }, { bgm: 'save_the_world', volume: 0.6, fadeIn: 1.0 }] }, { wait: 0.6 },
   YJ('하이요 형들ㅋㅋ'),
   P('용.. 용준아 살아있었구나!!'), YJ('아 당연하죠 형님들 ㅋㅋ'), close,
   { camera: C.talk, duration: 0.9 },
   A('{shake}이... 이...녀석들이!!!{/shake}'), close,
   // 작은 검들을 여러 개 소환해 박용준에게 → 용준·대포 앞 바닥에서 바론이 튀어나와 날려 버리고 포효
-  summit(s => s.swordsAtYongjun()), { camera: C.back, duration: 0.35 },
-  summit(s => s.baronRise()),
-  { camera: C.talk, duration: 0.5 }, A('?!'), close,
-  { camera: C.back, duration: 0.5 },
-  YJ('으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!'), YJ('죽어라 괴물!!!'), close,
-  // 대포를 하나 더 — 빠르게 날아가 청소년가재맨에게 적중
-  { parallel: [summit(s => s.cannonAtGiant()), { camera: C.talk, duration: 0.45 }] },
+  // 바론이 들어갈 만큼 조금 멀리서
+  summit(s => s.swordsAtYongjun()), { parallel: [{ camera: C.back, duration: 0.35 }, { zoom: 0.8, duration: 0.35 }] },
+  summit(s => s.baronRise()), { wait: 0.4 },
+  { parallel: [{ camera: C.talk, duration: 0.7 }, { zoom: 1, duration: 0.7 }] }, { wait: 0.3 }, A('?!'), close,
+  { parallel: [{ camera: C.back, duration: 0.8 }, { zoom: 0.8, duration: 0.8 }] },
+  YJ('으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!'), summit(s => s.roar()), YJ('죽어라 괴물!!!'), close,
+  // 대포를 하나 더 — 빠르게 날아가 청소년가재맨에게 적중. 바론은 포효 뒤 대포 뒤로 물러나 곁에 남는다
+  { parallel: [summit(s => s.baronBack()), [{ wait: 0.3 }, { parallel: [summit(s => s.cannonAtGiant()), [{ wait: 0.15 }, { parallel: [{ camera: C.talk, duration: 0.45 }, { zoom: 1, duration: 0.45 }] }]] }]] },
+  { wait: 0.6 },
   // 가재맨이 빠져나와 위로 살짝, 청소년이 주먹을 날리게 조종 → 왼쪽에서 쥰희가 달려와 막는다
-  summit(s => s.gajaemanOut()),
+  summit(s => s.gajaemanOut()), { wait: 0.5 },
   ...PARTY.map(id => ({ face: id, dir: 'right' })),
-  { show: 'finale_junhee' },
-  { parallel: [summit(s => s.punch()), { move: 'finale_junhee', rel: 'finale_stop_junhee', at: 'bottom', by: [0, 0], dash: true, facing: 'right' }] },
-  summit(s => s.blockHit()), { face: 'finale_junhee', dir: 'right' },
+  // 청소년이 주먹을 뒤로 당겼다가 천천히 날린다 → 주인공들 느낌표·확대 → 맞기 직전 쥰희가 극적으로 나타나 막는다
+  summit(s => s.punch()),
+  { parallel: [{ zoom: 1.35, at: [1700, 360], duration: 0.8 }, ...PARTY.map(id => ({ emote: id, kind: '!', duration: 1.0, hold: 0.6 }))] },
+  summit(s => s.armAt(0.84)), { wait: 0.35 },
+  { action: game => { const j = game.entities.find(e => e.id === 'finale_junhee'); if (j) { j.x = 1590; j.y = 392 - j.h; j.visible = true; } } },
+  { move: 'finale_junhee', rel: 'finale_stop_junhee', at: 'bottom', by: [0, 0], dash: true, facing: 'right' },
+  summit(s => s.blockHit()), { face: 'finale_junhee', dir: 'right' }, { wait: 1.2 },
+  { zoom: 1, duration: 0.8 }, { wait: 0.3 },
   P('?! 타코'), K('너까지 살아있었구나'),
   J('{shake}바보같은 소리하지마라 가재맨!!!!!{/shake}'), J('우리가 가재맨을 싫어한다고?'), J('우리가 너를 별볼일 없는 녀석이라고 생각한다고?'),
   J('지랄도 정도껏이지.'), J('우리의 밤을 항상 지켜주는건.'), J('{shake2}가재맨 바로 너란말이다!!!!!!!!{/shake2}'), close,
   // 천천히 밀다가 릴리즈샷과 함께 펑! 화면이 잠깐 하얘지고 청소년이 뒤로 넘어간다
-  summit(s => s.pushBack()),
-  { emote: 'summit_gajaeman', kind: '!', duration: 0.8, hold: 0.4 }, A('...'), close,
+  summit(s => s.pushBack()), { wait: 0.6 },
+  { emote: 'summit_gajaeman', kind: '!', duration: 1.0, hold: 0.6 }, { wait: 0.6 }, A('...'), close, { wait: 0.4 },
   summit(s => s.gajaemanFlee()),
   { camera: C.talk, duration: 0.8 },
   { face: 'finale_junhee', dir: 'left' }, J('앞을 부탁한다.. 너네들,,,'), close, summit(s => s.collapse('finale_junhee')),
   YC('이번엔 내가 맡지!'), close,
   // 다시 카메라가 뒤로 — 영클과 편집노조가 달려와 일행 곁에 멈춘다(겹치지 않게 자리 따로)
   ...['finale_youngcle', 'finale_bidet', 'finale_mario', 'finale_ttuulla', 'finale_park'].map(id => ({ show: id })),
-  { camera: C.back, duration: 0.6 },
+  { camera: C.back, duration: 1.6 },
   { parallel: [['youngcle', 0], ['bidet', 0.15], ['mario', 0.3], ['ttuulla', 0.45], ['park', 0.6]].map(([n, d]) => [{ wait: d },
     { move: `finale_${n}`, rel: `finale_stop_${n}`, at: 'bottom', by: [0, 0], run: true, axis: 'x', facing: 'right' },
     { move: `finale_${n}`, rel: `finale_stop_${n}`, at: 'bottom', by: [0, 0], run: true, axis: 'y', facing: 'right' }]) },
