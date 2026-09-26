@@ -1,23 +1,30 @@
 #!/bin/bash
-# Rebuild the 11 per-illustration reference contact sheets.
+# Rebuild the 11 per-illustration reference sheets (v2): row 1 = character sprites, row 2 = real in-game place
+# captures (places/, made by capture-places.mjs) and key props, larger so the place survives API downscaling.
 set -e
 cd "$(dirname "$0")/../../.."
-R=assets/source/credits371/refs; S=assets/sprites; E=assets/enemies; P=assets/props; T=tests/playtest/shots
-B() { uv run --with pillow python assets/source/credits371/sheet.py "$@"; }
+C=assets/source/credits371; R=$C/refs; PL=$C/places; S=assets/sprites; E=assets/enemies; P=assets/props; T=tests/playtest/shots
+TMP=$(mktemp -d)
+B() { uv run --with pillow python $C/sheet.py "$@" >/dev/null; }
+REF() { n=$1; shift; chars=(); places=(); mode=c
+  for a in "$@"; do if [ "$a" = "--" ]; then mode=p; elif [ $mode = c ]; then chars+=("$a"); else places+=("$a"); fi; done
+  B $TMP/c.png 240 "${chars[@]}"; B $TMP/p.png 420 "${places[@]}"
+  uv run --with pillow python $C/stack.py $R/ref$n.png $TMP/c.png $TMP/p.png; }
 H0="$S/hyungsub.png@4,4,0,0=Yoplae (hero)"
 G0="$S/gyeongsub.png@4,4,0,0=Kim Gyeongsub"
 PP0="$S/ppaman.png@4,4,0,0=Eokppaman (bear)"
 J0="$S/junhee.png@4,4,0,0=Junhee (pig)"
 Y0="$S/yongjun.png@4,4,0,0=Park Yongjun"
 YC0="$S/youngcle.png@4,4,0,0=Youngcle"
-B $R/ref01.png 300 "$H0" "$S/hyungsub.png@4,4,0,2=Yoplae side" "$PP0" "$P/raft.png=raft" "$T/void4_02_mid.png=place: purple Twitch island"
-B $R/ref02.png 300 "$H0" "$G0" "$PP0" "$E/cs-red-front.png=red minion" "$E/cs-blue-front.png=blue minion" "$P/toolbox.png=box" "$T/teal3_02_spread.png=place: teal forest"
-B $R/ref03.png 300 "$J0" "$S/junhee.png@4,4,0,2=Junhee side" "$Y0" "$S/yongjun.png@4,4,0,2=Yongjun side" "$S/junhee-laugh.png=Junhee laugh" "$T/teal3_02_spread.png=place: teal forest"
-B $R/ref04.png 300 "$E/baron-front.png=Baron (purple void serpent)" "$Y0" "$H0" "$G0" "$PP0"
-B $R/ref05.png 300 "$J0" "$S/junhee_point.png=Junhee pointing" "$P/maillard-ship.png=Maillard battleship (pig ship)"
-B $R/ref06.png 300 "$S/warm_bidet.png@4,4,0,0=Warm Bidet" "$S/park_guardian_costume.png@4,4,0,0=Park Guardian costume" "$S/ttuulla.png@4,4,0,0=Ttuulla (mouse)" "$S/mini_mario.png=Dot Mario" "$P/youngcle-warship.png=Eomcheongdaebak-inbae battleship" "$P/ship_console.png=ship console"
-B $R/ref07.png 300 "$S/park_guardian.png@4,4,0,0=Park Guardian UNMASKED" "$E/park-guardian-empty-costume.png=pulled-off costume" "$J0" "$YC0" "$S/warm_bidet.png@4,4,0,0=Warm Bidet" "$S/mini_mario.png=Dot Mario"
-B $R/ref08.png 300 "$E/drum-devil-field.png=Drum-barrel Devil" "$S/janitor-laugh.png@2,2,0,0=Janitor (laughing)" "$H0" "$T/run-CIdLKQ/drum-devil-battle/screenshots/00-idle.png=place: Jjajang forest"
-B $R/ref09.png 300 "$S/choimis-masked.png=Choimis in Discord mask" "$S/choimis.png@4,4,0,0=Choimis unmasked" "$H0" "$G0" "$PP0" "$T/run-Yd8zZW/jjajang-sakura6/screenshots/sakura6_11_exclaim.png=place: cherry forest"
-B $R/ref10.png 300 "$S/gajaeman_shadow.png@4,4,0,0=Gajaeman (dark twin)" "$H0" "$G0" "$PP0" "$J0" "$YC0" ".omc/evidence/arena333b/run-uNTeER/castle-arena/s1.png=place: castle"
-B $R/ref11.png 300 "$S/gyeongsub.png@4,4,0,1=Gyeongsub back" "$S/hyungsub.png@4,4,0,1=Kim Hyungsub back" "$S/hyungsub.png@4,4,0,0=Kim Hyungsub front" "$S/ppaman.png@4,4,0,1=Eokppaman back" "$S/youngcle.png@4,4,0,1=Youngcle back" ".omc/evidence/wave365/deck.png@4,3,0,0=place: sunset over sea"
+REF 01 "$H0" "$S/hyungsub.png@4,4,0,2=Yoplae side" "$PP0" "$P/raft.png=raft" -- "$PL/void4.png=place: void4 purple map" "$T/void4_03_ppaman_closeup.png=Eokppaman on pillar"
+REF 02 "$H0" "$G0" "$PP0" "$E/cs-red-front.png=red minion" "$E/cs-blue-front.png=blue minion" "$P/weapon_box_open.png=wooden weapon chest" -- "$PL/teal3.png=place: teal3" "$T/teal3_02_spread.png=teal3 clearing"
+REF 03 "$J0" "$S/junhee-laugh.png=Junhee laugh" "$Y0" "$S/yongjun.png@4,4,0,2=Yongjun side" -- "$P/wooden_cannon.png=wooden pig-nose cannon" "$PL/obj1.png=place: obj1 water path"
+REF 04 "$E/baron-front.png=Baron" "$Y0" "$H0" "$G0" "$PP0" -- "$PL/obj4.png=place: obj4 water path" "$PL/obj1.png=same area"
+REF 05 "$J0" "$S/junhee_point.png=Junhee pointing" -- "$P/maillard-ship.png=Maillard pig ship" "$PL/obj5.png=place: obj5 water path"
+REF 06 "$S/warm_bidet.png@4,4,0,0=Warm Bidet" "$S/park_guardian_costume.png@4,4,0,0=Park Guardian" "$S/mini_mario.png=Dot Mario" -- "$PL/lounge.png=place: ship lounge" "$P/ship_lounge_grand_door.png=lounge door"
+REF 07 "$S/park_guardian.png@4,4,0,0=Park Guardian UNMASKED" "$E/park-guardian-empty-costume.png=pulled-off costume" "$J0" "$YC0" "$S/warm_bidet.png@4,4,0,0=Warm Bidet" "$S/mini_mario.png=Dot Mario" -- "$PL/stage.png=place: ship stage"
+REF 08 "$E/drum-devil-field.png=Drum-barrel Devil" "$S/janitor-laugh.png@2,2,0,0=Janitor (laughing)" "$H0" -- "$T/run-CIdLKQ/drum-devil-battle/screenshots/00-idle.png=place: drum nest" "$PL/nest.png=drum nest"
+REF 09 "$R/choimis-masked-noletters.png=Choimis in Discord mask" "$H0" "$G0" "$PP0" -- "$PL/sakura6.png=place: cherry plaza"
+REF 10 "$S/gajaeman_shadow.png@4,4,0,0=Gajaeman" "$H0" "$G0" "$PP0" "$J0" "$S/youngcle_hover.png@4,4,0,0=Youngcle on hover" -- "$PL/arena.png=place: castle arena"
+REF 11 "$S/gyeongsub.png@4,4,0,1=Gyeongsub back" "$S/hyungsub.png@4,4,0,1=Kim Hyungsub back" "$S/ppaman.png@4,4,0,1=Eokppaman back" "$S/youngcle.png@4,4,0,1=Youngcle back" -- "$PL/sunset.png=place: sunset land"
+rm -rf $TMP

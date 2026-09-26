@@ -1,0 +1,36 @@
+# imagegen 2026-09-26 20:31:08
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/cookie373/refs/ref.png
+
+STYLE (identical for the whole series of credit illustrations): landscape 3:2 horizontal illustration. Warm hand-painted storybook illustration, soft gouache and watercolor texture with visible paper grain, clean confident dark-brown ink linework, cute chibi proportions (big heads, short bodies) faithful to the reference sprites, rich cinematic lighting with warm rim light, gentle color bloom, Deltarune / Undertale fan-art mood, cinematic composition with clear foreground/midground/background. NOT pixel art, no pixels, no dithering. Absolutely no text, no letters, no captions, no speech bubbles, no logos with writing, no watermark, no signature, no UI, no borders, no frames.
+
+The reference image is a labelled contact sheet of small PIXEL SPRITES from the game (plus sometimes a screenshot of the place). The labels are only for you; never draw them. REINTERPRET the sprites as painted characters while keeping every identity detail recognisable (colors, hair, glasses, species, outfit).
+
+CHARACTER IDENTITY RULES (only for characters that appear):
+- Yoplae / Kim Hyungsub (the hero): small chibi boy, messy short black hair, big ROUND BLACK-RIMMED GLASSES, round peach face with a small round nose, NO MOUTH at all (never draw a mouth), plain white short-sleeve T-shirt, navy shorts, dark shoes.
+- Kim Gyeongsub: chibi young man with long straight black hair to the shoulders covering the sides of his face, thin round glasses, dark navy T-shirt with a small purple square emblem on the chest, dark pants.
+- Eokppaman: a chubby periwinkle-blue teddy BEAR standing upright, round ears with pink insides, cream-colored belly and muzzle, black nose, small black eyes.
+- Junhee: a pink PIG standing upright on two legs, big snout with two nostrils, angry slanted eyebrows, curly tail, pink floppy ears.
+- Park Yongjun: a chubby round-faced boy with a black bowl-cut, sleepy narrow eyes, white T-shirt, navy shorts.
+- Youngcle: a round PINK head like a ball with one big spiral swirl eye in the middle, a little brown sprout/antenna on top, red cheek, light-blue T-shirt with a small green pocket, navy shorts.
+- Warm Bidet: spiky black hair with a white streak, dark grey plate armor with red trim (no weapon in this photo).
+- Park Guardian: a person fully inside a black-and-white fluffy mascot suit with a black hood with two pointed ears tipped with pink pompoms and a pink skull badge, white body, little devil tail.
+- Dot Mario: a tiny blocky retro 8-bit style little man with red cap, red overalls, brown mustache.
+- Obangsun: a pale woman with dramatic crimson braided dreadlocks piled into a bun with many round red bead ornaments sticking out, dark lipstick, black outfit.
+- Naram: a chubby cheerful man with a shaved head and big grin, olive-green camouflage military T-shirt and pants.
+- Eunbyeol (Kim Eunbyeol Company): a small girl with black low twin pigtails, round glasses, rosy cheeks, black suit and tie.
+- Yerim: a slim schoolgirl with very long straight black hair, small red hair bow, white sailor blouse with navy collar and ribbon, navy pleated skirt, dark knee socks.
+- Choimis: a chubby round pink character with fluffy white curly hair and glasses, pink sweatshirt with a blank pale chest patch (NO letters).
+- Jeomnye: a sweet girl with long brown hair, rosy cheeks, simple white dress.
+- Janitor: an old man with a red bandana, red shirt, dark shorts, stubble, big nose, wooden cane.
+- Ttuulla (NOT in the reference, draw from this text): a brown cartoon mouse standing upright like a person, big round pink ears, cream belly and face, long thin tail.
+
+SCENE: A commemorative GROUP PHOTO taken inside the lounge of the Eomcheongdaebak-inbae battleship: dark navy metal walls with warning-stripe panels, a deep red carpet, and a big ornate PURPLE double door with gold trim in the center of the back wall, cyan lights, a big porthole window. Everyone faces the camera straight on, smiling happily like a real souvenir photo, arranged in three rows: a front row sitting or kneeling on the carpet, a middle row standing, a back row standing on something taller. Several characters make V-sign (peace) hands.
+EXACTLY IN THE CENTER of the front row: Yoplae (the hero) doing a big cheerful 'say cheese' pose with a V-sign hand next to his face (still NO mouth; show happiness with crescent eyes behind his round glasses and rosy cheeks).
+Around him, all recognisable: Kim Gyeongsub, Eokppaman the blue bear, Junhee the pink pig, Park Yongjun, Warm Bidet, Park Guardian in the mascot suit, Dot Mario, Obangsun, Naram, Eunbyeol, Yerim, Choimis, Jeomnye, the Janitor, and Ttuulla the mouse.
+Youngcle (round pink head with one spiral eye and a sprout, light-blue T-shirt) stands alone at the far LEFT EDGE of the photo, slightly apart from the group with a small gap, a bit awkward, half-smiling.
+Warm soft lounge lighting with a gentle flash-photo glow. Reference: labelled sprite sheet of everyone (Ttuulla omitted) plus the lounge door, window and a lounge screenshot.
+
+STRICT RULES: exactly 18 characters in total, EACH character appears EXACTLY ONCE (only ONE pig, only ONE Yongjun, only ONE Yoplae — no duplicates, no extra people). Yoplae in the center has absolutely NO MOUTH: his face below the glasses is blank skin with only a tiny round nose and blush — do not draw any smile line or open mouth on him (other characters may smile normally).

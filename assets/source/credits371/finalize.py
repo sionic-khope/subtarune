@@ -2,7 +2,8 @@
 from PIL import Image
 import os
 D = 'assets/source/credits371'
-CHOSEN = {'01': '', '02': '', '03': 'b', '04': '', '05': '', '06': 'f', '07': '', '08': '', '09': '', '10': '', '11': ''}
+# v1 (painted) choices are recorded in v1/; v2 = cartoon restyle
+CHOSEN = {'01': 'v2', '02': 'v2', '03': 'v2b', '04': 'v2b', '05': 'v2', '06': 'v2b', '07': 'v2', '08': 'v2', '09': 'v2b', '10': 'v2', '11': 'v2'}
 finals = []
 for nn, v in CHOSEN.items():
     im = Image.open(f'{D}/photo{nn}-raw{v}.png').convert('RGB').resize((400, 600), Image.LANCZOS)

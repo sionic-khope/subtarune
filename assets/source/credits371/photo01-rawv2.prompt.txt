@@ -1,0 +1,19 @@
+# imagegen 2026-09-26 20:39:12
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1536  quality: high
+# refs: assets/source/credits371/refs/ref01.png
+
+STYLE (identical for the whole series of ending-credit pictures): a SIMPLE 2D CARTOON panel, like a cute light webtoon / cartoon cut or the clean official art of Deltarune and Undertale. Bold, clean, uniform BLACK OUTLINES around every character and object. FLAT CEL COLORS with at most ONE simple shadow tone per color. No texture, no brush strokes, no paint or paper grain, no gradients, no glow or light bloom, no painterly lighting, no detailed rendering. The background is SIMPLE: a few large flat shapes and a small number of colors that match the real in-game place, with only the key props. Cute chibi proportions (big heads, short bodies) faithful to the sprites, clear readable poses and expressions, playful and light. NOT pixel art, no pixels, no dithering, not 3D, not realistic, not a high-detail illustration. Absolutely no text, no letters, no numbers, no captions, no speech bubbles, no logos with writing, no watermark, no signature, no UI, no border or frame.
+
+The reference image is a labelled contact sheet of small PIXEL SPRITES from the game plus screenshots of the actual in-game place. The labels are only for you; never draw them. REDRAW the sprites as simple cartoon characters keeping every identity detail (colors, hair, glasses, species, outfit, props), and rebuild the place from the screenshot (same ground colors, same kind of trees/water/props, same layout feel).
+
+CHARACTER IDENTITY RULES (only for characters that appear):
+- Yoplae / Kim Hyungsub (the hero): small chibi boy, messy short black hair, big ROUND BLACK-RIMMED GLASSES, round peach face with a small round nose, NO MOUTH at all: the skin below his nose is completely blank, no mouth, no dot, no line, no open mouth, even when shocked or laughing (show feelings only with eyes, eyebrows, blush and sweat drops), plain white short-sleeve T-shirt, navy shorts, dark navy shoes.
+- Kim Gyeongsub: chibi young man with long straight black hair to the shoulders framing his face, thin round glasses, dark navy T-shirt with a small purple square emblem on the chest, black pants.
+- Eokppaman: a chubby periwinkle-blue teddy BEAR standing upright, round ears with pink insides, cream belly and cream muzzle, big black nose, small black eyes, pink blush.
+- Junhee: a pink PIG standing upright on two legs, big snout with two nostrils, angry slanted blue-eyed eyebrows, curly tail, pink floppy ears, darker pink hooves.
+- Park Yongjun: a chubby round-faced boy with a black bowl-cut, sleepy narrow eyes, white T-shirt, navy shorts.
+- Youngcle: a round PINK ball head with one big black-and-white spiral swirl eye in the middle, a little brown curled sprout on top, red cheek, light-blue T-shirt with a small green pocket, navy shorts.
+
+SCENE (place = the purple 'void' map, part 4, the Twitch island): flat black-purple night sky, a jagged skyline of violet city-block silhouettes along the horizon, a wide flat royal-blue water band, and a flat purple stone floor/pier with a thin dark edge. Yoplae (the hero) stands on a small square plank raft in the middle of the blue water, pushing forward with a pole, determined, coming to rescue Eokppaman. Ahead on the right, Eokppaman the blue bear stands on top of a tall square purple stone pillar rising out of the water, waving both arms in relief. Keep the background flat and simple like the screenshot.
