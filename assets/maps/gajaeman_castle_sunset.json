@@ -14,7 +14,7 @@
   "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
   "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
   "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
-  "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓",
+  "                              ",
   "                              ",
   "                              "
  ],
@@ -39,8 +39,8 @@
   "descent": {
    "kind": "sunset",
    "band": [
-    192,
-    320
+    208,
+    304
    ],
    "gajaeman": "sunset_gajaeman",
    "land": [
@@ -51,9 +51,10 @@
     452,
     252
    ],
-   "groundTop": 168,
-   "edgeY": 300,
-   "horizonY": 146,
+   "groundTop": 192,
+   "edgeY": 312,
+   "horizonY": 170,
+   "charScale": 0.72,
    "sunDx": 70
   }
  },
@@ -68,7 +69,7 @@
    "solid": false,
    "wander": 0,
    "hidden": true,
-   "visualScale": 1.89
+   "visualScale": 1.36
   }
  ]
 }

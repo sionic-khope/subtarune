@@ -42,7 +42,7 @@ export class CastleSummit {
     this.actor = game.entities.find(e => e.id === this.meta.gajaeman) || null;
     this.time = 0; this.motes = []; this.giant = null; this.aura = 0; this.tween = null;
     this.smoke = new SummitSmoke({ rnd });
-    void game.sound.loadSfxFiles?.(['deltarune_release_shoot', 'explosion', 'laser_charge', 'hurt', 'spearappear', 'heavyswing', 'ultraswing', 'cannon_guard_fire', 'baron_slam', 'baron_eruption', 'baron_roar', 'impact', 'wing', 'thud', 'captain_transform', 'power', 'cannon_charge', 'damage', 'criticalswing', 'hurt_dr', 'metalhit', 'deflect', 'great_shine', 'knight_cut']);
+    void game.sound.loadSfxFiles?.(['mario_jump', 'deltarune_release_shoot', 'explosion', 'laser_charge', 'hurt', 'spearappear', 'heavyswing', 'ultraswing', 'cannon_guard_fire', 'baron_slam', 'baron_eruption', 'baron_roar', 'impact', 'wing', 'thud', 'captain_transform', 'power', 'cannon_charge', 'damage', 'criticalswing', 'hurt_dr', 'metalhit', 'deflect', 'great_shine', 'knight_cut']);
     // 격파 연출 상태
     this.form = 'p1'; this.core = false; this.tremble = 0; this.fx = []; this.blade = null; this.balls = []; this.booms = [];
     this.swords = []; this.baron = null; this.cannonOn = false; this.arm = null; this.fall = null; this.lying = null; this.gather = null; this.waves = [];
@@ -517,7 +517,8 @@ export class CastleSummit {
   leapOff(id) {
     const e = id === 'player' ? this.game.player : this.game.entities.find(x => x.id === id); if (!e) return undefined;
     const x0 = e.x, y0 = e.y; let t = 0; const d = 1.3;
-    this.game.sound.sfx('jump', { volume: 0.6 });
+    // 도트마리오는 마리오 점프 소리
+    this.game.sound.sfx(id === 'finale_mario' ? 'mario_jump' : 'jump', { volume: 0.6 });
     return this.waitFor(() => {
       t += this.game.dt || 0.016; const k = Math.min(1, t / d);
       e.x = x0 + 230 * k; e.y = y0 - 60 * Math.sin(Math.min(1, k * 2) * Math.PI / 2) + 520 * Math.max(0, k - 0.45) ** 2 / 0.3;

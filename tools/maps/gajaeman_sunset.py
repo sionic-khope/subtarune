@@ -21,8 +21,8 @@ from typing import Final
 MAP_ID: Final = 'gajaeman_castle_sunset'
 W, H = 960, 384   # 화면(360) + 24: 카메라가 y 24 에 서면 참고 그림 비율 그대로
 FLOOR: Final = '▓'
-GROUND_TOP, EDGE = 168, 300
-BAND: Final = (192, 320)
+GROUND_TOP, EDGE = 192, 312   # BUILD361: 검은 땅을 줄였다(사용자 “바닥 검은색 좀 줄여도”) — 하늘 47%
+BAND: Final = (208, 304)
 LAND: Final = (300, 262)
 GAJAEMAN: Final = (452, 252)
 
@@ -38,7 +38,7 @@ def main() -> None:
             cells[row][col] = FLOOR
     entities = [
         {'type': 'npc', 'id': 'sunset_gajaeman', 'sprite': 'gajaeman_shadow', 'x': GAJAEMAN[0] - 12, 'y': GAJAEMAN[1] - 24,
-         'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.89},
+         'facing': 'left', 'solid': False, 'wander': 0, 'hidden': True, 'visualScale': 1.36},
     ]
     data = {
         'id': MAP_ID, 'name': '가재맨성 노을 끝', 'stage': 'castle_summit_ready',
@@ -48,7 +48,7 @@ def main() -> None:
         'spawns': {'arrive': {'x': LAND[0] - 12, 'y': LAND[1] - 24, 'facing': 'right'}},
         'meta': {'connected': True, 'descent': {'kind': 'sunset', 'band': list(BAND), 'gajaeman': 'sunset_gajaeman',
                                                 'land': list(LAND), 'gajaemanAt': list(GAJAEMAN), 'groundTop': GROUND_TOP,
-                                                'edgeY': EDGE, 'horizonY': 146, 'sunDx': 70}},
+                                                'edgeY': EDGE, 'horizonY': 170, 'charScale': 0.72, 'sunDx': 70}},
         'entities': entities,
     }
     output = Path(f'assets/maps/{MAP_ID}.json')

@@ -10,14 +10,18 @@
  */
 export const RISE = Object.freeze({
   bgm: 'save_the_world_rise',
-  handoff: 1.6, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
+  handoff: 1.4, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
   riseSheet: 'assets/sprites/hyungsub-rise.png', landSheet: 'assets/sprites/hyungsub-land.png',
   backdrop: 'assets/backdrops/castle_sunset359.png', sun: 'assets/props/maillard_sun.png', sunCrop: Object.freeze([53, 53, 151, 150]),
   // 생성 배경의 수평선 높이(비율)
   horizon: 0.566,
   wall: 'assets/props/raft358_wall.png', wallPeriod: Object.freeze([20, 235]),
   // 상승 중 요플래 키(px) — 필드 캐릭터(52px)보다 조금 크게, 연출 화면이라
-  riseH: 62, landH: 50,
+  riseH: 54, landH: 50,
+  // 상승 중 카메라가 요플래 쪽으로 30% 다가간다
+  zoom: 1.3,
+  // 노을 땅 앞덤블링: 착지 전 몇 초·몇 바퀴(사용자 “극단적으로 빠르게, 착착 대면서 바로 착지”)
+  tumble: 1.1, tumbleTurns: 4,
 });
 
 const W = 480, H = 360;
@@ -183,13 +187,16 @@ export function updateRise(state, T, dt) {
   // 도는 빠르기: 초당 방향 칸 수(오른쪽→앞→왼쪽→뒤)
   const spin = T < RISE.castleEnd ? 2.6 : lerp(2.6, 0.7, smooth((T - RISE.castleEnd) / (RISE.flash - RISE.castleEnd)));
   state.spin += spin * dt;
-  state.alpha = clamp01((T - (RISE.handoff - 0.4)) / 0.4);
+  state.alpha = clamp01((T - 0.5) / 0.8);
   state.v = v;
   state.motes.update(dt, { rate: T < RISE.castleEnd ? 30 : 18, vy: T < RISE.castleEnd ? v * 0.9 : Math.max(10, v * 0.5), warm: T >= RISE.castleEnd });
 }
 
 export function drawRise(ctx, state, T, images, time) {
-  if (state.alpha <= 0) return;
+  const x = 240 + Math.sin(T * 1.05) * 16, y = lerp(250, 206, smooth((T - RISE.handoff) / (RISE.flash - RISE.handoff))) + Math.sin(T * 2.2) * 2;
+  const z = lerp(1, RISE.zoom, smooth((T - 0.5) / 2.4)), cy = y - RISE.riseH * 0.5;
+  ctx.save();
+  ctx.translate(x, cy); ctx.scale(z, z); ctx.translate(-x, -cy);
   ctx.save(); ctx.globalAlpha = state.alpha;
   const open = state.dEnd == null ? -1 : state.d - state.dEnd;   // 성벽 꼭대기가 화면 위에서 내려온 거리
   const seaK = smooth((T - RISE.castleEnd) / (RISE.clear - RISE.castleEnd));
@@ -225,9 +232,9 @@ export function drawRise(ctx, state, T, images, time) {
   glow(ctx, 240, 250, 240, 'rgba(255,200,130,A)', 0.55 * burst);
   if (seaK < 1) glow(ctx, 240, 200, 120, 'rgba(90,120,255,A)', 0.18 * (1 - seaK));
   state.motes.draw(ctx, time);
-  // 4) 요플래: 오른쪽 → 앞 → 왼쪽 → 뒤로 돌며 좌우로 살짝 흔들리고 천천히 화면 위쪽으로
+  ctx.restore();
+  // 4) 요플래: 뛰는 순간부터(배경보다 먼저 보인다) 오른쪽 → 앞 → 왼쪽 → 뒤로 돌며 좌우로 살짝 흔들리고 천천히 화면 위쪽으로
   const img = images[RISE.riseSheet];
-  const x = 240 + Math.sin(T * 1.05) * 16, y = lerp(250, 196, smooth((T - RISE.handoff) / (RISE.flash - RISE.handoff))) + Math.sin(T * 2.2) * 2;
   const frame = Math.floor(state.spin) % 4;
   glow(ctx, x, y - RISE.riseH * 0.5, 46, seaK > 0.5 ? 'rgba(255,220,160,A)' : 'rgba(140,170,255,A)', 0.3);
   const paint = c => drawCell(c, img, frame, x, y, RISE.riseH);

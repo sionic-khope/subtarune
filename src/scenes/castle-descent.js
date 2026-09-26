@@ -36,7 +36,8 @@ export class CastleDescent {
     void game.sound.loadSfxFiles?.(['wing', 'thud', 'jump', 'impact', 'captain_transform', 'spearappear', 'laser_zap', 'laser_charge', 'break1', 'splash', 'maillard_splash', 'maillard_water_lift', 'power', 'rumble', 'mario_jump', 'heavyswing', 'chime']);
     this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
     if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
-    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
+    if (this.kind === 'sunset' && game.player) game.player.def.visualScale = this.meta.charScale || 1;
+    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['swing', 'whoosh', 'switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -232,28 +233,33 @@ export class CastleDescent {
     const riders = this.divers.map(v => ({ e: v.e, side: v.side }));
     for (const v of riders) { v.e.visible = true; v.e.hopY = 0; }
     this.divers = []; r.bob = false;
-    this.sfx('maillard_splash', 0.9); this.sfx('jump', 0.8); this.sfx('impact', 0.7);
-    this.splash(r.x, r.y + 10, 30); this.game.shake = { time: 0.4, amp: 5 };
+    this.sfx('splash', 0.5);
+    this.splash(r.x, r.y + 10, 30); this.game.shake = { time: 0.3, amp: 3 };
     this.launching = true;
-    this.track(() => ({ x: r.x, y: r.y - 60 }));
-    let v = 620;
+    // 뛰는 순간부터 요플래는 상승 자세(화면 연출이 같은 자리에서 그린다) — 필드 스프라이트는 숨김
+    p.visible = false;
+    this.rise = { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight };
+    const [px, py] = this.feet(p);
+    let feetY = py, v = 360, rv = 520, raftY = r.y;
+    this.track(() => ({ x: px, y: feetY - 70 }));
     return this.job(RISE.handoff, (k, dt) => {
-      r.y -= v * dt; v = Math.max(380, v - 160 * dt);
-      this.setFeet(p, r.x, r.y + 4);
+      feetY -= v * dt; v = Math.min(460, v + 80 * dt);
+      this.setFeet(p, px, feetY);
+      // 둘은 뗏목을 밀어 올린 힘으로 잠깐 솟았다가 다시 아래로
+      raftY -= rv * dt; rv -= 900 * dt; r.y = raftY;
       for (const w of riders) this.setFeet(w.e, r.x + w.side * 34, r.y + 34);
-      if (this.rnd() < 0.6) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 60, age: 0, life: 0.6, size: 2, color: '#9fd6ff', g: 200 });
     }).then(() => { this.launching = false; });
   }
   /** 화면 전체 상승(성벽 → 노을 바다) — 곡 위치가 RISE.flash 에 닿으면 끝난다(뒤에 흰 번쩍임·맵 전환). */
   ascend() {
-    this.rise = { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight };
+    this.rise ||= { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight };
     return this.waitRise(RISE.flash);
   }
   /** 곡 위치(game.riseT)가 at 초에 닿을 때까지 기다린다. */
   waitRise(at) { return new Promise(resolve => { this.jobs.push({ t: 0, d: Infinity, until: () => (this.game.riseT ?? 0) >= at, step: () => {}, resolve }); }); }
   // ── 노을 땅: 앞덤블링 도착 ─────────────────────────────
   /** 필드에서 서 있는 요플래의 그려지는 키(px) — 착지 자세를 같은 크기로 */
-  standH() { const sp = this.game.player?.sprite; return sp?.fh ? Math.round(sp.fh / sp.px * CHAR_SCALE) : 52; }
+  standH() { const sp = this.game.player?.sprite; return (sp?.fh ? Math.round(sp.fh / sp.px * CHAR_SCALE) : 52) * (this.meta.charScale || 1); }
   /**
    * 가재맨이 먼저 올라와 서 있다가 오른쪽으로 도망가고, 요플래가 화면 앞(땅 아래 앞쪽)에서 동그랗게 앞덤블링하며 천천히 올라와
    * 곡 64초(RISE.land)에 무릎 꿇고 착지 — 챱.
@@ -263,8 +269,8 @@ export class CastleDescent {
     p.visible = false;
     for (const id of ['gyeongsub', 'ppaman']) { const e = this.ent(id); if (e) e.visible = false; }
     if (a) { a.visible = true; a.facing = 'left'; this.setFeet(a, ...this.meta.gajaemanAt); this.aura = 1; }
-    const start = RISE.mapAt + 0.3;
-    this.tumble = { u: 0, trail: [], landed: 0 };
+    const start = RISE.land - RISE.tumble;
+    this.tumble = { u: 0, trail: [], landed: 0, flips: 0 };
     let fled = false;
     return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => {
       const T = g.riseT ?? 0, tb = this.tumble;
@@ -274,6 +280,9 @@ export class CastleDescent {
         this.gajaemanDash([ax, ay], [ax + 560, ay - 110], 2.6).then(() => this.hideGajaeman());
       }
       tb.u = clamp01((T - start) / (RISE.land - start));
+      // 한 바퀴 돌 때마다 착 — 바람 가르는 소리
+      const flips = Math.floor(RISE.tumbleTurns * (1 - (1 - tb.u) ** 1.3));
+      if (T >= start && flips > tb.flips) { tb.flips = flips; this.sfx(flips % 2 ? 'swing' : 'whoosh', 0.5); }
       if (!tb.landed && T >= RISE.land) {
         tb.landed = T;
         this.sfx('switch_noise', 0.9); this.sfx('thud', 0.3); g.shake = { time: 0.18, amp: 2 };
@@ -294,15 +303,19 @@ export class CastleDescent {
     const [lx, ly] = this.meta.land, k = this.standH() / 101, cellH = img.height * k;
     const at = (x, y) => [x - cam.x, y - cam.y];
     if (tb.landed) { const [x, y] = at(lx, ly); drawCell(ctx, img, 3, x, y, cellH); return; }
-    const u = tb.u, split = 0.74;
-    if (u > 0.955) { const [x, y] = at(lx, ly); drawCell(ctx, img, 2, x, y, cellH); return; }
-    const cy = u < split ? lerpN(500, 136, 1 - (1 - u / split) ** 2) : lerpN(136, ly - cellH * 0.45, ((u - split) / (1 - split)) ** 2);
-    const cx = lerpN(262, lx, u);
-    const theta = Math.PI * 2 * 5 * (1 - (1 - u) ** 1.5), R = 18 * (1 - u) + 3, z = lerpN(1.75, 1, 1 - (1 - u) ** 2);
+    const u = tb.u, split = 0.62;
+    if (u <= 0) return;
+    if (u > 0.965) { const [x, y] = at(lx, ly); drawCell(ctx, img, 2, x, y, cellH); return; }
+    // 땅 아래 화면 앞에서 튀어 올라 → 정점 → 착지 자리로. 동그라미 궤적을 그리며 몸이 빙글빙글(초당 3바퀴 남짓)
+    const cy = u < split ? lerpN(this.map.pxH + 60, 150, 1 - (1 - u / split) ** 2) : lerpN(150, ly - cellH * 0.45, ((u - split) / (1 - split)) ** 2);
+    const cx = lerpN(lx - 70, lx, u);
+    const theta = Math.PI * 2 * RISE.tumbleTurns * (1 - (1 - u) ** 1.3), R = 16 * (1 - u) + 4, z = lerpN(1.6, 1, 1 - (1 - u) ** 2);
     const bx = cx + Math.sin(theta) * R, by = cy - Math.cos(theta) * R;
     if (!bare) {
-      tb.trail.unshift([bx, by, theta, z]); tb.trail.length = Math.min(tb.trail.length, 10);
-      for (let i = 9; i >= 2; i -= 2) { const t = tb.trail[i]; if (!t) continue; const [x, y] = at(t[0], t[1]); ctx.save(); ctx.globalAlpha = 0.16 * (1 - i / 10); drawCell(ctx, this.backlight.tinted?.(img, 'rgba(255,200,140,1)', 'trail') || img, 0, x, y, cellH * t[3] * 0.92, { angle: t[2], pivotY: 0.5 }); ctx.restore(); }
+      tb.trail.unshift([bx, by, theta, z]); tb.trail.length = Math.min(tb.trail.length, 8);
+      // 회전 바람: 뒤따르는 잔상 + 바깥으로 흩어지는 흰 바람 덩어리
+      for (let i = 7; i >= 1; i--) { const t = tb.trail[i]; if (!t) continue; const [x, y] = at(t[0], t[1]); ctx.save(); ctx.globalAlpha = 0.28 * (1 - i / 8); drawCell(ctx, this.backlight.tinted?.(img, 'rgba(255,230,200,1)', 'trail') || img, 0, x, y, cellH * t[3] * 0.92, { angle: t[2], pivotY: 0.5 }); ctx.restore(); }
+      if (this.rnd() < 0.9) for (let n = 0; n < 2; n++) { const a = theta + Math.PI * (0.5 + n) + (this.rnd() - 0.5) * 0.6, rr = cellH * z * 0.55; this.dust.push({ x: bx + Math.cos(a) * rr, y: by + Math.sin(a) * rr, vx: -Math.sin(a) * 90, vy: Math.cos(a) * 90, age: 0, life: 0.28, s: 2 + (n % 2), wind: true }); }
     }
     const [x, y] = at(bx, by);
     drawCell(ctx, img, 0, x, y, cellH * z * 0.92, { angle: theta, pivotY: 0.5 });
@@ -459,7 +472,7 @@ export class CastleDescent {
       ctx.globalAlpha = s.appear * flick; ctx.fillStyle = glow; ctx.fillRect(x - 40, y - 40, 80, 80);
       if (s.phase === 'fly') { ctx.fillStyle = 'rgba(210,190,255,0.45)'; for (const dy of [-6, 0, 6]) ctx.fillRect(x + 50, y + dy, 50, 1); }
       // 칼끝이 왼쪽(일행)을 향한다
-      ctx.save(); ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 2);
       // 밝은 라일락 테두리 → 보라로 물든 칼(어두운 바닥 위에서도 보이게)
       const rim = this.rimOf(img), W = DESCENT.swordW, H = DESCENT.swordH;
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(rim, -W / 2 + dx, -H / 2 + dy, W, H);
@@ -492,7 +505,7 @@ export class CastleDescent {
       this.rays.draw(ctx, sun[0], sun[1], this.time, 0.28);
       ctx.restore();
       glow(ctx, sun[0], sun[1], 160, 'rgba(255,150,90,A)', 0.1);
-      for (const d of this.dust) { ctx.globalAlpha = Math.max(0, 1 - d.age / d.life) * 0.8; ctx.fillStyle = d.s > 3 ? '#3a2a3a' : '#5a4050'; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.s, d.s); }
+      for (const d of this.dust) { ctx.globalAlpha = Math.max(0, 1 - d.age / d.life) * 0.8; ctx.fillStyle = d.wind ? '#fff4e0' : d.s > 3 ? '#3a2a3a' : '#5a4050'; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.s, d.s); }
       ctx.globalAlpha = 1;
       this.warm.draw(ctx, this.time);
     }
