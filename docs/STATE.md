@@ -2,7 +2,7 @@
 
 마지막 갱신: 2026-09-24
 
-**BUILD380 — 쿠키 단체 사진 인게임 도트체(사용자 2026-09-26 “코 유지·그림체 인게임”)**: `assets/credits/group_photo.png` = `assets/source/cookie373/candidates/px02.png`(gpt-image-2.5-sunburst high, 스프라이트 NEAREST 참조·라운지 스크린샷) — 가재맨 없음, 주인공 일행 가운데(요플래 정가운데 브이·둥근 코·입 없음), 주요 인물 둘레, 가순이 6명 왼쪽 가장자리, 조연 오른쪽·소파, 영클 왼쪽 위 구석, 최미스 묶여 오른쪽 아래 구석(GAP), 청소부 콘솔 뒤 빼꼼. 후보 px01~06, 이전본 cookie373/v5/.
+**BUILD380 — 쿠키 단체 사진 인게임 도트체(사용자 2026-09-26 “코 유지·그림체 인게임”)**: `assets/credits/group_photo.png` = `assets/source/cookie373/candidates/px03.png`(BUILD381 사용자 선택, 처음엔 px02)(gpt-image-2.5-sunburst high, 스프라이트 NEAREST 참조·라운지 스크린샷) — 가재맨 없음, 주인공 일행 가운데(요플래 정가운데 브이·둥근 코·입 없음), 주요 인물 둘레, 가순이 6명 왼쪽 가장자리, 조연 오른쪽·소파, 영클 왼쪽 위 구석, 최미스 묶여 오른쪽 아래 구석(GAP), 청소부 콘솔 뒤 빼꼼. 후보 px01~06, 이전본 cookie373/v5/.
 
 **BUILD379 — 크레딧 사진 고퀄 재생성(사용자 2026-09-26)**: 10장(01·02·03·04·05·07·08·09·10·11) 장면마다 후보 둘(`assets/source/credits371/candidates/photoNN-a|b.png`, gpt-image-2.5-sunburst high, 스프라이트 디테일·실제 맵 배경)에서 골라 반영(01b·02a·03a·04a·05a·07a·08b·09b·10b·11b), 이전본 `credits371/v3/`. 쿠키 단체 사진은 “주인공 가운데·조연 가장자리·가재맨 없음”으로 다시 그리는 중.
 
