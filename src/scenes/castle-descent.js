@@ -36,7 +36,7 @@ export class CastleDescent {
     void game.sound.loadSfxFiles?.(['wing', 'thud', 'jump', 'impact', 'captain_transform', 'spearappear', 'laser_zap', 'laser_charge', 'break1', 'splash', 'maillard_splash', 'maillard_water_lift', 'power', 'rumble', 'mario_jump', 'heavyswing', 'chime']);
     this.backlight = new Backlight(); this.rays = new SunRays(); this.warm = new Motes(rnd); this.rise = null; this.tumble = null; this.dust = [];
     if (this.kind === 'raft') void game.waitForMap?.('gajaeman_castle_sunset')?.catch?.(() => {});
-    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['ralsei_splat', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
+    if (this.kind === 'sunset') { void game.sound.loadSfxFiles?.(['switch_noise', 'thud', 'wing', 'captain_transform', 'great_shine']); this.ground = null; }
     // 다음 맵(뗏목 웅덩이)을 미리 준비해 둔다 — 페이드 뒤 검은 화면이 길게 남지 않게
     if (this.kind === 'road') void game.waitForMap?.('gajaeman_castle_raft')?.catch?.(() => {});
     // 이미 올라간 저장이면 뗏목은 꼭대기 턱에
@@ -276,7 +276,7 @@ export class CastleDescent {
       tb.u = clamp01((T - start) / (RISE.land - start));
       if (!tb.landed && T >= RISE.land) {
         tb.landed = T;
-        this.sfx('ralsei_splat', 0.9); this.sfx('thud', 0.45); g.shake = { time: 0.18, amp: 2 };
+        this.sfx('switch_noise', 0.9); this.sfx('thud', 0.3); g.shake = { time: 0.18, amp: 2 };
         for (let i = 0; i < 14; i++) this.dust.push({ x: lx + (i - 6.5) * 3, y: ly - 2, vx: (i - 6.5) * (10 + this.rnd() * 14), vy: -12 - this.rnd() * 22, age: 0, life: 0.7 + this.rnd() * 0.4, s: 2 + (i % 3) });
       }
       if (tb.landed && T >= tb.landed + 1.5) {
