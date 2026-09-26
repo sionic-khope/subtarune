@@ -5,7 +5,8 @@
  *   → 다섯 번 쳐내면 마지막: 엄청난 기운 → 콰앙 뒤로 → 두두두둥 폭죽과 함께 천천히 따라오는 돌진 → 맞붙기 직전 C.
  */
 export const GJ_RUNNER = Object.freeze({
-  bgm: 'save_the_world_run', bgmLoop: 'save_the_world_loop', hum: 'sunset_hum',
+  // BUILD376: 상승부터 한 곡(save_the_world_full, 원곡 42.7초~1:47) — 끝나면 하이라이트 반복
+  bgm: 'save_the_world_full', bgmLoop: 'save_the_world_loop',
   counters: 5, damage: 20, invulnerability: 0.9,
   // 무대(노을 땅 맵과 같은 비율): 수평선·땅 윗면·앞 테두리, 달리는 발 높이, 요플래 x, 마지막 결전이라 인물은 작게
   stage: { horizonY: 168, groundTop: 190, edgeY: 288, groundY: 252, playerX: 118, scale: 0.72, sunX: 300 },

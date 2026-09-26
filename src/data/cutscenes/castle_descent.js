@@ -104,7 +104,7 @@ export const castle_raft_intro = Object.assign([
   scene(s => { s.ascend(); }),
   { fade: 'in', duration: 0.75 },
   // 페이드가 걷히면 곧바로 빙글빙글 + 곡(뗏목은 페이드 전에 이미 떨어져 나갔다)
-  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.9, loop: false }); } },
+  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.9, loop: false, then: GJ.bgmLoop }); } },
   scene(s => s.waitRise(RISE.flash)),
   // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
   { fade: 'white', duration: 0.3 },
@@ -121,23 +121,19 @@ export const castle_sunset_arrival = Object.assign([
   { if: flags => !!flags.castle_sunset_arrived, goto: 'button' },
   close,
   // QA 로 바로 온 경우: 곡을 원곡 55초 자리부터
-  { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt, loop: false }); } } },
+  { action: game => { if (game.riseT == null) { game.riseT = RISE.mapAt; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.3, at: RISE.mapAt, loop: false, then: GJ.bgmLoop }); } } },
   { camera: at(300, 204), duration: 0.01 },
   { parallel: [{ fade: 'in', duration: 0.7 }, scene(s => s.arrive())] },
   { set: { castle_sunset_arrived: true } },
-  // BUILD363 착지 뒤: 요플래 쪽으로 살짝 다가가고 우우웅만(브금 없음) → SAVE THE WORLD 버튼·하트 → C
+  // BUILD376 착지 뒤(사용자 “눌러서가 아니라 브금 타이밍 맞춰 착지하자마자 바로, 브금 하나로”): 곡이 끊기지 않고 흐르는 채
+  //   착지 직후 박에 SAVE THE WORLD 가 저절로 눌리고 흰 빛이 다음 마디까지 감싼다 → 그림자 준비 동작 → 그다음 마디에 출발
   { label: 'button' },
   close,
   scene(s => { if (!s.tumble) s.kneelHold(); }),
-  { action: game => { game.sound.stopBgm(0.6); game.sound.preloadBgm?.(GJ.bgm); } },
-  // 우우웅은 확대보다 먼저(사용자 BUILD373 “2초 더 빨리”)
-  { bgm: GJ.hum, volume: 0.35, fadeIn: 2.0 },
-  { camera: at(300, 204), duration: 0.01 },
-  { zoom: 1.45, at: 'player', offset: [44, -18], duration: 1.8 },
-  scene(s => s.saveButton()),
-  { bgm: null, fadeOut: 0.15 },
+  // 이어하기·QA 로 여기부터 오면 곡을 착지 1초 전 자리부터
+  { action: game => { if (game.sound.bgmName !== RISE.bgm) { game.riseT = RISE.land - 1; game.sound.stopBgm(0); game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.2, at: RISE.land - 1, loop: false, then: GJ.bgmLoop }); } } },
+  { parallel: [scene(s => s.autoSave()), { zoom: 1.3, at: 'player', offset: [30, -14], duration: 0.8 }] },
   { zoom: 1, duration: 0.01 },
-  // 흰 화면·요플래 그림자 준비 동작 → 달리는 순간 걷히며 곡(원곡 1분 3초부터)과 무지개 레터박스
   scene(s => s.startRun()),
   scene(s => s.gajaemanRunIn()),
   A('요플래..'), A('꼭 그렇게 나를 막고싶다면'), A('여기서 끝을 보자.'), close,

@@ -43,5 +43,5 @@ await runScenario({ name: 'castle-descent', launchOptions: { args: ['--autoplay-
   check('road stretches never stopped the walk', !zoneStops, String(zoneStops));
   check('all road beats played', end.flags.length === 6, JSON.stringify(end.flags));
   check('four swords came in', maxSwords === 4, maxSwords);
-  check('the rise track took over at the jump', end.bgm === 'save_the_world_rise', end.bgm);
+  check('the rise track took over at the jump', end.bgm === 'save_the_world_full', end.bgm);
 });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { runScenario } from './lib/harness.mjs';
 
-// BUILD363: 노을 땅 SAVE THE WORLD → 흰 화면 준비 동작 → 무지개 레터박스 달리기(곡) → 가재맨 등장·대사 3줄 → 오오라 폭발 → 결전
+// BUILD363(BUILD376: 버튼은 곡 박자에 저절로 눌리고 곡은 상승부터 한 곡): 노을 땅 SAVE THE WORLD → 흰 화면 준비 동작 → 무지개 레터박스 달리기(곡) → 가재맨 등장·대사 3줄 → 오오라 폭발 → 결전
 //   (검 = 점프/베기, 누워 돌진 = C 로 쳐냄 ×5) → 마지막 따라오는 돌진 → 맞붙기 직전 C. 봇이 스냅샷을 보고 X/C 를 누른다.
 await runScenario({ name: 'gajaeman-runner', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, shot, check }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -16,11 +16,11 @@ await runScenario({ name: 'gajaeman-runner', launchOptions: { args: ['--autoplay
   const lines = []; const lineFades = []; let sawLock = false, maxGauge = 0, lockShots = 0, slashShots = 0, n = 0, sawHum = false, sawHeart = false, sawWhite = false, bgmAtRun = null, maxCounters = 0, sawClashWait = false, jumps = 0;
   for (let i = 0; i < 3000; i++) {
     const s = await S();
-    if (s.bgm === 'sunset_hum') sawHum = true;
+    if (s.button?.pressed) sawHum = true;
     if (s.button?.heart) sawHeart = true;
     if (s.run && s.run.white > 0.9) sawWhite = true;
     if (s.run && s.run.white < 0.05 && bgmAtRun == null) bgmAtRun = s.bgm;
-    if (s.button?.heart && !s.button.pressed) { await shot(`b-${n++}`); await page.keyboard.press('KeyC'); await page.waitForTimeout(100); continue; }
+    if (s.button && !s.button.pressed) { await shot(`b-${n++}`); await page.waitForTimeout(60); continue; }
     if (s.waiting) { if (lines.at(-1) !== s.text) { lines.push(s.text); lineFades.push(s.fade); await shot(`l-${lines.length}`); } await page.keyboard.press('KeyC'); await page.waitForTimeout(120); continue; }
     const m = s.mode;
     if (m) {
@@ -41,9 +41,9 @@ await runScenario({ name: 'gajaeman-runner', launchOptions: { args: ['--autoplay
   await shot('end');
   const end = await page.evaluate(() => ({ fade: game.fade?.alpha ?? 0, gone: !game.castleDescent?.run, clash: !!game.flags.castle_gajaeman_clash, hp: { ...game.partyHp }, bgm: game.sound.bgmName }));
   const plain = lines.map(t => (t || '').replace(/\{[^}]*\}/g, ''));
-  check('hum then heart on the SAVE THE WORLD button', sawHum && sawHeart);
+  check('SAVE THE WORLD presses itself on the beat (no C)', sawHum && sawHeart);
   check('white screen before the run', sawWhite);
-  check('song starts as the white lifts', bgmAtRun === 'save_the_world_run', String(bgmAtRun));
+  check('one continuous song through the run', bgmAtRun === 'save_the_world_full', String(bgmAtRun));
   check('gajaeman lines verbatim', ['요플래..', '꼭 그렇게 나를 막고싶다면', '여기서 끝을 보자.'].every(e => plain.some(t => t.includes(e))), JSON.stringify(plain));
   check('five counters then the final clash', maxCounters === 5 && sawClashWait, `${maxCounters} ${sawClashWait}`);
   check('clash ends the fight', end.clash, JSON.stringify(end));

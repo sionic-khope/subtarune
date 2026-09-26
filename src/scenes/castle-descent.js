@@ -5,6 +5,7 @@ import { FONT } from '../ui/font.js';
 import { bakeLogo } from '../ui/title.js';
 import { CREDITS } from '../data/credits.js';
 import { SunsetRun } from './sunset-run.js';
+import { RUNNER } from '../world/runner-core.js';
 import { GJ_RUNNER as GJ } from '../data/gajaeman-runner.js';
 import { RISE, tickRiseClock, updateRise, drawRise, drawCell, Backlight, SunRays, Motes, drawSunsetSky, glow } from './castle-rise.js';
 
@@ -17,7 +18,7 @@ import { RISE, tickRiseClock, updateRise, drawRise, drawCell, Backlight, SunRays
  *       and jump — the raft climbs the wall with all three to the ledge on top.
  */
 // SAVE THE WORLD 누름(BUILD373): squash 초 동안 depth 만큼 눌렸다 돌아오고, wrap 초 동안 흰 빛이 radius 까지 번져 화면을 감싼다
-const BUTTON_PRESS = Object.freeze({ squash: 0.22, depth: 0.12, wrap: 1.6, radius: 520 });
+const BUTTON_PRESS = Object.freeze({ squash: 0.22, depth: 0.12, wrap: RISE.white - RISE.press, radius: 520 });
 export const DESCENT = Object.freeze({
   sword: 'assets/props/cathedral323_sword.png', swordW: 40, swordH: 160,
   // 구간마다 누가 어디서 들어오는가(사용자 원문): 1 오른쪽 위 비데 · 2 왼쪽 아래 파크가디언 · 3 오른쪽 위 뚜울라·도트마리오
@@ -269,7 +270,8 @@ export class CastleDescent {
     const r = this.raft, p = this.game.player;
     // 둘은 물 속에서 힘껏 뛰었다가 다시 물로 — 뗏목(요플래)만 위로 날아간다
     const divers = this.divers; this.divers = [];
-    this.sfx('splash', 0.6); this.splash(r.x, r.y + 10, 34); this.game.shake = { time: 0.3, amp: 3 };
+    // 억빠맨·경섭이 뗏목을 밀어 올리며 뛰는 순간 점프 소리(사용자 BUILD376)
+    this.sfx('jump', 0.9); this.sfx('splash', 0.6); this.splash(r.x, r.y + 10, 34); this.game.shake = { time: 0.3, amp: 3 };
     for (const v of divers) {
       const e = v.e, from = [v.x, v.y]; e.visible = true;
       this.arc(e, from, from, 46, 0.7).then(() => { e.visible = false; this.divers.push({ ...v, depth: 0.55 }); this.splash(from[0], from[1] - 4, 12); this.sfx('splash', 0.4); });
@@ -349,26 +351,27 @@ export class CastleDescent {
   }
   // ── SAVE THE WORLD → 달리기 ──────────────────────────────
   /** 화면 위 SAVE THE WORLD 버튼(무지개 오오라가 모여든다) → 옆에 하트 띡 → C: 에코 띠링, 무지개 글자가 위로 떠 사라진다 */
-  saveButton() {
-    this.button = { t: 0, heart: false, pressed: 0, motes: [] };
+  /** BUILD376: 착지 직후 곡 박자에 맞춰 SAVE THE WORLD 가 저절로 눌린다 — 버튼이 번쩍 뜨고 RISE.press 에 눌려 흰 빛이 RISE.white 까지 화면을 감싼다 */
+  autoSave() {
+    this.button = { t: 0, heart: true, pressed: 0, motes: [], auto: true };
     return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => {
       const b = this.button; if (!b) return true;
-      if (!b.heart && b.t >= 1.5) { b.heart = true; this.sfx('menumove', 0.9); }
-      // 누르면 우우웅은 흰 빛이 감싸는 동안 같이 잦아든다(뚝 끊기지 않게) — 준비 동작 동안의 정적은 의도, 곡은 출발 순간
-      if (b.heart && !b.pressed && Input.just('confirm')) { b.pressed = b.t; this.sfx('confirm_echo', 1); this.game.sound.stopBgm(BUTTON_PRESS.wrap); }
-      // 눌린 뒤 빛이 버튼에서 퍼져 화면을 하얗게 감싼다 → 흰 화면 그대로 달리기 준비로(whiteHold)
-      if (b.pressed && b.t >= b.pressed + BUTTON_PRESS.wrap) { this.button = null; this.whiteHold = true; return true; }
+      const T = this.game.riseT ?? 0;
+      if (!b.pressed && T >= RISE.press) { b.pressed = b.t; this.sfx('confirm_echo', 1); }
+      // 흰 빛이 다 감싸면 흰 화면 그대로 달리기 준비로(whiteHold)
+      if (b.pressed && T >= RISE.white) { this.button = null; this.whiteHold = true; return true; }
       return false;
     } }));
   }
-  /** 화면이 하얘지고 요플래 그림자가 준비 동작 → 달리는 순간 흰 화면이 걷히며 곡(원곡 1분 3초부터) */
+  /** 흰 화면 속 요플래 그림자 준비 동작 → 출발(곡 마디에 맞춰) 순간 흰 화면이 걷히며 무지개 레터박스 */
   /** 이어하기·QA 로 버튼부터 올 때도 무릎 꿇은 요플래 */
   kneelHold() { const p = this.game.player, [lx, ly] = this.meta.land; p.visible = false; this.setFeet(p, lx, ly); this.tumble = { u: 1, trail: [], landed: 1 }; }
   startRun() {
     this.tumble = null; this.whiteHold = false;
     const g = this.game, run = this.run = new SunsetRun(g, { rnd: this.rnd });
     g.player.visible = false; this.hideGajaeman();
-    this.delay(GJ.white.hold).then(() => run.begin(() => { g.sound.playBgm(GJ.bgm, { volume: 0.7, fadeIn: 0.02, then: GJ.bgmLoop }); }));
+    // 곡은 이미 한 곡으로 흐른다 — 준비 동작이 끝나는 순간(출발)이 RISE.dash 마디 첫 박에 오도록 시작
+    this.waitRise(RISE.dash - RUNNER.prepTime).then(() => run.begin(null));
     return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => run.reveal >= 1 }));
   }
   /** 달린 지 2~3초 뒤 오른쪽에서 천천히 가재맨 */
@@ -878,7 +881,7 @@ export class CastleDescent {
   }
   drawButton(ctx) {
     const b = this.button; if (!b) return;
-    const cx = 240, cy = 64, appear = Math.min(1, b.t / 0.6), pt = b.pressed ? b.t - b.pressed : 0, fly = 0;
+    const cx = 240, cy = 64, appear = Math.min(1, b.t / (b.auto ? 0.15 : 0.6)), pt = b.pressed ? b.t - b.pressed : 0, fly = 0;
     // 무지개 오오라가 버튼 안으로 모여든다
     if (!b.pressed && this.rnd() < 0.9) { const a = this.rnd() * Math.PI * 2, r = 90 + this.rnd() * 50; b.motes.push({ x: cx + Math.cos(a) * r * 1.4, y: cy + Math.sin(a) * r * 0.6, t: 0, life: 0.7, c: GJ.rainbow[Math.floor(this.rnd() * GJ.rainbow.length)] }); }
     for (const m of b.motes) { m.t += 1 / 60; const k = m.t / m.life; m.x += (cx - m.x) * 0.08; m.y += (cy - m.y) * 0.08; }

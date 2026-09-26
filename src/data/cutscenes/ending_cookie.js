@@ -14,6 +14,10 @@ export const ending_cookie_wake = [
   { set: { ending_cookie: true } },
   { action: game => { game.party = []; game.playerSprite = 'hyungsub'; } },
   { map: 'room', spawn: 'bed', bgm: false },
+  // 작별 라운지에서 잠가 둔 카메라·확대를 풀고 형섭을 따라간다(방 구도가 라운지 좌표로 고정되던 버그)
+  { zoom: 1, duration: 0.01 },
+  { camera: 'player' },
+  { action: game => game.camera.snap() },
   { pose: 'player', to: 'lying' },
   { wait: 1.2 },
   { bgm: 'room', volume: 0.3 },

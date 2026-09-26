@@ -194,7 +194,8 @@ export class Sound {
   }
 
   unlock() {
-    if (this.bgm?.paused) this.bgm.play().catch((error) => console.warn('[audio] BGM 재생 재시도 실패', error));
+    // 끝까지 재생된(ended) 한 번짜리 곡은 다시 틀지 않는다 — 키를 누를 때마다 불리는 unlock 이 끝난 크레딧 곡을 처음부터 다시 틀던 버그(BUILD376)
+    if (this.bgm?.paused && !this.bgm.ended) this.bgm.play().catch((error) => console.warn('[audio] BGM 재생 재시도 실패', error));
     if (this.ctx) {
       if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
       return;

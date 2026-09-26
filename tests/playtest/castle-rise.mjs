@@ -22,7 +22,7 @@ await runScenario({ name: 'castle-rise', launchOptions: { args: ['--autoplay-pol
   await shot('end');
   const end = await page.evaluate(() => ({ map: game.mapId, arrived: !!game.flags.castle_sunset_arrived, visible: game.player.visible, feet: [Math.round(game.player.x + game.player.w / 2), Math.round(game.player.y + game.player.h)], bgm: game.sound.bgmName }));
   check('rise ends on the sunset ground', end.map === 'gajaeman_castle_sunset' && end.arrived, JSON.stringify(end));
-  check('rise track stops after landing (hum only)', end.bgm !== 'save_the_world_rise', end.bgm);
+  check('the same song keeps playing after landing', end.bgm === 'save_the_world_full', end.bgm);
   check('gajaeman was up there first', sawGajaeman);
   check('tumble played and landed on the 64s drop', sawTumble && landedAt != null && landedAt >= 21.1 && landedAt < 21.8, String(landedAt));
   check('yoplae stays kneeling on the landing spot', !end.visible && Math.abs(end.feet[0] - 300) < 4 && Math.abs(end.feet[1] - 262) < 4, JSON.stringify(end.feet));
