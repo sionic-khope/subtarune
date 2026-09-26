@@ -18,7 +18,8 @@ export function createGajaemanRunner(battle, { enemy }) {
   const run = battle.cfg.sunsetRun || new SunsetRun(g);
   if (!battle.cfg.sunsetRun) { run.started = true; run.core.phase = 'run'; run.core.vx = run.core.speed; run.reveal = 1; run.barsT = 99; run.white = 0; run.boss.visible = true; run.boss.x = C.boss.home[0]; }
   run.core.endX = Infinity; run.core.obstacles = null;
-  const boss = run.boss; boss.visible = true; boss.lie = 0; boss.aura = 1; boss.face = 'left';
+  // 오오라는 필드 연출에서 이어받아 hover 동안 천천히 1 로(전투 시작 순간 뚝 줄던 것)
+  const boss = run.boss; boss.visible = true; boss.lie = 0; boss.aura = boss.aura || 1; boss.face = 'left';
   let phase = 'hover', phaseTime = 0, elapsed = 0, counters = 0, disposed = false, invuln = 0, hurtFlash = 0;
   // 검 쳐냄 충격파(흰 고리 + 십자 섬광)
   const rings = [];
@@ -98,7 +99,7 @@ export function createGajaemanRunner(battle, { enemy }) {
     const p = player();
     const home = C.boss.home;
     if (phase === 'hover') {
-      boss.lie = Math.max(0, boss.lie - dt * 4); boss.face = 'left';
+      boss.lie = Math.max(0, boss.lie - dt * 4); boss.face = 'left'; boss.aura = lerp(boss.aura, 1, Math.min(1, dt * 2));
       boss.x = lerp(boss.x, home[0], Math.min(1, dt * 3)); boss.y = lerp(boss.y, home[1], Math.min(1, dt * 3));
       if (phaseTime >= (counters === 0 && elapsed < 2 ? C.cycle.first : C.cycle.rest)) { thrown = 0; cycleN++; change('swords'); sfx(C.sfx.sword, 0.5); }
     } else if (phase === 'swords') {

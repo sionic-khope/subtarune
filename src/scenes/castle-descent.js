@@ -354,7 +354,8 @@ export class CastleDescent {
     return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => {
       const b = this.button; if (!b) return true;
       if (!b.heart && b.t >= 1.5) { b.heart = true; this.sfx('menumove', 0.9); }
-      if (b.heart && !b.pressed && Input.just('confirm')) { b.pressed = b.t; this.sfx('confirm_echo', 1); }
+      // 누르면 우우웅은 흰 빛이 감싸는 동안 같이 잦아든다(뚝 끊기지 않게) — 준비 동작 동안의 정적은 의도, 곡은 출발 순간
+      if (b.heart && !b.pressed && Input.just('confirm')) { b.pressed = b.t; this.sfx('confirm_echo', 1); this.game.sound.stopBgm(BUTTON_PRESS.wrap); }
       // 눌린 뒤 빛이 버튼에서 퍼져 화면을 하얗게 감싼다 → 흰 화면 그대로 달리기 준비로(whiteHold)
       if (b.pressed && b.t >= b.pressed + BUTTON_PRESS.wrap) { this.button = null; this.whiteHold = true; return true; }
       return false;
@@ -925,7 +926,8 @@ export class CastleDescent {
   drawHud(ctx) {
     if (this.disposed) return;
     if (this.whiteHold && !this.run) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 480, 360); }
-    if (this.run && !this.game.battle) this.run.draw(ctx);
+    // 전투가 에셋을 불러오는 동안(seamlessIntro 'load' — 전투는 아무것도 안 그린다)에도 달리기 화면을 계속 그린다: 한 프레임 필드 맵이 비치던 끊김(BUILD374)
+    if (this.run && (!this.game.battle || this.game.battle.state === 'load')) this.run.draw(ctx);
     this.drawWaveHud(ctx);
     this.drawButton(ctx);
     this.drawCard(ctx);
