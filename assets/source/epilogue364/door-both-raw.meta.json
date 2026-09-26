@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/epilogue364/ref-door.png"
+  ],
+  "elapsed_seconds": 32.9,
+  "usage": {
+    "input_tokens": 1021,
+    "output_tokens": 1756,
+    "total_tokens": 2777,
+    "input_tokens_details": {
+      "image_tokens": 864,
+      "text_tokens": 157
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790417199,
+  "outputs": [
+    {
+      "file": "assets/source/epilogue364/door-both-raw.png",
+      "bytes": 939286,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

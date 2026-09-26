@@ -37,7 +37,7 @@ export class SunsetRun {
     if (this.started && !this.frozen) {
       const events = stepRunner(this.core, dt, keys);
       for (const ev of events) {
-        if (['draw', 'dash', 'jump', 'slash', 'airslash'].includes(ev)) this.sfx(ev, ev === 'draw' ? 0.8 : 0.7);
+        if (['draw', 'dash', 'jump', 'slash', 'airslash'].includes(ev)) this.sfx(ev, ev === 'draw' || ev === 'dash' ? 0.45 : 0.7);
         if (ev === 'dash') { this.revealing = true; this.onDash?.(); }
         if (ev === 'slash' || ev === 'airslash') this.slashFx.push({ kind: ev, up: !!this.core.attack?.up, t: 0, dur: ev === 'slash' ? 0.26 : RUNNER.airSlashTime });
         if (ev === 'step') for (let i = 0; i < 3; i++) this.puffs.push({ x: this.x - 4, y: this.groundY - 2, vx: -60 - this.rnd() * 80, vy: -10 - this.rnd() * 20, t: 0, life: 0.45, s: 2 + (i % 2) });
@@ -111,8 +111,8 @@ export class SunsetRun {
     const y = b.y + (b.lie > 0.5 || b.jitter ? 0 : Math.sin(this.time * 2.4) * C.boss.bob) + (b.jitter && Math.floor(this.time * 31) % 4 === 0 ? 2 : 0);
     if (!paintOnly && b.aura > 0) {
       glow(ctx, b.x, y, 70 + 40 * b.aura, 'rgba(168,81,255,A)', 0.35 * Math.min(1.5, b.aura));
-      for (let i = 0; i < 10; i++) {
-        const age = (this.time * 0.8 + i / 10) % 1, a = i * 2.4 + this.time;
+      for (let i = 0; i < 20; i++) {
+        const age = (this.time * 0.8 + i / 20) % 1, a = i * 2.4 + this.time;
         const x = b.x + Math.cos(a) * (26 + 10 * b.aura), yy = y + Math.sin(a) * 30 - age * 40;
         ctx.globalAlpha = Math.sin(Math.PI * age) * 0.7; ctx.fillStyle = i % 3 ? '#08040f' : '#5a2a90';
         const r = 4 + Math.round(age * 4) * 2; ctx.fillRect(Math.round(x - r / 2), Math.round(yy - r / 2), r, r);
@@ -141,9 +141,14 @@ export class SunsetRun {
   poseImage() { return this.game.propImages?.[C.lock.pose] || null; }
   paintPlayer(ctx, { trail = true, alpha = 1 } = {}) {
     const r = this.core, px = this.x, gy = this.groundY;
+    if (this.kneelPose) {
+      const land = this.game.propImages?.['assets/sprites/hyungsub-land.png'];
+      if (land) { const cw = land.width / 4, s2 = C.poseScale; ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(Math.round(px), Math.round(gy)); if (this.poseFlip) ctx.scale(-1, 1); ctx.drawImage(land, 3 * cw, 0, cw, land.height, Math.round(-cw * s2 / 2), Math.round(-land.height * s2), Math.round(cw * s2), Math.round(land.height * s2)); ctx.restore(); }
+      return;
+    }
     const img = this.pose != null ? this.poseImage() : null;
     if (img) {
-      const cw = img.width / 4, h = img.height * 0.37 * 1.0, jx = this.jolt > 0 ? Math.round(Math.sin(this.time * 90) * 2) : 0;
+      const cw = img.width / 4, h = img.height * C.poseScale, jx = this.jolt > 0 ? Math.round(Math.sin(this.time * 90) * 2) : 0;
       ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(Math.round(px + jx), Math.round(gy)); if (this.poseFlip) ctx.scale(-1, 1);
       const s = h / img.height; ctx.drawImage(img, this.pose * cw, 0, cw, img.height, Math.round(-cw * s / 2), Math.round(-img.height * s), Math.round(cw * s), Math.round(img.height * s));
       ctx.restore(); return;
@@ -185,11 +190,12 @@ export class SunsetRun {
   drawOverlay(ctx) {
     if (this.white > 0.001) {
       const k = smooth(this.reveal), top = lerp(0, H / 2, k), bottom = lerp(H, H / 2, k);
-      ctx.fillStyle = '#fff'; ctx.fillRect(0, Math.round(top), W, Math.max(0, Math.round(bottom - top)));
+      // 나지막이: 걷히면서 흰빛도 옅어진다
+      ctx.fillStyle = `rgba(255,255,255,${1 - k * k * 0.85})`; ctx.fillRect(0, Math.round(top), W, Math.max(0, Math.round(bottom - top)));
       if (this.reveal < 1) {
         // 그림자 잔상: 흰 바탕 위 요플래 실루엣(준비 동작)과 옅은 잔상 둘
         ctx.save(); ctx.beginPath(); ctx.rect(0, top, W, bottom - top); ctx.clip();
-        this.backlight.apply(ctx, c => { for (const [dx, a] of [[-14, 0.35], [-7, 0.6], [0, 1]]) { c.save(); c.globalAlpha = a; c.translate(dx, 0); this.paintPlayer(c, { trail: false }); c.restore(); } }, [W, 0], 0);
+        this.backlight.apply(ctx, c => { this.paintPlayer(c, { trail: false }); }, [W, 0], 0);
         const dark = this.backlight.tinted(this.backlight.c, 'rgba(58,44,70,1)', 'shadow');
         ctx.drawImage(dark, 0, 0, W, H);
         ctx.restore();
@@ -198,9 +204,10 @@ export class SunsetRun {
       }
     }
     if (this.reveal > 0) {
+      // 무지개 선: 위 선은 위에서 내려오고 아래 선은 아래에서 올라와 자리 잡는다
       const a = smooth(this.reveal);
-      this.rainbowLine(ctx, lerp(H / 2, 12, a), a);
-      this.rainbowLine(ctx, lerp(H / 2, 320, a), a);
+      this.rainbowLine(ctx, lerp(-4, 12, a), a);
+      this.rainbowLine(ctx, lerp(H + 2, 320, a), a);
     }
   }
   /** 흰 화면에 그림자만(요플래·가재맨) + 슬로우로 화면을 가르는 거대 검기 그림자 */
@@ -212,14 +219,20 @@ export class SunsetRun {
     const dark = this.backlight.tinted(this.backlight.c, 'rgba(34,24,44,1)', 'shade');
     ctx.globalAlpha = this.shade; ctx.drawImage(dark, 0, 0, W, H);
     if (this.slashK >= 0 && this.slashK <= 1) {
-      // 거대 검기: 화면을 대각선으로 가르는 초승달 그림자(슬로우)
-      const k = this.slashK, a0 = -2.6, a1 = a0 + 2.4 * Math.min(1, k * 1.2), cx = 250, cy = 250, R = 230;
-      ctx.globalAlpha = this.shade * (k < 0.8 ? 0.85 : 0.85 * (1 - (k - 0.8) / 0.2)); ctx.fillStyle = '#221830';
-      ctx.beginPath();
-      const n = 28;
-      for (let i = 0; i <= n; i++) { const u = i / n, a = a0 + (a1 - a0) * u, w = 34 * Math.sin(Math.PI * u); ctx[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * (R + w), cy + Math.sin(a) * (R + w) * 0.62); }
-      for (let i = n; i >= 0; i--) { const u = i / n, a = a0 + (a1 - a0) * u, w = 34 * Math.sin(Math.PI * u); ctx.lineTo(cx + Math.cos(a) * (R - w), cy + Math.sin(a) * (R - w) * 0.62); }
-      ctx.closePath(); ctx.fill();
+      // 거대 검기: 요플래 칼끝에서 시작해 화면을 가르는 도트풍 그림자(1/4 해상도에 그려 계단지게 키운다)
+      const k = this.slashK, q = 4, lw = Math.ceil(W / q), lh = Math.ceil(H / q);
+      const c = this.slashCanvas || (this.slashCanvas = document.createElement('canvas')); c.width = lw; c.height = lh;
+      const x = c.getContext('2d'); x.clearRect(0, 0, lw, lh);
+      const cx = this.x / q, cy = (this.groundY - 20) / q, R = 150 / q, a0 = -2.7, a1 = a0 + 2.3 * Math.min(1, k * 1.3);
+      x.fillStyle = '#221830'; x.beginPath();
+      const n = 24;
+      for (let i = 0; i <= n; i++) { const u = i / n, a = a0 + (a1 - a0) * u, w = (9 / q + 26 / q * Math.sin(Math.PI * u)); x[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * (R + w), cy + Math.sin(a) * (R + w) * 0.7); }
+      for (let i = n; i >= 0; i--) { const u = i / n, a = a0 + (a1 - a0) * u, w = (9 / q + 26 / q * Math.sin(Math.PI * u)) * 0.4; x.lineTo(cx + Math.cos(a) * (R - w), cy + Math.sin(a) * (R - w) * 0.7); }
+      x.closePath(); x.fill();
+      ctx.save(); ctx.imageSmoothingEnabled = false;
+      ctx.globalAlpha = this.shade * (k < 0.8 ? 0.9 : 0.9 * (1 - (k - 0.8) / 0.2));
+      ctx.drawImage(c, 0, 0, lw * q, lh * q);
+      ctx.restore();
     }
     ctx.restore();
   }

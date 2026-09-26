@@ -21,7 +21,7 @@ export function createGajaemanRunner(battle, { enemy }) {
   const boss = run.boss; boss.visible = true; boss.lie = 0; boss.aura = 1; boss.face = 'left';
   let phase = 'hover', phaseTime = 0, elapsed = 0, counters = 0, disposed = false, invuln = 0, hurtFlash = 0;
   let swords = [], thrown = 0, dash = null, returnFrom = null, popT = 0, lockFrom = null;
-  const lock = { gauge: 0 };
+  const lock = { gauge: 0 }; let cycleN = 0;
   // 적 hp 는 6: 쳐냄 다섯 번이 막대 5칸, 마지막 맞붙기의 C 가 남은 한 칸(그때 전투가 이긴 것으로 끝난다)
   const hpMax = C.counters, shown = () => Math.max(0, enemy.hp - 1);
   let hpDisplay = shown();
@@ -37,11 +37,17 @@ export function createGajaemanRunner(battle, { enemy }) {
   const bodyBox = () => { const p = player(); return [p.x - C.player.halfWidth, p.y - C.player.height, p.x + C.player.halfWidth, p.y]; };
   const hurt = () => {
     if (invuln > 0 || disposed) return;
-    invuln = C.invulnerability; hurtFlash = 0.2; sfx(C.sfx.hurt, 0.8);
-    battle.hurtParty(C.damage);
+    // SAVE THE WORLD 결전은 맞는 연출만(체력은 깎이지 않는다 — 게임오버 없음, 사용자 BUILD369)
+    invuln = C.invulnerability; hurtFlash = 0.2; sfx(C.sfx.hurt, 0.8); g.shake = { time: 0.15, amp: 2 };
   };
   // ── 검 ──
-  const throwSword = () => {
+  const throwSword = index => {
+    if (index % 2 === 1) {
+      // 뒤(오른쪽 위)로 한 번 뺐다가 → 요플래에게 일직선
+      swords.push({ x: boss.x - 10, y: boss.y + 6, vx: 170, vy: -60, ang: Math.PI, landed: true, straight: true, back: C.sword.back, dead: false, t: 0 });
+      sfx(C.sfx.sword, 0.5);
+      return;
+    }
     const p = player(), tx = p.x + C.sword.aimAhead, ty = run.groundY - C.sword.aimHeight;
     const dx = tx - boss.x, dy = ty - boss.y, d = Math.hypot(dx, dy);
     swords.push({ x: boss.x - 10, y: boss.y + 6, vx: dx / d * C.sword.speed, vy: dy / d * C.sword.speed, ang: Math.atan2(dy, dx), landed: false, dead: false, t: 0 });
@@ -50,7 +56,8 @@ export function createGajaemanRunner(battle, { enemy }) {
   // ── 돌진 ──
   const launchDash = () => {
     dash = { y: run.groundY - C.dash.height, vx: -C.dash.speed, countered: false, hit: false };
-    boss.y = dash.y; sfx(C.sfx.dashGo, 0.8); change('dash');
+    boss.y = dash.y; boss.lie = 1; sfx(C.sfx.dashGo, 0.8); change('dash');
+    run.burst(boss.x, boss.y, 30, { rainbow: false, speed: 200, life: 0.5 });
   };
   // 돌진 뒤편에서 폭죽처럼 팡팡 — 타닥타닥 튀기는 소리(폭발음 아님)
   let popClock = 0, trailClock = 0; const crackles = [];
@@ -77,7 +84,7 @@ export function createGajaemanRunner(battle, { enemy }) {
     run.flash = 0.16; run.flashColor = '255,244,255'; g.shake = { time: 0.35, amp: 6 }; boss.shake = 0.3;
     run.slashFx.push({ kind: 'slash', up: false, t: 0, dur: 0.34 }, { kind: 'airslash', up: false, t: 0.05, dur: 0.4 });
     returnFrom = { x: boss.x, y: boss.y }; boss.trail = [];
-    change(counters >= C.counters ? 'final_gather' : 'recoil');
+    change(counters >= C.counters ? 'final_pause' : 'recoil');
   };
   function tick(dt, keys) {
     elapsed += dt; phaseTime += dt;
@@ -90,16 +97,17 @@ export function createGajaemanRunner(battle, { enemy }) {
     if (phase === 'hover') {
       boss.lie = Math.max(0, boss.lie - dt * 4); boss.face = 'left';
       boss.x = lerp(boss.x, home[0], Math.min(1, dt * 3)); boss.y = lerp(boss.y, home[1], Math.min(1, dt * 3));
-      if (phaseTime >= (counters === 0 && elapsed < 2 ? C.cycle.first : C.cycle.rest)) { thrown = 0; change('swords'); sfx(C.sfx.sword, 0.5); }
+      if (phaseTime >= (counters === 0 && elapsed < 2 ? C.cycle.first : C.cycle.rest)) { thrown = 0; cycleN++; change('swords'); sfx(C.sfx.sword, 0.5); }
     } else if (phase === 'swords') {
       // 검을 꺼내 들어 번쩍(예고) → 한 자루씩
       const next = C.sword.warn + thrown * C.sword.every;
-      if (thrown < C.sword.count && phaseTime >= next) { throwSword(); thrown++; }
+      if (thrown < C.sword.count && phaseTime >= next) { throwSword(thrown + cycleN); thrown++; }
       if (thrown >= C.sword.count && phaseTime >= next + 0.9) { change('dash_warn'); sfx(C.sfx.kickVoice, 1.0); }
     } else if (phase === 'dash_warn') {
       // “니애미 따라가라” — 몸을 가로로 눕히며 땅 높이로 내려와 기를 모은다
-      boss.lie = Math.min(1, phaseTime / 0.5); boss.aura = 1.4;
+      boss.lie = 0; boss.aura = 1.4 + 1.6 * smooth(phaseTime / 0.6); boss.shake = 0.1;
       boss.y = lerp(home[1], run.groundY - C.dash.height, smooth(phaseTime / 0.8)); boss.x = lerp(boss.x, 430, Math.min(1, dt * 3));
+      for (let i = 0; i < 3; i++) { const a = run.rnd() * Math.PI * 2, r = 16 + run.rnd() * 26; run.particles.push({ x: boss.x + Math.cos(a) * r, y: boss.y + Math.sin(a) * r, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90 - 40, t: 0, life: 0.5, s: 3 + (i % 2), color: i % 2 ? '#a851ff' : '#1a0830', g: -30 }); }
       if (phaseTime >= C.dash.warn) launchDash();
     } else if (phase === 'dash') {
       boss.x += dash.vx * dt;
@@ -117,6 +125,10 @@ export function createGajaemanRunner(battle, { enemy }) {
       const k = smooth(phaseTime / C.dash.returnSeconds);
       boss.x = lerp(returnFrom.x, home[0], k); boss.y = lerp(returnFrom.y, home[1], k); boss.lie = Math.max(0, boss.lie - dt * 3); boss.aura = 1;
       if (phaseTime >= C.dash.returnSeconds) change('hover');
+    } else if (phase === 'final_pause') {
+      const k = smooth(phaseTime / C.pause);
+      boss.x = lerp(returnFrom.x, home[0], k); boss.y = lerp(returnFrom.y, home[1], k); boss.lie = Math.max(0, 1 - phaseTime * 2); boss.aura = 1;
+      if (phaseTime >= C.pause) { returnFrom = { x: boss.x, y: boss.y }; change('final_gather'); }
     } else if (phase === 'final_gather') {
       // 엄청난 기운을 모은다
       if (phaseTime < dt * 1.5) { sfx(C.sfx.gather, 0.8); sfx(C.sfx.charge, 0.7); }
@@ -178,7 +190,7 @@ export function createGajaemanRunner(battle, { enemy }) {
     } else if (phase === 'slash') {
       const k = Math.min(1, phaseTime / C.release.slash), e = 1 - (1 - k) ** 3;
       run.slashK = k; run.shade = 1;
-      run.pxOverride = lerp(C.lock.playerX, C.release.endPlayerX, e); run.poseFlip = false; run.pose = k > 0.6 ? 3 : 2;
+      run.pxOverride = lerp(C.lock.playerX, C.release.endPlayerX, e); run.poseFlip = true; run.pose = k > 0.6 ? 3 : 2;
       boss.x = lerp(C.lock.playerX + C.lock.gap, C.release.bossTo[0], e); boss.y = lerp(run.groundY - 22, C.release.bossTo[1], e); boss.lie = 1 - e; boss.aura = 2;
       // 벤 순간에 남은 한 칸 — 전투는 이긴 것으로 끝난다(흰 그림자 화면 그대로 필드 연출이 이어받는다)
       if (k >= 1) { run.slashK = -1; battle.hitEnemy(enemy, null, 1, { source: 'gajaeman_counter', sound: false }); change('finish'); }
@@ -190,6 +202,10 @@ export function createGajaemanRunner(battle, { enemy }) {
     const s = slashBox();
     for (const sw of swords) {
       sw.t += dt;
+      if (sw.straight && sw.back > 0) {
+        sw.back -= dt; sw.vx *= 0.9; sw.vy *= 0.9;
+        if (sw.back <= 0) { const p = player(), tx = p.x, ty = run.groundY - 16, dx = tx - sw.x, dy = ty - sw.y, d = Math.hypot(dx, dy) || 1; sw.vx = dx / d * C.sword.line; sw.vy = dy / d * C.sword.line; sw.ang = Math.atan2(dy, dx); sfx(C.sfx.swordFly, 0.8); }
+      } else if (sw.straight && sw.y >= run.groundY - C.sword.aimHeight) { sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.ang = Math.PI; }
       if (!sw.landed && sw.y >= run.groundY - C.sword.aimHeight) { sw.landed = true; sw.vy = 0; sw.y = run.groundY - C.sword.aimHeight; sw.vx = -C.sword.speed; sw.ang = Math.PI; }
       sw.x += sw.vx * dt; sw.y += sw.vy * dt;
       if (sw.dead) continue;
@@ -245,7 +261,7 @@ export function createGajaemanRunner(battle, { enemy }) {
     ctx.save(); ctx.translate(Math.round(sw.x), Math.round(sw.y));
     // 그림은 칼끝이 아래 → 진행 방향으로
     ctx.rotate(sw.ang - Math.PI / 2);
-    const w = C.sword.w * 0.6, h = C.sword.h * 0.6, rim = run.backlight.tinted(img, 'rgba(230,204,255,1)', 'swordrim');
+    const w = C.sword.w * C.sword.draw, h = C.sword.h * C.sword.draw, rim = run.backlight.tinted(img, 'rgba(230,204,255,1)', 'swordrim');
     // 칼 모양 그대로의 밝은 테두리(사각형 없이)
     ctx.globalAlpha = 0.8; for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(rim, -w / 2 + dx, -h / 2 + dy, w, h);
     ctx.globalAlpha = 1; ctx.drawImage(img, -w / 2, -h / 2, w, h);

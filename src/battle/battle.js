@@ -404,7 +404,7 @@ export class Battle {
     this.support?.onHit?.(e, damage, source);
     if (sound) { this.sfx('hit'); this.sfx('damage'); }
     if (e.def.reactive?.hitSfx) this.sfx(e.def.reactive.hitSfx);
-    if (e.hp <= 0) { e.dying = 0.5; this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
+    if (e.hp <= 0) { e.dying = 0.5; if (!this.support?.quietDeath) this.sfx('vaporized'); this.setText(e.def.lines?.die || `* ${e.name} 이(가) 쓰러졌다.`); }   // 맞았을 때 문구는 없음(사용자)
     return damage;
   }
   finishPartyAction(plan, allowSupport = true) {

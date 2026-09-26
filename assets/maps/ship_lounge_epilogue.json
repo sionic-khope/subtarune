@@ -48,10 +48,14 @@
   "early": true
  },
  "preload": [
-  "assets/props/ship_lounge_grand_door_open.png",
+  "assets/props/ship_lounge_grand_door_open_both.png",
   "assets/props/ship_lounge_bandage.png",
   "assets/props/pair_hug_front.png",
-  "assets/props/pair_hug_back.png"
+  "assets/props/pair_hug_back.png",
+  "assets/props/arena332_teemo.png",
+  "assets/props/arena332_thresh.png",
+  "assets/props/arena332_blitzcrank.png",
+  "assets/props/arena332_ahri.png"
  ],
  "spawns": {
   "start": {
@@ -74,11 +78,11 @@
     "w": 160,
     "h": 192,
     "enter": [
-     424,
+     384,
      214
     ],
     "front": [
-     424,
+     384,
      240
     ]
    },
@@ -92,13 +96,13 @@
   {
    "type": "prop",
    "id": "epi_door",
-   "image": "assets/props/ship_lounge_grand_door_open.png",
+   "image": "assets/props/ship_lounge_grand_door_open_both.png",
    "x": 304,
    "y": 184,
    "w": 160,
    "h": 24,
    "ix": 304,
-   "iy": 16,
+   "iy": 24,
    "solid": true,
    "sortY": 0
   },
@@ -395,6 +399,108 @@
    "facing": "up",
    "solid": false,
    "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_eunbyeol",
+   "sprite": "eunbyeol",
+   "x": 128,
+   "y": 406,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_yerim",
+   "sprite": "yerim",
+   "x": 638,
+   "y": 406,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_cs_red",
+   "sprite": "cs_red",
+   "x": 108,
+   "y": 416,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_cs_blue",
+   "sprite": "cs_blue",
+   "x": 148,
+   "y": 446,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_cannon",
+   "sprite": "cannon",
+   "x": 188,
+   "y": 426,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "npc",
+   "id": "epi_janitor",
+   "sprite": "janitor",
+   "x": 688,
+   "y": 306,
+   "facing": "up",
+   "solid": false,
+   "wander": 0,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "epi_mon_teemo",
+   "image": "assets/props/arena332_teemo.png",
+   "x": 570,
+   "y": 380,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "epi_mon_thresh",
+   "image": "assets/props/arena332_thresh.png",
+   "x": 620,
+   "y": 370,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "epi_mon_blitzcrank",
+   "image": "assets/props/arena332_blitzcrank.png",
+   "x": 670,
+   "y": 410,
+   "solid": false,
+   "hidden": true
+  },
+  {
+   "type": "prop",
+   "id": "epi_mon_ahri",
+   "image": "assets/props/arena332_ahri.png",
+   "x": 530,
+   "y": 410,
+   "solid": false,
    "hidden": true
   },
   {

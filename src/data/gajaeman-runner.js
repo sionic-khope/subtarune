@@ -5,16 +5,18 @@
  *   → 다섯 번 쳐내면 마지막: 엄청난 기운 → 콰앙 뒤로 → 두두두둥 폭죽과 함께 천천히 따라오는 돌진 → 맞붙기 직전 C.
  */
 export const GJ_RUNNER = Object.freeze({
-  bgm: 'save_the_world_run', hum: 'sunset_hum',
+  bgm: 'save_the_world_run', bgmLoop: 'save_the_world_loop', hum: 'sunset_hum',
   counters: 5, damage: 20, invulnerability: 0.9,
   // 무대(노을 땅 맵과 같은 비율): 수평선·땅 윗면·앞 테두리, 달리는 발 높이, 요플래 x, 마지막 결전이라 인물은 작게
   stage: { horizonY: 168, groundTop: 190, edgeY: 288, groundY: 252, playerX: 118, scale: 0.72, sunX: 300 },
   player: { halfWidth: 8, height: 32, heartHeight: 26 },
-  white: { hold: 0.55, reveal: 0.7 },
+  // 흰 화면은 천천히 나지막이 걷힌다(BUILD369)
+  white: { hold: 0.55, reveal: 1.7 },
   boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [372, 150], scale: 1.56, bob: 5 },
   aura: { gather: 2.2, burst: 0.5 },
   cycle: { first: 1.2, rest: 1.1 },
-  sword: { count: 3, every: 0.72, warn: 0.55, speed: 360, aimAhead: 26, aimHeight: 14, halfW: 20, halfH: 7, w: 34, h: 136 },
+  // BUILD369: 검 더 크게, 대각선 · 뒤로 뺐다가 일직선 두 가지
+  sword: { count: 3, every: 0.72, warn: 0.55, speed: 360, aimAhead: 26, aimHeight: 14, halfW: 26, halfH: 9, w: 34, h: 136, draw: 0.95, back: 0.4, line: 430 },
   // BUILD365(사용자 “돌진 좀만 더 천천히, 잔상, 지나간 뒷자리에 팡팡 폭죽처럼 — 타닥타닥”)
   dash: { warn: 1.25, speed: 240, pop: 0.16, trailEvery: 0.05, height: 20, halfW: 30, halfH: 12, recoil: 0.7, returnSeconds: 1.0, endX: -120 },
   final: { gather: 2.4, back: [520, 206], backSeconds: 0.6, speed: 150, homing: 2.4, pop: 0.13, clashDist: 72, slow: 0.08, clashHold: 1.4 },
@@ -23,13 +25,15 @@ export const GJ_RUNNER = Object.freeze({
   lock: { zoom: 1.7, playerX: 196, gap: 44, presses: 40, decay: 0.035, shake: 0.08, pose: 'assets/sprites/hyungsub-clash.png' },
   release: { white: 0.35, slash: 2.6, endPlayerX: 336, bossTo: [190, 104] },
   // 벤 뒤: 가재맨은 하늘에 멈춰 디디디딕, 요플래는 검을 든 채 뒤돌아 땅을 본다 → 대사 → 검은 연기가 모여 쾅 쿠와아앙 → 연기는 하늘로
-  after: { lift: 1.1, smoke: 2.6, rise: 3.2 },
+  after: { lift: 1.1, smoke: 2.6, rise: 3.2, kneel: 1.0 },
+  // 다섯 번째 쳐낸 뒤 잠깐 물러났다가 기를 모은다
+  pause: 1.4, poseScale: 0.5,
   sfx: { draw: 'wing', dash: 'weaponpull', jump: 'jump', slash: 'swing', airslash: 'criticalswing', skid: 'scrape',
     sword: 'spearappear', swordFly: 'heavyswing', deflect: 'deflect', kickVoice: 'gajaeman_kick', dashGo: 'ultraswing',
     counter: 'deltarune_release_shoot', counterHit: 'impact', gather: 'power', charge: 'laser_charge', burst: 'deltarune_release_shoot',
     back: 'baron_slam', crackle: 'pop', swordHit: 'damage', lockWhine: 'blade_lock_whine', pop: 'cannon_puff', popBig: 'drum_burst', clash: 'great_shine', hurt: 'hurt_dr' },
   // 누워 날아가는 전용 그림(생성, assets/source/gjfly365) — 머리가 왼쪽, 얼굴은 앞
-  flySheet: 'assets/sprites/gajaeman-fly.png', flyH: 39,
+  flySheet: 'assets/sprites/gajaeman-fly.png', flyH: 54,
   rainbow: ['#ff5a5a', '#ffae3c', '#ffe45a', '#6ee66e', '#5ac8ff', '#7a7aff', '#d27aff'],
   colors: { aura: '#a851ff', dark: '#1a0830', core: '#ecbeff' },
   text: { controls: 'X 점프  ·  C 베기', title: '가재맨', button: 'SAVE THE WORLD', press: 'C' },

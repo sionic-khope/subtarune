@@ -101,6 +101,8 @@ export const castle_raft_intro = Object.assign([
   { fade: 'out', duration: 0.75 },
   scene(s => { s.ascend(); }),
   { fade: 'in', duration: 0.75 },
+  // 하늘에서 뗏목과 떨어지는 순간부터 빙글빙글 + 곡
+  scene(s => s.detach()),
   { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.9, loop: false }); } },
   scene(s => s.waitRise(RISE.flash)),
   // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
@@ -145,7 +147,7 @@ export const castle_sunset_arrival = Object.assign([
   scene(s => s.afterSlash()), { wait: 0.8 },
   A('...'), A('...그.. 그래..'), A('...'), A('... ... ...'), A('뭐...'), A('롤..이나 하러.. 가야겠군'), close,
   scene(s => s.farewell()),
-  { wait: 0.6 },
+  scene(s => s.kneelDown()),
   { label: 'epilogue' },
   // BUILD364 결말(사용자 2026-09-26): 페이드 아웃·인 → 일반 화면. 요플래는 무릎 꿇고 힘들어한다
   { fade: 'out', duration: 0.8 },
@@ -203,33 +205,42 @@ export const castle_sunset_arrival = Object.assign([
 
 /** 라운지 결말 퍼레이드(사용자 2026-09-26): 대사 없이 곡(lounge_parade, P89rxnT7lKw)과 함께 — 한쪽 열린 보라 문 너머 빛으로 모두가 나간다.
  *  영클 오른쪽 · 경섭이 김형섭을 어깨동무 · 억빠맨. 페이드 아웃·인으로 다섯 장면. */
-const DOOR_FRONT = [424, 244];
-const walkOut = (id, wait = 0) => [{ wait }, { show: id }, { move: id, px: DOOR_FRONT, facing: 'up' }, scene(s => s.enterDoor(id))];
+const DOOR_FRONT = [384, 244];
+const walkOut = (id, wait = 0, extra = {}) => [{ wait }, { show: id }, { move: id, px: DOOR_FRONT, facing: 'up', ...extra }, scene(s => s.enterDoor(id))];
 const vignette = (...branches) => [{ fade: 'in', duration: 0.9 }, { parallel: branches }, { wait: 0.9 }, { fade: 'out', duration: 0.9 }, { wait: 0.3 }];
 export const ship_lounge_epilogue = Object.assign([
   { if: flags => !!flags.ship_lounge_epilogue_seen, goto: 'end' },
   close,
   scene(s => s.loungeSetup()),
   { camera: at(384, 226), duration: 0.01 }, { zoom: 0.86, at: [384, 226], duration: 0.01 },
-  { bgm: 'lounge_parade', volume: 0.6, fadeIn: 0.8 },
+  // 곡(lost girl, P89rxnT7lKw)은 반복 없이 끝까지 — 끝나면 갑판으로
+  { action: game => game.sound.playBgm('lounge_parade', { volume: 0.6, fadeIn: 0.8, loop: false }) },
   // 1. 따듯한비데와 도트마리오
-  ...vignette(walkOut('epi_bidet', 0.8), walkOut('epi_mario', 1.6)),
+  ...vignette(walkOut('epi_bidet', 0.6), walkOut('epi_mario', 1.3)),
   // 2. 파크가디언: 문 앞에서 돌아서 인사하고 들어간다 · 뚜울라가 뒤따른다
-  ...vignette([{ wait: 0.6 }, { show: 'epi_park' }, { move: 'epi_park', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_park', dir: 'down' }, { wait: 0.3 }, { motion: 'epi_park', name: 'bow' }, { face: 'epi_park', dir: 'up' }, scene(s => s.enterDoor('epi_park'))],
-    walkOut('epi_ttuulla', 2.4)),
-  // 3. 오방순과 나람
-  ...vignette(walkOut('epi_obangsun', 0.6), walkOut('epi_naram', 1.2)),
-  // 4. 용준이 먼저 쌩 — 쥰희는 점프해 가다가 뒤돌아 한 번 웃고 들어간다
-  ...vignette([{ wait: 0.6 }, { show: 'epi_yongjun' }, { sfx: 'whoosh', volume: 0.7 }, { move: 'epi_yongjun', px: DOOR_FRONT, dash: true, facing: 'up' }, scene(s => s.enterDoor('epi_yongjun', 0.3))],
-    [{ wait: 2.0 }, { show: 'epi_junhee' }, { hop: 'epi_junhee', by: [100, -60], height: 30, duration: 0.55 }, { hop: 'epi_junhee', by: [100, -50], height: 30, duration: 0.55 }, { move: 'epi_junhee', px: DOOR_FRONT, run: true, facing: 'up' },
+  ...vignette([{ wait: 0.5 }, { show: 'epi_park' }, { move: 'epi_park', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_park', dir: 'down' }, { wait: 0.3 }, { motion: 'epi_park', name: 'bow' }, { face: 'epi_park', dir: 'up' }, scene(s => s.enterDoor('epi_park'))],
+    walkOut('epi_ttuulla', 2.2)),
+  // 3. 오방순과 나람, 김은별컴퍼니와 김예림
+  ...vignette(walkOut('epi_obangsun', 0.4), walkOut('epi_naram', 0.9), walkOut('epi_eunbyeol', 1.8), walkOut('epi_yerim', 2.4)),
+  // 4. 미니언들과 롤 몬스터들
+  ...vignette(walkOut('epi_cs_red', 0.3), walkOut('epi_cs_blue', 0.7), walkOut('epi_cannon', 1.1),
+    [{ wait: 0.5 }, scene(s => s.propOut('epi_mon_teemo'))], [{ wait: 1.2 }, scene(s => s.propOut('epi_mon_ahri'))],
+    [{ wait: 1.9 }, scene(s => s.propOut('epi_mon_thresh'))], [{ wait: 2.6 }, scene(s => s.propOut('epi_mon_blitzcrank'))]),
+  // 5. 용준이 먼저 쌩 — 쥰희는 점프해 가다가 뒤돌아 한 번 웃고 들어간다
+  ...vignette([{ wait: 0.5 }, { show: 'epi_yongjun' }, { sfx: 'whoosh', volume: 0.7 }, { move: 'epi_yongjun', px: DOOR_FRONT, dash: true, facing: 'up' }, scene(s => s.enterDoor('epi_yongjun', 0.3))],
+    [{ wait: 1.8 }, { show: 'epi_junhee' }, { hop: 'epi_junhee', by: [100, -60], height: 30, duration: 0.55 }, { hop: 'epi_junhee', by: [100, -50], height: 30, duration: 0.55 }, { move: 'epi_junhee', px: DOOR_FRONT, run: true, facing: 'up' },
       { face: 'epi_junhee', dir: 'down' }, { wait: 0.4 }, { motion: 'epi_junhee', name: 'laugh', sfx: 'laugh_junhee' }, { wait: 0.3 }, { face: 'epi_junhee', dir: 'up' }, scene(s => s.enterDoor('epi_junhee'))]),
-  // 5. 점례가 최미스를 문 밖으로 역동적으로 차낸 뒤, 문가에 올라가 아래를 잠깐 보고 다시 들어간다
-  ...vignette([{ wait: 0.5 }, { show: 'epi_choimis' }, { show: 'epi_jeomnye' }, { move: 'epi_choimis', px: [390, 262], facing: 'up' },
+  // 6. 점례가 최미스를 문 밖으로 역동적으로 차낸 뒤, 문가에 올라가 아래를 잠깐 보고 다시 들어간다
+  ...vignette([{ wait: 0.4 }, { show: 'epi_choimis' }, { show: 'epi_jeomnye' }, { move: 'epi_choimis', px: [350, 262], facing: 'up' },
     { hop: 'epi_jeomnye', by: [150, -70], height: 26, duration: 0.6 }, scene(s => s.kickInto('epi_choimis')), { wait: 0.4 },
     { move: 'epi_jeomnye', px: DOOR_FRONT, facing: 'up' }, { face: 'epi_jeomnye', dir: 'down' }, { wait: 1.0 }, { face: 'epi_jeomnye', dir: 'up' }, scene(s => s.enterDoor('epi_jeomnye'))]),
-  // 6. 지켜보는 일행 — 빛을 바라보며
+  // 7. 일행이 잠깐 뒤돌아본 사이, 청소부가 몰래 살금살금 나간다
+  ...vignette([{ wait: 0.4 }, scene(s => s.partyFace('down')), { wait: 0.6 }, { show: 'epi_janitor' }, { move: 'epi_janitor', px: DOOR_FRONT, speed: 40, facing: 'up' },
+    scene(s => s.enterDoor('epi_janitor', 1.2)), { wait: 0.5 }, scene(s => s.partyFace('up'))]),
+  // 8. 지켜보는 일행 — 곡이 끝날 때까지 빛을 바라본다
   { zoom: 1.25, at: [384, 330], duration: 0.01 },
-  { fade: 'in', duration: 1.2 }, { wait: 7 },
+  { fade: 'in', duration: 1.2 },
+  scene(s => s.waitBgmEnd('lounge_parade', 4)),
   { set: { ship_lounge_epilogue_seen: true } },
   // 페이드 인·아웃 연출이 끝나면 갑판의 노을로
   { fade: 'out', duration: 1.4 }, { zoom: 1, duration: 0.01 },

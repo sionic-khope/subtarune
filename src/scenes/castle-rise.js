@@ -11,7 +11,8 @@
 export const RISE = Object.freeze({
   bgm: 'save_the_world_rise',
   // BUILD365(사용자 “곡 42초~1분 3초에 딱 맞게, 곡이 끝나면 버튼”): 원곡 58초 노을 땅, 63.9초(곡 끝) 착지
-  handoff: 0, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
+  // BUILD369: 하늘을 0.9초 더 오르고(원곡 58.9초 노을 땅), 착지는 곡 끝(64.05초)
+  handoff: 0, castleEnd: 11.6, clear: 13.0, flash: 15.9, mapAt: 16.2, land: 21.35,
   riseSheet: 'assets/sprites/hyungsub-rise.png', landSheet: 'assets/sprites/hyungsub-land.png',
   backdrop: 'assets/backdrops/castle_sunset359.png', sun: 'assets/props/maillard_sun.png', sunCrop: Object.freeze([53, 53, 151, 150]),
   // 생성 배경의 수평선 높이(비율)
@@ -101,10 +102,10 @@ export class SunRays {
   constructor() { this.c = null; }
   draw(ctx, cx, cy, time, strength, radius = 420) {
     if (strength <= 0.01) return;
-    if (!this.c) { try { this.c = document.createElement('canvas'); this.c.width = 120; this.c.height = 90; } catch { return; } }
+    if (!this.c) { try { this.c = document.createElement('canvas'); this.c.width = 360; this.c.height = 270; } catch { return; } }
     const x = this.c.getContext('2d'), k = 120 / W;
-    x.clearRect(0, 0, 120, 90);
-    x.save(); x.translate(cx * k, cy * k);
+    x.clearRect(0, 0, 360, 270);
+    x.save(); x.translate((cx + W) * k, (cy + H) * k);
     const n = 9;
     for (let i = 0; i < n; i++) {
       const a = -Math.PI + (i + 0.5) * (Math.PI / n) + Math.sin(time * 0.23 + i * 1.7) * 0.07;
@@ -116,7 +117,7 @@ export class SunRays {
     }
     x.restore();
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = strength; ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(this.c, 0, 0, W, H);
+    ctx.drawImage(this.c, -W, -H, W * 3, H * 3);
     ctx.restore();
   }
 }
@@ -193,7 +194,9 @@ export function updateRise(state, T, dt) {
   if (T >= RISE.castleEnd && state.dEnd == null) state.dEnd = state.d;
   // 도는 빠르기: 초당 방향 칸 수(오른쪽→앞→왼쪽→뒤)
   const spin = T < RISE.castleEnd ? 2.6 : lerp(2.6, 0.7, smooth((T - RISE.castleEnd) / (RISE.flash - RISE.castleEnd)));
-  state.spin += spin * dt;
+  // 뗏목에서 떨어지기 전(pre)엔 돌지 않는다
+  if (!state.pre || state.pre.detached) state.spin += spin * dt;
+  if (state.pre) { state.pre.t += dt; if (state.pre.detached) { state.pre.raftV += 520 * dt; state.pre.raftY += state.pre.raftV * dt; state.pre.raftA = Math.max(0, state.pre.raftA - dt * 0.9); } }
   state.alpha = 1;
   state.v = v;
   state.motes.update(dt, { rate: T < RISE.castleEnd ? 30 : 18, vy: T < RISE.castleEnd ? v * 0.9 : Math.max(10, v * 0.5), warm: T >= RISE.castleEnd });
@@ -247,9 +250,13 @@ export function drawRise(ctx, state, T, images, time) {
   ctx.restore();
   // 4) 요플래: 뛰는 순간부터(배경보다 먼저 보인다) 오른쪽 → 앞 → 왼쪽 → 뒤로 돌며 좌우로 살짝 흔들리고 천천히 화면 위쪽으로
   const img = images[RISE.riseSheet];
-  const frame = Math.floor(state.spin) % 4;
+  const frame = Math.floor(state.spin) % 4, pre = state.pre;
+  // 뗏목: 요플래가 타고 오르다가 떨어져 나가 아래로
+  const raft = images['assets/props/raft.png'];
+  if (pre && raft && pre.raftA > 0) { ctx.save(); ctx.globalAlpha *= pre.raftA; const w = raft.width * 1.4, h = raft.height * 1.4; ctx.drawImage(raft, Math.round(x - w / 2), Math.round(y - h / 2 + 4 + pre.raftY), Math.round(w), Math.round(h)); ctx.restore(); }
   glow(ctx, x, y - RISE.riseH * 0.5, 46, seaK > 0.5 ? 'rgba(255,220,160,A)' : 'rgba(140,170,255,A)', 0.3);
-  const paint = c => drawCell(c, img, frame, x, y, RISE.riseH);
+  const stand = pre && !pre.detached ? state.stand : null;
+  const paint = stand ? c => c.drawImage(stand.img, Math.round(x - stand.w / 2), Math.round(y - stand.h), Math.round(stand.w), Math.round(stand.h)) : c => drawCell(c, img, frame, x, y, RISE.riseH);
   paint(ctx);
   if (seaK > 0) state.backlight.apply(ctx, paint, [250, 240], seaK * 0.9);
   ctx.restore();

@@ -16,5 +16,7 @@ export function createGajaemanRunnerSupport(battle) {
     blocksDamage(enemy, source) { return source !== 'gajaeman_counter'; },
     adjustDamage() { return 1; },
     afterEnemyPhase() { return null; },
+    // 마지막 베기에 적 처치 소리 없이(BUILD369)
+    quietDeath: true,
   };
 }

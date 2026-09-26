@@ -24,6 +24,8 @@ def single(name, out, width):
 
 if __name__ == '__main__':
     single('door', 'assets/props/ship_lounge_grand_door_open.png', 160)
+    # BUILD369: 퍼레이드는 양쪽 문이 다 열린 그림(한쪽 열린 그림은 다른 장면용으로 남김)
+    single('door-both', 'assets/props/ship_lounge_grand_door_open_both.png', 160)
     single('bandage', 'assets/props/ship_lounge_bandage.png', 120)
     # BUILD368: 김형섭은 기절해 경섭에게 기댄 모습(pair-faint, 사용자 “기절해있어서 기대고있는 모습”)
     rise.strip('pair-faint', str(SRC / 'pair-strip.png'))
