@@ -147,6 +147,7 @@ export class TextBox {
     else this.illustration.clear();
     this.autoDelay = node.speed ? this.charDelay / node.speed : null;
     this.auto = node.auto ?? null;             // 초: 다 나온 뒤 자동으로 넘어감
+    this.holdMin = node.hold ?? 0; this.shownT = 0;   // hold(초): 이 시간이 지나야 C 로 넘어간다(BUILD370 경섭 마지막 대사)
     this.autoTimer = 0;
     this.cut = node.cut ?? null;               // 초: **찍히는 중이라도** 그 시간에 말이 끊기고 다음으로(용준이 말하다가 날아감). 그동안 C/X 로 넘기지 못한다 (2026-09-11)
     this.cutTimer = 0;
@@ -204,7 +205,7 @@ export class TextBox {
 
   update(dt, input) {
     if (this.state === 'closed') return;
-    this.time += dt;
+    this.time += dt; this.shownT = (this.shownT ?? 0) + dt;
     if (this.style === 'illustrated' && this.illustration.transitioning) {
       this.illustration.update(dt);
       return;
@@ -240,7 +241,7 @@ export class TextBox {
     if (this.state === 'waiting') {
       if (this.cut !== null) return;                           // 끊기는 대사는 cut 타이머만 기다린다
       if (this.auto !== null) this.autoTimer += dt;
-      if (input.just('confirm') || (this.auto !== null && this.autoTimer >= this.auto)) {
+      if ((input.just('confirm') && this.shownT >= this.holdMin) || (this.auto !== null && this.autoTimer >= this.auto)) {
         this.autoTimer = 0;
         if (this.page < this.pages.length - 1) {
           this.page++;

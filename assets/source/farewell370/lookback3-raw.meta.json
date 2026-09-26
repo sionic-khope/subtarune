@@ -1,0 +1,40 @@
+{
+  "endpoint": "images/edits",
+  "base_url": "https://apis.opengateway.ai/v1",
+  "request": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "n": "1",
+    "size": "1024x1024",
+    "quality": "high"
+  },
+  "refs": [
+    "assets/source/farewell370/ref-gyeongsub.png"
+  ],
+  "elapsed_seconds": 29.4,
+  "usage": {
+    "input_tokens": 1244,
+    "output_tokens": 1756,
+    "total_tokens": 3000,
+    "input_tokens_details": {
+      "image_tokens": 936,
+      "text_tokens": 308
+    },
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0,
+      "image_pages": 1
+    }
+  },
+  "created": 1790418008,
+  "outputs": [
+    {
+      "file": "assets/source/farewell370/lookback3-raw.png",
+      "bytes": 894541,
+      "size": [
+        1024,
+        1024
+      ],
+      "revised_prompt": null
+    }
+  ]
+}

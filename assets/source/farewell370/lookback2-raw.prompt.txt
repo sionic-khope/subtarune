@@ -1,0 +1,13 @@
+# imagegen 2026-09-26 19:18:29
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/farewell370/ref-gyeongsub.png
+
+Use case: identity-preserve. The reference is the approved overworld sprite sheet of GYEONGSUB (exact identity AND pixel density: copy his long black hair, glasses, face, dark navy T-shirt with the small logo, black shorts and shoes exactly).
+
+Create a separate 2 by 2 four-frame full-body sprite sheet of Gyeongsub STANDING IN A DOORWAY, seen mostly FROM BEHIND (his back to the viewer, about to walk into a bright doorway ahead of him), but he has TURNED HIS HEAD BACK over his right shoulder to look back at the viewer with a gentle, grateful expression (soft eyes behind his glasses). His body stays facing away.
+- top left and top right: the look-back pose, two tiny idle variations (hair moving slightly);
+- bottom left: he turns his head forward again, facing away toward the doorway;
+- bottom right: he takes a first step forward into the doorway, back to the viewer.
+Match the squat chibi proportions and coarse flat square pixel clusters of the reference, simple dark stepped outline, exact outfit/hair/glasses invariants, same scale in all four frames. Exactly four equally-spaced full bodies in 2x2 equal cells with generous clear margins, nothing clipped. Flat solid magenta #FF00FF background, no labels, no text except the shirt's small logo, no ground, no shadow, no effects.

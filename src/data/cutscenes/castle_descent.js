@@ -279,7 +279,41 @@ export const ship_deck_epilogue = Object.assign([
   // 왼쪽으로 걸어가고 천천히 페이드 아웃
   { parallel: [scene(s => s.deckFriendsLeave()), [{ wait: 1.5 }, { fade: 'out', duration: 3.5 }]] },
   { set: { ship_deck_epilogue_seen: true } },
-  // 다음 이야기는 사용자 다음 브리핑 — 검은 화면에 머문다
+  // 브금 없이 — 문 닫힌 라운지의 마지막 작별로
+  { bgm: null, fadeOut: 1.0 },
+  { map: 'ship_lounge_farewell', spawn: 'start', enter: true, bgm: false },
+  { label: 'end' }, { end: true },
+], { silent: true });
+
+/** 마지막 작별(사용자 2026-09-26): 브금 없이, 문 닫힌 라운지 — 아래에서 억빠맨·어깨동무한 경섭과 김형섭·요플래가 올라와 문 앞에 세로로, 왼쪽엔 영클.
+ *  영클·억빠맨이 한쪽 문을 철컥 열고 나가고, 경섭은 김형섭을 들여보낸 뒤 뒤돌아본다(역광). 문이 닫히고 0.8초 뒤 엔딩 크레딧. 대사 원문. */
+export const ship_lounge_farewell = Object.assign([
+  { if: flags => !!flags.ship_lounge_farewell_seen, goto: 'credits' },
+  close,
+  scene(s => s.farewellSetup()),
+  { camera: at(384, 250), duration: 0.01 }, { zoom: 1.15, at: [384, 280], duration: 0.01 },
+  { bgm: null, fadeOut: 0.5 },
+  { fade: 'in', duration: 1.5 },
+  scene(s => s.comeUp()), { wait: 0.8 },
+  YC('...'), YC('그럼 ㅅㄱ'), YC('...'), YC('즐거웠음'), close,
+  // 영클이 한쪽 문만 철컥 열고 나간다
+  scene(s => s.exitDoor('fw_youngcle')), { wait: 0.6 },
+  // 억빠맨이 뒤를 본다
+  { face: 'fw_ppaman', dir: 'down' }, { wait: 0.5 },
+  P('요플래형. 고마웠어요.'), P('...'), P('뭐 또 볼 날이 있겠죠'), close,
+  { face: 'fw_ppaman', dir: 'up' }, { wait: 0.3 },
+  scene(s => s.exitDoor('fw_ppaman')),
+  // 1~2초 뜸 → 경섭과 김형섭이 앞으로 걸어가 문에 — 김형섭을 먼저 들여보내고 경섭이 뒤를 돌아본다
+  { wait: 1.5 },
+  scene(s => s.pairIntoDoor()), { wait: 0.4 },
+  K('요플래'), K('아니'), K('가재맨'), { ...K('우리의 밤을 지켜줘서 고마워.'), hold: 2 }, close,
+  // 경섭이 돌아서 문 밖으로 — 문이 철컥 닫힌다
+  scene(s => s.gyeongsubLeave()),
+  scene(s => s.setDoor(false)),
+  { set: { ship_lounge_farewell_seen: true } },
+  { label: 'credits' },
+  scene(s => s.creditsRoll()),
+  // 크레딧 끝 — The End 에 머문다
   { wait: 3600 },
   { label: 'end' }, { end: true },
 ], { silent: true });

@@ -829,6 +829,8 @@ for (const [id, spawn, extra, desc] of [
     ['castle_epilogue', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true }, '노을 땅 · 결전 뒤 결말(하트·김형섭 복귀·나레이션)'],
     ['ship_lounge_epilogue', 'ship_lounge_epilogue', 'start', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true, castle_epilogue_done: true }, '라운지 결말 퍼레이드(문 너머 빛)'],
     ['ship_deck_epilogue', 'ship_deck_epilogue', 'start', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true, castle_epilogue_done: true, ship_lounge_epilogue_seen: true }, '갑판 노을 · 요플래·경섭·억빠맨 마지막 대화'],
+    ['ship_lounge_farewell', 'ship_lounge_farewell', 'start', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true, castle_epilogue_done: true, ship_lounge_epilogue_seen: true, ship_deck_epilogue_seen: true }, '라운지 마지막 작별 → 엔딩 크레딧'],
+    ['ship_credits', 'ship_lounge_farewell', 'start', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true, castle_gajaeman_clash: true, castle_epilogue_done: true, ship_lounge_epilogue_seen: true, ship_deck_epilogue_seen: true, ship_lounge_farewell_seen: true }, '엔딩 크레딧 바로'],
     ['castle_sunset_run', 'gajaeman_castle_sunset', 'arrive', { ...road, castle_road_done: true, castle_raft_launched: true, castle_sunset_arrived: true }, '노을 땅 · SAVE THE WORLD → 가재맨 달리기 결전'],
   ]) QA_POINTS.push({ ...gateReady, id, desc, map, spawn, stage: 'castle_summit_ready',
     extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...after, ...extra } });
