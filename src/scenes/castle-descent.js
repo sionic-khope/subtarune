@@ -235,23 +235,20 @@ export class CastleDescent {
     this.divers = []; r.bob = false;
     this.sfx('splash', 0.5);
     this.splash(r.x, r.y + 10, 30); this.game.shake = { time: 0.3, amp: 3 };
-    this.launching = true;
-    // 뛰는 순간부터 요플래는 상승 자세(화면 연출이 같은 자리에서 그린다) — 필드 스프라이트는 숨김
-    p.visible = false;
-    this.rise = { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight };
-    const [px, py] = this.feet(p);
-    let feetY = py, v = 360, rv = 520, raftY = r.y;
-    this.track(() => ({ x: px, y: feetY - 70 }));
-    return this.job(RISE.handoff, (k, dt) => {
-      feetY -= v * dt; v = Math.min(460, v + 80 * dt);
-      this.setFeet(p, px, feetY);
-      // 둘은 뗏목을 밀어 올린 힘으로 잠깐 솟았다가 다시 아래로
-      raftY -= rv * dt; rv -= 900 * dt; r.y = raftY;
+    // 뛰는 순간부터 요플래는 상승 자세 — 뗏목과 둘을 발 아래 두고 빠르게 솟는다(뒤에 페이드 → 화면 전체 상승)
+    this.launching = true; p.visible = false;
+    let v = 300;
+    this.track(() => ({ x: r.x, y: r.y - 66 }));
+    return this.job(1.3, (k, dt) => {
+      v = Math.min(950, v + 760 * dt); r.y -= v * dt;
+      this.setFeet(p, r.x, r.y + 4);
       for (const w of riders) this.setFeet(w.e, r.x + w.side * 34, r.y + 34);
-    }).then(() => { this.launching = false; });
+      if (this.rnd() < 0.7) this.bits.push({ x: r.x + (this.rnd() - 0.5) * 60, y: r.y + 30, vx: (this.rnd() - 0.5) * 40, vy: 80, age: 0, life: 0.5, size: 2, color: '#9fd6ff', g: 200 });
+    });
   }
   /** 화면 전체 상승(성벽 → 노을 바다) — 곡 위치가 RISE.flash 에 닿으면 끝난다(뒤에 흰 번쩍임·맵 전환). */
   ascend() {
+    this.launching = false;
     this.rise ||= { d: 0, spin: 0, alpha: 0, motes: new Motes(this.rnd), rays: this.rays, backlight: this.backlight };
     return this.waitRise(RISE.flash);
   }
@@ -508,6 +505,10 @@ export class CastleDescent {
       for (const d of this.dust) { ctx.globalAlpha = Math.max(0, 1 - d.age / d.life) * 0.8; ctx.fillStyle = d.wind ? '#fff4e0' : d.s > 3 ? '#3a2a3a' : '#5a4050'; ctx.fillRect(Math.round(d.x - cam.x), Math.round(d.y - cam.y), d.s, d.s); }
       ctx.globalAlpha = 1;
       this.warm.draw(ctx, this.time);
+    }
+    if (this.launching && this.kind === 'raft') {
+      const p = this.game.player, [fx, fy] = this.feet(p);
+      drawCell(ctx, this.game.propImages[RISE.riseSheet], Math.floor(this.time * 2.6) % 4, fx - cam.x, fy - cam.y, RISE.riseH);
     }
     if (this.rise) drawRise(ctx, this.rise, this.game.riseT ?? 0, this.game.propImages, this.time);
     ctx.restore();

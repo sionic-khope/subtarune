@@ -10,7 +10,7 @@
  */
 export const RISE = Object.freeze({
   bgm: 'save_the_world_rise',
-  handoff: 1.4, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
+  handoff: 0, castleEnd: 11, clear: 12.4, flash: 15.0, mapAt: 15.3, land: 21.2,
   riseSheet: 'assets/sprites/hyungsub-rise.png', landSheet: 'assets/sprites/hyungsub-land.png',
   backdrop: 'assets/backdrops/castle_sunset359.png', sun: 'assets/props/maillard_sun.png', sunCrop: Object.freeze([53, 53, 151, 150]),
   // 생성 배경의 수평선 높이(비율)
@@ -187,14 +187,14 @@ export function updateRise(state, T, dt) {
   // 도는 빠르기: 초당 방향 칸 수(오른쪽→앞→왼쪽→뒤)
   const spin = T < RISE.castleEnd ? 2.6 : lerp(2.6, 0.7, smooth((T - RISE.castleEnd) / (RISE.flash - RISE.castleEnd)));
   state.spin += spin * dt;
-  state.alpha = clamp01((T - 0.5) / 0.8);
+  state.alpha = 1;
   state.v = v;
   state.motes.update(dt, { rate: T < RISE.castleEnd ? 30 : 18, vy: T < RISE.castleEnd ? v * 0.9 : Math.max(10, v * 0.5), warm: T >= RISE.castleEnd });
 }
 
 export function drawRise(ctx, state, T, images, time) {
   const x = 240 + Math.sin(T * 1.05) * 16, y = lerp(250, 206, smooth((T - RISE.handoff) / (RISE.flash - RISE.handoff))) + Math.sin(T * 2.2) * 2;
-  const z = lerp(1, RISE.zoom, smooth((T - 0.5) / 2.4)), cy = y - RISE.riseH * 0.5;
+  const z = lerp(1, RISE.zoom, smooth(T / 2.4)), cy = y - RISE.riseH * 0.5;
   ctx.save();
   ctx.translate(x, cy); ctx.scale(z, z); ctx.translate(-x, -cy);
   ctx.save(); ctx.globalAlpha = state.alpha;

@@ -104,10 +104,14 @@ export const castle_raft_intro = Object.assign([
   { wait: 0.5 },
   // 물 아래에서 2초 동안 진동하며 가라앉아 기를 모은다 → 동시에 점프! 뗏목과 요플래가 벽을 따라 위로
   scene(s => s.gather()),
-  // 동시에 점프! — 곡이 원곡 42.7초(음이 바뀌는 지점)부터. 뗏목이 솟다가 화면 전체 상승(성벽 → 노을 바다, 점점 슬로우모션)
-  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.02 }); } },
+  // 동시에 점프! 브금이 잠깐 꺼지고 뗏목이 빠르게 솟는다 → 페이드 아웃·인 → 화면 전체 상승과 함께 곡(원곡 42.7초부터)
+  { bgm: null, fadeOut: 0.5 },
   scene(s => s.launch()),
-  scene(s => s.ascend()),
+  { fade: 'out', duration: 0.45 },
+  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.02 }); } },
+  scene(s => { s.ascend(); }),
+  { fade: 'in', duration: 0.5 },
+  scene(s => s.waitRise(RISE.flash)),
   // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
   { fade: 'white', duration: 0.3 },
   { set: { castle_raft_launched: true } },

@@ -7,7 +7,7 @@ await runScenario({ name: 'castle-rise', launchOptions: { args: ['--autoplay-pol
   await open({ qa: 'castle_raft' });
   assert.ok(await until(() => window.game?.mapId === 'gajaeman_castle_raft', 30000));
   const S = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, waiting: game.textbox.isOpen && game.textbox.state === 'waiting', text: game.textbox.node?.text,
-    T: game.riseT, bgm: game.sound.bgmName, gj: !!game.castleDescent?.gj?.visible, tumble: game.castleDescent?.tumble ? { u: +game.castleDescent.tumble.u.toFixed(2), landed: !!game.castleDescent.tumble.landed } : null }));
+    T: game.riseT, bgm: game.sound.bgmName, gj: !!game.castleDescent?.gj?.visible, launching: !!game.castleDescent?.launching, fade: +(game.fade?.alpha ?? 0).toFixed(2), tumble: game.castleDescent?.tumble ? { u: +game.castleDescent.tumble.u.toFixed(2), landed: !!game.castleDescent.tumble.landed } : null }));
   let n = 0, sawGajaeman = false, sawTumble = false, landedAt = null;
   for (let i = 0; i < 700; i++) {
     const s = await S();
@@ -15,7 +15,7 @@ await runScenario({ name: 'castle-rise', launchOptions: { args: ['--autoplay-pol
     if (s.tumble) sawTumble = true;
     if (s.tumble?.landed && landedAt == null) landedAt = s.T;
     if (s.waiting) { await page.keyboard.press('KeyC'); await page.waitForTimeout(120); continue; }
-    if (s.T != null || s.map === 'gajaeman_castle_sunset') { await shot(`r-${String(n++).padStart(3, '0')}`); await page.waitForTimeout(260); }
+    if (s.T != null || s.launching || s.fade > 0.05 || s.map === 'gajaeman_castle_sunset') { await shot(`r-${String(n++).padStart(3, '0')}`); await page.waitForTimeout(260); }
     else await page.waitForTimeout(150);
     if (!s.running && s.map === 'gajaeman_castle_sunset' && i > 5) break;
   }

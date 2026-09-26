@@ -21,8 +21,8 @@ from typing import Final
 MAP_ID: Final = 'gajaeman_castle_skyroad'
 W, H = 2560, 480
 FLOOR: Final = '▒'
-# 걷는 곳: 가로로 쭉 이어진 길(세로 9칸)
-BAND: Final = (96, 384)
+# 걷는 곳: 가로로 쭉 이어진 길(세로 8칸, BUILD362 사용자 “세로폭 살짝만 더 좁게”)
+BAND: Final = (96, 352)
 # 구간 이벤트(트리거 x): 비데 · 파크가디언 · 뚜울라와 도트마리오 · 끝(검 넷과 영클 레이저)
 ZONES: Final = [('road_z1', 520), ('road_z2', 1120), ('road_z3', 1720), ('road_end', 2240)]
 # 구간별 섭 몬스터(결전지 소환 그림 재사용): (구간, 이름, 위/아래, 그림 w, h)
