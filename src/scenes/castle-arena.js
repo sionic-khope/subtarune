@@ -26,7 +26,8 @@ export const ARENA = Object.freeze({
   track: { rate: 9 },
   // BUILD335: 휘두르기 대신 화면 밖 어깨에서 주먹을 내지른다(굵고 크게, 사용자 “주먹을 날려야함”)
   arm: { image: 'assets/props/arena332_arm.png', reach: 640, pivotY: 130, windup: 0.4, swing: 0.16, hold: 0.5, pull: 260, tilt: 0.12 },
-  fountain: { build: 5.0, grow: 2.6, height: 3400, width: 380, ribbons: 4, bands: 2, shadow: 0.62 },
+  // build: 큰 파동 전 준비(가는 줄기) — 5초에서 1초 줄임(사용자 2026-09-26)
+  fountain: { build: 4.0, grow: 2.6, height: 3400, width: 380, ribbons: 4, bands: 2, shadow: 0.62 },
 });
 
 const clamp01 = value => Math.max(0, Math.min(1, value));

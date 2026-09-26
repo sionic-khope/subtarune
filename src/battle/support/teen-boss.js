@@ -87,6 +87,8 @@ export function createTeenBossSupport(battle) {
       draw(ctx) { if (talk) battle.drawTextBox(ctx); },
     };
   };
+  // QA 2페이즈 직행: 처음부터 가재맨(2페이즈) 모습·코어·HP
+  if (battle.cfg?.teenPhase2) { phase = 'p2'; coreK = 1; gj = { mode: 'inside', t: 0 }; enemy.name = P2.name; enemy.hp = P2.hp; enemy.maxHp = P2.hp; }
   const self = {
     get phase() { return phase; },
     get gauge() { return gauge; },

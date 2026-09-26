@@ -152,7 +152,8 @@ export const castle_arena_intro = Object.assign([
   { parallel: [{ camera: at(555, 360), duration: 0.5 },
     ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee, 'arena_bidet', 'arena_mario', 'arena_park', 'arena_ttuulla'].map(id => ({ emote: id, kind: '!', duration: 0.7, hold: 0.3 })),
     ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee].map(id => ({ move: id, by: [0, 12], speed: 150, facing: 'up' }))] },
-  { wait: 1.6 },
+  // 카메라 상승은 1초 더 빨리(사용자 2026-09-26)
+  { wait: 0.6 },
   { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -2150), duration: ARENA_SCENE.rise }] },
   { wait: 1.2 },
   // 파동이 사라지고 호러한 연기로 아무것도 안 보이는 채 카메라가 다시 주인공들 쪽으로

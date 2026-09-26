@@ -806,5 +806,17 @@ for (const [id, spawn, extra, desc] of [
   // 청소년 보스전 확인용 회복템(사용자 “기름떡볶이나 그런 힐템들 qa 점프할 때”)
   extraItems: ['기름떡볶이', '기름떡볶이', '기름떡볶이', '핫도그', '핫도그', '위장약', '에그타르트', '에그타르트'],
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true, castle_stairs_monsters_done: true, castle_stairs_nunu_done: true, ...extra } });
+// BUILD353 청소년전 QA 지점(사용자 “qa지점 추가도”): 전투 직행 · 2페이즈 직행 · 격파 뒤 연출 · 연출 뒤
+{
+  const summitFlags = { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true, castle_stairs_monsters_done: true, castle_stairs_nunu_done: true, castle_summit_ready: true };
+  const heal = ['기름떡볶이', '기름떡볶이', '기름떡볶이', '핫도그', '핫도그', '위장약', '에그타르트', '에그타르트'];
+  for (const [id, extra, script, desc] of [
+    ['castle_teen_battle', {}, 'castle_summit_confront', '꼭대기 · 청소년 보스전 바로 시작(1페이즈)'],
+    ['castle_teen_p2', { qa_teen_p2: true }, 'castle_summit_confront', '꼭대기 · 청소년 보스전 2페이즈(가재맨) 바로 시작'],
+    ['castle_teen_finale', { castle_teen_won: true }, 'castle_summit_confront', '꼭대기 · 2페이즈 격파 뒤 연출(용준대포·바론·쥰희·영클)'],
+    ['castle_teen_after', { castle_teen_won: true, castle_teen_finale_seen: true }, null, '꼭대기 · 격파 연출 뒤'],
+  ]) QA_POINTS.push({ ...gateReady, id, desc, map: 'gajaeman_castle_summit', spawn: 'confront', stage: 'castle_summit_ready',
+    extraItems: heal, party: ['gyeongsub', 'ppaman'], flags: { ...summitFlags, ...extra }, ...(script ? { script } : {}) });
+}
 QA_POINTS.push({ ...gateReady, id: 'castle_arena', desc: '결전지 · 도착 연출(가재맨·소환·지원군·청소년 구슬·푸른 파동)', map: 'gajaeman_castle_arena', spawn: 'start', stage: 'castle_prophecy_seen',
   party: ['gyeongsub', 'ppaman'], flags: { ...gateReady.flags, castle_gate_open: true, castle_gate_reunion_done: true, castle_cathedral_rescue_done: true, castle_prophecy_door_done: true } });

@@ -25,6 +25,8 @@ export const castle_summit_confront = Object.assign([
   { if: flags => !!flags.castle_teen_finale_seen, goto: 'end' },
   // 이기고 연출 전에 멈춘 저장이면 연출부터
   { if: flags => !!flags.castle_teen_won, goto: 'finale' },
+  // QA: 2페이즈 직행(qa_teen_p2)
+  { if: flags => !!flags.qa_teen_p2, goto: 'fightP2' },
   { if: flags => !!flags[SUMMIT_SCENE.stage], goto: 'fight' },
   close,
   { parallel: [stand('player'), [{ wait: 0.2 }, ...stand('gyeongsub')], [{ wait: 0.35 }, ...stand('ppaman')]] },
@@ -59,6 +61,11 @@ export const castle_summit_confront = Object.assign([
   // 브금이 잠깐 꺼지고 1초 뒤 검 뽑는 소리와 함께 전투로 → 그 뒤 전투 브금(사용자 2026-09-25)
   { action: game => game.sound.preloadBgm?.('guardian') }, { bgm: null, fadeOut: 0.4 }, { wait: 1.0 },
   { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', boardColor: '#a060ff', flag: 'castle_teen_won', seamlessIntro: true, seamlessSfx: 'weaponpull', intro: TEEN_BATTLE.intro } },
+  { goto: 'finale' },
+  // QA 2페이즈 직행: 전환 연출 없이 가재맨(2페이즈)부터
+  { label: 'fightP2' },
+  { action: game => game.sound.preloadBgm?.('guardian') }, { bgm: null, fadeOut: 0.4 }, { wait: 0.6 },
+  { battle: { enemies: ['teen_giant'], bgm: 'guardian', bg: 'castle_summit', boardColor: '#a060ff', flag: 'castle_teen_won', seamlessIntro: true, seamlessSfx: 'weaponpull', teenPhase2: true } },
   // BUILD352 2페이즈 격파 뒤 연출(사용자 2026-09-26 브리핑, 대사 원문 그대로). 전투는 HP 1 에서 끊겨 같은 화면으로 이어진다
   { label: 'finale' },
   summit(s => s.enterFinale()), { camera: C.talk, duration: 0.01 },
