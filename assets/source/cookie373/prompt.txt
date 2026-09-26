@@ -11,12 +11,12 @@ CHARACTER IDENTITY RULES (only for characters that appear):
 - Youngcle: a round PINK ball head with one big black-and-white spiral swirl eye in the middle, a little brown curled sprout on top, red cheek, light-blue T-shirt with a small green pocket, navy shorts.
 - Warm Bidet: spiky black hair with a white streak, dark grey plate armor with red trim (no weapon in this photo).
 - Park Guardian: a person fully inside a black-and-white mascot suit: black hood with two pointed ears tipped with pink pompoms and a pink skull badge, white fluffy body, little black devil tail.
-- Dot Mario: a tiny blocky retro 8-bit style little man with red cap, red overalls, brown mustache.
+- Dot Mario: a small round chubby cartoon man drawn cleanly in the same smooth cartoon style as everyone else (NOT blocky, NOT pixelated, NOT made of squares): red cap, red overalls over a brown shirt, brown hair, big brown mustache, round nose.
 - Obangsun: a pale woman with crimson braided dreadlocks piled into a bun with many round red bead ornaments sticking out, pink eye makeup, dark lipstick, black outfit.
 - Naram: a chubby cheerful man with a shaved head and big grin, olive-green camouflage military T-shirt and pants.
 - Eunbyeol (Kim Eunbyeol Company): a small girl with black low twin pigtails, round glasses, rosy cheeks, black suit and tie.
 - Yerim: a slim schoolgirl with very long straight black hair, small red hair bow, white sailor blouse with navy collar and ribbon, navy pleated skirt, dark knee socks.
-- Choimis: a chubby PERSON with a normal human face (pale skin, big square glasses, a small smile), short messy white hair on top of the head, plain pink sweatshirt with NO letters or print at all, black shorts, white socks. No mask here. Not a flower, not a sheep.
+- Choimis: a chubby PERSON with a normal human face (pale skin, big square glasses, a small smile), short messy white hair on top of the head, pink sweatshirt with the big dark letters "GAP" printed on the chest exactly like the sprite (this word GAP on Choimis's shirt is the ONLY text allowed in the whole image), black shorts, white socks. No mask here. Not a flower, not a sheep.
 - Jeomnye: a sweet girl with long brown hair, rosy cheeks, simple white dress.
 - Janitor: an old man with a red bandana, red shirt, dark shorts, stubble, big nose, round glasses, wooden cane.
 - Ttuulla (NOT in the reference, draw from this text): a brown cartoon mouse standing upright like a person, big round pink ears, cream belly and face, long thin tail.
@@ -25,4 +25,4 @@ SCENE: A commemorative GROUP PHOTO taken inside the lounge of the Eomcheongdaeba
 EXACTLY IN THE CENTER of the front row: Yoplae (the hero) in a big cheerful 'say cheese' pose with a V-sign hand next to his face (still NO mouth: happy crescent eyes behind round glasses and pink blush only).
 Around him, each appearing EXACTLY ONCE: Kim Gyeongsub, Eokppaman the blue bear, Junhee the pink pig, Park Yongjun, Warm Bidet, Park Guardian in the mascot suit, Dot Mario, Obangsun, Naram, Eunbyeol, Yerim, Choimis, Jeomnye, the Janitor, and Ttuulla the mouse.
 Youngcle (round pink head with one spiral eye and a sprout, light-blue T-shirt) stands alone at the far LEFT EDGE, slightly apart from the group with a clear gap, a bit awkward.
-STRICT RULES: exactly 17 characters in total, no duplicates (only ONE pig, ONE bear, ONE Yongjun, ONE Yoplae), no extra people.
+STRICT RULES: all 17 must be present (check that BOTH Kim Gyeongsub with long black hair, glasses and navy T-shirt AND Eunbyeol, the small girl with black twin pigtails, round glasses and a black suit and tie, are there); exactly 17 characters in total, no duplicates (only ONE pig, ONE bear, ONE Yongjun, ONE Yoplae), no extra people.

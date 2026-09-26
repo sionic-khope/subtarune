@@ -1,0 +1,34 @@
+# imagegen 2026-09-26 21:41:09
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/cookie373/ref.png
+
+STYLE (identical for the whole series of ending-credit pictures): a landscape 3:2 SIMPLE 2D CARTOON panel, like a cute light webtoon / cartoon cut or the clean official art of Deltarune and Undertale. Bold, clean, uniform BLACK OUTLINES around every character and object. FLAT CEL COLORS with at most ONE simple shadow tone per color. No texture, no brush strokes, no paint or paper grain, no gradients, no glow or light bloom, no painterly lighting, no detailed rendering. The background is SIMPLE: a few large flat shapes and a small number of colors that match the real in-game place, with only the key props. Cute chibi proportions (big heads, short bodies) faithful to the sprites, clear readable poses and expressions, playful and light. NOT pixel art, no pixels, no dithering, not 3D, not realistic, not a high-detail illustration. Absolutely no text, no letters, no numbers, no captions, no speech bubbles, no logos with writing, no watermark, no signature, no UI, no border or frame.
+
+The reference image is a labelled contact sheet of small PIXEL SPRITES from the game plus screenshots of the actual in-game place. The labels are only for you; never draw them. REDRAW the sprites as simple cartoon characters keeping every identity detail (colors, hair, glasses, species, outfit, props), and rebuild the place from the screenshot (same ground colors, same kind of trees/water/props, same layout feel).
+
+CHARACTER IDENTITY RULES (only for characters that appear):
+- Yoplae / Kim Hyungsub (the hero): small chibi boy, messy short black hair, big ROUND BLACK-RIMMED GLASSES, round peach face with a small round nose, NO MOUTH at all: the skin below his nose is completely blank, no mouth, no dot, no line, no open mouth, even when shocked or laughing (show feelings only with eyes, eyebrows, blush and sweat drops), plain white short-sleeve T-shirt, navy shorts, dark navy shoes.
+- Kim Gyeongsub: chibi young man with long straight black hair to the shoulders framing his face, thin round glasses, dark navy T-shirt with a small purple square emblem on the chest, black pants.
+- Eokppaman: a chubby periwinkle-blue teddy BEAR standing upright, round ears with pink insides, cream belly and cream muzzle, big black nose, small black eyes, pink blush.
+- Junhee: a pink PIG standing upright on two legs, big snout with two nostrils, angry slanted blue-eyed eyebrows, curly tail, pink floppy ears, darker pink hooves.
+- Park Yongjun: a chubby round-faced boy with a black bowl-cut, sleepy narrow eyes, white T-shirt, navy shorts.
+- Youngcle: a round PINK ball head with one big black-and-white spiral swirl eye in the middle, a little brown curled sprout on top, red cheek, light-blue T-shirt with a small green pocket, navy shorts.
+- Warm Bidet: spiky black hair with a white streak, dark grey plate armor with red trim (no weapon in this photo).
+- Park Guardian: a person fully inside a black-and-white mascot suit: black hood with two pointed ears tipped with pink pompoms and a pink skull badge, white fluffy body, little black devil tail.
+- Dot Mario: a small round chubby cartoon man drawn cleanly in the same smooth cartoon style as everyone else (NOT blocky, NOT pixelated, NOT made of squares): red cap, red overalls over a brown shirt, brown hair, big brown mustache, round nose.
+- Obangsun: a pale woman with crimson braided dreadlocks piled into a bun with many round red bead ornaments sticking out, pink eye makeup, dark lipstick, black outfit.
+- Naram: a chubby cheerful man with a shaved head and big grin, olive-green camouflage military T-shirt and pants.
+- Eunbyeol (Kim Eunbyeol Company): a small girl with black low twin pigtails, round glasses, rosy cheeks, black suit and tie.
+- Yerim: a slim schoolgirl with very long straight black hair, small red hair bow, white sailor blouse with navy collar and ribbon, navy pleated skirt, dark knee socks.
+- Choimis: a chubby PERSON with a normal human face (pale skin, big square glasses, a small smile), short messy white hair on top of the head, pink sweatshirt with the big dark letters "GAP" printed on the chest exactly like the sprite (this word GAP on Choimis's shirt is the ONLY text allowed in the whole image), black shorts, white socks. No mask here. Not a flower, not a sheep.
+- Jeomnye: a sweet girl with long brown hair, rosy cheeks, simple white dress.
+- Janitor: an old man with a red bandana, red shirt, dark shorts, stubble, big nose, round glasses, wooden cane.
+- Ttuulla (NOT in the reference, draw from this text): a brown cartoon mouse standing upright like a person, big round pink ears, cream belly and face, long thin tail.
+
+SCENE: A commemorative GROUP PHOTO taken inside the lounge of the Eomcheongdaebak-inbae battleship, rebuilt from the screenshot with simple flat shapes: dark slate-navy metal floor and walls, small yellow-black warning-stripe panels high on the wall, a long dark purple carpet runner down the middle, a red tufted sofa at the side, and the ornate PURPLE double door with gold trim in the center of the back wall. Everyone faces the camera straight on, smiling like a real souvenir photo, in three rows: a front row sitting on the carpet, a middle row standing, a back row standing behind. Several make V-sign hands.
+EXACTLY IN THE CENTER of the front row: Yoplae (the hero) in a big cheerful 'say cheese' pose with a V-sign hand next to his face (still NO mouth: happy crescent eyes behind round glasses and pink blush only).
+Around him, each appearing EXACTLY ONCE: Kim Gyeongsub, Eokppaman the blue bear, Junhee the pink pig, Park Yongjun, Warm Bidet, Park Guardian in the mascot suit, Dot Mario, Obangsun, Naram, Eunbyeol, Yerim, Choimis, Jeomnye, the Janitor, and Ttuulla the mouse.
+Youngcle (round pink head with one spiral eye and a sprout, light-blue T-shirt) stands alone at the far LEFT EDGE, slightly apart from the group with a clear gap, a bit awkward.
+STRICT RULES: all 17 must be present (check that Kim Gyeongsub with long black hair, glasses and navy T-shirt is there); exactly 17 characters in total, no duplicates (only ONE pig, ONE bear, ONE Yongjun, ONE Yoplae), no extra people.
