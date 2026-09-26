@@ -1,5 +1,6 @@
 // BUILD337 사용자 브리핑(2026-09-25): 꼭대기 끝길의 대치. 대사·표기 원문 그대로. 전투는 아직 만들지 않는다(사용자 “일단 전투는 만들지마”).
 import { TEEN_BATTLE } from '../teen-battle.js';
+import { FX } from '../fx.js';
 
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
@@ -101,13 +102,22 @@ export const castle_summit_confront = Object.assign([
   // 작은 검들을 여러 개 소환해 박용준에게 → 용준·대포 앞 바닥에서 바론이 튀어나와 날려 버리고 포효
   // 바론이 들어갈 만큼 조금 멀리서
   // 검들이 박용준에게 날아가는 걸 따라가다 → 용준 앞 바닥에서 바론이 솟아 몸으로 막는다
-  summit(s => s.swordsAtYongjun()), { camera: C.far, duration: 0.8 },
-  { parallel: [{ emote: 'finale_yongjun', kind: '!', duration: 0.6, hold: 0.2 }, summit(s => s.baronRise())] }, { wait: 0.4 },
+  // 필드 바론 포효 때처럼 줌 0.7 — 박용준·대포·바론이 다 들어온다
+  summit(s => s.swordsAtYongjun()), { parallel: [{ camera: at(880, 330), duration: 0.8 }, { zoom: 0.7, duration: 0.8 }] },
+  // 옵젝영역4 바론 등장 그대로: 바닥에서 솟음(emerge)·바람 이펙트·크게 흔들림 → 검을 몸으로 막고 → 포효(roar 동작)
+  { emote: 'finale_yongjun', kind: '!', duration: 0.5, hold: 0.1 },
+  { parallel: [
+    { emerge: 'finale_baron', depth: 430, duration: 0.28, ease: 'out' },
+    { shake: 0.7, amp: 14 },
+    { boom: { ...FX.baron_emerge_wind, at: 'finale_baron', offset: [0, -90], scale: 1.7, hold: 0.1 } },
+  ] },
+  summit(s => s.baronBlock()),
+  { parallel: [{ motion: 'finale_baron', name: 'roar', sfx: 'baron_roar' }, { shake: 1.35, amp: 5 }] }, { wait: 0.4 },
   { parallel: [{ camera: C.talk, duration: 0.7 }, { zoom: 1, duration: 0.7 }] }, { wait: 0.3 }, A('?!'), close,
-  { camera: C.far, duration: 1.0 },
-  YJ('으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!'), summit(s => s.roar()), YJ('죽어라 괴물!!!'), close,
+  { parallel: [{ camera: at(880, 330), duration: 1.0 }, { zoom: 0.7, duration: 1.0 }] },
+  YJ('으하하, 펠월드 고수 대용준님께선 바론 테이밍따윈 일도 아니란 말씀!!'), close, { parallel: [{ motion: 'finale_baron', name: 'roar', sfx: 'baron_roar' }, { shake: 1.35, amp: 5 }] }, YJ('죽어라 괴물!!!'), close,
   // 대포를 하나 더 — 빠르게 날아가 청소년가재맨에게 적중. 바론은 포효 뒤 대포 뒤로 물러나 곁에 남는다
-  { parallel: [summit(s => s.baronBack()), [{ wait: 0.3 }, { parallel: [summit(s => s.cannonAtGiant()), [{ wait: 0.2 }, { camera: C.talk, duration: 0.6 }]] }]] },
+  { parallel: [summit(s => s.cannonAtGiant()), [{ wait: 0.2 }, { parallel: [{ camera: C.talk, duration: 0.6 }, { zoom: 1, duration: 0.6 }] }]] },
   { wait: 0.6 },
   // 가재맨이 빠져나와 위로 살짝, 청소년이 주먹을 날리게 조종 → 왼쪽에서 쥰희가 달려와 막는다
   summit(s => s.gajaemanOut()), { wait: 0.5 },
@@ -130,7 +140,8 @@ export const castle_summit_confront = Object.assign([
   // 천천히 밀다가 릴리즈샷과 함께 펑! 화면이 잠깐 하얘지고 청소년이 뒤로 넘어간다
   summit(s => s.pushBack()), { wait: 0.6 },
   { emote: 'summit_gajaeman', kind: '!', duration: 1.0, hold: 0.6 }, { wait: 0.6 }, A('...'), close, { wait: 0.4 },
-  summit(s => s.gajaemanFlee()),
+  // 가재맨이 도망가는 걸 카메라가 잠깐 따라간다
+  { parallel: [summit(s => s.gajaemanFlee()), [{ wait: 0.7 }, { camera: at(2080, 300), duration: 1.8 }]] }, { wait: 0.3 },
   { camera: C.talk, duration: 0.8 },
   { face: 'finale_junhee', dir: 'left' }, J('앞을 부탁한다.. 너네들,,,'), close, summit(s => s.collapse('finale_junhee')),
   YC('이번엔 내가 맡지!'), close,

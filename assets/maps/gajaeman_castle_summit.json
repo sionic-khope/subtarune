@@ -57,7 +57,8 @@
   "assets/props/teen347_p2.png",
   "assets/props/wooden_cannon.png",
   "assets/props/ship_cannonball.png",
-  "assets/enemies/baron-roar-idle.png"
+  "assets/enemies/baron-roar-idle.png",
+  "assets/enemies/baron-roar.png"
  ],
  "spawns": {
   "start": {
@@ -212,6 +213,18 @@
    "hidden": true,
    "facing": "right",
    "visualScale": 2.22
+  },
+  {
+   "type": "npc",
+   "id": "finale_baron",
+   "sprite": "baron_intro",
+   "x": 1088,
+   "y": 420,
+   "facing": "down",
+   "wander": 0,
+   "hidden": true,
+   "solid": false,
+   "visualScale": 1.8
   },
   {
    "type": "prop",

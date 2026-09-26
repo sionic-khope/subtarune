@@ -60,6 +60,8 @@ def main() -> None:
         ('park', 'park_guardian_costume', 1200, 380, {'facing': 'right', 'visualScale': 2.22}),
     ):
         entities.append({'type': 'npc', 'id': f'finale_{name}', 'sprite': sprite, 'x': fx - 12, 'y': fy - 24, 'solid': False, 'wander': 0, 'hidden': True, **extra})
+    # 바론: 옵젝영역4 필드 바론과 같은 정의(baron_intro, 1.8배) — 박용준·대포 바로 앞 바닥에서 솟는다
+    entities.append({'type': 'npc', 'id': 'finale_baron', 'sprite': 'baron_intro', 'x': 1100 - 12, 'y': 436 - 16, 'facing': 'down', 'wander': 0, 'hidden': True, 'solid': False, 'visualScale': 1.8})
     for name, fx, fy in (('junhee', 1752, 392), ('youngcle', 1628, 360), ('mario', 1592, 430), ('bidet', 1562, 372), ('ttuulla', 1532, 432), ('park', 1500, 380)):
         entities.append(anchor(f'finale_stop_{name}', fx - 12, fy - 16))
     entities.extend([
@@ -73,7 +75,7 @@ def main() -> None:
         'id': MAP_ID, 'name': '가재맨성 꼭대기', 'stage': 'castle_arena_seen',
         # 들어오면 바람 소리만(사용자 “들어왔을때 바람소리만”) → 대치 중 Gallery
         'bgm': 'wind', 'bgmVolume': 0.35, 'followScreenY': 200, 'rows': [''.join(row) for row in cells],
-        'preload': [f'assets/props/summit336_chunk_{i}.png' for i in range(W // 1152)] + [GIANT_IMAGE, 'assets/props/summit342_front.png', 'assets/props/teen342_down.png', 'assets/props/teen342_vacuum.png', 'assets/props/teen342_slam.png'] + [f'assets/props/teen342_rock_{i}.png' for i in range(6)] + [f'assets/props/teenboss339_debris_{i}.png' for i in range(6)] + ['assets/props/teenboss339_knee.png', 'assets/props/cathedral323_sword.png', 'assets/props/arena332_arm.png', 'assets/props/teen347_p2.png', 'assets/props/wooden_cannon.png', 'assets/props/ship_cannonball.png', 'assets/enemies/baron-roar-idle.png'],
+        'preload': [f'assets/props/summit336_chunk_{i}.png' for i in range(W // 1152)] + [GIANT_IMAGE, 'assets/props/summit342_front.png', 'assets/props/teen342_down.png', 'assets/props/teen342_vacuum.png', 'assets/props/teen342_slam.png'] + [f'assets/props/teen342_rock_{i}.png' for i in range(6)] + [f'assets/props/teenboss339_debris_{i}.png' for i in range(6)] + ['assets/props/teenboss339_knee.png', 'assets/props/cathedral323_sword.png', 'assets/props/arena332_arm.png', 'assets/props/teen347_p2.png', 'assets/props/wooden_cannon.png', 'assets/props/ship_cannonball.png', 'assets/enemies/baron-roar-idle.png', 'assets/enemies/baron-roar.png'],
         'spawns': {'start': {'x': 218, 'y': 690, 'facing': 'up'}, 'confront': {'x': VIEW[0] + FEET['player'][0] - 12, 'y': VIEW[1] + FEET['player'][1] - 24, 'facing': 'right'}},
         'meta': {'connected': True, 'summit': {'edge': EDGE, 'gajaeman': 'summit_gajaeman'}},
         'entities': entities,
