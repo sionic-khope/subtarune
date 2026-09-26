@@ -20,10 +20,11 @@ export const FINALE = Object.freeze({
   img: {
     // 대포·대포알은 필드의 용준대포(쮼앰대포) 그림
     sword: 'assets/props/cathedral323_sword.png', shot: 'assets/props/ship_cannonball.png', cannon: 'assets/props/wooden_cannon.png',
-    baron: 'assets/enemies/baron-roar-idle.png', arm: 'assets/props/arena332_arm.png',
+    baron: 'assets/enemies/baron-roar-idle.png', baronRoar: 'assets/enemies/baron-roar.png', arm: 'assets/props/arena332_arm.png',
   },
   bladeAt: [1960, 220], partyAim: [1690, 372], bladeScale: 4.2, bladePull: 200,
-  cannon: [1452, 404], yongjun: [1398, 404], baron: [1510, 436], baronRest: [1300, 420], baronScale: 1.125, block: [1752, 392],
+  // 박용준·용준대포는 끝길 훨씬 뒤(왼쪽), 대포는 필드 크기(2배). 바론은 그 앞에서 솟고 막은 뒤 박용준 뒤로 물러난다
+  cannon: [1200, 408], cannonScale: 2, yongjun: [1060, 404], baron: [1500, 436], baronRest: [930, 420], baronScale: 1.125, block: [1752, 392],
   gjOut: [1905, 150], flee: [2420, 40],
 });
 /** 대치 화면의 화면 좌표 → 월드 */
@@ -39,7 +40,7 @@ export class CastleSummit {
     this.actor = game.entities.find(e => e.id === this.meta.gajaeman) || null;
     this.time = 0; this.motes = []; this.giant = null; this.aura = 0; this.tween = null;
     this.smoke = new SummitSmoke({ rnd });
-    void game.sound.loadSfxFiles?.(['deltarune_release_shoot', 'explosion', 'laser_charge', 'hurt', 'spearappear', 'heavyswing', 'ultraswing', 'cannon_guard_fire', 'baron_slam', 'baron_eruption', 'baron_roar', 'impact', 'wing', 'thud', 'captain_transform', 'power', 'cannon_charge', 'damage', 'criticalswing', 'hurt_dr', 'metalhit']);
+    void game.sound.loadSfxFiles?.(['deltarune_release_shoot', 'explosion', 'laser_charge', 'hurt', 'spearappear', 'heavyswing', 'ultraswing', 'cannon_guard_fire', 'baron_slam', 'baron_eruption', 'baron_roar', 'impact', 'wing', 'thud', 'captain_transform', 'power', 'cannon_charge', 'damage', 'criticalswing', 'hurt_dr', 'metalhit', 'deflect', 'great_shine', 'knight_cut']);
     // 격파 연출 상태
     this.form = 'p1'; this.core = false; this.tremble = 0; this.fx = []; this.blade = null; this.balls = []; this.booms = [];
     this.swords = []; this.baron = null; this.cannonOn = false; this.arm = null; this.fall = null; this.lying = null; this.gather = null; this.waves = [];
@@ -127,12 +128,17 @@ export class CastleSummit {
       const [x, y] = world([V.giant.x, V.giant.y]);
       ctx.globalAlpha = ease(k);
       const jx = this.tremble ? Math.round(Math.sin(this.time * 60) * 2 * this.tremble) : 0;
-      if (this.fall) {
-        // 뒤로(오른쪽으로) 넘어가며 가라앉고 사라진다
-        const f = Math.min(1, this.fall.t / 1.6), e = f * f;
+      if (this.tp) {
+        // 일행 쪽으로 쓰러진다(아래 가운데 축). 받쳐진 뒤엔 그 자리에서 떨며 버틴다
+        const a = this.toppleAngle(), hold = this.tp.held ? Math.round(Math.sin(this.time * 60) * 2) : 0;
+        ctx.save(); const px = x - cam.x + img.width * 0.5, py = y - cam.y + img.height;
+        ctx.translate(px + hold, py + Math.abs(a) * 60); ctx.rotate(a); drawFlutter(ctx, img, -img.width * 0.5, -img.height, this.time); ctx.restore();
+      } else if (this.fall) {
+        // 펑 — 쓰러지던 각도에서 뒤로(오른쪽으로) 넘어가며 가라앉고 사라진다
+        const f = Math.min(1, this.fall.t / 1.6), e = f * f, a = (this.fall.from || 0) + (0.5 - (this.fall.from || 0)) * e;
         ctx.save(); ctx.globalAlpha *= 1 - Math.max(0, (f - 0.6) / 0.4);
         const px = x - cam.x + img.width * 0.5, py = y - cam.y + img.height;
-        ctx.translate(px + e * 60, py + e * 160); ctx.rotate(0.5 * e); drawFlutter(ctx, img, -img.width * 0.5, -img.height, this.time); ctx.restore();
+        ctx.translate(px + e * 60, py + e * 160 + Math.abs(this.fall.from || 0) * 60 * (1 - e)); ctx.rotate(a); drawFlutter(ctx, img, -img.width * 0.5, -img.height, this.time); ctx.restore();
       } else drawFlutter(ctx, img, x - cam.x + jx, y - cam.y, this.time);
       ctx.globalAlpha = 1;
       if (this.core && !this.fall) this.drawCore(ctx, cam);
@@ -254,7 +260,8 @@ export class CastleSummit {
   cannonSmash() {
     const b = this.blade, cam = this.game.camera;
     this.game.sound.sfx('cannon_guard_fire', { volume: 1 });
-    this.balls.push({ x: cam.x - 40, y: b.y - 10, tx: b.x, ty: b.y, t: 0, d: 0.32, onHit: () => {
+    const [cx0] = FINALE.cannon;
+    this.balls.push({ x: Math.max(cx0 + 118, cam.x - 60), y: b.y - 10, tx: b.x, ty: b.y, t: 0, d: 0.32, onHit: () => {
       this.game.sound.sfx('explosion', { volume: 1 }); this.game.sound.sfx('baron_slam', { volume: 0.9 }); this.game.shake = { time: 0.7, amp: 10 };
       this.booms.push({ x: b.x, y: b.y, t: 0, life: 0.7 });
       b.mode = 'fly'; b.t = 0; b.vx = 520; b.vy = -380;
@@ -265,7 +272,8 @@ export class CastleSummit {
   /** 가재맨이 작은 검들을 여러 개 소환해 박용준에게 쏜다 → 바닥에서 바론이 튀어나와 날려 버리고 포효 */
   swordsAtYongjun() {
     const [sx, sy] = world(P2.core), [tx, ty] = FINALE.yongjun;
-    this.game.sound.sfx('spearappear', { volume: 0.8 });
+    this.game.sound.sfx('spearappear', { volume: 1 }); this.game.sound.sfx('great_shine', { volume: 0.6 });
+    this.sleep(0.25).then(() => { this.game.sound.sfx('ultraswing', { volume: 1 }); this.game.sound.sfx('knight_cut', { volume: 0.7 }); });
     for (let i = 0; i < 7; i++) this.swords.push({ x: sx + (Math.random() - 0.5) * 60, y: sy - 80 + (Math.random() - 0.5) * 60, tx: tx + (Math.random() - 0.5) * 30, ty: ty - 40 + (Math.random() - 0.5) * 30, t: -i * 0.14, d: 1.7, state: 'fly' });
     return this.sleep(0.3);
   }
@@ -291,8 +299,8 @@ export class CastleSummit {
   /** 대포를 하나 더: 빠르게 날아가 청소년가재맨(코어)에 적중 */
   cannonAtGiant() {
     const [cx, cy] = FINALE.cannon, [gx, gy] = world(P2.core);
-    this.game.sound.sfx('cannon_guard_fire', { volume: 1 }); this.recoil = 1; this.booms.push({ x: cx + 60, y: cy - 44, t: 0, life: 0.4 });
-    this.balls.push({ x: cx + 60, y: cy - 44, tx: gx, ty: gy, t: 0, d: 0.45, onHit: () => {
+    this.game.sound.sfx('cannon_guard_fire', { volume: 1 }); this.recoil = 1; this.booms.push({ x: cx + 118, y: cy - 110, t: 0, life: 0.4 });
+    this.balls.push({ x: cx + 118, y: cy - 110, tx: gx, ty: gy, t: 0, d: 0.45, onHit: () => {
       this.game.sound.sfx('explosion', { volume: 1 }); this.game.shake = { time: 0.8, amp: 9 }; this.booms.push({ x: gx, y: gy, t: 0, life: 0.8 }); this.tremble = 1.5;
     } });
     return this.waitFor(() => !this.balls.length).then(() => this.sleep(0.5));
@@ -304,6 +312,20 @@ export class CastleSummit {
     a.visible = true; a.facing = 'left'; a.x = cx - a.w / 2; a.y = cy - a.h; this.onBack = false; this.aura = 1;
     this.game.sound.sfx('captain_transform', { volume: 0.6 });
     return this.tweenActor(ox - a.w / 2, oy - a.h, 1.2);
+  }
+  /** 청소년이 일행 쪽(왼쪽)으로 천천히 쓰러진다 — 거의 다 쓰러졌을 때(84%) 멈칫하며 쥰희를 기다린다 */
+  topple() {
+    this.tp = { t: 0, d: 2.8, held: false };
+    this.game.sound.sfx('rumble', { volume: 1 }); this.game.sound.sfx('baron_roar', { volume: 0.5 }); this.game.shake = { time: 2.8, amp: 3 };
+    return this.sleep(0.2);
+  }
+  toppleAt(k) { return this.waitFor(() => this.tp && this.tp.t >= this.tp.d * k); }
+  /** 쥰희가 받쳤다: 쿵·흰 번쩍·흔들림, 쓰러지던 몸이 그 자리에서 떨며 버틴다 */
+  brace() {
+    this.tp.held = true; this.tp.t = this.tp.d * 0.84;
+    this.game.fadeTo(0.7, 0.04, () => this.game.fadeTo(0, 0.4), 'white');
+    this.game.sound.sfx('impact', { volume: 1 }); this.game.sound.sfx('baron_slam', { volume: 0.9 }); this.game.shake = { time: 0.8, amp: 9 };
+    const [x, y] = FINALE.block; this.booms.push({ x: x + 20, y: y - 60, t: 0, life: 0.5 });
   }
   /** 청소년 주먹이 일행 쪽으로 날아온다 — 쥰희가 막는 자리에서 멈춰 버틴다 */
   punch() {
@@ -319,13 +341,23 @@ export class CastleSummit {
   blockHit() { this.arm.hold = true; this.arm.t = this.arm.d * 0.84; this.game.fadeTo(0.7, 0.04, () => this.game.fadeTo(0, 0.4), 'white'); this.game.sound.sfx('impact', { volume: 1 }); this.game.sound.sfx('baron_slam', { volume: 0.8 }); this.game.shake = { time: 0.6, amp: 8 }; }
   /** 쥰희가 천천히 밀다가 → 릴리즈샷과 함께 펑! 화면이 잠깐 하얘지고 청소년이 뒤로 넘어간다 */
   pushBack() {
-    const arm = this.arm; arm.pushing = true;
+    // 쥰희가 천천히 밀다가(떨림) → 앞으로 펑 기울며 밀어낸다
+    const j = this.game.entities.find(x => x.id === 'finale_junhee');
+    this.lean = j ? { e: j, t: 0, x0: j.x } : null;
+    if (this.tp) this.tp.pushing = true;
+    this.game.sound.sfx('power', { volume: 0.8 });
     return this.sleep(1.6).then(() => {
+      if (this.lean) this.lean.pop = 0;
       this.game.sound.sfx('deltarune_release_shoot', { volume: 1 }); this.game.sound.sfx('explosion', { volume: 0.8 });
       this.game.fadeTo(1, 0.06, () => this.game.fadeTo(0, 0.7), 'white'); this.game.shake = { time: 1.0, amp: 10 };
-      this.arm = null; this.core = false; this.fall = { t: 0 }; this.tremble = 0;
+      this.arm = null; this.core = false; this.fall = { t: 0, from: this.toppleAngle() }; this.tp = null; this.tremble = 0;
       return this.sleep(1.8);
-    });
+    }).then(() => { if (this.lean) { this.lean.e.x = this.lean.x0; this.lean = null; } });
+  }
+  toppleAngle() {
+    const tp = this.tp; if (!tp) return 0;
+    const k = Math.min(1, tp.t / tp.d), e = k * k * (3 - 2 * k);
+    return -0.62 * e + (tp.pushing ? 0.05 * Math.min(1, (tp.pt || 0) / 1.6) : 0);
   }
   /** 가재맨이 하늘을 날아 오른쪽으로 쭉 도망 */
   gajaemanFlee() {
@@ -383,8 +415,8 @@ export class CastleSummit {
         const k = Math.min(1, w.t / w.d), x = w.x + (w.tx - w.x) * k;
         if (x <= bw) {
           w.state = 'knock'; w.x = x; w.y = w.y + (w.ty - w.y) * k; w.ang = Math.atan2(w.ty - w.y, w.tx - w.x); w.vx = 140 + Math.random() * 160; w.vy = -220 - Math.random() * 160; w.spin = (Math.random() - 0.5) * 20; w.kt = 0;
-          this.game.sound.sfx('metalhit', { volume: 0.7 }); this.game.shake = { time: 0.15, amp: 3 };
-          this.booms.push({ x: bw, y: w.y, t: 0, life: 0.3 });
+          this.game.sound.sfx('deflect', { volume: 0.9 }); this.game.sound.sfx('criticalswing', { volume: 0.5 }); this.game.shake = { time: 0.2, amp: 4 };
+          this.booms.push({ x: bw, y: w.y, t: 0, life: 0.35 });
         }
       }
       if (w.state === 'knock') { w.kt += s; w.x += w.vx * s; w.y += w.vy * s; w.vy += 600 * s; }
@@ -400,6 +432,8 @@ export class CastleSummit {
       if (this.arm.pushing) this.arm.push = Math.min(40, this.arm.push + 18 * s);
     }
     if (this.fall) this.fall.t += s;
+    if (this.tp) { if (!this.tp.held) this.tp.t = Math.min(this.tp.t + s, this.tp.d * 0.84); if (this.tp.pushing) this.tp.pt = (this.tp.pt || 0) + s; }
+    if (this.lean) { this.lean.t += s; if (this.lean.pop !== undefined) this.lean.pop += s; }
     if (this.lying) this.lying.t += s;
   }
   /** 격파 연출 그림(배우 뒤: 대포·바론, 배우 앞: 칼·대포알·주먹·폭발) */
@@ -410,14 +444,27 @@ export class CastleSummit {
       const b = this.baron, k = Math.min(1, b.t / 0.6), e = 1 - (1 - k) ** 3, s = FINALE.baronScale, w = baron.width * s, h = baron.height * s, rise = (1 - e) * h;
       const jit = b.roar !== undefined && b.roar < 1.4 ? Math.round(Math.sin(b.roar * 60) * 3) : 0;
       ctx.save(); ctx.beginPath(); ctx.rect(b.x - w - cam.x, b.y - h * 1.3 - cam.y, w * 2, h * 1.3); ctx.clip();
-      ctx.drawImage(baron, Math.round(b.x - w / 2 - cam.x + jit), Math.round(b.y - h - cam.y + rise), Math.round(w), Math.round(h)); ctx.restore();
+      // 포효 중엔 포효 시트(2×2, 256 셀: 0.25·0.35·0.8·0.35초 — 필드 바론 roar 동작과 같은 박자)
+      const roarImg = this.img('baronRoar'), rt = b.roar;
+      if (roarImg && rt !== undefined && rt < 1.75) {
+        const fr = rt < 0.25 ? 0 : rt < 0.6 ? 1 : rt < 1.4 ? 2 : 3, sx0 = (fr % 2) * 256, sy0 = Math.floor(fr / 2) * 256;
+        ctx.drawImage(roarImg, sx0, sy0, 256, 256, Math.round(b.x - w / 2 - cam.x + jit), Math.round(b.y - h - cam.y + rise), Math.round(w), Math.round(h));
+      } else ctx.drawImage(baron, Math.round(b.x - w / 2 - cam.x + jit), Math.round(b.y - h - cam.y + rise), Math.round(w), Math.round(h));
+      ctx.restore();
     }
     // 대포는 바론 앞
     const cannon = this.img('cannon');
-    if (this.cannonOn && cannon) { const [x, y] = FINALE.cannon, w = cannon.width, h = cannon.height, kick = this.recoil > 0 ? Math.round(this.recoil * 14) : 0; ctx.drawImage(cannon, Math.round(x - w / 2 - cam.x - kick), Math.round(y - h + 18 - cam.y), w, h); }
+    if (this.cannonOn && cannon) { const [x, y] = FINALE.cannon, w = cannon.width * FINALE.cannonScale, h = cannon.height * FINALE.cannonScale, kick = this.recoil > 0 ? Math.round(this.recoil * 14) : 0; ctx.drawImage(cannon, Math.round(x - w / 2 - cam.x - kick), Math.round(y - h + 36 - cam.y), w, h); }
   }
   drawFinaleFront(ctx, cam) {
     const sword = this.img('sword'), shot = this.img('shot'), arm = this.img('arm');
+    if (this.lean) {
+      // 받치며 버티다(살짝 앞으로) → 펑 앞으로 확 기울며 민다
+      const L = this.lean, e = L.e, pop = L.pop !== undefined ? Math.min(1, L.pop / 0.15) * (1 - Math.max(0, (L.pop - 0.6) / 0.6)) : 0;
+      const ang = 0.12 + 0.35 * pop, fx = e.x + e.w / 2 - cam.x, fy = e.y + e.h - cam.y;
+      e.x = L.x0 + Math.round(10 * pop + (L.pop === undefined ? Math.sin(this.time * 50) : 0));
+      e.visible = true; ctx.save(); ctx.translate(fx, fy); ctx.rotate(ang); ctx.translate(-fx, -fy); e.draw(ctx, cam); ctx.restore(); e.visible = false;
+    }
     if (this.lying) {
       // 쥰희가 옆으로 눕는다
       const e = this.lying.e, k = Math.min(1, this.lying.t / 0.35), fx = e.x + e.w / 2 - cam.x, fy = e.y + e.h - cam.y;
@@ -447,7 +494,12 @@ export class CastleSummit {
       let x, y, ang;
       if (w.state === 'fly') { const k = Math.min(0.92, w.t / w.d); x = w.x + (w.tx - w.x) * k; y = w.y + (w.ty - w.y) * k; ang = Math.atan2(w.ty - w.y, w.tx - w.x); }
       else { x = w.x; y = w.y; ang = (w.ang ?? 0) + w.spin * w.kt; }
-      ctx.save(); ctx.globalAlpha = w.state === 'knock' ? Math.max(0, 1 - w.kt / 1.2) : 1; ctx.translate(Math.round(x - cam.x), Math.round(y - cam.y)); ctx.rotate(ang - Math.PI / 2); const h = 34, ww = h * sword.width / sword.height; ctx.drawImage(this.tintSword(sword), -ww / 2, -h / 2, ww, h); ctx.restore();
+      const h = 72, ww = h * sword.width / sword.height, al = w.state === 'knock' ? Math.max(0, 1 - w.kt / 1.2) : 1, rot = ang - Math.PI / 2, tint = this.tintSword(sword, 0.4);
+      if (w.state === 'fly') for (let g = 3; g >= 1; g--) { ctx.save(); ctx.globalAlpha = 0.2 * al / g; ctx.translate(Math.round(x - cam.x - Math.cos(ang) * g * 16), Math.round(y - cam.y - Math.sin(ang) * g * 16)); ctx.rotate(rot); ctx.drawImage(tint, -ww / 2, -h / 2, ww, h); ctx.restore(); }
+      ctx.save(); ctx.globalAlpha = al; ctx.translate(Math.round(x - cam.x), Math.round(y - cam.y)); ctx.rotate(rot);
+      const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, h * 0.55); sg.addColorStop(0, 'rgba(200,140,255,0.45)'); sg.addColorStop(1, 'rgba(60,10,120,0)'); ctx.fillStyle = sg; ctx.fillRect(-h * 0.55, -h * 0.55, h * 1.1, h * 1.1);
+      const rim = this.rimOf(sword); for (const [ox, oy] of [[-2, 0], [2, 0], [0, -2], [0, 2]]) ctx.drawImage(rim, -ww / 2 + ox, -h / 2 + oy, ww, h);
+      ctx.drawImage(tint, -ww / 2, -h / 2, ww, h); ctx.restore();
       if (w.state === 'fly') { w.x2 = x; w.y2 = y; w.ang = ang; }
     }
     for (const ball of this.balls) {
