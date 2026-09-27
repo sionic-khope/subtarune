@@ -55,6 +55,8 @@ export const JJAJANG_AFTER_JOIN_MAPS = ['jjajang_bend', 'jjajang_walk', 'jjajang
 export function storyBgm(mapId, flags) {
   if (mapId === 'gajaeman_castle_dark_arrival') return flags.castle_dark_chase_seen && !flags.castle_dark_chase_done ? 'baron_intro' : 'castle_dark_path';
   if (mapId === 'gajaeman_castle_dark_refuge') return 'castle_dark_path';
+  // 성 로비: 첫 조우 컷신이 튼 로비 곡을 이어하기·QA 에서도(BUILD389)
+  if (mapId === 'gajaeman_castle_lobby' && flags.castle_lobby_seen && !flags.castle_gate_reunion_done) return 'castle_right';
   if (mapId === 'gajaeman_castle_cathedral' && flags.castle_cathedral_climb) return 'cathedral_climb';
   if (mapId === 'gajaeman_castle_cathedral2') return 'cathedral_climb';
   // BUILD327: 바람은 멎어도 추격은 이어진다 — 오르기 곡을 끊지 않는다

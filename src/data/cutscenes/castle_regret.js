@@ -14,6 +14,8 @@ export const castle_lobby_left_enter = Object.assign([
   { action: game => game.textbox.close() },
   { sfx: 'locker' }, { fade: 'out', duration: 0.55 },
   { map: 'gajaeman_castle_left1', spawn: 'start' },
+  // 컷신 안의 맵 전환은 맵 브금을 안 튼다 — 오른쪽 문처럼 직접(BUILD389 “왼쪽 방 가도 브금 안 나옴”)
+  { bgm: 'castle_regret', volume: 0.45, fadeIn: 1.2 },
   { fade: 'in', duration: 0.6 },
   { label: 'end' }, { end: true },
 ], { silent: true });

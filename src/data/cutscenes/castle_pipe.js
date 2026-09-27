@@ -77,5 +77,7 @@ export const castle_pipe_board = Object.assign([
   talkCamera, { stage: 'castle_pipe_returned' },
   { join: 'gyeongsub' }, { join: 'ppaman' },
   { camera: 'player' }, { regroup: true },
+  // 토관 귀환 때 끈 로비 곡을 다시(BUILD389 “토관 타고 가운데로 온 뒤 브금이 안 나옴”)
+  { bgm: 'castle_right', volume: 0.5, fadeIn: 1.2 },
   { label: 'end' }, { end: true },
 ], { silent: true });
