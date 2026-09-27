@@ -18,6 +18,7 @@ def safe(rel):
 class Dev(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store, must-revalidate')
+        self.send_header('Accept-Ranges', 'bytes')
         super().end_headers()
     def log_message(self, fmt, *args):
         if len(args) > 1 and '404' in str(args[1]): return
@@ -38,7 +39,38 @@ class Dev(SimpleHTTPRequestHandler):
                     if f.lower().endswith(EXT):
                         files.append(os.path.relpath(os.path.join(dp, f), ROOT))
             return self._json(200, {'files': sorted(files)})
+        # 부분 요청(Range) — 오디오 탐색(곡 중간부터, 전투 뒤 이어 틀기)이 배포 사이트처럼 되게(BUILD395). 없으면 브라우저가 0초로 되돌린다
+        rng = self.headers.get('Range', '')
+        if rng.startswith('bytes='):
+            path = self.translate_path(self.path)
+            if os.path.isfile(path):
+                return self._range(path, rng[6:].split(',')[0])
         return super().do_GET()
+    def _range(self, path, spec):
+        size = os.path.getsize(path)
+        first, _, last = spec.partition('-')
+        try:
+            if first == '': start, end = max(0, size - int(last)), size - 1
+            else: start, end = int(first), (int(last) if last else size - 1)
+        except ValueError:
+            start, end = 0, size - 1
+        end = min(end, size - 1)
+        if start >= size or start > end:
+            self.send_response(416); self.send_header('Content-Range', f'bytes */{size}'); self.end_headers(); return
+        self.send_response(206)
+        self.send_header('Content-Type', self.guess_type(path))
+        self.send_header('Content-Range', f'bytes {start}-{end}/{size}')
+        self.send_header('Content-Length', str(end - start + 1))
+        self.end_headers()
+        try:
+            with open(path, 'rb') as f:
+                f.seek(start); remaining = end - start + 1
+                while remaining > 0:
+                    chunk = f.read(min(65536, remaining))
+                    if not chunk: break
+                    self.wfile.write(chunk); remaining -= len(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
     def do_POST(self):
         u = urlparse(self.path)
         if u.path != '/api/save': return self._json(404, {'error': 'no'})
