@@ -39,7 +39,7 @@ export class SunsetRun {
       for (const ev of events) {
         if (['draw', 'jump', 'slash', 'airslash'].includes(ev)) this.sfx(ev, ev === 'draw' ? 0.45 : 0.7);
         // 출발: 곡과 함께 검 뽑는 소리·번쩍임·잔상 하나
-        if (ev === 'dash') { this.sfx(C.sfx.dash, C.white.dashVolume); this.dashFlash = C.white.burst; this.revealing = true; this.onDash?.(); }
+        if (ev === 'dash') { this.sfx(C.sfx.dash, C.white.dashVolume); this.dashFlash = C.white.burst; this.spawnBoost(); this.revealing = true; this.onDash?.(); }
         if (ev === 'slash' || ev === 'airslash') this.slashFx.push({ kind: ev, up: !!this.core.attack?.up, t: 0, dur: ev === 'slash' ? 0.26 : RUNNER.airSlashTime });
         if (ev === 'step') for (let i = 0; i < 3; i++) this.puffs.push({ x: this.x - 4, y: this.groundY - 2, vx: -60 - this.rnd() * 80, vy: -10 - this.rnd() * 20, t: 0, life: 0.45, s: 2 + (i % 2) });
       }
@@ -54,10 +54,41 @@ export class SunsetRun {
     this.puffs = this.puffs.filter(p => p.t < p.life);
     this.flash = Math.max(0, this.flash - dt);
     this.dashFlash = Math.max(0, this.dashFlash - dt);
+    if (this.boost) { this.boost.t += dt; if (this.boost.t >= C.boost.seconds) this.boost = null; }
     this.boss.shake = Math.max(0, this.boss.shake - dt);
     this.jolt = Math.max(0, this.jolt - dt);
     for (const p of this.smoke) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= p.drag ?? 1; p.vy *= p.drag ?? 1; p.r += (p.grow ?? 0) * dt; }
     this.smoke = this.smoke.filter(p => p.t < p.life);
+  }
+  /** 출발 부스터 모양(한 번 정해 두고 짧게 커졌다 사라진다) — 뒤(왼쪽)로 뻗는 가시 + 위로 튀는 가시 몇 + 뒤로 흩어지는 먹물 방울 */
+  spawnBoost() {
+    const B = C.boost, r = this.rnd;
+    const spikes = Array.from({ length: B.spikes }, (_, i) => {
+      const back = i < B.spikes - 3;
+      const a = back ? Math.PI * (0.78 + 0.44 * (i / (B.spikes - 4)) + (r() - 0.5) * 0.08) : -Math.PI * (0.35 + 0.25 * r());
+      return { a, len: B.length[0] + r() * (B.length[1] - B.length[0]) * (back ? 1 : 0.8), w: 3 + r() * 4 };
+    });
+    const blobs = Array.from({ length: B.blobs }, () => ({ dx: -26 - r() * 34, dy: (r() - 0.5) * 22, r: 3 + r() * 5, drift: 20 + r() * 30 }));
+    this.boost = { t: 0, spikes, blobs };
+  }
+  /** 흰 화면 위 그림자 뒤 부스터: 0~25% 에 확 뻗고 그 뒤 가늘어지며 사라진다(흰 화면 클립 안에서) */
+  drawBoost(ctx) {
+    const b = this.boost; if (!b) return;
+    const B = C.boost, u = b.t / B.seconds, grow = Math.min(1, u / 0.25), fade = u < 0.25 ? 1 : 1 - (u - 0.25) / 0.75;
+    const cx = this.x - 6, cy = this.groundY - 18;
+    ctx.save(); ctx.fillStyle = B.color; ctx.globalAlpha = Math.max(0, fade);
+    for (const sp of b.spikes) {
+      const L = sp.len * grow * (0.6 + 0.4 * fade), w = sp.w * fade + 1;
+      const px = Math.cos(sp.a + Math.PI / 2) * w, py = Math.sin(sp.a + Math.PI / 2) * w;
+      ctx.beginPath(); ctx.moveTo(Math.round(cx + px), Math.round(cy + py)); ctx.lineTo(Math.round(cx + Math.cos(sp.a) * L), Math.round(cy + Math.sin(sp.a) * L)); ctx.lineTo(Math.round(cx - px), Math.round(cy - py)); ctx.closePath(); ctx.fill();
+    }
+    // 가운데 뭉치(가시 뿌리)
+    ctx.beginPath(); ctx.ellipse(Math.round(cx - 4), Math.round(cy), 9 * grow * (0.5 + 0.5 * fade), 7 * grow * (0.5 + 0.5 * fade), 0, 0, Math.PI * 2); ctx.fill();
+    for (const bl of b.blobs) {
+      ctx.globalAlpha = Math.max(0, fade) * 0.85;
+      ctx.beginPath(); ctx.arc(Math.round(cx + bl.dx * grow - bl.drift * u), Math.round(cy + bl.dy), Math.max(0.5, bl.r * (0.4 + 0.6 * fade)), 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
   }
   /** 무지개·보라 입자 폭발(쳐냄·폭발 공용) */
   burst(x, y, n, { rainbow = true, purple = true, speed = 150, life = 0.7 } = {}) {
@@ -214,6 +245,8 @@ export class SunsetRun {
     }
     // 출발 번쩍임: 화면 전체가 한 번 더 하얗게 빛났다가 빠진다
     if (this.dashFlash > 0) { const k = this.dashFlash / C.white.burst; ctx.fillStyle = `rgba(255,251,238,${(0.95 * k * Math.sqrt(k)).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
+    // 부스터는 번쩍임 위에 또렷한 검은색으로(참고 그림처럼)
+    this.drawBoost(ctx);
     if (this.reveal > 0) {
       // 무지개 선(BUILD373): 흰 화면이 걷히기 시작하면 위 선은 위에서, 아래 선은 아래에서 휙 들어와 자리 잡고
       // 선 바깥(위·아래)의 검은 레터박스도 함께 따라 들어온다

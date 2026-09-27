@@ -12,6 +12,8 @@ export const GJ_RUNNER = Object.freeze({
   stage: { horizonY: 168, groundTop: 190, edgeY: 288, groundY: 252, playerX: 118, scale: 0.72, sunX: 300 },
   player: { halfWidth: 8, height: 32, heartHeight: 26 },
   // 흰 화면은 천천히 나지막이 걷힌다(BUILD369). 곡이 시작되는 출발 순간: 검 뽑는 소리를 크게, 번쩍임 burst 초, 잔상 하나가 튀어 나간다(사용자 2026-09-26)
+  // 출발 부스터(BUILD397 사용자 참고 그림 “뒤에 완전 짧게 부스터 나오고 사라지듯”): 흰 화면 속 그림자 뒤로 검은 가시 뿜기 + 먹물 방울, seconds 동안
+  boost: { seconds: 0.32, spikes: 11, length: [18, 46], blobs: 7, color: '#241a2e' },
   white: { hold: 0.55, reveal: 1.7, burst: 0.6, dashVolume: 0.95, ghostScale: 0.5, ghostDrift: 22 },
   // home x: 요플래와의 대치 간격을 10% 더 멀리(사용자 2026-09-26, 254px → 279px)
   // 무지개 레터박스 선: swoop 초 동안 화면 밖 from px 에서 top·bottom 자리로 휙(BUILD373)
