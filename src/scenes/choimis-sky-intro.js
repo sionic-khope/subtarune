@@ -85,6 +85,8 @@ function setLoop(actor, definition) {
 export async function prepareChoimisSky(game) {
   const state = getChoimisSkyState(game);
   game.sound.preloadBgm('choimis_battle');
+  // 전투 전용 효과음·소품·랩 영상은 컷신을 붙잡지 않고 뒤에서 받는다 — 전투 진입 때 필드가 멈추는 적재 대기를 없앤다
+  void Battle.prepareChoimis(game);
   const ids = ['hyungsub', 'gyeongsub', 'ppaman'];
   const [raise, cape, ...images] = await Promise.all([
     game.mapAssets.image(RAISE_SRC),
@@ -403,6 +405,7 @@ export function clearChoimisSky(game) {
   const boss = entity(game, 'choimis_sky_boss');
   if (boss) { boss.visible = false; boss.hopY = 0; boss.flyX = 0; boss.flyY = 0; boss.motion = null; }
   clearChoimisFlowerEffects(game);
+  Battle.discardChoimisPrep(game);
   if (game.choimisSky === state) game.choimisSky = null;
   game.zoom = { s: 1, fx: 0, fy: 0, smax: 1, tween: null };
   if (game.player) { game.camera.target = game.player; game.camera.locked = false; }

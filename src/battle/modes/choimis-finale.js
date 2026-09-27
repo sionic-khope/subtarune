@@ -9,7 +9,7 @@ export function createChoimisFinale(battle, { enemy }) {
   const oldSoul = { x: soul.x, y: soul.y, invuln: soul.invuln, oldX: soul.oldX, oldY: soul.oldY }, oldPose = enemy.patternPose;
   const renderer = createChoimisFinaleRenderer(battle, enemy), sounds = new Set();
   let phase = 'intro-talk', phaseTime = 0, elapsed = 0, disposed = false, assault = null, finalAssault = null;
-  let talk, burstCount = 0, fallStartY = enemy.y;
+  let talk, burstCount = 0, fallStartY = enemy.y, uniteQueued = false;
   let boss = { x: enemy.x, y: enemy.y }, heart = { x: C.finisher.soulX, y: C.finisher.soulY };
   enemy.patternPose = { hidden: true };
   battle.bubble = null;
@@ -35,7 +35,8 @@ export function createChoimisFinale(battle, { enemy }) {
   };
   const enter = next => {
     change(next);
-    if (next === 'raise') { stop(uniteHandle); uniteHandle = null; battle.setText(''); cue('power', 0.72); }
+    // 들리는 부분이 끝난 힘 합치기 소리는 끊지 않고 남은 꼬리를 흘려 보낸다(도중에 넘어갔을 때만 멈춤)
+    if (next === 'raise') { if (!(uniteHandle?.currentTime >= C.uniteAudibleSeconds)) stop(uniteHandle); uniteHandle = null; battle.setText(''); cue('power', 0.72); }
     if (next === 'transform-white') cue('great_shine', 0.85);
     if (next === 'reveal') {
       board.setTarget(C.box.w, C.box.h, C.box.x + C.box.w / 2, C.box.y + C.box.h / 2);
@@ -87,7 +88,13 @@ export function createChoimisFinale(battle, { enemy }) {
       if (phase === 'done') return true;
       const delta = Math.max(0, dt); elapsed += delta; phaseTime += delta;
       if (phase.endsWith('talk')) {
-        if (phase === 'intro-talk' && talk.index === C.intro.length - 1 && battle.typed && uniteHandle?.ended === false && uniteHandle.paused === false) return false;
+        // 마지막 줄은 힘 합치기 소리를 끝까지 듣는다: 들리는 부분(uniteAudibleSeconds)까지만 막고, 막혀 있는 동안 누른 C 는 기억했다가 소리가 끝나는 즉시 넘긴다(뒤 무음 1.9초 대기 제거)
+        if (phase === 'intro-talk' && talk.index === C.intro.length - 1 && battle.typed) {
+          if (input.just('confirm')) uniteQueued = true;
+          const sounding = uniteHandle && uniteHandle.ended === false && uniteHandle.paused === false && !(uniteHandle.currentTime >= C.uniteAudibleSeconds);
+          if (sounding) return false;
+          if (uniteQueued) { enter('raise'); return false; }
+        }
         if (talk.update(delta, input)) enter(phase === 'intro-talk' ? 'raise' : phase === 'gap-talk' ? 'assault' : 'autocharge');
         return false;
       }

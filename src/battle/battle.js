@@ -40,6 +40,8 @@ const HIT_AT = 0.14;                 // 공격 모션 시작 뒤 이 시점에 �
 const PREP_OPEN = 0.3;               // 적 턴: 탄막 상자가 패널 자리에서 펼쳐지는 시간(초) — 그 뒤 소울이 보이고 움직일 수 있다
 const PREP_HOLD = 0.9;               // 말풍선이 다 뜬 뒤 탄막까지 준비 시간(초) (사용자: "펼쳐지고 대사 나오고 준비할 딜레이")
 const BUBBLE_CPS = 0.03;             // 말풍선 타자 속도(초/글자)
+// 최미스 전투가 적재 단계에서 기다리는 전용 소품(Battle.prepareChoimis 가 하늘 인트로에서 미리 받는다)
+const CHOIMIS_DOLPHIN_SRC = 'assets/props/choimis-dolphin-breach.png';
 const BGM_DELAY = 0;                 // 전투 화면이 열리는 순간 브금 (침묵 없음). 2026-09-11 타임라인: 징글 마지막 악절이 1.45~1.5s 에 끝나고 화면이 1.5s 에 열린다 → 그 자리에 바로 이어 붙인다
 const BGM_FADE = 0;                  // 페이드 없음. rude_buster.mp3 는 0.000s 에 가장 큰 첫 타(peak 1.07)가 있어 0.3s 선형 페이드가 그 타를 통째로 삼켰다(사용자 2026-09-11 '시작 지점이 사라진 느낌'). 징글은 1.50s 에 끝나고 화면이 1.52s 에 열리므로 그 자리에서 원래 음량으로 바로 (tests/playtest/battle_bgm.mjs 가 currentTime·음량을 잰다)
 const SMALL = FONT.replace(/^\d+px/, '12px');   // 말풍선·HP 숫자용 작은 글씨
@@ -114,6 +116,23 @@ export class Battle {
     }
     return Promise.all(pending);
   }
+  /**
+   * 최미스 전투 전용 준비물(효과음·돌고래 소품·랩 영상)을 전투 전에 미리 받는다 — 하늘 인트로 컷신이 부른다.
+   * load() 가 이것들을 기다리는 동안 필드 화면이 멈춰 전투 진입이 끊겨 보였다(첫 방문·느린 적재에서 수백 ms).
+   * 영상은 game.preparedChoimisRapVideo 에 두었다가 전투가 넘겨받는다.
+   */
+  static prepareChoimis(game) {
+    if (game.sound && !game.preparedChoimisRapVideo) game.preparedChoimisRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
+    return Promise.all([
+      Battle.loadChoimisSfx(game),
+      game.requestPropImage?.(CHOIMIS_DOLPHIN_SRC),
+      game.preparedChoimisRapVideo?.ready,
+    ]);
+  }
+  /** 최미스 전투 전용 효과음(목록은 여기 한 곳 — 오디오 자산 테스트가 글자 그대로의 목록을 읽는다) */
+  static loadChoimisSfx(game) { return game.sound?.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya', 'choimis_piercing_blood', 'choimis_lend_power']); }
+  /** 전투가 넘겨받지 않은 미리 만든 랩 영상을 버린다(컷신 중단 등) */
+  static discardChoimisPrep(game) { game.preparedChoimisRapVideo?.stop(); game.preparedChoimisRapVideo = null; }
   constructor(game, cfg) {
     this.game = game; this.cfg = cfg;
     const ids = PARTY_ORDER.filter((id) => id === 'hyungsub' || game.party.includes(id));
@@ -138,11 +157,16 @@ export class Battle {
     this.bgmLoadToken = loadToken;
     this.bgmWait = undefined;
     const choimisBattle = this.enemies.some(enemy => enemy.id === 'choimis_flower');
-    if (choimisBattle && !this.preparedRapVideo) this.preparedRapVideo = createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
+    // 하늘 인트로에서 미리 만든 영상이 있으면 그걸 쓴다(Battle.prepareChoimis)
+    if (choimisBattle && !this.preparedRapVideo) {
+      const early = this.game.preparedChoimisRapVideo?.stopped === false ? this.game.preparedChoimisRapVideo : null;
+      this.game.preparedChoimisRapVideo = null;
+      this.preparedRapVideo = early || createChoimisRapVideo({ ...CHOIMIS_RAP_VIDEO, autoplay: false });
+    }
     try {
       await Promise.all([
-        choimisBattle ? this.game.sound.loadSfxFiles?.(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_chosouya', 'choimis_piercing_blood', 'choimis_lend_power']) : null,
-        choimisBattle ? this.game.requestPropImage?.('assets/props/choimis-dolphin-breach.png') : null,
+        choimisBattle ? Battle.loadChoimisSfx(this.game) : null,
+        choimisBattle ? this.game.requestPropImage?.(CHOIMIS_DOLPHIN_SRC) : null,
         this.preparedRapVideo?.ready,
         this.support?.load((src) => cached(IMAGE_CACHE, src, () => loadImage(src))),
         ...this.members.map(async (m) => { m.frames = await cached(FRAME_CACHE, m.id, () => loadActorFrames(BATTLE_SPRITES[m.id], BATTLE_PREVIEW.colorKey)); m.downImg = await cached(IMAGE_CACHE, DOWN_SRC(m.id), () => loadImage(DOWN_SRC(m.id))); }),

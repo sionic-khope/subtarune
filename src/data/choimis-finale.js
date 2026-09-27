@@ -9,6 +9,8 @@ export const CHOIMIS_FINALE = Object.freeze({
   }),
   intro: [...['큭.. 형들 대단하시네요', '여기까지 온건 칭찬해드리겠습니다.', '그렇지만, 전 포기할 수 없어요.', '마지막 그녀를 위한 이 힘을 바칠거에요!!'].map(line),
     { ...line('마지막 모두의 힘을 합쳐.'), voice: 'none' }],
+  // 힘 합치기(choimis_lend_power.mp3, 5.07초)는 3.2초 뒤로 −45dB 이하 꼬리·무음뿐 — 들리는 부분이 끝나면 바로 다음 박자로(파일은 편집 없이 그대로)
+  uniteAudibleSeconds: 3.2,
   announcement: [line('마지막 피날래 GAP 모드!!!')],
   defeated: ['아..', '난... 이렇게....', '점례...야....'].map(line),
   box: { x: 8, y: 8, w: 464, h: 304 },

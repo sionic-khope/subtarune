@@ -204,6 +204,23 @@ test('test_finale_flowery_clip_finishes_before_transition_and_release_shoot_belo
   assert.equal(f.events.filter(event => event === 'furnace_blast').length, 1);
 });
 
+test('test_finale_unite_clip_releases_at_audible_end_and_queued_confirm_advances_without_waiting_for_silent_tail', () => {
+  const f = fixture();
+  while (f.battle.text !== '* 마지막 모두의 힘을 합쳐.') {
+    f.battle.shown = f.battle.text.length; f.mode.update(0.2, input(true));
+  }
+  const clip = f.handles.find(handle => handle.name === 'choimis_lend_power');
+  Object.assign(clip, { ended: false, currentTime: C.uniteAudibleSeconds - 0.3 });
+  f.battle.shown = f.battle.text.length;
+  f.mode.update(0.2, input(true));
+  assert.equal(f.mode.snapshot.phase, 'intro-talk', 'audible part must finish first');
+  clip.currentTime = C.uniteAudibleSeconds + 0.01;
+  f.mode.update(0.016, input(false));
+  assert.equal(f.mode.snapshot.phase, 'raise', 'confirm pressed during the clip advances as soon as the audible part ends');
+  assert.equal(clip.paused, false, 'the faint tail is not cut');
+  assert.ok(C.uniteAudibleSeconds < 5.06 - 1.5);
+});
+
 test('test_finale_release_clip_delayed_start_finishes_before_death_dialogue', () => {
   const f = fixture(); startAssault(f); advance(f, 60);
   const release = f.handles.find(handle => handle.name === 'deltarune_release_shoot');
