@@ -1,5 +1,5 @@
 /**
- * BUILD370 엔딩 크레딧(사용자 2026-09-26): 라운지 문이 닫히고 3.5초 뒤 페이드 없이 곡(_BEWbq64zyU)과 함께 곧바로 검은 화면에 섭타룬 로고 → 크레딧이 왼쪽에서 올라간다
+ * BUILD370 엔딩 크레딧(사용자 2026-09-26): 라운지 문이 닫히고 4초 뒤 페이드 없이 곡(_BEWbq64zyU)과 함께 곧바로 검은 화면에 섭타룬 로고 → 크레딧이 왼쪽에서 올라간다
  * (오른쪽은 사진 자리 — photos 에 그림 경로를 넣으면 스크롤 동안 고르게 한 장씩 나타났다 사라진다, photo 가 자리·크기) → 마지막에 로고가 다시 올라오고 아래에 The End 가 천천히.
  * 담당은 사용자 지정 “행복맨”(이름 중복 괜찮음). 등장인물·몬스터·Special Thanks 는 이름만(BUILD371 사용자 “행복맨 안 붙여도 돼”) — 게임에서 보이는 표시 이름.
  */
@@ -8,7 +8,7 @@ const role = (title, ...lines) => ({ title, lines: lines.length ? lines : [ME] }
 const cast = (title, names) => ({ title, lines: names });
 
 export const CREDITS = Object.freeze({
-  bgm: 'ending_credits', delay: 3.5,
+  bgm: 'ending_credits', delay: 4.0,
   intro: 4.0, outro: 14.0,
   column: { x: 36, width: 220, title: 11, name: 14, gap: 30, line: 20 },
   // 오른쪽 사진(그림풍 일러스트 assets/credits/photoNN.png): 크레딧 스크롤 시간에 고르게 한 장씩. 가운데 (x, y), 최대 w×h, 액자 테두리, drift px/초(0 = 제자리)
