@@ -71,9 +71,9 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
     const from = intercept ? contact : { x: attackHome.x + C.energy.origin[0] * bodyScale, y: attackHome.y + C.energy.origin[1] * bodyScale };
     const to = intercept ? { x: from.x + 150, y: from.y - 85 }
       : targetPoint();
+    const at = a => { const p = Math.min(1, Math.max(0, a) / C.energy.flight); return { x: from.x + (to.x - from.x) * p, y: from.y + (to.y - from.y) * p }; };
     const progress = Math.min(1, age / C.energy.flight);
-    return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress,
-      age, frame: Math.min(C.energy.count - 1, Math.floor(age * C.energy.fps)), layers: 3 };
+    return { ...at(age), age, progress, at, frame: Math.min(C.energy.count - 1, Math.floor(age * C.energy.fps)), layers: 3 };
   };
   if (intercept) cue('notice', C.sounds.notice);
   return {
@@ -150,7 +150,37 @@ function createAction(battle, { assets, target, barrel, onHit, onDeflect }, inte
       if (!wave && !notice) return;
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 480, 318); ctx.clip();
       if (notice) drawEmote(ctx, { kind: '!', t: elapsed }, home.x, home.y - C.intercept.headOffset);
-      if (wave) drawFrame(ctx, assets.heroEnergy, C.energy, wave, wave.frame);
+      if (wave) {
+        const E = C.energy, scale = E.scale ?? 1;
+        // 날아가는 동안: 지나온 자리 잔상(옅게, 붉게 겹침)
+        if (wave.progress < 1 && E.trail) {
+          ctx.save(); ctx.globalCompositeOperation = 'lighter';
+          for (let i = E.trail.count; i > 0; i--) {
+            ctx.globalAlpha = E.trail.alpha * (1 - i / (E.trail.count + 1));
+            drawFrame(ctx, assets.heroEnergy, E, wave.at(wave.age - i * E.trail.spacing), wave.frame, scale * (1 - i * 0.06));
+          }
+          ctx.restore();
+        }
+        drawFrame(ctx, assets.heroEnergy, E, wave, wave.frame, scale);
+        // 명중: 붉은 오라가 고리 둘과 입자로 튄다
+        const hitAge = wave.age - E.flight;
+        if (hitAge >= 0 && E.burst && hitAge < E.burst.seconds) {
+          const B = E.burst, u = hitAge / B.seconds, ease = 1 - (1 - u) ** 3;
+          ctx.save(); ctx.globalCompositeOperation = 'lighter';
+          for (const [lag, color] of [[0, '255,90,70'], [0.25, '255,190,150']]) {
+            const k = Math.max(0, Math.min(1, (u - lag) / (1 - lag)));
+            if (k <= 0) continue;
+            ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = `rgb(${color})`; ctx.lineWidth = Math.max(1, 5 * (1 - k));
+            ctx.beginPath(); ctx.ellipse(Math.round(wave.x), Math.round(wave.y), 8 + B.ring * (1 - (1 - k) ** 3), (8 + B.ring * (1 - (1 - k) ** 3)) * 0.75, 0, 0, Math.PI * 2); ctx.stroke();
+          }
+          for (let i = 0; i < B.particles; i++) {
+            const a = (i / B.particles) * Math.PI * 2 + (i % 3) * 0.3, v = B.speed * (0.6 + (i * 37 % 10) / 20);
+            ctx.globalAlpha = 1 - u; ctx.fillStyle = i % 3 ? '#ff5a46' : '#ffe0c8';
+            ctx.fillRect(Math.round(wave.x + Math.cos(a) * v * ease * 0.5), Math.round(wave.y + Math.sin(a) * v * ease * 0.4 - u * 10), 3, 3);
+          }
+          ctx.restore();
+        }
+      }
       ctx.restore();
     },
     draw(ctx) { this.drawBody(ctx); this.drawEffects(ctx); },

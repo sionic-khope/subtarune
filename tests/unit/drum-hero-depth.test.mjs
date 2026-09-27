@@ -16,8 +16,11 @@ test('upstage attack body is separate from foreground red energy', () => {
   action.update(0.7);
   assert.equal(typeof action.drawBody, 'function', 'hero must render behind foreground Yoplait');
   action.drawBody(ctx); draws.push('yoplait'); action.drawEffects(ctx);
-  assert.deepEqual(draws, ['hero', 'yoplait', 'energy']);
-  draws.length = 0; action.draw(ctx); assert.deepEqual(draws, ['hero', 'energy']);
+  // 파동은 잔상까지 여러 장(BUILD395) — 모두 요플래 앞(뒤쪽 순서)에 그려져야 한다
+  const collapse = list => list.filter((d, i) => d !== list[i - 1]);
+  assert.deepEqual(collapse(draws), ['hero', 'yoplait', 'energy']);
+  assert.ok(draws.filter(d => d === 'energy').length >= 1);
+  draws.length = 0; action.draw(ctx); assert.deepEqual(collapse(draws), ['hero', 'energy']);
 });
 
 test('landed rescue hero and carried flag render behind foreground Yoplait', () => {
