@@ -1,0 +1,8 @@
+Use case: game VFX sprite sheet. The reference image is the look the user wants: a black pixel-art "dash booster" splash seen behind a running shadow on a white screen — a jagged, spiky ink/flame burst with sharp thorn-like spikes pointing backward and a few pointing up, ragged dark smoky clumps trailing behind it, hard pixel edges, pure black/very dark shades only.
+
+Create a 2 by 2 four-frame animation sprite sheet of this BACKWARD BOOSTER BURST (the character is NOT drawn; the burst's root is at the RIGHT edge of each frame, spikes and smoke shoot out to the LEFT, as if a character to the right just dashed off to the right):
+- top left (frame 1): the burst igniting — a compact spiky black splash at the right side, short sharp thorns;
+- top right (frame 2): full burst like the reference — long sharp thorns fanning out to the left and a few up/down, a dense core, ragged smoke clumps behind;
+- bottom left (frame 3): the burst tearing apart — thinner thorns, the core breaking into jagged fragments drifting left, dark grey smoke chunks;
+- bottom right (frame 4): dissipating — a few small jagged black flecks and faint grey smoke scraps drifting left.
+Chunky crisp pixel art (coarse square pixels, no anti-aliasing), only black / near-black / dark grey tones, no round circles or bubbles, jagged irregular shapes. Same scale in all frames, each frame centered in its cell with margin, nothing clipped. Flat solid magenta #FF00FF background, no character, no text, no ground, no motion lines.

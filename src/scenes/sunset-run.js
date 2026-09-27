@@ -22,6 +22,8 @@ export class SunsetRun {
     this.boss = { x: C.boss.from[0], y: C.boss.from[1], visible: false, alpha: 1, lie: 0, aura: 1, face: 'left', shake: 0 };
     this.particles = []; this.puffs = []; this.slashFx = []; this.flash = 0; this.flashColor = '255,255,255';
     this.rays = new SunRays(); this.backlight = new Backlight();
+    // 출발 부스터 그림(흰 화면 준비 동작 동안 미리 받는다)
+    try { this.boostImage = new Image(); this.boostImage.src = C.boost.src; } catch { this.boostImage = null; }
     this.ground = null; this.onEvent = null;
     // 결전 마무리용: 요플래 x 덮어쓰기·자세 그림(clash 시트 칸)·달리기 멈춤·흰 그림자 화면·거대 검기·검은 연기
     this.pxOverride = null; this.frozen = false; this.pose = null; this.poseFlip = false; this.jolt = 0;
@@ -60,34 +62,15 @@ export class SunsetRun {
     for (const p of this.smoke) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= p.drag ?? 1; p.vy *= p.drag ?? 1; p.r += (p.grow ?? 0) * dt; }
     this.smoke = this.smoke.filter(p => p.t < p.life);
   }
-  /** 출발 부스터 모양(한 번 정해 두고 짧게 커졌다 사라진다) — 뒤(왼쪽)로 뻗는 가시 + 위로 튀는 가시 몇 + 뒤로 흩어지는 먹물 방울 */
-  spawnBoost() {
-    const B = C.boost, r = this.rnd;
-    const spikes = Array.from({ length: B.spikes }, (_, i) => {
-      const back = i < B.spikes - 3;
-      const a = back ? Math.PI * (0.78 + 0.44 * (i / (B.spikes - 4)) + (r() - 0.5) * 0.08) : -Math.PI * (0.35 + 0.25 * r());
-      return { a, len: B.length[0] + r() * (B.length[1] - B.length[0]) * (back ? 1 : 0.8), w: 3 + r() * 4 };
-    });
-    const blobs = Array.from({ length: B.blobs }, () => ({ dx: -26 - r() * 34, dy: (r() - 0.5) * 22, r: 3 + r() * 5, drift: 20 + r() * 30 }));
-    this.boost = { t: 0, spikes, blobs };
-  }
-  /** 흰 화면 위 그림자 뒤 부스터: 0~25% 에 확 뻗고 그 뒤 가늘어지며 사라진다(흰 화면 클립 안에서) */
+  /** 출발 부스터 시작(도트 띠 그림은 생성자에서 미리 받아 둔다) */
+  spawnBoost() { this.boost = { t: 0 }; }
+  /** 흰 화면 위 그림자 등 뒤 부스터: 점화 → 활짝 → 찢어짐 → 흩어짐 네 칸, 뿌리를 등에 맞춘다 */
   drawBoost(ctx) {
-    const b = this.boost; if (!b) return;
-    const B = C.boost, u = b.t / B.seconds, grow = Math.min(1, u / 0.25), fade = u < 0.25 ? 1 : 1 - (u - 0.25) / 0.75;
-    const cx = this.x - 6, cy = this.groundY - 18;
-    ctx.save(); ctx.fillStyle = B.color; ctx.globalAlpha = Math.max(0, fade);
-    for (const sp of b.spikes) {
-      const L = sp.len * grow * (0.6 + 0.4 * fade), w = sp.w * fade + 1;
-      const px = Math.cos(sp.a + Math.PI / 2) * w, py = Math.sin(sp.a + Math.PI / 2) * w;
-      ctx.beginPath(); ctx.moveTo(Math.round(cx + px), Math.round(cy + py)); ctx.lineTo(Math.round(cx + Math.cos(sp.a) * L), Math.round(cy + Math.sin(sp.a) * L)); ctx.lineTo(Math.round(cx - px), Math.round(cy - py)); ctx.closePath(); ctx.fill();
-    }
-    // 가운데 뭉치(가시 뿌리)
-    ctx.beginPath(); ctx.ellipse(Math.round(cx - 4), Math.round(cy), 9 * grow * (0.5 + 0.5 * fade), 7 * grow * (0.5 + 0.5 * fade), 0, 0, Math.PI * 2); ctx.fill();
-    for (const bl of b.blobs) {
-      ctx.globalAlpha = Math.max(0, fade) * 0.85;
-      ctx.beginPath(); ctx.arc(Math.round(cx + bl.dx * grow - bl.drift * u), Math.round(cy + bl.dy), Math.max(0.5, bl.r * (0.4 + 0.6 * fade)), 0, Math.PI * 2); ctx.fill();
-    }
+    const b = this.boost, img = this.boostImage; if (!b || !img?.complete || !img.naturalWidth) return;
+    const B = C.boost, frame = B.until.filter(t => b.t >= t).length, cw = img.width / 4, dw = Math.round(cw * B.scale), dh = Math.round(img.height * B.scale);
+    const rx = Math.round(this.x + B.at[0]), ry = Math.round(this.groundY + B.at[1]);
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, frame * cw, 0, cw, img.height, rx - dw, ry - Math.round(dh / 2), dw, dh);
     ctx.restore();
   }
   /** 무지개·보라 입자 폭발(쳐냄·폭발 공용) */
