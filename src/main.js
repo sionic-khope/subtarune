@@ -87,6 +87,8 @@ const TEXT_SPEEDS = [
   { key: 'speed_normal', delay: 0.033 },   // 언더테일 기본(1글자/2프레임)
   { key: 'speed_fast', delay: 0.016 },
 ];
+// 부팅 때 미리 받는 맵 범위(세이브·첫 방에서 문 몇 칸까지) — 크면 첫 로딩이 길어지는 대신 플레이 중 끊김이 없다(BUILD390)
+const BOOT_PRELOAD_DEPTH = 2;
 const TITLE_SFX = ['menu', 'confirm', 'cancel', 'chime', 'door', 'battle_start'];
 
 function mapScriptAssets(mapId, def) {
@@ -1843,19 +1845,39 @@ class Game {
    * “섭타룬을 로딩하고있습니다.” + 진행 막대. 나머지는 플레이 중 prefetchAround 가 앞쪽부터 받는다.
    */
   async bootPreload() {
+    this.registerOfflineCache();
     if (!this.prefetchEnabled) return;
     const load = this.bootLoad = { active: true, done: 0, total: 1 };
     try {
       let saved = null;
       try { saved = JSON.parse(localStorage.getItem(Game.SAVE_KEY))?.map || null; } catch {}
       const first = [...new Set(['room', saved].filter(Boolean))];
+      // BUILD390(사용자 “첫 화면 로딩을 좀 더 희생해서 단단하게”): 세이브·첫 방에서 문 두 칸 안의 맵과 그 맵들의 곡까지 다 받아 두고 시작
       const ids = new Set(first);
-      for (const id of first) for (const next of await this.mapNeighbors(id)) ids.add(next);
-      load.total = ids.size;
-      await Promise.all([...ids].map(id => this.prepareMap(id).catch(error => console.warn('[boot] 맵 준비 실패', id, error)).finally(() => { load.done++; })));
+      let layer = [...first];
+      for (let depth = 0; depth < BOOT_PRELOAD_DEPTH; depth++) {
+        const next = [];
+        for (const id of layer) for (const n of await this.mapNeighbors(id)) if (!ids.has(n)) { ids.add(n); next.push(n); }
+        layer = next;
+      }
+      const songs = new Set();
+      for (const id of ids) { const def = await this.mapAssets.definition(id).catch(() => null); if (def?.bgm) songs.add(def.bgm); }
+      load.total = ids.size + songs.size;
+      await Promise.all([
+        ...[...ids].map(id => this.prepareMap(id).catch(error => console.warn('[boot] 맵 준비 실패', id, error)).finally(() => { load.done++; })),
+        // 곡 파일을 통째로 받아 캐시에 올린다(재생할 때 네트워크를 기다리지 않게)
+        ...[...songs].map(name => fetch(`assets/audio/bgm/${name}.mp3?v=${BUILD}`).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null).finally(() => { load.done++; })),
+      ]);
       if (saved) this.prefetchAround(saved);
     } catch (error) { console.warn('[boot] 로딩 실패', error); }
     finally { load.done = load.total; load.active = false; }
+  }
+  /** 배포 사이트에서만 서비스 워커(sw.js)로 받은 파일을 빌드별 캐시에 둔다 — 새로고침·불안한 네트워크에도 다시 받지 않는다. 로컬 개발 서버는 작업 트리를 그대로 봐야 해서 켜지 않는다 */
+  registerOfflineCache() {
+    try {
+      if (!('serviceWorker' in navigator) || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+      void navigator.serviceWorker.register(`sw.js?v=${BUILD}`).catch(error => console.warn('[sw] 등록 실패', error));
+    } catch (error) { console.warn('[sw] 사용 불가', error); }
   }
   /** 도착한 맵에서 문으로 depth 칸 안의 맵을 가까운 것부터 하나씩 받는다. 전환·맵 준비 중에는 쉬었다가 잇는다. */
   prefetchAround(mapId, depth = 2) {

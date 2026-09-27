@@ -27,6 +27,8 @@ copy_file() {
 
 # 노래 영상(assets/video/*.mp4 — 리듬 게임·TV 클립)도 런타임 파일이다: 빠져 있어 배포판에서 뚜울라 노래·영상이 404 였다(BUILD271, 사용자 2026-09-20 “리듬게임에 뒤에 영상하고 그런거 안나옴”)
 copy_file index.html
+# 오프라인 캐시 서비스 워커(BUILD390) — 사이트 루트에 있어야 전체 경로를 맡는다
+copy_file sw.js
 while IFS= read -r -d '' path; do copy_file "$path"; done < <(
   find css -type f \( -name '*.css' -o -name '*.png' -o -name '*.webp' -o -name '*.gif' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.woff' -o -name '*.woff2' -o -name '*.ttf' \) ! -path '*/.*' -print0
 )
