@@ -511,14 +511,27 @@ await runScenario({ name: 'castle-boulder', launchOptions: { args: ['--autoplay-
   await responsive('left-orb-completed');
   await fixture('save-completed-left-orb', 'Persist only the naturally completed boulder and left seal through production autosave and continueGame. No save content is altered.', async () => { game.autosave(); await game.continueGame(); });
   assert.ok(await field()); check('continue preserves solo completed boulder and both seals', (await snap()).party.length === 0 && (await snap()).flags.done && (await snap()).flags.left && (await snap()).flags.right);
-  await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_boulder', 'south exit returns to completed boulder'); assert.ok(await field());
-  await shot('returned-completed-wall'); check('return does not replay boulder or restore party', (await snap()).party.length === 0 && !(await snap()).scene && (await snap()).flags.done);
-  await walk('ArrowUp', () => game.player.probe()?.id === 'castle_boulder_orb_door', 're-enter completed left orb'); await key('KeyC');
-  assert.ok(await until(() => game.mapId === 'gajaeman_castle_left_orb', 12000)); assert.ok(await field());
+  // 완료된 구체 재조사는 대사만(재시동 없음) — 두 봉인이 선 뒤 남쪽으로 나가면 대문 재회가 이어지므로 먼저 확인한다
   await walk('ArrowUp', () => game.player.probe()?.id === 'castle_seal_orb', 'reinspect completed left orb'); await key('KeyC');
   assert.ok(await until(() => game.textbox.state === 'waiting', 6000));
   check('left orb repeat C only reads completed state', await page.evaluate(() => !game.castleOrb && game.textbox.node.text === '* 구체가 보라색으로 빛나고 있다.'));
-  await shot('left-orb-repeat');
+  await shot('left-orb-repeat'); await key('KeyC'); assert.ok(await field());
+  // 두 봉인 완료 뒤 남쪽 출구: 바위는 다시 안 돌고(castle_left_orb_return) 영클과 재회 → 경섭·억빠맨 합류 → 로비 대문 앞(gate_reunion)
+  await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_boulder' || game.dialogue.running, 'south exit returns to completed boulder');
+  const reunion = [], reunionStart = Date.now(); let boulderReplayed = false;
+  while (Date.now() - reunionStart < 30000) {
+    const s = await snap();
+    if (s.scene || s.push) boulderReplayed = true;
+    if (s.map === 'gajaeman_castle_lobby') break;
+    if (s.textbox === 'waiting') { const line = `${s.speaker || ''}|${s.text}`; if (!reunion.includes(line)) reunion.push(line); if (line.includes('다 됐노?')) await shot('returned-completed-wall'); await key('KeyC'); }
+    await page.waitForTimeout(100);
+  }
+  const lobby = await snap();
+  check('return does not replay boulder; both seals trigger the Youngcle reunion and the party rejoins toward the lobby gate',
+    !boulderReplayed && lobby.flags.done && lobby.flags.left && lobby.flags.right && lobby.map === 'gajaeman_castle_lobby'
+      && lobby.party.join() === 'gyeongsub,ppaman'
+      && ['영클|* 다 됐노?', '경섭|* 이제 빨리 다시 그 문앞으로 가볼까', '영클|* ㅇㅋ요'].every(line => reunion.includes(line)),
+    JSON.stringify({ reunion, map: lobby.map, party: lobby.party, boulderReplayed }));
   check('no scene module or asset loading errors', errors.length === 0, JSON.stringify(errors));
   check('required boulder assets and modules have no failed HTTP responses', requiredFailures.length === 0, JSON.stringify(requiredFailures));
 });

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { escToTitle } from './esc.mjs';
 
 export async function verifyRunaway({ page, check, shot, until, press, fixture }, before, begin = async () => {}) {
   const state = () => page.evaluate(() => {
@@ -161,7 +162,8 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   check('final field menu opens normally', await until(() => window.game.state === 'menu', 2000));
   await shot('runaway_menu'); await press('KeyX');
   check('final field menu closes normally', await until(() => window.game.state === 'field', 2000));
-  await press('Escape');
+  // BUILD329: Esc 는 확인창(예/아니요)을 먼저 띄운다 — 실제 키로 '예'를 고른다
+  await escToTitle(page);
   check('normal Escape opens title after the sequence', await until(() => window.game.state === 'title' && !window.game.transitioning, 6000));
   await press('KeyC');
   await until(() => ['zoom', 'locked'].includes(window.game.title.phase), 6000);

@@ -50,14 +50,31 @@ try {
   await page.waitForTimeout(400); await cap('hall');
   const hall = await page.evaluate(() => ({ map: game.mapId, bgm: game.sound.bgmName ?? null, dark: !!game.entities.find(e => e.id === 'stage11_dark'), stairs: game.entities.filter(e => e.id?.startsWith('stage11_stairs')).length, valance: !!game.entities.find(e => e.id === 'stage11_valance'), player: [Math.round(game.player.x), Math.round(game.player.y)] }));
   check(upHall && hall.map === 'youngcle11' && hall.bgm === null && hall.dark && hall.stairs === 2 && hall.valance, '위 문 → 무대 홀(어둠 막·계단 둘·커튼·무음) ' + JSON.stringify(hall));
+  // 첫 입장이면 무대 홀 입장 연출(stage_hall_intro: 뚜울라알라가 무대로 도망 → 억빠맨·경섭 대사)이 먼저 — 끝까지 넘겨야 조작이 돌아온다
+  for (let i = 0, t0 = Date.now(); Date.now() - t0 < 40000; i++) {
+    const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state }));
+    if (!q.running) break;
+    if (q.box === 'waiting') await page.keyboard.press('KeyC');
+    await page.waitForTimeout(150);
+  }
+  const introDone = await page.evaluate(() => ({ done: !!game.flags.stage_hall_intro_done, lit: !!game.flags.stage_hall_lit, running: game.dialogue.running }));
+  check(introDone.done && introDone.lit && !introDone.running, '무대 홀 입장 연출(뚜울라알라) 뒤 불 켜지고 조작 복귀 ' + JSON.stringify(introDone));
   await page.evaluate(() => { game.player.x = 116; game.player.y = 300; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); });
   await page.waitForTimeout(300);
   const climbed = await holdUntil('ArrowUp', () => game.player.y < 200, 6000);
   check(climbed, '왼쪽 계단으로 무대에 올라간다 ' + JSON.stringify(await page.evaluate(() => [Math.round(game.player.x), Math.round(game.player.y)]))); await cap('hall_stage');
-  await page.evaluate(() => { game.player.x = 400; game.player.y = 700; });
-  await page.waitForTimeout(800);
-  const backDown = await holdUntil('ArrowDown', () => game.mapId === 'youngcle10' && !game.transitioning, 8000);
-  await page.waitForTimeout(300); check(backDown && (await page.evaluate(() => game.mapId)) === 'youngcle10', '홀 아래 문 → 윗길');
+  // 입장 연출 뒤엔 관객 28명과 관객석 줄(stage11_rope, 틈 x384~416 은 crowd_3 이 막음)이 홀 아래를 막는다 — “줄 아래로는 못 내려간다”(tools/maps/youngcle11.py).
+  // 아래 문 자체는 윗길(youngcle10 from_hall)로 이어져 있고, 무대 앞에서 아래로 걸어도 줄 앞에서 멈춘다
+  // 왼쪽 계단 끝은 대기실(youngcle12) 문이다 — 윗길 쪽 아래 문으로 다시 들어오면 관객 사이를 지나온 셈으로 무대 앞(404,330)에 선다
+  await page.waitForFunction(() => !game.transitioning, null, { timeout: 10000 }).catch(() => {});
+  await page.evaluate(() => game.changeMap('youngcle11', 'from_below', true));
+  await page.waitForFunction(() => game.mapId === 'youngcle11' && !game.transitioning && !game.dialogue.running && game.fade.alpha < 0.05, null, { timeout: 15000 }).catch(() => {});
+  const reentry = await page.evaluate(() => ({ map: game.mapId, x: Math.round(game.player.x), y: Math.round(game.player.y) }));
+  check(reentry.map === 'youngcle11' && reentry.x === 404 && reentry.y === 330, '연출 뒤 아래 문 재입장 → 관객 앞 무대 앞(404,330) ' + JSON.stringify(reentry));
+  await page.waitForTimeout(400);
+  const leftHall = await holdUntil('ArrowDown', () => game.mapId !== 'youngcle11', 2500);
+  const blocked = await page.evaluate(() => { const rope = game.entities.find(e => e.id === 'stage11_rope_r'); const door = game.entities.find(e => e.id === 'youngcle11_down'); return { map: game.mapId, y: Math.round(game.player.y), ropeY: rope?.y, door: door && { to: door.def?.to, spawn: door.def?.spawn } }; });
+  check(!leftHall && blocked.map === 'youngcle11' && blocked.y + 16 <= blocked.ropeY + 1 && blocked.door?.to === 'youngcle10' && blocked.door?.spawn === 'from_hall', '연출 뒤 홀 아래는 관객석 줄이 막는다(아래 문은 윗길로 연결) ' + JSON.stringify(blocked));
   // 3) 철창이 안 뚫린 상태: 위 문은 잠김(내레이션)
   await page.goto('http://localhost:8000/?qa=park_guardian_after_grate');
   await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle7' && !game.transitioning && !game.dialogue.running, null, { timeout: 20000 });

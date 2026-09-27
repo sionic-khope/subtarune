@@ -2,6 +2,7 @@
 //   → "어라" / "어떻게든" → 안내 창(C 로만) → C → 점프(jump sfx, jumpY>0) → 벽1 넘음 → 컷신 끝(정상 조작) → 벽2 안 누르고 쿵 → C 점프로 넘음 → 벽3~5 타이밍 점프
 //   → 도착: Swimmer 제거, 억빠맨 뭍에서 마주 봄, 물 털기(jitter+물방울) → 대사 3줄 → void8_done. 기존 뗏목(void2)은 C 눌러도 점프 안 됨.
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });   // logs 가 아직 없어도(TDZ) 진짜 에러를 보여 준다
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
@@ -11,7 +12,8 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
-const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 15000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player))) return; await page.waitForTimeout(100); } };
+// 'title' = 타이틀 입력 가능(타이틀엔 맵·player 가 없다), 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
 const st = () => page.evaluate(() => { const r = game.entities.find((e) => e.id === 'raft8'); const f = game.entities.find((e) => e.def?.type === 'follower'); const sw = game.entities.find((e) => e.def?.type === 'swimmer' && !e.dead); return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', prompt: game.prompt?.text || null, ride: !!game.ride, p: [Math.round(game.player.x), Math.round(game.player.y)], pf: game.player.facing, f: f ? { x: Math.round(f.x), y: Math.round(f.y), vis: f.visible, facing: f.facing, jitter: !!f.jitter } : null, sw: sw ? { x: Math.round(sw.x), y: Math.round(sw.y), lift: Math.round(sw.lift) } : null, raft: r ? { x: Math.round(r.x), moving: r.moving, blocked: r.blocked?.id || null, jumping: r.jumping, jumpY: Math.round(r.jumpY), hits: r.hits, canJump: r.canJump() } : null, fx: game.fx.length, flags: { ...game.flags }, sfx: (window.__sfx || []).slice() }; });
 const hookSfx = () => page.evaluate(() => { window.__sfx = []; const o = game.sound.sfx.bind(game.sound); game.sound.sfx = (n, opt) => { window.__sfx.push(n); return o(n, opt); }; });
 const advance = async (max, stopWhen) => {   // 대사 넘기며 (speaker|text) 수집. stopWhen(s) 가 true 면 멈춤
@@ -21,13 +23,13 @@ const advance = async (max, stopWhen) => {   // 대사 넘기며 (speaker|text) 
 const walls = [908, 1420, 1932, 2444, 2956]; const END = 3136;
 
 // ── 0) 기존 뗏목(void2): C 눌러도 점프 안 됨 ──
-await page.goto('http://127.0.0.1:8000/index.html?qa=raft'); await ready(); await page.waitForTimeout(400);
+await page.goto(`${QA_BASE}index.html?qa=raft`); await ready(); await page.waitForTimeout(400);
 await page.keyboard.press('KeyC'); await page.waitForTimeout(600);
 { let jumped = false; for (let i = 0; i < 5; i++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(120); const q = await page.evaluate(() => ({ ride: !!game.ride, jy: game.ride ? game.ride.jumpY : -1, j: game.ride ? game.ride.jumping : false })); if (q.jy > 0 || q.j) jumped = true; }
   check('void2 raft: C during ride does NOT jump (no swimmer)', !jumped); }
 
 // ── 1) 탑승 컷신 ──
-await page.goto('http://127.0.0.1:8000/index.html?qa=raft8'); await ready(); await page.waitForTimeout(400); await hookSfx();
+await page.goto(`${QA_BASE}index.html?qa=raft8`); await ready(); await page.waitForTimeout(400); await hookSfx();
 let s = await st(); check('qa=raft8: void8 dock with party, raft at start', s.map === 'void8' && s.f && s.raft && s.raft.x === 224 && !s.flags.void8_intro, JSON.stringify({ p: s.p, f: s.f, raft: s.raft }));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(500); s = await st();
 check('C boards: player on raft, raft NOT moving, cutscene running, follower still on the dock (visible)', s.ride && s.raft && !s.raft.moving && s.running && s.f?.vis && s.p[0] > 220, JSON.stringify({ ride: s.ride, raft: s.raft, f: s.f, p: s.p }));
@@ -97,7 +99,7 @@ check('after escape the raft is rideable again from the entrance (no intro repla
 await openEscape(); await page.keyboard.press('KeyC'); await page.waitForTimeout(1500); s = await st();
 check('escape mid-ride: back at entrance, raft back at start, follower visible', !s.ride && Math.abs(s.p[0] - 190) < 8 && s.raft.x === 224 && s.f?.vis && !s.sw, JSON.stringify({ p: s.p, raft: s.raft, f: s.f }));
 // 재로드: 뗏목은 끝에, 동료는 뒤에, 컷신 안 반복
-await page.goto('http://127.0.0.1:8000/index.html'); await ready(); for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(400); if ((await page.evaluate(() => game.state)) !== 'title') break; } await page.waitForTimeout(500); s = await st();   // 타이틀 → 이어하기(자동저장)
+await page.goto(`${QA_BASE}index.html`); await ready("title"); for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(400); if ((await page.evaluate(() => game.state)) !== 'title') break; } await ready(); await page.waitForTimeout(300); s = await st();   // 타이틀 → 이어하기(자동저장)
 check('continue (autosave): void8 with follower, no cutscene, raft at the entry side', s.map === 'void8' && s.raft?.x === 224 && s.f?.vis && !s.running && !s.sw, JSON.stringify({ raft: s.raft, f: s.f, running: s.running }));
 await browser.close();
 logs.push(`fails=${fails}`);

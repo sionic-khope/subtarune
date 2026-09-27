@@ -138,7 +138,7 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   const ocean = await beat('ocean_rise', 'castle_10_ocean_rise');
   const castleBgm = await page.evaluate(() => ({ name: game.sound.bgmName, src: game.sound.bgm?.src, loop: game.sound.bgm?.loop,
     request: window.__shipCastleQA.bgm.find(entry => entry.name === 'ship_castle') }));
-  check('specified full-track BGM starts non-looping on the window impact and is still running at sea', castleBgm.name === 'ship_castle' && castleBgm.src.endsWith('/assets/audio/bgm/ship_castle.mp3') && castleBgm.loop === false && castleBgm.request?.options?.loop === false, JSON.stringify(castleBgm));
+  check('specified full-track BGM starts non-looping on the window impact and is still running at sea', castleBgm.name === 'ship_castle' && new URL(castleBgm.src).pathname.endsWith('/assets/audio/bgm/ship_castle.mp3') && castleBgm.loop === false && castleBgm.request?.options?.loop === false, JSON.stringify(castleBgm));
   check('ocean presentation takes over the full frame', ocean.fullFrame === true);
   check('establishing view starts with two complete connected ships and tiny airborne actors', ocean.geometry.maillard.y + ocean.geometry.maillard.height < 360 && ocean.geometry.warship.y + ocean.geometry.warship.height < 360 && ocean.ascent.scale < 0.15, JSON.stringify(ocean));
   await page.waitForTimeout(1000);
@@ -346,8 +346,9 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
     await press('KeyC');
     await page.waitForTimeout(250);
   }
-  await press('KeyQ');
-  check('title Q opens the QA menu', !!await until(() => game.title.qa, 3000));
+  // QA 목록은 Shift+Q 로만(사용자 2026-09-25, src/core/input.js)
+  await press('Shift+KeyQ');
+  check('title Shift+Q opens the QA menu', !!await until(() => game.title.qa, 3000));
   const qaIds = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.filter(point => !point.hidden).map(point => point.id));
   check('QA menu data includes castle, sinking, and shore checkpoints', ['ship_castle', 'ship_sinking', 'jjajang_shore'].every(id => qaIds.includes(id)), JSON.stringify(qaIds.slice(-8)));
   await shot('castle_36_title_qa');
@@ -403,7 +404,7 @@ async function powershotFocus({ page, check, until, open, press, shot, fixture }
     const audio = window.__powershot.handle;
     return { src: audio.currentSrc, currentTime: audio.currentTime, paused: audio.paused, rate: audio.playbackRate, duration: audio.duration, muted: audio.muted, volume: audio.volume, sceneTime: game.shipCastle.elapsed };
   });
-  check('unmodified full clip plays once at its native speed with audible gain', playback.src.endsWith('/assets/audio/sfx/energetic_powershot.mp3') && playback.duration > 10.2 && playback.duration < 10.4 && playback.rate === 1 && !playback.paused && !playback.muted && playback.volume > 0, JSON.stringify(playback));
+  check('unmodified full clip plays once at its native speed with audible gain', new URL(playback.src).pathname.endsWith('/assets/audio/sfx/energetic_powershot.mp3') && playback.duration > 10.2 && playback.duration < 10.4 && playback.rate === 1 && !playback.paused && !playback.muted && playback.volume > 0, JSON.stringify(playback));
   await shot('powershot_02_audio_gather');
   check('audio gathers before any castle appears', !!await until(() => game.shipCastle?.elapsed >= 4.2, 6000));
   const gathering = await page.evaluate(() => game.shipCastle.snapshot());

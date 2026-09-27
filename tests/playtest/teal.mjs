@@ -40,6 +40,8 @@ const talk = async (x, y, f, picks = []) => {   // C → 대사 넘김, 선택�
   return out;
 };
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); await page.waitForTimeout(150); };
+// 문/길 전환은 맵을 필요할 때 받아 오므로(검은 화면 ~1–2s) 고정 900ms 대신 전환이 끝날 때까지 기다린다
+const afterDoor = async (ms = 10000) => { await page.waitForTimeout(250); const t0 = Date.now(); while (Date.now() - t0 < ms && await page.evaluate(() => game.transitioning || game.fade.alpha > 0.05)) await page.waitForTimeout(80); await page.waitForTimeout(200); };
 
 await page.goto('http://127.0.0.1:8000/index.html?qa=teal1'); await ready(); await page.waitForTimeout(700);
 let s = await st();
@@ -56,7 +58,7 @@ await page.screenshot({ path: `${S}/teal_01_road.png` });
   let puffs = 0, shots = 0; const t0 = Date.now(); while (Date.now() - t0 < 4500) { await page.waitForTimeout(150); const q = await page.evaluate(() => { const e = game.entities.find((x) => x.id === 'spitter1'); return { puffs: e.puffs.length, shots: e.shots }; }); puffs = Math.max(puffs, q.puffs); shots = q.shots; if (shots >= 1 && puffs >= 6) { await page.screenshot({ path: `${S}/teal_01b_pollen.png` }).catch(() => {}); break; } }
   const p1 = await st(); check('spitter1 fires white pollen toward the player; player unaffected (no hurt, no move)', shots >= 1 && puffs >= 6 && p1.p[0] === p0.p[0] && p1.p[1] === p0.p[1] && (await page.evaluate(() => game.hurt || 0)) === hurt0, JSON.stringify({ shots, puffs, p0: p0.p, p1: p1.p })); }
 // 오른쪽 끝 → teal2
-await stand(62 * 32 - 60, 6 * 32 + 8, 'right'); await hold('ArrowRight', 900); await page.waitForTimeout(900); s = await st();
+await stand(62 * 32 - 60, 6 * 32 + 8, 'right'); await hold('ArrowRight', 900); await afterDoor(); s = await st();
 check('right edge → teal2, bgm Field of Hopes and Dreams', s.map === 'teal2' && s.bgm === 'hopes' && s.f.length === 2, JSON.stringify({ map: s.map, bgm: s.bgm, f: s.f.length }));
 const meta = (await mapdef('teal2')).meta;
 const wallX = meta.wallCol * 32;
@@ -111,9 +113,9 @@ await page.screenshot({ path: `${S}/teal_02_wall.png` });
   await page.screenshot({ path: `${S}/teal_06_plaza.png` }); }
 // 위로 가는 길 → teal3 → 되돌아오기
 { const up = meta.upCols; check('up path starts from the top of the central plaza (cols 20~22), not beside the statue wall', up[0] === 20 && up[1] === 22 && (await page.evaluate(() => !game.map.solidRect(21 * 32 + 4, 8 * 32, 24, 16))), JSON.stringify(up)); }
-await stand(21 * 32 + 4, 4 * 32, 'up'); await page.screenshot({ path: `${S}/teal_04_up.png` }); await hold('ArrowUp', 1200); await page.waitForTimeout(900); s = await st();
+await stand(21 * 32 + 4, 4 * 32, 'up'); await page.screenshot({ path: `${S}/teal_04_up.png` }); await hold('ArrowUp', 1200); await afterDoor(); s = await st();
 check('up path → teal3 placeholder, party intact, bgm hopes', s.map === 'teal3' && s.f.length === 2 && s.bgm === 'hopes', JSON.stringify({ map: s.map, f: s.f.length, bgm: s.bgm }));
-await hold('ArrowDown', 1200); await page.waitForTimeout(900); s = await st();
+await hold('ArrowDown', 1200); await afterDoor(); s = await st();
 check('back down → teal2 from_top', s.map === 'teal2' && s.p[1] < 200, JSON.stringify({ map: s.map, p: s.p }));
 await browser.close();
 logs.push(`fails=${fails}`);

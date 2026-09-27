@@ -92,12 +92,14 @@ const BOOT_PRELOAD_DEPTH = 2;
 const TITLE_SFX = ['menu', 'confirm', 'cancel', 'chime', 'door', 'battle_start'];
 
 function mapScriptAssets(mapId, def) {
-  const portraits = new Set(), playerMotions = new Set(), sfx = new Set(), entrySfx = new Set(), sprites = new Set();
+  const portraits = new Set(), playerMotions = new Set(), sfx = new Set(), entrySfx = new Set(), sprites = new Set(), images = new Set();
   const visit = (node, urgent) => {
     if (Array.isArray(node)) { node.forEach(item => visit(item, urgent)); return; }
     if (!node || typeof node !== 'object') return;
     if (node.portrait) portraits.add(node.portrait);
-    if (node.spawn?.sprite) sprites.add(node.spawn.sprite);   // 컷신이 spawn 하는 배우의 시트·모션도 맵과 함께 준비(BUILD269: 토리이 청소부·teal3 CS·라운지 그림자가 문자 도트로 뜨던 빈틈)
+    if (node.spawn?.sprite) sprites.add(node.spawn.sprite);
+    // 컷신이 spawn 하는 소품 그림도 맵과 함께(BUILD393: 옵젝영역2 발 달린 알이 불러오기 전 보라 네모로 뛰던 빈틈)
+    if (node.spawn?.image) images.add(node.spawn.image);   // 컷신이 spawn 하는 배우의 시트·모션도 맵과 함께 준비(BUILD269: 토리이 청소부·teal3 CS·라운지 그림자가 문자 도트로 뜨던 빈틈)
     if (node.motion === 'player' && node.name) playerMotions.add(node.name);
     if (node.sfx) { sfx.add(node.sfx); if (urgent) entrySfx.add(node.sfx); }
     if (node.boom?.sfx) { sfx.add(node.boom.sfx); if (urgent) entrySfx.add(node.boom.sfx); }
@@ -105,7 +107,7 @@ function mapScriptAssets(mapId, def) {
     if (node.parallel) visit(node.parallel, urgent);
   };
   for (const id of [mapId === 'room' ? 'opening' : null, def.enter?.script, ...(def.entities || []).flatMap(e => [e.script, e.lockedScript])]) if (SCRIPTS[id]) visit(SCRIPTS[id], id === def.enter?.script || id === 'opening' || (mapId === 'room' && id === 'room_computer'));
-  return { portraits, playerMotions, sfx, entrySfx, sprites };
+  return { portraits, playerMotions, sfx, entrySfx, sprites, images };
 }
 
 class Game {
@@ -841,6 +843,7 @@ class Game {
       this.mapAssets.prepare(mapId),
       ...(mapId === 'maillard_captain' ? [preloadCaptainMemories()] : []),
       ...(scriptAssets.entrySfx.size ? [this.sound.loadSfxFiles([...scriptAssets.entrySfx])] : []),
+      ...[...(scriptAssets.images || [])].filter(src => !this.propImages[src]).map(src => loadImageOptional(src).then(im => { if (im) this.propImages[src] = im; })),
     ]);
     this.mapImages[mapId] = this.mapAssets.images[def.image] || null;
     const names = new Set([

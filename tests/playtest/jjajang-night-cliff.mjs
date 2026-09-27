@@ -126,19 +126,35 @@ await runScenario({ name: 'jjajang-night-cliff', launchOptions: { args: ['--auto
   check('same music continues through the exchange', last.bgm === wide.bgm && last.musicTime > wide.musicTime);
   await verifyRunaway({ page, check, shot, until, press, fixture }, before, advance);
   const after = await snapshot();
-  check('solo identity HP and money preserved', after.actors.player.sprite === before.actors.player.sprite && after.actors.player.visible && JSON.stringify(after.party) === JSON.stringify(before.party) && JSON.stringify(after.hp) === JSON.stringify(before.hp) && after.money === before.money);
+  // 꽃 최미스가 떠난 뒤 경섭·억빠맨이 다시 합류한다(choimis_flower 장면 끝) — 요플래 정체성·HP·돈은 그대로
+  check('Yop identity HP and money preserved while K and P regroup', after.actors.player.sprite === before.actors.player.sprite && after.actors.player.visible && before.party.length === 0 && JSON.stringify(after.party) === JSON.stringify(['gyeongsub', 'ppaman']) && JSON.stringify(after.hp) === JSON.stringify(before.hp) && after.money === before.money, JSON.stringify({ before: before.party, after: after.party }));
   check('night sequence continues through the food event once', !after.inventory.includes('어둠의 짜장면') && after.flags.night_cliff_scene_done && after.flags.sakura8_right_open && after.flags.choimis_runaway_done);
-  check('camera and current aura music restored', !after.camera.locked && after.bgm === 'captain_reveal');
+  // 도주가 끝난 숲5 는 조용하다(storyBgm: jjajang_sakura5 + choimis_runaway_done → null). 옛 오라 브금(captain_reveal)은 꽃 장면에서 choimis 로 바뀌었다가 떠나며 멈춘다
+  check('camera restored and Sakura5 stays silent after the flower departure', !after.camera.locked && !after.bgm, JSON.stringify({ locked: after.camera.locked, bgm: after.bgm, map: after.map }));
   await shot('13_full_chain_return');
   await press('ArrowRight', { delay: 250 });
   check('movement works after the remote scene', (await snapshot()).actors.player.x > after.actors.player.x);
-  await fixture('completed-fork-entry', 'Load existing completed state at Sakura8 after spawn; use actual arrows to verify the newly open physical route and return.', async () => { await window.game.changeMap('jjajang_sakura8', 'after', true); });
-  check('unblocked right route enters night map with arrow input', await walk('ArrowRight', () => window.game.mapId === 'jjajang_night_cliff', 14000));
+  // 꽃 최미스가 떠난 뒤(choimis_flower_done) 숲8 오른쪽 길은 밤 해안(jjajang_night_coast1)으로 이어지고, 밤 절벽은 해안 3 동쪽 끝에서 들어간다(BUILD29x 달빛 해안 추적).
+  await fixture('completed-fork-entry', 'Load existing completed state at Sakura8 after spawn; use actual arrows to verify the newly open physical route toward the moonlit coast.', async () => { await window.game.changeMap('jjajang_sakura8', 'after', true); });
+  await until(() => !window.game.transitioning, 10000); await page.waitForTimeout(300);
+  await page.keyboard.down('ArrowRight');
+  const entryChat = await until(() => window.game.dialogue.running && window.game.flags.night_coast_entry_seen, 14000);
+  await page.keyboard.up('ArrowRight');
+  check('open right route first plays the party coast-entry exchange', !!entryChat && (await snapshot()).text?.includes('떨리네요'));
+  for (let i = 0; i < 30 && await page.evaluate(() => window.game.dialogue.running); i++) await advance();
+  const routeOk = await walk('ArrowRight', () => window.game.mapId === 'jjajang_night_coast1', 14000);
+  check('unblocked right route enters the moonlit coast with arrow input', routeOk, JSON.stringify(await snapshot().then(s => ({ map: s.map, x: s.actors.player.x, y: s.actors.player.y, dialogue: s.dialogue, text: s.text, party: s.party }))));
+  await until(() => !window.game.transitioning, 10000); await page.waitForTimeout(450);
+  await shot('14a_coast_entry');
+  await fixture('coast3-east-end', 'Skip the coast lever/raft traversal (covered by jjajang-night-coast); start at the east end of coast 3 with the same completed state and walk into the cliff with arrows.', async () => { await window.game.changeMap('jjajang_night_coast3', 'from_east', true); });
+  await until(() => !window.game.transitioning, 10000); await page.waitForTimeout(300);
+  check('coast 3 east exit enters the night cliff with arrow input', await walk('ArrowRight', () => window.game.mapId === 'jjajang_night_cliff', 14000));
   await until(() => !window.game.transitioning, 10000); await page.waitForTimeout(450);
   const revisit = await snapshot();
-  check('revisit keeps visible Yop and does not replay', revisit.map === 'jjajang_night_cliff' && !revisit.dialogue && revisit.actors.player.visible && !revisit.actors.choimis && !revisit.actors.gyeongsub);
+  const sceneActors = await page.evaluate(() => window.game.entities.filter(e => !e.dead && ['choimis', 'gyeongsub'].includes(e.id) && e.def?.type !== 'follower').map(e => e.id));
+  check('revisit keeps visible Yop and does not replay', revisit.map === 'jjajang_night_cliff' && !revisit.dialogue && revisit.actors.player.visible && !revisit.actors.choimis && sceneActors.length === 0, JSON.stringify({ map: revisit.map, dialogue: revisit.dialogue, sceneActors }));
   await shot('14_revisit');
-  check('left exit returns to fork without C', revisit.map === 'jjajang_night_cliff' && await walk('ArrowLeft', () => window.game.mapId === 'jjajang_sakura8', 8000));
+  check('left exit returns to the coast without C', revisit.map === 'jjajang_night_cliff' && await walk('ArrowLeft', () => window.game.mapId === 'jjajang_night_coast3', 8000));
   await until(() => !window.game.transitioning, 10000);
   await shot('15_fork_return');
 });

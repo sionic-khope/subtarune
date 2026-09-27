@@ -30,7 +30,7 @@ try {
       return result;
     };
   });
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/?qa=obj4_battle`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=obj4_battle`);
   await until(() => !!window.game?.player);
   await press('KeyX');
   await until(() => !game.transitioning && game.fade.alpha < 0.1);
@@ -95,4 +95,11 @@ try {
   }
   fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify({ checks, captures, events, audio, errors, fixture: 'Mode entry only; no guard clock/lane edits; no full fight replay.' }, null, 2));
   console.log(`PASS ${checks.length} checks, ${captures.length} captures; ${dir}`);
+  // 러너(runner-utils classifyResult)는 fails= 표식을 요구한다
+  console.log('fails=0');
+} catch (error) {
+  // check() 는 assert 로 즉시 던진다 — 실패도 표식과 종료 코드로 남긴다
+  console.log('FAIL', error.message);
+  console.log('fails=1');
+  process.exitCode = 1;
 } finally { await browser.close(); }

@@ -3,7 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 
-const base = process.env.BASE_URL || 'http://localhost:8772';
+const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const out = process.env.SHOT_DIR || '/tmp/shop114-integration';
 fs.mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });

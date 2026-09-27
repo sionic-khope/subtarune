@@ -2,6 +2,7 @@
 // 첨벙 소리 횟수, 뗏목 속도(+50%), 보라맵 문 무음, void2 표지판.
 // 실행: CHROME_EXE=... node tests/playtest/void3.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -10,6 +11,8 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
+// 부팅이 끝날 때까지(맵 지연 적재 ~1.4s) 고정 대기 대신 실제 상태를 기다린다: 'title' = 타이틀 입력 가능, 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
 const st = () => page.evaluate(() => ({ map: game.mapId, ride: !!game.ride, p: [Math.round(game.player.x), Math.round(game.player.y)], facing: game.player.facing, running: game.dialogue.running, text: game.textbox.node?.text || '', sfx: window.__sfx || [] }));
 const finish = async () => { for (let i = 0; i < 12; i++) { await page.waitForTimeout(200); const s = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state })); if (!s.running) break; if (s.box !== 'closed') await page.keyboard.press('KeyC'); } };
 const hookSfx = () => page.evaluate(() => { window.__sfx = []; const s = game.sound; const o = s.sfx.bind(s); s.sfx = (n, opt) => { window.__sfx.push(n); return o(n, opt); }; });
@@ -26,7 +29,7 @@ const ride = async (x, y, f, label) => {
 };
 
 // void2 표지판 + 문 무음 + 속도
-await page.goto('http://127.0.0.1:8000/index.html?qa=raft'); await page.waitForTimeout(1000); await hookSfx();
+await page.goto(`${QA_BASE}index.html?qa=raft`); await ready(); await hookSfx();
 await page.evaluate(() => { game.fade.color = '255,255,255'; });   // 직전 컷신이 흰 페이드를 남긴 상황 재현
 let t = await readSign(48, 136, 'up'); check('void2 sign text', t.includes('앞으로만 가는 땟목'), t);
 let r = await ride(100, 112, 'right', 'void2 raft');

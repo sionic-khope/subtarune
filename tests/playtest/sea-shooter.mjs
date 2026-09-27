@@ -26,7 +26,7 @@ const intro = async () => {
   await page.waitForFunction(() => game.seaChase?.model.phase === 'fight');
 };
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8767'}/?qa=obj5_sea`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=obj5_sea`);
   await page.waitForFunction(() => !!window.game?.player);
   await page.keyboard.press('KeyX', { delay: 50 });
   await intro();
@@ -107,9 +107,11 @@ try {
     await page.waitForTimeout(60);
   }
   await page.keyboard.up('KeyC'); if (held) await page.keyboard.up(held);
-  check('normal-clock actual-key shooting clears all 400 HP', await page.evaluate(() => game.seaChase?.model.outcome === 'cleared' && game.seaChase.model.hits === 400), { elapsedMs: Date.now() - start, last: samples.at(-1) });
+  // 체력·분노 문턱은 게임 데이터(BARON_SEA_CHASE.hitsToClear, enrage.remaining)에서 읽는다 — 밸런스가 바뀌어도 규칙(전부 맞혀 클리어, 남은 30% 에서 포효 한 번)을 잰다
+  const tuning = await page.evaluate(async () => { const { BARON_SEA_CHASE: c } = await import('/src/data/baron-sea-chase.js'); return { hp: c.hitsToClear, roarAt: Math.ceil(c.hitsToClear * (1 - c.enrage.remaining)), remaining: c.enrage.remaining }; });
+  check(`normal-clock actual-key shooting clears all ${tuning.hp} HP`, await page.evaluate(hp => game.seaChase?.model.outcome === 'cleared' && game.seaChase.model.hits === hp, tuning.hp), { elapsedMs: Date.now() - start, last: samples.at(-1) });
   check('enrage and sweeping breath observed', capturedEnrage && capturedSweep);
-  check('threshold roar occurs exactly once at 30 percent HP', await page.evaluate(() => window.seaRoars.length === 1 && window.seaRoars[0].hits === 280), await page.evaluate(() => window.seaRoars));
+  check(`threshold roar occurs exactly once at ${Math.round(tuning.remaining * 100)} percent HP (hit ${tuning.roarAt})`, await page.evaluate(at => window.seaRoars.length === 1 && window.seaRoars[0].hits === at, tuning.roarAt), await page.evaluate(() => window.seaRoars));
   check('clear hands living boss to Maillard follow-up without starting battle', await page.evaluate(() => !!game.seaChase && game.flags.obj5_chase_cleared && !!game.maillardArrival && !game.battle));
   await shot('cleared');
   await page.setViewportSize({ width: 375, height: 812 }); await shot('narrow');

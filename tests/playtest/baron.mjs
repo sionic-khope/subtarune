@@ -46,52 +46,103 @@ async function enter() {
 }
 // Receding-horizon steering reads current, visibly rendered projectiles. It cannot
 // move the soul directly or inspect a future random pattern; real keys move it.
+// Baron's anatomy hazards move along their own visible paths (bullet.steer, driven only by that bullet's age),
+// so the planner projects each *already visible* hazard forward on a throwaway copy instead of treating it as static.
 async function dodge() {
   const choice = await page.evaluate(() => {
-    const b = game.battle, s = b.soul, box = b.board;
-    const directions = [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-.7071,-.7071],[.7071,-.7071],[-.7071,.7071],[.7071,.7071]];
-    let best = 0, min = Infinity;
-    directions.forEach(([dx,dy], index) => {
-      let cost = 0;
-      for (const t of [.12,.25,.4,.6,.8]) {
-        const x = Math.max(box.x+10, Math.min(box.x+box.w-10, s.x+dx*s.speed*t));
-        const y = Math.max(box.y+10, Math.min(box.y+box.h-10, s.y+dy*s.speed*t));
-        for (const p of b.bullets) {
-          if (p.life && p.age+t > p.life && !p.harmless) continue;
-          let clearance;
-          if (p.cells) {
-            if (p.harmless) continue;
-            clearance = Math.min(...p.cells.map(cell => {
-              const left = Math.round(p.x) + Math.round(cell.x), top = Math.round(p.y) + Math.round(cell.y);
-              const outsideX = Math.max(left-x,0,x-left-cell.w), outsideY = Math.max(top-y,0,y-top-cell.h);
-              return Math.hypot(outsideX,outsideY)-7;
-            }));
-          } else if (p.zone) {
-            const outsideX = Math.max(p.x-x,0,x-p.x-p.w), outsideY = Math.max(p.y-y,0,y-p.y-p.h);
-            clearance = Math.hypot(outsideX,outsideY)-7;
-            if (clearance <= 0) clearance -= Math.min(x-p.x,p.x+p.w-x,y-p.y,p.y+p.h-y);
-          } else {
-            if (p.harmless) continue;
-            clearance = Math.hypot(x-p.x-p.vx*t,y-p.y-p.vy*t)-p.r-7;
-          }
-          const activation = (p.zone || p.cells) && p.age+t < p.warn ? .6 : 1;
-          cost += activation * (clearance < 0 ? 500-clearance*12 : 24/(clearance+3)) / (t+.3);
+    const b = game.battle, s = b.soul, box = b.board, m = 4 + s.r, hitR = Math.max(0, s.r - 2);
+    const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-.7071,-.7071],[.7071,-.7071],[-.7071,.7071],[.7071,.7071]];
+    const times = [.05,.1,.15,.2,.27,.34,.42,.5,.6,.72,.85];
+    const hazards = b.bullets.filter(p => !p.harmless);
+    // future hazard position at +t: copy the bullet and let its own path function place the copy
+    const future = hazards.map(p => times.map(t => {
+      const age = p.age + t;
+      if (p.life && age >= p.life) return null;
+      let x = p.x + (p.vx || 0) * t, y = p.y + (p.vy || 0) * t;
+      if (p.steer) { const copy = { ...p, age }; try { p.steer.call(null, copy, t); x = copy.x; y = copy.y; } catch { /* keep linear */ } }
+      return { x, y, active: !(p.warn && age < p.warn) };
+    }));
+    const clearance = (p, f, x, y) => {
+      if (p.cells) {
+        const bx = Math.round(f.x), by = Math.round(f.y);
+        let best = Infinity;
+        for (const c of p.cells) {
+          const left = bx + Math.round(c.x), top = by + Math.round(c.y);
+          const ox = Math.max(left - x, 0, x - left - c.w), oy = Math.max(top - y, 0, y - top - c.h);
+          const d = Math.hypot(ox, oy); if (d < best) best = d;
         }
-        cost += .001 * Math.hypot(x-(box.x+box.w/2),y-(box.y+box.h/2));
+        return best - hitR;
       }
-      if (cost < min) { min=cost; best=index; }
-    });
-    const [dx,dy] = directions[best];
-    return [...(dx<0?['ArrowLeft']:dx>0?['ArrowRight']:[]),...(dy<0?['ArrowUp']:dy>0?['ArrowDown']:[])];
+      if (p.zone) { const ox = Math.max(p.x - x, 0, x - p.x - p.w), oy = Math.max(p.y - y, 0, y - p.y - p.h); return Math.hypot(ox, oy) - hitR; }
+      return Math.hypot(x - f.x, y - f.y) - (p.r || 0) - hitR;
+    };
+    // plans: hold one direction, or move for a moment then stop, or change direction mid-way
+    const plans = [];
+    for (let a = 0; a < dirs.length; a++) { plans.push([a, a, 9]); plans.push([a, 0, .2]); plans.push([a, 0, .42]); for (let c = 1; c < dirs.length; c++) if (c !== a) plans.push([a, c, .3]); }
+    let best = null, min = Infinity;
+    for (const [a, c, switchAt] of plans) {
+      let x = s.x, y = s.y, prev = 0, cost = 0;
+      for (let k = 0; k < times.length && cost < min; k++) {
+        const t = times[k], dt = t - prev; prev = t;
+        const [dx, dy] = dirs[t <= switchAt ? a : c];
+        x = Math.max(box.x + m, Math.min(box.x + box.w - m, x + dx * s.speed * dt));
+        y = Math.max(box.y + m, Math.min(box.y + box.h - m, y + dy * s.speed * dt));
+        for (let i = 0; i < hazards.length; i++) {
+          const f = future[i][k]; if (!f) continue;
+          const p = hazards[i];
+          if (!p.zone && (Math.abs(f.x - x) > 64 || Math.abs(f.y - y) > 64)) continue;
+          const cl = clearance(p, f, x, y);
+          if (cl > 40) continue;
+          const weight = f.active ? 1 : .15;
+          cost += weight * (cl < 1 ? 800 - cl * 20 : 18 / (cl + 2)) / (t + .25);
+        }
+        cost += .002 * Math.hypot(x - (box.x + box.w / 2), y - (box.y + box.h / 2));
+      }
+      if (cost < min) { min = cost; best = a; }
+    }
+    const [dx, dy] = dirs[best ?? 0];
+    return [...(dx < 0 ? ['ArrowLeft'] : dx > 0 ? ['ArrowRight'] : []), ...(dy < 0 ? ['ArrowUp'] : dy > 0 ? ['ArrowDown'] : [])];
   });
   await keys(choice);
+}
+// Healing uses the ordinary battle ITEM menu with real keys: ITEM button → the healing item → the wounded member.
+// Only items the party really carries at this QA point (derived from story flags) are used.
+async function healPlan() {
+  return page.evaluate(async () => {
+    const { ITEMS } = await import('/src/data/items.js');
+    const b = game.battle, me = b.members[b.memberIdx];
+    if (!me || me.down) return null;
+    const plain = game.inventory.filter(name => ITEMS[name]?.kind === 'plain');
+    const reserved = b.plans.filter(plan => plan.type === 'item').map(plan => plan.name);
+    const left = [...plain]; for (const name of reserved) { const i = left.indexOf(name); if (i >= 0) left.splice(i, 1); }
+    const heals = left.filter(name => (ITEMS[name].heal || 0) > 0);
+    if (!heals.length) return null;
+    const planned = new Set(b.plans.filter(plan => plan.type === 'item').map(plan => plan.target?.id));
+    const wounded = b.members.map((m, index) => ({ m, index })).filter(({ m }) => !m.down && !planned.has(m.id) && m.hp <= Math.max(30, m.maxHp * 0.3))
+      .sort((x, y) => x.m.hp / x.m.maxHp - y.m.hp / y.m.maxHp)[0];
+    if (!wounded) return null;
+    const name = heals.sort((x, y) => ITEMS[y].heal - ITEMS[x].heal)[0];
+    return { name, itemIdx: plain.indexOf(name), target: wounded.index, targetId: wounded.m.id, hp: wounded.m.hp };
+  });
+}
+async function useHeal(plan) {
+  for (let k = 0; k < 4 && await page.evaluate(() => game.battle.menuButtons()[game.battle.menuIdx]?.kind !== 'item'); k++) { await page.keyboard.press('ArrowRight', { delay: 40 }); await page.waitForTimeout(50); }
+  await page.keyboard.press('KeyC', { delay: 40 });
+  if (!await until(() => game.battle?.state === 'item', 1500)) return false;
+  for (let k = 0; k < 12 && await page.evaluate(i => game.battle.itemIdx !== i, plan.itemIdx); k++) { await page.keyboard.press('ArrowDown', { delay: 40 }); await page.waitForTimeout(50); }
+  await page.keyboard.press('KeyC', { delay: 40 });
+  if (!await until(() => game.battle?.state === 'item-target', 1500)) return false;
+  for (let k = 0; k < 6 && await page.evaluate(i => game.battle.itemTargetIdx !== i, plan.target); k++) { await page.keyboard.press('ArrowRight', { delay: 40 }); await page.waitForTimeout(50); }
+  await page.keyboard.press('KeyC', { delay: 40 });
+  await page.waitForTimeout(110);
+  return true;
 }
 try {
   await enter();
   const initial = await snapshot();
   check('encounter starts with Baron HP250, ordinary modes, Black Knife key', initial.hp === 250 && initial.maxHp === 250 && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
   await capture('baron_01_menu');
-  let lastRound = -1, cannonShots = 0;
+  let lastRound = -1, cannonShots = 0, healsUsed = 0;
   const deadline = Date.now() + 360000 * Math.max(1, initial.maxHp / 100);
   while (Date.now() < deadline) {
     const s = await snapshot();
@@ -114,19 +165,23 @@ try {
         cannonShots++;
       }
       if (s.state === 'menu' && s.pattern !== lastRound) { lastRound=s.pattern; rounds.push(s); console.log(`ROUND ${s.pattern} Baron=${s.hp} party=${s.members.map(m=>m.hp)} hits=${s.hits}`); }
+      // 대포 차례가 아니면, 크게 다친 동료가 있을 때 실제 ITEM 메뉴로 회복템을 쓴다
+      const heal = s.state === 'menu' && await page.evaluate(() => game.battle.menuButtons()[game.battle.menuIdx]?.kind !== 'support') ? await healPlan() : null;
+      if (heal) { if (await useHeal(heal)) { healsUsed++; console.log(`HEAL ${heal.name} → ${heal.targetId} (hp ${heal.hp})`); } continue; }
       await page.keyboard.press('KeyC');
       await page.waitForTimeout(110);
     } else if (s.state === 'bullets') {
       const index = (s.pattern-1)%6;
       await dodge();
       if (!patterns.has(index) && s.t > 1.35 && s.bullets) { await capture(`baron_pattern_${index+1}`); patterns.add(index); }
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(25);
     } else { await keys([]); await page.waitForTimeout(90); }
   }
   await keys([]);
   const victory = await snapshot();
   check('keyboard attacks plus the cannon defeat full HP250 Baron', victory?.state === 'win' && victory.hp === 0, victory);
   check('the cannon was fired', cannonShots > 0, String(cannonShots));
+  console.log(`healing items used through the ITEM menu: ${healsUsed}`);
   check('six natural enemy patterns observed', patterns.size === 6, [...patterns]);
   await capture(victory?.state === 'win' ? 'baron_02_victory' : 'baron_primary_failure');
   if (victory?.state !== 'win') throw new Error('Primary victory failed; no forced checks run');

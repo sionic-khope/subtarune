@@ -15,6 +15,8 @@ const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 1500
 const st = () => page.evaluate(() => { const ent = (id) => { const e = game.entities.find((x) => x.id === id); return e ? { x: Math.round(e.x), y: Math.round(e.y), facing: e.facing, hopY: Math.round(e.hopY || 0), emote: e.emote?.kind || null, dead: !!e.dead } : null; };
   return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, ''), p: [Math.round(game.player.x), Math.round(game.player.y)], pf: game.player.facing,
     pp: ent('ppaman'), gs: ent('gyeongsub'), cs1: ent('cs1'), cs2: ent('cs2'), cam: Math.round(game.camera.x), bgm: game.sound.bgmName || null, zoom: +(game.zoom?.s ?? 1).toFixed(2), shake: !!game.shake, flags: { ...game.flags }, f: game.entities.filter((e) => e.def?.type === 'follower').map((x) => ({ id: x.id, x: Math.round(x.x), y: Math.round(x.y), vis: x.visible })) }; });
+// 길 전환은 맵을 필요할 때 받아 오므로(검은 화면 ~1–2s) 고정 900ms 대신 전환이 끝날 때까지 기다린다
+const afterDoor = async (ms = 10000) => { await page.waitForTimeout(250); const t0 = Date.now(); while (Date.now() - t0 < ms && await page.evaluate(() => game.transitioning || game.fade.alpha > 0.05)) await page.waitForTimeout(80); await page.waitForTimeout(200); };
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.player.trail = []; for (const e of game.entities) if (e.def?.type === 'follower') e.snapBehind(); game.camera.snap(); }, [x, y, f]);
 const drain = async (maxMs, probe) => {
   const out = []; const obs = []; const t0 = Date.now(); let idle = 0;
@@ -103,9 +105,9 @@ await page.screenshot({ path: `${S}/teal3_06_after.png` });
   check('menu heal: 경섭 40 → 70, one banana consumed', res.hp === 70 && res.bananas === 1, JSON.stringify(res));
   await page.keyboard.press('KeyX'); await page.waitForTimeout(150); await page.keyboard.press('KeyX'); await page.waitForTimeout(200); }
 // 청록숲2 로 내려가면 동상 벽이 없고 오른쪽 길이 뚫려 teal_east 까지 간다
-await stand(17 * 32 + 4, 27 * 32 + 8, 'down'); await page.keyboard.down('ArrowDown'); await page.waitForTimeout(1300); await page.keyboard.up('ArrowDown'); await page.waitForTimeout(900); s = await st();
+await stand(17 * 32 + 4, 27 * 32 + 8, 'down'); await page.keyboard.down('ArrowDown'); await page.waitForTimeout(1300); await page.keyboard.up('ArrowDown'); await afterDoor(); s = await st();
 { const q = await page.evaluate(() => ({ map: game.mapId, statues: game.entities.filter((e) => /^statue_w\d$/.test(e.id) && !e.dead).length })); check('teal2 after clearing: no statue wall', q.map === 'teal2' && q.statues === 0, JSON.stringify(q));
-  await stand(38 * 32, 21 * 32 + 8, 'right'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1800); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(900); const q2 = await st(); check('right road now open → teal_east', q2.map === 'teal_east', q2.map); }
+  await stand(38 * 32, 21 * 32 + 8, 'right'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1800); await page.keyboard.up('ArrowRight'); await afterDoor(); const q2 = await st(); check('right road now open → teal_east', q2.map === 'teal_east', q2.map); }
 await browser.close();
 logs.push(`fails=${fails}`);
 console.log(logs.join('\n'));

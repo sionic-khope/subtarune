@@ -2,6 +2,7 @@
 //   ?qa=teal3 → 동료 2 + 바로 세이브 → 타이틀 '이어하기' → 같은 맵·동료 2 가 주인공 옆에 → Esc → 타이틀 Q 로 'void'(동료 없음) → 동료 0·플래그 초기화·세이브 갱신
 //   → ?qa=key(억빠맨만) → 이어하기 → 동료 1 이 주인공 옆에. 세이브에 spawn 이 있고, 컷신 중엔 세이브가 안 바뀐다.
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 import { escToTitle } from './lib/esc.mjs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -12,12 +13,14 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
-const ready = async () => { const t0 = Date.now(); while (Date.now() - t0 < 15000) { if (await page.evaluate(() => !!(window.game && game.entities && game.player))) return; await page.waitForTimeout(100); } };
-const until = async (fn, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await fn(); if (v) return v; await page.waitForTimeout(100); } return null; };
+// 'title' = 타이틀 입력 가능(타이틀엔 맵·player 가 없다), 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
+// 타이틀→필드 전환 중엔 맵·entities 가 아직 없다(타이틀엔 맵이 없음) — 그동안의 평가 오류는 '아직 아님'으로 본다
+const until = async (fn, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await fn().catch(() => null); if (v) return v; await page.waitForTimeout(100); } return null; };
 const st = () => page.evaluate(() => { const p = game.player; const fol = game.entities.filter((e) => e.def?.type === 'follower' && !e.dead); let save = null; try { save = JSON.parse(localStorage.getItem('subtarune.save.v1')); } catch {}
   return { state: game.state, map: game.mapId, running: game.dialogue.running, party: [...game.party], inventory: [...game.inventory], flags: { ppaman: !!game.flags.ppaman_joined, gs: !!game.flags.void11_done }, stage: game.story.stage,
     followers: fol.map((f) => ({ id: f.id, d: Math.round(Math.hypot(f.x - p.x, f.y - p.y)) })), p: [Math.round(p.x), Math.round(p.y)], save: save && { map: save.map, spawn: save.spawn, party: save.party, x: save.x, y: save.y, flags: Object.keys(save.flags || {}).length } }; });
-const BASE = 'http://localhost:8000/index.html';
+const BASE = `${QA_BASE}index.html`;
 const unlock = async () => { await page.mouse.click(500, 390); await page.waitForTimeout(150); };
 // 타이틀: wait(아무 키) → pre → zoom(C 로 건너뜀) → locked(3초 뒤 C 로 시작)
 const titleLocked = async () => {
@@ -34,7 +37,7 @@ check('?qa=teal3: party [gyeongsub, ppaman] (walk order), two followers near the
 check('QA jump saved immediately (map teal3, party 2, spawn from_bottom)', !!q.save && q.save.map === 'teal3' && (q.save.party || []).length === 2 && q.save.spawn === 'from_bottom', JSON.stringify(q.save));
 
 // 2) 타이틀 → 이어하기
-await page.goto(BASE); await ready(); await unlock();
+await page.goto(BASE); await ready("title"); await unlock();
 await titleLocked();
 await page.keyboard.press('KeyC');
 q = await until(async () => { const s = await st(); return s.state === 'field' && s.map === 'teal3' && !s.running ? s : null; }, 8000);
@@ -44,18 +47,23 @@ await page.screenshot({ path: `${S}/continue_01_teal3.png` });
 // 3) 같은 세션에서 Esc → 타이틀 Q → 'void'(동료 없음): 상태가 섞이지 않는다
 await escToTitle(page);
 await titleLocked();
-await page.keyboard.press('KeyQ'); await page.waitForTimeout(200);
-const idx = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.findIndex((x) => x.id === 'void'));
-for (let i = 0; i < idx; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60); }
+// QA 목록은 Shift+Q 만(사용자 2026-09-25)
+await page.keyboard.press('Shift+KeyQ'); await page.waitForTimeout(200);
+// 목록은 숨김을 뺀 QA_POINTS 이고, 마지막으로 고른 지점에서 열린다 → 현재 커서에서 'void' 까지 이동
+const idx = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.filter((x) => !x.hidden).findIndex((x) => x.id === 'void'));
+{ const from = await page.evaluate(() => game.title.qa?.i ?? 0); const key = idx >= from ? 'ArrowDown' : 'ArrowUp'; for (let i = 0; i < Math.abs(idx - from); i++) { await page.keyboard.press(key); await page.waitForTimeout(60); } }
+check('QA list cursor on void', await page.evaluate(() => game.title.qa?.i) === idx, String(idx));
 await page.keyboard.press('KeyC');
 q = await until(async () => { const s = await st(); return s.state === 'field' && s.map === 'void' ? s : null; }, 8000);
-check('title Q → void: party [], no followers, join flags cleared, inventory [] (no leftovers from teal3)', !!q && q.party.length === 0 && q.followers.length === 0 && !q.flags.ppaman && !q.flags.gs && q.inventory.length === 0, JSON.stringify(q && { party: q.party, fol: q.followers, flags: q.flags, inv: q.inventory }));
+// QA 지점도 실제 플레이와 같은 아이템을 유도한다(story.js stateFromFlags, 2026-09-11) — void 에선 보라색 코드만. teal3 에서 쌓인 것은 남으면 안 된다
+const voidInv = await page.evaluate(async () => (await import('/src/core/story.js')).stateFromFlags(game.flags).inventory);
+check('title Q → void: party [], no followers, join flags cleared, inventory = derived void state only (no leftovers from teal3)', !!q && q.party.length === 0 && q.followers.length === 0 && !q.flags.ppaman && !q.flags.gs && JSON.stringify(q.inventory) === JSON.stringify(voidInv), JSON.stringify(q && { party: q.party, fol: q.followers, flags: q.flags, inv: q.inventory, voidInv }));
 check('save now points at void with no party', !!q?.save && q.save.map === 'void' && (q.save.party || []).length === 0, JSON.stringify(q?.save));
 
 // 4) ?qa=key (억빠맨만) → 이어하기 → 동료 1 이 옆에
 await page.goto(`${BASE}?qa=key`); await ready(); await unlock(); await page.waitForTimeout(400);
 q = await st(); check('?qa=key: party [ppaman] derived/explicit, one follower', q.party.join() === 'ppaman' && q.followers.length === 1, JSON.stringify({ party: q.party, fol: q.followers }));
-await page.goto(BASE); await ready(); await unlock();
+await page.goto(BASE); await ready("title"); await unlock();
 await titleLocked();
 await page.keyboard.press('KeyC');
 q = await until(async () => { const s = await st(); return s.state === 'field' && s.map === 'void4' ? s : null; }, 8000);

@@ -17,9 +17,13 @@ await page.keyboard.press('KeyV'); await page.waitForTimeout(200);
 let m = await page.evaluate(() => ({ state: game.state, menu: game.menu }));
 check('V opens the menu', m.state === 'menu' && !!m.menu, JSON.stringify(m));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(150);                 // 아이템 패널
+// QA 인벤토리 순서는 바뀔 수 있다(teal4 에 바나나가 먼저) — 목록 순서가 아니라 이름으로 먼지를 찾아 커서를 옮긴다
+const dustIndex = await page.evaluate(async () => (await import('./src/data/items.js')).plainItems(game.inventory).indexOf('먼지'));
+for (let i = 0; i < dustIndex; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(120); }
+const cursorItem = await page.evaluate(async () => (await import('./src/data/items.js')).plainItems(game.inventory)[game.menu?.subIndex]);
 await page.keyboard.press('KeyC'); await page.waitForTimeout(150);                 // 먼지 고름 → 누구에게
 m = await page.evaluate(() => ({ sub: game.menu?.sub, pick: game.menu?.pick }));
-check('items → pick 먼지 → target picker', m.sub === 0 && m.pick === 0, JSON.stringify(m));
+check('items → pick 먼지 → target picker', dustIndex >= 0 && cursorItem === '먼지' && m.sub === 0 && m.pick === 0, JSON.stringify({ ...m, dustIndex, cursorItem }));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(200);                 // 형섭에게
 const after = await page.evaluate(() => ({ hp: game.hpOf('hyungsub'), inv: [...game.inventory] }));
 check('먼지 used on 형섭: HP 50 → 51 and 먼지 removed from inventory', after.hp === 51 && !after.inv.includes('먼지') && after.inv.includes('바나나'), JSON.stringify(after));

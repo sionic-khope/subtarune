@@ -42,12 +42,6 @@ await runScenario({ name: 'jjajang-shore', launchOptions: { args: ['--autoplay-p
     && walked.distance >= 500 && walked.forestVisible, JSON.stringify(walked));
   await shot('shore_02_three_second_forest_reveal');
 
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(700);
-  await page.keyboard.up('ArrowUp');
-  check('forest path has no invented exit or follow-up story', await page.evaluate(() => game.mapId === 'jjajang_shore'
-    && !game.dialogue.running && !game.transitioning));
-
   await press('KeyV');
   check('V opens the solo field menu', !!await until(() => game.state === 'menu', 2000));
   await press('ArrowDown');
@@ -95,4 +89,32 @@ await runScenario({ name: 'jjajang-shore', launchOptions: { args: ['--autoplay-p
     && continued.followers === 0 && continued.hp.gyeongsub === 77 && continued.hp.ppaman === 55
     && !continued.cord && continued.stage === 'ship_sinking_done', JSON.stringify(continued));
   await shot('shore_04_continue_solo');
+
+  // 해변 위 검은 숲 입구는 이제 짜장숲(jjajang_forest)으로 이어진다(shore_forest_door → from_shore). 옛 "출구 없음" 대신
+  // 실제 위 방향 입력으로 그 문을 지나 숲 아래쪽 입구에 혼자 도착하고, 새 이야기가 끼어들지 않는지 본다.
+  const door = await page.evaluate(async () => {
+    const def = await game.mapAssets.definition('jjajang_shore');
+    const d = def.entities.find(entity => entity.id === 'shore_forest_door');
+    return d && { to: d.to, spawn: d.spawn };
+  });
+  check('shore forest door is defined toward the forest entrance', door?.to === 'jjajang_forest' && door?.spawn === 'from_shore', JSON.stringify(door));
+  await page.keyboard.down('ArrowUp');
+  const crossed = await until(() => game.mapId === 'jjajang_forest', 12000);
+  await page.keyboard.up('ArrowUp');
+  await until(() => !game.transitioning && game.fade.alpha < 0.01, 10000);
+  await page.waitForTimeout(300);
+  const forest = await page.evaluate(() => ({
+    map: game.mapId,
+    party: [...game.party],
+    followers: game.entities.filter(entity => entity.def?.type === 'follower').length,
+    dialogue: game.dialogue.running,
+    state: game.state,
+    x: Math.round(game.player.x),
+    y: Math.round(game.player.y),
+  }));
+  const forestDef = await page.evaluate(async () => (await game.mapAssets.definition('jjajang_forest')).spawns.from_shore);
+  check('walking up the forest path enters the forest map alone with no follow-up story', !!crossed && forest.map === 'jjajang_forest'
+    && forest.state === 'field' && !forest.dialogue && forest.party.length === 0 && forest.followers === 0
+    && Math.abs(forest.x - forestDef.x) < 48 && forest.y > forestDef.y - 200, JSON.stringify({ forest, forestDef }));
+  await shot('shore_05_forest_entrance');
 });

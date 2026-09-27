@@ -108,6 +108,8 @@ try {
     const original = game.sound.sfx.bind(game.sound);
     game.sound.sfx = (name, ...args) => { if (name === 'wemix_remix') window.remixPlayed++; return original(name, ...args); };
   });
+  // BUILD390+: 위믹스 리믹스는 부팅 뒤 한가할 때 받는 효과음 큐에 있다 — QA 로 곧장 뛰어들면 아직 안 받았을 수 있으니 실제 파일이 준비될 때까지 기다린다
+  await exit.waitForFunction(() => game.sound.files.wemix_remix?.readyState >= 3, null, { timeout: 90000 }).catch(() => {});
   check('requested remix is loaded as the real audio file', await exit.evaluate(() => game.sound.files.wemix_remix?.readyState >= 3 && game.sound.files.wemix_remix.duration > 2));
   await shot(exit, 'wemix-before');
   const falling = await talk(exit, 'wemix');
@@ -128,7 +130,8 @@ try {
   await menu.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'zoom');
   await menu.keyboard.press('KeyC');
   await menu.waitForFunction(() => game.title?.phase === 'locked');
-  await menu.keyboard.press('KeyQ');
+  // 2026-09-25: QA 바로가기 목록은 Shift+Q 로만 열린다(src/core/input.js)
+  await menu.keyboard.press('Shift+KeyQ');
   await menu.waitForFunction(() => !!game.title?.qa);
   await menu.keyboard.press('ArrowUp');
   await menu.waitForTimeout(200);

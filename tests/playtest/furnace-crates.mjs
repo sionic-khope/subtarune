@@ -56,9 +56,13 @@ try {
   const r2 = await solve('youngcle16'); await page.waitForTimeout(400); s = await st(); await cap('room2_solved');
   check(r2.stuck === null && r2.done === 31 && s.solved && s.gate === false, '검사실 2 해법 31회 → 차단문 열림 ' + JSON.stringify([r2, s.solved, s.gate]));
   await page.evaluate(() => { const g = window.game; g.player.x = 470; g.player.y = 256; g.player.facing = 'right'; });
-  await page.keyboard.down('ArrowRight'); await page.waitForTimeout(1500); await page.keyboard.up('ArrowRight'); s = await st(); await cap('room2_end');
-  const end = await page.evaluate(() => { const r = window.game.map.rows; return { edge: r[8][17], door: window.game.entities.some(e => e.id === 'youngcle16_right') }; });
-  check(s.map === 'youngcle16' && s.px >= 500 && end.edge === 'H' && !end.door, '검사실 2 오른쪽 끝은 열린 통로(다음 브리핑) ' + JSON.stringify([s.px, end]));
+  // BUILD196: 검사실 2 오른쪽 끝은 이제 용광로 갈림길(youngcle17)로 가는 문 — 풀린 뒤 걸어서 넘어간다
+  const end = await page.evaluate(() => { const r = window.game.map.rows; const door = window.game.entities.find(e => e.id === 'youngcle16_right'); return { edge: r[8][17], door: door && { to: door.def?.to ?? door.to, spawn: door.def?.spawn ?? door.spawn } }; });
+  await page.keyboard.down('ArrowRight');
+  await page.waitForFunction(() => window.game.mapId === 'youngcle17' && !window.game.transitioning, null, { timeout: 10000 }).catch(() => {});
+  await page.keyboard.up('ArrowRight'); await page.waitForTimeout(400); s = await st(); await cap('room2_end');
+  const arrival = await page.evaluate(() => ({ entry: window.game.entrySpawn }));
+  check(end.door?.to === 'youngcle17' && s.map === 'youngcle17' && arrival.entry === end.door.spawn, '검사실 2 오른쪽 문 → 용광로 갈림길(youngcle17) ' + JSON.stringify([s.map, s.px, end, arrival]));
 } catch (e) { fails += 1; console.log('CRASH', e.message); }
 check(errors.length === 0, 'pageerror 없음 ' + JSON.stringify(errors));
 console.log(`fails=${fails}`);

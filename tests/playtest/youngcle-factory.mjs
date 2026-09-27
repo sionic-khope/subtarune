@@ -119,7 +119,7 @@ async function probeClosedGate(mapId, spawn) {
 }
 
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8793'}/?qa=youngcle3`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=youngcle3`);
   await page.waitForFunction(() => game?.player && game.mapId === 'youngcle3' && !game.transitioning);
   await page.evaluate(() => { window.__factoryBgm = game.sound.bgm; });
   const intro = [await settleDialogueLine(), await settleDialogueLine(), await settleDialogueLine()];

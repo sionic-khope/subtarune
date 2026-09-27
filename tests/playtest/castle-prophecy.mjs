@@ -36,16 +36,25 @@ await runScenario({ name: 'castle-prophecy', launchOptions: { args: ['--autoplay
   check('panels about 5s apart', gaps.every(g => g > 4.4 && g < 5.8), JSON.stringify(gaps));
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp');
   await shot('door-before');
+  // 대사 기록은 페이지 안에서 매 프레임 노드가 바뀔 때마다 — 부하가 걸려 폴링이 한 줄을 건너뛰어도 놓치지 않게(BUILD 부하 중 12줄 중 1줄 누락)
+  await page.evaluate(() => {
+    // 대문 대화는 이 방(첨탑)에서만 — 끝나면 결전지(arena)로 넘어가 다음 컷신 대사가 이어지므로 맵이 바뀌면 기록을 멈춘다
+    const seen = window.__doorLines = [], room = game.mapId; let last = null;
+    const tick = () => { if (game.mapId !== room) return; const node = game.textbox.isOpen ? game.textbox.node : null; if (node && node !== last && node.text) seen.push(node.text); last = node; if (seen.length < 64) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  });
   await key('KeyC');
   assert.ok(await until(() => game.textbox.isOpen && game.textbox.state === 'waiting', 12000), 'door talk starts');
   await shot('door-first-line');
-  const lines = [];
-  for (let i = 0; i < 24; i++) {
-    const t = await page.evaluate(() => game.textbox.isOpen && game.textbox.state === 'waiting' ? game.textbox.node?.text : null);
-    if (t && lines.at(-1) !== t) { lines.push(t); if (lines.length === 6) await shot('door-mid'); }
-    if (!(await page.evaluate(() => game.dialogue.running))) break;
-    await key('KeyC'); await page.waitForTimeout(250);
+  for (let i = 0; i < 40; i++) {
+    // 다 찍힌(waiting) 줄에서만 C — 타이핑 중 C 는 줄을 채우기만 해서 누른 횟수와 줄 수가 어긋난다
+    const ready = await until(() => !game.dialogue.running || game.mapId !== 'gajaeman_castle_prophecy' || (game.textbox.isOpen && game.textbox.state === 'waiting'), 8000);
+    if (await page.evaluate(() => !game.dialogue.running || game.mapId !== 'gajaeman_castle_prophecy')) break;
+    if (!ready) continue;
+    if ((await page.evaluate(() => window.__doorLines.length)) === 6) await shot('door-mid');
+    await key('KeyC'); await page.waitForTimeout(150);
   }
+  const lines = await page.evaluate(() => window.__doorLines);
   check('all 12 lines shown', lines.length === 12, JSON.stringify(lines));
   // BUILD332: 대문 대화가 끝나면 결전지로 넘어간다
   assert.ok(await until(() => game.mapId === 'gajaeman_castle_arena', 12000));

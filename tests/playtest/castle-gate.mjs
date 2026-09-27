@@ -306,8 +306,11 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     check('only union 노 has the one-character mosaic', q.texts.filter(t => t.mosaic).length === 1 && q.texts.find(t => t.mosaic)?.mosaic.text === '노');
     check('six allies each actually traverse the door once', q.transitEvents.length === 6
       && [...q.transits].sort().join() === ['gate_youngcle', 'gate_junhee', 'gate_bidet', 'gate_mario', 'gate_ttuulla', 'gate_park'].sort().join(), JSON.stringify(q.transitEvents));
+    // 물러나는 자리는 맵 meta.gate.retreat 에서 컷신이 [0,-80] 만큼 올린 곳(d5c97019: 안전 배치) — 접근 지점(approach)보다 확실히 아래로 물러나야 한다
+    const gatePoints = await page.evaluate(() => game.map.def.meta.gate), retreatY = gatePoints.retreat[1] - 80;
     check('gate opening progresses, then Junhee retreats', q.samples.some(s => s.progress > 0.1 && s.progress < 0.9)
-      && q.samples.some(s => s.open && s.junhee >= 515));
+      && q.samples.some(s => s.open && s.junhee >= retreatY - 4 && s.junhee >= gatePoints.approach[1] + 40),
+      JSON.stringify({ retreatY, approachY: gatePoints.approach[1], junheeWhileOpen: [...new Set(q.samples.filter(s => s.open && s.junhee != null).map(s => Math.round(s.junhee)))].slice(-6) }));
     check('only original three-person party remains with both seals and open gate', reunion.open && reunion.reunion && reunion.party.join() === 'gyeongsub,ppaman'
       && reunion.seals.every(Boolean) && reunion.actors.every(a => a.dead || a.visible === false), JSON.stringify(reunion));
     check('locker and rumble are actual opening calls', ['locker', 'rumble'].every(name => q.sounds.some(s => s.name === name)));
@@ -344,18 +347,26 @@ await runScenario({ name: 'castle-gate', launchOptions: { args: ['--autoplay-pol
     const began = Date.now();
     await walk('ArrowUp', () => game.player.y <= 1898, 'up to first turn'); await shot('black-turn-one'); await sizes('black-turn-one'); await mask('first turn');
     await walk('ArrowRight', () => game.player.x >= 3266, 'right to second turn'); await shot('black-turn-two'); await mask('second turn');
-    await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_arrival', 'north exit reaches real arrival map'); assert.ok(await ready()); await shot('black-arrival');
-    check('real up-right-up traversal reaches connected arrival with party', (await state()).party.join() === 'gyeongsub,ppaman' && !(await state()).blocked, `traversal wall time ${Date.now() - began}ms`);
     check('dark actors actually render dimmed without mutating their sprites', await page.evaluate(() => window.__gateQA.alpha.some(a => a.map === 'gajaeman_castle_dark_path' && Math.abs(a.alpha - 0.48) < 0.01)));
-    await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_dark_path', 'arrival south return'); assert.ok(await ready());
-    check('arrival reentry restores 13am', (await state()).bgm === 'castle_dark_path' && !(await state()).paused);
-    await walk('ArrowDown', () => game.player.y >= 1894, 'return down to second turn');
+    // 도착 맵(dark_arrival)은 이제 곧바로 추격(castle_dark_chase_intro)이 시작돼 되돌아올 수 없다 — 로비 복귀 검사는 두 번째 모퉁이에서 되돌아가며 먼저 한다
     await walk('ArrowLeft', () => game.player.x <= 262, 'return left to first turn');
     await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_lobby', 'return south to open lobby'); assert.ok(await ready()); await shot('lobby-return-restored');
     check('return disposes darkness and restores full party brightness', !(await state()).dark && (await state()).party.length === 2
       && await page.evaluate(() => window.__gateQA.alpha.some(a => a.map === 'gajaeman_castle_lobby' && a.alpha === 1)));
     await escToTitle(page); await continueTitle(); assert.ok(await ready());
     check('return save Continue keeps open gate and party without reunion replay', (await state()).open && (await state()).reunion && (await state()).party.length === 2 && !await page.evaluate(() => !!game.castleGate));
+    // 다시 문으로 들어가 위-오른쪽-위로 실제 도착 맵까지: 인트로 반복 없이 어둠 길, 도착하면 추격 인트로가 동료와 함께 시작
+    await observe();
+    await walk('ArrowUp', () => game.player.probe()?.id === 'castle_lobby_open_door', 're-approach open gate'); await key('KeyC');
+    assert.ok(await until(() => game.mapId === 'gajaeman_castle_dark_path', 12000)); assert.ok(await ready());
+    check('re-entering the dark path does not repeat its intro', !await page.evaluate(() => game.dialogue.running) && (await state()).dark);
+    await walk('ArrowUp', () => game.player.y <= 1898, 'up to first turn again');
+    await walk('ArrowRight', () => game.player.x >= 3266, 'right to second turn again');
+    await walk('ArrowUp', () => game.mapId === 'gajaeman_castle_dark_arrival', 'north exit reaches real arrival map');
+    const chaseLine = await until(() => game.mapId === 'gajaeman_castle_dark_arrival' && !game.transitioning && game.textbox.state === 'waiting' && game.textbox.node?.text === '* 형들,,' && game.textbox.node?.speaker === '억빠맨', 30000);
+    await shot('black-arrival');
+    check('real up-right-up traversal reaches connected arrival with party and the chase intro begins', !!chaseLine && (await state()).party.join() === 'gyeongsub,ppaman' && !(await state()).blocked
+      && await page.evaluate(() => !!game.castleDarkChase), `traversal wall time ${Date.now() - began}ms`);
   }
   const evidence = await page.evaluate(() => window.__gateQA);
   observations.push({ phase: mode === 'cancel' ? 'cancel' : 'dark-path', ...evidence });

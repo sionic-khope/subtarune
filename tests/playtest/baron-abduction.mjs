@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
-const base = process.env.BASE_URL || 'http://localhost:8000';
+const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const shots = process.env.SHOT_DIR || '/tmp/baron-abduction-shots';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -153,9 +153,10 @@ try {
   await page.keyboard.up('ArrowDown');
   check('real movement works after cinematic', await page.evaluate(p => Math.hypot(game.player.x - p.x, game.player.y - p.y) > 20, before));
   await page.goto(`${base}/`);
-  await page.waitForFunction(() => !!window.game?.player);
-  const continueDeadline = Date.now() + 8000;
-  while (Date.now() < continueDeadline && !await page.evaluate(() => game.state !== 'title' && game.mapId === 'obj4' && game.flags.obj4_abduction_done)) {
+  // 타이틀엔 더 이상 맵(player)이 없다 — 부팅이 끝나 타이틀이 키를 받을 때까지 기다린다
+  await page.waitForFunction(() => window.game?.state === 'title' && !game.bootLoad?.active);
+  const continueDeadline = Date.now() + 15000;
+  while (Date.now() < continueDeadline && !await page.evaluate(() => game.state !== 'title' && game.mapId === 'obj4' && game.flags.obj4_abduction_done && !game.transitioning)) {
     await press();
     await page.waitForTimeout(150);
   }
@@ -173,7 +174,9 @@ try {
   await page.waitForFunction(() => game.mapId === 'obj3' && !game.transitioning);
   await page.keyboard.up('ArrowDown');
   check('walking through the exit preserves the same playing audio', await page.evaluate(() => game.sound.bgmName === 'baron_intro' && game.sound.bgm === chaseAudioBeforeDoor && !game.sound.bgm.paused));
-  await page.evaluate(() => { game.changeMap('obj2', 'from_top', true, { enter: false }); });
+  // 맵은 지연 적재 — changeMap 이 끝나(obj2 에 도착해) 있어야 아래 위치 지정이 새 맵에 적용된다
+  await page.evaluate(() => game.changeMap('obj2', 'from_top', true, { enter: false }));
+  await page.waitForFunction(() => game.mapId === 'obj2' && !game.transitioning);
   check('next plaza preserves chase audio too', await page.evaluate(() => game.sound.bgm === chaseAudioBeforeDoor));
   check('statues stay absent on map reload', await page.evaluate(() => !game.entities.some(e => /^statue[123]$/.test(e.id) && !e.dead)));
   await page.evaluate(async () => {

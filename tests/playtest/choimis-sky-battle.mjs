@@ -133,7 +133,8 @@ async function runBuild299({ page, open, until, press, shot, check, fixture }) {
     check('opening303: settle retains the late player shot after hazards finish', samples.some(s => s.phase === 'settle' && s.noodles.length === 0 && s.shots.length > 0));
     check('opening303: completion waits for shots, hazards and effects to drain naturally', done?.snapshot.phase === 'done' && done.snapshot.shots.length === 0 && done.snapshot.noodles.length === 0 && done.snapshot.effects.length === 0 && observed.disposed);
     check('opening303: defense and menu occur after mode completion', !!done && observed.frames.interlude?.at >= done.at && observed.frames.menu?.at > observed.frames.interlude?.at);
-    check('opening303: return preserves boss HP250 and enables defense', menu.hp === 250 && menu.boosted === true && !menu.mode && observed.hits.length === 0);
+    const boss303 = await choimisBoss(page);
+    check('opening303: return preserves full boss HP and enables defense', menu.hp === boss303.hp && menu.boosted === true && !menu.mode && observed.hits.length === 0);
     const restored = observed.frames.interlude;
     check('opening303: disposal restores original board and soul', !!restored && ['x', 'y', 'w', 'h'].every(key => restored.board[key] === observed.initialBoard[key]) && restored.soul.x === observed.initialSoul.x && restored.soul.y === observed.initialSoul.y);
     for (const name of ['start', 'deadline', 'tail-player-shot', 'settle-player-shot', 'interlude', 'menu']) {
@@ -272,7 +273,7 @@ async function runBuild299({ page, open, until, press, shot, check, fixture }) {
     await fixture('loss-boundary', 'Inject lethal party damage only to reach retry cleanup after naturally alternating rounds.', () => game.battle.hurtAllParty(999));
     check('defeat reaches lose', await until(() => game.battle?.state === 'lose', 5000)); await page.waitForTimeout(2300); await press('KeyC', { delay: 70 });
     check('real retry key returns to ordinary intro', await until(() => game.battle?.state === 'intro', 9000));
-    const retry = await record('retry'); check('retry resets HP and sequence', retry.hp === 200 && retry.index === 0 && retry.party.every(m => m.hp === m.maxHp && !m.down));
+    const retry = await record('retry'); const bossFlow = await choimisBoss(page); check('retry resets HP and sequence', retry.hp === bossFlow.hp && retry.index === 0 && retry.party.every(m => m.hp === m.maxHp && !m.down));
     await responsive('retry');
   }
   save();
@@ -301,6 +302,8 @@ const PATTERNS = [
   { name: 'fashion', index: 10, type: 'choimis_fashion', source: 'B', shapes: ['choimis_outfit'], warning: true },
 ];
 
+// 최미스 꽃 보스 수치는 게임 데이터에서 읽는다(BUILD388: HP 250 → 230). 방어 강화 뒤 일반 공격 피해는 boostedAttackDamage.
+const choimisBoss = page => page.evaluate(async () => { const e = (await import('/src/data/enemies.js')).ENEMIES.choimis_flower; return { hp: e.hp, boosted: e.boostedAttackDamage }; });
 const json = value => JSON.stringify(value, (key, item) => key === 'data' ? undefined : typeof item === 'number' ? Math.round(item * 1000) / 1000 : item);
 const BUILD298 = process.env.QA_BUILD298 === '1';
 
@@ -747,7 +750,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     check('C on GAME OVER enters retry cleanup', !!retry, json(await snapshot()));
     const retried = await until(() => window.game.battle?.state === 'intro', 7000);
     const retryState = await record('retry-intro');
-    check('retry restores full HP, enemy HP 200, and standing party', !!retried && retryState.battle?.enemies?.[0]?.hp === 200 && retryState.battle?.members?.every(m => !m.down && m.hp === m.maxHp), json(retryState.battle));
+    const bossRetry = await choimisBoss(page);
+    check('retry restores full HP, full enemy HP, and standing party', !!retried && retryState.battle?.enemies?.[0]?.hp === bossRetry.hp && retryState.battle?.members?.every(m => !m.down && m.hp === m.maxHp), json(retryState.battle));
     await shot('19_retry_intro_restored');
 
     await escToTitle(page);
@@ -822,6 +826,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     if (!fullLine) return;
     check(`dialogue ${index + 1}/${DIALOGUE.length} preserves Choimis hover`, (await snapshot()).actors.choimis_sky_boss?.hopY > 20);
     if (reached) await shot(`04_dialogue_${String(index + 1).padStart(2, '0')}`);
+    // 하이 줄에서는 바람 표본(220ms 간격)이 두 개 이상 찍힐 때까지 읽는다 — 부하가 크면 스크린샷 한 장 사이에 표본이 하나뿐이라 넘겨 버렸다
+    if (expected === '하이') await until(() => (window.__choimisQa.skyTransition.windHi?.length || 0) >= 2 ? true : null, 3000);
     await press('KeyC');
     await until(() => window.game.textbox.node?.text !== window.__choimisQa.expectedDialogueText || window.game.textbox.state === 'closed', 3000);
   }
@@ -912,13 +918,14 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 720 }); await page.waitForTimeout(120); await shot(`settled_battle_viewport_${width}`); }
     await page.setViewportSize({ width: 960, height: 720 });
     if (process.env.QA_BUILD303_FIELD === '1') {
-      check('BUILD303 natural field handoff reaches HP250 battle', handoff.battle.enemies[0].hp === 250);
+      check('BUILD303 natural field handoff reaches a full-HP battle', handoff.battle.enemies[0].hp === (await choimisBoss(page)).hp);
       trace.fieldSourcesAfter = trace.fieldSources.map(s => ({ relative: s.relative, local: createHash('sha256').update(fs.readFileSync(path.join(process.env.QA_SOURCE_ROOT, s.relative))).digest('hex') }));
       check('BUILD303 field sources stay unchanged throughout natural handoff', trace.fieldSourcesAfter.every(s => trace.fieldSources.find(before => before.relative === s.relative).local === s.local)); save();
     }
     return;
   }
-  check('battle starts with HP 200 and all three natural party members loaded', !!battleReady && handoff.battle.enemies[0].hp === 200 && handoff.battle.members.length === 3 && handoff.battle.members.every(m => m.loaded), json(handoff.battle));
+  const BOSS = await choimisBoss(page);
+  check(`battle starts with data HP ${BOSS.hp} and all three natural party members loaded`, !!battleReady && handoff.battle.enemies[0].hp === BOSS.hp && handoff.battle.members.length === 3 && handoff.battle.members.every(m => m.loaded), json(handoff.battle));
   check('battle handoff rects preserve matching party poses and moon scene actor placement', !!battleReady && handoff.battle.members.every((m, i) => i === 0 || m.home[1] > handoff.battle.members[i - 1].home[1]) && handoff.battle.enemies[0].x > 300, json({ members: handoff.battle.members, enemy: handoff.battle.enemies[0] }));
   check('no character or battle art fallback is active', !!battleReady && !handoff.actors.player?.fallback && !handoff.actors.gyeongsub?.fallback && !handoff.actors.ppaman?.fallback && handoff.battle.members.every(m => m.loaded) && handoff.battle.enemies.every(e => e.loaded), json({ actors: handoff.actors, members: handoff.battle.members, enemies: handoff.battle.enemies }));
 
@@ -1069,7 +1076,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   const menu = await until(() => window.game.battle?.state === 'menu', 25000);
   const menuRestored = await until(() => { const b = window.game.battle; return b?.state === 'menu' && !b.gimmick && b.board.w > 0 && b.board.h > 0 ? true : null; }, 3000);
   const returnedMenu = await snapshot(), pinkElapsedMs = Date.now() - pinkCombatStartedAt;
-  check('12-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === 200 && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 11500, json({ elapsedMs: pinkElapsedMs, minimumMs: 11500, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
+  check('12-second pink combat plus defense cinematic transitions to the normal HP/menu state', !!menu && !!menuRestored && returnedMenu.battle?.enemies?.[0]?.hp === BOSS.hp && returnedMenu.battle?.enemies?.[0]?.defenseBoosted === true && pinkElapsedMs >= 11500, json({ elapsedMs: pinkElapsedMs, minimumMs: 11500, menu: !!menu, restored: !!menuRestored, defenseBoosted: returnedMenu.battle?.enemies?.[0]?.defenseBoosted, state: returnedMenu.battle?.state, board: returnedMenu.battle?.board }));
   if (process.env.QA_PINK_SUPPLEMENT === '1') {
     const hintDraws = await page.evaluate(() => window.__choimisQa.hintDraws || []);
     const visibleHints = hintDraws.filter(draw => draw.pixels > 0 && draw.endDraw?.pixels > 0);
@@ -1325,6 +1332,19 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   await shot('22_boss_idle_cape_flap');
 
   if (process.env.QA_SKIP_KARAOKE !== '1') {
+  // 가사 구간은 게임 데이터(src/data/choimis-lyrics.js, 0.15초 지연 포함)에서 읽는다 — 손으로 옮긴 시각은 가사 조정 때마다 어긋났다
+  const LYRICS = await page.evaluate(async () => (await import('/src/data/choimis-lyrics.js')).CHOIMIS_LYRICS.map(cue => ({ text: cue.text, start: cue.start, end: cue.end })));
+  const lyric = (text, after = 0) => { const cue = LYRICS.find(item => item.text === text && item.start >= after); if (!cue) throw new Error(`lyric cue missing: ${text}`); return [cue.start, cue.end]; };
+  // 서버(python http.server)는 Range 를 지원하지 않아 반복 구간(144초~)으로 seek 할 수 없다. 그때는 같은 BGM 요소를 잠깐 빠르게 재생해
+  //   목표 직전까지 보낸 뒤 1배속으로 되돌린다 — 가사는 currentTime 으로만 그려지므로 구간 판정은 그대로다.
+  const fastForwardBgm = async target => fixture(`karaoke-fast-forward-${Math.round(target)}`, 'Temporarily raise the real battle BGM playbackRate until just before the next observed cue, then restore 1x; lyric rendering is driven only by currentTime and no battle state or timers are injected.', async to => {
+    const audio = game.sound.bgm;
+    if (!audio || audio.currentTime >= to) return audio?.currentTime;
+    audio.playbackRate = 8;
+    await new Promise(resolve => { const tick = () => (audio.currentTime >= to || audio.paused || game.sound.bgm !== audio ? resolve() : setTimeout(tick, 20)); tick(); });
+    audio.playbackRate = 1;
+    return audio.currentTime;
+  }, target);
   const waitForLyric = async (text, start, end, image, timeout = 45000) => {
     // Poll the interior of each cue window so screenshot overhead cannot cross a short
     // boundary (the actual assertion still checks the requested full range below).
@@ -1363,9 +1383,9 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     trace.observations.push({ label: `karaoke-boundary-${name}`, target, actual: details?.actual, cue, captured: !!details?.data, file }); save();
     return { details, cue, file };
   };
-  await waitForLyric('쟤들은 날 이해 하지 못해', 42.334, 44.959, 'karaoke_verse_under_menu');
-  await waitForLyric('오늘도 스읍 미스', 44.959, 46.271, 'karaoke_verse_last_line');
-  await waitForLyric('최미스! 최미스! 가재맨! 방고닉!', 46.271, 52.365, 'karaoke_chant_first');
+  await waitForLyric('쟤들은 날 이해 하지 못해', ...lyric('쟤들은 날 이해 하지 못해'), 'karaoke_verse_under_menu');
+  await waitForLyric('오늘도 스읍 미스', ...lyric('오늘도 스읍 미스'), 'karaoke_verse_last_line');
+  await waitForLyric('최미스! 최미스! 가재맨! 방고닉!', ...lyric('최미스! 최미스! 가재맨! 방고닉!'), 'karaoke_chant_first');
   const mediaReady = await until(() => {
     const a = window.game.sound.bgm, b = window.game.battle;
     return a && window.game.sound.bgmName === 'choimis_battle' && a.readyState >= 2 && Number.isFinite(a.duration) && a.duration > 160 && !a.seeking && b?.bgmWait === undefined && a.currentTime > 5 ? true : null;
@@ -1391,13 +1411,18 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     check('karaoke recomputes the repeat-pass lyric after an explicit pause/seek boundary', repeatPaused.cue === '가재맨 방 고닉 최미스' && repeatPaused.paused === true && repeatPaused.battle === 'menu', json(repeatPaused));
   } else {
     trace.observations.push({ label: 'karaoke-seek-unavailable-natural-repeat-required', mediaCaps }); save();
-    await waitForLyric('가재맨 방 고닉 최미스', 144.334, 147.334, 'karaoke_repeat_pass_natural', 120000);
+    const repeatRange = lyric('가재맨 방 고닉 최미스', 100);
+    await fastForwardBgm(repeatRange[0] - 1.5);
+    await waitForLyric('가재맨 방 고닉 최미스', ...repeatRange, 'karaoke_repeat_pass_natural', 120000);
   }
   await fixture('karaoke-resume-after-boundary-observation', 'Resume the same real battle audio element after the paused repeat-boundary probe; no battle state or timer is injected.', async () => {
     const audio = game.sound.bgm;
     if (audio?.paused) await audio.play().catch(() => {});
   });
-  await waitForLyric('1500, 1500, 경섭이 1500', 178.271, 184.365, 'karaoke_1500_repeat_boundary', 120000);
+  const repeat1500 = lyric('1500, 1500, 경섭이 1500', 100);
+  // 반복 1500 경계 프레임(178.121~178.421)은 1배속에서 잡히도록 3초 앞에서 멈춘다
+  await fastForwardBgm(repeat1500[0] - 3);
+  await waitForLyric('1500, 1500, 경섭이 1500', ...repeat1500, 'karaoke_1500_repeat_boundary', 120000);
   const boundaryFrames = {};
   for (const [time, name] of [[58.121, 'karaoke_1500_before'], [58.271, 'karaoke_1500_after'], [58.421, 'karaoke_1500_after_150ms'], [178.121, 'karaoke_1500_repeat_before'], [178.271, 'karaoke_1500_repeat_after'], [178.421, 'karaoke_1500_repeat_after_150ms']]) boundaryFrames[name] = await saveAudioBoundary(time, name);
   check('1500 cue begins at the delayed first-pass audio boundary with before/after frames', boundaryFrames.karaoke_1500_before.cue === '최미스! 오늘도 가순이 만나야' && boundaryFrames.karaoke_1500_after.cue === '1500, 1500, 경섭이 1500' && boundaryFrames.karaoke_1500_after_150ms.cue === '1500, 1500, 경섭이 1500', json(Object.fromEntries(Object.entries(boundaryFrames).slice(0, 3).map(([name, value]) => [name, { cue: value.cue, actual: value.details?.actual, captured: !!value.details?.data, file: value.file }]))));
@@ -1435,7 +1460,7 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
     await until(() => ['enemy-prep', 'bullets', 'board-close'].includes(window.game.battle?.state) ? true : null, 7000);
     const queuedState = await snapshot();
     check(`${pattern.name}: real menu/attack input queues a full party turn`, queued, json(queuedState));
-    check(`${pattern.name}: boosted Choimis takes exactly three damage from each party attack`, queued && queuedState.battle?.enemies?.[0]?.hp === 191 && queuedState.battle?.enemies?.[0]?.defenseBoosted === true, json({ hp: queuedState.battle?.enemies?.[0]?.hp, defenseBoosted: queuedState.battle?.enemies?.[0]?.defenseBoosted }));
+    check(`${pattern.name}: boosted Choimis takes exactly three damage from each party attack`, queued && queuedState.battle?.enemies?.[0]?.hp === BOSS.hp - 3 * BOSS.boosted && queuedState.battle?.enemies?.[0]?.defenseBoosted === true, json({ hp: queuedState.battle?.enemies?.[0]?.hp, defenseBoosted: queuedState.battle?.enemies?.[0]?.defenseBoosted }));
     const telegraph = await until(() => window.__choimisQa.frames?.some(f => f.battle === 'bullets' && f.bullets.some(b => b.warn !== undefined && b.age < b.warn)) ? true : null, 10000);
     if (telegraph) await shot(`pattern_${pattern.name}_telegraph`);
     const teleFrame = await page.evaluate(() => [...(window.__choimisQa.frames || [])].reverse().find(f => f.battle === 'bullets' && f.bullets.some(b => b.warn !== undefined && b.age < b.warn)) || null);

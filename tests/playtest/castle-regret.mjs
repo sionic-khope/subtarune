@@ -221,10 +221,20 @@ await runScenario({ name: 'castle-regret', launchOptions: { args: ['--autoplay-p
   assert.ok(await until(() => game.mapId === 'gajaeman_regret1', 12000)); assert.ok(await field()); await responsive('regret1-entry');
   await walk('ArrowUp', () => game.player.y <= 968, 'regret1 north leg');
   await walk('ArrowRight', () => !!game.battle, 'first map naturally encounters Yi'); await encounter(ENCOUNTERS[0]);
-  await walk('ArrowRight', () => game.player.x >= 1030, 'regret1 east leg'); await walk('ArrowUp', () => game.player.y <= 328, 'regret1 upper leg');
+  // 동쪽 세로 통로(x 1024–1152) 안의 비석2(x 1060–1084)와 위 복도의 비석3(y 308–320)을 피한다 — 비석2 오른쪽 차선으로 올라가 비석3 아래 줄에서 멈춘다(멈춤 오차로 비석에 걸리던 문제)
+  const regret1Steles = await page.evaluate(() => Object.fromEntries(['castle_regret_stele2', 'castle_regret_stele3'].map(id => { const e = game.entities.find(x => x.id === id); return [id, { x: e.x, y: e.y, w: e.w, h: e.h }]; })));
+  const s2 = regret1Steles.castle_regret_stele2, s3 = regret1Steles.castle_regret_stele3;
+  await walk('ArrowRight', () => game.player.x >= 1090, 'regret1 east leg');
+  check('regret1 east leg stops in the lane right of stele2', await page.evaluate(s => game.player.x >= s.x + s.w + 2 && game.player.x + game.player.w <= 1152, s2), JSON.stringify({ s2, x: (await state()).x }));
+  await walk('ArrowUp', () => game.player.y <= 360, 'regret1 upper leg');
+  check('regret1 upper leg stops below stele3 row', await page.evaluate(s => game.player.y >= s.y + s.h, s3), JSON.stringify({ s3, y: (await state()).y }));
   await walk('ArrowLeft', () => game.mapId === 'gajaeman_regret2', 'regret1 west exit reaches regret2'); assert.ok(await field()); await responsive('regret2-entry');
   await walk('ArrowLeft', () => !!game.battle, 'second map naturally encounters Syndra'); await encounter(ENCOUNTERS[1]);
-  await walk('ArrowLeft', () => game.player.x <= 324, 'regret2 west leg'); await walk('ArrowUp', () => game.player.y <= 808, 'regret2 north bend');
+  // 서쪽 세로 통로(열 9–12, x 288–416)의 왼쪽에는 비석5(x 324–348)가 있다 — 차선은 x 350–392 — 멈춤 오차로 왼쪽 벽에 붙으면 비석 밑에 걸린다. 비석 오른쪽 차선(비석 오른끝 + 여유)에서 멈춰 위로
+  const stele5 = await page.evaluate(() => { const e = game.entities.find(x => x.id === 'castle_regret_stele5'); return { x: e.x, w: e.w }; });
+  await walk('ArrowLeft', () => game.player.x <= 380, 'regret2 west leg');
+  check('regret2 west leg stops in the lane right of stele5', await page.evaluate(s => game.player.x >= s.x + s.w + 2 && game.player.x + game.player.w <= 416, stele5), JSON.stringify({ stele5, x: (await state()).x }));
+  await walk('ArrowUp', () => game.player.y <= 808, 'regret2 north bend');
   await walk('ArrowRight', () => !!game.battle, 'second map Taliyah contact starts duo'); await encounter(ENCOUNTERS[2]);
   await walk('ArrowRight', () => game.player.x >= 1252, 'regret2 east leg'); await walk('ArrowUp', () => game.player.y <= 200, 'regret2 final north leg'); await responsive('regret2-end');
   const completed = await state();
@@ -233,10 +243,10 @@ await runScenario({ name: 'castle-regret', launchOptions: { args: ['--autoplay-p
   await fixture('save-and-continue-regret', 'Save the completed three-encounter route with production autosave and continueGame. No save contents or defeated flags are edited.', async () => { game.autosave(); await game.continueGame(); }); assert.ok(await field());
   const restored = await state();
   check('save continue preserves position money flags and absent enemies', restored.map === beforeSave.map && Math.abs(restored.x - beforeSave.x) < 4 && Math.abs(restored.y - beforeSave.y) < 4 && restored.money === beforeSave.money && ENCOUNTERS.every(c => restored.flags[c.flag]) && restored.enemies.length === 0, JSON.stringify(restored));
-  await walk('ArrowDown', () => game.player.y >= 808, 'return south final leg'); await walk('ArrowLeft', () => game.player.x <= 324, 'return west mid leg');
+  await walk('ArrowDown', () => game.player.y >= 808, 'return south final leg'); await walk('ArrowLeft', () => game.player.x <= 380, 'return west mid leg (lane right of stele5)');
   await walk('ArrowDown', () => game.player.y >= 1448, 'return south lower leg'); await walk('ArrowRight', () => game.mapId === 'gajaeman_regret1', 'return regret2 to regret1'); assert.ok(await field());
   check('revisited regret1 does not respawn Yi', !(await state()).enemies.includes('yisub'));
-  await walk('ArrowRight', () => game.player.x >= 1030, 'regret1 return east'); await walk('ArrowDown', () => game.player.y >= 968, 'regret1 return south');
+  await walk('ArrowRight', () => game.player.x >= 1090, 'regret1 return east (lane right of stele2)'); await walk('ArrowDown', () => game.player.y >= 968, 'regret1 return south');
   await walk('ArrowLeft', () => game.player.x <= 260, 'regret1 return west'); await walk('ArrowDown', () => game.mapId === 'gajaeman_castle_left1', 'regret1 return to bridge'); assert.ok(await field());
   await walk('ArrowUp', () => game.player.y <= 144, 'reapproach completed door'); await key('KeyC');
   assert.ok(await until(() => game.mapId === 'gajaeman_regret1', 12000)); assert.ok(await field());

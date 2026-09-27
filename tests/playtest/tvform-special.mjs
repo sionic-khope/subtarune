@@ -37,7 +37,9 @@ try {
   const gameOn = await waitFor(() => window.game.battle.gimmick?.snapshot?.game?.kind === 'subrio', 5000);
   check(zoomed && gameOn, 'TV 확대 → 지지직 → 섭리오 화면 ' + JSON.stringify([zoomed, gameOn]));
   const lasersOn = await waitFor(() => window.game.battle.gimmick?.snapshot?.game?.lasers?.some(l => l.fired), 12000); await page.waitForTimeout(150); await cap('03_subrio_laser');
-  s = await st(); check(lasersOn && s.gimmick.game.yc.x === 424, '도트 영클이 오른쪽에서 걸어와 레이저를 쏜다 ' + JSON.stringify([lasersOn, s.gimmick?.game?.yc]));
+  // 도트 영클이 서는 자리는 데이터(YOUNGCLE_SPECIAL.subrio.ycStand, 맵 재배치로 424 → 372)가 원본
+  const ycStand = await page.evaluate(async () => (await import('/src/data/youngcle-special.js')).YOUNGCLE_SPECIAL.subrio.ycStand);
+  s = await st(); check(lasersOn && Number.isFinite(ycStand) && s.gimmick.game.yc.x === ycStand, '도트 영클이 오른쪽 제자리(ycStand)에서 레이저를 쏜다 ' + JSON.stringify([lasersOn, ycStand, s.gimmick?.game?.yc]));
   const hpBefore = s.ycHp;
   const down = await waitFor(() => window.game.battle.gimmick?.snapshot?.game?.phase === 'down', 20000); await page.waitForTimeout(300); await cap('04_subrio_down');
   check(down, '과부하로 쓰러짐(공격해라 화살표)');

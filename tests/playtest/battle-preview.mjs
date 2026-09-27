@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const outputDir = process.env.SHOT_DIR || new URL('./shots/battle-preview/', import.meta.url).pathname;
-const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:8000';
+const baseUrl = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 fs.mkdirSync(outputDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -19,7 +19,14 @@ page.on('request', (request) => {
 await page.goto(`${baseUrl}/index.html?map=test`);
 await page.waitForFunction(() => window.game?.state === 'field');
 await page.waitForTimeout(250);
-assert.equal(battleRequests.length, 0, 'ordinary field boot must not request battle atlases');
+// BUILD253(d2114e5a): 맵 준비가 현재 파티(형섭 + 동료)의 전투 그림·쓰러짐 그림을 미리 받는다(Battle.preload) —
+// 첫 전투가 로딩 정지 없이 열리게. 그래서 필드 부팅은 파티 밖 배우(경섭·빠맨)의 아틀라스는 요청하지 않아야 한다.
+const bootParty = await page.evaluate(() => ['hyungsub', ...game.party]);
+const fieldBootRequests = [...battleRequests];
+assert.ok(
+  fieldBootRequests.every((url) => bootParty.some((id) => new RegExp(`/assets/battle/(?:down/)?${id}(?:-run)?(?:-runtime)?\\.png`).test(url))),
+  `ordinary field boot may preload only the party's own battle art: ${JSON.stringify({ bootParty, fieldBootRequests })}`,
+);
 
 const before = await page.evaluate(() => {
   const sign = game.entities.find((entity) => entity.def.script === 'test_battle_preview');
@@ -39,7 +46,14 @@ await page.keyboard.press('KeyC');
 await page.waitForFunction(() => window.game?.state === 'battle-preview');
 await page.waitForFunction(() => window.game?.battlePreview.loading === false);
 
-assert.equal(battleRequests.length, 6, 'opening preview must lazily request three battle and three run atlases');
+{
+  // 미리보기는 세 배우의 원본 전투·달리기 아틀라스(3 + 3, battle-preview.js 는 runtime 사본을 안 쓴다)를 열 때 처음 요청한다(지연 적재)
+  const atlas = (url) => new URL(url).pathname.match(/^\/assets\/battle\/([a-z]+)(-run)?\.png$/);
+  const previewAtlases = battleRequests.slice(fieldBootRequests.length).map(atlas).filter(Boolean);
+  assert.equal(new Set(previewAtlases.map((m) => m[0])).size, 6, `opening preview must lazily request three battle and three run atlases: ${JSON.stringify(previewAtlases.map((m) => m[0]))}`);
+  assert.deepEqual([...new Set(previewAtlases.map((m) => m[1]))].sort(), ['gyeongsub', 'hyungsub', 'ppaman'], 'preview atlases belong to the three preview actors');
+  assert.ok(!fieldBootRequests.some(atlas), 'field boot never requested the preview atlases');
+}
 assert.deepEqual(
   await page.evaluate(() => game.battlePreview.actors.map((actor) => ({ id: actor.id, ready: !!actor.frames, error: actor.error }))),
   [
@@ -120,7 +134,7 @@ const failures = consoleMessages.filter((line) => line.startsWith('[pageerror]')
 assert.deepEqual(failures, [], `browser console failures: ${failures.join('\n')}`);
 fs.writeFileSync(`${outputDir}/console.txt`, consoleMessages.join('\n'));
 fs.writeFileSync(`${outputDir}/result.json`, JSON.stringify({
-  ordinaryBootBattleRequests: 0,
+  ordinaryBootBattleRequests: fieldBootRequests.length,
   previewBattleRequests: battleRequests.length,
   attackRetriggerIgnored: true,
   returnedState: after,

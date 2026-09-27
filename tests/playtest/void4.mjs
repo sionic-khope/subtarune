@@ -2,6 +2,7 @@
 //               → 계단 올라가 레버 C → 다리 낙하(rumble·thud·흔들림) → 타일 교체 → 억빠맨까지 걸어가 "안녕하세요형" → 잠긴 문 → 플래그로 재로드 시 다리 유지.
 // 실행: CHROME_EXE=... node tests/playtest/void4.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -10,12 +11,14 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
+// 부팅이 끝날 때까지(맵 지연 적재 ~1.4s) 고정 대기 대신 실제 상태를 기다린다: 'title' = 타이틀 입력 가능, 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
 const st = () => page.evaluate(() => ({ map: game.mapId, ride: !!game.ride, p: [Math.round(game.player.x), Math.round(game.player.y)], running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', zoom: +game.zoom.s.toFixed(2), cam: [Math.round(game.camera.x), Math.round(game.camera.y)], locked: game.camera.locked, flags: { ...game.flags }, sfx: window.__sfx || [], row5: game.map.rows[7].slice(38, 42), bridgeFall: !!game.entities.find((e) => e.id === 'bridge_fall' && !e.dead), leverOn: !!game.entities.find((e) => e.id === 'lever_on' && !e.dead && e.visible) }));
 const hookSfx = () => page.evaluate(() => { window.__sfx = []; const s = game.sound; if (!s.__orig) { s.__orig = s.sfx.bind(s); s.sfx = (n, opt) => { window.__sfx.push(n); return s.__orig(n, opt); }; } });
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.camera.snap(); }, [x, y, f]);
 const finish = async (max = 20) => { for (let i = 0; i < max; i++) { await page.waitForTimeout(220); const s = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state })); if (!s.running) break; if (s.box === 'waiting' || s.box === 'choice') await page.keyboard.press('KeyC'); } };
 
-await page.goto('http://127.0.0.1:8000/index.html?qa=void4'); await page.waitForTimeout(1000); await hookSfx();
+await page.goto(`${QA_BASE}index.html?qa=void4`); await ready(); await hookSfx();
 let s = await st(); check('qa=void4 at entrance', s.map === 'void4' && s.p[0] === 60, JSON.stringify(s.p));
 check('backdrop enabled', await page.evaluate(() => game.constructor && !!game.drawBackdrop && (Object.values(game).length > 0)));
 await page.screenshot({ path: `${S}/void4_01_start.png` });
@@ -73,7 +76,7 @@ await page.screenshot({ path: `${S}/void4_07_ppaman_talk.png` }); await page.key
 await page.evaluate(() => game.changeMap('void4', 'landing', true)); await page.waitForTimeout(300);
 s = await st(); check('bridge persists via flag on reload', s.row5 === 'bbbb' && s.leverOn, JSON.stringify({ row5: s.row5, leverOn: s.leverOn }));
 // QA void4_end
-await page.goto('http://127.0.0.1:8000/index.html?qa=void4_end'); await page.waitForTimeout(900);
+await page.goto(`${QA_BASE}index.html?qa=void4_end`); await ready();
 s = await st(); check('qa=void4_end lands at landing with arrived flag, no cutscene', s.map === 'void4' && s.flags.void4_arrived === true && !s.running, JSON.stringify({ p: s.p, running: s.running }));
 await browser.close();
 logs.push(`fails=${fails}`);

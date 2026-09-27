@@ -3,7 +3,7 @@ import path from 'node:path';
 import { chromium } from 'playwright-core';
 import { escToTitle } from './lib/esc.mjs';
 
-const base = process.env.BASE_URL || 'http://localhost:8777';
+const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const shots = process.env.SHOT_DIR || '/tmp/storage119-playtest';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });

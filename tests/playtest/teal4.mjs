@@ -67,7 +67,9 @@ await page.screenshot({ path: `${S}/teal4_01_start.png` });
   await page.waitForTimeout(600);
   const bt = await page.evaluate(() => window.__bgmT);
   logs.push('bgm trace: ' + JSON.stringify(await page.evaluate(() => window.__stopLog)));
-  check('battle entry: field BGM cut with the jingle, battle BGM starts as the screen opens (≤ 0.45s after the battle object, 0.3s fade, audible within 250ms) — no silence gap', !!bt && bt.fieldStoppedBeforeBattle === true && bt.fieldBgmAtBattle === null && typeof bt.delay === 'number' && bt.delay <= 250 && bt.sinceBattle >= 0 && bt.sinceBattle <= 450 && Math.abs(bt.fadeIn - 0.3) < 0.01, JSON.stringify(bt));
+  // 페이드 길이는 battle.js 의 BGM_FADE(2026-09-11 사용자: 0.3s 페이드가 첫 타를 삼킴 → 0, 원래 음량으로 바로)를 원본으로 읽는다
+  const bgmFade = await page.evaluate(async () => { const src = await (await fetch('./src/battle/battle.js')).text(); const m = src.match(/const BGM_FADE = ([\d.]+)/); return m ? Number(m[1]) : null; });
+  check(`battle entry: field BGM cut with the jingle, battle BGM starts as the screen opens (≤ 0.45s after the battle object, fadeIn = BGM_FADE ${bgmFade}s, audible within 250ms) — no silence gap`, !!bt && bgmFade !== null && bt.fieldStoppedBeforeBattle === true && bt.fieldBgmAtBattle === null && typeof bt.delay === 'number' && bt.delay <= 250 && bt.sinceBattle >= 0 && bt.sinceBattle <= 450 && Math.abs((bt.fadeIn ?? 0) - bgmFade) < 0.01, JSON.stringify({ ...bt, bgmFade }));
   // 승리 처리(전투 자체는 battle.mjs) → 표준 승리 문구 '전투에서 승리했다! 30원을 얻었다.'
   await page.evaluate(() => { const t0 = Date.now(); const tick = () => { const b = game.battle; if (!b) return; if (b.state === 'menu' || b.state === 'intro') { if (b.state === 'intro') { b.shown = b.text.length; } } if (Date.now() - t0 > 20000) return; }; tick(); });
   let winText = '';

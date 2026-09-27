@@ -13,6 +13,8 @@ const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${n
 const shot = (n) => page.screenshot({ path: `${S}/house_${n}.png` });
 const st = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, box: game.textbox.state, flags: { ...game.flags }, p: [Math.round(game.player.x), Math.round(game.player.y)], tr: game.transitioning, scene3d: game.scene3d }));
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
+// 문 전환은 맵을 필요할 때 받아 오므로(검은 화면 ~1–2s) 고정 대기 대신 전환이 끝날 때까지 기다린다
+const afterDoor = async (ms = 10000) => { await page.waitForTimeout(250); const t0 = Date.now(); while (Date.now() - t0 < ms && await page.evaluate(() => game.transitioning || game.fade.alpha > 0.05)) await page.waitForTimeout(80); await page.waitForTimeout(200); };
 // 대사를 C 로 끝까지 넘김 (선택지는 pick 번째를 고름)
 const finishDialogue = async (pick = 0, max = 30) => {
   const texts = [];
@@ -38,14 +40,14 @@ check('locked door: dialogue opened once', (await page.evaluate(() => window.__o
 await finishDialogue();
 // 2) 컴퓨터 확인 후 문 → 복도
 await page.evaluate(() => { game.flags.pc_checked = true; game.player.y = 130; }); await page.waitForTimeout(300);
-await hold('ArrowUp', 400); await page.waitForTimeout(900);
+await hold('ArrowUp', 400); await afterDoor();
 s = await st(); check('door → corridor', s.map === 'corridor' && !s.tr, JSON.stringify(s.p));
 await shot('01_corridor_top');
 // 복도: 아래로 → 오른쪽 끝
 await hold('ArrowDown', 700); await hold('ArrowRight', 1600); await page.waitForTimeout(300);
 await shot('02_corridor_end');
 s = await st(); check('walked to corridor end', s.map === 'corridor' && s.p[0] > 420, JSON.stringify(s.p));
-await hold('ArrowRight', 400); await page.waitForTimeout(900);
+await hold('ArrowRight', 400); await afterDoor();
 s = await st(); check('corridor end → living', s.map === 'living', s.map);
 // 3) 거실 진입 컷신
 await page.waitForTimeout(700);
@@ -91,16 +93,16 @@ await page.keyboard.press('KeyC'); texts = await finishDialogue();
 check('probe through cushion hits table', texts.some((t) => t.includes('접시')), texts.join(' | '));
 // 8) 왼쪽 출입구 → 복도 → 다시 거실: 컷신 재생 없음
 await page.evaluate(() => { game.player.x = 70; game.player.y = 220; game.player.facing = 'left'; game.camera.snap(); }); await page.waitForTimeout(200);
-await hold('ArrowLeft', 500); await page.waitForTimeout(900);
+await hold('ArrowLeft', 500); await afterDoor();
 s = await st(); check('living → corridor', s.map === 'corridor', s.map + ' ' + JSON.stringify(s.p));
-await hold('ArrowRight', 600); await page.waitForTimeout(1000);
+await hold('ArrowRight', 600); await afterDoor();
 s = await st(); check('corridor → living again, no cutscene', s.map === 'living' && !s.running, s.map + ' running=' + s.running);
 await page.evaluate(() => { game.player.x = 384; game.player.y = 286; game.camera.snap(); }); await page.waitForTimeout(150);
 check('tart stays gone after re-enter', await page.evaluate(() => !game.entities.find((e) => e.id === 'tart')));
 await shot('09_living_reenter');
 // 9) 복도 → 방 (문 왕복)
 await page.evaluate(() => { game.mapId; }); await page.goto('http://127.0.0.1:8000/index.html?map=corridor&spawn=from_room'); await __ready(); await page.waitForTimeout(1000);
-await hold('ArrowUp', 400); await page.waitForTimeout(900);
+await hold('ArrowUp', 400); await afterDoor();
 s = await st(); check('corridor → room', s.map === 'room' && !s.running, s.map + ' ' + JSON.stringify(s.p));
 await page.waitForTimeout(800); s = await st(); check('no ping-pong back to corridor', s.map === 'room');
 await browser.close();

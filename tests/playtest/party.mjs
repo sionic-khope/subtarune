@@ -2,6 +2,7 @@
 //   → [억빠맨이 동료가 되었다] → NPC 사라지고 Follower 가 뒤에서 따라 걸음(발자국 추적, 거리 유지, 겹치지 않음) → 메뉴 파티창 → 자동저장/이어하기 복원 → 맵 전환 후 재정렬 → 뗏목 동승 → 다시 말 걸면 짧은 한마디.
 // 실행: CHROME_EXE=... node tests/playtest/party.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -10,6 +11,8 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
+// 부팅이 끝날 때까지(맵 지연 적재 ~1.4s) 고정 대기 대신 실제 상태를 기다린다: 'title' = 타이틀 입력 가능, 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
 const st = () => page.evaluate(() => { const f = game.entities.find((e) => e.def?.type === 'follower'); const n = game.entities.find((e) => e.def?.type === 'npc' && e.id === 'ppaman' && !e.dead); return { map: game.mapId, running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: game.textbox.node?.text || '', auto: game.textbox.node?.auto ?? null, party: [...game.party], flags: { ...game.flags }, p: [Math.round(game.player.x), Math.round(game.player.y)], pf: game.player.facing, f: f ? [Math.round(f.x), Math.round(f.y), f.facing, f.moving, f.frame] : null, npc: !!n, state: game.state, ride: !!game.ride }; });
 const stand = (x, y, f) => page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.camera.snap(); }, [x, y, f]);
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
@@ -32,7 +35,7 @@ const pick = async (idx) => {   // 선택지는 2열 격자(3개 = 2+1): ↓ 로
   for (let k = 0; k < idx % 2; k++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(70); }
   await page.keyboard.press('KeyC'); await page.waitForTimeout(250); };
 
-await page.goto('http://127.0.0.1:8000/index.html?qa=ppaman'); await page.waitForTimeout(1000);
+await page.goto(`${QA_BASE}index.html?qa=ppaman`); await ready();
 let s = await st(); check('qa=ppaman: next to pillar, bridge down, npc present', s.map === 'void4' && s.flags.bridge_down && s.npc && s.party.length === 0, JSON.stringify({ p: s.p, npc: s.npc }));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
 let r = await untilChoice();
@@ -87,8 +90,9 @@ check('follower is not interactable', !s.running || !s.text.includes('빨리 나
 // 저장/이어하기
 const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('subtarune.save.v1') || 'null'));
 check('autosave has party', Array.isArray(saved?.party) && saved.party.includes('ppaman'), JSON.stringify(saved?.party));
-await page.goto('http://127.0.0.1:8000/index.html'); await page.waitForTimeout(1200);
-await page.keyboard.press('KeyX'); await page.waitForTimeout(3600);
+await page.goto(`${QA_BASE}index.html`); await ready("title");
+// PROMPT_DELAY(3s) 뒤에야 C 가 먹는다
+await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'locked', undefined, { timeout: 15000, polling: 100 }); await page.waitForTimeout(3300);
 for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(500); if ((await page.evaluate(() => game.state)) !== 'title') break; }
 await page.waitForTimeout(900); s = await st();
 check('continue restores party + follower', s.state === 'field' && s.party.includes('ppaman') && !!s.f && !s.npc, JSON.stringify({ party: s.party, f: s.f, npc: s.npc }));
@@ -100,7 +104,7 @@ check('follower rides along on the raft (beside, not overlapping)', s.ride && s.
 check('follower stands still on the raft (no walk animation)', s.f && s.f[3] === false && s.f[4] === 0, JSON.stringify(s.f));
 await page.screenshot({ path: `${S}/party_06_raft.png` });
 // QA party 지점
-await page.goto('http://127.0.0.1:8000/index.html?qa=party'); await page.waitForTimeout(900); s = await st();
+await page.goto(`${QA_BASE}index.html?qa=party`); await ready(); s = await st();
 check('qa=party starts with follower and no npc', s.party.includes('ppaman') && !!s.f && !s.npc && s.flags.ppaman_joined, JSON.stringify({ party: s.party, npc: s.npc }));
 await browser.close();
 logs.push(`fails=${fails}`);

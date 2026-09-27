@@ -13,7 +13,8 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
     '/assets/tiles/void.png',
     // BUILD313 visits Mario/Bidet; makePortraits derives Bidet's face from his loaded sheet.
     // prepareMapAssets probes a separate portrait PNG optionally, even for silent Mario.
-    ...['youngcle', 'youngcle_hover', 'gajaeman_shadow', 'mini_mario', 'warm_bidet', 'ttuulla', 'park_guardian'].map(name => `/assets/portraits/${name}.png`),
+    // prefetchAround(부팅·전환 뒤 이웃 맵 미리 받기)가 성 투기장 컷신의 파크가디언 의상 초상화도 같은 방식으로 찔러 본다 — 없으면 시트에서 만든 얼굴을 쓴다
+    ...['youngcle', 'youngcle_hover', 'gajaeman_shadow', 'mini_mario', 'warm_bidet', 'ttuulla', 'park_guardian', 'park_guardian_costume'].map(name => `/assets/portraits/${name}.png`),
     ...['default', 'hero', 'low', 'cat', 'robot', 'dao', 'bazzi'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/voices/${name}.${ext}`)),
     ...['chime', 'open', 'close'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/sfx/${name}.${ext}`)),
   ]);

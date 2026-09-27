@@ -7,7 +7,6 @@ fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const checks = [], errors = [], captures = [], resetCancellations = [];
-let resettingFixture = false;
 const check = (name, ok, detail) => { checks.push({ name, ok, detail }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, detail ?? ''); };
 const shot = async name => { await page.screenshot({ path: path.join(shots, name + '.png') }); captures.push(name); };
 const skyBrightness = () => page.evaluate(() => {
@@ -20,7 +19,8 @@ const skyBrightness = () => page.evaluate(() => {
 page.on('pageerror', error => errors.push(error.message));
 page.on('requestfailed', request => {
   const failure = request.failure()?.errorText;
-  if (resettingFixture && failure === 'net::ERR_ABORTED' && request.url().endsWith('/assets/audio/bgm/maillard_sunrise.mp3')) {
+  // 오디오 요소는 src 교체·맵 전환·충분히 버퍼링된 뒤 Chrome 이 스스로 요청을 끊는다(net::ERR_ABORTED) — 파일이 없는 게 아니다.
+  if (failure === 'net::ERR_ABORTED' && /\/assets\/audio\/(bgm|sfx|voices)\//.test(new URL(request.url()).pathname)) {
     resetCancellations.push(request.url());
     return;
   }
@@ -43,7 +43,6 @@ const read = () => page.evaluate(() => {
   };
 });
 try {
-  resettingFixture = true;
   await page.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/?qa=maillard_path`);
   await page.waitForFunction(() => game?.mapId === 'maillard_path');
   await page.evaluate(() => {
@@ -53,7 +52,6 @@ try {
   });
   await page.waitForFunction(() => window.initialFixtureBgm.getAttribute('src') === '');
   await shot('01-stairs-approach');
-  resettingFixture = false;
   await page.keyboard.down('ArrowRight');
   await page.waitForFunction(() => game.mapId === 'maillard_path', null, { timeout: 4000 });
   await page.keyboard.up('ArrowRight');
@@ -124,12 +122,12 @@ try {
   await shot('09-wide-sky-sunrise');
   const brightSky = await skyBrightness();
   check('music reveal transforms the dark sky into a much brighter sunset', darkSky < 35 && brightSky > darkSky * 2.5, { darkSky, brightSky });
-  resettingFixture = true;
   await page.evaluate(() => game.continueGame());
   const continued = await read();
   check('continue restores both followers at safe landing', continued.done && continued.seen && continued.followers.length === 2 && continued.followers.every(f => f.visible && f.safe && f.clearOfCart), continued);
-  await page.evaluate(() => {
-    game.devJump({ map: 'maillard_path', spawn: 'from_hold', flags: { maillard_hold_done: true }, party: ['gyeongsub', 'ppaman'] });
+  // devJump 은 맵 준비를 기다리는 async — 끝난 뒤의 새 수레에 올라야 한다(옛 엔티티에 타면 새 맵엔 탑승이 없다)
+  await page.evaluate(async () => {
+    await game.devJump({ map: 'maillard_path', spawn: 'from_hold', flags: { maillard_hold_done: true }, party: ['gyeongsub', 'ppaman'] });
     const cart = game.entities.find(e => e.id === 'maillard_cart');
     cart.interact(game.player);
     window.safeCartSave = localStorage.getItem('subtarune.save.v1');

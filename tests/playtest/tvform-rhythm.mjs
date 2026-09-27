@@ -6,6 +6,19 @@ import { runScenario } from './lib/harness.mjs';
 
 await runScenario({ name: 'tvform-rhythm', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, check, until, open, press, fixture, shot }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
+  // 시험 환경: 개발 서버(serve.py = SimpleHTTPRequestHandler)는 Range 요청을 지원하지 않아 <audio> 가 seekable [0,0] 이다 — 루프 직전·기준 악절로 옮기는
+  // 준비 fixture 의 currentTime 이 조용히 0 으로 돌아가 “near-loop” 샘플이 비었다. 배포 서버처럼 BGM mp3 만 바이트 범위(206)로 내 주어 탐색이 되게 한다.
+  // 소리 파일 내용·주소(?v= 캐시 키 포함)·재생 경로는 그대로 — 전송 방식만 흉내 낸다.
+  const bgmBodies = new Map();
+  await page.route(/\/assets\/audio\/bgm\/[^/?]+\.mp3(\?.*)?$/, async route => {
+    const key = route.request().url().split('?')[0];
+    if (!bgmBodies.has(key)) { const response = await route.fetch(); if (!response.ok()) return route.fulfill({ response }); bgmBodies.set(key, await response.body()); }
+    const body = bgmBodies.get(key), match = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range || '');
+    if (!match) return route.fulfill({ status: 200, body, headers: { 'Content-Type': 'audio/mpeg', 'Accept-Ranges': 'bytes', 'Content-Length': String(body.length) } });
+    const start = Number(match[1]), end = match[2] ? Math.min(Number(match[2]), body.length - 1) : body.length - 1;
+    return route.fulfill({ status: 206, body: body.subarray(start, end + 1), headers: { 'Content-Type': 'audio/mpeg', 'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${start}-${end}/${body.length}`, 'Content-Length': String(end - start + 1) } });
+  });
+  console.log('FIXTURE range-capable-bgm-transport: BGM mp3 responses are re-served with HTTP byte ranges (like the deployed host) so fixture seeks work on the range-less dev server; audio bytes and URLs are unchanged.');
   const state = () => page.evaluate(() => {
     const b = window.game.battle;
     return { state: b.state, text: b.text, special: b.support?.specialKind, phase: b.gimmick?.snapshot?.phase,
@@ -26,6 +39,7 @@ await runScenario({ name: 'tvform-rhythm', launchOptions: { args: ['--autoplay-p
           if (!Number.isFinite(snd.bgm.duration)) throw new Error('BGM duration unavailable');
           snd.bgm.currentTime = snd.bgm.duration - 16;
           await new Promise(resolve => snd.bgm.addEventListener('seeked', resolve, { once: true }));
+          if (snd.bgm.currentTime < snd.bgm.duration - 20) throw new Error(`near-loop seek did not take effect (currentTime ${snd.bgm.currentTime}); media is not seekable`);
         }
       }, nearLoop);
     await fixture('observe-audio-nodes',
@@ -78,6 +92,7 @@ await runScenario({ name: 'tvform-rhythm', launchOptions: { args: ['--autoplay-p
         const bgm = window.game.sound.bgm;
         bgm.pause(); bgm.currentTime = start - YOUNGCLE_SPECIAL.rhythm.lead;
         await new Promise(resolve => bgm.addEventListener('seeked', resolve, { once: true }));
+        if (Math.abs(bgm.currentTime - (start - YOUNGCLE_SPECIAL.rhythm.lead)) > 0.25) throw new Error(`reference seek did not take effect (currentTime ${bgm.currentTime}); media is not seekable`);
       }, reference.start);
     const entered = await until(() => window.game.battle.gimmick?.snapshot?.game?.kind === 'rhythm', 20000);
     check('special 2 enters rhythm through attack inputs', !!entered && (await state()).special === 'rhythm');

@@ -26,7 +26,7 @@ async function walkTo(x, y) {
 }
 
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8772'}/?qa=maillard_lounge`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=maillard_lounge`);
   await page.waitForFunction(() => game?.player && game.state === 'field' && !game.transitioning);
   await page.keyboard.press('KeyX');
   await page.evaluate(() => game.changeMap('maillard_path', 'from_lounge', true, { enter: false }));
@@ -39,8 +39,14 @@ try {
   await page.keyboard.up('ArrowRight');
   check('walking right enters the lounge without C or a turn', await page.evaluate(() => game.mapId === 'maillard_lounge'));
   await page.waitForFunction(() => game.sound.bgmName === 'maillard_lounge' && !game.sound.bgm.paused && game.sound.bgm.currentTime > 0.5);
-  check('requested full BGM plays and loops', await page.evaluate(() => game.sound.bgm.src.endsWith('/maillard_lounge.mp3') && game.sound.bgm.duration > 89 && game.sound.bgm.loop));
-  check('shorter enclosed room retains open floor without unrequested NPCs or automatic events', await page.evaluate(() => game.map.pxW === 1536 && game.map.pxH === 640 && !game.map.def.backdrop && !game.dialogue.running && !game.entities.some(e => e.def.type === 'npc')));
+  check('requested full BGM plays and loops', await page.evaluate(() => new URL(game.sound.bgm.src).pathname.endsWith('/maillard_lounge.mp3') && game.sound.bgm.duration > 89 && game.sound.bgm.loop));
+  // 67d52175(2026-09-13): 사용자 요청으로 라운지에 말 거는 NPC 네 명(약쿨벌·마뱀·예림·박원숭)이 들어왔다 — 그 밖의 NPC·자동 이벤트는 없어야 한다
+  check('shorter enclosed room retains open floor with only the four requested talk-to NPCs and no automatic events', await page.evaluate(() => {
+    const npcs = game.entities.filter(e => e.def.type === 'npc');
+    return game.map.pxW === 1536 && game.map.pxH === 640 && !game.map.def.backdrop && !game.map.def.enter && !game.dialogue.running
+      && !game.entities.some(e => e.def.type === 'trigger')
+      && npcs.map(e => e.id).sort().join() === ['mabaem', 'parkwonsung', 'yakulbeol', 'yerim'].join() && npcs.every(e => typeof e.def.script === 'string');
+  }));
   await shot('03-lounge-arrival');
   for (const [x, pose] of [[312, 'arms_crossed'], [472, 'laugh'], [632, 'gesture']]) {
     await walkTo(x, 248);
@@ -87,11 +93,16 @@ try {
   await shot('06-lower-right-wall');
   await walkTo(80, 552);
   await shot('07-lower-left-wall');
+  // 왼쪽 벽 앞엔 소파(lounge_bench_1, x 70~158, 67d52175)가 있어 그 오른쪽 통로로 올라간다
+  await walkTo(172, 552);
+  await walkTo(172, 184);
   await walkTo(80, 184);
   await shot('08-upper-left-wall');
   await page.setViewportSize({ width: 375, height: 812 });
   await shot('09-small-viewport');
   await page.setViewportSize({ width: 1000, height: 780 });
+  await walkTo(172, 184);
+  await walkTo(172, 440);
   await walkTo(112, 440);
   await page.keyboard.down('ArrowLeft');
   await page.waitForFunction(() => game.mapId === 'maillard_path' && !game.transitioning);

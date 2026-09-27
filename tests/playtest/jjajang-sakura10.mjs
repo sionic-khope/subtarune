@@ -6,7 +6,9 @@ const shots = process.env.SHOT_DIR; fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const errors = []; page.on('pageerror', e => errors.push(e.message));
-page.on('console', m => { if (m.type() === 'warning' && /cutscene|엔티티 없음|동작 없음|없음/.test(m.text())) errors.push('warn: ' + m.text()); });
+// 허용하는 경고 없음 — 나무 두 번 지우기 경고는 BUILD393 에서 게임 쪽을 고쳤다
+const KNOWN_WARNINGS = [];
+page.on('console', m => { if (m.type() === 'warning' && /cutscene|엔티티 없음|동작 없음|없음/.test(m.text()) && !KNOWN_WARNINGS.some(re => re.test(m.text()))) errors.push('warn: ' + m.text()); });
 let fails = 0;
 const check = (ok, msg) => { if (!ok) { fails += 1; console.log('FAIL', msg); } else console.log('ok', msg); };
 const cap = async n => { await page.screenshot({ path: path.join(shots, 'sakura10_' + n + '.png') }); };
@@ -105,7 +107,10 @@ try {
   l = await advanceTo('아 씨발년 이럴줄알았어', 90000);
   check(!!l && l.speaker === '경섭', '밤 절벽 도주 뒤 경섭 마지막 대사'); await next();
   l = await advanceTo('난 알파메일이 되는거야!!!', 120000); check(!!l, '도주·충돌·짜장면 사건 뒤 마지막 변신 대사'); await next();
-  check(await until(() => window.game.mapId === 'jjajang_sakura5' && !window.game.dialogue.running && window.game.flags.choimis_runaway_done, 10000), '후속 장면 종료 뒤 숲5 조작 복귀');
+  // BUILD290+: 변신 대사 뒤 하얀 화면 → 꽃 최미스 장면(녹음 대사) → 떠난 뒤 경섭·억빠맨 재합류까지 한 흐름으로 이어진다 — 중간에 맵을 강제로 바꾸지 않고 실제 흐름을 끝까지 따라간다
+  l = await advanceTo('쫒아가죠 형', 120000); check(!!l, '꽃 최미스 장면 뒤 경섭: 쫒아가죠 형.'); await next();
+  for (let t = Date.now(); Date.now() - t < 20000 && !(await ev(() => window.game.flags.choimis_flower_done && !window.game.dialogue.running));) { if ((await line()).text) await next(); await page.waitForTimeout(80); }
+  check(await until(() => window.game.mapId === 'jjajang_sakura5' && !window.game.dialogue.running && window.game.flags.choimis_runaway_done && window.game.flags.choimis_flower_done && window.game.party.join(',') === 'gyeongsub,ppaman', 10000), '후속 장면 종료 뒤 숲5 조작 복귀(경섭·억빠맨 재합류)');
   check(await ev(() => !window.game.inventory.includes('어둠의 짜장면') && window.game.flags.choimis_jjajang_eaten), '실제 그릇 충돌 뒤 짜장면 소비'); await cap('16_after_scene');
   // 기존 제단/남쪽 문 회귀 검사는 완료 상태를 유지한 실제 맵 재입장으로 분리한다.
   await ev(async () => { await window.game.changeMap('jjajang_sakura12', 'from_scene', true); });

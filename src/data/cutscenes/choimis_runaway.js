@@ -144,7 +144,7 @@ export const CHOIMIS_CRASH = [
       { hop: B_ID, by: [80, 16], height: 18, duration: 0.55, spin: 1, sfx: 'pop', keep: true },
       { action: game => { const bowl = actor(game, B_ID); bowl.spin = 0; } }],
   ] },
-  { remove: 'sakura5_giant_tree' },
+  // 나무는 fling 이 끝나며 이미 사라진다(여기서 한 번 더 지우면 '엔티티 없음' 경고만 남았다)
   { face: C_ID, dir: 'toward:player' },
   { wait: 0.8 },
   spawnAt(K_ID, 'gyeongsub', 'crash_k_entry', { facing: 'left' }),

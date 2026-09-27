@@ -222,7 +222,9 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
   await page.waitForTimeout(2300); await press('KeyC', { delay: 70 });
   check('retry: real C reopens battle intro', await until(() => game.battle?.state === 'intro', 9000));
   const retry = await record('retry-intro');
-  check('retry: party and boss HP restored', retry.party.every(m => m.hp === m.maxHp && !m.down) && retry.hp === 200);
+  // 최미스 꽃 보스 HP 는 데이터에서 읽는다(BUILD388: 250 → 230)
+  const bossMaxHp = await page.evaluate(async () => (await import('/src/data/enemies.js')).ENEMIES.choimis_flower.hp);
+  check('retry: party and boss HP restored', retry.party.every(m => m.hp === m.maxHp && !m.down) && retry.hp === bossMaxHp, JSON.stringify({ hp: retry.hp, bossMaxHp }));
   for (let i = 0; i < 30 && !await page.evaluate(() => game.battle?.gimmick?.snapshot?.phase === 'intro'); i++) { await press('KeyC', { delay: 70 }); await page.waitForTimeout(180); }
   check('retry: fresh video begins at zero without duplicate result', (await snapshot()).mode.bites === 0 && (await snapshot()).media.time < 2);
   await escToTitle(page, { delay: 70 });
@@ -230,10 +232,11 @@ await runScenario({ name: 'choimis-eating-race', launchOptions: { args: ['--auto
   const cancelled = await record('escape-cleanup');
   check('escape: mode disposed and video silent', cancelled.mode.disposed && cancelled.media.paused && cancelled.media.src === null);
   await enter('bossdeath', 1280, { bossHp: 10, boosted: true }); await start('bossdeath'); await taps(54);
-  check('bossdeath: 54 real keys reach battle victory', await until(() => game.battle?.state === 'win', 5000));
-  const dead = await record('bossdeath-win'); await shot('bossdeath-win');
-  check('bossdeath: one hit kills exact 10HP boundary and disposes', dead.hp === 0 && dead.hits.length === 1 && dead.mode.disposed && dead.media.src === null);
-  await page.waitForTimeout(1000); await press('KeyC', { delay: 70 }); await page.waitForTimeout(300); await press('KeyC', { delay: 70 });
-  check('bossdeath: real C returns from victory to field', await until(() => game.state === 'field' && !game.battle, 8000));
-  await record('bossdeath-field');
+  // BUILD300+: 최미스 꽃은 치명타로 바로 쓰러지지 않는다 — 치명타는 HP 1 을 남기고 finalePending 을 세운 뒤, 먹방 연출이 끝나면
+  //   공통 마무리 모드(choimis_finale: 합체 대사 → 마무리)를 연다. 그 뒤 승리·필드 복귀는 choimis-finale 시나리오가 실제 입력으로 검사한다.
+  check('bossdeath: 54 real keys land the lethal eating hit and open the finale', await until(() => game.battle?.activeEnemyMode === 'choimis_finale', 8000));
+  const dead = await record('bossdeath-finale'); await shot('bossdeath-finale');
+  const eating = await page.evaluate(() => ({ disposed: window.__eatingQa.mode?.snapshot.disposed, winner: window.__eatingQa.mode?.snapshot.winner, finaleStarted: !!game.battle?.enemies[0]?.finaleStarted, battle: game.battle?.state }));
+  check('bossdeath: one hit at the exact 10HP boundary is lethal — keeps 1 HP for the finale and disposes the race', dead.hp === 1 && dead.hits.length === 1 && dead.hits[0].requested === 10 && dead.hits[0].source === 'choimis-eating-race' && eating.winner === 'party' && eating.disposed && eating.finaleStarted && dead.media.src === null, JSON.stringify({ hp: dead.hp, hits: dead.hits, eating }));
+  check('bossdeath: the finale runs inside the battle instead of an early victory', eating.battle === 'enemy-mode' && await page.evaluate(() => !!game.battle && game.battle.state !== 'win' && game.battle.activeEnemyMode === 'choimis_finale'));
 });

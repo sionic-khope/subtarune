@@ -23,7 +23,7 @@ const shotCanvas = async name => {
 };
 
 try {
-  await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8799');
+  await page.goto((process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, ''));
   await page.waitForFunction(() => window.game?.title);
   await page.evaluate(async () => {
     const { QA_POINTS } = await import('/src/core/story.js');

@@ -13,7 +13,7 @@ const shot = name => page.screenshot({ path: path.join(dir, `${name}.png`) });
 const key = name => page.keyboard.press(name, { delay: 65 });
 page.on('pageerror', error => errors.push(error.message));
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8767'}/?qa=obj5_sea`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=obj5_sea`);
   await page.waitForFunction(() => window.game?.player);
   await key('KeyX');
   for (let i = 0; i < 2; i++) { await page.waitForFunction(() => game.textbox.state === 'waiting'); await key('KeyC'); }

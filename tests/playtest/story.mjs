@@ -9,7 +9,10 @@ const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${n
 const st = () => page.evaluate(() => ({ map: game.mapId, stage: game.story.stage, flags: { ...game.flags }, running: game.dialogue.running, text: game.textbox.node?.text || '', state: game.state, inv: [...game.inventory], p: [Math.round(game.player?.x), Math.round(game.player?.y)] }));
 const finishDialogue = async (max = 20) => { for (let i = 0; i < max; i++) { await page.waitForTimeout(220); const s = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state })); if (!s.running) break; if (s.box !== 'closed') await page.keyboard.press('KeyC'); } };
 const firstLine = async (x, y, facing = 'up') => { await page.evaluate(([x, y, f]) => { game.player.x = x; game.player.y = y; game.player.facing = f; game.camera.snap(); }, [x, y, facing]); await page.waitForTimeout(120); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); const t = await page.evaluate(() => game.textbox.node?.text || ''); await finishDialogue(); return t; };
-const goMap = async (map, spawn) => { await page.evaluate(([m, s]) => game.changeMap(m, s, true), [map, spawn]); await page.waitForTimeout(200); await finishDialogue(); };
+// 맵은 필요할 때 받아 온다(on-demand) — changeMap 뒤 고정 대기 대신 그 맵이 서고 전환이 끝날 때까지 기다린다
+const settleOn = async (map, ms = 10000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await page.evaluate((m) => (!m || game.mapId === m) && !game.transitioning && game.fade.alpha < 0.05, map)) break; await page.waitForTimeout(80); } await page.waitForTimeout(150); };
+const afterDoor = async () => { await page.waitForTimeout(250); await settleOn(null); };
+const goMap = async (map, spawn) => { await page.evaluate(([m, s]) => game.changeMap(m, s, true), [map, spawn]); await settleOn(map); await finishDialogue(); };
 
 // 1) ?map=living 바로가기 → pc_checked 가 backfill → 방 컴퓨터는 초기 대사("어 뭐야")가 아니라 "코드가 없다"
 await page.goto('http://127.0.0.1:8000/index.html?map=living&spawn=from_hall'); await page.waitForTimeout(1000); await finishDialogue();
@@ -23,7 +26,7 @@ s = await st(); check('?stage=cord_found lands in living with all earlier flags'
 t = await firstLine(146, 122); check('tv after cord_found', t.includes('챙겼다'), t);
 await goMap('room', 'door'); await page.waitForTimeout(700);   // 문 스폰 직후 0.6s 쿨다운 지나서
 await page.evaluate(() => { game.player.x = 140; game.player.y = 130; game.player.facing = 'up'; });
-await page.keyboard.down('ArrowUp'); await page.waitForTimeout(350); await page.keyboard.up('ArrowUp'); await page.waitForTimeout(900);
+await page.keyboard.down('ArrowUp'); await page.waitForTimeout(350); await page.keyboard.up('ArrowUp'); await afterDoor();
 s = await st(); check('door not locked after cord_found → corridor', s.map === 'corridor', s.map);
 // 컴퓨터: 코드를 챙긴 뒤엔 초기 대사가 아니라 방송 컷신("철컥..")이 시작되고 void 로 끝난다
 await goMap('room', 'door');
@@ -39,10 +42,10 @@ check('autosave written', !!saved && saved.story?.stage === 'void_fallen' && sav
 await page.goto('http://127.0.0.1:8000/index.html'); await page.waitForTimeout(1200);
 await page.keyboard.press('KeyX'); await page.waitForTimeout(3600);
 for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(500); if ((await page.evaluate(() => game.state)) !== 'title') break; }
-await page.waitForTimeout(900); s = await st();
+await settleOn('void'); s = await st();
 check('continue restores stage/map/flags', s.state === 'field' && s.map === 'void' && s.stage === 'void_fallen' && s.flags.pc_checked === true && !s.running, JSON.stringify({ state: s.state, map: s.map, stage: s.stage, running: s.running }));
 await page.evaluate(() => { game.player.x = 880; game.player.y = 190; game.player.facing = 'right'; game.camera.snap(); }); await page.waitForTimeout(700);
-await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(900);
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight'); await afterDoor();
 s = await st(); check('gameplay works after continue (void big door → void2)', s.map === 'void2', s.map);
 
 // 4) 타이틀에서 X 두 번 → 처음부터: 세이브 삭제, 오프닝 시작, 플래그 초기화

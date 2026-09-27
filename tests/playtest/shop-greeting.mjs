@@ -3,28 +3,42 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 
-const base = process.env.BASE_URL || 'http://localhost:8774';
+const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const out = process.env.SHOT_DIR || '/tmp/shop116-greeting';
 fs.mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const checks = [], errors = [], resources = [], requestFailures = [], captures = [];
 const optional = new Set([
-  ...['default', 'hero', 'low', 'cat', 'robot'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/voices/${name}.${ext}`)),
+  // 합성 목소리로 도는 이름(audio.js VOICES 에 파일 없음): 다오·배찌(BUILD266 벚꽃 숲 적)도 부팅 때 파일을 찾아본다
+  ...['default', 'hero', 'low', 'cat', 'robot', 'dao', 'bazzi'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/voices/${name}.${ext}`)),
   ...['open', 'close', 'chime'].flatMap(name => ['mp3', 'ogg'].map(ext => `/assets/audio/sfx/${name}.${ext}`)),
   ...['void', 'backdrop_void', 'grass_flower', 'grass', 'path', 'water', 'floor', 'rug', 'tree', 'door', 'wall', 'sign', 'chest', 'bed', 'desk', 'window', 'ground_purple_solid'].map(name => `/assets/tiles/${name}.png`),
   ...['merchant', 'cat', 'guard', 'ghost', 'hero'].map(name => `/assets/sprites/${name}.png`),
-  ...['chakgeom', 'parang', 'norang', 'wemix', 'baron_intro', 'baron_chase', 'voidgrub', 'yongjun', 'cs_red', 'wolf', 'cs_blue', 'razorbeak', 'krug', 'toad', 'scuttle', 'cannon', 'red', 'blue', 'baron', 'cat', 'merchant', 'guard', 'ghost', 'hero'].map(name => `/assets/portraits/${name}.png`),
+  ...['chakgeom', 'parang', 'norang', 'wemix', 'baron_intro', 'baron_chase', 'voidgrub', 'yongjun', 'cs_red', 'wolf', 'cs_blue', 'razorbeak', 'krug', 'toad', 'scuttle', 'cannon', 'red', 'blue', 'baron', 'cat', 'merchant', 'guard', 'ghost', 'hero',
+    // 라운지 NPC(a9e9a347·67d52175)는 초상화 파일 없이 걷기 시트 얼굴로 대신한다 — 초상화 찾기 404 는 정상
+    'yakulbeol', 'mabaem', 'yerim', 'yerim_kick', 'parkwonsung'].map(name => `/assets/portraits/${name}.png`),
 ]);
 const unexpectedResources = () => resources.filter(entry => !entry.startsWith('404 ') || !optional.has(new URL(entry.slice(4)).pathname));
 page.on('pageerror', error => errors.push(error.message));
 page.on('response', response => { if (response.status() >= 400) resources.push(`${response.status()} ${response.url()}`); });
-page.on('requestfailed', request => requestFailures.push({ url: request.url(), error: request.failure()?.errorText }));
+// ERR_ABORTED 는 실패가 아니다: ① 새로고침/이동이 진행 중이던 요청을 끊은 것(그 요청이 나간 뒤 이동이 있었을 때)
+// ② Chrome 미디어 로더가 <audio> 사전 로드(audio.js _loadSfxFile, preload=auto) 요청을 스스로 끊고 범위 요청으로 바꾸는 것.
+// 실제로 없는 파일은 아래 404 목록(resources)으로, 디코드 실패는 게임 폴백으로 드러난다
+let navigations = 0;
+const issuedAt = new WeakMap();
+page.on('request', request => issuedAt.set(request, navigations));
+page.on('requestfailed', request => {
+  const error = request.failure()?.errorText;
+  if (error === 'net::ERR_ABORTED' && (issuedAt.get(request) < navigations || request.resourceType() === 'media')) return;
+  requestFailures.push({ url: request.url(), error });
+});
 await page.addInitScript(() => {
   window.shopAudio = [];
   const play = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function (...args) {
-    if (this.src.endsWith('/plug.mp3')) window.shopAudio.push(this);
+    // 오디오 URL 에 ?v=BUILD 가 붙는다 → 경로만 비교
+    if (new URL(this.src, location.href).pathname.endsWith('/plug.mp3')) window.shopAudio.push(this);
     return play.apply(this, args);
   };
 });
@@ -66,6 +80,7 @@ async function sellFixture(inventory) {
   assert.equal(await page.evaluate(() => game.shop.mode), 'sell');
 }
 try {
+  navigations++;
   await page.goto(`${base}/?qa=maillard_lounge`);
   await page.waitForFunction(() => game.state === 'field' && game.player && !game.transitioning);
   await key('KeyX');
@@ -85,7 +100,7 @@ try {
   await shot('04-entry-settled');
   check('keyboard entry fades field out and shop in through black', outFade.color === '0,0,0' && inFade.color === '0,0,0', { outFade, inFade });
   const audio = await page.evaluate(() => ({ registered: game.sound.files.plug?.src, plays: window.shopAudio.map(a => ({ src: a.src, time: a.currentTime, duration: a.duration, error: a.error?.message })) }));
-  check('entry plays loaded plug audio with advancing media clock', audio.registered?.endsWith('/plug.mp3') && audio.plays.length === 1 && audio.plays[0].time > 0 && !audio.plays[0].error, audio);
+  check('entry plays loaded plug audio with advancing media clock', (audio.registered ? new URL(audio.registered).pathname.endsWith('/plug.mp3') : false) && audio.plays.length === 1 && audio.plays[0].time > 0 && !audio.plays[0].error, audio);
   check('first entry starts greeting without spending', await page.evaluate(() => game.shop.mode === 'greeting' && !game.flags.shop_yongjun_greeted) && JSON.stringify(initial) === JSON.stringify(await state()));
   await key('KeyX'); await key('KeyX');
   check('X reveals text but cannot skip the greeting', await page.evaluate(() => game.shop.mode === 'greeting' && game.shop.greeting.active.node.text === '* 오 안녕하세요 형' && game.shop.greeting.active.state === 'waiting'));
@@ -94,6 +109,7 @@ try {
   check('mid-greeting save never marks completion', await page.evaluate(() => !JSON.parse(localStorage.getItem('subtarune.save.v1')).flags.shop_yongjun_greeted));
   // QA query intentionally autosaves a fresh fixture at boot; a real reload uses the normal URL.
   await page.evaluate(() => history.replaceState(null, '', '/'));
+  navigations++;
   await page.reload();
   await page.waitForFunction(() => game.state === 'title');
   await key('KeyX');

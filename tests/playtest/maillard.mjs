@@ -12,7 +12,7 @@ const check = (name, ok, detail) => { checks.push({ name, ok, detail }); if (!ok
 const shot = (name) => page.screenshot({ path: path.join(shots, `${name}.png`) });
 page.on('pageerror', error => errors.push(error.message));
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8767'}/?qa=obj5_sea`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=obj5_sea`);
   await page.waitForFunction(() => !!window.game?.player);
   await page.keyboard.press('KeyX', { delay: 50 });
   await page.waitForFunction(() => !!game.seaChase);

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
-const base = process.env.BASE_URL || 'http://localhost:8775';
+const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const shots = process.env.SHOT_DIR || '/tmp/npcs118-qa';
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -202,11 +202,16 @@ try {
   await axisTo('y', 500); await axisTo('x', 402); await axisTo('y', 170); await page.keyboard.press('ArrowUp', { delay: 50 });
   check('wooden path door accessible and needs C', await page.evaluate(() => game.mapId === 'maillard_lounge' && game.player.probe()?.id === 'lounge_saloon_door'));
   await next(); await ready('maillard_saloon'); await shot('10-captain-path');
-  check('captain path has its requested name and no NPCs', await page.evaluate(() => game.map.def.name === '선장실로 가는 길' && !game.entities.some(e => e.def.type === 'npc')));
+  // 선장실로 가는 길엔 뒤에 은별(1c00d90e)과 우현 갑판 앞 쥰희·용준(6b756b3e)이 들어왔다 — 라운지 NPC 네 명은 여기 없어야 한다
+  check('captain path has its requested name and none of the lounge NPCs', await page.evaluate(() => {
+    const npcs = game.entities.filter(e => e.def.type === 'npc').map(e => e.id);
+    return game.map.def.name === '선장실로 가는 길' && !['yakulbeol', 'mabaem', 'yerim', 'parkwonsung'].some(id => npcs.includes(id))
+      && npcs.every(id => ['eunbyeol', 'starboard_junhee', 'starboard_yongjun'].includes(id));
+  }));
   await axisTo('y', 368); await page.keyboard.press('ArrowDown', { delay: 50 }); await next(); await ready();
   check('reentry retains completion flags without respawning monkey', await page.evaluate(() => game.flags.maillard_yerim_pair_seen && game.flags.maillard_mabaem_seen && !game.entities.some(e => e.id === 'parkwonsung')));
   await shot('11-reentry');
-  await page.goto(base); await page.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'wait');
+  await page.goto(base); await page.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'wait' && !game.bootLoad?.active);
   await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'zoom'); await next(); await page.waitForFunction(() => game.title.phase === 'locked'); await page.waitForTimeout(3300); await next(); await ready();
   check('reload and real title Continue retain both completion flags', await page.evaluate(() => !!game.flags.maillard_yerim_pair_seen && !!game.flags.maillard_mabaem_seen));
   await shot('12-continue');

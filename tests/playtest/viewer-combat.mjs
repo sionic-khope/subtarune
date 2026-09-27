@@ -11,7 +11,7 @@ const check = (name, ok, data) => { checks.push({ name, ok: !!ok, data }); if (!
 const until = async (fn, timeout = 15000) => page.waitForFunction(fn, null, { timeout });
 const shot = async (name) => page.screenshot({ path: `${root}/${name}.png` });
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8777'}/?qa=maillard_storage`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=maillard_storage`);
   await until(() => window.game?.player);
   await page.keyboard.press('KeyX'); await page.waitForTimeout(500);
   await page.evaluate(() => { game.startBattle({ enemies: ['expelled_viewer'], bgm: 'storage_battle' }); });
@@ -58,4 +58,7 @@ try {
 } catch (error) { check('scenario completed', false, error.stack); await shot('failure'); }
 finally { fs.writeFileSync(`${root}/report.json`, JSON.stringify({ checks, errors }, null, 2)); await browser.close(); }
 console.log(JSON.stringify(checks, null, 2));
-process.exit(checks.some((c) => !c.ok) ? 1 : 0);
+// 러너(runner-utils classifyResult)는 fails= 표식을 요구한다
+const fails = checks.filter((c) => !c.ok).length;
+console.log(`fails=${fails}`);
+process.exit(fails ? 1 : 0);

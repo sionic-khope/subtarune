@@ -269,7 +269,12 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   const line = async (text, capture) => {
     await page.waitForFunction(value => game.battle.text === value && game.battle.typed, text);
     if (capture) await shot(capture);
-    await press('KeyC', { delay: 70 });
+    // talk.js 는 줄이 뜬 뒤 0.15s 전의 C 를 무시한다 — 짧은 줄(“...”)은 그보다 빨리 다 찍히므로 여유를 두고, 줄이 넘어갈 때까지 다시 누른다
+    await page.waitForTimeout(200);
+    for (let i = 0; i < 4; i++) {
+      await press('KeyC', { delay: 70 });
+      if (await page.waitForFunction(value => game.battle?.text !== value, text, { timeout: 1200, polling: 50 }).then(() => true, () => false)) break;
+    }
   };
   await phase('narration');
   check('rescue narration does not advance Yoplait home', await page.evaluate(home => game.battle.members[0].home.every((value, index) => value === home[index]), initialHome));
@@ -303,9 +308,13 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     && Math.abs(bodyHeights.regular - bodyHeights.surprised) <= 8
     && Math.abs(bodyHeights.regular - bodyHeights.lookback) <= 8, JSON.stringify(bodyHeights));
   check('kneel at HP1 and battle music stops', await page.evaluate(() => drumSnapshot().pose === 'kneel' && game.battle.members[0].hp === 1 && !game.sound.bgmName));
-  await line('... 너무나도 강력하다', 'rescue-01-kneel');
-  await line('저녀석을 쓰러트릴 방법은 아무래도 없는 것 같다.', 'rescue-02-narration');
-  await line('이렇게 나의 운명은 끝나는 것일까.', 'rescue-03-fate');
+  // 절망 나레이션은 데이터(DRUM_DEVIL_RESCUE.narration, BUILD260 에 다섯 줄 추가)가 원본 — 줄마다 그대로 떠야 한다
+  const narration = await page.evaluate(async () => (await import('/src/data/drum-devil-rescue.js')).DRUM_DEVIL_RESCUE.narration.map(node => node.text));
+  check('rescue narration keeps the original first two and last lines around the BUILD260 additions', narration[0] === '... 너무나도 강력하다'
+    && narration[1] === '저녀석을 쓰러트릴 방법은 아무래도 없는 것 같다.' && narration.at(-1) === '이렇게 나의 운명은 끝나는 것일까.' && narration.length >= 3, JSON.stringify(narration));
+  for (const [index, text] of narration.entries()) {
+    await line(text, index === 0 ? 'rescue-01-kneel' : index === 1 ? 'rescue-02-narration' : index === narration.length - 1 ? 'rescue-03-fate' : undefined);
+  }
   await phase('silence');
   const silentAt = Date.now();
   await page.waitForTimeout(1500);

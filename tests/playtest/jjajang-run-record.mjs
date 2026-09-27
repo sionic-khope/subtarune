@@ -15,6 +15,14 @@ try {
   await page.waitForFunction(() => window.game && window.game.mapId === 'jjajang_run' && !window.game.dialogue.running, null, { timeout: 30000 });
   await page.evaluate(() => { const c = document.querySelector('canvas'); c.style.width = '960px'; c.style.height = '720px'; c.style.position = 'fixed'; c.style.left = '0'; c.style.top = '0'; document.body.style.margin = '0'; });
   await page.waitForTimeout(800);
+  // BUILD235+: 토리이 앞에서 청소부 연출(jjajang_run_intro, 대사 10줄 → 휘리릭)이 먼저 나온다 — 대사를 C 로 넘기고 다시 오른쪽으로 걸어 기둥 사이를 지난다
+  await page.keyboard.down('ArrowRight');
+  const introOrRunner = await until(() => !!window.game.runner || (window.game.dialogue.running && window.game.flags.run_intro_started), 12000);
+  await page.keyboard.up('ArrowRight');
+  if (introOrRunner && await page.evaluate(() => !window.game.runner)) {
+    for (let n = 0; n < 200 && await page.evaluate(() => window.game.dialogue.running); n++) { await press('KeyC'); await page.waitForTimeout(110); }
+    check(await page.evaluate(() => !window.game.dialogue.running && window.game.flags.run_intro_done), '토리이 앞 청소부 연출을 끝까지 넘겼다');
+  }
   await page.keyboard.down('ArrowRight');
   check(await until(() => !!window.game.runner, 12000), '러너 시작');
   await page.keyboard.up('ArrowRight');

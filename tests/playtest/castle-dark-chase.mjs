@@ -363,7 +363,9 @@ await runScenario({ name: 'castle-dark-chase', launchOptions: { args: ['--autopl
   const clock = (await state()).clock; await page.waitForTimeout(400);
   check('refuge music has real advancing clock', (await state()).clock > clock + 0.2);
   await walk('ArrowRight', () => game.player.x >= 548, 'approach fountain column');
-  await walk('ArrowUp', () => game.player.probe()?.id === 'castle_dark_refuge_spring', 'actual fountain approach');
+  // 마나샘은 재배치로 파티가 멈추는 자리의 아래에 있을 수도 위에 있을 수도 있다 — 실제 위치를 보고 그쪽으로 걸어가 C
+  const springBelow = await page.evaluate(() => { const spring = game.entities.find(e => e.id === 'castle_dark_refuge_spring'); return game.player.y + game.player.h <= spring.y; });
+  await walk(springBelow ? 'ArrowDown' : 'ArrowUp', () => game.player.probe()?.id === 'castle_dark_refuge_spring', `actual fountain approach from ${springBelow ? 'above' : 'below'}`);
   await key('KeyC'); assert.ok(await until(() => game.textbox.isOpen, 5000)); await shot('fountain-heals');
   check('C fountain heals all genuinely wounded party members', (await state()).hp.every(([, hp, max]) => hp === max));
   await finishDialogues(() => !game.dialogue.running); assert.ok(await ready());

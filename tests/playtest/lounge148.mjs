@@ -22,7 +22,7 @@ const walkUntil = async (key, condition) => {
 };
 
 try {
-  await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8798');
+  await page.goto((process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, ''));
   await page.waitForFunction(() => window.game?.title);
   await page.evaluate(async () => {
     const { QA_POINTS } = await import('/src/core/story.js');
@@ -57,12 +57,43 @@ try {
   check('last real C push opens final gate after its five-line dialogue', lines.length === 5
     && await page.evaluate(() => game.flags.youngcle5_crate_solved && !game.entities.find(entity => entity.id === 'youngcle5_gate').solid), lines);
   await shot('01-final-puzzle-solved');
-  await walkUntil('ArrowRight', () => game.mapId === 'youngcle6');
+  // 영클5 오른쪽 문은 이제 고양이 방(youngcle_cats)으로 이어지고, 라운지(youngcle6)는 그 너머다(assets/maps/youngcle5.json).
+  // 고양이 방엔 쫓아오는 적(섭냥·경냥)이 있어, 라운지 검사는 아래 QA youngcle6 지점에서 한다.
+  const nextRoom = await page.evaluate(() => game.map.def.entities.find(entity => entity.id === 'youngcle5_right')?.to);
+  check('solved gate door leads to the cat room', nextRoom === 'youngcle_cats', nextRoom);
+  await walkUntil('ArrowRight', () => game.mapId === 'youngcle_cats');
   await ready();
-  check('right arrow alone crosses into lounge with same music and state', await page.evaluate(() =>
-    game.mapId === 'youngcle6' && game.sound.bgm === window.__loungeBgm
+  check('right arrow alone crosses into the next room with same music and state', await page.evaluate(() =>
+    game.mapId === 'youngcle_cats' && game.sound.bgm === window.__loungeBgm
     && JSON.stringify(game.inventory) === window.__loungeInventory && game.money === window.__loungeMoney));
-  await shot('02-lounge-entry');
+  await shot('02-next-room-entry');
+  await walkUntil('ArrowLeft', () => game.mapId === 'youngcle5');
+  await ready();
+  await page.waitForTimeout(850);
+  check('left arrow returns outside portal and does not ping-pong', await page.evaluate(() =>
+    game.mapId === 'youngcle5' && game.player.x + 24 <= 528 && !game.dialogue.running));
+  await shot('05-return-landing');
+  const followerStart = await page.evaluate(() => game.entities.filter(entity => entity.def.type === 'follower').map(entity => ({ id: entity.id, x: entity.x })));
+  await walkUntil('ArrowLeft', () => game.player.x <= 320);
+  const followerEnd = await page.evaluate(() => game.entities.filter(entity => entity.def.type === 'follower').map(entity => ({ id: entity.id, x: entity.x })));
+  check('both party members keep walking after return', followerEnd.length === 2
+    && followerEnd.every(entity => entity.x < followerStart.find(start => start.id === entity.id).x - 20), { followerStart, followerEnd });
+  await shot('06-return-continue');
+  await page.evaluate(async () => {
+    const { QA_POINTS } = await import('/src/core/story.js');
+    game.devJump(QA_POINTS.find(point => point.id === 'youngcle6'));
+  });
+  // devJump 는 비동기 — 직전 맵(youngcle5)에서 ready 가 먼저 통과하지 않게 도착 맵까지 기다린다
+  await page.waitForFunction(() => game.mapId === 'youngcle6');
+  // 라운지 도착엔 이제 쥰희·용준이 뛰어드는 도착 컷신이 있다("* 헉 헉 헉" …) — 플레이어처럼 C 로 끝까지 넘긴다
+  for (const until = Date.now() + 90000; Date.now() < until && await page.evaluate(() => game.dialogue.running || game.transitioning);) {
+    if (await page.evaluate(() => ['waiting', 'typing'].includes(game.textbox.state))) await page.keyboard.press('KeyC');
+    await page.waitForTimeout(150);
+  }
+  await ready();
+  // 라운지 중앙: TV·NPC 시트·코스튬 배율 (QA youngcle6 = 라운지 입구)
+  // 도착 컷신 뒤 형섭은 입구 줄(y 304)보다 아래(y 320)에 선다 — 원래처럼 입구 줄에서 걸어 들어온 자리로 올라간 뒤 가운데로 간다
+  if (await page.evaluate(() => game.player.y > 304)) await walkUntil('ArrowUp', () => game.player.y <= 304);
   await walkUntil('ArrowRight', () => game.player.x >= 308);
   await ready();
   await page.waitForTimeout(300);
@@ -106,26 +137,6 @@ try {
     await shot(`03-center-${width}`);
   }
   await page.setViewportSize({ width: 1280, height: 900 });
-  await walkUntil('ArrowDown', () => game.player.y >= 382);
-  await shot('04-lower-room');
-  await walkUntil('ArrowUp', () => game.player.y <= 304);
-  await walkUntil('ArrowLeft', () => game.mapId === 'youngcle5');
-  await ready();
-  await page.waitForTimeout(850);
-  check('left arrow returns outside portal and does not ping-pong', await page.evaluate(() =>
-    game.mapId === 'youngcle5' && game.player.x + 24 <= 528 && !game.dialogue.running));
-  await shot('05-return-landing');
-  const followerStart = await page.evaluate(() => game.entities.filter(entity => entity.def.type === 'follower').map(entity => ({ id: entity.id, x: entity.x })));
-  await walkUntil('ArrowLeft', () => game.player.x <= 320);
-  const followerEnd = await page.evaluate(() => game.entities.filter(entity => entity.def.type === 'follower').map(entity => ({ id: entity.id, x: entity.x })));
-  check('both party members keep walking after return', followerEnd.length === 2
-    && followerEnd.every(entity => entity.x < followerStart.find(start => start.id === entity.id).x - 20), { followerStart, followerEnd });
-  await shot('06-return-continue');
-  await page.evaluate(async () => {
-    const { QA_POINTS } = await import('/src/core/story.js');
-    game.devJump(QA_POINTS.find(point => point.id === 'youngcle6'));
-  });
-  await ready();
   const qa = await page.evaluate(() => ({ flags: game.flags, party: game.party,
     attack: game.attack, hpBonus: game.hpBonus, state: game.state }));
   check('Q lounge checkpoint preserves three puzzle completions and party',

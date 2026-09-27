@@ -3,7 +3,7 @@ import path from 'node:path';
 import { chromium } from 'playwright-core';
 
 const shots = process.env.SHOT_DIR || '/tmp/rooms116';
-const base = process.env.BASE_URL || 'http://localhost:8773';
+const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 fs.mkdirSync(shots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
@@ -12,7 +12,8 @@ await page.addInitScript(() => {
   window.doorClanks = [];
   const originalPlay = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function (...args) {
-    if (this.src.endsWith('/plug.mp3')) window.doorClanks.push(this);
+    // 오디오 URL 에 ?v=BUILD 가 붙는다 → 경로만 비교
+    if (new URL(this.src, location.href).pathname.endsWith('/plug.mp3')) window.doorClanks.push(this);
     return originalPlay.apply(this, args);
   };
 });
@@ -84,11 +85,12 @@ async function choice() {
 }
 async function audio(name) {
   await page.waitForFunction(name => game.sound.bgmName === name && game.sound.bgm && !game.sound.bgm.paused && game.sound.bgm.currentTime > 0.3, name);
-  check(`${name} real BGM plays after keyboard gesture`, await page.evaluate(name => game.sound.bgm.src.endsWith(`/${name}.mp3`) && game.sound.bgm.loop && game.sound.bgm.volume > 0, name));
+  check(`${name} real BGM plays after keyboard gesture`, await page.evaluate(name => new URL(game.sound.bgm.src).pathname.endsWith(`/${name}.mp3`) && game.sound.bgm.loop && game.sound.bgm.volume > 0, name));
 }
 async function title() {
   await page.goto(base);
-  await page.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'wait');
+  // 부팅 로딩 중엔 타이틀이 키를 안 받는다
+  await page.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'wait' && !game.bootLoad?.active);
   await page.keyboard.press('KeyX');
   await page.waitForFunction(() => game.title.phase === 'zoom');
   await page.keyboard.press('KeyC');
@@ -97,10 +99,12 @@ async function title() {
 }
 async function qJump(id) {
   await title();
-  await page.keyboard.press('KeyQ');
+  // QA 목록은 Shift+Q 만(사용자 2026-09-25)
+  await page.keyboard.press('Shift+KeyQ');
   await page.waitForFunction(() => !!game.title.qa);
-  const upCount = await page.evaluate(async id => { const { QA_POINTS } = await import('/src/core/story.js'); return QA_POINTS.length - QA_POINTS.findIndex(p => p.id === id); }, id);
-  for (let i = 0; i < upCount; i++) await page.keyboard.press('ArrowUp', { delay: 50 });
+  // 목록은 숨김을 뺀 QA_POINTS 이고 마지막으로 고른 지점에서 열린다 → 현재 커서에서 목표까지 이동
+  const moves = await page.evaluate(async id => { const { QA_POINTS } = await import('/src/core/story.js'); return QA_POINTS.filter(p => !p.hidden).findIndex(p => p.id === id) - game.title.qa.i; }, id);
+  for (let i = 0; i < Math.abs(moves); i++) await page.keyboard.press(moves > 0 ? 'ArrowDown' : 'ArrowUp', { delay: 50 });
   await shot(`q-menu-${id}`);
   await page.keyboard.press('KeyC');
   await ready(id);
@@ -111,6 +115,7 @@ try {
   await ready('maillard_lounge');
   await page.keyboard.press('KeyX');
   const initialStats = await stats();
+  const initialFlags = await page.evaluate(() => ({ ...game.flags }));
   let clanks = 0;
   await walkTo(180, 208);
   await shot('01-door-pair');
@@ -140,11 +145,18 @@ try {
   clanks = await clank('iron entry plays the door clank', clanks);
   check('entering upward continues upward inside storage', await page.evaluate(() => game.player.facing === 'up' && game.player.y === 248));
   await audio('wind');
-  check('storage is empty steel room 480x448 with one exit and no automatic events', await page.evaluate(() => game.map.pxW === 480 && game.map.pxH === 448 && !game.map.def.enter && !game.entities.some(e => ['npc', 'trigger'].includes(e.def.type)) && game.map.def.entities.filter(e => e.type === 'door').length === 1));
+  // 창고엔 이제 쫓겨난 시청자(악질맨, storage_viewer 전투 — storage-viewer/viewer-combat 시나리오)가 선다. 말을 걸어야 시작되고 자동 이벤트는 없다
+  check('storage is a steel room 480x448 with one exit, only the talk-to expelled viewer, and no automatic events', await page.evaluate(() => {
+    const npcs = game.entities.filter(e => e.def.type === 'npc');
+    return game.map.pxW === 480 && game.map.pxH === 448 && !game.map.def.enter && !game.entities.some(e => e.def.type === 'trigger')
+      && npcs.every(e => e.id.startsWith('expelled_viewer') && typeof e.def.script === 'string')
+      && game.map.def.entities.filter(e => e.type === 'door').length === 1;
+  }));
   await safeParty('all party members arrive safely and visibly in storage');
   await shot('05-storage-entry');
   await follow('storage party continues following', 360, 304);
-  for (const [x, y, name] of [[380, 168, 'upper-right'], [380, 348, 'lower-right'], [70, 348, 'lower-left'], [70, 168, 'upper-left']]) {
+  // 가운데(228,208)에 악질맨이 서 있으므로 네 구석을 돌고 아랫줄에서 끝나 출구로 간다
+  for (const [x, y, name] of [[380, 168, 'upper-right'], [70, 168, 'upper-left'], [70, 348, 'lower-left'], [380, 348, 'lower-right']]) {
     await walkTo(x, y);
     await shot(`06-storage-${name}`);
   }
@@ -166,19 +178,23 @@ try {
   clanks = await clank('wooden entry plays the door clank', clanks);
   check('entering upward continues upward inside wooden room', await page.evaluate(() => game.player.facing === 'up' && game.player.y === 248));
   await audio('maillard_lounge');
-  check('wooden room keeps 672px floor, four optional NPCs, and no automatic events', await page.evaluate(() => {
-    const npcs = game.entities.filter(e => e.def.type === 'npc');
-    return game.map.pxW === 736 && game.map.pxH === 448 && !game.map.solidRect(32, 160, 672, 224)
-      && !game.map.def.enter && !game.entities.some(e => e.def.type === 'trigger')
-      && npcs.map(e => e.id).sort().join() === ['mabaem', 'parkwonsung', 'yakulbeol', 'yerim'].join()
-      && npcs.every(e => typeof e.def.script === 'string')
-      && game.map.def.entities.filter(e => e.type === 'door').length === 1;
+  // 나무문 방은 이제 '선장실로 가는 길'(864px): 네 NPC 는 라운지로 옮겨졌고(67d52175), 은별(1c00d90e)·우현 갑판 쪽 쥰희·용준(6b756b3e)과
+  // 우현 갑판 문이 생겼다. 입장 스크립트(maillard_starboard_gate)는 선장실 습격 뒤에만 움직인다 — 지금은 아무 대사도 돌지 않아야 한다
+  check('wooden room is the captain path: open floor, no lounge NPCs, no automatic dialogue', await page.evaluate(() => {
+    const npcs = game.entities.filter(e => e.def.type === 'npc').map(e => e.id);
+    return game.map.def.name === '선장실로 가는 길' && game.map.pxW === 864 && game.map.pxH === 448 && !game.map.solidRect(32, 160, 768, 224)
+      && !game.dialogue.running && !game.entities.some(e => e.def.type === 'trigger')
+      && !['mabaem', 'parkwonsung', 'yakulbeol', 'yerim'].some(id => npcs.includes(id))
+      && npcs.every(id => ['eunbyeol', 'starboard_junhee', 'starboard_yongjun'].includes(id))
+      && game.map.def.entities.filter(e => e.type === 'door').map(e => e.to).sort().join() === ['maillard_lounge', 'maillard_starboard'].join();
   }));
   await safeParty('wooden entry shows all party safely');
   await shot('08-wood-left');
-  await follow('wooden room party follows across open floor', 408, 280);
+  // 은별(404,256) 아래로 지나간다 — 먼저 아랫줄로 내려간 뒤 가로지른다
+  await walkTo(228, 336);
+  await follow('wooden room party follows across open floor', 408, 336);
   await shot('09-wood-middle');
-  await walkTo(640, 280);
+  await walkTo(640, 336);
   await shot('10-wood-right');
   await exitApproach();
   await shot('10-wood-exit-approach');
@@ -199,7 +215,18 @@ try {
   await shot('12-continue-return');
   for (const id of ['maillard_storage', 'maillard_saloon']) {
     await qJump(id);
-    check(`Q menu ${id} retains canonical party and stats`, JSON.stringify(await stats()) === JSON.stringify(initialStats));
+    // 6dc5d2da: 선장실로 가는 길(과 선장실) QA 는 라운지 상점의 영구 강화(씨알리스·바세린)를 산 상태다 — 라운지 기준 상태에 그 구매분만 더한 것이 정답
+    const expected = await page.evaluate(async ({ base, baseFlags }) => {
+      const { YONGJUN_SHOP } = await import('/src/data/shops.js');
+      const { CHARACTERS } = await import('/src/data/characters.js');
+      const bought = YONGJUN_SHOP.filter(item => item.onceFlag && game.flags[item.onceFlag] && !baseFlags[item.onceFlag]);
+      const dAttack = bought.reduce((sum, item) => sum + (item.stat?.attack || 0), 0);
+      const dHp = bought.reduce((sum, item) => sum + (item.stat?.hpBonus || 0), 0);
+      const price = bought.reduce((sum, item) => sum + item.price, 0);
+      return { ...base, money: Math.max(0, base.money - price), attack: base.attack + dAttack, hpBonus: base.hpBonus + dHp,
+        hp: ['hyungsub', ...base.party].map((member, index) => base.hp[index] + (CHARACTERS[member]?.noHpBonus ? 0 : dHp)) };
+    }, { base: initialStats, baseFlags: initialFlags });
+    check(`Q menu ${id} retains canonical party and stats`, JSON.stringify(await stats()) === JSON.stringify(expected), { actual: await stats(), expected });
     await safeParty(`Q menu ${id} arrives safely`);
     await shot(`q-arrival-${id}`);
   }

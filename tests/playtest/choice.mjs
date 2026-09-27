@@ -1,6 +1,7 @@
 // 선택지 연출 검증: stagger(하나씩 천천히) / locked+auto(고를 수 없고 대사가 끊고 들어옴).
 // 실행: CHROME_EXE=... node tests/playtest/choice.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -8,8 +9,10 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
+// 부팅이 끝날 때까지(맵 지연 적재 ~1.4s) 고정 대기 대신 실제 상태를 기다린다: 'title' = 타이틀 입력 가능, 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
 const st = () => page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, shown: game.textbox.choiceShown, text: game.textbox.node?.text || '' }));
-await page.goto('http://127.0.0.1:8000/index.html?map=test&spawn=start'); await page.waitForTimeout(1000);
+await page.goto(`${QA_BASE}index.html?map=test&spawn=start`); await ready();
 
 // ── 1) stagger: 항목이 1 → 2 → 3 으로 늘어나고, 다 뜬 뒤에야 고를 수 있다 ──
 await page.evaluate(() => game.runScript('test_choice_slow'));

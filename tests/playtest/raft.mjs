@@ -1,6 +1,7 @@
 // 보라맵2 뗏목 기믹 + QA 바로가기 검증: ?qa=raft → C 로 타기 → 4초 일직선 → 오른쪽 착지 → 문 대사 → 되돌아 타기 → 상태(flags.raft_raft1) → ?qa=pc_stream(컴퓨터 앞) → 타이틀 Q 메뉴.
 // 실행: CHROME_EXE=... node tests/playtest/raft.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
+const QA_BASE = (process.env.QA_BASE_URL || 'http://localhost:8000/').replace(/\/?$/, '/');
 import fs from 'node:fs';
 const S = process.env.SHOT_DIR || new URL('./shots/', import.meta.url).pathname; fs.mkdirSync(S, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
@@ -9,11 +10,13 @@ const logs = []; let fails = 0;
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) logs.push(`[${m.type()}] ${m.text()}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
+// 부팅이 끝날 때까지(맵 지연 적재 ~1.4s) 고정 대기 대신 실제 상태를 기다린다: 'title' = 타이틀 입력 가능, 'field' = QA/맵 진입 완료
+const ready = (want = 'field', ms = 30000) => page.waitForFunction((w) => { const g = window.game; if (!g) return false; if (w === 'title') return g.state === 'title' && !!g.title && !g.bootLoad?.active; return g.state !== 'title' && !!(g.player && g.mapId && g.entities && g.map) && !g.transitioning && !g.loadingMap; }, want, { timeout: ms, polling: 100 });
 const st = () => page.evaluate(() => { const r = game.entities.find((e) => e.id === 'raft1'); return { map: game.mapId, stage: game.story.stage, ride: !!game.ride, moving: game.player.moving, frame: game.player.frame, p: [Math.round(game.player.x), Math.round(game.player.y)], facing: game.player.facing, raft: r ? [Math.round(r.x), Math.round(r.y), r.at] : null, flag: game.flags.raft_raft1, running: game.dialogue.running, text: game.textbox.node?.text || '' }; });
 const hold = async (key, ms) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); };
 
 // 1) QA: 뗏목 앞
-await page.goto('http://127.0.0.1:8000/index.html?qa=raft'); await page.waitForTimeout(1000);
+await page.goto(`${QA_BASE}index.html?qa=raft`); await ready();
 let s = await st();
 check('qa=raft lands at dock facing right, stage backfilled', s.map === 'void2' && s.stage === 'void_fallen' && s.facing === 'right' && s.p[0] === 100, JSON.stringify(s));
 await page.screenshot({ path: `${S}/raft_01_dock.png` });
@@ -52,26 +55,33 @@ s = await st(); check('void2 left door → void (no ping-pong)', s.map === 'void
 await page.waitForTimeout(800); check('still in void after arrival', (await st()).map === 'void');
 
 // 2) QA: 코드 획득 직후 컴퓨터 앞 → C 로 방송 컷신 시작
-await page.goto('http://127.0.0.1:8000/index.html?qa=pc_stream'); await page.waitForTimeout(1000);
+await page.goto(`${QA_BASE}index.html?qa=pc_stream`); await ready();
 s = await st(); check('qa=pc_stream: room, facing up, cord_found', s.map === 'room' && s.facing === 'up' && s.stage === 'cord_found', JSON.stringify({ map: s.map, facing: s.facing, stage: s.stage }));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(300);
 s = await st(); check('C starts stream cutscene immediately', s.running && s.text.includes('철컥'), s.text);
 
 // 3) 타이틀 Q 메뉴
-await page.goto('http://127.0.0.1:8000/index.html'); await page.waitForTimeout(1200);
-await page.keyboard.press('KeyX'); await page.waitForTimeout(3400);
-await page.keyboard.press('KeyQ'); await page.waitForTimeout(300);
-check('title Q opens QA list', await page.evaluate(() => !!game.title.qa));
+await page.goto(`${QA_BASE}index.html`); await ready("title");
+await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'locked', undefined, { timeout: 15000, polling: 100 }); await page.waitForTimeout(300);
+// QA 목록은 Shift+Q 만(사용자 2026-09-25, input.js)
+await page.keyboard.press('Shift+KeyQ'); await page.waitForTimeout(300);
+check('title Shift+Q opens QA list', await page.evaluate(() => !!game.title.qa));
 await page.screenshot({ path: `${S}/raft_05_qa_menu.png` });
-{ const qa = () => page.evaluate(() => ({ i: game.title.qa.i, top: game.title.qa.top, n: 16 }));
-  for (let i = 0; i < 12; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60); }
-  let q = await qa(); check('QA list scrolls inside the box (cursor 12 → window top 5, 8 rows)', q.i === 12 && q.top === 5, JSON.stringify(q));
+// 목록 크기·한 화면 줄 수는 게임 데이터에서 읽는다(title.js QA_ROWS, 숨김 제외 QA_POINTS)
+const qaInfo = await page.evaluate(async () => { const { QA_POINTS } = await import('/src/core/story.js'); const { TitleScreen } = await import('/src/ui/title.js'); const menu = QA_POINTS.filter((p) => !p.hidden); return { n: menu.length, R: TitleScreen.QA_ROWS, pc: menu.findIndex((p) => p.id === 'pc_stream') }; });
+{ const qa = () => page.evaluate(() => ({ i: game.title.qa.i, top: game.title.qa.top }));
+  const { n, R } = qaInfo; const down = R + 4;
+  for (let i = 0; i < down; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60); }
+  let q = await qa(); check(`QA list scrolls inside the box (cursor ${down} → window top ${down - R + 1}, ${R} rows)`, q.i === down && q.top === down - R + 1, JSON.stringify({ ...q, n, R }));
   await page.screenshot({ path: `${S}/raft_05b_qa_scrolled.png` });
-  { const n = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.length); for (let i = 0; i < 13; i++) { await page.keyboard.press('ArrowUp'); await page.waitForTimeout(60); } }   // 12 에서 13번 ↑ → -1 → 마지막 항목(n-1)
-  { const n = await page.evaluate(async () => (await import('/src/core/story.js')).QA_POINTS.length); q = await qa(); check('QA list wraps to the last item, window shows the tail', q.i === n - 1 && q.top === n - 8, JSON.stringify({ ...q, n })); }
+  // down 에서 down+1 번 ↑ → -1 → 마지막 항목(n-1)
+  for (let i = 0; i < down + 1; i++) { await page.keyboard.press('ArrowUp'); await page.waitForTimeout(60); }
+  q = await qa(); check('QA list wraps to the last item, window shows the tail', q.i === n - 1 && q.top === n - R, JSON.stringify({ ...q, n, R }));
   await page.keyboard.press('ArrowDown'); await page.waitForTimeout(80); q = await qa(); check('wrap to first item resets window top', q.i === 0 && q.top === 0, JSON.stringify(q));
 }
-for (let i = 0; i < 3; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(100); }   // pc_stream
+// pc_stream
+for (let i = 0; i < qaInfo.pc; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60); }
+check('cursor on pc_stream', await page.evaluate(() => game.title.qa.i) === qaInfo.pc, String(qaInfo.pc));
 await page.keyboard.press('KeyC'); await page.waitForTimeout(1500);
 s = await st(); check('QA menu jump works', s.map === 'room' && s.stage === 'cord_found' && s.facing === 'up', JSON.stringify({ map: s.map, stage: s.stage }));
 await browser.close();

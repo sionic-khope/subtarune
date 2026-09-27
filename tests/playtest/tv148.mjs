@@ -4,7 +4,7 @@ import { chromium } from 'playwright-core';
 
 const shots = process.env.SHOT_DIR || '/tmp/tv148-playtest';
 fs.mkdirSync(shots, { recursive: true });
-const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: false });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const checks = [], errors = [];
 page.on('pageerror', error => errors.push(error.message));
@@ -31,7 +31,7 @@ const shot = async name => {
 };
 
 try {
-  await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8799');
+  await page.goto((process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, ''));
   await page.waitForFunction(() => window.game?.title);
   await page.evaluate(async () => {
     const { QA_POINTS } = await import('/src/core/story.js');

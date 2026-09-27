@@ -70,14 +70,17 @@ try {
   await page.waitForTimeout(500);
   const yc = () => page.evaluate(() => { const e = window.game.entities.find(x => x.id === 'ship_youngcle'); return e ? { x: Math.round(e.x), y: Math.round(e.y), facing: e.facing, frame: e.frame, phase: e.animPhase, hoverT: e.hoverT || 0, sprite: e.def.sprite, v: e.visible } : null; });
   const y1 = await yc(); const down = await page.evaluate(() => { const e = window.game.entities.find(x => x.id === 'ship_youngcle_down'); return e ? { v: e.visible, x: Math.round(e.x), img: !!e.image } : null; });
-  check(y1 && !y1.v && down && down.v && down.img, '전투 뒤(BUILD209): 영클 NPC 는 숨고 얼굴 박힌 영클 소품이 로고 오른쪽에 보인다 ' + JSON.stringify([y1, down]));
+  // ship_control_after = 후속 연출(ship_aftermath_done)까지 본 뒤: 머리 박힌 소품(BUILD209)은 치워지고 변신 영클(youngcle_tvform)이 tvStand(556,324)에서 대치한다(BUILD218)
+  check(y1 && y1.v && y1.sprite === 'youngcle_tvform' && y1.x === 556 && y1.y === 324 && down && !down.v && down.img, '후속 연출 뒤: 얼굴 박힌 영클 소품은 숨고 변신 영클이 로고 오른쪽 tvStand 에서 대치 ' + JSON.stringify([y1, down]));
   const props = await page.evaluate(() => ['ship_main_screen', 'ship_helm', 'ship_holo', 'ship_logo', 'ship_console_0', 'ship_console_5', 'ship_conduit_l', 'ship_conduit_r', 'ship_trunk_l', 'ship_trunk_r', 'ship_plasma_0', 'ship_plasma_5', 'ship_reactor', 'ship_tv'].map(id => !!window.game.entities.find(x => x.id === id && !x.dead)));
   const strips = await page.evaluate(() => window.game.entities.filter(x => /ship_strip/.test(x.id || '')).length);
   check(props.every(Boolean) && strips === 0, '조종실 소품(대형 화면·조타 콘솔·홀로그램 탁자·바닥 로고·콘솔 6·플라즈마 배관 2·케이블 트렁크 2·플라즈마 케이블 6·반응로·TV), 연두 유도등 없음 ' + JSON.stringify([props, strips]));
   await page.waitForTimeout(800); await cap('05_control_room_2');
   // ⑥ 가운데(로고, 걷는 장식)를 지나 조타 콘솔 앞(y≈122)까지 곧장 — 대치 중인 영클·오방순·나람은 막지 않는다
+  // 대치 장면은 파티를 AFTER.party(400,292)에 세운다 — 입구(아래 문 가운데 x 468) 줄로 옮겨 곧장 위로
+  await hold('ArrowRight', () => window.game.player.x >= 464, 6000);
   await hold('ArrowUp', () => window.game.player.y <= 126, 8000);
-  s = await st(); check(s.py >= 120 && s.py <= 126 && s.px === 468, '가운데 로고를 지나 조타 콘솔 앞(y≈122) ' + JSON.stringify([s.px, s.py]));
+  s = await st(); check(s.py >= 120 && s.py <= 126 && s.px >= 460 && s.px <= 480, '가운데 로고를 지나 조타 콘솔 앞(y≈122) ' + JSON.stringify([s.px, s.py]));
   await cap('07_helm');
   // ⑦ 아래로 나가면 다리길 철문 앞(228,232) 아래를 봄 → 다리 아래 끝까지 → 광장 위 통로(484,40)
   await hold('ArrowDown', () => window.game.mapId === 'youngcle19', 15000);

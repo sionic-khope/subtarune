@@ -12,7 +12,7 @@ const shot = async (name) => { captured.add(name); await page.screenshot({ path:
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', message => { if (message.type() === 'warning' && message.text().includes('cutscene')) errors.push(message.text()); });
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://localhost:8767'}/?qa=maillard_deck`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=maillard_deck`);
   await page.waitForFunction(() => !!window.game?.player);
   await page.keyboard.press('KeyX', { delay: 50 });
   const deadline = Date.now() + 70000;

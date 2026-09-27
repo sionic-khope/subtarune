@@ -38,7 +38,7 @@ const capture = async name => {
 };
 
 try {
-  await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:8874'}/?qa=youngcle7`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=youngcle7`);
   await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle7');
   await page.keyboard.press('KeyX');
   let state = await snapshot();
@@ -114,7 +114,7 @@ try {
   });
   check('warm light feathers to transparent on all four sides', ['left', 'right', 'top', 'bottom'].every(side => feather[side][0] < 2 && feather[side].every((alpha, i, values) => i === 0 || alpha > values[i - 1])) && feather.center[0] > feather.center[1] && feather.center[1] > feather.center[2], feather);
   // 소개 뒤엔 파크가디언 전투가 이어져 대사가 계속 돈다(BUILD165+) — 재입장 검사는 전투가 끝난 QA(철창 닫힌 뒤)에서 새로 연다
-  await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:8874'}/?qa=park_guardian_after_grate`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=park_guardian_after_grate`);
   await page.waitForFunction(() => window.game?.player && game.mapId === 'youngcle7' && !game.dialogue.running, null, { timeout: 30000 });
   await page.evaluate(() => { game.changeMap('youngcle6', 'from_stage', true, { enter: false }); game.changeMap('youngcle7', 'after_intro', true, { enter: false }); });
   await page.waitForFunction(() => game.mapId === 'youngcle7' && !game.dialogue.running);
@@ -124,7 +124,7 @@ try {
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(600); await page.keyboard.up('ArrowUp');
   await capture('completed-reentry-approach');
   // 파크가디언 승리 후 박치기(BUILD192): ‘넌 니애미 따라가라’ 뒤 카메라가 억빠맨을 따라가 박치기하러 달려가는 게 화면 안에 보인다(주인공 고정이면 화면 밖 — 사용자)
-  await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:8874'}/?qa=park_guardian_after`);
+  await page.goto(`${(process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')}/?qa=park_guardian_after`);
   await page.waitForFunction(() => window.game && window.game.dialogue && window.game.dialogue.running, null, { timeout: 25000 });
   let kickLine = false;
   for (let i = 0; i < 40; i++) { const t = await page.evaluate(() => game.textbox.node?.text || ''); if (t.includes('니애미')) { kickLine = true; break; } await page.keyboard.press('KeyC'); await page.waitForTimeout(160); }

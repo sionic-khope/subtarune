@@ -11,7 +11,8 @@ await page.addInitScript(() => {
   window.plugPlays = 0;
   const play = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function (...args) {
-    if (this.src.endsWith('/plug.mp3')) window.plugPlays++;
+    // 오디오 주소에는 빌드 캐시 키(?v=)가 붙는다(41478e03) — 경로만 비교
+    try { if (new URL(this.src, location.href).pathname.endsWith('/plug.mp3')) window.plugPlays++; } catch {}
     return play.apply(this, args);
   };
 });
@@ -64,7 +65,20 @@ try {
       .map(entity => ({ id: entity.id, x: entity.x, y: entity.y })) }));
   check('gag powers off once and restores player camera', gag.done && gag.tv === null
     && gag.zoom === 1 && gag.cameraIsPlayer, gag);
-  check('simple TV interaction never relocates the party', JSON.stringify(gag.party) === JSON.stringify(await page.evaluate(() => window.partyBeforeGag)), gag.party);
+  // 2026-09-13 사용자 요청(12502995): 느낌표 뒤 파티가 뒤로 달려(partyAt(284)) 표지를 가리지 않는다 → 형섭은 TV 아래쪽으로 물러나 있다
+  const before = await page.evaluate(() => window.partyBeforeGag);
+  const tvBox = await page.evaluate(() => ({ cx: window.tvAnchor.x + window.tvAnchor.w / 2, bottom: window.tvAnchor.y + window.tvAnchor.h }));
+  const hero = gag.party[0], heroBefore = before[0];
+  check('TV gag steps the party back below the TV (partyAt) and the hero stays under the screen', hero.y > heroBefore.y + 24
+    && Math.abs(hero.x + (await page.evaluate(() => game.player.w)) / 2 - tvBox.cx) <= 40, { hero, heroBefore, tvBox });
+  // 다시 TV 앞까지 걸어가 C — 반복 대사 확인
+  { let lastY = null;
+    for (let i = 0; i < 40; i++) {
+      await page.keyboard.down('ArrowUp'); await page.waitForTimeout(90); await page.keyboard.up('ArrowUp');
+      const y = await page.evaluate(() => game.player.y);
+      if (lastY !== null && Math.abs(y - lastY) < 0.5) break;
+      lastY = y;
+    } }
   await confirm();
   await page.waitForFunction(() => game.textbox.node?.text === '* TV는 꺼져 있다.');
   await page.waitForFunction(() => game.textbox.state === 'waiting');

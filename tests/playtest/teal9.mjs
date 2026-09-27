@@ -1,5 +1,5 @@
 // 청록숲9 검증: ?qa=teal9 → 일직선 길, 뒤로 갈수록 고대 사원 판석·기둥·석등·사원 문 → 오른쪽 끝 레드·블루가 막고 있음 → C → 파티 세로 정렬 → 브금 꺼짐 → 대사(브리핑 그대로)
-//   → 셋 놀람 점프(공식 jump 소리 ✗, chime ✓) → "침입자 발생" 에 브금 alarm + 사이렌 + 레드 쿵쿵 + 붉은 번쩍 → 처리하라/하라 가속 응수 → 돌진 → 보스전(red·blue HP 22, 브금 boss) → 승리 → 둘 제거·플래그·브금 hopes → 오른쪽 문 → obj0(옵젝영역0).
+//   → 셋 놀람 점프(공식 jump 소리 ✗, chime ✓) → "침입자 발생" 에 브금 alarm + 사이렌 + 레드 쿵쿵 + 붉은 번쩍 → 처리하라/하라 가속 응수 → 돌진 → 보스전(red·blue HP = enemies.js, 브금 boss) → 승리 → 둘 제거·플래그·브금 hopes → 오른쪽 문 → obj0(옵젝영역0).
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -89,7 +89,9 @@ const sfx = (await st()).sfx;
 check('startled hop uses the "!" chime, NOT the official jump sound; siren + thud stomps + red screen pulses during the alarm', hopSeen && sfx.includes('chime') && !sfx.includes('jump') && sfx.filter((n) => n === 'siren').length >= 2 && sfx.includes('thud') && redHop && hurtSeen, JSON.stringify({ hopSeen, redHop, hurtSeen, sfx: [...new Set(sfx)] }));
 const chase = lines.filter((l) => l === '레드|* 처리하라').length;
 check('처리하라/하라 exchange: 6 pairs, switching faster and faster (last gap < first gap)', chase === 6 && chaseGaps.length >= 5 && chaseGaps[chaseGaps.length - 1] < chaseGaps[0] * 0.6, JSON.stringify({ chase, gaps: chaseGaps }));
-check('boss battle: 레드·블루 both, HP 22 each, party of 3', !!battleSnap && battleSnap.enemies.length === 2 && battleSnap.enemies.every((e) => e.max === 22) && battleSnap.members === 3, JSON.stringify(battleSnap));
+// 보스 HP 는 적 데이터(src/data/enemies.js red/blue)가 원본 — 조정되면 테스트가 따라간다
+const bossHp = await page.evaluate(async () => { const { ENEMIES } = await import('./src/data/enemies.js'); return { red: ENEMIES.red?.hp, blue: ENEMIES.blue?.hp }; });
+check(`boss battle: 레드·블루 both at data HP (red ${bossHp.red}, blue ${bossHp.blue}), party of 3`, !!battleSnap && battleSnap.enemies.length === 2 && battleSnap.enemies.every((e) => Number.isFinite(bossHp[e.id]) && e.max === bossHp[e.id] && e.hp === bossHp[e.id]) && battleSnap.members === 3, JSON.stringify({ battleSnap, bossHp }));
 s = await st();
 const doorAfter = await page.evaluate(() => ({ closed: !!game.entities.find((e) => e.id === 'door_closed' && !e.dead), open: !!game.entities.find((e) => e.id === 'door_open' && !e.dead), attack: game.attack, hpBonus: game.hpBonus, maxHp: [game.maxHpOf('hyungsub'), game.maxHpOf('gyeongsub'), game.maxHpOf('ppaman')], hp: [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')] }));
 check('after: 레드·블루 stepped aside UP (plaza top row) facing down, the closed door gone (open passage remains), flag set', !!s.red && !!s.blue && s.red.y === meta.stage.red_aside[1] && s.blue.y === meta.stage.blue_aside[1] && s.red.f === 'down' && s.blue.f === 'down' && !doorAfter.closed && doorAfter.open && s.flags.won && s.gs && s.pp, JSON.stringify({ red: s.red, blue: s.blue, flags: s.flags, doorAfter }));

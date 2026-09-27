@@ -48,6 +48,15 @@ try {
   await page.goto(`${process.env.BASE_URL || 'http://localhost:8000'}/?qa=maillard_deck`);
   await page.waitForFunction(() => window.game?.mapId === 'maillard_deck');
   await press('KeyX');
+  // QA maillard_deck = “선창 도착·용준과 대화”: 도착 컷신(maillard_hold, “* 헉 헉 헉 어떻게든 올라왔네요” …)을 C 로 끝까지 넘긴 뒤 조작이 돌아와야 한다
+  const arrivalLines = [];
+  for (let i = 0, t0 = Date.now(); Date.now() - t0 < 90000; i++) {
+    const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, text: game.textbox.node?.text }));
+    if (!q.running && arrivalLines.length) break;
+    if (q.box === 'waiting' || q.box === 'choice') { if (arrivalLines.at(-1) !== q.text) arrivalLines.push(q.text); await press('KeyC'); }
+    await page.waitForTimeout(150);
+  }
+  check('deck arrival plays the hold-escape conversation first', arrivalLines[0] === '* 헉 헉 헉 어떻게든 올라왔네요' && await page.evaluate(() => !!game.flags.maillard_hold_done), arrivalLines);
   await settled();
   const before = await page.evaluate(() => ({ x: game.player.x, y: game.player.y, items: game.inventory, party: game.party }));
   await page.screenshot({ path: path.join(shots, 'deck-arrival.png') });
