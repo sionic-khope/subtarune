@@ -102,9 +102,11 @@ export const castle_raft_intro = Object.assign([
   // 하늘로 넘어가는 페이드 아웃·인 약 1.5초 → 그 뒤 곡(원곡 42.7~63.9초 한 번)
   { fade: 'out', duration: 0.75 },
   scene(s => { s.ascend(); }),
-  { fade: 'in', duration: 0.75 },
-  // 페이드가 걷히면 곧바로 빙글빙글 + 곡(뗏목은 페이드 전에 이미 떨어져 나갔다)
-  { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.9, loop: false, then: GJ.bgmLoop }); } },
+  // 페이드가 걷히는 동안 빙글빙글 + 곡 — 곡은 다 걷히기 0.3초 전에(BUILD400 사용자 “공백이 길다, 0.3초 일찍”). 뗏목은 페이드 전에 이미 떨어져 나갔다
+  { parallel: [
+    { fade: 'in', duration: 0.75 },
+    [{ wait: 0.45 }, { action: game => { game.riseT = 0; game.sound.playBgm(RISE.bgm, { volume: 0.7, fadeIn: 0.9, loop: false, then: GJ.bgmLoop }); } }],
+  ] },
   scene(s => s.waitRise(RISE.flash)),
   // 원곡 58초: 흰 번쩍임과 함께 노을 땅으로
   { fade: 'white', duration: 0.3 },
