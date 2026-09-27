@@ -1,0 +1,8 @@
+Use case: game asset. The reference shows (left) the current placeholder falling rock and (right) the in-game scene it falls into: a dark purple void world with a purple ground path, purple city silhouettes and stars, chunky pixel-art characters with simple dark stepped outlines.
+
+Create a 2 by 2 sprite sheet of FALLING BOULDERS for this purple void world, in the SAME chunky pixel-art style (coarse square pixel clusters, simple dark stepped outline, flat shading with 2-3 tones, no anti-aliasing, no gradients):
+- top left: a chunky boulder, dark grey-violet stone with a few small glowing lilac crystal shards embedded, clear top highlight, roughly 1.4:1 wide;
+- top right: a different boulder shape (rounder, jagged top) in the same palette with one glowing crystal vein;
+- bottom left: a third boulder (flatter slab, cracked edges) same palette;
+- bottom right: the top-left boulder after impact — split by a big crack down the middle, a few chips breaking off, same size and palette.
+All four the same scale, each centered in its cell with generous empty margin, nothing clipped. Flat solid magenta #FF00FF background, no ground, no shadow, no motion lines, no glow halo outside the rock, no text.

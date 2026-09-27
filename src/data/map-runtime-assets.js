@@ -1,6 +1,9 @@
 import { YOUNGCLE_TV, YOUNGCLE_TV_PORTRAITS } from './youngcle-tv.js';
 
+// 보라 숲 낙석 바위 그림(BUILD394, 띠 4칸: 바위 셋 + 갈라진 바위) — 낙석 맵 세 곳
+const ROCKFALL = { images: ['assets/props/rock_set.png'] };
 export const MAP_RUNTIME_ASSETS = {
+  void5: ROCKFALL, void6: ROCKFALL, void7: ROCKFALL,
   gajaeman_castle_orb: {
     images: ['assets/props/castle-seal-orb.png', 'assets/props/castle307_sealed_gate.png', 'assets/backdrops/castle306_distant.png'],
   },

@@ -1167,6 +1167,8 @@ export class Follower extends Character {
 }
 
 registerEntity('player', Player);
+// 낙석 바위 그림 높이(px, 판정 상자와 별개)
+const ROCK_DRAW_H = 34;
 /**
  * 낙석 레인(재사용): 정해진 x 에서 일정한 리듬으로 바위가 **화면 위에서 길 전체를 쓸고 내려와** 길 맨 아래(ground)에 떨어진다.
  *   { type:'rockfall', image:'assets/props/rock.png', x:<레인 중심>, ground:<착지 y(바위 아래쪽)>, period:2.0, offset:0, warn:0.8, fall:0.4, rest:0.45 }
@@ -1177,6 +1179,7 @@ registerEntity('player', Player);
 export class Rockfall extends Entity {
   constructor(def, game) {
     const img = game.propImages[def.image] || null;
+    // 판정 상자는 예전 그림(40×28) 크기 그대로 — 그림을 바꿔도 난이도는 같다
     const w = def.w ?? (img ? img.width : 40), h = img ? img.height : 28;   // 히트 폭 = 바위 그림 폭(기본 40px, 2026-09-10 "x 면적 높여")
     super({ solid: false, ...def, x: def.x - w / 2, y: def.ground - h, w, h }, game);
     this.lx = def.x; this.gy = def.ground; this.top = def.top ?? -48;
@@ -1184,12 +1187,26 @@ export class Rockfall extends Entity {
     this.image = img;
     this.rw = w; this.rh = h;
     this.t = this.offset; this.phase = 'idle'; this.k = 0; this.hitDone = false;
+    // BUILD394 연출: 떨어질 때마다 바위 모양을 바꾸고(띠 칸 0~2), 착지하면 갈라진 칸 3 + 흙먼지·파편
+    this.cycle = Math.round(def.x / 32); this.spin = ((Math.round(def.x) % 3) - 1) * 0.9 || 0.7;
+    this.bits = []; this.dust = [];
   }
   canInteract() { return false; }
   /** 바위 아래쪽 y (떨어지는 동안은 위에서 가속) */
-  rockY() { return this.phase === 'fall' ? this.top + (this.gy - this.top) * Math.pow(this.k, 1.7) : this.gy; }
+  rockY(k = this.k) { return this.phase === 'fall' ? this.top + (this.gy - this.top) * Math.pow(Math.max(0, k), 1.7) : this.gy; }
   /** 지금 바위의 월드 사각형 — 떨어지는 동안 길의 모든 줄을 지나간다 */
   get rockRect() { const y = this.rockY(); return { x: this.lx - this.rw / 2 + 2, y: y - this.rh + 4, w: this.rw - 4, h: this.rh - 4 }; }
+  /** 새 바위 그림 띠(없으면 예전 한 장) */
+  get sheet() { return this.game.propImages['assets/props/rock_set.png'] || null; }
+  /** 착지: 흙먼지 뭉게와 돌 조각(소리 없음 — 사용자 규칙), 화면에 보일 때만 아주 살짝 흔들림 */
+  land() {
+    const x = this.lx, y = this.gy;
+    for (let i = 0; i < 7; i++) this.dust.push({ x: x + (i - 3) * 6, y: y - 2, vx: (i - 3) * 22, r: 3 + (i % 3), t: 0, life: 0.55 + (i % 3) * 0.08 });
+    const colors = ['#2e2640', '#4a4060', '#6a5f86', '#c9a0ff'];
+    for (let i = 0; i < 9; i++) { const a = -Math.PI * (0.15 + 0.7 * (i / 8)); this.bits.push({ x, y: y - 8, vx: Math.cos(a) * (60 + (i * 37) % 70), vy: Math.sin(a) * (110 + (i * 53) % 80), s: 2 + (i % 2), c: colors[i % colors.length], t: 0, life: 0.7 }); }
+    const cam = this.game.camera;
+    if (cam && x > cam.x - 40 && x < cam.x + SCREEN_W + 40) this.game.shake = { time: 0.12, amp: 1.5 };
+  }
   update(dt) {
     this.t = (this.t + dt) % this.period;
     const t = this.t, w = this.warn, f = this.fall, r = this.rest;
@@ -1197,23 +1214,48 @@ export class Rockfall extends Entity {
     if (t < w) { phase = 'warn'; k = t / w; }
     else if (t < w + f) { phase = 'fall'; k = (t - w) / f; }
     else if (t < w + f + r) { phase = 'rest'; k = (t - w - f) / r; }
-    if (phase === 'warn' && this.phase !== 'warn') this.hitDone = false;
+    if (phase === 'warn' && this.phase !== 'warn') { this.hitDone = false; this.cycle++; }
+    if (phase === 'rest' && this.phase === 'fall') this.land();
     this.phase = phase; this.k = k;
+    for (const b of this.bits) { b.t += dt; b.x += b.vx * dt; b.y += b.vy * dt; b.vy += 520 * dt; if (b.y > this.gy) { b.y = this.gy; b.vy *= -0.3; b.vx *= 0.6; } }
+    this.bits = this.bits.filter(b => b.t < b.life);
+    for (const d of this.dust) { d.t += dt; d.x += d.vx * dt; d.vx *= 0.9; }
+    this.dust = this.dust.filter(d => d.t < d.life);
     const p = this.game.player;
     const active = phase === 'fall' || (phase === 'rest' && k < 0.5);
     if (active && !this.hitDone && p && !this.game.dialogue.running && !this.game.ride && p.overlaps(this.rockRect)) { this.hitDone = true; this.game.hurtPlayer(this, { silent: true }); }
   }
+  /** 바위 한 칸(가운데 아래 기준, 회전 가능) — 그림 높이 ROCK_DRAW_H */
+  paintRock(ctx, cell, cx, bottom, angle = 0, alpha = 1) {
+    const sheet = this.sheet;
+    if (!sheet) { ctx.globalAlpha = alpha; if (this.image) ctx.drawImage(this.image, Math.round(cx - this.rw / 2), Math.round(bottom - this.rh)); else { ctx.fillStyle = '#5a4a70'; ctx.fillRect(Math.round(cx - this.rw / 2), Math.round(bottom - this.rh), this.rw, this.rh); } ctx.globalAlpha = 1; return; }
+    const cw = sheet.width / 4, s = ROCK_DRAW_H / sheet.height, dw = Math.round(cw * s), dh = ROCK_DRAW_H;
+    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(Math.round(cx), Math.round(bottom - dh / 2)); if (angle) ctx.rotate(angle);
+    ctx.drawImage(sheet, cell * cw, 0, cw, sheet.height, -Math.round(dw / 2), -Math.round(dh / 2), dw, dh); ctx.restore();
+  }
   /** 바위 (y 정렬 대상). idle·warn 땐 안 보임 */
   draw(ctx, cam) {
-    if (this.phase === 'idle' || this.phase === 'warn') return;
-    const y = this.rockY();
-    const x = Math.round(this.lx - this.rw / 2 - cam.x), yy = Math.round(y - this.rh - cam.y);
-    if (this.phase === 'fall') { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(this.lx - cam.x), Math.round(this.gy + 2 - cam.y), 5 + 9 * this.k, 2 + 3 * this.k, 0, 0, Math.PI * 2); ctx.fill(); }   // 바닥 그림자(어둡게, 커짐)
-    if (this.phase === 'rest' && this.k > 0.7) ctx.globalAlpha = 1 - (this.k - 0.7) / 0.3;
-    if (this.image) ctx.drawImage(this.image, x, yy); else { ctx.fillStyle = '#5a4a70'; ctx.fillRect(x, yy, this.rw, this.rh); }
+    const cx = this.lx - cam.x, gy = this.gy - cam.y;
+    // 흙먼지(뒤)·돌 조각
+    for (const d of this.dust) { const u = d.t / d.life; ctx.fillStyle = `rgba(150,130,180,${(0.45 * (1 - u)).toFixed(3)})`; ctx.beginPath(); ctx.arc(Math.round(d.x - cam.x), Math.round(d.y - cam.y - u * 6), d.r + u * 6, 0, Math.PI * 2); ctx.fill(); }
+    if (this.phase === 'fall' || this.phase === 'rest') {
+      const cell = this.cycle % 3;
+      if (this.phase === 'fall') {
+        // 바닥 그림자(어둡게, 커짐) + 옅은 잔상 둘 + 회전
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(cx), Math.round(gy + 2), 5 + 11 * this.k, 2 + 3 * this.k, 0, 0, Math.PI * 2); ctx.fill();
+        for (const [lag, a] of [[0.22, 0.18], [0.11, 0.32]]) this.paintRock(ctx, cell, cx, this.rockY(this.k - lag) - cam.y, this.spin * (this.k - lag), a);
+        this.paintRock(ctx, cell, cx, this.rockY() - cam.y, this.spin * this.k, 1);
+      } else {
+        // 착지: 갈라진 바위 → 끝 무렵 조금 가라앉으며 부서져 사라짐
+        const fade = this.k > 0.6 ? (this.k - 0.6) / 0.4 : 0;
+        this.paintRock(ctx, this.sheet ? 3 : 0, cx, gy + fade * 4, 0, 1 - fade);
+      }
+    }
+    for (const b of this.bits) { ctx.globalAlpha = Math.max(0, 1 - b.t / b.life); ctx.fillStyle = b.c; ctx.fillRect(Math.round(b.x - cam.x), Math.round(b.y - cam.y), b.s, b.s); }
     ctx.globalAlpha = 1;
   }
-  /** 스포트라이트(어두움 위에): 바위 폭만큼의 **평행한 세로 기둥**(연보라 한 겹, 아래로 갈수록 조금 진해짐) + 바닥 타원. 원뿔·가운데 선·착지 섬광 없음 (2026-09-10 사용자 지적 두 번) */
+  /** 스포트라이트(어두움 위에): 바위 폭만큼의 **평행한 세로 기둥**(연보라 한 겹, 아래로 갈수록 조금 진해짐) + 바닥 타원. 원뿔·가운데 선·착지 섬광 없음 (2026-09-10 사용자 지적 두 번)
+   *  BUILD394: 기둥 안에 작은 부스러기 몇 알이 천천히 떨어진다(곧 바위가 온다는 예고) */
   drawOverlay(ctx, cam) {
     if (this.phase !== 'warn' && this.phase !== 'fall') return;
     const x = Math.round(this.lx - cam.x), gy = Math.round(this.gy - cam.y), hw = Math.round(this.rw / 2) + 4;
@@ -1222,6 +1264,12 @@ export class Rockfall extends Entity {
     g.addColorStop(0, `rgba(205,180,245,${a * 0.6})`); g.addColorStop(1, `rgba(205,180,245,${a})`);
     ctx.fillStyle = g; ctx.fillRect(x - hw, 0, hw * 2, gy + 4);
     ctx.fillStyle = `rgba(215,195,250,${a * 1.15})`; ctx.beginPath(); ctx.ellipse(x, gy + 2, hw, 6, 0, 0, Math.PI * 2); ctx.fill();
+    // 떨어지는 바위는 빛기둥 위에 또렷하게 한 번 더(기둥에 묻혀 흐려 보이던 것)
+    if (this.phase === 'fall') this.paintRock(ctx, this.cycle % 3, this.lx - cam.x, this.rockY() - cam.y, this.spin * this.k, 1);
+    if (this.phase === 'warn') {
+      ctx.fillStyle = `rgba(90,78,120,${(0.35 + 0.5 * this.k).toFixed(3)})`;
+      for (let i = 0; i < 5; i++) { const u = (this.k * 1.4 + i * 0.21) % 1, px = x - hw + 5 + ((i * 29) % (hw * 2 - 10)); ctx.fillRect(Math.round(px), Math.round(u * gy), 2, 2); }
+    }
   }
 }
 
