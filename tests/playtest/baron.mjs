@@ -91,13 +91,28 @@ try {
   const initial = await snapshot();
   check('encounter starts with Baron HP250, ordinary modes, Black Knife key', initial.hp === 250 && initial.maxHp === 250 && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
   await capture('baron_01_menu');
-  let lastRound = -1;
+  let lastRound = -1, cannonShots = 0;
   const deadline = Date.now() + 360000 * Math.max(1, initial.maxHp / 100);
   while (Date.now() < deadline) {
     const s = await snapshot();
     if (!s || s.state === 'win' || s.state === 'lose') break;
+    // 대포 막기(용준 대포 12초 차징): 다음에 올 숨결 줄로 위·아래 이동, 대사는 C
+    const cg = await page.evaluate(() => { const g = game.battle?.gimmick?.snapshot; if (!g || !g.breaths) return null; const next = g.breaths.filter(b => !b.resolved && g.elapsed >= b.at).sort((a, b) => a.at - b.at)[0]; return { phase: g.phase, lane: g.lane, next: next ? next.lane : null, typed: !!game.battle.typed }; });
+    if (cg) {
+      await keys([]);
+      // 키를 40ms 눌러 둬야 줄이 움직인다(너무 빨리 떼면 프레임이 못 읽는다) — baron-cannon 시나리오와 같은 방식
+      if ((cg.phase === 'guard' || cg.phase === 'focus') && cg.next != null) { for (let i = 0; i < Math.abs(cg.next - cg.lane); i++) { await page.keyboard.press(cg.next < cg.lane ? 'ArrowUp' : 'ArrowDown', { delay: 40 }); await page.waitForTimeout(30); } }
+      else if (cg.typed) await page.keyboard.press('KeyC', { delay: 40 });
+      await page.waitForTimeout(70);
+      continue;
+    }
     if (s.state === 'menu' || s.state === 'target' || s.state === 'interlude') {
       await keys([]);
+      // 대포가 준비되면(9번 맞힘) 첫 멤버가 대포 버튼을 고른다
+      if (s.state === 'menu' && await page.evaluate(() => !!game.battle.support?.ready && game.battle.memberIdx === 0)) {
+        for (let k = 0; k < 4 && await page.evaluate(() => game.battle.menuButtons()[game.battle.menuIdx]?.kind !== 'support'); k++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(60); }
+        cannonShots++;
+      }
       if (s.state === 'menu' && s.pattern !== lastRound) { lastRound=s.pattern; rounds.push(s); console.log(`ROUND ${s.pattern} Baron=${s.hp} party=${s.members.map(m=>m.hp)} hits=${s.hits}`); }
       await page.keyboard.press('KeyC');
       await page.waitForTimeout(110);
@@ -110,7 +125,8 @@ try {
   }
   await keys([]);
   const victory = await snapshot();
-  check('ordinary keyboard attacks defeat full HP250 Baron', victory?.state === 'win' && victory.hp === 0, victory);
+  check('keyboard attacks plus the cannon defeat full HP250 Baron', victory?.state === 'win' && victory.hp === 0, victory);
+  check('the cannon was fired', cannonShots > 0, String(cannonShots));
   check('six natural enemy patterns observed', patterns.size === 6, [...patterns]);
   await capture(victory?.state === 'win' ? 'baron_02_victory' : 'baron_primary_failure');
   if (victory?.state !== 'win') throw new Error('Primary victory failed; no forced checks run');
