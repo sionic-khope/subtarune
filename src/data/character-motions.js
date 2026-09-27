@@ -53,7 +53,7 @@ export const CHARACTER_MOTIONS = {
   //   대기는 동작 없이 정지 그림(stand) — 깃발 흔드는 idle 시트는 전투 스프라이트(사용자 2026-09-20 “이건 전투스프라이트야”)
   janitor_hero: {
     laugh: {
-      src: 'assets/battle/janitor-hero-laugh.png', scale: 128 / (192 * 1.43), faces: 'right',
+      src: 'assets/battle/janitor-hero-laugh.png', scale: 154 / (192 * 1.43), faces: 'right',
       colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [{ rect: [0, 0, 192, 192], pivot: [138, 180], duration: 1.2 }],
     },

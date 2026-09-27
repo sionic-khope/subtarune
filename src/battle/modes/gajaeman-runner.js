@@ -64,7 +64,7 @@ export function createGajaemanRunner(battle, { enemy }) {
     run.burst(boss.x, boss.y, 30, { rainbow: false, speed: 200, life: 0.5 });
   };
   // 돌진 뒤편에서 폭죽처럼 팡팡 — 타닥타닥 튀기는 소리(폭발음 아님)
-  let popClock = 0, trailClock = 0; const crackles = [];
+  let popClock = 0, trailClock = 0, skyCount = 0; const crackles = [];
   const firework = dt => {
     popClock += dt; trailClock += dt;
     if (trailClock >= C.dash.trailEvery) { trailClock = 0; boss.trail = [{ x: boss.x, y: boss.y }, ...(boss.trail || [])].slice(0, 5); }
@@ -73,6 +73,14 @@ export function createGajaemanRunner(battle, { enemy }) {
       const x = boss.x + 46 + run.rnd() * 40, y = boss.y + (run.rnd() - 0.5) * 34, c = C.rainbow[Math.floor(run.rnd() * C.rainbow.length)];
       for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, v = 70 + run.rnd() * 50; run.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 0.35, s: 2, color: i % 3 ? c : '#ffffff', g: 40, drag: 0.94 }); }
       for (let i = 0; i < 3; i++) crackles.push(i * 0.045);
+      // 하늘에서도 큰 폭죽(천천히 늘어지며 떨어지는 불꽃)
+      if (++skyCount % C.sky.every === 0) {
+        const S = C.sky, sx = Math.max(24, Math.min(456, boss.x + (run.rnd() - 0.5) * S.spread)), sy = S.y[0] + run.rnd() * (S.y[1] - S.y[0]), sc = C.rainbow[Math.floor(run.rnd() * C.rainbow.length)];
+        for (let i = 0; i < S.sparks; i++) { const a = i / S.sparks * Math.PI * 2, v = S.speed[0] + run.rnd() * (S.speed[1] - S.speed[0]); run.particles.push({ x: sx, y: sy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: S.life, s: i % 3 ? 3 : 4, color: i % 3 ? sc : '#ffffff', g: 90, drag: 0.94 }); }
+        // 터지는 순간 가운데 흰 번쩍
+        for (let i = 0; i < 4; i++) run.particles.push({ x: sx - 4 + (i % 2) * 4, y: sy - 4 + Math.floor(i / 2) * 4, vx: 0, vy: 0, t: 0, life: 0.16, s: 6, color: '#fffbe8', g: 0 });
+        crackles.push(0.08);
+      }
     }
     for (let i = crackles.length - 1; i >= 0; i--) { crackles[i] -= dt; if (crackles[i] <= 0) { crackles.splice(i, 1); sfx(C.sfx.crackle, 0.32); } }
   };
@@ -104,9 +112,10 @@ export function createGajaemanRunner(battle, { enemy }) {
       if (phaseTime >= (counters === 0 && elapsed < 2 ? C.cycle.first : C.cycle.rest)) { thrown = 0; cycleN++; change('swords'); sfx(C.sfx.sword, 0.5); }
     } else if (phase === 'swords') {
       // 검을 꺼내 들어 번쩍(예고) → 한 자루씩
-      const next = C.sword.warn + thrown * C.sword.every;
-      if (thrown < C.sword.count && phaseTime >= next) { throwSword(thrown + cycleN); thrown++; }
-      if (thrown >= C.sword.count && phaseTime >= next + 0.9) { change('dash_warn'); sfx(C.sfx.kickVoice, 1.0); }
+      // 쳐낸 횟수만큼 검 무리가 커진다(C.volleys)
+      const volley = C.volleys[Math.min(counters, C.volleys.length - 1)].times, count = volley.length;
+      if (thrown < count && phaseTime >= C.sword.warn + volley[thrown]) { throwSword(thrown + cycleN); thrown++; }
+      if (thrown >= count && phaseTime >= C.sword.warn + volley[count - 1] + C.volleyEnd) { change('dash_warn'); sfx(C.sfx.kickVoice, 1.0); }
     } else if (phase === 'dash_warn') {
       // “니애미 따라가라” — 목소리와 함께 이미 가로로 누운 돌진 그림으로 땅 높이로 내려와 기를 모은다
       boss.lie = 1; boss.aura = 1.4 + 1.6 * smooth(phaseTime / 0.6); boss.shake = 0.1;

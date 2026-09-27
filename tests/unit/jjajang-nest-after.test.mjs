@@ -101,7 +101,7 @@ test('test_hero_form_reuses_battle_art_and_is_hidden_in_both_maps', () => {
   const laugh = CHARACTER_MOTIONS.janitor_hero.laugh;
   assert.equal(laugh.src, 'assets/battle/janitor-hero-laugh.png'); assert.equal(laugh.scale, hero.stillScale);
   assert.ok(!flatten(jjajang_nest_after).some(n => n.motion === 'janitor_hero' && n.name === 'idle'));
-  assert.ok(Math.round(192 * hero.stillScale * 1.43) === 128, '필드 키 = 128px 셀 상당(요플래의 약 2배)');
+  assert.ok(Math.round(192 * hero.stillScale * 1.43) === 154, '필드 키 = 154px 셀 상당(BUILD396 사용자 “좀 더 키워”)');
   for (const id of ['jjajang_nest', 'jjajang_statue']) {
     const npc = load(id).entities.find(e => e.id === 'janitor_hero');
     assert.ok(npc && npc.hidden && npc.solid === false && npc.sprite === 'janitor_hero' && npc.unless === 'party_regrouped', `${id}: 숨은 청소부 영웅`);

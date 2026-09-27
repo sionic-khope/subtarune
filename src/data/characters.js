@@ -38,7 +38,8 @@ export const CHARACTERS = {
   // 청소부 검은 실루엣(같은 걷기 시트를 검게 칠한 것) — 토리이 길에서 요플래 뒤로 걸어오는 형체
   janitor_shadow: { name: '???', sheet: 'assets/sprites/janitor_shadow.png', stillPivot: [64, 120] },
   // 청소부 영웅 모습(멸공의 깃발) 필드용(BUILD254 보스전 뒤): 전투 정지 그림 janitor-hero-stand 그대로(192 셀·발 pivot 138,180). 필드 키 ≈ 요플래 2배(128px 셀 상당). 대기 동작은 CHARACTER_MOTIONS.janitor_hero.idle(전투 idle 시트 8프레임)
-  janitor_hero: { name: '청소부', voice: 'janitor', portrait: false, palette: 'ghost', still: 'assets/battle/janitor-hero-stand.png', stillScale: 128 / (192 * 1.43), stillPivot: [138, 180] },
+  // BUILD396: 128 → 154 셀 상당(사용자 “전투 끝나고 청소부 너무 작다, 좀 더 키워”) — character-motions janitor_hero.laugh 도 같은 값
+  janitor_hero: { name: '청소부', voice: 'janitor', portrait: false, palette: 'ghost', still: 'assets/battle/janitor-hero-stand.png', stillScale: 154 / (192 * 1.43), stillPivot: [138, 180] },
   ttuulla: { name: '뚜울라', voice: 'ttuulla', sheet: 'assets/sprites/ttuulla.png', stillPivot: [32, 60] },
   seopnyang: { name: '섭냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/seopnyang_front.png', stillPivot: [24, 44] },
   gyeongnyang: { name: '경냥이', voice: 'cat', palette: 'ghost', still: 'assets/enemies/gyeongnyang_front.png', stillPivot: [24, 44] },

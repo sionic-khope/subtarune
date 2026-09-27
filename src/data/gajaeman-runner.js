@@ -18,11 +18,24 @@ export const GJ_RUNNER = Object.freeze({
   bars: { swoop: 0.55, from: 40, top: 12, bottom: 320 },
   boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [397, 150], scale: 1.56, bob: 5 },
   aura: { gather: 2.2, burst: 0.5 },
-  cycle: { first: 1.2, rest: 1.1 },
+  // rest: 돌진을 쳐내고 돌아온 뒤 다음 공격까지(BUILD396 사용자 “0.3초만 줄여” 1.1 → 0.8)
+  cycle: { first: 1.2, rest: 0.8 },
+  // BUILD396(사용자): 쳐낸 횟수(체력)에 따라 검 날리기가 달라진다 — 모두 쳐낼 수 있는 간격. times = 예고 뒤 각 검을 던지는 초
+  //   0회: 셋 · 1회: 넷 · 2회: 넷(둘씩 빠르게 짝지어 박자 다르게) · 3회: 다섯 · 4회: 여섯. end = 마지막 검 뒤 돌진 준비까지
+  volleys: [
+    { times: [0, 1.0, 2.0] },
+    { times: [0, 0.9, 1.8, 2.7] },
+    { times: [0, 0.45, 1.4, 1.85] },
+    { times: [0, 0.8, 1.6, 2.4, 3.2] },
+    { times: [0, 0.72, 1.44, 2.16, 2.88, 3.6] },
+  ],
+  volleyEnd: 1.9,
   // BUILD369: 검 더 크게. BUILD371(사용자): 그림 비율 그대로(76×160, 가로로 납작하지 않게), 더 느리게,
   //   대각선으로 날아와 땅을 스치는 검 · 오른쪽 아래 끝(low)으로 대각선으로 내려갔다가 땅 높이로 일직선 발사하는 검
   sword: { count: 3, every: 1.0, warn: 0.6, speed: 260, aimAhead: 26, aimHeight: 14, halfW: 26, halfH: 9, w: 55, h: 116, draw: 1, back: 0.55, low: [462, 238], line: 300 },
   // BUILD365(사용자 “돌진 좀만 더 천천히, 잔상, 지나간 뒷자리에 팡팡 폭죽처럼 — 타닥타닥”)
+  // BUILD396(사용자 “돌진할 때 폭죽이 위에서도 더 터지게”): 돌진 폭죽 every 번째마다 하늘(y 범위)에도 큰 폭죽 — 가재맨 x 둘레 spread 안에서
+  sky: { every: 2, y: [30, 118], spread: 200, sparks: 28, speed: [100, 170], life: 0.95 },
   dash: { warn: 1.25, speed: 240, pop: 0.16, trailEvery: 0.05, height: 20, halfW: 30, halfH: 12, recoil: 0.7, returnSeconds: 1.0, endX: -120 },
   final: { gather: 2.4, back: [520, 206], backSeconds: 0.6, speed: 150, homing: 2.4, pop: 0.13, clashDist: 72, slow: 0.08, clashHold: 1.4 },
   slash: { from: 0.04, until: 0.85 },
