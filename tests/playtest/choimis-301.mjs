@@ -88,7 +88,7 @@ await runScenario({ name: 'choimis-301', launchOptions: { args: ['--autoplay-pol
   });
   for (let i = 0; i < 25 && !await page.evaluate(() => game.battle.state === 'menu'); i++) { await press('KeyC', { delay: 55 }); await page.waitForTimeout(150); }
   check('real C enters normal party menu', await until(() => game.battle.state === 'menu', 5000));
-  if (build303) check('BUILD303 boss starts with250 HP', await page.evaluate(() => game.battle.enemies[0].hp === 250 && game.battle.enemies[0].maxHp === 250));
+  if (build303) check('boss starts with 230 HP (BUILD388)', await page.evaluate(() => game.battle.enemies[0].hp === 230 && game.battle.enemies[0].maxHp === 250));
   const sequence = await page.evaluate(() => window.__qa301.sequence);
   evidence.sequence = sequence;
   check('ninth configured turn is eating', sequence[8].type === 'choimis_eating_race');

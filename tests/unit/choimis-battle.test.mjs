@@ -10,7 +10,7 @@ import { choimisLyricAt, drawChoimisKaraoke } from '../../src/battle/choimis-kar
 
 test('test_choimis_battle_uses_approved_hp_sprite_and_menu_copy', () => {
   const enemy = ENEMIES.choimis_flower;
-  assert.equal(enemy.hp, 250);
+  assert.equal(enemy.hp, 230);
   assert.equal(enemy.money, 15000000);
   assert.equal(enemy.boss, true);
   assert.deepEqual(enemy.sheet, { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 });

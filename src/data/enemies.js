@@ -128,7 +128,8 @@ export const ENEMIES = {
     },
   },
   choimis_flower: {
-    name: '최미스', hp: 250, damage: 15, money: 15000000, boss: true, voice: 'choimis_flower',
+    // HP 250 → 230(BUILD388 사용자 “20만 낮춰도 될 듯”)
+    name: '최미스', hp: 230, damage: 15, money: 15000000, boss: true, voice: 'choimis_flower',
     boostedAttackDamage: 3, alternatingPatternMode: 'choimis_pink_round',
     sheet: { src: 'assets/enemies/choimis-flower-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 280, px: 1 },
     actions: {
