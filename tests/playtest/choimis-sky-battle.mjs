@@ -1386,6 +1386,8 @@ await runScenario({ name: 'choimis-sky-battle', launchOptions: { args: ['--autop
   await waitForLyric('쟤들은 날 이해 하지 못해', ...lyric('쟤들은 날 이해 하지 못해'), 'karaoke_verse_under_menu');
   await waitForLyric('오늘도 스읍 미스', ...lyric('오늘도 스읍 미스'), 'karaoke_verse_last_line');
   await waitForLyric('최미스! 최미스! 가재맨! 방고닉!', ...lyric('최미스! 최미스! 가재맨! 방고닉!'), 'karaoke_chant_first');
+  // 첫 회차 1500 경계(58.1–58.4s)가 실제 재생으로 찍힌 뒤에 반복 회차로 건너뛴다 — BUILD395 에서 개발 서버가 Range 를 지원해 건너뛰기가 실제로 되자 58s 를 지나기 전에 144s 로 넘어가 첫 회차가 안 찍혔다
+  await until(() => window.__choimisQa.audioBoundaryCaptures?.filter(capture => capture.time < 100).every(capture => capture.data) ? true : null, 20000);
   const mediaReady = await until(() => {
     const a = window.game.sound.bgm, b = window.game.battle;
     return a && window.game.sound.bgmName === 'choimis_battle' && a.readyState >= 2 && Number.isFinite(a.duration) && a.duration > 160 && !a.seeking && b?.bgmWait === undefined && a.currentTime > 5 ? true : null;

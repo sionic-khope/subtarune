@@ -63,7 +63,7 @@ try {
   }
   let s = await page.evaluate(() => game.battle.gimmick.snapshot);
   check('12 real-key blocks reach cannon fire', s.phase === 'fire' && s.blocked === 12, s);
-  check('baron HP unchanged before projectile impact', await page.evaluate(() => game.battle.enemies[0].hp === 250));
+  check('baron HP unchanged before projectile impact', await page.evaluate(async () => game.battle.enemies[0].hp === (await import('./src/data/enemies.js')).ENEMIES.baron.hp));
   await until(() => game.battle.gimmick.snapshot.phaseTime >= 0.7);
   await capture('cannon_flight');
   await until(() => game.battle.gimmick.snapshot.phaseTime >= 1.48);
@@ -73,7 +73,7 @@ try {
   await until(() => game.battle.gimmick.snapshot.phaseTime >= 2.1);
   await capture('impact_smoke');
   await until(() => game.battle.gimmick.snapshot.phase === 'success-dialogue' && game.battle.typed);
-  check('exactly 60 damage applied', await page.evaluate(() => game.battle.enemies[0].hp === 190));
+  check('exactly the data cannon damage applied', await page.evaluate(async () => game.battle.enemies[0].hp === game.battle.enemies[0].maxHp - (await import('./src/data/baron-cannon.js')).BARON_CANNON.damage));
   for (const width of [375, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.waitForTimeout(100);

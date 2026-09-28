@@ -101,6 +101,8 @@ async function waitReturn() {
 
 try {
   await page.goto(`${base}/index.html?qa=obj4_battle`);
+  // 바론 HP 는 게임 데이터에서 읽는다(BUILD401 250 → 200)
+  const BARON_HP = await page.evaluate(async () => (await import('./src/data/enemies.js')).ENEMIES.baron.hp);
   await until(() => !!window.game?.player);
   await press('KeyX');
   await until(() => !game.transitioning && game.fade.alpha < 0.1);
@@ -109,12 +111,12 @@ try {
   try { await until(() => !!game.battle); } finally { await page.keyboard.up('ArrowUp'); }
   await until(() => game.battle?.state === 'menu');
   let s = await snap();
-  check('Baron starts HP250 damage12 with cannon locked', s.hp === 250 && s.maxHp === 250 && s.damage === 12 && !s.unlocked && s.charge === 0, s);
+  check('Baron starts at data HP, damage12, with cannon locked', s.hp === BARON_HP && s.maxHp === BARON_HP && s.damage === 12 && !s.unlocked && s.charge === 0, s);
   await sizes('pre_intro_menu');
   while (['menu', 'target'].includes((await snap()).state)) await press('KeyC');
   await until(() => game.battle?.state === 'bullets');
   s = await snap();
-  check('first ordinary player turn dealt damage without charging', s.hp < 250 && s.charge === 0 && !s.unlocked, s);
+  check('first ordinary player turn dealt damage without charging', s.hp < BARON_HP && s.charge === 0 && !s.unlocked, s);
   await capture('first_natural_enemy_turn');
   await until(() => game.battle?.interlude?.snapshot.phase === 'enter');
   const introStart = await snap();
@@ -228,7 +230,7 @@ try {
   await press('KeyC');
   await until(() => game.battle?.state === 'menu');
   s = await snap();
-  check('retry resets HP250, support lock, charge and transient mode', s.hp === 250 && !s.unlocked && s.charge === 0 && !s.mode && !s.interlude && s.members.every(m => m.hp === m.maxHp && !m.down), s);
+  check('retry resets data HP, support lock, charge and transient mode', s.hp === BARON_HP && !s.unlocked && s.charge === 0 && !s.mode && !s.interlude && s.members.every(m => m.hp === m.maxHp && !m.down), s);
   await until(() => game.battle.typed);
   await capture('retry_menu');
   fixtures.push('Exit cleanup setup: finish(false) at clean retry menu; no full victory claim.');

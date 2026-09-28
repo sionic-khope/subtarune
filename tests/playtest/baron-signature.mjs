@@ -183,7 +183,7 @@ async function patternFixture(index) {
     await page.waitForTimeout(180);
   }
   const result = await page.evaluate(index => ({
-    hp: game.battle.enemies[0].hp, bullets: game.battle.bullets.length, bubble: game.battle.bubble,
+    hp: game.battle.enemies[0].hp, maxHp: game.battle.enemies[0].maxHp, bullets: game.battle.bullets.length, bubble: game.battle.bubble,
     sounds: signatureEvidence.sounds.filter(sound => sound.pattern === index),
     hits: signatureEvidence.hits.filter(hit => hit.pattern === index),
     motion: signatureEvidence.motion.filter(trace => trace.pattern === index).sort((a, b) => b.path - a.path).slice(0, 6),
@@ -194,7 +194,7 @@ async function patternFixture(index) {
   const bossSounds = result.sounds.filter(sound => sound.name.startsWith('baron_'));
   check(`pattern ${index + 1} gesture sounds use boss files without party hit sound`, bossSounds.length > 0 && bossSounds.every(sound => ['baron_slam', 'baron_eruption', 'baron_roar'].includes(sound.name) && sound.state === 'bullets') && !result.sounds.some(sound => ['hit', 'damage'].includes(sound.name)), bossSounds);
   check(`pattern ${index + 1} boss sounds align with windup or activation`, bossSounds.every(sound => sound.name === 'baron_roar' ? sound.newestWarningAge !== null && sound.newestWarningAge < 0.1 : sound.activationDistance !== null && sound.activationDistance < 0.1), bossSounds);
-  check(`pattern ${index + 1} natural phase completion clears hazards`, result.bullets === 0 && result.bubble === null && result.hp === 250 && result.bgm === 'baron_battle', result);
+  check(`pattern ${index + 1} natural phase completion clears hazards`, result.bullets === 0 && result.bubble === null && result.hp === result.maxHp && result.bgm === 'baron_battle', result);
   patterns.push({ index, warning, attack, activeFrames, ...result });
 }
 
