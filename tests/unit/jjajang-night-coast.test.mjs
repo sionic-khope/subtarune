@@ -53,13 +53,14 @@ test('coast chatter waits at each natural route threshold and pauses for a modal
   assert.equal(chatter.box.revealed, revealed);
 });
 
-test('coast route geometry is about ten percent shorter than BUILD291', () => {
-  const original = [343, 285, 341];
+// BUILD405(사용자 “30퍼 줄이는 게”): BUILD292 의 309/258/306칸에서 약 30% 짧게
+test('coast route geometry is about thirty percent shorter than BUILD292', () => {
+  const original = [309, 258, 306];
   for (let i = 1; i <= 3; i++) {
     const map = read(`jjajang_night_coast${i}`);
     const route = map.meta.coast.walkRoute;
     const tiles = route.reduce((sum, path) => sum + path.slice(1).reduce((n, p, j) => n + Math.hypot(p[0] - path[j][0], p[1] - path[j][1]) / 32, 0), 0);
-    assert.ok(tiles / original[i - 1] >= 0.88 && tiles / original[i - 1] <= 0.92, `${i}: ${tiles}`);
+    assert.ok(tiles / original[i - 1] >= 0.66 && tiles / original[i - 1] <= 0.76, `${i}: ${tiles}`);
   }
 });
 
@@ -115,13 +116,14 @@ test('night coast switches persist genuine blocked crossings without combat or w
 
 test('night coast ferry legs use normal speed, safe landing banks and persistent route IDs', () => {
   const ferries = [1, 2, 3].flatMap(i => read(`jjajang_night_coast${i}`).entities.filter(e => e.type === 'raft'));
-  assert.equal(ferries.length, 4);
+  // BUILD405: 뗏목 4 → 3, 물길 폭도 줄어 한 번 건너는 데 3–6.5초
+  assert.equal(ferries.length, 3);
   for (const raft of ferries) {
     assert.equal(raft.speed, 171);
     assert.equal(raft.walkOn, true);
     const [x, y] = raft.route.at(-1);
     const seconds = Math.hypot(x - raft.x, y - raft.y) / raft.speed;
-    assert.ok(seconds >= 4 && seconds <= 6.5, `${raft.id}: ${seconds}s`);
+    assert.ok(seconds >= 3 && seconds <= 6.5, `${raft.id}: ${seconds}s`);
   }
 });
 
@@ -132,4 +134,11 @@ test('the post-flower branch does not leave a second Ppaman beside his party fol
     && (!e.requires || flags[e.requires]) && (!e.unless || !flags[e.unless]));
   assert.deepEqual(visiblePpaman, []);
   assert.equal(map.entities.find(e => e.to === 'jjajang_night_coast1').requires, 'choimis_flower_done');
+});
+
+test('each coast keeps exactly one bridge lever and the three ferries stay', () => {
+  const gates = [1, 2, 3].map(i => read(`jjajang_night_coast${i}`).meta.coast.gates.length);
+  const rafts = [1, 2, 3].map(i => read(`jjajang_night_coast${i}`).entities.filter(e => e.type === 'raft').length);
+  assert.deepEqual(gates, [1, 1, 1]);
+  assert.deepEqual(rafts, [0, 2, 1]);
 });

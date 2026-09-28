@@ -36,11 +36,10 @@ PLACEMENTS: Final = {
     'jjajang_sakura3': (('sakura_raft', 'start', 516, 824), ('sakura_raft', 'end', 1430, 1508)),
     'jjajang_sakura6': (('sakura6_raft', 'start', 292, 404), ('sakura6_raft', 'end', 1230, 406)),
     'jjajang_night_coast2': (
-        ('coast2_a', 'start', 1404, 328), ('coast2_a', 'end', 2220, 328),
-        ('coast2_b', 'start', 2220, 1608), ('coast2_b', 'end', 1404, 1608),
-        ('coast2_c', 'start', 2268, 2280), ('coast2_c', 'end', 3084, 2280),
+        ('coast2_a', 'start', 1052, 328), ('coast2_a', 'end', 1708, 328),
+        ('coast2_b', 'start', 1708, 1192), ('coast2_b', 'end', 1052, 1192),
     ),
-    'jjajang_night_coast3': (('coast3_a', 'start', 2972, 2056), ('coast3_a', 'end', 3788, 2056)),
+    'jjajang_night_coast3': (('coast3_a', 'start', 2076, 1576), ('coast3_a', 'end', 2732, 1576)),
 }
 
 

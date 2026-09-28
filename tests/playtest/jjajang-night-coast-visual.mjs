@@ -23,9 +23,9 @@ await runScenario({ name: 'jjajang-night-coast-visual', launchOptions: { args: [
   }));
   console.log('CAPTURE_SOURCE', JSON.stringify({ build: new Map(sources).get('src/data/build.js').trim(), servedSha256: Object.fromEntries(sources.map(([file, text]) => [file, createHash('sha256').update(text).digest('hex')])) }));
   if (process.env.COAST_FERRY_ONLY === '1') {
-    const ferries = [[2, 0, 'coast2_a'], [2, 1, 'coast2_b'], [2, 2, 'coast2_c'], [3, 0, 'coast3_a']];
+    const ferries = [[2, 0, 'coast2_a'], [2, 1, 'coast2_b'], [3, 0, 'coast3_a']];
     const selectedId = process.env.COAST_FERRY_ID;
-    if (selectedId && !ferries.some(([, , id]) => id === selectedId)) throw new Error('COAST_FERRY_ID must be coast2_a, coast2_b, coast2_c or coast3_a');
+    if (selectedId && !ferries.some(([, , id]) => id === selectedId)) throw new Error('COAST_FERRY_ID must be coast2_a, coast2_b or coast3_a');
     for (const [number, index, id] of ferries.filter(([, , id]) => !selectedId || id === selectedId)) {
       await open({ qa: `jjajang_night_coast${number}` });
       if (!await until(() => window.game?.state === 'field' && !!window.game.map?.def.meta?.coast && !window.game.transitioning && window.game.fade.alpha < 0.01 && !window.game.dialogue.running, 60000)) throw new Error(`${id}: room not ready`);
@@ -290,22 +290,22 @@ await runScenario({ name: 'jjajang-night-coast-visual', launchOptions: { args: [
     }
     await page.evaluate(() => window.game.coastChatter.clear());
     for (const [x, y] of oldBanks) {
-      await fixture(`legacy291-coast${number}-${x}-${y}`, 'Restore a BUILD291 save at its authored bank coordinates with the corresponding completed bridges and ferries; only Continue may migrate it.', async ({ x, y }) => {
+      await fixture(`legacy291-coast${number}-${x}-${y}`, 'Restore a pre-BUILD405 save at old bank coordinates with the completed bridges and ferries; only Continue may migrate it.', async ({ x, y }) => {
         const g = window.game;
         g.autosave();
         const saved = JSON.parse(localStorage.getItem('subtarune.save.v1'));
         saved.x = x * 32 + 4; saved.y = y * 32 + 8;
-        delete saved.flags.night_coast_geometry292;
+        delete saved.flags.night_coast_geometry405;
         for (const gate of g.map.def.meta.coast.gates) saved.flags[gate.flag] = true;
         for (const raft of g.entities.filter(e => e.def.type === 'raft')) saved.flags[`raft_${raft.id}`] = 1;
         localStorage.setItem('subtarune.save.v1', JSON.stringify(saved));
         await g.continueGame();
       }, { x, y });
-      check(`legacy coast${number} bank ${x},${y} stays on its corresponding shore`, await page.evaluate(({ x, y }) => {
-        const g = window.game, p = g.player;
-        return g.flags.night_coast_geometry292 && !g.map.solidRect(p.x, p.y, p.w, p.h)
-          && Math.hypot(p.x - (x * 32 * 0.9 + 4), p.y - (y * 32 * 0.9 + 8)) < 40;
-      }, { x, y }));
+      // BUILD405: 옛 좌표는 짧아진 해안에서 바다일 수 있어 그 맵 입구(from_west)에서 이어간다
+      check(`legacy coast${number} save at ${x},${y} resumes safely at the room entrance`, await page.evaluate(() => {
+        const g = window.game, p = g.player, s = g.map.def.spawns.from_west;
+        return g.flags.night_coast_geometry405 && !g.map.solidRect(p.x, p.y, p.w, p.h) && Math.hypot(p.x - s.x, p.y - s.y) < 40;
+      }));
     }
     await fixture(`coast${number}-migration-idempotence`, 'Save the migrated coordinates and Continue once more, proving BUILD292 saves are not scaled twice.', async () => {
       const g = window.game; g.autosave(); window.coastSavedPosition = [g.player.x, g.player.y]; await g.continueGame();

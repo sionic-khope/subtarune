@@ -146,10 +146,11 @@ await runScenario({ name: 'jjajang-night-coast', launchOptions: { args: ['--auto
   }
   const seconds = (Date.now() - started) / 1000;
   console.log('NATURAL_DEFAULT_SECONDS', seconds, JSON.stringify(rooms));
-  if (startRoom === 1) check('shortened traversal including the healing stop stays within its route budget', seconds >= 155 && seconds <= 240, JSON.stringify({ seconds, rooms }));
+  // BUILD405: 길 약 30% 단축 · 레버 3 · 뗏목 3 → 약 127s(전엔 155–240s)
+  if (startRoom === 1) check('shortened traversal including the healing stop stays within its route budget', seconds >= 100 && seconds <= 180, JSON.stringify({ seconds, rooms }));
   await shot('existing_cliff_arrival');
   await fixture('continue-at-cliff', 'Save and invoke the actual Continue entry point to verify completed coast bridge/raft states survive.', async () => { window.game.autosave(); await window.game.continueGame(); });
-  check('Continue preserves all seven bridges', await page.evaluate(() => ['night_coast1_a', 'night_coast1_b', 'night_coast2_a', 'night_coast2_b', 'night_coast2_c', 'night_coast3_a', 'night_coast3_b'].every(flag => window.game.flags[flag])));
+  check('Continue preserves all three bridges', await page.evaluate(() => ['night_coast1_a', 'night_coast2_a', 'night_coast3_a'].every(flag => window.game.flags[flag])));
   check('Continue preserves all delivered walking lines', await page.evaluate(start => [6, 4, 7].every((count, map) => map + 1 < start || Array.from({ length: count }, (_, i) => window.game.flags[`jjajang_night_coast${map + 1}_chat_${i}`]).every(Boolean)), startRoom));
   await page.keyboard.down('ArrowLeft');
   try { await until(() => window.game.transitioning, 3000); } finally { await page.keyboard.up('ArrowLeft'); }

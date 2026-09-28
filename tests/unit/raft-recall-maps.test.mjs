@@ -18,9 +18,10 @@ const rect = entity => {
 };
 
 test('every actual raft bank has one recall lever and rail cart remains excluded', () => {
-  assert.equal(rafts.length, 25);
+  // BUILD405: 밤 해안2 의 세 번째 뗏목(coast2_c)을 뺐다
+  assert.equal(rafts.length, 24);
   const levers = maps.flatMap(map => map.entities.filter(entity => entity.type === 'raft_recall'));
-  assert.equal(levers.length, 49);
+  assert.equal(levers.length, 47);
   for (const { map, raft } of rafts) {
     const endpoints = map.entities.filter(entity => entity.type === 'raft_recall' && entity.raft === raft.id).map(entity => entity.endpoint).sort();
     assert.deepEqual(endpoints, raft.id === 'obj5_raft' ? ['start'] : ['end', 'start'], `${map.id}.${raft.id}`);

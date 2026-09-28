@@ -306,9 +306,9 @@ class Game {
   async continueGame() {
     let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
     if (!d?.map) { await this.startGame(); return; }
-    if (/^jjajang_night_coast[123]$/.test(d.map) && !d.flags?.night_coast_geometry292) {
-      d.x = Math.round((d.x - 4) * 0.9 + 4);
-      d.y = Math.round((d.y - 8) * 0.9 + 8);
+    // 밤 해안은 BUILD405 에서 길이 약 30% 짧아졌다 — 그 전 세이브의 좌표는 바다일 수 있으니 그 맵 입구에서 이어간다(다리·뗏목 플래그는 그대로)
+    if (/^jjajang_night_coast[123]$/.test(d.map) && !d.flags?.night_coast_geometry405) {
+      d.x = NaN; d.y = NaN; d.spawn = 'from_west';
     }
     await this.waitForMap(d.map, [d.sprite || 'hyungsub', ...normalizeParty(d.party)]);
     this.resetState(); this.story.load(d.story);
@@ -944,7 +944,7 @@ class Game {
       const completedCartEntry = mapId === MAILLARD_CART.map && this.has(MAILLARD_CART.completionFlag) && (!spawnId || spawnId === 'start' || spawnId === 'from_hold');
       const resolvedSpawnId = completedCartEntry ? MAILLARD_CART.landingSpawn : spawnId;
       this.mapId = mapId; this.entrySpawn = resolvedSpawnId || 'start';   // 비상탈출(Tab)이 돌아갈 입구
-      if (def.meta?.coast) this.flags.night_coast_geometry292 = true;
+      if (def.meta?.coast) this.flags.night_coast_geometry405 = true;
       this.shipPursuitAmbient?.resume();
       this.map = new TileMap({ ...def, rows: def.rows ? [...def.rows] : def.rows }, this.mapImages?.[mapId] || null);   // rows 는 복사 (tileSwaps 가 원본을 안 건드리게)
       for (const key of Object.keys(def.tileSwaps || {})) if (this.has(key)) this.applyTiles(key, false);   // 플래그가 선 타일 교체는 처음부터 적용
