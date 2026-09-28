@@ -103,3 +103,4 @@ BASE_URL_SCENARIOS.add('ship-deck-epilogue');
 BASE_URL_SCENARIOS.add('ship-farewell');
 BASE_URL_SCENARIOS.add('home-cookie');
 BASE_URL_SCENARIOS.add('teen-qa-points');
+BASE_URL_SCENARIOS.add('qa-sweep');

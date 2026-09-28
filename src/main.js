@@ -32,7 +32,7 @@ import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './data/cutscenes/capta
 import L from './data/locale/ko.js';
 import { BUILD } from './data/build.js';
 import { CHARACTERS } from './data/characters.js';
-import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, storyBgm, restoreChoimisChaseRaft } from './core/story.js';
+import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, qaHealKit, storyBgm, restoreChoimisChaseRaft } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
 import { WATER_WALK } from './data/footsteps.js';
 import { createPetals } from './world/petals.js';        // 벚꽃 숲 꽃잎(BUILD261)
@@ -329,7 +329,7 @@ class Game {
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
-  async devJump({ map, spawn, stage, flags, party, inventory, money, script, extraItems }) {
+  async devJump({ map, spawn, stage, flags, party, inventory, money, script, extraItems, healKit }) {
     if (stage && Story.isStage(stage)) map ||= Story.stageOf(stage).map;
     const effectiveFlags = { ...(flags || {}) };
     const effectiveStory = new Story(effectiveFlags);
@@ -347,7 +347,8 @@ class Game {
     // 아이템·돈·버프도 플래그에서 유도(STATE_FROM_FLAGS + 맵 위 몹 unless) — 바나나 2개·레드블루 버프처럼 실제 플레이와 같은 상태로 점프 (2026-09-11 사용자). 지점이 직접 주면 그게 우선
     const derived = stateFromFlags(this.flags, { maps: MAPS, enemyMoney: (id) => ENEMIES[id]?.money ?? 30 });
     // extraItems: 보스전 QA 지점에 얹는 회복템(사용자 2026-09-26 “보스전 qa 점프할 때 힐템”)
-    this.inventory = inventory ? [...inventory] : [...derived.inventory, ...(extraItems || [])]; this.money = money ?? derived.money; this.attack = derived.attack; this.hpBonus = derived.hpBonus;
+    // healKit: 타이틀 Shift+Q 메뉴에서 고른 지점만 그 구간 회복템 10개씩(qaHealKit)
+    this.inventory = [...(inventory ? inventory : [...derived.inventory, ...(extraItems || [])]), ...(healKit ? qaHealKit(this.flags) : [])]; this.money = money ?? derived.money; this.attack = derived.attack; this.hpBonus = derived.hpBonus;
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
     this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)

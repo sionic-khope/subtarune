@@ -274,7 +274,7 @@ export class TitleScreen {
         q.i = qaStep(q.i, n, d, false); q.top = Math.max(0, Math.min(q.top + d, Math.max(0, n - R))); this._qaScroll(); this.game.sound.sfx('menu');
       }
       if (input.just('cancel') || input.just('qa')) { this.qa = null; this.game.sound.sfx('cancel'); return; }
-      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; try { localStorage.setItem('subtarune_qa_last', pt.id); } catch { /* 저장 불가 */ } this._leave(async () => { await this.game.devJump(pt); this.game.fadeTo(0, 0.3); }); }
+      if (input.just('confirm')) { const pt = QA_MENU[this.qa.i]; try { localStorage.setItem('subtarune_qa_last', pt.id); } catch { /* 저장 불가 */ } this._leave(async () => { await this.game.devJump({ ...pt, healKit: true }); this.game.fadeTo(0, 0.3); }); }
       return;
     }
     if (input.just('qa')) {
