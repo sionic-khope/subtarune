@@ -1,0 +1,7 @@
+# imagegen 2026-09-28 10:33:07
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: /Users/khope@sionic.ai/Desktop/khope/subtarune/assets/source/home402/raw/wallpaper2-ref.png
+
+Image1 is a 3x3 repeat of one seamless 32x32 floor/wall tile from a top-down pixel-art RPG house, shown on magenta. Redraw the same 3x3 repeat so the tile still repeats seamlessly with the identical period and the same seams/plank lines at the same positions. Fill exactly the same square area, keep the magenta outside. Keep it clearly chunky pixel art in a cute Deltarune/Undertale-like style, NOT painterly, NOT high-detail, NOT realistic, NOT 3D. Upgrade level LIGHT: keep the exact same object, silhouette, proportions, outline and color palette, and only add one extra shadow tone and one highlight tone, a little subtle texture (wood grain, fabric fold, glass shine) and a soft contact shadow where it already has one. Same pixel grid size as the reference (each reference pixel is one big square block).

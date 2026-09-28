@@ -1,0 +1,8 @@
+# imagegen 2026-09-28 10:25:16
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/home402/room.png
+
+Image1 is a screenshot of a top-down 2D pixel-art RPG bedroom (Deltarune / Undertale style). Redraw the SAME room with the SAME layout, same camera, same furniture in the same positions and sizes, same color palette, same pixel grid size (chunky pixels, 480x360 logical resolution). Remove the character; empty room. Keep it clearly pixel art, NOT painterly, NOT high-detail, NOT 3D.
+Upgrade level: MEDIUM. Add richer but still restrained pixel shading: 3-tone shading on furniture with rim highlights, wood grain and knots on floor planks with a few worn planks, textured wallpaper with a baseboard trim, small clutter details (a mug on the desk, a book on the shelf, a slipper by the bed), soft ambient occlusion in the corners, warm lamp-light falloff. Like Deltarune Chapter 2 home interiors. Not high-res, not realistic.
