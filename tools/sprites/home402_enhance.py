@@ -15,7 +15,10 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'assets/source/home402'
-ORIG, RAW = SRC / 'orig', SRC / 'raw'
+ORIG = SRC / 'orig'
+# 강도: 1 = 가볍게(BUILD402), 2 = 중간·밝게(BUILD403, 사용자 “2번으로, 근데 너무 어두워 밝은 집이긴 해”)
+LEVEL = int(__import__('os').environ.get('HOME_LEVEL', '2'))
+RAW = SRC / ('raw' if LEVEL == 1 else f'raw{LEVEL}')
 MAG = (255, 0, 255)
 
 PROPS = ['bed', 'desk_pc', 'door', 'window', 'poster', 'shelf', 'tv', 'sofa', 'side_cabinet', 'plant', 'table_low',
@@ -28,6 +31,13 @@ STYLE = ('Keep it clearly chunky pixel art in a cute Deltarune/Undertale-like st
          'Upgrade level LIGHT: keep the exact same object, silhouette, proportions, outline and color palette, and only add one extra '
          'shadow tone and one highlight tone, a little subtle texture (wood grain, fabric fold, glass shine) and a soft contact shadow '
          'where it already has one. Same pixel grid size as the reference (each reference pixel is one big square block).')
+
+
+STYLE2 = ('Keep it clearly chunky pixel art in a cute Deltarune/Undertale-like style, NOT painterly, NOT realistic, NOT 3D. '
+          'Upgrade level MEDIUM: keep the exact same object, silhouette, proportions, outline and color palette, add 3-tone shading with a '
+          'crisp rim highlight, visible wood grain and a few knots on wood, fabric folds, glass/screen shine, and small tasteful details that '
+          'fit inside the same outline. IMPORTANT: this is a BRIGHT, sunny, cheerful daytime home — keep the colors as light and warm as the '
+          'reference or lighter, never darker or dimmer, no dark vignette, no night lighting. Same pixel grid size as the reference.')
 
 
 def src_path(name):
@@ -60,12 +70,13 @@ def make_ref(name):
 
 def prompt(name):
     if name in TILES:
+        extra = ' This is soft floral WALLPAPER, not bricks or tiles: no brick courses, no grout lines.' if name.startswith('wallpaper') else ''
         return ('Image1 is a 3x3 repeat of one seamless 32x32 floor/wall tile from a top-down pixel-art RPG house, shown on magenta. '
                 'Redraw the same 3x3 repeat so the tile still repeats seamlessly with the identical period and the same seams/plank lines '
-                'at the same positions. Fill exactly the same square area, keep the magenta outside. ' + STYLE)
+                'at the same positions. Fill exactly the same square area, keep the magenta outside. ' + (STYLE if LEVEL == 1 else STYLE2) + extra)
     return (f'Image1 is a single pixel-art prop sprite ("{name.replace("_", " ")}") from a top-down RPG house, shown on a flat magenta '
             'background. Redraw the SAME sprite at the SAME size and position on the same flat pure magenta (#FF00FF) background, '
-            'nothing else in the image. ' + STYLE)
+            'nothing else in the image. ' + (STYLE if LEVEL == 1 else STYLE2))
 
 
 def gen(name):
@@ -92,6 +103,13 @@ def resample(a, box, w, h):
     return a[ys][:, xs]
 
 
+def brighten(rgb, ref, mask):
+    """강도 2: 원본보다 어두워졌으면 평균 밝기를 원본에 맞춘다(밝은 집)"""
+    if LEVEL == 1 or not mask.any(): return rgb
+    a, b = rgb[mask].mean(), ref[..., :3][ref[..., 3] > 0].mean()
+    return np.clip(rgb * (b / a), 0, 255) if a < b else rgb
+
+
 def tidy(rgb, n):
     """색 수를 원본 수준으로 정리(생성기 잡색 제거)"""
     q = Image.fromarray(rgb.astype(np.uint8), 'RGB').quantize(colors=n, method=Image.MEDIANCUT, dither=Image.NONE)
@@ -109,6 +127,7 @@ def apply(name):
         x0, x1, y0, y1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
         cw, ch = (x1 - x0) / 3, (y1 - y0) / 3
         rgb = resample(raw, (x0 + cw, y0 + ch, x0 + 2 * cw, y0 + 2 * ch), orig.width, orig.height)
+        rgb = brighten(rgb, oa.astype(float), np.ones(rgb.shape[:2], bool))
         out = np.dstack([tidy(rgb, ncol), np.full(rgb.shape[:2], 255)]).astype(np.uint8)
     else:
         ob = orig.getbbox()
@@ -117,6 +136,7 @@ def apply(name):
         w, h = ob[2] - ob[0], ob[3] - ob[1]
         rgb = resample(raw, box, w, h)
         alpha = ~is_mag(rgb)
+        rgb = brighten(rgb.astype(float), oa.astype(float), alpha)
         body = tidy(np.where(alpha[..., None], rgb, 0), ncol)
         out = np.zeros_like(oa)
         out[ob[1]:ob[3], ob[0]:ob[2]] = np.dstack([body, np.where(alpha, 255, 0)]).astype(np.uint8)
