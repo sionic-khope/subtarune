@@ -175,18 +175,21 @@ export const STATE_FROM_FLAGS = [
   { flag: 'sakura5_duo_won', enemies: ['domijorim', 'dohyun'] },                                                          // 벚꽃 숲 5 공터 도미조림·도현 전투(각 45원) — jjajang_sakura5.js(BUILD276)
 ];
 /**
- * Shift+Q(타이틀 QA 메뉴) 지점 회복템 — 사용자 2026-09-28 “각 구간마다 얻을 수 있는 아이템들 빵빵하게, 힐템 10개씩”, “네트워크 문제로 유실됐을 때 거기서부터 하기”.
- * 그 지점까지 실제로 얻을 수 있게 된 회복템만 10개씩: 바나나(청록숲3 첫 전투 뒤) · 에그타르트·위장약(마이야르 라운지 용준 상점) · 핫도그·기름떡볶이(최미스 구출 뒤 상점).
+ * Shift+Q(타이틀 QA 메뉴) 지점 회복템 — 사용자 2026-09-28 “힐템 빵빵하게” → 정정 “50개 말고 각 지점마다 적절한 아이템 10개씩”.
+ * 그 지점까지 얻을 수 있게 된 회복템으로 합쳐서 10개. 가장 늦은 구간 하나만 적용(위에서부터 순서대로, 마지막으로 맞는 줄).
  * ?qa= 주소(테스트)에는 얹지 않는다 — STATE_FROM_FLAGS 가 실제 플레이 상태를 그대로 재는 기준이라서.
  */
 export const QA_HEAL_KIT = [
-  { flag: 'teal3_cs_won', items: ['바나나'] },
-  { flag: 'maillard_cart_done', items: ['에그타르트', '위장약'] },
-  { flag: 'choimis_rescued', items: ['핫도그', '기름떡볶이'] },
+  { flag: 'teal3_cs_won', items: { '바나나': 10 } },
+  { flag: 'maillard_cart_done', items: { '위장약': 5, '에그타르트': 5 } },
+  // 후반(최미스 구출 뒤): 기름떡볶이·핫도그 5개씩(사용자 “후반엔 기름떡볶이랑 핫도그 5개씩”)
+  { flag: 'choimis_rescued', items: { '기름떡볶이': 5, '핫도그': 5 } },
 ];
 export const QA_HEAL_KIT_COUNT = 10;
-export const qaHealKit = (flags = {}) => QA_HEAL_KIT.filter(r => flags[r.flag])
-  .flatMap(r => r.items.flatMap(item => Array(QA_HEAL_KIT_COUNT).fill(item)));
+export const qaHealKit = (flags = {}) => {
+  const tier = QA_HEAL_KIT.filter(r => flags[r.flag]).at(-1);
+  return tier ? Object.entries(tier.items).flatMap(([item, n]) => Array(n).fill(item)) : [];
+};
 
 /**
  * flags 로 상태 유도. maps: { id: { entities } }(맵 위 몹 unless 플래그 → 돈), enemyMoney(id) → 원.
