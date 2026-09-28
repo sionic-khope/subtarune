@@ -75,7 +75,8 @@ async function enterBattle() {
     return { hp: b.enemies[0].hp, maxHp: b.enemies[0].maxHp, damage: b.enemies[0].def.damage,
       modes: b.modes, bgm: game.sound.bgmName, types: b.enemies[0].def.patterns.map(p => p.type) };
   });
-  check('HP250 native attack and defense modes and selected BGM retained', initial.hp === 250 && initial.maxHp === 250 && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets' && initial.bgm === 'baron_battle', initial);
+  const baronHp = await page.evaluate(async () => (await import('./src/data/enemies.js')).ENEMIES.baron.hp);
+  check('data HP, native attack and defense modes and selected BGM retained', initial.hp === baronHp && initial.maxHp === baronHp && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets' && initial.bgm === 'baron_battle', initial);
   check('six dedicated Baron patterns with damage12', initial.damage === 12 && initial.types.length === 6 && new Set(initial.types).size === 6 && initial.types.every(type => type.startsWith('baron_')), initial);
   await page.evaluate(() => {
     window.signatureEvidence = { sounds: [], hits: [], motion: [] };

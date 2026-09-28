@@ -30,7 +30,7 @@ test('test_enemies_patterns_and_images_exist', () => {
 
 test('test_baron_has_250_hp_cannon_support_and_standard_enemy_patterns', () => {
   const baron = ENEMIES.baron;
-  assert.equal(baron.hp, 250);
+  assert.equal(baron.hp, 200);
   assert.equal(baron.support, 'baron_cannon');
   assert.equal(baron.defense, undefined);
   assert.equal(baron.patterns.length, 6);
@@ -44,7 +44,7 @@ test('test_baron_has_250_hp_cannon_support_and_standard_enemy_patterns', () => {
 
 test('test_castle_regular_enemy_damage_is_25_without_pattern_or_bullet_overrides', () => {
   const health = { yisub: 45, syndrasub: 45, taliyahsub: 45, aurelionsub: 45,
-    seobruto: 50, jiroesub: 50, udyrsub: 50 };
+    seobruto: 45, jiroesub: 45, udyrsub: 45 };
   for (const [id, hp] of Object.entries(health)) {
     const enemy = ENEMIES[id];
     assert.equal(enemy.hp, hp, id);

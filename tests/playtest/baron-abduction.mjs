@@ -36,7 +36,7 @@ try {
   await page.waitForFunction(() => !!game.battle, null, { timeout: 20000 });
   await page.keyboard.up('ArrowUp');
   await page.waitForFunction(() => game.battle?.state === 'menu', null, { timeout: 15000 });
-  check('unchanged full boss definition', await page.evaluate(() => game.battle.enemies[0].hp === 250));
+  check('unchanged full boss definition', await page.evaluate(async () => game.battle.enemies[0].hp === (await import('./src/data/enemies.js')).ENEMIES.baron.hp));
   console.log('FIXTURE: boss current HP becomes 1; all remaining actions use normal game timing.');
   await page.evaluate(() => { game.battle.enemies[0].hp = 1; });
   const fightDeadline = Date.now() + 18000;

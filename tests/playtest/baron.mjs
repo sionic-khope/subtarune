@@ -140,7 +140,8 @@ async function useHeal(plan) {
 try {
   await enter();
   const initial = await snapshot();
-  check('encounter starts with Baron HP250, ordinary modes, Black Knife key', initial.hp === 250 && initial.maxHp === 250 && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
+  const baronHp = await page.evaluate(async () => (await import('./src/data/enemies.js')).ENEMIES.baron.hp);
+  check('encounter starts with Baron at its data HP, ordinary modes, Black Knife key', initial.hp === baronHp && initial.maxHp === baronHp && initial.bgm === 'baron_battle' && initial.modes.attack === 'rush' && initial.modes.enemy === 'bullets', initial);
   await capture('baron_01_menu');
   let lastRound = -1, cannonShots = 0, healsUsed = 0;
   const deadline = Date.now() + 360000 * Math.max(1, initial.maxHp / 100);
@@ -179,7 +180,7 @@ try {
   }
   await keys([]);
   const victory = await snapshot();
-  check('keyboard attacks plus the cannon defeat full HP250 Baron', victory?.state === 'win' && victory.hp === 0, victory);
+  check('keyboard attacks plus the cannon defeat a full-HP Baron', victory?.state === 'win' && victory.hp === 0, victory);
   check('the cannon was fired', cannonShots > 0, String(cannonShots));
   console.log(`healing items used through the ITEM menu: ${healsUsed}`);
   check('six natural enemy patterns observed', patterns.size === 6, [...patterns]);
@@ -209,7 +210,7 @@ try {
   check('retry button enters retry sequence', await until(() => game.battle?.state === 'retry', 1500));
   await until(() => game.battle?.state === 'menu', 10000);
   const retry = await snapshot();
-  check('retry restores same Baron HP250, modes and Black Knife BGM', retry.hp === 250 && retry.bgm === 'baron_battle' && retry.cfg.bg === initial.cfg.bg && JSON.stringify(retry.modes) === JSON.stringify(initial.modes) && retry.members.every(m=>!m.down && m.hp===m.maxHp), retry);
+  check('retry restores same Baron HP, modes and Black Knife BGM', retry.hp === baronHp && retry.bgm === 'baron_battle' && retry.cfg.bg === initial.cfg.bg && JSON.stringify(retry.modes) === JSON.stringify(initial.modes) && retry.members.every(m=>!m.down && m.hp===m.maxHp), retry);
   await capture('baron_forced_retry');
 } catch (error) { check('playtest completes', false, error.stack); }
 finally {

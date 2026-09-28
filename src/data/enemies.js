@@ -88,7 +88,7 @@ export const ENEMIES = {
     lines: { appear: '* 말자하섭이 길을 막았다.', idle: ['* 보라색 기운이 일렁인다.'], speak: [], die: '* 말자하섭이 흩어졌다.' },
   },
   seobruto: {
-    name: '섭루토', hp: 50, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '섭루토', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/seobruto-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
@@ -100,7 +100,7 @@ export const ENEMIES = {
     },
   },
   jiroesub: {
-    name: '지뢰섭', hp: 50, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '지뢰섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/jiroesub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: {
       cast: { src: 'assets/enemies/jiroesub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 },
@@ -116,7 +116,7 @@ export const ENEMIES = {
     },
   },
   udyrsub: {
-    name: '우디르섭', hp: 50, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
+    name: '우디르섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
     sheet: { src: 'assets/enemies/udyrsub-battle.png', cols: 2, rows: 2, count: 1, fps: 1, px: 1 },
     actions: { cast: { src: 'assets/enemies/udyrsub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
@@ -479,7 +479,7 @@ export const ENEMIES = {
   // 256px 셀 × 0.9 = 230px. 기본 발(396,176)에 dx/dy를 더해 그림 전체를 (233,8)~(463,238)에 둔다.
   baron: {
     boss: true,
-    name: '바론', hp: 250, support: 'baron_cannon',
+    name: '바론', hp: 200, support: 'baron_cannon',
     sheet: { src: 'assets/enemies/baron-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 1000 / 240, px: 1 },
     pivot: [128, 238], scale: 0.9, dx: -48, dy: 46, damage: 12, money: 300,
     idle: { swayX: 0, swayY: 0, period: 2.4 },

@@ -107,7 +107,7 @@ await runScenario({ name: 'castle-memory', launchOptions: { args: ['--autoplay-p
     await finishIntro();
     const initial = await page.evaluate(() => ({ id: game.battle.enemies[0].id, hp: game.battle.enemies[0].maxHp,
       patterns: game.battle.enemies[0].def.patterns.map(pattern => pattern.type), bgm: game.sound.bgmName }));
-    check(`${config.id} starts at HP50 with three patterns and castle BGM`, initial.id === config.id && initial.hp === 50 && initial.patterns.length === 3 && initial.bgm === 'castle_battle', JSON.stringify(initial));
+    check(`${config.id} starts at its data HP with three patterns and castle BGM`, initial.id === config.id && initial.hp === await page.evaluate(async id => (await import('./src/data/enemies.js')).ENEMIES[id].hp, config.id) && initial.patterns.length === 3 && initial.bgm === 'castle_battle', JSON.stringify(initial));
     if (updates) {
       for (const width of [375, 768, 1280]) { await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(120); await shot(`${config.id}-neutral-${width}`); }
       await page.setViewportSize({ width: 1000, height: 780 });
