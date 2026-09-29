@@ -86,7 +86,7 @@ try {
   check(await until(() => !window.game.picture && window.game.entities.some(e => e.id === 'ppaman' && e.visible), 12000), '전경 끝 → 억빠맨·경섭이 떨어진다');
   check(await until(() => { const g = window.game; const p = g.entities.find(e => e.id === 'ppaman'), q = g.entities.find(e => e.id === 'gyeongsub'); return p && q && (p.hopY || 0) === 0 && (q.hopY || 0) === 0 && p.x < g.player.x && q.x > g.player.x; }, 6000), '양옆에 착지(억빠맨 왼쪽·경섭 오른쪽)');
   await cap('13_party_landed');
-  s = await advanceTo('요플래 괜찮아요'); check(!!s && s.speaker === '억빠맨', '억빠맨: 요플래 괜찮아요?');
+  s = await advanceTo('요플래형 괜찮아요'); check(!!s && s.speaker === '억빠맨', '억빠맨: 요플래형 괜찮아요?');
   s = await advanceTo('무사해서 다행이네'); check(!!s && s.speaker === '경섭', '경섭: 허허 무사해서 다행이네');
   s = await advanceTo('모두들'); check(!!s, '나레이션: 모두들...');
   s = await advanceTo('ㅋㅋ'); check(!!s, '영클: ㅋㅋ'); await next();

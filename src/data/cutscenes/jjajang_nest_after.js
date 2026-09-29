@@ -160,7 +160,7 @@ export const jjajang_statue_return = [
   { drop: GYEONGSUB, height: DROP_HEIGHT, duration: PARTY_DROP.duration, sfx: 'jump', land: 'thud', quake: 3 },
   { wait: PARTY_DROP.after },
   { face: PPAMAN, dir: `toward:${PLAYER}` }, { face: GYEONGSUB, dir: `toward:${PLAYER}` },
-  P('요플래 괜찮아요?'),
+  P('요플래형 괜찮아요?'),
   G('허허 무사해서 다행이네'),
   N('모두들...'),
   ...V('ㅋㅋ', 'laugh'),

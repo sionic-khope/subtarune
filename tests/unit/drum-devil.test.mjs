@@ -59,13 +59,16 @@ function battleFixture(hp = 100, actionFactories = {}) {
   return battle;
 }
 
-test('before rescue every attack is blocked for zero damage with the requested popup', () => {
+// BUILD421: 구출 전에도 딜은 들어가지만 구출 연출 전엔 HP 1 밑으로 안 내려간다
+test('before rescue attacks deal damage but never finish the drum devil', () => {
   const battle = battleFixture();
-  assert.equal(battle.hitEnemy(battle.enemies[0], null, 500), 0);
-  assert.equal(battle.hitEnemy(battle.enemies[0], null, 500), 0);
   assert.equal(battle.enemies[0].hp, 300);
+  battle.hitEnemy(battle.enemies[0], null, 4);
+  assert.equal(battle.enemies[0].hp, 296);
+  battle.hitEnemy(battle.enemies[0], null, 500);
+  assert.equal(battle.enemies[0].hp, 1);
   assert.equal(battle.enemies[0].dying, 0);
-  assert.equal(battle.enemies[0].popup.text, '막힘');
+  assert.notEqual(battle.enemies[0].popup?.text, '막힘');
 });
 
 for (const { type } of ENEMIES.drum_devil.patterns) {
@@ -123,7 +126,10 @@ test('ordinary and purple lethal hits stop at one HP and interrupt into rescue e
     for (let turn = 0; turn < 10; turn++) assert.equal(battle.support.afterEnemyPhase(), null);
     assert.equal(battle.rescueCount, 1);
     battle.support.reset();
-    assert.equal(battle.hitEnemy(battle.enemies[0], null, 10), 0);
+    // BUILD421: 구출 전(reset)에도 딜은 들어간다 — 1 밑으로만 안 내려간다
+    assert.equal(battle.hitEnemy(battle.enemies[0], null, 10), 10);
+    assert.equal(battle.hitEnemy(battle.enemies[0], null, 999), 279);
+    assert.equal(battle.enemies[0].hp, 1);
   }
 });
 

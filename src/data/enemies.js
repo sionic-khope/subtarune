@@ -208,7 +208,7 @@ export const ENEMIES = {
     lines: { appear: '* 청소년이 앞을 막아섰다.', idle: ['* 마지막이다.', '* 끝이다.'], speak: ['...'], die: '* 청소년이 쓰러졌다.' },
   },
   drum_devil: {
-    name: '드럼통의 악마', hp: 300, damage: 15, money: 0, boss: true, support: 'drum_devil',
+    name: '드럼통의 악마', hp: 300, damage: 15, money: 2000, boss: true, support: 'drum_devil',
     sheet: { src: 'assets/enemies/drum-devil-idle.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
     actions: { attack: { src: 'assets/enemies/drum-devil-attack.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 } },
     // dx -83 은 오른쪽 한계: 대기 2번 프레임의 오른손이 x 464, 구출 피격 밀림(+14)과 흔들림(+2)까지 더하면 480 — 더 오른쪽이면 손이 화면 밖으로 잘린다(tests/unit/drum-devil.test 오른쪽 여백 15). 요플래와의 간격은 요플래 쪽(drum-devil.js heroPartyHome)을 왼쪽으로 옮겨 벌렸다(사용자 2026-09-20)
@@ -323,14 +323,14 @@ export const ENEMIES = {
   //   체력 36(원문). 패턴은 카트라이더 아이템(src/battle/kart-patterns.js): 다오 = 미사일·부스터·바나나, 배찌 = 물폭탄·자석·물파리(조합). 소리 kart_*(assets/source/kartrider-v1/README.md — 청취 미확인 배정).
   //   피해 12·돈 40 은 미지정(잠정, 찢칠라 9/18 보다 뒤 구간이라 조금 위). speak 는 아이템 이름을 외치는 한 마디(대사 미지정 — 잠정, 사용자 확인 필요), appear/idle/die 나레이션은 엔진 형식상 최소.
   dao: {
-    name: '다오', hp: 36, damage: 12, money: 40, voice: 'dao',
+    name: '다오', hp: 36, damage: 12, money: 40, voice: 'narrator',
     image: 'assets/enemies/dao-battle.png', pivot: [55, 118], scale: 1.2, idle: { swayX: 6, swayY: 2, period: 2.4 },
     projectiles: { kart: 'assets/enemies/dao-battle.png' },
     patterns: [{ type: 'kart_missile', speak: '미사일!' }, { type: 'kart_booster', speak: '부스터!' }, { type: 'kart_banana', speak: '바나나!' }],   // speak: 이번 턴 아이템을 외친다(말풍선이 패턴과 맞게)
     lines: { appear: '* 다오가 나타났다!', idle: ['* 다오가 엔진 소리를 낸다.', '* 다오가 헬멧을 고쳐 쓴다.'], speak: ['미사일!', '부스터!', '바나나!'], die: '* 다오가 쓰러졌다.' },
   },
   bazzi: {
-    name: '배찌', hp: 36, damage: 12, money: 40, voice: 'bazzi',
+    name: '배찌', hp: 36, damage: 12, money: 40, voice: 'narrator',
     image: 'assets/enemies/bazzi-battle.png', pivot: [47, 118], scale: 1.2, idle: { swayX: 5, swayY: 3, period: 2.0 },
     projectiles: { kart: 'assets/enemies/bazzi-battle.png' },
     patterns: [{ type: 'kart_waterbomb', speak: '물폭탄!' }, { type: 'kart_magnet', speak: '자석!' }, { type: 'kart_waterfly', speak: '물파리!' }],

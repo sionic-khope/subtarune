@@ -26,6 +26,8 @@ export function createDrumDevilSupport(battle, { createRescue = createDrumDevilR
     get actionSnapshot() { return action?.snapshot ?? null; },
     playHeroCue() {
       battle.game.sound.playBgm(R.bgm, { loop: true, fadeIn: R.fade });
+      // 브금과 함께 쿵!(BUILD421 사용자 “청소부 브금 나올 때 쿵! 하는 사운드도”) — 결전 착지·포효와 같은 무거운 한 방
+      battle.sfx('baron_slam', { volume: 0.85 }); battle.game.shake = { time: 0.5, amp: 5 };
     },
     async load(loadImage) { assets = { ...await loadDrumDevilRescue(loadImage), ...await loadJanitorHeroActions(loadImage) }; },
     draw(ctx) { if (actionKind === 'attack' || action?.backgroundBody) action.drawBody(ctx); else if (rescued && assets && !action) drawDrumDevilHero(ctx, assets, battle.game.time); },
@@ -66,7 +68,9 @@ export function createDrumDevilSupport(battle, { createRescue = createDrumDevilR
       }
       if (actionKind === 'intercept' && action.update(dt)) clearAction();
     },
-    blocksDamage(enemy) { return enemy.id === 'drum_devil' && !rescued; },
+    // 구출 전에도 딜은 그대로 들어간다(BUILD421 사용자 “막힘 대신 딜 걍 들어가게, 어차피 8턴 뒤 무조건 구출”) — 다만 구출 연출 전엔 1 밑으로는 안 내려간다
+    blocksDamage() { return false; },
+    adjustDamage(enemy, damage) { return enemy.id === 'drum_devil' && !rescued ? Math.max(0, Math.min(damage, enemy.hp - 1)) : damage; },
     blockText() { return C.blockedText; },
     adjustPartyDamage(member, damage) { return Math.max(0, Math.min(damage, member.hp - C.playerHpFloor)); },
     onPartyDamage() {

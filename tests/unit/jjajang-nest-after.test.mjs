@@ -39,7 +39,7 @@ test('test_after_scene_lines_are_the_briefing_verbatim_in_order', () => {
     '청소부: ... 사실 난 {w=1.0}기억같은거 잃은적 없다네, 자네',
     '청소부: 자식을 구분하지못하는 부모가 어디있겠는가', '청소부: 첫눈에 너가 누군지 바로 알아봤다네,', '청소부: 꼭 좀 구해줬으면 좋겠네 우리아들을, 젊은이.',
     '영클: ㅋㅋ', '영클: 저 동상엔 파괴후 감지장치가아니라', '영클: 애초에 카메라를 달아뒀다 게이야', '영클: 요플래 너가 이 카메라에 비춰진순간', '영클: 바로 여기로 좌표찍고 존나달려왔음 ㅇㅇ',
-    '억빠맨: 요플래 괜찮아요?', '경섭: 허허 무사해서 다행이네', '나레이션: 모두들...', '영클: ㅋㅋ',
+    '억빠맨: 요플래형 괜찮아요?', '경섭: 허허 무사해서 다행이네', '나레이션: 모두들...', '영클: ㅋㅋ',
     '영클: 방해해서 미안하노', '영클: 뭐 어쨋든 다시 모였으니 다행이네', '영클: 지금 쥰희랑 용준이는 그 기괴한 성 침공을 위해 무기개발들에 투입되고있음',
     '영클: 니도 알겠지만 그 미친 성을 공략하려면 준비가 필요함 ㅇㅇ 그래서 시간좀 걸릴듯', '영클: 그래서 말인데, 저 짜장숲 깊이에 살고있는 어떠한 그릇의 재앙급의 인물이 살고있음',
     '영클: 기다리는동안 수련겸 토벌하고 오던가 ㅇㅇ', '영클: 아.', '영클: 그래도 그 {c=purple}어둠의짜장면{/c}을 먹게해선 안돼.', '영클: 뭐 알아서 잘 할거라고 믿음 ㅇㅇ',
@@ -81,7 +81,7 @@ test('test_after_scene_beats_follow_the_briefing_order', () => {
   const ppamanDrop = flat[idx.partyDrop], gyeongsubDrop = flat[idx.secondDrop];
   assert.deepEqual([ppamanDrop.sfx, ppamanDrop.land, gyeongsubDrop.sfx, gyeongsubDrop.land], ['jump', 'thud', 'jump', 'thud'], '점프 소리와 함께 떨어진다');
   assert.ok(ppamanDrop.duration >= 0.9 && gyeongsubDrop.duration >= 0.9, '천천히 내려온다(사용자 2026-09-20)');
-  const firstLine = at(n => n.text === '* 요플래 괜찮아요?');
+  const firstLine = at(n => n.text === '* 요플래형 괜찮아요?');
   assert.ok(idx.partyDrop < idx.secondDrop && idx.secondDrop < firstLine, '억빠맨 착지 → 경섭 착지 → 대사');
   assert.ok(idx.map < idx.drop && flat[idx.map].spawn === 'after_crash');
   // 전함은 멈추지 않고 한 번에(슬라이드 하나) 들어오고, 폭발·석상 제거·점프·뒷걸음은 뱃머리가 닿는 시각에 비동기로(사용자 2026-09-20)

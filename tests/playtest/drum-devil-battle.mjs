@@ -193,9 +193,11 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     await press('KeyC', { delay: 70 });
     check(`${name} attack target menu`, await until(() => game.battle.state === 'target'));
     await press('KeyC', { delay: 70 });
-    check(`${name} real attack displays 막힘`, await until(() => game.battle.enemies[0].popup?.text === '막힘', 12000));
-    await shot(`${name}-00-blocked`);
-    check(`${name} blocked attack deals zero`, await page.evaluate(() => game.battle.enemies[0].hp === 300));
+    // BUILD421: 구출 전에도 딜이 들어간다(막힘 없음), 구출 전엔 1 밑으로 안 내려간다
+    check(`${name} real attack deals damage before rescue`, await until(() => game.battle.enemies[0].hp < 300 && game.battle.enemies[0].popup?.text !== '막힘', 12000));
+    await shot(`${name}-00-hit`);
+    check(`${name} drum devil survives until rescue`, await page.evaluate(() => game.battle.enemies[0].hp >= 1 && !game.battle.enemies[0].dead));
+    await fixture(`reset-${name}-hp`, 'Restore Drum Devil HP so each isolated pattern starts from the same state.', () => { game.battle.enemies[0].hp = 300; });
     check(`${name} bullets begin`, await until(() => game.battle.state === 'bullets'));
     await fixture(`isolate-${name}-penalty`, 'Set soul invulnerability for ordinary hazards only to measure unavoidable finisher separately; pattern time and rendering remain real-time.', () => { game.battle.soul.invuln = 100; });
     check(`${name} natural pattern order`, await page.evaluate(i => game.battle.enemies[0].patternIdx === i + 1, index));
@@ -424,7 +426,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   });
   check('compact ready bubble keeps Korean final punctuation attached', readyWrap.every(line => line.trim() !== ',' && !line.endsWith('…'))
     && readyWrap.join('').replaceAll(' ', '') === '자얼른저괴물을무찔러보게나,', JSON.stringify(readyWrap));
-  check('landing heal happens exactlyonce without damage', await page.evaluate(() => drumEvidence.heals.length === 1 && drumEvidence.heals[0].before === 1 && drumEvidence.heals[0].after === game.battle.members[0].maxHp && drumEvidence.hits.every(hit => hit.damage === 0)), JSON.stringify(await page.evaluate(() => drumEvidence.heals)));
+  // BUILD421: 구출 전 공격도 딜이 들어가므로 ‘피해 0’ 조건은 뺐다
+  check('landing heal happens exactly once', await page.evaluate(() => drumEvidence.heals.length === 1 && drumEvidence.heals[0].before === 1 && drumEvidence.heals[0].after === game.battle.members[0].maxHp), JSON.stringify(await page.evaluate(() => drumEvidence.heals)));
   await line('자 얼른 저 괴물을 무찔러보게나,', 'rescue-19-ready');
   check('exact support menu returns', await until(() => game.battle.state === 'menu' && game.battle.text === '* 멸공의 깃발이 함께한다.' && game.battle.support.rescued));
   check('rescued menu still uses unchanged battle-start formation', await page.evaluate(home => game.battle.members[0].home.every((value, index) => value === home[index]), initialHome));

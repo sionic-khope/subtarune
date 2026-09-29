@@ -160,7 +160,7 @@ export const STATE_FROM_FLAGS = [
   { flag: 'pines_ajimkiya_won', enemies: ['ajimkiya1', 'ajimkiya2', 'ajimkiya3'] },
   { flag: 'jjajang_chin1_chin_defeated', enemies: ['chinchilla'] },                                                       // 찢칠라 길 1·2 필드 조우(각 18원) — jjajang_chin.js
   { flag: 'jjajang_chin2_mun_defeated', enemies: ['munkorita'] },
-  { flag: 'drum_devil_won', enemies: ['drum_devil'] },                                                                   // 드럼통 둥지 보스전(돈 0) — drum_devil.js, 승리 뒤 연출 jjajang_nest_after.js(BUILD254)                                                       // 찢칠라 길 2 의 적은 문코리타(BUILD248 사용자 “두번째 찢칠라를 얘로”)                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
+  { flag: 'drum_devil_won', enemies: ['drum_devil'] },                                                                   // 드럼통 둥지 보스전(2000원, BUILD421 사용자) — drum_devil.js, 승리 뒤 연출 jjajang_nest_after.js(BUILD254)                                                       // 찢칠라 길 2 의 적은 문코리타(BUILD248 사용자 “두번째 찢칠라를 얘로”)                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
