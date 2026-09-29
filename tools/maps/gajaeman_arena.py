@@ -35,7 +35,7 @@ LEFT: Final = [('chogath', 116, 112, 20, 300), ('thresh', 84, 92, 150, 262), ('b
                ('ahri', 84, 72, 188, 340), ('teemo', 60, 44, 258, 354)]
 RIGHT_NAMES: Final = [('darius', 92, 90), ('nasus', 92, 96), ('malphite', 123, 118), ('fiddlesticks', 88, 94), ('lux', 54, 58)]
 ALLIES: Final = [('arena_mario', 'mini_mario', 284, 352, 'left', None), ('arena_bidet', 'warm_bidet', 312, 396, 'left', None),
-                 ('arena_park', 'park_guardian_costume', 814, 396, 'right', 2.22), ('arena_ttuulla', 'ttuulla', 844, 352, 'right', 1.79)]
+                 ('arena_park', 'park_guardian_costume', 780, 348, 'right', 2.22), ('arena_ttuulla', 'ttuulla', 844, 352, 'right', 1.79)]
 JOIN: Final = {'bidet': 486, 'mario': 522, 'ttuulla': 562, 'park': 598}
 # 오른쪽으로 튈 때 땅을 따라가는 길목: 테두리 오른쪽 끝 → 테라스로 올라가 → 오른쪽 끝
 ESCAPE: Final = [('arena_escape_1', 776, ROW_Y), ('arena_escape_2', 800, 300 + TOP_PAD), ('arena_escape_3', 1110, 300 + TOP_PAD)]

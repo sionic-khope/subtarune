@@ -11,7 +11,8 @@ export const ARENA = Object.freeze({
   map: 'gajaeman_castle_arena',
   aura: [{ rate: 26, rise: 70, spread: 34, size: 3 }, { rate: 70, rise: 150, spread: 56, size: 4 }],
   erupt: { duration: 1.8, width: 150 },
-  summon: { puff: 22, life: 0.7 },
+  // 소환 연기(BUILD414 사용자 “검은 연기랑 같이 나타나게”): 짙은 검은 연기 뭉치가 퍼지며 가렸다가 걷힌다
+  summon: { puff: 22, life: 0.7, cloud: 16, cloudLife: 1.3, cloudSize: [18, 34] },
   charge: { duration: 3.0, radius: 26, below: 18 },
   hover: { amplitude: 4, period: 2.4, lift: 10 },
   // BUILD333: 더 천천히(7.5초), 잔상 더 길게, 가재맨 머리 위(above)에서 들고 있는다. 속의 청소년은 보랏빛으로 물든 그림
@@ -44,7 +45,7 @@ export class CastleArena {
     this.pit = meta.pit || [384, 457, 322, 124];
     this.actor = game.entities.find(e => e.id === meta.gajaeman) || null;
     this.level = 0; this.time = 0; this.spawnAcc = 0;
-    this.motes = []; this.puffs = []; this.eruption = null; this.chargeState = null;
+    this.motes = []; this.puffs = []; this.clouds = []; this.eruption = null; this.chargeState = null;
     this.orb = null; this.rising = null; this.lasers = []; this.swords = []; this.fountain = null; this.dust = [];
     this.sparks = [];
     this.fog = { level: 0, target: 0, speed: 1, clear: null }; this.tracking = null; this.giant = null; this.pacing = null; this.flying = null; this.arms = []; this.flung = [];
@@ -79,6 +80,12 @@ export class CastleArena {
     if (!e) return;
     const cx = e.drawX + (e.iw || e.w) / 2, cy = e.drawY + (e.ih || e.h) * 0.6;
     this.burst(cx, cy, ARENA.summon.puff, ['#3a1a5e', '#07030d']);
+    const S = ARENA.summon, h = (e.ih || e.h);
+    for (let i = 0; i < S.cloud; i++) {
+      const a = this.rnd() * Math.PI * 2, r = this.rnd() * 14;
+      this.clouds.push({ x: cx + Math.cos(a) * r, y: cy - h * 0.2 + Math.sin(a) * r * 0.6, vx: Math.cos(a) * (14 + this.rnd() * 22),
+        vy: -12 - this.rnd() * 18, age: -this.rnd() * 0.12, size: S.cloudSize[0] + this.rnd() * (S.cloudSize[1] - S.cloudSize[0]) });
+    }
     e.visible = true;
     this.sfx('captain_transform', 0.35);
   }
@@ -260,6 +267,8 @@ export class CastleArena {
     this.motes = this.motes.filter(m => m.age < m.life);
     for (const p of this.puffs) { p.age += s; p.x += p.vx * s; p.y += p.vy * s; p.vx *= 0.94; p.vy *= 0.94; }
     this.puffs = this.puffs.filter(p => p.age < ARENA.summon.life);
+    for (const c of this.clouds) { c.age += s; if (c.age > 0) { c.x += c.vx * s; c.y += c.vy * s; c.vx *= 0.96; c.size += s * 10; } }
+    this.clouds = this.clouds.filter(c => c.age < ARENA.summon.cloudLife);
     if (this.eruption) { this.eruption.t += s; if (this.eruption.t >= ARENA.erupt.duration) this.eruption = null; }
     if (this.chargeState) {
       const c = this.chargeState; c.t += s;
@@ -381,6 +390,18 @@ export class CastleArena {
     }
     ctx.globalAlpha = 1;
     if (this.eruption && this.actor) this.drawEruption(ctx, cam, c);
+    // 짙은 검은 연기 구름: 처음엔 거의 불투명하게 몸을 가렸다가 걷힌다(도트 원 = 사각 계단)
+    for (const cl of this.clouds) {
+      if (cl.age < 0) continue;
+      const k = cl.age / ARENA.summon.cloudLife, a = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
+      const r = Math.round(cl.size / 2), x0 = Math.round(cl.x - cam.x), y0 = Math.round(cl.y - cam.y);
+      ctx.fillStyle = '#0a0612';
+      for (const [ring, al] of [[1, 0.55], [0.72, 0.9]]) {
+        ctx.globalAlpha = Math.max(0, a * al); const rr = Math.round(r * ring);
+        for (let dy = -rr; dy <= rr; dy += 2) { const w = Math.round(Math.sqrt(rr * rr - dy * dy)); ctx.fillRect(x0 - w, y0 + dy, w * 2, 2); }
+      }
+      ctx.globalAlpha = Math.max(0, a * 0.5); ctx.fillStyle = '#2b1648'; ctx.fillRect(x0 - Math.round(r * 0.35), y0 - Math.round(r * 0.5), Math.round(r * 0.5), 2);
+    }
     for (const p of this.puffs) {
       ctx.globalAlpha = 1 - p.age / ARENA.summon.life; ctx.fillStyle = p.color;
       ctx.fillRect(Math.round(p.x - cam.x - p.size / 2), Math.round(p.y - cam.y - p.size / 2), p.size, p.size);
