@@ -1733,9 +1733,18 @@ class Game {
       const hole = lc.createRadialGradient(0, 0, light.rx * 0.35, 0, 0, light.rx);
       hole.addColorStop(0, 'rgba(0,0,0,1)'); hole.addColorStop(1, 'rgba(0,0,0,0)');
       lc.fillStyle = hole; lc.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2); lc.restore();
-      const cone = lc.createLinearGradient(0, ly, 0, ly - beam.h);
-      cone.addColorStop(0, `rgba(0,0,0,${beam.alpha})`); cone.addColorStop(1, 'rgba(0,0,0,0)');
-      lc.fillStyle = cone; lc.beginPath(); lc.moveTo(lx - light.rx, ly); lc.lineTo(lx + light.rx, ly); lc.lineTo(lx + light.rx * beam.top, ly - beam.h); lc.lineTo(lx - light.rx * beam.top, ly - beam.h); lc.closePath(); lc.fill();
+      // 빛기둥: 폭을 줄인 사다리꼴 여러 겹(양옆이 부드럽게), 아래 끝은 바닥 타원 속으로 서서히 사라진다(BUILD420 사용자 “삼각형이 끊겨 보인다” — 가로로 딱 잘린 밑변·딱딱한 옆선)
+      const coneLayers = (g, peak) => {
+        const L = 6;
+        for (let i = 0; i < L; i++) {
+          const k = 1 - i * 0.12, grad = g.createLinearGradient(0, ly + light.ry * 0.35, 0, ly - beam.h);
+          grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(0.3, `rgba(0,0,0,${peak / L})`); grad.addColorStop(1, 'rgba(0,0,0,0)');
+          g.fillStyle = grad; g.beginPath();
+          g.moveTo(lx - light.rx * k, ly + light.ry * 0.35); g.lineTo(lx + light.rx * k, ly + light.ry * 0.35);
+          g.lineTo(lx + light.rx * beam.top * k, ly - beam.h); g.lineTo(lx - light.rx * beam.top * k, ly - beam.h); g.closePath(); g.fill();
+        }
+      };
+      coneLayers(lc, beam.alpha);
       lc.globalCompositeOperation = 'source-over';
       ctx.drawImage(layer, 0, 0, SCREEN_W, SCREEN_H);
       // 빛 색(연보라): 바닥 타원의 은은한 광 + 빛기둥의 옅은 광
@@ -1744,9 +1753,13 @@ class Game {
       glow.addColorStop(0, `rgba(220,202,255,${light.alpha})`); glow.addColorStop(1, 'rgba(220,202,255,0)');
       ctx.fillStyle = glow; ctx.fillRect(-light.rx, -light.rx, light.rx * 2, light.rx * 2);
       ctx.restore();
-      const coneGlow = ctx.createLinearGradient(0, ly, 0, ly - beam.h);
-      coneGlow.addColorStop(0, `rgba(220,202,255,${light.alpha * 0.35})`); coneGlow.addColorStop(1, 'rgba(220,202,255,0)');
-      ctx.fillStyle = coneGlow; ctx.beginPath(); ctx.moveTo(lx - light.rx, ly); ctx.lineTo(lx + light.rx, ly); ctx.lineTo(lx + light.rx * beam.top, ly - beam.h); ctx.lineTo(lx - light.rx * beam.top, ly - beam.h); ctx.closePath(); ctx.fill();
+      for (let i = 0; i < 6; i++) {
+        const k = 1 - i * 0.12, grad = ctx.createLinearGradient(0, ly + light.ry * 0.35, 0, ly - beam.h);
+        grad.addColorStop(0, 'rgba(220,202,255,0)'); grad.addColorStop(0.3, `rgba(220,202,255,${light.alpha * 0.35 / 6})`); grad.addColorStop(1, 'rgba(220,202,255,0)');
+        ctx.fillStyle = grad; ctx.beginPath();
+        ctx.moveTo(lx - light.rx * k, ly + light.ry * 0.35); ctx.lineTo(lx + light.rx * k, ly + light.ry * 0.35);
+        ctx.lineTo(lx + light.rx * beam.top * k, ly - beam.h); ctx.lineTo(lx - light.rx * beam.top * k, ly - beam.h); ctx.closePath(); ctx.fill();
+      }
     } else if (!stageLit && dim) { ctx.fillStyle = `rgba(0,0,0,${dim})`; ctx.fillRect(-SCREEN_W * 2, -SCREEN_H * 2, SCREEN_W * 5, SCREEN_H * 5); }
     // 맵 JSON `vision: { radius, edge, noise }` — 주인공 중심 원형 시야(BUILD226 짜장 토리이 길, 사용자 “주인공 기준 3분의 2 원만 보이고 겉으로 갈수록 노이즈 어둠이 차게”):
     //   radius 까지 맑고 edge 에서 완전히 검다. 그 사이엔 거친 알갱이(noise)가 바깥으로 갈수록 짙게 차오른다. 대화창/UI 는 어두워지지 않는다
