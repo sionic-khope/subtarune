@@ -8,12 +8,13 @@ import { CHARACTERS } from '../../src/data/characters.js';
 import { resolvePortraitKey } from '../../src/data/portraits.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { YOUNGCLE_TV_PORTRAITS } from '../../src/data/youngcle-tv.js';
+import { PORTRAIT_FILES, SPRITE_FILES } from '../../src/data/asset-index.js';
 
 const source = readFileSync(new URL('../../src/main.js', import.meta.url), 'utf8');
 const drawCalls = [];
 const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source.indexOf('// ── 부트')) + '\nGame;', {
   CHARACTERS: { park_guardian: {}, park_guardian_costume: CHARACTERS.park_guardian_costume, hyungsub: {}, hidden: { portrait: false } },
-  PALETTES: { hero: {} }, YOUNGCLE_TV_PORTRAITS: ['youngcle_tv_greet'],
+  PALETTES: { hero: {} }, YOUNGCLE_TV_PORTRAITS: ['youngcle_tv_greet'], PORTRAIT_FILES, SPRITE_FILES,
   makeCanvas: () => ({ width: 48, height: 48, getContext: () => ({ drawImage: (...args) => drawCalls.push(args) }) }),
   artToCanvas: () => ({ generic: true }), TORSO: { down: Array(16).fill('................') },
   monoPortrait: canvas => canvas,
@@ -96,7 +97,7 @@ test('test_current_castle_and_lounge_speakers_prepare_real_faces_from_a_cold_cac
   for (const [name, nodes] of Object.entries(SCRIPTS)) if (/castle|ship_lounge|youngcle_lounge|choimis_rescue/.test(name)) visit(nodes);
   const requests = [], images = new Map();
   const RuntimeGame = runInNewContext(source.slice(source.indexOf('class Game {'), source.indexOf('// ── 부트')) + '\nGame;', {
-    CHARACTERS, PALETTES: {}, YOUNGCLE_TV_PORTRAITS, resolvePortraitKey, CHARACTER_MOTIONS: {}, MAP_RUNTIME_ASSETS: {},
+    CHARACTERS, PALETTES: {}, YOUNGCLE_TV_PORTRAITS, PORTRAIT_FILES, SPRITE_FILES, resolvePortraitKey, CHARACTER_MOTIONS: {}, MAP_RUNTIME_ASSETS: {},
     storyBgm: () => undefined, Battle: { preload: async () => {} },
     mapScriptAssets: () => ({ portraits: portraitKeys, sprites: [], playerMotions: new Set(), sfx: new Set(), entrySfx: new Set() }),
     makeCanvas: () => ({ width: 48, height: 48, source: null, getContext() { return { drawImage: image => { this.source = image; } }; } }),

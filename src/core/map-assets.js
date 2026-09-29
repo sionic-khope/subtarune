@@ -1,3 +1,4 @@
+import { BACKDROP_FILES } from '../data/asset-index.js';
 /** Map definitions and visible images are prepared once, before a destination is published. */
 export class MapAssetCache {
   constructor({ maps, loadMap, loadImage, loadTiles, extraSources = () => [] }) {
@@ -41,7 +42,8 @@ export class MapAssetCache {
         def.image,
         ...((def.entities || []).map(e => e.image)),
         ...(def.preload || []),
-        ...(def.backdrop ? [`assets/backdrops/${def.backdrop}.png`] : []),
+        // 코드로 그리는 배경(purple_fire 등)은 파일이 없다 — 있는 그림만 받는다(BUILD433)
+        ...(def.backdrop && BACKDROP_FILES.has(def.backdrop) ? [`assets/backdrops/${def.backdrop}.png`] : []),
         ...this.extraSources(id, def),
       ].filter(Boolean));
       const [entries] = await Promise.all([

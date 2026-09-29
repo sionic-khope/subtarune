@@ -2,6 +2,7 @@
 // 엔트리. 게임 상태: field → dialogue / menu / fade
 // 내부 해상도 320x240, 정수배 스케일.
 // ─────────────────────────────────────────────────────────────
+import { PORTRAIT_FILES, SPRITE_FILES } from './data/asset-index.js';
 import { Input } from './core/input.js';
 import { Sound, VOICES } from './core/audio.js';
 import { drawChoimisFlowerEffects, clearChoimisFlowerEffects } from './data/cutscenes/choimis_flower.js';
@@ -887,13 +888,16 @@ class Game {
     }));
     await Promise.all([...names].map(async name => {
       const src = CHARACTERS[name]?.still || CHARACTERS[name]?.sheet || `assets/sprites/${name}.png`;
+      // 기본 경로(assets/sprites/<이름>.png)는 있는 시트만 받는다 — 문자 도트 전용 이름은 404 재시도로 전환이 늦었다(BUILD433)
+      if (src === `assets/sprites/${name}.png` && !SPRITE_FILES.has(name)) return;
       const image = await this.mapAssets.image(src);
       if (image) this.spriteOverrides[name] = image;
     }));
     const fallbackPortraits = this.makePortraits();
     for (const name of names) this.portraits[name] = fallbackPortraits[name];
     const portraitNames = new Set([...names, ...scriptAssets.portraits, ...(MAP_RUNTIME_ASSETS[mapId]?.portraits || [])].map(resolvePortraitKey));
-    await Promise.all([...portraitNames].filter(name => CHARACTERS[name]?.portrait !== false && (CHARACTERS[name] || PALETTES[name] || YOUNGCLE_TV_PORTRAITS.includes(name))).map(async name => {
+    // 실제로 있는 초상화만 받는다(PORTRAIT_FILES) — 없는 파일은 404 재시도로 맵 첫 진입이 1.2초쯤 늦었다(BUILD433)
+    await Promise.all([...portraitNames].filter(name => PORTRAIT_FILES.has(name) && CHARACTERS[name]?.portrait !== false && (CHARACTERS[name] || PALETTES[name] || YOUNGCLE_TV_PORTRAITS.includes(name))).map(async name => {
       const portrait = await this.mapAssets.image(`assets/portraits/${name}.png`);
       if (portrait) { this.portraits[name] = monoPortrait(portrait, { scale: 2, threshold: CHARACTERS[name]?.portraitThreshold }); (this.portraitFiles ||= new Set()).add(name); }
     }));

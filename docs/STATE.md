@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-24
 
+**BUILD433 — 에셋 로딩 누락 점검(사용자 2026-09-30 “로딩 누락되거나 그런 거 있는지 에셋 점검”)**: 정적 참조 678개 중 없는 파일 0(주석·폴백 제외). 대신 없는 파일을 요청하던 곳이 맵 첫 진입을 늦추고 있었다 — 초상화 없는 캐릭터 61명·코드로 그리는 배경 5종·그림 없는 타일·합성 효과음/목소리 이름을 파일로 요청해 404 + 재시도(0.4s·0.8s). `src/data/asset-index.js`(`python3 tools/dev/asset_index.py`로 생성: PORTRAIT·BACKDROP·SPRITE·TILE·AUDIO_FILES)에 있는 것만 받는다(main.js 초상화·시트, map-assets 배경, tiles.js, audio.js `Sound.audioExts`). 그림·소리를 넣거나 빼면 목록을 다시 만든다 — `tests/unit/asset-index.test.mjs`가 폴더와 어긋나면 잡는다. 결과: 허공·청록숲·옵젝·마이야르·결전지 첫 진입 1.4–1.7s → 0.3–0.5s, QA 252지점 404 0건.
+
 **BUILD432 — 로딩 강화(사용자 2026-09-30 “초기 로딩 더 걸려도 되니 더 받고 새로고침에 강하게” → C안)**: 부팅 범위 문 2 → 3칸(`BOOT_PRELOAD_DEPTH`). 타이틀 뒤 `warmAssetCache`가 `asset-manifest.json`(배포 때 `tools/deploy/asset-manifest.py`, 1279개 247.8MB, 맵 → 캐릭터 → 소품 → 효과음 → 곡 → 영상 순) 중 아직 없는 파일을 2개씩 받아 캐시에 쌓는다(그림은 메모리에 풀지 않음, 맵 전환·준비 중엔 멈춤, 끊기면 다음 접속 때 이어서). `sw.js`: 에셋은 빌드와 무관한 `subtarune-assets` 캐시 + 내용 지문(h) 열쇠 → 새 빌드 때 바뀐 파일만 다시 받는다, 버전 꼬리표 무시, 곡 부분 요청(Range)은 캐시에서 잘라 줌, 설치 때 코드 껍데기(index.html·src·css) 선저장 → 오프라인 새로고침 가능. localhost 에선 꺼짐. 검증: 패키지 사이트(game.localhost)에서 1279/1279 채움·오프라인 새로고침 타이틀·오프라인 곡 탐색.
 
 **BUILD431 — 뚜울라 HP 줄 이름 깨짐(사용자 2026-09-29)**: ‘요플래’ 세 글자가 58px 칸에서 HP 숫자와 겹쳤다 → 칸 폭을 이름+숫자 길이에 맞추고(짧으면 58), 묶음을 SCORE 끝과 MAX COMBO 시작 사이 빈 곳 가운데에.

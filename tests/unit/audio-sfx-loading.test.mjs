@@ -5,6 +5,8 @@ import assert from 'node:assert/strict';
 import { Sound } from '../../src/core/audio.js';
 import { BUILD } from '../../src/data/build.js';   // 소리 파일 주소엔 빌드 캐시 키가 붙는다(BUILD280)
 
+// 가상의 파일 이름으로 mp3 → ogg 순서를 재므로 실제 파일 목록 필터는 끈다(BUILD433 Sound.audioFiles)
+Sound.audioFiles = null;
 const withFakeAudio = async (run) => {
   const created = [];
   const RealAudio = globalThis.Audio;

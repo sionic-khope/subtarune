@@ -3,6 +3,7 @@
 // 새 타일 추가: registerTile('기호', { name, solid, draw | art })
 // assets/tiles/<name>.png 가 있으면 그 이미지가 우선 적용된다.
 // ─────────────────────────────────────────────────────────────
+import { TILE_FILES } from '../data/asset-index.js';
 import { artToCanvas, makeCanvas, mulberry32, loadImageOptional } from '../core/gfx.js';
 import { TILE_ART } from '../data/art.js';
 import { WATER_WALK } from '../data/footsteps.js';
@@ -43,7 +44,8 @@ export function tileCanvas(def, variant = 0) {
 
 /** assets/tiles/*.png 오버라이드 로드 (없으면 조용히 통과) */
 export async function loadTileOverrides(chars = null) {
-  await Promise.all(allTiles().filter((def) => !chars || chars.has(def.char)).map(async (def) => {
+  // 그림 파일이 있는 타일만 받는다(TILE_FILES) — 없는 타일은 404 재시도로 맵 첫 진입이 1.2초쯤 늦었다(BUILD433)
+  await Promise.all(allTiles().filter((def) => (!chars || chars.has(def.char)) && TILE_FILES.has(def.name)).map(async (def) => {
     const img = await loadImageOptional(`assets/tiles/${def.name}.png`);
     if (img) { def.override = img; cache.delete(def.name); }
   }));

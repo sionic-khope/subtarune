@@ -1,5 +1,6 @@
 // 사운드는 전부 WebAudio로 합성한다 (오디오 파일 0개).
 import { BUILD } from '../data/build.js';
+import { AUDIO_FILES } from '../data/asset-index.js';
 /** 오디오 파일 주소에 빌드 캐시 키(BUILD280): 그림처럼 소리도 파일을 바꾸면 BUILD 를 올려야 새 소리가 들린다 — 전엔 mp3 가 브라우저 캐시에 남아 “흐미 소리가 아직도 안 나옴”(사용자 2026-09-21) */
 const vurl = (src) => `${src}?v=${BUILD}`;
 // 대사 한 글자마다 0.1초짜리 블립이 울린다 — 화자마다 음색이 다르다.
@@ -112,7 +113,9 @@ export class Sound {
     const pending = (async () => {
       const grab = async (src) => { try { const response = await fetch(vurl(src)); return response.ok ? await response.arrayBuffer() : null; } catch { return null; } };
       try {
-        const raw = (await grab(`assets/audio/voices/${name}.mp3`)) || (await grab(`assets/audio/voices/${name}.ogg`));
+        // 파일이 있는 목소리만(AUDIO_FILES) — 합성 목소리 이름은 404 두 번을 내고 있었다(BUILD433)
+        let raw = null;
+        for (const ext of Sound.audioExts('voices', name)) if ((raw = await grab(`assets/audio/voices/${name}.${ext}`))) break;
         if (raw) this.voiceRaw[name] = raw;
       } finally {
         delete this._voiceLoads[name];
@@ -158,6 +161,13 @@ export class Sound {
 
   /** 느린 회선에서 canplaythrough 를 기다리는 상한. 넘겨도 파일을 버리지 않고 등록만 한다 */
   static SFX_PROBE_TIMEOUT = 8000;
+  /** 있는 소리 파일 목록(asset-index.js). null 이면 mp3 → ogg 를 모두 시도한다(테스트용) */
+  static audioFiles = AUDIO_FILES;
+  /** 받아 볼 확장자(mp3 먼저). 목록에 없으면 빈 배열 — 합성 소리 이름은 파일을 찾지 않는다(BUILD433) */
+  static audioExts(dir, name) {
+    const files = Sound.audioFiles;
+    return ['mp3', 'ogg'].filter(ext => !files || files.has(`${dir}/${name}.${ext}`));
+  }
   /** assets/audio/sfx/<name>.(mp3|ogg) 가 있으면 등록. 없는 건 조용히 합성 유지.
    *  2026-09-10: 이벤트가 안 오는 파일 하나가 부팅 전체를 멈추지 않게 8초 상한.
    *  2026-09-15: github.io 첫 로드처럼 70여 개 mp3 가 느리게 오면 8초 안에 canplaythrough 가 안 온 파일이 통째로 버려져
@@ -180,7 +190,9 @@ export class Sound {
     });
     const pending = (async () => {
       try {
-        const a = (await probe(`assets/audio/sfx/${name}.mp3`)) || (await probe(`assets/audio/sfx/${name}.ogg`));
+        // 파일이 있는 효과음만(AUDIO_FILES) — 합성음(chime·open·close 등)은 파일을 찾지 않는다(BUILD433)
+        let a = null;
+        for (const ext of Sound.audioExts('sfx', name)) if ((a = await probe(`assets/audio/sfx/${name}.${ext}`))) break;
         if (!a) return;
         this.files[name] = a;
         // 상한 뒤에 늦게 실패한 파일은 등록을 풀어 합성으로 돌아간다
