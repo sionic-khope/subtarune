@@ -270,7 +270,7 @@ await runScenario({ name: 'jjajang-night-coast-visual', launchOptions: { args: [
       await g.devJump({ map: `jjajang_night_coast${number}`, spawn: 'from_west', flags: { ...g.flags }, party: ['gyeongsub', 'ppaman'] });
     }, number);
     if (!await until(() => !!window.game?.map?.def.meta?.coast && !window.game.transitioning, 30000)) throw new Error('Legacy-save fixture room not ready');
-    const count = [6, 4, 7][number - 1];
+    const count = [8, 6, 9][number - 1];
     for (let line = 0; line < count; line++) {
       await fixture(`coast${number}-line${line}-render`, 'Render-only CJK coverage: show this authored line with the existing TextBox, finish typing and hold it for capture. Natural progression is verified by the separate walking scenario.', async line => {
         const { NIGHT_COAST_CHAT } = await import('./src/data/cutscenes/jjajang_night_coast.js');

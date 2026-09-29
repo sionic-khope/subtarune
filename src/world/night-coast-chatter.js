@@ -39,8 +39,8 @@ export class NightCoastChatter {
     const index = lines.findIndex((line, i) => !g.flags[`${g.mapId}_chat_${i}`]);
     if (index < 0 || lines[index].at > this.progress) return;
     g.flags[`${g.mapId}_chat_${index}`] = true;
-    // 다 읽힌 뒤 1.0초 뒤 다음 줄(BUILD405, 사용자 “대사 나오는 간격도 줄이고” — 1.7s 에서)
-    this.box.show({ ...lines[index], auto: 1.0 }, g.ctx, null);
+    // 다 읽힌 뒤 1.7초 뒤 다음 줄(BUILD410 사용자 “대사 간격이 너무 짧다” — BUILD405 의 1.0s 에서 되돌림)
+    this.box.show({ ...lines[index], auto: 1.7 }, g.ctx, null);
     g.autosave();
   }
 

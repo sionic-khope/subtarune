@@ -114,7 +114,7 @@ await runScenario({ name: 'jjajang-night-coast', launchOptions: { args: ['--auto
   for (let n = startRoom; n <= 3; n++) {
     const roomStarted = Date.now();
     await followRoom(false);
-    const expected = [6, 4, 7][n - 1];
+    const expected = [8, 6, 9][n - 1];
     check(`coast${n} delivers every walking line without modal dialogue`, await page.evaluate(({ n, expected }) => {
       const lines = window.coastObserved.filter(line => line.map === `jjajang_night_coast${n}`);
       return lines.length === expected && lines.every(line => !line.modal);
@@ -151,7 +151,7 @@ await runScenario({ name: 'jjajang-night-coast', launchOptions: { args: ['--auto
   await shot('existing_cliff_arrival');
   await fixture('continue-at-cliff', 'Save and invoke the actual Continue entry point to verify completed coast bridge/raft states survive.', async () => { window.game.autosave(); await window.game.continueGame(); });
   check('Continue preserves all three bridges', await page.evaluate(() => ['night_coast1_a', 'night_coast2_a', 'night_coast3_a'].every(flag => window.game.flags[flag])));
-  check('Continue preserves all delivered walking lines', await page.evaluate(start => [6, 4, 7].every((count, map) => map + 1 < start || Array.from({ length: count }, (_, i) => window.game.flags[`jjajang_night_coast${map + 1}_chat_${i}`]).every(Boolean)), startRoom));
+  check('Continue preserves all delivered walking lines', await page.evaluate(start => [8, 6, 9].every((count, map) => map + 1 < start || Array.from({ length: count }, (_, i) => window.game.flags[`jjajang_night_coast${map + 1}_chat_${i}`]).every(Boolean)), startRoom));
   await page.keyboard.down('ArrowLeft');
   try { await until(() => window.game.transitioning, 3000); } finally { await page.keyboard.up('ArrowLeft'); }
   check('cliff returns to coast3 without portal ping-pong', await until(() => window.game.mapId === 'jjajang_night_coast3' && !window.game.transitioning, 8000));
