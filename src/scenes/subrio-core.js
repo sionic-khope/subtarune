@@ -189,7 +189,7 @@ const BD = (text) => ({ who: 'bidet', text });
 export const BOSS_INTRO = {
   before: [PP('오 보스맵인가.'), GS('그런거 같아')],
   voice: [BD('후후후..')],
-  after: [BD('편집노조 두번째 시험 도트마리오, 따뜻한비데 vs 요빠억이다 이새끼들아'), PP('들어와라 뚜벅이새끼야'), BD('날 이길수있을거라 생각하지마라')],
+  after: [BD('편집노조 두번째 시험 도트마리오, 따뜻한비데 vs 요경억이다 이새끼들아'), PP('들어와라 뚜벅이새끼야'), BD('날 이길수있을거라 생각하지마라')],
   // 먼저 가운데로 모이는 자리(가운데 기준 발 x 오프셋) → 가운데 바닥 내려찍기(띵)로 갈라지는 자리: 요플래·억빠맨 오른쪽, 경섭 왼쪽 (BUILD172 무대 36열 = 가운데 288)
   gather: { hyungsub: 0, gyeongsub: -40, ppaman: 40 },
   split: { hyungsub: 130, ppaman: 170, gyeongsub: -130 },

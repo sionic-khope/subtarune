@@ -21,7 +21,7 @@ export const BACKDROP = 'assets/props/rhythm_backdrop.png', AUDIENCE = 'assets/p
 // 델타룬 비율(드럼 세트 크게·사람 작게, 셋이 무대 폭 15/46/78%) — rhythm.js BAND 와 같은 값
 export const BAND = [
   { id: 'gyeongsub', label: '경섭', color: '#ff6fa8', sheet: 'assets/sprites/band_gyeongsub.png', x: 112, draw: 87 },
-  { id: 'hyungsub', label: '형섭', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 74 },
+  { id: 'hyungsub', label: '요플래', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 74 },
   { id: 'ppaman', label: '빠맨', color: '#7dff5a', sheet: 'assets/sprites/band_ppaman.png', x: 372, draw: 76 },
 ];
 
@@ -191,7 +191,7 @@ export function drawLanes(ctx, s) {
     for (const f of fx) if (f.kind === 'sidering' && f.lane === key) { const hf = sideHalf(sd, f.half), k = f.t / f.dur; ctx.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(2)})`; ctx.lineWidth = 2; ctx.strokeRect(hf.x + 5 - k * 5, RECEPTOR_Y - 4 - k * 5, hf.w - 10 + k * 10, 8 + k * 10); }
     ctx.restore();
   }
-  text(ctx, '형섭', cx, LANE_TOP - 18, { align: 'center', color: '#4fd8ff' });
+  text(ctx, '요플래', cx, LANE_TOP - 18, { align: 'center', color: '#4fd8ff' });
   ctx.fillStyle = 'rgba(0,0,0,0.84)'; ctx.fillRect(LANE.x, LANE_TOP, LANE.w, h);
   if (inPlay) {
     if (play.combo >= 2) {

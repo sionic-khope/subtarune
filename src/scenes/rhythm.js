@@ -24,7 +24,7 @@ import { makePlay, stepPlay, finished, sideHits, sideTime, visibleNotes, grade, 
 const BAND = [
   // draw = 화면 크기(px, 128 셀 기준). 델타룬 비율(사람 키 ≈ 화면 높이 15%, 드럼 ≈ 19%)에서 사용자 요청으로 15% 키움(BUILD185), 셋이 무대 폭 15/46/78% 자리
   { id: 'gyeongsub', label: '경섭', color: '#ff6fa8', sheet: 'assets/sprites/band_gyeongsub.png', x: 112, draw: 87, voice: 'gyeongsub' },
-  { id: 'hyungsub', label: '형섭', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 74, voice: 'hyungsub' },
+  { id: 'hyungsub', label: '요플래', color: '#4fd8ff', sheet: 'assets/sprites/band_hyungsub.png', x: 240, draw: 74, voice: 'hyungsub' },
   { id: 'ppaman', label: '빠맨', color: '#7dff5a', sheet: 'assets/sprites/band_ppaman.png', x: 372, draw: 76, voice: 'ppaman' },
 ];
 const BACKDROP = 'assets/props/rhythm_backdrop.png', AUDIENCE = 'assets/props/rhythm_audience.png';
@@ -540,7 +540,7 @@ export function run(game, node = {}) {
         for (const f of state.fx) if (f.kind === 'sidering' && f.lane === key) { const hf = sideHalf(sd, f.half), k = f.t / f.dur; ctx.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(2)})`; ctx.lineWidth = 2; ctx.strokeRect(hf.x + 5 - k * 5, RECEPTOR_Y - 4 - k * 5, hf.w - 10 + k * 10, 8 + k * 10); }
         ctx.restore();
       }
-      text('형섭', cx, LANE_TOP - 18, { align: 'center', color: '#4fd8ff' });
+      text('요플래', cx, LANE_TOP - 18, { align: 'center', color: '#4fd8ff' });
       // 기둥(검정) — 델타룬처럼 가운데 하나
       ctx.fillStyle = 'rgba(0,0,0,0.84)'; ctx.fillRect(LANE.x, LANE_TOP, LANE.w, h);
       if (inPlay) {
