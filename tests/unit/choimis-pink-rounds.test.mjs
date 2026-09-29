@@ -493,7 +493,8 @@ test('test_all_pink_rounds_draw_approved_white_boss_at_far_right_and_emit_attack
     const calls = [], ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => calls.push([key, ...args])); }, set(target, key, value) { target[key] = value; return true; } });
     run.mode.draw(ctx);
     assert.ok(calls.some(call => call[0] === 'drawImage'), `${name} draws approved whiteSprite boss`);
-    assert.deepEqual(calls.filter(call => call[0] === 'fillText').map(call => call[1]), [L.battle_choimis_pink_round_controls]);
+    // 코어 라운드만 억빠맨 안내 한 줄이 더 붙는다(BUILD411)
+    assert.deepEqual(calls.filter(call => call[0] === 'fillText').map(call => call[1]), [L.battle_choimis_pink_round_controls, ...(name === 'pink_prism' ? [L.battle_choimis_pink_prism_tip_speaker, L.battle_choimis_pink_prism_tip] : [])]);
     if (name === 'choso') assert.ok(snap.scenario.beams.every(beam => Math.abs(beam.from.x - snap.scenario.boss.x) < 30));
     if (name === 'pink_prism') assert.ok(snap.scenario.bolts.every(bolt => bolt.oldX > BOX.x + BOX.w * 0.75));
     run.mode.dispose();

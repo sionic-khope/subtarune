@@ -15,6 +15,9 @@ export default {
   battle_choimis_pink_choso_attack: '천혈!',
   battle_choimis_pink_controls: '↑↓ 이동 · C 탭 발사 / 길게 눌러 충전',
   battle_choimis_pink_round_controls: '↑↓ 이동 · C 탭 발사 / 길게 눌러 충전',
+  // 코어(분홍 프리즘) 라운드에서 억빠맨 한마디(BUILD411 사용자 2026-09-29)
+  battle_choimis_pink_prism_tip_speaker: '억빠맨',
+  battle_choimis_pink_prism_tip: '요플래형 최미스한테 총알 쏴서 딜을 넣을수있어요',
   battle_choimis_eating_goal: '짜장면을 먹어라! (C 연타)',
   battle_choimis_eating_start: '시작!',
   battle_choimis_eating_party: '요플래 → 경섭 → 억빠맨',
