@@ -1,0 +1,7 @@
+# imagegen 2026-09-29 15:49:21
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/choimis-pose422/base_ref.png
+
+Image1 is a pixel-art game sprite on flat magenta, upscaled 8x (each 8x8 block = one pixel). Output the SAME sprite at the SAME size, position, pixel grid and palette on the same flat pure magenta #FF00FF background: same white messy hair, same glasses, same round body, same pink GAP sweatshirt, same long pink pants and black shoes, same outline. The ONLY change: the face: one eye behind the glasses closed in a playful wink (a small curved line), and a cheeky grin with one corner of the mouth up. Keep chunky pixel art, no anti-aliasing, no new colors, nothing else in the image.
