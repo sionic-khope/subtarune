@@ -6,11 +6,14 @@
 import { Input } from '../core/input.js';
 import { SCREEN_W as W, SCREEN_H as H } from '../world/world.js';
 import { CREDITS } from '../data/credits.js';
+import { FONT } from '../ui/font.js';
 
 export const COOKIE_PHOTO = Object.freeze({
   bgm: 'good_night', volume: 0.6, bgmFade: 3.0,
   // BUILD378(사용자): 사진은 약 3초 동안 천천히(부드러운 곡선) 떠오르고, 끝날 땐 5초 동안 천천히 사라진다
-  fadeIn: 3.2, zoom: 1.06, zoomTime: 8.0, leave: 5.0,
+  // BUILD417(사용자 “페이드인 2초 더 길게”): 3.2 → 5.2초. 창 제목·촛불 조명(대각선에서 비추는 따뜻한 빛, 은은하게 일렁임)
+  fadeIn: 5.2, zoom: 1.06, zoomTime: 8.0, leave: 5.0,
+  title: 'subtarune', candles: [{ x: 0.02, y: 0.0, r: 0.95 }, { x: 0.98, y: 1.0, r: 0.8 }], candleAlpha: 0.5,
   photo: 'assets/credits/group_photo.png',
   // 모니터 베젤 · 화면 · 뷰어 창 · 큰 사진 칸 · 아래 그리드(칸 크기·간격)
   bezel: [14, 12, 452, 316], screen: [26, 24, 428, 286], window: [40, 36, 400, 260],
@@ -67,6 +70,8 @@ export class CookiePhoto {
     const bar = ctx.createLinearGradient(wx, 0, wx + ww, 0); bar.addColorStop(0, '#000080'); bar.addColorStop(1, '#1084d0');
     ctx.fillStyle = bar; ctx.fillRect(wx + 3, wy + 3, ww - 6, 16);
     ctx.fillStyle = '#c0c0c0'; ctx.fillRect(wx + ww - 19, wy + 5, 12, 12);
+    ctx.fillStyle = '#ffffff'; ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(C.title, wx + 9, wy + 11);
     ctx.fillStyle = '#18181c'; ctx.fillRect(wx + 4, wy + 22, ww - 8, wh - 26);
     // 가운데 큰 단체 사진
     const [vx, vy, vw, vh] = C.view, photo = this.img(C.photo);
@@ -75,6 +80,20 @@ export class CookiePhoto {
       const px = Math.round(vx + (vw - pw) / 2), py = Math.round(vy + (vh - ph) / 2);
       ctx.fillStyle = '#f4ecdc'; ctx.fillRect(px - 2, py - 2, pw + 4, ph + 4);
       ctx.drawImage(photo, px, py, pw, ph);
+      // 촛불 조명: 사진 모서리 대각선 두 곳에서 따뜻한 빛이 비치며 은은하게 일렁인다
+      ctx.save(); ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip(); ctx.globalCompositeOperation = 'lighter';
+      C.candles.forEach((c, i) => {
+        const flick = 0.85 + 0.1 * Math.sin(t * 7.3 + i * 2) + 0.05 * Math.sin(t * 13.1 + i);
+        const gx = px + pw * c.x, gy = py + ph * c.y, rad = Math.max(pw, ph) * c.r * (0.97 + 0.03 * Math.sin(t * 5 + i));
+        const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, rad);
+        g.addColorStop(0, `rgba(255,190,100,${(C.candleAlpha * flick).toFixed(3)})`); g.addColorStop(0.35, `rgba(255,150,70,${(C.candleAlpha * 0.55 * flick).toFixed(3)})`); g.addColorStop(0.75, `rgba(255,120,40,${(C.candleAlpha * 0.15 * flick).toFixed(3)})`); g.addColorStop(1, 'rgba(255,120,40,0)');
+        ctx.fillStyle = g; ctx.fillRect(px, py, pw, ph);
+      });
+      ctx.restore();
+      // 반대쪽 대각선은 살짝 어둡게(빛이 한쪽에서 비추는 느낌)
+      const shade = ctx.createLinearGradient(px, py, px + pw, py + ph);
+      shade.addColorStop(0, 'rgba(20,10,30,0)'); shade.addColorStop(0.5, 'rgba(20,10,30,0.12)'); shade.addColorStop(1, 'rgba(20,10,30,0)');
+      ctx.fillStyle = shade; ctx.fillRect(px, py, pw, ph);
     } else { ctx.fillStyle = '#3a3a44'; ctx.fillRect(vx + 60, vy, vw - 120, vh); }
     // 아래 사진 그리드: 크레딧 사진들 + 지금 보는 단체 사진(노란 테두리)
     const list = [...CREDITS.photos, C.photo], T = C.thumb, rowW = list.length * (T.size + T.gap) - T.gap;
