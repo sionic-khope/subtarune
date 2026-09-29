@@ -16,13 +16,17 @@ export function createParkGuardianSupport(battle) {
   if (!enemy) return null;
   let unlocked = false, introduced = false, charge = 0, phase = 'costume', turns = 0, skipBoundary = false;
   let dogImage = null, emptyImage = null;
-  let costumeTurns = 0, ordinarySlots = 0, trialCount = 0;
+  let costumeTurns = 0, ordinarySlots = 0, trialCount = 0, strips = 0;
+  // 이번 벗기기에 필요한 명중 수: 네 번째 벗기기부터 3방
+  // 옷이 흘러내린 정도(9방 기준 눈금으로 환산)
+  const slip = () => Math.round(charge * C.requiredHits / need());
+  const need = () => (strips + 1 >= C.lateFromStrip ? C.lateHits : C.requiredHits);
   const standing = () => battle.alive().find(m => m.id === 'ppaman' && m.hp > 0);
   const live = () => !enemy.dead && enemy.hp > 0 && !(enemy.dying > 0);
   return {
     get unlocked() { return unlocked; },
     get charge() { return charge; },
-    get requiredHits() { return C.requiredHits; },
+    get requiredHits() { return need(); },
     get phase() { return phase; },
     get turns() { return turns; },
     get costumeTurns() { return costumeTurns; },
@@ -30,15 +34,15 @@ export function createParkGuardianSupport(battle) {
     get trialUsed() { return trialCount > 0; },
     get trialCount() { return trialCount; },
     get emptyImage() { return emptyImage; },
-    get ready() { return unlocked && phase === 'costume' && charge === C.requiredHits && !!standing() && live(); },
-    get hint() { return !standing() ? L.battle_strip_down : phase !== 'costume' ? L.battle_strip_exposed(turns) : L.battle_strip_wait(C.requiredHits - charge); },
-    get button() { return { label: `${L.battle_strip} ${charge}/${C.requiredHits}`, icon: 'strip', enabled: this.ready }; },
+    get ready() { return unlocked && phase === 'costume' && charge === need() && !!standing() && live(); },
+    get hint() { return !standing() ? L.battle_strip_down : phase !== 'costume' ? L.battle_strip_exposed(turns) : L.battle_strip_wait(need() - charge); },
+    get button() { return { label: `${L.battle_strip} ${charge}/${need()}`, icon: 'strip', enabled: this.ready }; },
     async load(loadImage) {
       [dogImage, emptyImage] = await Promise.all([loadImage(enemy.def.forms.dog.sheet.src), loadImage(C.emptyCostume)]);
     },
     reset() {
       unlocked = false; introduced = false; charge = 0; phase = 'costume'; turns = 0; skipBoundary = false;
-      costumeTurns = 0; ordinarySlots = 0; trialCount = 0;
+      costumeTurns = 0; ordinarySlots = 0; trialCount = 0; strips = 0;
       enemy.formDef = null; enemy.formImage = null; enemy.patternPose = null;
     },
     blocksDamage(target) { return target === enemy && phase !== 'dog'; },
@@ -58,11 +62,11 @@ export function createParkGuardianSupport(battle) {
     poseFor(target) {
       if (target !== enemy || phase !== 'costume') return null;
       const pose = target.patternPose;
-      if (pose) return pose.sheet === 'attack' ? { ...pose, sheet: charge >= 9 ? 'attackAdjust' : charge >= 6 ? 'attackSlipping' : charge >= 3 ? 'attackLoose' : 'attack' } : pose;
-      return { sheet: charge >= 9 ? 'adjust' : charge >= 6 ? 'slipping' : charge >= 3 ? 'loose' : 'dance' };
+      if (pose) return pose.sheet === 'attack' ? { ...pose, sheet: slip() >= 9 ? 'attackAdjust' : slip() >= 6 ? 'attackSlipping' : slip() >= 3 ? 'attackLoose' : 'attack' } : pose;
+      return { sheet: slip() >= 9 ? 'adjust' : slip() >= 6 ? 'slipping' : slip() >= 3 ? 'loose' : 'dance' };
     },
     onContact(target, damage, source) {
-      if (target === enemy && live() && phase === 'costume' && damage > 0 && source === 'ordinary') charge = Math.min(C.requiredHits, charge + 1);
+      if (target === enemy && live() && phase === 'costume' && damage > 0 && source === 'ordinary') charge = Math.min(need(), charge + 1);
     },
     patternsFor(target) { return target === enemy && phase === 'dog' ? enemy.def.forms.dog.patterns : null; },
     speechFor(target) {
@@ -75,7 +79,7 @@ export function createParkGuardianSupport(battle) {
     draw(ctx) { if (phase === 'dog' && !battle.gimmick && live()) drawParkCostume(ctx, emptyImage, enemy, 1); },
     action() {
       if (!this.ready) return null;
-      charge = 0; phase = 'stripping';
+      charge = 0; strips++; phase = 'stripping';
       return { type: 'support', mode: 'park_strip', member: standing(), target: enemy };
     },
     expose(target) {

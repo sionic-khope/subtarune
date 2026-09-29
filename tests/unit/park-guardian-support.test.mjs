@@ -252,8 +252,9 @@ test('test_park_costume_schedule_counts_once_per_enemy_entry_with_trial_priority
   }
   assert.deepEqual(selected, [
     'park_rabbit_ears', 'park_obsessive_hearts', 'park_pirate_fans', 'park_razma', 'park_witch_trial',
-    'park_cleaning', 'park_rabbit_ears', 'park_obsessive_hearts', 'park_razma',
-    'park_witch_trial',
+    // BUILD428: 두 번째 재판(오방순)은 9번째 의상 턴 — 그 자리의 라즈마는 다음 턴으로 밀린다
+    'park_cleaning', 'park_rabbit_ears', 'park_obsessive_hearts',
+    'park_witch_trial', 'park_razma',
     'park_pirate_fans', 'park_cleaning', 'park_rabbit_ears', 'park_razma',
     'park_obsessive_hearts', 'park_pirate_fans', 'park_cleaning', 'park_razma',
   ]);
@@ -303,9 +304,9 @@ test('test_park_begin_enemy_turn_routes_razma_two_trials_and_cleaning_prep', () 
   b.disposeGimmick(); b.beginEnemyTurn();
   assert.equal(b.state, 'enemy-prep'); assert.equal(b.support.costumeTurns, 6); assert.equal(pauses, 0);
   assert.equal(b.bubble.text, '경섭이형 집좀 치우고 살아.');
-  for (let turn = 7; turn <= 10; turn++) { b.disposeGimmick(); b.beginEnemyTurn(); }
+  for (let turn = 7; turn <= 9; turn++) { b.disposeGimmick(); b.beginEnemyTurn(); }
   assert.equal(b.state, 'enemy-mode'); assert.equal(b.gimmick.snapshot.phase, 'enter');
-  assert.equal(b.support.costumeTurns, 10); assert.equal(b.support.trialCount, 2);
+  assert.equal(b.support.costumeTurns, 9); assert.equal(b.support.trialCount, 2);
   assert.equal(b.gimmick.snapshot.trialIndex, 1);
 });
 
@@ -331,4 +332,16 @@ test('test_party_wide_lethal_penalty_enters_lose_once_and_retry_restores_party',
   assert.equal(disposed, 1); assert.equal(stops, 1); assert.equal(b.gimmick, null);
   b.beginRetry(); assert.deepEqual(b.members.map(m => m.hp), [100, 100, 100]);
   assert.ok(b.members.every(m => !m.down));
+});
+
+// BUILD428: 네 번째 벗기기부터는 3방이면 된다
+test('test_park_fourth_strip_onward_needs_three_hits', () => {
+  const b = fixture(); intro(b);
+  const counts = [];
+  for (let n = 0; n < 5; n++) {
+    counts.push(b.support.requiredHits);
+    charge(b); const plan = b.support.action(); b.support.expose(plan.target);
+    b.support.afterEnemyPhase(); b.support.afterEnemyPhase(); const rewear = b.support.afterEnemyPhase(); rewear?.update?.(2, none);
+  }
+  assert.deepEqual(counts, [9, 9, 9, 3, 3]);
 });

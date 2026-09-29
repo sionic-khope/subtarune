@@ -1,8 +1,9 @@
 const line = (speaker, portrait, text) => ({ speaker, portrait, voice: portrait, text: `* ${text}` });
 
 export const PARK_GUARDIAN = {
-  requiredHits: 9, exposedTurns: 2,
-  costumeSchedule: { trialTurns: [5, 10], razmaEvery: 4 },
+  // BUILD428(사용자 2026-09-29): 네 번째 벗기기부터 3방(lateHits), 두 번째 마녀재판(오방순)은 10 → 9번째 의상 턴
+  requiredHits: 9, lateHits: 3, lateFromStrip: 4, exposedTurns: 2,
+  costumeSchedule: { trialTurns: [5, 9], razmaEvery: 4 },
   strip: { windup: 0.55, rush: 0.42, impact: 0.1, flight: 0.85, offscreenHold: 0.15, return: 0.95, settle: 0.25,
     exitX: 550, flightLift: 100, flightSpin: Math.PI * 3, stepSeconds: 0.14 },
   rewearSeconds: 1.5,
