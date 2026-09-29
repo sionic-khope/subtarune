@@ -8,6 +8,12 @@ export class TvBroadcast {
     this.expression = 'smirk';
     this.elapsed = 0;
     this.disposed = false;
+    // 맵 preload 에 없는 표정도 켜질 때 다 불러 둔다(BUILD427: youngcle1 에 question 이 빠져 ‘음 인면견?’ 동안 TV 가 빈 화면이었다)
+    const images = game.propImages;
+    if (images && typeof Image !== 'undefined') for (const src of Object.values(config.expressions || {})) {
+      if (images[src]) continue;
+      const img = new Image(); img.onload = () => { if (!images[src]) images[src] = img; }; img.src = src;
+    }
   }
 
   /** The power click fires once; the screen expands from a thin horizontal scan. */

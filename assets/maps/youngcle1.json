@@ -46,7 +46,12 @@
   "assets/illustrations/youngcle-tv-surprise.png",
   "assets/illustrations/youngcle-tv-read.png",
   "assets/illustrations/youngcle-tv-shock.png",
-  "assets/illustrations/youngcle-tv-hide.png"
+  "assets/illustrations/youngcle-tv-hide.png",
+  "assets/illustrations/youngcle-tv-middle-finger.png",
+  "assets/illustrations/youngcle-tv-question.png",
+  "assets/illustrations/youngcle-tv-questions.png",
+  "assets/illustrations/youngcle-tv-facepalm.png",
+  "assets/illustrations/youngcle-tv-glare.png"
  ],
  "spawns": {
   "start": {

@@ -34,7 +34,7 @@ def main() -> None:
                     'assets/sprites/youngcle.png',
                     *[f'assets/illustrations/youngcle-tv-{pose}.png'
                       for pose in ('smirk', 'laugh', 'greet', 'oh', 'taunt', 'shrug', 'bye', 'yes', 'surprise',
-                                   'read', 'shock', 'hide')]],
+                                   'read', 'shock', 'hide', 'middle-finger', 'question', 'questions', 'facepalm', 'glare')]],
         'spawns': {
             'start': {'x': 660, 'y': 376, 'facing': 'up'},
             'from_bridge': {'x': 660, 'y': 376, 'facing': 'up'},

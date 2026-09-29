@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-24
 
+**BUILD427 — 영클 TV 빈 화면(사용자 2026-09-29 “음 인면견? 에서 이렇게 된다”)**: youngcle1 preload 에 TV 표정 12개만 있어 ‘question’(음 인면견?) 동안 TV 속 영클이 안 그려졌다 → 맵 preload 에 표정 17개 전부(middle-finger 파일명 주의), 그리고 `TvBroadcast` 가 켜질 때 preload 에 없는 표정 그림을 스스로 불러 둔다(다른 TV 맵도 같은 빈틈 방지).
+
 **BUILD426 — 배포 사이트 효과음 빠짐(사용자 2026-09-29 “깃헙 사이트에서 Shift+Q 로 상승 갔더니 효과음이 안 들리네… 이제 또 들리네”)**: 실측(새 브라우저, 배포 424): 음성 30개는 점프 때 준비돼 있었지만 효과음은 점프 순간 40개 → 20초 뒤 166개로 뒤에서 받는 중이었고, 손으로 적은 미리 받기 목록에 30개(confirm_echo·fountain_draw/erupt·gajaeman_knee/kick·teen_vacuum·cathedral_gust·blade_lock_whine 등 후반부)가 아예 빠져 장면이 부를 때에야 받기 시작했다. → `src/data/sfx-files.js`(폴더 전체, `tests/unit/sfx-files.test.mjs` 가 폴더와 대조)를 미리 받기에 더하고 한 번에 10개씩, 끝나면 `sfxPreloadDone`. Shift+Q 점프·이어하기는 `audioReady()`로 음성·효과음 준비를 최대 8초 기다린 뒤 맵에 들어간다.
 
 **BUILD425 — 리셋 흐름(사용자 2026-09-29 “리셋하고 바로 시작 말고 시작하기 화면”)**: 리셋 확인(C) → 세이브만 지우고 타이틀 메뉴가 [시작] 하나로 바뀐다 → [시작] → 팬메이드 안내 [확인] → 새 게임.
