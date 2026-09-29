@@ -12,7 +12,7 @@ import { FONT, F } from '../ui/font.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { buildLevel, makeActor, stepActor, followerIntent, updateProjectiles, frameOf, cameraX, atGoal, remainingEnemies, springNear, makeBoss, stepBoss, hitBoss, hurtActor,
   bossHitbox, bossFrame, bossBob, bossAttackHero, bossSpinCircle, bossSlamZones, bossHookBox, bossTiming, clockVelocity, rectsOverlap, makeEnemy, stepEnemy, damageEnemy, heroTouchesEnemy, enemyFrame, brandThink, zileanThink, burstClocks, NO_INTENT,
-  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, MARIO_HEAL, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H,
+  STAGES, MONSTERS, TOTEM_HIT_LINES, BOSS, BOSS_INTRO, BOSS_ENRAGE, GUARD_TIP, MARIO_HEAL, SPEAR, FIRE, CLOCK, ENEMY, DAMAGE, TILE, VIEW_W, VIEW_H, ATLAS_COLUMN, WATER_W, WATER_H,
   RESULT, makeStats, resultView } from './subrio-core.js';
 
 const FRAME = 10;
@@ -504,6 +504,8 @@ export function run(game, node = {}) {
           if (event.damage > 0 && event.id === HERO_ID) {
             game.partyHp[HERO_ID] = Math.max(0, game.hpOf(HERO_ID) - event.damage);
             state.hpFlash = 0.5; state.stats.hits += 1;
+            // 보스전: 체력이 처음 100 이하가 되면 억빠맨이 방어(X)를 알려 준다 — 한 번만(다시 떨어져도, 재도전해도 안 나옴)
+            if (def.boss && !state.guardTipShown && game.hpOf(HERO_ID) > 0 && game.hpOf(HERO_ID) <= GUARD_TIP.hp) { state.guardTipShown = true; say([GUARD_TIP.line]); }
             if (game.hpOf(HERO_ID) <= 0 && state.sub === 'run') { state.stats.downs += 1; state.sub = 'dead'; state.subT = 0; state.control = false; leader.charge = 0; sfx('damage', 0.8); if (def.boss) game.sound.stopBgm(1.0); }
           }
         }

@@ -82,6 +82,8 @@ export const BOSS_PATTERN = ['swing', 'hook', 'spin', 'slam', 'swing', 'spin', '
 /** 격노(체력 절반, 사용자): 붉어지고 더 어려운 패턴 — 특수기 비중↑, 예비·회복 짧아짐, 걸음·낙하 빨라짐 */
 export const BOSS_PATTERN_ENRAGED = ['hook', 'spin', 'slam', 'hook', 'swing', 'slam', 'spin', 'hook'];
 // BUILD174: 격노 완화 요청은 사용자가 철회(“방어 쓰니까 쉽네, 안 내려도 될 듯”) — 값 그대로
+/** 1-4 보스전에서 요플래 체력이 처음 100 이하로 떨어지면 억빠맨 한마디(BUILD430 사용자 원문) */
+export const GUARD_TIP = { hp: 100, line: { who: 'ppaman', text: '형 x키 눌러서 방어할수있어요 잘 활용해야할거같아요.' } };
 export const BOSS_ENRAGE = { at: 0.5, windup: 0.35, spinWind: 0.65, marker: 0.5, hookWind: 0.32, recoverScale: 0.6, speed: 95, diveSpeed: 1000, line: { who: 'ppaman', text: '거의 다 왔어요 족쳐' } };
 // 회복 샘물(스테이지 중간·끝): 근처에서 C → 체력 가득. 도트마리오 버섯(보스전): 40초마다 오른쪽 벽 위에 나타나 던진다, 30 회복
 export const SPRING = { reach: 26 };
