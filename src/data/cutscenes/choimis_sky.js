@@ -22,6 +22,7 @@ export const CHOIMIS_SKY = Object.freeze({
 
 const C = text => ({ speaker: '최미스', portrait: 'choimis_flower', voice: 'choimis_flower', text: `* ${text}` });
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
+const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const close = { action: game => game.textbox.close() };
 
 export const choimis_sky = Object.assign([
@@ -46,6 +47,11 @@ export const choimis_sky = Object.assign([
   C('어쨋든 곧 나는 점례에게 돌아갈거야'),
   C('너희들의 동기가 어떻게 됐든 난 상관없어'),
   C('나를 막을 순 없을것이다.'),
+  // 티키타카(BUILD424 사용자 “대의다 전에 억빠맨: 적당히해 ㅂㅅ아 니가 좋아하는 사실 자체가 재앙이라 막는거임 이런류”)
+  P('적당히해 ㅂㅅ아'),
+  P('니가 좋아하는 사실 자체가 재앙이라 막는거임'),
+  K('ㅋㅋ 그건 맞지'),
+  C('...'),
   C("형들이 무슨 대의를 위해 날 막는건진 모르겠지만. 난 '순애'다."),
   C('순수한 나의 사랑을'),
   C('그리고. 이젠 달라진 나의 모습을.'),
