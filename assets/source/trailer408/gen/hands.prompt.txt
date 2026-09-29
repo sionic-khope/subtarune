@@ -1,0 +1,7 @@
+# imagegen 2026-09-29 09:18:28
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/trailer408/k_9.8.png
+
+Four separate white cartoon glove hands made of matte white clay like the hands in Image1, photographed on a pure black background, arranged left to right with wide black gaps between them, each hand pointing up: hand 1 shows ONE raised index finger, hand 2 shows TWO fingers (peace sign), hand 3 shows THREE fingers, hand 4 shows FOUR fingers (thumb folded). Soft grey studio shading, no arms beyond the wrist, no text.

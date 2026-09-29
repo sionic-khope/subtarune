@@ -1,0 +1,7 @@
+# imagegen 2026-09-29 09:19:05
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/trailer408/gen/ref_15.0.png
+
+The left half of the reference image (Image1) shows a white clay dog figure — copy ONLY its photographic style: real-world 3D soft clay / plush sculpture, matte white material, soft grey studio shading, pure black background. The right half shows the pixel sprite of the character to render: SEOPNYANG, a chubby round white cat mascot with a white round body and head, a black hair cap on top of the head with two small pointed cat ears, small black thin rectangular glasses with squinting half-closed eyes behind them, a small nose and a wide goofy smiling mouth. Render SEOPNYANG (not the dog) as that 3D clay figure on pure black. No text, single image, no split panels. Full body lying down on its side, relaxed and lazy, head on the left, centered, black space around.

@@ -146,3 +146,13 @@ $RECYCLE.BIN/
 # subtarune
 node_modules/
 tests/playtest/shots/
+
+# 트레일러(BUILD408): 녹화 원본·작업 프레임·참고 영상/음원·결과 영상은 저장소에 넣지 않는다
+assets/source/trailer408/clips/
+assets/source/trailer408/work/
+assets/source/trailer408/f/
+assets/source/trailer408/ref*
+assets/source/trailer408/*.mp4
+assets/source/trailer408/k_*.png
+assets/source/trailer408/sheet*.png
+assets/source/trailer408/*_sheet.png
