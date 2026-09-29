@@ -458,12 +458,15 @@ export const TEEN_PATTERNS = {
         const warn = Math.max(0.5, 0.75 - wave * 0.02);
         for (const c of picks) {
           const x = box.x + colW * c + colW / 2;
-          api.emit({ zone: true, x: x - colW / 2 + 3, y: box.y + box.h - 90, w: colW - 6, h: 90, warn, life: warn + 0.45,
+          // 칸 전체 높이(BUILD418 사용자 “위에 있으면 다 피해진다”): 무릎이 아래에서 위 끝까지 솟구치며 보라 자국을 남긴다 — 비는 칸만 안전
+          api.emit({ zone: true, x: x - colW / 2 + 3, y: box.y, w: colW - 6, h: box.h, warn, life: warn + 0.45,
             drawShape(ctx, b) {
               ctx.save(); clip(ctx, api.box);
-              if (b.age < b.warn) { ctx.fillStyle = `rgba(160,90,255,${0.14 + 0.3 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h); }
-              if (img) { const up = Math.min(1, Math.max(0, (b.age - b.warn + 0.1) / 0.14)), frame = b.age < b.warn ? 1 : 2;
-                ctx.drawImage(img, frame * cw, 0, cw, ch, Math.round(b.x + b.w / 2 - w / 2), Math.round(box.y + box.h - up * h), Math.round(w), Math.round(h)); }
+              if (b.age < b.warn) { ctx.fillStyle = `rgba(160,90,255,${0.1 + 0.26 * b.age / b.warn})`; ctx.fillRect(b.x, b.y, b.w, b.h); }
+              const up = Math.min(1, Math.max(0, (b.age - b.warn + 0.06) / 0.16)), frame = b.age < b.warn ? 1 : 2;
+              const top = box.y + box.h - up * (box.h + h * 0.2);
+              if (up > 0) { const fade = 1 - Math.max(0, (b.age - b.warn - 0.16) / 0.3); ctx.fillStyle = `rgba(190,120,255,${0.5 * fade})`; ctx.fillRect(b.x + b.w * 0.2, top + h * 0.5, b.w * 0.6, box.y + box.h - top - h * 0.5); }
+              if (img) ctx.drawImage(img, frame * cw, 0, cw, ch, Math.round(b.x + b.w / 2 - w / 2), Math.round(b.age < b.warn ? box.y + box.h - h * 0.35 : top), Math.round(w), Math.round(h));
               ctx.restore();
             } });
         }
