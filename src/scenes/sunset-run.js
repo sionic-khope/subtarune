@@ -41,7 +41,7 @@ export class SunsetRun {
       for (const ev of events) {
         if (['draw', 'jump', 'slash', 'airslash'].includes(ev)) this.sfx(ev, ev === 'draw' ? 0.45 : 0.7);
         // 출발: 곡과 함께 검 뽑는 소리·번쩍임·잔상 하나
-        if (ev === 'dash') { this.sfx(C.sfx.dash, C.white.dashVolume); this.dashFlash = C.white.burst; this.spawnBoost(); this.revealing = true; this.onDash?.(); }
+        if (ev === 'dash') { if (!this.silentDash) this.sfx(C.sfx.dash, C.white.dashVolume); this.dashFlash = C.white.burst; this.spawnBoost(); this.revealing = true; this.onDash?.(); }
         if (ev === 'slash' || ev === 'airslash') this.slashFx.push({ kind: ev, up: !!this.core.attack?.up, t: 0, dur: ev === 'slash' ? 0.26 : RUNNER.airSlashTime });
         if (ev === 'step') for (let i = 0; i < 3; i++) this.puffs.push({ x: this.x - 4, y: this.groundY - 2, vx: -60 - this.rnd() * 80, vy: -10 - this.rnd() * 20, t: 0, life: 0.45, s: 2 + (i % 2) });
       }

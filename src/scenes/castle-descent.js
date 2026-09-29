@@ -375,6 +375,9 @@ export class CastleDescent {
     g.player.visible = false; this.hideGajaeman();
     // 곡은 이미 한 곡으로 흐른다 — 준비 동작이 끝나는 순간(출발)이 RISE.dash 마디 첫 박에 오도록 시작
     this.waitRise(RISE.dash - RUNNER.prepTime).then(() => run.begin(null));
+    // 출발 소리는 곡 시계로 따로: ‘촥’이 하이라이트 첫 타에 오게 미리 튼다(번쩍임·잔상은 출발 이벤트 그대로)
+    run.silentDash = true;
+    this.waitRise(RISE.highlight - RISE.dashSfxPeak).then(() => { if (this.run === run) run.sfx(GJ.sfx.dash, GJ.white.dashVolume); });
     return new Promise(resolve => this.jobs.push({ t: 0, d: Infinity, step: () => {}, resolve, until: () => run.reveal >= 1 }));
   }
   /** 달린 지 2~3초 뒤 오른쪽에서 천천히 가재맨 */

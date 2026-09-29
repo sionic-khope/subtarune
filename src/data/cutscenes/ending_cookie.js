@@ -48,7 +48,9 @@ export const cookie_tv = [
   { zoom: 1, duration: 0.7 },
   { if: f => !f.cookie_cord, goto: 'cookie_later' },
   { text: '* {c=yellow}검은색 코드{/c}를 획득했다!', voice: 'narrator' },
-  HS('* 아 여깄다 코드.{w=0.3} 색깔이..{w=0.5} 음...{w=0.5} 정상적이네 가야겠당'),
+  // 두 줄로(BUILD416 사용자 “아 여깄다 코드 이후 다음 채팅에서 색깔이, 이렇게 분리”)
+  HS('* 아 여깄다 코드.'),
+  HS('* 색깔이..{w=0.5} 음...{w=0.5} 정상적이네 가야겠당'),
   { end: true },
   { label: 'cookie_later' },
   { text: '* (나중에 다시 뒤지자.)', voice: 'narrator' },
