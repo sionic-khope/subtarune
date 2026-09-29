@@ -26,6 +26,7 @@ import { loadCharacterMotions } from './world/character-motion.js';
 import { CHARACTER_MOTIONS } from './data/character-motions.js';
 import { PALETTES } from './data/art.js';
 import { MAPS } from './data/maps.js';
+import { SFX_FILES } from './data/sfx-files.js';
 import { SCRIPTS } from './data/scripts.js';
 import { battleEntry } from './data/cutscenes/helpers.js';
 import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './data/cutscenes/captain_reveal.js';
@@ -209,7 +210,7 @@ class Game {
     void this.sound.loadSfxFiles(TITLE_SFX);
     void this.sound.loadVoiceFiles(Object.keys(VOICES));
     setTimeout(() => {
-      this.scheduleSfxPreload(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_flower_hello', 'choimis_flower_seup', 'choimis_flower_sexy', 'choimis_flower_gap', 'choimis_flower_gonik', 'choimis_flower_wow', 'choimis_flower_yes', 'choimis_flower_no', 'ralsei_splat', 'kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'crowd_boo', 'ak_shot', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit']);
+      this.scheduleSfxPreload([...new Set(['yellowheart_charge', 'yellowheart_shot', 'yellowheart_shot_big', 'choimis_flower_hello', 'choimis_flower_seup', 'choimis_flower_sexy', 'choimis_flower_gap', 'choimis_flower_gonik', 'choimis_flower_wow', 'choimis_flower_yes', 'choimis_flower_no', 'ralsei_splat', 'kart_missile', 'kart_booster', 'kart_banana', 'kart_waterbomb', 'kart_magnet', 'kart_waterfly', 'choimis_chosouya', 'choimis_seup_miss', 'domijorim_heumi', 'kakao', 'crowd_ooh', 'crowd_boo', 'ak_shot', 'asgore_spear_swing', 'energetic_powershot', 'deltarune_release_shoot', 'menu', 'confirm', 'cancel', 'open', 'close', 'item', 'shop_buy', 'door', 'chime', 'thud', 'white', 'battle_start', 'battle_end', 'laugh_junhee', 'laugh_janitor', 'swing', 'criticalswing', 'deflect', 'hurt_dr', 'wallclaw', 'metalhit', 'squeaky', 'bell_bounce', 'break1', 'vine_whip', 'howl', 'ajimkiya_line', 'siren', 'error', 'plug', 'click', 'whoosh', 'splash', 'rumble', 'jump', 'knock', 'hit', 'hurt', 'damage', 'vaporized', 'won', 'pop', 'heal', 'scrape', 'drumroll', 'fanfare', 'ember', 'rocket', 'boom', 'explosion', 'baron_roar', 'cannon_charge', 'cannon_puff', 'baron_slam', 'baron_eruption', 'cannon_guard_charge', 'cannon_guard_fire', 'cannon_guard_block', 'cannon_guard_breath', 'maillard_splash', 'maillard_applause', 'maillard_water_lift', 'wemix_remix', 'captain_thunder', 'captain_transform', 'mankatsuki_clone', 'mankatsuki_hurt', 'iron_step_1', 'iron_step_2', 'youngcle_tv_on', 'mario_jump', 'mario_pipe', 'editor_union_bam', 'park_trial_objection', 'park_trial_shatter', 'park_razma_scream', 'park_razma_jeolla', 'wing', 'bell', 'spearappear', 'impact', 'power', 'ultraswing', 'heavyswing', 'zilean_q_throw', 'zilean_q_stun', 'pantheon_q_charge', 'pantheon_q_throw', 'pantheon_q_hit', 'pantheon_q_tap', 'pantheon_e_up', 'pantheon_e_block', 'levelup', 'menumove', 'select', 'orchhit', 'great_shine', 'chain_extend', 'weaponpull', 'locker', 'crowd', 'applause', 'crowd_cheer', 'crowd_roar', 'guitar_c4', 'guitar_g4', 'guitar_a4', 'guitar_scratch', 'guitar_feedback', 'guitar_dead', 'static_loop', 'static_burst', 'applause_2', 'crowd_cheer_2', 'crowd_roar_2', 'crowd_bed', 'sizzle', 'furnace_blast', 'bigcut', 'color_red', 'color_orange', 'color_yellow', 'color_green', 'color_blue', 'color_navy', 'color_purple', 'color_heart', 'color_nasdf', 'color_pi', 'color_legend', 'color_ngaita', 'laser_zap', 'laser_charge', 'laser_beam', 'queen_hoot', 'obangsun_wail', 'punch', 'drum_throw', 'impact', 'drum_burst', 'rudebuster_swing', 'rudebuster_hit', ...SFX_FILES])]);
       void this.sound.loadWalkLoop(WATER_WALK);
     }, 3000);
     this.characterMotions = {};
@@ -316,7 +317,7 @@ class Game {
     if (/^jjajang_night_coast[123]$/.test(d.map) && !d.flags?.night_coast_geometry405) {
       d.x = NaN; d.y = NaN; d.spawn = 'from_west';
     }
-    await this.waitForMap(d.map, [d.sprite || 'hyungsub', ...normalizeParty(d.party)]);
+    await Promise.all([this.waitForMap(d.map, [d.sprite || 'hyungsub', ...normalizeParty(d.party)]), this.audioReady()]);
     this.resetState(); this.story.load(d.story);
     Object.assign(this.flags, d.flags || {});           // side flag 복원 (단계 플래그는 load 가 backfill)
     this.inventory = normalizeItemNames((d.inventory || []).filter((n) => typeof n === 'string'));
@@ -335,6 +336,11 @@ class Game {
     this.fadeTo(0, 0.5);
   }
   /** 개발용 바로가기(?map= / ?stage=): 그 지점까지의 스토리 단계를 전부 채워서 상태 꼬임을 막는다 */
+  /** 음성·효과음이 준비될 때까지 최대 ms 기다린다(BUILD426 사용자 “깃헙 사이트에서 Shift+Q 로 갔더니 효과음이 안 들리네”) — 점프·이어하기·새 게임이 곧바로 연출을 틀기 전에 */
+  async audioReady(ms = 8000) {
+    const voices = this.sound.loadVoiceFiles(Object.keys(VOICES));
+    await Promise.race([Promise.all([voices, this.sfxPreloadDone || Promise.resolve()]), new Promise(resolve => setTimeout(resolve, ms))]);
+  }
   async devJump({ map, spawn, stage, flags, party, inventory, money, script, extraItems, healKit }) {
     if (stage && Story.isStage(stage)) map ||= Story.stageOf(stage).map;
     const effectiveFlags = { ...(flags || {}) };
@@ -345,6 +351,7 @@ class Game {
     await Promise.all([
       this.loadMapDefinitions(),
       this.waitForMap(map, [this.playerSprite || 'hyungsub', ...destinationParty]),
+      this.audioReady(),
     ]);
     this.resetState();                               // 이전 세이브·이전 QA 지점 상태를 버리고 깨끗이 (섞이면 동료/플래그가 어긋난다)
     if (stage && Story.isStage(stage)) { this.story.advance(stage); const def = Story.stageOf(stage); map = map || def.map; spawn = spawn || def.spawn; }
@@ -815,14 +822,15 @@ class Game {
   }
 
   scheduleSfxPreload(names) {
-    let next = 0;
+    let next = 0, done;
+    this.sfxPreloadDone = new Promise(resolve => { done = resolve; });
     const pump = async () => {
       if (this.loadingMap || this.transitioning || (this.state === 'title' && !this.preparedMaps?.has('room'))) { setTimeout(pump, 200); return; }
-      const batch = names.slice(next, next + 6);
+      const batch = names.slice(next, next + 10);
       next += batch.length;
       try { await this.sound.loadSfxFiles(batch); }
       catch (error) { console.warn('[audio] 효과음 준비 실패', error); }
-      if (next < names.length) setTimeout(pump, 100);
+      if (next < names.length) setTimeout(pump, 60); else done();
     };
     void pump();
   }
