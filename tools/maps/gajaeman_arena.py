@@ -101,7 +101,8 @@ def main() -> None:
         'bgm': None, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_arena_intro', 'early': True},
         'preload': ['assets/props/arena332_room.png', 'assets/props/arena332_upper.png', 'assets/props/cathedral323_sword.png',
-                    'assets/props/arena332_cheong_orb.png', 'assets/props/arena332_arm.png', 'assets/props/arena332_giant.png']
+                    'assets/props/arena332_cheong_orb.png', 'assets/props/arena332_arm.png', 'assets/props/arena332_giant.png',
+                    'assets/fx/fountain_splash_1.png', 'assets/fx/fountain_splash_2.png', 'assets/fx/fountain_splash_3.png', 'assets/fx/fountain_splash_4.png']
         + [f'assets/props/arena332_{n}.png' for n, *_ in LEFT + RIGHT_NAMES],
         'spawns': {'start': {'x': 540, 'y': 700 + TOP_PAD, 'facing': 'up'},
                    'rim': {'x': 540, 'y': ROW_Y, 'facing': 'up'}},

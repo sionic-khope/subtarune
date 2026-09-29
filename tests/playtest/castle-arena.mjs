@@ -29,7 +29,7 @@ await runScenario({ name: 'castle-arena', launchOptions: { args: ['--autoplay-po
     '왜 너희는 나를 방해하려고 하는거지?', '어차피 김형섭이라는 인간은, 너희에게 그렇게 소중하지 않잖아?', '내가 받아왔던 치부처럼.', 'ㄹㅇ', '영클아', '김형섭은'];
   check('opening lines verbatim and in order', expected.every((t, i) => lines[i]?.endsWith(`* ${t}`)), JSON.stringify(lines.slice(0, 12)));
   check('all 47 lines shown', lines.length === 47, `${lines.length} ${JSON.stringify(lines)}`);
-  check('the full sequence ran: aura, eruption, charge, orb, swords stuck, fountain', ['true', 'held', 'stuck'].every(k => beats.some(b => b.key.includes(k))) && maxFountain > 3000, JSON.stringify(beats));
+  check('the full sequence ran: aura, eruption, charge, orb, swords stuck, fountain', ['true', 'held', 'stuck'].every(k => beats.some(b => b.key.includes(k))) && maxFountain > 2300, JSON.stringify(beats));
   check('camera climbs far above the arena', minCamY < 400, JSON.stringify([minCamY, final.cam]));
   check('runs right into the stairs map on its own', await until(() => game.mapId === 'gajaeman_castle_stairs', 8000));
   check('arrival saved as a stage', final.stage);

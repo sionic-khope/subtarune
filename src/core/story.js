@@ -182,8 +182,8 @@ export const STATE_FROM_FLAGS = [
 export const QA_HEAL_KIT = [
   { flag: 'teal3_cs_won', items: { '바나나': 10 } },
   { flag: 'maillard_cart_done', items: { '위장약': 5, '에그타르트': 5 } },
-  // 후반(최미스 구출 뒤): 기름떡볶이·핫도그 5개씩(사용자 “후반엔 기름떡볶이랑 핫도그 5개씩”)
-  { flag: 'choimis_rescued', items: { '기름떡볶이': 5, '핫도그': 5 } },
+  // 후반(배 침몰 뒤 짜장섬부터 끝까지): 기름떡볶이·핫도그 5개씩(사용자 “후반엔 기름떡볶이랑 핫도그 5개씩”, 2026-09-29 “후반 지점은” 재요청 — 최미스 구출 뒤만이던 것을 넓힘)
+  { flag: 'ship_sinking_done', items: { '기름떡볶이': 5, '핫도그': 5 } },
 ];
 export const QA_HEAL_KIT_COUNT = 10;
 export const qaHealKit = (flags = {}) => {

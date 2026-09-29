@@ -28,7 +28,12 @@ export const ARENA = Object.freeze({
   // BUILD335: 휘두르기 대신 화면 밖 어깨에서 주먹을 내지른다(굵고 크게, 사용자 “주먹을 날려야함”)
   arm: { image: 'assets/props/arena332_arm.png', reach: 640, pivotY: 130, windup: 0.4, swing: 0.16, hold: 0.5, pull: 260, tilt: 0.12 },
   // build: 큰 파동 전 준비(가는 줄기) — 5초에서 1초 줄임(사용자 2026-09-26)
-  fountain: { build: 4.0, grow: 2.6, height: 3400, width: 380, ribbons: 4, bands: 2, shadow: 0.62 },
+  // BUILD415(사용자 2026-09-29, 참고 쇼츠 Qga4FH1k8n8): 구덩이 전체가 아니라 가운데 기둥(radius = 구덩이 폭 비율),
+  // 꼭대기는 카메라가 멈추는 화면 위쪽에서 taper 동안 좁아져 한 점으로 사라진다(height = 구덩이 → 거기까지),
+  // 터지기 전 마지막 splashLead 초는 생성 물보라 스프라이트가 구덩이를 돌며 튀어 오른다, 솟는 동안 하늘 바람 줄기
+  fountain: { build: 4.0, grow: 2.6, height: 2560, width: 380, ribbons: 4, bands: 2, shadow: 0.62, radius: 0.56, taper: 700,
+    splashLead: 1.5, splashes: 7, winds: 30, recoil: { lean: 0.16, in: 0.14, hold: 1.1, out: 0.5 } },
+  splash: ['assets/fx/fountain_splash_1.png', 'assets/fx/fountain_splash_2.png', 'assets/fx/fountain_splash_3.png', 'assets/fx/fountain_splash_4.png'],
 });
 
 const clamp01 = value => Math.max(0, Math.min(1, value));
@@ -159,6 +164,12 @@ export class CastleArena {
     this.sfx('cathedral_gust', 0.5);
     this.game.shake = { time: ARENA.fountain.build, amp: 1 };
     return this.waitFor(() => !this.fountain || this.fountain.t >= ARENA.fountain.build);
+  }
+  /** 큰 파동이 솟는 순간 일행이 놀라 몸을 바깥·뒤로 젖혔다가 돌아온다(사용자 “당황해서 몸 살짝 뒤로 기울여지는 느낌”). */
+  recoil(ids) {
+    const px = this.pit[0];
+    this.recoiling = { t: 0, list: ids.map(id => this.game.entities.find(e => e.id === id || (id === 'player' && e === this.game.player))).filter(Boolean)
+      .map(e => ({ e, dir: (e.x + e.w / 2) < px ? -1 : 1 })) };
   }
   /** Seconds since the surge (negative while it is still only a wind-like trickle). */
   surgeT() { return this.fountain ? this.fountain.t - ARENA.fountain.build : -1; }
@@ -318,6 +329,12 @@ export class CastleArena {
     this.flung = this.flung.filter(f => !f.done);
     for (const sp of this.sparks) { sp.age += s; sp.y += sp.vy * s; }
     this.sparks = this.sparks.filter(sp => sp.age < 2.2);
+    if (this.recoiling) {
+      const R = ARENA.fountain.recoil, rc = this.recoiling; rc.t += s;
+      const k = rc.t < R.in ? easeOut(rc.t / R.in) : rc.t < R.in + R.hold ? 1 : 1 - easeInOut(clamp01((rc.t - R.in - R.hold) / R.out));
+      for (const { e, dir } of rc.list) e.spin = dir * R.lean * k;
+      if (rc.t >= R.in + R.hold + R.out) { for (const { e } of rc.list) e.spin = 0; this.recoiling = null; }
+    }
     if (this.fountain?.fadeOut) { const fo = this.fountain.fadeOut; fo.t += s; if (fo.t >= fo.d) this.fountain = null; }
     if (this.fountain) {
       const before = this.surgeT();
@@ -595,15 +612,16 @@ export class CastleArena {
     const baseY = py - cam.y, cx = px - cam.x, topY = baseY - h;
     const visTop = Math.max(topY, -SCREEN_H * 1.5);
     // 구덩이의 약 90% 만 채운다(사용자 “울타리도 그렇고 90퍼정도만”): 부풂·출렁임까지 더해도 테두리 난간 안쪽
-    const R = 8 + (prx * 0.8 - 8) * open, RY = pry * (R / prx), width = R * 2, rim = baseY - pry * 1.6;
+    const R = 8 + (prx * F.radius - 8) * open, RY = pry * (R / prx), width = R * 2, rim = baseY - pry * 1.6;
     ctx.fillStyle = `rgba(2,10,34,${F.shadow * clamp01(f.t / 0.6)})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
-    this.drawPitWater(ctx, cx, baseY, prx, pry, 1);
-    // 밑동 위로 조금 부풀었다가(불꽃처럼) 곧게 오르고, 꼭대기는 둥글다
+    this.drawSkyWind(ctx, clamp01(st / 0.6));
+    this.drawPitWater(ctx, cx, baseY, prx * 0.9, pry * 0.9, 1);
+    // 밑동 위로 조금 부풀었다가(불꽃처럼) 곧게 오르고, 꼭대기 taper 동안 점점 좁아져 한 점으로(사용자 “맨 위쯤 점점 작아지면서 없어지게”)
     const half = y => {
       const up = baseY - y;
-      const flare = 1 + 0.05 * Math.sin(clamp01(up / 240) * Math.PI) * open;
-      const dome = up > h - R ? Math.sqrt(clamp01((h - up) / R)) : 1;
-      return R * flare * dome;
+      const flare = 1 + 0.08 * Math.sin(clamp01(up / 240) * Math.PI) * open;
+      const narrow = Math.pow(clamp01((h - up) / F.taper), 0.75);
+      return R * flare * narrow;
     };
     const wav = (y, side) => (Math.sin((y + t * 300) * 0.011 + side * 1.9) * 8 + Math.sin((y + t * 520) * 0.029 + side) * 3) * open * clamp01((baseY - y) / 70);
     const yTop = Math.max(visTop, topY);
@@ -650,6 +668,8 @@ export class CastleArena {
     ctx.fillStyle = foot; ctx.fillRect(cx - R * 1.2, baseY - R, R * 2.4, R + RY * 2);
     ctx.restore();
     this.drawRibbons(ctx, cam, cx, width, rim, visTop, open, true);
+    // 솟는 순간 밑동에서 물보라 스프라이트가 크게 터진다
+    if (st < 0.9) this.drawSplashBurst(ctx, cx, baseY, prx, pry, st);
     // 둘레를 감아 오르는 반투명 바람 호
     ctx.save(); ctx.lineCap = 'round';
     for (let i = 0; i < 6; i++) {
@@ -657,8 +677,10 @@ export class CastleArena {
       for (let rep = 0; rep < 2; rep++) {
         const yy = y0 + rep * per;
         if (yy > rim || yy < yTop) continue;
+        const nr = half(yy) / Math.max(1, R);
+        if (nr < 0.08) continue;
         ctx.strokeStyle = `rgba(210,245,255,${(0.16 + 0.08 * (i % 2)) * open})`; ctx.lineWidth = 3 + (i % 3) * 2;
-        ctx.beginPath(); ctx.ellipse(cx, yy, RR, RR * 0.22, 0, Math.PI * (0.05 + (i % 2) * 0.9), Math.PI * (0.9 + (i % 2) * 0.9)); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(cx, yy, RR * nr, RR * nr * 0.22, 0, Math.PI * (0.05 + (i % 2) * 0.9), Math.PI * (0.9 + (i % 2) * 0.9)); ctx.stroke();
       }
     }
     ctx.restore();
@@ -685,12 +707,15 @@ export class CastleArena {
       for (let wy = start; wy < cam.y + SCREEN_H * 2.5 + period; wy += period) {
         const y0 = wy - cam.y + (1 - phase) * period + r.phase * 180;
         if (y0 > baseY || y0 < visTop - 80) continue;
+        // 꼭대기로 갈수록 기둥이 좁아지는 만큼 리본도 좁혀 감는다(끝에서 함께 사라짐)
+        const narrow = Math.pow(clamp01((this.fountainHeight() - (baseY - y0)) / ARENA.fountain.taper), 0.75);
+        if (narrow < 0.05) continue;
         ctx.strokeStyle = front ? (r.dir > 0 ? 'rgba(90,190,240,0.95)' : 'rgba(60,150,190,0.9)') : 'rgba(30,90,120,0.7)';
-        ctx.lineWidth = (front ? 12 : 9) * (0.4 + 0.6 * open);
+        ctx.lineWidth = (front ? 12 : 9) * (0.4 + 0.6 * open) * (0.4 + 0.6 * narrow);
         ctx.beginPath();
         const from = front ? -0.15 : Math.PI - 0.3, to = front ? Math.PI + 0.15 : Math.PI * 2 - 0.2;
         for (let a = from; a <= to; a += 0.08) {
-          const x = cx + Math.cos(a) * r.dir * (width * 0.62 + 18 * Math.sin(a * 3));
+          const x = cx + Math.cos(a) * r.dir * (width * 0.62 + 18 * Math.sin(a * 3)) * narrow;
           const y = y0 + Math.sin(a) * 30 - (a - from) * 60;
           if (a === from) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
@@ -727,9 +752,51 @@ export class CastleArena {
     for (const [inset, color] of [[0, `rgba(47,182,224,0.85)`], [w * 0.3, 'rgba(230,252,250,0.97)']]) {
       ctx.fillStyle = color; ctx.fillRect(Math.round(cx - w / 2 + inset), Math.round(top), Math.round(w - inset * 2), Math.round(baseY - top));
     }
+    // 터지기 직전: 생성 물보라 스프라이트가 구덩이를 돌며 점점 크게 튀어 오른다(참고 영상 10.9~11.2s)
+    const lead = clamp01((f.t - (F.build - F.splashLead)) / F.splashLead);
+    if (lead > 0) this.drawSplashSwirl(ctx, cx, baseY, prx, pry, lead);
     ctx.strokeStyle = `rgba(200,245,255,${0.5 + 0.3 * k})`; ctx.lineWidth = 2;
     const ring = (t * 0.9) % 1;
     ctx.beginPath(); ctx.ellipse(cx, baseY, 10 + prx * 0.3 * ring, (10 + prx * 0.3 * ring) * (pry / prx), 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  /** 물보라 스프라이트 한 장: 가운데 기준, 크기·기울기·좌우 뒤집기·투명도 */
+  blitSplash(ctx, index, x, y, size, angle, flip, alpha) {
+    const img = this.image(ARENA.splash[index % ARENA.splash.length]);
+    if (!img || alpha <= 0) return;
+    const k = size / Math.max(img.width, img.height);
+    ctx.save(); ctx.globalAlpha = clamp01(alpha); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(angle); if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(img, Math.round(-img.width * k / 2), Math.round(-img.height * k), Math.round(img.width * k), Math.round(img.height * k)); ctx.restore();
+  }
+  /** 터지기 전: 여러 물보라가 구덩이 둘레를 돌며 위로 치솟는다. lead 0→1 */
+  drawSplashSwirl(ctx, cx, baseY, prx, pry, lead) {
+    const F = ARENA.fountain, t = this.time;
+    for (let i = 0; i < F.splashes; i++) {
+      const a = t * 2.6 + i * Math.PI * 2 / F.splashes, rr = prx * (0.35 + 0.35 * lead), front = Math.sin(a) > 0;
+      const x = cx + Math.cos(a) * rr, y = baseY + Math.sin(a) * pry * 0.55 * (0.4 + 0.6 * lead) - lead * 26;
+      const size = (46 + 70 * lead) * (front ? 1 : 0.82), pop = 0.85 + 0.15 * Math.sin(t * 9 + i * 1.7);
+      this.blitSplash(ctx, i, x, y, size * pop, Math.cos(a) * 0.35, Math.cos(a) < 0, (front ? 1 : 0.55) * clamp01(lead * 2.2));
+    }
+  }
+  /** 솟는 순간(st 0→0.9): 밑동 양옆으로 큰 물보라가 터져 퍼지며 사라진다. */
+  drawSplashBurst(ctx, cx, baseY, prx, pry, st) {
+    const k = clamp01(st / 0.9), fade = 1 - k;
+    for (let i = 0; i < 6; i++) {
+      const side = i % 2 ? 1 : -1, spread = prx * (0.25 + 0.5 * easeOut(k)) * (0.6 + 0.4 * (i >> 1) / 2);
+      this.blitSplash(ctx, 2 + (i % 2), cx + side * spread, baseY + pry * 0.2 - k * 40 * (1 + (i >> 1) * 0.5), 90 + 110 * easeOut(k), side * (0.2 + 0.25 * k), side < 0, fade);
+    }
+  }
+  /** 솟는 동안 화면 전체로 위로 휩쓸려 올라가는 하늘 바람 줄기(사용자 “파동 올라갈 때 주변에 하늘 바람 이펙트”). 화면 좌표. */
+  drawSkyWind(ctx, k) {
+    const F = ARENA.fountain, t = this.time;
+    ctx.save(); ctx.lineCap = 'round';
+    for (let i = 0; i < F.winds; i++) {
+      const lane = ((i * 0.618) % 1), x = -SCREEN_W * 0.2 + lane * SCREEN_W * 1.4, speed = 700 + (i % 5) * 160, len = 40 + (i % 4) * 30;
+      const y = SCREEN_H * 1.2 - (((t * speed + i * 137) % (SCREEN_H * 1.8)));
+      const curl = (x < SCREEN_W / 2 ? 1 : -1) * (10 + (i % 3) * 8);
+      ctx.strokeStyle = `rgba(${i % 3 ? '190,240,255' : '120,215,240'},${(0.18 + 0.14 * (i % 2)) * k})`; ctx.lineWidth = 1 + (i % 3);
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + curl, y - len * 0.5, x + curl * 0.4, y - len); ctx.stroke();
+    }
+    ctx.restore();
   }
   dispose() {
     if (this.disposed) return;

@@ -13,7 +13,7 @@ test('the Shift+Q heal kit is ten heal items reachable by that point', () => {
   const ship = qaHealKit({ teal3_cs_won: true, maillard_cart_done: true });
   assert.equal(ship.length, QA_HEAL_KIT_COUNT);
   assert.equal(count(ship, '핫도그') + count(ship, '기름떡볶이'), 0);
-  const late = qaHealKit({ teal3_cs_won: true, maillard_cart_done: true, choimis_rescued: true });
+  const late = qaHealKit({ teal3_cs_won: true, maillard_cart_done: true, ship_sinking_done: true });
   assert.equal(late.length, QA_HEAL_KIT_COUNT);
   for (const name of new Set([...early, ...ship, ...late])) {
     assert.equal(ITEMS[name].kind, 'plain', name);
