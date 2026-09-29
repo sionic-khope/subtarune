@@ -461,7 +461,7 @@ export function run(game, node = {}) {
           sfx(charged ? 'pantheon_q_throw' : 'pantheon_q_tap', charged ? 0.8 : 0.55, charged ? 0.9 : 0.5);
         }
         if (event.type === 'fire') { state.fires.push({ x: event.x, y: event.y, vx: event.vx, life: FIRE.life, facing: event.facing, t: 0 }); sfx('ember', 0.8, 0.8); }
-        if (event.type === 'clock') { state.clocks.push({ x: event.x, y: event.y, vx: event.vx, vy: event.vy, life: 2.2, t: 0 }); if (event.index === 0) sfx('zilean_q_throw', 0.7, 1.3); }
+        if (event.type === 'clock') { state.clocks.push({ x: event.x, y: event.y, vx: event.vx, vy: event.vy, landY: event.landY, life: 2.2, t: 0 }); if (event.index === 0) sfx('zilean_q_throw', 0.7, 1.3); }
         if (event.type === 'projectileHit') {
           sfx(event.source === 'spear' ? 'pantheon_q_hit' : 'hit', 0.6, 0.5);
           // 시계: 땅에 노란 오오라 파장 피융(0.5초). 불: 맞은 자리에 불꽃 튐(불타는 건 적 위에 그림)

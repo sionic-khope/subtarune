@@ -519,7 +519,9 @@ export function updateProjectiles(level, list, dt, w, h, gravity = 0) {
     p.life -= dt;
     if (gravity) { p.vy = (p.vy || 0) + gravity * dt; p.y += p.vy * dt; }
     p.x += p.vx * dt;
-    if (overlapsSolid(level, p.x, p.y, w, h)) { p.dead = true; p.hitSolid = true; }
+    // 시계(landY 있음)는 올라가는 동안·표적 높이에 닿기 전엔 발판을 통과한다(BUILD429 사용자 “위 발판에 막힌다, 상관없이 되게”)
+    const passing = p.landY != null && ((p.vy || 0) < 0 || p.y + h < p.landY);
+    if (!passing && overlapsSolid(level, p.x, p.y, w, h)) { p.dead = true; p.hitSolid = true; }
     else if (p.life <= 0 || p.x + w < 0 || p.x > level.width || p.y > level.height) p.dead = true;
   }
   return list.filter(p => !p.dead);
@@ -620,7 +622,7 @@ function emitClock(actor, target, events, index) {
   const flight = Math.max(CLOCK.flightMin, Math.min(CLOCK.flightMax, Math.abs(dx0) / 260));
   const dx = dx0 + (target.vx || 0) * flight;
   const v = clockVelocity(dx, dy);
-  events.push({ type: 'clock', id: actor.id, index, x: sx - CLOCK.w / 2, y: sy - CLOCK.h / 2, vx: v.vx, vy: v.vy });
+  events.push({ type: 'clock', id: actor.id, index, x: sx - CLOCK.w / 2, y: sy - CLOCK.h / 2, vx: v.vx, vy: v.vy, landY: target.y });
 }
 
 /** 몬스터 생성(발 기준). 종류별 크기·속도·HP(spec.hp 로 덮어쓰기 가능). 왼쪽으로 걷기 시작 */

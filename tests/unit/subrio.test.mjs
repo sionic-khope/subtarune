@@ -758,3 +758,17 @@ test('test_subrio_guard_block_sound_event_is_rate_limited_while_touching', () =>
   hurtActor(hero, hero.x + 40, events, 5);
   assert.equal(events.filter(e => e.type === 'block').length, 2, '0.3초 뒤엔 다시 알린다');
 });
+
+// BUILD429: 경섭 시계는 올라가는 동안·표적 높이 전엔 발판을 통과하고, 표적 높이 아래에서만 막힌다
+test('clock projectiles pass platforms until they reach the target height', () => {
+  const level = buildLevel(1);
+  // 레벨 안에서 막힌 칸 하나를 찾아 그 자리에 시계를 둔다
+  let spot = null;
+  for (let y = 0; y < level.height && !spot; y += 8) for (let x = 0; x < level.width && !spot; x += 8) if (overlapsSolid(level, x, y, 12, 12)) spot = { x, y };
+  assert.ok(spot, 'a solid spot exists');
+  const at = extra => ({ x: spot.x, y: spot.y, vx: 0, vy: 0, life: 2, ...extra });
+  assert.equal(updateProjectiles(level, [at({ vy: -100, landY: spot.y + 200 })], 0, 12, 12).length, 1, 'rising clock passes a platform');
+  assert.equal(updateProjectiles(level, [at({ vy: 100, landY: spot.y + 200 })], 0, 12, 12).length, 1, 'falling clock above the target height passes');
+  assert.equal(updateProjectiles(level, [at({ vy: 100, landY: spot.y - 50 })], 0, 12, 12).length, 0, 'at the target height it lands and bursts');
+  assert.equal(updateProjectiles(level, [at({ vy: 100 })], 0, 12, 12).length, 0, 'other projectiles still stop on solids');
+});
