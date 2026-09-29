@@ -51,6 +51,7 @@ const CROWD_COOLDOWN = { applause: 1.2, cheer: 2.5, roar: 4.0 };
 const SIGNAL = { great: 0.15, miss: 0.3, glitch: 0.35 };
 // MISS 피해: 파티 셋 HP −10(전투 HP 와 같은 값). HP 띠 색은 characters.js 의 hpColor 와 같다
 // 아래 HUD 띠(28px): 왼쪽 SCORE · 가운데 파티 HP(이름 32 + 숫자 24 = 56 ≤ hpW) · 오른쪽 MAX COMBO. 글자는 전부 기본 16px
+// hpW 58 → 76(BUILD431: ‘형섭’ → ‘요플래’ 세 글자가 HP 숫자와 겹쳐 깨졌다)
 const HUD = { h: 28, hpW: 58, hpGap: 8 };
 const MISS_DAMAGE = 10, HP_COLORS = { hyungsub: '#7fd0ff', gyeongsub: '#ff5c5c', ppaman: '#c9a3ff' };
 const PITCH_SFX = { 261.63: 'guitar_c4', 392: 'guitar_g4', 440: 'guitar_a4' };
@@ -608,9 +609,16 @@ export function run(game, node = {}) {
       // 아래 HUD 띠 한 줄(28px): 왼쪽 SCORE · 가운데 파티 HP(전투 HP 그대로, MISS 마다 줄어든다) · 오른쪽 MAX COMBO. 글자는 전부 기본 16px(작게 쓰면 뭉개진다)
       ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, SCREEN_H - HUD.h, SCREEN_W, HUD.h);
       if (state.phase === 'play' || state.phase === 'title') {
-        const ids = partyIds(), bw = HUD.hpW, gap = HUD.hpGap, total = ids.length * bw + (ids.length - 1) * gap, x0 = Math.round(SCREEN_W / 2 - total / 2);
+        // 칸 폭은 이름+숫자가 들어가게(BUILD431: ‘요플래’ 세 글자가 HP 숫자와 겹쳐 깨졌다) — 짧은 이름은 기본 58, 가운데가 MAX COMBO 에 닿지 않게 간격 6
+        const ids = partyIds(), gap = 6;
+        ctx.font = FONT;
+        const widths = ids.map(id => { const b = BAND.find(q => q.id === id); return Math.max(HUD.hpW, Math.ceil(ctx.measureText(b ? b.label : id).width + ctx.measureText(String(hpOf(id))).width + 6)); });
+        // SCORE 끝과 MAX COMBO 시작 사이 빈 곳의 가운데에 놓는다
+        const leftEnd = 64 + ctx.measureText('SCORE').width, rightStart = SCREEN_W - 64 - ctx.measureText('MAX COMBO').width;
+        const total = widths.reduce((a, w) => a + w, 0) + (ids.length - 1) * gap, x0 = Math.round((leftEnd + rightStart) / 2 - total / 2);
+        let cursor = x0;
         ids.forEach((id, i) => {
-          const x = x0 + i * (bw + gap), hp = hpOf(id), max = maxHpOf(id), b = BAND.find(q => q.id === id);
+          const bw = widths[i], x = cursor, hp = hpOf(id), max = maxHpOf(id), b = BAND.find(q => q.id === id); cursor += bw + gap;
           text(b ? b.label : id, x, SCREEN_H - HUD.h + 1, { color: HP_COLORS[id] || '#fff', shadow: false });
           text(String(hp), x + bw, SCREEN_H - HUD.h + 1, { color: state.hurt[id] > 0 ? '#ff4a4a' : '#fff', shadow: false, align: 'right' });
           ctx.fillStyle = '#3a1a1a'; ctx.fillRect(x, SCREEN_H - 9, bw, 5);
