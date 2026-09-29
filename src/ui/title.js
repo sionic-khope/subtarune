@@ -298,7 +298,8 @@ export class TitleScreen {
     }
     // 리셋 확인창: C 로 안내 화면 → 새 게임, X 로 닫기
     if (this.askReset) {
-      if (input.just('confirm')) { this.askReset = false; this.notice = { t: 0 }; this.game.sound.sfx('menu'); }
+      // 리셋: 세이브만 지우고 타이틀 메뉴는 [시작] 하나로(BUILD425 사용자 “리셋하고 바로 시작 말고 시작하기 화면”)
+      if (input.just('confirm')) { this.askReset = false; this.game.clearSave(); this.pick = 0; this.game.sound.sfx('confirm'); }
       else if (input.just('cancel')) { this.askReset = false; this.game.sound.sfx('cancel'); }
       return;
     }
