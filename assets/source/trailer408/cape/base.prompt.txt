@@ -1,0 +1,12 @@
+# imagegen 2026-09-29 09:53:12
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/trailer408/cape/ref_all.png
+
+Recreate the LEFT image's scene and art style exactly: a hand-drawn 2D cartoon illustration, three small heroes seen from BEHIND standing on a glowing wooden platform at the bottom center, looking up at a huge dark glowing vortex; everything tinted in dark brown and amber, figures drawn as flat brown silhouettes with glowing golden-orange outlines, soft glow, dramatic wind, wide 16:9 framing with a large empty dark area in the upper-middle (for a title logo, but DRAW NO TEXT OR LOGO).
+Replace the three heroes with the three characters on the RIGHT (keep their shapes, same order left to right), still shown from behind and in the same brown/golden-outline style:
+- left: KYEONGSUB — a guy with a round black bob haircut, dark navy t-shirt and shorts; give him a long flowing scarf and hair blowing strongly to the right in the wind, one arm raised.
+- center: YOPLE — a boy with short black hair, white t-shirt, dark shorts; holding a sword pointing down-left like the center hero in the left image, a short cape and hair flapping to the right.
+- right: EOKBBAMAN — a chubby blue bear with round ears and a round tail, seen from behind; wearing a long cape flying horizontally to the right in the wind.
+No text anywhere, no watermark, single image, no split panels.

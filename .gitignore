@@ -157,3 +157,10 @@ assets/source/trailer408/k_*.png
 assets/source/trailer408/sheet*.png
 assets/source/trailer408/*_sheet.png
 assets/source/trailer408/gen/ref_*
+assets/source/trailer408/cape/ref_*
+assets/source/trailer408/cape/anim_*
+assets/source/trailer408/cape/*.gif
+assets/source/trailer408/cape/frames_cmp.png
+assets/source/trailer408/cape/base_ref.jpg
+assets/source/trailer408/*.png
+!assets/source/trailer408/seopnyang_x8.png

@@ -17,14 +17,14 @@ node tools/trailer/render.mjs "$W/outro" 50.9 61.13
 # 2) 몽타주: 클립 이름 · 녹화 시작초 · 길이(초) — 박자 32.68/33.54/36.11/38.9/42.11 등(ref 음원 분석)에 맞춤
 MONTAGE=(
   "park 6.30 1.27"
-  "park 69.40 2.15"
+  "park 64.80 2.15"
   "tv 17.50 2.14"
   "subrio 2.80 1.99"
-  "choimis 32.10 2.57"
-  "rhythm 54.00 2.49"
+  "choimis 32.10 2.27"
+  "rhythm 53.70 2.79"
   "torii 1.80 2.29"
+  "youngcle 4.45 0.80"
   "boulder 25.60 2.36"
-  "teenrise 95.60 2.23"
 )
 list=()
 i=0
@@ -36,6 +36,12 @@ for row in "${MONTAGE[@]}"; do
     -vf "fps=30,scale=960:720:flags=neighbor,pad=1280:720:160:0:black,setsar=1" -an -c:v libx264 -crf 14 -pix_fmt yuv420p "$seg"
   list+=("$seg"); i=$((i + 1))
 done
+
+# 마지막 컷: 망토·머리 휘날리는 경섭·요플래·억빠맨(cape.py 8fps 반복, 2.23초)
+/usr/bin/python3 tools/trailer/cape.py
+seg="$W/m$(printf %02d $i).mp4"
+ffmpeg -v error -y -stream_loop 3 -framerate 8 -i "$D/cape/anim_%02d.png" -t 1.43 -vf "fps=30,setsar=1" -c:v libx264 -crf 14 -pix_fmt yuv420p "$seg"
+list+=("$seg")
 
 # 3) 직접 그린 구간 → mp4
 ffmpeg -v error -y -framerate 30 -i "$W/intro/%05d.png" -c:v libx264 -crf 14 -pix_fmt yuv420p "$W/intro.mp4"

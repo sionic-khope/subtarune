@@ -20,7 +20,9 @@ export const T = {
     { ids: ['junhee', 'yongjun'], color: '#ffd23f', in: 25.8, meet: 27.1 },
   ],
   mapIn: 27.4, bigLogo: 28.5, white: 29.52, whiteEnd: 31.4,
-  montage: [31.4, 50.9], outro: 50.9, logoZoom: 2.4, doneAt: 55.4, end: 61.13,
+  montage: [31.4, 50.9], outro: 50.9, logoZoom: 2.4, doneAt: 55.4,
+  // 참고 영상 끝: 망토 장면 위 로고 → 51.4s 부터 오른쪽 위에서 빛이 번져 흰 화면 → 검은 화면으로(개발완료.)
+  washAt: 51.4, washFull: 52.5, toBlack: [53.2, 54.6], end: 61.13,
 };
 
 const img = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
@@ -33,7 +35,16 @@ const jitter = (t, s) => { const x = Math.sin(t * 91.7 + s * 12.9) * 43758.5453;
 
 async function load() {
   for (const n of ['full', 'close', 'cheer', 'lie', 'hand1', 'hand2', 'hand3', 'hand4']) A[n] = await img(`${SRC}gen/${n}.png`);
+  A.cape = [];
+  for (let i = 0; i < 6; i++) A.cape.push(await img(`${SRC}cape/anim_${String(i).padStart(2, '0')}.png`));
   A.map = await img(`${SRC}clips/meetbg.png`);
+  // 세로로 끊김 없이 이어지게: 아래 OV 줄을 위 OV 줄에 서서히 섞은 타일(이어 붙인 자리 가로줄 제거)
+  if (A.map) {
+    const OV = 120, m = A.map, th = m.height - OV, c = document.createElement('canvas'); c.width = m.width; c.height = th;
+    const x = c.getContext('2d'); x.drawImage(m, 0, 0, m.width, th, 0, 0, m.width, th);
+    for (let y = 0; y < OV; y++) { x.globalAlpha = 1 - y / OV; x.drawImage(m, 0, th + y, m.width, 1, 0, y, m.width, 1); }
+    x.globalAlpha = 1; A.mapTile = c;
+  }
   A.logo = bakeLogo();
   // 흰 로고(빨간 카드 위)
   const l = A.logo, c = document.createElement('canvas'); c.width = l.width; c.height = l.height;
@@ -150,14 +161,17 @@ function meet(t) {
   const gather = T.meets.at(-1).meet + HOP + 0.05;
   if (t >= gather) {
     if (A.map) {
-      const h = A.map.height * W / A.map.width, off = ((t - gather) * 150) % h;
+      // 원본 위아래 2px 은 화면 가장자리 줄이라 잘라 낸다(이어 붙인 자리에 가로줄이 보였다)
+      const M = A.mapTile, h = Math.round(M.height * W / M.width), off = ((t - gather) * 150) % h;
       ctx.save(); ctx.globalAlpha = 0.6 * smooth((t - gather) / 0.8); ctx.imageSmoothingEnabled = false;
-      for (let y = off - h; y < H; y += h) ctx.drawImage(A.map, 0, Math.round(y), W, Math.round(h) + 1);
+      for (let y = off - h; y < H; y += h) ctx.drawImage(M, 0, Math.round(y), W, h + 1);
       ctx.restore();
     }
-    const upFrame = Math.floor(t * 7), order = ['hyungsub', ...party];
+    // 위로 걷는 줄은 형섭·경섭·억빠맨 셋만(사용자 2026-09-29 “겹쳐 보인다, 형섭 경섭 억빠맨만”)
+    const upFrame = Math.floor(t * 7), order = ['hyungsub', 'gyeongsub', 'ppaman'];
     // 뒤(아래)에서부터 그려 앞사람이 위에 오게
-    for (let i = order.length - 1; i >= 0; i--) actor(order[i], W / 2, 400 + i * 78, 'up', upFrame + i, S);
+    // 세로 한 줄: 다섯 명이 다 보이게 조금 작게(3.0)·간격 110(사용자 2026-09-29 겹침 지적)
+    for (let i = order.length - 1; i >= 0; i--) actor(order[i], W / 2, 330 + i * 150, 'up', upFrame + i, 3.2);
   } else {
     // 줄 선 동료: 뒤로
     party.slice().reverse().forEach((id, k) => {
@@ -177,7 +191,7 @@ function meet(t) {
   // 큰 로고
   if (t >= T.bigLogo) {
     const k = ease((t - T.bigLogo) / 0.3);
-    logo(A.logo, W / 2, 200, 2.1 * (1.15 - 0.15 * k), 0, 0, k);
+    logo(A.logo, W / 2, t >= gather ? 96 : 200, 2.1 * (1.15 - 0.15 * k), 0, 0, k);
   }
   // 흰 화면(가운데 빨간 하트)
   if (t >= T.white) {
@@ -195,6 +209,18 @@ function heart(cx, cy, s) {
 
 function outro(t) {
   const lt = t - T.outro;
+  // 망토 장면(몽타주 마지막 컷과 같은 8fps 반복) → 빛 번짐 → 흰 화면 → 검은 화면
+  const cape = A.cape[Math.floor(t * 8) % A.cape.length];
+  if (cape && t < T.toBlack[1]) ctx.drawImage(cape, 0, 0, W, H);
+  if (t >= T.washAt) {
+    const k = smooth((t - T.washAt) / (T.washFull - T.washAt));
+    const g = ctx.createRadialGradient(W * 0.95, -H * 0.1, 0, W * 0.95, -H * 0.1, 60 + k * 1900);
+    g.addColorStop(0, `rgba(255,250,240,${Math.min(1, k * 1.4)})`); g.addColorStop(0.55, `rgba(255,200,140,${k})`); g.addColorStop(1, 'rgba(255,190,120,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const w2 = smooth((t - (T.washAt + 0.6)) / 0.8);
+    if (w2 > 0) { ctx.fillStyle = `rgba(255,255,255,${w2})`; ctx.fillRect(0, 0, W, H); }
+  }
+  if (t >= T.toBlack[0]) { ctx.fillStyle = `rgba(0,0,0,${smooth((t - T.toBlack[0]) / (T.toBlack[1] - T.toBlack[0]))})`; ctx.fillRect(0, 0, W, H); }
   // 타이틀과 같은 확대(ease-out 0.15→1, 2.4s) + 흔들림(1→4, 박힌 뒤 4에서 초당 14씩 감쇠)
   let scale, shake, alpha;
   if (lt < T.logoZoom) { const k = lt / T.logoZoom; scale = 0.15 + 0.85 * ease(k); shake = 1 + k * 3; alpha = clamp(lt / 0.4); }

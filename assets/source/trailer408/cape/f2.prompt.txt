@@ -1,0 +1,7 @@
+# imagegen 2026-09-29 09:54:09
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/trailer408/cape/base_ref.jpg
+
+Image1 is one frame of an animation. Output the NEXT frame: the IDENTICAL image — same background, same vortex, same wooden platform, same three characters with identical bodies, poses, positions, sizes, colors and outlines — the ONLY change is the wind: the capes, scarves and hair stretch out further and flatter to the right, tips snapping. Also the glowing background streaks shift very slightly. No text.

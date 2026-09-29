@@ -54,6 +54,8 @@ const CLIPS = {
   // 사용자 2026-09-29 “마지막엔 청소년 등장 씬 전에 파동 올라오는 거 살짝 보여주고 끝내자”
   // 결전지 큰 파동(청소년 등장 전) — 사용자 정정 “우리 앞에 있어 그거 말고”
   teenrise: { qa: 'castle_arena', seconds: 150, run: async page => { await mash(page, 149000, 700); } },
+  // 영클 1차전(조종실): 공격하면 영클이 뒤로 물러나 피한다 — 사용자 2026-09-29
+  youngcle: { qa: 'ship_battle', seconds: 45, run: async page => { await mash(page, 44000, 450); } },
   park: { qa: 'park_guardian_battle', seconds: 110, run: async page => { await mash(page, 108000, 450); } },
   boulder: { qa: 'castle_boulder', seconds: 45, run: async page => { await mash(page, 20000, 900); for (let i = 0; i < 60; i++) { await press(page, 'KeyC', 60); await page.waitForTimeout(140); } await mash(page, 12000, 900); } },
 };
