@@ -39,7 +39,8 @@ await runScenario({ name: 'qa-sweep', launchOptions: { args: ['--autoplay-policy
     const snap = await page.evaluate(async () => {
       const g = window.game, p = g.player, { qaHealKit } = await import('./src/core/story.js');
       const kit = qaHealKit(g.flags), inv = g.inventory || [];
-      const kitOk = [...new Set(kit)].every(n => inv.filter(x => x === n).length >= 10);
+      // 회복템 묶음(BUILD407: 합쳐서 10개)의 아이템마다 묶음 개수만큼 들어 있는지
+      const kitOk = [...new Set(kit)].every(n => inv.filter(x => x === n).length >= kit.filter(x => x === n).length);
       const cam = g.camera || {};
       const fallback = (g.entities || []).filter(e => !e.dead && e.visible !== false && !e.hidden && e.sprite?.fallback
         && (cam.x === undefined || (e.x > cam.x - 64 && e.x < cam.x + 544 && e.y > cam.y - 64 && e.y < cam.y + 424))).map(e => e.id || e.def?.sprite || e.sprite?.name);
