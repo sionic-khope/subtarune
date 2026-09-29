@@ -88,8 +88,11 @@ const TEXT_SPEEDS = [
   { key: 'speed_normal', delay: 0.033 },   // 언더테일 기본(1글자/2프레임)
   { key: 'speed_fast', delay: 0.016 },
 ];
-// 부팅 때 미리 받는 맵 범위(세이브·첫 방에서 문 몇 칸까지) — 크면 첫 로딩이 길어지는 대신 플레이 중 끊김이 없다(BUILD390)
-const BOOT_PRELOAD_DEPTH = 2;
+// 부팅 때 미리 받는 맵 범위(세이브·첫 방에서 문 몇 칸까지) — 크면 첫 로딩이 길어지는 대신 플레이 중 끊김이 없다(BUILD390, BUILD432 2 → 3)
+const BOOT_PRELOAD_DEPTH = 3;
+// 백그라운드 채우기(BUILD432): 동시에 받는 파일 수 · 서비스 워커가 페이지를 맡을 때까지 기다리는 시간(초)
+const WARM_WORKERS = 2;
+const WARM_CONTROLLER_WAIT = 30;
 const TITLE_SFX = ['menu', 'confirm', 'cancel', 'chime', 'door', 'battle_start'];
 
 function mapScriptAssets(mapId, def) {
@@ -1901,7 +1904,38 @@ class Game {
       ]);
       if (saved) this.prefetchAround(saved);
     } catch (error) { console.warn('[boot] 로딩 실패', error); }
-    finally { load.done = load.total; load.active = false; }
+    finally { load.done = load.total; load.active = false; void this.warmAssetCache(); }
+  }
+  /**
+   * 백그라운드 채우기(BUILD432, 사용자 “초기 로딩 좀 더 걸려도 되니 더 받고 새로고침에 강하게” → C안): 배포 사이트에서 서비스 워커가
+   * 페이지를 맡은 뒤 asset-manifest.json 순서(맵 → 캐릭터 → 소품 → 효과음 → 곡 → 영상)로 아직 캐시에 없는 파일을 몇 개씩 받는다.
+   * 그림을 메모리에 풀지 않고 파일만 받아 캐시에 쌓는다. 맵 전환·준비 중에는 멈춰 들어갈 맵이 먼저 받도록 양보한다. 끊기면 다음 접속 때 이어서.
+   */
+  async warmAssetCache() {
+    try {
+      if (!this.prefetchEnabled || !('serviceWorker' in navigator) || !('caches' in window) || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      for (let i = 0; i < WARM_CONTROLLER_WAIT * 5 && !navigator.serviceWorker.controller; i++) await sleep(200);
+      if (!navigator.serviceWorker.controller) return;
+      const res = await fetch(`asset-manifest.json?v=${BUILD}`);
+      if (!res.ok) return;
+      const { files = [] } = await res.json();
+      const cache = await caches.open('subtarune-assets'), base = new URL('./', location.href), todo = [];
+      for (const f of files) {
+        const key = new URL(f.p, base); key.search = `?h=${f.h}`;
+        if (!(await cache.match(key.href))) todo.push(f.p);
+      }
+      const warm = this.warmCache = { done: files.length - todo.length, total: files.length };
+      const worker = async () => {
+        while (todo.length) {
+          while (this.loadingMap || this.transitioning) await sleep(250);
+          const path = todo.shift();
+          try { const r = await fetch(path); if (r.ok) await r.arrayBuffer(); } catch { /* 다음 접속 때 다시 */ }
+          warm.done++;
+        }
+      };
+      await Promise.all(Array.from({ length: WARM_WORKERS }, worker));
+    } catch (error) { console.warn('[warm] 백그라운드 받기 실패', error); }
   }
   /** 배포 사이트에서만 서비스 워커(sw.js)로 받은 파일을 빌드별 캐시에 둔다 — 새로고침·불안한 네트워크에도 다시 받지 않는다. 로컬 개발 서버는 작업 트리를 그대로 봐야 해서 켜지 않는다 */
   registerOfflineCache() {

@@ -45,6 +45,8 @@ copy_file assets/lib/three.module.js
 copy_file assets/lib/three.LICENSE
 copy_file assets/source/fonts253/NeoDunggeunmo-LICENSE.txt
 copy_file assets/source/fonts253/Galmuri-LICENSE.txt
+# 에셋 목록·내용 지문(BUILD432): 서비스 워커가 바뀐 파일만 다시 받고, 게임이 백그라운드로 나머지를 채운다
+python3 tools/deploy/asset-manifest.py "$output_root"
 touch "$output_root/.nojekyll"
 printf '{"sourceSha":"%s","builtAt":"%s"}\n' "$source_sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$output_root/version.json"
 printf 'Packaged source %s into %s\n' "$source_sha" "$output_root"
