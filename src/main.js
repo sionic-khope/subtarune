@@ -263,10 +263,16 @@ class Game {
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때·QA 바로가기 직후(필드에서만). 컷신이 도는 동안은 저장하지 않는다(숨긴 주인공·임시 맵 위치가 세이브에 남지 않게, 2026-09-10) */
   autosave() {
     if (!['field', 'shop', 'menu'].includes(this.state) || this.ride || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, mapName: MAPS[this.mapId]?.name || null, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
   }
   clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
+  /** 타이틀 이어하기 확인창에 띄울 세이브 지점(BUILD423) — 지점 이름(옛 세이브는 맵 데이터에서), 없으면 null */
+  saveSummary() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
+    if (!d?.map) return null;
+    return { name: d.mapName || MAPS[d.map]?.name || d.map, t: d.t || null };
+  }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
     this.castleDarkPath?.dispose();

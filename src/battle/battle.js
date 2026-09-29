@@ -357,7 +357,8 @@ export class Battle {
   /** 아이템 대상: 살아 있는 멤버 중 ← → 로 고른다 */
   updateItemTarget(input) {
     const n = this.members.length;
-    const step = (d) => { let i = this.itemTargetIdx; for (let k = 0; k < n; k++) { i = (i + d + n) % n; if (!this.members[i].down) break; } this.itemTargetIdx = i; this.sfx('menu'); };
+    // 쓰러진 동료에게도 1인 회복템을 쓸 수 있다(BUILD423 사용자 — 기름떡볶이처럼 일으켜 세운다, useBattleItem 이 down 을 푼다)
+    const step = (d) => { this.itemTargetIdx = (this.itemTargetIdx + d + n) % n; this.sfx('menu'); };
     if (input.just('left') || input.just('up')) step(-1);
     if (input.just('right') || input.just('down')) step(1);
     if (input.just('cancel')) { this.sfx('cancel'); this.state = 'item'; return; }

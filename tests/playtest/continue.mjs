@@ -39,7 +39,8 @@ check('QA jump saved immediately (map teal3, party 2, spawn from_bottom)', !!q.s
 // 2) 타이틀 → 이어하기
 await page.goto(BASE); await ready("title"); await unlock();
 await titleLocked();
-await page.keyboard.press('KeyC');
+// BUILD423: [이어하기] C → 지점 확인창 C
+await page.keyboard.press('KeyC'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');
 q = await until(async () => { const s = await st(); return s.state === 'field' && s.map === 'teal3' && !s.running ? s : null; }, 8000);
 check('continue → teal3 with both followers standing next to the player (not left at the map spawn)', !!q && q.party.join() === 'gyeongsub,ppaman' && q.followers.length === 2 && q.followers.every((f) => f.d <= 96) && q.flags.ppaman && q.flags.gs && q.stage === 'void_fallen', JSON.stringify(q && { party: q.party, fol: q.followers, flags: q.flags, stage: q.stage }));
 await page.screenshot({ path: `${S}/continue_01_teal3.png` });
@@ -65,7 +66,8 @@ await page.goto(`${BASE}?qa=key`); await ready(); await unlock(); await page.wai
 q = await st(); check('?qa=key: party [ppaman] derived/explicit, one follower', q.party.join() === 'ppaman' && q.followers.length === 1, JSON.stringify({ party: q.party, fol: q.followers }));
 await page.goto(BASE); await ready("title"); await unlock();
 await titleLocked();
-await page.keyboard.press('KeyC');
+// BUILD423: [이어하기] C → 지점 확인창 C
+await page.keyboard.press('KeyC'); await page.waitForTimeout(250); await page.keyboard.press('KeyC');
 q = await until(async () => { const s = await st(); return s.state === 'field' && s.map === 'void4' ? s : null; }, 8000);
 check('continue → void4 with 억빠맨 next to the player', !!q && q.party.join() === 'ppaman' && q.followers.length === 1 && q.followers[0].d <= 96, JSON.stringify(q && { party: q.party, fol: q.followers, p: q.p }));
 

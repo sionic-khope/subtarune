@@ -27,6 +27,9 @@ try {
   await openTitle();
   const t = await page.evaluate(() => ({ state: window.game.state, hasSave: window.game.hasSave(), phase: window.game.title?.phase }));
   check(t.state === 'title' && t.hasSave && t.phase === 'locked', '타이틀(세이브 있음) ' + JSON.stringify(t));
+  // BUILD423: [이어하기] C → 지점 확인창(지점 이름) → C
+  await page.keyboard.press('KeyC'); await page.waitForTimeout(250);
+  check(!!(await page.evaluate(() => window.game.title.askContinue?.name)), '이어하기 확인창에 저장 지점 이름이 뜬다 ' + JSON.stringify(await page.evaluate(() => window.game.title.askContinue)));
   await page.keyboard.press('KeyC');
   await page.waitForFunction(() => window.game.state === 'field' && (window.game.mapId === 'youngcle15' || window.game.mapId === 'youngcle14'), null, { timeout: 15000 }).catch(() => {});
   await page.waitForFunction(() => window.game.mapId === 'youngcle15' && !window.game.transitioning, null, { timeout: 8000 }).catch(() => {});

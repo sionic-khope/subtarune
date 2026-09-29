@@ -210,8 +210,8 @@ export function createChoimisPinkRound(battle, { enemy, config, cycle = 0 }) {
       }
       ctx.fillStyle = '#000'; ctx.fillRect(20, 246, 440, 72); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(21.5, 247.5, 437, 69);
       ctx.font = FONT.replace(/^\d+px/, '12px'); ctx.fillStyle = '#ffb4d7'; ctx.textAlign = 'left'; ctx.fillText(L.battle_choimis_pink_round_controls, 34, 272);
-      // 코어 라운드: 패널 둘째 줄에 억빠맨 채팅 한 줄(최미스에게도 총알이 들어간다는 안내)
-      if (scenarioName === 'pink_prism') {
+      // 코어 라운드: 패널 둘째 줄에 억빠맨 채팅 한 줄(최미스에게도 총알이 들어간다는 안내) — 처음 한 번(cycle 0)만(사용자 “최초 한번만”)
+      if (scenarioName === 'pink_prism' && !cycle) {
         ctx.fillStyle = '#c9a3ff'; ctx.fillText(L.battle_choimis_pink_prism_tip_speaker, 34, 296);
         const nameW = ctx.measureText(L.battle_choimis_pink_prism_tip_speaker).width;
         ctx.fillStyle = '#fff'; ctx.fillText(L.battle_choimis_pink_prism_tip, 34 + nameW + 10, 296);

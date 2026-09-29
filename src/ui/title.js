@@ -196,7 +196,7 @@ export class TitleScreen {
     ctx.fillStyle = '#55556b'; ctx.fillRect(bx + 8, by + bh - 19, bw - 16, 1);              // 안내 위 구분선
     ctx.fillStyle = '#8a8aa0'; ctx.fillText(L.qa_help, bx + 12, by + bh - 15);
   }
-  enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; this.qa = null; }
+  enter() { this.phase = 'wait'; this.time = 0; this.flash = 0; this.leaving = false; this.confirmNew = 0; this.qa = null; this.askContinue = null; this.notice = null; this.pick = 0; this.askReset = false; }
 
   _leave(go) {
     this.leaving = true; this.flash = 0.12;
@@ -284,15 +284,84 @@ export class TitleScreen {
     }
     if (this.time <= PROMPT_DELAY) return;
     const hasSave = this.game.hasSave();
-    if (input.just('confirm')) {                                   // C: 세이브 있으면 이어하기, 없으면 새 게임
-      this._leave(() => (hasSave ? this.game.continueGame() : this.game.startGame()));
-    } else if (hasSave && input.just('cancel')) {                  // X: 처음부터 (두 번 눌러 확인)
-      if (this.confirmNew > 0) this._leave(() => this.game.startGame());
-      else { this.confirmNew = 3.0; this.game.sound.sfx('menu'); }
+    // 새 게임 안내: C(확인)로 시작
+    if (this.notice) {
+      this.notice.t += dt;
+      if (this.notice.t > 0.4 && input.just('confirm')) { this.notice = null; this.game.sound.sfx('confirm'); this._leave(() => this.game.startGame()); }
+      return;
+    }
+    // 이어하기 확인창: 세이브 지점을 보여 주고 C 로 이어하기, X 로 닫기
+    if (this.askContinue) {
+      if (input.just('confirm')) { this.askContinue = null; this._leave(() => this.game.continueGame()); }
+      else if (input.just('cancel')) { this.askContinue = null; this.game.sound.sfx('cancel'); }
+      return;
+    }
+    // 리셋 확인창: C 로 안내 화면 → 새 게임, X 로 닫기
+    if (this.askReset) {
+      if (input.just('confirm')) { this.askReset = false; this.notice = { t: 0 }; this.game.sound.sfx('menu'); }
+      else if (input.just('cancel')) { this.askReset = false; this.game.sound.sfx('cancel'); }
+      return;
+    }
+    // 메뉴: 세이브가 있으면 [이어하기 · 리셋] 좌우로 고르고, 없으면 [시작] 하나
+    if (hasSave && (input.just('left') || input.just('right'))) { this.pick = input.just('right') ? 1 : 0; this.game.sound.sfx('menu'); }
+    if (input.just('confirm')) {
+      this.game.sound.sfx('confirm');
+      if (!hasSave) { this.notice = { t: 0 }; return; }
+      if (this.pick === 1) { this.askReset = true; return; }
+      const summary = this.game.saveSummary?.();
+      if (summary) this.askContinue = summary; else this._leave(() => this.game.continueGame());
     }
     if (this.confirmNew > 0) this.confirmNew -= dt;
   }
 
+  /** 새 게임 안내: 화면을 덮는 검은 판 + 제목 · 본문(줄바꿈) · 아래 [확인] 버튼(하트) */
+  _drawNotice(ctx) {
+    const a = Math.min(1, this.notice.t / 0.3);
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    const w = 400, x = Math.round((SCREEN_W - w) / 2), y = 60, h = 240;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+    this._drawText(ctx, L.title_notice_title, y + 16, '#ffe066');
+    ctx.font = FONT; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    const lines = [], words = L.title_notice.split(' '); let line = '';
+    for (const word of words) { const next = line ? `${line} ${word}` : word; if (ctx.measureText(next).width > w - 40 && line) { lines.push(line); line = word; } else line = next; }
+    if (line) lines.push(line);
+    lines.forEach((l, i) => ctx.fillText(l, x + 20, y + 44 + i * 20));
+    const by = y + h - 40, label = L.title_notice_ok, bw = ctx.measureText(label).width;
+    ctx.fillStyle = '#ffe066'; ctx.textAlign = 'center'; ctx.fillText(label, SCREEN_W / 2 + 8, by);
+    drawHeart(ctx, Math.round(SCREEN_W / 2 - bw / 2 - 12), by + 3, '#ff203a');
+    ctx.restore(); ctx.textAlign = 'left';
+  }
+  /** 타이틀 메뉴: 가로로 [이어하기  리셋](세이브 없으면 [시작]) — 고른 항목은 노랑 + 왼쪽 하트 */
+  _drawMenu(ctx, hasSave) {
+    const items = hasSave ? [L.title_menu_continue, L.title_menu_reset] : [L.title_menu_start];
+    const y = Math.round(SCREEN_H * 0.7), gap = 120;
+    ctx.font = FONT; ctx.textBaseline = 'top';
+    items.forEach((label, i) => {
+      const cx = SCREEN_W / 2 + (i - (items.length - 1) / 2) * gap, sel = i === (hasSave ? this.pick : 0), w = ctx.measureText(label).width;
+      ctx.fillStyle = sel ? '#ffe066' : '#8a8aa0'; ctx.textAlign = 'center'; ctx.fillText(label, Math.round(cx + 8), y);
+      if (sel) drawHeart(ctx, Math.round(cx + 8 - w / 2 - 16), y + 3, '#ff203a');
+    });
+    ctx.textAlign = 'left';
+  }
+  /** 리셋 확인창 */
+  _drawAskReset(ctx) {
+    const w = 300, h = 96, x = Math.round((SCREEN_W - w) / 2), y = Math.round(SCREEN_H * 0.58);
+    ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+    this._drawText(ctx, L.title_reset_ask, y + 14);
+    this._drawText(ctx, L.title_reset_warn, y + 38, '#ff8a8a');
+    this._drawText(ctx, `${L.title_reset_yes}    ${L.title_continue_no}`, y + 66, '#8a8aa0');
+  }
+  /** 이어하기 확인창: 검은 상자 + 흰 테두리, 질문 · 지점 이름(노랑) · C/X 안내 */
+  _drawAskContinue(ctx) {
+    const w = 300, h = 96, x = Math.round((SCREEN_W - w) / 2), y = Math.round(SCREEN_H * 0.58);
+    ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+    this._drawText(ctx, L.title_continue_ask, y + 14);
+    this._drawText(ctx, `★ ${this.askContinue.name}`, y + 38, '#ffe066');
+    this._drawText(ctx, `${L.title_continue_yes}    ${L.title_continue_no}`, y + 66, '#8a8aa0');
+  }
   _drawText(ctx, text, y, color = '#fff') {
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
     ctx.fillStyle = color;
@@ -333,14 +402,16 @@ export class TitleScreen {
     ctx.globalAlpha = 1;
 
     // QA 목록이 열려 있으면 'C 를 눌러 시작' 을 그리지 않는다(상자 뒤로 비쳐 보이던 잔상)
-    if (this.phase === 'locked' && this.time > PROMPT_DELAY && !this.qa) {
+    if (this.phase === 'locked' && this.time > PROMPT_DELAY && !this.qa && !this.askContinue && !this.notice && !this.askReset) {
       const period = this.leaving ? 0.08 : 0.9;
       const on = this.leaving ? Math.floor(this.time / period) % 2 === 0 : (this.time % period) < period * 0.6;
       const hasSave = this.game.hasSave();
-      if (on) this._drawText(ctx, hasSave ? (this.confirmNew > 0 ? L.title_confirm_new : L.title_continue) : L.title_start, SCREEN_H * 0.7);
-      if (hasSave && this.confirmNew <= 0) this._drawText(ctx, L.title_new, SCREEN_H * 0.7 + 22, '#8a8aa0');
+      if (this.leaving && !on) { /* 나갈 때 깜빡임 */ } else this._drawMenu(ctx, hasSave);
     }
-    if (this.qa) this._drawQa(ctx);                                 // QA 목록 오버레이 (상자 안 스크롤 창)
+    if (this.qa) this._drawQa(ctx);
+    if (this.askContinue) this._drawAskContinue(ctx);
+    if (this.askReset) this._drawAskReset(ctx);
+    if (this.notice) this._drawNotice(ctx);                                 // QA 목록 오버레이 (상자 안 스크롤 창)
     if (this.flash > 0) {
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, this.flash) / 0.18 * 0.6})`;
       ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);

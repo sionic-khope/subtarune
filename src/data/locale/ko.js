@@ -52,6 +52,17 @@ export default {
   title_continue: 'C 이어하기',
   title_new: 'X 처음부터',
   title_confirm_new: '정말 처음부터? 한 번 더 X',
+  // 이어하기 확인창(BUILD423 사용자 “어디 지점부터 이어할까요? 현재 지점 띄워주면”)
+  title_continue_ask: '이 지점부터 이어할까요?',
+  title_continue_yes: 'C 이어하기',
+  title_continue_no: 'X 취소',
+  // 타이틀 메뉴(BUILD423 사용자 “C 이어하기 X 처음부터 대신 이어하기·리셋, 하트로 선택, 양옆 이동”)
+  title_menu_continue: '이어하기', title_menu_reset: '리셋', title_menu_start: '시작',
+  title_reset_ask: '정말 처음부터 다시 할까요?', title_reset_warn: '저장된 진행은 사라집니다', title_reset_yes: 'C 리셋',
+  // 새 게임 시작 전 안내(BUILD423 사용자 원문)
+  title_notice_title: '섭타룬',
+  title_notice: '해당 게임은 가재맨 유튜브를 델타룬 버전으로 재구성한 팬메이드 게임입니다. 수익창출을 하지 않고, 연출과 자산 등은 델타룬과 언더테일 + 개인적인 아이디어 및 가재맨 방송의 캐릭터들을 사용했습니다.',
+  title_notice_ok: '확인',
   menu_plain_items: '그냥 아이템', menu_key_items: '중요 아이템', menu_use_on: '누구에게?', menu_no_plain: '(없음)', menu_no_key: '(없음)',
   menu_item_controls: '↑↓ 선택 · C 사용 · X 뒤로',
   menu_browse_controls: '↑↓ 선택 · X 뒤로',
