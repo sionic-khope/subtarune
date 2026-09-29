@@ -49,8 +49,11 @@ const CLIPS = {
   baron: { qa: 'obj4_battle', seconds: 40, setup: () => { const p = window.game.player; p.x = 752; p.y = 1150; window.game.spawnParty?.(); window.game.camera.snap?.(); }, run: async page => { await hold(page, 'ArrowUp', 1200); await mash(page, 38000, 500); } },
   teen: { qa: 'castle_teen_battle', seconds: 30, run: async page => { await mash(page, 30000, 500); } },
   save: { qa: 'castle_sunset_run', seconds: 22, run: async page => { await mash(page, 22000, 350); } },
-  meetbg: { qa: 'jjajang_sakura2', seconds: 0, still: true },
+  meetbg: { qa: 'jjajang_sakura3', seconds: 0, still: true },
   // 사용자 2026-09-29: 청소년 전투 대신 파크가디언(대치 → 라즈마 피하기, 네 번째 적 턴)·가재맨성 누누와 윌럼프 바위 밀기
+  // 사용자 2026-09-29 “마지막엔 청소년 등장 씬 전에 파동 올라오는 거 살짝 보여주고 끝내자”
+  // 결전지 큰 파동(청소년 등장 전) — 사용자 정정 “우리 앞에 있어 그거 말고”
+  teenrise: { qa: 'castle_arena', seconds: 150, run: async page => { await mash(page, 149000, 700); } },
   park: { qa: 'park_guardian_battle', seconds: 110, run: async page => { await mash(page, 108000, 450); } },
   boulder: { qa: 'castle_boulder', seconds: 45, run: async page => { await mash(page, 20000, 900); for (let i = 0; i < 60; i++) { await press(page, 'KeyC', 60); await page.waitForTimeout(140); } await mash(page, 12000, 900); } },
 };

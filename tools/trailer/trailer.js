@@ -142,38 +142,38 @@ function meet(t) {
   const S = 4.4, feet = 520, lead = 700 + 60 * smooth((t - T.heroWalk) / 2.5);
   const walking = t >= T.heroWalk, frame = walking ? Math.floor(t * 7) : 0;
   // 파티 줄(합류 순서대로 뒤로 70px 간격)
-  const party = [];
+  const party = [], HOP = 0.5;
   T.meets.forEach(m => { if (t >= m.meet) party.push(...m.ids); });
-  // 배경 맵(27.4s 부터 서서히)
-  if (A.map && t >= T.mapIn) {
-    ctx.save(); ctx.globalAlpha = 0.55 * smooth((t - T.mapIn) / 1.0); ctx.imageSmoothingEnabled = false;
-    const off = (t - T.mapIn) * 60;
-    ctx.drawImage(A.map, -off % 2 - 40 - off, 0, W + 400, H); ctx.restore();
-  }
-  // 줄 선 동료: 뒤로
-  party.slice().reverse().forEach((id, k) => {
-    const i = party.length - 1 - k;
-    actor(id, lead - 132 * (i + 1), feet, 'right', frame + i + 1, S);
-  });
-  // 주인공: 실루엣(하늘색) → 색
-  if (t >= T.heroIn) {
-    const a = smooth((t - T.heroIn) / 0.6);
-    ctx.save(); ctx.globalAlpha = a;
-    actor('hyungsub', lead, feet, walking ? 'right' : 'left', frame, S, '#19a8ff', 1 - smooth((t - T.heroColor) / 0.5));
-    ctx.restore();
-  }
-  // 다가오는 동료: 오른쪽에서 실루엣으로 걸어와 만나면 색이 든다
-  T.meets.forEach(m => {
-    if (t < m.in || t >= m.meet + 0.001) return;
-    const k = (t - m.in) / (m.meet - m.in);
-    m.ids.forEach((id, j) => {
-      const x = lead + 170 + j * 120 + (1 - smooth(k)) * 480;
-      const tintK = 1 - smooth((t - (m.meet - 0.35)) / 0.35);
-      ctx.save(); ctx.globalAlpha = smooth(k / 0.25);
-      actor(id, x, feet, 'left', Math.floor(t * 7) + j, S, m.color, tintK);
+  // 사용자 2026-09-29 “합류할 때 끊기는데 점프 한 번 하고 합류되게”: 만난 자리 → 줄 뒤 자리로 포물선
+  const hopping = id => { const m = T.meets.find(x => x.ids.includes(id)); return m && t < m.meet + HOP ? m : null; };
+  // 다 모이면(gather) 위로 걷는다 — 사용자 2026-09-29 “주인공들 모였을 때 걷는 거 위로”: 세로 한 줄, 배경(벚꽃 숲 3 세로 길)이 아래로 흐른다
+  const gather = T.meets.at(-1).meet + HOP + 0.05;
+  if (t >= gather) {
+    if (A.map) {
+      const h = A.map.height * W / A.map.width, off = ((t - gather) * 150) % h;
+      ctx.save(); ctx.globalAlpha = 0.6 * smooth((t - gather) / 0.8); ctx.imageSmoothingEnabled = false;
+      for (let y = off - h; y < H; y += h) ctx.drawImage(A.map, 0, Math.round(y), W, Math.round(h) + 1);
       ctx.restore();
+    }
+    const upFrame = Math.floor(t * 7), order = ['hyungsub', ...party];
+    // 뒤(아래)에서부터 그려 앞사람이 위에 오게
+    for (let i = order.length - 1; i >= 0; i--) actor(order[i], W / 2, 400 + i * 78, 'up', upFrame + i, S);
+  } else {
+    // 줄 선 동료: 뒤로
+    party.slice().reverse().forEach((id, k) => {
+      const i = party.length - 1 - k, slot = lead - 132 * (i + 1), m = hopping(id);
+      if (!m) { actor(id, slot, feet, 'right', frame + i + 1, S); return; }
+      const j = m.ids.indexOf(id), from = lead + 170 + j * 120, k2 = smooth((t - m.meet) / HOP);
+      actor(id, from + (slot - from) * k2, feet - Math.sin(Math.PI * clamp((t - m.meet) / HOP)) * 110, 'left', 1, S);
     });
-  });
+    // 주인공: 실루엣(하늘색) → 색
+    if (t >= T.heroIn) {
+      const a = smooth((t - T.heroIn) / 0.6);
+      ctx.save(); ctx.globalAlpha = a;
+      actor('hyungsub', lead, feet, walking ? 'right' : 'left', frame, S, '#19a8ff', 1 - smooth((t - T.heroColor) / 0.5));
+      ctx.restore();
+    }
+  }
   // 큰 로고
   if (t >= T.bigLogo) {
     const k = ease((t - T.bigLogo) / 0.3);

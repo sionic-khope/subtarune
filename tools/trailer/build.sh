@@ -16,15 +16,15 @@ node tools/trailer/render.mjs "$W/outro" 50.9 61.13
 
 # 2) 몽타주: 클립 이름 · 녹화 시작초 · 길이(초) — 박자 32.68/33.54/36.11/38.9/42.11 등(ref 음원 분석)에 맞춤
 MONTAGE=(
-  "tv 17.30 2.13"
-  "rhythm 54.00 2.57"
-  "subrio 2.80 2.79"
-  "choimis 32.10 3.21"
+  "park 6.30 1.27"
+  "park 69.40 2.15"
+  "tv 17.50 2.14"
+  "subrio 2.80 1.99"
+  "choimis 32.10 2.57"
+  "rhythm 54.00 2.49"
   "torii 1.80 2.29"
-  "park 6.30 0.80"
-  "park 69.40 1.70"
-  "boulder 26.00 1.64"
-  "save 0.80 2.36"
+  "boulder 25.60 2.36"
+  "teenrise 95.60 2.23"
 )
 list=()
 i=0
