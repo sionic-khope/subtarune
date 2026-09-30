@@ -868,3 +868,20 @@ for (const [id, after] of [['castle_arena', 'castle_prophecy_door'], ['castle_su
   const [pt] = QA_POINTS.splice(from, 1), to = QA_POINTS.findIndex(p => p.id === after);
   QA_POINTS.splice(to < 0 ? QA_POINTS.length : to + 1, 0, pt);
 }
+
+/**
+ * 이어하기 목록(BUILD437, 사용자 2026-09-30 “도달한 부분을 최신으로 띄우고 과거부터, 미래 건 안 보이고”):
+ * 지금 상태(맵·단계·플래그)가 도달한 QA 지점의 순번(숨김 제외 목록 기준, 없으면 -1).
+ * 같은 상태의 지점이 목록 여기저기 있어서(key·party 등) 요구 조건이 가장 큰 지점들 중 앞 번호를 고른다 — 미래 지점을 도달로 치지 않는다.
+ */
+export function qaProgress(flags = {}, stage = null, map = null) {
+  const list = QA_POINTS.filter(p => !p.hidden), si = id => (id && INDEX.has(id) ? INDEX.get(id) : -1), cur = si(stage);
+  const hits = [];
+  list.forEach((p, j) => {
+    if (p.map !== map || si(p.stage) > cur) return;
+    if (Object.entries(p.flags || {}).every(([k, v]) => (v === true ? !!flags[k] : flags[k] === v))) hits.push([p, j]);
+  });
+  const covers = (a, b) => si(a.stage) >= si(b.stage) && Object.entries(b.flags || {}).every(([k, v]) => a.flags && k in a.flags && a.flags[k] === v);
+  const top = hits.filter(([a]) => !hits.some(([b]) => covers(b, a) && !covers(a, b)));
+  return top.length ? Math.min(...top.map(([, j]) => j)) : -1;
+}

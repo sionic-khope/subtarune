@@ -1,5 +1,5 @@
 // 타이틀 흐름(BUILD425~): 아무 키 → 로고 확대(zoom) → locked. PROMPT_DELAY(3초) 뒤 메뉴 입력을 받는다.
-//   세이브 있음: [이어하기 · 리셋] → 이어하기 C → 확인창(askContinue) C → 게임. 리셋 C → 확인창(askReset) C → 세이브 삭제, 메뉴는 [시작].
+//   세이브 있음: [이어하기 · 리셋] → 이어하기 C → 목록(askContinue, BUILD437, 첫 줄 = 마지막 세이브) C → 게임. 리셋 C → 확인창(askReset) C → 세이브 삭제, 메뉴는 [시작].
 //   세이브 없음: [시작] C → 팬메이드 안내(notice, 0.4초 뒤 입력) C → 오프닝.
 // 고정 대기 대신 game.title 필드를 기다린다. 성공하면 true, 시간이 다 되면 false.
 
@@ -24,7 +24,7 @@ export async function titleReady(page, { timeout = 20000 } = {}) {
   return false;
 }
 
-/** 세이브에서 이어하기: 메뉴 [이어하기] → C → 확인창 → C. 타이틀을 떠나기 시작하면 true. */
+/** 세이브에서 이어하기: 메뉴 [이어하기] → C → 목록(첫 줄 마지막 세이브) → C. 타이틀을 떠나기 시작하면 true. */
 export async function titleContinue(page, { timeout = 20000 } = {}) {
   if (!await titleReady(page, { timeout })) return false;
   if (!await page.evaluate(() => game.hasSave())) return false;

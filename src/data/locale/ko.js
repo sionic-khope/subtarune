@@ -56,6 +56,9 @@ export default {
   title_continue_ask: '이 지점부터 이어할까요?',
   title_continue_yes: 'C 이어하기',
   title_continue_no: 'X 취소',
+  // 이어하기 목록(BUILD437 사용자 “도달한 부분을 최신으로, 좌우로 페이지, 5개씩”): 맨 위 마지막 플레이 → 가장 멀리 간 곳 → 도달한 지점(최신부터)
+  title_continue_list_ask: '어디 지점부터 이어할까요?', title_continue_last: '이어하기', title_continue_best: '가장 멀리 간 곳',
+  title_continue_help: '↑↓ 고르기   ←→ 쪽   C 시작   X 닫기',
   // 타이틀 메뉴(BUILD423 사용자 “C 이어하기 X 처음부터 대신 이어하기·리셋, 하트로 선택, 양옆 이동”)
   title_menu_continue: '이어하기', title_menu_reset: '리셋', title_menu_start: '시작',
   title_reset_ask: '정말 처음부터 다시 할까요?', title_reset_warn: '저장된 진행은 사라집니다', title_reset_yes: 'C 리셋',

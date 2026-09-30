@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { Camera, Door, Entity, TileMap, Trigger } from '../../src/world/world.js';
 import { ScriptRunner } from '../../src/ui/dialogue.js';
-import { Story, storyBgm, storyExitScript } from '../../src/core/story.js';
+import { Story, storyBgm, storyExitScript, qaProgress } from '../../src/core/story.js';
 import { SCRIPTS } from '../../src/data/scripts.js';
 import { CastleDarkChase } from '../../src/scenes/castle-dark-chase.js';
 import { CastleDarkPath } from '../../src/scenes/castle-dark-path.js';
@@ -18,10 +18,10 @@ const saved = new Map();
 const Game = runInNewContext(source.slice(source.indexOf('class Game {'), source.indexOf('// ── 부트')) + '\nGame;', {
   MAPS: { [mapId]: def, [arrival.id]: arrival }, Story, CastleDarkChase, CastleDarkPath,
   TileMap: class extends TileMap { bake() {} }, createEntity: (entity, game) => new Entity(entity, game),
-  MAILLARD_CART: { map: 'maillard_path' },
+  MAILLARD_CART: { map: 'maillard_path' }, qaProgress,
   ...Object.fromEntries(['finishCastleGate', 'cancelCastlePipe', 'finishCastleOrb', 'finishCastleBoulder',
     'clearCastleBoulderPush', 'finishCastleLobby', 'finishShipInvasion', 'clearShipDeckPoses', 'restoreCastleBoulder', 'finishCastleCathedral'].map(key => [key, () => {}])),
-  localStorage: { setItem(key, value) { saved.set(key, value); } },
+  localStorage: { setItem(key, value) { saved.set(key, value); }, getItem(key) { return saved.get(key) ?? null; } },
 });
 
 function fixture(flags = {}) {

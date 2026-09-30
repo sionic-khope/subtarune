@@ -2,6 +2,8 @@
 
 마지막 갱신: 2026-09-24
 
+**BUILD437 — 이어하기 목록(사용자 2026-09-30 “이어하기 C → 도달한 QA 지점을 최신부터, 과거부터 할 수 있게, 좌우로 페이지, 5개씩, 미래 건 안 보이고, 꾹 눌러 이동” + “최신 세이브 따로 보관” 선택)**: 이어하기 C → 확인창 대신 목록(`title.js _continueList/_drawAskContinue`, 한 쪽 5줄, ↑↓ 고르기·←→ 쪽, 꾹 누르면 연속). 줄: ★이어하기(마지막 세이브 `subtarune.save.v1`) → ★가장 멀리 간 곳(`subtarune.best.v1`, 마지막과 다를 때만) → 도달한 QA 지점(최신부터). QA 지점을 고르면 Shift+Q 와 같은 `devJump`(회복템 묶음 없음, 아이템·돈·버프는 `STATE_FROM_FLAGS` 로 다시 계산 — 실제로 먹은 회복템은 모른다). 도달 순번 `qaProgress(flags, stage, map)`(story.js): 같은 상태의 지점이 목록 여기저기 있어(key·party 등) 요구 조건이 가장 큰 지점 중 앞 번호 — 미래 지점을 도달로 치지 않는다(`tests/unit/continue-list.test.mjs`). 세이브에 `qaIdx`·`past` 추가, 옛 세이브는 맵·단계·플래그로 추정. 과거 지점에서 하는 중(`pastRun`)이면 가장 멀리 간 칸을 덮지 않고, 그 순번을 넘어서면 다시 따라간다. 리셋은 두 칸 모두 지운다.
+
 **BUILD434 — 새로고침 경고(사용자 2026-09-30 “새로고침하면 유실될 수 있다 경고창”)**: `beforeunload`로 게임 안(타이틀 밖)에서 새로고침·탭 닫기 때 브라우저 기본 확인창. 문구는 브라우저 고정(직접 지정 불가). 자동 테스트 브라우저(`navigator.webdriver`)에선 꺼 둔다(페이지 이동이 막힘).
 
 **BUILD433 — 에셋 로딩 누락 점검(사용자 2026-09-30 “로딩 누락되거나 그런 거 있는지 에셋 점검”)**: 정적 참조 678개 중 없는 파일 0(주석·폴백 제외). 대신 없는 파일을 요청하던 곳이 맵 첫 진입을 늦추고 있었다 — 초상화 없는 캐릭터 61명·코드로 그리는 배경 5종·그림 없는 타일·합성 효과음/목소리 이름을 파일로 요청해 404 + 재시도(0.4s·0.8s). `src/data/asset-index.js`(`python3 tools/dev/asset_index.py`로 생성: PORTRAIT·BACKDROP·SPRITE·TILE·AUDIO_FILES)에 있는 것만 받는다(main.js 초상화·시트, map-assets 배경, tiles.js, audio.js `Sound.audioExts`). 그림·소리를 넣거나 빼면 목록을 다시 만든다 — `tests/unit/asset-index.test.mjs`가 폴더와 어긋나면 잡는다. 결과: 허공·청록숲·옵젝·마이야르·결전지 첫 진입 1.4–1.7s → 0.3–0.5s, QA 252지점 404 0건.

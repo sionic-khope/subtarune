@@ -290,10 +290,23 @@ export class TitleScreen {
       if (this.notice.t > 0.4 && input.just('confirm')) { this.notice = null; this.game.sound.sfx('confirm'); this._leave(() => this.game.startGame()); }
       return;
     }
-    // 이어하기 확인창: 세이브 지점을 보여 주고 C 로 이어하기, X 로 닫기
+    // 이어하기 목록(BUILD437): 위아래 고르기·좌우 쪽 넘기기(꾹 누르면 연속), C 로 그 지점부터, X 로 닫기
     if (this.askContinue) {
-      if (input.just('confirm')) { this.askContinue = null; this._leave(() => this.game.continueGame()); }
-      else if (input.just('cancel')) { this.askContinue = null; this.game.sound.sfx('cancel'); }
+      const c = this.askContinue, n = c.items.length, P = TitleScreen.CONT_ROWS, rep = TitleScreen.QA_REPEAT;
+      const step = (d, wrap) => { const i = qaStep(c.i, n, d, wrap); if (i !== c.i) this.game.sound.sfx('menu'); c.i = i; };
+      const dir = input.down('down') ? 1 : input.down('up') ? -1 : input.down('right') ? P : input.down('left') ? -P : 0;
+      if (input.just('up') || input.just('down')) { step(input.just('down') ? 1 : -1, true); c.hold = 0; c.rep = 0; }
+      else if (input.just('left') || input.just('right')) { step(input.just('right') ? P : -P, false); c.hold = 0; c.rep = 0; }
+      else if (dir) {
+        c.hold = (c.hold || 0) + dt;
+        const every = Math.abs(dir) > 1 ? 0.18 : rep.every;
+        if (c.hold >= rep.delay) { c.rep = (c.rep || 0) + dt; while (c.rep >= every) { c.rep -= every; step(dir, false); } }
+      } else { c.hold = 0; c.rep = 0; }
+      if (input.just('confirm')) {
+        const it = c.items[c.i]; this.askContinue = null;
+        if (it.pt) this._leave(async () => { await this.game.devJump({ ...it.pt }); this.game.fadeTo(0, 0.3); });
+        else this._leave(() => this.game.continueGame(it.key));
+      } else if (input.just('cancel')) { this.askContinue = null; this.game.sound.sfx('cancel'); }
       return;
     }
     // 리셋 확인창: C 로 안내 화면 → 새 게임, X 로 닫기
@@ -310,7 +323,7 @@ export class TitleScreen {
       if (!hasSave) { this.notice = { t: 0 }; return; }
       if (this.pick === 1) { this.askReset = true; return; }
       const summary = this.game.saveSummary?.();
-      if (summary) this.askContinue = summary; else this._leave(() => this.game.continueGame());
+      if (summary) this.askContinue = this._continueList(summary); else this._leave(() => this.game.continueGame());
     }
     if (this.confirmNew > 0) this.confirmNew -= dt;
   }
@@ -354,14 +367,33 @@ export class TitleScreen {
     this._drawText(ctx, L.title_reset_warn, y + 38, '#ff8a8a');
     this._drawText(ctx, `${L.title_reset_yes}    ${L.title_continue_no}`, y + 66, '#8a8aa0');
   }
-  /** 이어하기 확인창: 검은 상자 + 흰 테두리, 질문 · 지점 이름(노랑) · C/X 안내 */
+  static CONT_ROWS = 5;     // 이어하기 목록 한 쪽에 5개(사용자 2026-09-30)
+  /** 이어하기 목록: 마지막 플레이 · (더 멀리 간 세이브) · 도달한 QA 지점을 최신부터. 아직 안 간 지점은 넣지 않는다 */
+  _continueList(s) {
+    const items = [{ key: s.key, label: `${L.title_continue_last} · ${s.name}`, save: true }];
+    if (s.best) items.push({ key: s.best.key, label: `${L.title_continue_best} · ${s.best.name}`, save: true });
+    for (const pt of QA_MENU.slice(0, s.reached + 1).reverse()) items.push({ pt, label: pt.desc });
+    return { name: s.name, items, i: 0, hold: 0, rep: 0 };
+  }
+  /** 이어하기 목록 상자: 질문 · 5줄(고른 줄 노랑+하트, 세이브 줄은 ★) · 쪽 번호 · 안내 */
   _drawAskContinue(ctx) {
-    const w = 300, h = 96, x = Math.round((SCREEN_W - w) / 2), y = Math.round(SCREEN_H * 0.58);
+    const c = this.askContinue, P = TitleScreen.CONT_ROWS, ROW = 20, pages = Math.max(1, Math.ceil(c.items.length / P)), page = Math.floor(c.i / P);
+    const w = 400, h = 60 + P * ROW + 24, x = Math.round((SCREEN_W - w) / 2), y = Math.round((SCREEN_H - h) / 2);
     ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
-    this._drawText(ctx, L.title_continue_ask, y + 14);
-    this._drawText(ctx, `★ ${this.askContinue.name}`, y + 38, '#ffe066');
-    this._drawText(ctx, `${L.title_continue_yes}    ${L.title_continue_no}`, y + 66, '#8a8aa0');
+    this._drawText(ctx, L.title_continue_list_ask, y + 14);
+    ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    const maxW = w - 64;
+    for (let k = 0; k < P; k++) {
+      const it = c.items[page * P + k]; if (!it) break;
+      const ry = y + 44 + k * ROW, on = page * P + k === c.i;
+      let label = (it.save ? '★ ' : '') + it.label;
+      if (ctx.measureText(label).width > maxW) { let cut = label.length; while (cut > 1 && ctx.measureText(label.slice(0, cut) + '…').width > maxW) cut--; label = label.slice(0, cut) + '…'; }
+      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(label, x + 40, ry);
+      if (on) drawHeart(ctx, x + 20, ry + 3, '#ff203a');
+    }
+    ctx.textAlign = 'right'; ctx.fillStyle = '#8a8aa0'; ctx.fillText(`${page + 1}/${pages}`, x + w - 16, y + 14); ctx.textAlign = 'left';
+    this._drawText(ctx, L.title_continue_help, y + h - 26, '#8a8aa0');
   }
   _drawText(ctx, text, y, color = '#fff') {
     ctx.font = FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'center';

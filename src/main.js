@@ -34,7 +34,7 @@ import { CAPTAIN_AURA_COLORS, CAPTAIN_REVEAL_VEIL } from './data/cutscenes/capta
 import L from './data/locale/ko.js';
 import { BUILD } from './data/build.js';
 import { CHARACTERS } from './data/characters.js';
-import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, qaHealKit, storyBgm, restoreChoimisChaseRaft } from './core/story.js';
+import { Story, STAGES, QA_POINTS, partyFromFlags, stateFromFlags, qaHealKit, qaProgress, storyBgm, restoreChoimisChaseRaft } from './core/story.js';
 import { ENEMIES } from './data/enemies.js';
 import { WATER_WALK } from './data/footsteps.js';
 import { createPetals } from './world/petals.js';        // 벚꽃 숲 꽃잎(BUILD261)
@@ -264,19 +264,34 @@ class Game {
   /** 플래그/단계 확인 (단계 플래그는 backfill 돼 있으므로 flags 만 보면 된다) */
   has(key) { return !!this.flags[key]; }
   static SAVE_KEY = 'subtarune.save.v1';
-  hasSave() { try { return !!localStorage.getItem(Game.SAVE_KEY); } catch { return false; } }
+  // 가장 멀리 간 세이브(BUILD437): 이어하기 목록에서 과거 지점을 다시 해도 덮이지 않는다 — 그 기록을 넘어서면 다시 따라간다
+  static BEST_KEY = 'subtarune.best.v1';
+  static readSave(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
+  /** 세이브가 도달한 QA 지점 순번 — 옛 세이브(qaIdx 없음)는 맵·단계·플래그로 추정 */
+  static saveProgress(d) { return Number.isInteger(d?.qaIdx) ? d.qaIdx : d?.map ? qaProgress(d.flags || {}, d.story?.stage || null, d.map) : -1; }
+  hasSave() { try { return !!(localStorage.getItem(Game.SAVE_KEY) || localStorage.getItem(Game.BEST_KEY)); } catch { return false; } }
   /** 자동 저장: 단계가 오를 때·맵을 옮길 때·스크립트가 끝날 때·QA 바로가기 직후(필드에서만). 컷신이 도는 동안은 저장하지 않는다(숨긴 주인공·임시 맵 위치가 세이브에 남지 않게, 2026-09-10) */
   autosave() {
     if (!['field', 'shop', 'menu'].includes(this.state) || this.ride || !this.player || !this.mapId || this.mapId === 'test' || this.dialogue.running) return;
-    const data = { v: 1, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, mapName: MAPS[this.mapId]?.name || null, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
+    const reached = qaProgress(this.flags, this.story.stage, this.mapId);
+    if (reached > this.qaIdx) this.qaIdx = reached;
+    const data = { v: 1, qaIdx: this.qaIdx, past: this.pastRun, story: this.story.toJSON(), flags: this.flags, inventory: this.inventory, party: this.party, partyHp: this.partyHp, money: this.money, attack: this.attack, hpBonus: this.hpBonus, map: this.mapId, mapName: MAPS[this.mapId]?.name || null, spawn: this.entrySpawn, x: Math.round(this.player.x), y: Math.round(this.player.y), facing: this.player.facing, sprite: this.playerSprite, settings: this.settings, t: Date.now() };
     try { localStorage.setItem(Game.SAVE_KEY, JSON.stringify(data)); } catch {}
+    // 과거 지점에서 다시 하는 중(pastRun)이면 가장 멀리 간 기록을 넘어설 때까지 그 칸은 그대로 둔다
+    if (this.pastRun && this.qaIdx > Game.saveProgress(Game.readSave(Game.BEST_KEY))) this.pastRun = false;
+    if (!this.pastRun) try { localStorage.setItem(Game.BEST_KEY, JSON.stringify({ ...data, past: false })); } catch {}
   }
-  clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); } catch {} }
+  clearSave() { try { localStorage.removeItem(Game.SAVE_KEY); localStorage.removeItem(Game.BEST_KEY); } catch {} }
   /** 타이틀 이어하기 확인창에 띄울 세이브 지점(BUILD423) — 지점 이름(옛 세이브는 맵 데이터에서), 없으면 null */
+  // BUILD437: 이어하기 목록 — 마지막 플레이(key) · 그보다 멀리 간 세이브(best, 다를 때만) · 도달한 QA 순번(reached, 그 앞 지점만 목록에)
   saveSummary() {
-    let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
-    if (!d?.map) return null;
-    return { name: d.mapName || MAPS[d.map]?.name || d.map, t: d.t || null };
+    const d = Game.readSave(Game.SAVE_KEY), b = Game.readSave(Game.BEST_KEY);
+    const last = d?.map ? d : b?.map ? b : null;
+    if (!last) return null;
+    const name = (s) => s.mapName || MAPS[s.map]?.name || s.map;
+    const far = last === d && b?.map && b.t !== d.t && Game.saveProgress(b) > Game.saveProgress(d) ? b : null;
+    return { name: name(last), t: last.t || null, key: last === d ? Game.SAVE_KEY : Game.BEST_KEY,
+      best: far && { name: name(far), t: far.t || null, key: Game.BEST_KEY }, reached: Math.max(Game.saveProgress(d), Game.saveProgress(b)) };
   }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {
@@ -308,14 +323,15 @@ class Game {
     this.sunrise.dispose();
     this.seaChase?.dispose(); this.seaChase = null;
     this.battle?.disposeGimmick();
+    this.qaIdx = -1; this.pastRun = false;
     this.riseT = null;   // 노을 상승 곡 시계 — 새 게임·이어하기마다 비운다(같은 탭 두 번째 방문에 옛 시계가 남던 문제)
     this.flags = {}; this.story = new Story(this.flags); this.inventory = []; this.party = []; this.partyHp = {}; this.money = 0; this.attack = 1; this.hpBonus = 0;   // 공격력·최대 HP 보너스(레드·블루 버프)
     this.battle = null; this.lastBattle = null; this.battleFlag = null; this.encountering = false; this.ride = null;
     this.runner?.finish?.(); this.runner = null; this.hpPopup = null;   // 러너 기믹(파란 토리이, BUILD230) — 있으면 자동 달리기·X 점프·C 베기가 입력을 가져간다. 리셋 경로에서도 카메라 잠금을 푼다
   }
   /** 타이틀에서 '이어하기': 세이브를 통째로 복원 → 맵 → 위치 → 동료를 주인공 뒤에 다시 세움 → 그 뒤에야 도착 스크립트(플래그 안 섰으면 처음부터 다시) */
-  async continueGame() {
-    let d = null; try { d = JSON.parse(localStorage.getItem(Game.SAVE_KEY)); } catch {}
+  async continueGame(key = Game.SAVE_KEY) {
+    const d = Game.readSave(key) || Game.readSave(Game.SAVE_KEY);
     if (!d?.map) { await this.startGame(); return; }
     // 밤 해안은 BUILD405 에서 길이 약 30% 짧아졌다 — 그 전 세이브의 좌표는 바다일 수 있으니 그 맵 입구에서 이어간다(다리·뗏목 플래그는 그대로)
     if (/^jjajang_night_coast[123]$/.test(d.map) && !d.flags?.night_coast_geometry405) {
@@ -328,6 +344,7 @@ class Game {
     this.party = normalizeParty(d.party);            // 어떤 조합이든 걷는 순서(경섭 → 빠맨)로
     this.partyHp = { ...(d.partyHp || {}) }; this.money = d.money || 0; this.attack = d.attack || 1; this.hpBonus = d.hpBonus || 0; this.settings = { ...this.settings, ...(d.settings || {}) };
     this.playerSprite = d.sprite || 'hyungsub';
+    this.qaIdx = Game.saveProgress(d); this.pastRun = !!d.past;
     this.state = 'field';
     await this.changeMap(d.map, d.spawn || null, true, { enter: false });
     if (Number.isFinite(d.x) && Number.isFinite(d.y) && d.x >= 0 && d.y >= 0 && d.x + this.player.w <= this.map.pxW && d.y + this.player.h <= this.map.pxH) {
@@ -345,7 +362,7 @@ class Game {
     const voices = this.sound.loadVoiceFiles(Object.keys(VOICES));
     await Promise.race([Promise.all([voices, this.sfxPreloadDone || Promise.resolve()]), new Promise(resolve => setTimeout(resolve, ms))]);
   }
-  async devJump({ map, spawn, stage, flags, party, inventory, money, script, extraItems, healKit }) {
+  async devJump({ id, map, spawn, stage, flags, party, inventory, money, script, extraItems, healKit }) {
     if (stage && Story.isStage(stage)) map ||= Story.stageOf(stage).map;
     const effectiveFlags = { ...(flags || {}) };
     const effectiveStory = new Story(effectiveFlags);
@@ -368,6 +385,9 @@ class Game {
     this.inventory = [...(inventory ? inventory : [...derived.inventory, ...(extraItems || [])]), ...(healKit ? qaHealKit(this.flags) : [])]; this.money = money ?? derived.money; this.attack = derived.attack; this.hpBonus = derived.hpBonus;
     if (map && MAPS[map]?.stage) this.story.advance(MAPS[map].stage);
     if (!this.has('opening_seen')) this.story.advance('opening_seen');
+    // 도달 순번은 이 지점부터 — 가장 멀리 간 기록보다 앞이면 과거 플레이(pastRun)라 그 기록을 덮지 않는다
+    this.qaIdx = id ? QA_POINTS.filter((p) => !p.hidden).findIndex((p) => p.id === id) : -1;
+    this.pastRun = this.qaIdx >= 0 && this.qaIdx < Game.saveProgress(Game.readSave(Game.BEST_KEY));
     this.state = 'field';                            // 먼저 field 로 — 그래야 맵 브금이 시작된다(타이틀 상태에선 금지)
     await this.changeMap(map, spawn || 'start', true, { enter: false });
     this.autosave();                                 // 바로가기 직후 '이어하기' 도 이 지점을 연다 (도착 스크립트 전이라 플래그가 안 서 있고, 이어하기 때 스크립트가 처음부터 돈다)
