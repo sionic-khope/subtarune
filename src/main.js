@@ -290,8 +290,8 @@ class Game {
     if (!last) return null;
     const name = (s) => s.mapName || MAPS[s.map]?.name || s.map;
     const far = last === d && b?.map && b.t !== d.t && Game.saveProgress(b) > Game.saveProgress(d) ? b : null;
-    return { name: name(last), t: last.t || null, key: last === d ? Game.SAVE_KEY : Game.BEST_KEY,
-      best: far && { name: name(far), t: far.t || null, key: Game.BEST_KEY }, reached: Math.max(Game.saveProgress(d), Game.saveProgress(b)) };
+    return { name: name(last), t: last.t || null, key: last === d ? Game.SAVE_KEY : Game.BEST_KEY, at: Game.saveProgress(last),
+      best: far && { name: name(far), t: far.t || null, key: Game.BEST_KEY, at: Game.saveProgress(far) }, reached: Math.max(Game.saveProgress(d), Game.saveProgress(b)) };
   }
   /** 진행 상태 전부 초기화 — 새 게임·타이틀 복귀·QA 바로가기·이어하기의 공통 출발점. 이전 세이브/이전 QA 상태가 섞이지 않는다 (2026-09-10 "QA 갔다가 이어하기 → 형섭만 나옴") */
   resetState() {

@@ -7,6 +7,7 @@ import { drawHeart, makeCanvas } from '../core/gfx.js';
 import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import L from '../data/locale/ko.js';
 import { QA_POINTS } from '../core/story.js';
+import { CONTINUE_LABELS } from '../data/continue-labels.js';
 import { qaStep } from './qa-list.js';
 
 const QA_FONT = '9px "Galmuri9", "Galmuri11", "NeoDunggeunmo", monospace';
@@ -370,9 +371,11 @@ export class TitleScreen {
   static CONT_ROWS = 5;     // 이어하기 목록 한 쪽에 5개(사용자 2026-09-30)
   /** 이어하기 목록: 마지막 플레이 · (더 멀리 간 세이브) · 도달한 QA 지점을 최신부터. 아직 안 간 지점은 넣지 않는다 */
   _continueList(s) {
-    const items = [{ key: s.key, label: `${L.title_continue_last} · ${s.name}`, save: true }];
-    if (s.best) items.push({ key: s.best.key, label: `${L.title_continue_best} · ${s.best.name}`, save: true });
-    for (const pt of QA_MENU.slice(0, s.reached + 1).reverse()) items.push({ pt, label: pt.desc });
+    // 세이브 줄은 도달한 장면 이름(없으면 맵 이름) — 보라 구간 맵 이름이 ??? 라 어딘지 안 보였다
+    const where = (x) => CONTINUE_LABELS[QA_MENU[x.at]?.id] || x.name;
+    const items = [{ key: s.key, label: `${L.title_continue_last} · ${where(s)}`, save: true }];
+    if (s.best) items.push({ key: s.best.key, label: `${L.title_continue_best} · ${where(s.best)}`, save: true });
+    for (const pt of QA_MENU.slice(0, s.reached + 1).reverse()) items.push({ pt, label: CONTINUE_LABELS[pt.id] || pt.desc });
     return { name: s.name, items, i: 0, hold: 0, rep: 0 };
   }
   /** 이어하기 목록 상자: 질문 · 5줄(고른 줄 노랑+하트, 세이브 줄은 ★) · 쪽 번호 · 안내 */

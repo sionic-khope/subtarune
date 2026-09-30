@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { QA_POINTS, Story, qaProgress } from '../../src/core/story.js';
+import { CONTINUE_LABELS } from '../../src/data/continue-labels.js';
 
 const MENU = QA_POINTS.filter((p) => !p.hidden);
 
@@ -27,4 +28,14 @@ test('qaProgress reaches most points exactly and returns -1 off the list', () =>
   });
   assert.ok(exact >= MENU.length * 0.75, `exact ${exact}/${MENU.length}`);
   assert.equal(qaProgress({}, null, 'no_such_map'), -1);
+});
+
+// BUILD438: 목록에는 개발용 설명(desc) 대신 플레이어용 “지역 · 장면” 이름
+test('every listed QA point has a player-facing continue label without dev notation', () => {
+  const missing = MENU.filter((p) => !CONTINUE_LABELS[p.id]).map((p) => p.id);
+  assert.deepEqual(missing, []);
+  const dev = Object.entries(CONTINUE_LABELS).filter(([, label]) => /[A-Za-z]/.test(label.replace(/TV/g, '')) || /[()→—:]|QA|직행|\d+회/.test(label) || !/ · /.test(label) || [...label].length > 20);
+  assert.deepEqual(dev, []);
+  const stale = Object.keys(CONTINUE_LABELS).filter((id) => !MENU.some((p) => p.id === id));
+  assert.deepEqual(stale, []);
 });
