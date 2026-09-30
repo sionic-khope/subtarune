@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue, titleNewGame } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 const ASSET_WAIT_MS = 15000;
@@ -242,8 +243,8 @@ await runScenario({ name: 'loading-performance' }, async ({ page, check, until, 
   await page.waitForFunction(() => window.game?.title?.phase === 'zoom', undefined, { timeout: 6000 });
   await press('KeyC');
   await page.waitForFunction(() => window.game?.title?.phase === 'locked', undefined, { timeout: 6000 });
-  await page.waitForTimeout(3300);
-  await press('KeyC');
+  // 세이브 없음 → [시작] C → 팬메이드 안내 C (BUILD425)
+  check('title [시작] → fan-made notice → C starts a new game', await titleNewGame(page));
   const newGameOpening = await page.waitForFunction(() => window.game?.state === 'field' && window.game?.dialogue?.running, undefined, { timeout: 10000 }).then(() => true).catch(() => false);
   const newGameState = await page.evaluate(() => ({ state: window.game?.state, mapId: window.game?.mapId, dialogue: !!window.game?.dialogue?.running, bgm: window.game?.sound?.bgmName ?? null }));
   await shot('newgame-opening');
@@ -286,7 +287,7 @@ await runScenario({ name: 'loading-performance' }, async ({ page, check, until, 
   await page.waitForFunction(() => window.game?.title?.phase === 'zoom', undefined, { timeout: 6000 });
   await press('KeyC');
   await page.waitForFunction(() => window.game?.title?.phase === 'locked', undefined, { timeout: 6000 });
-  await page.waitForTimeout(3300); await press('KeyC');
+  check('title 이어하기 → confirm box → C continues', await titleContinue(page));
   const continued = await page.waitForFunction(() => window.game?.state === 'field' && window.game?.mapId === 'teal3' && !window.game?.dialogue?.running, undefined, { timeout: 12000 }).then(() => true).catch(() => false);
   const continueState = await page.evaluate(() => {
     const g = window.game; const p = g?.player;

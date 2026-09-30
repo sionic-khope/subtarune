@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
@@ -68,9 +69,11 @@ await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autopla
   }
   assert.ok(await ready());
   await fixture('read-only-frame-observer', 'Wrap completed production draws to record actual positions, fade, camera, HP and dialogue. No movement, clocks, input or story flags are injected.', () => {
-    const q = window.__cathedralQA = { samples: [] }, draw = game.draw.bind(game);
+    const q = window.__cathedralQA = { samples: [], maxFade: 0 }, draw = game.draw.bind(game);
     game.draw = (...args) => {
       const result = draw(...args);
+      // 문 전환의 완전 암전은 1~2프레임뿐이다(맵을 미리 받아 두면 로딩 대기 없이 0.25초 만에 걷힌다) — 60ms 표본 사이에 빠지지 않게 매 프레임 최댓값을 따로 잰다
+      q.maxFade = Math.max(q.maxFade, game.fade.alpha);
       if (!q.samples.length || performance.now() - q.samples.at(-1).at > 60) q.samples.push({ at: performance.now(), map: game.mapId,
         xy: [game.player.x, game.player.y], camera: [game.camera.x, game.camera.y], fade: game.fade.alpha,
         hp: ['hyungsub', ...game.party].map(id => [id, game.hpOf(id)]), dialogue: game.dialogue.running });
@@ -92,7 +95,7 @@ await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autopla
   assert.ok(await firstLine(), 'intro first line');
   const entry = await state(); await shot('entry-1280'); await partyFraming('landing');
   check('C enters the cathedral, party walks in and the intro starts with HP intact', entry.party.length === 2 && entry.followers.length === 2 && !entry.blocked && !entry.chase && !entry.dark && entry.dialogue && JSON.stringify(entry.hp) === JSON.stringify(initial.hp), JSON.stringify(entry));
-  check('gate transition includes black fade', await page.evaluate(() => window.__cathedralQA.samples.some(s => s.fade > 0.95)));
+  check('gate transition includes black fade', await page.evaluate(() => window.__cathedralQA.maxFade > 0.95), JSON.stringify(await page.evaluate(() => window.__cathedralQA.maxFade)));
   check('walk-in is silent until the laugh', !entry.bgm, entry.bgm);
   for (const width of [375, 768]) {
     await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(100); await shot(`entry-${width}`);
@@ -103,7 +106,7 @@ await runScenario({ name: 'castle-cathedral', launchOptions: { args: ['--autopla
   await escToTitle(page); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
-  await key('KeyC'); assert.ok(await until(() => game.state === 'field', 20000));
+  assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await until(() => game.state === 'field', 20000));
   assert.ok(await firstLine(), 'intro replays after an interrupted entry');
   const continued = await state();
   check('interrupted intro resumes safely in the cathedral with the same HP', continued.map === cathedral && !continued.blocked && JSON.stringify(continued.hp) === JSON.stringify(initial.hp) && !(await page.evaluate(() => game.flags.castle_cathedral_climb)), JSON.stringify(continued));

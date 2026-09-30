@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { titleContinue } from './lib/title.mjs';
 
 const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const shots = process.env.SHOT_DIR || '/tmp/npcs118-qa';
@@ -212,7 +213,7 @@ try {
   check('reentry retains completion flags without respawning monkey', await page.evaluate(() => game.flags.maillard_yerim_pair_seen && game.flags.maillard_mabaem_seen && !game.entities.some(e => e.id === 'parkwonsung')));
   await shot('11-reentry');
   await page.goto(base); await page.waitForFunction(() => game?.state === 'title' && game.title?.phase === 'wait' && !game.bootLoad?.active);
-  await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'zoom'); await next(); await page.waitForFunction(() => game.title.phase === 'locked'); await page.waitForTimeout(3300); await next(); await ready();
+  await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'zoom'); await next(); await page.waitForFunction(() => game.title.phase === 'locked'); check('title Continue confirm box accepted', await titleContinue(page)); await ready();
   check('reload and real title Continue retain both completion flags', await page.evaluate(() => !!game.flags.maillard_yerim_pair_seen && !!game.flags.maillard_mabaem_seen));
   await shot('12-continue');
   await page.goto(`${base}/?qa=maillard_lounge`); await ready(); await page.keyboard.press('KeyX'); await installObservers();

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
@@ -48,7 +49,7 @@ await runScenario({ name: 'castle-orb', launchOptions: { args: ['--autoplay-poli
     assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 5000));
     await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
     await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
-    await key('KeyC'); assert.ok(await field());
+    assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await field());
   };
   const approach = async () => {
     await walk('ArrowUp', () => game.player.probe()?.id === 'castle_seal_orb', 'walk up to actual orb collider');

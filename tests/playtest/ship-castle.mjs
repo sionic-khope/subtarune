@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, check, until, open, press, shot, fixture }) => {
@@ -354,13 +355,7 @@ await runScenario({ name: 'ship-castle', launchOptions: { args: ['--autoplay-pol
   await shot('castle_36_title_qa');
   await open();
   await until(() => game.state === 'title', 15000);
-  await press('KeyZ');
-  for (let index = 0; index < 40 && await page.evaluate(() => game.title?.phase !== 'locked'); index++) {
-    await press('KeyC');
-    await page.waitForTimeout(250);
-  }
-  await page.waitForTimeout(3300);
-  await press('KeyC');
+  await titleContinue(page);
   check('real Continue restores stable solo shore without replaying either cinematic', !!await until(() => game.mapId === 'jjajang_shore' && game.state === 'field' && !game.dialogue.running && !game.shipCastle && !game.shipMemory && game.party.length === 0, 15000));
   await page.waitForTimeout(2600);
   const continued = await page.evaluate(() => ({ flags: game.flags, inventory: game.inventory, followers: game.entities.filter(entity => entity.def.type === 'follower').length, bgm: game.sound.bgmName }));

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
@@ -151,7 +152,7 @@ await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--a
   assert.ok(await until(() => game.state === 'title' && !game.transitioning, 5000));
   await press('KeyC', { delay: 45 });
   assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.1, 10000));
-  await press('KeyC', { delay: 45 }); assert.ok(await field());
+  assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await field());
   check('natural victory persists through real title continue in the orb room', await page.evaluate(() => game.mapId === 'gajaeman_castle_orb' && game.flags.castle_malzahar_won
     && game.party.length === 0 && game.attack === 5 && game.hpBonus === 80 && !game.battle && !game.runner && game.sound.bgmName === 'castle_orb'));
   await shot('continued-natural-arrival');
@@ -179,7 +180,7 @@ await runScenario({ name: 'castle-malzahar-battle', launchOptions: { args: ['--a
   await shot('escape-title');
   await press('KeyC', { delay: 45 });
   assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.1, 10000));
-  await press('KeyC', { delay: 45 }); assert.ok(await field());
+  assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await field());
   check('real title C continue restores solo torii checkpoint and upgrades', await page.evaluate(() => game.mapId === 'gajaeman_castle_fork' && game.party.length === 0 && game.attack === 5 && game.hpBonus === 80
     && !game.battle && !game.runner && !game.camera.locked && game.sound.bgmName === 'castle_right'));
   await shot('continued-torii-checkpoint');

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 // BUILD325: 대성당1 꼭대기 → 가재맨 이동 → 둘째 회랑(브금 연속) → 중간 검 9개 대치·구출 → 레이저 지원 3자루 → 이어하기.
@@ -75,7 +76,7 @@ await runScenario({ name: 'castle-cathedral2', launchOptions: { args: ['--autopl
   await escToTitle(page); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
-  await key('KeyC'); assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));
+  assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));
   await page.waitForTimeout(1500); obs.beats.continued = await snap(); await shot('12-continue');
   check('continue restores junhee, youngcle escort and the armed climb', obs.beats.continued.map === 'gajaeman_castle_cathedral2' && obs.beats.continued.scene?.rescued && obs.beats.continued.scene?.junhee && obs.beats.continued.scene?.climbing && !obs.beats.continued.dialogue, JSON.stringify(obs.beats.continued));
   fs.writeFileSync(path.join(process.env.SHOT_DIR, 'observations.json'), JSON.stringify(obs, null, 2));

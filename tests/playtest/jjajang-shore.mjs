@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'jjajang-shore', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({
@@ -67,14 +68,7 @@ await runScenario({ name: 'jjajang-shore', launchOptions: { args: ['--autoplay-p
 
   await escToTitle(page);
   check('Escape returns to title without deleting shore save', !!await until(() => game.state === 'title' && game.hasSave(), 10000));
-  await press('KeyZ');
-  await page.waitForTimeout(300);
-  for (let index = 0; index < 40 && await page.evaluate(() => game.title?.phase !== 'locked'); index += 1) {
-    await press('KeyC');
-    await page.waitForTimeout(250);
-  }
-  await page.waitForTimeout(3300);
-  await press('KeyC');
+  await titleContinue(page);
   check('real title Continue restores shore control', !!await until(() => game.mapId === 'jjajang_shore'
     && game.state === 'field' && !game.dialogue.running && !game.transitioning && game.fade.alpha < 0.01, 15000));
   const continued = await page.evaluate(() => ({

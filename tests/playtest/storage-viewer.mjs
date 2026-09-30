@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
@@ -161,7 +162,7 @@ try {
   await page.goto(base); await page.waitForFunction(() => window.game?.state === 'title' && game.title?.phase === 'wait');
   await page.keyboard.press('KeyX'); await page.waitForFunction(() => game.title.phase === 'zoom');
   await next(); await page.waitForFunction(() => game.title.phase === 'locked');
-  await page.waitForTimeout(3300); await next(); await ready();
+  check('title Continue confirm box accepted', await titleContinue(page)); await ready();
   check('real Continue restores one lying viewer and reward exactly once', await page.evaluate(expected => {
     const actors = game.entities.filter(e => e.id?.startsWith('expelled_viewer'));
     return game.mapId === 'maillard_storage' && actors.length === 1 && actors[0].def.sprite === 'expelled_viewer_down' && actors[0].def.script === 'storage_viewer_defeated' && actors[0].def.persistentEmote?.size === 36 && game.money === expected;

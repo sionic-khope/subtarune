@@ -1,6 +1,7 @@
 // 상태 시스템 검증: 개발용 바로가기의 단계 backfill, 코드 획득 뒤 컴퓨터/문/티비 대사, 자동 저장·이어하기·처음부터.
 // 실행: CHROME_EXE=... node tests/playtest/story.mjs   (서버 8000)
 import { chromium } from 'playwright-core';
+import { titleContinue, titleNewGame } from './lib/title.mjs';
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const logs = []; let fails = 0;
@@ -39,22 +40,18 @@ s = await st(); check('stream cutscene ends in void, stage void_fallen', s.map =
 // 3) 자동 저장 → 새로고침 → 타이틀 "C 이어하기" → 상태 복원
 const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('subtarune.save.v1') || 'null'));
 check('autosave written', !!saved && saved.story?.stage === 'void_fallen' && saved.map === 'void', JSON.stringify(saved && { stage: saved.story?.stage, map: saved.map }));
-await page.goto('http://127.0.0.1:8000/index.html'); await page.waitForTimeout(1200);
-await page.keyboard.press('KeyX'); await page.waitForTimeout(3600);
-for (let j = 0; j < 12; j++) { await page.keyboard.press('KeyC'); await page.waitForTimeout(500); if ((await page.evaluate(() => game.state)) !== 'title') break; }
+await page.goto('http://127.0.0.1:8000/index.html');
+check('title 이어하기 → confirm box → C continues', await titleContinue(page), '');
 await settleOn('void'); s = await st();
 check('continue restores stage/map/flags', s.state === 'field' && s.map === 'void' && s.stage === 'void_fallen' && s.flags.pc_checked === true && !s.running, JSON.stringify({ state: s.state, map: s.map, stage: s.stage, running: s.running }));
 await page.evaluate(() => { game.player.x = 880; game.player.y = 190; game.player.facing = 'right'; game.camera.snap(); }); await page.waitForTimeout(700);
 await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight'); await afterDoor();
 s = await st(); check('gameplay works after continue (void big door → void2)', s.map === 'void2', s.map);
 
-// 4) 타이틀에서 X 두 번 → 처음부터: 세이브 삭제, 오프닝 시작, 플래그 초기화
-await page.goto('http://127.0.0.1:8000/index.html'); await page.waitForTimeout(1200);
-await page.keyboard.press('KeyX'); await page.waitForTimeout(3600);
-for (let j = 0; j < 8; j++) { await page.waitForTimeout(500); if ((await page.evaluate(() => game.title.time > 3.0)) === true) break; }
-await page.keyboard.press('KeyX'); await page.waitForTimeout(300);
-check('first X asks confirmation', await page.evaluate(() => game.title.confirmNew > 0 && game.state === 'title'));
-await page.keyboard.press('KeyX'); await page.waitForTimeout(1200);
+// 4) 타이틀 [리셋] → 확인 C(세이브 삭제, 메뉴는 [시작]) → [시작] C → 팬메이드 안내 C → 처음부터: 오프닝 시작, 플래그 초기화
+await page.goto('http://127.0.0.1:8000/index.html');
+check('reset confirm clears the save and the notice starts a new game', await titleNewGame(page, { reset: true }));
+await page.waitForFunction(() => game.state === 'field' && game.dialogue.running, null, { timeout: 10000 }).catch(() => {});
 s = await st(); check('new game: opening running, flags reset, save cleared', s.state === 'field' && s.running && !s.flags.cord_found && (await page.evaluate(() => localStorage.getItem('subtarune.save.v1'))) === null, JSON.stringify({ state: s.state, running: s.running, flags: s.flags }));
 await browser.close();
 logs.push(`fails=${fails}`);

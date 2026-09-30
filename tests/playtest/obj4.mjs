@@ -10,7 +10,8 @@ const errors = [], lines = [], captures = new Set();
 let fails = 0;
 const check = (name, ok, data = '') => { console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, data); if (!ok) fails++; };
 page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) errors.push(m.text()); });
+// 제스처 전 BGM 자동 재생 대기 경고는 게임의 정상 로그(키 입력 뒤 재생) — 오류로 세지 않는다
+page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404|BGM 자동 재생 대기 NotAllowedError/.test(m.text())) errors.push(m.text()); });
 try {
   await page.goto(`${base}/index.html?qa=obj4`);
   await page.waitForFunction(() => window.game?.player && game.entities, { timeout: 20000 });

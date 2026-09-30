@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 
 await runScenario({ name: 'sinking-shore', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({
   page, check, until, open, press, shot,
@@ -114,14 +115,7 @@ await runScenario({ name: 'sinking-shore', launchOptions: { args: ['--autoplay-p
 
   await open();
   check('interruption returns to title with checkpoint', !!await until(() => game.state === 'title' && game.hasSave(), 20000));
-  await press('KeyZ');
-  await page.waitForTimeout(300);
-  for (let index = 0; index < 40 && await page.evaluate(() => game.title?.phase !== 'locked'); index += 1) {
-    await press('KeyC');
-    await page.waitForTimeout(250);
-  }
-  await page.waitForTimeout(3300);
-  await press('KeyC');
+  await titleContinue(page);
   check('Continue resumes known beach-arrival beat lying', !!await until(() => game.mapId === 'jjajang_shore'
     && game.dialogue.running && game.player.pose === 'lying' && !game.flags.ship_sinking_done, 15000));
   const resumedOne = await readWaitingLine();

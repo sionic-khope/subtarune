@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 // BUILD323: 대성당 입장 연출(무음 입장 → 가재맨 등장 → 상승 → 바람 → 검 생성) 과 3열 검 회피 오르기.
@@ -110,7 +111,7 @@ await runScenario({ name: 'castle-cathedral-climb', launchOptions: { args: ['--a
   await escToTitle(page); assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 10000));
   await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
   await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
-  await key('KeyC'); assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));
+  assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await until(() => game.state === 'field' && !game.transitioning, 20000));
   await page.waitForTimeout(1500); obs.beats.continued = await snap(); await shot('17-continue');
   check('continued climb keeps the lowered camera focus (sword warning room)', await page.evaluate(() => game.camera.target === game.castleCathedral?.focus));
   check('continue resumes the armed climb without replaying the intro', obs.beats.continued.scene?.climbing && !obs.beats.continued.dialogue && obs.beats.continued.bgm === 'cathedral_climb', JSON.stringify(obs.beats.continued));

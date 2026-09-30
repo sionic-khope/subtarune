@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 
 await runScenario({ name: 'castle-approach', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, check, fixture }) => {
   const state = () => page.evaluate(() => ({
@@ -20,12 +21,7 @@ await runScenario({ name: 'castle-approach', launchOptions: { args: ['--autoplay
   const continueFromTitle = async () => {
     await open();
     assert.ok(await until(() => window.game?.state === 'title', 20000));
-    await press('KeyZ');
-    for (let i = 0; i < 40 && await page.evaluate(() => game.title.phase !== 'locked'); i++) {
-      await press('KeyC'); await page.waitForTimeout(250);
-    }
-    await page.waitForTimeout(3300);
-    await press('KeyC');
+    assert.ok(await titleContinue(page), 'title Continue confirm box accepted');
     assert.ok(await until(() => game.state === 'field' && !game.transitioning && game.fade.alpha === 0, 20000));
   };
   await open({ qa: 'gajaeman_castle_approach' });

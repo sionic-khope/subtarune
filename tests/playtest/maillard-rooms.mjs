@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { titleContinue } from './lib/title.mjs';
 
 const shots = process.env.SHOT_DIR || '/tmp/rooms116';
 const base = (process.env.QA_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
@@ -208,7 +209,7 @@ try {
   await follow('party follows after wooden return', 402, 416);
   check('room round trips retain party inventory money and combat stats', JSON.stringify(await stats()) === JSON.stringify(initialStats));
   await title();
-  await page.keyboard.press('KeyC', { delay: 50 });
+  check('title Continue confirm box accepted', await titleContinue(page));
   await ready('maillard_lounge');
   await safeParty('continue restores lounge with safe visible party');
   await follow('party keeps following after continue', 520, 340);
@@ -219,14 +220,16 @@ try {
     const expected = await page.evaluate(async ({ base, baseFlags }) => {
       const { YONGJUN_SHOP } = await import('/src/data/shops.js');
       const { CHARACTERS } = await import('/src/data/characters.js');
+      // Shift+Q 메뉴 점프는 그 구간 회복템 10개를 얹는다(BUILD407 qaHealKit) — ?qa= 기준 상태엔 없다
+      const { qaHealKit } = await import('/src/core/story.js');
       const bought = YONGJUN_SHOP.filter(item => item.onceFlag && game.flags[item.onceFlag] && !baseFlags[item.onceFlag]);
       const dAttack = bought.reduce((sum, item) => sum + (item.stat?.attack || 0), 0);
       const dHp = bought.reduce((sum, item) => sum + (item.stat?.hpBonus || 0), 0);
       const price = bought.reduce((sum, item) => sum + item.price, 0);
-      return { ...base, money: Math.max(0, base.money - price), attack: base.attack + dAttack, hpBonus: base.hpBonus + dHp,
+      return { ...base, inventory: [...base.inventory, ...qaHealKit(game.flags)], money: Math.max(0, base.money - price), attack: base.attack + dAttack, hpBonus: base.hpBonus + dHp,
         hp: ['hyungsub', ...base.party].map((member, index) => base.hp[index] + (CHARACTERS[member]?.noHpBonus ? 0 : dHp)) };
     }, { base: initialStats, baseFlags: initialFlags });
-    check(`Q menu ${id} retains canonical party and stats`, JSON.stringify(await stats()) === JSON.stringify(expected), { actual: await stats(), expected });
+    check(`Q menu ${id} retains canonical party and stats`, JSON.stringify(await stats()) === JSON.stringify(expected), JSON.stringify({ actual: await stats(), expected }));
     await safeParty(`Q menu ${id} arrives safely`);
     await shot(`q-arrival-${id}`);
   }

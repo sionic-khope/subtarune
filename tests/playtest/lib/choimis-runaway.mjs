@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { escToTitle } from './esc.mjs';
+import { titleContinue } from './title.mjs';
 
 export async function verifyRunaway({ page, check, shot, until, press, fixture }, before, begin = async () => {}) {
   const state = () => page.evaluate(() => {
@@ -165,11 +166,7 @@ export async function verifyRunaway({ page, check, shot, until, press, fixture }
   // BUILD329: Esc 는 확인창(예/아니요)을 먼저 띄운다 — 실제 키로 '예'를 고른다
   await escToTitle(page);
   check('normal Escape opens title after the sequence', await until(() => window.game.state === 'title' && !window.game.transitioning, 6000));
-  await press('KeyC');
-  await until(() => ['zoom', 'locked'].includes(window.game.title.phase), 6000);
-  if (await page.evaluate(() => window.game.title.phase === 'zoom')) await press('KeyC');
-  await until(() => window.game.title.phase === 'locked' && window.game.title.time > 3.3, 6000);
-  await press('KeyC');
+  await titleContinue(page);
   check('normal title Continue restores completed Sakura5 save', await until(() => window.game.state === 'field' && window.game.mapId === 'jjajang_sakura5' && !window.game.dialogue.running && window.game.fade.alpha < 0.01, 15000));
   const continued = await state();
   check('Continue preserves consumption HP money party and departure', continued.flags.choimis_flower_done && !continued.inventory.includes('어둠의 짜장면') && JSON.stringify(continued.hp) === JSON.stringify(after.hp) && continued.money === after.money && JSON.stringify(continued.party) === JSON.stringify(after.party) && continued.player.sprite === after.player.sprite && !continued.smoke && !continued.choimis);

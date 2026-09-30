@@ -1,4 +1,5 @@
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 
 await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, check, until, open, press, shot, fixture }) => {
   const finish = async () => {
@@ -215,12 +216,7 @@ await runScenario({ name: 'ship-lounge', launchOptions: { args: ['--autoplay-pol
   check('normal map entry saves lounge and ending flags', saved?.map === 'ship_lounge' && saved?.flags?.ship_ending_done, JSON.stringify(saved));
   await open();
   await until(() => window.game?.state === 'title', 15000);
-  await press('KeyZ');
-  for (let i = 0; i < 40 && await page.evaluate(() => game.title?.phase !== 'locked'); i++) {
-    await press('KeyC'); await page.waitForTimeout(250);
-  }
-  await page.waitForTimeout(3300);
-  await press('KeyC');
+  await titleContinue(page);
   check('real title Continue restores lounge without ending replay', !!await until(() => game.mapId === 'ship_lounge' && game.state === 'field' && !game.transitioning && !game.dialogue.running, 12000));
   await shot('lounge_09_continue');
   for (const [corner, x, y] of [['north_west', 40, 208], ['north_east', 698, 208], ['south_west', 40, 1080], ['south_east', 698, 1080]]) {

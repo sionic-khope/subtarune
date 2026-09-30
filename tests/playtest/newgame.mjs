@@ -1,6 +1,7 @@
 // 새 게임 오디오 검증 (2026-09-10 "처음부터 하니까 형섭이 목소리 안 들리고 브금도 안 들려"): 타이틀 → 새 게임 → 오프닝 브금이 실제로 재생(currentTime 증가)되고
 //   나레이션 블립이 울리며, 목소리 파일(형섭·나레이터·억빠맨·경섭·쥰희)이 디코드돼 있고, 페이지 에러가 없다.
 import { chromium } from 'playwright-core';
+import { titleNewGame } from './lib/title.mjs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
@@ -13,10 +14,9 @@ const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < 
 await page.goto('http://localhost:8000/index.html');
 await until(() => !!(window.game && game.title), 15000);
 await page.evaluate(() => localStorage.removeItem('subtarune.save.v1'));
-await page.waitForTimeout(400); await page.keyboard.press('Space');
-await until(() => game.title.phase === 'zoom', 6000); await page.keyboard.press('KeyC');
-await until(() => game.title.phase === 'locked', 6000); await page.waitForTimeout(3300);
-await page.keyboard.press('KeyC');                                           // 세이브 없음 → 새 게임
+// 세이브 없음 → [시작] C → 팬메이드 안내 C → 새 게임
+const leftTitle = await titleNewGame(page);
+check('title [시작] → fan-made notice → C starts a new game', leftTitle, '');
 const field = await until(() => game.state === 'field' && game.dialogue.running, 8000);
 check('title → new game → opening cutscene running', !!field, '');
 await page.evaluate(() => { const s = game.sound; s.__blips = {}; const ob = s.blip.bind(s); s.blip = (v) => { s.__blips[v] = (s.__blips[v] || 0) + 1; return ob(v); }; });

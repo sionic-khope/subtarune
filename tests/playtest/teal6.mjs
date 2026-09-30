@@ -8,7 +8,8 @@ const browser = await chromium.launch({ executablePath: process.env.CHROME_EXE, 
 const page = await browser.newPage({ viewport: { width: 1000, height: 780 } });
 const logs = []; let fails = 0; const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
-page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404/.test(m.text())) errs.push(`[${m.type()}] ${m.text().slice(0, 160)}`); });
+// 제스처 전 BGM 자동 재생 대기 경고는 게임의 정상 로그(키 입력 뒤 재생) — 오류로 세지 않는다
+page.on('console', (m) => { if ((m.type() === 'warning' || m.type() === 'error') && !/404|BGM 자동 재생 대기 NotAllowedError/.test(m.text())) errs.push(`[${m.type()}] ${m.text().slice(0, 160)}`); });
 const check = (name, ok, extra = '') => { logs.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${extra}`); if (!ok) fails++; };
 const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < ms) { const v = await page.evaluate(fn); if (v) return v; await page.waitForTimeout(60); } return null; };
 const st = () => page.evaluate(() => ({ map: game.mapId, running: game.dialogue.running, box: game.textbox.state, battle: !!game.battle, money: game.money, p: [Math.round(game.player.x), Math.round(game.player.y)], bgm: game.sound.bgmName,

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { runScenario } from './lib/harness.mjs';
+import { titleContinue } from './lib/title.mjs';
 import { escToTitle } from './lib/esc.mjs';
 
 await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } }, async ({ page, open, until, press, shot, fixture, check }) => {
@@ -53,7 +54,7 @@ await runScenario({ name: 'castle-pipe', launchOptions: { args: ['--autoplay-pol
     assert.ok(await until(() => game.state === 'title' && game.title.phase === 'wait', 5000));
     await key('Space'); assert.ok(await until(() => game.title.phase === 'zoom', 5000));
     await key('KeyC'); assert.ok(await until(() => game.title.phase === 'locked' && game.title.time > 3.05, 5000));
-    await key('KeyC'); assert.ok(await field());
+    assert.ok(await titleContinue(page), 'title Continue confirm box accepted'); assert.ok(await field());
   };
   const observe = () => fixture('read-only-pipe-observer', 'Record completed Canvas frames, actor positions/hops/clipping, camera, fade, text, scripts and audio calls. No timing, player, flag, or completion mutation.', () => {
     const q = window.__pipeQA = { samples: [], frames: {}, lines: [], audio: [], scripts: [], enabled: true };

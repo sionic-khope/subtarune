@@ -12,8 +12,9 @@ await runScenario({ name: 'raft-recall', launchOptions: { args: ['--autoplay-pol
   }).filter(map => map.entities?.some(e => e.type === 'raft' && e.id !== 'maillard_cart'));
   const cases = maps.flatMap(map => map.entities.filter(e => e.type === 'raft_recall').map(lever => ({ map: map.id, lever })));
   const raftCount = maps.flatMap(map => map.entities.filter(e => e.type === 'raft' && e.id !== 'maillard_cart')).length;
-  check('authored scope has twenty-five actual rafts and forty-nine bank levers', raftCount === 25 && cases.length === 49, JSON.stringify({ raftCount, levers: cases.length }));
-  if (cases.length !== 49) return;
+  // BUILD405 에서 밤 해안 나룻배 하나를 일부러 뺐다(뗏목 1·레버 2 감소): 25/49 → 24/47
+  check('authored scope has twenty-four actual rafts and forty-seven bank levers', raftCount === 24 && cases.length === 47, JSON.stringify({ raftCount, levers: cases.length }));
+  if (cases.length !== 47) return;
   const evidence = { disclosure: 'Each map is prepared with its prerequisite story stage, completed local trigger/enter flags, no party, and the target raft at the opposite endpoint. A nearby collision-free bank approach is positioned; arrows and C then use production input. Recall itself must not change any story/tutorial flags. This is local accessibility/recall verification, not complete river traversal or natural whole-game progression. Fresh teal5 and void8 QA checkpoints separately test original first-board tutorials.', bindings: [], banks: [], tutorials: [] };
   const save = () => fs.writeFileSync(path.join(process.env.SHOT_DIR, 'raft-recall-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -166,7 +167,7 @@ await runScenario({ name: 'raft-recall', launchOptions: { args: ['--autoplay-pol
     evidence.tutorials.push({ qa, before, after: await page.evaluate(flag => ({ boarded: game.flags[flag], text: game.textbox.node?.text, moving: game.ride?.moving, map: game.mapId }), before.flag) });
   }
   evidence.afterBindings = sources.map(relative => ({ relative, hash: hash(fs.readFileSync(path.join(root, relative))) }));
-  check('all forty-nine authored levers were tested', evidence.banks.length === 49 && evidence.banks.every(bank => bank.after));
+  check('all forty-seven authored levers were tested', evidence.banks.length === 47 && evidence.banks.every(bank => bank.after));
   check('bound runtime maps and assets stayed unchanged throughout QA', evidence.afterBindings.every(source => evidence.bindings.find(binding => binding.relative === source.relative).local === source.hash));
   save();
 });
