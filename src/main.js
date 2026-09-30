@@ -2145,6 +2145,14 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
+// 새로고침·탭 닫기 경고(BUILD434, 사용자 “새로고침하면 유실될 수 있다 경고창”): 게임 안(타이틀 밖)에서만 브라우저 기본 확인창을 띄운다.
+// 문구는 브라우저가 정한다(직접 못 바꾼다). 자동 테스트 브라우저(navigator.webdriver)에선 끈다 — 페이지 이동마다 창에 막힌다
+addEventListener('beforeunload', (event) => {
+  if (navigator.webdriver || game.state === 'title') return;
+  event.preventDefault();
+  event.returnValue = '';
+});
+
 Input.init();
 // 브라우저 정책상 오디오는 사용자 입력 후에만 켜진다 → 첫 키/클릭에서 언락
 const unlock = () => game.sound.unlock();
