@@ -389,7 +389,7 @@ export const ENEMIES = {
       speak: ['이 실은 내 거다냥.', '한 번만 잡아 봐라냥.', '꼬리 조심하라냥.'], die: '* 경냥이가 장난감을 챙겨 물러났다.' },
   },
   mankatsuki_junhee: {
-    name: '만카츠키 쥰희', hp: 144, voice: 'junhee', money: 500, damage: 16,
+    name: '만카츠키 쥰희', hp: 135, voice: 'junhee', money: 500, damage: 16,
     boss: true, attackSfxVolume: 0.36,
     bgmDelay: 0.4,
     sheet: { src: 'assets/enemies/mankatsuki-idle.png', cols: 4, rows: 1, count: 4, fps: 5.5, px: 1 },

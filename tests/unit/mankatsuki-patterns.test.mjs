@@ -81,13 +81,13 @@ test('test_mankatsuki_enraged_pool_adds_food_motorcycle_before_three_pig_face_co
   }
 });
 
-test('test_mankatsuki_keeps_pig_face_sheet_and_puts_underpants_food_and_motorcycle_early_at_144_hp', () => {
+test('test_mankatsuki_keeps_pig_face_sheet_and_puts_underpants_food_and_motorcycle_early_at_135_hp', () => {
   const boss = ENEMIES.mankatsuki_junhee;
   assert.deepEqual(boss.patterns.map(pattern => pattern.type), [KEYS[0], UNDERPANTS, ...NEW_KEYS, ...KEYS.slice(1), CLONE]);
   assert.equal(boss.projectiles.taco, 'assets/projectiles/mankatsuki-taco.png');
   assert.equal(boss.projectiles.foodTaco, 'assets/projectiles/mankatsuki-food-taco.png');
   assert.equal(boss.projectiles.motorcycle, 'assets/projectiles/mankatsuki-motorcycle.png');
-  assert.deepEqual([boss.hp, boss.damage, boss.scale], [144, 16, 1.15]);
+  assert.deepEqual([boss.hp, boss.damage, boss.scale], [135, 16, 1.15]);
   const { emitted, poses } = simulate(KEYS[4]);
   assert.equal(emitted.length, 18);
   assert.ok(emitted.every(({ b }) => b.shape === 'mankatsuki_taco' && b.warn >= 0.7 && b.r === 12));
