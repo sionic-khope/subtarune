@@ -18,8 +18,8 @@ test('test_subrio_level_has_left_landing_ground_pits_and_floating_blocks', () =>
   assert.equal(level.solidAt(2, 18), true, '왼쪽 착지 평지');
   assert.equal(level.solidAt(2, 17), false);
   assert.equal(level.solidAt(5, level.rows), false, '레벨 아래는 뚫려 있다(낙사)');
-  assert.equal(level.enemies.length, 23, '1-1 몬스터 23(BUILD268 사용자 “각 스테이지마다 5마리씩 줄여줘”: 28 → 23)');
-  assert.equal(buildLevel(2).enemies.length, 21, '1-2 26 → 21'); assert.equal(buildLevel(3).enemies.length, 28, '1-3 33 → 28(레드·블루 포함)');
+  assert.equal(level.enemies.length, 18, '1-1 몬스터 28 → 23(BUILD268) → 18(사용자 2026-10-01 “트위치 5마리 줄여”)');
+  assert.equal(buildLevel(2).enemies.length, 18, '1-2 26 → 21 → 18(사용자 2026-10-01 “치지직 3마리 줄여”)'); assert.equal(buildLevel(3).enemies.length, 23, '1-3 33 → 28 → 23(레드·블루 포함, 사용자 2026-10-01 “숲 5마리 줄여”)');
   assert.deepEqual([...new Set(level.enemies.map(e => e.type))].sort(), ['cs_red', 'gromp', 'raptor'], '1-1 트위치: CS·칼날부리·두꺼비 균등 배분');
   assert.ok(level.enemies.every(e => level.solidAt(Math.floor(e.x / TILE), e.y / TILE) && !level.solidAt(Math.floor(e.x / TILE), e.y / TILE - 1)), '미니언은 전부 바닥 윗면 위에 선다');
 });

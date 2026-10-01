@@ -50,7 +50,7 @@ try {
   await cap('s0_totem'); check(await page.evaluate(() => window.__subrio.state.teamAttack && window.__subrio.state.totemHit), '토템 명중 → 동료 공격 해제');
   await toGoal(true);
   await page.waitForFunction(() => window.__subrio?.state.stage === 1 && window.__subrio.state.control, null, { timeout: 14000 }).catch(() => {});
-  s = await sub(); check(s.stage === 1 && s.enemies >= 20, '1-1 트위치 시작 ' + JSON.stringify([s.stage, s.enemies])); await cap('s1');
+  s = await sub(); check(s.stage === 1 && s.enemies === 18, '1-1 트위치 시작 ' + JSON.stringify([s.stage, s.enemies])); await cap('s1');
   const enemies0 = s.enemies;
   // 차징 창: C 를 0.6초 누르면 charge 상태, 놓으면 charged 창
   await page.keyboard.down('KeyC'); await page.waitForTimeout(600); s = await sub(); const charging = s.lead[2] === 'charge'; await cap('charge'); await page.keyboard.up('KeyC'); await page.waitForTimeout(80); s = await sub();
