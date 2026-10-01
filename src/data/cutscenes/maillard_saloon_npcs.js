@@ -5,7 +5,18 @@ const W = (text) => ({ speaker: '박원숭', voice: 'parkwonsung', text });
 const P = (text) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text });
 const G = (text) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text });
 
+// 사용자 2026-10-01 원문(“+” 는 한 창, “->” 는 다음 창). 다시 말을 걸면 인사만
 export const maillard_yakulbeol = Object.assign([
+  { if: (f) => f.maillard_yakulbeol_seen, goto: 'again' },
+  B('* 야꿀벌이에요. 오늘의 꿀생정 알려드릴게요'),
+  B('* 상점에서 씨알리스같은 버프템이 할인중이에요'),
+  B('* 공격력하고 체력을 올려주니까 꼭 사세요'),
+  B('* 아 그리고 그냥 돈같은거 아끼지 않는게'),
+  B('* 저는 꿀팁이라고 생각해요'),
+  B('* 이상!'),
+  { set: { maillard_yakulbeol_seen: true } },
+  { end: true },
+  { label: 'again' },
   B('* 야꿀벌이에요.'),
 ], { silent: true });
 

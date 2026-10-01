@@ -127,10 +127,13 @@ try {
     report.replaces = ['02-bee-01.png', ...Array.from({ length: 7 }, (_, i) => `03-mabaem-${String(i + 1).padStart(2, '0')}.png`), '04-mabaem-repeat.png'];
     await page.goto(`${base}/?qa=maillard_lounge`); await ready(); await page.keyboard.press('KeyX'); await installObservers();
     const beforeStats = await stats();
-    await approach('yakulbeol'); await line('02-bee-01', '* 야꿀벌이에요.'); await frameCheck('bee initial', 'yakulbeol');
+    const beeTexts = ['* 야꿀벌이에요. 오늘의 꿀생정 알려드릴게요', '* 상점에서 씨알리스같은 버프템이 할인중이에요', '* 공격력하고 체력을 올려주니까 꼭 사세요', '* 아 그리고 그냥 돈같은거 아끼지 않는게', '* 저는 꿀팁이라고 생각해요', '* 이상!'];
+    await approach('yakulbeol'); await line('02-bee-01', beeTexts[0]); await frameCheck('bee initial', 'yakulbeol');
     const paused = await state(); await page.waitForTimeout(1200); const still = await state();
     check('both roamers pause during conversation', ['yakulbeol', 'mabaem'].every(id => { const a = paused.entities.find(e => e.id === id), b = still.entities.find(e => e.id === id); return a.x === b.x && a.y === b.y; }));
-    await next(); await ready();
+    await next();
+    for (const [i, text] of beeTexts.slice(1).entries()) { await line(`02-bee-${String(i + 2).padStart(2, '0')}`, text); await next(); }
+    await ready();
     const resumed = await state(); await page.waitForTimeout(7000); const moved = await state();
     check('roamers resume after conversation', ['yakulbeol', 'mabaem'].some(id => { const a = resumed.entities.find(e => e.id === id), b = moved.entities.find(e => e.id === id); return Math.hypot(a.x - b.x, a.y - b.y) > 4; }));
     await approach('yakulbeol'); await line('02-bee-repeat', '* 야꿀벌이에요.'); await frameCheck('bee repeat', 'yakulbeol'); await next(); await ready();
@@ -139,7 +142,7 @@ try {
     for (const [i, text] of texts.entries()) { await line(`03-mabaem-${String(i + 1).padStart(2, '0')}`, text); await frameCheck(`mabaem line ${i + 1}`, 'mabaem'); await next(); }
     await ready(); await approach('mabaem'); await line('04-mabaem-repeat', texts[0]); await frameCheck('mabaem repeat', 'mabaem'); await next(); await ready();
     report.lines = await page.evaluate(() => qaLines);
-    check('scoped run captured exact 2 bee + 7 mabaem + 1 repeat lines', report.lines.map(l => l.text).join('|') === ['* 야꿀벌이에요.', '* 야꿀벌이에요.', ...texts, texts[0]].join('|'));
+    check('scoped run captured exact 6 bee + 1 bee repeat + 7 mabaem + 1 repeat lines', report.lines.map(l => l.text).join('|') === [...beeTexts, '* 야꿀벌이에요.', ...texts, texts[0]].join('|'));
     check('roamer dialogue preserves economy and party', JSON.stringify(beforeStats) === JSON.stringify(await stats()));
     check('no runtime errors in scoped run', report.errors.length === 0, report.errors);
   } else {
