@@ -209,8 +209,8 @@ function completeRescue(battle) {
   battle.completeRescue(); battle.interlude = null; battle.beginMenu();
 }
 
-test('Yoplait completed attack queues one 60-damage hero action and a lethal hit reaches victory', () => {
-  for (const hp of [300, 60]) {
+test('Yoplait completed attack queues one 65-damage hero action and a lethal hit reaches victory', () => {
+  for (const hp of [300, 65]) {
     const battle = battleFixture(); completeRescue(battle);
     const enemy = battle.enemies[0]; enemy.hp = hp;
     const plan = { type: 'fight', member: battle.members[0], target: enemy };
@@ -220,8 +220,8 @@ test('Yoplait completed attack queues one 60-damage hero action and a lethal hit
     assert.equal(battle.cur.supportFollowup, true);
     assert.equal(battle.support.actionSnapshot.kind, 'janitor-attack');
     for (let elapsed = 0; elapsed < 4 && battle.state === 'act'; elapsed += 0.02) battle.update(0.02, input);
-    assert.equal(enemy.hp, hp - 60);
-    assert.equal(battle.state, hp === 60 ? 'win' : 'enemy-prep');
+    assert.equal(enemy.hp, hp - 65);
+    assert.equal(battle.state, hp === 65 ? 'win' : 'enemy-prep');
     assert.equal(battle.support.actionSnapshot, null);
   }
 });

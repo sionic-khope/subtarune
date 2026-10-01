@@ -467,7 +467,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     check(`${name} hero contacts boss`, await until(() => game.battle.support.actionSnapshot?.kind === 'janitor-attack' && game.battle.support.actionSnapshot.contacted));
     await shot(`assist-${name}-03-contact`);
     const hits = await page.evaluate(offset => drumEvidence.hits.slice(offset), baseline.hits);
-    check(`${name} ordinary damage plus exactlyone60 support hit`, hits.length === 2 && hits[0].source === 'ordinary' && hits[0].damage > 0 && hits[1].source === 'janitor' && hits[1].damage === 60, JSON.stringify(hits));
+    check(`${name} ordinary damage plus exactlyone65 support hit`, hits.length === 2 && hits[0].source === 'ordinary' && hits[0].damage > 0 && hits[1].source === 'janitor' && hits[1].damage === 65, JSON.stringify(hits));
     check(`${name} hero hit lands after visible energy flight`, hits[1]?.action?.elapsed >= 1.2 && hits[1]?.action?.contacted);
     check(`${name} ranged contact reaches rendered enlarged boss pixels`, hits[1]?.renderedContact === true);
     check(`${name} enemy turn starts after automatic attack`, await until(() => game.battle.state === 'bullets' && !game.battle.gimmick, 8000));
@@ -545,8 +545,8 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
     && cuePlayback.cue.samples.every(sample => sample.rate === 1), JSON.stringify(cuePlayback));
   check('hero theme remains audible after natural wrap', cuePlayback.stillSameAudio
     && cuePlayback.battleCues.length === 0 && cuePlayback.current === 'janitor_hero_intro' && cuePlayback.currentTime > 0);
-  await fixture('hero-lethal-boundary', 'Set enemy HP to exactly one ordinary player hit plus60, then use real C attack to verify automatic hero kill and victory; not a natural full win.', () => {
-    game.battle.enemies[0].hp = game.attack + 60;
+  await fixture('hero-lethal-boundary', 'Set enemy HP to exactly one ordinary player hit plus65, then use real C attack to verify automatic hero kill and victory; not a natural full win.', () => {
+    game.battle.enemies[0].hp = game.attack + 65;
     window.victoryBattle = game.battle;
   });
   await fixture('pending-cue-before-victory', 'Retain the looping hero cue to probe stale ended callbacks after the upcoming real victory. A natural wrap was observed separately.', () => {
@@ -558,7 +558,7 @@ await runScenario({ name: 'drum-devil-battle', launchOptions: { args: ['--autopl
   await press('KeyC', { delay: 70 });
   check('automatic hero lethal hit reaches win rather than another enemy turn', await until(() => game.battle.state === 'win', 10000));
   const victoryHits = await page.evaluate(offset => drumEvidence.hits.slice(offset), lethalHits);
-  check('lethal support applies exactly60 once', victoryHits.length === 2 && victoryHits[1].source === 'janitor' && victoryHits[1].damage === 60 && victoryHits[1].hp === 0, JSON.stringify(victoryHits));
+  check('lethal support applies exactly65 once', victoryHits.length === 2 && victoryHits[1].source === 'janitor' && victoryHits[1].damage === 65 && victoryHits[1].hp === 0, JSON.stringify(victoryHits));
   check('victory clears support action and gimmick', await page.evaluate(() => !game.battle.support.actionSnapshot && !game.battle.gimmick));
   await until(() => game.battle.typed && game.battle.t > 0.6);
   await shot('assist-lethal-victory');
