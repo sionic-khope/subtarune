@@ -392,8 +392,8 @@ export class Sound {
     }
     // at: 이어 틀 위치(초) — 전투 뒤 맵 브금이 처음부터가 아니라 끊긴 자리에서(BUILD269, 사용자 “전투 끝나면 맵 브금 기존처럼 이어서”). 메타데이터가 아직이면 준비되는 대로 옮긴다
     if (at > 0) { const seek = () => { try { a.currentTime = at; } catch (e) { /* */ } }; if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek, { once: true }); }
-    a.play().catch((error) => console.warn('[audio] BGM 자동 재생 대기', error));
     this.bgm = a; this.bgmName = name; this.bgmVolume = volume;
+    this._watchBgmStart(a, name, { loop, volume, loopEnd, loopFade, then });
     this._ramp(a, this.muted ? 0 : volume, fadeIn);
     if (loopEnd > 0) {
       a.addEventListener('timeupdate', () => {
@@ -404,6 +404,33 @@ export class Sound {
         }
       });
     }
+  }
+  /**
+   * 재생 시작 실패를 그대로 두지 않는다(사용자 2026-10-02 “Shift+Q 로 성 입구 → 접근로 브금이 안 나옴”, 재현은 안 됨).
+   * 막힘(NotAllowedError)이면 다음 키·클릭 때 다시 틀고, 받기·해독 실패(error 이벤트, 그 밖의 거부)면 1초·3초 뒤 새 엘리먼트로 다시 튼다.
+   * 그사이 다른 곡으로 바뀌었거나 꺼졌으면 아무것도 하지 않는다.
+   */
+  _watchBgmStart(a, name, opts, tries = 0) {
+    const current = () => this.bgm === a && this.bgmName === name;
+    const reload = () => {
+      if (!current() || tries >= 2) return;
+      console.warn('[audio] BGM 다시 받기', name, tries + 1);
+      const b = new Audio(vurl(`assets/audio/bgm/${name}.mp3`) + `&retry=${tries + 1}`);
+      b.loop = a.loop; b.volume = 0;
+      try { a.pause(); a.src = ''; } catch {}
+      this.bgm = b;
+      this._watchBgmStart(b, name, opts, tries + 1);
+      this._ramp(b, this.muted ? 0 : this.bgmVolume, 0.5);
+    };
+    a.addEventListener('error', () => setTimeout(reload, tries ? 3000 : 1000), { once: true });
+    a.play().catch((error) => {
+      console.warn('[audio] BGM 재생 실패', name, error?.name);
+      if (!current()) return;
+      if (error?.name === 'NotAllowedError') {
+        const retry = () => { removeEventListener('keydown', retry, true); removeEventListener('pointerdown', retry, true); if (current()) a.play().catch(() => {}); };
+        addEventListener('keydown', retry, true); addEventListener('pointerdown', retry, true);
+      } else if (error?.name !== 'AbortError' || a.error) setTimeout(reload, tries ? 3000 : 1000);
+    });
   }
   stopBgm(fade = 0.8) {
     const a = this.bgm; if (!a) return;
