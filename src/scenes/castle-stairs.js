@@ -108,7 +108,9 @@ export class CastleStairs {
       const b = this.bobs.get(p);
       if (b && b.d - this.stepDist >= STAIRS.step) { this.stepDist = b.d; this.sfx(Math.floor(b.d / STAIRS.step) % 2 ? 'iron_step_1' : 'iron_step_2', 0.22); }
     }
-    for (const c of this.clouds) { c.age += s; c.x += c.vx * s; c.y += c.vy * s; c.vx *= 0.96; c.vy *= 0.96; c.r += 10 * s; }
+    // 감쇠는 60fps 기준 값을 프레임 시간으로 환산(BUILD446: 고주사율 모니터에서 연기가 더 빨리 멈추던 것)
+    const drag = Math.pow(0.96, s * 60);
+    for (const c of this.clouds) { c.age += s; c.x += c.vx * s; c.y += c.vy * s; c.vx *= drag; c.vy *= drag; c.r += 10 * s; }
     this.clouds = this.clouds.filter(c => c.age < c.life);
     for (const f of this.fists) {
       f.t += s;

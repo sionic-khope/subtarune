@@ -384,7 +384,9 @@ export class CastleSummit {
       if (k > 1.4) this.knock = null;
     }
     if (this.gather) { this.gather.t += s; const [cx, cy] = world(P2.core); for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 120; this.fx.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, vx: -Math.cos(a) * r * 1.4, vy: -Math.sin(a) * r * 1.4, t: 0, life: 0.7, r: 4 + Math.random() * 6, dark: Math.random() < 0.4, pull: true }); } }
-    for (const p of this.fx) { p.t += s; p.x += p.vx * s; p.y += p.vy * s; if (!p.pull) { p.vx *= 0.96; p.vy *= 0.96; p.r += 10 * s; } }
+    // 감쇠는 60fps 기준 값을 프레임 시간으로 환산(BUILD446: 고주사율 모니터에서 연기가 더 빨리 멈추던 것)
+    const drag = Math.pow(0.96, s * 60);
+    for (const p of this.fx) { p.t += s; p.x += p.vx * s; p.y += p.vy * s; if (!p.pull) { p.vx *= drag; p.vy *= drag; p.r += 10 * s; } }
     this.fx = this.fx.filter(p => p.t < p.life);
     for (const w of this.waves) w.t += s; this.waves = this.waves.filter(w => w.t < w.life);
     for (const b of this.booms) b.t += s; this.booms = this.booms.filter(b => b.t < b.life);

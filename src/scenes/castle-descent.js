@@ -688,7 +688,8 @@ export class CastleDescent {
       // 곡을 못 불러오거나(네트워크·디코드 오류) 멈춰도 엔딩이 영원히 기다리지 않게: 오류면 바로, 아니면 곡 길이(모르면 110초)+여유 뒤 넘어간다
       if (a.error || a.networkState === 3) return true;
       if ((performance.now() - start) / 1000 > (isFinite(a.duration) && a.duration > 0 ? a.duration : 110) + extra + 5) return true;
-      if (a.paused) { spare -= 1 / 60; return spare <= 0; }
+      // 멈춘 곡의 여유 시간은 실제 시간으로 깎는다(BUILD446: 프레임마다 1/60 이라 180Hz 에서 3초가 1초가 됐다)
+      if (a.paused) { spare -= this.game.dt || 1 / 60; return spare <= 0; }
       return false;
     } }));
   }
@@ -909,7 +910,9 @@ export class CastleDescent {
     const cx = 240, cy = 64, appear = Math.min(1, b.t / (b.auto ? 0.15 : 0.6)), pt = b.pressed ? b.t - b.pressed : 0, fly = 0;
     // 무지개 오오라가 버튼 안으로 모여든다
     if (!b.pressed && this.rnd() < 0.9) { const a = this.rnd() * Math.PI * 2, r = 90 + this.rnd() * 50; b.motes.push({ x: cx + Math.cos(a) * r * 1.4, y: cy + Math.sin(a) * r * 0.6, t: 0, life: 0.7, c: GJ.rainbow[Math.floor(this.rnd() * GJ.rainbow.length)] }); }
-    for (const m of b.motes) { m.t += 1 / 60; const k = m.t / m.life; m.x += (cx - m.x) * 0.08; m.y += (cy - m.y) * 0.08; }
+    // 그리기 안에서 움직이므로 실제 프레임 시간으로(BUILD446: 1/60 고정이라 고주사율에서 빨려 드는 속도가 빨라졌다)
+    const mdt = this.game.dt || 1 / 60, pull = 1 - Math.pow(0.92, mdt * 60);
+    for (const m of b.motes) { m.t += mdt; m.x += (cx - m.x) * pull; m.y += (cy - m.y) * pull; }
     b.motes = b.motes.filter(m => m.t < m.life);
     ctx.save();
     glow(ctx, cx, cy, 120, 'rgba(255,230,160,A)', 0.25 * appear * (1 - fly));
@@ -1059,7 +1062,9 @@ export class CastleDescent {
     if (this.rise && T != null) updateRise(this.rise, T, s);
     else if (this.rise) updateRise(this.rise, 0, s);
     if (this.kind === 'sunset') this.warm.update(s, { rate: 5, vy: -10, warm: true });
-    for (const d of this.dust) { d.age += s; d.x += d.vx * s; d.y += d.vy * s; d.vx *= 0.92; d.vy += 30 * s; }
+    // 감쇠는 60fps 기준 값을 프레임 시간으로 환산(BUILD446: 고주사율 모니터에서 연기가 더 빨리 멈추던 것)
+    const dustDrag = Math.pow(0.92, s * 60);
+    for (const d of this.dust) { d.age += s; d.x += d.vx * s; d.y += d.vy * s; d.vx *= dustDrag; d.vy += 30 * s; }
     this.dust = this.dust.filter(d => d.age < d.life);
     for (const j of [...this.jobs]) {
       if (j.until) { if (j.until()) { this.jobs.splice(this.jobs.indexOf(j), 1); j.resolve(); } continue; }

@@ -276,9 +276,11 @@ export class CastleArena {
     }
     for (const m of this.motes) { m.age += s; m.x += m.vx * s; m.y += m.vy * s; }
     this.motes = this.motes.filter(m => m.age < m.life);
-    for (const p of this.puffs) { p.age += s; p.x += p.vx * s; p.y += p.vy * s; p.vx *= 0.94; p.vy *= 0.94; }
+    // 감쇠는 60fps 기준 값을 프레임 시간으로 환산(BUILD446: 고주사율 모니터에서 연기가 더 빨리 멈추던 것)
+    const puffDrag = Math.pow(0.94, s * 60), cloudDrag = Math.pow(0.96, s * 60);
+    for (const p of this.puffs) { p.age += s; p.x += p.vx * s; p.y += p.vy * s; p.vx *= puffDrag; p.vy *= puffDrag; }
     this.puffs = this.puffs.filter(p => p.age < ARENA.summon.life);
-    for (const c of this.clouds) { c.age += s; if (c.age > 0) { c.x += c.vx * s; c.y += c.vy * s; c.vx *= 0.96; c.size += s * 10; } }
+    for (const c of this.clouds) { c.age += s; if (c.age > 0) { c.x += c.vx * s; c.y += c.vy * s; c.vx *= cloudDrag; c.size += s * 10; } }
     this.clouds = this.clouds.filter(c => c.age < ARENA.summon.cloudLife);
     if (this.eruption) { this.eruption.t += s; if (this.eruption.t >= ARENA.erupt.duration) this.eruption = null; }
     if (this.chargeState) {

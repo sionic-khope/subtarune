@@ -322,6 +322,8 @@ export const ship_lounge_farewell = Object.assign([
   scene(s => s.gyeongsubLeave()),
   scene(s => s.setDoor(false)),
   { set: { ship_lounge_farewell_seen: true } },
+  // 문이 닫힌 뒤 1.5초 더 머문 뒤 크레딧(BUILD446 사용자 “엔딩 크레딧 나오는 시점 1.5초만 더 뒤로”)
+  { wait: 1.5 },
   { label: 'credits' },
   scene(s => s.creditsRoll()),
   // 크레딧 곡이 끝나면 The End 에 3초 머문 뒤 엔딩 쿠키(처음 집)로

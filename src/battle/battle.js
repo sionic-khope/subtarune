@@ -700,6 +700,8 @@ export class Battle {
     }
     if (this.interlude?.fullscreen) { this.interlude.draw(ctx); this.drawHpStrip(ctx); return; }
     // 지원 모듈의 연출 카메라(청소년 2페이즈 전환: 청소년 쪽으로 잠깐 당겨 본다) — 배경·배우에만
+    // 글꼴은 카메라 save() 밖에서: 안에서만 정하면 restore 때 캔버스 기본 글꼴로 돌아가 대사창이 작은 기본 글꼴로 그려졌다(BUILD446 청소년 2페이즈 전환 “경섭: 아직 끝이 아닌거같군”)
+    ctx.font = FONT; ctx.textBaseline = 'top';
     const view = this.support?.camera?.();
     if (view) { ctx.save(); ctx.translate(view.x, view.y); ctx.scale(view.s, view.s); }
     const bg = BATTLE_BGS[this.cfg.bg]; if (bg) bg(ctx, this);            // 전투 배경(레지스트리 src/battle/backgrounds.js: teal / temple …)
@@ -883,6 +885,7 @@ export class Battle {
   heart(ctx, x, y) { ctx.fillStyle = '#ff0000'; ctx.fillRect(x, y + 1, 2, 2); ctx.fillRect(x + 3, y + 1, 2, 2); ctx.fillRect(x - 1, y + 3, 7, 2); ctx.fillRect(x, y + 5, 5, 1); ctx.fillRect(x + 1, y + 6, 3, 1); ctx.fillRect(x + 2, y + 7, 1, 1); }
   /** 위쪽 상자(y 246~318): 나레이션·전투 안 대사 (화자 이름표·초상화). 긴 줄은 상자 폭에서 접는다(튜토리얼 대사 깨짐 방지) */
   drawTextBox(ctx) {
+    ctx.font = FONT; ctx.textBaseline = 'top';
     this.box(ctx, 20, 246, 440, 72); ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
     let tx = 36;
     if (this.speaker) {                                            // 화자 이름표 + 초상화 (전투 안 대사)
