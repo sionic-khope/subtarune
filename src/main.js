@@ -2193,6 +2193,9 @@ function frame(now) {
     game.draw();
     game.drawEscConfirm(game.ctx);
   } catch (error) {
+    // 그리다 끊긴 save()·clip() 을 모두 풀어 다음 프레임이 화면 전체를 다시 그리게 한다(BUILD445: 남은 clip 때문에 전투 상자 안만 갱신되고 나머지는 멈춰 보였다)
+    const ctx = game.ctx;
+    if (ctx?.reset) ctx.reset(); else if (ctx) for (let i = 0; i < 64; i++) ctx.restore();
     // 한 번은 밖으로도 던져 둔다(개발 도구·테스트의 페이지 오류로 보이게) — 루프는 이미 다음 프레임을 예약한다
     if (!game._frameErrorLogged) { console.error('[frame] 이번 프레임 오류(루프는 계속)', error); game._frameErrorLogged = true; setTimeout(() => { throw error; }, 0); }
   }

@@ -8,8 +8,6 @@ export const TEEN_BATTLE = Object.freeze({
   gauge: { perDodge: 0.7, max: 100 },
   slamEvery: 3,
   downTurns: 3,
-  // 주먹 패턴 무피격 낙석도 같은 비율로 35
-  rockDamage: 35,
   // 세 번째 청소(그 뒤로 세 번마다)는 C 연타 버티기: 연타마다 하트가 구멍에서 밀려나고, 끝까지 빨려 들어가면 전원 50(사용자 2026-09-25)
   // 아래 방향키로는 못 내려간다(좌우·위만), 아래에서 솟는 돌을 좌우로 피하면서 연타(사용자 “더 어렵게, 피하는 기믹”)
   mash: { every: 3, push: 14, pull: [36, 110], ramp: 0.5, damage: 50, duration: 13, rock: { every: [1.1, 0.55], warn: 0.5, speed: 190 } },

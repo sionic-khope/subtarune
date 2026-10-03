@@ -1,6 +1,6 @@
 // BUILD339 청소년 보스전 탄막(사용자 2026-09-25 브리핑). BUILD343: 흰색 대신 보라 색감(purpleSprite·보라 돌) — 무릎 가재맨은 사용자 지정 검정·보라 그림.
 //   teen_vacuum : 청소년이 뻗은 손바닥 구멍이 하트와 돌 잔해를 빨아들인다. 피한 잔해마다 청소 용량(support.onProjectile)
-//   teen_slam   : 주먹 내려찍기(조준 예고 → 충격파) 네 번 → 거대한 주먹. 한 대도 안 맞으면 튀어 오른 낙석이 청소년에게 50
+//   teen_slam   : 주먹 내려찍기(조준 예고 → 충격파) 네 번 → 거대한 주먹(피하기만 한다, BUILD445 낙석 반격 삭제)
 //   gj_swords / gj_knee / gj_mouse : 청소년이 쓰러진 동안 가재맨(검 · 무릎 · 강제퇴장 버튼 파동)
 import { TEEN_BATTLE } from '../data/teen-battle.js';
 
@@ -533,7 +533,7 @@ export const TEEN_PATTERNS = {
   teen_slam: (o = {}) => {
     const duration = o.duration ?? 8.2;
     const slams = [0.7, 1.8, 2.9, 4.0], giantAt = 5.2, giantWarn = 1.1;
-    let fired = 0, hits0 = null, giant = null, rock = null, launched = false, sent = false;
+    let fired = 0, started = false, giant = null;
     const fist = (api, x, y0, y1, w, warn, big = false) => keep(api, { zone: true, x: x - w / 2, y: y0, w, h: y1 - y0, warn, life: warn + 0.28, harmless: false,
       drawShape(ctx, b) {
         ctx.save(); clip(ctx, api.box);
@@ -551,7 +551,7 @@ export const TEEN_PATTERNS = {
       } });
     return { duration, update(t, dt, api) {
       const box = api.box, soul = api.soul;
-      if (hits0 === null) { hits0 = soul.hits; api.present?.({ sheet: 'slam' }); }
+      if (!started) { started = true; api.present?.({ sheet: 'slam' }); }
       while (fired < slams.length && t >= slams[fired]) {
         const w = 60, x = clamp(soul.x, box.x + w / 2, box.x + box.w - w / 2), warn = 0.62, at = fired++;
         fist(api, x, box.y, box.y + box.h, w, warn);
@@ -569,15 +569,10 @@ export const TEEN_PATTERNS = {
         giant = fist(api, (x0 + x1) / 2, box.y, box.y + box.h, x1 - x0, giantWarn, true);
         api.present?.({ sheet: 'slam' }); api.sfx?.('power', { volume: 0.6 });
         setTimeoutLike(api, giantWarn, () => {
+          // BUILD445 사용자 “주먹패턴에서 피하면 피해입히는거 지우샘”: 다 피해도 낙석 반격(청소년 35) 없음
           api.sfx?.('baron_slam', { volume: 0.9 }); api.shake?.(0.7, 7);
-          if (soul.hits === hits0) {
-            // 한 대도 안 맞았다: 거대한 낙석이 튀어 올라 청소년에게
-            rock = keep(api, { x: (x0 + x1) / 2, y: box.y + box.h - 20, r: 22, harmless: true, vy: -420, life: 1.4, pts: rockPoints(22, 9), spin: 4, drawShape: drawRock });
-            launched = true; api.sfx?.('impact', { volume: 0.8 });
-          }
         });
       }
-      if (launched && !sent && rock && rock.y < box.y - 30) { sent = true; api.trackProjectile?.({ type: 'teen_rock' }); }
       tickTimers(api, dt);
     } };
   },
@@ -679,9 +674,10 @@ export const TEEN_PATTERNS = {
               return Math.abs(a) > gap / 2;
             },
             drawShape(ctx, w) {
+              // 파동은 반지름 4 에서 시작한다: 안쪽 고리(R−5)가 음수면 arc 가 예외를 던져 clip 이 풀리지 않고 화면이 상자 안만 갱신됐다(BUILD445 사용자 윈도우 콘솔)
               ctx.save(); clip(ctx, api.box); ctx.strokeStyle = '#9a50ff'; ctx.lineWidth = 4;
               ctx.beginPath(); ctx.arc(w.x, w.y, w.R, aim + gap / 2, aim - gap / 2 + TAU); ctx.stroke();
-              ctx.strokeStyle = 'rgba(210,160,255,0.85)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w.x, w.y, w.R - 5, aim + gap / 2, aim - gap / 2 + TAU); ctx.stroke(); ctx.restore();
+              ctx.strokeStyle = 'rgba(210,160,255,0.85)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w.x, w.y, Math.max(0, w.R - 5), aim + gap / 2, aim - gap / 2 + TAU); ctx.stroke(); ctx.restore();
             } });
         });
       }

@@ -5,7 +5,7 @@ import { SummitSmoke, drawFlutter } from '../../scenes/summit-smoke.js';
 
 /**
  * BUILD339 청소년 보스전 지원 모듈(사용자 2026-09-25 브리핑). 공격하기는 잠겨 있고(X), 방어하기로 버티며 잔해를 피해 청소 용량을
- * 채운다 → 100% 면 과부하로 쓰러져 3턴 동안 공격 가능, 그동안 가재맨이 내려와 공격한다. 주먹 패턴은 무피격이면 낙석 50.
+ * 채운다 → 100% 면 과부하로 쓰러져 3턴 동안 공격 가능, 그동안 가재맨이 내려와 공격한다. 주먹 패턴은 피하기만 한다(BUILD445 낙석 반격 삭제).
  * BUILD342: 필드 대치와 같은 한 화면(TEEN_BATTLE.view) — 일행은 끝길 위 같은 발 자리, 청소년은 같은 그림·같은 자리, 연기가 아래를 덮는다.
  */
 export function createTeenBossSupport(battle) {
@@ -178,8 +178,8 @@ export function createTeenBossSupport(battle) {
       const [lo, hi] = C.enemyHit, dmg = lo + Math.floor(battle.rnd() * (hi - lo + 1));
       return defenders.has(member.id) ? Math.max(1, dmg - C.defend.reduce) : dmg;
     },
-    /** 쓰러지기 전에는 공격이 통하지 않는다(버튼도 잠김). 낙석은 언제나 들어간다 */
-    blocksDamage(target, source) { return target === enemy && phase !== 'down' && phase !== 'p2' && source !== 'teen_rock'; },
+    /** 쓰러지기 전에는 공격이 통하지 않는다(버튼도 잠김) */
+    blocksDamage(target, source) { return target === enemy && phase !== 'down' && phase !== 'p2'; },
     patternsFor(target) {
       if (target !== enemy) return null;
       clearTeenTimers();
@@ -215,7 +215,6 @@ export function createTeenBossSupport(battle) {
         battle.sfx('heal'); battle.sfx('mario_jump');
       }
       if (p?.type === 'teen_dodge' && phase === 'guard') gauge = Math.min(C.gauge.max, gauge + (planned?.final && planned.turn === turn ? C.finalClean.perDodge : C.gauge.perDodge));
-      if (p?.type === 'teen_rock' && live()) { battle.hitEnemy(enemy, null, C.rockDamage, { source: 'teen_rock' }); battle.game.shake = { time: 0.4, amp: 5 }; }
     },
     /** 쓰러진 동안 일반 공격은 한 대 80 */
     adjustDamage(target, dmg, source) {
@@ -228,7 +227,7 @@ export function createTeenBossSupport(battle) {
       if (phase === 'p2' && enemy.hp - dmg <= 0) return Math.max(0, enemy.hp - 1);
       // 쓰러진 동안 일반 공격은 한 대 35
       const d = phase === 'down' && source === 'ordinary' ? C.downHit.damage : dmg;
-      // 1페이즈는 쓰러뜨려지지 않는다 — HP 1 에서 2페이즈 연출(낙석도 HP 를 0 으로 만들지 못한다)
+      // 1페이즈는 쓰러뜨려지지 않는다 — HP 1 에서 2페이즈 연출
       if (phase !== 'p2' && enemy.hp - d <= 0) {
         if (phase === 'down' && source === 'ordinary') pendingP2 = true;
         return Math.max(0, enemy.hp - 1);

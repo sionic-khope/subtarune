@@ -624,13 +624,15 @@ export class CastleArena {
       return R * flare * narrow;
     };
     const wav = (y, side) => (Math.sin((y + t * 300) * 0.011 + side * 1.9) * 8 + Math.sin((y + t * 520) * 0.029 + side) * 3) * open * clamp01((baseY - y) / 70);
+    // 출렁임도 꼭대기로 갈수록 줄여 양쪽 가장자리가 한 점에서 만난다(BUILD445 사용자 “맨 위 끝부분 살짝 잘린 느낌”: 출렁임 폭만큼 평평하게 끝났다)
+    const edge = (y, side) => wav(y, side) * clamp01(half(y) / (R * 0.25));
     const yTop = Math.max(visTop, topY);
     const silhouette = inset => {
       const r = Math.max(0, R - inset), ry = RY * (r / Math.max(1, R));
       ctx.beginPath();
-      for (let y = baseY; y >= yTop; y -= 8) ctx.lineTo(cx - Math.max(0, half(y) - inset) + wav(y, -1), y);
-      ctx.lineTo(cx + wav(yTop, 0), yTop);
-      for (let y = yTop; y <= baseY; y += 8) ctx.lineTo(cx + Math.max(0, half(y) - inset) + wav(y, 1), y);
+      for (let y = baseY; y >= yTop; y -= 8) ctx.lineTo(cx - Math.max(0, half(y) - inset) + edge(y, -1), y);
+      ctx.lineTo(cx, yTop);
+      for (let y = yTop; y <= baseY; y += 8) ctx.lineTo(cx + Math.max(0, half(y) - inset) + edge(y, 1), y);
       for (let a = 0; a <= Math.PI + 0.001; a += Math.PI / 32) ctx.lineTo(cx + Math.cos(a) * r, baseY + Math.sin(a) * ry);
       ctx.closePath();
     };

@@ -157,7 +157,8 @@ export const castle_arena_intro = Object.assign([
   // 카메라 상승은 1초 더 빨리(사용자 2026-09-26)
   { wait: 0.6 },
   { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -2150), duration: ARENA_SCENE.rise }] },
-  { wait: 1.2 },
+  // 꼭대기 끝을 더 오래 보여 준다(BUILD445 사용자 “끝부분 보여주는거 너무 빨리”: 1.2초 → 2.8초)
+  { wait: 2.8 },
   // 파동이 사라지고 호러한 연기로 아무것도 안 보이는 채 카메라가 다시 주인공들 쪽으로
   // 위에서: 파동이 사라지며 검은 연기가 차오르는 것을 보여 준 뒤 → 아래로
   arena(s => { s.setAura(0); return s.fountainEnd(2.2); }), { hide: ARENA_SCENE.gajaeman }, { wait: 1.2 },
