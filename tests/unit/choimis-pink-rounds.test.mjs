@@ -431,11 +431,14 @@ test('test_kart_miss_penalty_uses_configured_damage_even_during_contact_invulner
 });
 
 test('test_choimis_pink_round_opens_without_popping_and_restores_owned_state', () => {
-  const run = modeFixture({ scenario: 'kart_block', speak: '막자할게' });
+  const run = modeFixture({ scenario: 'kart_block', speak: '막자할게\n얼마나 많이 막자할 수 있을까?\n세개를 놓칠때마다 벌을 주지' });
   assert.deepEqual(run.board.rect, { x: 20, y: 246, w: 440, h: 72 }, 'constructor leaves fade-out frame geometry intact');
   assert.ok(run.mode.snapshot.scenario.boss.x > BOX.x + BOX.w, 'boss begins outside the far end instead of popping in');
-  assert.equal(run.enemy.patternPose.hidden, true); assert.equal(run.battle.bubble.text, '막자할게');
+  assert.equal(run.enemy.patternPose.hidden, true); assert.equal(run.battle.bubble.text, '막자할게\n얼마나 많이 막자할 수 있을까?\n세개를 놓칠때마다 벌을 주지');
+  // 세 줄 대사(BUILD452)는 다 찍힌 뒤에도 읽을 시간을 둔다
   for (let time = 0; time < 1.2; time += 0.05) { run.board.update(0.05); run.mode.update(0.05, none); }
+  assert.equal(run.mode.snapshot.phase, 'prep', 'still reading the three lines');
+  for (let time = 1.2; time < 4.4; time += 0.05) { run.board.update(0.05); run.mode.update(0.05, none); }
   assert.equal(run.mode.snapshot.phase, 'combat');
   for (const key of ['x', 'y', 'w', 'h']) assert.ok(Math.abs(run.board.rect[key] - BOX[key]) < 0.01, `wide board ${key} reaches the 430px contract`);
   assert.equal(run.mode.snapshot.heart.x, 64); assert.equal(run.mode.snapshot.scenario.boss.x, BOX.x + BOX.w - 32);

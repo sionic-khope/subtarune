@@ -305,7 +305,7 @@ test('test_choimis_every_registered_attack_has_an_in_character_preamble', () => 
     choimis_seup: '스읍 미스',
     choimis_fashion: '이거 패션어떰?',
     choimis_pink_choso: '내 추구미는 쵸소우야',
-    choimis_pink_kart: '막자할게',
+    choimis_pink_kart: '막자할게\n얼마나 많이 막자할 수 있을까?\n세개를 놓칠때마다 벌을 주지',
     choimis_pink_gasuni: '가순이들아 나에게 힘을줘!',
     choimis_pink_prism: '차징해서 쏜 공격 아닌 이상 이 코어들은 무너지지 않아.',
     choimis_eating_race: '짜장면 먹방 대결해볼까? 들어와',

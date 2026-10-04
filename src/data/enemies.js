@@ -173,7 +173,7 @@ export const ENEMIES = {
         lines: ['이거 패턴이 이쁘네', '이건 매치하기 좋을듯', '이건 좀 과감한가?', '역시 핑크가 잘 받아'] },
       { type: 'choimis_pink_choso', mode: 'choimis_pink_round', scenario: 'choso', avoidAdjacentType: 'choimis_choso', speak: '내 추구미는 쵸소우야',
         speakSfx: 'choimis_chosouya', speakDuration: 1.7 },
-      { type: 'choimis_pink_kart', mode: 'choimis_pink_round', scenario: 'kart_block', speak: '막자할게' },
+      { type: 'choimis_pink_kart', mode: 'choimis_pink_round', scenario: 'kart_block', speak: '막자할게\n얼마나 많이 막자할 수 있을까?\n세개를 놓칠때마다 벌을 주지', speakDuration: 3.5 },   // BUILD452 사용자 대사 추가(세 대 놓칠 때마다 피해 = kart_block.escapeLimit), 세 줄을 읽을 시간 3.5초
       { type: 'choimis_pink_prism', mode: 'choimis_pink_round', scenario: 'pink_prism', speak: '차징해서 쏜 공격 아닌 이상 이 코어들은 무너지지 않아.' },
       { type: 'choimis_pink_gasuni', mode: 'choimis_pink_round', scenario: 'gasuni', speak: '가순이들아 나에게 힘을줘!' },
     ],

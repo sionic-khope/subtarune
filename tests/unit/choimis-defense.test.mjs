@@ -139,7 +139,7 @@ test('test_pattern_mode_seam_passes_exact_config_and_advances_once', () => {
   const modeName = 'choimis_test_config_mode';
   let received = null;
   registerBattleMode('enemy', modeName, (_battle, context) => { received = context; return { update: () => false }; });
-  const config = { type: 'choimis_pink_kart', mode: modeName, scenario: 'kart_block', speak: '막자할게' };
+  const config = { type: 'choimis_pink_kart', mode: modeName, scenario: 'kart_block', speak: '막자할게\n얼마나 많이 막자할 수 있을까?\n세개를 놓칠때마다 벌을 주지' };
   const enemy = { id: 'choimis_flower', hp: 200, maxHp: 200, dead: false, enraged: false, patternIdx: 0, def: { patterns: [config], lines: { speak: [] } } };
   const battle = Object.assign(Object.create(Battle.prototype), {
     enemies: [enemy], members: [], modes: { enemy: 'bullets' }, support: null,
