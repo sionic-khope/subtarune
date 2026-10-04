@@ -11,12 +11,24 @@ export const CHOIMIS_EATING_RACE = Object.freeze({
   winTalkHold: 0.65, windupSeconds: 0.45, throwSeconds: 0.65, impactSeconds: 0.8,
   partyOrder: Object.freeze(['hyungsub', 'gyeongsub', 'ppaman']),
   video: Object.freeze({ x: 134, y: 86, w: 212, h: 120 }),
+  // 영상 속 얼굴에 옅은 모자이크(BUILD450 사용자 “얼굴쪽에 모자이크 살짝”): 원본 480×270 좌표 [초, x, y, w, h].
+  // 장면 전환(7.53·8.4·10.4·15.93·16.6·18·20.4초)은 키 두 개로 건너뛴다. block = 원본 픽셀 단위 칸 크기(화면에서 약 3.5px)
+  faceMosaic: Object.freeze({ block: 8, keys: Object.freeze([
+    [0, 170, 10, 80, 85], [7.52, 175, 10, 80, 85],
+    [7.53, 178, 8, 74, 82], [8.39, 178, 8, 74, 82],
+    [8.4, 183, 12, 97, 92], [9.5, 193, 8, 102, 97], [10.2, 213, 12, 107, 88], [10.39, 213, 12, 107, 88],
+    [10.4, 175, 15, 175, 130], [10.9, 255, 70, 100, 85], [11, 262, 75, 88, 75], [12, 233, 95, 92, 85], [13, 223, 100, 97, 85], [15, 223, 95, 102, 90],
+    [15.92, 213, 55, 102, 130], [15.93, 213, 55, 102, 130], [16.59, 188, 45, 102, 100],
+    [16.6, 193, 18, 144, 152], [17.5, 208, 28, 138, 132], [17.99, 208, 28, 138, 132],
+    [18, 188, 53, 108, 102], [19, 183, 58, 118, 112], [20.39, 183, 58, 118, 112],
+    [20.4, 163, 13, 174, 162], [21.7, 148, 13, 194, 162],
+  ]) }),
 });
 const clamp = value => Math.max(0, Math.min(1, value));
 
 export function createChoimisEatingRace(battle, { enemy, media, config } = {}) {
   const C = CHOIMIS_EATING_RACE, total = C.bitesPerBowl * C.bowls;
-  const video = media || createChoimisRapVideo({ src: C.src, volume: 0.72, opacity: 1, autoplay: false });
+  const video = media || createChoimisRapVideo({ src: C.src, volume: 0.72, opacity: 1, autoplay: false, mosaic: C.faceMosaic });
   const members = C.partyOrder.map(id => battle.members.find(member => member.id === id));
   const names = [L.battle_choimis_eating_hyungsub, L.battle_choimis_eating_gyeongsub, L.battle_choimis_eating_ppaman];
   let phase = 'prelude', elapsed = 0, raceElapsed = 0, resultElapsed = 0, phaseElapsed = 0, mediaReady = null;

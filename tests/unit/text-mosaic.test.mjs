@@ -89,3 +89,48 @@ test('test_text_mosaic_cached_render_restores_smoothing_and_detail_opacity', t =
   assert.equal(ctx.globalAlpha, 0.8);
   assert.equal(ctx.imageSmoothingEnabled, true);
 });
+
+// BUILD450(사용자 “편집노조 언급되는 모든 대사 … 노쪽에 모자이크 다 쳐지게, 편집노조에서만”)
+test('test_union_mosaic_masks_only_the_no_in_every_editor_union_line', async () => {
+  const { SCRIPTS } = await import('../../src/data/scripts.js');
+  const { markUnionMosaic } = await import('../../src/ui/text-mosaic.js');
+  const lines = new Set();
+  const visit = (node) => {
+    if (Array.isArray(node)) { node.forEach(visit); return; }
+    if (!node || typeof node !== 'object') return;
+    if (typeof node.text === 'string' && node.text.includes('편집노조')) lines.add(node);
+    for (const key of ['parallel', 'async']) if (node[key]) visit(node[key]);
+  };
+  Object.values(SCRIPTS).forEach(visit);
+  assert.ok(lines.size >= 10, `편집노조 대사 ${lines.size}줄`);
+  const box = new TextBox({ blip() {} }, {});
+  for (const node of lines) {
+    box.show(node, measure);
+    const text = box.tokens.map(t => t.ch).join('');
+    let at = 0;
+    for (const token of box.tokens) {
+      const inUnion = token.ch === '노' && text.slice(at - 2, at) === '편집' && text[at + 1] === '조';
+      if (inUnion) assert.ok(token.mosaic > 1, `‘노’ 가림: ${node.text}`);
+      at += token.ch.length;
+    }
+  }
+  // 다른 단어의 ‘노’는 그대로
+  const tokens = parseText('* 노랑 편집노조 노래');
+  markUnionMosaic(tokens);
+  assert.deepEqual(tokens.filter(t => t.mosaic).map(t => t.ch), ['노']);
+  assert.equal(tokens.findIndex(t => t.mosaic), tokens.map(t => t.ch).join('').indexOf('편집노조') + 2);
+});
+
+test('test_union_mosaic_line_drawer_hides_the_no_while_typing_and_after', async () => {
+  const { fillTextUnionMosaic } = await import('../../src/ui/text-mosaic.js');
+  const drawn = [];
+  const canvasStub = () => ({ width: 0, height: 0, getContext: () => ({ fillText() {}, drawImage() {}, measureText: () => ({ width: 8 }) }) });
+  globalThis.document ??= { createElement: canvasStub };
+  const ctx = { font: '12px x', fillStyle: '#fff', fillText: (s) => drawn.push(s), measureText: (s) => ({ width: Array.from(s).length * 8 }), save() {}, restore() {}, drawImage() {} };
+  for (const line of ['편집노조 애들', '모든 편집노', '노랑 노래']) {
+    drawn.length = 0; fillTextUnionMosaic(ctx, line, 0, 0);
+    const plain = drawn.join('');
+    if (line.includes('편집노')) assert.ok(!plain.includes('편집노'), `${line} → ${JSON.stringify(drawn)}`);
+    else assert.equal(plain, line);
+  }
+});

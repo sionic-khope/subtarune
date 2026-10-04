@@ -8,6 +8,7 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import L from '../data/locale/ko.js';
 import { QA_POINTS } from '../core/story.js';
 import { CONTINUE_LABELS } from '../data/continue-labels.js';
+import { fillTextUnionMosaic } from './text-mosaic.js';
 import { qaStep } from './qa-list.js';
 
 const QA_FONT = '9px "Galmuri9", "Galmuri11", "NeoDunggeunmo", monospace';
@@ -392,7 +393,7 @@ export class TitleScreen {
       const ry = y + 44 + k * ROW, on = page * P + k === c.i;
       let label = (it.save ? '★ ' : '') + it.label;
       if (ctx.measureText(label).width > maxW) { let cut = label.length; while (cut > 1 && ctx.measureText(label.slice(0, cut) + '…').width > maxW) cut--; label = label.slice(0, cut) + '…'; }
-      ctx.fillStyle = on ? '#ffe066' : '#fff'; ctx.fillText(label, x + 40, ry);
+      ctx.fillStyle = on ? '#ffe066' : '#fff'; fillTextUnionMosaic(ctx, label, x + 40, ry);
       if (on) drawHeart(ctx, x + 20, ry + 3, '#ff203a');
     }
     ctx.textAlign = 'right'; ctx.fillStyle = '#8a8aa0'; ctx.fillText(`${page + 1}/${pages}`, x + w - 16, y + 14); ctx.textAlign = 'left';

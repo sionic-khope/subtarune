@@ -11,7 +11,7 @@ import { SCREEN_W, SCREEN_H } from '../world/world.js';
 import { resolvePortraitKey } from '../data/portraits.js';
 
 import { FONT, F } from './font.js';
-import { drawMosaicText, markTextMosaic } from './text-mosaic.js';
+import { drawMosaicText, markTextMosaic, markUnionMosaic } from './text-mosaic.js';
 import { IllustratedNarration, ILLUSTRATED_NARRATION } from './illustrated-narration.js';
 export { FONT };
 const LINE_H = F.lineH;
@@ -155,6 +155,7 @@ export class TextBox {
     const text = node.text ?? '';
     this.tokens = parseText(text);
     markTextMosaic(this.tokens, node.mosaic);
+    markUnionMosaic(this.tokens);
     const textW = this.textWidth();
     this.pages = layout(ctx, this.tokens, textW, this.style === 'illustrated' ? ILLUSTRATED_NARRATION.maxLines : MAX_LINES);
     this.page = 0;

@@ -26,7 +26,7 @@ import L from '../data/locale/ko.js';
 import { createBattleSupport } from './support/baron-cannon.js';
 import { BARON_CANNON } from '../data/baron-cannon.js';
 import { menuTextLines } from '../ui/menu-layout.js';
-import { drawMosaicText } from '../ui/text-mosaic.js';
+import { drawMosaicText, fillTextUnionMosaic } from '../ui/text-mosaic.js';
 
 const SCREEN_W = 480, SCREEN_H = 360, LH = 18;
 const PARTY_ORDER = ['hyungsub', ...WALK_ORDER];   // 위→아래 = 걷는 순서(형섭·경섭·빠맨) — characters.js 단일 진실
@@ -895,7 +895,7 @@ export class Battle {
     ctx.fillStyle = '#fff';
     this.wrapText(ctx, this.text.slice(0, this.shown), 440 - (tx - 20) - 14).slice(0, 3).forEach((line, i) => {
       const y = 254 + i * LH, mo = this.lineMosaic;
-      if (!mo || !line.includes(mo.text)) { ctx.fillText(line, tx, y); return; }
+      if (!mo || !line.includes(mo.text)) { fillTextUnionMosaic(ctx, line, tx, y); return; }
       let x = tx; const parts = line.split(mo.text);
       parts.forEach((part, k) => { ctx.fillText(part, x, y); x += ctx.measureText(part).width; if (k < parts.length - 1) { drawMosaicText(ctx, mo.text, x, y, mo.block); x += ctx.measureText(mo.text).width; } });
     });
@@ -922,7 +922,7 @@ export class Battle {
     ctx.fillStyle = '#fff'; this.roundRect(ctx, x, y, w, h, 9); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x + w - 2, cy - 10); ctx.lineTo(x + w + 18, cy + 1); ctx.lineTo(x + w - 2, cy + 8); ctx.closePath(); ctx.fill();   // 꼬리(적 쪽)
     ctx.fillStyle = '#000';
-    menuTextLines(ctx, b.text.slice(0, b.shown), w - pad * 2, 20).forEach((line, i) => drawMosaicText(ctx, line, x + pad, y + pad + i * lh, b.mosaic));
+    menuTextLines(ctx, b.text.slice(0, b.shown), w - pad * 2, 20).forEach((line, i) => { if (b.mosaic) drawMosaicText(ctx, line, x + pad, y + pad + i * lh, b.mosaic); else fillTextUnionMosaic(ctx, line, x + pad, y + pad + i * lh); });
     ctx.restore(); ctx.font = FONT; ctx.textBaseline = 'top';
   }
   roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); }
