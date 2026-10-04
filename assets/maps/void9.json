@@ -213,15 +213,6 @@
    }
   },
   {
-   "type": "prop",
-   "id": "sign_quiz",
-   "image": "assets/props/signpost.png",
-   "x": 1460,
-   "y": 880,
-   "solid": true,
-   "script": "void9_quiz"
-  },
-  {
    "type": "raft",
    "id": "raft9c",
    "image": "assets/props/raft.png",

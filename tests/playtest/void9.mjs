@@ -64,11 +64,9 @@ await page.waitForTimeout(500); await page.screenshot({ path: `${S}/void9_02_v1.
 r = await autoRide('V1'); s = r.s;
 check('V1: swimmer stays behind = above the raft while going down', r.maxSwimBehind !== null && r.maxSwimBehind > 0, `behind=${r.maxSwimBehind}`);
 check('V1: arrived at landing C (below)', !s.ride && s.p[1] > 850 && s.p[0] > 1300, JSON.stringify(s.p));
-// C 퀴즈 (3지선다 격자: 셋째 = ↓)
-L = await talk(1428, 896, 'right', [2]);
-check('C quiz: 억빠맨의 특징은? → [억빠] → 그건 제 이름이잖아요 → 정답 처리', ['억빠맨의 특징은', '제 이름이잖아요', '정답 처리'].every((k) => L.some((l) => l.includes(k))), JSON.stringify(L));
-L = await talk(1428, 896, 'right', [0]); check('C quiz: [바보] → 형 저 여기 있는데요 → 정답이었다', L.some((l) => l.includes('여기 있는데요')) && L.some((l) => l.includes('정답이었다')), JSON.stringify(L));
-await page.screenshot({ path: `${S}/void9_03_quiz.png` });
+// C 표지판 퀴즈(“억빠맨의 특징은?”)는 BUILD454 삭제: 착지 C 에 표지판이 없다
+check('C: quiz sign removed', await page.evaluate(() => !game.entities.some((e) => e.id === 'sign_quiz')));
+await page.screenshot({ path: `${S}/void9_03_landing_c.png` });
 // ── 3) H2 ← ──
 s = await board(1316, 890, 'left'); check('board raft9c (left)', s.ride && s.rideId === 'raft9c' && s.raft.dir === 'left' && s.sw && s.sw.x > s.raft.x, JSON.stringify({ ride: s.rideId, dir: s.raft?.dir, sw: s.sw, raft: s.raft }));
 r = await autoRide('H2'); s = r.s; check('H2: arrived at landing D (left)', !s.ride && s.p[0] < 224 && s.p[1] > 850 && s.p[1] < 1000, JSON.stringify(s.p));

@@ -33,7 +33,7 @@ ents = [
   {'type': 'prop', 'id': 'button', 'image': 'assets/props/button.png', 'x': 1352, 'y': 100, 'solid': True, 'script': 'void9_button'},
   raft('raft9b', 1380, 224, 1380, 816),
   wall('w3', 1376, 520, wide=True), wall('w4', 1376, 720, wide=True, osc={'dy': 56, 'period': 3.6}),
-  {'type': 'prop', 'id': 'sign_quiz', 'image': 'assets/props/signpost.png', 'x': 1460, 'y': 880, 'solid': True, 'script': 'void9_quiz'},
+  # 표지판 퀴즈(“억빠맨의 특징은?”)는 BUILD454 사용자 요청으로 삭제
   raft('raft9c', 1248, 876, 224, 876),
   wall('w5', 900, 880, osc={'dy': 60, 'period': 3.0}), wall('w6', 560, 880),
   {'type': 'prop', 'id': 'puddle', 'image': 'assets/props/puddle.png', 'x': 120, 'y': 944, 'w': 52, 'h': 12, 'ix': 120, 'iy': 940, 'solid': False, 'sortY': 0, 'script': 'void9_puddle'},

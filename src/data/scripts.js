@@ -12,7 +12,7 @@ import { void4_ppaman_talk } from './cutscenes/void4_ppaman.js';
 import { void4_door } from './cutscenes/void4_key.js';
 import { void8_board, void8_arrive } from './cutscenes/void8.js';
 import { rock_flowers, rock_sign, rock_boulder } from './cutscenes/rock_events.js';
-import { void9_button, void9_quiz, void9_puddle, void9_chest } from './cutscenes/void9_events.js';
+import { void9_button, void9_puddle, void9_chest } from './cutscenes/void9_events.js';
 import { void10_intro, void10_sign1, void10_sign2, void10_sign3, void10_sign4, void10_sign5 } from './cutscenes/void10_maze.js';
 import { void11_intro, void11_tree_look } from './cutscenes/void11_tree.js';
 import { teal2_statue_look, teal2_statue_wall } from './cutscenes/teal2_statue.js';
@@ -258,7 +258,7 @@ export const SCRIPTS = {
   void4_ppaman: void4_ppaman_talk,   // 인사 → 질문 루프 → 동행 (src/data/cutscenes/void4_ppaman.js)
   void4_door,                        // 잠긴 문 → 레버 열쇠 → 철컥 (src/data/cutscenes/void4_key.js)
   void8_board, void8_arrive,         // 점프 뗏목: 억빠맨 수영 → 벽 쿵 → C 점프 / 도착 물 털기 (src/data/cutscenes/void8.js)
-  void9_button, void9_quiz, void9_puddle, void9_chest,   // 보라맵9 뱀길 체크포인트 이벤트 4종 (src/data/cutscenes/void9_events.js)
+  void9_button, void9_puddle, void9_chest,   // 보라맵9 뱀길 체크포인트 이벤트(표지판 퀴즈는 BUILD454 삭제) (src/data/cutscenes/void9_events.js)
   void10_intro, void10_sign1, void10_sign2, void10_sign3, void10_sign4, void10_sign5,   // 보라맵10 미로: 포탈 컷신 + 표지판 5 (src/data/cutscenes/void10_maze.js)
   void11_intro, void11_tree_look,   // 보라맵11 거대 나무: 쥰희·경섭 컷신 → 경섭 합류, 나무 조사 (src/data/cutscenes/void11_tree.js)
   teal2_statue_look, teal2_statue_wall,   // 청록숲2 나무 동상: 조사 / 길 막은 동상(빠맨 공격 시도) (src/data/cutscenes/teal2_statue.js)
