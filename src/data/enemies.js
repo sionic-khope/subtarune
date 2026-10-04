@@ -19,13 +19,14 @@ export const ENEMIES = {
     actions: { cast: { src: 'assets/enemies/yisub-battle.png', cols: 2, rows: 2, count: 4, fps: 1, px: 1 } },
     pivot: [64, 120], scale: 0.9, board: [240, 160], idle: { swayX: 0, swayY: 0 },
     patterns: [
-      { type: 'regret_alpha_double', speak: '니애미따라가라 일격필살.' },
-      { type: 'regret_highlander', speak: '어디 한번 달아나 봐라.' },
-      { type: 'regret_meditate', speak: '명상 좀 하자.\n그 다음은 네 차례다.' },
+      // BUILD451 사용자 대사(원문 그대로): 옛 세 대사는 버리고 두 대사만 — ①·③ 첫 대사, ② 둘째 대사
+      { type: 'regret_alpha_double', speak: '이래서 섭이갓 섭이갓 하는구나' },
+      { type: 'regret_highlander', speak: '행님들 지금 12시 넘었는데 추천즐찾따봉까지 섭이조 클라쓰로 함 시원하게 보여주고 가야죠 추천개수 뭐야 이거 지금' },
+      { type: 'regret_meditate', speak: '이래서 섭이갓 섭이갓 하는구나' },
     ],
     lines: { appear: '* 마스터이섭이 칼을 뽑았다.',
       idle: ['* 마스터이섭의 렌즈가 어둠 속에서 빛난다.', '* 칼날에 보라색 기운이 맺힌다.'],
-      speak: ['니애미따라가라 일격필살.'], die: '* 마스터이섭이 흩어졌다.' },
+      speak: ['이래서 섭이갓 섭이갓 하는구나', '행님들 지금 12시 넘었는데 추천즐찾따봉까지 섭이조 클라쓰로 함 시원하게 보여주고 가야죠 추천개수 뭐야 이거 지금'], die: '* 마스터이섭이 흩어졌다.' },
   },
   syndrasub: {
     name: '신드라섭', hp: 45, damage: 25, damageStep: 0, money: 120, voice: 'hyungsub',
