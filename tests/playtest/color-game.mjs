@@ -98,7 +98,7 @@ try {
   await clickColor('red'); await clickColor('green'); s = await st();
   check(s.phase === 'clear' && s.stage === 1, '틀린 뒤에도 빨강·초록 순서대로 누르면 통과 ' + JSON.stringify([s.phase, s.stage]));
   // ⑥ 시간 초과(모든 판 12초 동일): 철창이 실시간으로 끝까지 내려가고 → 용암에 풍덩 → TIME OVER + C 재시도 → 그 판부터
-  check(await waitPhase('round', 4000), '3판 시작'); s = await st(); check(s.stage === 2 && JSON.stringify(s.round.expected) === '["red","green","yellow"]', '3판 = 2판 + 노랑(이어서 하나 추가) ' + JSON.stringify([s.stage, s.round.expected]));
+  check(await waitPhase('round', 4000), '3판 시작'); s = await st(); check(s.stage === 2 && JSON.stringify(s.round.expected) === '["purple","red"]', '3판 = 보라·빨강(사용자 지정 BUILD447) ' + JSON.stringify([s.stage, s.round.expected]));
   await page.evaluate(() => window.__colorgame.answerNow()); await page.waitForTimeout(3000); s = await st();
   check(s.round && s.round.status === 'answer' && s.cageDrop > 0.18 && s.cageDrop < 0.34, '시간에 정비례해 철창이 내려간다(3초/12초) ' + JSON.stringify([s.round?.status, s.cageDrop]));
   await cap('timer');

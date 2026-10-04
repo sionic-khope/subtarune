@@ -7,12 +7,14 @@ import { COLORS, NOISE, STAGES, SEQUENCE, RULES, CHAOS, makeRound, stepRound, pr
 const colorIds = new Set(COLORS.map(c => c.id)), noiseIds = new Set(NOISE.map(n => n.id));
 const runUntil = (round, pred, max = 60) => { const ev = []; for (let t = 0; t < max; t += 1 / 60) { ev.push(...stepRound(round, 1 / 60)); if (pred(ev, round)) break; } return ev; };
 
-test('test_colorgame_stages_grow_to_eight_and_only_the_last_mixes_noise_words', () => {
+test('test_colorgame_stages_eight_with_custom_3_to_5_and_only_the_last_mixes_noise_words', () => {
   assert.equal(STAGES.length, 8);
   assert.deepEqual(COLORS.map(c => c.ko), ['빨', '주', '노', '초', '파', '남', '보']);
   // 1~7판: 앞 판 순서 그대로 + 색 하나(사용자 “전 단계랑 이어져서 하나 추가”)
-  for (let i = 0; i < 7; i++) { assert.equal(STAGES[i].length, i + 1); assert.ok(STAGES[i].every(id => colorIds.has(id)), `stage ${i + 1} 는 색만`); if (i) assert.deepEqual(STAGES[i].slice(0, i), STAGES[i - 1]); }
-  assert.deepEqual(STAGES[0], ['red']); assert.deepEqual(STAGES[1], ['red', 'green']); assert.deepEqual(STAGES[2], ['red', 'green', 'yellow']); assert.deepEqual(STAGES[6], SEQUENCE);
+  // 3~5판은 사용자 지정 순서(BUILD447): 보·빨 / 보·빨·남 / 보·빨·보·빨, 나머지는 기본 순서 앞 n개
+  const custom = { 2: ['purple', 'red'], 3: ['purple', 'red', 'navy'], 4: ['purple', 'red', 'purple', 'red'] };
+  for (let i = 0; i < 7; i++) { assert.ok(STAGES[i].every(id => colorIds.has(id)), `stage ${i + 1} 는 색만`); assert.deepEqual(STAGES[i], custom[i] || SEQUENCE.slice(0, i + 1)); }
+  assert.deepEqual(STAGES[0], ['red']); assert.deepEqual(STAGES[1], ['red', 'green']); assert.deepEqual(STAGES[6], SEQUENCE);
   assert.equal(new Set(SEQUENCE).size, 7, '일곱 색이 한 번씩');
   const last = STAGES[7];
   assert.ok(last.filter(id => noiseIds.has(id)).length >= 5, '마지막 판엔 사용자 원문의 이상한 말이 섞인다');
@@ -89,26 +91,26 @@ test('test_colorgame_chaos_stage_calls_three_normally_then_stutters_goes_dark_an
 });
 
 test('test_colorgame_presses_ignored_while_calling_then_correct_order_clears', () => {
-  const round = makeRound(2);   // ['red','green','yellow']
-  assert.equal(pressRound(round, 'red').type, 'ignored');
+  const round = makeRound(3);   // ['purple','red','navy'](BUILD447 사용자 지정 4판)
+  assert.equal(pressRound(round, 'purple').type, 'ignored');
   runUntil(round, ev => ev.some(e => e.type === 'answer'), 10);
-  assert.equal(pressRound(round, 'red').type, 'ok'); assert.equal(round.i, 1);
-  assert.equal(pressRound(round, 'green').type, 'ok');
-  const done = pressRound(round, 'yellow'); assert.equal(done.type, 'clear'); assert.equal(round.status, 'clear');
+  assert.equal(pressRound(round, 'purple').type, 'ok'); assert.equal(round.i, 1);
+  assert.equal(pressRound(round, 'red').type, 'ok');
+  const done = pressRound(round, 'navy'); assert.equal(done.type, 'clear'); assert.equal(round.status, 'clear');
   assert.equal(pressRound(round, 'red').type, 'ignored', '끝난 판은 무시');
 });
 
 test('test_colorgame_wrong_press_keeps_the_round_and_only_speeds_up_the_cage', () => {
   const round = makeRound(2); runUntil(round, ev => ev.some(e => e.type === 'answer'), 10);
   const w = pressRound(round, 'blue');
-  assert.equal(w.type, 'wrong'); assert.equal(w.want, 'red'); assert.equal(w.got, 'blue');
+  assert.equal(w.type, 'wrong'); assert.equal(w.want, 'purple'); assert.equal(w.got, 'blue');
   assert.equal(round.status, 'answer', '틀려도 판은 계속'); assert.equal(round.i, 0); assert.equal(round.speed, RULES.wrongSpeedUp); assert.equal(round.wrongs, 1);
   pressRound(round, 'blue'); assert.equal(round.speed, RULES.wrongSpeedUp * RULES.wrongSpeedUp, '누적');
   // 같은 시간에 철창이 더 내려가 있다
   const fast = round, slow = makeRound(2); runUntil(slow, ev => ev.some(e => e.type === 'answer'), 10);
   runUntil(fast, () => false, 1); runUntil(slow, () => false, 1);
   assert.ok(answerProgress(fast) > answerProgress(slow) * 2, `빨라진 철창 ${answerProgress(fast)} > ${answerProgress(slow)}`);
-  assert.equal(pressRound(round, 'red').type, 'ok', '틀린 뒤에도 맞는 색부터 이어서');
+  assert.equal(pressRound(round, 'purple').type, 'ok', '틀린 뒤에도 맞는 색부터 이어서');
 });
 
 test('test_colorgame_answer_time_runs_out_and_progress_reaches_one', () => {

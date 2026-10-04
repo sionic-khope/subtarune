@@ -20,8 +20,10 @@ export const NOISE = [
 ];
 // 기본 순서(사용자 예시 RED → GREEN → YELLOW → BLUE …): n판 = 앞 n개
 export const SEQUENCE = ['red', 'green', 'yellow', 'blue', 'purple', 'orange', 'navy'];
+// 3~5판은 사용자 지정 순서(BUILD447, 2026-10-04): 보·빨 → 보·빨·남 → 보·빨·보·빨. 나머지 판은 기본 순서 앞 n개
+const CUSTOM_STAGES = { 2: ['purple', 'red'], 3: ['purple', 'red', 'navy'], 4: ['purple', 'red', 'purple', 'red'] };
 export const STAGES = [
-  ...SEQUENCE.map((_, i) => SEQUENCE.slice(0, i + 1)),
+  ...SEQUENCE.map((_, i) => CUSTOM_STAGES[i] || SEQUENCE.slice(0, i + 1)),
   // 8판(광기) 폭주 때 반복하는 말: 7판 순서 사이사이 이상한 말 — 사용자 “회전률 더 빠르게, 더 장황하게” → 24개(입력 차례 없음, 느낌표 버튼으로 통과)
   ['red', 'green', 'heart', 'yellow', 'blue', 'nasdf', 'pi', 'purple', 'legend', 'orange', 'ngaita', 'navy', 'heart', 'blue', 'legend', 'ngaita', 'red', 'pi', 'green', 'nasdf', 'yellow', 'heart', 'purple', 'ngaita'],
 ];
