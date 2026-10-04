@@ -136,7 +136,7 @@ test('test_choimis_shooter_hold_to_fixed_max_then_release_fires_one_bounded_char
   assert.ok(fullRadius < earlyRadius); assert.equal(f.sounds.filter(sound => sound.name === 'yellowheart_charge').length, 1);
   f.mode.update(3, input('confirm')); assert.equal(f.mode.snapshot.charge.elapsed, CHOIMIS_PINK_SHOOTER.chargeSeconds); assert.equal(f.mode.snapshot.shots.length, 0);
   f.mode.update(0.01, none);
-  assert.equal(f.mode.snapshot.shots.length, 1); assert.deepEqual({ charged: f.mode.snapshot.shots[0].charged, r: f.mode.snapshot.shots[0].r }, { charged: true, r: 5 });
+  assert.equal(f.mode.snapshot.shots.length, 1); assert.deepEqual({ charged: f.mode.snapshot.shots[0].charged, r: f.mode.snapshot.shots[0].r }, { charged: true, r: 6 });
   assert.equal(f.sounds.filter(sound => sound.name === 'yellowheart_shot_big').length, 1);
   assert.deepEqual(f.sounds.filter(sound => sound.name.startsWith('yellowheart_')).map(sound => sound.name), ['yellowheart_charge', 'yellowheart_shot_big']);
   assert.ok(f.chargeHandles[0].paused && f.chargeHandles[0].src === '', 'charge loop is cancelled on release');
@@ -226,9 +226,10 @@ test('test_pink_shooter_exports_stable_fixed_tier_round_primitives', () => {
   assert.deepEqual(control.update(0.01, released), []);
   assert.deepEqual(control.update(0.2, pressed), [{ type: 'charge' }]);
   assert.deepEqual(control.update(0.01, released), [{ type: 'fire', charged: false }]);
-  assert.deepEqual(createPinkShot(3, 4, true), { x: 3, y: 4, oldX: 3, oldY: 4, r: 5, charged: true });
+  assert.deepEqual(createPinkShot(3, 4, true), { x: 3, y: 4, oldX: 3, oldY: 4, r: 6, charged: true });
   assert.equal(pinkChargeAura(20, 30, 0.5, 1).length, 3);
   const rectangles = [], ctx = { set fillStyle(value) {}, fillRect: (...args) => rectangles.push(args) };
   drawPinkPellet(ctx, createPinkShot(20, 30, true));
-  assert.ok(rectangles.length >= 3); assert.ok(rectangles.every(([, , width, height]) => width <= 14 && height <= 9));
+  // BUILD453: 차징 탄은 18×11 몸통 + 잔상 둘(본체 3칸 × 3)
+  assert.ok(rectangles.length >= 9); assert.ok(rectangles.every(([, , width, height]) => width <= 18 && height <= 11));
 });

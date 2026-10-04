@@ -90,7 +90,8 @@ export function pinkChargeAura(x, y, progress, time) {
 }
 
 /** Shared fixed-tier projectile; charge duration never scales its power. */
-export const createPinkShot = (x, y, charged = false) => ({ x, y, oldX: x, oldY: y, r: charged ? 5 : 3, charged });
+// 차징 탄은 그림을 조금 키운 만큼 판정도 5 → 6(BUILD453 사용자 “크기 살짝 더 키우고”)
+export const createPinkShot = (x, y, charged = false) => ({ x, y, oldX: x, oldY: y, r: charged ? 6 : 3, charged });
 
 /** A projectile can contact each stable target once; only tap shots stop on contact. */
 export function registerPinkTargetHit(shot, targetId) {
@@ -279,11 +280,29 @@ export function drawPinkScroll(ctx, board, scroll) {
   }
 }
 
+/** 차징 탄 모양(BUILD453 사용자 “차징해서 쏜 공격 살짝 잔상, 크기 살짝 더”): 18×11 몸통 + 뒤로 옅은 잔상 둘 */
+const CHARGED_PELLET = Object.freeze({ w: 18, h: 11, trail: Object.freeze([[8, 0.34], [16, 0.16]]) });
+function pelletBody(ctx, x, y, charged) {
+  if (!charged) {
+    ctx.fillStyle = '#8c1e59'; ctx.fillRect(x - 5, y - 3, 9, 7);
+    ctx.fillStyle = PINK; ctx.fillRect(x - 4, y - 2, 9, 5);
+    ctx.fillStyle = '#ffd2e8'; ctx.fillRect(x + 2, y - 1, 3, 2);
+    return;
+  }
+  const { w, h } = CHARGED_PELLET, left = x - Math.floor(w / 2), top = y - Math.floor(h / 2);
+  ctx.fillStyle = '#8c1e59'; ctx.fillRect(left, top, w, h);
+  ctx.fillStyle = PINK; ctx.fillRect(left + 1, top + 1, w - 1, h - 2);
+  ctx.fillStyle = '#ffd2e8'; ctx.fillRect(left + w - 9, y - 2, 6, 4);
+}
 export function drawPinkPellet(ctx, shot) {
   const x = Math.round(shot.x), y = Math.round(shot.y), charged = !!shot.charged;
-  ctx.fillStyle = '#8c1e59'; ctx.fillRect(x - (charged ? 7 : 5), y - (charged ? 4 : 3), charged ? 14 : 9, charged ? 9 : 7);
-  ctx.fillStyle = PINK; ctx.fillRect(x - (charged ? 6 : 4), y - (charged ? 3 : 2), charged ? 14 : 9, charged ? 7 : 5);
-  ctx.fillStyle = '#ffd2e8'; ctx.fillRect(x + (charged ? 1 : 2), y - 1, charged ? 5 : 3, charged ? 3 : 2);
+  if (charged) {
+    // 날아온 쪽(뒤, 왼쪽)으로 옅은 잔상 — 진행 방향은 oldX 로, 없으면 오른쪽으로 날아간다고 본다
+    const dir = shot.oldX !== undefined && shot.x < shot.oldX ? -1 : 1, alpha = ctx.globalAlpha ?? 1;
+    for (const [back, a] of CHARGED_PELLET.trail) { ctx.globalAlpha = alpha * a; pelletBody(ctx, x - dir * back, y, true); }
+    ctx.globalAlpha = alpha;
+  }
+  pelletBody(ctx, x, y, charged);
 }
 
 function drawPinkChargeAura(ctx, aura, ready) {
