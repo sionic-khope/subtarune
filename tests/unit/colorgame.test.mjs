@@ -12,9 +12,10 @@ test('test_colorgame_stages_eight_with_custom_3_to_5_and_only_the_last_mixes_noi
   assert.deepEqual(COLORS.map(c => c.ko), ['빨', '주', '노', '초', '파', '남', '보']);
   // 1~7판: 앞 판 순서 그대로 + 색 하나(사용자 “전 단계랑 이어져서 하나 추가”)
   // 3~5판은 사용자 지정 순서(BUILD447): 보·빨 / 보·빨·남 / 보·빨·보·빨, 나머지는 기본 순서 앞 n개
-  const custom = { 2: ['purple', 'red'], 3: ['purple', 'red', 'navy'], 4: ['purple', 'red', 'purple', 'red'] };
+  // 6·7판은 예전 4·5판(BUILD448): 빨·초·노·파 / 빨·초·노·파·보
+  const custom = { 2: ['purple', 'red'], 3: ['purple', 'red', 'navy'], 4: ['purple', 'red', 'purple', 'red'], 5: ['red', 'green', 'yellow', 'blue'], 6: ['red', 'green', 'yellow', 'blue', 'purple'] };
   for (let i = 0; i < 7; i++) { assert.ok(STAGES[i].every(id => colorIds.has(id)), `stage ${i + 1} 는 색만`); assert.deepEqual(STAGES[i], custom[i] || SEQUENCE.slice(0, i + 1)); }
-  assert.deepEqual(STAGES[0], ['red']); assert.deepEqual(STAGES[1], ['red', 'green']); assert.deepEqual(STAGES[6], SEQUENCE);
+  assert.deepEqual(STAGES[0], ['red']); assert.deepEqual(STAGES[1], ['red', 'green']);
   assert.equal(new Set(SEQUENCE).size, 7, '일곱 색이 한 번씩');
   const last = STAGES[7];
   assert.ok(last.filter(id => noiseIds.has(id)).length >= 5, '마지막 판엔 사용자 원문의 이상한 말이 섞인다');
