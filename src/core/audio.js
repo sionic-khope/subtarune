@@ -424,7 +424,8 @@ export class Sound {
     };
     a.addEventListener('error', () => setTimeout(reload, tries ? 3000 : 1000), { once: true });
     a.play().catch((error) => {
-      console.warn('[audio] BGM 재생 실패', name, error?.name);
+      // 자동 재생 차단(NotAllowedError)·다른 곡으로 바뀜(AbortError)은 정상 흐름이라 경고가 아니라 기록만(다음 입력 때 다시 튼다)
+      (error?.name === 'NotAllowedError' || error?.name === 'AbortError' ? console.info : console.warn)('[audio] BGM 재생 실패', name, error?.name);
       if (!current()) return;
       if (error?.name === 'NotAllowedError') {
         const retry = () => { removeEventListener('keydown', retry, true); removeEventListener('pointerdown', retry, true); if (current()) a.play().catch(() => {}); };

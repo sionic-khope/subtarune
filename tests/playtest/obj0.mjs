@@ -1,4 +1,4 @@
-// 옵젝영역0 검증: ?qa=obj0 → 얕은 물 일직선 길(60×14, a/A/j 타일, 나무 초록·보라 섞임, 배경 obj_forest, 브금 wind) → 물 위를 걷는 동안 영상 걸음 루프(WATER_WALK)를 끊김 없이 틀고 80px 마다 물결 고리, 멈추면 다음 걸음 직전에 끊고 울림 꼬리 → 조용 → 마나샘(억빠맨이 발밑 물 먼저 → 흙맛 → 마나샘 → 전원 회복, 두 번째는 짧게) → 오른쪽 문 → obj1 → 왼쪽 문 → obj0 landing.
+// 옵젝영역0 검증: ?qa=obj0 → 얕은 물 일직선 길(60×14, a/A/j 타일, 나무 초록·보라 섞임, 배경 obj_forest, 브금 wind) → 물 위를 걷는 동안 영상 걸음 루프(WATER_WALK)를 끊김 없이 틀고 80px 마다 물결 고리, 멈추면 다음 걸음 직전에 끊고 울림 꼬리 → 조용 → 마나샘(바로 전원 회복, BUILD449) → 오른쪽 문 → obj1 → 왼쪽 문 → obj0 landing.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 process.on('uncaughtException', (e) => { try { console.log(logs.join('\n')); } catch {} console.log('CRASH', e.stack || e.message); process.exit(2); });
@@ -36,7 +36,7 @@ check('standing still → loop cut before the next step (gone within 0.6s), ripp
 await page.keyboard.down('KeyX'); await page.keyboard.down('ArrowRight'); await page.waitForTimeout(800); const w2 = await page.evaluate(() => ({ w: game.sound.walkState, n: game.sound.walkStarts })); await page.keyboard.up('ArrowRight'); await page.keyboard.up('KeyX'); await page.waitForTimeout(100);
 check('walking slowly → the same loop plays again (second start, not stopping)', !!w2.w && !w2.w.stopping && w2.n === 2, JSON.stringify(w2));
 await stand(30 * 32, 7 * 32 + 8, 'right'); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/obj0_03_middle.png` });
-// 마나샘: 억빠맨이 발밑 물을 먼저 떠 마심(첨벙, 흙맛) → 마나샘 → 셋이 마심 → 전원 HP 회복. 두 번째는 "졸졸" + 회복만
+// 마나샘(BUILD449): 별도 연출 없이 바로 전원 회복(그 뒤 지역 마나샘과 같음), 다시 해도 같다
 const lines = []; const sfxSeen = [];
 await page.evaluate(() => { const orig = game.sound.sfx.bind(game.sound); game.sound.sfx = (n, o) => { (window.__sfx ||= []).push(n); return orig(n, o); }; });
 const pump = async (ms) => { await until(() => game.dialogue.running ? true : null, 2500); const t0 = Date.now(); while (Date.now() - t0 < ms) { const q = await page.evaluate(() => ({ running: game.dialogue.running, box: game.textbox.state, speaker: game.textbox.speaker, text: (game.textbox.node?.text || '').replace(/\{[^}]*\}/g, '') })); if (!q.running) return; const k = (q.speaker || '') + '|' + q.text; if ((q.box === 'waiting' || q.box === 'typing') && lines[lines.length - 1] !== k) lines.push(k); if (q.box === 'waiting' || q.box === 'typing') await page.keyboard.press('KeyC'); await page.waitForTimeout(70); } };
@@ -45,11 +45,11 @@ check('mana spring prop (blue_buff, 3-frame strip) sits on the top forest edge t
 await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub = 40; game.partyHp.ppaman = 20; });
 await stand(blue.x + 4, blue.y + 12 + 2, 'up'); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(30000);
 const hp1 = await page.evaluate(() => [game.hpOf('hyungsub'), game.hpOf('gyeongsub'), game.hpOf('ppaman')]); const maxHp = await page.evaluate(() => [game.maxHpOf('hyungsub'), game.maxHpOf('gyeongsub'), game.maxHpOf('ppaman')]); const sfx1 = await page.evaluate(() => window.__sfx || []);
-check('mana spring: "물 위에 서 있잖아요" → 억빠맨 drinks the floor water (splash) → "퉤 흙맛" → drinks the spring → "시원하네" → all three drink → healed to max (120/140/110 with the 레드·블루 buff) → "발밑 물은 마시지 마세요" / "너만 마셨어"', ['여기도 있네', '물 위에 서 있잖아요', '뭐가 달라요', '파란색이잖아', '발밑의 물을 한 모금', '흙맛', '그걸 왜 마셔', '비교해 보려고요', '이번엔 마나샘 물을', '시원하네', '한 모금씩 마셨다', '회복되었다', '마시지 마세요', '너만 마셨어'].every((k) => lines.some((l) => l.includes(k))) && sfx1.includes('splash') && sfx1.includes('heal') && hp1.join() === maxHp.join() && maxHp.join() === '120,140,110', JSON.stringify({ lines, hp1, maxHp }));
+check('mana spring (BUILD449): no cutscene, straight heal like the later springs → only the heal line, heal sfx, party healed to max', lines.some((l) => l.includes('회복되었다')) && !lines.some((l) => /흙맛|여기도 있네|마셨다/.test(l)) && sfx1.includes('heal') && hp1.join() === maxHp.join(), JSON.stringify({ lines, hp1, maxHp, sfx1 }));
 await page.screenshot({ path: `${S}/obj0_04_spring.png` });
 await page.evaluate(() => { game.partyHp.hyungsub = 10; }); lines.length = 0; await page.waitForTimeout(600); await stand(blue.x + 4, blue.y + 14, 'up'); await page.waitForTimeout(400); await page.keyboard.press('KeyC'); await page.waitForTimeout(300); await pump(15000);
 const hp2 = await page.evaluate(() => game.hpOf('hyungsub'));
-check('mana spring again: short line ("졸졸 흐른다") + heal only (rest point), no floor-water gag', lines.some((l) => l.includes('졸졸 흐른다')) && !lines.some((l) => l.includes('흙맛')) && hp2 === maxHp[0], JSON.stringify({ lines, hp2 }));
+check('mana spring again: same straight heal', lines.some((l) => l.includes('회복되었다')) && !lines.some((l) => l.includes('흙맛')) && hp2 === maxHp[0], JSON.stringify({ lines, hp2 }));
 // 출구 → obj1 → 되돌아오기
 const L = def.rows && (await page.evaluate(async () => (await import('/src/data/maps.js')).MAPS.obj0.spawns.landing));
 await page.evaluate(() => { game.flags.obj1_meet_seen = true; });   // obj1 도착 연출(대포 밀기)은 obj1.mjs 가 검사 — 여기선 문 왕복만

@@ -3,16 +3,14 @@
 //   동상·표지판 대사는 **브리핑 그대로**. 마나샘·귀환 발판·오브젝트 알·바나나 대사는 내가 씀(이 지역 소재로).
 //   1) obj2_statue  오른쪽길을 막은 쥰희 나무 동상 — 억빠맨의 뻥 → 경섭이 당황 → "분열이 일어나면 안될텐데"
 //   2) obj2_sign    윗길(바론 둥지) 경고 표지판 — 억빠맨이 무서워함 → 용준이 왜 똑똑해졌냐 → "게임적 연출로 똑똑해진건 아닌듯하다"
-//   3) obj2_blue    마나샘(회복 쉼터 재사용): 이번엔 억빠맨이 **양보**한다(아직 흙맛이 나서)
+//   3) 마나샘은 BUILD449 부터 별도 연출 없이 바로 회복(scripts.js 에서 maillard_spring)
 //   4) obj2_recall  귀환 발판: 억빠맨이 귀환을 켠다 → 빛에 감싸여 **사라짐** → 정적 → 같은 자리에 돌아옴("집이 없었어요")
 //   5) obj2_egg     오브젝트 알: 톡톡 → 부들부들 → 쩍 → 다리가 나와 **도망간다**(자리는 빈다)
 //   6) obj2_banana  바나나 1개(힐템)
 // ─────────────────────────────────────────────────────────────
-import { CHARACTERS } from '../characters.js';
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const N = (text) => ({ text, voice: 'narrator' });
-const healAll = (g) => { for (const id of ['hyungsub', ...g.party]) g.partyHp[id] = g.maxHpOf ? g.maxHpOf(id) : (CHARACTERS[id]?.hp ?? 100); g.autosave?.(); };
 
 export const obj2_statue = [
   { face: 'ppaman', dir: 'toward:statue2' }, { face: 'gyeongsub', dir: 'toward:statue2' },
@@ -41,34 +39,6 @@ export const obj2_sign = [
   { wait: 0.3 },
   N('* 게임적 연출로 똑똑해진건 아닌듯하다.'),
   { set: { obj2_sign_seen: true } },
-];
-
-export const obj2_blue = [
-  { if: (f) => f.obj2_blue_done, goto: 'again' },
-  { face: 'gyeongsub', dir: 'toward:blue' }, { face: 'ppaman', dir: 'toward:blue' },
-  G('* 또 마나샘이네'),
-  P('* 형{w=0.3} 이번엔 형이 드세요'),
-  G('* 웬일로 양보를 다 하냐'),
-  P('* 아까 그 흙맛이 아직 안 빠져서요'),
-  { move: 'gyeongsub', rel: 'blue', at: 'bottom', by: [0, 6], run: true }, { face: 'gyeongsub', dir: 'up' }, { wait: 0.25 },
-  { hop: 'gyeongsub', by: [0, 0], height: 10, duration: 0.3, sfx: false },
-  N('* 경섭이 마나샘 물을 한 모금 마셨다.'),
-  G('* 허허{w=0.3} 이건 또 시원하네'),
-  P('* ...{w=0.4} 저도 한 입만'),
-  { move: 'ppaman', rel: 'blue', at: 'bottom', by: [34, 8], run: true }, { face: 'ppaman', dir: 'up' },
-  { move: 'player', rel: 'blue', at: 'bottom', by: [-34, 8], run: true }, { face: 'player', dir: 'up' }, { wait: 0.2 },
-  { parallel: [{ hop: 'ppaman', by: [0, 0], height: 10, duration: 0.3, sfx: false }, { hop: 'player', by: [0, 0], height: 10, duration: 0.3, sfx: false }] },
-  N('* 결국 셋 다 마셨다.'),
-  { label: 'heal' },
-  { sfx: 'heal' }, { shake: 0.25, amp: 2 }, { action: healAll },
-  N('* {c=yellow}파란 기운이 온몸에 퍼졌다!{/c}{n}* HP가 모두 회복되었다!'),
-  { if: (f) => f.obj2_blue_done, goto: 'end' },
-  P('* 흙맛 빠졌다'),
-  { set: { obj2_blue_done: true } },
-  { label: 'end' }, { end: true },
-  { label: 'again' },
-  N('* 마나샘이 졸졸 흐른다.'),
-  { goto: 'heal' },
 ];
 
 export const obj2_recall = [

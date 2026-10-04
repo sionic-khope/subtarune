@@ -58,10 +58,10 @@ const wantSign = ['|* 주의 주의 오브젝트 서식지 아주 아주 위험�
 const gotSign = await talk('sign');
 check('signpost: 6 lines verbatim in order', JSON.stringify(gotSign) === JSON.stringify(wantSign), JSON.stringify(gotSign));
 await page.screenshot({ path: `${S}/obj2_03_sign.png` });
-// 마나샘: 이번엔 억빠맨이 양보 → 전원 회복
+// 마나샘(BUILD449): 별도 연출 없이 바로 전원 회복
 await page.evaluate(() => { game.partyHp.hyungsub = 30; game.partyHp.gyeongsub = 40; game.partyHp.ppaman = 20; });
 const gotBlue = await talk('blue'); s = await st();
-check('mana spring (new lines: 억빠맨 gives way because of the dirt taste) → party healed to max', ['또 마나샘이네', '이번엔 형이 드세요', '웬일로 양보를', '흙맛이 아직', '경섭이 마나샘 물을', '셋 다 마셨다', '회복되었다', '흙맛 빠졌다'].every((k) => gotBlue.some((l) => l.includes(k))) && s.hp.join() === s.max.join(), JSON.stringify({ gotBlue, hp: s.hp, max: s.max }));
+check('mana spring (BUILD449): no cutscene, straight heal → party healed to max', gotBlue.some((l) => l.includes('회복되었다')) && !gotBlue.some((l) => /흙맛|마나샘이네|마셨다/.test(l)) && s.hp.join() === s.max.join(), JSON.stringify({ gotBlue, hp: s.hp, max: s.max }));
 // 귀환 발판: 억빠맨이 사라졌다가 돌아온다
 let vanished = false;
 const recallP = page.evaluate(async () => { const t0 = Date.now(); let gone = false; while (Date.now() - t0 < 40000) { const e = game.entities.find((x) => x.id === 'ppaman'); if (e && e.visible === false) gone = true; await new Promise((r) => setTimeout(r, 60)); } return gone; });
