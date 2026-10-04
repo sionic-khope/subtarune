@@ -22,7 +22,8 @@ export const GJ_RUNNER = Object.freeze({
   boss: { enterAt: 2.6, enter: 2.6, from: [560, 150], home: [397, 150], scale: 1.56, bob: 5 },
   aura: { gather: 2.2, burst: 0.5 },
   // rest: 돌진을 쳐내고 돌아온 뒤 다음 공격까지(BUILD396 사용자 “0.3초만 줄여” 1.1 → 0.8)
-  cycle: { first: 1.2, rest: 0.8 },
+  // 쳐낸 뒤 복귀 → 다음 검까지 떠 있는 시간(BUILD457 사용자 “0.3초 정도만 줄였으면”: 0.8 → 0.5)
+  cycle: { first: 1.2, rest: 0.5 },
   // BUILD396(사용자): 쳐낸 횟수(체력)에 따라 검 날리기가 달라진다 — 모두 쳐낼 수 있는 간격. times = 예고 뒤 각 검을 던지는 초
   //   0회: 셋 · 1회: 넷 · 2회: 넷(둘씩 빠르게 짝지어 박자 다르게) · 3회: 다섯 · 4회: 여섯. end = 마지막 검 뒤 돌진 준비까지
   volleys: [
