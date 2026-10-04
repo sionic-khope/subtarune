@@ -14,7 +14,7 @@ test('test_arena_causeway_reaches_the_rim_and_the_camera_has_room_to_climb', () 
   for (const x of [40, 200, 900, 1100]) assert.equal(world.solidRect(x, 300 + pad, 24, 16), false, `terrace at ${x}`);
   assert.ok(world.pxW >= 1152, 'the chamber is wide enough for camera pans');
   assert.equal(map.bgm, null, 'arrival starts in silence');
-  for (const src of ['arena332_room', 'arena332_upper', 'arena332_cheong_orb', 'arena332_arm', 'arena332_giant']) assert.ok(fs.existsSync(`assets/props/${src}.png`));
+  for (const src of ['arena332_room', 'arena455_upper', 'arena332_cheong_orb', 'arena332_arm', 'arena332_giant']) assert.ok(fs.existsSync(`assets/props/${src}.png`));
 });
 
 test('test_arena_summons_five_varied_monsters_on_each_side', () => {

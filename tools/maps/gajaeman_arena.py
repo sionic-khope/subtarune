@@ -59,7 +59,8 @@ def main() -> None:
             for col in range(x // 32, min(COLS, (x + w + 31) // 32)):
                 if 0 <= row < ROWS:
                     cells[row][col] = FLOOR
-    entities = [{'type': 'prop', 'id': 'arena_upper', 'image': 'assets/props/arena332_upper.png',
+    # 위 여백 배경(BUILD455): 원본 2400px 그림 위에 더 어둡게 이어 붙인 3360px(TOP_PAD 와 같은 높이)
+    entities = [{'type': 'prop', 'id': 'arena_upper', 'image': 'assets/props/arena455_upper.png',
                  'x': 0, 'y': 0, 'w': W, 'h': 2, 'solid': False, 'sortY': -3},
                 {'type': 'prop', 'id': 'arena_room', 'image': 'assets/props/arena332_room.png',
                  'x': 0, 'y': TOP_PAD, 'w': W, 'h': 2, 'solid': False, 'sortY': -3}]
@@ -100,7 +101,7 @@ def main() -> None:
         'id': MAP_ID, 'name': '가재맨성 결전지', 'stage': 'castle_prophecy_seen',
         'bgm': None, 'rows': [''.join(row) for row in cells],
         'enter': {'script': 'castle_arena_intro', 'early': True},
-        'preload': ['assets/props/arena332_room.png', 'assets/props/arena332_upper.png', 'assets/props/cathedral323_sword.png',
+        'preload': ['assets/props/arena332_room.png', 'assets/props/arena455_upper.png', 'assets/props/cathedral323_sword.png',
                     'assets/props/arena332_cheong_orb.png', 'assets/props/arena332_arm.png', 'assets/props/arena332_giant.png',
                     'assets/fx/fountain_splash_1.png', 'assets/fx/fountain_splash_2.png', 'assets/fx/fountain_splash_3.png', 'assets/fx/fountain_splash_4.png']
         + [f'assets/props/arena332_{n}.png' for n, *_ in LEFT + RIGHT_NAMES],

@@ -31,8 +31,9 @@ export const ARENA = Object.freeze({
   // BUILD415(사용자 2026-09-29, 참고 쇼츠 Qga4FH1k8n8): 구덩이 전체가 아니라 가운데 기둥(radius = 구덩이 폭 비율),
   // 꼭대기는 카메라가 멈추는 화면 위쪽에서 taper 동안 좁아져 한 점으로 사라진다(height = 구덩이 → 거기까지),
   // 터지기 전 마지막 splashLead 초는 생성 물보라 스프라이트가 구덩이를 돌며 튀어 오른다, 솟는 동안 하늘 바람 줄기
-  // BUILD455 사용자 “더 길게 위로 뻗어야지”: 맵 위 여백 2400 → 3360 과 함께 높이 2560 → 3520
-  fountain: { build: 4.0, grow: 2.6, height: 3520, width: 380, ribbons: 4, bands: 2, shadow: 0.62, radius: 0.56, taper: 700,
+  // BUILD455 사용자 “더 길게 위로 뻗어야지”·“물결 맨 윗부분 없애”: 맵 위 여백 3360 보다 높이 3900 — 꼭대기와 좁아지는 구간(taper 200)이
+  // 맵 위쪽 밖에 있어 카메라가 멈춘 화면에서도 끝이 보이지 않고 위로 계속 뻗는다
+  fountain: { build: 4.0, grow: 2.6, height: 3900, width: 380, ribbons: 4, bands: 2, shadow: 0.62, radius: 0.56, taper: 200,
     splashLead: 1.5, splashes: 7, winds: 30, recoil: { lean: 0.16, in: 0.14, hold: 1.1, out: 0.5 } },
   splash: ['assets/fx/fountain_splash_1.png', 'assets/fx/fountain_splash_2.png', 'assets/fx/fountain_splash_3.png', 'assets/fx/fountain_splash_4.png'],
 });

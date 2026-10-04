@@ -140,7 +140,7 @@
  },
  "preload": [
   "assets/props/arena332_room.png",
-  "assets/props/arena332_upper.png",
+  "assets/props/arena455_upper.png",
   "assets/props/cathedral323_sword.png",
   "assets/props/arena332_cheong_orb.png",
   "assets/props/arena332_arm.png",
@@ -257,7 +257,7 @@
   {
    "type": "prop",
    "id": "arena_upper",
-   "image": "assets/props/arena332_upper.png",
+   "image": "assets/props/arena455_upper.png",
    "x": 0,
    "y": 0,
    "w": 1152,
