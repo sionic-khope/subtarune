@@ -1,6 +1,6 @@
 // BUILD332/333 사용자 브리핑(2026-09-25): 결전지 도착 → 가재맨·섭타룬 → 소환된 몬스터와 지원군 → 영클 레이저 차징 →
 // 청소년 구슬 → 가재맨 상승·구슬과 검 투척 → 거대한 푸른 파동·카메라 대상승 → 호러한 연기 → 근육팔 → 청소년거인.
-// 대사·표기는 원문 그대로. 좌표는 넓힌 결전지(1152×768, 위로 2400px 여유) 기준.
+// 대사·표기는 원문 그대로. 좌표는 넓힌 결전지(1152×768, 위로 PAD px 여유) 기준.
 const P = text => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text: `* ${text}` });
 const K = text => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text: `* ${text}` });
 const A = text => ({ speaker: '가재맨', voice: 'gajaeman_shadow', text: `* ${text}` });
@@ -9,7 +9,8 @@ const Y = (text, face = 'smirk') => ({ speaker: '영클', portrait: `youngcle_tv
 const B = text => ({ speaker: '따뜻한비데', portrait: 'warm_bidet', voice: 'warm_bidet', text: `* ${text}` });
 const PG = text => ({ speaker: '파크가디언', portrait: 'park_guardian_costume', voice: 'park_guardian_costume', text: `* ${text}` });
 
-const PAD = 2400;
+// 위 여백(tools/maps/gajaeman_arena.py TOP_PAD 와 같다). BUILD455 파동을 더 길게: 2400 → 3360
+const PAD = 3360;
 /** 카메라 중심(배경 그림 px) → 카메라 노드의 타일 좌표 */
 const at = (x, y) => [(x - 16) / 32, (y + PAD - 16) / 32];
 export const ARENA_SCENE = Object.freeze({
@@ -18,7 +19,7 @@ export const ARENA_SCENE = Object.freeze({
   cam: { gajaeman: at(555, 215), party: at(555, 394), wide: at(555, 330), left: at(250, 318), right: at(902, 318),
     leftAlly: at(300, 330), rightAlly: at(852, 330), pit: at(555, 300), orbTop: at(555, -300), above: at(555, 250), giant: at(555, -560),
     rushLeft: at(300, 300) },
-  summonEvery: 0.45, approach: 1.3, rise: 5.2, pad: PAD,
+  summonEvery: 0.45, approach: 1.3, rise: 6.4, pad: PAD,
 });
 const C = ARENA_SCENE.cam;
 const close = { action: game => game.textbox.close() };
@@ -156,9 +157,10 @@ export const castle_arena_intro = Object.assign([
     ...['player', 'gyeongsub', 'ppaman', ARENA_SCENE.youngcle, ARENA_SCENE.junhee].map(id => ({ move: id, by: [0, 12], speed: 150, facing: 'up' }))] },
   // 카메라 상승은 1초 더 빨리(사용자 2026-09-26)
   { wait: 0.6 },
-  { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -2150), duration: ARENA_SCENE.rise }] },
-  // 꼭대기 끝을 더 오래 보여 준다(BUILD445 사용자 “끝부분 보여주는거 너무 빨리”: 1.2초 → 2.8초)
-  { wait: 2.8 },
+  // 기둥이 길어진 만큼 더 높이(BUILD455): 꼭대기 아래 2150 → 3110
+  { parallel: [{ zoom: 0.7, duration: 0.8 }, { camera: at(555, -3110), duration: ARENA_SCENE.rise }] },
+  // 꼭대기 끝은 1초만(BUILD455 사용자 “마지막 1초 정도면 될 거 같음”)
+  { wait: 1.0 },
   // 파동이 사라지고 호러한 연기로 아무것도 안 보이는 채 카메라가 다시 주인공들 쪽으로
   // 위에서: 파동이 사라지며 검은 연기가 차오르는 것을 보여 준 뒤 → 아래로
   arena(s => { s.setAura(0); return s.fountainEnd(2.2); }), { hide: ARENA_SCENE.gajaeman }, { wait: 1.2 },
@@ -205,7 +207,7 @@ export const castle_arena_intro = Object.assign([
   // 연기 속에서 천천히: 연기가 걷히며 형체가 점점 드러난다(상체만 가깝게)
   { fade: 'out', duration: 0.5 }, arena(s => { s.setFog(1, 0.05); s.setFogClear(null); s.showGiant(); }),
   // 가까이 몸통 → 연기가 걷히며 팔까지 보이게 뒤로 물러난다
-  { camera: C.giant, duration: 0.01 }, { zoom: 1.4, at: [555, 1860], duration: 0.01 }, { fade: 'in', duration: 0.8 },
+  { camera: C.giant, duration: 0.01 }, { zoom: 1.4, at: [555, PAD - 540], duration: 0.01 }, { fade: 'in', duration: 0.8 },
   { parallel: [arena(s => s.setFog(0.2, 3.2)), { zoom: 0.46, duration: 3.2 }] }, { shake: 0.6, amp: 3 }, { wait: 0.4 },
   J('괴물이잖아!!!!!!!!!!'), close,
   { fade: 'out', duration: 0.4 }, arena(s => { s.setFog(0.9, 0.05); s.setFogClear(555, 420 + PAD); }), { zoom: 1, duration: 0.01 }, { camera: C.party, duration: 0.01 }, { fade: 'in', duration: 0.5 },

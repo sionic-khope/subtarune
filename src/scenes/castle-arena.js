@@ -31,7 +31,8 @@ export const ARENA = Object.freeze({
   // BUILD415(사용자 2026-09-29, 참고 쇼츠 Qga4FH1k8n8): 구덩이 전체가 아니라 가운데 기둥(radius = 구덩이 폭 비율),
   // 꼭대기는 카메라가 멈추는 화면 위쪽에서 taper 동안 좁아져 한 점으로 사라진다(height = 구덩이 → 거기까지),
   // 터지기 전 마지막 splashLead 초는 생성 물보라 스프라이트가 구덩이를 돌며 튀어 오른다, 솟는 동안 하늘 바람 줄기
-  fountain: { build: 4.0, grow: 2.6, height: 2560, width: 380, ribbons: 4, bands: 2, shadow: 0.62, radius: 0.56, taper: 700,
+  // BUILD455 사용자 “더 길게 위로 뻗어야지”: 맵 위 여백 2400 → 3360 과 함께 높이 2560 → 3520
+  fountain: { build: 4.0, grow: 2.6, height: 3520, width: 380, ribbons: 4, bands: 2, shadow: 0.62, radius: 0.56, taper: 700,
     splashLead: 1.5, splashes: 7, winds: 30, recoil: { lean: 0.16, in: 0.14, hold: 1.1, out: 0.5 } },
   splash: ['assets/fx/fountain_splash_1.png', 'assets/fx/fountain_splash_2.png', 'assets/fx/fountain_splash_3.png', 'assets/fx/fountain_splash_4.png'],
 });
@@ -690,15 +691,32 @@ export class CastleArena {
     ctx.restore();
     ctx.fillStyle = `rgba(226,251,248,${0.45 * (1 - clamp01(st / 0.6))})`; ctx.fillRect(-SCREEN_W, -SCREEN_H, SCREEN_W * 3, SCREEN_H * 3);
   }
-  /** Pit surface: a dark teal pool filling the hole's ellipse from the middle, with light swirl ripples turning on it. */
+  /**
+   * Pit surface(BUILD455 사용자 “동그라미 영역 차는 거 인위적”): 가운데가 밝고 가장자리로 흐려지는 물빛이 일렁이는 테두리로 번지고,
+   * 물결은 가운데에서 생겨 바깥으로 퍼지며 옅어지는 끊긴 호. 매끈한 타원 채우기·같은 굵기 동심원은 쓰지 않는다.
+   */
   drawPitWater(ctx, cx, baseY, prx, pry, fill) {
-    const r = prx * (0.2 + 0.8 * fill), ry = pry * (0.2 + 0.8 * fill), t = this.time;
+    const r = Math.max(4, prx * (0.25 + 0.75 * fill)), t = this.time, squash = pry / prx, TAU = Math.PI * 2;
     ctx.save();
-    ctx.fillStyle = `rgba(62,110,140,${0.3 + 0.3 * fill})`; ctx.beginPath(); ctx.ellipse(cx, baseY, r, ry, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = `rgba(150,225,245,${0.35 + 0.3 * fill})`; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    for (let i = 0; i < 5; i++) {
-      const k = 0.2 + i * 0.17, a0 = t * (1.4 - i * 0.18) + i * 1.9;
-      ctx.beginPath(); ctx.ellipse(cx, baseY, r * k, ry * k, 0, a0, a0 + 1.6 + (i % 2)); ctx.stroke();
+    ctx.translate(cx, baseY); ctx.scale(1, squash);
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    glow.addColorStop(0, `rgba(150,230,245,${0.12 + 0.34 * fill})`);
+    glow.addColorStop(0.5, `rgba(70,140,170,${0.1 + 0.26 * fill})`);
+    glow.addColorStop(1, 'rgba(40,90,120,0)');
+    ctx.fillStyle = glow; ctx.beginPath();
+    for (let a = 0; a <= TAU + 1e-3; a += TAU / 48) {
+      const rr = r * (1 + 0.05 * Math.sin(a * 5 + t * 1.3) + 0.035 * Math.sin(a * 3 - t * 0.8));
+      ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      const life = (t * 0.32 + i / 4) % 1, rr = r * (0.1 + 0.82 * life), alpha = Math.sin(life * Math.PI) * (0.18 + 0.22 * fill);
+      ctx.strokeStyle = `rgba(185,240,252,${alpha})`; ctx.lineWidth = 1 + 1.6 * (1 - life);
+      for (let s = 0; s < 3; s++) {
+        const a0 = i * 1.7 + s * TAU / 3 + Math.sin(t * 0.5 + i) * 0.4, span = 1.1 + 0.5 * Math.sin(i * 2.3 + s);
+        ctx.beginPath(); ctx.arc(0, 0, rr, a0, a0 + span); ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -759,9 +777,7 @@ export class CastleArena {
     // 터지기 직전: 생성 물보라 스프라이트가 구덩이를 돌며 점점 크게 튀어 오른다(참고 영상 10.9~11.2s)
     const lead = clamp01((f.t - (F.build - F.splashLead)) / F.splashLead);
     if (lead > 0) this.drawSplashSwirl(ctx, cx, baseY, prx, pry, lead);
-    ctx.strokeStyle = `rgba(200,245,255,${0.5 + 0.3 * k})`; ctx.lineWidth = 2;
-    const ring = (t * 0.9) % 1;
-    ctx.beginPath(); ctx.ellipse(cx, baseY, 10 + prx * 0.3 * ring, (10 + prx * 0.3 * ring) * (pry / prx), 0, 0, Math.PI * 2); ctx.stroke();
+    // (BUILD455 사용자 “사전 동그라미 영역 차는 거 살짝 인위적”: 퍼지는 완벽한 타원 고리는 뺐다 — 물결은 수면이 그린다)
   }
   /** 물보라 스프라이트 한 장: 가운데 기준, 크기·기울기·좌우 뒤집기·투명도 */
   blitSplash(ctx, index, x, y, size, angle, flip, alpha) {

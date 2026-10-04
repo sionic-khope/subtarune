@@ -85,6 +85,36 @@
   "                                    ",
   "                                    ",
   "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
+  "                                    ",
   "▓▓▓▓▓▓▓▓▓▓▓              ▓▓▓▓▓▓▓▓▓▓▓",
   "▓▓▓▓▓▓▓▓▓▓▓              ▓▓▓▓▓▓▓▓▓▓▓",
   "▓▓▓▓▓▓▓▓▓▓▓              ▓▓▓▓▓▓▓▓▓▓▓",
@@ -133,12 +163,12 @@
  "spawns": {
   "start": {
    "x": 540,
-   "y": 3100,
+   "y": 4060,
    "facing": "up"
   },
   "rim": {
    "x": 540,
-   "y": 2820,
+   "y": 3780,
    "facing": "up"
   }
  },
@@ -150,75 +180,75 @@
      "id": "arena_mon_chogath",
      "side": "left",
      "x": 20,
-     "y": 2588
+     "y": 3548
     },
     {
      "id": "arena_mon_darius",
      "side": "right",
      "x": 1040,
-     "y": 2610
+     "y": 3570
     },
     {
      "id": "arena_mon_thresh",
      "side": "left",
      "x": 150,
-     "y": 2570
+     "y": 3530
     },
     {
      "id": "arena_mon_nasus",
      "side": "right",
      "x": 910,
-     "y": 2566
+     "y": 3526
     },
     {
      "id": "arena_mon_blitzcrank",
      "side": "left",
      "x": 60,
-     "y": 2656
+     "y": 3616
     },
     {
      "id": "arena_mon_malphite",
      "side": "right",
      "x": 969,
-     "y": 2638
+     "y": 3598
     },
     {
      "id": "arena_mon_ahri",
      "side": "left",
      "x": 188,
-     "y": 2668
+     "y": 3628
     },
     {
      "id": "arena_mon_fiddlesticks",
      "side": "right",
      "x": 876,
-     "y": 2646
+     "y": 3606
     },
     {
      "id": "arena_mon_teemo",
      "side": "left",
      "x": 258,
-     "y": 2710
+     "y": 3670
     },
     {
      "id": "arena_mon_lux",
      "side": "right",
      "x": 840,
-     "y": 2696
+     "y": 3656
     }
    ],
    "gajaeman": "arena_gajaeman",
    "youngcle": "arena_youngcle",
    "pit": [
     555,
-    2707,
+    3667,
     217,
     90
    ],
-   "topPad": 2400,
+   "topPad": 3360,
    "giant": {
     "x": 555,
-    "bottom": 2520,
+    "bottom": 3480,
     "image": "assets/props/arena332_giant.png"
    }
   }
@@ -240,7 +270,7 @@
    "id": "arena_room",
    "image": "assets/props/arena332_room.png",
    "x": 0,
-   "y": 2400,
+   "y": 3360,
    "w": 1152,
    "h": 2,
    "solid": false,
@@ -251,7 +281,7 @@
    "id": "arena_stand_youngcle",
    "image": "assets/tiles/castle306_floor.png",
    "x": 371,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -262,7 +292,7 @@
    "id": "arena_stand_gyeongsub",
    "image": "assets/tiles/castle306_floor.png",
    "x": 457,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -273,7 +303,7 @@
    "id": "arena_stand_player",
    "image": "assets/tiles/castle306_floor.png",
    "x": 543,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -284,7 +314,7 @@
    "id": "arena_stand_ppaman",
    "image": "assets/tiles/castle306_floor.png",
    "x": 629,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -295,7 +325,7 @@
    "id": "arena_stand_junhee",
    "image": "assets/tiles/castle306_floor.png",
    "x": 715,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -306,7 +336,7 @@
    "id": "arena_join_bidet",
    "image": "assets/tiles/castle306_floor.png",
    "x": 486,
-   "y": 2880,
+   "y": 3840,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -317,7 +347,7 @@
    "id": "arena_join_mario",
    "image": "assets/tiles/castle306_floor.png",
    "x": 522,
-   "y": 2880,
+   "y": 3840,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -328,7 +358,7 @@
    "id": "arena_join_ttuulla",
    "image": "assets/tiles/castle306_floor.png",
    "x": 562,
-   "y": 2880,
+   "y": 3840,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -339,7 +369,7 @@
    "id": "arena_join_park",
    "image": "assets/tiles/castle306_floor.png",
    "x": 598,
-   "y": 2880,
+   "y": 3840,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -350,7 +380,7 @@
    "id": "arena_escape_1",
    "image": "assets/tiles/castle306_floor.png",
    "x": 776,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -361,7 +391,7 @@
    "id": "arena_escape_2",
    "image": "assets/tiles/castle306_floor.png",
    "x": 800,
-   "y": 2700,
+   "y": 3660,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -372,7 +402,7 @@
    "id": "arena_escape_3",
    "image": "assets/tiles/castle306_floor.png",
    "x": 1110,
-   "y": 2700,
+   "y": 3660,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -383,7 +413,7 @@
    "id": "arena_rush_1",
    "image": "assets/tiles/castle306_floor.png",
    "x": 360,
-   "y": 2820,
+   "y": 3780,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -394,7 +424,7 @@
    "id": "arena_rush_2",
    "image": "assets/tiles/castle306_floor.png",
    "x": 330,
-   "y": 2700,
+   "y": 3660,
    "w": 24,
    "h": 16,
    "solid": false,
@@ -405,7 +435,7 @@
    "id": "arena_gajaeman",
    "sprite": "gajaeman_shadow",
    "x": 543,
-   "y": 2640,
+   "y": 3600,
    "facing": "up",
    "solid": false,
    "wander": 0,
@@ -417,7 +447,7 @@
    "id": "arena_youngcle",
    "sprite": "youngcle_hover",
    "x": 371,
-   "y": 2820,
+   "y": 3780,
    "facing": "up",
    "solid": false,
    "wander": 0
@@ -427,7 +457,7 @@
    "id": "arena_junhee",
    "sprite": "junhee",
    "x": 715,
-   "y": 2820,
+   "y": 3780,
    "facing": "up",
    "solid": false,
    "wander": 0
@@ -437,7 +467,7 @@
    "id": "arena_mario",
    "sprite": "mini_mario",
    "x": 284,
-   "y": 2752,
+   "y": 3712,
    "facing": "left",
    "solid": false,
    "wander": 0,
@@ -448,7 +478,7 @@
    "id": "arena_bidet",
    "sprite": "warm_bidet",
    "x": 312,
-   "y": 2796,
+   "y": 3756,
    "facing": "left",
    "solid": false,
    "wander": 0,
@@ -459,7 +489,7 @@
    "id": "arena_park",
    "sprite": "park_guardian_costume",
    "x": 780,
-   "y": 2748,
+   "y": 3708,
    "facing": "right",
    "solid": false,
    "wander": 0,
@@ -471,7 +501,7 @@
    "id": "arena_ttuulla",
    "sprite": "ttuulla",
    "x": 844,
-   "y": 2752,
+   "y": 3712,
    "facing": "right",
    "solid": false,
    "wander": 0,
@@ -483,7 +513,7 @@
    "id": "arena_mon_chogath",
    "image": "assets/props/arena332_chogath.png",
    "x": -90,
-   "y": 2588,
+   "y": 3548,
    "solid": false,
    "hidden": true
   },
@@ -492,7 +522,7 @@
    "id": "arena_mon_darius",
    "image": "assets/props/arena332_darius.png",
    "x": 1150,
-   "y": 2610,
+   "y": 3570,
    "solid": false,
    "hidden": true
   },
@@ -501,7 +531,7 @@
    "id": "arena_mon_thresh",
    "image": "assets/props/arena332_thresh.png",
    "x": 40,
-   "y": 2570,
+   "y": 3530,
    "solid": false,
    "hidden": true
   },
@@ -510,7 +540,7 @@
    "id": "arena_mon_nasus",
    "image": "assets/props/arena332_nasus.png",
    "x": 1020,
-   "y": 2566,
+   "y": 3526,
    "solid": false,
    "hidden": true
   },
@@ -519,7 +549,7 @@
    "id": "arena_mon_blitzcrank",
    "image": "assets/props/arena332_blitzcrank.png",
    "x": -50,
-   "y": 2656,
+   "y": 3616,
    "solid": false,
    "hidden": true
   },
@@ -528,7 +558,7 @@
    "id": "arena_mon_malphite",
    "image": "assets/props/arena332_malphite.png",
    "x": 1079,
-   "y": 2638,
+   "y": 3598,
    "solid": false,
    "hidden": true
   },
@@ -537,7 +567,7 @@
    "id": "arena_mon_ahri",
    "image": "assets/props/arena332_ahri.png",
    "x": 78,
-   "y": 2668,
+   "y": 3628,
    "solid": false,
    "hidden": true
   },
@@ -546,7 +576,7 @@
    "id": "arena_mon_fiddlesticks",
    "image": "assets/props/arena332_fiddlesticks.png",
    "x": 986,
-   "y": 2646,
+   "y": 3606,
    "solid": false,
    "hidden": true
   },
@@ -555,7 +585,7 @@
    "id": "arena_mon_teemo",
    "image": "assets/props/arena332_teemo.png",
    "x": 148,
-   "y": 2710,
+   "y": 3670,
    "solid": false,
    "hidden": true
   },
@@ -564,7 +594,7 @@
    "id": "arena_mon_lux",
    "image": "assets/props/arena332_lux.png",
    "x": 950,
-   "y": 2696,
+   "y": 3656,
    "solid": false,
    "hidden": true
   },
@@ -572,7 +602,7 @@
    "type": "door",
    "id": "arena_to_stairs",
    "x": 1140,
-   "y": 2616,
+   "y": 3576,
    "w": 12,
    "h": 146,
    "to": "gajaeman_castle_stairs",
@@ -584,7 +614,7 @@
    "type": "trigger",
    "id": "arena_back",
    "x": 480,
-   "y": 3158,
+   "y": 4118,
    "w": 142,
    "h": 10,
    "script": "castle_spire_back"

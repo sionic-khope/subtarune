@@ -10,7 +10,7 @@
 
 BUILD333 (사용자 “너무 붙어있음… 왼쪽 오른쪽 공간을 넓혀서 카메라이동으로 커버”): the room is the widened art
 (1152×768). The causeway runs up to the pit's south rim; wide terraces on the far left/right hold the summoned
-monsters and the arriving allies, well apart from the party. 2400px of darkness above lets the camera climb.
+monsters and the arriving allies, well apart from the party. TOP_PAD px of darkness above lets the camera climb.
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Final
 
 MAP_ID: Final = 'gajaeman_castle_arena'
-TOP_PAD: Final = 2400
+TOP_PAD: Final = 3360  # BUILD455: 푸른 파동을 더 길게(2400 → 3360, 32의 배수)
 W, H = 1152, 768
 COLS, ROWS = W // 32, (H + TOP_PAD) // 32
 FLOOR: Final = '▓'
