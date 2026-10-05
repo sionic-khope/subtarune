@@ -79,7 +79,7 @@ export const youngcle_intro = Object.assign([
   J('그래서 왜 내 전함을 공격한거야?'),
   ...V('어 그건..', 'shrug'),
   ...V('그냥 ㅈㄴ부시고싶게 생겨서?', 'taunt'), J('...'),
-  ...V('잔말말고 그냥 얼굴보고 예기하시죠 여기 편집자애들이랑 좀 모여있어요.'),
+  ...V('잔말말고 그냥 얼굴보고 얘기하시죠 여기 편집자애들이랑 좀 모여있어요.'),
   P('네 글로 가면 될까요?'), ...V('ㅇㅇ', 'yes'), P('네 그럼 이따 봬요'), ...V('ㅂㅇ', 'bye'),
   close,
   { action: game => game.tvBroadcast.power(false) },
