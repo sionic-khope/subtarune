@@ -188,15 +188,31 @@ export class Sound {
       a.onerror = () => settle(null);
       a.src = vurl(src);
     });
+    // BUILD460(사용자 “네트워크 때문에 효과음이 끊겼다 들리고 느리게 들림”): 재생마다 cloneNode 가 파일을 다시 받아 스트리밍했다 —
+    // 파일을 한 번 통째로 받아 blob 주소로 바꿔 두면 복제는 메모리에서 바로 재생된다. 다 받기 전엔 예전처럼 주소로 재생하고 받는 대로 교체
+    const toBlob = async (src) => {
+      try {
+        const res = await fetch(vurl(src));
+        if (!res.ok) return null;
+        const blob = await res.blob();
+        return blob.size ? URL.createObjectURL(blob) : null;
+      } catch { return null; }
+    };
     const pending = (async () => {
       try {
         // 파일이 있는 효과음만(AUDIO_FILES) — 합성음(chime·open·close 등)은 파일을 찾지 않는다(BUILD433)
-        let a = null;
-        for (const ext of Sound.audioExts('sfx', name)) if ((a = await probe(`assets/audio/sfx/${name}.${ext}`))) break;
+        let a = null, src = null;
+        for (const ext of Sound.audioExts('sfx', name)) if ((a = await probe((src = `assets/audio/sfx/${name}.${ext}`)))) break;
         if (!a) return;
         this.files[name] = a;
         // 상한 뒤에 늦게 실패한 파일은 등록을 풀어 합성으로 돌아간다
         a.onerror = () => { if (this.files[name] === a) delete this.files[name]; };
+        void toBlob(src).then((url) => {
+          if (!url || this.files[name] !== a) return;
+          const b = new Audio(); b.preload = 'auto'; b.src = url;
+          b.onerror = () => { if (this.files[name] === b) this.files[name] = a; };
+          this.files[name] = b;
+        });
       } finally {
         delete this._sfxLoads[name];
       }
