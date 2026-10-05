@@ -39,7 +39,8 @@ export const opening = Object.assign([
   { map: 'room', spawn: 'bed' },
   { pose: 'player', to: 'lying' },
   { wait: 1.6 },
-  { bgm: 'room', volume: 0.3 },                     // 방 브금 (mANXrxS5SPg)
+  // 방 브금 (mANXrxS5SPg). BUILD458 사용자 “집 맵 브금 30% 줄여”: 0.3 → 0.21
+  { bgm: 'room', volume: 0.21 },
   { curtain: null },
   { fade: 'in', duration: 2.0 },                     // 흰색이 걷히며 방이 드러남
   { caption: '평화롭던 우이동', duration: 3.4 },     // 지역 이름 떴다 사라짐

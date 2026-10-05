@@ -2,6 +2,7 @@
   "id": "living",
   "name": "거실",
   "bgm": "room",
+  "bgmVolume": 0.315,
   "stage": "pc_checked",
   "dim": 0.22,
   "enter": {

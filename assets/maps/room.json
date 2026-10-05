@@ -2,6 +2,7 @@
   "id": "room",
   "name": "우이동",
   "bgm": "room",
+  "bgmVolume": 0.315,
   "stage": "opening_seen",
   "rows": [
     "epppppppppppppe",

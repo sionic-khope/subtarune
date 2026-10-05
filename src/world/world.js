@@ -1197,9 +1197,12 @@ export class Rockfall extends Entity {
   /** 지금 바위의 월드 사각형 — 떨어지는 동안 길의 모든 줄을 지나간다 */
   get rockRect() { const y = this.rockY(); return { x: this.lx - this.rw / 2 + 2, y: y - this.rh + 4, w: this.rw - 4, h: this.rh - 4 }; }
   /** 새 바위 그림 띠(없으면 예전 한 장) */
-  get sheet() { return this.game.propImages['assets/props/rock_set.png'] || null; }
+  // 바위 띠 그림은 바위 낙석에만. 다른 그림을 지정한 낙하(바나나 버튼 등)는 그 그림 그대로(BUILD458: 바나나 대신 돌이 떨어졌다)
+  get sheet() { return !this.def.image || this.def.image === 'assets/props/rock.png' ? this.game.propImages['assets/props/rock_set.png'] || null : null; }
   /** 착지: 흙먼지 뭉게와 돌 조각(소리 없음 — 사용자 규칙), 화면에 보일 때만 아주 살짝 흔들림 */
   land() {
+    // 바위가 아닌 낙하물(바나나 등)은 흙먼지·바위 파편·흔들림 없이 그냥 떨어진다
+    if (this.def.image && this.def.image !== 'assets/props/rock.png') return;
     const x = this.lx, y = this.gy;
     for (let i = 0; i < 7; i++) this.dust.push({ x: x + (i - 3) * 6, y: y - 2, vx: (i - 3) * 22, r: 3 + (i % 3), t: 0, life: 0.55 + (i % 3) * 0.08 });
     const colors = ['#2e2640', '#4a4060', '#6a5f86', '#c9a0ff'];

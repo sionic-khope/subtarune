@@ -109,5 +109,6 @@
     }
   ],
   "id": "room_ref",
-  "bgm": "room"
+  "bgm": "room",
+  "bgmVolume": 0.315
 }

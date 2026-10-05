@@ -20,7 +20,8 @@ export const ending_cookie_wake = [
   { action: game => game.camera.snap() },
   { pose: 'player', to: 'lying' },
   { wait: 1.2 },
-  { bgm: 'room', volume: 0.3 },
+  // BUILD458 집 브금 30% 줄임(0.3 → 0.21)
+  { bgm: 'room', volume: 0.21 },
   { fade: 'in', duration: 2.0 },
   { wait: 1.2 },
   // 침대 위에서 일어선다
