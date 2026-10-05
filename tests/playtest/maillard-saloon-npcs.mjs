@@ -158,10 +158,14 @@ try {
     check(`${id} walks within home bounds on safe floor over 10s`, samples.some(e => Math.hypot(e.x - samples[0].x, e.y - samples[0].y) > 5) && samples.every(e => Math.abs(e.x - e.home.x) <= e.wander && Math.abs(e.y - e.home.y) <= e.wander && e.safe), samples);
   }
   check('pair never wanders', ['yerim', 'parkwonsung'].every(id => wander.every(s => { const e = s.entities.find(e => e.id === id), a = wander[0].entities.find(e => e.id === id); return e.x === a.x && e.y === a.y; })));
-  await approach('yakulbeol'); await line('02-bee-01', '* 야꿀벌이에요.');
+  // BUILD440: 처음 말 걸면 야꿀벌 꿀팁 여섯 줄(뒤로는 “야꿀벌이에요.” 한 줄)
+  const beeFirst = ['* 야꿀벌이에요. 오늘의 꿀생정 알려드릴게요', '* 상점에서 씨알리스같은 버프템이 할인중이에요', '* 공격력하고 체력을 올려주니까 꼭 사세요', '* 아 그리고 그냥 돈같은거 아끼지 않는게', '* 저는 꿀팁이라고 생각해요', '* 이상!'];
+  await approach('yakulbeol'); await line('02-bee-01', beeFirst[0]);
   const paused = await state(); await page.waitForTimeout(1200); const pausedAfter = await state();
   check('wandering pauses during dialogue', ['yakulbeol', 'mabaem'].every(id => { const a = paused.entities.find(e => e.id === id), b = pausedAfter.entities.find(e => e.id === id); return a.x === b.x && a.y === b.y; }));
-  await next(); await ready();
+  await next();
+  for (const [i, text] of beeFirst.slice(1).entries()) { await line(`02-bee-${String(i + 2).padStart(2, '0')}`, text); await next(); }
+  await ready();
   const resumed = await state(); await page.waitForTimeout(7000); const resumedAfter = await state();
   check('wandering resumes after dialogue', ['yakulbeol', 'mabaem'].some(id => { const a = resumed.entities.find(e => e.id === id), b = resumedAfter.entities.find(e => e.id === id); return Math.hypot(a.x - b.x, a.y - b.y) > 4; }));
   await approach('mabaem');

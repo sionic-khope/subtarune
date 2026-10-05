@@ -9,7 +9,8 @@ await runScenario({ name: 'choimis-chase-raft' }, async ({ page, open, until, pr
   });
   const dock = async () => {
     await page.keyboard.down('ArrowRight');
-    try { assert.ok(await until(() => game.player.x >= 278, 4000)); }
+    // 물가(약 x 296)까지 걸어가 멈춘 뒤 C — 278 에서 바로 누르면 뗏목(x 324)에 손이 닿지 않는다
+    try { assert.ok(await until(() => game.player.x >= 290, 4000)); await page.waitForTimeout(250); }
     finally { await page.keyboard.up('ArrowRight'); }
   };
   const cross = async label => {

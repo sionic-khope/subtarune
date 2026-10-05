@@ -13,7 +13,8 @@ const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < 
 
 await page.goto('http://localhost:8000/index.html');
 await until(() => !!(window.game && game.title), 15000);
-await page.evaluate(() => localStorage.removeItem('subtarune.save.v1'));
+// 마지막 세이브와 가장 멀리 간 세이브(BUILD437) 둘 다 지워야 [시작] 이 나온다
+await page.evaluate(() => { localStorage.removeItem('subtarune.save.v1'); localStorage.removeItem('subtarune.best.v1'); });
 // 세이브 없음 → [시작] C → 팬메이드 안내 C → 새 게임
 const leftTitle = await titleNewGame(page);
 check('title [시작] → fan-made notice → C starts a new game', leftTitle, '');

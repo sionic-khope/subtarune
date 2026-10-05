@@ -237,7 +237,7 @@ await runScenario({ name: 'loading-performance' }, async ({ page, check, until, 
   // fixture; the title sequence and C input remain real browser actions.
   await open({ params: { loadingQa: 'measure' } });
   await waitForBoot(page);
-  await fixture('newgame-clean-save', 'Remove the existing save so the title confirm selects New Game.', () => localStorage.removeItem('subtarune.save.v1'));
+  await fixture('newgame-clean-save', 'Remove the existing save so the title confirm selects New Game.', () => { localStorage.removeItem('subtarune.save.v1'); localStorage.removeItem('subtarune.best.v1'); });
   await page.waitForTimeout(300);
   await press('Space');
   await page.waitForFunction(() => window.game?.title?.phase === 'zoom', undefined, { timeout: 6000 });
