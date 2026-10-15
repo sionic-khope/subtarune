@@ -21,15 +21,20 @@ import { whiteSprite } from './youngcle-patterns.js';
 const TAU = Math.PI * 2;
 export const YONGJUN_SHEETS = Object.freeze({ idle: [2, 2], cough: [2, 2], cry: [2, 2], roll: [1, 1], hug: [1, 1], fish: [1, 1], puff: [2, 1], spit: [1, 1], tear: [1, 1], crumb: [1, 1], spark: [2, 1], bolt: [1, 2], blaster: [2, 1], beam: [1, 2] });
 export const STENCH = Object.freeze({ duration: 7.0, grow: 0.6, h: 54, bodyR: 15, arms: 3, emitEvery: 0.12, speed: 76, spin: 1.25, flipEvery: 2.6, puffR: 6, ringFirst: 1.7, ringEvery: 2.3, ringN: 16, ringGap: 4, ringSpeed: 66, ringWarn: 0.5, ringShift: 0.9, stopAt: 6.2 });
-export const FISH = Object.freeze({ duration: 7.4, first: 0.35, every: 1.55, eat: 0.5, warn: 0.45, pairGap: 0.42, speed: 250, w: 30, h: 14, spit: 6, spitSpread: 0.85, spitSpeed: [100, 165], spitG: 230, spitR: 3.5, mouth: [-18, -54], endBy: 6.3 });
+export const FISH = Object.freeze({ duration: 7.4, first: 0.35, every: 1.55, eat: 0.5, warn: 0.45, pairGap: 0.42, speed: 250, w: 30, h: 14, spit: 6, spitSpread: 0.85, spitSpeed: [100, 165], spitG: 230, spitR: 3.5, mouth: [-18, -54], endBy: 6.3,
+  // 입 옆 대사(BUILD466 사용자 “먹고 켁켁 하는 대사도 추가해줘 뱉으면서 동시에 나오는”): 먹을 때 우적우적, 뱉는 순간마다 켁!
+  eatLine: '우적우적', coughLine: '켁!', lineFor: 0.5, lineFont: 'bold 14px Galmuri11, "Apple SD Gothic Neo", sans-serif' });
 export const ROLL = Object.freeze({ duration: 7.2, first: 0.35, dashes: 7, warn: 0.5, speed: [210, 310], r: 17, size: 40, spin: 13, rest: 0.12, minLen: 70, debris: 5, debrisSpeed: 92, debrisR: 3.5 });
 export const CRY = Object.freeze({ duration: 7.4, first: 0.5, every: 0.92, warn: 0.5, cols: 11, gap: 2, vy: 160, dropR: 7, splashVx: 64, splashVy: -118, splashG: 280, splashR: 3, endBy: 6.2, fps: 5 });
 export const INSULT = Object.freeze({ duration: 7.2, first: 0.4, every: 0.72, warn: 0.45, speed: 225, shardSpeed: 120, shardTurn: 0.62, shardLife: 1.5, font: 'bold 20px Galmuri11, "Apple SD Gothic Neo", sans-serif', h: 20, endBy: 6.2 });
 export const INSULT_WORDS = Object.freeze(['냄새', '고아', '돼지']);
 export const HUG = Object.freeze({ duration: 7.4, alone: 0.45, pop: 0.16, h: 66, aloneH: 52, threshold: 0.22, bodyR: 21, first: 1.25, every: 1.15, warn: 0.5, zap: 0.32, rays: 6, rayW: 10, sparks: 3, sparkSpeed: 115, sparkR: 4, sparkLife: 2.2, endBy: 6.4,
   shout: '우오오오옥!!', shoutFor: 1.7, shoutFont: 'bold 18px Galmuri11, "Apple SD Gothic Neo", sans-serif' });
-export const BLASTER = Object.freeze({ duration: 7.2, flyIn: 0.3, charge: 0.45, fire: 0.5, leave: 0.35, size: 46, beamW: 16, bigW: 36, bigScale: 1.6, reach: 560, standOff: 34, sideGap: 46,
-  rounds: Object.freeze([Object.freeze({ at: 0.15, kind: 'cross' }), Object.freeze({ at: 1.75, kind: 'x' }), Object.freeze({ at: 3.35, kind: 'cross', flip: true }), Object.freeze({ at: 4.95, kind: 'big' })]),
+// BUILD466 사용자 “처음 공격할 때 샌즈 처음공격이랑 거의 똑같은 패턴으로 재구성”: 원작 첫 공격 순서(디컴파일 obj_sansb) — 눈 번쩍 + 파란 하트로 바닥에 내리꽂기(snd_impact)
+//   → 바닥 뼈(경고 상자 → 솟음 snd_spearrise, 점프로 넘기) → 띵(snd_bell) 빨간 하트 → 블래스터 4발 세 판 → 큰 블래스터 둘
+export const BLASTER = Object.freeze({ duration: 8.6, flyIn: 0.3, charge: 0.45, fire: 0.5, leave: 0.35, size: 46, beamW: 16, bigW: 36, bigScale: 1.6, reach: 560, standOff: 34, sideGap: 46,
+  slam: Object.freeze({ speed: 640, g: 520, jump: 200, boneWarnAt: 0.35, boneWarn: 0.5, boneHold: 0.6, boneDrop: 0.18, boneH: 30, boneW: 10, boneGap: 2, bellAt: 1.85 }),
+  rounds: Object.freeze([Object.freeze({ at: 2.1, kind: 'cross' }), Object.freeze({ at: 3.55, kind: 'x' }), Object.freeze({ at: 5.0, kind: 'cross', flip: true }), Object.freeze({ at: 6.45, kind: 'big' })]),
   // 원작 obj_gasterblaster: 등장 segapower(0.8, 1.2배), 발사 rainbowbeam_1(0.8) + a_gigatalk(0.6) 겹침(1.2배), 시작 눈 번쩍 cinematiccut(0.8, 1.4배)
   chargeSfx: 'sans_blaster_charge', fireSfx: 'sans_blaster_fire', fireLayer: 'sans_blaster_gigatalk', eyeSfx: 'sans_eye', rate: 1.2, eyeRate: 1.4 });
 
@@ -258,9 +263,19 @@ function stench(o = {}) {
   } };
 }
 
-/** 2. 상자 밖 용준이 생선을 먹고 켁켁: 켁마다 생선(점선 예고) + 침 부채꼴 */
+/** 2. 상자 밖 용준이 생선을 먹고 켁켁: 켁마다 생선(점선 예고) + 침 부채꼴 + 입 옆에 우적우적·켁! */
 function fishCough(o = {}) {
   const C = { ...FISH, ...o };
+  const say = (api, text, life, row = 0) => {
+    const s = api.actor?.scale ?? 1, x = (api.actor?.x ?? api.box.x + api.box.w + 40) + (C.mouth[0] - 26) * s, y = (api.actor?.y ?? api.box.y) + (C.mouth[1] - 22) * s - row * 16;
+    api.emit({ x, y, r: 0, harmless: true, free: true, life, shape: 'fish_line', text,
+      drawShape(ctx, self) {
+        const sx = Math.round(self.x + Math.sin(self.age * 55) * 1.5), sy = Math.round(self.y - self.age * 10);
+        ctx.save(); ctx.font = C.lineFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.strokeText(self.text, sx, sy); ctx.fillStyle = '#fff'; ctx.fillText(self.text, sx, sy);
+        ctx.restore();
+      } });
+  };
   let nextCycle = C.first;
   const events = [];
   const mouth = (api) => { const s = api.actor?.scale ?? 1; return [(api.actor?.x ?? api.box.x + api.box.w + 40) + C.mouth[0] * s, (api.actor?.y ?? api.box.y) + C.mouth[1] * s]; };
@@ -274,7 +289,7 @@ function fishCough(o = {}) {
     events.sort((p, q) => p.at - q.at);
     while (events.length && events[0].at <= t) {
       const e = events.shift();
-      if (e.kind === 'pose') { api.present?.({ sheet: 'cough', frame: e.frame }); continue; }
+      if (e.kind === 'pose') { api.present?.({ sheet: 'cough', frame: e.frame }); if (e.frame === 0) say(api, C.eatLine, C.eat); continue; }
       if (e.kind === 'warn') {
         const [mx, my] = mouth(api), tx = clamp(api.soul.x, api.box.x + 8, api.box.x + api.box.w - 8), ty = clamp(api.soul.y, api.box.y + 8, api.box.y + api.box.h - 8);
         const a = Math.atan2(ty - my, tx - mx), reach = Math.hypot(tx - mx, ty - my) + 260;
@@ -286,6 +301,7 @@ function fishCough(o = {}) {
       }
       api.present?.({ sheet: 'cough', frame: e.frame });
       api.sfx?.('ralsei_splat', { volume: 0.55 });
+      say(api, C.coughLine, C.lineFor, e.frame === 3 ? 1 : 0);
       const ux = Math.cos(e.a), uy = Math.sin(e.a);
       api.emit({ x: e.mx, y: e.my, r: 6, kind: 'white', shape: 'fish', vx: ux * C.speed, vy: uy * C.speed, rot: e.a + Math.PI, free: true, life: 2.4, out: passedBox,
         hitShape(self, soul) { const hx = Math.cos(self.rot) * 10, hy = Math.sin(self.rot) * 10; return segDist(soul.x, soul.y, self.x - hx, self.y - hy, self.x + hx, self.y + hy) <= 5 + soul.r - 2; },
@@ -514,11 +530,36 @@ function blasterRound(round, b, soul, C) {
 function blaster(o = {}) {
   const C = { ...BLASTER, ...o };
   const rounds = C.rounds.map(r => ({ ...r, spawned: false, fired: false }));
-  const life = C.flyIn + C.charge + C.fire + C.leave;
-  let eye = false;
+  const life = C.flyIn + C.charge + C.fire + C.leave, S = C.slam;
+  let eye = false, bones = false, bell = false, landedSeen = 0;
   return { duration: C.duration, update(t, dt, api) {
-    const b = api.box;
-    if (!eye) { eye = true; api.sfx?.(C.eyeSfx, { volume: 0.8, rate: C.eyeRate, pitch: true }); }
+    const b = api.box, soul = api.soul;
+    if (!eye) {
+      eye = true; api.sfx?.(C.eyeSfx, { volume: 0.8, rate: C.eyeRate, pitch: true });
+      if (soul) { soul.blue = { g: S.g, jump: S.jump }; soul.vy = S.speed; landedSeen = soul.landed || 0; }
+    }
+    if (soul?.blue && (soul.landed || 0) > landedSeen) { landedSeen = soul.landed; api.sfx?.('impact', { volume: 0.7 }); }
+    if (!bones && t >= S.boneWarnAt) {
+      bones = true;
+      const top = b.y + b.h - S.boneH, rise = S.boneWarn, hold = S.boneHold, drop = S.boneDrop;
+      // 경고: 바닥 띠 테두리가 깜빡인다(원작 obj_bonestab 경고 상자)
+      api.emit({ x: b.x + 2, y: top, r: 0, harmless: true, life: rise, shape: 'bone_warn',
+        drawShape(ctx, self) { if (!blink(self, 10)) return; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(Math.round(b.x + 4), Math.round(top), Math.round(b.w - 8), S.boneH - 3); } });
+      api.emit({ x: b.x, y: top, r: 0, kind: 'white', shape: 'bones', life: rise + hold + drop, risen: false,
+        steer(self) { if (!self.risen && self.age >= rise) { self.risen = true; api.sfx?.('sans_bone', { volume: 0.7 }); } },
+        height(self) { const a = self.age - rise; if (a < 0) return 0; if (a < 0.08) return S.boneH * a / 0.08; if (a < hold) return S.boneH; return S.boneH * Math.max(0, 1 - (a - hold) / drop); },
+        hitShape(self, s2) { const h = self.height(self); return h > 4 && s2.y + s2.r - 2 > b.y + b.h - h; },
+        drawShape(ctx, self) {
+          const h = Math.round(self.height(self)); if (h <= 0) return;
+          ctx.save(); ctx.beginPath(); ctx.rect(b.x + 2, b.y + 2, b.w - 4, b.h - 4); ctx.clip(); ctx.fillStyle = '#fff';
+          for (let x = b.x + 4; x < b.x + b.w - 4; x += S.boneW + S.boneGap) {
+            const bx = Math.round(x), by = Math.round(b.y + b.h - h);
+            ctx.fillRect(bx + 2, by + 3, S.boneW - 4, h); ctx.fillRect(bx, by, 4, 4); ctx.fillRect(bx + S.boneW - 4, by, 4, 4);
+          }
+          ctx.restore();
+        } });
+    }
+    if (!bell && t >= S.bellAt) { bell = true; if (soul) { soul.blue = null; soul.vy = 0; } api.sfx?.('bell', { volume: 0.7 }); }
     for (const round of rounds) {
       if (!round.spawned && t >= round.at) {
         round.spawned = true; api.sfx?.(C.chargeSfx, { volume: 0.8, rate: C.rate, pitch: true });

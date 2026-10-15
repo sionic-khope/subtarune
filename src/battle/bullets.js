@@ -56,6 +56,7 @@ export class Soul {
   constructor() { this.x = 240; this.y = 225; this.r = 6; this.speed = 110; this.invuln = 0; this.hits = 0; }   // 델타룬 소울 크기(약 16px@640 → 12px@480)
   center(board) { this.x = board.x + board.w / 2; this.y = board.y + board.h / 2; }
   update(dt, input, board) {
+    if (this.blue) { this.updateBlue(dt, input, board); return; }
     let vx = 0, vy = 0;
     if (input.down('left')) vx -= 1; if (input.down('right')) vx += 1; if (input.down('up')) vy -= 1; if (input.down('down')) vy += 1;
     if (vx && vy) { vx *= 0.7071; vy *= 0.7071; }
@@ -65,12 +66,29 @@ export class Soul {
     this.x = Math.max(board.x + m, Math.min(board.x + board.w - m, this.x)); this.y = Math.max(board.y + m, Math.min(board.y + board.h - m, this.y));
     if (this.invuln > 0) this.invuln -= dt;
   }
+  /**
+   * 파란 하트(언더테일 샌즈전, 박용준 오프닝 BUILD466): 좌우는 그대로, 아래로 중력. 바닥에서 ↑ 로 점프, ↑ 를 누르고 있으면 더 높이(놓으면 빨리 떨어짐).
+   * 패턴이 soul.blue = { g, jump } 를 걸고 null 로 푼다. battle.beginEnemyTurn 이 턴마다 푼다. 예: soul.blue = { g: 520, jump: 190 }; soul.vy = 600(내리꽂기)
+   */
+  updateBlue(dt, input, board) {
+    const B = this.blue, m = 4 + this.r, floor = board.y + board.h - m, ceil = board.y + m;
+    let vx = 0; if (input.down('left')) vx -= 1; if (input.down('right')) vx += 1;
+    this.x += vx * this.speed * (input.down('cancel') ? 0.5 : 1) * dt;
+    const grounded = this.y >= floor - 0.5 && (this.vy || 0) >= 0;
+    if (grounded && input.down('up')) this.vy = -B.jump;
+    const g = (this.vy || 0) < 0 && input.down('up') ? B.g * 0.45 : B.g;
+    this.vy = (this.vy || 0) + g * dt; this.y += this.vy * dt;
+    if (this.y >= floor) { if ((this.vy || 0) > 260) this.landed = (this.landed || 0) + 1; this.y = floor; this.vy = 0; }
+    if (this.y <= ceil) { this.y = ceil; this.vy = Math.max(0, this.vy); }
+    this.x = Math.max(board.x + m, Math.min(board.x + board.w - m, this.x));
+    if (this.invuln > 0) this.invuln -= dt;
+  }
   draw(ctx) {
     // hidden: 패턴이 하트를 잠시 감춘다(청소년 구멍에 빨려 들어가는 연출)
     if (this.hidden) return;
     if (this.invuln > 0 && Math.floor(this.invuln * 16) % 2) return;   // 무적 깜빡임
     const x = Math.round(this.x), y = Math.round(this.y);
-    ctx.fillStyle = '#ff0000';
+    ctx.fillStyle = this.blue ? '#1f4bff' : '#ff0000';
     // 델타룬식 하트 14x12
     const rows = ['..XXX...XXX..', '.XXXXX.XXXXX.', 'XXXXXXXXXXXXX', 'XXXXXXXXXXXXX', 'XXXXXXXXXXXXX', '.XXXXXXXXXXX.', '..XXXXXXXXX..', '...XXXXXXX...', '....XXXXX....', '.....XXX.....', '......X......'];
     rows.forEach((row, ry) => { for (let rx = 0; rx < row.length; rx++) if (row[rx] === 'X') ctx.fillRect(x - 6 + rx, y - 5 + ry, 1, 1); });

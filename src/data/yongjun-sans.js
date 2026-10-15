@@ -21,6 +21,7 @@ export const YONGJUN_SANS = Object.freeze({
   advanceHold: 0.25,
   // 오프닝 직후 첫 강공격(냄새 블래스터) 뒤 한 줄 → 메갈로바니아 + 행동 선택(사용자 BUILD464 “바로 처음에 강한 공격패턴 쏟은뒤에 박용준: … 이러고 이제 메갈로바니아 브금나와야함”)
   openingPattern: Object.freeze({ type: 'yongjun_blaster' }),
+  openingBoard: Object.freeze([176, 160]),
   afterOpening: '왜 다들 처음부터 강한공격을 안쓰시는걸까요?',
   sfx: Object.freeze(['switch_noise', 'wing', 'ralsei_splat', 'heavyswing', 'impact', 'pop', 'break1', 'static_burst', 'squeaky']),
 });

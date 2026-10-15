@@ -74,13 +74,15 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
   const keepAlive = () => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } };
   const opening = await page.waitForFunction(() => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; return b?.state === 'bullets' ? { bubble: !!b.bubble, bgm: game.sound.bgmName, type: b.patterns[0]?.p && b.bullets.some(x => x.shape === 'blaster'), bg: b.cfg.bg } : null; }, undefined, { timeout: 6000, polling: 50 }).then(h => h.jsonValue(), () => null);
   check('C 뒤 메뉴 없이 바로 냄새 블래스터(음악 없음·말풍선 없음), 배경 라운지', opening && !opening.bubble && !opening.bgm && opening.bg === 'maillard_lounge', JSON.stringify(opening));
-  let blasters = 0;
-  for (const [k, at] of [[1, 0.8], [2, 1.0], [3, 2.6], [4, 5.6]]) {
-    const ok = await page.waitForFunction((at) => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'bullets' && b.t >= at; }, at, { timeout: 9000, polling: 40 }).then(() => true, () => false);
+  let blasters = 0; const seen = {};
+  for (const [k, at] of [[1, 0.6], [2, 1.15], [3, 2.0], [4, 2.75], [5, 4.2], [6, 7.1]]) {
+    const ok = await page.waitForFunction((at) => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'bullets' && b.t >= at; }, at, { timeout: 12000, polling: 40 }).then(() => true, () => false);
     if (!ok) break;
-    blasters = Math.max(blasters, await page.evaluate(() => game.battle.bullets.filter(x => x.shape === 'blaster').length));
+    const s = await page.evaluate(() => { const b = game.battle; return { blasters: b.bullets.filter(x => x.shape === 'blaster').length, blue: !!b.soul.blue, onFloor: b.soul.y >= b.board.rect.y + b.board.rect.h - 11, bones: b.bullets.some(x => x.shape === 'bones' && x.risen), box: [Math.round(b.board.rect.w), Math.round(b.board.rect.h)] }; });
+    seen[k] = s; blasters = Math.max(blasters, s.blasters);
     await shot(`yongjun_06b_blaster_${k}`);
   }
+  check('샌즈 첫 공격 순서: 파란 하트로 바닥에 내리꽂힘 → 바닥 뼈 → 빨간 하트 → 블래스터', seen[1]?.blue && seen[1].onFloor && seen[2]?.bones && seen[3] && !seen[3].blue && seen[1].box[0] === 176, JSON.stringify(seen));
   check('냄새 블래스터가 여러 개 동시에', blasters >= 4, `max=${blasters}`);
   const line = await page.waitForFunction(() => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'interlude' && b.bubble?.shown >= b.bubble?.text.length ? b.bubble.text : null; }, undefined, { timeout: 12000, polling: 50 }).then(h => h.jsonValue(), () => null);
   check('강공격 뒤 “왜 다들 처음부터 강한공격을 안쓰시는걸까요?”', line === '왜 다들 처음부터 강한공격을 안쓰시는걸까요?', JSON.stringify(line));

@@ -175,7 +175,9 @@ registerBattleBg('baron_nest', (ctx, battle) => {
 
 // 마이야르호 라운지(박용준 히든 보스, BUILD464 사용자 “전투 맵 배경에 나무 맵 깔려있고 상점도 보여야함”): 라운지 나무 바닥 타일(M) + 위쪽 벽 띠 + 용준이 나온 상점(필드와 같은 1배, 문이 용준 발 바로 뒤).
 //   그림은 맵이 미리 적재한 propImages(maillard_lounge_walls·yongjun-shop). 인물이 묻히지 않게 살짝 어둡게. 전투마다 한 번 그려 캐시
-export const LOUNGE_BG = Object.freeze({ walls: 'assets/props/maillard_lounge_walls.png', shop: 'assets/props/yongjun-shop.png', wallsCrop: [800, 20, 480, 140], shopBehindFeet: 16, shopX: -18, dim: 0.32 });
+//   BUILD466 사용자 “배경 뭔가 이상 공중에 떠있는느낌 그리고 상점 더 위로 보내 더 오른쪽”: 벽 띠 아래 끝(바닥 경계)이 맨 위 동료 발(y≈104)보다 아래(≈126)에 있어 벽 위에 선 것처럼 보였다
+//   → 벽 띠를 잘라 올려 경계를 y≈88 에, 상점은 28px 위·38px 오른쪽
+export const LOUNGE_BG = Object.freeze({ walls: 'assets/props/maillard_lounge_walls.png', shop: 'assets/props/yongjun-shop.png', wallsCrop: [800, 62, 480, 96], shopBehindFeet: 44, shopX: 20, dim: 0.32 });
 let loungeCache = null, loungeKey = '';
 registerBattleBg('maillard_lounge', (ctx, battle) => {
   const imgs = battle.game?.propImages || {}, walls = imgs[LOUNGE_BG.walls], shop = imgs[LOUNGE_BG.shop];

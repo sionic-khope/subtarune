@@ -478,6 +478,8 @@ export class Battle {
   nextPatternConfig(enemy) { return nextPatternConfig(enemy); }
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
+    // 파란 하트는 그 턴의 패턴만(박용준 오프닝 BUILD466)
+    if (this.soul) { this.soul.blue = null; this.soul.vy = 0; }
     const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)];
     const selected = this.support?.patternsFor ? null : nextPatternConfig(e);
     const defName = this.support?.enemyModeFor?.(e) || selected?.config?.mode || e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);

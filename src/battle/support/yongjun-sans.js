@@ -11,10 +11,12 @@ export function createYongjunSansSupport(battle) {
     /** 첫 강공격 턴에만 패턴을 정한다. 평소엔 없음(undefined) → 적 def.patterns 차례·패턴 speak 말풍선 그대로 */
     get patternsFor() { return opening === 'attack' ? (() => [C.openingPattern]) : undefined; },
     silentTurn() { return opening === 'attack'; },
+    /** 첫 강공격은 샌즈처럼 거의 정사각형 상자(BUILD466) */
+    boardSizeFor() { return opening === 'attack' ? C.openingBoard : null; },
     enemyTurnNext() { if (opening !== 'intro' || introPending) return false; opening = 'attack'; return true; },
     load() {
       battle.game.sound.preloadBgm?.(C.bgm);
-      return battle.game.sound.loadSfxFiles?.([...C.sfx, 'sans_blaster_charge', 'sans_blaster_fire', 'sans_blaster_gigatalk', 'sans_bone', 'sans_eye']);
+      return battle.game.sound.loadSfxFiles?.([...C.sfx, 'sans_blaster_charge', 'sans_blaster_fire', 'sans_blaster_gigatalk', 'sans_bone', 'sans_eye', 'bell']);
     },
     reset() { introPending = true; opening = 'intro'; },
     preemptiveMode() {
