@@ -127,3 +127,15 @@ test('test_yongjun_intro_follows_the_sans_beats_then_starts_megalovania', () => 
   assert.ok(blips.length > 0 && blips.every(v => v === 'yongjun'), 'the three lines speak with his voice, the last line is silent');
   assert.equal(enemy.patternPose, null);
 });
+
+test('test_yongjun_flower_qa_point_is_last_in_shift_q_and_never_counts_as_story_progress', async () => {
+  const { QA_POINTS, qaProgress } = await import('../../src/core/story.js');
+  const menu = QA_POINTS.filter(p => !p.hidden);
+  const point = menu.at(-1);
+  assert.equal(point.id, 'yongjun_flower');
+  assert.equal(point.map, 'maillard_lounge');
+  assert.equal(point.flags.purple_flower_taken, true);
+  assert.equal(stateFromFlags(point.flags).inventory.includes('보라꽃'), true);
+  const reached = qaProgress(point.flags, point.stage, point.map);
+  assert.equal(menu[reached].id, 'maillard_lounge', 'a save holding the flower in the lounge is still the lounge');
+});

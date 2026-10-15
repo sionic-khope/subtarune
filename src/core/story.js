@@ -312,7 +312,7 @@ QA_POINTS.push({ ...maillardPathCheckpoint, id: 'maillard_lounge', desc: '마이
 
 const maillardLoungeCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_lounge');
 // 히든 보스(BUILD462): 청록숲4 에서 억빠맨이 뽑은 보라꽃을 들고 라운지 상점 앞 — 판다 → 보라꽃 → 박용준 전투
-QA_POINTS.push({ ...maillardLoungeCheckpoint, id: 'yongjun_flower', desc: '마이야르호 라운지: 보라꽃을 용준에게 판다(박용준 히든 보스)',
+QA_POINTS.push({ ...maillardLoungeCheckpoint, id: 'yongjun_flower', qaOnly: true, desc: '히든 보스 · 보라꽃 든 채 마이야르호 라운지(상점에서 팔면 박용준전)',
   spawn: 'shop_front', flags: { ...maillardLoungeCheckpoint.flags, flower_spoke: true, flower_talks: 5, purple_flower_taken: true }, party: [...maillardLoungeCheckpoint.party] });
 for (const [id, desc] of [
   ['maillard_storage', '강퇴폐기창고'],
@@ -877,6 +877,11 @@ for (const [id, after] of [['castle_arena', 'castle_prophecy_door'], ['castle_su
   const [pt] = QA_POINTS.splice(from, 1), to = QA_POINTS.findIndex(p => p.id === after);
   QA_POINTS.splice(to < 0 ? QA_POINTS.length : to + 1, 0, pt);
 }
+// 이스터에그 지점은 Shift+Q 목록 맨 아래(BUILD463 사용자 “시프트큐 하단에 그거 갈수있는거 추가해줘 걍 꽃 얻은상태로 라운지맵”).
+// qaOnly: 이야기 진행 지점이 아니라서 이어하기 도달 판정(qaProgress)에서 뺀다 — 안 빼면 꽃을 뽑은 세이브가 목록 끝까지 도달한 것으로 잡힌다
+for (const id of ['yongjun_flower']) {
+  const from = QA_POINTS.findIndex(p => p.id === id); if (from >= 0) QA_POINTS.push(...QA_POINTS.splice(from, 1));
+}
 
 /**
  * 이어하기 목록(BUILD437, 사용자 2026-09-30 “도달한 부분을 최신으로 띄우고 과거부터, 미래 건 안 보이고”):
@@ -887,7 +892,7 @@ export function qaProgress(flags = {}, stage = null, map = null) {
   const list = QA_POINTS.filter(p => !p.hidden), si = id => (id && INDEX.has(id) ? INDEX.get(id) : -1), cur = si(stage);
   const hits = [];
   list.forEach((p, j) => {
-    if (p.map !== map || si(p.stage) > cur) return;
+    if (p.qaOnly || p.map !== map || si(p.stage) > cur) return;
     if (Object.entries(p.flags || {}).every(([k, v]) => (v === true ? !!flags[k] : flags[k] === v))) hits.push([p, j]);
   });
   const covers = (a, b) => si(a.stage) >= si(b.stage) && Object.entries(b.flags || {}).every(([k, v]) => a.flags && k in a.flags && a.flags[k] === v);

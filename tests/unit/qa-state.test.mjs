@@ -76,7 +76,8 @@ test('test_qa_state_examples_obj0_has_buff_bananas_key_and_money', () => {
 test('test_qa_state_saloon_and_later_points_include_purchased_upgrades_and_cost', () => {
   const saloonIndex = QA_POINTS.findIndex((point) => point.id === 'maillard_saloon');
   assert.ok(saloonIndex >= 0);
-  for (const point of QA_POINTS.slice(saloonIndex)) {
+  // qaOnly(Shift+Q 맨 아래 보라꽃 라운지 지점, BUILD463)는 이야기 순서가 아니라 목록 끝에 둔 것이라 뺀다
+  for (const point of QA_POINTS.slice(saloonIndex).filter((point) => !point.qaOnly)) {
     const beforePurchase = derive({ ...point, flags: { ...point.flags, shop_yongjun_cialis: false, shop_yongjun_vaseline: false } });
     const state = derive(point);
     assert.equal(point.flags.shop_yongjun_cialis, true, point.id);
