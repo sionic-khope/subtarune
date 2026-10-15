@@ -68,7 +68,7 @@ export const yongjun_flower = Object.assign([
   ...battleEntry(['yongjun_sans'], YONGJUN_SANS.birds),
   { darkSmoke: null },
   { remove: YONGJUN_FLOWER_ACTOR },
-  { battle: { enemies: ['yongjun_sans'], bgm: YONGJUN_SANS.birds, flag: 'yongjun_sans_won' } },
+  { battle: { enemies: ['yongjun_sans'], bgm: YONGJUN_SANS.birds, bg: 'maillard_lounge', flag: 'yongjun_sans_won' } },
   { bgm: 'maillard_lounge' },
   { zoom: 1, duration: 0 },
   { camera: 'player' },

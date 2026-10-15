@@ -1,0 +1,155 @@
+{
+ "file": "assets/enemies/yongjun-sans-cry.png",
+ "sheet": [
+  240,
+  240
+ ],
+ "cols": 2,
+ "rows": 2,
+ "count": 4,
+ "cell": [
+  120,
+  120
+ ],
+ "order": "row-major (top-left, top-right, bottom-left, bottom-right)",
+ "pivot": [
+  60,
+  116
+ ],
+ "drawScale": 1,
+ "rawPxPerGamePx": 4.26530612244898,
+ "scalePolicy": "one factor for all body art = idle frame0 raw height / 98",
+ "alignment": "feet root (centre of lowest 16 raw px band) -> pivot x, lowest opaque row -> pivot y",
+ "sampling": "block vote (majority colour bin, dark lines lum<70 win at >= 0.4 of a block)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 6511,
+ "droppedSpecks": 39,
+ "frames": [
+  {
+   "rawBounds": [
+    89,
+    50,
+    401,
+    469
+   ],
+   "rawFeetRootX": 251.5,
+   "rawBottom": 469,
+   "purity": 0.8019,
+   "phase": [
+    0.25,
+    0.5
+   ],
+   "bounds": [
+    22,
+    17,
+    95,
+    116
+   ],
+   "height": 99
+  },
+  {
+   "rawBounds": [
+    75,
+    50,
+    397,
+    469
+   ],
+   "rawFeetRootX": 244.0,
+   "rawBottom": 469,
+   "purity": 0.7975,
+   "phase": [
+    0.25,
+    0.75
+   ],
+   "bounds": [
+    20,
+    18,
+    96,
+    116
+   ],
+   "height": 98
+  },
+  {
+   "rawBounds": [
+    105,
+    37,
+    392,
+    457
+   ],
+   "rawFeetRootX": 251.5,
+   "rawBottom": 457,
+   "purity": 0.815,
+   "phase": [
+    0.0,
+    0.5
+   ],
+   "bounds": [
+    26,
+    17,
+    93,
+    116
+   ],
+   "height": 99
+  },
+  {
+   "rawBounds": [
+    96,
+    37,
+    385,
+    457
+   ],
+   "rawFeetRootX": 244.0,
+   "rawBottom": 457,
+   "purity": 0.8138,
+   "phase": [
+    0.75,
+    0.5
+   ],
+   "bounds": [
+    24,
+    18,
+    92,
+    116
+   ],
+   "height": 98
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/cry-raw2.png",
+  "--target",
+  "creature",
+  "--mode",
+  "actions",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--cell-size",
+  "120",
+  "--fit-scale",
+  "0.85",
+  "--align",
+  "feet",
+  "--shared-scale",
+  "--scale-strategy",
+  "preserve",
+  "--component-mode",
+  "largest",
+  "--max-body-scale-cv",
+  "0.08",
+  "--max-anchor-y-std",
+  "0.05",
+  "--output-dir",
+  "assets/source/yongjun-sans/cry/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

@@ -1,0 +1,94 @@
+{
+ "file": "assets/props/yongjun-bolt.png",
+ "size": [
+  96,
+  40
+ ],
+ "frames": 2,
+ "frame": [
+  96,
+  20
+ ],
+ "layout": "stacked, top to bottom",
+ "anchor": "ends",
+ "rawPxPerGamePx": 14.979,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 9,
+ "droppedSpecks": 0,
+ "frameInfo": [
+  {
+   "purity": 0.5209,
+   "phase": [
+    0.0,
+    0.0
+   ],
+   "rawPxPerGamePx": 14.979,
+   "rawBounds": [
+    50,
+    166,
+    1488,
+    408
+   ],
+   "bounds": [
+    0,
+    2,
+    96,
+    18
+   ]
+  },
+  {
+   "purity": 0.5123,
+   "phase": [
+    0.0,
+    0.5
+   ],
+   "rawPxPerGamePx": 14.979,
+   "rawBounds": [
+    50,
+    120,
+    1488,
+    354
+   ],
+   "bounds": [
+    0,
+    2,
+    96,
+    17
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fx-bolt-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "2",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-bolt/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

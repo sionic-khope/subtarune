@@ -164,6 +164,12 @@ export const SFX_FILES = Object.freeze([
   'rudebuster_hit',
   'rudebuster_swing',
   'rumble',
+  // 언더테일 샌즈전(박용준 히든 보스, BUILD464): 블래스터 등장·발사 두 겹·뼈·눈 번쩍 — design/audio/references.md
+  'sans_blaster_charge',
+  'sans_blaster_fire',
+  'sans_blaster_gigatalk',
+  'sans_bone',
+  'sans_eye',
   'scrape',
   'select',
   'shop_buy',

@@ -1,0 +1,9 @@
+Pixel art game bullet sprites: THREE separate small objects on one 1536x1024 canvas, placed left to right in three invisible equal 512x1024 columns, each object centered in its column; nothing touches the column edges and the objects do not touch each other. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels, no grid lines.
+
+PIXEL GRID (very important): these are tiny low-resolution pixel sprites enlarged exactly 32 times with nearest neighbour. Every art pixel is one crisp solid 32x32 px square on one global 32 px grid; no anti-aliasing, no soft edges, no detail smaller than 32 px.
+
+Column 1 (left): one spit droplet, exactly 8x8 art pixels (256x256 px): a round white droplet with a pale blue shade on its lower-right side, a dark blue-grey 1-art-pixel outline and one bright white glint pixel, with a slightly pointed tail toward the upper-left as if flying.
+Column 2 (middle): one tear drop, 14 art pixels wide and 18 art pixels tall (448x576 px): classic tear-drop shape with a pointed top and a round bottom, white body with pale blue shading on one side, a medium blue 1-art-pixel outline and one small white highlight.
+Column 3 (right): one small wooden splinter chip, 10x10 art pixels (320x320 px): an irregular jagged broken piece of light brown wood with one darker brown grain line and a dark brown 1-art-pixel outline, like debris knocked off a wooden wall.
+
+Style: retro Undertale / Deltarune bullet sprite pixel art, flat colours with 2-3 shades each, crisp square pixels.

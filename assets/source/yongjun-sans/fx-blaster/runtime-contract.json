@@ -1,0 +1,94 @@
+{
+ "file": "assets/props/yongjun-blaster.png",
+ "size": [
+  128,
+  64
+ ],
+ "frames": 2,
+ "frame": [
+  64,
+  64
+ ],
+ "layout": "side by side, left to right",
+ "anchor": "topleft",
+ "rawPxPerGamePx": 10.517,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 3941,
+ "droppedSpecks": 6,
+ "frameInfo": [
+  {
+   "purity": 0.8619,
+   "phase": [
+    0.75,
+    0.5
+   ],
+   "rawPxPerGamePx": 10.517,
+   "rawBounds": [
+    91,
+    211,
+    722,
+    784
+   ],
+   "bounds": [
+    2,
+    2,
+    62,
+    56
+   ]
+  },
+  {
+   "purity": 0.8645,
+   "phase": [
+    0.75,
+    0.5
+   ],
+   "rawPxPerGamePx": 10.517,
+   "rawBounds": [
+    60,
+    211,
+    690,
+    840
+   ],
+   "bounds": [
+    2,
+    2,
+    62,
+    61
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/blaster-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "1",
+  "--cols",
+  "2",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-blaster/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

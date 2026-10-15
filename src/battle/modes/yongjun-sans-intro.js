@@ -1,6 +1,6 @@
 // 박용준 히든 보스전 오프닝(BUILD462): 샌즈전 인트로 패러디. 대사·시간 원본 src/data/yongjun-sans.js.
 //   새소리(전투 브금 sans_birds) 속에 말풍선 세 줄(용준 목소리, C 로 넘김) → 새소리 뚝 + 촵, 화면 전체 검정 → 촵, 복귀(눈동자 없는 얼굴 그림)
-//   → 마지막 말 한 글자씩 천천히(목소리 없음) → C → 메갈로바니아 + 행동 선택(보스 시작)
+//   → 마지막 말 한 글자씩(목소리 없음) → C → (지원 모듈) 음악 없이 첫 강공격 → “왜 다들 …” → 메갈로바니아 + 행동 선택
 import { YONGJUN_SANS as C } from '../../data/yongjun-sans.js';
 
 /** 지원 모듈(support/yongjun-sans.js)의 preemptiveMode 가 전투를 열자마자 이 모드를 고른다. */
@@ -46,7 +46,6 @@ export function createYongjunSansIntro(battle, { enemy }) {
         const done = typing(dt, C.hellCharSeconds);
         if (!done || typed < C.advanceHold || !input.just('confirm')) return false;
         battle.bubble = null; enemy.patternPose = null;
-        battle.game.sound.playBgm(C.bgm, { volume: 0.5, fadeIn: 0 });
         phase = 'done';
         return true;
       }

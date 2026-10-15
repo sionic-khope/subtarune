@@ -1,0 +1,8 @@
+Pixel art game bullet sprite: TWO animation frames of a tiny stinky gas puff on one 1536x1024 canvas, side by side in two invisible equal 768x1024 halves: frame 1 centered in the left half, frame 2 centered in the right half; nothing touches the half edges. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels, no grid lines.
+
+PIXEL GRID (very important): this is a TINY 16x16 pixel sprite enlarged exactly 32 times with nearest neighbour. Every art pixel is one crisp solid 32x32 px square on one global 32 px grid; each frame is exactly 16x16 art pixels (512x512 px); no anti-aliasing, no detail smaller than 32 px. Design it to read at 16x16: bold simple shapes, few colours.
+
+The puff: a lumpy round cloud of smelly gas filling the lower 10 rows of the 16x16 frame (about 14 art pixels wide), muddy brown with an olive-green tint, 3 flat shades (light olive-brown top highlight, mid muddy brown, darker brown underside) and a very dark brown 1-art-pixel outline. Above it, in the top 6 rows, TWO short wavy stink lines rising up, each line exactly ONE art pixel wide and about 5 art pixels tall, drawn in a light olive-tan colour with NO outline, wiggling left-right like a zigzag, touching the top of the cloud.
+Frame 2: the same puff, same size and position, with the cloud bulges shifted by 1 art pixel and the two stink lines wiggling the opposite way, so the frames alternate as a wobble.
+
+Style: retro Undertale / Deltarune bullet sprite pixel art, flat colours, crisp square pixels, gross and comedic.

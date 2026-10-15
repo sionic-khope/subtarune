@@ -1,0 +1,94 @@
+{
+ "file": "assets/props/yongjun-spark.png",
+ "size": [
+  24,
+  12
+ ],
+ "frames": 2,
+ "frame": [
+  12,
+  12
+ ],
+ "layout": "side by side, left to right",
+ "anchor": "center",
+ "rawPxPerGamePx": 26.667,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 1338,
+ "droppedSpecks": 0,
+ "frameInfo": [
+  {
+   "purity": 0.6354,
+   "phase": [
+    0.5,
+    0.5
+   ],
+   "rawPxPerGamePx": 26.667,
+   "rawBounds": [
+    112,
+    80,
+    418,
+    400
+   ],
+   "bounds": [
+    0,
+    0,
+    11,
+    11
+   ]
+  },
+  {
+   "purity": 0.5907,
+   "phase": [
+    0.5,
+    0.5
+   ],
+   "rawPxPerGamePx": 26.667,
+   "rawBounds": [
+    113,
+    104,
+    390,
+    378
+   ],
+   "bounds": [
+    1,
+    1,
+    10,
+    10
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fx-puffs-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-spark/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

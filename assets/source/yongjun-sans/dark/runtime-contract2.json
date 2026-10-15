@@ -1,0 +1,44 @@
+{
+ "file": "assets/enemies/yongjun-sans-dark.png",
+ "size": [
+  120,
+  120
+ ],
+ "frames": 1,
+ "pivot": [
+  60,
+  116
+ ],
+ "drawScale": 1,
+ "matches": "assets/enemies/yongjun-sans-battle-idle.png frame 0 (byte-identical outside eyeBox)",
+ "eyeBox": [
+  40,
+  38,
+  68,
+  48
+ ],
+ "upscale": 8,
+ "offset": [
+  32,
+  32
+ ],
+ "changedPixels": 64,
+ "socketPixels": 62,
+ "socketMoves": [
+  [
+   0,
+   0
+  ],
+  [
+   -1,
+   0
+  ]
+ ],
+ "skin": [
+  253,
+  242,
+  234
+ ],
+ "source": "dark-raw2.png",
+ "method": "exported idle frame 0 x8 NEAREST on magenta -> gpt-image edit -> block-centre resample -> eye box pasted on frame 0"
+}

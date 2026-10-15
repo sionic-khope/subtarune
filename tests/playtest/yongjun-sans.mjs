@@ -67,15 +67,31 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
   check('“지 옥 에 서 불 타 버 려 야 해.” 목소리 없이 천천히, 눈 없는 얼굴', hell?.text === '지 옥 에 서 불 타 버 려 야 해.' && hell.voice === 'none' && hell.pose === 'dark', JSON.stringify(hell));
   await shot('yongjun_06_hell');
   await page.waitForTimeout(300); await press('KeyC');
-  const menu = await until(() => game.battle?.state === 'menu' ? { bgm: game.sound.bgmName, hp: game.battle.enemies[0].hp, max: game.battle.enemies[0].maxHp } : null, 4000);
-  check('C 로 메갈로바니아와 함께 보스 시작(HP 100)', menu?.bgm === 'megalovania' && menu.hp === 100 && menu.max === 100, JSON.stringify(menu));
+  const keepAlive = () => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } };
+  const opening = await page.waitForFunction(() => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; return b?.state === 'bullets' ? { bubble: !!b.bubble, bgm: game.sound.bgmName, type: b.patterns[0]?.p && b.bullets.some(x => x.shape === 'blaster'), bg: b.cfg.bg } : null; }, undefined, { timeout: 6000, polling: 50 }).then(h => h.jsonValue(), () => null);
+  check('C 뒤 메뉴 없이 바로 냄새 블래스터(음악 없음·말풍선 없음), 배경 라운지', opening && !opening.bubble && !opening.bgm && opening.bg === 'maillard_lounge', JSON.stringify(opening));
+  let blasters = 0;
+  for (const [k, at] of [[1, 0.8], [2, 1.0], [3, 2.6], [4, 5.6]]) {
+    const ok = await page.waitForFunction((at) => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'bullets' && b.t >= at; }, at, { timeout: 9000, polling: 40 }).then(() => true, () => false);
+    if (!ok) break;
+    blasters = Math.max(blasters, await page.evaluate(() => game.battle.bullets.filter(x => x.shape === 'blaster').length));
+    await shot(`yongjun_06b_blaster_${k}`);
+  }
+  check('냄새 블래스터가 여러 개 동시에', blasters >= 4, `max=${blasters}`);
+  const line = await page.waitForFunction(() => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'interlude' && b.bubble?.shown >= b.bubble?.text.length ? b.bubble.text : null; }, undefined, { timeout: 12000, polling: 50 }).then(h => h.jsonValue(), () => null);
+  check('강공격 뒤 “왜 다들 처음부터 강한공격을 안쓰시는걸까요?”', line === '왜 다들 처음부터 강한공격을 안쓰시는걸까요?', JSON.stringify(line));
+  await shot('yongjun_06c_why');
+  await page.waitForTimeout(300); await press('KeyC');
+  const menu = await until(() => game.battle?.state === 'menu' ? { bgm: game.sound.bgmName, hp: game.battle.enemies[0].hp, max: game.battle.enemies[0].maxHp, idx: game.battle.enemies[0].patternIdx } : null, 4000);
+  check('C 로 메갈로바니아와 함께 행동 선택(HP 100, 패턴 차례 처음부터)', menu?.bgm === 'megalovania' && menu.hp === 100 && menu.max === 100 && menu.idx === 0, JSON.stringify(menu));
+  await page.evaluate(keepAlive);
   await shot('yongjun_07_menu');
 
   const speaks = [], leaks = [];
   const waitIn = (fn, arg, timeout) => page.waitForFunction(fn, arg, { timeout, polling: 50 }).then(() => true, () => false);
   for (let n = 0; n < 6; n++) {
     await page.evaluate((n) => { const b = game.battle; b.enemies[0].patternIdx = n; b.beginEnemyTurn(); }, n);
-    const bubble = await until(() => game.battle?.bubble?.text || null, 3000); speaks.push(bubble);
+    const bubble = await waitIn(() => !!game.battle?.bubble?.text || game.battle?.state === 'bullets', undefined, 4000).then(() => page.evaluate(() => game.battle?.bubble?.text || null)); speaks.push(bubble);
     const type = await page.evaluate((n) => game.battle.enemies[0].def.patterns[n].type, n);
     let harm = 0;
     for (const [k, at] of [[1, 1.4], [2, 3.4], [3, 5.2]]) {
@@ -90,7 +106,7 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
     check(`패턴 ${n} 뒤 행동 선택으로 돌아온다`, back);
   }
   check('상자 안 위협(악취·부스러기·눈물·불똥)은 상자 밖으로 새지 않는다', leaks.length === 0, JSON.stringify(leaks.slice(0, 6)));
-  check('턴마다 말풍선이 패턴 대사', speaks.every(Boolean) && new Set(speaks).size === 6, JSON.stringify(speaks));
+  check('턴마다 말풍선이 패턴 대사(포옹은 말풍선 없이 상자 안 외침)', speaks.filter(Boolean).length === 5 && new Set(speaks.filter(Boolean)).size === 5 && speaks[5] === null, JSON.stringify(speaks));
 
   const before = await page.evaluate(() => ({ hpBonus: game.hpBonus, max: ['hyungsub', ...game.party].map(id => game.maxHpOf(id)) }));
   await page.evaluate(() => { game.battle.enemies[0].hp = 1; });

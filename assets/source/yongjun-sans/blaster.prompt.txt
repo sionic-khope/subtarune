@@ -1,0 +1,10 @@
+Pixel art game bullet sprite: TWO animation frames of a "stench blaster", a floating monster-skull cannon in the style of the Gaster Blaster from Undertale, on one 1536x1024 canvas, side by side in two invisible equal 768x1024 halves: frame 1 centered in the left half, frame 2 centered in the right half; nothing touches the half edges. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels, no grid lines.
+
+PIXEL GRID (very important): low-resolution pixel art enlarged exactly 8 times with nearest neighbour; every art pixel is one crisp solid 8x8 px square on one global 8 px grid, no anti-aliasing. Each frame is 64x64 art pixels (512x512 px).
+
+The blaster is a caricature of the HEAD of the character in Image1 (Yongjun: very wide round chubby head, full puffy cheeks, very short black buzz-cut hair) turned into a Gaster-Blaster-style bony skull: the big round chubby head shape with puffy cheekbones, a solid black buzz-cut hair cap on top, white / pale ivory bone colour with light grey shading and a dark grey stepped outline, two large empty pitch-black eye holes (Sans "bad time" style, no pupils, no glow), a small nose hole, and a long snout-like jaw with blocky white teeth like a Gaster Blaster. Seen from the side, FACING RIGHT: the snout and mouth point to the right edge.
+Frame 1 (left): mouth closed, teeth together.
+Frame 2 (right): the same blaster firing: the lower jaw dropped wide open, showing a big dark mouth opening between the upper and lower teeth; the head, eye holes and hair are identical in size and position to frame 1, only the lower jaw opens.
+No beam, no gas, no smoke, no effects, no glow, no text.
+
+Style: retro Undertale bullet sprite pixel art, flat colours (white, light grey, mid grey, dark grey, black), crisp square pixels.

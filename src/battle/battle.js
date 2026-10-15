@@ -506,10 +506,12 @@ export class Battle {
       e.lastSpeech = text;
     }
     const speakSfx = selected?.config?.speakSfx || e.def.lines?.speakSfx;
-    this.bubble = { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0,
+    // 말풍선 없이 바로 탄막(패턴 설정 silent 또는 지원 모듈 silentTurn — 박용준 오프닝 강공격·포옹 패턴, BUILD464)
+    const silent = !!(selected?.config?.silent || this.support?.silentTurn?.(e));
+    this.bubble = silent ? null : { enemy: e, text, mosaic: e.def.lines?.speakMosaic?.[text], shown: 0, t: 0,
       voice: selected?.config?.speakSfx ? 'none' : this.support?.speechVoiceFor?.(e) || e.formDef?.voice || e.def.voice || 'narrator',
       minDuration: selected?.config?.speakDuration || 0 };
-    if (speakSfx) this.sfx(speakSfx);
+    if (speakSfx && !silent) this.sfx(speakSfx);
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
     const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
     this.board.setTarget(bw, bh, cx, cy);
@@ -650,6 +652,8 @@ export class Battle {
         return;
       }
     }
+    // 지원 모듈이 메뉴 대신 곧바로 적 턴을 원하면(박용준 샌즈식 오프닝 뒤 첫 강공격, BUILD464)
+    if (this.support?.enemyTurnNext?.()) { this.beginEnemyTurn(); return; }
     this.interlude = this.support?.afterEnemyPhase() || null;
     if (this.interlude) { this.state = 'interlude'; this.t = 0; this.plans = []; return; }
     this.beginMenu();

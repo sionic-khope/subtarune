@@ -1,0 +1,12 @@
+# imagegen 2026-10-15 13:04:12
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+
+Pixel art game effect sprite: TWO animation frames of a horizontal stinky gas beam on one 1536x1024 canvas, stacked vertically in two invisible equal 1536x512 rows: frame 1 centered in the top row, frame 2 centered in the bottom row; nothing touches the row edges. Solid pure #FF00FF magenta background everywhere, no gradients, no shadows, no text, no labels, no grid lines.
+
+PIXEL GRID (very important): low-resolution pixel art enlarged exactly 10 times with nearest neighbour. Every art pixel is one crisp solid 10x10 px square on one global 10 px grid; no anti-aliasing, no soft edges, no detail smaller than 10 px.
+
+Each beam is 128 art pixels long and 28 art pixels tall (1280x280 px): a thick straight horizontal beam of disgusting brown / greenish-brown smelly gas, like a cartoon stink ray, with wavy stink texture: darker brown wavy streaks running along the beam, lighter olive-green highlights, small round gas bubbles on its top and bottom edges, lumpy stepped edges and a dark brown 1-art-pixel outline along the top and bottom. Both short ends are cut straight and flat (vertical ends, no taper, no cap) so the strip can be stretched along its length. Frame 2 is the same beam, same size and position, with the wavy streaks and edge bubbles shifted by half a wave, so the two frames flicker.
+
+Style: retro Undertale / Deltarune effect pixel art, flat colours with 3-4 shades, crisp square pixels.

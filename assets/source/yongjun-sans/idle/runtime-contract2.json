@@ -1,0 +1,155 @@
+{
+ "file": "assets/enemies/yongjun-sans-battle-idle.png",
+ "sheet": [
+  240,
+  240
+ ],
+ "cols": 2,
+ "rows": 2,
+ "count": 4,
+ "cell": [
+  120,
+  120
+ ],
+ "order": "row-major (top-left, top-right, bottom-left, bottom-right)",
+ "pivot": [
+  60,
+  116
+ ],
+ "drawScale": 1,
+ "rawPxPerGamePx": 4.26530612244898,
+ "scalePolicy": "one factor for all body art = idle frame0 raw height / 98",
+ "alignment": "feet root (centre of lowest 16 raw px band) -> pivot x, lowest opaque row -> pivot y",
+ "sampling": "block vote (majority colour bin, dark lines lum<70 win at >= 0.4 of a block)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 5063,
+ "droppedSpecks": 21,
+ "frames": [
+  {
+   "rawBounds": [
+    115,
+    51,
+    398,
+    469
+   ],
+   "rawFeetRootX": 251.5,
+   "rawBottom": 469,
+   "purity": 0.7789,
+   "phase": [
+    0.0,
+    0.75
+   ],
+   "bounds": [
+    28,
+    18,
+    94,
+    116
+   ],
+   "height": 98
+  },
+  {
+   "rawBounds": [
+    102,
+    51,
+    393,
+    469
+   ],
+   "rawFeetRootX": 244.5,
+   "rawBottom": 469,
+   "purity": 0.7797,
+   "phase": [
+    0.5,
+    0.75
+   ],
+   "bounds": [
+    26,
+    18,
+    94,
+    116
+   ],
+   "height": 98
+  },
+  {
+   "rawBounds": [
+    115,
+    39,
+    398,
+    458
+   ],
+   "rawFeetRootX": 251.5,
+   "rawBottom": 458,
+   "purity": 0.7797,
+   "phase": [
+    0.25,
+    0.75
+   ],
+   "bounds": [
+    28,
+    18,
+    94,
+    116
+   ],
+   "height": 98
+  },
+  {
+   "rawBounds": [
+    97,
+    39,
+    392,
+    458
+   ],
+   "rawFeetRootX": 244.5,
+   "rawBottom": 458,
+   "purity": 0.7835,
+   "phase": [
+    0.5,
+    0.75
+   ],
+   "bounds": [
+    25,
+    18,
+    94,
+    116
+   ],
+   "height": 98
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/idle-raw2.png",
+  "--target",
+  "creature",
+  "--mode",
+  "idle",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--cell-size",
+  "120",
+  "--fit-scale",
+  "0.85",
+  "--align",
+  "feet",
+  "--shared-scale",
+  "--scale-strategy",
+  "preserve",
+  "--component-mode",
+  "largest",
+  "--max-body-scale-cv",
+  "0.08",
+  "--max-anchor-y-std",
+  "0.05",
+  "--output-dir",
+  "assets/source/yongjun-sans/idle/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

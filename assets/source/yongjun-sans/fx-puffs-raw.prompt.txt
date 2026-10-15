@@ -1,0 +1,13 @@
+# imagegen 2026-10-15 13:04:20
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+
+Pixel art game bullet sprite sheet, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, each object centered in its cell; nothing touches the cell edges. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels, no grid lines.
+
+PIXEL GRID (very important): these are tiny low-resolution pixel sprites enlarged exactly 24 times with nearest neighbour. Every art pixel is one crisp solid 24x24 px square on one global 24 px grid; no anti-aliasing, no soft edges, no detail smaller than 24 px.
+
+TOP ROW (left = frame 1, right = frame 2): a stinky gas puff, 16x16 art pixels (384x384 px): a lumpy brown / greenish-brown smelly cloud with 2-3 flat shades and a darker brown 1-art-pixel outline, with two or three little wavy stink lines (squiggly vertical lines) rising from its top that touch the cloud and belong to the same sprite. Frame 2 is the same puff, same size and position, with the cloud lobes shifted by 1 art pixel and the wavy lines wiggling the other way, so the two frames alternate as a wobble. Clearly gross and smelly, comedic.
+BOTTOM ROW (left = frame 1, right = frame 2): a yellow electric spark, 12x12 art pixels (288x288 px): a bright yellow jagged star burst with a white-hot centre and a thin orange 1-art-pixel outline. Frame 1 is a 4-pointed star; frame 2 has different jagged spikes rotated about 45 degrees, same size and centre, so they flicker.
+
+Style: retro Undertale / Deltarune bullet sprite pixel art, flat colours, crisp square pixels.

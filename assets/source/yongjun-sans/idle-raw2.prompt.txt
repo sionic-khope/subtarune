@@ -1,0 +1,25 @@
+# imagegen 2026-10-15 13:03:30
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/yongjun-sans/ref2-idle.png
+
+Pixel art battle idle sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+
+PIXEL GRID (very important): this is small low-resolution pixel art enlarged exactly 4 times with nearest neighbour. Every art pixel is one crisp solid 4x4 px square on a single global 4 px grid; no detail is smaller than 4 px, no anti-aliasing, no soft edges, no blur. In every 512 px cell the character is about 98 art pixels tall (about 392 px from the top of the hair to the bottom of the slippers) and about 64 art pixels wide, centered horizontally, with the slipper soles on a baseline about 32 px above the bottom of the cell. Nothing touches the cell edges.
+
+Image1 has two parts. LEFT part = his previous battle idle frame: keep this pose, outfit, view and chunky body proportions, but its pixels are too coarse and its face too simple, so do not copy its pixel size. RIGHT part = a detailed close-up of his real face: copy these facial features (narrow eyes with lids, eyebrows, nose, smile with lips and teeth); ignore its dark background, its outline colour and the clothes/straps at the bottom.
+
+The character is Yongjun: a chubby young man with a very wide round face, full puffy cheeks, a short neck, very short black buzz-cut hair forming a solid rounded black cap on top of the head (slightly grey shaved sides above the small ears), a big round belly, short arms and short stubby legs, big head about 40% of the total height. No glasses, no hat, no beard.
+
+SKIN: very pale, fair, almost white porcelain skin (main skin colour about #FFF2EC, soft shadow about #E6D4CF). NOT peach, NOT tan, NOT orange, NOT yellow. His face and hands are clearly whiter than any peach skin tone.
+
+FACE (most important, must stay readable at this small size): the head is about 40 art pixels tall and 40 wide. Draw clear features with 1-art-pixel lines and strong contrast: two short dark eyebrows; two small narrow eyes, each with a dark upper eyelid line, a dark pupil and a tiny white glint; a small nose with 2-3 darker pixels for the nostrils and side; a smiling mouth with a darker lip line and a white row of upper teeth; a faint pink blush shade on the full cheeks. Smug, relaxed, easy-going grin.
+
+Outfit (a cosplay of Sans from Undertale): a light blue hooded zip jacket worn OPEN over the belly, with a thick white fluffy fur trim around the hood (the hood is down, resting behind his neck and shoulders), jacket cuffs and hem darker blue; a plain white T-shirt underneath stretched over the big belly; black shorts with a white vertical stripe on each side; light pastel pink slippers (clearly lighter and softer than the magenta background). BOTH HANDS ARE PUSHED DEEP INTO THE JACKET'S FRONT POCKETS in every frame, so no fingers are visible.
+
+View: a three-quarter view turned toward the viewer's LOWER-LEFT (body rotated about 30-45 degrees to the left so the face, the open jacket and both pockets are visible), looking down-left at enemies below-left of him. Not a flat side profile.
+
+4 frames in reading order (top-left, top-right, bottom-left, bottom-right), same view, same outfit, same grin, hands in pockets in all four: frame 1 neutral standing; frame 2 breathing in, chest and belly raised by 1 art pixel, shoulders up by 1 art pixel; frame 3 neutral standing again (exhale); frame 4 a slight lazy shoulder shrug, both shoulders lifted 2 art pixels and head tilted slightly. Same scale and same head size in every cell, feet rooted at exactly the same positions on the same baseline in every cell.
+
+Style: clean retro 16-bit JRPG / Deltarune battle sprite pixel art, flat limited shades (2-3 tones per colour), dark stepped outlines one art pixel thick, crisp square pixels.

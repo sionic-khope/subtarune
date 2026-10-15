@@ -1,0 +1,69 @@
+{
+ "file": "assets/enemies/yongjun-sans-hug.png",
+ "size": [
+  90,
+  107
+ ],
+ "frames": 1,
+ "bounds": [
+  1,
+  2,
+  87,
+  104
+ ],
+ "pivot": [
+  61,
+  104
+ ],
+ "drawScale": 1,
+ "pivotMeaning": "Yongjun's feet root (centre of his slippers, bottom row)",
+ "rawBounds": [
+  392,
+  117,
+  1056,
+  910
+ ],
+ "yongjunHeight": 98,
+ "scalePolicy": "Yongjun raw height / TARGET_H (same on-screen height as idle)",
+ "rawPxPerGamePx": 7.73469387755102,
+ "sampling": "block vote (see process2.py)",
+ "purity": 0.8234,
+ "phase": [
+  0.5,
+  0.25
+ ],
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 5182,
+ "droppedSpecks": 18,
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/hug-raw3.png",
+  "--target",
+  "asset",
+  "--mode",
+  "single",
+  "--rows",
+  "1",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.84",
+  "--align",
+  "center",
+  "--component-mode",
+  "largest",
+  "--output-dir",
+  "assets/source/yongjun-sans/hug/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

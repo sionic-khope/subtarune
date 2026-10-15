@@ -1,0 +1,12 @@
+# imagegen 2026-10-15 13:04:10
+# endpoint: images/generations
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+
+Pixel art game effect sprite: TWO animation frames of a horizontal lightning bolt on one 1536x1024 canvas, stacked vertically in two invisible equal 1536x512 rows: frame 1 centered in the top row, frame 2 centered in the bottom row; nothing touches the row edges. Solid pure #FF00FF magenta background everywhere, no gradients, no shadows, no glow haze, no text, no labels, no grid lines.
+
+PIXEL GRID (very important): low-resolution pixel art enlarged exactly 12 times with nearest neighbour. Every art pixel is one crisp solid 12x12 px square on one global 12 px grid; no anti-aliasing, no soft glow, no detail smaller than 12 px.
+
+Each bolt is 96 art pixels long and about 20 art pixels tall (about 1152x240 px), running horizontally left to right: a jagged zig-zag electric bolt with a white-hot core 2 art pixels thick, bright yellow around the core, and a thin orange 1-art-pixel outer edge, with 2-3 short forked side branches. Its left end and right end sit at the same height, at the vertical middle of its row. Frame 2 has a different zig-zag path with the same length and thickness, so the two frames flicker.
+
+Style: retro Undertale / Deltarune effect pixel art, flat colours, crisp square pixels.

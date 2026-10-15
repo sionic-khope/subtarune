@@ -1,0 +1,74 @@
+{
+ "file": "assets/props/yongjun-tear.png",
+ "size": [
+  14,
+  18
+ ],
+ "frames": 1,
+ "frame": [
+  14,
+  18
+ ],
+ "layout": "side by side, left to right",
+ "anchor": "center",
+ "rawPxPerGamePx": 26.611,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 356,
+ "droppedSpecks": 0,
+ "frameInfo": [
+  {
+   "purity": 0.8179,
+   "phase": [
+    0.75,
+    0.0
+   ],
+   "rawPxPerGamePx": 26.611,
+   "rawBounds": [
+    105,
+    272,
+    407,
+    751
+   ],
+   "bounds": [
+    1,
+    0,
+    12,
+    18
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fx-drops-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "1",
+  "--cols",
+  "3",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-tear/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

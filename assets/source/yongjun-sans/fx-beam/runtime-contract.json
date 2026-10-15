@@ -1,0 +1,94 @@
+{
+ "file": "assets/props/yongjun-stench-beam.png",
+ "size": [
+  128,
+  56
+ ],
+ "frames": 2,
+ "frame": [
+  128,
+  28
+ ],
+ "layout": "stacked, top to bottom",
+ "anchor": "ends",
+ "rawPxPerGamePx": 11.109,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 3848,
+ "droppedSpecks": 0,
+ "frameInfo": [
+  {
+   "purity": 0.7214,
+   "phase": [
+    0.0,
+    0.5
+   ],
+   "rawPxPerGamePx": 11.109,
+   "rawBounds": [
+    57,
+    166,
+    1479,
+    403
+   ],
+   "bounds": [
+    0,
+    3,
+    128,
+    24
+   ]
+  },
+  {
+   "purity": 0.7236,
+   "phase": [
+    0.0,
+    0.25
+   ],
+   "rawPxPerGamePx": 11.109,
+   "rawBounds": [
+    57,
+    124,
+    1479,
+    365
+   ],
+   "bounds": [
+    0,
+    3,
+    128,
+    25
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fx-beam-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "2",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-beam/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

@@ -1,0 +1,74 @@
+{
+ "file": "assets/enemies/yongjun-sans-roll.png",
+ "size": [
+  64,
+  64
+ ],
+ "frames": 1,
+ "frame": [
+  64,
+  64
+ ],
+ "layout": "side by side, left to right",
+ "anchor": "center",
+ "rawPxPerGamePx": 7.919,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 1524,
+ "droppedSpecks": 5,
+ "frameInfo": [
+  {
+   "purity": 0.8326,
+   "phase": [
+    0.75,
+    0.75
+   ],
+   "rawPxPerGamePx": 7.919,
+   "rawBounds": [
+    292,
+    269,
+    745,
+    760
+   ],
+   "bounds": [
+    3,
+    1,
+    60,
+    63
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/roll-raw2.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "1",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-roll/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

@@ -1,0 +1,94 @@
+{
+ "file": "assets/props/yongjun-stench.png",
+ "size": [
+  32,
+  16
+ ],
+ "frames": 2,
+ "frame": [
+  16,
+  16
+ ],
+ "layout": "side by side, left to right",
+ "anchor": "center",
+ "rawPxPerGamePx": 41.812,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 2936,
+ "droppedSpecks": 0,
+ "frameInfo": [
+  {
+   "purity": 0.6403,
+   "phase": [
+    0.25,
+    0.75
+   ],
+   "rawPxPerGamePx": 41.812,
+   "rawBounds": [
+    84,
+    216,
+    711,
+    885
+   ],
+   "bounds": [
+    0,
+    0,
+    15,
+    15
+   ]
+  },
+  {
+   "purity": 0.6603,
+   "phase": [
+    0.5,
+    0.5
+   ],
+   "rawPxPerGamePx": 41.812,
+   "rawBounds": [
+    57,
+    216,
+    692,
+    885
+   ],
+   "bounds": [
+    0,
+    0,
+    15,
+    16
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fx-stench-raw2.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "1",
+  "--cols",
+  "2",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-stench/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

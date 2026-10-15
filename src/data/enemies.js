@@ -631,16 +631,20 @@ export const ENEMIES = {
   //   패턴 여섯은 차례대로(src/battle/yongjun-patterns.js), 턴마다 말풍선은 패턴 설정 speak(사용자 “한턴한턴마다 대사 적절하게 넣어줘”). 그림은 gpt-image(assets/source/yongjun-sans)
   yongjun_sans: {
     name: '박용준', hp: 100, damage: 15, money: 0, boss: true, support: 'yongjun_sans', voice: 'yongjun',
+    // v2(BUILD464 사용자 “너무 큰거같은데 … 얼굴 디테일이 죽은듯, 흰색피부로”): 120 셀, 키 98, 1배 그대로(실행 중 축소 없음) — assets/source/yongjun-sans/README.md
     sheet: { src: 'assets/enemies/yongjun-sans-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 3, px: 1 },
     actions: {
       cough: { src: 'assets/enemies/yongjun-sans-cough.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
       cry: { src: 'assets/enemies/yongjun-sans-cry.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
       dark: { src: 'assets/enemies/yongjun-sans-dark.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1 },
     },
-    pivot: [80, 156], scale: 0.9, dx: -10, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    pivot: [60, 116], scale: 1, dx: 6, dy: 34, board: [240, 160], idle: { swayX: 0, swayY: 0 },
     projectiles: {
       idle: 'assets/enemies/yongjun-sans-battle-idle.png', cough: 'assets/enemies/yongjun-sans-cough.png', cry: 'assets/enemies/yongjun-sans-cry.png',
       roll: 'assets/enemies/yongjun-sans-roll.png', hug: 'assets/enemies/yongjun-sans-hug.png', fish: 'assets/props/yongjun-fish.png',
+      // 패턴 효과 gpt 도트(BUILD464 사용자 “공격패턴 gpt 도트 잘 쓰라니까”) — 오프닝 냄새 블래스터·광선 포함
+      puff: 'assets/props/yongjun-stench.png', spit: 'assets/props/yongjun-spit.png', tear: 'assets/props/yongjun-tear.png', crumb: 'assets/props/yongjun-crumb.png',
+      spark: 'assets/props/yongjun-spark.png', bolt: 'assets/props/yongjun-bolt.png', blaster: 'assets/props/yongjun-blaster.png', beam: 'assets/props/yongjun-stench-beam.png',
     },
     patterns: [
       { type: 'yongjun_stench', speak: '제 냄새 한번 맡아 보시죠 형님들' },
@@ -648,7 +652,8 @@ export const ENEMIES = {
       { type: 'yongjun_roll', speak: '뚱땡이는 굴러야 제맛이죠 헤헤' },
       { type: 'yongjun_cry', speak: '엄마... 왜 도망갔어...' },
       { type: 'yongjun_insults', speak: '형님들이 저한테 한 말 그대로 돌려드릴게요' },
-      { type: 'yongjun_hug', speak: '저도 여자친구 생겼습니다 헤헤' },
+      // 말풍선 없이 바로: 여자가 갑자기 안으면 상자 위에 “우오오오옥!!”(BUILD464 사용자 “여자친구생겼습니다가 아니고 … 전기 우오오오옥!! 하면서”)
+      { type: 'yongjun_hug', silent: true },
     ],
     lines: { appear: '* 박용준이 주머니에 손을 넣고 서 있다.',
       idle: ['* 박용준이 주머니에 손을 넣고 헤헤 웃는다.', '* 생선 비린내가 진동한다.', '* 보라꽃 냄새가 아직 남아 있다.', '* 억빠맨이 꽃을 먹인 걸 후회하는 것 같다.', '* 박용준의 눈이 보라색으로 번뜩인다.', '* 끔찍한 시간이 계속된다.'],

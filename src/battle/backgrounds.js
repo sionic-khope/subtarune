@@ -172,3 +172,22 @@ registerBattleBg('baron_nest', (ctx, battle) => {
   }
   ctx.drawImage(nestCache, 0, 0);
 });
+
+// 마이야르호 라운지(박용준 히든 보스, BUILD464 사용자 “전투 맵 배경에 나무 맵 깔려있고 상점도 보여야함”): 라운지 나무 바닥 타일(M) + 위쪽 벽 띠 + 용준이 나온 상점(필드와 같은 1배, 문이 용준 발 바로 뒤).
+//   그림은 맵이 미리 적재한 propImages(maillard_lounge_walls·yongjun-shop). 인물이 묻히지 않게 살짝 어둡게. 전투마다 한 번 그려 캐시
+export const LOUNGE_BG = Object.freeze({ walls: 'assets/props/maillard_lounge_walls.png', shop: 'assets/props/yongjun-shop.png', wallsCrop: [800, 20, 480, 140], shopBehindFeet: 16, shopX: -18, dim: 0.32 });
+let loungeCache = null, loungeKey = '';
+registerBattleBg('maillard_lounge', (ctx, battle) => {
+  const imgs = battle.game?.propImages || {}, walls = imgs[LOUNGE_BG.walls], shop = imgs[LOUNGE_BG.shop];
+  const boss = battle.enemies?.find(enemy => enemy.def?.support === 'yongjun_sans') || battle.enemies?.[0];
+  const feet = [boss?.x ?? 396, boss?.y ?? 196], key = `${!!walls}:${!!shop}:${feet}`;
+  if (!loungeCache || loungeKey !== key) {
+    loungeKey = key; loungeCache = makeCanvas(480, 360);
+    const c = loungeCache.getContext('2d'); c.imageSmoothingEnabled = false;
+    c.fillStyle = c.createPattern(tileCanvas(getTile('M')), 'repeat'); c.fillRect(0, 0, 480, 360);
+    if (walls) { const [sx, sy, sw, sh] = LOUNGE_BG.wallsCrop; c.drawImage(walls, sx, sy, sw, sh, 0, 0, sw, sh); }
+    if (shop) c.drawImage(shop, Math.round(feet[0] + LOUNGE_BG.shopX - shop.width / 2), Math.round(feet[1] - LOUNGE_BG.shopBehindFeet - shop.height));
+    c.fillStyle = `rgba(0,0,0,${LOUNGE_BG.dim})`; c.fillRect(0, 0, 480, 360);
+  }
+  ctx.drawImage(loungeCache, 0, 0);
+});

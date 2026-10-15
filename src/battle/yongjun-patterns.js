@@ -11,20 +11,37 @@
 //     yongjun_insults: “냄새”·“고아”·“돼지”(일행이 놀린 말, 컷신 원문)가 가장자리에서 소울 쪽으로 날아온다(글자가 깜빡이고 점선 0.45초) → 맞은편 벽에서 두 글자로 쪼개져 되튄다
 //     yongjun_hug:    예쁜 여자가 용준을 안은 흰 그림이 가운데에서 부르르 떨다가 번개 여섯 줄을 뿜는다(번개 줄 점선 0.5초) → 줄 사이로. 번개 줄은 매번 반 칸씩 돌아가 방금 안전하던 자리가 다음 줄이 된다
 //                     + 방전마다 불똥 셋이 상자 안을 튕겨 다닌다
+//   BUILD464 사용자: “공격패턴 gpt 도트 잘 쓰라니까” → 악취·침·눈물·부스러기·불똥·번개·블래스터·광선은 gpt 도트 그림(assets/props/yongjun-*.png, 적 def.projectiles), 그림이 없을 때만 코드 그림.
+//     yongjun_blaster: 오프닝 첫 강공격(“가스터블래스터처럼 냄새블래스터”) — 용준 머리 블래스터가 상자 밖으로 날아와(0.3초) 입을 닫고 떨며 겨눈다(0.45초, 광선 줄 점선)
+//                     → 입을 벌려 갈색 냄새 광선(0.5초) → 뒤로 빠진다. 십자(소울 줄·칸 + 옆 줄) → X(네 모서리에서 소울로) → 십자 → 큰 블래스터 둘(위·아래 띠, 가운데만 안전)
+//     yongjun_hug(BUILD464 “여자가 갑자기 안으니까 전기 우오오오옥!!”): 흰 용준 혼자 → 단발 여자가 와락 안는다(크게 튀었다 줄어듦) + 상자 위 “우오오오옥!!” → 부르르 → 번개
 //   상자 안 캐릭터 그림은 whiteSprite(흰/검 2톤). 시트 칸은 투명 여백을 잘라 쓴다. 시간 진행은 전부 t 기준(주사율 무관, patterns-refresh-rate.test).
 import { whiteSprite } from './youngcle-patterns.js';
 
 const TAU = Math.PI * 2;
-export const YONGJUN_SHEETS = Object.freeze({ idle: [2, 2], cough: [2, 2], cry: [2, 2], roll: [1, 1], hug: [1, 1], fish: [1, 1] });
+export const YONGJUN_SHEETS = Object.freeze({ idle: [2, 2], cough: [2, 2], cry: [2, 2], roll: [1, 1], hug: [1, 1], fish: [1, 1], puff: [2, 1], spit: [1, 1], tear: [1, 1], crumb: [1, 1], spark: [2, 1], bolt: [1, 2], blaster: [2, 1], beam: [1, 2] });
 export const STENCH = Object.freeze({ duration: 7.0, grow: 0.6, h: 54, bodyR: 15, arms: 3, emitEvery: 0.12, speed: 76, spin: 1.25, flipEvery: 2.6, puffR: 6, ringFirst: 1.7, ringEvery: 2.3, ringN: 16, ringGap: 4, ringSpeed: 66, ringWarn: 0.5, ringShift: 0.9, stopAt: 6.2 });
 export const FISH = Object.freeze({ duration: 7.4, first: 0.35, every: 1.55, eat: 0.5, warn: 0.45, pairGap: 0.42, speed: 250, w: 30, h: 14, spit: 6, spitSpread: 0.85, spitSpeed: [100, 165], spitG: 230, spitR: 3.5, mouth: [-18, -54], endBy: 6.3 });
 export const ROLL = Object.freeze({ duration: 7.2, first: 0.35, dashes: 7, warn: 0.5, speed: [210, 310], r: 17, size: 40, spin: 13, rest: 0.12, minLen: 70, debris: 5, debrisSpeed: 92, debrisR: 3.5 });
 export const CRY = Object.freeze({ duration: 7.4, first: 0.5, every: 0.92, warn: 0.5, cols: 11, gap: 2, vy: 160, dropR: 7, splashVx: 64, splashVy: -118, splashG: 280, splashR: 3, endBy: 6.2, fps: 5 });
 export const INSULT = Object.freeze({ duration: 7.2, first: 0.4, every: 0.72, warn: 0.45, speed: 225, shardSpeed: 120, shardTurn: 0.62, shardLife: 1.5, font: 'bold 20px Galmuri11, "Apple SD Gothic Neo", sans-serif', h: 20, endBy: 6.2 });
 export const INSULT_WORDS = Object.freeze(['냄새', '고아', '돼지']);
-export const HUG = Object.freeze({ duration: 7.4, appear: 0.7, h: 66, threshold: 0.22, bodyR: 21, first: 1.15, every: 1.15, warn: 0.5, zap: 0.32, rays: 6, rayW: 10, sparks: 3, sparkSpeed: 115, sparkR: 4, sparkLife: 2.2, endBy: 6.4 });
+export const HUG = Object.freeze({ duration: 7.4, alone: 0.45, pop: 0.16, h: 66, aloneH: 52, threshold: 0.22, bodyR: 21, first: 1.25, every: 1.15, warn: 0.5, zap: 0.32, rays: 6, rayW: 10, sparks: 3, sparkSpeed: 115, sparkR: 4, sparkLife: 2.2, endBy: 6.4,
+  shout: '우오오오옥!!', shoutFor: 1.7, shoutFont: 'bold 18px Galmuri11, "Apple SD Gothic Neo", sans-serif' });
+export const BLASTER = Object.freeze({ duration: 7.2, flyIn: 0.3, charge: 0.45, fire: 0.5, leave: 0.35, size: 46, beamW: 16, bigW: 36, bigScale: 1.6, reach: 560, standOff: 34, sideGap: 46,
+  rounds: Object.freeze([Object.freeze({ at: 0.15, kind: 'cross' }), Object.freeze({ at: 1.75, kind: 'x' }), Object.freeze({ at: 3.35, kind: 'cross', flip: true }), Object.freeze({ at: 4.95, kind: 'big' })]),
+  // 원작 obj_gasterblaster: 등장 segapower(0.8, 1.2배), 발사 rainbowbeam_1(0.8) + a_gigatalk(0.6) 겹침(1.2배), 시작 눈 번쩍 cinematiccut(0.8, 1.4배)
+  chargeSfx: 'sans_blaster_charge', fireSfx: 'sans_blaster_fire', fireLayer: 'sans_blaster_gigatalk', eyeSfx: 'sans_eye', rate: 1.2, eyeRate: 1.4 });
 
 const blink = (self, hz = 8) => Math.floor(self.age * hz) % 2 === 0;
+/** gpt 도트 효과 그림(시트 칸 frame)을 (x, y) 가운데에 너비 w 로(높이는 그림 비율, h 를 주면 그 높이). 그림이 없으면 false → 코드 그림 */
+function drawArt(ctx, img, key, frame, x, y, w, h = null, rot = 0) {
+  const cell = sheetCell(img, key, frame); if (!cell || !cell.width) return false;
+  const dh = h ?? w * cell.height / cell.width;
+  ctx.save(); ctx.translate(Math.round(x), Math.round(y)); if (rot) ctx.rotate(rot); ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(cell, -Math.round(w / 2), -Math.round(dh / 2), Math.round(w), Math.round(dh)); ctx.restore();
+  return true;
+}
 /** 계속 움직일 탄(몸·공): 엔진의 emit 은 Bullet 을 돌려준다. 돌려주지 않는 검사용 api 면 설정 객체를 대신 붙잡는다 */
 const keep = (api, o) => { const made = api.emit(o); return made && typeof made === 'object' ? made : o; };
 /** 상자 안 위협: 상자를 벗어나면 지우고, 상자 테두리 안쪽에서 잘라 그린다(일행·HP 띠 위로 새어 나가지 않게) */
@@ -49,6 +66,8 @@ const textWidth = (font, text) => {
 
 /** 시트의 한 칸을 투명 여백을 잘라 캔버스로(그림마다 한 번). 문서가 없거나 그림이 없으면 null */
 const CELLS = new WeakMap();
+/** 여백을 자르지 않는 그림: 블래스터는 두 칸이 머리 기준으로 정렬돼 있어 자르면 입을 벌릴 때 머리가 튄다 */
+const NO_TRIM = new Set(['blaster']);
 export function sheetCell(img, key, index = 0) {
   if (!img || !img.width || typeof document === 'undefined') return null;
   let list = CELLS.get(img); if (!list) { list = []; CELLS.set(img, list); }
@@ -63,7 +82,7 @@ export function sheetCell(img, key, index = 0) {
     const data = g.getImageData(0, 0, fw, fh).data;
     let x0 = fw, y0 = fh, x1 = -1, y1 = -1;
     for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) if (data[(y * fw + x) * 4 + 3] > 16) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-    if (x1 >= x0 && y1 >= y0 && (x1 - x0 + 1 < fw || y1 - y0 + 1 < fh)) {
+    if (!NO_TRIM.has(key) && x1 >= x0 && y1 >= y0 && (x1 - x0 + 1 < fw || y1 - y0 + 1 < fh)) {
       const trim = document.createElement('canvas'); trim.width = x1 - x0 + 1; trim.height = y1 - y0 + 1;
       const t = trim.getContext('2d'); t.imageSmoothingEnabled = false; t.drawImage(cell, x0, y0, trim.width, trim.height, 0, 0, trim.width, trim.height);
       out = trim;
@@ -103,7 +122,8 @@ function wallDistance(b, inset, px, py, dx, dy) {
 
 // ── 그림 ──
 /** 갈색 악취 구름: 진갈색 테두리 + 갈색 몸 + 연한 점, 꼬불한 냄새 줄 */
-function drawPuff(ctx, self) {
+function drawPuff(ctx, self, img) {
+  if (drawArt(ctx, img, 'puff', Math.floor(self.age * 6 + self.seed) % 2, self.x, self.y, self.r * 2 + 6)) return;
   const x = Math.round(self.x), y = Math.round(self.y), r = self.r;
   ctx.fillStyle = '#3e2412'; ctx.beginPath(); ctx.arc(x, y, r + 1, 0, TAU); ctx.fill();
   ctx.fillStyle = '#8a5a2b'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
@@ -124,15 +144,17 @@ function drawFish(ctx, self, img) {
   ctx.restore();
 }
 /** 침: 흰 물방울 + 파란 기 도는 반짝 */
-function drawSpit(ctx, self) {
+function drawSpit(ctx, self, img) {
+  if (drawArt(ctx, img, 'spit', 0, self.x, self.y, self.r * 2 + 2)) return;
   const x = Math.round(self.x), y = Math.round(self.y), r = self.r;
   ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
   ctx.fillStyle = '#bfe8ff'; ctx.fillRect(x - 1, y - 1, 1, 1);
 }
 /** 눈물: 위가 뾰족한 흰 물방울 + 연파랑 안쪽 */
-function drawTear(ctx, self, alpha = 1) {
+function drawTear(ctx, self, alpha = 1, img = null) {
   const x = Math.round(self.x), y = Math.round(self.y), r = self.r;
   ctx.save(); ctx.globalAlpha *= alpha;
+  if (drawArt(ctx, img, 'tear', 0, x, y, r * 2 + 2)) { ctx.restore(); return; }
   ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y + 2, r, 0, TAU); ctx.fill();
   ctx.beginPath(); ctx.moveTo(x - r + 1, y + 1); ctx.lineTo(x, y - r - 4); ctx.lineTo(x + r - 1, y + 1); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#9fd8ff'; ctx.fillRect(x - 2, y + 1, 3, 3);
@@ -146,7 +168,13 @@ function drawWord(ctx, self, alpha = 1) {
   ctx.restore();
 }
 /** 번개: 가운데에서 바깥으로 지그재그(0.05초마다 모양이 바뀐다) */
-function drawBolt(ctx, self) {
+function drawBolt(ctx, self, img) {
+  const cell = sheetCell(img, 'bolt', Math.floor(self.age * 20) % 2);
+  if (cell && cell.width) {
+    ctx.save(); ctx.translate(Math.round(self.x0), Math.round(self.y0)); ctx.rotate(self.angle); ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(cell, 0, -9, Math.round(Math.hypot(self.x1 - self.x0, self.y1 - self.y0)), 18); ctx.restore();
+    return;
+  }
   const n = 9, seed = Math.floor(self.age * 20) + self.seed;
   const pts = [];
   for (let k = 0; k <= n; k++) {
@@ -161,7 +189,8 @@ function drawBolt(ctx, self) {
   }
   ctx.restore();
 }
-function drawSpark(ctx, self) {
+function drawSpark(ctx, self, img) {
+  if (drawArt(ctx, img, 'spark', Math.floor(self.age * 12) % 2, self.x, self.y, 12)) return;
   const x = Math.round(self.x), y = Math.round(self.y), f = Math.floor(self.age * 12) % 2;
   ctx.fillStyle = '#ffe95c'; ctx.fillRect(x - 4, y - 1, 9, 3); ctx.fillRect(x - 1, y - 4, 3, 9);
   ctx.fillStyle = '#fff'; ctx.fillRect(x - 1 + f, y - 1, 2, 2);
@@ -196,7 +225,7 @@ function stench(o = {}) {
       const a0 = angleAt(nextEmit);
       for (let i = 0; i < C.arms; i++) {
         const a = a0 + i * TAU / C.arms, ux = Math.cos(a), uy = Math.sin(a);
-        api.emit({ x: cx + ux * C.bodyR, y: cy + uy * C.bodyR, r: C.puffR, kind: 'white', shape: 'stench', vx: ux * C.speed, vy: uy * C.speed, life: 3.2, seed: seed++, ...inside(b, drawPuff) });
+        api.emit({ x: cx + ux * C.bodyR, y: cy + uy * C.bodyR, r: C.puffR, kind: 'white', shape: 'stench', vx: ux * C.speed, vy: uy * C.speed, life: 3.2, seed: seed++, ...inside(b, (ctx, self) => drawPuff(ctx, self, api.images?.puff)) });
       }
       nextEmit += C.emitEvery;
     }
@@ -223,7 +252,7 @@ function stench(o = {}) {
         const offset = ((i - gapIndex) % C.ringN + C.ringN) % C.ringN;
         if (offset < C.ringGap / 2 || offset > C.ringN - C.ringGap / 2 - 0.01) continue;
         const a = i * step, ux = Math.cos(a), uy = Math.sin(a);
-        api.emit({ x: cx + ux * C.bodyR, y: cy + uy * C.bodyR, r: C.puffR + 1, kind: 'white', shape: 'stench', vx: ux * C.ringSpeed, vy: uy * C.ringSpeed, life: 3.4, seed: seed++, ...inside(b, drawPuff) });
+        api.emit({ x: cx + ux * C.bodyR, y: cy + uy * C.bodyR, r: C.puffR + 1, kind: 'white', shape: 'stench', vx: ux * C.ringSpeed, vy: uy * C.ringSpeed, life: 3.4, seed: seed++, ...inside(b, (ctx, self) => drawPuff(ctx, self, api.images?.puff)) });
       }
     }
   } };
@@ -263,7 +292,7 @@ function fishCough(o = {}) {
         drawShape(ctx, self) { drawFish(ctx, self, sheetCell(api.images?.fish, 'fish', 0) || api.images?.fish); } });
       for (let k = 0; k < C.spit; k++) {
         const spread = (k / (C.spit - 1) - 0.5) * 2 * C.spitSpread, speed = C.spitSpeed[0] + (C.spitSpeed[1] - C.spitSpeed[0]) * ((k * 37) % C.spit) / Math.max(1, C.spit - 1);
-        api.emit({ x: e.mx, y: e.my, r: C.spitR, kind: 'white', shape: 'spit', vx: Math.cos(e.a + spread) * speed, vy: Math.sin(e.a + spread) * speed, ay: C.spitG, free: true, life: 2.2, out: passedBox, drawShape: drawSpit });
+        api.emit({ x: e.mx, y: e.my, r: C.spitR, kind: 'white', shape: 'spit', vx: Math.cos(e.a + spread) * speed, vy: Math.sin(e.a + spread) * speed, ay: C.spitG, free: true, life: 2.2, out: passedBox, drawShape: (ctx, self) => drawSpit(ctx, self, api.images?.spit) });
       }
     }
   } };
@@ -314,7 +343,7 @@ function roll(o = {}) {
         const back = Math.atan2(-seg.dy, -seg.dx);
         for (let k = 0; k < C.debris; k++) {
           const a = back + (k / (C.debris - 1) - 0.5) * 2.2;
-          api.emit({ x: seg.x1, y: seg.y1, r: C.debrisR, kind: 'white', shape: 'crumb', vx: Math.cos(a) * C.debrisSpeed, vy: Math.sin(a) * C.debrisSpeed, life: 1.6, ...inside(b, drawSpit) });
+          api.emit({ x: seg.x1, y: seg.y1, r: C.debrisR, kind: 'white', shape: 'crumb', vx: Math.cos(a) * C.debrisSpeed, vy: Math.sin(a) * C.debrisSpeed, life: 1.6, ...inside(b, (ctx, self) => { if (!drawArt(ctx, api.images?.crumb, 'crumb', 0, self.x, self.y, 10, null, self.age * 6)) drawSpit(ctx, self); }) });
         }
         nextAt = t + C.rest;
       }
@@ -339,7 +368,7 @@ function cry(o = {}) {
       do { gap = Math.floor(api.rnd() * (C.cols - C.gap + 1)); } while (lastGap >= 0 && Math.abs(gap - lastGap) < 3 && (row++ < 50));
       lastGap = gap;
       const cols = [...Array(C.cols).keys()].filter(i => i < gap || i >= gap + C.gap);
-      for (const i of cols) api.emit({ x: b.x + spacing * (i + 0.5), y: b.y + 8, r: C.dropR - 2, harmless: true, life: C.warn, shape: 'tear_mark', drawShape(ctx, self) { if (blink(self, 9)) drawTear(ctx, self, 0.55); } });
+      for (const i of cols) api.emit({ x: b.x + spacing * (i + 0.5), y: b.y + 8, r: C.dropR - 2, harmless: true, life: C.warn, shape: 'tear_mark', drawShape(ctx, self) { if (blink(self, 9)) drawTear(ctx, self, 0.55, api.images?.tear); } });
       rows.push({ at: next + C.warn, cols });
       next += C.every;
     }
@@ -351,9 +380,9 @@ function cry(o = {}) {
             if (self.y < floorY || self.done) return;
             self.done = true; self.life = Math.min(self.life, self.age + 0.01);
             if (!self.splash) return;
-            for (const side of [-1, 1]) api.emit({ x: self.x, y: floorY, r: C.splashR, kind: 'white', shape: 'splash', vx: side * C.splashVx, vy: C.splashVy, ay: C.splashG, life: 0.95, ...inside(b, drawSpit) });
+            for (const side of [-1, 1]) api.emit({ x: self.x, y: floorY, r: C.splashR, kind: 'white', shape: 'splash', vx: side * C.splashVx, vy: C.splashVy, ay: C.splashG, life: 0.95, ...inside(b, (ctx, s2) => drawSpit(ctx, s2, api.images?.spit)) });
           },
-          ...inside(b, (ctx, self) => drawTear(ctx, self)) });
+          ...inside(b, (ctx, self) => drawTear(ctx, self, 1, api.images?.tear)) });
       });
     }
   } };
@@ -380,7 +409,7 @@ function insults(o = {}) {
       next += C.every;
     }
     while (throws.length && throws[0].at <= t) {
-      const q = throws.shift(); api.sfx?.('heavyswing', { volume: 0.45 });
+      const q = throws.shift(); api.sfx?.('sans_bone', { volume: 0.6 });
       api.emit({ x: q.start[0], y: q.start[1], r: 0, kind: 'white', shape: 'word', text: q.text, vx: q.dx * C.speed, vy: q.dy * C.speed, free: true, life: q.dist / C.speed + 0.02,
         hitShape(self, soul) { return Math.abs(soul.x - self.x) <= q.w / 2 + soul.r - 3 && Math.abs(soul.y - self.y) <= C.h / 2 + soul.r - 4; },
         steer(self) {
@@ -399,10 +428,10 @@ function insults(o = {}) {
   } };
 }
 
-/** 6. 예쁜 여자가 안은 용준이 부르르 떨다가 번개 여섯 줄(반 칸씩 돌아간다) + 튕기는 불똥 */
+/** 6. 흰 용준 혼자 → 단발 여자가 갑자기 와락 안는다 + “우오오오옥!!” → 부르르 떨다가 번개 여섯 줄(반 칸씩 돌아간다) + 튕기는 불똥 */
 function hugShock(o = {}) {
   const C = { ...HUG, ...o };
-  let body = null, next = C.first, k = 0;
+  let body = null, next = C.first, k = 0, hugged = false;
   const zaps = [];
   return { duration: C.duration, update(t, dt, api) {
     const b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
@@ -411,10 +440,21 @@ function hugShock(o = {}) {
       clearCenter(api, cx, cy, C.bodyR);
       body = keep(api, { x: cx, y: cy, r: C.bodyR, kind: 'white', shape: 'yongjun_hug', life: C.duration + 0.05, charge: 0,
         out() { return this.age >= this.life; },
-        hitShape(self, soul) { return self.age >= C.appear && Math.hypot(soul.x - self.x, soul.y - self.y) <= C.bodyR + soul.r - 3; },
+        hitShape(self, soul) { return self.age >= C.alone + C.pop && Math.hypot(soul.x - self.x, soul.y - self.y) <= C.bodyR + soul.r - 3; },
         drawShape(ctx, self) {
-          const amp = 1 + self.charge * 3, jx = Math.sin(self.age * 70) * amp, jy = Math.cos(self.age * 55) * amp * 0.5;
-          drawWhite(ctx, sheetCell(api.images?.hug, 'hug', 0) || api.images?.hug, cx + jx, cy + jy, C.h, { alpha: clamp(self.age / C.appear, 0, 1), threshold: C.threshold });
+          if (self.age < C.alone) { drawWhite(ctx, sheetCell(api.images?.idle, 'idle', 0) || api.images?.idle, cx, cy, C.aloneH, { alpha: clamp(self.age / 0.2, 0, 1) }); return; }
+          const pop = clamp((self.age - C.alone) / C.pop, 0, 1), amp = 1 + self.charge * 3, jx = Math.sin(self.age * 70) * amp, jy = Math.cos(self.age * 55) * amp * 0.5;
+          drawWhite(ctx, sheetCell(api.images?.hug, 'hug', 0) || api.images?.hug, cx + jx, cy + jy, C.h, { scale: 1.3 - 0.3 * pop, threshold: C.threshold });
+        } });
+    }
+    if (!hugged && t >= C.alone) {
+      hugged = true; api.sfx?.('impact', { volume: 0.5 });
+      api.emit({ x: cx, y: b.y + 16, r: 0, harmless: true, life: C.shoutFor, shape: 'shout',
+        drawShape(ctx, self) {
+          const sx = Math.round(self.x + Math.sin(self.age * 60) * 2), sy = Math.round(self.y + Math.cos(self.age * 47) * 1.5);
+          ctx.save(); ctx.font = C.shoutFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.strokeText(C.shout, sx, sy); ctx.fillStyle = '#ffe95c'; ctx.fillText(C.shout, sx, sy);
+          ctx.restore();
         } });
     }
     body.charge = 0;
@@ -440,14 +480,89 @@ function hugShock(o = {}) {
         api.emit({ x: cx, y: cy, r: 0, kind: 'white', shape: 'bolt', life: C.zap, angle: a, seed: Math.round(a * 100),
           x0: cx + ux * C.bodyR, y0: cy + uy * C.bodyR, x1: cx + ux * len, y1: cy + uy * len,
           hitShape(self, soul) { return segDist(soul.x, soul.y, self.x0, self.y0, self.x1, self.y1) <= C.rayW / 2 + soul.r - 2; },
-          drawShape(ctx, self) { ctx.save(); ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.clip(); drawBolt(ctx, self); ctx.restore(); } });
+          drawShape(ctx, self) { ctx.save(); ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.clip(); drawBolt(ctx, self, api.images?.bolt); ctx.restore(); } });
       }
       for (let s = 0; s < C.sparks; s++) {
         const a = z.rays[s * 2 % z.rays.length] + Math.PI / C.rays;
-        api.emit({ x: cx + Math.cos(a) * (C.bodyR + 6), y: cy + Math.sin(a) * (C.bodyR + 6), r: C.sparkR, kind: 'white', shape: 'spark', vx: Math.cos(a) * C.sparkSpeed, vy: Math.sin(a) * C.sparkSpeed, bounce: true, life: C.sparkLife, ...inside(b, drawSpark) });
+        api.emit({ x: cx + Math.cos(a) * (C.bodyR + 6), y: cy + Math.sin(a) * (C.bodyR + 6), r: C.sparkR, kind: 'white', shape: 'spark', vx: Math.cos(a) * C.sparkSpeed, vy: Math.sin(a) * C.sparkSpeed, bounce: true, life: C.sparkLife, ...inside(b, (ctx, s2) => drawSpark(ctx, s2, api.images?.spark)) });
       }
     }
   } };
 }
 
-export const YONGJUN_PATTERNS = { yongjun_stench: stench, yongjun_fish: fishCough, yongjun_roll: roll, yongjun_cry: cry, yongjun_insults: insults, yongjun_hug: hugShock };
+/** 점 (px, py) 에서 방향 (ux, uy) 로 간 광선이 상자를 빠져나가는 거리(상자 반대편 벽까지만 그린다 — 일행·HP 띠를 덮지 않게) */
+function rayExit(b, px, py, ux, uy) {
+  let t0 = 0, t1 = Infinity;
+  for (const [p, u, lo, hi] of [[px, ux, b.x, b.x + b.w], [py, uy, b.y, b.y + b.h]]) {
+    if (Math.abs(u) < 1e-6) { if (p < lo || p > hi) return 0; continue; }
+    const a = (lo - p) / u, c = (hi - p) / u; t0 = Math.max(t0, Math.min(a, c)); t1 = Math.min(t1, Math.max(a, c));
+  }
+  return t1 > t0 ? t1 : 0;
+}
+/** 블래스터 한 판의 자리: 상자 밖 (x, y) 에서 각 a 로, 광선 너비 w */
+function blasterRound(round, b, soul, C) {
+  const sx = clamp(soul.x, b.x + 14, b.x + b.w - 14), sy = clamp(soul.y, b.y + 14, b.y + b.h - 14);
+  const L = b.x - C.standOff, R = b.x + b.w + C.standOff, T = b.y - C.standOff;
+  const side = (v, lo, hi, gap) => (v + gap <= hi ? v + gap : v - gap);
+  // 아래쪽(B)은 HP 띠에 가리므로 아래 모서리 블래스터는 옆 벽 아래쪽에 둔다
+  if (round.kind === 'x') return [[L, T], [R, T], [L, b.y + b.h - 6], [R, b.y + b.h - 6]].map(([x, y]) => ({ x, y, a: Math.atan2(sy - y, sx - x), w: C.beamW, scale: 1 }));
+  if (round.kind === 'big') return [{ x: L - 8, y: b.y + b.h * 0.25, a: 0, w: C.bigW, scale: C.bigScale }, { x: R + 8, y: b.y + b.h * 0.75, a: Math.PI, w: C.bigW, scale: C.bigScale }];
+  const f = round.flip ? -1 : 1, gy = side(sy, b.y + 14, b.y + b.h - 14, C.sideGap * f), gx = side(sx, b.x + 14, b.x + b.w - 14, C.sideGap * f);
+  return [{ x: L, y: sy, a: 0 }, { x: sx, y: T, a: Math.PI / 2 }, { x: R, y: gy, a: Math.PI }, { x: gx, y: T, a: Math.PI / 2 }].map(o => ({ ...o, w: C.beamW, scale: 1 }));
+}
+/** 0. 오프닝 첫 강공격: 냄새 블래스터(가스터 블래스터식) 네 판 */
+function blaster(o = {}) {
+  const C = { ...BLASTER, ...o };
+  const rounds = C.rounds.map(r => ({ ...r, spawned: false, fired: false }));
+  const life = C.flyIn + C.charge + C.fire + C.leave;
+  let eye = false;
+  return { duration: C.duration, update(t, dt, api) {
+    const b = api.box;
+    if (!eye) { eye = true; api.sfx?.(C.eyeSfx, { volume: 0.8, rate: C.eyeRate, pitch: true }); }
+    for (const round of rounds) {
+      if (!round.spawned && t >= round.at) {
+        round.spawned = true; api.sfx?.(C.chargeSfx, { volume: 0.8, rate: C.rate, pitch: true });
+        for (const bl of blasterRound(round, b, api.soul, C)) {
+          const ux = Math.cos(bl.a), uy = Math.sin(bl.a), size = C.size * bl.scale, mouth = size * 0.38;
+          const mx = bl.x + ux * mouth, my = bl.y + uy * mouth, reach = Math.min(C.reach, rayExit(b, mx, my, ux, uy) + 4);
+          api.emit({ x: mx, y: my, r: 0, harmless: true, life: C.flyIn + C.charge, shape: 'beam_warn', free: true,
+            drawShape(ctx, self) { if (self.age > C.flyIn * 0.5) dottedLine(ctx, self, mx, my, mx + ux * reach, my + uy * reach, '#c98a3f'); } });
+          api.emit({ x: bl.x - ux * 90, y: bl.y - uy * 90, r: 0, kind: 'white', shape: 'blaster', free: true, life, rot: bl.a - Math.PI,
+            steer(self) {
+              const age = self.age, fireAt = C.flyIn + C.charge;
+              if (age < C.flyIn) { const k = 1 - (1 - age / C.flyIn) ** 3; self.x = bl.x - ux * 90 * (1 - k); self.y = bl.y - uy * 90 * (1 - k); self.rot = bl.a - Math.PI * (1 - k); }
+              else if (age < fireAt + C.fire) { const shake = age < fireAt ? 1.5 : 0.6; self.x = bl.x + Math.sin(age * 90) * shake; self.y = bl.y + Math.cos(age * 77) * shake; self.rot = bl.a; }
+              else { const k = (age - fireAt - C.fire) / C.leave; self.x = bl.x - ux * 140 * k * k; self.y = bl.y - uy * 140 * k * k; self.rot = bl.a; }
+            },
+            hitShape(self, soul) {
+              const f = self.age - C.flyIn - C.charge; if (f < 0.05 || f > C.fire - 0.06) return false;
+              return segDist(soul.x, soul.y, mx, my, mx + ux * reach, my + uy * reach) <= bl.w * 0.45 + soul.r - 2;
+            },
+            drawShape(ctx, self) {
+              const f = self.age - C.flyIn - C.charge, open = f >= 0;
+              if (open && f < C.fire + C.leave * 0.4) {
+                const grow = clamp(f / 0.06, 0, 1) * clamp((C.fire + C.leave * 0.4 - f) / 0.18, 0, 1), bw = bl.w * 1.35 * grow;
+                const cell = sheetCell(api.images?.beam, 'beam', Math.floor(self.age * 16) % 2);
+                ctx.save(); ctx.translate(Math.round(mx), Math.round(my)); ctx.rotate(bl.a); ctx.imageSmoothingEnabled = false;
+                if (cell && cell.width) ctx.drawImage(cell, 0, -Math.round(bw / 2), Math.round(reach), Math.max(1, Math.round(bw)));
+                else { ctx.fillStyle = '#6b4320'; ctx.fillRect(0, -bw / 2, reach, bw); ctx.fillStyle = '#b07a3e'; ctx.fillRect(0, -bw / 4, reach, bw / 2); }
+                ctx.restore();
+              }
+              const fade = f > C.fire ? clamp(1 - (f - C.fire) / C.leave, 0, 1) : 1;
+              ctx.save(); ctx.globalAlpha *= fade;
+              if (!drawArt(ctx, api.images?.blaster, 'blaster', open ? 1 : 0, self.x, self.y, size, null, self.rot)) {
+                ctx.translate(Math.round(self.x), Math.round(self.y)); ctx.rotate(self.rot);
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, size * 0.36, 0, TAU); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.fillRect(-4, -size * 0.2, 6, 6); ctx.fillRect(-4, size * 0.08, 6, 6);
+                if (open) ctx.fillRect(size * 0.2, -4, size * 0.2, 8);
+              }
+              ctx.restore();
+            } });
+        }
+      }
+      if (round.spawned && !round.fired && t >= round.at + C.flyIn + C.charge) { round.fired = true; api.sfx?.(C.fireSfx, { volume: 0.8, rate: C.rate, pitch: true }); api.sfx?.(C.fireLayer, { volume: 0.6, rate: C.rate, pitch: true }); }
+    }
+  } };
+}
+
+export const YONGJUN_PATTERNS = { yongjun_blaster: blaster, yongjun_stench: stench, yongjun_fish: fishCough, yongjun_roll: roll, yongjun_cry: cry, yongjun_insults: insults, yongjun_hug: hugShock };

@@ -58,9 +58,12 @@ test('test_yongjun_boss_hp_hundred_no_dodge_six_distinct_patterns_each_with_a_tu
   assert.equal(def.hp, 100);
   assert.equal(def.boss, true);
   assert.equal(def.support, 'yongjun_sans');
-  assert.deepEqual(def.patterns.map(p => p.type), Object.keys(YONGJUN_PATTERNS));
-  for (const p of def.patterns) { assert.equal(PATTERNS[p.type], YONGJUN_PATTERNS[p.type]); assert.ok(p.speak && p.speak.length <= 30, p.type); }
-  assert.equal(new Set(def.patterns.map(p => p.speak)).size, 6);
+  // 냄새 블래스터는 오프닝 첫 강공격 전용(YONGJUN_SANS.openingPattern), 차례에는 없다
+  assert.deepEqual(def.patterns.map(p => p.type), Object.keys(YONGJUN_PATTERNS).filter(type => type !== 'yongjun_blaster'));
+  assert.equal(YONGJUN_SANS.openingPattern.type, 'yongjun_blaster');
+  for (const p of def.patterns) { assert.equal(PATTERNS[p.type], YONGJUN_PATTERNS[p.type]); assert.ok(p.silent || (p.speak && p.speak.length <= 30), p.type); }
+  assert.equal(new Set(def.patterns.filter(p => !p.silent).map(p => p.speak)).size, 5);
+  assert.equal(def.patterns.find(p => p.type === 'yongjun_hug').silent, true, 'the hug shouts inside the box instead of a bubble');
 });
 
 function simulate(type, fps = 60) {
@@ -102,7 +105,7 @@ test('test_yongjun_center_patterns_move_the_heart_off_the_body_before_it_can_hur
   }
 });
 
-test('test_yongjun_intro_follows_the_sans_beats_then_starts_megalovania', () => {
+test('test_yongjun_intro_follows_the_sans_beats_and_leaves_the_music_off', () => {
   const sfx = [], blips = [], bgm = [];
   const enemy = { def: ENEMIES.yongjun_sans, patternPose: null };
   const battle = { bubble: null, drawTextBox() {}, sfx: name => sfx.push(name),
@@ -123,7 +126,7 @@ test('test_yongjun_intro_follows_the_sans_beats_then_starts_megalovania', () => 
   assert.deepEqual(phases, ['wait', 'talk', 'pause', 'black', 'still', 'hell', 'done']);
   assert.deepEqual(seen, [...YONGJUN_SANS.lines, YONGJUN_SANS.hell]);
   assert.deepEqual(sfx, ['switch_noise', 'switch_noise'], '촵 촵');
-  assert.deepEqual(bgm.map(b => b.slice(0, 2)), [['stop', 0.01], ['play', 'megalovania']]);
+  assert.deepEqual(bgm.map(b => b.slice(0, 2)), [['stop', 0.01]], 'Megalovania waits until after the opening attack');
   assert.ok(blips.length > 0 && blips.every(v => v === 'yongjun'), 'the three lines speak with his voice, the last line is silent');
   assert.equal(enemy.patternPose, null);
 });
@@ -138,4 +141,29 @@ test('test_yongjun_flower_qa_point_is_last_in_shift_q_and_never_counts_as_story_
   assert.equal(stateFromFlags(point.flags).inventory.includes('보라꽃'), true);
   const reached = qaProgress(point.flags, point.stage, point.map);
   assert.equal(menu[reached].id, 'maillard_lounge', 'a save holding the flower in the lounge is still the lounge');
+});
+
+test('test_yongjun_support_opening_attack_then_line_then_megalovania_and_retry_restarts', async () => {
+  const { createYongjunSansSupport } = await import('../../src/battle/support/yongjun-sans.js');
+  const bgm = [];
+  const enemy = { def: ENEMIES.yongjun_sans, patternIdx: 1 };
+  const battle = { enemies: [enemy], bubble: null, drawTextBox() {}, game: { sound: { blip() {}, playBgm: (name) => bgm.push(name), preloadBgm() {}, loadSfxFiles() {} } } };
+  const support = createYongjunSansSupport(battle);
+  assert.equal(support.preemptiveMode(), 'yongjun_sans_intro');
+  assert.equal(support.patternsFor, undefined, 'normal turns keep def.patterns and their speak lines');
+  assert.equal(support.enemyTurnNext(), true, 'after the intro the enemy attacks before any menu');
+  assert.deepEqual(support.patternsFor(enemy), [YONGJUN_SANS.openingPattern]);
+  assert.equal(support.silentTurn(enemy), true);
+  const interlude = support.afterEnemyPhase();
+  assert.equal(battle.bubble.text, YONGJUN_SANS.afterOpening);
+  assert.equal(enemy.patternIdx, 0);
+  let done = false;
+  for (let i = 0; i < 200 && !done; i++) done = interlude.update(1 / 60, { just: key => key === 'confirm' && i % 20 === 19 });
+  assert.equal(done, true);
+  assert.deepEqual(bgm, ['megalovania']);
+  assert.equal(support.enemyTurnNext(), false);
+  assert.equal(support.patternsFor, undefined);
+  assert.equal(support.afterEnemyPhase(), null);
+  support.reset();
+  assert.equal(support.preemptiveMode(), 'yongjun_sans_intro', 'retry plays the opening again');
 });

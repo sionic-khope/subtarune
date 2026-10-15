@@ -1,0 +1,74 @@
+{
+ "file": "assets/props/yongjun-crumb.png",
+ "size": [
+  10,
+  10
+ ],
+ "frames": 1,
+ "frame": [
+  10,
+  10
+ ],
+ "layout": "side by side, left to right",
+ "anchor": "center",
+ "rawPxPerGamePx": 29.7,
+ "sampling": "block vote (see process2.py)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 356,
+ "droppedSpecks": 0,
+ "frameInfo": [
+  {
+   "purity": 0.5,
+   "phase": [
+    0.5,
+    0.0
+   ],
+   "rawPxPerGamePx": 29.7,
+   "rawBounds": [
+    127,
+    374,
+    395,
+    671
+   ],
+   "bounds": [
+    0,
+    0,
+    9,
+    10
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process2-15429bf141552bf6/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fx-drops-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "1",
+  "--cols",
+  "3",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/yongjun-sans/fx-crumb/v2",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

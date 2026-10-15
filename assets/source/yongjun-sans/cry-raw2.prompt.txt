@@ -1,0 +1,23 @@
+# imagegen 2026-10-15 13:13:28
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/yongjun-sans/ref2-idle-sheet.png
+
+Pixel art battle animation sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+
+Image1 is the approved battle idle sheet of this exact character in the same 2x2 layout (shown at half size): Yongjun, a chubby young man with a very wide round face, full puffy cheeks with a faint pink blush, very short black buzz-cut hair (a solid rounded black cap with grey shaved sides), VERY PALE FAIR ALMOST WHITE SKIN (about #FFF2EC, NOT peach, NOT tan, NOT orange), short dark eyebrows, small narrow eyes with dark upper lids and dark pupils, a small nose, a big round belly, short arms and short stubby legs, wearing a Sans-from-Undertale outfit: light blue hooded jacket worn open with white fluffy fur trim on the hood, white T-shirt, black shorts with a white stripe on each side, pastel pink slippers. Redraw this SAME character with the SAME face, the same pale white skin, outfit, colours and chunky proportions, and with the same fine pixel size as Image1 (crisp art pixels about 4 px wide on the 1024 canvas, facial lines one art pixel thick), at EXACTLY the same scale and head size as Image1 (about 410 px tall from the top of the hair to the slipper soles when standing straight), with the feet at exactly the same positions and on the same baseline as in each cell of Image1. Same three-quarter view turned toward the viewer's lower-left.
+
+FACE must stay readable at small size in every frame: clear dark eyebrows, eyes, nose and mouth lines with strong contrast.
+
+He is wailing loudly like a small child because his mom just ran away. In all 4 frames his HEAD IS THROWN FAR BACK: the chin points up, the face is turned up toward the sky by about 40 degrees so the underside of his chin and jaw is visible and the top of his hair tips backward; mouth opened very wide in a wailing cry (a big dark open mouth with the upper teeth visible), eyes squeezed tightly shut as thick curved shut lines, eyebrows pulled up and slanted in misery. Both hands are OUT of the pockets.
+4 frames in reading order (top-left, top-right, bottom-left, bottom-right):
+frame 1: both fists pressed against his shut eyes, rubbing them, elbows out to the sides, head thrown back.
+frame 2: both fists still at his eyes, head thrown back even further, mouth even wider, shoulders hunched up.
+frame 3: both arms hanging straight down limp at his sides with open hands, head thrown back, wailing with the mouth wide open toward the sky.
+frame 4: arms still hanging limp at his sides, shoulders shrugged up in a sob, head thrown back the furthest, mouth wide open.
+Body only: NO tear drops, no tear streams, no water, no droplets, no snot, no effect lines, no motion lines, no symbols.
+
+Keep the same scale and the same head size in every cell, the feet rooted at exactly the same positions and on the same baseline in every cell. The figure is centered and nothing touches the cell edges.
+
+Style: clean retro 16-bit JRPG / Deltarune battle sprite pixel art, flat limited shades (2-3 tones per colour), dark stepped outlines one art pixel thick, crisp square pixels, no anti-aliasing, no blur.
