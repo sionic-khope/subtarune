@@ -674,19 +674,26 @@ export const ENEMIES = {
       attack: { src: 'assets/battle/janitor-hero-attack.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1, pivot: [164, 236] },
       // 발차기 0 준비·1 차기(gpt v1, assets/source/janitor-hidden) — 거슨처럼 상자를 차서 마름모로
       kick: { src: 'assets/battle/janitor-hero-kick.png', cols: 2, rows: 1, count: 2, fps: 6, px: 1, pivot: [164, 236] },
+      // 껄껄 웃음(드럼통 악마전 웃음 그림 그대로, 192 셀) — 말풍선 “멸공!” 턴·아이템 반응(BUILD469)
+      laugh: { src: 'assets/battle/janitor-hero-laugh.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1, pivot: [138, 180] },
     },
     pivot: [138, 180], scale: 0.736, dx: -24, dy: 30, board: [240, 160], idle: { swayX: 0, swayY: 0 },
     // 깃발·드럼통(드럼통 악마전 그림)·회오리·초승달 베기·흰 별(gpt v1, assets/source/janitor-hidden)
-    projectiles: { flag: 'assets/props/janitor-hero-flag.png', atk: 'assets/battle/janitor-hero-attack.png', drum: 'assets/props/jjajang_drum.png', whirl: 'assets/fx/janitor-whirl.png', slash: 'assets/fx/janitor-slash.png', star: 'assets/props/janitor-star.png' },
+    projectiles: { flag: 'assets/props/janitor-hero-flag.png', atk: 'assets/battle/janitor-hero-attack.png', drum: 'assets/props/jjajang_drum.png', whirl: 'assets/fx/janitor-whirl.png', slash: 'assets/fx/janitor-slash.png', star: 'assets/props/janitor-star.png', wave: 'assets/fx/janitor-red-triple.png' },
     // BUILD468 사용자: 거슨전 공격 “거의 정확히 똑같이”(망치 → 붉은 깃발, 등껍질 → 드럼통) + 찍기 응용판. 원작 턴 순서처럼 깃발 → 찍기 → 드럼통 → 응용
     patterns: [
-      { type: 'janitor_kick_flags', speak: '멸공!', board: [112, 112], center: [240, 176] },
+      // laugh: 말풍선 동안 웃음 그림·웃음소리(speakDuration 은 웃음 클립 길이만큼)
+      { type: 'janitor_kick_flags', speak: '멸공!', laugh: true, speakDuration: 1.6, board: [112, 112], center: [240, 176] },
       { type: 'janitor_stomp', speak: '어디 한번 피해보게', board: [112, 112], center: [240, 180] },
       { type: 'janitor_drum', speak: '껄껄 받아보게', board: [112, 112], center: [240, 200] },
       { type: 'janitor_stomp_scan', speak: '계엄이다' },
+      // BUILD469 사용자: 한 번씩 휭 퍽(왼→오·오→왼·위→아래·아래→위), 멸공을 외치며 파동(왼→오, 어렵게)
+      { type: 'janitor_stomp_cross', speak: '어디 한번 놀아볼까?', board: [150, 150], center: [262, 186] },
+      { type: 'janitor_wave', speak: '멸공!', board: [200, 130], center: [318, 196] },
     ],
     lines: { appear: '* 청소부가 멸공의 깃발을 휘두른다.',
-      idle: ['* 청소부가 껄껄 웃는다.', '* 멸공의 깃발이 펄럭인다.', '* 경섭이 청소부를 바라본다.'],
+      // BUILD469 사용자 “인게임전투에서 청소부가 껄껄 웃는다가 아니고 멸공의 깃발이 흔들린다 이런류로”
+      idle: ['* 멸공의 깃발이 흔들린다.', '* 멸공의 깃발이 펄럭인다.', '* 멸공의 깃발이 나부낀다.'],
       die: '* 청소부가 깃발을 내렸다.' },
   },
 };

@@ -64,8 +64,8 @@
    "facing": "up"
   },
   "fountain_back": {
-   "x": 680,
-   "y": 712,
+   "x": 584,
+   "y": 888,
    "facing": "down"
   }
  },
@@ -498,10 +498,10 @@
   {
    "type": "sign",
    "id": "ship_lounge_fountain_button",
-   "x": 640,
-   "y": 736,
-   "w": 64,
-   "h": 18,
+   "x": 572,
+   "y": 906,
+   "w": 48,
+   "h": 44,
    "solid": false,
    "requires": "choimis_rescued",
    "unless": "janitor_hidden_won",

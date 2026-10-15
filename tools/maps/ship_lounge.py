@@ -107,8 +107,11 @@ def main() -> None:
          'solid': True, 'requires': 'choimis_rescued'},
         {'type': 'sign', 'id': 'ship_lounge_shop_door', 'x': 136, 'y': 1072, 'w': 48, 'h': 16,
          'solid': False, 'requires': 'choimis_rescued', 'script': 'maillard_shop'},
-        # 청소부 히든 보스(BUILD468): 상점 건너편 분수(마나샘) 뒤편에서 아래를 보고 C → 버튼 → 함정(ship_basement)
-        {'type': 'sign', 'id': 'ship_lounge_fountain_button', 'x': 640, 'y': 736, 'w': 64, 'h': 18,
+        # 청소부 히든 보스(BUILD468): 상점 건너편 분수 뒤편에서 아래를 보고 C → 버튼 → 함정(ship_basement)
+        # 분수 = 상점과 같은 높이 오른쪽의 홀로 탁자(lounge_holo, 물줄기처럼 솟는 그림) — 사용자 2026-10-15 “이 분수 말고 여기 아래에 분수”(작은 마나샘이 아님)
+        # 버튼 자리는 탁자 그림 윗변(y 906)부터 충돌 윗부분(y 950)까지 가운데 48px: 뒤편(위)에서 아래를 보면 어디에 서도 프로브(19px)가 닿고,
+        # 탁자 아래에서 위를 보거나 옆에서 보면 닿지 않는다(tests/unit/janitor-hidden-field.test.mjs)
+        {'type': 'sign', 'id': 'ship_lounge_fountain_button', 'x': 572, 'y': 906, 'w': 48, 'h': 44,
          'solid': False, 'requires': 'choimis_rescued', 'unless': 'janitor_hidden_won', 'script': 'ship_fountain_button'},
     ]
     map_data = {
@@ -119,8 +122,8 @@ def main() -> None:
             'castle_approach': {'x': 372, 'y': 470, 'facing': 'up'},
             'from_rescue': {'x': 372, 'y': 900, 'facing': 'up'},
             'lounge_free': {'x': 372, 'y': 520, 'facing': 'up'},
-            # 분수 뒤편(아래를 보고 서면 버튼) — 청소부 히든 보스 QA·지하실에서 돌아오는 자리
-            'fountain_back': {'x': 680, 'y': 712, 'facing': 'down'},
+            # 분수(홀로 탁자 lounge_holo) 뒤편 가운데, 발이 그림 윗변(900) 바로 위 — 아래를 보고 서면 버튼. 청소부 히든 보스 QA·지하실에서 돌아오는 자리
+            'fountain_back': {'x': 584, 'y': 888, 'facing': 'down'},
         },
         'preload': ['assets/props/floor_pit.png'],
         'enter': {'script': 'ship_lounge_briefing', 'early': True},

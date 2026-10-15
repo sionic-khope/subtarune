@@ -196,7 +196,10 @@ registerBattleBg('maillard_lounge', (ctx, battle) => {
 
 // 엄청대박인배 지하실(청소부 히든 보스, BUILD468 사용자 “어딘가의 철로되어있는 방은 맞지만 인게임 전투에서는 약간 빨간색 불빛이 지잉 지잉 하듯 배경화면 색깔 바뀌면서 전환되게”):
 //   철벽(위)·철바닥(아래, 판 이음새)·배관(맵이 적재한 ship_conduit) 은 한 번 그려 캐시, 그 위에 경광등처럼 빨간 빛이 주기적으로 차올랐다 빠진다(위쪽 등에서 퍼지는 붉은 빛 + 화면 전체 붉은 물듦)
-export const BASEMENT_BG = Object.freeze({ wall: '#151a22', wallLine: '#232a36', rivet: '#3a4556', floor: '#2b2f3c', seam: '#20232d', horizon: 96, conduit: 'assets/props/ship_conduit.png', period: 1.1, tint: [0.06, 0.26], lamp: 0.55, red: '214,28,28' });
+// BUILD469 사용자 “붉은색 불빛 인게임에서 너무 자주 깜빡이는듯 천천히 전환되어야해”: 주기 1.1초 → 4초, 제곱 대신 부드러운 곡선(smoothstep)으로 천천히 차오르고 빠진다
+export const BASEMENT_BG = Object.freeze({ wall: '#151a22', wallLine: '#232a36', rivet: '#3a4556', floor: '#2b2f3c', seam: '#20232d', horizon: 96, conduit: 'assets/props/ship_conduit.png', period: 4, tint: [0.06, 0.24], lamp: 0.5, red: '214,28,28' });
+/** 경광등 세기 0..1(시간 초): 주기 BASEMENT_BG.period 로 천천히 오르내린다 */
+export function basementLampLevel(time, period = BASEMENT_BG.period) { const wave = (Math.sin(time * Math.PI * 2 / period) + 1) / 2; return wave * wave * (3 - 2 * wave); }
 let basementCache = null, basementKey = '';
 registerBattleBg('janitor_basement', (ctx, battle) => {
   const B = BASEMENT_BG, conduit = battle.game?.propImages?.[B.conduit], key = String(!!conduit);
@@ -212,7 +215,7 @@ registerBattleBg('janitor_basement', (ctx, battle) => {
     c.fillStyle = '#0b0d12'; c.fillRect(0, B.horizon - 2, 480, 3);
   }
   ctx.drawImage(basementCache, 0, 0);
-  const time = battle.game?.time ?? battle.t ?? 0, wave = (Math.sin(time * Math.PI * 2 / B.period) + 1) / 2, k = wave * wave;
+  const time = battle.game?.time ?? battle.t ?? 0, k = basementLampLevel(time);
   ctx.save();
   const lamp = ctx.createRadialGradient(240, 0, 4, 240, 0, 300);
   lamp.addColorStop(0, `rgba(${B.red},${B.lamp * k})`); lamp.addColorStop(1, `rgba(${B.red},0)`);

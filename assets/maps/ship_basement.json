@@ -97,7 +97,7 @@
    "type": "npc",
    "id": "basement_janitor",
    "sprite": "janitor",
-   "x": 900,
+   "x": 656,
    "y": 300,
    "w": 24,
    "h": 16,

@@ -143,6 +143,8 @@ model: opus
 | `{ prompt:text }` | C 로만 닫히는 안내 창 |
 | `{ emote:id, kind:'!'|'sweat', duration?, hold?, sfx? }` | 머리 위 느낌표/식은땀 |
 | `{ hop:id, by, height?, duration? }` | 캐릭터 포물선 점프 |
+| 이동 옵션 `trail:{tint, steps:[[거리px, 투명도]…]}` (`move`·`drop`·`rise`) | 움직이는 동안 지나온 쪽에 실루엣 잔상(지나온 거리까지만 퍼지고 끝나면 지운다). 청소부 영웅 붉은 오오라는 `JANITOR_HIDDEN.trail`(`janitorRedAfterimage`, 드럼통 악마전 상승·낙하와 같은 34/70/112·0.24−0.07i) — 새 잔상 그림을 만들지 않는다(예 `janitor_hidden.js`) |
+| characters.js `stillFaces:'right'` | 정지 그림(`still`)이 옆모습이면 반대쪽을 볼 때 발 기준 좌우 반전 — `{face:id, dir:'left'}` 로 돌려 세운다(청소부 영웅 대치) |
 | `{ emerge:id, depth:370, duration:2.2 }` | 발 위치를 지면으로 삼아 아래에서 솟는다. 지면 아래 그림은 클리핑하며 페이드하지 않는다 |
 | `{ drumDevilThrow:true }` | 드럼통 악마의 현재 공격 손 기준점에서 드럼통 한 발을 포물선으로 던지고 착지·충격 여유까지 기다린다. `DRUM_DEVIL.hand`와 필드 모션 배율을 공유한다. |
 | `{ shipCastleReveal:true }` | 가재맨 성 생성 비트의 실제 효과음 시계로 등장·착수·파도가 끝날 때까지 기다린다. `ShipCastle.revealComplete`가 완료 기준이며, 원음의 남은 꼬리는 다음 대사·비트에서도 자연히 끝나고 장면 중단 때 정리된다. |

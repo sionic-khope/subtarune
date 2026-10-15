@@ -637,7 +637,17 @@ class Game {
     if (!this.ripples.length) return;
     ctx.lineWidth = 1;
     for (const r of this.ripples) {
-      const k = r.t / r.dur, rad = 4 + 14 * k;
+      const k = r.t / r.dur;
+      // ring: 착지 충격파 고리(색 rgb·반지름 from→to·납작함 flat·굵기 width·채움 fill) — 청소부 히든 보스 내려찍기(드럼통 악마전 착지 고리와 같은 값, BUILD469)
+      if (r.ring) {
+        const g = r.ring, rad = g.from + (g.to - g.from) * (1 - (1 - k) ** 2), a = (1 - k) * g.alpha;
+        ctx.lineWidth = g.width * (1 - k * 0.6) + 0.5; ctx.strokeStyle = `rgba(${g.rgb},${a})`;
+        ctx.beginPath(); ctx.ellipse(Math.round(r.x - cam.x), Math.round(r.y - cam.y), rad, rad * g.flat, 0, 0, Math.PI * 2); ctx.stroke();
+        if (g.fill) { ctx.fillStyle = `rgba(${g.rgb},${a * g.fill})`; ctx.fill(); }
+        ctx.lineWidth = 1;
+        continue;
+      }
+      const rad = 4 + 14 * k;
       ctx.strokeStyle = `rgba(170,232,236,${(1 - k) * 0.7})`;
       ctx.beginPath(); ctx.ellipse(Math.round(r.x - cam.x), Math.round(r.y - cam.y), rad, rad * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
     }

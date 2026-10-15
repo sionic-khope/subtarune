@@ -33,8 +33,9 @@ def main() -> None:
            'x': x, 'y': 136, 'w': 98, 'h': 24, 'ix': x, 'iy': 28, 'solid': True,
            'anim': {'cols': 3, 'fps': 3}}
           for i, x in enumerate((96, 412, 728))],
-        # 허약 청소부(오른쪽 밖에서 걸어 들어옴)·강한 청소부(멸공의 깃발, 위에서 내려찍음) — 연출이 show 한다
-        {'type': 'npc', 'id': 'basement_janitor', 'sprite': 'janitor', 'x': 900, 'y': 300, 'w': 24, 'h': 16,
+        # 허약 청소부(방 안 오른쪽에서 걸어 들어옴)·강한 청소부(멸공의 깃발, 위에서 내려찍음) — 연출이 show 한다
+        # 허약 청소부 x 656: 멈추는 자리(요플래 오른쪽 88px = 412)까지 244px. 오른쪽 벽 앞(900)에서 걷던 488px 의 절반 — 사용자 2026-10-15 “벽에서 나오는느낌인데 걷는시간 반절로”
+        {'type': 'npc', 'id': 'basement_janitor', 'sprite': 'janitor', 'x': 656, 'y': 300, 'w': 24, 'h': 16,
          'facing': 'left', 'wander': 0, 'hidden': True, 'solid': False, 'unless': 'janitor_hidden_won'},
         {'type': 'npc', 'id': 'janitor_hero', 'sprite': 'janitor_hero', 'x': 290, 'y': 300, 'w': 24, 'h': 16,
          'facing': 'down', 'wander': 0, 'hidden': True, 'solid': False, 'unless': 'janitor_hidden_won'},

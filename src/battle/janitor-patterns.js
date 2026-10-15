@@ -1,4 +1,4 @@
-// 청소부 히든 보스(BUILD468) 탄막 — 델타룬 4장 거슨전 공격을 거의 그대로 옮긴 셋 + 응용 하나.
+// 청소부 히든 보스(BUILD468) 탄막 — 델타룬 4장 거슨전 공격을 거의 그대로 옮긴 셋 + 응용 하나. BUILD469: 한 번씩 휭 퍽(janitor_stomp_cross)·멸공 파동(janitor_wave) 추가(아래 4·5).
 //   사용자: “피하는칸 열리면 그거 발로 까버리고 … 망치던지는 패턴 … 던지는걸 붉은 깃발로 … 거의 정확히 똑같아야해”,
 //           “위에서 눌러서 길게만들고 … 순간이동해서 여러개 빨라서 있는것처럼 찍는거”, “꼭 맵을 안찌그려도 … 영역 스캔하고 그뒤에 그쪽 빨게 찍는 … 응용버전”,
 //           “거북이 등껍질 하나 보내고 회전하면서 순간이동해서 쳐내고 … 등껍질 대신에 드럼통”, “칠때마다 맵이 살짝 진동”, “효과음도 델타룬 공식 자산”
@@ -19,7 +19,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const blink = (self, hz = 10) => Math.floor(self.age * hz) % 2 === 0;
 const easeOut = k => 1 - (1 - k) * (1 - k);
 const keep = (api, o) => { const made = api.emit(o); return made && typeof made === 'object' ? made : o; };
-const SHEETS = Object.freeze({ whirl: [4, 1], slash: [3, 1], star: [1, 1], drum: [1, 1], flag: [1, 1] });
+const SHEETS = Object.freeze({ whirl: [4, 1], slash: [3, 1], star: [1, 1], drum: [1, 1], flag: [1, 1], wave: [2, 2] });
 
 export const KICK = Object.freeze({
   board: Object.freeze([112, 112]), center: Object.freeze([240, 176]),
@@ -55,6 +55,18 @@ export const DRUM = Object.freeze({
   whirlAt: F(1), swingAt: F(5), hitAt: F(7), goneAt: F(15), predict: F(6), drumH: 30, drumR: 11,
   finale: Object.freeze({ rise: F(30), spin: 270 * DEG, heroRise: S(240), fall: V(30), stars: 28, starSpeed: Object.freeze([V(12), V(15.75)]), starG: Object.freeze([G(0.43), G(0.535)]), grey: F(11), smoke: 11, tail: F(80) }),
   duration: 16,
+});
+// 한 번씩 휭 퍽(BUILD469): 휘두름 12번(왼→오·오→왼·위→아래·아래→위 차례), 간격 every[0]→[1], 예고 warn[0]→[1], 줄 두께 band
+export const CROSS = Object.freeze({
+  board: Object.freeze([150, 150]), center: Object.freeze([262, 186]), dirs: Object.freeze(['lr', 'rl', 'tb', 'bt']), strikes: 12, first: 0.45,
+  every: Object.freeze([0.9, 0.62]), warn: Object.freeze([0.5, 0.36]), sweep: 0.13, linger: F(5), band: 44, side: 30, feetBelow: 20, above: 4, belowFeet: 4,
+});
+// 멸공 파동(BUILD469): 다섯 줄, 1단계 겨누기 6발 → 2단계 한 줄 빈 벽 6번(빈 줄이 1~shift 칸씩 옮겨 감) → 3단계 홀·짝 번갈아 6번. 파동 330px/초, 예고 0.34초
+export const WAVE = Object.freeze({
+  board: Object.freeze([200, 130]), center: Object.freeze([318, 196]), lanes: 5, side: 34, feetBelow: 20, appear: 0.3, warn: 0.34, speed: 330, swingHold: 0.14, exitAfter: 0.75,
+  size: 60, hitDx: 5, hitW: 9, hitH: 12, trail: 2, trailGap: 9,
+  aimed: Object.freeze({ at: 0.75, count: 6, every: 0.32 }), walls: Object.freeze({ at: 2.85, count: 6, every: 0.66, shift: 2 }), weave: Object.freeze({ at: 7.0, count: 6, every: 0.44 }),
+  duration: 10.6,
 });
 
 // ── 그림 ──
@@ -102,7 +114,7 @@ function kickFlags(o = {}) {
   const p1End = C.throwFirst + (C.throws - 1) * C.throwEvery, p2Start = p1End + B.after;
   const groupLen = (B.group - 1) * B.every + B.pause, p2End = p2Start + Math.ceil(B.count / B.group) * groupLen;
   const p3Start = p2End + Gi.after;
-  let stand = null, base = null, kicked = false, thrown = 0, big = 0, hop = null, nextHop = 0, giant = null, gone = false, laughed = false, ghost = false;
+  let stand = null, base = null, kicked = false, thrown = 0, big = 0, hop = null, nextHop = 0, giant = null, gone = false, ghost = false;
   const throwFlag = (api, ox, oy, tx, scale, rate) => {
     const vx = (-Math.abs(ox - tx) / C.aimFrames + (api.rnd() * 2 - 1) * C.spreadX + (api.rnd() < 0.5 ? -0.5 : 0.5)) * 22.5;
     const vy = (C.vy + (api.rnd() * 2 - 1) * C.spreadY + (api.rnd() < 0.5 ? -1 : 1)) * 22.5;
@@ -125,7 +137,8 @@ function kickFlags(o = {}) {
   return { duration: C.duration, board: C.board, center: C.center, update(t, dt, api) {
     const b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
     if (!base) { base = { cx, cy }; stand = [cx + C.standAt[0], cy + C.standAt[1]]; }
-    if (!laughed) { laughed = true; api.sfx?.('laugh_janitor', { volume: 0.7 }); }
+    // 웃음소리는 말풍선 “멸공!” 때(패턴 설정 laugh, 지원 모듈) — 순간이동 전까지 웃음 그림(BUILD469 사용자 “멸공하고 웃을때 웃음스프라이트가 안나와”)
+    if (!gone && t < C.vanish) api.present?.({ sheet: 'laugh', frame: 0 });
     if (!gone && t >= C.vanish) { gone = true; api.present?.({ hidden: true }); }
     if (gone && t >= C.appear && t < C.windup) { if (!ghost) { ghost = true; api.sfx?.('gerson_motor_swing_down', { volume: 0.6, rate: 1.4, pitch: true }); } api.present?.({ sheet: 'kick', frame: 0, x: stand[0], y: stand[1] }); }
     if (t >= C.windup && t < C.kick) { if (ghost !== 'wind') { ghost = 'wind'; api.sfx?.('gerson_motor_upper_quick_mid', { volume: 0.6 }); } api.present?.({ sheet: 'kick', frame: 0, x: stand[0], y: stand[1] }); }
@@ -423,4 +436,158 @@ function drum(o = {}) {
   } };
 }
 
-export const JANITOR_PATTERNS = { janitor_kick_flags: kickFlags, janitor_stomp: stomp, janitor_drum: drum, janitor_stomp_scan: stompScan };
+/** 회오리 순간이동(사라지거나 나타나는 자리) + 소리 */
+function whirlAt(api, x, y) {
+  api.sfx?.('gerson_motor_swing_down', { volume: 0.4, rate: 1.4, pitch: true });
+  api.emit({ x, y, r: 0, harmless: true, free: true, life: 0.36, shape: 'whirl', drawShape(ctx, self) { art(ctx, api.images?.whirl, 'whirl', Math.min(3, Math.floor(self.age / 0.09)), self.x, self.y, 64); } });
+}
+
+// ── 4. 한 번씩 휭 퍽(BUILD469) ──
+// 사용자: “청소부 내려찍는패턴 그냥 일반 피하는 사각형 내에서 한번씩 휭 퍽 휭퍽 왼쪽에서 오른쪽 오른쪽에서 왼쪽 위에서아래 아래서 위 이렇게 전환되면서 하는 패턴도”, “지금은 너무 연속되게만 하는듯?”
+//   [동작 → 실루엣 → 예고 → 회피] 회오리로 상자 바깥(왼·오·위·아래 모서리)에 나타나 깃발을 젖힘 → 하트가 있던 줄(가로)·칸(세로)이 하얗게 깜빡임
+//   → 휭(휘두름, 흰 초승달이 그 줄을 훑음) → 퍽(끝에 닿아 상자가 흔들림). 한 번에 한 줄만, 사이에 숨 돌릴 틈. 갈수록 조금 빨라진다
+/** 방향별 휘두르는 자리: 청소부 발 위치·좌우 반전·[젖힘, 휘두름] 공격 시트 칸(2 머리 위로 듦·3 아래로 내리침·4 앞으로 내지름 — 시트는 오른쪽을 본다), 초승달 회전, 줄의 시작→끝 축 */
+export function crossStrike(dir, b, at, C = CROSS) {
+  const half = C.band / 2, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  const across = dir === 'lr' || dir === 'rl' ? clamp(at, b.y + half, b.y + b.h - half) : clamp(at, b.x + half, b.x + b.w - half);
+  if (dir === 'lr') return { dir, band: [b.x, across - half, b.w, C.band], from: b.x, to: b.x + b.w, axis: 'x', rot: 0, hero: [b.x - C.side, across + C.feetBelow], flip: false, frames: [2, 4] };
+  if (dir === 'rl') return { dir, band: [b.x, across - half, b.w, C.band], from: b.x + b.w, to: b.x, axis: 'x', rot: Math.PI, hero: [b.x + b.w + C.side, across + C.feetBelow], flip: true, frames: [2, 4] };
+  if (dir === 'tb') return { dir, band: [across - half, b.y, C.band, b.h], from: b.y, to: b.y + b.h, axis: 'y', rot: Math.PI / 2, hero: [across, b.y - C.above], flip: across > cx, frames: [2, 3] };
+  return { dir, band: [across - half, b.y, C.band, b.h], from: b.y + b.h, to: b.y, axis: 'y', rot: -Math.PI / 2, hero: [across < cx ? b.x - C.side : b.x + b.w + C.side, b.y + b.h + C.belowFeet], flip: across >= cx, frames: [3, 2] };
+}
+/** i 번째 휘두름 시각(초): 간격이 every[0] 에서 every[1] 로 줄어든다 */
+export function crossStrikeTimes(C = CROSS) {
+  const out = []; let t = C.first;
+  for (let i = 0; i < C.strikes; i++) { out.push(t); const k = C.strikes > 1 ? i / (C.strikes - 1) : 0; t += C.every[0] + (C.every[1] - C.every[0]) * k; }
+  return out;
+}
+function stompCross(o = {}) {
+  const C = { ...CROSS, ...o }, times = crossStrikeTimes(C);
+  const duration = times.at(-1) + C.warn[1] + C.sweep + C.linger + 0.35;
+  let made = 0, current = null, left = false;
+  return { duration, board: C.board, center: C.center, update(t, dt, api) {
+    const b = api.box;
+    if (!left) { left = true; whirlAt(api, (api.actor?.x ?? 400), (api.actor?.y ?? 220) - 40); }
+    if (t < times[0]) api.present?.({ hidden: true });
+    while (made < times.length && t >= times[made]) {
+      const k = times.length > 1 ? made / (times.length - 1) : 0, warn = C.warn[0] + (C.warn[1] - C.warn[0]) * k;
+      const dir = C.dirs[made % C.dirs.length], s = crossStrike(dir, b, dir === 'lr' || dir === 'rl' ? api.soul.y : api.soul.x, C);
+      current = { s, at: times[made], warn };
+      spawnCrossStrike(api, C, s, warn);
+      made++;
+    }
+    if (!current) return;
+    const a = t - current.at, s = current.s;
+    if (a < current.warn) api.present?.({ sheet: 'attack', frame: s.frames[0], x: s.hero[0], y: s.hero[1], flipX: s.flip });
+    else if (a < current.warn + C.sweep + C.linger) api.present?.({ sheet: 'attack', frame: s.frames[1], x: s.hero[0], y: s.hero[1], flipX: s.flip });
+    else api.present?.({ hidden: true });
+  } };
+}
+function spawnCrossStrike(api, C, s, warn) {
+  const [bx, by, bw, bh] = s.band, sound = { swing: false, hit: false }, end = warn + C.sweep + C.linger;
+  const front = age => { const k = clamp((age - warn) / C.sweep, 0, 1); return s.from + (s.to - s.from) * k; };
+  const swept = age => {
+    if (age < warn) return null;
+    const f = front(age), lo = Math.min(s.from, f), hi = Math.max(s.from, f);
+    return s.axis === 'x' ? [lo, by, hi - lo, bh] : [bx, lo, bw, hi - lo];
+  };
+  whirlAt(api, s.hero[0], s.hero[1] - 40);
+  api.emit({ x: bx, y: by, r: 0, kind: 'white', shape: 'cross_strike', free: true, life: end + 0.2,
+    steer(self) {
+      if (!sound.swing && self.age >= warn) { sound.swing = true; api.sfx?.('gerson_motor_swing_down', { volume: 0.65 }); api.sfx?.('gerson_smallswing', { volume: 0.5, rate: 0.8, pitch: true }); }
+      if (!sound.hit && self.age >= warn + C.sweep) { sound.hit = true; api.sfx?.('gerson_queen_punched_lower', { volume: 0.75 }); api.shake?.(0.12, 2.5); }
+    },
+    hitShape(self, soul) {
+      const r = self.age <= end ? swept(self.age) : null; if (!r) return false;
+      return soul.x + soul.r - 3 > r[0] && soul.x - soul.r + 3 < r[0] + r[2] && soul.y + soul.r - 3 > r[1] && soul.y - soul.r + 3 < r[1] + r[3];
+    },
+    drawShape(ctx, self) {
+      const a = self.age;
+      ctx.save();
+      if (a < warn) {
+        // 예고: 하얀 줄이 깜빡이며 점점 진해진다
+        const al = (0.18 + 0.32 * clamp(a / warn, 0, 1)) * (blink(self, 12) ? 1 : 0.55);
+        ctx.fillStyle = `rgba(255,255,255,${al})`; ctx.fillRect(Math.round(bx), Math.round(by), Math.round(bw), Math.round(bh));
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1; ctx.strokeRect(Math.round(bx) + 0.5, Math.round(by) + 0.5, Math.round(bw) - 1, Math.round(bh) - 1);
+      } else {
+        const r = swept(a), fade = a > warn + C.sweep ? Math.max(0, 1 - (a - warn - C.sweep) / (C.linger + 0.2)) : 1;
+        ctx.fillStyle = `rgba(255,255,255,${0.75 * fade})`; ctx.fillRect(Math.round(r[0]), Math.round(r[1]), Math.round(r[2]), Math.round(r[3]));
+        const f = front(Math.min(a, warn + C.sweep)), mid = s.axis === 'x' ? [f, by + bh / 2] : [bx + bw / 2, f];
+        art(ctx, api.images?.slash, 'slash', a < warn + C.sweep * 0.5 ? 1 : 2, mid[0], mid[1], C.band * 1.4, null, s.rot, fade);
+      }
+      ctx.restore();
+    } });
+}
+
+// ── 5. 멸공 파동(BUILD469) ──
+// 사용자: “멸공을 외치며 청소부 공격시 나가는 파동으로 쏴서 왼쪽에서 오른쪽으로 나가는것 여러개 피해야하는 패턴 난이도는 꽤나 어려운 보스전임”
+//   [동작 → 실루엣 → 예고 → 회피] 회오리로 상자 왼쪽에 나타나 깃발을 휘두를 때마다 붉은 3겹 파동(청소부 공격 그림 janitor-red-triple)이 줄을 따라 오른쪽으로
+//   → 쏘기 전 그 줄에 붉은 점선 예고 → 1단계 하트 줄 겨누기 연사, 2단계 한 줄만 비운 벽(빈 줄이 매번 옮겨 감), 3단계 홀·짝 줄 번갈아(줄 사이를 계속 갈아타야 함)
+/** 단계별 발사 목록 [{ at, lanes, aim }] — aim 이면 쏠 때 하트가 있는 줄 */
+export function waveVolleys(C = WAVE, rnd = Math.random) {
+  const out = [], L = C.lanes;
+  for (let i = 0; i < C.aimed.count; i++) out.push({ at: C.aimed.at + i * C.aimed.every, lanes: null, aim: true });
+  let gap = Math.floor(rnd() * L);
+  for (let i = 0; i < C.walls.count; i++) {
+    let next; do { next = clamp(gap + (rnd() < 0.5 ? -1 : 1) * (1 + Math.floor(rnd() * C.walls.shift)), 0, L - 1); } while (next === gap);
+    gap = next;
+    out.push({ at: C.walls.at + i * C.walls.every, lanes: [...Array(L).keys()].filter(lane => lane !== gap), aim: false });
+  }
+  for (let i = 0; i < C.weave.count; i++) out.push({ at: C.weave.at + i * C.weave.every, lanes: [...Array(L).keys()].filter(lane => lane % 2 === i % 2), aim: false });
+  return out;
+}
+function wave(o = {}) {
+  const C = { ...WAVE, ...o };
+  let volleys = null, fired = 0, warned = 0, spot = null, swingAt = -9, outAt = null;
+  return { duration: C.duration, board: C.board, center: C.center, update(t, dt, api) {
+    const b = api.box, laneH = b.h / C.lanes;
+    if (!volleys) {
+      volleys = waveVolleys(C, api.rnd);
+      spot = [b.x - C.side, b.y + b.h / 2 + C.feetBelow];
+      whirlAt(api, api.actor?.x ?? 400, (api.actor?.y ?? 220) - 40);
+    }
+    const laneOf = y => clamp(Math.floor((y - b.y) / laneH), 0, C.lanes - 1);
+    // 예고: 쏘기 warn 초 전에 그 줄에 붉은 점선
+    while (warned < volleys.length && t >= volleys[warned].at - C.warn) {
+      const v = volleys[warned]; if (v.aim) v.lanes = [laneOf(api.soul.y)];
+      for (const lane of v.lanes) {
+        const y = b.y + (lane + 0.5) * laneH;
+        api.emit({ x: b.x, y, r: 0, harmless: true, free: true, life: C.warn, shape: 'wave_warn',
+          drawShape(ctx, self) {
+            const k = clamp(self.age / C.warn, 0, 1); ctx.save(); ctx.fillStyle = `rgba(255,48,48,${0.35 + 0.5 * k})`;
+            for (let x = b.x + 4 + Math.floor(self.age * 120) % 10; x < b.x + b.w - 4; x += 10) ctx.fillRect(Math.round(x), Math.round(self.y) - 1, 5, 2);
+            ctx.restore();
+          } });
+      }
+      warned++;
+    }
+    while (fired < volleys.length && t >= volleys[fired].at) {
+      const v = volleys[fired];
+      for (const lane of v.lanes) spawnWave(api, C, b, b.y + (lane + 0.5) * laneH);
+      api.sfx?.('rudebuster_swing', { volume: 0.55, rate: 0.95 + api.rnd() * 0.15, pitch: true }); api.shake?.(0.06, 1.5);
+      swingAt = t; fired++;
+    }
+    if (t < C.appear) { api.present?.({ hidden: true }); return; }
+    if (!spot.shown) { spot.shown = true; whirlAt(api, spot[0], spot[1] - 40); }
+    if (outAt === null && fired >= volleys.length && t >= volleys.at(-1).at + C.exitAfter) {
+      outAt = t; whirlAt(api, spot[0], spot[1] - 40);
+    }
+    if (outAt !== null) { api.present?.({ hidden: true }); return; }
+    const swinging = t - swingAt < C.swingHold;
+    // 머리 위로 든 깃발(2)을 쏠 때마다 앞으로 내지른다(4)
+    api.present?.({ sheet: 'attack', frame: swinging ? 4 : 2, x: spot[0], y: spot[1], flipX: false });
+  } };
+}
+function spawnWave(api, C, b, y) {
+  api.emit({ x: b.x - 6, y, r: 0, kind: 'white', shape: 'red_wave', free: true, life: (b.w + 40) / C.speed, vx: C.speed, vy: 0,
+    hitShape(self, soul) { return Math.abs(soul.x - (self.x + C.hitDx)) <= C.hitW + soul.r - 2 && Math.abs(soul.y - self.y) <= C.hitH + soul.r - 3; },
+    drawShape(ctx, self) {
+      const frame = Math.floor(self.age * 16) % 4;
+      ctx.save(); ctx.beginPath(); ctx.rect(b.x + 1, b.y + 1, b.w - 2, b.h - 2); ctx.clip();
+      for (let i = C.trail; i >= 1; i--) art(ctx, api.images?.wave, 'wave', frame, self.x - i * C.trailGap, self.y, C.size, C.size, 0, 0.35 / i);
+      if (!art(ctx, api.images?.wave, 'wave', frame, self.x, self.y, C.size, C.size)) { ctx.fillStyle = '#e8261f'; ctx.fillRect(Math.round(self.x - 4), Math.round(self.y - 12), 10, 24); }
+      ctx.restore();
+    } });
+}
+
+export const JANITOR_PATTERNS = { janitor_kick_flags: kickFlags, janitor_stomp: stomp, janitor_drum: drum, janitor_stomp_scan: stompScan, janitor_stomp_cross: stompCross, janitor_wave: wave };

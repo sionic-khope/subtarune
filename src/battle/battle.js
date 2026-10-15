@@ -399,7 +399,13 @@ export class Battle {
     const plan = this.plans[this.actIdx++];
     if (plan.member.down) return;
     if (plan.type === 'skip') { this.actWait = 0.25; return; }   // 턴 넘기기(지원 버튼)
-    if (plan.type === 'item') { this.useItem(plan.target || plan.member, plan.name, plan.member); this.actWait = 0.6; return; }
+    if (plan.type === 'item') {
+      const used = this.useItem(plan.target || plan.member, plan.name, plan.member); this.actWait = 0.6;
+      // 아이템을 실제로 썼으면 지원 모듈이 이어지는 연출을 줄 수 있다(청소부도 따라서 깃발 들고 회복, BUILD469)
+      const followup = used ? this.support?.afterItem?.(plan) : null;
+      if (followup) { this.gimmick = followup; this.cur = { plan, gimmick: true, supportFollowup: true }; }
+      return;
+    }
     let target = plan.target; if (target.dead || target.dying > 0) target = this.targets()[0]; if (!target) return;
     plan.target = target;
     const modeName = plan.mode || plan.member.attackMode || this.modes.attack; const create = getBattleMode('attack', modeName);

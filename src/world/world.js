@@ -128,6 +128,8 @@ export class Camera {
 
 // ── 캐릭터 스프라이트 ────────────────────────────────────────
 const spriteCache = new Map();
+// 잔상 없는 반전 그림이 매 프레임 빈 배열을 만들지 않게
+const NO_AFTERIMAGE = Object.freeze([]);
 /** palette 이름으로 4방향 x 4프레임 스프라이트 세트를 만든다 */
 export function characterSprite(paletteName, override = null) {
   // 시트가 있어야 할 캐릭터(CHARACTERS 등록)인데 아직 못 받았으면 문자 도트 폴백을 이름으로 **캐시하지 않는다** — 전엔 늦게 도착한 시트가 영영 안 쓰였다(BUILD269, 사용자 “로딩 다 안된건가”)
@@ -313,8 +315,21 @@ export class Character extends Entity {
     // 그림자는 그림 밑변이 아니라 **발 자리(pivot)** 에 — 128px 셀 시트(최미스·청소부 pivot y120)처럼 발 아래 여백이 있는 시트는 막대가 발보다 아래 떠서 '떠 있는' 느낌이었다(사용자 2026-09-18 “모든 스프라이트마다 아래 그림자가 져서 떠 있는 기분 … 고쳐”)
     const feetY = sy + (pivot ? Math.round(pivot[1] * drawScale) : dh);
     if (!CHARACTERS[this.def.sprite]?.still) { ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(sx + Math.round(dw * (hover ? 0.2 : 0.25)), feetY - 2, Math.round(dw * (hover ? 0.6 : 0.5)), 3); }
-    blit(img, sx, sy - lift, dw, dh);
-    if (emote) drawEmote(ctx, emote, sx + Math.round(dw / 2), emote.anchor === 'feet' ? Math.round(this.y + this.h - cam.y) : sy - lift);
+    // stillFaces(characters.js): 한쪽 옆모습 정지 그림은 반대쪽을 볼 때 발(pivot) 기준으로 좌우 반전 — 청소부 영웅이 왼쪽 일행과 대치(BUILD469)
+    const stillFaces = CHARACTERS[this.def.sprite]?.stillFaces;
+    const mirror = !!stillFaces && (this.facing === 'left' || this.facing === 'right') && this.facing !== stillFaces;
+    const axis = Math.round(this.x + this.w / 2 - cam.x) + jx;
+    if (mirror || this.afterimage) {
+      ctx.save();
+      if (mirror) { ctx.translate(axis * 2, 0); ctx.scale(-1, 1); }
+      // 붉은 잔상(컷신 rise·drop·move 의 trail): 지금 그림의 실루엣을 지나온 쪽에 겹쳐 그린 뒤 몸을 그린다(드럼통 악마전 청소부 상승·낙하와 같은 순서)
+      for (const [dx, dy, alpha] of this.afterimage?.steps || NO_AFTERIMAGE) { ctx.globalAlpha = alpha; ctx.drawImage(this.afterimage.tint(img), sx + (mirror ? -dx : dx), sy - lift + dy, dw, dh); }
+      ctx.globalAlpha = 1;
+      blit(img, sx, sy - lift, dw, dh);
+      ctx.restore();
+    } else blit(img, sx, sy - lift, dw, dh);
+    const emoteX = mirror ? axis * 2 - (sx + Math.round(dw / 2)) : sx + Math.round(dw / 2);
+    if (emote) drawEmote(ctx, emote, emoteX, emote.anchor === 'feet' ? Math.round(this.y + this.h - cam.y) : sy - lift);
   }
   draw(ctx, cam) {
     if (!this.visible) return;

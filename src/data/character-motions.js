@@ -1,4 +1,5 @@
 import { BATTLE_PREVIEW, BATTLE_SPRITES } from './battle-sprites.js';
+import { JANITOR_HERO_ACTIONS } from './janitor-hero-actions.js';
 
 const deckFist = (character, faces) => ({
   src: `assets/sprites/${character}-deck-fist.png`, scale: 0.5, faces,
@@ -56,6 +57,16 @@ export const CHARACTER_MOTIONS = {
       src: 'assets/battle/janitor-hero-laugh.png', scale: 154 / (192 * 1.43), faces: 'right',
       colorKey: { rMin: 256, gMax: -1, bMin: 256 },
       frames: [{ rect: [0, 0, 192, 192], pivot: [138, 180], duration: 1.2 }],
+    },
+    // 깃발 공격(BUILD469 지하실 전투 직전 “공격모션 효과음과 함께 공격”): 드럼통 악마전 지원 공격 시트(320 셀 6칸)·칸 시간·발 pivot 을 그대로.
+    //   배율은 서기·웃음과 같은 값 — 공격 시트의 몸이 서기 그림과 같은 도트 크기라 필드에서 몸 크기가 이어진다(전투의 20% 축소는 전투 전용)
+    attack: {
+      src: JANITOR_HERO_ACTIONS.attack.src, scale: 154 / (192 * 1.43), faces: 'right',
+      colorKey: { rMin: 256, gMax: -1, bMin: 256 },
+      frames: JANITOR_HERO_ACTIONS.attack.holds.map((duration, i) => {
+        const { cell, cols, pivot } = JANITOR_HERO_ACTIONS.attack;
+        return { rect: [(i % cols) * cell, Math.floor(i / cols) * cell, cell, cell], pivot, duration };
+      }),
     },
   },
   drum_devil: {
