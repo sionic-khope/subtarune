@@ -23,5 +23,5 @@ export const YONGJUN_SANS = Object.freeze({
   openingPattern: Object.freeze({ type: 'yongjun_blaster' }),
   openingBoard: Object.freeze([176, 160]),
   afterOpening: '왜 다들 처음부터 강한공격을 안쓰시는걸까요?',
-  sfx: Object.freeze(['switch_noise', 'wing', 'ralsei_splat', 'heavyswing', 'impact', 'pop', 'break1', 'static_burst', 'squeaky']),
+  sfx: Object.freeze(['switch_noise', 'impact', 'bell', 'explosion']),
 });

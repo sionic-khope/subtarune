@@ -75,14 +75,14 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
   const opening = await page.waitForFunction(() => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; return b?.state === 'bullets' ? { bubble: !!b.bubble, bgm: game.sound.bgmName, type: b.patterns[0]?.p && b.bullets.some(x => x.shape === 'blaster'), bg: b.cfg.bg } : null; }, undefined, { timeout: 6000, polling: 50 }).then(h => h.jsonValue(), () => null);
   check('C 뒤 메뉴 없이 바로 냄새 블래스터(음악 없음·말풍선 없음), 배경 라운지', opening && !opening.bubble && !opening.bgm && opening.bg === 'maillard_lounge', JSON.stringify(opening));
   let blasters = 0; const seen = {};
-  for (const [k, at] of [[1, 0.6], [2, 1.15], [3, 2.0], [4, 2.75], [5, 4.2], [6, 7.1]]) {
+  for (const [k, at] of [[1, 0.5], [2, 0.95], [3, 1.6], [4, 2.95], [5, 3.6], [6, 5.6], [7, 6.95]]) {
     const ok = await page.waitForFunction((at) => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'bullets' && b.t >= at; }, at, { timeout: 12000, polling: 40 }).then(() => true, () => false);
     if (!ok) break;
-    const s = await page.evaluate(() => { const b = game.battle; return { blasters: b.bullets.filter(x => x.shape === 'blaster').length, blue: !!b.soul.blue, onFloor: b.soul.y >= b.board.rect.y + b.board.rect.h - 11, bones: b.bullets.some(x => x.shape === 'bones' && x.risen), box: [Math.round(b.board.rect.w), Math.round(b.board.rect.h)] }; });
+    const s = await page.evaluate(() => { const b = game.battle; return { blasters: b.bullets.filter(x => x.shape === 'blaster').length, blue: !!b.soul.blue, onFloor: b.soul.y >= b.board.rect.y + b.board.rect.h - 11, bones: b.bullets.some(x => x.shape === 'bones' && x.risen), slides: b.bullets.filter(x => x.shape === 'slide_bone').length, box: [Math.round(b.board.rect.w), Math.round(b.board.rect.h)] }; });
     seen[k] = s; blasters = Math.max(blasters, s.blasters);
     await shot(`yongjun_06b_blaster_${k}`);
   }
-  check('샌즈 첫 공격 순서: 파란 하트로 바닥에 내리꽂힘 → 바닥 뼈 → 빨간 하트 → 블래스터', seen[1]?.blue && seen[1].onFloor && seen[2]?.bones && seen[3] && !seen[3].blue && seen[1].box[0] === 176, JSON.stringify(seen));
+  check('샌즈 첫 공격 순서: 파란 하트로 바닥에 내리꽂힘 → 바닥 뼈 → 미끄럼 뼈 → 빨간 하트 → 블래스터 판·고리', seen[1]?.blue && seen[1].onFloor && seen[2]?.bones && seen[3]?.blue && seen[3].slides >= 3 && seen[4] && !seen[4].blue && seen[5]?.blasters >= 4 && seen[1].box[0] === 176, JSON.stringify(seen));
   check('냄새 블래스터가 여러 개 동시에', blasters >= 4, `max=${blasters}`);
   const line = await page.waitForFunction(() => { const b = game.battle; if (b?.soul) b.soul.invuln = 9; if (b) for (const m of b.members) { m.hp = m.maxHp; m.down = false; } return b?.state === 'interlude' && b.bubble?.shown >= b.bubble?.text.length ? b.bubble.text : null; }, undefined, { timeout: 12000, polling: 50 }).then(h => h.jsonValue(), () => null);
   check('강공격 뒤 “왜 다들 처음부터 강한공격을 안쓰시는걸까요?”', line === '왜 다들 처음부터 강한공격을 안쓰시는걸까요?', JSON.stringify(line));
@@ -95,7 +95,9 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
 
   const speaks = [], leaks = [];
   const waitIn = (fn, arg, timeout) => page.waitForFunction(fn, arg, { timeout, polling: 50 }).then(() => true, () => false);
-  for (let n = 0; n < 6; n++) {
+  const patternCount = await page.evaluate(() => game.battle.enemies[0].def.patterns.length);
+  await page.evaluate(() => { window.qaBlips = []; const blip = game.sound.blip.bind(game.sound); game.sound.blip = (v) => { window.qaBlips.push([v, game.battle?.state, game.battle?.enemies[0]?.patternIdx]); return blip(v); }; });
+  for (let n = 0; n < patternCount; n++) {
     await page.evaluate((n) => { const b = game.battle; b.enemies[0].patternIdx = n; b.beginEnemyTurn(); }, n);
     const bubble = await waitIn(() => !!game.battle?.bubble?.text || game.battle?.state === 'bullets', undefined, 4000).then(() => page.evaluate(() => game.battle?.bubble?.text || null)); speaks.push(bubble);
     const type = await page.evaluate((n) => game.battle.enemies[0].def.patterns[n].type, n);
@@ -112,7 +114,9 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
     check(`패턴 ${n} 뒤 행동 선택으로 돌아온다`, back);
   }
   check('상자 안 위협(악취·부스러기·눈물·불똥)은 상자 밖으로 새지 않는다', leaks.length === 0, JSON.stringify(leaks.slice(0, 6)));
-  check('턴마다 말풍선이 패턴 대사(포옹은 “응? 인경님 무슨..”)', speaks.every(Boolean) && new Set(speaks).size === 6 && speaks[5] === '응? 인경님 무슨..', JSON.stringify(speaks));
+  check('턴마다 말풍선이 패턴 대사(냄스터블래스터! 둘, 포옹은 “응? 인경님 무슨..”)', speaks.length === 9 && speaks.every(Boolean) && new Set(speaks).size === 8 && speaks.filter(x => x === '냄스터블래스터!').length === 2 && speaks[8] === '응? 인경님 무슨..', JSON.stringify(speaks));
+  const coughVoice = await page.evaluate(() => window.qaBlips.filter(([v, st, idx]) => v === 'yongjun' && st === 'bullets' && idx === 3).length);
+  check('생선 켁켁 때 용준 목소리', coughVoice >= 4, `blips=${coughVoice}`);
 
   const before = await page.evaluate(() => ({ hpBonus: game.hpBonus, max: ['hyungsub', ...game.party].map(id => game.maxHpOf(id)) }));
   await page.evaluate(() => { game.battle.enemies[0].hp = 1; });

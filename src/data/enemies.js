@@ -645,12 +645,18 @@ export const ENEMIES = {
       // 패턴 효과 gpt 도트(BUILD464 사용자 “공격패턴 gpt 도트 잘 쓰라니까”) — 오프닝 냄새 블래스터·광선 포함
       puff: 'assets/props/yongjun-stench.png', spit: 'assets/props/yongjun-spit.png', tear: 'assets/props/yongjun-tear.png', crumb: 'assets/props/yongjun-crumb.png',
       spark: 'assets/props/yongjun-spark.png', bolt: 'assets/props/yongjun-bolt.png', blaster: 'assets/props/yongjun-blaster.png', beam: 'assets/props/yongjun-stench-beam.png',
+      // 용준대포 패턴(BUILD467): 쮼앰대포·포탄(꼭대기 장면과 같은 짝)·폭파 이펙트(사용자 지정 FX.explosion)
+      cannon: 'assets/props/wooden_cannon.png', ball: 'assets/props/ship_cannonball.png', boom: 'assets/fx/explosion.png',
     },
+    // BUILD467 사용자 “냄스터 블래스터 관련한 패턴 두개 더 추가해, 냄스터블래스터! 이러면서 … 하나씩 여러번 빠르게 쏘는 패턴이랑 여러개씩 간격 더 두고 쏘는패턴”, “용준 대포 가져와서 쏘는 패턴도 추가해”
     patterns: [
       { type: 'yongjun_stench', speak: '제 냄새 한번 맡아 보시죠 형님들' },
+      { type: 'yongjun_blaster_rapid', speak: '냄스터블래스터!' },
       { type: 'yongjun_fish', speak: '잠깐만요 생선 좀 먹고요' },
       { type: 'yongjun_roll', speak: '뚱땡이는 굴러야 제맛이죠 헤헤' },
+      { type: 'yongjun_cannon', speak: '용준대포 발사!' },
       { type: 'yongjun_cry', speak: '엄마... 왜 도망갔어...' },
+      { type: 'yongjun_blaster_volley', speak: '냄스터블래스터!' },
       { type: 'yongjun_insults', speak: '형님들이 저한테 한 말 그대로 돌려드릴게요' },
       // 말풍선 “응? 인경님 무슨..”(BUILD465 사용자) → 여자가 갑자기 안으면 상자 위에 “우오오오옥!!”(BUILD464 “여자친구생겼습니다가 아니고 … 전기 우오오오옥!! 하면서”)
       { type: 'yongjun_hug', speak: '응? 인경님 무슨..' },

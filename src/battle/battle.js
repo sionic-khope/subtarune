@@ -558,6 +558,8 @@ export class Battle {
       api.images = pat.enemy?.projectiles;
       api.actor = { x: pat.enemy.x, y: pat.enemy.y, scale: pat.enemy.def.scale ?? 1 };
       api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
+      // 패턴이 캐릭터 목소리를 낸다(박용준 켁켁, BUILD467)
+      api.voice = name => this.game.sound.blip(name);
       api.trackProjectile = projectile => this.support?.onProjectile?.(projectile);
       api.vacuum = (on, seconds) => this.support?.onVacuum?.(on, seconds);
       api.interceptionActive = () => this.support?.interceptionActive ?? false;

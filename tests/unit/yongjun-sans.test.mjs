@@ -61,8 +61,9 @@ test('test_yongjun_boss_hp_hundred_no_dodge_six_distinct_patterns_each_with_a_tu
   // 냄새 블래스터는 오프닝 첫 강공격 전용(YONGJUN_SANS.openingPattern), 차례에는 없다
   assert.deepEqual(def.patterns.map(p => p.type), Object.keys(YONGJUN_PATTERNS).filter(type => type !== 'yongjun_blaster'));
   assert.equal(YONGJUN_SANS.openingPattern.type, 'yongjun_blaster');
-  for (const p of def.patterns) { assert.equal(PATTERNS[p.type], YONGJUN_PATTERNS[p.type]); assert.ok(p.silent || (p.speak && p.speak.length <= 30), p.type); }
-  assert.equal(new Set(def.patterns.map(p => p.speak)).size, 6);
+  for (const p of def.patterns) { assert.equal(PATTERNS[p.type], YONGJUN_PATTERNS[p.type]); assert.ok(p.speak && p.speak.length <= 30, p.type); }
+  assert.equal(def.patterns.length, 9);
+  assert.deepEqual(def.patterns.filter(p => p.type.startsWith('yongjun_blaster_')).map(p => p.speak), ['냄스터블래스터!', '냄스터블래스터!']);
   assert.equal(def.patterns.find(p => p.type === 'yongjun_hug').speak, '응? 인경님 무슨..');
 });
 

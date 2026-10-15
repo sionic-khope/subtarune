@@ -15,11 +15,13 @@
 //     yongjun_blaster: 오프닝 첫 강공격(“가스터블래스터처럼 냄새블래스터”) — 용준 머리 블래스터가 상자 밖으로 날아와(0.3초) 입을 닫고 떨며 겨눈다(0.45초, 광선 줄 점선)
 //                     → 입을 벌려 갈색 냄새 광선(0.5초) → 뒤로 빠진다. 십자(소울 줄·칸 + 옆 줄) → X(네 모서리에서 소울로) → 십자 → 큰 블래스터 둘(위·아래 띠, 가운데만 안전)
 //     yongjun_hug(BUILD464 “여자가 갑자기 안으니까 전기 우오오오옥!!”): 흰 용준 혼자 → 단발 여자가 와락 안는다(크게 튀었다 줄어듦) + 상자 위 “우오오오옥!!” → 부르르 → 번개
+//   BUILD467: 효과음은 전부 샌즈전 소리(블래스터 segapower·rainbowbeam·gigatalk, 뼈 spearrise, 눈 cinematiccut, 쾅 impact, 띵 bell), 켁켁엔 용준 목소리.
+//     yongjun_blaster_rapid / yongjun_blaster_volley(“냄스터블래스터!”): 한 개씩 0.4초마다 13발 / 다섯 개씩 1.65초마다 네 판. yongjun_cannon: 쮼앰대포 포탄 → 착지 표시 → 폭파 이펙트 + 파편
 //   상자 안 캐릭터 그림은 whiteSprite(흰/검 2톤). 시트 칸은 투명 여백을 잘라 쓴다. 시간 진행은 전부 t 기준(주사율 무관, patterns-refresh-rate.test).
 import { whiteSprite } from './youngcle-patterns.js';
 
 const TAU = Math.PI * 2;
-export const YONGJUN_SHEETS = Object.freeze({ idle: [2, 2], cough: [2, 2], cry: [2, 2], roll: [1, 1], hug: [1, 1], fish: [1, 1], puff: [2, 1], spit: [1, 1], tear: [1, 1], crumb: [1, 1], spark: [2, 1], bolt: [1, 2], blaster: [2, 1], beam: [1, 2] });
+export const YONGJUN_SHEETS = Object.freeze({ idle: [2, 2], cough: [2, 2], cry: [2, 2], roll: [1, 1], hug: [1, 1], fish: [1, 1], puff: [2, 1], spit: [1, 1], tear: [1, 1], crumb: [1, 1], spark: [2, 1], bolt: [1, 2], blaster: [2, 1], beam: [1, 2], ball: [1, 1], boom: [31, 1] });
 export const STENCH = Object.freeze({ duration: 7.0, grow: 0.6, h: 54, bodyR: 15, arms: 3, emitEvery: 0.12, speed: 76, spin: 1.25, flipEvery: 2.6, puffR: 6, ringFirst: 1.7, ringEvery: 2.3, ringN: 16, ringGap: 4, ringSpeed: 66, ringWarn: 0.5, ringShift: 0.9, stopAt: 6.2 });
 export const FISH = Object.freeze({ duration: 7.4, first: 0.35, every: 1.55, eat: 0.5, warn: 0.45, pairGap: 0.42, speed: 250, w: 30, h: 14, spit: 6, spitSpread: 0.85, spitSpeed: [100, 165], spitG: 230, spitR: 3.5, mouth: [-18, -54], endBy: 6.3,
   // 입 옆 대사(BUILD466 사용자 “먹고 켁켁 하는 대사도 추가해줘 뱉으면서 동시에 나오는”): 먹을 때 우적우적, 뱉는 순간마다 켁!
@@ -32,11 +34,16 @@ export const HUG = Object.freeze({ duration: 7.4, alone: 0.45, pop: 0.16, h: 66,
   shout: '우오오오옥!!', shoutFor: 1.7, shoutFont: 'bold 18px Galmuri11, "Apple SD Gothic Neo", sans-serif' });
 // BUILD466 사용자 “처음 공격할 때 샌즈 처음공격이랑 거의 똑같은 패턴으로 재구성”: 원작 첫 공격 순서(디컴파일 obj_sansb) — 눈 번쩍 + 파란 하트로 바닥에 내리꽂기(snd_impact)
 //   → 바닥 뼈(경고 상자 → 솟음 snd_spearrise, 점프로 넘기) → 띵(snd_bell) 빨간 하트 → 블래스터 4발 세 판 → 큰 블래스터 둘
-export const BLASTER = Object.freeze({ duration: 8.6, flyIn: 0.3, charge: 0.45, fire: 0.5, leave: 0.35, size: 46, beamW: 16, bigW: 36, bigScale: 1.6, reach: 560, standOff: 34, sideGap: 46,
-  slam: Object.freeze({ speed: 640, g: 520, jump: 200, boneWarnAt: 0.35, boneWarn: 0.5, boneHold: 0.6, boneDrop: 0.18, boneH: 30, boneW: 10, boneGap: 2, bellAt: 1.85 }),
-  rounds: Object.freeze([Object.freeze({ at: 2.1, kind: 'cross' }), Object.freeze({ at: 3.55, kind: 'x' }), Object.freeze({ at: 5.0, kind: 'cross', flip: true }), Object.freeze({ at: 6.45, kind: 'big' })]),
+export const BLASTER = Object.freeze({ duration: 8.2, flyIn: 0.25, charge: 0.38, fire: 0.45, leave: 0.3, size: 46, beamW: 16, bigW: 36, bigScale: 1.6, reach: 560, standOff: 34, sideGap: 46,
+  // BUILD467 사용자 “초반 공격 더 추가해야지 속도감이 없잖아, 뼈공격도 마찬가지”: 판 간격 1.45 → 0.65초, 미끄럼 뼈 세 번, 블래스터 고리(여섯 개 연달아) 추가
+  slam: Object.freeze({ speed: 640, g: 520, jump: 200, boneWarnAt: 0.3, boneWarn: 0.4, boneHold: 0.45, boneDrop: 0.15, boneH: 30, boneW: 10, boneGap: 2, bellAt: 2.75 }),
+  slides: Object.freeze([Object.freeze({ at: 1.3, from: 1, h: 22 }), Object.freeze({ at: 1.75, from: -1, h: 26 }), Object.freeze({ at: 2.15, from: 1, h: 30 })]), slideSpeed: 250, slideCount: 3, slideGapPx: 13,
+  rounds: Object.freeze([{ at: 2.85, kind: 'cross' }, { at: 3.5, kind: 'x' }, { at: 4.15, kind: 'cross', flip: true }, { at: 4.8, kind: 'ring', n: 6, every: 0.15 }, { at: 6.3, kind: 'big' }].map(Object.freeze)),
   // 원작 obj_gasterblaster: 등장 segapower(0.8, 1.2배), 발사 rainbowbeam_1(0.8) + a_gigatalk(0.6) 겹침(1.2배), 시작 눈 번쩍 cinematiccut(0.8, 1.4배)
   chargeSfx: 'sans_blaster_charge', fireSfx: 'sans_blaster_fire', fireLayer: 'sans_blaster_gigatalk', eyeSfx: 'sans_eye', rate: 1.2, eyeRate: 1.4 });
+export const BLASTER_RAPID = Object.freeze({ duration: 6.6, first: 0.3, every: 0.4, count: 13, flyIn: 0.18, charge: 0.34, fire: 0.34, leave: 0.25, beamW: 16 });
+export const BLASTER_VOLLEY = Object.freeze({ duration: 7.4, first: 0.3, every: 1.65, flyIn: 0.3, charge: 0.55, fire: 0.55, leave: 0.3, beamW: 22, kinds: Object.freeze(['rows', 'cols', 'aim', 'mix']) });
+export const CANNON = Object.freeze({ duration: 7.2, enter: 0.45, first: 0.65, every: 0.72, shots: 8, triple: 3, warn: 0.5, arc: 46, blastR: 24, blast: 0.3, boomW: 52, ballSize: 14, shrapnel: 6, shrapnelSpeed: 85, scale: 0.62, gunX: 34, gunY: 0.62, muzzle: Object.freeze([-36, -12]) });
 
 const blink = (self, hz = 8) => Math.floor(self.age * hz) % 2 === 0;
 /** gpt 도트 효과 그림(시트 칸 frame)을 (x, y) 가운데에 너비 w 로(높이는 그림 비율, h 를 주면 그 높이). 그림이 없으면 false → 코드 그림 */
@@ -72,7 +79,7 @@ const textWidth = (font, text) => {
 /** 시트의 한 칸을 투명 여백을 잘라 캔버스로(그림마다 한 번). 문서가 없거나 그림이 없으면 null */
 const CELLS = new WeakMap();
 /** 여백을 자르지 않는 그림: 블래스터는 두 칸이 머리 기준으로 정렬돼 있어 자르면 입을 벌릴 때 머리가 튄다 */
-const NO_TRIM = new Set(['blaster']);
+const NO_TRIM = new Set(['blaster', 'boom']);
 export function sheetCell(img, key, index = 0) {
   if (!img || !img.width || typeof document === 'undefined') return null;
   let list = CELLS.get(img); if (!list) { list = []; CELLS.set(img, list); }
@@ -216,7 +223,7 @@ function stench(o = {}) {
     if (!body) {
       api.present?.({ hidden: true });
       clearCenter(api, cx, cy, C.bodyR);
-      api.sfx?.('wing', { volume: 0.4 });
+      api.sfx?.('sans_eye', { volume: 0.7, rate: 1.4, pitch: true });
       body = keep(api, { x: cx, y: cy, r: C.bodyR, kind: 'white', shape: 'yongjun_body', life: C.duration + 0.05,
         out() { return this.age >= this.life; },
         hitShape(self, soul) { return self.age >= C.grow && Math.hypot(soul.x - self.x, soul.y - self.y) <= C.bodyR + soul.r - 3; },
@@ -251,7 +258,7 @@ function stench(o = {}) {
       nextRing += C.ringEvery;
     }
     while (rings.length && rings[0].at <= t) {
-      const ring = rings.shift(); api.sfx?.('wing', { volume: 0.45 });
+      const ring = rings.shift(); api.sfx?.('sans_bone', { volume: 0.55 });
       const step = TAU / C.ringN, gapIndex = Math.round(ring.gapAngle / step);
       for (let i = 0; i < C.ringN; i++) {
         const offset = ((i - gapIndex) % C.ringN + C.ringN) % C.ringN;
@@ -300,7 +307,8 @@ function fishCough(o = {}) {
         continue;
       }
       api.present?.({ sheet: 'cough', frame: e.frame });
-      api.sfx?.('ralsei_splat', { volume: 0.55 });
+      api.voice?.('yongjun');
+      api.sfx?.('sans_bone', { volume: 0.4 });
       say(api, C.coughLine, C.lineFor, e.frame === 3 ? 1 : 0);
       const ux = Math.cos(e.a), uy = Math.sin(e.a);
       api.emit({ x: e.mx, y: e.my, r: 6, kind: 'white', shape: 'fish', vx: ux * C.speed, vy: uy * C.speed, rot: e.a + Math.PI, free: true, life: 2.4, out: passedBox,
@@ -350,7 +358,7 @@ function roll(o = {}) {
     if (!seg && t >= nextAt) { begin(t, api); ball.x = seg.x0; ball.y = seg.y0; }
     if (!seg) return;
     if (t >= seg.go && !seg.hit) {
-      if (!seg.started) { seg.started = true; api.sfx?.('heavyswing', { volume: 0.5 }); }
+      if (!seg.started) { seg.started = true; api.sfx?.('sans_bone', { volume: 0.5 }); }
       ball.parked = false;
       const d = Math.min(seg.len, (t - seg.go) * seg.speed);
       ball.x = seg.x0 + seg.dx * d; ball.y = seg.y0 + seg.dy * d; ball.rot = (ball.rot || 0) + C.spin * dt * (seg.dx >= 0 ? 1 : -1);
@@ -389,7 +397,7 @@ function cry(o = {}) {
       next += C.every;
     }
     while (rows.length && rows[0].at <= t) {
-      const r = rows.shift(); api.sfx?.('pop', { volume: 0.4 });
+      const r = rows.shift(); api.sfx?.('sans_bone', { volume: 0.45 });
       r.cols.forEach((i, n) => {
         api.emit({ x: b.x + spacing * (i + 0.5), y: b.y - C.dropR, r: C.dropR, kind: 'white', shape: 'tear', vy: C.vy, life: 2.0, splash: n % 2 === 0,
           steer(self) {
@@ -430,7 +438,7 @@ function insults(o = {}) {
         hitShape(self, soul) { return Math.abs(soul.x - self.x) <= q.w / 2 + soul.r - 3 && Math.abs(soul.y - self.y) <= C.h / 2 + soul.r - 4; },
         steer(self) {
           if (self.split || self.age < q.dist / C.speed - 0.01) return;
-          self.split = true; api.sfx?.('break1', { volume: 0.4 });
+          self.split = true; api.sfx?.('impact', { volume: 0.4 });
           const back = Math.atan2(-q.dy, -q.dx);
           [...q.text].forEach((ch, i) => {
             const a = back + (i ? 1 : -1) * C.shardTurn;
@@ -490,7 +498,7 @@ function hugShock(o = {}) {
     const pending = zaps[0];
     if (pending && t >= pending.warnFrom) body.charge = clamp((t - pending.warnFrom) / C.warn, 0, 1);
     while (zaps.length && zaps[0].at <= t) {
-      const z = zaps.shift(); api.sfx?.('static_burst', { volume: 0.5 });
+      const z = zaps.shift(); api.sfx?.('sans_blaster_fire', { volume: 0.5, rate: 1.4, pitch: true });
       for (const a of z.rays) {
         const ux = Math.cos(a), uy = Math.sin(a), len = wallDistance(b, 0, cx, cy, ux, uy);
         api.emit({ x: cx, y: cy, r: 0, kind: 'white', shape: 'bolt', life: C.zap, angle: a, seed: Math.round(a * 100),
@@ -520,17 +528,71 @@ function blasterRound(round, b, soul, C) {
   const sx = clamp(soul.x, b.x + 14, b.x + b.w - 14), sy = clamp(soul.y, b.y + 14, b.y + b.h - 14);
   const L = b.x - C.standOff, R = b.x + b.w + C.standOff, T = b.y - C.standOff;
   const side = (v, lo, hi, gap) => (v + gap <= hi ? v + gap : v - gap);
-  // 아래쪽(B)은 HP 띠에 가리므로 아래 모서리 블래스터는 옆 벽 아래쪽에 둔다
+  // 아래쪽은 HP 띠에 가리므로 아래 모서리 블래스터는 옆 벽 아래쪽에 둔다
   if (round.kind === 'x') return [[L, T], [R, T], [L, b.y + b.h - 6], [R, b.y + b.h - 6]].map(([x, y]) => ({ x, y, a: Math.atan2(sy - y, sx - x), w: C.beamW, scale: 1 }));
   if (round.kind === 'big') return [{ x: L - 8, y: b.y + b.h * 0.25, a: 0, w: C.bigW, scale: C.bigScale }, { x: R + 8, y: b.y + b.h * 0.75, a: Math.PI, w: C.bigW, scale: C.bigScale }];
   const f = round.flip ? -1 : 1, gy = side(sy, b.y + 14, b.y + b.h - 14, C.sideGap * f), gx = side(sx, b.x + 14, b.x + b.w - 14, C.sideGap * f);
   return [{ x: L, y: sy, a: 0 }, { x: sx, y: T, a: Math.PI / 2 }, { x: R, y: gy, a: Math.PI }, { x: gx, y: T, a: Math.PI / 2 }].map(o => ({ ...o, w: C.beamW, scale: 1 }));
 }
-/** 0. 오프닝 첫 강공격: 냄새 블래스터(가스터 블래스터식) 네 판 */
+/** 상자 둘레(아래 제외)의 k 번째 자리 — 연발·고리 블래스터가 돌아가며 나온다 */
+function rimSpot(k, b, C, rnd) {
+  const L = b.x - C.standOff, R = b.x + b.w + C.standOff, T = b.y - C.standOff, u = 0.15 + rnd * 0.7;
+  return [[L, b.y + b.h * u], [b.x + b.w * u, T], [R, b.y + b.h * u], [L, T], [R, T]][k % 5];
+}
+/**
+ * 냄스터 블래스터 하나(가스터 블래스터식): 상자 밖 bl{x,y,a,w,scale} 로 빙글 날아와(flyIn) 떨며 겨누고(charge, 광선 줄 점선)
+ * → 입을 벌려 냄새 광선(fire) → 뒤로 빠진다(leave). 광선은 상자 반대편 벽까지만. sounds:{charge,fire,layer} 를 주면 이 블래스터가 직접 낸다
+ */
+function spawnBlaster(api, b, bl, C, T, sounds = null) {
+  const ux = Math.cos(bl.a), uy = Math.sin(bl.a), size = C.size * bl.scale, mouth = size * 0.38;
+  const mx = bl.x + ux * mouth, my = bl.y + uy * mouth, reach = Math.min(C.reach, rayExit(b, mx, my, ux, uy) + 4);
+  const fireAt = T.flyIn + T.charge, life = fireAt + T.fire + T.leave;
+  if (sounds?.charge) api.sfx?.(sounds.charge, { volume: 0.7, rate: C.rate, pitch: true });
+  api.emit({ x: mx, y: my, r: 0, harmless: true, life: fireAt, shape: 'beam_warn', free: true,
+    drawShape(ctx, self) { if (self.age > T.flyIn * 0.5) dottedLine(ctx, self, mx, my, mx + ux * reach, my + uy * reach, '#c98a3f'); } });
+  api.emit({ x: bl.x - ux * 90, y: bl.y - uy * 90, r: 0, kind: 'white', shape: 'blaster', free: true, life, rot: bl.a - Math.PI, fired: false,
+    steer(self) {
+      const age = self.age;
+      if (sounds?.fire && !self.fired && age >= fireAt) { self.fired = true; api.sfx?.(sounds.fire, { volume: 0.75, rate: C.rate, pitch: true }); if (sounds.layer) api.sfx?.(sounds.layer, { volume: 0.55, rate: C.rate, pitch: true }); }
+      if (age < T.flyIn) { const k = 1 - (1 - age / T.flyIn) ** 3; self.x = bl.x - ux * 90 * (1 - k); self.y = bl.y - uy * 90 * (1 - k); self.rot = bl.a - Math.PI * (1 - k); }
+      else if (age < fireAt + T.fire) { const shake = age < fireAt ? 1.5 : 0.6; self.x = bl.x + Math.sin(age * 90) * shake; self.y = bl.y + Math.cos(age * 77) * shake; self.rot = bl.a; }
+      else { const k = (age - fireAt - T.fire) / T.leave; self.x = bl.x - ux * 140 * k * k; self.y = bl.y - uy * 140 * k * k; self.rot = bl.a; }
+    },
+    hitShape(self, soul) {
+      const f = self.age - fireAt; if (f < 0.05 || f > T.fire - 0.06) return false;
+      return segDist(soul.x, soul.y, mx, my, mx + ux * reach, my + uy * reach) <= bl.w * 0.45 + soul.r - 2;
+    },
+    drawShape(ctx, self) {
+      const f = self.age - fireAt, open = f >= 0;
+      if (open && f < T.fire + T.leave * 0.4) {
+        const grow = clamp(f / 0.06, 0, 1) * clamp((T.fire + T.leave * 0.4 - f) / 0.18, 0, 1), bw = bl.w * 1.35 * grow;
+        const cell = sheetCell(api.images?.beam, 'beam', Math.floor(self.age * 16) % 2);
+        ctx.save(); ctx.translate(Math.round(mx), Math.round(my)); ctx.rotate(bl.a); ctx.imageSmoothingEnabled = false;
+        if (cell && cell.width) ctx.drawImage(cell, 0, -Math.round(bw / 2), Math.round(reach), Math.max(1, Math.round(bw)));
+        else { ctx.fillStyle = '#6b4320'; ctx.fillRect(0, -bw / 2, reach, bw); ctx.fillStyle = '#b07a3e'; ctx.fillRect(0, -bw / 4, reach, bw / 2); }
+        ctx.restore();
+      }
+      const fade = f > T.fire ? clamp(1 - (f - T.fire) / T.leave, 0, 1) : 1;
+      ctx.save(); ctx.globalAlpha *= fade;
+      if (!drawArt(ctx, api.images?.blaster, 'blaster', open ? 1 : 0, self.x, self.y, size, null, self.rot)) {
+        ctx.translate(Math.round(self.x), Math.round(self.y)); ctx.rotate(self.rot);
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, size * 0.36, 0, TAU); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.fillRect(-4, -size * 0.2, 6, 6); ctx.fillRect(-4, size * 0.08, 6, 6);
+        if (open) ctx.fillRect(size * 0.2, -4, size * 0.2, 8);
+      }
+      ctx.restore();
+    } });
+}
+/** 흰 뼈 한 개(원작 샌즈 뼈: 막대 + 양 끝 마디) — 바닥 뼈·미끄럼 뼈 공용 */
+function drawBone(ctx, x, y, w, h) {
+  const bx = Math.round(x), by = Math.round(y);
+  ctx.fillStyle = '#fff'; ctx.fillRect(bx + 2, by + 3, w - 4, h - 3); ctx.fillRect(bx, by, 4, 4); ctx.fillRect(bx + w - 4, by, 4, 4);
+}
+/** 0. 오프닝 첫 강공격: 샌즈 첫 공격 순서(파란 하트 내리꽂기 → 바닥 뼈 → 미끄럼 뼈 → 띵 → 냄스터 블래스터 판들) */
 function blaster(o = {}) {
   const C = { ...BLASTER, ...o };
-  const rounds = C.rounds.map(r => ({ ...r, spawned: false, fired: false }));
-  const life = C.flyIn + C.charge + C.fire + C.leave, S = C.slam;
+  const rounds = C.rounds.map(r => ({ ...r, spawned: false, fired: false, next: 0, made: 0 }));
+  const slides = C.slides.map(s => ({ ...s, spawned: false })), S = C.slam, T = C;
   let eye = false, bones = false, bell = false, landedSeen = 0;
   return { duration: C.duration, update(t, dt, api) {
     const b = api.box, soul = api.soul;
@@ -551,59 +613,126 @@ function blaster(o = {}) {
         hitShape(self, s2) { const h = self.height(self); return h > 4 && s2.y + s2.r - 2 > b.y + b.h - h; },
         drawShape(ctx, self) {
           const h = Math.round(self.height(self)); if (h <= 0) return;
-          ctx.save(); ctx.beginPath(); ctx.rect(b.x + 2, b.y + 2, b.w - 4, b.h - 4); ctx.clip(); ctx.fillStyle = '#fff';
-          for (let x = b.x + 4; x < b.x + b.w - 4; x += S.boneW + S.boneGap) {
-            const bx = Math.round(x), by = Math.round(b.y + b.h - h);
-            ctx.fillRect(bx + 2, by + 3, S.boneW - 4, h); ctx.fillRect(bx, by, 4, 4); ctx.fillRect(bx + S.boneW - 4, by, 4, 4);
-          }
+          ctx.save(); ctx.beginPath(); ctx.rect(b.x + 2, b.y + 2, b.w - 4, b.h - 4); ctx.clip();
+          for (let x = b.x + 4; x < b.x + b.w - 4; x += S.boneW + S.boneGap) drawBone(ctx, x, b.y + b.h - h, S.boneW, h);
           ctx.restore();
         } });
     }
+    // 미끄럼 뼈: 파란 하트일 때 바닥을 따라 옆에서 뼈 세 개가 몰려온다 → ↑ 로 넘는다(갈수록 높게)
+    for (const sl of slides) {
+      if (sl.spawned || t < sl.at) continue;
+      sl.spawned = true; api.sfx?.('sans_bone', { volume: 0.6 });
+      for (let i = 0; i < C.slideCount; i++) {
+        const w = S.boneW, startX = sl.from > 0 ? b.x + b.w + 4 + i * (w + C.slideGapPx) : b.x - 4 - w - i * (w + C.slideGapPx), vx = -sl.from * C.slideSpeed;
+        api.emit({ x: startX, y: b.y + b.h - sl.h, r: 0, kind: 'white', shape: 'slide_bone', vx, life: (b.w + 80) / C.slideSpeed, w, h: sl.h,
+          out() { return this.age >= this.life; },
+          hitShape(self, s2) { return s2.x + s2.r - 3 > self.x && s2.x - s2.r + 3 < self.x + self.w && s2.y + s2.r - 2 > self.y; },
+          drawShape(ctx, self) { ctx.save(); ctx.beginPath(); ctx.rect(b.x + 2, b.y + 2, b.w - 4, b.h - 4); ctx.clip(); drawBone(ctx, self.x, self.y, self.w, self.h); ctx.restore(); } });
+      }
+    }
     if (!bell && t >= S.bellAt) { bell = true; if (soul) { soul.blue = null; soul.vy = 0; } api.sfx?.('bell', { volume: 0.7 }); }
     for (const round of rounds) {
+      if (round.kind === 'ring') {
+        while (t >= round.at + round.made * round.every && round.made < round.n) {
+          const [x, y] = rimSpot(round.made, b, C, api.rnd()); round.made++;
+          spawnBlaster(api, b, { x, y, a: Math.atan2(soul.y - y, soul.x - x), w: C.beamW, scale: 1 }, C, T, { charge: round.made === 1 ? C.chargeSfx : null, fire: C.fireSfx });
+        }
+        continue;
+      }
       if (!round.spawned && t >= round.at) {
         round.spawned = true; api.sfx?.(C.chargeSfx, { volume: 0.8, rate: C.rate, pitch: true });
-        for (const bl of blasterRound(round, b, api.soul, C)) {
-          const ux = Math.cos(bl.a), uy = Math.sin(bl.a), size = C.size * bl.scale, mouth = size * 0.38;
-          const mx = bl.x + ux * mouth, my = bl.y + uy * mouth, reach = Math.min(C.reach, rayExit(b, mx, my, ux, uy) + 4);
-          api.emit({ x: mx, y: my, r: 0, harmless: true, life: C.flyIn + C.charge, shape: 'beam_warn', free: true,
-            drawShape(ctx, self) { if (self.age > C.flyIn * 0.5) dottedLine(ctx, self, mx, my, mx + ux * reach, my + uy * reach, '#c98a3f'); } });
-          api.emit({ x: bl.x - ux * 90, y: bl.y - uy * 90, r: 0, kind: 'white', shape: 'blaster', free: true, life, rot: bl.a - Math.PI,
-            steer(self) {
-              const age = self.age, fireAt = C.flyIn + C.charge;
-              if (age < C.flyIn) { const k = 1 - (1 - age / C.flyIn) ** 3; self.x = bl.x - ux * 90 * (1 - k); self.y = bl.y - uy * 90 * (1 - k); self.rot = bl.a - Math.PI * (1 - k); }
-              else if (age < fireAt + C.fire) { const shake = age < fireAt ? 1.5 : 0.6; self.x = bl.x + Math.sin(age * 90) * shake; self.y = bl.y + Math.cos(age * 77) * shake; self.rot = bl.a; }
-              else { const k = (age - fireAt - C.fire) / C.leave; self.x = bl.x - ux * 140 * k * k; self.y = bl.y - uy * 140 * k * k; self.rot = bl.a; }
-            },
-            hitShape(self, soul) {
-              const f = self.age - C.flyIn - C.charge; if (f < 0.05 || f > C.fire - 0.06) return false;
-              return segDist(soul.x, soul.y, mx, my, mx + ux * reach, my + uy * reach) <= bl.w * 0.45 + soul.r - 2;
-            },
-            drawShape(ctx, self) {
-              const f = self.age - C.flyIn - C.charge, open = f >= 0;
-              if (open && f < C.fire + C.leave * 0.4) {
-                const grow = clamp(f / 0.06, 0, 1) * clamp((C.fire + C.leave * 0.4 - f) / 0.18, 0, 1), bw = bl.w * 1.35 * grow;
-                const cell = sheetCell(api.images?.beam, 'beam', Math.floor(self.age * 16) % 2);
-                ctx.save(); ctx.translate(Math.round(mx), Math.round(my)); ctx.rotate(bl.a); ctx.imageSmoothingEnabled = false;
-                if (cell && cell.width) ctx.drawImage(cell, 0, -Math.round(bw / 2), Math.round(reach), Math.max(1, Math.round(bw)));
-                else { ctx.fillStyle = '#6b4320'; ctx.fillRect(0, -bw / 2, reach, bw); ctx.fillStyle = '#b07a3e'; ctx.fillRect(0, -bw / 4, reach, bw / 2); }
-                ctx.restore();
-              }
-              const fade = f > C.fire ? clamp(1 - (f - C.fire) / C.leave, 0, 1) : 1;
-              ctx.save(); ctx.globalAlpha *= fade;
-              if (!drawArt(ctx, api.images?.blaster, 'blaster', open ? 1 : 0, self.x, self.y, size, null, self.rot)) {
-                ctx.translate(Math.round(self.x), Math.round(self.y)); ctx.rotate(self.rot);
-                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, size * 0.36, 0, TAU); ctx.fill();
-                ctx.fillStyle = '#000'; ctx.fillRect(-4, -size * 0.2, 6, 6); ctx.fillRect(-4, size * 0.08, 6, 6);
-                if (open) ctx.fillRect(size * 0.2, -4, size * 0.2, 8);
-              }
-              ctx.restore();
-            } });
-        }
+        for (const bl of blasterRound(round, b, soul, C)) spawnBlaster(api, b, bl, C, T);
       }
-      if (round.spawned && !round.fired && t >= round.at + C.flyIn + C.charge) { round.fired = true; api.sfx?.(C.fireSfx, { volume: 0.8, rate: C.rate, pitch: true }); api.sfx?.(C.fireLayer, { volume: 0.6, rate: C.rate, pitch: true }); }
+      if (round.spawned && !round.fired && t >= round.at + T.flyIn + T.charge) { round.fired = true; api.sfx?.(C.fireSfx, { volume: 0.8, rate: C.rate, pitch: true }); api.sfx?.(C.fireLayer, { volume: 0.6, rate: C.rate, pitch: true }); }
     }
   } };
 }
+/** 냄스터 블래스터 연발(사용자 “하나씩 여러번 빠르게 쏘는 패턴”): 상자 둘레를 돌며 한 개씩 0.4초마다 소울을 겨눠 쏜다 */
+function blasterRapid(o = {}) {
+  const C = { ...BLASTER, ...BLASTER_RAPID, ...o };
+  let made = 0;
+  return { duration: C.duration, update(t, dt, api) {
+    const b = api.box;
+    while (made < C.count && t >= C.first + made * C.every) {
+      const [x, y] = rimSpot(made, b, C, api.rnd()); made++;
+      spawnBlaster(api, b, { x, y, a: Math.atan2(api.soul.y - y, api.soul.x - x), w: C.beamW, scale: 1 }, C, C, { charge: C.chargeSfx, fire: C.fireSfx });
+    }
+  } };
+}
+/** 냄스터 블래스터 일제(사용자 “여러개씩 간격 더 두고 쏘는패턴”): 다섯 개씩 한꺼번에, 판 사이 1.65초 — 가로 줄 → 세로 줄 → 소울로 모이기 → 큰 것 둘 + 엇갈림 */
+function blasterVolley(o = {}) {
+  const C = { ...BLASTER, ...BLASTER_VOLLEY, ...o };
+  let n = 0;
+  return { duration: C.duration, update(t, dt, api) {
+    const b = api.box, soul = api.soul;
+    while (n < C.kinds.length && t >= C.first + n * C.every) {
+      const kind = C.kinds[n++], L = b.x - C.standOff, R = b.x + b.w + C.standOff, Tp = b.y - C.standOff;
+      const skip = Math.floor(api.rnd() * 5);
+      let list = [];
+      if (kind === 'rows') list = [0, 1, 2, 3, 4].filter(i => i !== skip).map(i => ({ x: i % 2 ? R : L, y: b.y + b.h * (i + 0.5) / 5, a: i % 2 ? Math.PI : 0 }));
+      else if (kind === 'cols') list = [0, 1, 2, 3, 4].filter(i => i !== skip).map(i => ({ x: b.x + b.w * (i + 0.5) / 5, y: Tp, a: Math.PI / 2 }));
+      else if (kind === 'aim') list = [[L, Tp], [R, Tp], [L, b.y + b.h * 0.6], [R, b.y + b.h * 0.6], [b.x + b.w / 2, Tp]].map(([x, y]) => ({ x, y, a: Math.atan2(soul.y - y, soul.x - x) }));
+      else list = [{ x: L - 8, y: b.y + b.h * 0.25, a: 0, big: true }, { x: R + 8, y: b.y + b.h * 0.75, a: Math.PI, big: true }, { x: b.x + b.w * 0.3, y: Tp, a: Math.PI / 2 }, { x: b.x + b.w * 0.7, y: Tp, a: Math.PI / 2 }];
+      api.sfx?.(C.chargeSfx, { volume: 0.8, rate: C.rate, pitch: true });
+      for (const bl of list) spawnBlaster(api, b, { ...bl, w: bl.big ? C.bigW : C.beamW, scale: bl.big ? C.bigScale : 1 }, C, C);
+      const fireIn = C.flyIn + C.charge;
+      api.emit({ x: 0, y: 0, r: 0, harmless: true, free: true, life: fireIn + 0.01, shape: 'volley_clock', fired: false,
+        steer(self) { if (!self.fired && self.age >= fireIn) { self.fired = true; api.sfx?.(C.fireSfx, { volume: 0.8, rate: C.rate, pitch: true }); api.sfx?.(C.fireLayer, { volume: 0.6, rate: C.rate, pitch: true }); } },
+        drawShape() {} });
+    }
+  } };
+}
+/** 용준대포(사용자 “용준 대포 가져와서 쏘는 패턴”): 오른쪽에서 돼지코 나무대포(쮼앰대포)를 끌고 와 포탄을 쏜다
+ *  착지 표시(0.5초) → 포탄이 포물선으로 날아와 그 자리에서 폭파 이펙트(반지름 24) + 파편 여섯. 세 번째마다 세 발. 발사 쾅(snd_impact)·폭발(explosion) */
+function cannon(o = {}) {
+  const C = { ...CANNON, ...o };
+  let gun = null, shot = 0;
+  return { duration: C.duration, update(t, dt, api) {
+    const b = api.box;
+    if (!gun) {
+      const gx = b.x + b.w + C.gunX, gy = b.y + b.h * C.gunY;
+      gun = keep(api, { x: gx + 120, y: gy, r: 0, harmless: true, free: true, life: C.duration + 0.05, shape: 'cannon', kick: -1, gx, gy,
+        out() { return this.age >= this.life; },
+        steer(self) { const k = clamp(self.age / C.enter, 0, 1); self.x = self.gx + 120 * (1 - k) ** 2 + (self.kick >= 0 && self.age - self.kick < 0.15 ? 6 * (1 - (self.age - self.kick) / 0.15) : 0); },
+        drawShape(ctx, self) {
+          const img = api.images?.cannon; if (!img || !img.width) { ctx.fillStyle = '#8a5a2b'; ctx.fillRect(self.x - 30, self.y - 14, 60, 28); return; }
+          const w = img.width * C.scale, h = img.height * C.scale;
+          ctx.save(); ctx.translate(Math.round(self.x), Math.round(self.y)); ctx.scale(-1, 1); ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(img, -Math.round(w / 2), -Math.round(h / 2), Math.round(w), Math.round(h)); ctx.restore();
+        } });
+      api.sfx?.('sans_blaster_charge', { volume: 0.5, rate: 0.8, pitch: true });
+    }
+    while (shot < C.shots && t >= C.first + shot * C.every) {
+      shot++;
+      const soul = api.soul, m = C.blastR;
+      const xs = shot % C.triple === 0 ? [-58, 0, 58] : [0];
+      const targets = xs.map(dx => [clamp(soul.x + dx, b.x + m, b.x + b.w - m), clamp(soul.y + (dx ? 18 : 0), b.y + m, b.y + b.h - m)]);
+      const mx = gun.gx + C.muzzle[0], my = gun.gy + C.muzzle[1];
+      gun.kick = gun.age; api.sfx?.('impact', { volume: 0.6 });
+      for (const [tx, ty] of targets) {
+        api.emit({ x: tx, y: ty, r: C.blastR, harmless: true, life: C.warn, shape: 'mark' });
+        api.emit({ x: mx, y: my, r: 0, harmless: true, free: true, life: C.warn, shape: 'cannonball', landed: false,
+          steer(self) {
+            const k = clamp(self.age / C.warn, 0, 1);
+            self.x = mx + (tx - mx) * k; self.y = my + (ty - my) * k - Math.sin(k * Math.PI) * C.arc;
+            if (!self.landed && self.age >= C.warn - 0.02) { self.landed = true; boom(api, b, tx, ty, C, tx === targets[0][0]); }
+          },
+          drawShape(ctx, self) { if (!drawArt(ctx, api.images?.ball, 'ball', 0, self.x, self.y, C.ballSize)) { ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(self.x, self.y, C.ballSize / 2, 0, TAU); ctx.fill(); } } });
+      }
+    }
+  } };
+}
+/** 포탄 착지: 폭파 이펙트 프레임(assets/fx/explosion.png 31장, 사용자 지정 “폭파 이펙트”) + 파편 */
+function boom(api, b, x, y, C, sound) {
+  if (sound) api.sfx?.('explosion', { volume: 0.55 });
+  api.emit({ x, y, r: C.blastR, kind: 'white', shape: 'blast', free: true, life: 31 / 20,
+    hitShape(self, soul) { return self.age < C.blast && Math.hypot(soul.x - self.x, soul.y - self.y) <= C.blastR + soul.r - 4; },
+    drawShape(ctx, self) { drawArt(ctx, api.images?.boom, 'boom', Math.min(30, Math.floor(self.age * 20)), self.x, self.y - 14, C.boomW); } });
+  for (let k = 0; k < C.shrapnel; k++) {
+    const a = k / C.shrapnel * TAU + 0.3;
+    api.emit({ x, y, r: 3, kind: 'white', shape: 'shrapnel', vx: Math.cos(a) * C.shrapnelSpeed, vy: Math.sin(a) * C.shrapnelSpeed, life: 1.1,
+      ...inside(b, (ctx, s) => { if (!drawArt(ctx, api.images?.crumb, 'crumb', 0, s.x, s.y, 9, null, s.age * 8)) drawSpit(ctx, s); }) });
+  }
+}
 
-export const YONGJUN_PATTERNS = { yongjun_blaster: blaster, yongjun_stench: stench, yongjun_fish: fishCough, yongjun_roll: roll, yongjun_cry: cry, yongjun_insults: insults, yongjun_hug: hugShock };
+export const YONGJUN_PATTERNS = { yongjun_blaster: blaster, yongjun_stench: stench, yongjun_blaster_rapid: blasterRapid, yongjun_fish: fishCough, yongjun_roll: roll, yongjun_cannon: cannon, yongjun_cry: cry, yongjun_blaster_volley: blasterVolley, yongjun_insults: insults, yongjun_hug: hugShock };
