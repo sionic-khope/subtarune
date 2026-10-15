@@ -32,6 +32,7 @@ export const SHOP_KO = Object.freeze({
   purchased: '구매했습니다!',
   soldOutMessage: '이미 구매한 상품입니다.',
   moneyAmount: (amount) => `${amount}원`,
+  unknownPrice: '???',
   inventoryEffect: '아이템에 추가되었습니다.',
   attackEffect: (amount) => `팀 전체 공격력 영구 +${amount}`,
   hpEffect: (amount) => `팀 전체 최대 HP 영구 +${amount}`,

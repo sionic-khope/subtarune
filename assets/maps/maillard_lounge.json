@@ -60,6 +60,11 @@
    "x": 402,
    "y": 304,
    "facing": "down"
+  },
+  "shop_front": {
+   "x": 1084,
+   "y": 388,
+   "facing": "up"
   }
  },
  "meta": {

@@ -1,0 +1,15 @@
+# imagegen 2026-10-15 12:06:38
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1536x1024  quality: high
+# refs: assets/source/yongjun-sans/ref-idle-frame.png
+
+Pixel art game sprite: ONE single comedic scene of exactly TWO characters standing together on a 1536x1024 canvas, both bodies fully visible from head to feet, centered, together about 75% of the canvas height; nothing touches the canvas edges. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels.
+
+Character A is the character in Image1 (the approved battle sprite): Yongjun, a chubby young man with a very wide round face, full cheeks, very short black buzz-cut hair, small narrow eyes, small nose, peach skin, big round belly, short stubby legs, wearing a Sans-from-Undertale outfit: light blue hooded jacket worn open with white fluffy fur trim on the hood, white T-shirt, black shorts with white side stripes, pastel pink slippers. Keep the SAME face, outfit, colours, chunky chibi proportions and pixel density, and draw him at the same size (same head size) as in Image1. He stands on the RIGHT, in the same three-quarter view toward the viewer's lower-left, frozen stiff like a statue: body rigid and straight, both arms pressed straight down at his sides with stiff spread fingers, bright red blushing cheeks, a dazed, dreamy, very happy face with a wobbly open-mouth grin and dizzy half-closed eyes, as if he is about to tremble with joy.
+
+Character B is a pretty young woman, drawn in the SAME chunky chibi pixel style and the same pixel density as Yongjun, about the same height as him or slightly taller: long wavy dark brown hair, a cute smiling face with closed happy eyes and rosy cheeks, a curvy figure, fully and modestly dressed in a fitted cream knit turtleneck sweater, a knee-length red skirt, black tights and brown ankle boots. She stands on the LEFT, close against his side, and hugs Yongjun warmly: both her arms wrapped around his shoulders and neck, her cheek pressed against his cheek, one foot playfully lifted behind her. Wholesome, cute and comedic, non-sexual.
+
+The two bodies overlap where they hug, but each one's head, body, arms and legs stay clearly readable as a combined silhouette; there is a clear gap between their legs. No effects: no hearts, no sparkles, no sweat drops, no electric sparks, no motion lines, no symbols.
+
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1 (do not add fine detail), crisp pixels, no anti-aliasing, no blur.

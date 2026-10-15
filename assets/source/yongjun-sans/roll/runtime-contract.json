@@ -1,0 +1,60 @@
+{
+ "file": "assets/enemies/yongjun-sans-roll.png",
+ "size": [
+  136,
+  136
+ ],
+ "frames": 1,
+ "bounds": [
+  8,
+  2,
+  127,
+  134
+ ],
+ "pivot": [
+  68,
+  68
+ ],
+ "rawBounds": [
+  225,
+  188,
+  810,
+  840
+ ],
+ "rawPixelScale": 0.20308840997793992,
+ "sampling": "NEAREST",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 1199,
+ "droppedSpecks": 0,
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-5fc22445a09c7db2/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/roll-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "single",
+  "--rows",
+  "1",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.84",
+  "--align",
+  "center",
+  "--component-mode",
+  "largest",
+  "--output-dir",
+  "assets/source/yongjun-sans/roll/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

@@ -1,0 +1,17 @@
+# imagegen 2026-10-15 11:55:44
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/yongjun-sans/ref.png
+
+Pixel art battle idle sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+
+The character is Yongjun from the reference image. Image1 has three parts: left part = his game field sprite front view, middle part = his field sprite facing left, right part = a close-up portrait of his face (ignore that portrait's dark background and orange straps). Keep his identity exactly: a chubby young man with a very wide round face, full puffy cheeks, short neck, very short black buzz-cut hair forming a solid rounded black cap on top of the head, small narrow half-lidded eyes, a small nose, a wide open grin showing a white strip of teeth, light warm peach skin, a big round belly, short arms and short stubby legs. Keep the same chunky chibi body proportions as the field sprite in Image1 (big head about 40% of total height). No glasses, no hat, no beard.
+
+New outfit (a cosplay of Sans from Undertale): a light blue hooded zip jacket worn OPEN over the belly, with a thick white fluffy fur trim around the hood (the hood is down, resting behind his neck and shoulders), jacket cuffs and hem darker blue; a plain white T-shirt underneath stretched over the big belly; black shorts with a white vertical stripe on each side; light pastel pink slippers (clearly lighter and softer than the magenta background). BOTH HANDS ARE PUSHED DEEP INTO THE JACKET'S FRONT POCKETS in every frame, so no fingers or palms are visible, only the arms bent with the hands hidden in the pockets. Relaxed, laid-back, confident pose with a smug easy grin.
+
+View: NOT a flat side profile and not a flat front view. A three-quarter view turned toward the viewer's LOWER-LEFT: the body is rotated about 45 degrees to the left so the face, the open jacket and both pockets are visible, and he looks down-left as if at enemies standing below-left of him.
+
+4 frames in reading order (top-left, top-right, bottom-left, bottom-right), same view, same outfit, same grin, hands in pockets in all four: frame 1 neutral standing; frame 2 breathing in, chest and belly slightly raised, shoulders up by a tiny amount; frame 3 neutral standing again (exhale); frame 4 a slight lazy shoulder shrug, both shoulders lifted a little and head tilted slightly. The differences are subtle but visible. Keep the same scale and the same head size in every cell, and keep the feet rooted at exactly the same positions and on the same baseline in every cell. The whole figure fills about 70% of the cell height and is centered; nothing touches the cell edges.
+
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as the field sprites in Image1 (do not add fine detail), crisp pixels, no anti-aliasing, no blur.

@@ -39,8 +39,8 @@ export class Shop {
     this.artReady = typeof Image === 'undefined' ? Promise.resolve(null) : loadImageOptional('assets/shop/yongjun-counter.png').then((image) => { this.art = image; return image; });
   }
 
-  /** Open the first-visit greeting or home menu; discard the entry press. */
-  open() {
+  /** Open the first-visit greeting, a caller's in-shop scene, or the home menu; discard the entry press. */
+  open(script = null) {
     this.reset();
     this.index = 0;
     this.choice = 1;
@@ -50,14 +50,15 @@ export class Shop {
     this.lock = SHOP_LAYOUT.inputLock;
     this.waitForRelease = true;
     this.game.state = 'shop';
-    if (!this.game.has(SHOP_GREETING_FLAG)) {
+    const scene = script || (!this.game.has(SHOP_GREETING_FLAG) ? undefined : null);
+    if (scene !== null) {
       this.mode = 'greeting';
       this.greeting = new ShopGreeting(this.game, SHOP_LAYOUT.products);
       this.greeting.start(() => {
         this.mode = 'home';
         this.lock = SHOP_LAYOUT.inputLock;
         this.waitForRelease = true;
-      });
+      }, scene);
     }
   }
 
@@ -77,7 +78,7 @@ export class Shop {
 
   /** Handle keyboard and gamepad action edges through the shared Input interface. */
   update(dt, input = Input) {
-    if (this.mode === 'closed') return;
+    if (this.mode === 'closed' || this.mode === 'event') return;
     this.lock = Math.max(0, this.lock - dt);
     if (this.waitForRelease) {
       if (!input.down('confirm') && !input.down('cancel')) this.waitForRelease = false;
@@ -163,7 +164,9 @@ export class Shop {
       this._feedback({ ok: false, reason: 'invalid_index' });
       return;
     }
-    this._feedback(this.section === 'sell' ? sellShopItem(this.game, this.transaction.inventoryIndex) : purchaseShopItem(this.game, this.transaction.item.id));
+    const result = this.section === 'sell' ? sellShopItem(this.game, this.transaction.inventoryIndex) : purchaseShopItem(this.game, this.transaction.item.id);
+    if (result.ok && result.event) { this.mode = 'event'; this.game.startShopEvent(result.event.script); return; }
+    this._feedback(result);
   }
 
   _feedback(result) {
@@ -201,7 +204,7 @@ export class Shop {
     }
     if (this.mode === 'home') this._drawHome(ctx);
     else if (this.mode === 'browse') this._drawProducts(ctx);
-    else if (this.mode === 'sell') this._drawSales(ctx);
+    else if (this.mode === 'sell' || this.mode === 'event') this._drawSales(ctx);
     else this._drawAction(ctx);
     this._drawDetail(ctx);
     ctx.restore();
@@ -248,7 +251,7 @@ export class Shop {
     for (let i = window.start; i < window.end; i++) {
       const result = i < count ? saleItemState(this.game, i) : null;
       const y = listY + (i - window.start) * rowHeight;
-      const price = result ? result.ok ? L.moneyAmount(result.price) : L.cannotSell : '';
+      const price = result ? result.ok ? result.event ? L.unknownPrice : L.moneyAmount(result.price) : L.cannotSell : '';
       ctx.fillStyle = i === this.index ? colors.selected : result && !result.ok ? colors.muted : colors.text;
       drawMenuText(ctx, result?.name ?? L.back, nameX, y, priceX - nameX - ctx.measureText(price).width - 8);
       ctx.textAlign = 'right';
@@ -269,7 +272,7 @@ export class Shop {
     drawMenuText(ctx, selling ? this.transaction.name : item.name, x, 202, width - 80);
     if (this.mode === 'confirm') {
       ctx.textAlign = 'right';
-      ctx.fillText(L.moneyAmount(selling ? this.transaction.price : item.price), products.x + products.w - inset, 202);
+      ctx.fillText(selling && this.transaction.event ? L.unknownPrice : L.moneyAmount(selling ? this.transaction.price : item.price), products.x + products.w - inset, 202);
       ctx.textAlign = 'left';
       ctx.fillStyle = colors.text;
       ctx.fillText(selling ? L.sellQuestion : L.buyQuestion, x, 232);

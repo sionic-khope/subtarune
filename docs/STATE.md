@@ -1,6 +1,8 @@
 # SUBTARUNE 현재 상태 (세션 넘어갈 때 여기부터 읽는다)
 
-마지막 갱신: 2026-09-24
+마지막 갱신: 2026-10-15
+
+**BUILD462 — 이스터에그: 보라꽃 → 박용준 히든 보스전(사용자 2026-10-15 브리핑, 콘티 `design/narrative/cutscenes/yongjun_flower.md`)**: ① 청록숲4 검은 꽃에 다섯 번째 말을 걸면(동료와 함께) 억빠맨 “아 시발년 걍 제가 뽑을게요” → 꽃 아래로 가서 뽑음 → 보라꽃(그냥 아이템 HP −100, 꽃 소품 `unless: purple_flower_taken`). ② 마이야르호 라운지 상점에서 보라꽃을 팔면(가격 `???`, 돈 없음, `YONGJUN_SALE_EVENTS` — 이 맵 상점에서만) 상점이 닫히고 필드 연출 `yongjun_flower`(대사 원문, 욱 뒤 브금 꺼짐, 크크크 뒤 `captain_reveal` + 가재맨 첫 등장 보라 연기·오라를 용준에게) → `battleEntry` → 전투 `yongjun_sans`(HP 100, 피함 없음 — 사용자 “체력 1에서 피한다도 없애고 체력 100”). ③ 전투: 샌즈 옷 용준 시트(gpt-image-2.5-sunburst 7장, `assets/source/yongjun-sans`), 오프닝은 원작 `obj_sansb` 순서(새소리 `sans_birds`=mus_birdnoise → 대사 세 줄 → 촵 암전 → 촵 눈 없는 얼굴 → “지 옥 에 서 …” 목소리 없이 → C → `megalovania`, 끝 무음 4.1초 잘라 156.03초). 패턴 여섯(악취 나선·생선 켁켁·구르기·엄마 우는 눈물·냄새고아돼지 글자·포옹 번개, `src/battle/yongjun-patterns.js`), 턴마다 말풍선(패턴 `speak`). ④ 승리 → 상점 화면에서 대사(용준 패널·대화창) → 오마카세 팀 최대 HP +10 바로(`raisePartyMaxHp`, `yongjun_omakase_eaten`) → 평소 상점 메뉴. QA 지점 `yongjun_flower`(라운지 새 스폰 `shop_front`). 단위 `yongjun-sans.test`(11), 플레이테스트 `purple-flower`·`yongjun-sans` 통과, 상점·라운지·청록숲4 등 회귀 7개 통과.
 
 **BUILD461 — BUILD460 효과음 blob 재생 롤백(사용자 2026-10-05 “불안하다, 롤백해”)**: 플레이 전날이라 되돌림. 효과음은 예전처럼 재생마다 주소로(`cloneNode`). 배포 사이트를 1.5Mbps 로 흉내 냈을 때 3분 안에 필드에 못 들어갔는데, BUILD460 때문인지 원래 느린지는 확인하지 못한 채 롤백. 느린 회선에서 효과음이 끊기는 증상은 남아 있다 — 다시 할 때는 부팅 대역폭과 겹치지 않게(부팅 뒤 백그라운드 채우기 단계에서) blob 으로 바꾸는 쪽으로.
 

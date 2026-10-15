@@ -1,0 +1,14 @@
+# imagegen 2026-10-15 12:06:45
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/yongjun-sans/ref-idle-frame.png
+
+Pixel art game sprite: ONE single pose of the character in Image1, curled up tightly into a round ball as if he is rolling like a ball, centered on a 1024x1024 canvas. The ball is about 55% of the canvas width and fully visible; nothing touches the canvas edges. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows, no text, no labels.
+
+Image1 is the approved battle sprite of this exact character: Yongjun, a chubby young man with a very wide round face, full cheeks, very short black buzz-cut hair, small narrow eyes, small nose, peach skin, big round belly, short stubby legs, wearing a Sans-from-Undertale outfit: light blue hooded jacket with white fluffy fur trim on the hood, white T-shirt, black shorts with white side stripes, pastel pink slippers. Keep the SAME face, outfit, colours and pixel density, and draw him at the same scale (same head size) as in Image1.
+
+Pose: a tight cannonball tuck, side view: back rounded, head tucked down onto his knees with the black buzz-cut head and one squinting eye visible, knees pulled up to the chest, both arms wrapped around his shins, pink slippers tucked in at the bottom. The outline is an almost perfect round circle made by his blue jacket back, his black hair, the black shorts and the pink slippers, so that as a plain silhouette it reads as a round ball with a head bump. No limbs stick out of the circle.
+Body only: no motion lines, no dust, no spin marks, no effects, no shadow.
+
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1 (do not add fine detail), crisp pixels, no anti-aliasing, no blur.

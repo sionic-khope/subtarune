@@ -1,0 +1,11 @@
+# imagegen 2026-10-15 12:10:49
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/yongjun-sans/dark/ref-frame0-x6.png
+
+Edit Image1 with the smallest possible change. Image1 is a finished pixel art battle sprite (one character on a solid pure #FF00FF magenta background, drawn with big square pixel blocks). Output the SAME image at the same 1024x1024 size: keep the character at exactly the same position and size, the same pixel grid and block size, the same pose with both hands in the jacket pockets, the same hair, outline, colours, blue jacket with white fur hood trim, white T-shirt, black shorts, pink slippers, and the SAME grin. Keep the background solid pure #FF00FF magenta. Do not move, resize, shift, crop or redraw anything else.
+
+The ONLY change: his two eyes become empty pitch-black eye sockets with NO pupils, NO white and NO highlight, like Sans from Undertale in the "you're gonna have a bad time" moment. Draw each eye as a solid pure black hole, a bit taller and rounder than the current narrow eye (about 3 big pixels tall), in the same place as the current eye, so the friendly face suddenly looks eerie and menacing while the grin stays the same. No glowing eye, no blue light, no effects, no shadows over the rest of the face, no text.
+
+Style: chunky retro pixel art with the same big square pixels as Image1, flat colours, crisp pixels, no anti-aliasing, no blur.

@@ -138,7 +138,8 @@
    "ix": 640,
    "iy": 634,
    "solid": true,
-   "script": "teal4_flower"
+   "script": "teal4_flower",
+   "unless": "purple_flower_taken"
   },
   {
    "type": "enemy",

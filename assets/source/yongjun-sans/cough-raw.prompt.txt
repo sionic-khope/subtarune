@@ -1,0 +1,20 @@
+# imagegen 2026-10-15 12:06:49
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/yongjun-sans/ref-idle-sheet.png
+
+Pixel art battle animation sprite sheet of ONE character, EXACTLY 2 columns x 2 rows, 1024x1024 canvas, invisible equal 512px cells, no grid lines, no labels, no text. Solid pure #FF00FF magenta background everywhere, no gradients, no floor, no shadows.
+
+Image1 is the approved battle idle sheet of this exact character in the same 2x2 layout: Yongjun, a chubby young man with a very wide round face, full cheeks, very short black buzz-cut hair, small narrow eyes, small nose, peach skin, big round belly, short stubby legs, wearing a Sans-from-Undertale outfit: light blue hooded jacket worn open with white fluffy fur trim on the hood, white T-shirt, black shorts with white side stripes, pastel pink slippers. Redraw this SAME character with the SAME face, outfit, colours, chunky chibi proportions and pixel density, at EXACTLY the same scale and head size as Image1, with the feet at exactly the same positions and on the same baseline as in each cell of Image1. Same three-quarter view turned toward the viewer's lower-left as Image1.
+
+4 frames in reading order (top-left, top-right, bottom-left, bottom-right) showing a different pose in each:
+frame 1: he pulls his right hand out of the pocket and lifts ONE WHOLE raw mackerel (a fish held horizontally by the tail, about as long as his head is wide) up to his open mouth, about to bite it; the other hand stays in the pocket; happy greedy grin.
+frame 2: chewing with puffed cheeks and closed happy eyes, still holding the fish at his mouth, but the fish is now half-eaten: only the back half with the tail is left; other hand still in the pocket.
+frame 3: coughing hard ("KEK!"): no fish anywhere, the right hand pressed flat on his chest, upper body bent forward toward the lower-left, head thrust forward and down, eyes squeezed shut, mouth wide open; the other hand still in the pocket.
+frame 4: a second, even harder cough: bent forward much more at the waist, head lower and further forward, eyes squeezed shut, mouth wide open, the right hand on his chest; the other hand still in the pocket.
+Body only: no spit, no droplets, no flying fish, no fish bones, no effect lines, no motion lines, no sweat, no symbols.
+
+Keep the same scale and the same head size in every cell, the feet rooted at exactly the same positions and on the same baseline in every cell. The figure is centered and nothing touches the cell edges, including the fish.
+
+Style: chunky retro pixel art, coarse sparse pixel clusters, flat limited shades, dark stepped outlines, same sparse logical pixel density as Image1 (do not add fine detail), crisp pixels, no anti-aliasing, no blur.

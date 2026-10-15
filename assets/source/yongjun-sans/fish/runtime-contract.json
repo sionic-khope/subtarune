@@ -1,0 +1,60 @@
+{
+ "file": "assets/props/yongjun-fish.png",
+ "size": [
+  42,
+  17
+ ],
+ "frames": 1,
+ "bounds": [
+  2,
+  2,
+  40,
+  15
+ ],
+ "pivot": [
+  21,
+  8
+ ],
+ "rawBounds": [
+  138,
+  298,
+  1402,
+  738
+ ],
+ "rawPixelScale": 0.030063291139240507,
+ "sampling": "NEAREST",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 2068,
+ "droppedSpecks": 0,
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-5fc22445a09c7db2/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/fish-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "single",
+  "--rows",
+  "1",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.84",
+  "--align",
+  "center",
+  "--component-mode",
+  "largest",
+  "--output-dir",
+  "assets/source/yongjun-sans/fish/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

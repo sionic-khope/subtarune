@@ -19,6 +19,7 @@ import { teal2_statue_look, teal2_statue_wall } from './cutscenes/teal2_statue.j
 import { teal2_tree, teal2_banana1 } from './cutscenes/teal2_events.js';
 import { teal3_toolbox } from './cutscenes/teal3_toolbox.js';
 import { teal4_peel, teal4_button, teal4_flower } from './cutscenes/teal4_events.js';
+import { yongjun_flower } from './cutscenes/yongjun_flower.js';
 import { teal5_board, teal5_wall } from './cutscenes/teal5_river.js';
 import { teal6_ward, teal6_blue } from './cutscenes/teal6_events.js';
 import { teal8_ward, teal8_blue } from './cutscenes/teal8_events.js';
@@ -273,6 +274,8 @@ export const SCRIPTS = {
   obj0_blue: maillard_spring, obj2_blue: maillard_spring,
   teal9_boss, teal9_lantern, teal9_block, teal9_red_after, teal9_blue_after,   // 청록숲9 고대 사원 길: 레드·블루 문지기(대화 → 사이렌 → 보스전) + 석등·돌덩이 한 줄 (src/data/cutscenes/teal9_boss.js)
   teal5_board, teal5_wall,   // 청록숲5 물길: 승선 컷신(경섭 선택지 끊김·둘 다 헤엄) / 이단폭포 협동 2단 점프 튜토리얼 (src/data/cutscenes/teal5_river.js)
+  // 마이야르호 라운지 상점에서 용준에게 보라꽃을 팔면 → 박용준 히든 보스전(BUILD462, src/data/cutscenes/yongjun_flower.js)
+  yongjun_flower,
   teal4_peel, teal4_button, teal4_flower,   // 청록숲4: 바나나 껍질·수상한 버튼2·검은 꽃 (src/data/cutscenes/teal4_events.js) (src/data/cutscenes/teal2_events.js)
   rock_flowers, rock_sign, rock_boulder,   // 낙석 맵 꼬리 길 이벤트 3개: 꽃 냄새 / 표지판 / 떨어진 바위 (src/data/cutscenes/rock_events.js)
   // 보라맵3 뗏목 퍼즐 표지판

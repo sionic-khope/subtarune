@@ -24,7 +24,9 @@ import { AJIMKIYA_PATTERNS } from './ajimkiya-patterns.js';
 import { CHINCHILLA_PATTERNS } from './chinchilla-patterns.js';
 import { MUNKORITA_PATTERNS } from './munkorita-patterns.js';
 import { KART_PATTERNS } from './kart-patterns.js';   // 다오·배찌 카트라이더 아이템(BUILD266)
-import { SAKURA5_PATTERNS } from './sakura5-patterns.js';   // 도미조림 홍어·횃불 / 도현 낙하·카톡 텍스트(BUILD271)
+import { SAKURA5_PATTERNS } from './sakura5-patterns.js';
+// 박용준 히든 보스(BUILD462): 악취 나선·생선 켁켁·구르기·눈물·냄새고아돼지 글자·포옹 번개
+import { YONGJUN_PATTERNS } from './yongjun-patterns.js';   // 도미조림 홍어·횃불 / 도현 낙하·카톡 텍스트(BUILD271)
 import { DRUM_DEVIL_PATTERNS } from './drum-devil-patterns.js';
 import { CHOIMIS_PATTERNS_A } from './choimis-patterns-a.js';
 import { CHOIMIS_PATTERNS_B } from './choimis-patterns-b.js';
@@ -192,6 +194,7 @@ export const PATTERNS = {
   ...MUNKORITA_PATTERNS,   // 문코리타 덩굴 채찍·소리지르기(BUILD248)
   ...KART_PATTERNS,        // 다오 미사일·부스터·바나나 / 배찌 물폭탄·자석·물파리(BUILD266)
   ...SAKURA5_PATTERNS,     // 도미조림 얼린 홍어·횃불 / 도현 살랑살랑 낙하·카톡 텍스트(BUILD271)
+  ...YONGJUN_PATTERNS,
   ...CHOIMIS_PATTERNS_A,
   ...CHOIMIS_PATTERNS_B,
   rain: (o = {}) => { const rate = o.rate ?? 0.18, speed = o.speed ?? 90, r = o.r ?? 4; let acc = 0;

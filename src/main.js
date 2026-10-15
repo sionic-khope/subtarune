@@ -316,7 +316,7 @@ class Game {
     this.captainAttackPending = false;
     this.darkSmoke = null;
     this.musicCamera?.dispose();
-    this.shopPending = false;
+    this.shopPending = false; this.shopScript = null;
     this.shop.reset();
     this.seaRetryPromptPending = false;
     this.maillardArrival?.dispose(); this.maillardArrival = null;
@@ -1222,7 +1222,18 @@ class Game {
   }
 
   /** The shop opens after its interaction script releases the dialogue runner. */
-  openShop() { this.shopPending = true; }
+  /** 상점을 연다. script 를 주면 상점 화면에서 그 대사(용준 패널·대화창)를 먼저 하고 메뉴로(박용준 히든 보스 승리 뒤, BUILD462) */
+  openShop(script = null) { this.shopPending = true; this.shopScript = script; }
+  /** 상점 연출 판매(보라꽃): 상점 화면을 검은 화면으로 닫고 필드 연출을 시작한다. 연출 첫 노드들이 배우를 세운 뒤 { fade:'in' } 으로 연다 */
+  startShopEvent(script) {
+    this.transitioning = true;
+    this.fadeTo(1, 0.3, () => {
+      this.shop.reset();
+      this.state = 'field';
+      this.transitioning = false;
+      this.runScript(script);
+    }, 'black');
+  }
 
   // ── 루프 ────────────────────────────────────────────────
   /** Start the self-contained ocean scene; its cleared tableau survives the script. */
@@ -1310,7 +1321,7 @@ class Game {
       this.transitioning = true;
       this.sound.sfx('plug');
       this.fadeTo(1, 0.25, () => {
-        this.shop.open();
+        this.shop.open(this.shopScript); this.shopScript = null;
         this.fadeTo(0, 0.25, () => { this.transitioning = false; }, 'black');
       }, 'black');
       return;

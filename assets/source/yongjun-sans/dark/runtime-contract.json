@@ -1,0 +1,28 @@
+{
+ "file": "assets/enemies/yongjun-sans-dark.png",
+ "size": [
+  160,
+  160
+ ],
+ "frames": 1,
+ "pivot": [
+  80,
+  156
+ ],
+ "matches": "assets/enemies/yongjun-sans-battle-idle.png frame 0",
+ "eyeBox": [
+  50,
+  51,
+  93,
+  65
+ ],
+ "changedPixels": 177,
+ "skin": [
+  253,
+  216,
+  173
+ ],
+ "rawPixelScale": 0.327710843373494,
+ "source": "dark-raw.png",
+ "method": "exported idle frame 0 x6 NEAREST on magenta -> gpt-image edit -> block-centre resample -> eye box pasted on frame 0"
+}

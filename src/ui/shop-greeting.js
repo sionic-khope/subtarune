@@ -10,8 +10,8 @@ export class ShopGreeting {
     this.runner = new ScriptRunner(this, game);
   }
 
-  /** Start the six-line exchange using normal script completion semantics. */
-  start(onEnd) { this.runner.start(shop_greeting, onEnd); }
+  /** Start the six-line exchange (or another in-shop scene such as the hidden boss aftermath) using normal script completion semantics. */
+  start(onEnd, script = shop_greeting) { this.runner.start(script, onEnd); }
 
   /** ScriptRunner textbox interface: only the current speaker's surface is open. */
   show(node, ctx, onDone) {

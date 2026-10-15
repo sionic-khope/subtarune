@@ -1,0 +1,10 @@
+{
+ "ref": "assets/source/yongjun-sans/dark/ref-frame0-x6.png",
+ "from": "assets/enemies/yongjun-sans-battle-idle.png frame 0 (160x160) x6 NEAREST pasted at offset [32,32] on a 1024x1024 #FF00FF canvas",
+ "upscale": 6,
+ "offset": [32, 32],
+ "adopted": "dark-raw.png",
+ "eyeBox": [50, 51, 93, 65],
+ "eyeRows": [55, 62],
+ "skinRow": 52
+}

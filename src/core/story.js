@@ -162,6 +162,12 @@ export const STATE_FROM_FLAGS = [
   { flag: 'jjajang_chin2_mun_defeated', enemies: ['munkorita'] },
   { flag: 'drum_devil_won', enemies: ['drum_devil'] },                                                                   // 드럼통 둥지 보스전(2000원, BUILD421 사용자) — drum_devil.js, 승리 뒤 연출 jjajang_nest_after.js(BUILD254)                                                       // 찢칠라 길 2 의 적은 문코리타(BUILD248 사용자 “두번째 찢칠라를 얘로”)                                       // 소나무 숲 공터 아짐키야 3인조(합 10원) — jjajang_pines.js                                             // 짜장 굽이 길 돌(체력회복 -5) — jjajang_bend.js
   { flag: 'maillard_tarts_given', items: ['에그타르트', '에그타르트'] },
+  // 청록숲4 검은 꽃에서 억빠맨이 뽑은 보라꽃. 마이야르호 라운지 용준에게 팔면(먹이면) 사라진다 — teal4_events.js, yongjun_flower.js
+  { flag: 'purple_flower_taken', items: ['보라꽃'], unless: 'yongjun_flower_sold' },
+  // 박용준 히든 보스전(돈 0) — yongjun_flower.js
+  { flag: 'yongjun_sans_won', enemies: ['yongjun_sans'] },
+  // 승리 뒤 상점에서 받은 박용준의 오마카세: 팀 전체 최대 HP +10(바로 적용) — yongjun_flower.js
+  { flag: 'yongjun_omakase_eaten', hpBonus: 10 },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
   { flag: 'park_guardian_won', enemies: ['park_guardian'] },
@@ -305,6 +311,9 @@ QA_POINTS.push({ ...maillardPathCheckpoint, id: 'maillard_lounge', desc: '마이
   party: [...maillardPathCheckpoint.party] });
 
 const maillardLoungeCheckpoint = QA_POINTS.find((point) => point.id === 'maillard_lounge');
+// 히든 보스(BUILD462): 청록숲4 에서 억빠맨이 뽑은 보라꽃을 들고 라운지 상점 앞 — 판다 → 보라꽃 → 박용준 전투
+QA_POINTS.push({ ...maillardLoungeCheckpoint, id: 'yongjun_flower', desc: '마이야르호 라운지: 보라꽃을 용준에게 판다(박용준 히든 보스)',
+  spawn: 'shop_front', flags: { ...maillardLoungeCheckpoint.flags, flower_spoke: true, flower_talks: 5, purple_flower_taken: true }, party: [...maillardLoungeCheckpoint.party] });
 for (const [id, desc] of [
   ['maillard_storage', '강퇴폐기창고'],
   ['maillard_saloon', '선장실로 가는 길'],

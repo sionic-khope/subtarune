@@ -8,6 +8,9 @@ const N = (text, extra = {}) => ({ text, voice: 'narrator', ...extra });
 const P = (text, extra = {}) => ({ speaker: '억빠맨', portrait: 'ppaman', voice: 'ppaman', text, ...extra });
 const G = (text, extra = {}) => ({ speaker: '경섭', portrait: 'gyeongsub', voice: 'gyeongsub', text, ...extra });
 const withParty = (f) => f.void11_done;
+// 보라꽃(BUILD462 사용자 “5번정도 상호작용하면 억빠맨: 아 시발년 걍 제가 뽑을게요 → 보라꽃을 얻음”): 말 건 횟수를 세고, 동료와 함께일 때 다섯 번째부터 뽑는다
+const FLOWER_PULL_TALKS = 5;
+const flowerTalks = (f) => f.flower_talks || 0;
 
 export const teal4_peel = [
   { if: (f) => f.peel_slipped, goto: 'again' },
@@ -62,6 +65,7 @@ export const teal4_button = [
 
 export const teal4_flower = [
   N('* 검은 꽃이다.{w=0.5} 향기가 없다.'),
+  { action: (g) => { g.setFlag('flower_talks', flowerTalks(g.flags) + 1); } },
   { if: (f) => f.flower_spoke, goto: 'again' },
   { wait: 0.6 },
   { text: '* {shake}...나가...{/shake}', voice: 'mystery' },
@@ -79,4 +83,19 @@ export const teal4_flower = [
   { label: 'again' },
   { wait: 0.4 },
   { text: '* {shake}...{/shake}', voice: 'mystery' },
+  { if: (f) => !withParty(f) || flowerTalks(f) < FLOWER_PULL_TALKS, goto: 'quiet' },
+  P('* 아 시발년 걍 제가 뽑을게요'),
+  { move: 'ppaman', rel: 'black_flower', at: 'bottom', by: [0, 18], run: true },
+  { face: 'ppaman', dir: 'up' },
+  { wait: 0.3 },
+  { parallel: [{ hop: 'ppaman', height: 8, duration: 0.3, sfx: false }, { sfx: 'pop' }] },
+  { remove: 'black_flower' },
+  { wait: 0.35 },
+  { sfx: 'item' },
+  { action: (g) => { g.inventory.push('보라꽃'); } },
+  N('* {c=purple}보라꽃{/c}을 얻었다.'),
+  { set: { purple_flower_taken: true } },
+  { regroup: true },
+  { label: 'quiet' },
+  { end: true },
 ];

@@ -1,0 +1,60 @@
+{
+ "file": "assets/enemies/yongjun-sans-hug.png",
+ "size": [
+  144,
+  149
+ ],
+ "frames": 1,
+ "bounds": [
+  4,
+  4,
+  140,
+  145
+ ],
+ "pivot": [
+  100,
+  144
+ ],
+ "rawBounds": [
+  301,
+  59,
+  1169,
+  958
+ ],
+ "rawPixelScale": 0.1568627450980392,
+ "sampling": "NEAREST",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 4199,
+ "droppedSpecks": 9,
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-5fc22445a09c7db2/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/hug-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "single",
+  "--rows",
+  "1",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.84",
+  "--align",
+  "center",
+  "--component-mode",
+  "largest",
+  "--output-dir",
+  "assets/source/yongjun-sans/hug/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

@@ -151,7 +151,7 @@ ents4 = [
     # 2) 수상한 버튼 2: 주머니 안
     {'type': 'prop', 'id': 'button2', 'image': 'assets/props/button_teal.png', 'x': 12 * 32 + 3, 'y': 8 * 32 + 6, 'solid': True, 'script': 'teal4_button'},
     # 3) 검은 꽃: 세로 길 왼쪽 주머니, 숲 나무로 둘러싸 음지
-    {'type': 'prop', 'id': 'black_flower', 'image': 'assets/props/black_flower.png', 'x': 20 * 32 + 2, 'y': 20 * 32 + 20, 'w': 24, 'h': 10, 'ix': 20 * 32, 'iy': 20 * 32 + 30 - 36, 'solid': True, 'script': 'teal4_flower'},
+    {'type': 'prop', 'id': 'black_flower', 'image': 'assets/props/black_flower.png', 'x': 20 * 32 + 2, 'y': 20 * 32 + 20, 'w': 24, 'h': 10, 'ix': 20 * 32, 'iy': 20 * 32 + 30 - 36, 'solid': True, 'script': 'teal4_flower', 'unless': 'purple_flower_taken'},
     # 걸어다니는 CS 둘 (세로 길·아래 길). 잡으면 <맵>_<id>_defeated 로 영구 제거
     {'type': 'enemy', 'id': 'walker1', 'sprite': 'cs_red', 'x': 25 * 32, 'y': 14 * 32, 'facing': 'down', 'wander': 40, 'enemies': ['cs_red'], 'unless': 'teal_east_walker1_defeated'},
     {'type': 'enemy', 'id': 'walker2', 'sprite': 'cs_blue', 'x': 33 * 32, 'y': 34 * 32, 'facing': 'left', 'wander': 40, 'enemies': ['cs_blue'], 'unless': 'teal_east_walker2_defeated'},

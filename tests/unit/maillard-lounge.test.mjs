@@ -139,7 +139,8 @@ test('walking right from the final deck reaches the lounge and returns outside e
 });
 
 test('lounge QA starts at map entry with the completed cart state and existing party', () => {
-  const qa = QA_POINTS.filter((point) => point.map === 'maillard_lounge');
+  // yongjun_flower(BUILD462)는 상점 앞에서 시작하는 히든 보스 지점이라 입구 지점 검사에서 뺀다
+  const qa = QA_POINTS.filter((point) => point.map === 'maillard_lounge' && point.id !== 'yongjun_flower');
   assert.equal(qa.length, 1);
   assert.equal(qa[0].spawn, 'from_path');
   assert.equal(qa[0].flags.maillard_cart_done, true);

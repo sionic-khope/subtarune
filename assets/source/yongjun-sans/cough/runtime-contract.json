@@ -1,0 +1,158 @@
+{
+ "file": "assets/enemies/yongjun-sans-cough.png",
+ "sheet": [
+  320,
+  320
+ ],
+ "cols": 2,
+ "rows": 2,
+ "count": 4,
+ "cell": [
+  160,
+  160
+ ],
+ "order": "row-major (top-left, top-right, bottom-left, bottom-right)",
+ "pivot": [
+  80,
+  156
+ ],
+ "rawPixelScale": 0.327710843373494,
+ "scalePolicy": "one scale for idle/cough/cry/dark = 136 / idle frame0 raw height",
+ "alignment": "feet root (centre of lowest 16 raw px band) -> pivot x, lowest opaque row -> pivot y",
+ "sampling": "NEAREST",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 4761,
+ "droppedSpecks": 26,
+ "frames": [
+  {
+   "rawBounds": [
+    42,
+    56,
+    398,
+    472
+   ],
+   "rawFeetRootX": 249.5,
+   "size": [
+    117,
+    136
+   ],
+   "paste": [
+    12,
+    20
+   ],
+   "bounds": [
+    12,
+    20,
+    129,
+    156
+   ]
+  },
+  {
+   "rawBounds": [
+    39,
+    56,
+    392,
+    472
+   ],
+   "rawFeetRootX": 249.0,
+   "size": [
+    116,
+    136
+   ],
+   "paste": [
+    11,
+    20
+   ],
+   "bounds": [
+    11,
+    20,
+    127,
+    156
+   ]
+  },
+  {
+   "rawBounds": [
+    104,
+    59,
+    420,
+    472
+   ],
+   "rawFeetRootX": 249.5,
+   "size": [
+    104,
+    135
+   ],
+   "paste": [
+    32,
+    21
+   ],
+   "bounds": [
+    32,
+    21,
+    136,
+    156
+   ]
+  },
+  {
+   "rawBounds": [
+    64,
+    99,
+    410,
+    472
+   ],
+   "rawFeetRootX": 249.0,
+   "size": [
+    113,
+    122
+   ],
+   "paste": [
+    19,
+    34
+   ],
+   "bounds": [
+    19,
+    34,
+    132,
+    156
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-5fc22445a09c7db2/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/yongjun-sans/cough-raw.png",
+  "--target",
+  "creature",
+  "--mode",
+  "actions",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--output-dir",
+  "assets/source/yongjun-sans/cough/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc",
+  "--cell-size",
+  "160",
+  "--fit-scale",
+  "0.85",
+  "--align",
+  "feet",
+  "--shared-scale",
+  "--scale-strategy",
+  "preserve",
+  "--component-mode",
+  "largest",
+  "--max-body-scale-cv",
+  "0.08",
+  "--max-anchor-y-std",
+  "0.05"
+ ]
+}

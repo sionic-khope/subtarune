@@ -16,6 +16,8 @@ export const ITEMS = {
   '열쇠?':         { kind: 'key', desc: '억빠맨이 뽑아 온 레버. 열쇠로 쓴다.' },                         // 허공4 잠긴 문 — void4_key.js
   // 짜장 굽이 길에서 청소부가 주운 돌(BUILD227 사용자 “돌을 얻었다. 체력회복 -5 아이템”): 쓰면 HP 가 5 줄어든다(1 밑으로는 안 내려감)
   '돌':            { kind: 'plain', heal: -5, desc: '볼품없는 돌. HP -5 회복.' },
+  // 청록숲4 검은 꽃을 다섯 번 건드리면 억빠맨이 뽑아 온다(BUILD462 사용자 “체력 -100아이템”). 마이야르호 라운지 용준에게 팔면 히든 보스전 — teal4_events.js, yongjun_flower.js
+  '보라꽃':        { kind: 'plain', heal: -100, desc: '억빠맨이 뽑아 온 보라꽃. HP -100 회복.' },
   '먼지':          { kind: 'plain', heal: 1, desc: '상자 안에 있던 먼지. HP 1 회복.' },                  // 허공9 빈 상자 — void9_events.js (사용자: 먼지는 hp 1 회복)
   '바나나':        { kind: 'plain', heal: 30, desc: '포타슘. HP 30 회복.' },                              // 청록숲3 상자 2개, 청록숲4 버튼/껍질 — teal3_toolbox.js, teal4_events.js
   // 벚꽃 숲 12 제단의 말하는 보라색 짜장면(BUILD288 사용자 브리핑 “짜장면을 획득했다.”): 먹을 수 없는 중요 아이템(고춧가루·위염). 설명 문구는 원문 대사에서 따온 잠정 — jjajang_sakura12.js

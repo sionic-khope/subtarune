@@ -626,4 +626,32 @@ export const ENEMIES = {
       die: '* 블루가 쓰러졌다.{w=0.3} ...졌다.',
       speak: ['...없다.', '하라.', '영역.', '시험.', '쿵.', '망치 간다.', '한다.', '제거.', '...따라 하는 거 아니다.', '침입자.'] },
   },
+  // 박용준 히든 보스(BUILD462 사용자 브리핑 2026-10-15): 보라꽃을 먹고 샌즈 옷을 입은 용준, 주머니에 손. 마이야르호 라운지 상점에서 보라꽃을 팔면(yongjun_flower.js)
+  //   HP 100·피함 없음(사용자 “걍 체력 1에서 피한다도 없애고 체력 100으로 둬줘”). 전투가 열리면 샌즈식 오프닝(support/yongjun-sans.js → modes/yongjun-sans-intro.js), 새소리 → 메갈로바니아.
+  //   패턴 여섯은 차례대로(src/battle/yongjun-patterns.js), 턴마다 말풍선은 패턴 설정 speak(사용자 “한턴한턴마다 대사 적절하게 넣어줘”). 그림은 gpt-image(assets/source/yongjun-sans)
+  yongjun_sans: {
+    name: '박용준', hp: 100, damage: 15, money: 0, boss: true, support: 'yongjun_sans', voice: 'yongjun',
+    sheet: { src: 'assets/enemies/yongjun-sans-battle-idle.png', cols: 2, rows: 2, count: 4, fps: 3, px: 1 },
+    actions: {
+      cough: { src: 'assets/enemies/yongjun-sans-cough.png', cols: 2, rows: 2, count: 4, fps: 4, px: 1 },
+      cry: { src: 'assets/enemies/yongjun-sans-cry.png', cols: 2, rows: 2, count: 4, fps: 5, px: 1 },
+      dark: { src: 'assets/enemies/yongjun-sans-dark.png', cols: 1, rows: 1, count: 1, fps: 1, px: 1 },
+    },
+    pivot: [80, 156], scale: 0.9, dx: -10, dy: 0, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    projectiles: {
+      idle: 'assets/enemies/yongjun-sans-battle-idle.png', cough: 'assets/enemies/yongjun-sans-cough.png', cry: 'assets/enemies/yongjun-sans-cry.png',
+      roll: 'assets/enemies/yongjun-sans-roll.png', hug: 'assets/enemies/yongjun-sans-hug.png', fish: 'assets/props/yongjun-fish.png',
+    },
+    patterns: [
+      { type: 'yongjun_stench', speak: '제 냄새 한번 맡아 보시죠 형님들' },
+      { type: 'yongjun_fish', speak: '잠깐만요 생선 좀 먹고요' },
+      { type: 'yongjun_roll', speak: '뚱땡이는 굴러야 제맛이죠 헤헤' },
+      { type: 'yongjun_cry', speak: '엄마... 왜 도망갔어...' },
+      { type: 'yongjun_insults', speak: '형님들이 저한테 한 말 그대로 돌려드릴게요' },
+      { type: 'yongjun_hug', speak: '저도 여자친구 생겼습니다 헤헤' },
+    ],
+    lines: { appear: '* 박용준이 주머니에 손을 넣고 서 있다.',
+      idle: ['* 박용준이 주머니에 손을 넣고 헤헤 웃는다.', '* 생선 비린내가 진동한다.', '* 보라꽃 냄새가 아직 남아 있다.', '* 억빠맨이 꽃을 먹인 걸 후회하는 것 같다.', '* 박용준의 눈이 보라색으로 번뜩인다.', '* 끔찍한 시간이 계속된다.'],
+      die: '* 박용준이 쓰러졌다.' },
+  },
 };

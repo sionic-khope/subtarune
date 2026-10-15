@@ -53,6 +53,8 @@ def main() -> None:
             'from_path': {'x': 176, 'y': 440, 'facing': 'right'},
             'from_storage': {'x': 180, 'y': 304, 'facing': 'down'},
             'from_saloon': {'x': 402, 'y': 304, 'facing': 'down'},
+            # 상점 문 앞(QA 지점 yongjun_flower — 보라꽃 판매 히든 보스, BUILD462)
+            'shop_front': {'x': 1084, 'y': 388, 'facing': 'up'},
         },
         'meta': {'connected': True},
         'entities': [
