@@ -193,3 +193,30 @@ registerBattleBg('maillard_lounge', (ctx, battle) => {
   }
   ctx.drawImage(loungeCache, 0, 0);
 });
+
+// 엄청대박인배 지하실(청소부 히든 보스, BUILD468 사용자 “어딘가의 철로되어있는 방은 맞지만 인게임 전투에서는 약간 빨간색 불빛이 지잉 지잉 하듯 배경화면 색깔 바뀌면서 전환되게”):
+//   철벽(위)·철바닥(아래, 판 이음새)·배관(맵이 적재한 ship_conduit) 은 한 번 그려 캐시, 그 위에 경광등처럼 빨간 빛이 주기적으로 차올랐다 빠진다(위쪽 등에서 퍼지는 붉은 빛 + 화면 전체 붉은 물듦)
+export const BASEMENT_BG = Object.freeze({ wall: '#151a22', wallLine: '#232a36', rivet: '#3a4556', floor: '#2b2f3c', seam: '#20232d', horizon: 96, conduit: 'assets/props/ship_conduit.png', period: 1.1, tint: [0.06, 0.26], lamp: 0.55, red: '214,28,28' });
+let basementCache = null, basementKey = '';
+registerBattleBg('janitor_basement', (ctx, battle) => {
+  const B = BASEMENT_BG, conduit = battle.game?.propImages?.[B.conduit], key = String(!!conduit);
+  if (!basementCache || basementKey !== key) {
+    basementKey = key; basementCache = makeCanvas(480, 360);
+    const c = basementCache.getContext('2d'); c.imageSmoothingEnabled = false;
+    c.fillStyle = B.wall; c.fillRect(0, 0, 480, B.horizon);
+    c.fillStyle = B.wallLine; for (let x = 0; x < 480; x += 64) c.fillRect(x, 0, 2, B.horizon);
+    c.fillStyle = B.rivet; for (let x = 8; x < 480; x += 64) for (const y of [10, B.horizon - 14]) { c.fillRect(x, y, 3, 3); c.fillRect(x + 50, y, 3, 3); }
+    if (conduit) { const fw = Math.floor(conduit.width / 3); for (const x of [40, 190, 340]) c.drawImage(conduit, 0, 0, fw, conduit.height, x, 20, fw, conduit.height); }
+    c.fillStyle = B.floor; c.fillRect(0, B.horizon, 480, 360 - B.horizon);
+    c.fillStyle = B.seam; for (let y = B.horizon + 32; y < 360; y += 32) c.fillRect(0, y, 480, 1); for (let x = 0; x < 480; x += 32) c.fillRect(x, B.horizon, 1, 360 - B.horizon);
+    c.fillStyle = '#0b0d12'; c.fillRect(0, B.horizon - 2, 480, 3);
+  }
+  ctx.drawImage(basementCache, 0, 0);
+  const time = battle.game?.time ?? battle.t ?? 0, wave = (Math.sin(time * Math.PI * 2 / B.period) + 1) / 2, k = wave * wave;
+  ctx.save();
+  const lamp = ctx.createRadialGradient(240, 0, 4, 240, 0, 300);
+  lamp.addColorStop(0, `rgba(${B.red},${B.lamp * k})`); lamp.addColorStop(1, `rgba(${B.red},0)`);
+  ctx.fillStyle = lamp; ctx.fillRect(0, 0, 480, 360);
+  ctx.fillStyle = `rgba(${B.red},${B.tint[0] + (B.tint[1] - B.tint[0]) * k})`; ctx.fillRect(0, 0, 480, 360);
+  ctx.restore();
+});

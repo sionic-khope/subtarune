@@ -1,0 +1,11 @@
+# imagegen 2026-10-15 15:17:37
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/janitor-hidden/star-ref.png
+
+Pixel art game bullet sprite: ONE single white STAR bullet, centered on a 1024x1024 canvas. Image 1 is a SHAPE reference only (white star bullets from another game): a chunky plump five-pointed star with short rounded points, slightly irregular stepped pixel edges.
+
+Draw exactly one star: a plump five-pointed star, pure white fill (#FFFFFF) with a tiny light grey shade (#C8C8D4) on the lower-right inner edges, and a crisp 1-art-pixel dark outline (#1C1A28) all the way around. The star is 22 art pixels wide and 22 art pixels tall. PIXEL GRID: low-resolution pixel art enlarged exactly 32 times with nearest neighbour, so the star is about 704x704 px; every art pixel is one crisp solid 32x32 px square; no anti-aliasing, no glow, no gradient, no sparkle, no motion trail, nothing else in the image.
+
+Background: solid pure #FF00FF magenta everywhere, no shadows, no text, no labels, no grid lines.

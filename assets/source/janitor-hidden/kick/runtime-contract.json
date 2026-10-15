@@ -1,0 +1,183 @@
+{
+ "file": "assets/battle/janitor-hero-kick.png",
+ "sheet": [
+  640,
+  320
+ ],
+ "cols": 2,
+ "rows": 1,
+ "count": 2,
+ "cell": [
+  320,
+  320
+ ],
+ "order": "left to right: 0 wind-up (knee up, pole raised back), 1 kick (leg straight out to the right at hip height)",
+ "facing": "right (code mirrors with flipX for the enemy side)",
+ "pivot": [
+  164,
+  236
+ ],
+ "pivotMeaning": "feet root on the ground line, same as assets/battle/janitor-hero-attack.png",
+ "drawScale": 1,
+ "rawPxPerGamePx": 3.0,
+ "scalePolicy": "anchor geometry: kick-anchor.png = attack frame 0 x3 NEAREST, feet root -> raw cell [430,430]",
+ "alignment": "x from the anchor geometry (planted rear foot lands where the attack stance's rear foot is), y integer shift so the planted foot's lowest row is the pivot row",
+ "sampling": "block vote (majority colour bin, dark lines lum<70 win at >=0.4 of a block), grid phase searched",
+ "suggestedHoldsMs": [
+  200,
+  260
+ ],
+ "loop": false,
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 5420,
+ "droppedSpecks": 25,
+ "frames": [
+  {
+   "rawCell": 1,
+   "phase": [
+    0.0,
+    0.667
+   ],
+   "purity": 0.7477,
+   "shift": [
+    0,
+    1
+   ],
+   "bounds": [
+    60,
+    135,
+    195,
+    236
+   ],
+   "visibleSize": [
+    135,
+    101
+   ],
+   "plantedFootX": [
+    150,
+    162
+   ],
+   "plantedFootBottom": 236
+  },
+  {
+   "rawCell": 2,
+   "phase": [
+    0.0,
+    0.0
+   ],
+   "purity": 0.7571,
+   "shift": [
+    0,
+    10
+   ],
+   "bounds": [
+    48,
+    133,
+    212,
+    236
+   ],
+   "visibleSize": [
+    164,
+    103
+   ],
+   "plantedFootX": [
+    150,
+    162
+   ],
+   "plantedFootBottom": 236
+  }
+ ],
+ "qc": {
+  "readyCellVsAttackFrame0AlphaDiffPx": 79,
+  "readyFrame": {
+   "rawCell": 0,
+   "phase": [
+    0.0,
+    0.0
+   ],
+   "purity": 0.7442,
+   "shift": [
+    0,
+    0
+   ],
+   "bounds": [
+    38,
+    158,
+    235,
+    240
+   ],
+   "visibleSize": [
+    197,
+    82
+   ],
+   "plantedFootX": [
+    150,
+    176
+   ],
+   "plantedFootBottom": 236
+  },
+  "recoverFrame": {
+   "rawCell": 3,
+   "phase": [
+    0.0,
+    0.0
+   ],
+   "purity": 0.745,
+   "shift": [
+    0,
+    0
+   ],
+   "bounds": [
+    38,
+    158,
+    235,
+    242
+   ],
+   "visibleSize": [
+    197,
+    84
+   ],
+   "plantedFootX": [
+    150,
+    176
+   ],
+   "plantedFootBottom": 236
+  }
+ },
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-36e8d3f049795c35/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/janitor-hidden/kick-raw.png",
+  "--target",
+  "creature",
+  "--mode",
+  "attack",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--cell-size",
+  "320",
+  "--fit-scale",
+  "0.85",
+  "--align",
+  "feet",
+  "--shared-scale",
+  "--scale-strategy",
+  "preserve",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "64",
+  "--output-dir",
+  "assets/source/janitor-hidden/kick/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

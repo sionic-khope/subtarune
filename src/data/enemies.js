@@ -665,4 +665,28 @@ export const ENEMIES = {
       idle: ['* 박용준이 주머니에 손을 넣고 헤헤 웃는다.', '* 생선 비린내가 진동한다.', '* 보라꽃 냄새가 아직 남아 있다.', '* 억빠맨이 꽃을 먹인 걸 후회하는 것 같다.', '* 박용준의 눈이 보라색으로 번뜩인다.', '* 끔찍한 시간이 계속된다.'],
       die: '* 박용준이 쓰러졌다.' },
   },
+  // 청소부 히든 보스(BUILD468 사용자 브리핑 2026-10-15): 엄청대박인배 지하실, 강한 청소부(멸공의 깃발) — “청소부 전투 스프라이트에서 반대편 바라보게(그 강한버전 드럼통의 악마랑 배틀할때 나온거)”
+  //   드럼통 악마전 청소부 영웅 대기 시트(192 셀 8프레임, 오른쪽을 봄)를 flipX 로 뒤집어 왼쪽을 보게. 공격 시트는 actions.attack. HP 100(“체력 100으로”), 패턴 둘(src/battle/janitor-patterns.js)
+  janitor_hidden: {
+    name: '청소부', hp: 100, damage: 15, money: 0, boss: true, voice: 'janitor', flipX: true, support: 'janitor_hidden',
+    sheet: { src: 'assets/battle/janitor-hero-idle.png', cols: 2, rows: 4, count: 8, fps: 6, px: 1 },
+    actions: {
+      attack: { src: 'assets/battle/janitor-hero-attack.png', cols: 2, rows: 3, count: 6, fps: 8, px: 1, pivot: [164, 236] },
+      // 발차기 0 준비·1 차기(gpt v1, assets/source/janitor-hidden) — 거슨처럼 상자를 차서 마름모로
+      kick: { src: 'assets/battle/janitor-hero-kick.png', cols: 2, rows: 1, count: 2, fps: 6, px: 1, pivot: [164, 236] },
+    },
+    pivot: [138, 180], scale: 0.736, dx: -24, dy: 30, board: [240, 160], idle: { swayX: 0, swayY: 0 },
+    // 깃발·드럼통(드럼통 악마전 그림)·회오리·초승달 베기·흰 별(gpt v1, assets/source/janitor-hidden)
+    projectiles: { flag: 'assets/props/janitor-hero-flag.png', atk: 'assets/battle/janitor-hero-attack.png', drum: 'assets/props/jjajang_drum.png', whirl: 'assets/fx/janitor-whirl.png', slash: 'assets/fx/janitor-slash.png', star: 'assets/props/janitor-star.png' },
+    // BUILD468 사용자: 거슨전 공격 “거의 정확히 똑같이”(망치 → 붉은 깃발, 등껍질 → 드럼통) + 찍기 응용판. 원작 턴 순서처럼 깃발 → 찍기 → 드럼통 → 응용
+    patterns: [
+      { type: 'janitor_kick_flags', speak: '멸공!', board: [112, 112], center: [240, 176] },
+      { type: 'janitor_stomp', speak: '어디 한번 피해보게', board: [112, 112], center: [240, 180] },
+      { type: 'janitor_drum', speak: '껄껄 받아보게', board: [112, 112], center: [240, 200] },
+      { type: 'janitor_stomp_scan', speak: '계엄이다' },
+    ],
+    lines: { appear: '* 청소부가 멸공의 깃발을 휘두른다.',
+      idle: ['* 청소부가 껄껄 웃는다.', '* 멸공의 깃발이 펄럭인다.', '* 경섭이 청소부를 바라본다.'],
+      die: '* 청소부가 깃발을 내렸다.' },
+  },
 };

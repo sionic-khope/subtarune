@@ -46,6 +46,7 @@ export const CONTINUE_LABELS = {
   maillard_path: '마이야르호 · 일출 갑판',
   maillard_lounge: '마이야르호 · 라운지',
   yongjun_flower: '마이야르호 · 보라꽃 판매',
+  janitor_hidden: '엄청대박인배 · 분수 뒤 버튼',
   maillard_storage: '마이야르호 · 강퇴폐기창고',
   maillard_saloon: '마이야르호 · 선장실 가는 길',
   maillard_captain: '마이야르호 · 선장실',

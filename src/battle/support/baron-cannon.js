@@ -7,6 +7,7 @@ import { createDrumDevilSupport } from './drum-devil.js';
 import { createMalzaharRunnerSupport } from './malzahar-runner.js';
 import { createGajaemanRunnerSupport } from './gajaeman-runner.js';
 import { createYongjunSansSupport } from './yongjun-sans.js';
+import { createJanitorHiddenSupport } from './janitor-hidden.js';
 
 import { createTeenBossSupport } from './teen-boss.js';
 /** Battle-local support controller; no story flag survives victory or retry. */
@@ -17,6 +18,8 @@ export function createBattleSupport(battle) {
   if (gajaemanRun) return gajaemanRun;
   const yongjun = createYongjunSansSupport(battle);
   if (yongjun) return yongjun;
+  const janitorHidden = createJanitorHiddenSupport(battle);
+  if (janitorHidden) return janitorHidden;
   const malzahar = createMalzaharRunnerSupport(battle);
   if (malzahar) return malzahar;
   const drum = createDrumDevilSupport(battle);

@@ -107,6 +107,9 @@ def main() -> None:
          'solid': True, 'requires': 'choimis_rescued'},
         {'type': 'sign', 'id': 'ship_lounge_shop_door', 'x': 136, 'y': 1072, 'w': 48, 'h': 16,
          'solid': False, 'requires': 'choimis_rescued', 'script': 'maillard_shop'},
+        # 청소부 히든 보스(BUILD468): 상점 건너편 분수(마나샘) 뒤편에서 아래를 보고 C → 버튼 → 함정(ship_basement)
+        {'type': 'sign', 'id': 'ship_lounge_fountain_button', 'x': 640, 'y': 736, 'w': 64, 'h': 18,
+         'solid': False, 'requires': 'choimis_rescued', 'unless': 'janitor_hidden_won', 'script': 'ship_fountain_button'},
     ]
     map_data = {
         'id': MAP_ID, 'name': '엄청대박인배 라운지', 'stage': 'ship_ending_done',
@@ -116,7 +119,10 @@ def main() -> None:
             'castle_approach': {'x': 372, 'y': 470, 'facing': 'up'},
             'from_rescue': {'x': 372, 'y': 900, 'facing': 'up'},
             'lounge_free': {'x': 372, 'y': 520, 'facing': 'up'},
+            # 분수 뒤편(아래를 보고 서면 버튼) — 청소부 히든 보스 QA·지하실에서 돌아오는 자리
+            'fountain_back': {'x': 680, 'y': 712, 'facing': 'down'},
         },
+        'preload': ['assets/props/floor_pit.png'],
         'enter': {'script': 'ship_lounge_briefing', 'early': True},
         'meta': {'connected': True, 'route': [[11, 28], [11, 7]],
                  'role': '보스전 뒤 휴식, 좌우 대화 공간과 위쪽 보라 문'},

@@ -473,15 +473,19 @@ export class Battle {
   }
 
   // ── 적 턴 ──
-  boardSize() { const custom = this.support?.boardSizeFor?.(); if (custom) return custom; const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
+  // 패턴 설정 board:[w,h]·center:[cx,cy] 가 있으면 그 턴의 상자(청소부 거슨식 패턴, BUILD468)
+  boardSize() { const custom = this.support?.boardSizeFor?.() || this.turnConfig?.board; if (custom) return custom; const live = this.living(); return [Math.max(...live.map((e) => e.def.board?.[0] || 200)), Math.max(...live.map((e) => e.def.board?.[1] || 150))]; }
   /** Read the next ordinary pattern config without advancing its cycle. */
   nextPatternConfig(enemy) { return nextPatternConfig(enemy); }
   /** 적 턴 준비(델타룬 전투 참고): 패널 자리에서 탄막 상자가 펼쳐지고 소울이 나타난다 + 적 옆 흰 말풍선에 한마디(작은 글씨, 타자) → 다 뜬 뒤 PREP_HOLD 준비 시간 → 탄막(말풍선은 사라짐). 바로 공격이 오지 않는다 */
   beginEnemyTurn() {
     // 파란 하트는 그 턴의 패턴만(박용준 오프닝 BUILD466)
     if (this.soul) { this.soul.blue = null; this.soul.vy = 0; }
+    // 상자 회전도 그 턴의 패턴만(청소부 발차기 마름모, BUILD468)
+    if (this.board) this.board.rotation = 0;
     const live = this.living(); const e = live[Math.floor(this.rnd() * live.length)];
     const selected = this.support?.patternsFor ? null : nextPatternConfig(e);
+    this.turnConfig = selected?.config || null;
     const defName = this.support?.enemyModeFor?.(e) || selected?.config?.mode || e.def.defense || this.modes.enemy; const create = getBattleMode('enemy', defName);
     const lines = this.support?.speechFor?.(e) || e.def.lines?.speak || [];
     if (typeof create === 'function') {
@@ -515,7 +519,7 @@ export class Battle {
       minDuration: selected?.config?.speakDuration || 0 };
     if (speakSfx && !silent) this.sfx(speakSfx);
     this.board.x = 20; this.board.y = 246; this.board.w = 440; this.board.h = 72;             // 패널 상자에서 펼쳐진다
-    const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
+    const [bw, bh] = this.boardSize(), [cx, cy] = this.turnConfig?.center ?? this.support?.boardCenter ?? [240, 214];
     this.board.setTarget(bw, bh, cx, cy);
     this.soul.center({ x: cx - bw / 2, y: cy - bh / 2, w: bw, h: bh }); this.soul.invuln = 0; this.bullets = [];
     this.state = 'enemy-prep'; this.t = 0; this.setText('');
@@ -541,7 +545,7 @@ export class Battle {
       e.patternIdx++;
       return { p: PATTERNS[c.type](c), t: 0, dmg: c.damage ?? e.def.damage ?? 6, enemy: e };
     }).filter(Boolean);
-    const [bw, bh] = this.boardSize(), [cx, cy] = this.support?.boardCenter ?? [240, 214];
+    const [bw, bh] = this.boardSize(), [cx, cy] = this.turnConfig?.center ?? this.support?.boardCenter ?? [240, 214];
     this.board.setTarget(bw, bh, cx, cy); this.board.snap(); this.soul.invuln = 0; this.bullets = [];   // 소울은 준비 시간에 옮겨 둔 자리 그대로
     this.stopRapVideo();
     this.bubble = null;                                        // 말풍선은 탄막이 시작되면 사라진다(델타룬) — 상자 위를 가려 탄막을 숨기지 않게
@@ -560,6 +564,12 @@ export class Battle {
       api.present = pose => { pat.enemy.patternPose = pose ? { ...pose } : null; };
       // 패턴이 캐릭터 목소리를 낸다(박용준 켁켁, BUILD467)
       api.voice = name => this.game.sound.blip(name);
+      // 패턴이 치는 순간 화면을 살짝 흔든다(청소부 회오리·드럼통·깃발, BUILD468)
+      api.shake = (time = 0.16, amp = 3) => { this.game.shake = { time, amp }; };
+      // 패턴이 상자를 돌린다(라디안). 턴이 끝나 상자가 닫힐 때 0 으로 돌아간다
+      api.rotateBoard = rad => { this.board.rotation = rad; };
+      // 패턴이 상자를 직접 옮기고 크기를 바꾼다(가운데 기준, 이 프레임에 바로) — 청소부 발차기로 밀리기·짓누르기
+      api.setBoard = (cx, cy, w = this.board.w, h = this.board.h) => { const B = this.board; B.w = w; B.h = h; B.x = cx - w / 2; B.y = cy - h / 2; B.target = { w, h, cx, cy }; };
       api.trackProjectile = projectile => this.support?.onProjectile?.(projectile);
       api.vacuum = (on, seconds) => this.support?.onVacuum?.(on, seconds);
       api.interceptionActive = () => this.support?.interceptionActive ?? false;
@@ -591,7 +601,7 @@ export class Battle {
       if (this.interruptEnemyPhase()) return;
     }
     this.bullets = this.bullets.filter((b) => !b.taken && !b.out(this.board));
-    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.stopRapVideo(); this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.setTarget(440, 72, 240, 282); }
+    if (!running && (!this.bullets.length || this.t > Math.max(...this.patterns.map((p) => p.p.duration)) + 1.2)) { this.stopRapVideo(); this.clearPatternPresentation(); this.bullets = []; this.bubble = null; this.state = 'board-close'; this.t = 0; this.board.rotation = 0; this.board.setTarget(440, 72, 240, 282); }
   }
   hurtParty(dmg) {
     const alive = this.alive(); if (!alive.length) return;
@@ -812,6 +822,8 @@ export class Battle {
     const pop = this.support?.popupAt?.(e) || [x, y - 60];
     if (e.blink > 0 && Math.floor(e.blink * 20) % 2) { if (e.popup) this.drawPopup(ctx, pop[0], pop[1], e.popup.text, e.popup.t, e.popup.color || '#fff'); return; }
     ctx.save(); if (e.dying > 0) ctx.globalAlpha = Math.max(0, e.dying / 0.5);
+    // def.flipX: 오른쪽을 보는 시트를 적 자리(오른쪽)에서 왼쪽을 보게 — 발 x 를 축으로 뒤집는다(청소부 히든 보스, BUILD468). 피해 숫자는 restore 뒤라 안 뒤집힌다
+    if (pose?.flipX ?? e.def.flipX) { ctx.translate(Math.round(x) * 2, 0); ctx.scale(-1, 1); }
     if (img && sh && sh.count) {
       const fw = Math.floor(img.width / sh.cols), fh = Math.floor(img.height / (sh.rows || 1));
       const animationTime = e.def.reactive ? e.animationTime || 0 : e.id === 'choimis_flower' ? (this.game.time ?? this.t) : this.t;

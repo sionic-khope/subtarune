@@ -1,0 +1,122 @@
+{
+ "file": "assets/fx/janitor-slash.png",
+ "size": [
+  384,
+  128
+ ],
+ "frames": 3,
+ "frame": [
+  128,
+  128
+ ],
+ "layout": "side by side, left to right",
+ "pivot": [
+  64,
+  64
+ ],
+ "pivotMeaning": "frame centre",
+ "content": "0 growing (upper two thirds of the arc), 1 full crescent, 2 fading (fill broken by horizontal gaps). Arc bulges to the RIGHT (in front of a right-facing janitor); code mirrors it for the enemy side. raw cell 3 (thin dashed sliver) is left unused in slash-raw.png.",
+ "rawPxPerGamePx": 3.163,
+ "placement": "one cell-local origin for all frames (raw union bbox centred in the frame), one grid phase",
+ "phase": [
+  0.0,
+  0.0
+ ],
+ "meanPurity": 0.7876,
+ "sampling": "block vote (dark lum<90 wins at >=0.4 of a block)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 4731,
+ "droppedSpecks": 7,
+ "frameInfo": [
+  {
+   "rawCell": 0,
+   "rawBounds": [
+    139,
+    65,
+    384,
+    306
+   ],
+   "bounds": [
+    26,
+    4,
+    102,
+    81
+   ],
+   "visibleSize": [
+    76,
+    77
+   ]
+  },
+  {
+   "rawCell": 1,
+   "rawBounds": [
+    139,
+    65,
+    384,
+    448
+   ],
+   "bounds": [
+    26,
+    4,
+    102,
+    125
+   ],
+   "visibleSize": [
+    76,
+    121
+   ]
+  },
+  {
+   "rawCell": 2,
+   "rawBounds": [
+    139,
+    59,
+    387,
+    446
+   ],
+   "bounds": [
+    25,
+    2,
+    103,
+    125
+   ],
+   "visibleSize": [
+    78,
+    123
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-36e8d3f049795c35/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/janitor-hidden/slash-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/janitor-hidden/fx-slash/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

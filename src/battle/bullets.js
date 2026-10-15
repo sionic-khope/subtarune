@@ -26,7 +26,9 @@ import { MUNKORITA_PATTERNS } from './munkorita-patterns.js';
 import { KART_PATTERNS } from './kart-patterns.js';   // 다오·배찌 카트라이더 아이템(BUILD266)
 import { SAKURA5_PATTERNS } from './sakura5-patterns.js';
 // 박용준 히든 보스(BUILD462): 악취 나선·생선 켁켁·구르기·눈물·냄새고아돼지 글자·포옹 번개
-import { YONGJUN_PATTERNS } from './yongjun-patterns.js';   // 도미조림 홍어·횃불 / 도현 낙하·카톡 텍스트(BUILD271)
+import { YONGJUN_PATTERNS } from './yongjun-patterns.js';
+// 청소부 히든 보스(BUILD468): 깃발 휘둘러 날리기·깃발 쓸기
+import { JANITOR_PATTERNS } from './janitor-patterns.js';   // 도미조림 홍어·횃불 / 도현 낙하·카톡 텍스트(BUILD271)
 import { DRUM_DEVIL_PATTERNS } from './drum-devil-patterns.js';
 import { CHOIMIS_PATTERNS_A } from './choimis-patterns-a.js';
 import { CHOIMIS_PATTERNS_B } from './choimis-patterns-b.js';
@@ -47,9 +49,26 @@ export class Board {
   snap() { if (this.target) { this.w = this.target.w; this.h = this.target.h; this.x = this.target.cx - this.w / 2; this.y = this.target.cy - this.h / 2; } }
   get rect() { return { x: this.x, y: this.y, w: this.w, h: this.h }; }
   draw(ctx) {
+    // rotation(라디안): 패턴이 상자를 돌린다(청소부 발차기 → 마름모, 거슨전, BUILD468). 하트는 Soul.update 가 돌아간 상자 안쪽으로 막는다
+    if (this.rotation) {
+      const cx = this.x + this.w / 2, cy = this.y + this.h / 2, w = Math.round(this.w), h = Math.round(this.h);
+      ctx.save(); ctx.translate(Math.round(cx), Math.round(cy)); ctx.rotate(this.rotation);
+      ctx.fillStyle = '#000'; ctx.fillRect(-w / 2, -h / 2, w, h);
+      ctx.strokeStyle = this.color || '#fff'; ctx.lineWidth = 3; ctx.strokeRect(-w / 2 + 1.5, -h / 2 + 1.5, w - 3, h - 3);
+      ctx.restore();
+      return;
+    }
     ctx.fillStyle = '#000'; ctx.fillRect(Math.round(this.x), Math.round(this.y), Math.round(this.w), Math.round(this.h));
     ctx.strokeStyle = this.color || '#fff'; ctx.lineWidth = 3; ctx.strokeRect(Math.round(this.x) + 1.5, Math.round(this.y) + 1.5, Math.round(this.w) - 3, Math.round(this.h) - 3);
   }
+}
+/** 돌아간 상자 안쪽으로 점을 막는다(상자 기준 좌표에서 자른 뒤 되돌린다) — 예: clampToBoard(soul, board, 10) */
+export function clampToBoard(p, board, m) {
+  const cx = board.x + board.w / 2, cy = board.y + board.h / 2, c = Math.cos(board.rotation), s = Math.sin(board.rotation);
+  const dx = p.x - cx, dy = p.y - cy;
+  let lx = dx * c + dy * s, ly = -dx * s + dy * c;
+  lx = Math.max(-board.w / 2 + m, Math.min(board.w / 2 - m, lx)); ly = Math.max(-board.h / 2 + m, Math.min(board.h / 2 - m, ly));
+  p.x = cx + lx * c - ly * s; p.y = cy + lx * s + ly * c;
 }
 
 export class Soul {
@@ -63,7 +82,8 @@ export class Soul {
     const sp = this.speed * (input.down('cancel') ? 0.5 : 1);
     this.x += vx * sp * dt; this.y += vy * sp * dt;
     const m = 4 + this.r;
-    this.x = Math.max(board.x + m, Math.min(board.x + board.w - m, this.x)); this.y = Math.max(board.y + m, Math.min(board.y + board.h - m, this.y));
+    if (board.rotation) clampToBoard(this, board, m);
+    else { this.x = Math.max(board.x + m, Math.min(board.x + board.w - m, this.x)); this.y = Math.max(board.y + m, Math.min(board.y + board.h - m, this.y)); }
     if (this.invuln > 0) this.invuln -= dt;
   }
   /**
@@ -213,6 +233,7 @@ export const PATTERNS = {
   ...KART_PATTERNS,        // 다오 미사일·부스터·바나나 / 배찌 물폭탄·자석·물파리(BUILD266)
   ...SAKURA5_PATTERNS,     // 도미조림 얼린 홍어·횃불 / 도현 살랑살랑 낙하·카톡 텍스트(BUILD271)
   ...YONGJUN_PATTERNS,
+  ...JANITOR_PATTERNS,
   ...CHOIMIS_PATTERNS_A,
   ...CHOIMIS_PATTERNS_B,
   rain: (o = {}) => { const rate = o.rate ?? 0.18, speed = o.speed ?? 90, r = o.r ?? 4; let acc = 0;

@@ -164,3 +164,8 @@ assets/source/trailer408/cape/frames_cmp.png
 assets/source/trailer408/cape/base_ref.jpg
 assets/source/trailer408/*.png
 !assets/source/trailer408/seopnyang_x8.png
+
+# 청소부 히든 보스 참고 영상(거슨전, 약 60MB) — 측정·모양 참조용, 커밋하지 않는다
+assets/source/janitor-hidden/ref/*.mp4
+assets/source/janitor-hidden/ref/*.webm
+assets/source/janitor-hidden/ref/*.info.json

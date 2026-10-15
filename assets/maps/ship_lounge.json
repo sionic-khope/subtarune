@@ -62,8 +62,16 @@
    "x": 372,
    "y": 520,
    "facing": "up"
+  },
+  "fountain_back": {
+   "x": 680,
+   "y": 712,
+   "facing": "down"
   }
  },
+ "preload": [
+  "assets/props/floor_pit.png"
+ ],
  "enter": {
   "script": "ship_lounge_briefing",
   "early": true
@@ -486,6 +494,18 @@
    "solid": false,
    "requires": "choimis_rescued",
    "script": "maillard_shop"
+  },
+  {
+   "type": "sign",
+   "id": "ship_lounge_fountain_button",
+   "x": 640,
+   "y": 736,
+   "w": 64,
+   "h": 18,
+   "solid": false,
+   "requires": "choimis_rescued",
+   "unless": "janitor_hidden_won",
+   "script": "ship_fountain_button"
   }
  ]
 }

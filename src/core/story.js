@@ -168,6 +168,10 @@ export const STATE_FROM_FLAGS = [
   { flag: 'yongjun_sans_won', enemies: ['yongjun_sans'] },
   // 승리 뒤 상점에서 받은 박용준의 오마카세: 팀 전체 최대 HP +10(바로 적용) — yongjun_flower.js
   { flag: 'yongjun_omakase_eaten', hpBonus: 10 },
+  // 청소부 히든 보스전(돈 0) — janitor_hidden.js
+  { flag: 'janitor_hidden_won', enemies: ['janitor_hidden'] },
+  // 청소부 승리 뒤 멸공의 깃발이 무기에 감김: 팀 공격력 +1(다른 줄의 공격력 값 위에 더한다) — janitor_hidden.js
+  { flag: 'janitor_flag_wrapped', attackPlus: 1 },
   { flag: 'storage_viewer_defeated', enemies: ['expelled_viewer'] },
   { flag: 'captain_mankatsuki_defeated', enemies: ['mankatsuki_junhee'] },
   { flag: 'park_guardian_won', enemies: ['park_guardian'] },
@@ -203,13 +207,16 @@ export const qaHealKit = (flags = {}) => {
  */
 export function stateFromFlags(flags = {}, { maps = {}, enemyMoney = () => 30 } = {}) {
   const out = { inventory: [], money: 0, attack: 1, hpBonus: 0 };
+  let attackPlus = 0;
   for (const r of STATE_FROM_FLAGS) {
     if (!flags[r.flag] || (r.with && !flags[r.with]) || (r.unless && flags[r.unless])) continue;
     if (r.items) out.inventory.push(...r.items);
     if (r.enemies) for (const id of r.enemies) out.money += enemyMoney(id);
     if (r.attack !== undefined) out.attack = r.attack;
     if (r.hpBonus) out.hpBonus += r.hpBonus;
+    if (r.attackPlus) attackPlus += r.attackPlus;
   }
+  out.attack += attackPlus;
   for (const m of Object.values(maps)) for (const e of (m?.entities || [])) if (e.type === 'enemy' && e.unless && flags[e.unless]) for (const id of (e.enemies || [])) out.money += enemyMoney(id);
   for (const item of [...YONGJUN_SHOP, ...YONGJUN_RESCUE_SHOP]) {
     if (!item.onceFlag || !flags[item.onceFlag]) continue;
@@ -879,7 +886,13 @@ for (const [id, after] of [['castle_arena', 'castle_prophecy_door'], ['castle_su
 }
 // 이스터에그 지점은 Shift+Q 목록 맨 아래(BUILD463 사용자 “시프트큐 하단에 그거 갈수있는거 추가해줘 걍 꽃 얻은상태로 라운지맵”).
 // qaOnly: 이야기 진행 지점이 아니라서 이어하기 도달 판정(qaProgress)에서 뺀다 — 안 빼면 꽃을 뽑은 세이브가 목록 끝까지 도달한 것으로 잡힌다
-for (const id of ['yongjun_flower']) {
+// 청소부 히든 보스(BUILD468): 최미스 구출 뒤 라운지 분수 뒤편(아래를 보고 C 하면 버튼)
+{
+  const back = QA_POINTS.find(p => p.id === 'choimis_return');
+  if (back) QA_POINTS.push({ ...back, id: 'janitor_hidden', qaOnly: true, desc: '히든 보스 · 엄청대박인배 라운지 분수 뒤(아래 보고 C → 버튼 → 청소부전)',
+    map: 'ship_lounge', spawn: 'fountain_back', flags: { ...back.flags }, party: [...back.party] });
+}
+for (const id of ['yongjun_flower', 'janitor_hidden']) {
   const from = QA_POINTS.findIndex(p => p.id === id); if (from >= 0) QA_POINTS.push(...QA_POINTS.splice(from, 1));
 }
 

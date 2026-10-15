@@ -1,0 +1,18 @@
+# imagegen 2026-10-15 15:17:44
+# endpoint: images/edits
+# model: openai/gpt-image-2.5-sunburst
+# size: 1024x1024  quality: high
+# refs: assets/source/janitor-hidden/slash-ref.png
+
+Pixel art game effect animation: FOUR frames of a big CRESCENT SWING ARC (the trail left by a huge overhead hammer swing) on one 1024x1024 canvas, EXACTLY 2 columns x 2 rows of invisible equal 512x512 cells, one frame per cell, read left to right then down.
+
+Image 1 is a SHAPE reference only (a swing arc from another game): a thick flat crescent-moon shaped arc, thickest in the middle and tapering to sharp points at both ends. In OUR frames the crescent BULGES TO THE RIGHT: its smooth convex outer edge faces right, its two pointed tips point back to the left (one up-left, one down-left), as if a character standing at the left of the cell swung a weapon in a big arc in front of himself.
+
+Colours: flat off-white / very light lavender grey fill (#ECE8F2 and #D4CEDE), a darker grey-violet band along the inner concave (left) edge (#9C94AA), and a crisp 1-art-pixel dark grey outline (#4A4458) around the whole shape. No glow, no gradient, no motion lines, no character, no weapon.
+
+Frame 1 GROWING: only the upper two thirds of the arc exist, thinner, as if being swept from the top tip downward.
+Frame 2 FULL: the complete thick crescent from top tip to bottom tip.
+Frame 3 FADING: the same full crescent, thinner, its fill breaking into a few horizontal gaps and chunks.
+Frame 4 ALMOST GONE: only a thin broken sliver of the outer edge remains.
+
+All four frames share the same position and size in their cells: the full crescent is about 400 px tall and about 220 px wide, centered in the cell; nothing touches a cell edge. PIXEL GRID: low-resolution pixel art enlarged exactly 4 times with nearest neighbour; every art pixel is one crisp solid 4x4 px square; no anti-aliasing, no blur. Background: solid pure #FF00FF magenta everywhere, no shadows, no text, no labels, no grid lines.

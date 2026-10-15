@@ -1,0 +1,125 @@
+{
+ "id": "ship_basement",
+ "name": "엄청대박인배 지하실",
+ "stage": "ship_ending_done",
+ "bgm": null,
+ "dim": 0.32,
+ "rows": [
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "G;;;;;;;;;;;;;;;;;;;;;;;;;;;;G",
+  "G::::::::::::::::::::::::::::G",
+  "G::::::::::::::::::::::::::::G",
+  "G::::::::::::::::::::::::::::G",
+  "G::::::::::::::::::::::::::::G",
+  "G::::::::::::::::::::::::::::G",
+  "G::::::::::::::::::::::::::::G",
+  "G;;;;;;;;;;;;;;;;;;;;;;;;;;;;G",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+ ],
+ "preload": [
+  "assets/sprites/janitor.png",
+  "assets/battle/janitor-hero-stand.png",
+  "assets/battle/janitor-hero-laugh.png"
+ ],
+ "spawns": {
+  "start": {
+   "x": 300,
+   "y": 300,
+   "facing": "down"
+  },
+  "fall": {
+   "x": 300,
+   "y": 300,
+   "facing": "down"
+  }
+ },
+ "enter": {
+  "script": "ship_basement_janitor"
+ },
+ "meta": {
+  "connected": false,
+  "role": "청소부 히든 보스 — 함정으로 떨어지는 지하실"
+ },
+ "entities": [
+  {
+   "type": "prop",
+   "id": "basement_conduit_0",
+   "image": "assets/props/ship_conduit.png",
+   "x": 96,
+   "y": 136,
+   "w": 98,
+   "h": 24,
+   "ix": 96,
+   "iy": 28,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "basement_conduit_1",
+   "image": "assets/props/ship_conduit.png",
+   "x": 412,
+   "y": 136,
+   "w": 98,
+   "h": 24,
+   "ix": 412,
+   "iy": 28,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 3
+   }
+  },
+  {
+   "type": "prop",
+   "id": "basement_conduit_2",
+   "image": "assets/props/ship_conduit.png",
+   "x": 728,
+   "y": 136,
+   "w": 98,
+   "h": 24,
+   "ix": 728,
+   "iy": 28,
+   "solid": true,
+   "anim": {
+    "cols": 3,
+    "fps": 3
+   }
+  },
+  {
+   "type": "npc",
+   "id": "basement_janitor",
+   "sprite": "janitor",
+   "x": 900,
+   "y": 300,
+   "w": 24,
+   "h": 16,
+   "facing": "left",
+   "wander": 0,
+   "hidden": true,
+   "solid": false,
+   "unless": "janitor_hidden_won"
+  },
+  {
+   "type": "npc",
+   "id": "janitor_hero",
+   "sprite": "janitor_hero",
+   "x": 290,
+   "y": 300,
+   "w": 24,
+   "h": 16,
+   "facing": "down",
+   "wander": 0,
+   "hidden": true,
+   "solid": false,
+   "unless": "janitor_hidden_won"
+  }
+ ]
+}

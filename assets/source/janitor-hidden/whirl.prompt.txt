@@ -1,0 +1,10 @@
+Pixel art game effect animation: FOUR frames of a magical TELEPORT WHIRLWIND on one 1024x1024 canvas, EXACTLY 2 columns x 2 rows of invisible equal 512x512 cells, one frame centered in each cell, read left to right then down.
+
+Image 1 is a SHAPE reference only (three frames of a teleport whirl from another game, left to right: full whirl, breaking whirl, last wisps): a spinning-top shaped whirlwind built from stacked HORIZONTAL motion-smeared streaks and bands, wide and rounded at the top, narrowing toward a point at the bottom, which then breaks apart into thin wavy squiggle streaks. Copy only this shape language and the ragged horizontal pixel smears. Ignore any star or shell bits in Image 1. Recolour completely in RED, WHITE and DARK NAVY BLUE only: bright red #E8202A, dark red #8C1424, white #FFFFFF, light grey #C8CAD8, navy blue #2C3C8C, dark navy #182050. NO green, NO pink, NO character, NO stars, NO shell.
+
+Frame 1 FORMING: a smaller loose whirl, a few thin horizontal red, white and navy streaks starting to curl around an invisible vertical axis.
+Frame 2 FULL: a dense spinning-top tornado of stacked horizontal smeared bands alternating red / white / navy / grey, each band a horizontal motion-smeared stripe with ragged stepped pixel ends, wide at the top, narrowing to a point at the bottom.
+Frame 3 SPINNING: the same tornado at the same size, the bands shifted sideways and swapped (rotation), a little wider, starting to tear apart with gaps between bands.
+Frame 4 DISSOLVING: only a few thin wavy zigzag streaks of red, white and navy remain in the same area.
+
+Each frame is centered in its cell, at most 440x440 px, the same center in every cell, nothing touches a cell edge. PIXEL GRID: low-resolution pixel art enlarged exactly 5 times with nearest neighbour; every art pixel is one crisp solid 5x5 px square; no anti-aliasing, no soft glow, no gradients, no blur. Background: solid pure #FF00FF magenta everywhere, no shadows, no text, no labels, no grid lines.

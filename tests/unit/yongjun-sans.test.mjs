@@ -135,7 +135,10 @@ test('test_yongjun_intro_follows_the_sans_beats_and_leaves_the_music_off', () =>
 test('test_yongjun_flower_qa_point_is_last_in_shift_q_and_never_counts_as_story_progress', async () => {
   const { QA_POINTS, qaProgress } = await import('../../src/core/story.js');
   const menu = QA_POINTS.filter(p => !p.hidden);
-  const point = menu.at(-1);
+  // Shift+Q 맨 아래는 히든 보스 지점들(qaOnly): 보라꽃 라운지 → 청소부 분수 뒤
+  assert.deepEqual(menu.slice(-2).map(p => p.id), ['yongjun_flower', 'janitor_hidden']);
+  assert.ok(menu.slice(-2).every(p => p.qaOnly));
+  const point = menu.at(-2);
   assert.equal(point.id, 'yongjun_flower');
   assert.equal(point.map, 'maillard_lounge');
   assert.equal(point.flags.purple_flower_taken, true);

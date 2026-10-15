@@ -1,0 +1,141 @@
+{
+ "file": "assets/fx/janitor-whirl.png",
+ "size": [
+  384,
+  96
+ ],
+ "frames": 4,
+ "frame": [
+  96,
+  96
+ ],
+ "layout": "side by side, left to right",
+ "pivot": [
+  48,
+  48
+ ],
+ "pivotMeaning": "frame centre",
+ "content": "0 forming (loose thin streaks), 1 full spinning-top tornado, 2 spinning wider and tearing, 3 dissolving wisps. Play 0-1-2-3 to vanish (teleport out) and 3-2-1-0 to appear.",
+ "rawPxPerGamePx": 4.409,
+ "placement": "one cell-local origin for all frames (raw union bbox centred in the frame), one grid phase",
+ "phase": [
+  0.25,
+  0.0
+ ],
+ "meanPurity": 0.6551,
+ "sampling": "block vote (dark lum<0 wins at >=1.01 of a block)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 1641,
+ "droppedSpecks": 5,
+ "frameInfo": [
+  {
+   "rawCell": 0,
+   "rawBounds": [
+    131,
+    138,
+    401,
+    410
+   ],
+   "bounds": [
+    18,
+    20,
+    80,
+    82
+   ],
+   "visibleSize": [
+    62,
+    62
+   ]
+  },
+  {
+   "rawCell": 1,
+   "rawBounds": [
+    56,
+    87,
+    450,
+    460
+   ],
+   "bounds": [
+    1,
+    8,
+    90,
+    93
+   ],
+   "visibleSize": [
+    89,
+    85
+   ]
+  },
+  {
+   "rawCell": 2,
+   "rawBounds": [
+    61,
+    63,
+    466,
+    447
+   ],
+   "bounds": [
+    2,
+    3,
+    94,
+    90
+   ],
+   "visibleSize": [
+    92,
+    87
+   ]
+  },
+  {
+   "rawCell": 3,
+   "rawBounds": [
+    134,
+    110,
+    383,
+    396
+   ],
+   "bounds": [
+    19,
+    14,
+    75,
+    79
+   ],
+   "visibleSize": [
+    56,
+    65
+   ]
+  }
+ ],
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-36e8d3f049795c35/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/janitor-hidden/whirl-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "fx",
+  "--rows",
+  "2",
+  "--cols",
+  "2",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "all",
+  "--min-component-area",
+  "24",
+  "--output-dir",
+  "assets/source/janitor-hidden/fx-whirl/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}

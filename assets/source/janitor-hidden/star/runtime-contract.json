@@ -1,0 +1,65 @@
+{
+ "file": "assets/props/janitor-star.png",
+ "size": [
+  25,
+  25
+ ],
+ "frames": 1,
+ "pivot": [
+  12,
+  12
+ ],
+ "pivotMeaning": "centre",
+ "bounds": [
+  1,
+  1,
+  23,
+  24
+ ],
+ "visibleSize": [
+  22,
+  23
+ ],
+ "rawPxPerGamePx": 21.2,
+ "phase": [
+  0.0,
+  0.5
+ ],
+ "purity": 0.891,
+ "sampling": "block vote, factor/phase searched on the raw's own art grid",
+ "content": "white plump five-point star, light grey shade lower right, 1 px dark outline (#1C1A28-ish)",
+ "binaryAlpha": true,
+ "magentaPixels": 0,
+ "removedFringePixels": 1849,
+ "droppedSpecks": 0,
+ "processorCommand": [
+  "/Users/khope@sionic.ai/.cache/uv/environments-v2/process-36e8d3f049795c35/bin/python3",
+  "tools/sprites/sheet_processor.py",
+  "process",
+  "--input",
+  "assets/source/janitor-hidden/star-raw.png",
+  "--target",
+  "asset",
+  "--mode",
+  "single",
+  "--rows",
+  "1",
+  "--cols",
+  "1",
+  "--cell-size",
+  "256",
+  "--fit-scale",
+  "0.9",
+  "--align",
+  "center",
+  "--component-mode",
+  "largest",
+  "--output-dir",
+  "assets/source/janitor-hidden/star/standard",
+  "--component-padding",
+  "0",
+  "--trim-border",
+  "0",
+  "--strict-qc"
+ ]
+}
