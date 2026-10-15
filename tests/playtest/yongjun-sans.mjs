@@ -37,16 +37,20 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
   await shot('yongjun_02_out');
 
   let aura = false, silent = false, battle = false;
+  const fieldLines = [];
   for (let i = 0; i < 160 && !battle; i++) {
     const s = await page.evaluate(() => ({ text: game.textbox.node?.text || '', bgm: game.sound.bgmName, smoke: game.darkSmoke ? { mode: game.darkSmoke.mode, k: game.darkSmoke.elapsed / game.darkSmoke.duration, aura: !!game.darkSmoke.aura } : null, battle: !!game.battle, typing: game.textbox.state }));
     if (s.battle) { battle = true; break; }
     if (s.text.includes('... 오..') && !s.bgm) silent = true;
+    const spoken = await page.evaluate(() => `${game.textbox.node?.speaker || ''}:${game.textbox.node?.text || ''}`);
+    if (spoken !== ':' && fieldLines.at(-1) !== spoken) fieldLines.push(spoken);
     if (!aura && s.smoke?.mode === 'swell' && s.smoke.k > 0.7) { aura = s.smoke.aura && s.bgm === 'captain_reveal'; await shot('yongjun_03_aura'); }
     if (s.smoke?.mode === 'swell' && s.smoke.k <= 0.7) { await page.waitForTimeout(150); continue; }
     await press('KeyC'); await page.waitForTimeout(170);
   }
   check('“네 형님 … 욱...” 뒤 브금이 꺼진다', silent);
   check('“크크크...” 뒤 가재맨 첫 등장 보라 연기·오라와 그 브금(captain_reveal)', aura);
+  check('전투 직전 네 줄(끔찍한 → 억빠맨 → 경섭 → 들어와라)', JSON.stringify(fieldLines.slice(-4)) === JSON.stringify(['박용준:* 끔찍한 시간을 보내게해주지', '억빠맨:* 형님들 꽃의 부작용인거같아요', '경섭:* 허허 일단 처리해야겠네.', '박용준:* 들어와라']), JSON.stringify(fieldLines.slice(-4)));
   battle = await until(() => game.battle?.gimmick?.snapshot?.phase === 'talk' && game.battle.bubble?.shown > 4, 15000);
   check('전투 진입 뒤 바로 샌즈식 오프닝(말풍선)', !!battle);
   check('오프닝은 새소리(sans_birds)', await page.evaluate(() => game.sound.bgmName === 'sans_birds'));
@@ -106,7 +110,7 @@ await runScenario({ name: 'yongjun-sans' }, async ({ page, check, until, press, 
     check(`패턴 ${n} 뒤 행동 선택으로 돌아온다`, back);
   }
   check('상자 안 위협(악취·부스러기·눈물·불똥)은 상자 밖으로 새지 않는다', leaks.length === 0, JSON.stringify(leaks.slice(0, 6)));
-  check('턴마다 말풍선이 패턴 대사(포옹은 말풍선 없이 상자 안 외침)', speaks.filter(Boolean).length === 5 && new Set(speaks.filter(Boolean)).size === 5 && speaks[5] === null, JSON.stringify(speaks));
+  check('턴마다 말풍선이 패턴 대사(포옹은 “응? 인경님 무슨..”)', speaks.every(Boolean) && new Set(speaks).size === 6 && speaks[5] === '응? 인경님 무슨..', JSON.stringify(speaks));
 
   const before = await page.evaluate(() => ({ hpBonus: game.hpBonus, max: ['hyungsub', ...game.party].map(id => game.maxHpOf(id)) }));
   await page.evaluate(() => { game.battle.enemies[0].hp = 1; });
