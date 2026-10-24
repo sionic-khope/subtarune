@@ -33,6 +33,6 @@
 
 왕복 스폰은 자동 출구 영역 밖이다. 동쪽 회랑의 새 문은96×128px이며 문턱은y128이다. 기존 북쪽y64 저장은 표준 `freeSpot` 복원에서 아래 안전한 바닥으로 이동한다. QA 바로가기는 `castle_memory_door`, `gajaeman_memory1`, `memory_seobruto`, `gajaeman_memory2`, `memory_jiroesub`, `memory_udyrsub`, `memory_end`다.
 
-지역 표현은 오른쪽 회랑과 두 방이 같은 검정 석재·기둥·낮은 보라 이끼/용암광을 잇는다. 벽은 전용 `▦`/`castle308_wall.png`를 사용해 로비의 기존 `▥` 벽을 보존한다. 문과 새 환경의 생성 원본·파일 규격은 [환경 계약](../../../assets/source/memory308/environment/README.md), 세 적의 고정 외형과 각 자산 계약 연결은 [README](../../../README.md#기억의-방-캐릭터-기준-build308)에 둔다. 지정 전투곡의 원본/변환 기록은 [음원 계약](../../../assets/source/memory308/audio/README.md)을 따른다.
+지역 표현은 오른쪽 회랑과 두 방이 같은 검정 석재·기둥·낮은 보라 이끼/용암광을 잇는다. 벽은 전용 `▦`/`castle308_wall.png`를 사용해 로비의 기존 `▥` 벽을 보존한다. 문과 새 환경의 생성 원본·파일 규격은 [환경 계약](../../../assets/source/memory308/environment/README.md), 세 적의 고정 외형과 각 자산 계약 연결은 [README](../../../docs/development/build-log.md#기억의-방-캐릭터-기준-build308)에 둔다. 지정 전투곡의 원본/변환 기록은 [음원 계약](../../../assets/source/memory308/audio/README.md)을 따른다.
 
 다음 검수는 `?qa=castle_memory_door`에서 방향키로 닫힌 문 앞까지 접근한 뒤 C 진입·두 방 왕복·각 조우 승리 후 저장/재입장을 실제 입력으로 확인하는 것이다. 표지판 세 줄은 별도 조사로 끝나야 하며 중앙 봉인문이나 새 스토리 단계가 열리는 것으로 처리하지 않는다.

@@ -17,6 +17,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## 세션 시작 시 (필수)
 0. 개발·기획·검수의 모델 공통 기준은 [quality-contract](docs/development/quality-contract.md)다. 이 원본의 작업별 라우팅을 적용하며, 아래의 범용 스튜디오 템플릿보다 최신 사용자 확정과 이 프로젝트 계약을 우선한다.
+- 개발 정보는 README 가 아니라 `docs/` 에 있다: 빌드별 개발 기록은 `docs/development/build-log.md`, 최신 상태는 `docs/STATE.md`.
 1. `docs/STATE.md` 를 읽는다 — 현재 상태, 파일 위치, 사용자가 확정한 규칙, 다음 할 일.
 2. 맵은 `/map`, 컷신은 `/cutscene`, 적·전투는 `/enemy`; 아이디어는 `/subtarune-design`, 메뉴는 `/subtarune-ui`, 이미지 생성/모델 교체는 `/subtarune-sprite-production`(OpenGateway 실행은 `/subtarune-imagegen`), 담당 전달은 `/subtarune-sprite-handoff`, 회귀 검수는 `/subtarune-verify`를 적용한다. 호출 문법이 없는 Fable 등은 [공통 진입점](docs/development/fable-handoff.md)에서 같은 원본을 직접 읽는다. 실제 구현의 메인 반영은 `docs/STATE.md`의 “메인 반영·전투 확장 방향”을 따른다.
 

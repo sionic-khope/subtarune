@@ -169,3 +169,13 @@ assets/source/trailer408/*.png
 assets/source/janitor-hidden/ref/*.mp4
 assets/source/janitor-hidden/ref/*.webm
 assets/source/janitor-hidden/ref/*.info.json
+
+# 에이전트 도구·세션 상태(커밋하지 않는다) — 프로젝트 스킬 .omc/skills 만 예외
+.omc/*
+!.omc/skills/
+.omo/
+production/session-state/*
+!production/session-state/.gitkeep
+.ruff_cache/
+cc.json
+tools/dev/preview/*/
