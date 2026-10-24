@@ -1,4 +1,22 @@
-# SUBTARUNE
+<p align="center">
+  <img src="assets/readme/subtarune-logo.png" alt="SUBTARUNE" width="640">
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=hq7nXVGWXcI&t=5478s">
+    <img src="https://img.youtube.com/vi/hq7nXVGWXcI/maxresdefault.jpg" alt="SUBTARUNE 플레이 영상 보기" width="720">
+  </a>
+  <br>
+  <sub>▶ 이미지를 누르면 유튜브 영상(1:31:18부터)이 열립니다</sub>
+</p>
+
+<p align="center">
+  <a href="https://sionic-khope.github.io/subtarune/"><b>바로 플레이</b></a>
+</p>
+
+---
+
+## 개발 기록
 
 ### 암흑 추격자·기존 장면 교정 (BUILD319)
 
