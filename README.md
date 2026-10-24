@@ -3,11 +3,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=hq7nXVGWXcI&t=5478s">
+  <a href="https://www.youtube.com/watch?v=hq7nXVGWXcI">
     <img src="https://img.youtube.com/vi/hq7nXVGWXcI/maxresdefault.jpg" alt="SUBTARUNE 플레이 영상 보기" width="720">
   </a>
-  <br>
-  <sub>▶ 이미지를 누르면 유튜브 영상(1:31:18부터)이 열립니다</sub>
 </p>
 
 <p align="center">
