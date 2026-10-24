@@ -47,6 +47,8 @@ copy_file assets/source/fonts253/NeoDunggeunmo-LICENSE.txt
 copy_file assets/source/fonts253/Galmuri-LICENSE.txt
 # 에셋 목록·내용 지문(BUILD432): 서비스 워커가 바뀐 파일만 다시 받고, 게임이 백그라운드로 나머지를 채운다
 python3 tools/deploy/asset-manifest.py "$output_root"
+# README 트레일러 영상: 에셋 목록(게임이 백그라운드로 받는 목록)을 만든 뒤에 넣어 게임 다운로드·캐시에는 들어가지 않는다
+cp -- docs/media/subtarune-trailer.mp4 "$output_root/trailer.mp4"
 touch "$output_root/.nojekyll"
 printf '{"sourceSha":"%s","builtAt":"%s"}\n' "$source_sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$output_root/version.json"
 printf 'Packaged source %s into %s\n' "$source_sha" "$output_root"
